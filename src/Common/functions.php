@@ -461,15 +461,8 @@ function traceback()
 function get_svn_rev()
 {
 	$output = array();
-	exec("svn info ".dirname($_SERVER['SCRIPT_FILENAME'])."/../", $output);
-
-	foreach($output as $line)
-	{
-		if (starts_with($line, "Revision:"))
-		{
-			return trim(substr($line, 9));
-		}
-	}
+	exec("cd ".dirname($_SERVER['SCRIPT_FILENAME'])."/../ && git describe --tags", $output);
+	return trim($output[0]);
 }
 
 /*

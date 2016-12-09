@@ -6,7 +6,8 @@ The goal of the megSAP sproejct is to develop an NGS data analysis pipeline for 
  * fast
  * and usable for diagnostics:
  	* we use no tools that require a license for diagnostics e.g. [GATK](https://software.broadinstitute.org/gatk/)
-    * extensive logging and versioning
+    * extensive logging (tools, versions, parameters) ensures reproducability of results
+	* extensive testing before adding/updating tools or databases makes sure the results are valid
 
 megSAP is developed by the [Institute of Medical Genetics and Applied Genomics](http://www.uni-tuebingen.de/Klinische_Genetik/start.html) and several collaborators from academia and industry. If you are interested to join the effort, please contact [Marc Sturm](https://github.com/marc-sturm).
 
@@ -69,5 +70,6 @@ After the data analysis, the sample folder contains BAM and VCF (gzipped) files 
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+
 
 

@@ -11,19 +11,14 @@ $tests = array_map(function($value) { return substr($value, 10); }, $tests);
 
 //find tools under SVN control
 $tools = array();
-$tools2path = array();
-$tmp = array();
+$tools2path = array();;
 list($tmp) = exec2("find {$src}Chips/ {$src}NGS/ {$src}Tools/ {$src}Primer/ -name \"*.php\"");
 sort($tmp);
 foreach($tmp as $t)
 {
-	exec("svn info $t 2>&1", $output, $return);
-	if ($return==0)
-	{
-		$tool = basename($t);
-		$tools[] = $tool;
-		$tools2path[$tool] = substr($t, strlen($src));
-	}	
+	$tool = basename($t);
+	$tools[] = $tool;
+	$tools2path[$tool] = substr($t, strlen($src));
 }
 
 //find missing tools
