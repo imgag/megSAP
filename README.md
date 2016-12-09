@@ -68,5 +68,6 @@ After the data analysis, the sample folder contains BAM and VCF (gzipped) files 
 ## Support
 
 Please report any issues or questions to the [megSAP issue 
-tracker](https://github.com/marc-sturm/megSAP/issues).
+tracker](https://github.com/imgag/megSAP/issues).
+
 
