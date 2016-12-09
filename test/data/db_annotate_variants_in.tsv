@@ -1,0 +1,7 @@
+#chr	start	end	ref	obs	genotype	snp_q	depth	map_q	variant	variant_frequency	region	gene	variant_details	coding	snp_1000g2012feb_all	snp_snp135	ljb_phylop	ljb_mt	esp6500_ea	repeatmasker	quality_filter
+chrX	2724760	2724760	T	C	hom	222	86	44	SNV	1.0000	exonic	XG	nonsynonymous SNV	XG:NM_001141919:exon8:c.T392C:p.L131P,	0.97	rs111382948	.	.	0.9975	.	passed
+chrX	8138165	8138165	-	GCTCGG	hom	112	45	32	INDEL	0.0980	exonic	VCX2	nonframeshift insertion	VCX2:NM_016378:exon3:c.328_329insCCGAGC:p.V110delinsPSV,	.	.	.	.	.	.	passed
+chr12 	57961297 	57961297 	C 	T	het	31.60	30	16	SNV	0.9412	exonic	VCX2	nonsynonymous SNV	VCX2:NM_016378:exon3:c.G323C:p.S108T,	0.63	rs75657421	0.0410	0.0000	.	.	passed
+chr15 	23086366 	23086368 	GCC 	-	het	31.60	30	16	SNV	0.9412	exonic	VCX2	nonsynonymous SNV	VCX2:NM_016378:exon3:c.G323C:p.S108T,	0.63	rs75657421	0.0410	0.0000	.	.	passed
+chr12 	25398284 	25398284 	C 	T	het	31.60	30	16	SNV	0.9412	exonic	VCX2	nonsynonymous SNV	VCX2:NM_016378:exon3:c.G323C:p.S108T,	0.63	rs75657421	0.0410	0.0000	.	.	passed
+chr3	10188217	10188217	-	ATCT	het	31.60	30	16	SNV	0.9412	exonic	VCX2	nonsynonymous SNV	VCX2:NM_016378:exon3:c.G323C:p.S108T,	0.63	rs75657421	0.0410	0.0000	.	.	passed

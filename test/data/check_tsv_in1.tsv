@@ -1,0 +1,286 @@
+#chr	start	end	ref	obs	genotype	quality	region	gene	variant_details	coding	snp_1000g2012feb_all	snp_snp135	ljb_phylop	ljb_mt	esp6500_ea	repeatmasker	quality_filter
+chr1	69511	69511	A	G	hom	QUAL=222;DP=5;AO=5;MQM=59.0	exonic	OR4F5	nonsynonymous SNV	OR4F5:NM_001005484:exon1:c.A421G:p.T141A,	0.65	rs2691305	0.8278	0.0002	0.8874	.	passed
+chr1	801943	801943	C	T	hom	222	intergenic	LOC643837(dist=7117),FAM41C(dist=1508)	.	.	0.77	rs7516866	.	.	0.9148	.	passed
+chr1	801995	801995	G	A	het	198	intergenic	LOC643837(dist=7169),FAM41C(dist=1456)	.	.	0.42	rs7553084	.	.	.	.	passed
+chr1	802026	802026	G	A	het	188	intergenic	LOC643837(dist=7200),FAM41C(dist=1425)	.	.	0.34	rs7553096	.	.	.	.	passed
+chr1	802093	802093	G	A	hom	219	intergenic	LOC643837(dist=7267),FAM41C(dist=1358)	.	.	0.70	rs7553197	.	.	.	.	passed
+chr1	802320	802320	G	A	het	225	intergenic	LOC643837(dist=7494),FAM41C(dist=1131)	.	.	.	rs12565310	.	.	.	.	passed
+chr1	866511	866511	-	CCCC	het	70.5	intronic	SAMD11	.	.	.	.	.	.	.	.	passed
+chr1	866523	866523	-	TCCN	hom	214	invalid	invalid	invalid	invalid	invalid	invalid	invalid	invalid	invalid	invalid	passed
+chr1	876499	876499	A	G	hom	139	intronic	SAMD11	.	.	0.92	rs4372192	.	.	0.9377	.	failed
+chr1	877831	877831	T	C	hom	119	exonic	SAMD11	nonsynonymous SNV	SAMD11:NM_152486:exon10:c.T1027C:p.W343R,	1.00	rs6672356	0.9164	0.0004	.	.	failed
+chr1	881627	881627	G	A	hom	222	exonic	NOC2L	synonymous SNV	NOC2L:NM_015658:exon16:c.C1843T:p.L615L,	0.47	rs2272757	.	.	0.6379	.	passed
+chr1	883625	883625	A	G	hom	222	intronic	NOC2L	.	.	1.00	rs4970378	.	.	1.0000	.	passed
+chr1	887560	887560	A	C	hom	222	intronic	NOC2L	.	.	0.84	rs3748595	.	.	0.9327	.	passed
+chr1	887801	887801	A	G	hom	222	exonic	NOC2L	synonymous SNV	NOC2L:NM_015658:exon10:c.T1182C:p.T394T,	0.93	rs3828047	.	.	0.9384	.	passed
+chr1	888639	888639	T	C	hom	222	exonic	NOC2L	synonymous SNV	NOC2L:NM_015658:exon9:c.A918G:p.E306E,	0.93	rs3748596	.	.	0.9383	.	passed
+chr1	888659	888659	T	C	hom	222	exonic	NOC2L	nonsynonymous SNV	NOC2L:NM_015658:exon9:c.A898G:p.I300V,	0.93	rs3748597	0.8929	0.0000	0.9384	.	passed
+chr1	889158	889158	G	C	hom	222	splicing	NOC2L(NM_015658:exon9:c.888+4C>G)	.	.	0.85	rs56262069	.	.	0.9333	.	passed
+chr1	889159	889159	A	C	hom	222	splicing	NOC2L(NM_015658:exon9:c.888+3T>G)	.	.	0.85	rs13302945	.	.	0.9323	.	passed
+chr1	894573	894573	G	A	hom	222	intronic	NOC2L	.	.	0.65	rs13303010	.	.	0.8969	.	passed
+chr1	897325	897325	G	C	hom	222	exonic	KLHL17	synonymous SNV	KLHL17:NM_198317:exon4:c.G609C:p.A203A,	0.87	rs4970441	.	.	0.9262	.	passed
+chr1	898323	898323	T	C	hom	222	intronic	KLHL17	.	.	0.93	rs6605071	.	.	0.9409	.	passed
+chr1	909238	909238	G	C	het	225	exonic	PLEKHN1	nonsynonymous SNV	PLEKHN1:NM_001160184:exon13:c.G1355C:p.R452P,PLEKHN1:NM_032129:exon14:c.G1460C:p.R487P,	0.74	rs3829740	0.8857	0.0000	0.5833	.	passed
+chr1	909768	909768	A	G	hom	222	intronic	PLEKHN1	.	.	1.00	rs2340593	.	.	1.0000	.	passed
+chr1	948870	948870	C	G	hom	222	UTR5	ISG15	.	.	0.90	rs4615788	.	.	0.9553	.	passed
+chr1	948921	948921	T	C	hom	222	UTR5	ISG15	.	.	0.90	rs15842	.	.	0.9564	.	passed
+chr1	949654	949654	A	G	hom	222	exonic	ISG15	synonymous SNV	ISG15:NM_005101:exon2:c.A294G:p.V98V,	0.82	rs8997	.	.	0.9470	.	passed
+chr1	977330	977330	T	C	hom	222	intronic	AGRN	.	.	0.89	rs2799066	.	.	0.9208	.	passed
+chr1	977570	977570	G	A	hom	85.3	intronic	AGRN	.	.	0.81	rs2710876	.	.	0.9196	.	failed
+chr1	978604	978605	CT	-	hom	214	intronic	AGRN	.	.	0.51	rs138543546	.	.	.	.	passed
+chr1	978762	978762	G	A	het	225	exonic	AGRN	nonsynonymous SNV	AGRN:NM_198576:exon8:c.G1528A:p.G510S,	0.0027	rs138288952	0.9989	0.9987	0.0126	.	passed
+chr1	981087	981087	A	G	hom	222	intronic	AGRN	.	.	0.87	rs3128098	.	.	0.9270	.	passed
+chr1	981931	981931	A	G	hom	222	exonic	AGRN	synonymous SNV	AGRN:NM_198576:exon18:c.A3066G:p.S1022S,	0.82	rs2465128	.	.	0.9098	.	passed
+chr1	982844	982844	G	C	het	133	intronic	AGRN	.	.	0.04	rs76264143	.	.	0.0750	.	passed
+chr1	982941	982941	T	C	hom	222	intronic	AGRN	.	.	0.82	rs3128102	.	.	0.9154	.	passed
+chr1	982994	982994	T	C	hom	222	exonic	AGRN	synonymous SNV	AGRN:NM_198576:exon21:c.T3558C:p.F1186F,	0.84	rs10267	.	.	0.9187	.	passed
+chr1	984302	984302	T	C	hom	222	exonic	AGRN	synonymous SNV	AGRN:NM_198576:exon24:c.T4161C:p.T1387T,	0.57	rs9442391	.	.	0.5494	.	passed
+chr1	985266	985266	C	T	hom	203	intronic	AGRN	.	.	0.53	rs2275813	.	.	0.5278	.	passed
+chr1	987200	987200	C	T	hom	222	intronic	AGRN	.	.	0.81	rs9803031	.	.	0.9100	.	passed
+chr1	990280	990280	C	T	hom	171	exonic	AGRN	synonymous SNV	AGRN:NM_198576:exon36:c.C6057T:p.D2019D,	0.62	rs4275402	.	.	0.7054	.	passed
+chr1	1021415	1021415	A	G	hom	222	intronic	C1orf159	.	.	0.80	rs3737728	.	.	0.7217	.	passed
+chr1	1026801	1026801	T	A	hom	194	intronic	C1orf159	.	.	0.65	rs4562563	.	.	0.6152	.	passed
+chr1	1120307	1120307	G	A	het	54	intronic	TTLL10	.	.	0.30	rs7539911	.	.	.	.	passed
+chr1	1120377	1120377	T	A	het	225	exonic	TTLL10	nonsynonymous SNV	TTLL10:NM_153254:exon9:c.T1070A:p.M357K,TTLL10:NM_001130045:exon13:c.T1289A:p.M430K,	0.01	rs116321663	0.9449	0.0048	0.0242	.	passed
+chr1	1147422	1147422	C	T	het	154	exonic	TNFRSF4	synonymous SNV	TNFRSF4:NM_003327:exon5:c.G534A:p.E178E,	0.45	rs17568	.	.	0.2052	.	passed
+chr1	1147986	1147986	-	TCCCAGCCNCTGGCCCCTCTGCCCCCTCA	het	38.5	invalid	invalid	invalid	invalid	invalid	invalid	invalid	invalid	invalid	invalid	failed
+chr1	1153113	1153113	G	A	het	225	exonic	SDF4	synonymous SNV	SDF4:NM_016547:exon7:c.C984T:p.L328L,	0.14	rs12036216	.	.	0.1070	.	passed
+chr1	1158631	1158631	A	G	hom	222	exonic	SDF4	synonymous SNV	SDF4:NM_016176:exon4:c.T570C:p.D190D,SDF4:NM_016547:exon4:c.T570C:p.D190D,	0.94	rs6603781	.	.	0.8898	.	passed
+chr1	1177919	1177919	T	-	het	14.6	UTR3	FAM132A	.	.	0.08	rs139102213	.	.	.	.	failed
+chr1	1178245	1178245	C	T	het	224	exonic	FAM132A	synonymous SNV	FAM132A:NM_001014980:exon7:c.G780A:p.T260T,	0.17	rs11260566	.	.	0.0917	.	passed
+chr1	1178482	1178482	A	G	het	225	exonic	FAM132A	nonsynonymous SNV	FAM132A:NM_001014980:exon6:c.T691C:p.C231R,	0.18	rs78555129	0.9746	0.0002	0.0871	.	passed
+chr1	1178925	1178925	G	A	het	158	exonic	FAM132A	nonsynonymous SNV	FAM132A:NM_001014980:exon5:c.C539T:p.A180V,	0.14	rs12093154	0.9992	0.7291	0.0815	.	passed
+chr1	1179374	1179374	A	C	het	3.54	exonic	FAM132A	nonsynonymous SNV	FAM132A:NM_001014980:exon4:c.T491G:p.V164G,	.	.	0.9976	0.9951	.	.	failed
+chr1	1179800	1179800	G	A	het	202	exonic	FAM132A	synonymous SNV	FAM132A:NM_001014980:exon2:c.C255T:p.G85G,	0.01	rs115586508	.	.	0.0304	.	passed
+chr1	1225641	1225641	C	A	het	225	intronic	SCNN1D	.	.	0.48	rs2748384	.	.	0.1108	.	passed
+chr1	1225959	1225959	C	G	het	225	intronic	SCNN1D	.	.	0.52	rs1570867	.	.	0.1310	.	passed
+chr1	1226221	1226221	A	G	het	216	intronic	SCNN1D	.	.	0.47	rs2273275	.	.	0.1290	.	passed
+chr1	1226348	1226348	C	G	het	198	intronic	SCNN1D	.	.	0.46	rs586965	.	.	0.1234	.	passed
+chr1	1226418	1226418	C	T	het	121	intronic	SCNN1D	.	.	.	.	.	.	0.0040	.	passed
+chr1	1226419	1226419	G	A	het	122	intronic	SCNN1D	.	.	.	.	.	.	0.0055	.	passed
+chr1	1235604	1235604	G	A	het	86	intronic	ACAP3	.	.	0.0018	rs75245886	.	.	0.0052	.	passed
+chr1	1237604	1237604	T	C	hom	222	intronic	ACAP3	.	.	0.88	rs2296475	.	.	.	.	passed
+chr1	1238492	1238492	G	A	het	141	intronic	ACAP3	.	.	0.14	rs12408158	.	.	0.1187	.	passed
+chr1	1246004	1246004	A	G	hom	222	intronic	PUSL1	.	.	0.96	rs2296474	.	.	0.9701	.	passed
+chr1	1247494	1247494	T	C	het	225	exonic	CPSF3L	synonymous SNV	CPSF3L:NM_001256460:exon17:c.A1554G:p.P518P,CPSF3L:NM_001256462:exon14:c.A1347G:p.P449P,CPSF3L:NM_001256463:exon14:c.A1338G:p.P446P,CPSF3L:NM_017871:exon16:c.A1641G:p.P547P,CPSF3L:NM_001256456:exon18:c.A1659G:p.P553P,	0.39	rs12103	.	.	0.8065	.	passed
+chr1	1249187	1249187	G	A	het	225	exonic	CPSF3L	synonymous SNV	CPSF3L:NM_001256460:exon10:c.C795T:p.F265F,CPSF3L:NM_001256462:exon7:c.C588T:p.F196F,CPSF3L:NM_001256463:exon7:c.C579T:p.F193F,CPSF3L:NM_017871:exon9:c.C882T:p.F294F,CPSF3L:NM_001256456:exon11:c.C900T:p.F300F,	0.38	rs12142199	.	.	0.7978	.	passed
+chr1	1254841	1254841	C	G	hom	222	exonic	CPSF3L	synonymous SNV	CPSF3L:NM_001256460:exon5:c.G177C:p.G59G,CPSF3L:NM_017871:exon4:c.G264C:p.G88G,CPSF3L:NM_001256456:exon6:c.G282C:p.G94G,	0.75	rs10907179	.	.	0.9322	.	passed
+chr1	1261486	1261486	G	A	het	225	intronic	GLTPD1	.	.	.	.	.	.	0.0003	.	passed
+chr1	1262591	1262591	C	T	hom	222	intronic	GLTPD1	.	.	0.75	rs2296472	.	.	0.9331	.	passed
+chr1	1262966	1262966	C	T	hom	222	exonic	GLTPD1	synonymous SNV	GLTPD1:NM_001029885:exon3:c.C468T:p.R156R,	0.78	rs307349	.	.	0.9313	.	passed
+chr1	1263144	1263144	G	A	hom	222	UTR3	GLTPD1	.	.	0.84	rs307350	.	.	0.9358	.	passed
+chr1	1263362	1263362	G	A	hom	222	UTR3	GLTPD1	.	.	0.75	rs4970433	.	.	0.9308	.	passed
+chr1	1263457	1263457	T	C	hom	222	UTR3	GLTPD1	.	.	0.96	rs307351	.	.	0.9686	.	passed
+chr1	1268847	1268847	T	G	hom	222	intronic	TAS1R3	.	.	0.96	rs307378	.	.	0.9708	.	passed
+chr1	1269554	1269554	T	C	hom	147	exonic	TAS1R3	nonsynonymous SNV	TAS1R3:NM_152228:exon6:c.T2269C:p.C757R,	0.96	rs307377	0.0966	0.0001	0.9710	.	failed
+chr1	1277533	1277533	T	C	hom	222	exonic;splicing	DVL1;DVL1	synonymous SNV	DVL1:NM_004421:exon4:c.A366G:p.P122P,	0.99	rs307362	.	.	0.9987	.	passed
+chr1	1289043	1289043	G	C	het	225	intronic	MXRA8	.	.	0.0037	rs146120010	.	.	0.0092	.	passed
+chr1	1289368	1289369	TG	-	hom	214	intronic	MXRA8	.	.	.	rs140777846	.	.	.	.	passed
+chr1	1289911	1289911	G	A	hom	221	intronic	MXRA8	.	.	0.84	rs4970365	.	.	0.9373	.	passed
+chr1	1293764	1293764	G	C	het	108	intronic	MXRA8	.	.	0.39	rs34841888	.	.	0.8146	.	passed
+chr1	1310074	1310074	C	G	hom	222	intronic	AURKAIP1	.	.	0.84	rs2765035	.	.	0.9559	.	passed
+chr1	1323144	1323145	CT	-	het	217	intronic	CCNL2	.	.	0.42	rs141100746	.	.	.	.	passed
+chr1	1330726	1330726	A	G	het	225	intronic	CCNL2	.	.	0.60	rs1240746	.	.	0.1735	.	passed
+chr1	1333598	1333598	C	A	het	225	intronic	CCNL2	.	.	0.33	rs35242196	.	.	0.1098	.	passed
+chr1	1342612	1342612	G	C	het	99	UTR5	MRPL20	.	.	0.39	rs2275915	.	.	0.1663	.	passed
+chr1	1361555	1361555	T	C	het	173	exonic	TMEM88B	synonymous SNV	TMEM88B:NM_001146685:exon1:c.T48C:p.G16G,	0.17	rs1695848	.	.	.	.	passed
+chr1	1361641	1361641	C	T	het	17.1	exonic	TMEM88B	nonsynonymous SNV	TMEM88B:NM_001146685:exon1:c.C134T:p.P45L,	0.60	rs12030806	.	.	.	.	failed
+chr1	1386016	1386016	A	G	het	184	UTR5	ATAD3C	.	.	0.25	rs34301361	.	.	.	.	passed
+chr1	1387726	1387726	A	G	het	225	intronic	ATAD3C	.	.	0.27	rs9793066	.	.	0.1637	.	passed
+chr1	1387764	1387764	G	A	het	225	exonic	ATAD3C	nonsynonymous SNV	ATAD3C:NM_001039211:exon3:c.G172A:p.G58R,	0.25	rs9793256	.	.	0.1618	.	passed
+chr1	1390875	1390875	C	T	het	193	exonic	ATAD3C	synonymous SNV	ATAD3C:NM_001039211:exon5:c.C414T:p.D138D,	0.39	rs1781147	.	.	0.1939	.	passed
+chr1	1391304	1391304	T	C	het	201	intronic	ATAD3C	.	.	0.34	rs1695873	.	.	0.1923	.	passed
+chr1	1392451	1392451	C	T	het	225	intronic	ATAD3C	.	.	0.41	rs1781149	.	.	0.2000	.	passed
+chr1	1417696	1417696	C	G	het	47	intronic	ATAD3B	.	.	0.76	rs819970	.	.	.	.	passed
+chr1	1421157	1421157	G	A	het	99	intronic	ATAD3B	.	.	0.01	rs1622213	.	.	.	.	passed
+chr1	1431165	1431165	C	T	het	183	exonic	ATAD3B	nonsynonymous SNV	ATAD3B:NM_031921:exon16:c.C1915T:p.P639S,	0.22	rs9792879	0.7612	0.0000	.	.	passed
+chr1	1477578	1477578	G	A	het	225	intronic	SSU72	.	.	0.01	rs41286746	.	.	0.0192	.	passed
+chr1	1551927	1551927	T	C	het	225	exonic	MIB2	nonsynonymous SNV	MIB2:NM_001170688:exon2:c.T214C:p.F72L,MIB2:NM_080875:exon2:c.T214C:p.F72L,MIB2:NM_001170686:exon2:c.T214C:p.F72L,MIB2:NM_001170687:exon2:c.T214C:p.F72L,	0.51	rs7418389	0.2349	0.0000	0.7219	.	passed
+chr1	1558792	1558792	T	C	hom	222	exonic	MIB2	nonsynonymous SNV	MIB2:NM_001170688:exon3:c.T305C:p.M102T,MIB2:NM_080875:exon3:c.T305C:p.M102T,MIB2:NM_001170686:exon3:c.T305C:p.M102T,	0.76	rs12755088	0.0365	0.0000	0.9401	.	passed
+chr1	1562437	1562437	C	G	het	156	intronic	MIB2	.	.	0.37	rs28510084	.	.	0.2135	.	passed
+chr1	1562536	1562536	G	A	het	225	exonic	MIB2	synonymous SNV	MIB2:NM_001170689:exon10:c.G1128A:p.A376A,MIB2:NM_001170688:exon10:c.G1473A:p.A491A,MIB2:NM_080875:exon11:c.G1668A:p.A556A,MIB2:NM_001170686:exon11:c.G1656A:p.A552A,MIB2:NM_001170687:exon11:c.G1626A:p.A542A,	0.14	rs11544452	.	.	0.1215	.	passed
+chr1	1563789	1563789	C	A	het	111	intronic	MIB2	.	.	0.18	rs74892851	.	.	0.3785	.	passed
+chr1	1564953	1564953	G	-	het	16.6	intronic	MIB2	.	.	0.19	rs112177324	.	.	.	.	failed
+chr1	1575616	1575616	T	C	hom	59	intronic	CDK11B	.	.	0.80	rs28394074	.	.	.	.	passed
+chr1	1575836	1575836	C	G	het	112	intronic	CDK11B	.	.	.	rs71509490	.	.	.	.	passed
+chr1	1580738	1580738	T	A	het	120	intronic	CDK11B	.	.	.	rs149767621	.	.	.	2298	passed
+chr1	1581096	1581096	C	T	het	209	intronic	CDK11B	.	.	.	rs145723946	.	.	.	444	passed
+chr1	1581558	1581558	C	T	hom	150	intronic	CDK11B	.	.	0.68	rs117719933	.	.	.	2655	passed
+chr1	1581586	1581586	T	C	hom	179	intronic	CDK11B	.	.	0.75	rs61774914	.	.	.	2655	passed
+chr1	1581713	1581713	A	C	het	225	intronic	CDK11B	.	.	0.30	rs76922129	.	.	0.4764	2655	passed
+chr1	1581759	1581759	G	A	het	25	intronic	CDK11B	.	.	.	rs61774915	.	.	.	2655	passed
+chr1	1582106	1582106	T	C	hom	222	intronic	CDK11B	.	.	.	rs4648753	.	.	0.9569	2655	passed
+chr1	1582202	1582202	C	T	het	225	intronic	CDK11B	.	.	.	rs61774918	.	.	.	2655	passed
+chr1	1585597	1585597	A	G	hom	222	intronic	CDK11B	.	.	0.63	rs7531938	.	.	0.7119	.	passed
+chr1	1585642	1585642	G	T	hom	222	intronic	CDK11B	.	.	0.63	rs3936009	.	.	0.7121	.	passed
+chr1	1599940	1599940	C	T	het	64	intronic	CDK11B,SLC35E2B	.	.	.	rs61776767	.	.	.	.	passed
+chr1	1601052	1601052	G	A	het	200	intronic	CDK11B,SLC35E2B	.	.	0.14	rs72634826	.	.	0.2637	.	passed
+chr1	1607686	1607686	A	G	hom	63	intronic	CDK11B,SLC35E2B	.	.	.	rs144293222	.	.	.	.	passed
+chr1	1635004	1635004	T	C	hom	222	exonic	CDK11A	synonymous SNV	CDK11A:NM_033529:exon18:c.A1941G:p.K647K,CDK11A:NM_024011:exon18:c.A1971G:p.K657K,	0.54	rs874516	.	.	0.5637	.	passed
+chr1	1635619	1635619	T	C	hom	222	intronic	CDK11A,CDK11B	.	.	0.62	rs2076329	.	.	0.5912	.	passed
+chr1	1635749	1635749	C	A	hom	222	exonic	CDK11A	synonymous SNV	CDK11A:NM_033529:exon15:c.G1569T:p.R523R,CDK11A:NM_024011:exon15:c.G1599T:p.R533R,	0.34	rs1136997	.	.	0.5110	.	passed
+chr1	1636044	1636044	G	A	hom	222	exonic	CDK11A	synonymous SNV	CDK11A:NM_033529:exon14:c.C1479T:p.Y493Y,CDK11A:NM_024011:exon14:c.C1509T:p.Y503Y,	0.50	rs1059822	.	.	0.5644	.	passed
+chr1	1639046	1639046	C	G	hom	31	intronic	CDK11A,CDK11B	.	.	.	rs138369165	.	.	.	.	passed
+chr1	1639062	1639062	T	C	hom	17.1	intronic	CDK11A,CDK11B	.	.	.	rs149613000	.	.	.	.	failed
+chr1	1647745	1647745	G	A	het	83	intronic	CDK11A,CDK11B	.	.	.	rs72634830	.	.	.	.	passed
+chr1	1647753	1647753	C	T	het	115	intronic	CDK11A,CDK11B	.	.	.	rs74045984	.	.	.	.	passed
+chr1	1647778	1647778	C	G	het	225	intronic	CDK11A,CDK11B	.	.	0.50	rs72901773	.	.	.	.	passed
+chr1	1647814	1647814	T	C	het	225	exonic	CDK11A,CDK11B	synonymous SNV	CDK11B:NM_033486:exon5:c.A459G:p.E153E,CDK11B:NM_033493:exon5:c.A426G:p.E142E,CDK11B:NM_033489:exon6:c.A357G:p.E119E,CDK11A:NM_033529:exon5:c.A429G:p.E143E,CDK11B:NM_033492:exon5:c.A426G:p.E142E,CDK11A:NM_024011:exon5:c.A459G:p.E153E,CDK11B:NM_033488:exon6:c.A324G:p.E108E,	0.50	rs72901775	.	.	.	.	passed
+chr1	1647871	1647871	T	C	het	225	exonic	CDK11A,CDK11B	synonymous SNV	CDK11B:NM_033486:exon5:c.A402G:p.R134R,CDK11B:NM_033493:exon5:c.A369G:p.R123R,CDK11B:NM_033489:exon6:c.A300G:p.R100R,CDK11A:NM_033529:exon5:c.A372G:p.R124R,CDK11B:NM_033492:exon5:c.A369G:p.R123R,CDK11A:NM_024011:exon5:c.A402G:p.R134R,CDK11B:NM_033488:exon6:c.A267G:p.R89R,	0.50	rs72909014	.	.	.	.	passed
+chr1	1647894	1647894	-	TTTCTT	het	217	exonic	CDK11A,CDK11B	nonframeshift insertion	CDK11B:NM_033486:exon5:c.379_380insAAGAAA:p.R127delinsKKR,CDK11B:NM_033493:exon5:c.346_347insAAGAAA:p.R116delinsKKR,CDK11B:NM_033489:exon6:c.277_278insAAGAAA:p.R93delinsKKR,CDK11A:NM_033529:exon5:c.349_350insAAGAAA:p.R117delinsKKR,CDK11B:NM_033492:exon5:c.346_347insAAGAAA:p.R116delinsKKR,CDK11A:NM_024011:exon5:c.379_380insAAGAAA:p.R127delinsKKR,CDK11B:NM_033488:exon6:c.244_245insAAGAAA:p.R82delinsKKR,	.	.	.	.	.	.	passed
+chr1	1650787	1650787	T	C	het	225	exonic	CDK11A,CDK11B	nonsynonymous SNV	CDK11B:NM_033486:exon4:c.A335G:p.H112R,CDK11B:NM_033489:exon5:c.A233G:p.H78R,CDK11A:NM_024011:exon4:c.A335G:p.H112R,	0.50	rs1137003	.	.	.	.	passed
+chr1	1650797	1650797	A	G	het	105	exonic;splicing	CDK11A,CDK11B;CDK11A,CDK11B(NM_033488:exon6:c.222+1T>C,NM_033492:exon5:c.324+1T>C,NM_033493:exon5:c.324+1T>C)	nonsynonymous SNV	CDK11B:NM_033486:exon4:c.T325C:p.C109R,CDK11B:NM_033489:exon5:c.T223C:p.C75R,CDK11A:NM_033529:exon4:c.T325C:p.W109R,CDK11A:NM_024011:exon4:c.T325C:p.C109R,	0.50	rs1059830	.	.	.	.	passed
+chr1	1650801	1650801	T	C	het	62	exonic;splicing	CDK11A,CDK11B;CDK11B	synonymous SNV	CDK11B:NM_033486:exon4:c.A321G:p.E107E,CDK11B:NM_033493:exon4:c.A321G:p.E107E,CDK11B:NM_033489:exon5:c.A219G:p.E73E,CDK11A:NM_033529:exon4:c.A321G:p.E107E,CDK11B:NM_033492:exon4:c.A321G:p.E107E,CDK11A:NM_024011:exon4:c.A321G:p.E107E,CDK11B:NM_033488:exon5:c.A219G:p.E73E,	0.50	rs1137004	.	.	.	.	passed
+chr1	1650807	1650807	T	C	het	225	exonic	CDK11A,CDK11B	synonymous SNV	CDK11B:NM_033486:exon4:c.A315G:p.R105R,CDK11B:NM_033493:exon4:c.A315G:p.R105R,CDK11B:NM_033489:exon5:c.A213G:p.R71R,CDK11A:NM_033529:exon4:c.A315G:p.R105R,CDK11B:NM_033492:exon4:c.A315G:p.R105R,CDK11A:NM_024011:exon4:c.A315G:p.R105R,CDK11B:NM_033488:exon5:c.A213G:p.R71R,	0.46	rs1137005	.	.	.	.	passed
+chr1	1650832	1650832	A	G	het	225	exonic	CDK11A,CDK11B	nonsynonymous SNV	CDK11B:NM_033486:exon4:c.T290C:p.V97A,CDK11B:NM_033493:exon4:c.T290C:p.V97A,CDK11B:NM_033489:exon5:c.T188C:p.V63A,CDK11A:NM_033529:exon4:c.T290C:p.V97A,CDK11B:NM_033492:exon4:c.T290C:p.V97A,CDK11A:NM_024011:exon4:c.T290C:p.V97A,CDK11B:NM_033488:exon5:c.T188C:p.V63A,	0.50	rs72909030	.	.	.	.	passed
+chr1	1650845	1650845	G	A	het	225	exonic	CDK11A,CDK11B	nonsynonymous SNV	CDK11B:NM_033486:exon4:c.C277T:p.R93W,CDK11B:NM_033493:exon4:c.C277T:p.R93W,CDK11B:NM_033489:exon5:c.C175T:p.R59W,CDK11A:NM_033529:exon4:c.C277T:p.R93W,CDK11B:NM_033492:exon4:c.C277T:p.R93W,CDK11A:NM_024011:exon4:c.C277T:p.R93W,CDK11B:NM_033488:exon5:c.C175T:p.R59W,	0.46	rs1059831	.	.	0.4880	.	passed
+chr1	1650920	1650920	G	A	het	225	intronic	CDK11A,CDK11B	.	.	0.38	rs36191908	.	.	.	.	passed
+chr1	1650939	1650940	GG	-	het	6.55	intronic	CDK11A,CDK11B	.	.	.	.	.	.	.	.	failed
+chr1	1653004	1653004	T	C	hom	222	intronic	CDK11A,CDK11B	.	.	0.74	rs36039898	.	.	0.9273	.	passed
+chr1	1653028	1653028	C	T	hom	222	intronic	CDK11A,CDK11B	.	.	0.80	rs16825265	.	.	0.9298	.	passed
+chr1	1654038	1654038	G	A	hom	20.2	UTR5	CDK11B	.	.	0.61	rs61777494	.	.	.	.	passed
+chr1	1654058	1654058	C	T	hom	94.5	UTR5	CDK11B	.	.	0.63	rs61777495	.	.	.	.	passed
+chr1	1654066	1654068	GCG	-	hom	160	UTR5	CDK11B	.	.	0.70	rs35174499	.	.	.	.	passed
+chr1	1663831	1663831	C	T	hom	222	UTR3	SLC35E2	.	.	0.33	rs3817856	.	.	0.5161	.	passed
+chr1	1664019	1664019	T	C	hom	222	intronic	SLC35E2	.	.	0.74	rs2294488	.	.	0.9267	.	passed
+chr1	1669734	1669734	G	T	hom	204	intronic	SLC35E2	.	.	0.33	rs61777512	.	.	0.5124	.	passed
+chr1	1686040	1686040	G	T	hom	222	exonic	NADK	nonsynonymous SNV	NADK:NM_001198994:exon10:c.C1221A:p.N407K,NADK:NM_023018:exon8:c.C786A:p.N262K,NADK:NM_001198995:exon6:c.C690A:p.N230K,NADK:NM_001198993:exon8:c.C786A:p.N262K,	0.28	rs4751	0.1358	0.9892	0.4226	.	passed
+chr1	1686943	1686943	T	C	hom	222	intronic	NADK	.	.	0.38	rs2072929	.	.	0.4784	.	passed
+chr1	1686962	1686962	C	T	hom	216	intronic	NADK	.	.	0.36	rs2076327	.	.	0.4971	.	passed
+chr1	1696659	1696659	A	G	hom	222	intronic	NADK	.	.	0.79	rs75906779	.	.	0.9455	.	passed
+chr1	1844021	1844021	C	T	het	225	intergenic	GNB1(dist=21495),CALML6(dist=2245)	.	.	0.0023	rs4648733	.	.	0.0101	541	passed
+chr1	1844693	1844693	C	T	hom	192	intergenic	GNB1(dist=22167),CALML6(dist=1573)	.	.	0.44	rs28842562	.	.	.	2346	passed
+chr1	1885055	1885055	C	T	hom	222	UTR3	KIAA1751	.	.	0.64	rs2474455	.	.	0.7740	1560	passed
+chr1	1886205	1886205	-	GAGT	hom	214	UTR3	KIAA1751	.	.	.	.	.	.	.	1962	passed
+chr1	1886220	1886220	C	T	hom	222	UTR3	KIAA1751	.	.	.	rs4648738	.	.	.	1962	passed
+chr1	1886222	1886222	T	G	hom	222	UTR3	KIAA1751	.	.	0.82	rs2803287	.	.	.	1962	passed
+chr1	1886347	1886347	-	GCC	hom	214	UTR3	KIAA1751	.	.	.	.	.	.	.	.	passed
+chr1	1886385	1886385	T	C	hom	222	UTR3	KIAA1751	.	.	0.82	rs2803286	.	.	0.8180	.	passed
+chr1	1887019	1887019	A	G	hom	50	exonic	KIAA1751	stoploss SNV	KIAA1751:NM_001080484:exon18:c.T2287C:p.X763Q,	0.81	rs28548017	0.0478	0.0000	0.8218	.	failed
+chr1	1887112	1887112	C	-	hom	185	exonic	KIAA1751	frameshift deletion	KIAA1751:NM_001080484:exon18:c.2194delG:p.A732fs,	0.22	rs141242161	.	.	.	.	passed
+chr1	1887245	1887245	G	A	hom	222	exonic	KIAA1751	synonymous SNV	KIAA1751:NM_001080484:exon18:c.C2061T:p.A687A,	0.22	rs28575980	.	.	0.2466	.	passed
+chr1	1888193	1888193	C	A	hom	222	exonic	KIAA1751	nonsynonymous SNV	KIAA1751:NM_001080484:exon17:c.G1882T:p.G628C,	0.24	rs3820011	0.9978	0.4456	0.2633	.	passed
+chr1	1892048	1892048	G	C	hom	222	intronic	KIAA1751	.	.	0.59	rs2803292	.	.	0.5883	859	passed
+chr1	1922303	1922303	C	T	het	174	intronic	KIAA1751	.	.	0.63	rs13303195	.	.	0.5422	.	passed
+chr1	1956362	1956362	G	A	hom	222	intronic	GABRD	.	.	0.80	rs2376805	.	.	0.8329	.	passed
+chr1	1957037	1957037	T	C	hom	222	exonic	GABRD	synonymous SNV	GABRD:NM_000815:exon4:c.T330C:p.G110G,	0.59	rs2229110	.	.	0.6605	.	passed
+chr1	1987993	1987993	T	C	het	225	exonic	PRKCZ	synonymous SNV	PRKCZ:NM_002744:exon3:c.T264C:p.D88D,	0.63	rs12184	.	.	0.3436	.	passed
+chr1	1991014	1991014	A	G	het	225	exonic	PRKCZ	synonymous SNV	PRKCZ:NM_002744:exon4:c.A318G:p.P106P,	0.24	rs1878745	.	.	0.1845	.	passed
+chr1	2077409	2077409	A	G	hom	222	intronic	PRKCZ	.	.	0.24	rs385039	.	.	0.2722	.	passed
+chr1	2082458	2082458	C	T	hom	222	intronic	PRKCZ	.	.	0.24	rs262670	.	.	0.2733	.	passed
+chr1	2118539	2118539	T	C	hom	183	intronic	C1orf86	.	.	0.83	rs2503699	.	.	0.6763	.	passed
+chr1	2121118	2121118	C	T	hom	212	UTR3	C1orf86	.	.	0.69	rs2503701	.	.	0.6071	.	passed
+chr1	2288852	2288852	G	A	het	225	intronic	MORN1	.	.	0.18	rs2645087	.	.	0.1566	.	passed
+chr1	2332391	2332391	C	T	het	203	intronic	RER1	.	.	0.35	rs12037485	.	.	0.4499	.	passed
+chr1	2338126	2338126	C	A	het	93	intronic	PEX10	.	.	0.35	rs3795269	.	.	0.4278	.	passed
+chr1	2340200	2340200	T	C	hom	222	exonic	PEX10	synonymous SNV	PEX10:NM_153818:exon3:c.A291G:p.T97T,PEX10:NM_002617:exon3:c.A291G:p.T97T,	0.73	rs2494598	.	.	0.8170	.	passed
+chr1	2340212	2340212	G	A	het	225	exonic	PEX10	synonymous SNV	PEX10:NM_153818:exon3:c.C279T:p.G93G,PEX10:NM_002617:exon3:c.C279T:p.G93G,	0.02	.	.	.	0.0627	.	passed
+chr1	2409892	2409892	A	G	het	225	intronic	PLCH2	.	.	0.69	rs12727342	.	.	0.6267	.	passed
+chr1	2411451	2411451	A	G	het	136	intronic	PLCH2	.	.	0.64	rs10797428	.	.	0.6262	.	failed
+chr1	2422614	2422614	G	A	het	219	intronic	PLCH2	.	.	0.77	rs2477699	.	.	0.7248	.	passed
+chr1	2431057	2431057	C	T	het	225	intronic	PLCH2	.	.	0.34	rs2477707	.	.	0.1997	.	passed
+chr1	2441358	2441358	T	C	het	225	exonic	PANK4	nonsynonymous SNV	PANK4:NM_018216:exon18:c.A2051G:p.Q684R,	0.39	rs2494620	0.0988	0.0000	0.2230	.	passed
+chr1	2441392	2441392	T	C	het	225	intronic	PANK4	.	.	0.39	rs2494619	.	.	0.2221	.	passed
+chr1	2445406	2445406	A	G	het	150	intronic	PANK4	.	.	0.39	rs2247308	.	.	0.2230	.	passed
+chr1	2446960	2446960	T	C	het	108	intronic	PANK4	.	.	0.39	rs2236394	.	.	0.2233	.	passed
+chr1	2452357	2452357	G	A	het	225	intronic	PANK4	.	.	0.39	rs2494636	.	.	0.2229	.	passed
+chr1	2452569	2452569	T	C	het	225	exonic	PANK4	synonymous SNV	PANK4:NM_018216:exon3:c.A393G:p.K131K,	0.84	rs2985862	.	.	0.7422	.	passed
+chr1	2488153	2488153	A	G	hom	222	exonic	TNFRSF14	nonsynonymous SNV	TNFRSF14:NM_003820:exon1:c.A50G:p.K17R,	0.55	rs4870	0.1259	0.0021	0.4720	.	passed
+chr1	2491214	2491214	T	G	het	22	intronic	TNFRSF14	.	.	.	.	.	.	.	.	passed
+chr1	2520500	2520500	G	A	hom	222	intronic	FAM213B	.	.	0.49	rs6701238	.	.	0.3387	.	passed
+chr1	2520527	2520527	T	C	hom	143	intronic	FAM213B	.	.	0.49	rs6670198	.	.	0.3340	.	passed
+chr1	2524025	2524047	CCCCCTCCCCTGCCGCGCTGACG	-	hom	116	intronic	MMEL1	.	.	.	.	.	.	.	.	passed
+chr1	2524205	2524205	C	T	hom	222	intronic	MMEL1	.	.	0.43	rs745368	.	.	0.3171	.	passed
+chr1	2526746	2526746	A	G	hom	222	exonic	MMEL1	nonsynonymous SNV	MMEL1:NM_033467:exon16:c.T1553C:p.M518T,	0.48	rs3748816	0.0049	0.0000	0.3363	.	passed
+chr1	2535613	2535613	C	A	hom	222	exonic	MMEL1	synonymous SNV	MMEL1:NM_033467:exon10:c.G924T:p.V308V,	0.43	rs4648562	.	.	0.3176	.	passed
+chr1	2535758	2535758	A	G	hom	222	intronic	MMEL1	.	.	0.47	rs4648652	.	.	0.3346	.	passed
+chr1	2537095	2537095	G	A	hom	222	intronic	MMEL1	.	.	0.45	rs78506337	.	.	0.3188	.	passed
+chr1	2537838	2537838	C	T	hom	214	intronic	MMEL1	.	.	0.42	rs41300092	.	.	0.3148	.	passed
+chr1	2541269	2541269	A	G	hom	222	exonic;splicing	MMEL1;MMEL1	synonymous SNV	MMEL1:NM_033467:exon5:c.T294C:p.A98A,	0.47	rs10797440	.	.	0.3316	.	passed
+chr1	2542653	2542653	A	G	hom	144	intronic	MMEL1	.	.	0.47	rs10910111	.	.	0.3245	.	passed
+chr1	2985885	2985885	C	G	hom	143	intronic	PRDM16	.	.	0.34	rs7413494	.	.	0.3766	99	passed
+chr1	3327973	3327973	G	A	het	225	exonic	PRDM16	synonymous SNV	PRDM16:NM_022114:exon9:c.G1212A:p.T404T,PRDM16:NM_199454:exon9:c.G1212A:p.T404T,	0.01	rs139129844	.	.	0.0054	.	passed
+chr1	3328358	3328358	T	C	het	225	exonic	PRDM16	nonsynonymous SNV	PRDM16:NM_022114:exon9:c.T1597C:p.S533P,PRDM16:NM_199454:exon9:c.T1597C:p.S533P,	0.93	rs870124	0.9771	0.0004	0.8356	.	passed
+chr1	3383898	3383898	A	G	hom	222	exonic;splicing	ARHGEF16;ARHGEF16	synonymous SNV	ARHGEF16:NM_014448:exon4:c.A801G:p.P267P,	0.85	rs6424078	.	.	0.9084	.	passed
+chr1	3389727	3389727	C	T	het	225	exonic	ARHGEF16	nonsynonymous SNV	ARHGEF16:NM_014448:exon7:c.C1108T:p.H370Y,	0.69	rs2185639	0.9976	1.0000	0.8722	.	passed
+chr1	3394456	3394456	T	C	hom	222	exonic	ARHGEF16	synonymous SNV	ARHGEF16:NM_014448:exon11:c.T1491C:p.S497S,	0.97	rs4638054	.	.	0.9991	.	passed
+chr1	3394640	3394640	A	G	hom	199	intronic	ARHGEF16	.	.	0.88	rs4422946	.	.	0.9434	.	passed
+chr1	3395039	3395039	G	A	het	225	exonic	ARHGEF16	synonymous SNV	ARHGEF16:NM_014448:exon12:c.G1677A:p.V559V,	0.69	rs10797395	.	.	0.8691	.	passed
+chr1	3395174	3395174	C	A	het	150	exonic;splicing	ARHGEF16;ARHGEF16	synonymous SNV	ARHGEF16:NM_014448:exon12:c.C1812A:p.S604S,	0.10	rs61734742	.	.	0.0686	.	passed
+chr1	3397188	3397188	T	C	hom	170	UTR3	ARHGEF16	.	.	0.99	rs2487677	.	.	0.9999	.	passed
+chr1	3410980	3410980	T	G	het	25	exonic	MEGF6	nonsynonymous SNV	MEGF6:NM_001409:exon32:c.A4084C:p.T1362P,	.	.	0.0086	0.1348	.	.	passed
+chr1	3416449	3416449	C	A	hom	222	exonic	MEGF6	nonsynonymous SNV	MEGF6:NM_001409:exon22:c.G2747T:p.R916L,	0.57	rs7553399	0.0140	0.0772	0.7481	.	passed
+chr1	3440647	3440647	T	C	hom	190	intronic	MEGF6	.	.	0.95	rs2794322	.	.	0.9627	.	passed
+chr1	3496479	3496479	T	C	hom	222	exonic	MEGF6	nonsynonymous SNV	MEGF6:NM_001409:exon4:c.A391G:p.S131G,	0.85	rs2794340	0.9418	0.0000	0.9160	.	passed
+chr1	3545176	3545194	TTCTGGGAGCTCCTCCCCC	-	het	217	UTR3	TPRG1L	.	.	0.87	rs147637374	.	.	.	.	passed
+chr1	3548136	3548136	T	C	het	207	exonic	WRAP73	synonymous SNV	WRAP73:NM_017818:exon11:c.A1134G:p.A378A,	0.89	rs2760321	.	.	0.8373	.	passed
+chr1	3548832	3548832	G	C	het	225	exonic	WRAP73	nonsynonymous SNV	WRAP73:NM_017818:exon10:c.C993G:p.I331M,	0.04	rs2760320	0.0397	0.0000	0.0579	.	passed
+chr1	3598900	3598900	G	A	het	190	splicing	TP73	.	.	0.20	rs2273953	.	.	0.2041	.	passed
+chr1	3598910	3598910	C	T	het	201	UTR5	TP73	.	.	0.20	rs1801173	.	.	0.2054	.	passed
+chr1	3607520	3607520	G	A	het	193	intronic	TP73	.	.	0.26	rs3765730	.	.	0.3485	.	passed
+chr1	3638674	3638674	C	T	hom	222	exonic	TP73	synonymous SNV	TP73:NM_001204190:exon3:c.C372T:p.T124T,TP73:NM_001204186:exon5:c.C519T:p.T173T,TP73:NM_001204192:exon3:c.C306T:p.T102T,TP73:NM_001126241:exon3:c.C372T:p.T124T,TP73:NM_001204184:exon5:c.C519T:p.T173T,TP73:NM_001204191:exon3:c.C372T:p.T124T,TP73:NM_001204187:exon5:c.C519T:p.T173T,TP73:NM_005427:exon5:c.C519T:p.T173T,TP73:NM_001204189:exon3:c.C372T:p.T124T,TP73:NM_001204188:exon5:c.C519T:p.T173T,TP73:NM_001126242:exon3:c.C372T:p.T124T,TP73:NM_001204185:exon5:c.C519T:p.T173T,TP73:NM_001126240:exon3:c.C372T:p.T124T,	0.75	rs1801174	.	.	0.8888	.	passed
+chr1	3644349	3644349	A	G	hom	185	intronic	TP73	.	.	0.66	rs2181486	.	.	0.7935	.	passed
+chr1	3644374	3644374	A	G	hom	111	intronic	TP73	.	.	0.66	rs2146657	.	.	0.8001	.	failed
+chr1	3645844	3645844	G	A	hom	177	intronic	TP73	.	.	0.59	rs2096224	.	.	0.7732	.	passed
+chr1	3659657	3659657	G	A	het	174	ncRNA_exonic	TP73-AS1	.	.	0.26	rs2298222	.	.	0.3127	.	passed
+chr1	3669201	3669201	A	G	het	225	exonic	CCDC27	synonymous SNV	CCDC27:NM_152492:exon1:c.A156G:p.P52P,	0.47	rs10797410	.	.	0.3714	.	passed
+chr1	3669205	3669205	C	G	het	225	exonic	CCDC27	nonsynonymous SNV	CCDC27:NM_152492:exon1:c.C160G:p.Q54E,	0.36	rs10910021	0.0077	0.0000	0.3693	.	passed
+chr1	3672156	3672156	C	A	het	137	intronic	CCDC27	.	.	0.16	rs4648555	.	.	0.2630	.	passed
+chr1	3677933	3677933	T	C	het	225	exonic	CCDC27	nonsynonymous SNV	CCDC27:NM_152492:exon5:c.T800C:p.M267T,	0.46	rs1181883	0.1094	0.0000	0.3920	.	passed
+chr1	3679139	3679139	T	C	het	225	intronic	CCDC27	.	.	0.49	rs1181879	.	.	0.4586	.	passed
+chr1	3679146	3679146	G	A	het	225	intronic	CCDC27	.	.	0.18	rs4648556	.	.	0.2392	.	passed
+chr1	3679775	3679775	C	T	het	225	exonic	CCDC27	nonsynonymous SNV	CCDC27:NM_152492:exon7:c.C1058T:p.T353M,	0.15	rs10910024	0.0098	0.0000	0.2421	.	passed
+chr1	3732103	3732103	T	C	hom	222	intronic	CEP104	.	.	0.61	rs4648409	.	.	0.5547	.	passed
+chr1	3745787	3745787	T	C	het	225	intronic	CEP104	.	.	0.66	rs2275832	.	.	0.5662	.	passed
+chr1	3746585	3746585	T	G	het	177	intronic	CEP104	.	.	0.18	rs2275827	.	.	0.2644	.	passed
+chr1	3746589	3746589	C	G	hom	196	intronic	CEP104	.	.	0.80	rs2275826	.	.	0.9537	.	passed
+chr1	3747580	3747580	C	T	het	107	intronic	CEP104	.	.	0.37	rs6424058	.	.	0.4349	.	passed
+chr1	3747603	3747603	T	C	hom	222	intronic	CEP104	.	.	0.80	rs6413779	.	.	0.9538	.	passed
+chr1	3753136	3753136	A	T	het	225	exonic	CEP104	nonsynonymous SNV	CEP104:NM_014704:exon10:c.T1240A:p.L414I,	0.34	rs2275824	0.0507	0.0000	0.4340	.	passed
+chr1	3755675	3755675	T	C	hom	222	exonic	CEP104	synonymous SNV	CEP104:NM_014704:exon8:c.A744G:p.E248E,	0.80	rs1891941	.	.	0.9538	.	passed
+chr1	3761479	3761479	C	T	het	225	exonic	CEP104	synonymous SNV	CEP104:NM_014704:exon6:c.G558A:p.T186T,	0.37	rs2275822	.	.	0.4348	.	passed
+chr1	3764216	3764216	C	T	het	70	intronic	CEP104	.	.	0.13	rs10492942	.	.	0.2473	.	failed
+chr1	3775454	3775454	C	G	hom	161	intronic	DFFB	.	.	0.82	rs4376673	.	.	0.9514	.	passed
+chr1	3782524	3782524	C	T	het	117	exonic	DFFB	synonymous SNV	DFFB:NM_004402:exon3:c.C390T:p.I130I,	.	.	.	.	0.0005	.	passed
+chr1	3782608	3782608	C	T	hom	79.3	intronic	DFFB	.	.	0.47	rs10909809	.	.	0.7037	.	failed
+chr1	3807593	3807593	G	C	hom	222	exonic	C1orf174	nonsynonymous SNV	C1orf174:NM_207356:exon3:c.C158G:p.T53R,	1.00	rs4274008	0.9183	0.0000	0.9922	.	passed
+chr1	4772717	4772717	G	A	hom	222	exonic	AJAP1	nonsynonymous SNV	AJAP1:NM_001042478:exon2:c.G787A:p.G263R,AJAP1:NM_018836:exon2:c.G787A:p.G263R,	0.41	rs242056	0.9986	0.9039	0.6650	.	passed
+chr1	5925371	5925371	G	A	het	194	intronic	NPHP4	.	.	0.32	rs1287634	.	.	0.4082	.	passed
+chr1	5926507	5926507	T	C	het	221	exonic	NPHP4	synonymous SNV	NPHP4:NM_015102:exon26:c.A3570G:p.E1190E,	0.32	rs555164	.	.	0.4197	.	passed
+chr1	5934490	5934490	A	G	hom	127	intronic	NPHP4	.	.	0.54	rs868163	.	.	0.6523	.	failed
+chr1	5935109	5935109	C	T	het	225	exonic	NPHP4	nonsynonymous SNV	NPHP4:NM_015102:exon21:c.G2869A:p.A957T,	.	.	.	.	.	.	passed
+chr1	5935162	5935162	A	T	hom	222	splicing	NPHP4(NM_015102:exon22:c.2818-2T>A)	.	.	0.83	rs1287637	.	.	0.8172	.	passed
+chr1	5937391	5937391	C	T	het	225	intronic	NPHP4	.	.	0.83	rs3747989	.	.	0.8107	.	passed
+chr1	6170425	6170425	G	-	hom	214	intronic	CHD5	.	.	0.51	rs78789357	.	.	.	.	passed
+chr1	6171992	6171992	C	A	hom	222	intronic	CHD5	.	.	0.15	rs59788818	.	.	0.1852	.	passed
+chr1	6184092	6184092	A	G	hom	222	exonic	CHD5	nonsynonymous SNV	CHD5:NM_015557:exon31:c.T4615C:p.S1539P,	0.70	rs2843493	0.9778	0.0000	0.5813	.	passed
+chr1	6184192	6184192	A	G	hom	222	intronic	CHD5	.	.	0.60	rs2273041	.	.	0.4599	204	passed
+chr1	6185532	6185532	G	A	hom	222	intronic	CHD5	.	.	0.22	rs2273037	.	.	0.2638	.	passed
+chr1	6188546	6188546	G	A	hom	222	intronic	CHD5	.	.	0.22	rs2273034	.	.	0.2814	.	passed
+chr1	6194765	6194765	C	T	het	225	intronic	CHD5	.	.	0.0014	rs61739482	.	.	0.0012	.	passed
+chr1	6195493	6195493	G	A	hom	195	intronic	CHD5	.	.	0.50	rs2250504	.	.	0.4130	.	passed
+chr1	6196869	6196869	A	G	het	225	exonic	CHD5	synonymous SNV	CHD5:NM_015557:exon16:c.T2493C:p.I831I,	0.51	rs2250358	.	.	0.4143	.	passed
+chr1	6196943	6196943	A	G	het	225	intronic	CHD5	.	.	0.51	rs2746066	.	.	0.4145	.	passed
+chr1	6196951	6196951	T	A	het	225	intronic	CHD5	.	.	0.51	rs2785582	.	.	0.4143	.	passed
+chr1	6204161	6204161	G	A	het	225	exonic	CHD5	synonymous SNV	CHD5:NM_015557:exon12:c.C1857T:p.Y619Y,	0.08	rs17436816	.	.	0.1226	.	passed
+chr1	6206387	6206387	C	G	het	225	exonic	CHD5	nonsynonymous SNV	CHD5:NM_015557:exon11:c.G1687C:p.G563R,	0.0005	rs150733401	0.9495	0.3749	0.0010	.	passed
+chr1	6226218	6226218	G	A	het	225	intronic	CHD5	.	.	0.24	rs12078360	.	.	0.0940	.	passed
+chr1	6226463	6226463	A	G	het	103	intronic	CHD5	.	.	0.22	rs4908848	.	.	.	.	passed
+chr1	6252966	6252967	CA	-	het	217	intronic	RPL22	.	.	0.28	rs112509219	.	.	.	.	passed
+chr1	6257826	6257826	T	C	het	225	intronic	RPL22	.	.	0.38	rs2294714	.	.	0.2501	.	passed
+chr1	6257856	6257856	G	A	het	146	intronic	RPL22	.	.	0.58	rs2294713	.	.	0.4257	.	passed
+chr1	6313938	6313938	C	T	hom	222	exonic	GPR153	nonsynonymous SNV	GPR153:NM_207370:exon3:c.G626A:p.R209H,	0.69	rs12735670	0.7730	0.4756	.	.	passed
+chr1	6314822	6314822	T	C	hom	222	exonic	GPR153	synonymous SNV	GPR153:NM_207370:exon2:c.A144G:p.T48T,	0.71	rs11590458	.	.	0.7015	.	passed
+chr1	6321701	6321701	-	G	hom	142	upstream	GPR153	.	.	.	.	.	.	.	.	passed
+chr1	6529188	6529188	C	T	het	216	exonic	PLEKHG5	stopgain SNV	PLEKHG5:NM_198681:exon20:c.C2394A:p.C798X,	0.11	rs62639695	.	.	0.0770	411	passed
+chr1	6529443	6529443	A	G	het	225	exonic	PLEKHG5	synonymous SNV	PLEKHG5:NM_001042664:exon18:c.T2001C:p.S667S,PLEKHG5:NM_198681:exon19:c.C2232C:p.T744T,PLEKHG5:NM_001042665:exon18:c.T2001C:p.S667S,PLEKHG5:NM_001042663:exon19:c.T2169C:p.S723S,PLEKHG5:NM_020631:exon18:c.G2001C:p.V667V,	0.23	rs730600	.	.	0.1403	.	passed
+chr1	6530966	6530966	-	G	hom	77.6	intronic	PLEKHG5	.	.	.	.	.	.	.	.	passed
+chr1	6533393	6533393	G	C	het	161	exonic	PLEKHG5	nonsynonymous SNV	PLEKHG5:NM_001042664:exon8:c.C713G:p.T238S,PLEKHG5:NM_198681:exon9:c.C944G:p.A315G,PLEKHG5:NM_001042665:exon8:c.C713G:p.T238S,PLEKHG5:NM_001042663:exon9:c.C881G:p.T294S,PLEKHG5:NM_020631:exon8:c.T713G:p.L238R,	0.24	rs61741379	0.8230	0.0000	0.1280	.	passed
+chr1	6579607	6579607	C	T	hom	222	UTR5	PLEKHG5	.	.	0.77	rs1556035	.	.	0.8862	.	passed
+chr1	6586070	6586070	C	T	hom	222	intronic	NOL9	.	.	0.98	rs7548042	.	.	0.9998	.	passed
+chr1	6631319	6631319	G	A	hom	114	intronic	TAS1R1	.	.	0.91	rs11122096	.	.	0.9874	.	passed
+chr1	6635231	6635231	A	G	hom	222	exonic	TAS1R1	nonsynonymous SNV	TAS1R1:NM_138697:exon3:c.A1039G:p.K347E,	0.94	rs10864628	0.1762	0.0000	0.9993	.	passed
+chr1	6636461	6636461	C	T	het	225	intronic	TAS1R1	.	.	0.42	rs17492553	.	.	0.5162	.	passed
+chr1	6659505	6659505	G	A	hom	222	exonic	KLHL21	synonymous SNV	KLHL21:NM_014851:exon2:c.C1029T:p.S343S,	0.31	rs2232460	.	.	0.3381	.	passed
+chr1	6681744	6681744	C	T	hom	158	UTR3	PHF13	.	.	0.66	rs3747994	.	.	0.7116	.	passed
+chr1	6694207	6694207	A	G	hom	222	UTR3	THAP3	.	.	0.34	rs12727844	.	.	0.3567	.	passed

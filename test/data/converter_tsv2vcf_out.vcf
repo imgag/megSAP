@@ -1,0 +1,14 @@
+##fileformat=VCFv4.1
+##fileDate=20161208
+##reference=/mnt/share/data/dbs//genomes/hg19.fa
+##INFO=<ID=variant_id,Number=1,Type=String,Description="ID of original variant.">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Sample
+chr12	25368401	.	TC	AG	.	.	variant_id=chr12_25368401_25368402_TC_AG	GT	1/0
+chr12	25368401	.	T	A	.	.	variant_id=chr12_25368401_25368401_T_A	GT	1/0
+chr12	25368402	.	C	A	.	.	variant_id=chr12_25368402_25368402_C_A	GT	1/0
+chr12	25368401	.	T	TA	.	.	variant_id=chr12_25368401_25368401_-_A	GT	1/0
+chr12	25368402	.	C	CA	.	.	variant_id=chr12_25368402_25368402_-_A	GT	1/0
+chr12	25368400	.	TT	T	.	.	variant_id=chr12_25368401_25368401_T_-	GT	1/0
+chr12	25368401	.	TC	T	.	.	variant_id=chr12_25368402_25368402_C_-	GT	1/0
+chr12	25368400	.	TTC	T	.	.	variant_id=chr12_25368401_25368402_TC_-	GT	1/0

@@ -1,0 +1,10 @@
+#chr	start	end	ref	obs	genotype	snp_q	type	ID	state	sample	function	gene	rest
+chr3	48508442	48508442	G	A	het	99	SNP	snp2886	novel	converter_bgi2tsv_in	missense	TREX1	name=TREX1;transcriptID=CCDS43086.1;mRNAtoChr='+';codonNum=185;codonchange='GAC=>AAC';residueChange='D=>N';function=missense;name=TREX1;transcriptID=CCDS2769.1;mRNAtoChr='+';codonNum=130;codonchange='GAC=>AAC';residueChange='D=>N';function=missense;
+chr19	15276143	15276143	C	T	hom	90	SNP	rs2074618	known	converter_bgi2tsv_in	intron	NOTCH3	name=NOTCH3;transcriptID=CCDS12326.1;mRNAtoChr='-';function=intron;
+chr19	15276919	15276919	G	A	hom	79	SNP	rs2074619	known	converter_bgi2tsv_in	intron	NOTCH3	name=NOTCH3;transcriptID=CCDS12326.1;mRNAtoChr='-';function=intron;
+chr19	15276923	15276923	C	T	hom	68	SNP	rs10416777	known	converter_bgi2tsv_in	intron	NOTCH3	name=NOTCH3;transcriptID=CCDS12326.1;mRNAtoChr='-';function=intron;
+chr19	15277938	15277938	C	T	hom	99	SNP	rs1548554	known	converter_bgi2tsv_in	intron	NOTCH3	name=NOTCH3;transcriptID=CCDS12326.1;mRNAtoChr='-';function=intron;
+chr13	110864225	110864225	A	T	het	99	SNP	rs532625	known	converter_bgi2tsv_in	synonymous-coding,non-synonymous-coding	COL4A1	name=COL4A1;transcriptID=CCDS9511.1;mRNAtoChr='-';codonNum=144;codonchange='GCT=>GCA';residueChange='A=>A';function=synonymous-coding;name=COL4A1;transcriptID=CCDS9511.1;mRNAtoChr='-';codonNum=144;codonchange='GCT=>GCA';residueChange='A=>A';function=non-synonymous-coding;
+chr5	58286738	58286738	A	-	het	4	Indel	rs111523718	1	converter_bgi2tsv_in	intron,non-synonymous-coding	PDE4D,COL4A1	name=PDE4D;geneID=5144;transcriptID=CCDS47213.1;mRNAtoChr='-';adj_exonNum=7,8;function=intron;name=COL4A1;transcriptID=CCDS9511.1;mRNAtoChr='-';codonNum=144;codonchange='GCT=>GCA';residueChange='A=>A';function=non-synonymous-coding;
+chr5	58295381	58295382	TA	-	het	18	Indel	rs35776313	1	converter_bgi2tsv_in	intron	PDE4D	name=PDE4D;geneID=5144;transcriptID=CCDS47213.1;mRNAtoChr='-';adj_exonNum=9,10;function=intron;
+chr5	58295380	58295380	-	TA	het	41	Indel	rs35776313	0	converter_bgi2tsv_in	intron	PDE4D	name=PDE4D;geneID=5144;transcriptID=CCDS47213.1;mRNAtoChr='-';adj_exonNum=9,10;function=intron;

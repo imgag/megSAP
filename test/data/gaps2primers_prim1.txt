@@ -1,0 +1,1287 @@
+################################### PAIR ###################################
+INPUT: BRCA1_2F	BRCA1_2R	GGACGTTGTCATTAGTTCTTTGG	CTTCCCTAGTATGTAAGGTC	chr17	332
+BLAST: BRCA1_2F - chr17:41276255-41276277 perc_aligned:100.00 length:23/23 e-value:3e-04
+BLAST: BRCA1_2R - chr17:41275946-41275965 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA1_3F	BRCA1_3R	GCTCAAAGTTGAACTTATTCAC	CAAAAGCTAATAATGGAGCCAC	chr17	190
+BLAST: BRCA1_3F - chr17:41267870-41267891 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: BRCA1_3R - chr17:41267702-41267723 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: BRCA1_5F	BRCA1_5R	GCCTTTTGAGTATTCTTTCTAC	TCCTACTGTGGTTGCTTCC	chr17	193
+BLAST: BRCA1_5F - chr17:41258597-41258618 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: BRCA1_5R - chr17:41258426-41258444 perc_aligned:100.00 length:19/19 e-value:0.031
+################################### PAIR ###################################
+INPUT: BRCA1_6F	BRCA1_6R	TTTTAGTGTCCTTAAAAGGTTGATAAT	GGTCTTATCACCACGTCATAGAAA	chr17	249
+BLAST: BRCA1_6F - chr17:41257012-41257038 perc_aligned:100.00 length:27/27 e-value:2e-06
+BLAST: BRCA1_6R - chr17:41256790-41256813 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: BRCA1_7F	BRCA1_7R	CACAACAAAGAGCATACATAGGG	CAGGAGGACTGCTTCTAGCC	chr17	351
+BLAST: BRCA1_7F - chr17:41256357-41256379 perc_aligned:100.00 length:23/23 e-value:3e-04
+BLAST: BRCA1_7R - chr17:41256029-41256048 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA1_8F	BRCA1_8R	GTCAAGTTTCTCTTCAGGAG	CTATAAGATAAGGAATCCAGC	chr17	240
+BLAST: BRCA1_8F - chr17:41251953-41251972 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: BRCA1_8R - chr17:41251733-41251753 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: BRCA1_9F	BRCA1_9R	 ACCCTTTTAATTAAGAAAACTT	GGAAAATACCAGCTTCATAGACAAAGG	chr17	213
+BLAST: BRCA1_9F - chr17:41249341-41249362 perc_aligned:100.00 length:22/23 e-value:8e-04
+BLAST: BRCA1_9R - chr17:41249219-41249245 perc_aligned:100.00 length:27/27 e-value:2e-06
+*WARNING: Primer product has wrong length. Should be '213' is '144', difference '69'!
+################################### PAIR ###################################
+INPUT: BRCA1_10F	BRCA1_10R	CATTTGACAGTTCTGCATAC	CTTTTCAGTGCCTGTTAAGTTG	chr17	180
+BLAST: BRCA1_10F - chr17:41247984-41248003 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: BRCA1_10R - chr17:41247824-41247845 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: BRCA1_11-1F	BRCA1_11-1R	CCAAGGTGTATGAAGTATG	CTAGGATTCTCTGAGCATGGC	chr17	500
+BLAST: BRCA1_11-1F - chr17:41246935-41246953 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: BRCA1_11-1R - chr17:41246454-41246474 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: BRCA1_11-2F	BRCA1_11-2R	GTGTGAGAGAAAAGAATGG	CGCTTTAATTTATTTGTGAGGG	chr17	471
+BLAST: BRCA1_11-2F - chr17:41246489-41246507 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: BRCA1_11-2R - chr17:41246037-41246058 perc_aligned:100.00 length:22/22 e-value:8e-04
+*SNP: ESP6500: 17	41246037	41246037	C	T	0.000116
+*SNP: ESP6500: 17	41246040	41246040	T	C	0.000116
+################################### PAIR ###################################
+INPUT: BRCA1_11-3F	BRCA1_11-3R	CTAATTATAGGAGCATTTGTTAC	ATTAGGTGGGCTTAGATTTC	chr17	465
+BLAST: BRCA1_11-3F - chr17:41246085-41246107 perc_aligned:100.00 length:23/23 e-value:3e-04
+*SNP: ESP6500: 17	41246092	41246092	A	G	0.000349
+BLAST: BRCA1_11-3R - chr17:41245643-41245662 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA1_11-4F	BRCA1_11-4R	GGA AGT CTT CTA CCA GGC	GCAAAACCCTTTCTCCACTTAAC	chr17	438
+BLAST: BRCA1_11-4F - chr17:41245693-41245710 perc_aligned:100.00 length:18/23 e-value:0.081
+*SNP: ESP6500: 17	41245700	41245702	AGA	-	0.000364
+*SNP: 1000g/dbSNP 17	41245700	AGA	3	0.0005	.
+BLAST: BRCA1_11-4R - chr17:41245273-41245295 perc_aligned:100.00 length:23/23 e-value:3e-04
+################################### PAIR ###################################
+INPUT: BRCA1_11-5F	BRCA1_11-5R	CCTAGCCTTCCAAGAGAAG	CACATTCCTCTTCTGCATTTC	chr17	478
+BLAST: BRCA1_11-5F - chr17:41245360-41245378 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: BRCA1_11-5R - chr17:41244901-41244921 perc_aligned:100.00 length:21/21 e-value:0.003
+*SNP: 1000g/dbSNP: 17	41244904	A	T	0.0005	rs184374817
+################################### PAIR ###################################
+INPUT: BRCA1_11-6F	BRCA1_11-6R	CATTCAAGGTTTCAAAGCGCC	CCCATTTCTCTTTCAGGTGA	chr17	466
+BLAST: BRCA1_11-6F - chr17:41244949-41244969 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: BRCA1_11-6R - chr17:41244504-41244523 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA1_11-7F	BRCA1_11-7R	GAAAAATCTGCTAGAGGAAAAC	CCATCATCTAACAGGTCATC	chr17	486
+BLAST: BRCA1_11-7F - chr17:41244542-41244563 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: BRCA1_11-7R - chr17:41244078-41244097 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA1_11-8F	BRCA1_11-8R	CCATATCTGATTTCAGATAACTTA	GGTTACTGCAGTCATTTAAGCTATTC	chr17	442
+BLAST: BRCA1_11-8F - chr17:41244149-41244172 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: BRCA1_11-8R - chr17:41243731-41243756 perc_aligned:100.00 length:26/26 e-value:5e-06
+*SNP: 1000g/dbSNP: 17	41243750	G	A	0.0005	.
+################################### PAIR ###################################
+INPUT: BRCA1_11-9F	BRCA1_11-9R	GTCTGTCTAAGAACACAGAGG	TGCTCCCCAAAAGCATAAAC	chr17	421
+BLAST: BRCA1_11-9F - chr17:41243776-41243796 perc_aligned:100.00 length:21/21 e-value:0.003
+*SNP: ESP6500: 17	41243789	41243792	AGAC	-	0.022413
+BLAST: BRCA1_11-9R - chr17:41243376-41243395 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA1_12F	BRCA1_12R	GCAAGTTGCAGCGTTTATAG	GGATACATACTACTGAATGCAAAG	chr17	215
+BLAST: BRCA1_12F - chr17:41243089-41243108 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: BRCA1_12R - chr17:41242894-41242917 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: BRCA1_13F	BRCA1_13R	GGAAAGCTTCTCAAAGTATTTC	GAAGGAGATAAAGGGGAAGGAA	chr17	290
+BLAST: BRCA1_13F - chr17:41234624-41234645 perc_aligned:100.00 length:22/22 e-value:8e-04
+*SNP: ESP6500: 17	41234640	41234640	C	G	0.000233
+BLAST: BRCA1_13R - chr17:41234356-41234377 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: BRCA1_14F	BRCA1_14R	CAGAACAAAGCAGTAAAGTAG	AAGATGTCAGATACCACAGC	chr17	216
+BLAST: BRCA1_14F - chr17:41228657-41228677 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: BRCA1_14R - chr17:41228462-41228481 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA1_15F	BRCA1_15R	CAATTGGTGGCGATGGTTTTC	CAGAGTAAAATCAAAGTGTTTGTTCC	chr17	281
+BLAST: BRCA1_15F - chr17:41226560-41226580 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: BRCA1_15R - chr17:41226300-41226325 perc_aligned:100.00 length:26/26 e-value:5e-06
+*SNP: ESP6500: 17	41226322	41226322	T	C	0.000116
+################################### PAIR ###################################
+INPUT: BRCA1_16F	BRCA1_16R	CAGAGACCAGAACTTTGTAATTCAAC	GTTGTTAAGTCTTAGTCATTAGGG	chr17	424
+BLAST: BRCA1_16F - chr17:41223297-41223322 perc_aligned:100.00 length:26/26 e-value:5e-06
+BLAST: BRCA1_16R - chr17:41222899-41222922 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: BRCA1_17F	BRCA1_17R	CACTTTAAATAGTTCCAGGACACG	CAGCAGATGCAAGGTATTC	chr17	266
+BLAST: BRCA1_17F - chr17:41219828-41219851 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: BRCA1_17R - chr17:41219586-41219604 perc_aligned:100.00 length:19/19 e-value:0.031
+################################### PAIR ###################################
+INPUT: BRCA1_18F	BRCA1_18R	GGCTCTTTAGCTTCTTAGGAC	TCTGAGGTGTTAAAGGGAGG	chr17	201
+BLAST: BRCA1_18F - chr17:41216026-41216046 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: BRCA1_18R - chr17:41215846-41215865 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA1_19F	BRCA1_19R	CCTCTCTATCTCCGTGAAAAGAG	CTATATGACTGAATGAATATCTCTGG	chr17	162
+BLAST: BRCA1_19F - chr17:41215438-41215460 perc_aligned:100.00 length:23/23 e-value:3e-04
+BLAST: BRCA1_19R - chr17:41215299-41215324 perc_aligned:100.00 length:26/26 e-value:5e-06
+################################### PAIR ###################################
+INPUT: BRCA1_20F	BRCA1_20R	CTGCTCCACTTCCATTGAAG	GCAAAGGGGAGTGGAATACA	chr17	219
+BLAST: BRCA1_20F - chr17:41209202-41209221 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: BRCA1_20R - chr17:41209003-41209022 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA1_21F	BRCA1_21R	CCTTCTCTCCATTCCCCTG	TTTCAGCAATCTGAGGAACC	chr17	205
+BLAST: BRCA1_21F - chr17:41203162-41203180 perc_aligned:100.00 length:19/19 e-value:0.031
+*SNP: 1000g/dbSNP 17	41203165	G	A	0.0005	.
+BLAST: BRCA1_21R - chr17:41202976-41202995 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA1_22F	BRCA1_22R	GCCTGGGTTAAGTATGCAG	AGGCTACAGTAGGGGCATCC	chr17	231
+BLAST: BRCA1_22F - chr17:41201250-41201268 perc_aligned:100.00 length:19/19 e-value:0.031
+*SNP: ESP6500: 17	41201251	41201251	T	G	0.000116
+BLAST: BRCA1_22R - chr17:41201038-41201057 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA1_23F	BRCA1_23R	GTGACAGTTCCAGTAGTCCTAC	CCCATATAGCACAGGTACATGC	chr17	155
+BLAST: BRCA1_23F - chr17:41199760-41199781 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: BRCA1_23R - chr17:41199627-41199648 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: BRCA1_24F	BRCA1_24R	AGGACCCTGGAGTCGATTG	TGTGGCTCTGTACCTGTGG	chr17	235
+BLAST: BRCA1_24F - chr17:41197882-41197900 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: BRCA1_24R - chr17:41197666-41197684 perc_aligned:100.00 length:19/19 e-value:0.031
+*SNP: ESP6500: 17	41197675	41197675	G	A	0.000116
+################################### PAIR ###################################
+INPUT: BRCA2_2F	BRCA2_2R	CCAGCGCTTCTGAGTTTTAC	GGAACAGTTTATGGTTCTAAGCAA	chr13	299
+BLAST: BRCA2_2F - chr13:32890478-32890497 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: BRCA2_2R - chr13:32890753-32890776 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: BRCA2_3F	BRCA2_3R	TCTGTCACTGGTTAAAACTAAGG	GTAGTTCTCCCCAGTCTACC	chr13	329
+BLAST: BRCA2_3F - chr13:32893170-32893192 perc_aligned:100.00 length:23/23 e-value:3e-04
+BLAST: BRCA2_3R - chr13:32893479-32893498 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA2_4F	BRCA2_4R	CCAGAGTATATACATTCTCAC	GGCTCTTAGCCAAAATATTAG	chr13	258
+BLAST: BRCA2_4F - chr13:32899171-32899191 perc_aligned:100.00 length:21/21 e-value:0.003
+*SNP: ESP6500: 13	32899178	32899178	A	G	0.000116
+BLAST: BRCA2_4R - chr13:32899408-32899428 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: BRCA2_5-6F	BRCA2_5-6R	TCTAAAAGTAGTATTCCAACAATTT	TCAGGGCAAAGGTATAACG	chr13	435
+BLAST: BRCA2_5-6F - chr13:32900121-32900145 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: BRCA2_5-6R - chr13:32900476-32900494 perc_aligned:100.00 length:19/19 e-value:0.031
+*WARNING: Primer product has wrong length. Should be '435' is '374', difference '61'!
+################################### PAIR ###################################
+INPUT: BRCA2_7F	BRCA2_7R	CCTTAATGATCAGGGCATTTC	CCTCATCTGCTCTTTCTTG	chr13	211
+BLAST: BRCA2_7F - chr13:32900583-32900603 perc_aligned:100.00 length:21/21 e-value:0.003
+*SNP: 1000g/dbSNP 13	32900598	C	A	0.0005	.
+BLAST: BRCA2_7R - chr13:32900775-32900793 perc_aligned:100.00 length:19/19 e-value:0.031
+*SNP: ESP6500: 13	32900775	32900775	C	T	0.000930
+*SNP: ESP6500: 13	32900793	32900793	G	T	0.000581
+################################### PAIR ###################################
+INPUT: BRCA2_8F	BRCA2_8R	CAATTCATTTTGTTTCAAATGTGTC	CCAGGTTTAGAGACTTTCTC	chr13	309
+BLAST: BRCA2_8F - chr13:32903456-32903480 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: BRCA2_8R - chr13:32903745-32903764 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA2_9F	BRCA2_9R	GGACCTAGGTTGATTGCAG	CAACAACAACAAAAAAACCTG	chr13	280
+BLAST: BRCA2_9F - chr13:32904934-32904952 perc_aligned:100.00 length:19/19 e-value:0.031
+*SNP: 1000g/dbSNP 13	32904949	G	T	0.0005	rs77863879
+BLAST: BRCA2_9R - chr13:32905193-32905213 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: BRCA2_10-1F	BRCA2_10-1R	AATCAGGGGAATCAGGCTTT	CTAATGGATCAGTATCATTTGG	chr13	516
+BLAST: BRCA2_10-1F - chr13:32906199-32906218 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: BRCA2_10-1R - chr13:32906693-32906714 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: BRCA2_10-2F	BRCA2_10-2R	GATGAAGTATATGAAACAGTTGT	CCACTGTTTCCTCATTTAATGG	chr13	517
+BLAST: BRCA2_10-2F - chr13:32906492-32906514 perc_aligned:100.00 length:23/23 e-value:3e-04
+BLAST: BRCA2_10-2R - chr13:32906987-32907008 perc_aligned:100.00 length:22/22 e-value:8e-04
+*SNP: ESP6500: 13	32907000	32907000	A	G	0.000349
+*SNP: ESP6500: 13	32907003	32907003	C	G	0.000116
+################################### PAIR ###################################
+INPUT: BRCA2_10-3F	BRCA2_10-3R	GCCACGTATTTCTAGCCTAC	GCTGAACAGTTAATTAGTTCTG	chr13	516
+BLAST: BRCA2_10-3F - chr13:32906953-32906972 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: BRCA2_10-3R - chr13:32907447-32907468 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: BRCA2_10-4F	BRCA2_10-4R	CTTTCAATGCAAGTTTTTCAGG	CCTGATTCTAAACACTGGTAA	chr13	533
+BLAST: BRCA2_10-4F - chr13:32907159-32907180 perc_aligned:100.00 length:22/22 e-value:8e-04
+*SNP: ESP6500: 13	32907179	32907179	G	C	0.000116
+BLAST: BRCA2_10-4R - chr13:32907671-32907691 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: BRCA2_11-1F	BRCA2_11-1R	AATGTGATTGATGGTACTTTAATTTTG	CCTTGGAAGTAGGAGTTAAAA	chr13	470
+BLAST: BRCA2_11-1F - chr13:32910352-32910378 perc_aligned:100.00 length:27/27 e-value:2e-06
+*SNP: ESP6500: 13	32910352	32910352	A	G	0.000117
+*SNP: 1000g/dbSNP 13	32910355	G	A	0.0005	rs138981839
+*SNP: 1000g/dbSNP 13	32910359	T	C	0.0023	rs116486565
+BLAST: BRCA2_11-1R - chr13:32910801-32910821 perc_aligned:100.00 length:21/21 e-value:0.003
+*SNP: ESP6500: 13	32910812	32910812	A	G	0.000116
+################################### PAIR ###################################
+INPUT: BRCA2_11-2F	BRCA2_11-2R	GGAATACAGTGATACTGACTTTC	CCTTAGTATTTCCTAAAGCAAGA	chr13	485
+BLAST: BRCA2_11-2F - chr13:32910730-32910752 perc_aligned:100.00 length:23/23 e-value:3e-04
+BLAST: BRCA2_11-2R - chr13:32911192-32911214 perc_aligned:100.00 length:23/23 e-value:3e-04
+################################### PAIR ###################################
+INPUT: BRCA2_11-3F	BRCA2_11-3R	CCAGACTCTGAAGAACTTTTC	GCTTGATTTCCTTATTTGAAGCT	chr13	427
+BLAST: BRCA2_11-3F - chr13:32911121-32911141 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: BRCA2_11-3R - chr13:32911525-32911547 perc_aligned:100.00 length:23/23 e-value:3e-04
+*SNP: ESP6500: 13	32911547	32911547	C	G	0.000233
+*SNP: 1000g/dbSNP: 13	32911547	C	G	0.0005	.
+################################### PAIR ###################################
+INPUT: BRCA2_11-4F	BRCA2_11-4R	GGTCCAATTTCAAATCACAG	CCGTTTAATTTCAACTGTACC	chr13	579
+BLAST: BRCA2_11-4F - chr13:32911484-32911503 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: BRCA2_11-4R - chr13:32912042-32912062 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: BRCA2_11-5F	BRCA2_11-5R	GGAATGCAGAGATGCTGAT	GCCATCAAATTCTAAGTTATGAG	chr13	544
+BLAST: BRCA2_11-5F - chr13:32911963-32911981 perc_aligned:100.00 length:19/19 e-value:0.031
+*SNP: 1000g/dbSNP 13	32911971	G	A	0.0005	rs183920365
+BLAST: BRCA2_11-5R - chr13:32912484-32912506 perc_aligned:100.00 length:23/23 e-value:3e-04
+################################### PAIR ###################################
+INPUT: BRCA2_11-6F	BRCA2_11-6R	CTGAAAATTACAAGAGAAATACTG	GGCGACACTAATATTTTTCCC	chr13	389
+BLAST: BRCA2_11-6F - chr13:32912421-32912444 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: BRCA2_11-6R - chr13:32912789-32912809 perc_aligned:100.00 length:21/21 e-value:0.003
+*SNP: 1000g/dbSNP: 13	32912808	C	A	0.0005	.
+################################### PAIR ###################################
+INPUT: BRCA2_11-7F	BRCA2_11-7R	CTGCTACTAAAACGGAGCA	CCTCTCTGTACTTTAGGGT	chr13	486
+BLAST: BRCA2_11-7F - chr13:32912721-32912739 perc_aligned:100.00 length:19/19 e-value:0.031
+*SNP: 1000g/dbSNP 13	32912733	C	T	0.0027	rs70953664
+BLAST: BRCA2_11-7R - chr13:32913188-32913206 perc_aligned:100.00 length:19/19 e-value:0.031
+*SNP: ESP6500: 13	32913191	32913191	C	T	0.000116
+################################### PAIR ###################################
+INPUT: BRCA2_11-8F	BRCA2_11-8R	TTTTGATGAAAAAGAGCAAGG	ATATACCTCATCAGAATGGTAGGAA	chr13	597
+BLAST: BRCA2_11-8F - chr13:32913127-32913147 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: BRCA2_11-8R - chr13:32913739-32913763 perc_aligned:100.00 length:25/25 e-value:2e-05
+*WARNING: Primer product has wrong length. Should be '597' is '637', difference '40'!
+################################### PAIR ###################################
+INPUT: BRCA2_11-9F	BRCA2_11-9R	GCTGAAAATGACAAAAATCATCTC	CCTGCCATAATTTTCGTTTGG	chr13	503
+BLAST: BRCA2_11-9F - chr13:32913665-32913688 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: BRCA2_11-9R - chr13:32914147-32914167 perc_aligned:100.00 length:21/21 e-value:0.003
+*SNP: ESP6500: 13	32914155	32914155	A	G	0.000116
+################################### PAIR ###################################
+INPUT: BRCA2_11-10F	BRCA2_11-10R	TGAAAGACATATTTACAGACAGTTTCA	TGAGCTGGTCTGAATGTTCG	chr13	572
+BLAST: BRCA2_11-10F - chr13:32914077-32914103 perc_aligned:100.00 length:27/27 e-value:2e-06
+BLAST: BRCA2_11-10R - chr13:32914549-32914568 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: 1000g/dbSNP: 13	32914549	C	T	0.0014	rs147961615
+*WARNING: Primer product has wrong length. Should be '572' is '492', difference '80'!
+################################### PAIR ###################################
+INPUT: BRCA2_11-11F	BRCA2_11-11R	CGCAAGACAAGTGTTTTCTGA	AAGCCTGTTCTTTTCCCAAA	chr13	591
+BLAST: BRCA2_11-11F - chr13:32914477-32914497 perc_aligned:100.00 length:21/21 e-value:0.003
+*SNP: ESP6500: 13	32914477	32914477	C	T	0.000116
+BLAST: BRCA2_11-11R - chr13:32915029-32915048 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: ESP6500: 13	32915042	32915042	C	G	0.000116
+*WARNING: Primer product has wrong length. Should be '591' is '572', difference '19'!
+################################### PAIR ###################################
+INPUT: BRCA2_11-12F	BRCA2_11-12R	GGTGGTTCTTCAGAAAATAATC	CCAAGTCTACTGAATAAACAC	chr13	492
+BLAST: BRCA2_11-12F - chr13:32914910-32914931 perc_aligned:100.00 length:22/22 e-value:8e-04
+*SNP: ESP6500: 13	32914920	32914920	C	T	0.000116
+*SNP: ESP6500: 13	32914926	32914926	A	G	0.000116
+BLAST: BRCA2_11-12R - chr13:32915381-32915401 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: BRCA2_12F	BRCA2_12R	GGTCTATAGACTTTTGAGAAATAAA	CCATACCTATAGAGGGAGAAC	chr13	215
+BLAST: BRCA2_12F - chr13:32918623-32918647 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: BRCA2_12R - chr13:32918817-32918837 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: BRCA2_13F	BRCA2_13R	CATTCACTGAAAATTGTAAAGCCTA	GTGTTAACTTCTTAACGTTAGTGTC	chr13	293
+BLAST: BRCA2_13F - chr13:32920849-32920873 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: BRCA2_13R - chr13:32921117-32921141 perc_aligned:100.00 length:25/25 e-value:2e-05
+################################### PAIR ###################################
+INPUT: BRCA2_14-1F	BRCA2_14-1R	CCATGTAGCAAATGAGGGT	GCTTTTGTCTGTTTTCCTCCAA	chr13	390
+BLAST: BRCA2_14-1F - chr13:32928904-32928922 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: BRCA2_14-1R - chr13:32929272-32929293 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: BRCA2_14-2F	BRCA2_14-2R	GGAAAAATCTTCAAGCAATTTAGC	GGCAAAAATTCATCACACAAATTG	chr13	367
+BLAST: BRCA2_14-2F - chr13:32929094-32929117 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: BRCA2_14-2R - chr13:32929437-32929460 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: BRCA2_15F	BRCA2_15R	GGGGTTGTGCTTTTTAAATTTC	TCATTCATCCATTCCTGCAC	chr13	361
+BLAST: BRCA2_15F - chr13:32930508-32930529 perc_aligned:100.00 length:22/22 e-value:8e-04
+*SNP: ESP6500: 13	32930522	32930522	T	G	0.000116
+BLAST: BRCA2_15R - chr13:32930849-32930868 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA2_16F	BRCA2_16R	GGTAAATTCAGTTTTGGTTTGTTA	GGATGAGGGAATACATAAAAG	chr13	335
+BLAST: BRCA2_16F - chr13:32931782-32931805 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: BRCA2_16R - chr13:32932096-32932116 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: BRCA2_17F	BRCA2_17R	GTACAGAGAATAGTTGTAGTTG	GGAAGTCACAGACTACACAGA	chr13	326
+BLAST: BRCA2_17F - chr13:32936579-32936600 perc_aligned:100.00 length:22/22 e-value:8e-04
+*SNP: 1000g/dbSNP 13	32936594	GTA	3	0.0009	.
+BLAST: BRCA2_17R - chr13:32936884-32936904 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: BRCA2_18F	BRCA2_18R	CTCAGTTATTCAGTGACTTGT	CTGAATCAATGACTGATTTTTACC	chr13	481
+BLAST: BRCA2_18F - chr13:32937234-32937254 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: BRCA2_18R - chr13:32937691-32937714 perc_aligned:100.00 length:24/24 e-value:7e-05
+*SNP: 1000g/dbSNP: 13	32937697	A	G	0.0005	.
+################################### PAIR ###################################
+INPUT: BRCA2_19F	BRCA2_19R	GGCAGTTCTAGAAGAATGAAAA	GCTGCAGTGAACCAAGATCA	chr13	382
+BLAST: BRCA2_19F - chr13:32944445-32944466 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: BRCA2_19R - chr13:32944807-32944826 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA2_20F	BRCA2_20R	GGATTACAGATGTGAGCCA	GTCTCTAAGACTTTGTTCTCATA	chr13	299
+BLAST: BRCA2_20F - chr13:32944999-32945017 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: BRCA2_20R - chr13:32945275-32945297 perc_aligned:100.00 length:23/23 e-value:3e-04
+*SNP: 1000g/dbSNP: 13	32945287	G	A	0.0005	.
+################################### PAIR ###################################
+INPUT: BRCA2_21F	BRCA2_21R	GCTTGGTTCTTTAGTTTTAGTTG	CTTCTCACCTTGAATAATCATC	chr13	247
+BLAST: BRCA2_21F - chr13:32950736-32950758 perc_aligned:100.00 length:23/23 e-value:3e-04
+BLAST: BRCA2_21R - chr13:32950961-32950982 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: BRCA2_22F	BRCA2_22R	GGAACTTTTTTGTTCTGATTGC	GGATTTATAATCATTTTGTTAGTAAG	chr13	329
+BLAST: BRCA2_22F - chr13:32953402-32953423 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: BRCA2_22R - chr13:32953705-32953730 perc_aligned:100.00 length:26/26 e-value:5e-06
+################################### PAIR ###################################
+INPUT: BRCA2_23F	BRCA2_23R	GAGGATCTGTATTTATTTTGAAAC	CCATAAACTAACAAGCACTTATC	chr13	301
+BLAST: BRCA2_23F - chr13:32953805-32953828 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: BRCA2_23R - chr13:32954083-32954105 perc_aligned:100.00 length:23/23 e-value:3e-04
+*SNP: ESP6500: 13	32954084	32954084	A	C	0.000116
+*SNP: ESP6500: 13	32954094	32954094	G	T	0.000116
+################################### PAIR ###################################
+INPUT: BRCA2_24F	BRCA2_24R	CTTGTTAGTTTATGGAATCTCC	CCAACTGGTAGCTCCAAC	chr13	284
+BLAST: BRCA2_24F - chr13:32954091-32954112 perc_aligned:100.00 length:22/22 e-value:8e-04
+*SNP: ESP6500: 13	32954094	32954094	G	T	0.000116
+BLAST: BRCA2_24R - chr13:32954357-32954374 perc_aligned:100.00 length:18/18 e-value:0.081
+################################### PAIR ###################################
+INPUT: BRCA2_25F	BRCA2_25R	GCACTGTAAGCAACAGGTCA	CCAAAATGTGTGGTGATGC	chr13	460
+BLAST: BRCA2_25F - chr13:32968646-32968665 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: BRCA2_25R - chr13:32969087-32969105 perc_aligned:100.00 length:19/19 e-value:0.031
+*SNP: ESP6500: 13	32969092	32969092	A	G	0.000116
+*SNP: ESP6500: 13	32969093	32969093	C	T	0.000116
+################################### PAIR ###################################
+INPUT: BRCA2_26F	BRCA2_26R	TACTTTTGGAAACATAAATATGTGG	GGCCTCCATATATACTTCTTA	chr13	263
+BLAST: BRCA2_26F - chr13:32970969-32970993 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: BRCA2_26R - chr13:32971211-32971231 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: BRCA2_27-1F	BRCA2_27-1R	GCGTGCTTAAATATTTTCAATGAA	CTTTCCAAAAGAGAAATTTC	chr13	453
+BLAST: BRCA2_27-1F - chr13:32972205-32972228 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: BRCA2_27-1R - chr13:32972638-32972657 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: BRCA2_27-2F	BRCA2_27-2R	CCTGTTAGTCCCATTTGTAC	GTGTGGTTTGAAATTATATTCC	chr13	493
+BLAST: BRCA2_27-2F - chr13:32972494-32972513 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: BRCA2_27-2R - chr13:32972965-32972986 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: TP53_2-3F	TP53_2-3R	ATGCTGGATCCCCACTTTTC	GGTCTTCAGTGAACCATTGTTC	chr17	455
+BLAST: TP53_2-3F - chr17:7579950-7579969 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: TP53_2-3R - chr17:7579515-7579536 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: TP53_4F	TP53_4R	ttctggtaaggacaagggt	GATACGGCCAGGCATTG	chr17	446
+BLAST: TP53_4F - chr17:7579686-7579704 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: TP53_4R - chr17:7579259-7579275 perc_aligned:100.00 length:17/17 e-value:0.32
+################################### PAIR ###################################
+INPUT: TP53_5-6F	TP53_5-6R	CTTTATCTGTTCACTTGTGCCC	TCAAATAAGCAGCAGGAGAAAG	chr17	536
+BLAST: TP53_5-6F - chr17:7578590-7578611 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: TP53_5-6R - chr17:7578076-7578097 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: TP53_7F	TP53_7R	ttgccacaggtctcccca	AGCAGAGGCTGGGGCAC	chr17	222
+BLAST: TP53_7F - chr17:7577649-7577666 perc_aligned:100.00 length:18/18 e-value:0.081
+BLAST: TP53_7R - chr17:7577445-7577461 perc_aligned:100.00 length:17/17 e-value:0.32
+################################### PAIR ###################################
+INPUT: TP53_8-9F	TP53_8-9R	GGACAGGTAGGACCTGATTTCC	attgcaggtaaaacagtcaagaag	chr17	451
+BLAST: TP53_8-9F - chr17:7577193-7577214 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: TP53_8-9R - chr17:7576764-7576787 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: TP53_10F	TP53_10R	AACTTGAACCATCTTTTAACTCAGG	GGAATCCTATGGCTTTCCAAC	chr17	243
+BLAST: TP53_10F - chr17:7574077-7574101 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: TP53_10R - chr17:7573859-7573879 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: TP53_11F	TP53_11R	GGAAAAGGGGCACAGACC	GCAGGGGAGGGAGAGATG	chr17	237
+*WARNING: Several possible blast hit pairs found. Taking the pair with the lowest e-value sum!
+          0) hit for: chr17 100.00 18 7573075 7573058 0.081
+          0) hit rev: chr17 100.00 18 7572868 7572885 0.081
+          0) e-value: 0.162
+          0) length : 208
+          1) hit for: chr17 100.00 18 7573075 7573058 0.081
+          1) hit rev: chr17 100.00 16 7571461 7571476 1.3
+          1) e-value: 1.381
+          1) length : 1615
+BLAST: TP53_11F - chr17:7573058-7573075 perc_aligned:100.00 length:18/18 e-value:0.081
+BLAST: TP53_11R - chr17:7572868-7572885 perc_aligned:100.00 length:18/18 e-value:0.081
+*WARNING: Primer product has wrong length. Should be '237' is '208', difference '29'!
+################################### PAIR ###################################
+INPUT: TP53_10aF	TP53_10aR	TGATGCCTCAAAGACAATGG	aggctaggctaagctatgatgttc	chr17	274
+BLAST: TP53_10aF - chr17:7576719-7576738 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: TP53_10aR - chr17:7576465-7576488 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: PTEN_1F	PTEN_1R	TTCCATCCTGCAGAAGAAGC	TTTTCGCATCCGTCTACTCC	chr10	236
+BLAST: PTEN_1F - chr10:89624145-89624164 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: PTEN_1R - chr10:89624361-89624380 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: PTEN_2F	PTEN_2R	AGTTTGATTGCTGCATATTTCA	CATCACAAAGTATCTTTTTCTGTGG	chr10	241
+BLAST: PTEN_2F - chr10:89653730-89653751 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: PTEN_2R - chr10:89653946-89653970 perc_aligned:100.00 length:25/25 e-value:2e-05
+################################### PAIR ###################################
+INPUT: PTEN_3F	PTEN_3R	AAATGTTAGCTCATTTTTGTTAATGG	TAGTTGTTTTAGAAGATATTTGCAAGC	chr10	152
+BLAST: PTEN_3F - chr10:89685214-89685239 perc_aligned:100.00 length:26/26 e-value:5e-06
+BLAST: PTEN_3R - chr10:89685339-89685365 perc_aligned:100.00 length:27/27 e-value:2e-06
+################################### PAIR ###################################
+INPUT: PTEN_4F	PTEN_4R	AAAGATTCAGGCAATGTTTGTTAG	TCTCACTCGATAATCTGGATGAC	chr10	235
+BLAST: PTEN_4F - chr10:89690711-89690734 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: PTEN_4R - chr10:89690923-89690945 perc_aligned:100.00 length:23/23 e-value:3e-04
+################################### PAIR ###################################
+INPUT: PTEN_5F	PTEN_5R	GGAATCCAGTGTTTCTTTTAAATACC	AGATCCAGGAAGAGGAAAGG	chr10	405
+BLAST: PTEN_5F - chr10:89692647-89692672 perc_aligned:100.00 length:26/26 e-value:5e-06
+BLAST: PTEN_5R - chr10:89693032-89693051 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: PTEN_6F	PTEN_6R	ATGGCTACGACCCAGTTACC	cctgcataaatttcaaatgtgg	chr10	349
+BLAST: PTEN_6F - chr10:89711781-89711800 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: PTEN_6R - chr10:89712108-89712129 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: PTEN_7F	PTEN_7R	TTTGACAGTTAAAGGCATTTCC	GCTTTTAATCTGTCCTTATTTTGG	chr10	279
+BLAST: PTEN_7F - chr10:89717553-89717574 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: PTEN_7R - chr10:89717808-89717831 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: PTEN_8F	PTEN_8R	TGTTTAACATAGGTGACAGATTTTCT	TCAAGCAAGTTCTTCATCAGC	chr10	421
+BLAST: PTEN_8F - chr10:89720550-89720575 perc_aligned:100.00 length:26/26 e-value:5e-06
+BLAST: PTEN_8R - chr10:89720950-89720970 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: PTEN_9F	PTEN_9R	tgttcatctgcaaaatggaat	CAAGTTTATTTTCATGGTGTTTTATCC	chr10	399
+BLAST: PTEN_9F - chr10:89724938-89724958 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: PTEN_9R - chr10:89725248-89725274 perc_aligned:100.00 length:27/27 e-value:2e-06
+*WARNING: Primer product has wrong length. Should be '399' is '337', difference '62'!
+################################### PAIR ###################################
+INPUT: RAD51C_1F	RAD51C_1R	TCCGCTTTACGTCTGACGTC	AGGCGAGAGAACGAAGACTG	chr17	303
+BLAST: RAD51C_1F - chr17:56769920-56769939 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RAD51C_1R - chr17:56770203-56770222 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: RAD51C_2F	RAD51C_2R	AGACAATCGATTATCATGTTAC	TTGGTTTCCTGACGATAGTAC	chr17	414
+BLAST: RAD51C_2F - chr17:56772220-56772241 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: RAD51C_2R - chr17:56772613-56772633 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: RAD51C_3F	RAD51C_3R	ATTTCTGTTGCCTTGGGGAG	AATGGAGTGTTGCTGAGGTC	chr17	388
+BLAST: RAD51C_3F - chr17:56773920-56773939 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RAD51C_3R - chr17:56774288-56774307 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: RAD51C_4F	RAD51C_4R	TCTACAATTGCCAATACATCCAA	GTAGGTCAAGGAAGGAAGAG	chr17	330
+BLAST: RAD51C_4F - chr17:56780497-56780519 perc_aligned:100.00 length:23/23 e-value:3e-04
+BLAST: RAD51C_4R - chr17:56780807-56780826 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: 1000g/dbSNP: 17	56780816	C	1	0.0018	.
+################################### PAIR ###################################
+INPUT: RAD51C_5F	RAD51C_5R	CTTGGAGAGAGAGAGCATTTTT	CGCTATTTTGACATTTCTAGAC	chr17	291
+BLAST: RAD51C_5F - chr17:56787143-56787164 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: RAD51C_5R - chr17:56787412-56787433 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: RAD51C_6F	RAD51C_6R	CAATCTTGGCCAGACTGGTC	AACGGTACTGTGCTTAGTGC	chr17	290
+BLAST: RAD51C_6F - chr17:56798032-56798051 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RAD51C_6R - chr17:56798302-56798321 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: RAD51C_7F	RAD51C_7R	TTCTGAGAAATGTATAACCAAGTCA	TAGGTGATATCAGACAAGGC	chr17	270
+BLAST: RAD51C_7F - chr17:56801338-56801362 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: RAD51C_7R - chr17:56801588-56801607 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: RAD51C_8F	RAD51C_8R	TACATTTAAATAATGAGTTTGGTCATC	TGCTGCCTACAGAAGTTGACA	chr17	248
+BLAST: RAD51C_8F - chr17:56809758-56809784 perc_aligned:100.00 length:27/27 e-value:2e-06
+BLAST: RAD51C_8R - chr17:56809985-56810005 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: RAD51C_9F	RAD51C_9R	CTGGCCCTAGAATAAAGTAG	GGTAACAAGTCCACTTGTAC	chr17	286
+BLAST: RAD51C_9F - chr17:56811371-56811390 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RAD51C_9R - chr17:56811637-56811656 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: RAD51D_1F	RAD51D_1R	GCGCCTGTGTCCTCTCTAGG	AGGTATGCCAGGGCAGTG	chr17	282
+BLAST: RAD51D_1F - chr17:33446724-33446743 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RAD51D_1R - chr17:33446462-33446479 perc_aligned:100.00 length:18/18 e-value:0.081
+################################### PAIR ###################################
+INPUT: RAD51D_2F	RAD51D_2R	TTGACACCCCATTTGACAGA	TGACTTCTGACTCCAAGTGACC	chr17	291
+BLAST: RAD51D_2F - chr17:33446260-33446279 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RAD51D_2R - chr17:33445989-33446010 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: RAD51D_3F	RAD51D_3R	AAAGGGAGCAGAGGGTTCTC	TCAAAAGCAGAGCTGAGAGG	chr17	296
+BLAST: RAD51D_3F - chr17:33445726-33445745 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RAD51D_3R - chr17:33445450-33445469 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: RAD51D_3bF	RAD51D_3bR	GAGGGAGTGGTGAACAGGAA	CCCGGCCTAGAATGATGA	chr17	312
+BLAST: RAD51D_3bF - chr17:33444098-33444117 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RAD51D_3bR - chr17:33443806-33443823 perc_aligned:100.00 length:18/18 e-value:0.081
+################################### PAIR ###################################
+INPUT: RAD51D_4F	RAD51D_4R	TTTTCCCCTGTCTTCCTCCT	ACCACCCTCACCCCTAAATC	chr17	185
+BLAST: RAD51D_4F - chr17:33434504-33434523 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: ESP6500: 17	33434507	33434507	A	T	0.000116
+BLAST: RAD51D_4R - chr17:33434339-33434358 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: ESP6500: 17	33434340	33434340	C	G	0.000116
+*SNP: 1000g/dbSNP: 17	33434352	C	T	0.0005	rs142722898
+################################### PAIR ###################################
+INPUT: RAD51D_5F	RAD51D_5R	GGACTCAGCCCATTTGTGTT	AGCAAGTTTGAAGGCAAGGA	chr17	351
+BLAST: RAD51D_5F - chr17:33434227-33434246 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RAD51D_5R - chr17:33433896-33433915 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: RAD51D_6F	RAD51D_6R	CTGAGTCCTTGCATCCAGGT	ATTGCACATCTGCATTTCCA	chr17	300
+BLAST: RAD51D_6F - chr17:33433581-33433600 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RAD51D_6R - chr17:33433301-33433320 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: RAD51D_7-8F	RAD51D_7-8R	CTTGCTGTATTTGGGATGGG	TTTGGGGTTCAGAAGCTGAC	chr17	498
+BLAST: RAD51D_7-8F - chr17:33430664-33430683 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: 1000g/dbSNP 17	33430666	C	G	0.0014	rs188753384
+BLAST: RAD51D_7-8R - chr17:33430186-33430205 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: RAD51D_9-10F	RAD51D_9-10R	GGTTTTGTAACCTTGGGGAAG	CAGGCGTTACTGGGAAGAAA	chr17	611
+BLAST: RAD51D_9-10F - chr17:33428492-33428512 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: RAD51D_9-10R - chr17:33427902-33427921 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: STK11_1F	STK11_1R	GTCGGAACACAAGGAAGGAC	CAGCTCAGGGTGTTAAGAGGA	chr19	480
+BLAST: STK11_1F - chr19:1206839-1206858 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: STK11_1R - chr19:1207298-1207318 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: STK11_2F	STK11_2R	TCCCACAGCACTGTGAACTC	GAGACGGGAAGAGGAGCAG	chr19	325
+BLAST: STK11_2F - chr19:1218268-1218287 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: STK11_2R - chr19:1218574-1218592 perc_aligned:100.00 length:19/19 e-value:0.031
+################################### PAIR ###################################
+INPUT: STK11_3F	STK11_3R	CCTCCAGAGCCCCTTTTC	ATCAGGACAAGCAGTGTGGC	chr19	267
+BLAST: STK11_3F - chr19:1219238-1219255 perc_aligned:100.00 length:18/18 e-value:0.081
+BLAST: STK11_3R - chr19:1219485-1219504 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: STK11_4-5F	STK11_4-5R	TCCCAGGCAGCTGCAAA	CTGCCCAAGACGCAGAG	chr19	489
+BLAST: STK11_4-5F - chr19:1220295-1220311 perc_aligned:100.00 length:17/17 e-value:0.32
+BLAST: STK11_4-5R - chr19:1220767-1220783 perc_aligned:100.00 length:17/17 e-value:0.32
+################################### PAIR ###################################
+INPUT: STK11_6F	STK11_6R	TGTCCCTGGGGTAGAGCTG	ATTTCTGCACAAAAGCCCC	chr19	268
+BLAST: STK11_6F - chr19:1221130-1221148 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: STK11_6R - chr19:1221379-1221397 perc_aligned:100.00 length:19/19 e-value:0.031
+################################### PAIR ###################################
+INPUT: STK11_7F	STK11_7R	GGTTGGTGGGGTCTCAGG	CTCAACCAGCTGCCCAC	chr19	185
+BLAST: STK11_7F - chr19:1221889-1221906 perc_aligned:100.00 length:18/18 e-value:0.081
+BLAST: STK11_7R - chr19:1222057-1222073 perc_aligned:100.00 length:17/17 e-value:0.32
+################################### PAIR ###################################
+INPUT: STK11_8F	STK11_8R	TCCTGAGTGTGTGGCAGGTA	TCCCGTGGGACATCCTG	chr19	314
+BLAST: STK11_8F - chr19:1222880-1222899 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: STK11_8R - chr19:1223214-1223230 perc_aligned:100.00 length:17/17 e-value:0.32
+*WARNING: Primer product has wrong length. Should be '314' is '351', difference '37'!
+################################### PAIR ###################################
+INPUT: STK11_9F	STK11_9R	CAGGTCCCTGTGGCTCTG	CATCCAGGCGTTGTCCC	chr19	324
+BLAST: STK11_9F - chr19:1226389-1226406 perc_aligned:100.00 length:18/18 e-value:0.081
+BLAST: STK11_9R - chr19:1226696-1226712 perc_aligned:100.00 length:17/17 e-value:0.32
+################################### PAIR ###################################
+INPUT: MLH1_1F	MLH1_1R	AGGCACTGAGGTGATTGGC	TCGTAGCCCTTAAGTGAGC	chr3	229
+BLAST: MLH1_1F - chr3:37034966-37034984 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: MLH1_1R - chr3:37035176-37035194 perc_aligned:100.00 length:19/19 e-value:0.031
+*SNP: ESP6500: 3	37035189	37035189	C	T	0.000116
+################################### PAIR ###################################
+INPUT: MLH1_2F	MLH1_2R	AATATGTACATTAGAGTAGTTG	ATCCCATCTGCAAAAGCCTA	chr3	243
+BLAST: MLH1_2F - chr3:37038053-37038074 perc_aligned:100.00 length:22/22 e-value:8e-04
+*SNP: ESP6500: 3	37038062	37038062	A	G	0.000349
+BLAST: MLH1_2R - chr3:37038276-37038295 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MLH1_3F	MLH1_3R	CTGGATTAAATCAAGAAAATGGG	TGACAGACAATGTCATCACAGG	chr3	244
+BLAST: MLH1_3F - chr3:37042359-37042381 perc_aligned:100.00 length:23/23 e-value:3e-04
+BLAST: MLH1_3R - chr3:37042581-37042602 perc_aligned:100.00 length:22/22 e-value:8e-04
+*SNP: ESP6500: 3	37042592	37042592	A	T	0.000581
+*SNP: 1000g/dbSNP: 3	37042592	A	G	0.0005	.
+################################### PAIR ###################################
+INPUT: MLH1_4F	MLH1_4R	AACCTTTCCCTTTGGTGAGG	GATTACTCTGAGACCTAGGC	chr3	226
+BLAST: MLH1_4F - chr3:37045813-37045832 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MLH1_4R - chr3:37046019-37046038 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MLH1_5F	MLH1_5R	GATTTTCTCTTTTCCCCTTGGG	GAGGATATCTTGGGACCTCCA	chr3	286
+BLAST: MLH1_5F - chr3:37048409-37048430 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: MLH1_5R - chr3:37048674-37048694 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: MLH1_6F	MLH1_6R	TGTGCTGTTGGTAAATATAATTGGA	GCTCAGCAACTGTTCAATGTATGAGC	chr3	299
+BLAST: MLH1_6F - chr3:37050185-37050209 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: MLH1_6R - chr3:37050458-37050483 perc_aligned:100.00 length:26/26 e-value:5e-06
+################################### PAIR ###################################
+INPUT: MLH1_7-8F	MLH1_7-8R	ggctgtatggagatatttttcttt	ggttccaaaataatgtgatgg	chr3	500
+BLAST: MLH1_7-8F - chr3:37053169-37053192 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: MLH1_7-8R - chr3:37053648-37053668 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: MLH1_9F	MLH1_9R	AGGACCTCAAATGGACCAAG	GTGAGTGGATTTCCCATGTG	chr3	294
+BLAST: MLH1_9F - chr3:37055778-37055797 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MLH1_9R - chr3:37056052-37056071 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MLH1_10F	MLH1_10R	CCTGGGGATGTGATGTGC	GAGGAGAGCCTGATAGAACATCTG	chr3	292
+BLAST: MLH1_10F - chr3:37058864-37058881 perc_aligned:100.00 length:18/18 e-value:0.081
+BLAST: MLH1_10R - chr3:37059132-37059155 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: MLH1_11F	MLH1_11R	TCGATCCTGAGGTTTTGACC	GGCAAAGTGAGGAAGTGAGC	chr3	499
+BLAST: MLH1_11F - chr3:37061673-37061692 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MLH1_11R - chr3:37062152-37062171 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MLH1_12F	MLH1_12R	GTACTGCTCCATTTGGGGAC	ACAGGACCATTCCAGCACCA	chr3	617
+BLAST: MLH1_12F - chr3:37067020-37067039 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MLH1_12R - chr3:37067617-37067636 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MLH1_13F	MLH1_13R	CCAAAATGCAACCCACAAA	CTTTCTCCATTTCCAAAACC	chr3	298
+BLAST: MLH1_13F - chr3:37070196-37070214 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: MLH1_13R - chr3:37070474-37070493 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MLH1_14F	MLH1_14R	TGGTGTCTCTAGTTCTGG	TAGCTTTTGTGCCTGTGCTC	chr3	281
+BLAST: MLH1_14F - chr3:37081577-37081594 perc_aligned:100.00 length:18/18 e-value:0.081
+BLAST: MLH1_14R - chr3:37081838-37081857 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MLH1_15F	MLH1_15R	TTCTCCCATTTTGTCCCAAC	CTATTTTCAGAAACGATCAGTTG	chr3	199
+BLAST: MLH1_15F - chr3:37083679-37083698 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MLH1_15R - chr3:37083855-37083877 perc_aligned:100.00 length:23/23 e-value:3e-04
+*SNP: ESP6500: 3	37083863	37083863	C	G	0.000116
+################################### PAIR ###################################
+INPUT: MLH1_16F	MLH1_16R	CATTTGGATGCTCCGTTAAAGC	CCCGGCTGGAAATTTTATTTG	chr3	274
+BLAST: MLH1_16F - chr3:37088958-37088979 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: MLH1_16R - chr3:37089211-37089231 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: MLH1_17F	MLH1_17R	GGAAAGCACTGGAGAAATGGG	CCCTCCAGCACACATGCATGTACCG	chr3	227
+BLAST: MLH1_17F - chr3:37089928-37089948 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: MLH1_17R - chr3:37090130-37090154 perc_aligned:100.00 length:25/25 e-value:2e-05
+*SNP: ESP6500: 3	37090137	37090137	T	C	0.000349
+*SNP: ESP6500: 3	37090143	37090143	T	C	0.000116
+################################### PAIR ###################################
+INPUT: MLH1_18F	MLH1_18R	TAAGTAGTCTGTGATCTCCG	AGCTGACTGTTGTGTTTGAACC	chr3	318
+BLAST: MLH1_18F - chr3:37090315-37090334 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MLH1_18R - chr3:37090621-37090642 perc_aligned:100.00 length:22/22 e-value:8e-04
+*WARNING: Primer product has wrong length. Should be '318' is '328', difference '10'!
+################################### PAIR ###################################
+INPUT: MLH1_19F	MLH1_19R	GACACCAGTGTATGTTGG	GAGAAAGAAGAACACATCCC	chr3	269
+BLAST: MLH1_19F - chr3:37091917-37091934 perc_aligned:100.00 length:18/18 e-value:0.081
+*SNP: 1000g/dbSNP 3	37091929	T	C	0.0005	.
+BLAST: MLH1_19R - chr3:37092166-37092185 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: ESP6500: 3	37092174	37092176	TTC	-	0.022292
+*SNP: ESP6500: 3	37092176	37092176	C	T	0.001512
+*SNP: 1000g/dbSNP: 3	37092174	TTC	3	0.02	.
+################################### PAIR ###################################
+INPUT: MSH2_1F	MSH2_1R	GAGGCGGGAAACAGCTTAGT	ACTCTCTGAGGCGGGAAA	chr2	356
+BLAST: MSH2_1F - chr2:47630261-47630280 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MSH2_1R - chr2:47630599-47630616 perc_aligned:100.00 length:18/18 e-value:0.081
+################################### PAIR ###################################
+INPUT: MSH2_2F	MSH2_2R	CATGAAGTCCAGCTAATACAGTGC	AAATTCTTCACATTTTTATTTTTCTACTC	chr2	294
+BLAST: MSH2_2F - chr2:47635467-47635490 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: MSH2_2R - chr2:47635732-47635760 perc_aligned:100.00 length:29/29 e-value:1e-07
+*SNP: 1000g/dbSNP: 2	47635735	T	A	0.0005	.
+*SNP: 1000g/dbSNP: 2	47635737	G	T	0.0005	rs185555345
+*SNP: 1000g/dbSNP: 2	47635744	A	G	0.0005	rs189858868
+*SNP: 1000g/dbSNP: 2	47635748	A	G	0.0005	rs180764234
+################################### PAIR ###################################
+INPUT: MSH2_3F	MSH2_3R	GCTTATAAAATTTTAAAGTATGTTC	CCTTTCCTAGGCCTGGAATC	chr2	392
+BLAST: MSH2_3F - chr2:47637169-47637193 perc_aligned:100.00 length:25/25 e-value:2e-05
+*SNP: ESP6500: 2	47637184	47637184	A	T	0.000118
+BLAST: MSH2_3R - chr2:47637541-47637560 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MSH2_4F	MSH2_4R	GCACATTGTATAAACATTTAATGTAGG	GAGATAAATATGACAGAAATATCCTTCTA	chr2	387
+BLAST: MSH2_4F - chr2:47639428-47639454 perc_aligned:100.00 length:27/27 e-value:2e-06
+BLAST: MSH2_4R - chr2:47639786-47639814 perc_aligned:100.00 length:29/29 e-value:1e-07
+################################### PAIR ###################################
+INPUT: MSH2_5F	MSH2_5R	AAGGAAAATGAGGGACTTCAG	CCATTCAACATTTTTAACCC	chr2	311
+BLAST: MSH2_5F - chr2:47641296-47641316 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: MSH2_5R - chr2:47641587-47641606 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MSH2_6F	MSH2_6R	GTTTTCACTAATGAGCTTGCC	CAATAAGTGGTATAATCATGTGGG	chr2	257
+BLAST: MSH2_6F - chr2:47643384-47643404 perc_aligned:100.00 length:21/21 e-value:0.003
+*SNP: ESP6500: 2	47643393	47643393	A	G	0.000116
+BLAST: MSH2_6R - chr2:47643617-47643640 perc_aligned:100.00 length:24/24 e-value:7e-05
+*SNP: ESP6500: 2	47643619	47643619	C	T	0.000116
+################################### PAIR ###################################
+INPUT: MSH2_7F	MSH2_7R	CCCAGCAGATTCAAGCTTT	GAGTGAGTCACCACCACCAA	chr2	420
+BLAST: MSH2_7F - chr2:47656757-47656775 perc_aligned:100.00 length:19/19 e-value:0.031
+*SNP: 1000g/dbSNP 2	47656765	A	T	0.0009	rs184243445
+BLAST: MSH2_7R - chr2:47657157-47657176 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MSH2_8F	MSH2_8R	ATGATTTGTATTCTGTAAAATGAGATC	TCTTAAAGTGGCCTTTGCTTTT	chr2	233
+BLAST: MSH2_8F - chr2:47672627-47672653 perc_aligned:100.00 length:27/27 e-value:2e-06
+BLAST: MSH2_8R - chr2:47672838-47672859 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: MSH2_9F	MSH2_9R	TTTGCTTTATAATTTCTGTCTTTACCC	ATCTTGGGGACAGGGAACTT	chr2	292
+BLAST: MSH2_9F - chr2:47690105-47690131 perc_aligned:100.00 length:27/27 e-value:2e-06
+BLAST: MSH2_9R - chr2:47690377-47690396 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MSH2_10F	MSH2_10R	AGAATTACATTGAAAAATGGTAGTAGG	CATCATGTTAGAGCATTTAGGGA	chr2	280
+BLAST: MSH2_10F - chr2:47693730-47693756 perc_aligned:100.00 length:27/27 e-value:2e-06
+*SNP: ESP6500: 2	47693756	47693756	G	C	0.001512
+BLAST: MSH2_10R - chr2:47693987-47694009 perc_aligned:100.00 length:23/23 e-value:3e-04
+################################### PAIR ###################################
+INPUT: MSH2_11F	MSH2_11R	TTCATAGGATACTTTGGATATGTTTCA	CCAGGTGACATTCAGAAC	chr2	232
+BLAST: MSH2_11F - chr2:47698011-47698037 perc_aligned:100.00 length:27/27 e-value:2e-06
+BLAST: MSH2_11R - chr2:47698225-47698242 perc_aligned:100.00 length:18/18 e-value:0.081
+################################### PAIR ###################################
+INPUT: MSH2_12F	MSH2_12R	ATTCAGTATTCCTGTGTAC	CGTTACCCCCACAAAGC	chr2	327
+BLAST: MSH2_12F - chr2:47702120-47702138 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: MSH2_12R - chr2:47702430-47702446 perc_aligned:100.00 length:17/17 e-value:0.32
+################################### PAIR ###################################
+INPUT: MSH2_13F	MSH2_13R	TGGGGGTAATATGGGCAGTA	GGACAGAGACATACATTTC	chr2	437
+BLAST: MSH2_13F - chr2:47703323-47703342 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MSH2_13R - chr2:47703741-47703759 perc_aligned:100.00 length:19/19 e-value:0.031
+################################### PAIR ###################################
+INPUT: MSH2_14F	MSH2_14R	ATGTTACCACATTTTATGTGATGG	AAGGGTAGTAAGTTTCCCATTACC	chr2	358
+BLAST: MSH2_14F - chr2:47705360-47705383 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: MSH2_14R - chr2:47705694-47705717 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: MSH2_15F	MSH2_15R	TTGCTGTCTCTTCTCATGCTG	ATAGAGAAGCTAAGTTAAAC	chr2	268
+BLAST: MSH2_15F - chr2:47707784-47707804 perc_aligned:100.00 length:21/21 e-value:0.003
+*SNP: 1000g/dbSNP 2	47707791	C	G	0.0009	rs189261808
+*SNP: 1000g/dbSNP 2	47707798	C	A	0.0005	.
+BLAST: MSH2_15R - chr2:47708032-47708051 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MSH2_16F	MSH2_16R	TGTGTGATATGTTTAGATGGAAATGA	CCCATGGGCACTGACAGTTA	chr2	384
+BLAST: MSH2_16F - chr2:47709816-47709841 perc_aligned:100.00 length:26/26 e-value:5e-06
+BLAST: MSH2_16R - chr2:47710180-47710199 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MSH6_1F	MSH6_1R	AGCCGCGCGGTAGATGC	CTGTGCGAGCCTCCCCT	chr2	410
+BLAST: MSH6_1F - chr2:48010302-48010318 perc_aligned:100.00 length:17/17 e-value:0.32
+BLAST: MSH6_1R - chr2:48010695-48010711 perc_aligned:100.00 length:17/17 e-value:0.32
+################################### PAIR ###################################
+INPUT: MSH6_2F	MSH6_2R	TGCCAGAAGACTTGGAATTG	CCTGTCTGTCTGTTTCTCT	chr2	364
+BLAST: MSH6_2F - chr2:48017971-48017990 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MSH6_2R - chr2:48018316-48018334 perc_aligned:100.00 length:19/19 e-value:0.031
+################################### PAIR ###################################
+INPUT: MSH6_3F	MSH6_3R	GATGGGGTTTGCTATGTTGC	TACACCCTCCCCCTTTCTTC	chr2	341
+BLAST: MSH6_3F - chr2:48022930-48022949 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MSH6_3R - chr2:48023251-48023270 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MSH6_4-1F	MSH6_4-1R	ACTGTACTAAAAATGAAAAACAGTGG	GCTCTCAAAGTATTCTTGGTTTCTG	chr2	521
+BLAST: MSH6_4-1F - chr2:48025618-48025643 perc_aligned:100.00 length:26/26 e-value:5e-06
+BLAST: MSH6_4-1R - chr2:48026114-48026138 perc_aligned:100.00 length:25/25 e-value:2e-05
+################################### PAIR ###################################
+INPUT: MSH6_4-2F	MSH6_4-2R	AGAGAATGGTGACTGGAAATG	GCCAAATGCAATTTCAGGAAA	chr2	500
+BLAST: MSH6_4-2F - chr2:48026024-48026044 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: MSH6_4-2R - chr2:48026503-48026523 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: MSH6_4-3F	MSH6_4-3R	GTACCACATGGATGCTCTTA	GGATAGTGTGCCACTAGAGT	chr2	465
+BLAST: MSH6_4-3F - chr2:48026427-48026446 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MSH6_4-3R - chr2:48026872-48026891 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MSH6_4-4F	MSH6_4-4R	TCTTCTGGCCATACTCGTGC	TCACTGCATCTAGCACCATT	chr2	571
+BLAST: MSH6_4-4F - chr2:48026767-48026786 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MSH6_4-4R - chr2:48027318-48027337 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MSH6_4-5F	MSH6_4-5R	AATGGCTAATTTTGAAGAATA	GAATCCTTCCAGAGCAGAAA	chr2	490
+BLAST: MSH6_4-5F - chr2:48027228-48027248 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: MSH6_4-5R - chr2:48027698-48027717 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: ESP6500: 2	48027701	48027701	C	T	0.000233
+################################### PAIR ###################################
+INPUT: MSH6_4-6F	MSH6_4-6R	AGAACCACCCAGACAGCAGG	CAGCCCTTCTTGGTAGATTT	chr2	505
+BLAST: MSH6_4-6F - chr2:48027626-48027645 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MSH6_4-6R - chr2:48028111-48028130 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MSH6_4-7F	MSH6_4-7R	AATTGGCTGTAGGACCATAG	GGATAATATACAGCTGGCAA	chr2	358
+BLAST: MSH6_4-7F - chr2:48028005-48028024 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MSH6_4-7R - chr2:48028343-48028362 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MSH6_5F	MSH6_5R	TTAGGCTGATAAAACCCCCA	CTGTGTTTGGAAAATGATCACC	chr2	408
+BLAST: MSH6_5F - chr2:48030502-48030521 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: ESP6500: 2	48030520	48030520	C	T	0.000233
+BLAST: MSH6_5R - chr2:48030888-48030909 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: MSH6_6F	MSH6_6R	AGGCCCTATGCCTCTTGTCT	TCACATCTAAATGACTGAATGAGAA	chr2	366
+BLAST: MSH6_6F - chr2:48031851-48031870 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MSH6_6R - chr2:48032192-48032216 perc_aligned:100.00 length:25/25 e-value:2e-05
+*SNP: ESP6500: 2	48032192	48032192	T	C	0.000116
+*SNP: ESP6500: 2	48032208	48032208	T	C	0.000116
+*SNP: 1000g/dbSNP: 2	48032199	TCAG	4	0.0009	.
+################################### PAIR ###################################
+INPUT: MSH6_7F	MSH6_7R	GGCTGGTCTCTTAACTCCTGA	TGAGTGCGTGCTCTAAAAACA	chr2	446
+BLAST: MSH6_7F - chr2:48032526-48032546 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: MSH6_7R - chr2:48032951-48032971 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: MSH6_8-9F	MSH6_8-9R	GATGTACTAACCGATGTTGC	TCATAGTGCATGATCCCTTCC	chr2	639
+BLAST: MSH6_8-9F - chr2:48033238-48033257 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MSH6_8-9R - chr2:48033856-48033876 perc_aligned:95.24 length:21/21 e-value:0.64
+################################### PAIR ###################################
+INPUT: MSH6_10F	MSH6_10R	GGAAGGGATGATGCACTATG	TGTTGTCTGAATTTACCACCTTTG	chr2	203
+BLAST: MSH6_10F - chr2:48033856-48033875 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MSH6_10R - chr2:48034035-48034058 perc_aligned:100.00 length:24/24 e-value:7e-05
+*SNP: ESP6500: 2	48034036	48034036	A	G	0.000116
+*SNP: ESP6500: 2	48034053	48034055	ACA	-	0.000121
+################################### PAIR ###################################
+INPUT: VHL_1F	VHL_1R	cccgggtggtctggat	gcttcagaccgtgctatcgt	chr3	421
+BLAST: VHL_1F - chr3:10183506-10183521 perc_aligned:100.00 length:16/16 e-value:1.3
+BLAST: VHL_1R - chr3:10183907-10183926 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: VHL_2F	VHL_2R	accggtgtggctctttaaca	CAGGCAAAAATTGAGAACTGG	chr3	258
+BLAST: VHL_2F - chr3:10188158-10188177 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: ESP6500: 3	10188161	10188161	G	A	0.000698
+*SNP: 1000g/dbSNP 3	10188160	C	T	0.0041	rs185858030
+*SNP: 1000g/dbSNP 3	10188161	G	A	0.01	rs115744107
+BLAST: VHL_2R - chr3:10188395-10188415 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: VHL_3F	VHL_3R	ctgccactgaggatttggtt	ccatcaaaagctgagatgaaa	chr3	294
+BLAST: VHL_3F - chr3:10191438-10191457 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: ESP6500: 3	10191448	10191448	G	T	0.000116
+BLAST: VHL_3R - chr3:10191674-10191694 perc_aligned:100.00 length:21/21 e-value:0.003
+*WARNING: Primer product has wrong length. Should be '294' is '257', difference '37'!
+################################### PAIR ###################################
+INPUT: APC_1F	APC_1R	TTTTGTTTCCTTTACCCCTTTC	CCTCAAGTTTACAAGAGGGAAT	chr5	309
+BLAST: APC_1F - chr5:112090484-112090505 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: APC_1R - chr5:112090771-112090792 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: APC_2F	APC_2R	CTCAGCATACTTAAATGTCAAGAAA	CACCTAAAGATGACAATTTGAG	chr5	233
+BLAST: APC_2F - chr5:112101935-112101959 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: APC_2R - chr5:112102146-112102167 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: APC_3F	APC_3R	ACCCAAGTGGACTTTTCA	TGCAAAATGCTCTAAGTGTTAGC	chr5	491
+BLAST: APC_3F - chr5:112102717-112102734 perc_aligned:100.00 length:18/18 e-value:0.081
+BLAST: APC_3R - chr5:112103185-112103207 perc_aligned:100.00 length:23/23 e-value:3e-04
+################################### PAIR ###################################
+INPUT: APC_4F	APC_4R	TGCTCTTCTGCAGTCTTTATTAGC	CCTGAATTTTAATGGATTACC	chr5	255
+BLAST: APC_4F - chr5:112111263-112111286 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: APC_4R - chr5:112111497-112111517 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: APC_5F	APC_5R	CATGCACCATGACTGACGTA	GCAGCCATGATAAATCTTA	chr5	385
+BLAST: APC_5F - chr5:112116365-112116384 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: APC_5R - chr5:112116731-112116749 perc_aligned:100.00 length:19/19 e-value:0.031
+################################### PAIR ###################################
+INPUT: APC_6F	APC_6R	GAGAATGATTTGACATAACCCTGA	TGTTTTCTTTTCTCAGAATAACTACCT	chr5	259
+BLAST: APC_6F - chr5:112128033-112128056 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: APC_6R - chr5:112128265-112128291 perc_aligned:100.00 length:27/27 e-value:2e-06
+################################### PAIR ###################################
+INPUT: APC_7F	APC_7R	AAGAAAGCCTACACCATTTTTGC	GGTAAGATTTATAGATCATTCTTAGAACCAT	chr5	251
+BLAST: APC_7F - chr5:112136924-112136946 perc_aligned:100.00 length:23/23 e-value:3e-04
+BLAST: APC_7R - chr5:112137144-112137174 perc_aligned:100.00 length:31/31 e-value:9e-09
+################################### PAIR ###################################
+INPUT: APC_8F	APC_8R	GACACTTCATTTGGAGTACCTTAACA	GCCAAGAATGTCTTAGCAAAGTAG	chr5	250
+BLAST: APC_8F - chr5:112151104-112151129 perc_aligned:100.00 length:26/26 e-value:5e-06
+BLAST: APC_8R - chr5:112151330-112151353 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: APC_9F	APC_9R	TGATTACTTCATCCTGGAAAGG	GTAGCACAAATGGCTGATATGA	chr5	680
+BLAST: APC_9F - chr5:112154495-112154516 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: APC_9R - chr5:112155153-112155174 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: APC_10F	APC_10R	AAACATCATTGCTCTTCAAATAACAA	CTACCATGATTTAAAAATCCACCAGT	chr5	217
+BLAST: APC_10F - chr5:112157534-112157559 perc_aligned:100.00 length:26/26 e-value:5e-06
+BLAST: APC_10R - chr5:112157725-112157750 perc_aligned:100.00 length:26/26 e-value:5e-06
+################################### PAIR ###################################
+INPUT: APC_11F	APC_11R	GGCAAATTTAAACCATATATTCTCA	GCACAGGTTTTTATCAGTCATTG	chr5	395
+BLAST: APC_11F - chr5:112162680-112162704 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: APC_11R - chr5:112163052-112163074 perc_aligned:100.00 length:23/23 e-value:3e-04
+################################### PAIR ###################################
+INPUT: APC_12F	APC_12R	GGCTTCAAGTTGTCTTTTTAATGATC	AGACCCTGCCTCAAAGAAAAAG	chr5	186
+BLAST: APC_12F - chr5:112163576-112163601 perc_aligned:100.00 length:26/26 e-value:5e-06
+BLAST: APC_12R - chr5:112163740-112163761 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: APC_13F	APC_13R	TTTCTATTCTTACTGCTAGCATTAAAAACA	AATACACAGGTAAGAAATTAGGAAATCTCAT	chr5	499
+*WARNING: Several possible blast hit pairs found. Taking the pair with the lowest e-value sum!
+          0) hit for: chr5 100.00 30 112164466 112164495 3e-08
+          0) hit rev: chr5 100.00 31 112164772 112164742 9e-09
+          0) e-value: 3.9E-8
+          0) length : 307
+          1) hit for: chr5 100.00 30 112164466 112164495 3e-08
+          1) hit rev: chr5 95.65 23 112165156 112165134 0.13
+          1) e-value: 0.13000003
+          1) length : 691
+          2) hit for: chr5 100.00 30 112164466 112164495 3e-08
+          2) hit rev: chr5 95.00 20 112164849 112164830 8.2
+          2) e-value: 8.20000003
+          2) length : 384
+BLAST: APC_13F - chr5:112164466-112164495 perc_aligned:100.00 length:30/30 e-value:3e-08
+BLAST: APC_13R - chr5:112164742-112164772 perc_aligned:100.00 length:31/31 e-value:9e-09
+*SNP: 1000g/dbSNP: 5	112164747	A	G	0.01	rs62364023
+*WARNING: Primer product has wrong length. Should be '499' is '307', difference '192'!
+################################### PAIR ###################################
+INPUT: APC_14F	APC_14R	AGTGAGGGACGGGCAATAG	TTTTGGCTTAAAACTTTCATGATT	chr5	441
+BLAST: APC_14F - chr5:112170527-112170545 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: APC_14R - chr5:112170944-112170967 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: APC_15-1F	APC_15-1R	GTTACTGCATACACATTGTGACC	CGATGAGATGCCTTGGGACTT	chr5	453
+BLAST: APC_15-1F - chr5:112173196-112173218 perc_aligned:100.00 length:23/23 e-value:3e-04
+*SNP: ESP6500: 5	112173213	112173213	G	A	0.000465
+BLAST: APC_15-1R - chr5:112173628-112173648 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: APC_15-2F	APC_15-2R	GCGAAGTACAAGGATGCCAATATT	GCAGTGGTGGAGATCTGCAAA	chr5	449
+BLAST: APC_15-2F - chr5:112173494-112173517 perc_aligned:100.00 length:24/24 e-value:7e-05
+*SNP: ESP6500: 5	112173495	112173495	C	T	0.000116
+*SNP: ESP6500: 5	112173496	112173496	G	A	0.000116
+*SNP: ESP6500: 5	112173513	112173513	A	G	0.000116
+BLAST: APC_15-2R - chr5:112173922-112173942 perc_aligned:100.00 length:21/21 e-value:0.003
+*SNP: 1000g/dbSNP: 5	112173931	C	T	0.0009	.
+################################### PAIR ###################################
+INPUT: APC_15-3F	APC_15-3R	CAACTACCATCCAGCAACAGAAAAT	TTGGTGTATCTAGTTCTCCATCATTATCAT	chr5	491
+BLAST: APC_15-3F - chr5:112173874-112173898 perc_aligned:100.00 length:25/25 e-value:2e-05
+*SNP: ESP6500: 5	112173877	112173877	C	G	0.000116
+*SNP: ESP6500: 5	112173884	112173884	C	T	0.000233
+*SNP: 1000g/dbSNP 5	112173884	C	T	0.0014	rs192620988
+BLAST: APC_15-3R - chr5:112174335-112174364 perc_aligned:100.00 length:30/30 e-value:3e-08
+*SNP: ESP6500: 5	112174364	112174364	A	G	0.000116
+################################### PAIR ###################################
+INPUT: APC_15-4F	APC_15-4R	TCAATACCCAGCCGACCTAGC	CCACATGACGTTTCTCTTCATTATATTTT	chr5	527
+BLAST: APC_15-4F - chr5:112174285-112174305 perc_aligned:100.00 length:21/21 e-value:0.003
+*SNP: ESP6500: 5	112174297	112174297	C	T	0.000349
+BLAST: APC_15-4R - chr5:112174783-112174811 perc_aligned:100.00 length:29/29 e-value:1e-07
+*SNP: ESP6500: 5	112174802	112174802	C	T	0.000233
+################################### PAIR ###################################
+INPUT: APC_15-5F	APC_15-5R	GTAAGCCAGTCTTTGTGTCAAGAAGAT	CAGCTGATGACAAAGATGATAATGAAC	chr5	478
+BLAST: APC_15-5F - chr5:112174664-112174690 perc_aligned:100.00 length:27/27 e-value:2e-06
+*SNP: ESP6500: 5	112174677	112174677	T	C	0.002907
+*SNP: 1000g/dbSNP 5	112174669	C	G	0.0005	rs149353082
+*SNP: 1000g/dbSNP 5	112174677	T	C	0.0018	rs143638171
+BLAST: APC_15-5R - chr5:112175115-112175141 perc_aligned:100.00 length:27/27 e-value:2e-06
+################################### PAIR ###################################
+INPUT: APC_15-6F	APC_15-6R	CTTGCAAAGTTTCTTCTATTAACCAAGA	CGACTCTCAAAACTATCAAGTGAACTG	chr5	454
+BLAST: APC_15-6F - chr5:112175034-112175061 perc_aligned:100.00 length:28/28 e-value:4e-07
+*SNP: 1000g/dbSNP 5	112175041	A	G	0	.
+BLAST: APC_15-6R - chr5:112175461-112175487 perc_aligned:100.00 length:27/27 e-value:2e-06
+################################### PAIR ###################################
+INPUT: APC_15-7F	APC_15-7R	ACCTGAACACTATGTTCAGGAGACC	CATTTGATTCTTTAGGCTGCTCTGATT	chr5	524
+BLAST: APC_15-7F - chr5:112175407-112175431 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: APC_15-7R - chr5:112175904-112175930 perc_aligned:100.00 length:27/27 e-value:2e-06
+*SNP: ESP6500: 5	112175914	112175914	G	A	0.000116
+*SNP: 1000g/dbSNP: 5	112175909	G	C	0	.
+################################### PAIR ###################################
+INPUT: APC_15-8F	APC_15-8R	ACAGAAAGATGTGGAATTAAGAATAATGC	CTCCTTCTCCAGCAGCTAACTCAT	chr5	476
+BLAST: APC_15-8F - chr5:112175839-112175867 perc_aligned:100.00 length:29/29 e-value:1e-07
+*SNP: 1000g/dbSNP 5	112175862	T	C	0.0005	.
+BLAST: APC_15-8R - chr5:112176291-112176314 perc_aligned:100.00 length:24/24 e-value:7e-05
+*SNP: ESP6500: 5	112176300	112176300	C	T	0.000116
+################################### PAIR ###################################
+INPUT: APC_15-9F	APC_15-9R	ACATCTCTAAGTGATCTAACAATCGAATC	TCATCATCATCAAAATCTAGAGAACTCA	chr5	650
+BLAST: APC_15-9F - chr5:112176254-112176282 perc_aligned:100.00 length:29/29 e-value:1e-07
+BLAST: APC_15-9R - chr5:112176876-112176903 perc_aligned:100.00 length:28/28 e-value:4e-07
+################################### PAIR ###################################
+INPUT: APC_15-10F	APC_15-10R	CTATTGAAGGAACTCCTTACTGTTTTTC	TGCCACCCATATTTCTGGG	chr5	669
+BLAST: APC_15-10F - chr5:112176834-112176861 perc_aligned:100.00 length:28/28 e-value:4e-07
+BLAST: APC_15-10R - chr5:112177484-112177502 perc_aligned:100.00 length:19/19 e-value:0.031
+################################### PAIR ###################################
+INPUT: APC_15-11F	APC_15-11R	GCCTTCAAGACTCAAGGGTGA	GGAGAAGTGGTGGCTGTTTG	chr5	657
+BLAST: APC_15-11F - chr5:112177447-112177467 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: APC_15-11R - chr5:112178084-112178103 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: APC_15-12F	APC_15-12R	CCTTAAGACTCCAGCCTCCAA	GTCTAGATGATGGAGAAAGAGATTCAA	chr5	656
+BLAST: APC_15-12F - chr5:112178047-112178067 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: APC_15-12R - chr5:112178676-112178702 perc_aligned:100.00 length:27/27 e-value:2e-06
+*SNP: ESP6500: 5	112178686	112178686	T	C	0.000233
+*SNP: ESP6500: 5	112178690	112178690	C	A	0.000116
+*SNP: ESP6500: 5	112178693	112178693	T	G	0.000116
+################################### PAIR ###################################
+INPUT: APC_15-13F	APC_15-13R	CAACCTTAAGAAGAAAATTGGAGGA	GATCTAGGATTGTTAATGGGACAGTC	chr5	664
+BLAST: APC_15-13F - chr5:112178640-112178664 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: APC_15-13R - chr5:112179278-112179303 perc_aligned:100.00 length:26/26 e-value:5e-06
+*SNP: ESP6500: 5	112179294	112179294	A	G	0.000116
+################################### PAIR ###################################
+INPUT: APC_15-14F	APC_15-14R	TGCTGTTTCTAAAACAGAGGATGTT	AGTTTCATTTGAAACAAAATGTCTATATAGC	chr5	663
+BLAST: APC_15-14F - chr5:112179238-112179262 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: APC_15-14R - chr5:112179870-112179900 perc_aligned:100.00 length:31/31 e-value:9e-09
+################################### PAIR ###################################
+INPUT: MUTYH_1F	MUTYH_1R	TGAAGGCTACCTCTGGGAAG	GACGTCTGAACGGAAGTTCG	chr1	219
+BLAST: MUTYH_1F - chr1:45805985-45806004 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MUTYH_1R - chr1:45805786-45805805 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MUTYH_2F	MUTYH_2R	CTGCTTTGGCTGGGTCTTT	CGCACCTGGCCCTTAGTAAG	chr1	262
+BLAST: MUTYH_2F - chr1:45800193-45800211 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: MUTYH_2R - chr1:45799950-45799969 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MUTYH_3-5F	MUTYH_3-5R	GAAGCCCTAAGTGGGAGCAT	GCAGGCAGAAAGAGACAAGG	chr1	692
+BLAST: MUTYH_3-5F - chr1:45799316-45799335 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MUTYH_3-5R - chr1:45798644-45798663 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MUTYH_6-9F	MUTYH_6-9R	CTTTGGGGTGGGTGTAGAGA	AGGGAACACTGCTGTGAAGC	chr1	721
+BLAST: MUTYH_6-9F - chr1:45798692-45798711 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MUTYH_6-9R - chr1:45797991-45798010 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MUTYH_10-11F	MUTYH_10-11R	GGTAACAAGGGTGCTTCAGG	ACCTAGAGAGTGGGCTTTGG	chr1	476
+BLAST: MUTYH_10-11F - chr1:45798031-45798050 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MUTYH_10-11R - chr1:45797575-45797594 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MUTYH_12-14F	MUTYH_12-14R	TCCTCTAACCTGAGTAAGATTCTGC	CCTGTTTACACAGTAATATATTC	chr1	853
+BLAST: MUTYH_12-14F - chr1:45797604-45797628 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: MUTYH_12-14R - chr1:45796776-45796798 perc_aligned:100.00 length:23/23 e-value:3e-04
+################################### PAIR ###################################
+INPUT: MUTYH_15F	MUTYH_15R	TGAAGTTAAGGGCAGAACACC	ATTCCTCCCTCCAGTGAAGC	chr1	241
+BLAST: MUTYH_15F - chr1:45796285-45796305 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: MUTYH_15R - chr1:45796065-45796084 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MUTYH_16F	MUTYH_16R	GGGAAAGGGAGAGAGGACAA	CGAAACCAGTCTGAGCAACA	chr1	336
+BLAST: MUTYH_16F - chr1:45795173-45795192 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: 1000g/dbSNP 1	45795184	C	1	0.0014	.
+BLAST: MUTYH_16R - chr1:45794857-45794876 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: RB1_1F	RB1_1R	TTTTGTAACGGGAGTCGGGAGAGG	CCTTGGCGCCCGCCCTACG	chr13	315
+BLAST: RB1_1F - chr13:48877942-48877965 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: RB1_1R - chr13:48878238-48878256 perc_aligned:100.00 length:19/19 e-value:0.031
+################################### PAIR ###################################
+INPUT: RB1_2F	RB1_2R	GTATGTACTGAATCAATTTG	CCTCTGGGTAATGGAATTATTATT	chr13	324
+BLAST: RB1_2F - chr13:48881352-48881371 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RB1_2R - chr13:48881652-48881675 perc_aligned:100.00 length:24/24 e-value:7e-05
+*SNP: 1000g/dbSNP: 13	48881652	A	G	0.0009	rs192264078
+*SNP: 1000g/dbSNP: 13	48881653	A	C	0.0005	rs141609827
+################################### PAIR ###################################
+INPUT: RB1_3F	RB1_3R	TAACATAGTATCCAGTGTGTG	TCTATTGAGAGGAAAATCCAGAA	chr13	250
+BLAST: RB1_3F - chr13:48916672-48916692 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: RB1_3R - chr13:48916899-48916921 perc_aligned:100.00 length:23/23 e-value:3e-04
+################################### PAIR ###################################
+INPUT: RB1_4F	RB1_4R	TTTGATGTAGAGCTGATAATCTTTG	ATTCCCAGAATCTAATTGTGAACA	chr13	301
+BLAST: RB1_4F - chr13:48919106-48919129 perc_aligned:100.00 length:24/25 e-value:8e-05
+BLAST: RB1_4R - chr13:48919383-48919406 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: RB1_5F	RB1_5R	TTGGGAAAATCTACTTGAACTTTG	GCTATAATCGATCAAACTAACCCT	chr13	296
+BLAST: RB1_5F - chr13:48921805-48921828 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: RB1_5R - chr13:48922077-48922100 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: RB1_6F	RB1_6R	AAATTATGCAATTAAAATGGACTGC	ATTTAGTCCAAAGGAATGCCAA	chr13	300
+BLAST: RB1_6F - chr13:48922933-48922957 perc_aligned:100.00 length:25/25 e-value:2e-05
+BLAST: RB1_6R - chr13:48923211-48923232 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: RB1_7F	RB1_7R	CCTGCGATTTTCTCTCATACAA	AGACATTCAATAAGCAACTGCTGA	chr13	240
+BLAST: RB1_7F - chr13:48934084-48934105 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: RB1_7R - chr13:48934300-48934323 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: RB1_8F	RB1_8R	AATGTTACCAAGATTATTTTTGACCT	AAAAACATGCTCATAACAAAAGAAGT	chr13	342
+BLAST: RB1_8F - chr13:48936849-48936874 perc_aligned:100.00 length:26/26 e-value:5e-06
+*SNP: 1000g/dbSNP 13	48936864	A	0TT	0.0005	.
+BLAST: RB1_8R - chr13:48937165-48937190 perc_aligned:100.00 length:26/26 e-value:5e-06
+################################### PAIR ###################################
+INPUT: RB1_9F	RB1_9R	TGGGGGATTGACACCTCTAA	CCTCCCTCCACAGTCTCAAAAC	chr13	235
+BLAST: RB1_9F - chr13:48938928-48938947 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RB1_9R - chr13:48939141-48939162 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: RB1_10F	RB1_10R	CTGTGTCTGAGAGATGTAATGAC	TGCAAAAAGGTAACTGTTATAGGA	chr13	397
+BLAST: RB1_10F - chr13:48941575-48941591 perc_aligned:100.00 length:17/23 e-value:0.96
+*SNP: ESP6500: 13	48941589	48941589	G	-	0.000122
+BLAST: RB1_10R - chr13:48941941-48941964 perc_aligned:100.00 length:24/24 e-value:7e-05
+*WARNING: Primer product has wrong length. Should be '397' is '390', difference '7'!
+################################### PAIR ###################################
+INPUT: RB1_11F	RB1_11R	GAGACAACAGAAGCATTATAC	TGATCCACCACACCTGGC	chr13	308
+BLAST: RB1_11F - chr13:48942571-48942591 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: RB1_11R - chr13:48942861-48942878 perc_aligned:100.00 length:18/18 e-value:0.081
+################################### PAIR ###################################
+INPUT: RB1_12F	RB1_12R	AGACAAGTGGGAGGCAGTGT	GCAAGAAAAGATTATGGATAACTACA	chr13	341
+BLAST: RB1_12F - chr13:48947421-48947440 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RB1_12R - chr13:48947736-48947761 perc_aligned:100.00 length:26/26 e-value:5e-06
+################################### PAIR ###################################
+INPUT: RB1_13F	RB1_13R	TGGAAGTGTTTCCACATTTT	CACAGGCAGCAGGGATATAG	chr13	374
+BLAST: RB1_13F - chr13:48950937-48950956 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RB1_13R - chr13:48951291-48951310 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: RB1_14F	RB1_14R	TGATTTCTAAAATAGCAGGCTCT	CTTGACCTCCTGATCTGCCC	chr13	245
+BLAST: RB1_14F - chr13:48953685-48953704 perc_aligned:100.00 length:20/23 e-value:0.016
+*SNP: ESP6500: 13	48953701	48953701	C	T	0.000582
+*SNP: 1000g/dbSNP 13	48953701	C	T	0.0005	.
+BLAST: RB1_14R - chr13:48953869-48953888 perc_aligned:100.00 length:20/20 e-value:0.008
+*WARNING: Primer product has wrong length. Should be '245' is '204', difference '41'!
+################################### PAIR ###################################
+INPUT: RB1_15-16F	RB1_15-16R	AATTCAATGCTGACACAAATAAGGTTTC	GATCTAAAATAAGCATTCCTTCTCC	chr13	381
+BLAST: RB1_15-16F - chr13:48954118-48954145 perc_aligned:100.00 length:28/28 e-value:4e-07
+BLAST: RB1_15-16R - chr13:48954474-48954498 perc_aligned:100.00 length:25/25 e-value:2e-05
+################################### PAIR ###################################
+INPUT: RB1_17F	RB1_17R	CCTTTCTACTGTTTCTTTGTCTGA	CAATAATTTGTTAGCCATATGCAC	chr13	354
+*ERROR: No blast hit pair found (correct chr and maximum product length of '2000'):
+          H1: chr2 100.00 20 222552614 222552595 0.018
+          H1: chr2 100.00 17 3579881 3579865 1.1
+          H1: chr2 100.00 17 43665136 43665120 1.1
+          H1: chr2 100.00 17 58825579 58825563 1.1
+          H1: chr2 100.00 16 50535426 50535441 4.4
+          H1: chr2 100.00 16 81272694 81272679 4.4
+          H1: chr2 100.00 16 103991700 103991715 4.4
+          H1: chr2 100.00 16 121588422 121588437 4.4
+          H1: chr2 100.00 16 185945047 185945032 4.4
+          H1: chr2 100.00 16 188157299 188157284 4.4
+          H1: chr2 100.00 16 202442433 202442418 4.4
+          H1: chr2 95.00 20 203201558 203201577 4.4
+          H1: chr15 100.00 19 54720378 54720396 0.072
+          H1: chr15 95.00 20 43152287 43152268 4.4
+          H1: chr21 100.00 18 15528098 15528081 0.28
+          H1: chr21 100.00 16 23706786 23706771 4.4
+          H1: chr21 100.00 16 32852055 32852040 4.4
+          H1: chr21 95.00 20 44317075 44317094 4.4
+          H1: chr11 100.00 18 51361455 51361472 0.28
+          H1: chr11 100.00 17 114289621 114289637 1.1
+          H1: chr11 100.00 16 79385477 79385492 4.4
+          H1: chr11 100.00 16 85435744 85435759 4.4
+          H1: chr11 100.00 16 91749169 91749184 4.4
+          H1: chr11 100.00 16 109111937 109111922 4.4
+          H1: chr11 100.00 16 109435621 109435636 4.4
+          H1: chr11 100.00 16 121547273 121547288 4.4
+          H1: chr11 95.00 20 124351522 124351503 4.4
+          H1: chr9 100.00 18 12308610 12308593 0.28
+          H1: chr9 100.00 16 19958631 19958646 4.4
+          H1: chr9 100.00 16 37199287 37199302 4.4
+          H1: chr9 100.00 16 126604583 126604568 4.4
+          H1: chr8 100.00 18 48148811 48148794 0.28
+          H1: chr8 100.00 16 34539426 34539441 4.4
+          H1: chr8 100.00 16 42446531 42446546 4.4
+          H1: chr8 100.00 16 61944586 61944571 4.4
+          H1: chr8 100.00 16 101015876 101015861 4.4
+          H1: chr6 100.00 18 104707238 104707221 0.28
+          H1: chr6 100.00 17 86719926 86719942 1.1
+          H1: chr6 100.00 16 9708227 9708212 4.4
+          H1: chr6 100.00 16 30528182 30528167 4.4
+          H1: chr6 100.00 16 69373676 69373691 4.4
+          H1: chr6 100.00 16 76086051 76086066 4.4
+          H1: chr6 100.00 16 110472941 110472956 4.4
+          H1: chr6 100.00 16 131519074 131519059 4.4
+          H1: chr6 100.00 16 141430302 141430317 4.4
+          H1: chr5 100.00 18 32030690 32030707 0.28
+          H1: chr5 100.00 17 17280213 17280229 1.1
+          H1: chr5 100.00 17 129817496 129817512 1.1
+          H1: chr5 100.00 16 61255267 61255252 4.4
+          H1: chr5 100.00 16 62153988 62154003 4.4
+          H1: chr5 100.00 16 110851578 110851563 4.4
+          H1: chr5 100.00 16 144937182 144937167 4.4
+          H1: chr5 100.00 16 150490534 150490549 4.4
+          H1: chr5 100.00 16 174258422 174258437 4.4
+          H1: chr20 100.00 17 8935821 8935805 1.1
+          H1: chr20 100.00 16 49343292 49343307 4.4
+          H1: chr17 100.00 17 442064 442048 1.1
+          H1: chr17 100.00 16 9637576 9637561 4.4
+          H1: chr14 100.00 17 47924840 47924824 1.1
+          H1: chr14 100.00 17 96111329 96111345 1.1
+          H1: chr14 100.00 16 25736897 25736912 4.4
+          H1: chr14 100.00 16 46332563 46332548 4.4
+          H1: chr14 100.00 16 53165242 53165257 4.4
+          H1: chr13 100.00 17 43335601 43335617 1.1
+          H1: chr13 100.00 16 34796753 34796768 4.4
+          H1: chr13 100.00 16 61896571 61896556 4.4
+          H1: chr13 100.00 16 70368646 70368631 4.4
+          H1: chr13 100.00 16 106300812 106300797 4.4
+          H1: chr12 100.00 17 25259922 25259906 1.1
+          H1: chr12 100.00 16 63790294 63790279 4.4
+          H1: chr12 100.00 16 125836022 125836007 4.4
+          H1: chr7 100.00 17 86334084 86334100 1.1
+          H1: chr7 100.00 17 120123734 120123718 1.1
+          H1: chr7 100.00 16 17272005 17271990 4.4
+          H1: chr7 100.00 16 38525202 38525187 4.4
+          H1: chr7 95.00 20 41629465 41629484 4.4
+          H1: chr7 100.00 16 107938523 107938508 4.4
+          H1: chr7 100.00 16 109681077 109681092 4.4
+          H1: chr1 100.00 17 233291000 233291016 1.1
+          H1: chr1 100.00 16 3085760 3085775 4.4
+          H1: chr1 100.00 16 86768137 86768152 4.4
+          H1: chr1 100.00 16 114335327 114335312 4.4
+          H1: chr1 100.00 16 172828810 172828795 4.4
+          H1: chr1 100.00 16 197459270 197459255 4.4
+          H1: chr6_ssto_hap7 100.00 16 1860458 1860443 4.4
+          H1: chr6_qbl_hap6 100.00 16 1821086 1821071 4.4
+          H1: chr6_mcf_hap5 100.00 16 1910036 1910021 4.4
+          H1: chr6_mann_hap4 100.00 16 1876254 1876239 4.4
+          H1: chr6_dbb_hap3 100.00 16 1821814 1821799 4.4
+          H1: chr6_cox_hap2 100.00 16 2040231 2040216 4.4
+          H1: chrY 100.00 16 59136108 59136093 4.4
+          H1: chrX 100.00 16 40668832 40668847 4.4
+          H1: chrX 100.00 16 55169005 55169020 4.4
+          H1: chrX 100.00 16 65783463 65783478 4.4
+          H1: chrX 100.00 16 74657062 74657077 4.4
+          H1: chrX 95.00 20 93041241 93041222 4.4
+          H1: chrX 100.00 16 123590183 123590168 4.4
+          H1: chrX 100.00 16 124764930 124764915 4.4
+          H1: chrX 100.00 16 125572429 125572444 4.4
+          H1: chrX 100.00 16 151725676 151725691 4.4
+          H1: chrX 100.00 16 155033102 155033087 4.4
+          H1: chr22 100.00 16 47649164 47649149 4.4
+          H1: chr19 100.00 16 29667228 29667213 4.4
+          H1: chr19 100.00 16 56365792 56365807 4.4
+          H1: chr16 100.00 16 6970392 6970407 4.4
+          H1: chr16 100.00 16 76299776 76299761 4.4
+          H1: chr10 100.00 16 1861458 1861443 4.4
+          H1: chr10 100.00 16 21343133 21343118 4.4
+          H1: chr10 100.00 16 65060281 65060296 4.4
+          H1: chr10 100.00 16 99813003 99813018 4.4
+          H1: chr4 100.00 16 54939993 54939978 4.4
+          H1: chr4 100.00 16 62341862 62341877 4.4
+          H1: chr4 100.00 16 81996481 81996466 4.4
+          H1: chr4 100.00 16 91569781 91569766 4.4
+          H1: chr3 100.00 16 21443040 21443025 4.4
+          H1: chr3 100.00 16 60928344 60928359 4.4
+          H2: chr13 100.00 24 48955637 48955614 7e-05
+          H2: chr13 100.00 16 62014594 62014609 4.4
+          H2: chr13 100.00 16 102899376 102899391 4.4
+          H2: chr4 100.00 19 102186254 102186272 0.072
+          H2: chr4 100.00 16 2981921 2981936 4.4
+          H2: chr4 100.00 16 113383846 113383861 4.4
+          H2: chrX 95.45 22 78840890 78840869 0.28
+          H2: chrX 95.24 21 78127194 78127174 1.1
+          H2: chrX 95.24 21 78778030 78778050 1.1
+          H2: chrX 95.24 21 85773129 85773109 1.1
+          H2: chr17 100.00 18 31275657 31275640 0.28
+          H2: chr18 100.00 17 46945862 46945846 1.1
+          H2: chr11 95.24 21 98659259 98659239 1.1
+          H2: chr7 100.00 17 146585445 146585429 1.1
+          H2: chr7 95.00 20 65882115 65882134 4.4
+          H2: chr7 100.00 16 85500693 85500708 4.4
+          H2: chr6 95.24 21 154144020 154144000 1.1
+          H2: chr6 100.00 16 68724169 68724184 4.4
+          H2: chr6 95.00 20 118182716 118182735 4.4
+          H2: chr6 100.00 16 145919968 145919953 4.4
+          H2: chr5 95.24 21 41703809 41703789 1.1
+          H2: chr5 100.00 16 88925757 88925742 4.4
+          H2: chr2 95.24 21 156899931 156899951 1.1
+          H2: chr1 95.24 21 195758225 195758205 1.1
+          H2: chr1 100.00 16 14570092 14570077 4.4
+          H2: chr1 100.00 16 191772024 191772039 4.4
+          H2: chr1 100.00 16 240021099 240021114 4.4
+          H2: chr20 100.00 16 12706589 12706574 4.4
+          H2: chr16 100.00 16 47646290 47646275 4.4
+          H2: chr14 100.00 16 28385266 28385281 4.4
+          H2: chr12 100.00 16 10505155 10505140 4.4
+          H2: chr12 95.00 20 107322229 107322210 4.4
+          H2: chr3 100.00 16 15991424 15991409 4.4
+          H2: chr3 100.00 16 104816894 104816909 4.4
+          H2: chr3 100.00 16 172753977 172753962 4.4
+################################### PAIR ###################################
+INPUT: RB1_18F	RB1_18R	TCAATTGTGCCTAAAATTCATAGT	ttacattgcacttatgcttaaaatct	chr13	300
+BLAST: RB1_18F - chr13:49027016-49027039 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: RB1_18R - chr13:49027290-49027315 perc_aligned:100.00 length:26/26 e-value:5e-06
+################################### PAIR ###################################
+INPUT: RB1_19F	RB1_19R	CTGGGTGTACAACCTTGAAGTG	GAAACATGATTTGAACCCAGTC	chr13	298
+BLAST: RB1_19F - chr13:49030256-49030277 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: RB1_19R - chr13:49030532-49030553 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: RB1_20F	RB1_20R	AAGAGGTTTCTGTTAAAATGCTACTT	AAAAATTAACAAGGTGTGGTGGT	chr13	557
+BLAST: RB1_20F - chr13:49033701-49033726 perc_aligned:100.00 length:26/26 e-value:5e-06
+BLAST: RB1_20R - chr13:49034255-49034277 perc_aligned:100.00 length:23/23 e-value:3e-04
+*SNP: 1000g/dbSNP: 13	49034259	C	T	0.0009	rs191253065
+*WARNING: Primer product has wrong length. Should be '557' is '577', difference '20'!
+################################### PAIR ###################################
+INPUT: RB1_21F	RB1_21R	TGAGGCTAAAAGAAAGAAAATGG	AAATGAGATCAAATGAATTACCTATG	chr13	271
+BLAST: RB1_21F - chr13:49037780-49037802 perc_aligned:100.00 length:23/23 e-value:3e-04
+*SNP: 1000g/dbSNP 13	49037791	G	0A	0.0027	.
+BLAST: RB1_21R - chr13:49038025-49038050 perc_aligned:100.00 length:26/26 e-value:5e-06
+################################### PAIR ###################################
+INPUT: RB1_22-23F	RB1_22-23R	CCTTTATAATATGTGCTTCTTACCAG	GGATCAAAATAATCCCCCTCTC	chr13	571
+BLAST: RB1_22-23F - chr13:49038991-49039016 perc_aligned:100.00 length:26/26 e-value:5e-06
+BLAST: RB1_22-23R - chr13:49039540-49039561 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: RB1_24F	RB1_24R	TGTCAGTGGTTCTAGGGTAGAGG	TTTGAATAACTGCATTTGGAAATT	chr13	264
+BLAST: RB1_24F - chr13:49047362-49047384 perc_aligned:100.00 length:23/23 e-value:3e-04
+BLAST: RB1_24R - chr13:49047602-49047625 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: RB1_25F	RB1_25R	CTTGAGGTTGCTAACTAATGAAACAC	AACTTGGCATGAAAGAAATTGG	chr13	315
+BLAST: RB1_25F - chr13:49050770-49050794 perc_aligned:96.15 length:26/26 e-value:0.32
+BLAST: RB1_25R - chr13:49051063-49051084 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: RB1_26F	RB1_26R	GCATAAAGTAAGTCATCGAAAGCA	TAACGAAAAGACTTCTTGCAGTGT	chr13	216
+BLAST: RB1_26F - chr13:49051394-49051417 perc_aligned:100.00 length:24/24 e-value:7e-05
+BLAST: RB1_26R - chr13:49051586-49051609 perc_aligned:100.00 length:24/24 e-value:7e-05
+################################### PAIR ###################################
+INPUT: RB1_27F	RB1_27R	CAGCCACTTGCCAACTTACC	TGTGGCCATAAACAGAACCT	chr13	235
+BLAST: RB1_27F - chr13:49054071-49054090 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: RB1_27R - chr13:49054286-49054305 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: PALB2_1F	PALB2_1R	ACTGGGACTCATCGACAGC	TGGTCAGATGATACTGCTGC	chr16	434
+BLAST: PALB2_1F - chr16:23652736-23652754 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: PALB2_1R - chr16:23652321-23652340 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: PALB2_2-3F	PALB2_2-3R	TTATGGACCAGTGCTACTC	TCTTCACACTGTGGGAAAAAG	chr16	485
+BLAST: PALB2_2-3F - chr16:23649549-23649567 perc_aligned:100.00 length:19/19 e-value:0.031
+BLAST: PALB2_2-3R - chr16:23649083-23649103 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: PALB2_4-1F	PALB2_4-1R	CATCTGCCTGAATGAAATGTC	TCTGGTTGGGCAGTTGGTGG	chr16	617
+BLAST: PALB2_4-1F - chr16:23647774-23647794 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: PALB2_4-1R - chr16:23647178-23647197 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: PALB2_4-2F	PALB2_4-2R	TCCTGCTAGATCACCAGTAAC	CTCCACGGCTACTTTCCTCTG	chr16	721
+BLAST: PALB2_4-2F - chr16:23647289-23647309 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: PALB2_4-2R - chr16:23646589-23646609 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: PALB2_4-3F	PALB2_4-3R	TAAGAGTCTTAGCCTGGAAGC	AGGAAGTGCCAGGCAAATAG	chr16	392
+BLAST: PALB2_4-3F - chr16:23646713-23646733 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: PALB2_4-3R - chr16:23646109-23646128 perc_aligned:100.00 length:20/20 e-value:0.008
+*WARNING: Primer product has wrong length. Should be '392' is '625', difference '233'!
+################################### PAIR ###################################
+INPUT: PALB2_5-1F	PALB2_5-1R	TCTAGGAGATCCTATTCTCTT	GCCTTGAGGGCCAAAGGCTGGA	chr16	632
+BLAST: PALB2_5-1F - chr16:23641863-23641883 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: PALB2_5-1R - chr16:23641252-23641273 perc_aligned:100.00 length:22/22 e-value:8e-04
+*SNP: ESP6500: 16	23641267	23641267	G	T	0.000116
+*SNP: 1000g/dbSNP: 16	23641271	G	A	0.0005	.
+################################### PAIR ###################################
+INPUT: PALB2_5-2F	PALB2_5-2R	AAGGCCAAACTCGCAAAGCC	GGAAGGCCCAATGCGCAAGC	chr16	490
+BLAST: PALB2_5-2F - chr16:23641401-23641420 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: ESP6500: 16	23641408	23641408	C	T	0.000116
+BLAST: PALB2_5-2R - chr16:23640868-23640887 perc_aligned:100.00 length:20/20 e-value:0.008
+*WARNING: Primer product has wrong length. Should be '490' is '553', difference '63'!
+################################### PAIR ###################################
+INPUT: PALB2_6F	PALB2_6R	TGCATTTGGAGCTTTGCTGC	GAAACTTTAAGAGGAGAGCTC	chr16	404
+BLAST: PALB2_6F - chr16:23640708-23640727 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: PALB2_6R - chr16:23640324-23640344 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: PALB2_7F	PALB2_7R	TTCTTTTCACCTGCATAAGAC	CCAATTTTGGTAAGCTGCCC	chr16	378
+BLAST: PALB2_7F - chr16:23637835-23637855 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: PALB2_7R - chr16:23637478-23637497 perc_aligned:100.00 length:20/20 e-value:0.008
+*SNP: 1000g/dbSNP: 16	23637486	G	1	0.0005	.
+################################### PAIR ###################################
+INPUT: PALB2_8F	PALB2_8R	ATCCTTGTACAGTGAGAATAC	TTTCAAGACTCAAGCCTAGG	chr16	289
+BLAST: PALB2_8F - chr16:23635502-23635522 perc_aligned:100.00 length:21/21 e-value:0.003
+BLAST: PALB2_8R - chr16:23635234-23635253 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: PALB2_9F	PALB2_9R	AGGTTACTCCTCACATCAC	AAACGAGATCCTAGTTACC	chr16	298
+BLAST: PALB2_9F - chr16:23634478-23634496 perc_aligned:100.00 length:19/19 e-value:0.031
+*SNP: ESP6500: 16	23634478	23634478	G	A	0.000233
+*SNP: 1000g/dbSNP 16	23634478	G	A	0.0014	.
+BLAST: PALB2_9R - chr16:23634199-23634217 perc_aligned:100.00 length:19/19 e-value:0.031
+################################### PAIR ###################################
+INPUT: PALB2_10F	PALB2_10R	GCAGTTCAACAATGCGGAGAAG	GAGGTATATCCTCATACTACAG	chr16	254
+BLAST: PALB2_10F - chr16:23632859-23632880 perc_aligned:100.00 length:22/22 e-value:8e-04
+BLAST: PALB2_10R - chr16:23632627-23632648 perc_aligned:100.00 length:22/22 e-value:8e-04
+################################### PAIR ###################################
+INPUT: PALB2_11F	PALB2_11R	CCCACAGTTCTACTTTTACC	GGAAGGTTTGTTCATTACTGC	chr16	346
+BLAST: PALB2_11F - chr16:23625558-23625577 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: PALB2_11R - chr16:23625232-23625252 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: PALB2_12F	PALB2_12R	GAAGCCAGAAGTCCAGTCCA	TGTTTGCACAGTGCCTTTCAG	chr16	410
+BLAST: PALB2_12F - chr16:23619516-23619535 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: PALB2_12R - chr16:23619126-23619146 perc_aligned:100.00 length:21/21 e-value:0.003
+################################### PAIR ###################################
+INPUT: PALB2_13F	PALB2_13R	TGGTTTTGGGAACATGGTTT	CATCCAAGATCAGTGGTGCT	chr16	472
+BLAST: PALB2_13F - chr16:23615062-23615081 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: PALB2_13R - chr16:23614610-23614629 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MEN1_3F	MEN1_3R	ATCACTACCTGGCCCCCTTT	CCTTCCTATGTGGGTGGTGA	chr11	397
+BLAST: MEN1_3F - chr11:64575623-64575642 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MEN1_3R - chr11:64575246-64575265 perc_aligned:100.00 length:20/20 e-value:0.008
+################################### PAIR ###################################
+INPUT: MEN1_5-6F	MEN1_5-6R	TAAAGGGCTGGTCCCAGAAT	GTGAGACTGGATGGGCGATA	chr11	470
+BLAST: MEN1_5-6F - chr11:64574812-64574831 perc_aligned:100.00 length:20/20 e-value:0.008
+BLAST: MEN1_5-6R - chr11:64574362-64574381 perc_aligned:100.00 length:20/20 e-value:0.008

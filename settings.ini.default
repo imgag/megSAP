@@ -1,0 +1,42 @@
+;This configuration file sets paths to tools, databases, etc.
+;[path] is replaced by the base directory path of the SVN repository, i.e. it allows using relative paths.
+;
+;If you use the download shell scripts in data/ to install tools, genomes and databases,
+;only adapting the NGSD database credentials is necessary.
+
+[tools-ngs]
+ngs-bits = [path]/data/tools/ngs-bits/bin/
+samtools = [path]/data/tools/samtools-1.3.1/samtools
+freebayes = [path]/data/tools/freebayes/bin/freebayes
+vcflib = [path]/data/tools/vcflib/bin/
+abra = java -Xmx16g -cp [path]/data/tools/abra-0.97/abra.jar
+samblaster = [path]/data/tools/samblaster/samblaster
+bwa = [path]/data/tools/bwa-0.7.15/bwa
+SnpEff = java -Xmx4g -jar [path]/data/tools/snpEff/snpEff.jar
+SnpSift = java -Xmx4g -jar [path]/data/tools/snpEff/SnpSift.jar
+
+[folders]
+local_data = [path]/data/genomes/
+data_folder = [path]/data/
+test_data_folder = [path]/data/test_data/
+project_folder = 
+project_folder_rna = 
+sample_status_folder = 
+
+[mysql-databases]
+db_host['NGSD'] = "localhost"
+db_name['NGSD'] = "ngsd"
+db_user['NGSD'] = "ngsduser"
+db_pass['NGSD'] = ""
+db_log['NGSD'] = FALSE
+db_log_path['NGSD'] = ""
+
+
+
+
+
+
+
+
+
+

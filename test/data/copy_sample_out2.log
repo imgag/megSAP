@@ -1,0 +1,11 @@
+2012-09-21T13:19:23.3360	TvQb	START copy_sample (version: 646)
+2012-09-21T13:19:23.3362	TvQb	Verbose: false
+2012-09-21T13:19:23.3364	TvQb	Parameter: bsf                = [sf]/../../Basecall_Stats_*
+2012-09-21T13:19:23.3365	TvQb	Parameter: do_not_copy_sample = 1
+2012-09-21T13:19:23.3366	TvQb	Parameter: sf                 = /mnt/projects/test/C/120912_M00709_0012_A000000000-A1BP2/Unaligned/Project_CaPa/Sample_GS090022
+2012-09-21T13:19:23.3367	TvQb	Parameter: tf                 = ./data/test_out/
+2012-09-21T13:19:23.3381	TvQb	NGSO00001	illumina_pf	100.00
+2012-09-21T13:19:23.3383	TvQb	NGSO00016	reads_total	1376488
+2012-09-21T13:19:23.3385	TvQb	NGSO00037	reads_perc_index_mismatch	14.14
+2012-09-21T13:19:23.3388	TvQb	NGSO00028	read_length	151
+2012-09-21T13:19:23.3389	TvQb	END copy_sample (processing time: 0.0089s)

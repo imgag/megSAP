@@ -1,0 +1,3 @@
+Multiple possible PCR-results
+1) chr2:112102142-112102342 201
+2) chr2:87905584-87905784 201

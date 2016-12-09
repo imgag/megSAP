@@ -1,0 +1,6 @@
+#chr	start	end	ref	obs	class	comment
+chr2	47641560	47641561	AA	-	5	bli
+chr2	47641560	47641564	AAAAA	-	4	bla
+chr2	48010642	48010642	T	G	2	bluff
+chr2	48033800	48033800	-	AACTA	3	
+chr2	215617162	215617162	C	T	1	

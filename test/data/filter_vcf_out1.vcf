@@ -1,0 +1,116 @@
+##fileformat=VCFv4.1
+##fileDate=20160115
+##source=freeBayes v0.9.20-16-g3e35e72
+##reference=/tmp/local_ngs_data//hg19.fa
+##phasing=none
+##commandline="/mnt/share/opt/freebayes20150204/bin/freebayes -b ./Sample_GS110168/GS110168.bam -b ./Sample_GS110169/GS110169.bam -f /tmp/local_ngs_data//hg19.fa --min-base-quality 20 --min-mapping-quality 20 --min-alternate-qsum 90 -t /mnt/share/data/enrichment/SeqCapEZv2_2013_02_19.bed"
+##filter="QUAL > 5 & AO > 2"
+##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Total read depth at the locus">
+##INFO=<ID=DPB,Number=1,Type=Float,Description="Total read depth per bp at the locus; bases in reads overlapping / bases in haplotype">
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Total number of alternate alleles in called genotypes">
+##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Estimated allele frequency in the range (0,1]">
+##INFO=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count, with partial observations recorded fractionally">
+##INFO=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observations, with partial observations recorded fractionally">
+##INFO=<ID=PRO,Number=1,Type=Float,Description="Reference allele observation count, with partial observations recorded fractionally">
+##INFO=<ID=PAO,Number=A,Type=Float,Description="Alternate allele observations, with partial observations recorded fractionally">
+##INFO=<ID=QR,Number=1,Type=Integer,Description="Reference allele quality sum in phred">
+##INFO=<ID=QA,Number=A,Type=Integer,Description="Alternate allele quality sum in phred">
+##INFO=<ID=PQR,Number=1,Type=Float,Description="Reference allele quality sum in phred for partial observations">
+##INFO=<ID=PQA,Number=A,Type=Float,Description="Alternate allele quality sum in phred for partial observations">
+##INFO=<ID=SRF,Number=1,Type=Integer,Description="Number of reference observations on the forward strand">
+##INFO=<ID=SRR,Number=1,Type=Integer,Description="Number of reference observations on the reverse strand">
+##INFO=<ID=SAF,Number=A,Type=Integer,Description="Number of alternate observations on the forward strand">
+##INFO=<ID=SAR,Number=A,Type=Integer,Description="Number of alternate observations on the reverse strand">
+##INFO=<ID=SRP,Number=1,Type=Float,Description="Strand balance probability for the reference allele: Phred-scaled upper-bounds estimate of the probability of observing the deviation between SRF and SRR given E(SRF/SRR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=SAP,Number=A,Type=Float,Description="Strand balance probability for the alternate allele: Phred-scaled upper-bounds estimate of the probability of observing the deviation between SAF and SAR given E(SAF/SAR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=AB,Number=A,Type=Float,Description="Allele balance at heterozygous sites: a number between 0 and 1 representing the ratio of reads showing the reference allele to all reads, considering only reads from individuals called as heterozygous">
+##INFO=<ID=ABP,Number=A,Type=Float,Description="Allele balance probability at heterozygous sites: Phred-scaled upper-bounds estimate of the probability of observing the deviation between ABR and ABA given E(ABR/ABA) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=RUN,Number=A,Type=Integer,Description="Run length: the number of consecutive repeats of the alternate allele in the reference genome">
+##INFO=<ID=RPP,Number=A,Type=Float,Description="Read Placement Probability: Phred-scaled upper-bounds estimate of the probability of observing the deviation between RPL and RPR given E(RPL/RPR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=RPPR,Number=1,Type=Float,Description="Read Placement Probability for reference observations: Phred-scaled upper-bounds estimate of the probability of observing the deviation between RPL and RPR given E(RPL/RPR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=RPL,Number=A,Type=Float,Description="Reads Placed Left: number of reads supporting the alternate balanced to the left (5') of the alternate allele">
+##INFO=<ID=RPR,Number=A,Type=Float,Description="Reads Placed Right: number of reads supporting the alternate balanced to the right (3') of the alternate allele">
+##INFO=<ID=EPP,Number=A,Type=Float,Description="End Placement Probability: Phred-scaled upper-bounds estimate of the probability of observing the deviation between EL and ER given E(EL/ER) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=EPPR,Number=1,Type=Float,Description="End Placement Probability for reference observations: Phred-scaled upper-bounds estimate of the probability of observing the deviation between EL and ER given E(EL/ER) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=DPRA,Number=A,Type=Float,Description="Alternate allele depth ratio.  Ratio between depth in samples with each called alternate allele and those without.">
+##INFO=<ID=ODDS,Number=1,Type=Float,Description="The log odds ratio of the best genotype combination to the second-best.">
+##INFO=<ID=GTI,Number=1,Type=Integer,Description="Number of genotyping iterations required to reach convergence or bailout.">
+##INFO=<ID=TYPE,Number=A,Type=String,Description="The type of allele, either snp, mnp, ins, del, or complex.">
+##INFO=<ID=CIGAR,Number=A,Type=String,Description="The extended CIGAR representation of each alternate allele, with the exception that '=' is replaced by 'M' to ease VCF parsing.  Note that INDEL alleles do not have the first matched base (which is provided by default, per the spec) referred to by the CIGAR.">
+##INFO=<ID=NUMALT,Number=1,Type=Integer,Description="Number of unique non-reference alleles in called genotypes at this position.">
+##INFO=<ID=MEANALT,Number=A,Type=Float,Description="Mean number of unique non-reference allele observations per sample with the corresponding alternate alleles.">
+##INFO=<ID=LEN,Number=A,Type=Integer,Description="allele length">
+##INFO=<ID=MQM,Number=A,Type=Float,Description="Mean mapping quality of observed alternate alleles">
+##INFO=<ID=MQMR,Number=1,Type=Float,Description="Mean mapping quality of observed reference alleles">
+##INFO=<ID=PAIRED,Number=A,Type=Float,Description="Proportion of observed alternate alleles which are supported by properly paired read fragments">
+##INFO=<ID=PAIREDR,Number=1,Type=Float,Description="Proportion of observed reference alleles which are supported by properly paired read fragments">
+##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GQ,Number=1,Type=Float,Description="Genotype Quality, the Phred-scaled marginal (or unconditional) probability of the called genotype">
+##FORMAT=<ID=GL,Number=G,Type=Float,Description="Genotype Likelihood, log10-scaled likelihoods of the data given the called genotype for each possible genotype generated from the reference and alternate alleles given the sample ploidy">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
+##FORMAT=<ID=QR,Number=1,Type=Integer,Description="Sum of quality of the reference observations">
+##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
+##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
+##PEDIGREE=<Tumor_DNA=GS110168,Normal_DNA=GS110169>
+##SnpSiftVersion="SnpSift 4.1c (build 2015-03-29), by Pablo Cingolani"
+##SnpSiftCmd="SnpSift annotate -tabix -id /mnt/share/data/dbs/dbSNP/dbsnp_latest.vcf.gz /tmp/annotate_85ftUK_unzipped.vcf"
+##INFO=<ID=OMIM,Number=1,Type=String,Description="Annotation from /mnt/share/data/dbs/OMIM/omim.bed delimited by ':'">
+##INFO=<ID=REPEATMASKER,Number=1,Type=String,Description="Annotation from /mnt/share/data/dbs/RepeatMasker/RepeatMasker.bed delimited by ':'">
+##SnpEffVersion="4.1c (build 2015-03-29), by Pablo Cingolani"
+##SnpEffCmd="SnpEff  -noStats hg19 "
+##INFO=<ID=ANN,Number=.,Type=String,Description="Functional annotations: 'Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO' ">
+##INFO=<ID=LOF,Number=.,Type=String,Description="Predicted loss of function effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' ">
+##INFO=<ID=NMD,Number=.,Type=String,Description="Predicted nonsense mediated decay effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' ">
+##SnpSiftCmd="SnpSift dbnsfp -f phyloP100way_vertebrate,MetaLR_pred,SIFT_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred -"
+##INFO=<ID=dbNSFP_Polyphen2_HDIV_pred,Number=A,Type=Character,Description="Field 'Polyphen2_HDIV_pred' from dbNSFP">
+##INFO=<ID=dbNSFP_MetaLR_pred,Number=A,Type=Character,Description="Field 'MetaLR_pred' from dbNSFP">
+##INFO=<ID=dbNSFP_phyloP100way_vertebrate,Number=A,Type=Float,Description="Field 'phyloP100way_vertebrate' from dbNSFP">
+##INFO=<ID=dbNSFP_Polyphen2_HVAR_pred,Number=A,Type=Character,Description="Field 'Polyphen2_HVAR_pred' from dbNSFP">
+##INFO=<ID=dbNSFP_SIFT_pred,Number=A,Type=Character,Description="Field 'SIFT_pred' from dbNSFP">
+##SnpSiftCmd="SnpSift annotate -mem -sorted -noId -name HGMD_ -info ID,CLASS,MUT,GENE,PHEN /mnt/share/data/dbs/HGMD/HGMD_PRO_2015_3_fixed.vcf"
+##INFO=<ID=HGMD_ID,Number=1,Type=String,Description="HGMD identifier(s)">
+##INFO=<ID=HGMD_MUT,Number=1,Type=String,Description="HGMD mutant allele">
+##INFO=<ID=HGMD_PHEN,Number=1,Type=String,Description="HGMD primary phenotype">
+##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category, https://portal.biobase-international.com/hgmd/pro/global.php#cats">
+##INFO=<ID=HGMD_GENE,Number=1,Type=String,Description="Gene symbol">
+##SnpSiftCmd="SnpSift annotate -mem -sorted -noId -name ESP6500EA_ -info AF /mnt/share/data/dbs/ESP6500/ESP6500SI_EA.vcf"
+##SnpSiftCmd="SnpSift annotate -mem -sorted -noId -name ESP6500AA_ -info AF /mnt/share/data/dbs/ESP6500/ESP6500SI_AA.vcf"
+##SnpSiftCmd="SnpSift annotate -tabix -noId -name 1000G_ -info AF /mnt/share/data/dbs/1000G/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz"
+##SnpSiftCmd="SnpSift annotate -tabix -noId -name EXAC_ -info AF /mnt/share/data/dbs/ExAC/ExAC.r0.3.sites.vep.vcf.gz"
+##SnpSiftCmd="SnpSift annotate -mem -sorted -noId -name CLINVAR_ -info SIG,ACC /mnt/share/data/dbs/ClinVar/clinvar_converted.vcf"
+##INFO=<ID=CLINVAR_SIG,Number=.,Type=String,Description="ClinVar clinical significance">
+##INFO=<ID=CLINVAR_ACC,Number=.,Type=String,Description="ClinVar accession">
+##SnpSiftCmd="SnpSift annotate -tabix -noId -name COSMIC_ -info ID /mnt/share/data/dbs/COSMIC/cosmic.vcf.gz"
+##INFO=<ID=COSMIC_ID,Number=1,Type=String,Description="COSMIC accession">
+##SnpSiftCmd="SnpSift dbnsfp -f Interpro_domain /tmp/annotate_peGwlW_somatic.vcf"
+##INFO=<ID=dbNSFP_Interpro_domain,Number=A,Type=String,Description="Field 'Interpro_domain' from dbNSFP">
+##FILTER=<ID=fv.not_cod_spli,Description="Not a coding or splicing variant (filter_vcf).">
+##FILTER=<ID=fv.syn_var,Description="Synonymous variant (filter_vcf).">
+##FILTER=<ID=fv.som_depth_tum,Description="Sequencing depth tumor is < 8 (filter_vcf).">
+##FILTER=<ID=fv.som_depth_nor,Description="Sequencing depth normal is <8 (filter_vcf).">
+##FILTER=<ID=fv.som_all_freq_tum,Description="Allele frequency tumor is 0.05 (filter_vcf).">
+##FILTER=<ID=fv.som_lt_3_reads,Description="Less than 3 supporting tumor reads (filter_vcf).">
+##FILTER=<ID=fv.som_all_freq,Description="Difference in allele frequencies too low (filter_vcf).">
+##FILTER=<ID=fv.som_all_freq_nor,Description="Allele frequency normal too high (filter_vcf).">
+##FILTER=<ID=fv.som_tum_loh,Description="Loss of heterozygosity within tumor tissue (filter_vcf).">
+##FILTER=<ID=fv.som_af_ratio,Description="Allele frequency ratio tumor/normal <= 3; removed from list (filter_vcf).">
+##FILTER=<ID=fv.som_no_depth,Description="No depth in tumor or normal; removed from list (filter_vcf).">
+##FILTER=<ID=fv.somca_depth_tum,Description="Sequencing depth tumor is too low < 100 (filter_vcf).">
+##FILTER=<ID=fv.somca_depth_norm,Description="Sequencing depth normal is too low < 50 (filter_vcf).">
+##FILTER=<ID=fv.somca_all_freq,Description="Allele frequencies (filter_vcf).">
+##FILTER=<ID=fv.somca_db_frequencies,Description="Allele frequencies in public databases are above 5 % (filter_vcf).">
+##FILTER=<ID=fv.somds_depth_too_low,Description="Depth of normal sample is < 50 (filter_vcf).">
+##FILTER=<ID=fv.somds_no_frequencies,Description="No allele frequency available (filter_vcf).">
+##FILTER=<ID=fv.somds_not_somatic,Description="Allel frequencies do not indicate a somatic variant (filter_vcf).">
+##FILTER=<ID=fv.off_target,Description="Variant is off target (filter_vcf).">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	GS110168	GS110169
+chr21	31744239	.	C	A	1326.9	PASS	AB=0.428571;ABP=7.66346;AC=1;AF=0.25;AN=4;AO=45;CIGAR=1X;DP=211;DPB=211;DPRA=0.990566;EPP=3.05855;EPPR=3.84749;GTI=0;LEN=1;MEANALT=1;MQM=58.2;MQMR=58.512;NS=2;NUMALT=1;ODDS=110.688;PAIRED=1;PAIREDR=0.993976;PAO=0;PQA=0;PQR=0;PRO=0;QA=1568;QR=6147;RO=166;RPL=21;RPP=3.44459;RPPR=6.35908;RPR=24;RUN=1;SAF=27;SAP=6.91895;SAR=18;SRF=88;SRP=4.31842;SRR=78;TYPE=snp;technology.ILLUMINA=1;ANN=A|missense_variant|MODERATE|KRTAP13-2|KRTAP13-2|transcript|NM_181621.3|Coding|1/1|c.293G>T|p.Gly98Val|319/849|293/528|98/175||,A|downstream_gene_variant|MODIFIER|MIR4327|MIR4327|transcript|NR_036221.1|Noncoding||n.*85G>T|||||3373|;dbNSFP_Polyphen2_HDIV_pred=P;dbNSFP_MetaLR_pred=T;dbNSFP_phyloP100way_vertebrate=0.375000;dbNSFP_Polyphen2_HVAR_pred=B;dbNSFP_SIFT_pred=D	GT:DP:RO:QR:AO:QA:GL	0/1:105:60:2217:45:1568:-139.896,0,-198.327	0/0:106:106:3930:0:0:0,-31.9092,-354.071
+chr21	33691527	rs183045720	C	T	142.539	fv.som_depth_nor;fv.som_all_freq_nor;fv.somca_depth_tum;fv.somca_depth_norm;fv.somca_all_freq;fv.somds_depth_too_low	AB=0.368421;ABP=5.8675;AC=2;AF=0.5;AN=4;AO=7;CIGAR=1X;DP=19;DPB=19;DPRA=0;EPP=3.32051;EPPR=3.0103;GTI=0;LEN=1;MEANALT=1;MQM=60;MQMR=60;NS=2;NUMALT=1;ODDS=4.28591;PAIRED=1;PAIREDR=0.916667;PAO=0;PQA=0;PQR=0;PRO=0;QA=242;QR=428;RO=12;RPL=3;RPP=3.32051;RPPR=9.52472;RPR=4;RUN=1;SAF=6;SAP=10.7656;SAR=1;SRF=9;SRP=9.52472;SRR=3;TYPE=snp;technology.ILLUMINA=1;ANN=T|missense_variant&splice_region_variant|MODERATE|URB1|URB1|transcript|NM_014825.2|Coding|36/39|c.5792G>A|p.Arg1931Lys|5885/10808|5792/6816|1931/2271||,T|downstream_gene_variant|MODIFIER|MRAP|MRAP|transcript|NM_206898.1|Coding||c.*496C>T|||||4433|;dbNSFP_Polyphen2_HDIV_pred=D;dbNSFP_MetaLR_pred=T;dbNSFP_phyloP100way_vertebrate=4.346000;dbNSFP_Polyphen2_HVAR_pred=D;dbNSFP_SIFT_pred=D;T1000GP_AF=0.00239617;EXAC_AF=8.491e-03	GT:DP:RO:QR:AO:QA:GL	0/1:12:6:218:6:202:-17.87,0,-19.3366	0/1:7:6:210:1:40:-2.73789,0,-17.9879
+chr21	34900924	rs202096116	G	A	46.8181	fv.somca_depth_tum;fv.somca_depth_norm;fv.somca_db_frequencies;fv.somds_depth_too_low	AB=0.272727;ABP=7.94546;AC=1;AF=0.25;AN=4;AO=3;CIGAR=1X;DP=19;DPB=19;DPRA=1.375;EPP=3.73412;EPPR=16.582;GTI=0;LEN=1;MEANALT=1;MQM=60;MQMR=60;NS=2;NUMALT=1;ODDS=10.7802;PAIRED=1;PAIREDR=0.9375;PAO=0;PQA=0;PQR=0;PRO=0;QA=116;QR=604;REPEATMASKER=A-rich;RO=16;RPL=1;RPP=3.73412;RPPR=29.6108;RPR=2;RUN=1;SAF=0;SAP=9.52472;SAR=3;SRF=4;SRP=11.6962;SRR=12;TYPE=snp;technology.ILLUMINA=1;ANN=A|splice_region_variant&intron_variant|LOW|GART|GART|transcript|NM_000819.4|Coding|8/21|c.812-14C>T||||||,A|splice_region_variant&intron_variant|LOW|GART|GART|transcript|NM_001136005.1|Coding|8/21|c.812-14C>T||||||,A|splice_region_variant&intron_variant|LOW|GART|GART|transcript|NM_001136006.1|Coding|8/21|c.812-14C>T||||||,A|splice_region_variant&intron_variant|LOW|GART|GART|transcript|NM_175085.2|Coding|8/10|c.812-14C>T||||||;T1000GP_AF=0.110224	GT:DP:RO:QR:AO:QA:GL	0/1:11:8:295:3:116:-9.73282,0,-25.8249	0/0:8:8:309:0:0:0,-2.40824,-28.1963
+chr21	41137457	rs398101635	TC	T	38.5343	fv.som_depth_nor;fv.somca_depth_tum;fv.somca_depth_norm;fv.somca_db_frequencies;fv.somds_depth_too_low	AB=0.3;ABP=6.48466;AC=1;AF=0.25;AN=4;AO=3;CIGAR=1M1D1M;DP=13;DPB=12.3333;DPRA=3.33333;EPP=3.73412;EPPR=16.9077;GTI=0;LEN=1;MEANALT=1;MQM=60;MQMR=60;NS=2;NUMALT=1;ODDS=5.15326;PAIRED=1;PAIREDR=0.9;PAO=0.5;PQA=0;PQR=0;PRO=0.5;QA=103;QR=356;RO=10;RPL=1;RPP=3.73412;RPPR=24.725;RPR=2;RUN=1;SAF=3;SAP=9.52472;SAR=0;SRF=9;SRP=16.9077;SRR=1;TYPE=del;technology.ILLUMINA=1;ANN=T|splice_region_variant&intron_variant|LOW|IGSF5|IGSF5|transcript|NM_001080444.1|Coding|2/8|c.101-4delC||||||;ESP6500EA_AF=0.0448;ESP6500AA_AF=0.1480;T1000GP_AF=0.0954473;EXAC_AF=0.070	GT:DP:RO:QR:AO:QA:GL	0|1:10:7:240:3:103:-8.68221,0,-21.0117	0|0:3:3:116:0:0:0,-0.90309,-10.8267
+chr21	47532500	rs78822624	C	T	68.8367	fv.som_depth_tum;fv.som_depth_nor;fv.somca_depth_tum;fv.somca_depth_norm;fv.somds_depth_too_low	AB=0.571429;ABP=3.32051;AC=1;AF=0.25;AN=4;AO=4;CIGAR=1X;DP=12;DPB=12;DPRA=1.4;EPP=5.18177;EPPR=3.0103;GTI=0;LEN=1;MEANALT=1;MQM=60;MQMR=60;NS=2;NUMALT=1;ODDS=5.03548;OMIM=120240_[COL6A2_(confirmed)_Bethlem_myopathy_1|Ullrich_congenital_muscular_dystrophy_1|Myosclerosis,congenital];PAIRED=1;PAIREDR=1;PAO=0;PQA=0;PQR=0;PRO=0;QA=141;QR=269;RO=8;RPL=0;RPP=11.6962;RPPR=3.0103;RPR=4;RUN=1;SAF=3;SAP=5.18177;SAR=1;SRF=4;SRP=3.0103;SRR=4;TYPE=snp;technology.ILLUMINA=1;ANN=T|splice_region_variant&intron_variant|LOW|COL6A2|COL6A2|transcript|NM_001849.3|Coding|3/27|c.714+9C>T||||||,T|splice_region_variant&intron_variant|LOW|COL6A2|COL6A2|transcript|NM_058174.2|Coding|3/27|c.714+9C>T||||||,T|splice_region_variant&intron_variant|LOW|COL6A2|COL6A2|transcript|NM_058175.2|Coding|3/27|c.714+9C>T||||||;ESP6500EA_AF=0.0484;ESP6500AA_AF=0.0082;T1000GP_AF=0.0161741;EXAC_AF=0.039;CLINVAR_ACC=RCV000079898.7;CLINVAR_SIG=other	GT:DP:RO:QR:AO:QA:GL	0/1:7:3:104:4:141:-12.4794,0,-9.14352	0/0:5:5:165:0:0:0,-1.50515,-15.18
+chr21	47665116	rs369793080	GAAGA	G	87.9703	fv.som_depth_tum;fv.som_all_freq_nor;fv.somca_depth_tum;fv.somca_depth_norm;fv.somca_all_freq;fv.somca_db_frequencies;fv.somds_depth_too_low	AB=0.416667;ABP=3.73412;AC=2;AF=0.5;AN=4;AO=5;CIGAR=1M4D5M;DP=12;DPB=12.5;DPRA=0;EPP=3.44459;EPPR=3.32051;GTI=0;LEN=4;MEANALT=1;MQM=60;MQMR=60;NS=2;NUMALT=1;ODDS=7.85748;PAIRED=0.8;PAIREDR=1;PAO=2;PQA=67;PQR=103;PRO=3;QA=176;QR=266;RO=7;RPL=2;RPP=3.44459;RPPR=3.32051;RPR=3;RUN=1;SAF=0;SAP=13.8677;SAR=5;SRF=0;SRP=18.2106;SRR=7;TYPE=del;technology.ILLUMINA=1;ANN=G|splice_region_variant&intron_variant|LOW|MCM3AP|MCM3AP|transcript|NM_003906.4|Coding|22/27|c.4648-9_4648-6delTCTT||||||,G|downstream_gene_variant|MODIFIER|MCM3AP-AS1|MCM3AP-AS1|transcript|NR_110566.1|Noncoding||n.*2293_*2293delAAGA|||||2216|,G|downstream_gene_variant|MODIFIER|MCM3AP-AS1|MCM3AP-AS1|transcript|NR_110567.1|Noncoding||n.*2284_*2284delAAGA|||||2216|,G|intron_variant|MODIFIER|MCM3AP-AS1|MCM3AP-AS1|transcript|NR_110565.1|Noncoding|3/3|n.423+4184_423+4187delAAGA||||||,G|intron_variant|MODIFIER|MCM3AP-AS1|MCM3AP-AS1|transcript|NR_002776.4|Noncoding|2/2|n.222+4184_222+4187delAAGA||||||;ESP6500EA_AF=0.3469;ESP6500AA_AF=0.2435;T1000GP_AF=0.323283;EXAC_AF=0.352	GT:DP:RO:QR:AO:QA:GL	0|1:4:1:38:3:106:-9.29127,0,-3.19794	0|1:8:6:228:2:70:-5.68892,0,-19.9389

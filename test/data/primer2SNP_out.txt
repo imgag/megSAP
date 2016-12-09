@@ -1,0 +1,10 @@
+forward	dbSNP	chr1	69590	69590	T	A	0.0008	rs141776804
+forward	dbSNP	chr1	69594	69594	T	C	0.0020	rs144967600
+forward	ExAC	chr1	69590	69590	T	A	0.0012	rs141776804
+forward	ExAC	chr1	69592	69592	G	A	0.0001	
+forward	ExAC	chr1	69594	69594	T	C	0.0012	rs144967600
+forward	Kaviar	chr1	69590	69590	T	A	0.0008	
+forward	Kaviar	chr1	69592	69592	G	A	0.0001	
+forward	Kaviar	chr1	69594	69594	T	C	0.0007	
+reverse	ExAC	chr1	69905	69905	C	G	0.0001	
+reverse	Kaviar	chr1	69905	69905	C	G	0.0001	

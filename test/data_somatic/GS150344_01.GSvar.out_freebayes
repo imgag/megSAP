@@ -1,0 +1,42 @@
+##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample GS150344).
+##DESCRIPTION=tumor_dp=Tumor Depth (Sample GS150344).
+##DESCRIPTION=snp_q=Quality parameters - SNP quality (QUAL).
+##DESCRIPTION=gene=Affected gene list (comma-separated).
+##DESCRIPTION=variant_type=Variant type.
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, NM number, type, impact, exon number, HGVS.c, HGVS.p).
+##DESCRIPTION=interpro=Interpro domains.
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in all populations of 1000g project.
+##DESCRIPTION=ExAC=Allele frequency in all populations of ExAC project.
+##DESCRIPTION=ESP6500EA=Allele frequency in EA population of ESP6500 project.
+##DESCRIPTION=ESP6500AA=Allele frequency in AA population of ESP6500 project.
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
+##DESCRIPTION=OMIM=OMIM database annotation.
+##DESCRIPTION=ClinVar=ClinVar database annotation.
+##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
+##DESCRIPTION=MetaLR=MetaLR effect prediction: D=damaging, T=tolerated.
+##DESCRIPTION=Sift=Sift effect prediction: D=damaging, T=tolerated.
+##DESCRIPTION=PP2_HVAR=Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=PP2_HDIV=Polyphen2 (HDIV) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=filter_vcf=Filters from the vcf file.
+##DESCRIPTION=som_ihdb_c=Somatic variant count within NGSD.
+##DESCRIPTION=som_ihdb_p=Projects with somatic variant in NGSD.
+##DESCRIPTION=GPD_gene=GPD annotation of genes.
+##DESCRIPTION=GPD_var=GPD annotation of variants.
+##DESCRIPTION=ihdb_hom=Homozygous variant counts in NGSD for the same processing system (33 samples).
+##DESCRIPTION=ihdb_het=Heterozyous variant counts in NGSD for the same processing system (33 samples).
+##DESCRIPTION=ihdb_wt=Wildtype variant counts in NGSD for the same processing system (33 samples).
+##DESCRIPTION=ihdb_allsys_hom=Homozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=ihdb_allsys_het=Heterozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=classification=VUS classification from the NGSD.
+##DESCRIPTION=validated=Validation information from the NGSD.
+##DESCRIPTION=comment=Comments from the NGSD. Comments of other samples are listed in brackets!
+##DESCRIPTION=filter_tsv=Filter column that contains general filter options; filter(s) used: somatic_diag_capa.
+#chr	start	end	ref	obs	tumor_af	tumor_dp	snp_q	gene	variant_type	coding_and_splicing	interpro	Pathway(KEGG)_full	Function_description	Pathway(BioCarta)_full	RepeatMasker	dbSNP	1000g	ExAC	ESP6500EA	ESP6500AA	COSMIC	OMIM	ClinVar	HGMD	phyloP	MetaLR	Sift	PP2_HVAR	PP2_HDIV	filter_vcf	som_ihdb_c	som_ihdb_p	GPD_gene	GPD_var	ihdb_hom	ihdb_het	ihdb_wt	ihdb_allsys_hom	ihdb_allsys_het	classification	validated	comment	filter_tsv
+chr13	32911888	32911888	A	G	0.9929	141	4726.01	BRCA2	synonymous_variant	BRCA2:NM_000059.3:synonymous_variant:LOW:exon11/27:c.3396A>G:p.Lys1132Lys						rs1801406	0.266773	0.293	0.3074	0.2261		600185 [BRCA2 (confirmed) Breast-ovarian cancer,familial,2|Fanconi anemia,complementation group D1|Prostate cancer|Breast cancer,male,susceptibility to|Wilms tumor|Medulloblastoma|Glioblastoma 3|Pre-B-cell acute lymphoblastic leukemia|Pancreatic cancer];	RCV000113169.1,RCV000113170.4 [benign,benign]; RCV000114982.2 [benign]; RCV000130987.2 [benign]; RCV000152873.3 [benign]; 							.	1	Somatic+Treatment,	2189		0.0909	0.4848	0.4242	148	725	1			synonymous_variant;db_frequencies
+chr13	32913055	32913055	A	G	1.0000	164	5536.18	BRCA2	synonymous_variant	BRCA2:NM_000059.3:synonymous_variant:LOW:exon11/27:c.4563A>G:p.Leu1521Leu						rs206075	0.974042	0.993	0.9994	0.9296		600185 [BRCA2 (confirmed) Breast-ovarian cancer,familial,2|Fanconi anemia,complementation group D1|Prostate cancer|Breast cancer,male,susceptibility to|Wilms tumor|Medulloblastoma|Glioblastoma 3|Pre-B-cell acute lymphoblastic leukemia|Pancreatic cancer];	RCV000113321.1,RCV000160224.1 [benign,benign]; RCV000164515.1,RCV000119245.2 [likely benign,benign]; RCV000123972.2 [benign]; RCV000132170.2 [benign]; RCV000152875.4 [benign]; 							.	0		2189		1.0000	0.0000	0.0000	1636	11	1			synonymous_variant;db_frequencies
+chr13	32915005	32915005	G	C	1.0000	99	3315.79	BRCA2	synonymous_variant	BRCA2:NM_000059.3:synonymous_variant:LOW:exon11/27:c.6513G>C:p.Val2171Val						rs206076	0.973642	0.993	0.9994	0.9287	COSM4147690, COSM4147689	600185 [BRCA2 (confirmed) Breast-ovarian cancer,familial,2|Fanconi anemia,complementation group D1|Prostate cancer|Breast cancer,male,susceptibility to|Wilms tumor|Medulloblastoma|Glioblastoma 3|Pre-B-cell acute lymphoblastic leukemia|Pancreatic cancer];	RCV000113602.1,RCV000119246.2 [not provided,benign]; RCV000123985.2 [benign]; RCV000152878.4 [benign]; RCV000162377.1,RCV000160234.1 [benign,benign]; RCV000163332.1 [likely benign]; RCV000168590.1 [uncertain significance]; RCV000173959.1 [uncertain significance]; 							.	0		2189		1.0000	0.0000	0.0000	1642	12	1			synonymous_variant;db_frequencies
+chr13	32929387	32929387	T	C	1.0000	121	4119.2	BRCA2	missense_variant	BRCA2:NM_000059.3:missense_variant:MODERATE:exon14/27:c.7397T>C:p.Val2466Ala						rs169547	0.975839	0.994	0.9994	0.9353		600185 [BRCA2 (confirmed) Breast-ovarian cancer,familial,2|Fanconi anemia,complementation group D1|Prostate cancer|Breast cancer,male,susceptibility to|Wilms tumor|Medulloblastoma|Glioblastoma 3|Pre-B-cell acute lymphoblastic leukemia|Pancreatic cancer];	RCV000045197.3 [benign]; RCV000113751.2 [benign]; RCV000168597.1,RCV000120357.4 [benign,benign]; 	CM960194 [CLASS=DM? MUT=REF PHEN="Breast cancer" GENE=BRCA2]; 	2.353000	T	T,T			.	0		2189		1.0000	0.0000	0.0000	1660	12	2			db_frequencies
+chr17	41226536	41226536	G	T	0.4851	101	1585.84	BRCA1	stop_gained&splice_region_variant,splice_region_variant&non_coding_exon_variant	BRCA1:NM_007300.3:stop_gained&splice_region_variant:HIGH:exon15/24:c.4550C>A:p.Ser1517*,BRCA1:NM_007298.3:stop_gained&splice_region_variant:HIGH:exon13/22:c.1175C>A:p.Ser392*,BRCA1:NM_007297.3:stop_gained&splice_region_variant:HIGH:exon13/22:c.4346C>A:p.Ser1449*,BRCA1:NM_007299.3:stop_gained&splice_region_variant:HIGH:exon14/22:c.1175C>A:p.Ser392*,BRCA1:NM_007294.3:stop_gained&splice_region_variant:HIGH:exon14/23:c.4487C>A:p.Ser1496*,BRCA1:NR_027676.1:splice_region_variant&non_coding_exon_variant:LOW:exon14/23:n.4623C>A:						rs80356953	0.0000	0.0000	0.0000	0.0000		113705 [BRCA1 (confirmed) Breast-ovarian cancer,familial,1|Pancreatic cancer,susceptibility to,4];	RCV000048580.2 [not provided]; RCV000112348.1,RCV000048579.2 [pathogenic,not provided]; RCV000112347.1 [pathogenic]; 		1.185000					.	0		2187		0.0000	0.0000	1.0000	0	0	5	true positive		PASS

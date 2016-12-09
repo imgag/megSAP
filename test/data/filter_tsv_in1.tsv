@@ -1,0 +1,32 @@
+##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample GS150342).
+##DESCRIPTION=tumor_dp=Tumor Depth (Sample GS150342).
+##DESCRIPTION=normal_af=Mutant allele frequency in normal (Sample GS150341).
+##DESCRIPTION=normal_dp=Normal depth (Sample GS150341).
+##DESCRIPTION=snp_q=Quality parameters - SNP quality (QUAL).
+##DESCRIPTION=gene=Affected gene list (comma-separated).
+##DESCRIPTION=variant_type=Variant type.
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, NM number, type, impact, exon number, HGVS.c, HGVS.p).
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in all populations of 1000g project.
+##DESCRIPTION=ExAC=Allele frequency in all populations of ExAC project.
+##DESCRIPTION=ESP6500EA=Allele frequency in EA population of ESP6500 project.
+##DESCRIPTION=ESP6500AA=Allele frequency in AA population of ESP6500 project.
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
+##DESCRIPTION=OMIM=OMIM database annotation.
+##DESCRIPTION=ClinVar=ClinVar database annotation.
+##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
+##DESCRIPTION=MetaLR=MetaLR effect prediction: D=damaging, T=tolerated.
+##DESCRIPTION=Sift=Sift effect prediction: D=damaging, T=tolerated.
+##DESCRIPTION=PP2_HVAR=Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=PP2_HDIV=Polyphen2 (HDIV) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=filter=Column useful for filtering.
+#chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	snp_q	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ESP6500EA	ESP6500AA	COSMIC	OMIM	ClinVar	HGMD	phyloP	MetaLR	Sift	PP2_HVAR	PP2_HDIV	filter
+chr2	209113113	209113113	G	A	0.2649	185	0.0030	338	210	IDH1	missense_variant	IDH1:NM_001282386.1:missense_variant:MODERATE:exon4/10:c.394C>T:p.Arg132Cys,IDH1:NM_001282387.1:missense_variant:MODERATE:exon4/10:c.394C>T:p.Arg132Cys,IDH1:NM_005896.3:missense_variant:MODERATE:exon4/10:c.394C>T:p.Arg132Cys		rs121913499	0.0000	0.0000	0.0000	0.0000	COSM28747	147700 [IDH1 (confirmed) Glioma,susceptibility to,somatic];		N [CLASS=N MUT=N PHEN=N GENE=N]; 	7.074000	D	D,D,D,D	B	B	
+chr3	10106213	10106213	A	G	0.1500	40	0.0123	81	20	FANCD2	intron_variant	FANCD2:NM_033084.3:intron_variant:MODIFIER:exon22/42:c.2021+100A>G:,FANCD2:NM_001018115.1:intron_variant:MODIFIER:exon22/43:c.2021+100A>G:		rs62245515	0.0000	0.0000	0.0000	0.0000		613984 [FANCD2 (provisional) Fanconi anemia,complementation group D2];		N [CLASS=N MUT=N PHEN=N GENE=N]; 						
+chr3	52610552	52610552	C	T	0.4301	93	0.0000	230	258	PBRM1	splice_region_variant&intron_variant	PBRM1:NM_018313.4:splice_region_variant&intron_variant:LOW:exon23/29:c.3616+5G>A:			0.0000	0.0000	0.0000	0.0000				N [CLASS=N MUT=N PHEN=N GENE=N]; 						
+chr3	178936091	178936091	G	A	0.2647	102	0.0000	196	140	PIK3CA	missense_variant	PIK3CA:NM_006218.2:missense_variant:MODERATE:exon10/21:c.1633G>A:p.Glu545Lys		rs104886003	0.0000	8.279e-06	0.0000	0.0000	COSM125370, COSM763	171834 [PIK3CA (provisional) Ovarian cancer,somatic|Breast cancer,somatic|Colorectal cancer,somatic|Gastric cancer,somatic|Hepatocellular carcinoma,somatic|Nonsmall cell lung cancer,somatic|Keratosis,seborrheic,somatic|Nevus,epidermal,somatic|CLOVE syndrome,somatic|Megalencephaly-capillary malformation-polymicrogyria syndrome,somatic|Cowden syndrome 5];	RCV000014631.3 [other]; RCV000014632.3 [other]; RCV000014633.3 [other]; RCV000014634.3 [other]; RCV000014636.3 [other]; RCV000038671.6 [other]; RCV000055930.4 [other]; RCV000065935.2 [other]; RCV000119356.1 [other]; 	N [CLASS=N MUT=N PHEN=N GENE=N]; 	9.476000	T	D	D	D	
+chr9	8341653	8341653	G	A	0.1987	307	0.0000	305	199	PTPRD	intron_variant	PTPRD:NM_002839.3:intron_variant:MODIFIER:exon40/45:c.4947+40C>T:,PTPRD:NM_001040712.2:intron_variant:MODIFIER:exon24/29:c.3717+40C>T:,PTPRD:NM_001171025.1:intron_variant:MODIFIER:exon23/28:c.3726+40C>T:,PTPRD:NM_130391.3:intron_variant:MODIFIER:exon25/30:c.3726+40C>T:,PTPRD:NM_130392.3:intron_variant:MODIFIER:exon25/30:c.3729+40C>T:,PTPRD:NM_130393.3:intron_variant:MODIFIER:exon23/28:c.3699+40C>T:			0.0000	0.0000	0.0000	0.0000				N [CLASS=N MUT=N PHEN=N GENE=N]; 						
+chr12	25398284	25398284	C	T	0.2543	173	0.0038	261	159	KRAS	missense_variant	KRAS:NM_033360.3:missense_variant:MODERATE:exon2/6:c.35G>A:p.Gly12Asp,KRAS:NM_004985.4:missense_variant:MODERATE:exon2/5:c.35G>A:p.Gly12Asp		rs121913529	0.0000	1.647e-05	0.0000	0.0000	COSM521, COSM1135366	190070 [KRAS (confirmed) Lung cancer,somatic|Bladder cancer,somatic|Pancreatic carcinoma,somatic|Gastric cancer,somatic|Leukemia,acute myelogenous|Noonan syndrome 3|Cardiofaciocutaneous syndrome 2|Breast cancer,somatic|SFM syndrome,somatic mosaic];	RCV000013413.3 [pathogenic]; RCV000029216.3 [pathogenic]; RCV000150895.1 [pathogenic]; RCV000154262.1 [pathogenic]; RCV000157944.1,RCV000038266.2,RCV000013411.4 [pathogenic,other,other]; RCV000013412.4 [other]; RCV000022799.4 [other]; RCV000029214.4 [other]; RCV000029215.4 [other]; RCV000144969.3 [other]; RCV000144970.1 [other]; RCV000150896.1 [other]; RCV000150897.1 [other]; 	N [CLASS=N MUT=N PHEN=N GENE=N]; 	7.743000	D	D,D,D,D	B,P	B,B	
+chr19	41351420	41351420	A	G	0.1000	60	0.0000	123	20	CYP2A6	intron_variant	CYP2A6:NM_000762.5:intron_variant:MODIFIER:exon6/8:c.974-34T>C:			0.0000	8.246e-06	0.0000	0.0000		122720 [CYP2A6 (confirmed) Coumarin resistance|Nicotine addiction,protection from|Lung cancer,resistance to];		N [CLASS=N MUT=N PHEN=N GENE=N]; 						
