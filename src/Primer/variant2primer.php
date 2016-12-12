@@ -169,7 +169,7 @@ $primer3result_map=array();
 foreach($primer3_input_files as $primer3_file)
 {
 	$parser->exec(get_path("primer3")."primer3_core", "<$primer3_file >> $tempDirectory/$index.result" , true);
-	$primer3result_map[$region_lines[$index]]=parse_primer3_result("$tempDirectory/$index.result");//HOPEFULLY NO ONE WILL ENTER THE SAME REGION LINE MULTIPLE TIMES...
+	$primer3result_map[trim($region_lines[$index])]=parse_primer3_result("$tempDirectory/$index.result");
 	$index++;
 }
 
