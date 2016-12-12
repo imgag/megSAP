@@ -1,7 +1,8 @@
 <?php 
 /** 
 	@page db_import_variants
-	TODO: fix somatic variant import (s. column indices)
+	@todo try if this speeds up the import: Variant bulk-update; Dectected variant bulk insert with innodb_autoinc_lock_mode=2
+	@todo fix somatic variant import (s. column indices)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -68,17 +69,17 @@ if($mode=="germline")
 	$psid = $samples["germline"]["pid"];
 	$sid = $samples["germline"]["sid"];
 	
-	// check if variants were already imported for this PID
-	$sql = "SELECT count(id) FROM detected_variant WHERE processed_sample_id='".$psid."'";
-	$tmp = $db_connect->executeQuery($sql);
-	$count_old = $tmp[0]['count(id)'];
-	//throw error if not forced to overwrite and terms already exist
+	//check if variants were already imported for this PID
+	$count_old = $db_connect->getValue("SELECT count(id) FROM detected_variant WHERE processed_sample_id='".$psid."'");
 	if($count_old!=0 && !$force)
 	{
 		trigger_error("Variants were already imported for PID '$id'. Use the flag '-force' to overwrite them.", E_USER_ERROR);
 	}
 	$parser->log("Found $count_old variants for PID '$id' already in DB.");
 
+	$parser->log("DELETING DETECTED VARIANTS");
+	$t_start = microtime(true);
+	
 	//remove old variants (and get infos to preserve/check)
 	$v_class = array(); //variant id => classification
 	$v_info = array(); //variant id => (comment, report)
@@ -111,16 +112,7 @@ if($mode=="germline")
 	}
 
 	//get genome build id
-	$hash = $db_connect->prepare("SELECT id FROM genome WHERE build = :build;");
-	$db_connect->bind($hash, 'build', $build);
-	$db_connect->execute($hash, true); 
-	$result = $db_connect->fetch($hash); 
-	$db_connect->unsetStmt($hash);
-	if(count($result) != 1)
-	{
-		trigger_error("Genome build '$build' not found.", E_USER_ERROR);
-	}
-	$gid = $result[0]['id'];
+	$gid = $db_connect->getValue("SELECT id FROM genome WHERE build='$build'");
 
 	//get column indices of input file
 	$i_chr = $file->getColumnIndex("chr");
@@ -137,9 +129,15 @@ if($mode=="germline")
 	$i_cod = $file->getColumnIndex("coding_and_splicing");
 	$i_gno = $file->getColumnIndex("genotype");
 	$i_qua = $file->getColumnIndex("quality");
-
+	
+	$parser->log(" done ".time_readable(microtime(true) - $t_start));
+	$parser->log("INSERT/UPDATE VARIANT");
+	$t_start = microtime(true);
+	
 	//insert/update table 'variant'
-	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, exac, kaviar, gene, variant_type, coding, genome_id) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :exac, :kaviar, :gene, :variant_type, :coding, '$gid')");
+	$var_ids = array();
+	$db_connect->beginTransaction();
+	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, exac, kaviar, gene, variant_type, coding, genome_id) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :exac, :kaviar, :gene, :variant_type, :coding, '$gid') ON DUPLICATE KEY UPDATE id=id");
 	$hash2 = $db_connect->prepare("UPDATE variant SET dbsnp=:dbsnp, 1000g=:1000g, exac=:exac, kaviar=:kaviar , gene=:gene, variant_type=:variant_type, coding=:coding WHERE id=:id");
 	for($i=0; $i<$file->rows(); ++$i)
 	{
@@ -149,9 +147,9 @@ if($mode=="germline")
 		$dbsnp = trim($row[$i_snp]);
 		if (contains($dbsnp, "[")) $dbsnp = substr($dbsnp, 0, strpos($dbsnp, "[")-1);
 		
-		//update variant
-		$tmp = $db_connect->executeQuery("SELECT id FROM variant WHERE chr='".$row[0]."' AND start='".$row[1]."' AND end='".$row[2]."' AND ref='".$row[3]."' AND obs='".$row[4]."'");
-		if (count($tmp)>0) //update
+		//determine variant ID
+		$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".$row[0]."' AND start='".$row[1]."' AND end='".$row[2]."' AND ref='".$row[3]."' AND obs='".$row[4]."'", -1);
+		if ($variant_id!=-1) //update (common case)
 		{
 			$db_connect->bind($hash2, "dbsnp", $dbsnp, array(""));
 			$db_connect->bind($hash2, "1000g", $row[$i_10g], array(""));
@@ -160,10 +158,10 @@ if($mode=="germline")
 			$db_connect->bind($hash2, "gene", $row[$i_gen]);
 			$db_connect->bind($hash2, "variant_type", $row[$i_typ], array(""));
 			$db_connect->bind($hash2, "coding", $row[$i_cod], array(""));
-			$db_connect->bind($hash2, "id", $tmp[0]['id']);
-			$res = $db_connect->execute($hash2, true);
+			$db_connect->bind($hash2, "id", $variant_id);
+			$db_connect->execute($hash2, true);
 		}
-		else //insert
+		else //insert (rare case)
 		{
 			$db_connect->bind($hash, "chr", $row[$i_chr]);
 			$db_connect->bind($hash, "start", $row[$i_sta]);
@@ -178,24 +176,30 @@ if($mode=="germline")
 			$db_connect->bind($hash, "variant_type", $row[$i_typ], array(""));
 			$db_connect->bind($hash, "coding", $row[$i_cod], array(""));
 			$db_connect->execute($hash, true);
+			
+			$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".$row[0]."' AND start='".$row[1]."' AND end='".$row[2]."' AND ref='".$row[3]."' AND obs='".$row[4]."'", -1);
 		}
+		$var_ids[] = $variant_id;
 	}
+	$db_connect->endTransaction();
 	$db_connect->unsetStmt($hash);
 	$db_connect->unsetStmt($hash2);
+	
+	$parser->log(" done ".time_readable(microtime(true) - $t_start));
+	$parser->log("INSERT DETECTED VARIANT");
+	$t_start = microtime(true);
 
 	//insert variants into table 'detected_variant'
+	$db_connect->beginTransaction();
 	$hash = $db_connect->prepare("INSERT INTO detected_variant (processed_sample_id, variant_id, genotype, quality, comment, report) VALUES ('$psid', :variant_id, :genotype, :quality, :comment, :report);");
 	for($i=0; $i<$file->rows(); ++$i)
 	{
 		$row = $file->getRow($i);
+		$variant_id = $var_ids[$i];
 
 		//skip invalid variants
 		if ($row[$i_typ]=="invalid") continue;
-
-		//get variant_id
-		$tmp = $db_connect->executeQuery("SELECT id FROM variant WHERE chr='".$row[0]."' AND start='".$row[1]."' AND end='".$row[2]."' AND ref='".$row[3]."' AND obs='".$row[4]."'");
-		$variant_id = $tmp[0]['id'];
-
+		
 		//get infos from previous analysis (if available)
 		$comment = NULL;
 		$report = "0";
@@ -222,8 +226,11 @@ if($mode=="germline")
 		//execute
 		$db_connect->execute($hash, true);
 	}
+	$db_connect->endTransaction();
 	$db_connect->unsetStmt($hash);
 
+	$parser->log(" done ".time_readable(microtime(true) - $t_start));
+	
 	//check that all important variant are still there (we unset all re-imported variants above)
 	foreach($v_class as $v_id => $class)
 	{
@@ -235,8 +242,7 @@ if($mode=="somatic")
 {
 //somatic specific
 	// check if variants were already imported for this PID
-	$sql = "SELECT count(id) FROM detected_somatic_variant WHERE processed_sample_id_tumor='".$samples["tumor"]["pid"]."' AND processed_sample_id_normal='".$samples["germline"]["pid"]."'";
-	$tmp = $db_connect->executeQuery($sql);
+	$tmp = $db_connect->executeQuery("SELECT count(id) FROM detected_somatic_variant WHERE processed_sample_id_tumor='".$samples["tumor"]["pid"]."' AND processed_sample_id_normal='".$samples["germline"]["pid"]."'");
 	$count_old = $tmp[0]['count(id)'];
 	//throw error if not forced to overwrite and terms already exist
 	if($count_old!=0 && !$force)
