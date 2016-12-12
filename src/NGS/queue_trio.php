@@ -2,8 +2,8 @@
 /** 
 	@page queue_trio
 */
-
-require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
+require_once(dirname($basedir."/Common/all.php");
 
 
 $parser = new ToolBase("queue_trio", "\$Rev: 894 $", "Queues a trio for analysis.");
@@ -83,7 +83,7 @@ $out_folder = $c_params["wd"]."/Trio_".$c."_".$f."_".$m."/";
 if (!file_exists($out_folder)) mkdir($out_folder);
 
 //queue trio for analysis
-$command = "php /mnt/users/all/php/src/Pipelines/trio.php";
+$command = "php {$basedir}/Pipelines/trio.php";
 $args = "-c ".$c_params["path"]." -f ".$f_params["path"]." -m ".$m_params["path"]." -out_folder ".$out_folder." --log ".$out_folder."trio.log";
 $sample_status = get_path("sample_status_folder")."/data/";
 $queue = $high_priority ? "-q NGSlong,re_analysis,srv016_long" : "-q NGSlong,srv016_long";
