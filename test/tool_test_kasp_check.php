@@ -22,6 +22,7 @@ if (production_ngsd_enabled())
 	$out2 = output_folder().$name."_out2.tsv";
 
 	$stdout = check_exec("php ".src_folder()."/Tools/".$name.".php -in $in2 -snps set2 -out $out2");
+	unlink(data_folder().$name."_in2_converted.tsv");
 
 	check_file($out2, data_folder().$name."_out2.tsv");
 }

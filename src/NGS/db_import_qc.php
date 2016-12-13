@@ -146,7 +146,6 @@ foreach($qc_par as $key => $value)
 	$db->bind($hash, "2", $value);
 	$db->execute($hash, true, false);
 }
-
 $db->endTransaction();
 $db->unsetStmt($hash);
 

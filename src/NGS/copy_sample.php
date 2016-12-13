@@ -4,7 +4,7 @@
 */
 
 $basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+require_once($basedir."/Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
@@ -134,7 +134,8 @@ function create_mail_command($coordinator, $email_ad, $samples, $project_name)
 
 function create_import_run_qc_command($run_name, $runfolder)
 {
-	return "import_runqc:\n\tphp /mnt/users/all/php/src/NGS/runqc_parser.php -name \"$run_name\" -run_dir $runfolder/ -force -db NGSD";
+	global $basedir;
+	return "import_runqc:\n\tphp {$basedir}/NGS/runqc_parser.php -name \"$run_name\" -run_dir $runfolder/ -force -db NGSD";
 }
 
 //write makefile lines for file and folder operations and stores them in a dictionary
@@ -249,7 +250,7 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 			}
 			
 			//build  first part of line for analysis using Sungrid Engine's queues,
-			$outputline= "php /mnt/users/all/php/src/NGS/queue_sample.php -sample ".$sample_ID;
+			$outputline= "php {$basedir}/NGS/queue_sample.php -sample ".$sample_ID;
 
 			//set high_priority if diagnostic sample
 			if ($project_type=='diagnostic') $outputline.=" -high_priority ";

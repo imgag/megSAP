@@ -33,8 +33,7 @@ end_test();
 start_test("get_svn_rev");
 
 $rev = get_svn_rev();
-check(is_numeric($rev), true);
-check($rev>1, true);
+check(starts_with($rev, "0.1"), true);
 
 end_test();
 
