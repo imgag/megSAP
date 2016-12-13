@@ -2,7 +2,13 @@ set -e
 set -o pipefail
 set -o verbose
 
-genome=`pwd`/genomes/hg38.fa
+if [ -z "$1" ]
+  then
+	genome=`pwd`/genomes/hg38.fa
+  else	
+	mkdir -p $1/genomes/
+	genome=$1/genomes/hg38.fa
+fi
 rm -rf $genome $genome.fai
 
 path="http://hgdownload.cse.ucsc.edu/goldenPath/hg38/chromosomes"

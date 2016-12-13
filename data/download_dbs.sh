@@ -2,14 +2,21 @@ set -e
 set -o pipefail
 set -o verbose
 
-data=`pwd`
-src=$data/../src/
+if [ -z "$1" ]
+  then
+	dbs=`pwd`/dbs/
+  else	
+	dbs=$1/dbs/
+	mkdir -p $dbs
+fi
 
-ngsbits=$data/tools/ngs-bits/bin
-vcflib=$data/tools/vcflib/bin
+
+src=`pwd`/../src/
+ngsbits=`pwd`/tools/ngs-bits/bin
+vcflib=`pwd`/tools/vcflib/bin
 
 #install dbSNP
-cd $data/dbs/
+cd $dbs
 mkdir dbSNP
 cd dbSNP
 wget ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/00-All.vcf.gz
@@ -17,15 +24,15 @@ zcat 00-All.vcf.gz | php $src/Tools/db_converter_dbsnp.php | $vcflib/vcfbreakmul
 tabix -p vcf dbsnp_b147.vcf.gz
 
 #Install REPEATMASKER
-cd $data/dbs/
+cd $dbs
 mkdir RepeatMasker
 cd RepeatMasker
 wget -O - http://www.repeatmasker.org/genomes/hg19/RepeatMasker-rm405-db20140131/hg19.fa.out.gz | gunzip > hg19.fa.out
-perl $data/tools/RepeatMasker/util/rmOutToGFF3.pl hg19.fa.out > RepeatMasker.gff
+perl $dbs/tools/RepeatMasker/util/rmOutToGFF3.pl hg19.fa.out > RepeatMasker.gff
 cat RepeatMasker.gff | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/BedSort > RepeatMasker.bed
 
 #Install dbNSFP
-cd $data/dbs/
+cd $dbs
 mkdir dbNSFP
 cd dbNSFP
 wget ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbNSFPv2.9.1.zip
@@ -37,7 +44,7 @@ bgzip dbNSFPv2.9.1.txt
 tabix -s 1 -b 2 -e 2 dbNSFPv2.9.1.txt.gz
 
 #Install 1000G
-cd $data/dbs/
+cd $dbs
 mkdir 1000G
 cd 1000G
 wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz
@@ -45,7 +52,7 @@ zcat ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz | $vcf
 tabix -p vcf 1000g_v5b.vcf.gz
 
 #Install ExAC
-cd $data/dbs/
+cd $dbs
 mkdir ExAC
 cd ExAC
 wget ftp://ftp.broadinstitute.org/pub/ExAC_release/release0.3.1/ExAC.r0.3.1.sites.vep.vcf.gz
@@ -53,14 +60,14 @@ zcat ExAC.r0.3.1.sites.vep.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNorm
 tabix -p vcf ExAC_r0.3.1.vcf.gz
 
 #Install CLINVAR
-cd $data/dbs/
+cd $dbs
 mkdir ClinVar
 cd ClinVar
 wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/clinvar.vcf.gz | gunzip > clinvar_latest.vcf
 cat clinvar_latest.vcf | php $src/Tools/db_converter_clinvar.php > clinvar_converted.vcf
 
 #Install Kaviar
-cd $data/dbs/
+cd $dbs
 mkdir Kaviar
 cd Kaviar
 wget http://s3-us-west-2.amazonaws.com/kaviar-160204-public/Kaviar-160204-Public-hg19-trim.vcf.tar
@@ -71,7 +78,7 @@ zcat Kaviar-160204-Public-hg19-trim.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/Vc
 tabix -p vcf Kaviar_160204.vcf.gz
 
 #install OMIM (you might need a license)
-#cd $data/dbs/
+#cd $dbs
 #mkdir OMIM
 #cd OMIM
 #manual download ftp://ftp.omim.org/OMIM/genemap
@@ -83,7 +90,7 @@ tabix -p vcf Kaviar_160204.vcf.gz
 #cat HGMD_PRO_2016_1.vcf | php $src/Tools/db_converter_hgmd.php > HGMD_PRO_2016_1_fixed.vcf
 
 #install COSMIC (you need a license)
-#cd $data/dbs/
+#cd $dbs
 #mkdir COSMIC
 #cd COSMIC
 #manual download http://cancer.sanger.ac.uk/files/cosmic/current_release/VCF/CosmicCodingMuts.vcf.gz
