@@ -3,7 +3,7 @@
 	@page queue_trio
 */
 $basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-require_once(dirname($basedir."/Common/all.php");
+require_once($basedir."/Common/all.php");
 
 
 $parser = new ToolBase("queue_trio", "\$Rev: 894 $", "Queues a trio for analysis.");

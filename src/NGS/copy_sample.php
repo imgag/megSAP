@@ -4,7 +4,7 @@
 */
 
 $basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-require_once(dirname($basedir."/Common/all.php");
+require_once($basedir."/Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
@@ -134,6 +134,7 @@ function create_mail_command($coordinator, $email_ad, $samples, $project_name)
 
 function create_import_run_qc_command($run_name, $runfolder)
 {
+	global $basedir;
 	return "import_runqc:\n\tphp {$basedir}/NGS/runqc_parser.php -name \"$run_name\" -run_dir $runfolder/ -force -db NGSD";
 }
 
