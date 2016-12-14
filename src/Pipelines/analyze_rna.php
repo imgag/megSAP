@@ -237,6 +237,6 @@ if (in_array("db", $steps))
 
 	// Import QC data, do not import the insert size and target region read depth
 	$qc_files = array($qc_fastq, $qc_map);
-	$parser->execTool("NGS/db_import_qc.php", "-id $out_name -files ".implode(" ", $qc_files)." -force -skip_parameters QC:2000023,QC:2000025");
+	$parser->execTool("NGS/db_import_qc.php", "-id $out_name -files ".implode(" ", $qc_files)." -force");
 }
 ?>

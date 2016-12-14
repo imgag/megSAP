@@ -164,7 +164,7 @@ $parser->exec(get_path("samtools"), "index $qc_input", true);
 
 // Run mapping QC
 $stafile2 = "${outdir}${sampleName}_stats_map.qcML";
-$parser->exec(get_path("ngs-bits")."MappingQC", "-in $qc_input -out $stafile2 -wgs", true);
+$parser->exec(get_path("ngs-bits")."MappingQC", "-in $qc_input -out $stafile2 -rna", true);
 
 // Rename counts file if the read counting was enabled
 if($readCounting) {
