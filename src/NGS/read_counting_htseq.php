@@ -29,9 +29,8 @@ $parser->addFlag("paired", "The data is paired-end. Only properly paired reads a
 extract($parser->parse($argv));
 
 //extracting sub-directories and generating folder structure
-$out=create_path($prefix);
-$sampleName = $out[0];
-$outdir = $out[1];
+$outdir = realpath(dirname($prefix))."/";
+$sampleName = basename($prefix);
 
 $parser->log("read_counting_htseq output directory=$outdir");
 

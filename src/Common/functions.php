@@ -625,15 +625,6 @@ function create_directory($path)
 	}
 }
 
-//TODO remove (MS => FB)
-function create_path($file)
-{
-	$dir = realpath(dirname($file))."/";
-	$filename = basename($file);
-	
-	return array($filename, $dir);
-}
-
 ///Own implementation of is_writable, because ???
 function is_writable2($file)
 {

@@ -16,9 +16,8 @@ $parser->addString("prefix", "String to add to output files. Might include sub-d
 $parser->addString("genome", "Path to GATK reference genome in fasta format.", true, get_path("data_folder")."genomes/GATK/hg19/hg19_GATK.fa");
 extract($parser->parse($argv));
 
-$out=create_path($prefix);
-$sampleName = $out[0];
-$outdir = $out[1];
+$outdir = realpath(dirname($prefix))."/";
+$sampleName = basename($prefix);
 
 $parser->log("indel_realign output directory=$outdir");
 

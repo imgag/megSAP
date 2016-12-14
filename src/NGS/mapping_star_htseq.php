@@ -17,7 +17,6 @@ $parser->addString("prefix", "String to add to output files. Might include sub-d
 //optional arguments
 $parser->addInfile("in2",  "Input file in fastq(.gz) format for paired-end alignment. Reverse reads.", true);
 $parser->addString("genome", "Path to dir with STAR reference genome index.", true, get_path("data_folder")."genomes/STAR/hg19");
-$parser->addInfile("system",  "Processing system INI file (determined from 'out_name' by default).", true);
 
 $parser->addFlag("stranded", "Add this flag if library preparation was strand conserving.");
 $parser->addFlag("U", "Fastq input files are uncompressed.");
@@ -45,13 +44,8 @@ $parser->addFlag("keepUnmapped", "Save unmapped reads as fasta files.");
 
 extract($parser->parse($argv));
 
-//extracting sub-directories and generating folder structure
-$out=create_path($prefix);
-$sampleName = $out[0];
-$outdir = $out[1];
-
-// Extract processing system information from DB
-$sys = load_system($system, $sampleName);
+$outdir = realpath(dirname($prefix))."/";
+$sampleName = basename($prefix);
 
 // Temporary prefix where STAR stores his intermediate files. The directory has to be removed before running STAR, otherwise STAR complains.
 $STAR_tmp_folder = $parser->tempFolder();

@@ -21,8 +21,6 @@ $parser->addInt("gene_col", "Column of the mapping file containing the gene IDs"
 
 extract($parser->parse($argv));
 
-//extracting sub-directories and generating folder structure
-create_path($out);
 $parser->log("Starting comparison of counts/fpkm values");
 
 // Read the annotation file

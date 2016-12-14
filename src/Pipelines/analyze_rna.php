@@ -45,9 +45,7 @@ foreach($steps as $step)
 // Extract sub-directories and generating folder structure
 if(empty($out_folder)) trigger_error("No output folder!", E_USER_ERROR);
 if(empty($out_name))	trigger_error("No output prefix!", E_USER_ERROR);
-$path=create_path($out_folder."/".$out_name);
-$out=$path[1].$path[0];
-$sample=$path[0];
+$prefix = $out_folder."/".$out_name;
 
 // Extract processing system information from DB
 $sys = load_system($system, $out_name);
@@ -77,11 +75,11 @@ foreach($files as $file) {
 
 // Mapping Step
 // Result file of the mapping step
-$final_bam="${out}.bam";
+$final_bam="{$prefix}.bam";
 // Resulting QC files
-$bam_sorted="${out}Aligned.sortedByCoord.out.bam";
-$qc_fastq = "${out}_stats_fastq.qcML";
-$qc_map = "${out}_stats_map.qcML";
+$bam_sorted="{$prefix}Aligned.sortedByCoord.out.bam";
+$qc_fastq = "{$prefix}_stats_fastq.qcML";
+$qc_map = "{$prefix}_stats_map.qcML";
 if(in_array("ma", $steps))
 {
 	// Merging, ReadQC, and adapter trimming
@@ -114,9 +112,9 @@ if(in_array("ma", $steps))
 	// Mapping with STAR
 	$parser->log("!!Performing Mapping!!");
 	if($paired){
-		$align_command = "-in1 $qualTrim1 -in2 $qualTrim2 -prefix $out -genome $reference -p $threads";
+		$align_command = "-in1 $qualTrim1 -in2 $qualTrim2 -prefix $prefix -genome $reference -p $threads";
 	} else {
-		$align_command = "-in1 $qualTrim -prefix $out -genome $reference -p $threads";
+		$align_command = "-in1 $qualTrim -prefix $prefix -genome $reference -p $threads";
 	}
 	// Check for shared memory usage during mapping, default is to do not use shared memory allowing for multiple star instances.
 	// Shared memory is only possible if no fusion detection is performed. 2-pass mode of STAR is recommended for fusion detection but crashes if shared memory is used.
@@ -129,9 +127,9 @@ if(in_array("ma", $steps))
 
 	// STAR result files
 	if($rmdup) {
-		$bam_mapped = "${out}Aligned.sortedByCoord.rmdup.bam";
+		$bam_mapped = "{$prefix}Aligned.sortedByCoord.rmdup.bam";
 	} else {
-		$bam_mapped = "${out}Aligned.sortedByCoord.out.bam";
+		$bam_mapped = "{$prefix}Aligned.sortedByCoord.out.bam";
 	}
 	
 	// InDel realignment using GATK
@@ -145,8 +143,8 @@ if(in_array("ma", $steps))
 		$parser->exec(get_path("GATK"), "-T SplitNCigarReads -R $GATKReference -I $bam_sorted -o $bam_split -rf ReassignOneMappingQuality -RMQF 255 -RMQT 60 -U ALLOW_N_CIGAR_READS", true);
 		//perform indel realignment on splitted reads
 		$parser->log("Performing IndelRealignment");
-		$parser->execTool("NGS/indel_realign.php", "-in $bam_split -prefix $out");
-		$bam_realign = "${out}.realign.bam";
+		$parser->execTool("NGS/indel_realign.php", "-in $bam_split -prefix $prefix");
+		$bam_realign = "{$prefix}.realign.bam";
 	} else {
 		$bam_realign = $bam_mapped;
 	}
@@ -158,11 +156,11 @@ if(in_array("ma", $steps))
 
 // Count and normalize expression values
 // Result File
-$count_normalized_file = "${out}_fpkm.tsv";
+$count_normalized_file = "{$prefix}_fpkm.tsv";
 if(in_array("rc", $steps)) {
 	
 	$parser->log("Performing read counting");
-	$count_arguments = "-in $final_bam -prefix $out";
+	$count_arguments = "-in $final_bam -prefix $prefix";
 	$count_arguments .= " -threads $threads";
 	$count_arguments .= " -gtfFile $gtfFile";
 	$count_arguments .= " -featureType $featureType";
@@ -174,7 +172,7 @@ if(in_array("rc", $steps)) {
 		$count_arguments .= " -stranded";
 	}
 	$parser->execTool("NGS/read_counting_featureCounts.php", $count_arguments);
-	$count_file = "${out}_counts.tsv";
+	$count_file = "{$prefix}_counts.tsv";
 
 	// Normalize expression values
 	$parser->log("Performing normalization of read counts");
@@ -210,25 +208,25 @@ if(in_array("fu",$steps))
 	putenv("PERL5LIB=".get_path("perl")."/lib/site_perl/5.24.0/x86_64-linux:".get_path("perl")."/lib/5.24.0");
 	// Run STAR-Fusion
 	$fusion_command = "--genome_lib_dir $fusionDetectionReference";
-	$fusion_command .= " -J ${out}Chimeric.out.junction";
-	$fusion_command .= " --output_dir $path[1]";
+	$fusion_command .= " -J {$prefix}Chimeric.out.junction";
+	$fusion_command .= " --output_dir $out_folder";
 	$parser->exec(get_path("STAR-Fusion"), $fusion_command, true);
 	// Cleanup
 	putenv("PATH=$path_saved");         // restore old value 
 	putenv("PERL5LIB")	;				// unset this environment variable
-	$parser->exec("rm -r", "$path[1]star-fusion.filter.intermediates_dir", false);
-	$parser->exec("rm -r", "$path[1]star-fusion.predict.intermediates_dir", false);
-	unlink("$path[1]star-fusion.fusion_candidates.final");
-	unlink("$path[1]star-fusion.fusion_candidates.preliminary");
-	unlink("$path[1]star-fusion.fusion_candidates.preliminary.wSpliceInfo");
-	unlink("$path[1]star-fusion.fusion_candidates.preliminary.wSpliceInfo.ok");
-	unlink("$path[1]star-fusion.STAR-Fusion.filter.ok");
-	unlink("$path[1]star-fusion.STAR-Fusion.predict.ok");
-	rename("$path[1]star-fusion.fusion_candidates.final.abridged", "${out}_var_fusions.tsv");
+	$parser->exec("rm -r", "$out_folder/star-fusion.filter.intermediates_dir", false);
+	$parser->exec("rm -r", "$out_folder/star-fusion.predict.intermediates_dir", false);
+	unlink("$out_folder/star-fusion.fusion_candidates.final");
+	unlink("$out_folder/star-fusion.fusion_candidates.preliminary");
+	unlink("$out_folder/star-fusion.fusion_candidates.preliminary.wSpliceInfo");
+	unlink("$out_folder/star-fusion.fusion_candidates.preliminary.wSpliceInfo.ok");
+	unlink("$out_folder/star-fusion.STAR-Fusion.filter.ok");
+	unlink("$out_folder/star-fusion.STAR-Fusion.predict.ok");
+	rename("$out_folder/star-fusion.fusion_candidates.final.abridged", "{$prefix}_var_fusions.tsv");
 }
 
 // Import to database
-$log_db  = "${out}_log_db.log";
+$log_db  = "{$prefix}_log_db.log";
 if (in_array("db", $steps))
 {
 	if(file_exists($log_db)) unlink($log_db);

@@ -21,9 +21,6 @@ $parser->addInt("gene_col", "Column of the mapping file containing the gene IDs"
 
 extract($parser->parse($argv));
 
-//extracting sub-directories and generating folder structure
-create_path($out);
-
 $parser->log("Starting annotation");
 
 // Associative array containing the mapping

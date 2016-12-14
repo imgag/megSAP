@@ -25,10 +25,8 @@ $parser->addInt("threads", "Number of threads used for read counting", true, "4"
 
 extract($parser->parse($argv));
 
-//extracting sub-directories and generating folder structure
-$out = create_path($prefix);
-$sampleName = $out[0];
-$outdir = $out[1];
+$outdir = realpath(dirname($prefix))."/";
+$sampleName = basename($prefix);
 
 $parser->log("read_counting_featureCounts output directory=$outdir");
 

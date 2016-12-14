@@ -20,9 +20,6 @@ $parser->addFlag("header", "Indicate whether the input file has a header or not"
 
 extract($parser->parse($argv));
 
-//extracting sub-directories and generating folder structure
-create_path($out);
-
 $arguments = array();
 $arguments[] = "NormExprTable";
 $arguments[] = "-i $in";

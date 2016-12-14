@@ -28,9 +28,6 @@ $parser->addFlag("U", "Data is unzipped");
 
 extract($parser->parse($argv));
 
-//extracting sub-directories and generating folder structure
-create_path($out, false);
-
 $in1 = $in_for;
 $in2 = $in_rev;
 
