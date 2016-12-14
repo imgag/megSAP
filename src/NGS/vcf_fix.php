@@ -111,12 +111,19 @@ while(!feof($h_in))
 		$sample = sample_data($var[8], $var[9]);
 		if ($sample['GT']!="0/1")
 		{
+			print_r($var);
+			print_r($var_last);
+			print_r($sample);
 			trigger_error("Cannot merge variant with genotype '".$sample['GT']."'", E_USER_ERROR);
 		}
 		$sample_last = sample_data($var[8], $var[9]);
 		if ($sample_last['GT']!="0/1")
 		{
-			trigger_error("Cannot merge variant with genotype '".$sample['GT']."'", E_USER_ERROR);
+			print_r($var);
+			print_r($var_last);
+			print_r($sample);
+			print_r($sample_last);
+			trigger_error("Cannot merge variant with genotype '".$sample_last['GT']."'", E_USER_ERROR);
 		}
 		$dp = $sample['DP'];
 		$ao = min($dp, $sample['AO'] + $sample_last['AO']);
