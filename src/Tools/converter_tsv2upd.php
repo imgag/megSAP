@@ -6,7 +6,7 @@
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 //parse command line arguments
-$parser = new ToolBase("converter_tsv2upd", "\$Rev: 712 $", "");
+$parser = new ToolBase("converter_tsv2upd", "");
 $parser->addString("f",  "Analyzed folder (father).", false);
 $parser->addString("m",  "Analyzed folder (mother).", false);
 $parser->addString("c",  "Analyzed folder (child).", false);

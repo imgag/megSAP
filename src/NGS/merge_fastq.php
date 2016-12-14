@@ -10,7 +10,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("merge_fastq", "\$Rev: 477 $", "Merges FASTQ files if a sample was distributed over several runs/lanes/MIDs or processings. Merges on a per sample basis.");
+$parser = new ToolBase("merge_fastq", "Merges FASTQ files if a sample was distributed over several runs/lanes/MIDs or processings. Merges on a per sample basis.");
 $parser->addInfile("in",  "Input sample folder (e.g. 'XYZ/Sample_GS99999_99'). Only fastq files of the sample within the folder name will be merged.", false);
 // optional
 $parser->addString("out",  "Output folder. Default is same as in. If specified otherwise data will only be copied (and not moved).", true, "default");

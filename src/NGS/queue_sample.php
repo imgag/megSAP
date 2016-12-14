@@ -6,7 +6,7 @@
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 
-$parser = new ToolBase("queue_sample", "\$Rev: 910 $", "Queues sample for analysis.");
+$parser = new ToolBase("queue_sample", "Queues sample for analysis.");
 $parser->addString("sample",  "Processed sample identifier.", false);
 $parser->addString("steps", "Comma-separated list of processing steps to perform.", true, "ma,vc,an,db,cn");
 $parser->addFlag("backup", "Backup files from previous analysis.");
@@ -114,14 +114,14 @@ if ($tumor)
 	$outfolder = $project_folder."/Sample_".$sample."/";
 	if (!file_exists($outfolder)) mkdir($outfolder);
 	
-	$command = "php ".realpath(dirname(__FILE__))."/../Pipelines/somatic_dna.php";
+	$command = "php ".repository_basedir()."/src/Pipelines/somatic_dna.php";
 	//remove 'cn' step if present
 	$steps=str_replace (array(",cn","cn") , "" , $steps);
 	$args = "-p_folder {$project_folder} -t_id {$sample} -n_id na -o_folder {$outfolder} -steps {$steps} --log {$outfolder}somatic_dna_".date("Ymdhis").".log";
 }
 else
 {
-	$command = "php ".realpath(dirname(__FILE__))."/../Pipelines/analyze.php";
+	$command = "php ".repository_basedir()."/src/Pipelines/analyze.php";
 	$args = "-folder {$sample_folder} -name {$sample} -steps {$steps} --log {$sample_folder}analyze_".date("Ymdhis").".log";
 	if ($backup)
 	{

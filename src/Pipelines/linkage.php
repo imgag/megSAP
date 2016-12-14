@@ -5,14 +5,12 @@
 
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("linkage", "\$Rev: 2 $", "Linkage pipeline.");
+$parser = new ToolBase("linkage", "Linkage pipeline.");
 $parser->addInfile("geno",  "Genoptypes input file.", false);
 $parser->addInfile("meta",  "Meta data file.", false);
 $parser->addEnum("type", "Chip type.", false, array("illumina_6k", "affymetrix_6.0", "affymetrix_250k", "cytoscan_hd"));
@@ -24,7 +22,7 @@ extract($parser->parse($argv));
 $geno_filtered = $family."_geno_filtered.txt";
 if ($type=="affymetrix_6.0")
 {
-	$parser->execTool("php ".$basedir."Chips/filter_confidence.php", "-in $geno -thres $thres -out $geno_filtered");
+	$parser->execTool("Chips/filter_confidence.php", "-in $geno -thres $thres -out $geno_filtered");
 }
 else
 {
@@ -33,7 +31,7 @@ else
 
 // create map/ped file
 $fam = $family."_family.txt";
-$parser->execTool("php ".$basedir."Chips/chip2plink.php", "-chip $geno_filtered -meta $meta -type $type -family $family -out_map merlin.map -out_ped merlin.ped -out_fam $fam");
+$parser->execTool("Chips/chip2plink.php", "-chip $geno_filtered -meta $meta -type $type -family $family -out_map merlin.map -out_ped merlin.ped -out_fam $fam");
 
 // remove last column from map file
 $file = Matrix::fromTSV("merlin.map");
@@ -58,16 +56,16 @@ $parser->exec(get_path("merlin"), "merlin.dat -p merlin.ped -m merlin.map --erro
 $parser->exec(get_path("pedwipe"), "-d merlin.dat -p merlin.ped", false);
 
 //generate model file for linkage analysis
-$parser->execTool("php ".$basedir."Chips/merlin_generate_model.php", "-type dominant_hp -dat merlin.dat -ped merlin.ped -out merlin.model");
+$parser->execTool("Chips/merlin_generate_model.php", "-type dominant_hp -dat merlin.dat -ped merlin.ped -out merlin.model");
 
 // apply merlin to calculate linkage in a paramertic model
 $parser->exec(get_path("merlin"), "-d wiped.dat -p wiped.ped -m merlin.map --model merlin.model  --markerNames --pdf --tabulate --prefix ".$family." --perFamily", true);
 
 //build bedfile based on analysis results
-$parser->execTool("php ".$basedir."Chips/merlin_report.php", "-in ".$family."-parametric.tbl -out _region.bed");
+$parser->execTool("Chips/merlin_report.php", "-in ".$family."-parametric.tbl -out _region.bed");
 
 //build annotated file based on bedfile
-$parser->execTool("php ".$basedir."Chips/bed_annotation.php", "-in _region.bed -out merlin.tsv");
+$parser->execTool("Chips/bed_annotation.php", "-in _region.bed -out merlin.tsv");
 
 //create and store report
 $output = array();
@@ -75,7 +73,7 @@ $output[] = "Report zur Linkageanalyse:";
 $output[] = "";
 $output[] = "Familie: $family";
 $output[] = "Datum: ".date("d.m.Y");
-$output[] = "Revision der Analysepipeline: ".get_svn_rev();
+$output[] = "Revision der Analysepipeline: ".repository_revision();
 $output[] = "Chip: $type";
 $output[] = "";
 $output[] = "Patienten:";

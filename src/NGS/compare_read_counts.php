@@ -3,13 +3,11 @@
  * @page compare_read_counts
  */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("compare_read_counts", "\$Rev: 2$", "Compare read counts or fpkm values produced by analyze_rna.");
+$parser = new ToolBase("compare_read_counts", "Compare read counts or fpkm values produced by analyze_rna.");
 $parser->addInfile("in1", "Counts file for the tumor sample", false, true);
 $parser->addInfile("in2", "Counts file for the reference samples", false, true);
 $parser->addOutfile("out", "Output file containing the comparison.", false);

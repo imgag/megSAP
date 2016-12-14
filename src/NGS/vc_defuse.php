@@ -5,8 +5,6 @@
  * @todo remove SeqPurge
  */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
@@ -14,7 +12,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 // remove leading perl from defuse path
 $tool_defuse = dirname(explode(" ",get_path("defuse"))[1]);
 
-$parser = new ToolBase("vc_defuse", "\$Rev: 0$", "Gene Fusion Detection using DeFuse");
+$parser = new ToolBase("vc_defuse", "Gene Fusion Detection using DeFuse");
 $parser->addInfile("in_for", "FastQ file containing the forward reads", false, true);
 $parser->addInfile("in_rev", "FastQ file containing the reverse reads", false, true);
 $parser->addString("out", "Destination folder", false);

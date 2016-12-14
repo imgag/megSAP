@@ -3,12 +3,12 @@
 	@page copy_sample
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-require_once($basedir."/Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+$repo_folder = "/mnt/users/all/megSAP"; //fixed absolute path to make the tests work
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("copy_sample", "\$Rev: 899 $", "Creates a Makefile to copy de-multiplexed sample data to projects and queue data analysis.");
+$parser = new ToolBase("copy_sample", "Creates a Makefile to copy de-multiplexed sample data to projects and queue data analysis.");
 $parser->addInfile("ss",  "Input samplesheet that was used to create the data folder.", false);
 $parser->addString("fo",  "Input data folder.", true, "Unaligned");
 $parser->addOutfile("out",  "Output Makefile. Default: 'Makefile'.", true);
@@ -132,14 +132,13 @@ function create_mail_command($coordinator, $email_ad, $samples, $project_name)
 	return "php -r 'mail(\"$email_ad\",\"Neue Daten fuer $project_name\", \"".implode("\\n",$mail_text)."\",\"Reply-To: Florian.Lenz@med.uni-tuebingen.de\");'";
 }
 
-function create_import_run_qc_command($run_name, $runfolder)
+function create_import_run_qc_command($repo_folder, $run_name, $runfolder)
 {
-	global $basedir;
-	return "import_runqc:\n\tphp {$basedir}/NGS/runqc_parser.php -name \"$run_name\" -run_dir $runfolder/ -force -db NGSD";
+	return "import_runqc:\n\tphp {$repo_folder}/src/NGS/runqc_parser.php -name \"$run_name\" -run_dir $runfolder/ -force -db NGSD";
 }
 
 //write makefile lines for file and folder operations and stores them in a dictionary
-function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map,  $sample_tumor_status_map, $runnumber, $makefile_name, $basedir,$nxtSeq, $sample_analysis_step_map,$haloplex_hs_map,$import_run_qc_command)
+function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map,  $sample_tumor_status_map, $runnumber, $makefile_name, $repo_folder, $nxtSeq, $sample_analysis_step_map, $haloplex_hs_map, $import_run_qc_command)
 {
 	if (!file_exists($folder))
 	{
@@ -250,7 +249,7 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 			}
 			
 			//build  first part of line for analysis using Sungrid Engine's queues,
-			$outputline= "php {$basedir}/NGS/queue_sample.php -sample ".$sample_ID;
+			$outputline= "php {$repo_folder}/src/NGS/queue_sample.php -sample ".$sample_ID;
 
 			//set high_priority if diagnostic sample
 			if ($project_type=='diagnostic') $outputline.=" -high_priority ";
@@ -341,7 +340,7 @@ foreach($sample_IDs as $sampleID)
 	$old_runnumber=$runnumber;
 	$project_coord_map[$sample_projectname_map[$sampleID]]=$internal_coord;
 }
-$import_run_qc_command=create_import_run_qc_command($runnumber,realpath(dirname($ss)));
-build_makefile($fo, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map, $sample_tumor_status_map, $runnumber,$out,$basedir,$nxtSeq, $sample_analysis_step_map,$haloplex_hs_map,$import_run_qc_command);
+$import_run_qc_command = create_import_run_qc_command($repo_folder, $runnumber, realpath(dirname($ss)));
+build_makefile($fo, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map, $sample_tumor_status_map, $runnumber, $out,$repo_folder, $nxtSeq, $sample_analysis_step_map,$haloplex_hs_map,$import_run_qc_command);
 
 ?>

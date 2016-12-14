@@ -30,10 +30,10 @@ check(common_suffix("abc", "abc"), "abc");
 end_test();
 
 //##################################################################################
-start_test("get_svn_rev");
+start_test("repository_revision");
 
-$rev = get_svn_rev();
-check(starts_with($rev, "0.1"), true);
+$rev = repository_revision();
+check(starts_with($rev, "0.1-"), true);
 
 end_test();
 

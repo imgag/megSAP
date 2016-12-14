@@ -4,19 +4,19 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../src/Common/all.php");
 /// Returns the tool test data folder
 function data_folder()
 {
-	return dirname($_SERVER['SCRIPT_FILENAME'])."/data/";
+	return repository_basedir()."/test/data/";
 }
 
 /// Returns the tool test data folder for DB tests
 function data_db_folder()
 {
-	return dirname($_SERVER['SCRIPT_FILENAME'])."/data_db/";//test
+	return repository_basedir()."/test/data_db/";
 }
 
 /// Returns the tool test output folder
 function output_folder()
 {
-	$folder = dirname($_SERVER['SCRIPT_FILENAME'])."/data_out/".basename($_SERVER['SCRIPT_FILENAME'], ".php")."/";
+	$folder = repository_basedir()."/test/data_out/".basename($_SERVER['SCRIPT_FILENAME'], ".php")."/";
 	if (!file_exists($folder)) mkdir($folder);
 	return $folder;
 }
@@ -24,7 +24,7 @@ function output_folder()
 /// Returns the source folder
 function src_folder()
 {
-	return dirname($_SERVER['SCRIPT_FILENAME'])."/../src/";
+	return repository_basedir()."/src/";
 }
 
 /// Converts a variable to a string (special handing of arrays)

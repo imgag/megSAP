@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("region2exon", "\$Rev: 712 $", "Looks up exons for given regions.");
+$parser = new ToolBase("region2exon", "Looks up exons for given regions.");
 $parser->addInfile("in",  "Input 1-row bed file.", false);
 $parser->addOutfile("out",  "Input bed file.", false);
 

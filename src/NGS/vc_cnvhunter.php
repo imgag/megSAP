@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("vc_cnvhunter", "\$Rev: 911 $", "Wrapper for CnvHunter tool.");
+$parser = new ToolBase("vc_cnvhunter", "Wrapper for CnvHunter tool.");
 $parser->addString("cov", "COV file of sample, e.g. 'GS123456_01.cov' (tumor COV file for somatic CNV calling).", false);
 $parser->addOutfile("out", "Output CNV file in TSV format.", false);
 //optional

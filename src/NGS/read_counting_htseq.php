@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("read_counting_htseq", "\$Rev: 2$", "Perform read counting for aligned reads using htseq-count.");
+$parser = new ToolBase("read_counting_htseq", "Perform read counting for aligned reads using htseq-count.");
 $parser->addInfile("in",  "Input file in bam format.", false, "bam");
 $parser->addString("prefix", "String to add to output files. Might include sub-directories.", false, NULL);
 

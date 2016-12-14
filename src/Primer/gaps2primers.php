@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("gaps2primers", "\$Rev: 434 $", "Converts text input format to FASTA.");
+$parser = new ToolBase("gaps2primers", "Converts text input format to FASTA.");
 $parser->addInfile("in",  "Input gaps BED file.", false);
 $parser->addInfile("primer",  "Input primer TXT file.", false);
 $parser->addOutfile("out",  "Output TXT file.", false);

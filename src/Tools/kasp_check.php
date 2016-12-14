@@ -153,7 +153,7 @@ function import_ngsd($bam, $rmp, $c_both, $c_match)
 }
 
 //parse command line arguments
-$parser = new ToolBase("kasp_check", "\$Rev: 921 $", "Checks that the genotype of a KASP essay and the NGS sample match.");
+$parser = new ToolBase("kasp_check", "Checks that the genotype of a KASP essay and the NGS sample match.");
 $parser->addInfile("in", "KASP text export file.", false);
 $parser->addOutfile("out", "Output file in TSV format.", false);
 $parser->addEnum("snps", "SNP set.", false, array("set1", "set2"));

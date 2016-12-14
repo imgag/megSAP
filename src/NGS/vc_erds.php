@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("erds", "\$Rev: 712 $", "Run ERDS. Duplication / Deletion / Breakpoint detection. Only WGS.");
+$parser = new ToolBase("erds", "Run ERDS. Duplication / Deletion / Breakpoint detection. Only WGS.");
 $parser->addInfile("bam_file",  "Bam file.", false);
 $parser->addInfile("vcf_file",  "VCF file.", false);
 $parser->addString("out", "Output folder.", false);

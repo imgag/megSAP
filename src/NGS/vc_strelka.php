@@ -12,7 +12,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // add parameter for command line ${input1.metadata.bam_index}
 // parse command line arguments
-$parser = new ToolBase("vc_strelka", "\$Rev: 903 $", "Call somatic variants with strelka. Creates an VCF file.");
+$parser = new ToolBase("vc_strelka", "Call somatic variants with strelka. Creates an VCF file.");
 $parser->addInfile("t_bam",  "Tumor BAM file. Remember: Place bai-file in the same folder as *.bam-file. Name it *.bam.bai.", false);
 $parser->addInfile("n_bam",  "Normal BAM format. Remember: Place bai-file in the same folder as *.bam-file. Name it *.bam.bai.", false);
 $parser->addOutfile("out", "Output file in VCF format (gzipped and tabix indexed).", false);

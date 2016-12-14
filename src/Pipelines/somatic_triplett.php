@@ -10,14 +10,12 @@
 	@todo think about filter on-target (merging all target regions) and sample columns
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("somatic_triplett", "\$Rev: 831 $", "Differential analysis of tumor/relapse/reference sample. DNA only.");
+$parser = new ToolBase("somatic_triplett", "Differential analysis of tumor/relapse/reference sample. DNA only.");
 $parser->addString("p_folder","Folder containing sample subfolders with fastqs (Sample_GSXYZ).",false);
 $parser->addString("t_dna_id",  "Tumor DNA processing ID.", false);
 $parser->addString("r_dna_id",  "Relapse DNA processing ID.", false);
@@ -55,7 +53,7 @@ if(in_array("ma", $steps))
 {	
 	$args = "-steps ma ";
 	if(isset($sys_nor))	$args .= "-system $sys_nor ";
-	$parser->execTool("php $basedir/Pipelines/analyze.php", "-folder ".$n_dna_fo." -name ".$n_dna_id." ".$args." --log ".$n_dna_fo."analyze_".date('YmdHis',mktime()).".log");
+	$parser->execTool("Pipelines/analyze.php", "-folder ".$n_dna_fo." -name ".$n_dna_id." ".$args." --log ".$n_dna_fo."analyze_".date('YmdHis',mktime()).".log");
 }
 
 if(in_array("ma", $steps) || in_array("vc", $steps) || in_array("an", $steps))
@@ -76,13 +74,13 @@ if(in_array("ma", $steps) || in_array("vc", $steps) || in_array("an", $steps))
 	$tmp_sys = "";
 	if(isset($sys_nor))	$tmp_sys .= "-sys_nor $sys_nor ";
 	if(isset($sys_tum))	$tmp_sys .= "-sys_tum $sys_tum ";
-	$parser->execTool("php $basedir/Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_dna_id -n_id $n_dna_id $tmp_sys -o_folder $o_folder $args -smn --log ".$o_folder."somatic_dna1_".date('YmdHis',mktime()).".log");
+	$parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_dna_id -n_id $n_dna_id $tmp_sys -o_folder $o_folder $args -smn --log ".$o_folder."somatic_dna1_".date('YmdHis',mktime()).".log");
 
 	//
 	$tmp_sys = "";
 	if(isset($sys_nor))	$tmp_sys .= "-sys_nor $sys_nor ";
 	if(isset($sys_rel))	$tmp_sys .= "-sys_tum $sys_rel ";
-	$parser->execTool("php $basedir/Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $r_dna_id -n_id $n_dna_id $tmp_sys -o_folder $o_folder $args -smn --log ".$o_folder."somatic_dna2_".date('YmdHis',mktime()).".log");
+	$parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $r_dna_id -n_id $n_dna_id $tmp_sys -o_folder $o_folder $args -smn --log ".$o_folder."somatic_dna2_".date('YmdHis',mktime()).".log");
 }
 
 // combine results
@@ -100,7 +98,7 @@ if(in_array("combine", $steps))
 	$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $overview -bam $r_dna_bam -out $overview -name rel_".$r_dna_id." $vaf_options", true);
 	$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $overview -bam $n_dna_bam -out $overview -name nor_".$n_dna_id." $vaf_options", true);
 	$sys = load_system($sys_tum, $t_dna_id);
-	$parser->exec("php $basedir/NGS/filter_tsv.php", "-in $overview -out $overview -type coding,non_synonymous -roi ".$sys['target_file'], true);
+	$parser->exec("NGS/filter_tsv.php", "-in $overview -out $overview -type coding,non_synonymous -roi ".$sys['target_file'], true);
 }
 
 ?>

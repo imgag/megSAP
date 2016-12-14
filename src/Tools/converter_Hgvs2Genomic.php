@@ -5,7 +5,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
-$parser = new ToolBase("converter_Hgsv2Genomic", "\$Rev: 588 $", "Convert HGSV coordinates to genomic positions. Prints convertes position to stdout.");
+$parser = new ToolBase("converter_Hgsv2Genomic", "Convert HGSV coordinates to genomic positions. Prints convertes position to stdout.");
 $parser->addString("refseq",  "Refseq transcript ID.", false);
 $parser->addOutfile("hgvs",  "cDNA position in HGVS format.", false);
 extract($parser->parse($argv));

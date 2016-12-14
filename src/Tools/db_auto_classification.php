@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("db_auto_classification", "\$Rev: 868 $", "Automatic classification of high-impact variants in NGSD.");
+$parser = new ToolBase("db_auto_classification", "Automatic classification of high-impact variants in NGSD.");
 $parser->addInt("c2_ihdb", "NGSD count cutoff (variants with a homozygous count >= cutoff are classified as class 2).", true, 30);
 $parser->addFloat("c1_af", "Allele frequency cutoff (class 2 variants with AF <= cutoff are classified as class 1).", true, 0.01);
 //optional

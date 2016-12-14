@@ -4,14 +4,12 @@
 	@page mapping
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("mapping", "\$Rev: 918 $", "Mapping pipeline.");
+$parser = new ToolBase("mapping", "Mapping pipeline.");
 $parser->addInfileArray("in_for",  "Forward reads FASTQ file(s).", false);
 $parser->addInfileArray("in_rev",  "Reverse reads FASTQ file(s).", false);
 $parser->addString("out_folder", "Output folder.", false);
@@ -98,7 +96,7 @@ if($sys['type']=="Panel Haloplex HS")
 $mapping_options = "";
 if (file_exists($sheet)) $mapping_options .= " -sheet $sheet";
 if ($sys['shotgun']) $mapping_options .= " -dedup";
-$parser->execTool("php ".$basedir."NGS/mapping_bwa.php", "-in1 $trimmed1 -in2 $trimmed2 -out $out $mapping_options -build ".$sys['build']." -threads ".$threads);
+$parser->execTool("NGS/mapping_bwa.php", "-in1 $trimmed1 -in2 $trimmed2 -out $out $mapping_options -build ".$sys['build']." -threads ".$threads);
 
 //perform indel realignment
 if (!$no_abra)
@@ -106,11 +104,11 @@ if (!$no_abra)
 	$abra_args = "-in $out -out $out -build ".$sys['build']." -mer 0.1 -threads ".$threads;
 	if ($sys['target_file']!="" && $sys['type']!="WGS") //for panels on complete target region
 	{
-		$parser->execTool("php ".$basedir."NGS/indel_realign_abra.php", "$abra_args -roi ".$sys['target_file']);
+		$parser->execTool("NGS/indel_realign_abra.php", "$abra_args -roi ".$sys['target_file']);
 	}
 	else if ($sys['build']=="hg19" && $sys['type']=="WGS") //for WGS on exome target region
 	{
-		$parser->execTool("php ".$basedir."NGS/indel_realign_abra.php", "$abra_args -roi ".get_path("data_folder")."/enrichment/ssHAEv6_2016_09_01.bed");
+		$parser->execTool("NGS/indel_realign_abra.php", "$abra_args -roi ".get_path("data_folder")."/enrichment/ssHAEv6_2016_09_01.bed");
 	}
 }
 

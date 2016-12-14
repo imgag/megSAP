@@ -3,13 +3,12 @@
 	@page vcf_check_leftaligned
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("vcf_check_leftaligned", "\$Rev: 785 $", "Checks if variants in a VCF file are left-aligned.");
+$parser = new ToolBase("vcf_check_leftaligned", "Checks if variants in a VCF file are left-aligned.");
 $parser->addInfile("in", "Input VCF file.", false);
 //optional
 $parser->addInt("lines", "The number of lines from the input VCF file to check", true, 100000);

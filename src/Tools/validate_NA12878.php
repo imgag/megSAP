@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("validate_NA12878", "\$Rev: 712 $", "Validates that all NA12878 variants are found and that no additional variants are found.");
+$parser = new ToolBase("validate_NA12878", "Validates that all NA12878 variants are found and that no additional variants are found.");
 $parser->addInfile("vcf", "Input variant list of sequencing experiment (VCF.GZ format).", false);
 $parser->addInfile("bam", "Mapped reads file (BAM format).", false);
 $parser->addInfile("roi", "Input target region file (BED format).", false);

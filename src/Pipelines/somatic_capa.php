@@ -7,11 +7,12 @@
 	@todo combine BedInfo and lowCoverage from tumor and normal sample
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+
+error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("somatic_capa", "\$Rev: 909 $", "Differential analysis of tumor/reference.");
+$parser = new ToolBase("somatic_capa", "Differential analysis of tumor/reference.");
 $parser->addString("pf",  "Project folder.", false);
 $parser->addString("tn",  "Tumor sample processed sample number.", false);
 $parser->addString("o_folder", "Folder where output will be generated.", false);
@@ -44,7 +45,7 @@ if(empty($nn))
 	if($nsc)	$extras .= "-nsc ";
 	$extras .= "-filter_set somatic_diag_capa ";
 	if (isset($tn_sys)) $extras .= "-sys_tum $tn_sys ";
-	$parser->execTool("php $basedir/Pipelines/somatic_dna.php", "-p_folder . -t_id $tn -n_id na -o_folder $o_folder $extras");	
+	$parser->execTool("Pipelines/somatic_dna.php", "-p_folder . -t_id $tn -n_id na -o_folder $o_folder $extras");	
 }
 else
 {
@@ -61,7 +62,7 @@ else
 	$extras .= "-filter_set somatic_diag_capa ";
 	if (isset($tn_sys)) $extras .= "-sys_tum $tn_sys ";
 	if (isset($nn_sys)) $extras .= "-sys_nor $nn_sys ";
-	$parser->execTool("php $basedir/Pipelines/somatic_dna.php", "-p_folder . -t_id $tn -n_id $nn -o_folder $o_folder $extras");
+	$parser->execTool("Pipelines/somatic_dna.php", "-p_folder . -t_id $tn -n_id $nn -o_folder $o_folder $extras");
 }
 
 $system_t = load_system($tn_sys, $tn);
@@ -186,7 +187,7 @@ else
 	$report[] = "Tumor: $tumor_name (Externer Name: $tex_name)";
 	$report[] = "Normal: $normal_name (Externer Name: $nex_name)";
 	$report[] = "Datum: ".date("d.m.Y");
-	$report[] = "Revision der Analysepipeline: ".get_svn_rev();
+	$report[] = "Revision der Analysepipeline: ".repository_revision();
 	$report[] = "Analysesystem: $target_name";
 	$report[] = "Zielregionen: $regions_overall ($bases_overall Basen gesamt)";
 	//qc

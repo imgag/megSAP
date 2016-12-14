@@ -5,10 +5,9 @@
 */
 
 //parse command line arguments
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-$parser = new ToolBase("gap_closed", "\$Rev: 712 $", "Looks for overlaps between ab1 file and gaps.");
+$parser = new ToolBase("gap_closed", "Looks for overlaps between ab1 file and gaps.");
 $parser->addInfileArray("ab1",  "Input AB1 files.", false);
 $parser->addInfile("gap",  "Input gap BED file.", false);
 $parser->addInfile("primers",  "Input primer BED file.", true);

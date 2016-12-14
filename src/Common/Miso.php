@@ -1,5 +1,7 @@
 <?php
 
+require_once("functions.php");
+
 /**
 	@brief Access to the sequence ontology.
 	
@@ -91,7 +93,7 @@ class Miso
 
 	public static function getMisoOBO($thow_if_fails = true)
 	{
-		$file = dirname(__FILE__)."/../../data/dbs/Ontologies/so-xp_2_5_3_v2.obo";
+		$file = repository_basedir()."/data/dbs/Ontologies/so-xp_2_5_3_v2.obo";
 		if (file_exists($file))
 		{
 			return $file;

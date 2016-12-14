@@ -14,12 +14,12 @@
 	@todo set reference file in NGSD automatically if not set, otherwise check if analysis is congruent to NGSD
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("somatic_dna", "\$Rev: 920 $", "Differential analysis of sequenced tumor and reference DNA sample.");
+$parser = new ToolBase("somatic_dna", "Differential analysis of sequenced tumor and reference DNA sample.");
 $parser->addString("p_folder", "Folder that contains Sample folders.", false);
 $parser->addString("t_id", "Tumor sample processing-ID (e.g. GSxyz_01).", false);
 $parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To process a tumor samples solely use 'na'.", false);
@@ -85,7 +85,7 @@ if($tumor_only)
 			trigger_error("Turned off soft-clipping automatically due to amplicon mode.", E_USER_WARNING);
 		}
 		if(!$no_softclip)	$args .= "-clip_overlap ";
-		$parser->execTool("php $basedir/Pipelines/analyze.php", "-folder ".$t_folder." -out_folder ".$t_folder." -name $t_id -system $sys_tum ".$args." --log ".$t_folder."analyze_".date('YmdHis',mktime()).".log");
+		$parser->execTool("Pipelines/analyze.php", "-folder ".$t_folder." -out_folder ".$t_folder." -name $t_id -system $sys_tum ".$args." --log ".$t_folder."analyze_".date('YmdHis',mktime()).".log");
 	}
 
 	$som_v = $o_folder.$t_id."_var.vcf.gz";
@@ -93,7 +93,7 @@ if($tumor_only)
 	if (in_array("vc", $steps))
 	{
 		$tmp1 = $parser->tempFile();
-		$parser->execTool("php ".$basedir."NGS/vc_freebayes.php", "-bam $t_bam -out $tmp1 -build ".$sys_tum_ini['build']." -min_af ".$min_af." -target ".$sys_tum_ini['target_file']);
+		$parser->execTool("NGS/vc_freebayes.php", "-bam $t_bam -out $tmp1 -build ".$sys_tum_ini['build']." -min_af ".$min_af." -target ".$sys_tum_ini['target_file']);
 
 		$tmp = $parser->tempFile();
 		$s = Matrix::fromTSV($tmp1);
@@ -116,7 +116,7 @@ if($tumor_only)
 		$tmp_folder = $parser->tempFolder();
 		$t_cov = $tmp_folder."/".basename($t_bam,".bam").".cov";
 		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $t_bam -in ".$sys_tum_ini['target_file']." -out $t_cov",true);
-		$parser->execTool("php $basedir/NGS/vc_cnvhunter.php", "-cov $t_cov -out $som_cnv -system $sys_tum -min_reg 3 -min_corr 0.75");
+		$parser->execTool("NGS/vc_cnvhunter.php", "-cov $t_cov -out $som_cnv -system $sys_tum -min_reg 3 -min_corr 0.75");
 	}
 
 	$som_vcf = $o_folder.$t_id."_var_annotated.vcf.gz";
@@ -125,13 +125,13 @@ if($tumor_only)
 	{
 		// annotate vcf
 		$tmp_folder1 = $parser->tempFolder();
-		$parser->execTool("php $basedir/Pipelines/annotate.php", "-out_name ".basename($som_gsvar, ".GSvar")." -out_folder $tmp_folder1 -system $sys_tum -vcf $som_v -t_col $t_id");
+		$parser->execTool("Pipelines/annotate.php", "-out_name ".basename($som_gsvar, ".GSvar")." -out_folder $tmp_folder1 -system $sys_tum -vcf $som_v -t_col $t_id");
 
 		// filter vcf to output folder
 		$extra = array();
 		if($sys_tum_ini["target_file"]!="")	$extra[] = "-roi ".$sys_tum_ini["target_file"];
 		if($reduce_variants_filter)	$extra[] = "-r";
-		$parser->execTool("php $basedir/NGS/filter_vcf.php", "-in ${tmp_folder1}/".basename($som_gsvar, ".GSvar")."_var_annotated.vcf.gz -out $som_vcf -min_af $min_af -type $filter_set ".implode(" ", $extra));
+		$parser->execTool("NGS/filter_vcf.php", "-in ${tmp_folder1}/".basename($som_gsvar, ".GSvar")."_var_annotated.vcf.gz -out $som_vcf -min_af $min_af -type $filter_set ".implode(" ", $extra));
 
 		// sort vcf comments
 		$tmp = $parser->tempFile();
@@ -144,8 +144,8 @@ if($tumor_only)
 
 		// convert vcf to GSvar
 		$extra = "-t_col $t_id";
-		$parser->execTool("php ".$basedir."NGS/vcf2gsvar_somatic.php", "-in $som_vcf -out $som_gsvar $extra");
-		$parser->execTool("php ".$basedir."NGS/an_dbNFSPgene.php", "-in $som_gsvar -out $som_gsvar");	
+		$parser->execTool("NGS/vcf2gsvar_somatic.php", "-in $som_vcf -out $som_gsvar $extra");
+		$parser->execTool("NGS/an_dbNFSPgene.php", "-in $som_gsvar -out $som_gsvar");	
 
 		// NGSD-data (somatic and germline)
 		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode somatic",true);
@@ -156,13 +156,13 @@ if($tumor_only)
 	// no import of variants (only db import for proper somatic pairs)
 	if (in_array("db", $steps) && is_valid_processingid($t_id))
 	{
-		$parser->execTool("php ".$basedir."NGS/db_check_gender.php", "-in $t_bam -pid $t_id");
+		$parser->execTool("NGS/db_check_gender.php", "-in $t_bam -pid $t_id");
 
 		// import QC data tumor
 		$log_db  = $t_folder."/".$t_id."_log4_db.log";
 		$qc_fastq  = $t_folder."/".$t_id."_stats_fastq.qcML";
 		$qc_map  = $t_folder."/".$t_id."_stats_map.qcML";
-		$parser->execTool("php ".$basedir."NGS/db_import_qc.php", "-id $t_id -files $qc_fastq $qc_map -force -min_depth 0 --log $log_db");
+		$parser->execTool("NGS/db_import_qc.php", "-id $t_id -files $qc_fastq $qc_map -force -min_depth 0 --log $log_db");
 
 		// update last_analysis date
 		if(is_valid_processingid($t_id))
@@ -193,8 +193,8 @@ else
 			trigger_error("Turned off soft-clipping automatically.", E_USER_NOTICE);
 		}
 		if(!$no_softclip)	$args .= "-clip_overlap ";
-		if(!$smt)	$parser->execTool("php $basedir/Pipelines/analyze.php", "-folder ".$t_folder." -name $t_id -system $sys_tum ".$args." --log ".$t_folder."analyze_".date('YmdHis',mktime()).".log");
-		if(!$smn)	$parser->execTool ("php $basedir/Pipelines/analyze.php", "-folder ".$n_folder." -name $n_id -system $sys_nor ".$args." --log ".$n_folder."analyze_".date('YmdHis',mktime()).".log");
+		if(!$smt)	$parser->execTool("Pipelines/analyze.php", "-folder ".$t_folder." -name $t_id -system $sys_tum ".$args." --log ".$t_folder."analyze_".date('YmdHis',mktime()).".log");
+		if(!$smn)	$parser->execTool ("Pipelines/analyze.php", "-folder ".$n_folder." -name $n_id -system $sys_nor ".$args." --log ".$n_folder."analyze_".date('YmdHis',mktime()).".log");
 
 		// indel realignment with ABRA
 		if ($abra && $sys_tum_ini['type']!="WGS" && $sys_nor_ini['type']!="WGS")
@@ -208,7 +208,7 @@ else
 			// indel realignment with ABRA
 			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
 			$tmp1_n_bam = $parser->tempFile("_normal.bam");
-			$command = "php $basedir/NGS/indel_realign_abra.php -in $n_bam $t_bam -out $tmp1_n_bam $tmp1_t_bam -roi $tmp2_targets -threads 8 -mer 0.02 2>&1";			
+			$command = "NGS/indel_realign_abra.php -in $n_bam $t_bam -out $tmp1_n_bam $tmp1_t_bam -roi $tmp2_targets -threads 8 -mer 0.02 2>&1";			
 			$working_directory = realpath($p_folder);
 			$parser->jobsSubmit(array($command), $working_directory, "high_mem", true);
 			
@@ -240,7 +240,7 @@ else
 		{
 			$par = "";
 			if($sys_tum_ini['type']=="WES")	$par .= "-exome ";
-			$parser->execTool("php $basedir/NGS/vc_manta.php", "-t_bam $t_bam -bam $n_bam $par -out $som_sv -build ".$sys_tum_ini['build']);
+			$parser->execTool("NGS/vc_manta.php", "-t_bam $t_bam -bam $n_bam $par -out $som_sv -build ".$sys_tum_ini['build']);
 		}
 		
 		// copy number variant calling
@@ -249,7 +249,7 @@ else
 		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $t_bam -in ".$sys_tum_ini['target_file']." -out $t_cov",true);
 		$n_cov = $tmp_folder."/".basename($n_bam,".bam").".cov";
 		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $n_bam -in ".$sys_tum_ini['target_file']." -out $n_cov",true);
-		$parser->execTool("php $basedir/NGS/vc_cnvhunter.php", "-cov $t_cov -n_cov $n_cov -out $som_cnv -system $sys_tum -min_reg 3 -min_corr 0.75");
+		$parser->execTool("NGS/vc_cnvhunter.php", "-cov $t_cov -n_cov $n_cov -out $som_cnv -system $sys_tum -min_reg 3 -min_corr 0.75");
 		
 		// variant calling
 		if(!$freebayes)
@@ -258,13 +258,13 @@ else
 			$args[] = "-build ".$sys_tum_ini['build'];
 			if ($reduce_variants_strelka) $args[] = "-r";
 			if (!$sys_tum_ini['shotgun']) $args[] = "-amplicon";
-			$parser->execTool("php $basedir/NGS/vc_strelka.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));	//combined variant calling using strelka		
+			$parser->execTool("NGS/vc_strelka.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));	//combined variant calling using strelka		
 		}
 		else	// combined variant calling using freebayes
 		{
 			// vc_freebayes uses owntools that can not handel multi-sample vcfs
 			$tmp1 = $parser->tempFile();
-			$parser->execTool("php ".$basedir."NGS/vc_freebayes.php", "-bam $t_bam $n_bam -out $tmp1 -build ".$sys_tum_ini['build']." -min_af ".$min_af." -target ".$sys_tum_ini['target_file']);
+			$parser->execTool("NGS/vc_freebayes.php", "-bam $t_bam $n_bam -out $tmp1 -build ".$sys_tum_ini['build']." -min_af ".$min_af." -target ".$sys_tum_ini['target_file']);
 
 			// fix header
  			$tmp2 = $parser->tempFile();
@@ -321,14 +321,14 @@ else
 	{
 		// annotate vcf into temp folder
 		$tmp_folder1 = $parser->tempFolder();
-		$parser->execTool("php $basedir/Pipelines/annotate.php", "-out_name ".basename($som_gsvar, ".GSvar")." -out_folder $tmp_folder1 -system $sys_tum -vcf $som_v -t_col $t_id -n_col $n_id");
+		$parser->execTool("Pipelines/annotate.php", "-out_name ".basename($som_gsvar, ".GSvar")." -out_folder $tmp_folder1 -system $sys_tum -vcf $som_v -t_col $t_id -n_col $n_id");
 
 		// filter vcf to output folder
 		$extra = array();
 		if($sys_tum_ini["target_file"]!="")	$extra[] = "-roi ".$sys_tum_ini["target_file"];
 		if($reduce_variants_filter)	$extra[] = "-r";
 		if($contamination > 0)	$extra[] = "-contamination $contamination";
-		$parser->execTool("php $basedir/NGS/filter_vcf.php", "-in ${tmp_folder1}/".basename($som_gsvar, ".GSvar")."_var_annotated.vcf.gz -out $som_vann -min_af $min_af -type $filter_set ".implode(" ", $extra));
+		$parser->execTool("NGS/filter_vcf.php", "-in ${tmp_folder1}/".basename($som_gsvar, ".GSvar")."_var_annotated.vcf.gz -out $som_vann -min_af $min_af -type $filter_set ".implode(" ", $extra));
 
 		// sort and dedup vcf comments
 		$tmp = $parser->tempFile();
@@ -341,8 +341,8 @@ else
 
 		// convert vcf to GSvar
 		$extra = "-t_col $t_id -n_col $n_id";
-		$parser->execTool("php ".$basedir."NGS/vcf2gsvar_somatic.php", "-in $som_vann -out $som_gsvar $extra");
-		$parser->execTool("php ".$basedir."NGS/an_dbNFSPgene.php", "-in $som_gsvar -out $som_gsvar");	
+		$parser->execTool("NGS/vcf2gsvar_somatic.php", "-in $som_vann -out $som_gsvar $extra");
+		$parser->execTool("NGS/an_dbNFSPgene.php", "-in $som_gsvar -out $som_gsvar");	
 
 		// annotate somatic NGSD-data
 		// find processed sample with equal processing system for NGSD-annotation
@@ -373,7 +373,7 @@ else
 	if (in_array("ci", $steps))
 	{
 		// add QCI output
-		$parser->execTool("php $basedir/Tools/converter_vcf2qci.php", "-in $som_vann -out $som_vqci -pass");
+		$parser->execTool("Tools/converter_vcf2qci.php", "-in $som_vann -out $som_vqci -pass");
 	}
 
 	// import somatic variants to NGSD, check if sample within NGSD, otherwise skip QC import
@@ -381,21 +381,21 @@ else
 	{
 		if(is_valid_processingid($t_id) && is_valid_processingid($n_id))
 		{
-			$parser->execTool("php ".$basedir."NGS/db_check_gender.php", "-in $t_bam -pid $t_id");
-			$parser->execTool("php ".$basedir."NGS/db_check_gender.php", "-in $n_bam -pid $n_id");
+			$parser->execTool("NGS/db_check_gender.php", "-in $t_bam -pid $t_id");
+			$parser->execTool("NGS/db_check_gender.php", "-in $n_bam -pid $n_id");
 
 			// import QC data tumor
 			$log_db  = $t_folder."/".$t_id."_log4_db.log";
 			$qcmls = $t_folder."/".$t_id."_stats_fastq.qcML ";
 			if (in_array("ma", $steps))	$qcmls .= $t_folder."/".$t_id."_stats_map.qcML ";
 			if (!$nsc && in_array("an", $steps))	$qc_som  = $o_folder.$t_id."-".$n_id."_stats_som.qcML ";
-			$parser->execTool("php ".$basedir."NGS/db_import_qc.php", "-id $t_id -files $qcmls -force -min_depth 0 --log $log_db");
+			$parser->execTool("NGS/db_import_qc.php", "-id $t_id -files $qcmls -force -min_depth 0 --log $log_db");
 
 			// import QC data normal
 			$log_db  = $n_folder."/".$n_id."_log4_db.log";
 			$qcmls  = $n_folder."/".$n_id."_stats_fastq.qcML ";
 			if (in_array("ma", $steps))	$qcmls .= $n_folder."/".$n_id."_stats_map.qcML ";
-			$parser->execTool("php ".$basedir."NGS/db_import_qc.php", "-id $n_id -files $qcmls -force -min_depth 0 --log $log_db");
+			$parser->execTool("NGS/db_import_qc.php", "-id $n_id -files $qcmls -force -min_depth 0 --log $log_db");
 
 
 			// update last_analysis date
@@ -410,7 +410,7 @@ else
 			if(updateNormalSample($t_id, $n_id))	trigger_error("Updated normal sample ($n_id) for tumor ($t_id) within NGSD.",E_USER_NOTICE);
 			
 			// import variants (not for WGS) and if processing ids are valid
-			if ($sys_tum_ini['type']!="WGS" && $sys_nor_ini['type']!="WGS")	$parser->execTool("php ".$basedir."NGS/db_import_variants.php", "-id ".$t_id."-".$n_id." -var ".$som_gsvar." -build ".$sys_tum_ini['build']." -force -mode somatic" /*--log $log_db"*/);
+			if ($sys_tum_ini['type']!="WGS" && $sys_nor_ini['type']!="WGS")	$parser->execTool("NGS/db_import_variants.php", "-id ".$t_id."-".$n_id." -var ".$som_gsvar." -build ".$sys_tum_ini['build']." -force -mode somatic" /*--log $log_db"*/);
 		}
 		else	trigger_error("No DB import since no valid processing ID (T:".$t_id."/N:".$n_id.")",E_USER_WARNING);
 	}

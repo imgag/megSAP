@@ -5,7 +5,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
-$parser = new ToolBase("converter_tsv2vcf", "\$Rev: 923 $", "Generate vcf-files from tsv files (e.g. , hg19 only!).");
+$parser = new ToolBase("converter_tsv2vcf", "Generate vcf-files from tsv files (e.g. , hg19 only!).");
 $parser->addInfile("in",  "Input file in tsv-format.", false);
 $parser->addOutfile("out",  "Output file in vcf-format.", false);
 // optional

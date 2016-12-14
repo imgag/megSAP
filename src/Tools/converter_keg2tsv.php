@@ -3,7 +3,7 @@
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 #parse command line arguments
-$parser = new ToolBase("converter_keg2tsv", "\$Rev: 309 $", "");
+$parser = new ToolBase("converter_keg2tsv", "");
 $parser->addInfile("in", "Convert keg-format (exports from KEGG database) to tsv-Format.", false);
 $parser->addOutfile("out", "TSV-file containing gene names.", false);
 extract($parser->parse($argv));

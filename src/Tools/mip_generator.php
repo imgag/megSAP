@@ -10,7 +10,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //
-$parser = new ToolBase("mip_generator", "\$Rev: 923 $", "");
+$parser = new ToolBase("mip_generator", "");
 $parser->addInfile("target", "Target file (bed format).", false);
 $parser->addString("project_name", "Prefix for files generated.", false);
 $parser->addString("out_folder", "Out folder.", false);

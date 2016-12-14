@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("db_update_qcml", "\$Rev: 642 $", "Update qcML terms in NGSD.");
+$parser = new ToolBase("db_update_qcml", "Update qcML terms in NGSD.");
 //optional
 $parser->addEnum("db",  "Database to connect to.", true, array("NGSD", "NGSD_TEST"), "NGSD");
 extract($parser->parse($argv));

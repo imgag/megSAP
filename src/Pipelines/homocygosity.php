@@ -5,14 +5,12 @@
 
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("homocygosity", "\$Rev: 2 $", "Homocygosity mapping pipeline.");
+$parser = new ToolBase("homocygosity", "Homocygosity mapping pipeline.");
 $parser->addInfile("geno",  "Genoptypes input file.", false);
 $parser->addInfile("meta",  "Meta data file.", false);
 $parser->addEnum("type", "Chip type.", false, array("illumina_6k", "affymetrix_6.0", "affymetrix_250k", "cytoscan_hd"));
@@ -25,7 +23,7 @@ extract($parser->parse($argv));
 $geno_filtered = $family."_geno_filtered.txt";
 if ($type=="affymetrix_6.0")
 {
-	$parser->execTool("php ".$basedir."Chips/filter_confidence.php", "-in $geno -thres $thres -out $geno_filtered");
+	$parser->execTool("Chips/filter_confidence.php", "-in $geno -thres $thres -out $geno_filtered");
 }
 else
 {
@@ -36,7 +34,7 @@ else
 $map = $family."_map.txt";
 $ped = $family."_ped.txt";
 $fam = $family."_family.txt";
-$parser->execTool("php ".$basedir."Chips/chip2plink.php", "-chip $geno_filtered -meta $meta -type $type -family $family -out_map $map -out_ped $ped -out_fam $fam");
+$parser->execTool("Chips/chip2plink.php", "-chip $geno_filtered -meta $meta -type $type -family $family -out_map $map -out_ped $ped -out_fam $fam");
 
 // apply plink
 $params = "";
@@ -69,19 +67,19 @@ $parser->addInt("s_dens", "Required minimum density of segments (in 1 SNP per x 
 $parser->addInt("s_gap", "Maximum size of gaps in segments (in kb).", false);
 
 $hom = $family."_hom.txt";
-$parser->execTool("php ".$basedir."Chips/plink_homocygosity.php", "-in_map $map -in_ped $ped -out $hom $params");
+$parser->execTool("Chips/plink_homocygosity.php", "-in_map $map -in_ped $ped -out $hom $params");
 
 
 //create diagrams
-$parser->execTool("php ".$basedir."Chips/plink_diagrams.php", "-in $hom");
+$parser->execTool("Chips/plink_diagrams.php", "-in $hom");
 
 //create regions
 $reg = $family."_regions.bed";
-$parser->execTool("php ".$basedir."Chips/plink_regions.php", "-in $hom -out $reg");
+$parser->execTool("Chips/plink_regions.php", "-in $hom -out $reg");
 
 //annotate regions
 $anno = $family."_annotation.tsv";
-$parser->execTool("php ".$basedir."Chips/bed_annotation.php", "-in $reg -out $anno");
+$parser->execTool("Chips/bed_annotation.php", "-in $reg -out $anno");
 
 //create and store report
 $output = array();
@@ -89,7 +87,7 @@ $output[] = "Report zur Homozygotieanalyse:";
 $output[] = "";
 $output[] = "Familie: $family";
 $output[] = "Datum: ".date("d.m.Y");
-$output[] = "Revision der Analysepipeline: ".get_svn_rev();
+$output[] = "Revision der Analysepipeline: ".repository_revision();
 $output[] = "Chip: $type";
 $output[] = "";
 $output[] = "Patienten:";

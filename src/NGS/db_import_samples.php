@@ -4,7 +4,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("db_import_samples", "\$Rev: 659 $", "Batch-imports samples to the NGSD.");
+$parser = new ToolBase("db_import_samples", "Batch-imports samples to the NGSD.");
 $parser->addInfile("in",  "Input sample list in TSV format.", false);
 extract($parser->parse($argv));
 

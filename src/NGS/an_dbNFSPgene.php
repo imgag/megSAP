@@ -7,7 +7,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("an_dbNFSPgene", "\$Rev: 745 $", "Annotate additional columns from dbNFSPgene.");
+$parser = new ToolBase("an_dbNFSPgene", "Annotate additional columns from dbNFSPgene.");
 $parser->addInfile("in",  "Input file in tsv format.", false);
 $parser->addOutfile("out", "Output file in tsv format.", false);
 //optional

@@ -9,11 +9,9 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
 // add parameter for command line ${input1.metadata.bam_index}
 // parse command line arguments
-$parser = new ToolBase("vc_freebayes", "\$Rev: 912 $", "Variant calling with freebayes.");
+$parser = new ToolBase("vc_freebayes", "Variant calling with freebayes.");
 $parser->addInfileArray("bam",  "Input files in BAM format. Space separated. Note: .bam.bai file is required!", false);
 $parser->addOutfile("out", "Output file in VCF.GZ format.", false);
 //optional
@@ -58,7 +56,7 @@ $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize","-ref $genome");
 $pipeline[] = array(get_path("ngs-bits")."VcfStreamSort","");
 
 //fix error in VCF file and strip unneeded information
-$pipeline[] = array("php ".$basedir."NGS/vcf_fix.php", "", false);
+$pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", "", false);
 
 //zip
 $pipeline[] = array("bgzip", "-c > $out", false);

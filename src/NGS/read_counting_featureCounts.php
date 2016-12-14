@@ -9,13 +9,12 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("read_counting_featureCounts", "\$Rev: 2$", "Perform read counting for aligned reads using featureCount contained in the subread package.");
+$parser = new ToolBase("read_counting_featureCounts", "Perform read counting for aligned reads using featureCount contained in the subread package.");
 $parser->addInfile("in",  "Input file in bam format.", false, "bam");
 $parser->addString("prefix", "String to add to output files. Might include sub-directories.", false, NULL);
 
 //optional parameters
 $parser->addString("gtfFile", "GTF File containing feature annotations used for read counting.", true, get_path("data_folder")."genomes/gtf/ucsc_refseq_hg19.gtf");
-//$parser->addString("reference", "FASTA File that contains the reference genome used for mapping.", true, get_path("data_folder")."genomes/STAR/hg19");
 $parser->addString("featureType", "Feature type used for mapping reads to features.", true, "exon");
 $parser->addString("gtfAttribute", "GTF attribute used as feature ID.", true, "gene_id");
 $parser->addFlag("stranded", "Specify whether a stranded protocol was used during library preparation. Default is non-stranded.");
@@ -27,7 +26,7 @@ $parser->addInt("threads", "Number of threads used for read counting", true, "4"
 extract($parser->parse($argv));
 
 //extracting sub-directories and generating folder structure
-$out=create_path($prefix);
+$out = create_path($prefix);
 $sampleName = $out[0];
 $outdir = $out[1];
 
@@ -38,7 +37,6 @@ $arguments = array();
 
 $arguments[] = "$in";
 $arguments[] = "-a $gtfFile";
-//$arguments[] = "-G $reference";
 $arguments[] = "-t $featureType";
 $arguments[] = "-g $gtfAttribute";
 $arguments[] = "-Q $minAQual";

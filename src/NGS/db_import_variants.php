@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("db_import_variants", "\$Rev: 915 $", "Imports variants to NGSD.");
+$parser = new ToolBase("db_import_variants", "Imports variants to NGSD.");
 $parser->addString("id", "Processing ID (e.g. GS000123_01 for germline variants, GS000123_01-GS000124_01 for tumor-normal pairs).", false);
 $parser->addInfile("var",  "Input variant list in TSV format.", false);
 // optional

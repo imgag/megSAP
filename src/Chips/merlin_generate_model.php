@@ -5,7 +5,7 @@
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
-$parser = new ToolBase("merlin_generate_model", "\$Rev: 2 $", "Generates model-files to use with merlin's parametric analysis.");
+$parser = new ToolBase("merlin_generate_model", "Generates model-files to use with merlin's parametric analysis.");
 $parser->addInfile("ped",  "Input PED file.", false);
 $parser->addInfile("dat",  "Input DAT file", false);
 $parser->addEnum("type", "Linkage model type.", false, array("dominant_hp"));

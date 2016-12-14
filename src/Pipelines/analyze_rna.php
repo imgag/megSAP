@@ -5,16 +5,12 @@
 	@todo can the STAR-Fustion reference replace the STAR reference?
 */
 
-
-
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("analyze_rna", "\$Rev: 924 $", "RNA Mapping pipeline using STAR.");
+$parser = new ToolBase("analyze_rna", "RNA Mapping pipeline using STAR.");
 $parser->addInfileArray("in_for", "Forward reads in fastq.gz file(s).", false);
 $parser->addString("out_folder", "Output folder. (May contain sub-directories, which will then automatically be created, if missing)", false);
 $parser->addString("out_name", "Output base file name, typically the processed sample ID (e.g. 'GS120001_01').", false, NULL);
@@ -49,7 +45,7 @@ foreach($steps as $step)
 // Extract sub-directories and generating folder structure
 if(empty($out_folder)) trigger_error("No output folder!", E_USER_ERROR);
 if(empty($out_name))	trigger_error("No output prefix!", E_USER_ERROR);
-$path=create_path($out_folder."/".$out_name, false);
+$path=create_path($out_folder."/".$out_name);
 $out=$path[1].$path[0];
 $sample=$path[0];
 
@@ -129,7 +125,7 @@ if(in_array("ma", $steps))
 	if($sharedMemory && in_array("fu", $steps))		$parser->log("Using shared memory and detecting fusion proteins is not possible at the same time. Disabling shared memory.");
 	if($keepUnmapped)	$align_command .= " -keepUnmapped";
 	if($rmdup)	$align_command .= " -rmdup";
-	$parser->execTool("php ".$basedir."NGS/mapping_star_htseq.php", $align_command);
+	$parser->execTool("NGS/mapping_star_htseq.php", $align_command);
 
 	// STAR result files
 	if($rmdup) {
@@ -149,7 +145,7 @@ if(in_array("ma", $steps))
 		$parser->exec(get_path("GATK"), "-T SplitNCigarReads -R $GATKReference -I $bam_sorted -o $bam_split -rf ReassignOneMappingQuality -RMQF 255 -RMQT 60 -U ALLOW_N_CIGAR_READS", true);
 		//perform indel realignment on splitted reads
 		$parser->log("Performing IndelRealignment");
-		$parser->execTool("php ".$basedir."NGS/indel_realign.php", "-in $bam_split -prefix $out");
+		$parser->execTool("NGS/indel_realign.php", "-in $bam_split -prefix $out");
 		$bam_realign = "${out}.realign.bam";
 	} else {
 		$bam_realign = $bam_mapped;
@@ -177,7 +173,7 @@ if(in_array("rc", $steps)) {
 	if($stranded) {
 		$count_arguments .= " -stranded";
 	}
-	$parser->execTool("php ".$basedir."NGS/read_counting_featureCounts.php", $count_arguments);
+	$parser->execTool("NGS/read_counting_featureCounts.php", $count_arguments);
 	$count_file = "${out}_counts.tsv";
 
 	// Normalize expression values
@@ -192,14 +188,14 @@ if(in_array("rc", $steps)) {
 	$normalize_arguments .= " -feature $featureType";
 	$normalize_arguments .= " -idattr $gtfAttribute";
 	$normalize_arguments .= " -header";
-	$parser->execTool("php ".$basedir."NGS/normalize_read_counts.php", $normalize_arguments);
+	$parser->execTool("NGS/normalize_read_counts.php", $normalize_arguments);
 }
 
 // Annotate
 if(in_array("an", $steps)) {
 	$parser->log("Performing annotation of read counts");
 	$annotation_arguments = "-in $count_normalized_file -out $count_normalized_file -mapping_file $annotation";
-	$parser->execTool("php ".$basedir."NGS/annotate_count_file.php", $annotation_arguments);
+	$parser->execTool("NGS/annotate_count_file.php", $annotation_arguments);
 }
 
 // detect fusions
@@ -236,13 +232,13 @@ $log_db  = "${out}_log_db.log";
 if (in_array("db", $steps))
 {
 	if(file_exists($log_db)) unlink($log_db);
-	$parser->execTool("php ".$basedir."NGS/db_check_gender.php", "-in $final_bam -pid $out_name");
+	$parser->execTool("NGS/db_check_gender.php", "-in $final_bam -pid $out_name");
 		
 	// Update last_analysis column of processed sample in NGSD
 	updateLastAnalysisDate($out_name, $final_bam);
 
 	// Import QC data, do not import the insert size and target region read depth
 	$qc_files = array($qc_fastq, $qc_map);
-	$parser->execTool("php ".$basedir."NGS/db_import_qc.php", "-id $out_name -files ".implode(" ", $qc_files)." -force -skip_parameters QC:2000023,QC:2000025");
+	$parser->execTool("NGS/db_import_qc.php", "-id $out_name -files ".implode(" ", $qc_files)." -force -skip_parameters QC:2000023,QC:2000025");
 }
 ?>

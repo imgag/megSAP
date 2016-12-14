@@ -9,7 +9,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 */
 
 // parse command line arguments
-$parser = new ToolBase("init_cnv_ref_folder", "\$Rev: 907 $", "Initialize coverage folder of a processing system with data from all valid samples.");
+$parser = new ToolBase("init_cnv_ref_folder", "Initialize coverage folder of a processing system with data from all valid samples.");
 $parser->addString("name", "Processing system short name.", false);
 $parser->addFlag("clear", "Remove existing coverage files.");
 extract($parser->parse($argv));

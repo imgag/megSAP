@@ -1,11 +1,10 @@
 <?php
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("low_cov_regions", "\$Rev: 712 $", "Determines regions that have low coverage in a large part of samples.");
+$parser = new ToolBase("low_cov_regions", "Determines regions that have low coverage in a large part of samples.");
 $parser->addInfileArray("in", "Low-coverage BED files for several samples.", false);
 $parser->addInfile("roi", "Target region BED file.", false);
 $parser->addOutfile("out", "Output BED file with low-coverage regions.", false);

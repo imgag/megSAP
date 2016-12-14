@@ -5,7 +5,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
-$parser = new ToolBase("converter_vcf2qci", "\$Rev: 0 $", "Generate QCI compliant files from strelka vcf files.");
+$parser = new ToolBase("converter_vcf2qci", "Generate QCI compliant files from strelka vcf files.");
 $parser->addInfile("in",  "Input file in tsv-format.", false);
 $parser->addOutfile("out",  "Output file in vcf-format.", false);
 // optional

@@ -4,14 +4,12 @@
 	@page annotate
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("annotate", "\$Rev: 907 $", "Annotate variants.");
+$parser = new ToolBase("annotate", "Annotate variants.");
 $parser->addString("out_name", "Processed sample ID (e.g. 'GS120001_01').", false);
 $parser->addString("out_folder", "Output folder.", false);
 //optional
@@ -55,17 +53,17 @@ if ($sys['build']!="hg19")	trigger_error("Can only annotate hg19 data!", E_USER_
 //annotate VCF
 $args = "";
 if ($sys['type']!="WGS") $args .= " -no_updown";
-$parser->execTool("php ".$basedir."NGS/an_snpeff.php", "-in $vcf_unzipped -thres $thres -build ".$sys['build']." -out $annfile $args");
+$parser->execTool("NGS/an_snpeff.php", "-in $vcf_unzipped -thres $thres -build ".$sys['build']." -out $annfile $args");
 
 //check vcf file
-if(!$nfc) $parser->execTool("php ".$basedir."NGS/check_vcf.php", "-in $annfile -build ".$sys['build']);
+if(!$nfc) $parser->execTool("NGS/check_vcf.php", "-in $annfile -build ".$sys['build']);
 
 //convert to GSvar file
 if ($t_col=="na") //germline
 {
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
 	$parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $stafile", true);
-	$parser->execTool("php ".$basedir."NGS/vcf2gsvar.php", "-in $annfile -out $varfile");
+	$parser->execTool("NGS/vcf2gsvar.php", "-in $annfile -out $varfile");
 }
 else //somatic
 {
@@ -115,7 +113,7 @@ if($t_col=="na") //not for somatic
 	//check output TSV file and copy result to out_folder
 	if(!$nfc)
 	{
-		$parser->execTool("php ".$basedir."NGS/check_tsv.php", "-in $varfile -build ".$sys['build']);
+		$parser->execTool("NGS/check_tsv.php", "-in $varfile -build ".$sys['build']);
 	}
 }
 

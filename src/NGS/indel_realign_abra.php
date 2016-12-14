@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("indel_realign_abra", "\$Rev: 877 $", "Perform indel realignment using ABRA.");
+$parser = new ToolBase("indel_realign_abra", "Perform indel realignment using ABRA.");
 $parser->addInfileArray("in",  "Input BAM file(s).", false);
 $parser->addInfile("roi", "Target region for realignment", false);
 $parser->addOutfileArray("out",  "Output BAM file(s).", false);

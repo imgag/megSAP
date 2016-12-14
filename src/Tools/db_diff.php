@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("db_diff", "\$Rev: 805 $", "Checks for schema differences between test and productive NGSD.");
+$parser = new ToolBase("db_diff", "Checks for schema differences between test and productive NGSD.");
 //optional
 $parser->addFlag("init", "Freshly initialize test database.");
 $parser->addFlag("local", "Create database TSV in current directory instead of in /tmp/ folder.");

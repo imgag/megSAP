@@ -26,7 +26,7 @@ function mm_perc($a, $c, $n)
 }
 
 //parse command line arguments
-$parser = new ToolBase("find_wrong_adapters", "\$Rev: 894 $", "Checks for mismatches between given and consensus adapter in all samples.");
+$parser = new ToolBase("find_wrong_adapters", "Checks for mismatches between given and consensus adapter in all samples.");
 extract($parser->parse($argv));
 
 //get list of mapping log files

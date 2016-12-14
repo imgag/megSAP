@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("vcf_outliers", "\$Rev: 421 $", "Checks for a variant if there are outliers in the numeric info fields.");
+$parser = new ToolBase("vcf_outliers", "Checks for a variant if there are outliers in the numeric info fields.");
 $parser->addInfile("in", "Input VCF file.", false);
 $parser->addString("var", "Variant position and base change, e.g. chr11:108121426:A:G", false);
 extract($parser->parse($argv));

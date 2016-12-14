@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("indel_realign", "\$Rev: 3$", "Perform InDel-realignment for mapping results using GATK.");
+$parser = new ToolBase("indel_realign", "Perform InDel-realignment for mapping results using GATK.");
 $parser->addInfile("in",  "Input file in bam format.", false);
 $parser->addString("prefix", "String to add to output files. Might include sub-directories.", false, NULL);
 //optional

@@ -5,7 +5,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
-$parser = new ToolBase("converter_manifest2bed", "\$Rev: 309 $", "Convert manifest to bed.");
+$parser = new ToolBase("converter_manifest2bed", "Convert manifest to bed.");
 $parser->addInfile("m",  "Illumina manifest file.", false);
 $parser->addOutfile("o",  "Output bed file.", false);
 //optional

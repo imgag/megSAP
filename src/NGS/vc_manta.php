@@ -12,7 +12,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // add parameter for command line ${input1.metadata.bam_index}
 // parse command line arguments
-$parser = new ToolBase("vc_manta", "\$Rev: 885 $", "Call somatic strucural variants with manta. Creates an VCF file.");
+$parser = new ToolBase("vc_manta", "Call somatic strucural variants with manta. Creates an VCF file.");
 $parser->addInfileArray("bam", "Normal BAM file. Only one bam file allowed for somatic mode.", false);
 $parser->addString("out", "Output file (gzipped and tabix indexed).", false);
 //optional

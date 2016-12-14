@@ -5,7 +5,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
-$parser = new ToolBase("converter_tsv2bed", "\$Rev: 309 $", "Generate bed-files for ds-experiment.");
+$parser = new ToolBase("converter_tsv2bed", "Generate bed-files for ds-experiment.");
 $parser->addInfile("tsv",  "Input file in tsv-format.", false);
 $parser->addOutfile("out",  "Output file in bed-format.", false);
 extract($parser->parse($argv));
