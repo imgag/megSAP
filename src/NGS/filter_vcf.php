@@ -15,7 +15,7 @@ $parser->addOutfile("out", "Output variant file in VCF format.", false);
 $filter = array('somatic', 'somatic_ds', 'coding', 'non_synonymous', 'somatic_diag_capa', 'iVac','all');
 $parser->addString("type", "Filter set to use, can be comma delimited. Valid are: ".implode(",",$filter).".",false);
 //optional
-$parser->addFlag("r", "Reduce variants to those passing the filter.");
+$parser->addFlag("keep", "Keep all variants. Otherwise only variants passing all filters will be kept");
 $parser->addString("roi", "Target region BED file (for off-target filter).", true, "");
 $parser->addFloat("contamination", "Estimated fraction of tumor cells in normal sample.",true,0.00);
 $parser->addFloat("min_af", "Minimum variant allele frequency in tumor.",true,0.05);
@@ -272,7 +272,7 @@ if($var_caller=="freebayes")
 	$in_file = $filtered;	
 }
 
-if($r)
+if(!$keep)
 {
 	$filtered = new Matrix();
 	$filtered->setComments($in_file->getComments());

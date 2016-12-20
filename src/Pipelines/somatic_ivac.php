@@ -47,6 +47,8 @@ $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal 
 //$parser->addFlag("nsc", "Skip sample correlation check.");
 extract($parser->parse($argv));
 
+$parser->log("Pipeline revision: ".repository_revision(true));
+
 // determine steps to perform
 $steps = explode(",", $steps);
 foreach($steps as $step)
@@ -76,7 +78,7 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0 && !$rna_only)
 {
 	$args = "-sys_tum $sys_tum_dna -sys_nor $sys_nor_dna ";
 	$args .= "-steps ".implode(",",$tmp_steps)." -min_af 0.05 ";
-	$args .= "-filter_set iVac -reduce_variants_strelka ";	// reduce variant list after variant detection (no LOH detection wanted)
+	$args .= "-filter_set iVac ";
 	$args .= "--log ".$o_folder_dna."somatic_ivac_dna_".date('YmdHis',mktime()).".log ";
 	if($amplicon)	$args .= "-amplicon ";
 	if($no_softclip)	$args .= "-no_softclip ";

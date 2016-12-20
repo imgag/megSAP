@@ -35,6 +35,9 @@ start_test("repository_revision");
 $rev = repository_revision();
 check(starts_with($rev, "0.1-"), true);
 
+$rev = repository_revision(true);
+check(starts_with($rev, "megSAP 0.1-"), true);
+
 end_test();
 
 //##################################################################################

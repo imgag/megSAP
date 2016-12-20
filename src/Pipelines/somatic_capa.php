@@ -5,6 +5,7 @@
 	@todo clean up code (merged analysis_report)
 	@todo check single sample mode (multiple Error messages)
 	@todo combine BedInfo and lowCoverage from tumor and normal sample
+	@todo add ngsd import and somaticQC
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -20,14 +21,16 @@ $parser->addString("o_folder", "Folder where output will be generated.", false);
 $parser->addInfile("tn_sys",  "Tumor sample processing system INI file (determined from 'tn' by default).", true);
 $parser->addString("nn",  "Reference sample GS-number.", true, "");
 $parser->addInfile("nn_sys",  "Reference sample processing system INI file (determined from 'nn' by default).", true);
-$parser->addInt("td",  "Min-depth for tumor low-coverage / reports.", true, 50);
-$parser->addInt("nd",  "Min-depth for normal low-coverage / reports.", true, 20);
+$parser->addInt("td",  "Min-depth for tumor low-coverage / reports.", true, 100);
+$parser->addInt("nd",  "Min-depth for normal low-coverage / reports.", true, 100);
 $parser->addFlag("abra", "Turn on ABRA realignment.");
 $parser->addFlag("amplicon", "Turn on amplicon mode.");
 $parser->addFlag("no_db", "No DB import.");
 $parser->addFlag("nsc", "Skip sample correlation check (only in pair mode).");
 $parser->addFlag("all_variants", "Do not use strelka filter.", true);
 extract($parser->parse($argv));
+
+$parser->log("Pipeline revision: ".repository_revision(true));
 
 //choose single sample or sample pair mode
 $s_txt = "";
@@ -41,9 +44,9 @@ if(empty($nn))
 	$s_txt = $o_folder."/".$tn."_report.txt";
 	$extras = "";
 	if($amplicon)	$extras .= "-amplicon ";
-	if($no_db)	$extras .= "-steps ma,vc,an ";
+	if($no_db)	$extras .= "-steps ma,vc,an,db ";
 	if($nsc)	$extras .= "-nsc ";
-	$extras .= "-filter_set somatic_diag_capa ";
+	$extras .= "-filter_set somatic_diag_capa -keep_all_variants_filter ";
 	if (isset($tn_sys)) $extras .= "-sys_tum $tn_sys ";
 	$parser->execTool("Pipelines/somatic_dna.php", "-p_folder . -t_id $tn -n_id na -o_folder $o_folder $extras");	
 }
@@ -56,9 +59,9 @@ else
 	$tmp = "";
 	if($abra)	$extras .= "-abra ";
 	if($amplicon)	$extras .= "-amplicon ";
-	if($no_db)	$extras .= "-steps ma,vc,an,ci ";
+	if($no_db)	$extras .= "-steps ma,vc,an,ci,db ";
 	if($nsc)	$extras .= "-nsc ";
-	if(!$all_variants)	$extras .= "-reduce_variants_strelka ";
+	if($all_variants)	$extras .= "-keep_all_variants_strelka ";
 	$extras .= "-filter_set somatic_diag_capa ";
 	if (isset($tn_sys)) $extras .= "-sys_tum $tn_sys ";
 	if (isset($nn_sys)) $extras .= "-sys_nor $nn_sys ";
@@ -87,8 +90,11 @@ else
 	if ($var->rows()!=0)
 	{
 		$fi_idx = $var->getColumnIndex("filter");
-		$vf_idx = $var->getColumnIndex("tumor_af");
-		$d_idx = $var->getColumnIndex("tumor_dp");
+		$qua_idx = $var->getColumnIndex("snp_q");
+		$tvf_idx = $var->getColumnIndex("tumor_af");
+		$td_idx = $var->getColumnIndex("tumor_dp");
+		$nvf_idx = $var->getColumnIndex("normal_af");
+		$nd_idx = $var->getColumnIndex("normal_dp");
 		$co_idx = $var->getColumnIndex("coding_and_splicing");
 		$re_idx = $var->getColumnIndex("variant_type");
 		$ge_idx = $var->getColumnIndex("gene");
@@ -123,7 +129,7 @@ else
 
 	if ($var->rows()!=0)
 	{
-		$var_report->setHeaders(array('Position', 'W', 'M', 'QUALITY', 'COSMIC', 'AA'));
+		$var_report->setHeaders(array('Position', 'W', 'M', 'QUALITY', 'F/T_Tumor', 'F/T_Normal', 'COSMIC', 'cDNA'));
 		for($i=0; $i<$var->rows(); ++$i)
 		{
 			$row = $var->getRow($i);
@@ -161,8 +167,8 @@ else
 			$cosmic = $row[$cm_idx];
 
 			//report line
-			$var_report->addRow(array($row[0].":".$row[1]."-".$row[2], $row[3], $row[4], $row[$vf_idx]."/".$row[$d_idx], $cosmic, $coding));
-		}				
+			$var_report->addRow(array($row[0].":".$row[1]."-".$row[2], $row[3], $row[4], $row[$qua_idx], number_format($row[$tvf_idx],3)."/".$row[$td_idx], number_format($row[$nvf_idx],3)."/".$row[$nd_idx], $cosmic, $coding));
+		}
 	}
 
 	//get external sample name
@@ -187,7 +193,7 @@ else
 	$report[] = "Tumor: $tumor_name (Externer Name: $tex_name)";
 	$report[] = "Normal: $normal_name (Externer Name: $nex_name)";
 	$report[] = "Datum: ".date("d.m.Y");
-	$report[] = "Revision der Analysepipeline: ".repository_revision();
+	$report[] = "Revision der Analysepipeline: ".repository_revision(true);
 	$report[] = "Analysesystem: $target_name";
 	$report[] = "Zielregionen: $regions_overall ($bases_overall Basen gesamt)";
 	//qc
@@ -195,15 +201,14 @@ else
 	$t_qcml = $pf."/Sample_".$tn."/".$tn."_stats_map.qcML";
 	$n_qcml = $pf."/Sample_".$nn."/".$nn."_stats_map.qcML";
 	$report[] = "QC:";
-	$report[] = "  Coverage Tumor 50x: ".get_qc_from_qcml($t_qcml, "QC:2000029", "target region 50x percentage");
+	$report[] = "  Coverage Tumor 100x: ".get_qc_from_qcml($t_qcml, "QC:2000030", "target region 100x percentage");
 	$report[] = "  Durchschnittl. Tiefe Tumor: ".get_qc_from_qcml($t_qcml, "QC:2000025", "target region read depth");
-	$report[] = "  Coverage Normal 50x: ".get_qc_from_qcml($n_qcml, "QC:2000029", "target region 50x percentage");
+	$report[] = "  Coverage Normal 100x: ".get_qc_from_qcml($n_qcml, "QC:2000030", "target region 100x percentage");
 	$report[] = "  Durchschnittl. Tiefe Normal: ".get_qc_from_qcml($n_qcml, "QC:2000025", "target region read depth");
 	// variants
 	$report[] = "";
 	$report[] = "Varianten:";
-	$report[] = "  Gefundene Varianten: ".$var->rows();
-	$report[] = "  Varianten nach Filtern: ".$var_report->rows();
+	$report[] = "  Gefundene Varianten: ".$var_report->rows();
 	if($var_report->rows() > 0)
 	{
 		$report[] = "  Details:";
@@ -217,7 +222,7 @@ else
 
 	// low coverage
 	$report[] = "Abdeckung:";
-	$report[] = "  Target: tsCaPa ($statistics_target)";
+	$report[] = "  Target: $target_name ($target)";
 	$report[] = "  min. Tiefe Tumor: {$td}x";
 	$report[] = "  min. Tiefe Normal: {$nd}x";
 	$report[] = "    #gene	no. bases	chr	region(s)";

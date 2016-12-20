@@ -25,7 +25,7 @@ $parser->addString("t_id", "Tumor sample processing-ID (e.g. GSxyz_01).", false)
 $parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To process a tumor samples solely use 'na'.", false);
 $parser->addString("o_folder", "Output folder.", false);
 $steps_all = array("ma", "vc", "an", "ci", "db");
-$parser->addString("steps", "Comma-separated list of processing steps to perform.", true, implode(",", $steps_all));
+$parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,db");
 $parser->addEnum("filter_set","Filter set to use. Only if annotation step is selected",true,array("somatic","coding","non_synonymous","somatic_diag_capa","iVac"),"somatic");
 // optional
 $parser->addFloat("min_af", "Allele frequency detection limit.", true, 0.05);
@@ -35,12 +35,14 @@ $parser->addFlag("abra", "Use Abra for combined indel realignment.");
 $parser->addFlag("smt", "Skip mapping tumor (only in pair mode).");
 $parser->addFlag("smn", "Skip mapping normal (only in pair mode).");
 $parser->addFlag("nsc", "Skip sample correlation check (human only, only in pair mode).");
-$parser->addFlag("reduce_variants_strelka", "Reduce number of variants to PASS by strelka.");
+$parser->addFlag("keep_all_variants_strelka", "Reduce number of variants to PASS by strelka.");
 $parser->addFlag("reduce_variants_filter", "Reduce number of variants to PASS by own filter tool.");
 $parser->addFlag("freebayes", "Use freebayes for variant calling (default: strelka).");
 $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal sample.", true, 0);
 $parser->addFlag("no_softclip", "Skip soft-clipping of overlapping reads. NOTE: This may increase rate of false positive variants.", true);
 extract($parser->parse($argv));
+
+$parser->log("Pipeline revision: ".repository_revision(true));
 
 // (0) preparations
 // check steps
@@ -130,7 +132,7 @@ if($tumor_only)
 		// filter vcf to output folder
 		$extra = array();
 		if($sys_tum_ini["target_file"]!="")	$extra[] = "-roi ".$sys_tum_ini["target_file"];
-		if($reduce_variants_filter)	$extra[] = "-r";
+		if(!$reduce_variants_filter)	$extra[] = "-keep";
 		$parser->execTool("NGS/filter_vcf.php", "-in ${tmp_folder1}/".basename($som_gsvar, ".GSvar")."_var_annotated.vcf.gz -out $som_vcf -min_af $min_af -type $filter_set ".implode(" ", $extra));
 
 		// sort vcf comments
@@ -256,7 +258,7 @@ else
 		{
 			$args = array();
 			$args[] = "-build ".$sys_tum_ini['build'];
-			if ($reduce_variants_strelka) $args[] = "-r";
+			if ($keep_all_variants_strelka) $args[] = "-k";
 			if (!$sys_tum_ini['shotgun']) $args[] = "-amplicon";
 			$parser->execTool("NGS/vc_strelka.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));	//combined variant calling using strelka		
 		}
@@ -326,7 +328,7 @@ else
 		// filter vcf to output folder
 		$extra = array();
 		if($sys_tum_ini["target_file"]!="")	$extra[] = "-roi ".$sys_tum_ini["target_file"];
-		if($reduce_variants_filter)	$extra[] = "-r";
+		if(!$reduce_variants_filter)	$extra[] = "-keep";
 		if($contamination > 0)	$extra[] = "-contamination $contamination";
 		$parser->execTool("NGS/filter_vcf.php", "-in ${tmp_folder1}/".basename($som_gsvar, ".GSvar")."_var_annotated.vcf.gz -out $som_vann -min_af $min_af -type $filter_set ".implode(" ", $extra));
 

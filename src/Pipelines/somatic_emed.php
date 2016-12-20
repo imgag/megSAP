@@ -37,6 +37,8 @@ $parser->addFlag("freebayes", "Use freebayes for somatic variant calling (defaul
 //$parser->addFlag("nsc", "Skip sample correlation check.");
 extract($parser->parse($argv));
 
+$parser->log("Pipeline revision: ".repository_revision(true));
+
 // determine steps to perform
 $steps = explode(",", $steps);
 foreach($steps as $step)
@@ -67,7 +69,7 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0 && !$rna_only)
 {
 	// somatic_dna pipelne starts with map and ends with db
 	$args = "-sys_tum $sys_tum_dna -sys_nor $sys_nor_dna -steps ".implode(",",$tmp_steps)." ";
-	$args .= "-filter_set somatic -min_af 0.05 -reduce_variants_strelka --log ".$o_folder."somatic_emed_dna_".date('YmdHis',mktime()).".log ";
+	$args .= "-filter_set somatic -min_af 0.05 --log ".$o_folder."somatic_emed_dna_".date('YmdHis',mktime()).".log ";
 	if($freebayes)	$args .= "-freebayes ";
 	$parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_dna_id -n_id $n_dna_id -o_folder $o_folder $args");
 }

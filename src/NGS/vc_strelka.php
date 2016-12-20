@@ -17,7 +17,7 @@ $parser->addInfile("t_bam",  "Tumor BAM file. Remember: Place bai-file in the sa
 $parser->addInfile("n_bam",  "Normal BAM format. Remember: Place bai-file in the same folder as *.bam-file. Name it *.bam.bai.", false);
 $parser->addOutfile("out", "Output file in VCF format (gzipped and tabix indexed).", false);
 //optional
-$parser->addFlag("r", "Reduce variant list to passed variants.");
+$parser->addFlag("k", "Keep all variants. Otherwise all variants that do not pass all filters will be removed.");
 $parser->addFlag("amplicon",  "Enables amplicon mode.");
 $parser->addString("build", "The genome build to use.", true, "hg19");
 $parser->addString("config", "Config file for strelka.", true, "auto");
@@ -144,7 +144,7 @@ foreach($filec->getComments() as $c)
 	$tmp_comments[] = $c;
 }
 //if variant list is reduced add basic filter information. Example from freebayes: ##filter="QUAL > 5 & AO > 2"
-if($r)	$tmp_comments[] = "#filter=\"".implode(" & ",array_keys($tmp_filters))."\"";
+if(!$k)	$tmp_comments[] = "#filter=\"".implode(" & ",array_keys($tmp_filters))."\"";
 else
 {
 	foreach($tmp_filters as $id => $desc)
@@ -184,7 +184,7 @@ for($i=0; $i<$file2->rows();++$i)
 	$tmp[6] = implode(";",$filter);
     $filec->addRow($tmp);
 }
-if($r)
+if(!$k)
 {
 	$tmp_filec = new Matrix();
 	$tmp_filec->setHeaders($filec->getHeaders());

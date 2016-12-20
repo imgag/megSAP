@@ -16,7 +16,8 @@
 	@todo add filter for fusion protein detection
  */
 
-require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
+require_once($basedir."Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
@@ -35,6 +36,8 @@ $steps_all = array("ma","fu","vc","an","db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform. (".implode(",",$steps_all).")", true, implode(",", array_slice($steps_all,1)));
 $parser->addFlag("nsc", "No sample correlation check.");
 extract($parser->parse($argv));
+
+$parser->log("Pipeline revision: ".repository_revision(true));
 
 // (0) preparations
 // (0a) determine steps to perform
@@ -100,8 +103,8 @@ if(in_array("ma", $steps))
 	//map tumor and normal in high-mem-queue
 	$args = "-noIndelRealign -steps ma,rc,fu,an";
 	$working_directory = realpath($p_folder);
-	$commands = array("Pipelines/analyze_rna.php -in_for $t_forward -in_rev $t_reverse -system $sys_tum -out_folder ".$o_folder_tum." -out_name $t_id $args --log ".$o_folder_tum."analyze_".date('YmdHis',mktime()).".log");
-	if(!$tumor_only)	$commands[] = "Pipelines/analyze_rna.php -in_for $n_forward -in_rev $n_reverse -out_folder ".$o_folder_ref." -system $sys_nor -out_name ".$n_id." $args --log ".$o_folder_ref."analyze_".date('YmdHis',mktime()).".log";
+	$commands = array("php ".$basedir."Pipelines/analyze_rna.php -in_for $t_forward -in_rev $t_reverse -system $sys_tum -out_folder ".$o_folder_tum." -out_name $t_id $args --log ".$o_folder_tum."analyze_".date('YmdHis',mktime()).".log");
+	if(!$tumor_only)	$commands[] = "php ".$basedir."Pipelines/analyze_rna.php -in_for $n_forward -in_rev $n_reverse -out_folder ".$o_folder_ref." -system $sys_nor -out_name ".$n_id." $args --log ".$o_folder_ref."analyze_".date('YmdHis',mktime()).".log";
 	$parser->jobsSubmit($commands, $working_directory, "high_mem", true);
 }
 // calculate counts tumor, normal and somatic fold change

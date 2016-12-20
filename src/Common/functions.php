@@ -462,11 +462,22 @@ function repository_basedir()
 }
 
 ///Returns the revision of the repository.
-function repository_revision()
+function repository_revision($prefix_repos_name=false)
 {
-	$output = array();
-	exec("cd ".repository_basedir()." && git describe --tags", $output);
-	return trim($output[0]);
+	$repos_rev = "";
+
+	if($prefix_repos_name)
+	{
+		$output1 = "";
+		exec("git rev-parse --show-toplevel", $output1);
+		$repos_rev .= basename($output1[0])." ";
+	}
+	
+	$output2 = array();
+	exec("cd ".repository_basedir()." && git describe --tags", $output2);
+	$repos_rev .= trim($output2[0]);
+	
+	return $repos_rev;
 }
 
 /*

@@ -32,7 +32,7 @@ diff_single:
 
 somatic_pair:
 	#strelka
-	php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id GS110168 -n_id GS110169 -o_folder results_pair1 -steps ma,vc,an -reduce_variants_filter -reduce_variants_strelka -sys_tum system_pair.ini -sys_nor system_pair.ini --log results_pair1/GS110168-GS110169.log
+	php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id GS110168 -n_id GS110169 -o_folder results_pair1 -steps ma,vc,an -reduce_variants_filter -sys_tum system_pair.ini -sys_nor system_pair.ini --log results_pair1/GS110168-GS110169.log
 	#freebayes (previous mapping results are used!)
 	php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id GS110168 -n_id GS110169 -o_folder results_pair2 -steps vc,an -sys_tum system_pair.ini -sys_nor system_pair.ini -freebayes --log results_pair2/GS110168-GS110169.log
 
