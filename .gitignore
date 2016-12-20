@@ -54,3 +54,23 @@
 /test/data_somatic/results_single/
 
 /test/data_out/tool_test_*
+
+/test/data_emed/Sample_GS160540_01/
+/test/data_emed/Sample_GS160539_01/
+/test/data_emed/Sample_I16R003a06_01/
+/test/data_emed/Sample_I16R003a05_01/
+/test/data_emed/results_emed1/
+/test/data_emed/results_emed2/
+/test/data_emed/*.GSvar
+/test/data_emed/*.vcf.gz
+/test/data_emed/*.tsv
+
+/test/data_ivac/Sample_GS140850_02/
+/test/data_ivac/Sample_GS140851_02/
+/test/data_ivac/Sample_I14R010d01_01/
+/test/data_ivac/Sample_I14R010d02_01/
+/test/data_ivac/results_ivac1/
+/test/data_ivac/results_ivac2/
+/test/data_ivac/*.GSvar
+/test/data_ivac/*.vcf.gz
+/test/data_ivac/*.tsv
