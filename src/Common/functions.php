@@ -469,7 +469,7 @@ function repository_revision($prefix_repos_name=false)
 	if($prefix_repos_name)
 	{
 		$output1 = "";
-		exec("git rev-parse --show-toplevel", $output1);
+		exec("cd ".repository_basedir()." && git rev-parse --show-toplevel", $output1);
 		$repos_rev .= basename($output1[0])." ";
 	}
 	
