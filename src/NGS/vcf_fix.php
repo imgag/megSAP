@@ -111,7 +111,7 @@ while(!feof($h_in))
 		$sample_last = sample_data($var[8], $var[9]);
 		if ($sample['GT']!="0/1" || $sample_last['GT']!="0/1")
 		{
-			//this happens sometimes when a large variant block overlaps two target region blocks (see /mnt/users/ahsturm1/Sandbox/bugs/freebayes/duplicate_variant_roi_gap1/)
+			//this happens sometimes when a large variant block overlaps two target region blocks (see https://github.com/ekg/freebayes/issues/351)
 			$stderr = fopen('php://stderr', 'w');
 			fwrite($stderr, "Warning: merging same variant {$var[0]}:{$var[1]} {$var[3]}>{$var[4]} with genotypes '".$sample['GT']."' and '".$sample_last['GT']."'\n");
 			fclose($stderr);

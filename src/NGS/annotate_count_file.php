@@ -12,8 +12,7 @@ $parser->addInfile("in", "Input read count file in tsv format", false, true);
 $parser->addOutfile("out", "Output file for annotated read counts. Can also be the same file as the input file.", false);
 
 //optional parameters
-//$parser->addString("mapping_file", "File containing the mapping from transcript identifier to gene name", true, get_path("data_folder")."dbs/UCSC/refGene.txt");
-$parser->addString("mapping_file", "File containing the mapping from transcript identifier to gene name", true, get_path("data_folder")."dbs/UCSC/refseq2HGNC_twoColumn.tsv");
+$parser->addString("mapping_file", "File containing the mapping from transcript identifier to gene name", true, get_path("data_folder")."dbs/UCSC/refseq2HGNC.tsv");
 $parser->addString("mapping_file_delimiter", "Delimiter used in the mapping file", true, "\t");
 $parser->addString("counts_file_delimiter", "Delimiter used in the mapping file", true, "\t");
 $parser->addInt("id_col", "Column of the mapping file containing the transcript IDs", true, 1);
