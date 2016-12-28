@@ -93,10 +93,7 @@ foreach($files as $file)
 		}
 		
 		//skip terms that should be skipped
-		print("${key}\n");
-		if(in_array($key, $skip_parameters)) {
-			continue;
-		}
+		if(in_array($key, $skip_parameters)) continue;
 		
 		//error if term is found several times
 		if(isset($qc_par[$key])) trigger_error("Found QC term '$key' more than once!", E_USER_ERROR);
