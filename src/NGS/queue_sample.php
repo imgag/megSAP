@@ -49,13 +49,17 @@ function get_parameters($processed_sample_name)
 	$process_id=ltrim($process_id,'0');
 	$db_connect = DB::getInstance('NGSD');
 	
-	//get tumour status
-	$result = $db_connect->executeQuery("SELECT tumor FROM  sample WHERE name='".$sample_name."'");
-	$tumor_status=$result[0]['tumor'];	
-	
 	//get sample id
 	$result = $db_connect->executeQuery("SELECT id FROM  sample WHERE name='".$sample_name."'");
 	$sample_id=$result[0]["id"];
+	
+	//get tumour status and normal sample
+	$result = $db_connect->executeQuery("SELECT tumor FROM  sample WHERE name='".$sample_name."'");
+	$tumor_status=$result[0]['tumor'];	
+	$result = $db_connect->executeQuery("SELECT id,normal_id FROM  processed_sample WHERE sample_id=".$sample_id." AND process_id= ".$process_id);
+	$normal_id=$result[0]['normal_id'];	
+	$result = $db_connect->executeQuery("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as name FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id=$normal_id;");
+	$normal_name = $result[0]["name"];
 	
 	//get processed sample id and project id
 	$result = $db_connect->executeQuery("SELECT id,project_id FROM  processed_sample WHERE sample_id=".$sample_id." AND process_id= ".$process_id);
@@ -82,14 +86,14 @@ function get_parameters($processed_sample_name)
 	//get WGS
 	$result = $db_connect->executeQuery("SELECT sys.type FROM processed_sample ps, processing_system sys WHERE ps.id='{$proc_sample_id}' AND sys.id=ps.processing_system_id");
 	$wgs = ($result[0]["type"]=="WGS");
-	
-	return array($proc_sample_id, $projectID, $process_id, $project_type, $run_name, $run_id, $tumor_status, $projectname, $wgs);
+
+	return array($proc_sample_id, $projectID, $process_id, $project_type, $run_name, $run_id, $tumor_status, $projectname, $wgs, $normal_name);
 }
 
 //main script starts here!
 check_ps_in_queue($sample);
 
-list($proc_sample_id, $projectID, $process_id, $project_type, $run_name, $run_id, $tumor, $project_name, $wgs) = get_parameters($sample);
+list($proc_sample_id, $projectID, $process_id, $project_type, $run_name, $run_id, $tumor, $project_name, $wgs, $normal_name) = get_parameters($sample);
 
 //determine project folder
 $project_folder = get_path("project_folder")."/".$project_type."/".$project_name."/";
@@ -109,15 +113,17 @@ if(count($files)<2)
 }
 
 //determine command and arguments
-if ($tumor)
+if($project_type=="diagnostic" && $tumor)
 {
-	$outfolder = $project_folder."/Sample_".$sample."/";
-	if (!file_exists($outfolder)) mkdir($outfolder);
+	if(empty($normal_name))
+	{
+		trigger_errorr("No normal sample given for diagnostic tumor sample $sample.",E_USER_ERROR);
+	}
 	
-	$command = "php ".repository_basedir()."/src/Pipelines/somatic_dna.php";
-	//remove 'cn' step if present
-	$steps=str_replace (array(",cn","cn") , "" , $steps);
-	$args = "-p_folder {$project_folder} -t_id {$sample} -n_id na -o_folder {$outfolder} -steps {$steps} --log {$outfolder}somatic_dna_".date("Ymdhis").".log";
+	$outfolder = $project_folder."/Somatic_".$sample."-".$normal_name."/";
+	if (!file_exists($outfolder)) mkdir($outfolder);
+	$command = "php ".repository_basedir()."/src/Pipelines/somatic_capa.php";
+	$args = "-p_folder {$project_folder} -t_id {$sample} -n_id {$normal_name} -o_folder {$outfolder} --log {$outfolder}somatic_capa_".date("Ymdhis").".log";
 }
 else
 {

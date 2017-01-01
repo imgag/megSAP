@@ -163,8 +163,8 @@ function check_file($out_file, $reference_file, $comare_header_lines = false)
 	else
 	{
 		$extras = "";
-		if (!$comare_header_lines) $extras .= " -I ^[#@]";
-		exec("diff $extras -b $reference_file $out_file > $logfile 2>&1", $output, $return);
+		if (!$comare_header_lines) $extras .= " -I '^[#@]'";
+		exec("diff $extras $reference_file $out_file > $logfile 2>&1", $output, $return);
 
 		$passed = ($return==0);
 	}

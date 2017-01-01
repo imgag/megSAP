@@ -1,11 +1,6 @@
 <?php
 /**
 	@page capa_diagnostic
-	@todo submit to queue => shell script
-	@todo clean up code (merged analysis_report)
-	@todo check single sample mode (multiple Error messages)
-	@todo combine BedInfo and lowCoverage from tumor and normal sample
-	@todo add ngsd import and somaticQC
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -14,13 +9,13 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("somatic_capa", "Differential analysis of tumor/reference.");
-$parser->addString("pf",  "Project folder.", false);
-$parser->addString("tn",  "Tumor sample processed sample number.", false);
+$parser->addString("p_folder",  "Project folder.", false);
+$parser->addString("t_id",  "Tumor DNA-sample processed sample ID.", false);
 $parser->addString("o_folder", "Folder where output will be generated.", false);
 //optional
-$parser->addInfile("tn_sys",  "Tumor sample processing system INI file (determined from 'tn' by default).", true);
-$parser->addString("nn",  "Reference sample GS-number.", true, "");
-$parser->addInfile("nn_sys",  "Reference sample processing system INI file (determined from 'nn' by default).", true);
+$parser->addInfile("t_sys",  "Tumor sample processing system INI file (determined from 't_id' by default).", true);
+$parser->addString("n_id",  "Reference DNA-sample processing ID.", true, "");
+$parser->addInfile("n_sys",  "Reference sample processing system INI file (determined from 'n_id' by default).", true);
 $parser->addInt("td",  "Min-depth for tumor low-coverage / reports.", true, 100);
 $parser->addInt("nd",  "Min-depth for normal low-coverage / reports.", true, 100);
 $parser->addFlag("abra", "Turn on ABRA realignment.");
@@ -32,43 +27,40 @@ extract($parser->parse($argv));
 
 $parser->log("Pipeline revision: ".repository_revision(true));
 
-//choose single sample or sample pair mode
+// choose single sample or sample pair mode
+$single_sample = true;
+if(!empty($n_id))	$single_sample = false;
+
+// run somatic pipeline
 $s_txt = "";
 $s_tsv = "";
-$t_bam = $pf."/Sample_".$tn."/".$tn.".bam";
-$n_bam = $pf."/Sample_".$nn."/".$nn.".bam";
-if(empty($nn))
+$t_bam = $p_folder."/Sample_".$t_id."/".$t_id.".bam";
+$n_bam = $p_folder."/Sample_".$n_id."/".$n_id.".bam";
+if($single_sample)
 {
 	$parser->log("Single sample mode.");
-	$s_tsv = $o_folder."/".$tn.".tsv";
-	$s_txt = $o_folder."/".$tn."_report.txt";
-	$extras = "";
-	if($amplicon)	$extras .= "-amplicon ";
-	if($no_db)	$extras .= "-steps ma,vc,an,db ";
-	if($nsc)	$extras .= "-nsc ";
-	$extras .= "-filter_set somatic_diag_capa -keep_all_variants_filter ";
-	if (isset($tn_sys)) $extras .= "-sys_tum $tn_sys ";
-	$parser->execTool("Pipelines/somatic_dna.php", "-p_folder . -t_id $tn -n_id na -o_folder $o_folder $extras");	
+	$s_tsv = $o_folder."/".$t_id.".tsv";
+	$s_txt = $o_folder."/".$t_id."_report.txt";
 }
 else
 {
 	$parser->log("Paired Sample mode.");
-	$extras = "";
-	$s_tsv = $o_folder."/".$tn."-".$nn.".GSvar";
-	$s_txt = $o_folder."/".$tn."-".$nn."_report.txt";
-	$tmp = "";
-	if($abra)	$extras .= "-abra ";
-	if($amplicon)	$extras .= "-amplicon ";
-	if($no_db)	$extras .= "-steps ma,vc,an,ci,db ";
-	if($nsc)	$extras .= "-nsc ";
-	if($all_variants)	$extras .= "-keep_all_variants_strelka ";
-	$extras .= "-filter_set somatic_diag_capa ";
-	if (isset($tn_sys)) $extras .= "-sys_tum $tn_sys ";
-	if (isset($nn_sys)) $extras .= "-sys_nor $nn_sys ";
-	$parser->execTool("Pipelines/somatic_dna.php", "-p_folder . -t_id $tn -n_id $nn -o_folder $o_folder $extras");
+	$s_tsv = $o_folder."/".$t_id."-".$n_id.".GSvar";
+	$s_txt = $o_folder."/".$t_id."-".$n_id."_report.txt";
 }
 
-$system_t = load_system($tn_sys, $tn);
+$extras = "";
+if($abra)	$extras .= "-abra ";
+if($amplicon)	$extras .= "-amplicon ";
+if($no_db)	$extras .= "-steps ma,vc,an,ci,db ";
+if($nsc)	$extras .= "-nsc ";
+if($all_variants)	$extras .= "-keep_all_variants_strelka ";
+$extras .= "-filter_set somatic_diag_capa ";
+if (isset($t_dna_sys)) $extras .= "-t_sys $t_dna_sys ";
+if (isset($n_dna_sys)) $extras .= "-n_sys $n_dna_sys ";
+$parser->execTool("Pipelines/somatic_dna.php", "-p_folder . -t_id $t_id -n_id $n_id -o_folder $o_folder $extras");
+
+$system_t = load_system($t_dna_sys, $t_id);
 if(empty($system_t['target_file']))	
 {
 	trigger_error("Tumor target file empty; no report generation.", E_USER_WARNING);
@@ -93,8 +85,8 @@ else
 		$qua_idx = $var->getColumnIndex("snp_q");
 		$tvf_idx = $var->getColumnIndex("tumor_af");
 		$td_idx = $var->getColumnIndex("tumor_dp");
-		$nvf_idx = $var->getColumnIndex("normal_af");
-		$nd_idx = $var->getColumnIndex("normal_dp");
+		if(!$single_sample)	$nvf_idx = $var->getColumnIndex("normal_af");
+		if(!$single_sample)	$nd_idx = $var->getColumnIndex("normal_dp");
 		$co_idx = $var->getColumnIndex("coding_and_splicing");
 		$re_idx = $var->getColumnIndex("variant_type");
 		$ge_idx = $var->getColumnIndex("gene");
@@ -117,19 +109,26 @@ else
 	//calculate low-coverage regions
 	$t_low_cov = $parser->tempFile("_tlowcov.bed");
 	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $t_bam -out $t_low_cov -cutoff ".$td, false);
-	$n_low_cov = $parser->tempFile("_nlowcov.bed");
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $n_bam -out $n_low_cov -cutoff ".$nd, false);
+	$n_low_cov = "";
+	if(!$single_sample)
+	{
+		$n_low_cov = $parser->tempFile("_nlowcov.bed");
+		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $n_bam -out $n_low_cov -cutoff ".$nd, false);
+	}
 	$low_cov = $parser->tempFile("_lowcov.bed");
 	$parser->exec("cat", "$t_low_cov $n_low_cov > $low_cov", false);
 	$i_low_cov = $parser->tempFile("_ilowcov.bed");
 	$parser->exec(get_path("ngs-bits")."BedMerge", "-in $low_cov -out $i_low_cov", false);
 	//annotate gene names (with extended to annotate splicing regions as well)
-	$low_cov = $o_folder."/".$tn."-".$nn."_stat_lowcov.bed";
+	$low_cov = $o_folder."/".$t_id."-".$n_id."_stat_lowcov.bed";
 	$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $i_low_cov -extend 25 -out $low_cov", true);
 
 	if ($var->rows()!=0)
 	{
-		$var_report->setHeaders(array('Position', 'W', 'M', 'QUALITY', 'F/T_Tumor', 'F/T_Normal', 'COSMIC', 'cDNA'));
+		$headers = array('Position', 'W', 'M', 'QUALITY', 'F/T_Tumor', 'COSMIC', 'cDNA');
+		if(!$single_sample)	$headers = array('Position', 'W', 'M', 'QUALITY', 'F/T_Tumor', 'F/T_Normal', 'COSMIC', 'cDNA');
+		$var_report->setHeaders($headers);
+		
 		for($i=0; $i<$var->rows(); ++$i)
 		{
 			$row = $var->getRow($i);
@@ -167,7 +166,9 @@ else
 			$cosmic = $row[$cm_idx];
 
 			//report line
-			$var_report->addRow(array($row[0].":".$row[1]."-".$row[2], $row[3], $row[4], $row[$qua_idx], number_format($row[$tvf_idx],3)."/".$row[$td_idx], number_format($row[$nvf_idx],3)."/".$row[$nd_idx], $cosmic, $coding));
+			$report_row = array($row[0].":".$row[1]."-".$row[2], $row[3], $row[4], $row[$qua_idx], number_format($row[$tvf_idx],3)."/".$row[$td_idx], $cosmic, $coding);
+			if(!$single_sample)	$report_row = array($row[0].":".$row[1]."-".$row[2], $row[3], $row[4], $row[$qua_idx], number_format($row[$tvf_idx],3)."/".$row[$td_idx], number_format($row[$nvf_idx],3)."/".$row[$nd_idx], $cosmic, $coding);
+			$var_report->addRow($report_row);
 		}
 	}
 
@@ -177,7 +178,7 @@ else
 	$tex_name = get_external_sample_name($tname, false);
 
 	$nex_name = "n/a";
-	if(!empty($nn))
+	if(!$single_sample)
 	{
 		$normal_name = basename($n_bam, ".bam");
 		list($nname) = explode("_", $normal_name);		
@@ -198,13 +199,13 @@ else
 	$report[] = "Zielregionen: $regions_overall ($bases_overall Basen gesamt)";
 	//qc
 	$report[] = "";
-	$t_qcml = $pf."/Sample_".$tn."/".$tn."_stats_map.qcML";
-	$n_qcml = $pf."/Sample_".$nn."/".$nn."_stats_map.qcML";
+	$t_qcml = $p_folder."/Sample_".$t_id."/".$t_id."_stats_map.qcML";
+	if(!$single_sample)	$n_qcml = $p_folder."/Sample_".$n_id."/".$n_id."_stats_map.qcML";
 	$report[] = "QC:";
 	$report[] = "  Coverage Tumor 100x: ".get_qc_from_qcml($t_qcml, "QC:2000030", "target region 100x percentage");
 	$report[] = "  Durchschnittl. Tiefe Tumor: ".get_qc_from_qcml($t_qcml, "QC:2000025", "target region read depth");
-	$report[] = "  Coverage Normal 100x: ".get_qc_from_qcml($n_qcml, "QC:2000030", "target region 100x percentage");
-	$report[] = "  Durchschnittl. Tiefe Normal: ".get_qc_from_qcml($n_qcml, "QC:2000025", "target region read depth");
+	if(!$single_sample)	$report[] = "  Coverage Normal 100x: ".get_qc_from_qcml($n_qcml, "QC:2000030", "target region 100x percentage");
+	if(!$single_sample)	$report[] = "  Durchschnittl. Tiefe Normal: ".get_qc_from_qcml($n_qcml, "QC:2000025", "target region read depth");
 	// variants
 	$report[] = "";
 	$report[] = "Varianten:";
@@ -224,7 +225,7 @@ else
 	$report[] = "Abdeckung:";
 	$report[] = "  Target: $target_name ($target)";
 	$report[] = "  min. Tiefe Tumor: {$td}x";
-	$report[] = "  min. Tiefe Normal: {$nd}x";
+	if(!$single_sample)	$report[] = "  min. Tiefe Normal: {$nd}x";
 	$report[] = "    #gene	no. bases	chr	region(s)";
 	$regions = Matrix::fromTSV($low_cov);
 	$genes = array();
@@ -258,6 +259,6 @@ else
 	$report[] = "";
 
 	//store output
-	$report_file = $o_folder."/".$tn."-".$nn."_report.txt";
+	$report_file = $o_folder."/".$t_id."-".$n_id."_report.txt";
 	file_put_contents($report_file, implode("\n", $report));
 }
