@@ -1,7 +1,10 @@
-all: chmod_target import_runqc copy_Leuk_research copy_HepaVac_research copy_Swed_research queue_Swed_research email_Leuk email_HepaVac skipped
+all: chmod import_runqc copy_Leuk_research copy_HepaVac_research copy_Swed_research queue_Swed_research email_Leuk email_HepaVac skipped
 
-chmod_target:
-	chmod -R 775 Unaligned/
+chmod:
+	chmod -R 775 Unaligned
+
+import_runqc:
+	php /mnt/users/all/megSAP/src/NGS/runqc_parser.php -name "#00203" -run_dir Unaligned/../ -force -db NGSD
 
 copy_Leuk_research:
 	cp -i -r -p Unaligned/Project_Leuk/Sample_GS130500_01/ /mnt/projects/research/Leuk/
@@ -19,12 +22,11 @@ copy_Swed_research:
 queue_Swed_research:
 	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130718_01 
 	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130719_01 
+
 email_Leuk:
-	php -r 'mail("christopher.schroeder@med.uni-tuebingen.de","Neue Daten fuer Leuk", "Hallo Christopher Schroeder,\n\ndie FASTQ-Dateien der folgenden Proben Deines Projekts Leuk liegen vor:\n\nGS130500_01\nGS130501_01\nGS130502_01\n\nViele Gruesse\n\nder automatischer Mailversender","Reply-To: Florian.Lenz@med.uni-tuebingen.de");'
+	php -r 'mail("christopher.schroeder@med.uni-tuebingen.de","Neue Daten fuer Leuk", "Hallo Christopher Schroeder,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts Leuk liegen vor:\n\nGS130500_01\nGS130501_01\nGS130502_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: medgen.bioinformatik@med.uni-tuebingen.de");'
 
 email_HepaVac:
-	php -r 'mail("christopher.schroeder@med.uni-tuebingen.de","Neue Daten fuer HepaVac", "Hallo Christopher Schroeder,\n\ndie FASTQ-Dateien der folgenden Proben Deines Projekts HepaVac liegen vor:\n\nGS130715_01\nGS130717_01\n\nViele Gruesse\n\nder automatischer Mailversender","Reply-To: Florian.Lenz@med.uni-tuebingen.de");'
+	php -r 'mail("christopher.schroeder@med.uni-tuebingen.de","Neue Daten fuer HepaVac", "Hallo Christopher Schroeder,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts HepaVac liegen vor:\n\nGS130715_01\nGS130717_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: medgen.bioinformatik@med.uni-tuebingen.de");'
 
-import_runqc:
-	php /mnt/users/all/megSAP/src/NGS/runqc_parser.php -name "#00203" -run_dir /mnt/SRV017/users/ahsturm1/SVN/megSAP/test/data/ -force -db NGSD
 skipped:
