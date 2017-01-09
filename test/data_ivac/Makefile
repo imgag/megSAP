@@ -35,13 +35,13 @@ ivac:
 	php ../../src/Pipelines/somatic_ivac.php \
 		-p_folder . -t_dna_id GS140850_02 -n_dna_id GS140851_02 -o_folder results_ivac1 \
 		-t_rna_id I14R010d01_01 -t_rna_fo Sample_I14R010d01_01 -n_rna_id I14R010d02_01 -n_rna_fo Sample_I14R010d02_01 \
-		-sys_tum_dna system_dna.ini -sys_nor_dna system_dna.ini -sys_tum_rna system_rna.ini -sys_nor_rna system_rna.ini \
+		-t_dna_sys system_dna.ini -n_dna_sys system_dna.ini -t_rna_sys system_rna.ini -n_rna_sys system_rna.ini \
 		-steps ma,vc,fu,an,co,im --log results_ivac1/somatic_ivac1.log
 	#somatic pair, only tumor rna, start with annotation
 	php ../../src/Pipelines/somatic_ivac.php \
 		-p_folder . -t_dna_id GS140850_02 -n_dna_id GS140851_02 -o_folder results_ivac2 \
 		-t_rna_id I14R010d01_01 -t_rna_fo Sample_I14R010d01_01 \
-		-sys_tum_dna system_dna.ini -sys_nor_dna system_dna.ini -sys_tum_rna system_rna.ini -sys_nor_rna system_rna.ini \
+		-t_dna_sys system_dna.ini -n_dna_sys system_dna.ini -t_rna_sys system_rna.ini -n_rna_sys system_rna.ini \
 		-steps vc,an,co,im --log results_ivac2/somatic_ivac2.log
 
 diff:
@@ -58,7 +58,13 @@ diff:
 
 finished:
 	@echo "Finished pipeline test."
-	
+
+update_variants:
+	php ../update_test_data.php results_ivac1/GS140850_02-GS140851_02.GSvar GS140850_02-GS140851_02_ivac1.out.GSvar
+	php ../update_test_data.php results_ivac1/GS140850_02-GS140851_02_var_annotated.vcf.gz GS140850_02-GS140851_02_var_annotated_ivac1.out.vcf.gz
+	php ../update_test_data.php results_ivac2/GS140850_02-GS140851_02.GSvar GS140850_02-GS140851_02_ivac2.out.GSvar
+	php ../update_test_data.php results_ivac2/GS140850_02-GS140851_02_var_annotated.vcf.gz GS140850_02-GS140851_02_var_annotated_ivac2.out.vcf.gz
+
 update_cnvs:
-	cp results_ivac1/GS140850_02-GS140851_02_var_copy.tsv /mnt/share/data/test_data/GS140850_02-GS140851_02_var_copy_ivac1.out.tsv
-	cp results_ivac2/GS140850_02-GS140851_02_var_copy.tsv /mnt/share/data/test_data/GS140850_02-GS140851_02_var_copy_ivac2.out.tsv
+	php ../update_test_data.php results_ivac1/GS140850_02-GS140851_02_var_copy.tsv GS140850_02-GS140851_02_var_copy_ivac1.out.tsv
+	php ../update_test_data.php results_ivac2/GS140850_02-GS140851_02_var_copy.tsv GS140850_02-GS140851_02_var_copy_ivac2.out.tsv
