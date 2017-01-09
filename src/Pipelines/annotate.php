@@ -48,7 +48,7 @@ $stafile = $out_folder."/".$out_name."_stats_vc.qcML";
 
 //get system
 $sys = load_system($system, $out_name);
-if ($sys['build']!="hg19")	trigger_error("Can only annotate hg19 data!", E_USER_ERROR);
+if ($sys['build']!="hg19" && $sys['build']!="mm10")	trigger_error("Unknown build ".$sys['build'].". Can only annotate hg19 or mm10 data!", E_USER_ERROR);
 
 //annotate VCF
 $args = "";

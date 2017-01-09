@@ -52,15 +52,16 @@ else
 $extras = "";
 if($abra)	$extras .= "-abra ";
 if($amplicon)	$extras .= "-amplicon ";
-if($no_db)	$extras .= "-steps ma,vc,an,ci,db ";
+if($no_db)	$extras .= "-steps ma,vc,an,ci ";
+if(!$no_db)	$extras .= "-steps ma,vc,an,ci,db ";
 if($nsc)	$extras .= "-nsc ";
 if($all_variants)	$extras .= "-keep_all_variants_strelka ";
 $extras .= "-filter_set somatic_diag_capa ";
-if (isset($t_dna_sys)) $extras .= "-t_sys $t_dna_sys ";
-if (isset($n_dna_sys)) $extras .= "-n_sys $n_dna_sys ";
+if (isset($t_sys)) $extras .= "-t_sys $t_sys ";
+if (isset($n_sys)) $extras .= "-n_sys $n_sys ";
 $parser->execTool("Pipelines/somatic_dna.php", "-p_folder . -t_id $t_id -n_id $n_id -o_folder $o_folder $extras");
 
-$system_t = load_system($t_dna_sys, $t_id);
+$system_t = load_system($t_sys, $t_id);
 if(empty($system_t['target_file']))	
 {
 	trigger_error("Tumor target file empty; no report generation.", E_USER_WARNING);
