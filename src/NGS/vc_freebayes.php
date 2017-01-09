@@ -16,6 +16,7 @@ $parser->addInfileArray("bam",  "Input files in BAM format. Space separated. Not
 $parser->addOutfile("out", "Output file in VCF.GZ format.", false);
 //optional
 $parser->addInfile("target",  "Enrichment targets BED file.", true);
+$parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
 $parser->addString("build", "The genome build to use.", true, "hg19");
 $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 1);
@@ -29,8 +30,18 @@ $pipeline = array();
 $extras = array();
 if(isset($target))
 {
+	if ($target_extend>0)
+	{
+		$target_extended = $parser->tempFile(".bed");
+		$parser->exec(get_path("ngs-bits")."BedExtend"," -in $target -n $target_extend -out $target_extended", true);
+	}
+	else
+	{
+		$target_extended = $target;
+	}
+
 	$target_merged = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedMerge"," -in $target -out $target_merged", true);
+	$parser->exec(get_path("ngs-bits")."BedMerge"," -in $target_extended -out $target_merged", true);
 	$extras[] = "-t $target_merged";
 }
 $extras[] = "--min-alternate-fraction $min_af";
@@ -64,7 +75,16 @@ $pipeline[] = array("bgzip", "-c > $out", false);
 //(2) execute pipeline
 $parser->execPipeline($pipeline, "variant calling");
 
-//(3) index output file
+//(3) mark off-target variants
+if ($target_extend>0)
+{
+	$tmp = $parser->tempFile(".vcf");
+	$parser->exec("bgzip", "-cd $out > $tmp", false);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions","-in $tmp -mark -reg $target -out $tmp", true);
+	$parser->exec("bgzip", "-c $tmp > $out", false);
+}
+
+//(4) index output file
 $parser->exec("tabix", "-p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
 
 ?>

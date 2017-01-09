@@ -108,7 +108,7 @@ if (!$no_abra)
 	}
 	else if ($sys['build']=="hg19" && $sys['type']=="WGS") //for WGS on exome target region
 	{
-		$parser->execTool("NGS/indel_realign_abra.php", "$abra_args -roi ".get_path("data_folder")."/enrichment/ssHAEv6_2016_09_01.bed");
+		$parser->execTool("NGS/indel_realign_abra.php", "$abra_args -roi ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed");
 	}
 }
 

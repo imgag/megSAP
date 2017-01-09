@@ -101,14 +101,18 @@ if (in_array("ma", $steps))
 if (in_array("vc", $steps))
 {	
 	$extras = array();
-	if ($sys['target_file']!="") $extras[] = " -target ".$sys['target_file'];
+	if ($sys['target_file']!="")
+	{
+		$extras[] = "-target ".$sys['target_file'];
+		$extras[] = "-target_extend 50";
+	}
 	if ($lofreq) //lofreq
 	{
-		$extras[] = " -min_af 0.05";
+		$extras[] = "-min_af 0.05";
 	}
 	else if (!$sys['shotgun']) //amplicon panels
 	{
-		$extras[] = " -min_af 0.1";
+		$extras[] = "-min_af 0.1";
 	}
 	
 	if(file_exists($log_vc)) unlink($log_vc);

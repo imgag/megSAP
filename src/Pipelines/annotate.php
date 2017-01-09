@@ -89,7 +89,7 @@ $parser->exec("tabix", "-p vcf $annfile_zipped", false); //no output logging, be
 if ($sys['build']=="hg19" && $sys['type']=="WGS") 
 {
 	rename($varfile, $varfile_full);
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $varfile_full -out $varfile -reg ".get_path("data_folder")."/enrichment/ssHAEv6_2016_09_01.bed", false);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $varfile_full -out $varfile -reg ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed", false);
 }
 
 //annotated variant frequencies from NGSD
