@@ -45,21 +45,27 @@ function check_ps_in_queue($processed_sample_name)
 function get_parameters($processed_sample_name)
 {
 	//get sample name and process ID
-	list($sample_name,$process_id) = explode("_",$processed_sample_name);
-	$process_id=ltrim($process_id,'0');
+	list($sample_name, $process_id) = explode("_",$processed_sample_name);
+	$process_id = ltrim($process_id,'0');
 	$db_connect = DB::getInstance('NGSD');
 	
-	//get sample id
-	$result = $db_connect->executeQuery("SELECT id FROM  sample WHERE name='".$sample_name."'");
-	$sample_id=$result[0]["id"];
+	//get sample id and tumor status
+	$result = $db_connect->executeQuery("SELECT id, tumor FROM  sample WHERE name='{$sample_name}'");
+	$sample_id = $result[0]["id"];
+	$is_tumor = $result[0]['tumor'];
 	
-	//get tumour status and normal sample
-	$result = $db_connect->executeQuery("SELECT tumor FROM  sample WHERE name='".$sample_name."'");
-	$tumor_status=$result[0]['tumor'];	
-	$result = $db_connect->executeQuery("SELECT id,normal_id FROM  processed_sample WHERE sample_id=".$sample_id." AND process_id= ".$process_id);
-	$normal_id=$result[0]['normal_id'];	
-	$result = $db_connect->executeQuery("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as name FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id=$normal_id;");
-	$normal_name = $result[0]["name"];
+	//get normal sample for tumor samples
+	$normal_name = null;
+	if ($is_tumor)
+	{
+		$result = $db_connect->executeQuery("SELECT normal_id FROM  processed_sample WHERE sample_id={$sample_id} AND process_id={$process_id}");
+		$normal_id = $result[0]['normal_id'];	
+		if ($normal_id!="")
+		{
+			$result = $db_connect->executeQuery("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as name FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id=$normal_id;");
+			$normal_name = $result[0]["name"];
+		}
+	}
 	
 	//get processed sample id and project id
 	$result = $db_connect->executeQuery("SELECT id,project_id FROM  processed_sample WHERE sample_id=".$sample_id." AND process_id= ".$process_id);
@@ -71,29 +77,29 @@ function get_parameters($processed_sample_name)
 	$projectID=$result[0]["project_id"];
 	
 	//get project name
-	$result = $db_connect->executeQuery("SELECT  name,type FROM project WHERE id=".$projectID);
-	$projectname=$result[0]["name"];
-	$project_type=$result[0]["type"]; 
+	$result = $db_connect->executeQuery("SELECT  name,type FROM project WHERE id={$projectID}");
+	$projectname = $result[0]["name"];
+	$project_type = $result[0]["type"]; 
 
 	//get run ID
-	$result = $db_connect->executeQuery("SELECT sequencing_run_id FROM  processed_sample WHERE sample_id=".$sample_id." AND process_id= ".$process_id);
-	$run_id=$result[0]["sequencing_run_id"];
+	$result = $db_connect->executeQuery("SELECT sequencing_run_id FROM  processed_sample WHERE sample_id={$sample_id} AND process_id={$process_id}");
+	$run_id = $result[0]["sequencing_run_id"];
 
 	//get run name
-	$result = $db_connect->executeQuery("SELECT name FROM  sequencing_run WHERE id=".$run_id);
-	$run_name=$result[0]["name"];
+	$result = $db_connect->executeQuery("SELECT name FROM  sequencing_run WHERE id={$run_id}");
+	$run_name = $result[0]["name"];
 	
 	//get WGS
-	$result = $db_connect->executeQuery("SELECT sys.type FROM processed_sample ps, processing_system sys WHERE ps.id='{$proc_sample_id}' AND sys.id=ps.processing_system_id");
+	$result = $db_connect->executeQuery("SELECT sys.type FROM processed_sample ps, processing_system sys WHERE ps.id={$proc_sample_id} AND sys.id=ps.processing_system_id");
 	$wgs = ($result[0]["type"]=="WGS");
 
-	return array($proc_sample_id, $projectID, $process_id, $project_type, $run_name, $run_id, $tumor_status, $projectname, $wgs, $normal_name);
+	return array($proc_sample_id, $projectID, $process_id, $project_type, $run_name, $run_id, $is_tumor, $projectname, $wgs, $normal_name);
 }
 
 //main script starts here!
 check_ps_in_queue($sample);
 
-list($proc_sample_id, $projectID, $process_id, $project_type, $run_name, $run_id, $tumor, $project_name, $wgs, $normal_name) = get_parameters($sample);
+list($proc_sample_id, $projectID, $process_id, $project_type, $run_name, $run_id, $is_tumor, $project_name, $wgs, $normal_name) = get_parameters($sample);
 
 //determine project folder
 $project_folder = get_path("project_folder")."/".$project_type."/".$project_name."/";
@@ -113,9 +119,9 @@ if(count($files)<2)
 }
 
 //determine command and arguments
-if($project_type=="diagnostic" && $tumor)
+if($project_type=="diagnostic" && $is_tumor)
 {
-	if(empty($normal_name))
+	if(is_null($normal_name))
 	{
 		trigger_errorr("No normal sample given for diagnostic tumor sample $sample.",E_USER_ERROR);
 	}
