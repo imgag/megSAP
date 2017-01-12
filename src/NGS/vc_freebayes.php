@@ -33,7 +33,7 @@ if(isset($target))
 	if ($target_extend>0)
 	{
 		$target_extended = $parser->tempFile(".bed");
-		$parser->exec(get_path("ngs-bits")."BedExtend"," -in $target -n $target_extend -out $target_extended", true);
+		$parser->exec(get_path("ngs-bits")."BedExtend"," -in $target -n $target_extend -out $target_extended -fai ".get_path("data_folder")."/genomes/".$build.".fa.fai", true);
 	}
 	else
 	{
