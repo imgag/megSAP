@@ -19,7 +19,7 @@ extract($parser->parse($argv));
 function filter_by_af($line, $min_freq)
 {
 	$parts = explode("\t", $line);
-	if (count($parts)<8) continue;
+	if (count($parts)<8) return false;
 	
 	$af = 0.0;
 	$info = explode(";", $parts[7]);
