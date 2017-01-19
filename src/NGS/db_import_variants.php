@@ -151,15 +151,36 @@ if($mode=="germline")
 		$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".$row[0]."' AND start='".$row[1]."' AND end='".$row[2]."' AND ref='".$row[3]."' AND obs='".$row[4]."'", -1);
 		if ($variant_id!=-1) //update (common case)
 		{
-			$db_connect->bind($hash2, "dbsnp", $dbsnp, array(""));
-			$db_connect->bind($hash2, "1000g", $row[$i_10g], array(""));
-			$db_connect->bind($hash2, "exac", $row[$i_exa], array(""));
-			$db_connect->bind($hash2, "kaviar", $row[$i_kav], array(""));
-			$db_connect->bind($hash2, "gene", $row[$i_gen]);
-			$db_connect->bind($hash2, "variant_type", $row[$i_typ], array(""));
-			$db_connect->bind($hash2, "coding", $row[$i_cod], array(""));
-			$db_connect->bind($hash2, "id", $variant_id);
-			$db_connect->execute($hash2, true);
+			//compose array of meta data
+			$metadata = array(
+							"dbsnp" => $dbsnp, 
+							"1000g" => $row[$i_10g],
+							"exac" => $row[$i_exa],
+							"kaviar" => $row[$i_kav],
+							"gene" => $row[$i_gen],
+							"variant_type" => $row[$i_typ],
+							"coding" => $row[$i_cod]
+							);
+							
+			//check if variant meta data in NGSD is different
+			$metadata_changed = false;
+			$res = $db_connect->executeQuery("SELECT ".implode(", ", array_keys($metadata))." FROM variant WHERE id='".$variant_id."'");
+			foreach($metadata as $key => $value)
+			{
+				if ($res[0][$key]!=$value)
+				{
+					$metadata_changed = true;
+				}
+				
+				$db_connect->bind($hash2, $key, $value, array(""));
+			}
+			
+			//update variant if meta data changed
+			if ($metadata_changed)
+			{
+				$db_connect->bind($hash2, "id", $variant_id);
+				$db_connect->execute($hash2, true);
+			}
 		}
 		else //insert (rare case)
 		{

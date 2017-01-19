@@ -56,7 +56,7 @@ $parser->addInfile("c", "BAM file of child (index).", false, true);
 $parser->addString("out_folder", "Output folder name.", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file used for all samples (created from NGSD via processed sample 'c' by default).", true);
-$steps = array("check", "realign", "vc", "an");
+$steps = array("check", "vc", "an");
 $parser->addEnum("start", "Start processing at step.", true, $steps, "check");
 extract($parser->parse($argv));
 
@@ -115,7 +115,7 @@ if ($start=="check")
 
 //(4) variant calling of all three samples together (with very conservative parameters)
 $vcf_all = $out_folder.basename($c, ".bam")."_all.vcf.gz";
-if ($start=="check" || $start=="realign" || $start=="vc")
+if ($start=="check" || $start=="vc")
 {
 	$parser->execTool("NGS/vc_freebayes.php", "-bam $c $m $f -out $vcf_all -target ".$sys['target_file']." -min_mq 20 -min_af 0.1 -build ".$sys['build'], true);	
 }

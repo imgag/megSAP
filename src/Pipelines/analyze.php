@@ -87,8 +87,15 @@ if (in_array("ma", $steps))
 	//find FastQ input files
 	$files1 = glob($in_for);
 	$files2 = glob($in_rev);
-	if (count($files1)!=count($files2))	trigger_error("Found mismatching forward and reverse read file count!\n Forward: ".implode(" ", $in_for)."\n Reverse: ".implode(" ", $in_rev), E_USER_ERROR);
-
+	if (count($files1)!=count($files2))
+	{
+		trigger_error("Found mismatching forward and reverse read file count!\n Forward: ".implode(" ", $in_for)."\n Reverse: ".implode(" ", $in_rev), E_USER_ERROR);
+	}
+	if (count($files1)==0)
+	{
+		trigger_error("Found no read files ending with '_R1_001.fastq.gz' or '_R2_001.fastq.gz'!", E_USER_ERROR);
+	}
+	
 	$extras = array();
 	if($clip_overlap) $extras[] = "-clip_overlap";
 	if($no_abra) $extras[] = "-no_abra";
