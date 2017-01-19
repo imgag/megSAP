@@ -45,9 +45,9 @@ foreach($steps as $step)
 
 // get processing systems
 $t_dna_sys_file = $t_dna_sys;
-$t_dna_sys = load_system($t_dna_sys, $t_dna_id);
+$t_dna_sys = load_system($t_dna_sys_file, $t_dna_id);
 $n_dna_sys_file = $n_dna_sys;
-$n_dna_sys = load_system($n_dna_sys, $n_dna_id);
+$n_dna_sys = load_system($n_dna_sys_file, $n_dna_id);
 if($t_dna_sys["name_short"] != $n_dna_sys["name_short"]) trigger_error ("System tumor '".$t_dna_sys["name_short"]."' and system reference '".$n_dna_sys["name_short"]."' are different!", E_USER_WARNING);
 if($t_dna_sys["build"] != $n_dna_sys["build"]) trigger_error ("System build tumor '".$t_dna_sys["build"]."' and system reference '".$n_dna_sys["build"]."' are different!", E_USER_ERROR);
 
@@ -87,12 +87,12 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0 && !$dna_only)
 		// somatic_rna pipeline starts with map and ends with an
 		$args = "";
 		$t_rna_sys_file = $t_rna_sys;
-		$t_rna_sys = load_system($t_rna_sys, $t_rna_id);
+		$t_rna_sys = load_system($t_rna_sys_file, $t_rna_id);
 		$args .= "-t_sys $t_rna_sys_file ";
 		if($rna>1)
 		{
 			$n_rna_sys_file = $n_rna_sys;
-			$n_rna_sys = load_system($n_rna_sys, $n_rna_id);
+			$n_rna_sys = load_system($n_rna_sys_file, $n_rna_id);
 			$args .= "-n_sys $n_rna_sys_file ";
 		}
 		$args .= "-t_folder $t_rna_fo -n_folder $n_rna_fo --log ".$o_folder."somatic_emed_rna_".date('YmdHis',mktime()).".log ";
