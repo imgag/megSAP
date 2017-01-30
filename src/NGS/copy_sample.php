@@ -129,6 +129,7 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 	$skipped_lines = array();//stores lines to print the sample names which are not parseable and was not processed
 	$skipped_lines[] = "skipped:";
 	$project_to_fastqonly_samples = array();
+	$sample_to_newlocation = array();
 	
 	//parse input
 	foreach($sample_IDs as $sample_ID)
@@ -153,6 +154,7 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 		
 		//determine project 
 		$new_location = get_path("project_folder").$project_type."/".$project_name;
+		$sample_to_newlocation[$sample_ID] = $new_location."/Sample_".$sample_ID;
 		
 		//copy_target line if first sample of project in run, mkdir and chmod  if first sample of project at all
 		if (!(array_key_exists($project_name."_".$project_type, $target_to_copylines)))
@@ -263,7 +265,11 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 	}
 	foreach ($project_to_fastqonly_samples as $target => $samples)
 	{
-		$all_line .= "email_".$target." ";	
+		$all_line .= "qc_".$target." ";
+	}
+	foreach ($project_to_fastqonly_samples as $target => $samples)
+	{
+		$all_line .= "email_".$target." ";
 	}
 	$all_line .= "skipped";
 	$output[] = $all_line;
@@ -291,6 +297,17 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 	{
 		$output = array_merge($output, array_unique($lines));
 		$output[] = "";	
+	}
+
+	//target(s) 'qc_...'
+	foreach ($project_to_fastqonly_samples as $project => $samples)
+	{
+		$output[] = "qc_".$project.":";
+		foreach (array_unique($samples) as $sample) {
+			$sample_location = $sample_to_newlocation[$sample];
+			$output[] = "\tphp {$repo_folder}/src/NGS/fastq_qc.php -folder {$sample_location} -tools readqc -import";
+		}
+		$output[] = "";
 	}
 	
 	//target(s) 'email_...'
