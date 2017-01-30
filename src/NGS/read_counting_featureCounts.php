@@ -10,8 +10,8 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
 $parser = new ToolBase("read_counting_featureCounts", "Perform read counting for aligned reads using featureCount contained in the subread package.");
-$parser->addInfile("in",  "Input file in bam format.", false, "bam");
-$parser->addString("prefix", "String to add to output files. Might include sub-directories.", false, NULL);
+$parser->addInfile("in",  "BAM input file.", false, "bam");
+$parser->addOutfile("out", "Raw count output TSV file.", false);
 
 //optional parameters
 $parser->addString("gtfFile", "GTF File containing feature annotations used for read counting.", true, get_path("data_folder")."genomes/gtf/ucsc_refseq_hg19.gtf");
@@ -22,44 +22,22 @@ $parser->addInt("minAQual", "Minimal alignment quality. Skip all reads with alig
 $parser->addFlag("paired", "The data is paired-end. Only properly paired reads are used.");
 $parser->addFlag("includeMultiOverlap", "Count also reads that overlap more than one feature.");
 $parser->addInt("threads", "Number of threads used for read counting", true, "4");
-
 extract($parser->parse($argv));
 
-$outdir = realpath(dirname($prefix))."/";
-$sampleName = basename($prefix);
-
-$parser->log("read_counting_featureCounts output directory=$outdir");
-
-//build command
-$arguments = array();
-
-$arguments[] = "$in";
-$arguments[] = "-a $gtfFile";
-$arguments[] = "-t $featureType";
-$arguments[] = "-g $gtfAttribute";
-$arguments[] = "-Q $minAQual";
-$arguments[] = "-T $threads";
-
-if($paired) {
-	$arguments[] = "-p -B";
-}
-
-if($stranded) {
-	$arguments[] = "-s 1";
-} else {
-	$arguments[] = "-s 0";
-}
-
-if($includeMultiOverlap) {
-	$arguments[] = "-M";
-}
-
-$arguments[] = "-o ${outdir}${sampleName}_counts.tsv"; //output file
+//build arguments array
+$args = array();
+$args[] = "-a $gtfFile";
+$args[] = "-t $featureType";
+$args[] = "-g $gtfAttribute";
+$args[] = "-Q $minAQual";
+$args[] = "-T $threads";
+$args[] = "-s ".($stranded ? "1" : "0");
+if($paired) $args[] = "-p -B";
+if($includeMultiOverlap) $args[] = "-M";
 
 //execute command
-$parser->log("Starting read counting");
-$parser->exec(get_path("feature_counts"), implode(" ", $arguments), true);
+$parser->exec(get_path("feature_counts"), "$in -o $out ".implode(" ", $args), true);
 
 // cleanup
-$parser->exec("rm ", "${outdir}${sampleName}_counts.tsv.summary", false);
+$parser->exec("rm ", "${out}.summary", false);
 ?>

@@ -420,7 +420,8 @@ foreach($res as $row)
 		{
 			if (ends_with($file, ".fastq.gz")) $files[] = $file;
 			if (ends_with($file, "_var_annotated.vcf.gz")) $files[] = $file;
-			if (ends_with($file, "_normalized_fpkm.tsv")) $files[] = $file;
+			if (ends_with($file, "_counts_raw.tsv")) $files[] = $file;
+			if (ends_with($file, "_counts_fpkm.tsv")) $files[] = $file;
 		}
 		
 		//skip already uploaded

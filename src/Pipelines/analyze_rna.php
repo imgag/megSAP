@@ -154,50 +154,36 @@ if(in_array("ma", $steps))
 	$parser->exec(get_path("samtools"), "index $final_bam", true);
 }
 
-// Count and normalize expression values
-// Result File
-$count_normalized_file = "{$prefix}_fpkm.tsv";
-if(in_array("rc", $steps)) {
-	
+//count and normalize expression values
+$counts_raw = "{$prefix}_counts_raw.tsv";
+$counts_fpkm = "{$prefix}_counts_fpkm.tsv";
+if(in_array("rc", $steps))
+{
 	$parser->log("Performing read counting");
-	$count_arguments = "-in $final_bam -prefix $prefix";
-	$count_arguments .= " -threads $threads";
-	$count_arguments .= " -gtfFile $gtfFile";
-	$count_arguments .= " -featureType $featureType";
-	$count_arguments .= " -gtfAttribute $gtfAttribute";
-	if($paired) {
-		$count_arguments .= " -paired";
-	}
-	if($stranded) {
-		$count_arguments .= " -stranded";
-	}
-	$parser->execTool("NGS/read_counting_featureCounts.php", $count_arguments);
-	$count_file = "{$prefix}_counts.tsv";
+	$args = array();
+	if($paired) $args[] = "-paired";
+	if($stranded) $args[] = "-stranded";
+	$parser->execTool("NGS/read_counting_featureCounts.php", "-in $final_bam -out $counts_raw -threads $threads -gtfFile $gtfFile -featureType $featureType -gtfAttribute $gtfAttribute ".implode(" ", $args));
+
 
 	// Normalize expression values
 	$parser->log("Performing normalization of read counts");
-	// Remove the header line and just take the gene ID and counts column
-	$counts_filtered=$parser->tempFile("_counts.filtered.tsv");
-	$parser->exec("tail", "-n +2 ${count_file} | cut -f 1,7 > $counts_filtered", false);
-	// Build command and normalize read counts
-	$normalize_arguments = "-in $counts_filtered -out $count_normalized_file";
-	$normalize_arguments .= " -gtf $gtfFile";
-	$normalize_arguments .= " -method fpkm";
-	$normalize_arguments .= " -feature $featureType";
-	$normalize_arguments .= " -idattr $gtfAttribute";
-	$normalize_arguments .= " -header";
-	$parser->execTool("NGS/normalize_read_counts.php", $normalize_arguments);
+	//remove the header line and just take the gene ID and counts column
+	$counts_tmp = $parser->tempFile("_counts_tmp.tsv");
+	$parser->exec("tail", "-n +2 $counts_raw | cut -f 1,7 > $counts_tmp", false);
+	//normalize read counts
+	$parser->execTool("NGS/normalize_read_counts.php", "-in $counts_tmp -out $counts_fpkm -gtf $gtfFile -method fpkm -feature $featureType -idattr $gtfAttribute -header");
 }
 
-// Annotate
+//annotate
 if(in_array("an", $steps))
 {
 	$parser->log("Performing annotation of read counts");
-	$annotation_arguments = "-in $count_normalized_file -out $count_normalized_file -mapping_file $annotation";
+	$annotation_arguments = "-in $counts_fpkm -out $counts_fpkm -mapping_file $annotation";
 	$parser->execTool("NGS/annotate_count_file.php", $annotation_arguments);
 }
 
-// detect fusions
+//detect fusions
 if(in_array("fu",$steps))
 {
 	// STAR-Fusion has to know where the STAR and the perl executable exist, so change the environment
@@ -226,7 +212,7 @@ if(in_array("fu",$steps))
 	rename("$out_folder/star-fusion.fusion_candidates.final.abridged", "{$prefix}_var_fusions.tsv");
 }
 
-// Import to database
+//import to database
 $log_db  = "{$prefix}_log_db.log";
 if (in_array("db", $steps))
 {
