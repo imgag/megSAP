@@ -9,7 +9,7 @@ $repo_folder = "/mnt/users/all/megSAP"; //fixed absolute path to make the tests 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("copy_sample", "Creates a Makefile to copy de-multiplexed sample data to projects and queue data analysis.");
-$parser->addInfile("ss",  "Input samplesheet that was used to create the data folder.", false);
+$parser->addString("samplesheet",  "Input samplesheet that was used to create the data folder.", true, "SampleSheet_bcl2fastq.csv");
 $parser->addString("folder",  "Input data folder.", true, "Unaligned");
 $parser->addOutfile("out",  "Output Makefile. Default: 'Makefile'.", true);
 extract($parser->parse($argv));
@@ -196,18 +196,18 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 				$new_name = str_replace("_R2_","_index_",$old_name,$replace_count);
 				if ($replace_count)	
 				{	
-					$target_to_copylines[$project_name."_".$project_type][]="\tcp -i -p ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";
+					$target_to_copylines[$project_name."_".$project_type][]="\tcp -i ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";
 				}
 				else
 				{
 					$new_name=str_replace("_R3_","_R2_",$old_name,$replace_count);
 					if ($replace_count)
 					{
-						$target_to_copylines[$project_name."_".$project_type][]="\tcp -i -p ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";
+						$target_to_copylines[$project_name."_".$project_type][]="\tcp -i ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";
 					}
 					else
 					{
-						$target_to_copylines[$project_name."_".$project_type][]="\tcp -i -p ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$old_name";
+						$target_to_copylines[$project_name."_".$project_type][]="\tcp -i ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$old_name";
 					}
 				}
 				
@@ -215,7 +215,7 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 		}
 		else
 		{
-			$target_to_copylines[$project_name."_".$project_type][]="\tcp -i -r -p ".$old_location."/Sample_".$sample_ID."/ ".$new_location."/";
+			$target_to_copylines[$project_name."_".$project_type][]="\tcp -i -r ".$old_location."/Sample_".$sample_ID."/ ".$new_location."/";
 		}
 
 		if($sample_analysis_step_map[$sample_ID]!="fastq") //if more than FASTQ creation should be done for samples's project
@@ -327,7 +327,7 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 }
 
 if (!isset($out)) $out = "Makefile";
-list($sample_IDs, $nxtSeq) = extract_IDs_from_samplesheet($ss);
+list($sample_IDs, $nxtSeq) = extract_IDs_from_samplesheet($samplesheet);
 $sample_projectname_map = array();
 $sample_projecttype_map = array();
 $sample_tumor_status_map = array();
