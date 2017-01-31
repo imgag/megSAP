@@ -9,24 +9,15 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("fastq_qc", "Quality control for FASTQ files.");
 
-// supported QC tools
-$tools_all = array("readqc","fastqc");
-
 // mandatory arguments
 $parser->addString("folder", "Sample folder containing FASTQ files.", false);
 
 // optional arguments
-$parser->addString("tools", "Comma-separated list of QC tools to run.", true, implode(",", $tools_all));
-$parser->addInt("threads", "The maximum number of threads to use.", true, 4);
+$parser->addEnum("tool", "QC tool to run.", true, array("readqc","fastqc"), "readqc");
+$parser->addInt("threads", "The maximum number of threads to use (for supported tools).", true, 4);
 $parser->addString("out_folder", "Folder where QC results are stored, defaults to sample folder.", true, "default");
 $parser->addFlag("import", "Import QC data into NGSD.");
 extract($parser->parse($argv));
-
-// check steps
-$tools = explode(",", $tools);
-$invalid_tools = array_diff($tools, $tools_all);
-if (count($invalid_tools) > 0) trigger_error("Unsupported QC tools: ".implode(",",$invalid_tools), E_USER_ERROR);
-
 
 // resolve output folder
 if ($out_folder=="default")
@@ -55,7 +46,7 @@ $in_for_s = implode(" ", $in_for);
 $in_rev_s = implode(" ", $in_rev);
 
 // ReadQC
-if (in_array("readqc", $tools)) {
+if ($tool == "readqc") {
 	if (count($in_rev) == 0) {
 		$parser->exec(get_path("ngs-bits")."ReadQC", "-in1 $in_for_s -out $readqc_out", true);
 	} else {
@@ -64,12 +55,12 @@ if (in_array("readqc", $tools)) {
 
 	// if import set and sample id available, import ReadQC results into database
 	if ($import && ($name != "")) {
-		$parser->execTool("NGS/db_import_qc.php", "-id $name -files $readqc_out -force");
+		$parser->execTool("NGS/db_import_qc.php", "-id $name -files $readqc_out");
 	}
 }
 
 // FastQC
-if (in_array("fastqc", $tools)) {
+if ($tool == "fastqc") {
 	$parser->exec(get_path("fastqc"), "--threads $threads $in_for_s $in_rev_s", true);
 }
 
