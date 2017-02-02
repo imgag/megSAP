@@ -53,6 +53,41 @@ function extract_string($col, $data, $default)
 	return $output;
 }
 
+//determines if all the input genes are on the blacklist
+function all_genes_blacklisted($genes)
+{
+	print_r($genes);
+	
+	//init blacklist on first call
+	static $blacklist = null;
+	if ($blacklist === null)
+	{
+		$file = file(get_path("data_folder")."/gene_blacklist/blacklist.tsv");
+		foreach($file as $line)
+		{
+			$line = trim($line);
+			if ($line=="" || $line[0]=="#") continue;
+			list($gene) = explode("\t", $line);
+			$blacklist[$gene] = true;
+		}
+	}
+  
+	if (count($genes)==0)
+	{
+		return false;
+	}
+	
+	foreach ($genes as $gene)
+	{
+		if (!isset($blacklist[$gene]))
+		{
+			return false;
+		}
+	}
+	
+	return true;
+}
+
 //init
 $handle_out = fopen($out, "w");
 
@@ -99,10 +134,8 @@ $filter_desc = array(
 	array("low_MQM", "Mean mapping quality of alternate allele less than Q50."),
 	array("low_QUAL", "Variant quality less than Q30."),
 	array("phylop_high", "PhyloP value higher than 1.6 i.e. highly-conserved base and possibly pathognic."),
-	array("pred_pathogenic_1", "Variant predicted pathogenic by one of the prediction tools."),
-	array("pred_pathogenic_2", "Variant predicted pathogenic by two of the prediction tools."),
-	array("pred_pathogenic_3", "Variant predicted pathogenic by three of the prediction tools."),
-	array("pred_pathogenic_4", "Variant predicted pathogenic by four of the prediction tools."),	
+	array("pred_pathogenic", "Variant predicted to be pathogenic by one or more prediction tools."),
+	array("gene_blacklist", "The gene(s) are contained on the blacklist of unreliable genes."),
 	array("anno_pathogenic_clinvar", "Variant annotated to be pathogenic by ClinVar."),
 	array("anno_pathogenic_hgmd", "Variant annotated to be pathogenic by HGMD."),
 	array("anno_high_impact", "Variant annotated to have high impact by SnpEff."),
@@ -241,7 +274,11 @@ while(!feof($handle))
 			$coding_and_splicing_details[] = $parts[3].":".$parts[6].":$details:".$parts[2].":$exon:".$parts[9].":".$parts[10];
 		}
 	}
-	$genes = implode(",", array_unique($genes));
+	$genes = array_unique($genes);
+	if (all_genes_blacklisted($genes))
+	{
+		$filter[] = "gene_blacklist";
+	}
 	$variant_details = implode(",", array_unique($variant_details));
 	$coding_and_splicing_details =  implode(",", $coding_and_splicing_details);
 	if(contains($coding_and_splicing_details, ":HIGH:")) $filter[] = "anno_high_impact";
@@ -272,7 +309,7 @@ while(!feof($handle))
 	$pp_count = contains($metalr, "D") + contains($sift, "D") + contains($pp2v, "D") + contains($pp2d, "D");
 	if ($pp_count>0)
 	{
-		$filter[] = "pred_pathogenic_".$pp_count;
+		$filter[] = "pred_pathogenic";
 	}
 	
 	//OMIM
@@ -310,7 +347,7 @@ while(!feof($handle))
 	$cosmic = strtr(extract_string("COSMIC_ID", $info, ""), array(","=>", "));
 
 	//write data
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t$genes\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kgenomes\t$exac\t$exac_hom\t$kaviar\t$phylop\t$metalr\t$sift\t$pp2v\t$pp2d\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kgenomes\t$exac\t$exac_hom\t$kaviar\t$phylop\t$metalr\t$sift\t$pp2v\t$pp2d\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
 }
 
 //if no variants are present, we need to write the header line after the loop
