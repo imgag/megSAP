@@ -56,8 +56,6 @@ function extract_string($col, $data, $default)
 //determines if all the input genes are on the blacklist
 function all_genes_blacklisted($genes)
 {
-	print_r($genes);
-	
 	//init blacklist on first call
 	static $blacklist = null;
 	if ($blacklist === null)
