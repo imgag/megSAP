@@ -14,6 +14,7 @@
 ##DESCRIPTION=Sift=Sift effect prediction: D=damaging, T=tolerated.
 ##DESCRIPTION=PP2_HVAR=Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
 ##DESCRIPTION=PP2_HDIV=Polyphen2 (HDIV) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20.
 ##DESCRIPTION=OMIM=OMIM database annotation.
 ##DESCRIPTION=ClinVar=ClinVar database annotation.
 ##DESCRIPTION=HGMD=HGMD database annotation.
@@ -27,4 +28,4 @@
 ##FILTER=anno_pathogenic_clinvar=Variant annotated to be pathogenic by ClinVar.
 ##FILTER=anno_pathogenic_hgmd=Variant annotated to be pathogenic by HGMD.
 ##FILTER=anno_high_impact=Variant annotated to have high impact by SnpEff.
-#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	Kaviar	phyloP	MetaLR	Sift	PP2_HVAR	PP2_HDIV	OMIM	ClinVar	HGMD	COSMIC
+#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	Kaviar	phyloP	MetaLR	Sift	PP2_HVAR	PP2_HDIV	CADD	OMIM	ClinVar	HGMD	COSMIC

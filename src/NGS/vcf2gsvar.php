@@ -107,6 +107,7 @@ $column_desc = array(
 	array("Sift", "Sift effect prediction: D=damaging, T=tolerated."),
 	array("PP2_HVAR", "Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign."),
 	array("PP2_HDIV", "Polyphen2 (HDIV) effect prediction: D=probably damaging, P=possibly damaging, B=benign."),
+	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20."),
 	array("OMIM", "OMIM database annotation."),
 	array("ClinVar", "ClinVar database annotation."),
 	array("HGMD", "HGMD database annotation."),
@@ -304,7 +305,9 @@ while(!feof($handle))
 	$sift = extract_string("dbNSFP_SIFT_pred", $info, "");
 	$pp2v = extract_string("dbNSFP_Polyphen2_HDIV_pred", $info, "");
 	$pp2d = extract_string("dbNSFP_Polyphen2_HVAR_pred", $info, "");
-	$pp_count = contains($metalr, "D") + contains($sift, "D") + contains($pp2v, "D") + contains($pp2d, "D");
+	$cadd = extract_numeric("dbNSFP_CADD_phred", $info, "", 2, "max");
+	if ($cadd!="") $cadd = number_format($cadd, 2);
+	$pp_count = contains($metalr, "D") + contains($sift, "D") + contains($pp2v, "D") + contains($pp2d, "D") + ($cadd!="" && $cadd>20);
 	if ($pp_count>0)
 	{
 		$filter[] = "pred_pathogenic";
@@ -345,7 +348,7 @@ while(!feof($handle))
 	$cosmic = strtr(extract_string("COSMIC_ID", $info, ""), array(","=>", "));
 
 	//write data
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kgenomes\t$exac\t$exac_hom\t$kaviar\t$phylop\t$metalr\t$sift\t$pp2v\t$pp2d\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kgenomes\t$exac\t$exac_hom\t$kaviar\t$phylop\t$metalr\t$sift\t$pp2v\t$pp2d\t$cadd\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
 }
 
 //if no variants are present, we need to write the header line after the loop

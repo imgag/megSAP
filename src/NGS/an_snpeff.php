@@ -57,7 +57,7 @@ if ($no_updown)
 $pipeline[] =  array(get_path("SnpEff"), "eff -noLog -noStats -noInteraction -spliceRegionIntronMax $thres $build ".implode(" ",$args));
 
 //dbNSFP annotation
-$cols = array("phyloP100way_vertebrate","MetaLR_pred","SIFT_pred","Polyphen2_HDIV_pred","Polyphen2_HVAR_pred");
+$cols = array("phyloP100way_vertebrate","MetaLR_pred","SIFT_pred","Polyphen2_HDIV_pred","Polyphen2_HVAR_pred","CADD_phred");
 $pipeline[] =  array(get_path("SnpSift"), "dbnsfp -noLog -db ".get_path("data_folder")."/dbs/dbNSFP/dbNSFPv2.9.1.txt.gz -f ".implode(",",$cols)." -");
 
 //HGMD annotation (optional because of license)
