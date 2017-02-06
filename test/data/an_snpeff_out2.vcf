@@ -17,9 +17,9 @@
 ##INFO=<ID=CLINVAR_SIG,Number=.,Type=String,Description="ClinVar clinical significance">
 ##INFO=<ID=COSMIC_ID,Number=.,Type=String,Description="COSMIC accession(s)">
 ##INFO=<ID=dbNSFP_CADD_phred,Number=A,Type=Float,Description="Field 'CADD_phred' from dbNSFP">
+##INFO=<ID=dbNSFP_FATHMM_pred,Number=A,Type=Character,Description="Field 'FATHMM_pred' from dbNSFP">
 ##INFO=<ID=dbNSFP_MetaLR_pred,Number=A,Type=Character,Description="Field 'MetaLR_pred' from dbNSFP">
 ##INFO=<ID=dbNSFP_phyloP100way_vertebrate,Number=A,Type=Float,Description="Field 'phyloP100way_vertebrate' from dbNSFP">
-##INFO=<ID=dbNSFP_Polyphen2_HDIV_pred,Number=A,Type=Character,Description="Field 'Polyphen2_HDIV_pred' from dbNSFP">
 ##INFO=<ID=dbNSFP_Polyphen2_HVAR_pred,Number=A,Type=Character,Description="Field 'Polyphen2_HVAR_pred' from dbNSFP">
 ##INFO=<ID=dbNSFP_SIFT_pred,Number=A,Type=Character,Description="Field 'SIFT_pred' from dbNSFP">
 ##INFO=<ID=DP,Number=.,Type=Integer,Description="Total read depth at the locus">

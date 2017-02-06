@@ -103,10 +103,10 @@ $column_desc = array(
 	array("ExAC_hom", "Homoyzgous counts for populations ALL, NFE and AFR of ExAC project."),
 	array("Kaviar", "Allele frequency in Kaviar database."),
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
-	array("MetaLR", "MetaLR effect prediction: D=damaging, T=tolerated."),
 	array("Sift", "Sift effect prediction: D=damaging, T=tolerated."),
-	array("PP2_HVAR", "Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign."),
-	array("PP2_HDIV", "Polyphen2 (HDIV) effect prediction: D=probably damaging, P=possibly damaging, B=benign."),
+	array("MetaLR", "MetaLR effect prediction: D=damaging, T=tolerated."),
+	array("PolyPhen2", "PolyPhen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign."),
+	array("FATHMM", "FATHMM effect prediction: D=damaging, T=tolerated."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20."),
 	array("OMIM", "OMIM database annotation."),
 	array("ClinVar", "ClinVar database annotation."),
@@ -132,8 +132,7 @@ $filter_desc = array(
 	array("low_DP", "Depth less than 20."),
 	array("low_MQM", "Mean mapping quality of alternate allele less than Q50."),
 	array("low_QUAL", "Variant quality less than Q30."),
-	array("phylop_high", "PhyloP value higher than 1.6 i.e. highly-conserved base and possibly pathognic."),
-	array("pred_pathogenic", "Variant predicted to be pathogenic by one or more prediction tools."),
+	array("pred_pathogenic", "Variant predicted to be pathogenic by one or more tools (conservation or effect prediction)."),
 	array("gene_blacklist", "The gene(s) are contained on the blacklist of unreliable genes."),
 	array("anno_pathogenic_clinvar", "Variant annotated to be pathogenic by ClinVar."),
 	array("anno_pathogenic_hgmd", "Variant annotated to be pathogenic by HGMD."),
@@ -297,17 +296,13 @@ while(!feof($handle))
 	$exac_hom = "$exac_hom_all/$exac_hom_nfe/$exac_hom_afr";
 	//effect predicions
 	$phylop = extract_numeric("dbNSFP_phyloP100way_vertebrate", $info, "", 4, "max");
-	if ($phylop>=1.6)
-	{
-		$filter[] = "phylop_high";
-	}
-	$metalr = extract_string("dbNSFP_MetaLR_pred", $info, "");
 	$sift = extract_string("dbNSFP_SIFT_pred", $info, "");
-	$pp2v = extract_string("dbNSFP_Polyphen2_HDIV_pred", $info, "");
-	$pp2d = extract_string("dbNSFP_Polyphen2_HVAR_pred", $info, "");
+	$metalr = extract_string("dbNSFP_MetaLR_pred", $info, "");
+	$pp2 = extract_string("dbNSFP_Polyphen2_HVAR_pred", $info, "");
+	$fathmm = extract_string("dbNSFP_FATHMM_pred", $info, "");
 	$cadd = extract_numeric("dbNSFP_CADD_phred", $info, "", 2, "max");
 	if ($cadd!="") $cadd = number_format($cadd, 2);
-	$pp_count = contains($metalr, "D") + contains($sift, "D") + contains($pp2v, "D") + contains($pp2d, "D") + ($cadd!="" && $cadd>20);
+	$pp_count = contains($metalr, "D") + contains($sift, "D") + contains($pp2, "D") + contains($fathmm, "D") + ($cadd!="" && $cadd>20) + ($phylop>=1.6);
 	if ($pp_count>0)
 	{
 		$filter[] = "pred_pathogenic";
@@ -348,7 +343,7 @@ while(!feof($handle))
 	$cosmic = strtr(extract_string("COSMIC_ID", $info, ""), array(","=>", "));
 
 	//write data
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kgenomes\t$exac\t$exac_hom\t$kaviar\t$phylop\t$metalr\t$sift\t$pp2v\t$pp2d\t$cadd\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kgenomes\t$exac\t$exac_hom\t$kaviar\t$phylop\t$sift\t$metalr\t$pp2\t$fathmm\t$cadd\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
 }
 
 //if no variants are present, we need to write the header line after the loop
