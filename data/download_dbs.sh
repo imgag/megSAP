@@ -36,13 +36,13 @@ cat RepeatMasker.gff | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/B
 cd $dbs
 mkdir dbNSFP
 cd dbNSFP
-wget ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbNSFPv2.9.1.zip
-unzip dbNSFPv2.9.1.zip
-head -n 1 dbNSFP2.9.1_variant.chr1 > dbNSFPv2.9.1.txt
-cat dbNSFP2.9.1_variant.chr* | egrep -v "^#"  >> dbNSFPv2.9.1.txt
-rm -rf dbNSFP2.9_gene.complete* dbNSFP2.9.1_variant* try* search*
-bgzip dbNSFPv2.9.1.txt
-tabix -s 1 -b 2 -e 2 dbNSFPv2.9.1.txt.gz
+wget ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbNSFPv2.9.2.zip
+unzip dbNSFPv2.9.2.zip
+head -n 1 dbNSFP2.9.2_variant.chr1 > dbNSFPv2.9.2.txt
+cat dbNSFP2.9.2_variant.chr* | egrep -v "^#"  >> dbNSFPv2.9.2.txt
+rm -rf dbNSFP2.9_gene.complete* dbNSFP2.9.2_variant* try* search*
+bgzip dbNSFPv2.9.2.txt
+tabix -s 1 -b 2 -e 2 dbNSFPv2.9.2.txt.gz
 
 #Install 1000G
 cd $dbs
