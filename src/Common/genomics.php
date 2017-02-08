@@ -507,103 +507,6 @@ function gender($genotypes, $het, $male, $female)
 }
 
 /**
-	@brief Returns the UCSC gene list as an chromosome-sorted map.
-	
-	The array format is:
-	[chr] => array($start, $end, $name)
-	
-	@ingroup genomics
-*/
-function parse_ucsc_genes()
-{
-	// parse data
-	$file = file(get_path("data_folder")."/dbs/UCSC/kgXref_joined.txt");
-	foreach ($file as $line)
-	{
-		if (trim($line)=="" || $line[0]=="#") continue;
-		
-		list(, $chr, $start, $end, , , $name) = explode("\t", rtrim($line));
-		
-		//include only regular chromosomes
-		if (!contains($chr, "_"))
-		{
-			$output[$chr][] =  array($start, $end, $name);
-		}
-	}
-	
-	return $output;
-}
-
-/**
-	@brief Returns the OMIM database as an chromosome-sorted map.
-	
-	The array format is:
-	[$chr] => [$gene] => array($titles, array($disorders_and_inheritance), array($mim_ids)); 
-	
-	@ingroup genomics
-*/
-function parse_omim_genes()
-{	
-	$output = array();
-	
-	$file = file(get_path("data_folder")."/dbs/OMIM/omim_joined.txt");
-	foreach ($file as $line)
-	{
-		list($mim_id ,$chr ,$genes, $status, $title, $disorders, $inheritance) = explode("\t", $line);
-		
-		//parse disorders and inheritance info
-		$dis_and_inh = array();
-		if (trim($disorders)!="")
-		{
-			$disorders = explode(";", $disorders);
-			$inheritance = explode(";", $inheritance);
-		
-			for ($i=0; $i<count($disorders); ++$i)
-			{
-				$dis_and_inh[] = array(trim($disorders[$i]), trim($inheritance[$i]));
-			}
-		}
-		
-		//update output data
-		foreach(explode(",", $genes) as $gene)
-		{
-			$gene = trim($gene);
-			
-			if (isset($output[$chr][$gene]))
-			{	
-				list($title_old, $disorders_old, $ids_old) = $output[$chr][$gene];
-				$output[$chr][$gene] = array($title_old."; ".$title, array_merge($disorders_old, $dis_and_inh), array_merge($ids_old, array($mim_id)));
-			}
-			else
-			{
-				$output[$chr][$gene] = array($title, $dis_and_inh, array($mim_id));
-			}
-		}
-	}
-	
-	return $output;
-}
-
-/*
-	@brief Loads a BED file without header lines.
-*/
-function load_bed($filename)
-{
-	$output = array();
-	
-	$file = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-	foreach($file as $line)
-	{
-		//skip header lines
-		if (starts_with($line, "track") || starts_with($line, "browser")) continue;
-		
-		$output[] = explode("\t", $line);
-	}
-	
-	return $output;
-}
-
-/**
 	@brief Returns the processed sample database ID for a processed sample name, or -1 if the processed sample is not in the database.
  */
 function get_processed_sample_id($name, $error_if_not_found=true)
@@ -1046,8 +949,7 @@ function convert_coding2genomic($transcript,$cdna_start,$cdna_end, $error = true
 	$chr = null;
 	$strand = null;
 	$transcript_length = 0;
-	$db_folder = get_path("data_folder")."/dbs/UCSC/";
-	$known_gene = $db_folder."/refGene.txt";
+	$known_gene = get_path("data_folder")."/dbs/UCSC/refGene.txt";
 	$handle = fopen($known_gene, "r");
 	if($handle)
 	{

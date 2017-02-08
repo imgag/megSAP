@@ -12,8 +12,8 @@ while($line = fgets($handle))
 	}
 	
 	$parts = explode("\t", $line);
-	if ($parts[0]=="MT")$parts[0]="M";
-
+	if ($parts[0]=="MT") $parts[0]="M";
+	
 	if (isset($parts_last))
 	{
 		list($chr, $start, $dbsnp, $ref, $alt, , , $info) = $parts_last;

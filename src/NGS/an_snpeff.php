@@ -20,7 +20,7 @@ extract($parser->parse($argv));
 
 //dbSNP annotation
 $pipeline = array();
-$pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noInfo -id ".get_path("data_folder")."/dbs/dbSNP/dbsnp_b147.vcf.gz $in");
+$pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noInfo -id ".get_path("data_folder")."/dbs/dbSNP/dbsnp_b149.vcf.gz $in");
 
 //workaround for crash in vcfannotate when input is an empty variant list
 $empty = true;
@@ -61,7 +61,7 @@ $cols = array("phyloP100way_vertebrate","SIFT_pred","MetaLR_pred","FATHMM_pred",
 $pipeline[] =  array(get_path("SnpSift"), "dbnsfp -noLog -db ".get_path("data_folder")."/dbs/dbNSFP/dbNSFPv2.9.2.txt.gz -f ".implode(",",$cols)." -");
 
 //HGMD annotation (optional because of license)
-$db_file = get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2016_1_fixed.vcf";
+$db_file = get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2016_4_fixed.vcf";
 if(file_exists($db_file))
 {
 	$pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name HGMD_ -info ID,CLASS,MUT,GENE,PHEN $db_file");
@@ -77,7 +77,7 @@ $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name T1
 $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name EXAC_ -info AF,AC_Hom,Hom_NFE,Hom_AFR ".get_path("data_folder")."/dbs/ExAC/ExAC_r0.3.1.vcf.gz");
 
 //ClinVar annotation
-$pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name CLINVAR_ -info SIG,ACC ".get_path("data_folder")."/dbs/ClinVar/clinvar_converted.vcf");
+$pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name CLINVAR_ -info SIG,ACC ".get_path("data_folder")."/dbs/ClinVar/clinvar_20170130_converted.vcf");
 
 //COSMIC annotation (optional because of license)
 $db_file = get_path("data_folder")."/dbs/COSMIC/cosmic.vcf.gz";

@@ -20,9 +20,9 @@ vcflib=`pwd`/tools/vcflib/bin
 cd $dbs
 mkdir dbSNP
 cd dbSNP
-wget ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/00-All.vcf.gz
-zcat 00-All.vcf.gz | php $src/Tools/db_converter_dbsnp.php | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize | $ngsbits/VcfStreamSort | bgzip > dbsnp_b147.vcf.gz
-tabix -p vcf dbsnp_b147.vcf.gz
+wget ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b149_GRCh37p13/VCF/00-All.vcf.gz
+zcat 00-All.vcf.gz | php $src/Tools/db_converter_dbsnp.php | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize | $ngsbits/VcfStreamSort | bgzip > dbsnp_b149.vcf.gz
+tabix -p vcf dbsnp_b149.vcf.gz
 
 #Install REPEATMASKER
 cd $dbs
@@ -64,8 +64,8 @@ tabix -p vcf ExAC_r0.3.1.vcf.gz
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/clinvar.vcf.gz | gunzip > clinvar_latest.vcf
-cat clinvar_latest.vcf | php $src/Tools/db_converter_clinvar.php > clinvar_converted.vcf
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/clinvar_20170130.vcf.gz | gunzip > clinvar_20170130.vcf
+cat clinvar_20170130.vcf | php $src/Tools/db_converter_clinvar.php > clinvar_20170130_converted.vcf
 
 #Install Kaviar
 cd $dbs
@@ -82,13 +82,13 @@ tabix -p vcf Kaviar_160204.vcf.gz
 #cd $dbs
 #mkdir OMIM
 #cd OMIM
-#manual download ftp://ftp.omim.org/OMIM/genemap
+#manual download ftp://ftp.omim.org/OMIM/genemap.txt
 #manual download ftp://ftp.omim.org/OMIM/mim2gene.txt
 #php $src/Tools/db_converter_omim.php > omim.bed
 
 #Install HGMD (you need a license)
 #manual download https://portal.biobase-international.com/cgi-bin/portal/login.cgi 
-#cat HGMD_PRO_2016_1.vcf | php $src/Tools/db_converter_hgmd.php > HGMD_PRO_2016_1_fixed.vcf
+#cat HGMD_PRO_2016_4.vcf | php $src/Tools/db_converter_hgmd.php > HGMD_PRO_2016_4_fixed.vcf
 
 #install COSMIC (you need a license)
 #cd $dbs

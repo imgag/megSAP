@@ -75,7 +75,7 @@ function extract_dbsnp_entries($rs_numbers)
 {
 	//find dbSNP entries based on rsnumbers, includig those which only partial match
 	$dbsnp_hits = array();
-	exec("zegrep \"".implode("|", $rs_numbers)."\" ".get_path("data_folder")."/dbs/dbSNP/dbsnp_b147.vcf.gz", $dbsnp_hits);
+	exec("zegrep \"".implode("|", $rs_numbers)."\" ".get_path("data_folder")."/dbs/dbSNP/dbsnp_b149.vcf.gz", $dbsnp_hits);
 		
 	//check which grep results match the rs-numbers exactly and save these
 	$output = array();

@@ -139,71 +139,10 @@ check(get_ref_seq("chr12", 12310000, 12310200), "aagcctaTGAGAGAAAGCTGCTGGCtcttga
 end_test();
 
 //##################################################################################
-start_test("parse_omim_genes");
-
-$omim = parse_omim_genes();
-
-check($omim["chrX"]["SOX3"][2], array("313430"));
-check($omim["chrY"]["SHOXY"][2], array("400020"));
-check($omim["chrX"]["MAGEE1"][2], array("300702", "300759", "300468"));
-
-end_test();
-
-
-//##################################################################################
-start_test("parse_ucsc_genes");
-
-$ucsc = parse_ucsc_genes();
-
-//first three entries
-check($ucsc["chr1"][0], array("12189", "13639", "DDX11L1"));
-check($ucsc["chr1"][1], array("69090", "70008", "OR4F5"));
-check($ucsc["chr1"][2], array("138529", "139792", "LOC729737"));
-
-//number of entries in chr 9
-check(count($ucsc["chr22"]), 1363);
-
-//overall number of chromosomes and entries
-$chroms = 0;
-$overall = 0;
-foreach($ucsc as $chr => $entries)
-{
-	++$chroms;
-	$overall += count($entries);
-}
-check($chroms, 24);
-check($overall, 60396);
-
-end_test();
-
-//##################################################################################
 start_test("get_db");
 
 check(get_db('NGSD_TEST', 'db_host'), 'srv010.img.med.uni-tuebingen.de');
 check(get_db('NGSD_TEST', 'db_name'), 'bioinf_ngsd_test');
-
-end_test();
-
-//##################################################################################
-start_test("load_bed");
-
-$output = array();
-$output[] = "browser hide all\n";
-$output[] = "track name=\"ItemRGBDemo\" description=\"Item RGB demonstration\" visibility=2 itemRgb=\"On\"\n";
-$output[] = "chr1	123	125\n";
-$output[] = "chr12	500	999\n";
-$output[] = "chr14	456	789\n";
-$output[] = "\n";
-file_put_contents("/tmp/php_test_load_bed.txt", $output);
-
-$data = load_bed("/tmp/php_test_load_bed.txt");
-
-check(count($data), 3);
-check($data[0], array("chr1", "123", "125"));
-check($data[1], array("chr12", "500", "999"));
-check($data[2], array("chr14", "456", "789"));
-
-unlink("/tmp/php_test_load_bed.txt");
 
 end_test();
 
