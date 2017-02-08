@@ -13,18 +13,18 @@ $parser->addInfile("in2", "Counts file for the reference samples", false, true);
 $parser->addOutfile("out", "Output file containing the comparison.", false);
 //optional parameters
 $parser->addString("method", "The comparison method. Options are: 'fc' or 'log_fc'", true, "fc");
-$parser->addString("mapping_file", "File containing the mapping from transcript identifier to gene name", true, get_path("data_folder")."dbs/UCSC/refseq2HGNC.tsv");
 extract($parser->parse($argv));
 
 $parser->log("Starting comparison of counts/fpkm values");
 
 //read transcript>gene mapping
 $mapping = array();
+$mapping_file = get_path("data_folder")."dbs/UCSC/refGene.txt";
 $handle = fopen($mapping_file, "r");
 if ($handle===FALSE) trigger_error("Could not open file '$mapping_file' for reading!", E_USER_ERROR);
 while ($data = fgetcsv($handle, 0, "\t"))
 {
-	$mapping[$data[0]] = $data[1];
+	$mapping[$data[1]] = $data[12];
 }
 fclose($handle);
 
@@ -67,15 +67,7 @@ else
 foreach ($tumor_data as $transcript_id => $tumor_val)
 {
 	$line = array($transcript_id);
-	// Try to map the transcript id to a gene symbol
-	if(isset($mapping[$transcript_id]))
-	{
-		$line[] = $mapping[$transcript_id];
-	}
-	else
-	{
-		$line[] = "";
-	}
+	$line[] = isset($mapping[$transcript_id]) ? $mapping[$transcript_id] : "";
 	// Tumor value
 	$line[] = strval($tumor_val); 
 	// Normal value

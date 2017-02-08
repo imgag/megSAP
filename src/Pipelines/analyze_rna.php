@@ -23,7 +23,6 @@ $parser->addString("reference", "FASTA File that contains the reference genome u
 $parser->addString("fusionDetectionReference", "Reference genome used for STAR-Fusion", true, get_path("data_folder")."/genomes/STAR-Fusion/hg19");
 $parser->addString("gtfFile", "GTF File containing feature annotations used for read counting.", true, get_path("data_folder")."genomes/gtf/ucsc_refseq_hg19.gtf");
 $parser->addString("GATKReference", "GATK reference fasta file", true, get_path("data_folder")."genomes/GATK/hg19/hg19_GATK.fa");
-$parser->addString("annotation", "Tab delimited file containing the transcript ID in the first column and the gene ID in the second column.", true, get_path("data_folder")."dbs/UCSC/refseq2HGNC.tsv");
 $parser->addString("featureType", "Feature type used for mapping reads to features.", true, "exon");
 $parser->addString("gtfAttribute", "GTF attribute used as feature ID.", true, "gene_id");
 $parser->addInt("threads", "The maximum number of threads used.", true, 4);
@@ -179,8 +178,7 @@ if(in_array("rc", $steps))
 if(in_array("an", $steps))
 {
 	$parser->log("Performing annotation of read counts");
-	$annotation_arguments = "-in $counts_fpkm -out $counts_fpkm -mapping_file $annotation";
-	$parser->execTool("NGS/annotate_count_file.php", $annotation_arguments);
+	$parser->execTool("NGS/annotate_count_file.php", "-in $counts_fpkm -out $counts_fpkm");
 }
 
 //detect fusions
