@@ -2,11 +2,12 @@
 /** 
 	@page queue_trio
 */
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-require_once($basedir."/Common/all.php");
 
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-$parser = new ToolBase("queue_trio", "\$Rev: 894 $", "Queues a trio for analysis.");
+error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+
+$parser = new ToolBase("queue_trio", "Queues a trio for analysis.");
 $parser->addString("f",  "Processed sample identifier of father", false);
 $parser->addString("m",  "Processed sample identifier of mother", false);
 $parser->addString("c",  "Processed sample identifier of child", false);
@@ -83,7 +84,7 @@ $out_folder = $c_params["wd"]."/Trio_".$c."_".$f."_".$m."/";
 if (!file_exists($out_folder)) mkdir($out_folder);
 
 //queue trio for analysis
-$command = "php {$basedir}/Pipelines/trio.php";
+$command = "php ".repository_basedir()."/src/Pipelines/trio.php";
 $args = "-c ".$c_params["path"]." -f ".$f_params["path"]." -m ".$m_params["path"]." -out_folder ".$out_folder." --log ".$out_folder."trio.log";
 $sample_status = get_path("sample_status_folder")."/data/";
 $queue = $high_priority ? "-q NGSlong,re_analysis,srv016_long" : "-q NGSlong,srv016_long";

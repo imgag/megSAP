@@ -7,7 +7,7 @@
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
-$parser = new ToolBase("bed_annotation", "\$Rev: 67 $", "Annotates a BED file with OMIM and UCSC data.");
+$parser = new ToolBase("bed_annotation", "Annotates a BED file with OMIM and UCSC data.");
 $parser->addInfile("in", "BED input file.", false);
 $parser->addOutfile("out",  "TSV output file.", false);
 extract($parser->parse($argv));

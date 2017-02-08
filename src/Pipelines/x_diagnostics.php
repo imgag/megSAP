@@ -4,14 +4,12 @@
 	@page x_diagnostics
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("x_diagnostics", "\$Rev: 849 $", "XLMR diagnostics pipeline.");
+$parser = new ToolBase("x_diagnostics", "XLMR diagnostics pipeline.");
 $parser->addInfile("bam",  "X chromosome BAM file.", false);
 $parser->addInfile("system",  "Processing system INI file.", false);
 $parser->addString("out_folder", "Output folder.", false);

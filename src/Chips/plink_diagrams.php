@@ -112,7 +112,7 @@ function plot($labels, $data_labels, $data, $options = null)
 }
 
 // parse command line arguments
-$parser = new ToolBase("plink_diagrams", "\$Rev: 2 $", "Creates diagrams for all chromosomes showing homocygosity regions of affected and non-affected indivisuals.");
+$parser = new ToolBase("plink_diagrams", "Creates diagrams for all chromosomes showing homocygosity regions of affected and non-affected indivisuals.");
 $parser->addInfile("in",  "PLINK homocygosity mapping output file.", false);
 $parser->addInt("bin_size",  "Bin size in bases (one bin is displayed as one pixel).", true, 100000);
 $parser->addOutfile("out",  "Diagram output file base name. Default is family ID if unset.", true);

@@ -4,14 +4,12 @@
 	@page create_samplesheet
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("create_samplesheet", "\$Rev: 325 $", "Creates a CASAVA-compatible sample sheet from a TSV file.");
+$parser = new ToolBase("create_samplesheet", "Creates a CASAVA-compatible sample sheet from a TSV file.");
 $parser->addInfile("in",  "Input sample file with four columns: lane, sample name, p7 index, p5 index.", false);
 $parser->addOutfile("out", "Output sample sheet file name.", false);
 $parser->addString("run",  "Run number, e.g. '304'.", false);

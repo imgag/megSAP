@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("chip_ngs_compare", "\$Rev: 712 $", "Array and NGS SNP comparison.");
+$parser = new ToolBase("chip_ngs_compare", "Array and NGS SNP comparison.");
 $parser->addInfile("chip",  "Input SNP array genotype file in TSV format.", false);
 $parser->addInfile("ngs",  "Input NGS variant list in TSV format.", false);
 $parser->addEnum("type", "Chip type.", false, array("illumina_6k", "affymetrix_6.0", "affymetrix_250k", "cytoscan_hd"));

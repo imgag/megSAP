@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("db_import_variants", "\$Rev: 915 $", "Imports variants to NGSD.");
+$parser = new ToolBase("db_import_variants", "Imports variants to NGSD.");
 $parser->addString("id", "Processing ID (e.g. GS000123_01 for germline variants, GS000123_01-GS000124_01 for tumor-normal pairs).", false);
 $parser->addInfile("var",  "Input variant list in TSV format.", false);
 // optional
@@ -132,13 +132,13 @@ if($mode=="germline")
 	
 	$parser->log(" done ".time_readable(microtime(true) - $t_start));
 	$parser->log("INSERT/UPDATE VARIANT");
+	$c_ins = 0;
+	$c_upd = 0;
 	$t_start = microtime(true);
 	
 	//insert/update table 'variant'
 	$var_ids = array();
-	$db_connect->beginTransaction();
 	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, exac, kaviar, gene, variant_type, coding, genome_id) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :exac, :kaviar, :gene, :variant_type, :coding, '$gid') ON DUPLICATE KEY UPDATE id=id");
-	$hash2 = $db_connect->prepare("UPDATE variant SET dbsnp=:dbsnp, 1000g=:1000g, exac=:exac, kaviar=:kaviar , gene=:gene, variant_type=:variant_type, coding=:coding WHERE id=:id");
 	for($i=0; $i<$file->rows(); ++$i)
 	{
 		$row = $file->getRow($i);
@@ -151,15 +151,49 @@ if($mode=="germline")
 		$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".$row[0]."' AND start='".$row[1]."' AND end='".$row[2]."' AND ref='".$row[3]."' AND obs='".$row[4]."'", -1);
 		if ($variant_id!=-1) //update (common case)
 		{
-			$db_connect->bind($hash2, "dbsnp", $dbsnp, array(""));
-			$db_connect->bind($hash2, "1000g", $row[$i_10g], array(""));
-			$db_connect->bind($hash2, "exac", $row[$i_exa], array(""));
-			$db_connect->bind($hash2, "kaviar", $row[$i_kav], array(""));
-			$db_connect->bind($hash2, "gene", $row[$i_gen]);
-			$db_connect->bind($hash2, "variant_type", $row[$i_typ], array(""));
-			$db_connect->bind($hash2, "coding", $row[$i_cod], array(""));
-			$db_connect->bind($hash2, "id", $variant_id);
-			$db_connect->execute($hash2, true);
+			//compose array of meta data
+			$metadata = array(
+							"dbsnp" => $dbsnp, 
+							"1000g" => $row[$i_10g],
+							"exac" => $row[$i_exa],
+							"kaviar" => $row[$i_kav],
+							"gene" => $row[$i_gen],
+							"variant_type" => $row[$i_typ],
+							"coding" => $row[$i_cod]
+							);
+							
+			//check which variant meta data in NGSD needs to be updated
+			$metadata_changed = array();
+			$res = $db_connect->executeQuery("SELECT ".implode(", ", array_keys($metadata))." FROM variant WHERE id='".$variant_id."'");
+			foreach($metadata as $key => $value)
+			{
+				if ($res[0][$key]!=$value)
+				{
+					$metadata_changed[$key] = $value;
+				}
+			}
+			
+			//update only the data that needs updating
+			if (count($metadata_changed)!=0)
+			{
+				//prepare query
+				$parts = array();
+				foreach($metadata_changed as $key => $value)
+				{
+					$parts[] = "$key=:$key";
+				}
+				$hash2 = $db_connect->prepare("UPDATE variant SET ".implode(", ", $parts)." WHERE id=:id");
+				
+				//bind and execute
+				foreach($metadata_changed as $key => $value)
+				{
+					$db_connect->bind($hash2, $key, $value, array(""));
+				}
+				$db_connect->bind($hash2, "id", $variant_id, array(""));
+				$db_connect->execute($hash2, true);
+				$db_connect->unsetStmt($hash2);
+				++$c_upd;
+			}
 		}
 		else //insert (rare case)
 		{
@@ -176,16 +210,18 @@ if($mode=="germline")
 			$db_connect->bind($hash, "variant_type", $row[$i_typ], array(""));
 			$db_connect->bind($hash, "coding", $row[$i_cod], array(""));
 			$db_connect->execute($hash, true);
-			
+			++$c_ins;
+
 			$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".$row[0]."' AND start='".$row[1]."' AND end='".$row[2]."' AND ref='".$row[3]."' AND obs='".$row[4]."'", -1);
 		}
 		$var_ids[] = $variant_id;
 	}
-	$db_connect->endTransaction();
 	$db_connect->unsetStmt($hash);
-	$db_connect->unsetStmt($hash2);
 	
+	$parser->log(" inserted variants: $c_ins");
+	$parser->log(" updated variants: $c_upd");
 	$parser->log(" done ".time_readable(microtime(true) - $t_start));
+	
 	$parser->log("INSERT DETECTED VARIANT");
 	$t_start = microtime(true);
 

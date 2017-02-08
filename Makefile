@@ -11,7 +11,6 @@ help:
 	
 	@echo "" 
 	@echo "Auxilary targets:"
-	@echo "  prop               - Sets SVN keywords for all php scripts."
 	@echo "  find_missing_tests - Checks for tools that do not have a test."
 	@echo "  todos              - Checks for todos in the code"
 
@@ -71,9 +70,6 @@ test_all: dummy
 
 test_all_status:
 	clear && tail -n5 *.log
-
-prop: dummy
-	@find src -name "*.php" | xargs -l1 svn propset svn:keywords 'Id Rev Author Date'
 
 find_missing_tests: dummy
 	php src/Tools/find_missing_tests.php

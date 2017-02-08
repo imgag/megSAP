@@ -3,15 +3,12 @@
 /**
 	@page analyze
 */
-
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("analyze", "\$Rev: 907 $", "Complete NGS analysis pipeline.");
+$parser = new ToolBase("analyze", "Complete NGS analysis pipeline.");
 $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
@@ -47,7 +44,7 @@ list($user) = exec2("whoami");
 $parser->log("Executed on server: ".implode(" ", $server)." as ".implode(" ", $user));
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
-$parser->execTool("php ".$basedir."Tools/data_setup.php", "-build ".$sys['build']);
+$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 
 //output file names
 //rename out folder
@@ -90,39 +87,50 @@ if (in_array("ma", $steps))
 	//find FastQ input files
 	$files1 = glob($in_for);
 	$files2 = glob($in_rev);
-	if (count($files1)!=count($files2))	trigger_error("Found mismatching forward and reverse read file count!\n Forward: ".implode(" ", $in_for)."\n Reverse: ".implode(" ", $in_rev), E_USER_ERROR);
-
+	if (count($files1)!=count($files2))
+	{
+		trigger_error("Found mismatching forward and reverse read file count!\n Forward: ".implode(" ", $in_for)."\n Reverse: ".implode(" ", $in_rev), E_USER_ERROR);
+	}
+	if (count($files1)==0)
+	{
+		trigger_error("Found no read files ending with '_R1_001.fastq.gz' or '_R2_001.fastq.gz'!", E_USER_ERROR);
+	}
+	
 	$extras = array();
 	if($clip_overlap) $extras[] = "-clip_overlap";
 	if($no_abra) $extras[] = "-no_abra";
 	if(file_exists($log_ma)) unlink($log_ma);
 	
-	$parser->execTool("php ".$basedir."Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $out_folder -out_name $name --log $log_ma ".implode(" ", $extras)." -threads $threads");
+	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $out_folder -out_name $name --log $log_ma ".implode(" ", $extras)." -threads $threads");
 }
 
 //variant calling
 if (in_array("vc", $steps))
 {	
 	$extras = array();
-	if ($sys['target_file']!="") $extras[] = " -target ".$sys['target_file'];
+	if ($sys['target_file']!="")
+	{
+		$extras[] = "-target ".$sys['target_file'];
+		$extras[] = "-target_extend 50";
+	}
 	if ($lofreq) //lofreq
 	{
-		$extras[] = " -min_af 0.05";
+		$extras[] = "-min_af 0.05";
 	}
 	else if (!$sys['shotgun']) //amplicon panels
 	{
-		$extras[] = " -min_af 0.1";
+		$extras[] = "-min_af 0.1";
 	}
 	
 	if(file_exists($log_vc)) unlink($log_vc);
-	$parser->execTool("php ".$basedir."NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc ".implode(" ", $extras));
+	$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc ".implode(" ", $extras));
 }
 
 //annotation and reports
 if (in_array("an", $steps))
 {
 	if(file_exists($log_an)) unlink($log_an);
-	$parser->execTool("php ".$basedir."Pipelines/annotate.php", "-out_name $name -out_folder $out_folder -system $system -thres $thres --log $log_an");
+	$parser->execTool("Pipelines/annotate.php", "-out_name $name -out_folder $out_folder -system $system -thres $thres --log $log_an");
 	
 	//low-coverage report
 	if($sys['type']=="WGS") //WGS
@@ -139,7 +147,7 @@ if (in_array("an", $steps))
 	//x-diagnostics report
 	if ($sys['name_short']=="ssX" || starts_with($sys['name_short'], "hpXLIDv"))
 	{
-		$parser->execTool("php ".$basedir."Pipelines/x_diagnostics.php", "-bam $bamfile -out_folder {$out_folder} --log $log_an -system {$system}");
+		$parser->execTool("Pipelines/x_diagnostics.php", "-bam $bamfile -out_folder {$out_folder} --log $log_an -system {$system}");
 	}
 }
 
@@ -147,12 +155,12 @@ if (in_array("an", $steps))
 if (in_array("db", $steps))
 {
 	if(file_exists($log_db)) unlink($log_db);
-	$parser->execTool("php ".$basedir."NGS/db_check_gender.php", "-in $bamfile -pid $name --log $log_db");
+	$parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name --log $log_db");
 	
 	//import variants
 	if (file_exists($varfile))
 	{
-		$parser->execTool("php ".$basedir."NGS/db_import_variants.php", "-id $name -var $varfile -build ".$sys['build']." -force --log $log_db");
+		$parser->execTool("NGS/db_import_variants.php", "-id $name -var $varfile -build ".$sys['build']." -force --log $log_db");
 	}
 	
 	//update last_analysis column of processed sample in NGSD (before db_import_qc.php because that can throw an error because of low coverage)
@@ -161,7 +169,7 @@ if (in_array("db", $steps))
 	//import QC data
 	$qc_files = array($qc_fastq, $qc_map);
 	if (file_exists($qc_vc)) $qc_files[] = $qc_vc; 
-	$parser->execTool("php ".$basedir."NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force --log $log_db");
+	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force --log $log_db");
 }
 
 //TODO special-handling of WGS data! How?
@@ -191,7 +199,7 @@ if (in_array("cn", $steps))
 	//perform copy-number analysis
 	$cnv_out = $tmp_folder."/output.tsv";
 	$cnv_out2 = $tmp_folder."/output.seg";
-	$parser->execTool("php $basedir/NGS/vc_cnvhunter.php", "-cov $cov_file -system $system -out $cnv_out -seg $name --log $log_cn");
+	$parser->execTool("NGS/vc_cnvhunter.php", "-cov $cov_file -system $system -out $cnv_out -seg $name --log $log_cn");
 
 	//copy results to output folder
 	if (file_exists($cnv_out)) copy2($cnv_out, $cnvfile);

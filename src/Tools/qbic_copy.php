@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("qbic_copy", "\$Rev: 894 $", "Copies QBIC data into the QBIC datamover folder.");
+$parser = new ToolBase("qbic_copy", "Copies QBIC data into the QBIC datamover folder.");
 $parser->addFlag("upload", "Enable real upload (otherwise a dry run is performed: dummy data is written to the temporary folder, but it is not copied to the datamover folder).");
 $parser->addString("project", "Restrict upload to a project.", true, "");
 $parser->addStringArray("samples", "Restrict upload to a processed sample.", true, "");
@@ -420,7 +420,8 @@ foreach($res as $row)
 		{
 			if (ends_with($file, ".fastq.gz")) $files[] = $file;
 			if (ends_with($file, "_var_annotated.vcf.gz")) $files[] = $file;
-			if (ends_with($file, "_normalized_fpkm.tsv")) $files[] = $file;
+			if (ends_with($file, "_counts_raw.tsv")) $files[] = $file;
+			if (ends_with($file, "_counts_fpkm.tsv")) $files[] = $file;
 		}
 		
 		//skip already uploaded

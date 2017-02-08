@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("plink_homocygosity", "\$Rev: 877 $", "Wrapper for PLINK homocygosity mapping and converter to improved output format.");
+$parser = new ToolBase("plink_homocygosity", "Wrapper for PLINK homocygosity mapping and converter to improved output format.");
 $parser->addInfile("in_map",  "Input mapping file name.", false);
 $parser->addInfile("in_ped",  "Input pedigree file name.", false);
 $parser->addOutfile("out", "Output homocygosity mapping result file name.", false);

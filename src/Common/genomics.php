@@ -274,7 +274,7 @@ function chr_list()
 */
 function get_path($name, $throw_on_error=true)
 {
-	$dir = realpath(dirname(__FILE__)."/../../")."/";
+	$dir = repository_basedir();
 	$parsed_ini = array();
 	
 	//load defaults if not set by ToolBase
@@ -318,7 +318,7 @@ function get_db($db, $name)
 	//load defaults if not set by ToolBase
 	if (!isset($GLOBALS["path_ini"]))
 	{
-		$parsed_ini = parse_ini_file(dirname(__FILE__)."/../../settings.ini");
+		$parsed_ini = parse_ini_file(repository_basedir()."/settings.ini");
 	}
 	else 
 	{
@@ -345,7 +345,7 @@ function get_dbs()
 	//load defaults if not set by ToolBase
 	if (!isset($GLOBALS["path_ini"]))
 	{
-		$parsed_ini = parse_ini_file(dirname(__FILE__)."/../../settings.ini");
+		$parsed_ini = parse_ini_file(repository_basedir()."/settings.ini");
 	}
 	else 
 	{
@@ -413,7 +413,7 @@ function load_qc_terms()
 	$terms = array();
 	
 	$current = array();
-	$h = fopen(dirname(__FILE__)."/../../data/dbs/Ontologies/qc-cv.obo", "r");
+	$h = fopen(repository_basedir()."/data/dbs/Ontologies/qc-cv.obo", "r");
 	while(!feof($h))
 	{
 		$line = trim(fgets($h));

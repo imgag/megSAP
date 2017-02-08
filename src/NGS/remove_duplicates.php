@@ -10,7 +10,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("remove_duplicates", "\$Rev: 343 $", "Removed duplicate reads.");
+$parser = new ToolBase("remove_duplicates", "Removed duplicate reads.");
 $parser->addInfile("in",  "Input BAM file.", false);
 $parser->addOutfile("out",  "Output BAM file.", false);
 extract($parser->parse($argv));

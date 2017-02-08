@@ -4,14 +4,12 @@
 	@page annotate
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("annotate", "\$Rev: 907 $", "Annotate variants.");
+$parser = new ToolBase("annotate", "Annotate variants.");
 $parser->addString("out_name", "Processed sample ID (e.g. 'GS120001_01').", false);
 $parser->addString("out_folder", "Output folder.", false);
 //optional
@@ -50,22 +48,22 @@ $stafile = $out_folder."/".$out_name."_stats_vc.qcML";
 
 //get system
 $sys = load_system($system, $out_name);
-if ($sys['build']!="hg19")	trigger_error("Can only annotate hg19 data!", E_USER_ERROR);
+if ($sys['build']!="hg19" && $sys['build']!="mm10")	trigger_error("Unknown build ".$sys['build'].". Can only annotate hg19 or mm10 data!", E_USER_ERROR);
 
 //annotate VCF
 $args = "";
 if ($sys['type']!="WGS") $args .= " -no_updown";
-$parser->execTool("php ".$basedir."NGS/an_snpeff.php", "-in $vcf_unzipped -thres $thres -build ".$sys['build']." -out $annfile $args");
+$parser->execTool("NGS/an_snpeff.php", "-in $vcf_unzipped -thres $thres -build ".$sys['build']." -out $annfile $args");
 
 //check vcf file
-if(!$nfc) $parser->execTool("php ".$basedir."NGS/check_vcf.php", "-in $annfile -build ".$sys['build']);
+if(!$nfc) $parser->execTool("NGS/check_vcf.php", "-in $annfile -build ".$sys['build']);
 
 //convert to GSvar file
 if ($t_col=="na") //germline
 {
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
 	$parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $stafile", true);
-	$parser->execTool("php ".$basedir."NGS/vcf2gsvar.php", "-in $annfile -out $varfile");
+	$parser->execTool("NGS/vcf2gsvar.php", "-in $annfile -out $varfile");
 }
 else //somatic
 {
@@ -76,7 +74,7 @@ else //somatic
 	$tmp_annfile = $parser->tempFile("_somatic.vcf");
 	if(!rename($annfile,$tmp_annfile))	trigger_error("Could not move '$annfile' to '$tmp_annfile'.",E_USER_ERROR);
 	$cols = array("Interpro_domain");
-	$parser->exec(get_path("SnpSift"), "dbnsfp -noLog -db ".get_path("data_folder")."/dbs/dbNSFP/dbNSFPv2.9.1.txt.gz -f ".implode(",",$cols)." $tmp_annfile > $annfile", true);
+	$parser->exec(get_path("SnpSift"), "dbnsfp -noLog -db ".get_path("data_folder")."/dbs/dbNSFP/dbNSFPv2.9.2.txt.gz -f ".implode(",",$cols)." $tmp_annfile > $annfile", true);
 	//SnpSift vcf comments are printed twice using dbNSFP -> remove duplicate comments
 	$af = Matrix::fromTSV($annfile);
 	$af->setComments(array_unique($af->getComments()));
@@ -91,7 +89,7 @@ $parser->exec("tabix", "-p vcf $annfile_zipped", false); //no output logging, be
 if ($sys['build']=="hg19" && $sys['type']=="WGS") 
 {
 	rename($varfile, $varfile_full);
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $varfile_full -out $varfile -reg ".get_path("data_folder")."/enrichment/ssHAEv6_2016_09_01.bed", false);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $varfile_full -out $varfile -reg ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed", false);
 }
 
 //annotated variant frequencies from NGSD
@@ -115,7 +113,7 @@ if($t_col=="na") //not for somatic
 	//check output TSV file and copy result to out_folder
 	if(!$nfc)
 	{
-		$parser->execTool("php ".$basedir."NGS/check_tsv.php", "-in $varfile -build ".$sys['build']);
+		$parser->execTool("NGS/check_tsv.php", "-in $varfile -build ".$sys['build']);
 	}
 }
 

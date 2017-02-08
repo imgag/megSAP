@@ -5,7 +5,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
-$parser = new ToolBase("converter_bgi2tsv", "\$Rev: 309 $", "Compares two tsv files.");
+$parser = new ToolBase("converter_bgi2tsv", "Compares two tsv files.");
 $parser->addInfile("gff",  "Input file / folder containing variant files (if folder: files are supposed to end with '*.gff.gz').", false);
 $parser->addOutfile("out",  "Output file in tsv-format.", false);
 extract($parser->parse($argv));

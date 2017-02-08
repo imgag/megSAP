@@ -1,8 +1,15 @@
+#!/bin/bash
 set -e
 set -o pipefail
 set -o verbose
 
-genome=`pwd`/genomes/hg19.fa
+if [ -z "$1" ]
+  then
+	genome=`pwd`/genomes/hg19.fa
+  else
+	mkdir -p $1/genomes/
+	genome=$1/genomes/hg19.fa
+fi
 rm -rf $genome $genome.fai
 
 path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/chromosomes"

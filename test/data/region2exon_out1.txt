@@ -1,0 +1,3 @@
+Non-synonymous exons in region
+chr1	151137554	151137734	LYSMD1_Exon_Nr2	-
+chr1	151138222	151138258	LYSMD1_Exon_Nr1	-

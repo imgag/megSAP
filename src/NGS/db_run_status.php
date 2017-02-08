@@ -6,7 +6,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-$parser = new ToolBase("db_run_status", "\$Rev: 592 $", "Prints status information about run folders in the /mnt/raw-data/");
+$parser = new ToolBase("db_run_status", "Prints status information about run folders in the /mnt/raw-data/");
 extract($parser->parse($argv));
 
 function find_run($fcid)

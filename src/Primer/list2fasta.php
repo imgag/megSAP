@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("list2fasta", "\$Rev: 168 $", "Converts text input format to FASTA.");
+$parser = new ToolBase("list2fasta", "Converts text input format to FASTA.");
 $parser->addInfile("in",  "Input primer TXT file (name_for, name_rev, seq_for, seq_ref, chr, prod_length).", false);
 $parser->addOutfile("out",  "Output FASTA file.", false);
 extract($parser->parse($argv));

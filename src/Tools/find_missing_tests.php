@@ -2,8 +2,8 @@
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 //init
-$src = realpath(dirname($_SERVER['SCRIPT_FILENAME'])."/../")."/";
-$test = realpath("{$src}/../test/")."/";
+$src = repository_basedir()."/src/";
+$test = repository_basedir()."/test/";
 
 //find tests
 list($tests) = exec2("ls $test | grep tool_test_");

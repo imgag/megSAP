@@ -7,7 +7,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("db_import_qc", "\$Rev: 924 $", "Imports QC terms to NGSD.");
+$parser = new ToolBase("db_import_qc", "Imports QC terms to NGSD.");
 $parser->addString("id", "Processing ID (e.g. GS000123_01).", false);
 $parser->addInfileArray("files", "qcML files to import.", false, true);
 //optional
@@ -93,10 +93,7 @@ foreach($files as $file)
 		}
 		
 		//skip terms that should be skipped
-		print("${key}\n");
-		if(in_array($key, $skip_parameters)) {
-			continue;
-		}
+		if(in_array($key, $skip_parameters)) continue;
 		
 		//error if term is found several times
 		if(isset($qc_par[$key])) trigger_error("Found QC term '$key' more than once!", E_USER_ERROR);

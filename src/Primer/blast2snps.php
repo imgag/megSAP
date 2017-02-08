@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("blast2snps", "\$Rev: 868 $", "Looks up SNPs in primer pairs.");
+$parser = new ToolBase("blast2snps", "Looks up SNPs in primer pairs.");
 $parser->addInfile("in",  "Input primer TXT file.", false);
 $parser->addInfile("blast",  "Input blast output file.", false);
 $parser->addOutfile("out",  "Output TXT file.", false);
@@ -29,7 +29,7 @@ function length($h1, $h2)
 function filter_by_af($line, $min_freq)
 {
 	$parts = explode("\t", $line);
-	if (count($parts)<8) continue;
+	if (count($parts)<8) return false;
 	
 	$af = 0.0;
 	$info = explode(";", $parts[7]);

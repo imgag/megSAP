@@ -4,13 +4,12 @@
 	@page check_bcl	
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("check_bcl", "\$Rev: 2 $", "Checks which tiles of an Illumina GAIIx lane are missing or corrupt.");
+$parser = new ToolBase("check_bcl", "Checks which tiles of an Illumina GAIIx lane are missing or corrupt.");
 $parser->addInfile("in",  "Run folder.", false);
 $parser->addFloat("lane",  "Lane number.", false);
 extract($parser->parse($argv));

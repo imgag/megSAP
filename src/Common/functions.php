@@ -455,14 +455,29 @@ function traceback()
 	return implode("\n", $output)."\n";
 }
 
-/*
-	@brief Returns the revision of the SVN repository.
-*/
-function get_svn_rev()
+///Returns the base path of the repository
+function repository_basedir()
 {
-	$output = array();
-	exec("cd ".dirname($_SERVER['SCRIPT_FILENAME'])."/../ && git describe --tags", $output);
-	return trim($output[0]);
+	return realpath(dirname(__FILE__)."/../../")."/";
+}
+
+///Returns the revision of the repository.
+function repository_revision($prefix_repos_name=false)
+{
+	$repos_rev = "";
+
+	if($prefix_repos_name)
+	{
+		$output1 = "";
+		exec("cd ".repository_basedir()." && git rev-parse --show-toplevel", $output1);
+		$repos_rev .= basename($output1[0])." ";
+	}
+	
+	$output2 = array();
+	exec("cd ".repository_basedir()." && git describe --tags", $output2);
+	$repos_rev .= trim($output2[0]);
+	
+	return $repos_rev;
 }
 
 /*
@@ -612,57 +627,13 @@ function common_suffix($s1, $s2)
 	return substr($s1, -$i);
 }
 
-/**
- * @brief checks if directory exists and creates it if not
- * 
- */
-function create_directory($path) {
-	if (!is_dir($path)) {
+///checks if directory exists and creates it if not
+function create_directory($path)
+{
+	if (!is_dir($path))
+	{
 		mkdir($path);
 	}
-}
-
-/**
- * @brief Extracts sub-directories from given path and generates folder structure if necessary
- * @return returns the output folder without output file name
- */
-function create_path($prefix, $isFile=false) {
-	if (strpos($prefix, "/") !== false) {
-		$dirs = explode("/", $prefix);
-		if($dirs[0] == "") {
-			$newPath = "";
-			array_shift($dirs);
-		} else {
-			$newPath = ".";
-		}
-	
-		for($i=0;$i<count($dirs)-1;++$i) {
-			$newPath = $newPath."/".$dirs[$i];
-			create_directory($newPath);
-		}
-		
-		//if the chosen path is a directory, then create a directory for the last filename
-		if($isFile) {
-			$newPath = $newPath."/".$dirs[count($dirs)-1];
-			create_directory($newPath);
-		}
-	
-		//extract sample Name
-		if($dirs[count($dirs)-1] == "") {
-			$sampleName = $dirs[count($dirs)-2];
-			$outdir = implode("/", $dirs);
-		} else {
-			$sampleName = $dirs[count($dirs)-1];
-			array_pop($dirs);
-			$outdir = implode("/", $dirs);
-			$outdir = $outdir."/";
-		}
-	} else {
-		$sampleName = $prefix;
-		$outdir = "./";
-	}
-	
-	return array($sampleName, $outdir);
 }
 
 ///Own implementation of is_writable, because ???

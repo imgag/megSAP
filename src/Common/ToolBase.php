@@ -17,7 +17,6 @@ require_once("functions.php");
 class ToolBase
 {
 	private $name = "";
-	private $version = "";
 	private $description = "";
 	private $params = array();
 	
@@ -32,7 +31,7 @@ class ToolBase
 	private $queued_jobs = array();
 	
 	/// Constructor
-	function __construct($name, $version, $description)
+	function __construct($name, $description)
 	{
         $this->name = $name;
         $this->description = $description;
@@ -44,13 +43,6 @@ class ToolBase
 			print "ERROR: Tool name '$name' and file name '$filename' do not match.\n";
 			exit(1);
 		}
-		
-		// Special handling of SVN revision
-		if (substr($version, 0, 5)=="\$Rev:")
-		{
-			$version = trim(substr($version, 5, -1));
-		}
-        $this->version = $version;
 		
 		// Set start time
 		$this->start_time = microtime(true);
@@ -296,7 +288,7 @@ class ToolBase
 		}
 		if(in_array("--version", $argv))
 		{
-			print "$this->name version $this->version\n";
+			print "$this->name version ".$this->version()."\n";
 			exit(0);
 		}
 		if(in_array("--verbose", $argv))
@@ -325,13 +317,13 @@ class ToolBase
 		}
 		if(in_array("--tdx", $argv))
 		{
-			$filename = $_SERVER['PHP_SELF'].".tdx";
+			$filename = $_SERVER['SCRIPT_FILENAME'].".tdx";
 			$this->storeTDX($filename);
 			exit(0);
 		}
 		
 		//log tool start
-		$this->log("START ".$this->name." (version: ".$this->version.")");
+		$this->log("START ".$this->name." (version: ".$this->version().")");
 		$this->log("Verbose: ".($this->verbose ? "true" : "false"));
 		
 		//set default values
@@ -529,7 +521,7 @@ class ToolBase
 		$offset = max(18, $max_name + $max_arg + 6);
 		$indent = "  ".str_pad("", $offset, " ");
 		
-		print $this->name." (version ".$this->version.")\n";
+		print $this->name." (version ".$this->version().")\n";
 		print "\n";
 		print $this->description."\n";
 		
@@ -817,7 +809,7 @@ class ToolBase
 	/// Returns the version of this tool
 	function version()
 	{
-		return $this->version;
+		return repository_revision();
 	}
 	
 	/**
@@ -829,10 +821,13 @@ class ToolBase
 	*/
 	function execTool($command, $parameters)
 	{
+		//prepend php and path
+		$command = "php ".repository_basedir()."/src/".$command;
+		
 		//determine tool version
 		$output = array();
 		exec($command." --version", $output, $return);
-		preg_match("/[\d\.]+$/", $output[0], $hits);
+		preg_match("/[A-Za-z0-9\.-]+$/", $output[0], $hits);
 		$version = $hits[0];
 		
 		//create call id
@@ -992,7 +987,7 @@ class ToolBase
 		$writer = new XMLConstructor();
 		
 		$writer->openTag("TDX", array("version"=>"1"));
-		$writer->openTag("Tool", array("name"=>$this->name, "version"=>$this->version, "interpreter"=>"php"));
+		$writer->openTag("Tool", array("name"=>$this->name, "version"=>$this->version(), "interpreter"=>"php"));
 		$writer->addTag("Description", array(), $this->description);
 		
 		foreach($this->params as $name => $details)

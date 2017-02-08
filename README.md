@@ -39,7 +39,7 @@ Then you have to adapt your ~/.gitconfig file like that:
 
 First, we need to download the tools the pipeline relies on:
 
-	> cd php/data/
+	> cd megSAP/data/
 	> chmod 755 download_*.sh
 	> ./download_tools.sh
 
@@ -57,11 +57,13 @@ Finally, we need to download and convert some open-source databases for annotati
 ## Running an analysis (single sample DNA)
 
 The analysis pipeline assumes that that all data to analyze resides in a sample folder as produced by Illumina's [bcl2fastq](http://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html) tool. If that is the case, the whole analysis is performed with one command.  
-For example like that:
+For example like this:
 
-	php megSAP/src/Pipelines/analyze.php -folder Sample_NA12878 -name NA12878 -system system.ini -steps ma,vc,an
+	php megSAP/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5.ini -steps ma,vc,an
 
-The configuration of the pipeline is done using the `system.ini` file, which contains information about adapter sequences, target region, data type, etc.
+In the example above, the configuration of the pipeline is done using the `hpHBOCv5.ini` file, which contains information about adapter sequences, target region, data type, etc.
+
+Example data with can be analyzed using the command above can be downloaded from [here](https://medgen.medizin.uni-tuebingen.de/NGS-downloads/NA12878_01.zip).
 
 After the data analysis, the sample folder contains BAM and VCF (gzipped) files as expected. Additionally, several qcML files that contain QC data are generated (open with a browser).
 
@@ -70,6 +72,8 @@ After the data analysis, the sample folder contains BAM and VCF (gzipped) files 
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+
+
 
 
 

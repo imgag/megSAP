@@ -2,4 +2,4 @@ chr2	166246710	166246710	A	C	trio_denovo
 chr2	179542499	179542499	T	C	trio_denovo
 chr5	138614072	138614072	T	G	trio_denovo
 chr7	83278198	83278198	G	A	trio_denovo
-chr12	7048292	7048292	C	T	phylop_high;pred_pathogenic_2;trio_denovo
+chr12	7048292	7048292	C	T	pred_pathogenic;trio_denovo

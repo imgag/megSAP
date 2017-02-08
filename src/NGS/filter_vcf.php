@@ -4,17 +4,18 @@
 	@todo revisit somatic and somatic_ds (freebayes!) filter
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+
+error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("filter_vcf", "\$Rev: 920 $", "Filter VCF-files according to different filter criteria.");
+$parser = new ToolBase("filter_vcf", "Filter VCF-files according to different filter criteria.");
 $parser->addInfile("in", "Input variant file in VCF format containing all necessary columns (s. below for each filter).", false);
 $parser->addOutfile("out", "Output variant file in VCF format.", false);
 $filter = array('somatic', 'somatic_ds', 'coding', 'non_synonymous', 'somatic_diag_capa', 'iVac','all');
 $parser->addString("type", "Filter set to use, can be comma delimited. Valid are: ".implode(",",$filter).".",false);
 //optional
-$parser->addFlag("r", "Reduce variants to those passing the filter.");
+$parser->addFlag("keep", "Keep all variants. Otherwise only variants passing all filters will be kept");
 $parser->addString("roi", "Target region BED file (for off-target filter).", true, "");
 $parser->addFloat("contamination", "Estimated fraction of tumor cells in normal sample.",true,0.00);
 $parser->addFloat("min_af", "Minimum variant allele frequency in tumor.",true,0.05);
@@ -271,7 +272,7 @@ if($var_caller=="freebayes")
 	$in_file = $filtered;	
 }
 
-if($r)
+if(!$keep)
 {
 	$filtered = new Matrix();
 	$filtered->setComments($in_file->getComments());

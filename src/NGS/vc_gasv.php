@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("gasv", "\$Rev: 568 $", "Run GASV. Only WGS.");
+$parser = new ToolBase("gasv", "Run GASV. Only WGS.");
 $parser->addInfile("bam_file",  "Bam file.", false);
 $parser->addString("out", "Output folder.", false);
 //optional

@@ -3,11 +3,12 @@
 	@page filter_tsv
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+
+error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("filter_tsv", "\$Rev: 868 $", "Filter TSV-files according to different filters.");
+$parser = new ToolBase("filter_tsv", "Filter TSV-files according to different filters.");
 $parser->addInfile("in",  "Input variant file in TSV format containing all necessary columns (s. below for each filter).", false);
 $parser->addOutfile("out",  "Output variant file in TSV format.", false);
 $filter = array('somatic', 'somatic_ds', 'coding', 'non_synonymous', 'somatic_diag_capa', 'iVac');

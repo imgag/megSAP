@@ -3,24 +3,22 @@
  * @page runqc_parser
  */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("runqc_parser", "\$Rev: 2$", "Parsers Illumina InterOp files and imports RunQC metrics into the NGSD database.");
+$parser = new ToolBase("runqc_parser", "Parsers Illumina InterOp files and imports RunQC metrics into the NGSD database.");
 $parser->addString("name", "Name of the run.", false);
 $parser->addString("run_dir", "Absolute path to run directory.", false);
 $parser->addFlag("force", "Overwrites already existing DB entries instead of throwing an error.");
 $parser->addEnum("db",  "Database to connect to.", true, array("NGSD", "NGSD_TEST"), "NGSD_TEST");
 extract($parser->parse($argv));
 
-
-
+$run_dir_abs = realpath($run_dir);
 print "=================\n";
-print basename($run_dir);
+print $run_dir_abs."\n";
 print "=================\n";
+
 $db_connect = DB::getInstance($db);
 $hash = $db_connect->prepare("SELECT id, fcid FROM sequencing_run WHERE name = :name");
 $db_connect->bind($hash, 'name', $name);
@@ -29,7 +27,10 @@ $result = $db_connect->fetch($hash);
 if(count($result) != 1)	trigger_error("Sequencing run with the name $name not found in DB.", E_USER_ERROR);
 $seq_run_id = $result[0]['id'];
 $flowcell_id = $result[0]['fcid'];
-if(!(contains($run_dir,$flowcell_id))) trigger_error("Flowcell ID from DB ($flowcell_id) was not found in directory name.", E_USER_ERROR);
+if(!contains($run_dir_abs,$flowcell_id))
+{
+	trigger_error("Flowcell ID from DB ($flowcell_id) was not found in directory '$run_dir_abs'.", E_USER_ERROR);
+}
 
 // Check if the following two xml-files are present
 // - RunInfo.xml

@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("blast", "\$Rev: 712 $", "Blast a FASTA file against the hg19 database.");
+$parser = new ToolBase("blast", "Blast a FASTA file against the hg19 database.");
 $parser->addInfile("in",  "Input FASTA file.", false);
 $parser->addOutfile("out",  "Output BLAST result file.", false);
 extract($parser->parse($argv));

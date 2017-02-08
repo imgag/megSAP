@@ -1,6 +1,6 @@
 <?php 
 /** 
-	@page vcf_fix_double_het
+	@page vcf_fix
 	
 	Fixes VCF file problems produced by Freebayes:
 	- Merges duplicate heterozygous variants into one homozygous variant
@@ -12,7 +12,6 @@
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
-
 
 //convert INFO data to associative array
 function info_data($info)
@@ -109,14 +108,13 @@ while(!feof($h_in))
 	if ($var[0]==$var_last[0] && $var[1]==$var_last[1] && $var[3]==$var_last[3] && $var[4]==$var_last[4])
 	{
 		$sample = sample_data($var[8], $var[9]);
-		if ($sample['GT']!="0/1")
-		{
-			trigger_error("Cannot merge variant with genotype '".$sample['GT']."'", E_USER_ERROR);
-		}
 		$sample_last = sample_data($var[8], $var[9]);
-		if ($sample_last['GT']!="0/1")
+		if ($sample['GT']!="0/1" || $sample_last['GT']!="0/1")
 		{
-			trigger_error("Cannot merge variant with genotype '".$sample['GT']."'", E_USER_ERROR);
+			//this happens sometimes when a large variant block overlaps two target region blocks (see https://github.com/ekg/freebayes/issues/351)
+			$stderr = fopen('php://stderr', 'w');
+			fwrite($stderr, "Warning: merging same variant {$var[0]}:{$var[1]} {$var[3]}>{$var[4]} with genotypes '".$sample['GT']."' and '".$sample_last['GT']."'\n");
+			fclose($stderr);
 		}
 		$dp = $sample['DP'];
 		$ao = min($dp, $sample['AO'] + $sample_last['AO']);

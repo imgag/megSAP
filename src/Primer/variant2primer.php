@@ -5,10 +5,9 @@
 */
 
 //parse command line arguments
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-$parser = new ToolBase("variant2primer", "\$Rev: 712 $", "Finds primers for given region list");
+$parser = new ToolBase("variant2primer", "Finds primers for given region list");
 $parser->addInfile("in",  "Input region list.", false);
 $parser->addOutfile("out",  "Output primer list.", false);
 $parser->addInt("min_len", "Minimum product length.", true, 200);

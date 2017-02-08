@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("data_setup", "\$Rev: 877 $", "Creates a local copy of static NGS data that is heavily used during data analysis and should not be accessed via the network.");
+$parser = new ToolBase("data_setup", "Creates a local copy of static NGS data that is heavily used during data analysis and should not be accessed via the network.");
 $parser->addString("build", "Genome build.", false);
 extract($parser->parse($argv));
 

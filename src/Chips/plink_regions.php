@@ -7,7 +7,7 @@
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
-$parser = new ToolBase("plink_regions", "\$Rev: 712 $", "Extracts homocygosity regions from the PLINK output.");
+$parser = new ToolBase("plink_regions", "Extracts homocygosity regions from the PLINK output.");
 $parser->addInfile("in",  "PLINK homocygosity mapping output file.", false);
 $parser->addOutfile("out",  "Output BED file.", false);
 $parser->addInt("gap",  "Gaps between regions upto this size (in bases) are automatically closed.", true, 1000000);

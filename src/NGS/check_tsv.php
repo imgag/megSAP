@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("check_tsv", "\$Rev: 701 $", "Performs TSV file format check.");
+$parser = new ToolBase("check_tsv", "Performs TSV file format check.");
 $parser->addInfile("in",  "Input file in TSV format.", false);
 //optional
 $parser->addInt("limit", "The number of variants to check for format-specific checks. '0' means all.", true, 10000);

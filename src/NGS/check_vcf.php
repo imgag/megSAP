@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("check_vcf", "\$Rev: 859 $", "Performs VCF file format check.");
+$parser = new ToolBase("check_vcf", "Performs VCF file format check.");
 $parser->addInfile("in",  "Input file in VCF format.", false);
 //optional
 $parser->addInt("limit", "Maximum number of lines that should be used to validate the vcf file (including header lines). '0' means all.", true, 10000);

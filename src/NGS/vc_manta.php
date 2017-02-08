@@ -12,31 +12,28 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // add parameter for command line ${input1.metadata.bam_index}
 // parse command line arguments
-$parser = new ToolBase("vc_manta", "\$Rev: 885 $", "Call somatic strucural variants with manta. Creates an VCF file.");
+$parser = new ToolBase("vc_manta", "Call somatic strucural variants with manta. Creates an VCF file.");
 $parser->addInfileArray("bam", "Normal BAM file. Only one bam file allowed for somatic mode.", false);
 $parser->addString("out", "Output file (gzipped and tabix indexed).", false);
 //optional
 $parser->addInfile("t_bam", "Tumor BAM file.", true);
 $parser->addFlag("exome", "If set settings for exome are used.", true);
-// $parser->addFlag("rna", "If set settings for rna seq are used.", true);
 $parser->addString("build", "The genome build to use.", true, "hg19");
 extract($parser->parse($argv));
 
 //run manta
 $manta_folder = $parser->tempFolder()."/mantaAnalysis";
 $genome = get_path("local_data")."/$build.fa";
-// if($rna)	$genome = get_path("data_folder")."genomes/STAR/hg19/Genome";
 $pars = "";
 $pars .= "--referenceFasta $genome ";
 $pars .= "--runDir $manta_folder --config ".get_path("manta")."/configManta.py.srv017.ini ";
 $pars .= "--normalBam ".implode(" --normalBam ", $bam)." ";
 if(isset($t_bam))
 {
-	if(count($bam)>1)	trigger_error("Only one bam file allowed in somatic mode!",E_USER_ERROR);
+	if(count($bam)>1)	trigger_error("Only one bam file allowed in somatic mode!", E_USER_ERROR);
 	$pars .= "--tumorBam $t_bam ";
 }
 if($exome)	$pars .= "--exome ";
-// if($rna)	$pars .= "--rna ";
 
 $parser->exec("python ".get_path('manta')."/configManta.py", $pars,true);
 $parser->exec("python $manta_folder/runWorkflow.py", " -m local -j4 -g4", false);

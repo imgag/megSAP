@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("chip2plink", "\$Rev: 712 $", "Converts a SNP array genotype file to PLINK input files (MAP and PED) using meta data from the mapping array table.");
+$parser = new ToolBase("chip2plink", "Converts a SNP array genotype file to PLINK input files (MAP and PED) using meta data from the mapping array table.");
 $parser->addInfile("chip",  "SNP array genotype file.", false);
 $parser->addInfile("meta",  "Text export of mapping array table.", false);
 $parser->addEnum("type", "Chip type.", false, array("illumina_6k", "affymetrix_6.0", "affymetrix_250k", "cytoscan_hd"));

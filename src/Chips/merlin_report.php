@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 
 // parse command line arguments
-$parser = new ToolBase("merlin_report", "\$Rev: 789 $", "Converts linkage region from a merlin parametric model analysis to a BED file.");
+$parser = new ToolBase("merlin_report", "Converts linkage region from a merlin parametric model analysis to a BED file.");
 $parser->addInfile("in",  "Input MODEL file", false);
 $parser->addOutfile("out",  "Output BED file", true);
 extract($parser->parse($argv));

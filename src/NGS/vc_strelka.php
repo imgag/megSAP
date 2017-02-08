@@ -12,12 +12,12 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // add parameter for command line ${input1.metadata.bam_index}
 // parse command line arguments
-$parser = new ToolBase("vc_strelka", "\$Rev: 903 $", "Call somatic variants with strelka. Creates an VCF file.");
+$parser = new ToolBase("vc_strelka", "Call somatic variants with strelka. Creates an VCF file.");
 $parser->addInfile("t_bam",  "Tumor BAM file. Remember: Place bai-file in the same folder as *.bam-file. Name it *.bam.bai.", false);
 $parser->addInfile("n_bam",  "Normal BAM format. Remember: Place bai-file in the same folder as *.bam-file. Name it *.bam.bai.", false);
 $parser->addOutfile("out", "Output file in VCF format (gzipped and tabix indexed).", false);
 //optional
-$parser->addFlag("r", "Reduce variant list to passed variants.");
+$parser->addFlag("k", "Keep all variants. Otherwise all variants that do not pass all filters will be removed.");
 $parser->addFlag("amplicon",  "Enables amplicon mode.");
 $parser->addString("build", "The genome build to use.", true, "hg19");
 $parser->addString("config", "Config file for strelka.", true, "auto");
@@ -144,7 +144,7 @@ foreach($filec->getComments() as $c)
 	$tmp_comments[] = $c;
 }
 //if variant list is reduced add basic filter information. Example from freebayes: ##filter="QUAL > 5 & AO > 2"
-if($r)	$tmp_comments[] = "#filter=\"".implode(" & ",array_keys($tmp_filters))."\"";
+if(!$k)	$tmp_comments[] = "#filter=\"".implode(" & ",array_keys($tmp_filters))."\"";
 else
 {
 	foreach($tmp_filters as $id => $desc)
@@ -152,6 +152,7 @@ else
 		$tmp_comments[] = "#FILTER=<ID=s.$id,Description=\"$desc (strelka).\">";
 	}
 }
+$tmp_comments[] = "#FILTER=<ID=s.special_chromosome,Description=\"Special chromosome.\">";
 $tmp_comments[] = "#PEDIGREE=<Tumor=$t_ps,Normal=$n_ps>";	//add pedigree information for SNPeff
 $tmp_comments = array_unique($tmp_comments);	//filter duplicate vcf comments
 $tmp_comments = sort_vcf_comments($tmp_comments);	//sort vcf comments
@@ -161,13 +162,19 @@ for($i=0; $i<$file1->rows();++$i)
 {
 	$row = $file1->getRow($i);
 	$filter = explode(";",$row[6]);
-	foreach($filter as $j => $f)
+	foreach($filter as $j => $f)	//prefix filter with 's.'
 	{
 		if(empty($f) || $f == "." || $f == "PASS")	continue;
 		$filter[$j] = "s.".$f;
 	}
 	$row[6] = implode(";",$filter);
-    $filec->addRow($row);
+	if(chr_check($row[0], 22, false) === FALSE)
+	{
+		if($row[6] == "PASS")	$row[6] = "";
+		$row[6] .= ";s.special_chromosome"; //skip bad chromosomes
+	}
+	$row[6] = trim($row[6],';');
+	$filec->addRow($row);
 }
 for($i=0; $i<$file2->rows();++$i)
 {
@@ -176,15 +183,21 @@ for($i=0; $i<$file2->rows();++$i)
 	$tmp[3] = trim($tmp[3], ".");
 	$tmp[4] = trim($tmp[4], ".");
 	$filter = explode(";",$tmp[6]);
-	foreach($filter as $j => $f)
+	foreach($filter as $j => $f)	//prefix filter with 's.'
 	{
 		if(empty($f) || $f == "." || $f == "PASS")	continue;
 		$filter[$j] = "s.".$f;
 	}
 	$tmp[6] = implode(";",$filter);
-    $filec->addRow($tmp);
+	if(chr_check($tmp[0], 22, false) === FALSE)
+	{
+		if($tmp[6] == "PASS")	$row[6] = "";
+		$tmp[6] .= ";s.special_chromosome"; //skip bad chromosomes
+	}
+	$tmp[6] = trim($tmp[6],';');
+	$filec->addRow($tmp);
 }
-if($r)
+if(!$k)
 {
 	$tmp_filec = new Matrix();
 	$tmp_filec->setHeaders($filec->getHeaders());

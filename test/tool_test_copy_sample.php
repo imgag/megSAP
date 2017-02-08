@@ -12,11 +12,11 @@ if (production_ngsd_enabled())
 	mkdir("Unaligned");
 
 	$out_file = output_folder().$name."_out1Makefile";
-	check_exec("php ".src_folder()."/NGS/".$name.".php -ss ".$file."_in1.csv -out ".$out_file);
+	check_exec("php ".src_folder()."/NGS/".$name.".php -samplesheet ".$file."_in1.csv -out ".$out_file);
 	check_file($out_file, data_folder().$name."_out1Makefile");
 
 	$out_file = output_folder().$name."_out2Makefile";
-	check_exec("php ".src_folder()."/NGS/".$name.".php -ss ".$file."_in2.csv -out ".$out_file);
+	check_exec("php ".src_folder()."/NGS/".$name.".php -samplesheet ".$file."_in2.csv -out ".$out_file);
 	check_file($out_file, data_folder().$name."_out2Makefile");
 
 	rmdir("Unaligned");

@@ -9,16 +9,15 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("indel_realign", "\$Rev: 3$", "Perform InDel-realignment for mapping results using GATK.");
+$parser = new ToolBase("indel_realign", "Perform InDel-realignment for mapping results using GATK.");
 $parser->addInfile("in",  "Input file in bam format.", false);
 $parser->addString("prefix", "String to add to output files. Might include sub-directories.", false, NULL);
 //optional
 $parser->addString("genome", "Path to GATK reference genome in fasta format.", true, get_path("data_folder")."genomes/GATK/hg19/hg19_GATK.fa");
 extract($parser->parse($argv));
 
-$out=create_path($prefix);
-$sampleName = $out[0];
-$outdir = $out[1];
+$outdir = realpath(dirname($prefix))."/";
+$sampleName = basename($prefix);
 
 $parser->log("indel_realign output directory=$outdir");
 

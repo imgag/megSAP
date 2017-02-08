@@ -36,13 +36,13 @@ emed:
 	php ../../src/Pipelines/somatic_emed.php \
 		-p_folder . -t_dna_id GS160540_01 -n_dna_id GS160539_01 -o_folder results_emed1 \
 		-t_rna_id I16R003a06_01 -t_rna_fo Sample_I16R003a06_01 -n_rna_id I16R003a05_01 -n_rna_fo Sample_I16R003a05_01 \
-		-sys_tum_dna system_dna.ini -sys_nor_dna system_dna.ini -sys_tum_rna system_rna.ini -sys_nor_rna system_rna.ini \
+		-t_dna_sys system_dna.ini -n_dna_sys system_dna.ini -t_rna_sys system_rna.ini -n_rna_sys system_rna.ini \
 		-steps ma,fu,vc,an,co --log results_emed1/somatic.emed1.log
 	#somatic pair, only tumor rna, start with annotation
 	php ../../src/Pipelines/somatic_emed.php \
 		-p_folder . -t_dna_id GS160540_01 -n_dna_id GS160539_01 -o_folder results_emed2 \
 		-t_rna_id I16R003a06_01 -t_rna_fo Sample_I16R003a06_01 \
-		-sys_tum_dna system_dna.ini -sys_nor_dna system_dna.ini -sys_tum_rna system_rna.ini -sys_nor_rna system_rna.ini \
+		-t_dna_sys system_dna.ini -n_dna_sys system_dna.ini -t_rna_sys system_rna.ini -n_rna_sys system_rna.ini \
 		-steps vc,an,co --log results_emed2/somatic.emed2.log
 
 diff:
@@ -63,16 +63,16 @@ finished:
 	@echo "Finished pipeline test."
 
 update_rna:
-	cp results_emed1/I16R003a06_01-I16R003a05_01_var_fusions.tsv /mnt/share/data/test_data/I16R003a06_01-I16R003a05_01_var_fusions.emed1.tsv
+	php ../update_test_data.php results_emed1/I16R003a06_01-I16R003a05_01_var_fusions.tsv I16R003a06_01-I16R003a05_01_var_fusions.emed1.tsv
 
 update_variants:
-	cp results_emed1/GS160540_01-GS160539_01.GSvar /mnt/share/data/test_data/GS160540_01-GS160539_01.emed1.GSvar
-	cp results_emed1/GS160540_01-GS160539_01_var_annotated.vcf.gz /mnt/share/data/test_data/GS160540_01-GS160539_01_var_annotated.emed1.vcf.gz
-	cp results_emed1/GS160539_01_var_annotated_adme.vcf.gz /mnt/share/data/test_data/GS160539_01_var_annotated_adme.emed1.vcf.gz
-	cp results_emed2/GS160540_01-GS160539_01.GSvar /mnt/share/data/test_data/GS160540_01-GS160539_01.emed2.GSvar
-	cp results_emed2/GS160540_01-GS160539_01_var_annotated.vcf.gz /mnt/share/data/test_data/GS160540_01-GS160539_01_var_annotated.emed2.vcf.gz
-	cp results_emed2/GS160539_01_var_annotated_adme.vcf.gz /mnt/share/data/test_data/GS160539_01_var_annotated_adme.emed2.vcf.gz
+	php ../update_test_data.php results_emed1/GS160540_01-GS160539_01.GSvar GS160540_01-GS160539_01.emed1.GSvar
+	php ../update_test_data.php results_emed1/GS160540_01-GS160539_01_var_annotated.vcf.gz GS160540_01-GS160539_01_var_annotated.emed1.vcf.gz
+	php ../update_test_data.php results_emed1/GS160539_01_var_annotated_adme.vcf.gz GS160539_01_var_annotated_adme.emed1.vcf.gz
+	php ../update_test_data.php results_emed2/GS160540_01-GS160539_01.GSvar GS160540_01-GS160539_01.emed2.GSvar
+	php ../update_test_data.php results_emed2/GS160540_01-GS160539_01_var_annotated.vcf.gz GS160540_01-GS160539_01_var_annotated.emed2.vcf.gz
+	php ../update_test_data.php results_emed2/GS160539_01_var_annotated_adme.vcf.gz GS160539_01_var_annotated_adme.emed2.vcf.gz
 
 update_cnvs:
-	cp results_emed1/GS160540_01-GS160539_01_var_copy.tsv /mnt/share/data/test_data/GS160540_01-GS160539_01_var_copy.emed1.tsv
-	cp results_emed2/GS160540_01-GS160539_01_var_copy.tsv /mnt/share/data/test_data/GS160540_01-GS160539_01_var_copy.emed2.tsv
+	php ../update_test_data.php results_emed1/GS160540_01-GS160539_01_var_copy.tsv GS160540_01-GS160539_01_var_copy.emed1.tsv
+	php ../update_test_data.php results_emed2/GS160540_01-GS160539_01_var_copy.tsv GS160540_01-GS160539_01_var_copy.emed2.tsv

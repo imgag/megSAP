@@ -3,13 +3,11 @@
  * @page normalize_read_counts
  */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("normalize_read_counts", "\$Rev: 2$", "Normalizes read counts produced by HTSeq using the topas toolkit");
+$parser = new ToolBase("normalize_read_counts", "Normalizes read counts produced by HTSeq using the topas toolkit");
 $parser->addInfile("in", "Input read count file in tsv format", false, true);
 $parser->addOutfile("out", "Output file for normalized read counts", false);
 
@@ -21,9 +19,6 @@ $parser->addString("idattr", "The ID attribute used to summarize feature types d
 $parser->addFlag("header", "Indicate whether the input file has a header or not");
 
 extract($parser->parse($argv));
-
-//extracting sub-directories and generating folder structure
-create_path($out);
 
 $arguments = array();
 $arguments[] = "NormExprTable";

@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("primer2SNP", "\$Rev: 868 $", "Looks up SNPs in a primer pair.");
+$parser = new ToolBase("primer2SNP", "Looks up SNPs in a primer pair.");
 $parser->addInfile("in",  "Input TXT file that contains two lines (space-separated chromosome, start position and end position).", false);
 $parser->addOutfile("out",  "Output TXT file.", false);
 //optional
@@ -19,7 +19,7 @@ extract($parser->parse($argv));
 function filter_by_af($line, $min_freq)
 {
 	$parts = explode("\t", $line);
-	if (count($parts)<8) continue;
+	if (count($parts)<8) return false;
 	
 	$af = 0.0;
 	$info = explode(";", $parts[7]);

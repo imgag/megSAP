@@ -7,7 +7,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("vcf2gsvar_somatic", "\$Rev: 874 $", "Converts an annotated VCF file to GSvar file.");
+$parser = new ToolBase("vcf2gsvar_somatic", "Converts an annotated VCF file to GSvar file.");
 $parser->addInfile("in", "Input file in VCF format.", false);
 $parser->addOutfile("out", "Output file in VCF format.", false);
 $parser->addString("t_col", "Column name of tumor sample.",false);
@@ -77,24 +77,35 @@ if(!$tumor_only)	$anno_cols[] = array("normal_dp", "Normal depth (Sample ".$n_co
 $anno_cols[] = array("filter", "Filter criteria from vcf file.");
 $anno_cols[] = array("snp_q", "Quality parameters - SNP quality (QUAL).");
 //$anno_cols[] = array("map_q", "Quality parameters - MAP quality (QUAL).");
-$anno_cols[] = array("gene", "Affected gene list (comma-separated).");
-$anno_cols[] = array("variant_type", "Variant type.");
+$anno_cols[] = array("gene", "Affected gene list (comma-separated).", "genes");
+$anno_cols[] = array("variant_type", "Variant type.", "variant_details");
 $anno_cols[] = array("coding_and_splicing", "Coding and splicing details (Gene, NM number, type, impact, exon number, HGVS.c, HGVS.p).");
 $anno_cols[] = array("interpro", "Interpro domains.");
-$anno_cols[] = array("RepeatMasker", "RepeatMasker annotation.");
-$anno_cols[] = array("dbSNP", "Identifier in dbSNP database.");
-$anno_cols[] = array("1000g", "Allele frequency in all populations of 1000g project.");
-$anno_cols[] = array("ExAC", "Allele frequency in all populations of ExAC project.");
-$anno_cols[] = array("Kaviar", "Allele frequency in Kaviar database.");
-$anno_cols[] = array("COSMIC", "COSMIC somatic variant database anntotation.");
-$anno_cols[] = array("OMIM", "OMIM database annotation.");
-$anno_cols[] = array("ClinVar", "ClinVar database annotation.");
-$anno_cols[] = array("HGMD", "HGMD database annotation.");
-$anno_cols[] = array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.");
-$anno_cols[] = array("MetaLR", "MetaLR effect prediction: D=damaging, T=tolerated.");
-$anno_cols[] = array("Sift", "Sift effect prediction: D=damaging, T=tolerated.");
-$anno_cols[] = array("PP2_HVAR", "Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.");
-$anno_cols[] = array("PP2_HDIV", "Polyphen2 (HDIV) effect prediction: D=probably damaging, P=possibly damaging, B=benign.");
+$anno_cols[] = array("RepeatMasker", "RepeatMasker annotation.", "repeatmasker");
+$anno_cols[] = array("dbSNP", "Identifier in dbSNP database.", "dbsnp");
+$anno_cols[] = array("1000g", "Allele frequency in all populations of 1000g project.","kgenomes");
+$anno_cols[] = array("ExAC", "Allele frequency in all populations of ExAC project.", "exac");
+$anno_cols[] = array("Kaviar", "Allele frequency in Kaviar database.", "kaviar");
+$anno_cols[] = array("COSMIC", "COSMIC somatic variant database anntotation.", "cosmic");
+$anno_cols[] = array("OMIM", "OMIM database annotation.", "omim");
+$anno_cols[] = array("ClinVar", "ClinVar database annotation.", "clinvar");
+$anno_cols[] = array("HGMD", "HGMD database annotation.", "hgmd");
+$anno_cols[] = array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.", "phylop");
+$anno_cols[] = array("MetaLR", "MetaLR effect prediction: D=damaging, T=tolerated.", "metalr");
+$anno_cols[] = array("Sift", "Sift effect prediction: D=damaging, T=tolerated.", "sift");
+$anno_cols[] = array("PP2_HVAR", "Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.", "pp2v");
+$anno_cols[] = array("PP2_HDIV", "Polyphen2 (HDIV) effect prediction: D=probably damaging, P=possibly damaging, B=benign.", "pp2d");
+$anno_cols[] = array("ihdb_hom", "Homozygous variant counts in NGSD for the same processing system.");
+$anno_cols[] = array("ihdb_het", "Heterozyous variant counts in NGSD for the same processing system.");
+$anno_cols[] = array("ihdb_wt", "Wildtype variant counts in NGSD for the same processing system.");
+$anno_cols[] = array("ihdb_allsys_hom", "Homozygous variant counts in NGSD independent of the processing system.");
+$anno_cols[] = array("ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
+$anno_cols[] = array("classification", "Classification from the NGSD.");
+$anno_cols[] = array("classification_comment", "Classification comment from the NGSD.");
+$anno_cols[] = array("validated", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
+$anno_cols[] = array("comment", "Comments from the NGSD. Comments of other samples are listed in brackets!");
+$anno_cols[] = array("som_ihdb_c", "Somatic variant count within NGSD.");
+$anno_cols[] = array("som_ihdb_p", "Projects with somatic variant in NGSD.");
 
 //write column descriptions
 $handle_out = fopen($out, "w");
@@ -180,33 +191,17 @@ while(!feof($handle))
 	$cols = explode("\t", $line);
 	if (count($cols)<9) trigger_error("VCF file line contains less than 10 columns: $line\n", E_USER_ERROR);
 	list($chr,$pos,$id,$ref,$alt,$qual,$filter,$info,$format) = $cols;
-	
-	//allele independent annotations
-	//chr,start,end,ref,obs = alt
 	if(chr_check($chr, 22, false) === FALSE) continue; //skip bad chromosomes
 	if($alt==".")	continue;	//skip missing alternative Alleles
-	$start = $cols[1];
-	$end = $start;
 
-	//quality
-	$snp_q = $cols[5];	//column 5 is normally empty in strelka vcfs
-	$variant = "SNV";
-	$as = explode(",",$alt);
-	if(strlen($ref) > 1)	$variant = "INDEL";	//different QC-values for SNVs and Indels
-	foreach($as as $a)	//check for different alleles
-	{
-		if($variant=="SNV" && strlen($a) > 1)	$variant = "INDEL";	//different QC-values for SNVs and Indels
-	}
-	if($variant == "SNV" && $var_caller=="strelka")	$snp_q = extract_from_info_field("QSS", $info);
-	else if($variant == "INDEL" && $var_caller=="strelka")	$snp_q = extract_from_info_field("QSI", $info);		
-
+	//allele independent annotations
 	//filter column
 	if($filter=="PASS")	$filter = "";	//passed variants were not filtered
 	
 	//RepeatMasker
 	$repeatmasker = extract_from_info_field($info, "REPEATMASKER", "",FALSE);
 
-	//effect predicions
+	//effect predictions
 	$phylop = extract_from_info_field("dbNSFP_phyloP100way_vertebrate", $info, "", FALSE);
 	$metalr = extract_from_info_field("dbNSFP_MetaLR_pred", $info, "", FALSE);
 	$sift = extract_from_info_field("dbNSFP_SIFT_pred", $info, "", FALSE);
@@ -247,6 +242,19 @@ while(!feof($handle))
 	//COSMIC
 	$cosmic = strtr(extract_from_info_field("COSMIC_ID", $info, "",FALSE), array(","=>", "));
 
+	//NGSD
+	$ihdb_hom = extract_from_info_field("ihdb_hom", $info, "", FALSE);
+	$ihdb_het = extract_from_info_field("ihdb_het", $info, "", FALSE);
+	$ihdb_wt = extract_from_info_field("ihdb_wt", $info, "", FALSE);
+	$ihdb_allsys_hom = extract_from_info_field("ihdb_allsys_hom", $info, "", FALSE);
+	$ihdb_allsys_het = extract_from_info_field("ihdb_allsys_het", $info, "", FALSE);
+	$classification = extract_from_info_field("classification", $info, "", FALSE);
+	$classification_comment = extract_from_info_field("classification_comment", $info, "", FALSE);
+	$validated = extract_from_info_field("validated", $info, "", FALSE);
+	$comment = extract_from_info_field("comment", $info, "", FALSE);
+	$som_ihdb_c = extract_from_info_field("som_ihdb_c", $info, "", FALSE);
+	$som_ihdb_p = extract_from_info_field("som_ihdb_p", $info, "", FALSE);
+
 	//allele dependent annotations
 	//variant details
 	//ANN field: Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO
@@ -257,8 +265,22 @@ while(!feof($handle))
 	for($i=0;$i<count($as);++$i)
 	{
 		$a = $as[$i];
-		$out_line = "";
 		
+		//variant type
+		$variant = "SNV";
+		if(strlen($ref) > 1)	$variant = "INDEL";	//different QC-values for SNVs and Indels
+		if(strlen($a) > 1)	$variant = "INDEL";	//different QC-values for SNVs and Indels
+	
+		//chr,start,end,ref,obs = alt
+		$start = $pos;
+		$end = $start;
+		if($variant == "INDEL")	list($start, $end, $ref, $a) = correct_indel($start, $ref, $a);	//correct indels
+
+		//quality
+		$snp_q = $cols[5];	//column 5 is normally empty in strelka vcfs
+		if($variant == "SNV" && $var_caller=="strelka")	$snp_q = extract_from_info_field("QSS", $info);
+		else if($variant == "INDEL" && $var_caller=="strelka")	$snp_q = extract_from_info_field("QSI", $info);		
+
 		$genes = array();
 		$variant_details = array();
 		$coding_and_splicing = array();
@@ -270,7 +292,7 @@ while(!feof($handle))
 			{
 				$parts = explode("|", $entry);
 				
-				if($parts[0]!=$a)	continue;	//different alternative allele
+				if($parts[0]!=$as[$i])	continue;	//different alternative allele, use original vcf allele (esp. for indels)
 				
 				$details = $parts[1];
 				$variant_details[] = $details;
@@ -297,10 +319,9 @@ while(!feof($handle))
 		$kaviar = $tmp[0];
 		if(count($tmp)>1) $kaviar = $tmp[$i];
 		
-		if($variant == "INDEL")	list($start, $end, $ref, $a) = correct_indel($start, $ref, $a);	//correct indels
-		$tumor_depth = extract_from_genotype_field($cols[8], $cols[$tumor_idx], "DP");
-		$normal_depth = "na";
-		if(!$tumor_only)	$normal_depth = extract_from_genotype_field($cols[8], $cols[$normal_idx], "DP");
+		$tumor_dp = extract_from_genotype_field($cols[8], $cols[$tumor_idx], "DP");
+		$normal_dp = "na";
+		if(!$tumor_only)	$normal_dp = extract_from_genotype_field($cols[8], $cols[$normal_idx], "DP");
 		$tumor_af = "na";
 		$normal_af = "na";
 		if($var_caller=="strelka")	//strelka
@@ -363,12 +384,15 @@ while(!feof($handle))
 		{
 			trigger_error("Could not identify variant caller! Source information of vcf file empty?",E_USER_ERROR);
 		}
-		
-		$out = "$chr\t$start\t$end\t$ref\t$a\t$tumor_af\t$tumor_depth\t";
-		if(!$tumor_only)	$out .= "$normal_af\t$normal_depth\t";
-		$out .= "$filter\t$snp_q\t$genes\t$variant_details\t$coding_and_splicing\t$interpro\t";
-		$out .= "$repeatmasker\t$dbsnp\t$kgenomes\t$exac\t$kaviar\t$cosmic\t$omim\t$clinvar\t$hgmd\t$phylop\t$metalr\t$sift\t$pp2v\t$pp2d\n";
-		$out_lines[] = $out;
+
+		$out = array($chr,$start,$end,$ref,$a);
+		foreach($anno_cols as $col)
+		{
+			$var = $col[0];
+			if(isset($col[2]))	$var = $col[2];
+			$out[] = $$var;
+		}
+		$out_lines[] = implode("\t",$out)."\n";
 	}
 	
 	// write line to out

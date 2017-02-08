@@ -6,9 +6,7 @@
 	@todo AO should not be summed up, but the correct allele should be counted only - but wait for fix by vcflib team.
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
@@ -51,14 +49,14 @@ function extract_info($format, $data)
 
 
 //parse command line arguments
-$parser = new ToolBase("trio", "\$Rev: 848 $", "Trio analysis pipeline.");
+$parser = new ToolBase("trio", "Trio analysis pipeline.");
 $parser->addInfile("f", "BAM file of father.", false, true);
 $parser->addInfile("m", "BAM file of mother.", false, true);
 $parser->addInfile("c", "BAM file of child (index).", false, true);
 $parser->addString("out_folder", "Output folder name.", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file used for all samples (created from NGSD via processed sample 'c' by default).", true);
-$steps = array("check", "realign", "vc", "an");
+$steps = array("check", "vc", "an");
 $parser->addEnum("start", "Start processing at step.", true, $steps, "check");
 extract($parser->parse($argv));
 
@@ -117,9 +115,9 @@ if ($start=="check")
 
 //(4) variant calling of all three samples together (with very conservative parameters)
 $vcf_all = $out_folder.basename($c, ".bam")."_all.vcf.gz";
-if ($start=="check" || $start=="realign" || $start=="vc")
+if ($start=="check" || $start=="vc")
 {
-	$parser->execTool("php ".$basedir."NGS/vc_freebayes.php", "-bam $c $m $f -out $vcf_all -target ".$sys['target_file']." -min_mq 20 -min_af 0.1 -build ".$sys['build'], true);	
+	$parser->execTool("NGS/vc_freebayes.php", "-bam $c $m $f -out $vcf_all -target ".$sys['target_file']." -min_mq 20 -min_af 0.1 -build ".$sys['build'], true);	
 }
 
 //(5) convert VCF to file with only child column, but with TRIO annotation
@@ -178,7 +176,7 @@ $parser->exec("bgzip", "-c $tmp > $vcf_zipped", false); //no output logging, bec
 $parser->exec("tabix", "-p vcf $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 
 //(8) basic annotation
-$parser->execTool("php ".$basedir."Pipelines/annotate.php", "-out_name ".basename($c, ".bam")." -out_folder $out_folder -system $system");
+$parser->execTool("Pipelines/annotate.php", "-out_name ".basename($c, ".bam")." -out_folder $out_folder -system $system");
 
 //(9) add trio annotation column
 $gsvar = $out_folder.basename($c, ".bam").".GSvar";

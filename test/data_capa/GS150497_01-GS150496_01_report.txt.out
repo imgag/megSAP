@@ -2,30 +2,29 @@ Report zur bioinformatischen Analyse:
 
 Tumor: GS150497_01 (Externer Name: 151680A2)
 Normal: GS150496_01 (Externer Name: 151705)
-Datum: 12.07.2016
-Revision der Analysepipeline: 800
+Datum: 16.12.2016
+Revision der Analysepipeline: megSAP 0.1-18-gaf2f1b4
 Analysesystem: ssSC_v2
 Zielregionen: 5616 (1256683 Basen gesamt)
 
 QC:
-  Coverage Tumor 50x: 0.21
+  Coverage Tumor 100x: 0.19
   Durchschnittl. Tiefe Tumor: 0.79
-  Coverage Normal 50x: 0.21
+  Coverage Normal 100x: 0.19
   Durchschnittl. Tiefe Normal: 0.54
 
 Varianten:
   Gefundene Varianten: 3
-  Varianten nach Filtern: 3
   Details:
-    #Position	W	M	QUALITY	COSMIC	AA
-    chr8:38271515-38271515	T	C	0.4648/604		FGFR1 c.2306A>G p.His769Arg (identisch zu FGFR1 c.2207A>G p.His736Arg, FGFR1 c.1946A>G p.His649Arg, FGFR1 c.2183A>G p.His728Arg, FGFR1 c.1940A>G p.His647Arg, FGFR1 c.2213A>G p.His738Arg)
-    chr9:98231134-98231134	C	T	0.1708/410		PTCH1 c.2149G>A p.Asp717Asn (identisch zu PTCH1 c.1696G>A p.Asp566Asn, PTCH1 c.1951G>A p.Asp651Asn, PTCH1 c.2146G>A p.Asp716Asn, LOC100507346 n.790C>T )
-    chrX:48651570-48651570	G	A	0.9408/156		GATA1 c.745-9G>A 
+    #Position	W	M	QUALITY	F/T_Tumor	F/T_Normal	COSMIC	cDNA
+    chr8:38271515-38271515	T	C	604	0.465/604	0.000/291		FGFR1 c.2306A>G p.His769Arg (identisch zu FGFR1 c.2207A>G p.His736Arg, FGFR1 c.1946A>G p.His649Arg, FGFR1 c.2183A>G p.His728Arg, FGFR1 c.1940A>G p.His647Arg, FGFR1 c.2213A>G p.His738Arg)
+    chr9:98231134-98231134	C	T	203	0.171/410	0.000/374		PTCH1 c.2149G>A p.Asp717Asn (identisch zu PTCH1 c.1696G>A p.Asp566Asn, PTCH1 c.1951G>A p.Asp651Asn, PTCH1 c.2146G>A p.Asp716Asn, LOC100507346 n.790C>T )
+    chrX:48651570-48651570	G	A	650	0.941/156	0.000/137		GATA1 c.745-9G>A 
 
 Abdeckung:
-  Target: tsCaPa (/mnt/share/data//enrichment/tsCaPa_2013_09_14.bed)
-  min. Tiefe Tumor: 50x
-  min. Tiefe Normal: 20x
+  Target: ssSC_v2 (../../data/enrichment/ssSC_v2_2015_01_26.bed)
+  min. Tiefe Tumor: 100x
+  min. Tiefe Normal: 100x
     #gene	no. bases	chr	region(s)
     ABL1	873	chr9	133738301-133738491, 133747475-133747664, 133748156-133748457, 133750327-133750516
     AKT1	173	chr14	105246428-105246600

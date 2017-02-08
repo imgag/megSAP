@@ -205,7 +205,7 @@
 	}
 	
 	// parse command line arguments
-	$parser = new ToolBase("annotate_max_ent_loss", "\$Rev: 883 $", "Annotates VCF file with MaxEnt prediction scores.");
+	$parser = new ToolBase("annotate_max_ent_loss", "Annotates VCF file with MaxEnt prediction scores.");
 	$parser->addInfile("in",  "Input file in VCF format.", false);
 	$parser->addOutFile("out", "Annotated VCF Outfile.", false);
 	extract($parser->parse($argv));

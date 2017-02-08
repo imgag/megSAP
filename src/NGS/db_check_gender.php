@@ -6,7 +6,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-$parser = new ToolBase("db_check_gender", "\$Rev: 712 $", "Checks that the gender of a sample matches the DB meta information.");
+$parser = new ToolBase("db_check_gender", "Checks that the gender of a sample matches the DB meta information.");
 $parser->addInfile("in",  "Input file in BAM format.", false);
 $parser->addString("pid",  "Processed sample ID, e.g. GS120001_01, used to determine the processing system.", false);
 //optional

@@ -5,21 +5,18 @@
 	@todo move star files to temporary folder
  */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("mapping_star_htseq", "\$Rev: 3$", "Alignment of RNASeq fastq files to a reference genome.");
+$parser = new ToolBase("mapping_star_htseq", "Alignment of RNASeq fastq files to a reference genome.");
 $parser->addInfile("in1", "Input file in fastq(.gz) format. Forward reads.", false);
 $parser->addString("prefix", "String to add to output files. Might include sub-directories.", false, NULL);
 
 //optional arguments
 $parser->addInfile("in2",  "Input file in fastq(.gz) format for paired-end alignment. Reverse reads.", true);
 $parser->addString("genome", "Path to dir with STAR reference genome index.", true, get_path("data_folder")."genomes/STAR/hg19");
-$parser->addInfile("system",  "Processing system INI file (determined from 'out_name' by default).", true);
 
 $parser->addFlag("stranded", "Add this flag if library preparation was strand conserving.");
 $parser->addFlag("U", "Fastq input files are uncompressed.");
@@ -47,13 +44,8 @@ $parser->addFlag("keepUnmapped", "Save unmapped reads as fasta files.");
 
 extract($parser->parse($argv));
 
-//extracting sub-directories and generating folder structure
-$out=create_path($prefix);
-$sampleName = $out[0];
-$outdir = $out[1];
-
-// Extract processing system information from DB
-$sys = load_system($system, $sampleName);
+$outdir = realpath(dirname($prefix))."/";
+$sampleName = basename($prefix);
 
 // Temporary prefix where STAR stores his intermediate files. The directory has to be removed before running STAR, otherwise STAR complains.
 $STAR_tmp_folder = $parser->tempFolder();
@@ -163,7 +155,7 @@ $bam_sorted = "${outdir}${sampleName}Aligned.sortedByCoord.out.bam";
 if($rmdup) {
 	$parser->log("Starting duplicate removal");
 	$bam_rmdup = "${outdir}${sampleName}.sortedByCoord.rmdup.bam";
-	$parser->execTool("php ".$basedir."NGS/remove_duplicates.php", "-in $bam_sorted -out $bam_rmdup");
+	$parser->execTool("NGS/remove_duplicates.php", "-in $bam_sorted -out $bam_rmdup");
 	$qc_input = $bam_rmdup;
 } else {
 	$qc_input = $bam_sorted;
@@ -172,7 +164,7 @@ $parser->exec(get_path("samtools"), "index $qc_input", true);
 
 // Run mapping QC
 $stafile2 = "${outdir}${sampleName}_stats_map.qcML";
-$parser->exec(get_path("ngs-bits")."MappingQC", "-in $qc_input -out $stafile2 -wgs", true);
+$parser->exec(get_path("ngs-bits")."MappingQC", "-in $qc_input -out $stafile2 -rna", true);
 
 // Rename counts file if the read counting was enabled
 if($readCounting) {

@@ -1,41 +1,40 @@
 <?php
 
 /**
-	@page somatic
+	@page somatic_emed
+
 	@todo run DNA and RNA in parallel
-	@todo add abra flag, add indel realignment for all files
-	@todo check if all files are available (RNA and DNA, e.g. fastq)
-	@todo consider haplotyping for somatic variants and germline variants close to each other
-	@todo add germline variants for ADME genes
 */
 
-$basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
-require_once($basedir."Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("somatic_emed", "\$Rev: 922 $", "Differential analysis of tumor/reference exomes. Can combine DNA and RNA data and results are suitable for current vaccination projects.");
+$parser = new ToolBase("somatic_emed", "Differential analysis of tumor/reference exomes. Can combine DNA and RNA data and results are suitable for current vaccination projects.");
 $parser->addString("p_folder", "Folder that contains Sample folders.", false);
-$parser->addString("t_dna_id",  "Tumor sample BAM file.", false);
-$parser->addString("n_dna_id",  "Reference sample BAM file.", false);
-$parser->addString("t_rna_id",  "Tumor sample BAM file.", true, "na");
-$parser->addString("t_rna_fo",  "Tumor sample BAM file.", true, "na");
-$parser->addString("n_rna_id",  "Normal sample BAM file.", true, "na");
-$parser->addString("n_rna_fo",  "Normal sample BAM file.", true, "na");
+$parser->addString("t_dna_id",  "Tumor sample DNA processing ID.", false);
+$parser->addString("n_dna_id",  "Reference sample DNA processing ID.", false);
+$parser->addString("t_rna_id",  "Tumor sample RNA processing ID.", true, "na");
+$parser->addString("t_rna_fo",  "Tumor sample RNA data folder.", true, "na");
+$parser->addString("n_rna_id",  "Normal sample RNA processing ID.", true, "na");
+$parser->addString("n_rna_fo",  "Normal sample RNA data folder.", true, "na");
 $parser->addString("o_folder", "Output folder.", false);
 // optional
-$parser->addInfile("sys_tum_dna",  "Tumor DNA processing system INI file (used during annotation, determined from 't_dna_id' by default).", true);
-$parser->addInfile("sys_nor_dna",  "Normal DNA processing system INI file (determined from 'n_dna_id' by default).", true);
-$parser->addInfile("sys_tum_rna",  "Tumor RNA processing system INI file (used during annotation, determined from 't_rna_id' by default).", true);
-$parser->addInfile("sys_nor_rna",  "Normal RNA processing system INI file (determined from 'n_rna_id' by default).", true);
+$parser->addInfile("t_dna_sys",  "Tumor DNA processing system INI file (used during annotation, determined from 't_dna_id' by default).", true);
+$parser->addInfile("n_dna_sys",  "Normal DNA processing system INI file (determined from 'n_dna_id' by default).", true);
+$parser->addInfile("t_rna_sys",  "Tumor RNA processing system INI file (used during annotation, determined from 't_rna_id' by default).", true);
+$parser->addInfile("n_rna_sys",  "Normal RNA processing system INI file (determined from 'n_rna_id' by default).", true);
 $steps_all = array("ma", "vc", "fu", "an", "db", "co");
 $parser->addString("steps", "Comma-separated list of processing steps to perform.", true, implode(",", $steps_all));
 $parser->addFlag("rna_only", "Process (fastq,ma,vc) only RNA.", true);
 $parser->addFlag("dna_only", "Process (ma,vc,db) only DNA.", true);
-$parser->addFlag("no_germline", "Do not add analyze germline (mainly ADME variant list).", true);
+$parser->addFlag("no_germline", "Do not analyze germline variants ('ADME gene variant list').", true);
 $parser->addFlag("freebayes", "Use freebayes for somatic variant calling (default for tumor only). Can be reasonable e.g. for normal sample that is contaiminated with tumor.");
 //$parser->addFlag("nsc", "Skip sample correlation check.");
 extract($parser->parse($argv));
+
+$parser->log("Pipeline revision: ".repository_revision(true));
 
 // determine steps to perform
 $steps = explode(",", $steps);
@@ -45,8 +44,10 @@ foreach($steps as $step)
 }
 
 // get processing systems
-$t_dna_sys = load_system($sys_tum_dna, $t_dna_id);
-$n_dna_sys = load_system($sys_nor_dna, $n_dna_id);
+$t_dna_sys_file = $t_dna_sys;
+$t_dna_sys = load_system($t_dna_sys_file, $t_dna_id);
+$n_dna_sys_file = $n_dna_sys;
+$n_dna_sys = load_system($n_dna_sys_file, $n_dna_id);
 if($t_dna_sys["name_short"] != $n_dna_sys["name_short"]) trigger_error ("System tumor '".$t_dna_sys["name_short"]."' and system reference '".$n_dna_sys["name_short"]."' are different!", E_USER_WARNING);
 if($t_dna_sys["build"] != $n_dna_sys["build"]) trigger_error ("System build tumor '".$t_dna_sys["build"]."' and system reference '".$n_dna_sys["build"]."' are different!", E_USER_ERROR);
 
@@ -66,10 +67,10 @@ $available_steps = array("ma", "vc", "an", "db");	//steps that can be used for s
 if(count($tmp_steps=array_intersect($available_steps,$steps))>0 && !$rna_only)
 {
 	// somatic_dna pipelne starts with map and ends with db
-	$args = "-sys_tum $sys_tum_dna -sys_nor $sys_nor_dna -steps ".implode(",",$tmp_steps)." ";
-	$args .= "-filter_set somatic -min_af 0.05 -reduce_variants_strelka --log ".$o_folder."somatic_emed_dna_".date('YmdHis',mktime()).".log ";
+	$args = "-t_sys $t_dna_sys_file -n_sys $n_dna_sys_file -steps ".implode(",",$tmp_steps)." ";
+	$args .= "-filter_set somatic -min_af 0.05 --log ".$o_folder."somatic_emed_dna_".date('YmdHis',mktime()).".log ";
 	if($freebayes)	$args .= "-freebayes ";
-	$parser->execTool("php $basedir/Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_dna_id -n_id $n_dna_id -o_folder $o_folder $args");
+	$parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_dna_id -n_id $n_dna_id -o_folder $o_folder $args");
 }
 
 // (2) run somatic_rna, consider single sample mode, important for next step (s. (3))
@@ -85,16 +86,18 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0 && !$dna_only)
 
 		// somatic_rna pipeline starts with map and ends with an
 		$args = "";
-		$t_rna_sys = load_system($sys_tum_rna, $t_rna_id);
-		$args .= "-sys_tum $sys_tum_rna ";
+		$t_rna_sys_file = $t_rna_sys;
+		$t_rna_sys = load_system($t_rna_sys_file, $t_rna_id);
+		$args .= "-t_sys $t_rna_sys_file ";
 		if($rna>1)
 		{
-			$n_rna_sys = load_system($sys_nor_rna, $n_rna_id);
-			$args .= "-sys_nor $sys_nor_rna ";
+			$n_rna_sys_file = $n_rna_sys;
+			$n_rna_sys = load_system($n_rna_sys_file, $n_rna_id);
+			$args .= "-n_sys $n_rna_sys_file ";
 		}
 		$args .= "-t_folder $t_rna_fo -n_folder $n_rna_fo --log ".$o_folder."somatic_emed_rna_".date('YmdHis',mktime()).".log ";
 		$args .= "-steps ".implode(",", $tmp_steps)." ";
-		$parser->execTool("php $basedir/Pipelines/somatic_rna.php", "-p_folder $p_folder -t_id $t_rna_id -n_id $n_rna_id -o_folder $o_folder ".$args);
+		$parser->execTool("Pipelines/somatic_rna.php", "-p_folder $p_folder -t_id $t_rna_id -n_id $n_rna_id -o_folder $o_folder ".$args);
 
 		// compare RNA tumor and DNA tumor (tumor and normal is compared by the pipelines itself
 		$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in1 $t_dna_bam -in2 $t_rna_bam -bam -max_snps 4000", true);
@@ -108,14 +111,23 @@ $g_dna_vcf = $o_folder."/".$n_dna_id."_var_annotated_adme.vcf.gz";
 if(in_array("co", $steps))
 {
 	// (3) annotate RNA 
-	$vaf_options = " -depth"; #-ref ".get_path("local_data")."/hg19.fa";
 	if ($rna!=0)
 	{
+		$vaf_options = " -depth"; #-ref ".get_path("local_data")."/hg19.fa";
+		
+		$tmp = $parser->tempFile(".vcf");
+		$parser->exec("bgzip", "-dc $s_dna_vcf > $tmp", false);	// no output logging, because Toolbase::extractVersion() does not return
+		
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $tmp -bam $t_rna_bam -out $tmp -name rna_tum $vaf_options", true);
 		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $s_dna_ann -bam $t_rna_bam -out $s_dna_ann -name rna_tum $vaf_options", true);
 		if ($rna==2)
 		{
+			$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $tmp -bam $n_rna_bam -out $tmp -name rna_ref $vaf_options", true);
 			$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $s_dna_ann -bam $n_rna_bam -out $s_dna_ann -name rna_ref $vaf_options", true);
 		}
+		
+		$parser->exec("bgzip", "-cf $tmp > $s_dna_vcf", false);	// no output logging, because Toolbase::extractVersion() does not return
+		$parser->exec("tabix", "-fp vcf $s_dna_vcf", false);	// no output logging, because Toolbase::extractVersion() does not return
 	}
 
 	// (3) determine tumor content
@@ -130,8 +142,8 @@ if(in_array("co", $steps))
 		$adme_varfile = $tmp_folder."/".$n_dna_id.".GSvar";
 		$nor_bam = $p_folder."/Sample_".$n_dna_id."/".$n_dna_id.".bam";
 		$extras_vc = "-target $target_adme ";
-		$parser->execTool("php ".$basedir."NGS/vc_freebayes.php", "-bam $nor_bam -out $adme_vcffile -build ". $n_dna_sys['build']." $extras_vc");
-		$parser->execTool("php ".$basedir."Pipelines/annotate.php", "-out_name $n_dna_id -out_folder $tmp_folder -system $sys_tum_dna -vcf $adme_vcffile");
+		$parser->execTool("NGS/vc_freebayes.php", "-bam $nor_bam -out $adme_vcffile -build ". $n_dna_sys['build']." $extras_vc");
+		$parser->execTool("Pipelines/annotate.php", "-out_name $n_dna_id -out_folder $tmp_folder -system $t_dna_sys_file -vcf $adme_vcffile");
 		copy($tmp_folder."/".$n_dna_id."_var_annotated.vcf.gz",$g_dna_vcf);
 		copy($tmp_folder."/".$n_dna_id.".GSvar",$o_folder."/".$n_dna_id."_adme.GSvar");
 	}
