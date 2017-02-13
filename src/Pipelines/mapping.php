@@ -2,6 +2,9 @@
 
 /**
 	@page mapping
+	
+	@todo Add pipeline test for MIPs/HaloPlex HS (only a few exons)
+	
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -55,25 +58,12 @@ $parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -
 // MIPs: move molecular barcode to separate file
 if($sys['type']=="Panel MIPs")
 {
-	$trimmed_mips2 = $parser->tempFile("_mips_indices.fastq.gz"); ///@todo rename to [sample]_MB_001.fastq.gz and store to sample folder
-	$mips_indices = $basename."_index.fastq.gz";
-	$parser->exec(get_path("ngs-bits")."FastqExtractBarcode", "-in $trimmed2 -out_main $trimmed_mips2 -cut 8 -out_index $mips_indices",true);
+	$trimmed_mips2 = $parser->tempFile("_mips_indices.fastq.gz");
+	$index_file = $basename."_index.fastq.gz";
+	$parser->exec(get_path("ngs-bits")."FastqExtractBarcode", "-in $trimmed2 -out_main $trimmed_mips2 -cut 8 -out_index $index_file",true);
 	$trimmed2 = $trimmed_mips2;
 }
 
-/*
-//HaloPlex special handling
-if($sys['type']=="Panel Haloplex")
-{
-	//cut enzyme footprint at beginning of read2 and end of read1
-	$trimmed_hs1 = $parser->tempFile("_trimmed_hs1.fastq.gz");
-	$trimmed_hs2 = $parser->tempFile("_trimmed_hs2.fastq.gz");
-	$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed1 -out $trimmed_hs1 -start 1 -end 1", true);
-	$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed_hs2 -start 1 -end 1", true);
-	$trimmed1 = $trimmed_hs1;
-	$trimmed2 = $trimmed_hs2;
-}
-*/
 //HaloPlex HS special handling
 if($sys['type']=="Panel Haloplex HS")
 {
@@ -85,11 +75,17 @@ if($sys['type']=="Panel Haloplex HS")
 	$trimmed1 = $trimmed_hs1;
 	$trimmed2 = $trimmed_hs2;
 	
-	//merge index files
-	$index_hs = $basename."_index.fastq.gz";
+	//merge index files (in case sample was distributed over several lanes)
+	$index_file = $basename."_index.fastq.gz";
+	if (file_exists($index_file))
+	{
+		unlink($index_file);
+	}
 	$index_files = glob("$out_folder/*_index_*.fastq.gz");
-	$index_files = array_diff(glob("$out_folder/*_index_*.fastq.gz"),array($index_hs));
-	$parser->exec("cat",implode(" ",$index_files)." > $index_hs",true);
+	if (count($index_files)>0)
+	{
+		$parser->exec("cat",implode(" ",$index_files)." > $index_file",true);
+	}
 }
 
 // mapping
@@ -132,30 +128,25 @@ if($clip_overlap)
 }
 
 //MIPs: remove duplicates by molecular barcode and cut extension/ligation arms
-if($sys['type']=="Panel MIPs") //@todo Add pipeline test for MIPs/HaloPlex HS (only a few exons)
+if($sys['type']=="Panel MIPs")
 {
 	$bam_dedup1 = $parser->tempFile("_dedup1.bam");
-	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index ".$basename."_index.fastq.gz -mip_file /mnt/share/data/mipfiles/".$sys["name_short"].".txt -out $bam_dedup1 -stats ".$basename."_bar_stats.tsv -dist 1", true);
+	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -mip_file /mnt/share/data/mipfiles/".$sys["name_short"].".txt -out $bam_dedup1 -stats ".$basename."_bar_stats.tsv -dist 1", true);
 	$tmp1 = $parser->tempFile();
 	$parser->exec(get_path("samtools"),"sort -T $tmp1 -o $out $bam_dedup1", true);
 	$parser->exec(get_path("ngs-bits")."BamIndex", "-in $out", true);
 }
 
 //HaloPlex HS: remove duplicates by molecular barcode
-if($sys['type']=="Panel Haloplex HS")
+if($sys['type']=="Panel Haloplex HS" && file_exists($index_file))
 {
 	$bam_dedup1 = $parser->tempFile("_dedup1.bam");
-	$min_group = 1;
-	if(isset($sys['min_group']))	$min_group = $sys['min_group'];
-	$dist = 1;
-	if(isset($sys['dist']))	$dist = $sys['dist'];
-	
-	$extension_pos = strrpos($sys['target_file'], '.'); // find position of the last dot, so where the extension starts
-	$amplicon_file=substr($sys['target_file'], 0, $extension_pos) . '_amplicons' . substr($sys['target_file'], $extension_pos);//add '_amplicons' just before the dot (i.e. at end of file base name)
-	
-	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_hs -out $bam_dedup1 -min_group $min_group -stats ".$basename."_bar_stats.tsv -dist $dist -hs_file $amplicon_file", true);
+	$min_group = isset($sys['min_group']) ? $sys['min_group'] : 1;
+	$dist = isset($sys['dist']) ? $sys['dist'] : 1;
+	$amplicon_file = substr($sys['target_file'], 0, -4)."_amplicons.bed";
+	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -out $bam_dedup1 -min_group $min_group -stats ".$basename."_bar_stats.tsv -dist $dist -hs_file $amplicon_file", true);
 	$tmp1 = $parser->tempFile();
-	$parser->exec(get_path("samtools"),"sort -T $tmp1 -o $out $bam_dedup1", true);
+	$parser->exec(get_path("samtools"),"sort -T $tmp2 -o $out $bam_dedup1", true);
 	$parser->exec(get_path("ngs-bits")."BamIndex", "-in $out", true);
 }
 
