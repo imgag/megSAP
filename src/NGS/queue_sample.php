@@ -119,13 +119,8 @@ if(count($files)<2)
 }
 
 //determine command and arguments
-if($project_type=="diagnostic" && $is_tumor)
-{
-	if(is_null($normal_name))
-	{
-		trigger_errorr("No normal sample given for diagnostic tumor sample $sample.",E_USER_ERROR);
-	}
-	
+if($project_type=="diagnostic" && $is_tumor && !is_null($normal_name))
+{	
 	$outfolder = $project_folder."/Somatic_".$sample."-".$normal_name."/";
 	if (!file_exists($outfolder)) mkdir($outfolder);
 	$command = "php ".repository_basedir()."/src/Pipelines/somatic_capa.php";
