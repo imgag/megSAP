@@ -35,7 +35,7 @@ Then you have to adapt your ~/.gitconfig file like that:
     [http]
     proxy = http://[user]:[password]@[host]:[port]
 
-### Dependencies
+## Dependencies
 
 megSAP (or one of the used tools) depends on the following software to be installed:
 
@@ -87,6 +87,7 @@ After the data analysis, the sample folder contains BAM and VCF (gzipped) files 
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+
 
 
 
