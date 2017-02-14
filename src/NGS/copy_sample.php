@@ -157,16 +157,17 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 		$sample_to_newlocation[$sample_ID] = $new_location."/Sample_".$sample_ID;
 		
 		//copy_target line if first sample of project in run, mkdir and chmod  if first sample of project at all
-		if (!(array_key_exists($project_name."_".$project_type, $target_to_copylines)))
+		$tag = $project_name."_".$project_type;
+		if (!(array_key_exists($tag, $target_to_copylines)))
 		{
-			$outputline="copy_".$project_name."_".$project_type.":";
-			$target_to_copylines[$project_name."_".$project_type]=array($outputline);
+			$outputline="copy_{$tag}:";
+			$target_to_copylines[$tag]=array($outputline);
 			if (!is_dir($new_location)) 
 			{
 				$outputline="mkdir -p ".$new_location."/";
-				$target_to_copylines[$project_name."_".$project_type][]="\t".$outputline;
+				$target_to_copylines[$tag][]="\t".$outputline;
 				$outputline="chmod 775 ".$new_location."/";
-				$target_to_copylines[$project_name."_".$project_type][]="\t".$outputline;
+				$target_to_copylines[$tag][]="\t".$outputline;
 			}
 		}
 		
@@ -183,48 +184,33 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 		}
 		
 		//build copy line
-		if ($haloplex_hs_map[$sample_ID])
+		$fastqgz_files = glob($old_location."/Sample_".$sample_ID."/*.fastq.gz");
+		if ($haloplex_hs_map[$sample_ID] && count($fastqgz_files)==3)
 		{
-			//names of the FASTQ-Files need to be changed
-			$files = glob($old_location."/Sample_".$sample_ID."/*.fastq.gz");
-			foreach($files as $file) 
-			{
-				$target_to_copylines[$project_name."_".$project_type][]="\tmkdir -p ".$new_location."/Sample_".$sample_ID."/";
-				$target_to_copylines[$project_name."_".$project_type][]="\tchmod 775 ".$new_location."/Sample_".$sample_ID."/";
-				$old_name=basename($file);
-				$replace_count = 0;
-				$new_name = str_replace("_R2_","_index_",$old_name,$replace_count);
-				if ($replace_count)	
-				{	
-					$target_to_copylines[$project_name."_".$project_type][]="\tcp -i ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";
-				}
-				else
-				{
-					$new_name=str_replace("_R3_","_R2_",$old_name,$replace_count);
-					if ($replace_count)
-					{
-						$target_to_copylines[$project_name."_".$project_type][]="\tcp -i ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";
-					}
-					else
-					{
-						$target_to_copylines[$project_name."_".$project_type][]="\tcp -i ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$old_name";
-					}
-				}
+			//create target folder
+			$target_to_copylines[$tag][]="\tmkdir -p ".$new_location."/Sample_".$sample_ID."/";
+			$target_to_copylines[$tag][]="\tchmod 775 ".$new_location."/Sample_".$sample_ID."/";
 				
+			//copy fastq.gz files and change names
+			foreach($fastqgz_files as $file) 
+			{
+				$old_name = basename($file);
+				$new_name = strtr($old_name, array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
+				$target_to_copylines[$tag][]="\tcp -i ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";				
 			}
 		}
 		else
 		{
-			$target_to_copylines[$project_name."_".$project_type][]="\tcp -i -r ".$old_location."/Sample_".$sample_ID."/ ".$new_location."/";
+			$target_to_copylines[$tag][]="\tcp -i -r ".$old_location."/Sample_".$sample_ID."/ ".$new_location."/";
 		}
 
 		if($sample_analysis_step_map[$sample_ID]!="fastq") //if more than FASTQ creation should be done for samples's project
 		{					
 			//build target lines for analysis using Sungrid Engine's queues if first sample of project on this run
-			if (!(array_key_exists($project_name."_".$project_type, $target_to_queuelines)))
+			if (!(array_key_exists($tag, $target_to_queuelines)))
 			{
-				$outputline="queue_".$project_name."_".$project_type.":";//build target in the output makefile
-				$target_to_queuelines[$project_name."_".$project_type]=array($outputline);
+				$outputline="queue_{$tag}:";//build target in the output makefile
+				$target_to_queuelines[$tag]=array($outputline);
 			}
 			
 			//build  first part of line for analysis using Sungrid Engine's queues,
@@ -245,7 +231,7 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 				$outputline.=" -steps ma,vc,db,cn";
 			}
 						
-			$target_to_queuelines[$project_name."_".$project_type][]="\t".$outputline." ";
+			$target_to_queuelines[$tag][]="\t".$outputline." ";
 		}
 		else
 		{		
