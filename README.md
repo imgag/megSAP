@@ -35,6 +35,21 @@ Then you have to adapt your ~/.gitconfig file like that:
     [http]
     proxy = http://[user]:[password]@[host]:[port]
 
+### Dependencies
+
+megSAP (or one of the used tools) depends on the following software to be installed:
+
+* _g++_ (4.5 or higher)
+* _qmake_ (Qt 5.3 or higher, including xmlpatterns and mysql package)
+* _git_
+* _cmake_
+* _python_ (including matplotlib)
+* _php_
+
+For example, the installation of the dependencies using Ubuntu 16.04 looks like that:
+
+	> sudo apt-get install g++ git cmake build-essential qt5-default qt5-qmake qtbase5-dev libqt5sql5-mysql libqt5xmlpatterns5 libqt5xmlpatterns5-dev php7.0-cli php7.0-xml python python-matplotlib
+
 ## Initial setup
 
 First, we need to download the tools the pipeline relies on:
@@ -72,6 +87,7 @@ After the data analysis, the sample folder contains BAM and VCF (gzipped) files 
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+
 
 
 
