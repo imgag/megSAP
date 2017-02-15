@@ -172,9 +172,8 @@ if (in_array("db", $steps))
 	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force --log $log_db");
 }
 
-//TODO special-handling of WGS data! How?
 //copy-number analysis
-if (in_array("cn", $steps))
+if (in_array("cn", $steps) && $sys['type']!="WGS")
 {
 	if(file_exists($log_cn)) unlink($log_cn);
 	
