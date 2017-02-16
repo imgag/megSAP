@@ -10,6 +10,23 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
+//determines the column index of a sample from the VCF header
+function vcf_column_index($sample, $parts)
+{
+	$min_dist = 999;
+	$index = -1;
+	for ($i=9; $i<count($parts); ++$i)
+	{
+		$d = levenshtein($sample, $parts[$i]);
+		if ($d<$min_dist)
+		{
+			$min_dist = $d;
+			$index = $i;
+		}
+	}
+	
+	return $index;
+}
 
 function convert_genotype($gt)
 {
@@ -145,24 +162,25 @@ while(!gzeof($h1))
 	}
 	else if ($line[0]=="#") //header
 	{
+		//determine indices for each sample	
 		$parts = explode("\t", $line);
-		$parts = array_slice($parts, 0, -2);
-		fwrite($h2, implode("\t", $parts)."\n");
+		$c_idx = vcf_column_index(basename($c, ".bam"), $parts); 
+		$f_idx = vcf_column_index(basename($f, ".bam"), $parts); 
+		$m_idx = vcf_column_index(basename($m, ".bam"), $parts); 
+		fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\t".$parts[$c_idx]."\n");
 	}
 	else //content
 	{
 		$parts = explode("\t", $line);
 		$format = explode(":", $parts[8]);
-		if ($parts[9]==".") continue;
-		$c_info = extract_info($format, $parts[9]);
-		$m_info = extract_info($format, $parts[10]);
-		$f_info = extract_info($format, $parts[11]);
+		if ($parts[$c_idx]==".") continue;
+		$c_info = extract_info($format, $parts[$c_idx]);
+		$m_info = extract_info($format, $parts[$m_idx]);
+		$f_info = extract_info($format, $parts[$f_idx]);
 		
 		//update format field and remove mother/father
 		$parts[8] = $parts[8].":TRIO";
-		$parts = array_slice($parts, 0, -2);
-		
-		fwrite($h2, implode("\t", $parts).":".implode(",", $c_info).",".implode(",", $m_info).",".implode(",", $f_info)."\n");
+		fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\t".$parts[$c_idx].":".implode(",", $c_info).",".implode(",", $m_info).",".implode(",", $f_info)."\n");
 	}
 }
 fclose($h1);
