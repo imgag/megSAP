@@ -111,7 +111,7 @@ function create_mail_command($coordinator, $email_ad, $samples, $project_name)
 	$mail_text[] = "Viele Gruesse";
 	$mail_text[] = "";
 	$mail_text[] = "  die Bioinformatik";
-	return "php -r 'mail(\"$email_ad\",\"Neue Daten fuer $project_name\", \"".implode("\\n",$mail_text)."\",\"Reply-To: medgen.bioinformatik@med.uni-tuebingen.de\");'";
+	return "php -r 'mail(\"$email_ad\",\"Neue Daten fuer $project_name\", \"".implode("\\n",$mail_text)."\",\"Reply-To: ".get_path("queue_email")."\");'";
 }
 
 //write makefile lines for file and folder operations and stores them in a dictionary

@@ -143,7 +143,7 @@ function jobsWait($jobnumbers)
 function jobSubmit($command, $working_directory, $queue, $status_folder, $wait=false)
 {
 	//build qsub command
-	$exec_line="qsub -V -b y -wd $working_directory -m n -M florian.lenz@med.uni-tuebingen.de -q $queue -e $status_folder -o $status_folder $command";
+	$exec_line="qsub -V -b y -wd $working_directory -m n -M ".get_path("queue_email")." -q $queue -e $status_folder -o $status_folder $command";
 	//submit to queue
 	$qsub_return_line=shell_exec($exec_line);
 

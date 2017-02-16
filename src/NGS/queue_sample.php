@@ -141,11 +141,14 @@ else
 }
 
 //submit to queue
+$queues = explode(",", get_path("queues_default"));
+if($high_priority)
+{
+	$queues = array_merge($queues, explode(",", get_path("queues_high_priority")));
+}
 $sample_status = get_path("sample_status_folder")."/data/";
-$queue = $high_priority ? "-q NGSlong,re_analysis,srv016_long,srv018long" : "-q NGSlong,srv016_long,srv018long";
 $slots = $wgs ? "-pe smp 2" : ""; //use two instead of one slot for WGS
-$queue_command = "qsub -V $slots -b y -wd $project_folder -m n -M florian.lenz@med.uni-tuebingen.de -e $sample_status $queue -o $sample_status $command $args";
-$qsub_return_line = shell_exec($queue_command);
+$qsub_return_line = shell_exec("qsub -V $slots -b y -wd $project_folder -m n -M ".get_path("queue_email")." -e $sample_status -q ".implode(",", $queues)." -o $sample_status $command $args");
 
 //extract job number
 $exploded_qsub_return_line = explode(" ", $qsub_return_line);

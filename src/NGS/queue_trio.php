@@ -83,13 +83,18 @@ $c_params=get_parameters($c);
 $out_folder = $c_params["wd"]."/Trio_".$c."_".$f."_".$m."/";
 if (!file_exists($out_folder)) mkdir($out_folder);
 
-//queue trio for analysis
+//determine command and arguments
 $command = "php ".repository_basedir()."/src/Pipelines/trio.php";
 $args = "-c ".$c_params["path"]." -f ".$f_params["path"]." -m ".$m_params["path"]." -out_folder ".$out_folder." --log ".$out_folder."trio.log";
+
+//queue trio for analysis
+$queues = explode(",", get_path("queues_default"));
+if($high_priority)
+{
+	$queues = array_merge($queues, explode(",", get_path("queues_high_priority")));
+}
 $sample_status = get_path("sample_status_folder")."/data/";
-$queue = $high_priority ? "-q NGSlong,re_analysis,srv016_long" : "-q NGSlong,srv016_long";
-$queue_command = "qsub -V -b y -wd /tmp/ -m n -M florian.lenz@med.uni-tuebingen.de -e $sample_status $queue -o $sample_status $command $args";
-$qsub_return_line=shell_exec($queue_command);
+$qsub_return_line=shell_exec("qsub -V -b y -wd /tmp/ -m n -M ".get_path("queue_email")." -e $sample_status -q ".implode(",", $queues)." -o $sample_status $command $args");
 
 //extract job number
 $exploded_qsub_return_line = explode(" ", $qsub_return_line);

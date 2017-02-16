@@ -95,7 +95,7 @@ if(in_array("ma", $steps))
 	$working_directory = realpath($p_folder);
 	$commands = array("php ".$basedir."Pipelines/analyze_rna.php -in_for $t_forward -in_rev $t_reverse -system $t_sys -out_folder ".$o_folder_tum." -out_name $t_id $args --log ".$o_folder_tum."analyze_".date('YmdHis',mktime()).".log");
 	if(!$tumor_only)	$commands[] = "php ".$basedir."Pipelines/analyze_rna.php -in_for $n_forward -in_rev $n_reverse -out_folder ".$o_folder_ref." -system $n_sys -out_name ".$n_id." $args --log ".$o_folder_ref."analyze_".date('YmdHis',mktime()).".log";
-	$parser->jobsSubmit($commands, $working_directory, "high_mem", true);
+	$parser->jobsSubmit($commands, $working_directory, get_path("queues_high_mem"), true);
 }
 
 // only for tumor-normal pairs

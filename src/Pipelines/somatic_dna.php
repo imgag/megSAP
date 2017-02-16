@@ -203,7 +203,7 @@ else
 			$tmp1_n_bam = $parser->tempFile("_normal.bam");
 			$command = "NGS/indel_realign_abra.php -in $n_bam $t_bam -out $tmp1_n_bam $tmp1_t_bam -roi $tmp2_targets -threads 8 -mer 0.02 2>&1";			
 			$working_directory = realpath($p_folder);
-			$parser->jobsSubmit(array($command), $working_directory, "high_mem", true);
+			$parser->jobsSubmit(array($command), $working_directory, get_path("queues_high_mem"), true);
 			
 			// copy realigned files to output folder and overwrite previous bam files
 			copy2($tmp1_n_bam, $n_bam);

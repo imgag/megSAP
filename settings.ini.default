@@ -32,6 +32,11 @@ db_log['NGSD'] = FALSE
 db_log_path['NGSD'] = ""
 
 
+[grid_engine]
+queue_email = ""
+queues_default = ""
+queues_high_priority = ""
+queues_high_mem = ""
 
 
 
