@@ -29,7 +29,7 @@ make
 cd $folder
 git clone https://github.com/ekg/freebayes.git 
 cd freebayes
-git checkout v1.0.2 && git submodule update --recursive --init
+git checkout v1.1.0 && git submodule update --recursive --init
 make
 
 #download and build vcflib
@@ -41,15 +41,15 @@ make
 
 #download ABRA
 cd $folder
-mkdir abra-0.97
-cd abra-0.97
-wget https://github.com/mozack/abra/releases/download/v0.97/abra-0.97-SNAPSHOT-jar-with-dependencies.jar -O abra.jar
+mkdir abra-0.97b
+cd abra-0.97b
+wget https://github.com/mozack/abra/releases/download/v0.97b/abra-0.97b-SNAPSHOT-jar-with-dependencies.jar -O abra.jar
 
 #download and build samblaster
 cd $folder
 git clone https://github.com/GregoryFaust/samblaster.git
 cd samblaster
-git checkout v.0.1.22
+git checkout v.0.1.24
 make
 
 #download and build BWA
@@ -62,9 +62,9 @@ make
 
 #download snpEff/SnpSift
 cd $folder
-wget http://downloads.sourceforge.net/project/snpeff/snpEff_v4_3_core.zip
-unzip snpEff_v4_3_core.zip
-rm snpEff_v4_3_core.zip
+wget https://downloads.sourceforge.net/project/snpeff/snpEff_v4_3i_core.zip
+unzip snpEff_v4_3i_core.zip
+rm snpEff_v4_3i_core.zip
 cd snpEff
 wget http://downloads.sourceforge.net/project/snpeff/databases/v4_3/snpEff_v4_3_hg19.zip
 unzip snpEff_v4_3_hg19.zip

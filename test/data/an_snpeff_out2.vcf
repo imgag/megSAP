@@ -5,7 +5,7 @@
 ##phasing=none
 ##commandline="/mnt/share/opt/freebayes20150204/bin/freebayes -b ./NA12878.bam -f /mnt/share/data/dbs//genomes/hg19.fa -t /tmp/vc_freebayes_U8iqnT.bed --min-alternate-fraction 0.15 --min-base-quality 30 --min-alternate-qsum 90"
 ##filter="QUAL > 5 & AO > 2"
-##SnpSiftVersion="SnpSift 4.3 (build 2016-06-14 18:42), by Pablo Cingolani"
+##SnpSiftVersion="SnpSift 4.3i (build 2016-12-15 22:33), by Pablo Cingolani"
 ##INFO=<ID=AB,Number=A,Type=Float,Description="Allele balance at heterozygous sites: a number between 0 and 1 representing the ratio of reads showing the reference allele to all reads, considering only reads from individuals called as heterozygous">
 ##INFO=<ID=ABP,Number=A,Type=Float,Description="Allele balance probability at heterozygous sites: Phred-scaled upper-bounds estimate of the probability of observing the deviation between ABR and ABA given E(ABR/ABA) ~ 0.5, derived using Hoeffding's inequality">
 ##INFO=<ID=AC,Number=A,Type=Integer,Description="Total number of alternate alleles in called genotypes">

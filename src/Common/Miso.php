@@ -93,7 +93,7 @@ class Miso
 
 	public static function getMisoOBO($thow_if_fails = true)
 	{
-		$file = repository_basedir()."/data/dbs/Ontologies/so-xp_2_5_3_v2.obo";
+		$file = repository_basedir()."/data/dbs/Ontologies/so-xp_3_0_0.obo";
 		if (file_exists($file))
 		{
 			return $file;
