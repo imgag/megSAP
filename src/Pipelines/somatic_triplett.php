@@ -26,8 +26,6 @@ $parser->addFlag("no_db_import", "Skip somatic variant import to db.", false);
 $parser->addFlag("nsc", "Skip sample correlation check.");
 extract($parser->parse($argv));
 
-$parser->log("Pipeline revision: ".repository_revision(true));
-
 // determine steps to perform
 $steps = explode(",", $steps);
 foreach($steps as $step)

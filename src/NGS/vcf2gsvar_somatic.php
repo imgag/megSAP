@@ -13,6 +13,7 @@ $parser->addOutfile("out", "Output file in VCF format.", false);
 $parser->addString("t_col", "Column name of tumor sample.",false);
 $parser->addString("n_col", "Column name of tumor sample.",true,"na");
 //optional
+$parser->addFlag("strand","Field indicating read distribution of sequenced strand (INFO column field 'fs') available.");
 extract($parser->parse($argv));
 
 //extract values from vcf-columns
@@ -76,6 +77,7 @@ if(!$tumor_only)	$anno_cols[] = array("normal_af", "Mutant allele frequency in n
 if(!$tumor_only)	$anno_cols[] = array("normal_dp", "Normal depth (Sample ".$n_col.").");
 $anno_cols[] = array("filter", "Filter criteria from vcf file.");
 $anno_cols[] = array("snp_q", "Quality parameters - SNP quality (QUAL).");
+if($strand)	$anno_cols[] = array("strand","Strand information. Format: [mutation_plus]|[mutation_minus]|[mutation_unkown],[wildtype_plus]|[wildtype_minus]|[wildtype_unkown].", "fs");
 //$anno_cols[] = array("map_q", "Quality parameters - MAP quality (QUAL).");
 $anno_cols[] = array("gene", "Affected gene list (comma-separated).", "genes");
 $anno_cols[] = array("variant_type", "Variant type.", "variant_details");
@@ -280,7 +282,10 @@ while(!feof($handle))
 		$snp_q = $cols[5];	//column 5 is normally empty in strelka vcfs
 		if($variant == "SNV" && $var_caller=="strelka")	$snp_q = extract_from_info_field("QSS", $info);
 		else if($variant == "INDEL" && $var_caller=="strelka")	$snp_q = extract_from_info_field("QSI", $info);		
-
+		
+		//strand
+		if($strand)	$fs = extract_from_info_field("fs", $info);
+		
 		$genes = array();
 		$variant_details = array();
 		$coding_and_splicing = array();
@@ -339,7 +344,8 @@ while(!feof($handle))
 				if($a == "C") $o = $nuc_c;
 				if($a == "G") $o = $nuc_g;
 				$tumor_af = number_format($o/($nuc_a+$nuc_t+$nuc_c+$nuc_g),4);
-
+				$tumor_dp = $nuc_a+$nuc_t+$nuc_c+$nuc_g;
+				
 				//normal
 				if(!$tumor_only)
 				{
@@ -353,6 +359,7 @@ while(!feof($handle))
 					if($a == "C") $o = $nuc_c;
 					if($a == "G") $o = $nuc_g;
 					if(($nuc_a+$nuc_t+$nuc_c+$nuc_g)!=0)	$normal_af = number_format($o/($nuc_a+$nuc_t+$nuc_c+$nuc_g),4);
+					$normal_dp = $nuc_a+$nuc_t+$nuc_c+$nuc_g;
 				}
 			}
 			else if($variant == "INDEL")
@@ -360,6 +367,7 @@ while(!feof($handle))
 				list($tir,) = explode(",", extract_from_genotype_field($cols[8], $cols[$tumor_idx], "TIR"));
 				list($tar,) = explode(",", extract_from_genotype_field($cols[8], $cols[$tumor_idx], "TAR"));
 				if(($tir+$tar)!=0)	$tumor_af = number_format($tir/($tir+$tar),4);
+				$tumor_dp = $tir+$tar;
 				
 				//normal
 				if(!$tumor_only)
@@ -367,6 +375,7 @@ while(!feof($handle))
 					list($tir,) = explode(",", extract_from_genotype_field($cols[8], $cols[$normal_idx], "TIR"));
 					list($tar,) = explode(",", extract_from_genotype_field($cols[8], $cols[$normal_idx], "TAR"));
 					if(($tir+$tar)!=0)	$normal_af = number_format($tir/($tir+$tar),4);
+					$normal_dp = $tir+$tar;
 				}
 			}
 		}

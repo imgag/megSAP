@@ -56,10 +56,10 @@ $stafile1 = $basename."_stats_fastq.qcML";
 $parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);
 
 // MIPs: move molecular barcode to separate file
+$index_file = $basename."_index.fastq.gz";
 if($sys['type']=="Panel MIPs")
 {
-	$trimmed_mips2 = $parser->tempFile("_mips_indices.fastq.gz");
-	$index_file = $basename."_index.fastq.gz";
+	$trimmed_mips2 = $parser->tempFile("_mips_indices.fastq.gz"); ///@todo rename to [sample]_MB_001.fastq.gz and store to sample folder
 	$parser->exec(get_path("ngs-bits")."FastqExtractBarcode", "-in $trimmed2 -out_main $trimmed_mips2 -cut 8 -out_index $index_file",true);
 	$trimmed2 = $trimmed_mips2;
 }
@@ -144,6 +144,7 @@ if($sys['type']=="Panel Haloplex HS" && file_exists($index_file))
 	$min_group = isset($sys['min_group']) ? $sys['min_group'] : 1;
 	$dist = isset($sys['dist']) ? $sys['dist'] : 1;
 	$amplicon_file = substr($sys['target_file'], 0, -4)."_amplicons.bed";
+	
 	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -out $bam_dedup1 -min_group $min_group -stats ".$basename."_bar_stats.tsv -dist $dist -hs_file $amplicon_file", true);
 	$tmp1 = $parser->tempFile();
 	$parser->exec(get_path("samtools"),"sort -T $tmp2 -o $out $bam_dedup1", true);

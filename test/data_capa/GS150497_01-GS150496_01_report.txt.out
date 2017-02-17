@@ -2,24 +2,24 @@ Report zur bioinformatischen Analyse:
 
 Tumor: GS150497_01 (Externer Name: 151680A2)
 Normal: GS150496_01 (Externer Name: 151705)
-Datum: 16.12.2016
-Revision der Analysepipeline: megSAP 0.1-18-gaf2f1b4
+Datum: 14.02.2017
+Revision der Analysepipeline: megSAP 0.1-62-ge515c87
 Analysesystem: ssSC_v2
 Zielregionen: 5616 (1256683 Basen gesamt)
 
 QC:
-  Coverage Tumor 100x: 0.19
-  Durchschnittl. Tiefe Tumor: 0.79
-  Coverage Normal 100x: 0.19
-  Durchschnittl. Tiefe Normal: 0.54
+  Coverage Tumor 100x: 0.20
+  Durchschnittl. Tiefe Tumor: 1.24
+  Coverage Normal 100x: 0.20
+  Durchschnittl. Tiefe Normal: 0.85
 
 Varianten:
   Gefundene Varianten: 3
   Details:
     #Position	W	M	QUALITY	F/T_Tumor	F/T_Normal	COSMIC	cDNA
-    chr8:38271515-38271515	T	C	604	0.465/604	0.000/291		FGFR1 c.2306A>G p.His769Arg (identisch zu FGFR1 c.2207A>G p.His736Arg, FGFR1 c.1946A>G p.His649Arg, FGFR1 c.2183A>G p.His728Arg, FGFR1 c.1940A>G p.His647Arg, FGFR1 c.2213A>G p.His738Arg)
-    chr9:98231134-98231134	C	T	203	0.171/410	0.000/374		PTCH1 c.2149G>A p.Asp717Asn (identisch zu PTCH1 c.1696G>A p.Asp566Asn, PTCH1 c.1951G>A p.Asp651Asn, PTCH1 c.2146G>A p.Asp716Asn, LOC100507346 n.790C>T )
-    chrX:48651570-48651570	G	A	650	0.941/156	0.000/137		GATA1 c.745-9G>A 
+    chr8:38271515-38271515	T	C	604	0.465/596	0.000/290		FGFR1 c.2306A>G p.His769Arg (identisch zu FGFR1 c.2207A>G p.His736Arg, FGFR1 c.1946A>G p.His649Arg, FGFR1 c.2183A>G p.His728Arg, FGFR1 c.1940A>G p.His647Arg, FGFR1 c.2213A>G p.His738Arg)
+    chr9:98231134-98231134	C	T	203	0.171/404	0.000/366		PTCH1 c.2149G>A p.Asp717Asn (identisch zu PTCH1 c.1696G>A p.Asp566Asn, PTCH1 c.1951G>A p.Asp651Asn, PTCH1 c.2146G>A p.Asp716Asn, LOC100507346 n.790C>T )
+    chrX:48651570-48651570	G	A	650	0.941/152	0.000/133		GATA1 c.745-9G>A 
 
 Abdeckung:
   Target: ssSC_v2 (../../data/enrichment/ssSC_v2_2015_01_26.bed)

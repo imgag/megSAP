@@ -26,6 +26,8 @@ extract($parser->parse($argv));
 //get processed sample names
 $t_ps = basename($t_bam, ".bam");
 $n_ps = basename($n_bam, ".bam");
+$t_bam = realpath($t_bam);
+$n_bam = realpath($n_bam);
 
 //get config file
 if($config == "auto")

@@ -25,8 +25,6 @@ $parser->addFlag("nsc", "Skip sample correlation check (only in pair mode).");
 $parser->addFlag("all_variants", "Do not use strelka filter.", true);
 extract($parser->parse($argv));
 
-$parser->log("Pipeline revision: ".repository_revision(true));
-
 // choose single sample or sample pair mode
 $single_sample = true;
 if(!empty($n_id))	$single_sample = false;
@@ -262,4 +260,31 @@ else
 	//store output
 	$report_file = $o_folder."/".$t_id."-".$n_id."_report.txt";
 	file_put_contents($report_file, implode("\n", $report));
+	
+	
+	//  prepare IGV-session for all files
+	if(is_dir($p_folder) && is_dir($o_folder))
+	{
+		$rel_path = relative_path($o_folder, $p_folder);
+		$igv_session = array();
+		$igv_session[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n";
+		$igv_session[] = "<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"chr2:1544321-1544606\" path=\".\" version=\"8\">\n";
+		$igv_session[] = "\t<Resources>";
+		if(is_file($t_bam))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/Sample_".basename($t_bam,".bam")."/".basename($t_bam)."\"/>\n";
+		if(is_file($n_bam))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/Sample_".basename($n_bam,".bam")."/".basename($n_bam)."\"/>\n";
+		$igv_session[] = "\t</Resources>\n";
+		$igv_session[] = "\t<HiddenAttributes>\n";
+		$igv_session[] = "\t\t<Attribute name=\"NAME\"/>\n";
+		$igv_session[] = "\t\t<Attribute name=\"DATA FILE\"/>\n";
+		$igv_session[] = "\t\t<Attribute name=\"DATA TYPE\"/>\n";
+		$igv_session[] = "\t</HiddenAttributes>\n";
+		$igv_session[] = "</Session>";
+		$fn = $t_id;
+		if(!$single_sample)	$fn = $t_id."-".$n_id;
+		file_put_contents($o_folder."/".$fn."_igv.xml",$igv_session);
+	}
+	else
+	{
+		trigger_error("IGV-Session-File was not created. Folder $p_folder or $o_folder does not exist.",E_USER_WARNING);
+	}
 }

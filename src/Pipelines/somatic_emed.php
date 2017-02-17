@@ -34,8 +34,6 @@ $parser->addFlag("freebayes", "Use freebayes for somatic variant calling (defaul
 //$parser->addFlag("nsc", "Skip sample correlation check.");
 extract($parser->parse($argv));
 
-$parser->log("Pipeline revision: ".repository_revision(true));
-
 // determine steps to perform
 $steps = explode(",", $steps);
 foreach($steps as $step)
@@ -107,7 +105,7 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0 && !$dna_only)
 }
 
 // (3) combine results from DNA / RNA
-$g_dna_vcf = $o_folder."/".$n_dna_id."_var_annotated_adme.vcf.gz";
+$g_dna_vcf = $o_folder."/".$n_dna_id."_adme_var_annotated.vcf.gz";
 if(in_array("co", $steps))
 {
 	// (3) annotate RNA 
@@ -154,21 +152,21 @@ if(is_dir($p_folder) && is_dir($o_folder))
 {
 	$rel_path = relative_path($o_folder, $p_folder);
 	$igv_session = array();
-	$igv_session[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
-	$igv_session[] = "<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"chr2:1544321-1544606\" path=\".\" version=\"8\">";
-	$igv_session[] = "    <Resources>";
-	if(is_file($s_dna_vcf))	$igv_session[] = "        <Resource path=\"".$rel_path."/Somatic_".basename($s_dna_vcf,".vcf.gz")."/".basename($s_dna_vcf)."\"/>";
-	if(is_file($s_dna_vcf))	$igv_session[] = "        <Resource path=\"".$rel_path."/Somatic_".basename($g_dna_vcf,".vcf.gz")."/".basename($g_dna_vcf)."\"/>";
-	if(is_file($t_dna_bam))	$igv_session[] = "        <Resource path=\"".$rel_path."/Sample_".basename($t_dna_bam,".bam")."/".basename($t_dna_bam)."\"/>";
-	if(is_file($n_dna_bam))	$igv_session[] = "        <Resource path=\"".$rel_path."/Sample_".basename($n_dna_bam,".bam")."/".basename($n_dna_bam)."\"/>";
-	if(is_file($t_rna_bam))	$igv_session[] = "        <Resource path=\"".$rel_path."/Sample_".basename($t_rna_bam,".bam")."/".basename($t_rna_bam)."\"/>";
-	if(is_file($n_rna_bam))	$igv_session[] = "        <Resource path=\"".$rel_path."/Sample_".basename($n_rna_bam,".bam")."/".basename($n_rna_bam)."\"/>";
-	$igv_session[] = "    </Resources>";
-	$igv_session[] = "    <HiddenAttributes>";
-	$igv_session[] = "        <Attribute name=\"NAME\"/>";
-	$igv_session[] = "        <Attribute name=\"DATA FILE\"/>";
-	$igv_session[] = "        <Attribute name=\"DATA TYPE\"/>";
-	$igv_session[] = "    </HiddenAttributes>";
+	$igv_session[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n";
+	$igv_session[] = "<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"chr2:1544321-1544606\" path=\".\" version=\"8\">\n";
+	$igv_session[] = "\t<Resources>";
+	if(is_file($s_dna_vcf))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/".$o_folder."/".basename($s_dna_vcf)."\"/>\n";
+	if(is_file($s_dna_vcf))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/".$o_folder."/".basename($g_dna_vcf)."\"/>\n";
+	if(is_file($t_dna_bam))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/Sample_".basename($t_dna_bam,".bam")."/".basename($t_dna_bam)."\"/>\n";
+	if(is_file($n_dna_bam))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/Sample_".basename($n_dna_bam,".bam")."/".basename($n_dna_bam)."\"/>\n";
+	if(is_file($t_rna_bam))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/Sample_".basename($t_rna_bam,".bam")."/".basename($t_rna_bam)."\"/>\n";
+	if(is_file($n_rna_bam))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/Sample_".basename($n_rna_bam,".bam")."/".basename($n_rna_bam)."\"/>\n";
+	$igv_session[] = "\t</Resources>\n";
+	$igv_session[] = "\t<HiddenAttributes>\n";
+	$igv_session[] = "\t\t<Attribute name=\"NAME\"/>\n";
+	$igv_session[] = "\t\t<Attribute name=\"DATA FILE\"/>\n";
+	$igv_session[] = "\t\t<Attribute name=\"DATA TYPE\"/>\n";
+	$igv_session[] = "\t</HiddenAttributes>\n";
 	$igv_session[] = "</Session>";
 	file_put_contents($o_folder."/".$t_dna_id."-".$n_dna_id."_igv.xml",$igv_session);
 }

@@ -38,8 +38,6 @@ $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal 
 //$parser->addFlag("nsc", "Skip sample correlation check.");
 extract($parser->parse($argv));
 
-$parser->log("Pipeline revision: ".repository_revision(true));
-
 // determine steps to perform
 $steps = explode(",", $steps);
 foreach($steps as $step)
@@ -383,7 +381,7 @@ if(in_array("im", $steps))
 		$igv_session[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
 		$igv_session[] = "<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"chr2:1544321-1544606\" path=\".\" version=\"8\">";
 		$igv_session[] = "    <Resources>";
-		if(is_file($som_vcf))	$igv_session[] = "        <Resource path=\"".$rel_path."/Somatic_".basename($som_vcf,".vcf.gz")."/".basename($som_vcf)."\"/>";
+		if(is_file($som_vcf))	$igv_session[] = "        <Resource path=\"".$rel_path."/".$o_folder."/".basename($som_vcf)."\"/>";
 		if(is_file($t_dna_bam))	$igv_session[] = "        <Resource path=\"".$rel_path."/Sample_".basename($t_dna_bam,".bam")."/".basename($t_dna_bam)."\"/>";
 		if(is_file($n_dna_bam))	$igv_session[] = "        <Resource path=\"".$rel_path."/Sample_".basename($n_dna_bam,".bam")."/".basename($n_dna_bam)."\"/>";
 		if(is_file($t_rna_bam))	$igv_session[] = "        <Resource path=\"".$rel_path."/Sample_".basename($t_rna_bam,".bam")."/".basename($t_rna_bam)."\"/>";
@@ -395,7 +393,7 @@ if(in_array("im", $steps))
 		$igv_session[] = "        <Attribute name=\"DATA TYPE\"/>";
 		$igv_session[] = "    </HiddenAttributes>";
 		$igv_session[] = "</Session>";
-		file_put_contents($o_folder."/".$t_dna_id."-".$n_dna_id.".igv",implode("\n",$igv_session));
+		file_put_contents($o_folder."/".$t_dna_id."-".$n_dna_id."_igv.xml",implode("\n",$igv_session));
 	}
 	else
 	{

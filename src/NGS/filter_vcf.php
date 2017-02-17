@@ -514,7 +514,8 @@ function filter_somatic_capa(&$filter, $info, $genotype, $tumor, $normal, $type,
 
 	//
 	$min_td = 100;
-	$min_nd = 50;
+	$min_nd = 100;
+	$max_af = 0.01;
 	
 	//determine databases
 	$tg = 0;
@@ -551,15 +552,15 @@ function filter_somatic_capa(&$filter, $info, $genotype, $tumor, $normal, $type,
 
 	//filter
 	add_filter($filter, "somca_depth_tum", "Sequencing depth tumor is too low < $min_td (filter_vcf).");
-	add_filter($filter, "somca_depth_norm", "Sequencing depth normal is too low < $min_nd (filter_vcf).");
+	if (!$tumor_only)	add_filter($filter, "somca_depth_norm", "Sequencing depth normal is too low < $min_nd (filter_vcf).");
 	add_filter($filter, "somca_all_freq", "Allele frequencies (filter_vcf).");
-	add_filter($filter, "somca_db_frequencies", "Allele frequencies in public databases are above 5 % (filter_vcf).");
+	add_filter($filter, "somca_db_frequencies", "Allele frequencies in public databases are above $max_af (filter_vcf).");
 	
 	//skip variants with high MAF or low depth
 	if ($td<$min_td)	activate_filter($filter, "somca_depth_tum");
 	if (!$tumor_only && $nd<$min_nd)	activate_filter($filter, "somca_depth_norm");
 	if(!$tumor_only &&  ($tf<0.05 || $nf>0.01))	activate_filter($filter, "somca_all_freq");
-	if ($tg>0.05 || $ex>0.05 || $kv>0.05) activate_filter($filter, "somca_db_frequencies");
+	if ($tg>$max_af || $ex>$max_af || $kv>$max_af) activate_filter($filter, "somca_db_frequencies");
 }
 
 function strelka_SNV($genotype, $column, $alt)

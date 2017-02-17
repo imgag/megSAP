@@ -30,9 +30,8 @@ $parser->addFlag("reduce_variants_filter", "Reduce number of variants to PASS by
 $parser->addFlag("freebayes", "Use freebayes for variant calling (default: strelka).");
 $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal sample.", true, 0);
 $parser->addFlag("no_softclip", "Skip soft-clipping of overlapping reads. NOTE: This may increase rate of false positive variants.", true);
+$parser->addEnum("clip", "Soft-clip overlapping read pairs.", true, array("sc","mfb","mfm","mfr"),"sc");
 extract($parser->parse($argv));
-
-$parser->log("Pipeline revision: ".repository_revision(true));
 
 // (0) preparations
 // check steps
@@ -76,7 +75,7 @@ if($tumor_only)
 			$no_softclip = true;
 			trigger_error("Turned off soft-clipping automatically due to amplicon mode.", E_USER_WARNING);
 		}
-		if(!$no_softclip)	$args .= "-clip_overlap ";
+//		if(!$no_softclip)	$args .= "-clip_overlap ";
 		$parser->execTool("Pipelines/analyze.php", "-folder ".$t_folder." -out_folder ".$t_folder." -name $t_id -system $t_sys ".$args." --log ".$t_folder."analyze_".date('YmdHis',mktime()).".log");
 	}
 
@@ -132,17 +131,20 @@ if($tumor_only)
 		$s->setComments($tmp_comments);
 		$s->toTSV($tmp);
 		
-		// NGSD-data (somatic and germline)
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $tmp -out $tmp -mode somatic",true);
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $tmp -out $tmp -mode germline",true);
-		
 		$parser->exec("bgzip", "-c $tmp > $som_vcf", false); //no output logging, because Toolbase::extractVersion() does not return
 		$parser->exec("tabix", "-f -p vcf $som_vcf", false); //no output logging, because Toolbase::extractVersion() does not return	
 
 		// convert vcf to GSvar
 		$extra = "-t_col $t_id";
+		if($t_sys_ini['type']=="Panel Haloplex HS")	$extra .= " -strand";
 		$parser->execTool("NGS/vcf2gsvar_somatic.php", "-in $som_vcf -out $som_gsvar $extra");
+		
+		// dbNFSP
 		$parser->execTool("NGS/an_dbNFSPgene.php", "-in $som_gsvar -out $som_gsvar");	
+		
+		// NGSD-data (somatic and germline)
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode somatic",true);
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode germline",true);
 	}
 
 	// add db import for qc parameters
@@ -185,9 +187,28 @@ else
 			$no_softclip = true;
 			trigger_error("Turned off soft-clipping automatically.", E_USER_NOTICE);
 		}
-		if(!$no_softclip)	$args .= "-clip_overlap ";
+//		if(!$no_softclip)	$args .= "-clip_overlap ";
 		if(!$smt)	$parser->execTool("Pipelines/analyze.php", "-folder ".$t_folder." -name $t_id -system $t_sys ".$args." --log ".$t_folder."analyze_".date('YmdHis',mktime()).".log");
 		if(!$smn)	$parser->execTool ("Pipelines/analyze.php", "-folder ".$n_folder." -name $n_id -system $n_sys ".$args." --log ".$n_folder."analyze_".date('YmdHis',mktime()).".log");
+
+		//soft-clip
+		if(!$no_softclip)
+		{
+			$extra = "";
+			if($clip=="mfb")	$extra = "-overlap_mismatch_baseq";
+			if($clip=="mfm")	$extra = "-overlap_mismatch_mapq";
+			if($clip=="mfr")	$exta = "-overlap_mismatch_remove";
+		
+			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
+			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in $t_bam -out $tmp1_t_bam $extra", true);
+			$parser->exec(get_path("samtools"),"sort -T $tmp1_t_bam -o $t_bam $tmp1_t_bam", true);
+			$parser->exec(get_path("ngs-bits")."BamIndex", "-in $t_bam", true);
+			
+			$tmp1_n_bam = $parser->tempFile("_normal.bam");
+			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in $n_bam -out $tmp1_n_bam $extra", true);
+			$parser->exec(get_path("samtools"),"sort -T $tmp1_t_bam -o $n_bam $tmp1_n_bam", true);
+			$parser->exec(get_path("ngs-bits")."BamIndex", "-in $n_bam", true);
+		}
 
 		// indel realignment with ABRA
 		if ($abra && $t_sys_ini['type']!="WGS" && $n_sys_ini['type']!="WGS")
@@ -346,7 +367,8 @@ else
 		
 		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $tmp -out $tmp -mode germline $extras", true);
 		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $tmp -out $tmp -mode somatic", true);
-		
+		if($t_sys_ini['type']=="Panel Haloplex HS")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp", true);
+
 		$parser->exec("bgzip", "-c $tmp > $som_vann", false);	// no output logging, because Toolbase::extractVersion() does not return
 		$parser->exec("tabix", "-f -p vcf $som_vann", false);	// no output logging, because Toolbase::extractVersion() does not return
 
@@ -359,6 +381,7 @@ else
 
 		// convert vcf to GSvar
 		$extra = "-t_col $t_id -n_col $n_id";
+		if($t_sys_ini['type']=="Panel Haloplex HS")	$extra .= " -strand";
 		$parser->execTool("NGS/vcf2gsvar_somatic.php", "-in $som_vann -out $som_gsvar $extra");
 		$parser->execTool("NGS/an_dbNFSPgene.php", "-in $som_gsvar -out $som_gsvar -build ".$t_sys_ini['build']);	
 	}
@@ -383,7 +406,7 @@ else
 			$log_db  = $t_folder."/".$t_id."_log4_db.log";
 			$qcmls = $t_folder."/".$t_id."_stats_fastq.qcML ";
 			if (in_array("ma", $steps))	$qcmls .= $t_folder."/".$t_id."_stats_map.qcML ";
-			if (!$nsc && in_array("an", $steps))	$qc_som  = $o_folder.$t_id."-".$n_id."_stats_som.qcML ";
+			if (!$nsc && !$tumor_only && in_array("an", $steps))	$qc_som  = $o_folder.$t_id."-".$n_id."_stats_som.qcML ";
 			$parser->execTool("NGS/db_import_qc.php", "-id $t_id -files $qcmls -force -min_depth 0 --log $log_db");
 
 			// import QC data normal

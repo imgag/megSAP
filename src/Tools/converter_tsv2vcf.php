@@ -9,7 +9,7 @@ $parser = new ToolBase("converter_tsv2vcf", "Generate vcf-files from tsv files (
 $parser->addInfile("in",  "Input file in tsv-format.", false);
 $parser->addOutfile("out",  "Output file in vcf-format.", false);
 // optional
-$parser->addStringArray("info",  "Column names that should be included into the INFO part of the vcf file.", true);
+$parser->addStringArray("info",  "Column names that should be included into the INFO part of the vcf file [space separated].", true);
 $parser->addFlag("qci",  "Add allele counts '0,0'.");
 extract($parser->parse($argv));
 
@@ -39,6 +39,11 @@ if(isset($info))
 	}
 }
 
+foreach($idx_info as $idx => $name)
+{
+	$nl->addComment("#INFO=<ID=$name,Number=1,Type=String,Description=\"UNKNOWN.\">");	//hg19 only
+}
+
 for($i=0;$i<$ol->rows();++$i)
 {	
 	$row = $ol->getRow($i);
@@ -58,8 +63,7 @@ for($i=0;$i<$ol->rows();++$i)
 	$info = "variant_id=".$row[$idx_chr]."_".$row[$idx_start]."_".$row[$idx_end]."_".$row[$idx_ref]."_".$row[$idx_obs];
 	foreach($idx_info as $idx => $name)
 	{
-		$nl->addComment("#INFO=<ID=$name,Number=1,Type=String,Description=\"UNKNOWN.\">");	//hg19 only
-		$info .= ";".$name."=".$ol[$idx];
+		$info .= ";".$name."=".$row[$idx];
 	}
 	
 	// add row

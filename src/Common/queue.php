@@ -1,4 +1,7 @@
 <?php 
+
+require_once("genomics.php");
+
 function serious_error($error_file)
 {
 	$error_file_lines=file($error_file);
@@ -79,8 +82,11 @@ function jobStatus($jobID)
 				trigger_error("Job-ID: $jobID. Waiting for $sleep seconds...",E_USER_NOTICE);
 			}
 			sleep($sleep);
-
-			exec("qacct -j $jobID 2>&1", $qacct_output);
+						
+			$extra = "";
+			$acc = get_path("queue_accounting_file");
+			if(is_file($acc))	$extra = "-f $acc";
+			exec("qacct $extra -j $jobID 2>&1", $qacct_output);
 			foreach($qacct_output as $qacct_line)
 			{
 				if($qacct_line[0]=="=")	continue;	//skip header line
