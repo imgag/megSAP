@@ -15,13 +15,14 @@ fi
 src=`pwd`/../src/
 ngsbits=`pwd`/tools/ngs-bits/bin
 vcflib=`pwd`/tools/vcflib/bin
+genome=`pwd`/genomes/hg19.fa
 
 #install dbSNP
 cd $dbs
 mkdir dbSNP
 cd dbSNP
 wget ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b149_GRCh37p13/VCF/00-All.vcf.gz
-zcat 00-All.vcf.gz | php $src/Tools/db_converter_dbsnp.php | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize | $ngsbits/VcfStreamSort | bgzip > dbsnp_b149.vcf.gz
+zcat 00-All.vcf.gz | php $src/Tools/db_converter_dbsnp.php | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | bgzip > dbsnp_b149.vcf.gz
 tabix -p vcf dbsnp_b149.vcf.gz
 
 #Install REPEATMASKER
@@ -49,7 +50,7 @@ cd $dbs
 mkdir 1000G
 cd 1000G
 wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz
-zcat ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize | $ngsbits/VcfStreamSort | bgzip > 1000g_v5b.vcf.gz
+zcat ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | bgzip > 1000g_v5b.vcf.gz
 tabix -p vcf 1000g_v5b.vcf.gz
 
 #Install ExAC
@@ -57,7 +58,7 @@ cd $dbs
 mkdir ExAC
 cd ExAC
 wget ftp://ftp.broadinstitute.org/pub/ExAC_release/release0.3.1/ExAC.r0.3.1.sites.vep.vcf.gz
-zcat ExAC.r0.3.1.sites.vep.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_exac.php | bgzip > ExAC_r0.3.1.vcf.gz
+zcat ExAC.r0.3.1.sites.vep.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_exac.php | bgzip > ExAC_r0.3.1.vcf.gz
 tabix -p vcf ExAC_r0.3.1.vcf.gz
 
 #Install CLINVAR
@@ -75,7 +76,7 @@ wget http://s3-us-west-2.amazonaws.com/kaviar-160204-public/Kaviar-160204-Public
 tar -xf Kaviar-160204-Public-hg19-trim.vcf.tar
 mv Kaviar-160204-Public/vcfs/*.vcf.gz* .
 rm -rf mv Kaviar-160204-Public *.vcf.tar
-zcat Kaviar-160204-Public-hg19-trim.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_kaviar.php | bgzip > Kaviar_160204.vcf.gz
+zcat Kaviar-160204-Public-hg19-trim.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_kaviar.php | bgzip > Kaviar_160204.vcf.gz
 tabix -p vcf Kaviar_160204.vcf.gz
 
 #install OMIM (you might need a license)
