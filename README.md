@@ -37,7 +37,7 @@ Then you have to adapt your ~/.gitconfig file like that:
 
 ## Dependencies
 
-megSAP (or one of the used tools) depends on the following software to be installed:
+megSAP (or one of the used tools) depends mainly on the following software to be installed:
 
 * _g++_ (4.5 or higher)
 * _qmake_ (Qt 5.3 or higher, including xmlpatterns and mysql package)
@@ -45,10 +45,11 @@ megSAP (or one of the used tools) depends on the following software to be instal
 * _cmake_
 * _python_ (including matplotlib)
 * _php_
+* _tabix_
 
 For example, the installation of the dependencies using Ubuntu 16.04 looks like that:
 
-	> sudo apt-get install g++ git cmake build-essential qt5-default qt5-qmake qtbase5-dev libqt5sql5-mysql libqt5xmlpatterns5 libqt5xmlpatterns5-dev php7.0-cli php7.0-xml python python-matplotlib
+	> sudo apt-get install -y wget bzip2 unzip make g++ git cmake tabix build-essential qt5-default qt5-qmake qtbase5-dev libqt5sql5-mysql libqt5xmlpatterns5-dev php7.0-cli php7.0-xml python python-matplotlib libncurses5-dev
 
 ## Initial setup
 
