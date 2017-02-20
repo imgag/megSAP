@@ -30,7 +30,7 @@ cd $dbs
 mkdir RepeatMasker
 cd RepeatMasker
 wget -O - http://www.repeatmasker.org/genomes/hg19/RepeatMasker-rm405-db20140131/hg19.fa.out.gz | gunzip > hg19.fa.out
-perl $dbs/tools/RepeatMasker/util/rmOutToGFF3.pl hg19.fa.out > RepeatMasker.gff
+perl `pwd`/tools/RepeatMasker/util/rmOutToGFF3.pl hg19.fa.out > RepeatMasker.gff
 cat RepeatMasker.gff | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/BedSort > RepeatMasker.bed
 
 #Install dbNSFP
