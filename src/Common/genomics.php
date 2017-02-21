@@ -291,7 +291,7 @@ function get_path($name, $throw_on_error=true)
 	//get value
 	if (!isset($parsed_ini[$name]) && $throw_on_error)
 	{
-		trigger_error("Could not find key '$name' in settings file '{$dir}.settings.ini'!", E_USER_ERROR);
+		trigger_error("Could not find key '$name' in settings file '{$dir}settings.ini'!", E_USER_ERROR);
 	}
 	@$value = $parsed_ini[$name];
 

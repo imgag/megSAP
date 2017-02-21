@@ -216,9 +216,6 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 			//build  first part of line for analysis using Sungrid Engine's queues,
 			$outputline= "php {$repo_folder}/src/NGS/queue_sample.php -sample ".$sample_ID;
 
-			//set high_priority if diagnostic sample
-			if ($project_type=='diagnostic') $outputline.=" -high_priority ";
-			
 			//stop at mapping if analysis for project is set to mapping
 			if ($sample_analysis_step_map[$sample_ID]=="mapping")
 			{
