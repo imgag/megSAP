@@ -141,11 +141,11 @@ $parser->log("Final STAR log", $final_log_lines);
 // Compress fasta files containing unmapped reads. Then remove original output files
 if (file_exists("${outdir}${sampleName}Unmapped.out.mate1"))
 {
-	$parser->exec("gzip --suffix .fasta.gz ${outdir}${sampleName}Unmapped.out.mate1");
+	$parser->exec("gzip", "--suffix .fasta.gz ${outdir}${sampleName}Unmapped.out.mate1", true);
 }
 if (file_exists("${outdir}${sampleName}Unmapped.out.mate2"))
 {
-	$parser->exec("gzip --suffix .fasta.gz ${outdir}${sampleName}Unmapped.out.mate2");
+	$parser->exec("gzip", "--suffix .fasta.gz ${outdir}${sampleName}Unmapped.out.mate2", true);
 }
 
 // Filename of the reads mapped by STAR
