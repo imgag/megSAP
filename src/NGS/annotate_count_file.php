@@ -8,8 +8,8 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("annotate_count_file", "Annotates a read count file with gene names.");
-$parser->addInfile("in", "Input read count file in tsv format", false, true);
-$parser->addOutfile("out", "Output file for annotated read counts. Can also be the same file as the input file.", false);
+$parser->addInfile("in", "Input read count file in TSV format", false, true);
+$parser->addOutfile("out", "Output TSV file for annotated read counts. Can also be the same file as the input file.", false);
 extract($parser->parse($argv));
 
 //read transcript>gene mapping

@@ -2,7 +2,9 @@
 
 /**
 	@page analyze_rna
-	@todo can the STAR-Fustion reference replace the STAR reference?
+	@todo test if STAR-Fusion and STAR can use the genome reference
+	@todo ABRA as indel realigner instead of GATK (license problems!)
+	@todo check if GATK/hg19.fa can be used as GATKReference instead of GATK/hg19/hg19_GATK.fa
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -26,10 +28,10 @@ $parser->addString("GATKReference", "GATK reference fasta file", true, get_path(
 $parser->addString("featureType", "Feature type used for mapping reads to features.", true, "exon");
 $parser->addString("gtfAttribute", "GTF attribute used as feature ID.", true, "gene_id");
 $parser->addInt("threads", "The maximum number of threads used.", true, 4);
-$parser->addFlag("noIndelRealign", "Skip InDel realignment step. By default InDel realignment is calculated.");
+$parser->addFlag("indelRealign", "Perform indel realignment. By default is is skipped.");
 $parser->addFlag("stranded", "Specify whether a stranded protocol was used during library preparation. Default is non-stranded.");
 $parser->addFlag("keepUnmapped", "Save unmapped reads as fasta files.");
-$parser->addFlag("rmdup", "Remove PCR duplicates. This is only possible if bam files are produced!");
+$parser->addFlag("rmdup", "Remove PCR duplicates after mapping.");
 $parser->addFlag("sharedMemory", "Use shared memory for running STAR alignment jobs.");
 
 extract($parser->parse($argv));
@@ -38,7 +40,10 @@ extract($parser->parse($argv));
 $steps = explode(",", $steps);
 foreach($steps as $step)
 {
-	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
+	if (!in_array($step, $steps_all))
+	{
+		trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
+	}
 }
 
 //init
@@ -90,10 +95,10 @@ if(in_array("ma", $steps))
 	}
 
 	//mapping
-	$args = array("-prefix $prefix", "-genome $reference", "-p $threads", "-in1 $fastq_trimmed1");
+	$args = array("-out $final_bam", "-genome $reference", "-p $threads", "-in1 $fastq_trimmed1");
 	if($paired) $args[] = "-in2 $fastq_trimmed2";
 	if($keepUnmapped) $args[] = " -keepUnmapped";
-	if($rmdup) $args[] = " -rmdup";
+	if($rmdup) $args[] = "-rmdup";
 	if($sharedMemory)
 	{
 		if (in_array("fu", $steps)) //for STAR 2.5.2b this does not work, but it might change in newer STAR releases
@@ -102,40 +107,24 @@ if(in_array("ma", $steps))
 		}
 		else
 		{
-			$args[] = " -useSharedMemory";
+			$args[] = "-useSharedMemory";
 		}
 	}
 	$parser->execTool("NGS/mapping_star_htseq.php", implode(" ", $args));
-	if($rmdup)
-	{
-		$bam_mapped = $prefix."Aligned.sortedByCoord.rmdup.bam";
-	}
-	else
-	{
-		$bam_mapped = $prefix."Aligned.sortedByCoord.out.bam";
-	}
 	
 	//indel realignment
-	if(!$noIndelRealign)
+	if($indelRealign)
 	{
-		//Index the bam file first
-		$parser->exec(get_path("samtools"), "index $bam_mapped", true);
+		//index
+		$parser->exec(get_path("samtools"), "index $final_bam", true);
+		
 		//split and trim reads with n in the cigar string -> spliced reads
 		$bam_split = $parser->tempFile(".sorted.split.bam");
 		$parser->exec(get_path("GATK"), "-T SplitNCigarReads -R $GATKReference -I $bam_mapped -o $bam_split -rf ReassignOneMappingQuality -RMQF 255 -RMQT 60 -U ALLOW_N_CIGAR_READS", true);
-		//perform indel realignment on splitted reads
-		$parser->log("Performing IndelRealignment");
-		$parser->execTool("NGS/indel_realign.php", "-in $bam_split -prefix $prefix");
-		$bam_realign = $prefix.".realign.bam";
+		
+		//perform indel realignment on split reads
+		$parser->execTool("NGS/indel_realign.php", "-in $bam_split -out $final_bam");
 	}
-	else
-	{
-		$bam_realign = $bam_mapped;
-	}
-	rename($bam_realign, $final_bam);
-	
-	//index final BAM
-	$parser->exec(get_path("samtools"), "index $final_bam", true);
 }
 
 //read counting
@@ -152,7 +141,7 @@ if(in_array("rc", $steps))
 	$counts_tmp = $parser->tempFile("_counts_tmp.tsv"); //remove the header line and just take the gene ID and counts column
 	$parser->exec("tail", "-n +2 $counts_raw | cut -f 1,7 > $counts_tmp", false);
 	//normalize read counts
-	$parser->execTool("NGS/normalize_read_counts.php", "-in $counts_tmp -out $counts_fpkm -gtf $gtfFile -method fpkm -feature $featureType -idattr $gtfAttribute -header");
+	$parser->execTool("NGS/normalize_read_counts.php", "-in $counts_tmp -out $counts_fpkm -gtf $gtfFile -method rpkm -feature $featureType -idattr $gtfAttribute -header");
 }
 
 //annotate
@@ -164,18 +153,9 @@ if(in_array("an", $steps))
 //detect fusions
 if(in_array("fu",$steps))
 {
-	// STAR-Fusion has to know where the STAR and the perl executable exist, so change the environment
-	$star_exe_dir = basename(get_path("STAR"), "STAR");						// Directory containing the STAR executable
-	$path_saved = getenv("PATH");											// Save the original environment
-	$path_new = "${star_exe_dir}:".get_path("perl").":${path_saved}";		// Set new PATH variable
-	putenv("PATH=$path_new");
-	// Set the environment such that the modules Set/IntervalTree.pm and DB_File.pm can be found by STAR-Fusion
-	putenv("PERL5LIB=".get_path("perl")."/lib/site_perl/5.24.0/x86_64-linux:".get_path("perl")."/lib/5.24.0");
-	// Run STAR-Fusion
 	$parser->exec(get_path("STAR-Fusion"), "--genome_lib_dir $fusionDetectionReference -J {$prefix}Chimeric.out.junction --output_dir $out_folder", true);
-	// Cleanup
-	putenv("PATH=$path_saved");         // restore old value 
-	putenv("PERL5LIB")	;				// unset this environment variable
+	
+	//cleanup
 	$parser->exec("rm -r", "$out_folder/star-fusion.filter.intermediates_dir", false);
 	$parser->exec("rm -r", "$out_folder/star-fusion.predict.intermediates_dir", false);
 	unlink("$out_folder/star-fusion.fusion_candidates.final");

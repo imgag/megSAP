@@ -11,11 +11,11 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
 $parser = new ToolBase("mapping_star_htseq", "Alignment of RNASeq fastq files to a reference genome.");
-$parser->addInfile("in1", "Input file in fastq(.gz) format. Forward reads.", false);
-$parser->addString("prefix", "String to add to output files. Might include sub-directories.", false, NULL);
+$parser->addInfile("in1", "Input forward reads in FASTQ.GZ format.", false);
+$parser->addOutfile("out", "Output BAM file name", false);
 
 //optional arguments
-$parser->addInfile("in2",  "Input file in fastq(.gz) format for paired-end alignment. Reverse reads.", true);
+$parser->addInfile("in2",  "Input Reverse reads in FASTQ.GZ format for paired-end alignment.", true);
 $parser->addString("genome", "Path to dir with STAR reference genome index.", true, get_path("data_folder")."genomes/STAR/hg19");
 
 $parser->addFlag("stranded", "Add this flag if library preparation was strand conserving.");
@@ -28,7 +28,7 @@ $parser->addString("rlink", "Adapter reverse read", true, "AGATCGGAAGAGCGTCGTGTA
 $parser->addInt("Clip5p", "Remove n bases from 5' end of read.", true, 0);
 $parser->addInt("Clip3p", "Remove n bases from 3' end of read.", true, 0);
 
-$parser->addFlag("rmdup", "Remove PCR duplicates. This is only possible if bam files are produced!");
+$parser->addFlag("rmdup", "Remove PCR duplicates.");
 
 $parser->addInt("Lmax", "Max length of read fraction for seed search", true, 50);
 
@@ -44,14 +44,12 @@ $parser->addFlag("keepUnmapped", "Save unmapped reads as fasta files.");
 
 extract($parser->parse($argv));
 
-$outdir = realpath(dirname($prefix))."/";
-$sampleName = basename($prefix);
+$outdir = realpath(dirname($out))."/";
+$prefix = $outdir.basename($out, ".bam");
 
 // Temporary prefix where STAR stores his intermediate files. The directory has to be removed before running STAR, otherwise STAR complains.
 $STAR_tmp_folder = $parser->tempFolder();
 $parser->exec("rm -r ", $STAR_tmp_folder, true);
-
-$parser->log("mapping_star output directory=$outdir");
 
 //build command
 $arguments = array();
@@ -59,11 +57,9 @@ $arguments[] = "--genomeDir $genome";
 $arguments[] = "--readFilesIn $in1";
 
 //for paired-end mapping
-if(isset($in2)) {
-  $parser->log("Running in paired end mode");
+if(isset($in2))
+{
   $arguments[] = "$in2";
-} else { //only single end mapping
-  $parser->log("Running in single end mode");
 }
 
 $arguments[] = "--outFileNamePrefix $prefix";
@@ -112,7 +108,7 @@ $arguments[] = "--limitBAMsortRAM 21474836480";
 //add a read group line to the final bam file
 $arguments[] = "--outSAMattrRGline ID:1 PL:illumina PU:RGPU LB:N SM:RGSM CN:MFT";
 
-// produces ${outdir}${sampleName}.Unmapped.out.mate1 and possibly ${outdir}${sampleName}.Unmapped.out.mate2
+// produces {$prefix}.Unmapped.out.mate1 and possibly {$prefix}.Unmapped.out.mate2
 if($keepUnmapped) {
 	$arguments[] = "--outReadsUnmapped Fastx";
 } else {
@@ -127,60 +123,65 @@ if($readCounting) {
 	$arguments[] = "--quantMode GeneCounts";
 }
 
-if($longReads) {
+//run STAR
+if($longReads)
+{
 	$parser->exec(get_path("STAR")."long", implode(" ", $arguments), true);
-} else {
+}
+else
+{
 	$parser->exec(get_path("STAR"), implode(" ", $arguments), true);
 }
 
-// Write the final log file into the tool log and delete the final log file afterwords
-$final_log = "${outdir}${sampleName}Log.final.out";
+// Write the final log file into the tool log and delete the final log file afterwards
+$final_log = "{$prefix}Log.final.out";
 $final_log_lines = file($final_log);
 $parser->log("Final STAR log", $final_log_lines);
 
-// Compress fasta files containing unmapped reads. Then remove original output files
-if (file_exists("${outdir}${sampleName}Unmapped.out.mate1"))
+// Compress fasta files containing unmapped reads.
+if (file_exists("{$prefix}Unmapped.out.mate1"))
 {
-	$parser->exec("gzip", "--suffix .fasta.gz ${outdir}${sampleName}Unmapped.out.mate1", true);
+	$parser->exec("gzip", "--suffix .fasta.gz {$prefix}Unmapped.out.mate1", true);
 }
-if (file_exists("${outdir}${sampleName}Unmapped.out.mate2"))
+if (file_exists("{$prefix}Unmapped.out.mate2"))
 {
-	$parser->exec("gzip", "--suffix .fasta.gz ${outdir}${sampleName}Unmapped.out.mate2", true);
+	$parser->exec("gzip", "--suffix .fasta.gz {$prefix}Unmapped.out.mate2", true);
 }
 
-// Filename of the reads mapped by STAR
-$bam_sorted = "${outdir}${sampleName}Aligned.sortedByCoord.out.bam";
+//output BAM file of STAR
+$bam_mapped = "{$prefix}Aligned.sortedByCoord.out.bam";
 
-// Remove duplicates
-if($rmdup) {
-	$parser->log("Starting duplicate removal");
-	$bam_rmdup = "${outdir}${sampleName}.sortedByCoord.rmdup.bam";
-	$parser->execTool("NGS/remove_duplicates.php", "-in $bam_sorted -out $bam_rmdup");
-	$qc_input = $bam_rmdup;
-} else {
-	$qc_input = $bam_sorted;
+//remove duplicates
+if($rmdup)
+{
+	$parser->execTool("NGS/remove_duplicates.php", "-in $bam_mapped -out $bam_rmdup");
 }
-$parser->exec(get_path("samtools"), "index $qc_input", true);
+else
+{
+	rename($bam_mapped, $out);
+}
+$parser->exec(get_path("samtools"), "index $out", true);
 
-// Run mapping QC
-$stafile2 = "${outdir}${sampleName}_stats_map.qcML";
-$parser->exec(get_path("ngs-bits")."MappingQC", "-in $qc_input -out $stafile2 -rna", true);
+//mapping QC
+$stafile2 = "{$prefix}_stats_map.qcML";
+$parser->exec(get_path("ngs-bits")."MappingQC", "-in $out -out $stafile2 -rna", true);
 
 // Rename counts file if the read counting was enabled
-if($readCounting) {
-	$parser->exec("mv ", "${outdir}${sampleName}ReadsPerGene.out.tab ${outdir}${sampleName}.HTSeq.tsv", false);
+if($readCounting)
+{
+	$parser->exec("mv", "{$prefix}ReadsPerGene.out.tab {$prefix}.HTSeq.tsv", false);
 }
 
 // We have to recreate the STAR temporary directory which was deleted by STAR. Otherwise the tool tests will complain that the directory does not exist and the test fails
 mkdir($STAR_tmp_folder);
 
-//cleanup
-$parser->exec("rm ", "${outdir}${sampleName}Chimeric.out.sam", false); // keep Chimeric.out.junction for downstream analysis
-$parser->exec("rm", "${outdir}${sampleName}*Log.out", false);
-$parser->exec("rm", "${outdir}${sampleName}*Log.progress.out", false);
-$parser->exec("rm", "${outdir}${sampleName}SJ.out.tab", false);
-$parser->exec("rm -r", "${outdir}${sampleName}_STARgenome", false);
-$parser->exec("rm -r", "${outdir}${sampleName}_STARpass1", false);
+//cleanup (keep Chimeric.out.junction for downstream analysis)
+$parser->exec("rm ", "{$prefix}Chimeric.out.sam", false);
+$parser->exec("rm", "{$prefix}*Log.out", false);
+$parser->exec("rm", "{$prefix}*Log.progress.out", false);
+$parser->exec("rm", "{$prefix}SJ.out.tab", false);
+$parser->exec("rm -r", "{$prefix}_STARgenome", false);
+$parser->exec("rm -r", "{$prefix}_STARpass1", false);
 $parser->exec("rm", $final_log, false);
 
 ?>

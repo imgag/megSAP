@@ -12,7 +12,7 @@ $prefix = output_folder().$name;
 //test 1: rpkm normalization
 $out_file1 = output_folder().$name."_out1.tsv";
 $log_file1 = output_folder().$name."_out1.log";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in '$in_file' -out '$out_file1' -method fpkm -header --log $log_file1");
+check_exec("php ".src_folder()."/NGS/{$name}.php -in '$in_file' -out '$out_file1' -method rpkm -header --log $log_file1");
 check_file($out_file1, data_folder().$name."_out1.tsv");
 
 //test 2: cpm normalization
