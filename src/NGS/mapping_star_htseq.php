@@ -2,6 +2,8 @@
 
 /**
 	@page mapping_star_htseq
+	@todo check if readCounting flag is still needed
+	@todo check if 20GB RAM for sorting is really required
 	@todo move star files to temporary folder
  */
 

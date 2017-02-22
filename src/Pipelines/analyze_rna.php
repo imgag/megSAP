@@ -3,8 +3,9 @@
 /**
 	@page analyze_rna
 	@todo test if STAR-Fusion and STAR can use the genome reference
-	@todo ABRA as indel realigner instead of GATK (license problems!)
 	@todo check if GATK/hg19.fa can be used as GATKReference instead of GATK/hg19/hg19_GATK.fa
+	@todo check if/when duplicate removal is really necessary for RNA
+	@todo check if/when indel realignment is really necessary for RNA => ABRA as indel realigner instead of GATK (license problems!)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
