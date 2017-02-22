@@ -79,10 +79,10 @@ fi
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 COMMAND="php $DIR/../src/Pipelines/somatic_ivac.php -p_folder . -t_dna_id ${args[0]} -n_dna_id ${args[1]} -o_folder $OUT $RNA --log $OUT/somatic_ivac_$(date +%Y%m%d%H%M%S).log ${args[@]:4}"
 
-QUEUE="-q NGSlong,srv016_long,srv018long";
+QUEUE="-q default_srv016,default_srv017,default_srv018";
 if [[ -n "$RNA" ]]
 then
-	QUEUE="-q NGSlong"
+#	QUEUE="-q NGSlong"
 fi
 
 if [[ "$noqueue" == true ]]
