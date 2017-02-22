@@ -54,7 +54,7 @@ then
 	$COMMAND
 else
 	#only DNA no need to restrict to NGSlong
-	JOB=$(qsub -V -b y -wd $PROJECTPATH -m n -M christopher.schroeder@med.uni-tuebingen.de -q NGSlong,srv016_long,srv018long -e $COMMAND_STATUS -o $COMMAND_STATUS $COMMAND)
+	JOB=$(qsub -V -b y -wd $PROJECTPATH -m n -M christopher.schroeder@med.uni-tuebingen.de -q default_srv016,default_srv017,default_srv018 -e $COMMAND_STATUS -o $COMMAND_STATUS $COMMAND)
 	echo -e "$(date +%Y%m%d%H%M%S) \t $COMMAND \n\t -> $JOB" >> $COMMAND_STATUS/commands.txt
 	echo $COMMAND
 fi

@@ -41,31 +41,31 @@ copy_cfDNA_research:
 	cp -i -r Unaligned/Project_cfDNA/Sample_GS130563_01/ /mnt/projects/research/cfDNA/
 
 queue_HBOC_diagnostic:
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX121713_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131278_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131319_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131324_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131335_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131357_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131371_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131381_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131382_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131383_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131384_01 -high_priority  
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX121713_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131278_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131319_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131324_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131335_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131357_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131371_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131381_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131382_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131383_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX131384_01 
 
 queue_TEST_ssHAEv5_test:
 	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130235_02 
 
 queue_X-Chr_diagnostic:
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130101_02 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130225_02 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130229_02 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130352_02 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130689_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130691_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130692_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130693_01 -high_priority  
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130694_01 -high_priority  
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130101_02 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130225_02 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130229_02 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130352_02 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130689_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130691_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130692_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130693_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130694_01 
 
 queue_cfDNA_research:
 	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130561_01 -steps ma,db 
