@@ -22,5 +22,9 @@ $out_file4 = output_folder().$name."_out4.vcf";
 check_exec("php ".src_folder()."/NGS/filter_vcf.php -in ".data_folder().$name."_in4.vcf -out $out_file4 -type iVac -roi ../data/enrichment/SeqCapEZv2_2013_02_19.bed");
 check_file($out_file4, data_folder().$name."_out4.vcf");
 
+$out_file5 = output_folder().$name."_out5.vcf";
+check_exec("php ".src_folder()."/NGS/filter_vcf.php -in ".data_folder().$name."_in5.vcf -out $out_file5 -type somatic_diag_capa -keep -roi ../data/enrichment/SeqCapEZv2_2013_02_19.bed");
+check_file($out_file5, data_folder().$name."_out5.vcf");
+
 end_test();
 ?>

@@ -210,8 +210,6 @@ for($i=0;$i<$in_file->rows();++$i)
 	if(in_array("somatic_diag_capa", $types))
 	{
 		filter_not_coding_splicing($filter, $info, $miso_terms_coding);
-		filter_synonymous($filter, $info, $miso_terms_coding, $miso_terms_synonymous);
-		filter_somatic($filter, $genotype,$tmp_col_tum,$tmp_col_nor,$type,$row[4],$contamination, $min_af, $var_caller);
 		filter_somatic_capa($filter, $info, $genotype, $tmp_col_tum, $tmp_col_nor, $type,$row[4],$var_caller);
 		filter_off_target($filter, $row[0], $row[1], $tumor_id, $normal_id, $targets);
 	}
@@ -434,7 +432,6 @@ function filter_somatic(&$filter, $genotype, $tumor, $normal, $type, $alt, $cont
 	add_filter($filter, "som_depth_nor", "Sequencing depth normal is < $min_dp (filter_vcf).");
 	add_filter($filter, "som_all_freq_tum", "Allele frequency tumor is $min_tum_af (filter_vcf).");
 	add_filter($filter, "som_lt_3_reads", "Less than 3 supporting tumor reads (filter_vcf).");
-	add_filter($filter, "som_all_freq", "Difference in allele frequencies too low (filter_vcf).");
 	add_filter($filter, "som_all_freq_nor", "Allele frequency normal too high (filter_vcf).");
 	add_filter($filter, "som_tum_loh", "Loss of heterozygosity within tumor tissue (filter_vcf).");
 	if($var_caller=="freebayes" && !$tumor_only)	add_filter($filter, "som_af_ratio", "Allele frequency ratio tumor/normal less-equal $noise_nor_fa; removed from list (filter_vcf).");
@@ -516,6 +513,8 @@ function filter_somatic_capa(&$filter, $info, $genotype, $tumor, $normal, $type,
 	$min_td = 100;
 	$min_nd = 100;
 	$max_af = 0.01;
+	$max_naf = 0.01;
+	$min_taf = 0.05;
 	
 	//determine databases
 	$tg = 0;
@@ -553,8 +552,8 @@ function filter_somatic_capa(&$filter, $info, $genotype, $tumor, $normal, $type,
 	//filter
 	add_filter($filter, "somca_depth_tum", "Sequencing depth tumor is too low < $min_td (filter_vcf).");
 	if (!$tumor_only)	add_filter($filter, "somca_depth_norm", "Sequencing depth normal is too low < $min_nd (filter_vcf).");
-	add_filter($filter, "somca_all_freq", "Allele frequencies (filter_vcf).");
-	add_filter($filter, "somca_db_frequencies", "Allele frequencies in public databases are above $max_af (filter_vcf).");
+	add_filter($filter, "somca_all_freq", "Allele frequencies in tumor < $min_taf or allele frequencies in normal > $max_naf (filter_vcf).");
+	add_filter($filter, "somca_db_frequencies", "Allele frequencies in public databases are > $max_af (filter_vcf).");
 	
 	//skip variants with high MAF or low depth
 	if ($td<$min_td)	activate_filter($filter, "somca_depth_tum");
