@@ -12,7 +12,7 @@ $parser = new ToolBase("analyze", "Complete NGS analysis pipeline.");
 $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
-$parser->addInfile("system",  "Processing system INI file (determined from 'name' by default).", true);
+$parser->addInfile("system",  "Processing system INI file (determined from NGSD via the 'name' by default).", true);
 $steps_all = array("ma", "vc", "an", "db", "cn");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, an=annotation, db=import into NGSD, cn=copy-number analysis.", true, implode(",", $steps_all));
 $parser->addFlag("backup", "Backup old analysis files to old_[date] folder.");

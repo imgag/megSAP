@@ -13,7 +13,7 @@ megSAP is developed by the [Institute of Medical Genetics and Applied Genomics](
 
 
 
-**Note: The pipeline is probably not yet ready to run out-of-the-box. If you still want to try it, please use the following instructions.**
+**Note: The documentation is not yet complete. If you still want to try it, please report any problems you encounter through the [issue tracker](https://github.com/imgag/megSAP/issues).**
 
 ## Download
 
@@ -87,11 +87,22 @@ Example data with can be analyzed using the command above can be downloaded from
 
 After the data analysis, the sample folder contains BAM and VCF (gzipped) files as expected. Additionally, several qcML files that contain QC data are generated (open with a browser).
 
+## Documentation
+
+Detailed documentation of the analysis pipeline can be found here:
+
+* [DNA analysis (single sample)](doc/dna_single_sample.md)
+* DNA analysis (trios and families) - coming soon
+* DNA analysis (tumor-normal pair) - coming soon
+* RNA analysis (expression) - coming soon
+* RNA analysis (variant calling)  - coming soon
+
 
 ## Support
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+
 
 
 
