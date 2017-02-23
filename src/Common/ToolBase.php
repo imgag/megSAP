@@ -531,7 +531,7 @@ class ToolBase
 		{
 			if ($details[0]=="par")
 			{
-				$mandatory[] = "  ".str_pad($name." <".$details[2].">", $offset, " ").$details[1]."\n";
+				$mandatory[] = "  ".str_pad($name." <".$details[2].">", $offset, " ").str_replace("\n", "\n$indent", $details[1])."\n";
 				
 				if ($details[2]=="enum")
 				{
@@ -552,7 +552,7 @@ class ToolBase
 		{
 			if ($details[0]=="opt")
 			{
-				$optional[] = "  ".str_pad($name." <".$details[2].">", $offset, " ").$details[1]."\n";
+				$optional[] = "  ".str_pad($name." <".$details[2].">", $offset, " ").str_replace("\n", "\n$indent", $details[1])."\n";
 				
 				if ($details[2]=="enum")
 				{
@@ -567,7 +567,7 @@ class ToolBase
 			}
 			else if ($details[0] == "flag")
 			{
-				$optional[] = "  ".str_pad($name, $offset, " ").$details[1]."\n";
+				$optional[] = "  ".str_pad($name, $offset, " ").str_replace("\n", "\n$indent", $details[1])."\n";
 			}
 		}
 		if (count($optional))

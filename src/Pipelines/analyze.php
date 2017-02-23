@@ -14,7 +14,7 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 //optional
 $parser->addInfile("system",  "Processing system INI file (determined from 'name' by default).", true);
 $steps_all = array("ma", "vc", "an", "db", "cn");
-$parser->addString("steps", "Comma-separated list of processing steps to perform.", true, implode(",", $steps_all));
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, an=annotation, db=import into NGSD, cn=copy-number analysis.", true, implode(",", $steps_all));
 $parser->addFlag("backup", "Backup old analysis files to old_[date] folder.");
 $parser->addFlag("lofreq", "Add low frequency variant detection.", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
