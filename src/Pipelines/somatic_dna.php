@@ -130,13 +130,15 @@ if($tumor_only)
 		$tmp_comments = sort_vcf_comments($s->getComments());
 		$s->setComments($tmp_comments);
 		$s->toTSV($tmp);
-		
+	
+		if($t_sys_ini['type']=="Panel Haloplex HS" || strpos($t_sys_ini['name_short'],"mi")===0)	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp", true);
+
 		$parser->exec("bgzip", "-c $tmp > $som_vcf", false); //no output logging, because Toolbase::extractVersion() does not return
 		$parser->exec("tabix", "-f -p vcf $som_vcf", false); //no output logging, because Toolbase::extractVersion() does not return	
 
 		// convert vcf to GSvar
 		$extra = "-t_col $t_id";
-		if($t_sys_ini['type']=="Panel Haloplex HS")	$extra .= " -strand";
+		if($t_sys_ini['type']=="Panel Haloplex HS" || strpos($t_sys_ini['name_short'],"mi")===0)	$extra .= " -strand";
 		$parser->execTool("NGS/vcf2gsvar_somatic.php", "-in $som_vcf -out $som_gsvar $extra");
 		
 		// dbNFSP
@@ -182,16 +184,16 @@ else
 	{
 		// mapping of tumor and reference sample, CAVE: no abra realignment and no soft-clipping, will be done later
 		$args = "-steps ma -no_abra ";
-		if(!$no_softclip && $amplicon)
-		{
-			$no_softclip = true;
-			trigger_error("Turned off soft-clipping automatically.", E_USER_NOTICE);
-		}
 //		if(!$no_softclip)	$args .= "-clip_overlap ";
 		if(!$smt)	$parser->execTool("Pipelines/analyze.php", "-folder ".$t_folder." -name $t_id -system $t_sys ".$args." --log ".$t_folder."analyze_".date('YmdHis',mktime()).".log");
 		if(!$smn)	$parser->execTool ("Pipelines/analyze.php", "-folder ".$n_folder." -name $n_id -system $n_sys ".$args." --log ".$n_folder."analyze_".date('YmdHis',mktime()).".log");
 
-		//soft-clip
+//		//soft-clip
+//		if($amplicon)
+//		{
+//			$no_softclip = true;
+//			trigger_error("Turned off soft-clipping automatically.", E_USER_NOTICE);
+//		}
 		if(!$no_softclip)
 		{
 			$extra = "";
@@ -222,7 +224,7 @@ else
 			// indel realignment with ABRA
 			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
 			$tmp1_n_bam = $parser->tempFile("_normal.bam");
-			$command = "NGS/indel_realign_abra.php -in $n_bam $t_bam -out $tmp1_n_bam $tmp1_t_bam -roi $tmp2_targets -threads 8 -mer 0.02 2>&1";			
+			$command = "php ".repository_basedir()."/src/NGS/indel_realign_abra.php -in $n_bam $t_bam -out $tmp1_n_bam $tmp1_t_bam -roi $tmp2_targets -threads 8 -mer 0.02 2>&1";			
 			$working_directory = realpath($p_folder);
 			$parser->jobsSubmit(array($command), $working_directory, get_path("queues_high_mem"), true);
 			
@@ -315,7 +317,7 @@ else
 				}
 				if($row[$normal_col]==".")
 				{
-					$s->set($i,$normal_col,"./.:0:.:.:.:0:.,.,.");					
+					$s->set($i,$normal_col,"./.:0:.:.:.:0:.,.,.");
 				}
 			}
 			// add tumor + normal information
@@ -365,9 +367,7 @@ else
 		$s->setComments($tmp_comments);
 		$s->toTSV($tmp);
 		
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $tmp -out $tmp -mode germline $extras", true);
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $tmp -out $tmp -mode somatic", true);
-		if($t_sys_ini['type']=="Panel Haloplex HS")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp", true);
+		if($t_sys_ini['type']=="Panel Haloplex HS" || strpos($t_sys_ini['name_short'],"mi")===0)	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp", true);
 
 		$parser->exec("bgzip", "-c $tmp > $som_vann", false);	// no output logging, because Toolbase::extractVersion() does not return
 		$parser->exec("tabix", "-f -p vcf $som_vann", false);	// no output logging, because Toolbase::extractVersion() does not return
@@ -381,9 +381,11 @@ else
 
 		// convert vcf to GSvar
 		$extra = "-t_col $t_id -n_col $n_id";
-		if($t_sys_ini['type']=="Panel Haloplex HS")	$extra .= " -strand";
+		if($t_sys_ini['type']=="Panel Haloplex HS" || strpos($t_sys_ini['name_short'],"mi")===0)	$extra .= " -strand";
 		$parser->execTool("NGS/vcf2gsvar_somatic.php", "-in $som_vann -out $som_gsvar $extra");
-		$parser->execTool("NGS/an_dbNFSPgene.php", "-in $som_gsvar -out $som_gsvar -build ".$t_sys_ini['build']);	
+		$parser->execTool("NGS/an_dbNFSPgene.php", "-in $som_gsvar -out $som_gsvar -build ".$t_sys_ini['build']);
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode somatic",true);
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode germline",true);
 	}
 
 	// qci

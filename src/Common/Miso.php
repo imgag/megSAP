@@ -91,14 +91,14 @@ class Miso
 		return $children_ids;		
 	}
 
-	public static function getMisoOBO($thow_if_fails = true)
+	public static function getMisoOBO($throw_if_fails = true)
 	{
 		$file = repository_basedir()."/data/dbs/Ontologies/so-xp_3_0_0.obo";
 		if (file_exists($file))
 		{
 			return $file;
 		}
-		else if ($thow_if_fails)
+		else if ($throw_if_fails)
 		{
 			trigger_error("Miso OBO file '$file' does not exist!", E_USER_ERROR);
 		}
