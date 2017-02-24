@@ -2,38 +2,52 @@
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-//load gene coordinates from UCSC
-/*
-#ID	chr	cds_start	cds_end	exon_starts	exon_ends	gene_name
-uc010nxq.1	chr1	12189	13639	12189,12594,13402,	12227,12721,13639,	DDX11L1
-uc001aal.1	chr1	69090	70008	69090,	70008,	OR4F5
-uc021oeg.2	chr1	138529	139792	138529,139789,	139696,139792,	LOC729737
-uc009vjk.2	chr1	324342	325605	324342,324438,	324345,325605,	LOC100133331
-uc001aau.3	chr1	324342	325605	324342,324438,	324345,325605,	LOC100132062
-uc021oeh.1	chr1	324514	325605	324514,324718,325382,	324686,325124,325605,	LOC100133331
-*/
-$gene2coord = array();
-$file = file("../UCSC/kgXref_joined.txt");
-foreach ($file as $line)
+//read gene id => names association from UCSC
+$id2gene = array();
+$handle = fopen("../UCSC/kgXref.txt", "r");
+while(!feof($handle))
 {
-	if (trim($line)=="" || $line[0]=="#") continue;
+	$line = trim(fgets($handle));
+	if ($line=="") continue;
 	
-	list(, $chr, $start, $end, , , $gene) = explode("\t", rtrim($line));
+	list ($id, , , , $name) = explode("\t", $line);
+	$id2gene[$id] = strtoupper($name);
+}
+fclose($handle);
+
+//load gene coordinates ranges from UCSC (with UTR and 20 flanking bases)
+$gene2coord = array();
+$handle = fopen("../UCSC/knownGene.txt", "r");
+while(!feof($handle))
+{
+	$line = trim(fgets($handle));
+	if ($line=="" || $line[0]=="#") continue;
 	
-	//include only regular chromosomes
-	if (contains($chr, "_")) continue;
-	
-	$hash = $chr."_".$gene;
-	if (!isset($gene2coord[$hash]))
+	list($id, $chr, , $start, $end) = explode("\t", $line);
+	if (!isset($id2gene[$id]))
 	{
-		$gene2coord[$hash] = array($start, $end);
+		trigger_error("Unknown UCSC identifier $id in knownGene.txt line: $line", E_USER_ERROR);
+	}
+	if ($start>=$end)
+	{
+		trigger_error("Invalid range $start-$end in knownGene.txt line: $line", E_USER_ERROR);
+	}
+	
+	$tag = $chr."_".$id2gene[$id];
+	$start -= 20;
+	$end +=20;
+	
+	if (!isset($gene2coord[$tag]))
+	{
+		$gene2coord[$tag] = array($start, $end);
 	}
 	else
 	{
-		$gene2coord[$hash][0] = min($start, $gene2coord[$hash][0]);
-		$gene2coord[$hash][1] = max($end, $gene2coord[$hash][1]);
+		list($start_prev, $end_prev) = $gene2coord[$tag];
+		$gene2coord[$tag] = array(min($start, $start_prev), max($end, $end_prev));
 	}
 }
+fclose($handle);
 
 //parse "mim2gene.txt" to get approved symbols
 /*
@@ -58,7 +72,7 @@ while(!feof($handle))
 	$gene = trim($gene);
 	if ($gene=="") continue;
 	
-	$mim2gene[$id] = $gene;
+	$mim2gene[$id] = strtoupper($gene);
 }
 fclose($handle);
 

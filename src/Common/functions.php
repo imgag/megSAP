@@ -30,6 +30,17 @@ function swap(&$x, &$y)
 }
 
 /**
+	@brief Bounds a value by the interval [min, max]
+	@ingroup helpers
+*/
+function bound($v, $min, $max)
+{
+	if ($v<$min) $v=$min;
+	if ($v>$max) $v=$max;
+	return $v;
+}
+
+/**
 	@brief Executes a command and returns stdout output, stderr output and exit code.
 	If @p abort_on_error is 'true' and the exit code not '0', execution of the script is aborted.
 	@ingroup helpers

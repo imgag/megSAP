@@ -3,6 +3,18 @@
 require_once("framework.php");
 require_once("../src/Common/functions.php");
 
+
+//##################################################################################
+start_test("bound");
+
+check(bound(-1.0,0.0,1.0), 0.0);
+check(bound(0.0,0.0,1.0), 0.0);
+check(bound(0.5,0.0,1.0), 0.5);
+check(bound(1.0,0.0,1.0), 1.0);
+check(bound(2.0,0.0,1.0), 1.0);
+
+end_test();
+
 //##################################################################################
 start_test("common_prefix");
 
