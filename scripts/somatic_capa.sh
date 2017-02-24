@@ -48,7 +48,7 @@ if [[ "${args[1]}" != "" && "${args[1]}" != "-" ]]; then
     EXTRA="$EXTRA -n_id ${args[1]}"
 fi
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-COMMAND="php $DIR/../src/Pipelines/somatic_capa.php -p_folder . -t_id ${args[0]} -o_folder $OUT $EXTRA ${@:3} --log $OUT/capa_$(date +%Y%m%d%H%M%S).log"
+COMMAND="php $DIR/../src/Pipelines/somatic_capa.php -p_folder . -t_id ${args[0]} -o_folder $OUT $EXTRA ${args[@]:2} --log $OUT/somatic_capa_$(date +%Y%m%d%H%M%S).log"
 if [[ "$noqueue" == true ]]
 then
 	echo $COMMAND

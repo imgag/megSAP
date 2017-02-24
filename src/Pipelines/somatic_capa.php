@@ -100,7 +100,7 @@ else
 	//filter variants
 	$var_report = new Matrix();
 	$var_count_target = 0;
-	$statistics_target = get_path("data_folder")."/enrichment/tsCaPa_2013_09_14.bed";
+	$statistics_target = $target;
 
 	//get low_cov_statistics
 	$target_merged = $parser->tempFile("_merged.bed");
