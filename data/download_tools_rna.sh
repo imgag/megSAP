@@ -13,6 +13,7 @@ cd $folder
 git clone https://github.com/alexdobin/STAR.git
 cd STAR
 git checkout 2.5.2b && git submodule update --recursive --init
+cd ..
 mv STAR STAR_2.5.2b
 
 #download STAR-Fusion
@@ -31,10 +32,3 @@ mv subread-1.5.1-Linux-x86_64 subread-1.5.1
 
 #download topas
 #currently no download available thus it is shipped with megSAP
-
-#ATTENTION:
-#You also need to install Perl modules for STAR-Fusion:
-#sudo apt install cpanminus libdb-dev
-#sudo -E cpanm Set::IntervalTree
-#sudo -E cpanm URI::Escape
-#sudo -E cpanm DB_File

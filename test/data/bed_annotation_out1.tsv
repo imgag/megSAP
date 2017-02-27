@@ -629,6 +629,7 @@ chr7:90710692-101163134	10.452	NPTX2
 chr7:90710692-101163134	10.452	NYAP1		
 chr7:90710692-101163134	10.452	OCM2		
 chr7:90710692-101163134	10.452	OR2AE1		
+chr7:90710692-101163134	10.452	PAI1	173360	(confirmed) Plasminogen activator inhibitor-1 deficiency|Transcription of plasminogen activator inhibitor,modulator of
 chr7:90710692-101163134	10.452	PCOLCE		
 chr7:90710692-101163134	10.452	PDAP1		
 chr7:90710692-101163134	10.452	PDK4		
@@ -935,6 +936,7 @@ chr22:26515452-27651008	1.136	ASPHD2
 chr22:26515452-27651008	1.136	CRYBA4	123631	(confirmed) Cataract 23
 chr22:26515452-27651008	1.136	CRYBB1	600929	(provisional) Cataract 17,multiple types
 chr22:26515452-27651008	1.136	HPS4	606682	(provisional) Hermansky-Pudlak syndrome 4
+chr22:26515452-27651008	1.136	MIAT	611082	(provisional) Myocardial infarction,susceptibility to
 chr22:26515452-27651008	1.136	SEZ6L		
 chr22:26515452-27651008	1.136	SRRD		
 chr22:26515452-27651008	1.136	TFIP11		
@@ -965,6 +967,7 @@ chr12:121870927-122885054	1.014	WDR66
 chrX:103490616-104239251	0.749	ESX1		
 chrX:103490616-104239251	0.749	IL1RAPL2		
 chrX:72817077-73500436	0.683	CHIC1		
+chrX:72817077-73500436	0.683	XIST	314670	(confirmed) X-inactivation,familial skewed
 chrX:49809049-50400324	0.591	AKAP4		
 chrX:49809049-50400324	0.591	CCNB3		
 chrX:49809049-50400324	0.591	CLCN5	300008	(confirmed) Dent disease|Nephrolithiasis,type I|Hypophosphatemic rickets|Proteinuria,low molecular weight,with hypercalciuric nephrocalcinosis
@@ -980,6 +983,7 @@ chr16:64842787-65163497	0.321	CDH11
 chrX:115765840-116073314	0.307			
 chr4:96983809-97222664	0.239			
 chr5:131601293-131800296	0.199	C5ORF56		
+chr5:131601293-131800296	0.199	IRF1	147575	(confirmed) Myelodysplastic syndrome,preleukemic|Myelogenous leukemia,acute|Gastric cancer,somatic|Nonsmall cell lung cancer,somatic
 chr5:131601293-131800296	0.199	PDLIM4	603422	(provisional) Osteoporosis,susceptibility to
 chr5:131601293-131800296	0.199	SLC22A4	604190	(provisional) Rheumatoid arthritis,susceptibility to
 chr5:131601293-131800296	0.199	SLC22A5	603377	(confirmed) Carnitine deficiency,systemic primary
@@ -996,6 +1000,7 @@ chr4:121637208-121750729	0.114	PRDM5	614161	(provisional) Brittle cornea syndrom
 chrX:108650264-108761585	0.111	GUCY2F		
 chr4:118597223-118699888	0.103			
 chr2:166038548-166130008	0.091			
+chr2:166038548-166130008	0.091	SCN2A	182390	(confirmed) Seizures,benign familial infantile,3|Epileptic encephalopathy,early infantile,11
 chr12:61909160-61991236	0.082			
 chr2:154950271-155032548	0.082	GALNT13		
 chrX:96668047-96746709	0.079	DIAPH2	300108	(confirmed) Premature ovarian failure
