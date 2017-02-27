@@ -15,6 +15,12 @@ bwa = [path]/data/tools/bwa-0.7.15/bwa
 SnpEff = java -Xmx4g -jar [path]/data/tools/snpEff/snpEff.jar
 SnpSift = java -Xmx4g -jar [path]/data/tools/snpEff/SnpSift.jar
 
+[tools-ngs-rna]
+STAR = [path]/data/tools/STAR_2.5.2b/bin/Linux_x86_64/STAR
+STAR-Fusion = [path]/data/tools/STAR-Fusion-v1.0.0/STAR-Fusion
+feature_counts = [path]/data/tools/subread-1.5.1/bin/featureCounts
+topas = java -Xmx2G -jar [path]/data/tools/topas-1.0/topas.jar
+
 [folders]
 local_data = [path]/data/genomes/
 data_folder = [path]/data/

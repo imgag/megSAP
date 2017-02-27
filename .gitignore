@@ -42,10 +42,11 @@
 /test/data_capa/Sample_GS150497_01/
 /test/data_capa/Somatic_GS150497_01-GS150496_01/
 
-/test/data_rna/analyze_rna_out1.log
-/test/data_rna/analyze_rna_out2.log
+/test/data_rna/analyze_rna_out_se.log
+/test/data_rna/analyze_rna_out_pe.log
 /test/data_rna/paired_end/
 /test/data_rna/single_end/
+
 /test/data_somatic/Sample_GS110168/
 /test/data_somatic/Sample_GS110169/
 /test/data_somatic/Sample_GS150344_01/

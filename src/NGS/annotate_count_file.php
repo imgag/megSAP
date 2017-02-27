@@ -12,14 +12,29 @@ $parser->addInfile("in", "Input read count file in TSV format", false, true);
 $parser->addOutfile("out", "Output TSV file for annotated read counts. Can also be the same file as the input file.", false);
 extract($parser->parse($argv));
 
-//read transcript>gene mapping
+//read gene_id>gene_name mapping from GTF file
 $mapping = array();
-$mapping_file = get_path("data_folder")."dbs/UCSC/refGene.txt";
+$mapping_file = get_path("data_folder")."dbs/UCSC/refGene.gtf";
 $handle = fopen($mapping_file, "r");
 if ($handle===FALSE) trigger_error("Could not open file '$mapping_file' for reading!", E_USER_ERROR);
-while ($data = fgetcsv($handle, 0, "\t"))
+while(!feof($handle))
 {
-	$mapping[$data[1]] = $data[12];
+	$line = trim(fgets($handle));
+	if ($line=="") continue;
+	
+	$parts = explode("\t", $line); 
+	
+	//parse last column (annotations)
+	$annos = array();
+	foreach(explode(";", $parts[8]) as $anno)
+	{
+		$anno = trim($anno);
+		if ($anno=="") continue;
+		
+		list($key, $value) = explode(" ", $anno);
+		$annos[$key] = trim(substr($value, 1, -1));
+	}
+	$mapping[$annos['gene_id']] = $annos['gene_name'];
 }
 fclose($handle);              
 

@@ -2,7 +2,7 @@
 all: clean analyze_se diff_se analyze_pe diff_pe
 
 clean:
-	rm -rf *.log *.txt single_end paired_end
+	rm -rf *.log single_end paired_end
 	
 analyze_se:
 	mkdir -p single_end

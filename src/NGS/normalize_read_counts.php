@@ -11,7 +11,7 @@ $parser = new ToolBase("normalize_read_counts", "Normalizes read counts produced
 $parser->addInfile("in", "Input read count file in tsv format", false, true);
 $parser->addOutfile("out", "Output file for normalized read counts", false);
 //optional parameters
-$parser->addString("gtf", "Reference annotation used for read counting in GTF format", true, get_path("data_folder")."genomes/gtf/ucsc_refseq_hg19.gtf");
+$parser->addString("gtf", "Reference annotation used for read counting in GTF format", true, get_path("data_folder")."/dbs/UCSC/refGene.gtf");
 $parser->addEnum("method", "The normalization method.", true, array("rpkm", "cpm"), "rpkm");
 $parser->addString("feature", "The GTF feature used for read counting", true, "exon");
 $parser->addString("idattr", "The ID attribute used to summarize feature types during read counting", true, "gene_id");

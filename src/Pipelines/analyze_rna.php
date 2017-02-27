@@ -3,10 +3,12 @@
 /**
 	@page analyze_rna
 	
-	@todo test if STAR-Fusion and STAR can use the genome reference, perhaps even the same genome as for DNA
-	@todo check when duplicate removal is really necessary for RNA => try samblaster instead of picard (we use it for DNA)
-	@todo check if/when indel realignment is really necessary for RNA => ABRA as indel realigner instead of GATK (license problems!)
-	@todo if we continue using GATK for indel realignment: check if GATK/hg19.fa can be used as GATKReference instead of GATK/hg19/hg19_GATK.fa
+	@todo Add functionality to analyze non-human samples (through processing system INI file)
+	@todo check with Stephan from QBIC:
+			- is duplicate removal really necessary for RNA => if so, try samblaster instead of picard (we use it for DNA)
+			- if/when indel realignment is really necessary for RNA => if so, use ABRA as indel realigner instead of GATK (license problems!) - if we continue using GATK for indel realignment: check if genomes/hg19.fa can be used as reference instead of GATK/hg19/hg19_GATK.fa
+			- how should _hap chromosomes be handled?
+			- should quality-based trimming be disabled (ask for paper)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -23,13 +25,10 @@ $parser->addInfileArray("in_rev", "Reverse reads fastq.gz file(s) for paired end
 $parser->addInfile("system", "Processing system INI file (Determined from 'out_name' by default).", true);
 $steps_all = array("ma", "rc", "an", "fu", "db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform.", true, implode(",", $steps_all));
-$parser->addString("reference", "FASTA File that contains the reference genome used for mapping.", true, get_path("data_folder")."genomes/STAR/hg19");
-$parser->addString("fusionDetectionReference", "Reference genome used for STAR-Fusion", true, get_path("data_folder")."/genomes/STAR-Fusion/hg19");
-$parser->addString("gtfFile", "GTF File containing feature annotations used for read counting.", true, get_path("data_folder")."genomes/gtf/ucsc_refseq_hg19.gtf");
-$parser->addString("GATKReference", "GATK reference fasta file", true, get_path("data_folder")."genomes/GATK/hg19/hg19_GATK.fa");
-$parser->addString("featureType", "Feature type used for mapping reads to features.", true, "exon");
-$parser->addString("gtfAttribute", "GTF attribute used as feature ID.", true, "gene_id");
 $parser->addInt("threads", "The maximum number of threads used.", true, 4);
+$parser->addString("gtfFile", "GTF File containing feature annotations (for read counting).", true, get_path("data_folder")."/dbs/UCSC/refGene.gtf");
+$parser->addString("featureType", "Feature type used for mapping reads to features (for read counting).", true, "exon");
+$parser->addString("gtfAttribute", "GTF attribute used as feature ID (for read counting).", true, "gene_id");
 $parser->addFlag("indelRealign", "Perform indel realignment. By default is is skipped.");
 $parser->addFlag("stranded", "Specify whether a stranded protocol was used during library preparation. Default is non-stranded.");
 $parser->addFlag("keepUnmapped", "Save unmapped reads as fasta files.");
@@ -97,7 +96,7 @@ if(in_array("ma", $steps))
 	}
 
 	//mapping
-	$args = array("-out $final_bam", "-genome $reference", "-p $threads", "-in1 $fastq_trimmed1");
+	$args = array("-out $final_bam", "-p $threads", "-in1 $fastq_trimmed1");
 	if($paired) $args[] = "-in2 $fastq_trimmed2";
 	if($keepUnmapped) $args[] = " -keepUnmapped";
 	if($rmdup) $args[] = "-rmdup";
@@ -122,7 +121,7 @@ if(in_array("ma", $steps))
 		
 		//split and trim reads with n in the cigar string -> spliced reads
 		$bam_split = $parser->tempFile(".sorted.split.bam");
-		$parser->exec(get_path("GATK"), "-T SplitNCigarReads -R $GATKReference -I $bam_mapped -o $bam_split -rf ReassignOneMappingQuality -RMQF 255 -RMQT 60 -U ALLOW_N_CIGAR_READS", true);
+		$parser->exec(get_path("GATK"), "-T SplitNCigarReads -R ".get_path("data_folder")."genomes/GATK/hg19/hg19_GATK.fa -I $bam_mapped -o $bam_split -rf ReassignOneMappingQuality -RMQF 255 -RMQT 60 -U ALLOW_N_CIGAR_READS", true);
 		
 		//perform indel realignment on split reads
 		$parser->execTool("NGS/indel_realign.php", "-in $bam_split -out $final_bam");
@@ -155,7 +154,7 @@ if(in_array("an", $steps))
 //detect fusions
 if(in_array("fu",$steps))
 {
-	$parser->exec(get_path("STAR-Fusion"), "--genome_lib_dir $fusionDetectionReference -J {$prefix}Chimeric.out.junction --output_dir $out_folder", true);
+	$parser->exec(get_path("STAR-Fusion"), "--genome_lib_dir ".get_path("data_folder")."/genomes/STAR-Fusion/hg19 -J {$prefix}Chimeric.out.junction --output_dir $out_folder", true);
 	
 	//cleanup
 	$parser->exec("rm -r", "$out_folder/star-fusion.filter.intermediates_dir", false);

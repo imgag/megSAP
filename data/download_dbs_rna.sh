@@ -17,13 +17,13 @@ cd UCSC
 wget -O - http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/refGene.txt.gz | gunzip > refGene.txt
 wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/genePredToGtf
 chmod 775 genePredToGtf
-cut -f2- refGene.txt | ./genePredToGtf file stdin refGene.gtf
+cut -f2- refGene.txt | ./genePredToGtf file stdin stdout | php $data_folder/../src/Tools/reformat_gtf.php > refGene.gtf
 rm genePredToGtf
 
 #STAR: index genome 
 cd $data_folder
 mkdir -p genomes/STAR/hg19
-tools/STAR_2.5.2b/bin/Linux_x86_64/STAR --runThreadN 4 --runMode genomeGenerate --genomeDir genomes/STAR/hg19/ --genomeFastaFiles genomes/hg19.fa --sjdbGTFfile dbs/UCSC/refGene.gtf
+$data_folder/tools/STAR_2.5.2b/bin/Linux_x86_64/STAR --runThreadN 4 --runMode genomeGenerate --genomeDir genomes/STAR/hg19/ --genomeFastaFiles genomes/hg19.fa --sjdbGTFfile dbs/UCSC/refGene.gtf
 
 #STAR-Fusion: download and process index
 cd $data_folder
