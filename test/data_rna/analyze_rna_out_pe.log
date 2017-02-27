@@ -1,0 +1,451 @@
+2017-02-27T08:29:02.4493	1qLp	START analyze_rna (version: 0.1-93-g371db5c)
+2017-02-27T08:29:02.4494	1qLp	Verbose: false
+2017-02-27T08:29:02.4494	1qLp	Parameter: steps                    = ma,rc,an,fu
+2017-02-27T08:29:02.4495	1qLp	Parameter: reference                = /mnt/share/data/genomes/STAR/hg19
+2017-02-27T08:29:02.4495	1qLp	Parameter: fusionDetectionReference = /mnt/share/data//genomes/STAR-Fusion/hg19
+2017-02-27T08:29:02.4495	1qLp	Parameter: gtfFile                  = /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf
+2017-02-27T08:29:02.4495	1qLp	Parameter: GATKReference            = /mnt/share/data/genomes/GATK/hg19/hg19_GATK.fa
+2017-02-27T08:29:02.4495	1qLp	Parameter: featureType              = exon
+2017-02-27T08:29:02.4495	1qLp	Parameter: gtfAttribute             = gene_id
+2017-02-27T08:29:02.4495	1qLp	Parameter: threads                  = 4
+2017-02-27T08:29:02.4495	1qLp	Parameter: indelRealign             = 
+2017-02-27T08:29:02.4496	1qLp	Parameter: stranded                 = 
+2017-02-27T08:29:02.4496	1qLp	Parameter: keepUnmapped             = 
+2017-02-27T08:29:02.4496	1qLp	Parameter: rmdup                    = 
+2017-02-27T08:29:02.4496	1qLp	Parameter: sharedMemory             = 
+2017-02-27T08:29:02.4496	1qLp	Parameter: in_for                   = analyze_rna_in1.fastq.gz analyze_rna_in2.fastq.gz
+2017-02-27T08:29:02.4496	1qLp	Parameter: in_rev                   = analyze_rna_in3.fastq.gz analyze_rna_in4.fastq.gz
+2017-02-27T08:29:02.4496	1qLp	Parameter: out_folder               = paired_end
+2017-02-27T08:29:02.4496	1qLp	Parameter: out_name                 = I16R003a01_01
+2017-02-27T08:29:02.4496	1qLp	Parameter: system                   = system.ini
+2017-02-27T08:29:02.4543	1qLp	Calling external tool '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat'
+2017-02-27T08:29:02.4543	1qLp	    version    = 0.1-605-g65433e6
+2017-02-27T08:29:02.4543	1qLp	    parameters = -in analyze_rna_in1.fastq.gz
+2017-02-27T08:29:02.4792	1qLp	Stdout of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat':
+2017-02-27T08:29:02.4792	1qLp	    Minimum ASCII character: # (35)
+2017-02-27T08:29:02.4792	1qLp	    Maximum ASCII character: G (71)
+2017-02-27T08:29:02.4792	1qLp	    Format: Sanger/Illumina1.8
+2017-02-27T08:29:02.4792	1qLp	Execution time of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat': 0.0249s
+2017-02-27T08:29:02.4829	1qLp	Calling external tool '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat'
+2017-02-27T08:29:02.4829	1qLp	    version    = 0.1-605-g65433e6
+2017-02-27T08:29:02.4829	1qLp	    parameters = -in analyze_rna_in2.fastq.gz
+2017-02-27T08:29:02.5073	1qLp	Stdout of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat':
+2017-02-27T08:29:02.5073	1qLp	    Minimum ASCII character: # (35)
+2017-02-27T08:29:02.5073	1qLp	    Maximum ASCII character: G (71)
+2017-02-27T08:29:02.5073	1qLp	    Format: Sanger/Illumina1.8
+2017-02-27T08:29:02.5074	1qLp	Execution time of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat': 0.0244s
+2017-02-27T08:29:02.5110	1qLp	Calling external tool '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat'
+2017-02-27T08:29:02.5110	1qLp	    version    = 0.1-605-g65433e6
+2017-02-27T08:29:02.5110	1qLp	    parameters = -in analyze_rna_in3.fastq.gz
+2017-02-27T08:29:02.5357	1qLp	Stdout of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat':
+2017-02-27T08:29:02.5357	1qLp	    Minimum ASCII character: # (35)
+2017-02-27T08:29:02.5357	1qLp	    Maximum ASCII character: G (71)
+2017-02-27T08:29:02.5357	1qLp	    Format: Sanger/Illumina1.8
+2017-02-27T08:29:02.5357	1qLp	Execution time of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat': 0.0247s
+2017-02-27T08:29:02.5394	1qLp	Calling external tool '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat'
+2017-02-27T08:29:02.5394	1qLp	    version    = 0.1-605-g65433e6
+2017-02-27T08:29:02.5394	1qLp	    parameters = -in analyze_rna_in4.fastq.gz
+2017-02-27T08:29:02.5639	1qLp	Stdout of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat':
+2017-02-27T08:29:02.5639	1qLp	    Minimum ASCII character: # (35)
+2017-02-27T08:29:02.5639	1qLp	    Maximum ASCII character: G (71)
+2017-02-27T08:29:02.5639	1qLp	    Format: Sanger/Illumina1.8
+2017-02-27T08:29:02.5639	1qLp	Execution time of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat': 0.0245s
+2017-02-27T08:29:02.5693	1qLp	Calling external tool '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/SeqPurge'
+2017-02-27T08:29:02.5693	1qLp	    version    = 0.1-605-g65433e6
+2017-02-27T08:29:02.5693	1qLp	    parameters = -in1 analyze_rna_in1.fastq.gz analyze_rna_in2.fastq.gz -in2 analyze_rna_in3.fastq.gz analyze_rna_in4.fastq.gz -out1 /tmp/analyze_rna_AUatee_trimmed.fastq.gz -out2 /tmp/analyze_rna_5SbY6J_trimmed.fastq.gz -a1 AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT -qc paired_end/I16R003a01_01_stats_fastq.qcML -threads 4
+2017-02-27T08:29:05.0070	1qLp	Stdout of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/SeqPurge':
+2017-02-27T08:29:05.0070	1qLp	    Reads (forward + reverse): 40000
+2017-02-27T08:29:05.0070	1qLp	    
+2017-02-27T08:29:05.0070	1qLp	    Reads trimmed by insert match: 9666
+2017-02-27T08:29:05.0070	1qLp	    Reads trimmed by adapter match: 72
+2017-02-27T08:29:05.0070	1qLp	    Reads trimmed by quality: 3875
+2017-02-27T08:29:05.0070	1qLp	    Reads trimmed by N stretches: 5
+2017-02-27T08:29:05.0070	1qLp	    Trimmed reads: 9738 of 40000 (24.34%)
+2017-02-27T08:29:05.0070	1qLp	    Removed reads: 272 of 40000 (0.68%)
+2017-02-27T08:29:05.0070	1qLp	    Removed bases: 4.28%
+2017-02-27T08:29:05.0070	1qLp	    
+2017-02-27T08:29:05.0070	1qLp	    Forward adapter sequence (given)    : AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC
+2017-02-27T08:29:05.0070	1qLp	    Forward adapter sequence (consensus): AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCTTGTA
+2017-02-27T08:29:05.0070	1qLp	    Reverse adapter sequence (given)    : AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+2017-02-27T08:29:05.0070	1qLp	    Reverse adapter sequence (consensus): AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTC
+2017-02-27T08:29:05.0070	1qLp	    
+2017-02-27T08:29:05.0070	1qLp	    Read length distribution after trimming:
+2017-02-27T08:29:05.0070	1qLp	       0: 65
+2017-02-27T08:29:05.0070	1qLp	       1: 0
+2017-02-27T08:29:05.0070	1qLp	       2: 0
+2017-02-27T08:29:05.0070	1qLp	       3: 3
+2017-02-27T08:29:05.0070	1qLp	       4: 6
+2017-02-27T08:29:05.0070	1qLp	       5: 6
+2017-02-27T08:29:05.0070	1qLp	       6: 13
+2017-02-27T08:29:05.0070	1qLp	       7: 6
+2017-02-27T08:29:05.0070	1qLp	       8: 5
+2017-02-27T08:29:05.0070	1qLp	       9: 6
+2017-02-27T08:29:05.0070	1qLp	      10: 9
+2017-02-27T08:29:05.0070	1qLp	      11: 1
+2017-02-27T08:29:05.0070	1qLp	      12: 7
+2017-02-27T08:29:05.0070	1qLp	      13: 4
+2017-02-27T08:29:05.0070	1qLp	      14: 5
+2017-02-27T08:29:05.0070	1qLp	      15: 5
+2017-02-27T08:29:05.0070	1qLp	      16: 2
+2017-02-27T08:29:05.0070	1qLp	      17: 1
+2017-02-27T08:29:05.0070	1qLp	      18: 3
+2017-02-27T08:29:05.0070	1qLp	      19: 4
+2017-02-27T08:29:05.0070	1qLp	      20: 10
+2017-02-27T08:29:05.0070	1qLp	      21: 4
+2017-02-27T08:29:05.0070	1qLp	      22: 4
+2017-02-27T08:29:05.0070	1qLp	      23: 6
+2017-02-27T08:29:05.0070	1qLp	      24: 2
+2017-02-27T08:29:05.0070	1qLp	      25: 4
+2017-02-27T08:29:05.0070	1qLp	      26: 5
+2017-02-27T08:29:05.0070	1qLp	      27: 4
+2017-02-27T08:29:05.0070	1qLp	      28: 8
+2017-02-27T08:29:05.0070	1qLp	      29: 3
+2017-02-27T08:29:05.0070	1qLp	      30: 8
+2017-02-27T08:29:05.0070	1qLp	      31: 1
+2017-02-27T08:29:05.0070	1qLp	      32: 1
+2017-02-27T08:29:05.0070	1qLp	      33: 5
+2017-02-27T08:29:05.0070	1qLp	      34: 4
+2017-02-27T08:29:05.0070	1qLp	      35: 5
+2017-02-27T08:29:05.0070	1qLp	      36: 5
+2017-02-27T08:29:05.0070	1qLp	      37: 2
+2017-02-27T08:29:05.0070	1qLp	      38: 4
+2017-02-27T08:29:05.0070	1qLp	      39: 4
+2017-02-27T08:29:05.0070	1qLp	      40: 4
+2017-02-27T08:29:05.0070	1qLp	      41: 4
+2017-02-27T08:29:05.0070	1qLp	      42: 3
+2017-02-27T08:29:05.0070	1qLp	      43: 9
+2017-02-27T08:29:05.0070	1qLp	      44: 2
+2017-02-27T08:29:05.0070	1qLp	      45: 1
+2017-02-27T08:29:05.0070	1qLp	      46: 4
+2017-02-27T08:29:05.0070	1qLp	      47: 4
+2017-02-27T08:29:05.0070	1qLp	      48: 5
+2017-02-27T08:29:05.0070	1qLp	      49: 6
+2017-02-27T08:29:05.0070	1qLp	      50: 5
+2017-02-27T08:29:05.0070	1qLp	      51: 3
+2017-02-27T08:29:05.0070	1qLp	      52: 9
+2017-02-27T08:29:05.0070	1qLp	      53: 5
+2017-02-27T08:29:05.0070	1qLp	      54: 6
+2017-02-27T08:29:05.0070	1qLp	      55: 8
+2017-02-27T08:29:05.0070	1qLp	      56: 3
+2017-02-27T08:29:05.0070	1qLp	      57: 3
+2017-02-27T08:29:05.0070	1qLp	      58: 6
+2017-02-27T08:29:05.0070	1qLp	      59: 8
+2017-02-27T08:29:05.0070	1qLp	      60: 5
+2017-02-27T08:29:05.0070	1qLp	      61: 7
+2017-02-27T08:29:05.0070	1qLp	      62: 13
+2017-02-27T08:29:05.0070	1qLp	      63: 13
+2017-02-27T08:29:05.0070	1qLp	      64: 10
+2017-02-27T08:29:05.0070	1qLp	      65: 5
+2017-02-27T08:29:05.0070	1qLp	      66: 7
+2017-02-27T08:29:05.0070	1qLp	      67: 36
+2017-02-27T08:29:05.0070	1qLp	      68: 24
+2017-02-27T08:29:05.0070	1qLp	      69: 22
+2017-02-27T08:29:05.0070	1qLp	      70: 18
+2017-02-27T08:29:05.0070	1qLp	      71: 16
+2017-02-27T08:29:05.0070	1qLp	      72: 22
+2017-02-27T08:29:05.0070	1qLp	      73: 43
+2017-02-27T08:29:05.0070	1qLp	      74: 19
+2017-02-27T08:29:05.0070	1qLp	      75: 40
+2017-02-27T08:29:05.0070	1qLp	      76: 24
+2017-02-27T08:29:05.0070	1qLp	      77: 33
+2017-02-27T08:29:05.0070	1qLp	      78: 38
+2017-02-27T08:29:05.0070	1qLp	      79: 21
+2017-02-27T08:29:05.0070	1qLp	      80: 37
+2017-02-27T08:29:05.0070	1qLp	      81: 51
+2017-02-27T08:29:05.0070	1qLp	      82: 61
+2017-02-27T08:29:05.0070	1qLp	      83: 53
+2017-02-27T08:29:05.0070	1qLp	      84: 57
+2017-02-27T08:29:05.0070	1qLp	      85: 74
+2017-02-27T08:29:05.0070	1qLp	      86: 42
+2017-02-27T08:29:05.0070	1qLp	      87: 86
+2017-02-27T08:29:05.0070	1qLp	      88: 78
+2017-02-27T08:29:05.0070	1qLp	      89: 72
+2017-02-27T08:29:05.0070	1qLp	      90: 85
+2017-02-27T08:29:05.0070	1qLp	      91: 103
+2017-02-27T08:29:05.0070	1qLp	      92: 120
+2017-02-27T08:29:05.0070	1qLp	      93: 125
+2017-02-27T08:29:05.0070	1qLp	      94: 132
+2017-02-27T08:29:05.0070	1qLp	      95: 130
+2017-02-27T08:29:05.0070	1qLp	      96: 128
+2017-02-27T08:29:05.0070	1qLp	      97: 170
+2017-02-27T08:29:05.0070	1qLp	      98: 156
+2017-02-27T08:29:05.0070	1qLp	      99: 166
+2017-02-27T08:29:05.0070	1qLp	     100: 158
+2017-02-27T08:29:05.0070	1qLp	     101: 194
+2017-02-27T08:29:05.0070	1qLp	     102: 225
+2017-02-27T08:29:05.0070	1qLp	     103: 191
+2017-02-27T08:29:05.0070	1qLp	     104: 253
+2017-02-27T08:29:05.0070	1qLp	     105: 244
+2017-02-27T08:29:05.0070	1qLp	     106: 268
+2017-02-27T08:29:05.0070	1qLp	     107: 257
+2017-02-27T08:29:05.0070	1qLp	     108: 240
+2017-02-27T08:29:05.0070	1qLp	     109: 299
+2017-02-27T08:29:05.0070	1qLp	     110: 269
+2017-02-27T08:29:05.0070	1qLp	     111: 355
+2017-02-27T08:29:05.0070	1qLp	     112: 344
+2017-02-27T08:29:05.0070	1qLp	     113: 349
+2017-02-27T08:29:05.0070	1qLp	     114: 367
+2017-02-27T08:29:05.0070	1qLp	     115: 418
+2017-02-27T08:29:05.0070	1qLp	     116: 386
+2017-02-27T08:29:05.0070	1qLp	     117: 391
+2017-02-27T08:29:05.0070	1qLp	     118: 445
+2017-02-27T08:29:05.0070	1qLp	     119: 370
+2017-02-27T08:29:05.0070	1qLp	     120: 442
+2017-02-27T08:29:05.0070	1qLp	     121: 475
+2017-02-27T08:29:05.0070	1qLp	     122: 578
+2017-02-27T08:29:05.0070	1qLp	     123: 756
+2017-02-27T08:29:05.0070	1qLp	     124: 2363
+2017-02-27T08:29:05.0070	1qLp	     125: 26683
+2017-02-27T08:29:05.0072	1qLp	Execution time of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/SeqPurge': 2.4379s
+2017-02-27T08:29:05.0248	1qLp	Calling external tool 'php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/NGS/mapping_star_htseq.php'
+2017-02-27T08:29:05.0248	1qLp	    version    = 0.1-93-g371db5c
+2017-02-27T08:29:05.0248	1qLp	    parameters = -out paired_end/I16R003a01_01.bam -genome /mnt/share/data/genomes/STAR/hg19 -p 4 -in1 /tmp/analyze_rna_AUatee_trimmed.fastq.gz -in2 /tmp/analyze_rna_5SbY6J_trimmed.fastq.gz
+2017-02-27T08:29:05.0248	1qLp	    log_id     = pHkG
+2017-02-27T08:29:05.0417	pHkG	START mapping_star_htseq (version: 0.1-93-g371db5c)
+2017-02-27T08:29:05.0417	pHkG	Verbose: false
+2017-02-27T08:29:05.0418	pHkG	Parameter: genome          = /mnt/share/data/genomes/STAR/hg19
+2017-02-27T08:29:05.0419	pHkG	Parameter: stranded        = 
+2017-02-27T08:29:05.0419	pHkG	Parameter: U               = 
+2017-02-27T08:29:05.0419	pHkG	Parameter: p               = 4
+2017-02-27T08:29:05.0419	pHkG	Parameter: llink           = AGATCGGAAGAGCACACGTCTGAACTCCAGTCACGAGTTA
+2017-02-27T08:29:05.0419	pHkG	Parameter: rlink           = AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTC
+2017-02-27T08:29:05.0419	pHkG	Parameter: Clip5p          = 0
+2017-02-27T08:29:05.0419	pHkG	Parameter: Clip3p          = 0
+2017-02-27T08:29:05.0420	pHkG	Parameter: rmdup           = 
+2017-02-27T08:29:05.0420	pHkG	Parameter: Lmax            = 50
+2017-02-27T08:29:05.0420	pHkG	Parameter: noSplicing      = 
+2017-02-27T08:29:05.0420	pHkG	Parameter: wiggleOutput    = 
+2017-02-27T08:29:05.0420	pHkG	Parameter: longReads       = 
+2017-02-27T08:29:05.0420	pHkG	Parameter: useSharedMemory = 
+2017-02-27T08:29:05.0420	pHkG	Parameter: readCounting    = 
+2017-02-27T08:29:05.0420	pHkG	Parameter: clipping        = 
+2017-02-27T08:29:05.0420	pHkG	Parameter: keepUnmapped    = 
+2017-02-27T08:29:05.0421	pHkG	Parameter: out             = paired_end/I16R003a01_01.bam
+2017-02-27T08:29:05.0421	pHkG	Parameter: in1             = /tmp/analyze_rna_AUatee_trimmed.fastq.gz
+2017-02-27T08:29:05.0421	pHkG	Parameter: in2             = /tmp/analyze_rna_5SbY6J_trimmed.fastq.gz
+2017-02-27T08:29:05.0434	pHkG	Calling external tool 'rm -r '
+2017-02-27T08:29:05.0434	pHkG	    version    = 8.25
+2017-02-27T08:29:05.0434	pHkG	    parameters = /tmp/mapping_star_htseq_7059446
+2017-02-27T08:29:05.0450	pHkG	Execution time of 'rm -r ': 0.0015s
+2017-02-27T08:29:05.0478	pHkG	Calling external tool '/mnt/share/opt/STAR-2.5.2b/bin/Linux_x86_64/STAR'
+2017-02-27T08:29:05.0478	pHkG	    version    = 2.5.2b
+2017-02-27T08:29:05.0478	pHkG	    parameters = --genomeDir /mnt/share/data/genomes/STAR/hg19 --readFilesIn /tmp/analyze_rna_AUatee_trimmed.fastq.gz /tmp/analyze_rna_5SbY6J_trimmed.fastq.gz --outFileNamePrefix /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/I16R003a01_01 --outTmpDir /tmp/mapping_star_htseq_7059446 --runThreadN 4 --outBAMsortingThreadN 4 --clip3pNbases 0 --clip5pNbases 0 --outSAMattributes All  --outSAMstrandField intronMotif --readFilesCommand zcat --chimSegmentMin 12 --chimJunctionOverhangMin 12 --alignSJDBoverhangMin 10 --alignMatesGapMax 200000 --alignIntronMax 200000 --alignSJstitchMismatchNmax 5 -1 5 5 --chimSegmentReadGapMax parameter 3 --seedSearchStartLmax 50 --genomeLoad NoSharedMemory --twopassMode Basic --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 21474836480 --outSAMattrRGline ID:1 PL:illumina PU:RGPU LB:N SM:RGSM CN:MFT --outReadsUnmapped None
+2017-02-27T08:31:15.6348	pHkG	Stdout of '/mnt/share/opt/STAR-2.5.2b/bin/Linux_x86_64/STAR':
+2017-02-27T08:31:15.6348	pHkG	    Feb 27 08:29:05 ..... started STAR run
+2017-02-27T08:31:15.6348	pHkG	    Feb 27 08:29:05 ..... loading genome
+2017-02-27T08:31:15.6348	pHkG	    Feb 27 08:29:39 ..... started 1st pass mapping
+2017-02-27T08:31:15.6348	pHkG	    Feb 27 08:29:43 ..... finished 1st pass mapping
+2017-02-27T08:31:15.6348	pHkG	    Feb 27 08:29:44 ..... inserting junctions into the genome indices
+2017-02-27T08:31:15.6348	pHkG	    Feb 27 08:31:10 ..... started mapping
+2017-02-27T08:31:15.6348	pHkG	    Feb 27 08:31:15 ..... started sorting BAM
+2017-02-27T08:31:15.6348	pHkG	    Feb 27 08:31:15 ..... finished successfully
+2017-02-27T08:31:15.6351	pHkG	Execution time of '/mnt/share/opt/STAR-2.5.2b/bin/Linux_x86_64/STAR': 2m 10s
+2017-02-27T08:31:15.6352	pHkG	Final STAR log
+2017-02-27T08:31:15.6352	pHkG	                                     Started job on |  Feb 27 08:29:05
+2017-02-27T08:31:15.6352	pHkG	                                 Started mapping on |  Feb 27 08:31:10
+2017-02-27T08:31:15.6352	pHkG	                                        Finished on |  Feb 27 08:31:15
+2017-02-27T08:31:15.6352	pHkG	           Mapping speed, Million of reads per hour |  14.30
+2017-02-27T08:31:15.6352	pHkG	    
+2017-02-27T08:31:15.6352	pHkG	                              Number of input reads |  19864
+2017-02-27T08:31:15.6352	pHkG	                          Average input read length |  240
+2017-02-27T08:31:15.6352	pHkG	                                        UNIQUE READS:
+2017-02-27T08:31:15.6352	pHkG	                       Uniquely mapped reads number |  15758
+2017-02-27T08:31:15.6352	pHkG	                            Uniquely mapped reads % |  79.33%
+2017-02-27T08:31:15.6352	pHkG	                              Average mapped length |  237.00
+2017-02-27T08:31:15.6352	pHkG	                           Number of splices: Total |  5267
+2017-02-27T08:31:15.6352	pHkG	                Number of splices: Annotated (sjdb) |  5247
+2017-02-27T08:31:15.6352	pHkG	                           Number of splices: GT/AG |  5232
+2017-02-27T08:31:15.6352	pHkG	                           Number of splices: GC/AG |  29
+2017-02-27T08:31:15.6352	pHkG	                           Number of splices: AT/AC |  1
+2017-02-27T08:31:15.6352	pHkG	                   Number of splices: Non-canonical |  5
+2017-02-27T08:31:15.6352	pHkG	                          Mismatch rate per base, % |  0.38%
+2017-02-27T08:31:15.6352	pHkG	                             Deletion rate per base |  0.02%
+2017-02-27T08:31:15.6352	pHkG	                            Deletion average length |  1.71
+2017-02-27T08:31:15.6352	pHkG	                            Insertion rate per base |  0.01%
+2017-02-27T08:31:15.6352	pHkG	                           Insertion average length |  1.41
+2017-02-27T08:31:15.6352	pHkG	                                 MULTI-MAPPING READS:
+2017-02-27T08:31:15.6352	pHkG	            Number of reads mapped to multiple loci |  839
+2017-02-27T08:31:15.6352	pHkG	                 % of reads mapped to multiple loci |  4.22%
+2017-02-27T08:31:15.6352	pHkG	            Number of reads mapped to too many loci |  10
+2017-02-27T08:31:15.6352	pHkG	                 % of reads mapped to too many loci |  0.05%
+2017-02-27T08:31:15.6352	pHkG	                                      UNMAPPED READS:
+2017-02-27T08:31:15.6352	pHkG	           % of reads unmapped: too many mismatches |  0.00%
+2017-02-27T08:31:15.6352	pHkG	                     % of reads unmapped: too short |  16.32%
+2017-02-27T08:31:15.6352	pHkG	                         % of reads unmapped: other |  0.08%
+2017-02-27T08:31:15.6352	pHkG	                                      CHIMERIC READS:
+2017-02-27T08:31:15.6352	pHkG	                           Number of chimeric reads |  147
+2017-02-27T08:31:15.6352	pHkG	                                % of chimeric reads |  0.74%
+2017-02-27T08:31:15.6394	pHkG	Calling external tool '/mnt/share/opt/samtools-1.3.1/samtools'
+2017-02-27T08:31:15.6394	pHkG	    version    = 1.3.1
+2017-02-27T08:31:15.6394	pHkG	    parameters = index paired_end/I16R003a01_01.bam
+2017-02-27T08:31:15.7174	pHkG	Execution time of '/mnt/share/opt/samtools-1.3.1/samtools': 0.0779s
+2017-02-27T08:31:15.7251	pHkG	Calling external tool '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/MappingQC'
+2017-02-27T08:31:15.7251	pHkG	    version    = 0.1-605-g65433e6
+2017-02-27T08:31:15.7251	pHkG	    parameters = -in paired_end/I16R003a01_01.bam -out /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/I16R003a01_01_stats_map.qcML -rna
+2017-02-27T08:31:17.0048	pHkG	Execution time of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/MappingQC': 1.2797s
+2017-02-27T08:31:17.0194	pHkG	END mapping_star_htseq
+2017-02-27T08:31:17.0195	pHkG	Execution time of 'mapping_star_htseq': 2m 11s
+2017-02-27T08:31:17.0392	1qLp	Calling external tool 'php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/NGS/read_counting_featureCounts.php'
+2017-02-27T08:31:17.0392	1qLp	    version    = 0.1-93-g371db5c
+2017-02-27T08:31:17.0392	1qLp	    parameters = -in paired_end/I16R003a01_01.bam -out paired_end/I16R003a01_01_counts_raw.tsv -threads 4 -gtfFile /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf -featureType exon -gtfAttribute gene_id -paired
+2017-02-27T08:31:17.0392	1qLp	    log_id     = q8nw
+2017-02-27T08:31:17.0557	q8nw	START read_counting_featureCounts (version: 0.1-93-g371db5c)
+2017-02-27T08:31:17.0558	q8nw	Verbose: false
+2017-02-27T08:31:17.0559	q8nw	Parameter: gtfFile             = /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf
+2017-02-27T08:31:17.0559	q8nw	Parameter: featureType         = exon
+2017-02-27T08:31:17.0559	q8nw	Parameter: gtfAttribute        = gene_id
+2017-02-27T08:31:17.0559	q8nw	Parameter: stranded            = 
+2017-02-27T08:31:17.0560	q8nw	Parameter: minAQual            = 3
+2017-02-27T08:31:17.0560	q8nw	Parameter: paired              = 1
+2017-02-27T08:31:17.0560	q8nw	Parameter: includeMultiOverlap = 
+2017-02-27T08:31:17.0560	q8nw	Parameter: threads             = 4
+2017-02-27T08:31:17.0560	q8nw	Parameter: in                  = paired_end/I16R003a01_01.bam
+2017-02-27T08:31:17.0560	q8nw	Parameter: out                 = paired_end/I16R003a01_01_counts_raw.tsv
+2017-02-27T08:31:17.0586	q8nw	Calling external tool '/mnt/share/opt/subread-1.5.0-p2/bin/featureCounts'
+2017-02-27T08:31:17.0586	q8nw	    version    = n/a
+2017-02-27T08:31:17.0586	q8nw	    parameters = paired_end/I16R003a01_01.bam -o paired_end/I16R003a01_01_counts_raw.tsv -a /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf -t exon -g gene_id -Q 3 -T 4 -s 0 -p -B
+2017-02-27T08:31:18.3639	q8nw	Stderr of '/mnt/share/opt/subread-1.5.0-p2/bin/featureCounts':
+2017-02-27T08:31:18.3639	q8nw	    
+2017-02-27T08:31:18.3639	q8nw	            ==========     _____ _    _ ____  _____  ______          _____  
+2017-02-27T08:31:18.3639	q8nw	            =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+2017-02-27T08:31:18.3639	q8nw	              =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+2017-02-27T08:31:18.3639	q8nw	                ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+2017-02-27T08:31:18.3639	q8nw	                  ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+2017-02-27T08:31:18.3639	q8nw	            ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+2017-02-27T08:31:18.3639	q8nw	      v1.5.0-p2
+2017-02-27T08:31:18.3639	q8nw	    
+2017-02-27T08:31:18.3639	q8nw	    //========================== featureCounts setting ===========================\\
+2017-02-27T08:31:18.3639	q8nw	    ||                                                                            ||
+2017-02-27T08:31:18.3639	q8nw	    ||             Input files : 1 BAM file                                       ||
+2017-02-27T08:31:18.3639	q8nw	    ||                           P paired_end/I16R003a01_01.bam                   ||
+2017-02-27T08:31:18.3639	q8nw	    ||                                                                            ||
+2017-02-27T08:31:18.3639	q8nw	    ||             Output file : paired_end/I16R003a01_01_counts_raw.tsv          ||
+2017-02-27T08:31:18.3639	q8nw	    ||                 Summary : paired_end/I16R003a01_01_counts_raw.tsv.summary  ||
+2017-02-27T08:31:18.3639	q8nw	    ||              Annotation : /mnt/share/data/genomes/gtf/ucsc_refseq_hg19 ... ||
+2017-02-27T08:31:18.3639	q8nw	    ||                                                                            ||
+2017-02-27T08:31:18.3639	q8nw	    ||                 Threads : 4                                                ||
+2017-02-27T08:31:18.3639	q8nw	    ||                   Level : meta-feature level                               ||
+2017-02-27T08:31:18.3639	q8nw	    ||              Paired-end : yes                                              ||
+2017-02-27T08:31:18.3639	q8nw	    ||         Strand specific : no                                               ||
+2017-02-27T08:31:18.3639	q8nw	    ||      Multimapping reads : not counted                                      ||
+2017-02-27T08:31:18.3639	q8nw	    || Multi-overlapping reads : not counted                                      ||
+2017-02-27T08:31:18.3639	q8nw	    ||                                                                            ||
+2017-02-27T08:31:18.3639	q8nw	    ||          Chimeric reads : counted                                          ||
+2017-02-27T08:31:18.3639	q8nw	    ||        Both ends mapped : required                                         ||
+2017-02-27T08:31:18.3639	q8nw	    ||                                                                            ||
+2017-02-27T08:31:18.3639	q8nw	    \\===================== http://subread.sourceforge.net/ ======================//
+2017-02-27T08:31:18.3639	q8nw	    
+2017-02-27T08:31:18.3639	q8nw	    //================================= Running ==================================\\
+2017-02-27T08:31:18.3639	q8nw	    ||                                                                            ||
+2017-02-27T08:31:18.3639	q8nw	    || Load annotation file /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf ...  ||
+2017-02-27T08:31:18.3639	q8nw	    ||    Features : 531061                                                       ||
+2017-02-27T08:31:18.3639	q8nw	    ||    Meta-features : 53082                                                   ||
+2017-02-27T08:31:18.3639	q8nw	    ||    Chromosomes/contigs : 53                                                ||
+2017-02-27T08:31:18.3639	q8nw	    ||                                                                            ||
+2017-02-27T08:31:18.3639	q8nw	    || Process BAM file paired_end/I16R003a01_01.bam...                           ||
+2017-02-27T08:31:18.3639	q8nw	    ||    Paired-end reads are included.                                          ||
+2017-02-27T08:31:18.3639	q8nw	    ||    Assign fragments (read pairs) to features...                            ||
+2017-02-27T08:31:18.3639	q8nw	    ||                                                                            ||
+2017-02-27T08:31:18.3639	q8nw	    ||    WARNING: reads from the same pair were found not adjacent to each       ||
+2017-02-27T08:31:18.3639	q8nw	    ||             other in the input (due to read sorting by location or         ||
+2017-02-27T08:31:18.3639	q8nw	    ||             reporting of multi-mapping read pairs).                        ||
+2017-02-27T08:31:18.3639	q8nw	    ||                                                                            ||
+2017-02-27T08:31:18.3639	q8nw	    ||    Read re-ordering is performed.                                          ||
+2017-02-27T08:31:18.3639	q8nw	    ||                                                                            ||
+2017-02-27T08:31:18.3639	q8nw	    ||    Total fragments : 17897                                                 ||
+2017-02-27T08:31:18.3639	q8nw	    ||    Successfully assigned fragments : 3231 (18.1%)                          ||
+2017-02-27T08:31:18.3639	q8nw	    ||    Running time : 0.00 minutes                                             ||
+2017-02-27T08:31:18.3639	q8nw	    ||                                                                            ||
+2017-02-27T08:31:18.3639	q8nw	    ||                         Read assignment finished.                          ||
+2017-02-27T08:31:18.3639	q8nw	    ||                                                                            ||
+2017-02-27T08:31:18.3639	q8nw	    \\===================== http://subread.sourceforge.net/ ======================//
+2017-02-27T08:31:18.3639	q8nw	    
+2017-02-27T08:31:18.3641	q8nw	Execution time of '/mnt/share/opt/subread-1.5.0-p2/bin/featureCounts': 1.3054s
+2017-02-27T08:31:18.3666	q8nw	END read_counting_featureCounts
+2017-02-27T08:31:18.3667	q8nw	Execution time of 'read_counting_featureCounts': 1.3156s
+2017-02-27T08:31:18.4501	1qLp	Calling external tool 'php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/NGS/normalize_read_counts.php'
+2017-02-27T08:31:18.4501	1qLp	    version    = 0.1-93-g371db5c
+2017-02-27T08:31:18.4501	1qLp	    parameters = -in /tmp/analyze_rna_obByef_counts_tmp.tsv -out paired_end/I16R003a01_01_counts_fpkm.tsv -gtf /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf -method rpkm -feature exon -idattr gene_id -header
+2017-02-27T08:31:18.4501	1qLp	    log_id     = LMtC
+2017-02-27T08:31:18.4675	LMtC	START normalize_read_counts (version: 0.1-93-g371db5c)
+2017-02-27T08:31:18.4675	LMtC	Verbose: false
+2017-02-27T08:31:18.4676	LMtC	Parameter: gtf     = /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf
+2017-02-27T08:31:18.4676	LMtC	Parameter: method  = rpkm
+2017-02-27T08:31:18.4677	LMtC	Parameter: feature = exon
+2017-02-27T08:31:18.4677	LMtC	Parameter: idattr  = gene_id
+2017-02-27T08:31:18.4677	LMtC	Parameter: header  = 1
+2017-02-27T08:31:18.4677	LMtC	Parameter: in      = /tmp/analyze_rna_obByef_counts_tmp.tsv
+2017-02-27T08:31:18.4677	LMtC	Parameter: out     = paired_end/I16R003a01_01_counts_fpkm.tsv
+2017-02-27T08:31:18.6312	LMtC	Calling external tool 'java -Xmx2G -jar /mnt/share/opt/topas-1.0/topas.jar'
+2017-02-27T08:31:18.6312	LMtC	    version    = n/a
+2017-02-27T08:31:18.6312	LMtC	    parameters = NormExprTable -i /tmp/analyze_rna_obByef_counts_tmp.tsv -o paired_end/I16R003a01_01_counts_fpkm.tsv -gtf /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf -rpkm -type exon -idattr gene_id -header true
+2017-02-27T08:31:20.2426	LMtC	Stdout of 'java -Xmx2G -jar /mnt/share/opt/topas-1.0/topas.jar':
+2017-02-27T08:31:20.2426	LMtC	    TOPAS - TOolkit for Processing and Annotation of Sequence data
+2017-02-27T08:31:20.2426	LMtC	    topas.NormExprTable
+2017-02-27T08:31:20.2426	LMtC	    Use -? for help
+2017-02-27T08:31:20.2426	LMtC	    
+2017-02-27T08:31:20.2426	LMtC	    Parameters chosen:
+2017-02-27T08:31:20.2426	LMtC	    Input file        : /tmp/analyze_rna_obByef_counts_tmp.tsv
+2017-02-27T08:31:20.2426	LMtC	    Output file       : paired_end/I16R003a01_01_counts_fpkm.tsv
+2017-02-27T08:31:20.2426	LMtC	    RPKM              : true
+2017-02-27T08:31:20.2426	LMtC	    GTF               : /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf
+2017-02-27T08:31:20.2426	LMtC	    Type              : exon
+2017-02-27T08:31:20.2426	LMtC	    IdAtt             : gene_id
+2017-02-27T08:31:20.2426	LMtC	    Input comma       : false
+2017-02-27T08:31:20.2426	LMtC	    Output comma      : false
+2017-02-27T08:31:20.2426	LMtC	    Has Header        : true
+2017-02-27T08:31:20.2426	LMtC	    
+2017-02-27T08:31:20.2426	LMtC	    
+2017-02-27T08:31:20.2426	LMtC	    Reading expression table from /tmp/analyze_rna_obByef_counts_tmp.tsv...
+2017-02-27T08:31:20.2426	LMtC	    
+2017-02-27T08:31:20.2426	LMtC	    Normalizing...
+2017-02-27T08:31:20.2426	LMtC	    Reading GTF file from /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf
+2017-02-27T08:31:20.2426	LMtC	    Doing RPKM normalization...
+2017-02-27T08:31:20.2426	LMtC	    
+2017-02-27T08:31:20.2426	LMtC	    Writing normalized expression table to paired_end/I16R003a01_01_counts_fpkm.tsv
+2017-02-27T08:31:20.2426	LMtC	    
+2017-02-27T08:31:20.2426	LMtC	    
+2017-02-27T08:31:20.2426	LMtC	    topas.NormExprTable finished in 1 seconds
+2017-02-27T08:31:20.2428	LMtC	Execution time of 'java -Xmx2G -jar /mnt/share/opt/topas-1.0/topas.jar': 1.6114s
+2017-02-27T08:31:20.2429	LMtC	END normalize_read_counts
+2017-02-27T08:31:20.2429	LMtC	Execution time of 'normalize_read_counts': 1.7804s
+2017-02-27T08:31:20.2810	1qLp	Calling external tool 'php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/NGS/annotate_count_file.php'
+2017-02-27T08:31:20.2810	1qLp	    version    = 0.1-93-g371db5c
+2017-02-27T08:31:20.2810	1qLp	    parameters = -in paired_end/I16R003a01_01_counts_fpkm.tsv -out paired_end/I16R003a01_01_counts_fpkm.tsv
+2017-02-27T08:31:20.2810	1qLp	    log_id     = VQ8Q
+2017-02-27T08:31:20.3055	VQ8Q	START annotate_count_file (version: 0.1-93-g371db5c)
+2017-02-27T08:31:20.3056	VQ8Q	Verbose: false
+2017-02-27T08:31:20.3057	VQ8Q	Parameter: in  = paired_end/I16R003a01_01_counts_fpkm.tsv
+2017-02-27T08:31:20.3057	VQ8Q	Parameter: out = paired_end/I16R003a01_01_counts_fpkm.tsv
+2017-02-27T08:31:21.9701	VQ8Q	END annotate_count_file
+2017-02-27T08:31:21.9701	VQ8Q	Execution time of 'annotate_count_file': 1.6703s
+2017-02-27T08:31:22.1232	1qLp	Calling external tool '/mnt/share/opt/STAR-Fusion-0.8.0/STAR-Fusion'
+2017-02-27T08:31:22.1232	1qLp	    version    = n/a
+2017-02-27T08:31:22.1232	1qLp	    parameters = --genome_lib_dir /mnt/share/data//genomes/STAR-Fusion/hg19 -J paired_end/I16R003a01_01Chimeric.out.junction --output_dir paired_end
+2017-02-27T08:37:16.8547	1qLp	Stderr of '/mnt/share/opt/STAR-Fusion-0.8.0/STAR-Fusion':
+2017-02-27T08:37:16.8547	1qLp	    * Running CMD: /mnt/SRV018/share/opt/STAR-Fusion-0.8.0/util/STAR-Fusion.predict  -J /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/I16R003a01_01Chimeric.out.junction  --genome_lib_dir /mnt/share/data//genomes/STAR-Fusion/hg19  --min_junction_reads 1  --min_sum_frags 2  --min_novel_junction_support 3  -O /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion 
+2017-02-27T08:37:16.8547	1qLp	    CMD: mkdir -p /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.predict.intermediates_dir
+2017-02-27T08:37:16.8547	1qLp	    -parsing GTF file: /mnt/share/data//genomes/STAR-Fusion/hg19/ref_annot.gtf
+2017-02-27T08:37:16.8547	1qLp	    -building interval tree for fast searching of gene overlaps
+2017-02-27T08:37:16.8547	1qLp	    -parsing fusion evidence: /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/I16R003a01_01Chimeric.out.junction
+2017-02-27T08:37:16.8547	1qLp	    -mapping reads to genes
+2017-02-27T08:37:16.8547	1qLp	    -outputting fusion candidates to file: /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.fusion_candidates.preliminary
+2017-02-27T08:37:16.8547	1qLp	    * Running CMD: /mnt/SRV018/share/opt/STAR-Fusion-0.8.0/util/append_breakpoint_junction_info.pl /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.fusion_candidates.preliminary /mnt/share/data//genomes/STAR-Fusion/hg19 > /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.fusion_candidates.preliminary.wSpliceInfo
+2017-02-27T08:37:16.8547	1qLp	    * Running CMD: /mnt/SRV018/share/opt/STAR-Fusion-0.8.0/util/STAR-Fusion.filter  --fusion_preds /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.fusion_candidates.preliminary.wSpliceInfo  -E 0.001  --tmpdir /tmp  --min_junction_reads 1  --min_sum_frags 2  --require_LDAS 1  --max_promiscuity 3  --min_novel_junction_support 3  --min_alt_pct_junction 10  --aggregate_novel_junction_dist 5  --genome_lib_dir /mnt/share/data//genomes/STAR-Fusion/hg19  --out_prefix /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion
+2017-02-27T08:37:16.8547	1qLp	    CMD: mkdir -p /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.filter.intermediates_dir
+2017-02-27T08:37:16.8547	1qLp	    CMD: /mnt/SRV018/share/opt/STAR-Fusion-0.8.0/util/../FusionFilter/blast_and_promiscuity_filter.pl --out_prefix /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.filter.intermediates_dir/star-fusion -E 0.001 --max_promiscuity 3 --fusion_preds /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.filter.intermediates_dir/star-fusion.pre_blast_filter --genome_lib_dir /mnt/share/data//genomes/STAR-Fusion/hg19 
+2017-02-27T08:37:16.8547	1qLp	    CMD: /mnt/SRV018/share/opt/STAR-Fusion-0.8.0/FusionFilter/util/blast_filter.pl --fusion_preds /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.filter.intermediates_dir/star-fusion.pre_blast_filter -E 0.001 --genome_lib_dir /mnt/share/data//genomes/STAR-Fusion/hg19
+2017-02-27T08:37:16.8547	1qLp	    CMD: /mnt/SRV018/share/opt/STAR-Fusion-0.8.0/FusionFilter/util/promiscuity_filter.pl --fusion_preds /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.filter.intermediates_dir/star-fusion.pre_blast_filter.post_blast_filter  --genome_lib_dir /mnt/share/data//genomes/STAR-Fusion/hg19  --max_promiscuity 3  --min_pct_dom_promiscuity 20 
+2017-02-27T08:37:16.8547	1qLp	    CMD: cp /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.filter.intermediates_dir/star-fusion.pre_blast_filter.post_blast_filter.post_promisc_filter /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.filter.intermediates_dir/star-fusion.final
+2017-02-27T08:37:16.8547	1qLp	    CMD: /mnt/SRV018/share/opt/STAR-Fusion-0.8.0/util/column_exclusions.pl /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.filter.intermediates_dir/star-fusion.pre_blast_filter JunctionReads,SpanningFrags > /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.filter.intermediates_dir/star-fusion.pre_blast_filter.abridged
+2017-02-27T08:37:16.8547	1qLp	    CMD: /mnt/SRV018/share/opt/STAR-Fusion-0.8.0/util/column_exclusions.pl /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.filter.intermediates_dir/star-fusion.pre_blast_filter.filt_info JunctionReads,SpanningFrags > /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.filter.intermediates_dir/star-fusion.pre_blast_filter.filt_info.abridged
+2017-02-27T08:37:16.8547	1qLp	    CMD: /mnt/SRV018/share/opt/STAR-Fusion-0.8.0/util/column_exclusions.pl /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.fusion_candidates.final  JunctionReads,SpanningFrags > /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.fusion_candidates.final.abridged
+2017-02-27T08:37:16.8547	1qLp	    CMD: /mnt/SRV018/share/opt/STAR-Fusion-0.8.0/util/column_exclusions.pl /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.filter.intermediates_dir/star-fusion.pre_blast_filter.post_blast_filter.post_promisc_filter JunctionReads,SpanningFrags > /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.filter.intermediates_dir/star-fusion.pre_blast_filter.post_blast_filter.post_promisc_filter.abridged
+2017-02-27T08:37:16.8547	1qLp	    
+2017-02-27T08:37:16.8547	1qLp	    
+2017-02-27T08:37:16.8547	1qLp	      * Process complete.  See output: /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/paired_end/star-fusion.fusion_candidates.final (or .abridged version)
+2017-02-27T08:37:16.8547	1qLp	    
+2017-02-27T08:37:16.8547	1qLp	    
+2017-02-27T08:37:16.8549	1qLp	Execution time of '/mnt/share/opt/STAR-Fusion-0.8.0/STAR-Fusion': 6m 54s
+2017-02-27T08:37:16.8605	1qLp	END analyze_rna
+2017-02-27T08:37:16.8605	1qLp	Execution time of 'analyze_rna': 8m 14s

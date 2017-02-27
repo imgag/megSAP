@@ -1,0 +1,279 @@
+2017-02-27T08:26:48.0947	vFF1	START analyze_rna (version: 0.1-93-g371db5c)
+2017-02-27T08:26:48.0948	vFF1	Verbose: false
+2017-02-27T08:26:48.0949	vFF1	Parameter: steps                    = ma,rc,an
+2017-02-27T08:26:48.0949	vFF1	Parameter: reference                = /mnt/share/data/genomes/STAR/hg19
+2017-02-27T08:26:48.0949	vFF1	Parameter: fusionDetectionReference = /mnt/share/data//genomes/STAR-Fusion/hg19
+2017-02-27T08:26:48.0949	vFF1	Parameter: gtfFile                  = /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf
+2017-02-27T08:26:48.0949	vFF1	Parameter: GATKReference            = /mnt/share/data/genomes/GATK/hg19/hg19_GATK.fa
+2017-02-27T08:26:48.0949	vFF1	Parameter: featureType              = exon
+2017-02-27T08:26:48.0950	vFF1	Parameter: gtfAttribute             = gene_id
+2017-02-27T08:26:48.0950	vFF1	Parameter: threads                  = 4
+2017-02-27T08:26:48.0950	vFF1	Parameter: indelRealign             = 
+2017-02-27T08:26:48.0950	vFF1	Parameter: stranded                 = 
+2017-02-27T08:26:48.0950	vFF1	Parameter: keepUnmapped             = 1
+2017-02-27T08:26:48.0950	vFF1	Parameter: rmdup                    = 
+2017-02-27T08:26:48.0950	vFF1	Parameter: sharedMemory             = 
+2017-02-27T08:26:48.0950	vFF1	Parameter: in_for                   = analyze_rna_in1.fastq.gz analyze_rna_in2.fastq.gz
+2017-02-27T08:26:48.0950	vFF1	Parameter: out_folder               = single_end
+2017-02-27T08:26:48.0951	vFF1	Parameter: out_name                 = I16R003a01_01
+2017-02-27T08:26:48.0951	vFF1	Parameter: system                   = system.ini
+2017-02-27T08:26:48.0999	vFF1	Calling external tool '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat'
+2017-02-27T08:26:48.0999	vFF1	    version    = 0.1-605-g65433e6
+2017-02-27T08:26:48.0999	vFF1	    parameters = -in analyze_rna_in1.fastq.gz
+2017-02-27T08:26:48.1254	vFF1	Stdout of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat':
+2017-02-27T08:26:48.1254	vFF1	    Minimum ASCII character: # (35)
+2017-02-27T08:26:48.1254	vFF1	    Maximum ASCII character: G (71)
+2017-02-27T08:26:48.1254	vFF1	    Format: Sanger/Illumina1.8
+2017-02-27T08:26:48.1255	vFF1	Execution time of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat': 0.0255s
+2017-02-27T08:26:48.1299	vFF1	Calling external tool '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat'
+2017-02-27T08:26:48.1299	vFF1	    version    = 0.1-605-g65433e6
+2017-02-27T08:26:48.1299	vFF1	    parameters = -in analyze_rna_in2.fastq.gz
+2017-02-27T08:26:48.1550	vFF1	Stdout of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat':
+2017-02-27T08:26:48.1550	vFF1	    Minimum ASCII character: # (35)
+2017-02-27T08:26:48.1550	vFF1	    Maximum ASCII character: G (71)
+2017-02-27T08:26:48.1550	vFF1	    Format: Sanger/Illumina1.8
+2017-02-27T08:26:48.1551	vFF1	Execution time of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/FastqFormat': 0.0252s
+2017-02-27T08:26:48.1594	vFF1	Calling external tool '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/ReadQC'
+2017-02-27T08:26:48.1594	vFF1	    version    = 0.1-605-g65433e6
+2017-02-27T08:26:48.1594	vFF1	    parameters = -in1 analyze_rna_in1.fastq.gz analyze_rna_in2.fastq.gz -out single_end/I16R003a01_01_stats_fastq.qcML
+2017-02-27T08:26:50.2705	vFF1	Execution time of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/ReadQC': 2.1111s
+2017-02-27T08:26:50.2725	vFF1	Calling external tool 'zcat'
+2017-02-27T08:26:50.2725	vFF1	    version    = 1.6
+2017-02-27T08:26:50.2725	vFF1	    parameters = analyze_rna_in1.fastq.gz analyze_rna_in2.fastq.gz | /mnt/share/opt/skewer-0.1.123/skewer-0.1.123-linux-x86_64 -x AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC -y AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT -m any -threads 4 -z -o /tmp/analyze_rna_o9ieuX_trimmed --quiet -
+2017-02-27T08:26:50.6947	vFF1	Stdout of 'zcat':
+2017-02-27T08:26:50.6947	vFF1	    Parameters used:
+2017-02-27T08:26:50.6947	vFF1	    -- 3' end adapter sequence (-x):[0;33m  AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC
+2017-02-27T08:26:50.6947	vFF1	    [0m-- maximum error ratio allowed (-r):  0.100
+2017-02-27T08:26:50.6947	vFF1	    -- maximum indel error ratio allowed (-d):  0.030
+2017-02-27T08:26:50.6947	vFF1	    -- minimum read length allowed after trimming (-l):  18
+2017-02-27T08:26:50.6947	vFF1	    -- file format (-f):    Unknown format (auto detected)
+2017-02-27T08:26:50.6947	vFF1	    -- minimum overlap length for adapter detection (-k):  3
+2017-02-27T08:26:50.6947	vFF1	    -- number of concurrent threads (-t):  4
+2017-02-27T08:26:50.6947	vFF1	    Mon Feb 27 08:26:50 2017[0;32m >> started[0m
+2017-02-27T08:26:50.6947	vFF1	    
+2017-02-27T08:26:50.6947	vFF1	    Mon Feb 27 08:26:50 2017[0;32m >> done[0m (0.414s)
+2017-02-27T08:26:50.6947	vFF1	    20000 reads processed; of these:
+2017-02-27T08:26:50.6947	vFF1	        0 ( 0.00%) short reads filtered out after trimming by size control
+2017-02-27T08:26:50.6947	vFF1	      410 ( 2.05%) empty reads filtered out after trimming by size control
+2017-02-27T08:26:50.6947	vFF1	    19590 (97.95%) reads available; of these:
+2017-02-27T08:26:50.6947	vFF1	     4821 (24.61%) trimmed reads available after processing
+2017-02-27T08:26:50.6947	vFF1	    14769 (75.39%) untrimmed reads available after processing
+2017-02-27T08:26:50.6947	vFF1	    log has been saved to "/tmp/analyze_rna_o9ieuX_trimmed-trimmed.log".
+2017-02-27T08:26:50.6948	vFF1	Execution time of 'zcat': 0.4223s
+2017-02-27T08:26:50.7125	vFF1	Calling external tool 'php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/NGS/mapping_star_htseq.php'
+2017-02-27T08:26:50.7125	vFF1	    version    = 0.1-93-g371db5c
+2017-02-27T08:26:50.7125	vFF1	    parameters = -out single_end/I16R003a01_01.bam -genome /mnt/share/data/genomes/STAR/hg19 -p 4 -in1 /tmp/analyze_rna_o9ieuX_trimmed.fastq.gz  -keepUnmapped
+2017-02-27T08:26:50.7125	vFF1	    log_id     = 14UT
+2017-02-27T08:26:50.7286	14UT	START mapping_star_htseq (version: 0.1-93-g371db5c)
+2017-02-27T08:26:50.7287	14UT	Verbose: false
+2017-02-27T08:26:50.7288	14UT	Parameter: genome          = /mnt/share/data/genomes/STAR/hg19
+2017-02-27T08:26:50.7288	14UT	Parameter: stranded        = 
+2017-02-27T08:26:50.7288	14UT	Parameter: U               = 
+2017-02-27T08:26:50.7288	14UT	Parameter: p               = 4
+2017-02-27T08:26:50.7288	14UT	Parameter: llink           = AGATCGGAAGAGCACACGTCTGAACTCCAGTCACGAGTTA
+2017-02-27T08:26:50.7288	14UT	Parameter: rlink           = AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTC
+2017-02-27T08:26:50.7289	14UT	Parameter: Clip5p          = 0
+2017-02-27T08:26:50.7289	14UT	Parameter: Clip3p          = 0
+2017-02-27T08:26:50.7289	14UT	Parameter: rmdup           = 
+2017-02-27T08:26:50.7289	14UT	Parameter: Lmax            = 50
+2017-02-27T08:26:50.7289	14UT	Parameter: noSplicing      = 
+2017-02-27T08:26:50.7289	14UT	Parameter: wiggleOutput    = 
+2017-02-27T08:26:50.7289	14UT	Parameter: longReads       = 
+2017-02-27T08:26:50.7289	14UT	Parameter: useSharedMemory = 
+2017-02-27T08:26:50.7290	14UT	Parameter: readCounting    = 
+2017-02-27T08:26:50.7290	14UT	Parameter: clipping        = 
+2017-02-27T08:26:50.7290	14UT	Parameter: keepUnmapped    = 1
+2017-02-27T08:26:50.7290	14UT	Parameter: out             = single_end/I16R003a01_01.bam
+2017-02-27T08:26:50.7290	14UT	Parameter: in1             = /tmp/analyze_rna_o9ieuX_trimmed.fastq.gz
+2017-02-27T08:26:50.7303	14UT	Calling external tool 'rm -r '
+2017-02-27T08:26:50.7303	14UT	    version    = 8.25
+2017-02-27T08:26:50.7303	14UT	    parameters = /tmp/mapping_star_htseq_426760
+2017-02-27T08:26:50.7317	14UT	Execution time of 'rm -r ': 0.0013s
+2017-02-27T08:26:50.7346	14UT	Calling external tool '/mnt/share/opt/STAR-2.5.2b/bin/Linux_x86_64/STAR'
+2017-02-27T08:26:50.7346	14UT	    version    = 2.5.2b
+2017-02-27T08:26:50.7346	14UT	    parameters = --genomeDir /mnt/share/data/genomes/STAR/hg19 --readFilesIn /tmp/analyze_rna_o9ieuX_trimmed.fastq.gz --outFileNamePrefix /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/single_end/I16R003a01_01 --outTmpDir /tmp/mapping_star_htseq_426760 --runThreadN 4 --outBAMsortingThreadN 4 --clip3pNbases 0 --clip5pNbases 0 --outSAMattributes All  --outSAMstrandField intronMotif --readFilesCommand zcat --chimSegmentMin 12 --chimJunctionOverhangMin 12 --alignSJDBoverhangMin 10 --alignMatesGapMax 200000 --alignIntronMax 200000 --alignSJstitchMismatchNmax 5 -1 5 5 --chimSegmentReadGapMax parameter 3 --seedSearchStartLmax 50 --genomeLoad NoSharedMemory --twopassMode Basic --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 21474836480 --outSAMattrRGline ID:1 PL:illumina PU:RGPU LB:N SM:RGSM CN:MFT --outReadsUnmapped Fastx
+2017-02-27T08:28:57.7148	14UT	Stdout of '/mnt/share/opt/STAR-2.5.2b/bin/Linux_x86_64/STAR':
+2017-02-27T08:28:57.7148	14UT	    Feb 27 08:26:50 ..... started STAR run
+2017-02-27T08:28:57.7148	14UT	    Feb 27 08:26:50 ..... loading genome
+2017-02-27T08:28:57.7148	14UT	    Feb 27 08:27:26 ..... started 1st pass mapping
+2017-02-27T08:28:57.7148	14UT	    Feb 27 08:27:28 ..... finished 1st pass mapping
+2017-02-27T08:28:57.7148	14UT	    Feb 27 08:27:30 ..... inserting junctions into the genome indices
+2017-02-27T08:28:57.7148	14UT	    Feb 27 08:28:54 ..... started mapping
+2017-02-27T08:28:57.7148	14UT	    Feb 27 08:28:57 ..... started sorting BAM
+2017-02-27T08:28:57.7148	14UT	    Feb 27 08:28:57 ..... finished successfully
+2017-02-27T08:28:57.7149	14UT	Execution time of '/mnt/share/opt/STAR-2.5.2b/bin/Linux_x86_64/STAR': 2m 6s
+2017-02-27T08:28:57.7150	14UT	Final STAR log
+2017-02-27T08:28:57.7150	14UT	                                     Started job on |  Feb 27 08:26:50
+2017-02-27T08:28:57.7150	14UT	                                 Started mapping on |  Feb 27 08:28:54
+2017-02-27T08:28:57.7150	14UT	                                        Finished on |  Feb 27 08:28:57
+2017-02-27T08:28:57.7150	14UT	           Mapping speed, Million of reads per hour |  23.51
+2017-02-27T08:28:57.7150	14UT	    
+2017-02-27T08:28:57.7150	14UT	                              Number of input reads |  19590
+2017-02-27T08:28:57.7150	14UT	                          Average input read length |  120
+2017-02-27T08:28:57.7150	14UT	                                        UNIQUE READS:
+2017-02-27T08:28:57.7150	14UT	                       Uniquely mapped reads number |  15904
+2017-02-27T08:28:57.7150	14UT	                            Uniquely mapped reads % |  81.18%
+2017-02-27T08:28:57.7150	14UT	                              Average mapped length |  119.47
+2017-02-27T08:28:57.7150	14UT	                           Number of splices: Total |  2541
+2017-02-27T08:28:57.7150	14UT	                Number of splices: Annotated (sjdb) |  2533
+2017-02-27T08:28:57.7150	14UT	                           Number of splices: GT/AG |  2529
+2017-02-27T08:28:57.7150	14UT	                           Number of splices: GC/AG |  11
+2017-02-27T08:28:57.7150	14UT	                           Number of splices: AT/AC |  0
+2017-02-27T08:28:57.7150	14UT	                   Number of splices: Non-canonical |  1
+2017-02-27T08:28:57.7150	14UT	                          Mismatch rate per base, % |  0.67%
+2017-02-27T08:28:57.7150	14UT	                             Deletion rate per base |  0.02%
+2017-02-27T08:28:57.7150	14UT	                            Deletion average length |  2.15
+2017-02-27T08:28:57.7150	14UT	                            Insertion rate per base |  0.02%
+2017-02-27T08:28:57.7150	14UT	                           Insertion average length |  1.53
+2017-02-27T08:28:57.7150	14UT	                                 MULTI-MAPPING READS:
+2017-02-27T08:28:57.7150	14UT	            Number of reads mapped to multiple loci |  1361
+2017-02-27T08:28:57.7150	14UT	                 % of reads mapped to multiple loci |  6.95%
+2017-02-27T08:28:57.7150	14UT	            Number of reads mapped to too many loci |  14
+2017-02-27T08:28:57.7150	14UT	                 % of reads mapped to too many loci |  0.07%
+2017-02-27T08:28:57.7150	14UT	                                      UNMAPPED READS:
+2017-02-27T08:28:57.7150	14UT	           % of reads unmapped: too many mismatches |  0.00%
+2017-02-27T08:28:57.7150	14UT	                     % of reads unmapped: too short |  11.73%
+2017-02-27T08:28:57.7150	14UT	                         % of reads unmapped: other |  0.07%
+2017-02-27T08:28:57.7150	14UT	                                      CHIMERIC READS:
+2017-02-27T08:28:57.7150	14UT	                           Number of chimeric reads |  183
+2017-02-27T08:28:57.7150	14UT	                                % of chimeric reads |  0.93%
+2017-02-27T08:28:57.7166	14UT	Calling external tool 'gzip'
+2017-02-27T08:28:57.7166	14UT	    version    = 1.6
+2017-02-27T08:28:57.7166	14UT	    parameters = --suffix .fasta.gz /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/single_end/I16R003a01_01Unmapped.out.mate1
+2017-02-27T08:28:57.7482	14UT	Execution time of 'gzip': 0.0316s
+2017-02-27T08:28:57.7498	14UT	Calling external tool '/mnt/share/opt/samtools-1.3.1/samtools'
+2017-02-27T08:28:57.7498	14UT	    version    = 1.3.1
+2017-02-27T08:28:57.7498	14UT	    parameters = index single_end/I16R003a01_01.bam
+2017-02-27T08:28:57.7820	14UT	Execution time of '/mnt/share/opt/samtools-1.3.1/samtools': 0.0321s
+2017-02-27T08:28:57.7868	14UT	Calling external tool '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/MappingQC'
+2017-02-27T08:28:57.7868	14UT	    version    = 0.1-605-g65433e6
+2017-02-27T08:28:57.7868	14UT	    parameters = -in single_end/I16R003a01_01.bam -out /mnt/SRV018/users/ahsturm1/SVN/megSAP/test/data_rna/single_end/I16R003a01_01_stats_map.qcML -rna
+2017-02-27T08:28:57.8673	14UT	Execution time of '/mnt/share/opt/ngs-bits-0.1-605-g65433e6/MappingQC': 0.0805s
+2017-02-27T08:28:57.8815	14UT	END mapping_star_htseq
+2017-02-27T08:28:57.8816	14UT	Execution time of 'mapping_star_htseq': 2m 7s
+2017-02-27T08:28:57.9017	vFF1	Calling external tool 'php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/NGS/read_counting_featureCounts.php'
+2017-02-27T08:28:57.9017	vFF1	    version    = 0.1-93-g371db5c
+2017-02-27T08:28:57.9017	vFF1	    parameters = -in single_end/I16R003a01_01.bam -out single_end/I16R003a01_01_counts_raw.tsv -threads 4 -gtfFile /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf -featureType exon -gtfAttribute gene_id 
+2017-02-27T08:28:57.9017	vFF1	    log_id     = l6Fm
+2017-02-27T08:28:57.9190	l6Fm	START read_counting_featureCounts (version: 0.1-93-g371db5c)
+2017-02-27T08:28:57.9190	l6Fm	Verbose: false
+2017-02-27T08:28:57.9191	l6Fm	Parameter: gtfFile             = /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf
+2017-02-27T08:28:57.9192	l6Fm	Parameter: featureType         = exon
+2017-02-27T08:28:57.9192	l6Fm	Parameter: gtfAttribute        = gene_id
+2017-02-27T08:28:57.9192	l6Fm	Parameter: stranded            = 
+2017-02-27T08:28:57.9192	l6Fm	Parameter: minAQual            = 3
+2017-02-27T08:28:57.9192	l6Fm	Parameter: paired              = 
+2017-02-27T08:28:57.9192	l6Fm	Parameter: includeMultiOverlap = 
+2017-02-27T08:28:57.9192	l6Fm	Parameter: threads             = 4
+2017-02-27T08:28:57.9193	l6Fm	Parameter: in                  = single_end/I16R003a01_01.bam
+2017-02-27T08:28:57.9193	l6Fm	Parameter: out                 = single_end/I16R003a01_01_counts_raw.tsv
+2017-02-27T08:28:57.9219	l6Fm	Calling external tool '/mnt/share/opt/subread-1.5.0-p2/bin/featureCounts'
+2017-02-27T08:28:57.9219	l6Fm	    version    = n/a
+2017-02-27T08:28:57.9219	l6Fm	    parameters = single_end/I16R003a01_01.bam -o single_end/I16R003a01_01_counts_raw.tsv -a /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf -t exon -g gene_id -Q 3 -T 4 -s 0
+2017-02-27T08:28:59.1244	l6Fm	Stderr of '/mnt/share/opt/subread-1.5.0-p2/bin/featureCounts':
+2017-02-27T08:28:59.1244	l6Fm	    
+2017-02-27T08:28:59.1244	l6Fm	            ==========     _____ _    _ ____  _____  ______          _____  
+2017-02-27T08:28:59.1244	l6Fm	            =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+2017-02-27T08:28:59.1244	l6Fm	              =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+2017-02-27T08:28:59.1244	l6Fm	                ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+2017-02-27T08:28:59.1244	l6Fm	                  ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+2017-02-27T08:28:59.1244	l6Fm	            ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+2017-02-27T08:28:59.1244	l6Fm	      v1.5.0-p2
+2017-02-27T08:28:59.1244	l6Fm	    
+2017-02-27T08:28:59.1244	l6Fm	    //========================== featureCounts setting ===========================\\
+2017-02-27T08:28:59.1244	l6Fm	    ||                                                                            ||
+2017-02-27T08:28:59.1244	l6Fm	    ||             Input files : 1 BAM file                                       ||
+2017-02-27T08:28:59.1244	l6Fm	    ||                           S single_end/I16R003a01_01.bam                   ||
+2017-02-27T08:28:59.1244	l6Fm	    ||                                                                            ||
+2017-02-27T08:28:59.1244	l6Fm	    ||             Output file : single_end/I16R003a01_01_counts_raw.tsv          ||
+2017-02-27T08:28:59.1244	l6Fm	    ||                 Summary : single_end/I16R003a01_01_counts_raw.tsv.summary  ||
+2017-02-27T08:28:59.1244	l6Fm	    ||              Annotation : /mnt/share/data/genomes/gtf/ucsc_refseq_hg19 ... ||
+2017-02-27T08:28:59.1244	l6Fm	    ||                                                                            ||
+2017-02-27T08:28:59.1244	l6Fm	    ||                 Threads : 4                                                ||
+2017-02-27T08:28:59.1244	l6Fm	    ||                   Level : meta-feature level                               ||
+2017-02-27T08:28:59.1244	l6Fm	    ||              Paired-end : no                                               ||
+2017-02-27T08:28:59.1244	l6Fm	    ||         Strand specific : no                                               ||
+2017-02-27T08:28:59.1244	l6Fm	    ||      Multimapping reads : not counted                                      ||
+2017-02-27T08:28:59.1244	l6Fm	    || Multi-overlapping reads : not counted                                      ||
+2017-02-27T08:28:59.1244	l6Fm	    ||                                                                            ||
+2017-02-27T08:28:59.1244	l6Fm	    \\===================== http://subread.sourceforge.net/ ======================//
+2017-02-27T08:28:59.1244	l6Fm	    
+2017-02-27T08:28:59.1244	l6Fm	    //================================= Running ==================================\\
+2017-02-27T08:28:59.1244	l6Fm	    ||                                                                            ||
+2017-02-27T08:28:59.1244	l6Fm	    || Load annotation file /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf ...  ||
+2017-02-27T08:28:59.1244	l6Fm	    ||    Features : 531061                                                       ||
+2017-02-27T08:28:59.1244	l6Fm	    ||    Meta-features : 53082                                                   ||
+2017-02-27T08:28:59.1244	l6Fm	    ||    Chromosomes/contigs : 53                                                ||
+2017-02-27T08:28:59.1244	l6Fm	    ||                                                                            ||
+2017-02-27T08:28:59.1244	l6Fm	    || Process BAM file single_end/I16R003a01_01.bam...                           ||
+2017-02-27T08:28:59.1244	l6Fm	    ||    Single-end reads are included.                                          ||
+2017-02-27T08:28:59.1244	l6Fm	    ||    Assign reads to features...                                             ||
+2017-02-27T08:28:59.1244	l6Fm	    ||    Total reads : 19214                                                     ||
+2017-02-27T08:28:59.1244	l6Fm	    ||    Successfully assigned reads : 3198 (16.6%)                              ||
+2017-02-27T08:28:59.1244	l6Fm	    ||    Running time : 0.00 minutes                                             ||
+2017-02-27T08:28:59.1244	l6Fm	    ||                                                                            ||
+2017-02-27T08:28:59.1244	l6Fm	    ||                         Read assignment finished.                          ||
+2017-02-27T08:28:59.1244	l6Fm	    ||                                                                            ||
+2017-02-27T08:28:59.1244	l6Fm	    \\===================== http://subread.sourceforge.net/ ======================//
+2017-02-27T08:28:59.1244	l6Fm	    
+2017-02-27T08:28:59.1247	l6Fm	Execution time of '/mnt/share/opt/subread-1.5.0-p2/bin/featureCounts': 1.2027s
+2017-02-27T08:28:59.1279	l6Fm	END read_counting_featureCounts
+2017-02-27T08:28:59.1281	l6Fm	Execution time of 'read_counting_featureCounts': 1.2136s
+2017-02-27T08:28:59.2252	vFF1	Calling external tool 'php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/NGS/normalize_read_counts.php'
+2017-02-27T08:28:59.2252	vFF1	    version    = 0.1-93-g371db5c
+2017-02-27T08:28:59.2252	vFF1	    parameters = -in /tmp/analyze_rna_TbLBXA_counts_tmp.tsv -out single_end/I16R003a01_01_counts_fpkm.tsv -gtf /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf -method rpkm -feature exon -idattr gene_id -header
+2017-02-27T08:28:59.2252	vFF1	    log_id     = AOL3
+2017-02-27T08:28:59.2475	AOL3	START normalize_read_counts (version: 0.1-93-g371db5c)
+2017-02-27T08:28:59.2476	AOL3	Verbose: false
+2017-02-27T08:28:59.2477	AOL3	Parameter: gtf     = /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf
+2017-02-27T08:28:59.2477	AOL3	Parameter: method  = rpkm
+2017-02-27T08:28:59.2477	AOL3	Parameter: feature = exon
+2017-02-27T08:28:59.2477	AOL3	Parameter: idattr  = gene_id
+2017-02-27T08:28:59.2477	AOL3	Parameter: header  = 1
+2017-02-27T08:28:59.2478	AOL3	Parameter: in      = /tmp/analyze_rna_TbLBXA_counts_tmp.tsv
+2017-02-27T08:28:59.2478	AOL3	Parameter: out     = single_end/I16R003a01_01_counts_fpkm.tsv
+2017-02-27T08:28:59.4114	AOL3	Calling external tool 'java -Xmx2G -jar /mnt/share/opt/topas-1.0/topas.jar'
+2017-02-27T08:28:59.4114	AOL3	    version    = n/a
+2017-02-27T08:28:59.4114	AOL3	    parameters = NormExprTable -i /tmp/analyze_rna_TbLBXA_counts_tmp.tsv -o single_end/I16R003a01_01_counts_fpkm.tsv -gtf /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf -rpkm -type exon -idattr gene_id -header true
+2017-02-27T08:29:00.8001	AOL3	Stdout of 'java -Xmx2G -jar /mnt/share/opt/topas-1.0/topas.jar':
+2017-02-27T08:29:00.8001	AOL3	    TOPAS - TOolkit for Processing and Annotation of Sequence data
+2017-02-27T08:29:00.8001	AOL3	    topas.NormExprTable
+2017-02-27T08:29:00.8001	AOL3	    Use -? for help
+2017-02-27T08:29:00.8001	AOL3	    
+2017-02-27T08:29:00.8001	AOL3	    Parameters chosen:
+2017-02-27T08:29:00.8001	AOL3	    Input file        : /tmp/analyze_rna_TbLBXA_counts_tmp.tsv
+2017-02-27T08:29:00.8001	AOL3	    Output file       : single_end/I16R003a01_01_counts_fpkm.tsv
+2017-02-27T08:29:00.8001	AOL3	    RPKM              : true
+2017-02-27T08:29:00.8001	AOL3	    GTF               : /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf
+2017-02-27T08:29:00.8001	AOL3	    Type              : exon
+2017-02-27T08:29:00.8001	AOL3	    IdAtt             : gene_id
+2017-02-27T08:29:00.8001	AOL3	    Input comma       : false
+2017-02-27T08:29:00.8001	AOL3	    Output comma      : false
+2017-02-27T08:29:00.8001	AOL3	    Has Header        : true
+2017-02-27T08:29:00.8001	AOL3	    
+2017-02-27T08:29:00.8001	AOL3	    
+2017-02-27T08:29:00.8001	AOL3	    Reading expression table from /tmp/analyze_rna_TbLBXA_counts_tmp.tsv...
+2017-02-27T08:29:00.8001	AOL3	    
+2017-02-27T08:29:00.8001	AOL3	    Normalizing...
+2017-02-27T08:29:00.8001	AOL3	    Reading GTF file from /mnt/share/data/genomes/gtf/ucsc_refseq_hg19.gtf
+2017-02-27T08:29:00.8001	AOL3	    Doing RPKM normalization...
+2017-02-27T08:29:00.8001	AOL3	    
+2017-02-27T08:29:00.8001	AOL3	    Writing normalized expression table to single_end/I16R003a01_01_counts_fpkm.tsv
+2017-02-27T08:29:00.8001	AOL3	    
+2017-02-27T08:29:00.8001	AOL3	    
+2017-02-27T08:29:00.8001	AOL3	    topas.NormExprTable finished in 1 seconds
+2017-02-27T08:29:00.8004	AOL3	Execution time of 'java -Xmx2G -jar /mnt/share/opt/topas-1.0/topas.jar': 1.3889s
+2017-02-27T08:29:00.8006	AOL3	END normalize_read_counts
+2017-02-27T08:29:00.8007	AOL3	Execution time of 'normalize_read_counts': 1.5601s
+2017-02-27T08:29:00.8325	vFF1	Calling external tool 'php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/NGS/annotate_count_file.php'
+2017-02-27T08:29:00.8325	vFF1	    version    = 0.1-93-g371db5c
+2017-02-27T08:29:00.8325	vFF1	    parameters = -in single_end/I16R003a01_01_counts_fpkm.tsv -out single_end/I16R003a01_01_counts_fpkm.tsv
+2017-02-27T08:29:00.8325	vFF1	    log_id     = oklw
+2017-02-27T08:29:00.8569	oklw	START annotate_count_file (version: 0.1-93-g371db5c)
+2017-02-27T08:29:00.8570	oklw	Verbose: false
+2017-02-27T08:29:00.8571	oklw	Parameter: in  = single_end/I16R003a01_01_counts_fpkm.tsv
+2017-02-27T08:29:00.8571	oklw	Parameter: out = single_end/I16R003a01_01_counts_fpkm.tsv
+2017-02-27T08:29:02.4235	oklw	END annotate_count_file
+2017-02-27T08:29:02.4235	oklw	Execution time of 'annotate_count_file': 1.5735s
+2017-02-27T08:29:02.4268	vFF1	END analyze_rna
+2017-02-27T08:29:02.4268	vFF1	Execution time of 'analyze_rna': 2m 14s
