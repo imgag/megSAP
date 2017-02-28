@@ -130,7 +130,11 @@ if (in_array("vc", $steps))
 if (in_array("an", $steps))
 {
 	if(file_exists($log_an)) unlink($log_an);
-	$parser->execTool("Pipelines/annotate.php", "-out_name $name -out_folder $out_folder -system $system -thres $thres --log $log_an");
+	
+	//annotate
+	$args = array("-out_name $name", "-out_folder $out_folder", "-system $system", "-thres $thres", "--log $log_an");
+	if (!db_is_enabled("NGSD")) $args[] = "-no_ngsd";
+	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
 	
 	//low-coverage report
 	if($sys['type']=="WGS") //WGS

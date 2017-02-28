@@ -19,6 +19,7 @@ $parser->addString("n_col", "Column name of normal sample (for Strelka VCF files
 $parser->addString("vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_var.vcf.gz).", true, "");
 $parser->addInt("thres", "Splicing region size used for annotation (flanking the exons).", true, 20);
 $parser->addFlag("no_fc", "No format check (vcf/tsv).");
+$parser->addFlag("no_ngsd", "No annotation of variants with information from NGSD.");
 extract($parser->parse($argv));
 
 //input file names
@@ -96,7 +97,7 @@ if ($sys['build']=="hg19" && $sys['type']=="WGS")
 }
 
 //annotated variant frequencies from NGSD (not for somatic)
-if(db_is_enabled("NGSD") && $t_col=="na")
+if(!$no_ngsd && $t_col=="na")
 {
 	//find processed sample with equal processing system for NGSD-annotation
 	$extras = array();
