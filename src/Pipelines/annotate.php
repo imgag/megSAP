@@ -18,7 +18,7 @@ $parser->addString("t_col", "Column name of tumor sample (for Strelka VCF files 
 $parser->addString("n_col", "Column name of normal sample (for Strelka VCF files only).", true, "na");
 $parser->addString("vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_var.vcf.gz).", true, "");
 $parser->addInt("thres", "Splicing region size used for annotation (flanking the exons).", true, 20);
-$parser->addFlag("nfc","No format check (vcf/tsv)");
+$parser->addFlag("no_fc", "No format check (vcf/tsv).");
 extract($parser->parse($argv));
 
 //input file names
@@ -56,7 +56,10 @@ if ($sys['type']!="WGS") $args .= " -no_updown";
 $parser->execTool("NGS/an_snpeff.php", "-in $vcf_unzipped -thres $thres -build ".$sys['build']." -out $annfile $args");
 
 //check vcf file
-if(!$nfc) $parser->execTool("NGS/check_vcf.php", "-in $annfile -build ".$sys['build']);
+if(!$no_fc)
+{
+	$parser->execTool("NGS/check_vcf.php", "-in $annfile -build ".$sys['build']);
+}
 
 //convert to GSvar file
 if ($t_col=="na") //germline
@@ -92,8 +95,8 @@ if ($sys['build']=="hg19" && $sys['type']=="WGS")
 	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $varfile_full -out $varfile -reg ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed", false);
 }
 
-//annotated variant frequencies from NGSD
-if($t_col=="na") //not for somatic
+//annotated variant frequencies from NGSD (not for somatic)
+if(db_is_enabled("NGSD") && $t_col=="na")
 {
 	//find processed sample with equal processing system for NGSD-annotation
 	$extras = array();
@@ -109,12 +112,12 @@ if($t_col=="na") //not for somatic
 		}
 	}
 	$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $varfile -out $varfile ".implode(" ", $extras), true);
+}
 
-	//check output TSV file and copy result to out_folder
-	if(!$nfc)
-	{
-		$parser->execTool("NGS/check_tsv.php", "-in $varfile -build ".$sys['build']);
-	}
+//check output TSV file (not for somatic)
+if(!$no_fc && $t_col=="na")
+{
+	$parser->execTool("NGS/check_tsv.php", "-in $varfile -build ".$sys['build']);
 }
 
 ?>
