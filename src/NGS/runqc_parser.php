@@ -11,7 +11,7 @@ $parser = new ToolBase("runqc_parser", "Parsers Illumina InterOp files and impor
 $parser->addString("name", "Name of the run.", false);
 $parser->addString("run_dir", "Absolute path to run directory.", false);
 $parser->addFlag("force", "Overwrites already existing DB entries instead of throwing an error.");
-$parser->addEnum("db",  "Database to connect to.", true, array("NGSD", "NGSD_TEST"), "NGSD_TEST");
+$parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD_TEST");
 extract($parser->parse($argv));
 
 $run_dir_abs = realpath($run_dir);

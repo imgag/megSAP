@@ -7,7 +7,7 @@ $file = data_folder().$name;
 
 start_test($name);
 
-if (production_ngsd_enabled())
+if (db_is_enabled("NGSD"))
 {
 	mkdir("Unaligned");
 

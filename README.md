@@ -70,10 +70,6 @@ Finally, we need to download and convert some open-source databases for annotati
 
 **Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
 
-Now, we need to configure the pipeline using the default settings file:
-
-	> cp megSAP/settings.ini.default megSAP/settings.ini
-
 ## Running an analysis (single sample DNA)
 
 The analysis pipeline assumes that that all data to analyze resides in a sample folder as produced by Illumina's [bcl2fastq](http://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html) tool. If that is the case, the whole analysis is performed with one command.  
@@ -102,6 +98,7 @@ Detailed documentation of the analysis pipeline can be found here:
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+
 
 
 

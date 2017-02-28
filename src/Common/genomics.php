@@ -275,23 +275,35 @@ function chr_list()
 function get_path($name, $throw_on_error=true)
 {
 	$dir = repository_basedir();
-	$parsed_ini = array();
 	
-	//load defaults if not set by ToolBase
-	if (!isset($GLOBALS["path_ini"]))
+	//determine INI file to name
+	if (isset($GLOBALS["path_ini"]))
 	{
-		$parsed_ini = parse_ini_file($dir."settings.ini");
-		if($parsed_ini===FALSE)	trigger_error("Could not load ini file '".$dir."settings.ini'.",E_USER_ERROR);
+		$ini_file = $GLOBALS["path_ini"];
 	}
-	else 
+	else
 	{
-		$parsed_ini = parse_ini_file($GLOBALS["path_ini"]);
+		if (file_exists($dir."settings.ini"))
+		{
+			$ini_file = $dir."settings.ini";
+		}
+		else
+		{
+			$ini_file = $dir."settings.ini.default";
+		}
+	}
+		
+	//parse ini file
+	$parsed_ini = parse_ini_file($ini_file);	
+	if($parsed_ini===FALSE)
+	{
+		trigger_error("Could not parse INI file '$ini_file'.",E_USER_ERROR);
 	}
 	
 	//get value
 	if (!isset($parsed_ini[$name]) && $throw_on_error)
 	{
-		trigger_error("Could not find key '$name' in settings file '{$dir}settings.ini'!", E_USER_ERROR);
+		trigger_error("Could not find key '$name' in settings file '$ini_file'!", E_USER_ERROR);
 	}
 	@$value = $parsed_ini[$name];
 
@@ -305,7 +317,7 @@ function get_path($name, $throw_on_error=true)
 /**
 	@brief Function to get central organized db credentials.
 	
-	@param db name of database in ini-file.
+	@param database name of database in ini-file.
 	@param name name of variable in ini-file.
 	@return value of variable in ini-file (e.g. path).
 		
@@ -313,51 +325,44 @@ function get_path($name, $throw_on_error=true)
 */
 function get_db($db, $name)
 {
-	$parsed_ini = array();
+	$values = get_path($name);
 	
-	//load defaults if not set by ToolBase
-	if (!isset($GLOBALS["path_ini"]))
-	{
-		$parsed_ini = parse_ini_file(repository_basedir()."/settings.ini");
-	}
-	else 
-	{
-		$parsed_ini = parse_ini_file($GLOBALS["path_ini"]);
-	}
-	
-	if (!isset($parsed_ini[$name][$db]))
+	if (!isset($values[$db]))
 	{
 		trigger_error("get_db could not find value '$name' for DB '$db'!", E_USER_ERROR);
 	}
 	
-	return $parsed_ini[$name][$db];
+	return $values[$db];
 }
 
 /**
-	@brief Returns the list of all dbs accessible.
+	@brief Returns the list of all databases from the settings INI file.
 	
 	@ingroup helpers
 */
-function get_dbs()
+function db_names()
 {
-	$parsed_ini = array();
+	return array_keys(get_path('db_name'));
+}
+
+/**
+	@brief Returns if a database is enabled (all properties set).
 	
-	//load defaults if not set by ToolBase
-	if (!isset($GLOBALS["path_ini"]))
+	@ingroup helpers
+*/
+function db_is_enabled($name)
+{
+	$db_properties = array('db_host', 'db_name', 'db_user', 'db_pass');
+	foreach($db_properties as $db_prop)
 	{
-		$parsed_ini = parse_ini_file(repository_basedir()."/settings.ini");
-	}
-	else 
-	{
-		$parsed_ini = parse_ini_file($GLOBALS["path_ini"]);
+		$entries = get_path($db_prop);
+		if (!isset($entries[$name]) || trim($entries[$name])=="")
+		{
+			return false;
+		}
 	}
 	
-	if (!isset($parsed_ini['db_name']))
-	{
-		trigger_error("get_dbs could not find key 'db_name' within ini-file!", E_USER_ERROR);
-	}
-	
-	return array_keys($parsed_ini['db_name']);
+	return true;
 }
 
 ///Loads a processing system INI file. If the file name is empty, the system is determine from the processed sample name, written to a temporary file and the filename is set to that temporary file.

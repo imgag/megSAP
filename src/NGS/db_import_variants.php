@@ -14,7 +14,7 @@ $parser->addString("id", "Processing ID (e.g. GS000123_01 for germline variants,
 $parser->addInfile("var",  "Input variant list in TSV format.", false);
 // optional
 $parser->addEnum("mode",  "Import mode.", true, array("germline", "somatic"), "germline");
-$parser->addEnum("db",  "Database to connect to.", true, array("NGSD", "NGSD_TEST"), "NGSD");
+$parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addFlag("force", "Overwrites already existing DB entries instead of throwing an error.");
 $parser->addString("build", "Genome build.", true, "hg19");
 extract($parser->parse($argv));

@@ -10,7 +10,7 @@ $parser = new ToolBase("db_check_gender", "Checks that the gender of a sample ma
 $parser->addInfile("in",  "Input file in BAM format.", false);
 $parser->addString("pid",  "Processed sample ID, e.g. GS120001_01, used to determine the processing system.", false);
 //optional
-$parser->addEnum("db",  "Database to connect to.", true, array("NGSD", "NGSD_TEST"), "NGSD");
+$parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
 //establish database connection

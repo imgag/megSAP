@@ -11,7 +11,7 @@ $parser = new ToolBase("db_import_qc", "Imports QC terms to NGSD.");
 $parser->addString("id", "Processing ID (e.g. GS000123_01).", false);
 $parser->addInfileArray("files", "qcML files to import.", false, true);
 //optional
-$parser->addEnum("db",  "Database to connect to.", true, array("NGSD", "NGSD_TEST"), "NGSD");
+$parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addFlag("force", "Overwrites already existing DB entries instead of throwing an error.");
 $parser->addInt("min_depth", "Minimum average read depth required.", true, "40");
 $skip_qual_parameters = array();

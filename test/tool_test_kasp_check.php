@@ -5,7 +5,7 @@ require_once("framework.php");
 $name = "kasp_check";
 start_test($name);
 
-if (production_ngsd_enabled())
+if (db_is_enabled("NGSD"))
 {
 	//test 1 - SNP set 1
 	$in1 = data_folder().$name."_in1.txt";

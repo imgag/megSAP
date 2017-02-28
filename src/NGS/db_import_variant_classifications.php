@@ -7,7 +7,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("db_import_variant_classifications", "Import variant classifications into the NGSD.");
 $parser->addInfile("in",  "Input sample list in TSV format (chr, start, end, ref, obs, class, comment).", false);
 $parser->addString("user",  "NGSD user that created the classification (for comment header).", false);
-$parser->addEnum("db",  "Database to connect to.", true, array("NGSD", "NGSD_TEST"), "NGSD");
+$parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
 //check user id

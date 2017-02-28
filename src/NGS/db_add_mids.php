@@ -9,7 +9,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("db_add_mids", "Adds MIDs to the NGSD database.");
 $parser->addInfile("in",  "Input file in TSV format (name, sequence).", false);
-$parser->addEnum("db",  "Database to connect to.", false, get_dbs());
+$parser->addEnum("db",  "Database to connect to.", false, db_names());
 extract($parser->parse($argv));
 
 //init DB

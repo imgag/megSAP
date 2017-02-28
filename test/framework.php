@@ -250,9 +250,4 @@ function end_test()
 	}
 }
 
-function production_ngsd_enabled()
-{
-	return get_db('NGSD', 'db_host')!="";
-}
-
 ?>

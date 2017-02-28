@@ -7,7 +7,7 @@ include("framework.php");
 start_test("is_valid_ref_sample_for_cnv_analysis");
 
 check(is_valid_ref_sample_for_cnv_analysis("NA12878"), false);
-if (production_ngsd_enabled())
+if (db_is_enabled("NGSD"))
 {
 	check(is_valid_ref_sample_for_cnv_analysis("GS160265_06"), false); //tumor
 	check(is_valid_ref_sample_for_cnv_analysis("GS160832_01"), false); //ffpe
@@ -154,7 +154,7 @@ $sys = load_system($filename);
 check($sys['name_manufacturer'], "SureSelectXT Human All Exon v5");
 check($sys['shotgun'], true);
 
-if (production_ngsd_enabled())
+if (db_is_enabled("NGSD"))
 {
 	$filename = "";
 	$sys = load_system($filename, "GS130043_01");
@@ -167,7 +167,7 @@ end_test();
 //##################################################################################
 start_test("get_processed_sample_id");
 
-if (production_ngsd_enabled())
+if (db_is_enabled("NGSD"))
 {
 	check(get_processed_sample_id("GS130043_01"), 1498);
 }
@@ -179,7 +179,7 @@ end_test();
 //##################################################################################
 start_test("get_external_sample_name");
 
-if (production_ngsd_enabled())
+if (db_is_enabled("NGSD"))
 {
 	check(get_external_sample_name("NA12878"), "Coriell-DNA");
 }
@@ -190,7 +190,7 @@ end_test();
 //##################################################################################
 start_test("get_processed_sample_name_by_processing_system");
 
-if (production_ngsd_enabled())
+if (db_is_enabled("NGSD"))
 {
 	check(get_processed_sample_name_by_processing_system("SeqCapEZv2"), 'GS120385_01');
 	check(get_processed_sample_name_by_processing_system("hpPDv3"), 'GS120274_01');
@@ -202,7 +202,7 @@ end_test();
 //##################################################################################
 start_test("get_qc_from_ngsd");
 
-if (production_ngsd_enabled())
+if (db_is_enabled("NGSD"))
 {
 	check(get_qc_from_ngsd("DX131285_01","QC:2000005","read count"), 1218460);
 }
@@ -222,7 +222,7 @@ end_test();
 //##################################################################################
 start_test("get_qc_id");
 
-if (production_ngsd_enabled())
+if (db_is_enabled("NGSD"))
 {
 	check(get_qcID("target region 50x percentage"),"QC:2000029");
 }
