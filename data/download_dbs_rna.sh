@@ -11,7 +11,7 @@ if [ -z "$1" ]
 fi
 
 #download UCSC data
-cd $data_folder
+cd $data_folder/dbs/
 mkdir UCSC
 cd UCSC
 wget -O - http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/refGene.txt.gz | gunzip > refGene.txt
