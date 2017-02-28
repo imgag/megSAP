@@ -196,6 +196,7 @@ else
 	$report[] = "Revision der Analysepipeline: ".repository_revision(true);
 	$report[] = "Analysesystem: $target_name";
 	$report[] = "Zielregionen: $regions_overall ($bases_overall Basen gesamt)";
+	
 	//qc
 	$report[] = "";
 	$t_qcml = $p_folder."/Sample_".$t_id."/".$t_id."_stats_map.qcML";
@@ -205,6 +206,7 @@ else
 	$report[] = "  Durchschnittl. Tiefe Tumor: ".get_qc_from_qcml($t_qcml, "QC:2000025", "target region read depth");
 	if(!$single_sample)	$report[] = "  Coverage Normal 100x: ".get_qc_from_qcml($n_qcml, "QC:2000030", "target region 100x percentage");
 	if(!$single_sample)	$report[] = "  Durchschnittl. Tiefe Normal: ".get_qc_from_qcml($n_qcml, "QC:2000025", "target region read depth");
+	
 	// variants
 	$report[] = "";
 	$report[] = "Varianten:";
@@ -217,6 +219,41 @@ else
 		{
 			$report[] = "    ".implode("\t",$var_report->getRow($i));
 		}
+	}
+
+	//CNVs
+	$path_cnvs = $o_folder."/".$t_id."-".$n_id."_var_copy.tsv";
+	$report[] = "";
+	$report[] = "CNVs:";
+	if(is_file($path_cnvs))
+	{
+		$cnvs_report = Matrix::fromTSV($path_cnvs);
+		$idx_zscore = $cnvs_report->getColumnIndex("region_zscores");
+		$idx_genes = $cnvs_report->getColumnIndex("region_zscores");
+		$report[] = "  Gefundene CNVs: ".$cnvs_report->rows();
+		if($cnvs_report>0)
+		{
+			$amp = "";
+			$del = "";
+			for($i=0;$i<$cnvs_report->rows();++$i)
+			{
+				$r = $cnvs_report->getRow($i);
+				$zscore = array_sum(explode(",",$r[$idx_zscore]));
+				if($zscore>0)	$amp .= ",".$r[$idx_genes];
+				elseif ($zscore<0)	$del = ",".$r[$idx_genes];
+				else	trigger_error("Unknown z-schore ".$zscore, E_USER_ERROR);
+			}
+			$report[] = "  Amplifications: ".trim($amp,",");
+			$report[] = "  Deletions: ".trim($del,",");
+		}
+		else
+		{
+			$report[] = "  Keine CNVs gefunden. Siehe $path_cnvs fuer QC-Fehler.";
+		}
+	}
+	else
+	{
+		$report[] = "  Keine CNV-Datei gefunden ($path_cnvs).";
 	}
 	$report[] = "";
 
