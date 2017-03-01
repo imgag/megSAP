@@ -10,6 +10,8 @@ if [ -z "$1" ]
 	data_folder=$1
 fi
 
+src=`pwd`/../src/
+
 #download UCSC data
 cd $data_folder/dbs/
 mkdir UCSC
@@ -17,7 +19,7 @@ cd UCSC
 wget -O - http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/refGene.txt.gz | gunzip > refGene.txt
 wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/genePredToGtf
 chmod 775 genePredToGtf
-cut -f2- refGene.txt | ./genePredToGtf file stdin stdout | php $data_folder/../src/Tools/reformat_gtf.php > refGene.gtf
+cut -f2- refGene.txt | ./genePredToGtf file stdin stdout | php $src/Tools/reformat_gtf.php > refGene.gtf
 rm genePredToGtf
 
 #STAR: index genome 
