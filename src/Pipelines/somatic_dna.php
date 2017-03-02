@@ -131,7 +131,8 @@ if($tumor_only)
 		$s->setComments($tmp_comments);
 		$s->toTSV($tmp);
 	
-		if($t_sys_ini['type']=="Panel Haloplex HS" || strpos($t_sys_ini['name_short'],"mi")===0)	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp", true);
+		if($t_sys_ini['type']=="Panel Haloplex HS")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp  -hpHS ".substr($t_sys_ini['target_file'], 0, -4)."_amplicons.bed", true);
+		if(strpos($t_sys_ini['name_short'],"mi")===0)	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp  -mip /mnt/share/data/mipfiles/".$t_sys_ini['name_short'].".txt", true);
 
 		$parser->exec("bgzip", "-c $tmp > $som_vcf", false); //no output logging, because Toolbase::extractVersion() does not return
 		$parser->exec("tabix", "-f -p vcf $som_vcf", false); //no output logging, because Toolbase::extractVersion() does not return	
