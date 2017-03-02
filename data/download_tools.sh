@@ -69,5 +69,8 @@ cd snpEff
 wget http://downloads.sourceforge.net/project/snpeff/databases/v4_3/snpEff_v4_3_hg19.zip
 unzip snpEff_v4_3_hg19.zip
 rm snpEff_v4_3_hg19.zip
+wget http://downloads.sourceforge.net/project/snpeff/databases/v4_3/snpEff_v4_3_GRCh37.75.zip
+unzip snpEff_v4_3_GRCh37.75.zip
+rm snpEff_v4_3_GRCh37.75.zip
 
 
