@@ -35,8 +35,10 @@ $parser->addFlag("dna_only", "Process only DNA.", true);
 $parser->addFlag("smn_dna", "Skip mapping of DNA normal sample (was done previously).", true);
 $parser->addFlag("freebayes", "Use freebayes for variant detection (default: strelka).", true);
 $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal sample. Freebayes is used for variant calling in contaminated normal samples.", true, 0);
-//$parser->addFlag("nsc", "Skip sample correlation check.");
+$parser->addFlag("nsc", "Skip sample correlation check.");
 extract($parser->parse($argv));
+
+$parser->log("Pipeline revision: ".repository_revision(true));
 
 // determine steps to perform
 $steps = explode(",", $steps);
@@ -75,6 +77,7 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0 && !$rna_only)
 	if($no_softclip)	$args .= "-no_softclip ";
 	if($freebayes)	$args .= "-freebayes ";
 	if($smn_dna)	$args .= "-smn ";
+	if($nsc)	$args .= "-nsc ";
 	if($contamination > 0)	$args .= "-contamination $contamination ";
 	if(!is_dir($o_folder_dna))	mkdir($o_folder_dna, 0775, true);
 	$parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_dna_id -n_id $n_dna_id -o_folder $o_folder_dna $args");
@@ -120,7 +123,7 @@ if($rna>0)
 }
 
 // (3) combine results of DNA / RNA
-if(in_array("combine", $steps))
+if(in_array("co", $steps))
 {
 	// (3a) annotate RNA 
 	if ($rna!=0)
@@ -129,7 +132,7 @@ if(in_array("combine", $steps))
 		$vaf_options = " -depth";
 		$tum_rna_bam = $p_folder."/Sample_".$t_rna_id."/".$t_rna_id.".bam";
 		
-		$parser->exec("bgzip", "-dc $s_dna_vcf > $tmp", false);	// no output logging, because Toolbase::extractVersion() does not return
+		$parser->exec("bgzip", "-dc $som_vcf > $tmp", false);	// no output logging, because Toolbase::extractVersion() does not return
 		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $tmp -bam $tum_rna_bam -out $tmp -name rna_tum $vaf_options", true);
 		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $annotated -bam $tum_rna_bam -out $annotated -name rna_tum $vaf_options", true);
 		if ($rna==2)
@@ -139,8 +142,8 @@ if(in_array("combine", $steps))
 			$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $annotated -bam $ref_rna_bam -out $annotated -name rna_ref $vaf_options", true);
 		}
 		
-		$parser->exec("bgzip", "-cf $tmp > $s_dna_vcf", false);	// no output logging, because Toolbase::extractVersion() does not return
-		$parser->exec("tabix", "-fp vcf $s_dna_vcf", false);	// no output logging, because Toolbase::extractVersion() does not return
+		$parser->exec("bgzip", "-cf $tmp > $som_vcf", false);	// no output logging, because Toolbase::extractVersion() does not return
+		$parser->exec("tabix", "-fp vcf $som_vcf", false);	// no output logging, because Toolbase::extractVersion() does not return
 	}
 
 	// (3b) determine tumor content
@@ -381,7 +384,7 @@ if(in_array("im", $steps))
 		$igv_session[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
 		$igv_session[] = "<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"chr2:1544321-1544606\" path=\".\" version=\"8\">";
 		$igv_session[] = "    <Resources>";
-		if(is_file($som_vcf))	$igv_session[] = "        <Resource path=\"".$rel_path."/".$o_folder."/".basename($som_vcf)."\"/>";
+		if(is_file($som_vcf))   $igv_session[] = "        <Resource path=\"".$rel_path."/".$o_folder."/".basename($som_vcf)."\"/>";
 		if(is_file($t_dna_bam))	$igv_session[] = "        <Resource path=\"".$rel_path."/Sample_".basename($t_dna_bam,".bam")."/".basename($t_dna_bam)."\"/>";
 		if(is_file($n_dna_bam))	$igv_session[] = "        <Resource path=\"".$rel_path."/Sample_".basename($n_dna_bam,".bam")."/".basename($n_dna_bam)."\"/>";
 		if(is_file($t_rna_bam))	$igv_session[] = "        <Resource path=\"".$rel_path."/Sample_".basename($t_rna_bam,".bam")."/".basename($t_rna_bam)."\"/>";
