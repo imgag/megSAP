@@ -153,6 +153,13 @@ $sample_lines = file($in);
 foreach($sample_lines as $sample_line)
 {
 	list($sample_name,$external_name,$sender,$received,$received_by,$sample_type,$tumor,$ffpe,$species,$concentration,$volume,$_260_280,$_260_230,$gender,$quality,$comment)=explode("\t",trim($sample_line," \n\r\0\x0B"));//trim, but keep trailing tabs
+
+	# skip first line if header present
+	if ($sample_name=="name") continue;
+
+	# skip empty lines
+	if ($sample_name=="") continue;
+
 	if (check_sample_name_exists($sample_name))
 	{
 		print "ERROR: Sample Name \"".$sample_name."\"already exists! NOT ADDED\n";	

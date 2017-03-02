@@ -198,6 +198,13 @@ $proc_sample_lines = file($in);
 foreach($proc_sample_lines as $proc_sample_line)
 {
 	list($sample_name,$project,$run,$lane,$mid1_i7_name,$mid1_i7_seq,$mid2_i5_name,$mid2_i5_seq,$normal_sample,$operator,$pro_sys,$molarity,$status,$comment)=explode("\t",trim($proc_sample_line," \n\r\0\x0B"));//trim, but keep trailing tabs
+
+	# skip first line if header present
+	if ($sample_name=="sample") continue;
+
+	# skip empty lines
+	if ($sample_name=="") continue;
+
 	if ($molarity=="") $molarity=null;
 	else $molarity=floatval($molarity);
 	
