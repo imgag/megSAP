@@ -104,15 +104,15 @@ else
 
 	//get low_cov_statistics
 	$target_merged = $parser->tempFile("_merged.bed");
-	$parser->exec(get_path("ngs-bits")."BedMerge", "-in $statistics_target -out $target_merged", false);
+	$parser->exec(get_path("ngs-bits")."BedMerge", "-in $statistics_target -out $target_merged", true);
 	//calculate low-coverage regions
 	$t_low_cov = $parser->tempFile("_tlowcov.bed");
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $t_bam -out $t_low_cov -cutoff ".$td, false);
+	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $t_bam -out $t_low_cov -cutoff ".$td, true);
 	$n_low_cov = "";
 	if(!$single_sample)
 	{
 		$n_low_cov = $parser->tempFile("_nlowcov.bed");
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $n_bam -out $n_low_cov -cutoff ".$nd, false);
+		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $n_bam -out $n_low_cov -cutoff ".$nd, true);
 	}
 	$low_cov = $parser->tempFile("_lowcov.bed");
 	$parser->exec("cat", "$t_low_cov $n_low_cov > $low_cov", false);
