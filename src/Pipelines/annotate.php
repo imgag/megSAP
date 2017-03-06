@@ -49,12 +49,26 @@ $stafile = $out_folder."/".$out_name."_stats_vc.qcML";
 
 //get system
 $sys = load_system($system, $out_name);
-if ($sys['build']!="hg19" && $sys['build']!="mm10")	trigger_error("Unknown build ".$sys['build'].". Can only annotate hg19 or mm10 data!", E_USER_ERROR);
+if ($sys['build']!="hg19" && $sys['build']!="GRCh37" && $sys['build']!="mm10")
+{
+	trigger_error("Unknown genome build ".$sys['build']." cannot be annotated!", E_USER_ERROR);
+}
 
 //annotate VCF
-$args = "";
-if ($sys['type']!="WGS") $args .= " -no_updown";
-$parser->execTool("NGS/an_snpeff.php", "-in $vcf_unzipped -thres $thres -build ".$sys['build']." -out $annfile $args");
+$args = array("-in $vcf_unzipped", "-thres $thres", "-out $annfile");
+if ($sys['type']!="WGS")
+{
+	$args[] = "-no_updown";
+}
+if ($sys['build']=="GRCh37")
+{
+	$args[] = "-build GRCh37.75";
+}
+else
+{
+	$args[] = "-build ".$sys['build'];
+}
+$parser->execTool("NGS/an_snpeff.php", implode(" ", $args));
 
 //check vcf file
 if(!$no_fc)
