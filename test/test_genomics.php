@@ -132,7 +132,7 @@ end_test();
 //##################################################################################
 start_test("get_ref_seq");
 
-check(get_ref_seq(14, 57349540, 57349542), "ACT");
+check(get_ref_seq("chr14", 57349540, 57349542), "ACT");
 check(get_ref_seq("chr14", 57349543, 57349545), "ATC");
 check(get_ref_seq("chr12", 12310000, 12310200), "aagcctaTGAGAGAAAGCTGCTGGCtcttgaactataccttctctttaggtaacctcattcattttaaatacatcctggtaatcccaaaatttgtatcttcaacctcatgtctcttctccgaTGATAGTCCATCATCTATGACACATaatctagaggtcatccttgcttcctccctttctttcccacacagaactcattaa");
 

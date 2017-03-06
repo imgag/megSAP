@@ -95,9 +95,6 @@ function rev_comp($input)
 */
 function get_ref_seq($chr, $start, $end, $build = "hg19")
 {
-	//prepend 'chr' if missing
-	if(!starts_with($chr, "chr")) $chr = "chr".$chr;
-	
 	//get sequence
 	$output = array();
 	exec(get_path("samtools")." faidx ".get_path("local_data")."/{$build}.fa $chr:{$start}-$end 2>&1", $output, $ret);

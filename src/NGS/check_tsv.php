@@ -73,10 +73,6 @@ while(!feof($handle))
 				}
 				break;
 			case "chr":
-				if(!starts_with($value, "chr"))
-				{
-					trigger_error("Invalid value '$value' for chromosome column (index $col_index, name $col_name) in line ".($i).".", E_USER_ERROR);
-				}
 				break;
 			case "nuc":
 				if(	$value!="-" && !preg_match("/^[ACTGN]+$/i", $value)) 
