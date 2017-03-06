@@ -36,5 +36,3 @@ cd skewer_0.2.2
 git checkout 0.2.2
 make
 
-#download topas
-#currently no download available thus it is shipped with megSAP

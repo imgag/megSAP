@@ -19,7 +19,6 @@ SnpSift = java -Xmx4g -jar [path]/data/tools/snpEff/SnpSift.jar
 STAR = [path]/data/tools/STAR_2.5.2b/bin/Linux_x86_64/STAR
 STAR-Fusion = [path]/data/tools/STAR-Fusion-v1.0.0/STAR-Fusion
 feature_counts = [path]/data/tools/subread-1.5.1/bin/featureCounts
-topas = java -Xmx2G -jar [path]/data/tools/topas-1.0/topas.jar
 skewer = [path]/data/tools/skewer_0.2.2/skewer
 
 [folders]

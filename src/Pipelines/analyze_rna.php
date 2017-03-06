@@ -2,13 +2,11 @@
 
 /**
 	@page analyze_rna
-	
+
 	@todo Add functionality to analyze non-human samples (through processing system INI file)
 	@todo check with Stephan from QBIC:
-			- is duplicate removal really necessary for RNA => if so, try samblaster instead of picard (we use it for DNA)
-			- if/when indel realignment is really necessary for RNA => if so, use ABRA as indel realigner instead of GATK (license problems!) - if we continue using GATK for indel realignment: check if genomes/hg19.fa can be used as reference instead of GATK/hg19/hg19_GATK.fa
+			- indel realignment really necessary for RNA?
 			- how should _hap chromosomes be handled?
-			- should quality-based trimming be disabled (ask for paper)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -16,7 +14,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("analyze_rna", "RNA Mapping pipeline using STAR.");
+$parser = new ToolBase("analyze_rna", "RNA mapping pipeline using STAR.");
 $parser->addInfileArray("in_for", "Forward reads in fastq.gz file(s).", false);
 $parser->addString("out_folder", "Output folder.", false);
 $parser->addString("out_name", "Output base file name, typically the processed sample ID (e.g. 'GS120001_01').", false, NULL);
@@ -26,14 +24,16 @@ $parser->addInfile("system", "Processing system INI file (Determined from 'out_n
 $steps_all = array("ma", "rc", "an", "fu", "db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 4);
-$parser->addString("gtfFile", "GTF File containing feature annotations (for read counting).", true, get_path("data_folder")."/dbs/UCSC/refGene.gtf");
+$parser->addString("genome", "STAR genome directory, by default genome is determined from system/build.", true, "");
+$parser->addString("gtfFile", "GTF file containing feature annotations (for read counting).", true, get_path("data_folder")."/dbs/UCSC/refGene.gtf");
 $parser->addString("featureType", "Feature type used for mapping reads to features (for read counting).", true, "exon");
 $parser->addString("gtfAttribute", "GTF attribute used as feature ID (for read counting).", true, "gene_id");
-$parser->addFlag("indelRealign", "Perform indel realignment. By default is is skipped.");
+$parser->addFlag("abra", "Perform indel realignment with ABRA. By default this is skipped.");
 $parser->addFlag("stranded", "Specify whether a stranded protocol was used during library preparation. Default is non-stranded.");
-$parser->addFlag("keepUnmapped", "Save unmapped reads as fasta files.");
-$parser->addFlag("rmdup", "Remove PCR duplicates after mapping.");
+$parser->addFlag("dedup", "Mark duplicates after alignment.");
 $parser->addFlag("sharedMemory", "Use shared memory for running STAR alignment jobs.");
+$downstream_all = array("splicing","chimeric");
+$parser->addString("downstream", "Keep files for downstream analysis (splicing, chimeric).", true, "");
 
 extract($parser->parse($argv));
 
@@ -50,6 +50,8 @@ foreach($steps as $step)
 //init
 $prefix = $out_folder."/".$out_name;
 $sys = load_system($system, $out_name);
+$build = $sys['build'];
+$target_file = $sys['target_file'];
 $paired = isset($in_rev);
 
 //mapping and QC
@@ -57,7 +59,7 @@ $final_bam = $prefix.".bam";
 $qc_fastq = $prefix."_stats_fastq.qcML";
 $qc_map = $prefix."_stats_map.qcML";
 if(in_array("ma", $steps))
-{	
+{
 	//check FASTQ quality encoding
 	$files = $paired ? array_merge($in_for, $in_rev) : $in_for;
 	foreach($files as $file)
@@ -74,32 +76,46 @@ if(in_array("ma", $steps))
 	{
 		trigger_error("No forward and/or reverse adapter sequence given!\nForward: ".$sys["adapter1_p5"]."\nReverse: ".$sys["adapter2_p7"], E_USER_ERROR);
 	}
-	
+
 	//adapter trimming + QC (SeqPurge for paired-end, Skewer/ReadQC for single-end)
 	if($paired)
 	{
 		$fastq_trimmed1 = $parser->tempFile("_trimmed.fastq.gz");
 		$fastq_trimmed2 = $parser->tempFile("_trimmed.fastq.gz");
-		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $fastq_trimmed1 -out2 $fastq_trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $qc_fastq -threads ".$threads, true);
+		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $fastq_trimmed1 -out2 $fastq_trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $qc_fastq -threads ".$threads." -qcut 0", true);
 	}
 	else
 	{
 		$parser->exec(get_path("ngs-bits")."ReadQC", "-in1 ".implode(" ", $in_for)." -out $qc_fastq", true);
-		
+
 		$fastq_trimmed1 = $parser->tempFile("_trimmed.fastq.gz");
-		$fastq_trimmed_basename = substr($fastq_trimmed1, 0, -9);
-		$parser->exec("zcat", implode(" ", $in_for)." | ".get_path("skewer")." -x ".$sys["adapter1_p5"]." -y ".$sys["adapter2_p7"]." -m any -threads $threads -z -o $fastq_trimmed_basename --quiet -", true);
-		rename($fastq_trimmed_basename."-trimmed.fastq.gz", $fastq_trimmed1);
-		
-		//remove the log file of skewer
-		unlink($fastq_trimmed_basename."-trimmed.log");
+		$skewer_stderr = $parser->tempFile("_skewer_stderr");
+		$parser->exec("zcat", implode(" ", $in_for)." | ".get_path("skewer")." -x ".$sys["adapter1_p5"]." -y ".$sys["adapter2_p7"]." -m any --threads $threads --quiet --stdout -"." 2> $skewer_stderr | gzip -1 > $fastq_trimmed1", true);
+		$parser->log("skewer log", file($skewer_stderr));
 	}
 
 	//mapping
-	$args = array("-out $final_bam", "-p $threads", "-in1 $fastq_trimmed1");
+	$args = array("-out $final_bam", "-threads $threads", "-in1 $fastq_trimmed1");
+	// determine genome from system
+	if ($genome == "") {
+		$genome = get_path("data_folder")."/genomes/STAR/{$build}/";	
+	}
+	$args[] = "-genome $genome";
 	if($paired) $args[] = "-in2 $fastq_trimmed2";
-	if($keepUnmapped) $args[] = " -keepUnmapped";
-	if($rmdup) $args[] = "-rmdup";
+	if($dedup) $args[] = "-dedup";
+
+	if ($downstream == "") {
+		$downstream_arr = array();
+	}
+	else {
+		$downstream_arr = explode(",", $downstream);
+	}
+	if (in_array("fu", $steps) && !in_array("splicing", $downstream_arr)) {
+		$downstream_arr[] = "splicing";
+		$parser->log("Enabling downstream junction file needed for fusion detection.");
+	}
+	if (count($downstream_arr) > 0) $args[] = "-downstream ".implode(",", $downstream_arr);
+
 	if($sharedMemory)
 	{
 		if (in_array("fu", $steps)) //for STAR 2.5.2b this does not work, but it might change in newer STAR releases
@@ -111,20 +127,24 @@ if(in_array("ma", $steps))
 			$args[] = "-useSharedMemory";
 		}
 	}
-	$parser->execTool("NGS/mapping_star_htseq.php", implode(" ", $args));
-	
+
+	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
+
 	//indel realignment
-	if($indelRealign)
+	if($abra)
 	{
-		//index
-		$parser->exec(get_path("samtools"), "index $final_bam", true);
-		
-		//split and trim reads with n in the cigar string -> spliced reads
-		$bam_split = $parser->tempFile(".sorted.split.bam");
-		$parser->exec(get_path("GATK"), "-T SplitNCigarReads -R ".get_path("data_folder")."genomes/GATK/hg19/hg19_GATK.fa -I $bam_mapped -o $bam_split -rf ReassignOneMappingQuality -RMQF 255 -RMQT 60 -U ALLOW_N_CIGAR_READS", true);
-		
-		//perform indel realignment on split reads
-		$parser->execTool("NGS/indel_realign.php", "-in $bam_split -out $final_bam");
+		if ($target_file == "")
+		{
+			$parser->log("No target file associated with system, generating whole genome bed file.");
+			//create bed file for whole genome from genome fasta index
+			$roi_bed = $parser->tempFile("fusion_roi");
+			$parser->exec("awk", "'OFS=\"\t\" {print $1,0,$2}' ".get_path("data_folder")."/genomes/{$build}.fa.fai > $roi_bed", true);
+		}
+		else
+		{
+			$roi_bed = $target_file;
+		}
+		$parser->execTool("NGS/indel_realign_abra.php", "-in $final_bam -out $final_bam -roi $roi_bed -mer 0.01 -threads $threads -build $build");
 	}
 }
 
@@ -138,11 +158,8 @@ if(in_array("rc", $steps))
 	if($stranded) $args[] = "-stranded";
 	$parser->execTool("NGS/read_counting_featureCounts.php", "-in $final_bam -out $counts_raw -threads $threads -gtfFile $gtfFile -featureType $featureType -gtfAttribute $gtfAttribute ".implode(" ", $args));
 
-	//normalize expression values
-	$counts_tmp = $parser->tempFile("_counts_tmp.tsv"); //remove the header line and just take the gene ID and counts column
-	$parser->exec("tail", "-n +2 $counts_raw | cut -f 1,7 > $counts_tmp", false);
 	//normalize read counts
-	$parser->execTool("NGS/normalize_read_counts.php", "-in $counts_tmp -out $counts_fpkm -gtf $gtfFile -method rpkm -feature $featureType -idattr $gtfAttribute -header");
+	$parser->execTool("NGS/normalize_read_counts.php", "-in $counts_raw -out $counts_fpkm -method rpkm");
 }
 
 //annotate
@@ -154,18 +171,12 @@ if(in_array("an", $steps))
 //detect fusions
 if(in_array("fu",$steps))
 {
-	$parser->exec(get_path("STAR-Fusion"), "--genome_lib_dir ".get_path("data_folder")."/genomes/STAR-Fusion/hg19 -J {$prefix}Chimeric.out.junction --output_dir $out_folder", true);
-	
-	//cleanup
-	$parser->exec("rm -r", "$out_folder/star-fusion.filter.intermediates_dir", false);
-	$parser->exec("rm -r", "$out_folder/star-fusion.predict.intermediates_dir", false);
-	unlink("$out_folder/star-fusion.fusion_candidates.final");
-	unlink("$out_folder/star-fusion.fusion_candidates.preliminary");
-	unlink("$out_folder/star-fusion.fusion_candidates.preliminary.wSpliceInfo");
-	unlink("$out_folder/star-fusion.fusion_candidates.preliminary.wSpliceInfo.ok");
-	unlink("$out_folder/star-fusion.STAR-Fusion.filter.ok");
-	unlink("$out_folder/star-fusion.STAR-Fusion.predict.ok");
-	rename("$out_folder/star-fusion.fusion_candidates.final.abridged", $prefix."_var_fusions.tsv");
+	$fusion_tmp_folder = $parser->tempFolder();
+	$junction_file = "{$prefix}_splicing.tsv";
+	if (!file_exists($junction_file)) trigger_error("Could not open junction file '$junction_file' needed for STAR-Fusion. Please re-run mapping step.", E_USER_ERROR);
+
+	$parser->exec(get_path("STAR-Fusion"), "--genome_lib_dir ".get_path("data_folder")."/genomes/STAR-Fusion/$build -J $junction_file --output_dir {$fusion_tmp_folder}/", true);
+	$parser->exec("cp", "{$fusion_tmp_folder}/star-fusion.fusion_candidates.final.abridged", $prefix."_var_fusions.tsv", true);
 }
 
 //import to database
@@ -174,7 +185,7 @@ if (in_array("db", $steps))
 {
 	if(file_exists($log_db)) unlink($log_db);
 	$parser->execTool("NGS/db_check_gender.php", "-in $final_bam -pid $out_name");
-		
+
 	//update last_analysis column of processed sample in NGSD
 	updateLastAnalysisDate($out_name, $final_bam);
 
