@@ -13,8 +13,9 @@ fi
 
 
 src=`pwd`/../src/
-ngsbits=`pwd`/tools/ngs-bits/bin
-vcflib=`pwd`/tools/vcflib/bin
+tools=`pwd`/tools/
+ngsbits=$tools/ngs-bits/bin
+vcflib=$tools/vcflib/bin
 genome=`pwd`/genomes/hg19.fa
 
 #install dbSNP
@@ -30,7 +31,7 @@ cd $dbs
 mkdir RepeatMasker
 cd RepeatMasker
 wget -O - http://www.repeatmasker.org/genomes/hg19/RepeatMasker-rm405-db20140131/hg19.fa.out.gz | gunzip > hg19.fa.out
-perl `pwd`/tools/RepeatMasker/util/rmOutToGFF3.pl hg19.fa.out > RepeatMasker.gff
+perl $tools/RepeatMasker/util/rmOutToGFF3.pl hg19.fa.out > RepeatMasker.gff
 cat RepeatMasker.gff | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/BedSort > RepeatMasker.bed
 
 #Install dbNSFP
