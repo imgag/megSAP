@@ -110,9 +110,9 @@ if(in_array("ma", $steps))
 	else {
 		$downstream_arr = explode(",", $downstream);
 	}
-	if (in_array("fu", $steps) && !in_array("splicing", $downstream_arr)) {
-		$downstream_arr[] = "splicing";
-		$parser->log("Enabling downstream junction file needed for fusion detection.");
+	if (in_array("fu", $steps) && !in_array("chimeric", $downstream_arr)) {
+		$downstream_arr[] = "chimeric";
+		$parser->log("Enabling downstream chimeric file needed for fusion detection.");
 	}
 	if (count($downstream_arr) > 0) $args[] = "-downstream ".implode(",", $downstream_arr);
 
@@ -172,11 +172,11 @@ if(in_array("an", $steps))
 if(in_array("fu",$steps))
 {
 	$fusion_tmp_folder = $parser->tempFolder();
-	$junction_file = "{$prefix}_splicing.tsv";
-	if (!file_exists($junction_file)) trigger_error("Could not open junction file '$junction_file' needed for STAR-Fusion. Please re-run mapping step.", E_USER_ERROR);
+	$chimeric_file = "{$prefix}_chimeric.tsv";
+	if (!file_exists($chimeric_file)) trigger_error("Could not open chimeric file '$chimeric_file' needed for STAR-Fusion. Please re-run mapping step.", E_USER_ERROR);
 
-	$parser->exec(get_path("STAR-Fusion"), "--genome_lib_dir ".get_path("data_folder")."/genomes/STAR-Fusion/$build -J $junction_file --output_dir {$fusion_tmp_folder}/", true);
-	$parser->exec("cp", "{$fusion_tmp_folder}/star-fusion.fusion_candidates.final.abridged", $prefix."_var_fusions.tsv", true);
+	$parser->exec(get_path("STAR-Fusion"), "--genome_lib_dir ".get_path("data_folder")."/genomes/STAR-Fusion/$build -J $chimeric_file --output_dir {$fusion_tmp_folder}/", true);
+	$parser->exec("cp", "{$fusion_tmp_folder}/star-fusion.fusion_candidates.final.abridged ".$prefix."_var_fusions.tsv", true);
 }
 
 //import to database
