@@ -65,7 +65,7 @@ tabix -p vcf ExAC_r0.3.1.vcf.gz
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/clinvar_20170130.vcf.gz | gunzip > clinvar_20170130.vcf
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive/2017/clinvar_20170130.vcf.gz | gunzip > clinvar_20170130.vcf
 cat clinvar_20170130.vcf | php $src/Tools/db_converter_clinvar.php > clinvar_20170130_converted.vcf
 
 #Install Kaviar
