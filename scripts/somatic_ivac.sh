@@ -82,7 +82,7 @@ COMMAND="php $DIR/../src/Pipelines/somatic_ivac.php -p_folder . -t_dna_id ${args
 QUEUE="-q default_srv016,default_srv017,default_srv018";
 if [[ -n "$RNA" ]]
 then
-#	QUEUE="-q NGSlong"
+	QUEUE="-q highmem_srv016,highmem_srv017,highmem_srv018"
 fi
 
 if [[ "$noqueue" == true ]]
