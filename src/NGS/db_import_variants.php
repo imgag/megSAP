@@ -70,7 +70,7 @@ if($mode=="germline")
 	$sid = $samples["germline"]["sid"];
 	
 	//check if variants were already imported for this PID
-	$count_old = $db_connect->getValue("SELECT count(id) FROM detected_variant WHERE processed_sample_id='".$psid."'");
+	$count_old = $db_connect->getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id='".$psid."'");
 	if($count_old!=0 && !$force)
 	{
 		trigger_error("Variants were already imported for PID '$id'. Use the flag '-force' to overwrite them.", E_USER_ERROR);
@@ -128,7 +128,6 @@ if($mode=="germline")
 	$i_typ = $file->getColumnIndex("variant_type");
 	$i_cod = $file->getColumnIndex("coding_and_splicing");
 	$i_gno = $file->getColumnIndex("genotype");
-	$i_qua = $file->getColumnIndex("quality");
 	
 	$parser->log(" done ".time_readable(microtime(true) - $t_start));
 	$parser->log("INSERT/UPDATE VARIANT");
@@ -227,7 +226,7 @@ if($mode=="germline")
 
 	//insert variants into table 'detected_variant'
 	$db_connect->beginTransaction();
-	$hash = $db_connect->prepare("INSERT INTO detected_variant (processed_sample_id, variant_id, genotype, quality, comment, report) VALUES ('$psid', :variant_id, :genotype, :quality, :comment, :report);");
+	$hash = $db_connect->prepare("INSERT INTO detected_variant (processed_sample_id, variant_id, genotype, comment, report) VALUES ('$psid', :variant_id, :genotype, :comment, :report);");
 	for($i=0; $i<$file->rows(); ++$i)
 	{
 		$row = $file->getRow($i);
@@ -255,7 +254,6 @@ if($mode=="germline")
 		//bind
 		$db_connect->bind($hash, "variant_id", $variant_id);
 		$db_connect->bind($hash, "genotype", $row[$i_gno]);
-		$db_connect->bind($hash, "quality", $row[$i_qua]);
 		$db_connect->bind($hash, "comment", $comment);
 		$db_connect->bind($hash, "report", $report);
 
