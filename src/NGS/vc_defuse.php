@@ -46,11 +46,13 @@ if($seqPurge) {
 	//check quality encoding
 	$parser->log("Checking quality encoding format of the input files");
 	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."FastqFormat", "-in $in_for", true);
-	if (!contains($stdout[2], "Sanger")) {
+	if (!contains($stdout[2], "Sanger"))
+	{
 		trigger_error("Input file '$in_for' is not in Sanger/Illumina 1.8 format!", E_USER_ERROR);
 	}
 	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."FastqFormat", "-in $in_rev", true);
-	if (!contains($stdout[2], "Sanger")) {
+	if (!contains($stdout[2], "Sanger"))
+	{
 		trigger_error("Input file '$in_rev' is not in Sanger/Illumina 1.8 format!", E_USER_ERROR);
 	}
 	
