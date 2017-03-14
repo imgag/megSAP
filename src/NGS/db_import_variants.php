@@ -111,9 +111,6 @@ if($mode=="germline")
 		exit();
 	}
 
-	//get genome build id
-	$gid = $db_connect->getValue("SELECT id FROM genome WHERE build='$build'");
-
 	//get column indices of input file
 	$i_chr = $file->getColumnIndex("chr");
 	$i_sta = $file->getColumnIndex("start");
@@ -137,7 +134,7 @@ if($mode=="germline")
 	
 	//insert/update table 'variant'
 	$var_ids = array();
-	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, exac, kaviar, gene, variant_type, coding, genome_id) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :exac, :kaviar, :gene, :variant_type, :coding, '$gid') ON DUPLICATE KEY UPDATE id=id");
+	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, exac, kaviar, gene, variant_type, coding) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :exac, :kaviar, :gene, :variant_type, :coding) ON DUPLICATE KEY UPDATE id=id");
 	for($i=0; $i<$file->rows(); ++$i)
 	{
 		$row = $file->getRow($i);
@@ -306,18 +303,6 @@ if($mode=="somatic")
 		exit();
 	}
 
-	//get genome build id
-	$hash = $db_connect->prepare("SELECT id FROM genome WHERE build = :build;");
-	$db_connect->bind($hash, 'build', $build);
-	$db_connect->execute($hash, true); 
-	$result = $db_connect->fetch($hash); 
-	$db_connect->unsetStmt($hash);
-	if(count($result) != 1)
-	{
-		trigger_error("Genome build '$build' not found.", E_USER_ERROR);
-	}
-	$gid = $result[0]['id'];
-
 	//get column indices of input file
 	$i_chr = $file->getColumnIndex("chr");
 	$i_sta = $file->getColumnIndex("start");
@@ -337,7 +322,7 @@ if($mode=="somatic")
 	$no_var_before = $tmp[0]['count(id)'];
 
 	//insert variants into table 'variant'
-	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, exac, kaviar, gene, variant_type, coding, genome_id) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :exac, :kaviar, :gene, :variant_type, :coding, '$gid')");
+	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, exac, kaviar, gene, variant_type, coding) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :exac, :kaviar, :gene, :variant_type, :coding)");
 	$hash2 = $db_connect->prepare("UPDATE variant SET dbsnp=:dbsnp, 1000g=:1000g, exac=:exac, kaviar=:kaviar , gene=:gene, variant_type=:variant_type, coding=:coding WHERE id=:id");
 	for($i=0; $i<$file->rows(); ++$i)
 	{
