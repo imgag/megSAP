@@ -12,7 +12,8 @@ $parser = new ToolBase("qbic_copy", "Copies QBIC data into the QBIC datamover fo
 $parser->addFlag("upload", "Enable real upload (otherwise a dry run is performed: dummy data is written to the temporary folder, but it is not copied to the datamover folder).");
 $parser->addString("project", "Restrict upload to a project.", true, "");
 $parser->addStringArray("samples", "Restrict upload to a processed sample.", true, "");
-$parser->addFlag("force", "Upload files even if already uploaded.", true, "");
+$parser->addFlag("force_reupload", "Upload files even if already uploaded.", true, "");
+$parser->addFlag("force_sap", "Makes the SAP ID mandatory (and the QBIC ID optional).", true, "");
 extract($parser->parse($argv));
 
 //check project
@@ -60,6 +61,7 @@ $GLOBALS["datamover_done"] = "/mnt/share/to_qbic/data/done.txt";
 $GLOBALS["datamover_path"] = "/mnt/share/to_qbic/data/to_qbic/";
 $GLOBALS["datamover_tmp"] = "/mnt/share/to_qbic/data/tmp/";
 print "##Datamover folder : ".$GLOBALS["datamover_path"]."\n";
+print "##Datemover log    : /mnt/share/to_qbic/log/datamover_log.txt\n";
 print "##Done samples file: ".$GLOBALS["datamover_done"]."\n";
 print "##Temporary folder : ".$GLOBALS["datamover_tmp"]."\n";
 if (!$upload)
@@ -94,6 +96,30 @@ function checkProbeneingang($name, $table)
 	
 	return null;
 }
+
+//determine SAP identifier from GenLab
+function getSapId($name)
+{	
+	$db = DB::getInstance("GL8");
+	$res = $db->executeQuery("SELECT identnr FROM v_ngs_sap WHERE labornummer LIKE '$name'");
+	
+	//no hit
+	if (count($res)==0) return null;
+	
+	//more than one hit => error
+	if (count($res)>1)
+	{
+		print_r($res);
+		trigger_error("Found more than one sample '$name' in GenLab!", E_USER_ERROR);
+	}
+	
+	//one hit
+	$sap_id = trim($res[0]['identnr']);
+	if ($sap_id=="") return null;
+	
+	return $sap_id;
+}
+
 
 //determine QBIC/FO ID from sample name (and external sample name)
 function getExternalNames($name, $name_ex)
@@ -142,8 +168,15 @@ function getSampleInfo($ps_id)
 	$output = array();
 	$output['ngsd_processedsample_id'] = $ps_id;
 	$output['id_genetics'] = $ps_name;
-	list($qbic_id) = getExternalNames($s_name, $s_name_ex);
-	$output['id_qbic'] = $qbic_id;
+	$names = getExternalNames($s_name, $s_name_ex);
+	if (is_null($names)) //this can only be null when 'force_sap' is used
+	{
+		$output['id_qbic'] = "";
+	}
+	else
+	{
+		$output['id_qbic'] = $names[0];
+	}
 	$output['processing_system'] = $ps_sys;
 	$output['tumor'] = $s_tumor ? "yes" : "no";
 	$output['genome'] = $ps_genome;
@@ -237,6 +270,7 @@ function alreadyUploaded($name)
 //stores meta data 
 function storeMetaData($path, $name, $data)
 {
+	//print json_encode($data, JSON_PRETTY_PRINT);
 	file_put_contents($path."/".$name.".metadata", json_encode($data));
 }
 
@@ -297,14 +331,29 @@ print "#".implode("\t", $GLOBALS['tsv_header'])."\n";
 
 //init
 $db = DB::getInstance("NGSD");
-$res = $db->executeQuery("SELECT id, name, name_external, quality FROM sample WHERE name_external LIKE '%Q%' || name_external LIKE '%FO%' ORDER BY name");
+$conditions = array();
+if (empty($samples))
+{
+	$conditions[] = "name_external LIKE '%Q%'";
+	$conditions[] = "name_external LIKE '%FO%'";
+}
+else
+{
+	foreach($samples as $s)
+	{
+		list($name, $ps_num) = explode("_", $s);
+		$conditions[] = "name='$name'";
+	}
+}
+
+$res = $db->executeQuery("SELECT id, name, name_external, quality FROM sample WHERE ".implode(" || ", $conditions)." ORDER BY name");
 foreach($res as $row)
 {
 	list ($s_id, $s_name, $s_name_ex, $s_qual) = array_values($row);
 	
 	//check if we have a QBIC name
 	$names = getExternalNames($s_name, $s_name_ex);
-	if (is_null($names)) continue;
+	if (is_null($names) && !$force_sap) continue;
 	list($qbic_name, $fo_name) = $names;
 	
 	$output = array();
@@ -427,7 +476,7 @@ foreach($res as $row)
 		//skip already uploaded
 		$skipped = false;
 		$uploaded = false;
-		if(!$force)	$uploaded = alreadyUploaded($ps_name);
+		if(!$force_reupload)	$uploaded = alreadyUploaded($ps_name);
 		if ($uploaded!==false)
 		{
 			printTSV($output, "SKIPPED" ,"already uploaded on ".$uploaded[0].": ".$uploaded[1]."; found files for upload: ".implode(", ",array_map("basename",$files)));
@@ -440,6 +489,17 @@ foreach($res as $row)
 			if (count($files)==0)
 			{
 				printTSV($output, "ERROR" ,"no files to transfer in data folder '$data_folder'");
+				$skipped = true;
+			}
+		}
+		
+		//check SAP identifier
+		if (!$skipped)
+		{	
+			$sample1['id_sap'] = getSapId($s_name);
+			if ($force_sap && is_null($sample1['id_sap']))
+			{
+				printTSV($output, "ERROR" ,"No SAP identifier found for '$ps_id'!");
 				$skipped = true;
 			}
 		}
@@ -527,7 +587,7 @@ foreach($res as $row)
 						
 			//skip already uploaded
 			$uploaded = false;
-			if(!$force)	$uploaded = alreadyUploaded($ps_name."-".$ps_name2);
+			if(!$force_reupload)	$uploaded = alreadyUploaded($ps_name."-".$ps_name2);
 			if ($uploaded!==false)
 			{
 				printTSV($output, "SKIPPED" ,"already uploaded on ".$uploaded[0].": ".$uploaded[1]."; found files for upload: ".implode(", ",array_map('basename',$files)).".");
@@ -537,6 +597,15 @@ foreach($res as $row)
 			if (count($files)==0)
 			{
 				printTSV($output, "ERROR" , "no files to transfer in data folder '$data_folder'");
+				continue;
+			}
+			
+			//get SAP identifier
+			list($s_name2) = explode("_", $ps_name2);
+			$sample2['id_sap'] = getSapId($s_name);			
+			if ($force_sap && is_null($sample2['id_sap']))
+			{
+				printTSV($output, "ERROR" ,"No SAP identifier found for '$ps_name2'!");
 				continue;
 			}
 			
