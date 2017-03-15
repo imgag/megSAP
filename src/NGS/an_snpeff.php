@@ -40,11 +40,11 @@ if (!$empty)
 	$db_file = get_path("data_folder")."/dbs/OMIM/omim.bed";
 	if(file_exists($db_file))
 	{
-		$pipeline[] =  array(get_path("vcflib")."vcfannotate", "-b $db_file -k OMIM");
+		$pipeline[] =  array(get_path("ngs-bits")."VcfAnnotateFromBed", "-bed $db_file -name OMIM");
 	}
 
 	//RepeatMasker annotation
-	$pipeline[] =  array(get_path("vcflib")."vcfannotate", "-b ".get_path("data_folder")."/dbs/RepeatMasker/RepeatMasker.bed -k REPEATMASKER");
+	$pipeline[] =  array(get_path("ngs-bits")."VcfAnnotateFromBed", "-bed ".get_path("data_folder")."/dbs/RepeatMasker/RepeatMasker.bed -name REPEATMASKER");
 }
 
 //SnpEff annotation
@@ -93,7 +93,6 @@ $parser->execPipeline($pipeline, "annotation");
 
 //broken info field headers (otherwise check_vcf fails)
 $invalid_num_headers = array("RO","GTI","NS","SRF","NUMALT","DP","QR","SRR","SRP","PRO","EPPR","DPB","PQR","RPPR","MQMR","ODDS","AN","PAIREDR", //FreeBayes and VcfLib
-                             "OMIM", //OMIM
 							 "HGMD_GENE", "HGMD_CLASS", "HGMD_MUT", "HGMD_PHEN", //HGMD
 							 );
 //missing info field headers (otherwise check_vcf fails)

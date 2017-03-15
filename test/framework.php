@@ -136,7 +136,6 @@ function check_file($out_file, $reference_file, $comare_header_lines = false)
 	//zdiff
 	if (ends_with($out_file, ".gz") && ends_with($reference_file, ".gz"))
 	{
-	
 		$extras = "";
 		if (!$comare_header_lines) $extras .= " -I^[#@]";
 		exec("zdiff $extras -b $reference_file $out_file > $logfile 2>&1", $output, $return);
@@ -156,7 +155,18 @@ function check_file($out_file, $reference_file, $comare_header_lines = false)
 		$r = temp_file("_ref.sam");
 		exec(get_path("samtools")." view $reference_file | cut -f1-11 > $r 2>&1", $output, $return); //cut to ignore the read-group and other annotations
 		
-		exec("diff -b $o $r > $logfile 2>&1", $output, $return);
+		exec("diff -b $r $o > $logfile 2>&1", $output, $return);
+		$passed = ($return==0);
+	}
+	//vcf
+	elseif (ends_with($out_file, ".vcf") && ends_with($reference_file, ".vcf"))
+	{
+		$o = temp_file("_out.vcf");
+		file_put_contents($o, implode("\n", load_vcf_normalized($out_file)));
+		$r = temp_file("_ref.vcf");
+		file_put_contents($r, implode("\n", load_vcf_normalized($reference_file)));
+		
+		exec("diff -b $r $o > $logfile 2>&1", $output, $return);
 		$passed = ($return==0);
 	}
 	//diff

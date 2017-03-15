@@ -94,15 +94,14 @@
 ##FILTER=<ID=fv.som_depth_nor,Description="Sequencing depth normal is < 8 (filter_vcf).">
 ##FILTER=<ID=fv.som_all_freq_tum,Description="Allele frequency tumor is 0.05 (filter_vcf).">
 ##FILTER=<ID=fv.som_lt_3_reads,Description="Less than 3 supporting tumor reads (filter_vcf).">
-##FILTER=<ID=fv.som_all_freq,Description="Difference in allele frequencies too low (filter_vcf).">
 ##FILTER=<ID=fv.som_all_freq_nor,Description="Allele frequency normal too high (filter_vcf).">
 ##FILTER=<ID=fv.som_tum_loh,Description="Loss of heterozygosity within tumor tissue (filter_vcf).">
 ##FILTER=<ID=fv.som_af_ratio,Description="Allele frequency ratio tumor/normal less-equal 6; removed from list (filter_vcf).">
 ##FILTER=<ID=fv.som_no_depth,Description="No depth in tumor or normal; removed from list (filter_vcf).">
 ##FILTER=<ID=fv.somca_depth_tum,Description="Sequencing depth tumor is too low < 100 (filter_vcf).">
 ##FILTER=<ID=fv.somca_depth_norm,Description="Sequencing depth normal is too low < 100 (filter_vcf).">
-##FILTER=<ID=fv.somca_all_freq,Description="Allele frequencies (filter_vcf).">
-##FILTER=<ID=fv.somca_db_frequencies,Description="Allele frequencies in public databases are above 0.01 (filter_vcf).">
+##FILTER=<ID=fv.somca_all_freq,Description="Allele frequencies in tumor < 0.05 or allele frequencies in normal > 0.01 (filter_vcf).">
+##FILTER=<ID=fv.somca_db_frequencies,Description="Allele frequencies in public databases are > 0.01 (filter_vcf).">
 ##FILTER=<ID=fv.somds_depth_too_low,Description="Depth of normal sample is < 50 (filter_vcf).">
 ##FILTER=<ID=fv.somds_no_frequencies,Description="No allele frequency available (filter_vcf).">
 ##FILTER=<ID=fv.somds_not_somatic,Description="Allel frequencies do not indicate a somatic variant (filter_vcf).">

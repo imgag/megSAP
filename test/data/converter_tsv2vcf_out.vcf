@@ -1,5 +1,4 @@
 ##fileformat=VCFv4.1
-##fileDate=20161208
 ##reference=/mnt/share/data/dbs//genomes/hg19.fa
 ##INFO=<ID=variant_id,Number=1,Type=String,Description="ID of original variant.">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">

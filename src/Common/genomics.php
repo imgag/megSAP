@@ -1128,6 +1128,117 @@ function is_valid_ref_sample_for_cnv_analysis($file)
 	return true;
 }
 
+///Loads a VCF file in a normalized manner, e.g. for comparing them
+/// - sorts header lines
+/// - sorts info column by name
+/// - sorts and format/sample columns by format string
+/// - TODO?: sort filter column
+/// - TODO?: sort variants by chr/pos
+function load_vcf_normalized($filename)
+{
+	$comments = array();
+	$header = "";
+	$vars = array();
+	
+	//load and normalize data
+	$file = file($filename);
+	foreach($file as $line)
+	{
+		$line = nl_trim($line);
+		if ($line=="") continue;
+		
+		if (starts_with($line, "##"))
+		{
+			$comments[] = $line;
+		}
+		else if (starts_with($line, "#"))
+		{
+			$header = $line;
+		}
+		else
+		{
+			$parts = explode("\t", $line);
+			if (count($parts)<10) trigger_error("VCF file $filename has line with less than 10 colums: $line", E_USER_ERROR);
+			list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format) = $parts;
+			
+			
+			//convert INFO data to associative array
+			$info = explode(";", $info);
+			$tmp = array();
+			foreach($info as $entry)
+			{
+				if (!contains($entry, "="))
+				{
+					$tmp[$entry] = "";
+				}
+				else
+				{
+					list($key, $value) = explode("=", $entry, 2);
+					$tmp[$key] = $value;
+				}
+			}
+			$info = $tmp;
+			ksort($info);
+			$var = array($chr, $pos, $id, $ref, $alt, $qual, $filter, $info);
+			
+			//convert format/sample data (also additional sample columns of multi-sample VCF)
+			for($i=9; $i<count($parts); ++$i)
+			{
+				$sample = array_combine(explode(":", $format), explode(":", $parts[$i]));
+				ksort($sample);
+				$var[] = $sample;
+			}
+			
+			$vars[] = $var;
+		}
+	}
+
+	//output: comments
+	sort($comments);
+	foreach($comments as $line)
+	{
+		if (!starts_with($line, "##INFO") && !starts_with($line, "##FORMAT")) $output[] = $line;
+	}
+	foreach($comments as $line)
+	{
+		if (starts_with($line, "##INFO")) $output[] = $line;
+	}
+	foreach($comments as $line)
+	{
+		if (starts_with($line, "##FORMAT")) $output[] = $line;
+	}
+	
+	//output: header
+	$output[] = $header;
+	
+	//output: variants
+	foreach($vars as $var)
+	{
+		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info) = $var;
+		
+		//info
+		$tmp = array();
+		foreach($info as $key => $value)
+		{
+			$tmp[] = "$key=$value";
+		}
+		$info = implode(";", $tmp);
+		
+		//format
+		$format = implode(":", array_keys($var[8]));
+				
+		//sample columns (also additional sample columns of multi-sample VCF)
+		$samples = array();
+		for($i=8; $i<count($var); ++$i)
+		{
+			$samples[] = implode(":", array_values($var[$i]));
+		}
+		
+		$output[] = "$chr\t$pos\t$id\t$ref\t$alt\t$qual\t$filter\t$info\t$format\t".implode("\t", $samples);
+	}
+	
+	return $output;
+}
 
 
 ?>
