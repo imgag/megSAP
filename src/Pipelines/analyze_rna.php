@@ -3,7 +3,6 @@
 /**
 	@page analyze_rna
 
-	@todo Add functionality to analyze non-human samples (through processing system INI file)
 	@todo check with Stephan from QBIC:
 			- indel realignment really necessary for RNA?
 			- how should _hap chromosomes be handled?
@@ -25,7 +24,7 @@ $steps_all = array("ma", "rc", "an", "fu", "db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 4);
 $parser->addString("genome", "STAR genome directory, by default genome is determined from system/build.", true, "");
-$parser->addString("gtfFile", "GTF file containing feature annotations (for read counting).", true, get_path("data_folder")."/dbs/UCSC/refGene.gtf");
+$parser->addString("gtfFile", "GTF file containing feature annotations (for read counting).", true, "");
 $parser->addString("featureType", "Feature type used for mapping reads to features (for read counting).", true, "exon");
 $parser->addString("gtfAttribute", "GTF attribute used as feature ID (for read counting).", true, "gene_id");
 $parser->addFlag("abra", "Perform indel realignment with ABRA. By default this is skipped.");
@@ -53,6 +52,11 @@ $sys = load_system($system, $out_name);
 $build = $sys['build'];
 $target_file = $sys['target_file'];
 $paired = isset($in_rev);
+
+// determine gtf from build
+if ($gtfFile == "") {
+	$gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
+}
 
 //mapping and QC
 $final_bam = $prefix.".bam";
@@ -98,7 +102,7 @@ if(in_array("ma", $steps))
 	$args = array("-out $final_bam", "-threads $threads", "-in1 $fastq_trimmed1");
 	// determine genome from system
 	if ($genome == "") {
-		$genome = get_path("data_folder")."/genomes/STAR/{$build}/";	
+		$genome = get_path("data_folder")."/genomes/STAR/{$build}/";
 	}
 	$args[] = "-genome $genome";
 	if($paired) $args[] = "-in2 $fastq_trimmed2";
@@ -165,7 +169,7 @@ if(in_array("rc", $steps))
 //annotate
 if(in_array("an", $steps))
 {
-	$parser->execTool("NGS/annotate_count_file.php", "-in $counts_fpkm -out $counts_fpkm");
+	$parser->execTool("NGS/annotate_count_file.php", "-in $counts_fpkm -out $counts_fpkm -gtfFile $gtfFile");
 }
 
 //detect fusions
