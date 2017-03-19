@@ -4,9 +4,6 @@ set -o verbose
 
 folder=`pwd`/tools/
 
-#TODO tools for indel realignment?: GATK
-#TODO tools for duplicates?: picard
-
 #download STAR
 cd $folder
 git clone https://github.com/alexdobin/STAR.git
