@@ -2,6 +2,9 @@
 
 /**
 	@page somatic_dna
+		@TODO combine tumor normal pair and single sample mode
+		@TODO recalculate QC-values at the end of the pipeline
+		@TODO remove analyze.php and set up own combinations of tools
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -69,14 +72,22 @@ if($tumor_only)
 	$som_gsvar = $o_folder.$som_prefix.".GSvar";
 	if (in_array("ma", $steps))
 	{
-		$args = "-steps ma ";
-		if(!$no_softclip && $amplicon)
+		$args = "-steps ma";
+		$parser->execTool("Pipelines/analyze.php", "-folder ".$t_folder." -out_folder ".$t_folder." -name $t_id -system $t_sys $args --log ".$t_folder."analyze_".date('YmdHis',mktime()).".log");
+
+		if(!$no_softclip)
 		{
-			$no_softclip = true;
-			trigger_error("Turned off soft-clipping automatically due to amplicon mode.", E_USER_WARNING);
+			$extra = "";
+			if($clip=="mfb")	$extra = "-overlap_mismatch_baseq";
+			if($clip=="mfm")	$extra = "-overlap_mismatch_mapq";
+			if($clip=="mfr")	$exta = "-overlap_mismatch_remove";
+			if($amplicon)	$extra .= " -amplicon";
+		
+			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
+			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in $t_bam -out $tmp1_t_bam $extra", true);
+			$parser->exec(get_path("samtools"),"sort -T $tmp1_t_bam -o $t_bam $tmp1_t_bam", true);
+			$parser->exec(get_path("ngs-bits")."BamIndex", "-in $t_bam", true);
 		}
-//		if(!$no_softclip)	$args .= "-clip_overlap ";
-		$parser->execTool("Pipelines/analyze.php", "-folder ".$t_folder." -out_folder ".$t_folder." -name $t_id -system $t_sys ".$args." --log ".$t_folder."analyze_".date('YmdHis',mktime()).".log");
 	}
 
 	$som_v = $o_folder.$t_id."_var.vcf.gz";
@@ -104,6 +115,22 @@ if($tumor_only)
 		$parser->exec("tabix", "-f -p vcf $som_v", false);
 
 		// copy number variant calling
+		//copy coverage file to reference folder (has to be done before CnvHunter call to avoid analyzing the same sample twice)
+		if (is_valid_ref_sample_for_cnv_analysis($n_id))
+		{
+			//create coverage file
+			$tmp_folder = $parser->tempFolder();
+			$cov_file = $tmp_folder."/{$n_id}.cov";
+			$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $n_bam -in ".$n_sys_ini['target_file']." -out $cov_file", true);
+			//create reference folder if it does not exist
+			$ref_folder = get_path("data_folder")."/coverage/".$n_sys_ini['name_short']."/";
+			if (!is_dir($ref_folder)) mkdir($ref_folder);
+			
+			//copy file
+			$ref_file = $ref_folder.$n_id.".cov";
+			copy2($cov_file, $ref_file);
+			$cov_file = $ref_file;
+		}
 		$tmp_folder = $parser->tempFolder();
 		$t_cov = $tmp_folder."/".basename($t_bam,".bam").".cov";
 		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $t_bam -in ".$t_sys_ini['target_file']." -out $t_cov",true);
@@ -130,16 +157,18 @@ if($tumor_only)
 		$tmp_comments = sort_vcf_comments($s->getComments());
 		$s->setComments($tmp_comments);
 		$s->toTSV($tmp);
-	
-		if($t_sys_ini['type']=="Panel Haloplex HS")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp  -hpHS ".substr($t_sys_ini['target_file'], 0, -4)."_amplicons.bed", true);
-		if(strpos($t_sys_ini['name_short'],"mi")===0)	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp  -mip /mnt/share/data/mipfiles/".$t_sys_ini['name_short'].".txt", true);
-
+		
+		// annotate strand if enrichment with UIDs is used
+		if($t_sys_ini['type']=="Panel Haloplex HS")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp  -hpHS ".substr($t_sys_ini['target_file'], 0, -4)."_amplicons.bed -name $t_id", true);
+		if($t_sys_ini['type']=="Panel MIPs")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp  -mip /mnt/share/data/mipfiles/".$t_sys_ini['name_short'].".txt -name $t_id", true);
+			
+		// zip vcf file
 		$parser->exec("bgzip", "-c $tmp > $som_vcf", false); //no output logging, because Toolbase::extractVersion() does not return
 		$parser->exec("tabix", "-f -p vcf $som_vcf", false); //no output logging, because Toolbase::extractVersion() does not return	
 
 		// convert vcf to GSvar
 		$extra = "-t_col $t_id";
-		if($t_sys_ini['type']=="Panel Haloplex HS" || strpos($t_sys_ini['name_short'],"mi")===0)	$extra .= " -strand";
+		if($t_sys_ini['type']=="Panel Haloplex HS" || $t_sys_ini['type']=="Panel MIPs")	$extra .= " -strand";
 		$parser->execTool("NGS/vcf2gsvar_somatic.php", "-in $som_vcf -out $som_gsvar $extra");
 		
 		// dbNFSP
@@ -175,7 +204,7 @@ else
 	trigger_error("Tumor normal pair. Paired mode.",E_USER_NOTICE);
 
 	// get ref system and do some basic checks
-	$n_sys_ini = load_system($n_sys, $n_id);
+	$n_sys_ini = load_system(($n_sys), $n_id);
 	if(empty($t_sys_ini['target_file']) || empty($n_sys_ini['target_file'])) trigger_error ("System tumor or system normal does not contain a target file.", E_USER_WARNING);
 	if($t_sys_ini['name_short'] != $n_sys_ini['name_short']) trigger_error ("System tumor '".$t_sys_ini['name_short']."' and system reference '".$n_sys_ini['name_short']."' are different!", E_USER_WARNING);
 	if($t_sys_ini['build'] != $n_sys_ini['build']) trigger_error ("System tumor '".$t_sys_ini['build']."' and system reference '".$n_sys_ini['build']."' do have different builds!", E_USER_ERROR);
@@ -185,22 +214,16 @@ else
 	{
 		// mapping of tumor and reference sample, CAVE: no abra realignment and no soft-clipping, will be done later
 		$args = "-steps ma -no_abra ";
-//		if(!$no_softclip)	$args .= "-clip_overlap ";
 		if(!$smt)	$parser->execTool("Pipelines/analyze.php", "-folder ".$t_folder." -name $t_id -system $t_sys ".$args." --log ".$t_folder."analyze_".date('YmdHis',mktime()).".log");
 		if(!$smn)	$parser->execTool ("Pipelines/analyze.php", "-folder ".$n_folder." -name $n_id -system $n_sys ".$args." --log ".$n_folder."analyze_".date('YmdHis',mktime()).".log");
 
-//		//soft-clip
-//		if($amplicon)
-//		{
-//			$no_softclip = true;
-//			trigger_error("Turned off soft-clipping automatically.", E_USER_NOTICE);
-//		}
 		if(!$no_softclip)
 		{
 			$extra = "";
 			if($clip=="mfb")	$extra = "-overlap_mismatch_baseq";
 			if($clip=="mfm")	$extra = "-overlap_mismatch_mapq";
 			if($clip=="mfr")	$exta = "-overlap_mismatch_remove";
+			if($amplicon)	$extra .= " -amplicon";
 		
 			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
 			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in $t_bam -out $tmp1_t_bam $extra", true);
@@ -251,7 +274,7 @@ else
 	$som_sv = $o_folder.$t_id."-".$n_id."_var_structural.vcf.gz";
 	$som_cnv = $o_folder.$t_id."-".$n_id."_var_copy.tsv";
 	if (in_array("vc", $steps))
-	{
+	{			
 		// structural variant calling
 		if($t_sys_ini['shotgun']==1)
 		{
@@ -260,21 +283,13 @@ else
 			$parser->execTool("NGS/vc_manta.php", "-t_bam $t_bam -bam $n_bam $par -out $som_sv -build ".$t_sys_ini['build']);
 		}
 		
-		// copy number variant calling
-		$tmp_folder = $parser->tempFolder();
-		$t_cov = $tmp_folder."/".basename($t_bam,".bam").".cov";
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $t_bam -in ".$t_sys_ini['target_file']." -out $t_cov",true);
-		$n_cov = $tmp_folder."/".basename($n_bam,".bam").".cov";
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $n_bam -in ".$t_sys_ini['target_file']." -out $n_cov",true);
-		$parser->execTool("NGS/vc_cnvhunter.php", "-cov $t_cov -n_cov $n_cov -out $som_cnv -system $t_sys -min_reg 3 -min_corr 0.75");
-		
 		// variant calling
 		if(!$freebayes)
 		{
 			$args = array();
 			$args[] = "-build ".$t_sys_ini['build'];
 			if ($keep_all_variants_strelka) $args[] = "-k";
-			if (!$t_sys_ini['shotgun']) $args[] = "-amplicon";
+			if ($amplicon) $args[] = "-amplicon";
 			$parser->execTool("NGS/vc_strelka.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));	//combined variant calling using strelka		
 		}
 		else	// combined variant calling using freebayes
@@ -328,6 +343,14 @@ else
 			$parser->exec("bgzip", "-c $tmp2 > $som_v", false);	// no output logging, because Toolbase::extractVersion() does not return
 			$parser->exec("tabix", "-f -p vcf $som_v", false);	// no output logging, because Toolbase::extractVersion() does not return
 		}		
+		
+		// copy number variant calling
+		$tmp_folder = $parser->tempFolder();
+		$t_cov = $tmp_folder."/".basename($t_bam,".bam").".cov";
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $t_bam -in ".$t_sys_ini['target_file']." -out $t_cov",true);
+		$n_cov = $tmp_folder."/".basename($n_bam,".bam").".cov";
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $n_bam -in ".$t_sys_ini['target_file']." -out $n_cov",true);
+		$parser->execTool("NGS/vc_cnvhunter.php", "-cov $t_cov -n_cov $n_cov -out $som_cnv -system $t_sys -min_reg 3 -min_corr 0.75");
 	}
 
 	// annotation
@@ -367,9 +390,15 @@ else
 		$tmp_comments = sort_vcf_comments($s->getComments());
 		$s->setComments($tmp_comments);
 		$s->toTSV($tmp);
-		
-		if($t_sys_ini['type']=="Panel Haloplex HS" || strpos($t_sys_ini['name_short'],"mi")===0)	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp", true);
-
+			
+		if($t_sys_ini['type']=="Panel Haloplex HS" || $t_sys_ini['type']=="Panel MIPs")
+		{
+			$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp -name $t_id", true);
+		}
+		if($n_sys_ini['type']=="Panel Haloplex HS" || $n_sys_ini['type']=="Panel MIPs")
+		{
+			$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $n_bam -vcf $tmp -out $tmp -name $n_id", true);
+		}
 		$parser->exec("bgzip", "-c $tmp > $som_vann", false);	// no output logging, because Toolbase::extractVersion() does not return
 		$parser->exec("tabix", "-f -p vcf $som_vann", false);	// no output logging, because Toolbase::extractVersion() does not return
 

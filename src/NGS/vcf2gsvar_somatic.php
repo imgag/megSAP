@@ -77,7 +77,8 @@ if(!$tumor_only)	$anno_cols[] = array("normal_af", "Mutant allele frequency in n
 if(!$tumor_only)	$anno_cols[] = array("normal_dp", "Normal depth (Sample ".$n_col.").");
 $anno_cols[] = array("filter", "Filter criteria from vcf file.");
 $anno_cols[] = array("snp_q", "Quality parameters - SNP quality (QUAL).");
-if($strand)	$anno_cols[] = array("strand","Strand information. Format: [mutation_plus]|[mutation_minus]|[mutation_unkown],[wildtype_plus]|[wildtype_minus]|[wildtype_unkown].", "fs");
+if($strand)	$anno_cols[] = array("strand_tumor","Strand information. Format: [mutation_plus]|[mutation_minus]|[mutation_unkown],[wildtype_plus]|[wildtype_minus]|[wildtype_unkown],[amplicons_plus]|[amplicons_minus].", $t_col."_fs");
+if($strand && !$tumor_only)	$anno_cols[] = array("strand_normal","Strand information. Format: [mutation_plus]|[mutation_minus]|[mutation_unkown],[wildtype_plus]|[wildtype_minus]|[wildtype_unkown],[amplicons_plus]|[amplicons_minus].", $n_col."_fs");
 //$anno_cols[] = array("map_q", "Quality parameters - MAP quality (QUAL).");
 $anno_cols[] = array("gene", "Affected gene list (comma-separated).", "genes");
 $anno_cols[] = array("variant_type", "Variant type.", "variant_details");
@@ -284,7 +285,11 @@ while(!feof($handle))
 		else if($variant == "INDEL" && $var_caller=="strelka")	$snp_q = extract_from_info_field("QSI", $info);		
 		
 		//strand
-		if($strand)	$fs = extract_from_info_field("fs", $info);
+		if($strand)
+		{
+			$strand_tumor = extract_from_info_field((!empty($t_col)?$t_col."_fs":"fs"), $info);
+			if(!$tumor_only)	$strand_normal = extract_from_info_field((!empty($n_col)?$n_col."_fs":"fs"), $info);
+		}
 		
 		$genes = array();
 		$variant_details = array();
@@ -398,7 +403,7 @@ while(!feof($handle))
 		foreach($anno_cols as $col)
 		{
 			$var = $col[0];
-			if(isset($col[2]))	$var = $col[2];
+			if(isset($col[2]) && !isset($$var))	$var = $col[2];
 			$out[] = $$var;
 		}
 		$out_lines[] = implode("\t",$out)."\n";

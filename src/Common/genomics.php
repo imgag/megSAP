@@ -689,7 +689,7 @@ function updateNormalSample($ps_tumor, $ps_normal, $overwrite = false)
 
 	if(empty($ps_nid) || empty($ps_tid))	trigger_error("Could not find either tumor ($ps_tumor) or normal ($ps_normal) in NGSD.");
 
-	if(!empty($n) && $ps_nid!=$n)	trigger_error("Different normal sample found in NGSD ($ps_nid!=$n) for tumor ($ps_tumor).",E_USER_WARNING);
+	if(!empty($n) && $ps_nid!=$n)	trigger_error("Different normal sample found in NGSD (NGSD-IDs $ps_nid!=$n) for tumor ($ps_tumor).",E_USER_WARNING);
 
 	if(empty($n) || $overwrite)
 	{

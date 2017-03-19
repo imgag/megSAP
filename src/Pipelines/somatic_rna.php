@@ -86,8 +86,8 @@ if(is_valid_processingid($n_id))
 // (1) map reference and tumor sample
 $tum_bam = $o_folder_tum.$t_id.".bam";
 $ref_bam = $o_folder_ref.$n_id.".bam";
-$tum_counts = $o_folder_tum.$t_id."_counts.tsv";
-$ref_counts = $o_folder_ref.$n_id."_counts.tsv";
+$tum_counts = $o_folder_tum.$t_id."_counts_raw.tsv";
+$ref_counts = $o_folder_ref.$n_id."_counts_raw.tsv";
 if(in_array("ma", $steps))
 {	
 	//map tumor and normal in high-mem-queue
@@ -102,7 +102,7 @@ if(in_array("ma", $steps))
 if(!$tumor_only)
 {
 	// calculate counts tumor, normal and somatic fold change
-	$som_counts = $o_folder.$t_id."-".$n_id."_counts.tsv";
+	$som_counts = $o_folder.$t_id."-".$n_id."_counts_raw.tsv";
 	if(!$tumor_only)	$parser->execTool("NGS/compare_read_counts.php", "-in1 $tum_counts -in2 $ref_counts -out $som_counts -method fc");
 
 	// (2) check that samples are related

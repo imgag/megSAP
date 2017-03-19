@@ -38,8 +38,6 @@ $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal 
 $parser->addFlag("nsc", "Skip sample correlation check.");
 extract($parser->parse($argv));
 
-$parser->log("Pipeline revision: ".repository_revision(true));
-
 // determine steps to perform
 $steps = explode(",", $steps);
 foreach($steps as $step)
@@ -54,7 +52,7 @@ $t_rna_bam = "$p_folder/Sample_$t_rna_id/$t_rna_id.bam";
 $n_rna_bam = "$p_folder/Sample_$n_rna_id/$n_rna_id.bam";
 
 // get processing systems
-$t_dna_sys_file = $t_dna_sys;
+$t_dna_sys_file =$t_dna_sys;
 $t_dna_sys = load_system($t_dna_sys_file, $t_dna_id);
 $n_dna_sys_file = $n_dna_sys;
 $n_dna_sys = load_system($n_dna_sys_file, $n_dna_id);

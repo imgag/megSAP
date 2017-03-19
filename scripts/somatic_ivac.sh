@@ -78,12 +78,7 @@ fi
 #perform analysis
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 COMMAND="php $DIR/../src/Pipelines/somatic_ivac.php -p_folder . -t_dna_id ${args[0]} -n_dna_id ${args[1]} -o_folder $OUT $RNA --log $OUT/somatic_ivac_$(date +%Y%m%d%H%M%S).log ${args[@]:4}"
-
 QUEUE="-q default_srv016,default_srv017,default_srv018";
-if [[ -n "$RNA" ]]
-then
-	QUEUE="-q highmem_srv016,highmem_srv017,highmem_srv018"
-fi
 
 if [[ "$noqueue" == true ]]
 then
