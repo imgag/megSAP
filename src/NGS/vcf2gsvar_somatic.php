@@ -96,8 +96,9 @@ $anno_cols[] = array("HGMD", "HGMD database annotation.", "hgmd");
 $anno_cols[] = array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.", "phylop");
 $anno_cols[] = array("MetaLR", "MetaLR effect prediction: D=damaging, T=tolerated.", "metalr");
 $anno_cols[] = array("Sift", "Sift effect prediction: D=damaging, T=tolerated.", "sift");
-$anno_cols[] = array("PP2_HVAR", "Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.", "pp2v");
-$anno_cols[] = array("PP2_HDIV", "Polyphen2 (HDIV) effect prediction: D=probably damaging, P=possibly damaging, B=benign.", "pp2d");
+$anno_cols[] = array("PolyPhen2", "Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.", "pp2");
+$anno_cols[] = array("FATHMM", "FATHMM effect prediction: D=damaging, T=tolerated.", "fathmm");
+$anno_cols[] = array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20.", "cadd");
 $anno_cols[] = array("ihdb_hom", "Homozygous variant counts in NGSD for the same processing system.");
 $anno_cols[] = array("ihdb_het", "Heterozyous variant counts in NGSD for the same processing system.");
 $anno_cols[] = array("ihdb_wt", "Wildtype variant counts in NGSD for the same processing system.");
@@ -107,6 +108,7 @@ $anno_cols[] = array("classification", "Classification from the NGSD.");
 $anno_cols[] = array("classification_comment", "Classification comment from the NGSD.");
 $anno_cols[] = array("validated", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
 $anno_cols[] = array("comment", "Comments from the NGSD. Comments of other samples are listed in brackets!");
+$anno_cols[] = array("gene_info", "General gene information from the NGSD.");
 $anno_cols[] = array("som_ihdb_c", "Somatic variant count within NGSD.");
 $anno_cols[] = array("som_ihdb_p", "Projects with somatic variant in NGSD.");
 
@@ -208,8 +210,10 @@ while(!feof($handle))
 	$phylop = extract_from_info_field("dbNSFP_phyloP100way_vertebrate", $info, "", FALSE);
 	$metalr = extract_from_info_field("dbNSFP_MetaLR_pred", $info, "", FALSE);
 	$sift = extract_from_info_field("dbNSFP_SIFT_pred", $info, "", FALSE);
-	$pp2v = extract_from_info_field("dbNSFP_Polyphen2_HDIV_pred", $info, "", FALSE);
-	$pp2d = extract_from_info_field("dbNSFP_Polyphen2_HVAR_pred", $info, "", FALSE);
+	$pp2 = extract_from_info_field("dbNSFP_Polyphen2_HVAR_pred", $info, "", FALSE);
+	$fathmm = extract_from_info_field("dbNSFP_FATHMM_pred", $info, "", FALSE);
+	$cadd = extract_from_info_field("dbNSFP_CADD_phred", $info, "", FALSE);
+	if ($cadd!="") $cadd = number_format($cadd, 2);
 
 	$interpro = extract_from_info_field("dbNSFP_Interpro_domain", $info, "",FALSE);
 		
@@ -255,6 +259,7 @@ while(!feof($handle))
 	$classification_comment = extract_from_info_field("classification_comment", $info, "", FALSE);
 	$validated = extract_from_info_field("validated", $info, "", FALSE);
 	$comment = extract_from_info_field("comment", $info, "", FALSE);
+	$gene_info = extract_from_info_field("gene_info", $info, "", FALSE);
 	$som_ihdb_c = extract_from_info_field("som_ihdb_c", $info, "", FALSE);
 	$som_ihdb_p = extract_from_info_field("som_ihdb_p", $info, "", FALSE);
 

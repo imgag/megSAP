@@ -84,17 +84,13 @@ else
 		$qua_idx = $var->getColumnIndex("snp_q");
 		$tvf_idx = $var->getColumnIndex("tumor_af");
 		$td_idx = $var->getColumnIndex("tumor_dp");
-		if(!$single_sample)	$nvf_idx = $var->getColumnIndex("normal_af");
-		if(!$single_sample)	$nd_idx = $var->getColumnIndex("normal_dp");
 		$co_idx = $var->getColumnIndex("coding_and_splicing");
-		$re_idx = $var->getColumnIndex("variant_type");
-		$ge_idx = $var->getColumnIndex("gene");
 		$cm_idx = $var->getColumnIndex("COSMIC", true);
-		$ma_idx = $var->getColumnIndex("1000g", true);
-		$sn_idx = $var->getColumnIndex("dbSNP", true);
-		$al1_idx = $var->getColumnIndex("ihdb_allsys_hom");
-		$al2_idx = $var->getColumnIndex("ihdb_allsys_het");
-		$vu_idx = $var->getColumnIndex("classification");
+		if(!$single_sample)
+		{
+			$nvf_idx = $var->getColumnIndex("normal_af");
+			$nd_idx = $var->getColumnIndex("normal_dp");
+		}
 	}
 
 	//get low_cov_statistics
@@ -214,44 +210,49 @@ else
 	}
 
 	//CNVs
-	$path_cnvs = $o_folder."/".$t_id."_var_copy.tsv";
-	if(!$single_sample)	$path_cnvs = $o_folder."/".$t_id."-".$n_id."_var_copy.tsv";
 	$report[] = "";
 	$report[] = "CNVs:";
-	if(is_file($path_cnvs))
+	$cnv_file = $o_folder."/".$t_id.($single_sample ? "" : "-".$n_id)."_cnvs.tsv";
+	if(is_file($cnv_file))
 	{
-		$cnvs_report = Matrix::fromTSV($path_cnvs);
-		$idx_zscore = $cnvs_report->getColumnIndex("region_zscores");
-		$idx_regs = $cnvs_report->getColumnIndex("region_coordinates");
-		$report[] = "  Gefundene CNVs: ".$cnvs_report->rows();
-		if($cnvs_report->rows()>0)
+		$file = file($cnv_file);
+		$genes_amp = array();
+		$genes_del = array();
+		foreach($file as $line)
 		{
-			$amp = "";
-			$del = "";
-			for($i=0;$i<$cnvs_report->rows();++$i)
+			$line = trim($line);
+			if ($line=="" || starts_with($line, "##")) continue;
+			$report[] = "  ".$line;
+			
+			//generate list of amplified/deleted genes
+			if (!starts_with($line, "#"))
 			{
-				$r = $cnvs_report->getRow($i);
-				$zscore = array_sum(explode(",",$r[$idx_zscore]));
-				if($zscore>0)
+				$parts = explode("\t", $line);
+				$zscore = array_sum(explode(",",$parts[7]));
+				if ($zscore>0)
 				{
-					$amp .= ",".$r[$idx_regs];
+					$genes_amp[] = $parts[9];
 				}
 				else
 				{
-					$del = ",".$r[$idx_regs];
+					$genes_del[] = $parts[9];
 				}
 			}
-			$report[] = "  Amplifications: ".trim($amp,",");
-			$report[] = "  Deletions: ".trim($del,",");
+		}
+		if (count($genes_amp)>0 || count($genes_del)>0)
+		{
+			$report[] = "";
+			$report[] = "  Amplifications: ".implode(",", array_unique($genes_amp));
+			$report[] = "  Deletions: ".implode(",", array_unique($genes_del));
 		}
 		else
 		{
-			$report[] = "  Keine CNVs gefunden. Siehe $path_cnvs fuer QC-Fehler.";
+			$report[] = "  Keine CNVs gefunden. Siehe $cnv_file fuer QC-Fehler.";
 		}
 	}
 	else
 	{
-		$report[] = "  Keine CNV-Datei gefunden ($path_cnvs).";
+		$report[] = "  Keine CNV-Datei gefunden ($cnv_file).";
 	}
 	$report[] = "";
 

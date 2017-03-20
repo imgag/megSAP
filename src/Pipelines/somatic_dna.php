@@ -272,7 +272,7 @@ else
 	$som_v = $o_folder.$t_id."-".$n_id."_var.vcf.gz";
 	$som_qci = $o_folder.$t_id."-".$n_id."_var_qci.vcf.gz";
 	$som_sv = $o_folder.$t_id."-".$n_id."_var_structural.vcf.gz";
-	$som_cnv = $o_folder.$t_id."-".$n_id."_var_copy.tsv";
+	$som_cnv = $o_folder.$t_id."-".$n_id."_cnvs.tsv";
 	if (in_array("vc", $steps))
 	{			
 		// structural variant calling
