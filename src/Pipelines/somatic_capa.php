@@ -27,7 +27,7 @@ extract($parser->parse($argv));
 
 // choose single sample or sample pair mode
 $single_sample = true;
-if(!empty($n_id))	$single_sample = false;
+if(!empty($n_id) && $n_id!="na")	$single_sample = false;
 
 // run somatic pipeline
 $s_txt = "";
@@ -37,7 +37,7 @@ $n_bam = $p_folder."/Sample_".$n_id."/".$n_id.".bam";
 if($single_sample)
 {
 	$parser->log("Single sample mode.");
-	$s_tsv = $o_folder."/".$t_id.".tsv";
+	$s_tsv = $o_folder."/".$t_id.".GSvar";
 	$s_txt = $o_folder."/".$t_id."_report.txt";
 }
 else
@@ -56,8 +56,10 @@ if($nsc)	$extras .= "-nsc ";
 if($all_variants)	$extras .= "-keep_all_variants_strelka ";
 $extras .= "-filter_set somatic_diag_capa ";
 if (isset($t_sys)) $extras .= "-t_sys $t_sys ";
-if (isset($n_sys)) $extras .= "-n_sys $n_sys ";
-$parser->execTool("Pipelines/somatic_dna.php", "-p_folder . -t_id $t_id -n_id $n_id -o_folder $o_folder $extras");
+if (!$single_sample) $extras .= "-n_id $n_id ";
+else	$extras .= "-n_id na ";
+if (!$single_sample && isset($n_sys)) $extras .= "-n_sys $n_sys ";
+$parser->execTool("Pipelines/somatic_dna.php", "-p_folder . -t_id $t_id -o_folder $o_folder $extras");
 
 $system_t = load_system($t_sys, $t_id);
 if(empty($system_t['target_file']))	
@@ -119,7 +121,8 @@ else
 	$i_low_cov = $parser->tempFile("_ilowcov.bed");
 	$parser->exec(get_path("ngs-bits")."BedMerge", "-in $low_cov -out $i_low_cov", false);
 	//annotate gene names (with extended to annotate splicing regions as well)
-	$low_cov = $o_folder."/".$t_id."-".$n_id."_stat_lowcov.bed";
+	$low_cov = $o_folder."/".$t_id."_stat_lowcov.bed";
+	if(!$single_sample)	$low_cov = $o_folder."/".$t_id."-".$n_id."_stat_lowcov.bed";
 	$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $i_low_cov -extend 25 -out $low_cov", true);
 
 	if ($var->rows()!=0)
@@ -191,7 +194,7 @@ else
 	// meta data
 	$report[] = "";
 	$report[] = "Tumor: $tumor_name (Externer Name: $tex_name)";
-	$report[] = "Normal: $normal_name (Externer Name: $nex_name)";
+	if(!$single_sample)	$report[] = "Normal: $normal_name (Externer Name: $nex_name)";
 	$report[] = "Datum: ".date("d.m.Y");
 	$report[] = "Revision der Analysepipeline: ".repository_revision(true);
 	$report[] = "Analysesystem: $target_name";
@@ -222,7 +225,8 @@ else
 	}
 
 	//CNVs
-	$path_cnvs = $o_folder."/".$t_id."-".$n_id."_var_copy.tsv";
+	$path_cnvs = $o_folder."/".$t_id."_var_copy.tsv";
+	if(!$single_sample)	$path_cnvs = $o_folder."/".$t_id."-".$n_id."_var_copy.tsv";
 	$report[] = "";
 	$report[] = "CNVs:";
 	if(is_file($path_cnvs))
@@ -295,7 +299,8 @@ else
 	$report[] = "";
 
 	//store output
-	$report_file = $o_folder."/".$t_id."-".$n_id."_report.txt";
+	$report_file = $o_folder."/".$t_id."_report.txt";
+	if(!$single_sample)	$report_file = $o_folder."/".$t_id."-".$n_id."_report.txt";
 	file_put_contents($report_file, implode("\n", $report));
 	
 	

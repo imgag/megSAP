@@ -175,6 +175,9 @@ if(in_array("an", $steps))
 //detect fusions
 if(in_array("fu",$steps))
 {
+	//add samtoolsto path
+	putenv("PATH=".dirname(get_path("samtools")).":".getenv("PATH"));
+	
 	$fusion_tmp_folder = $parser->tempFolder();
 	$chimeric_file = "{$prefix}_chimeric.tsv";
 	if (!file_exists($chimeric_file)) trigger_error("Could not open chimeric file '$chimeric_file' needed for STAR-Fusion. Please re-run mapping step.", E_USER_ERROR);

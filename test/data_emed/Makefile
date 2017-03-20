@@ -62,7 +62,7 @@ diff:
 finished:
 	@echo "Finished pipeline test."
 
-update_rna:
+update_fusions:
 	php ../update_test_data.php results_emed1/I16R003a06_01-I16R003a05_01_var_fusions.tsv I16R003a06_01-I16R003a05_01_var_fusions.emed1.tsv
 
 update_variants:

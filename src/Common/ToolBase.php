@@ -334,7 +334,7 @@ class ToolBase
 			{
 				$output[substr($name,1)] = false;
 			}
-			else if ($details[0] == "opt" && isset($details[5]))
+			else if ($details[0] == "opt" && (is_null($details[5]) || isset($details[5])))
 			{
 				$output[substr($name,1)] = $details[5];
 			}
