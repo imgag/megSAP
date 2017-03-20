@@ -28,7 +28,7 @@ diff:
 	ls *.qcML | sort | xargs grep "<qualityParameter" > NA12878_17_QCML.txt
 	php ../compare_qcml.php NA12878_17_QCML.txt.out NA12878_17_QCML.txt
 	php ../compare_variants.php NA12878_17.GSvar.out NA12878_17.GSvar
-	diff -b -I'^#' NA12878_17_nxLRRK2_SNCA_lowcov.bed.out NA12878_17_nxLRRK2_SNCA_lowcov.bed
+	php ../compare_bed.php NA12878_17_nxLRRK2_SNCA_lowcov.bed.out NA12878_17_nxLRRK2_SNCA_lowcov.bed
 	diff NA12878_17_cnvs.tsv.out NA12878_17_cnvs.tsv
 	diff NA12878_17_cnvs.seg.out NA12878_17_cnvs.seg
 
