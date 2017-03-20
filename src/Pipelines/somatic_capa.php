@@ -25,9 +25,8 @@ $parser->addFlag("nsc", "Skip sample correlation check (only in pair mode).");
 $parser->addFlag("all_variants", "Do not use strelka filter.", true);
 extract($parser->parse($argv));
 
-// choose single sample or sample pair mode
-$single_sample = true;
-if(!empty($n_id) && $n_id!="na")	$single_sample = false;
+//choose single sample or sample pair mode
+$single_sample = empty($n_id) || $n_id=="na";
 
 // run somatic pipeline
 $s_txt = "";
@@ -59,7 +58,7 @@ if (isset($t_sys)) $extras .= "-t_sys $t_sys ";
 if (!$single_sample) $extras .= "-n_id $n_id ";
 else	$extras .= "-n_id na ";
 if (!$single_sample && isset($n_sys)) $extras .= "-n_sys $n_sys ";
-$parser->execTool("Pipelines/somatic_dna.php", "-p_folder . -t_id $t_id -o_folder $o_folder $extras");
+$parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_id -o_folder $o_folder $extras");
 
 $system_t = load_system($t_sys, $t_id);
 if(empty($system_t['target_file']))	
@@ -68,7 +67,6 @@ if(empty($system_t['target_file']))
 }
 else
 {
-	$var = Matrix::fromTSV($s_tsv);
 	// determine target region statistics
 	$target = $system_t['target_file'];
 	$target_name = $system_t['name_short'];
@@ -79,7 +77,7 @@ else
 	$regions_overall = trim($regions_overall[1]);
 
 	//determine indices of important variant columns
-	$columns = array(0, 1, 2, 3, 4, 5);
+	$var = Matrix::fromTSV($s_tsv);
 	if ($var->rows()!=0)
 	{
 		$fi_idx = $var->getColumnIndex("filter");
@@ -99,32 +97,23 @@ else
 		$vu_idx = $var->getColumnIndex("classification");
 	}
 
-	//filter variants
-	$var_report = new Matrix();
-	$var_count_target = 0;
-	$statistics_target = $target;
-
 	//get low_cov_statistics
 	$target_merged = $parser->tempFile("_merged.bed");
-	$parser->exec(get_path("ngs-bits")."BedMerge", "-in $statistics_target -out $target_merged", true);
+	$parser->exec(get_path("ngs-bits")."BedMerge", "-in $target -out $target_merged", true);
 	//calculate low-coverage regions
-	$t_low_cov = $parser->tempFile("_tlowcov.bed");
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $t_bam -out $t_low_cov -cutoff ".$td, true);
-	$n_low_cov = "";
+	$low_cov = $o_folder."/".$t_id.($single_sample ? "" : "-".$n_id)."_stat_lowcov.bed";
+	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $t_bam -out $low_cov -cutoff ".$td, true);
 	if(!$single_sample)
 	{
-		$n_low_cov = $parser->tempFile("_nlowcov.bed");
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $n_bam -out $n_low_cov -cutoff ".$nd, true);
+		$low_cov_n = $parser->tempFile("_nlowcov.bed");
+		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $n_bam -out $low_cov_n -cutoff ".$nd, true);
+		$parser->exec(get_path("ngs-bits")."BedAdd", "-in $low_cov -in2 $low_cov_n -out $low_cov", true);
+		$parser->exec(get_path("ngs-bits")."BedMerge", "-in $low_cov -out $low_cov", true);
 	}
-	$low_cov = $parser->tempFile("_lowcov.bed");
-	$parser->exec("cat", "$t_low_cov $n_low_cov > $low_cov", false);
-	$i_low_cov = $parser->tempFile("_ilowcov.bed");
-	$parser->exec(get_path("ngs-bits")."BedMerge", "-in $low_cov -out $i_low_cov", false);
 	//annotate gene names (with extended to annotate splicing regions as well)
-	$low_cov = $o_folder."/".$t_id."_stat_lowcov.bed";
-	if(!$single_sample)	$low_cov = $o_folder."/".$t_id."-".$n_id."_stat_lowcov.bed";
-	$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $i_low_cov -extend 25 -out $low_cov", true);
+	$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $low_cov -extend 25 -out $low_cov", true);
 
+	$var_report = new Matrix();
 	if ($var->rows()!=0)
 	{
 		$headers = array('Position', 'W', 'M', 'QUALITY', 'F/T_Tumor', 'COSMIC', 'cDNA');
@@ -199,7 +188,7 @@ else
 	$report[] = "Revision der Analysepipeline: ".repository_revision(true);
 	$report[] = "Analysesystem: $target_name";
 	$report[] = "Zielregionen: $regions_overall ($bases_overall Basen gesamt)";
-	
+
 	//qc
 	$report[] = "";
 	$t_qcml = $p_folder."/Sample_".$t_id."/".$t_id."_stats_map.qcML";
@@ -209,7 +198,7 @@ else
 	$report[] = "  Durchschnittl. Tiefe Tumor: ".get_qc_from_qcml($t_qcml, "QC:2000025", "target region read depth");
 	if(!$single_sample)	$report[] = "  Coverage Normal 100x: ".get_qc_from_qcml($n_qcml, "QC:2000030", "target region 100x percentage");
 	if(!$single_sample)	$report[] = "  Durchschnittl. Tiefe Normal: ".get_qc_from_qcml($n_qcml, "QC:2000025", "target region read depth");
-	
+
 	// variants
 	$report[] = "";
 	$report[] = "Varianten:";
@@ -233,9 +222,9 @@ else
 	{
 		$cnvs_report = Matrix::fromTSV($path_cnvs);
 		$idx_zscore = $cnvs_report->getColumnIndex("region_zscores");
-		$idx_genes = $cnvs_report->getColumnIndex("region_zscores");
+		$idx_regs = $cnvs_report->getColumnIndex("region_coordinates");
 		$report[] = "  Gefundene CNVs: ".$cnvs_report->rows();
-		if($cnvs_report>0)
+		if($cnvs_report->rows()>0)
 		{
 			$amp = "";
 			$del = "";
@@ -243,9 +232,14 @@ else
 			{
 				$r = $cnvs_report->getRow($i);
 				$zscore = array_sum(explode(",",$r[$idx_zscore]));
-				if($zscore>0)	$amp .= ",".$r[$idx_genes];
-				elseif ($zscore<0)	$del = ",".$r[$idx_genes];
-				else	trigger_error("Unknown z-schore ".$zscore, E_USER_ERROR);
+				if($zscore>0)
+				{
+					$amp .= ",".$r[$idx_regs];
+				}
+				else
+				{
+					$del = ",".$r[$idx_regs];
+				}
 			}
 			$report[] = "  Amplifications: ".trim($amp,",");
 			$report[] = "  Deletions: ".trim($del,",");
@@ -262,7 +256,7 @@ else
 	$report[] = "";
 
 	// low coverage
-	$report[] = "Abdeckung:";
+	$report[] = "Lücken:";
 	$report[] = "  Target: $target_name ($target)";
 	$report[] = "  min. Tiefe Tumor: {$td}x";
 	if(!$single_sample)	$report[] = "  min. Tiefe Normal: {$nd}x";
@@ -302,8 +296,8 @@ else
 	$report_file = $o_folder."/".$t_id."_report.txt";
 	if(!$single_sample)	$report_file = $o_folder."/".$t_id."-".$n_id."_report.txt";
 	file_put_contents($report_file, implode("\n", $report));
-	
-	
+
+
 	//  prepare IGV-session for all files
 	if(is_dir($p_folder) && is_dir($o_folder))
 	{
@@ -330,3 +324,5 @@ else
 		trigger_error("IGV-Session-File was not created. Folder $p_folder or $o_folder does not exist.",E_USER_WARNING);
 	}
 }
+	
+?>

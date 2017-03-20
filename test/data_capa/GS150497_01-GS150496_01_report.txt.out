@@ -2,8 +2,8 @@ Report zur bioinformatischen Analyse:
 
 Tumor: GS150497_01 (Externer Name: 151680A2)
 Normal: GS150496_01 (Externer Name: 151705)
-Datum: 27.02.2017
-Revision der Analysepipeline: megSAP 0.1-94-ge3cd9a9
+Datum: 20.03.2017
+Revision der Analysepipeline: megSAP 0.1-143-g0bfa791
 Analysesystem: ssSC_v2
 Zielregionen: 5616 (1256683 Basen gesamt)
 
@@ -23,10 +23,9 @@ Varianten:
 
 CNVs:
   Gefundene CNVs: 0
-  Amplifications: 
-  Deletions: 
+  Keine CNVs gefunden. Siehe Somatic_GS150497_01-GS150496_01/GS150497_01-GS150496_01_var_copy.tsv fuer QC-Fehler.
 
-Abdeckung:
+Lücken:
   Target: ssSC_v2 (../../data/enrichment/ssSC_v2_2015_01_26.bed)
   min. Tiefe Tumor: 100x
   min. Tiefe Normal: 100x
