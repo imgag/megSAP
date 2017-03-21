@@ -33,3 +33,8 @@ cd skewer_0.2.2
 git checkout 0.2.2
 make
 
+#download abra2
+cd $folder
+git clone --branch=v2.02 https://github.com/mozack/abra2.git abra2_2.02
+cd abra2_2.02
+make

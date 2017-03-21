@@ -4,7 +4,6 @@
 	@page analyze_rna
 
 	@todo check with Stephan from QBIC:
-			- indel realignment really necessary for RNA?
 			- how should _hap chromosomes be handled?
 */
 
@@ -24,7 +23,7 @@ $steps_all = array("ma", "rc", "an", "fu", "db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 4);
 $parser->addString("genome", "STAR genome directory, by default genome is determined from system/build.", true, "");
-$parser->addString("gtfFile", "GTF file containing feature annotations (for read counting).", true, "");
+$parser->addInfile("gtfFile", "GTF file containing feature annotations (for read counting).", true, "");
 $parser->addString("featureType", "Feature type used for mapping reads to features (for read counting).", true, "exon");
 $parser->addString("gtfAttribute", "GTF attribute used as feature ID (for read counting).", true, "gene_id");
 $parser->addFlag("abra", "Perform indel realignment with ABRA. By default this is skipped.");
@@ -54,7 +53,7 @@ $target_file = $sys['target_file'];
 $paired = isset($in_rev);
 
 // determine gtf from build
-if ($gtfFile == "") {
+if (!isset($gtfFile)) {
 	$gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 }
 
@@ -118,6 +117,10 @@ if(in_array("ma", $steps))
 		$downstream_arr[] = "chimeric";
 		$parser->log("Enabling downstream chimeric file needed for fusion detection.");
 	}
+	if (in_array("ma", $steps) && $abra && !in_array("splicing", $downstream_arr)) {
+		$downstream_arr[] = "splicing";
+		$parser->log("Enabling downstream splicing file needed for indel realignment.");
+	}
 	if (count($downstream_arr) > 0) $args[] = "-downstream ".implode(",", $downstream_arr);
 
 	if($sharedMemory)
@@ -137,18 +140,13 @@ if(in_array("ma", $steps))
 	//indel realignment
 	if($abra)
 	{
-		if ($target_file == "")
-		{
-			$parser->log("No target file associated with system, generating whole genome bed file.");
-			//create bed file for whole genome from genome fasta index
-			$roi_bed = $parser->tempFile("fusion_roi");
-			$parser->exec("awk", "'OFS=\"\t\" {print $1,0,$2}' ".get_path("data_folder")."/genomes/{$build}.fa.fai > $roi_bed", true);
-		}
-		else
-		{
-			$roi_bed = $target_file;
-		}
-		$parser->execTool("NGS/indel_realign_abra.php", "-in $final_bam -out $final_bam -roi $roi_bed -mer 0.01 -threads $threads -build $build");
+		$junction_file = "{$prefix}_splicing.tsv";
+		if (!file_exists($junction_file)) trigger_error("Could not open junction file '$junction_file' needed for indel realignment. Please re-run mapping step.", E_USER_ERROR);
+
+		$params_abra2 = array();
+		if (!$paired) $params_abra2[] = "-se";
+		if ($target_file != "") $params_abra2[] = "-roi {$target_file}";
+		$parser->execTool("NGS/indel_realign_abra2.php", "-in $final_bam -out $final_bam -threads $threads -build $build -gtf $gtfFile -junctions $junction_file ".implode(" ", $params_abra2));
 	}
 }
 

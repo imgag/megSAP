@@ -10,6 +10,7 @@ samtools = [path]/data/tools/samtools-1.3.1/samtools
 freebayes = [path]/data/tools/freebayes/bin/freebayes
 vcflib = [path]/data/tools/vcflib/bin/
 abra = java -Xmx16g -cp [path]/data/tools/abra-0.97b/abra.jar
+abra2 = java -Xmx16g -jar [path]/data/tools/abra2_2.02/target/abra2-2.02-jar-with-dependencies.jar
 samblaster = [path]/data/tools/samblaster/samblaster
 bwa = [path]/data/tools/bwa-0.7.15/bwa
 SnpEff = java -Xmx4g -jar [path]/data/tools/snpEff/snpEff.jar
