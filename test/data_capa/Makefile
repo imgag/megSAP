@@ -19,7 +19,7 @@ link:
 
 somatic:
 	mkdir -p Somatic_GS150497_01-GS150496_01
-	php ../../src/Pipelines/somatic_capa.php -t_id GS150497_01 -t_sys system.ini -n_id GS150496_01 -n_sys system.ini -p_folder . -o_folder Somatic_GS150497_01-GS150496_01 -no_db -nsc --log GS150497_01-GS150496_01.log
+	php ../../src/Pipelines/somatic_capa.php -t_id GS150497_01 -t_sys system.ini -n_id GS150496_01 -n_sys system.ini -p_folder . -o_folder Somatic_GS150497_01-GS150496_01 -steps ma,vc,an,ci -nsc --log GS150497_01-GS150496_01.log
 	cp Somatic_GS150497_01-GS150496_01/GS150497_01-GS150496_01.GSvar GS150497_01-GS150496_01.GSvar
 	cp Somatic_GS150497_01-GS150496_01/GS150497_01-GS150496_01_report.txt GS150497_01-GS150496_01_report.txt
 

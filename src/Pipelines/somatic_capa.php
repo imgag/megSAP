@@ -18,15 +18,20 @@ $parser->addString("n_id",  "Reference DNA-sample processing ID.", true, "");
 $parser->addInfile("n_sys",  "Reference sample processing system INI file (determined from 'n_id' by default).", true);
 $parser->addInt("td",  "Min-depth for tumor low-coverage / reports.", true, 100);
 $parser->addInt("nd",  "Min-depth for normal low-coverage / reports.", true, 100);
+$steps_all = array("ma", "vc", "an", "ci", "db");
+$parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,db");
 $parser->addFlag("abra", "Turn on ABRA realignment.");
 $parser->addFlag("amplicon", "Turn on amplicon mode.");
-$parser->addFlag("no_db", "No DB import.");
 $parser->addFlag("nsc", "Skip sample correlation check (only in pair mode).");
 $parser->addFlag("all_variants", "Do not use strelka filter.", true);
 extract($parser->parse($argv));
 
-//choose single sample or sample pair mode
+//init
 $single_sample = empty($n_id) || $n_id=="na";
+foreach(explode(",", $steps) as $step)
+{
+	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
+}
 
 // run somatic pipeline
 $s_txt = "";
@@ -46,19 +51,15 @@ else
 	$s_txt = $o_folder."/".$t_id."-".$n_id."_report.txt";
 }
 
-$extras = "";
-if($abra)	$extras .= "-abra ";
-if($amplicon)	$extras .= "-amplicon ";
-if($no_db)	$extras .= "-steps ma,vc,an,ci ";
-if(!$no_db)	$extras .= "-steps ma,vc,an,ci,db ";
-if($nsc)	$extras .= "-nsc ";
-if($all_variants)	$extras .= "-keep_all_variants_strelka ";
-$extras .= "-filter_set somatic_diag_capa ";
-if (isset($t_sys)) $extras .= "-t_sys $t_sys ";
-if (!$single_sample) $extras .= "-n_id $n_id ";
-else	$extras .= "-n_id na ";
-if (!$single_sample && isset($n_sys)) $extras .= "-n_sys $n_sys ";
-$parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_id -o_folder $o_folder $extras");
+$extras = array("-filter_set somatic_diag_capa", "-steps {$steps}");
+if($abra) $extras[] = "-abra";
+if($amplicon) $extras[] = "-amplicon";
+if($nsc) $extras[] = "-nsc";
+if($all_variants) $extras[] = "-keep_all_variants_strelka";
+if (isset($t_sys)) $extras[] = "-t_sys $t_sys";
+$extras[] = $single_sample ? "-n_id na" : "-n_id $n_id";
+if (!$single_sample && isset($n_sys)) $extras[] = "-n_sys $n_sys";
+$parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_id -o_folder $o_folder ".implode(" ", $extras));
 
 $system_t = load_system($t_sys, $t_id);
 if(empty($system_t['target_file']))	
