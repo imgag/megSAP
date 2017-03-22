@@ -1,12 +1,12 @@
 #locus	locus_size_mb	gene	OMIM_number	OMIM_details
-chr15:50689270-69990570	19.301	AAGAB	614888	(provisional) Keratoderma,palmoplantar,punctate type IA
-chr15:50689270-69990570	19.301	ADAM10	602192	(provisional) Reticulate acropigmentation of Kitamura|Alzheimer disease 18,susceptibility to
+chr15:50689270-69990570	19.301	AAGAB	614888	(provisional) Keratoderma,palmoplantar,punctate type IA,148600
+chr15:50689270-69990570	19.301	ADAM10	602192	(provisional) Reticulate acropigmentation of Kitamura,615537|Alzheimer disease 18,susceptibility to,615590
 chr15:50689270-69990570	19.301	ALDH1A2		
 chr15:50689270-69990570	19.301	ANKDD1A		
 chr15:50689270-69990570	19.301	ANP32A		
 chr15:50689270-69990570	19.301	ANP32A-IT1		
 chr15:50689270-69990570	19.301	ANXA2		
-chr15:50689270-69990570	19.301	AP4E1	607244	(provisional) Spastic paraplegia 51,autosomal recessive|Stuttering,familial persistent,1
+chr15:50689270-69990570	19.301	AP4E1	607244	(provisional) Spastic paraplegia 51,autosomal recessive,613744|Stuttering,familial persistent,1,184450
 chr15:50689270-69990570	19.301	APH1B		
 chr15:50689270-69990570	19.301	AQP9		
 chr15:50689270-69990570	19.301	ARPP19		
@@ -16,23 +16,23 @@ chr15:50689270-69990570	19.301	C15ORF61
 chr15:50689270-69990570	19.301	C15ORF65		
 chr15:50689270-69990570	19.301	C2CD4A		
 chr15:50689270-69990570	19.301	C2CD4B		
-chr15:50689270-69990570	19.301	CA12	603263	(provisional) Hyperchlorhidrosis,isolated
+chr15:50689270-69990570	19.301	CA12	603263	(provisional) Hyperchlorhidrosis,isolated,143860
 chr15:50689270-69990570	19.301	CALML4		
 chr15:50689270-69990570	19.301	CCNB2		
 chr15:50689270-69990570	19.301	CCPG1		
 chr15:50689270-69990570	19.301	CGNL1		
-chr15:50689270-69990570	19.301	CILP	603489	(provisional) Lumbar disc disease,susceptibility to
-chr15:50689270-69990570	19.301	CLN6	606725	(confirmed) Ceroid lipofuscinosis,neuronal,6|Ceroid lipofuscinosis,neuronal,Kufs type,adult onset
+chr15:50689270-69990570	19.301	CILP	603489	(provisional) Lumbar disc disease,susceptibility to,603932
+chr15:50689270-69990570	19.301	CLN6	606725	(confirmed) Ceroid lipofuscinosis,neuronal,6,601780|Ceroid lipofuscinosis,neuronal,Kufs type,adult onset,204300
 chr15:50689270-69990570	19.301	CLPX		
 chr15:50689270-69990570	19.301	CORO2B		
 chr15:50689270-69990570	19.301	CSNK1G1		
-chr15:50689270-69990570	19.301	CYP19A1	107910	(confirmed) Aromatase deficiency|Aromatase excess syndrome
+chr15:50689270-69990570	19.301	CYP19A1	107910	(confirmed) Aromatase deficiency,613546|Aromatase excess syndrome,139300
 chr15:50689270-69990570	19.301	DAPK2		
 chr15:50689270-69990570	19.301	DENND4A		
 chr15:50689270-69990570	19.301	DIS3L		
-chr15:50689270-69990570	19.301	DMXL2	612186	(provisional) Polyendocrine-polyneuropathy syndrome
+chr15:50689270-69990570	19.301	DMXL2	612186	(provisional) Polyendocrine-polyneuropathy syndrome,616113
 chr15:50689270-69990570	19.301	DPP8		
-chr15:50689270-69990570	19.301	DYX1C1	608706	(confirmed) Dyslexia,susceptibility to,1|Ciliary dyskinesia,primary,25
+chr15:50689270-69990570	19.301	DYX1C1	608706	(confirmed) Dyslexia,susceptibility to,1,127700|Ciliary dyskinesia,primary,25,615482
 chr15:50689270-69990570	19.301	DYX1C1-CCPG1		
 chr15:50689270-69990570	19.301	FAM214A		
 chr15:50689270-69990570	19.301	FAM81A		
@@ -43,12 +43,12 @@ chr15:50689270-69990570	19.301	FOXB1
 chr15:50689270-69990570	19.301	GCNT3		
 chr15:50689270-69990570	19.301	GCOM1		
 chr15:50689270-69990570	19.301	GLCE		
-chr15:50689270-69990570	19.301	GLDN	608603	(provisional) Lethal congenital contracture syndrome 11
-chr15:50689270-69990570	19.301	GNB5	604447	(provisional) Intellectual developmental disorder with cardiac arrhythmia|Language delay and ADHD/cognitive impairment with or without cardiac arrhythmia
+chr15:50689270-69990570	19.301	GLDN	608603	(provisional) Lethal congenital contracture syndrome 11,617194
+chr15:50689270-69990570	19.301	GNB5	604447	(provisional) Intellectual developmental disorder with cardiac arrhythmia,617173|Language delay and ADHD/cognitive impairment with or without cardiac arrhythmia,617182
 chr15:50689270-69990570	19.301	GOLGA2P11		
 chr15:50689270-69990570	19.301	GTF2A2		
 chr15:50689270-69990570	19.301	HACD3		
-chr15:50689270-69990570	19.301	HERC1	605109	(provisional) Macrocephaly,dysmorphic facies,and psychomotor retardation
+chr15:50689270-69990570	19.301	HERC1	605109	(provisional) Macrocephaly,dysmorphic facies,and psychomotor retardation,617011
 chr15:50689270-69990570	19.301	HSP90AB4P		
 chr15:50689270-69990570	19.301	ICE2		
 chr15:50689270-69990570	19.301	IGDCC3		
@@ -56,23 +56,23 @@ chr15:50689270-69990570	19.301	IGDCC4
 chr15:50689270-69990570	19.301	INTS14		
 chr15:50689270-69990570	19.301	IQCH		
 chr15:50689270-69990570	19.301	ITGA11		
-chr15:50689270-69990570	19.301	KBTBD13	613727	(provisional) Nemaline myopathy 6,autosomal dominant
+chr15:50689270-69990570	19.301	KBTBD13	613727	(provisional) Nemaline myopathy 6,autosomal dominant,609273
 chr15:50689270-69990570	19.301	KIF23		
 chr15:50689270-69990570	19.301	LACTB		
 chr15:50689270-69990570	19.301	LCTL		
 chr15:50689270-69990570	19.301	LDHAL6B		
 chr15:50689270-69990570	19.301	LEO1		
-chr15:50689270-69990570	19.301	LIPC	151670	(confirmed) High density lipoprotein cholesterol level QTL 12|Diabetes mellitus,noninsulin-dependent|Hepatic lipase deficiency
+chr15:50689270-69990570	19.301	LIPC	151670	(confirmed) High density lipoprotein cholesterol level QTL 12,612797|Diabetes mellitus,noninsulin-dependent,125853|Hepatic lipase deficiency,614025
 chr15:50689270-69990570	19.301	LYSMD2		
-chr15:50689270-69990570	19.301	MAP2K1	176872	(confirmed) Cardiofaciocutaneous syndrome 3
+chr15:50689270-69990570	19.301	MAP2K1	176872	(confirmed) Cardiofaciocutaneous syndrome 3,615279
 chr15:50689270-69990570	19.301	MAP2K5		
 chr15:50689270-69990570	19.301	MAPK6		
 chr15:50689270-69990570	19.301	MEGF11		
 chr15:50689270-69990570	19.301	MINDY2		
 chr15:50689270-69990570	19.301	MNS1		
-chr15:50689270-69990570	19.301	MTFMT	611766	(provisional) Combined oxidative phosphorylation deficiency 15
-chr15:50689270-69990570	19.301	MYO1E	601479	(provisional) Glomerulosclerosis,focal segmental,6
-chr15:50689270-69990570	19.301	MYO5A	160777	(confirmed) Griscelli syndrome,type 1
+chr15:50689270-69990570	19.301	MTFMT	611766	(provisional) Combined oxidative phosphorylation deficiency 15,614947
+chr15:50689270-69990570	19.301	MYO1E	601479	(provisional) Glomerulosclerosis,focal segmental,6,614131
+chr15:50689270-69990570	19.301	MYO5A	160777	(confirmed) Griscelli syndrome,type 1,214450
 chr15:50689270-69990570	19.301	MYO5C		
 chr15:50689270-69990570	19.301	MYZAP		
 chr15:50689270-69990570	19.301	NEDD4		
@@ -89,11 +89,11 @@ chr15:50689270-69990570	19.301	PIGB
 chr15:50689270-69990570	19.301	PIGBOS1		
 chr15:50689270-69990570	19.301	PLEKHO2		
 chr15:50689270-69990570	19.301	POLR2M		
-chr15:50689270-69990570	19.301	PPIB	123841	(provisional) Osteogenesis imperfecta,type IX
+chr15:50689270-69990570	19.301	PPIB	123841	(provisional) Osteogenesis imperfecta,type IX,259440
 chr15:50689270-69990570	19.301	PRTG		
 chr15:50689270-69990570	19.301	PYGO1		
 chr15:50689270-69990570	19.301	RAB11A		
-chr15:50689270-69990570	19.301	RAB27A	603868	(provisional) Griscelli syndrome,type 2
+chr15:50689270-69990570	19.301	RAB27A	603868	(provisional) Griscelli syndrome,type 2,607624
 chr15:50689270-69990570	19.301	RAB8B		
 chr15:50689270-69990570	19.301	RASL12		
 chr15:50689270-69990570	19.301	RBPMS2		
@@ -106,34 +106,34 @@ chr15:50689270-69990570	19.301	RPS27L
 chr15:50689270-69990570	19.301	RSL24D1		
 chr15:50689270-69990570	19.301	SCG3		
 chr15:50689270-69990570	19.301	SKOR1		
-chr15:50689270-69990570	19.301	SLC24A1	603617	(provisional) Night blindness,congenital stationary (complete),1D,autosomal recessive
+chr15:50689270-69990570	19.301	SLC24A1	603617	(provisional) Night blindness,congenital stationary (complete),1D,autosomal recessive,613830
 chr15:50689270-69990570	19.301	SLC51B		
 chr15:50689270-69990570	19.301	SLTM		
-chr15:50689270-69990570	19.301	SMAD3	603109	(provisional) Loeys-Dietz syndrome 3
-chr15:50689270-69990570	19.301	SMAD6	602931	(provisional) Aortic valve disease 2
+chr15:50689270-69990570	19.301	SMAD3	603109	(provisional) Loeys-Dietz syndrome 3,613795
+chr15:50689270-69990570	19.301	SMAD6	602931	(provisional) Aortic valve disease 2,614823
 chr15:50689270-69990570	19.301	SNAPC5		
 chr15:50689270-69990570	19.301	SNX1		
 chr15:50689270-69990570	19.301	SNX22		
 chr15:50689270-69990570	19.301	SPESP1		
-chr15:50689270-69990570	19.301	SPG21	608181	(confirmed) Mast syndrome
+chr15:50689270-69990570	19.301	SPG21	608181	(confirmed) Mast syndrome,248900
 chr15:50689270-69990570	19.301	SPPL2A		
-chr15:50689270-69990570	19.301	TCF12	600480	(confirmed) Craniosynostosis 3
+chr15:50689270-69990570	19.301	TCF12	600480	(confirmed) Craniosynostosis 3,615314
 chr15:50689270-69990570	19.301	TEX9		
 chr15:50689270-69990570	19.301	TIPIN		
 chr15:50689270-69990570	19.301	TLN2		
 chr15:50689270-69990570	19.301	TMOD2		
 chr15:50689270-69990570	19.301	TMOD3		
 chr15:50689270-69990570	19.301	TNFAIP8L3		
-chr15:50689270-69990570	19.301	TPM1	191010	(confirmed) Cardiomyopathy,hypertrophic,3|Cardiomyopathy,dilated,1Y|Left ventricular noncompaction 9
-chr15:50689270-69990570	19.301	TRIP4	604501	(provisional) Spinal muscular atrophy with congenital bone fractures 1|Muscular dystrophy,congenital,Davignon-Chauveau type
-chr15:50689270-69990570	19.301	TRPM7	605692	(provisional) Amyotrophic lateral sclerosis-parkinsonism/dementia complex,susceptibility to
+chr15:50689270-69990570	19.301	TPM1	191010	(confirmed) Cardiomyopathy,hypertrophic,3,115196|Cardiomyopathy,dilated,1Y,611878|Left ventricular noncompaction 9,611878
+chr15:50689270-69990570	19.301	TRIP4	604501	(provisional) Spinal muscular atrophy with congenital bone fractures 1,616866|Muscular dystrophy,congenital,Davignon-Chauveau type,617066
+chr15:50689270-69990570	19.301	TRPM7	605692	(provisional) Amyotrophic lateral sclerosis-parkinsonism/dementia complex,susceptibility to,105500
 chr15:50689270-69990570	19.301	UBAP1L		
 chr15:50689270-69990570	19.301	UNC13C		
 chr15:50689270-69990570	19.301	USP3		
 chr15:50689270-69990570	19.301	USP50		
 chr15:50689270-69990570	19.301	USP8		
-chr15:50689270-69990570	19.301	VPS13C	608879	(provisional) Parkinson disease 23,autosomal recessive,early onset
-chr15:50689270-69990570	19.301	WDR72	613214	(provisional) Amelogenesis imperfecta,type IIA3
+chr15:50689270-69990570	19.301	VPS13C	608879	(provisional) Parkinson disease 23,autosomal recessive,early onset,616840
+chr15:50689270-69990570	19.301	WDR72	613214	(provisional) Amelogenesis imperfecta,type IIA3,613211
 chr15:50689270-69990570	19.301	ZNF280D		
 chr15:50689270-69990570	19.301	ZNF609		
 chr15:50689270-69990570	19.301	ZWILCH		
@@ -144,25 +144,25 @@ chr1:554484-19673855	19.119	ACOT7
 chr1:554484-19673855	19.119	ACTL8		
 chr1:554484-19673855	19.119	ACTRT2		
 chr1:554484-19673855	19.119	AGMAT		
-chr1:554484-19673855	19.119	AGRN	103320	(provisional) Myasthenic syndrome,congenital,8,with pre- and postsynaptic defects
+chr1:554484-19673855	19.119	AGRN	103320	(provisional) Myasthenic syndrome,congenital,8,with pre- and postsynaptic defects,615120
 chr1:554484-19673855	19.119	AGTRAP		
 chr1:554484-19673855	19.119	AJAP1		
 chr1:554484-19673855	19.119	AKR7A2		
 chr1:554484-19673855	19.119	AKR7A3		
 chr1:554484-19673855	19.119	AKR7L		
-chr1:554484-19673855	19.119	ALDH4A1	606811	(provisional) Hyperprolinemia,type II
+chr1:554484-19673855	19.119	ALDH4A1	606811	(provisional) Hyperprolinemia,type II,239510
 chr1:554484-19673855	19.119	ANGPTL7		
 chr1:554484-19673855	19.119	ANKRD65		
 chr1:554484-19673855	19.119	APITD1-CORT		
 chr1:554484-19673855	19.119	ARHGEF10L		
 chr1:554484-19673855	19.119	ARHGEF16		
 chr1:554484-19673855	19.119	ARHGEF19		
-chr1:554484-19673855	19.119	ATAD3A	612316	(provisional) Harel-Yoon syndrome
+chr1:554484-19673855	19.119	ATAD3A	612316	(provisional) Harel-Yoon syndrome,617183
 chr1:554484-19673855	19.119	ATAD3B		
 chr1:554484-19673855	19.119	ATAD3C		
-chr1:554484-19673855	19.119	ATP13A2	610513	(confirmed) Kufor-Rakeb syndrome|Spastic paraplegia 78,autosomal recessive
+chr1:554484-19673855	19.119	ATP13A2	610513	(confirmed) Kufor-Rakeb syndrome,606693|Spastic paraplegia 78,autosomal recessive,617225
 chr1:554484-19673855	19.119	AURKAIP1		
-chr1:554484-19673855	19.119	B3GALT6	615291	(provisional) Spondyloepimetaphyseal dysplasia with joint laxity,type 1,with or without fractures|Ehlers-Danlos syndrome,progeroid type,2
+chr1:554484-19673855	19.119	B3GALT6	615291	(provisional) Spondyloepimetaphyseal dysplasia with joint laxity,type 1,with or without fractures,271640|Ehlers-Danlos syndrome,progeroid type,2,615349
 chr1:554484-19673855	19.119	C1ORF127		
 chr1:554484-19673855	19.119	C1ORF158		
 chr1:554484-19673855	19.119	C1ORF159		
@@ -173,7 +173,7 @@ chr1:554484-19673855	19.119	C1ORF64
 chr1:554484-19673855	19.119	C1QTNF12		
 chr1:554484-19673855	19.119	CA6		
 chr1:554484-19673855	19.119	CALML6		
-chr1:554484-19673855	19.119	CAMTA1	611501	(provisional) Cerebellar ataxia,nonprogressive,with mental retardation
+chr1:554484-19673855	19.119	CAMTA1	611501	(provisional) Cerebellar ataxia,nonprogressive,with mental retardation,614756
 chr1:554484-19673855	19.119	CAPZB		
 chr1:554484-19673855	19.119	CASP9		
 chr1:554484-19673855	19.119	CASZ1		
@@ -184,18 +184,18 @@ chr1:554484-19673855	19.119	CDK11B
 chr1:554484-19673855	19.119	CELA2A		
 chr1:554484-19673855	19.119	CELA2B		
 chr1:554484-19673855	19.119	CENPS		
-chr1:554484-19673855	19.119	CEP104	616690	(confirmed) Joubert syndrome 25
+chr1:554484-19673855	19.119	CEP104	616690	(confirmed) Joubert syndrome 25,616781
 chr1:554484-19673855	19.119	CFAP74		
 chr1:554484-19673855	19.119	CHD5		
 chr1:554484-19673855	19.119	CLCN6		
-chr1:554484-19673855	19.119	CLCNKA	602024	(confirmed) Bartter syndrome,type 4b,digenic
-chr1:554484-19673855	19.119	CLCNKB	602023	(confirmed) Bartter syndrome,type 3|Bartter syndrome,type 4b,digenic
+chr1:554484-19673855	19.119	CLCNKA	602024	(confirmed) Bartter syndrome,type 4b,digenic,613090
+chr1:554484-19673855	19.119	CLCNKB	602023	(confirmed) Bartter syndrome,type 3,607364|Bartter syndrome,type 4b,digenic,613090
 chr1:554484-19673855	19.119	CLSTN1		
 chr1:554484-19673855	19.119	CORT		
 chr1:554484-19673855	19.119	CPTP		
 chr1:554484-19673855	19.119	CROCC		
 chr1:554484-19673855	19.119	CTNNBIP1		
-chr1:554484-19673855	19.119	CTRC	601405	(provisional) Pancreatitis,chronic,susceptibility to
+chr1:554484-19673855	19.119	CTRC	601405	(provisional) Pancreatitis,chronic,susceptibility to,167800
 chr1:554484-19673855	19.119	DDI2		
 chr1:554484-19673855	19.119	DFFA		
 chr1:554484-19673855	19.119	DFFB		
@@ -204,13 +204,13 @@ chr1:554484-19673855	19.119	DISP3
 chr1:554484-19673855	19.119	DNAJC11		
 chr1:554484-19673855	19.119	DNAJC16		
 chr1:554484-19673855	19.119	DRAXIN		
-chr1:554484-19673855	19.119	DVL1	601365	(confirmed) Robinow syndrome,autosomal dominant 2
+chr1:554484-19673855	19.119	DVL1	601365	(confirmed) Robinow syndrome,autosomal dominant 2,616331
 chr1:554484-19673855	19.119	EFHD2		
-chr1:554484-19673855	19.119	EMC1	616846	(provisional) Cerebellar atrophy,visual impairment,and psychomotor retardation
+chr1:554484-19673855	19.119	EMC1	616846	(provisional) Cerebellar atrophy,visual impairment,and psychomotor retardation,616875
 chr1:554484-19673855	19.119	ENO1	172430	(confirmed) Enolase deficiency
-chr1:554484-19673855	19.119	EPHA2	176946	(confirmed) Cataract 6,multiple types
+chr1:554484-19673855	19.119	EPHA2	176946	(confirmed) Cataract 6,multiple types,116600
 chr1:554484-19673855	19.119	ERRFI1		
-chr1:554484-19673855	19.119	ESPN	606351	(provisional) Deafness,autosomal recessive 36|Deafness,neurosensory,without vestibular involvement,autosomal dominant
+chr1:554484-19673855	19.119	ESPN	606351	(provisional) Deafness,autosomal recessive 36,609006|Deafness,neurosensory,without vestibular involvement,autosomal dominant
 chr1:554484-19673855	19.119	ESPNP		
 chr1:554484-19673855	19.119	EXOSC10		
 chr1:554484-19673855	19.119	FAAP20		
@@ -226,11 +226,11 @@ chr1:554484-19673855	19.119	FBXO44
 chr1:554484-19673855	19.119	FBXO6		
 chr1:554484-19673855	19.119	FHAD1		
 chr1:554484-19673855	19.119	FNDC10		
-chr1:554484-19673855	19.119	GABRD	137163	(confirmed) Epilepsy,generalized,with febrile seizures plus,type 5,susceptibility to|Epilepsy,idiopathic generalized,10|Epilepsy,juvenile myoclonic,susceptibility to
-chr1:554484-19673855	19.119	GNB1	139380	(confirmed) Mental retardation,autosomal dominant 42|Leukemia,acute lymphoblastic,somatic
+chr1:554484-19673855	19.119	GABRD	137163	(confirmed) Epilepsy,generalized,with febrile seizures plus,type 5,susceptibility to,613060|Epilepsy,idiopathic generalized,10,613060|Epilepsy,juvenile myoclonic,susceptibility to,613060
+chr1:554484-19673855	19.119	GNB1	139380	(confirmed) Mental retardation,autosomal dominant 42,616973|Leukemia,acute lymphoblastic,somatic,613065
 chr1:554484-19673855	19.119	GPR153		
 chr1:554484-19673855	19.119	GPR157		
-chr1:554484-19673855	19.119	H6PD	138090	(confirmed) Cortisone reductase deficiency 1
+chr1:554484-19673855	19.119	H6PD	138090	(confirmed) Cortisone reductase deficiency 1,604931
 chr1:554484-19673855	19.119	HES2		
 chr1:554484-19673855	19.119	HES3		
 chr1:554484-19673855	19.119	HES4		
@@ -244,11 +244,11 @@ chr1:554484-19673855	19.119	ICMT
 chr1:554484-19673855	19.119	IFFO2		
 chr1:554484-19673855	19.119	IGSF21		
 chr1:554484-19673855	19.119	INTS11		
-chr1:554484-19673855	19.119	ISG15	147571	(provisional) Immunodeficiency 38
+chr1:554484-19673855	19.119	ISG15	147571	(provisional) Immunodeficiency 38,616126
 chr1:554484-19673855	19.119	KAZN		
 chr1:554484-19673855	19.119	KCNAB2		
 chr1:554484-19673855	19.119	KIAA2013		
-chr1:554484-19673855	19.119	KIF1B	605995	(confirmed) Charcot-Marie-Tooth disease,type 2A1|Pheochromocytoma|Neuroblastoma,susceptibility to,1
+chr1:554484-19673855	19.119	KIF1B	605995	(confirmed) Charcot-Marie-Tooth disease,type 2A1,118210|Pheochromocytoma,171300|Neuroblastoma,susceptibility to,1,256700
 chr1:554484-19673855	19.119	KLHDC7A		
 chr1:554484-19673855	19.119	KLHL17		
 chr1:554484-19673855	19.119	KLHL21		
@@ -257,11 +257,11 @@ chr1:554484-19673855	19.119	LINC00982
 chr1:554484-19673855	19.119	LRRC38		
 chr1:554484-19673855	19.119	LRRC47		
 chr1:554484-19673855	19.119	LZIC		
-chr1:554484-19673855	19.119	MAD2L2	604094	(provisional) Fanconi anemia,complementation group V
-chr1:554484-19673855	19.119	MASP2	605102	(provisional) MASP2 deficiency
+chr1:554484-19673855	19.119	MAD2L2	604094	(provisional) Fanconi anemia,complementation group V,617243
+chr1:554484-19673855	19.119	MASP2	605102	(provisional) MASP2 deficiency,613791
 chr1:554484-19673855	19.119	MEGF6		
 chr1:554484-19673855	19.119	MFAP2		
-chr1:554484-19673855	19.119	MFN2	608507	(confirmed) Charcot-Marie-Tooth disease,axonal,type 2A2A|Hereditary motor and sensory neuropathy VIA|Charcot-Marie-Tooth disease,axonal,type 2A2B
+chr1:554484-19673855	19.119	MFN2	608507	(confirmed) Charcot-Marie-Tooth disease,axonal,type 2A2A,609260|Hereditary motor and sensory neuropathy VIA,601152|Charcot-Marie-Tooth disease,axonal,type 2A2B,617087
 chr1:554484-19673855	19.119	MIB2		
 chr1:554484-19673855	19.119	MIIP		
 chr1:554484-19673855	19.119	MMEL1		
@@ -271,42 +271,42 @@ chr1:554484-19673855	19.119	MORN1
 chr1:554484-19673855	19.119	MRPL20		
 chr1:554484-19673855	19.119	MRTO4		
 chr1:554484-19673855	19.119	MST1L		
-chr1:554484-19673855	19.119	MTHFR	607093	(provisional) Homocystinuria due to MTHFR deficiency|Schizophrenia,susceptibility to|Vascular disease,susceptibility to|Neural tube defects,susceptibility to|Thromboembolism,susceptibility to
-chr1:554484-19673855	19.119	MTOR	601231	(provisional) Smith-Kingsmore syndrome
+chr1:554484-19673855	19.119	MTHFR	607093	(provisional) Homocystinuria due to MTHFR deficiency,236250|Schizophrenia,susceptibility to,181500|Vascular disease,susceptibility to|Neural tube defects,susceptibility to,601634|Thromboembolism,susceptibility to,188050
+chr1:554484-19673855	19.119	MTOR	601231	(provisional) Smith-Kingsmore syndrome,616638
 chr1:554484-19673855	19.119	MXRA8		
 chr1:554484-19673855	19.119	NADK		
 chr1:554484-19673855	19.119	NBPF1		
 chr1:554484-19673855	19.119	NECAP2		
-chr1:554484-19673855	19.119	NMNAT1	608700	(confirmed) Leber congenital amaurosis 9
+chr1:554484-19673855	19.119	NMNAT1	608700	(confirmed) Leber congenital amaurosis 9,608553
 chr1:554484-19673855	19.119	NOC2L		
 chr1:554484-19673855	19.119	NOL9		
-chr1:554484-19673855	19.119	NPHP4	607215	(provisional) Nephronophthisis 4|Senior-Loken syndrome 4
-chr1:554484-19673855	19.119	NPPA	108780	(confirmed) Atrial fibrillation,familial,6|Atrial standstill 2
+chr1:554484-19673855	19.119	NPHP4	607215	(provisional) Nephronophthisis 4,606966|Senior-Loken syndrome 4,606996
+chr1:554484-19673855	19.119	NPPA	108780	(confirmed) Atrial fibrillation,familial,6,612201|Atrial standstill 2,615745
 chr1:554484-19673855	19.119	NPPB		
 chr1:554484-19673855	19.119	OR4F16		
 chr1:554484-19673855	19.119	OR4F29		
 chr1:554484-19673855	19.119	PADI1		
 chr1:554484-19673855	19.119	PADI2		
-chr1:554484-19673855	19.119	PADI3	606755	(provisional) Uncombable hair syndrome
-chr1:554484-19673855	19.119	PADI4	605347	(confirmed) Rheumatoid arthritis,susceptibility to
-chr1:554484-19673855	19.119	PADI6	610363	(confirmed) Preimplantation embryonic lethality 2
+chr1:554484-19673855	19.119	PADI3	606755	(provisional) Uncombable hair syndrome,191480
+chr1:554484-19673855	19.119	PADI4	605347	(confirmed) Rheumatoid arthritis,susceptibility to,180300
+chr1:554484-19673855	19.119	PADI6	610363	(confirmed) Preimplantation embryonic lethality 2,617234
 chr1:554484-19673855	19.119	PANK4		
-chr1:554484-19673855	19.119	PARK7	602533	(provisional) Parkinson disease 7,autosomal recessive early-onset
-chr1:554484-19673855	19.119	PAX7	167410	(confirmed) Rhabdomyosarcoma 2,alveolar
+chr1:554484-19673855	19.119	PARK7	602533	(provisional) Parkinson disease 7,autosomal recessive early-onset,606324
+chr1:554484-19673855	19.119	PAX7	167410	(confirmed) Rhabdomyosarcoma 2,alveolar,268220
 chr1:554484-19673855	19.119	PDPN		
-chr1:554484-19673855	19.119	PER3	603427	(provisional) Advanced sleep phase syndrome,familial,3
+chr1:554484-19673855	19.119	PER3	603427	(provisional) Advanced sleep phase syndrome,familial,3,616882
 chr1:554484-19673855	19.119	PERM1		
-chr1:554484-19673855	19.119	PEX10	602859	(confirmed) Peroxisome biogenesis disorder 6A (Zellweger)|Peroxisome biogenesis disorder 6B
-chr1:554484-19673855	19.119	PEX14	601791	(provisional) Peroxisome biogenesis disorder 13A (Zellweger)
+chr1:554484-19673855	19.119	PEX10	602859	(confirmed) Peroxisome biogenesis disorder 6A (Zellweger),614870|Peroxisome biogenesis disorder 6B,614871
+chr1:554484-19673855	19.119	PEX14	601791	(provisional) Peroxisome biogenesis disorder 13A (Zellweger),614887
 chr1:554484-19673855	19.119	PGD		
 chr1:554484-19673855	19.119	PHF13		
-chr1:554484-19673855	19.119	PIK3CD	602839	(provisional) Immunodeficiency 14
+chr1:554484-19673855	19.119	PIK3CD	602839	(provisional) Immunodeficiency 14,615513
 chr1:554484-19673855	19.119	PIK3CD-AS1		
 chr1:554484-19673855	19.119	PLCH2		
-chr1:554484-19673855	19.119	PLEKHG5	611101	(confirmed) Spinal muscular atrophy,distal,autosomal recessive,4|Charcot-Marie-Tooth disease,recessive intermediate C
+chr1:554484-19673855	19.119	PLEKHG5	611101	(confirmed) Spinal muscular atrophy,distal,autosomal recessive,4,611067|Charcot-Marie-Tooth disease,recessive intermediate C,615376
 chr1:554484-19673855	19.119	PLEKHM2		
 chr1:554484-19673855	19.119	PLEKHN1		
-chr1:554484-19673855	19.119	PLOD1	153454	(provisional) Ehlers-Danlos syndrome,type VI
+chr1:554484-19673855	19.119	PLOD1	153454	(provisional) Ehlers-Danlos syndrome,type VI,225400
 chr1:554484-19673855	19.119	PQLC2		
 chr1:554484-19673855	19.119	PRAMEF1		
 chr1:554484-19673855	19.119	PRAMEF10		
@@ -331,14 +331,14 @@ chr1:554484-19673855	19.119	PRAMEF6
 chr1:554484-19673855	19.119	PRAMEF7		
 chr1:554484-19673855	19.119	PRAMEF8		
 chr1:554484-19673855	19.119	PRAMEF9		
-chr1:554484-19673855	19.119	PRDM16	605557	(provisional) Left ventricular noncompaction 8|Cardiomyopathy,dilated,1LL
+chr1:554484-19673855	19.119	PRDM16	605557	(provisional) Left ventricular noncompaction 8,615373|Cardiomyopathy,dilated,1LL,615373
 chr1:554484-19673855	19.119	PRDM2		
 chr1:554484-19673855	19.119	PRKCZ		
 chr1:554484-19673855	19.119	PUSL1		
 chr1:554484-19673855	19.119	RBP7		
 chr1:554484-19673855	19.119	RCC2		
 chr1:554484-19673855	19.119	RER1		
-chr1:554484-19673855	19.119	RERE	605226	(provisional) Neurodevelopmental disorder with or without anomalies of the brain,eye,or heart
+chr1:554484-19673855	19.119	RERE	605226	(provisional) Neurodevelopmental disorder with or without anomalies of the brain,eye,or heart,616975
 chr1:554484-19673855	19.119	RNF207		
 chr1:554484-19673855	19.119	RNF223		
 chr1:554484-19673855	19.119	RPL22		
@@ -347,8 +347,8 @@ chr1:554484-19673855	19.119	RSG1
 chr1:554484-19673855	19.119	SAMD11		
 chr1:554484-19673855	19.119	SCNN1D		
 chr1:554484-19673855	19.119	SDF4		
-chr1:554484-19673855	19.119	SDHB	185470	(confirmed) Paragangliomas 4|Pheochromocytoma|Paraganglioma and gastric stromal sarcoma|Cowden syndrome 2|Gastrointestinal stromal tumor
-chr1:554484-19673855	19.119	SKI	164780	(confirmed) Shprintzen-Goldberg syndrome
+chr1:554484-19673855	19.119	SDHB	185470	(confirmed) Paragangliomas 4,115310|Pheochromocytoma,171300|Paraganglioma and gastric stromal sarcoma,606864|Cowden syndrome 2,612359|Gastrointestinal stromal tumor,606764
+chr1:554484-19673855	19.119	SKI	164780	(confirmed) Shprintzen-Goldberg syndrome,182212
 chr1:554484-19673855	19.119	SLC25A33		
 chr1:554484-19673855	19.119	SLC25A34		
 chr1:554484-19673855	19.119	SLC2A5		
@@ -356,20 +356,20 @@ chr1:554484-19673855	19.119	SLC2A7
 chr1:554484-19673855	19.119	SLC35E2		
 chr1:554484-19673855	19.119	SLC35E2B		
 chr1:554484-19673855	19.119	SLC45A1		
-chr1:554484-19673855	19.119	SMIM1	615242	(provisional) Blood group,Vel system
+chr1:554484-19673855	19.119	SMIM1	615242	(provisional) Blood group,Vel system,615264
 chr1:554484-19673855	19.119	SPATA21		
 chr1:554484-19673855	19.119	SPEN	606077	(provisional) Megakaryoblastic leukemia,acute
 chr1:554484-19673855	19.119	SPSB1		
 chr1:554484-19673855	19.119	SRM		
 chr1:554484-19673855	19.119	SSU72		
 chr1:554484-19673855	19.119	SZRD1		
-chr1:554484-19673855	19.119	TARDBP	605078	(confirmed) Amyotrophic lateral sclerosis 10,with or without FTD|Frontotemporal lobar degeneration,TARDBP-related
+chr1:554484-19673855	19.119	TARDBP	605078	(confirmed) Amyotrophic lateral sclerosis 10,with or without FTD,612069|Frontotemporal lobar degeneration,TARDBP-related,612069
 chr1:554484-19673855	19.119	TAS1R1		
 chr1:554484-19673855	19.119	TAS1R2		
 chr1:554484-19673855	19.119	TAS1R3		
 chr1:554484-19673855	19.119	THAP3		
 chr1:554484-19673855	19.119	TMEM201		
-chr1:554484-19673855	19.119	TMEM240	616101	(confirmed) Spinocerebellar ataxia 21
+chr1:554484-19673855	19.119	TMEM240	616101	(confirmed) Spinocerebellar ataxia 21,607454
 chr1:554484-19673855	19.119	TMEM51		
 chr1:554484-19673855	19.119	TMEM52		
 chr1:554484-19673855	19.119	TMEM82		
@@ -378,7 +378,7 @@ chr1:554484-19673855	19.119	TNFRSF14
 chr1:554484-19673855	19.119	TNFRSF18		
 chr1:554484-19673855	19.119	TNFRSF1B		
 chr1:554484-19673855	19.119	TNFRSF25		
-chr1:554484-19673855	19.119	TNFRSF4	600315	(provisional) Immunodeficiency 16
+chr1:554484-19673855	19.119	TNFRSF4	600315	(provisional) Immunodeficiency 16,615593
 chr1:554484-19673855	19.119	TNFRSF8		
 chr1:554484-19673855	19.119	TNFRSF9		
 chr1:554484-19673855	19.119	TP73	601990	(provisional) Neuroblastoma
@@ -387,7 +387,7 @@ chr1:554484-19673855	19.119	TTC34
 chr1:554484-19673855	19.119	TTLL10		
 chr1:554484-19673855	19.119	UBE2J2		
 chr1:554484-19673855	19.119	UBE4B		
-chr1:554484-19673855	19.119	UBIAD1	611632	(confirmed) Corneal dystrophy,Schnyder type
+chr1:554484-19673855	19.119	UBIAD1	611632	(confirmed) Corneal dystrophy,Schnyder type,121800
 chr1:554484-19673855	19.119	UBR4		
 chr1:554484-19673855	19.119	UQCRHL		
 chr1:554484-19673855	19.119	UTS2		
@@ -409,11 +409,11 @@ chr4:129214914-140244104	11.029	PCDH10
 chr4:129214914-140244104	11.029	PCDH18		
 chr4:129214914-140244104	11.029	SCLT1		
 chr4:129214914-140244104	11.029	SLC7A11		
-chr16:67044324-77632926	10.589	AARS	601065	(confirmed) Charcot-Marie-Tooth disease,axonal,type 2N|Epileptic encephalopathy,early infantile,29
-chr16:67044324-77632926	10.589	ACD	609377	(provisional) Dyskeratosis congenita,autosomal dominant 6|Dyskeratosis congenita,autosomal recessive 7
-chr16:67044324-77632926	10.589	ADAMTS18	607512	(provisional) Microcornea,myopic chorioretinal atrophy,and telecanthus
+chr16:67044324-77632926	10.589	AARS	601065	(confirmed) Charcot-Marie-Tooth disease,axonal,type 2N,613287|Epileptic encephalopathy,early infantile,29,616339
+chr16:67044324-77632926	10.589	ACD	609377	(provisional) Dyskeratosis congenita,autosomal dominant 6,616553|Dyskeratosis congenita,autosomal recessive 7,616553
+chr16:67044324-77632926	10.589	ADAMTS18	607512	(provisional) Microcornea,myopic chorioretinal atrophy,and telecanthus,615458
 chr16:67044324-77632926	10.589	ADAT1		
-chr16:67044324-77632926	10.589	AGRP	602311	(provisional) Obesity,late-onset|Leanness,inherited
+chr16:67044324-77632926	10.589	AGRP	602311	(provisional) Obesity,late-onset,601665|Leanness,inherited
 chr16:67044324-77632926	10.589	AP1G1		
 chr16:67044324-77632926	10.589	ATP6V0D1		
 chr16:67044324-77632926	10.589	ATXN1L		
@@ -424,23 +424,23 @@ chr16:67044324-77632926	10.589	C16ORF70
 chr16:67044324-77632926	10.589	C16ORF86		
 chr16:67044324-77632926	10.589	CALB2		
 chr16:67044324-77632926	10.589	CARMIL2		
-chr16:67044324-77632926	10.589	CBFB	121360	(confirmed) Myeloid leukemia,acute,M4/M4Eo subtype,somatic
-chr16:67044324-77632926	10.589	CDH1	192090	(confirmed) Endometrial carcinoma,somatic|Ovarian carcinoma,somatic|Breast cancer,lobular|Gastric cancer,familial diffuse,with or without cleft lip and/or palate|Prostate cancer,susceptibility to
-chr16:67044324-77632926	10.589	CDH3	114019	(provisional) Mental retardation,autosomal dominant 3
+chr16:67044324-77632926	10.589	CBFB	121360	(confirmed) Myeloid leukemia,acute,M4/M4Eo subtype,somatic,601626
+chr16:67044324-77632926	10.589	CDH1	192090	(confirmed) Endometrial carcinoma,somatic,608089|Ovarian carcinoma,somatic,167000|Breast cancer,lobular,114480|Gastric cancer,familial diffuse,with or without cleft lip and/or palate,137215|Prostate cancer,susceptibility to,176807
+chr16:67044324-77632926	10.589	CDH3	114019	(provisional) Mental retardation,autosomal dominant 3,612580
 chr16:67044324-77632926	10.589	CENPT		
 chr16:67044324-77632926	10.589	CFDP1		
 chr16:67044324-77632926	10.589	CHST4		
 chr16:67044324-77632926	10.589	CHST5		
-chr16:67044324-77632926	10.589	CHST6	605294	(provisional) Macular corneal dystrophy
+chr16:67044324-77632926	10.589	CHST6	605294	(provisional) Macular corneal dystrophy,217800
 chr16:67044324-77632926	10.589	CHTF8		
 chr16:67044324-77632926	10.589	CLEC18A		
 chr16:67044324-77632926	10.589	CLEC18B		
 chr16:67044324-77632926	10.589	CLEC18C		
 chr16:67044324-77632926	10.589	CMTR2		
 chr16:67044324-77632926	10.589	CNTNAP4		
-chr16:67044324-77632926	10.589	COG4	606976	(provisional) Congenital disorder of glycosylation,type IIj
-chr16:67044324-77632926	10.589	COG8	606979	(confirmed) Congenital disorder of glycosylation,type IIh
-chr16:67044324-77632926	10.589	CTCF	604167	(provisional) Mental retardation,autosomal dominant 21
+chr16:67044324-77632926	10.589	COG4	606976	(provisional) Congenital disorder of glycosylation,type IIj,613489
+chr16:67044324-77632926	10.589	COG8	606979	(confirmed) Congenital disorder of glycosylation,type IIh,611182
+chr16:67044324-77632926	10.589	CTCF	604167	(provisional) Mental retardation,autosomal dominant 21,615502
 chr16:67044324-77632926	10.589	CTRB1		
 chr16:67044324-77632926	10.589	CTRB2		
 chr16:67044324-77632926	10.589	CTRL		
@@ -448,7 +448,7 @@ chr16:67044324-77632926	10.589	CYB5B
 chr16:67044324-77632926	10.589	DDX19A		
 chr16:67044324-77632926	10.589	DDX19B		
 chr16:67044324-77632926	10.589	DDX28		
-chr16:67044324-77632926	10.589	DHODH	126064	(provisional) Miller syndrome
+chr16:67044324-77632926	10.589	DHODH	126064	(provisional) Miller syndrome,263750
 chr16:67044324-77632926	10.589	DHX38		
 chr16:67044324-77632926	10.589	DPEP2		
 chr16:67044324-77632926	10.589	DPEP3		
@@ -460,7 +460,7 @@ chr16:67044324-77632926	10.589	ENKD1
 chr16:67044324-77632926	10.589	ESRP2		
 chr16:67044324-77632926	10.589	EXOC3L1		
 chr16:67044324-77632926	10.589	EXOSC6		
-chr16:67044324-77632926	10.589	FA2H	611026	(provisional) Spastic paraplegia 35,autosomal recessive
+chr16:67044324-77632926	10.589	FA2H	611026	(provisional) Spastic paraplegia 35,autosomal recessive,612319
 chr16:67044324-77632926	10.589	FAM65A		
 chr16:67044324-77632926	10.589	FBXL8		
 chr16:67044324-77632926	10.589	FHOD1		
@@ -469,17 +469,17 @@ chr16:67044324-77632926	10.589	GABARAPL2
 chr16:67044324-77632926	10.589	GFOD2		
 chr16:67044324-77632926	10.589	GLG1		
 chr16:67044324-77632926	10.589	HAS3		
-chr16:67044324-77632926	10.589	HP	140100	(confirmed) Anhaptoglobinemia|Hypohaptoglobinemia
+chr16:67044324-77632926	10.589	HP	140100	(confirmed) Anhaptoglobinemia,614081|Hypohaptoglobinemia,614081
 chr16:67044324-77632926	10.589	HPR		
-chr16:67044324-77632926	10.589	HSD11B2	614232	(confirmed) Apparent mineralocorticoid excess
-chr16:67044324-77632926	10.589	HSF4	602438	(confirmed) Cataract 5,multiple types
-chr16:67044324-77632926	10.589	HYDIN	610812	(confirmed) Ciliary dyskinesia,primary,5
+chr16:67044324-77632926	10.589	HSD11B2	614232	(confirmed) Apparent mineralocorticoid excess,218030
+chr16:67044324-77632926	10.589	HSF4	602438	(confirmed) Cataract 5,multiple types,116800
+chr16:67044324-77632926	10.589	HYDIN	610812	(confirmed) Ciliary dyskinesia,primary,5,608647
 chr16:67044324-77632926	10.589	IL34		
 chr16:67044324-77632926	10.589	IST1		
-chr16:67044324-77632926	10.589	KARS	601421	(confirmed) Charcot-Marie-Tooth disease,recessive intermediate,B|Deafness,autosomal recessive 89
+chr16:67044324-77632926	10.589	KARS	601421	(confirmed) Charcot-Marie-Tooth disease,recessive intermediate,B,613641|Deafness,autosomal recessive 89,613916
 chr16:67044324-77632926	10.589	KCTD19		
 chr16:67044324-77632926	10.589	KIAA0895L		
-chr16:67044324-77632926	10.589	LCAT	606967	(confirmed) Norum disease|Fish-eye disease
+chr16:67044324-77632926	10.589	LCAT	606967	(confirmed) Norum disease,245900|Fish-eye disease,136120
 chr16:67044324-77632926	10.589	LDHD		
 chr16:67044324-77632926	10.589	LRRC29		
 chr16:67044324-77632926	10.589	LRRC36		
@@ -491,7 +491,7 @@ chr16:67044324-77632926	10.589	NFAT5
 chr16:67044324-77632926	10.589	NFATC3		
 chr16:67044324-77632926	10.589	NIP7		
 chr16:67044324-77632926	10.589	NOB1		
-chr16:67044324-77632926	10.589	NOL3	605235	(provisional) Myoclonus,familial cortical
+chr16:67044324-77632926	10.589	NOL3	605235	(provisional) Myoclonus,familial cortical,614937
 chr16:67044324-77632926	10.589	NPIPB15		
 chr16:67044324-77632926	10.589	NQO1	125860	(confirmed) Benzene toxicity,susceptibility to|Leukemia,post-chemotherapy,susceptibility to|Breast cancer,poor survival after chemotherapy for
 chr16:67044324-77632926	10.589	NRN1L		
@@ -505,7 +505,7 @@ chr16:67044324-77632926	10.589	PKD1L3
 chr16:67044324-77632926	10.589	PLA2G15		
 chr16:67044324-77632926	10.589	PLEKHG4		
 chr16:67044324-77632926	10.589	PMFBP1		
-chr16:67044324-77632926	10.589	PRMT7	610087	(provisional) Short stature,brachydactyly,intellectual developmental disability,and seizures
+chr16:67044324-77632926	10.589	PRMT7	610087	(provisional) Short stature,brachydactyly,intellectual developmental disability,and seizures,617157
 chr16:67044324-77632926	10.589	PSKH1		
 chr16:67044324-77632926	10.589	PSMB10		
 chr16:67044324-77632926	10.589	PSMD7		
@@ -521,43 +521,43 @@ chr16:67044324-77632926	10.589	SNTB2
 chr16:67044324-77632926	10.589	ST3GAL2		
 chr16:67044324-77632926	10.589	SYCE1L		
 chr16:67044324-77632926	10.589	TANGO6		
-chr16:67044324-77632926	10.589	TAT	613018	(confirmed) Tyrosinemia,type II
+chr16:67044324-77632926	10.589	TAT	613018	(confirmed) Tyrosinemia,type II,276600
 chr16:67044324-77632926	10.589	TERF2		
 chr16:67044324-77632926	10.589	TERF2IP		
 chr16:67044324-77632926	10.589	THAP11		
 chr16:67044324-77632926	10.589	TMED6		
 chr16:67044324-77632926	10.589	TMEM170A		
 chr16:67044324-77632926	10.589	TMEM208		
-chr16:67044324-77632926	10.589	TMEM231	614949	(provisional) Joubert syndrome 20|Meckel syndrome 11
+chr16:67044324-77632926	10.589	TMEM231	614949	(provisional) Joubert syndrome 20,614970|Meckel syndrome 11,615397
 chr16:67044324-77632926	10.589	TPPP3		
 chr16:67044324-77632926	10.589	TRADD		
 chr16:67044324-77632926	10.589	TSNAXIP1		
 chr16:67044324-77632926	10.589	TXNL4B		
 chr16:67044324-77632926	10.589	UTP4		
-chr16:67044324-77632926	10.589	VAC14	604632	(provisional) Striatonigral degeneration,childhood-onset
+chr16:67044324-77632926	10.589	VAC14	604632	(provisional) Striatonigral degeneration,childhood-onset,617054
 chr16:67044324-77632926	10.589	VAC14-AS1		
 chr16:67044324-77632926	10.589	VPS4A		
 chr16:67044324-77632926	10.589	WDR59		
 chr16:67044324-77632926	10.589	WWP2		
 chr16:67044324-77632926	10.589	ZDHHC1		
-chr16:67044324-77632926	10.589	ZFHX3	104155	(confirmed) Prostate cancer,susceptibility to,somatic
+chr16:67044324-77632926	10.589	ZFHX3	104155	(confirmed) Prostate cancer,susceptibility to,somatic,176807
 chr16:67044324-77632926	10.589	ZFP1		
 chr16:67044324-77632926	10.589	ZFP90		
 chr16:67044324-77632926	10.589	ZNF19		
 chr16:67044324-77632926	10.589	ZNF23		
 chr16:67044324-77632926	10.589	ZNF821		
 chr16:67044324-77632926	10.589	ZNRF1		
-chr7:90710692-101163134	10.452	ACHE	100740	(confirmed) Blood group,Yt system
+chr7:90710692-101163134	10.452	ACHE	100740	(confirmed) Blood group,Yt system,112100
 chr7:90710692-101163134	10.452	ACTL6B		
 chr7:90710692-101163134	10.452	AGFG2		
-chr7:90710692-101163134	10.452	AKAP9	604001	(provisional) Long QT syndrome-11
+chr7:90710692-101163134	10.452	AKAP9	604001	(provisional) Long QT syndrome-11,611820
 chr7:90710692-101163134	10.452	ANKIB1		
-chr7:90710692-101163134	10.452	AP1S1	603531	(provisional) MEDNIK syndrome
-chr7:90710692-101163134	10.452	AP4M1	602296	(confirmed) Spastic paraplegia 50,autosomal recessive
+chr7:90710692-101163134	10.452	AP1S1	603531	(provisional) MEDNIK syndrome,609313
+chr7:90710692-101163134	10.452	AP4M1	602296	(confirmed) Spastic paraplegia 50,autosomal recessive,612936
 chr7:90710692-101163134	10.452	ARPC1A		
 chr7:90710692-101163134	10.452	ARPC1B		
 chr7:90710692-101163134	10.452	ASB4		
-chr7:90710692-101163134	10.452	ASNS	108370	(confirmed) Asparagine synthetase deficiency
+chr7:90710692-101163134	10.452	ASNS	108370	(confirmed) Asparagine synthetase deficiency,615574
 chr7:90710692-101163134	10.452	ATP5J2		
 chr7:90710692-101163134	10.452	ATP5J2-PTCD1		
 chr7:90710692-101163134	10.452	AZGP1		
@@ -570,27 +570,27 @@ chr7:90710692-101163134	10.452	BUD31
 chr7:90710692-101163134	10.452	C7ORF43		
 chr7:90710692-101163134	10.452	C7ORF61		
 chr7:90710692-101163134	10.452	C7ORF76		
-chr7:90710692-101163134	10.452	CALCR	114131	(confirmed) Osteoporosis,postmenopausal,susceptibility
+chr7:90710692-101163134	10.452	CALCR	114131	(confirmed) Osteoporosis,postmenopausal,susceptibility,166710
 chr7:90710692-101163134	10.452	CASD1		
 chr7:90710692-101163134	10.452	CDK14		
-chr7:90710692-101163134	10.452	CDK6	603368	(confirmed) Microcephaly 12,primary,autosomal recessive
+chr7:90710692-101163134	10.452	CDK6	603368	(confirmed) Microcephaly 12,primary,autosomal recessive,616080
 chr7:90710692-101163134	10.452	CLDN15		
 chr7:90710692-101163134	10.452	CNPY4		
-chr7:90710692-101163134	10.452	COL1A2	120160	(confirmed) Ehlers-Danlos syndrome,type VIIB|Osteogenesis imperfecta,type IV|Osteogenesis imperfecta,type III|Osteogenesis imperfecta,type II|Osteoporosis,postmenopausal|Ehlers-Danlos syndrome,cardiac valvular form
+chr7:90710692-101163134	10.452	COL1A2	120160	(confirmed) Ehlers-Danlos syndrome,type VIIB,130060|Osteogenesis imperfecta,type IV,166220|Osteogenesis imperfecta,type III,259420|Osteogenesis imperfecta,type II,166210|Osteoporosis,postmenopausal,166710|Ehlers-Danlos syndrome,cardiac valvular form,225320
 chr7:90710692-101163134	10.452	COL26A1		
 chr7:90710692-101163134	10.452	COPS6		
 chr7:90710692-101163134	10.452	CPSF4		
 chr7:90710692-101163134	10.452	CYP3A4		
 chr7:90710692-101163134	10.452	CYP3A43		
-chr7:90710692-101163134	10.452	CYP3A5	605325	(confirmed) Hypertension,salt-sensitive essential,susceptibility to
+chr7:90710692-101163134	10.452	CYP3A5	605325	(confirmed) Hypertension,salt-sensitive essential,susceptibility to,145500
 chr7:90710692-101163134	10.452	CYP3A7		
 chr7:90710692-101163134	10.452	CYP3A7-CYP3A51P		
 chr7:90710692-101163134	10.452	CYP51A1		
-chr7:90710692-101163134	10.452	DLX5	600028	(confirmed) Split-hand/foot malformation 1 with sensorineural hearing loss
+chr7:90710692-101163134	10.452	DLX5	600028	(confirmed) Split-hand/foot malformation 1 with sensorineural hearing loss,220600
 chr7:90710692-101163134	10.452	DLX6		
 chr7:90710692-101163134	10.452	DYNC1I1		
-chr7:90710692-101163134	10.452	EPHB4	600011	(provisional) Hydrops fetalis,nonimmune,and/or atrial septal defect
-chr7:90710692-101163134	10.452	EPO	133170	(confirmed) Microvascular complications of diabetes 2
+chr7:90710692-101163134	10.452	EPHB4	600011	(provisional) Hydrops fetalis,nonimmune,and/or atrial septal defect,617300
+chr7:90710692-101163134	10.452	EPO	133170	(confirmed) Microvascular complications of diabetes 2,612623
 chr7:90710692-101163134	10.452	ERVW-1		
 chr7:90710692-101163134	10.452	FAM133B		
 chr7:90710692-101163134	10.452	FAM200A		
@@ -598,7 +598,7 @@ chr7:90710692-101163134	10.452	FBXO24
 chr7:90710692-101163134	10.452	FIS1		
 chr7:90710692-101163134	10.452	FZD1		
 chr7:90710692-101163134	10.452	GAL3ST4		
-chr7:90710692-101163134	10.452	GATAD1	614518	(provisional) Cardiomyopathy,dilated,2B
+chr7:90710692-101163134	10.452	GATAD1	614518	(provisional) Cardiomyopathy,dilated,2B,614672
 chr7:90710692-101163134	10.452	GATS		
 chr7:90710692-101163134	10.452	GIGYF1		
 chr7:90710692-101163134	10.452	GJC3		
@@ -609,7 +609,7 @@ chr7:90710692-101163134	10.452	GPC2
 chr7:90710692-101163134	10.452	HEPACAM2		
 chr7:90710692-101163134	10.452	IFT22		
 chr7:90710692-101163134	10.452	KPNA7		
-chr7:90710692-101163134	10.452	KRIT1	604214	(confirmed) Cerebral cavernous malformations-1|Hyperkeratotic cutaneous capillary-venous malformations associated with cerebral capillary malformations|Cavernous malformations of CNS and retina
+chr7:90710692-101163134	10.452	KRIT1	604214	(confirmed) Cerebral cavernous malformations-1,116860|Hyperkeratotic cutaneous capillary-venous malformations associated with cerebral capillary malformations,116860|Cavernous malformations of CNS and retina,116860
 chr7:90710692-101163134	10.452	LAMTOR4		
 chr7:90710692-101163134	10.452	LMTK2		
 chr7:90710692-101163134	10.452	LRCH4		
@@ -629,16 +629,16 @@ chr7:90710692-101163134	10.452	NPTX2
 chr7:90710692-101163134	10.452	NYAP1		
 chr7:90710692-101163134	10.452	OCM2		
 chr7:90710692-101163134	10.452	OR2AE1		
-chr7:90710692-101163134	10.452	PAI1	173360	(confirmed) Plasminogen activator inhibitor-1 deficiency|Transcription of plasminogen activator inhibitor,modulator of
+chr7:90710692-101163134	10.452	PAI1	173360	(confirmed) Plasminogen activator inhibitor-1 deficiency,613329|Transcription of plasminogen activator inhibitor,modulator of
 chr7:90710692-101163134	10.452	PCOLCE		
 chr7:90710692-101163134	10.452	PDAP1		
 chr7:90710692-101163134	10.452	PDK4		
 chr7:90710692-101163134	10.452	PEG10		
-chr7:90710692-101163134	10.452	PEX1	602136	(confirmed) Peroxisome biogenesis disorder 1A (Zellweger)|Peroxisome biogenesis disorder 1B (NALD/IRD)|Heimler syndrome 1
+chr7:90710692-101163134	10.452	PEX1	602136	(confirmed) Peroxisome biogenesis disorder 1A (Zellweger),214100|Peroxisome biogenesis disorder 1B (NALD/IRD),601539|Heimler syndrome 1,234580
 chr7:90710692-101163134	10.452	PILRA		
 chr7:90710692-101163134	10.452	PILRB		
-chr7:90710692-101163134	10.452	PLOD3	603066	(provisional) Lysyl hydroxylase 3 deficiency
-chr7:90710692-101163134	10.452	PON1	168820	(confirmed) Coronary artery disease,susceptibility to|Coronary artery spasm 2,susceptibility to|Organophosphate poisoning,sensitivity to|Microvascular complications of diabetes 5
+chr7:90710692-101163134	10.452	PLOD3	603066	(provisional) Lysyl hydroxylase 3 deficiency,612394
+chr7:90710692-101163134	10.452	PON1	168820	(confirmed) Coronary artery disease,susceptibility to|Coronary artery spasm 2,susceptibility to|Organophosphate poisoning,sensitivity to|Microvascular complications of diabetes 5,612633
 chr7:90710692-101163134	10.452	PON2	602447	(confirmed) Coronary artery disease,susceptibility to
 chr7:90710692-101163134	10.452	PON3		
 chr7:90710692-101163134	10.452	POP7		
@@ -647,25 +647,25 @@ chr7:90710692-101163134	10.452	PPP1R9A
 chr7:90710692-101163134	10.452	PTCD1		
 chr7:90710692-101163134	10.452	PVRIG		
 chr7:90710692-101163134	10.452	RBM48		
-chr7:90710692-101163134	10.452	SAMD9	610456	(confirmed) Tumoral calcinosis,familial,normophosphatemic|MIRAGE syndrome
-chr7:90710692-101163134	10.452	SAMD9L	611170	(provisional) Ataxia-pancytopenia syndrome
+chr7:90710692-101163134	10.452	SAMD9	610456	(confirmed) Tumoral calcinosis,familial,normophosphatemic,610455|MIRAGE syndrome,617053
+chr7:90710692-101163134	10.452	SAMD9L	611170	(provisional) Ataxia-pancytopenia syndrome,159550
 chr7:90710692-101163134	10.452	SAP25		
 chr7:90710692-101163134	10.452	SDHAF3		
 chr7:90710692-101163134	10.452	SEM1		
-chr7:90710692-101163134	10.452	SERPINE1	173360	(confirmed) Plasminogen activator inhibitor-1 deficiency|Transcription of plasminogen activator inhibitor,modulator of
-chr7:90710692-101163134	10.452	SGCE	604149	(confirmed) Dystonia-11,myoclonic
+chr7:90710692-101163134	10.452	SERPINE1	173360	(confirmed) Plasminogen activator inhibitor-1 deficiency,613329|Transcription of plasminogen activator inhibitor,modulator of
+chr7:90710692-101163134	10.452	SGCE	604149	(confirmed) Dystonia-11,myoclonic,159900
 chr7:90710692-101163134	10.452	SHFM1	183600	(confirmed) Split hand/foot malformation 1
 chr7:90710692-101163134	10.452	SLC12A9		
-chr7:90710692-101163134	10.452	SLC25A13	603859	(provisional) Citrullinemia,adult-onset type II|Citrullinemia,type II,neonatal-onset
+chr7:90710692-101163134	10.452	SLC25A13	603859	(provisional) Citrullinemia,adult-onset type II,603471|Citrullinemia,type II,neonatal-onset,605814
 chr7:90710692-101163134	10.452	SMURF1		
 chr7:90710692-101163134	10.452	SPDYE3		
 chr7:90710692-101163134	10.452	SRRT		
-chr7:90710692-101163134	10.452	STAG3	608489	(provisional) Premature ovarian failure 8
+chr7:90710692-101163134	10.452	STAG3	608489	(provisional) Premature ovarian failure 8,615723
 chr7:90710692-101163134	10.452	TAC1		
-chr7:90710692-101163134	10.452	TAF6	602955	(provisional) Alazami-Yuan syndrome
+chr7:90710692-101163134	10.452	TAF6	602955	(provisional) Alazami-Yuan syndrome,617126
 chr7:90710692-101163134	10.452	TECPR1		
 chr7:90710692-101163134	10.452	TFPI2		
-chr7:90710692-101163134	10.452	TFR2	604720	(provisional) Hemochromatosis,type 3
+chr7:90710692-101163134	10.452	TFR2	604720	(provisional) Hemochromatosis,type 3,604250
 chr7:90710692-101163134	10.452	TMEM130		
 chr7:90710692-101163134	10.452	TRIM4		
 chr7:90710692-101163134	10.452	TRIM56		
@@ -712,20 +712,20 @@ chr5:170171690-176658608	6.487	HIGD2A
 chr5:170171690-176658608	6.487	HK3		
 chr5:170171690-176658608	6.487	HRH2		
 chr5:170171690-176658608	6.487	KIAA1191		
-chr5:170171690-176658608	6.487	MSX2	123101	(confirmed) Craniosynostosis 2|Parietal foramina 1|Parietal foramina with cleidocranial dysplasia
+chr5:170171690-176658608	6.487	MSX2	123101	(confirmed) Craniosynostosis 2,604757|Parietal foramina 1,168500|Parietal foramina with cleidocranial dysplasia,168550
 chr5:170171690-176658608	6.487	NEURL1B		
-chr5:170171690-176658608	6.487	NKX2-5	600584	(confirmed) Atrial septal defect 7,with or without AV conduction defects|Tetralogy of Fallot|Hypothyroidism,congenital nongoitrous,5|Ventricular septal defect 3|Hypoplastic left heart syndrome 2|Conotruncal heart malformations,variable
+chr5:170171690-176658608	6.487	NKX2-5	600584	(confirmed) Atrial septal defect 7,with or without AV conduction defects,108900|Tetralogy of Fallot,187500|Hypothyroidism,congenital nongoitrous,5,225250|Ventricular septal defect 3,614432|Hypoplastic left heart syndrome 2,614435|Conotruncal heart malformations,variable,217095
 chr5:170171690-176658608	6.487	NOP16		
-chr5:170171690-176658608	6.487	NPM1	164040	(provisional) Leukemia,acute myeloid,somatic
-chr5:170171690-176658608	6.487	NSD1	606681	(confirmed) Sotos syndrome 1|Leukemia,acute myeloid|Beckwith-Wiedemann syndrome
+chr5:170171690-176658608	6.487	NPM1	164040	(provisional) Leukemia,acute myeloid,somatic,601626
+chr5:170171690-176658608	6.487	NSD1	606681	(confirmed) Sotos syndrome 1,117550|Leukemia,acute myeloid,601626|Beckwith-Wiedemann syndrome,130650
 chr5:170171690-176658608	6.487	RANBP17		
 chr5:170171690-176658608	6.487	RNF44		
 chr5:170171690-176658608	6.487	RPL26L1		
 chr5:170171690-176658608	6.487	SFXN1		
-chr5:170171690-176658608	6.487	SH3PXD2B	613293	(provisional) Frank-ter Haar syndrome
+chr5:170171690-176658608	6.487	SH3PXD2B	613293	(provisional) Frank-ter Haar syndrome,249420
 chr5:170171690-176658608	6.487	SIMC1		
 chr5:170171690-176658608	6.487	SMIM23		
-chr5:170171690-176658608	6.487	SNCB	602569	(provisional) Dementia,Lewy body
+chr5:170171690-176658608	6.487	SNCB	602569	(provisional) Dementia,Lewy body,127750
 chr5:170171690-176658608	6.487	STC2		
 chr5:170171690-176658608	6.487	STK10		
 chr5:170171690-176658608	6.487	THOC3		
@@ -738,7 +738,7 @@ chr5:170171690-176658608	6.487	ZNF346
 chr15:70991539-76520785	5.529	ADPGK		
 chr15:70991539-76520785	5.529	ARID3B		
 chr15:70991539-76520785	5.529	ARIH1		
-chr15:70991539-76520785	5.529	BBS4	600374	(confirmed) Bardet-Biedl syndrome 4
+chr15:70991539-76520785	5.529	BBS4	600374	(confirmed) Bardet-Biedl syndrome 4,615982
 chr15:70991539-76520785	5.529	C15ORF39		
 chr15:70991539-76520785	5.529	C15ORF59		
 chr15:70991539-76520785	5.529	CCDC33		
@@ -751,12 +751,12 @@ chr15:70991539-76520785	5.529	CPLX3
 chr15:70991539-76520785	5.529	CSK		
 chr15:70991539-76520785	5.529	CSPG4		
 chr15:70991539-76520785	5.529	CT62		
-chr15:70991539-76520785	5.529	CYP11A1	118485	(confirmed) Adrenal insufficiency,congenital,with 46XY sex reversal,partial or complete
+chr15:70991539-76520785	5.529	CYP11A1	118485	(confirmed) Adrenal insufficiency,congenital,with 46XY sex reversal,partial or complete,613743
 chr15:70991539-76520785	5.529	CYP1A1		
 chr15:70991539-76520785	5.529	CYP1A2		
 chr15:70991539-76520785	5.529	DNM1P34		
-chr15:70991539-76520785	5.529	EDC3	609842	(provisional) Mental retardation,autosomal recessive 50
-chr15:70991539-76520785	5.529	ETFA	608053	(confirmed) Glutaric acidemia IIA
+chr15:70991539-76520785	5.529	EDC3	609842	(provisional) Mental retardation,autosomal recessive 50,616460
+chr15:70991539-76520785	5.529	ETFA	608053	(confirmed) Glutaric acidemia IIA,231680
 chr15:70991539-76520785	5.529	FAM219B		
 chr15:70991539-76520785	5.529	FBXO22		
 chr15:70991539-76520785	5.529	GOLGA6A		
@@ -764,22 +764,22 @@ chr15:70991539-76520785	5.529	GOLGA6B
 chr15:70991539-76520785	5.529	GOLGA6C		
 chr15:70991539-76520785	5.529	GOLGA6D		
 chr15:70991539-76520785	5.529	GRAMD2		
-chr15:70991539-76520785	5.529	HCN4	605206	(provisional) Sick sinus syndrome 2|Brugada syndrome 8
-chr15:70991539-76520785	5.529	HEXA	606869	(confirmed) Tay-Sachs disease|GM2-gangliosidosis,several forms|Hex A pseudodeficiency
+chr15:70991539-76520785	5.529	HCN4	605206	(provisional) Sick sinus syndrome 2,163800|Brugada syndrome 8,613123
+chr15:70991539-76520785	5.529	HEXA	606869	(confirmed) Tay-Sachs disease,272800|GM2-gangliosidosis,several forms,272800|Hex A pseudodeficiency,272800
 chr15:70991539-76520785	5.529	IMP3		
 chr15:70991539-76520785	5.529	ISLR		
 chr15:70991539-76520785	5.529	ISLR2		
 chr15:70991539-76520785	5.529	LARP6		
 chr15:70991539-76520785	5.529	LMAN1L		
-chr15:70991539-76520785	5.529	LOXL1	153456	(confirmed) Exfoliation syndrome,susceptibility to
+chr15:70991539-76520785	5.529	LOXL1	153456	(confirmed) Exfoliation syndrome,susceptibility to,177650
 chr15:70991539-76520785	5.529	LRRC49		
 chr15:70991539-76520785	5.529	MAN2C1		
-chr15:70991539-76520785	5.529	MPI	154550	(confirmed) Congenital disorder of glycosylation,type Ib
+chr15:70991539-76520785	5.529	MPI	154550	(confirmed) Congenital disorder of glycosylation,type Ib,602579
 chr15:70991539-76520785	5.529	MYO9A		
 chr15:70991539-76520785	5.529	NEIL1		
 chr15:70991539-76520785	5.529	NEO1		
 chr15:70991539-76520785	5.529	NPTN		
-chr15:70991539-76520785	5.529	NR2E3	604485	(confirmed) Enhanced S-cone syndrome|Retinitis pigmentosa 37
+chr15:70991539-76520785	5.529	NR2E3	604485	(confirmed) Enhanced S-cone syndrome,268100|Retinitis pigmentosa 37,611131
 chr15:70991539-76520785	5.529	NRG4		
 chr15:70991539-76520785	5.529	ODF3L1		
 chr15:70991539-76520785	5.529	PARP6		
@@ -791,13 +791,13 @@ chr15:70991539-76520785	5.529	REC114
 chr15:70991539-76520785	5.529	RPP25		
 chr15:70991539-76520785	5.529	SCAMP2		
 chr15:70991539-76520785	5.529	SCAMP5		
-chr15:70991539-76520785	5.529	SEMA7A	607961	(confirmed) Blood group,John-Milton-Hagen system
+chr15:70991539-76520785	5.529	SEMA7A	607961	(confirmed) Blood group,John-Milton-Hagen system,614745
 chr15:70991539-76520785	5.529	SENP8		
-chr15:70991539-76520785	5.529	SIN3A	607776	(provisional) Witteveen-Kolk syndrome
+chr15:70991539-76520785	5.529	SIN3A	607776	(provisional) Witteveen-Kolk syndrome,613406
 chr15:70991539-76520785	5.529	SNUPN		
 chr15:70991539-76520785	5.529	SNX33		
 chr15:70991539-76520785	5.529	STOML1		
-chr15:70991539-76520785	5.529	STRA6	610745	(provisional) Microphthalmia,syndromic 9|Microphthalmia,isolated,with coloboma 8
+chr15:70991539-76520785	5.529	STRA6	610745	(provisional) Microphthalmia,syndromic 9,601186|Microphthalmia,isolated,with coloboma 8,601186
 chr15:70991539-76520785	5.529	TBC1D21		
 chr15:70991539-76520785	5.529	THAP10		
 chr15:70991539-76520785	5.529	THSD4		
@@ -807,20 +807,20 @@ chr15:70991539-76520785	5.529	UACA
 chr15:70991539-76520785	5.529	UBE2Q2		
 chr15:70991539-76520785	5.529	UBL7		
 chr15:70991539-76520785	5.529	ULK3		
-chr15:46114468-49530477	3.416	CEP152	613529	(provisional) Microcephaly 9,primary,autosomal recessive|Seckel syndrome 5
+chr15:46114468-49530477	3.416	CEP152	613529	(provisional) Microcephaly 9,primary,autosomal recessive,614852|Seckel syndrome 5,613823
 chr15:46114468-49530477	3.416	COPS2		
 chr15:46114468-49530477	3.416	CTXN2		
 chr15:46114468-49530477	3.416	DUT		
 chr15:46114468-49530477	3.416	EID1		
-chr15:46114468-49530477	3.416	FBN1	134797	(confirmed) Marfan syndrome|Marfan lipodystrophy syndrome|Ectopia lentis,familial|MASS syndrome|Weill-Marchesani syndrome 2,dominant|Aortic aneurysm,ascending,and dissection|Stiff skin syndrome|Acromicric dysplasia|Geleophysic dysplasia 2
+chr15:46114468-49530477	3.416	FBN1	134797	(confirmed) Marfan syndrome,154700|Marfan lipodystrophy syndrome,616914|Ectopia lentis,familial,129600|MASS syndrome,604308|Weill-Marchesani syndrome 2,dominant,608328|Aortic aneurysm,ascending,and dissection|Stiff skin syndrome,184900|Acromicric dysplasia,102370|Geleophysic dysplasia 2,614185
 chr15:46114468-49530477	3.416	GALK2		
 chr15:46114468-49530477	3.416	MYEF2		
 chr15:46114468-49530477	3.416	NDUFAF4P1		
 chr15:46114468-49530477	3.416	SECISBP2L		
 chr15:46114468-49530477	3.416	SEMA6D		
 chr15:46114468-49530477	3.416	SHC4		
-chr15:46114468-49530477	3.416	SLC12A1	600839	(confirmed) Bartter syndrome,type 1
-chr15:46114468-49530477	3.416	SLC24A5	609802	(provisional) Skin/hair/eye pigmentation 4,fair/dark skin|Albinism,oculocutaneous,type VI
+chr15:46114468-49530477	3.416	SLC12A1	600839	(confirmed) Bartter syndrome,type 1,601678
+chr15:46114468-49530477	3.416	SLC24A5	609802	(provisional) Skin/hair/eye pigmentation 4,fair/dark skin,113750|Albinism,oculocutaneous,type VI,113750
 chr5:89344-3214324	3.125	AHRR		
 chr5:89344-3214324	3.125	BRD9		
 chr5:89344-3214324	3.125	C5ORF38		
@@ -834,18 +834,18 @@ chr5:89344-3214324	3.125	IRX4
 chr5:89344-3214324	3.125	LPCAT1		
 chr5:89344-3214324	3.125	LRRC14B		
 chr5:89344-3214324	3.125	MRPL36		
-chr5:89344-3214324	3.125	NDUFS6	603848	(provisional) Mitochondrial complex I deficiency
+chr5:89344-3214324	3.125	NDUFS6	603848	(provisional) Mitochondrial complex I deficiency,252010
 chr5:89344-3214324	3.125	NKD2		
 chr5:89344-3214324	3.125	PDCD6		
 chr5:89344-3214324	3.125	PLEKHG4B		
-chr5:89344-3214324	3.125	SDHA	600857	(confirmed) Leigh syndrome|Mitochondrial respiratory chain complex II deficiency|Cardiomyopathy,dilated,1GG|Paragangliomas 5
+chr5:89344-3214324	3.125	SDHA	600857	(confirmed) Leigh syndrome,256000|Mitochondrial respiratory chain complex II deficiency,252011|Cardiomyopathy,dilated,1GG,613642|Paragangliomas 5,614165
 chr5:89344-3214324	3.125	SDHAP3		
 chr5:89344-3214324	3.125	SLC12A7		
 chr5:89344-3214324	3.125	SLC6A18		
-chr5:89344-3214324	3.125	SLC6A19	608893	(confirmed) Hartnup disorder|Iminoglycinuria,digenic|Hyperglycinuria
-chr5:89344-3214324	3.125	SLC6A3	126455	(confirmed) Nicotine dependence,protection against|Parkinsonism-dystonia,infantile
-chr5:89344-3214324	3.125	SLC9A3	182307	(confirmed) Diarrhea 8,secretory sodium,congenital
-chr5:89344-3214324	3.125	TERT	187270	(confirmed) Pulmonary fibrosis and/or bone marrow failure,telomere-related,1|Dyskeratosis congenita,autosomal recessive 4|Dyskeratosis congenita,autosomal dominant 2|Leukemia,acute myeloid|Melanoma,cutaneous malignant,9
+chr5:89344-3214324	3.125	SLC6A19	608893	(confirmed) Hartnup disorder,234500|Iminoglycinuria,digenic,242600|Hyperglycinuria,138500
+chr5:89344-3214324	3.125	SLC6A3	126455	(confirmed) Nicotine dependence,protection against,188890|Parkinsonism-dystonia,infantile,613135
+chr5:89344-3214324	3.125	SLC9A3	182307	(confirmed) Diarrhea 8,secretory sodium,congenital,616868
+chr5:89344-3214324	3.125	TERT	187270	(confirmed) Pulmonary fibrosis and/or bone marrow failure,telomere-related,1,614742|Dyskeratosis congenita,autosomal recessive 4,613989|Dyskeratosis congenita,autosomal dominant 2,613989|Leukemia,acute myeloid,601626|Melanoma,cutaneous malignant,9,615134
 chr5:89344-3214324	3.125	TPPP		
 chr5:89344-3214324	3.125	TRIP13		
 chr5:89344-3214324	3.125	ZDHHC11		
@@ -859,7 +859,7 @@ chr8:7825131-10920490	3.095	PINX1
 chr8:7825131-10920490	3.095	PPP1R3B		
 chr8:7825131-10920490	3.095	PRAG1		
 chr8:7825131-10920490	3.095	PRSS55		
-chr8:7825131-10920490	3.095	RP1L1	608581	(confirmed) Occult macular dystrophy
+chr8:7825131-10920490	3.095	RP1L1	608581	(confirmed) Occult macular dystrophy,613587
 chr8:7825131-10920490	3.095	SOX7		
 chr8:7825131-10920490	3.095	TNKS		
 chr8:7825131-10920490	3.095	USP17L3		
@@ -868,27 +868,27 @@ chr8:7825131-10920490	3.095	XKR6
 chr12:36144018-38586239	2.442			
 chr3:74950107-76702737	1.753	FAM86DP		
 chr3:74950107-76702737	1.753	FRG2C		
-chr3:74950107-76702737	1.753	ROBO2	602431	(provisional) Vesicoureteral reflux 2
+chr3:74950107-76702737	1.753	ROBO2	602431	(provisional) Vesicoureteral reflux 2,610878
 chr3:74950107-76702737	1.753	ZNF717		
-chrX:121552909-123268848	1.716	GRIA3	305915	(confirmed) Mental retardation,X-linked 94
+chrX:121552909-123268848	1.716	GRIA3	305915	(confirmed) Mental retardation,X-linked 94,300699
 chrX:121552909-123268848	1.716	STAG2		
-chrX:121552909-123268848	1.716	THOC2	300395	(provisional) Mental retardation,X-linked 12/35
-chrX:121552909-123268848	1.716	XIAP	300079	(confirmed) Lymphoproliferative syndrome,X-linked,2
-chr5:177833371-179514581	1.681	ADAMTS2	604539	(provisional) Ehlers-Danlos syndrome,type VIIC
+chrX:121552909-123268848	1.716	THOC2	300395	(provisional) Mental retardation,X-linked 12/35,300957
+chrX:121552909-123268848	1.716	XIAP	300079	(confirmed) Lymphoproliferative syndrome,X-linked,2,300635
+chr5:177833371-179514581	1.681	ADAMTS2	604539	(provisional) Ehlers-Danlos syndrome,type VIIC,225410
 chr5:177833371-179514581	1.681	C5ORF60		
 chr5:177833371-179514581	1.681	CANX		
 chr5:177833371-179514581	1.681	CBY3		
 chr5:177833371-179514581	1.681	CLK4		
 chr5:177833371-179514581	1.681	COL23A1		
-chr5:177833371-179514581	1.681	GRM6	604096	(confirmed) Night blindness,congenital stationary (complete),1B,autosomal recessive
+chr5:177833371-179514581	1.681	GRM6	604096	(confirmed) Night blindness,congenital stationary (complete),1B,autosomal recessive,257270
 chr5:177833371-179514581	1.681	HNRNPH1		
-chr5:177833371-179514581	1.681	LTC4S	246530	(provisional) Leukotriene C4 synthase deficiency
+chr5:177833371-179514581	1.681	LTC4S	246530	(provisional) Leukotriene C4 synthase deficiency,614037
 chr5:177833371-179514581	1.681	MAML1		
 chr5:177833371-179514581	1.681	MGAT4B		
 chr5:177833371-179514581	1.681	MRNIP		
 chr5:177833371-179514581	1.681	RNF130		
 chr5:177833371-179514581	1.681	RUFY1		
-chr5:177833371-179514581	1.681	SQSTM1	601530	(confirmed) Paget disease of bone 3|Frontotemporal dementia and/or amyotrophic lateral sclerosis 3|Neurodegeneration with ataxia,dystonia,and gaze palsy,childhood-onset|Myopathy,distal,with rimmed vacuoles
+chr5:177833371-179514581	1.681	SQSTM1	601530	(confirmed) Paget disease of bone 3,167250|Frontotemporal dementia and/or amyotrophic lateral sclerosis 3,616437|Neurodegeneration with ataxia,dystonia,and gaze palsy,childhood-onset,617145|Myopathy,distal,with rimmed vacuoles,617158
 chr5:177833371-179514581	1.681	TBC1D9B		
 chr5:177833371-179514581	1.681	ZFP2		
 chr5:177833371-179514581	1.681	ZNF354A		
@@ -898,8 +898,8 @@ chr5:177833371-179514581	1.681	ZNF454
 chr5:177833371-179514581	1.681	ZNF879		
 chr2:146374072-147959333	1.585	PABPC1P2		
 chr19:41956174-43297276	1.341	ARHGEF1		
-chr19:41956174-43297276	1.341	ATP1A3	182350	(confirmed) Dystonia-12|Alternating hemiplegia of childhood 2|CAPOS syndrome
-chr19:41956174-43297276	1.341	CD79A	112205	(provisional) Agammaglobulinemia 3
+chr19:41956174-43297276	1.341	ATP1A3	182350	(confirmed) Dystonia-12,128235|Alternating hemiplegia of childhood 2,614820|CAPOS syndrome,601338
+chr19:41956174-43297276	1.341	CD79A	112205	(provisional) Agammaglobulinemia 3,613501
 chr19:41956174-43297276	1.341	CEACAM1		
 chr19:41956174-43297276	1.341	CEACAM21		
 chr19:41956174-43297276	1.341	CEACAM3		
@@ -913,12 +913,12 @@ chr19:41956174-43297276	1.341	CNFN
 chr19:41956174-43297276	1.341	CXCL17		
 chr19:41956174-43297276	1.341	DEDD2		
 chr19:41956174-43297276	1.341	DMRTC2		
-chr19:41956174-43297276	1.341	ERF	611888	(confirmed) Craniosynostosis 4|Chitayat syndrome
+chr19:41956174-43297276	1.341	ERF	611888	(confirmed) Craniosynostosis 4,600775|Chitayat syndrome,617180
 chr19:41956174-43297276	1.341	GRIK5		
 chr19:41956174-43297276	1.341	GSK3A		
-chr19:41956174-43297276	1.341	LIPE	151750	(confirmed) Lipodystrophy,familial partial,type 6
+chr19:41956174-43297276	1.341	LIPE	151750	(confirmed) Lipodystrophy,familial partial,type 6,615980
 chr19:41956174-43297276	1.341	LYPD4		
-chr19:41956174-43297276	1.341	MEGF8	604267	(provisional) Carpenter syndrome 2
+chr19:41956174-43297276	1.341	MEGF8	604267	(provisional) Carpenter syndrome 2,614976
 chr19:41956174-43297276	1.341	PAFAH1B3		
 chr19:41956174-43297276	1.341	POU2F2		
 chr19:41956174-43297276	1.341	PRR19		
@@ -926,53 +926,53 @@ chr19:41956174-43297276	1.341	PSG1
 chr19:41956174-43297276	1.341	PSG3		
 chr19:41956174-43297276	1.341	PSG8		
 chr19:41956174-43297276	1.341	RABAC1		
-chr19:41956174-43297276	1.341	RPS19	603474	(confirmed) Diamond-Blackfan anemia 1
+chr19:41956174-43297276	1.341	RPS19	603474	(confirmed) Diamond-Blackfan anemia 1,105650
 chr19:41956174-43297276	1.341	TMEM145		
 chr19:41956174-43297276	1.341	ZNF526		
 chr19:41956174-43297276	1.341	ZNF574		
 chr21:13291078-14560469	1.269			
 chr8:112404826-113655404	1.251	CSMD3		
 chr22:26515452-27651008	1.136	ASPHD2		
-chr22:26515452-27651008	1.136	CRYBA4	123631	(confirmed) Cataract 23
-chr22:26515452-27651008	1.136	CRYBB1	600929	(provisional) Cataract 17,multiple types
-chr22:26515452-27651008	1.136	HPS4	606682	(provisional) Hermansky-Pudlak syndrome 4
-chr22:26515452-27651008	1.136	MIAT	611082	(provisional) Myocardial infarction,susceptibility to
+chr22:26515452-27651008	1.136	CRYBA4	123631	(confirmed) Cataract 23,610425
+chr22:26515452-27651008	1.136	CRYBB1	600929	(provisional) Cataract 17,multiple types,611544
+chr22:26515452-27651008	1.136	HPS4	606682	(provisional) Hermansky-Pudlak syndrome 4,614073
+chr22:26515452-27651008	1.136	MIAT	611082	(provisional) Myocardial infarction,susceptibility to,608446
 chr22:26515452-27651008	1.136	SEZ6L		
 chr22:26515452-27651008	1.136	SRRD		
 chr22:26515452-27651008	1.136	TFIP11		
 chr22:26515452-27651008	1.136	TPST2		
 chr4:126595623-127678694	1.083			
 chr13:62888254-63957309	1.069			
-chr5:127343595-128367750	1.024	FBN2	612570	(provisional) Contractural arachnodactyly,congenital|Macular degeneration,early-onset
+chr5:127343595-128367750	1.024	FBN2	612570	(provisional) Contractural arachnodactyly,congenital,121050|Macular degeneration,early-onset,616118
 chr5:127343595-128367750	1.024	SLC12A2		
 chr5:127343595-128367750	1.024	SLC27A6		
 chr8:83970765-84991847	1.021			
 chr12:121870927-122885054	1.014	B3GNT4		
 chr12:121870927-122885054	1.014	BCL7A	601406	(provisional) B-cell non-Hodgkin lymphoma,high-grade
 chr12:121870927-122885054	1.014	CLIP1		
-chr12:121870927-122885054	1.014	DIABLO	605219	(provisional) Deafness,autosomal dominant 64
-chr12:121870927-122885054	1.014	HPD	609695	(confirmed) Tyrosinemia,type III|Hawkinsinuria
+chr12:121870927-122885054	1.014	DIABLO	605219	(provisional) Deafness,autosomal dominant 64,614152
+chr12:121870927-122885054	1.014	HPD	609695	(confirmed) Tyrosinemia,type III,276710|Hawkinsinuria,140350
 chr12:121870927-122885054	1.014	IL31		
 chr12:121870927-122885054	1.014	KDM2B		
 chr12:121870927-122885054	1.014	LRRC43		
 chr12:121870927-122885054	1.014	MLXIP		
 chr12:121870927-122885054	1.014	MORN3		
-chr12:121870927-122885054	1.014	ORAI1	610277	(provisional) Immunodeficiency 9|Myopathy,tubular aggregate,2
+chr12:121870927-122885054	1.014	ORAI1	610277	(provisional) Immunodeficiency 9,612782|Myopathy,tubular aggregate,2,615883
 chr12:121870927-122885054	1.014	PSMD9		
 chr12:121870927-122885054	1.014	RHOF		
 chr12:121870927-122885054	1.014	SETD1B		
 chr12:121870927-122885054	1.014	TMEM120B		
-chr12:121870927-122885054	1.014	VPS33A	610034	(provisional) Mucopolysaccharidosis-plus syndrome
+chr12:121870927-122885054	1.014	VPS33A	610034	(provisional) Mucopolysaccharidosis-plus syndrome,617303
 chr12:121870927-122885054	1.014	WDR66		
 chrX:103490616-104239251	0.749	ESX1		
 chrX:103490616-104239251	0.749	IL1RAPL2		
 chrX:72817077-73500436	0.683	CHIC1		
-chrX:72817077-73500436	0.683	XIST	314670	(confirmed) X-inactivation,familial skewed
+chrX:72817077-73500436	0.683	XIST	314670	(confirmed) X-inactivation,familial skewed,300087
 chrX:49809049-50400324	0.591	AKAP4		
 chrX:49809049-50400324	0.591	CCNB3		
-chrX:49809049-50400324	0.591	CLCN5	300008	(confirmed) Dent disease|Nephrolithiasis,type I|Hypophosphatemic rickets|Proteinuria,low molecular weight,with hypercalciuric nephrocalcinosis
+chrX:49809049-50400324	0.591	CLCN5	300008	(confirmed) Dent disease,300009|Nephrolithiasis,type I,310468|Hypophosphatemic rickets,300554|Proteinuria,low molecular weight,with hypercalciuric nephrocalcinosis,308990
 chrX:49809049-50400324	0.591	DGKK		
-chrX:49809049-50400324	0.591	SHROOM4	300579	(confirmed) Stocco dos Santos X-linked mental retardation syndrome
+chrX:49809049-50400324	0.591	SHROOM4	300579	(confirmed) Stocco dos Santos X-linked mental retardation syndrome,300434
 chr1:187447779-187954827	0.507	ERVMER61-1		
 chr17:55053802-55559628	0.506	AKAP1		
 chr17:55053802-55559628	0.506	MSI2		
@@ -983,32 +983,32 @@ chr16:64842787-65163497	0.321	CDH11
 chrX:115765840-116073314	0.307			
 chr4:96983809-97222664	0.239			
 chr5:131601293-131800296	0.199	C5ORF56		
-chr5:131601293-131800296	0.199	IRF1	147575	(confirmed) Myelodysplastic syndrome,preleukemic|Myelogenous leukemia,acute|Gastric cancer,somatic|Nonsmall cell lung cancer,somatic
-chr5:131601293-131800296	0.199	PDLIM4	603422	(provisional) Osteoporosis,susceptibility to
-chr5:131601293-131800296	0.199	SLC22A4	604190	(provisional) Rheumatoid arthritis,susceptibility to
-chr5:131601293-131800296	0.199	SLC22A5	603377	(confirmed) Carnitine deficiency,systemic primary
+chr5:131601293-131800296	0.199	IRF1	147575	(confirmed) Myelodysplastic syndrome,preleukemic|Myelogenous leukemia,acute|Gastric cancer,somatic,613659|Nonsmall cell lung cancer,somatic,211980
+chr5:131601293-131800296	0.199	PDLIM4	603422	(provisional) Osteoporosis,susceptibility to,166710
+chr5:131601293-131800296	0.199	SLC22A4	604190	(provisional) Rheumatoid arthritis,susceptibility to,180300
+chr5:131601293-131800296	0.199	SLC22A5	603377	(confirmed) Carnitine deficiency,systemic primary,212140
 chr14:45429031-45599844	0.171	FKBP3		
 chr14:45429031-45599844	0.171	KLHL28		
 chr14:45429031-45599844	0.171	PRPF39		
 chr14:45429031-45599844	0.171	TOGARAM1		
 chr4:108240049-108384277	0.144			
 chrX:112746094-112886327	0.140			
-chrX:99587433-99724479	0.137	PCDH19	300460	(confirmed) Epileptic encephalopathy,early infantile,9
-chr12:33009217-33141070	0.132	PKP2	602861	(confirmed) Arrhythmogenic right ventricular dysplasia 9
+chrX:99587433-99724479	0.137	PCDH19	300460	(confirmed) Epileptic encephalopathy,early infantile,9,300088
+chr12:33009217-33141070	0.132	PKP2	602861	(confirmed) Arrhythmogenic right ventricular dysplasia 9,609040
 chr4:101240849-101364903	0.124	EMCN		
-chr4:121637208-121750729	0.114	PRDM5	614161	(provisional) Brittle cornea syndrome 2
+chr4:121637208-121750729	0.114	PRDM5	614161	(provisional) Brittle cornea syndrome 2,614170
 chrX:108650264-108761585	0.111	GUCY2F		
 chr4:118597223-118699888	0.103			
 chr2:166038548-166130008	0.091			
-chr2:166038548-166130008	0.091	SCN2A	182390	(confirmed) Seizures,benign familial infantile,3|Epileptic encephalopathy,early infantile,11
+chr2:166038548-166130008	0.091	SCN2A	182390	(confirmed) Seizures,benign familial infantile,3,607745|Epileptic encephalopathy,early infantile,11,613721
 chr12:61909160-61991236	0.082			
 chr2:154950271-155032548	0.082	GALNT13		
-chrX:96668047-96746709	0.079	DIAPH2	300108	(confirmed) Premature ovarian failure
+chrX:96668047-96746709	0.079	DIAPH2	300108	(confirmed) Premature ovarian failure,300511
 chr16:47380517-47449122	0.069	ITFG1		
 chr12:59006002-59053347	0.047			
 chr12:60631985-60652609	0.021			
 chr14:65774207-65790248	0.016			
 chr12:54768447-54775179	0.007	ZNF385A		
 chr4:54136362-54140472	0.004	SCFD2		
-chrX:48680521-48682029	0.002	HDAC6	300272	(confirmed) Chondrodysplasia with platyspondyly,distinctive brachydactyly,hydrocephaly,and microphthalmia
+chrX:48680521-48682029	0.002	HDAC6	300272	(confirmed) Chondrodysplasia with platyspondyly,distinctive brachydactyly,hydrocephaly,and microphthalmia,300863
 chrX:90450654-90450811	0.000			
