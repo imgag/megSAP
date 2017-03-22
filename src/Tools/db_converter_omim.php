@@ -130,7 +130,6 @@ while(!feof($handle))
 	
 	//disorders not empty
 	$disorders = trim($parts[11]);
-	$disorders = preg_replace("/, \d{6,6}/i", "", $disorders); 
 	$disorders = trim(strtr($disorders, array("(1)"=>"", "(2)"=>"", "(3)"=>"", "(4)"=>"", "["=>"", "]"=>"", "{"=>"", "}"=>"", "?"=>"", ";"=>"|")));
 	$disorders = trim(strtr($disorders, array(" , "=>",", " ,"=>",", ", "=>",")));
 	$disorders = trim(strtr($disorders, array(" | "=>"|", " |"=>"|", "| "=>"|")));

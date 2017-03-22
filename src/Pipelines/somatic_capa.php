@@ -19,7 +19,7 @@ $parser->addInfile("n_sys",  "Reference sample processing system INI file (deter
 $parser->addInt("td",  "Min-depth for tumor low-coverage / reports.", true, 100);
 $parser->addInt("nd",  "Min-depth for normal low-coverage / reports.", true, 100);
 $steps_all = array("ma", "vc", "an", "ci", "db");
-$parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,db");
+$parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,ci,db");
 $parser->addFlag("abra", "Turn on ABRA realignment.");
 $parser->addFlag("amplicon", "Turn on amplicon mode.");
 $parser->addFlag("nsc", "Skip sample correlation check (only in pair mode).");
