@@ -78,10 +78,11 @@ if($tumor_only)
 		if(!$no_softclip)
 		{
 			$extra = "";
-			if($clip=="mfb")	$extra = "-overlap_mismatch_baseq";
-			if($clip=="mfm")	$extra = "-overlap_mismatch_mapq";
-			if($clip=="mfr")	$exta = "-overlap_mismatch_remove";
+			if($clip=="mfb")	$extra .= " -overlap_mismatch_baseq";
+			if($clip=="mfm")	$extra .= " -overlap_mismatch_mapq";
+			if($clip=="mfr")	$extra .= " -overlap_mismatch_remove";
 			if($amplicon)	$extra .= " -amplicon";
+			
 		
 			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
 			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in $t_bam -out $tmp1_t_bam $extra", true);
