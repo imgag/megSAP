@@ -2,6 +2,8 @@
 /**
 	@page filter_vcf
 	@todo revisit somatic and somatic_ds (freebayes!) filter
+	@todo rewrite - make filters selectable to the outside - not_off_target, not_coding_splicing, not_synonymous
+	@todo additional parameters: min_tumor_dp, min_normal_dp, min_var_reads, min_var_af, conatmination, max_nor_af, max_var_pf
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -9,14 +11,14 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("filter_vcf", "Filter VCF-files according to different filter criteria.");
+$parser = new ToolBase("filter_vcf", "Filter VCF-files according to different filter criteria. This tool is designed to filter tumor/normal pair samples. This tools automatically chooses variant caller and tumor/normal sample from the vcf header.");
 $parser->addInfile("in", "Input variant file in VCF format containing all necessary columns (s. below for each filter).", false);
 $parser->addOutfile("out", "Output variant file in VCF format.", false);
 $filter = array('somatic', 'somatic_ds', 'coding', 'non_synonymous', 'somatic_diag_capa', 'iVac','all');
 $parser->addString("type", "Filter set to use, can be comma delimited. Valid are: ".implode(",",$filter).".",false);
 //optional
 $parser->addFlag("keep", "Keep all variants. Otherwise only variants passing all filters will be kept");
-$parser->addString("roi", "Target region BED file (for off-target filter).", true, "");
+$parser->addString("roi", "Target region BED file (is required by off-target filter).", true, "");
 $parser->addFloat("contamination", "Estimated fraction of tumor cells in normal sample.",true,0.00);
 $parser->addFloat("min_af", "Minimum variant allele frequency in tumor.",true,0.05);
 extract($parser->parse($argv));
@@ -105,6 +107,7 @@ foreach($in_file->getComments() as $comment)
 	}
 }
 if(is_null($tumor_col))	trigger_error("No tumor column given!",E_USER_ERROR);
+if(is_null($normal_col))	trigger_error("No normal column given!",E_USER_NOTICE);
 if(is_null($var_caller))	trigger_error("Variant caller not identified.",E_USER_ERROR);
 
 //extract relevant MISO terms for filtering
@@ -367,21 +370,25 @@ function filter_not_coding_splicing(&$filter, $info, $miso_terms_coding)
 function filter_off_target(&$filter, $chr, $start, $tumor_id, $normal_id, $targets)
 {
 	//filter out bad rows
-	$skip_variant = true;
-	if(isset($targets[$chr]))
+	if(!empty($targets))
 	{
-		foreach($targets[$chr] as $regions)
+		$skip_variant = true;
+		if(isset($targets[$chr]))
 		{
-			list($s,$e) = $regions;
-			if($e >= $start && $s <= $start )
+			foreach($targets[$chr] as $regions)
 			{
-				$skip_variant = false;
-				break;
+				list($s,$e) = $regions;
+				if($e >= $start && $s <= $start )
+				{
+					$skip_variant = false;
+					break;
+				}
 			}
 		}
+		add_filter($filter, "off_target", "Variant is off target (filter_vcf).");
+		if($skip_variant) activate_filter($filter, "off_target");
 	}
-	add_filter($filter, "off_target", "Variant is off target (filter_vcf).");
-	if($skip_variant) activate_filter($filter, "off_target");
+	else	trigger_error("Cannot use off-target filter without targets.",E_USER_ERROR);
 }
 
 function filter_somatic(&$filter, $genotype, $tumor, $normal, $type, $alt, $contamination, $min_af, $var_caller)
@@ -397,22 +404,22 @@ function filter_somatic(&$filter, $genotype, $tumor, $normal, $type, $alt, $cont
 	$nf = NULL;
 	if($var_caller=="strelka" && $type == "SNV")
 	{
-		list($td,$tf) = strelka_SNV($genotype,$tumor,$alt);
-		list($nd,$nf) = strelka_SNV($genotype,$normal,$alt);
+		list($td,$tf) = vcf_strelka_snv($genotype,$tumor,$alt);
+		list($nd,$nf) = vcf_strelka_snv($genotype,$normal,$alt);
 	}
 	else if($var_caller=="strelka" && $type == "INDEL")
 	{
-		list($td,$tf) = strelka_INDEL($genotype,$tumor);
-		list($nd,$nf) = strelka_INDEL($genotype,$normal);
+		list($td,$tf) = vcf_strelka_indel($genotype,$tumor);
+		list($nd,$nf) = vcf_strelka_indel($genotype,$normal);
 	}
 	else if($var_caller=="freebayes" && !$tumor_only)
 	{
-		list($td,$tf) = freebayes($genotype,$tumor);
-		list($nd,$nf) = freebayes($genotype,$normal);
+		list($td,$tf) = vcf_freebayes($genotype,$tumor);
+		list($nd,$nf) = vcf_freebayes($genotype,$normal);
 	}
 	else if($tumor_only)
 	{
-		list($td,$tf) = freebayes($genotype,$tumor);
+		list($td,$tf) = vcf_freebayes($genotype,$tumor);
 	}
 
 	//filter out bad rows
@@ -464,22 +471,22 @@ function filter_somatic_ds(&$filter, $genotype,$tumor,$normal,$type,$alt,$var_ca
 	$nf = NULL;
 	if($var_caller=="strelka" && $type == "SNV")
 	{
-		list($td,$tf) = strelka_SNV($genotype,$tumor,$alt);
-		list($nd,$nf) = strelka_SNV($genotype,$normal,$alt);
+		list($td,$tf) = vcf_strelka_snv($genotype,$tumor,$alt);
+		list($nd,$nf) = vcf_strelka_snv($genotype,$normal,$alt);
 	}
 	else if($var_caller=="strelka" && $type == "INDEL")
 	{
-		list($td,$tf) = strelka_INDEL($genotype,$tumor);
-		list($nd,$nf) = strelka_INDEL($genotype,$normal);
+		list($td,$tf) = vcf_strelka_indel($genotype,$tumor);
+		list($nd,$nf) = vcf_strelka_indel($genotype,$normal);
 	}
 	else if($var_caller=="freebayes" && !$tumor_only)
 	{
-		list($td,$tf) = freebayes($genotype,$tumor);
-		list($nd,$nf) = freebayes($genotype,$normal);
+		list($td,$tf) = vcf_freebayes($genotype,$tumor);
+		list($nd,$nf) = vcf_freebayes($genotype,$normal);
 	}
 	else if($tumor_only)
 	{
-		list($td,$tf) = freebayes($genotype,$tumor);
+		list($td,$tf) = vcf_freebayes($genotype,$tumor);
 	}
 
 	//filter out bad rows => keep
@@ -531,22 +538,22 @@ function filter_somatic_capa(&$filter, $info, $genotype, $tumor, $normal, $type,
 	$nf = NULL;
 	if($var_caller=="strelka" && $type == "SNV")
 	{
-		list($td,$tf) = strelka_SNV($genotype,$tumor,$alt);
-		list($nd,$nf) = strelka_SNV($genotype,$normal,$alt);
+		list($td,$tf) = vcf_strelka_snv($genotype,$tumor,$alt);
+		list($nd,$nf) = vcf_strelka_snv($genotype,$normal,$alt);
 	}
 	else if($var_caller=="strelka" && $type == "INDEL")
 	{
-		list($td,$tf) = strelka_INDEL($genotype,$tumor);
-		list($nd,$nf) = strelka_INDEL($genotype,$normal);
+		list($td,$tf) = vcf_strelka_indel($genotype,$tumor);
+		list($nd,$nf) = vcf_strelka_indel($genotype,$normal);
 	}
 	else if($var_caller=="freebayes" && !$tumor_only)
 	{
-		list($td,$tf) = freebayes($genotype,$tumor);
-		list($nd,$nf) = freebayes($genotype,$normal);
+		list($td,$tf) = vcf_freebayes($genotype,$tumor);
+		list($nd,$nf) = vcf_freebayes($genotype,$normal);
 	}
 	else if($tumor_only)
 	{
-		list($td,$tf) = freebayes($genotype,$tumor);
+		list($td,$tf) = vcf_freebayes($genotype,$tumor);
 	}
 
 	//filter
@@ -562,85 +569,6 @@ function filter_somatic_capa(&$filter, $info, $genotype, $tumor, $normal, $type,
 	if ($tg>$max_af || $ex>$max_af || $kv>$max_af) activate_filter($filter, "somca_db_frequencies");
 }
 
-function strelka_SNV($genotype, $column, $alt)
-{
-	$g = explode(":",$genotype);
-	$index_depth = NULL;
-	$index_TU = NULL;
-	$index_AU = NULL;
-	$index_CU = NULL;
-	$index_GU = NULL;
-	for($i=0;$i<count($g);++$i)
-	{
-		if($g[$i]=="DP")	$index_depth = $i;
-		if($g[$i]=="TU")	$index_TU = $i;
-		if($g[$i]=="AU")	$index_AU = $i;
-		if($g[$i]=="CU")	$index_CU = $i;
-		if($g[$i]=="GU")	$index_GU = $i;
-	}
-	if(is_null($index_depth) || is_null($index_TU) || is_null($index_AU) || is_null($index_CU) || is_null($index_GU))	trigger_error("Invalid strelka format; either field DP or A/C/G/T not available.",E_USER_ERROR);
-	
-	$d = explode(":",$column)[$index_depth];
-	list($nuc_t,) = explode(",", explode(":",$column)[$index_TU]);
-	list($nuc_a,) = explode(",", explode(":",$column)[$index_AU]);
-	list($nuc_c,) = explode(",", explode(":",$column)[$index_CU]);
-	list($nuc_g,) = explode(",", explode(":",$column)[$index_GU]);
-	$o = 0;
-	if($alt == "T") $o = $nuc_t;
-	if($alt == "A") $o = $nuc_a;
-	if($alt == "C") $o = $nuc_c;
-	if($alt == "G") $o = $nuc_g;
-	if(($nuc_a+$nuc_t+$nuc_c+$nuc_g)==0)	return array($d,"n/a");
-	$f = number_format($o/($nuc_a+$nuc_t+$nuc_c+$nuc_g),4);
-
-	return array($d,$f);
-}
-
-function strelka_INDEL($genotype, $column)
-{
-	$g = explode(":",$genotype);
-
-	$index_depth = NULL;
-	$index_TIR = NULL;
-	$index_TAR = NULL;
-	for($i=0;$i<count($g);++$i)
-	{
-		if($g[$i]=="DP")	$index_depth = $i;
-		if($g[$i]=="TIR")	$index_TIR = $i;
-		if($g[$i]=="TAR")	$index_TAR = $i;
-	}
-	
-	if(is_null($index_depth) || is_null($index_TIR) || is_null($index_TAR))	trigger_error("Invalid strelka format; either field DP, TIR or TAR not available.",E_USER_ERROR);
-	$d = explode(":",$column)[$index_depth];
-	list($tir,) = explode(",", explode(":",$column)[$index_TIR]);
-	list($tar,) = explode(",", explode(":",$column)[$index_TAR]);
-
-	//tir and tar contain strong supportin reads, tor (not considered here) contains weak supportin reads like breakpoints
-	//only strong supporting reads are used for filtering
-	$f = "n/a";
-	if(($tir+$tar) != 0)	$f = number_format($tir/($tir+$tar),4);
-	
-	return array($d,$f);
-}
-
-function freebayes($genotype, $column)
-{
-	$g = explode(":",$genotype);
-	$index_DP = NULL;
-	$index_AO = NULL;
-	for($i=0;$i<count($g);++$i)
-	{
-		if($g[$i]=="DP")	$index_DP = $i;
-		if($g[$i]=="AO")	$index_AO = $i;
-	}
-
-	if(is_null($index_DP) || is_null($index_AO))	trigger_error("Invalid freebayes format; either field DP or AO not available.",E_USER_ERROR);
-	
-	$d = explode(":",$column)[$index_DP];
-	$f = "n/a";
-	if($d>0)	$f = number_format(explode(":",$column)[$index_AO]/$d, 4);
-	return array($d,$f);
-}
 
 function add_filter(&$filter,$id,$desc)
 {

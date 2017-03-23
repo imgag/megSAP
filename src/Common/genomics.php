@@ -1241,4 +1241,74 @@ function load_vcf_normalized($filename)
 }
 
 
+function vcf_strelka_snv($format_col, $sample_col, $obs)
+{
+	$f = explode(":",$format_col);
+	$index_depth = array_search("DP",$f);
+	$index_TU = array_search("TU",$f);
+	$index_AU = array_search("AU",$f);
+	$index_CU = array_search("CU",$f);
+	$index_GU = array_search("GU",$f);
+	if($index_depth===FALSE || $index_TU===FALSE || $index_AU===FALSE || $index_CU===FALSE || $index_GU===FALSE)	trigger_error("Invalid strelka format; either field DP or A/C/G/T not available.",E_USER_ERROR);
+	
+	$d = explode(":",$sample_col)[$index_depth];
+	
+	list($tu,) = explode(",", explode(":",$sample_col)[$index_TU]);
+	list($au,) = explode(",", explode(":",$sample_col)[$index_AU]);
+	list($cu,) = explode(",", explode(":",$sample_col)[$index_CU]);
+	list($gu,) = explode(",", explode(":",$sample_col)[$index_GU]);
+	$sum = $au + $tu + $cu + $gu;
+
+	$o = 0;
+	if($obs == "T") $o = $tu;
+	else if($obs == "A") $o = $au;
+	else if($obs == "C") $o = $cu;
+	else if($obs == "G") $o = $gu;
+	else	trigger_error("Alternative allele '$obs' unknown.",E_USER_WARNING);	// unknown alleles are 'A,G', '.'
+
+	if($sum==0)	return array($d,null);
+	$f = number_format($o/$sum,4);
+
+	return array($d,$f);
+}
+
+function vcf_strelka_indel($format_col, $sample_col)
+{
+	$f = explode(":",$format_col);
+
+	$index_depth =  array_search("DP",$f);
+	$index_TIR =  array_search("TIR",$f);
+	$index_TAR =  array_search("TAR",$f);
+	if($index_depth===FALSE || $index_TIR===FALSE || $index_TAR===FALSE)	trigger_error("Invalid strelka format; either field DP, TIR or TAR not available.",E_USER_ERROR);
+	
+	$d = explode(":",$sample_col)[$index_depth];
+	list($tir,) = explode(",", explode(":",$sample_col)[$index_TIR]);
+	list($tar,) = explode(",", explode(":",$sample_col)[$index_TAR]);
+
+	//tir and tar contain strong supportin reads, tor (not considered here) contains weak supportin reads like breakpoints
+	//only strong supporting reads are used for filtering
+	$f = null;
+	if(($tir+$tar) != 0)	$f = number_format($tir/($tir+$tar),4);
+	
+	return array($d,$f);
+}
+
+function vcf_freebayes($format_col, $sample_col)
+{
+	$g = explode(":",$format_col);
+	$index_DP = NULL;
+	$index_AO = NULL;
+	for($i=0;$i<count($g);++$i)
+	{
+		if($g[$i]=="DP")	$index_DP = $i;
+		if($g[$i]=="AO")	$index_AO = $i;
+	}
+
+	if(is_null($index_DP) || is_null($index_AO))	trigger_error("Invalid freebayes format; either field DP or AO not available.",E_USER_ERROR);
+	
+	$d = explode(":",$sample_col)[$index_DP];
+	$f = null;
+	if($d>0)	$f = number_format(explode(":",$sample_col)[$index_AO]/$d, 4);
+	return array($d,$f);
+}
 ?>

@@ -343,60 +343,26 @@ while(!feof($handle))
 		{
 			if($variant == "SNV")
 			{
-				//tumor
-				list($nuc_t,) = explode(",", extract_from_genotype_field($cols[8], $cols[$tumor_idx], "TU"));
-				list($nuc_a,) = explode(",", extract_from_genotype_field($cols[8], $cols[$tumor_idx], "AU"));
-				list($nuc_c,) = explode(",", extract_from_genotype_field($cols[8], $cols[$tumor_idx], "CU"));
-				list($nuc_g,) = explode(",", extract_from_genotype_field($cols[8], $cols[$tumor_idx], "GU"));
-				$o = 0;
-				if($a == "T") $o = $nuc_t;
-				if($a == "A") $o = $nuc_a;
-				if($a == "C") $o = $nuc_c;
-				if($a == "G") $o = $nuc_g;
-				$tumor_af = number_format($o/($nuc_a+$nuc_t+$nuc_c+$nuc_g),4);
-				$tumor_dp = $nuc_a+$nuc_t+$nuc_c+$nuc_g;
+				// tumor
+				list($tumor_dp,$tumor_af) = vcf_strelka_snv($cols[8],$cols[$tumor_idx],$a);
 				
 				//normal
-				if(!$tumor_only)
-				{
-					list($nuc_t,) = explode(",", extract_from_genotype_field($cols[8], $cols[$normal_idx], "TU"));
-					list($nuc_a,) = explode(",", extract_from_genotype_field($cols[8], $cols[$normal_idx], "AU"));
-					list($nuc_c,) = explode(",", extract_from_genotype_field($cols[8], $cols[$normal_idx], "CU"));
-					list($nuc_g,) = explode(",", extract_from_genotype_field($cols[8], $cols[$normal_idx], "GU"));
-					$o = 0;
-					if($a == "T") $o = $nuc_t;
-					if($a == "A") $o = $nuc_a;
-					if($a == "C") $o = $nuc_c;
-					if($a == "G") $o = $nuc_g;
-					if(($nuc_a+$nuc_t+$nuc_c+$nuc_g)!=0)	$normal_af = number_format($o/($nuc_a+$nuc_t+$nuc_c+$nuc_g),4);
-					$normal_dp = $nuc_a+$nuc_t+$nuc_c+$nuc_g;
-				}
+				if(!$tumor_only)	list($normal_dp,$normal_af) = vcf_strelka_snv($cols[8],$cols[$normal_idx],$a);
 			}
 			else if($variant == "INDEL")
 			{
-				list($tir,) = explode(",", extract_from_genotype_field($cols[8], $cols[$tumor_idx], "TIR"));
-				list($tar,) = explode(",", extract_from_genotype_field($cols[8], $cols[$tumor_idx], "TAR"));
-				if(($tir+$tar)!=0)	$tumor_af = number_format($tir/($tir+$tar),4);
-				$tumor_dp = $tir+$tar;
+				list($tumor_dp,$tumor_af) = vcf_strelka_indel($cols[8],$cols[$tumor_idx]);
 				
 				//normal
-				if(!$tumor_only)
-				{
-					list($tir,) = explode(",", extract_from_genotype_field($cols[8], $cols[$normal_idx], "TIR"));
-					list($tar,) = explode(",", extract_from_genotype_field($cols[8], $cols[$normal_idx], "TAR"));
-					if(($tir+$tar)!=0)	$normal_af = number_format($tir/($tir+$tar),4);
-					$normal_dp = $tir+$tar;
-				}
+				if(!$tumor_only)	list($normal_dp,$normal_af) = vcf_strelka_indel($cols[8],$cols[$normal_idx]);
 			}
 		}
 		else if($var_caller=="freebayes")	//freebayes
 		{
-			$tumor_af = number_format(extract_from_genotype_field($cols[8], $cols[$tumor_idx], "AO")/extract_from_genotype_field($cols[8], $cols[$tumor_idx], "DP"), 4);
+			list($tumor_dp, $tumor_af) = vcf_freebayes($cols[8], $cols[$tumor_idx]);
 			if(!$tumor_only)
 			{
-				$normal_af = "n/a";
-				$d = extract_from_genotype_field($cols[8], $cols[$normal_idx], "DP");
-				if($d > 0)	$normal_af = number_format(extract_from_genotype_field($cols[8], $cols[$normal_idx], "AO")/$d, 4);
+				list($normal_dp, $normal_af) = vcf_freebayes($cols[8], $cols[$normal_idx]);
 			}
 		}
 		else

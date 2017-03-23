@@ -2,8 +2,8 @@ Report zur bioinformatischen Analyse:
 
 Tumor: GS150497_01 (Externer Name: 151680A2)
 Normal: GS150496_01 (Externer Name: 151705)
-Datum: 20.03.2017
-Revision der Analysepipeline: megSAP 0.1-144-g4e2e4d6
+Datum: 23.03.2017
+Revision der Analysepipeline: megSAP 0.1-152-g4951989
 Analysesystem: ssSC_v2
 Zielregionen: 5616 (1256683 Basen gesamt)
 
@@ -17,9 +17,9 @@ Varianten:
   Gefundene Varianten: 3
   Details:
     #Position	W	M	QUALITY	F/T_Tumor	F/T_Normal	COSMIC	cDNA
-    chr8:38271515-38271515	T	C	604	0.465/596	0.000/290		FGFR1 c.2306A>G p.His769Arg (identisch zu FGFR1 c.2207A>G p.His736Arg, FGFR1 c.1946A>G p.His649Arg, FGFR1 c.2183A>G p.His728Arg, FGFR1 c.1940A>G p.His647Arg, FGFR1 c.2213A>G p.His738Arg)
-    chr9:98231134-98231134	C	T	203	0.171/404	0.000/366		PTCH1 c.2149G>A p.Asp717Asn (identisch zu PTCH1 c.1696G>A p.Asp566Asn, PTCH1 c.1951G>A p.Asp651Asn, PTCH1 c.2146G>A p.Asp716Asn, LOC100507346 n.790C>T )
-    chrX:48651570-48651570	G	A	650	0.941/152	0.000/133		GATA1 c.745-9G>A 
+    chr8:38271515-38271515	T	C	604	0.465/604	0.000/291		FGFR1 c.2306A>G p.His769Arg (identisch zu FGFR1 c.2207A>G p.His736Arg, FGFR1 c.1946A>G p.His649Arg, FGFR1 c.2183A>G p.His728Arg, FGFR1 c.1940A>G p.His647Arg, FGFR1 c.2213A>G p.His738Arg)
+    chr9:98231134-98231134	C	T	203	0.171/410	0.000/374		PTCH1 c.2149G>A p.Asp717Asn (identisch zu PTCH1 c.1696G>A p.Asp566Asn, PTCH1 c.1951G>A p.Asp651Asn, PTCH1 c.2146G>A p.Asp716Asn, LOC100507346 n.790C>T )
+    chrX:48651570-48651570	G	A	650	0.941/156	0.000/137		GATA1 c.745-9G>A 
 
 CNVs:
   #chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_coordinates	genes

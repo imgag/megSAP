@@ -315,5 +315,25 @@ check(relative_path(src_folder(), data_folder()),"../test/data");
 check(relative_path(data_folder(), src_folder()),"../../src");
 end_test();
 
+//##################################################################################
+start_test("vcf_strelka_snv");
+check(vcf_strelka_snv("AU:CU:DP:FDP:GU:SDP:SUBDP:TU","0,0:0,0:236:3:231,314:0:0:2,6","A"), array(236,0));
+check(vcf_strelka_snv("AU:CU:DP:FDP:GU:SDP:SUBDP:TU","0,0:0,0:236:3:231,314:0:0:2,6","C"), array(236,0));
+check(vcf_strelka_snv("AU:CU:DP:FDP:GU:SDP:SUBDP:TU","0,0:0,0:236:3:231,314:0:0:2,6","T"), array(236,0.0086));
+check(vcf_strelka_snv("AU:CU:DP:FDP:GU:SDP:SUBDP:TU","0,0:0,0:236:3:231,314:0:0:2,6","G"), array(236,0.9914));
+check(vcf_strelka_snv("AU:CU:DP:FDP:GU:SDP:SUBDP:TU","0,0:0,0:236:3:0,0:0:0:0,0","G"), array(236,null));
+end_test();
 
+//##################################################################################
+start_test("vcf_strelka_indel");
+check(vcf_strelka_indel("DP:DP2:DP50:FDP50:SUBDP50:TAR:TIR:TOR","117:117:115.65:1.38:0.00:17,19:29,31:74,77"), array(117,0.6304));
+check(vcf_strelka_indel("DP:DP2:DP50:FDP50:SUBDP50:TAR:TIR:TOR","275:275:255.49:9.44:0.00:372,401:0,0:16,3"), array(275,0.0000));
+check(vcf_strelka_indel("DP:DP2:DP50:FDP50:SUBDP50:TAR:TIR:TOR","275:275:255.49:9.44:0.00:0,0:0,0:16,3"), array(275,null));
+end_test();
+
+//##################################################################################
+start_test("vcf_freebayes_indel");
+check(vcf_freebayes("GT:GL:DP:RO:QR:AO:QA","0/1:-23.0878,0,-65.9409:29:21:752:8:276"), array(29,0.2759));
+check(vcf_freebayes("GT:GL:DP:RO:QR:AO:QA","0/1:-23.0878,0,-65.9409:0:21:752:8:276"), array(0,null));
+end_test();
 ?>
