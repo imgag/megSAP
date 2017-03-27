@@ -178,7 +178,7 @@ if (in_array("rc", $steps))
 	$counts = array();
 	foreach($arms as $arm => $coords)
 	{	
-		list($stdout) = $parser->exec("samtools", "view -q 15 {$folder}/{$name}.bam $coords | wc -l", false);
+		list($stdout) = $parser->exec(get_path("samtools"), "view -q 15 {$folder}/{$name}.bam $coords | wc -l", false);
 		$counts[$arm] = trim($stdout[0]);
 	}
 	$sum = array_sum(array_values($counts));
