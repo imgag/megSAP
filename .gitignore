@@ -50,9 +50,14 @@
 /test/data_somatic/Sample_GS110168/
 /test/data_somatic/Sample_GS110169/
 /test/data_somatic/Sample_GS150344_01/
+/test/data_somatic/Sample_SampleUID1_01/
+/test/data_somatic/Sample_SampleUID2_01/
 /test/data_somatic/results_pair1/
 /test/data_somatic/results_pair2/
 /test/data_somatic/results_single/
+/test/data_somatic/results_uid1/
+/test/data_somatic/results_uid2/
+/test/data_somatic/results_amp/
 
 /test/data_out/tool_test_*
 

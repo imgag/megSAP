@@ -50,14 +50,14 @@ diff:
 	php ../compare_variants.php GS160540_01-GS160539_01.emed1.GSvar results_emed1/GS160540_01-GS160539_01.GSvar
 	php ../compare_variants.php GS160540_01-GS160539_01_var_annotated.emed1.vcf.gz results_emed1/GS160540_01-GS160539_01_var_annotated.vcf.gz
 	php ../compare_variants.php GS160539_01_adme_var_annotated.emed1.vcf.gz results_emed1/GS160539_01_adme_var_annotated.vcf.gz
-	diff GS160540_01-GS160539_01_var_copy.emed1.tsv results_emed1/GS160540_01-GS160539_01_var_copy.tsv
+	diff GS160540_01-GS160539_01_var_copy.emed1.tsv results_emed1/GS160540_01-GS160539_01_cnvs.tsv
 	diff I16R003a06_01-I16R003a05_01_var_fusions.emed1.tsv results_emed1/I16R003a06_01-I16R003a05_01_var_fusions.tsv
 	#structural variants currently not implemented / no error message by SampleDiff	php ../compare_variants.php GS160540_01-GS160539_01_var_structural.emed1.out.vcf.gz results_emed1/GS160540_01-GS160539_01_var_structural.vcf.gz
 	#emed2
 	php ../compare_variants.php GS160540_01-GS160539_01.emed2.GSvar results_emed2/GS160540_01-GS160539_01.GSvar
 	php ../compare_variants.php GS160540_01-GS160539_01_var_annotated.emed2.vcf.gz results_emed2/GS160540_01-GS160539_01_var_annotated.vcf.gz
 	php ../compare_variants.php GS160539_01_adme_var_annotated.emed2.vcf.gz results_emed2/GS160539_01_adme_var_annotated.vcf.gz
-	diff GS160540_01-GS160539_01_var_copy.emed2.tsv results_emed2/GS160540_01-GS160539_01_var_copy.tsv
+	diff GS160540_01-GS160539_01_var_copy.emed2.tsv results_emed2/GS160540_01-GS160539_01_cnvs.tsv
 
 finished:
 	@echo "Finished pipeline test."

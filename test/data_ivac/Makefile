@@ -49,12 +49,12 @@ diff:
 	#ivac1
 	php ../compare_variants.php GS140850_02-GS140851_02_ivac1.out.GSvar results_ivac1/GS140850_02-GS140851_02.GSvar
 	php ../compare_variants.php GS140850_02-GS140851_02_var_annotated_ivac1.out.vcf.gz results_ivac1/GS140850_02-GS140851_02_var_annotated.vcf.gz
-	diff GS140850_02-GS140851_02_var_copy_ivac1.out.tsv results_ivac1/GS140850_02-GS140851_02_var_copy.tsv
+	diff GS140850_02-GS140851_02_var_copy_ivac1.out.tsv results_ivac1/GS140850_02-GS140851_02_cnvs.tsv
 	diff I14R010d01_01-I14R010d02_01_var_fusions_ivac1.out.tsv results_ivac1/I14R010d01_01-I14R010d02_01_var_fusions.tsv
 	#ivac2
 	php ../compare_variants.php GS140850_02-GS140851_02_ivac2.out.GSvar results_ivac2/GS140850_02-GS140851_02.GSvar
 	php ../compare_variants.php GS140850_02-GS140851_02_var_annotated_ivac2.out.vcf.gz results_ivac2/GS140850_02-GS140851_02_var_annotated.vcf.gz
-	diff GS140850_02-GS140851_02_var_copy_ivac2.out.tsv results_ivac2/GS140850_02-GS140851_02_var_copy.tsv
+	diff GS140850_02-GS140851_02_var_copy_ivac2.out.tsv results_ivac2/GS140850_02-GS140851_02_cnvs.tsv
 
 finished:
 	@echo "Finished pipeline test."

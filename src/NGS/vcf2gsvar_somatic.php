@@ -212,7 +212,7 @@ while(!feof($handle))
 	$sift = extract_from_info_field("dbNSFP_SIFT_pred", $info, "", FALSE);
 	$pp2 = extract_from_info_field("dbNSFP_Polyphen2_HVAR_pred", $info, "", FALSE);
 	$fathmm = extract_from_info_field("dbNSFP_FATHMM_pred", $info, "", FALSE);
-	$cadd = extract_from_info_field("dbNSFP_CADD_phred", $info, "", FALSE);
+	$cadd = max(explode(",",extract_from_info_field("dbNSFP_CADD_phred", $info, "", FALSE)));
 	if ($cadd!="") $cadd = number_format($cadd, 2);
 
 	$interpro = extract_from_info_field("dbNSFP_Interpro_domain", $info, "",FALSE);
