@@ -28,5 +28,4 @@ The system INI file described the wet-lab processing of the sample and defines t
 * `shotgun` - `true` for randomly-fragmented reads,  `false` for amplicon-based reads.
 * `build` - Currently only 'hg19' is supported.
 
-[back to the start page](../Readme.md)
-
+[back to the start page](../README.md)

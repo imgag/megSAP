@@ -79,7 +79,8 @@ extract($parser->parse($argv));
 
 //extract processing system information from DB
 $sys = load_system($system, basename($c, ".bam"));
-if ($sys['target_file']=="")
+$target_file = $sys['type']!="WGS" ? $sys['target_file'] : get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed";
+if ($target_file=="")
 {
 	trigger_error("Cannot perform trio analysis without target region (processing systems of child is '".$sys["name_short"]."')!", E_USER_ERROR);
 }
@@ -134,7 +135,7 @@ if ($start=="check")
 $vcf_all = $out_folder.basename($c, ".bam")."_all.vcf.gz";
 if ($start=="check" || $start=="vc")
 {
-	$parser->execTool("NGS/vc_freebayes.php", "-bam $c $m $f -out $vcf_all -target ".$sys['target_file']." -min_mq 20 -min_af 0.1 -build ".$sys['build'], true);	
+	$parser->execTool("NGS/vc_freebayes.php", "-bam $c $m $f -out $vcf_all -target $target_file -min_mq 20 -min_af 0.1 -build ".$sys['build'], true);	
 }
 
 //(5) convert VCF to file with only child column, but with TRIO annotation
