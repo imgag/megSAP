@@ -51,7 +51,7 @@ else
 	$s_txt = $o_folder."/".$t_id."-".$n_id."_report.txt";
 }
 
-$extras = array("-filter_set somatic_diag_capa", "-steps {$steps}");
+$extras = array("-filter_set coding,non_synonymous,somatic_capa,off_target", "-steps {$steps}");
 if($abra) $extras[] = "-abra";
 if($amplicon) $extras[] = "-amplicon";
 if($nsc) $extras[] = "-nsc";

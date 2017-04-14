@@ -19,7 +19,7 @@ $parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To proc
 $parser->addString("o_folder", "Output folder.", false);
 $steps_all = array("ma", "vc", "an", "ci", "db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,db");
-$parser->addEnum("filter_set","Filter set to use. Only if annotation step is selected",true,array("somatic","coding","non_synonymous","somatic_diag_capa","iVac"),"somatic");
+$parser->addString("filter_set","Filter set to use. Only if annotation step is selected",true,"somatic");
 // optional
 $parser->addFloat("min_af", "Allele frequency detection limit.", true, 0.05);
 $parser->addInfile("t_sys",  "Tumor processing system INI file (determined from 't_id' by default).", true);
