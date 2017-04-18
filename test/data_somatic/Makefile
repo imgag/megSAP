@@ -56,10 +56,10 @@ diff_pair:
 	php ../compare_variants.php GS110168-GS110169.GSvar.out_freebayes results_pair2/GS110168-GS110169.GSvar
 
 somatic_amp:
-	php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id SampleUID2_01 -n_id na -o_folder results_amp -steps ma,vc,an -reduce_variants_filter -t_sys system_amp.ini --log results_amp/SampleUID2_01.log
+	#php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id SampleUID2_01 -n_id na -o_folder results_amp -steps ma,vc,an -reduce_variants_filter -t_sys system_amp.ini --log results_amp/SampleUID2_01.log
 
 diff_amp:
-	php ../compare_variants.php SampleUID2_01.GSvar.out_amp results_amp/SampleUID2_01.GSvar
+	#php ../compare_variants.php SampleUID2_01.GSvar.out_amp results_amp/SampleUID2_01.GSvar
 
 somatic_uid:
 	#MIPs
