@@ -135,6 +135,10 @@ function getExternalNames($name, $name_ex)
 		{
 			$qbic_name = $name;
 		}
+		if (starts_with($name, "RO_ZPM_"))
+		{
+			$qbic_name = $name;
+		}
 		
 		//Check (derived) samples in Probeneingang
 		if (starts_with($name, "FO") && strlen($name)>6)
