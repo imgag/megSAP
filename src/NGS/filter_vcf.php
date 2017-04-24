@@ -4,6 +4,7 @@
 	@todo revisit somatic and somatic_ds (freebayes!) filter
 	@todo rewrite - make filters selectable to the outside - not_off_target, not_coding_splicing, not_synonymous
 	@todo additional parameters: min_tumor_dp, min_normal_dp, min_var_reads, min_var_af, conatmination, max_nor_af, max_var_pf
+	@todo refactor somatic, somatic_ds, somatic_capa; add filter public db; add filter contamination (if > 0)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -14,13 +15,16 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("filter_vcf", "Filter VCF-files according to different filter criteria. This tool is designed to filter tumor/normal pair samples. This tools automatically chooses variant caller and tumor/normal sample from the vcf header.");
 $parser->addInfile("in", "Input variant file in VCF format containing all necessary columns (s. below for each filter).", false);
 $parser->addOutfile("out", "Output variant file in VCF format.", false);
-$filter = array('somatic', 'somatic_ds', 'coding', 'non_synonymous', 'somatic_diag_capa', 'iVac','all');
+$filter = array('coding', 'non_synonymous', 'off_target', 'somatic', 'somatic_ds', 'somatic_capa');
 $parser->addString("type", "Filter set to use, can be comma delimited. Valid are: ".implode(",",$filter).".",false);
 //optional
 $parser->addFlag("keep", "Keep all variants. Otherwise only variants passing all filters will be kept");
 $parser->addString("roi", "Target region BED file (is required by off-target filter).", true, "");
 $parser->addFloat("contamination", "Estimated fraction of tumor cells in normal sample.",true,0.00);
 $parser->addFloat("min_af", "Minimum variant allele frequency in tumor.",true,0.05);
+// TODO add filter for min_af, min_dp, min_r, db_af, noise nor/cont / max af nor to remove somatic_XYZ filter sets
+//$parser->addFloat("min_dp", "Minimum depth.",true,8);
+//$parser->addFloat("min_r", "Minimum number reads.",true,3);
 extract($parser->parse($argv));
 
 //zipped
@@ -29,7 +33,8 @@ if(ends_with($in, ".gz"))	$zipped = true;
 
 //check selected filter types
 $types = explode(",",$type);
-foreach($types as $t)	if(!in_array($t,$filter))	trigger_error("Unknown filter '".$t."' given.",E_USER_ERROR);
+foreach($types as $t)	if(!in_array($t,$filter) && $t!="all")	trigger_error("Unknown filter '".$t."' given.",E_USER_ERROR);
+if(in_array("all",$types))	$types = $filter;
 $in_file = Matrix::fromTSV($in);
 
 //reset filter column
@@ -188,50 +193,16 @@ for($i=0;$i<$in_file->rows();++$i)
 	$info = $tmp;
 	
 	//use different filter types
-	$tmp_filters = array();
 	$tmp_col_tum = $row[$tumor_col];
 	$tmp_col_nor = null;
 	if(!is_null($normal_col))	$tmp_col_nor = $row[$normal_col];
-	if(in_array("somatic", $types))
-	{
-		filter_not_coding_splicing($filter, $info, $miso_terms_coding);
-		filter_somatic($filter, $genotype,$tmp_col_tum,$tmp_col_nor,$type,$row[4],$contamination, $min_af, $var_caller);
-	}
-	if(in_array("somatic_ds", $types))
-	{
-		filter_not_coding_splicing($filter, $info, $miso_terms_coding);
-		filter_somatic_ds($filter, $genotype,$tmp_col_tum,$tmp_col_nor,$type,$var_caller);
-	}
-	if(in_array("coding", $types))
-	{
-		filter_not_coding_splicing($filter, $info, $miso_terms_coding);
-	}
-	if(in_array("non_synonymous", $types))
-	{
-		filter_synonymous($filter, $info, $miso_terms_coding, $miso_terms_synonymous);
-	}
-	if(in_array("somatic_diag_capa", $types))
-	{
-		filter_not_coding_splicing($filter, $info, $miso_terms_coding);
-		filter_somatic_capa($filter, $info, $genotype, $tmp_col_tum, $tmp_col_nor, $type,$row[4],$var_caller);
-		filter_off_target($filter, $row[0], $row[1], $tumor_id, $normal_id, $targets);
-	}
-	if(in_array("iVac", $types))
-	{
-		filter_not_coding_splicing($filter, $info, $miso_terms_coding);
-		filter_synonymous($filter, $info, $miso_terms_coding, $miso_terms_synonymous);
-		filter_somatic($filter, $genotype,$tmp_col_tum,$tmp_col_nor, $type,$row[4],$contamination, $min_af, $var_caller);
-		filter_off_target($filter, $row[0], $row[1], $tumor_id, $normal_id, $targets);	//too slow - increase speed
-	}
-	if(in_array("all", $types))
-	{
-		filter_not_coding_splicing($filter, $info, $miso_terms_coding);
-		filter_synonymous($filter, $info, $miso_terms_coding, $miso_terms_synonymous);
-		filter_somatic($filter, $genotype,$tmp_col_tum,$tmp_col_nor,$type,$row[4],$contamination, $min_af, $var_caller);
-		filter_somatic_capa($filter, $info, $genotype, $tmp_col_tum, $tmp_col_nor, $type,$row[4],$var_caller);
-		filter_somatic_ds($filter, $genotype,$tmp_col_tum,$tmp_col_nor,$type,$row[4],$var_caller);
-		filter_off_target($filter, $row[0], $row[1], $tumor_id, $normal_id, $targets);	//too slow - increase speed
-	}
+	//filter_basic($filter,$info,$tmp_col_tum,$tmp_col_nor$min_af,$min_dp,$min_r,$con,$var_caller);
+	if(in_array("coding",$types))	filter_not_coding_splicing($filter, $info, $miso_terms_coding);
+	if(in_array("non_synonymous",$types))	filter_synonymous($filter, $info, $miso_terms_coding, $miso_terms_synonymous);
+	if(in_array("somatic",$types))	filter_somatic($filter, $genotype,$tmp_col_tum,$tmp_col_nor,$type,$row[4],$contamination, $min_af, $var_caller);
+	if(in_array("off_target",$types))	filter_off_target($filter, $row[0], $row[1], $tumor_id, $normal_id, $targets);
+	if(in_array("somatic_capa",$types))	filter_somatic_capa($filter, $info, $genotype, $tmp_col_tum, $tmp_col_nor, $type,$row[4],$var_caller);
+	if(in_array("somatic_ds",$types))	filter_somatic_ds($filter, $genotype,$tmp_col_tum,$tmp_col_nor,$type,$row[4],$var_caller);
 	
 	//set PASS criterion if all filters were passed
 	$tmp_filter = array();
@@ -305,6 +276,71 @@ else
 
 
 //filter functions
+function filter_basic(&$filter,$info,$col_tum,$col_nor,$min_af,$min_dp,$min_r,$con,$var_caller)
+{
+	if(is_null($tumor))	trigger_error("No normal or tumor column.",E_USER_ERROR);
+	
+	$tumor_only = false;
+	if(is_null($normal))	$tumor_only = true;
+	
+	$td = NULL;
+	$tf = NULL;
+	$nd = NULL;
+	$nf = NULL;
+	if($var_caller=="strelka" && $type == "SNV")
+	{
+		list($td,$tf) = vcf_strelka_snv($genotype,$tumor,$alt);
+		list($nd,$nf) = vcf_strelka_snv($genotype,$normal,$alt);
+	}
+	else if($var_caller=="strelka" && $type == "INDEL")
+	{
+		list($td,$tf) = vcf_strelka_indel($genotype,$tumor);
+		list($nd,$nf) = vcf_strelka_indel($genotype,$normal);
+	}
+	else if($var_caller=="freebayes" && !$tumor_only)
+	{
+		list($td,$tf) = vcf_freebayes($genotype,$tumor);
+		list($nd,$nf) = vcf_freebayes($genotype,$normal);
+	}
+	else if($tumor_only)
+	{
+		list($td,$tf) = vcf_freebayes($genotype,$tumor);
+	}
+
+	//filter out bad rows
+	$skip_variant = false;
+	$noise_nor_af = 0.03;	//allowed max. mutant allele-frequency in normal
+	$noise_nor_fa = 6;	//factor for comparison tumor and normal AF
+	if($contamination > $noise_nor_af)
+	{
+		$noise_nor_af += $contamination;
+		$noise_nor_fa = 3;
+	}
+	
+	//filter
+	add_filter($filter, "som_depth_tum", "Sequencing depth tumor is < $min_dp (filter_vcf).");
+	add_filter($filter, "som_depth_nor", "Sequencing depth normal is < $min_dp (filter_vcf).");
+	add_filter($filter, "som_all_freq_tum", "Allele frequency tumor is $min_tum_af (filter_vcf).");
+	add_filter($filter, "som_lt_3_reads", "Less than 3 supporting tumor reads (filter_vcf).");
+	add_filter($filter, "som_all_freq_nor", "Allele frequency normal too high (filter_vcf).");
+	add_filter($filter, "som_tum_loh", "Loss of heterozygosity within tumor tissue (filter_vcf).");
+	if($var_caller=="freebayes" && !$tumor_only)	add_filter($filter, "som_af_ratio", "Allele frequency ratio tumor/normal less-equal $noise_nor_fa; removed from list (filter_vcf).");
+	if (!$tumor_only && $var_caller=="freebayes")	add_filter($filter, "som_no_depth", "No depth in tumor or normal; removed from list (filter_vcf).");
+	
+	//depth in reference too low
+	if ($td<$min_depth)	activate_filter($filter, "som_depth_tum");
+	if ($tf<$min_tum_af)	activate_filter($filter, "som_all_freq_tum");
+	if ($td*$tf<2.9)	activate_filter($filter, "som_lt_3_reads");
+	if(!$tumor_only)
+	{
+		if ($nd<$min_depth)	activate_filter($filter, "som_depth_nor");
+		if ($tf<=$noise_nor_fa*$nf)	activate_filter($filter, "som_all_freq_nor");		// hom (WT) in reference, het in tumor (0.5-3.0% ref freq, but six times higher tumor freq)
+		if ($nf>0.4 && $nf<0.6 && $tf>0.9)	activate_filter($filter, "som_tum_loh");
+		if ($var_caller=="freebayes" && ($nd==0 || $td==0))	activate_filter($filter, "som_no_depth");
+		if ($var_caller=="freebayes" && $nf>0 && $tf/$nf<=2.9)	activate_filter($filter, "som_af_ratio");	// tf/nf < 3 should be filtered to remove most of the germline variants
+	}
+}
+
 function filter_synonymous(&$filter, $info, $miso_terms_coding, $miso_terms_synonymous)
 {	
 	//get variant annotation

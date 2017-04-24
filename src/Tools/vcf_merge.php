@@ -90,6 +90,7 @@ foreach($in as $filename)
 
 //merge simplyfied files
 print "Merging...\n";
+putenv("PERL5LIB=/mnt/share/opt/vcftools-78add55-bin/share/perl/5.14.2/:".getenv("PERL5LIB"));
 exec2("/mnt/share/opt/vcftools-78add55-bin/bin/vcf-merge --ref-for-missing 0/0 ".implode(" ", $simple)." > $out");
 
 //cleanup

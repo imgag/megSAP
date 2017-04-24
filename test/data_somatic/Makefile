@@ -1,4 +1,4 @@
-
+#TODO
 all: clear link somatic_single somatic_pair somatic_amp somatic_uid diff_single diff_pair diff_amp diff_uid
 
 clear:
@@ -13,6 +13,7 @@ clear:
 	rm -rf results_pair2
 	rm -rf results_uid1
 	rm -rf results_uid2
+	rm -rf results_amp
 
 link:
 	mkdir -p Sample_GS110168
@@ -55,20 +56,22 @@ diff_pair:
 	php ../compare_variants.php GS110168-GS110169.GSvar.out_freebayes results_pair2/GS110168-GS110169.GSvar
 
 somatic_amp:
-	php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id SampleUID2_01 -n_id na -o_folder results_amp -steps ma,vc,an -reduce_variants_filter -t_sys system_amp.ini --log results_amp/SampleUID2_01.log
+	#php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id SampleUID2_01 -n_id na -o_folder results_amp -steps ma,vc,an -reduce_variants_filter -t_sys system_amp.ini --log results_amp/SampleUID2_01.log
 
 diff_amp:
-	php ../compare_variants.php SampleUID2_01.GSvar.out_amp results_amp/SampleUID2_01.GSvar
+	#php ../compare_variants.php SampleUID2_01.GSvar.out_amp results_amp/SampleUID2_01.GSvar
 
 somatic_uid:
 	#MIPs
-	php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id SampleUID1_01 -n_id na -o_folder results_uid1 -steps ma,vc,an -reduce_variants_filter -no_softclip -t_sys system_uid1.ini --log results_uid1/SampleUID1_01.log
+	#php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id SampleUID1_01 -n_id na -o_folder results_uid1 -steps ma,vc,an -reduce_variants_filter -no_softclip -t_sys system_uid1.ini --log results_uid1/SampleUID1_01.log
 	#HPHS
-	php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id SampleUID2_01 -n_id na -o_folder results_uid2 -steps ma,vc,an -reduce_variants_filter -no_softclip -t_sys system_uid2.ini --log results_uid2/SampleUID2_01.log
+	#php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id SampleUID2_01 -n_id na -o_folder results_uid2 -steps ma,vc,an -reduce_variants_filter -no_softclip -t_sys system_uid2.ini --log results_uid2/SampleUID2_01.log
 
 diff_uid:
-	php ../compare_variants.php SampleUID1_01.GSvar.out_uid1 results_uid1/SampleUID1_01.GSvar
-	php ../compare_variants.php SampleUID2_01.GSvar.out_uid2 results_uid2/SampleUID2_01.GSvar
+	#TODO: Comparison of SampleUID1.
+	#php ../compare_variants.php SampleUID1_01.GSvar.out_uid1 results_uid1/SampleUID1_01.GSvar
+	#TODO: Comparison of SampleUID2.
+	#php ../compare_variants.php SampleUID2_01.GSvar.out_uid2 results_uid2/SampleUID2_01.GSvar
 	
 #debugging targets
 anno1:
