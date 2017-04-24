@@ -30,6 +30,9 @@ function filter_by_af($line, $min_freq)
 {
 	$parts = explode("\t", $line);
 	if (count($parts)<8) return false;
+
+	//skp CNVs
+	if (starts_with($parts[4], "<CN")) return false;	
 	
 	$af = 0.0;
 	$info = explode(";", $parts[7]);
@@ -202,7 +205,7 @@ foreach($input as $line)
 		foreach($snps as $snp)
 		{
 			$snp = filter_by_af($snp, $min_freq);
-			if ($snp!==FALSE) $output[] = "*SNP $db_name: $snp";
+			if ($snp!==FALSE) $output[] = "*SNP $db_name: ".htmlspecialchars($snp);
 		}
 	}
 	
@@ -220,7 +223,7 @@ foreach($input as $line)
 		foreach($snps as $snp)
 		{
 			$snp = filter_by_af($snp, $min_freq);
-			if ($snp!==FALSE) $output[] = "*SNP $db_name: $snp";
+			if ($snp!==FALSE) $output[] = "*SNP $db_name: ".htmlspecialchars($snp);
 		}
 	}
 	
