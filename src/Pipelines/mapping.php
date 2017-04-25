@@ -86,6 +86,8 @@ if($sys['type']=="Panel Haloplex HS")
 	{
 		$parser->exec("cat",implode(" ",$index_files)." > $index_file",true);
 	}
+	
+	if(!is_file($index_file))	trigger_error("Index file for Haloplex HS enrichment $index_file was not found.",E_USER_ERROR);
 }
 
 // mapping
@@ -130,10 +132,11 @@ if($clip_overlap)
 //MIPs: remove duplicates by molecular barcode and cut extension/ligation arms
 if($sys['type']=="Panel MIPs")
 {
+	$mip_file = isset($sys['mip_file']) ? $sys['mip_file'] : "/mnt/share/data/mipfiles/".$sys["name_short"].".txt";
 	$bam_dedup1 = $parser->tempFile("_dedup1.bam");
-	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -mip_file /mnt/share/data/mipfiles/".$sys["name_short"].".txt -out $bam_dedup1 -stats ".$basename."_bar_stats.tsv -dist 1", true);
+	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -mip_file $mip_file -out $bam_dedup1 -del_amb -stats ".$basename."_bar_stats.tsv -dist 1", true);
 	$tmp1 = $parser->tempFile();
-	$parser->exec(get_path("samtools"),"sort -T $tmp1 -o $out $bam_dedup1", true);
+	$parser->exec(get_path("samtools"),"sort -T $bam_dedup1 -o $out $bam_dedup1", true);
 	$parser->exec(get_path("ngs-bits")."BamIndex", "-in $out", true);
 }
 
@@ -147,7 +150,7 @@ if($sys['type']=="Panel Haloplex HS" && file_exists($index_file))
 	
 	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -out $bam_dedup1 -min_group $min_group -stats ".$basename."_bar_stats.tsv -dist $dist -hs_file $amplicon_file", true);
 	$tmp1 = $parser->tempFile();
-	$parser->exec(get_path("samtools"),"sort -T $tmp2 -o $out $bam_dedup1", true);
+	$parser->exec(get_path("samtools"),"sort -T $bam_dedup1 -o $out $bam_dedup1", true);
 	$parser->exec(get_path("ngs-bits")."BamIndex", "-in $out", true);
 }
 

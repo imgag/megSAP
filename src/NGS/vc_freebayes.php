@@ -79,8 +79,7 @@ $parser->execPipeline($pipeline, "variant calling");
 if ($target_extend>0)
 {
 	$tmp = $parser->tempFile(".vcf");
-	$parser->exec("bgzip", "-cd $out > $tmp", false);
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions","-in $tmp -mark -reg $target -out $tmp", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions","-in $out -mark -reg $target -out $tmp", true);
 	$parser->exec("bgzip", "-c $tmp > $out", false);
 }
 

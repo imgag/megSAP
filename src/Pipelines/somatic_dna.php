@@ -19,7 +19,7 @@ $parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To proc
 $parser->addString("o_folder", "Output folder.", false);
 $steps_all = array("ma", "vc", "an", "ci", "db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,db");
-$parser->addEnum("filter_set","Filter set to use. Only if annotation step is selected",true,array("somatic","coding","non_synonymous","somatic_diag_capa","iVac"),"somatic");
+$parser->addString("filter_set","Filter set to use. Only if annotation step is selected",true,"somatic");
 // optional
 $parser->addFloat("min_af", "Allele frequency detection limit.", true, 0.05);
 $parser->addInfile("t_sys",  "Tumor processing system INI file (determined from 't_id' by default).", true);
@@ -81,7 +81,7 @@ if($tumor_only)
 			if($clip=="mfb")	$extra .= " -overlap_mismatch_baseq";
 			if($clip=="mfm")	$extra .= " -overlap_mismatch_mapq";
 			if($clip=="mfr")	$extra .= " -overlap_mismatch_remove";
-			if($amplicon)	$extra .= " -amplicon";
+//			if($amplicon)	$extra .= " -amplicon";
 			
 		
 			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
@@ -161,7 +161,11 @@ if($tumor_only)
 		
 		// annotate strand if enrichment with UIDs is used
 		if($t_sys_ini['type']=="Panel Haloplex HS")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp  -hpHS ".substr($t_sys_ini['target_file'], 0, -4)."_amplicons.bed -name $t_id", true);
-		if($t_sys_ini['type']=="Panel MIPs")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp  -mip /mnt/share/data/mipfiles/".$t_sys_ini['name_short'].".txt -name $t_id", true);
+		if($t_sys_ini['type']=="Panel MIPs")
+		{
+			$mip_file = isset($t_sys_ini['mip_file']) ? $t_sys_ini['mip_file'] : "/mnt/share/data/mipfiles/".$t_sys_ini["name_short"].".txt";
+			$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp  -mip $mip_file -name $t_id", true);
+		}
 			
 		// zip vcf file
 		$parser->exec("bgzip", "-c $tmp > $som_vcf", false); //no output logging, because Toolbase::extractVersion() does not return
@@ -224,7 +228,7 @@ else
 			if($clip=="mfb")	$extra = "-overlap_mismatch_baseq";
 			if($clip=="mfm")	$extra = "-overlap_mismatch_mapq";
 			if($clip=="mfr")	$exta = "-overlap_mismatch_remove";
-			if($amplicon)	$extra .= " -amplicon";
+//			if($amplicon)	$extra .= " -amplicon";
 		
 			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
 			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in $t_bam -out $tmp1_t_bam $extra", true);

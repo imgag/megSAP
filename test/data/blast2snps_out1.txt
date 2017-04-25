@@ -10,16 +10,13 @@ BLAST: TNNI3d_2-3R - chr19:55668273-55668292 perc_aligned:100.00 length:20/20 e-
 INPUT: TNNI3d_4F	TNNI3d_4R	GCGTGGCCTCCCGTAGACTC	CGCCTCTCGCTCCAGCTCTT	chr19	505
 BLAST: TNNI3d_4F - chr19:55668141-55668160 perc_aligned:100.00 length:20/20 e-value:0.008
 *SNP dbSNP: chr19	55668144	T	C	0.0773	rs73617693
-*SNP Kaviar: chr19	55668144	T	C	0.0234	
 BLAST: TNNI3d_4R - chr19:55667656-55667675 perc_aligned:100.00 length:20/20 e-value:0.008
 ################################### PAIR ###################################
 INPUT: TNNI3d_5F	TNNI3d_5R	ACGGGGCCTTGGAACAGTGGAGA	CCCGAGCTGAAGAGGGGATAGAG	chr19	329
 BLAST: TNNI3d_5F - chr19:55667799-55667821 perc_aligned:100.00 length:23/23 e-value:3e-04
 *SNP dbSNP: chr19	55667806	T	C	0.0589	rs3729709
-*SNP Kaviar: chr19	55667806	T	C	0.0597	
 BLAST: TNNI3d_5R - chr19:55667493-55667515 perc_aligned:95.65 length:23/23 e-value:0.061
 *SNP dbSNP: chr19	55667500	A	T	0.1372	rs2288528
-*SNP Kaviar: chr19	55667500	A	T	0.0175	
 ################################### PAIR ###################################
 INPUT: TNNI3d_6F	TNNI3d_6R	ACCCAGGAGTCCAGGTCTC	AAGTCCCAGCCATCTCACCCTACC	chr19	211
 *WARNING: Several possible blast hit pairs found. Taking the pair with matching product length and lowest e-value sum!
@@ -49,7 +46,6 @@ BLAST: TNNI3d_6R - chr19:55666053-55666076 perc_aligned:100.00 length:24/24 e-va
 INPUT: TNNI3d_7F	TNNI3d_7R	GCCTAAGCCGGGAAGAGACTGGTA	GAGGACCCCTTACTAGCTGCTTCT	chr19	447
 BLAST: TNNI3d_7F - chr19:55665687-55665710 perc_aligned:100.00 length:24/24 e-value:7e-05
 *SNP dbSNP: chr19	55665689	C	G	0.1384	rs2288529
-*SNP Kaviar: chr19	55665689	C	G	0.0178	
 BLAST: TNNI3d_7R - chr19:55665274-55665297 perc_aligned:100.00 length:24/24 e-value:7e-05
 *WARNING: Primer product has wrong length. Should be '447' is '437', difference '10'!
 ################################### PAIR ###################################
@@ -235,4 +231,5 @@ BLAST: BRCA1_11-4R - chr17:41245273-41245295 perc_aligned:100.00 length:23/23 e-
 ################################### PAIR ###################################
 INPUT: BRCA1_11-9F	BRCA1_11-9R	GTCTGTCTAAGAACACAGAGG	TGCTCCCCAAAAGCATAAAC	chr17	421
 BLAST: BRCA1_11-9F - chr17:41243776-41243796 perc_aligned:100.00 length:21/21 e-value:0.003
+*SNP ESP6500: chr17	41243788	TAGAC	T	0.0219	
 BLAST: BRCA1_11-9R - chr17:41243376-41243395 perc_aligned:100.00 length:20/20 e-value:0.008

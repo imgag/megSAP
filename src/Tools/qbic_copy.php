@@ -76,7 +76,7 @@ if (!$upload)
 //cache samples folders list to speed up RNA samples search
 print "##\n";
 print "##Caching sample folders...\n";
-list($sample_folders) = exec2("find ".get_path("project_folder")." -maxdepth 3 -type d -name \"Sample_*\"");
+list($sample_folders) = exec2("find ".get_path("project_folder")." -maxdepth 3 -type d -name 'Sample_*'");
 
 //determine QBIC/FO ID from Probeneingang
 function checkProbeneingang($name, $table)
@@ -132,6 +132,10 @@ function getExternalNames($name, $name_ex)
 	{
 		$name = trim($name);
 		if (strlen($name)==10 && $name[0]=="Q")
+		{
+			$qbic_name = $name;
+		}
+		if (starts_with($name, "RO_ZPM_"))
 		{
 			$qbic_name = $name;
 		}

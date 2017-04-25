@@ -1,6 +1,6 @@
 # *megSAP* - a Medical Genetics Sequence Analysis Pipeline
 
-The goal of the megSAP sproejct is to develop an NGS data analysis pipeline for medical genetics, that is
+The goal of the megSAP proejct is to develop an NGS data analysis pipeline for medical genetics, that is
 
  * state-of-the-art in terms of performance,
  * fast
@@ -11,9 +11,8 @@ The goal of the megSAP sproejct is to develop an NGS data analysis pipeline for 
 
 megSAP is developed by the [Institute of Medical Genetics and Applied Genomics](http://www.uni-tuebingen.de/Klinische_Genetik/start.html) and several collaborators from academia and industry. If you are interested to join the effort, please contact [Marc Sturm](https://github.com/marc-sturm).
 
-
-
-**Note: The documentation is not yet complete. If you still want to try it, please report any problems you encounter through the [issue tracker](https://github.com/imgag/megSAP/issues).**
+A poster about megSap which was presented at NGS'17 in barcelona can be downloaded 
+[here](doc/Poster_April_2017.pdf)
 
 ## Download
 
@@ -98,6 +97,7 @@ Detailed documentation of the analysis pipeline can be found here:
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+
 
 
 

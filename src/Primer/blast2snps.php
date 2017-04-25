@@ -30,6 +30,9 @@ function filter_by_af($line, $min_freq)
 {
 	$parts = explode("\t", $line);
 	if (count($parts)<8) return false;
+
+	//skp CNVs
+	if (starts_with($parts[4], "<CN")) return false;	
 	
 	$af = 0.0;
 	$info = explode(";", $parts[7]);
@@ -46,7 +49,10 @@ function filter_by_af($line, $min_freq)
 	$id = $parts[2];
 	if ($id==".") $id = "";
 	
-	return "chr{$parts[0]}\t{$parts[1]}\t{$parts[3]}\t{$parts[4]}\t{$af}\t{$id}";
+	$chr = $parts[0];
+	if (!starts_with($chr, "chr")) $chr = "chr".$chr;
+	
+	return "{$chr}\t{$parts[1]}\t{$parts[3]}\t{$parts[4]}\t{$af}\t{$id}";
 }
 
 /*
@@ -75,8 +81,7 @@ foreach($file as $line)
 //print DB versions
 $dbs = array(
 	"dbSNP" => get_path("data_folder")."/dbs/1000G/1000g_v5b.vcf.gz",
-	"ExAC" => get_path("data_folder")."/dbs/ExAC/ExAC_r0.3.1.vcf.gz",
-	"Kaviar" => get_path("data_folder")."/dbs/Kaviar/Kaviar_160204.vcf.gz",
+	"ESP6500" => get_path("data_folder")."/dbs/ESP6500/ESP6500SI_EA_SSA137.vcf.gz",
 );
 foreach($dbs as $db_name => $db_file)
 {
@@ -195,11 +200,12 @@ foreach($input as $line)
 	
 	foreach($dbs as $db_name => $db_file)
 	{
-		list($snps) = $parser->exec("tabix", "$db_file $chr1:$start1-$end1", false);
+		$chr_prefix = ($db_name=="ESP6500" ? "chr" : "");
+		list($snps) = $parser->exec("tabix", "$db_file {$chr_prefix}$chr1:$start1-$end1", false);
 		foreach($snps as $snp)
 		{
 			$snp = filter_by_af($snp, $min_freq);
-			if ($snp!==FALSE) $output[] = "*SNP $db_name: $snp";
+			if ($snp!==FALSE) $output[] = "*SNP $db_name: ".htmlspecialchars($snp);
 		}
 	}
 	
@@ -212,11 +218,12 @@ foreach($input as $line)
 
 	foreach($dbs as $db_name => $db_file)
 	{
-		list($snps) = $parser->exec("tabix", "$db_file $chr2:$start2-$end2", false);
+		$chr_prefix = ($db_name=="ESP6500" ? "chr" : "");
+		list($snps) = $parser->exec("tabix", "$db_file {$chr_prefix}$chr2:$start2-$end2", false);
 		foreach($snps as $snp)
 		{
 			$snp = filter_by_af($snp, $min_freq);
-			if ($snp!==FALSE) $output[] = "*SNP $db_name: $snp";
+			if ($snp!==FALSE) $output[] = "*SNP $db_name: ".htmlspecialchars($snp);
 		}
 	}
 	
