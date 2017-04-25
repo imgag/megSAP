@@ -1,3 +1,4 @@
+##DESCRIPTION=genotype=Genotype of variant in sample.
 ##DESCRIPTION=filter=Annotations for filtering and ranking variants.
 ##DESCRIPTION=quality=Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), genotype, depth and allele frequency for child, mother and father (TRIO).
 ##DESCRIPTION=gene=Affected gene list (comma-separated).

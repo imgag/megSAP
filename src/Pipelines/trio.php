@@ -28,27 +28,6 @@ function vcf_column_index($sample, $parts)
 	return $index;
 }
 
-function convert_genotype($gt)
-{
-	$gt = strtr($gt, "/.", "|0");
-	if ($gt=="0|0")
-	{
-		return "WT";
-	}
-	else if ($gt=="0|1" || $gt=="1|0")
-	{
-		return "HET";
-	}
-	else if ($gt=="1|1")
-	{
-		return "HOM";
-	}
-	else
-	{
-		trigger_error("Invalid genotype '$gt'!", E_USER_ERROR);
-	}
-}
-
 function extract_info($format, $data)
 {
 	if ($data==".")
@@ -60,10 +39,9 @@ function extract_info($format, $data)
 	$data = array_combine($format, $data);
 	$depth = array_sum(explode(",",$data['DP'])); 
 	$ao = array_sum(explode(",",$data['AO']));
-	$genotype = convert_genotype($data['GT']);
+	$genotype = vcfgeno2human($data['GT'], true);
 	return array($genotype, $depth, number_format($ao/$depth,2));
 }
-
 
 //parse command line arguments
 $parser = new ToolBase("trio", "Trio analysis pipeline.");
@@ -131,14 +109,14 @@ if ($start=="check")
 	}
 }
 
-//(4) variant calling of all three samples together (with very conservative parameters)
+//(3) variant calling of all three samples together (with very conservative parameters)
 $vcf_all = $out_folder.basename($c, ".bam")."_all.vcf.gz";
 if ($start=="check" || $start=="vc")
 {
 	$parser->execTool("NGS/vc_freebayes.php", "-bam $c $m $f -out $vcf_all -target $target_file -min_mq 20 -min_af 0.1 -build ".$sys['build'], true);	
 }
 
-//(5) convert VCF to file with only child column, but with TRIO annotation
+//(4) convert VCF to file with only child column, but with TRIO annotation
 $h1 = gzopen($vcf_all, "r");
 if ($h1===FALSE) trigger_error("Could not open file '" + $vcf_all + "'.", E_USER_ERROR);
 $vcf = $parser->tempFile("_unzipped.vcf");
@@ -187,17 +165,15 @@ while(!gzeof($h1))
 fclose($h1);
 fclose($h2);
 
-//(7) sort variants by genomic position and zip
-$tmp = $parser->tempFile(".vcf");
-$parser->exec(get_path("ngs-bits")."VcfStreamSort","-in $vcf -out $tmp", true);
+//(5) zip variant list
 $vcf_zipped = $out_folder.basename($c, ".bam")."_var.vcf.gz";
-$parser->exec("bgzip", "-c $tmp > $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->exec("bgzip", "-c $vcf > $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 $parser->exec("tabix", "-p vcf $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 
-//(8) basic annotation
+//(6) basic annotation
 $parser->execTool("Pipelines/annotate.php", "-out_name ".basename($c, ".bam")." -out_folder $out_folder -system $system");
 
-//(9) add trio annotation column
+//(7) add trio annotation column
 $gsvar = $out_folder.basename($c, ".bam").".GSvar";
 $parser->exec(get_path("ngs-bits")."TrioAnnotation", "-in $gsvar -out $gsvar", true);
 

@@ -39,7 +39,7 @@ Then you have to adapt your ~/.gitconfig file like that:
 megSAP (or one of the used tools) depends mainly on the following software to be installed:
 
 * _g++_ (4.5 or higher)
-* _qmake_ (Qt 5.3 or higher, including xmlpatterns and mysql package)
+* _qmake_ (Qt 5.5 or higher, including xmlpatterns and mysql package)
 * _git_
 * _cmake_
 * _python_ (including matplotlib)
@@ -97,6 +97,7 @@ Detailed documentation of the analysis pipeline can be found here:
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+
 
 
 

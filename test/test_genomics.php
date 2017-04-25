@@ -3,6 +3,17 @@
 include("framework.php");
 
 
+
+//##################################################################################
+start_test("vcfgeno2human");
+
+check(vcfgeno2human("0|0"), "wt");
+check(vcfgeno2human("./1"), "het");
+check(vcfgeno2human("1|1"), "hom");
+check(vcfgeno2human("1|1", true), "HOM");
+
+end_test();
+
 //##################################################################################
 start_test("is_valid_ref_sample_for_cnv_analysis");
 

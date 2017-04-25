@@ -1311,4 +1311,29 @@ function vcf_freebayes($format_col, $sample_col)
 	if($d>0)	$f = number_format(explode(":",$sample_col)[$index_AO]/$d, 4);
 	return array($d,$f);
 }
+
+//Converts genotye 
+function vcfgeno2human($gt, $upper_case=false)
+{
+	$gt = strtr($gt, "/.", "|0");
+	if ($gt=="0|0")
+	{
+		$geno = "wt";
+	}
+	else if ($gt=="0|1" || $gt=="1|0")
+	{
+		$geno = "het";
+	}
+	else if ($gt=="1|1")
+	{
+		$geno = "hom";
+	}
+	else
+	{
+		trigger_error("Invalid VCF genotype '$gt'!", E_USER_ERROR);
+	}
+	
+	return $upper_case ? strtoupper($geno) : $geno;
+}
+
 ?>
