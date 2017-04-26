@@ -40,8 +40,8 @@ foreach($steps as $step)
 
 //log server name
 list($server) = exec2("hostname -f");
-list($user) = exec2("whoami");
-$parser->log("Executed on server: ".implode(" ", $server)." as ".implode(" ", $user));
+$user = exec('whoami');
+$parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);

@@ -17,8 +17,7 @@ $parser->addString("out_folder", "Output folder path.", false);
 extract($parser->parse($argv));
 
 //check that the correct user is executing the script
-list($stdout) = $parser->exec("whoami", "", true);
-$user = $stdout[0];
+$user = exec('whoami');
 if ($user!="archive-gs")
 {
 	trigger_error("Only user 'archive-gs' can execute this script!", E_USER_ERROR);

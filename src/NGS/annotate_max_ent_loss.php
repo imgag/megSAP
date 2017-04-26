@@ -24,7 +24,7 @@
 		file_put_contents($tmp_max_ent_in,"\n".$ss_seq);
 		$script= ($calculate5ss) ? "score5.pl" : "score3.pl";
 		$tmp_maxEnt_output_file="/mnt/users/ahlenzf1/php/test/Tmp_out.txt"; //TODO absolut path!
-		shell_exec("cd /mnt/share/opt/alamut-batch-standalone-1.5.1/MaxEnt/ && perl $script ".realpath("$tmp_max_ent_in").">".$tmp_max_ent_out); //TODO absolut path!
+		shell_exec("cd /mnt/share/opt/alamut-batch-standalone-1.5.1/MaxEnt/ && perl $script ".realpath("$tmp_max_ent_in").">".$tmp_max_ent_out);
 		$result_file= file($tmp_max_ent_out);
 		$result_parts=explode("\t",$result_file[0]);
 		return trim($result_parts[1]);
