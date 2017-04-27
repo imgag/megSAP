@@ -64,8 +64,7 @@ function get_parameters($processed_sample_name)
 	$tumor_status = $result[0]['tumor'];
 	
 	//get sample id
-	$result = $db_connect->executeQuery("SELECT id FROM  sample WHERE name='".$sample_name."'");
-	$sample_id = $result[0]["id"];
+	$sample_id = $db_connect->getId("sample", "name", $sample_name);
 	
 	//get processed sample processing_system and project ID
 	$result = $db_connect->executeQuery("SELECT project_id,processing_system_id FROM  processed_sample WHERE sample_id=".$sample_id." AND process_id= ".$process_id);
