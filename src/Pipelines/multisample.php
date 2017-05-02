@@ -141,7 +141,15 @@ while(!gzeof($h1))
 		fwrite($h2, "##FORMAT=<ID=MULTI,Number=.,Type=String,Description=\"Multi-sample genotype information (genotype, depth).\">\n");		
 		foreach($bams as $bam)
 		{
-			fwrite($h2, "##SAMPLE=<ID=".$names[$bam].",Status=".$status[$bam].">\n");
+			$parts = array();
+			$parts[] = "ID=".$names[$bam];
+			$parts[] = "Status=".$status[$bam];
+			$details = get_processed_sample_info($names[$bam], false);
+			if (!is_null($details))
+			{
+				$parts[] = "Gender=".$details['gender'];
+			}
+			fwrite($h2, "##SAMPLE=<".implode(",", $parts).">\n");
 		}
 		
 		//determine indices for each sample	

@@ -1,9 +1,9 @@
 ##SAMPLE=<ID=SIBPlatte2A1_01,Status=affected>
 ##SAMPLE=<ID=SIBPlatte2A2_01,Status=affected>
 ##SAMPLE=<ID=SIBPlatte2A3_01,Status=control>
-##DESCRIPTION=SIBPlatte2A1_01=SIBPlatte2A1_01 genotype (affected)
-##DESCRIPTION=SIBPlatte2A2_01=SIBPlatte2A2_01 genotype (affected)
-##DESCRIPTION=SIBPlatte2A3_01=SIBPlatte2A3_01 genotype (control)
+##DESCRIPTION=SIBPlatte2A1_01=genotype of sample SIBPlatte2A1_01
+##DESCRIPTION=SIBPlatte2A2_01=genotype of sample SIBPlatte2A2_01
+##DESCRIPTION=SIBPlatte2A3_01=genotype of sample SIBPlatte2A3_01
 ##DESCRIPTION=filter=Annotations for filtering and ranking variants.
 ##DESCRIPTION=quality=Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), genotype, depth and allele frequency for child, mother and father (TRIO).
 ##DESCRIPTION=gene=Affected gene list (comma-separated).

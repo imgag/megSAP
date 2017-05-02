@@ -170,14 +170,16 @@ while(!feof($handle))
 			fwrite($handle_out, "##FILTER=".$parts[0]."=".$parts[1]."\n");
 		}
 		
-		if ($multi && starts_with($line, "##SAMPLE="))
+		if (starts_with($line, "##SAMPLE="))
 		{
 			$line = trim($line);
 			fwrite($handle_out, $line."\n");
-			list($name, $status) = explode(",", substr($line, 13, -1));
-			$multi_cols[] = $name;
-			$status = substr($status, 7);
-			array_splice($column_desc, count($multi_cols)-1, 0, array(array($name, "$name genotype ($status)")));
+			if ($multi)
+			{
+				list($name) = explode(",", substr($line, 13, -1));
+				$multi_cols[] = $name;
+				array_splice($column_desc, count($multi_cols)-1, 0, array(array($name, "genotype of sample $name")));
+			}
 		}
 		
 		continue;

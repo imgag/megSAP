@@ -3,6 +3,7 @@
 /**
 	@page trio
 	
+	@todo use three separate columns for genotypes and handle trios similar to multi-sample analyses.
 	@todo AO should not be summed up, but the correct allele should be counted only - but wait for fix by vcflib team.
 */
 
@@ -141,6 +142,12 @@ while(!gzeof($h1))
 	}
 	else if ($line[0]=="#") //header
 	{
+		//write sample headers			
+		$c_details = get_processed_sample_info(basename($c, ".bam"), false);
+		fwrite($h2, "##SAMPLE=<ID=".basename($c, ".bam").",Status=affected,Gender=".(is_null($c_details) ? "n/a" : $c_details['gender']).">\n");
+		fwrite($h2, "##SAMPLE=<ID=".basename($f, ".bam").",Status=control,Gender=male>\n");
+		fwrite($h2, "##SAMPLE=<ID=".basename($m, ".bam").",Status=control,Gender=female>\n");
+
 		//determine indices for each sample	
 		$parts = explode("\t", $line);
 		$c_idx = vcf_column_index(basename($c, ".bam"), $parts); 
