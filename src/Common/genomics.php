@@ -1301,7 +1301,7 @@ function sge_jobinfo()
 	list($stdout, $stderr) = exec2("qstat -u '*'");
 	foreach($stdout as $line)
 	{
-		if (starts_with($line, "---") || starts_with($line, "job-ID")) continue;
+		if (starts_with($line, "---") || starts_with($line, "job-ID") || trim($line) == "") continue;
 		
 		$parts = explode(" ", preg_replace('!\s+!', ' ', trim($line)));
 		if (count($parts)==9) //running
