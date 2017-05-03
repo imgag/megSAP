@@ -11,6 +11,7 @@ $parser = new ToolBase("queue_multi", "Adds a multi-sample analysis to the queue
 $parser->addStringArray("samples", "Processed sample names files.", false);
 $parser->addStringArray("status", "Affected status of the samples - 'affected' or 'control'.", false);
 //optional
+$parser->addString("start", "Start step.", true, "vc");
 $parser->addString("user", "Name of the user who queued the analysis (current user if unset).", true, "");
 $parser->addFlag("high_priority", "Assign a high priority to the job.");
 extract($parser->parse($argv));
@@ -63,7 +64,7 @@ if (!file_exists($out_folder))
 
 //determine command and arguments
 $command = "php ".repository_basedir()."/src/Pipelines/multisample.php";
-$args = "-bams ".implode(" ", $bams)." -status ".implode(" ", $status)." -out_folder ".$out_folder." --log ".$out_folder."multi.log";
+$args = "-start {$start} -bams ".implode(" ", $bams)." -status ".implode(" ", $status)." -out_folder {$out_folder} --log {$out_folder}multi.log";
 
 //queue trio for analysis
 $queues = explode(",", get_path("queues_default"));

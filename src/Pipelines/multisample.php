@@ -2,45 +2,11 @@
 
 /**
 	@page multisample
-	
-	@todo Check sample sex and correlation (sex is already checked during single-sample analysis)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
-
-//determines the column index of a sample from the VCF header
-function vcf_column_index($sample, $parts)
-{
-	//remove suffix after underscore (freebayes does that as well)
-	if (contains($sample, "_"))
-	{
-		$sample = substr($sample, 0, strpos($sample, "_"));
-	}
-	
-	//calculate distances
-	$dists = array();
-	for ($i=9; $i<count($parts); ++$i)
-	{
-		$dists[levenshtein($sample, $parts[$i])][] = $i;
-	}
-	
-	//determine minimum
-	$min = min(array_keys($dists));
-	$indices = $dists[$min];
-	if (count($indices)>1)
-	{
-		$hits = array();
-		foreach($indices as $index)
-		{
-			$hits[] = $parts[$index];
-		}
-		trigger_error("Cannot determine sample column of '$sample'. Samples '".implode("','", $hits)."' have the same edit distance ($min)!", E_USER_ERROR);
-	}
-	
-	return $indices[0];
-}
 
 function extract_info($format, $data)
 {

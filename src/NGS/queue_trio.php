@@ -12,6 +12,7 @@ $parser->addString("f",  "Processed sample identifier of father", false);
 $parser->addString("m",  "Processed sample identifier of mother", false);
 $parser->addString("c",  "Processed sample identifier of child", false);
 //optional
+$parser->addString("start", "Start step.", true, "check");
 $parser->addString("user", "Name of the user who queued the analysis (current user if unset).", true, "");
 $parser->addFlag("high_priority", "Assign a high priority to job.");
 extract($parser->parse($argv));
@@ -44,7 +45,7 @@ if (!file_exists($out_folder)) mkdir($out_folder);
 
 //determine command and arguments
 $command = "php ".repository_basedir()."/src/Pipelines/trio.php";
-$args = "-c ".$c_params["ps_bam"]." -f ".$f_params["ps_bam"]." -m ".$m_params["ps_bam"]." -out_folder ".$out_folder." --log ".$out_folder."trio.log";
+$args = "-start {$start} -c ".$c_params["ps_bam"]." -f ".$f_params["ps_bam"]." -m ".$m_params["ps_bam"]." -out_folder {$out_folder} --log {$out_folder}trio.log";
 
 //queue trio for analysis
 $queues = explode(",", get_path("queues_default"));

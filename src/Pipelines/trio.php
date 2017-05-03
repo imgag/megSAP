@@ -11,24 +11,6 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-//determines the column index of a sample from the VCF header
-function vcf_column_index($sample, $parts)
-{
-	$min_dist = 999;
-	$index = -1;
-	for ($i=9; $i<count($parts); ++$i)
-	{
-		$d = levenshtein($sample, $parts[$i]);
-		if ($d<$min_dist)
-		{
-			$min_dist = $d;
-			$index = $i;
-		}
-	}
-	
-	return $index;
-}
-
 function extract_info($format, $data)
 {
 	if ($data==".")

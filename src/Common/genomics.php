@@ -1369,4 +1369,36 @@ function get_processed_sample_info($ps_name, $error_if_not_found=true)
 	return $info;
 }
 
+//Returns the index of the most similar column in a VCF header
+function vcf_column_index($name, $header)
+{
+	//remove suffix after underscore (freebayes does that as well)
+	if (contains($name, "_"))
+	{
+		$name = substr($name, 0, strpos($name, "_"));
+	}
+	
+	//calculate distances
+	$dists = array();
+	for ($i=9; $i<count($header); ++$i)
+	{
+		$dists[levenshtein($name, $header[$i])][] = $i;
+	}
+	
+	//determine minimum
+	$min = min(array_keys($dists));
+	$indices = $dists[$min];
+	if (count($indices)>1)
+	{
+		$hits = array();
+		foreach($indices as $index)
+		{
+			$hits[] = $header[$index];
+		}
+		trigger_error("Cannot determine sample column of '$name'. Samples '".implode("','", $hits)."' have the same edit distance ($min)!", E_USER_ERROR);
+	}
+	
+	return $indices[0];
+}
+
 ?>
