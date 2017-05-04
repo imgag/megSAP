@@ -13,6 +13,8 @@ $parser = new ToolBase("blast2snps", "Looks up SNPs in primer pairs.");
 $parser->addInfile("in",  "Input primer TXT file.", false);
 $parser->addInfile("blast",  "Input blast output file.", false);
 $parser->addOutfile("out",  "Output TXT file.", false);
+$parser->addString("db_list",  "Comma-separated list of variant DBs to use.", false);
+
 //optional
 $parser->addInt("max_len", "Maximum product length.", true, 2000);
 $parser->addFloat("min_freq", "Minmum allele frequency of SNPs.", true, 0.001);
@@ -78,11 +80,17 @@ foreach($file as $line)
 	$blast[$name][] = array($chr, $identity, $length, $start, $end, $evalue);
 }
 
+//determine DBs to use
+$dbs = array();
+$db_list = explode(",", $db_list);
+foreach($db_list as $db)
+{
+	if ($db=="dbSNP") $dbs[$db] = get_path("data_folder")."/dbs/1000G/1000g_v5b.vcf.gz";
+	else if ($db=="ESP6500") $dbs[$db] = get_path("data_folder")."/dbs/ESP6500/ESP6500SI_EA_SSA137.vcf.gz";
+	else if ($db=="ExAC") $dbs[$db] = get_path("data_folder")."/dbs/ExAC/ExAC_r0.3.1.vcf.gz";
+	else trigger_error("Unknown database '$db'!", E_USER_ERROR);
+}
 //print DB versions
-$dbs = array(
-	"dbSNP" => get_path("data_folder")."/dbs/1000G/1000g_v5b.vcf.gz",
-	"ESP6500" => get_path("data_folder")."/dbs/ESP6500/ESP6500SI_EA_SSA137.vcf.gz",
-);
 foreach($dbs as $db_name => $db_file)
 {
 	print "$db_name version: ".basename($db_file, ".vcf.gz")."\n";
