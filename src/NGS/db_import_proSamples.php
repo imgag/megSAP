@@ -74,7 +74,7 @@ foreach($file as $line)
 		check_mid_seq($db, $mid2_i5_name, $mid2_i5_seq);
 	}
 	
-	$next_process_id = $db->getValue("SELECT MAX(process_id) FROM `processed_sample` WHERE sample_id=$sample_id", 1);
+	$next_process_id = $db->getValue("SELECT MAX(process_id)+1 FROM `processed_sample` WHERE sample_id=$sample_id", 1);
 
 	//import
 	$db->bind($hash, "ps_sample_id", $sample_id);
@@ -88,7 +88,7 @@ foreach($file as $line)
 	$db->bind($hash, "ps_project_id", $db->getId("project", "name", $project));
 	$db->bind($hash, "ps_molarity", $molarity);
 	$db->bind($hash, "ps_comment", $comment);
-	$db->execute($hash);
+	$db->execute($hash, true);
 
 	print "Added $sample_name\n";
 }

@@ -61,7 +61,7 @@ foreach($file as $line)
 	$db->bind($hash,"sam_external_name",$external_name);
 	$db->bind($hash,"sam_sender", $db->getId("sender", "name", $sender));
 	$db->bind($hash,"sam_received",replace_empty_with_null($received));
-	$db->bind($hash,"sam_receiver_id",$db->getId("receiver", "name", $received_by));
+	$db->bind($hash,"sam_receiver_id",$db->getId("user", "name", $received_by));
 	$db->bind($hash,"sam_sample_type",$sample_type);
 	$db->bind($hash,"sam_tumor",convert_yes_and_no_to_1_and_0($tumor));
 	$db->bind($hash,"sam_ffpe",convert_yes_and_no_to_1_and_0($ffpe));
@@ -73,7 +73,7 @@ foreach($file as $line)
 	$db->bind($hash,"sam_gender",replace_empty_with_na($gender));
 	$db->bind($hash,"sam_quality",replace_empty_with_na($quality));
 	$db->bind($hash,"sam_comment",$comment);
-	$db->execute($hash);
+	$db->execute($hash, true);
 	
 	print "Added $sample_name";
 }
