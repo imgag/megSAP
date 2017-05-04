@@ -129,6 +129,7 @@ while(!gzeof($h1))
 		fwrite($h2, "##SAMPLE=<ID=".basename($c, ".bam").",Status=affected,Gender=".(is_null($c_details) ? "n/a" : $c_details['gender']).">\n");
 		fwrite($h2, "##SAMPLE=<ID=".basename($f, ".bam").",Status=control,Gender=male>\n");
 		fwrite($h2, "##SAMPLE=<ID=".basename($m, ".bam").",Status=control,Gender=female>\n");
+		fwrite($h2, "##ANALYSISTYPE=GERMLINE_TRIO\n");
 
 		//determine indices for each sample	
 		$parts = explode("\t", $line);

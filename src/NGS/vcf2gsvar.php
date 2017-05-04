@@ -182,6 +182,11 @@ while(!feof($handle))
 			}
 		}
 		
+		if (starts_with($line, "##ANALYSISTYPE="))
+		{
+			fwrite($handle_out, trim($line)."\n");
+		}
+		
 		continue;
 	}
 	//after last header line, write our header

@@ -105,6 +105,7 @@ while(!gzeof($h1))
 	{
 		//add multi-sample comments
 		fwrite($h2, "##FORMAT=<ID=MULTI,Number=.,Type=String,Description=\"Multi-sample genotype information (genotype, depth).\">\n");		
+		fwrite($h2, "##ANALYSISTYPE=GERMLINE_MULTISAMPLE\n");
 		foreach($bams as $bam)
 		{
 			$parts = array();

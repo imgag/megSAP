@@ -142,7 +142,7 @@ while($has_header===FALSE && !feof($handle))
 		$var_caller = $tmp_vcaller;
 	}
 	
-	if(strpos($line,"##FILTER")===0)	//filter column
+	if(strpos($line,"##FILTER")===0)	//filter columns
 	{
 		$id = NULL;
 		$desc = NULL;
@@ -160,7 +160,7 @@ while($has_header===FALSE && !feof($handle))
 		$filters[] = "##FILTER=$id=$desc";
 	}
 	
-	if(starts_with($line,"##SAMPLE="))	//filter column
+	if(starts_with($line,"##SAMPLE="))	//sample columns
 	{
 		$samples[] = $line;
 	}
@@ -185,6 +185,7 @@ if($count>0)
 //write header
 fwrite($handle_out, implode("\n",$filters)."\n");
 fwrite($handle_out, implode("\n",$samples)."\n");
+fwrite($handle_out, "##ANALYSISTYPE=SOMATIC_".($tumor_only ? "SINGLESAMPLE" : "PAIR")."\n");
 fwrite($handle_out, "#chr\tstart\tend\tref\tobs");
 foreach($anno_cols as $entry)
 {
