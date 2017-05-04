@@ -151,7 +151,7 @@ function jobSubmit($command, $working_directory, $queue, $status_folder, $wait=f
 	//build qsub command
 	$exec_line="qsub -V -b y -wd $working_directory -m n -M ".get_path("queue_email")." -q $queue -e $status_folder -o $status_folder $command";
 	//submit to queue
-	$qsub_return_line=shell_exec($exec_line);
+	$qsub_return_line = system($exec_line);
 
 	//extract job number
 	$exploded_qsub_return_line=explode(" ",$qsub_return_line);
@@ -160,9 +160,9 @@ function jobSubmit($command, $working_directory, $queue, $status_folder, $wait=f
 
 	if(is_numeric($jobnumber))
 	{
-		$user_name=trim(shell_exec('whoami'));
-		list($command_wo_paras,)=explode(" ",$command);
-		$outputline= array($jobnumber,date("d-m-Y_H:i:s"), $command_wo_paras, $working_directory, $user_name."\n");
+		$user_name = exec('whoami');
+		$command_short = strlen($command_str)<60 ? $command : substr($command, 0, 60)."...";
+		$outputline = array($jobnumber,date("d-m-Y_H:i:s"), $command_short, $working_directory, $user_name."\n");
 		file_put_contents(get_path("sample_status_folder")."/jobinfo.txt", implode("\t", $outputline), FILE_APPEND);
 
 		if ($wait)

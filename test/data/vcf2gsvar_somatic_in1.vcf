@@ -145,6 +145,8 @@
 ##FILTER=<ID=BCNoise,Description="Average fraction of filtered basecalls within 50 bases of the indel exceeds 0.3">
 ##FILTER=<ID=QSI_ref,Description="Normal sample is not homozygous ref or sindel Q-score < 30, ie calls with NT!=ref or QSI_NT < 30">
 ##PEDIGREE=<Tumor_DNA=GS140812,Normal_DNA=GS140813>
+##SAMPLE=<ID=GS140812,Tumor=yes,Gender=n/a>
+##SAMPLE=<ID=GS140813,Tumor=yes,Gender=n/a>
 ##SnpSiftVersion="SnpSift 4.1c (build 2015-03-29), by Pablo Cingolani"
 ##SnpSiftCmd="SnpSift annotate -tabix -id /mnt/share/data/dbs/dbSNP/dbsnp_latest.vcf.gz Somatic_GS140811_02-GS140812_02-GS140813_02//GS140812_02-GS140813_02_var_strelka.vcf"
 ##INFO=<ID=OMIM,Number=1,Type=String,Description="Annotation from /mnt/share/data/dbs/OMIM/omim.bed delimited by ':'">

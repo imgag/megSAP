@@ -3,6 +3,17 @@
 include("framework.php");
 
 
+
+//##################################################################################
+start_test("vcfgeno2human");
+
+check(vcfgeno2human("0|0"), "wt");
+check(vcfgeno2human("./1"), "het");
+check(vcfgeno2human("1|1"), "hom");
+check(vcfgeno2human("1|1", true), "HOM");
+
+end_test();
+
 //##################################################################################
 start_test("is_valid_ref_sample_for_cnv_analysis");
 
@@ -336,4 +347,16 @@ start_test("vcf_freebayes_indel");
 check(vcf_freebayes("GT:GL:DP:RO:QR:AO:QA","0/1:-23.0878,0,-65.9409:29:21:752:8:276"), array(29,0.2759));
 check(vcf_freebayes("GT:GL:DP:RO:QR:AO:QA","0/1:-23.0878,0,-65.9409:0:21:752:8:276"), array(0,null));
 end_test();
+
+
+//##################################################################################
+start_test("vcf_column_index");
+check(vcf_column_index("GS140549", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "GS140549", "GS140127", "GS140550")), 9);
+check(vcf_column_index("GS140127", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "GS140549", "GS140127", "GS140550")), 10);
+check(vcf_column_index("GS140550", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "GS140549", "GS140127", "GS140550")), 11);
+check(vcf_column_index("GS140549_01", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "GS140549", "GS140127", "GS140550")), 9);
+check(vcf_column_index("GS140127_01", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "GS140549", "GS140127", "GS140550")), 10);
+check(vcf_column_index("GS140550_01", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "GS140549", "GS140127", "GS140550")), 11);
+end_test();
+
 ?>

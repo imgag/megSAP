@@ -33,6 +33,7 @@ foreach($missing_tools as $tool)
 $excluded_patterns = array(
 				  "queue_sample.php", //needs SGE
 				  "queue_trio.php", //needs SGE
+				  "queue_multi.php", //needs SGE
 				  "qbic_copy.php", //needs datamover
 				  "plink_diagrams.php", //not testable
 				  

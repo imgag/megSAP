@@ -17,9 +17,10 @@ $parser->addInfile("system", "Processing system INI file (determined from 'out_n
 $parser->addString("t_col", "Column name of tumor sample (for Strelka VCF files only).", true, "na");
 $parser->addString("n_col", "Column name of normal sample (for Strelka VCF files only).", true, "na");
 $parser->addString("vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_var.vcf.gz).", true, "");
-$parser->addInt("thres", "Splicing region size used for annotation (flanking the exons).", true, 20);
+$parser->addInt("thres", "Number of flanking bases around exons which are considered as splicing region.", true, 20);
 $parser->addFlag("no_fc", "No format check (vcf/tsv).");
 $parser->addFlag("no_ngsd", "No annotation of variants with information from NGSD.");
+$parser->addFlag("multi", "Enable multi-sample mode.");
 extract($parser->parse($argv));
 
 //input file names
@@ -81,7 +82,7 @@ if ($t_col=="na") //germline
 {
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
 	$parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $stafile", true);
-	$parser->execTool("NGS/vcf2gsvar.php", "-in $annfile -out $varfile");
+	$parser->execTool("NGS/vcf2gsvar.php", "-in $annfile -out $varfile ".($multi ? "-multi" : ""));
 }
 else //somatic
 {

@@ -10,7 +10,8 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //extracts adapter sequence from a log file line
 function extract_adapter($input)
 {
-	return trim(end(explode(":", $input)));
+	$parts = explode(":", $input);
+	return trim(end($parts));
 }
 
 //determines the percentage of mismatches between the first n bases of two sequences (N is counted as match)
@@ -41,9 +42,8 @@ foreach($log_files as $file)
 {
 	//check sample exists in NGSD
 	list($name, $ps_id) = explode("_", str_replace("_log1_map.log", "", basename($file))."_");
-	$res = $db->executeQuery("SELECT id FROM sample WHERE name='$name'");
-	if(count($res)!=1) continue;
-	$s_id = $res[0]['id'];
+	$s_id = $db->getID("sample", "name", $name, false);
+	if($s_id==-1) continue;
 	
 	//check processed sample exists in NGSD and extract processing system name
 	$res = $db->executeQuery("SELECT ps.id, sys.name_manufacturer FROM processed_sample ps, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id='$s_id' AND ps.process_id='".(int)($ps_id)."'");
@@ -51,7 +51,7 @@ foreach($log_files as $file)
 	$sys = $res[0]['name_manufacturer'];
 	
 	//grep for SeqPurge output
-	list($matches, $stderr, $code) = exec2("grep \"adapter sequence (\" $file", false);
+	list($matches, $stderr) = exec2("grep 'adapter sequence (' $file", false);
 	if(trim(implode("", $stderr))!="") trigger_error("Grep error: ".implode("\n", $stderr), E_USER_ERROR);
 	
 	//skip log files that contain no/several SeqPurge outputs

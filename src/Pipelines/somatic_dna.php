@@ -392,8 +392,11 @@ else
 		// sort and dedup vcf comments
 		$tmp = $parser->tempFile(".vcf");
 		$s = Matrix::fromTSV($som_vann);
-		$tmp_comments = sort_vcf_comments($s->getComments());
-		$s->setComments($tmp_comments);
+		$comments = $s->getComments();
+		$details = get_processed_sample_info($t_id, false);
+		$comments[] = "#SAMPLE=<ID={$t_id},Tumor=yes,Gender=".(is_null($details) ? "n/a" : $details['gender']).">";
+		$comments[] = "#SAMPLE=<ID={$n_id},Tumor=no,Gender=".(is_null($details) ? "n/a" : $details['gender']).">";
+		$s->setComments(sort_vcf_comments($comments));
 		$s->toTSV($tmp);
 			
 		if($t_sys_ini['type']=="Panel Haloplex HS" || $t_sys_ini['type']=="Panel MIPs")

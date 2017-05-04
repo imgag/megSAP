@@ -3,9 +3,11 @@ help:
 	@echo "  test            - perform function tests." 
 	@echo "  test_tools      - perform tool tests."
 	@echo "  test_tools_db   - perform DB tool tests." 
-	@echo "  test_pipeline_a - perform amplicon DNA pipeline test (Haloplex HBOC v5)." 
-	@echo "  test_pipeline_x - perform shotgun DNA pipeline test (Nextera LRRK2/SNCA locus)."
-	@echo "  test_pipeline_s - perform somatic DNA pipeline test."
+	@echo "  test_pipeline_a - perform DNA amplicon pipeline test (Haloplex HBOC v5)." 
+	@echo "  test_pipeline_x - perform DNA shotgun pipeline test."
+	@echo "  test_pipeline_t - perform DNA trio pipeline test."
+	@echo "  test_pipeline_m - perform DNA multi-sample pipeline test."
+	@echo "  test_pipeline_s - perform DNA somatic pipeline test."
 	@echo "  test_pipeline_r - perform RNA pipeline test."
 	@echo "  test_all        - perform all tests."
 	
@@ -47,6 +49,9 @@ test_pipeline_s: dummy
 test_pipeline_t: dummy
 	@cd test/data_trio && make all
 
+test_pipeline_m: dummy
+	@cd test/data_multi && make all
+
 test_pipeline_c: dummy
 	@cd test/data_capa && make all
 
@@ -65,6 +70,7 @@ test_all: dummy
 	make test_pipeline_x > p_x.log 2>&1 &
 	make test_pipeline_s > p_s.log 2>&1 &
 	make test_pipeline_t > p_t.log 2>&1 &
+	make test_pipeline_m > p_m.log 2>&1 &
 	make test_pipeline_c > p_c.log 2>&1 &
 	make test_pipeline_r > p_r.log 2>&1 &
 

@@ -35,6 +35,14 @@
 /test/data_trio/*.vcf.gz.tbi
 /test/data_trio/*_trio.tsv
 
+/test/data_multi/*.GSvar
+/test/data_multi/*.log
+/test/data_multi/*.qcML
+/test/data_multi/*.bam
+/test/data_multi/*.bam.bai
+/test/data_multi/*.vcf.gz
+/test/data_multi/*.vcf.gz.tbi
+
 /test/data_capa/*.GSvar
 /test/data_capa/*.log
 /test/data_capa/*_report.txt

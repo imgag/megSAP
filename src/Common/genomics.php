@@ -738,48 +738,6 @@ function is_valid_processingid($id)
 	return true;
 }
 
-function get_run_and_device($ps_id)
-{
-	try
-	{
-		$query = "SELECT sr.name as srname, d.name, d.type FROM processed_sample as ps, sequencing_run as sr, device as d, sample as s WHERE ps.sample_id = s.id AND CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) = :ps_id AND sr.id = ps.sequencing_run_id AND sr.device_id = d.id";
-		$par = array('ps_id' => $ps_id);
-		$db_connect = DB::getInstance('NGSD');
-		$results = $db_connect->executeQuery($query, $par);
-	}
-	catch (PDOException $e) 
-	{
-		return false;
-	}
-
-	if(count($results) != 1)
-	{
-		return false;
-	}
-	return $results[0]["srname"]." - ".$results[0]["type"]."(".$results[0]["name"].")";
-}
-
-function get_seq_device($ps_id)
-{
-	try
-	{
-		$query = "SELECT sr.name as srname, d.name, d.type FROM processed_sample as ps, sequencing_run as sr, device as d, sample as s WHERE ps.sample_id = s.id AND CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) = :ps_id AND sr.id = ps.sequencing_run_id AND sr.device_id = d.id";
-		$par = array('ps_id' => $ps_id);
-		$db_connect = DB::getInstance('NGSD');
-		$results = $db_connect->executeQuery($query, $par);
-	}
-	catch (PDOException $e) 
-	{
-		return false;
-	}
-
-	if(count($results) != 1)
-	{
-		return false;
-	}
-	return $results[0]["name"];
-}
-
 //@TODO implement *-syntax for HGVS compliance (end of coding)
 function convert_hgvs2genomic($transcript, $cdna, $error = true)
 {
@@ -1311,4 +1269,136 @@ function vcf_freebayes($format_col, $sample_col)
 	if($d>0)	$f = number_format(explode(":",$sample_col)[$index_AO]/$d, 4);
 	return array($d,$f);
 }
+
+//Converts genotye 
+function vcfgeno2human($gt, $upper_case=false)
+{
+	$gt = strtr($gt, "/.", "|0");
+	if ($gt=="0|0")
+	{
+		$geno = "wt";
+	}
+	else if ($gt=="0|1" || $gt=="1|0")
+	{
+		$geno = "het";
+	}
+	else if ($gt=="1|1")
+	{
+		$geno = "hom";
+	}
+	else
+	{
+		trigger_error("Invalid VCF genotype '$gt'!", E_USER_ERROR);
+	}
+	
+	return $upper_case ? strtoupper($geno) : $geno;
+}
+
+//returns information about currently running SGE jobs: id => array(status, command, start date/time, queue, queues possible, slots)
+function sge_jobinfo()
+{
+	$output = array();
+	list($stdout, $stderr) = exec2("qstat -u '*'");
+	foreach($stdout as $line)
+	{
+		if (starts_with($line, "---") || starts_with($line, "job-ID") || trim($line) == "") continue;
+		
+		$parts = explode(" ", preg_replace('!\s+!', ' ', trim($line)));
+		if (count($parts)==9) //running
+		{
+			list($id, , , , $status, $start_date, $start_time, $queue_used, $slots) = $parts;
+		}
+		else //queued
+		{
+			list($id, , , , $status, $start_date, $start_time, $slots) = $parts;
+			$queue_used = "";
+		}
+		$start = "$start_date $start_time";
+		$queue_used = substr($queue_used, 0, strpos($queue_used, '@'));
+		list($stdout2) = exec2("qstat -j $id | egrep 'job_args|hard_queue_list'");
+		$queues_possible = trim(substr($stdout2[0], 16));
+		$command = strtr(trim(substr($stdout2[1], 9)), ",", " ");
+		$output[$id] = array($status, $command, $start, $queue_used, $queues_possible, $slots);
+	}
+	return $output;
+}
+
+//Returns information from the NGSD about a processed sample (as key-value pairs), or null/error if the sample is not found.
+function get_processed_sample_info($ps_name, $error_if_not_found=true)
+{
+	if (!db_is_enabled("NGSD"))
+	{
+		return null;
+	}
+	
+	//get info from NGSD
+	list($sample_name, $process_id) = explode("_", $ps_name);
+	$db = DB::getInstance('NGSD');
+	$res = $db->executeQuery("SELECT p.name as project_name, p.type as project_type, p.id as project_id, ps.id as ps_id, r.name as run_name, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, sys.type as sys_type ".
+	                         "FROM project p, processed_sample ps, sample s, processing_system as sys, sequencing_run as r ".
+							 "WHERE ps.sequencing_run_id=r.id AND ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND ps.process_id='".(int)$process_id."'");
+	if (count($res)!=1)
+	{
+		if ($error_if_not_found)
+		{
+			trigger_error("Could not find information for processed sample '$ps_name' in NGSD!", E_USER_ERROR);
+		}
+		else
+		{
+			return null;
+		}
+	}
+	$info = $res[0];
+	
+	if($info['normal_id']!="")
+	{
+		$info['normal_name'] = $db->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id='".$info['normal_id']."'");
+	}
+	else
+	{
+		$info['normal_name'] = "";
+	}
+	
+	//additional info
+	$info['project_folder'] = get_path("project_folder")."/".$info['project_type']."/".$info['project_name']."/";
+	$info['ps_name'] = $ps_name;
+	$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
+	$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
+	
+	ksort($info);
+	return $info;
+}
+
+//Returns the index of the most similar column in a VCF header
+function vcf_column_index($name, $header)
+{
+	//remove suffix after underscore (freebayes does that as well)
+	if (contains($name, "_"))
+	{
+		$name = substr($name, 0, strpos($name, "_"));
+	}
+	
+	//calculate distances
+	$dists = array();
+	for ($i=9; $i<count($header); ++$i)
+	{
+		$dists[levenshtein($name, $header[$i])][] = $i;
+	}
+	
+	//determine minimum
+	$min = min(array_keys($dists));
+	$indices = $dists[$min];
+	if (count($indices)>1)
+	{
+		$hits = array();
+		foreach($indices as $index)
+		{
+			$hits[] = $header[$index];
+		}
+		trigger_error("Cannot determine sample column of '$name'. Samples '".implode("','", $hits)."' have the same edit distance ($min)!", E_USER_ERROR);
+	}
+	
+	return $indices[0];
+}
+
 ?>

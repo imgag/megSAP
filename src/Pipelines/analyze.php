@@ -40,8 +40,8 @@ foreach($steps as $step)
 
 //log server name
 list($server) = exec2("hostname -f");
-list($user) = exec2("whoami");
-$parser->log("Executed on server: ".implode(" ", $server)." as ".implode(" ", $user));
+$user = exec('whoami');
+$parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
@@ -81,8 +81,8 @@ if($backup && in_array("ma", $steps))
 if (in_array("ma", $steps))
 {
 	//determine input FASTQ files
-	$in_for = $out_folder."/*_R1_001.fastq.gz";
-	$in_rev = $out_folder."/*_R2_001.fastq.gz";
+	$in_for = $folder."/*_R1_001.fastq.gz";
+	$in_rev = $folder."/*_R2_001.fastq.gz";
 	
 	//find FastQ input files
 	$files1 = glob($in_for);
@@ -124,6 +124,29 @@ if (in_array("vc", $steps))
 	
 	if(file_exists($log_vc)) unlink($log_vc);
 	$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc ".implode(" ", $extras));
+	
+	//add sample header to VCF
+	$h1 = gzopen($vcffile, "r");
+	if ($h1===FALSE) trigger_error("Could not open file '" + $vcffile + "'.", E_USER_ERROR);
+	$vcf = $parser->tempFile("_unzipped.vcf");
+	$h2 = fopen($vcf, "w");
+	if ($h2===FALSE) trigger_error("Could not open file '" + $vcf + "'.", E_USER_ERROR);
+	while(!gzeof($h1))
+	{
+		$line = trim(gzgets($h1));
+		if (strlen($line)==0) continue;
+		if ($line[0]=="#" && $line[1]!="#")
+		{
+			$details = get_processed_sample_info($name, false);
+			fwrite($h2, "##ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n");
+			fwrite($h2, "##SAMPLE=<ID=".$name.",Status=affected,Gender=".(is_null($details) ? "n/a" : $details['gender']).">\n");
+		}
+		fwrite($h2, $line."\n");
+	}
+	fclose($h1);
+	fclose($h2);
+	$parser->exec("bgzip", "-c $vcf > $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
+	$parser->exec("tabix", "-f -p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
 }
 
 //annotation and reports

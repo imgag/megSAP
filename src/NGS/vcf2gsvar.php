@@ -10,6 +10,8 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("vcf2gsvar", "Converts an annotated VCF file from freebayes to a GSvar file.");
 $parser->addInfile("in",  "Input file in VCF format.", false);
 $parser->addOutfile("out", "Output file in GSvar format.", false);
+//optional
+$parser->addFlag("multi", "Enable multi-sample mode.");
 extract($parser->parse($argv));
 
 //helper functions
@@ -86,8 +88,27 @@ function all_genes_blacklisted($genes)
 	return true;
 }
 
-//init
-$handle_out = fopen($out, "w");
+
+//write header line
+function write_header_line($handle, $column_desc, $filter_desc)
+{
+	foreach($column_desc as $entry)
+	{
+		fwrite($handle, "##DESCRIPTION=".$entry[0]."=".$entry[1]."\n");
+	}
+	
+	foreach($filter_desc as $entry)
+	{
+		fwrite($handle, "##FILTER=".$entry[0]."=".$entry[1]."\n");
+	}
+
+	fwrite($handle, "#chr\tstart\tend\tref\tobs");
+	foreach($column_desc as $entry)
+	{
+		fwrite($handle, "\t".$entry[0]);
+	}
+	fwrite($handle, "\n");
+}
 
 //write column descriptions
 $column_desc = array(
@@ -113,18 +134,9 @@ $column_desc = array(
 	array("HGMD", "HGMD database annotation."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
 );
-foreach($column_desc as $entry)
+if (!$multi)
 {
-	fwrite($handle_out, "##DESCRIPTION=".$entry[0]."=".$entry[1]."\n");
-}
-function write_header_line($handle, $column_desc)
-{
-	fwrite($handle, "#chr\tstart\tend\tref\tobs\tgenotype");
-	foreach($column_desc as $entry)
-	{
-		fwrite($handle, "\t".$entry[0]);
-	}
-	fwrite($handle, "\n");
+	array_unshift($column_desc, array("genotype", "Genotype of variant in sample."));	
 }
 
 //write filter descriptions
@@ -138,14 +150,12 @@ $filter_desc = array(
 	array("anno_pathogenic_hgmd", "Variant annotated to be pathogenic by HGMD."),
 	array("anno_high_impact", "Variant annotated to have high impact by SnpEff."),
 );
-foreach($filter_desc as $entry)
-{
-	fwrite($handle_out, "##FILTER=".$entry[0]."=".$entry[1]."\n");
-}
 
 //parse input
+$multi_cols = array();
 $in_header = true;
 $handle = fopen($in, "r");
+$handle_out = fopen($out, "w");
 while(!feof($handle))
 {
 	$line = nl_trim(fgets($handle));
@@ -159,18 +169,36 @@ while(!feof($handle))
 			$parts = explode(",Description=\"", substr(trim($line), 13, -2));
 			fwrite($handle_out, "##FILTER=".$parts[0]."=".$parts[1]."\n");
 		}
+		
+		if (starts_with($line, "##SAMPLE="))
+		{
+			$line = trim($line);
+			fwrite($handle_out, $line."\n");
+			if ($multi)
+			{
+				list($name) = explode(",", substr($line, 13, -1));
+				$multi_cols[] = $name;
+				array_splice($column_desc, count($multi_cols)-1, 0, array(array($name, "genotype of sample $name")));
+			}
+		}
+		
+		if (starts_with($line, "##ANALYSISTYPE="))
+		{
+			fwrite($handle_out, trim($line)."\n");
+		}
+		
 		continue;
 	}
 	//after last header line, write our header
 	else if ($in_header) 
 	{
-		write_header_line($handle_out, $column_desc);
+		write_header_line($handle_out, $column_desc, $filter_desc);
 		$in_header = false;
 	}
 	
 	//write content lines
 	$cols = explode("\t", $line);
-	if (count($cols)<9) trigger_error("VCF file line contains less than 10 columns:\n$line", E_USER_ERROR);
+	if (count($cols)<10) trigger_error("VCF file line contains less than 10 columns:\n$line", E_USER_ERROR);
 	list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = $cols;
 	if ($filter=="" || $filter=="." || $filter=="PASS")
 	{
@@ -208,15 +236,47 @@ while(!feof($handle))
 	$info = $tmp;
 	$sample = array_combine(explode(":", $format), explode(":", $sample));
 	
-	//convert genotype to TSV format
-	if (!isset($sample["GT"])) trigger_error("VCF sample column does not contain GT value!", E_USER_ERROR);
-	$genotype = strtr($sample["GT"], array("."=>"0", "/"=>"|"));
-	//skip wildtype
-	if ($genotype=="0|0") continue;			
-	//convert genotype to TSV format
-	else if ($genotype=="0|1" || $genotype=="1|0") $genotype = "het";
-	else if ($genotype=="1|1") $genotype = "hom";
-	else trigger_error("Unknown VCF genotype value '$genotype' in line '$line'.", E_USER_ERROR);
+	//convert genotype information to TSV format
+	if ($multi)
+	{
+		if (!isset($sample["MULTI"])) 
+		{
+			trigger_error("VCF sample column does not contain MULTI value!", E_USER_ERROR);
+		}
+		
+		//extract genotype/depth info
+		$tmp = array();
+		$tmp2 = array();
+		$parts = explode(",", $sample["MULTI"]);
+		foreach($parts as $part)
+		{
+			list($name, $gt, $dp) = explode("=", strtr($part, "|", "="));
+			$tmp[$name] = $gt;
+			$tmp2[$name] = $dp;
+		}
+		
+		//recombine GT/DP in the correct order
+		$genotype = array();
+		$depth = array();
+		foreach($multi_cols as $col)
+		{
+			$genotype[] = $tmp[$col];
+			$depth[] = $tmp2[$col];
+		}
+		$genotype = implode("\t", $genotype);
+		$sample["DP"] = implode(",", $depth);
+	}
+	else
+	{
+		if (!isset($sample["GT"])) 
+		{
+			trigger_error("VCF sample column does not contain GT value!", E_USER_ERROR);
+		}
+		$genotype = vcfgeno2human($sample["GT"]);
+		
+		//skip wildtype
+		if ($genotype=="wt") continue;
+	}
 
 	//quality
 	$quality = array();
@@ -226,7 +286,10 @@ while(!feof($handle))
 	if (isset($sample["DP"]))
 	{
 		$quality[] = "DP=".$sample["DP"];
-		if ($sample["DP"]<20) $filter[] = "low_DP";
+		if (min(explode(",", $sample["DP"]))<20) //comma-separated values in case of multi-sample data
+		{
+			$filter[] = "low_DP";
+		}
 	}
 	if (isset($sample["AO"]) && isset($sample["DP"]))
 	{
@@ -330,7 +393,7 @@ while(!feof($handle))
 	$hgmd_mut = explode("|", extract_string("HGMD_MUT", $info, ""));
 	$hgmd_gene = explode("|", extract_string("HGMD_GENE", $info, ""));
 	$hgmd_phen = explode("|", extract_string("HGMD_PHEN", $info, ""));
-	if (count($hgmd_id)!=count($hgmd_class) || count($hgmd_id)!=count($hgmd_mut) || count($hgmd_id)!=count($hgmd_phen) || count($hgmd_id)!=count($hgmd_gene)) trigger_error("HGMD filed counts do not match:\n".implode("|",$hgmd_id)."\n".implode("|",$hgmd_class)."\n".implode("|",$hgmd_mut)."\n".implode("|",$hgmd_gene)."\n".implode("|",$hgmd_phen)."" , E_USER_ERROR);
+	if (count($hgmd_id)!=count($hgmd_class) || count($hgmd_id)!=count($hgmd_mut) || count($hgmd_id)!=count($hgmd_phen) || count($hgmd_id)!=count($hgmd_gene)) trigger_error("HGMD field counts do not match:\n".implode("|",$hgmd_id)."\n".implode("|",$hgmd_class)."\n".implode("|",$hgmd_mut)."\n".implode("|",$hgmd_gene)."\n".implode("|",$hgmd_phen)."" , E_USER_ERROR);
 	$hgmd = "";
 	for($i=0; $i<count($hgmd_id); ++$i)
 	{
@@ -349,7 +412,7 @@ while(!feof($handle))
 //if no variants are present, we need to write the header line after the loop
 if ($in_header) 
 {
-	write_header_line($handle_out, $column_desc);
+	write_header_line($handle_out, $column_desc, $filter_desc);
 }
 
 fclose($handle);

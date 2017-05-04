@@ -26,7 +26,6 @@ function extract_from_info_field($field_name, $info_column, $default = "", $erro
 
 	foreach($fs as $f)
 	{
-//		print $f."\n";
 		//return field values
 		if(!contains($f, "=")) continue;	//strelka has fields without values
 		list($f_name, $f_values) = explode("=", $f);
@@ -127,6 +126,7 @@ $header = array();
 $has_header = FALSE;
 $var_caller = NULL;
 $filters = array();
+$samples = array();
 while($has_header===FALSE && !feof($handle))
 {
 	$line = nl_trim(fgets($handle));
@@ -142,7 +142,7 @@ while($has_header===FALSE && !feof($handle))
 		$var_caller = $tmp_vcaller;
 	}
 	
-	if(strpos($line,"##FILTER")===0)	//filter column
+	if(strpos($line,"##FILTER")===0)	//filter columns
 	{
 		$id = NULL;
 		$desc = NULL;
@@ -158,6 +158,11 @@ while($has_header===FALSE && !feof($handle))
 		
 		if(is_null($id) || is_null($desc))	trigger_error("Could not identify Filter in line $line",E_USER_ERROR);		
 		$filters[] = "##FILTER=$id=$desc";
+	}
+	
+	if(starts_with($line,"##SAMPLE="))	//sample columns
+	{
+		$samples[] = $line;
 	}
 	
 	if(strpos($line,"#CHROM")!==FALSE)	//final header line
@@ -179,6 +184,8 @@ if($count>0)
 
 //write header
 fwrite($handle_out, implode("\n",$filters)."\n");
+fwrite($handle_out, implode("\n",$samples)."\n");
+fwrite($handle_out, "##ANALYSISTYPE=SOMATIC_".($tumor_only ? "SINGLESAMPLE" : "PAIR")."\n");
 fwrite($handle_out, "#chr\tstart\tend\tref\tobs");
 foreach($anno_cols as $entry)
 {

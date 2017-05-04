@@ -269,6 +269,17 @@ class DB
 		return explode("','", $type);
 	}
 	
+	///Returns the ID of a table entry (returns -1 or throws an error if the entry is not found)
+	public function getId($table, $column, $value, $error_if_not_found = true)
+	{
+		$id = $this->getValue("SELECT id FROM {$table} WHERE {$column}='{$value}'", -1);
+		if ($id==-1 && $error_if_not_found)
+		{
+			trigger_error("No entry in table {$table} where {$column} is '{$value}'", E_USER_ERROR);
+		}
+		return $id;
+	}
+	
 	/**
 	 * Begin of a transaction.
 	 */
