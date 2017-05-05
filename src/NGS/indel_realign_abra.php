@@ -20,6 +20,10 @@ $parser->addInt("threads", "Maximum number of threads used.", true, 1);
 $parser->addInfile("roi", "Target region for realignment.", true, "");
 $parser->addFloat("mer",  "ABRA2 minimum edge pruning ratio parameter. Default value is for germline - use 0.02 for somatic data.", true, 0.1);
 $parser->addFloat("mad",  "ABRA2 downsampling depth parameter. Default value is for germline - use 5000 for somatic data.", true, 250);
+//options for RNA
+$parser->addFlag("se", "Single-end input");
+$parser->addInfile("gtf",  "GTF annotation file.", true, "");
+$parser->addInfile("junctions",  "Junctions output file from STAR mapping.", true, "");
 extract($parser->parse($argv));
 
 //init
@@ -62,6 +66,15 @@ $params[] = "--tmpdir ".$parser->tempFolder("abra");
 $params[] = "--ref {$local_data}/{$build}.fa";
 $params[] = "--mer ".$mer;
 $params[] = "--mad ".$mad;
+if ($se) {
+	$params[] = "--single";
+}
+if (isset($gtf)) {
+	$params[] = "--gtf ".$gtf;
+}
+if (isset($junctions)) {
+	$params[] = "--junctions ".$junctions;
+}
 $parser->exec(get_path("abra2"), implode(" ", $params), true);
 
 ?>

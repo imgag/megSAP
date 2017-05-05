@@ -142,11 +142,14 @@ if(in_array("ma", $steps))
 	{
 		$junction_file = "{$prefix}_splicing.tsv";
 		if (!file_exists($junction_file)) trigger_error("Could not open junction file '$junction_file' needed for indel realignment. Please re-run mapping step.", E_USER_ERROR);
+		$abra_out = $parser->tempFile("_abra_realigned.bam");
+		$params_abra = array();
+		if (!$paired) $params_abra[] = "-se";
+		if ($target_file != "") $params_abra[] = "-roi {$target_file}";
+		$parser->execTool("NGS/indel_realign_abra.php", "-in $final_bam -out $abra_out -threads $threads -build $build -gtf $gtfFile -junctions $junction_file ".implode(" ", $params_abra));
 
-		$params_abra2 = array();
-		if (!$paired) $params_abra2[] = "-se";
-		if ($target_file != "") $params_abra2[] = "-roi {$target_file}";
-		$parser->execTool("NGS/indel_realign_abra2.php", "-in $final_bam -out $final_bam -threads $threads -build $build -gtf $gtfFile -junctions $junction_file ".implode(" ", $params_abra2));
+		$parser->exec("cp", "{$abra_out} {$final_bam}", true);
+		$parser->exec(get_path("ngs-bits")."BamIndex", "-in {$final_bam}", true);
 	}
 }
 
