@@ -39,11 +39,11 @@ cd vcflib
 git checkout v1.0.0-rc1 && git submodule update --recursive --init
 make
 
-#download ABRA
+#download ABRA2
 cd $folder
-mkdir abra-0.97b
-cd abra-0.97b
-wget https://github.com/mozack/abra/releases/download/v0.97b/abra-0.97b-SNAPSHOT-jar-with-dependencies.jar -O abra.jar
+mkdir abra2-2.05
+cd abra2-2.05
+wget https://github.com/mozack/abra2/releases/download/v2.05/abra2-2.05.jar -O abra2.jar
 
 #download and build samblaster
 cd $folder

@@ -99,15 +99,22 @@ $parser->execTool("NGS/mapping_bwa.php", "-in1 $trimmed1 -in2 $trimmed2 -out $ou
 //perform indel realignment
 if (!$no_abra)
 {
-	$abra_args = "-in $out -out $out -build ".$sys['build']." -mer 0.1 -threads ".$threads;
-	if ($sys['target_file']!="" && $sys['type']!="WGS") //for panels on complete target region
+	//execute
+	$args = array();
+	$args[] = "-in $out";
+	$tmp_bam = $parser->tempFile("_indel_realign.bam");
+	$args[] = "-out $tmp_bam";
+	$args[] = "-build ".$sys['build'];
+	$args[] = "-threads ".$threads;
+	if ($sys['target_file']!="")
 	{
-		$parser->execTool("NGS/indel_realign_abra.php", "$abra_args -roi ".$sys['target_file']);
+		$args[] = "-roi ".$sys['target_file'];
 	}
-	else if ($sys['build']=="hg19" && $sys['type']=="WGS") //for WGS on exome target region
-	{
-		$parser->execTool("NGS/indel_realign_abra.php", "$abra_args -roi ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed");
-	}
+	$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $args));
+	
+	//copy/index output
+	copy2($tmp_bam, $out);
+	$parser->exec(get_path("ngs-bits")."BamIndex", "-in ".$out, true);
 }
 
 //remove too short reads from amplicon data
@@ -154,7 +161,7 @@ if($sys['type']=="Panel Haloplex HS" && file_exists($index_file))
 	$parser->exec(get_path("ngs-bits")."BamIndex", "-in $out", true);
 }
 
-// run mapping QC
+//run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
 $params = array();
 if ($sys['target_file']=="" || $sys['type']=="WGS")

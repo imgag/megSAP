@@ -253,15 +253,15 @@ else
 			// indel realignment with ABRA
 			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
 			$tmp1_n_bam = $parser->tempFile("_normal.bam");
-			$command = "php ".repository_basedir()."/src/NGS/indel_realign_abra.php -in $n_bam $t_bam -out $tmp1_n_bam $tmp1_t_bam -roi $tmp2_targets -threads 8 -mer 0.02 2>&1";			
+			$command = "php ".repository_basedir()."/src/NGS/indel_realign_abra.php -in $n_bam $t_bam -out $tmp1_n_bam $tmp1_t_bam -roi $tmp2_targets -threads 8 -mer 0.02 -mad 5000 2>&1";			
 			$working_directory = realpath($p_folder);
 			$parser->jobsSubmit(array($command), $working_directory, get_path("queues_high_mem"), true);
 			
 			// copy realigned files to output folder and overwrite previous bam files
 			copy2($tmp1_n_bam, $n_bam);
-			copy2($tmp1_n_bam.".bai", $n_bam.".bai");
+			$parser->exec(get_path("ngs-bits")."BamIndex", "-in ".$n_bam, true);
 			copy2($tmp1_t_bam, $t_bam);
-			copy2($tmp1_t_bam.".bai", $t_bam.".bai");
+			$parser->exec(get_path("ngs-bits")."BamIndex", "-in ".$t_bam, true);
 		}
 	}
 

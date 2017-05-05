@@ -2,6 +2,8 @@
 
 /*
 	@page indel_realign_abra2
+	
+	@todo use indel_realign_abra.php instead.
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
