@@ -193,7 +193,10 @@ if($mode=="germline")
 		}
 		else //insert (rare case)
 		{
-			$db_connect->bind($hash, "chr", $row[$i_chr]);
+			$chr =  $row[$i_chr];
+			if (!starts_with($chr, "chr")) $chr = "chr".$chr;
+			if ($chr=="chrMT") $chr = "chrM";
+			$db_connect->bind($hash, "chr", $chr);
 			$db_connect->bind($hash, "start", $row[$i_sta]);
 			$db_connect->bind($hash, "end", $row[$i_end]);
 			$db_connect->bind($hash, "ref", $row[$i_ref]);
@@ -208,7 +211,7 @@ if($mode=="germline")
 			$db_connect->execute($hash, true);
 			++$c_ins;
 
-			$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".$row[0]."' AND start='".$row[1]."' AND end='".$row[2]."' AND ref='".$row[3]."' AND obs='".$row[4]."'", -1);
+			$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".$chr."' AND start='".$row[$i_sta]."' AND end='".$row[$i_end]."' AND ref='".$row[$i_ref]."' AND obs='".$row[$i_obs]."'", -1);
 		}
 		$var_ids[] = $variant_id;
 	}

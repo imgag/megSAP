@@ -105,7 +105,7 @@ $parser->exec("bgzip", "-c $annfile > $annfile_zipped", false); //no output logg
 $parser->exec("tabix", "-p vcf $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 
 //use exonic/splicing variant list for WGS only (otherwise the NGSD annotation takes too long)
-if ($sys['build']=="hg19" && $sys['type']=="WGS") 
+if ($sys['build']!="mm10" && $sys['type']=="WGS") 
 {
 	rename($varfile, $varfile_full);
 	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $varfile_full -out $varfile -reg ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed", false);

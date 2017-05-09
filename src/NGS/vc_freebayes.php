@@ -1,8 +1,6 @@
 <?php 
 /** 
 	@page vc_freebayes
-	
-	@todo Look into strand-bias filter for shotgun data?
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -20,6 +18,7 @@ $parser->addInt("target_extend",  "Call variants up to n bases outside the targe
 $parser->addString("build", "The genome build to use.", true, "hg19");
 $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 1);
+$parser->addFlag("no_ploidy", "Use freebayes parameter -K, i.e. output all alleles which pass input filters, regardles of genotyping outcome or model.");
 extract($parser->parse($argv));
 
 //(1) set up variant calling pipeline
@@ -27,7 +26,7 @@ $genome = get_path("local_data")."/{$build}.fa";
 $pipeline = array();
 
 //create basic variant calls
-$extras = array();
+$args = array();
 if(isset($target))
 {
 	if ($target_extend>0)
@@ -42,13 +41,17 @@ if(isset($target))
 
 	$target_merged = $parser->tempFile(".bed");
 	$parser->exec(get_path("ngs-bits")."BedMerge"," -in $target_extended -out $target_merged", true);
-	$extras[] = "-t $target_merged";
+	$args[] = "-t $target_merged";
 }
-$extras[] = "--min-alternate-fraction $min_af";
-$extras[] = "--min-mapping-quality $min_mq";
-$extras[] = "--min-base-quality 10"; //max 10% error propbability
-$extras[] = "--min-alternate-qsum 90"; //At least 3 good observations
-$pipeline[] = array(get_path("freebayes"), "-b ".implode(" ",$bam)." -f $genome ".implode(" ", $extras));
+if ($no_ploidy)
+{
+	$args[] = "--pooled-continuous";
+}
+$args[] = "--min-alternate-fraction $min_af";
+$args[] = "--min-mapping-quality $min_mq";
+$args[] = "--min-base-quality 10"; //max 10% error propbability
+$args[] = "--min-alternate-qsum 90"; //At least 3 good observations
+$pipeline[] = array(get_path("freebayes"), "-b ".implode(" ",$bam)." -f $genome ".implode(" ", $args));
 
 //filter variants according to variant quality>5 , alternate observations>=3
 $pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5 & AO > 2\"");

@@ -164,7 +164,7 @@ function chr_check($chr, $max = 22, $fail_trigger_error = true)
 {
 	$chr = chr_trim($chr);
 	
-	if($chr!="X" && $chr!="Y" && $chr!="M" && (!ctype_digit($chr) || $chr<1 || $chr>$max))
+	if($chr!="X" && $chr!="Y" && $chr!="M" && $chr!="MT" && (!ctype_digit($chr) || $chr<1 || $chr>$max))
 	{
 		if ($fail_trigger_error)
 		{

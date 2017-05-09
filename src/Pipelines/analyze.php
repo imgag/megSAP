@@ -96,55 +96,92 @@ if (in_array("ma", $steps))
 		trigger_error("Found no read files ending with '_R1_001.fastq.gz' or '_R2_001.fastq.gz'!", E_USER_ERROR);
 	}
 	
-	$extras = array();
-	if($clip_overlap) $extras[] = "-clip_overlap";
-	if($no_abra) $extras[] = "-no_abra";
+	$args = array();
+	if($clip_overlap) $args[] = "-clip_overlap";
+	if($no_abra) $args[] = "-no_abra";
 	if(file_exists($log_ma)) unlink($log_ma);
 	
-	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $out_folder -out_name $name --log $log_ma ".implode(" ", $extras)." -threads $threads");
+	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $out_folder -out_name $name --log $log_ma ".implode(" ", $args)." -threads $threads");
 }
 
 //variant calling
 if (in_array("vc", $steps))
 {	
-	$extras = array();
+	$args = array();
 	if ($sys['target_file']!="")
 	{
-		$extras[] = "-target ".$sys['target_file'];
-		$extras[] = "-target_extend 50";
+		$args[] = "-target ".$sys['target_file'];
+		$args[] = "-target_extend 50";
 	}
 	if ($lofreq) //lofreq
 	{
-		$extras[] = "-min_af 0.05";
+		$args[] = "-min_af 0.05";
 	}
 	else if (!$sys['shotgun']) //amplicon panels
 	{
-		$extras[] = "-min_af 0.1";
+		$args[] = "-min_af 0.1";
 	}
 	
 	if(file_exists($log_vc)) unlink($log_vc);
-	$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc ".implode(" ", $extras));
+	$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc ".implode(" ", $args));
+	
+	//if WES, perform special variant calling for mitochondria
+	$mito = ($sys['type']=="WES");
+	if ($mito)
+	{
+		$target_mito = $parser->tempFile("_mito.bed");
+		if ($sys['build']=="hg19")
+		{
+			file_put_contents($target_mito, "chrM\t0\t16571");
+		}
+		else if ($sys['build']=="GRCh37")
+		{
+			file_put_contents($target_mito, "MT\t0\t16569");
+		}
+		else
+		{
+			trigger_error("No mitochondria target region available for genome ".$sys['build']."!", E_USER_ERROR);
+		}
+		$args = array();
+		$args[] = "-no_ploidy";
+		$args[] = "-min_af 0.01";
+		$args[] = "-target $target_mito";
+		$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
+		$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile_mito -build ".$sys['build']." --log $log_vc ".implode(" ", $args));
+	}
 	
 	//add sample header to VCF
-	$h1 = gzopen($vcffile, "r");
-	if ($h1===FALSE) trigger_error("Could not open file '" + $vcffile + "'.", E_USER_ERROR);
+	$hr = gzopen($vcffile, "r");
+	if ($hr===FALSE) trigger_error("Could not open file '" + $vcffile + "'.", E_USER_ERROR);
 	$vcf = $parser->tempFile("_unzipped.vcf");
-	$h2 = fopen($vcf, "w");
-	if ($h2===FALSE) trigger_error("Could not open file '" + $vcf + "'.", E_USER_ERROR);
-	while(!gzeof($h1))
+	$hw = fopen($vcf, "w");
+	if ($hw===FALSE) trigger_error("Could not open file '" + $vcf + "'.", E_USER_ERROR);
+	while(!gzeof($hr))
 	{
-		$line = trim(gzgets($h1));
+		$line = trim(gzgets($hr));
 		if (strlen($line)==0) continue;
 		if ($line[0]=="#" && $line[1]!="#")
 		{
 			$details = get_processed_sample_info($name, false);
-			fwrite($h2, "##ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n");
-			fwrite($h2, "##SAMPLE=<ID=".$name.",Status=affected,Gender=".(is_null($details) ? "n/a" : $details['gender']).">\n");
+			fwrite($hw, "##ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n");
+			fwrite($hw, "##SAMPLE=<ID=".$name.",Status=affected,Gender=".(is_null($details) ? "n/a" : $details['gender']).">\n");
 		}
-		fwrite($h2, $line."\n");
+		fwrite($hw, $line."\n");
 	}
-	fclose($h1);
-	fclose($h2);
+	fclose($hr);
+	if ($mito) //special variant calling for mitochondria 
+	{
+		$hr = gzopen($vcffile_mito, "r");
+		if ($hr===FALSE) trigger_error("Could not open file '" + $vcffile_mito + "'.", E_USER_ERROR);
+		while(!gzeof($hr))
+		{
+			$line = trim(gzgets($hr));
+			if ($line=="" || $line[0]=="#") continue;
+			fwrite($hw, $line."\n");
+		}
+		fclose($hr);
+	}
+	fclose($hw);
 	$parser->exec("bgzip", "-c $vcf > $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
 	$parser->exec("tabix", "-f -p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
 }
