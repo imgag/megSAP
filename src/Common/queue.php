@@ -161,7 +161,7 @@ function jobSubmit($command, $working_directory, $queue, $status_folder, $wait=f
 	if(is_numeric($jobnumber))
 	{
 		$user_name = exec('whoami');
-		$command_short = strlen($command_str)<60 ? $command : substr($command, 0, 60)."...";
+		$command_short = strlen($command)<60 ? $command : substr($command, 0, 60)."...";
 		$outputline = array($jobnumber,date("d-m-Y_H:i:s"), $command_short, $working_directory, $user_name."\n");
 		file_put_contents(get_path("sample_status_folder")."/jobinfo.txt", implode("\t", $outputline), FILE_APPEND);
 
