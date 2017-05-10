@@ -15,7 +15,7 @@ $parser = new ToolBase("indel_realign_abra", "Perform indel realignment using AB
 $parser->addInfileArray("in",  "Input BAM file(s).", false);
 $parser->addOutfileArray("out",  "Output BAM file(s). Must be different from input BAM file(s). No index BAI files are created!", false);
 //optional
-$parser->addString("build", "The genome build to use.", true, "hg19");
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addInt("threads", "Maximum number of threads used.", true, 1);
 $parser->addInfile("roi", "Target region for realignment.", true, "");
 $parser->addFloat("mer",  "ABRA2 minimum edge pruning ratio parameter. Default value is for germline - use 0.02 for somatic data.", true, 0.1);

@@ -16,7 +16,7 @@ $parser->addInfile("var",  "Input variant list in TSV format.", false);
 $parser->addEnum("mode",  "Import mode.", true, array("germline", "somatic"), "germline");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addFlag("force", "Overwrites already existing DB entries instead of throwing an error.");
-$parser->addString("build", "Genome build.", true, "hg19");
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
 function getVariant($db, $id)
@@ -194,7 +194,6 @@ if($mode=="germline")
 		else //insert (rare case)
 		{
 			$chr =  $row[$i_chr];
-			if (!starts_with($chr, "chr")) $chr = "chr".$chr;
 			if ($chr=="chrMT") $chr = "chrM";
 			$db_connect->bind($hash, "chr", $chr);
 			$db_connect->bind($hash, "start", $row[$i_sta]);

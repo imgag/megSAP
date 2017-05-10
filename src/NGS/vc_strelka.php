@@ -19,7 +19,7 @@ $parser->addOutfile("out", "Output file in VCF format (gzipped and tabix indexed
 //optional
 $parser->addFlag("k", "Keep all variants. Otherwise all variants that do not pass all filters will be removed.");
 $parser->addFlag("amplicon",  "Enables amplicon mode.");
-$parser->addString("build", "The genome build to use.", true, "hg19");
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addString("config", "Config file for strelka.", true, "auto");
 extract($parser->parse($argv));
 

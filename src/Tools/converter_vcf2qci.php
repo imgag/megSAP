@@ -10,7 +10,7 @@ $parser->addInfile("in",  "Input file in tsv-format.", false);
 $parser->addOutfile("out",  "Output file in vcf-format.", false);
 // optional
 $parser->addFlag("pass", "Keep only variants that passed all filter criteria");
-$parser->addString("build", "Build used for vcf file generation.", true, "hg19");
+$parser->addString("build", "Build used for vcf file generation.", true, "GRCh37");
 extract($parser->parse($argv));
 
 $file_qci = new Matrix();

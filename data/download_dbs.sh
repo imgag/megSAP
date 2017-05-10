@@ -16,7 +16,7 @@ src=`pwd`/../src/
 tools=`pwd`/tools/
 ngsbits=$tools/ngs-bits/bin
 vcflib=$tools/vcflib/bin
-genome=`pwd`/genomes/hg19.fa
+genome=`pwd`/genomes/GRCh37.fa
 
 #install dbSNP
 cd $dbs

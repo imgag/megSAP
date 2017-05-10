@@ -18,7 +18,7 @@ $parser->addString("out", "Output file (gzipped and tabix indexed).", false);
 //optional
 $parser->addInfile("t_bam", "Tumor BAM file.", true);
 $parser->addFlag("exome", "If set settings for exome are used.", true);
-$parser->addString("build", "The genome build to use.", true, "hg19");
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
 //run manta

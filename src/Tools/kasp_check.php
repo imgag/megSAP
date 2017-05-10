@@ -111,7 +111,7 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 	if ($depth<$min_depth) return "n/a";
 	
 	//call variants
-	$vc_cmd = get_path("freebayes")." -b $bam -f ".get_path("local_data")."/hg19.fa -r $chr:".($pos-2)."-".($pos);
+	$vc_cmd = get_path("freebayes")." -b $bam -f ".get_path("local_data")."/GRCh37.fa -r $chr:".($pos-2)."-".($pos);
 	if ($debug) print $vc_cmd."\n";
 	list($output) = exec2($vc_cmd);
 	foreach($output as $o)

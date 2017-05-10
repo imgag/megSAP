@@ -111,7 +111,7 @@ if(in_array("co", $steps))
 	// (3) annotate RNA 
 	if ($rna!=0)
 	{
-		$vaf_options = " -depth"; #-ref ".get_path("local_data")."/hg19.fa";
+		$vaf_options = " -depth";
 		
 		$tmp = $parser->tempFile(".vcf");
 		$parser->exec("bgzip", "-dc $s_dna_vcf > $tmp", false);	// no output logging, because Toolbase::extractVersion() does not return

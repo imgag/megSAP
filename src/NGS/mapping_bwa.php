@@ -14,7 +14,7 @@ $parser->addInfile("in1",  "Input file in FASTQ format. Forward read.", false);
 $parser->addInfile("in2",  "Input file in FASTQ format. Reverse read.", false);
 $parser->addOutfile("out",  "Output file in bam format (sorted).", false);
 //optional
-$parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "hg19");
+$parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
 $parser->addInfile("sheet",  "Illumina GAIIx sample sheet for read group generation.", true);
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
 $parser->addFlag("dedup", "Marks duplicates after alignment.");

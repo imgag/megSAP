@@ -12,7 +12,7 @@ $parser = new ToolBase("vc_pindel", "Run pindel. No Haloplex.");
 $parser->addInfileArray("bam_files",  "Bam files for pindel. Please note that MappingQC output file must reside next to bam file to extract correct insert size.", false);
 $parser->addString("out", "Output folder (will contain files prefixed with pindel).", false);
 //optional
-$parser->addString("build", "The genome build to use.", true, "hg19");
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
 //check bam file and qcml file

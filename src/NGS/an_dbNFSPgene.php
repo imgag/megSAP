@@ -12,7 +12,7 @@ $parser->addInfile("in",  "Input file in tsv format.", false);
 $parser->addOutfile("out", "Output file in tsv format.", false);
 //optional
 $parser->addInt("idx_coding", "Coding column (-1 = auto select - requires column 'coding_and_splicing').", true, -1);
-$parser->addString("build", "The genome build to use.", true, "hg19");
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
 //read dbNFSPgene and generate map of refseq-IDs

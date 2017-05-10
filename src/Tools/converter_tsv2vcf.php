@@ -5,7 +5,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
-$parser = new ToolBase("converter_tsv2vcf", "Generate vcf-files from tsv files (e.g. , hg19 only!).");
+$parser = new ToolBase("converter_tsv2vcf", "Generate vcf-files from tsv files (e.g. , GRCh37 only!).");
 $parser->addInfile("in",  "Input file in tsv-format.", false);
 $parser->addOutfile("out",  "Output file in vcf-format.", false);
 // optional
@@ -18,8 +18,8 @@ extract($parser->parse($argv));
 $nl = new Matrix();
 $nl->addComment("#fileformat=VCFv4.1");
 $nl->addComment("#fileDate=".date("Ymd"));
-$nl->addComment("#reference=/mnt/share/data/dbs//genomes/hg19.fa");	//hg19 only
-$nl->addComment("#INFO=<ID=variant_id,Number=1,Type=String,Description=\"ID of original variant.\">");	//hg19 only
+$nl->addComment("#reference=/mnt/share/data/dbs//genomes/GRCh37.fa");	//GRCh37 only
+$nl->addComment("#INFO=<ID=variant_id,Number=1,Type=String,Description=\"ID of original variant.\">");	//GRCh37 only
 $nl->addComment("#FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">");
 $nl->setHeaders(array("CHROM","POS","ID","REF","ALT","QUAL","FILTER","INFO","FORMAT","Sample"));
 
@@ -41,7 +41,7 @@ if(isset($info))
 
 foreach($idx_info as $idx => $name)
 {
-	$nl->addComment("#INFO=<ID=$name,Number=1,Type=String,Description=\"UNKNOWN.\">");	//hg19 only
+	$nl->addComment("#INFO=<ID=$name,Number=1,Type=String,Description=\"UNKNOWN.\">");	//GRCh37 only
 }
 
 for($i=0;$i<$ol->rows();++$i)

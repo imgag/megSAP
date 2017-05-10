@@ -93,11 +93,14 @@ function rev_comp($input)
 	@brief Returns a genomic reference sequence (1-based chromosomal coordinates).	
 	@ingroup genomics
 */
-function get_ref_seq($chr, $start, $end, $build = "hg19")
+function get_ref_seq($chr, $start, $end)
 {
+	//fix chromosome for GHCh37
+	if ($chr=="chrM") $chr = "chrMT";
+	
 	//get sequence
 	$output = array();
-	exec(get_path("samtools")." faidx ".get_path("local_data")."/{$build}.fa $chr:{$start}-$end 2>&1", $output, $ret);
+	exec(get_path("samtools")." faidx ".get_path("local_data")."/GRCh37.fa $chr:{$start}-$end 2>&1", $output, $ret);
 	if ($ret!=0)
 	{
 		trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);

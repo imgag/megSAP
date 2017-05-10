@@ -26,6 +26,6 @@ The system INI file described the wet-lab processing of the sample and defines t
 * `adapter2_p7` - Read 1 adapter sequence (Illumina standard is `AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT`).
 * `type` - Processing system type: `WGS`, `WES`, `Panel` or `Panel Haloplex`.
 * `shotgun` - `true` for randomly-fragmented reads,  `false` for amplicon-based reads.
-* `build` - Currently only 'hg19' is supported.
+* `build` - Currently only 'GRCh37' is supported.
 
 [back to the start page](../README.md)

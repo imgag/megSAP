@@ -13,7 +13,7 @@ $parser->addInfile("bam_file",  "Bam file.", false);
 $parser->addInfile("vcf_file",  "VCF file.", false);
 $parser->addString("out", "Output folder.", false);
 //optional
-$parser->addString("build", "The genome build to use.", true, "hg19");
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
 //TODO check processing system => only WG

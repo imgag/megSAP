@@ -13,7 +13,6 @@ $parser = new ToolBase("check_tsv", "Performs TSV file format check.");
 $parser->addInfile("in",  "Input file in TSV format.", false);
 //optional
 $parser->addInt("limit", "The number of variants to check for format-specific checks. '0' means all.", true, 10000);
-$parser->addString("build", "The genome build to use.", true, "hg19");
 extract($parser->parse($argv));
 
 //define format in the following format: column index, name, type
@@ -107,20 +106,20 @@ while(!feof($handle))
 			}
 				
 			//check reference genome
-			$ref_seq = get_ref_seq($chr, $start, $end, $build);
+			$ref_seq = get_ref_seq($chr, $start, $end);
 			if(strcasecmp($ref_seq, $ref)!=0)
 			{
-				trigger_error("SNP ref base '$ref' does not match genome $build sequence '$ref_seq' in line with index '$i'.", E_USER_ERROR);
+				trigger_error("SNP ref base '$ref' does not match genome sequence '$ref_seq' in line with index '$i'.", E_USER_ERROR);
 			}
 		}
 		//check deletions
 		else if($ref!="-")
 		{
 			//check reference genome
-			$ref_seq = get_ref_seq($chr, $start, $end, $build);
+			$ref_seq = get_ref_seq($chr, $start, $end);
 			if(strcasecmp($ref_seq, $ref)!=0)
 			{
-				trigger_error("INDEL reference sequence '$ref' does not match genome $build sequence '$ref_seq' in line with index '$i'.", E_USER_ERROR);
+				trigger_error("INDEL reference sequence '$ref' does not match genome sequence '$ref_seq' in line with index '$i'.", E_USER_ERROR);
 			}	
 		}
 	}

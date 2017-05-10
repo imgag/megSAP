@@ -61,20 +61,13 @@ if ($sys['type']!="WGS")
 {
 	$args[] = "-no_updown";
 }
-if ($sys['build']=="GRCh37")
-{
-	$args[] = "-build GRCh37.75";
-}
-else
-{
-	$args[] = "-build ".$sys['build'];
-}
+$args[] = "-build ".$sys['build'];
 $parser->execTool("NGS/an_snpeff.php", implode(" ", $args));
 
 //check vcf file
 if(!$no_fc)
 {
-	$parser->execTool("NGS/check_vcf.php", "-in $annfile -build ".$sys['build']);
+	$parser->execTool("NGS/check_vcf.php", "-in $annfile");
 }
 
 //convert to GSvar file
@@ -105,7 +98,7 @@ $parser->exec("bgzip", "-c $annfile > $annfile_zipped", false); //no output logg
 $parser->exec("tabix", "-p vcf $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 
 //use exonic/splicing variant list for WGS only (otherwise the NGSD annotation takes too long)
-if ($sys['build']!="mm10" && $sys['type']=="WGS") 
+if ($sys['type']=="WGS" && ($sys['build']=="hg19" || $sys['build']=="GRCh37")) 
 {
 	rename($varfile, $varfile_full);
 	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $varfile_full -out $varfile -reg ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed", false);
@@ -133,7 +126,7 @@ if(!$no_ngsd && $t_col=="na")
 //check output TSV file (not for somatic)
 if(!$no_fc && $t_col=="na")
 {
-	$parser->execTool("NGS/check_tsv.php", "-in $varfile -build ".$sys['build']);
+	$parser->execTool("NGS/check_tsv.php", "-in $varfile");
 }
 
 ?>

@@ -12,7 +12,6 @@ $parser = new ToolBase("check_vcf", "Performs VCF file format check.");
 $parser->addInfile("in",  "Input file in VCF format.", false);
 //optional
 $parser->addInt("limit", "Maximum number of lines that should be used to validate the vcf file (including header lines). '0' means all.", true, 10000);
-$parser->addString("build", "The genome build to use.", true, "hg19");
 extract($parser->parse($argv));
 
 //unzip input VCF if necessary
@@ -63,10 +62,10 @@ while(!feof($handle))
 
 	list($chr, $start, , $ref, $alt) = explode("\t", $line);	
 	$end = $start + strlen($ref) - 1;
-	$ref2 = get_ref_seq($chr, $start, $end, $build);
+	$ref2 = get_ref_seq($chr, $start, $end);
 	if(strcasecmp($ref, $ref2)!=0)
 	{
-		trigger_error("Invalid reference sequence in variant $chr:$start $ref>$alt ($build says ref should be: $ref2).", E_USER_ERROR);
+		trigger_error("Invalid reference sequence in variant $chr:$start $ref>$alt (ref should be: $ref2).", E_USER_ERROR);
 	}
 	
 	++$var_count;

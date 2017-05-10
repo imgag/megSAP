@@ -40,7 +40,7 @@ $so = $parser->tempFile("_annovar.tsv");
 $parser->exec(get_path("ngs-bits")."SampleOverview", "-in $f_tsv $m_tsv $c_tsv -out $so", true);	
 
 //VariantAnnotateFrequency => add depth and variant frequency
-$vaf_options = " -depth -ref ".get_path("local_data")."/hg19.fa";
+$vaf_options = " -depth -ref ".get_path("local_data")."/GRCh37.fa";
 $parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $so -bam $f_bam -out $so -name father $vaf_options", true);	
 $parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $so -bam $m_bam -out $so -name mother $vaf_options", true);	
 $parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $so -bam $c_bam -out $so -name child $vaf_options", true);	

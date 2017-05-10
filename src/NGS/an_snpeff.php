@@ -14,9 +14,14 @@ $parser->addInfile("in",  "Input file in VCF format.", false);
 $parser->addOutfile("out", "Output file in VCF format.", false);
 //optional
 $parser->addInt("thres", "Splicing region size used for annotation (flanking the exons).", true, 20);
-$parser->addString("build", "The genome build to use.", true, "hg19");
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addFlag("no_updown", "Do not annotate upsteam/downstream changes.");
 extract($parser->parse($argv));
+
+if ($build=="GRCh37")
+{
+	$build = "GRCh37.75";
+}
 
 //dbSNP annotation
 $pipeline = array();

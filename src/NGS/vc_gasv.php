@@ -12,7 +12,7 @@ $parser = new ToolBase("gasv", "Run GASV. Only WGS.");
 $parser->addInfile("bam_file",  "Bam file.", false);
 $parser->addString("out", "Output folder.", false);
 //optional
-$parser->addString("build", "The genome build to use.", true, "hg19");
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
 chdir($out);	//move to out_folder

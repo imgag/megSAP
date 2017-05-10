@@ -60,7 +60,7 @@ First, we need to download the tools the pipeline relies on:
 
 Next, we need to download and index the reference genome:
 	
-	> ./download_hg19.sh
+	> ./download_GRCh37.sh
 
 
 Finally, we need to download and convert some open-source databases for annotations:

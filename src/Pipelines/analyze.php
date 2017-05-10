@@ -136,7 +136,7 @@ if (in_array("vc", $steps))
 		}
 		else if ($sys['build']=="GRCh37")
 		{
-			file_put_contents($target_mito, "MT\t0\t16569");
+			file_put_contents($target_mito, "chrMT\t0\t16569");
 		}
 		else
 		{
@@ -199,12 +199,12 @@ if (in_array("an", $steps))
 	//low-coverage report
 	if($sys['type']=="WGS") //WGS
 	{
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-wgs -bam $bamfile -out $lowcov_file -cutoff 20", false);
+		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-wgs -bam $bamfile -out $lowcov_file -cutoff 20", true);
 		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -extend 25 -out $lowcov_file", true);
 	}
 	else if ($sys['target_file']!="") //ROI (but not WGS)
 	{	
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", false);
+		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", true);
 		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -extend 25 -out $lowcov_file", true);
 	}
 
