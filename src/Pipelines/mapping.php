@@ -97,7 +97,7 @@ if ($sys['shotgun']) $mapping_options .= " -dedup";
 $parser->execTool("NGS/mapping_bwa.php", "-in1 $trimmed1 -in2 $trimmed2 -out $out $mapping_options -build ".$sys['build']." -threads ".$threads);
 
 //perform indel realignment
-if (!$no_abra)
+if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 {
 	//execute
 	$args = array();
@@ -110,6 +110,11 @@ if (!$no_abra)
 	{
 		$args[] = "-roi ".$sys['target_file'];
 	}
+	else if ($sys['type']=="WGS") //for WGS use exome target region
+	{
+		$args[] = "-roi ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed";
+	}
+	
 	$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $args));
 	
 	//copy/index output
