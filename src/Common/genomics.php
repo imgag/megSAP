@@ -1335,7 +1335,7 @@ function get_processed_sample_info($ps_name, $error_if_not_found=true)
 	}
 	
 	//get info from NGSD
-	list($sample_name, $process_id) = explode("_", $ps_name);
+	list($sample_name, $process_id) = explode("_", $ps_name."_");
 	$db = DB::getInstance('NGSD');
 	$res = $db->executeQuery("SELECT p.name as project_name, p.type as project_type, p.id as project_id, ps.id as ps_id, r.name as run_name, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, sys.type as sys_type ".
 	                         "FROM project p, processed_sample ps, sample s, processing_system as sys, sequencing_run as r ".
