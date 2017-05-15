@@ -15,7 +15,7 @@ $parser->addOutfile("out", "Output BAM file name", false);
 
 //optional arguments
 $parser->addInfile("in2",  "Input reverse reads in FASTQ(.GZ) format for paired-end alignment.", true);
-$parser->addString("genome", "Path to directory with STAR reference genome index.", true, get_path("data_folder")."genomes/STAR/hg19");
+$parser->addString("genome", "Path to directory with STAR reference genome index.", true, get_path("data_folder")."genomes/STAR/GRCh37");
 
 $parser->addFlag("stranded", "Add this flag if library preparation was strand conserving.");
 $parser->addFlag("uncompressed", "FASTQ input files are uncompressed.");
@@ -32,12 +32,16 @@ $parser->addFlag("dedup", "Marks duplicates after alignment.");
 $parser->addInt("Lmax", "Max length of read fraction for seed search", true, 50);
 
 $parser->addFlag("noSplicing", "Prevent reads from getting spliced");
-$parser->addFlag("wiggleOutput", "Output alignment in wiggle format.");
 
 $parser->addFlag("longReads", "Use STAR version suitable for very long reads > 500nt.");
 
 $parser->addFlag("useSharedMemory", "Load STAR Index into shared memory in order to run multiple STAR instances on the same genome.");
 $parser->addFlag("clipping", "Perform adapter clipping during mapping.");
+
+$parser->addFlag("disableJunctionFilters", "Disable filtering of the reported junctions (affects splicing output only).");
+
+$parser->addInt("sjOverhang", "Minimum overhang for non-annotated splice junctions.", true, 8);
+$parser->addInt("sjdbOverhang", "Minimum overhang for annotated splice junctions.", true, 1);
 
 $downstream_all = array("splicing","chimeric");
 $parser->addString("downstream", "Keep files for downstream analysis.", true, "");
@@ -82,8 +86,13 @@ if(!$uncompressed) {
 }
 
 //options for chimeric alignment detection
-$arguments[] = "--chimSegmentMin 12 --chimJunctionOverhangMin 12 --alignSJDBoverhangMin 10 --alignMatesGapMax 200000 --alignIntronMax 200000 --alignSJstitchMismatchNmax 5 -1 5 5 --chimSegmentReadGapMax parameter 3";
-$arguments[] = "--seedSearchStartLmax $Lmax";
+$arguments[] = "--chimSegmentMin 12 --chimJunctionOverhangMin 12 --chimSegmentReadGapMax 3";
+$arguments[] = "--seedSearchStartLmax $Lmax --alignMatesGapMax 1000000 --alignIntronMax 1000000 --alignIntronMin 20";
+$arguments[] = "--alignSJoverhangMin $sjOverhang --alignSJDBoverhangMin $sjdbOverhang --alignSJstitchMismatchNmax 5 -1 5 5";
+
+if ($disableJunctionFilters) {
+	$arguments[] = "--outSJfilterDistToOtherSJmin 0 0 0 0 --outSJfilterOverhangMin 1 1 1 1 --outSJfilterCountUniqueMin 1 1 1 1 --outSJfilterCountTotalMin 1 1 1 1";
+}
 
 //2-pass mode is only possible if shared memory is not used
 if($useSharedMemory) {
@@ -104,10 +113,6 @@ $arguments[] = "--outSAMattrRGline ID:1 PL:illumina PU:RGPU LB:N SM:RGSM CN:MFT"
 
 // keep unmapped reads in BAM output
 $arguments[] = "--outSAMunmapped Within";
-
-if($wiggleOutput) {
-	$arguments[] = "--outWigType wiggle";
-}
 
 //STAR or STARlong program
 $STAR = get_path("STAR");
@@ -153,9 +158,5 @@ $parser->log("STAR final log", file($final_log));
 
 //create index file
 $parser->exec(get_path("ngs-bits")."BamIndex", "-in $out", true);
-
-//mapping QC
-$stafile2 = "{$prefix}_stats_map.qcML";
-$parser->exec(get_path("ngs-bits")."MappingQC", "-in $out -out $stafile2 -rna", true);
 
 ?>

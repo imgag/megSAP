@@ -32,6 +32,9 @@ $parser->addFlag("dedup", "Mark duplicates after alignment.");
 $parser->addFlag("sharedMemory", "Use shared memory for running STAR alignment jobs.");
 $downstream_all = array("splicing","chimeric");
 $parser->addString("downstream", "Keep files for downstream analysis (splicing, chimeric).", true, "");
+$parser->addInt("sjOverhang", "Minimum overhang for non-annotated splice junctions.", true, 8);
+$parser->addInt("sjdbOverhang", "Minimum overhang for annotated splice junctions.", true, 1);
+$parser->addFlag("disableJunctionFilters", "Disable filtering of the reported junctions (affects splicing output only).");
 
 extract($parser->parse($argv));
 
@@ -135,6 +138,12 @@ if(in_array("ma", $steps))
 		}
 	}
 
+	if ($disableJunctionFilters) {
+		$args[] = "-disableJunctionFilters";
+	}
+
+	$args[] = "-sjOverhang $sjOverhang -sjdbOverhang $sjdbOverhang";
+
 	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
 
 	//indel realignment
@@ -151,6 +160,15 @@ if(in_array("ma", $steps))
 		$parser->exec("cp", "{$abra_out} {$final_bam}", true);
 		$parser->exec(get_path("ngs-bits")."BamIndex", "-in {$final_bam}", true);
 	}
+
+	//mapping QC
+	if (isset($target_file)) {
+		$mappingqc_target = "-roi {$target_file}";
+	} else {
+		$mappingqc_target = "-rna";
+	}
+	$parser->exec(get_path("ngs-bits")."MappingQC", "-in {$final_bam} -out {$qc_map} {$mappingqc_target}", true);
+
 }
 
 //read counting
