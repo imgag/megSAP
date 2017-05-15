@@ -154,7 +154,7 @@ if(in_array("ma", $steps))
 		$abra_out = $parser->tempFile("_abra_realigned.bam");
 		$params_abra = array();
 		if (!$paired) $params_abra[] = "-se";
-		if ($target_file != "") $params_abra[] = "-roi {$target_file}";
+		if (isset($target_file) && $target_file != "") $params_abra[] = "-roi {$target_file}";
 		$parser->execTool("NGS/indel_realign_abra.php", "-in $final_bam -out $abra_out -threads $threads -build $build -gtf $gtfFile -junctions $junction_file ".implode(" ", $params_abra));
 
 		$parser->exec("cp", "{$abra_out} {$final_bam}", true);
@@ -162,7 +162,7 @@ if(in_array("ma", $steps))
 	}
 
 	//mapping QC
-	if (isset($target_file) && target_file != "") {
+	if (isset($target_file) && $target_file != "") {
 		$mappingqc_target = "-roi {$target_file}";
 	} else {
 		$mappingqc_target = "-rna";

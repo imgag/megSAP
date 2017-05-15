@@ -32,7 +32,7 @@ while(!feof($handle_gtf))
 	foreach(explode(";", $parts[8]) as $anno)
 	{
 		$anno = trim($anno);
-		if ($anno=="") continue;
+		if (!isset($anno) || $anno=="") continue;
 		
 		list($key, $value) = explode(" ", $anno);
 		$value = trim(substr($value, 1, -1));
