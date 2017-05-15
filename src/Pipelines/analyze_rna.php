@@ -162,7 +162,7 @@ if(in_array("ma", $steps))
 	}
 
 	//mapping QC
-	if (isset($target_file)) {
+	if (isset($target_file) && target_file != "") {
 		$mappingqc_target = "-roi {$target_file}";
 	} else {
 		$mappingqc_target = "-rna";
