@@ -69,5 +69,5 @@ update_fusions:
 	php ../update_test_data.php results_ivac1/I14R010d01_01-I14R010d02_01_var_fusions.tsv I14R010d01_01-I14R010d02_01_var_fusions_ivac1.out.tsv
 
 update_cnvs:
-	php ../update_test_data.php results_ivac1/GS140850_02-GS140851_02_var_copy.tsv GS140850_02-GS140851_02_var_copy_ivac1.out.tsv
-	php ../update_test_data.php results_ivac2/GS140850_02-GS140851_02_var_copy.tsv GS140850_02-GS140851_02_var_copy_ivac2.out.tsv
+	php ../update_test_data.php results_ivac1/GS140850_02-GS140851_02_cnvs.tsv GS140850_02-GS140851_02_var_copy_ivac1.out.tsv
+	php ../update_test_data.php results_ivac2/GS140850_02-GS140851_02_cnvs.tsv GS140850_02-GS140851_02_var_copy_ivac2.out.tsv

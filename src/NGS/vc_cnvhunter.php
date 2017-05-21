@@ -15,6 +15,7 @@ $parser->addOutfile("out", "Output CNV file in TSV format.", false);
 //optional
 $parser->addInfile("system", "Processing system INI file (determined from 'cov' sample name by default).", true);
 $parser->addString("n_cov", "Normal COV file for somatic CNV calling.", true, null);
+$parser->addString("debug", "Folder for debug information.", true, null);
 $parser->addString("cov_folder", "Folder with all coverage files (if different from [data_folder]/coverage/[system_short_name]/.", true, "auto");
 $parser->addInt("min_reg", "Minimum number of subsequent regions for output CNV events.", true, 1);
 $parser->addInt("n", "Number of (most similar) samples to consider.", true, 20);
@@ -63,26 +64,53 @@ if($sys['type']=="WGS")
 if(isset($seg)) $args[] = "-seg $seg";
 $args[] = "-anno";
 $args[] = "-n $n";
-$temp = $parser->tempFile("_cnvhunter.tsv");
-$base = substr($temp, 0, -4);
-$parser->exec(get_path("ngs-bits")."CnvHunter", "-in ".implode(" ",$cov_files)." -out $temp ".implode(" ", $args), true);
+$temp_folder = !empty($debug)?$debug:$parser->tempFolder();
+if(!is_dir($temp_folder))	mkdir ($temp_folder);
+$parser->exec(get_path("ngs-bits")."CnvHunter", "-in ".implode(" ",$cov_files)." -out ".$temp_folder."/cnvs.tsv -debug ALL ".implode(" ", $args), true);
 
-//filter results for given processed sample(s)
-$cnvs = Matrix::fromTSV($temp);
+// filter results for given processed sample(s)
+$cnvs_unfiltered = Matrix::fromTSV($temp_folder."/cnvs.tsv");
 $cnvs_filtered = new Matrix();
-$cnvs_filtered->setHeaders($cnvs->getHeaders());
-for($i=0;$i<$cnvs->rows();++$i)
+$cnvs_filtered->setHeaders($cnvs_unfiltered->getHeaders());
+for($i=0; $i<$cnvs_unfiltered->rows(); ++$i)
 {
-	$row = $cnvs->getRow($i);
-	list($chr, $start, $end, $sample, $size, $num_reg) = $row;
+	$line = $cnvs_unfiltered->getRow($i);
+	list($chr, $start, $end, $sample, $size, $num_reg) = $line;
+
 	if ($num_reg<$min_reg) continue;
 	if($sample==$psid1 || ($somatic && $sample==$psid2))
-	{	
-		$cnvs_filtered->addRow($row);
+	{
+		$cnvs_filtered->addRow($line);
 	}
 }
 
-//filter for differential CNVs
+// filter for differential CNVs
+if($somatic)
+{
+	$z_tumor = array();
+	$z_normal = array();
+	
+	$handle = fopen($temp_folder."/cnvs_debug.tsv", "r", "r");
+	while(!feof($handle))
+	{
+		$line = nl_trim(fgets($handle));
+		if(empty($line))	continue;
+		if($line[0]=="#")	continue;
+		
+		$row = explode("\t",$line);
+		if($row[0]==$psid1)	$z_tumor[$row[1]] = $row[3];
+		if($row[0]==$psid2)	$z_normal[$row[1]] = $row[3];			
+	}
+
+	$delta = new Matrix();
+	$delta->setHeaders(array("region","diff_zscore"));
+	foreach($z_tumor as $reg => $z)
+	{
+		$delta->addRow(array($reg,round($z_tumor[$reg]-$z_normal[$reg],2)));
+	}
+	$delta->toTSV($temp_folder."/".$psid1."-".$psid2."_diff.tsv");
+}
+
 if($somatic)
 {
 	$cnvs_somatic = new Matrix();
@@ -121,7 +149,7 @@ $qc_problems = false;
 $hits = array();
 $median_correl = array();
 $median_cnvs = array();
-$sample_info = file($base."_samples.tsv");
+$sample_info = file($temp_folder."/cnvs_samples.tsv");
 foreach($sample_info as $line)
 {
 	list($sample, , , $ref_correl, , $cnvs, $qc_info) = explode("\t", nl_trim($line));
@@ -156,7 +184,7 @@ foreach($hits as $values)
 $cnvs_filtered->toTSV($out);
 if(isset($seg) && !$qc_problems)
 {
-	copy2($base.".seg", substr($out, 0, -4).".seg");
+	copy2($temp_folder."/cnvs.seg", substr($out, 0, -4).".seg");
 }
 
 ?>

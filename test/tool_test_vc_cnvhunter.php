@@ -18,8 +18,10 @@ exec2("rm -rf $cov_folder/*");
 exec2("tar xzf ".data_folder().$name."_cov_files.tgz -C $cov_folder");
 
 //test somatic
+$tmp = output_folder()."debug";
+exec2("mkdir -p ".$tmp);
 $out_file1 = output_folder().$name."_out1.tsv";
-check_exec("php ".src_folder()."/NGS/{$name}.php -cov $cov_tum -n_cov $cov_nor --log ".output_folder().$name."_out1.log -system ".data_folder().$name."_system.ini -min_reg 4 -out $out_file1 -cov_folder $cov_folder");
+check_exec("php ".src_folder()."/NGS/{$name}.php -debug $tmp -cov $cov_tum -n_cov $cov_nor --log ".output_folder().$name."_out1.log -system ".data_folder().$name."_system.ini -min_reg 4 -out $out_file1 -cov_folder $cov_folder");
 check_file($out_file1, data_folder().$name."_out1.tsv");
 
 //test germline (sample is supposed to be remission, but contains 1230 exon deletion chr6:28478466-33424368)

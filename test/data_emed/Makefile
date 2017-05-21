@@ -74,5 +74,5 @@ update_variants:
 	php ../update_test_data.php results_emed2/GS160539_01_adme_var_annotated.vcf.gz GS160539_01_adme_var_annotated.emed2.vcf.gz
 
 update_cnvs:
-	php ../update_test_data.php results_emed1/GS160540_01-GS160539_01_var_copy.tsv GS160540_01-GS160539_01_var_copy.emed1.tsv
-	php ../update_test_data.php results_emed2/GS160540_01-GS160539_01_var_copy.tsv GS160540_01-GS160539_01_var_copy.emed2.tsv
+	php ../update_test_data.php results_emed1/GS160540_01-GS160539_01_cnvs.tsv GS160540_01-GS160539_01_var_copy.emed1.tsv
+	php ../update_test_data.php results_emed2/GS160540_01-GS160539_01_cnvs.tsv GS160540_01-GS160539_01_var_copy.emed2.tsv

@@ -61,7 +61,18 @@ if (!file_exists($t_folder))	trigger_error("Tumor-folder '$t_folder' does not ex
 if (!$tumor_only && !file_exists($n_folder))	trigger_error("Reference-folder '$n_folder' does not exist.", E_USER_ERROR);
 
 $t_sys_ini = load_system($t_sys, $t_id);
-if(!$tumor_only) $n_sys_ini = load_system($n_sys, $n_id);
+// copy tumor ini file to folder that is accessible from all servers
+$tmp = $t_sys;
+$t_sys = $t_folder."system.ini";
+if(!copy($tmp,$t_sys))	trigger_error("Could not copy ini file from $tmp to $t_sys.",E_USER_ERROR);
+if(!$tumor_only)
+{
+	$n_sys_ini = load_system($n_sys, $n_id);
+	// copy normal ini file to folder that is accessible from all servers
+	$tmp = $n_sys;
+	$n_sys = $n_folder."system.ini";
+	if(!copy($tmp,$n_sys))	trigger_error("Could not copy ini file from $tmp to $n_sys.",E_USER_ERROR);
+}
 if(!$tumor_only && $t_sys_ini['name_short'] != $n_sys_ini['name_short']) trigger_error ("System tumor '".$t_sys_ini['name_short']."' and system reference '".$n_sys_ini['name_short']."' are different!", E_USER_WARNING);
 if(!$tumor_only && $t_sys_ini['build'] != $n_sys_ini['build']) trigger_error ("System tumor '".$t_sys_ini['build']."' and system reference '".$n_sys_ini['build']."' do have different builds!", E_USER_ERROR);
 
@@ -94,7 +105,7 @@ if(in_array("ma", $steps))
 	$args = "-steps ma,rc,fu,an";
 	$working_directory = realpath($p_folder);
 	$commands = array("php ".$basedir."Pipelines/analyze_rna.php -in_for $t_forward -in_rev $t_reverse -system $t_sys -out_folder ".$o_folder_tum." -out_name $t_id $args --log ".$o_folder_tum."analyze_".date('YmdHis',mktime()).".log");
-	if(!$tumor_only)	$commands[] = "php ".$basedir."Pipelines/analyze_rna.php -in_for $n_forward -in_rev $n_reverse -out_folder ".$o_folder_ref." -system $n_sys -out_name ".$n_id." $args --log ".$o_folder_ref."analyze_".date('YmdHis',mktime()).".log";
+	if(!$tumor_only)	$commands[] = "php ".$basedir."Pipelines/analyze_rna.php -in_for $n_forward -in_rev $n_reverse -system $n_sys -out_folder ".$o_folder_ref." -out_name $n_id $args --log ".$o_folder_ref."analyze_".date('YmdHis',mktime()).".log";
 	$parser->jobsSubmit($commands, $working_directory, get_path("queues_high_mem"), true);
 }
 
