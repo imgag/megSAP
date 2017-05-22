@@ -1327,17 +1327,17 @@ function sge_jobinfo()
 }
 
 //Returns information from the NGSD about a processed sample (as key-value pairs), or null/error if the sample is not found.
-function get_processed_sample_info($ps_name, $error_if_not_found=true)
+function get_processed_sample_info($ps_name, $error_if_not_found=true, $db_name="NGSD")
 {
-	if (!db_is_enabled("NGSD"))
+	if (!db_is_enabled($db_name))
 	{
 		return null;
 	}
 	
 	//get info from NGSD
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
-	$db = DB::getInstance('NGSD');
-	$res = $db->executeQuery("SELECT p.name as project_name, p.type as project_type, p.id as project_id, ps.id as ps_id, r.name as run_name, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, sys.type as sys_type ".
+	$db = DB::getInstance($db_name);
+	$res = $db->executeQuery("SELECT p.name as project_name, p.type as project_type, p.id as project_id, ps.id as ps_id, r.name as run_name, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, sys.type as sys_type, sys.target_file as sys_target ".
 	                         "FROM project p, processed_sample ps, sample s, processing_system as sys, sequencing_run as r ".
 							 "WHERE ps.sequencing_run_id=r.id AND ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND ps.process_id='".(int)$process_id."'");
 	if (count($res)!=1)
