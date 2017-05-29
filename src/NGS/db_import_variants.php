@@ -27,13 +27,6 @@ function getVariant($db, $id)
 	return $var[0].":".$var[1]."-".$var[2]." ".$var[3].">".$var[4];
 }
 
-//Fix that is required as long as the NGSD still uses 'chrM' while the megSAP pipeline uses 'chrMT'
-function chrMT2chrM($chr)
-{
-	if ($chr=="chrMT") return "chrM";
-	return $chr;
-}
-
 //check pid format
 $samples = array();
 if(preg_match("/^([A-Za-z0-9]{4,})_(\d{2})$/", $id, $matches) && $mode="germline")
@@ -151,7 +144,7 @@ if($mode=="germline")
 		if (contains($dbsnp, "[")) $dbsnp = substr($dbsnp, 0, strpos($dbsnp, "[")-1);
 		
 		//determine variant ID
-		$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".chrMT2chrM($row[$i_chr])."' AND start='".$row[$i_sta]."' AND end='".$row[$i_end]."' AND ref='".$row[$i_ref]."' AND obs='".$row[$i_obs]."'", -1);
+		$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".$row[$i_chr]."' AND start='".$row[$i_sta]."' AND end='".$row[$i_end]."' AND ref='".$row[$i_ref]."' AND obs='".$row[$i_obs]."'", -1);
 		if ($variant_id!=-1) //update (common case)
 		{
 			//compose array of meta data
@@ -200,7 +193,7 @@ if($mode=="germline")
 		}
 		else //insert (rare case)
 		{
-			$db_connect->bind($hash, "chr", chrMT2chrM($row[$i_chr]));
+			$db_connect->bind($hash, "chr", $row[$i_chr]);
 			$db_connect->bind($hash, "start", $row[$i_sta]);
 			$db_connect->bind($hash, "end", $row[$i_end]);
 			$db_connect->bind($hash, "ref", $row[$i_ref]);
@@ -215,7 +208,7 @@ if($mode=="germline")
 			$db_connect->execute($hash, true);
 			++$c_ins;
 
-			$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".chrMT2chrM($row[$i_chr])."' AND start='".$row[$i_sta]."' AND end='".$row[$i_end]."' AND ref='".$row[$i_ref]."' AND obs='".$row[$i_obs]."'", -1);
+			$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".$row[$i_chr]."' AND start='".$row[$i_sta]."' AND end='".$row[$i_end]."' AND ref='".$row[$i_ref]."' AND obs='".$row[$i_obs]."'", -1);
 		}
 		$var_ids[] = $variant_id;
 	}
@@ -340,7 +333,7 @@ if($mode=="somatic")
 		if (contains($dbsnp, "[")) $dbsnp = substr($dbsnp, 0, strpos($dbsnp, "[")-1);
 		
 		//if variant already present => update details
-		$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".chrMT2chrM($row[$i_chr])."' AND start='".$row[$i_sta]."' AND end='".$row[$i_end]."' AND ref='".$row[$i_ref]."' AND obs='".$row[$i_obs]."'", -1);
+		$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".$row[$i_chr]."' AND start='".$row[$i_sta]."' AND end='".$row[$i_end]."' AND ref='".$row[$i_ref]."' AND obs='".$row[$i_obs]."'", -1);
 		if ($variant_id!=-1)
 		{
 			$db_connect->bind($hash2, "dbsnp", $dbsnp, array(""));
@@ -356,7 +349,7 @@ if($mode=="somatic")
 		}
 
 		//insert new variant		
-		$db_connect->bind($hash, "chr", chrMT2chrM($row[$i_chr]));
+		$db_connect->bind($hash, "chr", $row[$i_chr]);
 		$db_connect->bind($hash, "start", $row[$i_sta]);
 		$db_connect->bind($hash, "end", $row[$i_end]);
 		$db_connect->bind($hash, "ref", $row[$i_ref]);
@@ -389,7 +382,7 @@ if($mode=="somatic")
 		$row = $file->getRow($i);
 
 		//get variant_id
-		$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".chrMT2chrM($row[$i_chr])."' AND start='".$row[$i_sta]."' AND end='".$row[$i_end]."' AND ref='".$row[$i_ref]."' AND obs='".$row[$i_obs]."'", -1);
+		$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".$row[$i_chr]."' AND start='".$row[$i_sta]."' AND end='".$row[$i_end]."' AND ref='".$row[$i_ref]."' AND obs='".$row[$i_obs]."'", -1);
 
 		//get comment from previous analysis (if it was available)
 		$comment = NULL;
