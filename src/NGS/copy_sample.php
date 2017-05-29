@@ -71,10 +71,6 @@ function get_parameters($processed_sample_name)
 	$projectID = $result[0]["project_id"];
 	$processing_systemID = $result[0]["processing_system_id"];
 	
-	//check if processing system type is haloplex hs
-	$result = $db_connect->executeQuery("SELECT type FROM  processing_system WHERE id=".$processing_systemID);
-	$haloplex_hs = ($result[0]["type"]=="Panel Haloplex HS");	
-	
 	//get project name, type, coordinator_id and analysis step
 	$result = $db_connect->executeQuery("SELECT  name,type, analysis,internal_coordinator_id FROM project WHERE id=".$projectID);
 	$projectname = $result[0]["name"];
@@ -92,7 +88,7 @@ function get_parameters($processed_sample_name)
 	//get run name
 	$result = $db_connect->executeQuery("SELECT name FROM  sequencing_run WHERE id=".$run_ID);
 	$run_name = $result[0]["name"];
-	return array($projectname, $project_type, $run_name, $tumor_status, $project_analysis, $internal_coord, $haloplex_hs);
+	return array($projectname, $project_type, $run_name, $tumor_status, $project_analysis, $internal_coord);
 }
 
 function create_mail_command($coordinator, $email_ad, $samples, $project_name)
@@ -114,7 +110,7 @@ function create_mail_command($coordinator, $email_ad, $samples, $project_name)
 }
 
 //write makefile lines for file and folder operations and stores them in a dictionary
-function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map,  $sample_tumor_status_map, $runnumber, $makefile_name, $repo_folder, $nxtSeq, $sample_analysis_step_map, $haloplex_hs_map)
+function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map,  $sample_tumor_status_map, $runnumber, $makefile_name, $repo_folder, $nxtSeq, $sample_analysis_step_map)
 {
 	if (!file_exists($folder))
 	{
@@ -184,7 +180,12 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 		
 		//build copy line
 		$fastqgz_files = glob($old_location."/Sample_".$sample_ID."/*.fastq.gz");
-		if ($haloplex_hs_map[$sample_ID] && count($fastqgz_files)==3)
+		$r3_count = 0;
+		foreach($fastqgz_files as $file)
+		{
+			$r3_count += contains($file, "_R3_");
+		}
+		if (count($fastqgz_files)>=3 && $r3_count==count($fastqgz_files)/3 ) //handling of molecular barcode in index read 2 (Haloplex HS, Swift, ...)
 		{
 			//create target folder
 			$target_to_copylines[$tag][]="\tmkdir -p ".$new_location."/Sample_".$sample_ID."/";
@@ -315,10 +316,9 @@ $sample_projecttype_map = array();
 $sample_tumor_status_map = array();
 $old_runnumber = -1;
 $project_coord_map = array();
-$haloplex_hs_map = array();
 foreach($sample_IDs as $sampleID)
 {	
-	list($sample_projectname_map[$sampleID], $sample_projecttype_map[$sampleID], $runnumber, $sample_tumor_status_map[$sampleID], $sample_analysis_step_map[$sampleID], $internal_coord, $haloplex_hs_map[$sampleID]) = get_parameters($sampleID);
+	list($sample_projectname_map[$sampleID], $sample_projecttype_map[$sampleID], $runnumber, $sample_tumor_status_map[$sampleID], $sample_analysis_step_map[$sampleID], $internal_coord) = get_parameters($sampleID);
 	if ($sample_projectname_map[$sampleID]=="SKIPPED")//unable to extract all information due to malformed Sample ID
 	{
 		$runnumber = $old_runnumber;//set run number (which is "SKIPPED" now) back to last value
@@ -332,6 +332,6 @@ foreach($sample_IDs as $sampleID)
 	$project_coord_map[$sample_projectname_map[$sampleID]] = $internal_coord;
 }
 
-build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map, $sample_tumor_status_map, $runnumber, $out, $repo_folder, $nxtSeq, $sample_analysis_step_map, $haloplex_hs_map);
+build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map, $sample_tumor_status_map, $runnumber, $out, $repo_folder, $nxtSeq, $sample_analysis_step_map);
 
 ?>
