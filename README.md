@@ -88,7 +88,7 @@ Detailed documentation of the analysis pipeline can be found here:
 
 * [DNA analysis (single sample)](doc/dna_single_sample.md)
 * DNA analysis (trios and families) - coming soon
-* DNA analysis (tumor-normal pair) - coming soon
+* [DNA analysis (tumor-normal pair)](doc/dna_tumor-normal_pair.md)
 * RNA analysis (expression) - coming soon
 * RNA analysis (variant calling)  - coming soon
 

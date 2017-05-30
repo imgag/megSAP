@@ -870,3 +870,11 @@ def: "Percentage of the bases that are soft-clipped or hand-clipped during mappi
 is_a: QC:2000003 ! NGS mapping parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: sturm
+
+[Term]
+id: QC:2000053
+name: somatic mutation rate
+def: "Somatic mutation rate [mutations/Mb] normalized for the target region." [PXS:QC]
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schroeder

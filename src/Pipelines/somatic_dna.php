@@ -12,7 +12,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("somatic_dna", "Differential analysis of sequenced tumor and reference DNA sample.");
+$parser = new ToolBase("somatic_dna", "Differential analysis of sequenced tumor and normal DNA samples.");
 $parser->addString("p_folder", "Folder that contains Sample folders.", false);
 $parser->addString("t_id", "Tumor sample processing-ID (e.g. GSxyz_01).", false);
 $parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To process a tumor samples solely use 'na'.", false);
