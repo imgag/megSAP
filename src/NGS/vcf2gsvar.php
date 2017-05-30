@@ -327,7 +327,7 @@ while(!feof($handle))
 			$parts = explode("|", $entry);
 			$details = strtr($parts[1], array("_variant"=>""));
 			$details = strtr($details, array("splice_acceptor&splice_region&intron"=>"splice_acceptor", "splice_donor&splice_region&intron"=>"splice_donor", "splice_acceptor&intron"=>"splice_acceptor", "splice_donor&intron"=>"splice_donor", "_prime_"=>"'"));
-			if ($details=="intragenic") continue; //skip these details
+			if ($details=="intragenic" || $details=="sequence_feature") continue; //skip these details
 			$variant_details[] = $details;
 			$genes[] = $parts[3];
 			$exon = $parts[8];
