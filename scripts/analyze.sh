@@ -21,4 +21,5 @@ cd Sample_$1
 
 #perform analysis
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-php $DIR/../src/Pipelines/analyze.php -folder . -name $1 -system $2 ${@:3} --log analyze_$(date +%Y%m%d%H%M%S).log
+# -system $2 ${@:3}
+php $DIR/../src/Pipelines/analyze.php -folder . -name $1 --log analyze_$(date +%Y%m%d%H%M%S).log

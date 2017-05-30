@@ -48,6 +48,11 @@ foreach($steps as $step)
 	}
 }
 
+//log server name
+list($server) = exec2("hostname -f");
+$user = exec('whoami');
+$parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
+
 //init
 $prefix = $out_folder."/".$out_name;
 $sys = load_system($system, $out_name);
