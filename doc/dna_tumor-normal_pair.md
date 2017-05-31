@@ -1,6 +1,6 @@
-#megSAP - DNA analysis (tumor-normal pair)
+# megSAP - DNA analysis (tumor-normal pair)
 
-###Basics
+### Basics
 
 Tumor-normal pairs can be analyzed by using the somatic_dna.php script. This script is also used by several project specific data analysis pipelines. For example, the script `somatic_emed.php` can be used for analysis of combined DNA/RNA tumor-normal data. 
 
@@ -21,10 +21,11 @@ The main parameters that you have to provide are:
 * `n_sys` - The [processing system INI file](processing_system_ini_file.md) for the normal sample.
 * `nsc` - Skip sample correlation check. This is useful if sample correlation is low and the pipeline will give an error otherwise.
 
-###Output
+### Output
 
 coming soon
 
 [back to the start page](../README.md)
+
 
 

@@ -1,10 +1,10 @@
-#megSAP - GSvar format
+# megSAP - GSvar format
 
 In addition to the standard VCF format, megSAP creates variant lists in GSvar format in most analysis pipelines.
 
 The GSvar format is a tab-separated text format which can be opened and filtered for example in Excel.
 
-###Variant filtering
+## Variant filtering
 
 There are several ways to filter variant lists in GSvar format to identify rare pathogenic variants:
 
@@ -12,7 +12,7 @@ There are several ways to filter variant lists in GSvar format to identify rare 
 2. The file can be filtered on the Linux command line using the [VariantFilterAnnotations tool](https://github.com/imgag/ngs-bits/blob/master/doc/tools/VariantFilterAnnotations.md) of ngs-bits.
 3. The file can be filtered interactively on Windows using the GSvar tool if ngs-bits (more documentation on GSvar coming soon).
 
-###Format details
+## Format details
 
 #### Meta data header lines
 
@@ -34,6 +34,7 @@ After the meta data header line, the main header line and the variant lines foll
 
 
 [back to the start page](../README.md)
+
 
 
 
