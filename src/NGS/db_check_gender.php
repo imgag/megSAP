@@ -2,7 +2,7 @@
 /** 
 	@page db_check_gender
 	
-	@todo Also use SRY-based method for panels that cotain the SRY gene
+	@todo Also use SRY-based method for panels that contain the SRY gene
 */
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 

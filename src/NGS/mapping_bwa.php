@@ -12,10 +12,9 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("mapping_bwa", "Maps paired-end reads to a reference genome using bwa.");
 $parser->addInfile("in1",  "Input file in FASTQ format. Forward read.", false);
 $parser->addInfile("in2",  "Input file in FASTQ format. Reverse read.", false);
-$parser->addOutfile("out",  "Output file in bam format (sorted).", false);
+$parser->addOutfile("out",  "Output file in BAM format (sorted).", false);
 //optional
 $parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
-$parser->addInfile("sheet",  "Illumina GAIIx sample sheet for read group generation.", true);
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
 $parser->addFlag("dedup", "Marks duplicates after alignment.");
 extract($parser->parse($argv));
@@ -25,32 +24,11 @@ if(is_file($out)) unlink($out);
 
 //determine read group information
 $group_props = array();
-if (!isset($sheet) || !file_exists($sheet)) 
-{
-	//from out (bam) file name, e.g.: GS120159_01.bam; nb: input files are currently temporary files without sample identifier.
-	$basename = strtr(basename($out), array(".bam"=>""));
-	list($gs, $ps) = explode("_", $basename."_99");
-	$group_props[] = "ID:{$basename}";
-	$group_props[] = "SM:{$gs}";
-	$group_props[] = "LB:{$gs}_{$ps}";
-}
-else
-{
-	// from SampleSheet.csv:
-	// FCID,Lane,SampleID,SampleRef,Index,Description,Control,Recipe,Operator,SampleProject
-	// 64RKCAAXX,2,GS120159_01,hg19,TGACCA,-,N,2x78PE_MP,SJ,X-Chr
-	$sheet_data = file($sheet);
-	list($fcid, $lane, $ps, , $mid) = explode(",", $sheet_data[1]);
-	$gs = $ps;
-	if (strpos($ps, "_")!==false)
-	{
-		$gs = substr($ps, 0, strpos($ps, "_"));
-	}
-	$group_props[] = "ID:$ps.$fcid.$lane";
-	$group_props[] = "SM:$gs";
-	$group_props[] = "LB:$ps";
-	$group_props[] = "PU:$fcid-$mid.$lane";
-}
+$basename = basename($out, ".bam");
+list($gs, $ps) = explode("_", $basename."_99");
+$group_props[] = "ID:{$basename}";
+$group_props[] = "SM:{$gs}";
+$group_props[] = "LB:{$gs}_{$ps}";
 $group_props[] = "CN:medical_genetics_tuebingen";
 $group_props[] = "DT:".date("c");
 $group_props[] = "PL:ILLUMINA";

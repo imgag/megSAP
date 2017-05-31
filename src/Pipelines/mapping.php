@@ -92,7 +92,6 @@ if($sys['type']=="Panel Haloplex HS")
 
 // mapping
 $mapping_options = "";
-if (file_exists($sheet)) $mapping_options .= " -sheet $sheet";
 if ($sys['shotgun']) $mapping_options .= " -dedup";
 $parser->execTool("NGS/mapping_bwa.php", "-in1 $trimmed1 -in2 $trimmed2 -out $out $mapping_options -build ".$sys['build']." -threads ".$threads);
 
