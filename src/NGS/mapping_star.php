@@ -154,7 +154,7 @@ $parser->execPipeline($pipeline, "mapping");
 $downstream = explode(",", $downstream);
 if (in_array("splicing", $downstream))
 {
-	$parser->exec("cp", "{$STAR_tmp_folder}/SJ.out.tab {$prefix}_splicing.tsv", true);	
+	$parser->exec("cp", "{$STAR_tmp_folder}/SJ.out.tab {$prefix}_splicing.tsv", true);
 }
 if (in_array("chimeric", $downstream))
 {
