@@ -44,7 +44,6 @@ if (isset($system)) {
 
 // processing system
 $sys = load_system($system, $processed_sample);
-$sys = realpath($system);
 
 // input FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");
