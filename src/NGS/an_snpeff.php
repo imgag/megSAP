@@ -79,7 +79,7 @@ $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name KA
 $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name T1000GP_ -info AF ".get_path("data_folder")."/dbs/1000G/1000g_v5b.vcf.gz");
 
 //ExAC annotation
-$pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name EXAC_ -info AF,AC_Hom,Hom_NFE,Hom_AFR ".get_path("data_folder")."/dbs/ExAC/ExAC_r0.3.1.vcf.gz");
+$pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name EXAC_ -info AF,AC_Hom,Hom_NFE,Hom_AFR,AF_AFR,AF_AMR,AF_EAS,AF_NFE,AF_SAS ".get_path("data_folder")."/dbs/ExAC/ExAC_r0.3.1.vcf.gz");
 
 //ClinVar annotation
 $pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name CLINVAR_ -info SIG,ACC ".get_path("data_folder")."/dbs/ClinVar/clinvar_20170130_converted.vcf");
@@ -103,6 +103,12 @@ $invalid_num_headers = array("RO","GTI","NS","SRF","NUMALT","DP","QR","SRR","SRP
 //missing info field headers (otherwise check_vcf fails)
 $comments = array();
 $comments[] = "##INFO=<ID=HGMD_ID,Number=.,Type=String,Description=\"HGMD identifier(s)\">\n";
+$comments[] = "##INFO=<ID=EXAC_AF_AFR,Number=1,Type=Float,Description=\"ExAC AFR subpopulation allele frequency.\">\n";
+$comments[] = "##INFO=<ID=EXAC_AF_AMR,Number=1,Type=Float,Description=\"ExAC AMR subpopulation allele frequency.\">\n";
+$comments[] = "##INFO=<ID=EXAC_AF_EAS,Number=1,Type=Float,Description=\"ExAC EAS subpopulation allele frequency.\">\n";
+$comments[] = "##INFO=<ID=EXAC_AF_NFE,Number=1,Type=Float,Description=\"ExAC NFE subpopulation allele frequency.\">\n";
+$comments[] = "##INFO=<ID=EXAC_AF_SAS,Number=1,Type=Float,Description=\"ExAC SAS subpopulation allele frequency.\">\n";
+
 
 $handle1 = fopen($tmp, "r");
 $handle2 = fopen($out, "w");
