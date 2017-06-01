@@ -16,19 +16,18 @@ $parser->addOutfile("out",  "Output file in BAM format (sorted).", false);
 //optional
 $parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
-$parser->addFlag("dedup", "Marks duplicates after alignment.");
+$parser->addFlag("dedup", "Mark duplicates after alignment.");
 extract($parser->parse($argv));
 
 //remove out file if existing
 if(is_file($out)) unlink($out);
 
-//determine read group information
+//set read group information
 $group_props = array();
 $basename = basename($out, ".bam");
-list($gs, $ps) = explode("_", $basename."_99");
 $group_props[] = "ID:{$basename}";
-$group_props[] = "SM:{$gs}";
-$group_props[] = "LB:{$gs}_{$ps}";
+$group_props[] = "SM:{$basename}";
+$group_props[] = "LB:{$basename}";
 $group_props[] = "CN:medical_genetics_tuebingen";
 $group_props[] = "DT:".date("c");
 $group_props[] = "PL:ILLUMINA";
