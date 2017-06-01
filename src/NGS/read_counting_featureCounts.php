@@ -14,7 +14,7 @@ $parser->addInfile("in",  "BAM input file.", false, "bam");
 $parser->addOutfile("out", "Raw count output TSV file.", false);
 
 //optional parameters
-$parser->addString("gtfFile", "GTF File containing feature annotations used for read counting.", true, get_path("data_folder")."/dbs/UCSC/refGene.gtf");
+$parser->addString("gtfFile", "GTF File containing feature annotations used for read counting.", true, get_path("data_folder")."/dbs/gene_annotations/GRCh37.gtf");
 $parser->addString("featureType", "Feature type used for mapping reads to features.", true, "exon");
 $parser->addString("gtfAttribute", "GTF attribute used as feature ID.", true, "gene_id");
 $parser->addFlag("stranded", "Specify whether a stranded protocol was used during library preparation. Default is non-stranded.");
