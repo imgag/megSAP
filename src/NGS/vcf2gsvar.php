@@ -122,6 +122,7 @@ $column_desc = array(
 	array("1000g", "Allele frequency in all populations of 1000g project."),
 	array("ExAC", "Allele frequency in all populations of ExAC project."),
 	array("ExAC_hom", "Homoyzgous counts for populations ALL, NFE and AFR of ExAC project."),
+	array("ExAC_sub", "Sub-population allele frequenciens for populations AFR,AMR,EAS,NFE,SAS of ExAC project."),
 	array("Kaviar", "Allele frequency in Kaviar database."),
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
 	array("Sift", "Sift effect prediction: D=damaging, T=tolerated."),
@@ -356,7 +357,14 @@ while(!feof($handle))
 	$exac_hom_all = extract_numeric("EXAC_AC_Hom", $info, "0", 0);
 	$exac_hom_nfe = extract_numeric("EXAC_Hom_NFE", $info, "0", 0);
 	$exac_hom_afr = extract_numeric("EXAC_Hom_AFR", $info, "0", 0);
-	$exac_hom = "$exac_hom_all/$exac_hom_nfe/$exac_hom_afr";
+	$exac_hom = "$exac_hom_all,$exac_hom_nfe,$exac_hom_afr";
+	$exac_afr = extract_numeric("EXAC_AF_AFR", $info, "0", 4);
+	$exac_amr = extract_numeric("EXAC_AF_AMR", $info, "0", 4);
+	$exac_eas = extract_numeric("EXAC_AF_EAS", $info, "0", 4);
+	$exac_nfe = extract_numeric("EXAC_AF_NFE", $info, "0", 4);
+	$exac_sas = extract_numeric("EXAC_AF_SAS", $info, "0", 4);
+	$exac_sub = "$exac_afr,$exac_amr,$exac_eas,$exac_nfe,$exac_sas";
+	
 	//effect predicions
 	$phylop = extract_numeric("dbNSFP_phyloP100way_vertebrate", $info, "", 4, "max");
 	$sift = extract_string("dbNSFP_SIFT_pred", $info, "");
@@ -406,7 +414,7 @@ while(!feof($handle))
 	$cosmic = strtr(extract_string("COSMIC_ID", $info, ""), array(","=>", "));
 
 	//write data
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kgenomes\t$exac\t$exac_hom\t$kaviar\t$phylop\t$sift\t$metalr\t$pp2\t$fathmm\t$cadd\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kgenomes\t$exac\t$exac_hom\t$exac_sub\t$kaviar\t$phylop\t$sift\t$metalr\t$pp2\t$fathmm\t$cadd\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
 }
 
 //if no variants are present, we need to write the header line after the loop

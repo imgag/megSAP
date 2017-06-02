@@ -126,7 +126,7 @@ while(!gzeof($h1))
 	{
 		//write sample headers			
 		$c_details = get_processed_sample_info(basename($c, ".bam"), false);
-		fwrite($h2, "##SAMPLE=<ID=".basename($c, ".bam").",Status=affected,Gender=".(is_null($c_details) ? "n/a" : $c_details['gender']).">\n");
+		fwrite($h2, "##SAMPLE=<ID=genotype,Status=affected,Gender=".(is_null($c_details) ? "n/a" : $c_details['gender']).",SampleName=".basename($c, ".bam").">\n");
 		fwrite($h2, "##SAMPLE=<ID=".basename($f, ".bam").",Status=control,Gender=male>\n");
 		fwrite($h2, "##SAMPLE=<ID=".basename($m, ".bam").",Status=control,Gender=female>\n");
 		fwrite($h2, "##ANALYSISTYPE=GERMLINE_TRIO\n");

@@ -11,9 +11,6 @@ The goal of the megSAP proejct is to develop an NGS data analysis pipeline for m
 
 megSAP is developed by the [Institute of Medical Genetics and Applied Genomics](http://www.uni-tuebingen.de/Klinische_Genetik/start.html) and several collaborators from academia and industry. If you are interested to join the effort, please contact [Marc Sturm](https://github.com/marc-sturm).
 
-A poster about megSap which was presented at NGS'17 in barcelona can be downloaded 
-[here](doc/Poster_April_2017.pdf)
-
 ## Download
 
 There are no releases yet.  
@@ -69,25 +66,12 @@ Finally, we need to download and convert some open-source databases for annotati
 
 **Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
 
-## Running an analysis (single sample DNA)
-
-The analysis pipeline assumes that that all data to analyze resides in a sample folder as produced by Illumina's [bcl2fastq](http://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html) tool. If that is the case, the whole analysis is performed with one command.  
-For example like this:
-
-	php megSAP/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5.ini -steps ma,vc,an
-
-In the example above, the configuration of the pipeline is done using the `hpHBOCv5.ini` file, which contains information about adapter sequences, target region, data type, etc.
-
-Example data with can be analyzed using the command above can be downloaded from [here](https://medgen.medizin.uni-tuebingen.de/NGS-downloads/NA12878_01.zip).
-
-After the data analysis, the sample folder contains BAM and VCF (gzipped) files as expected. Additionally, several qcML files that contain QC data are generated (open with a browser).
-
 ## Documentation
 
-Detailed documentation of the analysis pipeline can be found here:
+Documentation about the different analysis pipelines can be found here:
 
 * [DNA analysis (single sample)](doc/dna_single_sample.md)
-* DNA analysis (trios and families) - coming soon
+* [DNA analysis (multi-sample and trio)](doc/dna_multi_sample.md)
 * [DNA analysis (tumor-normal pair)](doc/dna_tumor-normal_pair.md)
 * RNA analysis (expression) - coming soon
 * RNA analysis (variant calling)  - coming soon
@@ -97,6 +81,10 @@ Detailed documentation of the analysis pipeline can be found here:
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+
+
+
+
 
 
 

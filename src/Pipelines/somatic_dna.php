@@ -22,8 +22,8 @@ $parser->addString("steps", "Comma-separated list of processing steps to perform
 $parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"set_somatic");
 // optional
 $parser->addFloat("min_af", "Allele frequency detection limit.", true, 0.05);
-$parser->addInfile("t_sys",  "Tumor processing system INI file (determined from 't_id' by default).", true);
-$parser->addInfile("n_sys",  "Reference processing system INI file (determined from 'n_id' by default).", true);
+$parser->addInfile("t_sys",  "Tumor processing system INI file (determined from the NGSD using 't_id' by default).", true);
+$parser->addInfile("n_sys",  "Reference processing system INI file (determined from the NGSD using 'n_id' by default).", true);
 $parser->addFlag("abra", "Use Abra for combined indel realignment.");
 $parser->addFlag("smt", "Skip mapping tumor (only in pair mode).");
 $parser->addFlag("smn", "Skip mapping normal (only in pair mode).");

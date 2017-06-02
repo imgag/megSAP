@@ -1,6 +1,6 @@
-#megSAP - DNA analysis (tumor-normal pair)
+# megSAP - DNA analysis (tumor-normal pair)
 
-##Basics
+### Basics
 
 Tumor-normal pairs can be analyzed by using the somatic_dna.php script. This script is also used by several project specific data analysis pipelines. For example, the script `somatic_emed.php` can be used for analysis of combined DNA/RNA tumor-normal data. 
 
@@ -17,21 +17,15 @@ The main parameters that you have to provide are:
 * `steps` - Analysis steps to perform. Please use `ma,vc,an` to perform mapping, variant calling and variant annotation.
 * `filter_set` - Filter set to use for post-call variant filtering. Applies only if annotation step is selected. Multiple filters can be comma separated. Same options like in `filter_vcf.php`
 * `min_af` - Minimum variant allele frequency to detect.
-* `t_sys` - The processing system configuration INI file for the tumor sample (see next section).
-* `n_sys` - The processing system configuration INI file for the normal sample (see next section).
-* `nsc` - Skip sample correlation check. This is useful of correlation is low and the pipeline will give an error otherwise.
+* `t_sys` - The [processing system INI file](processing_system_ini_file.md) for the tumor sample.
+* `n_sys` - The [processing system INI file](processing_system_ini_file.md) for the normal sample.
+* `nsc` - Skip sample correlation check. This is useful if sample correlation is low and the pipeline will give an error otherwise.
 
-##Processing system configuration INI file
+### Output
 
-The system INI file described the wet-lab processing of the sample and defines the main parameters for the data analysis:
-
-* `name_short` - Processing system short name (must be a valid file name).
-* `name_manufacturer` - Processing system full name.
-* `target_file` - Target region BED file path.
-* `adapter1_p5` - Read 1 adapter sequence (Illumina standard is `AGATCGGAAGAGCACACGTCTGAACTCCAGTCA`).
-* `adapter2_p7` - Read 1 adapter sequence (Illumina standard is `AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT`).
-* `type` - Processing system type: `WGS`, `WES`, `Panel` or `Panel Haloplex`.
-* `shotgun` - `true` for randomly-fragmented reads,  `false` for amplicon-based reads.
-* `build` - Currently only 'GRCh37' is supported.
+coming soon
 
 [back to the start page](../README.md)
+
+
+
