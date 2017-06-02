@@ -25,10 +25,14 @@ link:
 	php ../link_test_data.php I16R003a06_01*.fastq.gz Sample_I16R003a06_01
 	php ../link_test_data.php I16R003a05_01*.fastq.gz Sample_I16R003a05_01
 	#result files
-	php ../link_test_data.php GS160540_01-GS160539_01*emed*.vcf.gz
-	php ../link_test_data.php GS160540_01-GS160539_01*emed*.tsv
-	php ../link_test_data.php GS160540_01-GS160539_01*emed*.GSvar
-	php ../link_test_data.php GS160539_01*emed*.vcf.gz
+	php ../link_test_data.php GS160540_01-GS160539_01*emed1.vcf.gz
+	php ../link_test_data.php GS160540_01-GS160539_01*emed2.vcf.gz
+	php ../link_test_data.php GS160540_01-GS160539_01*emed1.tsv
+	php ../link_test_data.php GS160540_01-GS160539_01*emed2.tsv
+	php ../link_test_data.php GS160540_01-GS160539_01*emed1.GSvar
+	php ../link_test_data.php GS160540_01-GS160539_01*emed2.GSvar
+	php ../link_test_data.php GS160539_01*emed1.vcf.gz
+	php ../link_test_data.php GS160539_01*emed2.vcf.gz
 	php ../link_test_data.php I16R003a06_01-I16R003a05_01*emed*.tsv
 
 emed:

@@ -113,7 +113,7 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0 && !$dna_only)
 	}
 }
 // compare RNA tumor and DNA tumor (tumor and normal is compared by the pipelines itself
-if($rna>0)
+if($rna>0 && !$nsc)
 {
 	$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in1 $t_dna_bam -in2 $t_rna_bam -bam -max_snps 4000", true);
 	$parts = explode(":", $output[0][1]);
@@ -151,13 +151,13 @@ if(in_array("co", $steps))
 // (4) identify if germline variants are close to somatic variants
 if(in_array("im", $steps))
 {
-	$refseq_ids = array();
+	$transcript_ids = array();
+	$transcript_type = "";
 	$file_som = Matrix::fromTSV($annotated);
 	$idx_cs = $file_som->getColumnIndex("coding_and_splicing");
 	$idx_filter = $file_som->getColumnIndex("filter");
 	$known_gene = get_path("data_folder")."/dbs/UCSC/knownGene.txt";
-	$kgxref_file = get_path("data_folder")."/dbs/UCSC/kgXref.txt";
-	$no_refseq_id = array();
+	$no_transcript_id = array();
 
 	// (4a) extract transcripts and their exons for given variants
 	for($i=0;$i<$file_som->rows();++$i)	// get all somatic refseq-ids
@@ -165,56 +165,79 @@ if(in_array("im", $steps))
 		$row_som = $file_som->getRow($i);
 //		if(!empty($filter))	continue;
 
-		//@TODO: consider other refseq ids (NR, etc)
-		preg_match('/NM_\d+/',$row_som[$idx_cs],$tmp_ids);
+		$tmp_ids = array();
+		//REFSEQ transcript IDs
+		//preg_match('/NM_\d+/',$row_som[$idx_cs],$tmp_ids);
+		//ENSEMBL transcript IDs: ENST00000376030
+		//preg_match('/NM_\d+/',$row_som[$idx_cs],$tmp_ids);
+		foreach(explode(",",$row_som[$idx_cs]) as $t)
+		{
+			$tmp_id = explode(":",$t)[1];
+			if(strpos($tmp_id,"ENST")==0)	$transcript_type = "Ensembl";
+			else if(strpos($tmp_id,"NM_")==0)	$transcript_type = "RefSeq";
+			else if(!empty($tmp_id))	trigger_error("Unkown transcript information $tmp_id.",E_USER_ERROR);
+			$tmp_ids[] = $tmp_id;
+		}
+		
 		if(count($tmp_ids) == 0)
 		{
-			$no_refseq_id[] = $i;
+			$no_transcript_id[] = $i;
 			continue;
 		}
+		
 		foreach($tmp_ids as $tmp_id)
 		{
-			if(!isset($refseq_ids[$tmp_id]))
+			if(!isset($transcript_ids[$tmp_id]))
 			{
-				$refseq_ids[$tmp_id] = array();
-				$refseq_ids[$tmp_id]['variant_rows'] = array();
+				$transcript_ids[$tmp_id] = array();
+				$transcript_ids[$tmp_id]['variant_rows'] = array();
 			}
-			$refseq_ids[$tmp_id]['variant_rows'][] = $i;
+			$transcript_ids[$tmp_id]['variant_rows'][] = $i;
 		}
 	}
-	if(!empty($no_refseq_id))	trigger_error ("No refseq ID was identified in rows: ".implode(", ", $no_refseq_id).". Variants were skipped.",E_USER_NOTICE);
-	//convert refseq-ids to UCSC-ids
-	$ucsc2refseq = array();
-	$handle = fopen($kgxref_file, "r");
+	if(!empty($no_transcript_id))	trigger_error ("No transcript ID was identified in rows: ".implode(", ", $no_transcript_id).". Variants were skipped.",E_USER_NOTICE);
+	
+	//convert transcript-ids to UCSC-ids
+	$transcript_file = "";
+	if($transcript_type=="Ensembl")	$transcript_file = get_path("data_folder")."/dbs/UCSC/knownToEnsembl.tsv";
+	if($transcript_type=="RefSeq")	$transcript_file = get_path("data_folder")."/dbs/UCSC/knownToRefSeq.tsv";
+	
+	//$kgxref_file = get_path("data_folder")."/dbs/UCSC/kgXref.txt";
+	$ucsc2transcript = array();
+	
+	$handle = fopen($transcript_file, "r");
 	if($handle)
 	{
 		while(($buffer=fgets($handle)) !== FALSE)
 		{
-			$row = explode("\t", $buffer);
-			if(array_key_exists($row[1], $refseq_ids))	$ucsc2refseq[$row[0]] = $row[1];
+			$row = explode("\t", trim($buffer));
+
+			if(array_key_exists($row[1], $transcript_ids))	$ucsc2transcript[$row[0]] = $row[1];
 		}
 		fclose($handle);
 	}
-	else	trigger_error("Could not find file $kgxref_file.",E_USER_ERROR);
+	else	trigger_error("Could not find file $transcript_file.",E_USER_ERROR);
+	
 	// extract cDNA information from UCSC-ids
 	$handle = fopen($known_gene, "r");
 	if($handle)
 	{
 		while(($buffer=fgets($handle)) !== FALSE)
 		{
-			$row = explode("\t", $buffer);
-			if(array_key_exists($row[0], $ucsc2refseq))
+			$row = explode("\t", trim($buffer));
+
+			if(array_key_exists($row[0], $ucsc2transcript))
 			{
 				$exon_start = explode(",", $row[8]);
 				$exon_end = explode(",", $row[9]);
-				$refseq_ids[$ucsc2refseq[$row[0]]]['strand'] = $row[2];
-				$refseq_ids[$ucsc2refseq[$row[0]]]['cdsStart'] = $row[5];
-				$refseq_ids[$ucsc2refseq[$row[0]]]['cdsEnd'] = $row[6];
-				$refseq_ids[$ucsc2refseq[$row[0]]]['exons'] = array();
+				$transcript_ids[$ucsc2transcript[$row[0]]]['strand'] = $row[2];
+				$transcript_ids[$ucsc2transcript[$row[0]]]['cdsStart'] = $row[5];
+				$transcript_ids[$ucsc2transcript[$row[0]]]['cdsEnd'] = $row[6];
+				$transcript_ids[$ucsc2transcript[$row[0]]]['exons'] = array();
 				for($i=0;$i<count($exon_start);++$i)
 				{
 					if(empty($exon_start[$i]))	continue;
-					$refseq_ids[$ucsc2refseq[$row[0]]]['exons'][] = array('start'=>$exon_start[$i], 'end'=>$exon_end[$i]);
+					$transcript_ids[$ucsc2transcript[$row[0]]]['exons'][] = array('start'=>$exon_start[$i], 'end'=>$exon_end[$i]);
 				}
 			}
 		}
@@ -226,21 +249,22 @@ if(in_array("im", $steps))
 	$max_distance = 40;
 	$regions = new Matrix();
 	$splicing = array();
-	foreach($refseq_ids as $id => $refseq_id)
+	$no_exons = array();
+	foreach($transcript_ids as $id => $transcript_id)
 	{
-		if(!isset($refseq_id['exons']))
+		if(!isset($transcript_id['exons']))
 		{
-			trigger_error("No exons availabe for $id. Skipping.",E_USER_NOTICE);
+			$no_exons[] = $id;
 			continue;
 		}
-		foreach($refseq_id['variant_rows'] as $variant_row)
+		foreach($transcript_id['variant_rows'] as $variant_row)
 		{
 			$somatic_variant = $file_som->getRow($variant_row);
 			$region = array('',-1,-1,-1,-1);
 			$region[0] = $somatic_variant[0];
 			// get current exon
 			$current_exon = -1;
-			foreach($refseq_id['exons'] as $exon => $r)
+			foreach($transcript_id['exons'] as $exon => $r)
 			{
 				// exonic variant
 				if($somatic_variant[1]>=$r['start'] && $somatic_variant[2]<=$r['end'])	$current_exon = $exon;
@@ -259,23 +283,23 @@ if(in_array("im", $steps))
 			$tmp_exon = $current_exon;
 			while($found==FALSE)
 			{
-				$tmp_diff -= ($tmp_start - $refseq_id['exons'][$tmp_exon]['start']);
+				$tmp_diff -= ($tmp_start - $transcript_id['exons'][$tmp_exon]['start']);
 				if($tmp_diff>0)
 				{
 					--$tmp_exon;
-					if(!isset($refseq_id['exons'][$tmp_exon]['start']))
+					if(!isset($transcript_id['exons'][$tmp_exon]['start']))
 					{
-						trigger_error("Could not determine start point for variant in row $variant_row with starting position ".$somatic_variant[1].", using ".$refseq_id['exons'][$tmp_exon+1]['start']." as start point (first exon).",E_USER_NOTICE);
-						$region[1] = $refseq_id['exons'][$tmp_exon+1]['start'];
+						trigger_error("Could not determine start point for variant in row $variant_row with starting position ".$somatic_variant[1].", using ".$transcript_id['exons'][$tmp_exon+1]['start']." as start point (first exon).",E_USER_NOTICE);
+						$region[1] = $transcript_id['exons'][$tmp_exon+1]['start'];
 						$region[3] = $tmp_exon+1;
 						$found=TRUE;
 						continue;
 					}
-					$tmp_start = $refseq_id['exons'][$tmp_exon]['end'];
+					$tmp_start = $transcript_id['exons'][$tmp_exon]['end'];
 				}
 				else if($tmp_diff<=0)
 				{
-					$region[1] = $refseq_id['exons'][$tmp_exon]['start'] - $tmp_diff - 1;
+					$region[1] = $transcript_id['exons'][$tmp_exon]['start'] - $tmp_diff - 1;
 					$region[3] = $tmp_exon;
 					$found=TRUE;
 				}
@@ -287,23 +311,23 @@ if(in_array("im", $steps))
 			$tmp_exon = $current_exon;
 			while($found==FALSE)
 			{
-				$tmp_diff -= ($refseq_id['exons'][$tmp_exon]['end'] - $tmp_end);
+				$tmp_diff -= ($transcript_id['exons'][$tmp_exon]['end'] - $tmp_end);
 				if($tmp_diff>0)
 				{
 					++$tmp_exon;
-					if(!isset($refseq_id['exons'][$tmp_exon]['start']))
+					if(!isset($transcript_id['exons'][$tmp_exon]['start']))
 					{
 						trigger_error("Could not determine endpoint for variant in row $variant_row with starting position ".$somatic_variant[1].", using last exon as end point.",E_USER_NOTICE);
-						$region[2] = $refseq_id['exons'][$tmp_exon-1]['end'];
+						$region[2] = $transcript_id['exons'][$tmp_exon-1]['end'];
 						$region[4] = $tmp_exon-1;
 						$found=TRUE;
 						continue;
 					}
-					$tmp_end = $refseq_id['exons'][$tmp_exon]['start'];
+					$tmp_end = $transcript_id['exons'][$tmp_exon]['start'];
 				}
 				else if($tmp_diff<=0)
 				{
-					$region[2] = $refseq_id['exons'][$tmp_exon]['end'] + $tmp_diff;
+					$region[2] = $transcript_id['exons'][$tmp_exon]['end'] + $tmp_diff;
 					$region[4] = $tmp_exon;
 					$found=TRUE;
 				}
@@ -312,15 +336,16 @@ if(in_array("im", $steps))
 			$variant_id = implode("_", array($somatic_variant[0],$somatic_variant[1],$somatic_variant[2],$somatic_variant[3],$somatic_variant[4]));
 			for($exon=$region[3];$exon<=$region[4];++$exon)
 			{
-				$tmp_start = $refseq_id['exons'][$exon]['start'];
-				$tmp_end = $refseq_id['exons'][$exon]['end'];
+				$tmp_start = $transcript_id['exons'][$exon]['start'];
+				$tmp_end = $transcript_id['exons'][$exon]['end'];
 				if($tmp_start < $region[1])	$tmp_start = $region[1];
 				if($tmp_end > $region[2])	$tmp_end = $region[2];
 				$regions->addRow(array($region[0],$tmp_start, $tmp_end,$exon+1,$id,$variant_id));
 			}
 		}
 	}
-	if(!empty($splicing))	trigger_error("Skipped splicing variants in the following rows: ".implode(", ",$splicing).". Variants were skipped.", E_USER_NOTICE);
+	if(!empty($no_exons))	trigger_error("No exons availabe for ".count($no_exons)." IDs: ".implode(", ",$no_exons),E_USER_NOTICE);
+	if(!empty($splicing))	trigger_error("Skipped splicing variants in the following rows: ".implode(", ",array_unique($splicing)).". Variants were skipped.", E_USER_NOTICE);
 	$out_reg = $parser->tempFile("_reg.bed");
 	$regions->toTSV($out_reg);
 	// $regions->toTSV( $o_folder.basename($nor_bam, ".bam").".reg");
