@@ -288,7 +288,7 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 		$output[] = "qc_".$project.":";
 		foreach (array_unique($samples) as $sample) {
 			$sample_location = $sample_to_newlocation[$sample];
-			$output[] = "\tphp {$repo_folder}/src/NGS/fastq_qc.php -folder {$sample_location} -import";
+			$output[] = "\tphp {$repo_folder}/src/NGS/qc_fastq.php -folder {$sample_location} -import";
 		}
 		$output[] = "";
 	}

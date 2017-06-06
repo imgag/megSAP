@@ -1,7 +1,7 @@
 <?php
 
 /**
-	@page read_counting_featureCounts
+	@page rc_featurecounts
  */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("read_counting_featureCounts", "Perform read counting for aligned reads using featureCount contained in the subread package.");
+$parser = new ToolBase("rc_featurecounts", "Perform read counting for aligned reads using featureCount contained in the subread package.");
 $parser->addInfile("in",  "BAM input file.", false, "bam");
 $parser->addOutfile("out", "Raw count output TSV file.", false);
 

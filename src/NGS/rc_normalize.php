@@ -1,6 +1,6 @@
 <?php
 /**
- * @page normalize_read_counts
+ * @page rc_normalize
  */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parameters
-$parser = new ToolBase("normalize_read_counts", "Normalizes raw read counts produced by featureCounts.");
+$parser = new ToolBase("rc_normalize", "Normalizes raw read counts produced by featureCounts.");
 $parser->addInfile("in", "Input raw read counts file.", false, true);
 $parser->addOutfile("out", "Output file for normalized read counts.", false);
 

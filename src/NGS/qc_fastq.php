@@ -1,13 +1,13 @@
 <?php
 
 /**
-	@page fastq_qc
+	@page qc_fastq
 */
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("fastq_qc", "Quality control for FASTQ files.");
+$parser = new ToolBase("qc_fastq", "Quality control for FASTQ files.");
 
 // mandatory arguments
 $parser->addString("folder", "Sample folder containing FASTQ files.", false);

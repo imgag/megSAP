@@ -1,13 +1,13 @@
 <?php
 /**
- * @page annotate_count_file
+ * @page rc_annotate
  */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("annotate_count_file", "Annotates a read count file with gene names.");
+$parser = new ToolBase("rc_annotate", "Annotates a read count file with gene names.");
 $parser->addInfile("in", "Input read count file in TSV format", false, true);
 $parser->addOutfile("out", "Output TSV file for annotated read counts. Can also be the same file as the input file.", false);
 $parser->addString("gtfFile", "GTF file containing feature annotations (for mapping identifiers).", true, get_path("data_folder")."dbs/gene_annotations/GRCh37.gtf");
