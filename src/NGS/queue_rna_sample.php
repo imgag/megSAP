@@ -16,12 +16,13 @@ $parser->addString("sample",  "Processed sample identifier.", false);
 
 // optional arguments
 $steps_all = array("ma", "rc", "an", "fu", "db");
-$parser->addString("steps", "Comma-separated list of processing steps to perform.", true, implode(",", $steps_all));
+$parser->addString("steps", "Comma-separated list of processing steps to perform.", true, "ma,rc,an,fu,db");
 $parser->addInfile("system",  "Processing system file (determined from database by default).", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 8);
 $parser->addString("out_folder", "Output folder for analysis results, defaults to processed sample folder.", true, "");
 $parser->addString("add_params", "Additional parameters for the anaylze_rna pipeline.", true, "");
 $parser->addFlag("dryrun", "Perform dry-run and only print the command to be queued.");
+$parser->addFlag("noqueue", "Do not submit jobs to SGE.");
 extract($parser->parse($argv));
 
 // NGSD information
@@ -86,6 +87,10 @@ $commands = array("php ".$basedir."Pipelines/analyze_rna.php ".implode(" ", $ana
 $working_directory = realpath($folder."/..");
 if ($dryrun) {
 	print_r($commands[0]."\n");
+}
+elseif ($noqueue) {
+	chdir($working_directory);
+	$parser->execTool("Pipelines/analyze_rna.php", implode(" ", $analyze_params));
 }
 else {
 	$parser->jobsSubmit($commands, $working_directory, get_path('queues_high_mem'), false);
