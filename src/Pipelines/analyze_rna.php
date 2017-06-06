@@ -30,8 +30,7 @@ $parser->addFlag("abra", "Perform indel realignment with ABRA. By default this i
 $parser->addFlag("stranded", "Specify whether a stranded protocol was used during library preparation. Default is non-stranded.");
 $parser->addFlag("dedup", "Mark duplicates after alignment.");
 $parser->addFlag("sharedMemory", "Use shared memory for running STAR alignment jobs.");
-$downstream_all = array("splicing","chimeric");
-$parser->addString("downstream", "Keep files for downstream analysis (splicing, chimeric).", true, "");
+$parser->addString("downstream", "Keep files for downstream analysis (splicing, chimeric).", true, "splicing,chimeric");
 $parser->addInt("sjOverhang", "Minimum overhang for non-annotated splice junctions.", true, 8);
 $parser->addInt("sjdbOverhang", "Minimum overhang for annotated splice junctions.", true, 1);
 $parser->addFlag("disableJunctionFilters", "Disable filtering of the reported junctions (affects splicing output only).");
