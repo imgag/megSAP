@@ -1375,17 +1375,14 @@ function get_processed_sample_info($ps_name, $error_if_not_found=true, $db_name=
 //Returns the index of the most similar column in a VCF header
 function vcf_column_index($name, $header)
 {
-	//remove suffix after underscore (freebayes does that as well)
-	if (contains($name, "_"))
-	{
-		$name = substr($name, 0, strpos($name, "_"));
-	}
-	
-	//calculate distances
+	//calculate distances (of prefix of same length)
 	$dists = array();
 	for ($i=9; $i<count($header); ++$i)
 	{
-		$dists[levenshtein($name, $header[$i])][] = $i;
+		$min_len = min(strlen($name), strlen($header[$i]));
+		$tmp_n = substr($name, 0, $min_len);
+		$tmp_e = substr($header[$i], 0, $min_len);
+		$dists[levenshtein($tmp_n, $tmp_e)][] = $i;
 	}
 	
 	//determine minimum

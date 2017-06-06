@@ -2,8 +2,6 @@
 
 include("framework.php");
 
-
-
 //##################################################################################
 start_test("vcfgeno2human");
 
@@ -357,6 +355,8 @@ check(vcf_column_index("GS140550", array("#CHROM", "POS", "ID", "REF", "ALT", "Q
 check(vcf_column_index("GS140549_01", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "GS140549", "GS140127", "GS140550")), 9);
 check(vcf_column_index("GS140127_01", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "GS140549", "GS140127", "GS140550")), 10);
 check(vcf_column_index("GS140550_01", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "GS140549", "GS140127", "GS140550")), 11);
+check(vcf_column_index("KLO0051", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "KLO0052_01", "KLO0051_01")), 10);
+check(vcf_column_index("KLO0051_01", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "KLO0052", "KLO0051")), 10);
 end_test();
 
 ?>

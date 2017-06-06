@@ -32,7 +32,7 @@ if ($gender=='n/a')
 //execute SampleGender
 if ($info['sys_type']=="WGS" || $info['sys_type']=="WES") 
 {
-	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method sry -in $in", true);
+	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method sry -sry_cov 10 -in $in", true);
 }
 else
 {

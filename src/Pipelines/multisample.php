@@ -27,7 +27,7 @@ function extract_info($format, $data)
 //parse command line arguments
 $parser = new ToolBase("multisample", "Multi-sample analysis pipeline.");
 $parser->addInfileArray("bams", "Input BAM files.", false);
-$parser->addStringArray("status", "Comma-separated affected status of the input samples (BAMs) - can be 'affected' or 'control'.", false);
+$parser->addStringArray("status", "List of affected status of the input samples (BAMs) - can be 'affected' or 'control'.", false);
 $parser->addString("out_folder", "Output folder name.", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file used for all samples (created from NGSD via first argument of 'bams' by default).", true);
