@@ -183,16 +183,16 @@ if(in_array("rc", $steps))
 	$args = array();
 	if($paired) $args[] = "-paired";
 	if($stranded) $args[] = "-stranded";
-	$parser->execTool("NGS/read_counting_featureCounts.php", "-in $final_bam -out $counts_raw -threads $threads -gtfFile $gtfFile -featureType $featureType -gtfAttribute $gtfAttribute ".implode(" ", $args));
+	$parser->execTool("NGS/rc_featurecounts.php", "-in $final_bam -out $counts_raw -threads $threads -gtfFile $gtfFile -featureType $featureType -gtfAttribute $gtfAttribute ".implode(" ", $args));
 
 	//normalize read counts
-	$parser->execTool("NGS/normalize_read_counts.php", "-in $counts_raw -out $counts_fpkm -method rpkm");
+	$parser->execTool("NGS/rc_normalize.php", "-in $counts_raw -out $counts_fpkm -method rpkm");
 }
 
 //annotate
 if(in_array("an", $steps))
 {
-	$parser->execTool("NGS/annotate_count_file.php", "-in $counts_fpkm -out $counts_fpkm -gtfFile $gtfFile");
+	$parser->execTool("NGS/rc_annotate.php", "-in $counts_fpkm -out $counts_fpkm -gtfFile $gtfFile");
 }
 
 //detect fusions

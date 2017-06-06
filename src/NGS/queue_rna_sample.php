@@ -70,7 +70,7 @@ if (isset($system_file)) {
 }
 $analyze_params[] = "-out_folder $out_folder -out_name $processed_sample";
 $analyze_params[] = "-steps $steps -threads $threads -dedup";
-if (isset($sys['stranded']) && $sys['stranded']==1) {
+if (!(isset($sys['stranded']) && $sys['stranded']==0)) {
 	$analyze_params[] = "-stranded";
 }
 if (isset($sys['gtfAttribute'])) {
