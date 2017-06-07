@@ -162,9 +162,8 @@ if (in_array("vc", $steps))
 		if (strlen($line)==0) continue;
 		if ($line[0]=="#" && $line[1]!="#")
 		{
-			$details = get_processed_sample_info($name, false);
 			fwrite($hw, "##ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n");
-			fwrite($hw, "##SAMPLE=<ID=".$name.",Status=affected,Gender=".(is_null($details) ? "n/a" : $details['gender']).">\n");
+			fwrite($hw, gsvar_sample_header($name, array("Status"=>"affected")));
 		}
 		fwrite($hw, $line."\n");
 	}

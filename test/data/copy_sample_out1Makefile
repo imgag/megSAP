@@ -72,7 +72,7 @@ queue_cfDNA_research:
 	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130563_01 -steps ma,db 
 
 qc_GT:
-	php /mnt/users/all/megSAP/src/NGS/fastq_qc.php -folder /mnt/projects/external/GT/Sample_GT130001_01 -import
+	php /mnt/users/all/megSAP/src/NGS/qc_fastq.php -folder /mnt/projects/external/GT/Sample_GT130001_01 -import
 
 email_GT:
 	php -r 'mail("christopher.schroeder@med.uni-tuebingen.de","Neue Daten fuer GT", "Hallo Christopher Schroeder,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts GT liegen vor:\n\nGT130001_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: medgen.bioinformatik@med.uni-tuebingen.de");'
