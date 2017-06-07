@@ -306,8 +306,10 @@ else
 		$rel_path = relative_path($o_folder, $p_folder);
 		$igv_session = array();
 		$igv_session[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n";
-		$igv_session[] = "<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"chr2:1544321-1544606\" path=\".\" version=\"8\">\n";
+		$igv_session[] = "<Session genome=\"".$system_t['build']."\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"\" path=\".\" version=\"8\">\n";
 		$igv_session[] = "\t<Resources>";
+		if(is_file($s_tsv))   $igv_session[] = "        <Resource path=\"".$rel_path."/".$o_folder."/".$t_id.".seg\"/>";
+		if(is_file($s_tsv))   $igv_session[] = "        <Resource path=\"".$rel_path."/".$o_folder."/".basename($s_tsv)."\"/>";
 		if(is_file($t_bam))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/Sample_".basename($t_bam,".bam")."/".basename($t_bam)."\"/>\n";
 		if(is_file($n_bam))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/Sample_".basename($n_bam,".bam")."/".basename($n_bam)."\"/>\n";
 		$igv_session[] = "\t</Resources>\n";

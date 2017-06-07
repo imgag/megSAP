@@ -61,7 +61,7 @@ if($sys['type']=="WGS")
 	$args[] = "-reg_min_cov 0.5";
 	$args[] = "-sam_min_depth 0.5";
 }
-if(isset($seg)) $args[] = "-seg $seg";
+if(isset($seg) && is_null($n_cov)) $args[] = "-seg $seg";
 $args[] = "-anno";
 $args[] = "-n $n";
 $temp_folder = !empty($debug)?$debug:$parser->tempFolder();
@@ -90,6 +90,8 @@ if($somatic)
 	$z_tumor = array();
 	$z_normal = array();
 	
+	$reduced_tumor = new Matrix();
+	$reduced_normal = new Matrix();
 	$handle = fopen($temp_folder."/cnvs_debug.tsv", "r", "r");
 	while(!feof($handle))
 	{
@@ -98,8 +100,16 @@ if($somatic)
 		if($line[0]=="#")	continue;
 		
 		$row = explode("\t",$line);
-		if($row[0]==$psid1)	$z_tumor[$row[1]] = $row[3];
-		if($row[0]==$psid2)	$z_normal[$row[1]] = $row[3];			
+		if($row[0]==$psid1)
+		{
+			$z_tumor[$row[1]] = $row[3];
+			$reduced_tumor->addRow($row);
+		}
+		if($row[0]==$psid2)
+		{
+			$z_normal[$row[1]] = $row[3];
+			$reduced_normal->addRow($row);
+		}
 	}
 
 	$delta = new Matrix();
@@ -109,6 +119,30 @@ if($somatic)
 		$delta->addRow(array($reg,round($z_tumor[$reg]-$z_normal[$reg],2)));
 	}
 	$delta->toTSV($temp_folder."/".$psid1."-".$psid2."_diff.tsv");
+			
+	//generate diff. -seg file
+	if(isset($seg))
+	{
+		$seg_file = array();
+		$seg_file[] = "#type=GENE_EXPRESSION";
+		$seg_file[] = "#track graphtype=heatmap name=\"".$psid1."-".$psid2." CN z-score\" graphType=points midRange=-6:6 midColor=0,0,0 color=0,0,255 altColor=255,0,0 viewLimits=-10:10 maxHeightPixels=80:80:80";
+		$seg_file[] = "ID	chr	start	end	diff. log2-ratio	diff. copy-number	tum z-score	nor z-score	diff. z-score";
+
+		//write valid region details
+		for($i=0;$i<$reduced_tumor->rows();++$i)
+		{
+			$row_t = $reduced_tumor->getRow($i);
+			$row_n = $reduced_normal->getRow($i);
+			if($row_t[1]!=$row_n[1])	trigger_error("Could not generate seg-file. Regions in input coverage files are unsorted.",E_USER_ERROR);
+			list($chr,$region) = explode(":",$row_t[1]);
+			list($start,$end) = explode("-",$region);
+			
+			$seg_file[] = $psid1."-".$psid2."\t".$chr."\t".$start."\t".$end."\t".($row_t[7]-$row_n[7])."\t".($row_t[2]-$row_n[2])."\t".$row_t[3]."\t".$row_n[3]."\t".($row_t[3]-$row_n[3]);
+		}
+		
+		file_put_contents($temp_folder."/cnvs.seg",implode("\n",$seg_file));
+	}
+
 }
 
 if($somatic)
