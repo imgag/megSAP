@@ -394,8 +394,8 @@ else
 		$s = Matrix::fromTSV($som_vann);
 		$comments = $s->getComments();
 		$details = get_processed_sample_info($t_id, false);
-		$comments[] = "#SAMPLE=<ID={$t_id},Tumor=yes,Gender=".(is_null($details) ? "n/a" : $details['gender']).">";
-		$comments[] = "#SAMPLE=<ID={$n_id},Tumor=no,Gender=".(is_null($details) ? "n/a" : $details['gender']).">";
+		$comments[] = gsvar_sample_header($t_id, array("IsTumor"=>"yes"), "#", "");
+		$comments[] = gsvar_sample_header($n_id, array("IsTumor"=>"no"), "#", "");
 		$s->setComments(sort_vcf_comments($comments));
 		$s->toTSV($tmp);
 			

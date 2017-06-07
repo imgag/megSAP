@@ -108,15 +108,7 @@ while(!gzeof($h1))
 		fwrite($h2, "##ANALYSISTYPE=GERMLINE_MULTISAMPLE\n");
 		foreach($bams as $bam)
 		{
-			$parts = array();
-			$parts[] = "ID=".$names[$bam];
-			$parts[] = "Status=".$status[$bam];
-			$details = get_processed_sample_info($names[$bam], false);
-			if (!is_null($details))
-			{
-				$parts[] = "Gender=".$details['gender'];
-			}
-			fwrite($h2, "##SAMPLE=<".implode(",", $parts).">\n");
+			fwrite($h2, gsvar_sample_header($names[$bam], array("Status"=>$status[$bam])));
 		}
 		
 		//determine indices for each sample	

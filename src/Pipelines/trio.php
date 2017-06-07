@@ -125,10 +125,9 @@ while(!gzeof($h1))
 	else if ($line[0]=="#") //header
 	{
 		//write sample headers			
-		$c_details = get_processed_sample_info(basename($c, ".bam"), false);
-		fwrite($h2, "##SAMPLE=<ID=genotype,Status=affected,Gender=".(is_null($c_details) ? "n/a" : $c_details['gender']).",SampleName=".basename($c, ".bam").">\n");
-		fwrite($h2, "##SAMPLE=<ID=".basename($f, ".bam").",Status=control,Gender=male>\n");
-		fwrite($h2, "##SAMPLE=<ID=".basename($m, ".bam").",Status=control,Gender=female>\n");
+		fwrite($h2, gsvar_sample_header(basename($c, ".bam"), array("ID"=>"genotype", "Status"=>"affected", "SampleName"=>basename($c, ".bam"))));
+		fwrite($h2, gsvar_sample_header(basename($f, ".bam"), array("Status"=>"control", "Gender"=>"male")));
+		fwrite($h2, gsvar_sample_header(basename($f, ".bam"), array("Status"=>"control", "Gender"=>"female")));
 		fwrite($h2, "##ANALYSISTYPE=GERMLINE_TRIO\n");
 
 		//determine indices for each sample	
