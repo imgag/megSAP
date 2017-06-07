@@ -1,4 +1,4 @@
-#megSAP - Processing system INI file
+# megSAP - Processing system INI file
 
 The processing system INI file described the wet-lab processing of the sample (adapter sequences, target region, data type, etc) and defines the main parameters for the data analysis:
 
@@ -12,5 +12,6 @@ The processing system INI file described the wet-lab processing of the sample (a
 * `build` - Currently only `GRCh37` is supported.
 
 [back to the start page](../README.md)
+
 
 

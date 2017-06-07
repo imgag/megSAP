@@ -18,10 +18,14 @@ There are several ways to filter variant lists in GSvar format to identify rare 
 
 Similar to VCF format, the GSvar format can contain meta data in header lines that start with `##`:
 
-1) The `##ANALYSISTYPE=` header specifies the analysis type (can be present only once).  
-2) The `##SAMPLE=` header specifies the name sample column(s) and can contain additional annotations (can be present several times).   
-3) The `##DESCRIPTION` header specifies column descriptions.  
-4) The `##FILTER=` header specifies descriptions for entries in the `filter` column.
+- The `##ANALYSISTYPE=` header specifies the analysis type. It can be present only once. Valid analysis types are:  
+	`GERMLINE_SINGLESAMPLE`, `GERMLINE_MULTISAMPLE`,  `GERMLINE_TRIO`,  `SOMATIC_SINGLESAMPLE`,  `SOMATIC_PAIR`  
+
+- The `##SAMPLE=` header specifies the analyzed sample name(s) and can contain additional annotations. It can be present several times.   
+
+- The `##DESCRIPTION=` header describes columns. It can be present several times.    
+
+- The `##FILTER=` header describes entries in the `filter` column. It can be present several times.  
 
  
 #### Main header line and variant lines
@@ -34,6 +38,7 @@ After the meta data header line, the main header line and the variant lines foll
 
 
 [back to the start page](../README.md)
+
 
 
 
