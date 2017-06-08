@@ -125,8 +125,8 @@ if($somatic)
 	{
 		$seg_file = array();
 		$seg_file[] = "#type=GENE_EXPRESSION";
-		$seg_file[] = "#track graphtype=heatmap name=\"".$psid1."-".$psid2." CN z-score\" graphType=points midRange=-6:6 midColor=0,0,0 color=0,0,255 altColor=255,0,0 viewLimits=-10:10 maxHeightPixels=80:80:80";
-		$seg_file[] = "ID	chr	start	end	diff. log2-ratio	diff. copy-number	tum z-score	nor z-score	diff. z-score";
+		$seg_file[] = "#track graphtype=heatmap name=\"".$psid1."-".$psid2." CN z-score\" midRange=-4:4 color=0,0,255 altColor=255,0,0 viewLimits=-10:10 maxHeightPixels=80:80:80";
+		$seg_file[] = "ID	chr	start	end	diff. log2-ratio	diff. copy-number	tum z-score	nor z-score	tum ndoc	nor ndoc	diff. z-score";
 
 		//write valid region details
 		for($i=0;$i<$reduced_tumor->rows();++$i)
@@ -137,7 +137,7 @@ if($somatic)
 			list($chr,$region) = explode(":",$row_t[1]);
 			list($start,$end) = explode("-",$region);
 			
-			$seg_file[] = $psid1."-".$psid2."\t".$chr."\t".$start."\t".$end."\t".($row_t[7]-$row_n[7])."\t".($row_t[2]-$row_n[2])."\t".$row_t[3]."\t".$row_n[3]."\t".($row_t[3]-$row_n[3]);
+			$seg_file[] = $psid1."-".$psid2."\t".$chr."\t".$start."\t".$end."\t".($row_t[7]-$row_n[7])."\t".($row_t[2]-$row_n[2])."\t".$row_t[3]."\t".$row_n[3]."\t".$row_t[4]."\t".$row_n[4]."\t".($row_t[3]-$row_n[3]);
 		}
 		
 		file_put_contents($temp_folder."/cnvs.seg",implode("\n",$seg_file));
