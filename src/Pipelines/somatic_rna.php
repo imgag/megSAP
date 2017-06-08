@@ -114,7 +114,7 @@ if(!$tumor_only)
 {
 	// calculate counts tumor, normal and somatic fold change
 	$som_counts = $o_folder.$t_id."-".$n_id."_counts_raw.tsv";
-	if(!$tumor_only)	$parser->execTool("NGS/compare_read_counts.php", "-in1 $tum_counts -in2 $ref_counts -out $som_counts -method fc");
+	if(!$tumor_only)	$parser->execTool("NGS/rc_compare.php", "-in1 $tum_counts -in2 $ref_counts -out $som_counts -method fc");
 
 	// (2) check that samples are related
 	if(!$nsc)
