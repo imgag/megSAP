@@ -18,9 +18,8 @@ function extract_info($format, $data)
 	$data = explode(":", $data);
 	$data = array_combine($format, $data);
 	$depth = array_sum(explode(",",$data['DP'])); 
-	$ao = array_sum(explode(",",$data['AO']));
 	$genotype = vcfgeno2human($data['GT']);
-	return array($genotype, $depth, number_format($ao/$depth,2));
+	return array($genotype, $depth);
 }
 
 

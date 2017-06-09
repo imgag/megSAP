@@ -150,6 +150,7 @@ $filter_desc = array(
 	array("anno_pathogenic_clinvar", "Variant annotated to be pathogenic by ClinVar."),
 	array("anno_pathogenic_hgmd", "Variant annotated to be pathogenic by HGMD."),
 	array("anno_high_impact", "Variant annotated to have high impact by SnpEff."),
+	array("anno_omim", "Variant annotated with information from OMIM."),
 );
 
 //parse input
@@ -381,7 +382,11 @@ while(!feof($handle))
 	
 	//OMIM
 	$omim = strtr(extract_string("OMIM", $info, ""), "_", " ");
-	if ($omim!="") $omim .= ";";
+	if ($omim!="")
+	{
+		$omim .= ";";	
+		$filter[] = "anno_omim";
+	}
 	
 	//ClinVar
 	$clin_acc = explode("|", extract_string("CLINVAR_ACC", $info, ""));

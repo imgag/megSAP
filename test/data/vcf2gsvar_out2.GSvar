@@ -29,4 +29,5 @@
 ##FILTER=anno_pathogenic_clinvar=Variant annotated to be pathogenic by ClinVar.
 ##FILTER=anno_pathogenic_hgmd=Variant annotated to be pathogenic by HGMD.
 ##FILTER=anno_high_impact=Variant annotated to have high impact by SnpEff.
+##FILTER=anno_omim=Variant annotated with information from OMIM.
 #chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	ExAC_sub	Kaviar	phyloP	Sift	MetaLR	PolyPhen2	FATHMM	CADD	OMIM	ClinVar	HGMD	COSMIC
