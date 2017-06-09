@@ -36,18 +36,24 @@ foreach(explode(",", $steps) as $step)
 // run somatic pipeline
 $s_txt = "";
 $s_tsv = "";
+$s_vcf = "";
+$s_seg = "";
 $t_bam = $p_folder."/Sample_".$t_id."/".$t_id.".bam";
 $n_bam = $p_folder."/Sample_".$n_id."/".$n_id.".bam";
 if($single_sample)
 {
 	$parser->log("Single sample mode.");
 	$s_tsv = $o_folder."/".$t_id.".GSvar";
+	$s_vcf = $o_folder."/".$t_id."_var.vcf.gz";
+	$s_seg = $o_folder."/".$t_id."_cnvs.seg";
 	$s_txt = $o_folder."/".$t_id."_report.txt";
 }
 else
 {
 	$parser->log("Paired Sample mode.");
 	$s_tsv = $o_folder."/".$t_id."-".$n_id.".GSvar";
+	$s_vcf = $o_folder."/".$t_id."-".$n_id."_var.vcf.gz";
+	$s_seg = $o_folder."/".$t_id."-".$n_id."_cnvs.seg";
 	$s_txt = $o_folder."/".$t_id."-".$n_id."_report.txt";
 }
 
@@ -306,10 +312,10 @@ else
 		$rel_path = relative_path($o_folder, $p_folder);
 		$igv_session = array();
 		$igv_session[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n";
-		$igv_session[] = "<Session genome=\"".$system_t['build']."\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"\" path=\".\" version=\"8\">\n";
-		$igv_session[] = "\t<Resources>";
-		if(is_file($s_tsv))   $igv_session[] = "        <Resource path=\"".$rel_path."/".$o_folder."/".$t_id.".seg\"/>";
-		if(is_file($s_tsv))   $igv_session[] = "        <Resource path=\"".$rel_path."/".$o_folder."/".basename($s_tsv)."\"/>";
+		$igv_session[] = "<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"all\" path=\".\" version=\"8\">\n";
+		$igv_session[] = "\t<Resources>\n";
+		if(is_file($s_seg))   $igv_session[] = "\t\t<Resource path=\"".$rel_path."/".$o_folder."/".basename($s_seg)."\"/>\n";
+		if(is_file($s_tsv))   $igv_session[] = "\t\t<Resource path=\"".$rel_path."/".$o_folder."/".basename($s_vcf)."\"/>\n";
 		if(is_file($t_bam))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/Sample_".basename($t_bam,".bam")."/".basename($t_bam)."\"/>\n";
 		if(is_file($n_bam))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/Sample_".basename($n_bam,".bam")."/".basename($n_bam)."\"/>\n";
 		$igv_session[] = "\t</Resources>\n";

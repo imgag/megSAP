@@ -57,6 +57,7 @@ $t_dna_bam = $p_folder."Sample_".$t_dna_id."/".$t_dna_id.".bam";
 $n_dna_bam = $p_folder."Sample_".$n_dna_id."/".$n_dna_id.".bam";
 $s_dna_ann = $o_folder.$t_dna_id."-".$n_dna_id.".GSvar";
 $s_dna_vcf = $o_folder.$t_dna_id."-".$n_dna_id."_var_annotated.vcf.gz";
+$s_dna_seg = $o_folder.$t_dna_id."-".$n_dna_id."_cnvs.seg";
 $t_rna_bam = $p_folder."Sample_".$t_rna_id."/".$t_rna_id.".bam";
 $n_rna_bam = $p_folder."Sample_".$n_rna_id."/".$n_rna_id.".bam";
 
@@ -154,10 +155,11 @@ if(is_dir($p_folder) && is_dir($o_folder))
 	$rel_path = relative_path($o_folder, $p_folder);
 	$igv_session = array();
 	$igv_session[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n";
-	$igv_session[] = "<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"chr2:1544321-1544606\" path=\".\" version=\"8\">\n";
+	$igv_session[] = "<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"all\" path=\".\" version=\"8\">\n";
 	$igv_session[] = "\t<Resources>";
+	if(is_file($s_dna_seg))   $igv_session[] = "\t\t<Resource path=\"".$rel_path."/".$o_folder."/".basename($s_dna_seg)."\"/>\n";
 	if(is_file($s_dna_vcf))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/".$o_folder."/".basename($s_dna_vcf)."\"/>\n";
-	if(is_file($s_dna_vcf))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/".$o_folder."/".basename($g_dna_vcf)."\"/>\n";
+	if(is_file($g_dna_vcf))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/".$o_folder."/".basename($g_dna_vcf)."\"/>\n";
 	if(is_file($t_dna_bam))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/Sample_".basename($t_dna_bam,".bam")."/".basename($t_dna_bam)."\"/>\n";
 	if(is_file($n_dna_bam))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/Sample_".basename($n_dna_bam,".bam")."/".basename($n_dna_bam)."\"/>\n";
 	if(is_file($t_rna_bam))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/Sample_".basename($t_rna_bam,".bam")."/".basename($t_rna_bam)."\"/>\n";
