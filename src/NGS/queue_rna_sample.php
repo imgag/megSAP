@@ -38,6 +38,9 @@ if(!is_dir($folder))
 if ($out_folder == "") {
 	$out_folder = $folder;
 }
+if (!is_dir($out_folder) && !mkdir($out_folder, 0777, true)) {
+	trigger_error("Could not create output folder!", E_USER_ERROR);
+}
 
 if (isset($system)) {
 	$system_file = $system;
@@ -80,7 +83,7 @@ if (isset($sys['featureType'])) {
 	$analyze_params[] = "-featureType ".$sys['featureType'];
 }
 $analyze_params[] = "-downstream chimeric,splicing";
-$analyze_params[] = "--log ${folder}/analyze_rna_".date('YmdHis',mktime()).".log";
+$analyze_params[] = "--log ${out_folder}/analyze_rna_".date('YmdHis',mktime()).".log";
 $analyze_params[] = $add_params;
 
 $commands = array("php ".$basedir."Pipelines/analyze_rna.php ".implode(" ", $analyze_params));
