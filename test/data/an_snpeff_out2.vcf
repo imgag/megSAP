@@ -36,13 +36,13 @@
 ##INFO=<ID=EXAC_AF_SAS,Number=1,Type=Float,Description="ExAC SAS subpopulation allele frequency.">
 ##INFO=<ID=EXAC_Hom_AFR,Number=A,Type=Integer,Description="African/African American Homozygous Counts">
 ##INFO=<ID=EXAC_Hom_NFE,Number=A,Type=Integer,Description="Non-Finnish European Homozygous Counts">
+##INFO=<ID=GNOMAD_AF,Number=A,Type=Float,Description="Allele Frequency among genotypes, for each ALT allele, in the same order as listed">
 ##INFO=<ID=GTI,Number=.,Type=Integer,Description="Number of genotyping iterations required to reach convergence or bailout.">
 ##INFO=<ID=HGMD_CLASS,Number=.,Type=String,Description="Mutation Category, https://portal.biobase-international.com/hgmd/pro/global.php#cats">
 ##INFO=<ID=HGMD_GENE,Number=.,Type=String,Description="Gene symbol">
 ##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="HGMD identifier(s)">
 ##INFO=<ID=HGMD_MUT,Number=.,Type=String,Description="HGMD mutant allele">
 ##INFO=<ID=HGMD_PHEN,Number=.,Type=String,Description="HGMD primary phenotype">
-##INFO=<ID=KAVIAR_AF,Number=A,Type=Float,Description="Allele Frequency">
 ##INFO=<ID=LEN,Number=A,Type=Integer,Description="allele length">
 ##INFO=<ID=MEANALT,Number=A,Type=Float,Description="Mean number of unique non-reference allele observations per sample with the corresponding alternate alleles.">
 ##INFO=<ID=MQM,Number=A,Type=Float,Description="Mean mapping quality of observed alternate alleles">

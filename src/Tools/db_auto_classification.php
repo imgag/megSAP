@@ -19,11 +19,11 @@ extract($parser->parse($argv));
 $db = DB::getInstance("NGSD");
 
 //extract variants for each target region
-print "#variant\t1000g\texac\tkaviar\tngsd_hom\tngsd_het\thgmd\tclinvar\tclass\tclass_new\tcomment\tNGSD-update\n";	
-$db_vars = $db->executeQuery("SELECT id, chr, start, end, ref, obs, 1000g, exac, kaviar, coding FROM variant WHERE coding LIKE '%:HIGH:%'");
+print "#variant\t1000g\texac\tgnomad\tngsd_hom\tngsd_het\thgmd\tclinvar\tclass\tclass_new\tcomment\tNGSD-update\n";	
+$db_vars = $db->executeQuery("SELECT id, chr, start, end, ref, obs, 1000g, exac, gnomad, coding FROM variant WHERE coding LIKE '%:HIGH:%'");
 for ($i=0; $i<count($db_vars); ++$i)
 {
-	list($id, $chr, $start, $end, $ref, $obs, $tg, $exac, $kaviar, $coding) = array_values($db_vars[$i]);
+	list($id, $chr, $start, $end, $ref, $obs, $tg, $exac, $gnomad, $coding) = array_values($db_vars[$i]);
 	if (!contains($coding, ":HIGH:")) continue;
 	
 	//init
@@ -61,7 +61,7 @@ for ($i=0; $i<count($db_vars); ++$i)
 		//classify (by AF)
 		if (is_numeric($tg) && $tg>=$c1_af) $class_new = 1;
 		if (is_numeric($exac) && $exac>=$c1_af) $class_new = 1;
-		if (is_numeric($kaviar) && $kaviar>=$c1_af) $class_new = 1;
+		if (is_numeric($gnomad) && $gnomad>=$c1_af) $class_new = 1;
 	}
 	
 	//exclude pathogenic variants in ClinVar / HGMD variants (not those where WT is pathogenic)
@@ -162,7 +162,7 @@ for ($i=0; $i<count($db_vars); ++$i)
 	
 	if (($class_new!="n/a" && $class_new!=$class) || $comments!="")
 	{
-		print "$chr:$start $ref>$obs\t$tg\t$exac\t$kaviar\t$hom\t$het\t$hgmd\t$clinvar\t$class\t$class_new\t$comments\t";
+		print "$chr:$start $ref>$obs\t$tg\t$exac\t$gnomad\t$hom\t$het\t$hgmd\t$clinvar\t$class\t$class_new\t$comments\t";
 		
 		if (!contains($comments, "SKIPPED"))
 		{

@@ -564,8 +564,8 @@ function filter_somatic_capa(&$filter, $info, $genotype, $tumor, $normal, $type,
 	if(isset($info["T1000GP_AF"]))	$tg = $info["T1000GP_AF"];	//T1000GP_AF=0.0379393;
 	$ex = 0;
 	if(isset($info["EXAC_AF"]))	$ex = $info["EXAC_AF"];	//EXAC_AF=0.347
-	$kv = 0;
-	if(isset($info["KAVIAR_AF"]))	$kv = $info["KAVIAR_AF"]; //KAVIAR_AF=0.2553
+	$gn = 0;
+	if(isset($info["GNOMAD_AF"]))	$gn = $info["GNOMAD_AF"]; //GNOMAD_AF=0.2553
 	
 	//determine depth and frequency
 	$td = NULL;
@@ -602,7 +602,7 @@ function filter_somatic_capa(&$filter, $info, $genotype, $tumor, $normal, $type,
 	if ($td<$min_td)	activate_filter($filter, "somca_depth_tum");
 	if (!$tumor_only && $nd<$min_nd)	activate_filter($filter, "somca_depth_norm");
 	if(!$tumor_only &&  ($tf<0.05 || $nf>0.01))	activate_filter($filter, "somca_all_freq");
-	if ($tg>$max_af || $ex>$max_af || $kv>$max_af) activate_filter($filter, "somca_db_frequencies");
+	if ($tg>$max_af || $ex>$max_af || $gn>$max_af) activate_filter($filter, "somca_db_frequencies");
 }
 
 

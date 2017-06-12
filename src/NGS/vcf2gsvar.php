@@ -123,7 +123,7 @@ $column_desc = array(
 	array("ExAC", "Allele frequency in all populations of ExAC project."),
 	array("ExAC_hom", "Homoyzgous counts for populations ALL, NFE and AFR of ExAC project."),
 	array("ExAC_sub", "Sub-population allele frequenciens for populations AFR,AMR,EAS,NFE,SAS of ExAC project."),
-	array("Kaviar", "Allele frequency in Kaviar database."),
+	array("gnomAD", "Allele frequency in gnomAD database."),
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
 	array("Sift", "Sift effect prediction: D=damaging, T=tolerated."),
 	array("MetaLR", "MetaLR effect prediction: D=damaging, T=tolerated."),
@@ -353,7 +353,7 @@ while(!feof($handle))
 	$dbsnp = "";
 	if ($id!=".") $dbsnp = $id;
 	$kgenomes = extract_numeric("T1000GP_AF", $info, "0.0000", 4, "max");
-	$kaviar = extract_numeric("KAVIAR_AF", $info, "0.0000", 4);
+	$gnomad = extract_numeric("GNOMAD_AF", $info, "0.0000", 4);
 	$exac = extract_numeric("EXAC_AF", $info, "0.0000", 4);
 	$exac_hom_all = extract_numeric("EXAC_AC_Hom", $info, "0", 0);
 	$exac_hom_nfe = extract_numeric("EXAC_Hom_NFE", $info, "0", 0);
@@ -419,7 +419,7 @@ while(!feof($handle))
 	$cosmic = strtr(extract_string("COSMIC_ID", $info, ""), array(","=>", "));
 
 	//write data
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kgenomes\t$exac\t$exac_hom\t$exac_sub\t$kaviar\t$phylop\t$sift\t$metalr\t$pp2\t$fathmm\t$cadd\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kgenomes\t$exac\t$exac_hom\t$exac_sub\t$gnomad\t$phylop\t$sift\t$metalr\t$pp2\t$fathmm\t$cadd\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
 }
 
 //if no variants are present, we need to write the header line after the loop

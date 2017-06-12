@@ -69,16 +69,13 @@ cd ClinVar
 wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive/2017/clinvar_20170130.vcf.gz | gunzip > clinvar_20170130.vcf
 cat clinvar_20170130.vcf | php $src/Tools/db_converter_clinvar.php > clinvar_20170130_converted.vcf
 
-#Install Kaviar
+#Install gnomAD
 cd $dbs
-mkdir Kaviar
-cd Kaviar
-wget http://s3-us-west-2.amazonaws.com/kaviar-160204-public/Kaviar-160204-Public-hg19-trim.vcf.tar
-tar -xf Kaviar-160204-Public-hg19-trim.vcf.tar
-mv Kaviar-160204-Public/vcfs/*.vcf.gz* .
-rm -rf mv Kaviar-160204-Public *.vcf.tar
-zcat Kaviar-160204-Public-hg19-trim.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_kaviar.php | bgzip > Kaviar_160204.vcf.gz
-tabix -p vcf Kaviar_160204.vcf.gz
+mkdir gnomAD
+cd gnomAD
+wget https://storage.googleapis.com/gnomad-public/release-170228/vcf/exomes/gnomad.exomes.r2.0.1.sites.vcf.gz
+zcat gnomad.exomes.r2.0.1.sites.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php | bgzip > gnomAD_r2.0.1.vcf.gz
+tabix -p vcf gnomAD_r2.0.1.vcf.gz
 
 #install OMIM (you might need a license)
 #cd $dbs

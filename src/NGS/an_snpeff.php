@@ -72,8 +72,8 @@ if(file_exists($db_file))
 	$pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name HGMD_ -info ID,CLASS,MUT,GENE,PHEN $db_file");
 }
 
-//Kaviar annotation
-$pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name KAVIAR_ -info AF ".get_path("data_folder")."/dbs/Kaviar/Kaviar_160204.vcf.gz");
+//gnomAD annotation
+$pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name GNOMAD_ -info AF ".get_path("data_folder")."/dbs/gnomAD/gnomAD_r2.0.1.vcf.gz");
 
 //1000g annotation
 $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name T1000GP_ -info AF ".get_path("data_folder")."/dbs/1000G/1000g_v5b.vcf.gz");

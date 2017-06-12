@@ -43,7 +43,7 @@ function filter_by_af($line, $min_freq)
 $dbs = array(
 	"dbSNP" => get_path("data_folder")."/dbs/1000G/1000g_v5b.vcf.gz",
 	"ExAC" => get_path("data_folder")."/dbs/ExAC/ExAC_r0.3.1.vcf.gz",
-	"Kaviar" => get_path("data_folder")."/dbs/Kaviar/Kaviar_160204.vcf.gz",
+	"gnomAD" => get_path("data_folder")."/dbs/gnomAD/gnomAD_r2.0.1.vcf.gz",
 );
 $output = array();
 $file = file($in);
@@ -56,7 +56,7 @@ foreach($primers as $p_name => $p_data)
 	if (!starts_with($chr, "chr")) trigger_error("Chromosome '$chr' does not start with 'chr'", E_USER_ERROR);
 	foreach($dbs as $db_name => $db_file)
 	{
-		list($snps) = $parser->exec("tabix", "$db_file ".substr($chr, 3).":$start-$end", false); //load SNP list from Kaviar
+		list($snps) = $parser->exec("tabix", "$db_file ".substr($chr, 3).":$start-$end", false);
 		foreach($snps as $snp)
 		{
 			$snp = filter_by_af($snp, $min_freq);

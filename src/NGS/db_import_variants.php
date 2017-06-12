@@ -120,11 +120,11 @@ if($mode=="germline")
 	$i_snp = $file->getColumnIndex("dbSNP");
 	$i_10g = $file->getColumnIndex("1000g");
 	$i_exa = $file->getColumnIndex("ExAC");
-	$i_kav = $file->getColumnIndex("Kaviar");
+	$i_gno = $file->getColumnIndex("gnomAD");
 	$i_gen = $file->getColumnIndex("gene");
 	$i_typ = $file->getColumnIndex("variant_type");
 	$i_cod = $file->getColumnIndex("coding_and_splicing");
-	$i_gno = $file->getColumnIndex("genotype");
+	$i_geno = $file->getColumnIndex("genotype");
 	
 	$parser->log(" done ".time_readable(microtime(true) - $t_start));
 	$parser->log("INSERT/UPDATE VARIANT");
@@ -134,7 +134,7 @@ if($mode=="germline")
 	
 	//insert/update table 'variant'
 	$var_ids = array();
-	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, exac, kaviar, gene, variant_type, coding) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :exac, :kaviar, :gene, :variant_type, :coding) ON DUPLICATE KEY UPDATE id=id");
+	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, exac, gnomad, gene, variant_type, coding) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :exac, :gnomad, :gene, :variant_type, :coding) ON DUPLICATE KEY UPDATE id=id");
 	for($i=0; $i<$file->rows(); ++$i)
 	{
 		$row = $file->getRow($i);
@@ -152,7 +152,7 @@ if($mode=="germline")
 							"dbsnp" => $dbsnp, 
 							"1000g" => $row[$i_10g],
 							"exac" => $row[$i_exa],
-							"kaviar" => $row[$i_kav],
+							"gnomad" => $row[$i_gno],
 							"gene" => $row[$i_gen],
 							"variant_type" => $row[$i_typ],
 							"coding" => $row[$i_cod]
@@ -201,7 +201,7 @@ if($mode=="germline")
 			$db_connect->bind($hash, "dbsnp", $dbsnp, array(""));
 			$db_connect->bind($hash, "1000g", $row[$i_10g], array(""));
 			$db_connect->bind($hash, "exac", $row[$i_exa], array(""));
-			$db_connect->bind($hash, "kaviar", $row[$i_kav], array(""));
+			$db_connect->bind($hash, "gnomad", $row[$i_gno], array(""));
 			$db_connect->bind($hash, "gene", $row[$i_gen]);
 			$db_connect->bind($hash, "variant_type", $row[$i_typ], array(""));
 			$db_connect->bind($hash, "coding", $row[$i_cod], array(""));
@@ -250,7 +250,7 @@ if($mode=="germline")
 		
 		//bind
 		$db_connect->bind($hash, "variant_id", $variant_id);
-		$db_connect->bind($hash, "genotype", $row[$i_gno]);
+		$db_connect->bind($hash, "genotype", $row[$i_geno]);
 		$db_connect->bind($hash, "comment", $comment);
 		$db_connect->bind($hash, "report", $report);
 
@@ -312,7 +312,7 @@ if($mode=="somatic")
 	$i_snp = $file->getColumnIndex("dbSNP");
 	$i_10g = $file->getColumnIndex("1000g");
 	$i_exa = $file->getColumnIndex("ExAC");
-	$i_kav = $file->getColumnIndex("Kaviar");
+	$i_gno = $file->getColumnIndex("gnomAD");
 	$i_gen = $file->getColumnIndex("gene");
 	$i_typ = $file->getColumnIndex("variant_type");
 	$i_cod = $file->getColumnIndex("coding_and_splicing");
@@ -322,8 +322,8 @@ if($mode=="somatic")
 	$no_var_before = $tmp[0]['count(id)'];
 
 	//insert variants into table 'variant'
-	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, exac, kaviar, gene, variant_type, coding) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :exac, :kaviar, :gene, :variant_type, :coding)");
-	$hash2 = $db_connect->prepare("UPDATE variant SET dbsnp=:dbsnp, 1000g=:1000g, exac=:exac, kaviar=:kaviar , gene=:gene, variant_type=:variant_type, coding=:coding WHERE id=:id");
+	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, exac, gnomad, gene, variant_type, coding) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :exac, :gnomad, :gene, :variant_type, :coding)");
+	$hash2 = $db_connect->prepare("UPDATE variant SET dbsnp=:dbsnp, 1000g=:1000g, exac=:exac, gnomad=:gnomad , gene=:gene, variant_type=:variant_type, coding=:coding WHERE id=:id");
 	for($i=0; $i<$file->rows(); ++$i)
 	{
 		$row = $file->getRow($i);
@@ -339,7 +339,7 @@ if($mode=="somatic")
 			$db_connect->bind($hash2, "dbsnp", $dbsnp, array(""));
 			$db_connect->bind($hash2, "1000g", $row[$i_10g], array(""));
 			$db_connect->bind($hash2, "exac", $row[$i_exa], array(""));
-			$db_connect->bind($hash2, "kaviar", $row[$i_kav], array(""));
+			$db_connect->bind($hash2, "gnomad", $row[$i_gno], array(""));
 			$db_connect->bind($hash2, "gene", $row[$i_gen]);
 			$db_connect->bind($hash2, "variant_type", $row[$i_typ], array(""));
 			$db_connect->bind($hash2, "coding", $row[$i_cod], array(""));
@@ -357,7 +357,7 @@ if($mode=="somatic")
 		$db_connect->bind($hash, "dbsnp", $dbsnp, array(""));
 		$db_connect->bind($hash, "1000g", $row[$i_10g], array(""));
 		$db_connect->bind($hash, "exac", $row[$i_exa], array(""));
-		$db_connect->bind($hash, "kaviar", $row[$i_kav], array(""));
+		$db_connect->bind($hash, "gnomad", $row[$i_gno], array(""));
 		$db_connect->bind($hash, "gene", $row[$i_gen]);
 		$db_connect->bind($hash, "variant_type", $row[$i_typ], array(""));
 		$db_connect->bind($hash, "coding", $row[$i_cod], array(""));

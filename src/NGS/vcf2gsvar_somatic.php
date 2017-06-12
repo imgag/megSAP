@@ -87,7 +87,7 @@ $anno_cols[] = array("RepeatMasker", "RepeatMasker annotation.", "repeatmasker")
 $anno_cols[] = array("dbSNP", "Identifier in dbSNP database.", "dbsnp");
 $anno_cols[] = array("1000g", "Allele frequency in all populations of 1000g project.","kgenomes");
 $anno_cols[] = array("ExAC", "Allele frequency in all populations of ExAC project.", "exac");
-$anno_cols[] = array("Kaviar", "Allele frequency in Kaviar database.", "kaviar");
+$anno_cols[] = array("gnomAD", "Allele frequency in gnomAD database.", "gnomad");
 $anno_cols[] = array("COSMIC", "COSMIC somatic variant database anntotation.", "cosmic");
 $anno_cols[] = array("OMIM", "OMIM database annotation.", "omim");
 $anno_cols[] = array("ClinVar", "ClinVar database annotation.", "clinvar");
@@ -337,9 +337,9 @@ while(!feof($handle))
 		$tmp = explode(",",extract_from_info_field("EXAC_AF", $info, "0.0000", FALSE));
 		$exac = $tmp[0];
 		if(count($tmp)>1) $exac = $tmp[$i];
-		$tmp = explode(",",extract_from_info_field("KAVIAR_AF", $info, "0.0000", FALSE));
-		$kaviar = $tmp[0];
-		if(count($tmp)>1) $kaviar = $tmp[$i];
+		$tmp = explode(",",extract_from_info_field("GNOMAD_AF", $info, "0.0000", FALSE));
+		$gnomad = $tmp[0];
+		if(count($tmp)>1) $gnomad = $tmp[$i];
 		
 		$tumor_dp = extract_from_genotype_field($cols[8], $cols[$tumor_idx], "DP");
 		$normal_dp = "na";

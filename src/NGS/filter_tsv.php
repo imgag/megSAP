@@ -379,7 +379,7 @@ function filter_somatic_capa(Matrix $data)
 	$nd = $data->getColumnIndex("normal_dp",false,false);
 	$tg = $data->getColumnIndex("1000g", true);
 	$ex = $data->getColumnIndex("ExAC", true);
-	$kv = $data->getColumnIndex("KAVIAR", true);
+	$gn = $data->getColumnIndex("gnomAD", true);
 	$f = $data->getColumnIndex("filter_tsv");
 	if($nf===FALSE)	$tumor_only = true;
 	
@@ -396,7 +396,7 @@ function filter_somatic_capa(Matrix $data)
 		if ($row[$td]<$min_td)	$filter[] = "depth_tumor_too_low";
 		if (!$tumor_only && $row[$nd]<$min_nd)	$filter[] = "depth_normal_too_low";
 		if(!$tumor_only &&  ($row[$tf]<0.05 || $row[$nf]>0.01))	$filter[] = "allele_frequencies";
-		if ($row[$tg]>0.05 || $row[$ex]>0.05 || $row[$kv]>0.05) $filter[] = "db_frequencies";
+		if ($row[$tg]>0.05 || $row[$ex]>0.05 || $row[$gn]>0.05) $filter[] = "db_frequencies";
 		
 		$row[$f] = set_filter($filter,$row[$f]);
 		$output->addRow($row);
