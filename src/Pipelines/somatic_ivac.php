@@ -406,7 +406,7 @@ if(in_array("im", $steps))
 		$rel_path = relative_path($o_folder, $p_folder);
 		$igv_session = array();
 		$igv_session[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n";
-		$igv_session[] = "<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"all\" path=\".\" version=\"8\">\n";
+		$igv_session[] = "<Session genome=\"1kg_v37\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"all\" path=\".\" version=\"8\">\n";
 		$igv_session[] = "    <Resources>\n";
 		if(is_file($som_seg))   $igv_session[] = "\t\t<Resource path=\"".$rel_path."/".$o_folder."/".basename($som_seg)."\"/>\n";
 		if(is_file($som_vcf))   $igv_session[] = "\t\t<Resource path=\"".$rel_path."/".$o_folder."/".basename($som_vcf)."\"/>\n";

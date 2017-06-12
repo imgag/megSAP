@@ -155,7 +155,7 @@ if(is_dir($p_folder) && is_dir($o_folder))
 	$rel_path = relative_path($o_folder, $p_folder);
 	$igv_session = array();
 	$igv_session[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n";
-	$igv_session[] = "<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"all\" path=\".\" version=\"8\">\n";
+	$igv_session[] = "<Session genome=\"1kg_v37\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"all\" path=\".\" version=\"8\">\n";
 	$igv_session[] = "\t<Resources>";
 	if(is_file($s_dna_seg))   $igv_session[] = "\t\t<Resource path=\"".$rel_path."/".$o_folder."/".basename($s_dna_seg)."\"/>\n";
 	if(is_file($s_dna_vcf))	$igv_session[] = "\t\t<Resource path=\"".$rel_path."/".$o_folder."/".basename($s_dna_vcf)."\"/>\n";

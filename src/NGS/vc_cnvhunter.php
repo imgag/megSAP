@@ -1,7 +1,6 @@
 <?php 
 /** 
 	@page vc_cnvhunter
-	@todo somatic mode: check if overlapping regions are of same copy number state / also consider size of the overlap (in somatic mode - CS)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -78,20 +77,18 @@ for($i=0; $i<$cnvs_unfiltered->rows(); ++$i)
 	list($chr, $start, $end, $sample, $size, $num_reg) = $line;
 
 	if ($num_reg<$min_reg) continue;
-	if($sample==$psid1 || ($somatic && $sample==$psid2))
+	if($sample==$psid1)
 	{
 		$cnvs_filtered->addRow($line);
 	}
 }
 
-// filter for differential CNVs
 if($somatic)
-{
-	$z_tumor = array();
-	$z_normal = array();
-	
+{	
+	// filter for tumor/normal debug data
 	$reduced_tumor = new Matrix();
 	$reduced_normal = new Matrix();
+	$z_normal = array();
 	$handle = fopen($temp_folder."/cnvs_debug.tsv", "r", "r");
 	while(!feof($handle))
 	{
@@ -102,7 +99,6 @@ if($somatic)
 		$row = explode("\t",$line);
 		if($row[0]==$psid1)
 		{
-			$z_tumor[$row[1]] = $row[3];
 			$reduced_tumor->addRow($row);
 		}
 		if($row[0]==$psid2)
@@ -112,21 +108,13 @@ if($somatic)
 		}
 	}
 
-	$delta = new Matrix();
-	$delta->setHeaders(array("region","diff_zscore"));
-	foreach($z_tumor as $reg => $z)
-	{
-		$delta->addRow(array($reg,round($z_tumor[$reg]-$z_normal[$reg],2)));
-	}
-	$delta->toTSV($temp_folder."/".$psid1."-".$psid2."_diff.tsv");
-			
-	//generate diff. -seg file
+	//generate differential SEG file
 	if(isset($seg))
 	{
 		$seg_file = array();
 		$seg_file[] = "#type=GENE_EXPRESSION";
-		$seg_file[] = "#track graphtype=heatmap name=\"".$psid1."-".$psid2." CN z-score\" midRange=-4:4 color=0,0,255 altColor=255,0,0 viewLimits=-10:10 maxHeightPixels=80:80:80";
-		$seg_file[] = "ID	chr	start	end	diff. log2-ratio	diff. copy-number	tum z-score	nor z-score	tum ndoc	nor ndoc	diff. z-score";
+		$seg_file[] = "#track graphtype=points name=\"".$psid1."-".$psid2." CN z-score\" midRange=-4:4 color=0,0,255 altColor=255,0,0 viewLimits=-10:10 maxHeightPixels=80:80:80";
+		$seg_file[] = "ID\tchr\tstart\tend\ttum z-score\tnor z-score\ttum ndoc\tnor ndoc\ttum ref_ndoc\tnor ref_ndoc\tcopy-number\tz-score";
 
 		//write valid region details
 		for($i=0;$i<$reduced_tumor->rows();++$i)
@@ -137,43 +125,94 @@ if($somatic)
 			list($chr,$region) = explode(":",$row_t[1]);
 			list($start,$end) = explode("-",$region);
 			
-			$seg_file[] = $psid1."-".$psid2."\t".$chr."\t".$start."\t".$end."\t".($row_t[7]-$row_n[7])."\t".($row_t[2]-$row_n[2])."\t".$row_t[3]."\t".$row_n[3]."\t".$row_t[4]."\t".$row_n[4]."\t".($row_t[3]-$row_n[3]);
+			$seg_file[] = $psid1."-".$psid2."\t".$chr."\t".$start."\t".$end."\t".$row_t[3]."\t".$row_n[3]."\t".$row_t[4]."\t".$row_n[4]."\t".$row_t[5]."\t".$row_n[5]."\t".$row_t[2]."\t".$row_t[3];
 		}
 		
 		file_put_contents($temp_folder."/cnvs.seg",implode("\n",$seg_file));
 	}
 
-}
-
-if($somatic)
-{
+	//filter somatic variants
 	$cnvs_somatic = new Matrix();
 	$cnvs_somatic->setHeaders($cnvs_filtered->getHeaders());
 	for($i=0;$i<$cnvs_filtered->rows();++$i)
 	{
 		$row = $cnvs_filtered->getRow($i);
-		list($chr, $start, $end, $sample, $size, $num_reg) = $row;
+		list($chr, $start, $end, $sample, $size, $num_reg, $reg_cns, $reg_zs, $reg_coords, $genes) = $row;
 		
-		if($sample!=$psid1) continue; //skip normal sample entries
-		
-		$overlap = false;
-		for($j=0;$j<$cnvs_filtered->rows();++$j)
+		$reg_cns = explode(",", $reg_cns);
+		$reg_zs = explode(",", $reg_zs);
+		$reg_coords = explode(",", $reg_coords);
+
+		//check that z-score of tumor and normal sample differ by at least factor 2
+		$z_diff_pass = array();
+		for ($r=0; $r<count($reg_coords); ++$r)
 		{
-			$r = $cnvs_filtered->getRow($j);
-			if($r[3]!=$psid2) continue;
-			if ($r[0]!=$chr) continue; //same chromosome
-			if (range_overlap($start, $end, $r[1], $r[2]))
+			$reg = $reg_coords[$r];
+			$z_t = $reg_zs[$r];
+			$z_n = $z_normal[$reg];
+			
+			$pass = true;
+			if ($z_t>0 && $z_n>0 && $z_t<2*$z_n)
 			{
-				$overlap = true;
+				$pass = false;
+			}
+			if ($z_t<0 && $z_n<0 && $z_t>2*$z_n)
+			{
+				$pass = false;
+			}
+			$z_diff_pass[] = $pass;
+			//print "$reg\t$z_t\t$z_n\t$pass\n";
+		}
+		
+		//trim front
+		$start_index = null;
+		for ($r=0; $r<count($reg_coords); ++$r)
+		{
+			$z_t = $reg_zs[$r];
+			if ($z_diff_pass && ($z_t>3.0 || $z_t<-3.0))
+			{
+				$start_index = $r;
 				break;
 			}
 		}
-
-		//filter somatic variants
-		if(!$overlap)
+		
+		//trim end
+		$end_index = null;
+		for ($r=count($reg_coords)-1; $r>=0; --$r)
 		{
-			$cnvs_somatic->addRow($row);
+			$z_t = $reg_zs[$r];
+			if ($z_diff_pass && ($z_t>3.0 || $z_t<-3.0))
+			{
+				$end_index = $r;
+				break;
+			}
 		}
+		
+		//check number of regions
+		$reg_count = $end_index - $start_index + 1;
+		if (is_null($start_index) || is_null($end_index) || $reg_count < $min_reg)
+		{
+			//print "FAIL: num_reg=$reg_count\n";
+			continue;
+		}
+		
+		//check that at least half of the regions have a significantly hiher number z-score in tumor than in normal
+		$z_diff_pass_count = array_sum(array_slice($z_diff_pass, $start_index, $reg_count));
+		if ($z_diff_pass_count < 0.5 * $reg_count)
+		{		
+			//print "FAIL: z_diff_pass_count=$z_diff_pass_count (of $reg_count)\n";
+			continue;
+		}
+		
+		//line passed => construct new line based on new boundaries
+		$tmp  = explode(":", strtr($reg_coords[$start_index], "-", ":"));
+		$start = $tmp[1];
+		$tmp  = explode(":", strtr($reg_coords[$end_index], "-", ":"));
+		$end = $tmp[2];
+		$reg_cns = implode(",", array_slice($reg_cns, $start_index, $reg_count));
+		$reg_zs = implode(",", array_slice($reg_zs, $start_index, $reg_count));
+		$reg_coords = implode(",", array_slice($reg_coords, $start_index, $reg_count));
+		$cnvs_somatic->addRow(array($chr, $start, $end, $sample, $end-$start+1, $reg_count, $reg_cns, $reg_zs, $reg_coords, $genes));
 	}
 	$cnvs_filtered = $cnvs_somatic;
 }
