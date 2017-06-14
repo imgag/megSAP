@@ -17,7 +17,7 @@ The main parameters that you have to provide are:
 ### Poster
 
 A poster about megSAP which describes the all steps of the single-sample analysis pipeline can be found 
-[here](Poster_April_2017.pdf)
+[here](Poster_April_2017.pdf).
 
 ### Running an analysis
 
@@ -39,6 +39,7 @@ After the analysis, these files are created in the output folder:
 4. QC data in [qcML format](https://www.ncbi.nlm.nih.gov/pubmed/24760958), which can be opened with a web browser
 
 [back to the start page](../README.md)
+
 
 
 
