@@ -1,3 +1,6 @@
+##SAMPLE=<ID=GS110168,IsTumor=yes>
+##SAMPLE=<ID=GS110169,IsTumor=no>
+##ANALYSISTYPE=SOMATIC_PAIR
 ##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample GS110168).
 ##DESCRIPTION=tumor_dp=Tumor Depth (Sample GS110168).
 ##DESCRIPTION=normal_af=Mutant allele frequency in normal (Sample GS110169).
@@ -12,7 +15,7 @@
 ##DESCRIPTION=dbSNP=Identifier in dbSNP database.
 ##DESCRIPTION=1000g=Allele frequency in all populations of 1000g project.
 ##DESCRIPTION=ExAC=Allele frequency in all populations of ExAC project.
-##DESCRIPTION=Kaviar=Allele frequency in Kaviar database.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD database.
 ##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
 ##DESCRIPTION=OMIM=OMIM database annotation.
 ##DESCRIPTION=ClinVar=ClinVar database annotation.
@@ -20,8 +23,11 @@
 ##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
 ##DESCRIPTION=MetaLR=MetaLR effect prediction: D=damaging, T=tolerated.
 ##DESCRIPTION=Sift=Sift effect prediction: D=damaging, T=tolerated.
-##DESCRIPTION=PP2_HVAR=Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
-##DESCRIPTION=PP2_HDIV=Polyphen2 (HDIV) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=PolyPhen2=Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=FATHMM=FATHMM effect prediction: D=damaging, T=tolerated.
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20.
+##DESCRIPTION=som_ihdb_c=Somatic variant count within NGSD.
+##DESCRIPTION=som_ihdb_p=Projects with somatic variant in NGSD.
 ##DESCRIPTION=ihdb_allsys_hom=Homozygous variant counts in NGSD independent of the processing system.
 ##DESCRIPTION=ihdb_allsys_het=Heterozygous variant counts in NGSD independent of the processing system.
 ##DESCRIPTION=classification=Classification from the NGSD.
@@ -29,11 +35,7 @@
 ##DESCRIPTION=validated=Validation information from the NGSD. Validation results of other samples are listed in brackets!
 ##DESCRIPTION=comment=Comments from the NGSD. Comments of other samples are listed in brackets!
 ##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, ExAC pLI score).
-##DESCRIPTION=som_ihdb_c=Somatic variant count within NGSD.
-##DESCRIPTION=som_ihdb_p=Projects with somatic variant in NGSD.
-##FILTER=fv.not_cod_spli=Not a coding or splicing variant (filter_vcf).
 ##FILTER=fv.som_af_ratio=Allele frequency ratio tumor/normal less-equal 6; removed from list (filter_vcf).
-##FILTER=fv.som_all_freq=Difference in allele frequencies too low (filter_vcf).
 ##FILTER=fv.som_all_freq_nor=Allele frequency normal too high (filter_vcf).
 ##FILTER=fv.som_all_freq_tum=Allele frequency tumor is 0.05 (filter_vcf).
 ##FILTER=fv.som_depth_nor=Sequencing depth normal is < 8 (filter_vcf).
@@ -41,9 +43,8 @@
 ##FILTER=fv.som_lt_3_reads=Less than 3 supporting tumor reads (filter_vcf).
 ##FILTER=fv.som_no_depth=No depth in tumor or normal; removed from list (filter_vcf).
 ##FILTER=fv.som_tum_loh=Loss of heterozygosity within tumor tissue (filter_vcf).
-#chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	snp_q	gene	variant_type	coding_and_splicing	interpro	Pathway_KEGG_full	Function_description	Pathway_BioCarta_full	RepeatMasker	dbSNP	1000g	ExAC	Kaviar	COSMIC	OMIM	ClinVar	HGMD	phyloP	MetaLR	Sift	PP2_HVAR	PP2_HDIV	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info	som_ihdb_c	som_ihdb_p
-chr21	31744239	31744239	C	A	0.4299	107	0.0000	106		1043.71	KRTAP13-2	missense_variant	KRTAP13-2:NM_181621.3:missense_variant:MODERATE:exon1/1:c.293G>T:p.Gly98Val			In the hair cortex, hair keratin intermediate filaments are embedded in an interfilamentous matrix, consisting of hair keratin-associated proteins (KRTAP), which are essential for the formation of a rigid and resistant hair shaft through their extensive disulfide bond cross-linking with abundant cysteine residues of hair keratins. The matrix proteins include the high- sulfur and high-glycine-tyrosine keratins (By similarity)				0.0000	0.0000	0.0000					0.375000	T	D	P	B	0	0					KRTAP13-2 (inh=n/a pLI=0.00)	0	
-chr21	33691527	33691527	C	T	0.5000	12	0.1429	7	fv.som_depth_nor;fv.som_all_freq_nor	104.645	URB1	missense_variant&splice_region_variant	URB1:NM_014825.2:missense_variant&splice_region_variant:MODERATE:exon36/39:c.5792G>A:p.Arg1931Lys						rs183045720	0.00239617	8.491e-03	0.0031639					4.346000	T	D	D	D	0	15					URB1 (inh=n/a pLI=n/a)	0	
-chr21	41137458	41137458	C	-	0.3846	13	0.0000	3	fv.som_depth_nor	16.7017	IGSF5	splice_region_variant&intron_variant	IGSF5:NM_001080444.1:splice_region_variant&intron_variant:LOW:exon2/8:c.101-3delC:		Tight junction;Epithelial cell signaling in Helicobacter pylori infection	Provides, together with MAGI1, an adhesion machinery at tight junctions, which may regulate the permeability of kidney glomerulus and small intestinal epithelial cells. Mediates calcium-independent homophilic cell adhesion. In testis, it may function as a cell adhesion molecule rather than a tight-junction protein. It may participate in the adhesion between spermatogonia- spermatogonia, spermatogonia-Sertoli cells, and Sertoli cells- Sertoli cells (By similarity)			rs398101635	0.0954473	0.070	0.0643907										7	50					IGSF5 (inh=n/a pLI=0.00)	0	
-chr21	47532500	47532500	C	T	0.5714	7	0.0000	5	fv.som_depth_tum;fv.som_depth_nor	53.3194	COL6A2	splice_region_variant&intron_variant	COL6A2:NM_001849.3:splice_region_variant&intron_variant:LOW:exon3/27:c.714+9C>T:,COL6A2:NM_058174.2:splice_region_variant&intron_variant:LOW:exon3/27:c.714+9C>T:,COL6A2:NM_058175.2:splice_region_variant&intron_variant:LOW:exon3/27:c.714+9C>T:		Cell Communication;Focal adhesion;ECM-receptor interaction	Collagen VI acts as a cell-binding protein			rs78822624	0.0161741	0.039	0.0381855		120240 [COL6A2 (confirmed) Bethlem myopathy 1|Ullrich congenital muscular dystrophy 1|Myosclerosis,congenital];	RCV000079898.7 [other]; 							3	83					COL6A2 (inh=n/a pLI=0.00)	0	
-chr21	47665117	47665120	AAGA	-	0.7500	4	0.2500	8	fv.som_depth_tum;fv.som_all_freq_nor	40.3257	MCM3AP,MCM3AP-AS1	splice_region_variant&intron_variant,intron_variant	MCM3AP:NM_003906.4:splice_region_variant&intron_variant:LOW:exon22/27:c.4648-9_4648-6delTCTT:,MCM3AP-AS1:NR_110565.1:intron_variant:MODIFIER:exon3/3:n.423+4189_423+4192delAGAA:,MCM3AP-AS1:NR_002776.4:intron_variant:MODIFIER:exon2/2:n.222+4189_222+4192delAGAA:			May be involved in the nuclear localization pathway of MCM3			rs369793080	0.323283	0.352	0.3315349										132	411					MCM3AP (inh=n/a pLI=0.84), MCM3AP-AS1 (inh=n/a pLI=n/a)	0	
+#chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	snp_q	gene	variant_type	coding_and_splicing	interpro	Pathway_KEGG_full	Function_description	Pathway_BioCarta_full	RepeatMasker	dbSNP	1000g	ExAC	gnomAD	COSMIC	OMIM	ClinVar	HGMD	phyloP	MetaLR	Sift	PolyPhen2	FATHMM	CADD	som_ihdb_c	som_ihdb_p	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info
+chr21	31744239	31744239	C	A	0.4340	106	0.0000	105		1047.1	KRTAP13-2	missense_variant	KRTAP13-2:ENST00000399889:missense_variant:MODERATE:exon1/1:c.293G>T:p.Gly98Val							0.0000	0.0000	0.0000					0.375000	T	D	B	T	23.10	0		0	0			n/a	n/a	KRTAP13-2 (inh=n/a pLI=0.00)
+chr21	41137458	41137458	C	-	0.3846	13	0.0000	3	fv.som_depth_nor	16.7017	IGSF5	splice_region_variant&intron_variant	IGSF5:ENST00000380588:splice_region_variant&intron_variant:LOW:exon2/8:c.101-3delC:,IGSF5:ENST00000479378:splice_region_variant&intron_variant:LOW:exon1/4:n.207-3delC:						rs398101635	0.0954473	0.07129	0.06742											0		11	113			n/a	n/a	IGSF5 (inh=n/a pLI=0.00)
+chr21	47532500	47532500	C	T	0.5714	7	0.0000	5	fv.som_depth_tum;fv.som_depth_nor	53.3194	COL6A2	splice_region_variant&intron_variant	COL6A2:ENST00000300527:splice_region_variant&intron_variant:LOW:exon3/27:c.714+9C>T:,COL6A2:ENST00000310645:splice_region_variant&intron_variant:LOW:exon3/27:c.714+9C>T:,COL6A2:ENST00000357838:splice_region_variant&intron_variant:LOW:exon3/27:c.714+9C>T:,COL6A2:ENST00000409416:splice_region_variant&intron_variant:LOW:exon2/26:c.714+9C>T:,COL6A2:ENST00000397763:splice_region_variant&intron_variant:LOW:exon2/26:c.714+9C>T:,COL6A2:ENST00000460886:splice_region_variant&intron_variant:LOW:exon1/1:n.160+9C>T:						rs78822624	0.0161741	0.04002	0.03883		120240 [COL6A2 (confirmed) Bethlem myopathy 1,158810|Ullrich congenital muscular dystrophy 1,254090|Myosclerosis,congenital,255600];	RCV000079898.8 [other]; RCV000263753.1 [likely benign]; RCV000374715.1 [likely benign]; 								0		4	134			n/a	n/a	COL6A2 (inh=AR+AD pLI=0.00)
+chr21	47665117	47665120	AAGA	-	0.7500	4	0.2500	8	fv.som_depth_tum;fv.som_all_freq_nor	40.3257	MCM3AP,MCM3AP-AS1	splice_region_variant&intron_variant,intron_variant	MCM3AP:ENST00000291688:splice_region_variant&intron_variant:LOW:exon22/27:c.4648-9_4648-6delTCTT:,MCM3AP:ENST00000467026:splice_region_variant&intron_variant:LOW:exon7/12:n.1241-9_1241-6delTCTT:,MCM3AP:ENST00000496607:splice_region_variant&intron_variant:LOW:exon12/17:n.2645-9_2645-6delTCTT:,MCM3AP:ENST00000486937:splice_region_variant&intron_variant:LOW:exon12/17:n.3163-9_3163-6delTCTT:,MCM3AP:ENST00000397708:splice_region_variant&intron_variant:LOW:exon23/28:c.4648-9_4648-6delTCTT:,MCM3AP-AS1:ENST00000414659:intron_variant:MODIFIER:exon3/3:n.423+4189_423+4192delAGAA:,MCM3AP-AS1:ENST00000590829:intron_variant:MODIFIER:exon2/2:n.236+4189_236+4192delAGAA:,MCM3AP-AS1:ENST00000455567:intron_variant:MODIFIER:exon2/2:n.209+4189_209+4192delAGAA:						rs369793080	0.323283	0.35781	0.36410											0		225	714			n/a	n/a	MCM3AP (inh=n/a pLI=0.84), MCM3AP-AS1 (inh=n/a pLI=n/a)
