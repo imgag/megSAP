@@ -1,6 +1,7 @@
 <?php
 /**
 	@page capa_diagnostic
+	@todo remove unnecessary (e.g. report generation) and add new - e.g. filter for pharmacogenomics
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

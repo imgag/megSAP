@@ -26,7 +26,7 @@ $manta_folder = $parser->tempFolder()."/mantaAnalysis";
 $genome = get_path("local_data")."/$build.fa";
 $pars = "";
 $pars .= "--referenceFasta $genome ";
-$pars .= "--runDir $manta_folder --config ".get_path("manta")."/configManta.py.srv017.ini ";
+$pars .= "--runDir $manta_folder --config ".get_path("manta")."/configManta.py.ini ";
 $pars .= "--normalBam ".implode(" --normalBam ", $bam)." ";
 if(isset($t_bam))
 {

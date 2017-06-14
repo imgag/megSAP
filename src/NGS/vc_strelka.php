@@ -48,7 +48,6 @@ if($config == "auto")
 			$config = get_path('strelka')."/strelka/etc/strelka_config_bwa_amplicon.ini";
 		}
 	}
-	else	trigger_error("Coud not find strelka config file!", E_USER_ERROR);
 }
 if(!is_file($config))	trigger_error("Could not find config file '".$conf."'.", E_USER_ERROR);
 
