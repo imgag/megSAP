@@ -19,7 +19,7 @@ $parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To proc
 $parser->addString("o_folder", "Output folder.", false);
 $steps_all = array("ma", "vc", "an", "ci", "db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,db");
-$parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"set_somatic");
+$parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"non_coding_splicing,off_target,set_somatic");
 // optional
 $parser->addFloat("min_af", "Allele frequency detection limit.", true, 0.05);
 $parser->addInfile("t_sys",  "Tumor processing system INI file (determined from the NGSD using 't_id' by default).", true);
@@ -34,6 +34,7 @@ $parser->addFlag("freebayes", "Use freebayes for variant calling (default: strel
 $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal sample.", true, 0);
 $parser->addFlag("no_softclip", "Skip soft-clipping of overlapping reads. NOTE: This may increase rate of false positive variants.", true);
 $parser->addEnum("clip", "Soft-clip overlapping read pairs.", true, array("sc","mfb","mfm","mfr"),"sc");
+$parser->addFlag("strelka","",true);
 extract($parser->parse($argv));
 
 // (0) preparations
@@ -277,6 +278,7 @@ else
 	$som_v = $o_folder.$t_id."-".$n_id."_var.vcf.gz";
 	$som_qci = $o_folder.$t_id."-".$n_id."_var_qci.vcf.gz";
 	$som_sv = $o_folder.$t_id."-".$n_id."_var_structural.vcf.gz";
+	$som_si = $o_folder.$t_id."-".$n_id."_var_smallIndels.vcf.gz";
 	$som_cnv = $o_folder.$t_id."-".$n_id."_cnvs.tsv";
 	if (in_array("vc", $steps))
 	{			
@@ -285,6 +287,8 @@ else
 		{
 			$par = "";
 			if($t_sys_ini['type']=="WES")	$par .= "-exome ";
+			if(!$strelka)	$par .= "-temp ".dirname($som_v)."/variant_calling ";
+			if(!$strelka)	$par .= "-smallIndels $som_si ";
 			$parser->execTool("NGS/vc_manta.php", "-t_bam $t_bam -bam $n_bam $par -out $som_sv -build ".$t_sys_ini['build']);
 		}
 		
@@ -295,7 +299,10 @@ else
 			$args[] = "-build ".$t_sys_ini['build'];
 			if ($keep_all_variants_strelka) $args[] = "-k";
 			if ($amplicon) $args[] = "-amplicon";
-			$parser->execTool("NGS/vc_strelka.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));	//combined variant calling using strelka		
+			if(!$strelka)	$args[] = "-temp ".dirname($som_v)."/variant_calling";
+			if(!$strelka && is_file($som_si))	$args[] = "-smallIndels $som_si";
+			if(!$strelka)	$parser->execTool("NGS/vc_strelka2.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));
+			else 	$parser->execTool("NGS/vc_strelka.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));	//combined variant calling using strelka		
 		}
 		else	// combined variant calling using freebayes
 		{

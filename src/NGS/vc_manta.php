@@ -18,11 +18,14 @@ $parser->addString("out", "Output file (gzipped and tabix indexed).", false);
 //optional
 $parser->addInfile("t_bam", "Tumor BAM file.", true);
 $parser->addFlag("exome", "If set settings for exome are used.", true);
+$parser->addString("smallIndels", "", true,"");
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("temp", "Temp folder.", true, "auto");
 extract($parser->parse($argv));
 
 //run manta
-$manta_folder = $parser->tempFolder()."/mantaAnalysis";
+$temp_folder = ($temp=="auto"?$parser->tempFolder():$temp);
+$manta_folder = $temp_folder."/mantaAnalysis";
 $genome = get_path("local_data")."/$build.fa";
 $pars = "";
 $pars .= "--referenceFasta $genome ";
@@ -38,12 +41,15 @@ if($exome)	$pars .= "--exome ";
 $parser->exec("python ".get_path('manta')."/configManta.py", $pars,true);
 $parser->exec("python $manta_folder/runWorkflow.py", " -m local -j4 -g4", false);
 
-//merge vcf files
-$vcf_combined = $parser->tempFile("_combined.vcf");
-$results = $manta_folder."/results/variants/diploidSV.vcf.gz";
-if(isset($t_bam))	$results = $manta_folder."/results/variants/somaticSV.vcf.gz";
-$parser->exec("zcat","$results > $vcf_combined",true);
+//copy files to output folder
+$struc = $manta_folder."/results/variants/diploidSV.vcf.gz";
+if(!empty($t_bam))	$struc = $manta_folder."/results/variants/somaticSV.vcf.gz";
+$parser->exec("cp","$struc $out",true);
+$parser->exec("cp",$struc.".tbi ".$out.".tbi",true);
 
-//zip and index output file
-$parser->exec("bgzip", "-c $vcf_combined > $out", false);	//no output logging, because Toolbase::extractVersion() does not return
-$parser->exec("tabix", "-p vcf $out", false);	//no output logging, because Toolbase::extractVersion() does not return
+$small = $manta_folder."/results/variants/candidateSmallIndels.vcf.gz";
+if(!empty($smallIndels))	
+{
+	$parser->exec("cp","$small $smallIndels",true);
+	$parser->exec("cp",$small.".tbi ".$smallIndels.".tbi",true);
+}

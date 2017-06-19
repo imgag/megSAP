@@ -1,7 +1,8 @@
 <?php
 /**
 	@page capa_diagnostic
-	@todo remove unnecessary (e.g. report generation) and add new - e.g. filter for pharmacogenomics
+	@todo remove report generation
+	@todo add pharmacogenomics analsis of germline
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -25,6 +26,7 @@ $parser->addFlag("abra", "Turn on ABRA realignment.");
 $parser->addFlag("amplicon", "Turn on amplicon mode.");
 $parser->addFlag("nsc", "Skip sample correlation check (only in pair mode).");
 $parser->addFlag("all_variants", "Do not use strelka filter.", true);
+$parser->addFlag("strelka","",true);
 extract($parser->parse($argv));
 
 //init
@@ -58,12 +60,13 @@ else
 	$s_txt = $o_folder."/".$t_id."-".$n_id."_report.txt";
 }
 
-$extras = array("-filter_set non_coding,synonymous,set_somatic_capa,off_target", "-steps {$steps}");
+$extras = array("-filter_set non_coding_splicing,synonymous,set_somatic_capa,off_target", "-steps {$steps}");
 if($abra) $extras[] = "-abra";
 if($amplicon) $extras[] = "-amplicon";
 if($nsc) $extras[] = "-nsc";
 if($all_variants) $extras[] = "-keep_all_variants_strelka";
 if (isset($t_sys)) $extras[] = "-t_sys $t_sys";
+if($strelka)	$extras[] = "-strelka";
 $extras[] = $single_sample ? "-n_id na" : "-n_id $n_id";
 if (!$single_sample && isset($n_sys)) $extras[] = "-n_sys $n_sys";
 $parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_id -o_folder $o_folder ".implode(" ", $extras));

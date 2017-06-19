@@ -132,7 +132,7 @@ while($has_header===FALSE && !feof($handle))
 	$line = nl_trim(fgets($handle));
 	if(!empty($line))	++$count;
 	
-	if(strpos($line,"##source")===0)	//information about variant caller
+	if(strpos($line,"##source=")===0)	//information about variant caller
 	{
 		$tmp_vcaller = "";
 		if(stripos($line,"freebayes")!==FALSE)	$tmp_vcaller = "freebayes";

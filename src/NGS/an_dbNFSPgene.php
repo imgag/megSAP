@@ -17,7 +17,7 @@ extract($parser->parse($argv));
 
 //read dbNFSPgene and generate map of refseq-IDs
 $db = get_path("data_folder")."/dbs/dbNSFP/dbNSFP2.9_gene";
-$refseq_map = array();
+$gene_map = array();
 $dbNFSPgene = Matrix::fromTSV($db);
 $dbNFSPgene->setHeaders($dbNFSPgene->getRow(0));
 $idx_k = $dbNFSPgene->getColumnIndex("Pathway(KEGG)_full");
@@ -26,14 +26,8 @@ $idx_b = $dbNFSPgene->getColumnIndex("Pathway(BioCarta)_full");
 for($i=0;$i<$dbNFSPgene->rows();++$i)
 {
 	$row = $dbNFSPgene->getRow($i);
-	
-	foreach(explode(",", $row[9]) as $refseq_id)
-	{
-		if($refseq_id == ".")	continue;
-//		if(isset($refseq_map[$refseq_id]))	trigger_error("Found Refseq-ID '$refseq_id' multiple times.",E_USER_NOTICE);
-		if(!isset($refseq_map[$refseq_id]))	$refseq_map[$refseq_id] = array();
-		$refseq_map[$refseq_id][] = $i;
-	}
+	if(!isset($gene_map[$row[0]]))	$gene_map[$row[0]] = array();
+	$gene_map[$row[0]] = $i;
 }
 
 //write info fields; get refseq IDs from vcf-file and add dbNFSPgene information
@@ -71,21 +65,18 @@ for($i=0;$i<$variant_file->rows();++$i)
 		if(!empty($c))
 		{
 			$parts = explode(":",$c);
-			$refseq_id = $parts[1];
-			if(strpos($refseq_id, ".")!==FALSE)	$refseq_id = substr($refseq_id,0,strpos($refseq_id,'.'));
-			if(empty($refseq_id))	continue;
-			if(isset($refseq_map[$refseq_id]))
+			$gene_id = $parts[0];
+			if(empty($gene_id))	continue;
+			if(isset($gene_map[$gene_id]))
 			{
-				foreach($refseq_map[$refseq_id] as $r);
-				{
-					$k .= $dbNFSPgene->get($r,$idx_k);
-					$f .= $dbNFSPgene->get($r,$idx_f);
-					$b .= $dbNFSPgene->get($r,$idx_b);
-				}
+				$r = $gene_map[$gene_id];
+				$k .= $dbNFSPgene->get($r,$idx_k);
+				$f .= $dbNFSPgene->get($r,$idx_f);
+				$b .= $dbNFSPgene->get($r,$idx_b);
 			}
 			else
 			{
-				$genes_not_found[] = $refseq_id;
+				$genes_not_found[] = $gene_id;
 			}
 		}
 		$kegg[] = $k;
