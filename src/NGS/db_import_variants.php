@@ -82,7 +82,7 @@ if($mode=="germline")
 	
 	//remove old variants (and get infos to preserve/check)
 	$v_class = array(); //variant id => classification
-	$v_info = array(); //variant id => (comment, report)
+	$v_comment = array(); //variant id => comment
 	if ($count_old!=0 && $force)
 	{
 		//preserve classification
@@ -92,11 +92,14 @@ if($mode=="germline")
 			$v_class[$row['variant_id']] = $row['class'];
 		}
 		
-		//preserve comment, report
-		$tmp = $db_connect->executeQuery("SELECT dv.variant_id, dv.comment, dv.report FROM detected_variant dv WHERE dv.processed_sample_id='$psid' AND ((dv.comment IS NOT NULL AND dv.comment!='') OR dv.report!=0)");
+		//preserve comment
+		$tmp = $db_connect->executeQuery("SELECT dv.variant_id, dv.comment FROM detected_variant dv WHERE dv.processed_sample_id='$psid' AND (dv.comment IS NOT NULL AND dv.comment!='')");
 		foreach($tmp as $row)
 		{
-			$v_info[$row['variant_id']] = array($row['comment'], $row['report']);
+			if (trim($row['comment'])!="")
+			{
+				$v_comment[$row['variant_id']] = $row['comment'];
+			}
 		}
 		
 		//remove old variants
@@ -223,7 +226,7 @@ if($mode=="germline")
 
 	//insert variants into table 'detected_variant'
 	$db_connect->beginTransaction();
-	$hash = $db_connect->prepare("INSERT INTO detected_variant (processed_sample_id, variant_id, genotype, comment, report) VALUES ('$psid', :variant_id, :genotype, :comment, :report);");
+	$hash = $db_connect->prepare("INSERT INTO detected_variant (processed_sample_id, variant_id, genotype, comment) VALUES ('$psid', :variant_id, :genotype, :comment);");
 	for($i=0; $i<$file->rows(); ++$i)
 	{
 		$row = $file->getRow($i);
@@ -234,12 +237,9 @@ if($mode=="germline")
 		
 		//get infos from previous analysis (if available)
 		$comment = NULL;
-		$report = "0";
-		if (isset($v_info[$variant_id]))
+		if (isset($v_comment[$variant_id]))
 		{
-			$v_data = $v_info[$variant_id];
-			if ($v_data[0]!="") $comment = $v_data[0];
-			$report = $v_data[1];
+			$comment = $v_comment[$variant_id];
 		}
 		
 		//remove class 4/5 variant from list (see check below)
@@ -252,7 +252,6 @@ if($mode=="germline")
 		$db_connect->bind($hash, "variant_id", $variant_id);
 		$db_connect->bind($hash, "genotype", $row[$i_geno]);
 		$db_connect->bind($hash, "comment", $comment);
-		$db_connect->bind($hash, "report", $report);
 
 		//execute
 		$db_connect->execute($hash, true);

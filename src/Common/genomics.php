@@ -1337,7 +1337,7 @@ function get_processed_sample_info($ps_name, $error_if_not_found=true, $db_name=
 	//get info from NGSD
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
 	$db = DB::getInstance($db_name);
-	$res = $db->executeQuery("SELECT p.name as project_name, p.type as project_type, p.id as project_id, ps.id as ps_id, r.name as run_name, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, sys.type as sys_type, sys.target_file as sys_target, s.name_external as name_external ".
+	$res = $db->executeQuery("SELECT p.name as project_name, p.type as project_type, p.id as project_id, ps.id as ps_id, r.name as run_name, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, sys.type as sys_type, sys.target_file as sys_target, s.name_external as name_external ".
 	                         "FROM project p, processed_sample ps, sample s, processing_system as sys, sequencing_run as r ".
 							 "WHERE ps.sequencing_run_id=r.id AND ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND ps.process_id='".(int)$process_id."'");
 	if (count($res)!=1)
@@ -1385,7 +1385,17 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 		$parts['ExternalSampleName'] = strtr($details['name_external'], ",", ";");
 		$parts['IsTumor'] = $details['is_tumor'] ? "yes" : "no";
 		$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
-		//TODO: also take affected status and phenotype info from NGSD ("Status" and "???")
+		$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
+		if ($details['disease_group']!="n/a")
+		{
+			$parts['DiseaseGroup'] = $details['disease_group'];
+			$parts['Status'] = $details['disease_group']=="No disease - control sample" ? "control" : "affected";
+		}
+		else
+		{
+			$parts['DiseaseGroup'] = 'n/a';
+		}
+		//TODO: take detailed phenotype info from NGSD as well
 	}
 	
 	//apply overwrite settings
@@ -1393,7 +1403,7 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 	
 	//create and check output
 	$output = array();
-	$valid = array('ID','Status','Gender','ExternalSampleName','SampleName','IsTumor','IsFFPE');
+	$valid = array('ID','Status','Gender','ExternalSampleName','SampleName','IsTumor','IsFFPE','DiseaseGroup');
 	foreach($parts as $key => $value)
 	{
 		if (!in_array($key, $valid))
