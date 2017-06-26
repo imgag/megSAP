@@ -806,8 +806,8 @@ created_by: schroeder
 
 [Term]
 id: QC:2000045
-name: known somatic variants percentage
-def: "Percentage of somatic variants that are known polymorphisms in the dbSNP database." [PXS:QC]
+name: known somatic variants percentage dbSNP
+def: "Percentage of somatic variants listed by dbSNP." [PXS:QC]
 is_a: QC:2000004 ! NGS variant list parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schroeder
@@ -875,6 +875,14 @@ created_by: sturm
 id: QC:2000053
 name: somatic mutation rate
 def: "Somatic mutation rate [mutations/Mb] normalized for the target region." [PXS:QC]
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schroeder
+
+[Term]
+id: QC:2000054
+name: known somatic variants percentage EXAC
+def: "Percentage of somatic variants that are listed by EXAC with allele frequency > 1 %." [PXS:QC]
 is_a: QC:2000004 ! NGS variant list parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schroeder
