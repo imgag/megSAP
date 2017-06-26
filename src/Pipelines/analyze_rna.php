@@ -34,6 +34,7 @@ $parser->addString("downstream", "Keep files for downstream analysis (splicing, 
 $parser->addInt("sjOverhang", "Minimum overhang for non-annotated splice junctions.", true, 8);
 $parser->addInt("sjdbOverhang", "Minimum overhang for annotated splice junctions.", true, 1);
 $parser->addFlag("disableJunctionFilters", "Disable filtering of the reported junctions (affects splicing output only).");
+$parser->addFlag("noSplicing", "Prevent reads from getting spliced");
 
 extract($parser->parse($argv));
 
@@ -65,6 +66,7 @@ if (!isset($gtfFile)) {
 }
 
 //mapping and QC
+$log_ma  = $prefix."_log1_map.log";
 $final_bam = $prefix.".bam";
 $qc_fastq = $prefix."_stats_fastq.qcML";
 $qc_map = $prefix."_stats_map.qcML";
@@ -124,7 +126,7 @@ if(in_array("ma", $steps))
 		$downstream_arr[] = "chimeric";
 		$parser->log("Enabling downstream chimeric file needed for fusion detection.");
 	}
-	if (in_array("ma", $steps) && $abra && !in_array("splicing", $downstream_arr)) {
+	if ($abra && !in_array("splicing", $downstream_arr)) {
 		$downstream_arr[] = "splicing";
 		$parser->log("Enabling downstream splicing file needed for indel realignment.");
 	}
@@ -147,7 +149,14 @@ if(in_array("ma", $steps))
 	}
 
 	$args[] = "-sjOverhang $sjOverhang -sjdbOverhang $sjdbOverhang";
-
+	
+	if ($noSplicing) {
+		$args[] = "-noSplicing";
+	}
+	
+	$args[] = "--log $log_ma";
+	if(file_exists($log_ma)) unlink($log_ma);
+	
 	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
 
 	//indel realignment
@@ -221,5 +230,8 @@ if (in_array("db", $steps))
 
 	//import QC data
 	$parser->execTool("NGS/db_import_qc.php", "-id $out_name -files $qc_fastq $qc_map -force");
+	
+	//update last analysis date
+	updateLastAnalysisDate($out_name, $final_bam);
 }
 ?>
