@@ -82,7 +82,7 @@ if(!$uncompressed) {
 
 //options for chimeric alignment detection
 $arguments[] = "--chimSegmentMin 12 --chimJunctionOverhangMin 12 --chimSegmentReadGapMax 3";
-$arguments[] = "--seedSearchStartLmax $Lmax --alignMatesGapMax 1000000 --alignIntronMax 1000000 --alignIntronMin 20";
+$arguments[] = "--seedSearchStartLmax $Lmax --alignMatesGapMax 1000000";
 //options for splice junctions
 $arguments[] = "--alignSJoverhangMin $sjOverhang --alignSJDBoverhangMin $sjdbOverhang --alignSJstitchMismatchNmax 5 -1 5 5";
 if ($disableJunctionFilters) {
@@ -101,6 +101,8 @@ if($noSplicing) {
 	//min has to be larger than max to prevent spliced alignments
 	$arguments[] = "--alignIntronMin 2";
 	$arguments[] = "--alignIntronMax 1";
+} else {
+	$arguments[] = "--alignIntronMax 1000000 --alignIntronMin 20";
 }
 
 //add a read group line to the final BAM file
