@@ -331,10 +331,12 @@ while(!feof($handle))
 			$details = strtr($details, array("splice_acceptor&splice_region&intron"=>"splice_acceptor", "splice_donor&splice_region&intron"=>"splice_donor", "splice_acceptor&intron"=>"splice_acceptor", "splice_donor&intron"=>"splice_donor", "_prime_"=>"'"));
 			if ($details=="intragenic" || $details=="sequence_feature") continue; //skip these details
 			$variant_details[] = $details;
-			$genes[] = $parts[3];
+			$gene = trim($parts[3]);
+			if ($gene=="") continue; //skip empty gene names entries (TF-binding site, etc)
+			$genes[] = $gene;
 			$exon = $parts[8];
 			if ($exon!="") $exon = "exon".$exon;
-			$coding_and_splicing_details[] = $parts[3].":".$parts[6].":$details:".$parts[2].":$exon:".$parts[9].":".$parts[10];
+			$coding_and_splicing_details[] = $gene.":".$parts[6].":$details:".$parts[2].":$exon:".$parts[9].":".$parts[10];
 		}
 	}
 	$genes = array_unique($genes);
