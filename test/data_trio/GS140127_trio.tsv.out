@@ -1,10 +1,8 @@
 chr1	98506616	98506616	-	TTCATTCA	trio_hemizygous
-chr2	145144612	145144612	-	TA	anno_omim;trio_recessive
 chr2	166246710	166246710	A	C	anno_omim;trio_denovo
 chr2	179542499	179542499	T	C	anno_omim;trio_denovo
-chr3	55501393	55501393	T	-	anno_omim;trio_hemizygous
-chr4	56239103	56239103	A	-	anno_omim;trio_recessive
 chr5	138614072	138614072	T	G	anno_omim;trio_denovo
 chr7	83278198	83278198	G	A	anno_omim;trio_denovo
 chr12	7048292	7048292	C	T	pred_pathogenic;anno_omim;trio_denovo
+chr12	31226934	31226934	C	T	low_MQM;anno_omim;trio_denovo
 chr14	36986023	36986023	A	-	anno_omim;trio_hemizygous
