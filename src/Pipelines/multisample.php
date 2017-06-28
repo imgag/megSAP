@@ -107,7 +107,7 @@ while(!gzeof($h1))
 		fwrite($h2, "##ANALYSISTYPE=GERMLINE_MULTISAMPLE\n");
 		foreach($bams as $bam)
 		{
-			fwrite($h2, gsvar_sample_header($names[$bam], array("Status"=>$status[$bam])));
+			fwrite($h2, gsvar_sample_header($names[$bam], array("DiseaseStatus"=>$status[$bam])));
 		}
 		
 		//determine indices for each sample	

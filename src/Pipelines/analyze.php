@@ -163,7 +163,7 @@ if (in_array("vc", $steps))
 		if ($line[0]=="#" && $line[1]!="#")
 		{
 			fwrite($hw, "##ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n");
-			fwrite($hw, gsvar_sample_header($name, array("Status"=>"affected")));
+			fwrite($hw, gsvar_sample_header($name, array("DiseaseStatus"=>"affected")));
 		}
 		fwrite($hw, $line."\n");
 	}
