@@ -25,6 +25,7 @@ cd dbSNP
 wget ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b149_GRCh37p13/VCF/00-All.vcf.gz
 zcat 00-All.vcf.gz | php $src/Tools/db_converter_dbsnp.php | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | bgzip > dbsnp_b149.vcf.gz
 tabix -p vcf dbsnp_b149.vcf.gz
+rm -rf 00-All.vcf.gz
 
 #Install REPEATMASKER
 cd $dbs
@@ -33,6 +34,7 @@ cd RepeatMasker
 wget -O - http://www.repeatmasker.org/genomes/hg19/RepeatMasker-rm405-db20140131/hg19.fa.out.gz | gunzip > hg19.fa.out
 perl $tools/RepeatMasker/util/rmOutToGFF3.pl hg19.fa.out > RepeatMasker.gff
 cat RepeatMasker.gff | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/BedSort > RepeatMasker.bed
+rm -rf hg19.fa.out RepeatMasker.gff
 
 #Install dbNSFP
 cd $dbs
@@ -45,6 +47,7 @@ cat dbNSFP2.9.2_variant.chr* | egrep -v "^#"  >> dbNSFPv2.9.2.txt
 rm -rf dbNSFP2.9_gene.complete* dbNSFP2.9.2_variant* try* search*
 bgzip dbNSFPv2.9.2.txt
 tabix -s 1 -b 2 -e 2 dbNSFPv2.9.2.txt.gz
+rm -rf dbNSFPv2.9.2.zip
 
 #Install 1000G
 cd $dbs
@@ -53,6 +56,7 @@ cd 1000G
 wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz
 zcat ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | bgzip > 1000g_v5b.vcf.gz
 tabix -p vcf 1000g_v5b.vcf.gz
+rm -rf ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz
 
 #Install ExAC
 cd $dbs
@@ -61,6 +65,7 @@ cd ExAC
 wget ftp://ftp.broadinstitute.org/pub/ExAC_release/release0.3.1/ExAC.r0.3.1.sites.vep.vcf.gz
 zcat ExAC.r0.3.1.sites.vep.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_exac.php | bgzip > ExAC_r0.3.1.vcf.gz
 tabix -p vcf ExAC_r0.3.1.vcf.gz
+rm -rf ExAC.r0.3.1.sites.vep.vcf.gz
 
 #Install CLINVAR
 cd $dbs
@@ -68,6 +73,7 @@ mkdir ClinVar
 cd ClinVar
 wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive/2017/clinvar_20170130.vcf.gz | gunzip > clinvar_20170130.vcf
 cat clinvar_20170130.vcf | php $src/Tools/db_converter_clinvar.php > clinvar_20170130_converted.vcf
+rm -rf clinvar_20170130.vcf
 
 #Install gnomAD
 cd $dbs
@@ -76,6 +82,7 @@ cd gnomAD
 wget https://storage.googleapis.com/gnomad-public/release-170228/vcf/exomes/gnomad.exomes.r2.0.1.sites.vcf.gz
 zcat gnomad.exomes.r2.0.1.sites.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php | bgzip > gnomAD_r2.0.1.vcf.gz
 tabix -p vcf gnomAD_r2.0.1.vcf.gz
+rm -rf gnomad.exomes.r2.0.1.sites.vcf.gz
 
 #install OMIM (you might need a license)
 #cd $dbs

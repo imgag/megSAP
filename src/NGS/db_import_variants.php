@@ -1,7 +1,6 @@
 <?php 
 /** 
 	@page db_import_variants
-	@todo try if this speeds up the import: Variant bulk-update; Dectected variant bulk insert with innodb_autoinc_lock_mode=2
 	@todo fix somatic variant import (s. column indices)
 */
 
