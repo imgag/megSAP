@@ -88,8 +88,10 @@ rm -rf gnomad.exomes.r2.0.1.sites.vcf.gz
 #cd $dbs
 #mkdir OMIM
 #cd OMIM
-#manual download ftp://ftp.omim.org/OMIM/genemap.txt
-#manual download ftp://ftp.omim.org/OMIM/mim2gene.txt
+#wget -O - http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/kgXref.txt.gz | gunzip > kgXref.txt
+#wget -O - http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/knownGene.txt.gz | gunzip > knownGene.txt
+#manual download of ftp://ftp.omim.org/OMIM/genemap.txt
+#manual download of ftp://ftp.omim.org/OMIM/mim2gene.txt
 #php $src/Tools/db_converter_omim.php > omim.bed
 
 #Install HGMD (you need a license)

@@ -4,7 +4,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 //read gene id => names association from UCSC
 $id2gene = array();
-$handle = fopen("../UCSC/kgXref.txt", "r");
+$handle = fopen("./kgXref.txt", "r");
 while(!feof($handle))
 {
 	$line = trim(fgets($handle));
@@ -17,7 +17,7 @@ fclose($handle);
 
 //load gene coordinates ranges from UCSC (with UTR and 20 flanking bases)
 $gene2coord = array();
-$handle = fopen("../UCSC/knownGene.txt", "r");
+$handle = fopen("./knownGene.txt", "r");
 while(!feof($handle))
 {
 	$line = trim(fgets($handle));
