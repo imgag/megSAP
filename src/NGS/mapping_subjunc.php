@@ -34,7 +34,7 @@ $subjunc_out = "{$tmp_folder}/aligned";
 $arguments = array(
 	"-i $genome",
 	"-r $in1",
-	//"-a $gtf",
+	"-a $gtf",
 	"-T $threads",
 	"--allJunctions",
 	"-o $subjunc_out"
