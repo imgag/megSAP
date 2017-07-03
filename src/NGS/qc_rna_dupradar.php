@@ -28,7 +28,7 @@ if ($out_folder == "") {
 }
 
 if (!is_dir($out_folder) && !mkdir($out_folder, 0777, true)) {
-	trigger_error("Could not create output folder!", E_USER_ERROR);
+	trigger_error("Could not create output folder '".$out_folder."'!", E_USER_ERROR);
 }
 
 // extract processed sample id
@@ -52,7 +52,7 @@ $gtf = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 
 $prog = get_path("dupradar");
 
-// QoRTs parameters
+// dupRadar parameters
 $params = array();
 $params[] = $bam;
 $params[] = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
@@ -71,6 +71,16 @@ if (!$se) {
 
 $params[] = "outdir={$out_folder}";
 $params[] = "threads={$threads}";
+if (isset($sys['gtfAttribute'])) {
+	$params[] = "gtfAttribute=".$sys['gtfAttribute'];
+} else {
+	$params[] = "gtfAttribute=gene_id";
+}
+if (isset($sys['featureType'])) {
+	$params[] = "gtfFeatureType=".$sys['featureType'];
+} else {
+	$params[] = "gtfFeatureType=exon";
+}
 
 $parser->exec($prog, implode(" ", $params), true);
 ?>
