@@ -61,7 +61,7 @@ $res = $db->executeQuery("SELECT ps.id FROM processed_sample ps WHERE sample_id=
 
 $ngsd_psid = $res[0]['id'];
 
-// numer of reads
+// number of reads
 $res = $db->executeQuery("SELECT qc.value FROM processed_sample_qc qc WHERE processed_sample_id='$ngsd_psid' AND qc_terms_id=16");
 if (count($res) != 1) {
 	trigger_error("Numer of reads not found in NGSD, QC results will be incomplete.", E_USER_WARNING);
@@ -84,6 +84,7 @@ if (count($res) != 1) {
 // QoRTs invocation
 $bam = "{$folder}/{$processed_sample}.bam";
 $gtf = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
+$genome = get_path("data_folder")."/genomes/{$build}.fa";
 
 $prog = get_path("qorts");
 
@@ -106,6 +107,8 @@ if ($read_count > 0) {
 if ($read_length > 0) {
 	$params[] = "--maxReadLength {$read_length}";
 }
+
+//$params[] = "--genomeFA {$genome}";
 
 $params[] = "--addFunctions writeGeneBody,makeJunctionBed,calcDetailedGeneCounts";
 $params[] = "--skipFunctions NVC,writeClippedNVC";
