@@ -64,6 +64,7 @@ $stafile1 = $basename."_stats_fastq.qcML";
 $parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $in_for_s -in2 $in_rev_s -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads $threads", true);
 
 $bismark_tmp = $parser->tempFolder();
+$tmp_out_folder = $parser->tempFolder();
 
 $bismark_params = array();
 $bismark_params[] = get_path("data_folder")."/genomes/bismark/".$sys['build'];
@@ -74,24 +75,36 @@ $bismark_params[] = "--rg_tag TRUE --rg_id SAMPLE --rg_sample $name";
 $bismark_params[] = "--basename $name";
 $bismark_params[] = "-p $threads";
 $bismark_params[] = "--temp_dir $bismark_tmp";
-$bismark_params[] = "-o $out_folder";
+$bismark_params[] = "-o $tmp_out_folder";
 
 $parser->exec(get_path("bismark"), implode(" ", $bismark_params), true);
 
-$out_bam = $out_folder."/".$name."_pe.bam";
-$out_sorted = $out_folder."/".$name.".bam";
-$out_report = $out_folder."/".$name."_PE_report.txt";
+// bismark output files
+$bismark_bam = $tmp_out_folder."/".$name."_pe.bam";
+$txt_report = $tmp_out_folder."/".$name."_PE_report.txt";
+$html_report = $tmp_out_folder."/".$name."_PE_report.html";
+$cov_file = $tmp_out_folder."/".$name."_pe.bismark.cov.gz";
 
-$parser->exec(dirname(get_path("bismark"))."/bismark_methylation_extractor", "-p --no_overlap --multicore $threads --gzip --output $out_folder $out_bam", true);
-$parser->exec(dirname(get_path("bismark"))."/deduplicate_bismark", "-p --bam $out_bam", true);
-$parser->exec(dirname(get_path("bismark"))."/bismark2report", "--dir $out_folder --alignment_report $out_report", true);
+// desired output files
+$out_html = $out_folder."/".$name."_bismark_report.html";
+$out_bam_sorted = $out_folder."/".$name.".bam";
+$out_cov_file = $out_folder."/".$name."_CpG.tsv.gz";
+
+
+$parser->exec(dirname(get_path("bismark"))."/bismark_methylation_extractor", "-p --no_overlap --multicore $threads --gzip --output $out_folder --bedGraph --cytosine_report $bismark_bam", true);
+$parser->exec(dirname(get_path("bismark"))."/deduplicate_bismark", "-p --bam $bismark_bam", true);
+$parser->exec(dirname(get_path("bismark"))."/bismark2report", "--dir $tmp_out_folder --alignment_report $txt_report", true);
+
+$parser->exec("cp", "{$html_report} {$out_html}", true);
+$parser->exec("cp", "{$cov_file} {$out_cov_file}", true);
 
 //sort BAM according to coordinates
 $tmp_for_sorting = $parser->tempFile();
-$parser->exec(get_path("samtools"), "sort -T $tmp_for_sorting -m 1G -@ ".min($threads, 4)." -o $out_sorted $out_bam", true);
+$parser->exec(get_path("samtools"), "sort -T $tmp_for_sorting -m 1G -@ ".min($threads, 4)." -o $out_bam_sorted $bismark_bam", true);
 
 //create index file
-$parser->exec(get_path("ngs-bits")."BamIndex", "-in $out_sorted", true);
+$parser->exec(get_path("ngs-bits")."BamIndex", "-in $out_bam_sorted", true);
 
+//TODO MappingQC
 
 ?>
