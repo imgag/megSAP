@@ -73,7 +73,7 @@ Documentation about the different analysis pipelines can be found here:
 * [DNA analysis (single sample)](doc/dna_single_sample.md)
 * [DNA analysis (multi-sample and trio)](doc/dna_multi_sample.md)
 * [DNA analysis (tumor-normal pair)](doc/dna_tumor-normal_pair.md)
-* RNA analysis (expression) - coming soon
+* [RNA analysis (expression)](doc/rna_expression.md)
 * RNA analysis (variant calling)  - coming soon
 
 
@@ -81,18 +81,3 @@ Documentation about the different analysis pipelines can be found here:
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

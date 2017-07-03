@@ -5,7 +5,7 @@
 ### Step 1) Install DNA pipeline
 
 The RNA pipeline uses some tools of the DNA pipeline.  
-Thus it is assumed that you have [installed the DNA pipeline as documented](../Readme.md).
+Thus it is assumed that you have [installed the DNA pipeline as documented](../README.md).
 
 ### Step 2) Install dependencies
 
