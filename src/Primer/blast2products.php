@@ -67,7 +67,7 @@ list($hits_all_rev, $hits_3prime_rev) = load_blast_results($in2, "rev", $blast);
 //abort if too many BLAST hits or binding sites
 $abort = false;
 $out_h = fopen($out, "w");
-if (count($file)+count($file2)>10000)
+if ($hits_all_fwd+$hits_3prime_rev>$max_blast_hits)
 {
 	fputs($out_h, "Unspecific Primers\n");
 	$abort = true;
