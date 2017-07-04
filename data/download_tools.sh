@@ -66,9 +66,7 @@ wget https://downloads.sourceforge.net/project/snpeff/snpEff_v4_3i_core.zip
 unzip snpEff_v4_3i_core.zip
 rm snpEff_v4_3i_core.zip
 cd snpEff
-wget http://downloads.sourceforge.net/project/snpeff/databases/v4_3/snpEff_v4_3_hg19.zip
-unzip snpEff_v4_3_hg19.zip
-rm snpEff_v4_3_hg19.zip
+echo "GRCh37.75.MT.codonTable : Vertebrate_Mitochondrial" >> snpEff.config
 wget http://downloads.sourceforge.net/project/snpeff/databases/v4_3/snpEff_v4_3_GRCh37.75.zip
 unzip snpEff_v4_3_GRCh37.75.zip
 rm snpEff_v4_3_GRCh37.75.zip

@@ -15,179 +15,128 @@ $parser->addInfile("in2",  "Input primer2 file.", false);
 $parser->addOutfile("out",  "Output TXT file.", false);
 //optional
 $parser->addInt("max_len", "Maximum product length.", true, 4000);
-$parser->addFlag("separate", "print primer mapping seperately if success");
+$parser->addInt("max_blast_hits", "Maximum allowed BLAST hits per primer pair.", true, 10000);
+$parser->addInt("max_binding_sites", "Maximum allowed binding sites to consider a primer specific.", true, 3000);
 extract($parser->parse($argv));
 
-/*
-# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
-TNNI3d_1R	chr19	100.00	24	0	0	1	24	55668736	55668759	7e-05	48.1
-TNNI3d_1R	chr19	100.00	18	0	0	3	20	2194693	2194710	0.28	36.2
-TNNI3d_1R	chr19	100.00	17	0	0	3	19	5251756	5251772	1.1	34.2
-TNNI3d_1R	chr19	100.00	16	0	0	1	16	3820802	3820787	4.4	32.2
-TNNI3d_1R	chr19	100.00	16	0	0	4	19	17166842	17166857	4.4	32.2
-*/
-
-
-//function to calculate hit length
-function length($h1, $h2)
+//function to load blast results grouped by chromosomes
+function load_blast_results($filename, $label, &$output)
 {
-	return ($h2[3]-$h1[3]-1)+$h2[1]+$h1[1];//distance between the primers+primerlength;
+	/*
+	# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
+	TNNI3d_1R	chr19	100.00	24	0	0	1	24	55668736	55668759	7e-05	48.1
+	TNNI3d_1R	chr19	100.00	18	0	0	3	20	2194693	2194710	0.28	36.2
+	TNNI3d_1R	chr19	100.00	17	0	0	3	19	5251756	5251772	1.1	34.2
+	*/
+	
+	$hits_all = 0;
+	$hits_3prime = 0;
+	$file = file($filename);
+	foreach($file as $line)
+	{
+		if (starts_with($line, "#")) continue;
+		
+		$parts = explode("\t", $line);
+		if (count($parts)<11) continue;
+		
+		list(, $chr, $identity, $length, , , , $q_end, $start, $end) = $parts;
+		++$hits_all;
+		
+		//check if alignment starts on 3' because this is important for the polymerase to bind
+		if ($length==$q_end)
+		{
+			if (!isset($output[$chr]))
+			{
+				$output[$chr] = array();
+			}
+			
+			$output[$chr][] = array($identity, $length, $start, $end, $label);
+			++$hits_3prime;
+		}
+	}
+	
+	return array($hits_all, $hits_3prime);
 }
 
-//load blast results
-$file = file($in);
-$file2 = file($in2);
+
+//merge two blast results (because additional PCR-products may also occur using the same primer as fwd AND rev)
 $blast = array();
+list($hits_all_fwd, $hits_3prime_fwd) = load_blast_results($in, "for", $blast);
+list($hits_all_rev, $hits_3prime_rev) = load_blast_results($in2, "rev", $blast);
 
-//extract blast matches
-
+//abort if too many BLAST hits or binding sites
+$abort = false;
+$out_h = fopen($out, "w");
 if (count($file)+count($file2)>10000)
 {
-	file_put_contents($out, "Unspecific Primers\n");
-	file_put_contents($out, count($file)." BLAST results",FILE_APPEND);
+	fputs($out_h, "Unspecific Primers\n");
+	$abort = true;
+}
+if ($hits_3prime_fwd>$max_binding_sites)
+{
+	fputs($out_h, "Unspecific Forward Primer\n");
+	$abort = true;
+}
+if ($hits_3prime_rev>$max_binding_sites)
+{
+	fputs($out_h, "Unspecific Reverse Primer\n");
+	$abort = true;
+}
+if ($abort)
+{
+	fputs($out_h, "{$hits_all_fwd} BLAST hits for forward primer ({$hits_3prime_fwd} of these bind at 3'prime end)\n");
+	fputs($out_h, "{$hits_all_rev} BLAST hits for reverse primer ({$hits_3prime_rev} of these bind at 3'prime end)\n");
 	exit();
 }
 
-$counter_rev=0;
-$counter_fwd=0;
-
-//merge two blast results (because additional PCR-products may also occur using the same primer as fwd AND rev)
-//split on chromosomes
-
-foreach($file as $line)
-{
-	if (starts_with($line, "#")) continue;
-	$parts = explode("\t", $line);
-	if (count($parts)<11) continue;
-	list($length, $chr, $identity, $length, , , , $q_end, $start, $end,) = $parts;
-	
-	if ($length==$q_end)//check if alignment starts on 3'
-	{
-		if (array_key_exists($chr,$blast))
-		{
-				$blast[$chr][] = array($identity, $length, $start, $end, "fwd");
-		}
-		else 
-		{
-			$blast[$chr] = array(array($identity, $length, $start, $end, "fwd"));
-		}
-		++$counter_fwd;
-	}
-}
-
-foreach($file2 as $line)
-{
-	if (starts_with($line, "#")) continue;
-	$parts = explode("\t", $line);
-	if (count($parts)<11) continue;
-	list($length, $chr, $identity, $length, , , , $q_end, $start, $end,) = $parts;
-	
-	if ($length==$q_end)//check if alignment starts on 3'
-	{
-		if (array_key_exists($chr,$blast))
-		{
-				$blast[$chr][] = array($identity, $length, $start, $end, "rev");
-		}
-		else 
-		{
-			$blast[$chr] = array(array($identity, $length, $start, $end, "rev"));
-		}
-		++$counter_rev;
-	}
-}
-
-file_put_contents($out, "");
-
-if ($counter_fwd>3000)
-{
-	file_put_contents($out, "Unspecific Forward Primer\n",FILE_APPEND);
-	file_put_contents($out, $counter_fwd." possible positions\n",FILE_APPEND);
-}	
-
-if ($counter_rev>3000)
-{
-	file_put_contents($out, "Unspecific Reverse Primer\n",FILE_APPEND);
-	file_put_contents($out, $counter_rev." possible positions\n",FILE_APPEND);
-}
-	
-if (($counter_rev<=3000)&&($counter_fwd<=3000))
-{
-	//reduce to possible hits (correct chr, length<max_len)
-	$possible_hits = array();
-	foreach (array_keys($blast) as $chr)
-	{
-		foreach ($blast[$chr] as $blast1)
+//reduce to possible hits (same chr, length<max_len)
+$possible_hits = array();
+foreach ($blast as $chr => $hits)
+{	
+	foreach ($hits as $hit_p1)
+	{	
+		foreach ($hits as $hit_p2)
 		{	
-			foreach ($blast[$chr] as $blast2)
-			{	
-				if ($blast1!=$blast2)//don't compare a result with itself
+			//don't compare a result with itself
+			if ($hit_p1==$hit_p2) continue;
+			
+			//check length
+			$length = ($hit_p2[3]-$hit_p1[3]-1)+$hit_p2[1]+$hit_p1[1];//distance between the primers+primerlength;
+			if ($length<$max_len)
+			{
+				//if blast2's starts is > blast1' start, blast1's end> blast1's start and blast2's start>blast2's end
+				//==primers are facing each other with blast1 left from blast2
+				//the opposite case (blast2 left from blast1) need not to be covered because $hit_p1 and $hit_p2 both runs completely through
+				//$blast, which includes all results from primer1 and primer2
+				if ($hit_p2[2]>$hit_p1[2] && $hit_p1[3]>$hit_p1[2]&& $hit_p2[2]>$hit_p2[3])
 				{
-					$dist = length($blast1, $blast2);
-					//print $dist;
-					if ($dist<$max_len)
-					{
-						//if blast2's starts is > blast1' start, blast1's end> blast1's start and blast2's start>blast2's end
-						//==primers are facing each other with blast1 left from blast2
-						//the opposite case (blast2 left from blast1) need not to be covered because $blast1 and $blast2 both runs completely through
-						//$blast, which includes all results from primer1 and primer2
-						if (($blast2[2]>$blast1[2])&&($blast1[3]>$blast1[2])&&($blast2[2]>$blast2[3]))
-						{
-							$possible_hits[] = array($chr,$blast1, $blast2);
-						}
-					}
+					$possible_hits[] = array($chr, $hit_p1, $hit_p2, $length);
 				}
 			}
 		}
 	}
-	if (count($possible_hits)==0)
-	{
-		$output[] = "NO likely PCR-product by blast2product. Possible bug, please report!";
-	}
-	else if (count($possible_hits)>=2)
-	{
-		$output[] ="Multiple possible PCR-results"; 
-		$counter=1;
-		print count($possible_hits)."\n";
-		foreach ($possible_hits as $possible_hit)
-		{
-			$h1 = $possible_hit[1];
-			//var_dump($h1);//{{100,21,112102142,112102162},{100,19,112102342,112102324}}
-			$h2 = $possible_hit[2];
-			$length = length($h1, $h2);
-			if($separate)
-			{
-				$output[] = $counter.") ".$possible_hit[0].":".$possible_hit[1][2]."-".$possible_hit[2][2]." ".$length." ".$possible_hit[1][4].": ".$possible_hit[1][2]." ".$possible_hit[1][3]." ".$possible_hit[2][4].$possible_hit[2][3]." ".$possible_hit[2][2];
-			}
-			else
-			{
-				$output[] =$counter.") ".$possible_hit[0].":".$possible_hit[1][2]."-".$possible_hit[2][2]." ".$length;
-			}
-			++$counter;
-			print $counter;
-			//var_dump($possible_hit);
-		}
-		
-	}
-	else
-	{
-		$h1 = $possible_hits[0][1];
-		$h2 = $possible_hits[0][2];
-		$length = length($h1, $h2);
-		if($separate)
-		{
-			$output[] = $counter.") ".$$possible_hits[0][0].":".$$possible_hits[0][1][2]."-".$$possible_hits[0][2][2]." ".$length." ".$$possible_hits[0][1][4].": ".$$possible_hits[0][1][2]." ".$$possible_hits[0][1][3]." ".$$possible_hits[0][2][4].$$possible_hits[0][2][3]." ".$$possible_hits[0][2][2];
-		}
-		else
-		{
-			$output[] =$counter.") ".$possible_hits[0][0].":".$possible_hits[0][1][2]."-".$possible_hits[0][2][2]." ".$length;
-		}
-	}
-	if (count($output)>0)
-	{
-		file_put_contents($out, implode("\n", $output)."\n");
-	}
-	else
-	{
-		file_put_contents($out, "");
-	}
 }
+
+//abort if no PRC product is found
+if (count($possible_hits)==0)
+{
+	fputs($out_h, "NO likely PCR-product by blast2product. Possible bug, please report!");
+	exit();
+}
+
+//warn in case of multiple products
+if (count($possible_hits)>=2)
+{
+	fputs($out_h, "Multiple possible PCR-results\n");
+}
+
+//print results
+$counter=1;
+foreach ($possible_hits as $possible_hit)
+{
+	list($chr, $hit_p1, $hit_p2, $length) = $possible_hit;
+	fputs($out_h, $counter.") ".$chr.":".$hit_p1[2]."-".$hit_p2[2]." ".$length."\n");
+	++$counter;
+}
+
+?>
