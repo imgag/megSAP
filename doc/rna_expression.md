@@ -30,7 +30,7 @@ tool, the whole analysis is performed with one command, for example like this:
 	php megSAP/src/Pipelines/analyze_rna.php \
 	  -out_folder Sample_X_01 -out_name X_01 \
 	  -in_for *R1_???.fastq.gz -in_rev *R2_???.fastq.gz \
-	  -system truseq.ini -steps ma,vc,an
+	  -system truseq.ini -steps ma,rc,an
 
 In the example above, the configuration of the pipeline is done using the
 `truseq.ini` file, which contains all necessary information (see [processing
@@ -41,7 +41,7 @@ system INI file](processing_system_ini_file.md)).
 
 After the analysis, these files are created in the output folder:
 
-1. mapped reads in BAM format  
+1. mapped reads in BAM format
 2. raw read counts, in [featureCounts](http://bioinf.wehi.edu.au/featureCounts/)
    tabular output format
 3. normalized read counts, annotated with gene symbols
