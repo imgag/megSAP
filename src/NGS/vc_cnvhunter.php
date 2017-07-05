@@ -19,6 +19,7 @@ $parser->addString("cov_folder", "Folder with all coverage files (if different f
 $parser->addInt("min_reg", "Minimum number of subsequent regions for output CNV events.", true, 1);
 $parser->addInt("n", "Number of (most similar) samples to consider.", true, 20);
 $parser->addFloat("min_corr", "Minimum reference correlation for samples.", true, 0.8);
+$parser->addFloat("min_z", "Minimum z-score to call a CNV.", true, 4.0);
 $parser->addOutfile("seg", "Output CNV file in SEG format (for IGV).", true);
 extract($parser->parse($argv));
 
@@ -54,6 +55,7 @@ $cov_files = $tmp_cov_files;
 
 //run cnvhunter on all samples
 $args = array();
+$args[] = "-min_z $min_z";
 $args[] = "-sam_min_corr $min_corr";
 if($sys['type']=="WGS")
 {
