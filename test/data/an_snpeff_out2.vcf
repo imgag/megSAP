@@ -37,6 +37,7 @@
 ##INFO=<ID=EXAC_Hom_AFR,Number=A,Type=Integer,Description="African/African American Homozygous Counts">
 ##INFO=<ID=EXAC_Hom_NFE,Number=A,Type=Integer,Description="Non-Finnish European Homozygous Counts">
 ##INFO=<ID=GNOMAD_AF,Number=A,Type=Float,Description="Allele Frequency among genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=GNOMAD_GENOME_AF,Number=A,Type=Float,Description="Allele Frequency among genotypes, for each ALT allele, in the same order as listed">
 ##INFO=<ID=GTI,Number=.,Type=Integer,Description="Number of genotyping iterations required to reach convergence or bailout.">
 ##INFO=<ID=HGMD_CLASS,Number=.,Type=String,Description="Mutation Category, https://portal.biobase-international.com/hgmd/pro/global.php#cats">
 ##INFO=<ID=HGMD_GENE,Number=.,Type=String,Description="Gene symbol">

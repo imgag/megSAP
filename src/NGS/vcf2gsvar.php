@@ -355,7 +355,7 @@ while(!feof($handle))
 	$dbsnp = "";
 	if ($id!=".") $dbsnp = $id;
 	$kgenomes = extract_numeric("T1000GP_AF", $info, "0.0000", 4, "max");
-	$gnomad = extract_numeric("GNOMAD_AF", $info, "0.0000", 4);
+	$gnomad = max(extract_numeric("GNOMAD_AF", $info, "0.0000", 4), extract_numeric("GNOMAD_GENOME_AF", $info, "0.0000", 4));
 	$exac = extract_numeric("EXAC_AF", $info, "0.0000", 4);
 	$exac_hom_all = extract_numeric("EXAC_AC_Hom", $info, "0", 0);
 	$exac_hom_nfe = extract_numeric("EXAC_Hom_NFE", $info, "0", 0);

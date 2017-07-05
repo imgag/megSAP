@@ -11,7 +11,10 @@ while($line = fgets($handle))
 	if ($line=="") continue;
 	if($line[0]=="#")
 	{
-		print $line."\n";
+		if (in_array("-header", $argv))
+		{
+			print $line."\n";
+		}
 		continue;
 	}
 	

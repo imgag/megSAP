@@ -74,6 +74,7 @@ if(file_exists($db_file))
 
 //gnomAD annotation
 $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name GNOMAD_ -info AF ".get_path("data_folder")."/dbs/gnomAD/gnomAD_r2.0.1.vcf.gz");
+$pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name GNOMAD_GENOME_ -info AF ".get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.0.1.vcf.gz");
 
 //1000g annotation
 $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name T1000GP_ -info AF ".get_path("data_folder")."/dbs/1000G/1000g_v5b.vcf.gz");
