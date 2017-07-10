@@ -327,13 +327,23 @@ while(!feof($handle))
 		foreach($anns as $entry)
 		{
 			$parts = explode("|", $entry);
+			
+			//skip intragenic and sequence_feature
 			$details = strtr($parts[1], array("_variant"=>""));
 			$details = strtr($details, array("splice_acceptor&splice_region&intron"=>"splice_acceptor", "splice_donor&splice_region&intron"=>"splice_donor", "splice_acceptor&intron"=>"splice_acceptor", "splice_donor&intron"=>"splice_donor", "_prime_"=>"'"));
-			if ($details=="intragenic" || $details=="sequence_feature") continue; //skip these details
-			$variant_details[] = $details;
+			if ($details=="intragenic" || $details=="sequence_feature") continue; 
+			
+			//skip empty gene names entries (TF-binding site, etc)
 			$gene = trim($parts[3]);
-			if ($gene=="") continue; //skip empty gene names entries (TF-binding site, etc)
+			if ($gene=="") continue; 
 			$genes[] = $gene;
+			
+			//skip non-coding transcripts
+			$biotype = trim($parts[7]);
+			if ($biotype=="nonsense_mediated_decay" || $biotype=="retained_intron" || $biotype=="processed_transcript") continue; 
+
+			$variant_details[] = $details;
+			
 			$exon = $parts[8];
 			if ($exon!="") $exon = "exon".$exon;
 			$coding_and_splicing_details[] = $gene.":".$parts[6].":$details:".$parts[2].":$exon:".$parts[9].":".$parts[10];
