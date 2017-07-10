@@ -85,7 +85,7 @@ function jobStatus($jobID)
 						
 			$extra = "";
 			$acc = get_path("queue_accounting_file");
-			if(is_file($acc))	$extra = "-f $acc";
+			if(file_exists($acc)) $extra = "-f $acc";
 			exec("qacct $extra -j $jobID 2>&1", $qacct_output);
 			foreach($qacct_output as $qacct_line)
 			{

@@ -20,7 +20,7 @@ $parser->addFlag("dedup", "Mark duplicates after alignment.");
 extract($parser->parse($argv));
 
 //remove out file if existing
-if(is_file($out)) unlink($out);
+if(file_exists($out)) unlink($out);
 
 //set read group information
 $group_props = array();

@@ -339,7 +339,7 @@ class Matrix
 		$comments = array();
 		$output = new Matrix();
 		
-		if(!is_file($filename))	trigger_error("Could not find file '$filename'.",E_USER_ERROR);
+		if(!file_exists($filename))	trigger_error("Could not find file '$filename'.",E_USER_ERROR);
 		
 		$handle = gzopen($filename , "r");
 		while (!feof($handle)) 

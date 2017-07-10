@@ -87,7 +87,10 @@ if($sys['type']=="Panel Haloplex HS")
 		$parser->exec("cat",implode(" ",$index_files)." > $index_file",true);
 	}
 	
-	if(!is_file($index_file))	trigger_error("Index file for Haloplex HS enrichment $index_file was not found.",E_USER_ERROR);
+	if(!file_exists($index_file))
+	{
+		trigger_error("Index file for Haloplex HS enrichment $index_file was not found. The data is processed like a normal Haloplex panel without molecular barcode!", E_USER_WARNING);
+	}
 }
 
 // mapping
