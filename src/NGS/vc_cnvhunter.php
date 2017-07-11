@@ -20,7 +20,7 @@ $parser->addInt("min_reg", "Minimum number of subsequent regions for output CNV 
 $parser->addInt("n", "Number of (most similar) samples to consider.", true, 20);
 $parser->addFloat("min_corr", "Minimum reference correlation for samples.", true, 0.8);
 $parser->addFloat("min_z", "Minimum z-score to call a CNV.", true, 4.0);
-$parser->addOutfile("seg", "Output CNV file in SEG format (for IGV).", true);
+$parser->addString("seg", "Sample name for which a SEG file is generated.", true);
 extract($parser->parse($argv));
 
 //init
@@ -123,7 +123,7 @@ if($somatic)
 		{
 			$row_t = $reduced_tumor->getRow($i);
 			$row_n = $reduced_normal->getRow($i);
-			if($row_t[1]!=$row_n[1])	trigger_error("Could not generate seg-file. Regions in input coverage files are unsorted.",E_USER_ERROR);
+			if($row_t[1]!=$row_n[1])	trigger_error("Could not generate somatic SEG file. Regions in input coverage files are unsorted.",E_USER_ERROR);
 			list($chr,$region) = explode(":",$row_t[1]);
 			list($start,$end) = explode("-",$region);
 			
