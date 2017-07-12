@@ -39,5 +39,18 @@ exec2("mv $s1/*.fastq.gz $s2/");
 //move sample folder to backup
 exec2("mv $s1 $backup_folder/");
 
+//remove detected variants for s1
+$name = strtr($s1, array("Sample_"=>""));
+$ps_id = get_processed_sample_id($name);
+if ($ps_id==-1)
+{
+	print "Skipping NGSD cleanup because sample '$name' was not found!\n";
+}
+else
+{
+	$db = DB::getInstance("NGSD");
+	$db->executeStmt("DELETE FROM detected_variant WHERE processed_sample_id='$ps_id'");
+}
+
 
 ?>
