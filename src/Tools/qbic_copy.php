@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("qbic_copy", "Copies QBIC data into the QBIC datamover folder.");
 $parser->addFlag("upload", "Enable real upload (otherwise a dry run is performed: dummy data is written to the temporary folder, but it is not copied to the datamover folder).");
 $parser->addString("project", "Restrict upload to a project.", true, "");
-$parser->addStringArray("samples", "Restrict upload to a processed sample.", true, "");
+$parser->addStringArray("samples", "Restrict upload to a list of processed sample.", true, "");
 $parser->addFlag("force_reupload", "Upload files even if already uploaded.", true, "");
 $parser->addFlag("force_sap", "Makes the SAP ID mandatory (and the QBIC ID optional).", true, "");
 extract($parser->parse($argv));
@@ -525,7 +525,7 @@ foreach($res as $row)
 				rename($tmpfolder, $GLOBALS["datamover_path"]."/".$folder_name);
 				markAsUploaded($sample1, null, $files);
 			}
-			printTSV($output, "UPLOADED" , implode(", ", $files));
+			printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(", ", $files));
 		}
 	
 		//handle tumor-normal pairs
@@ -628,7 +628,7 @@ foreach($res as $row)
 				rename($tmpfolder, $GLOBALS["datamover_path"]."/".$folder_name);
 				markAsUploaded($sample1, $sample2, $files);
 			}
-			printTSV($output, "UPLOADED" , implode(" ", $files));
+			printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(" ", $files));
 		}
 	}
 }

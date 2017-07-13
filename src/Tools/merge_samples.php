@@ -50,6 +50,7 @@ else
 {
 	$db = DB::getInstance("NGSD");
 	$db->executeStmt("DELETE FROM detected_variant WHERE processed_sample_id='$ps_id'");
+	$db->executeStmt("DELETE FROM processed_sample_qc WHERE processed_sample_id='$ps_id'");
 }
 
 
