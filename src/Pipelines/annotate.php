@@ -86,7 +86,7 @@ else //somatic
 	$tmp_annfile = $parser->tempFile("_somatic.vcf");
 	if(!rename($annfile,$tmp_annfile))	trigger_error("Could not move '$annfile' to '$tmp_annfile'.",E_USER_ERROR);
 	$cols = array("Interpro_domain");
-	$parser->exec(get_path("SnpSift"), "dbnsfp -noLog -db ".get_path("data_folder")."/dbs/dbNSFP/dbNSFPv2.9.2.txt.gz -f ".implode(",",$cols)." $tmp_annfile > $annfile", true);
+	$parser->exec(get_path("SnpSift"), "dbnsfp -noLog -db ".get_path("data_folder")."/dbs/dbNSFP/dbNSFPv2.9.3.txt.gz -f ".implode(",",$cols)." $tmp_annfile > $annfile", true);
 	//SnpSift vcf comments are printed twice using dbNSFP -> remove duplicate comments
 	$af = Matrix::fromTSV($annfile);
 	$af->setComments(array_unique($af->getComments()));
