@@ -60,7 +60,7 @@ else
 	$s_txt = $o_folder."/".$t_id."-".$n_id."_report.txt";
 }
 
-$extras = array("-filter_set non_coding_splicing,synonymous,set_somatic_capa,off_target", "-steps {$steps}");
+$extras = array("-filter_set non_coding_splicing,off_target,set_somatic_capa", "-steps {$steps}");
 if($abra) $extras[] = "-abra";
 if($amplicon) $extras[] = "-amplicon";
 if($nsc) $extras[] = "-nsc";

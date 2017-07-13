@@ -37,6 +37,7 @@ $args = array();
 if($config == "auto")
 {
 	if(!$amplicon)	$config = get_path('strelka2')."/configureStrelkaSomaticWorkflow.py.ini";
+	else	trigger_error("Amplicon mode missing.",E_USER_ERROR);
 }
 if(!is_file($config))	trigger_error("Could not find config file '".$config."'.", E_USER_ERROR);
 

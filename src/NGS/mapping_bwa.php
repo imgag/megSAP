@@ -31,6 +31,12 @@ $group_props[] = "LB:{$basename}";
 $group_props[] = "CN:medical_genetics_tuebingen";
 $group_props[] = "DT:".date("c");
 $group_props[] = "PL:ILLUMINA";
+$psample_info = get_processed_sample_info($basename,false);
+if(!is_null($psample_info))
+{
+	$group_props[] = "PM:".$psample_info['device_type'];
+	$group_props[] = "en:".$psample_info['sys_name'];
+}
 
 //mapping with bwa
 $pipeline = array();

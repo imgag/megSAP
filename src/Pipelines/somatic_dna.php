@@ -34,7 +34,8 @@ $parser->addFlag("freebayes", "Use freebayes for variant calling (default: strel
 $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal sample.", true, 0);
 $parser->addFlag("no_softclip", "Skip soft-clipping of overlapping reads. NOTE: This may increase rate of false positive variants.", true);
 $parser->addEnum("clip", "Soft-clip overlapping read pairs.", true, array("sc","mfb","mfm","mfr"),"sc");
-$parser->addFlag("strelka","",true);
+$parser->addFlag("strelka1","Use strelka1 for variant calling.",true);
+$parser->addFlag("add_vc_folder","Add folder containing variant calling results from variant caller.",true);
 extract($parser->parse($argv));
 
 // (0) preparations
@@ -287,8 +288,8 @@ else
 		{
 			$par = "";
 			if($t_sys_ini['type']=="WES")	$par .= "-exome ";
-			if(!$strelka)	$par .= "-temp ".dirname($som_v)."/variant_calling ";
-			if(!$strelka)	$par .= "-smallIndels $som_si ";
+			if($add_vc_folder)	$par .= "-temp ".dirname($som_v)."/variant_calling ";
+			if(!$strelka1)	$par .= "-smallIndels $som_si ";
 			$parser->execTool("NGS/vc_manta.php", "-t_bam $t_bam -bam $n_bam $par -out $som_sv -build ".$t_sys_ini['build']);
 		}
 		
@@ -299,9 +300,9 @@ else
 			$args[] = "-build ".$t_sys_ini['build'];
 			if ($keep_all_variants_strelka) $args[] = "-k";
 			if ($amplicon) $args[] = "-amplicon";
-			if(!$strelka)	$args[] = "-temp ".dirname($som_v)."/variant_calling";
-			if(!$strelka && is_file($som_si))	$args[] = "-smallIndels $som_si";
-			if(!$strelka)	$parser->execTool("NGS/vc_strelka2.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));
+			if($add_vc_folder)	$args[] = "-temp ".dirname($som_v)."/variant_calling";
+			if(!$strelka1 && is_file($som_si))	$args[] = "-smallIndels $som_si";
+			if(!$strelka1)	$parser->execTool("NGS/vc_strelka2.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));
 			else 	$parser->execTool("NGS/vc_strelka.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));	//combined variant calling using strelka		
 		}
 		else	// combined variant calling using freebayes

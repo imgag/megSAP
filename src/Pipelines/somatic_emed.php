@@ -67,7 +67,7 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0 && !$rna_only)
 {
 	// somatic_dna pipelne starts with map and ends with db
 	$args = "-t_sys $t_dna_sys_file -n_sys $n_dna_sys_file -steps ".implode(",",$tmp_steps)." ";
-	$args .= "-filter_set non_coding_splicing,set_somatic,off_target ";
+	$args .= "-filter_set non_coding_splicing,off_target,set_somatic ";
 	$args .= "-min_af 0.05 --log ".$o_folder."somatic_emed_dna_".date('YmdHis',mktime()).".log ";
 	if($freebayes)	$args .= "-freebayes ";
 	$parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_dna_id -n_id $n_dna_id -o_folder $o_folder $args");
