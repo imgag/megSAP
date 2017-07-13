@@ -81,8 +81,8 @@ if($backup && in_array("ma", $steps))
 if (in_array("ma", $steps))
 {
 	//determine input FASTQ files
-	$in_for = $folder."/".$name ."_*_R1_001.fastq.gz";
-	$in_rev = $folder."/".$name."_*_R2_001.fastq.gz";
+	$in_for = $folder."/*_R1_001.fastq.gz";
+	$in_rev = $folder."/*_R2_001.fastq.gz";
 	
 	//find FastQ input files
 	$files1 = glob($in_for);
@@ -93,7 +93,7 @@ if (in_array("ma", $steps))
 	}
 	if (count($files1)==0)
 	{
-		trigger_error("Found no read files ending with '$in_for' or '$in_rev'!", E_USER_ERROR);
+		trigger_error("Found no read files found matching '$in_for' or '$in_rev'!", E_USER_ERROR);
 	}
 	
 	$args = array();
