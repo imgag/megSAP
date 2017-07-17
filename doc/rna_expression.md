@@ -1,11 +1,13 @@
-# megSAP - RNA expression analysis
+# megSAP - RNA Expression Analysis
 
 ### Basics
 
 Single sample RNA expression analysis is performed using the `analyze_rna.php`
 script. Please have a look at the help using:
 
-	> php megSAP/src/Pipelines/analyze_rna.php --help
+```shell
+php megSAP/src/Pipelines/analyze_rna.php --help
+```
 
 The main parameters that you have to provide are:
 
@@ -20,6 +22,9 @@ In addition, you may want to specify:
    mapping, read counting, annotation and fusion detection.
 * `system` - The [processing system INI file](processing_system_ini_file.md).
 
+[RNA-seq Expression Pipeline](rna_expression_pipeline.md) gives a detailed
+description of the pipeline. Downstream analysis is facilitated by the
+structured output, for a primer see [Downstream Analysis](rna_expression_downstream.md).
 
 ### Running an analysis
 
@@ -27,10 +32,12 @@ If all data to analyze resides in a sample folder as produced by Illumina's
 [bcl2fastq](http://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html)
 tool, the whole analysis is performed with one command, for example like this:
 
-	php megSAP/src/Pipelines/analyze_rna.php \
-	  -out_folder Sample_X_01 -out_name X_01 \
-	  -in_for *R1_???.fastq.gz -in_rev *R2_???.fastq.gz \
-	  -system truseq.ini -steps ma,rc,an
+```shell
+php megSAP/src/Pipelines/analyze_rna.php \
+  -out_folder Sample_X_01 -out_name X_01 \
+  -in_for *R1_???.fastq.gz -in_rev *R2_???.fastq.gz \
+  -system truseq.ini -steps ma,rc,an
+```
 
 In the example above, the configuration of the pipeline is done using the
 `truseq.ini` file, which contains all necessary information (see [processing
