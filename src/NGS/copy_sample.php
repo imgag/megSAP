@@ -204,7 +204,10 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 			$target_to_copylines[$tag][]="\tcp -i -r ".$old_location."/Sample_".$sample_ID."/ ".$new_location."/";
 		}
 
-		if($sample_analysis_step_map[$sample_ID]!="fastq") //if more than FASTQ creation should be done for samples's project
+		//skip normal samples for SomaticAndTreatment project
+		$is_SomaticAndTreatment_normal = ($project_name == "SomaticAndTreatment") && ($sample_tumor_status_map[$sample_ID] == 0);
+		
+		if($sample_analysis_step_map[$sample_ID]!="fastq" && !$is_SomaticAndTreatment_normal) //if more than FASTQ creation should be done for samples's project
 		{					
 			//build target lines for analysis using Sungrid Engine's queues if first sample of project on this run
 			if (!(array_key_exists($tag, $target_to_queuelines)))
@@ -230,7 +233,7 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 						
 			$target_to_queuelines[$tag][]="\t".$outputline." ";
 		}
-		else
+		elseif(!$is_SomaticAndTreatment_normal)
 		{		
 			$project_to_fastqonly_samples[$project_name][] = $sample_ID;
 		}
