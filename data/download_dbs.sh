@@ -42,7 +42,7 @@ mkdir dbNSFP
 cd dbNSFP
 wget ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbNSFPv2.9.3.zip
 unzip dbNSFPv2.9.3.zip
-head -n 1 dbNSFP2.9.3_variant.chr1 > dbNSFPv2.9.2.txt
+head -n 1 dbNSFP2.9.3_variant.chr1 > dbNSFPv2.9.3.txt
 cat dbNSFP2.9.3_variant.chr* | egrep -v "^#"  >> dbNSFPv2.9.3.txt
 rm -rf dbNSFP2.9_gene.complete* dbNSFP2.9.3_variant* try* search*
 bgzip dbNSFPv2.9.3.txt
