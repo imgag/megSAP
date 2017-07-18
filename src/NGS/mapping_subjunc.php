@@ -59,8 +59,7 @@ $arguments[] = "--rg ".implode(" --rg ", $group_props);
 
 
 //execute mapping with subjunc
-$prog = "/mnt/share/opt/subread-1.5.1/bin/subjunc";
-$parser->exec($prog, implode(" ", $arguments), true);
+$parser->exec(get_path("subread"), implode(" ", $arguments), true);
 
 //pipeline to mark duplicates and sort
 $pipeline = array();

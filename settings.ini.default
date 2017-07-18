@@ -20,6 +20,7 @@ STAR = [path]/data/tools/STAR_2.5.2b/bin/Linux_x86_64/STAR
 STAR-Fusion = [path]/data/tools/STAR-Fusion-v1.0.0/STAR-Fusion
 feature_counts = [path]/data/tools/subread-1.5.1/bin/featureCounts
 skewer = [path]/data/tools/skewer_0.2.2/skewer
+subjunc = [path]/data/tools/subread-1.5.2/bin/subjunc
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.7.1.centos5_x86_64/bin/
