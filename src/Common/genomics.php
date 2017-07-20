@@ -1248,7 +1248,7 @@ function vcf_strelka_indel($format_col, $sample_col)
 
 	//tir and tar contain strong supportin reads, tor (not considered here) contains weak supportin reads like breakpoints
 	//only strong supporting reads are used for filtering
-	$f = null;
+	$f = 0;
 	if(($tir+$tar) != 0)	$f = number_format($tir/($tir+$tar),4);
 	
 	return array($d,$f);

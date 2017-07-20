@@ -423,7 +423,7 @@ else
 		$n_bam = $n_folder.$n_id.".bam";
 		$links = array($t_folder.$t_id."_stats_fastq.qcML",$t_folder.$t_id."_stats_map.qcML",$n_folder.$n_id."_stats_fastq.qcML",$n_folder.$n_id."_stats_map.qcML");
 		$stafile3 = $o_folder.$t_id."-".$n_id."_stats_som.qcML";
-		if(!$nsc)	$parser->exec(get_path("ngs-bits")."SomaticQC","-tumor_bam $t_bam -normal_bam $n_bam -links ".implode(" ",$links)." -somatic_vcf $som_vann -target_bed ".$t_sys_ini['target_file']." -out $stafile3",true);
+		if(!$nsc)	$parser->exec(get_path("ngs-bits")."SomaticQC","-tumor_bam $t_bam -normal_bam $n_bam -links ".implode(" ",$links)." -somatic_vcf $som_vann -target_bed ".$t_sys_ini['target_file']." -ref_fasta ".get_path("local_data")."/".$t_sys_ini['build'].".fa -out $stafile3",true);
 
 		// convert vcf to GSvar
 		$extra = "-t_col $t_id -n_col $n_id";
