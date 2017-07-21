@@ -182,8 +182,8 @@ if($tumor_only)
 		$parser->execTool("NGS/an_dbNFSPgene.php", "-in $som_gsvar -out $som_gsvar");	
 		
 		// NGSD-data (somatic and germline)
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode somatic",true);
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode germline",true);
+		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode somatic",true);
+		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode germline",true);
 	}
 
 	// add db import for qc parameters
@@ -430,8 +430,8 @@ else
 		if($t_sys_ini['type']=="Panel Haloplex HS" || strpos($t_sys_ini['name_short'],"mi")===0)	$extra .= " -strand";
 		$parser->execTool("NGS/vcf2gsvar_somatic.php", "-in $som_vann -out $som_gsvar $extra");
 		$parser->execTool("NGS/an_dbNFSPgene.php", "-in $som_gsvar -out $som_gsvar -build ".$t_sys_ini['build']);
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode somatic",true);
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode germline",true);
+		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode somatic",true);
+		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode germline",true);
 	}
 
 	// qci

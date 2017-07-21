@@ -26,7 +26,7 @@ $parser->addFlag("abra", "Turn on ABRA realignment.");
 $parser->addFlag("amplicon", "Turn on amplicon mode.");
 $parser->addFlag("nsc", "Skip sample correlation check (only in pair mode).");
 $parser->addFlag("all_variants", "Do not use strelka filter.", true);
-$parser->addFlag("strelka","",true);
+$parser->addFlag("strelka1","",true);
 extract($parser->parse($argv));
 
 //init
@@ -66,7 +66,7 @@ if($amplicon) $extras[] = "-amplicon";
 if($nsc) $extras[] = "-nsc";
 if($all_variants) $extras[] = "-keep_all_variants_strelka";
 if (isset($t_sys)) $extras[] = "-t_sys $t_sys";
-if($strelka)	$extras[] = "-strelka";
+if($strelka)	$extras[] = "-strelka1";
 $extras[] = $single_sample ? "-n_id na" : "-n_id $n_id";
 if (!$single_sample && isset($n_sys)) $extras[] = "-n_sys $n_sys";
 $parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_id -o_folder $o_folder ".implode(" ", $extras));
