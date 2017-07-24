@@ -858,8 +858,8 @@ created_by: sturm
 [Term]
 id: QC:2000051
 name: SNV allele frequency deviation
-def: "Mean deviation from expected allele frequency (e.g. 0.0, 0.5 or 1.0 for diploid organisms) for single nucleotide variants." [PXS:QC]
-is_a: QC:2000004 ! NGS variant list parameter
+def: "Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)." [PXS:QC]
+is_a: QC:2000003 ! NGS mapping parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: sturm
 
