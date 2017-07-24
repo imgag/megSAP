@@ -582,7 +582,7 @@ foreach($res as $row)
 			}
 			else
 			{
-				$pattern = "{$data_folder}/{{$ps_name}-{$ps_name2}*_var_annotated.vcf.gz,{$ps_name}-{$ps_name2}*.GSvar,{$ps_name2}*_var_annotated.vcf.gz,{$ps_name2}*.GSvar,*_counts_fpkm.tsv}";
+				$pattern = "{$data_folder}/{{$ps_name}-{$ps_name2}*_var_annotated.vcf.gz,{$ps_name}-{$ps_name2}*.GSvar,{$ps_name2}*_var_annotated.vcf.gz,{$ps_name2}*.GSvar,*_counts_fpkm.tsv,*_var_fusions.tsv}";
 			}
 			
 			$files = glob($pattern, GLOB_BRACE);
