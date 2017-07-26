@@ -25,17 +25,15 @@ queue_Swed_research:
 
 qc_Leuk:
 	php /mnt/users/all/megSAP/src/NGS/qc_fastq.php -folder /mnt/projects/research/Leuk/Sample_GS130500_01 -import
-	php /mnt/users/all/megSAP/src/NGS/qc_fastq.php -folder /mnt/projects/research/Leuk/Sample_GS130501_01 -import
 	php /mnt/users/all/megSAP/src/NGS/qc_fastq.php -folder /mnt/projects/research/Leuk/Sample_GS130502_01 -import
 
 qc_HepaVac:
 	php /mnt/users/all/megSAP/src/NGS/qc_fastq.php -folder /mnt/projects/research/HepaVac/Sample_GS130715_01 -import
-	php /mnt/users/all/megSAP/src/NGS/qc_fastq.php -folder /mnt/projects/research/HepaVac/Sample_GS130717_01 -import
 
 email_Leuk:
-	php -r 'mail("christopher.schroeder@med.uni-tuebingen.de","Neue Daten fuer Leuk", "Hallo Christopher Schroeder,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts Leuk liegen vor:\n\nGS130500_01\nGS130501_01\nGS130502_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: medgen.bioinformatik@med.uni-tuebingen.de");'
+	php -r 'mail("christopher.schroeder@med.uni-tuebingen.de","Neue Daten fuer Leuk", "Hallo Christopher Schroeder,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts Leuk liegen vor:\n\nGS130500_01\nGS130502_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: medgen.bioinformatik@med.uni-tuebingen.de");'
 
 email_HepaVac:
-	php -r 'mail("christopher.schroeder@med.uni-tuebingen.de","Neue Daten fuer HepaVac", "Hallo Christopher Schroeder,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts HepaVac liegen vor:\n\nGS130715_01\nGS130717_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: medgen.bioinformatik@med.uni-tuebingen.de");'
+	php -r 'mail("christopher.schroeder@med.uni-tuebingen.de","Neue Daten fuer HepaVac", "Hallo Christopher Schroeder,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts HepaVac liegen vor:\n\nGS130715_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: medgen.bioinformatik@med.uni-tuebingen.de");'
 
 skipped:
