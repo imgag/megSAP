@@ -121,7 +121,7 @@ if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 	
 	//copy/index output
 	copy2($tmp_bam, $out);
-	$parser->exec(get_path("ngs-bits")."BamIndex", "-in ".$out, true);
+	$parser->exec(get_path("samtools")." index", " ".$out, true);
 }
 
 //remove too short reads from amplicon data
@@ -130,7 +130,7 @@ if (contains($sys['type'],"Haloplex")) //matches both HaloPlex and Haloplex HS
 	$bam_clean = $parser->tempFile("_clipped1.bam");
 	$parser->exec(get_path("ngs-bits")."BamCleanHaloplex -min_match 30", " -in $out -out $bam_clean", true);
 	copy2($bam_clean, $out);
-	$parser->exec(get_path("ngs-bits")."BamIndex", "-in $out", true);
+	$parser->exec(get_path("samtools")." index", " $out", true);
 }
 
 //clip overlapping reads
@@ -140,7 +140,7 @@ if($clip_overlap)
 	$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in $out -out $bam_clip1", true);
 	$tmp1 = $parser->tempFile();
 	$parser->exec(get_path("samtools"),"sort -T $tmp1 -o $out $bam_clip1", true);
-	$parser->exec(get_path("ngs-bits")."BamIndex", "-in $out", true);
+	$parser->exec(get_path("samtools")." index", " $out", true);
 }
 
 //MIPs: remove duplicates by molecular barcode and cut extension/ligation arms
@@ -151,7 +151,7 @@ if($sys['type']=="Panel MIPs")
 	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -mip_file $mip_file -out $bam_dedup1 -del_amb -stats ".$basename."_bar_stats.tsv -dist 1", true);
 	$tmp1 = $parser->tempFile();
 	$parser->exec(get_path("samtools"),"sort -T $bam_dedup1 -o $out $bam_dedup1", true);
-	$parser->exec(get_path("ngs-bits")."BamIndex", "-in $out", true);
+	$parser->exec(get_path("samtools")." index", " $out", true);
 }
 
 //HaloPlex HS: remove duplicates by molecular barcode
@@ -165,7 +165,7 @@ if($sys['type']=="Panel Haloplex HS" && file_exists($index_file))
 	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -out $bam_dedup1 -min_group $min_group -stats ".$basename."_bar_stats.tsv -dist $dist -hs_file $amplicon_file", true);
 	$tmp1 = $parser->tempFile();
 	$parser->exec(get_path("samtools"),"sort -T $bam_dedup1 -o $out $bam_dedup1", true);
-	$parser->exec(get_path("ngs-bits")."BamIndex", "-in $out", true);
+	$parser->exec(get_path("samtools")." index", " $out", true);
 }
 
 //run mapping QC

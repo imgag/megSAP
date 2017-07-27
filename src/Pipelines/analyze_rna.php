@@ -171,7 +171,7 @@ if(in_array("ma", $steps))
 		$parser->execTool("NGS/indel_realign_abra.php", "-in $final_bam -out $abra_out -threads $threads -build $build -gtf $gtfFile -junctions $junction_file ".implode(" ", $params_abra));
 
 		$parser->exec("cp", "{$abra_out} {$final_bam}", true);
-		$parser->exec(get_path("ngs-bits")."BamIndex", "-in {$final_bam}", true);
+		$parser->exec(get_path("samtools")." index", " {$final_bam}", true);
 	}
 
 	//mapping QC

@@ -61,6 +61,6 @@ $tmp_for_sorting = $parser->tempFile();
 $parser->exec(get_path("samtools"), "sort -T $tmp_for_sorting -m 1G -@ ".min($threads, 4)." -o $out $tmp_unsorted", true);
 
 //create index file
-$parser->exec(get_path("ngs-bits")."BamIndex", "-in $out", true);
+$parser->exec(get_path("samtools")." index", " $out", true);
 
 ?>

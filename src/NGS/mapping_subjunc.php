@@ -84,6 +84,6 @@ $parser->exec("cp", "{$subjunc_out}.breakpoints.txt {$prefix}_breakpoints.txt", 
 $parser->exec("cp", "{$subjunc_out}.indel {$prefix}_indel.vcf", true);
 
 //create BAM index file
-$parser->exec(get_path("ngs-bits")."BamIndex", "-in $out", true);
+$parser->exec(get_path("samtools")." index", " $out", true);
 
 ?>

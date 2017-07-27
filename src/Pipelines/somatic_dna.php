@@ -89,7 +89,7 @@ if($tumor_only)
 			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
 			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in $t_bam -out $tmp1_t_bam $extra", true);
 			$parser->exec(get_path("samtools"),"sort -T $tmp1_t_bam -o $t_bam $tmp1_t_bam", true);
-			$parser->exec(get_path("ngs-bits")."BamIndex", "-in $t_bam", true);
+			$parser->exec(get_path("samtools")." index", " $t_bam", true);
 		}
 	}
 
@@ -235,12 +235,12 @@ else
 			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
 			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in $t_bam -out $tmp1_t_bam $extra", true);
 			$parser->exec(get_path("samtools"),"sort -T $tmp1_t_bam -o $t_bam $tmp1_t_bam", true);
-			$parser->exec(get_path("ngs-bits")."BamIndex", "-in $t_bam", true);
+			$parser->exec(get_path("samtools")." index", " $t_bam", true);
 			
 			$tmp1_n_bam = $parser->tempFile("_normal.bam");
 			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in $n_bam -out $tmp1_n_bam $extra", true);
 			$parser->exec(get_path("samtools"),"sort -T $tmp1_t_bam -o $n_bam $tmp1_n_bam", true);
-			$parser->exec(get_path("ngs-bits")."BamIndex", "-in $n_bam", true);
+			$parser->exec(get_path("samtools")." index", " $n_bam", true);
 		}
 
 		// indel realignment with ABRA
@@ -261,9 +261,9 @@ else
 			
 			// copy realigned files to output folder and overwrite previous bam files
 			copy2($tmp1_n_bam, $n_bam);
-			$parser->exec(get_path("ngs-bits")."BamIndex", "-in ".$n_bam, true);
+			$parser->exec(get_path("samtools")." index", " ".$n_bam, true);
 			copy2($tmp1_t_bam, $t_bam);
-			$parser->exec(get_path("ngs-bits")."BamIndex", "-in ".$t_bam, true);
+			$parser->exec(get_path("samtools")." index", " ".$t_bam, true);
 		}
 	}
 
