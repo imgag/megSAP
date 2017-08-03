@@ -1,5 +1,7 @@
 <?php
 
+///@todo remove once the evaluation of strelka2 is finished (MS)
+
 require_once("framework.php");
 
 $name = "vc_strelka";
