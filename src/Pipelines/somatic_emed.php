@@ -130,12 +130,9 @@ if(in_array("co", $steps))
 		$parser->exec("tabix", "-fp vcf $s_dna_vcf", false);	// no output logging, because Toolbase::extractVersion() does not return
 	}
 
-	// (3) determine tumor content
-	$parser->exec(get_path("ngs-bits")."EstimateTumorContent", "-tu $s_dna_ann -tu_bam ".$t_dna_bam." -no_bam ".$n_dna_bam, true);
-	
+	// (4) germline variants ADME genes
 	if(!$no_germline)
 	{
-		// (4) germline variants ADME genes
 		$target_adme = "/mnt/projects/research/eMed-HCC/+IKP/ADME_Genes_hg19_eMED_20161206.bed";
 		$tmp_folder = $parser->tempFolder("analyze");
 		$adme_vcffile = $tmp_folder."/".$n_dna_id.".vcf.gz";

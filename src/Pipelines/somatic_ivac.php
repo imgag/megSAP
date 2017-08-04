@@ -122,31 +122,24 @@ if($rna>0 && !$nsc)
 }
 
 // (3) combine results of DNA / RNA
-if(in_array("co", $steps))
+if(in_array("co", $steps) && $rna!=0)
 {
-	// (3a) annotate RNA 
-	if ($rna!=0)
+	$tmp = $parser->tempFile(".vcf");
+	$vaf_options = " -depth";
+	$tum_rna_bam = $p_folder."/Sample_".$t_rna_id."/".$t_rna_id.".bam";
+	
+	$parser->exec("bgzip", "-dc $som_vcf > $tmp", false);	// no output logging, because Toolbase::extractVersion() does not return
+	$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $tmp -bam $tum_rna_bam -out $tmp -name rna_tum $vaf_options", true);
+	$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $annotated -bam $tum_rna_bam -out $annotated -name rna_tum $vaf_options", true);
+	if ($rna==2)
 	{
-		$tmp = $parser->tempFile(".vcf");
-		$vaf_options = " -depth";
-		$tum_rna_bam = $p_folder."/Sample_".$t_rna_id."/".$t_rna_id.".bam";
-		
-		$parser->exec("bgzip", "-dc $som_vcf > $tmp", false);	// no output logging, because Toolbase::extractVersion() does not return
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $tmp -bam $tum_rna_bam -out $tmp -name rna_tum $vaf_options", true);
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $annotated -bam $tum_rna_bam -out $annotated -name rna_tum $vaf_options", true);
-		if ($rna==2)
-		{
-			$ref_rna_bam = $p_folder."/Sample_".$n_rna_id."/".$n_rna_id.".bam";
-			$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $tmp -bam $ref_rna_bam -out $tmp -name rna_ref $vaf_options", true);
-			$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $annotated -bam $ref_rna_bam -out $annotated -name rna_ref $vaf_options", true);
-		}
-		
-		$parser->exec("bgzip", "-cf $tmp > $som_vcf", false);	// no output logging, because Toolbase::extractVersion() does not return
-		$parser->exec("tabix", "-fp vcf $som_vcf", false);	// no output logging, because Toolbase::extractVersion() does not return
+		$ref_rna_bam = $p_folder."/Sample_".$n_rna_id."/".$n_rna_id.".bam";
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $tmp -bam $ref_rna_bam -out $tmp -name rna_ref $vaf_options", true);
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $annotated -bam $ref_rna_bam -out $annotated -name rna_ref $vaf_options", true);
 	}
-
-	// (3b) determine tumor content
-	$parser->exec(get_path("ngs-bits")."EstimateTumorContent", "-tu $annotated -tu_bam ".$t_dna_bam." -no_bam ".$n_dna_bam, true);
+	
+	$parser->exec("bgzip", "-cf $tmp > $som_vcf", false);	// no output logging, because Toolbase::extractVersion() does not return
+	$parser->exec("tabix", "-fp vcf $som_vcf", false);	// no output logging, because Toolbase::extractVersion() does not return
 }
 
 // (4) identify if germline variants are close to somatic variants
