@@ -873,8 +873,8 @@ created_by: sturm
 
 [Term]
 id: QC:2000053
-name: somatic mutation rate
-def: "Somatic mutation rate [mutations/Mb] normalized for the target region." [PXS:QC]
+name: somatic variant rate
+def: "Categorized somatic variant rate (high/intermediate/low) followed by the somatic variant rate [variants/Mb] normalized for the target region and corrected for truncating variant(s) in tumor suppressors / oncogenes." [PXS:QC]
 is_a: QC:2000004 ! NGS variant list parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schroeder
@@ -886,3 +886,13 @@ def: "Estimate of tumor content." [PXS:QC]
 is_a: QC:2000004 ! NGS variant list parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schroeder
+
+[Term]
+id: QC:2000055
+name: somatic SNVs allele frequency histogram
+def: "Allele frequency histogram of somatic SNVs." [PXS:QC]
+is_a: QC:2000004 ! NGS variant list parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: schroeder
+

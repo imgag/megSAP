@@ -21,7 +21,7 @@ $parser->addFlag("k", "Keep all variants. Otherwise all variants that do not pas
 $parser->addFlag("amplicon",  "Enables amplicon mode.");
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addString("config", "Config file for strelka.", true, "auto");
-$parser->addString("smallIndels", "File for strelka from manta.", true, "auto");
+$parser->addString("smallIndels", "File for improved indel calling from manta. Optional.", true, "");
 $parser->addString("temp", "Temp folder.", true, "auto");
 extract($parser->parse($argv));
 

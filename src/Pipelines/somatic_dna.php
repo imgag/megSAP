@@ -5,6 +5,7 @@
 		@TODO combine tumor normal pair and single sample mode
 		@TODO recalculate QC-values at the end of the pipeline
 		@TODO remove analyze.php and set up own combinations of tools
+		@TODO reactivate manta for UMI-data (Thruplex); error message:
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -284,7 +285,7 @@ else
 	if (in_array("vc", $steps))
 	{			
 		// structural variant calling
-		if($t_sys_ini['shotgun']==1)
+		if($t_sys_ini['shotgun']==1 && strpos($t_sys_ini['name_manufacturer'],"ThruPlex TagSeq")===FALSE)
 		{
 			$par = "";
 			if($t_sys_ini['type']=="WES")	$par .= "-exome ";
@@ -438,6 +439,9 @@ else
 	$som_vqci = $o_folder.$t_id."-".$n_id."_var_qci.vcf.gz";
 	if (in_array("ci", $steps))
 	{
+		$tmp_vcf = $parser->tempFile("_var_annotated_filtered.vcf.gz");
+		$parser->execTool("NGS/filter_vcf.php", "-in $som_vann -out $tmp_vcf -min_af $min_af -keep -type synonymous");
+			
 		// add QCI output
 		$parser->execTool("Tools/converter_vcf2qci.php", "-in $som_vann -out $som_vqci -pass");
 	}

@@ -66,6 +66,7 @@ if($amplicon) $extras[] = "-amplicon";
 if($nsc) $extras[] = "-nsc";
 if($all_variants) $extras[] = "-keep_all_variants_strelka";
 if (isset($t_sys)) $extras[] = "-t_sys $t_sys";
+if($strelka1)	$extras[] = "-strelka1";
 $extras[] = $single_sample ? "-n_id na" : "-n_id $n_id";
 if (!$single_sample && isset($n_sys)) $extras[] = "-n_sys $n_sys";
 $parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_id -o_folder $o_folder ".implode(" ", $extras));
@@ -220,8 +221,12 @@ else
 	}
 
 	//CNVs
+	$min_zscore = 5;
+	$min_regions = 10;
+	$keep = array("MYC","MDM2","MDM4","CDKN2A","CDK4");
 	$report[] = "";
 	$report[] = "CNVs:";
+	$report[] = "filter: min. 1x z-Score >= |$min_zscore|, count >= $min_regions regions, always keep: ";
 	$cnv_file = $o_folder."/".$t_id.($single_sample ? "" : "-".$n_id)."_cnvs.tsv";
 	if(is_file($cnv_file))
 	{
@@ -237,9 +242,23 @@ else
 			//generate list of amplified/deleted genes
 			if (!starts_with($line, "#"))
 			{
+				
 				$parts = explode("\t", $line);
-				$zscore = array_sum(explode(",",$parts[7]));
-				if ($zscore>0)
+				
+				$zscores = explode(",",$parts[7]);
+				
+				// filter CNVs according to best practice filter criteria
+				$skip = false;
+				if(abs(max($zscores))<$min_zscore)	$skip = true;
+				if(count($zscores)<$min_regions)	$skip = true;
+				foreach($keep as $k)
+				{
+					if(strpos($parts[9],$g)!==FALSE)	$skip = false;
+				}				
+				if($skip)	continue;
+				
+				$zscore_sum = array_sum(explode(",",$parts[7]));
+				if ($zscore_sum>0)
 				{
 					$genes_amp[] = $parts[9];
 				}

@@ -50,10 +50,20 @@ if ($sys["adapter1_p5"]=="" && $sys["adapter2_p7"]=="")
 {
 	trigger_error("No forward and/or reverse adapter sequence given!\nForward: ".$sys["adapter1_p5"]."\nReverse: ".$sys["adapter2_p7"], E_USER_ERROR);
 }
+
+$stafile1 = $basename."_stats_fastq.qcML";
 $trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
 $trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
-$stafile1 = $basename."_stats_fastq.qcML";
-$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);
+if(strpos($sys['name_manufacturer'],"ThruPlex TagSeq")===FALSE)
+{
+	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);	
+}
+else
+{	
+	$parser->exec("cat", implode(" ", $in_for)." > ".$trimmed1, true);
+	$parser->exec("cat", implode(" ", $in_rev)." > ".$trimmed2, true);
+	$parser->exec(get_path("ngs-bits")."ReadQC", "-in1 $trimmed1 -in2 $trimmed2 -out $stafile1", true);	
+}
 
 // MIPs: move molecular barcode to separate file
 $index_file = $basename."_index.fastq.gz";
@@ -97,6 +107,18 @@ if($sys['type']=="Panel Haloplex HS")
 $mapping_options = "";
 if ($sys['shotgun']) $mapping_options .= " -dedup";
 $parser->execTool("NGS/mapping_bwa.php", "-in1 $trimmed1 -in2 $trimmed2 -out $out $mapping_options -build ".$sys['build']." -threads ".$threads);
+
+if(strpos($sys['name_manufacturer'],"ThruPlex TagSeq")===0)
+{
+	$tmp_conner = $parser->tempFile("_conner_dedup.bam");
+	$parser->exec("python /mnt/share/opt/Connor-0.5/connor-runner.py", "$out $tmp_conner",true,"0.5");
+	
+	copy2($out, $out."_before_dedup.bam");
+	$parser->exec(get_path("samtools"), "index ".$out."_before_dedup.bam", true);
+	
+	copy2($tmp_conner, $out);
+	$parser->exec(get_path("samtools"), "index ".$out, true);
+}
 
 //perform indel realignment
 if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
@@ -148,7 +170,12 @@ if($sys['type']=="Panel MIPs")
 {
 	$mip_file = isset($sys['mip_file']) ? $sys['mip_file'] : "/mnt/share/data/mipfiles/".$sys["name_short"].".txt";
 	$bam_dedup1 = $parser->tempFile("_dedup1.bam");
-	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -mip_file $mip_file -out $bam_dedup1 -del_amb -stats ".$basename."_bar_stats.tsv -dist 1", true);
+	// removed: 
+	copy2($out, $out."_before_dedup.bam");
+	$parser->exec(get_path("samtools"), "index ".$out."_before_dedup.bam", true);
+
+	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -mip_file $mip_file -out $bam_dedup1 -stats ".$basename."_bar_stats.tsv -del_amb  -dist 1", true);
+
 	$tmp1 = $parser->tempFile();
 	$parser->exec(get_path("samtools"),"sort -T $bam_dedup1 -o $out $bam_dedup1", true);
 	$parser->exec(get_path("samtools")." index", " $out", true);
