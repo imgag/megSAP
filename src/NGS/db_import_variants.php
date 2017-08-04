@@ -30,7 +30,7 @@ function getVariant($db, $id)
 $samples = array();
 if(preg_match("/^([A-Za-z0-9]{4,})_(\d{2})$/", $id, $matches) && $mode="germline")
 {
-	$samples["germline"] = array("sname"=>$matches[1],"pname"=>(int)$matches[2]);
+	$samples["germline"] = array("name"=>($matches[1]."_".$matches[2]), "sname"=>$matches[1],"pname"=>(int)$matches[2]);
 }
 else if(preg_match("/^([A-Za-z0-9]{4,})_(\d{2})-([A-Za-z0-9]{4,})_(\d{2})$/", $id, $matches) && $mode=="somatic")
 {
@@ -67,6 +67,13 @@ if($mode=="germline")
 {
 	$psid = $samples["germline"]["pid"];
 	$sid = $samples["germline"]["sid"];
+	
+	//prevent tumor samples from being imported into the germline variant table
+	if ($db_connect->getValue("SELECT tumor FROM sample WHERE id='$sid'")==1)
+	{
+		trigger_error("Skipping import into germline variant list because sample ".$samples["germline"]["name"]." is a tumor sample.", E_USER_WARNING);
+		return;
+	}
 	
 	//check if variants were already imported for this PID
 	$count_old = $db_connect->getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id='".$psid."'");
