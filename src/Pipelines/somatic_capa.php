@@ -226,7 +226,7 @@ else
 	$keep = array("MYC","MDM2","MDM4","CDKN2A","CDK4");
 	$report[] = "";
 	$report[] = "CNVs:";
-	$report[] = "filter: min. 1x z-Score >= |$min_zscore|, count >= $min_regions regions, always keep: ";
+	$report[] = "  Filterkriterien - z-Score (min. in einer Subregion) >= |$min_zscore|, Anzahl der Regionen >= $min_regions, Regionen mit folgenden Genen nicht filtern: ".implode(",",$keep);
 	$cnv_file = $o_folder."/".$t_id.($single_sample ? "" : "-".$n_id)."_cnvs.tsv";
 	if(is_file($cnv_file))
 	{
