@@ -151,11 +151,42 @@ $parser->execPipeline($pipeline, "mapping");
 $downstream = explode(",", $downstream);
 if (in_array("splicing", $downstream))
 {
-	$parser->exec("cp", "{$STAR_tmp_folder}/SJ.out.tab {$prefix}_splicing.tsv", true);
+	$outfile_splicing= "{$prefix}_splicing.tsv";
+	$splicing_header = array(
+		"#chr",
+		"start",
+		"end",
+		"strand",
+		"intron_motif",
+		"annotated",
+		"n_unique_reads",
+		"n_multi_reads",
+		"max_overhang"
+	);
+	file_put_contents($outfile_splicing, implode("\t", $splicing_header)."\n");
+	file_put_contents($outfile_splicing, file_get_contents("{$STAR_tmp_folder}/SJ.out.tab"), FILE_APPEND);
 }
 if (in_array("chimeric", $downstream))
 {
-	$parser->exec("cp", "{$STAR_tmp_folder}/Chimeric.out.junction {$prefix}_chimeric.tsv", true);
+	$outfile_chimeric = "{$prefix}_chimeric.tsv";
+	$chimeric_header = array(
+		"#donor_chr",
+		"donor_start",
+		"donor_strand",
+		"acceptor_chr",
+		"acceptor_start",
+		"acceptor_strand",
+		"junction_type",
+		"left_repeat_len",
+		"right_repeat_len",
+		"read_name",
+		"seg1_first_base",
+		"seg1_cigar",
+		"seg2_first_base",
+		"seg2_cigar"
+	);
+	file_put_contents($outfile_chimeric, implode("\t", $chimeric_header)."\n");
+	file_put_contents($outfile_chimeric, file_get_contents("{$STAR_tmp_folder}/Chimeric.out.junction"), FILE_APPEND);
 }
 
 //write the final log file into the tool log

@@ -214,7 +214,13 @@ if(in_array("fu",$steps))
 	$chimeric_file = "{$prefix}_chimeric.tsv";
 	if (!file_exists($chimeric_file)) trigger_error("Could not open chimeric file '$chimeric_file' needed for STAR-Fusion. Please re-run mapping step.", E_USER_ERROR);
 
-	$parser->exec(get_path("STAR-Fusion"), "--genome_lib_dir ".get_path("data_folder")."/genomes/STAR-Fusion/$build -J $chimeric_file --output_dir {$fusion_tmp_folder}/", true);
+	//remove header from chimeric file for STAR-Fusion
+	$chimeric_file_tmp = $parser->tempFile("_STAR_chimeric.tsv");
+	$chimeric_file_f= file($chimeric_file);
+	array_shift($chimeric_file_f);
+	file_put_contents($chimeric_file_tmp, $chimeric_file_f);
+
+	$parser->exec(get_path("STAR-Fusion"), "--genome_lib_dir ".get_path("data_folder")."/genomes/STAR-Fusion/$build -J $chimeric_file_tmp --output_dir {$fusion_tmp_folder}/", true);
 	$parser->exec("cp", "{$fusion_tmp_folder}/star-fusion.fusion_candidates.final.abridged ".$prefix."_var_fusions.tsv", true);
 }
 
