@@ -3,16 +3,20 @@
 require_once("framework.php");
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../src/Common/genomics.php");
 
-$name = "rc_annotate";
+$name = "rc_compare";
 start_test($name);
 
-$in_file = data_folder().$name."_in.tsv";
+// Annotate Ensembl gene identifiers with HGNC gene identifier/gene names
+$in_file1 = data_folder().$name."_in1.tsv";
+$out_file1 = output_folder().$name."_out1.tsv";
+check_exec("php ".src_folder()."/NGS/{$name}.php -in '$in_file1' -out '$out_file1'");
+check_file($out_file1, data_folder().$name."_out1.tsv");
 
-// Annotate RefSeq identifier with HGNC gene identifier
-$out_file = output_folder().$name."_out.tsv";
-$log_file = output_folder().$name."_out.log";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in '$in_file' -out '$out_file'");
-check_file($out_file, data_folder().$name."_out.tsv");
+// Annotate Ensembl gene identifiers with HGNC gene identifier/gene names
+$in_file2 = data_folder().$name."_in2.tsv";
+$out_file2 = output_folder().$name."_out2.tsv";
+check_exec("php ".src_folder()."/NGS/{$name}.php -in '$in_file2' -out '$out_file2'");
+check_file($out_file2, data_folder().$name."_out2.tsv");
 
 end_test();
 

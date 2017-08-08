@@ -186,7 +186,7 @@ if(in_array("ma", $steps))
 
 //read counting
 $counts_raw = $prefix."_counts_raw.tsv";
-$counts_fpkm = $prefix."_counts_fpkm.tsv";
+$counts_normalized = $prefix."_counts.tsv";
 if(in_array("rc", $steps))
 {
 	$args = array();
@@ -195,13 +195,13 @@ if(in_array("rc", $steps))
 	$parser->execTool("NGS/rc_featurecounts.php", "-in $final_bam -out $counts_raw -threads $threads -gtfFile $gtfFile -featureType $featureType -gtfAttribute $gtfAttribute ".implode(" ", $args));
 
 	//normalize read counts
-	$parser->execTool("NGS/rc_normalize.php", "-in $counts_raw -out $counts_fpkm -method rpkm");
+	$parser->execTool("NGS/rc_normalize.php", "-in $counts_raw -out $counts_normalized");
 }
 
 //annotate
 if(in_array("an", $steps))
 {
-	$parser->execTool("NGS/rc_annotate.php", "-in $counts_fpkm -out $counts_fpkm -gtfFile $gtfFile");
+	$parser->execTool("NGS/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtfFile $gtfFile");
 }
 
 //detect fusions

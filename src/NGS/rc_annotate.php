@@ -15,7 +15,7 @@ $parser->addString("keyId", "Name of key identifier.", true, "gene_id");
 $parser->addString("annotationId", "Identifier of annotation to add.", true, "gene_name");
 extract($parser->parse($argv));
 
-//read gene_id>gene_name mapping from GTF file
+//read keyId (gene_id) -> annotationId (gene_name) mapping from GTF file
 $mapping = array();
 $handle_gtf = fopen($gtfFile, "r");
 if ($handle_gtf === FALSE) trigger_error("Could not open file '$gtfFile' for reading!", E_USER_ERROR);
@@ -47,20 +47,15 @@ while(!feof($handle_gtf))
 }
 fclose($handle_gtf);
 
-// Read the counts file line by line, annotate and write to the temporary result file
-$tmp_res_file = $parser->tempFile();
-$tmp_res_file_handle = fopen($tmp_res_file, "w");
-$handle = fopen($in, "r");
-if ($handle === FALSE) trigger_error("Could not open file '$in' for reading!", E_USER_ERROR);
-while ($data = fgetcsv($handle, 0, "\t"))
-{
-	$transcript_id = $data[0];
-	$data[] = isset($mapping[$transcript_id]) ? $mapping[$transcript_id] : "";
-	fwrite($tmp_res_file_handle, implode("\t", $data)."\n");
+// function to query the mapping
+function map_annotate($id) {
+	global $mapping;
+	return(isset($mapping[$id]) ? $mapping[$id] : "");
 }
-fclose($handle);
-fclose($tmp_res_file_handle);
 
-// Move temporary file to correct position
-copy2($tmp_res_file, $out);
-?>
+// add column with annotation data
+$counts = Matrix::fromTSV($in);
+$gene_ids = $counts->getCol($counts->getColumnIndex("gene_id"));
+$annotation_column = array_map("map_annotate", $gene_ids);
+$counts->addCol($annotation_column, $annotationId);
+$counts->toTSV($out);
