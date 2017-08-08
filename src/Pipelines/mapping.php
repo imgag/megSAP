@@ -130,13 +130,13 @@ if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 	$args[] = "-out $tmp_bam";
 	$args[] = "-build ".$sys['build'];
 	$args[] = "-threads ".$threads;
-	if ($sys['target_file']!="")
-	{
-		$args[] = "-roi ".$sys['target_file'];
-	}
-	else if ($sys['type']=="WGS") //for WGS use exome target region
+	if ($sys['type']=="WGS") //for WGS use exome target region
 	{
 		$args[] = "-roi ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed";
+	}
+	else if ($sys['target_file']!="")
+	{
+		$args[] = "-roi ".$sys['target_file'];
 	}
 	
 	$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $args));
