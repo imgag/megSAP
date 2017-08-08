@@ -226,7 +226,7 @@ else
 	$keep = array("MYC","MDM2","MDM4","CDKN2A","CDK4");
 	$report[] = "";
 	$report[] = "CNVs:";
-	$report[] = "filter: min. 1x z-Score >= |$min_zscore|, count >= $min_regions regions, always keep: ";
+	$report[] = "  Filterkriterien - z-Score (min. in einer Subregion) >= |$min_zscore|, Anzahl der Regionen >= $min_regions, Regionen mit folgenden Genen nicht filtern: ".implode(",",$keep);
 	$cnv_file = $o_folder."/".$t_id.($single_sample ? "" : "-".$n_id)."_cnvs.tsv";
 	if(is_file($cnv_file))
 	{
@@ -237,10 +237,9 @@ else
 		{
 			$line = trim($line);
 			if ($line=="" || starts_with($line, "##")) continue;
-			$report[] = "  ".$line;
 			
 			//generate list of amplified/deleted genes
-			if (!starts_with($line, "#"))
+			if (!starts_with($line,"#"))
 			{
 				
 				$parts = explode("\t", $line);
@@ -253,9 +252,12 @@ else
 				if(count($zscores)<$min_regions)	$skip = true;
 				foreach($keep as $k)
 				{
-					if(strpos($parts[9],$g)!==FALSE)	$skip = false;
+					$tmp = explode(",",$parts[9]);
+					if(in_array($k,$tmp))	$skip = false;
 				}				
 				if($skip)	continue;
+				
+				$report[] = "  ".$line;
 				
 				$zscore_sum = array_sum(explode(",",$parts[7]));
 				if ($zscore_sum>0)
