@@ -1,11 +1,10 @@
-Report zur bioinformatischen Analyse:
+Wissenschaftlicher Bericht zu den Proben GS150497_01 / GS150496_01
 
-Tumor: GS150497_01 (Externer Name: 151680A2)
-Normal: GS150496_01 (Externer Name: 151705)
-Datum: 07.08.2017
-Revision der Analysepipeline: megSAP 0.1-323-gd3e32a6
-Analysesystem: ssSC_v2
-Zielregionen: 5616 (1256683 Basen gesamt)
+Datum: 09.08.2017
+Tumor: GS150497_01 (DNA Nr.: 151680A2)
+Normal: GS150496_01 (DNA Nr.: 151705)
+Revision der Analysepipeline: megSAP 0.1-330-g723c9fd
+Prozessierungssystem: ssSC_v2
 
 QC:
   Coverage Tumor 100x: 0.20
@@ -16,16 +15,19 @@ QC:
 Varianten:
   Gefundene Varianten: 3
   Details:
-    #Position	W	M	QUALITY	F/T_Tumor	F/T_Normal	COSMIC	cDNA
-    chr8:38271515-38271515	T	C	662	0.465/604	0.000/291		FGFR1 c.2306A>G p.His769Arg (identisch zu FGFR1 c.2207A>G p.His736Arg, FGFR1 c.2213A>G p.His738Arg, FGFR1 c.1946A>G p.His649Arg, FGFR1 c.2183A>G p.His728Arg, FGFR1 c.1940A>G p.His647Arg, FGFR1 c.*19A>G , FGFR1 n.4492A>G )
-    chr9:98231134-98231134	C	T	256	0.171/410	0.000/374		PTCH1 c.2149G>A p.Asp717Asn (identisch zu PTCH1 c.1696G>A p.Asp566Asn, PTCH1 c.1951G>A p.Asp651Asn, PTCH1 c.2146G>A p.Asp716Asn, PTCH1 c.*457G>A , PTCH1 n.338G>A )
-    chrX:48651570-48651570	G	A	628	0.941/156	0.000/137		GATA1 c.745-9G>A 
+    #Position	W	M	F/T_Tumor	F/T_Normal	cDNA
+    chr8:38271515-38271515	T	C	0.465/604	0.000/291	FGFR1 c.2306A>G p.His769Arg (identisch zu FGFR1 c.2207A>G p.His736Arg, FGFR1 c.2213A>G p.His738Arg, FGFR1 c.1946A>G p.His649Arg, FGFR1 c.2183A>G p.His728Arg, FGFR1 c.1940A>G p.His647Arg, FGFR1 c.*19A>G , FGFR1 n.4492A>G )
+    chr9:98231134-98231134	C	T	0.171/410	0.000/374	PTCH1 c.2149G>A p.Asp717Asn (identisch zu PTCH1 c.1696G>A p.Asp566Asn, PTCH1 c.1951G>A p.Asp651Asn, PTCH1 c.2146G>A p.Asp716Asn, PTCH1 c.*457G>A , PTCH1 n.338G>A )
+    chrX:48651570-48651570	G	A	0.941/156	0.000/137	GATA1 c.745-9G>A 
 
 CNVs:
-  Filterkriterien - z-Score (min. in einer Subregion) >= |5|, Anzahl der Regionen >= 10, Regionen mit folgenden Genen nicht filtern: MYC,MDM2,MDM4,CDKN2A,CDK4
-  Keine CNVs gefunden. Siehe Somatic_GS150497_01-GS150496_01/GS150497_01-GS150496_01_cnvs.tsv fuer QC-Fehler.
+  Gefundene Varianten: 0
+  Filterkriterien - z-Score (min. in einer Subregion) >= |5|, Anzahl der Regionen >= 10
+  Regionen folgender Gene bei z-score >= |5| unabhängig von Regionenzahl nicht filtern: MYC,MDM2,MDM4,CDKN2A,CDKN2A-AS1,CDK4,CDK6,PTEN,CCND1,RB1,CCND3,BRAF,KRAS,NRAS
+  QC-Meldungen: #GS150496_01 ref_correl: 0.973 (median: 0.968); #GS150496_01 cnvs: 1 (median: 2); #GS150496_01 qc_errors: ; #GS150497_01 ref_correl: 0.005 (median: 0.968); #GS150497_01 cnvs: - (median: 2); #GS150497_01 qc_errors: avg_depth=0.68743 avg_depth_chrx=2.07233 avg_depth_autosomes=0.68743 ; #GS150496_01 ref_correl: 0.011 (median: 0.968); #GS150496_01 cnvs: - (median: 2); #GS150496_01 qc_errors: avg_depth=0.43147 avg_depth_chrx=2.05143 avg_depth_autosomes=0.43147 
+  Keine CNVs gefunden. Siehe Somatic_GS150497_01-GS150496_01/GS150497_01-GS150496_01_cnvs.tsv für QC-Fehler.
 
-LÃ¼cken:
+Lücken:
   Target: ssSC_v2 (../../data/enrichment/ssSC_v2_2015_01_26.bed)
   min. Tiefe Tumor: 100x
   min. Tiefe Normal: 100x
