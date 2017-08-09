@@ -3,7 +3,7 @@
 require_once("framework.php");
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../src/Common/genomics.php");
 
-$name = "rc_compare";
+$name = "rc_annotate";
 start_test($name);
 
 // Annotate Ensembl gene identifiers with HGNC gene identifier/gene names
