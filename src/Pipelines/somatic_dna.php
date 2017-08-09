@@ -5,7 +5,6 @@
 		@TODO combine tumor normal pair and single sample mode
 		@TODO recalculate QC-values at the end of the pipeline
 		@TODO remove analyze.php and set up own combinations of tools
-		@TODO reactivate manta for UMI-data (Thruplex); error message:
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -424,7 +423,7 @@ else
 		$n_bam = $n_folder.$n_id.".bam";
 		$links = array($t_folder.$t_id."_stats_fastq.qcML",$t_folder.$t_id."_stats_map.qcML",$n_folder.$n_id."_stats_fastq.qcML",$n_folder.$n_id."_stats_map.qcML");
 		$stafile3 = $o_folder.$t_id."-".$n_id."_stats_som.qcML";
-		if(!$nsc)	$parser->exec(get_path("ngs-bits")."SomaticQC","-tumor_bam $t_bam -normal_bam $n_bam -links ".implode(" ",$links)." -somatic_vcf $som_vann -target_bed ".$t_sys_ini['target_file']." -ref_fasta ".get_path("local_data")."/".$t_sys_ini['build'].".fa -out $stafile3",true);
+		$parser->exec(get_path("ngs-bits")."SomaticQC","-tumor_bam $t_bam -normal_bam $n_bam -links ".implode(" ",$links)." -somatic_vcf $som_vann -target_bed ".$t_sys_ini['target_file']." -ref_fasta ".get_path("local_data")."/".$t_sys_ini['build'].".fa -out $stafile3",true);
 
 		// convert vcf to GSvar
 		$extra = "-t_col $t_id -n_col $n_id";
@@ -458,7 +457,7 @@ else
 			$log_db  = $t_folder."/".$t_id."_log4_db.log";
 			$qcmls = $t_folder."/".$t_id."_stats_fastq.qcML ";
 			if (in_array("ma", $steps))	$qcmls .= $t_folder."/".$t_id."_stats_map.qcML ";
-			if (!$nsc && !$tumor_only && in_array("an", $steps))	$qc_som  = $o_folder.$t_id."-".$n_id."_stats_som.qcML ";
+			if (!$tumor_only && in_array("an", $steps))	$qc_som  = $o_folder.$t_id."-".$n_id."_stats_som.qcML ";
 			$parser->execTool("NGS/db_import_qc.php", "-id $t_id -files $qcmls -force -min_depth 0 --log $log_db");
 
 			// import QC data normal

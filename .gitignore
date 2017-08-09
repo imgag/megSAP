@@ -49,6 +49,7 @@
 /test/data_capa/Sample_GS150496_01/
 /test/data_capa/Sample_GS150497_01/
 /test/data_capa/Somatic_GS150497_01-GS150496_01/
+/test/data_capa/*_QCML.txt
 
 /test/data_rna/analyze_rna_out_se.log
 /test/data_rna/analyze_rna_out_pe.log
@@ -66,6 +67,7 @@
 /test/data_somatic/results_uid1/
 /test/data_somatic/results_uid2/
 /test/data_somatic/results_amp/
+/test/data_somatic/*_QCML.txt
 
 /test/data_out/tool_test_*
 

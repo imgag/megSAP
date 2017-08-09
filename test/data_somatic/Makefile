@@ -54,6 +54,8 @@ somatic_pair:
 diff_pair:
 	php ../compare_variants.php GS110168-GS110169.GSvar.out_strelka results_pair1/GS110168-GS110169.GSvar
 	php ../compare_variants.php GS110168-GS110169.GSvar.out_freebayes results_pair2/GS110168-GS110169.GSvar
+	ls */*.qcML | sort | xargs grep "<qualityParameter" > somatic_QCML.txt
+	php ../compare_qcml.php somatic_QCML.txt.out somatic_QCML.txt
 
 somatic_amp:
 	#php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id SampleUID2_01 -n_id na -o_folder results_amp -steps ma,vc,an -reduce_variants_filter -t_sys system_amp.ini --log results_amp/SampleUID2_01.log

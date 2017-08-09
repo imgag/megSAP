@@ -623,14 +623,18 @@ function get_qc_from_ngsd($processing_id, $qc_id, $qc_name=null)
 /*
 	@brief parse qcml file and return qc value depending on qc_id
  */
-function get_qc_from_qcml($qcml_file, $qc_id, $qc_name=null)
+function get_qc_from_qcml($qcml_file, $qc_id, $qc_name=null, $error=true)
 {
 	$xml = simplexml_load_file($qcml_file);
 	$xml->registerXPathNamespace('q', 'http://www.prime-xs.eu/ms/qcml');
 	$match = $xml->xpath("//q:qualityParameter[@accession='".$qc_id."']");
 
 	if(count($match)>1)	trigger_error("Multiple occurrences of '".$qc_id."' was found in qcml file '".$qcml_file."'!", E_USER_ERROR);
-	if(count($match)==0)	return false;
+	if(count($match)==0)
+	{
+		if(!$error)	return null;
+		else	trigger_error("Could not find QC value with QC-ID ".$qc_id,E_USER_ERROR);
+	}
 	if(!empty($qc_name) && $qc_name!=$match[0]->attributes()->{'name'})	trigger_error("QC name extracted from qcml file '".$match[0]->attributes()->{'name'}."' does not match expected qcml name '".$qc_name."' in ".$qcml_file."'!", E_USER_ERROR);
 	return (string)$match[0]->attributes()->{'value'};
 }

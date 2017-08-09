@@ -194,14 +194,14 @@ else
 	//qc
 	$report[] = "";
 	$t_qcml = $p_folder."/Sample_".$t_id."/".$t_id."_stats_map.qcML";
-	if(!$single_sample)	$n_qcml = $p_folder."/Sample_".$n_id."/".$n_id."_stats_map.qcML";
-	if(!$single_sample)	$s_qcml = $p_folder."/Somatic_".$t_id."-".$n_id."/".$t_id."-".$n_id."_stats_som.qcML";
+	$n_qcml = $p_folder."/Sample_".$n_id."/".$n_id."_stats_map.qcML";
+	$s_qcml = $p_folder."/Somatic_".$t_id."-".$n_id."/".$t_id."-".$n_id."_stats_som.qcML";
 	$report[] = "QC:";
 	$report[] = "  Coverage Tumor 100x: ".get_qc_from_qcml($t_qcml, "QC:2000030", "target region 100x percentage");
 	$report[] = "  Durchschnittl. Tiefe Tumor: ".get_qc_from_qcml($t_qcml, "QC:2000025", "target region read depth");
 	if(!$single_sample)	$report[] = "  Coverage Normal 100x: ".get_qc_from_qcml($n_qcml, "QC:2000030", "target region 100x percentage");
 	if(!$single_sample)	$report[] = "  Durchschnittl. Tiefe Normal: ".get_qc_from_qcml($n_qcml, "QC:2000025", "target region read depth");
-	if(!$single_sample && is_file($s_qcml))	$report[] = "  Variantenlast: ".get_qc_from_qcml($n_qcml, "QC:2000053", "somatic mutation rate");
+	if(!$single_sample && is_file($s_qcml))	$report[] = "  Variantenlast: ".get_qc_from_qcml($s_qcml, "QC:2000053", "somatic variant rate");
 
 	// variants
 	$report[] = "";
