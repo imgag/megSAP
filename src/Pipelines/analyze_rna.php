@@ -175,12 +175,25 @@ if(in_array("ma", $steps))
 	}
 
 	//mapping QC
-	if (isset($target_file) && $target_file != "") {
-		$mappingqc_target = "-roi {$target_file}";
-	} else {
-		$mappingqc_target = "-rna";
+	$params_mappingqc = array(
+		"-in {$final_bam}",
+		"-out {$qc_map}"
+	);
+
+	if (isset($target_file) && $target_file != "")
+	{
+		$params_mappingqc[] = "-roi {$target_file}";
 	}
-	$parser->exec(get_path("ngs-bits")."MappingQC", "-in {$final_bam} -out {$qc_map} {$mappingqc_target}", true);
+	else
+	{
+		$params_mappingqc[] = "-rna";
+	}
+	if (! in_array($build, array("GRCh37", "hg19")))
+	{
+		$params_mappingqc[] = "-no_cont";
+	}
+
+	$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params_mappingqc), true);
 
 }
 
