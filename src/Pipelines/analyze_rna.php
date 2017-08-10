@@ -94,7 +94,7 @@ if(in_array("ma", $steps))
 	{
 		$fastq_trimmed1 = $parser->tempFile("_trimmed.fastq.gz");
 		$fastq_trimmed2 = $parser->tempFile("_trimmed.fastq.gz");
-		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $fastq_trimmed1 -out2 $fastq_trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $qc_fastq -threads ".$threads." -qcut 0", true);
+		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $fastq_trimmed1 -out2 $fastq_trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $qc_fastq -threads ".min($threads, 2)." -qcut 0", true);
 	}
 	else
 	{
@@ -102,7 +102,7 @@ if(in_array("ma", $steps))
 
 		$fastq_trimmed1 = $parser->tempFile("_trimmed.fastq.gz");
 		$skewer_stderr = $parser->tempFile("_skewer_stderr");
-		$parser->exec("zcat", implode(" ", $in_for)." | ".get_path("skewer")." -x ".$sys["adapter1_p5"]." -y ".$sys["adapter2_p7"]." -m any --threads $threads --quiet --stdout -"." 2> $skewer_stderr | gzip -1 > $fastq_trimmed1", true);
+		$parser->exec("zcat", implode(" ", $in_for)." | ".get_path("skewer")." -x ".$sys["adapter1_p5"]." -y ".$sys["adapter2_p7"]." -m any --threads ".min($threads, 2)." --quiet --stdout -"." 2> $skewer_stderr | gzip -1 > $fastq_trimmed1", true);
 		$parser->log("skewer log", file($skewer_stderr));
 	}
 
@@ -149,14 +149,14 @@ if(in_array("ma", $steps))
 	}
 
 	$args[] = "-sjOverhang $sjOverhang -sjdbOverhang $sjdbOverhang";
-	
+
 	if ($noSplicing) {
 		$args[] = "-noSplicing";
 	}
-	
+
 	$args[] = "--log $log_ma";
 	if(file_exists($log_ma)) unlink($log_ma);
-	
+
 	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
 
 	//indel realignment
@@ -209,7 +209,7 @@ if(in_array("fu",$steps))
 {
 	//add samtoolsto path
 	putenv("PATH=".dirname(get_path("samtools")).":".getenv("PATH"));
-	
+
 	$fusion_tmp_folder = $parser->tempFolder();
 	$chimeric_file = "{$prefix}_chimeric.tsv";
 	if (!file_exists($chimeric_file)) trigger_error("Could not open chimeric file '$chimeric_file' needed for STAR-Fusion. Please re-run mapping step.", E_USER_ERROR);
@@ -231,12 +231,9 @@ if (in_array("db", $steps))
 	if(file_exists($log_db)) unlink($log_db);
 	$parser->execTool("NGS/db_check_gender.php", "-in $final_bam -pid $out_name");
 
-	//update last_analysis column of processed sample in NGSD
-	updateLastAnalysisDate($out_name, $final_bam);
-
 	//import QC data
 	$parser->execTool("NGS/db_import_qc.php", "-id $out_name -files $qc_fastq $qc_map -force");
-	
+
 	//update last analysis date
 	updateLastAnalysisDate($out_name, $final_bam);
 }
