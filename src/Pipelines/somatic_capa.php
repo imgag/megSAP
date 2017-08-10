@@ -72,63 +72,53 @@ $extras[] = $single_sample ? "-n_id na" : "-n_id $n_id";
 if (!$single_sample && isset($n_sys)) $extras[] = "-n_sys $n_sys";
 $parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_id -o_folder $o_folder ".implode(" ", $extras));
 
+
 $system_t = load_system($t_sys, $t_id);
+$system_n = array();
+if(!$single_sample)	$system_n = load_system($n_sys, $n_id);
 if(empty($system_t['target_file']))	
 {
 	trigger_error("Tumor target file empty; no report generation.", E_USER_WARNING);
 }
 else
 {
-	// determine target region statistics
-	$target = $system_t['target_file'];
-	$target_name = $system_t['name_short'];
-	list($stdout) = $parser->exec(get_path("ngs-bits")."BedInfo", "-in $target", false);
-	$bases_overall = explode(":", $stdout[1]);
-	$bases_overall = trim($bases_overall[1]);
-	$regions_overall = explode(":", $stdout[0]);
-	$regions_overall = trim($regions_overall[1]);
-
-	//determine indices of important variant columns
-	$var = Matrix::fromTSV($s_tsv);
-	if ($var->rows()!=0)
+	//prepare snvs for report
+	$snv = Matrix::fromTSV($s_tsv);
+	if ($snv->rows()!=0)
 	{
-		$fi_idx = $var->getColumnIndex("filter");
-		$tvf_idx = $var->getColumnIndex("tumor_af");
-		$td_idx = $var->getColumnIndex("tumor_dp");
-		$co_idx = $var->getColumnIndex("coding_and_splicing");
+		$fi_idx = $snv->getColumnIndex("filter");
+		$tvf_idx = $snv->getColumnIndex("tumor_af");
+		$td_idx = $snv->getColumnIndex("tumor_dp");
+		$co_idx = $snv->getColumnIndex("coding_and_splicing");
 		if(!$single_sample)
 		{
-			$nvf_idx = $var->getColumnIndex("normal_af");
-			$nd_idx = $var->getColumnIndex("normal_dp");
+			$nvf_idx = $snv->getColumnIndex("normal_af");
+			$nd_idx = $snv->getColumnIndex("normal_dp");
 		}
 	}
 
-	//get low_cov_statistics
-	$target_merged = $parser->tempFile("_merged.bed");
-	$parser->exec(get_path("ngs-bits")."BedMerge", "-in $target -out $target_merged", true);
-	//calculate low-coverage regions
-	$low_cov = $o_folder."/".$t_id.($single_sample ? "" : "-".$n_id)."_stat_lowcov.bed";
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $t_bam -out $low_cov -cutoff ".$td, true);
-	if(!$single_sample)
-	{
-		$low_cov_n = $parser->tempFile("_nlowcov.bed");
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $n_bam -out $low_cov_n -cutoff ".$nd, true);
-		$parser->exec(get_path("ngs-bits")."BedAdd", "-in $low_cov -in2 $low_cov_n -out $low_cov", true);
-		$parser->exec(get_path("ngs-bits")."BedMerge", "-in $low_cov -out $low_cov", true);
-	}
-	//annotate gene names (with extended to annotate splicing regions as well)
-	$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $low_cov -extend 25 -out $low_cov", true);
-
-	$var_report = new Matrix();
-	if ($var->rows()!=0)
+	$snv_report = new Matrix();
+	if ($snv->rows()!=0)
 	{
 		$headers = array('Position', 'W', 'M', 'F/T_Tumor', 'cDNA');
 		if(!$single_sample)	$headers = array('Position', 'W', 'M', 'F/T_Tumor', 'F/T_Normal', 'cDNA');
-		$var_report->setHeaders($headers);
+		$snv_report->setHeaders($headers);
 		
-		for($i=0; $i<$var->rows(); ++$i)
+		//extract relevant MISO terms for filtering
+		$obo = MISO::fromOBO();
+		$miso_terms_coding = array();
+		$ids = array("SO:0001580","SO:0001568");
+		foreach($ids as $id)
 		{
-			$row = $var->getRow($i);
+			$miso_terms_coding[] = $obo->getTermNameByID($id);
+			$tmp = $obo->getTermChildrenNames($id,true);
+			$miso_terms_coding = array_merge($miso_terms_coding,$tmp);
+		}
+		$miso_terms_coding = array_unique($miso_terms_coding);
+		
+		for($i=0; $i<$snv->rows(); ++$i)
+		{
+			$row = $snv->getRow($i);
 
 			//skip filtered variants
 			if(!empty($row[$fi_idx]))	continue;
@@ -146,8 +136,19 @@ else
 				{
 					if(empty($c))	continue;
 					$eff = explode(":", $c);
+					
+					// filter non coding / splicing codings
+					$skip = true;
+					foreach(explode("&",$eff[2]) as $t)
+					{
+						if(in_array($t,$miso_terms_coding))	$skip = false;
+					}
+					if($skip)	continue;
+					
+					// filter duplicates
 					$tmp = $eff[0]." ".$eff[5]." ".$eff[6];
 					if(in_array($tmp, $tmp_row)) continue;
+					
 					$tmp_row[] = $tmp;					
 				}				
 
@@ -162,7 +163,56 @@ else
 			//report line
 			$report_row = array($row[0].":".$row[1]."-".$row[2], $row[3], $row[4], number_format($row[$tvf_idx],3)."/".$row[$td_idx], $coding);
 			if(!$single_sample)	$report_row = array($row[0].":".$row[1]."-".$row[2], $row[3], $row[4], number_format($row[$tvf_idx],3)."/".$row[$td_idx], number_format($row[$nvf_idx],3)."/".$row[$nd_idx], $coding);
-			$var_report->addRow($report_row);
+			$snv_report->addRow($report_row);
+		}
+	}
+
+	//prepare cnvs for report	
+	$cnv_file = $o_folder."/".$t_id.($single_sample ? "" : "-".$n_id)."_cnvs.tsv";
+	$cnvs = Matrix::fromTSV($cnv_file);
+	$min_zscore = 5;
+	$min_regions = 10;
+	$keep = array("MYC","MDM2","MDM4","CDKN2A","CDKN2A-AS1","CDK4","CDK6","PTEN","CCND1","RB1","CCND3","BRAF","KRAS","NRAS");
+	
+	$cnv_report = new Matrix();
+	$genes_amp = array();
+	$genes_loss = array();
+	if ($cnvs->rows()!=0)
+	{
+		$headers = array('Position','Größe [bp]','Typ','Gene');
+		$cnv_report->setHeaders($headers);
+		
+		for($i=0;$i<$cnvs->rows();++$i)
+		{
+			$line = $cnvs->getRow($i);
+			$idx_zscores = $cnvs->getColumnIndex("region_zscores");
+			$idx_genes = $cnvs->getColumnIndex("genes");
+			
+			//generate list of amplified/deleted genes
+			$zscores = explode(",",$line[$idx_zscores]);
+				
+			// filter CNVs according to best practice filter criteria
+			$skip = false;
+			if(abs(max($zscores))<$min_zscore)	$skip = true;
+			if(count($zscores)<$min_regions)	$skip = true;
+			foreach($keep as $k)
+			{
+				$tmp = explode(",",$line[$idx_genes]);
+				if(in_array($k,$tmp) && abs(max($zscores))<$min_zscore)	$skip = false;
+			}				
+			if($skip)	continue;
+						
+			$zscore_sum = array_sum(explode(",",$line[7]));
+			if ($zscore_sum>0)
+			{
+				$genes_amp[] = $line[9];
+				$cnv_report->addRow(array($line[0].":".$line[1]."-".$line[2],$line[4],"AMP",$line[$idx_genes]));
+			}
+			else
+			{
+				$genes_loss[] = $line[9];
+				$cnv_report->addRow(array($line[0].":".$line[1]."-".$line[2],$line[4],"LOSS",$line[$idx_genes]));
+			}
 		}
 	}
 
@@ -186,10 +236,12 @@ else
 	// metadata
 	$report[] = "";
 	$report[] = "Datum: ".date("d.m.Y");
-	$report[] = "Tumor: $tumor_name (DNA Nr.: $tex_name)";
-	if(!$single_sample)	$report[] = "Normal: $normal_name (DNA Nr.: $nex_name)";
 	$report[] = "Revision der Analysepipeline: ".repository_revision(true);
-	$report[] = "Prozessierungssystem: $target_name";
+	$tmp = "Tumor: $tumor_name";
+	if(!$single_sample)	$tmp .= ", Normal: $normal_name";
+	$report[] = $tmp;
+	$report[] = "Prozessierungssystem Tumor: ".$system_t['name_manufacturer'];
+	$report[] = "Prozessierungssystem Normal: ".$system_n['name_manufacturer'];
 
 	//qc
 	$report[] = "";
@@ -201,78 +253,40 @@ else
 	$report[] = "  Durchschnittl. Tiefe Tumor: ".get_qc_from_qcml($t_qcml, "QC:2000025", "target region read depth");
 	if(!$single_sample)	$report[] = "  Coverage Normal 100x: ".get_qc_from_qcml($n_qcml, "QC:2000030", "target region 100x percentage");
 	if(!$single_sample)	$report[] = "  Durchschnittl. Tiefe Normal: ".get_qc_from_qcml($n_qcml, "QC:2000025", "target region read depth");
-	if(!$single_sample && is_file($s_qcml))	$report[] = "  Variantenlast: ".get_qc_from_qcml($s_qcml, "QC:2000053", "somatic variant rate");
+	if(!$single_sample && is_file($s_qcml))	$report[] = "  Mutationslast: ".get_qc_from_qcml($s_qcml, "QC:2000053", "somatic variant rate");
+	$report[] = "";
 
 	// variants
-	$report[] = "";
 	$report[] = "Varianten:";
-	$report[] = "  Gefundene Varianten: ".$var_report->rows();
-	if($var_report->rows() > 0)
+	$report[] = "  Gefundene Varianten: ".$snv_report->rows();
+	if($snv_report->rows() > 0)
 	{
 		$report[] = "  Details:";
-		$report[] = "    #".implode("\t", $var_report->getHeaders());
-		for ($i=0; $i<$var_report->rows(); ++$i)
+		$report[] = "    #".implode("\t", $snv_report->getHeaders());
+		for ($i=0; $i<$snv_report->rows(); ++$i)
 		{
-			$report[] = "    ".implode("\t",$var_report->getRow($i));
+			$report[] = "    ".implode("\t",$snv_report->getRow($i));
 		}
 	}
+	$report[] = "";
 
 	//CNVs
-	$min_zscore = 5;
-	$min_regions = 10;
-	$keep = array("MYC","MDM2","MDM4","CDKN2A","CDKN2A-AS1","CDK4","CDK6","PTEN","CCND1","RB1","CCND3","BRAF","KRAS","NRAS");
-	$report[] = "";
 	$report[] = "CNVs:";
-	$cnv_file = $o_folder."/".$t_id.($single_sample ? "" : "-".$n_id)."_cnvs.tsv";
 	if(is_file($cnv_file))
 	{
-		$cnvs = Matrix::fromTSV($cnv_file);
-		$report[] = "  Gefundene Varianten: ".$cnvs->rows();
-		$report[] = "  Filterkriterien - z-Score (min. in einer Subregion) >= |$min_zscore|, Anzahl der Regionen >= $min_regions";
-		$report[] = "  Regionen folgender Gene bei z-score >= |$min_zscore| unabhängig von Regionenzahl nicht filtern: ".implode(",",$keep);
-		$report[] = "  QC-Meldungen: ".implode("; ",$cnvs->getComments());
+		$report[] = "  Gefundene CNVs: ".$cnv_report->rows();
 		
-		$genes_amp = array();
-		$genes_del = array();
-		for($i=0;$i<$cnvs->rows();++$cnvs)
-		{
-			$line = $cnvs->getRow($i);
-			$idx_zscores = $cnvs->getColIndex("region_zscores");
-			$idx_genes = $cnvs->getColIndex("genes");
-			
-			//generate list of amplified/deleted genes
-			$zscores = explode(",",$line[$idx_zscores]);
-				
-			// filter CNVs according to best practice filter criteria
-			$skip = false;
-			if(abs(max($zscores))<$min_zscore)	$skip = true;
-			if(count($zscores)<$min_regions)	$skip = true;
-			foreach($keep as $k)
-			{
-				$tmp = explode(",",$line[$idx_genes]);
-				if(in_array($k,$tmp) && abs(max($zscores))<$min_zscore)	$skip = false;
-			}				
-			if($skip)	continue;
-						
-			$zscore_sum = array_sum(explode(",",$parts[7]));
-			if ($zscore_sum>0)
-			{
-				$genes_amp[] = $line[9];
-				$report[] = "    ".$line[0].":".$line[1]."-".$line[2]."\tAMP\t".$line[$idx_genes];
-			}
-			else
-			{
-				$genes_del[] = $line[9];
-				$report[] = "    ".$line[0].":".$line[1]."-".$line[2]."\tLOSS\t".$line[$idx_genes];
-			}
-		}
-		if (count($genes_amp)>0 || count($genes_del)>0)
+		if($cnv_report->rows()>0)
 		{
 			$report[] = "  Details:";
-			$report[] = "    #Position\tGröße\tTyp\tGene";
+			$report[] = "    #".implode("\t",$cnv_report->getHeaders());
+			for ($i=0; $i<$cnv_report->rows(); ++$i)
+			{
+				$report[] = "    ".implode("\t",$cnv_report->getRow($i));
+			}
 			$report[] = "";
-			$report[] = "  amplifizierte Gene: ".implode(",", array_unique($genes_amp));
-			$report[] = "  deletierte Gene: ".implode(",", array_unique($genes_del));
+			$report[] = "    Amplifizierte Gene: ".implode(",", array_unique($genes_amp));
+			$report[] = "    Deletierte Gene: ".implode(",", array_unique($genes_loss));
 		}
 		else
 		{
@@ -282,43 +296,6 @@ else
 	else
 	{
 		$report[] = "  Keine CNV-Datei gefunden ($cnv_file).";
-	}
-	$report[] = "";
-
-	// low coverage
-	$report[] = "Lücken:";
-	$report[] = "  Target: $target_name ($target)";
-	$report[] = "  min. Tiefe Tumor: {$td}x";
-	if(!$single_sample)	$report[] = "  min. Tiefe Normal: {$nd}x";
-	$report[] = "    #gene	no. bases	chr	region(s)";
-	$regions = Matrix::fromTSV($low_cov);
-	$genes = array();
-	$bases_lowcov = 0;
-	for ($i=0; $i<$regions->rows(); ++$i)
-	{
-		list($chr, $start, $end, $gene) = $regions->getRow($i);
-		if ($gene=="") $gene = "n/a";
-
-		$count = $end - $start + 1;
-		$bases_lowcov += $count;
-		if (!isset($reg_by_gene[$gene]))
-		{
-			$reg_by_gene[$gene] = "$start-$end";
-			$count_by_gene[$gene] = $count;
-			$chr_by_gene[$gene] = $chr;
-		}
-		else
-		{
-			$reg_by_gene[$gene] .= ", $start-$end";
-			$count_by_gene[$gene] += $count;
-		}
-	}
-	ksort($reg_by_gene);
-	foreach($reg_by_gene as $gene => $regions)
-	{
-		$bases = $count_by_gene[$gene];
-		$chr = $chr_by_gene[$gene];
-		$report[] = "    $gene	$bases	$chr	$regions";
 	}
 	$report[] = "";
 

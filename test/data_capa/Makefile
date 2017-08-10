@@ -4,7 +4,7 @@ all: clear link
 	make diff
 
 clear:
-	rm -rf *.bam *.bai *.log *.txt *.GSvar *.vcf *.fastq.gz *.qcML
+	rm -rf *.bam *.bai *.log *.txt *.GSvar *.vcf *.fastq.gz *.qcML *_QCML.txt *.log
 	rm -rf Sample_GS150496_01
 	rm -rf Sample_GS150497_01
 	rm -rf Somatic_GS150497_01-GS150496_01
@@ -25,6 +25,6 @@ somatic:
 
 diff:
 	php ../compare_variants.php GS150497_01-GS150496_01.GSvar.out GS150497_01-GS150496_01.GSvar
-	diff -b  -I '^Datum' -I '^Revision' -I '^Tumor:' -I '^Normal:' -I '^  Target' GS150497_01-GS150496_01_report.txt.out GS150497_01-GS150496_01_report.txt
+	diff -b  -I '^Datum' -I '^Revision' GS150497_01-GS150496_01_report.txt.out GS150497_01-GS150496_01_report.txt
 	ls */*.qcML | sort | xargs grep "<qualityParameter" > somatic_QCML.txt
 	php ../compare_qcml.php somatic_QCML.txt.out somatic_QCML.txt
