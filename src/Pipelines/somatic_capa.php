@@ -193,15 +193,20 @@ else
 				
 			// filter CNVs according to best practice filter criteria
 			$skip = false;
-			if(abs(max($zscores))<$min_zscore)	$skip = true;
+			$tmp_zscores = array();
+			foreach($zscores as $z)
+			{
+				$tmp_zscores[] = abs($z);
+			}
+			if(max($tmp_zscores)<$min_zscore)	$skip = true;
 			if(count($zscores)<$min_regions)	$skip = true;
 			foreach($keep as $k)
 			{
 				$tmp = explode(",",$line[$idx_genes]);
-				if(in_array($k,$tmp) && abs(max($zscores))<$min_zscore)	$skip = false;
-			}				
+				if(in_array($k,$tmp) && abs(max($tmp_zscores))>$min_zscore)	$skip = false;
+			}
 			if($skip)	continue;
-						
+
 			$zscore_sum = array_sum(explode(",",$line[7]));
 			if ($zscore_sum>0)
 			{
