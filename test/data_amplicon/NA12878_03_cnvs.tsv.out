@@ -1,4 +1,4 @@
 ##NA12878_03 ref_correl: 0.636 (median: 0.9775)
 ##NA12878_03 cnvs: - (median: 3)
 ##NA12878_03 qc_errors: corr=0.636 
-#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_coordinates	genes
+#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	genes

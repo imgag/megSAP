@@ -1,6 +1,8 @@
 <?php 
 /** 
 	@page vc_cnvhunter
+	
+	@todo check if filtering for germline CN-polymorphisms improved somatic output
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -139,11 +141,12 @@ if($somatic)
 	for($i=0;$i<$cnvs_filtered->rows();++$i)
 	{
 		$row = $cnvs_filtered->getRow($i);
-		list($chr, $start, $end, $sample, $size, $num_reg, $reg_cns, $reg_zs, $reg_coords, $genes) = $row;
+		list($chr, $start, $end, $sample, $size, $num_reg, $reg_cns, $reg_zs, $reg_afs, $reg_coords, $genes) = $row;
 		
 		$reg_cns = explode(",", $reg_cns);
 		$reg_zs = explode(",", $reg_zs);
 		$reg_coords = explode(",", $reg_coords);
+		$reg_afs = explode(",", $reg_afs);
 
 		//check that z-score of tumor and normal sample differ by at least factor 2
 		$z_diff_pass = array();
@@ -214,7 +217,8 @@ if($somatic)
 		$reg_cns = implode(",", array_slice($reg_cns, $start_index, $reg_count));
 		$reg_zs = implode(",", array_slice($reg_zs, $start_index, $reg_count));
 		$reg_coords = implode(",", array_slice($reg_coords, $start_index, $reg_count));
-		$cnvs_somatic->addRow(array($chr, $start, $end, $sample, $end-$start+1, $reg_count, $reg_cns, $reg_zs, $reg_coords, $genes));
+		$reg_afs = implode(",", array_slice($reg_afs, $start_index, $reg_count));
+		$cnvs_somatic->addRow(array($chr, $start, $end, $sample, $end-$start+1, $reg_count, $reg_cns, $reg_zs, $reg_afs, $reg_coords, $genes));
 	}
 	$cnvs_filtered = $cnvs_somatic;
 }
