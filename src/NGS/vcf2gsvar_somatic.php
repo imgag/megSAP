@@ -177,9 +177,12 @@ if($count>0)
 	if($has_header===FALSE)	trigger_error("VCF does not contain a header line.", E_USER_ERROR);
 	$tumor_idx = array_search($t_col,$header);
 	if($tumor_idx===FALSE)	trigger_error("Could not identify tumor column '$t_col'.",E_USER_ERROR);
-	$normal_idx = -1;
-	if(!empty($normal_idx) && $normal_idx!="na")	$normal_idx = array_search($n_col,$header);
-	//if($sample_col==-1)	trigger_error("VCF does not contain a column $col.", E_USER_ERROR);
+	$normal_idx = null;
+	if(!$tumor_only)
+	{
+		$normal_idx = array_search($n_col,$header);
+		if($normal_idx===FALSE)	trigger_error("Could not identify normal column '$n_col'.",E_USER_ERROR);
+	}
 }
 
 //write header
@@ -341,6 +344,7 @@ while(!feof($handle))
 		$gnomad = $tmp[0];
 		if(count($tmp)>1) $gnomad = $tmp[$i];
 		
+		// calculate frequencies
 		$tumor_dp = extract_from_genotype_field($cols[8], $cols[$tumor_idx], "DP");
 		$normal_dp = "na";
 		if(!$tumor_only)	$normal_dp = extract_from_genotype_field($cols[8], $cols[$normal_idx], "DP");
@@ -350,17 +354,12 @@ while(!feof($handle))
 		{
 			if($variant == "SNV")
 			{
-				// tumor
 				list($tumor_dp,$tumor_af) = vcf_strelka_snv($cols[8],$cols[$tumor_idx],$a);
-				
-				//normal
 				if(!$tumor_only)	list($normal_dp,$normal_af) = vcf_strelka_snv($cols[8],$cols[$normal_idx],$a);
 			}
 			else if($variant == "INDEL")
 			{
 				list($tumor_dp,$tumor_af) = vcf_strelka_indel($cols[8],$cols[$tumor_idx]);
-				
-				//normal
 				if(!$tumor_only)	list($normal_dp,$normal_af) = vcf_strelka_indel($cols[8],$cols[$normal_idx]);
 			}
 		}

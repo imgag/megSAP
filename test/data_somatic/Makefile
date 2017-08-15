@@ -47,15 +47,16 @@ diff_single:
 
 somatic_pair:
 	#strelka
-	php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id GS110168 -n_id GS110169 -o_folder results_pair1 -steps ma,vc,an -reduce_variants_filter -t_sys system_pair.ini -n_sys system_pair.ini --log results_pair1/GS110168-GS110169.log
+	php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id GS110168 -n_id GS110169 -o_folder results_pair1 -steps ma,vc,an,ci -reduce_variants_filter -t_sys system_pair.ini -n_sys system_pair.ini --log results_pair1/GS110168-GS110169.log
 	#freebayes (previous mapping results are used!)
 	php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id GS110168 -n_id GS110169 -o_folder results_pair2 -steps vc,an -t_sys system_pair.ini -n_sys system_pair.ini -freebayes --log results_pair2/GS110168-GS110169.log
 
 diff_pair:
 	php ../compare_variants.php GS110168-GS110169.GSvar.out_strelka results_pair1/GS110168-GS110169.GSvar
 	php ../compare_variants.php GS110168-GS110169.GSvar.out_freebayes results_pair2/GS110168-GS110169.GSvar
-	ls */*.qcML | sort | xargs grep "<qualityParameter" > somatic_QCML.txt
-	php ../compare_qcml.php somatic_QCML.txt.out somatic_QCML.txt
+	ls */*.qcML | sort | xargs grep "<qualityParameter" > somatic_qcML.txt
+	php ../compare_qcml.php somatic_qcML.txt.out somatic_qcML.txt
+	#TODO compare qci files, compare cnv files 
 
 somatic_amp:
 	#php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id SampleUID2_01 -n_id na -o_folder results_amp -steps ma,vc,an -reduce_variants_filter -t_sys system_amp.ini --log results_amp/SampleUID2_01.log

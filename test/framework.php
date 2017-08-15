@@ -1,5 +1,5 @@
 <?php
-require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../src/Common/all.php");
+require_once(dirname(__FILE__)."/../src/Common/all.php");
 
 /// Returns the tool test data folder
 function data_folder()

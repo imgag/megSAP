@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Session genome="1kg_v37" hasGeneTrack="true" hasSequenceTrack="true" locus="all" path="." version="8">
+	<Resources>
+		<Resource path="../Somatic_Tumor1-Normal1/Tumor1-Normal1_var.vcf.gz"/>
+	</Resources>
+	<HiddenAttributes>
+		<Attribute name="NAME"/>
+		<Attribute name="DATA FILE"/>
+		<Attribute name="DATA TYPE"/>
+	</HiddenAttributes>
+</Session>
