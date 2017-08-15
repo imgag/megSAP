@@ -206,12 +206,6 @@ if (in_array("an", $steps))
 		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", true);
 		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -extend 25 -out $lowcov_file", true);
 	}
-
-	//x-diagnostics report
-	if ($sys['name_short']=="ssX" || starts_with($sys['name_short'], "hpXLIDv"))
-	{
-		$parser->execTool("Pipelines/x_diagnostics.php", "-bam $bamfile -out_folder {$out_folder} --log $log_an -system {$system}");
-	}
 }
 
 //import to database
