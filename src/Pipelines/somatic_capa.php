@@ -221,12 +221,12 @@ if (in_array("re", $steps))
 				if ($zscore_sum>0)
 				{
 					$genes_amp = array_merge($genes_amp,explode(",",$line[9]));
-					$cnv_report->addRow(array($line[0].":".$line[1]."-".$line[2],$line[4],"AMP",$line[$idx_genes]));
+					$cnv_report->addRow(array($line[0].":".$line[1]."-".$line[2],$line[4],"AMP",implode(", ", explode(",",$line[$idx_genes]))));
 				}
 				else
 				{
 					$genes_loss = array_merge($genes_loss, explode(",",$line[9]));
-					$cnv_report->addRow(array($line[0].":".$line[1]."-".$line[2],$line[4],"LOSS",$line[$idx_genes]));
+					$cnv_report->addRow(array($line[0].":".$line[1]."-".$line[2],$line[4],"LOSS",implode(", ", explode(",",$line[$idx_genes]))));
 				}
 			}
 		}
@@ -268,20 +268,20 @@ if (in_array("re", $steps))
 		$report[] = "{\pard \fs20 \sa180";
 		$report[] = par_table_qc("Coverage Tumor 100x:",get_qc_from_qcml($t_qcml, "QC:2000030", "target region 100x percentage"));
 		$report[] = par_table_qc("Durchschnittl. Tiefe Tumor:",get_qc_from_qcml($t_qcml, "QC:2000025", "target region read depth"));
-		if(!$single_sample)	par_table_qc("Coverage Normal 100x:",get_qc_from_qcml($n_qcml, "QC:2000030", "target region 100x percentage"));
+		if(!$single_sample)	$report[] = par_table_qc("Coverage Normal 100x:",get_qc_from_qcml($n_qcml, "QC:2000030", "target region 100x percentage"));
 		if(!$single_sample)	$report[] = par_table_qc("Durchschnittl. Tiefe Normal:", get_qc_from_qcml($n_qcml, "QC:2000025", "target region read depth"));
 		if(!$single_sample && is_file($s_qcml))	$report[] = par_table_qc("Mutationslast:",get_qc_from_qcml($s_qcml, "QC:2000053", "somatic variant rate"));
 		$report[] = "\par}";
 
 		// variants
 		$report[] = par_head("SVNs und kleine INDELs:");
-		$report[] = "{\pard \fs20";
+		$report[] = "{\pard \fs20 ";
 		$report[] = "Gefundene Varianten: ".$snv_report->rows()."\line";
 		if($snv_report->rows() > 0)
 		{
-			$report[] = "Details:";
+			$report[] = "Details:\fs8 \line ";
 			$report[] = "\par}";
-			$report[] ="{\pard \fs20 \sa180";
+			$report[] = "{\pard \fs20 \sa360";
 			
 			$report[] = par_table_header_var();
 			for ($i=0; $i<$snv_report->rows(); ++$i)
@@ -290,6 +290,9 @@ if (in_array("re", $steps))
 				$report[] = par_table_row_var($pos,$ref,$obs,$freq_t,$freq_n,$coding);
 			}
 		}
+		$tmp = "\fs8 \line \fs14 Position - chromosomale Position (".$system_t['build']."); W - Allel Wildtyp; V - Allel Variante; F/T_Tumor - Frequenz und Tiefe im Tumor;";
+		$tmp .= "F/T_Normal - Frequenz und Tiefe im Normal; cDNA - cDNA Position und Auswirkung Peptid.\fs20";
+		$report[] = $tmp;
 		$report[] = "\par}";
 
 		//CNVs
@@ -301,10 +304,10 @@ if (in_array("re", $steps))
 			
 			if($cnv_report->rows()>0)
 			{
-				$report[] = "Details:";
+				$report[] = "Details:\fs8 \line ";
 				$report[] = "\par}";
 
-				$report [] = "{\pard \fs20 \sa180";
+				$report [] = "{\pard \fs20 \sa360";
 
 				$report[] = par_table_header_cnv();
 				for ($i=0; $i<$cnv_report->rows(); ++$i)
@@ -312,6 +315,9 @@ if (in_array("re", $steps))
 					list($pos,$size,$type,$gene) = $cnv_report->getRow($i);
 					$report[] = par_table_row_cnv($pos, $size, $type, $gene);
 				}
+				$tmp = "\fs8 \line \fs14 Position - chromosomale Position (".$system_t['build']."); Größe - CNV-Größe in Basenpaaren; Typ - Verlust (LOSS) oder Amplifikation (AMP);";
+				$tmp .= "Gene - Gene in dieser Region.\fs20";
+				$report[] = $tmp;
 				$report[] = "\par}";
 				$report[] = "{\pard \fs20 ";
 				$report[] = par_cnv_genes(array_unique($genes_amp),array_unique($genes_loss));
@@ -393,7 +399,7 @@ function par_table_header_var()
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4450";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5650";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500";
-	$string .= "\pard\intbl\b\qc Position\cell \pard\intbl\qc W\cell \pard\intbl\qc M\cell \pard\intbl\qc F/T_Tumor\cell \pard\intbl\qc F/T_Normal\cell \pard\intbl\qc cDNA\cell\row}";
+	$string .= "\pard\intbl\b\qc Position\cell \pard\intbl\qc W\cell \pard\intbl\qc V\cell \pard\intbl\qc F/T_Tumor\cell \pard\intbl\qc F/T_Normal\cell \pard\intbl\qc cDNA\cell\row}";
 	return $string;
 }
 
