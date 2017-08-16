@@ -1,2 +1,0 @@
-#	DNA-NR	DNA-conc (ng/ul)	Name	Vorname	Gebdat	Fam-No	Geschlecht	Status	Mutter ist	Vater ist	Kontakt	MFT-NR	Kommentar
-1	5					TEST	w	gesund	1	2		I11D006a01	

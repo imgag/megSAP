@@ -28,9 +28,6 @@ test_tools_primer: dummy
 test_tools_ngs: dummy
 	@cd test && find . -name "tool_test_*.php" | xargs -l1000 php execute_tests.php NGS
 
-test_tools_chips: dummy
-	@cd test && find . -name "tool_test_*.php" | xargs -l1000 php execute_tests.php Chips
-
 test_tools_tools: dummy
 	@cd test && find . -name "tool_test_*.php" | xargs -l1000 php execute_tests.php Tools  	
 
@@ -79,6 +76,9 @@ test_all_status:
 
 find_missing_tests: dummy
 	php src/Tools/find_missing_tests.php
+	
+find_unused_tools: dummy
+	php src/Tools/find_unused_tools.php -ngsbits ../ngs-bits/ -megsap .
 
 todos:
 	find . -name "*.php" | xargs grep "@todo" | egrep -v "somatic|strelka"

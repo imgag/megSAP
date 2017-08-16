@@ -12,7 +12,7 @@ $tests = array_map(function($value) { return substr($value, 10); }, $tests);
 //find tools under SVN control
 $tools = array();
 $tools2path = array();;
-list($tmp) = exec2("find {$src}Chips/ {$src}NGS/ {$src}Tools/ {$src}Primer/ -name \"*.php\"");
+list($tmp) = exec2("find {$src}NGS/ {$src}Tools/ {$src}Primer/ -name \"*.php\"");
 sort($tmp);
 foreach($tmp as $t)
 {
@@ -35,7 +35,6 @@ $excluded_patterns = array(
 				  "queue_trio.php", //needs SGE
 				  "queue_multi.php", //needs SGE
 				  "qbic_copy.php", //needs datamover
-				  "plink_diagrams.php", //not testable
 				  
 				  "db_converter_.*", //converters to set up annotation databases
 				  "db_run_status.php", //utility
@@ -59,7 +58,7 @@ foreach($missing_tests as $test)
 	//count usage in php
 	$usage = array();
 	$hits = array();
-	exec("find {$src}Chips/ {$src}NGS/ {$src}Tools/ {$src}Primer/ {$src}Pipelines/ -name \"*.php\" | xargs grep $test", $hits);
+	exec("find {$src}NGS/ {$src}Tools/ {$src}Primer/ {$src}Pipelines/ -name \"*.php\" | xargs grep $test", $hits);
 	if (count($hits)>0)
 	{
 		$usage[] = count($hits)."x in php";

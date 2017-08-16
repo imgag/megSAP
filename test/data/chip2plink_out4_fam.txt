@@ -1,3 +1,0 @@
-#IID	gender	het_ratio_x	het_ratio_auto	affected
-5	f	0.3929	0.2642	0
-#IID1	IID2	relation	correlation	mendelian_error_fraction
