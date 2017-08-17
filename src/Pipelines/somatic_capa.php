@@ -95,22 +95,26 @@ if (in_array("re", $steps))
 	{
 		//prepare snvs for report
 		$snv = Matrix::fromTSV($s_tsv);
+
+		$snv_report = new Matrix();
 		if ($snv->rows()!=0)
 		{
-			$fi_idx = $snv->getColumnIndex("filter");
-			$tvf_idx = $snv->getColumnIndex("tumor_af");
-			$td_idx = $snv->getColumnIndex("tumor_dp");
-			$co_idx = $snv->getColumnIndex("coding_and_splicing");
+			$idx_chr = $snv->getColumnIndex("chr");
+			$idx_start = $snv->getColumnIndex("start");
+			$idx_end = $snv->getColumnIndex("end");
+			$idx_ref = $snv->getColumnIndex("ref");
+			$idx_obs = $snv->getColumnIndex("obs");
+			
+			$idx_fi = $snv->getColumnIndex("filter");
+			$idx_tvf = $snv->getColumnIndex("tumor_af");
+			$idx_td = $snv->getColumnIndex("tumor_dp");
+			$idx_co = $snv->getColumnIndex("coding_and_splicing");
 			if(!$single_sample)
 			{
 				$nvf_idx = $snv->getColumnIndex("normal_af");
 				$nd_idx = $snv->getColumnIndex("normal_dp");
 			}
-		}
 
-		$snv_report = new Matrix();
-		if ($snv->rows()!=0)
-		{
 			$headers = array('Position', 'W', 'M', 'F/T_Tumor', 'cDNA');
 			if(!$single_sample)	$headers = array('Position', 'W', 'M', 'F/T_Tumor', 'F/T_Normal', 'cDNA');
 			$snv_report->setHeaders($headers);
@@ -132,18 +136,18 @@ if (in_array("re", $steps))
 				$row = $snv->getRow($i);
 
 				//skip filtered variants
-				if(!empty($row[$fi_idx]))	continue;
+				if(!empty($row[$idx_fi]))	continue;
 
 				//format: Gen c.DNA p.AA
 				$tmp_row = array();
-				$coding = $row[$co_idx];
+				$coding = $row[$idx_co];
 				if($coding == "" || empty($coding))
 				{
 					continue;
 				}
 				else
 				{
-					foreach(explode(",", $row[$co_idx]) as $c)
+					foreach(explode(",", $row[$idx_co]) as $c)
 					{
 						if(empty($c))	continue;
 						$eff = explode(":", $c);
@@ -172,8 +176,8 @@ if (in_array("re", $steps))
 				}
 
 				//report line
-				$report_row = array($row[0].":".$row[1]."-".$row[2], $row[3], $row[4], number_format($row[$tvf_idx],3)."/".$row[$td_idx], $coding);
-				if(!$single_sample)	$report_row = array($row[0].":".$row[1]."-".$row[2], $row[3], $row[4], number_format($row[$tvf_idx],3)."/".$row[$td_idx], number_format($row[$nvf_idx],3)."/".$row[$nd_idx], $coding);
+				$report_row = array($row[$idx_chr].":".$row[$idx_start]."-".$row[$idx_end], $row[$idx_ref], $row[$idx_obs], number_format($row[$idx_tvf],3)."/".$row[$idx_td], $coding);
+				if(!$single_sample)	$report_row = array($row[$idx_chr].":".$row[$idx_start]."-".$row[$idx_end], $row[$idx_ref], $row[$idx_obs], number_format($row[$idx_tvf],3)."/".$row[$idx_td], number_format($row[$nvf_idx],3)."/".$row[$nd_idx], $coding);
 				$snv_report->addRow($report_row);
 			}
 		}
@@ -189,14 +193,19 @@ if (in_array("re", $steps))
 		$genes_loss = array();
 		if ($cnvs->rows()!=0)
 		{
+			$idx_chr = $cnvs->getColumnIndex("chr");
+			$idx_start = $cnvs->getColumnIndex("start");
+			$idx_end = $cnvs->getColumnIndex("end");
+			$idx_size = $cnvs->getColumnIndex("size");
+			$idx_zscores = $cnvs->getColumnIndex("region_zscores");
+			$idx_genes = $cnvs->getColumnIndex("genes");
+
 			$headers = array('Position','Größe [bp]','Typ','Gene');
 			$cnv_report->setHeaders($headers);
 			
 			for($i=0;$i<$cnvs->rows();++$i)
 			{
 				$line = $cnvs->getRow($i);
-				$idx_zscores = $cnvs->getColumnIndex("region_zscores");
-				$idx_genes = $cnvs->getColumnIndex("genes");
 				
 				//generate list of amplified/deleted genes
 				$zscores = explode(",",$line[$idx_zscores]);
@@ -217,16 +226,16 @@ if (in_array("re", $steps))
 				}
 				if($skip)	continue;
 
-				$zscore_sum = array_sum(explode(",",$line[7]));
+				$zscore_sum = array_sum(explode(",",$line[$idx_zscores]));
 				if ($zscore_sum>0)
 				{
-					$genes_amp = array_merge($genes_amp,explode(",",$line[9]));
-					$cnv_report->addRow(array($line[0].":".$line[1]."-".$line[2],$line[4],"AMP",implode(", ", explode(",",$line[$idx_genes]))));
+					$genes_amp = array_merge($genes_amp,explode(",",$line[$idx_genes]));
+					$cnv_report->addRow(array($line[$idx_chr].":".$line[$idx_start]."-".$line[$idx_end],$line[$idx_size],"AMP",implode(", ", explode(",",$line[$idx_genes]))));
 				}
 				else
 				{
-					$genes_loss = array_merge($genes_loss, explode(",",$line[9]));
-					$cnv_report->addRow(array($line[0].":".$line[1]."-".$line[2],$line[4],"LOSS",implode(", ", explode(",",$line[$idx_genes]))));
+					$genes_loss = array_merge($genes_loss, explode(",",$line[$idx_genes]));
+					$cnv_report->addRow(array($line[$idx_chr].":".$line[$idx_start]."-".$line[$idx_end],$line[$idx_size],"LOSS",implode(", ", explode(",",$line[$idx_genes]))));
 				}
 			}
 		}
@@ -298,7 +307,12 @@ if (in_array("re", $steps))
 		//CNVs
 		$report[] = par_head("CNVs:");
 		if(is_file($s_cnvs))
-		{
+		{			
+			$report[] = "\fs8 \line \fs14";
+			$report [] = "{\pard \fs20";
+			$report[] = "Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Die Liste der CNVs basiert auf strengen Filterkriterien. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode.";
+			$report[] = "\par}";
+			$report[] = "\fs8 \line \fs14";
 			$report[] = "{\pard \fs20 ";
 			$report[] = "Gefundene CNVs: ".$cnv_report->rows()."\line";
 			
@@ -319,6 +333,7 @@ if (in_array("re", $steps))
 				$tmp .= "Gene - Gene in dieser Region.\fs20";
 				$report[] = $tmp;
 				$report[] = "\par}";
+				
 				$report[] = "{\pard \fs20 ";
 				$report[] = par_cnv_genes(array_unique($genes_amp),array_unique($genes_loss));
 			}

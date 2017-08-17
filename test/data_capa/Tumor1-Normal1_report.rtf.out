@@ -2,8 +2,8 @@
 {\pard \fs28 \sa180 Wissenschaftlicher Bericht zu den Proben Tumor1 / Normal1\par}
 {\pard \fs24 Metadata:\par}
 {\pard \fs20 \sa180
-{\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Datum:\cell \pard\intbl\ql 16.08.2017\cell\row}
-{\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Revision der Analysepipeline:\cell \pard\intbl\ql megSAP 0.1-343-g5267d7d\cell\row}
+{\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Datum:\cell \pard\intbl\ql 17.08.2017\cell\row}
+{\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Revision der Analysepipeline:\cell \pard\intbl\ql megSAP 0.1-346-g57a452f\cell\row}
 {\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Tumor:\cell \pard\intbl\ql Tumor1\cell\row}
 {\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Normal:\cell \pard\intbl\ql Normal1\cell\row}
 {\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Prozessierungssystem Tumor:\cell \pard\intbl\ql SureSelect Somatic Cancer Panel v2\cell\row}
@@ -29,6 +29,11 @@ Details:\fs8 \line
 \fs8 \line \fs14 Position - chromosomale Position (GRCh37); W - Allel Wildtyp; V - Allel Variante; F/T_Tumor - Frequenz und Tiefe im Tumor;F/T_Normal - Frequenz und Tiefe im Normal; cDNA - cDNA Position und Auswirkung Peptid.\fs20
 \par}
 {\pard \fs24 CNVs:\par}
+\fs8 \line \fs14
+{\pard \fs20
+Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Die Liste der CNVs basiert auf strengen Filterkriterien. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode.
+\par}
+\fs8 \line \fs14
 {\pard \fs20 
 Gefundene CNVs: 74\line
 Details:\fs8 \line 
