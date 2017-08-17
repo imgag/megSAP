@@ -10,7 +10,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
 $parser = new ToolBase("rc_featurecounts", "Perform read counting for aligned reads using featureCount contained in the subread package.");
-$parser->addInfile("in",  "BAM input file.", false, "bam");
+$parser->addInfile("in",  "BAM input file.", false, true);
 $parser->addOutfile("out", "Raw count output TSV file.", false);
 
 //optional parameters
@@ -21,6 +21,7 @@ $parser->addFlag("stranded", "Specify whether a stranded protocol was used durin
 $parser->addInt("minAQual", "Minimal alignment quality. Skip all reads with alignment quality lower than the given value. For paired-end reads at least one end should satisfy this criteria.", true, 3);
 $parser->addFlag("paired", "The data is paired-end. Only properly paired reads are used.");
 $parser->addFlag("includeMultiOverlap", "Count reads multiple times if they overlap more than one feature.");
+$parser->addFlag("keepSummary", "Keep summary file.");
 $parser->addInt("threads", "Number of threads used for read counting", true, 4);
 extract($parser->parse($argv));
 
@@ -45,4 +46,9 @@ $parser->exec(get_path("feature_counts"), implode(" ", $args), true);
 
 // copy output
 $parser->exec("cp", "$tmp_out $out", true);
-?>
+
+if ($keepSummary)
+{
+	$out_summary = dirname($out)."/".basename($out, ".tsv")."_summary.tsv";
+	$parser->exec("cp", "{$tmp_out}.summary {$out_summary}", true);
+}
