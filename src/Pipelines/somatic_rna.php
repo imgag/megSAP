@@ -22,7 +22,7 @@ $parser->addString("t_folder", "Folder where original tumor fastq files can be f
 $parser->addString("n_folder", "Folder where original normal fastq files can be found.", true, "na");
 $parser->addInfile("t_sys",  "Tumor processing system INI file (determined from 't_id' by default).", true);
 $parser->addInfile("n_sys",  "Reference processing system INI file (determined from 'n_id' by default).", true);
-$steps_all = array("ma","fu","vc","an","db");
+$steps_all = array("ma","rc","fu","vc","an","db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform. (".implode(",",$steps_all).")", true, implode(",", array_slice($steps_all,1)));
 $parser->addFlag("nsc", "No sample correlation check.");
 extract($parser->parse($argv));
@@ -112,10 +112,13 @@ if(in_array("ma", $steps))
 // only for tumor-normal pairs
 if(!$tumor_only)
 {
-	// calculate counts tumor, normal and somatic fold change
 	$som_counts = $o_folder.$t_id."-".$n_id."_counts.tsv";
-	if(!$tumor_only)	$parser->execTool("NGS/rc_compare.php", "-in1 $tum_counts -in2 $ref_counts -out $som_counts");
-
+	if(in_array("rc", $steps))
+	{
+		// calculate counts tumor, normal and somatic fold change
+		if(!$tumor_only)	$parser->execTool("NGS/rc_compare.php", "-in1 $tum_counts -in2 $ref_counts -out $som_counts");
+	}
+	
 	// (2) check that samples are related
 	if(!$nsc)
 	{
@@ -232,8 +235,8 @@ if (in_array("db", $steps))
 			//import QC data normal
 			$log_db  = $n_folder."/".$n_id."_log4_db.log";
 			$qc_fastq  = $n_folder."/".$n_id."_stats_fastq.qcML";
-			$qc_map  = $n_folder."/".$n_id."_stats_map.qcML";	//MappingQC does currently not support RNA
-			$parser->execTool("NGS/db_import_qc.php","-id $n_id -files $qc_fastq -force -min_depth 0 --log $log_db");
+			$qc_map  = $n_folder."/".$n_id."_stats_map.qcML";
+			$parser->execTool("NGS/db_import_qc.php","-id $n_id -files $qc_fastq $qc_map -force -min_depth 0 --log $log_db");
 
 			//update last_analysis date
 			updateLastAnalysisDate($n_id, $ref_bam);
