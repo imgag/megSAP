@@ -1231,8 +1231,8 @@ function vcf_strelka_snv($format_col, $sample_col, $obs)
 	else if($obs == "G") $o = $gu;
 	else	trigger_error("Alternative allele '$obs' unknown.",E_USER_WARNING);	// unknown alleles are 'A,G', '.'
 
-	if($sum==0)	return array($d,null);
-	$f = number_format($o/$sum,4);
+	$f = 0;
+	if($sum !=0)	$f = number_format($o/$sum,4);
 
 	return array($d,$f);
 }
