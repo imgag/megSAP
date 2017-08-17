@@ -82,5 +82,4 @@ if (isset($sys['featureType'])) {
 	$params[] = "gtfFeatureType=exon";
 }
 
-$parser->exec($prog, implode(" ", $params), true);
-?>
+$parser->exec($prog, implode(" ", $params)." > {$out_folder}/dupradar.tsv", true);
