@@ -198,6 +198,7 @@ if (in_array("re", $steps))
 			$idx_end = $cnvs->getColumnIndex("end");
 			$idx_size = $cnvs->getColumnIndex("size");
 			$idx_zscores = $cnvs->getColumnIndex("region_zscores");
+			$idx_copy = $cnvs->getColumnIndex("region_copy_numbers");
 			$idx_genes = $cnvs->getColumnIndex("genes");
 
 			$headers = array('Position','Größe [bp]','Typ','Gene');
@@ -226,16 +227,18 @@ if (in_array("re", $steps))
 				}
 				if($skip)	continue;
 
+				$copy_median = median(explode(",",$line[$idx_copy]));
+
 				$zscore_sum = array_sum(explode(",",$line[$idx_zscores]));
 				if ($zscore_sum>0)
 				{
 					$genes_amp = array_merge($genes_amp,explode(",",$line[$idx_genes]));
-					$cnv_report->addRow(array($line[$idx_chr].":".$line[$idx_start]."-".$line[$idx_end],$line[$idx_size],"AMP",implode(", ", explode(",",$line[$idx_genes]))));
+					$cnv_report->addRow(array($line[$idx_chr].":".$line[$idx_start]."-".$line[$idx_end],$line[$idx_size],"AMP",$copy_median,implode(", ", explode(",",$line[$idx_genes]))));
 				}
 				else
 				{
 					$genes_loss = array_merge($genes_loss, explode(",",$line[$idx_genes]));
-					$cnv_report->addRow(array($line[$idx_chr].":".$line[$idx_start]."-".$line[$idx_end],$line[$idx_size],"LOSS",implode(", ", explode(",",$line[$idx_genes]))));
+					$cnv_report->addRow(array($line[$idx_chr].":".$line[$idx_start]."-".$line[$idx_end],$line[$idx_size],"LOSS",$copy_median,implode(", ", explode(",",$line[$idx_genes]))));
 				}
 			}
 		}
@@ -257,6 +260,7 @@ if (in_array("re", $steps))
 		// generate report preformatted using rtf
 		$report = array();
 		$report[] = "{\rtf1\ansi\deff0 {\fonttbl {\f0 Times New Roman;}}";
+		$report[] = "{\footer\pard\qr\fs14 Probe $tumor_name-$normal_name, Seite \chpgn  von {\field{\*\fldinst  NUMPAGES }}\par}";
 		$report[] = doc_head("Wissenschaftlicher Bericht zu den Proben $t_id ".( !$single_sample ? "/ $n_id" : ""));
 		// metadata
 		$report[] = par_head("Metadata:");
@@ -309,7 +313,7 @@ if (in_array("re", $steps))
 		if(is_file($s_cnvs))
 		{			
 			$report[] = "\fs8 \line \fs14";
-			$report [] = "{\pard \fs20";
+			$report [] = "{\pard\fs20\qj";
 			$report[] = "Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Die Liste der CNVs basiert auf strengen Filterkriterien. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode.";
 			$report[] = "\par}";
 			$report[] = "\fs8 \line \fs14";
@@ -326,11 +330,11 @@ if (in_array("re", $steps))
 				$report[] = par_table_header_cnv();
 				for ($i=0; $i<$cnv_report->rows(); ++$i)
 				{
-					list($pos,$size,$type,$gene) = $cnv_report->getRow($i);
-					$report[] = par_table_row_cnv($pos, $size, $type, $gene);
+					list($pos,$size,$type,$copy_number,$gene) = $cnv_report->getRow($i);
+					$report[] = par_table_row_cnv($pos, $size, $type, $copy_number, $gene);
 				}
 				$tmp = "\fs8 \line \fs14 Position - chromosomale Position (".$system_t['build']."); Größe - CNV-Größe in Basenpaaren; Typ - Verlust (LOSS) oder Amplifikation (AMP);";
-				$tmp .= "Gene - Gene in dieser Region.\fs20";
+				$tmp .= "CN - geschätzte mediane Copy Number in dieser Region;Gene - Gene in dieser Region.\fs20";
 				$report[] = $tmp;
 				$report[] = "\par}";
 				
@@ -402,7 +406,7 @@ function par_table_metadata($name, $value)
 
 function par_table_qc($name, $value)
 {
-	return "{\trowd \trgraph180 \fs20 \cellx2500 \cellx4000 \pard\intbl ".$name."\cell \pard\intbl\qr ".$value."\cell\row}";
+	return "{\trowd \trgraph180 \fs20 \cellx2500 \cellx4200 \pard\intbl ".$name."\cell \pard\intbl\qr ".$value."\cell\row}";
 }
 
 function par_table_header_var()
@@ -438,25 +442,29 @@ function par_table_header_cnv()
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3700";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4700";
+	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5200";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500";
 	$string .= "\pard\intbl\b\qc Position\cell";
 	$string .= "\pard\intbl\qc Größe [bp]\cell";
 	$string .= "\pard\intbl\qc Typ\cell";
+	$string .= "\pard\intbl\qc CN\cell";
 	$string .= "\pard\intbl\qc Gene\cell";
 	$string .= "\row}";
 	return $string;
 }
 
-function par_table_row_cnv($pos,$size,$type,$genes)
+function par_table_row_cnv($pos,$size,$type,$copy_number,$genes)
 {
 	$string = "{\trowd \trgraph180 \fs20";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3700";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4700";
+	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5200";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500";
 	$string .= "\pard\intbl $pos\cell";
 	$string .= "\pard\intbl\qc $size\cell";
 	$string .= "\pard\intbl\qc $type\cell";
+	$string .= "\pard\intbl\qc $copy_number\cell";
 	$string .= "\pard\intbl\qj $genes\cell";
 	$string .= "\row}";
 	return $string;

@@ -1,9 +1,10 @@
 {\rtf1\ansi\deff0 {\fonttbl {\f0 Times New Roman;}}
+{\footer\pard\qr\fs14 Probe GS150497_01-GS150496_01, Seite \chpgn  von {\field{\*\fldinst  NUMPAGES }}\par}
 {\pard \fs28 \sa180 Wissenschaftlicher Bericht zu den Proben GS150497_01 / GS150496_01\par}
 {\pard \fs24 Metadata:\par}
 {\pard \fs20 \sa180
 {\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Datum:\cell \pard\intbl\ql 17.08.2017\cell\row}
-{\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Revision der Analysepipeline:\cell \pard\intbl\ql megSAP 0.1-346-g57a452f\cell\row}
+{\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Revision der Analysepipeline:\cell \pard\intbl\ql megSAP 0.1-352-gd5b3b66\cell\row}
 {\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Tumor:\cell \pard\intbl\ql GS150497_01\cell\row}
 {\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Normal:\cell \pard\intbl\ql GS150496_01\cell\row}
 {\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Prozessierungssystem Tumor:\cell \pard\intbl\ql SureSelect Somatic Cancer Panel v2\cell\row}
@@ -11,11 +12,11 @@
 \par}
 {\pard \fs24 Quality parameters:\par}
 {\pard \fs20 \sa180
-{\trowd \trgraph180 \fs20 \cellx2500 \cellx4000 \pard\intbl Coverage Tumor 100x:\cell \pard\intbl\qr 0.20\cell\row}
-{\trowd \trgraph180 \fs20 \cellx2500 \cellx4000 \pard\intbl Durchschnittl. Tiefe Tumor:\cell \pard\intbl\qr 1.24\cell\row}
-{\trowd \trgraph180 \fs20 \cellx2500 \cellx4000 \pard\intbl Coverage Normal 100x:\cell \pard\intbl\qr 0.20\cell\row}
-{\trowd \trgraph180 \fs20 \cellx2500 \cellx4000 \pard\intbl Durchschnittl. Tiefe Normal:\cell \pard\intbl\qr 0.85\cell\row}
-{\trowd \trgraph180 \fs20 \cellx2500 \cellx4000 \pard\intbl Mutationslast:\cell \pard\intbl\qr low (2.39 var/Mb)\cell\row}
+{\trowd \trgraph180 \fs20 \cellx2500 \cellx4200 \pard\intbl Coverage Tumor 100x:\cell \pard\intbl\qr 0.20\cell\row}
+{\trowd \trgraph180 \fs20 \cellx2500 \cellx4200 \pard\intbl Durchschnittl. Tiefe Tumor:\cell \pard\intbl\qr 1.24\cell\row}
+{\trowd \trgraph180 \fs20 \cellx2500 \cellx4200 \pard\intbl Coverage Normal 100x:\cell \pard\intbl\qr 0.20\cell\row}
+{\trowd \trgraph180 \fs20 \cellx2500 \cellx4200 \pard\intbl Durchschnittl. Tiefe Normal:\cell \pard\intbl\qr 0.85\cell\row}
+{\trowd \trgraph180 \fs20 \cellx2500 \cellx4200 \pard\intbl Mutationslast:\cell \pard\intbl\qr low (2.39 var/Mb)\cell\row}
 \par}
 {\pard \fs24 SVNs und kleine INDELs:\par}
 {\pard \fs20 
@@ -31,7 +32,7 @@ Details:\fs8 \line
 \par}
 {\pard \fs24 CNVs:\par}
 \fs8 \line \fs14
-{\pard \fs20
+{\pard\fs20\qj
 Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Die Liste der CNVs basiert auf strengen Filterkriterien. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode.
 \par}
 \fs8 \line \fs14
