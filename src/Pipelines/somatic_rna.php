@@ -41,7 +41,7 @@ foreach($steps as $step)
 if($n_id=="na")
 {
 	$tumor_only = true;
-	$available_steps = array("fastq","ma","db");
+	$available_steps = array("ma","db");
 	$steps = array_intersect($available_steps,$steps);
 }
 //$steps_perf = array_slice($steps_all, $start_index, $end_index-$start_index+1);
@@ -167,7 +167,7 @@ if(!$tumor_only)
 		// (3a) variant calling
 		$args = "";
 		if (!$t_sys_ini['shotgun']) $args .= "-amplicon ";
-		$parser->execTool("NGS/vc_strelka.php", "-t_bam $tum_bam -n_bam $ref_bam -out $som_v $args");
+		$parser->execTool("NGS/vc_strelka2.php", "-t_bam $tum_bam -n_bam $ref_bam -out $som_v $args");
 	}
 
 
