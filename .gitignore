@@ -64,6 +64,9 @@
 /test/data_rna/paired_end/
 /test/data_rna/single_end/
 
+/test/data_somatic_rna/project_folder/
+/test/data_somatic_rna/somatic_rna_out.log
+
 /test/data_somatic/Sample_GS110168/
 /test/data_somatic/Sample_GS110169/
 /test/data_somatic/Sample_GS150344_01/
