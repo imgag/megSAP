@@ -260,11 +260,15 @@ if (in_array("re", $steps))
 		// generate report preformatted using rtf
 		$report = array();
 		$report[] = "{\rtf1\ansi\deff0 {\fonttbl {\f0 Times New Roman;}}";
-		$report[] = "{\footer\pard\qr\fs14 Probe $tumor_name-$normal_name, Seite \chpgn  von {\field{\*\fldinst  NUMPAGES }}\par}";
-		$report[] = doc_head("Wissenschaftlicher Bericht zu den Proben $t_id ".( !$single_sample ? "/ $n_id" : ""));
+		$report[] = "{\header\pard\qr\fs14 Wiss. Bericht $tumor_name-$normal_name vom ".date("d.m.Y").", Seite \chpgn  von {\field{\*\fldinst  NUMPAGES }}\par}";
+		$report[] = "\titlepg";
+		$report[] = "{\headerf {\pard\sa2200 \par}}";
+		$report[] = "{\footerf {\pard\sa1200 \par}}";
+		// document head
+		$report[] = doc_head("Wissenschaftlicher Bericht zu Tumorsequenzierung");
 		// metadata
-		$report[] = par_head("Metadata:");
-		$report[] = "{\pard \fs20 \sa180";
+		$report[] = par_head("Allgemeine Informationen:");
+		$report[] = "{\pard\fs20\sa180";
 		$report[] = par_table_metadata("Datum:", date("d.m.Y"));
 		$report[] = par_table_metadata("Revision der Analysepipeline:", repository_revision(true));
 		$report[] = par_table_metadata("Tumor:", $tumor_name);
@@ -277,8 +281,8 @@ if (in_array("re", $steps))
 		$t_qcml = $p_folder."/Sample_".$t_id."/".$t_id."_stats_map.qcML";
 		$n_qcml = $p_folder."/Sample_".$n_id."/".$n_id."_stats_map.qcML";
 		$s_qcml = $p_folder."/Somatic_".$t_id."-".$n_id."/".$t_id."-".$n_id."_stats_som.qcML";
-		$report[] = par_head("Quality parameters:");
-		$report[] = "{\pard \fs20 \sa180";
+		$report[] = par_head("Qualitätsparameter:");
+		$report[] = "{\pard\fs20\sa180";
 		$report[] = par_table_qc("Coverage Tumor 100x:",get_qc_from_qcml($t_qcml, "QC:2000030", "target region 100x percentage"));
 		$report[] = par_table_qc("Durchschnittl. Tiefe Tumor:",get_qc_from_qcml($t_qcml, "QC:2000025", "target region read depth"));
 		if(!$single_sample)	$report[] = par_table_qc("Coverage Normal 100x:",get_qc_from_qcml($n_qcml, "QC:2000030", "target region 100x percentage"));
@@ -287,14 +291,14 @@ if (in_array("re", $steps))
 		$report[] = "\par}";
 
 		// variants
-		$report[] = par_head("SVNs und kleine INDELs:");
-		$report[] = "{\pard \fs20 ";
+		$report[] = par_head("SNVs und kleine INDELs:");
+		$report[] = "{\pard\fs20\sb45\sa45";
 		$report[] = "Gefundene Varianten: ".$snv_report->rows()."\line";
 		if($snv_report->rows() > 0)
 		{
-			$report[] = "Details:\fs8 \line ";
+			$report[] = "Details:";
 			$report[] = "\par}";
-			$report[] = "{\pard \fs20 \sa360";
+			$report[] = "{\pard\fs20\sa360\sb45";
 			
 			$report[] = par_table_header_var();
 			for ($i=0; $i<$snv_report->rows(); ++$i)
@@ -303,7 +307,7 @@ if (in_array("re", $steps))
 				$report[] = par_table_row_var($pos,$ref,$obs,$freq_t,$freq_n,$coding);
 			}
 		}
-		$tmp = "\fs8 \line \fs14 Position - chromosomale Position (".$system_t['build']."); W - Allel Wildtyp; V - Allel Variante; F/T_Tumor - Frequenz und Tiefe im Tumor;";
+		$tmp = "\fs8\line\fs14 Position - chromosomale Position (".$system_t['build']."); W - Allel Wildtyp; V - Allel Variante; F/T_Tumor - Frequenz und Tiefe im Tumor;";
 		$tmp .= "F/T_Normal - Frequenz und Tiefe im Normal; cDNA - cDNA Position und Auswirkung Peptid.\fs20";
 		$report[] = $tmp;
 		$report[] = "\par}";
@@ -311,21 +315,20 @@ if (in_array("re", $steps))
 		//CNVs
 		$report[] = par_head("CNVs:");
 		if(is_file($s_cnvs))
-		{			
-			$report[] = "\fs8 \line \fs14";
+		{
+			$report[] = "\fs8\line\fs14";
 			$report [] = "{\pard\fs20\qj";
 			$report[] = "Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Die Liste der CNVs basiert auf strengen Filterkriterien. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode.";
 			$report[] = "\par}";
-			$report[] = "\fs8 \line \fs14";
-			$report[] = "{\pard \fs20 ";
+			$report[] = "{\pard\fs20\sb45\sa45";
 			$report[] = "Gefundene CNVs: ".$cnv_report->rows()."\line";
 			
 			if($cnv_report->rows()>0)
 			{
-				$report[] = "Details:\fs8 \line ";
+				$report[] = "Details:";
 				$report[] = "\par}";
 
-				$report [] = "{\pard \fs20 \sa360";
+				$report [] = "{\pard\fs20\sa360";
 
 				$report[] = par_table_header_cnv();
 				for ($i=0; $i<$cnv_report->rows(); ++$i)
@@ -391,27 +394,27 @@ if (in_array("re", $steps))
 
 function doc_head($string)
 {
-	return "{\pard \fs28 \sa180 $string\par}";
+	return "{\pard\fs28\sa270 $string \par}";
 }
 
 function par_head($string)
 {
-	return "{\pard \fs24 $string\par}";
+	return "{\pard\fs24\sa45 $string \par}";
 }
 
 function par_table_metadata($name, $value)
 {
-	return "{\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl ".$name."\cell \pard\intbl\ql ".$value."\cell\row}";
+	return "{\trowd\trgraph180\fs20\cellx3000\cellx6500\pard\intbl {".$name."}\cell \pard\intbl\ql {".$value."}\cell\row}";
 }
 
 function par_table_qc($name, $value)
 {
-	return "{\trowd \trgraph180 \fs20 \cellx2500 \cellx4200 \pard\intbl ".$name."\cell \pard\intbl\qr ".$value."\cell\row}";
+	return "{\trowd\trgraph180\fs20\cellx2500\cellx4700\pard\intbl {".$name."}\cell \pard\intbl\qr {".$value."}\cell\row}";
 }
 
 function par_table_header_var()
 {
-	$string = "{\trowd \trgraph180 \fs20";
+	$string = "{\trowd\trgraph180\fs20";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2850";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3250";
@@ -424,14 +427,14 @@ function par_table_header_var()
 
 function par_table_row_var($pos,$ref,$obs,$freq_t,$freq_n,$coding)
 {
-	$string = "{\trowd \trgraph180 \fs20";
+	$string = "{\trowd\trgraph180\fs20";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2850";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3250";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4450";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5650";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500";
-	$string .= "\pard\intbl $pos\cell \pard\intbl\qc $ref\cell \pard\intbl\qc $obs\cell \pard\intbl\qc $freq_t\cell \pard\intbl\qc $freq_n\cell \pard\intbl\qj $coding\cell\row}";
+	$string .= "\pard\intbl {$pos}\cell \pard\intbl\qc {$ref}\cell \pard\intbl\qc {$obs}\cell \pard\intbl\qc {$freq_t}\cell \pard\intbl\qc {$freq_n}\cell \pard\intbl\qj {$coding}\cell\row}";
 	return $string;
 }
 
@@ -461,11 +464,11 @@ function par_table_row_cnv($pos,$size,$type,$copy_number,$genes)
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4700";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5200";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500";
-	$string .= "\pard\intbl $pos\cell";
-	$string .= "\pard\intbl\qc $size\cell";
-	$string .= "\pard\intbl\qc $type\cell";
-	$string .= "\pard\intbl\qc $copy_number\cell";
-	$string .= "\pard\intbl\qj $genes\cell";
+	$string .= "\pard\intbl {$pos}\cell";
+	$string .= "\pard\intbl\qc {$size}\cell";
+	$string .= "\pard\intbl\qc {$type}\cell";
+	$string .= "\pard\intbl\qc {$copy_number}\cell";
+	$string .= "\pard\intbl\qj {$genes}\cell";
 	$string .= "\row}";
 	return $string;
 }
@@ -475,12 +478,12 @@ function par_cnv_genes($array_amplified, $array_loss)
 	$string = "{\trowd \trgraph180 \fs20";
 	$string .= "\cellx1800 \cellx9000";
 	$string .= "\pard\intbl Amplifizierte Gene:\cell"; 
-	$string .= "\pard\intbl\qj ".implode(", ",$array_amplified)."\cell";
+	$string .= "\pard\intbl\qj {".implode(", ",$array_amplified)."}\cell";
 	$string .= "\row}";
 	$string .= "{\trowd \trgraph180 \fs20";
 	$string .= "\cellx1800 \cellx9000";
 	$string .= "\pard\intbl Deletierte Gene:\cell"; 
-	$string .= "\pard\intbl\qj ".implode(", ",$array_loss)."\cell";
+	$string .= "\pard\intbl\qj {".implode(", ",$array_loss)."}\cell";
 	$string .= "\row}";	
 	return $string;
 }

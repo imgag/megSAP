@@ -302,7 +302,7 @@ else
 			if ($amplicon) $args[] = "-amplicon";
 			if($add_vc_folder)	$args[] = "-temp ".dirname($som_v)."/variant_calling";
 			if(!$strelka1 && is_file($som_si))	$args[] = "-smallIndels $som_si";
-			if(!$strelka1)	$parser->execTool("NGS/vc_strelka2.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));
+			if(!$strelka1 && !$amplicon)	$parser->execTool("NGS/vc_strelka2.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));
 			else 	$parser->execTool("NGS/vc_strelka.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));	//combined variant calling using strelka		
 		}
 		else	// combined variant calling using freebayes
@@ -442,7 +442,7 @@ else
 		$parser->execTool("NGS/filter_vcf.php", "-in $som_vann -out $tmp_vcf -min_af $min_af -keep -type synonymous");
 			
 		// add QCI output
-		$parser->execTool("Tools/converter_vcf2qci.php", "-in $som_vann -out $som_vqci -pass");
+		$parser->execTool("Tools/converter_vcf2qci.php", "-in $tmp_vcf -out $som_vqci -pass");
 	}
 
 	// import somatic variants to NGSD, check if sample within NGSD, otherwise skip QC import

@@ -1,45 +1,47 @@
 {\rtf1\ansi\deff0 {\fonttbl {\f0 Times New Roman;}}
-{\footer\pard\qr\fs14 Probe Tumor1-Normal1, Seite \chpgn  von {\field{\*\fldinst  NUMPAGES }}\par}
-{\pard \fs28 \sa180 Wissenschaftlicher Bericht zu den Proben Tumor1 / Normal1\par}
-{\pard \fs24 Metadata:\par}
-{\pard \fs20 \sa180
-{\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Datum:\cell \pard\intbl\ql 17.08.2017\cell\row}
-{\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Revision der Analysepipeline:\cell \pard\intbl\ql megSAP 0.1-352-gd5b3b66\cell\row}
-{\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Tumor:\cell \pard\intbl\ql Tumor1\cell\row}
-{\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Normal:\cell \pard\intbl\ql Normal1\cell\row}
-{\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Prozessierungssystem Tumor:\cell \pard\intbl\ql SureSelect Somatic Cancer Panel v2\cell\row}
-{\trowd \trgraph180 \fs20 \cellx3000 \cellx6500 \pard\intbl Prozessierungssystem Normal:\cell \pard\intbl\ql SureSelect Somatic Cancer Panel v2\cell\row}
+{\header\pard\qr\fs14 Wiss. Bericht Tumor1-Normal1 vom 18.08.2017, Seite \chpgn  von {\field{\*\fldinst  NUMPAGES }}\par}
+\titlepg
+{\headerf {\pard\sa2200 \par}}
+{\footerf {\pard\sa1200 \par}}
+{\pard\fs28\sa270 Wissenschaftlicher Bericht zu Tumorsequenzierung \par}
+{\pard\fs24\sa45 Allgemeine Informationen: \par}
+{\pard\fs20\sa180
+{\trowd\trgraph180\fs20\cellx3000\cellx6500\pard\intbl {Datum:}\cell \pard\intbl\ql {18.08.2017}\cell\row}
+{\trowd\trgraph180\fs20\cellx3000\cellx6500\pard\intbl {Revision der Analysepipeline:}\cell \pard\intbl\ql {megSAP 0.1-354-g05d72ba}\cell\row}
+{\trowd\trgraph180\fs20\cellx3000\cellx6500\pard\intbl {Tumor:}\cell \pard\intbl\ql {Tumor1}\cell\row}
+{\trowd\trgraph180\fs20\cellx3000\cellx6500\pard\intbl {Normal:}\cell \pard\intbl\ql {Normal1}\cell\row}
+{\trowd\trgraph180\fs20\cellx3000\cellx6500\pard\intbl {Prozessierungssystem Tumor:}\cell \pard\intbl\ql {SureSelect Somatic Cancer Panel v2}\cell\row}
+{\trowd\trgraph180\fs20\cellx3000\cellx6500\pard\intbl {Prozessierungssystem Normal:}\cell \pard\intbl\ql {SureSelect Somatic Cancer Panel v2}\cell\row}
 \par}
-{\pard \fs24 Quality parameters:\par}
-{\pard \fs20 \sa180
-{\trowd \trgraph180 \fs20 \cellx2500 \cellx4200 \pard\intbl Coverage Tumor 100x:\cell \pard\intbl\qr 72.71\cell\row}
-{\trowd \trgraph180 \fs20 \cellx2500 \cellx4200 \pard\intbl Durchschnittl. Tiefe Tumor:\cell \pard\intbl\qr 221.39\cell\row}
-{\trowd \trgraph180 \fs20 \cellx2500 \cellx4200 \pard\intbl Coverage Normal 100x:\cell \pard\intbl\qr 97.56\cell\row}
-{\trowd \trgraph180 \fs20 \cellx2500 \cellx4200 \pard\intbl Durchschnittl. Tiefe Normal:\cell \pard\intbl\qr 460.64\cell\row}
+{\pard\fs24\sa45 Qualitätsparameter: \par}
+{\pard\fs20\sa180
+{\trowd\trgraph180\fs20\cellx2500\cellx4700\pard\intbl {Coverage Tumor 100x:}\cell \pard\intbl\qr {72.71}\cell\row}
+{\trowd\trgraph180\fs20\cellx2500\cellx4700\pard\intbl {Durchschnittl. Tiefe Tumor:}\cell \pard\intbl\qr {221.39}\cell\row}
+{\trowd\trgraph180\fs20\cellx2500\cellx4700\pard\intbl {Coverage Normal 100x:}\cell \pard\intbl\qr {97.56}\cell\row}
+{\trowd\trgraph180\fs20\cellx2500\cellx4700\pard\intbl {Durchschnittl. Tiefe Normal:}\cell \pard\intbl\qr {460.64}\cell\row}
 \par}
-{\pard \fs24 SVNs und kleine INDELs:\par}
-{\pard \fs20 
+{\pard\fs24\sa45 SNVs und kleine INDELs: \par}
+{\pard\fs20\sb45\sa45
 Gefundene Varianten: 3\line
-Details:\fs8 \line 
+Details:
 \par}
-{\pard \fs20 \sa360
-{\trowd \trgraph180 \fs20\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2850\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3250\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5650\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500\pard\intbl\b\qc Position\cell \pard\intbl\qc W\cell \pard\intbl\qc V\cell \pard\intbl\qc F/T_Tumor\cell \pard\intbl\qc F/T_Normal\cell \pard\intbl\qc cDNA\cell\row}
-{\trowd \trgraph180 \fs20\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2850\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3250\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5650\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500\pard\intbl chr12:12339935-12339935\cell \pard\intbl\qc C\cell \pard\intbl\qc T\cell \pard\intbl\qc 0.140/301\cell \pard\intbl\qc 0.000/402\cell \pard\intbl\qj LRP6 c.766G>A p.Glu256Lys (identisch zu LRP6 c.358G>A p.Glu120Lys)\cell\row}
-{\trowd \trgraph180 \fs20\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2850\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3250\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5650\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500\pard\intbl chr16:66423388-66423388\cell \pard\intbl\qc G\cell \pard\intbl\qc A\cell \pard\intbl\qc 0.239/117\cell \pard\intbl\qc 0.000/339\cell \pard\intbl\qj CDH5 c.744G>A p.Leu248Leu\cell\row}
-{\trowd \trgraph180 \fs20\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2850\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3250\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5650\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500\pard\intbl chr17:7577106-7577106\cell \pard\intbl\qc G\cell \pard\intbl\qc C\cell \pard\intbl\qc 0.633/109\cell \pard\intbl\qc 0.000/290\cell \pard\intbl\qj TP53 c.832C>G p.Pro278Ala (identisch zu TP53 c.436C>G p.Pro146Ala)\cell\row}
-\fs8 \line \fs14 Position - chromosomale Position (GRCh37); W - Allel Wildtyp; V - Allel Variante; F/T_Tumor - Frequenz und Tiefe im Tumor;F/T_Normal - Frequenz und Tiefe im Normal; cDNA - cDNA Position und Auswirkung Peptid.\fs20
+{\pard\fs20\sa360\sb45
+{\trowd\trgraph180\fs20\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2850\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3250\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5650\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500\pard\intbl\b\qc Position\cell \pard\intbl\qc W\cell \pard\intbl\qc V\cell \pard\intbl\qc F/T_Tumor\cell \pard\intbl\qc F/T_Normal\cell \pard\intbl\qc cDNA\cell\row}
+{\trowd\trgraph180\fs20\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2850\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3250\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5650\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500\pard\intbl chr12:12339935-12339935\cell \pard\intbl\qc C\cell \pard\intbl\qc T\cell \pard\intbl\qc 0.140/301\cell \pard\intbl\qc 0.000/402\cell \pard\intbl\qj LRP6 c.766G>A p.Glu256Lys (identisch zu LRP6 c.358G>A p.Glu120Lys)\cell\row}
+{\trowd\trgraph180\fs20\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2850\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3250\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5650\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500\pard\intbl chr16:66423388-66423388\cell \pard\intbl\qc G\cell \pard\intbl\qc A\cell \pard\intbl\qc 0.239/117\cell \pard\intbl\qc 0.000/339\cell \pard\intbl\qj CDH5 c.744G>A p.Leu248Leu\cell\row}
+{\trowd\trgraph180\fs20\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2850\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3250\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5650\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500\pard\intbl chr17:7577106-7577106\cell \pard\intbl\qc G\cell \pard\intbl\qc C\cell \pard\intbl\qc 0.633/109\cell \pard\intbl\qc 0.000/290\cell \pard\intbl\qj TP53 c.832C>G p.Pro278Ala (identisch zu TP53 c.436C>G p.Pro146Ala)\cell\row}
+\fs8\line\fs14 Position - chromosomale Position (GRCh37); W - Allel Wildtyp; V - Allel Variante; F/T_Tumor - Frequenz und Tiefe im Tumor;F/T_Normal - Frequenz und Tiefe im Normal; cDNA - cDNA Position und Auswirkung Peptid.\fs20
 \par}
-{\pard \fs24 CNVs:\par}
-\fs8 \line \fs14
+{\pard\fs24\sa45 CNVs: \par}
+\fs8\line\fs14
 {\pard\fs20\qj
 Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Die Liste der CNVs basiert auf strengen Filterkriterien. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode.
 \par}
-\fs8 \line \fs14
-{\pard \fs20 
+{\pard\fs20\sb45\sa45
 Gefundene CNVs: 74\line
-Details:\fs8 \line 
+Details:
 \par}
-{\pard \fs20 \sa360
+{\pard\fs20\sa360
 {\trowd \trgraph180 \fs20\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3700\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4700\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5200\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500\pard\intbl\b\qc Position\cell\pard\intbl\qc Größe [bp]\cell\pard\intbl\qc Typ\cell\pard\intbl\qc CN\cell\pard\intbl\qc Gene\cell\row}
 {\trowd \trgraph180 \fs20\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3700\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4700\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5200\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500\pard\intbl chr1:11297874-59248767\cell\pard\intbl\qc 47950894\cell\pard\intbl\qc LOSS\cell\pard\intbl\qc 1\cell\pard\intbl\qj ARID1A, CDKN2C, CSF3R, JUN, MPL, MTHFR, MTOR, MUTYH, MYCL, PTCH2, TOE1\cell\row}
 {\trowd \trgraph180 \fs20\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx2450\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx3700\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx4700\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5200\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500\pard\intbl chr1:155158585-156849974\cell\pard\intbl\qc 1691390\cell\pard\intbl\qc LOSS\cell\pard\intbl\qc 1\cell\pard\intbl\qj INSRR, MUC1, NTRK1, SH2D2A\cell\row}
@@ -118,6 +120,6 @@ Details:\fs8 \line
 \fs8 \line \fs14 Position - chromosomale Position (GRCh37); Größe - CNV-Größe in Basenpaaren; Typ - Verlust (LOSS) oder Amplifikation (AMP);CN - geschätzte mediane Copy Number in dieser Region;Gene - Gene in dieser Region.\fs20
 \par}
 {\pard \fs20 
-{\trowd \trgraph180 \fs20\cellx1800 \cellx9000\pard\intbl Amplifizierte Gene:\cell\pard\intbl\qj CDC73, MDM4, AKT3, FANCL, FBXO11, MSH6, VRK2, LRP1B, SF3B1, BARD1, PIK3CA, IL7R, RICTOR, AHR, PTEN, MRE11, KDM5A, BCL2L14, LRP6, CDKN1B, KRAS, SLCO1B1, MDM2, RB1, NF1, ERBB2, MIR4728, TOP2A, BRIP1, CDH2, USP9X, ATRX, PHF6, STAG2\cell\row}{\trowd \trgraph180 \fs20\cellx1800 \cellx9000\pard\intbl Deletierte Gene:\cell\pard\intbl\qj ARID1A, CDKN2C, CSF3R, JUN, MPL, MTHFR, MTOR, MUTYH, MYCL, PTCH2, TOE1, INSRR, MUC1, NTRK1, SH2D2A, IKBKE, DNMT3A, MYD88, SCN5A, BAP1, SETD2, EPHB1, GATA2, NR1I2, CD38, FGFR3, FIP1L1, KIT, PDGFRA, CSF1R, GABRA6, PDGFRB, FGFR4, FLT4, NSD1, CCND3, CDKN1A, DAXX, FANCE, FOXP4, GPSM3, MIR4641, NOTCH4, PFDN6, RGL2, PKHD1, IGF2R, PRKN, DLL1, PACRG, CARD11, PMS2, CUX1, CYP3A4, EPHB4, PIK3CG, SMO, EPHB6, KCNH2, KMT2C, ADGRA2, FGFR1, CDKN2A, CDKN2B, CDKN2B-AS1, FANCG, PAX5, ABL1, PTCH1, TSC1, MIR4673, NOTCH1, HRAS, KCNJ11, LMO1, CCND1, GSTP1, MEN1, C12ORF43, CHFR, HNF1A, HNF1A-AS1, POLE, AKT1, HSP90AA1, JAG2, DLL4, ITPKA, LTK, MAP2K1, CYP1A2, SMAD3, IDH2, NTRK3, NTRK3-AS1, AXIN1, CREBBP, TSC2, CBFB, CDH5, FANCA, ZNF276, RARA, ACE, CD79B, SOX9, RPTOR, BRD4, CCNE1, DOT1L, GNA11, INSR, JAK3, KEAP1, MAP2K2, NOTCH3, PRAM1, SMARCA4, STK11, AKT2, CD79A, CEBPA, CIC, CYP2A6, CYP2B6, DLL3, ERCC2, POLD1, PPP2R1A, ASXL1, SRC, PLCG1, CHEK2, COMT, CRKL, MIR4761, SMARCB1, CYP2D6, CYP2D7, EP300, NDUFA6-AS1, ARAF, GATA1, KDM5C, RBM10, G6PD, IKBKG\cell\row}
+{\trowd \trgraph180 \fs20\cellx1800 \cellx9000\pard\intbl Amplifizierte Gene:\cell\pard\intbl\qj {CDC73, MDM4, AKT3, FANCL, FBXO11, MSH6, VRK2, LRP1B, SF3B1, BARD1, PIK3CA, IL7R, RICTOR, AHR, PTEN, MRE11, KDM5A, BCL2L14, LRP6, CDKN1B, KRAS, SLCO1B1, MDM2, RB1, NF1, ERBB2, MIR4728, TOP2A, BRIP1, CDH2, USP9X, ATRX, PHF6, STAG2}\cell\row}{\trowd \trgraph180 \fs20\cellx1800 \cellx9000\pard\intbl Deletierte Gene:\cell\pard\intbl\qj {ARID1A, CDKN2C, CSF3R, JUN, MPL, MTHFR, MTOR, MUTYH, MYCL, PTCH2, TOE1, INSRR, MUC1, NTRK1, SH2D2A, IKBKE, DNMT3A, MYD88, SCN5A, BAP1, SETD2, EPHB1, GATA2, NR1I2, CD38, FGFR3, FIP1L1, KIT, PDGFRA, CSF1R, GABRA6, PDGFRB, FGFR4, FLT4, NSD1, CCND3, CDKN1A, DAXX, FANCE, FOXP4, GPSM3, MIR4641, NOTCH4, PFDN6, RGL2, PKHD1, IGF2R, PRKN, DLL1, PACRG, CARD11, PMS2, CUX1, CYP3A4, EPHB4, PIK3CG, SMO, EPHB6, KCNH2, KMT2C, ADGRA2, FGFR1, CDKN2A, CDKN2B, CDKN2B-AS1, FANCG, PAX5, ABL1, PTCH1, TSC1, MIR4673, NOTCH1, HRAS, KCNJ11, LMO1, CCND1, GSTP1, MEN1, C12ORF43, CHFR, HNF1A, HNF1A-AS1, POLE, AKT1, HSP90AA1, JAG2, DLL4, ITPKA, LTK, MAP2K1, CYP1A2, SMAD3, IDH2, NTRK3, NTRK3-AS1, AXIN1, CREBBP, TSC2, CBFB, CDH5, FANCA, ZNF276, RARA, ACE, CD79B, SOX9, RPTOR, BRD4, CCNE1, DOT1L, GNA11, INSR, JAK3, KEAP1, MAP2K2, NOTCH3, PRAM1, SMARCA4, STK11, AKT2, CD79A, CEBPA, CIC, CYP2A6, CYP2B6, DLL3, ERCC2, POLD1, PPP2R1A, ASXL1, SRC, PLCG1, CHEK2, COMT, CRKL, MIR4761, SMARCB1, CYP2D6, CYP2D7, EP300, NDUFA6-AS1, ARAF, GATA1, KDM5C, RBM10, G6PD, IKBKG}\cell\row}
 \par}
 }

@@ -13,12 +13,40 @@ then
   exit
 fi
 
-if [ ! -d "Sample_$1" ]; then
-	echo "ERROR: Could not find folder Sample_$1"
+#extract all arguments
+args=( "$@" )
+
+#check if NOQUEUE is available
+noqueue=false
+for (( i=0; i < ${#args[@]}; ++i))
+do
+	if [[ ${args[$i]} == "NOQUEUE" ]]
+	then
+		noqueue=true
+		unset args[$i]
+	fi
+done
+args=( "${args[@]}" )
+
+if [ ! -d "Sample_${args[0]}" ]; then
+	echo "ERROR: Could not find folder Sample_${args[0]}"
 	exit
 fi
-cd Sample_$1
+cd Sample_${args[0]}
 
 #perform analysis
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-php $DIR/../src/Pipelines/analyze.php -folder . -name $1 ${@:2} --log analyze_$(date +%Y%m%d%H%M%S).log
+COMMAND="php $DIR/../src/Pipelines/analyze.php -folder . -name ${args[0]} ${args[@]:1} --log analyze_$(date +%Y%m%d%H%M%S).log"
+
+#project path
+PROJECTPATH=`pwd -P`
+
+if [[ "$noqueue" == true ]]
+then
+	echo $COMMAND
+	$COMMAND
+else
+	JOB=$(qsub -V -b y -wd $PROJECTPATH -m n -M christopher.schroeder@med.uni-tuebingen.de -q default_srv016,default_srv017,default_srv018 -e $COMMAND_STATUS -o $COMMAND_STATUS $COMMAND)
+	echo -e "$(date +%Y%m%d%H%M%S) \t $COMMAND \n\t -> $JOB" >> $COMMAND_STATUS/commands.txt
+	echo $JOB
+fi
