@@ -1,4 +1,4 @@
-all: clean link complete report_only diff
+all: clean link complete_pipeline report_only diff
 
 clean:
 	rm -f *.bam *.bai *.log *.txt *.GSvar *.vcf *.fastq.gz *.qcML *_qcML.txt *_igv.xml *.log *_report.rtf
@@ -16,7 +16,7 @@ link:
 	php ../link_test_data.php GS150497_01_S2_L001extracted_R1_001.fastq.gz Sample_GS150497_01/GS150497_01_S2_L001extracted_R1_001.fastq.gz
 	php ../link_test_data.php GS150497_01_S2_L001extracted_R2_001.fastq.gz Sample_GS150497_01/GS150497_01_S2_L001extracted_R2_001.fastq.gz
 
-complete:
+complete_pipeline:
 	mkdir -p Somatic_GS150497_01-GS150496_01
 	php ../../src/Pipelines/somatic_capa.php -t_id GS150497_01 -t_sys system.ini -n_id GS150496_01 -n_sys system.ini -p_folder . -o_folder Somatic_GS150497_01-GS150496_01 -steps ma,vc,an,ci,re -nsc --log GS150497_01-GS150496_01.log
 	cp Somatic_GS150497_01-GS150496_01/GS150497_01-GS150496_01.GSvar GS150497_01-GS150496_01.GSvar
@@ -32,10 +32,10 @@ report_only:
 
 diff:
 	php ../compare_variants.php GS150497_01-GS150496_01.GSvar.out GS150497_01-GS150496_01.GSvar
-	diff -b -I 'Datum:' -I 'Revision der Analysepipeline' GS150497_01-GS150496_01_report.rtf.out GS150497_01-GS150496_01_report.rtf
+	diff -b -I ' Wiss. Bericht GS150497_01-GS150496_01 vom ' -I 'Datum:' -I 'Revision der Analysepipeline' GS150497_01-GS150496_01_report.rtf.out GS150497_01-GS150496_01_report.rtf
 	ls */GS*.qcML | sort | xargs grep "<qualityParameter" > somatic_qcML.txt
 	php ../compare_qcml.php somatic_qcML.txt.out somatic_qcML.txt
-	diff -b -I 'Datum:' -I 'Revision der Analysepipeline' Tumor1-Normal1_report.rtf.out Tumor1-Normal1_report.rtf
-	diff -b -I 'Datum:' -I 'Revision der Analysepipeline' Tumor2-Normal2_report.rtf.out Tumor2-Normal2_report.rtf
+	diff -b -I ' Wiss. Bericht Tumor1-Normal1 vom ' -I 'Datum:' -I 'Revision der Analysepipeline' Tumor1-Normal1_report.rtf.out Tumor1-Normal1_report.rtf
+	diff -b -I ' Wiss. Bericht Tumor2-Normal2 vom ' -I 'Datum:' -I 'Revision der Analysepipeline' Tumor2-Normal2_report.rtf.out Tumor2-Normal2_report.rtf
 	diff -b Tumor1-Normal1_igv.xml.out Tumor1-Normal1_igv.xml
 	diff -b Tumor2-Normal2_igv.xml.out Tumor2-Normal2_igv.xml
