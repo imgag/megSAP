@@ -16,7 +16,7 @@ src=`pwd`/../src/
 cd $data_folder/dbs/
 mkdir gene_annotations
 cd gene_annotations
-wget -O - 'http://ftp.ensembl.org/pub/grch37/release-81/gtf/homo_sapiens/Homo_sapiens.GRCh37.75.gtf.gz' | \
+wget -O - 'https://data.broadinstitute.org/Trinity/CTAT_RESOURCE_LIB/__pre_July202017/GRCh37_gencode_v19_CTAT_lib_July272016.tar.gz ' | \
   gunzip -c | \
   awk '{ if($1 !~ /^#/){print "chr"$0} else{print $0} }' > GRCh37.gtf
 
