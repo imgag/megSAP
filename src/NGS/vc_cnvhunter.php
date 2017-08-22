@@ -67,9 +67,11 @@ if($sys['type']=="WGS")
 if(isset($seg) && is_null($n_cov)) $args[] = "-seg $seg";
 $args[] = "-anno";
 $args[] = "-n $n";
+if ($somatic) $args[] = "-debug ALL";
 $temp_folder = !empty($debug)?$debug:$parser->tempFolder();
 if(!is_dir($temp_folder))	mkdir ($temp_folder);
-$parser->exec(get_path("ngs-bits")."CnvHunter", "-in ".implode(" ",$cov_files)." -out ".$temp_folder."/cnvs.tsv -debug ALL ".implode(" ", $args), true);
+$args[] = "-sam_corr_regs 250000";
+$parser->exec(get_path("ngs-bits")."CnvHunter", "-in ".implode(" ",$cov_files)." -out ".$temp_folder."/cnvs.tsv ".implode(" ", $args), true);
 
 // filter results for given processed sample(s)
 $cnvs_unfiltered = Matrix::fromTSV($temp_folder."/cnvs.tsv");
