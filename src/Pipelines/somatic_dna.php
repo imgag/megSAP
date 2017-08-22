@@ -456,14 +456,14 @@ else
 			// import QC data tumor
 			$log_db  = $t_folder."/".$t_id."_log4_db.log";
 			$qcmls = $t_folder."/".$t_id."_stats_fastq.qcML ";
-			if (in_array("ma", $steps))	$qcmls .= $t_folder."/".$t_id."_stats_map.qcML ";
-			if (!$tumor_only && in_array("an", $steps))	$qc_som  = $o_folder.$t_id."-".$n_id."_stats_som.qcML ";
+			if (is_file($t_folder."/".$t_id."_stats_map.qcML"))	$qcmls .= $t_folder."/".$t_id."_stats_map.qcML ";
+			if (is_file($o_folder.$t_id."-".$n_id."_stats_som.qcML"))	$qc_som  = $o_folder.$t_id."-".$n_id."_stats_som.qcML ";
 			$parser->execTool("NGS/db_import_qc.php", "-id $t_id -files $qcmls -force -min_depth 0 --log $log_db");
-
+			
 			// import QC data normal
 			$log_db  = $n_folder."/".$n_id."_log4_db.log";
 			$qcmls  = $n_folder."/".$n_id."_stats_fastq.qcML ";
-			if (in_array("ma", $steps))	$qcmls .= $n_folder."/".$n_id."_stats_map.qcML ";
+			if (is_file($n_folder."/".$n_id."_stats_map.qcML"))	$qcmls .= $n_folder."/".$n_id."_stats_map.qcML ";
 			$parser->execTool("NGS/db_import_qc.php", "-id $n_id -files $qcmls -force -min_depth 0 --log $log_db");
 
 			// update last_analysis date

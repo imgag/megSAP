@@ -22,7 +22,7 @@ $parser->addInfile("n_sys",  "Reference sample processing system INI file (deter
 $parser->addInt("td",  "Min-depth for tumor low-coverage / reports.", true, 100);
 $parser->addInt("nd",  "Min-depth for normal low-coverage / reports.", true, 100);
 $steps_all = array("ma", "vc", "an", "ci", "db","re");
-$parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,ci,db");
+$parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, implode(",", $steps_all));
 $parser->addFlag("abra", "Turn on ABRA realignment.");
 $parser->addFlag("amplicon", "Turn on amplicon mode.");
 $parser->addFlag("nsc", "Skip sample correlation check (only in pair mode).");
@@ -183,7 +183,8 @@ if (in_array("re", $steps))
 		}
 
 		//prepare cnvs for report
-		$cnvs = Matrix::fromTSV($s_cnvs);
+		$cnvs = new Matrix();
+		if(is_file($s_cnvs))	$cnvs = Matrix::fromTSV($s_cnvs);
 		$min_zscore = 5;
 		$min_regions = 10;
 		$keep = array("MYC","MDM2","MDM4","CDKN2A","CDKN2A-AS1","CDK4","CDK6","PTEN","CCND1","RB1","CCND3","BRAF","KRAS","NRAS");
@@ -292,66 +293,58 @@ if (in_array("re", $steps))
 
 		// variants
 		$report[] = par_head("SNVs und kleine INDELs:");
-		$report[] = "{\pard\fs20\sb45\sa45";
+		$report[] = "{\pard\fs20\sb45".($snv_report->rows()>0?"\sa45":"\sa360")."";
 		$report[] = "Gefundene Varianten: ".$snv_report->rows()."\line";
 		if($snv_report->rows() > 0)
 		{
 			$report[] = "Details:";
 			$report[] = "\par}";
-			$report[] = "{\pard\fs20\sa360\sb45";
-			
+			$report[] = "{\pard\fs20\sa360\sb45";			
 			$report[] = par_table_header_var();
 			for ($i=0; $i<$snv_report->rows(); ++$i)
 			{
 				list($pos,$ref,$obs,$freq_t,$freq_n,$coding) = $snv_report->getRow($i);
 				$report[] = par_table_row_var($pos,$ref,$obs,$freq_t,$freq_n,$coding);
 			}
+			$tmp = "\fs8\line\fs14 Position - chromosomale Position (".$system_t['build']."); W - Allel Wildtyp; V - Allel Variante; F/T_Tumor - Frequenz und Tiefe im Tumor;";
+			$tmp .= "F/T_Normal - Frequenz und Tiefe im Normal; cDNA - cDNA Position und Auswirkung Peptid.\fs20";
+			$report[] = $tmp;
 		}
-		$tmp = "\fs8\line\fs14 Position - chromosomale Position (".$system_t['build']."); W - Allel Wildtyp; V - Allel Variante; F/T_Tumor - Frequenz und Tiefe im Tumor;";
-		$tmp .= "F/T_Normal - Frequenz und Tiefe im Normal; cDNA - cDNA Position und Auswirkung Peptid.\fs20";
-		$report[] = $tmp;
 		$report[] = "\par}";
 
 		//CNVs
 		$report[] = par_head("CNVs:");
-		if(is_file($s_cnvs))
+		$report[] = "\fs8\line\fs14";
+		$report [] = "{\pard\fs20\qj";
+		$report[] = "Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Die Liste der CNVs basiert auf strengen Filterkriterien. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode.";
+		$report[] = "\par}";
+		$report[] = "{\pard\fs20\sb45\sa45";
+		$report[] = "Gefundene CNVs: ".$cnv_report->rows()."\line";
+		
+		if($cnv_report->rows()>0)
 		{
-			$report[] = "\fs8\line\fs14";
-			$report [] = "{\pard\fs20\qj";
-			$report[] = "Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Die Liste der CNVs basiert auf strengen Filterkriterien. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode.";
+			$report[] = "Details:";
 			$report[] = "\par}";
-			$report[] = "{\pard\fs20\sb45\sa45";
-			$report[] = "Gefundene CNVs: ".$cnv_report->rows()."\line";
+
+			$report [] = "{\pard\fs20\sa360";
+
+			$report[] = par_table_header_cnv();
+			for ($i=0; $i<$cnv_report->rows(); ++$i)
+			{
+				list($pos,$size,$type,$copy_number,$gene) = $cnv_report->getRow($i);
+				$report[] = par_table_row_cnv($pos, $size, $type, $copy_number, $gene);
+			}
+			$tmp = "\fs8 \line \fs14 Position - chromosomale Position (".$system_t['build']."); Größe - CNV-Größe in Basenpaaren; Typ - Verlust (LOSS) oder Amplifikation (AMP);";
+			$tmp .= "CN - geschätzte mediane Copy Number in dieser Region;Gene - Gene in dieser Region.\fs20";
+			$report[] = $tmp;
+			$report[] = "\par}";
 			
-			if($cnv_report->rows()>0)
-			{
-				$report[] = "Details:";
-				$report[] = "\par}";
-
-				$report [] = "{\pard\fs20\sa360";
-
-				$report[] = par_table_header_cnv();
-				for ($i=0; $i<$cnv_report->rows(); ++$i)
-				{
-					list($pos,$size,$type,$copy_number,$gene) = $cnv_report->getRow($i);
-					$report[] = par_table_row_cnv($pos, $size, $type, $copy_number, $gene);
-				}
-				$tmp = "\fs8 \line \fs14 Position - chromosomale Position (".$system_t['build']."); Größe - CNV-Größe in Basenpaaren; Typ - Verlust (LOSS) oder Amplifikation (AMP);";
-				$tmp .= "CN - geschätzte mediane Copy Number in dieser Region;Gene - Gene in dieser Region.\fs20";
-				$report[] = $tmp;
-				$report[] = "\par}";
-				
-				$report[] = "{\pard \fs20 ";
-				$report[] = par_cnv_genes(array_unique($genes_amp),array_unique($genes_loss));
-			}
-			else
-			{
-				$report[] = "Keine CNVs gefunden. Siehe $s_cnvs für QC-Fehler.";
-			}
+			$report[] = "{\pard \fs20 ";
+			$report[] = par_cnv_genes(array_unique($genes_amp),array_unique($genes_loss));
 		}
 		else
 		{
-			$report[] = "Keine CNV-Datei gefunden ($s_cnvs).";
+			$report[] = "Keine CNVs gefunden. Siehe $s_cnvs für QC-Fehler.";
 		}
 		$report[] = "\par}";
 		$report[] = "}";

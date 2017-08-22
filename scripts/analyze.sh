@@ -34,6 +34,9 @@ if [ ! -d "Sample_${args[0]}" ]; then
 fi
 cd Sample_${args[0]}
 
+#bash output
+COMMAND_STATUS=/mnt/users/all/http/SampleStatus/data/
+
 #perform analysis
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 COMMAND="php $DIR/../src/Pipelines/analyze.php -folder . -name ${args[0]} ${args[@]:1} --log analyze_$(date +%Y%m%d%H%M%S).log"
