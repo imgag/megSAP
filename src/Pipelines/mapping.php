@@ -210,6 +210,10 @@ if ($sys['build']=="hg19" || $sys['build']=="GRCh37")
 {
 	$params[] = "-3exons";
 }
+else
+{
+	$params[] = "-no_cont";
+}
 
 $parser->exec(get_path("ngs-bits")."MappingQC", "-in $out -out $stafile2 ".implode(" ", $params), true);
 

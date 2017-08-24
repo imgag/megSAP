@@ -2,8 +2,6 @@
 
 /*
 	@page somatic_pair_rna
- 
-	@todo update old fastq handling
  */
 
 $basedir = dirname($_SERVER['SCRIPT_FILENAME'])."/../";
@@ -76,24 +74,6 @@ if(!$tumor_only)
 if(!$tumor_only && $t_sys_ini['name_short'] != $n_sys_ini['name_short']) trigger_error ("System tumor '".$t_sys_ini['name_short']."' and system reference '".$n_sys_ini['name_short']."' are different!", E_USER_WARNING);
 if(!$tumor_only && $t_sys_ini['build'] != $n_sys_ini['build']) trigger_error ("System tumor '".$t_sys_ini['build']."' and system reference '".$n_sys_ini['build']."' do have different builds!", E_USER_ERROR);
 
-// (0) set RNA fastq files
-$t_forward = $o_folder_tum.$t_id."_*_R1_001.fastq.gz";
-$t_reverse = $o_folder_tum.$t_id."_*_R2_001.fastq.gz";
-if(is_valid_processingid($t_id))
-{
-	list($s_id,$p_id) = explode("_",$t_id);
-	$t_forward = $o_folder_tum.$s_id."_*_R1_001.fastq.gz";
-	$t_reverse = $o_folder_tum.$s_id."_*_R2_001.fastq.gz";
-}
-$n_forward = $o_folder_ref.$n_id."_*_R1_001.fastq.gz";
-$n_reverse = $o_folder_ref.$n_id."_*_R2_001.fastq.gz";
-if(is_valid_processingid($n_id))
-{
-	list($s_id,$p_id) = explode("_",$n_id);
-	$n_forward = $o_folder_ref.$s_id."_*_R1_001.fastq.gz";
-	$n_reverse = $o_folder_ref.$s_id."_*_R2_001.fastq.gz";
-}
-
 // (1) map reference and tumor sample
 $tum_bam = $o_folder_tum.$t_id.".bam";
 $ref_bam = $o_folder_ref.$n_id.".bam";
@@ -104,8 +84,15 @@ if(in_array("ma", $steps))
 	//map tumor and normal in high-mem-queue
 	$args = "-steps ma,rc,fu,an";
 	$working_directory = realpath($p_folder);
-	$commands = array("php ".$basedir."Pipelines/analyze_rna.php -in_for $t_forward -in_rev $t_reverse -system $t_sys -out_folder ".$o_folder_tum." -out_name $t_id $args --log ".$o_folder_tum."analyze_".date('YmdHis',mktime()).".log");
-	if(!$tumor_only)	$commands[] = "php ".$basedir."Pipelines/analyze_rna.php -in_for $n_forward -in_rev $n_reverse -system $n_sys -out_folder ".$o_folder_ref." -out_name $n_id $args --log ".$o_folder_ref."analyze_".date('YmdHis',mktime()).".log";
+	
+	//analyze tumor RNA
+	$commands = array("php {$basedir}Pipelines/analyze_rna.php -folder {$o_folder_tum} -system {$t_sys} -name {$t_id} {$args} --log {$o_folder_tum}analyze_".date('YmdHis',mktime()).".log");
+	
+	//analyze normal RNA
+	if(!$tumor_only)	$commands[] = "php {$basedir}Pipelines/analyze_rna.php -folder {$n_forward} -system {$n_sys} -name {$n_id} {$args} --log {$o_folder_ref}analyze_".date('YmdHis',mktime()).".log";
+	
+	print_r($commands);
+	exit(42);
 	$parser->jobsSubmit($commands, $working_directory, get_path("queues_high_mem"), true);
 }
 

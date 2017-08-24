@@ -94,7 +94,11 @@ function get_parameters($processed_sample_name)
 	$result = $db_connect->executeQuery("SELECT id FROM processed_sample WHERE normal_id=".$psample_id);
 	$assoc_tumor = array_column($result, "id");
 	
-	return array($projectname, $project_type, $run_name, $tumor_status, $project_analysis, $internal_coord, $assoc_tumor);
+	//get type value from associated processing system
+	$result = $db_connect->executeQuery("SELECT processing_system.type FROM processing_system, processed_sample WHERE processed_sample.id=".$run_ID." AND processed_sample.processing_system_id=processing_system.id");
+	$sys_type = $result[0]["type"];
+	
+	return array($projectname, $project_type, $run_name, $tumor_status, $project_analysis, $internal_coord, $assoc_tumor, $sys_type);
 }
 
 function create_mail_command($coordinator, $email_ad, $samples, $project_name)
@@ -116,7 +120,9 @@ function create_mail_command($coordinator, $email_ad, $samples, $project_name)
 }
 
 //write makefile lines for file and folder operations and stores them in a dictionary
-function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map,  $sample_tumor_status_map, $sample_assoc_tumor_map, $runnumber, $makefile_name, $repo_folder, $nxtSeq, $sample_analysis_step_map)
+function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map,
+	$project_coord_map,  $sample_tumor_status_map, $sample_assoc_tumor_map, $runnumber,
+	$makefile_name, $repo_folder, $nxtSeq, $sample_analysis_step_map, $sample_systype_map)
 {
 	if (!file_exists($folder))
 	{
@@ -210,8 +216,8 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 			$target_to_copylines[$tag][]="\tcp -i -r ".$old_location."/Sample_".$sample_ID."/ ".$new_location."/";
 		}
 
-		//skip normal samples for SomaticAndTreatment project
-		$is_normal_with_tumor= ($sample_tumor_status_map[$sample_ID] == 0) && !empty($sample_assoc_tumor_map[$sample_ID]);
+		//skip normal samples which have an associated tumor sample on the same run
+		$is_normal_with_tumor = ($sample_tumor_status_map[$sample_ID] == 0) && !empty($sample_assoc_tumor_map[$sample_ID]);
 		
 		if($sample_analysis_step_map[$sample_ID]!="fastq" && !$is_normal_with_tumor) //if more than FASTQ creation should be done for samples's project
 		{					
@@ -224,18 +230,18 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 			
 			//build  first part of line for analysis using Sungrid Engine's queues,
 			$outputline= "php {$repo_folder}/src/NGS/queue_sample.php -sample ".$sample_ID;
-
-			//stop at mapping if analysis for project is set to mapping
-			if ($sample_analysis_step_map[$sample_ID]=="mapping")
-			{
-				$outputline.=" -steps ma,db";
-			}
 			
-			//stop at variant calling if analysis for project is set to variant calling
-			if ($sample_analysis_step_map[$sample_ID]=="variant calling")
-			{
-				$outputline.=" -steps ma,vc,db,cn";
-			}
+				//stop at mapping if analysis for project is set to mapping
+				if ($sample_analysis_step_map[$sample_ID]=="mapping")
+				{
+					$outputline.=" -steps ma,db";
+				}
+
+				//stop at variant calling if analysis for project is set to variant calling
+				if ($sample_analysis_step_map[$sample_ID]=="variant calling")
+				{
+					$outputline.=" -steps ma,vc,db,cn";
+				}
 						
 			$target_to_queuelines[$tag][]="\t".$outputline." ";
 		}
@@ -324,11 +330,14 @@ $sample_projectname_map = array();
 $sample_projecttype_map = array();
 $sample_tumor_status_map = array();
 $sample_assoc_tumor_map = array();
+$sample_systype_map = array();
 $old_runnumber = -1;
 $project_coord_map = array();
 foreach($sample_IDs as $sampleID)
 {	
-	list($sample_projectname_map[$sampleID], $sample_projecttype_map[$sampleID], $runnumber, $sample_tumor_status_map[$sampleID], $sample_analysis_step_map[$sampleID], $internal_coord, $sample_assoc_tumor_map[$sampleID]) = get_parameters($sampleID);
+	list($sample_projectname_map[$sampleID], $sample_projecttype_map[$sampleID], $runnumber, $sample_tumor_status_map[$sampleID],
+		$sample_analysis_step_map[$sampleID], $internal_coord, $sample_assoc_tumor_map[$sampleID],
+		$sample_systype_map[$sampleID]) = get_parameters($sampleID);
 	if ($sample_projectname_map[$sampleID]=="SKIPPED")//unable to extract all information due to malformed Sample ID
 	{
 		$runnumber = $old_runnumber;//set run number (which is "SKIPPED" now) back to last value
@@ -342,6 +351,7 @@ foreach($sample_IDs as $sampleID)
 	$project_coord_map[$sample_projectname_map[$sampleID]] = $internal_coord;
 }
 
-build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map, $sample_tumor_status_map, $sample_assoc_tumor_map, $runnumber, $out, $repo_folder, $nxtSeq, $sample_analysis_step_map);
+build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map, $sample_tumor_status_map,
+	$sample_assoc_tumor_map, $runnumber, $out, $repo_folder, $nxtSeq, $sample_analysis_step_map, $sample_systype_map);
 
 ?>
