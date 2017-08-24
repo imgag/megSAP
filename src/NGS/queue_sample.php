@@ -73,6 +73,22 @@ if($info['project_type']=="diagnostic" && $info['is_tumor'] && $info['normal_nam
 	$command = "php ".repository_basedir()."/src/Pipelines/somatic_capa.php";
 	$args = "-p_folder {$project_folder} -t_id {$sample} -n_id ".$info['normal_name']." -o_folder {$outfolder} -steps {$steps_som} --log {$outfolder}somatic_capa_".date("Ymdhis").".log";
 }
+elseif ($info['sys_type'] == "RNA")
+{
+	$command = "php ".repository_basedir()."/src/Pipelines/analyze_rna.php";
+	
+	//if steps argument is default, replace with analyze_rna default value
+	if ($steps == "ma,vc,an,db,cn")
+	{
+		$steps = "ma,rc,an,fu,db";
+	}
+	else
+	{
+		//reduce to valid steps for analyze_rna
+		$steps = implode(",", array_intersect(explode(",", $steps), explode(",", "ma,rc,an,fu,db")));
+	}
+	$args = "-folder {$sample_folder} -name {$sample} -steps {$steps} --log {$sample_folder}analyze_rna_".date("Ymdhis").".log";
+}
 else
 {
 	$command = "php ".repository_basedir()."/src/Pipelines/analyze.php";
@@ -84,10 +100,17 @@ else
 }
 
 //submit to queue
-$queues = explode(",", get_path("queues_default"));
 if($high_priority)
 {
 	$queues = array_merge($queues, explode(",", get_path("queues_high_priority")));
+}
+elseif ($info['sys_type']=="RNA")
+{
+	$queues = explode(",", get_path("queues_high_mem"));
+}
+else
+{
+	$queues = explode(",", get_path("queues_default"));
 }
 $sample_status = get_path("sample_status_folder")."/data/";
 $slots = $info['sys_type']=="WGS" ? "-pe smp 2" : ""; //use two instead of one slots for WGS
