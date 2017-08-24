@@ -37,7 +37,6 @@ $excluded_patterns = array(
 				  "qbic_copy.php", //needs datamover
 				  
 				  "db_converter_.*", //converters to set up annotation databases
-				  "db_run_status.php", //utility
 				  "find_unused_tools.php", //utility
 				  "backup_run.php", //utility
 				  "check_bcl.php", //utility

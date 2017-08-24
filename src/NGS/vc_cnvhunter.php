@@ -70,7 +70,7 @@ $args[] = "-n $n";
 if ($somatic) $args[] = "-debug ALL";
 $temp_folder = !empty($debug)?$debug:$parser->tempFolder();
 if(!is_dir($temp_folder))	mkdir ($temp_folder);
-$args[] = "-sam_corr_regs 250000";
+$args[] = "-sam_corr_regs 250000"; //TODO
 $parser->exec(get_path("ngs-bits")."CnvHunter", "-in ".implode(" ",$cov_files)." -out ".$temp_folder."/cnvs.tsv ".implode(" ", $args), true);
 
 // filter results for given processed sample(s)
