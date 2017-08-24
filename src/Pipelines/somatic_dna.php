@@ -146,7 +146,8 @@ if($tumor_only)
 	{
 		// annotate vcf
 		$tmp_folder1 = $parser->tempFolder();
-		$parser->execTool("Pipelines/annotate.php", "-out_name ".basename($som_gsvar, ".GSvar")." -out_folder $tmp_folder1 -system $t_sys -vcf $som_v -t_col $t_id");
+		$extras = "-thres 8";
+		$parser->execTool("Pipelines/annotate.php", "-out_name ".basename($som_gsvar, ".GSvar")." -out_folder $tmp_folder1 -system $t_sys -vcf $som_v -t_col $t_id $extras");
 
 		// filter vcf to output folder
 		$extra = array();
@@ -438,11 +439,8 @@ else
 	$som_vqci = $o_folder.$t_id."-".$n_id."_var_qci.vcf.gz";
 	if (in_array("ci", $steps))
 	{
-		$tmp_vcf = $parser->tempFile("_var_annotated_filtered.vcf.gz");
-		$parser->execTool("NGS/filter_vcf.php", "-in $som_vann -out $tmp_vcf -min_af $min_af -keep -type synonymous");
-			
 		// add QCI output
-		$parser->execTool("Tools/converter_vcf2qci.php", "-in $tmp_vcf -out $som_vqci -pass");
+		$parser->execTool("Tools/converter_vcf2qci.php", "-in $som_vann -out $som_vqci -pass");
 	}
 
 	// import somatic variants to NGSD, check if sample within NGSD, otherwise skip QC import
