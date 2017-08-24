@@ -15,31 +15,22 @@ $parser->addOutfile("out", "Output BAM file name.", false);
 
 //optional arguments
 $parser->addInfile("in2",  "Input reverse reads in FASTQ(.GZ) format for paired-end alignment.", true);
-$parser->addString("genome", "Path to directory with STAR reference genome index.", true, get_path("data_folder")."genomes/STAR/GRCh37");
+$parser->addString("genome", "STAR reference genome index.", true, get_path("data_folder")."genomes/STAR/GRCh37");
 
 $parser->addFlag("uncompressed", "FASTQ input files are uncompressed.");
 
-$parser->addFlag("longReads", "Use STAR version suitable for very long reads > 500nt.");
+$parser->addFlag("long_reads", "Use STAR version suitable for very long reads > 500nt.");
 $parser->addInt("threads", "Number of parallel threads.", true, 4);
-$parser->addFlag("useSharedMemory", "Load STAR Index into shared memory in order to run multiple STAR instances on the same genome.");
 
-$parser->addFlag("unstranded", "For unstranded data, add the XS strand attribute for spliced alignments for cufflinks compatibility. Note that alignments with undefined strandedness will be removed!");
-$parser->addFlag("dedup", "Mark duplicate alignments.");
+$parser->addFlag("unstranded_xs", "For unstranded data, add the XS strand attribute for spliced alignments for cufflinks compatibility. Note: Alignments with undefined strandedness will be removed!");
+$parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
+$parser->addFlag("no_splicing", "Prevent reads from getting spliced");
+
+$parser->addFlag("all_junctions", "Disable filtering of reported junctions (affects splicing output only, not alignment).");
+
+$parser->addInt("sj_overhang", "Minimum overhang for non-annotated splice junctions.", true, 8);
+$parser->addInt("sjdb_overhang", "Minimum overhang for annotated splice junctions.", true, 1);
 $parser->addInt("Lmax", "Max length of read fraction for seed search", true, 50);
-$parser->addFlag("noSplicing", "Prevent reads from getting spliced");
-
-$parser->addInt("Clip5p", "Remove n bases from 5' end of read.", true, 0);
-$parser->addInt("Clip3p", "Remove n bases from 3' end of read.", true, 0);
-$parser->addFlag("clipping", "Perform adapter clipping during mapping.");
-$parser->addString("llink", "Adapter forward read", true, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACGAGTTA");
-$parser->addString("rlink", "Adapter reverse read", true, "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTC");
-
-$parser->addFlag("disableJunctionFilters", "Disable filtering of reported junctions (affects splicing output only).");
-
-$parser->addInt("sjOverhang", "Minimum overhang for non-annotated splice junctions.", true, 8);
-$parser->addInt("sjdbOverhang", "Minimum overhang for annotated splice junctions.", true, 1);
-
-$parser->addString("downstream", "Keep files for downstream analysis.", true, "splicing,chimeric");
 
 extract($parser->parse($argv));
 
@@ -50,61 +41,6 @@ $prefix = $outdir.basename($out, ".bam");
 $STAR_tmp_folder = $parser->tempFolder();
 
 //build command
-$arguments = array();
-$arguments[] = "--genomeDir $genome";
-$arguments[] = "--readFilesIn $in1";
-
-//for paired-end mapping
-if(isset($in2))
-{
-  $arguments[] = "$in2";
-}
-
-$arguments[] = "--outFileNamePrefix {$STAR_tmp_folder}/";
-$arguments[] = "--outStd SAM";
-
-$arguments[] = "--runThreadN $threads";
-
-if($clipping) {
-	$arguments[] = "--clip3pAdapterSeq $llink $rlink";
-}
-
-$arguments[] = "--clip3pNbases $Clip3p --clip5pNbases $Clip5p";
-$arguments[] = "--outSAMattributes All";
-
-if($unstranded) {
-  $arguments[] = " --outSAMstrandField intronMotif";
-}
-
-if(!$uncompressed) {
-  $arguments[] = "--readFilesCommand zcat";
-}
-
-//options for chimeric alignment detection
-$arguments[] = "--chimSegmentMin 12 --chimJunctionOverhangMin 12 --chimSegmentReadGapMax 3";
-$arguments[] = "--seedSearchStartLmax $Lmax --alignMatesGapMax 1000000";
-//options for splice junctions
-$arguments[] = "--alignSJoverhangMin $sjOverhang --alignSJDBoverhangMin $sjdbOverhang --alignSJstitchMismatchNmax 5 -1 5 5";
-if ($disableJunctionFilters) {
-	$arguments[] = "--outSJfilterDistToOtherSJmin 0 0 0 0 --outSJfilterOverhangMin 1 1 1 1 --outSJfilterCountUniqueMin 1 1 1 1 --outSJfilterCountTotalMin 1 1 1 1";
-}
-
-//2-pass mode is only possible if shared memory is not used
-if($useSharedMemory) {
-	$arguments[] = "--genomeLoad LoadAndRemove";
-} else {
-	$arguments[] = "--genomeLoad NoSharedMemory";
-	$arguments[] = "--twopassMode Basic";
-}
-
-if($noSplicing) {
-	//min has to be larger than max to prevent spliced alignments
-	$arguments[] = "--alignIntronMin 2";
-	$arguments[] = "--alignIntronMax 1";
-} else {
-	$arguments[] = "--alignIntronMax 1000000 --alignIntronMin 20";
-}
-
 //add a read group line to the final BAM file
 $group_props = array();
 $basename = basename($out, ".bam");
@@ -115,27 +51,58 @@ $group_props[] = "LB:{$gs}_{$ps}";
 $group_props[] = "CN:medical_genetics_tuebingen";
 $group_props[] = "DT:".date("c");
 $group_props[] = "PL:ILLUMINA";
-$arguments[] = "--outSAMattrRGline ".implode(" ", $group_props);
+$psample_info = get_processed_sample_info($basename,false);
+if (!is_null($psample_info))
+{
+	$group_props[] = "PM:".$psample_info['device_type'];
+	$group_props[] = "en:".$psample_info['sys_name'];
+}
 
-//keep unmapped reads in BAM output
-$arguments[] = "--outSAMunmapped Within";
+$arguments = array(
+	"--readFilesIn", isset($in2) ? "{$in1} {$in2}" : $in1,
+	"--genomeDir {$genome}",
+	"--outFileNamePrefix {$STAR_tmp_folder}/",
+	"--outStd SAM",
+	"--outSAMunmapped Within",
+	"--runThreadN {$threads}",
+	"--outSAMattributes All",
+	"--chimSegmentMin 12",
+	"--chimJunctionOverhangMin 12",
+	"--chimSegmentReadGapMax 3",
+	"--seedSearchStartLmax $Lmax",
+	"--alignMatesGapMax 1000000",
+	"--alignSJoverhangMin $sj_overhang",
+	"--alignSJDBoverhangMin $sjdb_overhang",
+	"--alignSJstitchMismatchNmax 5 -1 5 5",
+	"--outSAMattrRGline", implode(" ", $group_props)
+);
+	
+if ($unstranded_xs) $arguments[] = "--outSAMstrandField intronMotif";
+if (!$uncompressed) $arguments[] = "--readFilesCommand zcat";
+if ($all_junctions) $arguments[] = "--outSJfilterDistToOtherSJmin 0 0 0 0 --outSJfilterOverhangMin 1 1 1 1 --outSJfilterCountUniqueMin 1 1 1 1 --outSJfilterCountTotalMin 1 1 1 1";
+
+if ($no_splicing)
+{
+	//min has to be larger than max to prevent spliced alignments
+	$arguments[] = "--alignIntronMin 2";
+	$arguments[] = "--alignIntronMax 1";
+	$arguments[] = "--twopassMode None";
+}
+else
+{
+	$arguments[] = "--alignIntronMax 1000000 --alignIntronMin 20";
+	$arguments[] = "--twopassMode Basic";
+}
 
 //STAR or STARlong program
-$STAR = get_path("STAR");
-if($longReads)
-{
-	$STAR = get_path("STAR")."long";
-}
+$star = $long_reads ? get_path("STAR")."long" : get_path("STAR");
 
 //mapping with STAR
 $pipeline = array();
-$pipeline[] = array($STAR, implode(" ", $arguments));
+$pipeline[] = array($star, implode(" ", $arguments));
 
 //duplicate flagging with samblaster
-if ($dedup)
-{
-	$pipeline[] = array(get_path("samblaster"), "");
-}
+if (!$skip_dedup) $pipeline[] = array(get_path("samblaster"), "");
 
 //convert SAM to BAM (uncompressed) with samtools
 $pipeline[] = array(get_path("samtools"), "view -hu -");
@@ -147,53 +114,45 @@ $pipeline[] = array(get_path("samtools"), "sort -T $tmp_for_sorting -m 1G -@ ".m
 //execute (STAR -> samblaster -> samtools SAM to BAM -> samtools sort)
 $parser->execPipeline($pipeline, "mapping");
 
-//keep downstream analysis files
-$downstream = explode(",", $downstream);
-if (in_array("splicing", $downstream))
-{
-	$outfile_splicing= "{$prefix}_splicing.tsv";
-	$splicing_header = array(
-		"#chr",
-		"start",
-		"end",
-		"strand",
-		"intron_motif",
-		"annotated",
-		"n_unique_reads",
-		"n_multi_reads",
-		"max_overhang"
-	);
-	file_put_contents($outfile_splicing, implode("\t", $splicing_header)."\n");
-	file_put_contents($outfile_splicing, file_get_contents("{$STAR_tmp_folder}/SJ.out.tab"), FILE_APPEND);
-}
-if (in_array("chimeric", $downstream))
-{
-	$outfile_chimeric = "{$prefix}_chimeric.tsv";
-	$chimeric_header = array(
-		"#donor_chr",
-		"donor_start",
-		"donor_strand",
-		"acceptor_chr",
-		"acceptor_start",
-		"acceptor_strand",
-		"junction_type",
-		"left_repeat_len",
-		"right_repeat_len",
-		"read_name",
-		"seg1_first_base",
-		"seg1_cigar",
-		"seg2_first_base",
-		"seg2_cigar"
-	);
-	file_put_contents($outfile_chimeric, implode("\t", $chimeric_header)."\n");
-	file_put_contents($outfile_chimeric, file_get_contents("{$STAR_tmp_folder}/Chimeric.out.junction"), FILE_APPEND);
-}
+//downstream analysis files
+$outfile_splicing= "{$prefix}_splicing.tsv";
+$splicing_header = array(
+	"#chr",
+	"start",
+	"end",
+	"strand",
+	"intron_motif",
+	"annotated",
+	"n_unique_reads",
+	"n_multi_reads",
+	"max_overhang"
+);
+file_put_contents($outfile_splicing, implode("\t", $splicing_header)."\n");
+file_put_contents($outfile_splicing, file_get_contents("{$STAR_tmp_folder}/SJ.out.tab"), FILE_APPEND);
+
+$outfile_chimeric = "{$prefix}_chimeric.tsv";
+$chimeric_header = array(
+	"#donor_chr",
+	"donor_start",
+	"donor_strand",
+	"acceptor_chr",
+	"acceptor_start",
+	"acceptor_strand",
+	"junction_type",
+	"left_repeat_len",
+	"right_repeat_len",
+	"read_name",
+	"seg1_first_base",
+	"seg1_cigar",
+	"seg2_first_base",
+	"seg2_cigar"
+);
+file_put_contents($outfile_chimeric, implode("\t", $chimeric_header)."\n");
+file_put_contents($outfile_chimeric, file_get_contents("{$STAR_tmp_folder}/Chimeric.out.junction"), FILE_APPEND);
 
 //write the final log file into the tool log
 $final_log = "{$STAR_tmp_folder}/Log.final.out";
 $parser->log("STAR Log.final.out", file($final_log));
 
 //create BAM index file
-$parser->exec(get_path("samtools")." index", " $out", true);
-
-?>
+$parser->exec(get_path("samtools")." index", $out, true);
