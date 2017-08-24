@@ -1,7 +1,7 @@
 all: clean link complete_pipeline report_only diff
 
 clean:
-	rm -f *.bam *.bai *.log *.txt *.GSvar *.vcf *.fastq.gz *.qcML *_qcML.txt *_igv.xml *.log *_report.rtf
+	rm -f *.bam *.bai *.log *.txt *.GSvar *.vcf *.fastq.gz *.qcML *_qcML.txt *_igv.xml *.log *_report.rtf *.bed
 	rm -f Somatic_Tumor1-Normal1/Tumor1-Normal1.log Somatic_Tumor1-Normal1/Tumor1-Normal1_igv.xml Somatic_Tumor1-Normal1/Tumor1-Normal1_report.txt
 	rm -f Somatic_Tumor2-Normal2/Tumor2-Normal2.log Somatic_Tumor2-Normal2/Tumor2-Normal2_igv.xml Somatic_Tumor2-Normal2/Tumor2-Normal2_report.txt
 	rm -rf Sample_GS150496_01
@@ -21,7 +21,8 @@ complete_pipeline:
 	php ../../src/Pipelines/somatic_capa.php -t_id GS150497_01 -t_sys system.ini -n_id GS150496_01 -n_sys system.ini -p_folder . -o_folder Somatic_GS150497_01-GS150496_01 -steps ma,vc,an,ci,re -nsc --log GS150497_01-GS150496_01.log
 	cp Somatic_GS150497_01-GS150496_01/GS150497_01-GS150496_01.GSvar GS150497_01-GS150496_01.GSvar
 	cp Somatic_GS150497_01-GS150496_01/GS150497_01-GS150496_01_report.rtf GS150497_01-GS150496_01_report.rtf
-	
+	cp Somatic_GS150497_01-GS150496_01/GS150497_01-GS150496_01_stat_lowcov.bed GS150497_01-GS150496_01_stat_lowcov.bed
+
 report_only:
 	php ../../src/Pipelines/somatic_capa.php -t_id Tumor1 -t_sys system.ini -n_id Normal1 -n_sys system.ini -p_folder . -o_folder Somatic_Tumor1-Normal1 -steps re --log Somatic_Tumor1-Normal1/Tumor1-Normal1.log
 	php ../../src/Pipelines/somatic_capa.php -t_id Tumor2 -t_sys system.ini -n_id Normal2 -n_sys system.ini -p_folder . -o_folder Somatic_Tumor2-Normal2 -steps re --log Somatic_Tumor2-Normal2/Tumor2-Normal2.log
@@ -39,3 +40,4 @@ diff:
 	diff -b -I ' Wiss. Bericht Tumor2-Normal2 vom ' -I 'Datum:' -I 'Revision der Analysepipeline' Tumor2-Normal2_report.rtf.out Tumor2-Normal2_report.rtf
 	diff -b Tumor1-Normal1_igv.xml.out Tumor1-Normal1_igv.xml
 	diff -b Tumor2-Normal2_igv.xml.out Tumor2-Normal2_igv.xml
+	diff -b -I '#ROI:' GS150497_01-GS150496_01_stat_lowcov.bed.out GS150497_01-GS150496_01_stat_lowcov.bed

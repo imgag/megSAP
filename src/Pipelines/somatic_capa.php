@@ -66,6 +66,10 @@ else
 	$s_txt = $o_folder."/".$t_id."-".$n_id."_report.txt";
 }
 
+$system_t = load_system($t_sys, $t_id);
+$system_n = array();
+if(!$single_sample)	$system_n = load_system($n_sys, $n_id);
+
 // run somatic_dna
 $available_steps = array("ma", "vc", "an", "ci", "db");	//steps that can be used for somatic_dna script
 if(count($tmp_steps=array_intersect($available_steps,$steps))>0)
@@ -80,19 +84,40 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0)
 	$extras[] = $single_sample ? "-n_id na" : "-n_id $n_id";
 	if (!$single_sample && isset($n_sys)) $extras[] = "-n_sys $n_sys";
 	$parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_id -o_folder $o_folder ".implode(" ", $extras));
+	
+	// add target region statistics (needed by GSvar)
+	$target = $system_t['target_file'];
+	$target_name = $system_t['name_short'];
+	list($stdout) = $parser->exec(get_path("ngs-bits")."BedInfo", "-in $target", false);
+	$bases_overall = explode(":", $stdout[1]);
+	$bases_overall = trim($bases_overall[1]);
+	$regions_overall = explode(":", $stdout[0]);
+	$regions_overall = trim($regions_overall[1]);	
+	//get low_cov_statistics, needed for GSvar
+	$target_merged = $parser->tempFile("_merged.bed");
+	$parser->exec(get_path("ngs-bits")."BedMerge", "-in $target -out $target_merged", true);
+	//calculate low-coverage regions
+	$low_cov = $o_folder."/".$t_id.($single_sample ? "" : "-".$n_id)."_stat_lowcov.bed";
+	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $t_bam -out $low_cov -cutoff ".$td, true);
+	if(!$single_sample)
+	{
+		$low_cov_n = $parser->tempFile("_nlowcov.bed");
+		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $n_bam -out $low_cov_n -cutoff ".$nd, true);
+		$parser->exec(get_path("ngs-bits")."BedAdd", "-in $low_cov -in2 $low_cov_n -out $low_cov", true);
+		$parser->exec(get_path("ngs-bits")."BedMerge", "-in $low_cov -out $low_cov", true);
+	}
+	//annotate gene names (with extended to annotate splicing regions as well)
+	$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $low_cov -extend 25 -out $low_cov", true);
 }
 
 if (in_array("re", $steps))
 {
-	$system_t = load_system($t_sys, $t_id);
-	$system_n = array();
-	if(!$single_sample)	$system_n = load_system($n_sys, $n_id);
 	if(empty($system_t['target_file']))	
 	{
 		trigger_error("Tumor target file empty; no report generation.", E_USER_WARNING);
 	}
 	else
-	{
+	{	
 		//prepare snvs for report
 		$snv = Matrix::fromTSV($s_tsv);
 
