@@ -16,21 +16,23 @@ prepare:
 
 analyze_se:
 	php ../../src/Pipelines/analyze_rna.php \
-	    -folder single_end -name SE \
-	    -steps ma,rc,an -system system.ini \
-	    --log analyze_rna_out_se.log
+			-folder single_end -name SE \
+			-steps ma,rc,an -system system.ini \
+			-library_type unstranded \
+			--log analyze_rna_out_se.log
 
 diff_se:
 	diff analyze_rna_out_se.tsv single_end/SE_counts.tsv
 
 analyze_pe:
 	php ../../src/Pipelines/analyze_rna.php \
-	    -folder paired_end -name SE \
-	    -steps ma,rc,an,fu -system system.ini \
-	    --log analyze_rna_out_pe.log
-	
+			-folder paired_end -name PE \
+			-steps ma,rc,an,fu -system system.ini \
+			-library_type unstranded \
+			--log analyze_rna_out_pe.log
+
 diff_pe:
-	diff analyze_rna_out_pe.tsv paired_end/I16R003a01_01_counts.tsv
+	diff analyze_rna_out_pe.tsv paired_end/PE_counts.tsv
 
 #################################### DEBUG TARGETS ####################################
 	

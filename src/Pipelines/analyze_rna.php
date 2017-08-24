@@ -204,7 +204,7 @@ if (in_array("rc", $steps))
 		"-threads", $threads
 	);
 	
-	if($paired) $args[] = "-paired";
+	if (!$paired) $args[] = "-single_end";
 	
 	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args));
 
