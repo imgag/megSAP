@@ -100,6 +100,7 @@ else
 }
 
 //submit to queue
+$queues = explode(",", get_path("queues_default"));
 if($high_priority)
 {
 	$queues = array_merge($queues, explode(",", get_path("queues_high_priority")));
@@ -108,10 +109,7 @@ elseif ($info['sys_type']=="RNA")
 {
 	$queues = explode(",", get_path("queues_high_mem"));
 }
-else
-{
-	$queues = explode(",", get_path("queues_default"));
-}
+
 $sample_status = get_path("sample_status_folder")."/data/";
 $slots = $info['sys_type']=="WGS" ? "-pe smp 2" : ""; //use two instead of one slots for WGS
 
