@@ -285,7 +285,7 @@ if (in_array("re", $steps))
 
 		// generate report preformatted using rtf
 		$report = array();
-		$report[] = "{\rtf1\ansi\deff0 {\fonttbl {\f0 Times New Roman;}}";
+		$report[] = "{\rtf1\ansi\deff0 {\fonttbl {\f0 Times New Roman;}}{\colortbl;\red188\green230\blue138;}";
 		$report[] = "{\header\pard\qr\fs14 Wiss. Bericht $tumor_name-$normal_name vom ".date("d.m.Y").", Seite \chpgn  von {\field{\*\fldinst  NUMPAGES }}\par}";
 		$report[] = "\titlepg";
 		$report[] = "{\headerf {\pard\sa2200 \par}}";
@@ -314,46 +314,54 @@ if (in_array("re", $steps))
 		if(!$single_sample)	$report[] = par_table_qc("Coverage Normal 100x:",get_qc_from_qcml($n_qcml, "QC:2000030", "target region 100x percentage"));
 		if(!$single_sample)	$report[] = par_table_qc("Durchschnittl. Tiefe Normal:", get_qc_from_qcml($n_qcml, "QC:2000025", "target region read depth"));
 		if(!$single_sample && is_file($s_qcml))	$report[] = par_table_qc("Mutationslast:",get_qc_from_qcml($s_qcml, "QC:2000053", "somatic variant rate"));
-		$report[] = par_table_qc("Tumoranteil:","");
+		$report[] = par_table_qc("Tumoranteil:","","\clcbpat1");
 		$report[] = "\par}";
 
 		// variants
 		$report[] = par_head("SNVs und kleine INDELs:");
-		$report[] = "{\pard\fs20\sb45".($snv_report->rows()>0?"\sa45":"\sa360")."";
-		$report[] = "Gefundene Varianten: ".$snv_report->rows()."\line";
+		$report[] = "{\pard\fs20\sb45".($snv_report->rows()>0?"":"\sa360")."";
+		$report[] = "Gefundene Varianten: ".$snv_report->rows()."\par}";
 		if($snv_report->rows() > 0)
 		{
-			$report[] = "Details:";
-			$report[] = "\par}";
-			$report[] = "{\pard\fs20\sa360\sb45";			
+			$report[] = "{\trowd\trgraph180\fs20";
+			$report[] = "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx9500";
+			$report[] = "\pard\intbl\sa20\sb20\qc\b {Veränderungen nur in Tumorgewebe}\cell\row}";
+			$report[] = "{\pard\fs20\sa360\sb45";
 			$report[] = par_table_header_var();
 			for ($i=0; $i<$snv_report->rows(); ++$i)
 			{
 				list($pos,$ref,$obs,$freq_t,$freq_n,$coding) = $snv_report->getRow($i);
 				$report[] = par_table_row_var($pos,$ref,$obs,$freq_t,$freq_n,$coding);
 			}
+			$report[] = "{\trowd\trgraph180\fs20";
+			$report[] = "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx9500";
+			$report[] = "\pard\intbl\sa20\sb20\qc\b {Veränderungen in Blut}\cell\row}";
+			$report[] = par_table_header_var();
+			$report[] = par_table_row_var("keine","","","","","","\clcbpat1");
 			$tmp = "\fs8\line\fs14 Position - chromosomale Position (".$system_t['build']."); R - Allel Referenz; V - Allel Variante; F/T_Tumor - Frequenz und Tiefe im Tumor;";
 			$tmp .= "F/T_Normal - Frequenz und Tiefe im Normal; cDNA - cDNA Position und Auswirkung Peptid.\fs20";
 			$report[] = $tmp;
+			$report[] = "\fs8\line\line\fs14\qj Veränderungen in Blut können ein Hinweis auf eine erbliche Erkrankung darstellen. Wir emfpehlen bei Nachweis eine Vorstellung in einer humangennetischen Beratungsstelle. Folgende Gene wurden in die Auswertung der Blutprobe einbezogen: BRCA1, BRCA2, TP53, STK11, PTEN, MSH2, MSH6, MLH1, PMS2, APC, MUTYH, SMAD4, VHL, MEN1, RET, RB1, TSC1, TSC2, NF2, WT1.";
+			$report[] = "\par}";
 		}
-		$report[] = "\par}";
 
 		//CNVs
 		$report[] = par_head("CNVs:");
 		$report[] = "\fs8\line\fs14";
-		$report [] = "{\pard\fs20\qj";
+		$report [] = "{\pard\fs20\sa90\qj";
 		$report[] = "Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Die Liste der CNVs basiert auf strengen Filterkriterien. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode.";
 		$report[] = "\par}";
 		$report[] = "{\pard\fs20\sb45\sa45";
-		$report[] = "Gefundene CNVs: ".$cnv_report->rows()."\line";
+		$report[] = "Gefundene CNVs: ".$cnv_report->rows()."\par}";
 		
 		if($cnv_report->rows()>0)
 		{
-			$report[] = "Details:";
-			$report[] = "\par}";
 
 			$report [] = "{\pard\fs20\sa360";
 
+			$report[] = "{\trowd\trgraph180\fs20";
+			$report[] = "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx9500";
+			$report[] = "\pard\intbl\sa20\sb20\qc\b {Veränderungen nur in Tumorgewebe}\cell\row}";
 			$report[] = par_table_header_cnv();
 			for ($i=0; $i<$cnv_report->rows(); ++$i)
 			{
@@ -367,12 +375,12 @@ if (in_array("re", $steps))
 			
 			$report[] = "{\pard \fs20 ";
 			$report[] = par_cnv_genes(array_unique($genes_amp),array_unique($genes_loss));
+			$report[] = "\par}";
 		}
 		else
 		{
 			$report[] = "Keine CNVs gefunden. Siehe $s_cnvs für QC-Fehler.";
 		}
-		$report[] = "\par}";
 		$report[] = "}";
 
 		//store output
@@ -426,9 +434,9 @@ function par_table_metadata($name, $value)
 	return "{\trowd\trgraph180\fs20\cellx3000\cellx6500\pard\intbl {".$name."}\cell \pard\intbl\ql {".$value."}\cell\row}";
 }
 
-function par_table_qc($name, $value)
+function par_table_qc($name, $value, $color = "")
 {
-	return "{\trowd\trgraph180\fs20\cellx2500\cellx4700\pard\intbl {".$name."}\cell \pard\intbl\qr {".$value."}\cell\row}";
+	return "{\trowd\trgraph180\fs20\cellx2500$color\cellx4700\pard\intbl {".$name."}\cell \pard\intbl\qr {".$value."}\cell\row}";
 }
 
 function par_table_header_var()
@@ -436,23 +444,23 @@ function par_table_header_var()
 	$string = "{\trowd\trgraph180\fs20";
 	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx2550";
 	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx3200";
-	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx3600";
-	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx4850";
-	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx6050";
+	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx3850";
+	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx5050";
+	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx6250";
 	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx9500";
 	$string .= "\pard\intbl\sa20\sb20\b\qc Position\cell \pard\intbl\sa20\sb20\qc R\cell \pard\intbl\sa20\sb20\qc V\cell \pard\intbl\sa20\sb20\qc F/T_Tumor\cell \pard\intbl\sa20\sb20\qc F/T_Normal\cell \pard\intbl\sa20\sb20\qc cDNA\cell\row}";
 	return $string;
 }
 
-function par_table_row_var($pos,$ref,$obs,$freq_t,$freq_n,$coding)
+function par_table_row_var($pos,$ref,$obs,$freq_t,$freq_n,$coding, $color = "")
 {
 	$string = "{\trowd\trgaph70\fs20";
-	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs \cellx2550";
-	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs \cellx3200";
-	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs \cellx3600";
-	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs \cellx4850";
-	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs \cellx6050";
-	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs \cellx9500";
+	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs$color\cellx2550";
+	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx3200";
+	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx3850";
+	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx5050";
+	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx6250";
+	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx9500";
 	$string .= "\pard\intbl\sa20\sb20 {$pos}\cell \pard\intbl\sa20\sb20\qc {$ref}\cell \pard\intbl\sa20\sb20\qc {$obs}\cell \pard\intbl\sa20\sb20\qc {$freq_t}\cell \pard\intbl\sa20\sb20\qc {$freq_n}\cell \pard\intbl\sa20\sb20\qj {$coding}\cell\row}";
 	return $string;
 }
