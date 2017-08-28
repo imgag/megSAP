@@ -51,6 +51,7 @@
 /test/data_capa/Sample_GS150496_01/
 /test/data_capa/Sample_GS150497_01/
 /test/data_capa/Somatic_GS150497_01-GS150496_01/
+test/data_capa/*_lowcov.bed
 /test/data_capa/Somatic_Tumor1-Normal1/*_igv.xml
 /test/data_capa/Somatic_Tumor1-Normal1/*_report.rtf
 /test/data_capa/Somatic_Tumor1-Normal1/*.log

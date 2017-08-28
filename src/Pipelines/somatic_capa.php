@@ -140,8 +140,8 @@ if (in_array("re", $steps))
 				$nd_idx = $snv->getColumnIndex("normal_dp");
 			}
 
-			$headers = array('Position', 'W', 'M', 'F/T_Tumor', 'cDNA');
-			if(!$single_sample)	$headers = array('Position', 'W', 'M', 'F/T_Tumor', 'F/T_Normal', 'cDNA');
+			$headers = array('Position', 'W', 'M', 'F/T Tumor', 'cDNA');
+			if(!$single_sample)	$headers = array('Position', 'W', 'M', 'F/T Tumor', 'F/T Normal', 'cDNA');
 			$snv_report->setHeaders($headers);
 			
 			//extract relevant MISO terms for filtering
@@ -309,12 +309,12 @@ if (in_array("re", $steps))
 		$s_qcml = $p_folder."/Somatic_".$t_id."-".$n_id."/".$t_id."-".$n_id."_stats_som.qcML";
 		$report[] = par_head("Qualitätsparameter:");
 		$report[] = "{\pard\fs20\sa180";
-		$report[] = par_table_qc("Coverage Tumor 100x:",get_qc_from_qcml($t_qcml, "QC:2000030", "target region 100x percentage"));
-		$report[] = par_table_qc("Durchschnittl. Tiefe Tumor:",get_qc_from_qcml($t_qcml, "QC:2000025", "target region read depth"));
-		if(!$single_sample)	$report[] = par_table_qc("Coverage Normal 100x:",get_qc_from_qcml($n_qcml, "QC:2000030", "target region 100x percentage"));
-		if(!$single_sample)	$report[] = par_table_qc("Durchschnittl. Tiefe Normal:", get_qc_from_qcml($n_qcml, "QC:2000025", "target region read depth"));
+		$report[] = par_table_qc("Coverage Tumor 100x:",get_qc_from_qcml($t_qcml, "QC:2000030", "target region 100x percentage")." %");
+		$report[] = par_table_qc("Durchschnittl. Tiefe Tumor:",get_qc_from_qcml($t_qcml, "QC:2000025", "target region read depth")."x");
+		if(!$single_sample)	$report[] = par_table_qc("Coverage Normal 100x:",get_qc_from_qcml($n_qcml, "QC:2000030", "target region 100x percentage")." %");
+		if(!$single_sample)	$report[] = par_table_qc("Durchschnittl. Tiefe Normal:", get_qc_from_qcml($n_qcml, "QC:2000025", "target region read depth")."x");
 		if(!$single_sample && is_file($s_qcml))	$report[] = par_table_qc("Mutationslast:",get_qc_from_qcml($s_qcml, "QC:2000053", "somatic variant rate"));
-		$report[] = par_table_qc("Tumoranteil:","","\clcbpat1");
+		$report[] = par_table_qc("Tumoranteil:","\highlight1 0 %\highlight0");
 		$report[] = "\par}";
 
 		// variants
@@ -337,9 +337,9 @@ if (in_array("re", $steps))
 			$report[] = "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx9500";
 			$report[] = "\pard\intbl\sa20\sb20\qc\b {Veränderungen in Blut}\cell\row}";
 			$report[] = par_table_header_var();
-			$report[] = par_table_row_var("keine","","","","","","\clcbpat1");
-			$tmp = "\fs8\line\fs14 Position - chromosomale Position (".$system_t['build']."); R - Allel Referenz; V - Allel Variante; F/T_Tumor - Frequenz und Tiefe im Tumor;";
-			$tmp .= "F/T_Normal - Frequenz und Tiefe im Normal; cDNA - cDNA Position und Auswirkung Peptid.\fs20";
+			$report[] = par_table_row_var("\highlight1 keine\highlight0","","","","","");
+			$tmp = "\fs8\line\fs14 Position - chromosomale Position (".$system_t['build']."); R - Allel Referenz; V - Allel Variante; F/T Tumor - Frequenz und Tiefe im Tumor;";
+			$tmp .= "F/T Normal - Frequenz und Tiefe im Normal; cDNA - cDNA Position und Auswirkung Peptid.\fs20";
 			$report[] = $tmp;
 			$report[] = "\fs8\line\line\fs14\qj Veränderungen in Blut können ein Hinweis auf eine erbliche Erkrankung darstellen. Wir emfpehlen bei Nachweis eine Vorstellung in einer humangennetischen Beratungsstelle. Folgende Gene wurden in die Auswertung der Blutprobe einbezogen: BRCA1, BRCA2, TP53, STK11, PTEN, MSH2, MSH6, MLH1, PMS2, APC, MUTYH, SMAD4, VHL, MEN1, RET, RB1, TSC1, TSC2, NF2, WT1.";
 			$report[] = "\par}";
@@ -349,7 +349,7 @@ if (in_array("re", $steps))
 		$report[] = par_head("CNVs:");
 		$report[] = "\fs8\line\fs14";
 		$report [] = "{\pard\fs20\sa90\qj";
-		$report[] = "Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Die Liste der CNVs basiert auf strengen Filterkriterien. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode.";
+		$report[] = "Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Die Liste der CNVs basiert auf strengen Filterkriterien. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode. Die angegebene geschätzte mediane Copy Number ist abhängig von Tumorgehalt und Verteilung der CNV-tragenden Zellen im Tumorgewebe.";
 		$report[] = "\par}";
 		$report[] = "{\pard\fs20\sb45\sa45";
 		$report[] = "Gefundene CNVs: ".$cnv_report->rows()."\par}";
@@ -369,7 +369,7 @@ if (in_array("re", $steps))
 				$report[] = par_table_row_cnv($pos, $size, $type, $copy_number, $gene);
 			}
 			$tmp = "\fs8 \line \fs14 Position - chromosomale Position (".$system_t['build']."); Größe - CNV-Größe in Basenpaaren; Typ - Verlust (LOSS) oder Amplifikation (AMP);";
-			$tmp .= "CN - geschätzte mediane Copy Number in dieser Region;Gene - Gene in dieser Region.\fs20";
+			$tmp .= "CN - geschätzte mediane Copy Number in dieser chrom. Region;Gene - Gene in dieser Region.\fs20";
 			$report[] = $tmp;
 			$report[] = "\par}";
 			
@@ -379,7 +379,7 @@ if (in_array("re", $steps))
 		}
 		else
 		{
-			$report[] = "Keine CNVs gefunden. Siehe $s_cnvs für QC-Fehler.";
+			$report[] = "Keine CNVs gefunden. \highlight1 Siehe $s_cnvs für QC-Fehler.\highlight0";
 		}
 		$report[] = "}";
 
@@ -448,7 +448,7 @@ function par_table_header_var()
 	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx5050";
 	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx6250";
 	$string .= "\clbrdrt\brdrw18\brdrs\clbrdrl\brdrw18\brdrs\clbrdrb\brdrw18\brdrs\clbrdrr\brdrw18\brdrs\cellx9500";
-	$string .= "\pard\intbl\sa20\sb20\b\qc Position\cell \pard\intbl\sa20\sb20\qc R\cell \pard\intbl\sa20\sb20\qc V\cell \pard\intbl\sa20\sb20\qc F/T_Tumor\cell \pard\intbl\sa20\sb20\qc F/T_Normal\cell \pard\intbl\sa20\sb20\qc cDNA\cell\row}";
+	$string .= "\pard\intbl\sa20\sb20\b\qc Position\cell \pard\intbl\sa20\sb20\qc R\cell \pard\intbl\sa20\sb20\qc V\cell \pard\intbl\sa20\sb20\qc F/T Tumor\cell \pard\intbl\sa20\sb20\qc F/T Normal\cell \pard\intbl\sa20\sb20\qc cDNA\cell\row}";
 	return $string;
 }
 
@@ -475,7 +475,7 @@ function par_table_header_cnv()
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx5300";
 	$string .= "\clbrdrt\brdrw18\brdrs \clbrdrl\brdrw18\brdrs \clbrdrb\brdrw18\brdrs \clbrdrr\brdrw18\brdrs \cellx9500";
 	$string .= "\pard\intbl\sa20\sb20\b\qc Position\cell";
-	$string .= "\pard\intbl\sa20\sb20\qc Größe [bp]\cell";
+	$string .= "\pard\intbl\sa20\sb20\qc Größe\cell";
 	$string .= "\pard\intbl\sa20\sb20\qc Typ\cell";
 	$string .= "\pard\intbl\sa20\sb20\qc CN\cell";
 	$string .= "\pard\intbl\sa20\sb20\qc Gene\cell";
