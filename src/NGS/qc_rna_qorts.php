@@ -17,6 +17,7 @@ $parser->addString("folder", "Sample folder containing BAM file.", false);
 $parser->addFlag("se", "Flag indicating single-ended sequencing.");
 $parser->addInfile("system",  "Processing system INI file (determined from folder name by default).", true);
 $parser->addString("out_folder", "Output folder for QC results, defaults to sample-folder/qc/qorts", true, "");
+$parser->addFlag("sort_by_name", "Sort input BAM file by name.");
 extract($parser->parse($argv));
 
 // resolve and create  output folder
@@ -108,7 +109,14 @@ if ($read_length > 0) {
 	$params[] = "--maxReadLength {$read_length}";
 }
 
-//$params[] = "--genomeFA {$genome}";
+if ($sort_by_name) {
+	$bam_namesorted = $parser->tempFile(".bam");
+	$sort_tmp = $parser->tempFile();
+	$parser->exec(get_path("samtools"), "sort -T {$sort_tmp} -n -o {$bam_namesorted} -@ 2 -m 4G {$bam}", true);
+	$bam = $bam_namesorted;
+}
+
+// $params[] = "--genomeFA {$genome}";
 
 $params[] = "--addFunctions writeGeneBody,makeJunctionBed,calcDetailedGeneCounts";
 $params[] = "--skipFunctions NVC,writeClippedNVC";
@@ -120,4 +128,3 @@ $params[] = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 $params[] = $out_folder;
 
 $parser->exec($prog, implode(" ", $params), true);
-?>
