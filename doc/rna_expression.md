@@ -11,13 +11,11 @@ php megSAP/src/Pipelines/analyze_rna.php --help
 
 The main parameters that you have to provide are:
 
-* `out_folder` - The output folder containing all result files.
-* `out_name` - Basename/prefix for all output files.
-* `in_for` - Forward reads (gzipped FASTQ), multiple files separated by space.
+* `folder` - The output folder containing all result files.
+* `name` - Basename/prefix for all output files.
 
 In addition, you may want to specify:
 
-* `in_rev` - Reverse reads (gzipped FASTQ), multiple files separated by space.
 * `steps` - Analysis steps to perform. Use `ma,rc,an,fu` to perform
    mapping, read counting, annotation and fusion detection.
 * `system` - The [processing system INI file](processing_system_ini_file.md).
@@ -34,8 +32,7 @@ tool, the whole analysis is performed with one command, for example like this:
 
 ```shell
 php megSAP/src/Pipelines/analyze_rna.php \
-  -out_folder Sample_X_01 -out_name X_01 \
-  -in_for *R1_???.fastq.gz -in_rev *R2_???.fastq.gz \
+  -folder Sample_X_01 -name X_01 \
   -system truseq.ini -steps ma,rc,an
 ```
 

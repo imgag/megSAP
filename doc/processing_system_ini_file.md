@@ -13,7 +13,6 @@ The processing system INI file described the wet-lab processing of the sample (a
 
 In addition, for the [RNA analysis pipeline](rna_single_sample.md):
 
-* `stranded` - `0` for unstranded libraries, `1` for dUTP stranded libraries
 * `target_file` - Target region is only used for mapping quality control.
 * `build` - Basename of the genome build. FASTA, STAR index and GTF annotation
   have to be present.
