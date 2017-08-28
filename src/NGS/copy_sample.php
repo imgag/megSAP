@@ -208,12 +208,12 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 			{
 				$old_name = basename($file);
 				$new_name = strtr($old_name, array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
-				$target_to_copylines[$tag][]="\tcp -i ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";				
+				$target_to_copylines[$tag][]="\tmv ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";				
 			}
 		}
 		else
 		{
-			$target_to_copylines[$tag][]="\tcp -i -r ".$old_location."/Sample_".$sample_ID."/ ".$new_location."/";
+			$target_to_copylines[$tag][]="\tmv ".$old_location."/Sample_".$sample_ID."/ ".$new_location."/";
 		}
 
 		//skip normal samples which have an associated tumor sample on the same run
