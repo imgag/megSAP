@@ -7,38 +7,38 @@ import_runqc:
 	php /mnt/users/all/megSAP/src/NGS/runqc_parser.php -name "#00198" -run_dir Unaligned/../ -force -db NGSD
 
 copy_HBOC_diagnostic:
-	cp -i -r Unaligned/Project_HBOC/Sample_DX121713_01/ /mnt/projects/diagnostic/HBOC/
-	cp -i -r Unaligned/Project_HBOC/Sample_DX131278_01/ /mnt/projects/diagnostic/HBOC/
-	cp -i -r Unaligned/Project_HBOC/Sample_DX131319_01/ /mnt/projects/diagnostic/HBOC/
-	cp -i -r Unaligned/Project_HBOC/Sample_DX131324_01/ /mnt/projects/diagnostic/HBOC/
-	cp -i -r Unaligned/Project_HBOC/Sample_DX131335_01/ /mnt/projects/diagnostic/HBOC/
-	cp -i -r Unaligned/Project_HBOC/Sample_DX131357_01/ /mnt/projects/diagnostic/HBOC/
-	cp -i -r Unaligned/Project_HBOC/Sample_DX131371_01/ /mnt/projects/diagnostic/HBOC/
-	cp -i -r Unaligned/Project_HBOC/Sample_DX131381_01/ /mnt/projects/diagnostic/HBOC/
-	cp -i -r Unaligned/Project_HBOC/Sample_DX131382_01/ /mnt/projects/diagnostic/HBOC/
-	cp -i -r Unaligned/Project_HBOC/Sample_DX131383_01/ /mnt/projects/diagnostic/HBOC/
-	cp -i -r Unaligned/Project_HBOC/Sample_DX131384_01/ /mnt/projects/diagnostic/HBOC/
+	mv Unaligned/Project_HBOC/Sample_DX121713_01/ /mnt/projects/diagnostic/HBOC/
+	mv Unaligned/Project_HBOC/Sample_DX131278_01/ /mnt/projects/diagnostic/HBOC/
+	mv Unaligned/Project_HBOC/Sample_DX131319_01/ /mnt/projects/diagnostic/HBOC/
+	mv Unaligned/Project_HBOC/Sample_DX131324_01/ /mnt/projects/diagnostic/HBOC/
+	mv Unaligned/Project_HBOC/Sample_DX131335_01/ /mnt/projects/diagnostic/HBOC/
+	mv Unaligned/Project_HBOC/Sample_DX131357_01/ /mnt/projects/diagnostic/HBOC/
+	mv Unaligned/Project_HBOC/Sample_DX131371_01/ /mnt/projects/diagnostic/HBOC/
+	mv Unaligned/Project_HBOC/Sample_DX131381_01/ /mnt/projects/diagnostic/HBOC/
+	mv Unaligned/Project_HBOC/Sample_DX131382_01/ /mnt/projects/diagnostic/HBOC/
+	mv Unaligned/Project_HBOC/Sample_DX131383_01/ /mnt/projects/diagnostic/HBOC/
+	mv Unaligned/Project_HBOC/Sample_DX131384_01/ /mnt/projects/diagnostic/HBOC/
 
 copy_GT_external:
-	cp -i -r Unaligned/Project_GT/Sample_GT130001_01/ /mnt/projects/external/GT/
+	mv Unaligned/Project_GT/Sample_GT130001_01/ /mnt/projects/external/GT/
 
 copy_TEST_ssHAEv5_test:
-	cp -i -r Unaligned/Project_TEST_ssHAEv5/Sample_GS130235_02/ /mnt/projects/test/TEST_ssHAEv5/
+	mv Unaligned/Project_TEST_ssHAEv5/Sample_GS130235_02/ /mnt/projects/test/TEST_ssHAEv5/
 
 copy_X-Chr_diagnostic:
-	cp -i -r Unaligned/Project_X-Chr/Sample_GS130101_02/ /mnt/projects/diagnostic/X-Chr/
-	cp -i -r Unaligned/Project_X-Chr/Sample_GS130225_02/ /mnt/projects/diagnostic/X-Chr/
-	cp -i -r Unaligned/Project_X-Chr/Sample_GS130229_02/ /mnt/projects/diagnostic/X-Chr/
-	cp -i -r Unaligned/Project_X-Chr/Sample_GS130352_02/ /mnt/projects/diagnostic/X-Chr/
-	cp -i -r Unaligned/Project_X-Chr/Sample_GS130689_01/ /mnt/projects/diagnostic/X-Chr/
-	cp -i -r Unaligned/Project_X-Chr/Sample_GS130691_01/ /mnt/projects/diagnostic/X-Chr/
-	cp -i -r Unaligned/Project_X-Chr/Sample_GS130692_01/ /mnt/projects/diagnostic/X-Chr/
-	cp -i -r Unaligned/Project_X-Chr/Sample_GS130693_01/ /mnt/projects/diagnostic/X-Chr/
-	cp -i -r Unaligned/Project_X-Chr/Sample_GS130694_01/ /mnt/projects/diagnostic/X-Chr/
+	mv Unaligned/Project_X-Chr/Sample_GS130101_02/ /mnt/projects/diagnostic/X-Chr/
+	mv Unaligned/Project_X-Chr/Sample_GS130225_02/ /mnt/projects/diagnostic/X-Chr/
+	mv Unaligned/Project_X-Chr/Sample_GS130229_02/ /mnt/projects/diagnostic/X-Chr/
+	mv Unaligned/Project_X-Chr/Sample_GS130352_02/ /mnt/projects/diagnostic/X-Chr/
+	mv Unaligned/Project_X-Chr/Sample_GS130689_01/ /mnt/projects/diagnostic/X-Chr/
+	mv Unaligned/Project_X-Chr/Sample_GS130691_01/ /mnt/projects/diagnostic/X-Chr/
+	mv Unaligned/Project_X-Chr/Sample_GS130692_01/ /mnt/projects/diagnostic/X-Chr/
+	mv Unaligned/Project_X-Chr/Sample_GS130693_01/ /mnt/projects/diagnostic/X-Chr/
+	mv Unaligned/Project_X-Chr/Sample_GS130694_01/ /mnt/projects/diagnostic/X-Chr/
 
 copy_cfDNA_research:
-	cp -i -r Unaligned/Project_cfDNA/Sample_GS130561_01/ /mnt/projects/research/cfDNA/
-	cp -i -r Unaligned/Project_cfDNA/Sample_GS130563_01/ /mnt/projects/research/cfDNA/
+	mv Unaligned/Project_cfDNA/Sample_GS130561_01/ /mnt/projects/research/cfDNA/
+	mv Unaligned/Project_cfDNA/Sample_GS130563_01/ /mnt/projects/research/cfDNA/
 
 queue_HBOC_diagnostic:
 	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample DX121713_01 

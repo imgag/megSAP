@@ -88,8 +88,6 @@ $combined_results->setHeaders(array("chr","start","end","gene","type","supportin
 $combined_results->toTSV($result_file);
 
 //annotate genes
-//$region_file = $out."/_regions.bed";
-//$parser->exec(get_path("ngs-bits")."GenesToBed", " -in $genes -out $region_file -mode gene", true);
 $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", " -in $result_file -out $result_file", true);
 $parser->exec(get_path("ngs-bits")."BedSort", " -in $result_file -out $result_file", true);
 //add headers

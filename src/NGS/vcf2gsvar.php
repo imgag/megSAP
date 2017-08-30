@@ -62,7 +62,7 @@ function all_genes_blacklisted($genes)
 	static $blacklist = null;
 	if ($blacklist === null)
 	{
-		$file = file(get_path("data_folder")."/gene_blacklist/blacklist.tsv");
+		$file = file(get_path("data_folder")."/gene_lists/blacklist.tsv");
 		foreach($file as $line)
 		{
 			$line = trim($line);

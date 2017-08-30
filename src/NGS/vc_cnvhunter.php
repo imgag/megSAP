@@ -19,7 +19,7 @@ $parser->addString("n_cov", "Normal COV file for somatic CNV calling.", true, nu
 $parser->addString("debug", "Folder for debug information.", true, null);
 $parser->addString("cov_folder", "Folder with all coverage files (if different from [data_folder]/coverage/[system_short_name]/.", true, "auto");
 $parser->addInt("min_reg", "Minimum number of subsequent regions for output CNV events.", true, 1);
-$parser->addInt("n", "Number of (most similar) samples to consider.", true, 20);
+$parser->addInt("n", "Number of (most similar) samples to consider.", true, 30);
 $parser->addFloat("min_corr", "Minimum reference correlation for samples.", true, 0.8);
 $parser->addFloat("min_z", "Minimum z-score to call a CNV.", true, 4.0);
 $parser->addString("seg", "Sample name for which a SEG file is generated.", true);
@@ -30,11 +30,12 @@ $somatic = isset($n_cov) && !is_null($n_cov);
 $psid1 = basename($cov,".cov");
 $psid2 = $somatic ? basename($n_cov,".cov") : null;
 $sys = load_system($system, $psid1);
+$data_folder = get_path("data_folder");
 
 //get coverage files (background)
 if($cov_folder=="auto")
 {
-	$cov_folder = get_path("data_folder")."/coverage/".$sys['name_short'];
+	$cov_folder = "{$data_folder}/coverage/".$sys['name_short'];
 }
 if(!is_dir($cov_folder))
 {
@@ -65,12 +66,12 @@ if($sys['type']=="WGS")
 	$args[] = "-sam_min_depth 0.5";
 }
 if(isset($seg) && is_null($n_cov)) $args[] = "-seg $seg";
-$args[] = "-anno";
 $args[] = "-n $n";
 if ($somatic) $args[] = "-debug ALL";
-$temp_folder = !empty($debug)?$debug:$parser->tempFolder();
+$temp_folder = !empty($debug) ? $debug : $parser->tempFolder();
 if(!is_dir($temp_folder))	mkdir ($temp_folder);
-$args[] = "-sam_corr_regs 250000"; //TODO
+$args[] = "-cnp_file {$data_folder}/dbs/CNPs/copy_number_map_strict.bed";
+$args[] = "-annotate {$data_folder}/gene_lists/genes.bed {$data_folder}/gene_lists/dosage_sensitive_disease_genes.bed {$data_folder}/dbs/OMIM/omim.bed";
 $parser->exec(get_path("ngs-bits")."CnvHunter", "-in ".implode(" ",$cov_files)." -out ".$temp_folder."/cnvs.tsv ".implode(" ", $args), true);
 
 // filter results for given processed sample(s)
@@ -143,7 +144,7 @@ if($somatic)
 	for($i=0;$i<$cnvs_filtered->rows();++$i)
 	{
 		$row = $cnvs_filtered->getRow($i);
-		list($chr, $start, $end, $sample, $size, $num_reg, $reg_cns, $reg_zs, $reg_afs, $reg_coords, $genes) = $row;
+		list($chr, $start, $end, $sample, $size, $num_reg, $reg_cns, $reg_zs, $reg_afs, $reg_coords, $overlap_cnp_region, $genes) = $row;
 		
 		$reg_cns = explode(",", $reg_cns);
 		$reg_zs = explode(",", $reg_zs);
@@ -233,7 +234,7 @@ $median_cnvs = array();
 $sample_info = file($temp_folder."/cnvs_samples.tsv");
 foreach($sample_info as $line)
 {
-	list($sample, , , $ref_correl, , $cnvs, $qc_info) = explode("\t", nl_trim($line));
+	list($sample, , $ref_correl, , $cnvs, $qc_info) = explode("\t", nl_trim($line));
 	if ($sample==$psid1 || ($somatic && $sample==$psid2))
 	{
 		$hits[] = array($sample, $ref_correl, $cnvs, $qc_info);
