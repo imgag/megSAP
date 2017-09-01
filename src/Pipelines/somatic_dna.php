@@ -137,7 +137,7 @@ if($tumor_only)
 		$tmp_folder = $parser->tempFolder();
 		$t_cov = $tmp_folder."/".basename($t_bam,".bam").".cov";
 		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $t_bam -in ".$t_sys_ini['target_file']." -out $t_cov",true);
-		$parser->execTool("NGS/vc_cnvhunter.php", "-cov $t_cov -out $som_cnv -system $t_sys -min_reg 3 -min_corr 0 -seg $t_id");
+		$parser->execTool("NGS/vc_cnvhunter.php", "-cov $t_cov -out $som_cnv -system $t_sys -min_corr 0 -seg $t_id");
 	}
 
 	$som_vcf = $o_folder.$t_id."_var_annotated.vcf.gz";
@@ -364,7 +364,7 @@ else
 		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $t_bam -in ".$t_sys_ini['target_file']." -out $t_cov",true);
 		$n_cov = $tmp_folder."/".basename($n_bam,".bam").".cov";
 		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $n_bam -in ".$t_sys_ini['target_file']." -out $n_cov",true);
-		$parser->execTool("NGS/vc_cnvhunter.php", "-cov $t_cov -n_cov $n_cov -out $som_cnv -system $t_sys -min_reg 3 -min_corr 0 -seg somatic");
+		$parser->execTool("NGS/vc_cnvhunter.php", "-cov $t_cov -n_cov $n_cov -out $som_cnv -system $t_sys -min_corr 0 -seg somatic");
 	}
 
 	// annotation

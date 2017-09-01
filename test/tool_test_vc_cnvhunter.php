@@ -22,7 +22,7 @@ $tmp = output_folder()."debug";
 exec2("mkdir -p ".$tmp);
 $out_file1 = output_folder().$name."_out1.tsv";
 $out_file1seg = output_folder().$name."_out1.seg";
-check_exec("php ".src_folder()."/NGS/{$name}.php -n 20 -debug $tmp -cov $cov_tum -n_cov $cov_nor --log ".output_folder().$name."_out1.log -system ".data_folder().$name."_system.ini -min_reg 4 -out $out_file1 -seg GS140792_02 -cov_folder $cov_folder");
+check_exec("php ".src_folder()."/NGS/{$name}.php -n 20 -debug $tmp -cov $cov_tum -n_cov $cov_nor --log ".output_folder().$name."_out1.log -system ".data_folder().$name."_system.ini -out $out_file1 -seg GS140792_02 -cov_folder $cov_folder");
 check_file($out_file1, data_folder().$name."_out1.tsv");
 check_file($out_file1seg, data_folder().$name."_out1.seg");
 

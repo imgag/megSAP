@@ -18,7 +18,6 @@ $parser->addInfile("system", "Processing system INI file (determined from 'cov' 
 $parser->addString("n_cov", "Normal COV file for somatic CNV calling.", true, null);
 $parser->addString("debug", "Folder for debug information.", true, null);
 $parser->addString("cov_folder", "Folder with all coverage files (if different from [data_folder]/coverage/[system_short_name]/.", true, "auto");
-$parser->addInt("min_reg", "Minimum number of subsequent regions for output CNV events.", true, 1);
 $parser->addInt("n", "Number of (most similar) samples to consider.", true, 30);
 $parser->addFloat("min_corr", "Minimum reference correlation for samples.", true, 0.8);
 $parser->addFloat("min_z", "Minimum z-score to call a CNV.", true, 4.0);
@@ -83,7 +82,6 @@ for($i=0; $i<$cnvs_unfiltered->rows(); ++$i)
 	$line = $cnvs_unfiltered->getRow($i);
 	list($chr, $start, $end, $sample, $size, $num_reg) = $line;
 
-	if ($num_reg<$min_reg) continue;
 	if($sample==$psid1)
 	{
 		$cnvs_filtered->addRow($line);
@@ -140,7 +138,9 @@ if($somatic)
 
 	//filter somatic variants
 	$cnvs_somatic = new Matrix();
-	$cnvs_somatic->setHeaders($cnvs_filtered->getHeaders());
+	$headers = array_slice($cnvs_filtered->getHeaders(), 0, 10);
+	$headers[] = "genes";
+	$cnvs_somatic->setHeaders($headers);
 	for($i=0;$i<$cnvs_filtered->rows();++$i)
 	{
 		$row = $cnvs_filtered->getRow($i);
@@ -196,9 +196,9 @@ if($somatic)
 			}
 		}
 		
-		//check number of regions
+		//check number of regions (at least 3)
 		$reg_count = $end_index - $start_index + 1;
-		if (is_null($start_index) || is_null($end_index) || $reg_count < $min_reg)
+		if (is_null($start_index) || is_null($end_index) || $reg_count < 3)
 		{
 			//print "FAIL: num_reg=$reg_count\n";
 			continue;
