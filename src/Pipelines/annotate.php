@@ -75,7 +75,13 @@ if ($t_col=="na") //germline
 {
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
 	$parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $stafile", true);
-	$parser->execTool("NGS/vcf2gsvar.php", "-in $annfile -out $varfile ".($multi ? "-multi" : ""));
+	
+	$args = array("-in $annfile", "-out $varfile");
+	if ($multi)
+	{
+		$args[] = "-multi";
+	}
+	$parser->execTool("NGS/vcf2gsvar.php", implode(" ", $args));
 }
 else //somatic
 {

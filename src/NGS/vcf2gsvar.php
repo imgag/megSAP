@@ -116,7 +116,7 @@ $column_desc = array(
 	array("quality", "Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), genotype, depth and allele frequency for child, mother and father (TRIO)."),
 	array("gene", "Affected gene list (comma-separated)."),
 	array("variant_type", "Variant type."),
-	array("coding_and_splicing", "Coding and splicing details (Gene, NM number, type, impact, exon number, HGVS.c, HGVS.p)."),
+	array("coding_and_splicing", "Coding and splicing details (Gene, ENST number, type, impact, exon number, HGVS.c, HGVS.p)."),
 	array("RepeatMasker", "RepeatMasker annotation."),
 	array("dbSNP", "Identifier in dbSNP database."),
 	array("1000g", "Allele frequency in all populations of 1000g project."),
@@ -152,6 +152,16 @@ $filter_desc = array(
 	array("anno_high_impact", "Variant annotated to have high impact by SnpEff."),
 	array("anno_omim", "Variant annotated with information from OMIM."),
 );
+
+//load gencode basic transcripts
+$gencode_basic = array();
+$file = file(get_path("data_folder")."/dbs/Ensembl/gencode_basic.txt");
+foreach($file as $line)
+{
+	$line = trim($line);
+	if ($line=="" || $line[0]=="#") continue;
+	$gencode_basic[$line] = true;
+}
 
 //parse input
 $multi_cols = array();
@@ -328,22 +338,38 @@ while(!feof($handle))
 		{
 			$parts = explode("|", $entry);
 			
-			//skip intragenic and sequence_feature
 			$details = strtr($parts[1], array("_variant"=>""));
 			$details = strtr($details, array("splice_acceptor&splice_region&intron"=>"splice_acceptor", "splice_donor&splice_region&intron"=>"splice_donor", "splice_acceptor&intron"=>"splice_acceptor", "splice_donor&intron"=>"splice_donor", "_prime_"=>"'"));
-			if ($details=="intragenic" || $details=="sequence_feature") continue; 
 			
+			//skip sequence_feature
+			if ($details=="sequence_feature") continue; 
+
 			//skip empty gene names entries (TF-binding site, etc)
 			$gene = trim($parts[3]);
 			if ($gene=="") continue; 
-			$genes[] = $gene;
 			
-			//skip non-coding transcripts
-			$biotype = trim($parts[7]);
-			if ($biotype=="nonsense_mediated_decay" || $biotype=="retained_intron" || $biotype=="processed_transcript") continue; 
+			//split genes
+			if ($details=="intergenic_region")
+			{
+				$gene_list = explode("-", $gene);
+				foreach($gene_list as $gene)
+				{
+					$genes[] = $gene;
+				}
+			}
+			else
+			{
+				$genes[] = $gene;
+			}
+			
+			//skip transcripts that are not flagged as "gencode basic"
+			if ($details!="intergenic_region")
+			{
+				$transcript = trim($parts[6]);
+				if (!isset($gencode_basic[$transcript])) continue;
+			}
 
 			$variant_details[] = $details;
-			
 			$exon = $parts[8];
 			if ($exon!="") $exon = "exon".$exon;
 			$coding_and_splicing_details[] = $gene.":".$parts[6].":$details:".$parts[2].":$exon:".$parts[9].":".$parts[10];
