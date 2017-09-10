@@ -1,0 +1,55 @@
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
+##SAMPLE=<ID=Normal2,DiseaseStatus=affected>
+##DESCRIPTION=genotype=Genotype of variant in sample.
+##DESCRIPTION=filter=Annotations for filtering and ranking variants.
+##DESCRIPTION=quality=Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), genotype, depth and allele frequency for child, mother and father (TRIO).
+##DESCRIPTION=gene=Affected gene list (comma-separated).
+##DESCRIPTION=variant_type=Variant type.
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon number, HGVS.c, HGVS.p).
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in all populations of 1000g project.
+##DESCRIPTION=ExAC=Allele frequency in all populations of ExAC project.
+##DESCRIPTION=ExAC_hom=Homoyzgous counts for populations ALL, NFE and AFR of ExAC project.
+##DESCRIPTION=ExAC_sub=Sub-population allele frequenciens for populations AFR,AMR,EAS,NFE,SAS of ExAC project.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD database.
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
+##DESCRIPTION=Sift=Sift effect prediction: D=damaging, T=tolerated.
+##DESCRIPTION=MetaLR=MetaLR effect prediction: D=damaging, T=tolerated.
+##DESCRIPTION=PolyPhen2=PolyPhen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=FATHMM=FATHMM effect prediction: D=damaging, T=tolerated.
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20.
+##DESCRIPTION=OMIM=OMIM database annotation.
+##DESCRIPTION=ClinVar=ClinVar database annotation.
+##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
+##DESCRIPTION=ihdb_allsys_hom=Homozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=ihdb_allsys_het=Heterozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=classification=Classification from the NGSD.
+##DESCRIPTION=classification_comment=Classification comment from the NGSD.
+##DESCRIPTION=validated=Validation information from the NGSD. Validation results of other samples are listed in brackets!
+##DESCRIPTION=comment=Variant comments from the NGSD.
+##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, ExAC pLI score).
+##DESCRIPTION=tumor_freq=Variant frequency.
+##DESCRIPTION=tumor_depth=Sequencing depth at the variant position.
+##DESCRIPTION=normal_freq=Variant frequency.
+##DESCRIPTION=normal_depth=Sequencing depth at the variant position.
+##FILTER=anno_high_impact=Variant annotated to have high impact by SnpEff.
+##FILTER=anno_omim=Variant annotated with information from OMIM.
+##FILTER=anno_pathogenic_clinvar=Variant annotated to be pathogenic by ClinVar.
+##FILTER=anno_pathogenic_hgmd=Variant annotated to be pathogenic by HGMD.
+##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.
+##FILTER=low_DP=Depth less than 20.
+##FILTER=low_MQM=Mean mapping quality of alternate allele less than Q50.
+##FILTER=low_QUAL=Variant quality less than Q30.
+##FILTER=off-target=Variant outside the panel/exome target region.
+##FILTER=pred_pathogenic=Variant predicted to be pathogenic by one or more tools (conservation or effect prediction).
+##DESCRIPTION=CGI_drug_assoc=Cancer Genome Interpreter - therapeutic biomarkers
+##DESCRIPTION=CGI_evid_level=Cancer Genome Interpreter - evidence level
+##DESCRIPTION=CGI_transcript=Cancer Genome Interpreter - transcript to use
+#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	ExAC_sub	gnomAD	phyloP	Sift	MetaLR	PolyPhen2	FATHMM	CADD	OMIM	ClinVar	HGMD	COSMIC	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info	tumor_freq	tumor_depth	normal_freq	normal_depth	CGI_drug_assoc	CGI_evid_level	CGI_transcript
+chr1	11190646	11190646	G	A	hom	anno_omim	QUAL=13906;DP=458;AF=1.00;MQM=60	MTOR	synonymous	MTOR:ENST00000361445:synonymous:LOW:exon39/58:c.5553C>T:p.Ser1851Ser,MTOR:ENST00000376838:synonymous:LOW:exon1/20:c.168C>T:p.Ser56Ser		rs2275527	0.2286	0.2215	3405,1837,1022	0.4460,0.1114,0.0799,0.2380,0.1629	0.2823							601231 [MTOR (provisional) Smith-Kingsmore syndrome,616638|Focal cortical dysplasia,type II,somatic,607341];			COSM3996746	115	585					MTOR (inh=n/a pLI=1.00)	1.0000	210	1.0000	440	MTOR	Pre-clinical, Case report	ENST00000361445
+chr1	40363054	40363054	G	C	hom		QUAL=18724;DP=598;AF=1.00;MQM=60	MYCL	missense	MYCL:ENST00000397332:missense:MODERATE:exon3/3:c.1175C>G:p.Thr392Ser,MYCL:ENST00000372816:missense:MODERATE:exon2/2:c.1085C>G:p.Thr362Ser		rs3134614	0.9357	0.8865	47130,25169,4962	0.9776,0.8654,0.9994,0.8718,0.8384	0.9116	0.9850	T,T	T	B	T,T	4.09				COSM3927628	1618	392					MYCL (inh=n/a pLI=0.36)	1.0000	303	1.0000	577			
+chr1	51439777	51439777	C	T	het		QUAL=6438;DP=595;AF=0.48;MQM=60	CDKN2C	synonymous	CDKN2C:ENST00000262662:synonymous:LOW:exon4/4:c.342C>T:p.Gly114Gly,CDKN2C:ENST00000396148:synonymous:LOW:exon3/3:c.342C>T:p.Gly114Gly,CDKN2C:ENST00000371761:synonymous:LOW:exon2/2:c.342C>T:p.Gly114Gly		rs1043141	0.0439	0.0692	328,272,1	0.0150,0.0383,0.0560,0.0938,0.0396	0.0679											16	322					CDKN2C (inh=n/a pLI=0.32)	0.3582	268	0.4819	579	CDKN2C	Pre-clinical	
+chr1	59248813	59248813	G	C	hom	off-target	QUAL=8997;DP=324;AF=1.00;MQM=60	JUN	5'UTR	JUN:ENST00000371222:5'UTR:MODIFIER:exon1/1:c.-71C>G:		rs2760499	0.9519	0.0000	0,0,0	0,0,0,0,0	0.9554											368	4					JUN (inh=n/a pLI=0.46)	0.9933	298	0.9967	307			
+chr13	32914438	32914438	T	-	het	anno_high_impact;anno_omim;anno_pathogenic_clinvar;anno_pathogenic_hgmd	QUAL=10821;DP=1042;AF=0.49;MQM=60	BRCA2	frameshift	BRCA2:ENST00000380152:frameshift:HIGH:exon11/27:c.5946delT:p.Ser1982fs,BRCA2:ENST00000544455:frameshift:HIGH:exon11/28:c.5946delT:p.Ser1982fs		rs80359550	0	0.0003	0,0,0	0.0000,0.0000,0.0000,0.0005,0.0000	0.0003							600185 [BRCA2 (confirmed) Breast-ovarian cancer,familial,2,612555|Fanconi anemia,complementation group D1,605724|Prostate cancer,176807|Breast cancer,male,susceptibility to,114480|Wilms tumor,194070|Medulloblastoma,155255|Glioblastoma 3,613029|Pancreatic cancer 2,613347];	RCV000009910.15 [pathogenic]; RCV000009911.4 [other]; RCV000009912.4 [pathogenic]; RCV000034451.7 [pathogenic]; RCV000044800.9 [pathogenic]; RCV000129627.4 [pathogenic]; RCV000212245.3 [pathogenic]; RCV000367838.1 [pathogenic]; RCV000414179.1 [pathogenic]; 	CD961857 [CLASS=DM MUT=ALT PHEN="Breast cancer" GENE=BRCA2]; 	COSM26515, COSM328000	0	3	5	[5] ahstaea1 15.08.2016: frameshift; GC-HBOC, BIC, ClinVar, UMD, HGMD pathogen	n/a (1xTP, 0xFP)		BRCA2 (inh=AR+AD pLI=0.00)	0.8899	200	0.4	120	BRCA2	Early trials, Case report, Late trials, FDA guidelines, Pre-clinical	

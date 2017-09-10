@@ -120,7 +120,7 @@ function filter_synonymous(Matrix $data)
 	$f = $data->getColumnIndex("filter_tsv");
 	
 	//coding terms
-	$obo = MISO::fromOBO();
+	$obo = Obo::fromOBO(repository_basedir()."/data/dbs/Ontologies/so-xp_3_0_0.obo");
 	$miso_terms_coding = array();
 	$ids = array("SO:0001580","SO:0001568");
 	foreach($ids as $id)
@@ -133,7 +133,7 @@ function filter_synonymous(Matrix $data)
 	
 	//prepare variant_type filter (valid effects for coding & splicing)
 	//children of synonymous_variant (SO:0001819)
-	$obo = MISO::fromOBO();
+	$obo = Obo::fromOBO(repository_basedir()."/data/dbs/Ontologies/so-xp_3_0_0.obo");
 	$miso_terms = array();
 	$ids = array("SO:0001819");
 	foreach($ids as $id)
@@ -184,7 +184,7 @@ function filter_coding(Matrix $data)
 	//=> added SO:0001568 splicing_variant
 	//=> skipped SO:0001969	coding_transcript_intron_variant || n.b.
 	//=> skipped SO:0001622	UTR_variant
-	$obo = MISO::fromOBO();
+	$obo = Obo::fromOBO(repository_basedir()."/data/dbs/Ontologies/so-xp_3_0_0.obo");
 	$miso_terms = array();
 	$ids = array("SO:0001580","SO:0001568");
 	foreach($ids as $id)

@@ -91,7 +91,7 @@ $effects = array_unique($effects);
 foreach($effects as $e)
 {
 	if ($e==$pattern || $e=="") continue;
-	if(!Miso::isValidTermByName($e))
+	if(!Obo::isValidTermByName(repository_basedir()."/data/dbs/Ontologies/so-xp_3_0_0.obo",$e))
 	{
 		trigger_error("Invalid VCF-file. SnpEff effect '$e' is not valid Miso term in '$in'.", E_USER_ERROR);
 	}

@@ -88,14 +88,6 @@
 ##INFO=<ID=COSMIC_ID,Number=1,Type=String,Description="COSMIC accession">
 ##SnpSiftCmd="SnpSift dbnsfp -f Interpro_domain /tmp/annotate_peGwlW_somatic.vcf"
 ##INFO=<ID=dbNSFP_Interpro_domain,Number=A,Type=String,Description="Field 'Interpro_domain' from dbNSFP">
-##FILTER=<ID=fv.not_cod_spli,Description="Not a coding or splicing variant (filter_vcf).">
-##FILTER=<ID=fv.som_depth_tum,Description="Sequencing depth tumor is < 8 (filter_vcf).">
-##FILTER=<ID=fv.som_depth_nor,Description="Sequencing depth normal is <8 (filter_vcf).">
-##FILTER=<ID=fv.som_all_freq_tum,Description="Allele frequency tumor is 0.05 (filter_vcf).">
-##FILTER=<ID=fv.som_lt_3_reads,Description="Less than 3 supporting tumor reads (filter_vcf).">
-##FILTER=<ID=fv.som_all_freq,Description="Difference in allele frequencies too low (filter_vcf).">
-##FILTER=<ID=fv.som_all_freq_nor,Description="Allele frequency normal too high (filter_vcf).">
-##FILTER=<ID=fv.som_tum_loh,Description="Loss of heterozygosity within tumor tissue (filter_vcf).">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	GS110168	GS110169
 chr21	10862599	rs3883945	C	T	9696.88	.	AB=0;ABP=0;AC=4;AF=1;AN=4;AO=296;CIGAR=1X;DP=296;DPB=296;DPRA=0;EPP=26.0162;EPPR=0;GTI=0;LEN=1;MEANALT=1;MQM=57.9561;MQMR=0;NS=2;NUMALT=1;ODDS=192.75;PAIRED=1;PAIREDR=0;PAO=0;PQA=0;PQR=0;PRO=0;QA=10921;QR=0;RO=0;RPL=129;RPP=13.6036;RPPR=0;RPR=167;RUN=1;SAF=195;SAP=67.8317;SAR=101;SRF=0;SRP=0;SRR=0;TYPE=snp;technology.ILLUMINA=1;ANN=T|intergenic_region|MODIFIER|TEKT4P2-TPTE|TEKT4P2-TPTE|intergenic_region|TEKT4P2-TPTE|||||||||;T1000GP_AF=0.549521;EXAC_AF=0.586	GT:DP:RO:QR:AO:QA:GL	1/1:149:0:0:149:5472:-492.847,-44.8535,0	1/1:147:0:0:147:5449:-490.781,-44.2514,0
 chr21	10862618	rs3916251	T	C	11894.5	.	AB=0;ABP=0;AC=4;AF=1;AN=4;AO=358;CIGAR=1X;DP=358;DPB=358;DPRA=0;EPP=12.7152;EPPR=0;GTI=0;LEN=1;MEANALT=1;MQM=57.5196;MQMR=0;NS=2;NUMALT=1;ODDS=230.688;PAIRED=1;PAIREDR=0;PAO=0;PQA=0;PQR=0;PRO=0;QA=13284;QR=0;RO=0;RPL=154;RPP=18.1742;RPPR=0;RPR=204;RUN=1;SAF=189;SAP=5.43653;SAR=169;SRF=0;SRP=0;SRR=0;TYPE=snp;technology.ILLUMINA=1;ANN=C|intergenic_region|MODIFIER|TEKT4P2-TPTE|TEKT4P2-TPTE|intergenic_region|TEKT4P2-TPTE|||||||||;T1000GP_AF=0.635383;EXAC_AF=0.634	GT:DP:RO:QR:AO:QA:GL	1/1:176:0:0:176:6512:-586.45,-52.9813,0	1/1:182:0:0:182:6772:-609.852,-54.7875,0

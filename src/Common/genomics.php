@@ -1106,6 +1106,7 @@ function load_vcf_normalized($filename)
 	$vars = array();
 	
 	//load and normalize data
+	if(!is_file($filename))	trigger_error("Could not find file $filename.",E_USER_WARNING);
 	$file = file($filename);
 	foreach($file as $line)
 	{

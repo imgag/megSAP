@@ -7,7 +7,7 @@ require_once("functions.php");
 	
 	@ingroup base
 */
-class Miso
+class Obo
 {
 	private $terms = array();
 	private $typedefs = array();
@@ -91,16 +91,15 @@ class Miso
 		return $children_ids;		
 	}
 
-	public static function getMisoOBO($throw_if_fails = true)
+	public static function getOBO($file, $throw_if_fails = true)
 	{
-		$file = repository_basedir()."/data/dbs/Ontologies/so-xp_3_0_0.obo";
 		if (file_exists($file))
 		{
 			return $file;
 		}
 		else if ($throw_if_fails)
 		{
-			trigger_error("Miso OBO file '$file' does not exist!", E_USER_ERROR);
+			trigger_error("OBO file '$file' does not exist!", E_USER_ERROR);
 		}
 		else
 		{
@@ -108,11 +107,11 @@ class Miso
 		}
 	}
 
-	public static function isValidTermByID($term_id)
+	public static function isValidTermByID($file, $term_id)
 	{
-		$miso = self::fromOBO();
+		$obo = self::fromOBO($file);
 		
-		$terms = $miso->terms;
+		$terms = $obo->terms;
 		for($i=0;$i<count($terms);++$i)
 		{
 			$term = $terms[$i];
@@ -123,13 +122,13 @@ class Miso
 		return false;
 	}
 	
-	public static function isValidTermByName($term_name)
+	public static function isValidTermByName($file, $term_name)
 	{
-		$miso = self::fromOBO();
+		$obo = self::fromOBO($file);
 		
-		$term_id = $miso->getTermIdByName($term_name,FALSE);
+		$term_id = $obo->getTermIdByName($term_name,FALSE);
 		
-		$terms = $miso->terms;
+		$terms = $obo->terms;
 		for($i=0;$i<count($terms);++$i)
 		{
 			$term = $terms[$i];
@@ -140,11 +139,13 @@ class Miso
 		return false;
 	}
 	
-	public static function fromOBO()
+	public static function fromObo($file)
 	{
-		$miso = new Miso();
-
-		$handle = gzopen(Miso::getMisoOBO() , "r");
+	
+		if (!file_exists($file))	trigger_error("OBO file '$file' does not exist!", E_USER_ERROR);
+	
+		$handle = gzopen($file, "r");
+		$obo = new Obo();
 		$count = 0;
 		while (!feof($handle)) 
 		{
@@ -179,12 +180,12 @@ class Miso
 							break;
 					}
 				}
-				$miso->addTerm($term);
+				$obo->addTerm($term);
 			}
 		}
 		gzclose($handle);
 		
-		return $miso;
+		return $obo;
 	}	
 }	
 

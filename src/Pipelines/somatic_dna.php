@@ -5,6 +5,8 @@
 		@TODO combine tumor normal pair and single sample mode
 		@TODO recalculate QC-values at the end of the pipeline
 		@TODO remove analyze.php and set up own combinations of tools
+		@todo refactor script using a stepwise approach
+		@todo add QCI file for CNVs
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -19,7 +21,7 @@ $parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To proc
 $parser->addString("o_folder", "Output folder.", false);
 $steps_all = array("ma", "vc", "an", "ci", "db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,db");
-$parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"non_coding_splicing,off_target,set_somatic");
+$parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"synonymous,non-coding-splicing");
 // optional
 $parser->addFloat("min_af", "Allele frequency detection limit.", true, 0.05);
 $parser->addInfile("t_sys",  "Tumor processing system INI file (determined from the NGSD using 't_id' by default).", true);
@@ -38,6 +40,7 @@ $parser->addFlag("strelka1","Use strelka1 for variant calling.",true);
 $parser->addFlag("add_vc_folder","Add folder containing variant calling results from variant caller.",true);
 extract($parser->parse($argv));
 
+
 // (0) preparations
 // check steps
 $steps = explode(",", $steps);
@@ -45,16 +48,21 @@ foreach($steps as $step)
 {
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 }
+
+// tumor only or tumor normal
 $tumor_only = ($n_id=="na");
+if($tumor_only)	trigger_error("Single sample mode.",E_USER_NOTICE);
+else	trigger_error("Paired sample mode.",E_USER_NOTICE);
 
 // check and generate output folders
 $o_folder = $o_folder."/";
 $t_folder = $p_folder."/Sample_".$t_id."/";
 if (!file_exists($t_folder))	trigger_error("Tumor-folder '$t_folder' does not exist.", E_USER_ERROR);
+$t_sys_ini = load_system($t_sys, $t_id);
 $n_folder = $p_folder."/Sample_".$n_id."/";
 if (!$tumor_only && !file_exists($n_folder))	trigger_error("Reference-folder '$n_folder' does not exist.", E_USER_ERROR);
-$t_sys_ini = load_system($t_sys, $t_id);
 
+//amplicon mode
 $amplicon = false;
 if(!$t_sys_ini['shotgun'])
 {
@@ -62,9 +70,11 @@ if(!$t_sys_ini['shotgun'])
 	trigger_error("Amplicon mode.",E_USER_NOTICE);
 }
 
+
 // (1) run analysis
 $t_bam = $t_folder.$t_id.".bam";
 $n_bam = $n_folder.$n_id.".bam";
+
 // (1a) only tumor sample available	=>	freebayes
 if($tumor_only)
 {
@@ -209,8 +219,6 @@ if($tumor_only)
 // (1b) tumor normal pair => strelka or freebayes
 else
 {
-	trigger_error("Tumor normal pair. Paired mode.",E_USER_NOTICE);
-
 	// get ref system and do some basic checks
 	$n_sys_ini = load_system(($n_sys), $n_id);
 	if(empty($t_sys_ini['target_file']) || empty($n_sys_ini['target_file'])) trigger_error ("System tumor or system normal does not contain a target file.", E_USER_WARNING);
@@ -356,8 +364,14 @@ else
 			// zip and index output file
 			$parser->exec("bgzip", "-c $tmp2 > $som_v", false);	// no output logging, because Toolbase::extractVersion() does not return
 			$parser->exec("tabix", "-f -p vcf $som_v", false);	// no output logging, because Toolbase::extractVersion() does not return
-		}		
-		
+			
+			// filter for variants that are likely to be germline, included in strelka2					
+			$extra = array("-type somatic-lq","-keep");
+			if($contamination > 0)	$extra[] = "-contamination $contamination";
+			$parser->execTool("NGS/filter_vcf.php", "-in $som_v -out $som_v -min_af $min_af  ".implode(" ", $extra));
+
+		}
+
 		// copy number variant calling
 		$tmp_folder = $parser->tempFolder();
 		$t_cov = $tmp_folder."/".basename($t_bam,".bam").".cov";
@@ -369,20 +383,31 @@ else
 
 	// annotation
 	$som_gsvar = $o_folder.$t_id."-".$n_id.".GSvar";
+	$som_unfi = $o_folder.$t_id."-".$n_id."_var_annotated_unfiltered.vcf.gz";
 	$som_vann = $o_folder.$t_id."-".$n_id."_var_annotated.vcf.gz";
 	$som_vqci = $o_folder.$t_id."-".$n_id."_var_qci.vcf.gz";
 	if (in_array("an", $steps))
 	{
 		// annotate vcf into temp folder
 		$tmp_folder1 = $parser->tempFolder();
-		$parser->execTool("Pipelines/annotate.php", "-out_name ".basename($som_gsvar, ".GSvar")." -out_folder $tmp_folder1 -system $t_sys -vcf $som_v -t_col $t_id -n_col $n_id");
+		$tmp_vcf = $tmp_folder1."/".basename($som_gsvar, ".GSvar")."_var_annotated.vcf.gz";
+		$parser->execTool("Pipelines/annotate.php", "-out_name ".basename($som_gsvar, ".GSvar")." -out_folder $tmp_folder1 -system $t_sys -vcf $som_v -t_col $t_id -n_col $n_id -thres 8");
+		if (!copy($tmp_vcf, $som_unfi))	trigger_error("Could not copy file '$tmp_vcf' to '$som_unfi'",E_USER_ERROR);
 
-		// filter vcf to output folder
+		// run somatic QC; this is run before project specific filtering since some qc parameters should not have additional filters set
+		$t_bam = $t_folder.$t_id.".bam";
+		$n_bam = $n_folder.$n_id.".bam";
+		$links = array($t_folder.$t_id."_stats_fastq.qcML",$t_folder.$t_id."_stats_map.qcML",$n_folder.$n_id."_stats_fastq.qcML",$n_folder.$n_id."_stats_map.qcML");
+		$stafile3 = $o_folder.$t_id."-".$n_id."_stats_som.qcML";
+		$parser->exec(get_path("ngs-bits")."SomaticQC","-tumor_bam $t_bam -normal_bam $n_bam -links ".implode(" ",$links)." -somatic_vcf $som_unfi -target_bed ".$t_sys_ini['target_file']." -ref_fasta ".get_path("local_data")."/".$t_sys_ini['build'].".fa -out $stafile3",true);
+
+		// add project specific filters
 		$extra = array();
+		if($freebayes)	$extra[] = "-ignore_filter";
 		if($t_sys_ini["target_file"]!="")	$extra[] = "-roi ".$t_sys_ini["target_file"];
 		if(!$reduce_variants_filter)	$extra[] = "-keep";
 		if($contamination > 0)	$extra[] = "-contamination $contamination";
-		$parser->execTool("NGS/filter_vcf.php", "-in ${tmp_folder1}/".basename($som_gsvar, ".GSvar")."_var_annotated.vcf.gz -out $som_vann -min_af $min_af -type $filter_set ".implode(" ", $extra));
+		$parser->execTool("NGS/filter_vcf.php", "-in $som_unfi -out $som_vann -min_af $min_af -type $filter_set ".implode(" ", $extra));
 
 		// annotate somatic NGSD-data
 		// find processed sample with equal processing system for NGSD-annotation
@@ -418,13 +443,6 @@ else
 		}
 		$parser->exec("bgzip", "-c $tmp > $som_vann", false);	// no output logging, because Toolbase::extractVersion() does not return
 		$parser->exec("tabix", "-f -p vcf $som_vann", false);	// no output logging, because Toolbase::extractVersion() does not return
-
-		// somatic QC
-		$t_bam = $t_folder.$t_id.".bam";
-		$n_bam = $n_folder.$n_id.".bam";
-		$links = array($t_folder.$t_id."_stats_fastq.qcML",$t_folder.$t_id."_stats_map.qcML",$n_folder.$n_id."_stats_fastq.qcML",$n_folder.$n_id."_stats_map.qcML");
-		$stafile3 = $o_folder.$t_id."-".$n_id."_stats_som.qcML";
-		$parser->exec(get_path("ngs-bits")."SomaticQC","-tumor_bam $t_bam -normal_bam $n_bam -links ".implode(" ",$links)." -somatic_vcf $som_vann -target_bed ".$t_sys_ini['target_file']." -ref_fasta ".get_path("local_data")."/".$t_sys_ini['build'].".fa -out $stafile3",true);
 
 		// convert vcf to GSvar
 		$extra = "-t_col $t_id -n_col $n_id";

@@ -1,0 +1,60 @@
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
+##SAMPLE=<ID=Normal1,DiseaseStatus=affected>
+##DESCRIPTION=genotype=Genotype of variant in sample.
+##DESCRIPTION=filter=Annotations for filtering and ranking variants.
+##DESCRIPTION=quality=Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), genotype, depth and allele frequency for child, mother and father (TRIO).
+##DESCRIPTION=gene=Affected gene list (comma-separated).
+##DESCRIPTION=variant_type=Variant type.
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon number, HGVS.c, HGVS.p).
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in all populations of 1000g project.
+##DESCRIPTION=ExAC=Allele frequency in all populations of ExAC project.
+##DESCRIPTION=ExAC_hom=Homoyzgous counts for populations ALL, NFE and AFR of ExAC project.
+##DESCRIPTION=ExAC_sub=Sub-population allele frequenciens for populations AFR,AMR,EAS,NFE,SAS of ExAC project.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD database.
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
+##DESCRIPTION=Sift=Sift effect prediction: D=damaging, T=tolerated.
+##DESCRIPTION=MetaLR=MetaLR effect prediction: D=damaging, T=tolerated.
+##DESCRIPTION=PolyPhen2=PolyPhen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=FATHMM=FATHMM effect prediction: D=damaging, T=tolerated.
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20.
+##DESCRIPTION=OMIM=OMIM database annotation.
+##DESCRIPTION=ClinVar=ClinVar database annotation.
+##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
+##DESCRIPTION=ihdb_allsys_hom=Homozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=ihdb_allsys_het=Heterozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=classification=Classification from the NGSD.
+##DESCRIPTION=classification_comment=Classification comment from the NGSD.
+##DESCRIPTION=validated=Validation information from the NGSD. Validation results of other samples are listed in brackets!
+##DESCRIPTION=comment=Variant comments from the NGSD.
+##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, ExAC pLI score).
+##DESCRIPTION=tumor_freq=Variant frequency.
+##DESCRIPTION=tumor_depth=Sequencing depth at the variant position.
+##DESCRIPTION=normal_freq=Variant frequency.
+##DESCRIPTION=normal_depth=Sequencing depth at the variant position.
+##FILTER=anno_high_impact=Variant annotated to have high impact by SnpEff.
+##FILTER=anno_omim=Variant annotated with information from OMIM.
+##FILTER=anno_pathogenic_clinvar=Variant annotated to be pathogenic by ClinVar.
+##FILTER=anno_pathogenic_hgmd=Variant annotated to be pathogenic by HGMD.
+##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.
+##FILTER=low_DP=Depth less than 20.
+##FILTER=low_MQM=Mean mapping quality of alternate allele less than Q50.
+##FILTER=low_QUAL=Variant quality less than Q30.
+##FILTER=off-target=Variant outside the panel/exome target region.
+##FILTER=pred_pathogenic=Variant predicted to be pathogenic by one or more tools (conservation or effect prediction).
+##DESCRIPTION=CGI_drug_assoc=Cancer Genome Interpreter - therapeutic biomarkers
+##DESCRIPTION=CGI_evid_level=Cancer Genome Interpreter - evidence level
+##DESCRIPTION=CGI_transcript=Cancer Genome Interpreter - transcript to use
+#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	ExAC_sub	gnomAD	phyloP	Sift	MetaLR	PolyPhen2	FATHMM	CADD	OMIM	ClinVar	HGMD	COSMIC	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info	tumor_freq	tumor_depth	normal_freq	normal_depth	CGI_drug_assoc	CGI_evid_level	CGI_transcript
+chr1	65330682	65330682	G	A	het	off-target	QUAL=2271;DP=208;AF=0.46;MQM=60	JAK1	intron	JAK1:ENST00000342505:intron:MODIFIER:exon7/24:c.991-27C>T:		rs2256298	0.3672	0.2984	5826,1829,1575	0.5679,0.4770,0.3273,0.2436,0.2414	0.3537											97	466					JAK1 (inh=n/a pLI=1.00)	0.7642	123	0.4677	201	JAK1	Pre-clinical, Case report	
+chr1	120463044	120463044	C	T	het	anno_omim	QUAL=2346;DP=241;AF=0.42;MQM=60	NOTCH2	intron	NOTCH2:ENST00000256646:intron:MODIFIER:exon29/33:c.5311-24G>A:		rs41306195	0.0180	0.0516	236,214,0	0.0110,0.0160,0.0002,0.0770,0.0191	0.0571							600275 [NOTCH2 (provisional) Alagille syndrome 2,610205|Hajdu-Cheney syndrome,102500];				18	457					NOTCH2 (inh=AD pLI=1.00)	0.3861	101	0.4244	238	NOTCH2	Pre-clinical	
+chr1	169512039	169512039	T	C	het	anno_omim	QUAL=5505;DP=426;AF=0.49;MQM=60	F5	synonymous	F5:ENST00000367796:synonymous:LOW:exon13/25:c.2304A>G:p.Glu768Glu,F5:ENST00000367797:synonymous:LOW:exon13/25:c.2289A>G:p.Glu763Glu		rs6024	0.0455	0.0618	310,153,1	0.0088,0.0905,0.0365,0.0636,0.0704	0.0654							612309 [F5 (confirmed) Factor V deficiency,227400|Thrombophilia,susceptibility to,due to factor V Leiden,188055|Stroke,ischemic,susceptibility to,601367|Budd-Chiari syndrome,600880|Thrombophilia due to activated protein C resistance,188055|Pregnancy loss,recurrent,susceptibility to,1,614389];	RCV000244975.1 [benign]; RCV000279276.1 [likely benign]; RCV000334365.1 [likely benign]; RCV000340440.1 [likely benign]; RCV000375000.1 [likely benign]; 			15	277					F5 (inh=AR+AD pLI=0.00)	0.4920	313	0.4903	414			
+chr1	169513583	169513583	G	T	het	anno_omim	QUAL=4575;DP=377;AF=0.47;MQM=60	F5	synonymous	F5:ENST00000367796:synonymous:LOW:exon12/25:c.1941C>A:p.Thr647Thr,F5:ENST00000367797:synonymous:LOW:exon12/25:c.1926C>A:p.Thr642Thr		rs6037	0.0503	0.0716	394,203,1	0.0105,0.0979,0.0349,0.0749,0.0806	0.0756							612309 [F5 (confirmed) Factor V deficiency,227400|Thrombophilia,susceptibility to,due to factor V Leiden,188055|Stroke,ischemic,susceptibility to,601367|Budd-Chiari syndrome,600880|Thrombophilia due to activated protein C resistance,188055|Pregnancy loss,recurrent,susceptibility to,1,614389];	RCV000245311.1 [benign]; RCV000263608.1 [likely benign]; RCV000298759.1 [likely benign]; RCV000356030.1 [likely benign]; RCV000399129.1 [likely benign]; 		COSM4143012	19	308					F5 (inh=AR+AD pLI=0.00)	0.5302	215	0.4725	364			
+chr1	179087934	179087934	T	C	hom	off-target;anno_omim	QUAL=7585;DP=244;AF=1.00;MQM=60	ABL2	intron	ABL2:ENST00000502732:intron:MODIFIER:exon6/11:c.1046-35A>G:,ABL2:ENST00000408940:intron:MODIFIER:exon5/10:c.938-35A>G:,ABL2:ENST00000344730:intron:MODIFIER:exon6/12:c.1001-35A>G:,ABL2:ENST00000512653:intron:MODIFIER:exon6/11:c.1001-35A>G:,ABL2:ENST00000504405:intron:MODIFIER:exon5/11:c.938-35A>G:,ABL2:ENST00000367623:intron:MODIFIER:exon5/10:c.983-35A>G:,ABL2:ENST00000507173:intron:MODIFIER:exon5/11:c.983-35A>G:,ABL2:ENST00000511413:intron:MODIFIER:exon6/12:c.1046-35A>G:,ABL2:ENST00000392043:intron:MODIFIER:exon5/9:c.983-35A>G:		rs2171959	0.6292	0.6247	23893,13436,2649	0.7153,0.4627,0.5179,0.6356,0.6789	0.6418							164690 [ABL2 (confirmed) Leukemia,acute myeloid,with eosinophilia];			COSN163353	624	608					ABL2 (inh=n/a pLI=0.01)	1.0000	152	1.0000	235			
+chr1	206647787	206647787	T	C	hom		QUAL=11493;DP=358;AF=0.99;MQM=60	IKBKE	synonymous,5'UTR	IKBKE:ENST00000367120:synonymous:LOW:exon4/22:c.201T>C:p.Ile67Ile,IKBKE:ENST00000537984:5'UTR:MODIFIER:exon3/21:c.-55T>C:		rs1539243	0.8992	0.8591	44708,22686,3959	0.8753,0.9334,0.9764,0.8275,0.8714	0.8610											1183	421					IKBKE (inh=n/a pLI=0.80)	0.9915	117	0.9942	346			
+chr6	18139214	18139214	G	A	hom	anno_omim	QUAL=14561;DP=442;AF=1.00;MQM=60	TPMT	synonymous	TPMT:ENST00000309983:synonymous:LOW:exon6/9:c.474C>T:p.Ile158Ile		rs2842934	0.7530	0.7633	35555,20556,3425	0.8100,0.7719,0.7749,0.7846,0.6410	0.7849							187680 [TPMT (provisional) Thiopurines,poor metabolism of,1,610460];	RCV000271266.1 [likely benign]; 		COSM3761722	1099	788					TPMT (inh=AR pLI=0.00)	1.0000	345	0.9953	430	TPMT	FDA guidelines	, ENST00000309983
+chr6	18139965	18139965	A	-	het	anno_omim	QUAL=1541;DP=75;AF=0.72;MQM=60	TPMT	splice_region&intron	TPMT:ENST00000309983:splice_region&intron:LOW:exon4/8:c.367-17delT:		rs375276814;rs78425561	0.0000	0.6527	22558,13890,517	0.3475,0.6953,0.7739,0.6971,0.5497	0.6203							187680 [TPMT (provisional) Thiopurines,poor metabolism of,1,610460];				842	886					TPMT (inh=AR pLI=0.00)	0.7000	40	0.6842	76	TPMT	FDA guidelines	, ENST00000309983
+chr6	18139973	18139973	A	T	het	anno_omim	QUAL=1541;DP=75;AF=0.72;MQM=60	TPMT	intron	TPMT:ENST00000309983:intron:MODIFIER:exon4/8:c.367-25T>A:		rs56245893	0.0000	0.0130	0,0,0	0.0036,0.0144,0.0091,0.0111,0.0330	0.0128							187680 [TPMT (provisional) Thiopurines,poor metabolism of,1,610460];				3	134					TPMT (inh=AR pLI=0.00)	0.1957	46	0.2471	85	TPMT	FDA guidelines	, ENST00000309983
+chr7	151926935	151926935	G	A	het	off-target;low_MQM	QUAL=1778;DP=523;AF=0.32;MQM=36	KMT2C	intron	KMT2C:ENST00000355193:intron:MODIFIER:exon18/59:c.2976+73C>T:,KMT2C:ENST00000262189:intron:MODIFIER:exon18/58:c.2976+73C>T:		rs60537970	0.0000	0.0000	0,0,0	0,0,0,0,0	0.1034											0	606					KMT2C (inh=n/a pLI=1.00)	0.1514	251	0.3253	501			

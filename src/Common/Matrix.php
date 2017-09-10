@@ -274,7 +274,19 @@ class Matrix
 		}
 		
 		--$this->cols;
-		array_splice($this->headers, $column, 1);
+		$name = array_splice($this->headers, $column, 1)[0];
+		
+		$tmp_c = array();
+		foreach($this->comments as $c)
+		{
+			if(starts_with($c,"#DESCRIPTION"))
+			{
+				list($t,$n,$d) = explode("=",$c);
+				if($n==$name)	continue;
+			}
+			$tmp_c[] = $c;
+		}
+		$this->comments = $tmp_c;
 	}
 
 	/// Removes a row by index.

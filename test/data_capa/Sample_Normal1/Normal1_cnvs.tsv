@@ -1,0 +1,8 @@
+##Normal1 ref_correl: 0.918 (median: 0.957)
+##Normal1 cnvs: 72 (median: 3)
+##Normal1 qc_errors: 
+##DESCRIPTION=CGI_drug_assoc=Cancer Genome Interpreter - therapeutic biomarkers
+##DESCRIPTION=CGI_evid_level=Cancer Genome Interpreter - evidence level
+#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	overlaps_cnp_region	genes	dosage_sensitive_disease_genes	omim	CGI_drug_assoc	CGI_evid_level
+chr8	48866872	48868533	Normal1	1662	4	5,3,4,4	6.28,3.01,3,4	0.197,0.118,0,0	chr8:48866872-48867031,chr8:48868408-48868533		MSH6,PRKDC		600899_[PRKDC_(CONFIRMED)_IMMUNODEFICIENCY_26,WITH_OR_WITHOUT_NEUROLOGIC_ABNORMALITIES,615966]		
+chr16	71678679	71678783	Normal1	105	1	3	3.8	0.066	chr16:71678679-71678783		PHLPP2				
