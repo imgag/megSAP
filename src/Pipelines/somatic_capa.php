@@ -8,6 +8,9 @@
 	@todo report - add tumor content information and HPO terms from GenLAB
 	@todo report - add CN status to CNV caption
 	@todo move cgi annotation to annotation step
+	@todo use single letter code for amino acids
+	@todo cap TumorContentEstimate at 100 %
+	@todo build drug table based on additional cgi columns
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -271,22 +274,22 @@ if (in_array("re", $steps))
 
 		$filter = array("BRCA1", "BRCA2", "TP53", "STK11", "PTEN", "MSH2", "MSH6", "MLH1", "PMS2", "APC", "MUTYH", "SMAD4", "VHL", "MEN1", "RET", "RB1", "TSC1", "TSC2", "NF2", "WT1");
 
-		// TODO check if LIMS is available
-		list($tn,) = explode("_",$t_id);
 		$hpo_terms = array();
-		$tumor_content = "0 %";
-		$db = DB::getInstance("GL8");
-		$res = $db->executeQuery("SELECT * FROM v_ngs_sap WHERE labornummer LIKE '$tn' ");
-		if(!empty($res))
+		$tumor_content = "na %";
+		if(isset(get_path("db_host")['GL8']))
 		{
-			if(!empty($res[0]['TUMORANTEIL']))	$tumor_content = $res[0]['TUMORANTEIL'];
-			if(!empty($res[0]['HPOTERM1']))	$hpo_terms[] = $res[0]['HPOTERM1'];
-			if(!empty($res[0]['HPOTERM2']))	$hpo_terms[] = $res[0]['HPOTERM2'];
-			if(!empty($res[0]['HPOTERM3']))	$hpo_terms[] = $res[0]['HPOTERM3'];
-			if(!empty($res[0]['HPOTERM4']))	$hpo_terms[] = $res[0]['HPOTERM4'];
+			list($tn,) = explode("_",$t_id);
+			$db = DB::getInstance("GL8");
+			$res = $db->executeQuery("SELECT * FROM v_ngs_sap WHERE labornummer LIKE '$tn' ");
+			if(!empty($res))
+			{
+				if(!empty($res[0]['TUMORANTEIL']))	$tumor_content = $res[0]['TUMORANTEIL'];
+				if(!empty($res[0]['HPOTERM1']))	$hpo_terms[] = $res[0]['HPOTERM1'];
+				if(!empty($res[0]['HPOTERM2']))	$hpo_terms[] = $res[0]['HPOTERM2'];
+				if(!empty($res[0]['HPOTERM3']))	$hpo_terms[] = $res[0]['HPOTERM3'];
+				if(!empty($res[0]['HPOTERM4']))	$hpo_terms[] = $res[0]['HPOTERM4'];
+			}
 		}
-		// there can be multiple deducted samples in our LIMS		if(count($res)>1)	trigger_error("Found multiple samples with id '$tn' in GenLAB.",E_USER_ERROR);
-		
 		$obo = Obo::fromObo("/mnt/share/data/dbs/HPO/hp.obo");
 		foreach($hpo_terms as $k => $hpt)
 		{
@@ -462,10 +465,14 @@ if (in_array("re", $steps))
 
 function report_SNV_table($gsvar, $single_sample, $col_tum_freq, $col_tum_depth, $col_nor_freq, $col_nor_depth, $min_class = 0, $filter = array())
 {
+	$snv = Matrix::fromTSV($gsvar);
+	
 	$germline = false;
 	if($min_class > 0)	$germline = true;
 
-	$snv = Matrix::fromTSV($gsvar);
+	$classification = false;
+	if(in_array("classification",$snv->getHeaders()))	$classification = true;;
+
 	$snv_report = new Matrix();
 	if ($snv->rows()!=0)
 	{
@@ -478,7 +485,7 @@ function report_SNV_table($gsvar, $single_sample, $col_tum_freq, $col_tum_depth,
 		$idx_cgi1 = $snv->getColumnIndex("CGI_drug_assoc");
 		$idx_cgi2 = $snv->getColumnIndex("CGI_transcript");
 		$idx_class = null;
-		if($germline)	$idx_class = $snv->getColumnIndex("classification");		
+		if($germline && $classification)	$idx_class = $snv->getColumnIndex("classification");		
 		$idx_fi = $snv->getColumnIndex("filter");
 		$idx_tvf = $snv->getColumnIndex($col_tum_freq);
 		$idx_td = $snv->getColumnIndex($col_tum_depth);
@@ -513,7 +520,7 @@ function report_SNV_table($gsvar, $single_sample, $col_tum_freq, $col_tum_depth,
 			
 			// skip filtered variants
 			if(!$germline && !empty($row[$idx_fi]))	continue;
-			if($germline && $row[$idx_class]<$min_class)	continue;
+			if($germline && $classification && $row[$idx_class]<$min_class)	continue;
 
 			if(!empty($filter))
 			{
