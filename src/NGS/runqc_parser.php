@@ -11,7 +11,7 @@ $parser = new ToolBase("runqc_parser", "Parses and imports run QC metrics into t
 $parser->addString("name", "Name of the run.", false);
 $parser->addString("run_dir", "Run directory.", false);
 $parser->addFlag("force", "Overwrites already existing DB entries instead of throwing an error.");
-$parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD_TEST");
+$parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
 //init
