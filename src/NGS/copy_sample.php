@@ -280,7 +280,7 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 	
 	//target 'import_runqc'
 	$output[] = "import_runqc:";
-	$output[] = "\tphp {$repo_folder}/src/NGS/runqc_parser.php -name \"$runnumber\" -run_dir $folder/../ -force -db NGSD";
+	$output[] = "\tphp {$repo_folder}/src/NGS/runqc_parser.php -name \"$runnumber\" -run_dir $folder/../ -force";
 	$output[] = "";
 	
 	//target(s) 'copy_...'
