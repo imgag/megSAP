@@ -19,10 +19,10 @@ make build_tools_release
 
 #download and build samtools
 cd $folder
-wget http://downloads.sourceforge.net/project/samtools/samtools/1.3.1/samtools-1.3.1.tar.bz2
-tar xjf samtools-1.3.1.tar.bz2
-rm samtools-1.3.1.tar.bz2
-cd samtools-1.3.1
+wget http://downloads.sourceforge.net/project/samtools/samtools/1.5/samtools-1.5.tar.bz2
+tar xjf samtools-1.5.tar.bz2
+rm samtools-1.5.tar.bz2
+cd samtools-1.5
 make
 
 #download and build freebayes

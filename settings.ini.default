@@ -6,7 +6,7 @@
 
 [tools-ngs]
 ngs-bits = [path]/data/tools/ngs-bits/bin/
-samtools = [path]/data/tools/samtools-1.3.1/samtools
+samtools = [path]/data/tools/samtools-1.5/samtools
 freebayes = [path]/data/tools/freebayes/bin/freebayes
 vcflib = [path]/data/tools/vcflib/bin/
 abra2 = java -Xmx16g -jar [path]/data/tools/abra2-2.05/abra2.jar
