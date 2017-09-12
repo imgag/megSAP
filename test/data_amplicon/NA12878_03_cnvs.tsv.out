@@ -1,4 +1,4 @@
-##NA12878_03 ref_correl: 0.625 (median: 0.974)
+##NA12878_03 ref_correl: 0.627 (median: 0.974)
 ##NA12878_03 cnvs: nan (median: 4)
-##NA12878_03 qc_errors: corr=0.625 
+##NA12878_03 qc_errors: corr=0.627 
 #chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	overlaps_cnp_region	genes	dosage_sensitive_disease_genes	omim
