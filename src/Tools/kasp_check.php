@@ -99,10 +99,9 @@ function txt2geno($snps, $in_file, $out_file)
 //returns the genotype(s) for a sample at a certain position, or 'n/a' if the minimum depth was not reached.
 function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 {	
-	//check depth
+	//get pileup
 	list($output) = exec2(get_path("samtools")." mpileup -aa -r $chr:$pos-$pos $bam");
-	list($chr2, $pos2, $ref2, $depth, $bases) = explode("\t", $output[0]);;
-	if ($depth<$min_depth) return "n/a";
+	list($chr2, $pos2, $ref2, , $bases) = explode("\t", $output[0]);;
 	
 	//count bases
 	$bases = strtoupper($bases);
@@ -117,11 +116,14 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 	}
 	arsort($counts);
 	
-	//determine genotype
+	//check depth
 	$keys = array_keys($counts);
-	$b1 = $keys[0];
 	$c1 = $counts[$keys[0]];
 	$c2 = $counts[$keys[1]];
+	if ($c1+$c2<$min_depth) return "n/a";
+	
+	//determine genotype
+	$b1 = $keys[0];
 	$b2 = ($c2>3 && $c2/($c1+$c2)>0.1) ? $keys[1] : $keys[0];
 	
 	return "$b1/$b2";
