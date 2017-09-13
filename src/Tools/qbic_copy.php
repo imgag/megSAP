@@ -53,7 +53,7 @@ if (count($jobs)!=1)
 	print "##=    > sudo su bioinf                                         =\n";
 	print "##=    > /mnt/share/to_qbic/datamover.sh start                  =\n";
 	print "##===============================================================\n";
-	die;
+	die(1);
 }
 
 //print documentation
