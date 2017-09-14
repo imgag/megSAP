@@ -76,7 +76,7 @@ if ($start=="check")
 }
 
 
-//(1.1) determine gender of index
+//(1.2) determine gender of index
 list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method sry -in $c", true);
 $gender = trim(substr($stdout[count($stdout)-1], 7));
 if (starts_with($gender,"unknown"))

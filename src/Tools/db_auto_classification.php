@@ -8,9 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("db_auto_classification", "Automatic classification of high-impact variants in NGSD.");
-$parser->addInt("c2_ihdb", "NGSD count cutoff (variants with a homozygous count >= cutoff are classified as class 2).", true, 30);
-$parser->addFloat("c1_af", "Allele frequency cutoff (class 2 variants with AF <= cutoff are classified as class 1).", true, 0.01);
+$parser = new ToolBase("db_auto_classification", "Automatic classification of variants in NGSD.");
 //optional
 $parser->addFlag("update", "Enables update in NGSD. If unset, only a dry-run is performed!");
 extract($parser->parse($argv));
@@ -19,12 +17,12 @@ extract($parser->parse($argv));
 $db = DB::getInstance("NGSD");
 
 //extract variants for each target region
-print "#variant\t1000g\texac\tgnomad\tngsd_hom\tngsd_het\thgmd\tclinvar\tclass\tclass_new\tcomment\tNGSD-update\n";	
-$db_vars = $db->executeQuery("SELECT id, chr, start, end, ref, obs, 1000g, exac, gnomad, coding FROM variant WHERE coding LIKE '%:HIGH:%'");
+$db_vars = $db->executeQuery("SELECT id, chr, start, end, ref, obs, 1000g, exac, gnomad, coding FROM variant WHERE coding LIKE '%:HIGH:%' OR coding LIKE '%:MODERATE:%' OR coding LIKE '%:LOW:%' ORDER BY chr ASC, start ASC");
+print "##variants=".count($db_vars)."\n";
+print "#number\tvariant\taf_1000g\taf_exac\taf_gnomad\taf_max\tngsd_hom\tngsd_het\tngsd_sum\thgmd\tclinvar\tclass\tclass_new\tcomment\tNGSD-update\n";	
 for ($i=0; $i<count($db_vars); ++$i)
 {
 	list($id, $chr, $start, $end, $ref, $obs, $tg, $exac, $gnomad, $coding) = array_values($db_vars[$i]);
-	if (!contains($coding, ":HIGH:")) continue;
 	
 	//init
 	$hom = "n/a";
@@ -35,134 +33,115 @@ for ($i=0; $i<count($db_vars); ++$i)
 	$class_new = "n/a";
 	$comments = array();
 	
-	//count hom/het samples
-	$db_genos = $db->executeQuery("SELECT s.id, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id=$id AND dv.processed_sample_id=ps.id AND ps.sample_id=s.id");
-	$hom = 0;
-	$het = 0;
-	$samples_done = array();
-	foreach($db_genos as $det)
-	{
-		$s_id = $det['id'];
-		if (!isset($samples_done[$s_id]))
-		{
-			$geno = $det['genotype'];
-			$het += $geno=="het";
-			$hom += $geno=="hom";
-			
-			$samples_done[$s_id] = true;
-		}
-	}
-	
-	//classify (by NGSD)
-	if ($hom>=$c2_ihdb)
+	//classify by public database frequency
+	$max_af = 0.0;
+	if (is_numeric($tg) && $tg>$max_af) $max_af = $tg;
+	if (is_numeric($exac) && $exac>$max_af) $max_af = $exac;
+	if (is_numeric($gnomad) && $gnomad>$max_af) $max_af = $gnomad;
+	if ($max_af>=0.05)
 	{
 		$class_new = 2;
-		
-		//classify (by AF)
-		if (is_numeric($tg) && $tg>=$c1_af) $class_new = 1;
-		if (is_numeric($exac) && $exac>=$c1_af) $class_new = 1;
-		if (is_numeric($gnomad) && $gnomad>=$c1_af) $class_new = 1;
 	}
 	
-	//exclude pathogenic variants in ClinVar / HGMD variants (not those where WT is pathogenic)
-	if ($class_new!="n/a")
+	//classify by NGSD
+	$hom = $db->getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id='$id'", "0");
+	$het = $db->getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id='$id'", "0");
+	if ($chr!="chrM" && $hom>=30)
 	{
-		$s = $start;
-		$e = $end;
-		$indel = $ref=="-" || $obs=="-" || strlen($ref)>1 || strlen($obs)>1;
-		if ($indel)
-		{
-			$s -= 10;
-			$s += 10;
-		}
+		$class_new = 2;
+	}
+	
+	//get clinvar annotation
+	$s = $start;
+	$e = $end;
+	$indel = $ref=="-" || $obs=="-" || strlen($ref)>1 || strlen($obs)>1;
+	if ($indel)
+	{
+		$s -= 10;
+		$s += 10;
+	}
 
-		//get clinvar annotation
-		$clinvar = array();
-		list($anno) = exec2("tabix -p vcf ".get_path("data_folder")."/dbs/ClinVar/clinvar_20170130_converted.vcf.gz $chr:$s-$e");
-		foreach($anno as $line2)
+	$clinvar = array();
+	list($anno) = exec2("tabix -p vcf ".get_path("data_folder")."/dbs/ClinVar/clinvar_20170130_converted.vcf.gz $chr:$s-$e");
+	foreach($anno as $line2)
+	{
+		if (contains($line2, "pathogenic"))
 		{
-			if (contains($line2, "pathogenic"))
+			list($c2, $s2, , $r2, $o2s, , , $sig) = explode("\t", trim($line2));
+			foreach(explode(",", $o2s) as $o2)			
 			{
-				list($c2, $s2, , $r2, $o2s, , , $sig) = explode("\t", trim($line2));
-				foreach(explode(",", $o2s) as $o2)			
+				$indel2 = strlen($r2)>1 || strlen($o2)>1;
+				
+				//SNP hit
+				if (!$indel && !$indel2)
 				{
-					$indel2 = strlen($r2)>1 || strlen($o2)>1;
-					
-					//SNP hit
-					if (!$indel && !$indel2)
-					{
-						$clinvar[] = "$c2:$s2 $r2>$o2s $sig";
-					}
-					
-					//INDEL hit
-					if ($indel && $indel2)
-					{
-						$clinvar[] = "$c2:$s2 $r2>$o2s $sig";
-					}
+					$clinvar[] = "$c2:$s2 $r2>$o2s $sig";
+				}
+				
+				//INDEL hit
+				if ($indel && $indel2)
+				{
+					$clinvar[] = "$c2:$s2 $r2>$o2s $sig";
 				}
 			}
 		}
-		$clinvar = implode(", ", $clinvar);
-		
-		//get HGMD annotation
-		$hgmd = array();
-		list($anno) = exec2("tabix -p vcf ".get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2016_4_fixed.vcf.gz $chr:$s-$e");
-		foreach($anno as $line2)
+	}
+	$clinvar = implode(", ", $clinvar);
+	
+	//get HGMD annotation
+	$hgmd = array();
+	list($anno) = exec2("tabix -p vcf ".get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2016_4_fixed.vcf.gz $chr:$s-$e");
+	foreach($anno as $line2)
+	{
+		if (contains($line2, "CLASS=DM"))
 		{
-			if (contains($line2, "CLASS=DM") && contains($line2, "MUT=ALT"))
+			list($c2, $s2, , $r2, $o2s, , , $sig) = explode("\t", trim($line2));
+			foreach(explode(",", $o2s) as $o2)			
 			{
-				list($c2, $s2, , $r2, $o2s, , , $sig) = explode("\t", trim($line2));
-				foreach(explode(",", $o2s) as $o2)			
+				$indel2 = strlen($r2)>1 || strlen($o2)>1;
+				
+				//SNP hit
+				if (!$indel && !$indel2)
 				{
-					$indel2 = strlen($r2)>1 || strlen($o2)>1;
-					
-					//SNP hit
-					if (!$indel && !$indel2)
-					{
-						$hgmd[] = "$c2:$s2 $r2>$o2s $sig";
-					}
-					
-					//INDEL hit
-					if ($indel && $indel2)
-					{
-						$hgmd[] = "$c2:$s2 $r2>$o2s $sig";
-					}
+					$hgmd[] = "$c2:$s2 $r2>$o2s $sig";
+				}
+				
+				//INDEL hit
+				if ($indel && $indel2)
+				{
+					$hgmd[] = "$c2:$s2 $r2>$o2s $sig";
 				}
 			}
 		}
-		$hgmd = implode(", ", $hgmd);
+	}
+	$hgmd = implode(", ", $hgmd);
 		
-		if ($hgmd!="")
-		{
-			$comments[] = "SKIPPED_HGMD";
-		}
-		if ($clinvar!="")
-		{
-			$comments[] = "SKIPPED_CLINVAR";
-		}
+	if ($max_af>=0.01 && ($hgmd!="" || $clinvar!=""))
+	{
+		$class_new = 3;
 	}
 	
 	//comments
 	if ($class!="n/a" && $class_new!="n/a")
 	{
-		if ($class>$class_new)
-		{
-			$comments[] = "DOWN";
-		}
 		if ($class<$class_new)
 		{
 			$comments[] = "SKIPPED_UP";
 		}
+		if ($class=="M")
+		{
+			$comments[] = "SKIPPED_IS_M";
+		}
 		if ($class=="4" || $class=="5")
 		{
-			trigger_error("Cannot set class '$class_new' for variant '$chr:$start $ref>$obs' because it is classified as '$class'!", E_USER_ERROR);
+			$comments[] = "SKIPPED_IS_4_OR_5";
 		}
 	}
 	$comments = implode(", ", $comments);
 	
 	if (($class_new!="n/a" && $class_new!=$class) || $comments!="")
 	{
-		print "$chr:$start $ref>$obs\t$tg\t$exac\t$gnomad\t$hom\t$het\t$hgmd\t$clinvar\t$class\t$class_new\t$comments\t";
+		print "$i\t$chr:$start $ref>$obs\t$tg\t$exac\t$gnomad\t$max_af\t$hom\t$het\t".(2*$hom+$het)."\t$hgmd\t$clinvar\t$class\t$class_new\t$comments\t";
 		
 		if (!contains($comments, "SKIPPED"))
 		{
@@ -175,7 +154,7 @@ for ($i=0; $i<count($db_vars); ++$i)
 			}
 			else
 			{
-				print "(DRY-RUN)";
+				print " (DRY-RUN)";
 			}
 		}
 		print "\n";
