@@ -50,10 +50,10 @@ if ($target_file=="")
 $out_folder .= "/";
 if (!file_exists($out_folder)) mkdir($out_folder);
 
-//(1) check genders of parents
+//(1.1) check genders of parents
 if ($start=="check")
 {
-	list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $f", true);
+	list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method sry -in $f", true);
 	$gender = trim(substr($stdout[count($stdout)-1], 7));
 	if (starts_with($gender,"unknown"))
 	{
@@ -63,7 +63,7 @@ if ($start=="check")
 	{
 		trigger_error("Gender of father is not male: '$gender'!", E_USER_ERROR);
 	}
-	list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $m", true);
+	list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method sry -in $m", true);
 	$gender = trim(substr($stdout[count($stdout)-1], 7));
 	if (starts_with($gender,"unknown"))
 	{
@@ -73,6 +73,15 @@ if ($start=="check")
 	{
 		trigger_error("Gender of mother is not female: '$gender'!", E_USER_ERROR);
 	}
+}
+
+
+//(1.1) determine gender of index
+list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method sry -in $c", true);
+$gender = trim(substr($stdout[count($stdout)-1], 7));
+if (starts_with($gender,"unknown"))
+{
+	trigger_error("Gender of index could not be determined!", E_USER_ERROR);
 }
 
 //(2) check parent-child correlation
@@ -164,6 +173,6 @@ $parser->execTool("Pipelines/annotate.php", "-out_name ".basename($c, ".bam")." 
 
 //(7) add trio annotation column
 $gsvar = $out_folder.basename($c, ".bam").".GSvar";
-$parser->exec(get_path("ngs-bits")."TrioAnnotation", "-in $gsvar -out $gsvar", true);
+$parser->exec(get_path("ngs-bits")."TrioAnnotation", "-in $gsvar -out $gsvar -gender $gender", true);
 
 ?>
