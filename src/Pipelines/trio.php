@@ -53,7 +53,7 @@ if (!file_exists($out_folder)) mkdir($out_folder);
 //(1.1) check genders of parents
 if ($start=="check")
 {
-	list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method sry -in $f", true);
+	list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $f", true);
 	$gender = trim(substr($stdout[count($stdout)-1], 7));
 	if (starts_with($gender,"unknown"))
 	{
@@ -63,7 +63,7 @@ if ($start=="check")
 	{
 		trigger_error("Gender of father is not male: '$gender'!", E_USER_ERROR);
 	}
-	list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method sry -in $m", true);
+	list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $m", true);
 	$gender = trim(substr($stdout[count($stdout)-1], 7));
 	if (starts_with($gender,"unknown"))
 	{
@@ -77,7 +77,7 @@ if ($start=="check")
 
 
 //(1.2) determine gender of index
-list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method sry -in $c", true);
+list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c", true);
 $gender = trim(substr($stdout[count($stdout)-1], 7));
 if (starts_with($gender,"unknown"))
 {
