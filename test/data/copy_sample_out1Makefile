@@ -4,7 +4,7 @@ chmod:
 	chmod -R 775 Unaligned
 
 import_runqc:
-	php /mnt/users/all/megSAP/src/NGS/runqc_parser.php -name "#00198" -run_dir Unaligned/../ -force -db NGSD
+	php /mnt/users/all/megSAP/src/NGS/runqc_parser.php -name "#00198" -run_dir Unaligned/../ -force
 
 copy_HBOC_diagnostic:
 	mv Unaligned/Project_HBOC/Sample_DX121713_01/ /mnt/projects/diagnostic/HBOC/
