@@ -17,7 +17,7 @@ extract($parser->parse($argv));
 $db = DB::getInstance("NGSD");
 
 //extract variants for each target region
-$db_vars = $db->executeQuery("SELECT id, chr, start, end, ref, obs, 1000g, exac, gnomad, coding FROM variant WHERE coding LIKE '%:HIGH:%' OR coding LIKE '%:MODERATE:%' OR coding LIKE '%:LOW:%' ORDER BY chr ASC, start ASC");
+$db_vars = $db->executeQuery("SELECT id, chr, start, end, ref, obs, 1000g, exac, gnomad, coding FROM variant ORDER BY chr ASC, start ASC");
 print "##variants=".count($db_vars)."\n";
 print "#number\tvariant\taf_1000g\taf_exac\taf_gnomad\taf_max\tngsd_hom\tngsd_het\tngsd_sum\thgmd\tclinvar\tclass\tclass_new\tcomment\tNGSD-update\n";	
 for ($i=0; $i<count($db_vars); ++$i)
