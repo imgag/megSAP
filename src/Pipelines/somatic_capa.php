@@ -11,6 +11,7 @@
 	@todo use single letter code for amino acids
 	@todo cap TumorContentEstimate at 100 %
 	@todo build drug table based on additional cgi columns
+	@todo variant filter region adds off-target several times, filter duplicated
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -34,6 +35,7 @@ $parser->addFlag("abra", "Turn on ABRA realignment.");
 $parser->addFlag("amplicon", "Turn on amplicon mode.");
 $parser->addFlag("nsc", "Skip sample correlation check (only in pair mode).");
 $parser->addFlag("all_variants", "Do not use strelka filter.", true);
+$parser->addInfile("filter",  "Bed-file for output filtering. Fourth column should be gene name.", true);
 $parser->addFlag("strelka1","",true);
 extract($parser->parse($argv));
 
@@ -205,49 +207,106 @@ foreach($annotate as $a)
 }
 
 // add drug association to somatic CNVs; filter pre-clinical data
-$annotate = array($s_cnvs, $n_cnvs);
-foreach($annotate as $a)
+$cnv_analysis = true;
+if(!is_file($s_cnvs))	$cnv_analysis = false;
+if($cnv_analysis)
 {
-	$variants = Matrix::fromTSV($a);
-	$idx_genes = $variants->getColumnIndex("genes");
-	if(in_array("CGI_drug_assoc",$variants->getHeaders()))	
+	$annotate = array($s_cnvs, $n_cnvs);
+	foreach($annotate as $a)
 	{
-		$idx_cgi1 = $variants->getColumnIndex("CGI_drug_assoc");
-		$variants->removeCol($idx_cgi1);
-	}
-	if(in_array("CGI_evid_level",$variants->getHeaders()))	
-	{
-		$idx_cgi1 = $variants->getColumnIndex("CGI_evid_level");
-		$variants->removeCol($idx_cgi1);
-	}
-		
-	$new_col1 = array();
-	$new_col2 = array();
-	for($i=0;$i<$variants->rows();++$i)
-	{		
-		// extract genes and compare to CGI
-		$tmp1 = array();	
-		$tmp2 = array();	
-		$genes = explode(",",$variants->getRow($i)[$idx_genes]);
-		foreach($genes as $gene)
+		$variants = Matrix::fromTSV($a);
+		$idx_genes = $variants->getColumnIndex("genes");
+		if(in_array("CGI_drug_assoc",$variants->getHeaders()))	
 		{
-			for($j=0;$j<$cgi_database->rows();++$j)
+			$idx_cgi1 = $variants->getColumnIndex("CGI_drug_assoc");
+			$variants->removeCol($idx_cgi1);
+		}
+		if(in_array("CGI_evid_level",$variants->getHeaders()))	
+		{
+			$idx_cgi1 = $variants->getColumnIndex("CGI_evid_level");
+			$variants->removeCol($idx_cgi1);
+		}
+			
+		$new_col1 = array();
+		$new_col2 = array();
+		for($i=0;$i<$variants->rows();++$i)
+		{		
+			// extract genes and compare to CGI
+			$tmp1 = array();	
+			$tmp2 = array();	
+			$genes = explode(",",$variants->getRow($i)[$idx_genes]);
+			foreach($genes as $gene)
 			{
-				$row = $cgi_database->getRow($j);
-				// TODO reconsider evidence level filter
-				if($gene == $row[$idx_assoc_genes] && $row[$idx_evide_level]!="Pre-clinical")
+				for($j=0;$j<$cgi_database->rows();++$j)
 				{
-					$tmp1[] = $row[$idx_assoc_genes];
-					$tmp2[] = $row[$idx_evide_level];
+					$row = $cgi_database->getRow($j);
+					// TODO reconsider evidence level filter
+					if($gene == $row[$idx_assoc_genes] && $row[$idx_evide_level]!="Pre-clinical")
+					{
+						$tmp1[] = $row[$idx_assoc_genes];
+						$tmp2[] = $row[$idx_evide_level];
+					}
 				}
 			}
+			$new_col1[] = implode(", ",array_unique($tmp1));
+			$new_col2[] = implode(", ",array_unique($tmp2));
 		}
-		$new_col1[] = implode(", ",array_unique($tmp1));
-		$new_col2[] = implode(", ",array_unique($tmp2));
+		$variants->addCol($new_col1, "CGI_drug_assoc", "Cancer Genome Interpreter - therapeutic biomarkers");
+		$variants->addCol($new_col2, "CGI_evid_level", "Cancer Genome Interpreter - evidence level");
+		$variants->toTSV($a);
 	}
-	$variants->addCol($new_col1, "CGI_drug_assoc", "Cancer Genome Interpreter - therapeutic biomarkers");
-	$variants->addCol($new_col2, "CGI_evid_level", "Cancer Genome Interpreter - evidence level");
-	$variants->toTSV($a);
+
+	// filter variants if specific bed is available
+	$s_cnvsfil = $s_cnvs;
+	$n_cnvsfil = $n_cnvs;
+	if(!empty($filter))
+	{
+		$s_cnvsfil = dirname($s_cnvs)."/".basename($s_cnvs,".tsv")."_filtered.tsv";
+		$n_cnvsfil = dirname($n_cnvs)."/".basename($n_cnvs,".tsv")."_filtered.tsv";
+		
+		// SNVs - soft filter
+		$parser->exec(get_path("ngs-bits")."VariantFilterRegions","-in $s_tsv -mark -reg $filter -out $s_tsv", true);
+		$parser->exec(get_path("ngs-bits")."VariantFilterRegions","-in $n_gsvar -mark -reg $filter -out $n_gsvar", true);
+		// CNVs - hard filter
+		$matrix = Matrix::fromTSV($filter);
+		foreach(array($s_cnvs, $n_cnvs) as $file)
+		{
+			$cnvs = Matrix::fromTSV($file);
+			$idx_genes = $cnvs->getColumnIndex("genes");
+
+			$tmp = new Matrix();
+			$tmp->setHeaders($cnvs->getHeaders());
+			$tmp->setComments($cnvs->getComments());
+			for($i=0;$i<$cnvs->rows();++$i)
+			{
+				$cnv = $cnvs->getRow($i);
+				
+				$found = false;
+				$tmp_genes = array();
+				for($j=0;$j<$matrix->rows();++$j)
+				{
+					$chr = $matrix->getRow($j)[0];
+					$start = $matrix->getRow($j)[1]+1;
+					$end = $matrix->getRow($j)[2];
+					$gene = $matrix->getRow($j)[3];
+					
+					// filter range
+					if($chr!=$cnv[0])	continue;
+					if(range_overlap($cnv[1],$cnv[2],$start,$end))	$found = true;
+					
+					// filter gene names
+					if(in_array($gene,explode(",",$cnv[$idx_genes])))	$tmp_genes[] = $gene;
+				}
+				if($found)
+				{
+					$cnv[$idx_genes] = implode(",",array_unique($tmp_genes));
+					$tmp->addRow($cnv);
+				}
+			}
+			if($file==$s_cnvs)	$tmp->toTSV($s_cnvsfil);
+			if($file==$n_cnvs)	$tmp->toTSV($n_cnvsfil);
+		}
+	}
 }
 
 if (in_array("re", $steps))
@@ -264,7 +323,7 @@ if (in_array("re", $steps))
 		$nex_name = "n/a";
 		$t_qcml = $p_folder."/Sample_".$t_id."/".$t_id."_stats_map.qcML";
 		$n_qcml = $p_folder."/Sample_".$n_id."/".$n_id."_stats_map.qcML";
-		$s_qcml = $p_folder."/Somatic_".$t_id."-".$n_id."/".$t_id."-".$n_id."_stats_som.qcML";
+		$s_qcml = $p_folder."/".$o_folder."/".$t_id."-".$n_id."_stats_som.qcML";
 		if(!$single_sample)
 		{
 			$normal_name = basename($n_bam, ".bam");
@@ -272,10 +331,10 @@ if (in_array("re", $steps))
 			$nex_name = get_external_sample_name($nname, false);
 		}
 
-		$filter = array("BRCA1", "BRCA2", "TP53", "STK11", "PTEN", "MSH2", "MSH6", "MLH1", "PMS2", "APC", "MUTYH", "SMAD4", "VHL", "MEN1", "RET", "RB1", "TSC1", "TSC2", "NF2", "WT1");
-
+		$filter = array("BRCA1", "BRCA2", "TP53", "STK11", "PTEN", "MSH2", "MSH6", "MLH1", "PMS2", "APC", "MUTYH", "SMAD4", "VHL", "MEN1", "RET", "RB1", "TSC1", "TSC2", "NF2", "WT1","SDHB","SDHD","SDHC","SDHAF2","BMPR1A");
+		sort($filter);
 		$hpo_terms = array();
-		$tumor_content = "na %";
+		$tumor_content = "n/a %";
 		if(isset(get_path("db_host")['GL8']))
 		{
 			list($tn,) = explode("_",$t_id);
@@ -306,24 +365,45 @@ if (in_array("re", $steps))
 			$snv_germline_report = report_SNV_table($n_gsvar, $single_sample, "tumor_freq", "tumor_depth", "normal_freq", "normal_depth", 4, $filter);
 		}
 		
-		$min_zscore = 5;
-		$min_regions = 10;
-		$keep = array("MYC","MDM2","MDM4","CDKN2A","CDKN2A-AS1","CDK4","CDK6","PTEN","CCND1","RB1","CCND3","BRAF","KRAS","NRAS");
-		$cnv_somatic_report = report_CNV_table($s_cnvs, $single_sample, $min_regions, $min_zscore, $keep);
-		if(!$single_sample)
+		if(is_file($s_cnvsfil))
 		{
-			$min_zscore = 4;
-			$min_regions = 3;
-			$cnv_germline_report = report_CNV_table($n_cnvs, $single_sample, $min_regions, $min_zscore, array(), $filter);
-		}
-		
-		$genes_amp = array();
-		$genes_loss = array();
-		for($i=0;$i<$cnv_somatic_report->rows();++$i)
-		{
-			$row = $cnv_somatic_report->getRow($i);
-			if($row[3]>2)	$genes_amp = array_merge($genes_amp, explode(",",$row[4]));
-			if($row[3]<2)	$genes_loss = array_merge($genes_loss, explode(",",$row[4]));
+			$min_zscore = 5;
+			$min_regions = 10;
+			$keep = array("MYC","MDM2","MDM4","CDKN2A","CDKN2A-AS1","CDK4","CDK6","PTEN","CCND1","RB1","CCND3","BRAF","KRAS","NRAS");
+			sort($keep);
+			$cnv_somatic_report = report_CNV_table($s_cnvsfil, $single_sample, $min_regions, $min_zscore, $keep);
+			if(!$single_sample)
+			{
+				$min_zscore = 4;
+				$min_regions = 3;
+				$cnv_germline_report = report_CNV_table($n_cnvsfil, $single_sample, $min_regions, $min_zscore, array(), $filter);
+			}
+			
+			$genes_amp = array();
+			$genes_amp = array();
+			$genes_loss = array();
+			for($i=0;$i<$cnv_somatic_report->rows();++$i)
+			{
+				$row = $cnv_somatic_report->getRow($i);
+				if($row[3]>2)	$genes_amp = array_merge($genes_amp, explode(",",$row[4]));
+				if($row[3]<2)	$genes_loss = array_merge($genes_loss, explode(",",$row[4]));
+			}
+			//
+			$comment = $cnv_somatic_report->getComments();
+			if(!empty($comment))
+			{
+				$cnvs = explode("; ", $comment[0]);
+				foreach($cnvs as $cnv)
+				{
+					list($g,$cn) = explode(" ",$cnv, 2);
+					$cn = trim($cn,'()');
+					$cns = explode(", ",$cn);
+					$cn = trim($cns[0],'CN ');
+					if(!is_numeric($cn[0]))	trigger_error("'$cn' in '$cnv' is not numeric.", E_USER_ERROR);
+					if($cn[0]>2)	$genes_amp[] = $g;
+					if($cn[0]<2)	$genes_loss[] = $g;
+				}
+			}
 		}
 
 		// 2. prepare metadata and qc data for somatic report		
@@ -362,7 +442,7 @@ if (in_array("re", $steps))
 		$report[] = "{\pard\fs20".rtf_table_rows($metadata,array(3000,6500))."\par}";
 		// variants
 		$report[] = "{\pard\fs24\sa45\b Varianten\par}";
-		$report[] = rtf_table_row(array("Bitte beachten Sie, dass bei geringem Tumoranteil die Ergebnisse aufgrund niedriger Allelfrequenzen ungenauer sein können. Veränderungen, die in der jeweils zugehörigen Blutprobe gefunden wurden, können ein Hinweis auf eine erbliche Erkrankung darstellen. In diesem Fall empfehlen wir eine Vorstellung in einer humangennetischen Beratungsstelle. Eine funktionelle Einschätzung der Varianten finden Sie im beigefügten QCI-Bericht. Weitere Informationen zur Untersuchungstechnik, -umfang und Auswertung finden sich in der Rubrik Qualitätsparameter."), array(9500),array("\qj"));
+		$report[] = rtf_table_row(array("Die ausführlich gelisteten Varianten sind Biomarker, die in der CGI-Datenbank (www.cancergenomeinterpreter.org) gelistet werden. Die verbleibenden Gene mit Varianten werden im Block 'weitere Varianten' bzw. 'weitere Gene' gelistet. Details zu diesen Varianten sind auf Nachfrage erhältlich. Eine funktionelle Einschätzung der Varianten finden Sie im beigefügten QCI-Bericht. Bitte beachten Sie, dass bei geringem Tumoranteil die Ergebnisse aufgrund niedriger Allelfrequenzen ungenauer sein können. Veränderungen, die in der jeweils zugehörigen Blutprobe gefunden wurden, können ein Hinweis auf eine erbliche Erkrankung darstellen. In diesem Fall empfehlen wir eine Vorstellung in einer humangenetischen Beratungsstelle. Weitere Informationen zur Untersuchungstechnik, -umfang und Auswertung finden sich in der Rubrik Qualitätsparameter."), array(9500),array("\qj"));
 		$report[] = "{\pard\fs20\sb180\sa45\b SNVs und kleine INDELs:\par}";
 		$report[] = rtf_table_row(array("Mutationslast: ".get_qc_from_qcml($s_qcml, "QC:2000053", "somatic variant rate")), array(9500),array("\qj"));
 		$report[] = rtf_table_row(array("Position","R","V","F/T Tumor","F/T Normal","cDNA"), array(2550,3200,3850,5050,6250,9500),array("\qc","\qc", "\qc","\qc","\qc","\qc"),true,true);
@@ -376,7 +456,7 @@ if (in_array("re", $steps))
 		}
 		else	$report[] = rtf_table_row(array("keine"),array(9500),array("\qj"),true);
 		$add_vars = implode(", ", $snv_somatic_report->getComments());
-		if(!empty($add_vars))	$report[] = rtf_table_row(array("andere Varianten:", $add_vars),array(2550,9500),array("\qr","\qj"),true);
+		if(!empty($add_vars))	$report[] = rtf_table_row(array("weitere Varianten:", $add_vars),array(2550,9500),array("\qr","\qj"),true);
 		$report[] = rtf_table_row(array("... auch in Blut*"), array(9500),array("\qc"),true,true);
 		if($snv_germline_report->rows()>0)
 		{
@@ -392,40 +472,43 @@ if (in_array("re", $steps))
 		$report[] = "\fs14 Position - chromosomale Position (".$system_t['build']."); R - Allel Referenz; V - Allel Variante; F/T Tumor - Frequenz und Tiefe im Tumor; F/T Normal - Frequenz und Tiefe im Normal; cDNA - cDNA Position und Auswirkung Peptid.\fs20";
 		$report[] = "\par}";
 		// CNVs
-		$report[] = "{\pard\fs20\sb180\sa45\b CNVs:\par}";
-		$report[] = rtf_table_row(array("Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode. Die geschätzte Copy Number ist abhängig von Tumorgehalt und Verteilung der CNV-tragenden Zellen im Tumorgewebe."), array(9500), array("\qj"));
-		$report[] = rtf_table_row(array("Position","Größe","Typ","CN","Gene"), array(2550,3800,4800,5300,9500),array("\qc","\qc","\qc","\qc","\qc"),true,true);
-		$report[] = rtf_table_row(array("Veränderungen mit therapeutischer Relevanz nur in Tumorgewebe"), array(9500),array("\qc"),true,true);
-		if($cnv_somatic_report->rows()>0)
+		if($cnv_analysis)
 		{
-			for ($i=0; $i<$cnv_somatic_report->rows(); ++$i)
+			$report[] = "{\pard\fs20\sb180\sa45\b CNVs:\par}";
+			$report[] = rtf_table_row(array("Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode. Die geschätzte Copy Number ist abhängig von Tumorgehalt und Verteilung der CNV-tragenden Zellen im Tumorgewebe."), array(9500), array("\qj"));
+			$report[] = rtf_table_row(array("Position","Größe","Typ","CN","Gene"), array(2550,3800,4800,5300,9500),array("\qc","\qc","\qc","\qc","\qc"),true,true);
+			$report[] = rtf_table_row(array("Veränderungen mit therapeutischer Relevanz nur in Tumorgewebe"), array(9500),array("\qc"),true,true);
+			if($cnv_somatic_report->rows()>0)
 			{
-				$report[] = rtf_table_row($cnv_somatic_report->getRow($i), array(2550,3800,4800,5300,9500),array("","\qc","\qc","\qc","\qj"),true);
+				for ($i=0; $i<$cnv_somatic_report->rows(); ++$i)
+				{
+					$report[] = rtf_table_row($cnv_somatic_report->getRow($i), array(2550,3800,4800,5300,9500),array("","\qc","\qc","\qc","\qj"),true);
+				}
 			}
-		}
-		else	$report[] = rtf_table_row(array("keine"),array(9500),array("\qj"),true);
-		$add_vars = implode(", ", $cnv_somatic_report->getComments());
-		if(!empty($add_vars))	$report[] = rtf_table_row(array("weitere Gene:", $add_vars),array(2550,9500),array("\qr","\qj"),true);
-		$report[] = rtf_table_row(array("... auch in Blut*"), array(9500),array("\qc"),true,true);
-		if($cnv_germline_report->rows()>0)
-		{
-			for ($i=0; $i<$cnv_germline_report->rows(); ++$i)
+			else	$report[] = rtf_table_row(array("keine"),array(9500),array("\qj"),true);
+			$add_vars = implode(", ", $cnv_somatic_report->getComments());
+			if(!empty($add_vars))	$report[] = rtf_table_row(array("weitere Gene:", $add_vars),array(2550,9500),array("\qr","\qj"),true);
+			$report[] = rtf_table_row(array("... auch in Blut*"), array(9500),array("\qc"),true,true);
+			if($cnv_germline_report->rows()>0)
 			{
-				$report[] = rtf_table_row($cnv_germline_report->getRow($i), array(2550,3800,4800,5300,9500),array("","\qc","\qc","\qc","\qj"),true);
+				for ($i=0; $i<$cnv_germline_report->rows(); ++$i)
+				{
+					$report[] = rtf_table_row($cnv_germline_report->getRow($i), array(2550,3800,4800,5300,9500),array("","\qc","\qc","\qc","\qj"),true);
+				}
 			}
+			else	$report[] = rtf_table_row(array("keine"),array(9500),array("\qj"),true);
+			$add_vars = implode(", ",$cnv_germline_report->getComments());
+			if(!empty($add_vars))	$report[] = rtf_table_row(array("weitere Varianten:", "\highlight1".$add_vars."\highlight0"),array(2550,9500),array("\qr","\qj"),true);
+			$report[] = "{\pard\sa180\sb20\fs14 Position - chromosomale Position (".$system_t['build']."); Größe - CNV-Größe in Basenpaaren; Typ - Verlust (LOSS) oder Amplifikation (AMP); CN - geschätzte mediane Copy Number in dieser chrom. Region;Gene - Gene in dieser Region.\par}";
+			// qci
+			$report[] = rtf_table_row(array("\highlight1Amplifzierte Gene:\highlight0","\highlight1 ".(count($genes_amp)>0 ? implode(", ",array_unique($genes_amp)) : "keine")."\highlight0"), array(1800,9000),array("","\qj"));
+			$report[] = rtf_table_row(array("\highlight1Deletierte Gene:\highlight0","\highlight1 ".(count($genes_loss)>0 ? implode(", ",array_unique($genes_loss)) : "keine")."\highlight0"), array(1800,9000),array("","\qj"));
 		}
-		else	$report[] = rtf_table_row(array("keine"),array(9500),array("\qj"),true);
-		$add_vars = implode(", ",$cnv_germline_report->getComments());
-		if(!empty($add_vars))	$report[] = rtf_table_row(array("weitere Varianten:", $add_vars),array(2550,9500),array("\qr","\qj"),true);
-		$report[] = "{\pard\sa180\sb20\fs14 Position - chromosomale Position (".$system_t['build']."); Größe - CNV-Größe in Basenpaaren; Typ - Verlust (LOSS) oder Amplifikation (AMP); CN - geschätzte mediane Copy Number in dieser chrom. Region;Gene - Gene in dieser Region.\par}";
-		// qci
-		$report[] = rtf_table_row(array("\highlight1Amplifzierte Gene:\highlight0","\highlight1 ".(count($genes_amp)>0 ? implode(", ",array_unique($genes_amp)) : "keine")."\highlight0"), array(1800,9000),array("","\qj"));
-		$report[] = rtf_table_row(array("\highlight1Deletierte Gene:\highlight0","\highlight1 ".(count($genes_loss)>0 ? implode(", ",array_unique($genes_loss)) : "keine")."\highlight0"), array(1800,9000),array("","\qj"));
 		// qc
 		$report[] = "{\pard\fs24\sa45\sb180\b Qualitätsparameter:\par}";
 		$report[] = rtf_table_rows($qc,array(3500,9500));
 		$report[] = rtf_table_row(array(""),array(9500));
-		$report[] = rtf_table_row(array("Folgende Gene wurden in die Auswertung der Blutprobe einbezogen: ".implode(", ",$filter)."."),array(9500),array("\qj"));
+		$report[] = rtf_table_row(array("* Folgende Gene wurden in die Auswertung der Blutprobe einbezogen: ".implode(", ",$filter)."."),array(9500),array("\qj"));
 		$report[] = "}";
 		
 		//store output
@@ -493,7 +576,7 @@ function report_SNV_table($gsvar, $single_sample, $col_tum_freq, $col_tum_depth,
 		if(!$single_sample)
 		{
 			$nvf_idx = $snv->getColumnIndex($col_nor_freq);
-			$nd_idx = $snv->getColumnIndex($col_nor_freq);
+			$nd_idx = $snv->getColumnIndex($col_nor_depth);
 		}
 		$idx_gene = $snv->getColumnIndex("gene");
 
@@ -513,7 +596,8 @@ function report_SNV_table($gsvar, $single_sample, $col_tum_freq, $col_tum_depth,
 		}
 		$miso_terms_coding = array_unique($miso_terms_coding);
 		
-		$caption = "";
+		$caption_genes = array();
+		$caption_cod = array();
 		for($i=0; $i<$snv->rows(); ++$i)
 		{
 			$row = $snv->getRow($i);
@@ -542,9 +626,8 @@ function report_SNV_table($gsvar, $single_sample, $col_tum_freq, $col_tum_depth,
 				list($cod_spli,) = explode(",",$row[$idx_co]);
 				list($g,,,,,$c,$p) = explode(":",$cod_spli);		
 				if(empty($g))	continue;
-				if(!empty($p))	$caption .= ", $g ($p)";
-				else	$caption .= ", $g ($c)";
-				
+
+				$caption_genes[] = $g;
 				continue;
 			}
 
@@ -579,7 +662,7 @@ function report_SNV_table($gsvar, $single_sample, $col_tum_freq, $col_tum_depth,
 					$tmp = $eff[0]." ".$eff[5]." ".$eff[6];
 					if(in_array($tmp, $tmp_row)) continue;
 
-					$tmp_row[] = $tmp;					
+					$tmp_row[] = $tmp." (".(empty($cgi_transcript)?$eff[1]:$cgi_transcript).")";					
 				}				
 
 			}
@@ -596,9 +679,15 @@ function report_SNV_table($gsvar, $single_sample, $col_tum_freq, $col_tum_depth,
 
 			$snv_report->addRow($report_row);
 		}
-	}
-	
-	$snv_report->addComment(trim($caption,', '));
+		
+		sort($caption_genes);
+		$caption = "";
+		foreach($caption_genes as $cp)
+		{
+			$caption .= ", ".$cp;
+		}
+		$snv_report->addComment(trim($caption,', '));
+	}	
 	return $snv_report;
 }
 
@@ -610,7 +699,8 @@ function report_CNV_table($tsv, $single_sample, $min_regions, $min_zscore, $keep
 	$cnvs = Matrix::fromTSV($tsv);
 	
 	$cnv_report = new Matrix();
-	$caption = "";
+	$caption_genes = array();
+	$caption_cn = array();
 	if ($cnvs->rows()!=0)
 	{
 		$idx_chr = $cnvs->getColumnIndex("chr");
@@ -648,6 +738,7 @@ function report_CNV_table($tsv, $single_sample, $min_regions, $min_zscore, $keep
 			}
 			if($skip)	continue;
 			
+			// filter CNVs for gene array
 			if(!empty($filter))
 			{
 				$skip = true;
@@ -667,14 +758,23 @@ function report_CNV_table($tsv, $single_sample, $min_regions, $min_zscore, $keep
 			
 			$copy_median = median(explode(",",$line[$idx_copy]));
 
-			$genes = explode(",", $line[$idx_genes]);
-			$cgi_drug_assoc = explode(", ", $line[$idx_cgi1]);
-			foreach($genes as $g)
+			$cgi_drug_assoc = explode(",",$line[$idx_genes]);
+			if(!$germline)
 			{
-				if(!in_array($g,$cgi_drug_assoc))	$caption .= ", $g (CN $copy_median)";
-			}
+				$genes = explode(",", $line[$idx_genes]);
+				$cgi_drug_assoc = explode(", ", $line[$idx_cgi1]);
+				foreach($genes as $g)
+				{
+					if(!in_array($g,$cgi_drug_assoc))
+					{
+						$caption_genes[] = $g;
+						if(!isset($caption_cn[$g]))	$caption_cn[$g] = array();
+						$caption_cn[$g][] = $copy_median;
+					}
+				}
 
-			if(empty($line[$idx_cgi1]))	continue;
+				if(empty($line[$idx_cgi1]))	continue;
+			}
 
 			$zscore_sum = array_sum(explode(",",$line[$idx_zscores]));
 			if ($zscore_sum>0)
@@ -686,9 +786,16 @@ function report_CNV_table($tsv, $single_sample, $min_regions, $min_zscore, $keep
 				$cnv_report->addRow(array($line[$idx_chr].":".$line[$idx_start]."-".$line[$idx_end],$line[$idx_size],"LOSS",$copy_median,implode(", ", $cgi_drug_assoc)));
 			}
 		}
+		
+		sort($caption_genes);
+		$caption = "";
+		foreach($caption_genes as $cp)
+		{
+			$caption .= "; ".$cp." (CN ".implode(", CN", $caption_cn[$cp]).")";
+		}
+		$cnv_report->addComment(trim($caption,'; '));	
 	}
 	
-	$cnv_report->addComment(trim($caption,', '));	
 	return $cnv_report;
 }
 ?>
