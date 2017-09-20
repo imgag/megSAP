@@ -46,7 +46,7 @@ for ($i=0; $i<count($db_vars); ++$i)
 	//classify by NGSD
 	$hom = $db->getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id='$id'", "0");
 	$het = $db->getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id='$id'", "0");
-	if ($chr!="chrM" && $hom>=30)
+	if ($chr!="chrMT" && $hom>=30)
 	{
 		$class_new = 2;
 	}
