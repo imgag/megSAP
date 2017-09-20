@@ -1278,6 +1278,25 @@ function vcf_freebayes($format_col, $sample_col)
 	return array($d,$f);
 }
 
+function vcf_iontorrent($format_col, $sample_col, $idx_al)
+{
+	$g = explode(":",$format_col);
+	$index_DP = NULL;
+	$index_AF = NULL;
+	for($i=0;$i<count($g);++$i)
+	{
+		if($g[$i]=="DP")	$index_DP = $i;
+		if($g[$i]=="AF")	$index_AF = $i;
+	}
+
+	if(is_null($index_DP) || is_null($index_AF))	trigger_error("Invalid iontorrent format; either field DP or AF not available.",E_USER_ERROR);
+	
+	$d = explode(":",$sample_col)[$index_DP];
+	$f = number_format(explode(",",explode(":",$sample_col)[$index_AF])[$idx_al], 4);
+
+	return array($d,$f);
+}
+
 //Converts genotye 
 function vcfgeno2human($gt, $upper_case=false)
 {

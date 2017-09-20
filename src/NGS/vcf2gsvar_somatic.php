@@ -135,11 +135,18 @@ while($has_header===FALSE && !feof($handle))
 	if(strpos($line,"##source=")===0)	//information about variant caller
 	{
 		$tmp_vcaller = "";
+		
 		if(stripos($line,"freebayes")!==FALSE)	$tmp_vcaller = "freebayes";
-		if(stripos($line,"strelka")!==FALSE)	$tmp_vcaller = "strelka";
+		else if(stripos($line,"strelka")!==FALSE)	$tmp_vcaller = "strelka";
+		else if(stripos($line,"Torrent Variant Caller")!==FALSE)	$tmp_vcaller = "iontorrent";
+		else	trigger_error("Could not identify variant caller '$line'!",E_USER_ERROR);
+
 		if(!is_null($var_caller) && $var_caller!=$tmp_vcaller)	trigger_error("Two different source informations identified ($var_caller != $tmp_vcaller!)",E_USER_ERROR);
 		if(!is_null($var_caller) && $var_caller==$tmp_vcaller)	trigger_error("Source information used twice!",E_USER_NOTICE);
+		
 		$var_caller = $tmp_vcaller;
+		
+		if(empty($var_caller))	trigger_error("Could not identify variant caller. Source information available in vcf file?",E_USER_ERROR);
 	}
 	
 	if(strpos($line,"##FILTER")===0)	//filter columns
@@ -206,6 +213,27 @@ while(!feof($handle))
 	$cols = explode("\t", $line);
 	if (count($cols)<9) trigger_error("VCF file line contains less than 10 columns: $line\n", E_USER_ERROR);
 	list($chr,$pos,$id,$ref,$alt,$qual,$filter,$info,$format) = $cols;
+	
+	// use gt field to identify reference and alternative allele (if available); mainly for use with iontorrent variant-calling
+	$idx_al2 = null;
+	if(in_array("GT",explode(":",$cols[8])))
+	{
+		$gt = extract_from_genotype_field($cols[8], $cols[$tumor_idx], "GT");
+		
+		if($gt=="0/0" || $gt=="0|0" || $gt=="./.")	continue;	// continue if only reference or no allele present
+		
+		$sep = "/";
+		if(strpos($gt,"|")!==FALSE)	$sep = "|";
+		
+		if(count(explode($sep,$gt))>2)	trigger_error("Sample not diploid.", E_USER_ERROR);
+		$idx_al1 = explode($sep,$gt)[0];
+		$idx_al2 = explode($sep,$gt)[1];
+		$al = array_merge(explode(",",$ref), explode(",",$alt));
+		
+		if($al[$idx_al1]!=0 && $al[$idx_al1]!=$al[$idx_al2])	trigger_error("Multiallelic variant.",E_USER_ERROR);
+		$alt = $al[$idx_al2];
+	}
+	
 	if(chr_check($chr, 22, false) === FALSE) continue; //skip bad chromosomes
 	if($alt==".")	continue;	//skip missing alternative Alleles
 
@@ -286,13 +314,12 @@ while(!feof($handle))
 		
 		//variant type
 		$variant = "SNV";
-		if(strlen($ref) > 1)	$variant = "INDEL";	//different QC-values for SNVs and Indels
-		if(strlen($a) > 1)	$variant = "INDEL";	//different QC-values for SNVs and Indels
+		if(strlen($ref) > 1 || strlen($a) > 1)	$variant = "INDEL";	//different QC-values for SNVs and Indels
 	
 		//chr,start,end,ref,obs = alt
 		$start = $pos;
 		$end = $start;
-		if($variant == "INDEL")	list($start, $end, $ref, $a) = correct_indel($start, $ref, $a);	//correct indels
+		if($variant == "INDEL" && $ref!="-" && $a!="-")	list($start, $end, $ref, $a) = correct_indel($start, $ref, $a);	//correct indels
 
 		//quality
 		$snp_q = $cols[5];	//column 5 is normally empty in strelka vcfs
@@ -371,9 +398,10 @@ while(!feof($handle))
 				list($normal_dp, $normal_af) = vcf_freebayes($cols[8], $cols[$normal_idx]);
 			}
 		}
-		else
+		else if($var_caller=="iontorrent")	//iontorrent
 		{
-			trigger_error("Could not identify variant caller! Source information of vcf file empty?",E_USER_ERROR);
+			list($tumor_dp, $tumor_af) = vcf_iontorrent($cols[8], $cols[$tumor_idx],$idx_al2-1);
+			if(!$tumor_only)	list($normal_dp, $normal_af) = vcf_freebayes($cols[8], $cols[$idx_al2]-1);
 		}
 
 		$out = array($chr,$start,$end,$ref,$a);
