@@ -222,30 +222,41 @@ if (in_array("an", $steps))
 //detect fusions
 if (in_array("fu",$steps))
 {
-	//add samtoolsto path
-	putenv("PATH=".dirname(get_path("samtools")).":".getenv("PATH"));
-
-	$fusion_tmp_folder = $parser->tempFolder();
-	$chimeric_file = "{$prefix}_chimeric.tsv";
-	if (!file_exists($chimeric_file))
-	{
-		trigger_error("Could not open chimeric file '$chimeric_file' needed for STAR-Fusion. Please re-run mapping step.", E_USER_ERROR);
-	}
-
-	//remove header from chimeric file for STAR-Fusion
-	$chimeric_file_tmp = $parser->tempFile("_STAR_chimeric.tsv");
-	$chimeric_file_f = file($chimeric_file);
-	array_shift($chimeric_file_f);
-	file_put_contents($chimeric_file_tmp, $chimeric_file_f);
-
-	$starfusion_params = array(
-		"--genome_lib_dir", get_path("data_folder")."/genomes/STAR-Fusion/{$build}",
-		"-J", $chimeric_file_tmp,
-		"--output_dir", $fusion_tmp_folder
-	);
+	//path of STAR-Fusion index
+	$fusion_index = get_path("data_folder")."/genomes/STAR-Fusion/{$build}";
 	
-	$parser->exec(get_path("STAR-Fusion"), implode(" ", $starfusion_params), true);
-	$parser->exec("cp", "{$fusion_tmp_folder}/star-fusion.fusion_candidates.final.abridged {$prefix}_var_fusions.tsv", true);
+	if (is_dir($fusion_index)) {
+	
+		//add samtools to path
+		putenv("PATH=".dirname(get_path("samtools")).":".getenv("PATH"));
+
+		$fusion_tmp_folder = $parser->tempFolder();
+		$chimeric_file = "{$prefix}_chimeric.tsv";
+		if (!file_exists($chimeric_file))
+		{
+			trigger_error("Could not open chimeric file '$chimeric_file' needed for STAR-Fusion. Please re-run mapping step.", E_USER_ERROR);
+		}
+
+		//remove header from chimeric file for STAR-Fusion
+		$chimeric_file_tmp = $parser->tempFile("_STAR_chimeric.tsv");
+		$chimeric_file_f = file($chimeric_file);
+		array_shift($chimeric_file_f);
+		file_put_contents($chimeric_file_tmp, $chimeric_file_f);
+
+		$starfusion_params = array(
+			"--genome_lib_dir", $fusion_index,
+			"-J", $chimeric_file_tmp,
+			"--output_dir", $fusion_tmp_folder
+		);
+
+		$parser->exec(get_path("STAR-Fusion"), implode(" ", $starfusion_params), true);
+		$parser->exec("cp", "{$fusion_tmp_folder}/star-fusion.fusion_candidates.final.abridged {$prefix}_var_fusions.tsv", true);
+	
+	}
+	else
+	{
+		trigger_error("STAR-Fusion index not present. Skipping fusion detection step.", E_USER_WARNING);
+	}
 }
 
 //import to database
