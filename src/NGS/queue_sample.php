@@ -45,7 +45,7 @@ if(!is_dir($sample_folder))
 
 //check that fastq files are there
 $files = glob($sample_folder.$sample."*.fastq.gz");
-if(count($files)<2)
+if(count($files)<2 && $info['sys_type'] != "RNA")
 {
 	trigger_error("Could not find at least two FASTQ files starting with '$sample' in '$sample_folder'!", E_USER_ERROR);
 }
