@@ -390,7 +390,7 @@ if (in_array("re", $steps))
 			}
 			//
 			$comment = $cnv_somatic_report->getComments();
-			if(!empty($comment))
+			if(!empty($comment) && !empty($comment[0]))
 			{
 				$cnvs = explode("; ", $comment[0]);
 				foreach($cnvs as $cnv)
