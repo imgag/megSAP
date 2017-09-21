@@ -74,7 +74,7 @@ $arguments = array(
 	"--alignSJoverhangMin $sj_overhang",
 	"--alignSJDBoverhangMin $sjdb_overhang",
 	"--alignSJstitchMismatchNmax 5 -1 5 5",
-	"--outSAMattrRGline", implode(" ", $group_props)
+	"--outSAMattrRGline", "'".implode(" ", $group_props)."'"
 );
 	
 if ($unstranded_xs) $arguments[] = "--outSAMstrandField intronMotif";
