@@ -201,6 +201,7 @@ if (in_array("rc", $steps))
 		"-in", $final_bam,
 		"-out", $counts_raw,
 		"-library_type", $library_type,
+		"-gtf_file", $gtfFile,
 		"-threads", $threads
 	);
 	
