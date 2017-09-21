@@ -323,7 +323,7 @@ if (in_array("re", $steps))
 		$nex_name = "n/a";
 		$t_qcml = $p_folder."/Sample_".$t_id."/".$t_id."_stats_map.qcML";
 		$n_qcml = $p_folder."/Sample_".$n_id."/".$n_id."_stats_map.qcML";
-		$s_qcml = $p_folder."/".$o_folder."/".$t_id."-".$n_id."_stats_som.qcML";
+		$s_qcml = $o_folder."/".$t_id."-".$n_id."_stats_som.qcML";
 		if(!$single_sample)
 		{
 			$normal_name = basename($n_bam, ".bam");
