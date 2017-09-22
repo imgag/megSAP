@@ -365,7 +365,7 @@ if (in_array("re", $steps))
 			$snv_germline_report = report_SNV_table($n_gsvar, $single_sample, "tumor_freq", "tumor_depth", "normal_freq", "normal_depth", 4, $filter);
 		}
 		
-		if(is_file($s_cnvsfil))
+		if(isset($s_cnvsfil) && is_file($s_cnvsfil))
 		{
 			$min_zscore = 5;
 			$min_regions = 10;
