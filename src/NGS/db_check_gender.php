@@ -36,7 +36,7 @@ if ($info['sys_type']=="WGS" || $info['sys_type']=="WES")
 }
 else
 {
-	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method xy -in $in", true);
+	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $in", true);
 }
 
 //determine gender
