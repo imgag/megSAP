@@ -21,7 +21,7 @@ $parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To proc
 $parser->addString("o_folder", "Output folder.", false);
 $steps_all = array("ma", "vc", "an", "ci", "db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,db");
-$parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"synonymous,non-coding-splicing");
+$parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"synonymous,not-coding-splicing");
 // optional
 $parser->addFloat("min_af", "Allele frequency detection limit.", true, 0.05);
 $parser->addInfile("t_sys",  "Tumor processing system INI file (determined from the NGSD using 't_id' by default).", true);

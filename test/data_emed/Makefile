@@ -2,7 +2,7 @@
 all: clean link emed diff finished
 
 clean:
-	rm -f *.out.vcf.gz *.out.GSvar *.out.tsv
+	rm -f *.out.vcf.gz *.out.GSvar *.out.tsv *.out.txt *_qcml.txt
 	rm -rf Sample_GS160540_01
 	rm -rf Sample_GS160539_01
 	rm -rf Sample_I16R003a06_01
@@ -25,15 +25,16 @@ link:
 	php ../link_test_data.php I16R003a06_01*.fastq.gz Sample_I16R003a06_01
 	php ../link_test_data.php I16R003a05_01*.fastq.gz Sample_I16R003a05_01
 	#result files
-	php ../link_test_data.php GS160540_01-GS160539_01*emed1.vcf.gz
-	php ../link_test_data.php GS160540_01-GS160539_01*emed2.vcf.gz
-	php ../link_test_data.php GS160540_01-GS160539_01*emed1.tsv
-	php ../link_test_data.php GS160540_01-GS160539_01*emed2.tsv
-	php ../link_test_data.php GS160540_01-GS160539_01*emed1.GSvar
-	php ../link_test_data.php GS160540_01-GS160539_01*emed2.GSvar
-	php ../link_test_data.php GS160539_01*emed1.vcf.gz
-	php ../link_test_data.php GS160539_01*emed2.vcf.gz
-	php ../link_test_data.php I16R003a06_01-I16R003a05_01*emed*.tsv
+	php ../link_test_data.php GS160540_01-GS160539_01*emed1.out.vcf.gz
+	php ../link_test_data.php GS160540_01-GS160539_01*emed2.out.vcf.gz
+	php ../link_test_data.php GS160540_01-GS160539_01*emed1.out.tsv
+	php ../link_test_data.php GS160540_01-GS160539_01*emed2.out.tsv
+	php ../link_test_data.php GS160540_01-GS160539_01*emed1.out.GSvar
+	php ../link_test_data.php GS160540_01-GS160539_01*emed2.out.GSvar
+	php ../link_test_data.php GS160539_01*emed1.out.vcf.gz
+	php ../link_test_data.php GS160539_01*emed2.out.vcf.gz
+	php ../link_test_data.php I16R003a06_01-I16R003a05_01*emed*.out.tsv
+	php ../link_test_data.php emed_qcml.out.txt
 
 emed:
 	#sample pair, rna pair, start with mapping
@@ -51,32 +52,38 @@ emed:
 
 diff:
 	#emed1
-	php ../compare_variants.php GS160540_01-GS160539_01.emed1.GSvar results_emed1/GS160540_01-GS160539_01.GSvar
-	php ../compare_variants.php GS160540_01-GS160539_01_var_annotated.emed1.vcf.gz results_emed1/GS160540_01-GS160539_01_var_annotated.vcf.gz
-	php ../compare_variants.php GS160539_01_adme_var_annotated.emed1.vcf.gz results_emed1/GS160539_01_adme_var_annotated.vcf.gz
-	diff GS160540_01-GS160539_01_var_copy.emed1.tsv results_emed1/GS160540_01-GS160539_01_cnvs.tsv
-	diff I16R003a06_01-I16R003a05_01_var_fusions.emed1.tsv results_emed1/I16R003a06_01-I16R003a05_01_var_fusions.tsv
+	php ../compare_variants.php GS160540_01-GS160539_01.emed1.out.GSvar results_emed1/GS160540_01-GS160539_01.GSvar
+	php ../compare_variants.php GS160540_01-GS160539_01_var_annotated.emed1.out.vcf.gz results_emed1/GS160540_01-GS160539_01_var_annotated.vcf.gz
+	php ../compare_variants.php GS160539_01_adme_var_annotated.emed1.out.vcf.gz results_emed1/GS160539_01_adme_var_annotated.vcf.gz
+	diff GS160540_01-GS160539_01_var_copy.emed1.out.tsv results_emed1/GS160540_01-GS160539_01_cnvs.tsv
+	diff I16R003a06_01-I16R003a05_01_var_fusions.emed1.out.tsv results_emed1/I16R003a06_01-I16R003a05_01_var_fusions.tsv
 	#structural variants currently not implemented / no error message by SampleDiff	php ../compare_variants.php GS160540_01-GS160539_01_var_structural.emed1.out.vcf.gz results_emed1/GS160540_01-GS160539_01_var_structural.vcf.gz
 	#emed2
-	php ../compare_variants.php GS160540_01-GS160539_01.emed2.GSvar results_emed2/GS160540_01-GS160539_01.GSvar
-	php ../compare_variants.php GS160540_01-GS160539_01_var_annotated.emed2.vcf.gz results_emed2/GS160540_01-GS160539_01_var_annotated.vcf.gz
-	php ../compare_variants.php GS160539_01_adme_var_annotated.emed2.vcf.gz results_emed2/GS160539_01_adme_var_annotated.vcf.gz
-	diff GS160540_01-GS160539_01_var_copy.emed2.tsv results_emed2/GS160540_01-GS160539_01_cnvs.tsv
+	php ../compare_variants.php GS160540_01-GS160539_01.emed2.out.GSvar results_emed2/GS160540_01-GS160539_01.GSvar
+	php ../compare_variants.php GS160540_01-GS160539_01_var_annotated.emed2.out.vcf.gz results_emed2/GS160540_01-GS160539_01_var_annotated.vcf.gz
+	php ../compare_variants.php GS160539_01_adme_var_annotated.emed2.out.vcf.gz results_emed2/GS160539_01_adme_var_annotated.vcf.gz
+	diff GS160540_01-GS160539_01_var_copy.emed2.out.tsv results_emed2/GS160540_01-GS160539_01_cnvs.tsv
+	#qc
+	ls */*.qcML | sort | xargs grep "<qualityParameter" > emed_qcml.txt
+	php ../compare_qcml.php emed_qcml.out.txt emed_qcml.txt
 
 finished:
 	@echo "Finished pipeline test."
 
 update_fusions:
-	php ../update_test_data.php results_emed1/I16R003a06_01-I16R003a05_01_var_fusions.tsv I16R003a06_01-I16R003a05_01_var_fusions.emed1.tsv
+	php ../update_test_data.php results_emed1/I16R003a06_01-I16R003a05_01_var_fusions.tsv I16R003a06_01-I16R003a05_01_var_fusions.emed1.out.tsv
 
 update_variants:
-	php ../update_test_data.php results_emed1/GS160540_01-GS160539_01.GSvar GS160540_01-GS160539_01.emed1.GSvar
-	php ../update_test_data.php results_emed1/GS160540_01-GS160539_01_var_annotated.vcf.gz GS160540_01-GS160539_01_var_annotated.emed1.vcf.gz
-	php ../update_test_data.php results_emed1/GS160539_01_adme_var_annotated.vcf.gz GS160539_01_adme_var_annotated.emed1.vcf.gz
-	php ../update_test_data.php results_emed2/GS160540_01-GS160539_01.GSvar GS160540_01-GS160539_01.emed2.GSvar
-	php ../update_test_data.php results_emed2/GS160540_01-GS160539_01_var_annotated.vcf.gz GS160540_01-GS160539_01_var_annotated.emed2.vcf.gz
-	php ../update_test_data.php results_emed2/GS160539_01_adme_var_annotated.vcf.gz GS160539_01_adme_var_annotated.emed2.vcf.gz
+	php ../update_test_data.php results_emed1/GS160540_01-GS160539_01.GSvar GS160540_01-GS160539_01.emed1.out.GSvar
+	php ../update_test_data.php results_emed1/GS160540_01-GS160539_01_var_annotated.vcf.gz GS160540_01-GS160539_01_var_annotated.emed1.out.vcf.gz
+	php ../update_test_data.php results_emed1/GS160539_01_adme_var_annotated.vcf.gz GS160539_01_adme_var_annotated.emed1.out.vcf.gz
+	php ../update_test_data.php results_emed2/GS160540_01-GS160539_01.GSvar GS160540_01-GS160539_01.emed2.out.GSvar
+	php ../update_test_data.php results_emed2/GS160540_01-GS160539_01_var_annotated.vcf.gz GS160540_01-GS160539_01_var_annotated.emed2.out.vcf.gz
+	php ../update_test_data.php results_emed2/GS160539_01_adme_var_annotated.vcf.gz GS160539_01_adme_var_annotated.emed2.out.vcf.gz
 
 update_cnvs:
-	php ../update_test_data.php results_emed1/GS160540_01-GS160539_01_cnvs.tsv GS160540_01-GS160539_01_var_copy.emed1.tsv
-	php ../update_test_data.php results_emed2/GS160540_01-GS160539_01_cnvs.tsv GS160540_01-GS160539_01_var_copy.emed2.tsv
+	php ../update_test_data.php results_emed1/GS160540_01-GS160539_01_cnvs.tsv GS160540_01-GS160539_01_var_copy.emed1.out.tsv
+	php ../update_test_data.php results_emed2/GS160540_01-GS160539_01_cnvs.tsv GS160540_01-GS160539_01_var_copy.emed2.out.tsv
+	
+update_qc:
+	php ../update_test_data.php emed_qcml.txt emed_qcml.out.txt

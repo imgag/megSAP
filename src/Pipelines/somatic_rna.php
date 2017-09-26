@@ -89,10 +89,7 @@ if(in_array("ma", $steps))
 	$commands = array("php {$basedir}Pipelines/analyze_rna.php -folder {$o_folder_tum} -system {$t_sys} -name {$t_id} {$args} --log {$o_folder_tum}analyze_".date('YmdHis',mktime()).".log");
 	
 	//analyze normal RNA
-	if(!$tumor_only)	$commands[] = "php {$basedir}Pipelines/analyze_rna.php -folder {$n_forward} -system {$n_sys} -name {$n_id} {$args} --log {$o_folder_ref}analyze_".date('YmdHis',mktime()).".log";
-	
-	print_r($commands);
-	exit(42);
+	if(!$tumor_only)	$commands[] = "php {$basedir}Pipelines/analyze_rna.php -folder {$n_folder} -system {$n_sys} -name {$n_id} {$args} --log {$o_folder_ref}analyze_".date('YmdHis',mktime()).".log";
 	$parser->jobsSubmit($commands, $working_directory, get_path("queues_high_mem"), true);
 }
 

@@ -90,7 +90,7 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0)
 {
 	// run somatic_dna pipeline
 	$extras = array("-steps ".implode(",",$tmp_steps));
-	$extras[] = "-filter_set non-coding-splicing,synonymous";
+	$extras[] = "-filter_set not-coding-splicing,synonymous";
 	if($abra) $extras[] = "-abra";
 	if($amplicon) $extras[] = "-amplicon";
 	if($nsc) $extras[] = "-nsc";
@@ -446,7 +446,7 @@ if (in_array("re", $steps))
 		$report[] = "{\pard\fs20\sb180\sa45\b SNVs und kleine INDELs:\par}";
 		$report[] = rtf_table_row(array("Mutationslast: ".get_qc_from_qcml($s_qcml, "QC:2000053", "somatic variant rate")), array(9500),array("\qj"));
 		$report[] = rtf_table_row(array("Position","R","V","F/T Tumor","F/T Normal","cDNA"), array(2550,3200,3850,5050,6250,9500),array("\qc","\qc", "\qc","\qc","\qc","\qc"),true,true);
-		$report[] = rtf_table_row(array("Veränderungen mit therapeutischer Relevanz nur in Tumorgewebe"), array(9500),array("\qc"),true,true);
+		$report[] = rtf_table_row(array("Somatische Veränderungen mit therapeutischer Relevanz"), array(9500),array("\qc"),true,true);
 		if($snv_somatic_report->rows()>0)
 		{
 			for ($i=0; $i<$snv_somatic_report->rows(); ++$i)
@@ -457,7 +457,7 @@ if (in_array("re", $steps))
 		else	$report[] = rtf_table_row(array("keine"),array(9500),array("\qj"),true);
 		$add_vars = implode(", ", $snv_somatic_report->getComments());
 		if(!empty($add_vars))	$report[] = rtf_table_row(array("weitere Varianten:", $add_vars),array(2550,9500),array("\qr","\qj"),true);
-		$report[] = rtf_table_row(array("... auch in Blut*"), array(9500),array("\qc"),true,true);
+		$report[] = rtf_table_row(array("Keimbahnvarianten*"), array(9500),array("\qc"),true,true);
 		if($snv_germline_report->rows()>0)
 		{
 			for ($i=0; $i<$snv_germline_report->rows(); ++$i)
@@ -477,7 +477,7 @@ if (in_array("re", $steps))
 			$report[] = "{\pard\fs20\sb180\sa45\b CNVs:\par}";
 			$report[] = rtf_table_row(array("Die folgenden Tabellen zeigen das wissenschaftliche Ergebnis der CNV-Analysen, die mit dem CNVHunter Tool durchgeführt wurden. Zur Validierung relevanter Veränderungen empfehlen wir eine zweite, unabhängige Methode. Die geschätzte Copy Number ist abhängig von Tumorgehalt und Verteilung der CNV-tragenden Zellen im Tumorgewebe."), array(9500), array("\qj"));
 			$report[] = rtf_table_row(array("Position","Größe","Typ","CN","Gene"), array(2550,3800,4800,5300,9500),array("\qc","\qc","\qc","\qc","\qc"),true,true);
-			$report[] = rtf_table_row(array("Veränderungen mit therapeutischer Relevanz nur in Tumorgewebe"), array(9500),array("\qc"),true,true);
+			$report[] = rtf_table_row(array("Somatische Veränderungen mit therapeutischer Relevanz"), array(9500),array("\qc"),true,true);
 			if($cnv_somatic_report->rows()>0)
 			{
 				for ($i=0; $i<$cnv_somatic_report->rows(); ++$i)
@@ -488,7 +488,7 @@ if (in_array("re", $steps))
 			else	$report[] = rtf_table_row(array("keine"),array(9500),array("\qj"),true);
 			$add_vars = implode(", ", $cnv_somatic_report->getComments());
 			if(!empty($add_vars))	$report[] = rtf_table_row(array("weitere Gene:", $add_vars),array(2550,9500),array("\qr","\qj"),true);
-			$report[] = rtf_table_row(array("... auch in Blut*"), array(9500),array("\qc"),true,true);
+			$report[] = rtf_table_row(array("Keimbahn*"), array(9500),array("\qc"),true,true);
 			if($cnv_germline_report->rows()>0)
 			{
 				for ($i=0; $i<$cnv_germline_report->rows(); ++$i)

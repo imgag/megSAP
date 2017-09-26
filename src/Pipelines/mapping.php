@@ -113,11 +113,12 @@ if(strpos($sys['name_manufacturer'],"ThruPlex TagSeq")===0)
 	$tmp_conner = $parser->tempFile("_conner_dedup.bam");
 	$parser->exec("python /mnt/share/opt/Connor-0.5/connor-runner.py", "$out $tmp_conner",true,"0.5");
 	
-	copy2($out, $out."_before_dedup.bam");
-	$parser->exec(get_path("samtools"), "index ".$out."_before_dedup.bam", true);
+	$bam_before_dedup =  basename($out,".bam")."_before_dedup.bam";
+	copy2($out, $bam_before_dedup);
+	$parser->exec(get_path("samtools"), "index ".$bam_before_dedup, true);
 	
 	copy2($tmp_conner, $out);
-	$parser->exec(get_path("samtools"), "index ".$out, true);
+	$parser->exec(get_path("samtools"), "index ".$bam_before_dedup, true);
 }
 
 //perform indel realignment

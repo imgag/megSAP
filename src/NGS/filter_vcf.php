@@ -15,7 +15,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("filter_vcf", "Filter VCF-files according to different filter criteria. This tool is designed to filter tumor/normal pair samples. This tools automatically chooses variant caller and tumor/normal sample from the vcf header.");
 $parser->addInfile("in", "Input variant file in VCF format containing all necessary columns (s. below for each filter).", false);
 $parser->addOutfile("out", "Output variant file in VCF format.", false);
-$filter = array('non-coding-splicing', 'synonymous', 'off-target', 'somatic-lq');
+$filter = array('not-coding-splicing', 'synonymous', 'off-target', 'somatic-lq');
 $parser->addString("type", "Type(s) of variants that are supposed to be filtered out, can be comma delimited. Valid are: ".implode(",",$filter).".",false);
 //optional
 $parser->addFlag("keep", "Keep all variants. Otherwise only variants passing all filters will be kept");
@@ -172,7 +172,7 @@ for($i=0;$i<$in_file->rows();++$i)
 	$tmp_col_nor = null;
 	if(!is_null($normal_col))	$tmp_col_nor = $row[$normal_col];
 	//filter_basic($filter,$info,$tmp_col_tum,$tmp_col_nor$min_af,$min_dp,$min_r,$con,$var_caller);
-	if(in_array("non-coding-splicing",$types))	filter_not_coding_splicing($filter, $info, $miso_terms_coding);
+	if(in_array("not-coding-splicing",$types))	filter_not_coding_splicing($filter, $info, $miso_terms_coding);
 	if(in_array("synonymous",$types))	filter_synonymous($filter, $info, $miso_terms_coding, $miso_terms_synonymous);
 	if(in_array("set-somatic",$types))	filter_somatic($filter, $genotype,$tmp_col_tum,$tmp_col_nor,$type,$row[4],$contamination, $min_af, $var_caller);
 	if(in_array("off-target",$types))	filter_off_target($filter, $row[0], $row[1], $tumor_id, $normal_id, $targets);

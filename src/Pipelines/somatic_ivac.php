@@ -70,7 +70,7 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0 && !$rna_only)
 {
 	$args = "-t_sys $t_dna_sys_file -n_sys $n_dna_sys_file ";
 	$args .= "-steps ".implode(",",$tmp_steps)." -min_af 0.05 ";
-	$args .= "-filter_set non-coding-splicing,synonymous,off-target ";
+	$args .= "-filter_set not-coding-splicing,synonymous ";
 	$args .= "--log ".$o_folder_dna."somatic_ivac_dna_".date('YmdHis',mktime()).".log ";
 	if($amplicon)	$args .= "-amplicon ";
 	if($no_softclip)	$args .= "-no_softclip ";
