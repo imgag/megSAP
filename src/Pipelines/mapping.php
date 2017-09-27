@@ -172,8 +172,9 @@ if($sys['type']=="Panel MIPs")
 	$mip_file = isset($sys['mip_file']) ? $sys['mip_file'] : "/mnt/share/data/mipfiles/".$sys["name_short"].".txt";
 	$bam_dedup1 = $parser->tempFile("_dedup1.bam");
 	// removed: 
-	copy2($out, basename($out, ".bam")."_before_dedup.bam");
-	$parser->exec(get_path("samtools"), "index ".$out."_before_dedup.bam", true);
+	$bam_before_dedup =  basename($out, ".bam")."_before_dedup.bam";
+	copy2($out, $bam_before_dedup);
+	$parser->exec(get_path("samtools"), "index ".$bam_before_dedup, true);
 
 	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -mip_file $mip_file -out $bam_dedup1 -stats ".$basename."_bar_stats.tsv -del_amb  -dist 1", true);
 
