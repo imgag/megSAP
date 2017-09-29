@@ -51,7 +51,7 @@ if(count($files)<2 && $info['sys_type'] != "RNA")
 }
 
 //determine command and arguments
-if($info['is_tumor'] && $info['normal_name']!="")
+if($info['is_tumor'] && $info['normal_name']!="" && $info['sys_type'] != "RNA")
 {	
 	$outfolder = $project_folder."/Somatic_".$sample."-".$info['normal_name']."/";
 	if (!file_exists($outfolder)) mkdir($outfolder);
