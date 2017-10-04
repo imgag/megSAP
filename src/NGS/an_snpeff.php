@@ -66,7 +66,7 @@ $cols = array("phyloP100way_vertebrate","SIFT_pred","MetaLR_pred","FATHMM_pred",
 $pipeline[] =  array(get_path("SnpSift"), "dbnsfp -noLog -db ".get_path("data_folder")."/dbs/dbNSFP/dbNSFPv2.9.3.txt.gz -f ".implode(",",$cols)." -");
 
 //HGMD annotation (optional because of license)
-$db_file = get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2016_4_fixed.vcf";
+$db_file = get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2017_2_fixed.vcf";
 if(file_exists($db_file))
 {
 	$pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name HGMD_ -info ID,CLASS,MUT,GENE,PHEN $db_file");
