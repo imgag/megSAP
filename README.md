@@ -45,7 +45,7 @@ megSAP (or one of the used tools) depends mainly on the following software to be
 
 For example, the installation of the dependencies using Ubuntu 16.04 looks like that:
 
-	> sudo apt-get install -y wget bzip2 unzip make g++ git cmake tabix build-essential qt5-default qt5-qmake qtbase5-dev libqt5sql5-mysql libqt5xmlpatterns5-dev php7.0-cli php7.0-xml php7.0-mysql python python-matplotlib libncurses5-dev
+	> sudo apt-get install -y wget bzip2 unzip make g++ git cmake tabix build-essential qt5-default qt5-qmake qtbase5-dev libqt5sql5-mysql libqt5xmlpatterns5-dev php7.0-cli php7.0-xml php7.0-mysql python python-matplotlib libncurses5-dev bzip2
 
 ## Initial setup
 
