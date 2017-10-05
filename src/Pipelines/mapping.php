@@ -54,7 +54,7 @@ if ($sys["adapter1_p5"]=="" && $sys["adapter2_p7"]=="")
 $stafile1 = $basename."_stats_fastq.qcML";
 $trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
 $trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
-if(strpos($sys['name_manufacturer'],"ThruPlex TagSeq")===FALSE)
+if(!starts_with($sys['name_manufacturer'],"ThruPlex TagSeq"))
 {
 	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);	
 }
@@ -105,20 +105,21 @@ if($sys['type']=="Panel Haloplex HS")
 
 // mapping
 $mapping_options = "";
-if ($sys['shotgun']) $mapping_options .= " -dedup";
+if ($sys['shotgun'] && !starts_with($sys['name_manufacturer'],"ThruPlex TagSeq")) $mapping_options .= " -dedup";
 $parser->execTool("NGS/mapping_bwa.php", "-in1 $trimmed1 -in2 $trimmed2 -out $out $mapping_options -build ".$sys['build']." -threads ".$threads);
 
-if(strpos($sys['name_manufacturer'],"ThruPlex TagSeq")===0)
+if(starts_with($sys['name_manufacturer'],"ThruPlex TagSeq"))
 {
-	$tmp_conner = $parser->tempFile("_conner_dedup.bam");
-	$parser->exec("python /mnt/share/opt/Connor-0.5/connor-runner.py", "$out $tmp_conner",true,"0.5");
+	$tmp_connor_bam = $parser->tempFile("_conner_dedup.bam");
+	$tmp_connor_log = $parser->tempFile("_conner_dedup.log");
+	$parser->exec("python /mnt/share/opt/Connor-0.5/connor-runner.py", "$out $tmp_connor_bam --log_file $tmp_connor_log",true,"0.5");
 	
-	$bam_before_dedup =  basename($out,".bam")."_before_dedup.bam";
+	$bam_before_dedup =  $basename."_before_dedup.bam";
 	copy2($out, $bam_before_dedup);
 	$parser->exec(get_path("samtools"), "index ".$bam_before_dedup, true);
 	
-	copy2($tmp_conner, $out);
-	$parser->exec(get_path("samtools"), "index ".$bam_before_dedup, true);
+	copy2($tmp_connor_bam, $out);
+	$parser->exec(get_path("samtools"), "index ".$out, true);
 }
 
 //perform indel realignment
@@ -171,10 +172,9 @@ if($sys['type']=="Panel MIPs")
 {
 	$mip_file = isset($sys['mip_file']) ? $sys['mip_file'] : "/mnt/share/data/mipfiles/".$sys["name_short"].".txt";
 	$bam_dedup1 = $parser->tempFile("_dedup1.bam");
-	// removed: 
-	$bam_before_dedup =  basename($out, ".bam")."_before_dedup.bam";
-	copy2($out, $bam_before_dedup);
-	$parser->exec(get_path("samtools"), "index ".$bam_before_dedup, true);
+
+	copy2($out, $basename."_before_dedup.bam");
+	$parser->exec(get_path("samtools"), "index ".$basename."_before_dedup.bam", true);
 
 	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -mip_file $mip_file -out $bam_dedup1 -stats ".$basename."_bar_stats.tsv -del_amb  -dist 1", true);
 
