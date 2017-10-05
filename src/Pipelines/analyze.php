@@ -255,7 +255,7 @@ if (in_array("cn", $steps) && $sys['type']!="WGS")
 	//perform copy-number analysis
 	$cnv_out = $tmp_folder."/output.tsv";
 	$cnv_out2 = $tmp_folder."/output.seg";
-	$parser->execTool("NGS/vc_cnvhunter.php", "-min_z 3.5 -cov $cov_file -system $system -out $cnv_out -seg $name --log $log_cn");
+	$parser->execTool("NGS/vc_cnvhunter.php", "-min_z 3.5 -cov $cov_file -system $system -out $cnv_out -seg $name -n ".($sys['type']=="WES" ? "30" : "20")." --log $log_cn");
 
 	//copy results to output folder
 	if (file_exists($cnv_out)) copy2($cnv_out, $cnvfile);
