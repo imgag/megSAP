@@ -71,6 +71,7 @@ $parser->exec(get_path("samtools"), "idxstats {$bam} > {$out}/idxstats.tsv", tru
 
 $parser->log(">>> Calculating gene expression and biotypes using rc_ scripts");
 $parser->execTool("NGS/rc_featurecounts.php", "-in {$bam} -out {$out}/featurecounts_raw.tsv -keep_summary -library_type reverse -gtf_file {$gtf}");
+$parser->execTool("NGS/rc_featurecounts.php", "-in {$bam} -out {$out}/featurecounts_raw_wrongstrand.tsv -keep_summary -library_type forward -gtf_file {$gtf}");
 $parser->execTool("NGS/rc_normalize.php", "-in {$out}/featurecounts_raw.tsv -out {$out}/gene_expression.tsv -method raw");
 $parser->execTool("NGS/rc_annotate.php", "-in {$out}/gene_expression.tsv -out {$out}/gene_expression.tsv -annotationId gene_biotype -gtfFile {$gtf}");
 $parser->exec("rm", "{$out}/featurecounts_raw.tsv", true);
