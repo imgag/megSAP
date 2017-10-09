@@ -151,7 +151,7 @@ for ($i=0; $i<count($db_vars); ++$i)
 				$class_comment = $db->getValue("SELECT comment FROM variant_classification WHERE variant_id='$id'", "");
 				$class_comment = str_replace("'", "\'", $class_comment);
 				$class_comment = "[$class_new] auto-classification ".date("d.m.Y")."\n\n".$class_comment;				
-				$db->executeStmt("INSERT INTO variant_classification (variant_id, class, comment) VALUES ($id, '$class_new', '$class_comment') ON DUPLICATE KEY UPDATE class='$class_new',comment='$class_comment'");
+				$db->executeStmt("INSERT IGNORE INTO variant_classification (variant_id, class, comment) VALUES ($id, '$class_new', '$class_comment') ON DUPLICATE KEY UPDATE class='$class_new',comment='$class_comment'");
 			}
 			else
 			{
