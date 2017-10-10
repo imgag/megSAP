@@ -168,7 +168,7 @@ if ($build=="GRCh37")
 }
 else
 {
-	trigger_error("No genocode basic transcripts available for genome '$build', skipping the genocode basic filter.", E_USER_WARNING);
+	trigger_error("No gencode basic transcripts available for genome '$build', skipping the gencode basic filter.", E_USER_WARNING);
 }
 
 //parse input

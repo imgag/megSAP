@@ -23,7 +23,7 @@ check_file($out_file3, data_folder().$name."_out3.GSvar", true);
 //standard
 $out_file4 = output_folder().$name."_out4.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -build hg19 -out $out_file4 --log ".output_folder().$name."_out4.log");
-check_file($out_file4, data_folder().$name."_out1.GSvar");
+check_file($out_file4, data_folder().$name."_out4.GSvar");
 
 end_test();
 
