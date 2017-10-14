@@ -161,16 +161,20 @@ if(!$single_sample)	$som_si = $o_folder.$t_id."-".$n_id."_var_smallIndels.vcf.gz
 if (in_array("vc", $steps))
 {
 	// structural variant calling, should be done before variant calling since strelka uses the smallIndel output
-	if(!$single_sample &&  !starts_with($t_sys_ini['name_manufacturer'],"ThruPlex TagSeq"))
+	if(!$single_sample)
 	{
-		if($t_sys_ini['shotgun']==1)
+		if(!starts_with($t_sys_ini['name_manufacturer'],"ThruPlex TagSeq"))
 		{
-			$par = "";
-			if($t_sys_ini['type']=="WES")	$par .= "-exome ";
-			if($add_vc_folder)	$par .= "-temp ".dirname($som_v)."/variant_calling ";
-			$par .= "-smallIndels $som_si ";
-			$parser->execTool("NGS/vc_manta.php", "-t_bam $t_bam -bam $n_bam $par -out $som_sv -build ".$t_sys_ini['build']);
+			if($t_sys_ini['shotgun']==1)
+			{
+				$par = "";
+				if($t_sys_ini['type']=="WES")	$par .= "-exome ";
+				if($add_vc_folder)	$par .= "-temp ".dirname($som_v)."/variant_calling ";
+				$par .= "-smallIndels $som_si ";
+				$parser->execTool("NGS/vc_manta.php", "-t_bam $t_bam -bam $n_bam $par -out $som_sv -build ".$t_sys_ini['build']);
+			}
 		}
+		else trigger_error("Breakpoint detection deactivated for ThruPlex samples.",E_USER_NOTICE);
 	}
 	else	trigger_error("Breakpoint detection currently only implemented for tumor normal pairs.",E_USER_NOTICE);
 	
@@ -190,12 +194,12 @@ if (in_array("vc", $steps))
 		$normal_col = NULL;
 		for($i=0;$i<count($tmp_headers);++$i)
 		{
-			if(starts_with($t_id,$tmp_headers[$i]))
+			if(contains($tmp_headers[$i],$t_id))
 			{
 				$tumor_col = $i;
 				$tmp_headers[$tumor_col] = $t_id;
 			}
-			if(!$single_sample && starts_with($n_id,$tmp_headers[$i]))
+			if(!$single_sample && contains($tmp_headers[$i],$n_id))
 			{
 				$normal_col = $i;
 				$tmp_headers[$normal_col] = $n_id;
@@ -236,6 +240,7 @@ if (in_array("vc", $steps))
 	{
 		$args = array();
 		$args[] = "-build ".$t_sys_ini['build'];
+		$args[] = "-target ".$t_sys_ini['target_file'];
 		if ($keep_all_variants_strelka) $args[] = "-k";
 		if ($amplicon) $args[] = "-amplicon";
 		if($add_vc_folder)	$args[] = "-temp ".dirname($som_v)."/variant_calling";
@@ -262,7 +267,9 @@ if (in_array("vc", $steps))
 		$n_cov = $ref_file;
 	}
 	$tmp_in = "-cov $t_cov ".($single_sample?"":"-n_cov $n_cov");
-	$parser->execTool("NGS/vc_cnvhunter.php", "$tmp_in -out $som_cnv -system $t_sys -min_corr 0 -seg $t_id -n 20");
+	$n = 20;
+	if($t_sys_ini['type']=="WES")	$n = 30;
+	$parser->execTool("NGS/vc_cnvhunter.php", "$tmp_in -out $som_cnv -system $t_sys -min_corr 0 -seg $t_id -n $n");
 }
 
 // annotation
@@ -287,9 +294,13 @@ if (in_array("an", $steps))
 	{
 		$t_bam = $t_folder.$t_id.".bam";
 		$n_bam = $n_folder.$n_id.".bam";
-		$links = array($t_folder.$t_id."_stats_fastq.qcML",$t_folder.$t_id."_stats_map.qcML",$n_folder.$n_id."_stats_fastq.qcML",$n_folder.$n_id."_stats_map.qcML");
+		$links = array();
+		if(is_file($t_folder.$t_id."_stats_fastq.qcML"))	$links[] = $t_folder.$t_id."_stats_fastq.qcML";
+		if(is_file($t_folder.$t_id."_stats_map.qcML"))	$links[] = $t_folder.$t_id."_stats_map.qcML";
+		if(is_file($n_folder.$n_id."_stats_fastq.qcML"))	$links[] = $n_folder.$n_id."_stats_fastq.qcML";
+		if(is_file($n_folder.$n_id."_stats_map.qcML"))	$links[] = $n_folder.$n_id."_stats_map.qcML";
 		$stafile3 = $o_folder.$t_id."-".$n_id."_stats_som.qcML";
-		$parser->exec(get_path("ngs-bits")."SomaticQC","-tumor_bam $t_bam -normal_bam $n_bam -links ".implode(" ",$links)." -somatic_vcf $som_unfi -target_bed ".$t_sys_ini['target_file']." -ref_fasta ".get_path("local_data")."/".$t_sys_ini['build'].".fa -out $stafile3",true);
+		$parser->exec(get_path("ngs-bits")."SomaticQC","-tumor_bam $t_bam -normal_bam $n_bam ".(!empty($links)?"-links ".implode(" ",$links):"")." -somatic_vcf $som_unfi -target_bed ".$t_sys_ini['target_file']." -ref_fasta ".get_path("local_data")."/".$t_sys_ini['build'].".fa -out $stafile3",true);
 	}
 
 	// add project specific filters
