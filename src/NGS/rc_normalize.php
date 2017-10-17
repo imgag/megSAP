@@ -67,8 +67,8 @@ while (($data = fgetcsv($in_handle, 0, "\t")) !== FALSE) {
 	//normalized read count
 	$normalized = array();
 	if (in_array("raw", $methods)) $normalized[] = $gene_readcount;
-	if (in_array("cpm", $methods)) $normalized[] = fpkm($gene_length, $gene_readcount, $total_reads);
-	if (in_array("fpkm", $methods)) $normalized[] = cpm($gene_readcount, $total_reads);
+	if (in_array("cpm", $methods)) $normalized[] = cpm($gene_readcount, $total_reads);
+	if (in_array("fpkm", $methods)) $normalized[] = fpkm($gene_length, $gene_readcount, $total_reads);
 	
 	fwrite($out_handle, $gene_id."\t".implode("\t", $normalized)."\n");
 }
