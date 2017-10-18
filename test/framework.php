@@ -129,7 +129,7 @@ function remove_lines_containing($filename, $ignore_strings)
 }
 
 /// Performs an equality check on files. Optionally, header lines starting with '#' can be compared as well.
-function check_file($out_file, $reference_file, $comare_header_lines = false)
+function check_file($out_file, $reference_file, $compare_header_lines = false)
 {
 	$logfile = $out_file."_diff";
 	
@@ -137,7 +137,7 @@ function check_file($out_file, $reference_file, $comare_header_lines = false)
 	if (ends_with($out_file, ".gz") && ends_with($reference_file, ".gz"))
 	{
 		$extras = "";
-		if (!$comare_header_lines) $extras .= " -I^[#@]";
+		if (!$compare_header_lines) $extras .= " -I^[#@]";
 		exec("zdiff $extras -b $reference_file $out_file > $logfile 2>&1", $output, $return);
 		$passed = ($return==0 && count(file($logfile))==0);
 	}
@@ -173,7 +173,7 @@ function check_file($out_file, $reference_file, $comare_header_lines = false)
 	else
 	{
 		$extras = "";
-		if (!$comare_header_lines) $extras .= " -I '^[#@]'";
+		if (!$compare_header_lines) $extras .= " -I '^[#@]'";
 		exec("diff $extras $reference_file $out_file > $logfile 2>&1", $output, $return);
 
 		$passed = ($return==0);
