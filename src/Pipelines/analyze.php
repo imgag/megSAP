@@ -196,12 +196,7 @@ if (in_array("an", $steps))
 	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
 	
 	//low-coverage report
-	if($sys['type']=="WGS") //WGS
-	{
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-wgs -bam $bamfile -out $lowcov_file -cutoff 20", true);
-		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -extend 25 -out $lowcov_file", true);
-	}
-	else if ($sys['target_file']!="") //ROI (but not WGS)
+	if ($sys['type']!="WGS" && $sys['target_file']!="") //ROI (but not WGS)
 	{	
 		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", true);
 		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -extend 25 -out $lowcov_file", true);
