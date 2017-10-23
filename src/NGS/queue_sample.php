@@ -57,7 +57,7 @@ if($info['is_tumor'] && $info['normal_name']!="" && $info['sys_type'] != "RNA")
 	if (!file_exists($outfolder)) mkdir($outfolder);
 	
 	//determine somatic steps
-	$steps_som = array_intersect(array("ma", "vc", "an"), explode(",",$steps));
+	$steps_som = array_intersect(array("ma", "vc", "an", "db"), explode(",",$steps));
 	if (in_array("an", $steps_som))
 	{
 		$steps_som[] = "ci"; 
