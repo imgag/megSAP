@@ -50,15 +50,15 @@ diff:
 	#ivac1
 	php ../compare_variants.php GS140850_02-GS140851_02_ivac1.out.GSvar results_ivac1/GS140850_02-GS140851_02.GSvar
 	php ../compare_variants.php GS140850_02-GS140851_02_var_annotated_ivac1.out.vcf.gz results_ivac1/GS140850_02-GS140851_02_var_annotated.vcf.gz
-	diff GS140850_02-GS140851_02_var_copy_ivac1.out.tsv results_ivac1/GS140850_02-GS140851_02_cnvs.tsv
+#	diff GS140850_02-GS140851_02_var_copy_ivac1.out.tsv results_ivac1/GS140850_02-GS140851_02_cnvs.tsv
 	diff I14R010d01_01-I14R010d02_01_var_fusions_ivac1.out.tsv results_ivac1/I14R010d01_01-I14R010d02_01_var_fusions.tsv
 	#ivac2
 	php ../compare_variants.php GS140850_02-GS140851_02_ivac2.out.GSvar results_ivac2/GS140850_02-GS140851_02.GSvar
 	php ../compare_variants.php GS140850_02-GS140851_02_var_annotated_ivac2.out.vcf.gz results_ivac2/GS140850_02-GS140851_02_var_annotated.vcf.gz
-	diff GS140850_02-GS140851_02_var_copy_ivac2.out.tsv results_ivac2/GS140850_02-GS140851_02_cnvs.tsv
+#	diff GS140850_02-GS140851_02_var_copy_ivac2.out.tsv results_ivac2/GS140850_02-GS140851_02_cnvs.tsv
 	#qc
-	ls */*.qcML | sort | xargs grep "<qualityParameter" > ivac_qcml.txt
-	php ../compare_qcml.php ivac_qcml.out.txt ivac_qcml.txt
+#	ls */*.qcML | sort | xargs grep "<qualityParameter" > ivac_qcML.txt
+#	php ../compare_qcml.php ivac_qcml.out.txt ivac_qcML.txt
 
 finished:
 	@echo "Finished pipeline test."
@@ -73,8 +73,8 @@ update_fusions:
 	php ../update_test_data.php results_ivac1/I14R010d01_01-I14R010d02_01_var_fusions.tsv I14R010d01_01-I14R010d02_01_var_fusions_ivac1.out.tsv
 
 update_cnvs:
-	php ../update_test_data.php results_ivac1/GS140850_02-GS140851_02_cnvs.tsv GS140850_02-GS140851_02_var_copy_ivac1.out.tsv
-	php ../update_test_data.php results_ivac2/GS140850_02-GS140851_02_cnvs.tsv GS140850_02-GS140851_02_var_copy_ivac2.out.tsv
+#	php ../update_test_data.php results_ivac1/GS140850_02-GS140851_02_cnvs.tsv GS140850_02-GS140851_02_var_copy_ivac1.out.tsv
+#	php ../update_test_data.php results_ivac2/GS140850_02-GS140851_02_cnvs.tsv GS140850_02-GS140851_02_var_copy_ivac2.out.tsv
 
 update_qc:
-	php ../update_test_data.php ivac_qcml.txt ivac_qcml.out.txt
+#	php ../update_test_data.php ivac_qcML.txt ivac_qcML.out.txt
