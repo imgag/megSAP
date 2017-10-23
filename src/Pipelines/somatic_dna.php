@@ -79,34 +79,27 @@ $t_bam = $t_folder.$t_id.".bam";
 $n_bam = $n_folder.$n_id.".bam";
 if (in_array("ma", $steps))
 {
-	// mapping of tumor and normal sample, CAVE: no abra realignment and no soft-clipping, will be done later
+	// disable ABRA realignment due to manta compatibility issues
 	$args = "-steps ma -no_abra ";
-	$parser->execTool("Pipelines/analyze.php", "-folder ".$t_folder." -out_folder ".$t_folder." -name $t_id -system $t_sys ".$args." --log ".$t_folder."analyze_".date('YmdHis',mktime()).".log");
-	if(!$single_sample)	$parser->execTool ("Pipelines/analyze.php", "-folder ".$n_folder." -name $n_id -system $n_sys ".$args." --log ".$n_folder."analyze_".date('YmdHis',mktime()).".log");
-
-	// overlap clipping
 	if(!$no_softclip)
 	{
-		$extra = "";
-		if($clip=="mfb")	$extra .= " -overlap_mismatch_baseq";
-		if($clip=="mfm")	$extra .= " -overlap_mismatch_mapq";
-		if($clip=="mfr")	$extra .= " -overlap_mismatch_remove";		
-	
-		$tmp1_t_bam = $parser->tempFile("_tumor.bam");
-		$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in $t_bam -out $tmp1_t_bam $extra", true);
-		$parser->exec(get_path("samtools"),"sort -T $tmp1_t_bam -o $t_bam $tmp1_t_bam", true);
-		$parser->exec(get_path("samtools")." index", " $t_bam", true);
-		
-		if(!$single_sample)
-		{
-			$tmp1_n_bam = $parser->tempFile("_normal.bam");
-			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in $n_bam -out $tmp1_n_bam $extra", true);
-			$parser->exec(get_path("samtools"),"sort -T $tmp1_t_bam -o $n_bam $tmp1_n_bam", true);
-			$parser->exec(get_path("samtools")." index", " $n_bam", true);
-		}
+		$args .= "-clip_overlap ";
 	}
 	
-	// indel realignment with ABRA
+	// submit both mapping jobs to queue
+	$commands = [];
+	if (!$smt)
+	{
+		$commands[] = "php " . repository_basedir() . "/src/Pipelines/analyze.php " . "-folder ".$t_folder." -name $t_id -system $t_sys ".$args." --log ".$t_folder."analyze_".date('YmdHis',mktime()).".log";
+	}
+	if (!$single_sample && !$smn)
+	{
+		$commands[] = "php " . repository_basedir() . "/src/Pipelines/analyze.php " . "-folder ".$n_folder." -name $n_id -system $n_sys ".$args." --log ".$n_folder."analyze_".date('YmdHis',mktime()).".log";
+	}
+	$parser->jobsSubmit($commands, realpath($p_folder), get_path("queues_default"), true);
+
+
+	// combined indel realignment with ABRA
 	if ($abra && $t_sys_ini['type']!="WGS" && ($single_sample || $n_sys_ini['type']!="WGS"))
 	{
 		// intersect both target files
