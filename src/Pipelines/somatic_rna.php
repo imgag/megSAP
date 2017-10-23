@@ -22,7 +22,7 @@ $steps_all = array("ma", "rc", "fu", "vc", "an");
 $parser->addString("steps", "Comma-separated list of processing steps to perform:\n" .
 	"ma = mapping, rc = compare read counts, fu = find somatic fusions, vc = variant calling (strelka), an = annotation of variants", true, "rc,fu,vc,an");
 
-$parser->addFlag("nsc", "Skip sample correlation check.");
+$parser->addFlag("skip_correlation", "Skip sample correlation check.");
 
 $parser->addInfile("t_sys",  "Tumor processing system INI file (determined from 't_id' by default).", true);
 $parser->addInfile("n_sys",  "Reference processing system INI file (determined from 'n_id' by default).", true);
@@ -38,7 +38,7 @@ $parser->log("Pipeline revision: " . repository_revision(true));
 
 // extract systems
 $t_system = load_system($t_sys, $t_id);
-$n_system = load_system($n_sys, $n_id);
+$n_system = $n_id === "na" ? "na" : load_system($n_sys, $n_id);
 
 // if only tumor specified, completely hand off to analyze_rna.php
 if ($n_id == "na")
@@ -46,18 +46,6 @@ if ($n_id == "na")
 	$parser->execTool("Pipelines/analyze_rna.php",
 		"-folder {$p_folder}/Sample_{$t_id} -name {$t_id} -system {$t_sys} -steps ma,rc,an,fu,db --log {$p_folder}/Sample_{$t_id}/analyze_".date('YmdHis',mktime()).".log");
 	exit(0);
-}
-
-// mapping
-if (in_array("ma", $steps))
-{
-	// submit both mapping jobs to queue
-	$commands = [];
-	$commands[] = "php " . repository_basedir() . "/src/Pipelines/analyze_rna.php " .
-		"-folder Sample_{$t_id} -name {$t_id} -system {$t_sys} -steps ma,rc,an,fu,db --log Sample_{$t_id}/analyze_".date('YmdHis',mktime()).".log";
-	$commands[] = "php " . repository_basedir() . "/src/Pipelines/analyze_rna.php " .
-		"-folder Sample_{$n_id} -name {$n_id} -system {$n_sys} -steps ma,rc,an,fu,db --log Sample_{$n_id}/analyze_".date('YmdHis',mktime()).".log";
-	$parser->jobsSubmit($commands, realpath($p_folder), get_path("queues_high_mem"), true);
 }
 
 // resolve default output folder
@@ -76,6 +64,19 @@ if ($t_system["name_short"] !== $n_system["name_short"])
 if ($t_system["build"] !== $n_system["build"])
 {
 	trigger_error("Tumor and normal sample have different genome builds!", E_USER_ERROR);
+}
+
+// mapping
+if (in_array("ma", $steps))
+{
+	// submit both mapping jobs to queue
+	// TODO revert this?
+	$commands = [];
+	$commands[] = "php " . repository_basedir() . "/src/Pipelines/analyze_rna.php " .
+		"-folder Sample_{$t_id} -name {$t_id} -system {$t_sys} -steps ma,rc,an,fu,db --log Sample_{$t_id}/analyze_".date('YmdHis',mktime()).".log";
+	$commands[] = "php " . repository_basedir() . "/src/Pipelines/analyze_rna.php " .
+		"-folder Sample_{$n_id} -name {$n_id} -system {$n_sys} -steps ma,rc,an,fu,db --log Sample_{$n_id}/analyze_".date('YmdHis',mktime()).".log";
+	$parser->jobsSubmit($commands, realpath($p_folder), get_path("queues_high_mem"), true);
 }
 
 // define file paths
@@ -102,7 +103,7 @@ $som_variants_annotated = "{$o_folder}/{$t_id}-{$n_id}_var_annotated.vcf.gz";
 $som_gsvar = "{$o_folder}/{$t_id}-{$n_id}.GSvar";
 
 // check sample correlation, warn if disabled
-if ($nsc)
+if ($skip_correlation)
 {
 	trigger_error("Sample correlation check has been disabled!", E_USER_WARNING);
 }
