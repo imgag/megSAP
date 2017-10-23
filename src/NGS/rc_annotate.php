@@ -1,6 +1,9 @@
 <?php
 /**
  * @page rc_annotate
+ * 
+ * TODO:
+ * - support multiple annotation values
  */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

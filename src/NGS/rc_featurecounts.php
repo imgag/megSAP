@@ -2,6 +2,9 @@
 
 /**
 	@page rc_featurecounts
+ * 
+ * TODO:
+ * - add antisense counting for stranded libraries
  */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
