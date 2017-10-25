@@ -46,7 +46,7 @@ foreach($steps as $step)
 }
 
 // tumor only or tumor normal
-$single_sample = ($n_id=="na");
+$single_sample = ($n_id === "na");
 if($single_sample)	trigger_error("Single sample mode.",E_USER_NOTICE);
 else	trigger_error("Paired sample mode.",E_USER_NOTICE);
 
@@ -79,25 +79,40 @@ $t_bam = $t_folder.$t_id.".bam";
 $n_bam = $n_folder.$n_id.".bam";
 if (in_array("ma", $steps))
 {
-	// disable ABRA realignment due to manta compatibility issues
-	$args = "-steps ma -no_abra ";
-	if(!$no_softclip)
-	{
-		$args .= "-clip_overlap ";
-	}
+	// run analyze.php on tumor and normal
+	$analyze_args = [
+		"-steps ma",
+		"-no_abra" // disable ABRA realignment due to manta compatibility issues
+	];
 	
-	// submit both mapping jobs to queue
-	$commands = [];
+	if (!$no_softclip)
+	{
+		$analyze_args[] = "-clip_overlap";
+	}
+
+	// tumor sample
 	if (!$smt)
 	{
-		$commands[] = "php " . repository_basedir() . "/src/Pipelines/analyze.php " . "-folder ".$t_folder." -name $t_id -system $t_sys ".$args." --log ".$t_folder."analyze_".date('YmdHis',mktime()).".log";
+		$analyze_args_tum = [
+			"-folder", $t_folder,
+			"-name", $t_id,
+			"-system", $t_sys,
+			"--log", "{$t_folder}analyze_" . date('YmdHis',mktime()) . ".log"
+		];
+		$parser->execTool("Pipelines/analyze.php", implode(" ", array_merge($analyze_args, $analyze_args_tum)));
 	}
+
+	// normal sample
 	if (!$single_sample && !$smn)
 	{
-		$commands[] = "php " . repository_basedir() . "/src/Pipelines/analyze.php " . "-folder ".$n_folder." -name $n_id -system $n_sys ".$args." --log ".$n_folder."analyze_".date('YmdHis',mktime()).".log";
+		$analyze_args_nor = [
+			"-folder", $n_folder,
+			"-name", $n_id,
+			"-system", $n_sys,
+			"--log", "{$n_folder}analyze_" . date('YmdHis',mktime()) . ".log"
+		];
+		$parser->execTool("Pipelines/analyze.php", implode(" ", array_merge($analyze_args, $analyze_args_nor)));
 	}
-	$parser->jobsSubmit($commands, realpath($p_folder), get_path("queues_default"), true);
-
 
 	// combined indel realignment with ABRA
 	if ($abra && $t_sys_ini['type']!="WGS" && ($single_sample || $n_sys_ini['type']!="WGS"))
