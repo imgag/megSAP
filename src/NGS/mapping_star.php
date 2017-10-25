@@ -25,6 +25,7 @@ $parser->addInt("threads", "Number of parallel threads.", true, 4);
 $parser->addFlag("unstranded_xs", "For unstranded data, add the XS strand attribute for spliced alignments for cufflinks compatibility. Note: Alignments with undefined strandedness will be removed!");
 $parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
 $parser->addFlag("no_splicing", "Prevent reads from getting spliced");
+$parser->addFlag("one_pass", "Use one-pass mapping, be aware that this decreases sensitivity!");
 
 $parser->addFlag("all_junctions", "Disable filtering of reported junctions (affects splicing output only, not alignment).");
 
@@ -77,9 +78,18 @@ $arguments = array(
 	"--outSAMattrRGline", "'".implode(" ", $group_props)."'"
 );
 	
-if ($unstranded_xs) $arguments[] = "--outSAMstrandField intronMotif";
-if (!$uncompressed) $arguments[] = "--readFilesCommand zcat";
-if ($all_junctions) $arguments[] = "--outSJfilterDistToOtherSJmin 0 0 0 0 --outSJfilterOverhangMin 1 1 1 1 --outSJfilterCountUniqueMin 1 1 1 1 --outSJfilterCountTotalMin 1 1 1 1";
+if ($unstranded_xs)
+{
+	$arguments[] = "--outSAMstrandField intronMotif";
+}
+if (!$uncompressed)
+{
+	$arguments[] = "--readFilesCommand zcat";
+}
+if ($all_junctions)
+{
+	$arguments[] = "--outSJfilterDistToOtherSJmin 0 0 0 0 --outSJfilterOverhangMin 1 1 1 1 --outSJfilterCountUniqueMin 1 1 1 1 --outSJfilterCountTotalMin 1 1 1 1";
+}
 
 if ($no_splicing)
 {
@@ -91,7 +101,14 @@ if ($no_splicing)
 else
 {
 	$arguments[] = "--alignIntronMax 1000000 --alignIntronMin 20";
-	$arguments[] = "--twopassMode Basic";
+	if ($one_pass)
+	{
+		$arguments[] = "--twopassMode None";
+	}
+	else
+	{
+		$arguments[] = "--twopassMode Basic";
+	}
 }
 
 //STAR or STARlong program

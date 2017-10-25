@@ -23,6 +23,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mappi
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
 $parser->addFlag("no_splicing", "Disable spliced read alignment.");
 $parser->addFlag("abra", "Enable indel realignment with ABRA.");
+$parser->addFlag("one_pass", "Use one-pass mapping, be aware that this decreases sensitivity!");
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
@@ -148,6 +149,7 @@ if (in_array("ma", $steps))
 
 	if ($paired) $args[] = "-in2 $fastq_trimmed2";
 	if ($no_splicing) $args[] = "-no_splicing";
+	if ($one_pass) $args[] = "-one_pass";
 	
 	if (file_exists($log_ma)) unlink($log_ma);
 	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
