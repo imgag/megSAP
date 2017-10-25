@@ -44,7 +44,7 @@ foreach($res as $index => $row)
 		//replace comma by dot
 		$value = strtr($value, ",", ".");
 		//special characters
-		$value = str_ireplace(array("\"","ö","ä","ß","ü"),array("","oe","ae","ss","ue"), $value);
+		$value = str_ireplace(array("\"","ö","ä","ß","ü","µ"),array("","oe","ae","ss","ue","u"), $value);
 		//trim
 		$value = trim($value);
 		

@@ -76,7 +76,7 @@ if ($t_col=="na") //germline
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
 	$parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $stafile", true);
 	
-	$args = array("-in $annfile", "-out $varfile");
+	$args = array("-in $annfile", "-out $varfile", "-build ".$sys['build']);
 	if ($multi)
 	{
 		$args[] = "-multi";

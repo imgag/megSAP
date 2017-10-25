@@ -126,7 +126,7 @@ if (in_array("vc", $steps))
 	$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc ".implode(" ", $args));
 	
 	//if WES, perform special variant calling for mitochondria
-	$mito = ($sys['type']=="WES");
+	$mito = ($sys['type']=="WES" && $sys['target_file']!="");
 	if ($mito)
 	{
 		$target_mito = $parser->tempFile("_mito.bed");
@@ -196,12 +196,7 @@ if (in_array("an", $steps))
 	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
 	
 	//low-coverage report
-	if($sys['type']=="WGS") //WGS
-	{
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-wgs -bam $bamfile -out $lowcov_file -cutoff 20", true);
-		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -extend 25 -out $lowcov_file", true);
-	}
-	else if ($sys['target_file']!="") //ROI (but not WGS)
+	if ($sys['type']!="WGS" && $sys['target_file']!="") //ROI (but not WGS)
 	{	
 		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", true);
 		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -extend 25 -out $lowcov_file", true);

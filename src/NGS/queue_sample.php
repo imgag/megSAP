@@ -57,18 +57,13 @@ if($info['is_tumor'] && $info['normal_name']!="" && $info['sys_type'] != "RNA")
 	if (!file_exists($outfolder)) mkdir($outfolder);
 	
 	//determine somatic steps
-	if (contains($steps, "ma"))
+	$steps_som = array_intersect(array("ma", "vc", "an", "db"), explode(",",$steps));
+	if (in_array("an", $steps_som))
 	{
-		$steps_som = "ma,vc,an,ci,db,re";
+		$steps_som[] = "ci"; 
+		$steps_som[] = "re";
 	}
-	else if (contains($steps, "vc"))
-	{
-		$steps_som = "vc,an,ci,db,re";
-	}
-	else
-	{
-		$steps_som = "an,ci,db,re";
-	}
+	$steps_som = implode(",",$steps_som);
 	
 	$command = "php ".repository_basedir()."/src/Pipelines/somatic_capa.php";
 	$args = "-p_folder {$project_folder} -t_id {$sample} -n_id ".$info['normal_name']." -o_folder {$outfolder} -steps {$steps_som} --log {$outfolder}somatic_capa_".date("Ymdhis").".log";
@@ -80,12 +75,12 @@ elseif ($info['sys_type'] == "RNA")
 	//if steps argument is default, replace with analyze_rna default value
 	if ($steps == "ma,vc,an,db,cn")
 	{
-		$steps = "ma,rc,an,fu,db";
+		$steps = "ma,rc,an,fu,db,qc";
 	}
 	else
 	{
 		//reduce to valid steps for analyze_rna
-		$steps = implode(",", array_intersect(explode(",", $steps), explode(",", "ma,rc,an,fu,db")));
+		$steps = implode(",", array_intersect(explode(",", $steps), explode(",", "ma,rc,an,fu,db,qc")));
 	}
 	$args = "-folder {$sample_folder} -name {$sample} -steps {$steps} --log {$sample_folder}analyze_rna_".date("Ymdhis").".log";
 }

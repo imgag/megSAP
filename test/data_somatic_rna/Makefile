@@ -1,6 +1,5 @@
-# variant calling testing not run by default
-# tumor only not tested, as it is equivalent to one analyze_rna call
-# mapping and db step disabled (test uses precomupted bams, counts, fusions)
+# tumor only not tested, as it is equivalent to a single analyze_rna call
+# mapping step disabled (test uses precomupted bams, counts, fusions)
 
 X := I17R018Ra01_01
 Y := I17R018Rb01_01
@@ -24,28 +23,17 @@ link:
 	
 	mkdir -p $(out_folder)/Somatic_$(X)-$(Y)
 
-
 analyze:
 	php ../../src/Pipelines/somatic_rna.php \
-	-p_folder $(out_folder) \
-	-t_id $(X) -n_id $(Y) \
-	-t_sys system.ini -n_sys system.ini \
-	-o_folder $(out_folder)/Somatic_$(X)-$(Y) \
-	-steps rc,fu \
-	--log somatic_rna_out.log
+		-p_folder $(out_folder) \
+		-t_id $(X) -n_id $(Y) \
+		-t_sys system.ini -n_sys system.ini \
+		-o_folder $(out_folder)/Somatic_$(X)-$(Y) \
+		-steps rc,fu,vc,an \
+		-debug \
+		--log somatic_rna_out.log
 
 diff:
 	diff $(out_folder)/Somatic_$(X)-$(Y)/$(X)-$(Y)_counts.tsv results/$(X)-$(Y)_counts.tsv
 	diff $(out_folder)/Somatic_$(X)-$(Y)/$(X)-$(Y)_var_fusions.tsv results/$(X)-$(Y)_var_fusions.tsv
-
-analyze_vc:
-	php ../../src/Pipelines/somatic_rna.php \
-	-p_folder $(out_folder) \
-	-t_id $(X) -n_id $(Y) \
-	-t_sys system.ini -n_sys system.ini \
-	-o_folder $(out_folder)/Somatic_$(X)-$(Y) \
-	-steps vc \
-	--log somatic_rna_out.log
-
-diff_vc:
 	php ../compare_variants.php $(out_folder)/Somatic_$(X)-$(Y)/$(X)-$(Y).GSvar results/$(X)-$(Y).GSvar

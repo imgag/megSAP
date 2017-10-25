@@ -1209,6 +1209,8 @@ function load_vcf_normalized($filename)
 
 function vcf_strelka_snv($format_col, $sample_col, $obs)
 {
+	if (!preg_match("/^[acgtACGT]*$/", $obs))	trigger_error("Invalid observed allele (".$format_col." ".$sample_col." ".$obs.").",E_USER_ERROR);
+
 	$f = explode(":",$format_col);
 	$index_depth = array_search("DP",$f);
 	$index_TU = array_search("TU",$f);
@@ -1230,7 +1232,7 @@ function vcf_strelka_snv($format_col, $sample_col, $obs)
 	else if($obs == "A") $o = $au;
 	else if($obs == "C") $o = $cu;
 	else if($obs == "G") $o = $gu;
-	else	trigger_error("Alternative allele '$obs' unknown.",E_USER_WARNING);	// unknown alleles are 'A,G', '.'
+	else	trigger_error("Alternative allele '$obs' unknown (".$format_col." ".$sample_col." ".$obs.").",E_USER_WARNING);	// unknown alleles multiallelic or '.'
 
 	$f = 0;
 	if($sum!=0)	$f = number_format($o/$sum,4);
@@ -1250,6 +1252,7 @@ function vcf_strelka_indel($format_col, $sample_col)
 	$d = explode(":",$sample_col)[$index_depth];
 	list($tir,) = explode(",", explode(":",$sample_col)[$index_TIR]);
 	list($tar,) = explode(",", explode(":",$sample_col)[$index_TAR]);
+	if(!is_numeric($tir) || !is_numeric($tar))	trigger_error("Could not identify numeric depth for strelka indel (".$format_col." ".$sample_col.")", E_USER_ERROR);
 
 	//tir and tar contain strong supportin reads, tor (not considered here) contains weak supportin reads like breakpoints
 	//only strong supporting reads are used for calculation of allele fraction
@@ -1264,18 +1267,44 @@ function vcf_freebayes($format_col, $sample_col)
 	$g = explode(":",$format_col);
 	$index_DP = NULL;
 	$index_AO = NULL;
+	$index_GT = NULL;
 	for($i=0;$i<count($g);++$i)
 	{
 		if($g[$i]=="DP")	$index_DP = $i;
 		if($g[$i]=="AO")	$index_AO = $i;
+		if($g[$i]=="GT")	$index_GT = $i;
 	}
 
-	if(is_null($index_DP) || is_null($index_AO))	trigger_error("Invalid freebayes format; either field DP or AO not available.",E_USER_ERROR);
+	if(is_null($index_DP) || is_null($index_AO) ||is_null($index_GT))	trigger_error("Invalid freebayes format; either field DP, GT or AO not available.",E_USER_ERROR);	
 	
-	$d = explode(":",$sample_col)[$index_DP];
+	$s = explode(":",$sample_col);
+
+	// workaround for bug during splitting of multi-allelic variants - allele counts for multiple alleles are kept
+	if(strpos($s[$index_AO],",")!==FALSE)
+	{		
+		$gt = $s[$index_GT];
+		
+		$sep = "/";
+		if(strpos($s[$index_GT],"|")!==FALSE)	$sep = "|";
+		
+		$idx_al1 = min(explode($sep,$gt));
+		$idx_al2 = max(explode($sep,$gt));
+		if($idx_al1!=0 || $idx_al2!=1)	trigger_error("Unexpected error. Allele 1 is $idx_al1, Allele 2 is $idx_al2; expected 0 and 1  (".$format_col." ".$sample_col.").",E_USER_ERROR); 
+				
+		$tmp = 0;
+		$tmp = explode(",",$s[$index_AO])[$idx_al2-1];
+		$s[$index_AO] = $tmp;
+	}
+	
+	if(!is_numeric($s[$index_AO]))	trigger_error("Invalid alternative allele count (".$format_col." ".$sample_col.").",E_USER_ERROR);	// currently no multiallelic variants supported
+	if(!is_numeric($s[$index_DP]))	trigger_error("Could not identify numeric depth (".$format_col." ".$sample_col.").",E_USER_ERROR);
+
+	$d1 = $s[$index_DP];
+	$d2 = $s[$index_AO];
+	
 	$f = null;
-	if($d>0)	$f = number_format(explode(":",$sample_col)[$index_AO]/$d, 4);
-	return array($d,$f);
+	if($d1>0)	$f = number_format($d2/$d1, 4);
+	return array($d1,$f);
 }
 
 function vcf_iontorrent($format_col, $sample_col, $idx_al)

@@ -21,6 +21,7 @@ $parser->addString("smallIndels", "Output file for candidate small indels.", tru
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addString("temp", "Temporary folder.", true, "auto");
 $parser->addString("regions", "Comma-separated string of regions.", true, "");
+$parser->addInfile("target",  "Enrichment targets BED file.", true);
 
 $parser->addEnum("config_preset", "Use preset configuration.", true, array("default", "high_sensitivity"), "default");
 
@@ -62,8 +63,25 @@ $parser->exec("python {$manta_folder}/runWorkflow.py", "--mode local --jobs {$th
 //copy files to output folder
 $struc = $manta_folder."/results/variants/diploidSV.vcf.gz";
 if (!empty($t_bam)) $struc = $manta_folder."/results/variants/somaticSV.vcf.gz";
-$parser->exec("cp", "{$struc} {$out}", false);
-$parser->exec("cp", "{$struc}.tbi {$out}.tbi", false);
+
+//sort variants
+$vcf_sorted = $temp_folder."/manta_sorted.vcf";
+$parser->exec(get_path("ngs-bits")."VcfSort","-in $struc -out $vcf_sorted", true);
+
+// flag off-target variants
+$vcf_filtered = $temp_folder."/manta_filtered.vcf";
+if(!empty($target))
+{
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions","-in $vcf_sorted -mark -reg $target -out $vcf_filtered", true);
+}
+else
+{
+	$vcf_filtered = $vcf_sorted;
+}
+
+//zip and index output file
+$parser->exec("bgzip", "-c $vcf_filtered > $out", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->exec("tabix", "-p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
 
 $small = $manta_folder."/results/variants/candidateSmallIndels.vcf.gz";
 if (!empty($smallIndels))

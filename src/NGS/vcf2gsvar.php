@@ -10,6 +10,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("vcf2gsvar", "Converts an annotated VCF file from freebayes to a GSvar file.");
 $parser->addInfile("in",  "Input file in VCF format.", false);
 $parser->addOutfile("out", "Output file in GSvar format.", false);
+$parser->addString("build", "The genome build to use.", false);
 //optional
 $parser->addFlag("multi", "Enable multi-sample mode.");
 extract($parser->parse($argv));
@@ -155,12 +156,19 @@ $filter_desc = array(
 
 //load gencode basic transcripts
 $gencode_basic = array();
-$file = file(get_path("data_folder")."/dbs/Ensembl/gencode_basic.txt");
-foreach($file as $line)
+if ($build=="GRCh37")
 {
-	$line = trim($line);
-	if ($line=="" || $line[0]=="#") continue;
-	$gencode_basic[$line] = true;
+	$file = file(get_path("data_folder")."/dbs/Ensembl/gencode_basic.txt");
+	foreach($file as $line)
+	{
+		$line = trim($line);
+		if ($line=="" || $line[0]=="#") continue;
+		$gencode_basic[$line] = true;
+	}
+}
+else
+{
+	trigger_error("No gencode basic transcripts available for genome '$build', skipping the gencode basic filter.", E_USER_WARNING);
 }
 
 //parse input
@@ -363,7 +371,7 @@ while(!feof($handle))
 			}
 			
 			//skip transcripts that are not flagged as "gencode basic"
-			if ($details!="intergenic_region")
+			if (count($gencode_basic)>0 && $details!="intergenic_region")
 			{
 				$transcript = trim($parts[6]);
 				if (!isset($gencode_basic[$transcript])) continue;

@@ -341,9 +341,11 @@ check(vcf_strelka_indel("DP:DP2:DP50:FDP50:SUBDP50:TAR:TIR:TOR","275:275:255.49:
 end_test();
 
 //##################################################################################
-start_test("vcf_freebayes_indel");
+start_test("vcf_freebayes");
 check(vcf_freebayes("GT:GL:DP:RO:QR:AO:QA","0/1:-23.0878,0,-65.9409:29:21:752:8:276"), array(29,0.2759));
 check(vcf_freebayes("GT:GL:DP:RO:QR:AO:QA","0/1:-23.0878,0,-65.9409:0:21:752:8:276"), array(0,null));
+check(vcf_freebayes("GT:DP:AD:RO:QR:AO:QA:GL","0/0:9:8,1:8:305:1:16:0,-1.10929,-26.2088"), array(9,0.1111));
+check(vcf_freebayes("GT:DP:AD:RO:QR:AO:QA:GL","0/1:14:10,4:10:327:4:132:-7.98514,0,-25.5222"), array(14,0.2857));
 end_test();
 
 //##################################################################################

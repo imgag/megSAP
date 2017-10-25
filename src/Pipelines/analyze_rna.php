@@ -17,8 +17,8 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 
 //optional
 $parser->addInfile("system", "Processing system INI file (determined from NGSD via the 'name' by default).", true);
-$steps_all = array("ma", "rc", "an", "fu", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, rc=read counting, an=annotation, fu=fusion detection, db=import into NGSD", true, implode(",", $steps_all));
+$steps_all = array("ma", "rc", "an", "fu", "db", "qc");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, rc=read counting, an=annotation, fu=fusion detection, db=import into NGSD, qc=calculate RNA-Seq QC metrics", true, implode(",", $steps_all));
 
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
 $parser->addFlag("no_splicing", "Disable spliced read alignment.");
@@ -267,8 +267,25 @@ if (in_array("db", $steps))
 	$parser->execTool("NGS/db_check_gender.php", "-in $final_bam -pid $name --log $log_db");
 
 	//import QC data
-	$parser->execTool("NGS/db_import_qc.php", "-id $name -files $qc_fastq $qc_map -force --log $log_db");
+	$parser->execTool("NGS/db_import_qc.php", "-id $name -files $qc_fastq $qc_map -force -skip_parameters 'QC:2000024' --log $log_db");
 
 	//update last analysis date
 	updateLastAnalysisDate($name, $final_bam);
+}
+
+//RNA-Seq QC
+if (in_array("qc", $steps))
+{
+	$qc_rna_args = [
+		"-in", $final_bam,
+		"-out", "{$out_folder}/qc/",
+		"-system", $system,
+		"-library_type", $library_type,
+		"-threads", $threads
+	];
+	if (!$paired)
+	{
+		$qc_rna_args[] = "-se";
+	}
+	$parser->execTool("NGS/qc_rna.php", implode(" ", $qc_rna_args));
 }

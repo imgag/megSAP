@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Session genome="1kg_v37" hasGeneTrack="true" hasSequenceTrack="true" locus="all" version="8">
+	<Resources>
+		<Resource path="../../data/vc_freebayes_out1.vcf.gz" />
+		<Resource path="../../data/vc_freebayes_in.bam" />
+	</Resources>
+	<HiddenAttributes>
+		<Attribute name="NAME"/>
+		<Attribute name="DATA FILE"/>
+		<Attribute name="DATA TYPE"/>
+	</HiddenAttributes>
+</Session>
