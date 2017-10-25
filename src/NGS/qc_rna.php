@@ -92,11 +92,21 @@ if (in_array("bam", $steps))
 if (in_array("expr", $steps))
 {
 	$parser->log(">>> Calculating gene expression and biotypes using rc_ scripts");
-	// sense expression
-	$parser->execTool("NGS/rc_featurecounts.php", "-in {$bam} -out {$out}/featurecounts_raw.tsv -keep_summary -library_type reverse -gtf_file {$gtf}");
+	
+	if ($library_type === "unstranded")
+	{
+		// sense+antisense expression
+		$parser->execTool("NGS/rc_featurecounts.php", "-in {$bam} -out {$out}/featurecounts_raw.tsv -keep_summary -library_type unstranded -gtf_file {$gtf}");
+	}
+	else
+	{		
+		// sense expression
+		$parser->execTool("NGS/rc_featurecounts.php", "-in {$bam} -out {$out}/featurecounts_raw.tsv -keep_summary -library_type reverse -gtf_file {$gtf}");
 
-	// antisense expression
-	$parser->execTool("NGS/rc_featurecounts.php", "-in {$bam} -out {$out}/featurecounts_raw_antisense.tsv -keep_summary -library_type forward -gtf_file {$gtf}");
+		// antisense expression
+		$parser->execTool("NGS/rc_featurecounts.php", "-in {$bam} -out {$out}/featurecounts_raw_antisense.tsv -keep_summary -library_type forward -gtf_file {$gtf}");
+	}
+	
 	
 	// create tsv from sense expression
 	$parser->execTool("NGS/rc_normalize.php", "-in {$out}/featurecounts_raw.tsv -out {$out}/gene_expression.tsv -method raw");

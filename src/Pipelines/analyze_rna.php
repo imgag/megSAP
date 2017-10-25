@@ -273,15 +273,19 @@ if (in_array("db", $steps))
 	updateLastAnalysisDate($name, $final_bam);
 }
 
-//RNA-Seq qc
+//RNA-Seq QC
 if (in_array("qc", $steps))
 {
 	$qc_rna_args = [
 		"-in", $final_bam,
 		"-out", "{$out_folder}/qc/",
+		"-system", $system,
 		"-library_type", $library_type,
 		"-threads", $threads
 	];
-	if (!$paired) $qc_rna_args[] = "-se";
+	if (!$paired)
+	{
+		$qc_rna_args[] = "-se";
+	}
 	$parser->execTool("NGS/qc_rna.php", implode(" ", $qc_rna_args));
 }
