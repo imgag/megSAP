@@ -16,6 +16,7 @@ $parser->addOutfile("out", "Output file in CSV format.", false);
 $parser->addString("lanes", "Comma-separated list of lane numbers to use.", true, "1,2,3,4,5,6,7,8");
 $parser->addInt("mid1_len", "Numer of bases to use from MID 1.", true, -1);
 $parser->addInt("mid2_len", "Numer of bases to use from MID 2.", true, -1);
+$parser->addFlag("mid2_no_rc", "Disables reverse-complement of MID 2.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
@@ -52,7 +53,10 @@ foreach($res as $index => $row)
 	}
 	
 	//convert index 2 to reverse-complement
-	$res[$index]["mid2_i5"] = rev_comp($res[$index]["mid2_i5"]);
+	if (!$mid2_no_rc)
+	{
+		$res[$index]["mid2_i5"] = rev_comp($res[$index]["mid2_i5"]);
+	}
 }
 
 //generate sample sheet
