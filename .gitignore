@@ -48,17 +48,17 @@
 /test/data_capa/*_report.rtf
 /test/data_capa/*_igv.xml
 /test/data_capa/*_qcML.txt
+/test/data_capa/*_lowcov.bed
 /test/data_capa/Sample_GS150496_01/
 /test/data_capa/Sample_GS150497_01/
 /test/data_capa/Somatic_GS150497_01-GS150496_01/
-test/data_capa/*_lowcov.bed
-/test/data_capa/Somatic_Tumor1-Normal1/*_igv.xml
-/test/data_capa/Somatic_Tumor1-Normal1/*_report.rtf
-/test/data_capa/Somatic_Tumor1-Normal1/*.log
-/test/data_capa/Somatic_Tumor2-Normal2/*_igv.xml
-/test/data_capa/Somatic_Tumor2-Normal2/*_report.rtf
-/test/data_capa/Somatic_Tumor2-Normal2/*.log
-/test/data_capa/*_QCML.txt
+/test/data_capa/Sample_Normal*/*_filtered.GSvar
+/test/data_capa/Sample_Normal*/*_cnvs_filtered.tsv
+/test/data_capa/Somatic_Tumor*/*_igv.xml
+/test/data_capa/Somatic_Tumor*/*_report.rtf
+/test/data_capa/Somatic_Tumor*/*.log
+/test/data_capa/Somatic_Tumor*/*_cnvs_filtered.tsv
+/test/data_capa/Somatic_Tumor*/*_filtered.GSvar
 
 /test/data_rna/analyze_rna_out_se.log
 /test/data_rna/analyze_rna_out_pe.log
@@ -68,19 +68,12 @@ test/data_capa/*_lowcov.bed
 /test/data_somatic_rna/project_folder/
 /test/data_somatic_rna/somatic_rna_out.log
 
-/test/data_somatic/Sample_GS110168/
-/test/data_somatic/Sample_GS110169/
-/test/data_somatic/Sample_GS150344_01/
-/test/data_somatic/Sample_SampleUID1_01/
-/test/data_somatic/Sample_SampleUID2_01/
-/test/data_somatic/results_pair1/
-/test/data_somatic/results_pair2/
-/test/data_somatic/results_single/
-/test/data_somatic/results_uid1/
-/test/data_somatic/results_uid2/
-/test/data_somatic/results_amp/
+/test/data_somatic/results_*/
+/test/data_somatic/Somatic_*/
+/test/data_somatic/Sample_*/
 /test/data_somatic/*_qcML.txt
 /test/data_somatic/*_var_qci.vcf.gz
+
 /test/data_out/tool_test_*
 
 /test/data_emed/Sample_GS160540_01/
@@ -102,3 +95,4 @@ test/data_capa/*_lowcov.bed
 /test/data_ivac/*.GSvar
 /test/data_ivac/*.vcf.gz
 /test/data_ivac/*.tsv
+/test/data_ivac/*_qcML.txt

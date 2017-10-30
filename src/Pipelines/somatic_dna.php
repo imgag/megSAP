@@ -110,14 +110,15 @@ if (in_array("ma", $steps))
 	// indel realignment with ABRA
 	if ($abra && $t_sys_ini['type']!="WGS" && ($single_sample || $n_sys_ini['type']!="WGS"))
 	{
-		// merge both target files
-		$tmp2_targets = $t_sys_ini['target_file'];
+		// intersect both target files
+		$tmp_targets = $t_sys_ini['target_file'];
 		if(!$single_sample)
 		{
-			$tmp1_targets = $parser->tempFile("_intersected.bed");
-			$parser->exec(get_path("ngs-bits")."BedIntersect", "-in ".$t_sys_ini['target_file']." -in2 ".$n_sys_ini['target_file']." -out $tmp1_targets -mode intersect", true);
-			$tmp2_targets = $parser->tempFile("_merged.bed");
-			$parser->exec(get_path("ngs-bits")."BedMerge", "-in $tmp1_targets -out $tmp2_targets", true);
+			$tmp_targets = $parser->tempFile("_intersected.bed");
+			$commands_params = [];
+			$commands_params[] = [get_path("ngs-bits")."BedIntersect", "-in ".$t_sys_ini['target_file']." -in2 ".$n_sys_ini['target_file']." -mode intersect"];
+			$commands_params[] = [get_path("ngs-bits")."BedMerge", "-out $tmp_targets"];
+			$parser->execPipeline($commands_params, "intersect target regions", true);
 		}
 
 		// indel realignment with ABRA
@@ -125,7 +126,7 @@ if (in_array("ma", $steps))
 		$tmp1_t_bam = $parser->tempFile("_tumor.bam");
 		$tmp1_n_bam = $parser->tempFile("_normal.bam");
 		$tmp_out = (!$single_sample?$tmp1_n_bam." ":"")."$tmp1_t_bam";
-		$command = "php ".repository_basedir()."/src/NGS/indel_realign_abra.php -in $tmp_in -out $tmp_out -roi $tmp2_targets -threads 8 -mer 0.02 -mad 5000 2>&1";			
+		$command = "php ".repository_basedir()."/src/NGS/indel_realign_abra.php -in $tmp_in -out $tmp_out -roi $tmp_targets -threads 8 -mer 0.02 -mad 5000 2>&1";
 		$working_directory = realpath($p_folder);
 		$parser->jobsSubmit(array($command), $working_directory, get_path("queues_high_mem"), true);
 		

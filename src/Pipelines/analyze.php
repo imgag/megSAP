@@ -126,7 +126,7 @@ if (in_array("vc", $steps))
 	$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc ".implode(" ", $args));
 	
 	//if WES, perform special variant calling for mitochondria
-	$mito = ($sys['type']=="WES");
+	$mito = ($sys['type']=="WES" && $sys['target_file']!="");
 	if ($mito)
 	{
 		$target_mito = $parser->tempFile("_mito.bed");

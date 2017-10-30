@@ -23,6 +23,8 @@ $parser->addString("config", "Config file for strelka.", true, "auto");
 $parser->addFlag("k", "Keep all variants. Otherwise all variants that do not pass all filters will be removed.");
 $parser->addFlag("amplicon",  "Enables amplicon mode.");
 $parser->addString("temp", "Temp folder.", true, "auto");
+
+$parser->addString("debug_region", "Debug option to limit analysis to one region.", true, "");
 extract($parser->parse($argv));
 
 //get processed sample names
@@ -46,7 +48,15 @@ if(!empty($smallIndels))	$args[] = "--indelCandidates $smallIndels";
 //run strelka
 $temp_folder = ($temp=="auto"?$parser->tempFolder():$temp);
 $strelka_folder = $temp_folder."/strelkaAnalysis";
-$parser->exec(get_path('strelka2')."/configureStrelkaSomaticWorkflow.py", "--tumor $t_bam --normal $n_bam --referenceFasta ".get_path("local_data")."/$build.fa --runDir $strelka_folder --exome ".implode(" ",$args), true, "2.7.1");
+
+if ($debug_region !== "")
+{
+	$args[] = "--region {$debug_region}";
+}
+
+$parser->exec(get_path('strelka2')."/configureStrelkaSomaticWorkflow.py",
+	"--tumor $t_bam --normal $n_bam --referenceFasta ".get_path("local_data")."/$build.fa --runDir $strelka_folder --exome ".implode(" ",$args),
+	true);
 $parser->exec("$strelka_folder/runWorkflow.py", "-m local -j4 -g4", false);
 
 //merge vcf files

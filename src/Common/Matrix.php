@@ -189,6 +189,9 @@ class Matrix
 			$this->data[$i][$column_index] = $values[$i];
 			$this->data[$i] = array_merge($this->data[$i],$tmp);
 		}
+		
+		//increase number of columns
+		++$this->cols;
 	}
 	
 	/// Sets the values of a row.

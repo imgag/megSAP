@@ -1,6 +1,9 @@
 <?php
 /**
  * @page rc_normalize
+ * 
+ * TODO:
+ * - add tpm normalization
  */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
