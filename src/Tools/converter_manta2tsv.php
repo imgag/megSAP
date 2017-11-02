@@ -17,12 +17,12 @@ $parser->exec("gzip -cd", "{$in} > {$in_tmp}", true);
 $vcf = Matrix::fromTSV($in_tmp);
 //$vcf->printInfo();
 
-if ($vcf->getHeader(9) == $tumor_id)
+if ($vcf->getHeader(9) === $tumor_id)
 {
 	$tumor_col = 9;
 	$normal_col = 10;
 }
-else if ($vcf->getHeader(10) == $tumor_id)
+else if ($vcf->getHeader(10) === $tumor_id)
 {
 	$tumor_col = 10;
 	$normal_col = 9;
@@ -157,40 +157,43 @@ for ($rowidx = 0; $rowidx < $vcf->rows(); $rowidx++)
 }
 
 $table = new Matrix();
-$table->setHeaders(array_keys($variants[$vcf->get(0, 2)]));
-
-$resolved_ids = array();
-
-foreach ($variants as $id => $fields)
+if ($vcf->rows() > 0)
 {
-	if (in_array($id, $resolved_ids))
+	$table->setHeaders(array_keys($variants[$vcf->get(0, 2)]));
+
+	$resolved_ids = array();
+
+	foreach ($variants as $id => $fields)
 	{
-		continue;
+		if (in_array($id, $resolved_ids))
+		{
+			continue;
+		}
+
+		if ($fields["mate_id"] !== ".")
+		{
+			$fields["mate_chr"] = $variants[$fields["mate_id"]]["chr"];
+			$fields["mate_pos"] = $variants[$fields["mate_id"]]["start"];
+			$fields["mate_filter"] = $variants[$fields["mate_id"]]["filter"];
+			$resolved_ids[] = $fields["mate_id"];
+		}
+
+		$resolved_ids[] = $id;
+		$table->addRow($fields);
 	}
-	
-	if ($fields["mate_id"] !== ".")
-	{
-		$fields["mate_chr"] = $variants[$fields["mate_id"]]["chr"];
-		$fields["mate_pos"] = $variants[$fields["mate_id"]]["start"];
-		$fields["mate_filter"] = $variants[$fields["mate_id"]]["filter"];
-		$resolved_ids[] = $fields["mate_id"];
-	}
-	
-	$resolved_ids[] = $id;
-	$table->addRow($fields);
+
+	$table->removeCol($table->getColumnIndex("mate_id"));
+
+	$table->removeCol($table->getColumnIndex("tumor_PR_ref"));
+	$table->removeCol($table->getColumnIndex("tumor_PR_alt"));
+	$table->removeCol($table->getColumnIndex("tumor_SR_ref"));
+	$table->removeCol($table->getColumnIndex("tumor_SR_alt"));
+
+	$table->removeCol($table->getColumnIndex("normal_PR_ref"));
+	$table->removeCol($table->getColumnIndex("normal_PR_alt"));
+	$table->removeCol($table->getColumnIndex("normal_SR_ref"));
+	$table->removeCol($table->getColumnIndex("normal_SR_alt"));
 }
-
-$table->removeCol($table->getColumnIndex("mate_id"));
-
-$table->removeCol($table->getColumnIndex("tumor_PR_ref"));
-$table->removeCol($table->getColumnIndex("tumor_PR_alt"));
-$table->removeCol($table->getColumnIndex("tumor_SR_ref"));
-$table->removeCol($table->getColumnIndex("tumor_SR_alt"));
-
-$table->removeCol($table->getColumnIndex("normal_PR_ref"));
-$table->removeCol($table->getColumnIndex("normal_PR_alt"));
-$table->removeCol($table->getColumnIndex("normal_SR_ref"));
-$table->removeCol($table->getColumnIndex("normal_SR_alt"));
 
 if (isset($out))
 {
