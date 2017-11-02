@@ -125,6 +125,7 @@ if (in_array("expr", $steps))
 if (in_array("dup", $steps))
 {
 	$script = <<<'EOT'
+options(bitmapType='cairo')
 library(dupRadar)
 args <- commandArgs(TRUE)
 
