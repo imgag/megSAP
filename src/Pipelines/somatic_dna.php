@@ -4,7 +4,6 @@
 	@page somatic_dna
 	@todo recalculate QC-values at the end of the pipeline
 	@todo consider replacing analyze.php by own combinations of tools
-	@todo add QCI file for CNVs
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -154,10 +153,13 @@ $som_prefix = $t_id;
 $som_v = $o_folder.$t_id."_var.vcf.gz";
 if(!$single_sample)	$som_v = $o_folder.$t_id."-".$n_id."_var.vcf.gz";
 $som_cnv = $o_folder.$t_id."_var_cnvs.tsv";
+$som_baf = $o_folder.$t_id."_bafs.seg";
 if(!$single_sample)	$som_cnv = $o_folder.$t_id."-".$n_id."_cnvs.tsv";
+if(!$single_sample)	$som_baf = $o_folder.$t_id."-".$n_id."_bafs.seg";
 $som_gsvar = $o_folder.$som_prefix.".GSvar";
 if(!$single_sample)	$som_qci = $o_folder.$t_id."-".$n_id."_var_qci.vcf.gz";
 if(!$single_sample)	$som_sv = $o_folder.$t_id."-".$n_id."_var_structural.vcf.gz";
+if(!$single_sample)	$som_svt = $o_folder.$t_id."-".$n_id."_var_structural.tsv";
 if(!$single_sample)	$som_si = $o_folder.$t_id."-".$n_id."_var_smallIndels.vcf.gz";
 if (in_array("vc", $steps))
 {
@@ -173,6 +175,7 @@ if (in_array("vc", $steps))
 				if($add_vc_folder)	$par .= "-temp ".dirname($som_v)."/variant_calling ";
 				$par .= "-smallIndels $som_si ";
 				$parser->execTool("NGS/vc_manta.php", "-t_bam $t_bam -bam $n_bam $par -out $som_sv -build ".$t_sys_ini['build']);
+				$parser->execTool("Tools/converter_manta2tsv.php", "-in $som_sv -out $som_svt -tumor_id $t_id");
 			}
 		}
 		else trigger_error("Breakpoint detection deactivated for ThruPlex samples.",E_USER_NOTICE);
@@ -271,6 +274,87 @@ if (in_array("vc", $steps))
 	$n = 20;
 	if($t_sys_ini['type']=="WES")	$n = 30;
 	$parser->execTool("NGS/vc_cnvhunter.php", "$tmp_in -out $som_cnv -system $t_sys -min_corr 0 -seg $t_id -n $n");
+	
+	// add baf seg file
+	$snps =  get_path("data_folder")."/dbs/1000G/1000g_v5b.vcf.gz";
+	$tmp_variants1 = $parser->tempFile("_variants_filtered.vcf");
+	$parser->exec(get_path("ngs-bits")."/VariantFilterRegions", "-in $snps -reg ${t_sys_ini['target_file']} -out $tmp_variants1", true);
+
+	$min_af = 0.01;
+	$tmp_variants2 = $parser->tempFile("_variants_filtered.tsv");
+	$handle = fopen($tmp_variants1, "r");
+	$handle_out = fopen($tmp_variants2, "w");
+	$in_header = true;
+	while(!feof($handle))
+	{
+		$line = nl_trim(fgets($handle));
+		if ($line=="" || starts_with($line, "#")) continue;
+		
+		$cols = explode("\t", $line);
+		if (count($cols)<10) trigger_error("VCF file line contains less than 10 columns:\n$line", E_USER_ERROR);
+		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = $cols;
+		
+		$skip_variant = true;
+		$ii = explode(";",$info);
+		foreach($ii as $i)
+		{
+			if(!contains($i,"="))	continue;
+			list($n,$v) = explode("=",$i);
+			if($n=="AF" && $v>=$min_af)	$skip_variant = false;
+		}
+		if($skip_variant)	continue;
+		
+		//parse data from VCF
+		if(chr_check($chr, 22, false) === FALSE) continue; //skip bad chromosomes
+		if(strlen($ref)>1 || strlen($alt)>1)	continue;	//skip indels
+		
+		$start = $pos;
+		$end = $pos;
+		$ref = strtoupper($ref);
+		$alt = strtoupper($alt);
+		fwrite($handle_out, "chr$chr\t$start\t$end\t$ref\t$alt\n");
+	}
+	fclose($handle);
+	fclose($handle_out);
+
+	$tmp_variants3 = $parser->tempFile("_annotated.tsv");
+	$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $tmp_variants2 -bam $t_bam -out $tmp_variants3 -depth", true);
+
+	$tmp_variants4 = $parser->tempFile("_variants_20x.vcf");
+	$handle = fopen($tmp_variants3, "r");
+	$handle_out = fopen($tmp_variants4, "w");
+	while(!feof($handle))
+	{
+		$line = nl_trim(fgets($handle));
+		if ($line=="" || starts_with($line, "#")) continue;
+		
+		$cols = explode("\t", $line);
+		if($cols[6]<20)	continue;
+		
+		fwrite($handle_out, implode("\t",$cols)."\n");
+	}
+	fclose($handle);
+	fclose($handle_out);
+
+	$handle = fopen($tmp_variants4, "r");
+	$handle_out = fopen($tmp_folder."/baf.seg", "w");
+	fwrite($handle_out, "#type=GENE_EXPRESSION\n");
+	fwrite($handle_out, "#track graphtype=points name=\"".$t_id."-".$n_id." CN baf\" midRange=0.25:0.75 color=0,0,255 altColor=255,0,0 viewLimits=0:1 maxHeightPixels=80:80:80\n");
+	fwrite($handle_out, "ID	chr	start	end	z-score\n");
+	while(!feof($handle))
+	{
+		$line = nl_trim(fgets($handle));
+		
+		if ($line=="") continue;
+		if (starts_with($line, "#")) 	continue;
+
+		$cols = explode("\t", $line);	
+		fwrite($handle_out, $t_id."-".$n_id."\t${cols[0]}\t${cols[1]}\t${cols[2]}\t${cols[5]}\n");
+	}
+	fclose($handle);
+	fclose($handle_out);
+	
+	copy2($tmp_folder."/baf.seg", $som_baf);
 }
 
 // annotation
@@ -380,7 +464,7 @@ if (in_array("db", $steps))
 		$log_db  = $t_folder."/".$t_id."_log4_db.log";
 		$qcmls = $t_folder."/".$t_id."_stats_fastq.qcML ";
 		if (is_file($t_folder."/".$t_id."_stats_map.qcML"))	$qcmls .= $t_folder."/".$t_id."_stats_map.qcML ";
-		if (is_file($o_folder.$t_id."-".$n_id."_stats_som.qcML"))	$qc_som  = $o_folder.$t_id."-".$n_id."_stats_som.qcML ";
+		if (is_file($o_folder."/".$t_id."-".$n_id."_stats_som.qcML"))	$qcmls .= $o_folder.$t_id."-".$n_id."_stats_som.qcML ";		
 		$parser->execTool("NGS/db_import_qc.php", "-id $t_id -files $qcmls -force -min_depth 0 --log $log_db");
 		if (in_array("ma", $steps))	updateLastAnalysisDate($t_id, $t_bam);
 		// check that tumor is flagged as tumor and normal not as tumor

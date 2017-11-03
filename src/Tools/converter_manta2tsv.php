@@ -61,34 +61,17 @@ function parse_observation($str)
 	return array("ref" => $ref, "alt" => $alt);
 }
 
-for ($rowidx = 0; $rowidx < $vcf->rows(); $rowidx++)
-{
-	$row = $vcf->getRow($rowidx);
-	
-	$chr = $row[0];
-	$start = $row[1];
-	$id = $row[2];
-	$ref = $row[3];
-	$alt = $row[4];
-	$qual = $row[4];
-	$filter = $row[6];
-	$info = parse_info_field($row[7]);
-	
-	$tumor_values = parse_format_field($row[8], $row[$tumor_col]);
-	$normal_values = parse_format_field($row[8], $row[$normal_col]);
-	
-	$variants[$id] = array(
-		"type" => $info["SVTYPE"],
+
+$default_variant = array(
+		"type"=>"n/a",
+		"chr"=>"n/a",
+		"start"=>0,
+		"end"=>0,
+		"filter"=>"n/a",
+		"length"=>0,
+		"score"=>0,
 		
-		"chr" => $chr,
-		"start" => $start,
-		"end" => array_key_exists("END", $info) ? $info["END"] : ".",
-		"filter" => $filter,
-		"length" => array_key_exists("SVLEN", $info) ? $info["SVLEN"] : ".",
-		
-		"score" => $info["SOMATICSCORE"],
-		
-		"mate_id" => array_key_exists("MATEID", $info) ? $info["MATEID"] : ".",
+		"mate_id"=>"n/a",
 		"mate_chr" => ".",
 		"mate_pos" => ".",
 		"mate_filter" => ".",
@@ -113,6 +96,31 @@ for ($rowidx = 0; $rowidx < $vcf->rows(); $rowidx++)
 		"normal_SR_freq" => "n/a",
 		"normal_SR_depth" => "n/a",
 		);
+for ($rowidx = 0; $rowidx < $vcf->rows(); $rowidx++)
+{
+	$row = $vcf->getRow($rowidx);
+	
+	$chr = $row[0];
+	$start = $row[1];
+	$id = $row[2];
+	$ref = $row[3];
+	$alt = $row[4];
+	$qual = $row[4];
+	$filter = $row[6];
+	$info = parse_info_field($row[7]);
+	
+	$tumor_values = parse_format_field($row[8], $row[$tumor_col]);
+	$normal_values = parse_format_field($row[8], $row[$normal_col]);
+	
+	$variants[$id] = $default_variant;
+	$variants[$id]["type"] = $info["SVTYPE"];
+	$variants[$id]["chr"] = $chr;
+	$variants[$id]["start"] = $start;
+	$variants[$id]["end"] = array_key_exists("END", $info) ? $info["END"] : ".";
+	$variants[$id]["filter"] = $filter;
+	$variants[$id]["length"] = array_key_exists("SVLEN", $info) ? $info["SVLEN"] : ".";
+	$variants[$id]["score"] = $info["SOMATICSCORE"];
+	$variants[$id]["mate_id"] = array_key_exists("MATEID", $info) ? $info["MATEID"] : ".";
 	
 	if (array_key_exists("PR", $tumor_values))
 	{
@@ -157,10 +165,9 @@ for ($rowidx = 0; $rowidx < $vcf->rows(); $rowidx++)
 }
 
 $table = new Matrix();
+$table->setHeaders(array_keys($default_variant));
 if ($vcf->rows() > 0)
 {
-	$table->setHeaders(array_keys($variants[$vcf->get(0, 2)]));
-
 	$resolved_ids = array();
 
 	foreach ($variants as $id => $fields)

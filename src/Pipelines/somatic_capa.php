@@ -3,15 +3,9 @@
 	@page capa_diagnostic
 	@todo use best practice filter set for somatic_dna, do extra synonymous filtering in this script
 	@todo report - add pharmacogenomics analysis of germline
-	@todo report - change depth information based on target (exome - 20x, panel - 100x)
-	@todo report - change filter settings based on target (exome vs. panel - 100x)
-	@todo report - add tumor content information and HPO terms from GenLAB
-	@todo report - add CN status to CNV caption
 	@todo move cgi annotation to annotation step
 	@todo use single letter code for amino acids
-	@todo cap TumorContentEstimate at 100 %
 	@todo build drug table based on additional cgi columns
-	@todo variant filter region adds off-target several times, filter duplicated
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -448,7 +442,7 @@ if (in_array("re", $steps))
 		$metadata[] = array("Datum:", date("d.m.Y"));
 		$metadata[] = array("Tumor:", $tumor_name);
 		if(!$single_sample)	$metadata[] = array("Normal:", $normal_name);
-		$metadata[] = array("Tumoranteil histol./molekular:","\highlight1 ca. $tumor_content / ".(!is_numeric(get_qc_from_qcml($s_qcml, "QC:2000054", "tumor content estimate"))?get_qc_from_qcml($s_qcml, "QC:2000054", "tumor content estimate"):" ca. ".number_format(get_qc_from_qcml($s_qcml, "QC:2000054", "tumor content estimate"), 0))." %\highlight0");
+		$metadata[] = array("Tumoranteil histol./molekular:","\highlight1 ca. $tumor_content / ".(!is_numeric(get_qc_from_qcml($s_qcml, "QC:2000054", "tumor content estimate"))?get_qc_from_qcml($s_qcml, "QC:2000054", "tumor content estimate"):" ca. ".min(100,number_format(get_qc_from_qcml($s_qcml, "QC:2000054", "tumor content estimate"), 0)))." %\highlight0");
 		$metadata[] = array("Diagnose:","\highlight1 $hpo\highlight0");
 		
 		$qc = array();
