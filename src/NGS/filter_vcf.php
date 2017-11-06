@@ -15,7 +15,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("filter_vcf", "Filter VCF-files according to different filter criteria. This tool is designed to filter tumor/normal pair samples. This tools automatically chooses variant caller and tumor/normal sample from the vcf header.");
 $parser->addInfile("in", "Input variant file in VCF format containing all necessary columns (s. below for each filter).", false);
 $parser->addOutfile("out", "Output variant file in VCF format.", false);
-$filter = array('not-coding-splicing', 'synonymous', 'off-target', 'somatic-lq','min-af');
+$filter = array('not-coding-splicing', 'synonymous', 'off-target', 'somatic-lq','min-af', 'somatic-donor');
 $parser->addString("type", "Type(s) of variants that are supposed to be filtered out, can be comma delimited. Valid are: ".implode(",",$filter).".",false);
 //optional
 $parser->addFlag("keep", "Keep all variants. Otherwise only variants passing all filters will be kept");
@@ -173,6 +173,7 @@ for($i=0;$i<$in_file->rows();++$i)
 	if(in_array("not-coding-splicing",$types))	filter_not_coding_splicing($filter, $info, $miso_terms_coding);
 	if(in_array("synonymous",$types))	filter_synonymous($filter, $info, $miso_terms_coding, $miso_terms_synonymous);
 	if(in_array("min-af",$types))	filter_min_af($filter,$info,$genotype,$tmp_col_tum,$row[4],$type,$var_caller, $min_af);
+	if(in_array("somatic-donor",$types))	filter_somatic_donor($filter, $info);
 	
 	//set PASS criterion if all filters were passed
 	$tmp_filter = array();
@@ -333,6 +334,16 @@ function filter_off_target(&$filter, $chr, $start, $tumor_id, $normal_id, $targe
 		if($skip_variant) activate_filter($filter, "off-target");
 	}
 	else	trigger_error("Cannot use off-target filter without targets.",E_USER_ERROR);
+}
+
+function filter_somatic_donor(&$filter, $info, $min_freq = 0.1, $min_depth = 20)
+{
+	add_filter($filter, "somatic-donor", "Germline variant in donor sample.");
+	if (isset($info["donor_freq"]) && $info["donor_freq"] >= $min_freq &&
+		isset($info["donor_depth"]) && $info["donor_depth"] >= $min_depth)
+	{
+		activate_filter($filter, "somatic-donor");
+	}
 }
 
 function filter_somatic_lq(&$filter, $info, $genotype, $tumor, $normal, $type, $alt, $var_caller, $min_dp = 100)
