@@ -23,7 +23,7 @@ $parser->addString("process", "Enable processing for DNA pair, RNA pair, germlin
 $parser->addString("steps_dna", "Processing steps for DNA samples (somatic_dna).", true, "vc,an,db");
 $parser->addString("steps_rna", "Processing steps for RNA samples (somatic_rna).", true, "rc,fu");
 
-$parser->addString("germline_preset", "Germline analysis preset:\ndefault: use target germline_target (if specified) for regular analysis of normal DNA\nivac: run nearby-germline strategy", true, "default");
+$parser->addString("germline_preset", "Germline analysis preset:\ndefault: use target germline_target (if specified) for analysis of normal DNA\nnearby: run nearby-germline-variants strategy", true, "default");
 $parser->addString("germline_target", "Target region for default germline analysis.", true, "");
 $parser->addString("germline_suffix", "File name suffix to append to germline analysis results.", true, "");
 
@@ -36,6 +36,7 @@ $parser->addInfile("n_rna_sys",  "Normal RNA processing system INI file (determi
 
 $parser->addString("filter_set", "Filter set for somatic variants (somatic_dna).", true, "not-coding-splicing");
 $parser->addFloat("min_af", "Allele frequency detection cut-off (somatic_dna).", true, 0.05);
+// TODO add further somatic_dna options, e.g. freebayes (?)
 
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 
@@ -83,7 +84,7 @@ $som_dna_gsvar = "{$o_folder}/{$t_dna_id}-{$n_dna_id}.GSvar";
 $som_dna_seg = "{$o_folder}/{$t_dna_id}-{$n_dna_id}_cnvs.seg";
 
 // germline variants, placed in somatic folder
-$germline_dna_vcf = "{$o_folder}/{$n_dna_id}_vcf_annotated{$germline_suffix}.vcf.gz";
+$germline_dna_vcf = "{$o_folder}/{$n_dna_id}{$germline_suffix}_vcf_annotated{$germline_suffix}.vcf.gz";
 $germline_dna_gsvar = "{$o_folder}/{$n_dna_id}{$germline_suffix}.GSvar";
 
 // run somatic_dna
@@ -94,13 +95,23 @@ if (in_array("dna", $process))
 		"-t_id", $t_dna_id,
 		"-n_id", $n_dna_id,
 		"-o_folder", $o_folder,
-		"-t_sys", $t_dna_sys,
-		"-n_sys", $n_dna_sys,
 		"-steps", $steps_dna,
 		"-filter_set", $filter_set,
 		"-min_af", $min_af,
 		"--log", "{$o_folder}/somatic_dna_" . date('YmdHis', mktime()) . ".log"
 	];
+	if (isset($t_dna_sys))
+	{
+		$somatic_dna_args[] = "-t_sys {$t_dna_sys}";
+	}
+	if (isset($n_dna_sys))
+	{
+		$somatic_dna_args[] = "-n_sys {$n_dna_sys}";
+	}
+	if ($skip_correlation)
+	{
+		$somatic_dna_args[] = "-nsc";
+	}
 
 	$parser->execTool("Pipelines/somatic_dna.php", implode(" ", $somatic_dna_args));
 }
@@ -114,10 +125,16 @@ if (in_array("rna", $process) && $rna_tum_available)
 		"-n_id", $n_rna_id,
 		"-o_folder", $o_folder,
 		"-steps", $steps_rna,
-		"-t_sys", $t_rna_sys,
-		"-n_sys", $n_rna_sys,
 		"--log", "{$o_folder}/somatic_rna_" . date('YmdHis', mktime()) . ".log"
 		];
+	if (isset($t_rna_sys))
+	{
+		$somatic_rna_args[] = "-t_sys {$t_rna_sys}";
+	}
+	if (isset($n_rna_sys))
+	{
+		$somatic_rna_args[] = "-n_sys {$n_rna_sys}";
+	}
 	if ($skip_correlation)
 	{
 		$somatic_rna_args[] = "-skip_correlation";
@@ -125,20 +142,14 @@ if (in_array("rna", $process) && $rna_tum_available)
 	$parser->execTool("Pipelines/somatic_rna.php", implode(" ", $somatic_rna_args));
 }
 
-// TODO submit somatic_dna and somatic_rna to queue???
-
 // run germline analysis on normal DNA sample
 if (in_array("germline", $process))
 {
 	if ($germline_preset === "default")
 	{
-		$target_adme = "/mnt/projects/research/eMed-HCC/+IKP/ADME_Genes_hg19_eMED_20161206.bed";
-
 		$germline_dna_tmp = $parser->tempFolder("germline_dna");
 		$germline_dna_vcf_tmp = "{$germline_dna_tmp}/{$n_dna_id}_var_annotated.vcf.gz";
 		$germline_dna_gsvar_tmp = "{$germline_dna_tmp}/{$n_dna_id}.GSvar";
-		
-		$extras_vc = "-target $target_adme ";
 		
 		$vc_args = [
 			"-bam", $n_dna_bam,
@@ -157,9 +168,9 @@ if (in_array("germline", $process))
 		copy($germline_dna_vcf_tmp, $germline_dna_vcf);
 		copy($germline_dna_gsvar_tmp, $germline_dna_gsvar);
 	}
-	else if ($germline_preset === "ivac")
+	else if ($germline_preset === "nearby")
 	{
-		trigger_error("IVAC germline analysis not yet refactored!", E_USER_ERROR);
+		$parser->execTool("NGS/somatic_nearby_germline_variants.php", "-somatic_var {$som_dna_gsvar} -normal_bam {$n_dna_bam} -n_dna_id {$n_dna_id} -n_dna_sys {$n_dna_sys}");
 	}
 }
 
