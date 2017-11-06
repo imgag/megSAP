@@ -43,8 +43,11 @@ $n_system = $n_id === "na" ? "na" : load_system($n_sys, $n_id);
 // if only tumor specified, completely hand off to analyze_rna.php
 if ($n_id == "na")
 {
-	$parser->execTool("Pipelines/analyze_rna.php",
-		"-folder {$p_folder}/Sample_{$t_id} -name {$t_id} -system {$t_sys} -steps ma,rc,an,fu,db --log {$p_folder}/Sample_{$t_id}/analyze_".date('YmdHis',mktime()).".log");
+	if (in_array("ma", $steps))
+	{
+		$parser->execTool("Pipelines/analyze_rna.php",
+			"-folder {$p_folder}/Sample_{$t_id} -name {$t_id} -system {$t_sys} -steps ma,rc,an,fu,db --log {$p_folder}/Sample_{$t_id}/analyze_".date('YmdHis',mktime()).".log");
+	}
 	exit(0);
 }
 
