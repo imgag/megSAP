@@ -40,6 +40,6 @@ fast: clean prepare analyze_pe diff_pe
 
 fusion:
 	php ../../src/Pipelines/analyze_rna.php \
-	    -folder paired_end -name SE \
+	    -folder paired_end -name PE \
 	    -steps fu -system system.ini \
 	    --log analyze_rna_out_pe.log

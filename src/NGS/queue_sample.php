@@ -75,12 +75,12 @@ elseif ($info['sys_type'] == "RNA")
 	//if steps argument is default, replace with analyze_rna default value
 	if ($steps == "ma,vc,an,db,cn")
 	{
-		$steps = "ma,rc,an,fu,db,qc";
+		$steps = "ma,rc,an,fu,db";
 	}
 	else
 	{
 		//reduce to valid steps for analyze_rna
-		$steps = implode(",", array_intersect(explode(",", $steps), explode(",", "ma,rc,an,fu,db,qc")));
+		$steps = implode(",", array_intersect(explode(",", $steps), explode(",", "ma,rc,an,fu,db")));
 	}
 	$args = "-folder {$sample_folder} -name {$sample} -steps {$steps} --log {$sample_folder}analyze_rna_".date("YmdHis").".log";
 }

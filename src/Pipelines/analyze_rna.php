@@ -17,8 +17,8 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 
 //optional
 $parser->addInfile("system", "Processing system INI file (determined from NGSD via the 'name' by default).", true);
-$steps_all = array("ma", "rc", "an", "fu", "db", "qc");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, rc=read counting, an=annotation, fu=fusion detection, db=import into NGSD, qc=calculate RNA-Seq QC metrics", true, implode(",", $steps_all));
+$steps_all = array("ma", "rc", "an", "fu", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, rc=read counting, an=annotation, fu=fusion detection, db=import into NGSD", true, implode(",", $steps_all));
 
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
 $parser->addFlag("no_splicing", "Disable spliced read alignment.");
@@ -194,28 +194,53 @@ if (in_array("ma", $steps))
 //read counting
 $counts_raw = $prefix."_counts_raw.tsv";
 $counts_normalized = $prefix."_counts.tsv";
+$counts_qc = $prefix."_stats_rc.tsv";
+$repair_bam = $final_bam;
 if (in_array("rc", $steps))
 {
-	$args = array(
-		"-in", $final_bam,
-		"-out", $counts_raw,
+	if ($paired)
+	{
+		$repair_bam = $parser->tempFile(".bam", "{$name}_");
+		$parser->exec(dirname(get_path("feature_counts")) . "/utilities/repair",
+			"-i {$final_bam} -o {$repair_bam} -T {$threads}", true);
+	}
+	
+	$args_common = array(
+		"-in", $repair_bam,
 		"-library_type", $library_type,
 		"-gtf_file", $gtfFile,
 		"-threads", $threads
 	);
 	
-	if (!$paired) $args[] = "-single_end";
-	
+	if (!$paired)
+	{
+		$args_common[] = "-single_end";
+	}
+
+	$args = array_merge($args_common, [
+		"-out", $counts_raw,
+		"-qc_file", $counts_qc
+	]);
+
 	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args));
 
-	//normalize read counts
+	// read count normalization
 	$parser->execTool("NGS/rc_normalize.php", "-in $counts_raw -out $counts_normalized");
+
+	// re-run read counting without duplicate alignments
+	$counts_nodup = $prefix."_counts_nodup_raw.tsv";
+	$args_dup = array_merge($args_common, [
+		"-ignore_dup",
+		"-out", $counts_nodup
+	]);
+	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args_dup));
 }
 
 //annotate
 if (in_array("an", $steps))
 {
 	$parser->execTool("NGS/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtfFile $gtfFile");
+	$parser->execTool("NGS/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtfFile $gtfFile -annotationId gene_biotype");
 }
 
 //detect fusions
@@ -270,21 +295,4 @@ if (in_array("db", $steps))
 
 	//update last analysis date
 	updateLastAnalysisDate($name, $final_bam);
-}
-
-//RNA-Seq QC
-if (in_array("qc", $steps))
-{
-	$qc_rna_args = [
-		"-in", $final_bam,
-		"-out", "{$out_folder}/qc/",
-		"-system", $system,
-		"-library_type", $library_type,
-		"-threads", $threads
-	];
-	if (!$paired)
-	{
-		$qc_rna_args[] = "-se";
-	}
-	$parser->execTool("NGS/qc_rna.php", implode(" ", $qc_rna_args));
 }
