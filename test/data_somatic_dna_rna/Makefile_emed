@@ -1,0 +1,122 @@
+# test eMed-HCC use case
+t_dna := GS160540_01
+n_dna := GS160539_01
+t_rna := I16R003a06_01
+n_rna := I16R003a05_01
+
+out_folder := project_folder_emed
+
+all: clean link analyze diff
+
+clean:
+	rm -rf $(out_folder) results_emed_full results_emed_3
+
+link:
+	mkdir -p $(out_folder)
+	php ../link_test_data.php Sample_$(t_dna) $(out_folder)/
+	php ../link_test_data.php Sample_$(n_dna) $(out_folder)/
+	php ../link_test_data.php Sample_$(t_rna) $(out_folder)/
+	php ../link_test_data.php Sample_$(n_rna) $(out_folder)/
+	
+	# somaitc/result folders
+	mkdir -p $(out_folder)/emed_full $(out_folder)/emed_3
+	
+	# expected results
+	php ../link_test_data.php results_emed_full
+	php ../link_test_data.php results_emed_3
+
+analyze: analyze_emed_full analyze_emed_3
+	
+diff: diff_emed_full diff_emed_3
+
+analyze_emed_full:
+	php ../../src/Pipelines/somatic_dna_rna.php \
+		--log somatic_dna_rna_emed_full.log \
+		-p_folder $(out_folder) \
+		-o_folder $(out_folder)/emed_full \
+		-t_dna_id $(t_dna) -t_dna_sys emed/system_dna.ini \
+		-n_dna_id $(n_dna) -n_dna_sys emed/system_dna.ini \
+		-t_rna_id $(t_rna) -t_rna_sys emed/system_rna.ini \
+		-n_rna_id $(n_rna) -n_rna_sys emed/system_rna.ini \
+		-process dna,rna,germline,co,igv \
+		-steps_dna vc,an \
+		-steps_rna rc,fu \
+		-filter_set not-coding-splicing \
+		-germline_preset default \
+		-germline_suffix _adme \
+		-germline_target emed/adme.bed \
+		-skip_correlation
+
+# -process dna,rna,germline,co,igv
+analyze_emed_3:
+	php ../../src/Pipelines/somatic_dna_rna.php \
+		--log somatic_dna_rna_emed_3.log \
+		-p_folder $(out_folder) \
+		-o_folder $(out_folder)/emed_3 \
+		-t_dna_id $(t_dna) -t_dna_sys emed/system_dna.ini \
+		-n_dna_id $(n_dna) -n_dna_sys emed/system_dna.ini \
+		-t_rna_id $(t_rna) -t_rna_sys emed/system_rna.ini \
+		-process dna,rna,germline,co,igv \
+		-steps_dna vc,an \
+		-steps_rna rc,fu \
+		-filter_set not-coding-splicing \
+		-germline_preset default \
+		-germline_suffix _adme \
+		-germline_target emed/adme.bed \
+		-skip_correlation
+
+diff_emed_full:
+	# GSvar
+	php ../compare_variants.php \
+	    $(out_folder)/emed_full/$(t_dna)-$(n_dna).GSvar \
+	    results_emed_full/$(t_dna)-$(n_dna).GSvar
+	
+	# annotated vcf
+	php ../compare_variants.php \
+	    $(out_folder)/emed_full/$(t_dna)-$(n_dna)_var_annotated.vcf.gz \
+	    results_emed_full/$(t_dna)-$(n_dna)_var_annotated.vcf.gz
+	
+	# annotated adme vcf
+	php ../compare_variants.php \
+	    $(out_folder)/emed_full/$(n_dna)_adme_var_annotated.vcf.gz \
+	    results_emed_full/$(n_dna)_adme_var_annotated.vcf.gz
+	
+	# CNVs
+	diff \
+	    $(out_folder)/emed_full/$(t_dna)-$(n_dna)_cnvs.tsv \
+	    results_emed_full/$(t_dna)-$(n_dna)_cnvs.tsv
+	
+	# TODO strucutural variants
+	
+	# fusions (RNA)
+	diff \
+	    $(out_folder)/emed_full/$(t_rna)-$(n_rna)_var_fusions.tsv \
+	    results_emed_full/$(t_rna)-$(n_rna)_var_fusions.tsv
+	
+	# counts (RNA)
+	diff \
+	    $(out_folder)/emed_full/$(t_rna)-$(n_rna)_counts.tsv \
+	    results_emed_full/$(t_rna)-$(n_rna)_counts.tsv
+	
+diff_emed_3:
+	# GSvar
+	php ../compare_variants.php \
+	    $(out_folder)/emed_3/$(t_dna)-$(n_dna).GSvar \
+	    results_emed_3/$(t_dna)-$(n_dna).GSvar
+	
+	# annotated vcf
+	php ../compare_variants.php \
+	    $(out_folder)/emed_3/$(t_dna)-$(n_dna)_var_annotated.vcf.gz \
+	    results_emed_3/$(t_dna)-$(n_dna)_var_annotated.vcf.gz
+	
+	# annotated adme vcf
+	php ../compare_variants.php \
+	    $(out_folder)/emed_3/$(n_dna)_adme_var_annotated.vcf.gz \
+	    results_emed_3/$(n_dna)_adme_var_annotated.vcf.gz
+	
+	# CNVs
+	diff \
+	    $(out_folder)/emed_3/$(t_dna)-$(n_dna)_cnvs.tsv \
+	    results_emed_3/$(t_dna)-$(n_dna)_cnvs.tsv
+	
+	# TODO strucutural variants
