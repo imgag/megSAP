@@ -84,7 +84,7 @@ if (in_array("ma", $steps))
 		"-steps ma",
 		"-no_abra" // disable ABRA realignment due to manta compatibility issues
 	];
-	
+
 	if (!$no_softclip)
 	{
 		$analyze_args[] = "-clip_overlap";

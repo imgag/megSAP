@@ -69,6 +69,10 @@
 /test/data_somatic_rna/project_folder/
 /test/data_somatic_rna/somatic_rna_out.log
 
+/test/data_somatic_dna_rna/project_folder_*/
+/test/data_somatic_dna_rna/results_*
+/test/data_somatic_dna_rna/somatic_dna_rna_*.log
+
 /test/data_somatic/results_*/
 /test/data_somatic/Somatic_*/
 /test/data_somatic/Sample_*/
