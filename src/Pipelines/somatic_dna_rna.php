@@ -84,7 +84,7 @@ $som_dna_gsvar = "{$o_folder}/{$t_dna_id}-{$n_dna_id}.GSvar";
 $som_dna_seg = "{$o_folder}/{$t_dna_id}-{$n_dna_id}_cnvs.seg";
 
 // germline variants, placed in somatic folder
-$germline_dna_vcf = "{$o_folder}/{$n_dna_id}{$germline_suffix}_vcf_annotated{$germline_suffix}.vcf.gz";
+$germline_dna_vcf = "{$o_folder}/{$n_dna_id}{$germline_suffix}_var_annotated.vcf.gz";
 $germline_dna_gsvar = "{$o_folder}/{$n_dna_id}{$germline_suffix}.GSvar";
 
 // run somatic_dna
