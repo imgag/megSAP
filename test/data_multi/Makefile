@@ -3,7 +3,7 @@ all:
 	make clear link vc an cn diff
 	
 clear:
-	rm -rf *.bam *.bai *.log *.GSvar *.tsv *.vcf.gz *.vcf.gz.tbi *.qcML
+	rm -rf *.bam *.bai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML
 
 link:
 	php ../link_test_data.php GS140127_01.bam
