@@ -30,9 +30,16 @@ $parser->addStringArray("status", "List of affected status of the input samples 
 $parser->addString("out_folder", "Output folder name.", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file used for all samples (created from NGSD via first argument of 'bams' by default).", true);
-$steps = array("vc", "an");
-$parser->addEnum("start", "Start processing at step.", true, $steps, "vc");
+$steps_all = array("vc", "an", "cn");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, an=annotation, cn=copy-number analysis.", true, implode(",", $steps_all));
 extract($parser->parse($argv));
+
+//check steps
+$steps = explode(",", $steps);
+foreach($steps as $step)
+{
+	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
+}
 
 //check input counts
 if (count($bams)!=count($status))
@@ -79,74 +86,257 @@ if (!file_exists($out_folder)) mkdir($out_folder);
 
 //(1) variant calling of all samples together (with very conservative parameters)
 $vcf_all = $out_folder."all.vcf.gz";
-if ($start=="vc")
+if (in_array("vc", $steps))
 {
 	$parser->execTool("NGS/vc_freebayes.php", "-bam ".implode(" ", $bams)." -out $vcf_all -target $target_file -min_mq 20 -min_af 0.1 -build ".$sys['build'], true);	
 }
 
-//(2) Convert VCF to single-sample format
-$indices = array();
-$h1 = gzopen($vcf_all, "r");
-if ($h1===FALSE) trigger_error("Could not open file '" + $vcf_all + "'.", E_USER_ERROR);
-$vcf = $parser->tempFile("_unzipped.vcf");
-$h2 = fopen($vcf, "w");
-if ($h2===FALSE) trigger_error("Could not open file '" + $vcf + "'.", E_USER_ERROR);
-while(!gzeof($h1))
+//(2) annotation
+if (in_array("an", $steps))
 {
-	$line = trim(gzgets($h1));
-	if (strlen($line)==0) continue;
-	
-	if ($line[0]=="#" && $line[1]=="#") //comments
+	//Convert VCF to single-sample format
+	$indices = array();
+	$h1 = gzopen($vcf_all, "r");
+	if ($h1===FALSE) trigger_error("Could not open file '" + $vcf_all + "'.", E_USER_ERROR);
+	$vcf = $parser->tempFile("_unzipped.vcf");
+	$h2 = fopen($vcf, "w");
+	if ($h2===FALSE) trigger_error("Could not open file '" + $vcf + "'.", E_USER_ERROR);
+	while(!gzeof($h1))
 	{
-		fwrite($h2, $line."\n");
-	}
-	else if ($line[0]=="#") //header
-	{
-		//add multi-sample comments
-		fwrite($h2, "##FORMAT=<ID=MULTI,Number=.,Type=String,Description=\"Multi-sample genotype information (genotype, depth).\">\n");		
-		fwrite($h2, "##ANALYSISTYPE=GERMLINE_MULTISAMPLE\n");
-		foreach($bams as $bam)
-		{
-			fwrite($h2, gsvar_sample_header($names[$bam], array("DiseaseStatus"=>$status[$bam])));
-		}
+		$line = trim(gzgets($h1));
+		if (strlen($line)==0) continue;
 		
-		//determine indices for each sample	
-		$parts = explode("\t", $line);
-		foreach($bams as $bam)
+		if ($line[0]=="#" && $line[1]=="#") //comments
 		{
-			$indices[$bam] = vcf_column_index($names[$bam], $parts); 
+			fwrite($h2, $line."\n");
 		}
-		
-		//write main header
-		fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\tmulti\n");
-	}
-	else //content
-	{
-		$parts = explode("\t", $line);
-		$format = explode(":", $parts[8]);
-		$muti_info = array();
-		foreach($bams as $bam)
+		else if ($line[0]=="#") //header
 		{
+			//add multi-sample comments
+			fwrite($h2, "##FORMAT=<ID=MULTI,Number=.,Type=String,Description=\"Multi-sample genotype information (genotype, depth).\">\n");		
+			fwrite($h2, "##ANALYSISTYPE=GERMLINE_MULTISAMPLE\n");
+			foreach($bams as $bam)
+			{
+				fwrite($h2, gsvar_sample_header($names[$bam], array("DiseaseStatus"=>$status[$bam])));
+			}
 			
-			$index = $indices[$bam];
-			list($gt, $dp) = extract_info($format, $parts[$index]);
-			$muti_info[] = $names[$bam]."=$gt|$dp";
+			//determine indices for each sample	
+			$parts = explode("\t", $line);
+			foreach($bams as $bam)
+			{
+				$indices[$bam] = vcf_column_index($names[$bam], $parts); 
+			}
+			
+			//write main header
+			fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\tmulti\n");
+		}
+		else //content
+		{
+			$parts = explode("\t", $line);
+			$format = explode(":", $parts[8]);
+			$muti_info = array();
+			foreach($bams as $bam)
+			{
+				
+				$index = $indices[$bam];
+				list($gt, $dp) = extract_info($format, $parts[$index]);
+				$muti_info[] = $names[$bam]."=$gt|$dp";
+			}
+			
+			//update format field and remove mother/father
+			$parts[8] = "MULTI";
+			fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\t".implode(",", $muti_info)."\n");
+		}
+	}
+	fclose($h1);
+	fclose($h2);
+
+	//zip variant list
+	$vcf_zipped = $out_folder."multi_var.vcf.gz";
+	$parser->exec("bgzip", "-c $vcf > $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
+	$parser->exec("tabix", "-p vcf $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
+
+	//basic annotation
+	$parser->execTool("Pipelines/annotate.php", "-out_name multi -out_folder $out_folder -system $system -multi");
+}
+
+//(3) copy-number calling
+if (in_array("cn", $steps))
+{
+	$output = array();
+	
+	//load CNV files
+	$cnv_data = array();
+	foreach($bams as $bam)
+	{
+		//check CNV file exists
+		$filename = substr($bam, 0, -4)."_cnvs.tsv";
+		if (!file_exists($filename))
+		{
+			trigger_error("Sample CNV file missing: $filename", E_USER_ERROR);
 		}
 		
-		//update format field and remove mother/father
-		$parts[8] = "MULTI";
-		fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\t".implode(",", $muti_info)."\n");
+		//parse CNV file
+		$cnv_num = 0;
+		$data = array();
+		$file = file($filename);
+		foreach($file as $line)
+		{
+			$line = nl_trim($line);
+			if ($line=="") continue;
+			
+			//header line
+			if (starts_with($line, "#"))
+			{
+				if (starts_with($line, "##"))
+				{
+					$output[] = $line;
+				}
+				continue;
+			}
+			
+			//content line
+			$parts = explode("\t", $line);
+			$regs = explode(",", $parts[9]);
+			$cns = explode(",", $parts[6]);
+			$zs = explode(",", $parts[7]);
+			$afs = explode(",", $parts[8]);
+			for($i=0; $i<count($regs); ++$i)
+			{
+				$data[] = array($regs[$i], $cns[$i], $zs[$i], $afs[$i], $cnv_num);
+			}
+			++$cnv_num;
+		}
+		$cnv_data[] = $data;
 	}
+	
+	//intersect CNV regions of affected (with same CN state)
+	$regions = null;
+	$i=-1;
+	foreach($status as $bam => $stat)
+	{
+		++$i;
+		
+		//skip controls
+		if ($stat!="affected") continue;
+		
+		//first affected => init
+		if (is_null($regions))
+		{
+			$regions = $cnv_data[$i];
+			continue;
+		}
+		
+		//intersect
+		$tmp = array();
+		foreach($regions as $cnv)
+		{
+			foreach($cnv_data[$i] as $cnv2)
+			{
+				if ($cnv[0]==$cnv2[0] && $cnv[1]==$cnv2[1])
+				{
+					$new_entry = $cnv;
+					$new_entry[2] .= ",".$cnv2[2];
+					$tmp[] = $new_entry;
+					break;
+				}
+			}
+		}
+		$regions = $tmp;
+	}
+	
+	//subract CNV regions of controls (with same CN state)
+	$i=-1;
+	foreach($status as $bam => $stat)
+	{
+		++$i;
+		
+		//skip affected
+		if ($stat=="affected") continue;
+				
+		//subtract
+		$tmp = array();
+		foreach($regions as $cnv)
+		{
+			$match = false;
+			foreach($cnv_data[$i] as $cnv2)
+			{
+				if ($cnv[0]==$cnv2[0] && $cnv[1]==$cnv2[1])
+				{
+					$match = true;
+					break;
+				}
+			}
+			if (!$match)
+			{
+				$tmp[] = $cnv;
+			}
+		}
+		$regions = $tmp;
+	}
+	
+	//re-group regions by original number ($cnv_num)
+	$regions_by_number = array();
+	foreach($regions as $cnv)
+	{
+		$regions_by_number[$cnv[4]][] = $cnv;
+	}
+	
+	//write output
+	$output[] = "#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	overlaps_cnp_region	genes	dosage_sensitive_disease_genes	omim";	
+	foreach($regions_by_number as $cnv_num => $regions)
+	{
+		$chr = null;
+		$start = null;
+		$end = null;
+		$cns = array();
+		$zs = array();
+		$afs = array();
+		$cords = array();
+		foreach($regions as $reg)
+		{
+			list($c, $s, $e) = explode(":", strtr($reg[0], "-", ":"));
+			
+			//coordinate range
+			if (is_null($chr))
+			{
+				$chr = $c;
+				$start = $s;
+				$end = $e;
+			}
+			else
+			{
+				$start = min($start, $s);
+				$end = max($end, $e);
+			}
+			
+			$cns[] = $reg[1];
+			$zs[] = mean(explode(",", $reg[2]));
+			$afs[] = $reg[3];
+			$cords[] = $reg[0];
+			
+		}
+		$output[] = "{$chr}\t{$start}\t{$end}\tmulti\t".($end-$start)."\t".count($regions)."\t".implode(",", $cns)."\t".implode(",", $zs)."\t".implode(",", $afs)."\t".implode(",", $cords);
+	}
+	$tmp1 = temp_file(".bed");
+	file_put_contents($tmp1, implode("\n", $output));
+	
+	//annotate CNP regions
+	$data_folder = get_path("data_folder");
+	$tmp2 = temp_file(".bed");
+	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 {$data_folder}/dbs/CNPs/copy_number_map_strict.bed -out {$tmp2}", true);
+	
+	//annotate gene names
+	$tmp3 = temp_file(".bed");
+	$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in {$tmp2} -extend 20 -out {$tmp3}", true);
+	
+	//annotate dosage sensitive disease genes
+	$tmp4 = temp_file(".bed");
+	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp3} -in2 {$data_folder}/gene_lists/dosage_sensitive_disease_genes.bed -out {$tmp4}", true);
+	
+	//annotate OMIM
+	$cnv_multi = $out_folder."multi_cnvs.tsv";
+	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp4} -in2 {$data_folder}/dbs/OMIM/omim.bed -out {$cnv_multi}", true);
 }
-fclose($h1);
-fclose($h2);
-
-//(3) zip variant list
-$vcf_zipped = $out_folder."multi_var.vcf.gz";
-$parser->exec("bgzip", "-c $vcf > $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
-$parser->exec("tabix", "-p vcf $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
-
-//(4) basic annotation
-$parser->execTool("Pipelines/annotate.php", "-out_name multi -out_folder $out_folder -system $system -multi");
 
 ?>

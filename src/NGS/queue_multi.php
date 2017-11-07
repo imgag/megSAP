@@ -11,7 +11,7 @@ $parser = new ToolBase("queue_multi", "Adds a multi-sample analysis to the queue
 $parser->addStringArray("samples", "Processed sample names files.", false);
 $parser->addStringArray("status", "Affected status of the samples - 'affected' or 'control'.", false);
 //optional
-$parser->addString("start", "Start step.", true, "vc");
+$parser->addString("steps", "Processing steps to perform.", true);
 $parser->addString("user", "Name of the user who queued the analysis (current user if unset).", true, "");
 $parser->addFlag("high_priority", "Assign a high priority to the job.");
 extract($parser->parse($argv));
@@ -64,7 +64,11 @@ if (!file_exists($out_folder))
 
 //determine command and arguments
 $command = "php ".repository_basedir()."/src/Pipelines/multisample.php";
-$args = "-start {$start} -bams ".implode(" ", $bams)." -status ".implode(" ", $status)." -out_folder {$out_folder} --log {$out_folder}multi.log";
+$args = array("-bams ".implode(" ", $bams), "-status ".implode(" ", $status), "-out_folder {$out_folder}", "--log {$out_folder}multi.log");
+if ($steps!="")
+{
+	$args[]  = "-steps {$steps}"; 
+}
 
 //queue trio for analysis
 $queues = explode(",", get_path("queues_default"));
@@ -73,7 +77,7 @@ if($high_priority)
 	$queues = array_merge($queues, explode(",", get_path("queues_high_priority")));
 }
 $sample_status = get_path("sample_status_folder")."/data/";
-$qsub_return_line = exec("qsub -V -b y -wd /tmp/ -m n -M ".get_path("queue_email")." -e $sample_status -q ".implode(",", $queues)." -o $sample_status $command $args");
+$qsub_return_line = exec("qsub -V -b y -wd /tmp/ -m n -M ".get_path("queue_email")." -e $sample_status -q ".implode(",", $queues)." -o $sample_status $command ".implode(" ", $args));
 
 //extract job number
 $exploded_qsub_return_line = explode(" ", $qsub_return_line);
