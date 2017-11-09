@@ -28,6 +28,8 @@ $parser->addFlag("one_pass", "Use one-pass mapping, be aware that this decreases
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 
+$parser->addFlag("read2_only", "Only map read 2, e.g. for SureCell samples.");
+
 extract($parser->parse($argv));
 
 //resolve out_folder
@@ -66,6 +68,12 @@ $gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 //find FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");
 $in_rev = glob($folder."/*_R2_001.fastq.gz");
+
+if ($read2_only)
+{
+	$in_for = $in_rev;
+	$in_rev = [];
+}
 
 if ((count($in_for) == 0) && (count($in_rev) == 0))
 {
