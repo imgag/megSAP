@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @page vcf_intersect
+ * @page vcf_somatic_donor
  */
 
 
@@ -18,7 +18,7 @@ $parser->addInfile("in_donor", "Donor sample BAM file.", false);
 $parser->addOutfile("out_vcf", "Output somatic variant file (VCF).", false);
 
 //optional
-$parser->addFloat("min_af", "Minimum variant allele frequency in donor germline analysis.", true, 0.05);
+$parser->addFloat("min_af", "Minimum variant allele frequency in donor germline analysis.", true, 0.01);
 $parser->addFloat("min_depth", "Minimum variant depth donor germline analysis.", true, 20);
 
 extract($parser->parse($argv));
