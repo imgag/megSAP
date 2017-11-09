@@ -47,6 +47,12 @@ $strandedness = [
    ];
 $lib_type = $strandedness[$library_type];
 
+$reverse_library_type = [
+		"unstranded" => "unstranded",
+		"reverse" => "forward",
+		"forward" => "reverse"
+	];
+
 if (!is_dir($out))
 {
 	mkdir($out);
@@ -101,10 +107,11 @@ if (in_array("expr", $steps))
 	else
 	{		
 		// sense expression
-		$parser->execTool("NGS/rc_featurecounts.php", "-in {$bam} -out {$out}/featurecounts_raw.tsv -keep_summary -library_type reverse -gtf_file {$gtf}");
+		$parser->execTool("NGS/rc_featurecounts.php", "-in {$bam} -out {$out}/featurecounts_raw.tsv -keep_summary -library_type {$library_type} -gtf_file {$gtf}");
 
 		// antisense expression
-		$parser->execTool("NGS/rc_featurecounts.php", "-in {$bam} -out {$out}/featurecounts_raw_antisense.tsv -keep_summary -library_type forward -gtf_file {$gtf}");
+		$type_antisense = $reverse_library_type[$library_type];
+		$parser->execTool("NGS/rc_featurecounts.php", "-in {$bam} -out {$out}/featurecounts_raw_antisense.tsv -keep_summary -library_type {$type_antisense} -gtf_file {$gtf}");
 	}
 	
 	
