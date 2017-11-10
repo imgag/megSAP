@@ -4,7 +4,7 @@ chr2	179542499	179542499	T	C	anno_omim;trio_denovo
 chr3	58157799	58157799	T	G	anno_omim;trio_denovo
 chr4	3494898	3494898	C	T	anno_omim;trio_recessive
 chr5	138614072	138614072	T	G	anno_omim;trio_denovo
-chr12	7048292	7048292	C	T	pred_pathogenic;anno_omim;trio_denovo
+chr12	7048292	7048292	C	T	pred_pathogenic;pred_pathogenic_3;anno_omim;trio_denovo
 chr12	31226934	31226934	C	T	low_MQM;anno_omim;trio_denovo
 chrX	39911629	39911629	C	T	anno_omim;trio_hemizygous_chrX
 chrX	43605100	43605100	A	-	anno_omim;trio_hemizygous_chrX
@@ -12,8 +12,8 @@ chrX	119561929	119561929	A	G	anno_omim;trio_hemizygous_chrX
 chrX	135742076	135742076	G	C	anno_omim;trio_denovo
 chrX	135742258	135742258	C	T	anno_omim;trio_hemizygous_chrX
 chrX	153008675	153008675	G	A	low_MQM;anno_omim;trio_denovo
-chrX	153008984	153008984	G	A	low_MQM;pred_pathogenic;anno_omim;trio_denovo
-chrX	153009017	153009017	G	A	low_MQM;pred_pathogenic;anno_omim;trio_denovo
+chrX	153008984	153008984	G	A	low_MQM;pred_pathogenic;pred_pathogenic_3;anno_omim;trio_denovo
+chrX	153009017	153009017	G	A	low_MQM;pred_pathogenic;pred_pathogenic_3;anno_omim;trio_denovo
 chrX	153009140	153009140	C	T	low_MQM;pred_pathogenic;anno_omim;trio_denovo
 chrX	153009289	153009289	C	A	anno_omim;trio_denovo
 chrX	153009303	153009303	A	G	low_MQM;anno_omim;trio_denovo

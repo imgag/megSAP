@@ -147,6 +147,7 @@ $filter_desc = array(
 	array("low_MQM", "Mean mapping quality of alternate allele less than Q50."),
 	array("low_QUAL", "Variant quality less than Q30."),
 	array("pred_pathogenic", "Variant predicted to be pathogenic by one or more tools (conservation or effect prediction)."),
+	array("pred_pathogenic_3", "Variant predicted to be pathogenic by three or more tools (conservation or effect prediction)."),
 	array("gene_blacklist", "The gene(s) are contained on the blacklist of unreliable genes."),
 	array("anno_pathogenic_clinvar", "Variant annotated to be pathogenic by ClinVar."),
 	array("anno_pathogenic_hgmd", "Variant annotated to be pathogenic by HGMD."),
@@ -424,6 +425,10 @@ while(!feof($handle))
 	if ($pp_count>0)
 	{
 		$filter[] = "pred_pathogenic";
+	}
+	if ($pp_count>2)
+	{
+		$filter[] = "pred_pathogenic_3";
 	}
 	
 	//OMIM
