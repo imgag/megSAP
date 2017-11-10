@@ -85,11 +85,6 @@ if (in_array("ma", $steps))
 		"-no_abra" // disable ABRA realignment due to manta compatibility issues
 	];
 
-	if (!$no_softclip)
-	{
-		$analyze_args[] = "-clip_overlap";
-	}
-
 	// tumor sample
 	if (!$smt)
 	{
@@ -112,6 +107,33 @@ if (in_array("ma", $steps))
 			"--log", "{$n_folder}analyze_" . date('YmdHis',mktime()) . ".log"
 		];
 		$parser->execTool("Pipelines/analyze.php", implode(" ", array_merge($analyze_args, $analyze_args_nor)));
+	}
+
+	// overlap clipping, is not done by analyze.php to prevent import of QC data calculated on BamClipOverlap result
+	if(!$no_softclip)
+	{
+		$clip_arg_map = [
+			"mfb" => "-overlap_mismatch_baseq",
+			"mfm" => "-overlap_mismatch_mapq",
+			"mfr" => "-overlap_mismatch_remove",
+			"sc" => ""
+		];
+		$clip_arg = $clip_arg_map[$clip];
+
+		if (!$smt) {
+			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
+			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in {$t_bam} -out {$tmp1_t_bam} {$clip_arg}", true);
+			$parser->exec(get_path("samtools")." sort", "-T {$tmp1_t_bam} -o {$t_bam} {$tmp1_t_bam}", true);
+			$parser->exec(get_path("samtools")." index", "{$t_bam}", true);
+		}
+
+		if(!$single_sample && !$smn)
+		{
+			$tmp1_n_bam = $parser->tempFile("_normal.bam");
+			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in {$n_bam} -out {$tmp1_n_bam} {$clip_arg}", true);
+			$parser->exec(get_path("samtools")." sort", "-T {$tmp1_t_bam} -o {$n_bam} {$tmp1_n_bam}", true);
+			$parser->exec(get_path("samtools")." index", "{$n_bam}", true);
+		}
 	}
 
 	// combined indel realignment with ABRA
