@@ -1,91 +1,55 @@
 #!/bin/bash
 
-#help
-if [ $# -lt 1 ]
-then
-  echo "Usage:"
-  echo "1) go to project folder e.g. /mnt/share/projects/gs/IND/:"
-  echo "2) call with the following arguments:"
-  echo "     tumor DNA sample name, e.g. GS090020_01"
-  echo "     reference DNA sample name, e.g. GS090022_01"
-  echo "     tumor RNA sample name, e.g. GS090020_01"
-  echo "     reference RNA sample name, e.g. GS090022_01"
-  echo "   Notice: all other parameters are passed on to the analyze php script, e.g. "
-  echo "     systems"
-  exit
+set -e -u -o pipefail
+
+# project specific parameters for somatic_dna_rna
+project_args="-steps_dna ma,vc,an -steps_rna ma,rc,fu -filter_set not-coding-splicing -germline_suffix _adme -germline_target /mnt/projects/research/eMed-HCC/+IKP/ADME_Genes_hg19_eMED_20161206.bed"
+
+# SGE parameters
+_status='/mnt/users/all/http/SampleStatus/data'
+_queue='default_srv017,default_srv018'
+
+# resolve script directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# usage information
+usage() {
+    cat <<EOT
+Usage: $0 [NOQUEUE] tumor-dna-id normal-dna-id [tumor-rna-id] [normal-rna-id] [additional somatic_dna_rna arguments]
+
+Sample folders need to be present in the current working directory.
+If NOQUEUE is specified, the pipeline call is not submitted to SGE.
+EOT
+}
+
+# check for NOQUEUE argument
+NOQUEUE=false
+if [[ ${1+} == "NOQUEUE" ]]; then
+    NOQUEUE=true
+    shift
 fi
 
-#extract all arguments
-args=( "$@" )
-
-#check if NOQUEUE is available
-noqueue=false
-for (( i=0; i < ${#args[@]}; ++i))
-do
-	if [[ ${args[$i]} == "NOQUEUE" ]]
-	then
-		noqueue=true
-		unset args[$i]
-	fi
-done
-args=( "${args[@]}" )
-
-#create output folder
-OUT=Somatic_${args[0]}-${args[1]}
-
-#project path
-PROJECTPATH=`pwd -P`
-
-#bash output
-COMMAND_STATUS=/mnt/users/all/http/SampleStatus/data/
-
-#look up RNA data, checke folders (if * in paths cannot be resolved strange error messages appear)
-RNA="";
-if [[ "${args[2]}" != "" && "${args[2]}" != "-"  && "${args[2]}" != "na" ]]
-then
-	T_RNA_FOLDER="$PROJECTPATH/Sample_${args[2]}"
-	if [ ! -d "$T_RNA_FOLDER" ]; then
-		MESSAGE="$MESSAGE Could not find tumor RNA folder $T_RNA_FOLDER. "
-	else
-		MESSAGE=""
-	fi
-	RNA="$RNA -t_rna_fo $T_RNA_FOLDER -t_rna_id ${args[2]}"
-
-	#normal RNA
-	if [[ "${args[3]}" != "" && "${args[3]}" != "-" && "${args[3]}" != "na" ]]
-	then
-		N_RNA_FOLDER="$PROJECTPATH/Sample_${args[3]}"
-		if [ ! -d "$N_RNA_FOLDER" ]; then
-			MESSAGE="$MESSAGE Could not find normal RNA folder $N_RNA_FOLDER. "
-		else
-			MESSAGE=""
-		fi
-		RNA="$RNA -n_rna_fo $N_RNA_FOLDER -n_rna_id ${args[3]}"
-	fi
-
-	if [[ "$MESSAGE" != "" ]]
-	then
-		echo "$MESSAGE"
-		exit
-	fi
+# check for at least 2 remaining parameters
+if [[ $# -lt 2 ]]; then
+    usage
+    exit 2
 fi
 
-if [ ! -d "$OUT" ]; then
-  mkdir $OUT
-fi
+# output directory
+OUT_DIR="Somatic_${1}-${2}"
+mkdir -p $OUT_DIR
 
-#perform analysis
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-COMMAND="php $DIR/../src/Pipelines/somatic_emed.php -p_folder . -t_dna_id ${args[0]} -n_dna_id ${args[1]} -o_folder $OUT $RNA --log $OUT/somatic_emed_$(date +%Y%m%d%H%M%S).log ${args[@]:4}"
+# log file path
+LOG="${OUT_DIR}/somatic_dna_rna_$(date +%Y%m%d%H%M%S).log"
 
-QUEUE="-q default_srv016,default_srv017,default_srv018";
+# pipeline command
+COMMAND="php ${SCRIPT_DIR}/../src/Pipelines/somatic_dna_rna.php -p_folder . -t_dna_id $1 -n_dna_id $2 -t_rna_id ${3:-na} -n_rna_id ${4:-na} ${project_args} --log $LOG"
 
-if [[ "$noqueue" == true ]]
-then
-	echo $COMMAND
-	$COMMAND
+# call
+if $NOQUEUE; then
+    $COMMAND
 else
-	echo $COMMAND
-	echo -e "  $(date +%Y%m%d%H%M%S) \t $COMMAND \n\t -> $JOB" >> $COMMAND_STATUS/commands.txt
-	JOB=$(qsub -V -b y -wd $PROJECTPATH -m n -M christopher.schroeder@med.uni-tuebingen.de $QUEUE -e $COMMAND_STATUS -o $COMMAND_STATUS $COMMAND)
+    JOB=$(qsub -pe smp 1 -V -b y -wd $(realpath $PWD) -m n -M christopher.schroeder@med.uni-tuebingen.de -e $_status -o $_status -q $_queue $COMMAND)
+    echo -e "$(date +%Y%m%d%H%M%S) \t $COMMAND \n\t -> $JOB" >> "${_status}/commands.txt"
+    echo $COMMAND
 fi
