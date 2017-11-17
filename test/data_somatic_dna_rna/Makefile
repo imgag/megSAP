@@ -1,3 +1,5 @@
+.PHONY: all ivac emed
+
 all: ivac emed
 
 ivac:
