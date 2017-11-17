@@ -102,6 +102,13 @@ if (in_array("ma", $steps))
 	if(file_exists($log_ma)) unlink($log_ma);
 	
 	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $out_folder -out_name $name --log $log_ma ".implode(" ", $args)." -threads $threads");
+
+	//low-coverage report
+	if ($sys['type']!="WGS" && $sys['target_file']!="") //ROI (but not WGS)
+	{	
+		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", true);
+		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -extend 25 -out $lowcov_file", true);
+	}
 }
 
 //variant calling
@@ -194,13 +201,6 @@ if (in_array("an", $steps))
 	$args = array("-out_name $name", "-out_folder $out_folder", "-system $system", "-thres $thres", "--log $log_an");
 	if (!db_is_enabled("NGSD")) $args[] = "-no_ngsd";
 	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
-	
-	//low-coverage report
-	if ($sys['type']!="WGS" && $sys['target_file']!="") //ROI (but not WGS)
-	{	
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", true);
-		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -extend 25 -out $lowcov_file", true);
-	}
 }
 
 //import to database
