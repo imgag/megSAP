@@ -1390,7 +1390,7 @@ function get_processed_sample_info($ps_name, $error_if_not_found=true, $db_name=
 	//get info from NGSD
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
 	$db = DB::getInstance($db_name);
-	$res = $db->executeQuery("SELECT p.name as project_name, p.type as project_type, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, s.name_external as name_external ".
+	$res = $db->executeQuery("SELECT p.name as project_name, p.type as project_type, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, s.name_external as name_external ".
 	                        "FROM project p, processed_sample ps, sample s, processing_system as sys, sequencing_run as r, device as d ".
 				"WHERE ps.sequencing_run_id=r.id AND ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND ps.process_id='".(int)$process_id."' AND r.device_id = d.id");
 	if (count($res)!=1)

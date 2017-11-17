@@ -10,8 +10,9 @@ $parser->addInfile("roi", "Target region BED file.", false);
 $parser->addOutfile("out", "Output BED file with low-coverage regions.", false);
 //optional
 $parser->addInt("percentile", "Percentile of samples with low coverage needed for output.", true, 40);
+$parser->addFlag("tumor", "Only process tumor samples, otherwise only non-tumor samples are process).", true, 40);
 extract($parser->parse($argv));
-
+	
 
 // init overall coverage statistics
 $low = array();
@@ -25,9 +26,27 @@ foreach($regs as $reg)
 	}
 }
 
-//process low-coverage files
+// process input files
+$db = DB::getInstance("NGSD");
 foreach($in as $bed)
 {
+	//filter out or select tumor samples
+	list($sample) = explode("_", basename($bed));
+	$sample_tumor = $db->getValue("SELECT tumor FROM sample WHERE name='$sample'", "n/a");
+	if ($sample_tumor=="n/a")
+	{
+		trigger_error("Could not determine if sample '$sample' is a tumor sample. Assuming it is a normal sample!", E_USER_WARNING);
+	}
+	if ($tumor && ($sample_tumor=="0" || $sample_tumor=="n/a"))
+	{
+		continue;
+	}
+	else if (!$tumor && $sample_tumor=="1")
+	{
+		continue;
+	}
+	
+	//process low-coverage file
 	print "processing: $bed\n";
 	$file = file($bed);
 	foreach($file as $line)
