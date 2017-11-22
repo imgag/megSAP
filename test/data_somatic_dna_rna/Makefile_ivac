@@ -69,12 +69,7 @@ diff_ivac_full:
 	    $(out_folder)/ivac_full/$(t_dna)-$(n_dna)_var_annotated.vcf.gz \
 	    results_ivac_full/$(t_dna)-$(n_dna)_var_annotated.vcf.gz
 	
-	# CNVs
-	diff \
-	    $(out_folder)/ivac_full/$(t_dna)-$(n_dna)_cnvs.tsv \
-	    results_ivac_full/$(t_dna)-$(n_dna)_cnvs.tsv
-	
-	# TODO strucutural variants
+	# TODO strucutural variants, CNVS
 	
 	# fusions (RNA)
 	diff \
@@ -97,9 +92,4 @@ diff_ivac_3:
 	    $(out_folder)/ivac_3/$(t_dna)-$(n_dna)_var_annotated.vcf.gz \
 	    results_ivac_3/$(t_dna)-$(n_dna)_var_annotated.vcf.gz
 	
-	# CNVs
-	diff \
-	    $(out_folder)/ivac_3/$(t_dna)-$(n_dna)_cnvs.tsv \
-	    results_ivac_3/$(t_dna)-$(n_dna)_cnvs.tsv
-	
-	# TODO strucutural variants
+	# TODO strucutural variants, CNVS

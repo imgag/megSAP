@@ -80,13 +80,8 @@ diff_emed_full:
 	php ../compare_variants.php \
 	    $(out_folder)/emed_full/$(n_dna)_adme_var_annotated.vcf.gz \
 	    results_emed_full/$(n_dna)_adme_var_annotated.vcf.gz
-	
-	# CNVs
-	diff \
-	    $(out_folder)/emed_full/$(t_dna)-$(n_dna)_cnvs.tsv \
-	    results_emed_full/$(t_dna)-$(n_dna)_cnvs.tsv
-	
-	# TODO strucutural variants
+
+	# TODO strucutural variants, CNVs
 	
 	# fusions (RNA)
 	diff \
@@ -114,9 +109,4 @@ diff_emed_3:
 	    $(out_folder)/emed_3/$(n_dna)_adme_var_annotated.vcf.gz \
 	    results_emed_3/$(n_dna)_adme_var_annotated.vcf.gz
 	
-	# CNVs
-	diff \
-	    $(out_folder)/emed_3/$(t_dna)-$(n_dna)_cnvs.tsv \
-	    results_emed_3/$(t_dna)-$(n_dna)_cnvs.tsv
-	
-	# TODO strucutural variants
+	# TODO strucutural variants, CNVS
