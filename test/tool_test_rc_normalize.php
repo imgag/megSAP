@@ -24,7 +24,7 @@ check_file($out_file2, data_folder().$name."_out2.tsv");
 //test 3: default parameters, raw, cpm, fpkm normalization
 $out_file3 = output_folder().$name."_out3.tsv";
 $log_file3 = output_folder().$name."_out3.log";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in '$in_file' -out '$out_file3' --log $log_file3");
+check_exec("php ".src_folder()."/NGS/{$name}.php -in '$in_file' -out '$out_file3' -method raw,cpm,fpkm --log $log_file3");
 check_file($out_file3, data_folder().$name."_out3.tsv");
 
 end_test();

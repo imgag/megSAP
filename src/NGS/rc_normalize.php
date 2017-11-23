@@ -1,9 +1,6 @@
 <?php
 /**
  * @page rc_normalize
- * 
- * TODO:
- * - add tpm normalization
  */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -16,67 +13,85 @@ $parser->addInfile("in", "Input raw read counts file.", false, true);
 $parser->addOutfile("out", "Output file for normalized read counts.", false);
 
 //optional parameters
-$parser->addString("method", "The normalization method(s), comma-separated if multiple.", true, "raw,cpm,fpkm");
+$parser->addString("method", "The normalization method(s), comma-separated if multiple.", true, "raw,cpm,fpkm,tpm");
 
 extract($parser->parse($argv));
 
 $methods = explode(",", $method);
 
-//counts per million mapped reads
-function cpm($gene_count, $total_reads) {
-	$scaling_permillion = $total_reads / 1e6;
-	$rpm = $gene_count / $scaling_permillion;
-	return $rpm;
+// read raw input into matrix
+$raw = Matrix::fromTSV($in);
+// remove columns 2,3,4,5
+$raw->removeCol(1);
+$raw->removeCol(1);
+$raw->removeCol(1);
+$raw->removeCol(1);
+// remove featureCounts header
+$raw->removeRow(0);
+$raw->setHeaders([ "gene_id", "gene_length", "raw" ]);
+
+// raw counts
+$col_raw = $raw->getCol($raw->getColumnIndex("raw"));
+
+// gene length
+$col_gene_length = $raw->getCol($raw->getColumnIndex("gene_length"));
+
+// cpm calculation (needed for cpm and fpkm)
+if (in_array("cpm", $methods) || in_array("fpkm", $methods))
+{
+	// scale raw counts with total raw counts in million
+	$cpm = [];
+	$scaling = array_sum($col_raw) / 1e6;
+	foreach ($col_raw as $value)
+	{
+		$cpm[] = $value / $scaling;
+	}
 }
 
-//reads per kilobase per million mapped reads
-function fpkm($gene_length, $gene_count, $total_reads) {
-	$fpm = cpm($gene_count, $total_reads);
-	$fpkm = $fpm / ($gene_length / 1e3);
-	return $fpkm;
+// cpm
+if (in_array("cpm", $methods))
+{
+	$raw->addCol($cpm, "cpm");
 }
 
-//total number of assigned reads
-//sum of column 7 (read counts for sample)
-$total_reads = $parser->exec("tail", "-n+3 $in | awk -F '\t' '{ x = x + $7 } END { print x }'", false);
-$total_reads = intval($total_reads[0][0]);
-
-$in_handle = fopen($in, "r");
-if ($in_handle===FALSE) trigger_error("Could not open file '$in' for reading!", E_USER_ERROR);
-
-$out_handle = fopen($out, "w");
-if ($out_handle===FALSE) trigger_error("Could not open file '$out' for writing!", E_USER_ERROR);
-
-//skip first two lines
-fgetcsv($in_handle, 0, "\t");
-fgetcsv($in_handle, 0, "\t");
-
-$header = array("#gene_id");
-if (in_array("raw", $methods)) $header[] = "raw";
-if (in_array("cpm", $methods)) $header[] = "cpm";
-if (in_array("fpkm", $methods)) $header[] = "fpkm";
-
-fwrite($out_handle, implode("\t", $header)."\n");
-
-//process lines
-while (($data = fgetcsv($in_handle, 0, "\t")) !== FALSE) {
-	//identifier from column 1
-	$gene_id = $data[0];
-	//gene length from column 6
-	$gene_length = $data[5];
-	//read count for gene from column 7
-	$gene_readcount = $data[6];
-	
-	//normalized read count
-	$normalized = array();
-	if (in_array("raw", $methods)) $normalized[] = $gene_readcount;
-	if (in_array("cpm", $methods)) $normalized[] = cpm($gene_readcount, $total_reads);
-	if (in_array("fpkm", $methods)) $normalized[] = fpkm($gene_length, $gene_readcount, $total_reads);
-	
-	fwrite($out_handle, $gene_id."\t".implode("\t", $normalized)."\n");
+// fpkm
+if (in_array("fpkm", $methods))
+{
+	// scale cpm with gene length in kb
+	$fpkm = [];
+	for ($idx = 0; $idx < $raw->rows(); ++ $idx)
+	{
+		$fpkm[] = $cpm[$idx] / ($col_gene_length[$idx] / 1e3);
+	}
+		
+	$raw->addCol($fpkm, "fpkm");
 }
 
-fclose($in_handle);
-fclose($out_handle);
+// tpm
+if (in_array("tpm", $methods))
+{
+	// scale raw counts with gene length in kb
+	$rpk = [];
+	for ($idx = 0; $idx < $raw->rows(); ++ $idx)
+	{
+		$rpk[] = $col_raw[$idx] / ($col_gene_length[$idx] / 1e3);
+	}
+		
+	$tpm = [];
+	$scaling = array_sum($rpk) / 1e6;
+	foreach ($rpk as $value)
+	{
+		$tpm[] = $value / $scaling;
+	}
+	$raw->addCol($tpm, "tpm");
+}
 
-?>
+// raw
+if (! in_array("raw", $methods))
+{
+	$raw->removeCol($raw->getColumnIndex("raw"));
+}
+
+$raw->removeCol($raw->getColumnIndex("gene_length"));
+$raw->setComments([]);
+$raw->toTSV($out);
