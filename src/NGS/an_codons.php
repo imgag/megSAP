@@ -32,6 +32,30 @@ $pep_to_transcript = "/mnt/share/data/dbs/peptide/Homo_sapiens.GRCh37.75.pep.all
 $map_pep_trans_table = Matrix::fromTSV($pep_to_transcript);
 $map_pep_trans = array_column($map_pep_trans_table->getData(), 0, 1);
 
+// create amino acid three letter -- one letter code mapping
+$aa_code = [
+	"Gly"=>"G",
+	"Ala"=>"A",
+	"Leu"=>"L",
+	"Met"=>"M",
+	"Phe"=>"F",
+	"Trp"=>"W",
+	"Lys"=>"K",
+	"Gln"=>"Q",
+	"Glu"=>"E",
+	"Ser"=>"S",
+	"Pro"=>"P",
+	"Val"=>"V",
+	"Ile"=>"I",
+	"Cys"=>"C",
+	"Tyr"=>"Y",
+	"His"=>"H",
+	"Arg"=>"R",
+	"Asn"=>"N",
+	"Asp"=>"D",
+	"Thr"=>"T"
+];
+
 // read VCF file
 $vcf = Matrix::fromTSV($in);
 
@@ -71,7 +95,7 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 			preg_match('/c\.([0-9]+)(.)>(.)/', $parts[9], $matches);
 			$transcripts[$parts[6]]["coding"] = $matches;
 
-			preg_match('/p\.(.{3})([0-9]+)(.{3})/', $parts[10], $matches);
+			preg_match('/p\.([[:alpha:]]{3})([0-9]+)([[:alpha:]]{3})/', $parts[10], $matches);
 			$transcripts[$parts[6]]["protein"] = $matches;
 		}
 	}
@@ -84,7 +108,7 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 		{
 
 			$pos_aa = $value["protein"][2];
-			$start = $pos_aa - $flanking_codons;
+			$start = max(1, $pos_aa - $flanking_codons);
 			$end = $pos_aa + $flanking_codons;
 
 			$protein_id = $map_pep_trans[$transcript];
@@ -101,7 +125,9 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 
 			// mutated peptide sequence
 			// TODO: currently, 3-letter amino acid is inserted (from ANN)
-			$pep_seq_mut = substr_replace($pep_seq, $value["protein"][3], $flanking_codons, 1);
+			$repl_pos = $pos_aa - $start;
+			$inserted_aa = $aa_code[$value["protein"][3]];
+			$pep_seq_mut = substr_replace($pep_seq, $inserted_aa, $repl_pos, 1);
 
 			// add
 			$add_to_info[] = sprintf("%s:%s-%s|%s", $protein_id, $start, $end, $pep_seq_mut);
