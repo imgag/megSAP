@@ -86,6 +86,6 @@ file_put_contents($out, $output);
 $parser->exec(get_path("ngs-bits")."BedMerge", "-in $out -out $out", false);
 
 //annotate with gene names
-$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $out -out $out", false);
+$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $out -clear -out $out", false);
 
 ?>

@@ -107,7 +107,7 @@ if (in_array("ma", $steps))
 	if ($sys['type']!="WGS" && $sys['target_file']!="") //ROI (but not WGS)
 	{	
 		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", true);
-		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -extend 25 -out $lowcov_file", true);
+		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
 	}
 }
 
@@ -225,7 +225,7 @@ if (in_array("db", $steps))
 }
 
 //copy-number analysis
-if (in_array("cn", $steps) && $sys['type']!="WGS")
+if (in_array("cn", $steps) && $sys['type']!="WGS" && $sys['target_file']!="")
 {
 	if(file_exists($log_cn)) unlink($log_cn);
 	
