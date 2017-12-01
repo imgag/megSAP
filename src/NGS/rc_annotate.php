@@ -25,31 +25,44 @@ extract($parser->parse($argv));
 //read keyId (gene_id) -> annotationId (gene_name) mapping from GTF file
 $mapping = array();
 $handle_gtf = fopen($gtfFile, "r");
-if ($handle_gtf === FALSE) trigger_error("Could not open file '$gtfFile' for reading!", E_USER_ERROR);
-while(!feof($handle_gtf))
+if ($handle_gtf === FALSE)
+{
+	trigger_error("Could not open file '$gtfFile' for reading!", E_USER_ERROR);
+}
+while (!feof($handle_gtf))
 {
 	$line = trim(fgets($handle_gtf));
-	if ($line=="") continue;
-	
+	if ($line === "")
+	{
+		continue;
+	}
+
 	$parts = explode("\t", $line);
-	
+
 	//parse last column (annotations)
 	$annotations = array();
-	if (isset($parts[8])) {
-	foreach(explode(";", $parts[8]) as $anno)
+	if (isset($parts[8]))
 	{
-		$anno = trim($anno);
-		if (!isset($anno) || $anno=="") continue;
-		
-		list($key, $value) = explode(" ", $anno);
-		$value = trim(substr($value, 1, -1));
-		if (isset($key) && isset($value)) {
-			$annotations[$key] = $value;
+		foreach (explode(";", $parts[8]) as $anno)
+		{
+			$anno = trim($anno);
+			if (!isset($anno) || $anno === "")
+			{
+				continue;
+			}
+
+			list($key, $value) = explode(" ", $anno);
+			$value = trim(substr($value, 1, -1));
+			if (isset($key) && isset($value))
+			{
+				$annotations[$key] = $value;
+			}
 		}
-	}
-	if (array_key_exists($keyId, $annotations) && array_key_exists($annotationId, $annotations)) {
-		$mapping[$annotations[$keyId]] = $annotations[$annotationId];
-	}
+
+		if (array_key_exists($keyId, $annotations) && array_key_exists($annotationId, $annotations))
+		{
+			$mapping[$annotations[$keyId]] = $annotations[$annotationId];
+		}
 	}
 }
 fclose($handle_gtf);
