@@ -97,6 +97,7 @@
 ##FILTER=<ID=af-ratio,Description="Allele frequency ratio tumor/normal less equal 2.9; removed from list (filter_vcf).">
 ##FILTER=<ID=no-depth,Description="No depth in tumor or normal; removed from list (filter_vcf).">
 ##FILTER=<ID=off-target,Description="Variant is off target (filter_vcf).">
+##FILTER=<ID=promoter,Description="Variant is part of a promoter (filter_vcf).">
 ##FILTER=<ID=not-cod-spli,Description="Not a coding or splicing variant (filter_vcf).">
 ##FILTER=<ID=syn-var,Description="Synonymous variant (filter_vcf).">
 ##FILTER=<ID=somatic-donor,Description="Germline variant in donor sample.">

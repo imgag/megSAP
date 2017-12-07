@@ -15,12 +15,13 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("filter_vcf", "Filter VCF-files according to different filter criteria. This tool is designed to filter tumor/normal pair samples. This tools automatically chooses variant caller and tumor/normal sample from the vcf header.");
 $parser->addInfile("in", "Input variant file in VCF format containing all necessary columns (s. below for each filter).", false);
 $parser->addOutfile("out", "Output variant file in VCF format.", false);
-$filter = array('not-coding-splicing', 'synonymous', 'off-target', 'somatic-lq','min-af', 'somatic-donor');
+$filter = array('not-coding-splicing', 'synonymous', 'off-target', 'promoter', 'somatic-lq','min-af', 'somatic-donor');
 $parser->addString("type", "Type(s) of variants that are supposed to be filtered out, can be comma delimited. Valid are: ".implode(",",$filter).".",false);
 //optional
-$parser->addFlag("keep", "Keep all variants. Otherwise only variants passing all filters will be kept");
-$parser->addFlag("ignore_filter", "Ignore previous filter.");
-$parser->addString("roi", "Target region BED file (is required by off-target filter).", true, "");
+$parser->addFlag("keep", "Keep all variants. Otherwise only variants passing all filters will be removed.");
+$parser->addFlag("ignore_filter", "Ignore if vcf already contains the filter criteria set by this script.");
+$parser->addString("roi", "Target region BED file (required by off-target filter).", true, "");
+$parser->addInfile("promoter",  "Promoter region BED file (required by promoter filter).", true);
 $parser->addFloat("contamination", "Estimated fraction of tumor cells in normal sample.",true,0.00);
 $parser->addFloat("min_af", "Minimum variant allele frequency in tumor. N.b.: -type has to contain min-af to make this filter work.",true,0.05);
 extract($parser->parse($argv));
@@ -125,6 +126,19 @@ if($roi!="") //skip enrichments without target
 	}
 }
 
+//promoter bed-file
+$promoters = array();
+if(!empty($promoter))
+{
+	$promoter_bed = Matrix::fromTSV($promoter);
+	for($i=0;$i<$promoter_bed->rows();++$i)
+	{
+		$row = $promoter_bed->getRow($i);
+		if(!isset($promoters[$row[0]])) $promoters[$row[0]] = array();
+		$promoters[$row[0]][] = array($row[1]+1, $row[2]);
+	}
+}
+
 //set FILTER column variants
 //example for filter description (vcf format 4.1):
 //FILTER - filter status: PASS if this position has passed all filters, i.e. a call is made at this position. Otherwise,
@@ -148,6 +162,14 @@ for($i=0;$i<$in_file->rows();++$i)
 		if($type=="SNV" && strlen($a) > 1)	$type = "INDEL";
 	}
 	
+	//chr,start,end,ref,obs = alt
+	$chr = $row[0];
+	$start = $row[1];
+	$end = $start;
+	$ref = $row[3];
+	$alt = $row[4];
+	if($type == "INDEL" && $ref!="-" && $alt!="-")	list($start, $end, $ref, $alt) = correct_indel($start, $ref, $alt);	//correct indels
+	
 	//extract info field
 	$genotype = $row[8];
 	$info = explode(";", $row[7]);
@@ -169,7 +191,8 @@ for($i=0;$i<$in_file->rows();++$i)
 	$tmp_col_nor = null;
 	if(!is_null($normal_col))	$tmp_col_nor = $row[$normal_col];
 	if(in_array("somatic-lq",$types))	filter_somatic_lq($filter, $info, $genotype, $tmp_col_tum, $tmp_col_nor, $type,$row[4],$var_caller,100);
-	if(in_array("off-target",$types))	filter_off_target($filter, $row[0], $row[1], $tumor_id, $normal_id, $targets);
+	if(in_array("off-target",$types))	filter_off_target($filter, $chr, $start, $end, $tumor_id, $normal_id, $targets);
+	if(in_array("promoter",$types))	filter_promoter($filter, $chr, $start, $end, $tumor_id, $normal_id, $promoters);
 	if(in_array("not-coding-splicing",$types))	filter_not_coding_splicing($filter, $info, $miso_terms_coding);
 	if(in_array("synonymous",$types))	filter_synonymous($filter, $info, $miso_terms_coding, $miso_terms_synonymous);
 	if(in_array("min-af",$types))	filter_min_af($filter,$info,$genotype,$tmp_col_tum,$row[4],$type,$var_caller, $min_af);
@@ -312,28 +335,44 @@ function filter_not_coding_splicing(&$filter, $info, $miso_terms_coding)
 	if($skip_variant) activate_filter ($filter, "not-cod-spli");
 }
 
-function filter_off_target(&$filter, $chr, $start, $tumor_id, $normal_id, $targets)
+function filter_off_target(&$filter, $chr, $start, $end, $tumor_id, $normal_id, $targets)
 {
-	//filter out bad rows
 	if(!empty($targets))
 	{
-		$skip_variant = true;
-		if(isset($targets[$chr]))
-		{
-			foreach($targets[$chr] as $regions)
-			{
-				list($s,$e) = $regions;
-				if($e >= $start && $s <= $start )
-				{
-					$skip_variant = false;
-					break;
-				}
-			}
-		}
+		$on_target = filter_regions($chr,$start,$end,$targets);
 		add_filter($filter, "off-target", "Variant is off target (filter_vcf).");
-		if($skip_variant) activate_filter($filter, "off-target");
+		if(!$on_target) activate_filter($filter, "off-target");
 	}
 	else	trigger_error("Cannot use off-target filter without targets.",E_USER_ERROR);
+}
+
+function filter_promoter(&$filter, $chr, $start, $end, $tumor_id, $normal_id, $promoters)
+{
+	if(!empty($promoters))
+	{
+		$in_promoter = filter_regions($chr,$start,$end,$promoters);
+		add_filter($filter, "promoter", "Variant is part of a promoter (filter_vcf).");
+		if($in_promoter) activate_filter($filter, "promoter");
+	}
+	else	trigger_error("Cannot use promoter filter without promoters.",E_USER_ERROR);
+}
+
+function filter_regions($chr,$start,$end,$regions)
+{
+	$outside = true;
+	if(isset($regions[$chr]))
+	{
+		foreach($regions[$chr] as $regions)
+		{
+			list($s,$e) = $regions;
+			if(($e >= $start && $s <= $start) || ($e >= $end && $s <= $end))
+			{
+				$outside = false;
+				break;
+			}
+		}
+	}
+	return !$outside;
 }
 
 function filter_somatic_donor(&$filter, $info, $min_freq = 0.1, $min_depth = 20)
