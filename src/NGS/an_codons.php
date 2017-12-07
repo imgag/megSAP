@@ -435,7 +435,17 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 			if ($mark_mutation)
 			{
 //				$add_to_info[] = sprintf("%s|c.pos:%d|p.pos:%d|%s[%s/%s]%s|pep:%s|pep_mut:%s|cds:%s|cds_mut:%s", $transcript, $cds_var_pos, $aa_pos, $pre, $orig, $change, $post, $pep, $pep_mut, $cds, $cds_mut);
-				$add_to_info[] = sprintf("%s|%s[%s/%s]%s", $transcript, $pre, $orig, $change, $post);
+				
+				// use 5'flanking-[ref/alt]-3'flanking for SNVs
+				if (strlen($vcf_alt) === strlen($vcf_ref))
+				{
+					$add_to_info[] = sprintf("%s|%s[%s/%s]%s", $transcript, $pre, $orig, $change, $post);
+				}
+				// use reference:ref|mutated:mut for indels
+				else
+				{
+					$add_to_info[] = sprintf("%s|reference:%s%s%s|mutated:%s%s%s", $transcript, $pre, $orig, $post, $pre, $change, $post);
+				}
 			}
 			else
 			{
@@ -461,5 +471,5 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 	}
 }
 
-$vcf->addComment("#INFO=<ID={$field},Number=.,Type=String,Description=\"Mutated and surrounding peptides from Ensembl peptide reference\">");
+$vcf->addComment("#INFO=<ID={$field},Number=.,Type=String,Description=\"Peptide prediction\">");
 $vcf->toTSV($out);
