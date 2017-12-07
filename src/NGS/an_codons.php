@@ -88,6 +88,30 @@ function translate($seq)
 	return implode("", $aa);
 }
 
+// create amino acid three letter -- one letter code mapping
+$aa_code = [
+	"Gly"=>"G",
+	"Ala"=>"A",
+	"Leu"=>"L",
+	"Met"=>"M",
+	"Phe"=>"F",
+	"Trp"=>"W",
+	"Lys"=>"K",
+	"Gln"=>"Q",
+	"Glu"=>"E",
+	"Ser"=>"S",
+	"Pro"=>"P",
+	"Val"=>"V",
+	"Ile"=>"I",
+	"Cys"=>"C",
+	"Tyr"=>"Y",
+	"His"=>"H",
+	"Arg"=>"R",
+	"Asn"=>"N",
+	"Asp"=>"D",
+	"Thr"=>"T"
+];
+
 // read VCF file
 $vcf = Matrix::fromTSV($in);
 
@@ -103,6 +127,7 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 	
 	// transcript IDs will be extracted from info field/ANN entry
 	$transcripts = [];
+	$transcripts_snpeff = [];
 
 	// info field
 	$info = $vcf->get($r, 7);
@@ -133,11 +158,27 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 		{
 			$parts = explode("|", $a);
 			$transcripts[] = $parts[6];
+			
+			$transcripts_snpeff[$parts[6]] = ["HGVS.c" => $parts[9], "HGVS.p" => $parts[10]];
+
+			preg_match('/c\.([0-9]+)(.)>(.)/', $parts[9], $matches);
+			$transcripts_snpeff[$parts[6]]["coding"] = $matches;
+
+			$m = preg_match('/p\.([[:alpha:]]{3})([0-9]+)([[:alpha:]]{3})/', $parts[10], $matches);
+			if ($m &&
+				in_array($matches[1], array_keys($aa_code)) &&
+				in_array($matches[3], array_keys($aa_code)))
+			{
+				$transcripts_snpeff[$parts[6]]["protein"] = $matches;
+			}
+			else
+			{
+				$transcripts_snpeff[$parts[6]]["protein"] = [];
+			}
 		}
 	}
 
 	$add_to_info = [];
-
 
 	foreach ($transcripts as $transcript) {
 		if (! isset($ensgene[$transcript]))
@@ -161,7 +202,16 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 		// comma separated, zero based
 		$exonStarts = explode(",", $record[9]);
 		$exonEnds = explode(",", $record[10]);
+		
+		$exonFrames = explode(",", preg_replace("/,$/", "", $record[15]));
 	
+		// skip non-coding transcripts
+		if ($cdsStart > $cdsEnd)
+		{
+			trigger_error("Skipped transcript {$transcript}, no CDS.", E_USER_NOTICE);
+			continue;
+		}
+		
 		// get unspliced 'transcript sequence', define offset to work on it with
 		// original coordinates
 		$offset = $txStart;
@@ -184,7 +234,7 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 		$cdsmut_arr = [];
 		
 		// position of variant in CDS
-		$cds_var_pos = -1;
+		$cds_var_pos = 0;
 		
 		// offsets for insertions/deletions
 		$indel_offset_end = 0;
@@ -193,6 +243,10 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 		// variant in CDS discovered
 		$variant_in_cds = false;
 		
+		// number of exons that are skipped (UTR)
+		$skip_exons_5prime = 0;
+		$skip_exons_3prime = 0;
+		
 		// iterate over exons
 		for ($e = 0; $e < $n_exons; ++ $e)
 		{
@@ -200,8 +254,14 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 			$e_end = $exonEnds[$e];
 			
 			// skip if exon is upstream/downstream of CDS
-			if ($e_end < $cdsStart || $e_start > $cdsEnd)
+			if ($e_end < $cdsStart)
 			{
+				$skip_exons_5prime += 1;
+				continue;
+			}
+			if ($e_start > $cdsEnd)
+			{
+				$skip_exons_3prime += 1;
 				continue;
 			}
 			
@@ -261,6 +321,18 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 		$cds_mut = implode("", $cdsmut_arr);
 //		$cds_mut_2 = substr_replace($cds, $vcf_alt, $cds_var_pos, strlen($vcf_ref));
 		
+		if ($strand === "+")
+		{
+			// first exon frame
+			if ($skip_exons_5prime >= count($exonFrames))
+			{
+				var_dump($transcript);
+				var_dump($skip_exons_5prime);
+				var_dump($exonFrames);
+			}
+			$frame = $exonFrames[$skip_exons_5prime];
+		}
+		
 		// reverse complement for transcripts on minus strand
 		if ($strand === "-")
 		{
@@ -270,15 +342,65 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 			
 			// position in reverse complement
 			$cds_var_pos = strlen($cds) - $cds_var_pos + 1;
+			
+			// last exon from table is first exon to be translated 
+			$frame = $exonFrames[ $n_exons - 1 - $skip_exons_3prime ];
 		}
+		
+		
+		// honor the frame offset
+		// frame 2 -> NN<cds>, i.e. remove one nucleotide
+		// frame 1 -> N<cds>, i.e. remove two nucleotides
+		// frame 0 -> <cds>, as-is
+		$frame_offset = (3 - $frame) % 3;
+		$cds = substr($cds, $frame_offset);
+		$cds_mut = substr($cds_mut, $frame_offset);
+		
+		// modify cds_var_pos to reflect the same change
+		$cds_var_pos -= $frame_offset;
 		
 		// amino acid position where variant begins
 		// 1-based
-		$aa_pos = ceil($cds_var_pos / 3);
+		$aa_pos = intval(ceil($cds_var_pos / 3));
 		
 		// translate CDS
 		$pep = translate($cds);
 		$pep_mut = translate($cds_mut);
+
+		// check nuc pos and aa pos against snpeff
+		if (isset($transcripts_snpeff[$transcript]["coding"][1]) &&
+			$transcripts_snpeff[$transcript]["coding"][1] != $cds_var_pos)
+		{
+			trigger_error(sprintf("%s %s %s %s %s variant position in CDS differs: ann=%s / new=%d %s>%s / new+oldpos= %s>%s ; f=%d, f_offset=%d",
+				$vcf_chr, $vcf_pos, $vcf_ref, $vcf_alt, $transcript,
+				$transcripts_snpeff[$transcript]["coding"][0],
+				$cds_var_pos,
+				$cds[$cds_var_pos - 1],
+				$cds_mut[$cds_var_pos - 1],
+				$cds[$transcripts_snpeff[$transcript]["coding"][1] - 1],
+				$cds_mut[$transcripts_snpeff[$transcript]["coding"][1] - 1],
+				$frame,
+				$frame_offset
+				),
+				E_USER_WARNING);
+		}
+		if (isset($transcripts_snpeff[$transcript]["protein"][2]) &&
+			$transcripts_snpeff[$transcript]["protein"][2] != $aa_pos)
+		{
+			trigger_error(sprintf("%s %s %s %s %s variant position in peptide differs: ann=%s / new=%d %s > %s / new+oldpos= %s>%s ; f=%d, f_offset=%d",
+				$vcf_chr, $vcf_pos, $vcf_ref, $vcf_alt, $transcript,
+				$transcripts_snpeff[$transcript]["protein"][0],
+				$aa_pos,
+				$pep[$aa_pos - 1],
+				$pep_mut[$aa_pos - 1],
+				$pep[$transcripts_snpeff[$transcript]["protein"][2] - 1],
+				$pep_mut[$transcripts_snpeff[$transcript]["protein"][2] - 1],
+				$frame,
+				$frame_offset
+				),
+				E_USER_WARNING);
+		}
+		
 //		$pep_mut_2 = translate($cds_mut_2);
 		
 //		var_dump($fields);
@@ -292,6 +414,7 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 //		var_dump($cds_var_pos);
 //		var_dump($aa_pos);
 		
+		// position of changed amino acid in string (0-based)
 		$aa_pos0 = $aa_pos - 1;
 		
 		// codons up to the specified numbers left of the mutation
@@ -312,8 +435,8 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 		{
 			if ($mark_mutation)
 			{
+//				$add_to_info[] = sprintf("%s|c.pos:%d|p.pos:%d|%s[%s/%s]%s|pep:%s|pep_mut:%s|cds:%s|cds_mut:%s", $transcript, $cds_var_pos, $aa_pos, $pre, $orig, $change, $post, $pep, $pep_mut, $cds, $cds_mut);
 				$add_to_info[] = sprintf("%s|%s[%s/%s]%s", $transcript, $pre, $orig, $change, $post);
-//				$add_to_info[] = sprintf("%s|%s[%s/%s]%s|{$cds}|{$cds_mut}|{$pep}|{$pep_mut}", $transcript, $pre, $orig, $change, $post);
 			}
 			else
 			{
