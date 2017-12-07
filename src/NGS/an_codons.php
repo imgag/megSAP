@@ -419,16 +419,16 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 		// codons up to the specified numbers left of the mutation
 		$pre_pos = max(0, $aa_pos0 - $flanking_codons);
 		$pre_len = $aa_pos0 - $pre_pos;
-		$pre = substr($pep, $pre_pos, $pre_len);
+		$pre = substr($pep_mut, $pre_pos, $pre_len);
 		
 		// TODO more than one codon?
 		$orig =  substr($pep, $aa_pos0, 1);
 		$change =  substr($pep_mut, $aa_pos0, 1);
 		
 		
-		$post_pos = min(strlen($pep) - 1, $aa_pos0 + $flanking_codons);
+		$post_pos = min(strlen($pep_mut) - 1, $aa_pos0 + $flanking_codons);
 		$post_len = $post_pos - $aa_pos0;
-		$post = substr($pep, $aa_pos0 + 1, $post_len);
+		$post = substr($pep_mut, $aa_pos0 + 1, $post_len);
 		
 		if ($variant_in_cds)
 		{
