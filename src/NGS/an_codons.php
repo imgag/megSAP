@@ -208,7 +208,7 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 		// skip non-coding transcripts
 		if ($cdsStart > $cdsEnd)
 		{
-			trigger_error("Skipped transcript {$transcript}, no CDS.", E_USER_NOTICE);
+			//trigger_error("Skipped transcript {$transcript}, no CDS.", E_USER_NOTICE);
 			continue;
 		}
 		
@@ -223,7 +223,6 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 
 		if (strlen($seq) == 0)
 		{
-			var_dump($record);
 			trigger_error("Empty sequence returned: {$chr}:{$txStart}-{$txEnd}", E_USER_ERROR);
 		}
 		
@@ -431,7 +430,7 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 		$post_len = $post_pos - $aa_pos0;
 		$post = substr($pep, $aa_pos0 + 1, $post_len);
 		
-		if ($variant_in_exon)
+		if ($variant_in_cds)
 		{
 			if ($mark_mutation)
 			{
@@ -442,6 +441,15 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 			{
 				$add_to_info[] = sprintf("%s|%s%s%s", $transcript, $pre, $change, $post);
 			}
+		}
+		else
+		{
+			if (isset($transcripts_snpeff[$transcript]["protein"][0]))
+			{
+				var_dump($transcripts_snpeff[$transcript]["protein"]);
+				trigger_error(sprintf("Transcript %s not annotated but SnpEff record available!.", $transcript), E_USER_NOTICE);
+			}
+			
 		}
 		
 		
