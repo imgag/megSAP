@@ -114,6 +114,12 @@ wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes
 bgzip gnomAD_genome_r2.0.1.vcf
 tabix -p vcf gnomAD_genome_r2.0.1.vcf.gz
 
+#install UCSC
+cd $dbs
+mkdir UCSC
+cd UCSC
+wget -O - http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/cytoBand.txt.gz | gunzip > cytoBand.txt
+
 #install OMIM (you might need a license)
 #cd $dbs
 #mkdir OMIM

@@ -21,6 +21,7 @@ $parser->addInt("thres", "Number of flanking bases around exons which are consid
 $parser->addFlag("no_fc", "No format check (vcf/tsv).");
 $parser->addFlag("no_ngsd", "No annotation of variants with information from NGSD.");
 $parser->addFlag("multi", "Enable multi-sample mode.");
+$parser->addFlag("updown","Annotate variants up- or downstream of genes.");
 extract($parser->parse($argv));
 
 //input file names
@@ -57,7 +58,7 @@ if ($sys['build']!="hg19" && $sys['build']!="GRCh37" && $sys['build']!="mm10")
 
 //annotate VCF
 $args = array("-in $vcf_unzipped", "-thres $thres", "-out $annfile");
-if ($sys['type']!="WGS")
+if ($sys['type']!="WGS" && !$updown)
 {
 	$args[] = "-no_updown";
 }

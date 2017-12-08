@@ -12,6 +12,7 @@
 /test/data_amplicon/*_QCML.txt
 /test/data_amplicon/*_cnvs.tsv
 /test/data_amplicon/*_lowcov.bed
+/test/data_amplicon/*.seg
 
 /test/data_chrx/*.fastq.gz
 /test/data_chrx/*.bam
@@ -25,6 +26,7 @@
 /test/data_chrx/*_cnvs.tsv
 /test/data_chrx/*_cnvs.seg
 /test/data_chrx/*_lowcov.bed
+/test/data_chrx/*.seg
 
 /test/data_trio/*.GSvar
 /test/data_trio/*.log
