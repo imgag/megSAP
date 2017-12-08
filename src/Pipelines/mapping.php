@@ -197,6 +197,9 @@ if($sys['type']=="Panel Haloplex HS" && file_exists($index_file))
 	$parser->exec(get_path("samtools")." index", " $out", true);
 }
 
+//add baf file
+$parser->execTool("NGS/mapping_baf.php", "-bam ${out} -out ${basename}_bafs.seg -target ".$sys['target_file']);
+
 //run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
 $params = array();
