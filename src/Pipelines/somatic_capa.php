@@ -21,6 +21,7 @@ $parser->addString("o_folder", "Folder where output will be generated.", false);
 $parser->addString("n_id",  "Reference DNA-sample processing ID.", true, "");
 $parser->addInfile("t_sys",  "Tumor sample processing system INI file (determined from 't_id' by default).", true);
 $parser->addInfile("n_sys",  "Reference sample processing system INI file (determined from 'n_id' by default).", true);
+$parser->addInfile("promoter","Bed file containing promoter region.",true,"auto");
 $steps_all = array("ma", "vc", "an", "ci", "db","re");
 $parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, implode(",", $steps_all));
 $parser->addFlag("abra", "Turn on ABRA realignment.");
@@ -89,6 +90,13 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0)
 	if (isset($t_sys)) $extras[] = "-t_sys $t_sys";
 	$extras[] = ($single_sample?"-n_id na":"-n_id $n_id");
 	if (!$single_sample && isset($n_sys)) $extras[] = "-n_sys $n_sys";
+	if(!empty($promoter) && $promoter!="auto")	$extras[] = "-promoter $promoter";
+	else if($promoter=="auto")
+	{
+		$promoter = str_replace(".bed","_promoters.bed",$system_t['target_file']);
+		if(is_file($promoter))	$extras[] = "-promoter $promoter";
+		else	trigger_error("No promoter regions file found. Skipped promoter annotation.",E_USER_WARNING);
+	}
 	$parser->execTool("Pipelines/somatic_dna.php", "-p_folder $p_folder -t_id $t_id -o_folder $o_folder ".implode(" ", $extras));
 
 	// add target region statistics (needed by GSvar)

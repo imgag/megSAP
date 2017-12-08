@@ -32,6 +32,7 @@ $parser->addFlag("reduce_variants_filter", "Reduce number of variants to PASS by
 $parser->addFlag("freebayes", "Use freebayes for variant calling (default: strelka).");
 $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal sample.", true, 0);
 $parser->addFlag("no_softclip", "Skip soft-clipping of overlapping reads. NOTE: This may increase rate of false positive variants.", true);
+$parser->addInfile("promoter","Bed file containing promoter regions. Will be used for filter column of vcf.",true);
 $parser->addEnum("clip", "Soft-clip overlapping read pairs.", true, array("sc","mfb","mfm","mfr"),"sc");
 $parser->addFlag("strelka1","Use strelka1 for variant calling.",true);
 $parser->addFlag("add_vc_folder","Add folder containing variant calling results from variant caller.",true);
@@ -183,14 +184,13 @@ $som_prefix = $t_id;
 $som_v = $o_folder.$t_id."_var.vcf.gz";
 if(!$single_sample)	$som_v = $o_folder.$t_id."-".$n_id."_var.vcf.gz";
 $som_cnv = $o_folder.$t_id."_var_cnvs.tsv";
-$som_baf = $o_folder.$t_id."_bafs.seg";
 if(!$single_sample)	$som_cnv = $o_folder.$t_id."-".$n_id."_cnvs.tsv";
-if(!$single_sample)	$som_baf = $o_folder.$t_id."-".$n_id."_bafs.seg";
 $som_gsvar = $o_folder.$som_prefix.".GSvar";
 if(!$single_sample)	$som_qci = $o_folder.$t_id."-".$n_id."_var_qci.vcf.gz";
 if(!$single_sample)	$som_sv = $o_folder.$t_id."-".$n_id."_var_structural.vcf.gz";
 if(!$single_sample)	$som_svt = $o_folder.$t_id."-".$n_id."_var_structural.tsv";
 if(!$single_sample)	$som_si = $o_folder.$t_id."-".$n_id."_var_smallIndels.vcf.gz";
+$som_bafs = $o_folder.$t_id."-".$n_id."_bafs.seg";
 if (in_array("vc", $steps))
 {
 	// structural variant calling, should be done before variant calling since strelka uses the smallIndel output
@@ -276,11 +276,11 @@ if (in_array("vc", $steps))
 		$args[] = "-build ".$t_sys_ini['build'];
 		$args[] = "-target ".$t_sys_ini['target_file'];
 		if ($keep_all_variants_strelka) $args[] = "-k";
-		if ($amplicon) $args[] = "-amplicon";
+		//if ($amplicon) $args[] = "-amplicon";
 		if($add_vc_folder)	$args[] = "-temp ".dirname($som_v)."/variant_calling";
-		if(!$strelka1 && is_file($som_si))	$args[] = "-smallIndels $som_si";
-		if(!$strelka1 && !$amplicon)	$parser->execTool("NGS/vc_strelka2.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));
-		else 	$parser->execTool("NGS/vc_strelka.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));	//combined variant calling using strelka		
+		if(is_file($som_si))	$args[] = "-smallIndels $som_si";
+		$parser->execTool("NGS/vc_strelka2.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));
+		//else 	$parser->execTool("NGS/vc_strelka.php", "-t_bam $t_bam -n_bam $n_bam -out $som_v ".implode(" ", $args));	//combined variant calling using strelka		
 	}
 
 	// copy number variant calling
@@ -305,86 +305,8 @@ if (in_array("vc", $steps))
 	if($t_sys_ini['type']=="WES")	$n = 30;
 	$parser->execTool("NGS/vc_cnvhunter.php", "$tmp_in -out $som_cnv -system $t_sys -min_corr 0 -seg $t_id -n $n");
 	
-	// add baf seg file
-	$snps =  get_path("data_folder")."/dbs/1000G/1000g_v5b.vcf.gz";
-	$tmp_variants1 = $parser->tempFile("_variants_filtered.vcf");
-	$parser->exec(get_path("ngs-bits")."/VariantFilterRegions", "-in $snps -reg ${t_sys_ini['target_file']} -out $tmp_variants1", true);
-
-	$min_af = 0.01;
-	$tmp_variants2 = $parser->tempFile("_variants_filtered.tsv");
-	$handle = fopen($tmp_variants1, "r");
-	$handle_out = fopen($tmp_variants2, "w");
-	$in_header = true;
-	while(!feof($handle))
-	{
-		$line = nl_trim(fgets($handle));
-		if ($line=="" || starts_with($line, "#")) continue;
-		
-		$cols = explode("\t", $line);
-		if (count($cols)<10) trigger_error("VCF file line contains less than 10 columns:\n$line", E_USER_ERROR);
-		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = $cols;
-		
-		$skip_variant = true;
-		$ii = explode(";",$info);
-		foreach($ii as $i)
-		{
-			if(!contains($i,"="))	continue;
-			list($n,$v) = explode("=",$i);
-			if($n=="AF" && $v>=$min_af)	$skip_variant = false;
-		}
-		if($skip_variant)	continue;
-		
-		//parse data from VCF
-		if(chr_check($chr, 22, false) === FALSE) continue; //skip bad chromosomes
-		if(strlen($ref)>1 || strlen($alt)>1)	continue;	//skip indels
-		
-		$start = $pos;
-		$end = $pos;
-		$ref = strtoupper($ref);
-		$alt = strtoupper($alt);
-		fwrite($handle_out, "chr$chr\t$start\t$end\t$ref\t$alt\n");
-	}
-	fclose($handle);
-	fclose($handle_out);
-
-	$tmp_variants3 = $parser->tempFile("_annotated.tsv");
-	$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $tmp_variants2 -bam $t_bam -out $tmp_variants3 -depth", true);
-
-	$tmp_variants4 = $parser->tempFile("_variants_20x.vcf");
-	$handle = fopen($tmp_variants3, "r");
-	$handle_out = fopen($tmp_variants4, "w");
-	while(!feof($handle))
-	{
-		$line = nl_trim(fgets($handle));
-		if ($line=="" || starts_with($line, "#")) continue;
-		
-		$cols = explode("\t", $line);
-		if($cols[6]<20)	continue;
-		
-		fwrite($handle_out, implode("\t",$cols)."\n");
-	}
-	fclose($handle);
-	fclose($handle_out);
-
-	$handle = fopen($tmp_variants4, "r");
-	$handle_out = fopen($tmp_folder."/baf.seg", "w");
-	fwrite($handle_out, "#type=GENE_EXPRESSION\n");
-	fwrite($handle_out, "#track graphtype=points name=\"".$t_id."-".$n_id." CN baf\" midRange=0.25:0.75 color=0,0,255 altColor=255,0,0 viewLimits=0:1 maxHeightPixels=80:80:80\n");
-	fwrite($handle_out, "ID	chr	start	end	z-score\n");
-	while(!feof($handle))
-	{
-		$line = nl_trim(fgets($handle));
-		
-		if ($line=="") continue;
-		if (starts_with($line, "#")) 	continue;
-
-		$cols = explode("\t", $line);	
-		fwrite($handle_out, $t_id."-".$n_id."\t${cols[0]}\t${cols[1]}\t${cols[2]}\t${cols[5]}\n");
-	}
-	fclose($handle);
-	fclose($handle_out);
-	
-	copy2($tmp_folder."/baf.seg", $som_baf);
+	// add somatic baf file
+	$parser->execTool("NGS/mapping_baf.php", "-bam $t_bam -out $som_bafs -target ".$t_sys_ini['target_file']);
 }
 
 // annotation
@@ -401,7 +323,7 @@ if (in_array("an", $steps))
 	// annotate vcf into temp folder
 	$tmp_folder1 = $parser->tempFolder();
 	$tmp_vcf = $tmp_folder1."/".basename($som_gsvar, ".GSvar")."_var_annotated.vcf.gz";
-	$parser->execTool("Pipelines/annotate.php", "-out_name ".basename($som_gsvar, ".GSvar")." -out_folder $tmp_folder1 -system $t_sys -vcf $som_v -t_col $t_id ".($single_sample?"":"-n_col $n_id")." -thres 8");
+	$parser->execTool("Pipelines/annotate.php", "-out_name ".basename($som_gsvar, ".GSvar")." -out_folder $tmp_folder1 -system $t_sys -vcf $som_v -t_col $t_id ".($single_sample?"":"-n_col $n_id")." -thres 8 -updown");
 	if (!copy($tmp_vcf, $som_unfi))	trigger_error("Could not copy file '$tmp_vcf' to '$som_unfi'",E_USER_ERROR);
 
 	// run somatic QC; this is run before project specific filtering since some qc parameters should not have additional filters set
@@ -424,6 +346,7 @@ if (in_array("an", $steps))
 	if($t_sys_ini["target_file"]!="")	$extra[] = "-roi ".$t_sys_ini["target_file"];
 	if(!$reduce_variants_filter)	$extra[] = "-keep";
 	if($contamination > 0)	$extra[] = "-contamination $contamination";
+	if($promoter!="")	$filter_set .= ",promoter -promoter $promoter";
 	$parser->execTool("NGS/filter_vcf.php", "-in $som_unfi -out $som_vann -min_af $min_af -type $filter_set ".implode(" ", $extra));
 
 	// annotate somatic NGSD-data
