@@ -17,7 +17,6 @@ $parser->addOutfile("out", "Output file in VCF format.", false);
 // optional arguments
 $parser->addString("build", "Genome build to use.", true, "GRCh37");
 $parser->addInt("flanking_codons", "Number of flanking codons.", true, 5);
-$parser->addFlag("mark_mutation", "Mark the amino acid exchange.");
 $parser->addString("field", "VCF field name.", true, "PEPTIDE");
 
 // extract arguments
@@ -318,7 +317,6 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 		
 		$cds = implode("", $cds_arr);
 		$cds_mut = implode("", $cdsmut_arr);
-//		$cds_mut_2 = substr_replace($cds, $vcf_alt, $cds_var_pos, strlen($vcf_ref));
 		
 		if ($strand === "+")
 		{
@@ -337,7 +335,6 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 		{
 			$cds = rev_comp($cds);
 			$cds_mut = rev_comp($cds_mut);
-//			$cds_mut_2 = rev_comp($cds_mut_2);
 			
 			// position in reverse complement
 			$cds_var_pos = strlen($cds) - $cds_var_pos + 1;
@@ -400,19 +397,6 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 				E_USER_WARNING);
 		}
 		
-//		$pep_mut_2 = translate($cds_mut_2);
-		
-//		var_dump($fields);
-//		var_dump($record);
-//		var_dump($cds);
-//		var_dump($cds_mut);
-//		var_dump($cds_mut_2);
-//		var_dump($pep);
-//		var_dump($pep_mut);
-//		var_dump($pep_mut_2);
-//		var_dump($cds_var_pos);
-//		var_dump($aa_pos);
-		
 		// position of changed amino acid in string (0-based)
 		$aa_pos0 = $aa_pos - 1;
 		
@@ -432,25 +416,12 @@ for ($r = 0; $r < $vcf->rows(); ++ $r)
 		
 		if ($variant_in_cds)
 		{
-			if ($mark_mutation)
-			{
-//				$add_to_info[] = sprintf("%s|c.pos:%d|p.pos:%d|%s[%s/%s]%s|pep:%s|pep_mut:%s|cds:%s|cds_mut:%s", $transcript, $cds_var_pos, $aa_pos, $pre, $orig, $change, $post, $pep, $pep_mut, $cds, $cds_mut);
-				
-				// use 5'flanking-[ref/alt]-3'flanking for SNVs
-				if (strlen($vcf_alt) === strlen($vcf_ref))
-				{
-					$add_to_info[] = sprintf("%s|%s[%s/%s]%s", $transcript, $pre, $orig, $change, $post);
-				}
-				// use reference:ref|mutated:mut for indels
-				else
-				{
-					$add_to_info[] = sprintf("%s|reference:%s%s%s|mutated:%s%s%s", $transcript, $pre, $orig, $post, $pre, $change, $post);
-				}
-			}
-			else
-			{
-				$add_to_info[] = sprintf("%s|%s%s%s", $transcript, $pre, $change, $post);
-			}
+			$wt = $pre.$orig.$post;
+			$mut = $pre.$change.$post;
+			
+			if(strpos($mut,"*")!==FALSE)	$mut = substr($mut,0,strpos($mut,"*")+1);
+			
+			$add_to_info[] = sprintf("%s|%s|%s", $transcript, $wt, $mut);
 		}
 		else
 		{
