@@ -204,7 +204,7 @@ if($somatic)
 			continue;
 		}
 		
-		//check that at least half of the regions have a significantly hiher number z-score in tumor than in normal
+		//check that at least half of the regions have a significantly higher number z-score in tumor than in normal
 		$z_diff_pass_count = array_sum(array_slice($z_diff_pass, $start_index, $reg_count));
 		if ($z_diff_pass_count < 0.5 * $reg_count)
 		{		
@@ -223,6 +223,228 @@ if($somatic)
 		$reg_afs = implode(",", array_slice($reg_afs, $start_index, $reg_count));
 		$cnvs_somatic->addRow(array($chr, $start, $end, $sample, $end-$start+1, $reg_count, $reg_cns, $reg_zs, $reg_afs, $reg_coords, $genes));
 	}
+	
+	//annotate marker positions, bed file needs to be sorted
+	$tmp_file = $parser->tempFile("_sorted.bed");
+	$parser->exec(get_path("ngs-bits")."BedSort", "-in ".$sys['target_file']." -out ".$tmp_file." -uniq", true);
+	$target = Matrix::fromTSV($tmp_file);
+	$new_col1 = array_fill(0,$cnvs_somatic->rows(),$target->rows());
+	$new_col2 = array_fill(0,$cnvs_somatic->rows(),0);
+	for($i=0;$i<$target->rows();++$i)
+	{
+		$row = $target->getRow($i);
+		for($j=0;$j<$cnvs_somatic->rows();++$j)
+		{
+			$r = $cnvs_somatic->getRow($j);
+			if($row[0]!=$r[0])	continue;
+			if(!range_overlap($row[1],$row[2],$r[1],$r[2]))	continue;
+			
+			if($i<$new_col1[$j])	$new_col1[$j] = $i+1;
+			if($i>$new_col2[$j])	$new_col2[$j] = $i+1;
+		}
+	}
+	$cnvs_somatic->addCol($new_col1,"first_marker");
+	$cnvs_somatic->addCol($new_col2,"last_marker");
+	$idx_first = $cnvs_somatic->getColumnIndex("first_marker");
+	$idx_last = $cnvs_somatic->getColumnIndex("last_marker");
+	$idx_start = $cnvs_somatic->getColumnIndex("start");
+	$idx_end = $cnvs_somatic->getColumnIndex("end");
+	$tmp_matrix = new Matrix();
+	$tmp_matrix->setComments($cnvs_somatic->getComments());
+	$tmp_matrix->setHeaders($cnvs_somatic->getHeaders());
+	
+	if($cnvs_somatic->rows()>1)
+	{
+		$tmp_matrix->addRow($cnvs_somatic->getRow(0));
+		for($i=1;$i<$cnvs_somatic->rows();++$i)
+		{
+			$current_region = $cnvs_somatic->getRow($i);
+			$merged_region = $current_region;
+			
+			$merged_cn = "n/a";
+			$tmp_median = median(explode(",",$merged_region[6]));
+			if($tmp_median>2 && $tmp_median<4)
+			{
+				$merged_cn = "AMP";
+			}
+			else if($tmp_median>=4)
+			{
+				$merged_cn = "HIGH_AMP";
+			}
+			else if($tmp_median<2 && $tmp_median>0)	$merged_cn = "LOSS";
+			else if($tmp_median<=0)	$merged_cn = "HIGH_LOSS";
+			
+			//merge regions only 10 % of markers / basepairs apart
+			$max_dist = 0.1;
+			if(contains("AMP",$merged_cn))	$max_dist = 0.15;
+
+			//compare to previous regions
+			$merge = true;
+			$row_index = $tmp_matrix->rows()-1;
+			while($merge && $row_index>=0)
+			{
+				$previous_region = $tmp_matrix->getRow($row_index);
+				
+				$previous_cn = "n/a";
+				$tmp_median = median(explode(",",$previous_region[6]));
+				if($tmp_median>2 && $tmp_median<4)	$previous_cn = "AMP";
+				else if($tmp_median>=4)	$previous_cn = "HIGH_AMP";
+				else if($tmp_median<2 && $tmp_median>0)	$previous_cn = "LOSS";
+				else if($tmp_median<=0)	$previous_cn = "HIGH_LOSS";
+				
+				$allowed_markers = max(($merged_region[$idx_last]-$merged_region[$idx_first])*$max_dist,($previous_region[$idx_last]-$previous_region[$idx_first])*$max_dist);
+				$allowed_dist = max(($merged_region[$idx_end]-$merged_region[$idx_start])*$max_dist,($previous_region[$idx_end]-$previous_region[$idx_start])*$max_dist);
+
+				//check same type
+				if($merged_region[0]!=$previous_region[0])	$merge = false;
+				if($merged_cn!=$previous_cn)	$merge = false;
+				if(($merged_region[$idx_first] - $previous_region[$idx_last]) > $allowed_markers && ($merged_region[$idx_start] - $previous_region[$idx_end]) >  $allowed_dist)	$merge = false;
+				
+				if($merge)
+				{
+					$merged_region[1] = $previous_region[1];
+					$merged_region[4] += $previous_region[4];
+					$merged_region[5] += $previous_region[5];
+					$merged_region[6] = $previous_region[6].",".$merged_region[6];
+					$merged_region[7] = $previous_region[7].",".$merged_region[7];
+					$merged_region[8] = $previous_region[8].",".$merged_region[8];
+					$merged_region[9] = $previous_region[9].",".$merged_region[9];
+					$merged_region[10] = $previous_region[10].",".$merged_region[10];
+					$merged_region[11] = $previous_region[11];
+					
+					// remove previous region
+					$tmp_matrix->removeRow($row_index);
+					--$row_index;
+				}
+			}
+			
+			$tmp_matrix->addRow($merged_region);
+		}
+	}
+	$cnvs_somatic = $tmp_matrix;
+	
+	// fix region information
+	$tmp_matrix = new Matrix();
+	$tmp_matrix->setComments($cnvs_somatic->getComments());
+	$tmp_matrix->setHeaders($cnvs_somatic->getHeaders());
+	for($i=0;$i<$cnvs_somatic->rows();++$i)
+	{
+		$current_region = $cnvs_somatic->getRow($i);
+	
+		$count_regions = 0;
+		$region_copy_numbers = array();
+		$region_zscores = array();
+		$region_coordinates = array();
+
+		for($j=0;$j<$reduced_tumor->rows();++$j)
+		{
+			$rt = $reduced_tumor->getRow($j);
+
+			list($chr,$region) = explode(":",$rt[1]);
+			list($start,$end) = explode("-",$region);
+			
+			if($chr!=$current_region[0])	continue;
+			if(!range_overlap($start,$end,$current_region[1],$current_region[2]))	continue;
+
+			++$count_regions;
+			$region_coordinates[] = $rt[1];
+			$region_copy_numbers[] = $rt[2];
+			$region_zscores[] = $rt[3];
+		}
+		
+		$current_region[5] = $count_regions;
+		$current_region[6] = implode(",",$region_copy_numbers);
+		$current_region[7] = implode(",",$region_zscores);
+		$current_region[8] = "no_data";	// information missing
+		$current_region[9] = implode(",",$region_coordinates);
+		$current_region[10] = "no_data";	// genes missing
+		
+		$tmp_matrix->addRow($current_region);
+	}
+	trigger_error("Columns GENES and AF may contain all regions than due to the merging process.",E_USER_WARNING);
+	$cnvs_somatic = $tmp_matrix;
+
+	// anotate genes and replace old gene column
+	$tmp_file1 = $temp_folder."/cnvs_tumor.tsv";
+	$tmp_file2 = $temp_folder."/cnvs_tumor_ann.tsv";
+	$idx_genes = $cnvs_somatic->getColumnIndex("genes");
+	$cnvs_somatic->toTSV($tmp_file1);
+	$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $tmp_file1 -out $tmp_file2 -extend 5", true);
+	$tmp_somatic = Matrix::fromTSV($tmp_file2);
+	$idx_last = $tmp_somatic->cols()-1;
+	for($i=0;$i<$cnvs_somatic->rows();++$i)
+	{
+		if(array_slice($cnvs_somatic->getRow($i),0,3) != array_slice($tmp_somatic->getRow($i),0,3))	trigger_error("CNV files out of phase.",E_USER_ERROR);
+		$cnvs_somatic->set($i,$idx_genes,str_replace(" ","",$tmp_somatic->get($i,$idx_last)));
+	}
+	$tmp_file3 = $temp_folder."/cnvs_tumor_ann_col.tsv";
+	$cnvs_somatic->toTSV($tmp_file3);
+	
+	//decide if focal, chromosome_arm, chromosome and add column cnv_type
+	//parse ucsc chromosome file
+	$chr = "";
+	$start = 0;
+	$end = 0;
+	$arm = "";
+	$chrom_arms = array();
+	$matrix = Matrix::fromTSV(get_path("data_folder")."/dbs/UCSC/cytoBand.txt");
+	for($i=0;$i<$matrix->rows();++$i)
+	{
+		$row = $matrix->getRow($i);
+		
+		list($tmp_chr,$tmp_start,$tmp_end,$tmp_arm) = $row;
+		++$tmp_start;	//0-based to 1-based
+		$tmp_arm = $tmp_arm[0];
+		
+		if(empty($chr))	list($chr,$start,$end,$arm) = array($tmp_chr,$tmp_start,$tmp_end,$tmp_arm);
+		else if($chr!=$tmp_chr || $arm!=$tmp_arm)
+		{
+			$chrom_arms[] = array($chr,$start,$end,$arm);
+			list($chr,$start,$end,$arm) = array($tmp_chr,$tmp_start,$tmp_end,$tmp_arm);
+		}
+		else
+		{
+			$end = $tmp_end;
+		}
+	}
+	if(!empty($chr))	$chrom_arms[] = array($chr,$start,$end,$arm);
+	//focal < 25 % chromosomal arm
+	//arm >= 50 % of chromosomal arm
+	//chromosome => centromer included
+	$new_col = array();
+	for($i=0;$i<$cnvs_somatic->rows();++$i)
+	{
+		$row = $cnvs_somatic->getRow($i);
+		
+		$overlap = array();
+		for($j=0;$j<count($chrom_arms);++$j)
+		{
+			$r = $chrom_arms[$j];
+			if($row[0]!=$r[0])	continue;
+			if(!range_overlap($row[1],$row[2],$r[1],$r[2]))	continue;
+			
+			$intersect = range_intersect($row[1],$row[2],$r[1],$r[2]);
+			$size = $r[2]-$r[1];
+			
+			// overlap - arm, fraction
+			$overlap[] = array($r[3],($intersect[1]-$intersect[0])/$size);
+		}
+		
+		if(count($overlap)>2 || count($overlap)<1)	trigger_error("This should not happen.",E_USER_ERROR);
+		
+		if($overlap[0][1]<=0.25) $tmp_type = "focal";
+		else if($overlap[0][1]>0.25) $tmp_type = $overlap[0][0]."-arm";
+		if(isset($overlap[1]) && !empty($overlap[1]))
+		{
+			$tmp_overlap = ($overlap[0][1] + $overlap[1][1])/2;
+			if($tmp_overlap>0.5) $tmp_type = "chromosome";
+			else if($tmp_overlap<0.5 && $overlap[1][1]>$overlap[0][1]) $tmp_type = $overlap[1][0]."-arm";
+		}
+				
+		$new_col[] = $tmp_type;
+	}
+	$cnvs_somatic->insertCol(5,$new_col, "cnv_type","Type of CNV: focal (< 25 % of chrom. arm), p/q-arm (centromere not included), chromosome.");
+
 	$cnvs_filtered = $cnvs_somatic;
 }
 
