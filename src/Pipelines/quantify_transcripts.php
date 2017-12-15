@@ -19,14 +19,20 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 $parser->addInfile("system", "Processing system INI file (determined from NGSD via the 'name' by default).", true);
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
-$parser->addString("out", "Output file, defaults to <name>_transcript_quant.tsv.", true, "default");
+$parser->addString("out", "Output file, defaults to <name>_transcript_quant.tsv.", true, "");
+$parser->addString("out_raw", "Raw output file, defaults to <name>_transcript_quant.sf.", true, "");
 
 extract($parser->parse($argv));
 
 //resolve out_folder
-if ($out === "default")
+if ($out === "")
 {
 	$out = "{$folder}/{$name}_transcript_quant.tsv";
+}
+
+if ($out_raw === "")
+{
+	$out_raw = "{$folder}/{$name}_transcript_quant.sf";
 }
 
 //log server name
@@ -113,12 +119,11 @@ else
 }
 
 //quantification
-$tmp_quant = $parser->tempFile("_quant.tsv");
 $args_quant = ["-threads", $threads,
 	"-in1", $fastq_trimmed1,
 	"-index", $index,
 	"-library_type", $library_type,
-	"-out", $tmp_quant
+	"-out", $out_raw
    ];
 if ($paired)
 {
@@ -127,7 +132,9 @@ if ($paired)
 
 $parser->execTool("NGS/quant_salmon.php", implode(" ", $args_quant));
 
-$quant = Matrix::fromTSV($tmp_quant);
+$tmp_quant = $parser->tempFile("_quant.tsv");
+$quant = Matrix::fromTSV($out_raw);
+$quant->removeRow(0);
 $quant->removeCol(1);
 $quant->removeCol(2);
 $quant->setHeaders(["transcript_id", "tpm", "estimated_count"]);

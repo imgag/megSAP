@@ -15,7 +15,6 @@ $parser = new ToolBase("quant_salmon", "Transcript quantification with salmon.")
 //mandatory arguments
 $parser->addInfileArray("in1", "Input forward/R1 FASTQ file(s).", false);
 $parser->addOutfile("out", "Abundance output file in tabular format.", false);
-//$parser->addOutfile("out_dir", "Output directory.", false);
 
 //optional arguments
 $parser->addInfileArray("in2", "Input reverse/R2 FASTQ file(s).", true);
@@ -65,5 +64,4 @@ $parser->exec(get_path("salmon"), implode(" ", $args), true);
 $parser->log("salmon aux_info/meta_info.json:",
 	file($tmp_folder . "/aux_info/meta_info.json"));
 
-file_put_contents($out, "#");
-file_put_contents($out, file_get_contents($tmp_folder . "/quant.sf"), FILE_APPEND);
+copy($tmp_folder . "/quant.sf", $out);
