@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("mapping_baf", "Generate seg file that contains bafs.");
+$parser = new ToolBase("mapping_baf", "Generate seg file that contains b-allele frequencies.");
 $parser->addInfile("bam",  "Input file in bam format.", false);
 $parser->addInfile("target",  "Input file in bed format.", true);
 $parser->addOutfile("out",  "Output file in seg format.", false);
@@ -18,7 +18,7 @@ extract($parser->parse($argv));
 
 $sid = basename($bam,".bam");
 
-// filter 1000g for target region and population freqeuency
+//filter 1000g for target region and population freqeuency
 $snps =  get_path("data_folder")."/dbs/1000G/1000g_v5b.vcf.gz";
 $tmp_variants1 = $parser->tempFile("_variants_filtered.vcf");
 $parser->exec(get_path("ngs-bits")."/VariantFilterRegions", "-in $snps -reg $target -out $tmp_variants1", true);

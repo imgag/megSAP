@@ -51,6 +51,7 @@ $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 $bamfile = $out_folder."/".$name.".bam";
 if(!in_array("ma", $steps))	$bamfile = $folder."/".$name.".bam";
 $vcffile = $out_folder."/".$name."_var.vcf.gz";
+$vcffile_annotated = $out_folder."/".$name."_var_annotated.vcf.gz";	
 if(!in_array("vc", $steps))	$vcffile = $folder."/".$name."_var.vcf.gz";
 $varfile = $out_folder."/".$name.".GSvar";
 $lowcov_file = $out_folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
@@ -65,6 +66,7 @@ $qc_map  = $out_folder."/".$name."_stats_map.qcML";
 $qc_vc  = $out_folder."/".$name."_stats_vc.qcML";
 $cnvfile = $out_folder."/".$name."_cnvs.tsv";
 $cnvfile2 = $out_folder."/".$name."_cnvs.seg";
+$rohfile = $out_folder."/".$name."_rohs.tsv";
 
 //move old data to old_[date]_[random]-folder
 if($backup && in_array("ma", $steps))
@@ -196,11 +198,21 @@ if (in_array("vc", $steps))
 if (in_array("an", $steps))
 {
 	if(file_exists($log_an)) unlink($log_an);
-	
+
 	//annotate
 	$args = array("-out_name $name", "-out_folder $out_folder", "-system $system", "-thres $thres", "--log $log_an");
 	if (!db_is_enabled("NGSD")) $args[] = "-no_ngsd";
 	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
+	
+	//ROH detection
+	if ($sys['type']=="WGS" || $sys['type']=="WES")
+	{
+		$args = array();
+		$args[] = "-in $vcffile_annotated";
+		$args[] = "-out $rohfile";
+		$args[] = "-annotate ".get_path("data_folder")."/gene_lists/genes.bed ".get_path("data_folder")."/dbs/OMIM/omim.bed";
+		$parser->exec(get_path("ngs-bits")."RohHunter", implode(" ", $args), true);
+	}
 }
 
 //import to database
