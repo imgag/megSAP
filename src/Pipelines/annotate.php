@@ -47,6 +47,7 @@ $annfile = $parser->tempFile(".vcf");
 $annfile_zipped = $out_folder."/".$out_name."_var_annotated.vcf.gz";	
 $varfile = $out_folder."/".$out_name.".GSvar";	
 $varfile_full = $out_folder."/".$out_name."_full.GSvar";
+$varfile_rare = $out_folder."/".$out_name."_rare.GSvar";
 $stafile = $out_folder."/".$out_name."_stats_vc.qcML";
 
 //get system
@@ -114,6 +115,7 @@ if ($sys['type']=="WGS" && ($sys['build']=="hg19" || $sys['build']=="GRCh37"))
 	$parser->exec(get_path("ngs-bits")."BedAdd", "-in ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed -in2 {$tmp} -out {$roi_with_mito}", false);
 	$parser->exec(get_path("ngs-bits")."BedMerge", "-in {$roi_with_mito} -out {$roi_with_mito}", false);
 	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $varfile_full -out $varfile -reg {$roi_with_mito}", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterAnnotations", "-in $varfile_full -out $varfile_rare -max_af 0.01", true);
 }
 
 //annotated variant frequencies from NGSD (not for somatic)
