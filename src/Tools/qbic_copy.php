@@ -14,6 +14,7 @@ $parser->addString("project", "Restrict upload to a project.", true, "");
 $parser->addStringArray("samples", "Restrict upload to a list of processed sample.", true, "");
 $parser->addFlag("force_reupload", "Upload files even if already uploaded.", true, "");
 $parser->addFlag("force_sap", "Makes the SAP ID mandatory (and the QBIC ID optional).", true, "");
+$parser->addFlag("include_sap", "Include the SAP ID in metadata (if available).", true, "");
 extract($parser->parse($argv));
 
 //check project
@@ -421,44 +422,16 @@ foreach($res as $row)
 		//get folder and files
 		$skipped = false;
 		$missing = false;
-		if($sample1['experiment_type']=="dna_seq")
+
+		//skip samples where data is not at default location
+		$res3 = $db->executeQuery("SELECT p.type, p.name FROM processed_sample ps, project p WHERE ps.id='$ps_id' AND ps.project_id=p.id");
+		$project_folder = get_path("project_folder")."/".$res3[0]['type']."/".$res3[0]['name']."/";
+		$data_folder = $project_folder."Sample_".$ps_name."/";
+		if (!$skipped && !file_exists($data_folder))
 		{
-			//skip samples where data is not at default location
-			$res3 = $db->executeQuery("SELECT p.type, p.name FROM processed_sample ps, project p WHERE ps.id='$ps_id' AND ps.project_id=p.id");
-			$project_folder = get_path("project_folder")."/".$res3[0]['type']."/".$res3[0]['name']."/";
-			$data_folder = $project_folder."Sample_".$ps_name."/";
-			if (!$skipped && !file_exists($data_folder))
-			{
-				printTSV($output, "ERROR" ,"folder does not exist");
-				$missing = true;
-				continue;
-			}
-		}
-		else //rna_seq
-		{
-			if (!$skipped)
-			{
-				$hits = array();
-				foreach($sample_folders as $f)
-				{
-					if (contains($f, "Sample_".$ps_name))
-					{
-						$hits[] = $f;
-					}
-				}
-				
-				if (count($hits)>1)
-				{
-					printTSV($output, "ERROR" ,"several folders found: ".implode(", ", $hits));
-					continue;
-				}
-				if (count($hits)==0)
-				{
-					printTSV($output, "ERROR" ,"folder does not exist");
-					continue;
-				}
-				$data_folder = $hits[0]."/";
-			}
+			printTSV($output, "ERROR" ,"folder does not exist");
+			$missing = true;
+			continue;
 		}
 		
 		//determine files to transfer
@@ -494,7 +467,7 @@ foreach($res as $row)
 		}
 		
 		//check SAP identifier
-		if (!$skipped)
+		if (!$skipped && $include_sap)
 		{	
 			$sample1['id_sap'] = getSapId($s_name);
 			if ($force_sap && is_null($sample1['id_sap']))
@@ -602,11 +575,14 @@ foreach($res as $row)
 			
 			//get SAP identifier
 			list($s_name2) = explode("_", $ps_name2);
-			$sample2['id_sap'] = getSapId($s_name);			
-			if ($force_sap && is_null($sample2['id_sap']))
+			if ($include_sap)
 			{
-				printTSV($output, "ERROR" ,"No SAP identifier found for '$ps_name2'!");
-				continue;
+				$sample2['id_sap'] = getSapId($s_name);
+				if ($force_sap && is_null($sample2['id_sap']))
+				{
+					printTSV($output, "ERROR" ,"No SAP identifier found for '$ps_name2'!");
+					continue;
+				}
 			}
 			
 			//determine/create subfolder
