@@ -163,180 +163,188 @@ if (in_array("an", $steps))
 //(3) copy-number calling
 if (in_array("cn", $steps))
 {
-	$output = array();
-	
-	//load CNV files
-	$cnv_data = array();
+	//check that sample CNV files are present
+	$skip_cn = false;
 	foreach($bams as $bam)
 	{
-		//check CNV file exists
 		$filename = substr($bam, 0, -4)."_cnvs.tsv";
 		if (!file_exists($filename))
 		{
-			trigger_error("Sample CNV file missing: $filename", E_USER_ERROR);
+			trigger_error("Skipping CN analysis because sample CNV file is missing: $cnv_file_missing", E_USER_WARNING);
+			$skip_cn = true;
+			break;
+		}
+	}
+	
+	if (!$skip_cn)
+	{
+		//load CNV files
+		$output = array();
+		$cnv_data = array();
+		foreach($bams as $bam)
+		{
+			//parse CNV file
+			$cnv_num = 0;
+			$data = array();
+			$file = file(substr($bam, 0, -4)."_cnvs.tsv");
+			foreach($file as $line)
+			{
+				$line = nl_trim($line);
+				if ($line=="") continue;
+				
+				//header line
+				if (starts_with($line, "#"))
+				{
+					if (starts_with($line, "##"))
+					{
+						$output[] = $line;
+					}
+					continue;
+				}
+				
+				//content line
+				$parts = explode("\t", $line);
+				$regs = explode(",", $parts[9]);
+				$cns = explode(",", $parts[6]);
+				$zs = explode(",", $parts[7]);
+				$afs = explode(",", $parts[8]);
+				for($i=0; $i<count($regs); ++$i)
+				{
+					$data[] = array($regs[$i], $cns[$i], $zs[$i], $afs[$i], $cnv_num);
+				}
+				++$cnv_num;
+			}
+			$cnv_data[] = $data;
 		}
 		
-		//parse CNV file
-		$cnv_num = 0;
-		$data = array();
-		$file = file($filename);
-		foreach($file as $line)
+		//intersect CNV regions of affected (with same CN state)
+		$regions = null;
+		$i=-1;
+		foreach($status as $bam => $stat)
 		{
-			$line = nl_trim($line);
-			if ($line=="") continue;
+			++$i;
 			
-			//header line
-			if (starts_with($line, "#"))
+			//skip controls
+			if ($stat!="affected") continue;
+			
+			//first affected => init
+			if (is_null($regions))
 			{
-				if (starts_with($line, "##"))
-				{
-					$output[] = $line;
-				}
+				$regions = $cnv_data[$i];
 				continue;
 			}
 			
-			//content line
-			$parts = explode("\t", $line);
-			$regs = explode(",", $parts[9]);
-			$cns = explode(",", $parts[6]);
-			$zs = explode(",", $parts[7]);
-			$afs = explode(",", $parts[8]);
-			for($i=0; $i<count($regs); ++$i)
+			//intersect
+			$tmp = array();
+			foreach($regions as $cnv)
 			{
-				$data[] = array($regs[$i], $cns[$i], $zs[$i], $afs[$i], $cnv_num);
-			}
-			++$cnv_num;
-		}
-		$cnv_data[] = $data;
-	}
-	
-	//intersect CNV regions of affected (with same CN state)
-	$regions = null;
-	$i=-1;
-	foreach($status as $bam => $stat)
-	{
-		++$i;
-		
-		//skip controls
-		if ($stat!="affected") continue;
-		
-		//first affected => init
-		if (is_null($regions))
-		{
-			$regions = $cnv_data[$i];
-			continue;
-		}
-		
-		//intersect
-		$tmp = array();
-		foreach($regions as $cnv)
-		{
-			foreach($cnv_data[$i] as $cnv2)
-			{
-				if ($cnv[0]==$cnv2[0] && $cnv[1]==$cnv2[1])
+				foreach($cnv_data[$i] as $cnv2)
 				{
-					$new_entry = $cnv;
-					$new_entry[2] .= ",".$cnv2[2];
-					$tmp[] = $new_entry;
-					break;
+					if ($cnv[0]==$cnv2[0] && $cnv[1]==$cnv2[1])
+					{
+						$new_entry = $cnv;
+						$new_entry[2] .= ",".$cnv2[2];
+						$tmp[] = $new_entry;
+						break;
+					}
 				}
 			}
+			$regions = $tmp;
 		}
-		$regions = $tmp;
-	}
-	
-	//subract CNV regions of controls (with same CN state)
-	$i=-1;
-	foreach($status as $bam => $stat)
-	{
-		++$i;
 		
-		//skip affected
-		if ($stat=="affected") continue;
+		//subract CNV regions of controls (with same CN state)
+		$i=-1;
+		foreach($status as $bam => $stat)
+		{
+			++$i;
+			
+			//skip affected
+			if ($stat=="affected") continue;
+					
+			//subtract
+			$tmp = array();
+			foreach($regions as $cnv)
+			{
+				$match = false;
+				foreach($cnv_data[$i] as $cnv2)
+				{
+					if ($cnv[0]==$cnv2[0] && $cnv[1]==$cnv2[1])
+					{
+						$match = true;
+						break;
+					}
+				}
+				if (!$match)
+				{
+					$tmp[] = $cnv;
+				}
+			}
+			$regions = $tmp;
+		}
+		
+		//re-group regions by original number ($cnv_num)
+		$regions_by_number = array();
+		foreach($regions as $cnv)
+		{
+			$regions_by_number[$cnv[4]][] = $cnv;
+		}
+		
+		//write output
+		$output[] = "#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	overlaps_cnp_region	genes	dosage_sensitive_disease_genes	omim";	
+		foreach($regions_by_number as $cnv_num => $regions)
+		{
+			$chr = null;
+			$start = null;
+			$end = null;
+			$cns = array();
+			$zs = array();
+			$afs = array();
+			$cords = array();
+			foreach($regions as $reg)
+			{
+				list($c, $s, $e) = explode(":", strtr($reg[0], "-", ":"));
 				
-		//subtract
-		$tmp = array();
-		foreach($regions as $cnv)
-		{
-			$match = false;
-			foreach($cnv_data[$i] as $cnv2)
-			{
-				if ($cnv[0]==$cnv2[0] && $cnv[1]==$cnv2[1])
+				//coordinate range
+				if (is_null($chr))
 				{
-					$match = true;
-					break;
+					$chr = $c;
+					$start = $s;
+					$end = $e;
 				}
+				else
+				{
+					$start = min($start, $s);
+					$end = max($end, $e);
+				}
+				
+				$cns[] = $reg[1];
+				$zs[] = mean(explode(",", $reg[2]));
+				$afs[] = $reg[3];
+				$cords[] = $reg[0];
+				
 			}
-			if (!$match)
-			{
-				$tmp[] = $cnv;
-			}
+			$output[] = "{$chr}\t{$start}\t{$end}\tmulti\t".($end-$start)."\t".count($regions)."\t".implode(",", $cns)."\t".implode(",", $zs)."\t".implode(",", $afs)."\t".implode(",", $cords);
 		}
-		$regions = $tmp;
+		$tmp1 = temp_file(".bed");
+		file_put_contents($tmp1, implode("\n", $output));
+		
+		//annotate CNP regions
+		$data_folder = get_path("data_folder");
+		$tmp2 = temp_file(".bed");
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 {$data_folder}/dbs/CNPs/copy_number_map_strict.bed -out {$tmp2}", true);
+		
+		//annotate gene names
+		$tmp3 = temp_file(".bed");
+		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in {$tmp2} -extend 20 -out {$tmp3}", true);
+		
+		//annotate dosage sensitive disease genes
+		$tmp4 = temp_file(".bed");
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp3} -in2 {$data_folder}/gene_lists/dosage_sensitive_disease_genes.bed -out {$tmp4}", true);
+		
+		//annotate OMIM
+		$cnv_multi = $out_folder."multi_cnvs.tsv";
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp4} -in2 {$data_folder}/dbs/OMIM/omim.bed -out {$cnv_multi}", true);
 	}
-	
-	//re-group regions by original number ($cnv_num)
-	$regions_by_number = array();
-	foreach($regions as $cnv)
-	{
-		$regions_by_number[$cnv[4]][] = $cnv;
-	}
-	
-	//write output
-	$output[] = "#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	overlaps_cnp_region	genes	dosage_sensitive_disease_genes	omim";	
-	foreach($regions_by_number as $cnv_num => $regions)
-	{
-		$chr = null;
-		$start = null;
-		$end = null;
-		$cns = array();
-		$zs = array();
-		$afs = array();
-		$cords = array();
-		foreach($regions as $reg)
-		{
-			list($c, $s, $e) = explode(":", strtr($reg[0], "-", ":"));
-			
-			//coordinate range
-			if (is_null($chr))
-			{
-				$chr = $c;
-				$start = $s;
-				$end = $e;
-			}
-			else
-			{
-				$start = min($start, $s);
-				$end = max($end, $e);
-			}
-			
-			$cns[] = $reg[1];
-			$zs[] = mean(explode(",", $reg[2]));
-			$afs[] = $reg[3];
-			$cords[] = $reg[0];
-			
-		}
-		$output[] = "{$chr}\t{$start}\t{$end}\tmulti\t".($end-$start)."\t".count($regions)."\t".implode(",", $cns)."\t".implode(",", $zs)."\t".implode(",", $afs)."\t".implode(",", $cords);
-	}
-	$tmp1 = temp_file(".bed");
-	file_put_contents($tmp1, implode("\n", $output));
-	
-	//annotate CNP regions
-	$data_folder = get_path("data_folder");
-	$tmp2 = temp_file(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 {$data_folder}/dbs/CNPs/copy_number_map_strict.bed -out {$tmp2}", true);
-	
-	//annotate gene names
-	$tmp3 = temp_file(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in {$tmp2} -extend 20 -out {$tmp3}", true);
-	
-	//annotate dosage sensitive disease genes
-	$tmp4 = temp_file(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp3} -in2 {$data_folder}/gene_lists/dosage_sensitive_disease_genes.bed -out {$tmp4}", true);
-	
-	//annotate OMIM
-	$cnv_multi = $out_folder."multi_cnvs.tsv";
-	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp4} -in2 {$data_folder}/dbs/OMIM/omim.bed -out {$cnv_multi}", true);
 }
 
 ?>
