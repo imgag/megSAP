@@ -87,7 +87,7 @@ $parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $filtered_v
 $handle_out = fopen($out, "w");
 fwrite($handle_out, "#type=GENE_EXPRESSION\n");
 fwrite($handle_out, "#track graphtype=points name=\"{$ps_name} BAF\" midRange=0.25:0.75 color=0,0,255 altColor=255,0,0 viewLimits=0:1 maxHeightPixels=80:80:80\n");
-fwrite($handle_out, "ID	chr	start	end	z-score\n");
+fwrite($handle_out, "ID	chr	start	end	allele-frequency\n");
 $handle = fopen($annotated_variants, "r");
 while(!feof($handle))
 {
@@ -97,7 +97,7 @@ while(!feof($handle))
 	$cols = explode("\t", $line);
 	if($cols[6]<$min_dp) continue;
 	
-	fwrite($handle_out, $ps_name."\t${cols[0]}\t${cols[1]}\t${cols[2]}\t${cols[5]}\n");
+	fwrite($handle_out, "\t${cols[0]}\t${cols[1]}\t${cols[2]}\t${cols[5]}\n");
 }
 fclose($handle);
 fclose($handle_out);
