@@ -114,33 +114,31 @@ $n_bam = $n_folder.$n_id.".bam";
 if (in_array("ma", $steps))
 {
 	// run analyze.php on tumor and normal
-	$analyze_args = [
-		"-steps ma",
-		"-no_abra" // disable ABRA realignment due to manta compatibility issues
-	];
 
 	// tumor sample
 	if (!$smt)
 	{
 		$analyze_args_tum = [
+			"-steps ma",
 			"-folder", $t_folder,
 			"-name", $t_id,
 			"-system", $t_sys,
 			"--log", "{$t_folder}analyze_" . date('YmdHis',mktime()) . ".log"
 		];
-		$parser->execTool("Pipelines/analyze.php", implode(" ", array_merge($analyze_args, $analyze_args_tum)));
+		$parser->execTool("Pipelines/analyze.php", implode(" ", $analyze_args_tum));
 	}
 
 	// normal sample
 	if (!$single_sample && !$smn)
 	{
 		$analyze_args_nor = [
+			"-steps ma",
 			"-folder", $n_folder,
 			"-name", $n_id,
 			"-system", $n_sys,
 			"--log", "{$n_folder}analyze_" . date('YmdHis',mktime()) . ".log"
 		];
-		$parser->execTool("Pipelines/analyze.php", implode(" ", array_merge($analyze_args, $analyze_args_nor)));
+		$parser->execTool("Pipelines/analyze.php", implode(" ", $analyze_args_nor));
 	}
 
 	// overlap clipping, is not done by analyze.php to prevent import of QC data calculated on BamClipOverlap result
