@@ -8,8 +8,9 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("db_auto_classification", "Automatic classification of variants in NGSD.");
+$parser = new ToolBase("db_auto_classification", "Automatic classification of exonic/splicing variants in NGSD.");
 //optional
+$parser->addFlag("non_coding", "Also classify intronic/intergenic variants.");
 $parser->addFlag("update", "Enables update in NGSD. If unset, only a dry-run is performed!");
 extract($parser->parse($argv));
 
@@ -17,7 +18,8 @@ extract($parser->parse($argv));
 $db = DB::getInstance("NGSD");
 
 //extract variants for each target region
-$db_vars = $db->executeQuery("SELECT id, chr, start, end, ref, obs, 1000g, exac, gnomad, coding FROM variant ORDER BY chr ASC, start ASC");
+$where = $non_coding ? "" : "WHERE coding LIKE '%:HIGH:%' OR coding LIKE '%:MODERATE:%' OR coding LIKE '%:LOW:%'";
+$db_vars = $db->executeQuery("SELECT id, chr, start, end, ref, obs, 1000g, exac, gnomad, coding FROM variant $where ORDER BY chr ASC, start ASC");
 print "##variants=".count($db_vars)."\n";
 print "#number\tvariant\taf_1000g\taf_exac\taf_gnomad\taf_max\tngsd_hom\tngsd_het\tngsd_sum\thgmd\tclinvar\tclass\tclass_new\tcomment\tNGSD-update\n";	
 for ($i=0; $i<count($db_vars); ++$i)
@@ -115,8 +117,9 @@ for ($i=0; $i<count($db_vars); ++$i)
 		}
 	}
 	$hgmd = implode(", ", $hgmd);
-		
-	if ($max_af>=0.01 && ($hgmd!="" || $clinvar!=""))
+	
+	//special handling of rare pathogenic variants according to clinvar/HGMD
+	if ($class_new!="n/a" && (contains($hgmd, "CLASS=DM") || contains($clinvar, "pathogenic")))
 	{
 		$class_new = 3;
 	}
