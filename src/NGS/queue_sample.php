@@ -66,7 +66,7 @@ if($info['is_tumor'] && $info['normal_name']!="" && $info['sys_type'] != "RNA")
 	$steps_som = implode(",",$steps_som);
 	
 	$command = "php ".repository_basedir()."/src/Pipelines/somatic_capa.php";
-	$args = "-p_folder {$project_folder} -t_id {$sample} -n_id ".$info['normal_name']." -o_folder {$outfolder} -steps {$steps_som} --log {$outfolder}somatic_capa_".date("Ymdhis").".log";
+	$args = "-p_folder {$project_folder} -t_id {$sample} -n_id ".$info['normal_name']." -o_folder {$outfolder} -steps {$steps_som} --log {$outfolder}somatic_capa_".date("YmdHis").".log";
 }
 elseif ($info['sys_type'] == "RNA")
 {
@@ -82,12 +82,12 @@ elseif ($info['sys_type'] == "RNA")
 		//reduce to valid steps for analyze_rna
 		$steps = implode(",", array_intersect(explode(",", $steps), explode(",", "ma,rc,an,fu,db,qc")));
 	}
-	$args = "-folder {$sample_folder} -name {$sample} -steps {$steps} --log {$sample_folder}analyze_rna_".date("Ymdhis").".log";
+	$args = "-folder {$sample_folder} -name {$sample} -steps {$steps} --log {$sample_folder}analyze_rna_".date("YmdHis").".log";
 }
 else
 {
 	$command = "php ".repository_basedir()."/src/Pipelines/analyze.php";
-	$args = "-folder {$sample_folder} -name {$sample} -steps {$steps} --log {$sample_folder}analyze_".date("Ymdhis").".log";
+	$args = "-folder {$sample_folder} -name {$sample} -steps {$steps} --log {$sample_folder}analyze_".date("YmdHis").".log";
 	if ($info['sys_type']=="WGS") //whole genome => use 5 threads (default is 2)
 	{
 		$args .= " -threads 5";
