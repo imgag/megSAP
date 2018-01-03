@@ -33,6 +33,8 @@ $parser->addInt("sj_overhang", "Minimum overhang for non-annotated splice juncti
 $parser->addInt("sjdb_overhang", "Minimum overhang for annotated splice junctions.", true, 1);
 $parser->addInt("Lmax", "Max length of read fraction for seed search", true, 50);
 
+$parser->addInfileArray("sj_files", "Putative splice junctions files, enables one-pass run.", true);
+
 extract($parser->parse($argv));
 
 $outdir = realpath(dirname($out))."/";
@@ -101,9 +103,11 @@ if ($no_splicing)
 else
 {
 	$arguments[] = "--alignIntronMax 1000000 --alignIntronMin 20";
-	if ($one_pass)
+	if (isset($sj_files))
 	{
 		$arguments[] = "--twopassMode None";
+		$arguments[] = "--sjdbFileChrStartEnd";
+		$arguments[] = implode(" ", $sj_files);
 	}
 	else
 	{

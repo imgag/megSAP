@@ -22,6 +22,8 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mappi
 
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
 $parser->addFlag("no_splicing", "Disable spliced read alignment.");
+$parser->addInfileArray("sj_files", "Putative splice junctions files, enables one-pass run.", true);
+$parser->addFlag("all_junctions", "Disable filtering of reported junctions (affects splicing output only, not alignment).");
 $parser->addFlag("abra", "Enable indel realignment with ABRA.");
 $parser->addFlag("one_pass", "Use one-pass mapping, be aware that this decreases sensitivity!");
 
@@ -157,7 +159,17 @@ if (in_array("ma", $steps))
 
 	if ($paired) $args[] = "-in2 $fastq_trimmed2";
 	if ($no_splicing) $args[] = "-no_splicing";
-	if ($one_pass) $args[] = "-one_pass";
+
+	if (isset($sj_files))
+	{
+		$args[] = "-sj_files";
+		$args[] = implode(" ", $sj_files);
+	}
+
+	if ($all_junctions)
+	{
+		$args[] = "-all_junctions";
+	}
 	
 	if (file_exists($log_ma)) unlink($log_ma);
 	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
