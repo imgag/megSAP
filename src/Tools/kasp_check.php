@@ -34,6 +34,7 @@ function txt2geno($snps, $in_file, $out_file)
 		list($include, $color, $position, $sample, $x, $y, $call, $score, $status) = explode("\t", nl_trim($line));
 
 		//filter
+		if (starts_with($sample, "DNA-")) $sample = substr($sample, 4);
 		if (!preg_match("/^[0-9]{6}/", $sample) && !starts_with($sample, "FO")) continue;
 		if (!isset($snps[$position[0]])) continue;
 		
