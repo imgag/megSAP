@@ -148,14 +148,6 @@ check(get_ref_seq("chr12", 12310000, 12310200), "AAGCCTATGAGAGAAAGCTGCTGGCTCTTGA
 end_test();
 
 //##################################################################################
-start_test("get_db");
-
-check(get_db('NGSD_TEST', 'db_host'), 'srv010.img.med.uni-tuebingen.de');
-check(get_db('NGSD_TEST', 'db_name'), 'bioinf_ngsd_test');
-
-end_test();
-
-//##################################################################################
 start_test("load_system");
 
 $filename = data_folder()."/genomics_load_system.ini";
