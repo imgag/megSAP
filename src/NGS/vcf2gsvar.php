@@ -442,14 +442,21 @@ while(!feof($handle))
 	//ClinVar
 	$clin_acc = explode("|", extract_string("CLINVAR_ACC", $info, ""));
 	$clin_sig = explode("|", extract_string("CLINVAR_SIG", $info, ""));
-	if (count($clin_acc)!=count($clin_sig)) trigger_error("Clinvar field counts do not match:\n".implode("|",$clin_acc)."\n".implode("|",$clin_sig)."" , E_USER_ERROR);
+	$clin_dis = explode("|", extract_string("CLINVAR_DISEASE", $info, ""));
+	if (count($clin_acc)!=count($clin_sig)) trigger_error("ClinVar field counts do not match: ACC:".count($clin_acc)." SIG:".count($clin_sig)." DISEASE:".count($clin_dis) , E_USER_ERROR);
+	while (count($clin_dis)<count($clin_acc))
+	{
+		$clin_dis[] = "";
+	}
 	$clinvar = "";
 	for($i=0; $i<count($clin_acc); ++$i)
 	{
 		if (trim($clin_acc[$i]=="")) continue;
-		$clinvar .= $clin_acc[$i]." [".strtr($clin_sig[$i], "_", " ")."]; ";
+		$disease = trim($clin_dis[$i]);
+		if ($disease!="") $disease = " DISEASE=".$disease;
+		$clinvar .= $clin_acc[$i]." [".strtr($clin_sig[$i], "_", " ").$disease."]; ";
 	}
-	if (contains($clinvar, "pathogenic")) $filter[] = "anno_pathogenic_clinvar";  //matches "pathogenic" and "likely pathogenic"
+	if (contains($clinvar, "pathogenic") && !contains($clinvar, "conflicting")) $filter[] = "anno_pathogenic_clinvar";  //matches "pathogenic" and "likely pathogenic"
 	
 	//HGMD
 	$hgmd_id = explode("|", extract_string("HGMD_ID", $info, ""));

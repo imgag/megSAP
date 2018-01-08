@@ -2,65 +2,103 @@
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-
-//Fixes several issues with the ClinVar VCF format:
-//-splits mutli-allelic variants
-//-removed MUT=REF variants
+function substr_clear($str, $start)
+{
+	return trim(strtolower(strtr(substr($str, $start), "|", ",")));
+}
 
 //print header
 print "##fileformat=VCFv4.1\n";
 print "##INFO=<ID=SIG,Number=.,Type=String,Description=\"ClinVar clinical significance\">\n";
-print "##INFO=<ID=ACC,Number=.,Type=String,Description=\"ClinVar accession\">\n";
+print "##INFO=<ID=ACC,Number=.,Type=String,Description=\"ClinVar variation ID\">\n";
+print "##INFO=<ID=DISEASE,Number=.,Type=String,Description=\"ClinVar disease annotation\">\n";
 print "#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO\n";
 
-$sig_map = array(255=>"other", 0=>"uncertain_significance", 1=>"not_provided", 2=>"benign", 3=>"likely_benign", 4=>"likely_pathogenic", 5=>"pathogenic", 6=>"drug_response", 7=>"histocompatibility");
+$debug = false;
 
-//reduce/reformat  info
+//reduce/reformat info
 $in = fopen("php://stdin", "r");
 while(!feof($in))
 {
 	$line =  trim(fgets($in));
 	if ($line=="" || $line[0]=="#") continue;
 	
-	$line = explode("\t", $line);
-	$line[0] = "chr".$line[0];
-	$line[2] = ".";
-	$line[5] = ".";
-	$line[6] = ".";
+	$parts = explode("\t", $line);
 	
-	$infos = explode(";", $line[7]);
-	$sigs = null;
-	$accs = null;
-	$allele_indices = null;
+	//skip special chromosomes
+	if (chr_check($parts[0], 22, false)===FALSE)
+	{
+		if ($debug) print "SKIPPED CHR: $line\n";
+		continue;
+	}
+	
+	//skip MUT=REF variants
+	if ($parts[4]==".")
+	{
+		if ($debug) print "SKIPPED MUT=REF: $line\n";
+		continue;
+	}
+	
+	//extract accession
+	$acc = $parts[2];
+	
+	//extract clinical significance and disease name (both for single variant and variant combinations, e.g. comp-het)
+	$infos = explode(";", $parts[7]);
+	$sig = "";
+	$dis = "";
+	$sig_inc = "";
+	$dis_inc = "";
+	$acc_inc = "";
 	foreach($infos as $info)
 	{
 		if (starts_with($info, "CLNSIG="))
 		{
-			$sigs = explode(",", strtr(substr($info, 7), $sig_map));
+			$sig = substr_clear($info, 7);
 		}
-		if (starts_with($info, "CLNACC="))
+		if (starts_with($info, "CLNDN="))
 		{
-			$accs = explode(",", substr($info, 7));
+			$dis = substr_clear($info, 6);
 		}
-		if (starts_with($info, "CLNALLE="))
+		if (starts_with($info, "CLNSIGINCL="))
 		{
-			$allele_indices = explode(",", substr($info, 8));
+			list($acc_inc, $sig_inc) = explode(":", substr_clear($info, 11), 2);
+		}
+		if (starts_with($info, "CLNDNINCL="))
+		{
+			$dis_inc = substr_clear($info, 10);
 		}
 	}
 	
-	$alleles = explode(",", $line[3].",".$line[4]);
-	
-	for($i=0; $i<count($allele_indices); ++$i)
+	$sigs = array();
+	$accs = array();
+	$diss = array();
+	if ($sig!="")
 	{
-		$allele_i = $allele_indices[$i];
-		if ($allele_i==-1 || $allele_i==0) continue; //skip MUT=REF variants
+		$sigs[] = $sig;
+		$accs[] = $acc;
+		$diss[] = $dis;
+	}
+	if ($sig_inc!="")
+	{
+		$sigs[] = $sig_inc;
+		$accs[] = $acc_inc;
+		$diss[] = $dis_inc;
+	}
 		
-		$line[4] = $alleles[$allele_i];
-		$line[7] = "SIG=".$sigs[$i].";ACC=".$accs[$i];
-		print implode("\t", $line)."\n";
-	}	
+	//output
+	if  (count($sigs))
+	{
+		$parts[0] = "chr".$parts[0];
+		$parts[2] = ".";
+		$parts[5] = ".";
+		$parts[6] = ".";
+		$parts[7] = "SIG=".implode("|", $sigs).";ACC=".implode("|", $accs).";DISEASE=".implode("|", $diss)."";
+		print implode("\t", $parts)."\n";
+	}
+	else		
+	{
+		if ($debug) print "SKIPPED NOSIG: $line\n";
+	}
 }
-
-
 
 ?>

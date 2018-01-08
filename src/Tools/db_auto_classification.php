@@ -64,7 +64,7 @@ for ($i=0; $i<count($db_vars); ++$i)
 	}
 
 	$clinvar = array();
-	list($anno) = exec2("tabix -p vcf ".get_path("data_folder")."/dbs/ClinVar/clinvar_20170130_converted.vcf.gz $chr:$s-$e");
+	list($anno) = exec2("tabix -p vcf ".get_path("data_folder")."/dbs/ClinVar/clinvar_20171203_converted.vcf.gz $chr:$s-$e");
 	foreach($anno as $line2)
 	{
 		if (contains($line2, "pathogenic"))
@@ -92,7 +92,7 @@ for ($i=0; $i<count($db_vars); ++$i)
 	
 	//get HGMD annotation
 	$hgmd = array();
-	list($anno) = exec2("tabix -p vcf ".get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2017_2_fixed.vcf.gz $chr:$s-$e");
+	list($anno) = exec2("tabix -p vcf ".get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2017_4_fixed.vcf.gz $chr:$s-$e");
 	foreach($anno as $line2)
 	{
 		if (contains($line2, "CLASS=DM"))
@@ -119,7 +119,7 @@ for ($i=0; $i<count($db_vars); ++$i)
 	$hgmd = implode(", ", $hgmd);
 	
 	//special handling of rare pathogenic variants according to clinvar/HGMD
-	if ($class_new!="n/a" && (contains($hgmd, "CLASS=DM") || contains($clinvar, "pathogenic")))
+	if ($class_new!="n/a" && (contains($hgmd, "CLASS=DM") || (contains($clinvar, "pathogenic") && !contains($clinvar, "conflicting"))))
 	{
 		$class_new = 3;
 	}

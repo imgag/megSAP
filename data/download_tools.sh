@@ -19,10 +19,10 @@ make build_tools_release
 
 #download and build samtools
 cd $folder
-wget http://downloads.sourceforge.net/project/samtools/samtools/1.5/samtools-1.5.tar.bz2
-tar xjf samtools-1.5.tar.bz2
-rm samtools-1.5.tar.bz2
-cd samtools-1.5
+wget http://downloads.sourceforge.net/project/samtools/samtools/1.6/samtools-1.6.tar.bz2
+tar xjf samtools-1.6.tar.bz2
+rm samtools-1.6.tar.bz2
+cd samtools-1.6
 make
 
 #download and build freebayes
@@ -54,17 +54,17 @@ make
 
 #download and build BWA
 cd $folder
-wget http://downloads.sourceforge.net/project/bio-bwa/bwa-0.7.15.tar.bz2
-tar xjf bwa-0.7.15.tar.bz2
-rm bwa-0.7.15.tar.bz2
-cd bwa-0.7.15
+wget http://downloads.sourceforge.net/project/bio-bwa/bwa-0.7.17.tar.bz2
+tar xjf bwa-0.7.17.tar.bz2
+rm bwa-0.7.17.tar.bz2
+cd bwa-0.7.17
 make
 
 #download snpEff/SnpSift
 cd $folder
-wget https://downloads.sourceforge.net/project/snpeff/snpEff_v4_3i_core.zip
-unzip snpEff_v4_3i_core.zip
-rm snpEff_v4_3i_core.zip
+wget https://downloads.sourceforge.net/project/snpeff/snpEff_v4_3t_core.zip
+unzip snpEff_v4_3t_core.zip
+rm snpEff_v4_3t_core.zip
 cd snpEff
 echo "GRCh37.75.MT.codonTable : Vertebrate_Mitochondrial" >> snpEff.config
 wget http://downloads.sourceforge.net/project/snpeff/databases/v4_3/snpEff_v4_3_GRCh37.75.zip

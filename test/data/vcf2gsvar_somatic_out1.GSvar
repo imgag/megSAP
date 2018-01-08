@@ -6,13 +6,13 @@
 ##DESCRIPTION=snp_q=Quality parameters - SNP quality (QUAL).
 ##DESCRIPTION=gene=Affected gene list (comma-separated).
 ##DESCRIPTION=variant_type=Variant type.
-##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, NM number, type, impact, exon number, HGVS.c, HGVS.p).
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon number, HGVS.c, HGVS.p).
 ##DESCRIPTION=interpro=Interpro domains.
 ##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
 ##DESCRIPTION=dbSNP=Identifier in dbSNP database.
 ##DESCRIPTION=1000g=Allele frequency in all populations of 1000g project.
 ##DESCRIPTION=ExAC=Allele frequency in all populations of ExAC project.
-##DESCRIPTION=Kaviar=Allele frequency in Kaviar database.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD database.
 ##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
 ##DESCRIPTION=OMIM=OMIM database annotation.
 ##DESCRIPTION=ClinVar=ClinVar database annotation.
@@ -42,7 +42,10 @@
 ##FILTER=iHpol=Indel overlaps an interrupted homopolymer longer than 14x in the reference sequence
 ##FILTER=BCNoise=Average fraction of filtered basecalls within 50 bases of the indel exceeds 0.3
 ##FILTER=QSI_ref=Normal sample is not homozygous ref or sindel Q-score < 30
-#chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	snp_q	gene	variant_type	coding_and_splicing	interpro	RepeatMasker	dbSNP	1000g	ExAC	Kaviar	COSMIC	OMIM	ClinVar	HGMD	phyloP	MetaLR	Sift	PolyPhen2	FATHMM	CADD	ihdb_hom	ihdb_het	ihdb_wt	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info	som_ihdb_c	som_ihdb_p
+##SAMPLE=<ID=GS140812,Tumor=yes,Gender=n/a>
+##SAMPLE=<ID=GS140813,Tumor=yes,Gender=n/a>
+##ANALYSISTYPE=SOMATIC_PAIR
+#chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	snp_q	gene	variant_type	coding_and_splicing	interpro	RepeatMasker	dbSNP	1000g	ExAC	gnomAD	COSMIC	OMIM	ClinVar	HGMD	phyloP	MetaLR	Sift	PolyPhen2	FATHMM	CADD	ihdb_hom	ihdb_het	ihdb_wt	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info	som_ihdb_c	som_ihdb_p
 chrM	16296	16296	C	T	1.0000	22	0.0000	18		61		intergenic_region	::intergenic_region:MODIFIER:::				0.0000	0.0000	0.0000																						
 chrM	16300	16300	T	C	0.0000	22	1.0000	18	QSS_ref	19		intergenic_region	::intergenic_region:MODIFIER:::				0.0000	0.0000	0.0000																						
 chrM	16528	16528	G	A	0.9286	14	0.0000	10		16		intergenic_region	::intergenic_region:MODIFIER:::				0.0000	0.0000	0.0000																						
@@ -55,4 +58,4 @@ chr1	1571640	1571640	G	T	0.9000	10	0.0000	11		38	MMP23B,MMP23A,CDK11B	downstream
 chr1	2535093	2535094	CT	-	0.5714	15	0.0000	19		34	MMEL1	intron_variant	MMEL1:NM_033467.3:intron_variant:MODIFIER:exon11/23:c.1041+229_1041+230delAG:			rs35090174	0.478235	0.0000	0.0000																						
 chr9	117836188	117836188	A	G	0.9667	31	0.0000	15		103	TNC	intron_variant	TNC:NM_002160.3:intron_variant:MODIFIER:exon9/27:c.2951-43T>C:			rs2210108	0.744409	0.719	0.7352		187380 [TNC (confirmed) Deafness,autosomal dominant 56];																				
 chr9	117836188	117836188	A	T	0.0333	31	0.0000	15		103	TNC	intron_variant	TNC:NM_002160.3:intron_variant:MODIFIER:exon9/27:c.2951-43T>A:			rs2210108	0.0000	0.0000	0.0000		187380 [TNC (confirmed) Deafness,autosomal dominant 56];																				
-chr1	777232	777232	C	T	0.2917	26	0.0000	29		10	LINC01128	intron_variant,non_coding_exon_variant	LINC01128:NR_047519.1:intron_variant:MODIFIER:exon2/5:n.288-5802C>T:,LINC01128:NR_015368.2:intron_variant:MODIFIER:exon2/7:n.288-5802C>T:,LINC01128:NR_047520.1:intron_variant:MODIFIER:exon2/6:n.288-5802C>T:,LINC01128:NR_047521.1:intron_variant:MODIFIER:exon2/4:n.288-10075C>T:,LINC01128:NR_047522.1:intron_variant:MODIFIER:exon2/5:n.288-10075C>T:,LINC01128:NR_047523.1:intron_variant:MODIFIER:exon2/3:n.288-10075C>T:,LINC01128:NR_047524.1:intron_variant:MODIFIER:exon2/3:n.288-10819C>T:,LINC01128:NR_047525.1:intron_variant:MODIFIER:exon2/4:n.155-10075C>T:,LINC01128:NR_047526.1:non_coding_exon_variant:MODIFIER:exon3/3:n.940C>T:			rs112618790	0.066893	0.0000	0.0000				CM096315 [CLASS=DFP MUT=ALT PHEN="Cervical cancer, decreased risk, association with" GENE=BRCA1]; 																		
+chr1	777232	777232	C	T	0.2917	26	0.0000	29		10	LINC01128	intron_variant,non_coding_exon_variant	LINC01128:NR_047519.1:intron_variant:MODIFIER:exon2/5:n.288-5802C>T:,LINC01128:NR_015368.2:intron_variant:MODIFIER:exon2/7:n.288-5802C>T:,LINC01128:NR_047520.1:intron_variant:MODIFIER:exon2/6:n.288-5802C>T:,LINC01128:NR_047521.1:intron_variant:MODIFIER:exon2/4:n.288-10075C>T:,LINC01128:NR_047522.1:intron_variant:MODIFIER:exon2/5:n.288-10075C>T:,LINC01128:NR_047523.1:intron_variant:MODIFIER:exon2/3:n.288-10075C>T:,LINC01128:NR_047524.1:intron_variant:MODIFIER:exon2/3:n.288-10819C>T:,LINC01128:NR_047525.1:intron_variant:MODIFIER:exon2/4:n.155-10075C>T:,LINC01128:NR_047526.1:non_coding_exon_variant:MODIFIER:exon3/3:n.940C>T:			rs112618790	0.066893	0.0000	0.0000			RCV000162369.1 [benign DISEASE=1]; RCV000244202.1 [benign DISEASE=2]; RCV000298863.1 [likely benign]; 	CM096315 [CLASS=DFP MUT=ALT PHEN="Cervical cancer, decreased risk, association with" GENE=BRCA1]; 																		

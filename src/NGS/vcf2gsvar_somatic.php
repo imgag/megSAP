@@ -262,12 +262,19 @@ while(!feof($handle))
 	//ClinVar
 	$clin_acc = explode("|", extract_from_info_field("CLINVAR_ACC", $info, "", FALSE));
 	$clin_sig = explode("|", extract_from_info_field("CLINVAR_SIG", $info, "", FALSE));
-	if (count($clin_acc)!=count($clin_sig)) trigger_error("Clinvar field counts do not match:\n".implode("|",$clin_acc)."\n".implode("|",$clin_sig)."" , E_USER_ERROR);
+	$clin_dis = explode("|", extract_from_info_field("CLINVAR_DISEASE", $info, "", FALSE));
+	if (count($clin_acc)!=count($clin_sig)) trigger_error("ClinVar field counts do not match: ACC:".count($clin_acc)." SIG:".count($clin_sig)." DISEASE:".count($clin_dis) , E_USER_ERROR);
+	while (count($clin_dis)<count($clin_acc))
+	{
+		$clin_dis[] = "";
+	}
 	$clinvar = "";
 	for($i=0; $i<count($clin_acc); ++$i)
 	{
 		if (trim($clin_acc[$i]=="")) continue;
-		$clinvar .= $clin_acc[$i]." [".strtr($clin_sig[$i], "_", " ")."]; ";
+		$disease = trim($clin_dis[$i]);
+		if ($disease!="") $disease = " DISEASE=".$disease;
+		$clinvar .= $clin_acc[$i]." [".strtr($clin_sig[$i], "_", " ").$disease."]; ";
 	}
 	
 	//HGMD

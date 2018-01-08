@@ -66,15 +66,15 @@ $cols = array("phyloP100way_vertebrate","SIFT_pred","MetaLR_pred","FATHMM_pred",
 $pipeline[] =  array(get_path("SnpSift"), "dbnsfp -noLog -db ".get_path("data_folder")."/dbs/dbNSFP/dbNSFPv2.9.3.txt.gz -f ".implode(",",$cols)." -");
 
 //HGMD annotation (optional because of license)
-$db_file = get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2017_2_fixed.vcf";
+$db_file = get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2017_4_fixed.vcf";
 if(file_exists($db_file))
 {
 	$pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name HGMD_ -info ID,CLASS,MUT,GENE,PHEN $db_file");
 }
 
 //gnomAD annotation
-$pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name GNOMAD_ -info AF ".get_path("data_folder")."/dbs/gnomAD/gnomAD_r2.0.1.vcf.gz");
-$pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name GNOMAD_GENOME_ -info AF ".get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.0.1.vcf.gz");
+$pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name GNOMAD_ -info AF ".get_path("data_folder")."/dbs/gnomAD/gnomAD_r2.0.2.vcf.gz");
+$pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name GNOMAD_GENOME_ -info AF ".get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz");
 
 //1000g annotation
 $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name T1000GP_ -info AF ".get_path("data_folder")."/dbs/1000G/1000g_v5b.vcf.gz");
@@ -83,7 +83,7 @@ $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name T1
 $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name EXAC_ -info AF,AC_Hom,Hom_NFE,Hom_AFR,AF_AFR,AF_AMR,AF_EAS,AF_NFE,AF_SAS ".get_path("data_folder")."/dbs/ExAC/ExAC_r0.3.1.vcf.gz");
 
 //ClinVar annotation
-$pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name CLINVAR_ -info SIG,ACC ".get_path("data_folder")."/dbs/ClinVar/clinvar_20170130_converted.vcf");
+$pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name CLINVAR_ -info SIG,ACC,DISEASE ".get_path("data_folder")."/dbs/ClinVar/clinvar_20171203_converted.vcf");
 
 //COSMIC annotation (optional because of license)
 $db_file = get_path("data_folder")."/dbs/COSMIC/cosmic.vcf.gz";

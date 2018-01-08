@@ -18,16 +18,16 @@ ngsbits=$tools/ngs-bits/bin
 vcflib=$tools/vcflib/bin
 genome=`pwd`/genomes/GRCh37.fa
 
-#install dbSNP
+#install dbSNP - https://www.ncbi.nlm.nih.gov/projects/SNP/
 cd $dbs
 mkdir dbSNP
 cd dbSNP
-wget ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b149_GRCh37p13/VCF/00-All.vcf.gz
-zcat 00-All.vcf.gz | php $src/Tools/db_converter_dbsnp.php | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | bgzip > dbsnp_b149.vcf.gz
-tabix -p vcf dbsnp_b149.vcf.gz
+wget ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/00-All.vcf.gz
+zcat 00-All.vcf.gz | php $src/Tools/db_converter_dbsnp.php | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | bgzip > dbsnp_b150.vcf.gz
+tabix -p vcf dbsnp_b150.vcf.gz
 rm -rf 00-All.vcf.gz
 
-#Install REPEATMASKER
+#Install REPEATMASKER - http://www.repeatmasker.org/species/hg.html
 cd $dbs
 mkdir RepeatMasker
 cd RepeatMasker
@@ -36,7 +36,7 @@ perl $tools/RepeatMasker/util/rmOutToGFF3.pl hg19.fa.out > RepeatMasker.gff
 cat RepeatMasker.gff | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/BedSort > RepeatMasker.bed
 rm -rf hg19.fa.out RepeatMasker.gff
 
-#Install dbNSFP
+#Install dbNSFP - https://sites.google.com/site/jpopgen/dbNSFP
 cd $dbs
 mkdir dbNSFP
 cd dbNSFP
@@ -49,7 +49,7 @@ rm -rf dbNSFP2.9_gene.complete* dbNSFP2.9.3_variant* try* search*
 bgzip dbNSFPv2.9.3.txt
 tabix -s 1 -b 2 -e 2 dbNSFPv2.9.3.txt.gz
 
-#Install 1000G
+#Install 1000G - http://www.internationalgenome.org/data
 cd $dbs
 mkdir 1000G
 cd 1000G
@@ -58,7 +58,7 @@ zcat ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz | $vcf
 tabix -p vcf 1000g_v5b.vcf.gz
 rm -rf ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz
 
-#Install ExAC
+#Install ExAC - http://exac.broadinstitute.org/
 cd $dbs
 mkdir ExAC
 cd ExAC
@@ -67,58 +67,51 @@ zcat ExAC.r0.3.1.sites.vep.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNorm
 tabix -p vcf ExAC_r0.3.1.vcf.gz
 rm -rf ExAC.r0.3.1.sites.vep.vcf.gz
 
-#Install CLINVAR
+#Install CLINVAR - https://www.ncbi.nlm.nih.gov/clinvar/
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive/2017/clinvar_20170130.vcf.gz | gunzip > clinvar_20170130.vcf
-cat clinvar_20170130.vcf | php $src/Tools/db_converter_clinvar.php > clinvar_20170130_converted.vcf
-rm -rf clinvar_20170130.vcf
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2018/clinvar_20171203.vcf.gz | gunzip > clinvar_20171203.vcf
+cat clinvar_20171203.vcf | php $src/Tools/db_converter_clinvar.php > clinvar_20171203_converted.vcf
+rm -rf clinvar_20171203.vcf
 
-#Install gnomAD (exome data)
+#Install gnomAD (exome data) - http://gnomad.broadinstitute.org/downloads
 cd $dbs
 mkdir gnomAD
 cd gnomAD
-wget https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/exomes/gnomad.exomes.r2.0.1.sites.vcf.gz
-zcat gnomad.exomes.r2.0.1.sites.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php -header | bgzip > gnomAD_r2.0.1.vcf.gz
-tabix -p vcf gnomAD_r2.0.1.vcf.gz
-rm -rf gnomad.exomes.r2.0.1.sites.vcf.gz
+wget https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/exomes/gnomad.exomes.r2.0.2.sites.vcf.bgz
+zcat gnomad.exomes.r2.0.2.sites.vcf.gz | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php -header | bgzip > gnomAD_r2.0.2.vcf.gz
+tabix -p vcf gnomAD_r2.0.2.vcf.gz
+rm -rf gnomad.exomes.r2.0.2.sites.vcf.gz
 
-
-#Install gnomAD (genome data)
+#Install gnomAD (genome data) - http://gnomad.broadinstitute.org/downloads
 cd $dbs
 cd gnomAD
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr1.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php -header > gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr2.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr3.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr4.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr5.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr6.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr7.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr8.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr9.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr10.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr11.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr12.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr13.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr14.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr15.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr16.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr17.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr18.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr19.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr20.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr21.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chr22.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.1/vcf/genomes/gnomad.genomes.r2.0.1.sites.chrX.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.1.vcf
-bgzip gnomAD_genome_r2.0.1.vcf
-tabix -p vcf gnomAD_genome_r2.0.1.vcf.gz
-
-#install UCSC
-cd $dbs
-mkdir UCSC
-cd UCSC
-wget -O - http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/cytoBand.txt.gz | gunzip > cytoBand.txt
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr1.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php -header > gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr2.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr3.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr4.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr5.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr6.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr7.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr8.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr9.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr10.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr11.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr12.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr13.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr14.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr15.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr16.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr17.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr18.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr19.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr20.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr21.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chr22.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes/gnomad.genomes.r2.0.2.sites.chrX.vcf.gz | gunzip | $vcflib/vcfbreakmulti | $ngsbits/VcfLeftNormalize -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_r2.0.2.vcf
+bgzip gnomAD_genome_r2.0.2.vcf
+tabix -p vcf gnomAD_genome_r2.0.2.vcf.gz
 
 #install OMIM (you might need a license)
 #cd $dbs
@@ -132,7 +125,7 @@ wget -O - http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/cytoBand.txt.g
 
 #Install HGMD (you need a license)
 #manual download https://portal.biobase-international.com/cgi-bin/portal/login.cgi 
-#cat HGMD_PRO_2016_4.vcf | php $src/Tools/db_converter_hgmd.php > HGMD_PRO_2016_4_fixed.vcf
+#cat HGMD_PRO_2017.4_hg19.vcf | php $src/Tools/db_converter_hgmd.php > HGMD_PRO_2017_4_fixed.vcf
 
 #install COSMIC (you need a license)
 #cd $dbs
