@@ -112,8 +112,8 @@ if ($skip_correlation)
 }
 else
 {
-	$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in1 {$tum_bam} -in2 {$ref_bam} -bam -max_snps 4000", true);
-	$correlation = explode(":", $output[0][1])[1];
+	$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in {$tum_bam} {$ref_bam} -mode bam -max_snps 4000", true);
+	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation < 0.8)
 	{
 		trigger_error("The genotype correlation of samples {$tum_bam} and {$ref_bam} is {$correlation}, it should be at least 0.8!", E_USER_ERROR);

@@ -174,9 +174,12 @@ if (in_array("ma", $steps))
 // check if samples are related
 if(!$nsc && !$single_sample)
 {
-	$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in1 $t_bam -in2 $n_bam -bam -max_snps 4000", true);
-	$parts = explode(":", $output[0][1]);
-	if ($parts[1]<0.8)	trigger_error("The genotype correlation of samples $t_bam and $n_bam is ".$parts[1]."; should be above 0.8!", E_USER_ERROR);
+	$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in $t_bam $n_bam -mode bam -max_snps 4000", true);
+	$correlation = explode("\t", $output[0][1])[3];
+	if ($correlation<0.8)
+	{
+		trigger_error("The genotype correlation of samples $t_bam and $n_bam is {$correlation}; should be above 0.8!", E_USER_ERROR);
+	}
 }
 
 // variant calling

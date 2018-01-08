@@ -87,17 +87,17 @@ if (starts_with($gender,"unknown"))
 //(2) check parent-child correlation
 if ($start=="check")
 {
-	$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in1 $f -in2 $c -bam -max_snps 4000", true);
-	$parts = explode(":", $output[0][1]);
-	if ($parts[1]<0.5)
+	$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in $f $c -mode bam -max_snps 4000", true);
+	$correlation = explode("\t", $output[0][1])[3];
+	if ($correlation<0.5)
 	{
-		trigger_error("The genotype correlation of father and child is ".$parts[1]."; it should be above 0.5!", E_USER_ERROR);
+		trigger_error("The genotype correlation of father and child is {$correlation}; it should be above 0.5!", E_USER_ERROR);
 	}
-	$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in1 $m -in2 $c -bam -max_snps 4000", true);
-	$parts = explode(":", $output[0][1]);
-	if ($parts[1]<0.5)
+	$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in $m $c -mode bam -max_snps 4000", true);
+	$correlation = explode("\t", $output[0][1])[3];
+	if ($correlation<0.5)
 	{
-		trigger_error("The genotype correlation of mother and child is ".$parts[1]."; it should be above 0.5!", E_USER_ERROR);
+		trigger_error("The genotype correlation of mother and child is {$correlation}; it should be above 0.5!", E_USER_ERROR);
 	}
 }
 

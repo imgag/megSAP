@@ -184,8 +184,8 @@ if (in_array("co", $process) && ($rna_tum_available || $rna_ref_available))
 	}
 	else if ($rna_tum_available)
 	{
-		$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in1 {$t_dna_bam} -in2 {$t_rna_bam} -bam -max_snps 4000", true);
-		$correlation = explode(":", $output[0][1])[1];
+		$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in {$t_dna_bam} {$t_rna_bam} -mode bam -max_snps 4000", true);
+		$correlation = explode("\t", $output[0][1])[3];
 		if ($correlation < 0.8)
 		{
 			trigger_error("The genotype correlation of samples {$t_dna_bam} and {$t_rna_bam} is {$correlation}, it should be at least 0.8!", E_USER_ERROR);
