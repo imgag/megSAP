@@ -7,6 +7,10 @@ function substr_clear($str, $start)
 	return trim(strtolower(strtr(substr($str, $start), "|", ",")));
 }
 
+
+//locale for iconv below
+setlocale(LC_ALL, 'de_DE.UTF8');
+
 //print header
 print "##fileformat=VCFv4.1\n";
 print "##INFO=<ID=SIG,Number=.,Type=String,Description=\"ClinVar clinical significance\">\n";
@@ -92,7 +96,9 @@ while(!feof($in))
 		$parts[2] = ".";
 		$parts[5] = ".";
 		$parts[6] = ".";
-		$parts[7] = "SIG=".implode("|", $sigs).";ACC=".implode("|", $accs).";DISEASE=".implode("|", $diss)."";
+		
+		$disease = iconv("utf-8","ascii//TRANSLIT", implode("|", $diss));
+		$parts[7] = "SIG=".implode("|", $sigs).";ACC=".implode("|", $accs).";DISEASE=".$disease."";		
 		print implode("\t", $parts)."\n";
 	}
 	else		
