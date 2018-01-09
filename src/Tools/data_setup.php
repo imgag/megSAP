@@ -60,7 +60,7 @@ foreach($files as $file)
 	if (!file_exists($local_folder.$base))
 	{
 		print "Copying genome file '$base' to $local_folder\n";
-		copy2($genome_folder.$base, $local_folder.$base);
+		$parser->copyFile($genome_folder.$base, $local_folder.$base);
 		if (!chmod($local_folder.$base, 0777))
 		{
 			trigger_error("Could not change privileges of local data folder '{$local_folder}{$base}'!", E_USER_ERROR);

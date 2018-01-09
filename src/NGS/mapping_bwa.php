@@ -15,6 +15,7 @@ $parser->addInfile("in2",  "Input file in FASTQ format. Reverse read.", false);
 $parser->addOutfile("out",  "Output file in BAM format (sorted).", false);
 //optional
 $parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
+$parser->addString("sample", "Sample name to use in BAM header. If unset the basename of the 'out' file is used.", true, "");
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
 $parser->addFlag("dedup", "Mark duplicates after alignment.");
 extract($parser->parse($argv));
@@ -23,15 +24,15 @@ extract($parser->parse($argv));
 if(file_exists($out)) unlink($out);
 
 //set read group information
+if ($sample=="") $sample = basename($out, ".bam");
 $group_props = array();
-$basename = basename($out, ".bam");
-$group_props[] = "ID:{$basename}";
-$group_props[] = "SM:{$basename}";
-$group_props[] = "LB:{$basename}";
+$group_props[] = "ID:{$sample}";
+$group_props[] = "SM:{$sample}";
+$group_props[] = "LB:{$sample}";
 $group_props[] = "CN:medical_genetics_tuebingen";
 $group_props[] = "DT:".date("c");
 $group_props[] = "PL:ILLUMINA";
-$psample_info = get_processed_sample_info($basename,false);
+$psample_info = get_processed_sample_info($sample, false);
 if(!is_null($psample_info))
 {
 	$group_props[] = "PM:".$psample_info['device_type'];
@@ -55,12 +56,7 @@ $pipeline[] = array(get_path("samtools"), "view -1 - > $tmp_unsorted");
 
 //execute (BWA -> samblaster -> BAM conversion)
 $parser->execPipeline($pipeline, "mapping");
-
-//sort BAM according to coordinates
-$tmp_for_sorting = $parser->tempFile();
-$parser->exec(get_path("samtools"), "sort -T $tmp_for_sorting -m 1G -@ ".min($threads, 4)." -o $out $tmp_unsorted", true);
-
-//create index file
-$parser->exec(get_path("samtools")." index", " $out", true);
+$parser->sortBam($tmp_unsorted, $out, $threads);
+$parser->indexBam($out, $threads);
 
 ?>

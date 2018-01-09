@@ -22,13 +22,8 @@ $parser->addInt("threads", "Number of parallel threads", true, 8);
 
 extract($parser->parse($argv));
 
-$outdir = realpath(dirname($out))."/";
-$prefix = $outdir.basename($out, ".bam");
-
-// temporary folder to store results
-$tmp_folder = $parser->tempFolder();
 //path to output BAM, and also prefix for additional files
-$subjunc_out = "{$tmp_folder}/aligned";
+$subjunc_out = $parser->tempFolder()."/aligned";
 
 //build command
 $arguments = array(
@@ -57,7 +52,6 @@ $group_props = array("SM:{$gs}",
 
 $arguments[] = "--rg ".implode(" --rg ", $group_props);
 
-
 //execute mapping with subjunc
 $parser->exec(get_path("subread"), implode(" ", $arguments), true);
 
@@ -79,11 +73,12 @@ $pipeline[] = array(get_path("samtools"), "sort -T $tmp_for_sorting -m 1G -@ ".m
 $parser->execPipeline($pipeline, "mapping");
 
 //keep downstream analysis files
-$parser->exec("cp", "{$subjunc_out}.junction.bed {$prefix}_junction.bed", true);
-$parser->exec("cp", "{$subjunc_out}.breakpoints.txt {$prefix}_breakpoints.txt", true);
-$parser->exec("cp", "{$subjunc_out}.indel {$prefix}_indel.vcf", true);
+$prefix = substr($out, 0, -4);
+$parser->moveFile("{$subjunc_out}.junction.bed", "{$prefix}_junction.bed");
+$parser->moveFile("{$subjunc_out}.breakpoints.txt", "{$prefix}_breakpoints.txt");
+$parser->moveFile("{$subjunc_out}.indel", "{$prefix}_indel.vcf");
 
 //create BAM index file
-$parser->exec(get_path("samtools")." index", " $out", true);
+$parser->indexBam($out, $threads);
 
 ?>

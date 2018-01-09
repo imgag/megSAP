@@ -255,7 +255,7 @@ if (in_array("cn", $steps) && $sys['type']!="WGS" && $sys['target_file']!="")
 		
 		//copy file
 		$ref_file = $ref_folder.$name.".cov";
-		copy2($cov_file, $ref_file);
+		$parser->copyFile($cov_file, $ref_file);
 		$cov_file = $ref_file;
 	}
 	
@@ -265,7 +265,7 @@ if (in_array("cn", $steps) && $sys['type']!="WGS" && $sys['target_file']!="")
 	$parser->execTool("NGS/vc_cnvhunter.php", "-min_z 3.5 -cov $cov_file -system $system -out $cnv_out -seg $name -n ".($sys['type']=="WES" ? "30" : "20")." --log $log_cn");
 
 	//copy results to output folder
-	if (file_exists($cnv_out)) copy2($cnv_out, $cnvfile);
-	if (file_exists($cnv_out2)) copy2($cnv_out2, $cnvfile2);
+	if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
+	if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
 }
 

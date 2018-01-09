@@ -155,4 +155,6 @@ $final_log = "{$STAR_tmp_folder}/Log.final.out";
 $parser->log("STAR Log.final.out", file($final_log));
 
 //create BAM index file
-$parser->exec(get_path("samtools")." index", $out, true);
+$parser->indexBam($out, $threads);
+
+?>

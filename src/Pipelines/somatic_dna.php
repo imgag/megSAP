@@ -36,6 +36,7 @@ $parser->addInfile("promoter","Bed file containing promoter regions. Will be use
 $parser->addEnum("clip", "Soft-clip overlapping read pairs.", true, array("sc","mfb","mfm","mfr"),"sc");
 $parser->addFlag("strelka1","Use strelka1 for variant calling.",true);
 $parser->addFlag("add_vc_folder","Add folder containing variant calling results from variant caller.",true);
+$parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 extract($parser->parse($argv));
 
 // (0) preparations
@@ -121,19 +122,20 @@ if (in_array("ma", $steps))
 		];
 		$clip_arg = $clip_arg_map[$clip];
 
-		if (!$smt) {
+		if (!$smt)
+		{
 			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
-			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in {$t_bam} -out {$tmp1_t_bam} {$clip_arg}", true);
-			$parser->exec(get_path("samtools")." sort", "-T {$tmp1_t_bam} -o {$t_bam} {$tmp1_t_bam}", true);
-			$parser->exec(get_path("samtools")." index", "{$t_bam}", true);
+			$parser->exec(get_path("ngs-bits")."BamClipOverlap", "-in {$t_bam} -out {$tmp1_t_bam} {$clip_arg}", true);
+			$parser->sortBam($tmp1_t_bam, $t_bam, $threads);
+			$parser->indexBam($t_bam, $threads);
 		}
 
 		if(!$single_sample && !$smn)
 		{
 			$tmp1_n_bam = $parser->tempFile("_normal.bam");
-			$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in {$n_bam} -out {$tmp1_n_bam} {$clip_arg}", true);
-			$parser->exec(get_path("samtools")." sort", "-T {$tmp1_t_bam} -o {$n_bam} {$tmp1_n_bam}", true);
-			$parser->exec(get_path("samtools")." index", "{$n_bam}", true);
+			$parser->exec(get_path("ngs-bits")."BamClipOverlap", "-in {$n_bam} -out {$tmp1_n_bam} {$clip_arg}", true);
+			$parser->sortBam($tmp1_n_bam, $n_bam, $threads);
+			$parser->indexBam($n_bam, $threads);
 		}
 	}
 
@@ -156,17 +158,17 @@ if (in_array("ma", $steps))
 		$tmp1_t_bam = $parser->tempFile("_tumor.bam");
 		$tmp1_n_bam = $parser->tempFile("_normal.bam");
 		$tmp_out = (!$single_sample?$tmp1_n_bam." ":"")."$tmp1_t_bam";
-		$command = "php ".repository_basedir()."/src/NGS/indel_realign_abra.php -in $tmp_in -out $tmp_out -roi $tmp_targets -threads 8 -mer 0.02 -mad 5000 2>&1";
+		$command = "php ".repository_basedir()."/src/NGS/indel_realign_abra.php -in $tmp_in -out $tmp_out -roi $tmp_targets -threads $threads -mer 0.02 -mad 5000 2>&1";
 		$working_directory = realpath($p_folder);
 		$parser->jobsSubmit(array($command), $working_directory, get_path("queues_high_mem"), true);
 		
 		// copy realigned files to output folder and overwrite previous bam files
-		copy2($tmp1_t_bam, $t_bam);
-		$parser->exec(get_path("samtools")." index", " ".$t_bam, true);
+		$parser->moveFile($tmp1_t_bam, $t_bam);
+		$parser->indexBam($t_bam, $threads);
 		if(!$single_sample)
 		{
-			copy2($tmp1_n_bam, $n_bam);
-			$parser->exec(get_path("samtools")." index", " ".$n_bam, true);
+			$parser->moveFile($tmp1_n_bam, $n_bam);
+			$parser->indexBam($n_bam, $threads);
 		}
 	}	
 }
@@ -300,7 +302,7 @@ if (in_array("vc", $steps))
 		if (!is_dir($ref_folder)) mkdir($ref_folder);			
 		//copy file
 		$ref_file = $ref_folder.$n_id.".cov";
-		copy2($n_cov, $ref_file);
+		$parser->copyFile($n_cov, $ref_file);
 		$n_cov = $ref_file;
 	}
 	$tmp_in = "-cov $t_cov ".($single_sample?"":"-n_cov $n_cov");

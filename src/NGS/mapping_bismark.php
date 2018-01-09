@@ -1,14 +1,13 @@
 <?php
 
 /**
-	@page bismark
-	@todo use temporary directory and copy only desired files to output folder
+	@page mapping_bismark
 */
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("bismark", "Bisulfit read mapping using bismark.");
+$parser = new ToolBase("mapping_bismark", "Bisulfit read mapping using bismark.");
 
 // mandatory arguments
 $parser->addString("folder", "Sample folder containing FASTQ files.", false);
@@ -63,6 +62,7 @@ $basename = $out_folder."/".$name;
 $stafile1 = $basename."_stats_fastq.qcML";
 $parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $in_for_s -in2 $in_rev_s -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads $threads", true);
 
+// run bismark
 $bismark_tmp = $parser->tempFolder();
 $tmp_out_folder = $parser->tempFolder();
 
@@ -81,29 +81,17 @@ $parser->exec(get_path("bismark"), implode(" ", $bismark_params), true);
 
 // bismark output files
 $bismark_bam = $tmp_out_folder."/".$name."_pe.bam";
-$txt_report = $tmp_out_folder."/".$name."_PE_report.txt";
-$html_report = $tmp_out_folder."/".$name."_PE_report.html";
-$cov_file = $tmp_out_folder."/".$name."_pe.bismark.cov.gz";
-
-// desired output files
-$out_html = $out_folder."/".$name."_bismark_report.html";
-$out_bam_sorted = $out_folder."/".$name.".bam";
-$out_cov_file = $out_folder."/".$name."_CpG.tsv.gz";
-
-
 $parser->exec(dirname(get_path("bismark"))."/bismark_methylation_extractor", "-p --no_overlap --multicore $threads --gzip --output $out_folder --bedGraph --cytosine_report $bismark_bam", true);
 $parser->exec(dirname(get_path("bismark"))."/deduplicate_bismark", "-p --bam $bismark_bam", true);
-$parser->exec(dirname(get_path("bismark"))."/bismark2report", "--dir $tmp_out_folder --alignment_report $txt_report", true);
+$parser->exec(dirname(get_path("bismark"))."/bismark2report", "--dir $tmp_out_folder --alignment_report {$tmp_out_folder}/{$name}_PE_report.txt", true);
 
-$parser->exec("cp", "{$html_report} {$out_html}", true);
-$parser->exec("cp", "{$cov_file} {$out_cov_file}", true);
+$parser->moveFile($tmp_out_folder."/".$name."_PE_report.html", $out_folder."/".$name."_bismark_report.html");
+$parser->moveFile($tmp_out_folder."/".$name."_pe.bismark.cov.gz", $out_folder."/".$name."_CpG.tsv.gz");
 
-//sort BAM according to coordinates
-$tmp_for_sorting = $parser->tempFile();
-$parser->exec(get_path("samtools"), "sort -T $tmp_for_sorting -m 1G -@ ".min($threads, 4)." -o $out_bam_sorted $bismark_bam", true);
-
-//create index file
-$parser->exec(get_path("samtools")." index", " $out_bam_sorted", true);
+//sort and index BAM
+$out = $out_folder."/".$name.".bam";
+$parser->sortBam($bismark_bam, $out, $threads);
+$parser->indexBam($out, $threads);
 
 //TODO MappingQC
 

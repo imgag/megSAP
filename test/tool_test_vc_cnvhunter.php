@@ -7,10 +7,10 @@ start_test($name);
 
 //prepare input data
 $cov_tum = output_folder()."GS140792_02.cov";
-copy2(data_folder().$name."_in_tum.cov", $cov_tum);
+copy(data_folder().$name."_in_tum.cov", $cov_tum);
 
 $cov_nor = output_folder()."GS140794_02.cov";
-copy2(data_folder().$name."_in_nor.cov", $cov_nor);
+copy(data_folder().$name."_in_nor.cov", $cov_nor);
 
 $cov_folder = output_folder()."/cov_folder/";
 exec2("mkdir -p $cov_folder");

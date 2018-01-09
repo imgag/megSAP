@@ -62,10 +62,9 @@ $args[] = $in;
 $parser->exec(get_path("feature_counts"), implode(" ", $args), true);
 
 // copy output
-$parser->exec("cp", "$tmp_out $out", true);
+$parser->moveFile($tmp_out, $out);
 
 if ($keep_summary)
 {
-	$out_summary = dirname($out)."/".basename($out, ".tsv")."_summary.tsv";
-	$parser->exec("cp", "{$tmp_out}.summary {$out_summary}", true);
+	$parser->moveFile($tmp_out.".summary", dirname($out)."/".basename($out, ".tsv")."_summary.tsv");
 }

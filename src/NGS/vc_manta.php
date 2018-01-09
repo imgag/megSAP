@@ -86,6 +86,6 @@ $parser->exec("tabix", "-p vcf $out", false); //no output logging, because Toolb
 $small = $manta_folder."/results/variants/candidateSmallIndels.vcf.gz";
 if (!empty($smallIndels))
 {
-	$parser->exec("cp", "{$small} {$smallIndels}", false);
-	$parser->exec("cp", "{$small}.tbi {$smallIndels}.tbi", false);
+	$parser->moveFile($small, $smallIndels);
+	$parser->moveFile($small.".tbi", $smallIndels.".tbi");
 }

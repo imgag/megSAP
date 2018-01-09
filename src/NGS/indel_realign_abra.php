@@ -49,7 +49,7 @@ if (isset($roi))
 		$read_length = 100;
 		$kmer_tmp = $parser->tempFile();
 		$parser->exec(str_replace("-jar", "-cp", get_path("abra2"))." abra.KmerSizeEvaluator", "$read_length {$local_data}/{$build}.fa $kmer_tmp $threads $roi", true);
-		copy2($kmer_tmp, $kmer_file);
+		$parser->moveFile($kmer_tmp, $kmer_file);
 	}
 }
 

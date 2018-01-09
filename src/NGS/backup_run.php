@@ -68,7 +68,7 @@ list($md5) = explode(" ", $stdout[0]);
 //copy zip file to archive folder
 print date("Y-m-d H:i:s")." copying tar.gz file into archive\n";
 $zipfile = $out_folder."/".basename($in).".tar.gz";
-$parser->exec("cp", "$tmp_zip $zipfile", true);
+$parser->copyFile($tmp_zip, $zipfile);
 
 //validate remote checksum
 print date("Y-m-d H:i:s")." calulating md5sum checksum of copy\n";
@@ -81,7 +81,7 @@ if ($md5 != $md5_2)
 
 //copy log file to remote archive folder
 $logfile = $out_folder."/".basename($in).".log";
-$parser->exec("cp", $parser->getLogFile()." $logfile", true);
+$parser->copyFile($parser->getLogFile(), $logfile);
 
 //print log file to console
 print date("Y-m-d H:i:s")." done\n";

@@ -2,7 +2,7 @@
 /** 
 	@page vc_cnvhunter
 	
-	@todo check if filtering for germline CN-polymorphisms improved somatic output
+	@todo check if filtering for germline CN-polymorphisms improves somatic output
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -488,7 +488,7 @@ foreach($hits as $values)
 $cnvs_filtered->toTSV($out);
 if(isset($seg) && !$qc_problems)
 {
-	copy2($temp_folder."/cnvs.seg", substr($out, 0, -4).".seg");
+	$parser->moveFile($temp_folder."/cnvs.seg", substr($out, 0, -4).".seg");
 }
 
 ?>

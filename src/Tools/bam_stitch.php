@@ -50,8 +50,8 @@ exec2(get_path("samtools")." merge -f {$bam_merge} {$bam_in1} {$bam_in2}");
 
 //sort and index output
 print "Sorting and indexing 'out'.\n";
-exec2(get_path("samtools")." sort -o {$out} {$bam_merge}");
-exec2(get_path("samtools")." index {$out}");
+$parser->sortBam($bam_merge, $out, 4);
+$parser->indexBam($out, 4);
 
 ?>
 

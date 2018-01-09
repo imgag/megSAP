@@ -125,7 +125,7 @@ if (in_array("expr", $steps))
 	$parser->exec("rm", "{$out}/featurecounts_raw.tsv", true);
 	
 	// keep summary of sense expression
-	$parser->exec("mv", "{$out}/featurecounts_raw_summary.tsv {$out}/featurecounts_summary.tsv", true);
+	$parser->moveFile("{$out}/featurecounts_raw_summary.tsv", "{$out}/featurecounts_summary.tsv");
 }
 
 // duplication rate analysis

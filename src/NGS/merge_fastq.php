@@ -45,11 +45,11 @@ foreach($tmp_files as $tmp_index => $tmp_file)
 	if(contains($tmp_file, "merged") || contains($tmp_file, "trimmed"))	continue;
 	if($in==$out && !contains($tmp_file, $backup))
 	{
-		$parser->exec("mv", "$tmp_file $in$backup", true);
+		$parser->moveFile($tmp_file, $in.$backup);
 	}
 	else if($in!=$out)
 	{
-		$parser->exec("cp" ,"$tmp_file $out$backup", true);
+		$parser->copyFile($tmp_file, $out.$backup);
 	}
 	$files[] = basename($tmp_file);
 }

@@ -290,7 +290,7 @@ function copyFiles($files, $to_folder, $upload)
 		}
 		else
 		{
-			copy2($file, $outfile);
+			$parser->copyFile($file, $outfile);
 		}
 	}
 }

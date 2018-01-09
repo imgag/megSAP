@@ -104,31 +104,40 @@ if($sys['type']=="Panel Haloplex HS")
 }
 
 // mapping
-$mapping_options = "";
-if ($sys['shotgun'] && !starts_with($sys['name_manufacturer'],"ThruPlex TagSeq")) $mapping_options .= " -dedup";
-$parser->execTool("NGS/mapping_bwa.php", "-in1 $trimmed1 -in2 $trimmed2 -out $out $mapping_options -build ".$sys['build']." -threads ".$threads);
-
-if(starts_with($sys['name_manufacturer'],"ThruPlex TagSeq"))
+$bam_current = $parser->tempFile("_mapping_bwa.bam");
+$args = array();
+$args[] = "-in1 $trimmed1";
+$args[] = "-in2 $trimmed2";
+$args[] = "-out $bam_current";
+$args[] = "-sample $out_name";
+$args[] = "-build ".$sys['build'];
+$args[] = "-threads $threads";
+if ($sys['shotgun'] && !starts_with($sys['name_manufacturer'], "ThruPlex TagSeq"))
 {
-	$tmp_connor_bam = $parser->tempFile("_conner_dedup.bam");
-	$tmp_connor_log = $parser->tempFile("_conner_dedup.log");
-	$parser->exec("python /mnt/share/opt/Connor-0.5/connor-runner.py", "$out $tmp_connor_bam --log_file $tmp_connor_log",true,"0.5");
+	$args[] = "-dedup";
+}
+$parser->execTool("NGS/mapping_bwa.php", implode(" ", $args));
+
+//de-duplucation for ThruPlex
+if(starts_with($sys['name_manufacturer'], "ThruPlex TagSeq"))
+{
+	$tmp_bam = $parser->tempFile("_conner_dedup.bam");
+	$parser->exec("python /mnt/share/opt/Connor-0.5/connor-runner.py", "$bam_current $tmp_bam --log_file ".$parser->tempFile("_conner_dedup.log"), true);
+	$parser->indexBam($tmp_bam, $threads);
+
+	$parser->moveFile($bam_current, $basename."_before_dedup.bam");
+	$parser->moveFile($bam_current.".bai", $basename."_before_dedup.bam.bai");
 	
-	$bam_before_dedup =  $basename."_before_dedup.bam";
-	copy2($out, $bam_before_dedup);
-	$parser->exec(get_path("samtools"), "index ".$bam_before_dedup, true);
-	
-	copy2($tmp_connor_bam, $out);
-	$parser->exec(get_path("samtools"), "index ".$out, true);
+	$bam_current = $tmp_bam;
 }
 
 //perform indel realignment
 if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 {
-	//execute
-	$args = array();
-	$args[] = "-in $out";
 	$tmp_bam = $parser->tempFile("_indel_realign.bam");
+	
+	$args = array();
+	$args[] = "-in $bam_current";
 	$args[] = "-out $tmp_bam";
 	$args[] = "-build ".$sys['build'];
 	$args[] = "-threads ".$threads;
@@ -140,69 +149,76 @@ if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 	{
 		$args[] = "-roi ".$sys['target_file'];
 	}
+	$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $args));	
+	$parser->indexBam($tmp_bam, $threads);
 	
-	$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $args));
-	
-	//copy/index output
-	copy2($tmp_bam, $out);
-	$parser->exec(get_path("samtools")." index", " ".$out, true);
+	$bam_current = $tmp_bam;
 }
 
 //remove too short reads from amplicon data
 if (contains($sys['type'],"Haloplex")) //matches both HaloPlex and Haloplex HS
 {
-	$bam_clean = $parser->tempFile("_clipped1.bam");
-	$parser->exec(get_path("ngs-bits")."BamCleanHaloplex -min_match 30", " -in $out -out $bam_clean", true);
-	copy2($bam_clean, $out);
-	$parser->exec(get_path("samtools")." index", " $out", true);
+	$tmp_bam = $parser->tempFile("_clean.bam");
+	
+	$parser->exec(get_path("ngs-bits")."BamCleanHaloplex -min_match 30", "-in $bam_current -out $tmp_bam", true);
+	$parser->indexBam($tmp_bam, $threads);
+	
+	$bam_current = $tmp_bam;
 }
 
 //clip overlapping reads
 if($clip_overlap)
 {
-	$bam_clip1 = $parser->tempFile("_clipped1.bam");
-	$parser->exec(get_path("ngs-bits")."BamClipOverlap", " -in $out -out $bam_clip1", true);
-	$tmp1 = $parser->tempFile();
-	$parser->exec(get_path("samtools"),"sort -T $tmp1 -o $out $bam_clip1", true);
-	$parser->exec(get_path("samtools")." index", " $out", true);
+	$tmp_bam = $parser->tempFile("_clip_overlap_unsorted.bam");
+	$parser->exec(get_path("ngs-bits")."BamClipOverlap", "-in $bam_current -out $tmp_bam", true);	
+	$tmp_bam2 = $parser->tempFile("_clip_overlap_sorted.bam");
+	$parser->sortBam($tmp_bam, $tmp_bam2, $threads);
+	$parser->indexBam($tmp_bam2, $threads);
+
+	$bam_current = $tmp_bam2;
 }
 
 //MIPs: remove duplicates by molecular barcode and cut extension/ligation arms
 if($sys['type']=="Panel MIPs")
 {
+	$tmp_bam = $parser->tempFile("_dedup_unsorted.bam");
 	$mip_file = isset($sys['mip_file']) ? $sys['mip_file'] : "/mnt/share/data/mipfiles/".$sys["name_short"].".txt";
-	$bam_dedup1 = $parser->tempFile("_dedup1.bam");
-
-	copy2($out, $basename."_before_dedup.bam");
-	$parser->exec(get_path("samtools"), "index ".$basename."_before_dedup.bam", true);
-
-	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -mip_file $mip_file -out $bam_dedup1 -stats ".$basename."_bar_stats.tsv -del_amb  -dist 1", true);
-
-	$tmp1 = $parser->tempFile();
-	$parser->exec(get_path("samtools"),"sort -T $bam_dedup1 -o $out $bam_dedup1", true);
-	$parser->exec(get_path("samtools")." index", " $out", true);
+	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", "-bam $bam_current -index $index_file -mip_file $mip_file -out $tmp_bam -stats ".$basename."_bar_stats.tsv -del_amb -dist 1", true);
+	$tmp_bam2 = $parser->tempFile("_dedup_sorted.bam");
+	$parser->sortBam($tmp_bam, $tmp_bam2, $threads);
+	$parser->indexBam($tmp_bam2, $threads);
+	
+	$parser->moveFile($bam_current, $basename."_before_dedup.bam");
+	$parser->moveFile($bam_current.".bai", $basename."_before_dedup.bam.bai");
+	
+	$bam_current = $tmp_bam2;
 }
 
 //HaloPlex HS: remove duplicates by molecular barcode
 if($sys['type']=="Panel Haloplex HS" && file_exists($index_file))
 {
-	$bam_dedup1 = $parser->tempFile("_dedup1.bam");
+	$tmp_bam = $parser->tempFile("_dedup_unsorted.bam");
 	$min_group = isset($sys['min_group']) ? $sys['min_group'] : 1;
 	$dist = isset($sys['dist']) ? $sys['dist'] : 1;
 	$amplicon_file = substr($sys['target_file'], 0, -4)."_amplicons.bed";
+	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", "-bam $bam_current -index $index_file -out $tmp_bam -min_group $min_group -stats ".$basename."_bar_stats.tsv -dist $dist -hs_file $amplicon_file", true);
+	$tmp_bam2 = $parser->tempFile("_dedup_sorted.bam");
+	$parser->sortBam($tmp_bam, $tmp_bam2, $threads);
+	$parser->indexBam($tmp_bam2, $threads);
 	
-	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", " -bam $out -index $index_file -out $bam_dedup1 -min_group $min_group -stats ".$basename."_bar_stats.tsv -dist $dist -hs_file $amplicon_file", true);
-	$tmp1 = $parser->tempFile();
-	$parser->exec(get_path("samtools"),"sort -T $bam_dedup1 -o $out $bam_dedup1", true);
-	$parser->exec(get_path("samtools")." index", " $out", true);
+	$bam_current = $tmp_bam2;
 }
 
-//add baf file
+//move BAM to final output location
+$parser->moveFile($bam_current, $out);
+$parser->moveFile($bam_current.".bai", $out.".bai");
+
+//create BAF file
 $parser->execTool("NGS/mapping_baf.php", "-in ${out} -out ${basename}_bafs.seg -system {$system}");
 
 //run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
-$params = array();
+$params = array("-in $out", "-out $stafile2");
 if ($sys['target_file']=="" || $sys['type']=="WGS")
 {
 	$params[] = "-wgs";
@@ -219,7 +235,6 @@ else
 {
 	$params[] = "-no_cont";
 }
-
-$parser->exec(get_path("ngs-bits")."MappingQC", "-in $out -out $stafile2 ".implode(" ", $params), true);
+$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
 
 ?>

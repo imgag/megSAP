@@ -175,9 +175,8 @@ if (in_array("ma", $steps))
 		if (isset($target_file) && $target_file != "") $abra_params[] = "-roi {$target_file}";
 		
 		$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $abra_params));
-
-		copy2($abra_out, $final_bam);
-		$parser->exec(get_path("samtools")." index", $final_bam, true);
+		$parser->moveFile($abra_out, $final_bam);
+		$parser->indexBam($final_bam, $threads);
 	}
 
 	//mapping QC
@@ -250,7 +249,7 @@ if (in_array("fu",$steps))
 		);
 
 		$parser->exec(get_path("STAR-Fusion"), implode(" ", $starfusion_params), true);
-		$parser->exec("cp", "{$fusion_tmp_folder}/star-fusion.fusion_candidates.final.abridged {$prefix}_var_fusions.tsv", true);
+		$parser->moveFile("{$fusion_tmp_folder}/star-fusion.fusion_candidates.final.abridged", "{$prefix}_var_fusions.tsv");
 	
 	}
 	else

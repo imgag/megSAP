@@ -1,7 +1,7 @@
 <?php
 
 /** 
-	@page mapping_bwa
+	@page mip_generator
 	@todo move calculation folder to temp and copy only files that are necessary
 	@todo step 3: further filtering of MIPs, check if target region is covered sufficiently and update low-coverage statistics
 */
@@ -96,7 +96,7 @@ if($mode=="ffpe")	$args .= "-half_seal_both_strands off -double_tile_strands_sep
 if($mode=="cfdna")	$args .= "-half_seal_both_strands off -double_tile_strands_separately on ";
 $parser->exec(get_path('mipgen'), $args, true);
 $p_mips = $out_folder."/".$project_name."_mips_picked.txt";
-$parser->exec("cp","$temp_folder/$project_name.picked_mips.txt $p_mips",true);
+$parser->moveFile("$temp_folder/$project_name.picked_mips.txt", $p_mips);
 
 // 3. filter MIPs and generate low-cov-statistics
 $tmp_p_cov = $temp_folder."/tmp_mips_cov.bed";

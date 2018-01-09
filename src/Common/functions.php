@@ -728,21 +728,4 @@ function sort_vcf_comments($comments_to_sort)
 		return implode("/",$r);
 	}
 	
-	
-	///File copy function with proper error handling
-	function copy2($from, $to)
-	{
-		//remove target first
-		if (file_exists($to) && !unlink($to))
-		{
-			trigger_error("Could not copy $from to $to: Could not remove target!", E_USER_ERROR);
-		}
-		
-		//copy file
-		if (!copy($from, $to))
-		{
-			trigger_error("Could not copy $from to $to!", E_USER_ERROR);
-		}
-	}
-	
 ?>

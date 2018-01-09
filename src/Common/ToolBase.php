@@ -68,8 +68,7 @@ class ToolBase
 				{
 					trigger_error("Temporary file '$file' does not exist.", E_USER_NOTICE);
 				}
-				
-				if (!unlink($file))
+				else if (!unlink($file))
 				{
 					trigger_error("Temporary file '$file' could not be deleted.", E_USER_NOTICE);
 				}
@@ -81,8 +80,10 @@ class ToolBase
 			    {
 					trigger_error("Temporary folder '$folder' does not exist.", E_USER_NOTICE);
 			    }
-				
-				$this->removeTempFolder($folder);
+				else
+				{
+					$this->removeTempFolder($folder);
+				}
 			}
 		}
 		
@@ -1025,6 +1026,56 @@ class ToolBase
 		$writer->closeTag("TDX");
 
 		file_put_contents($filename, $writer->output());
+	}
+	
+	///Sort BAM file
+	function sortBam($in, $out, $threads)
+	{	
+		$threads -= 1; //number of additional threads, that's why -1
+		$tmp_for_sorting = $this->tempFile();		
+		$this->exec(get_path("samtools")." sort", "-T {$tmp_for_sorting} -@ {$threads} -m 1G -o $out $in", true);
+	}
+	
+	///Index BAM file
+	function indexBam($bam, $threads)
+	{
+		$this->exec(get_path("samtools")." index", "-@ {$threads} $bam", true);
+	}
+	
+	///Move file with error checks
+	function moveFile($from, $to)
+	{
+		$start = microtime(true);
+		
+		if (file_exists($to) && !unlink($to))
+		{
+			trigger_error("Could not move $from to $to: Could not remove target!", E_USER_ERROR);
+		}
+		
+		if (!rename($from, $to))
+		{
+			trigger_error("Could not move $from to $to!", E_USER_ERROR);
+		}
+		
+		$this->log("Execution time of moving '".basename($from)."' to '".basename($to)."': ".time_readable(microtime(true) - $start));	
+	}
+	
+	///Copy file with error checks
+	function copyFile($from, $to)
+	{
+		$start = microtime(true);
+		
+		if (file_exists($to) && !unlink($to))
+		{
+			trigger_error("Could not copy $from to $to: Could not remove target!", E_USER_ERROR);
+		}
+		
+		if (!copy($from, $to))
+		{
+			trigger_error("Could not copy $from to $to!", E_USER_ERROR);
+		}
+		
+		$this->log("Execution time of copying '".basename($from)."' to '".basename($to)."': ".time_readable(microtime(true) - $start));		
 	}
 	
 	function jobsSubmit($commands, $working_directory, $queue, $wait=false)
