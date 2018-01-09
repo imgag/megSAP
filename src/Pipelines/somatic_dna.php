@@ -158,9 +158,8 @@ if (in_array("ma", $steps))
 		$tmp1_t_bam = $parser->tempFile("_tumor.bam");
 		$tmp1_n_bam = $parser->tempFile("_normal.bam");
 		$tmp_out = (!$single_sample?$tmp1_n_bam." ":"")."$tmp1_t_bam";
-		$command = "php ".repository_basedir()."/src/NGS/indel_realign_abra.php -in $tmp_in -out $tmp_out -roi $tmp_targets -threads $threads -mer 0.02 -mad 5000 2>&1";
-		$working_directory = realpath($p_folder);
-		$parser->jobsSubmit(array($command), $working_directory, get_path("queues_high_mem"), true);
+
+		$parser->execTool("NGS/indel_realign_abra.php", "-in $tmp_in -out $tmp_out -roi $tmp_targets -threads 8 -mer 0.02 -mad 5000");
 		
 		// copy realigned files to output folder and overwrite previous bam files
 		$parser->moveFile($tmp1_t_bam, $t_bam);
