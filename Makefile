@@ -15,6 +15,11 @@ help:
 	@echo "Auxilary targets:"
 	@echo "  find_missing_tests - Checks for tools that do not have a test."
 	@echo "  todos              - Checks for todos in the code"
+	@echo "  pull               - Pull latest version from GitHub"
+	
+pull:
+	git pull --recurse-submodules
+	git submodule update --recursive
 
 test: dummy
 	@cd test && find . -name "test_*.php"  | xargs -l1000 php execute_tests.php ALL 

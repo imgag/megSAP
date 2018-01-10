@@ -64,11 +64,7 @@ class ToolBase
 		{
 			foreach($this->temp_files as $file)
 			{
-				if (!file_exists($file))
-				{
-					trigger_error("Temporary file '$file' does not exist.", E_USER_NOTICE);
-				}
-				else if (!unlink($file))
+				if (file_exists($file) && !unlink($file))
 				{
 					trigger_error("Temporary file '$file' could not be deleted.", E_USER_NOTICE);
 				}
@@ -76,11 +72,7 @@ class ToolBase
 			
 			foreach($this->temp_folders as $folder)
 			{
-			    if(!is_dir($folder))
-			    {
-					trigger_error("Temporary folder '$folder' does not exist.", E_USER_NOTICE);
-			    }
-				else
+			    if(is_dir($folder))
 				{
 					$this->removeTempFolder($folder);
 				}
@@ -126,19 +118,19 @@ class ToolBase
 
 		foreach ($files as $file) 
 		{
-		//exclude '.' and '..'
-		if($file == "." || $file == "..") continue;
-		
-		if (is_dir($folder.$file)) 
-		{
-			//delete recursively
-			$this->removeTempFolder($folder.$file);
-		} 
-		else 
-		{
-			//delete file
-			unlink($folder.$file);
-		}
+			//exclude '.' and '..'
+			if($file == "." || $file == "..") continue;
+
+			if (is_dir($folder.$file)) 
+			{
+				//delete recursively
+				$this->removeTempFolder($folder.$file);
+			} 
+			else 
+			{
+				//delete file
+				unlink($folder.$file);
+			}
 		}
 		
 		//delete folder
@@ -1052,10 +1044,7 @@ class ToolBase
 			trigger_error("Could not move '$from' to '$to': Could not remove target!", E_USER_ERROR);
 		}
 		
-		if (!rename($from, $to))
-		{
-			trigger_error("Could not move '$from' to '$to'!", E_USER_ERROR);
-		}
+		$this->exec("mv", "$from $to", false);
 		
 		$this->log("Execution time of moving '".basename($from)."' to '".basename($to)."': ".time_readable(microtime(true) - $start));	
 	}
@@ -1070,10 +1059,7 @@ class ToolBase
 			trigger_error("Could not copy '$from' to '$to': Could not remove target!", E_USER_ERROR);
 		}
 		
-		if (!copy($from, $to))
-		{
-			trigger_error("Could not copy '$from' to '$to'!", E_USER_ERROR);
-		}
+		$this->exec("cp", "$from $to", false);
 		
 		$this->log("Execution time of copying '".basename($from)."' to '".basename($to)."': ".time_readable(microtime(true) - $start));		
 	}

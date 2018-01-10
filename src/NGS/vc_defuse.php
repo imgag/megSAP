@@ -1,6 +1,6 @@
 <?php
 /**
- * @page fusion_detection_defuse
+ * @page vc_defuse
  * 
  * @todo remove SeqPurge
  */
@@ -93,5 +93,5 @@ $arguments[] = "-p $numThreads";
 $parser->exec(get_path("defuse"), implode(" ", $arguments), true);
 
 //copy relevant files and delete the rest
-$parser->exec("cp", $tempOutput."/*.tsv ".$out, true);
+$parser->copyFile($tempOutput."/*.tsv", $out);
 ?>

@@ -186,7 +186,7 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 			foreach($old_files as $file)
 			{
 				$file_corrected = strtr($file, array($sample_ID_modified => $sample_ID));
-				rename($file, $file_corrected);
+				$parser->moveFile($file, $file_corrected);
 			}
 		}
 		
