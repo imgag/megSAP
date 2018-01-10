@@ -278,6 +278,8 @@ function storeMetaData($path, $name, $data)
 //copies files to a folder (or touches output file in debug mode)
 function copyFiles($files, $to_folder, $upload)
 {
+	global $parser;
+
 	foreach($files as $file)
 	{
 		$outfile = $to_folder."/".basename($file);
