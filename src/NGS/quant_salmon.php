@@ -67,4 +67,4 @@ $parser->log("salmon aux_info/meta_info.json:",
 $parser->log("salmon lib_format_counts.json:",
 	file($tmp_folder . "/lib_format_counts.json"));
 
-copy($tmp_folder . "/quant.sf", $out);
+$parser->copyFile($tmp_folder . "/quant.sf", $out);

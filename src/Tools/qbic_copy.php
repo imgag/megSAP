@@ -495,7 +495,7 @@ foreach($res as $row)
 			//upload data
 			if ($upload)
 			{
-				rename($tmpfolder, $GLOBALS["datamover_path"]."/".$folder_name);
+				$parser->moveFile($tmpfolder, $GLOBALS["datamover_path"]."/".$folder_name);
 				markAsUploaded($sample1, null, $files);
 			}
 			printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(", ", $files));
@@ -601,7 +601,7 @@ foreach($res as $row)
 			//upload data
 			if ($upload)
 			{
-				rename($tmpfolder, $GLOBALS["datamover_path"]."/".$folder_name);
+				$parser->moveFile($tmpfolder, $GLOBALS["datamover_path"]."/".$folder_name);
 				markAsUploaded($sample1, $sample2, $files);
 			}
 			printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(" ", $files));

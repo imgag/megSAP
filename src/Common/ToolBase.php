@@ -1049,12 +1049,12 @@ class ToolBase
 		
 		if (file_exists($to) && !unlink($to))
 		{
-			trigger_error("Could not move $from to $to: Could not remove target!", E_USER_ERROR);
+			trigger_error("Could not move '$from' to '$to': Could not remove target!", E_USER_ERROR);
 		}
 		
 		if (!rename($from, $to))
 		{
-			trigger_error("Could not move $from to $to!", E_USER_ERROR);
+			trigger_error("Could not move '$from' to '$to'!", E_USER_ERROR);
 		}
 		
 		$this->log("Execution time of moving '".basename($from)."' to '".basename($to)."': ".time_readable(microtime(true) - $start));	
@@ -1067,12 +1067,12 @@ class ToolBase
 		
 		if (file_exists($to) && !unlink($to))
 		{
-			trigger_error("Could not copy $from to $to: Could not remove target!", E_USER_ERROR);
+			trigger_error("Could not copy '$from' to '$to': Could not remove target!", E_USER_ERROR);
 		}
 		
 		if (!copy($from, $to))
 		{
-			trigger_error("Could not copy $from to $to!", E_USER_ERROR);
+			trigger_error("Could not copy '$from' to '$to'!", E_USER_ERROR);
 		}
 		
 		$this->log("Execution time of copying '".basename($from)."' to '".basename($to)."': ".time_readable(microtime(true) - $start));		

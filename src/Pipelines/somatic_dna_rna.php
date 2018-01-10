@@ -165,8 +165,8 @@ if (in_array("germline", $process))
 		$parser->execTool("NGS/vc_freebayes.php", implode(" ", $vc_args));
 		$parser->execTool("Pipelines/annotate.php", "-out_name {$n_dna_id} -out_folder {$germline_dna_tmp} -system {$n_dna_sys} -vcf {$germline_dna_vcf_tmp}");
 		
-		copy($germline_dna_vcf_tmp, $germline_dna_vcf);
-		copy($germline_dna_gsvar_tmp, $germline_dna_gsvar);
+		$parser->copyFile($germline_dna_vcf_tmp, $germline_dna_vcf);
+		$parser->copyFile($germline_dna_gsvar_tmp, $germline_dna_gsvar);
 	}
 	else if ($germline_preset === "nearby")
 	{

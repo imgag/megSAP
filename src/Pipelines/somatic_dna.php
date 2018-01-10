@@ -328,8 +328,8 @@ if (in_array("an", $steps))
 	$tmp_folder1 = $parser->tempFolder();
 	$tmp_vcf = $tmp_folder1."/".basename($som_gsvar, ".GSvar")."_var_annotated.vcf.gz";
 	$parser->execTool("Pipelines/annotate.php", "-out_name ".basename($som_gsvar, ".GSvar")." -out_folder $tmp_folder1 -system $t_sys -vcf $som_v -t_col $t_id ".($single_sample?"":"-n_col $n_id")." -thres 8 -updown");
-	if (!copy($tmp_vcf, $som_unfi))	trigger_error("Could not copy file '$tmp_vcf' to '$som_unfi'",E_USER_ERROR);
-
+	$parser->copyFile($tmp_vcf, $som_unfi);
+	
 	// run somatic QC; this is run before project specific filtering since some qc parameters should not have additional filters set
 	if(!$single_sample)
 	{

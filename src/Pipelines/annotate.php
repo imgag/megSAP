@@ -92,7 +92,7 @@ else //somatic
 	
 	//annotate additional columns, somatic only
 	$tmp_annfile = $parser->tempFile("_somatic.vcf");
-	if(!rename($annfile,$tmp_annfile))	trigger_error("Could not move '$annfile' to '$tmp_annfile'.",E_USER_ERROR);
+	$parser->moveFile($annfile, $tmp_annfile);
 	$cols = array("Interpro_domain");
 	$parser->exec(get_path("SnpSift"), "dbnsfp -noLog -db ".get_path("data_folder")."/dbs/dbNSFP/dbNSFPv2.9.3.txt.gz -f ".implode(",",$cols)." $tmp_annfile > $annfile", true);
 	//SnpSift vcf comments are printed twice using dbNSFP -> remove duplicate comments
@@ -108,7 +108,7 @@ $parser->exec("tabix", "-p vcf $annfile_zipped", false); //no output logging, be
 //use exonic/splicing variant list for WGS only (otherwise the NGSD annotation takes too long)
 if ($sys['type']=="WGS" && ($sys['build']=="hg19" || $sys['build']=="GRCh37")) 
 {
-	rename($varfile, $varfile_full);
+	$parser->moveFile($varfile, $varfile_full);
 	$tmp = $parser->tempFile(".bed");
 	file_put_contents($tmp, "chrMT\t0\t16569");
 	$roi_with_mito = $parser->tempFile(".bed");

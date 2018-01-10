@@ -31,6 +31,6 @@ $tmp = "";
 load_system($tmp, $ps_id);
 
 //move system from temp to output file
-rename($tmp, $out);
+$parser->moveFile($tmp, $out);
 
 ?>
