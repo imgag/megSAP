@@ -20,10 +20,10 @@ $parser->addInt("threads", "Maximum number of threads used.", true, 1);
 $parser->addInfile("roi", "Target region for realignment.", true, "");
 $parser->addFloat("mer",  "ABRA2 minimum edge pruning ratio parameter. Default value is for germline - use 0.02 for somatic data.", true, 0.1);
 $parser->addFloat("mad",  "ABRA2 downsampling depth parameter. Default value is for germline - use 5000 for somatic data.", true, 250);
-//options for RNA
-$parser->addFlag("se", "Single-end input");
-$parser->addInfile("gtf",  "GTF annotation file.", true, "");
-$parser->addInfile("junctions",  "Junctions output file from STAR mapping.", true, "");
+$parser->addFlag("skip_kmer", "TODO REMOMVE");
+$parser->addFlag("se", "RNA: Single-end input");
+$parser->addInfile("gtf",  "RNA: GTF annotation file.", true, "");
+$parser->addInfile("junctions",  "RNA: Junctions output file from STAR mapping.", true, "");
 extract($parser->parse($argv));
 
 //init
@@ -34,7 +34,7 @@ if (count($in)!=count($out))
 }
 
 //create k-mer folder
-if (isset($roi))
+if (!$skip_kmer && isset($roi))
 {
 	$kmer_folder = get_path("data_folder")."/dbs/ABRA/";
 	if (!file_exists($kmer_folder) && !mkdir($kmer_folder, 0777, true))
@@ -57,7 +57,7 @@ if (isset($roi))
 $params = array();
 $params[] = "--in ".implode(",", $in);
 $params[] = "--out ".implode(",", $out);
-if (isset($roi))
+if (!$skip_kmer && isset($roi))
 {
 	$params[] = "--target-kmers ".$kmer_file;
 }
