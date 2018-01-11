@@ -213,8 +213,8 @@ if($sys['type']=="Panel Haloplex HS" && file_exists($index_file))
 $parser->moveFile($bam_current, $out);
 $parser->moveFile($bam_current.".bai", $out.".bai");
 
-//create BAF file
-$parser->execTool("NGS/mapping_baf.php", "-in ${out} -out ${basename}_bafs.seg -system {$system}");
+//add baf file
+$parser->execTool("NGS/mapping_baf.php", "-in ${out} -out ${basename}_bafs.igv -system {$system}");
 
 //run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
