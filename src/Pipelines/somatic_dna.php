@@ -194,7 +194,7 @@ if(!$single_sample)	$som_qci = $o_folder.$t_id."-".$n_id."_var_qci.vcf.gz";
 if(!$single_sample)	$som_sv = $o_folder.$t_id."-".$n_id."_var_structural.vcf.gz";
 if(!$single_sample)	$som_svt = $o_folder.$t_id."-".$n_id."_var_structural.tsv";
 if(!$single_sample)	$som_si = $o_folder.$t_id."-".$n_id."_var_smallIndels.vcf.gz";
-$som_bafs = $o_folder.$t_id."-".$n_id."_bafs.seg";
+$som_bafs = $o_folder.$t_id."-".$n_id."_bafs.igv";
 if (in_array("vc", $steps))
 {
 	// structural variant calling, should be done before variant calling since strelka uses the smallIndel output
