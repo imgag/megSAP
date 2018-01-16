@@ -197,7 +197,7 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 		{
 			$r3_count += contains($file, "_R3_");
 		}
-		if (count($fastqgz_files)>=3 && $r3_count==count($fastqgz_files)/3 ) //handling of molecular barcode in index read 2 (Haloplex HS, Swift, ...)
+		if (count($fastqgz_files)>=3 && $r3_count==count($fastqgz_files)/3 ) //handling of molecular barcode in index read 2 (HaloPlex HS, Swift, ...)
 		{
 			//create target folder
 			$target_to_copylines[$tag][]="\tmkdir -p ".$new_location."/Sample_".$sample_ID."/";

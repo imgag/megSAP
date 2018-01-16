@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("vc_pindel", "Run pindel. No Haloplex.");
+$parser = new ToolBase("vc_pindel", "Run pindel. No HaloPlex.");
 $parser->addInfileArray("bam_files",  "Bam files for pindel. Please note that MappingQC output file must reside next to bam file to extract correct insert size.", false);
 $parser->addString("out", "Output folder (will contain files prefixed with pindel).", false);
 //optional

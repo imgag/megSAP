@@ -380,7 +380,7 @@ function load_system(&$filename, $ps_name = "")
 		}
 
 		//get processed sample raw data
-		$res = $db->executeQuery("SELECT sys.name_manufacturer, sys.name_short, sys.adapter1_p5, sys.adapter2_p7, sys.type, sys.shotgun, sys.target_file, g.build FROM processing_system as sys, genome as g, processed_sample as ps, sample as s WHERE sys.genome_id=g.id and sys.id=ps.processing_system_id and ps.id=:pid", array("pid"=>$pid));
+		$res = $db->executeQuery("SELECT sys.name_manufacturer, sys.name_short, sys.adapter1_p5, sys.adapter2_p7, sys.type, sys.shotgun, sys.umi_type, sys.target_file, g.build FROM processing_system as sys, genome as g, processed_sample as ps, sample as s WHERE sys.genome_id=g.id and sys.id=ps.processing_system_id and ps.id=:pid", array("pid"=>$pid));
 		$output = array();
 		$output[] = "name_short = \"".$res[0]['name_short']."\"";
 		$output[] = "name_manufacturer = \"".$res[0]['name_manufacturer']."\"";
@@ -388,6 +388,7 @@ function load_system(&$filename, $ps_name = "")
 		$output[] = "adapter1_p5 = \"".$res[0]['adapter1_p5']."\"";
 		$output[] = "adapter2_p7 = \"".$res[0]['adapter2_p7']."\"";
 		$output[] = "shotgun = ".$res[0]['shotgun'];
+		$output[] = "umi_type = \"".$res[0]['umi_type']."\"";
 		$output[] = "type = \"".$res[0]['type']."\"";
 		$output[] = "build = \"".$res[0]['build']."\"";
 		

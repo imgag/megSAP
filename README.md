@@ -11,6 +11,10 @@ The goal of the megSAP proejct is to develop an NGS data analysis pipeline for m
 
 megSAP is developed by the [Institute of Medical Genetics and Applied Genomics](http://www.uni-tuebingen.de/Klinische_Genetik/start.html) and several collaborators from academia and industry. If you are interested to join the effort, please contact [Marc Sturm](https://github.com/marc-sturm).
 
+## ChangeLog
+
+* 08.01.2018: Updated tools (BWA, samtools, snpEff) and databases (ClinVar, gnomAD, HGMD)
+
 ## Download
 
 There are no releases yet.  
@@ -82,3 +86,4 @@ Documentation about the different analysis pipelines can be found here:
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+

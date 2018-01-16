@@ -201,7 +201,7 @@ if (in_array("vc", $steps))
 	// structural variant calling, should be done before variant calling since strelka uses the smallIndel output
 	if(!$single_sample)
 	{
-		if(!starts_with($t_sys_ini['name_manufacturer'],"ThruPlex TagSeq"))
+		if($t_sys_ini['umi_type']!="ThruPLEX")
 		{
 			if($t_sys_ini['shotgun']==1)
 			{
@@ -213,7 +213,7 @@ if (in_array("vc", $steps))
 				$parser->execTool("Tools/converter_manta2tsv.php", "-in $som_sv -out $som_svt -tumor_id $t_id");
 			}
 		}
-		else trigger_error("Breakpoint detection deactivated for ThruPlex samples.",E_USER_NOTICE);
+		else trigger_error("Breakpoint detection deactivated for ThruPLEX samples.",E_USER_NOTICE);
 	}
 	else	trigger_error("Breakpoint detection currently only implemented for tumor normal pairs.",E_USER_NOTICE);
 	
@@ -379,8 +379,8 @@ if (in_array("an", $steps))
 	$s->toTSV($tmp);
 
 	// annotate strand and family information for UID read groups
-	if($t_sys_ini['type']=="Panel Haloplex HS")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp  -hpHS ".substr($t_sys_ini['target_file'], 0, -4)."_amplicons.bed -name $t_id", true);
-	if(!$single_sample && $n_sys_ini['type']=="Panel Haloplex HS")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $n_bam -vcf $tmp -out $tmp  -hpHS ".substr($n_sys_ini['target_file'], 0, -4)."_amplicons.bed -name $n_id", true);
+	if($t_sys_ini['umi_type']=="HaloPlex HS")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp  -hpHS ".substr($t_sys_ini['target_file'], 0, -4)."_amplicons.bed -name $t_id", true);
+	if(!$single_sample && $n_sys_ini['umi_type']=="HaloPlex HS")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $n_bam -vcf $tmp -out $tmp  -hpHS ".substr($n_sys_ini['target_file'], 0, -4)."_amplicons.bed -name $n_id", true);
 	if($t_sys_ini['type']=="Panel MIPs")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp ".(isset($t_sys_ini['mip_file'])?$t_sys_ini['mip_file']:"/mnt/share/data/mipfiles/".$t_sys_ini["name_short"].".txt")." -name $t_id", true);
 	if(!$single_sample && $n_sys_ini['type']=="Panel MIPs")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $n_bam -vcf $tmp -out $tmp ".(isset($n_sys_ini['mip_file'])?$n_sys_ini['mip_file']:"/mnt/share/data/mipfiles/".$n_sys_ini["name_short"].".txt")." -name $n_id", true);
 
@@ -390,7 +390,7 @@ if (in_array("an", $steps))
 
 	// convert vcf to GSvar
 	$extra = "-t_col $t_id ".($single_sample?"":"-n_col $n_id");
-	if($t_sys_ini['type']=="Panel Haloplex HS" || starts_with($t_sys_ini['name_short'],"mi"))	$extra .= " -strand";
+	if($t_sys_ini['umi_type']=="HaloPlex HS" || starts_with($t_sys_ini['name_short'], "mi"))	$extra .= " -strand";
 	$parser->execTool("NGS/vcf2gsvar_somatic.php", "-in $som_vann -out $som_gsvar $extra");
 
 	// annotate NGSD and dbNFSP

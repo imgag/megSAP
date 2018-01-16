@@ -54,7 +54,7 @@ if ($sys["adapter1_p5"]=="" && $sys["adapter2_p7"]=="")
 $stafile1 = $basename."_stats_fastq.qcML";
 $trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
 $trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
-if(!starts_with($sys['name_manufacturer'],"ThruPlex TagSeq"))
+if($sys['umi_type']!="ThruPLEX")
 {
 	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);	
 }
@@ -65,7 +65,7 @@ else
 	$parser->exec(get_path("ngs-bits")."ReadQC", "-in1 $trimmed1 -in2 $trimmed2 -out $stafile1", true);	
 }
 
-// MIPs: move molecular barcode to separate file
+//MIPs UMI handling: move molecular barcode to separate file
 $index_file = $basename."_index.fastq.gz";
 $trimmed_mips2 = $basename."_MB_001.fastq.gz";
 if($sys['type']=="Panel MIPs")
@@ -74,8 +74,8 @@ if($sys['type']=="Panel MIPs")
 	$trimmed2 = $trimmed_mips2;
 }
 
-//HaloPlex HS special handling
-if($sys['type']=="Panel Haloplex HS")
+//HaloPlex HS UMI handling
+if($sys['umi_type']=="HaloPlex HS")
 {
 	//cut extra C at beginning of read2 and end of read1
 	$trimmed_hs1 = $parser->tempFile("_trimmed_hs1.fastq.gz");
@@ -99,7 +99,7 @@ if($sys['type']=="Panel Haloplex HS")
 	
 	if(!file_exists($index_file))
 	{
-		trigger_error("Index file for Haloplex HS enrichment $index_file was not found. The data is processed like a normal Haloplex panel without molecular barcode!", E_USER_WARNING);
+		trigger_error("Index file for HaloPlex HS enrichment $index_file was not found. The data is processed like a normal HaloPlex panel without molecular barcode!", E_USER_WARNING);
 	}
 }
 
@@ -112,14 +112,14 @@ $args[] = "-out $bam_current";
 $args[] = "-sample $out_name";
 $args[] = "-build ".$sys['build'];
 $args[] = "-threads $threads";
-if ($sys['shotgun'] && !starts_with($sys['name_manufacturer'], "ThruPlex TagSeq"))
+if ($sys['shotgun'] && $sys['umi_type']!="ThruPLEX")
 {
 	$args[] = "-dedup";
 }
 $parser->execTool("NGS/mapping_bwa.php", implode(" ", $args));
 
-//de-duplucation for ThruPlex
-if(starts_with($sys['name_manufacturer'], "ThruPlex TagSeq"))
+//ThruPlex UMI handling: de-duplucation
+if($sys['umi_type']=="ThruPLEX")
 {
 	$tmp_bam = $parser->tempFile("_conner_dedup.bam");
 	$parser->exec("python /mnt/share/opt/Connor-0.5/connor-runner.py", "$bam_current $tmp_bam --log_file ".$parser->tempFile("_conner_dedup.log"), true);
@@ -155,8 +155,8 @@ if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 	$bam_current = $tmp_bam;
 }
 
-//remove too short reads from amplicon data
-if (contains($sys['type'],"Haloplex")) //matches both HaloPlex and Haloplex HS
+//remove too short reads from HaloPlex data
+if ($sys['type']=="Panel Haloplex")
 {
 	$tmp_bam = $parser->tempFile("_clean.bam");
 	
@@ -178,7 +178,7 @@ if($clip_overlap)
 	$bam_current = $tmp_bam2;
 }
 
-//MIPs: remove duplicates by molecular barcode and cut extension/ligation arms
+//MIPs UMI handling: de-duplicate and remove extension/ligation arms
 if($sys['type']=="Panel MIPs")
 {
 	$tmp_bam = $parser->tempFile("_dedup_unsorted.bam");
@@ -194,8 +194,8 @@ if($sys['type']=="Panel MIPs")
 	$bam_current = $tmp_bam2;
 }
 
-//HaloPlex HS: remove duplicates by molecular barcode
-if($sys['type']=="Panel Haloplex HS" && file_exists($index_file))
+//HaloPlex HS UMI handling: de-duplicate
+if($sys['umi_type']=="HaloPlex HS" && file_exists($index_file))
 {
 	$tmp_bam = $parser->tempFile("_dedup_unsorted.bam");
 	$min_group = isset($sys['min_group']) ? $sys['min_group'] : 1;
