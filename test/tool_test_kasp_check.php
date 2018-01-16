@@ -30,10 +30,11 @@ if (db_is_enabled("NGSD"))
 	//test 3 - StepOnePlus - SNP set 2 - only conversion is checked
 	$in3 = data_folder().$name."_in3.txt";
 	$out3 = output_folder().$name."_out3.tsv";
+	$converted3 = output_folder().$name."_converted3.tsv";
 
 	$stdout = check_exec("php ".src_folder()."/Tools/".$name.".php -in $in3 -snps set2 -format StepOnePlus -out $out3");
-	check_file(data_folder().$name."_in3_converted.tsv", data_folder().$name."_converted3.tsv");
-	unlink(data_folder().$name."_in3_converted.tsv");
+	rename(data_folder().$name."_in3_converted.tsv", $converted3); 
+	check_file($converted3, data_folder().$name."_converted3.tsv");
 }
 
 end_test();
