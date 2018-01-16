@@ -193,6 +193,7 @@ if (in_array("ma", $steps))
 
 //read counting
 $counts_raw = $prefix."_counts_raw.tsv";
+$counts_exon_raw = $prefix."_counts_exon_raw.tsv";
 $counts_normalized = $prefix."_counts.tsv";
 $counts_qc = $prefix."_stats_rc.tsv";
 $repair_bam = $final_bam;
@@ -223,6 +224,12 @@ if (in_array("rc", $steps))
 	]);
 
 	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args));
+
+	// exon-level counting
+	$args_exon = array_merge($args_common, [
+		"-out", $counts_exon_raw
+	]);
+	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args_exon));
 
 	// read count normalization
 	$parser->execTool("NGS/rc_normalize.php", "-in $counts_raw -out $counts_normalized");

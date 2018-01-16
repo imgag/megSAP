@@ -14,6 +14,8 @@ $parser->addInfile("in",  "BAM input file.", false, true);
 $parser->addOutfile("out", "Raw count output TSV file.", false);
 
 //optional parameters
+$parser->addFlag("exon_level", "Perform exon-level read counting.");
+
 $parser->addString("gtf_file", "GTF file containing feature annotations used for read counting.", true, get_path("data_folder")."/dbs/gene_annotations/GRCh37.gtf");
 $parser->addString("feature_type", "Feature type used for mapping reads to features.", true, "exon");
 $parser->addString("gtf_attribute", "Attribute used as feature ID.", true, "gene_id");
@@ -66,9 +68,13 @@ if (!$single_end)
 {
 	$args[] = "-p -B";
 }
-if ($overlap)
+if ($overlap || $exon_level)
 {
 	$args[] = "-O";
+}
+if ($exon_level)
+{
+	$args[] = "-f";
 }
 if ($ignore_dup)
 {
@@ -160,6 +166,10 @@ if ($qc_file !== "")
 			if ($overlap)
 			{
 				$qc_args[] = "-overlap";
+			}
+			if ($exon_level)
+			{
+				$qc_args[] = "-exon_level";
 			}
 			if ($ignore_dup)
 			{
