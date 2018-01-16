@@ -378,7 +378,7 @@ class Matrix
 		//headers
 		for ($i=0; $i<count($comments); ++$i)
 		{
-			$parts = explode($separator, $comments[$i]);
+			$parts = explode($separator, trim($comments[$i]));
 			if (count($parts)==$output->cols() || ($output->cols()==0 && $i==(count($comments)-1)))
 			{
 				$output->setHeaders($parts);
@@ -407,7 +407,7 @@ class Matrix
 		{
 			for($i=0; $i<count($this->getComments()); ++$i)
 			{
-				fwrite($handle , $comment.($this->comments[$i])."\n");
+				fwrite($handle , $comment.(trim($this->comments[$i]))."\n");
 			}
 		}
 

@@ -1492,4 +1492,36 @@ function vcf_column_index($name, $header)
 	return $indices[0];
 }
 
+//checks whether gene names are up to date. Expects array with genes as input.
+//Returns an array with approved symbols, obsolete gene names are replaced with up-to-data names
+//If gene symbol is not found it is returned unaltered.
+function approve_gene_names($input_genes)
+{
+	$genes_as_string = "";
+	foreach($input_genes as $gene)
+	{
+		//set dummy if there are empty lines in input file
+		if(trim($gene) == "")
+		{
+			$gene =  "NOT_AVAILABLE";
+		}
+		
+		$genes_as_string = $genes_as_string.$gene."\n";
+	}
+	$non_approved_genes_file = tempnam(sys_get_temp_dir(),"temp_");
+	file_put_contents($non_approved_genes_file,$genes_as_string);
+	
+	//write stdout to $approved_genes -> each checked gene is one array element
+	$approved_genes = exec2(get_path("ngs-bits",true)."GenesToApproved -in $non_approved_genes_file")[0];
+	
+	$output = array();
+	foreach($approved_genes as $gene)
+	{
+		//remove dummy before saving
+		if($gene == "NOT_AVAILABLE") $gene = "";
+		$output[] = (explode("\t",$gene))[0];
+	}
+	return $output;
+}
+
 ?>

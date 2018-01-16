@@ -34,14 +34,20 @@ somatic_pair1:
 	php ../compare_qcml.php sample_qcML.txt.out sample_qcML.txt
 	php ../compare_qcml.php somatic_pair1_qcML.txt.out somatic_pair1_qcML.txt
 	php ../compare_variants.php GS110168-GS110169_var_qci.pair1.out.vcf.gz results_pair1/GS110168-GS110169_var_qci.vcf.gz
+	test -s results_pair1/GS110168-GS110169_cgi_drug_prescription.tsv
+	test -s results_pair1/GS110168-GS110169_cgi_drug_prescription_bioactivities.tsv
+	test -s results_pair1/GS110168-GS110169_cgi_mutation_analysis.tsv
 	#pair1
 	#freebayes (previous mapping results are used!)
-	php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id GS110168 -n_id GS110169 -o_folder results_pair2 -steps vc,an -t_sys system_pair.ini -n_sys system_pair.ini -freebayes --log results_pair2/GS110168-GS110169.log
+	php ../../src/Pipelines/somatic_dna.php -p_folder . -t_id GS110168 -n_id GS110169 -o_folder results_pair2 -steps vc,an,ci -t_sys system_pair.ini -n_sys system_pair.ini -freebayes --log results_pair2/GS110168-GS110169.log
 	ls Sample_*/*.qcML | sort | xargs grep "<qualityParameter" > sample_qcML.txt
 	ls results_pair2/*.qcML | sort | xargs grep "<qualityParameter" > somatic_pair2_qcML.txt
 	php ../compare_variants.php GS110168-GS110169.GSvar.out_freebayes results_pair2/GS110168-GS110169.GSvar
 	php ../compare_qcml.php sample_qcML.txt.out sample_qcML.txt
 	php ../compare_qcml.php somatic_pair2_qcML.txt.out somatic_pair2_qcML.txt
+	test -s results_pair2/GS110168-GS110169_cgi_drug_prescription.tsv
+	test -s results_pair2/GS110168-GS110169_cgi_drug_prescription_bioactivities.tsv
+	test -s results_pair2/GS110168-GS110169_cgi_mutation_analysis.tsv
 
 somatic_pair2:
 	#pair2
@@ -53,3 +59,6 @@ somatic_pair2:
 	ls Sample_Normal2/*.qcML | sort | xargs grep "<qualityParameter" > somatic_Tumor2-Normal2_qcML.txt
 	ls Somatic_Tumor2-Normal2/*.qcML | sort | xargs grep "<qualityParameter" > somatic_Tumor2-Normal2_qcML.txt
 	php ../compare_qcml.php somatic_Tumor2-Normal2_qcML.txt.out somatic_Tumor2-Normal2_qcML.txt
+	test -s Somatic_Tumor2-Normal2/Tumor2-Normal2_cgi_drug_prescription.tsv
+	test -s Somatic_Tumor2-Normal2/Tumor2-Normal2_cgi_drug_prescription_bioactivities.tsv
+	test -s Somatic_Tumor2-Normal2/Tumor2-Normal2_cgi_mutation_analysis.tsv

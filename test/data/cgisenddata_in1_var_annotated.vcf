@@ -1,0 +1,216 @@
+##fileformat=VCFv4.1										
+##fileDate=20171217										
+##source=strelka										
+##source_version=2.7.1										
+##startTime=Sun Dec 17 17:58:23 2017										
+##cmdline=/mnt/share/opt/strelka-2.7.1.centos5_x86_64/bin//configureStrelkaSomaticWorkflow.py --tumor /mnt/SRV018/projects/diagnostic/SomaticAndTreatment/Sample_DX000000_01/DX000000_01.bam --normal /mnt/SRV018/projects/diagnostic/SomaticAndTreatment/Sample_DX000001_01/DX000001_01.bam --referenceFasta /tmp/local_ngs_data//GRCh37.fa --runDir /tmp/60789.1.priority_srv018/vc_strelka2_4349435/strelkaAnalysis --exome --indelCandidates Somatic_DX000000_01-DX000001_01/DX000000_01-DX000001_01_var_smallIndels.vcf.gz										
+##reference=file:///mnt/SRV018/tmp/local_ngs_data/GRCh37.fa										
+##content=strelka somatic indel calls										
+##priorSomaticIndelRate=1e-06										
+##content=strelka somatic snv calls										
+##priorSomaticSnvRate=0.0001										
+"##filter=""BCNoise & QSI_ref & LowEVS"""										
+"##SnpSiftVersion=""SnpSift 4.3i (build 2016-12-15 22:33), by Pablo Cingolani"""										
+"##SnpSiftCmd=""SnpSift annotate -tabix -noInfo -id /mnt/share/data//dbs/dbSNP/dbsnp_b149.vcf.gz /mnt/SRV018/tmp/60789.1.priority_srv018/annotate_GarRcr_unzipped.vcf"""										
+"##SnpEffVersion=""4.3i (build 2016-12-15 22:33), by Pablo Cingolani"""										
+"##SnpEffCmd=""SnpEff  -noStats GRCh37.75 -no-downstream -no-upstream """										
+"##SnpSiftCmd=""SnpSift dbnsfp -f phyloP100way_vertebrate,SIFT_pred,MetaLR_pred,FATHMM_pred,Polyphen2_HVAR_pred,CADD_phred -"""										
+"##SnpSiftCmd=""SnpSift annotate -mem -sorted -noId -name HGMD_ -info ID,CLASS,MUT,GENE,PHEN /mnt/share/data//dbs/HGMD/HGMD_PRO_2017_2_fixed.vcf"""										
+"##SnpSiftCmd=""SnpSift annotate -tabix -noId -name GNOMAD_ -info AF /mnt/share/data//dbs/gnomAD/gnomAD_r2.0.1.vcf.gz"""										
+"##SnpSiftCmd=""SnpSift annotate -tabix -noId -name GNOMAD_GENOME_ -info AF /mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.0.1.vcf.gz"""										
+"##SnpSiftCmd=""SnpSift annotate -tabix -noId -name T1000GP_ -info AF /mnt/share/data//dbs/1000G/1000g_v5b.vcf.gz"""										
+"##SnpSiftCmd=""SnpSift annotate -tabix -noId -name EXAC_ -info AF,AC_Hom,Hom_NFE,Hom_AFR,AF_AFR,AF_AMR,AF_EAS,AF_NFE,AF_SAS /mnt/share/data//dbs/ExAC/ExAC_r0.3.1.vcf.gz"""										
+"##SnpSiftCmd=""SnpSift annotate -mem -sorted -noId -name CLINVAR_ -info SIG,ACC /mnt/share/data//dbs/ClinVar/clinvar_20170130_converted.vcf"""										
+"##SnpSiftCmd=""SnpSift annotate -tabix -noId -name COSMIC_ -info ID /mnt/share/data//dbs/COSMIC/cosmic.vcf.gz"""										
+"##SnpSiftCmd=""SnpSift dbnsfp -f Interpro_domain /mnt/SRV018/tmp/60789.1.priority_srv018/annotate_GxL4Cv_somatic.vcf"""										
+##contig=<ID=chr1,length=249250621>										
+##contig=<ID=chr10,length=135534747>										
+##contig=<ID=chr11,length=135006516>										
+##contig=<ID=chr12,length=133851895>										
+##contig=<ID=chr13,length=115169878>										
+##contig=<ID=chr14,length=107349540>										
+##contig=<ID=chr15,length=102531392>										
+##contig=<ID=chr16,length=90354753>										
+##contig=<ID=chr17,length=81195210>										
+##contig=<ID=chr18,length=78077248>										
+##contig=<ID=chr19,length=59128983>										
+##contig=<ID=chr2,length=243199373>										
+##contig=<ID=chr20,length=63025520>										
+##contig=<ID=chr21,length=48129895>										
+##contig=<ID=chr22,length=51304566>										
+##contig=<ID=chr3,length=198022430>										
+##contig=<ID=chr4,length=191154276>										
+##contig=<ID=chr5,length=180915260>										
+##contig=<ID=chr6,length=171115067>										
+##contig=<ID=chr7,length=159138663>										
+##contig=<ID=chr8,length=146364022>										
+##contig=<ID=chr9,length=141213431>										
+##contig=<ID=chrGL000191.1,length=106433>										
+##contig=<ID=chrGL000192.1,length=547496>										
+##contig=<ID=chrGL000193.1,length=189789>										
+##contig=<ID=chrGL000194.1,length=191469>										
+##contig=<ID=chrGL000195.1,length=182896>										
+##contig=<ID=chrGL000196.1,length=38914>										
+##contig=<ID=chrGL000197.1,length=37175>										
+##contig=<ID=chrGL000198.1,length=90085>										
+##contig=<ID=chrGL000199.1,length=169874>										
+##contig=<ID=chrGL000200.1,length=187035>										
+##contig=<ID=chrGL000201.1,length=36148>										
+##contig=<ID=chrGL000202.1,length=40103>										
+##contig=<ID=chrGL000203.1,length=37498>										
+##contig=<ID=chrGL000204.1,length=81310>										
+##contig=<ID=chrGL000205.1,length=174588>										
+##contig=<ID=chrGL000206.1,length=41001>										
+##contig=<ID=chrGL000207.1,length=4262>										
+##contig=<ID=chrGL000208.1,length=92689>										
+##contig=<ID=chrGL000209.1,length=159169>										
+##contig=<ID=chrGL000210.1,length=27682>										
+##contig=<ID=chrGL000211.1,length=166566>										
+##contig=<ID=chrGL000212.1,length=186858>										
+##contig=<ID=chrGL000213.1,length=164239>										
+##contig=<ID=chrGL000214.1,length=137718>										
+##contig=<ID=chrGL000215.1,length=172545>										
+##contig=<ID=chrGL000216.1,length=172294>										
+##contig=<ID=chrGL000217.1,length=172149>										
+##contig=<ID=chrGL000218.1,length=161147>										
+##contig=<ID=chrGL000219.1,length=179198>										
+##contig=<ID=chrGL000220.1,length=161802>										
+##contig=<ID=chrGL000221.1,length=155397>										
+##contig=<ID=chrGL000222.1,length=186861>										
+##contig=<ID=chrGL000223.1,length=180455>										
+##contig=<ID=chrGL000224.1,length=179693>										
+##contig=<ID=chrGL000225.1,length=211173>										
+##contig=<ID=chrGL000226.1,length=15008>										
+##contig=<ID=chrGL000227.1,length=128374>										
+##contig=<ID=chrGL000228.1,length=129120>										
+##contig=<ID=chrGL000229.1,length=19913>										
+##contig=<ID=chrGL000230.1,length=43691>										
+##contig=<ID=chrGL000231.1,length=27386>										
+##contig=<ID=chrGL000232.1,length=40652>										
+##contig=<ID=chrGL000233.1,length=45941>										
+##contig=<ID=chrGL000234.1,length=40531>										
+##contig=<ID=chrGL000235.1,length=34474>										
+##contig=<ID=chrGL000236.1,length=41934>										
+##contig=<ID=chrGL000237.1,length=45867>										
+##contig=<ID=chrGL000238.1,length=39939>										
+##contig=<ID=chrGL000239.1,length=33824>										
+##contig=<ID=chrGL000240.1,length=41933>										
+##contig=<ID=chrGL000241.1,length=42152>										
+##contig=<ID=chrGL000242.1,length=43523>										
+##contig=<ID=chrGL000243.1,length=43341>										
+##contig=<ID=chrGL000244.1,length=39929>										
+##contig=<ID=chrGL000245.1,length=36651>										
+##contig=<ID=chrGL000246.1,length=38154>										
+##contig=<ID=chrGL000247.1,length=36422>										
+##contig=<ID=chrGL000248.1,length=39786>										
+##contig=<ID=chrGL000249.1,length=38502>										
+##contig=<ID=chrhs37d5,length=35477943>										
+##contig=<ID=chrMT,length=16569>										
+##contig=<ID=chrNC_007605,length=171823>										
+##contig=<ID=chrX,length=155270560>										
+##contig=<ID=chrY,length=59373566>										
+"##INFO=<ID=ANN,Number=.,Type=String,Description=""Functional annotations: 'Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO' "">"										
+"##INFO=<ID=CLINVAR_ACC,Number=.,Type=String,Description=""ClinVar accession"">"										
+"##INFO=<ID=CLINVAR_SIG,Number=.,Type=String,Description=""ClinVar clinical significance"">"										
+"##INFO=<ID=COSMIC_ID,Number=.,Type=String,Description=""COSMIC accession(s)"">"										
+"##INFO=<ID=dbNSFP_CADD_phred,Number=A,Type=Float,Description=""Field 'CADD_phred' from dbNSFP"">"										
+"##INFO=<ID=dbNSFP_FATHMM_pred,Number=A,Type=Character,Description=""Field 'FATHMM_pred' from dbNSFP"">"										
+"##INFO=<ID=dbNSFP_Interpro_domain,Number=A,Type=String,Description=""Field 'Interpro_domain' from dbNSFP"">"										
+"##INFO=<ID=dbNSFP_MetaLR_pred,Number=A,Type=Character,Description=""Field 'MetaLR_pred' from dbNSFP"">"										
+"##INFO=<ID=dbNSFP_phyloP100way_vertebrate,Number=A,Type=Float,Description=""Field 'phyloP100way_vertebrate' from dbNSFP"">"										
+"##INFO=<ID=dbNSFP_Polyphen2_HVAR_pred,Number=A,Type=Character,Description=""Field 'Polyphen2_HVAR_pred' from dbNSFP"">"										
+"##INFO=<ID=dbNSFP_SIFT_pred,Number=A,Type=Character,Description=""Field 'SIFT_pred' from dbNSFP"">"										
+"##INFO=<ID=DP,Number=.,Type=Integer,Description=""Combined depth across samples"">"										
+"##INFO=<ID=EQSI,Number=1,Type=Float,Description=""Empirically calibrated quality score for somatic variants"">"										
+"##INFO=<ID=EXAC_AC_Hom,Number=A,Type=Integer,Description=""Adjusted Homozygous Counts"">"										
+"##INFO=<ID=EXAC_AF,Number=A,Type=Float,Description=""Allele Frequency, for each ALT allele, in the same order as listed"">"										
+"##INFO=<ID=EXAC_AF_AFR,Number=1,Type=Float,Description=""ExAC AFR subpopulation allele frequency."">"										
+"##INFO=<ID=EXAC_AF_AMR,Number=1,Type=Float,Description=""ExAC AMR subpopulation allele frequency."">"										
+"##INFO=<ID=EXAC_AF_EAS,Number=1,Type=Float,Description=""ExAC EAS subpopulation allele frequency."">"										
+"##INFO=<ID=EXAC_AF_NFE,Number=1,Type=Float,Description=""ExAC NFE subpopulation allele frequency."">"										
+"##INFO=<ID=EXAC_AF_SAS,Number=1,Type=Float,Description=""ExAC SAS subpopulation allele frequency."">"										
+"##INFO=<ID=EXAC_Hom_AFR,Number=A,Type=Integer,Description=""African/African American Homozygous Counts"">"										
+"##INFO=<ID=EXAC_Hom_NFE,Number=A,Type=Integer,Description=""Non-Finnish European Homozygous Counts"">"										
+"##INFO=<ID=GNOMAD_AF,Number=A,Type=Float,Description=""Allele Frequency among genotypes, for each ALT allele, in the same order as listed"">"										
+"##INFO=<ID=GNOMAD_GENOME_AF,Number=A,Type=Float,Description=""Allele Frequency among genotypes, for each ALT allele, in the same order as listed"">"										
+"##INFO=<ID=HGMD_CLASS,Number=.,Type=String,Description=""Mutation Category, https://portal.biobase-international.com/hgmd/pro/global.php#cats"">"										
+"##INFO=<ID=HGMD_GENE,Number=.,Type=String,Description=""Gene symbol"">"										
+"##INFO=<ID=HGMD_ID,Number=.,Type=String,Description=""HGMD identifier(s)"">"										
+"##INFO=<ID=HGMD_MUT,Number=.,Type=String,Description=""HGMD mutant allele"">"										
+"##INFO=<ID=HGMD_PHEN,Number=.,Type=String,Description=""HGMD primary phenotype"">"										
+"##INFO=<ID=IC,Number=1,Type=Integer,Description=""Number of times RU repeats in the indel allele"">"										
+"##INFO=<ID=IHP,Number=1,Type=Integer,Description=""Largest reference interrupted homopolymer length intersecting with the indel"">"										
+"##INFO=<ID=LOF,Number=.,Type=String,Description=""Predicted loss of function effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' "">"										
+"##INFO=<ID=MQ,Number=1,Type=Float,Description=""RMS Mapping Quality"">"										
+"##INFO=<ID=MQ0,Number=1,Type=Integer,Description=""Number of MAP"">"										
+"##INFO=<ID=NMD,Number=.,Type=String,Description=""Predicted nonsense mediated decay effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' "">"										
+"##INFO=<ID=NT,Number=1,Type=String,Description=""Genotype of the normal in all data tiers, as used to classify somatic variants. One of {ref,het,hom,conflict}."">"										
+"##INFO=<ID=OMIM,Number=.,Type=String,Description=""Annotation from /mnt/share/data//dbs/OMIM/omim.bed delimited by ':'"">"										
+"##INFO=<ID=OVERLAP,Number=0,Type=Flag,Description=""Somatic indel possibly overlaps a second indel."">"										
+"##INFO=<ID=PNOISE,Number=1,Type=Float,Description=""Fraction of panel containing non-reference noise at this site"">"										
+"##INFO=<ID=PNOISE2,Number=1,Type=Float,Description=""Fraction of panel containing more than one non-reference noise obs at this site"">"										
+"##INFO=<ID=QSI,Number=1,Type=Integer,Description=""Quality score for any somatic variant, ie. for the ALT haplotype to be present at a significantly different frequency in the tumor and normal"">"										
+"##INFO=<ID=QSI_NT,Number=1,Type=Integer,Description=""Quality score reflecting the joint probability of a somatic variant and NT"">"										
+"##INFO=<ID=QSS,Number=1,Type=Integer,Description=""Quality score for any somatic snv, ie. for the ALT allele to be present at a significantly different frequency in the tumor and normal"">"										
+"##INFO=<ID=QSS_NT,Number=1,Type=Integer,Description=""Quality score reflecting the joint probability of a somatic variant and NT"">"										
+"##INFO=<ID=RC,Number=1,Type=Integer,Description=""Number of times RU repeats in the reference allele"">"										
+"##INFO=<ID=ReadPosRankSum,Number=1,Type=Float,Description=""Z-score from Wilcoxon rank sum test of Alt Vs. Ref read-position in the tumor"">"										
+"##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description=""Annotation from /mnt/share/data//dbs/RepeatMasker/RepeatMasker.bed delimited by ':'"">"										
+"##INFO=<ID=RU,Number=1,Type=String,Description=""Smallest repeating sequence unit in inserted or deleted sequence"">"										
+"##INFO=<ID=SGT,Number=1,Type=String,Description=""Most likely somatic genotype excluding normal noise states"">"										
+"##INFO=<ID=SNVSB,Number=1,Type=Float,Description=""Somatic SNV site strand bias"">"										
+"##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description=""Somatic mutation"">"										
+"##INFO=<ID=SomaticEVS,Number=1,Type=Float,Description=""Somatic Empirical Variant Score (EVS) expressing the phred-scaled probability of the call being a false positive observation."">"										
+"##INFO=<ID=T1000GP_AF,Number=A,Type=Float,Description=""Estimated allele frequency in the range (0,1)"">"										
+"##INFO=<ID=TQSI,Number=1,Type=Integer,Description=""Data tier used to compute QSI"">"										
+"##INFO=<ID=TQSI_NT,Number=1,Type=Integer,Description=""Data tier used to compute QSI_NT"">"										
+"##INFO=<ID=TQSS,Number=1,Type=Integer,Description=""Data tier used to compute QSS"">"										
+"##INFO=<ID=TQSS_NT,Number=1,Type=Integer,Description=""Data tier used to compute QSS_NT"">"										
+"##FILTER=<ID=all-unknown,Description=""Allele unknown (filter_vcf)."">"										
+"##FILTER=<ID=depth-nor,Description=""Sequencing depth normal is too low < 20 (filter_vcf)."">"										
+"##FILTER=<ID=depth-tum,Description=""Sequencing depth tumor is too low < 20 (filter_vcf)."">"										
+"##FILTER=<ID=freq-nor,Description=""Allele frequencies in tumor < 0.05 or allele frequencies in normal > 0.01 (filter_vcf)."">"										
+"##FILTER=<ID=freq-tum,Description=""Allele frequencies in tumor < 0.05 or allele frequencies in normal > 0.01 (filter_vcf)."">"										
+"##FILTER=<ID=lt-3-reads,Description=""Less than 3 supporting tumor reads (filter_vcf)."">"										
+"##FILTER=<ID=not-cod-spli,Description=""Not a coding or splicing variant (filter_vcf)."">"										
+"##FILTER=<ID=off-target,Description=""Variant outside the panel/exome target region."">"										
+"##FILTER=<ID=special_chromosome,Description=""Special chromosome."">"										
+"##FILTER=<ID=syn-var,Description=""Synonymous variant (filter_vcf)."">"										
+"##FORMAT=<ID=AU,Number=2,Type=Integer,Description=""Number of 'A' alleles used in tiers 1,2"">"										
+"##FORMAT=<ID=BCN50,Number=1,Type=Float,Description=""Fraction of filtered reads within 50 bases of the indel."">"										
+"##FORMAT=<ID=CU,Number=2,Type=Integer,Description=""Number of 'C' alleles used in tiers 1,2"">"										
+"##FORMAT=<ID=DP,Number=1,Type=Integer,Description=""Integer"">"										
+"##FORMAT=<ID=DP2,Number=1,Type=Integer,Description=""Read depth for tier2"">"										
+"##FORMAT=<ID=DP50,Number=1,Type=Float,Description=""Average tier1 read depth within 50 bases"">"										
+"##FORMAT=<ID=FDP,Number=1,Type=Integer,Description=""Number of basecalls filtered from original read depth for tier1"">"										
+"##FORMAT=<ID=FDP50,Number=1,Type=Float,Description=""Average tier1 number of basecalls filtered from original read depth within 50 bases"">"										
+"##FORMAT=<ID=GU,Number=2,Type=Integer,Description=""Number of 'G' alleles used in tiers 1,2"">"										
+"##FORMAT=<ID=SDP,Number=1,Type=Integer,Description=""Number of reads with deletions spanning this site at tier1"">"										
+"##FORMAT=<ID=SUBDP,Number=1,Type=Integer,Description=""Number of reads below tier1 mapping quality threshold aligned across this site"">"										
+"##FORMAT=<ID=SUBDP50,Number=1,Type=Float,Description=""Average number of reads below tier1 mapping quality threshold aligned across sites within 50 bases"">"										
+"##FORMAT=<ID=TAR,Number=2,Type=Integer,Description=""Reads strongly supporting alternate allele for tiers 1,2"">"										
+"##FORMAT=<ID=TIR,Number=2,Type=Integer,Description=""Reads strongly supporting indel allele for tiers 1,2"">"										
+"##FORMAT=<ID=TOR,Number=2,Type=Integer,Description=""Other reads (weak support or insufficient indel breakpoint overlap) for tiers 1,2"">"										
+"##FORMAT=<ID=TU,Number=2,Type=Integer,Description=""Number of 'T' alleles used in tiers 1,2"">"										
+##SAMPLE=<ID=DX000000_01,Gender=female,ExternalSampleName=DNA-000000 A1,IsTumor=yes,IsFFPE=yes,DiseaseGroup=n/a,DiseaseStatus=n/a>										
+##SAMPLE=<ID=DX000001_01,Gender=female,ExternalSampleName=DNA-000001 A2,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=n/a>										
+##PEDIGREE=<Tumor=DX000000_01,Normal=DX000001_01>										
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	DX000001_01	DX000000_01
+chr1	46726763	.	C	T	.	"not-cod-spli;freq-tum;off-target"	"DP=344;MQ=60.00;MQ0=0;NT=ref;QSS=47;QSS_NT=47;ReadPosRankSum=-1.69;SGT=CC->CT;SNVSB=0.00;SOMATIC;SomaticEVS=20.53;TQSS=2;TQSS_NT=2;OMIM=603615_[RAD54L_(provisional)_Breast_cancer,invasive_ductal,114480|Lymphoma,non-Hodgkin,somatic,605027|Adenocarcinoma,colonic,somatic];ANN=T|intron_variant|MODIFIER|RAD54L|ENSG00000085999|transcript|ENST00000371975|protein_coding|7/17|c.766+76C>T||||||,T|intron_variant|MODIFIER|RAD54L|ENSG00000085999|transcript|ENST00000463715|processed_transcript|6/6|n.620+76C>T||||||,T|intron_variant|MODIFIER|RAD54L|ENSG00000085999|transcript|ENST00000442598|protein_coding|8/18|c.766+76C>T||||||,T|intron_variant|MODIFIER|RAD54L|ENSG00000085999|transcript|ENST00000487700|processed_transcript|4/4|n.396+1000C>T||||||,T|intron_variant|MODIFIER|RAD54L|ENSG00000085999|transcript|ENST00000472889|processed_transcript|3/4|n.495+76C>T||||||,T|intron_variant|MODIFIER|RAD54L|ENSG00000085999|transcript|ENST00000473251|processed_transcript|1/5|n.227+17C>T||||||"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:146,155:146:0:0,0:0:0:0,0	1,1:175,183:181:0:1,1:0:0:4,4
+chr2	216283892	.	A	G	.	"not-cod-spli;off-target"	"DP=395;MQ=60.00;MQ0=0;NT=ref;QSS=382;QSS_NT=3070;ReadPosRankSum=0.81;SGT=AA->AG;SNVSB=0.00;SOMATIC;SomaticEVS=35.96;TQSS=1;TQSS_NT=1;OMIM=135600_[FN1_(confirmed)_Glomerulopathy_with_fibronectin_deposits_2,601894|Plasma_fibronectin_deficiency,614101];ANN=G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000354785|protein_coding|12/45|c.1819+73T>C||||||,G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000421182|protein_coding|12/44|c.1819+73T>C||||||,G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000323926|protein_coding|12/46|c.1819+73T>C||||||,G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000336916|protein_coding|12/45|c.1819+73T>C||||||,G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000357867|protein_coding|12/43|c.1819+73T>C||||||,G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000345488|protein_coding|12/42|c.1819+73T>C||||||,G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000346544|protein_coding|12/43|c.1819+73T>C||||||,G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000357009|protein_coding|12/43|c.1819+73T>C||||||,G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000359671|protein_coding|12/44|c.1819+73T>C||||||,G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000446046|protein_coding|12/45|c.1819+73T>C||||||,G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000443816|protein_coding|12/44|c.1819+73T>C||||||,G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000432072|protein_coding|12/44|c.1819+73T>C||||||,G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000356005|protein_coding|12/43|c.1819+73T>C||||||,G|intron_variant|MODIFIER|FN1|ENSG00000115414|transcript|ENST00000426059|protein_coding|12/12|c.1819+73T>C||||||"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	236,243:0,0:236:0:0,0:0:0:0,0	79,84:0,0:145:0:66,68:0:0:0,0
+chr3	195692349	rs139762755	T	A	.	"not-cod-spli;off-target"	"DP=379;MQ=42.26;MQ0=40;NT=ref;QSS=140;QSS_NT=140;ReadPosRankSum=-4.70;SGT=TT->AT;SNVSB=0.00;SOMATIC;SomaticEVS=22.08;TQSS=1;TQSS_NT=1;ANN=A|non_coding_transcript_exon_variant|MODIFIER|SDHAP1|ENSG00000185485|transcript|ENST00000427841|processed_transcript|15/17|n.2154A>T||||||,A|non_coding_transcript_exon_variant|MODIFIER|SDHAP1|ENSG00000185485|transcript|ENST00000427149|processed_transcript|2/5|n.72A>T||||||,A|non_coding_transcript_exon_variant|MODIFIER|SDHAP1|ENSG00000185485|transcript|ENST00000354937|transcribed_unprocessed_pseudogene|15/16|n.1921A>T||||||,A|non_coding_transcript_exon_variant|MODIFIER|SDHAP1|ENSG00000185485|transcript|ENST00000354559|processed_transcript|3/4|n.248A>T||||||,A|non_coding_transcript_exon_variant|MODIFIER|SDHAP1|ENSG00000185485|transcript|ENST00000440850|transcribed_unprocessed_pseudogene|14/15|n.1864A>T||||||;GNOMAD_AF=0.01041;GNOMAD_GENOME_AF=0.02532;EXAC_AC_Hom=8;EXAC_AF=0.00538;EXAC_AF_AFR=0.00170;EXAC_AF_AMR=0.00666;EXAC_AF_EAS=0.00654;EXAC_AF_NFE=0.00329;EXAC_AF_SAS=0.01145;EXAC_Hom_AFR=0;EXAC_Hom_NFE=3"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	13,27:1,1:221:0:0,0:0:0:207,240	29,59:0,0:76:0:0,0:0:0:47,52
+chr4	55963845	.	T	A	.	syn-var	"DP=2503;MQ=60.00;MQ0=0;NT=ref;QSS=317;QSS_NT=3070;ReadPosRankSum=-0.06;SGT=TT->AT;SNVSB=0.00;SOMATIC;SomaticEVS=32.33;TQSS=1;TQSS_NT=1;OMIM=191306_[KDR_(confirmed)_Hemangioma,capillary_infantile,somatic,602089|Hemangioma,capillary_infantile,susceptibility_to,602089];ANN=A|synonymous_variant|LOW|KDR|ENSG00000128052|transcript|ENST00000263923|protein_coding|18/30|c.2598A>T|p.Ala866Ala|2894/5831|2598/4071|866/1356||"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	1,1:0,0:605:0:0,0:0:0:604,662	204,210:0,0:1770:0:1,1:0:0:1565,1629
+chr5	170827113	rs371333326	C	T	.	"not-cod-spli;off-target"	"DP=167;MQ=60.00;MQ0=0;NT=ref;QSS=52;QSS_NT=52;ReadPosRankSum=-3.69;SGT=CC->CT;SNVSB=0.00;SOMATIC;SomaticEVS=25.86;TQSS=2;TQSS_NT=2;OMIM=164040_[NPM1_(provisional)_Leukemia,acute_myeloid,somatic,601626];ANN=T|sequence_feature|LOW|NPM1|ENSG00000181163|miscellaneous-site:Breakpoint_for_translocation_to_form_NPM1-MLF1|ENST00000296930|protein_coding||c.525-44C>T||||||,T|sequence_feature|LOW|NPM1|ENSG00000181163|miscellaneous-site:Breakpoint_for_translocation_to_form_NPM1-MLF1|ENST00000351986|protein_coding||c.525-44C>T||||||,T|sequence_feature|LOW|NPM1|ENSG00000181163|miscellaneous-site:Breakpoint_for_translocation_to_form_NPM1-MLF1|ENST00000393820|protein_coding||c.525-44C>T||||||,T|intron_variant|MODIFIER|NPM1|ENSG00000181163|transcript|ENST00000296930|protein_coding|6/10|c.525-44C>T||||||,T|intron_variant|MODIFIER|NPM1|ENSG00000181163|transcript|ENST00000517671|protein_coding|7/11|c.525-44C>T||||||,T|intron_variant|MODIFIER|NPM1|ENSG00000181163|transcript|ENST00000521672|protein_coding|5/5|c.333-44C>T||||||WARNING_TRANSCRIPT_INCOMPLETE,T|intron_variant|MODIFIER|NPM1|ENSG00000181163|transcript|ENST00000351986|protein_coding|6/9|c.525-44C>T||||||,T|intron_variant|MODIFIER|NPM1|ENSG00000181163|transcript|ENST00000393820|protein_coding|6/9|c.525-44C>T||||||;GNOMAD_AF=0.00002;GNOMAD_GENOME_AF=0.00003;EXAC_AC_Hom=0;EXAC_AF=0.00003;EXAC_AF_AFR=0.00036;EXAC_AF_AMR=0.00000;EXAC_AF_EAS=0.00000;EXAC_AF_NFE=0.00000;EXAC_AF_SAS=0.00000;EXAC_Hom_AFR=0;EXAC_Hom_NFE=0"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:97,98:97:0:0,0:0:0:0,0	0,0:58,64:64:1:0,0:0:0:5,5
+chr6	29858095	rs367960327	C	G	.	"not-cod-spli;freq-tum;off-target"	"DP=575;MQ=57.16;MQ0=4;NT=ref;QSS=73;QSS_NT=73;ReadPosRankSum=4.44;SGT=CC->CG;SNVSB=0.00;SOMATIC;SomaticEVS=20.05;TQSS=2;TQSS_NT=2;OMIM=142871_[HLA-G_(confirmed)_Asthma,susceptibility_to,600807]:613609_[HLA-H_(confirmed)_Hemochromatosis,235200|Microvascular_complications_of_diabetes_7,612635|Porphyria_variegata,susceptibility_to,176200|Porphyria_cutanea_tarda,susceptibility_to,176100|Alzheimer_disease,susceptibility_to,104300|Transferrin_serum_level_QTL2,614193];ANN=G|intron_variant|MODIFIER|HLA-H|ENSG00000206341|transcript|ENST00000383620|unprocessed_pseudogene|6/6|n.1052+22C>G||||||;GNOMAD_AF=0.00260;GNOMAD_GENOME_AF=0.00000;T1000GP_AF=0.0469249;EXAC_AC_Hom=96;EXAC_AF=0.02701;EXAC_AF_AFR=0.03040;EXAC_AF_AMR=0.04751;EXAC_AF_EAS=0.04287;EXAC_AF_NFE=0.02514;EXAC_AF_SAS=0.01835;EXAC_Hom_AFR=13;EXAC_Hom_NFE=37"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:250,267:251:0:1,6:0:0:0,0	0,0:262,285:273:1:10,17:0:0:0,0
+chr7	140477005	rs71645984	T	A	.	"not-cod-spli;off-target"	"DP=115;MQ=59.66;MQ0=0;NT=ref;QSS=64;QSS_NT=64;ReadPosRankSum=0.43;SGT=TT->AT;SNVSB=0.00;SOMATIC;SomaticEVS=38.94;TQSS=1;TQSS_NT=1;OMIM=164757_[BRAF_(confirmed)_Melanoma,malignant,somatic|Colorectal_cancer,somatic|Adenocarcinoma_of_lung,somatic,211980|Nonsmall_cell_lung_cancer,somatic|Cardiofaciocutaneous_syndrome,115150|Noonan_syndrome_7,613706|LEOPARD_syndrome_3,613707];ANN=A|intron_variant|MODIFIER|BRAF|ENSG00000157764|transcript|ENST00000288602|protein_coding|12/17|c.1518-117A>T||||||,A|intron_variant|MODIFIER|BRAF|ENSG00000157764|transcript|ENST00000496384|protein_coding|3/9|c.339-117A>T||||||WARNING_TRANSCRIPT_NO_START_CODON,A|intron_variant|MODIFIER|BRAF|ENSG00000157764|transcript|ENST00000497784|nonsense_mediated_decay|13/18|c.*968-117A>T||||||WARNING_TRANSCRIPT_NO_START_CODON;GNOMAD_GENOME_AF=0.00749"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	1,2:0,0:31:1:0,0:0:0:29,32	27,27:0,0:78:0:0,0:0:0:51,54
+chr9	20414310	rs747298605	ACTG	A	.	PASS	"IC=9;IHP=1;MQ=50.17;MQ0=7;NT=ref;QSI=57;QSI_NT=57;RC=10;RU=CTG;SGT=ref->het;SOMATIC;TQSI=1;TQSI_NT=1;REPEATMASKER=(CTG)n;ANN=A|disruptive_inframe_deletion|MODERATE|MLLT3|ENSG00000171843|transcript|ENST00000380338|protein_coding|5/11|c.531_533delCAG|p.Ser178del|820/6772|531/1707|177/568||,A|disruptive_inframe_deletion|MODERATE|MLLT3|ENSG00000171843|transcript|ENST00000429426|protein_coding|5/11|c.522_524delCAG|p.Ser175del|622/2040|522/1698|174/565||,A|5_prime_UTR_variant|MODIFIER|MLLT3|ENSG00000171843|transcript|ENST00000355930|protein_coding|5/10|c.-688_-686delCAG|||||50725|,A|non_coding_transcript_exon_variant|MODIFIER|MLLT3|ENSG00000171843|transcript|ENST00000475957|processed_transcript|3/5|n.488_490delCAG||||||;GNOMAD_GENOME_AF=0.00092;EXAC_AC_Hom=1;EXAC_AF=0.02833;EXAC_AF_AFR=0.02692;EXAC_AF_AMR=0.03393;EXAC_AF_EAS=0.02371;EXAC_AF_NFE=0.02658;EXAC_AF_SAS=0.03994;EXAC_Hom_AFR=0;EXAC_Hom_NFE=1"	BCN50:DP:DP2:DP50:FDP50:SUBDP50:TAR:TIR:TOR	0.00:229:229:223.44:0.57:0.00:112,125:0,1:121,134	0.00:150:150:157.49:0.35:0.00:59,68:5,7:89,93
+chr10	3097438	.	T	C	.	"not-cod-spli;depth-tum;off-target"	"DP=37;MQ=60.00;MQ0=0;NT=ref;QSS=52;QSS_NT=52;ReadPosRankSum=-1.07;SGT=TT->CT;SNVSB=0.00;SOMATIC;SomaticEVS=29.82;TQSS=1;TQSS_NT=1;REPEATMASKER=Tigger20a;ANN=C|intergenic_region|MODIFIER|RP11-118K6.2-RP11-118K6.3|ENSG00000234182-ENSG00000273001|intergenic_region|ENSG00000234182-ENSG00000273001|||n.3097438T>C||||||"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:23:0:0,0:0:0:23,24	0,0:6,6:13:0:0,0:0:0:7,7
+chr13	111589062	.	G	T	.	"not-cod-spli;off-target"	"DP=90;MQ=60.00;MQ0=0;NT=ref;QSS=104;QSS_NT=104;ReadPosRankSum=0.76;SGT=GG->GT;SNVSB=0.00;SOMATIC;SomaticEVS=42.10;TQSS=2;TQSS_NT=2;ANN=T|intergenic_region|MODIFIER|ANKRD10-PARP1P1|ENSG00000088448-ENSG00000227105|intergenic_region|ENSG00000088448-ENSG00000227105|||n.111589062G>T||||||"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:55:0:55,55:0:0:0,0	0,0:0,0:33:0:22,24:0:0:11,11
+chr15	89802234	.	A	T	.	"not-cod-spli;off-target"	"DP=70;MQ=60.00;MQ0=0;NT=ref;QSS=69;QSS_NT=69;ReadPosRankSum=0.66;SGT=AA->AT;SNVSB=0.00;SOMATIC;SomaticEVS=39.95;TQSS=1;TQSS_NT=1;OMIM=611360_[FANCI_(provisional)_Fanconi_anemia,complementation_group_I,609053];ANN=T|intron_variant|MODIFIER|FANCI|ENSG00000140525|transcript|ENST00000310775|protein_coding|3/37|c.157+227A>T||||||,T|intron_variant|MODIFIER|FANCI|ENSG00000140525|transcript|ENST00000300027|protein_coding|3/36|c.157+227A>T||||||,T|intron_variant|MODIFIER|FANCI|ENSG00000140525|transcript|ENST00000568670|processed_transcript|3/3|n.232+227A>T||||||,T|intron_variant|MODIFIER|FANCI|ENSG00000140525|transcript|ENST00000567891|protein_coding|3/5|c.157+227A>T||||||WARNING_TRANSCRIPT_INCOMPLETE,T|intron_variant|MODIFIER|FANCI|ENSG00000140525|transcript|ENST00000564920|protein_coding|4/5|c.157+227A>T||||||WARNING_TRANSCRIPT_INCOMPLETE,T|intron_variant|MODIFIER|FANCI|ENSG00000140525|transcript|ENST00000565255|protein_coding|3/7|c.157+227A>T||||||WARNING_TRANSCRIPT_INCOMPLETE,T|intron_variant|MODIFIER|FANCI|ENSG00000140525|transcript|ENST00000447611|nonsense_mediated_decay|3/35|c.157+227A>T||||||,T|intron_variant|MODIFIER|FANCI|ENSG00000140525|transcript|ENST00000451393|protein_coding|5/10|c.-381+227A>T||||||,T|intron_variant|MODIFIER|FANCI|ENSG00000140525|transcript|ENST00000567996|protein_coding|5/10|c.157+227A>T||||||,T|intron_variant|MODIFIER|FANCI|ENSG00000140525|transcript|ENST00000563250|protein_coding|3/7|c.157+227A>T||||||WARNING_TRANSCRIPT_INCOMPLETE,T|intron_variant|MODIFIER|FANCI|ENSG00000140525|transcript|ENST00000565522|processed_transcript|2/3|n.129+11277A>T||||||,T|non_coding_transcript_exon_variant|MODIFIER|FANCI|ENSG00000140525|transcript|ENST00000570110|retained_intron|3/3|n.463A>T||||||,T|non_coding_transcript_exon_variant|MODIFIER|FANCI|ENSG00000140525|transcript|ENST00000564636|retained_intron|2/2|n.430A>T||||||"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	25,33:0,0:25:0:0,0:0:0:0,0	25,26:0,0:35:0:0,0:0:0:10,11
+chr16	23641707	.	C	T	.	freq-tum	"DP=791;MQ=60.00;MQ0=0;NT=ref;QSS=40;QSS_NT=40;ReadPosRankSum=0.42;SGT=CC->CT;SNVSB=0.00;SOMATIC;SomaticEVS=20.23;TQSS=2;TQSS_NT=2;OMIM=610355_[PALB2_(provisional)_Fanconi_anemia,complementation_group_N,610832|Breast_cancer,susceptibility_to,114480|Pancreatic_cancer,susceptibility_to,3,613348];ANN=T|missense_variant|MODERATE|PALB2|ENSG00000083093|transcript|ENST00000261584|protein_coding|5/13|c.1768G>A|p.Ala590Thr|1921/4003|1768/3561|590/1186||,T|3_prime_UTR_variant|MODIFIER|PALB2|ENSG00000083093|transcript|ENST00000568219|nonsense_mediated_decay|5/13|c.*1643G>A|||||7550|,T|intron_variant|MODIFIER|PALB2|ENSG00000083093|transcript|ENST00000565038|nonsense_mediated_decay|1/3|c.86-1111G>A||||||WARNING_TRANSCRIPT_NO_START_CODON;dbNSFP_CADD_phred=0.776;dbNSFP_FATHMM_pred=T;dbNSFP_MetaLR_pred=T;dbNSFP_Polyphen2_HVAR_pred=B;dbNSFP_SIFT_pred=T;dbNSFP_phyloP100way_vertebrate=-0.080000"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:424,439:424:0:0,0:0:0:0,0	0,0:325,345:332:0:0,0:0:0:7,7
+chr16	28618068	rs74752114	G	A	.	"not-cod-spli;freq-nor"	"DP=265;MQ=54.21;MQ0=2;NT=ref;QSS=68;QSS_NT=68;ReadPosRankSum=-1.24;SGT=GG->AG;SNVSB=0.00;SOMATIC;SomaticEVS=23.40;TQSS=2;TQSS_NT=2;ANN=A|intron_variant|MODIFIER|SULT1A1|ENSG00000196502|transcript|ENST00000314752|protein_coding|6/7|c.594+14C>T||||||,A|intron_variant|MODIFIER|SULT1A1|ENSG00000196502|transcript|ENST00000350842|protein_coding|4/5|c.360+14C>T||||||,A|intron_variant|MODIFIER|SULT1A1|ENSG00000196502|transcript|ENST00000564818|nonsense_mediated_decay|9/10|c.*899+14C>T||||||,A|intron_variant|MODIFIER|SULT1A1|ENSG00000196502|transcript|ENST00000567998|retained_intron|2/3|n.7424+14C>T||||||,A|intron_variant|MODIFIER|SULT1A1|ENSG00000196502|transcript|ENST00000562058|nonsense_mediated_decay|8/9|c.*826+14C>T||||||,A|intron_variant|MODIFIER|SULT1A1|ENSG00000196502|transcript|ENST00000395607|protein_coding|6/7|c.594+14C>T||||||,A|intron_variant|MODIFIER|SULT1A1|ENSG00000196502|transcript|ENST00000395609|protein_coding|8/9|c.594+14C>T||||||,A|intron_variant|MODIFIER|SULT1A1|ENSG00000196502|transcript|ENST00000569554|protein_coding|5/6|c.594+14C>T||||||,A|intron_variant|MODIFIER|SULT1A1|ENSG00000196502|transcript|ENST00000563493|nonsense_mediated_decay|7/8|c.*478+14C>T||||||,A|intron_variant|MODIFIER|SULT1A1|ENSG00000196502|transcript|ENST00000566189|protein_coding|6/7|c.594+14C>T||||||WARNING_TRANSCRIPT_INCOMPLETE,A|intron_variant|MODIFIER|SULT1A1|ENSG00000196502|transcript|ENST00000567512|protein_coding|5/5|c.468+14C>T||||||WARNING_TRANSCRIPT_INCOMPLETE;GNOMAD_AF=0.35539;GNOMAD_GENOME_AF=0.35539;T1000GP_AF=0.291134;EXAC_AC_Hom=6389;EXAC_AF=0.34593;EXAC_AF_AFR=0.23547;EXAC_AF_AMR=0.46696;EXAC_AF_EAS=0.23133;EXAC_AF_NFE=0.37304;EXAC_AF_SAS=0.24158;EXAC_Hom_AFR=249;EXAC_Hom_NFE=3968"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	25,31:0,0:181:3:153,160:0:0:0,0	36,39:0,0:73:3:34,35:0:0:0,0
+chr17	7577105	rs876659802	G	A	.	PASS	"DP=1653;MQ=60.00;MQ0=0;NT=ref;QSS=2294;QSS_NT=3070;ReadPosRankSum=-1.15;SGT=GG->AG;SNVSB=0.00;SOMATIC;SomaticEVS=44.57;TQSS=1;TQSS_NT=1;OMIM=191170_[TP53_(confirmed)_Colorectal_cancer,114500|Li-Fraumeni_syndrome,151623|Hepatocellular_carcinoma,114550|Osteosarcoma,259500|Choroid_plexus_papilloma,260500|Nasopharyngeal_carcinoma,607107|Pancreatic_cancer,260350|Adrenal_cortical_carcinoma,202300|Breast_cancer,114480|Basal_cell_carcinoma_7,614740|Glioma_susceptibility_1,137800];ANN=A|missense_variant|MODERATE|TP53|ENSG00000141510|transcript|ENST00000269305|protein_coding|8/11|c.833C>T|p.Pro278Leu|1023/2579|833/1182|278/393||,A|missense_variant|MODERATE|TP53|ENSG00000141510|transcript|ENST00000359597|protein_coding|7/9|c.833C>T|p.Pro278Leu|833/1152|833/1032|278/343||,A|missense_variant|MODERATE|TP53|ENSG00000141510|transcript|ENST00000420246|protein_coding|8/12|c.833C>T|p.Pro278Leu|966/2653|833/1026|278/341||,A|missense_variant|MODERATE|TP53|ENSG00000141510|transcript|ENST00000455263|protein_coding|8/12|c.833C>T|p.Pro278Leu|966/2580|833/1041|278/346||,A|missense_variant|MODERATE|TP53|ENSG00000141510|transcript|ENST00000445888|protein_coding|8/11|c.833C>T|p.Pro278Leu|969/2506|833/1182|278/393||,A|missense_variant|MODERATE|TP53|ENSG00000141510|transcript|ENST00000509690|protein_coding|5/6|c.437C>T|p.Pro146Leu|569/729|437/597|146/198||WARNING_TRANSCRIPT_NO_STOP_CODON,A|sequence_feature|LOW|TP53|ENSG00000141510|helix:combinatorial_evidence_used_in_manual_assertion|ENST00000420246|protein_coding|8/12|c.833C>T||||||,A|sequence_feature|LOW|TP53|ENSG00000141510|helix:combinatorial_evidence_used_in_manual_assertion|ENST00000455263|protein_coding|8/12|c.833C>T||||||,A|sequence_feature|LOW|TP53|ENSG00000141510|helix:combinatorial_evidence_used_in_manual_assertion|ENST00000445888|protein_coding|8/11|c.833C>T||||||,A|intron_variant|MODIFIER|TP53|ENSG00000141510|transcript|ENST00000413465|protein_coding|6/6|c.782+394C>T||||||,A|non_coding_transcript_exon_variant|MODIFIER|TP53|ENSG00000141510|transcript|ENST00000504290|retained_intron|4/8|n.715C>T||||||,A|non_coding_transcript_exon_variant|MODIFIER|TP53|ENSG00000141510|transcript|ENST00000504937|retained_intron|4/7|n.715C>T||||||,A|non_coding_transcript_exon_variant|MODIFIER|TP53|ENSG00000141510|transcript|ENST00000510385|retained_intron|4/8|n.715C>T||||||;dbNSFP_CADD_phred=32;dbNSFP_FATHMM_pred=D,D,D,D,D,D;dbNSFP_MetaLR_pred=D;dbNSFP_Polyphen2_HVAR_pred=D,D,D,D;dbNSFP_SIFT_pred=D,D,D,D,D,D,D;dbNSFP_phyloP100way_vertebrate=9.573000;HGMD_CLASS=DM;HGMD_GENE=TP53;HGMD_ID=CM961376;HGMD_MUT=ALT;HGMD_PHEN=""Breast_cancer"";CLINVAR_ACC=RCV000214784.1;CLINVAR_SIG=pathogenic;COSMIC_ID=COSM3378341,COSM129831,COSM10863,COSM1646812;dbNSFP_Interpro_domain=p53__DNA-binding_domain__1_,p53-like_transcription_factor__DNA-binding__1_,p53/RUNT-type_transcription_factor__DNA-binding_domain__1_"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:800:1:798,833:0:0:1,1	535,561:0,0:782:2:245,258:0:0:0,0
+chr19	41745793	.	G	A	.	"not-cod-spli;off-target"	"DP=162;MQ=60.00;MQ0=0;NT=ref;QSS=127;QSS_NT=127;ReadPosRankSum=-0.11;SGT=GG->AG;SNVSB=0.00;SOMATIC;SomaticEVS=42.06;TQSS=2;TQSS_NT=2;ANN=A|intron_variant|MODIFIER|AXL|ENSG00000167601|transcript|ENST00000301178|protein_coding|10/19|c.1312+168G>A||||||,A|intron_variant|MODIFIER|AXL|ENSG00000167601|transcript|ENST00000359092|protein_coding|9/18|c.1285+574G>A||||||,A|intron_variant|MODIFIER|AXL|ENSG00000167601|transcript|ENST00000599659|retained_intron|10/11|n.1326+168G>A||||||,A|intron_variant|MODIFIER|AXL|ENSG00000167601|transcript|ENST00000593513|protein_coding|7/16|c.508+168G>A||||||"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:72:0:72,72:0:0:0,0	25,26:0,0:84:0:59,64:0:0:0,0
+chr20	41419951	.	C	G	.	PASS	"DP=982;MQ=60.00;MQ0=0;NT=ref;QSS=459;QSS_NT=3070;ReadPosRankSum=1.83;SGT=CC->CG;SNVSB=0.00;SOMATIC;SomaticEVS=34.62;TQSS=1;TQSS_NT=1;ANN=G|missense_variant|MODERATE|PTPRT|ENSG00000196090|transcript|ENST00000373198|protein_coding|3/32|c.370G>C|p.Val124Leu|606/12746|370/4383|124/1460||,G|missense_variant|MODERATE|PTPRT|ENSG00000196090|transcript|ENST00000356100|protein_coding|3/31|c.370G>C|p.Val124Leu|370/12480|370/4353|124/1450||,G|missense_variant|MODERATE|PTPRT|ENSG00000196090|transcript|ENST00000373184|protein_coding|3/31|c.370G>C|p.Val124Leu|370/12483|370/4356|124/1451||,G|missense_variant|MODERATE|PTPRT|ENSG00000196090|transcript|ENST00000373187|protein_coding|3/31|c.370G>C|p.Val124Leu|370/12453|370/4326|124/1441||,G|missense_variant|MODERATE|PTPRT|ENSG00000196090|transcript|ENST00000373190|protein_coding|3/31|c.370G>C|p.Val124Leu|479/12559|370/4323|124/1440||,G|missense_variant|MODERATE|PTPRT|ENSG00000196090|transcript|ENST00000373193|protein_coding|3/31|c.370G>C|p.Val124Leu|554/12646|370/4335|124/1444||,G|missense_variant|MODERATE|PTPRT|ENSG00000196090|transcript|ENST00000373201|protein_coding|3/30|c.370G>C|p.Val124Leu|607/12660|370/4296|124/1431||;dbNSFP_CADD_phred=24.3;dbNSFP_FATHMM_pred=T,T,T,T,T,T,T;dbNSFP_MetaLR_pred=T;dbNSFP_Polyphen2_HVAR_pred=B,B;dbNSFP_SIFT_pred=D,D,D,D,D,D,D;dbNSFP_phyloP100way_vertebrate=2.867000;dbNSFP_Interpro_domain=Concanavalin_A-like_lectin/glucanase__1_,MAM_domain__3_"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:503,513:504:1:0,0:0:0:0,0	0,0:335,350:448:1:111,118:0:0:1,1
+chrX	110406240	.	C	A	.	PASS	"DP=828;MQ=60.00;MQ0=0;NT=ref;QSS=419;QSS_NT=3070;ReadPosRankSum=-1.04;SGT=CC->AC;SNVSB=0.00;SOMATIC;SomaticEVS=37.64;TQSS=1;TQSS_NT=1;OMIM=300142_[PAK3_(confirmed)_Mental_retardation,X-linked_30/47,300558];ANN=A|missense_variant|MODERATE|PAK3|ENSG00000077264|transcript|ENST00000360648|protein_coding|7/16|c.674C>A|p.Pro225Gln|701/2241|674/1743|225/580||,A|missense_variant|MODERATE|PAK3|ENSG00000077264|transcript|ENST00000425146|protein_coding|6/15|c.566C>A|p.Pro189Gln|937/2477|566/1635|189/544||,A|missense_variant|MODERATE|PAK3|ENSG00000077264|transcript|ENST00000446737|protein_coding|7/16|c.566C>A|p.Pro189Gln|1010/2550|566/1635|189/544||,A|missense_variant|MODERATE|PAK3|ENSG00000077264|transcript|ENST00000372010|protein_coding|10/19|c.611C>A|p.Pro204Gln|1053/2606|611/1680|204/559||,A|missense_variant|MODERATE|PAK3|ENSG00000077264|transcript|ENST00000519681|protein_coding|10/19|c.629C>A|p.Pro210Gln|1071/2638|629/1698|210/565||,A|missense_variant|MODERATE|PAK3|ENSG00000077264|transcript|ENST00000372007|protein_coding|9/18|c.566C>A|p.Pro189Gln|957/8940|566/1635|189/544||,A|missense_variant|MODERATE|PAK3|ENSG00000077264|transcript|ENST00000518291|protein_coding|10/19|c.674C>A|p.Pro225Gln|1029/2098|674/1743|225/580||,A|missense_variant|MODERATE|PAK3|ENSG00000077264|transcript|ENST00000262836|protein_coding|6/15|c.611C>A|p.Pro204Gln|638/2178|611/1680|204/559||,A|missense_variant|MODERATE|PAK3|ENSG00000077264|transcript|ENST00000417227|protein_coding|6/15|c.629C>A|p.Pro210Gln|656/2196|629/1698|210/565||;dbNSFP_CADD_phred=29.0;dbNSFP_FATHMM_pred=T,T,T,T,T,T,T,T,T;dbNSFP_MetaLR_pred=D;dbNSFP_Polyphen2_HVAR_pred=D,D,D,D;dbNSFP_SIFT_pred=D,D,D,D,D,D,D,D,D;dbNSFP_phyloP100way_vertebrate=6.663000"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	1,1:415,440:419:3:0,0:0:0:0,0	103,106:271,280:376:1:0,0:0:0:1,1
+chrMT	12590	.	T	C	.	off-target	"DP=183;MQ=60.00;MQ0=0;NT=ref;QSS=70;QSS_NT=69;ReadPosRankSum=-0.01;SGT=TT->CT;SNVSB=0.00;SOMATIC;SomaticEVS=43.76;TQSS=1;TQSS_NT=1;ANN=C|missense_variant|MODERATE|MT-ND5|ENSG00000198786|transcript|ENST00000361567|protein_coding|1/1|c.254T>C|p.Phe85Ser|254/1812|254/1812|85/603||"	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:1,1:24:0:0,0:0:0:23,23	0,0:103,108:154:0:0,0:0:0:51,51

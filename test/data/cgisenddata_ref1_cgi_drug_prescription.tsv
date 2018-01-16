@@ -1,0 +1,334 @@
+#SAMPLE	CANCER_TYPE	SAMPLE_ALTERATION	ALTERATION_MATCH	TUMOR_MATCH	DRUG	BIOMARKER	EFFECT	BIOMARKER_IDX	RESISTANCE_LIST	RESISTANCE_TYPE	TESTED_TUMOR	EVIDENCE	SOURCE
+default_id	SK	CCNE1 MUT* (N112S)	only gene	1	CDK2 inhibitors	CCNE1 amplification	Responsive	199			CANCER	Pre-clinical	PMID:22471707
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	HSP90 inhibitors	PDGFRA (D842V)	Responsive	860			GIST	Pre-clinical	PMID:18794084
+default_id	SK	PDGFRA MUT (G313V)	only gene	0	PDGFR inhibitors	PDGFRA amplification	No Responsive	861			G	Pre-clinical	PMID:23544171
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	Crenolanib (FLT3 inhibitor)	PDGFRA (D842V)	Responsive	862			GIST	Early trials	ASCO 2016 (abstr 11010)
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	1	Crenolanib (FLT3 inhibitor)	PDGFRA (V658A,P577S,R841K,H845Y,G853D)	Responsive	863			CM	Pre-clinical	PMID:24132921
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	Dasatinib (BCR-ABL inhibitor 2nd gen)	PDGFRA wildtype	Responsive	864			GIST	Pre-clinical	PMID:16397263
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	Dasatinib (BCR-ABL inhibitor 2nd gen)	PDGFRA (D842V)	Responsive	865			GIST	Pre-clinical	PMID:18794084
+default_id	SK	PDGFRA MUT (G313V)	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA fusion	Responsive	866			MDS, MDPS	FDA guidelines	EMA
+default_id	SK	PDGFRA MUT (G313V)	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA-FIP1L1 fusion	Responsive	867			HES, ECL	FDA guidelines	EMA
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA inframe deletion (I843)	Responsive	868			GIST	NCCN guidelines	NCCN guidelines
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA wildtype	Resistant	869			GIST	Late trials	PMID:14645423;PMID:18955458
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA (552-596,631-668,814-854)	Responsive	870			GIST	NCCN guidelines	NCCN guidelines
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA (D842V)	Resistant	871			GIST	Late trials,Pre-clinical	PMID:22718859;PMID:16638875
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	1	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA (P577S,R841K,H845Y,G853D)	Responsive	872			CM	Pre-clinical	PMID:24132921
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA (T674I)	Resistant	873			HES	Case report	PMID:12660384
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	Regorafenib (Pan-kinase inhibitor)	PDGFRA (552-596,631-668,814-854)	Responsive	874			GIST	NCCN guidelines	NCCN guidelines
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	Sorafenib (Pan-TK inhibitor)	PDGFRA wildtype	Responsive	875			GIST	Early trials	ASCO 2011 (abstr 10009)
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	Sunitinib (Pan-TK inhibitor)	PDGFRA wildtype	Responsive	876			GIST	Late trials	PMID:18955458
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	Sunitinib (Pan-TK inhibitor)	PDGFRA (552-596,631-668,814-854)	Responsive	877			GIST	NCCN guidelines	NCCN guidelines
+default_id	SK	PDGFRA MUT (G313V)	only alteration type	0	Sunitinib (Pan-TK inhibitor)	PDGFRA (D842V)	Resistant	878			GIST	Late trials,Pre-clinical	PMID:22718859;PMID:16638875
+default_id	SK	PDGFRA MUT (G313V)	only gene	0	Sunitinib (Pan-TK inhibitor)	PDGFRA overexpression	Responsive	879			R	Pre-clinical	PMID:24086736
+default_id	SK	TP53 MUT (P278L)	only alteration type	0	HDM2 inhibitors	TP53 wildtype	Responsive	1030			AML	Early trials	AACR 2017 (abstr CT152)
+default_id	SK	TP53 MUT (P278L)	only alteration type	1	HSP90 inhibitors	TP53 (R248Q,R175H)	Responsive	1031			CANCER	Pre-clinical	PMID:26009011
+default_id	SK	TP53 MUT (P278L)	only alteration type	1	HSP90 inhibitors	TP53 (R248Q,R175H)	Responsive	1032			CANCER	Pre-clinical	PMID:26009011
+default_id	SK	TP53 MUT (P278L)	complete	0	MDM2 inhibitors	TP53 oncogenic mutation	Resistant	1033			LIP	Early trials	PMID:23084521;ASCO 2015 (abstr 10564)
+default_id	SK	TP53 MUT (P278L)	complete	0	WEE1 inhibitors	TP53 oncogenic mutation	Responsive	1034			HNC	Pre-clinical	PMID:25125259
+default_id	SK	TP53 MUT (P278L)	complete	0	Abemaciclib (CDK4/CDK6 inhibitor)	TP53 oncogenic mutation	Resistant	1035			BRCA	Early trials	PMID:27217383
+default_id	SK	TP53 MUT (P278L)	complete	0	AZD6738 (ATR inhibitor)	TP53 oncogenic mutation	Responsive	1036			BCL	Early trials	NCT01955668;https://ash.confex.com/ash/2014/webprogram/Paper71027.html
+default_id	SK	TP53 MUT (P278L)	only gene	0	AZD6738 (ATR inhibitor)	TP53 deletion	Responsive	1037			BCL	Early trials	NCT01955668;https://ash.confex.com/ash/2014/webprogram/Paper71027.html
+default_id	SK	TP53 MUT (P278L)	complete	0	Cisplatin (Chemotherapy)	TP53 oncogenic mutation	Resistant	1038			FGCT, MGCT	Early trials	PMID:27646943
+default_id	SK	TP53 MUT (P278L)	complete	0	Decitabine (Chemotherapy)	TP53 oncogenic mutation	Responsive	1039			AML, MDPS	Early trials	PMID:27959731
+default_id	SK	TP53 MUT (P278L)	complete	0	Doxorubicin (Anthracycline antitumor antibiotic)	TP53 oncogenic mutation	Responsive	1040			BLCA	Pre-clinical	PMID:27397505
+default_id	SK	TP53 MUT (P278L)	complete	0	Gemcitabine (Chemotherapy)	TP53 oncogenic mutation	Responsive	1041			BLCA	Pre-clinical	PMID:27397505
+default_id	SK	TP53 MUT (P278L)	complete	0	Mitomycin C (Chemotherapy)	TP53 oncogenic mutation	Responsive	1042			BLCA	Pre-clinical	PMID:27397505
+default_id	SK	TP53 MUT (P278L)	complete	0	MK-1775 (WEE1 inhibitor)	TP53 oncogenic mutation	Responsive	1043			OV	Early trials	NCT01357161;ASCO2015 (abstr 2507)
+default_id	SK	TP53 MUT (P278L)	complete	0	Pramlintide (Amylin analogue)	TP53 oncogenic mutation	Responsive	1044			THYM	Pre-clinical	PMID:25409149
+default_id	SK	TP53 MUT (P278L)	only gene	0	Pramlintide (Amylin analogue)	TP53 deletion	Responsive	1045			THYM	Pre-clinical	PMID:25409149
+tcgi	SK	AKT1:del CNA	only gene	1	AKT inhibitors	AKT1 (E17K)	Responsive	22			CANCER	Pre-clinical	PMID:21464312;PMID:17611497;PMID:23134728; ENA 2015 (abstr B109)
+tcgi	SK	AKT1:del CNA	only gene	1	allosteric AKT inhibitors	AKT1 (E17K)	Responsive	23			CANCER	Early trials	ENA 2015 (abstract B109);PMID:28489509
+tcgi	SK	AKT1:del CNA	only gene	1	BRAF inhibitors	AKT1 (Q79K,E17K)	Resistant	24			CM	Case report	PMID:24265152
+tcgi	SK	AKT1:del CNA	only gene	1	non-allosteric AKT inhibitors	AKT1 (E17K)	Responsive	25			CANCER	Early trials	ENA 2015 (abstract B109);PMID:28489509
+tcgi	SK	AKT1:del CNA	only gene	0	PI3K pathway inhibitors	AKT1 (E17K)	Responsive	26			HNSC	Case report	PMID:26763254
+tcgi	SK	AKT1:del CNA	only gene	0	Everolimus (MTOR inhibitor)	AKT1 (H238Y)	Responsive	27			FH	Case report	ASCO 2015 (abstr 11010)
+tcgi	SK	AKT1:del CNA	only gene	0	Tensirolimus (MTOR inhibitor)	AKT1 (E17K)	Responsive	28			ED	Early trials	PMID:27016228
+tcgi	SK	AKT3:amp CNA	only gene	0	ATP competitive AKT inhibitors (AZD5363,GSK2141795,etc)	AKT3 fusion	Responsive	30			BRCA	Pre-clinical	PMID:22722202
+tcgi	SK	AR:amp CNA	complete	0	AR inhibitor next gens	AR amplification	Responsive	68			PRAD	Pre-clinical	PMID:23589709;PMID:21859989
+tcgi	SK	AR:amp CNA	only gene	0	AR inhibitors (Bicalutamide,Enzalutamide,Orterone,4OHtestosterone,etc)	AR overexpression	Responsive	69			BRCA	Early trials	ASCO 2015 (abstr 1003)
+tcgi	SK	AR:amp CNA	complete	0	Abiraterone (AR inhibitor)	AR amplification	Resistant	70			PRAD	Early trials	PMID:26537258
+tcgi	SK	AR:amp CNA	only gene	0	Abiraterone (AR inhibitor)	AR (L702H,T878A)	Resistant	71			PRAD	Early trials	PMID:26537258
+tcgi	SK	AR:amp CNA	only gene	0	Arn-509 (AR inhibitor)	AR (F877L)	Resistant	72			PRAD	Case report	PMID:23779130
+tcgi	SK	AR:amp CNA	only gene	0	Enzalutamide (AR inhibitor)	AR (F877L)	Resistant	73			PRAD	Case report	PMID:23779130
+tcgi	SK	AR:amp CNA	only gene	0	Enzalutamide (AR inhibitor)	AR overexpression	Responsive	74			PRAD	Early trials	PMID:24882673
+tcgi	SK	AR:amp CNA	only gene	0	Flutamide (AR inhibitor)	AR (T878A)	Resistant	75			PRAD	Case report	PMID:2260966
+tcgi	SK	AR:amp CNA, AR:amp CNA	only gene	0	Enzalutamide (AR inhibitor)	AR (F877L) + AR (T878A)	Responsive	76			PRAD	Pre-clinical	PMID:27196756
+tcgi	SK	ARAF:amp CNA	only gene	0	BRAF inhibitor + EGFR mAb inhibitors	ARAF oncogenic mutation	Resistant	77			COREAD	Case report	ENA 2014 (abstr 428)
+tcgi	SK	ARAF:amp CNA	only gene	0	BRAF inhibitor + MEK inhibitors	ARAF oncogenic mutation	Resistant	78			COREAD	Case report	ENA 2014 (abstr 428)
+tcgi	SK	ARAF:amp CNA	only gene	0	Sorafenib (Pan-TK inhibitor)	ARAF (S214C)	Responsive	79			LUAD	Case report	http://www.jci.org/articles/view/72763;PMID:24569458
+tcgi	SK	B2M:del CNA	only gene	1	PD1 Ab inhibitors	B2M oncogenic mutation	Resistant	101			CM	Case report	PMID:27433843
+tcgi	SK	BRAF:amp CNA	only gene	1	BRAF inhibitor + CDK2/4 inhibitors	BRAF (V600E)	Responsive	112			CM	Pre-clinical	PMID:22997239
+tcgi	SK	BRAF:amp CNA	only gene	0	BRAF inhibitor + EGFR mAb inhibitor +/- PI3K inhibitors	BRAF (V600)	Responsive	113			COREAD	Early trials	PMID:28363909
+tcgi	SK	BRAF:amp CNA	only gene	1	BRAF inhibitor + HSP90 inhibitors	BRAF (V600E)	Responsive	114			CM	Pre-clinical	PMID:22351686
+tcgi	SK	BRAF:amp CNA	only gene	0	BRAF inhibitor + MEK inhibitors	BRAF (V600E)	Responsive	115			TH	Early trials	ASCO 2013 (abstr 9029)
+tcgi	SK	BRAF:amp CNA	only gene	0	BRAF inhibitor + MEK inhibitors	BRAF fusion	Responsive	116			LUAD	Case report	ASCO 2017 (abstr 9072)
+tcgi	SK	BRAF:amp CNA	only gene	1	BRAF inhibitor + PI3K pathway inhibitors	BRAF (V600E)	Responsive	117			CM	Pre-clinical	PMID:22389471;PMID:21156289
+tcgi	SK	BRAF:amp CNA	only gene	1	BRAF inhibitors	BRAF (L597R)	Responsive	118			CM	Case report	PMID:23715574
+tcgi	SK	BRAF:amp CNA	only gene	0	BRAF inhibitors	BRAF (V600E)	Responsive	119			G	Pre-clinical	PMID:22038996;PMID:22586120
+tcgi	SK	BRAF:amp CNA	only gene	0	BRAF inhibitors	BRAF (V600E)	Responsive	120			OV	Case report	PMID:22608338
+tcgi	SK	BRAF:amp CNA	only gene	0	EGFR TK inhibitors	BRAF (V600E,G469A)	Resistant	121			LUAD	Case report	PMID:22773810
+tcgi	SK	BRAF:amp CNA	only gene	1	ERK inhibitors	BRAF (V600E)	Responsive	122			CM	Pre-clinical	PMID:23614898;PMID:22997239
+tcgi	SK	BRAF:amp CNA	only gene	0	ERK inhibitors	BRAF (G469A)	Responsive	123			HNSC	Case report	ASCO 2017 (abstr 2508)
+tcgi	SK	BRAF:amp CNA	only gene	0	ERK inhibitors	BRAF (L485W)	Responsive	124			BT	Case report	ASCO 2017 (abstr 2508)
+tcgi	SK	BRAF:amp CNA	only gene	0	ERK inhibitors	BRAF (V600E)	Responsive	125			LUAD	Early trials	ASCO 2017 (abstr 2508)
+tcgi	SK	BRAF:amp CNA	only gene	0	MEK inhibitors	BRAF (V600E)	Responsive	126			TH	Early trials	PMID:22241789
+tcgi	SK	BRAF:amp CNA	only gene	0	MEK inhibitors	BRAF (V600E)	Responsive	127			OV	Pre-clinical	PMID:19018267
+tcgi	SK	BRAF:amp CNA	only gene	1	Pan-RAF inhibitors	BRAF inframe deletion (L485),inframe deletion (P490)	Responsive	128			CANCER	Pre-clinical	PMID:26732095
+tcgi	SK	BRAF:amp CNA	only gene	1	Pan-RAF inhibitors	BRAF (V600E)	Responsive	129			CM	Early trials	ESMO 2015 (abstract 300);AACR 2016 (abstr CT005);AACR 2017 (abstr  CT002)
+tcgi	SK	BRAF:amp CNA	only gene	1	MEK inhibitors (Trametinib,etc)	BRAF fusion	Responsive	130			LUAD, CM, PRAD	Pre-clinical	PMID:24727320;PMID:24345920;PMID:20526349
+tcgi	SK	BRAF:amp CNA	only gene	1	MEK inhibitors (Trametinib,etc)	BRAF (K601R,L597R,V600R)	Responsive	131			CM	Case report	PMID:23248257;PMID:22805292;PMID:23248257
+tcgi	SK	BRAF:amp CNA	only gene	0	Cetuximab (EGFR mAb inhibitor)	BRAF (V600E)	Resistant	132			COREAD	Late trials	PMID:20619739;PMID:21163703;PMID:23325582
+tcgi	SK	BRAF:amp CNA	only gene	0	Dabrafenib (BRAF inhibitor)	BRAF (V600E)	Responsive	133			LUAD, TH	Early trials	PMID:23524406;PMID:22608338;ASCO 2013 (abstr 8009);ESMO 2014 (abstr LBA38_PR);PMID:20818844;PMID:23489023;PMID:27080216
+tcgi	SK	BRAF:amp CNA	only gene	0	Dabrafenib (BRAF inhibitor)	BRAF (V600E)	Responsive	134			NSCLC	NCCN guidelines	NCCN
+tcgi	SK	BRAF:amp CNA	only gene	1	Dabrafenib (BRAF inhibitor)	BRAF (V600E)	Responsive	135			CM	FDA guidelines	FDA
+tcgi	SK	BRAF:amp CNA	only gene	0	Dabrafenib (BRAF inhibitor)	BRAF (V600E)	Responsive	136			GIST	Case report	PMID:23470635;PMID:22608338
+tcgi	SK	BRAF:amp CNA	only gene	1	Dabrafenib (BRAF inhibitor)	BRAF (V600R)	Responsive	137			CM	Early trials	PMID:23237741
+tcgi	SK	BRAF:amp CNA	only gene	0	Dabrafenib + Trametinib (BRAF inhibitor + MEK inhibitor)	BRAF (V600E)	Responsive	138			COREAD	Early trials	PMID:26392102;ASCO 2015 (abstr 8006)
+tcgi	SK	BRAF:amp CNA	only gene	0	Dabrafenib + Trametinib (BRAF inhibitor + MEK inhibitor)	BRAF (V600E)	Responsive	139			NEU	Case report	PMID:27048246
+tcgi	SK	BRAF:amp CNA	only gene	0	Dabrafenib + Trametinib (BRAF inhibitor + MEK inhibitor)	BRAF (V600E)	Responsive	140			LUAD	FDA guidelines	PMID:27283860
+tcgi	SK	BRAF:amp CNA	only gene	1	Dabrafenib + Trametinib (BRAF inhibitor + MEK inhibitor)	BRAF (V600E,V600K)	Responsive	141			CM	FDA guidelines	FDA
+tcgi	SK	BRAF:amp CNA	only gene	0	Dasatinib (BCR-ABL inhibitor 2nd gen)	BRAF (G466V)	Responsive	142			LUAD	Pre-clinical	PMID:22649091
+tcgi	SK	BRAF:amp CNA	only gene	0	Dasatinib (BCR-ABL inhibitor 2nd gen)	BRAF (Y472C)	Responsive	143			LUAD	Case report	PMID:22649091
+tcgi	SK	BRAF:amp CNA	only gene	0	Irinotecan + Vemurafenib + Cetuximab (TOPO1 inhibitor + BRAF inhibitor + EGFR mAb inhibitor)	BRAF (V600)	Responsive	144			COREAD	Early trials	PMID:27729313
+tcgi	SK	BRAF:amp CNA	only gene	0	Panitumumab (EGFR mAb inhibitor)	BRAF (V600E)	Resistant	145			COREAD	Late trials	PMID:20619739;PMID:21163703;PMID:23325582
+tcgi	SK	BRAF:amp CNA	only gene	0	Panitumumab + Dabrafenib + BYL719 (EGFR mAb inhibitor + BRAF inhibitor + PI3K inhibitor)	BRAF (V600)	Responsive	146			COREAD	Early trials	ENA 2014 (abstr 11LBA)
+tcgi	SK	BRAF:amp CNA	only gene	0	Panitumumab + Dabrafenib + Trametinib (EGFR mAb inhibitor + BRAF inhibitor + MEK inhibitor)	BRAF (V600E)	Responsive	147			COREAD	Early trials	ASCO 2014 (abstr 3515);ASCO 2015 (abstr 103)
+tcgi	SK	BRAF:amp CNA	only gene	0	PLX4720 (BRAF inhibitor)	BRAF (V600E)	Responsive	148			MA	Pre-clinical	PMC3638050
+tcgi	SK	BRAF:amp CNA	only gene	0	Selumetinib (MEK inhibitor)	BRAF fusion	Responsive	149			OV	Case report	PMID:26324360
+tcgi	SK	BRAF:amp CNA	only gene	0	Selumetinib (MEK inhibitor)	BRAF (V600E)	Responsive	150			PG	Early trials	NCT01089101
+tcgi	SK	BRAF:amp CNA	only gene	1	Sorafenib (Pan-TK inhibitor)	BRAF fusion	Responsive	151			CM, LUAD, PRAD	Pre-clinical	PMID:238900088;PMID:20526349;PMID:24727320
+tcgi	SK	BRAF:amp CNA	only gene	1	Sorafenib (Pan-TK inhibitor)	BRAF (D594G,G469E)	Responsive	152			CM	Pre-clinical	PMID:18794803
+tcgi	SK	BRAF:amp CNA	only gene	1	Trametinib (MEK inhibitor)	BRAF (V600E,V600K)	Responsive	153			CM	FDA guidelines	FDA
+tcgi	SK	BRAF:amp CNA	only gene	1	Vemurafenib (BRAF inhibitor)	BRAF inframe deletion (L485),inframe deletion (P490)	Resistant	154			CANCER	Pre-clinical	PMID:26732095
+tcgi	SK	BRAF:amp CNA	only gene	0	Vemurafenib (BRAF inhibitor)	BRAF (V600)	No Responsive	155			COREAD	Early trials	PMID:26287849
+tcgi	SK	BRAF:amp CNA	only gene	1	Vemurafenib (BRAF inhibitor)	BRAF (V600D,V600K,V600M,V600G,V600R)	Responsive	156			CM	NCCN guidelines	NCCN
+tcgi	SK	BRAF:amp CNA	only gene	0	Vemurafenib (BRAF inhibitor)	BRAF (V600E)	Responsive	157			LUAD, HCL, MYMA	Case report	PMID:22743296;PMID:22621641;PMID:23612012
+tcgi	SK	BRAF:amp CNA	only gene	0	Vemurafenib (BRAF inhibitor)	BRAF (V600E)	Responsive	158			MA	Early trials	PMID:22586120
+tcgi	SK	BRAF:amp CNA	only gene	1	Vemurafenib (BRAF inhibitor)	BRAF (V600E)	Responsive	159			CM	FDA guidelines	FDA
+tcgi	SK	BRAF:amp CNA	only gene	0	Vemurafenib (BRAF inhibitor)	BRAF (V600E)	Responsive	160			THCA	Early trials	PMID:22608338;PMID:20818844;PMID:23489023
+tcgi	SK	BRAF:amp CNA	only gene	0	Vemurafenib (BRAF inhibitor)	BRAF (V600E,V600D,V600K,V600M,V600G,V600R)	Responsive	161			NSCLC, HISLC, HISEC	NCCN guidelines	PMID:26287849
+tcgi	SK	BRAF:amp CNA	only gene	1	Vemurafenib + Cobimetinib (BRAF inhibitor + MEK inhibitor)	BRAF (V600E,V600K)	Responsive	162			CM	FDA guidelines	FDA
+tcgi	SK	CBL:del CNA	only gene	0	JAK inhibitors	CBL (Y371H,C384R)	Responsive	190			MDPS	Pre-clinical	PMID:23696637
+tcgi	SK	CBL:del CNA	only gene	0	Dasatinib (BCR-ABL inhibitor 2nd gen)	CBL (Y371H,C384R)	Responsive	191			MDPS	Pre-clinical	PMID:23696637
+tcgi	SK	CCNE1:amp CNA	complete	1	CDK2 inhibitors	CCNE1 amplification	Responsive	199			CANCER	Pre-clinical	PMID:22471707
+tcgi	SK	CDKN2A:del CNA	only gene	1	CDK4/6 inhibitors	CDKN2A oncogenic mutation	Responsive	220			CM	Case report	ASCO 2013 (abstr 2500)
+tcgi	SK	CDKN2A:del CNA	only gene	1	CDK4/6 inhibitors	CDKN2A oncogenic mutation	Responsive	221			G, CANCER	Pre-clinical	PMID:22471707;PMID:22586120;PMID:22711607
+tcgi	SK	CDKN2A:del CNA	complete	1	CDK4/6 inhibitors	CDKN2A deletion	Responsive	222			CM	Case report	ASCO 2013 (abstr 2500)
+tcgi	SK	CDKN2A:del CNA	complete	1	CDK4/6 inhibitors	CDKN2A deletion	Responsive	223			G, CANCER	Pre-clinical	PMID:22471707;PMID:22586120;PMID:22711607
+tcgi	SK	CDKN2A:del CNA	only gene	1	Ilorasertib (AURKA-VEGF inhibitor)	CDKN2A oncogenic mutation	Responsive	224			CANCER	Early trials	NCT02478320
+tcgi	SK	CDKN2A:del CNA	complete	1	Ilorasertib (AURKA-VEGF inhibitor)	CDKN2A deletion	Responsive	225			CANCER	Early trials	NCT02478320
+tcgi	SK	CDKN2B:del CNA	only gene	1	CDK4/6 inhibitors	CDKN2B oncogenic mutation	Responsive	226			G, CANCER	Pre-clinical	PMID:22471707;PMID:22711607
+tcgi	SK	CDKN2B:del CNA	complete	1	CDK4/6 inhibitors	CDKN2B deletion	Responsive	227			G, CANCER	Pre-clinical	PMID:22471707;PMID:22711607
+tcgi	SK	CTNNB1:amp CNA	only gene	0	Tankyrase inhibitors	CTNNB1 oncogenic mutation	Resistant	242			COREAD	Pre-clinical	PMID:23539443
+tcgi	SK	CTNNB1:amp CNA	only gene	0	Everolimus + Letrozole (MTOR inhibitor + Hormonal therapy)	CTNNB1 (H36Y,S37C,S37Y,D32V)	Responsive	243			ED	Early trials	PMID:25624430
+tcgi	SK	CYP17A1:del CNA	only gene	0	Abiraterone (AR inhibitor)	CYP17A1 expression	Responsive	244	70	Resistant	PRAD	Early trials	PMID:22184395
+tcgi	SK	CYP17A1:del CNA	only gene	0	Enzalutamide (AR inhibitor)	CYP17A1 expression	Responsive	245			PRAD	Early trials	PMID:24882673
+tcgi	SK	EPHA3:amp CNA	complete	1	EPHA3 inhibitors	EPHA3 amplification	Responsive	334			CANCER	Pre-clinical	PMID:25125683
+tcgi	SK	EPHA3:amp CNA	complete	1	EPHA3 inhibitors	EPHA3 amplification	Responsive	335			CANCER	Pre-clinical	PMID:25125683
+tcgi	SK	ERBB4:del CNA	only gene	0	ERBB2 inhibitors (Lapatinib,etc)	ERBB4 (H809G)	Resistant	406			BRCA	Case report	PMID:26530965
+tcgi	SK	ERBB4:del CNA	only gene	1	Lapatinib (ERBB2 inhibitor)	ERBB4 (E317K,E452K,R544W,R393W,E872K)	Responsive	407			CM	Pre-clinical	PMID:19718025
+tcgi	SK	ERBB4:del CNA	only gene	0	Lapatinib + Afatinib (ERBB2 inhibitor + ERBB2 inhibitor&EGFR inhibitor 2nd gen)	ERBB4 fusion	Responsive	408			LUAD	Pre-clinical	PMID:24727320
+tcgi	SK	EZH2:amp CNA	only gene	0	EZH2 inhibitors (EPZ-005687,EPZ-6438,etc)	EZH2 (Y641,A677)	Responsive	424			LY	Pre-clinical	PMID:23023262;PMID:24563539
+tcgi	SK	FANCA:del CNA	only gene	0	Olaparib (PARP inhibitor)	FANCA oncogenic mutation	Responsive	425			PRAD	Case report	PMID:26510020
+tcgi	SK	FANCA:del CNA	complete	0	Olaparib (PARP inhibitor)	FANCA deletion	Responsive	426			PRAD	Case report	PMID:26510020
+tcgi	SK	FAT1:del CNA	only gene	0	BET inhibitors	FAT1 oncogenic mutation	Responsive	429			HNSC	Pre-clinical	PMID:27397505
+tcgi	SK	FGFR2:del CNA	only gene	0	FGFR inhibitors	FGFR2 fusion	Responsive	443			BT	Early trials	ASCO 2016 (abstr 109)
+tcgi	SK	FGFR2:del CNA	only gene	0	FGFR inhibitors	FGFR2 inframe insertion (A266),inframe insertion (S267)	Responsive	444			L	Pre-clinical	PMID:26048680
+tcgi	SK	FGFR2:del CNA	only alteration type	0	FGFR inhibitors	FGFR2 amplification	Responsive	445			ST	Early trials	ASCO 2015 (abstr 2508)
+tcgi	SK	FGFR2:del CNA	only alteration type	0	FGFR inhibitors	FGFR2 amplification	Responsive	446			BRCA	Case report	PMID:25193991
+tcgi	SK	FGFR2:del CNA, FGFR2:del CNA	only gene	0	FGFR inhibitors	FGFR2 (N549H,V564F,K659M,L617V,K641R,R565A) + FGFR2 fusion	Resistant	447			CH	Early trials	PMID:28034880;ASCO 2017 (abstr 2500)
+tcgi	SK	FGFR2:del CNA	only gene	0	FGFR inhibitors	FGFR2 (S252W,N550K)	Responsive	448			ED	Pre-clinical	PMID:18552176;PMID:22238366;PMID:23002168
+tcgi	SK	FGFR2:del CNA	only gene	0	FGFR inhibitors	FGFR2 (V565I)	Responsive	449			ED	Pre-clinical	ENA 2014 (abstr 381)
+tcgi	SK	FGFR2:del CNA	only gene	0	FGFR inhibitors	FGFR2 (W290C,S320C,K660N)	Responsive	450			LUSC	Pre-clinical	PMID:23786770;PMID:25035393
+tcgi	SK	FGFR2:del CNA	only gene	0	FGFR inhibitors	FGFR2 fusion	Responsive	451			COREAD	Early trials	ASCO 2017 (abstr 2500)
+tcgi	SK	FGFR2:del CNA	only gene	0	Dovitinib (FGFR inhibitor)	FGFR2 (V565I,M536I,M538I,I548V,N550,E566G,L618M,K660E)	Resistant	452			ED	Pre-clinical	PMID:23908597
+tcgi	SK	FGFR2:del CNA	only gene	0	Ponatinib (BCR-ABL inhibitor 3rd gen&Pan-TK inhibitor)	FGFR2 (M536I,M538I,I548V,N550,E566G,L618M,K660E)	Responsive	453			ED	Pre-clinical	PMID:23908597
+tcgi	SK	FGFR3:del CNA	only gene	0	FGFR inhibitors	FGFR3 fusion	Responsive	454			G	Early trials	PMID:26324363
+tcgi	SK	FGFR3:del CNA	only gene	0	FGFR inhibitors	FGFR3 oncogenic mutation	Responsive	455			BLCA	Early trials	PMID:27870574
+tcgi	SK	FGFR3:del CNA	only gene	0	FGFR inhibitors	FGFR3 (K650,Y373C)	Responsive	456			MYMA	Pre-clinical	PMID:16091734;PMID:20439987;PMID:22869148
+tcgi	SK	FGFR3:del CNA	only gene	0	FGFR inhibitors	FGFR3 (S249C,G691R)	Responsive	457			LUAD	Pre-clinical	PMID:27998968
+tcgi	SK	FGFR3:del CNA	only gene	0	FGFR inhibitors	FGFR3 (V555M)	Resistant	458			MYMA	Pre-clinical	PMID:22869148
+tcgi	SK	FGFR3:del CNA	only gene	0	FGFR inhibitors	FGFR3 fusion	Responsive	459			BLCA	Case report	PMID:26324363;ASCO 2017 (abstr 2500)
+tcgi	SK	FGFR3:del CNA	only gene	0	Bortezomib (Proteasome inhibitor)	FGFR3 (K650)	Responsive	460			MYMA	Pre-clinical	PMID:19331127;PMID:21273588
+tcgi	SK	FGFR3:del CNA	only gene	0	Bortezomib (Proteasome inhibitor)	FGFR3 (Y373C)	Resistant	461			MYMA	Pre-clinical	PMID:19331127;PMID:21273588
+tcgi	SK	FGFR3:del CNA	only gene	0	FGFR inhibitors (,etc)	FGFR3-TACC3 fusion	Responsive	462			NSCLC	Pre-clinical	PMID:25294908
+tcgi	SK	FGFR4:del CNA	only gene	0	FGFR inhibitors	FGFR4 (N535,V550)	Responsive	463			RHBDS	Pre-clinical	PMID:19809159;PMID:24124571
+tcgi	SK	KDR:amp CNA	only gene	1	VEGFR inhibitors	KDR (A1065T)	Responsive	536			CANCER	Pre-clinical	PMID:24569783
+tcgi	SK	KIT:amp CNA	only gene	0	HSP90 inhibitors	KIT mutation in exon 11	Responsive	537			GIST	Early trials	PMID:22898035
+tcgi	SK	KIT:amp CNA	only gene	0	HSP90 inhibitors	KIT mutation in exon 9 or 17	Responsive	538			GIST	Pre-clinical	PMID:21737509
+tcgi	SK	KIT:amp CNA	only gene	0	Dasatinib (BCR-ABL inhibitor 2nd gen)	KIT wildtype	Responsive	539			GIST	Pre-clinical	PMID:16397263
+tcgi	SK	KIT:amp CNA	only gene	1	Dasatinib (BCR-ABL inhibitor 2nd gen)	KIT mutation in exon 9,11,13,14 or 17	Responsive	540			CM	Case report	PMID:19671763
+tcgi	SK	KIT:amp CNA	only gene	0	Dasatinib (BCR-ABL inhibitor 2nd gen)	KIT (D816V)	Responsive	541			SM	Early trials	PMID:18559612
+tcgi	SK	KIT:amp CNA	only gene	0	Dasatinib (BCR-ABL inhibitor 2nd gen)	KIT (D816V)	Responsive	542			AML	Case report	PMID:18986703
+tcgi	SK	KIT:amp CNA	only gene	1	Dasatinib (BCR-ABL inhibitor 2nd gen)	KIT (D816Y,D816F,D816V)	Responsive	543			CANCER	Pre-clinical	PMID:16397263
+tcgi	SK	KIT:amp CNA	only gene	0	Dasatinib (BCR-ABL inhibitor 2nd gen)	KIT (N822K)	Responsive	544			AML	Pre-clinical	PMID:23149070
+tcgi	SK	KIT:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT inframe deletion (416-422),inframe insertion (416-422)	Responsive	545			AML	Pre-clinical	PMID:15618474
+tcgi	SK	KIT:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT inframe deletion (V560)	Responsive	546			THYM	Case report	PMID:15201427
+tcgi	SK	KIT:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT wildtype	Resistant	547			GIST	Late trials	PMID:18955458
+tcgi	SK	KIT:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT mutation in exon 9,11,13,14 or 17	Responsive	548			GIST	FDA guidelines	FDA
+tcgi	SK	KIT:amp CNA	only gene	1	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT mutation in exon 9,11,13,14 or 17	Responsive	549			CM	Late trials	PMID:18421059;PMID:21642685;PMID:21690468;PMID:22261812
+tcgi	SK	KIT:amp CNA	only gene	1	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT mutation in exon 9,11,13,14 or 17	Responsive	550			CM	NCCN guidelines	NCCN
+tcgi	SK	KIT:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT (627-664,664-714,449-514)	Resistant	551			GIST	Late trials	PMID:18955458;PMID:18955451;PMID:16624552
+tcgi	SK	KIT:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT mutation in exon 17	Resistant	552			GIST	Pre-clinical	PMID:23840364
+tcgi	SK	KIT:amp CNA	only gene	1	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT mutation in exon 17 or 18	Resistant	553			CM	Early trials	PMID:21690468;PMID:21642685
+tcgi	SK	KIT:amp CNA	complete	1	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT amplification	No Responsive	554			CM	Early trials	PMID:23775962
+tcgi	SK	KIT:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT (D816)	Resistant	555			GIST, MDS, MDPS, HES, ECL, CML, ALL, SM	FDA guidelines	FDA
+tcgi	SK	KIT:amp CNA	only gene	1	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT (D820Y)	Responsive	556			CM	Case report	PMID:23775962
+tcgi	SK	KIT:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT (T670I)	Resistant	557			GIST	Case report	PMID:24687822
+tcgi	SK	KIT:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT (V559I,H697Y,T670,V654A,A829P,D816,N822,Y823D)	Resistant	558			GIST	Pre-clinical	PMID:23582185;PMID:21689725;PMID:17259998
+tcgi	SK	KIT:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	KIT (Y553N)	Responsive	559			THYM	Case report	PMID:21969494
+tcgi	SK	KIT:amp CNA	only gene	1	Nilotinib (BCR-ABL inhibitor 2nd gen)	KIT mutation in exon 9,11,13,14 or 17	Responsive	560			CM	Early trials	PMID:22068222;PMID:25695690
+tcgi	SK	KIT:amp CNA	only gene	0	Nilotinib (BCR-ABL inhibitor 2nd gen)	KIT mutation in exon 17	Responsive	561			GIST	Early trials	PMID:22119758;PMID:21456006
+tcgi	SK	KIT:amp CNA	only gene	1	Nilotinib (BCR-ABL inhibitor 2nd gen)	KIT (D820Y)	Responsive	562			CM	Case report	PMID:25695690
+tcgi	SK	KIT:amp CNA	only gene	0	Ponatinib (BCR-ABL inhibitor 3rd gen&Pan-TK inhibitor)	KIT (788-828,829-860,550-592)	Responsive	563			GIST	Early trials	ASCO 2015 (abstr 10517);PMID:25239608;ASCO 2015 (abstr 10535)
+tcgi	SK	KIT:amp CNA	only gene	0	Ponatinib (BCR-ABL inhibitor 3rd gen&Pan-TK inhibitor)	KIT (A829P,V654A,T670I)	Responsive	564			GIST	Pre-clinical	PMID:25239608
+tcgi	SK	KIT:amp CNA	only gene	0	Regorafenib (Pan-kinase inhibitor)	KIT mutation in exon 9,11,13,14 or 17	Responsive	565			GIST	FDA guidelines	FDA
+tcgi	SK	KIT:amp CNA	only gene	0	Sorafenib (Pan-TK inhibitor)	KIT inframe deletion (577-579)	Responsive	566			THYM	Case report	PMID:20970876
+tcgi	SK	KIT:amp CNA	only gene	0	Sorafenib (Pan-TK inhibitor)	KIT wildtype	Responsive	567			GIST	Early trials	ASCO 2011 (abstr 10009)
+tcgi	SK	KIT:amp CNA	only gene	0	Sorafenib (Pan-TK inhibitor)	KIT mutation in exon 9 or 11	Responsive	568			GIST	Early trials	PMID:22270258
+tcgi	SK	KIT:amp CNA	only gene	1	Sorafenib (Pan-TK inhibitor)	KIT (550-592,627-664,788-828,829-860)	Responsive	569			CM	Case report	PMID:18936790;PMID:20372153
+tcgi	SK	KIT:amp CNA	only gene	0	Sorafenib (Pan-TK inhibitor)	KIT mutation in exon 17	Responsive	570			GIST	Pre-clinical	PMID:23840364
+tcgi	SK	KIT:amp CNA	only gene	0	Sorafenib (Pan-TK inhibitor)	KIT (D820E)	Responsive	571			THYM	Case report	PMID:19461405
+tcgi	SK	KIT:amp CNA	only gene	0	Sunitinib (Pan-TK inhibitor)	KIT wildtype	Responsive	572			GIST	Late trials	PMID:18955458
+tcgi	SK	KIT:amp CNA	only gene	0	Sunitinib (Pan-TK inhibitor)	KIT mutation in exon 9,11,13,14 or 17	Responsive	573			GIST	FDA guidelines	FDA
+tcgi	SK	KIT:amp CNA	only gene	0	Sunitinib (Pan-TK inhibitor)	KIT mutation in exon 11	Resistant	574			GIST	Late trials	PMID:18955458
+tcgi	SK	KIT:amp CNA	only gene	1	Sunitinib (Pan-TK inhibitor)	KIT mutation in exon 9,11,13,14 or 17	Responsive	575			CM	Late trials	PMID:18421059;PMID:21642685;PMID:21690468;PMID:22261812
+tcgi	SK	KIT:amp CNA	only gene	0	Sunitinib (Pan-TK inhibitor)	KIT mutation in exon 17	Resistant	576			GIST	Pre-clinical	PMID:23840364
+tcgi	SK	KIT:amp CNA	complete	1	Sunitinib (Pan-TK inhibitor)	KIT amplification	No Responsive	577			CM	Early trials	PMID:22261812
+tcgi	SK	KIT:amp CNA	only gene	0	Sunitinib (Pan-TK inhibitor)	KIT (H697Y)	Responsive	578			THYM	Pre-clinical	PMID:19861435
+tcgi	SK	KIT:amp CNA	only gene	0	Sunitinib (Pan-TK inhibitor)	KIT (H697Y)	Responsive	579			THYM	Pre-clinical	PMID:19861435
+tcgi	SK	KIT:amp CNA	only gene	0	Sunitinib (Pan-TK inhibitor)	KIT (Y553N)	Responsive	580			THYM	Case report	PMID:23375402
+tcgi	SK	MET:amp CNA	only gene	0	Savolitinib (MET inhibitor)	MET kinase domain mutation	Responsive	649			R	Early trials	PMID:28644771
+tcgi	SK	MET:amp CNA	complete	0	BCL2 inhibitors	MET amplification	Responsive	650			COREAD	Pre-clinical	PMID:27397505
+tcgi	SK	MET:amp CNA	complete	0	EGFR inhibitor 1st gens	MET amplification	Resistant	651			NSCLC, COREAD	Early trials	PMID:22189054;PMID:23729478
+tcgi	SK	MET:amp CNA	complete	0	EGFR mAb inhibitors	MET amplification	Resistant	652			COREAD	Early trials	PMID:23729478
+tcgi	SK	MET:amp CNA	complete	0	MET inhibitors	MET amplification	Responsive	653			HC	Case report	ENA 2015 (abstract A55)
+tcgi	SK	MET:amp CNA	complete	0	MET inhibitors	MET amplification	Responsive	654			ST	Pre-clinical	PMID:22729845;PMID:23327903
+tcgi	SK	MET:amp CNA	complete	0	MET inhibitors	MET amplification	Responsive	655			R	Early trials	PMID:23213094;AACR 2016 (abstr CT2006)
+tcgi	SK	MET:amp CNA	only gene	0	MET inhibitors	MET (D1246V)	Resistant	656			LUAD	Case report	PMID:27694386
+tcgi	SK	MET:amp CNA	only gene	0	MET inhibitors	MET (H1112R)	Responsive	657			R	Early trials	PMID:23213094
+tcgi	SK	MET:amp CNA	only gene	0	MET inhibitors	MET (M1268T)	Responsive	658			R	Case report	PMID:23610116
+tcgi	SK	MET:amp CNA	only gene	1	MET inhibitors (Crizotinib,etc)	MET (H1112L)	Responsive	659			CANCER	Pre-clinical	AACR 2012 (abstr 1786)
+tcgi	SK	MET:amp CNA	complete	0	Cabozantinib + Panitumumab (Pan-kinase inhibitor + EGFR mAb inhibitor)	MET amplification	Responsive	660			COREAD	Case report	ENA 2015 (abstr A52)
+tcgi	SK	MET:amp CNA	only gene	0	Crizotinib (ALK inhibitor)	MET fusion	Responsive	661			G	Case report	PMID:27748748
+tcgi	SK	MET:amp CNA	only gene	0	Crizotinib (ALK inhibitor)	MET mutation in exon 16-19	Responsive	662			R	Early trials	AACR 2016 (abstr CT2006)
+tcgi	SK	MET:amp CNA	complete	0	Crizotinib (ALK inhibitor)	MET amplification	Responsive	663			NSCLC	Early trials	NCT02499614;ASCO 2015 (abstr 2595)
+tcgi	SK	MET:amp CNA	complete	0	Crizotinib (ALK inhibitor)	MET amplification	Responsive	664			LUAD, ST	Early trials	ASCO 2014 (abstr 8001);ASCO 2015 (abstr 2595);ASCO GI 2015 (abstr 1)
+tcgi	SK	MET:amp CNA	complete	0	Crizotinib (ALK inhibitor)	MET amplification	Responsive	665			G	Case report	PMID:22162573
+tcgi	SK	MET:amp CNA	only gene	1	Crizotinib (ALK inhibitor)	MET (V1110I,H1112R,M1268T,R988C,T1010I)	Responsive	666			CANCER	Pre-clinical	PMID:17483355
+tcgi	SK	MET:amp CNA	only gene	1	Crizotinib (ALK inhibitor)	MET (Y1230C;Y1235D)	Resistant	667			CANCER	Pre-clinical	PMID:17483355
+tcgi	SK	MET:amp CNA	complete	0	EGFR inhibitor 3rd gens (Osimertinib,etc)	MET amplification	Resistant	668			LUAD	Case report	PMID:27252416
+tcgi	SK	MET:amp CNA	complete	0	EGFR inhibitor 3rd gens (Rociletinib,etc)	MET amplification	Resistant	669			LUAD	Case report	PMID:27252416
+tcgi	SK	MET:amp CNA, BRAF:amp CNA	only gene	0	Crizotinib + Vemurafenib (ALK inhibitor + BRAF inhibitor)	MET amplification + BRAF (V600E)	Responsive	670			COREAD	Case report	PMID:27325282
+tcgi	SK	MET:amp CNA, BRAF:amp CNA	only gene	0	Vemurafenib + Panitumumab (BRAF inhibitor + EGFR mAb inhibitor)	MET amplification + BRAF (V600E)	Resistant	671			COREAD	Case report	PMID:27325282
+tcgi	SK	MYC:del CNA	only alteration type	0	BET inhibitors	MYC amplification	Responsive	696			MYMA, NB	Pre-clinical	PMID:21889194;PMID:23430699
+tcgi	SK	MYC:del CNA	only alteration type	0	CDK7 inhibitors	MYC amplification	Responsive	697			NB	Pre-clinical	PMID:25416950
+tcgi	SK	MYC:del CNA	only alteration type	0	FACT inhibitors	MYC amplification	Responsive	698			NB	Pre-clinical	PMID:26537256
+tcgi	SK	MYC:del CNA	only alteration type	0	PIM inhibitors	MYC amplification	Responsive	699			PRAD	Pre-clinical	PMID:25505253
+tcgi	SK	MYC:del CNA	only alteration type	0	Temozolomide (Chemotherapy)	MYC amplification	Responsive	700			COREAD	Pre-clinical	PMID:27397505
+tcgi	SK	MYD88:amp CNA	only gene	0	Ibrutinib (BTK inhibitor)	MYD88 (L265P)	Responsive	702			WM	FDA guidelines	PMID:25853747
+tcgi	SK	NOTCH1:del CNA	only gene	0	Gamma secretase inhibitor + CDK4 inhibitors	NOTCH1 activating mutation in Cterm-PEST domain	Responsive	809			ALL	Pre-clinical	PMID:19318552
+tcgi	SK	NOTCH1:del CNA	only gene	0	Gamma secretase inhibitor + MTOR inhibitors	NOTCH1 activating mutation in Cterm-PEST domain	Responsive	810			ALL	Pre-clinical	PMID:19246562
+tcgi	SK	NOTCH1:del CNA	only gene	0	Gamma secretase inhibitors	NOTCH1 fusion	Responsive	811			ALL	Pre-clinical	PMID:16688224;PMID:23033986
+tcgi	SK	NOTCH1:del CNA	only gene	0	Gamma secretase inhibitors	NOTCH1 fusion	Responsive	812			BRCA	Pre-clinical	PMID:22101766
+tcgi	SK	NOTCH1:del CNA	only gene	0	Gamma secretase inhibitors	NOTCH1 activating mutation in Cterm-PEST domain	Responsive	813			ALL	Early trials	ASCO 2006 (abstr 6585)
+tcgi	SK	NOTCH1:del CNA	only gene	0	Gamma secretase inhibitors	NOTCH1 activating mutation in Cterm-PEST domain	Responsive	814			ALL	Pre-clinical	PMID:15472075;PMID:19778842;PMID:22510873;PMID:23001755
+tcgi	SK	NOTCH1:del CNA	only gene	0	Gamma secretase inhibitors	NOTCH1 activating mutation in Cterm-PEST domain	Responsive	815			BRCA	Pre-clinical	PMID:25564152
+tcgi	SK	NOTCH1:del CNA	only gene	0	Gamma secretase inhibitors	NOTCH1 oncogenic mutation	Responsive	816			MCL	Pre-clinical	PMID:22210878
+tcgi	SK	NOTCH1:del CNA	only gene	1	Gamma secretase inhibitors (Ro4929097,Pf-03084014,Mk-0752,etc)	NOTCH1 activating mutation in Cterm-PEST domain	Responsive	817			CANCER	Early trials	NCT01703572;NCT01778439; NCT01098344; NCT01981551
+tcgi	SK	NOTCH1:del CNA	only gene	1	OMP-52M51 (NOTCH1 inhibitor)	NOTCH1 activating mutation in Cterm-PEST domain	Responsive	818			CANCER	Early trials	NCT01703572;NCT01778439
+tcgi	SK	PDGFRA:amp CNA	only gene	0	HSP90 inhibitors	PDGFRA (D842V)	Responsive	860			GIST	Pre-clinical	PMID:18794084
+tcgi	SK	PDGFRA:amp CNA	complete	0	PDGFR inhibitors	PDGFRA amplification	No Responsive	861			G	Pre-clinical	PMID:23544171
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Crenolanib (FLT3 inhibitor)	PDGFRA (D842V)	Responsive	862			GIST	Early trials	ASCO 2016 (abstr 11010)
+tcgi	SK	PDGFRA:amp CNA	only gene	1	Crenolanib (FLT3 inhibitor)	PDGFRA (V658A,P577S,R841K,H845Y,G853D)	Responsive	863			CM	Pre-clinical	PMID:24132921
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Dasatinib (BCR-ABL inhibitor 2nd gen)	PDGFRA wildtype	Responsive	864			GIST	Pre-clinical	PMID:16397263
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Dasatinib (BCR-ABL inhibitor 2nd gen)	PDGFRA (D842V)	Responsive	865			GIST	Pre-clinical	PMID:18794084
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA fusion	Responsive	866			MDS, MDPS	FDA guidelines	EMA
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA-FIP1L1 fusion	Responsive	867			HES, ECL	FDA guidelines	EMA
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA inframe deletion (I843)	Responsive	868			GIST	NCCN guidelines	NCCN guidelines
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA wildtype	Resistant	869			GIST	Late trials	PMID:14645423;PMID:18955458
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA (552-596,631-668,814-854)	Responsive	870			GIST	NCCN guidelines	NCCN guidelines
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA (D842V)	Resistant	871			GIST	Late trials,Pre-clinical	PMID:22718859;PMID:16638875
+tcgi	SK	PDGFRA:amp CNA	only gene	1	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA (P577S,R841K,H845Y,G853D)	Responsive	872			CM	Pre-clinical	PMID:24132921
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Imatinib (BCR-ABL inhibitor 1st gen&KIT inhibitor)	PDGFRA (T674I)	Resistant	873			HES	Case report	PMID:12660384
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Regorafenib (Pan-kinase inhibitor)	PDGFRA (552-596,631-668,814-854)	Responsive	874			GIST	NCCN guidelines	NCCN guidelines
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Sorafenib (Pan-TK inhibitor)	PDGFRA wildtype	Responsive	875			GIST	Early trials	ASCO 2011 (abstr 10009)
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Sunitinib (Pan-TK inhibitor)	PDGFRA wildtype	Responsive	876			GIST	Late trials	PMID:18955458
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Sunitinib (Pan-TK inhibitor)	PDGFRA (552-596,631-668,814-854)	Responsive	877			GIST	NCCN guidelines	NCCN guidelines
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Sunitinib (Pan-TK inhibitor)	PDGFRA (D842V)	Resistant	878			GIST	Late trials,Pre-clinical	PMID:22718859;PMID:16638875
+tcgi	SK	PDGFRA:amp CNA	only gene	0	Sunitinib (Pan-TK inhibitor)	PDGFRA overexpression	Responsive	879			R	Pre-clinical	PMID:24086736
+tcgi	SK	PIK3CA:amp CNA	only gene	0	AKT inhibitors	PIK3CA oncogenic mutation	Responsive	882			BRCA	Early trials	ASCO 2015 (abstr 2500)
+tcgi	SK	PIK3CA:amp CNA	only gene	1	BRAF inhibitors	PIK3CA (E545*)	Resistant	883			CM	Case report	PMC3936420
+tcgi	SK	PIK3CA:amp CNA	only gene	0	PI3K pathway inhibitor (alone or in combination)s	PIK3CA oncogenic mutation	Responsive	884			L, COREAD	Pre-clinical	PMID:23136191;PMID:23475782;PMID:22392911
+tcgi	SK	PIK3CA:amp CNA	only gene	0	PI3K pathway inhibitors	PIK3CA oncogenic mutation	Responsive	885			BLCA, HNC, L	Case report	ASCO 2015 (abstr 2516);ASCO 2015 (abstr 6049);ESMO 2013 (abstr P017)
+tcgi	SK	PIK3CA:amp CNA	only gene	0	PI3K pathway inhibitors	PIK3CA oncogenic mutation	Responsive	887			HNSC	Case report	PMID:26787751;PMID:26763254
+tcgi	SK	PIK3CA:amp CNA	only gene	0	PI3K pathway inhibitors	PIK3CA oncogenic mutation	Responsive	888			G, THCA	Pre-clinical	PMID:19671762;PMID:21289267
+tcgi	SK	PIK3CA:amp CNA	complete	0	PI3K pathway inhibitors	PIK3CA amplification	Resistant	889			BRCA	Pre-clinical	PMID:24366379
+tcgi	SK	PIK3CA:amp CNA	only gene	0	PI3K pathway inhibitors	PIK3CA oncogenic mutation	No Responsive	890			L	Early trials	ASCO 2017 (abstr 9054)
+tcgi	SK	PIK3CA:amp CNA	only gene	0	PIK3CA inhibitors	PIK3CA oncogenic mutation	Responsive	891			BRCA	Early trials	PMID:28331003
+tcgi	SK	PIK3CA:amp CNA	only gene	0	PIK3CA inhibitors	PIK3CA oncogenic mutation	Responsive	892			ST	Case report	ASCO 2015 (abstr 2501)
+tcgi	SK	PIK3CA:amp CNA	only gene	0	Cetuximab (EGFR mAb inhibitor)	PIK3CA oncogenic mutation	Resistant	893			COREAD	Late trials	PMID:19223544;PMID:20619739
+tcgi	SK	PLCG2:del CNA	only gene	0	Ibrutinib (BTK inhibitor)	PLCG2 (R665W,L845F)	Resistant	904			CLL	Early trials	PMID:24869598
+tcgi	SK	PTEN:del CNA	only gene	0	AKT inhibitors	PTEN oncogenic mutation	Responsive	914			PA	Case report	PMID:22025163
+tcgi	SK	PTEN:del CNA	complete	0	AKT inhibitors	PTEN deletion	Responsive	915			PA	Case report	PMID:22025163
+tcgi	SK	PTEN:del CNA	only gene	0	ATM inhibitors	PTEN oncogenic mutation	Responsive	916			BRCA	Pre-clinical	PMID:27397505
+tcgi	SK	PTEN:del CNA	only gene	0	EGFR mAb inhibitors	PTEN oncogenic mutation	Resistant	917			COREAD	Late trials	PMID:21163703;PMID:19398573
+tcgi	SK	PTEN:del CNA	complete	0	EGFR mAb inhibitors	PTEN deletion	Resistant	918			COREAD	Late trials	PMID:21163703;PMID:19398573
+tcgi	SK	PTEN:del CNA	only gene	0	MTOR inhibitors	PTEN oncogenic mutation	No Responsive	919			ED	Early trials	PMID:21788564;PMID:23238879
+tcgi	SK	PTEN:del CNA	complete	0	MTOR inhibitors	PTEN deletion	No Responsive	920			ED	Early trials	PMID:21788564;PMID:23238879
+tcgi	SK	PTEN:del CNA	only gene	0	PARP inhibitors	PTEN oncogenic mutation	Responsive	921			ED	Case report	PMID:21468130;PMID:20944090
+tcgi	SK	PTEN:del CNA	complete	0	PARP inhibitors	PTEN deletion	Responsive	922			ED	Case report	PMID:21468130;PMID:20944090
+tcgi	SK	PTEN:del CNA	only gene	1	PD1 Ab inhibitors	PTEN oncogenic mutation	Responsive	923			CM	Early trials	PMID:26645196
+tcgi	SK	PTEN:del CNA	complete	1	PD1 Ab inhibitors	PTEN deletion	Responsive	924			CM	Early trials	PMID:26645196
+tcgi	SK	PTEN:del CNA	only gene	0	PI3K pathway inhibitor + AR antagonists	PTEN oncogenic mutation	Responsive	925			PRAD	Pre-clinical	PMID:21575859
+tcgi	SK	PTEN:del CNA	complete	0	PI3K pathway inhibitor + AR antagonists	PTEN deletion	Responsive	926			PRAD	Pre-clinical	PMID:21575859
+tcgi	SK	PTEN:del CNA	only gene	0	PI3K pathway inhibitor + MEK inhibitors	PTEN oncogenic mutation	Responsive	927			OV	Pre-clinical	PMID:21632463
+tcgi	SK	PTEN:del CNA	complete	0	PI3K pathway inhibitor + MEK inhibitors	PTEN deletion	Responsive	928			OV	Pre-clinical	PMID:21632463
+tcgi	SK	PTEN:del CNA	only gene	1	PI3K pathway inhibitors	PTEN oncogenic mutation	Responsive	929	889	Resistant	TH, G, L, OV, BRCA, CANCER, ED	Pre-clinical	PMID:21289267;PMID:21325073;PMID:21191045;PMID:17804702;PMID:23136191;PMID:21632463;PMID:21673091;PMID:23287563;PMID:21998291;PMID:22662154;PMID:23085766;PMID:22932669
+tcgi	SK	PTEN:del CNA	complete	1	PI3K pathway inhibitors	PTEN deletion	Responsive	930	889	Resistant	TH, G, L, OV, BRCA, CANCER, ED	Pre-clinical	PMID:21289267;PMID:21325073;PMID:21191045;PMID:17804702;PMID:23136191;PMID:21632463;PMID:21673091;PMID:23287563;PMID:21998291;PMID:22662154;PMID:23085766;PMID:22932669
+tcgi	SK	PTEN:del CNA	only gene	0	PIK3CB inhibitors	PTEN oncogenic mutation	Responsive	931			PRAD	Case report	ASCO 2014 (abstr 2514)
+tcgi	SK	PTEN:del CNA	complete	0	PIK3CB inhibitors	PTEN deletion	Responsive	932			PRAD	Case report	ASCO 2014 (abstr 2514)
+tcgi	SK	PTEN:del CNA	only alteration type	0	BYL719 (PIK3CA inhibitor)	PTEN biallelic inactivation	Resistant	933			BRCA	Case report	PMID:25409150
+tcgi	SK	PTEN:del CNA	only alteration type	0	Cetuximab (EGFR mAb inhibitor)	PTEN biallelic inactivation	Resistant	934			COREAD	Case report	Caris molecular intelligence
+tcgi	SK	PTEN:del CNA	only gene	0	Everolimus (MTOR inhibitor)	PTEN oncogenic mutation	Responsive	935			PRAD	Early trials	PMID:23582881
+tcgi	SK	PTEN:del CNA	complete	0	Everolimus (MTOR inhibitor)	PTEN deletion	Responsive	936			PRAD	Early trials	PMID:23582881
+tcgi	SK	PTEN:del CNA	only alteration type	0	Panitumumab (EGFR mAb inhibitor)	PTEN biallelic inactivation	Resistant	937			COREAD	Case report	Caris molecular intelligence
+tcgi	SK	PTEN:del CNA	only gene	1	Sirolimus (MTOR inhibitor)	PTEN oncogenic mutation	Responsive	938			CANCER	Early trials	ASCO 2013 (abstr 2532)
+tcgi	SK	PTEN:del CNA	complete	1	Sirolimus (MTOR inhibitor)	PTEN deletion	Responsive	939			CANCER	Early trials	ASCO 2013 (abstr 2532)
+tcgi	SK	PTEN:del CNA, BRAF:amp CNA	only gene	1	BRAF inhibitors	PTEN oncogenic mutation + BRAF oncogenic mutation	Resistant	940			CM	Early trials	http://ascopubs.org/doi/abs/10.1200/PO.16.00054
+tcgi	SK	PTEN:del CNA, BRAF:amp CNA	only gene	1	BRAF inhibitors	PTEN deletion + BRAF oncogenic mutation	Resistant	941			CM	Early trials	http://ascopubs.org/doi/abs/10.1200/PO.16.00054
+tcgi	SK	PTEN:del CNA, BRAF:amp CNA	only gene	1	MEK inhibitors	PTEN oncogenic mutation + BRAF oncogenic mutation	Resistant	942			CM	Pre-clinical	PMID:23039341
+tcgi	SK	PTEN:del CNA, BRAF:amp CNA	only gene	1	MEK inhibitors	PTEN deletion + BRAF oncogenic mutation	Resistant	943			CM	Pre-clinical	PMID:23039341
+tcgi	SK	RAC1:amp CNA, BRAF:amp CNA	only gene	1	BRAF inhibitors	RAC1 (P29S) + BRAF oncogenic mutation	Resistant	946			CM	Case report	PMID:25056119
+tcgi	SK	RAC1:amp CNA, BRAF:amp CNA	only gene	1	BRAF inhibitors	RAC1 (P29S) + BRAF oncogenic mutation	Resistant	947			CM	Case report	PMID:25056119
+tcgi	SK	RAD51C:amp CNA	only gene	0	PARP inhibitors	RAD51C oncogenic mutation	Responsive	949			OV	Early trials	ASCO 2015 (abstr 5508)
+tcgi	SK	RAD51C:amp CNA	only gene	0	PARP inhibitors	RAD51C oncogenic mutation	Responsive	950			OV	Early trials	ASCO 2015 (abstr 5508)
+tcgi	SK	RICTOR:amp CNA	complete	0	MTORC1/2 inhibitors	RICTOR amplification	Responsive	977			L	Case report	PMID:26370156
+tcgi	SK	RNF43:amp CNA	only gene	0	Porcupine inhibitors	RNF43 oncogenic mutation	Responsive	978			COREAD	Case report	ENA 2015 (abstr C45)
+tcgi	SK	ROS1:del CNA	only gene	0	HSP90 inhibitors	ROS1 fusion	Responsive	979			LUAD	Pre-clinical	PMID:23533265
+tcgi	SK	ROS1:del CNA	only gene	0	Cabozantinib (Pan-kinase inhibitor)	ROS1 fusion	Responsive	980			LUAD	Case report	PMID:27370605
+tcgi	SK	ROS1:del CNA	only gene	0	Cabozantinib (Pan-kinase inhibitor)	ROS1 (G2032R)	Responsive	981			LUAD	Pre-clinical	PMID:25351743
+tcgi	SK	ROS1:del CNA	only gene	0	Ceritinib (ALK inhibitor)	ROS1 (S1986Y,S1986F)	Resistant	982			LUAD	Case report	PMID:27401242
+tcgi	SK	ROS1:del CNA	only gene	0	Crizotinib (ALK inhibitor)	ROS1 fusion	Responsive	983			IM	Case report	PMID:24875859
+tcgi	SK	ROS1:del CNA	only gene	0	Crizotinib (ALK inhibitor)	ROS1 fusion	Responsive	984			LUAD	Early trials	PMID:25264305
+tcgi	SK	ROS1:del CNA	only gene	0	Crizotinib (ALK inhibitor)	ROS1 fusion	Responsive	985			NSCLC	FDA guidelines	FDA
+tcgi	SK	ROS1:del CNA	only gene	0	Crizotinib (ALK inhibitor)	ROS1 (G2032R)	Resistant	986			LUAD	Case report	PMID:23724914;PMID:25688157
+tcgi	SK	ROS1:del CNA	only gene	0	Crizotinib (ALK inhibitor)	ROS1 (S1986Y,S1986F)	Resistant	987			LUAD	Case report	PMID:27401242
+tcgi	SK	ROS1:del CNA	only gene	0	Lorlatinib (ALK&ROS1 inhibitor)	ROS1 (S1986Y,S1986F)	Responsive	988			LUAD	Case report	PMID:27401242
+tcgi	SK	SETD2:amp CNA	only gene	1	WEE1 inhibitors	SETD2 oncogenic mutation	Responsive	990			CANCER	Pre-clinical	ENA 2014 (abstr 211)
+tcgi	SK	SETD2:amp CNA	only alteration type	1	WEE1 inhibitors	SETD2 deletion	Responsive	991			CANCER	Pre-clinical	ENA 2014 (abstr 211)
+tcgi	SK	SF3B1:amp CNA	only gene	1	Spliceosome inhibitors	SF3B1 (K700E,K666N)	Responsive	992			CANCER	Pre-clinical	ENA 2014 (abstr 456);ENA 2014 (abstr 575);PMID:25424858
+tcgi	SK	SMARCA1:del CNA	only gene	1	EZH2 inhibitors	SMARCA1 oncogenic mutation	Responsive	997			CANCER	Pre-clinical	PMID:26552009
+tcgi	SK	SMO:amp CNA	only gene	0	Vismodegib (SHH inhibitor)	SMO (D473H)	Resistant	1004			MB	Case report	PMID:19726788;PMID:25759019
+tcgi	SK	SMO:amp CNA	only gene	1	Vismodegib (SHH inhibitor)	SMO (D473H,D473G,W535L,L412F,W281C,Q477E,G497W)	Resistant	1005			BCC	Case report	PMID:25759020;PMID:25306392
+tcgi	SK	SMO:amp CNA	only gene	0	Vismodegib (SHH inhibitor)	SMO (P641A)	Responsive	1006			L	Case report	ASCO 2017 (abstr 9062)
+tcgi	SK	TPMT:amp CNA	only gene	1	Cisplatin (Chemotherapy)	TPMT splice acceptor variant	Increased Toxicity (Ototoxicity)	1046			CANCER	FDA guidelines	FDA
+tcgi	SK	TPMT:amp CNA	only alteration type	1	Cisplatin (Chemotherapy)	TPMT biallelic inactivation	Increased Toxicity (Ototoxicity)	1047			CANCER	FDA guidelines	FDA
+tcgi	SK	TPMT:amp CNA	only gene	1	Cisplatin (Chemotherapy)	TPMT (A80P,Y240C,A154T,A167G)	Increased Toxicity (Ototoxicity)	1048			CANCER	FDA guidelines	FDA
+tcgi	SK	TPMT:amp CNA	only gene	1	Mercaptopurine (Purine analog)	TPMT splice acceptor variant	Increased Toxicity (Myelosupression)	1049			CANCER	FDA guidelines	FDA
+tcgi	SK	TPMT:amp CNA	only alteration type	1	Mercaptopurine (Purine analog)	TPMT biallelic inactivation	Increased Toxicity (Myelosupression)	1050			CANCER	FDA guidelines	FDA
+tcgi	SK	TPMT:amp CNA	only gene	1	Mercaptopurine (Purine analog)	TPMT (A80P,Y240C,A154T,A167G)	Increased Toxicity (Myelosupression)	1051			CANCER	FDA guidelines	FDA
+tcgi	SK	TPMT:amp CNA	only gene	1	Thioguanine (Guanine analog)	TPMT splice acceptor variant	Increased Toxicity (Myelosupression)	1052			CANCER	FDA guidelines	FDA
+tcgi	SK	TPMT:amp CNA	only alteration type	1	Thioguanine (Guanine analog)	TPMT biallelic inactivation	Increased Toxicity (Myelosupression)	1053			CANCER	FDA guidelines	FDA
+tcgi	SK	TPMT:amp CNA	only gene	1	Thioguanine (Guanine analog)	TPMT (A80P,Y240C,A154T,A167G)	Increased Toxicity (Myelosupression)	1054			CANCER	FDA guidelines	FDA
+tcgi	SK	TUBB3:del CNA	only gene	0	Paclitaxel (Taxane)	TUBB3 overexpression	Resistant	1072			BLCA	Pre-clinical	PMID:23184177

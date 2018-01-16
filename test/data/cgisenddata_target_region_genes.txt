@@ -1,0 +1,4 @@
+#this target region is fake
+PDCD1
+KMT2C
+RAD21

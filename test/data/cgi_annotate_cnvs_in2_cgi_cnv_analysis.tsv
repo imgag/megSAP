@@ -1,0 +1,25 @@
+#sample	gene	cna	cancer	internal_id	gene_role	known_in_tumors	predicted_in_tumors	driver	driver_statement	predicted_match	known_match
+tcgi	FUBP1	AMP	SK	0	LoF				predicted passenger		
+tcgi	ADGRL3	AMP	SK	1	ambiguous				predicted passenger		
+tcgi	EPHA5	AMP	SK	2	ambiguous				predicted passenger		
+tcgi	FIP1L1	AMP	SK	3	Act		GBM;G;S		predicted passenger		
+tcgi	KDR	AMP	SK	4	Act				predicted passenger		
+tcgi	KIT	AMP	SK	5	Act		S		predicted passenger		
+tcgi	PDGFRA	AMP	SK	6	Act		GBM;G;S		predicted passenger		
+tcgi	FGFR2	DEL	SK	7	Act				predicted passenger		
+tcgi	PLPP4	DEL	SK	8	ambiguous				predicted passenger		
+tcgi	GRIA4	AMP	SK	9	ambiguous				predicted passenger		
+tcgi	YAP1	AMP	SK	10	LoF				predicted passenger		
+tcgi	LRRK2	AMP	SK	11	ambiguous				predicted passenger		
+tcgi	NAV3	DEL	SK	12	ambiguous				predicted passenger		
+tcgi	TPH2	DEL	SK	13	ambiguous				predicted passenger		
+tcgi	AKT1	DEL	SK	14	Act				predicted passenger		
+tcgi	JAG2	DEL	SK	15	ambiguous				predicted passenger		
+tcgi	KLC1	DEL	SK	16	ambiguous				predicted passenger		
+tcgi	MTA1	DEL	SK	17	ambiguous				predicted passenger		
+tcgi	TRAF3	DEL	SK	18	LoF		HNSC		predicted passenger		
+tcgi	XRCC3	DEL	SK	19	ambiguous				predicted passenger		
+tcgi	GABRB3	DEL	SK	20	ambiguous				predicted passenger		
+tcgi	GABRG3	DEL	SK	21	ambiguous				predicted passenger		
+tcgi	DNMT1	AMP	SK	22	Act				predicted passenger		
+tcgi	ATRX	DEL	SK	23	LoF		G;S		predicted passenger		

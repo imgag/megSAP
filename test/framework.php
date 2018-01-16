@@ -128,6 +128,124 @@ function remove_lines_containing($filename, $ignore_strings)
 	fclose($h);
 }
 
+///Checks whether a file exists
+function check_file_exists($in_file)
+{
+	if(file_exists($in_file))
+	{
+		$result = "PASSED";
+		++$GLOBALS["passed"];
+	}
+	else
+	{
+		$result = "FAILED";
+		++$GLOBALS["failed"];
+	}
+	
+	$bt = debug_backtrace();
+	$caller = array_shift($bt);
+	$file = basename($caller["file"]);
+	$line = $caller["line"];
+	print "  - $file:$line $result\n";
+}
+
+//checks whether column with a certain name exists in a TSV file
+function check_column_exists($filename,$col_names)
+{
+	$logfile = $filename ."_diff";
+	$passed = true;
+	
+	$input = Matrix::fromTSV($filename);
+	$report_errors = "";
+	
+	foreach($col_names as $col_name)
+	{
+		if($input->getColumnIndex($col_name,false,false) === false)
+		{
+			print_r("wirf error0\n.");
+			$report_errors = $report_errors . "Column ".$col_name." does not exist in file ".$filename.".\n";
+			$passed = false;
+		}
+	}
+
+	if($passed)
+	{
+		$result = "PASSED";
+		++$GLOBALS["passed"];
+	}
+	else
+	{
+		file_put_contents($logfile,$report_errors);
+		$result = "FAILED";
+		++$GLOBALS["failed"];
+	}	
+	
+	$bt = debug_backtrace();
+	$caller = array_shift($bt);
+	$file = basename($caller["file"]);
+	$line = $caller["line"];
+	print "  - $file:$line $result\n";
+	
+}
+
+/// Performs an equality check on a tsv file by column name. This can be used if the columns do not have the same order in ref and out
+function check_tsv_file($out_file,$reference_file)
+{
+	$logfile = $out_file."_diff";
+	
+	$report_errors = "";
+	
+	$out = Matrix::fromTSV($out_file);
+	$out_headers = $out->getHeaders();
+	
+	$ref = Matrix::fromTSV($reference_file);
+	$ref_headers = $ref->getHeaders();
+
+	$passed = true;
+	
+	// check number of columns 
+	if(count($out_headers) !== count($ref_headers))
+	{
+		$report_errors = $report_errors."Number of columns is different in $out_file and $reference_file.\n";
+		$passed = false;
+	}
+	
+	foreach($ref_headers as $ref_col_name)
+	{
+		if($out->getColumnIndex($ref_col_name,false,false) === false) // check whether columns with certain name exist in both files
+		{
+			$report_errors = $report_errors . "Column $ref_col_name exists in $reference_file but not in $out_file \n";
+			$passed = false;
+		}
+		else // check whether content of column matches
+		{
+			if($out->getCol($out->getColumnIndex($ref_col_name)) != $ref->getCol($ref->getColumnIndex($ref_col_name)))
+			{
+				$report_errors = $report_errors . "Content of columns with name $ref_col_name does not match in $reference_file and $out_file \n";
+				$passed = false;
+			}
+		}
+	}
+		
+	if ($passed)
+	{
+		$result = "PASSED";
+		++$GLOBALS["passed"];
+	}
+	else
+	{
+		file_put_contents($logfile,$report_errors);
+		$result = "FAILED";
+		++$GLOBALS["failed"];
+	}	
+
+	$bt = debug_backtrace();
+	$caller = array_shift($bt);
+	$file = basename($caller["file"]);
+	$line = $caller["line"];
+	print "  - $file:$line $result\n";
+}
+
 /// Performs an equality check on files. Optionally, header lines starting with '#' can be compared as well.
 function check_file($out_file, $reference_file, $compare_header_lines = false)
 {

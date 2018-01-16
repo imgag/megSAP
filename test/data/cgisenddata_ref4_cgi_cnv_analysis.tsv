@@ -1,0 +1,132 @@
+#sample	gene	cna	cancer	known_in_tumors	gene_role	internal_id	predicted_in_tumors	driver	driver_statement	predicted_match	known_match
+tcgi	MET	AMP	SK	COREAD;NSCLC;ST	Act	36	HC;LUAD	known	known in: COREAD;NSCLC;ST		
+tcgi	CDKN2A	DEL	SK	CM;CANCER;PA;G	LoF	72	BLCA;BRCA;CH;COREAD;DLBCL;ESCA;GBM;HNSC;RCCC;RPC;HC;LUAD;LUSC;S;STAD	known	known in: CM;PA;G		known_match
+tcgi	CDKN2B	DEL	SK	G;CANCER	LoF	73	BRCA;GBM;RCCC;RPC;S	known	known in: G		
+tcgi	PTEN	DEL	SK	G;PRAD;ED;BRCA;OV;THCA;CANCER;L;SOLID	LoF	116	BLCA;CESC;COREAD;ESCA;GBM;HNSC;HC;LUSC;S;CM;STAD;UCEC	known	known in: G;PRAD;ED;BRCA;OV;THCA;L;SOLID	known_match	
+tcgi	SUFU	DEL	SK	MB	LoF	119		known	known in: MB		
+tcgi	FUBP1	AMP	SK		LoF	0			predicted passenger		
+tcgi	BARD1	DEL	SK		LoF	1	HNSC		predicted passenger		
+tcgi	ERBB4	DEL	SK		LoF	2			predicted passenger		
+tcgi	FN1	DEL	SK		LoF	3			predicted passenger		
+tcgi	PDCD1	DEL	SK		ambiguous	4			predicted passenger		
+tcgi	FANCD2	AMP	SK		LoF	5			predicted passenger		
+tcgi	FANCD2OS	AMP	SK		ambiguous	6			predicted passenger		
+tcgi	SRGAP3	AMP	SK		Act	7			predicted passenger		
+tcgi	ARID1B	DEL	SK		LoF	8			predicted passenger		
+tcgi	GNG5P1	DEL	SK		ambiguous	9			predicted passenger		
+tcgi	IGF2R	DEL	SK		LoF	10			predicted passenger		
+tcgi	MAP3K4	DEL	SK		Act	11			predicted passenger		
+tcgi	MYCT1	DEL	SK		ambiguous	12			predicted passenger		
+tcgi	PACRG	DEL	SK		LoF	13			predicted passenger		
+tcgi	PRKN	DEL	SK		ambiguous	14			predicted passenger		
+tcgi	QKI	DEL	SK		ambiguous	15			predicted passenger		
+tcgi	RGS17	DEL	SK		ambiguous	16			predicted passenger		
+tcgi	SLC22A2	DEL	SK		ambiguous	17			predicted passenger		
+tcgi	SOD2	DEL	SK		LoF	18			predicted passenger		
+tcgi	SYNE1	DEL	SK		ambiguous	19			predicted passenger		
+tcgi	SYNE1-AS1	DEL	SK		ambiguous	20			predicted passenger		
+tcgi	SYNJ2	DEL	SK		ambiguous	21			predicted passenger		
+tcgi	WTAP	DEL	SK		ambiguous	22			predicted passenger		
+tcgi	ACTB	AMP	SK		Act	23	CM;STAD		predicted passenger	known_match	
+tcgi	AIMP2	AMP	SK		ambiguous	24			predicted passenger		
+tcgi	PMS2	AMP	SK		LoF	25			predicted passenger		
+tcgi	RAC1	AMP	SK		Act	26	CM;STAD		predicted passenger	known_match	
+tcgi	CALN1	AMP	SK		ambiguous	27			predicted passenger		
+tcgi	GALNT17	AMP	SK		ambiguous	28			predicted passenger		
+tcgi	SBDS	AMP	SK		LoF	29			predicted passenger		
+tcgi	BRAF	AMP	SK		Act	30	G;CM		predicted passenger	known_match	
+tcgi	CUL1	AMP	SK		LoF	31			predicted passenger		
+tcgi	EPHB6	AMP	SK		ambiguous	32			predicted passenger		
+tcgi	EZH2	AMP	SK		LoF	33			predicted passenger		
+tcgi	HIPK2	AMP	SK		LoF	34			predicted passenger		
+tcgi	KEL	AMP	SK		ambiguous	35			predicted passenger		
+tcgi	SMO	AMP	SK		Act	37	G		predicted passenger		
+tcgi	WASL	AMP	SK		ambiguous	38			predicted passenger		
+tcgi	KCNH2	AMP	SK		ambiguous	39			predicted passenger		
+tcgi	RHEB	AMP	SK		Act	40	G;OV		predicted passenger		
+tcgi	KMT2C	AMP	SK		LoF	41			predicted passenger		
+tcgi	ADCY8	DEL	SK		ambiguous	42			predicted passenger		
+tcgi	ASAP1	DEL	SK		ambiguous	43			predicted passenger		
+tcgi	AZIN1	DEL	SK		ambiguous	44			predicted passenger		
+tcgi	CASC8	DEL	SK		ambiguous	45			predicted passenger		
+tcgi	COL22A1	DEL	SK		ambiguous	46			predicted passenger		
+tcgi	CPNE3	DEL	SK		ambiguous	47			predicted passenger		
+tcgi	CPQ	DEL	SK		ambiguous	48			predicted passenger		
+tcgi	DEPTOR	DEL	SK		ambiguous	49			predicted passenger		
+tcgi	EIF3E	DEL	SK		ambiguous	50			predicted passenger		
+tcgi	EPPK1	DEL	SK		ambiguous	51			predicted passenger		
+tcgi	EXT1	DEL	SK		LoF	52			predicted passenger		
+tcgi	LYN	DEL	SK		ambiguous	53			predicted passenger		
+tcgi	MTBP	DEL	SK		ambiguous	54			predicted passenger		
+tcgi	MYC	DEL	SK		Act	55			predicted passenger		
+tcgi	NBN	DEL	SK		LoF	56			predicted passenger		
+tcgi	NCALD	DEL	SK		ambiguous	57			predicted passenger		
+tcgi	PABPC1	DEL	SK		ambiguous	58			predicted passenger		
+tcgi	PDE7A	DEL	SK		ambiguous	59			predicted passenger		
+tcgi	PTK2	DEL	SK		ambiguous	60			predicted passenger		
+tcgi	RAD21	DEL	SK		LoF	61			predicted passenger		
+tcgi	RECQL4	DEL	SK		LoF	62	G		predicted passenger		
+tcgi	RUNX1T1	DEL	SK		Act	63			predicted passenger		
+tcgi	SOX17	DEL	SK		Act	64			predicted passenger		
+tcgi	TOX	DEL	SK		ambiguous	65			predicted passenger		
+tcgi	UBR5	DEL	SK		ambiguous	66			predicted passenger		
+tcgi	UTP23	DEL	SK		ambiguous	67			predicted passenger		
+tcgi	XKR4	DEL	SK		ambiguous	68			predicted passenger		
+tcgi	ACO1	DEL	SK		LoF	69			predicted passenger		
+tcgi	BNC2	DEL	SK		LoF	70			predicted passenger		
+tcgi	C9ORF92	DEL	SK		ambiguous	71			predicted passenger		
+tcgi	CDKN2B-AS1	DEL	SK		ambiguous	74			predicted passenger		
+tcgi	FOCAD	DEL	SK		ambiguous	75			predicted passenger		
+tcgi	LINGO2	DEL	SK		ambiguous	76			predicted passenger		
+tcgi	MLLT3	DEL	SK		Act	77			predicted passenger		
+tcgi	MPDZ	DEL	SK		ambiguous	78			predicted passenger		
+tcgi	PSIP1	DEL	SK		Act	79			predicted passenger		
+tcgi	SAXO1	DEL	SK		ambiguous	80			predicted passenger		
+tcgi	FANCG	AMP	SK		LoF	81			predicted passenger		
+tcgi	UNC13B	AMP	SK		ambiguous	82			predicted passenger		
+tcgi	PAX5	DEL	SK		Act	83			predicted passenger		
+tcgi	EGFL7	DEL	SK		ambiguous	84			predicted passenger		
+tcgi	KCNT1	DEL	SK		ambiguous	85			predicted passenger		
+tcgi	MIR4673	DEL	SK		ambiguous	86			predicted passenger		
+tcgi	NOTCH1	DEL	SK		ambiguous	87			predicted passenger		
+tcgi	RXRA	DEL	SK		ambiguous	88			predicted passenger		
+tcgi	UBAC1	DEL	SK		ambiguous	89			predicted passenger		
+tcgi	ARHGAP22	AMP	SK		ambiguous	90			predicted passenger		
+tcgi	PRKG1	AMP	SK		ambiguous	91			predicted passenger		
+tcgi	WDFY4	AMP	SK		ambiguous	92			predicted passenger		
+tcgi	ABCC2	DEL	SK		ambiguous	93			predicted passenger		
+tcgi	ACTA2	DEL	SK		ambiguous	94			predicted passenger		
+tcgi	ANK3	DEL	SK		Act	95			predicted passenger		
+tcgi	ARID5B	DEL	SK		LoF	96			predicted passenger		
+tcgi	BICC1	DEL	SK		ambiguous	97			predicted passenger		
+tcgi	BMPR1A	DEL	SK		LoF	98			predicted passenger		
+tcgi	BTRC	DEL	SK		ambiguous	99			predicted passenger		
+tcgi	CCAR1	DEL	SK		LoF	100			predicted passenger		
+tcgi	CHUK	DEL	SK		LoF	101			predicted passenger		
+tcgi	CTNNA3	DEL	SK		ambiguous	102			predicted passenger		
+tcgi	CYP17A1	DEL	SK		ambiguous	103			predicted passenger		
+tcgi	CYP17A1-AS1	DEL	SK		ambiguous	104			predicted passenger		
+tcgi	CYP2C19	DEL	SK		ambiguous	105			predicted passenger		
+tcgi	CYP2C8	DEL	SK		ambiguous	106			predicted passenger		
+tcgi	CYP2C9	DEL	SK		ambiguous	107			predicted passenger		
+tcgi	FAM35A	DEL	SK		ambiguous	108			predicted passenger		
+tcgi	FAS	DEL	SK		LoF	109			predicted passenger		
+tcgi	GOT1	DEL	SK		ambiguous	110			predicted passenger		
+tcgi	LRRTM3	DEL	SK		ambiguous	111			predicted passenger		
+tcgi	NFKB2	DEL	SK		ambiguous	112			predicted passenger		
+tcgi	PCDH15	DEL	SK		ambiguous	113			predicted passenger		
+tcgi	PDE6C	DEL	SK		ambiguous	114			predicted passenger		
+tcgi	PIK3AP1	DEL	SK		ambiguous	115			predicted passenger		
+tcgi	RPL5P26	DEL	SK		ambiguous	117			predicted passenger		
+tcgi	SH3PXD2A	DEL	SK		ambiguous	118			predicted passenger		
+tcgi	TET1	DEL	SK		Act	120			predicted passenger		
+tcgi	ATRX	DEL	SK		LoF	121	G;S		predicted passenger		
+tcgi	ARHGEF6	DEL	SK		LoF	122			predicted passenger		
+tcgi	BCORL1	DEL	SK		ambiguous	123			predicted passenger		
+tcgi	GPC4	DEL	SK		ambiguous	124			predicted passenger		
+tcgi	HCFC1	DEL	SK		Act	125			predicted passenger		
+tcgi	MTMR1	DEL	SK		ambiguous	126			predicted passenger		
+tcgi	PHF6	DEL	SK		LoF	127			predicted passenger		
+tcgi	RBMX	DEL	SK		LoF	128			predicted passenger		
+tcgi	SMARCA1	DEL	SK		LoF	129			predicted passenger		
+tcgi	SNORD61	DEL	SK		ambiguous	130			predicted passenger		

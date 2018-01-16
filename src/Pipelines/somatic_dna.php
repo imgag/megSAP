@@ -18,6 +18,7 @@ $parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To proc
 $parser->addString("o_folder", "Output folder.", false);
 $steps_all = array("ma", "vc", "an", "ci", "db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,db");
+$parser->addString("cancer_type","Tumor type. See CancerGenomeInterpreter.org for nomenclature.",true);
 $parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"synonymous,not-coding-splicing");
 // optional
 $parser->addFloat("min_af", "Allele frequency detection limit.", true, 0.05);
@@ -398,12 +399,62 @@ if (in_array("an", $steps))
 	if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $som_gsvar -out $som_gsvar -mode germline",true);
 }
 
-// qci
-$som_vqci = $o_folder.$t_id."-".$n_id."_var_qci.vcf.gz";
+// qci / CGI
+//file names, file path is expected in o_folder
+$som_vqci = $o_folder.$t_id."_var_qci.vcf.gz";
+if(!$single_sample) $som_vqci = $o_folder.$t_id."-".$n_id."_var_qci.vcf.gz";
+$som_vann = $o_folder.$t_id."_var_annotated.vcf.gz";
+if(!$single_sample)	$som_vann = $o_folder.$t_id."-".$n_id."_var_annotated.vcf.gz";
+$som_cnvs = $o_folder.$t_id."_cnvs.tsv";
+if(!$single_sample) $som_cnvs = $o_folder.$t_id."-".$n_id."_cnvs.tsv";
+$som_gsvar = $o_folder.$t_id.".GSvar";
+if(!$single_sample)	$som_gsvar = $o_folder.$t_id."-".$n_id.".GSvar";
+//TODO: implementation for translocation files
 if (in_array("ci", $steps))
 {
 	// add QCI output
 	$parser->execTool("Tools/converter_vcf2qci.php", "-in $som_vann -out $som_vqci -pass");
+
+	$parameters = "";
+	if(file_exists($som_vann))
+	{
+		$parameters = $parameters . " -mutations $som_vann";
+	}
+	if(file_exists($som_cnvs))
+	{
+		$parameters = $parameters . " -cnas $som_cnvs";
+	}
+	if($cancer_type != "")
+	{
+		$parameters = $parameters . " -cancertype $cancer_type";
+	}
+	$parameters = $parameters . " -o_folder $o_folder";
+
+	//if we know genes in target region we set parameter for this file
+	$genes_in_target_region =  dirname($t_sys_ini["target_file"]) . "/" .basename($t_sys_ini["target_file"],".bed")."_genes.txt";
+	if(file_exists($genes_in_target_region))
+	{
+		$parameters = $parameters . " -t_region $genes_in_target_region";
+	}
+	
+	$parser->execTool("NGS/cgi_send_data.php", $parameters);
+	
+	$parameters = "";
+	
+	//only try annotate SNVS to GSVar file if $som_vann (variant file) was uploaded to CGI
+	$cgi_snv_result_file = $o_folder . "/" .$t_id ."-".$n_id . "_cgi_mutation_analysis.tsv";
+	if(file_exists($cgi_snv_result_file) && file_exists($som_gsvar))
+	{
+		$parameters = " -gsvar_in $som_gsvar -cgi_snv_in $cgi_snv_result_file -out $som_gsvar";
+		$parser->execTool("NGS/cgi_snvs_to_gsvar.php",$parameters);	
+	}
+	//annotate CGI cnv genes to cnv input file (which was originally created by CNVHunter)
+	$cgi_cnv_result_file = $o_folder . "/" .$t_id ."-".$n_id . "_cgi_cnv_analysis.tsv";
+	if(file_exists($cgi_cnv_result_file))
+	{
+		$parameters = " -cnv_in $som_cnvs -cnv_in_cgi $cgi_cnv_result_file -out $som_cnvs";
+		$parser->execTool("NGS/cgi_annotate_cnvs.php",$parameters);
+	}
 }
 
 // db
