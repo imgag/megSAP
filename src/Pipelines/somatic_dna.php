@@ -311,7 +311,10 @@ if (in_array("vc", $steps))
 	$parser->execTool("NGS/vc_cnvhunter.php", "$tmp_in -out $som_cnv -system $t_sys -min_corr 0 -seg $t_id -n $n");
 	
 	// add somatic baf file
-	$parser->execTool("NGS/mapping_baf.php", "-in $t_bam -out $som_bafs -system $t_sys");
+	$args = array();
+	if(!$single_sample)	$args[] = "-n_in $n_bam";
+	if(!empty($t_sys['target_file']))	$args[] = "-target ".$t_sys['target_file'];
+	$parser->execTool("NGS/mapping_baf.php", "-in $t_bam -out $som_bafs ".implode(" ",$args));
 }
 
 // annotation

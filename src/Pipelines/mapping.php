@@ -2,9 +2,7 @@
 
 /**
 	@page mapping
-	
 	@todo Add pipeline test for MIPs/HaloPlex HS (only a few exons)
-	
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -65,42 +63,131 @@ else
 	$parser->exec(get_path("ngs-bits")."ReadQC", "-in1 $trimmed1 -in2 $trimmed2 -out $stafile1", true);	
 }
 
-//MIPs UMI handling: move molecular barcode to separate file
+//move molecular barcode to fastq header
 $index_file = $basename."_index.fastq.gz";
 $trimmed_mips2 = $basename."_MB_001.fastq.gz";
-if($sys['type']=="Panel MIPs")
+if($sys['umi_type']=="MIPs" || $sys['umi_type']=="HaloPlex HS")
 {
-	$parser->exec(get_path("ngs-bits")."FastqExtractBarcode", "-in $trimmed2 -out_main $trimmed_mips2 -cut 8 -out_index $index_file",true);
-	$trimmed2 = $trimmed_mips2;
-}
+	//MIPs: extract molecular barcode to separate file
+	if($sys['umi_type']=="MIPs")
+	{
+		$count1 = 0;
+		$count2 = 0;
+		
+		$parser->exec(get_path("ngs-bits")."FastqExtractBarcode", "-in $trimmed2 -out_main $trimmed_mips2 -cut 8 -out_index $index_file",true);
+		$clip_overlap = true;
+		$trimmed2 = $trimmed_mips2;
+		
+		//remove ligation and extension arms from read start (overlap clipping removes the arms at the end of a read later), filter for perfect match ligation/extension arms
+		$mip_file = isset($sys['mip_file']) ? $sys['mip_file'] : "/mnt/share/data/mipfiles/".$sys["name_short"].".txt";
+		if(!is_file($mip_file))	trigger_error("MIP file '".$sys['mip_file']."' is not available.",E_USER_ERROR);
+		$mips = Matrix::fromTSV($mip_file,"\t",">");
+		$tmp1 = $parser->tempFile("_R1_woarms.fastq.gz");
+		$tmp2 = $parser->tempFile("_R2_woarms.fastq.gz");
+		$tmp3 = $parser->tempFile("_index.fastq.gz");
+		$idx_ext_seq = $mips->getColumnIndex("ext_probe_sequence");
+		$idx_lig_seq = $mips->getColumnIndex("lig_probe_sequence");
+		$idx_strand = $mips->getColumnIndex("probe_strand");
+		$handle1 = gzopen($trimmed1, "r");
+		if($handle1===FALSE) trigger_error("Could not open file $trimmed1 for reading.",E_USER_ERROR);
+		$handle2 = gzopen($trimmed2, "r");
+		if($handle2===FALSE) trigger_error("Could not open file $trimmed2 for reading.",E_USER_ERROR);
+		$handle3 = gzopen($index_file, "r");
+		if($handle3===FALSE) trigger_error("Could not open file $trimmed3 for reading.",E_USER_ERROR);
+		$handle4 = gzopen($tmp1, "w");
+		if($handle4===FALSE) trigger_error("Could not open file $tmp1 for writing.",E_USER_ERROR);
+		$handle5 = gzopen($tmp2, "w");
+		if($handle5===FALSE) trigger_error("Could not open file $tmp2 for writing.",E_USER_ERROR);
+		$handle6 = gzopen($tmp3, "w");
+		if($handle6===FALSE) trigger_error("Could not open file $tmp2 for writing.",E_USER_ERROR);
+		while(!feof($handle1) && !feof($handle2) && !feof($handle3))
+		{
+			$line1 = array(fgets($handle1),fgets($handle1),fgets($handle1),fgets($handle1));
+			$line2 = array(fgets($handle2),fgets($handle2),fgets($handle2),fgets($handle2));
+			$line3 = array(fgets($handle3),fgets($handle3),fgets($handle3),fgets($handle3));
+			
+			list($id1,) = explode(" ", $line1[0]);
+			list($id2,) = explode(" ", $line2[0]);
+			list($id3,) = explode(" ", $line3[0]);
+			if($id1!=$id2 || $id1!=$id3)	trigger_error("This should not happen.",E_USER_ERROR);
+			
+			$valid = false;
+			for($i=0;$i<$mips->rows();++$i)
+			{
+				$mip = $mips->getRow($i);
 
-//HaloPlex HS UMI handling
-if($sys['umi_type']=="HaloPlex HS")
-{
-	//cut extra C at beginning of read2 and end of read1
-	$trimmed_hs1 = $parser->tempFile("_trimmed_hs1.fastq.gz");
-	$trimmed_hs2 = $parser->tempFile("_trimmed_hs2.fastq.gz");
-	$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed1 -out $trimmed_hs1 -end 1",true);
-	$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed_hs2 -start 1",true);
-	$trimmed1 = $trimmed_hs1;
-	$trimmed2 = $trimmed_hs2;
+				$pos1 = strpos($line1[1], rev_comp($mip[$idx_lig_seq]));
+				$pos2 = strpos($line2[1], $mip[$idx_ext_seq]);
+				
+				if($pos1===0 && $pos2===0)
+				{
+					$line1[1] = substr($line1[1],strlen($mip[$idx_lig_seq]));
+					$line1[3] = substr($line1[3],strlen($mip[$idx_lig_seq]));
+					$line2[1] = substr($line2[1],strlen($mip[$idx_ext_seq]));
+					$line2[3] = substr($line2[3],strlen($mip[$idx_ext_seq]));
+					$valid = true;
+				}
+			}
+			
+			if($valid)
+			{
+				fwrite($handle4, implode("",$line1));
+				fwrite($handle5, implode("",$line2));
+				fwrite($handle6, implode("",$line3));
+				++$count1;
+			}
+			++$count2;
+		}
+		gzclose($handle1);
+		gzclose($handle2);
+		gzclose($handle3);
+		gzclose($handle4);
+		gzclose($handle5);
+		gzclose($handle6);
+		
+		$trimmed1 = $tmp1;
+		$trimmed2 = $tmp2;
+		$index_file = $tmp3;
+		
+		trigger_error(($count2-$cout1)." read pairs were removed by filtering for MIP arms.",E_USER_NOTICE);
+	}
+
+	//HaloPlex HS mismatch bases at the end and beginning
+	if($sys['umi_type']=="HaloPlex HS")
+	{
+		//cut extra C at beginning of read2 and end of read1
+		$trimmed_hs1 = $parser->tempFile("_trimmed_hs1.fastq.gz");
+		$trimmed_hs2 = $parser->tempFile("_trimmed_hs2.fastq.gz");
+		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed1 -out $trimmed_hs1 -end 1",true);
+		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed_hs2 -start 1",true);
+		$trimmed1 = $trimmed_hs1;
+		$trimmed2 = $trimmed_hs2;
+		
+		//merge index files (in case sample was distributed over several lanes)
+		$index_file = $basename."_index.fastq.gz";
+		if (file_exists($index_file))
+		{
+			unlink($index_file);
+		}
+		$index_files = glob("$out_folder/*_index_*.fastq.gz");
+		if (count($index_files)>0)
+		{
+			$parser->exec("cat",implode(" ",$index_files)." > $index_file",true);
+		}
+		
+		if(!file_exists($index_file))
+		{
+			trigger_error("Index file for Haloplex HS enrichment $index_file was not found. The data is processed like a normal Haloplex panel without molecular barcode!", E_USER_WARNING);
+		}
+	}
 	
-	//merge index files (in case sample was distributed over several lanes)
-	$index_file = $basename."_index.fastq.gz";
-	if (file_exists($index_file))
-	{
-		unlink($index_file);
-	}
-	$index_files = glob("$out_folder/*_index_*.fastq.gz");
-	if (count($index_files)>0)
-	{
-		$parser->exec("cat",implode(" ",$index_files)." > $index_file",true);
-	}
-	
-	if(!file_exists($index_file))
-	{
-		trigger_error("Index file for HaloPlex HS enrichment $index_file was not found. The data is processed like a normal HaloPlex panel without molecular barcode!", E_USER_WARNING);
-	}
+	//move index to fastq header
+	$trimmed1_bc = $parser->tempFile("_trimmed_bc1.fastq.gz");
+	$trimmed2_bc = $parser->tempFile("_trimmed_bc2.fastq.gz");
+	$parser->exec("python  ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed1 -bc1 $index_file -o $trimmed1_bc",true);
+	$parser->exec("python  ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed2 -bc1 $index_file -o $trimmed2_bc",true);
+	$trimmed1 = $trimmed1_bc;
+	$trimmed2 = $trimmed2_bc;
 }
 
 // mapping
@@ -178,35 +265,16 @@ if($clip_overlap)
 	$bam_current = $tmp_bam2;
 }
 
-//MIPs UMI handling: de-duplicate and remove extension/ligation arms
-if($sys['type']=="Panel MIPs")
+//remove duplicates by molecular barcode and cut extension/ligation arms
+if($sys['umi_type']=="MIPs" || $sys['umi_type']=="HaloPlex HS")
 {
-	$tmp_bam = $parser->tempFile("_dedup_unsorted.bam");
-	$mip_file = isset($sys['mip_file']) ? $sys['mip_file'] : "/mnt/share/data/mipfiles/".$sys["name_short"].".txt";
-	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", "-bam $bam_current -index $index_file -mip_file $mip_file -out $tmp_bam -stats ".$basename."_bar_stats.tsv -del_amb -dist 1", true);
-	$tmp_bam2 = $parser->tempFile("_dedup_sorted.bam");
-	$parser->sortBam($tmp_bam, $tmp_bam2, $threads);
-	$parser->indexBam($tmp_bam2, $threads);
+	$parser->copyFile($out, $basename."_before_dedup.bam");
+	$parser->indexBam($basename."_before_dedup.bam", $threads);
 	
-	$parser->moveFile($bam_current, $basename."_before_dedup.bam");
-	$parser->moveFile($bam_current.".bai", $basename."_before_dedup.bam.bai");
+	$tmp_bam1 = $parser->tempFile("_dedup1.bam");
+	$parser->exec("python  ".repository_basedir()."/src/NGS/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam1",true);
 	
-	$bam_current = $tmp_bam2;
-}
-
-//HaloPlex HS UMI handling: de-duplicate
-if($sys['umi_type']=="HaloPlex HS" && file_exists($index_file))
-{
-	$tmp_bam = $parser->tempFile("_dedup_unsorted.bam");
-	$min_group = isset($sys['min_group']) ? $sys['min_group'] : 1;
-	$dist = isset($sys['dist']) ? $sys['dist'] : 1;
-	$amplicon_file = substr($sys['target_file'], 0, -4)."_amplicons.bed";
-	$parser->exec(get_path("ngs-bits")."BamDeduplicateByBarcode", "-bam $bam_current -index $index_file -out $tmp_bam -min_group $min_group -stats ".$basename."_bar_stats.tsv -dist $dist -hs_file $amplicon_file", true);
-	$tmp_bam2 = $parser->tempFile("_dedup_sorted.bam");
-	$parser->sortBam($tmp_bam, $tmp_bam2, $threads);
-	$parser->indexBam($tmp_bam2, $threads);
-	
-	$bam_current = $tmp_bam2;
+	$bam_current = $tmp_bam1;
 }
 
 //move BAM to final output location
@@ -214,7 +282,9 @@ $parser->moveFile($bam_current, $out);
 $parser->moveFile($bam_current.".bai", $out.".bai");
 
 //add baf file
-$parser->execTool("NGS/mapping_baf.php", "-in ${out} -out ${basename}_bafs.igv -system {$system}");
+$params = array();
+if(!empty($sys['target_file'])) $params[] = "-target ".$sys['target_file'];
+$parser->execTool("NGS/mapping_baf.php", "-in ${out} -out ${basename}_bafs.igv ".implode(" ", $params));
 
 //run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
