@@ -10,79 +10,90 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("rc_annotate", "Annotates a read count file with gene names.");
+$parser = new ToolBase("rc_annotate", "Annotates a read count table with attributes from GTF file.");
 $parser->addInfile("in", "Input read count file in TSV format", false, true);
 $parser->addOutfile("out", "Output TSV file for annotated read counts. Can also be the same file as the input file.", false);
+
 $parser->addString("gtfFile", "GTF file containing feature annotations (for mapping identifiers).", true, get_path("data_folder")."dbs/gene_annotations/GRCh37.gtf");
 $parser->addString("keyId", "Name of key identifier.", true, "gene_id");
-$parser->addString("annotationId", "Identifier of annotation to add.", true, "gene_name");
+$parser->addString("annotationIds", "Annotation identifiers (comma separated) to use as annotation.", true, "gene_name,gene_biotype");
+$parser->addString("column_name", "Column name with values to join on.", true, "gene_id");
 
 $parser->addFlag("ignore_version_suffix", "Ignore the Ensembl version suffix when matching key values.");
-$parser->addString("column_name", "Column name with values to join on.", true, "gene_id");
 
 extract($parser->parse($argv));
 
-//read keyId (gene_id) -> annotationId (gene_name) mapping from GTF file
+// create mapping from GTF file
 $mapping = array();
+
 $handle_gtf = fopen($gtfFile, "r");
 if ($handle_gtf === FALSE)
 {
 	trigger_error("Could not open file '$gtfFile' for reading!", E_USER_ERROR);
 }
-while (!feof($handle_gtf))
+
+while ($line = fgets($handle_gtf))
 {
-	$line = trim(fgets($handle_gtf));
-	if ($line === "")
+	// skip empty lines and comments
+	if ($line === "" || starts_with($line, "#"))
 	{
 		continue;
 	}
 
-	$parts = explode("\t", $line);
+	list($chr,
+		$source,
+		$feature,
+		$start,
+		$end,
+		$score,
+		$strand,
+		$frame,
+		$attributes) = explode("\t", trim($line));
 
-	//parse last column (annotations)
-	$annotations = array();
-	if (isset($parts[8]))
+	if ($feature === "gene")
 	{
-		foreach (explode(";", $parts[8]) as $anno)
+		$attrs = [];
+		// list of key-value pairs (strings)
+		foreach (preg_split("/;( )?/", $attributes, NULL, PREG_SPLIT_NO_EMPTY) as $kv)
 		{
-			$anno = trim($anno);
-			if (!isset($anno) || $anno === "")
-			{
-				continue;
-			}
-
-			list($key, $value) = explode(" ", $anno);
-			$value = trim(substr($value, 1, -1));
-			if (isset($key) && isset($value))
-			{
-				$annotations[$key] = $value;
-			}
+			list($k, $v) = preg_split("/[\s]+/", $kv, NULL, PREG_SPLIT_NO_EMPTY);
+			$attrs[$k] = preg_replace('/(^"|"$)/', "", $v);
 		}
 
-		if (array_key_exists($keyId, $annotations) && array_key_exists($annotationId, $annotations))
+		if (array_key_exists($keyId, $attrs))
 		{
-			$mapping[$annotations[$keyId]] = $annotations[$annotationId];
+			$mapping[$attrs[$keyId]] = $attrs;
 		}
 	}
 }
 fclose($handle_gtf);
 
-// function to query the mapping
-function map_annotate($id) {
+// map function to map key to specified annotation value
+function map_id(&$item, $key, $ann_id)
+{
 	global $mapping;
-	global $ignore_version_suffix;
-	
-	if ($ignore_version_suffix)
+
+	if (isset($mapping[$item]) && isset($mapping[$item][$ann_id]))
 	{
-		$id_nosuffix = preg_replace("/\.[0-9]+$/", "", $id);
-		return(isset($mapping[$id_nosuffix]) ? $mapping[$id_nosuffix] : "");
+		$item = $mapping[$item][$ann_id];
 	}
-	return(isset($mapping[$id]) ? $mapping[$id] : "");
+	else
+	{
+		$item = "";
+	}
 }
 
 // add column with annotation data
 $counts = Matrix::fromTSV($in);
-$gene_ids = $counts->getCol($counts->getColumnIndex($column_name));
-$annotation_column = array_map("map_annotate", $gene_ids);
-$counts->addCol($annotation_column, $annotationId);
+$ids = $counts->getCol($counts->getColumnIndex($column_name));
+
+foreach (explode(",", $annotationIds) as $ann_id)
+{
+	$annotation_column = $ids;
+	array_walk($annotation_column, "map_id", $ann_id);
+	$counts->addCol($annotation_column, $ann_id);
+}
+
 $counts->toTSV($out);
+
+?>
