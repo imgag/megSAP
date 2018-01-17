@@ -21,7 +21,7 @@ $parser->addString("o_folder", "Folder where output will be generated.", false);
 $parser->addString("n_id",  "Reference DNA-sample processing ID.", true, "");
 $parser->addInfile("t_sys",  "Tumor sample processing system INI file (determined from 't_id' by default).", true);
 $parser->addInfile("n_sys",  "Reference sample processing system INI file (determined from 'n_id' by default).", true);
-$parser->addInfile("promoter","Bed file containing promoter region.",true,"auto");
+$parser->addString("promoter", "Bed file containing promoter region." ,true, "auto");
 $steps_all = array("ma", "vc", "an", "ci", "db","re");
 $parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, implode(",", $steps_all));
 $parser->addFlag("abra", "Turn on ABRA realignment.");
