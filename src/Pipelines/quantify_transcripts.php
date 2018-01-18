@@ -146,7 +146,7 @@ $args_annotate = ["-in", $tmp_quant,
 	"-gtfFile", $gtfFile,
 	"-column_name", "transcript_id",
 	"-keyId", "transcript_id",
-	"-annotationId", "transcript_name",
+	"-annotationIds", "transcript_name,gene_biotype",
 	"-ignore_version_suffix"
 	];
 $parser->execTool("NGS/rc_annotate.php", implode(" ", $args_annotate));
