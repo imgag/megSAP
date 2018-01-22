@@ -184,8 +184,8 @@ if($sys['umi_type']=="MIPs" || $sys['umi_type']=="HaloPlex HS")
 	//move index to fastq header
 	$trimmed1_bc = $parser->tempFile("_trimmed_bc1.fastq.gz");
 	$trimmed2_bc = $parser->tempFile("_trimmed_bc2.fastq.gz");
-	$parser->exec("python  ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed1 -bc1 $index_file -o $trimmed1_bc",true);
-	$parser->exec("python  ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed2 -bc1 $index_file -o $trimmed2_bc",true);
+	$parser->exec(get_path("python")." ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed1 -bc1 $index_file -o $trimmed1_bc",true);
+	$parser->exec(get_path("python")." ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed2 -bc1 $index_file -o $trimmed2_bc",true);
 	$trimmed1 = $trimmed1_bc;
 	$trimmed2 = $trimmed2_bc;
 }
