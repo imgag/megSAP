@@ -21,6 +21,7 @@ $parser->addString("steps", "Comma-separated list of processing steps to perform
 $parser->addString("cancer_type","Tumor type. See CancerGenomeInterpreter.org for nomenclature.",true);
 $parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"synonymous,not-coding-splicing");
 // optional
+$parser->addStringArray("donor_ids", "Donor sample IDs in case of transplanted patients.", true);
 $parser->addFloat("min_af", "Allele frequency detection limit.", true, 0.05);
 $parser->addInfile("t_sys",  "Tumor processing system INI file (determined from the NGSD using 't_id' by default).", true);
 $parser->addInfile("n_sys",  "Reference processing system INI file (determined from the NGSD using 'n_id' by default).", true);
@@ -348,12 +349,25 @@ if (in_array("an", $steps))
 		$parser->exec(get_path("ngs-bits")."SomaticQC","-tumor_bam $t_bam -normal_bam $n_bam ".(!empty($links)?"-links ".implode(" ",$links):"")." -somatic_vcf $som_unfi -target_bed ".$t_sys_ini['target_file']." -ref_fasta ".get_path("local_data")."/".$t_sys_ini['build'].".fa -out $stafile3",true);
 	}
 
+	// add donor annotation to full annotated vcf
+	if (isset($donor_ids))
+	{
+		$donor_bams = [];
+		foreach($donor_ids as $donor_id)
+		{
+			$donor_bams[] = $p_folder."/Sample_{$donor_id}/{$donor_id}.bam";
+		}
+		$parser->execTool("NGS/vcf_somatic_donor.php", "-in {$som_unfi} -out {$som_unfi} -in_donor " . implode(" ", $donor_bams));
+	}
+
 	// add project specific filters
 	$extra = array();
 	if($freebayes)	$extra[] = "-ignore_filter";
 	if($t_sys_ini["target_file"]!="")	$extra[] = "-roi ".$t_sys_ini["target_file"];
 	if(!$reduce_variants_filter)	$extra[] = "-keep";
 	if($contamination > 0)	$extra[] = "-contamination $contamination";
+	// add somatic-donor filter if donor samples are specified
+	if (isset($donor_ids))	$filter_set .= ",somatic-donor";
 	if($promoter!="")	$filter_set .= ",promoter -promoter $promoter";
 	$parser->execTool("NGS/filter_vcf.php", "-in $som_unfi -out $som_vann -min_af $min_af -type $filter_set ".implode(" ", $extra));
 
