@@ -71,7 +71,7 @@ rm -rf ExAC.r0.3.1.sites.vep.vcf.gz
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2018/clinvar_20171203.vcf.gz | gunzip > clinvar_20171203.vcf
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2017/clinvar_20171203.vcf.gz | gunzip > clinvar_20171203.vcf
 cat clinvar_20171203.vcf | php $src/Tools/db_converter_clinvar.php > clinvar_20171203_converted.vcf
 rm -rf clinvar_20171203.vcf
 
