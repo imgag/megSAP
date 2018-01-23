@@ -673,7 +673,7 @@ function updateLastAnalysisDate($psname, $file)
 }
 
 
-///Updates the last analysis date of a processed sample using a file date.
+///Updates normal sample entry for given tumor sample.
 function updateNormalSample($ps_tumor, $ps_normal, $overwrite = false)
 {
 	$db = DB::getInstance("NGSD");

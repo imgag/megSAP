@@ -72,12 +72,12 @@ $n_index = -1;
 for($i=0;$i<count($tmp_headers);++$i)
 {
 	$value = $tmp_headers[$i];
-	if($value == "TUMOR")
+	if ($value == "TUMOR")
 	{
 		$tmp_headers[$i] = $t_ps;	//replace TUMOR header by tumor ID
 		$idx_tumor = $i;
 	}
-	if($value == "NORMAL")
+	else if ($value == "NORMAL")
 	{
 		$tmp_headers[$i] = $n_ps;	//replace NORMAL header by normal ID
 		$idx_normal = $i;
@@ -231,7 +231,7 @@ if(!empty($target))
 }
 
 //zip and index output file
-$parser->exec("bgzip", "-c $vcf_filtered2 > $out", false); //no output logging, because Toolbase::extractVersion() does not return
-$parser->exec("tabix", "-p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->exec("bgzip", "-c $vcf_filtered2 > $out", true);
+$parser->exec("tabix", "-p vcf $out", true);
 
 ?>
