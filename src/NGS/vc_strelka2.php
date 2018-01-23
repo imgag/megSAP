@@ -227,7 +227,7 @@ $vcf_filtered2 = $vcf_filtered1;
 if(!empty($target))
 {
 	$vcf_filtered2 = $temp_folder."/strelka_filtered2.vcf";
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions","-in $vcf_filtered1 -mark -reg $target -out $vcf_filtered2", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_filtered1 -mark off-target -reg $target -out $vcf_filtered2", true);
 }
 
 //zip and index output file
