@@ -21,6 +21,7 @@ $parser->addInfile("target",  "Enrichment targets BED file.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addString("config", "Config file for strelka.", true, "auto");
 $parser->addFlag("k", "Keep all variants. Otherwise all variants that do not pass all filters will be removed.");
+$parser->addOutfile("out_unfiltered", "Output file with all variants (i.e. unfiltered strelka output).", true);
 $parser->addFlag("amplicon",  "Enables amplicon mode.");
 $parser->addString("temp", "Temp folder.", true, "auto");
 
@@ -193,6 +194,11 @@ for($i=0; $i<$file2->rows();++$i)
 	}
 	$tmp[6] = trim($tmp[6],';');
 	$filec->addRow($tmp);
+}
+// write full strelka output if requested
+if (isset($out_unfiltered))
+{
+	$filec->toTSV($out_unfiltered);
 }
 if(!$k)
 {
