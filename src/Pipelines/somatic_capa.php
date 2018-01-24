@@ -170,7 +170,7 @@ foreach(array($s_tsv, $n_tsv) as $file)
 	if(!empty($filter))
 	{
 		$file_filtered = dirname($file)."/".basename($file,".GSvar")."_filtered.GSvar";;
-		$parser->exec(get_path("ngs-bits")."VariantFilterRegions","-in $file -mark -reg $filter -out $file_filtered", true);
+		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $file -mark off-target -reg $filter -out $file_filtered", true);
 		if($file==$s_tsv)	$s_tsv = $file_filtered;
 		if($file==$n_tsv)	$n_tsv = $file_filtered;
 	}

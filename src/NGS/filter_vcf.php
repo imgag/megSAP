@@ -375,13 +375,30 @@ function filter_regions($chr,$start,$end,$regions)
 	return !$outside;
 }
 
-function filter_somatic_donor(&$filter, $info, $min_freq = 0.1, $min_depth = 20)
+function filter_somatic_donor(&$filter, $info, $min_freq = 0.01, $min_depth = 20)
 {
 	add_filter($filter, "somatic-donor", "Germline variant in donor sample.");
-	if (isset($info["donor_freq"]) && $info["donor_freq"] >= $min_freq &&
-		isset($info["donor_depth"]) && $info["donor_depth"] >= $min_depth)
+
+	$donor_cols = [];
+	foreach (array_keys($info) as $info_key)
 	{
-		activate_filter($filter, "somatic-donor");
+		if (starts_with($info_key, "donor"))
+		{
+			$donor_cols[] = preg_replace("/_(freq|depth)$/", "", $info_key);
+		}
+	}
+	$donor_cols = array_unique($donor_cols);
+
+	foreach ($donor_cols as $donor_col)
+	{
+		$freq_col = $donor_col . "_freq";
+		$depth_col = $donor_col . "_depth";
+		if (isset($info[$freq_col]) && $info[$freq_col] >= $min_freq &&
+			isset($info[$depth_col]) && $info[$depth_col] >= $min_depth)
+		{
+			activate_filter($filter, "somatic-donor");
+			break;
+		}
 	}
 }
 

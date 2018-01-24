@@ -72,7 +72,7 @@ $parser->exec(get_path("ngs-bits")."VcfSort","-in $struc -out $vcf_sorted", true
 $vcf_filtered = $temp_folder."/manta_filtered.vcf";
 if(!empty($target))
 {
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions","-in $vcf_sorted -mark -reg $target -out $vcf_filtered", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_sorted -mark off-target -reg $target -out $vcf_filtered", true);
 }
 else
 {
