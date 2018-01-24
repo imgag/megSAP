@@ -84,7 +84,7 @@ def ascii2dec(ASCII):
 
 
 def most_common_base(LIST, QUALITIES, minBQ,STEP):
-    QUALITIES_NATIVE = get_native_qual(QUALITIES,STEP)
+    QUALITIES_NATIVE = QUALITIES
     
     HQ = [x for x in range(0,len(QUALITIES_NATIVE)) if QUALITIES_NATIVE[x] >= minBQ]
     
@@ -110,34 +110,6 @@ def get_qualities(BASE,BASES,QUALITIES):
 	QUAL = [(ord(QUALITIES[x])-33) for x in range(0,len(BASES)) if BASES[x] == BASE]
 	#LIST = [BASES[x] for x in range(0,len(BASES)) if BASES[x] == BASE]
 	return QUAL
-'''
-def get_native_qual(QUALITIES):
-    NATIVE_QUAL=[]
-    for i in QUALITIES:
-        if i > 50:
-            Q = (i-50)*10
-        else:
-            Q = i   
-        
-        NATIVE_QUAL.append(Q)
-    return(NATIVE_QUAL)
-'''
-def get_native_qual(QUALITIES,STEP):
-    NATIVE_QUAL=[]
-    ##print QUALITIES
-    if (STEP == 1 or STEP == 0):
-        for i in QUALITIES:
-            if i > 50:
-                Q = (i-50)*10
-            else:
-                Q = i   
-            
-            NATIVE_QUAL.append(Q)
-            
-    elif (STEP == 2):
-        NATIVE_QUAL = QUALITIES
-    
-    return(NATIVE_QUAL)
 
 # Change all base qualities of the read to 0 ("!")
 def error_read_qual(read):
@@ -152,29 +124,17 @@ def error_read_qual(read):
 def one_duplicate_qual(read, STEP, minBQ):
     #READ = reduce_mapq(read)
     READ = read
+    
+    # No Variant Quality score recalibration. Just error correction. Not necessary anything else in this 	
+    if (STEP == 3):
+        return (READ)
+    
     qualities = READ.qual
     QUALITIES = ascii2dec(qualities)
     QUAL=[]
-    QUALITIES_NATIVE = get_native_qual(QUALITIES,STEP)
-    if (STEP == 1):
-        for i in range(0,len(QUALITIES_NATIVE)):
-            if (QUALITIES_NATIVE[i] >= minBQ):
-                QUAL.append(str(chr(10 + 33)))
-            else:
-                QUAL.append("!") # 0 quality = chr(0 + 33)           
-    if (STEP == 2):
-        for i in range(0,len(QUALITIES_NATIVE)):
-		if (QUALITIES_NATIVE[i] >= 10):
-			MEDIAN = int(round(QUALITIES_NATIVE[i]/10,0))
-			# Fixing max value
-			if (MEDIAN > 5):
-				MEDIAN = 5				
-			QUALi = 10 + MEDIAN
-		else:
-			QUALi = 0
-		
-		QUAL.append(str(chr(QUALi + 33)))
-
+    QUALITIES_NATIVE = QUALITIES
+    
+    # Variant quality score recalibration for general barcode strategy
     if (STEP == 0):
         for i in range(0,len(QUALITIES_NATIVE)):
 		if (QUALITIES_NATIVE[i] >= minBQ):
@@ -187,31 +147,21 @@ def one_duplicate_qual(read, STEP, minBQ):
 			QUALi = 0
 		
 		QUAL.append(str(chr(QUALi + 33)))
-		
-    QUAL = ''.join(QUAL)
-    #print STEP
-    #print QUAL
-    #print QUALITIES_NATIVE
-    
-    READ.qual = QUAL	   
-    return(READ)
 
-
-'''
-def one_duplicate_qual(qualities, STEP, minBQ):
-    QUALITIES = ascii2dec(qualities)
-    QUAL=[]
-    QUALITIES_NATIVE = get_native_qual(QUALITIES,STEP)
-    if (STEP == 1):
+    # Variant quality score recalibration for sub-family barcode
+    elif (STEP == 1):
         for i in range(0,len(QUALITIES_NATIVE)):
             if (QUALITIES_NATIVE[i] >= minBQ):
                 QUAL.append(str(chr(10 + 33)))
             else:
-                QUAL.append("!") # 0 quality = chr(0 + 33)           
-    if (STEP == 2):
+                QUAL.append("!") # 0 quality = chr(0 + 33)
+    
+    # Variant quality score recalibration for family barcode
+    elif (STEP == 2):
         for i in range(0,len(QUALITIES_NATIVE)):
 		if (QUALITIES_NATIVE[i] >= 10):
 			MEDIAN = int(round(QUALITIES_NATIVE[i]/10,0))
+			
 			# Fixing max value
 			if (MEDIAN > 5):
 				MEDIAN = 5				
@@ -220,31 +170,25 @@ def one_duplicate_qual(qualities, STEP, minBQ):
 			QUALi = 0
 		
 		QUAL.append(str(chr(QUALi + 33)))
-		
+     		
     QUAL = ''.join(QUAL)
     #print STEP
     #print QUAL
     #print QUALITIES_NATIVE
-    	   
-    return(QUAL)
-'''
-
-def overlap_quality_base_check(QUALITIES,minBQ):
-    return (len([x for x in range(0,len(QUALITIES)) if QUALITIES[x] >= 50+(minBQ/10)]))
+    
+    READ.qual = QUAL	   
+    return(READ)
 
 def low_quality_base_check(QUALITIES,minBQ,STEP):
-	QUALITIES_NATIVE = get_native_qual(QUALITIES,STEP)
+	QUALITIES_NATIVE = QUALITIES
 	return (len(QUALITIES_NATIVE) >  len([x for x in range(0,len(QUALITIES_NATIVE)) if QUALITIES_NATIVE[x] < minBQ]))
     
 def consensus_quality(QUALITIES,minBQ,ERRORS,STEP):
-    QUALITIES_NATIVE = get_native_qual(QUALITIES,STEP)
+    QUALITIES_NATIVE = QUALITIES
     
     # How many bases with high good quality
     COPIES = len([x for x in range(0,len(QUALITIES_NATIVE)) if QUALITIES_NATIVE[x] >= minBQ])
-    
-    # How many bases with high quality have overlap correction
-    OVERLAPPED = overlap_quality_base_check(QUALITIES,minBQ)
-    	
+        	
     # Consider more or equal than 5 as best agreement
     if (COPIES >= 5):
         NEW_COPIES = 5
@@ -268,7 +212,7 @@ def consensus_quality(QUALITIES,minBQ,ERRORS,STEP):
 		else:
 		    NEW_QUAL = NEW_COPIES * 10 + int(ERRORS)
 		    
-        if (STEP == 2 or STEP == 0):
+        elif (STEP == 2 or STEP == 0):
 		if ((ERRORS >= 1 and float(ERRORS)/(COPIES+ERRORS) > 0.25) or ERRORS >= 3):
 			NEW_QUAL = 0
 		else:	
@@ -280,9 +224,13 @@ def consensus_quality(QUALITIES,minBQ,ERRORS,STEP):
 				
 			NEW_QUAL = NEW_COPIES * 10 + MEDIAN
 		
-	#NEW_QUAL = NEW_COPIES * 10 + OVERLAPPED
-    
-    ##print len(QUALITIES), len(QUALITIES_NATIVE), NEW_QUAL, NEW_COPIES, OVERLAPPED, MAX_QUAL, max(QUALITIES)
+	elif (STEP == 3):
+		if ((ERRORS >= 1 and float(ERRORS)/(COPIES+ERRORS) > 0.25) or ERRORS >= 3):
+			NEW_QUAL = 0
+		else:
+		    # We take the max base quality as the concensus one
+		    MAX = max(QUALITIES_NATIVE)
+		    NEW_QUAL = MAX
     
     return (NEW_QUAL)
     
@@ -302,10 +250,10 @@ def GET_FINAL_READ(reads,minBQ,STEP):
     
     if (len(reads) <= 1):
 		for i in reads:
-
+		    
 		    # Encoding quality
 		    CONSENSUS_READ = one_duplicate_qual(i, STEP, minBQ)
-
+		    
 		    # Info about barcode groups
 		    LOG_INFO = (CONSENSUS_READ.qname, str(CONSENSUS_READ.pos), str(len(reads))) 
 		    LOG_INFO = "\t".join(LOG_INFO)+"\n"
@@ -483,7 +431,7 @@ parser.add_argument('--outfile', required=True, dest='outfile', help='Output BAM
 parser.add_argument('--barcodes', required=False, dest='barcodes', type=str,choices=['BEGINNING', 'END', 'BOTH'], default='BOTH', help='Barcodes to use. BEGGINING = Barcode 1; END = Barcode 2; BOTH = Barcode 1 and 2. Default = BOTH')
 parser.add_argument('--minBQ', required=False, dest='minBQ', type=int, default=30, help='Minimum base quality to be considered. Default = 30')
 parser.add_argument('--BCerror', required=False, dest='BCerror', type=int, default=0, help='Maximum number of sequencing errors allowed in barcode sequence. Default = 0')
-parser.add_argument('--step', required=False, dest='step', type=int, default=0, choices=[0, 1, 2], help='Protocol step. 0: Unique barcode correction; 1: Subfamily correction; 2: Family correction. Default = 0')
+parser.add_argument('--step', required=False, dest='step', type=int, default=0, choices=[0, 1, 2, 3], help='Protocol step. 0: Unique barcode correction; 1: Subfamily correction; 2: Family correction; 3: Not full Base quality recalibration, just error correction. Default = 0')
 
 
 args = ''
@@ -526,7 +474,8 @@ for read in samfile.fetch():
 	ref_start = str(read.pos)
 	
 	# Ref start of the paired read
-	ref_length = str(read.next_reference_start)
+	#ref_length = str(read.next_reference_start)
+	ref_length = str(read.tlen)
 	
 	# Getting the barcodes
 	NAME = str(read.qname)
@@ -659,6 +608,6 @@ samfile.close()
 LOGFILE2.close()
 outfile.close()
 			
-print 'TIME \n'
 stop = timeit.default_timer()
+print 'TIME'
 print stop - start
