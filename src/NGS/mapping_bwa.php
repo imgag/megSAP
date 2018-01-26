@@ -50,13 +50,13 @@ if ($dedup)
 	$pipeline[] = array(get_path("samblaster"), "");
 }
 
-//convert sam to bam with samtools
-$tmp_unsorted = $parser->tempFile();
-$pipeline[] = array(get_path("samtools"), "view -1 - > $tmp_unsorted");
+//sort by coordinates and convert to bam
+$tmp_for_sorting = $parser->tempFile();
+$pipeline[] = array(get_path("samtools"), "sort -T $tmp_for_sorting -m 1G -@ $threads -o $out -", true);
+
 
 //execute (BWA -> samblaster -> BAM conversion)
 $parser->execPipeline($pipeline, "mapping");
-$parser->sortBam($tmp_unsorted, $out, $threads);
 $parser->indexBam($out, $threads);
 
 ?>
