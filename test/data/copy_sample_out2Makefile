@@ -20,8 +20,8 @@ copy_Swed_research:
 	mv Unaligned/Project_Swed/Sample_GS130719_01/ /mnt/projects/research/Swed/
 
 queue_Swed_research:
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130718_01 
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130719_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130718_01 -high_priority 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130719_01 -high_priority 
 
 qc_Leuk:
 	php /mnt/users/all/megSAP/src/NGS/qc_fastq.php -folder /mnt/projects/research/Leuk/Sample_GS130500_01 -import
