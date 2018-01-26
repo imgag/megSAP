@@ -12,7 +12,8 @@ $parser = new ToolBase("copy_sample", "Creates a Makefile to copy de-multiplexed
 $parser->addString("samplesheet",  "Input samplesheet that was used to create the data folder.", true, "SampleSheet_bcl2fastq.csv");
 $parser->addString("folder",  "Input data folder.", true, "Unaligned");
 $parser->addOutfile("out",  "Output Makefile. Default: 'Makefile'.", true);
-$parser->addFlag("high_priority", "Assign high priority to all samples.");
+$parser->addFlag("high_priority", "Assign high priority to all queued samples.");
+$parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
 extract($parser->parse($argv));
 
 //finds and returns the SampleIDs from a Sample Sheet
@@ -123,7 +124,7 @@ function create_mail_command($coordinator, $email_ad, $samples, $project_name)
 //write makefile lines for file and folder operations and stores them in a dictionary
 function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map,
 	$project_coord_map,  $sample_tumor_status_map, $sample_assoc_tumor_map, $runnumber,
-	$makefile_name, $repo_folder, $nxtSeq, $sample_analysis_step_map, $sample_systype_map, $high_priority)
+	$makefile_name, $repo_folder, $nxtSeq, $sample_analysis_step_map, $sample_systype_map, $high_priority, $overwrite)
 {
 	if (!file_exists($folder))
 	{
@@ -209,12 +210,12 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 			{
 				$old_name = basename($file);
 				$new_name = strtr($old_name, array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
-				$target_to_copylines[$tag][]="\tmv ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";				
+				$target_to_copylines[$tag][]="\tmv ".($overwrite ? "-f " : "").$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";				
 			}
 		}
 		else
 		{
-			$target_to_copylines[$tag][]="\tmv ".$old_location."/Sample_".$sample_ID."/ ".$new_location."/";
+			$target_to_copylines[$tag][]="\tmv ".($overwrite ? "-f " : "").$old_location."/Sample_".$sample_ID."/ ".$new_location."/";
 		}
 
 		//skip normal samples which have an associated tumor sample on the same run
@@ -358,6 +359,6 @@ foreach($sample_IDs as $sampleID)
 }
 
 build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map, $sample_tumor_status_map,
-	$sample_assoc_tumor_map, $runnumber, $out, $repo_folder, $nxtSeq, $sample_analysis_step_map, $sample_systype_map, $high_priority);
+	$sample_assoc_tumor_map, $runnumber, $out, $repo_folder, $nxtSeq, $sample_analysis_step_map, $sample_systype_map, $high_priority, $overwrite);
 
 ?>
