@@ -18,7 +18,7 @@ $parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To proc
 $parser->addString("o_folder", "Output folder.", false);
 $steps_all = array("ma", "vc", "an", "ci", "db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,db");
-$parser->addString("cancer_type","Tumor type. See CancerGenomeInterpreter.org for nomenclature.",true);
+$parser->addString("cancer_type","Tumor type. See CancerGenomeInterpreter.org for nomenclature. If not set, megSAP will try to resolve cancer type from GENLAB.",true);
 $parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"synonymous,not-coding-splicing");
 // optional
 $parser->addStringArray("donor_ids", "Donor sample IDs in case of transplanted patients.", true);
@@ -431,6 +431,59 @@ if (in_array("ci", $steps))
 {
 	// add QCI output
 	$parser->execTool("Tools/converter_vcf2qci.php", "-in $som_vann -out $som_vqci -pass");
+
+	//if no cancer_type is set try to resolve cancer_type from GENLAB
+	if(!isset($cancer_type))
+	{
+		//database connection to GENLAB
+		$db = DB::getInstance("GL8");
+		$laboratory_number = explode('_',$t_id)[0];
+		$query = "SELECT ICD10DIAGNOSE,HPOTERM1 FROM `genlab8`.`v_ngs_sap` where labornummer = '$laboratory_number'";
+		$result = $db->executeQuery($query)[0];
+		$icd10_diagnosis = $result['ICD10DIAGNOSE'];
+		//remove G and V from $icd10_diagnoses (sometimes there is a G or V assigned to its right)
+		$icd10_diagnosis = rtrim($icd10_diagnosis,'G');
+		$icd10_diagnosis = rtrim($icd10_diagnosis,'V');
+		
+		$hpo_diagnosis = $result['HPOTERM1'];
+		if(empty($icd10_diagnosis))
+		{
+			trigger_error("There is no ICD10 diagnosis set in Genlab.",E_USER_WARNING);
+		}
+		
+		$dictionary = Matrix::fromTSV(repository_basedir()."/data/dbs/Ontologies/icd10_cgi_dictionary.tsv");
+		$words_diagnoses = $dictionary->getCol($dictionary->getColumnIndex("icd10_code"));
+		$words_cgi_acronyms = $dictionary->getCol($dictionary->getColumnIndex("cgi_acronym"));
+		$words_hpo_terms = $dictionary->getCol($dictionary->getColumnIndex("hpo_term"));
+		$icd10_cgi_dictionary = array_combine($words_diagnoses,$words_cgi_acronyms);
+		$cgi_hpo_dictionary = array_combine($words_diagnoses,$words_hpo_terms);
+		//if there is a cancer acronym annotated to ICD10 diagnosis set cancertype according to ICD 10 diagnosis
+		if(!empty($icd10_cgi_dictionary[$icd10_diagnosis]))
+		{
+			//check whether assignment of ICD10 to CGI acronyms is unique
+			$cgi_acronyms = explode(',',$icd10_cgi_dictionary[$icd10_diagnosis]);
+			$hpo_terms = explode(',',$cgi_hpo_dictionary[$icd10_diagnosis]);
+			if(count($cgi_acronyms) == 1) //unique assignment
+			{
+				$cancer_type = $icd10_cgi_dictionary[$icd10_diagnosis];
+			} 
+			else //not unique: try to assign a CGI cancer acronym via HPO terms
+			{
+				$hpo_cgi_dictionary = array_combine($hpo_terms,$cgi_acronyms);
+
+				if(!array_key_exists($hpo_diagnosis,$hpo_cgi_dictionary))
+				{
+					trigger_error("Could not assign CGI Cancer acronym uniquely to ICD10-diagnosis $icd10_diagnosis. Using standard cancertype CANCER instead.",E_USER_WARNING);
+					$cancer_type = "CANCER";
+				} else {
+					$cancer_type = $hpo_cgi_dictionary[$hpo_diagnosis];
+				}
+			}
+		} else {
+			trigger_error("Could not assign CGI Cancer acronym to ICD10-diagnosis $icd10_diagnosis. Using standard cancertype CANCER instead.",E_USER_WARNING);
+			$cancer_type = "CANCER";
+		}
+	}
 
 	$parameters = "";
 	if(file_exists($som_vann))

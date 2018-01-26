@@ -1,0 +1,42 @@
+##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample DX000000_01).																																							
+##DESCRIPTION=tumor_dp=Tumor Depth (Sample DX000000_01).																																							
+##DESCRIPTION=filter=Filter criteria from vcf file.																																							
+##DESCRIPTION=snp_q=Quality parameters - SNP quality (QUAL).																																							
+##DESCRIPTION=gene=Affected gene list (comma-separated).																																							
+##DESCRIPTION=variant_type=Variant type.																																							
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon number, HGVS.c, HGVS.p).																																							
+##DESCRIPTION=interpro=Interpro domains.																																							
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.																																							
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.																																							
+##DESCRIPTION=1000g=Allele frequency in all populations of 1000g project.																																							
+##DESCRIPTION=ExAC=Allele frequency in all populations of ExAC project.																																							
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD database.																																							
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.																																							
+##DESCRIPTION=OMIM=OMIM database annotation.																																							
+##DESCRIPTION=ClinVar=ClinVar database annotation.																																							
+##DESCRIPTION=HGMD=HGMD database annotation.																																							
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.																																							
+##DESCRIPTION=MetaLR=MetaLR effect prediction: D=damaging, T=tolerated.																																							
+##DESCRIPTION=Sift=Sift effect prediction: D=damaging, T=tolerated.																																							
+##DESCRIPTION=PolyPhen2=Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.																																							
+##DESCRIPTION=FATHMM=FATHMM effect prediction: D=damaging, T=tolerated.																																							
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20.																																							
+##DESCRIPTION=ihdb_hom=Homozygous variant counts in NGSD for the same processing system.																																							
+##DESCRIPTION=ihdb_het=Heterozyous variant counts in NGSD for the same processing system.																																							
+##DESCRIPTION=ihdb_wt=Wildtype variant counts in NGSD for the same processing system.																																							
+##DESCRIPTION=ihdb_allsys_hom=Homozygous variant counts in NGSD independent of the processing system.																																							
+##DESCRIPTION=ihdb_allsys_het=Heterozygous variant counts in NGSD independent of the processing system.																																							
+##DESCRIPTION=classification=Classification from the NGSD.																																							
+##DESCRIPTION=classification_comment=Classification comment from the NGSD.																																							
+##DESCRIPTION=validated=Validation information from the NGSD. Validation results of other samples are listed in brackets!																																							
+##DESCRIPTION=comment=Comments from the NGSD. Comments of other samples are listed in brackets!																																							
+##DESCRIPTION=gene_info=General gene information from the NGSD.																																							
+##DESCRIPTION=som_ihdb_c=Somatic variant count within NGSD.																																							
+##DESCRIPTION=som_ihdb_p=Projects with somatic variant in NGSD.																																							
+##ANALYSISTYPE=SOMATIC_SINGLESAMPLE																																							
+#chr	start	end	ref	obs	tumor_af	tumor_dp	filter	snp_q	gene	variant_type	coding_and_splicing	interpro	RepeatMasker	dbSNP	1000g	ExAC	gnomAD	COSMIC	OMIM	ClinVar	HGMD	phyloP	MetaLR	Sift	PolyPhen2	FATHMM	CADD	ihdb_hom	ihdb_het	ihdb_wt	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info	som_ihdb_c	som_ihdb_p
+chr6	152685060	152685060	C	T	0.0000	45	"not-cod-spli;off-target"	113	SYNE1	intron_variant	SYNE1:ENST00000265368:intron_variant:MODIFIER:exon63/145:c.10145+922G>A:,SYNE1:ENST00000367255:intron_variant:MODIFIER:exon63/145:c.10145+922G>A:,SYNE1:ENST00000423061:intron_variant:MODIFIER:exon63/145:c.10166+922G>A:,SYNE1:ENST00000341594:intron_variant:MODIFIER:exon66/146:c.10263-151G>A:,SYNE1:ENST00000448038:intron_variant:MODIFIER:exon64/146:c.10166+922G>A:,SYNE1:ENST00000471834:intron_variant:MODIFIER:exon6/18:n.3283+922G>A:				0.0000	0.0000	0.0000		"608441 [SYNE1 (confirmed) Spinocerebellar ataxia,autosomal recessive 8,610743|Emery-Dreifuss muscular dystrophy 4,autosomal dominant,612998];"																				
+chr7	87165821	87165821	C	A	0.0000	519		657	ABCB1	stop_gained,non_coding_transcript_exon_variant	ABCB1:ENST00000265724:stop_gained:HIGH:exon21/29:c.2434G>T:p.Gly812*,ABCB1:ENST00000543898:stop_gained:HIGH:exon18/26:c.2242G>T:p.Gly748*,ABCB1:ENST00000496821:non_coding_transcript_exon_variant:MODIFIER:exon2/7:n.62G>T:				0.0000	0.0000	0.0000		"171050 [ABCB1 (confirmed) Colchicine resistance,120080|Inflammatory bowel disease 13,612244];"			"7.653000"""					45.00												
+chr8	101733569	101733569	A	C	0.0182	55	"not-cod-spli;off-target"	56	PABPC1	intron_variant	PABPC1:ENST00000318607:intron_variant:MODIFIER:exon1/14:c.193+50T>G:,PABPC1:ENST00000519004:intron_variant:MODIFIER:exon2/15:c.58+50T>G:,PABPC1:ENST00000522387:intron_variant:MODIFIER:exon2/15:c.193+50T>G:,PABPC1:ENST00000517921:intron_variant:MODIFIER:exon1/3:n.193+50T>G:,PABPC1:ENST00000523555:intron_variant:MODIFIER:exon1/4:c.175+50T>G:,PABPC1:ENST00000518196:intron_variant:MODIFIER:exon2/3:c.58+50T>G:,PABPC1:ENST00000521865:intron_variant:MODIFIER:exon3/3:c.193+50T>G:,PABPC1:ENST00000520142:intron_variant:MODIFIER:exon2/2:c.193+50T>G:,PABPC1:ENST00000522720:intron_variant:MODIFIER:exon2/2:c.193+50T>G:				0.0000	0.0000	0.0000																						
+chr9	80409488	80409488	T	A	0.0000	471		679	GNAQ	missense_variant,sequence_feature	GNAQ:ENST00000286548:missense_variant:MODERATE:exon5/7:c.626A>T:p.Gln209Leu,GNAQ:ENST00000397476:missense_variant:MODERATE:exon4/6:c.20A>T:p.Gln7Leu,GNAQ:ENST00000286548:sequence_feature:LOW:exon5/7:c.626A>T:			rs121913492	0.0000	0.0000	0.0000	"COSM28757"""	"600998 [GNAQ (provisional) Sturge-Weber syndrome,somatic,mosaic,185300|Capillary malformations,congenital,1,somatic,mosaic,163000];"			8.040.000	D	D,D	D	D,D	28.60												
+chr9	87309561	87309561	T	-	0.0058	593	"not-cod-spli;freq-tum;freq-nor"	40	NTRK2	intron_variant	NTRK2:ENST00000277120:intron_variant:MODIFIER:exon2/18:c.213-7504delT:,NTRK2:ENST00000376213:intron_variant:MODIFIER:exon4/19:c.213-7504delT:,NTRK2:ENST00000376214:intron_variant:MODIFIER:exon4/20:c.213-7504delT:,NTRK2:ENST00000395882:intron_variant:MODIFIER:exon2/12:c.213-7504delT:,NTRK2:ENST00000304053:intron_variant:MODIFIER:exon2/14:c.213-7504delT:,NTRK2:ENST00000376208:intron_variant:MODIFIER:exon2/13:c.213-7504delT:,NTRK2:ENST00000323115:intron_variant:MODIFIER:exon1/16:c.213-7504delT:,NTRK2:ENST00000359847:intron_variant:MODIFIER:exon1/11:c.213-7504delT:,NTRK2:ENST00000395866:intron_variant:MODIFIER:exon1/11:c.-256-7504delT:				0.0000	0.0000	0.0000		"600456 [NTRK2 (confirmed) Obesity,hyperphagia,and developmental delay,613886];"																				

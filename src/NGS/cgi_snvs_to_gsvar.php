@@ -146,6 +146,62 @@ for($i=0;$i<$gsvar_input->rows();$i++)
 //get cancer type from CGI input file
 $cancer_type_cgi = $cgi_snvs->get(0,$cgi_snvs->getColumnIndex("cancer"));
 
+//insert header line which describes genes neccessary for reimbursement with health insurance
+$dictionary = Matrix::fromTSV(repository_basedir()."/data/dbs/Ontologies/icd10_cgi_dictionary.tsv");
+$row_cancer_type = -1;
+$i_cancer_acronym = $dictionary->getColumnIndex("cgi_acronym");
+for($i=0;$i<$dictionary->rows();$i++)
+{
+	if($dictionary->get($i,$i_cancer_acronym) == $cancer_type_cgi)
+	{
+		$row_cancer_type = $i;
+	}
+}
+
+
+$genes_for_reimbursement = "";
+$icd10_diagnosis_code = "";
+$icd10_diagnosis_text = "";
+if($row_cancer_type == -1)
+{
+	trigger_error("Could not determine genes for reimbursement and ICD-10 diagnosis.",E_USER_WARNING);
+}
+else
+{
+	$genes_for_reimbursement = $dictionary->get($row_cancer_type,$dictionary->getColumnIndex("genes_for_reimbursement"));
+	$icd10_diagnosis_code = $dictionary->get($row_cancer_type,$dictionary->getColumnIndex("icd10_code"));
+	$icd10_diagnosis_text = ($dictionary->get($row_cancer_type,$dictionary->getColumnIndex("desc_de")));
+}
+
+$output_comments = $gsvar_input->getComments();
+//add information about Diagnoses to GSVar file
+$diagnosis_already_in_gsvar = false;
+for($i=0;$i<count($output_comments);$i++)
+{
+	if(strpos($output_comments[$i],"GENES_FOR_REIMBURSEMENT") !== false)
+	{
+		$output_comments[$i] = "#GENES_FOR_REIMBURSEMENT=$genes_for_reimbursement";
+		$diagnosis_already_in_gsvar = true;
+	}
+	if(strpos($output_comments[$i],"CGI_ICD10_DIAGNOSES") !== false)
+	{
+		$output_comments[$i] = utf8_decode("#CGI_ICD10_DIAGNOSES=$cancer_type_cgi,$icd10_diagnosis_code,$icd10_diagnosis_text");
+		$diagnosis_already_in_gsvar = true;
+	}
+}
+
+if($diagnosis_already_in_gsvar)
+{
+	$gsvar_input->setComments($output_comments);
+}
+else
+{
+	$gsvar_input->addComment("#GENES_FOR_REIMBURSEMENT=$genes_for_reimbursement");
+	$gsvar_input->addComment(utf8_decode("#CGI_ICD10_DIAGNOSES=$cancer_type_cgi,$icd10_diagnosis_code,$icd10_diagnosis_text"));
+}
+
+
+
 $gsvar_input->addCol($gsvar_snvs_new_driver_statement,"CGI_driver_statement","Oncogenic Classification according CGI for tumor type $cancer_type_cgi");
 $gsvar_input->addCol($gsvar_snvs_gene_role,"CGI_gene_role","CGI gene role. LoF: Loss of Function, Act: Activating");
 $gsvar_input->addCol($gsvar_snvs_transcript,"CGI_transcript","CGI Ensembl transcript ID");
