@@ -433,8 +433,11 @@ if (in_array("ci", $steps))
 		$db = DB::getInstance("GL8");
 		$laboratory_number = explode('_',$t_id)[0];
 		$query = "SELECT ICD10DIAGNOSE,HPOTERM1 FROM `genlab8`.`v_ngs_sap` where labornummer = '$laboratory_number'";
-		$result = $db->executeQuery($query)[0];
-		$icd10_diagnosis = $result['ICD10DIAGNOSE'];
+		$result = $db->executeQuery($query);
+
+		//icd10
+		$icd10_diagnosis = "";
+		if(!empty($result)) $icd10_diagnosis = $result[0]['ICD10DIAGNOSE'];
 		//remove G and V from $icd10_diagnoses (sometimes there is a G or V assigned to its right)
 		$icd10_diagnosis = rtrim($icd10_diagnosis,'G');
 		$icd10_diagnosis = rtrim($icd10_diagnosis,'V');
