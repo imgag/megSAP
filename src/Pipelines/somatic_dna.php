@@ -75,6 +75,7 @@ $amplicon = false;
 if(!$t_sys_ini['shotgun'])
 {
 	$amplicon = true;
+	$no_softclip = true;
 	trigger_error("Amplicon mode.",E_USER_NOTICE);
 }
 
@@ -395,19 +396,12 @@ if (in_array("an", $steps))
 	$s->setComments(sort_vcf_comments($comments));
 	$s->toTSV($tmp);
 
-	// annotate strand and family information for UID read groups
-	if($t_sys_ini['umi_type']=="HaloPlex HS")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp  -hpHS ".substr($t_sys_ini['target_file'], 0, -4)."_amplicons.bed -name $t_id", true);
-	if(!$single_sample && $n_sys_ini['umi_type']=="HaloPlex HS")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $n_bam -vcf $tmp -out $tmp  -hpHS ".substr($n_sys_ini['target_file'], 0, -4)."_amplicons.bed -name $n_id", true);
-	if($t_sys_ini['type']=="Panel MIPs")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $t_bam -vcf $tmp -out $tmp ".(isset($t_sys_ini['mip_file'])?$t_sys_ini['mip_file']:"/mnt/share/data/mipfiles/".$t_sys_ini["name_short"].".txt")." -name $t_id", true);
-	if(!$single_sample && $n_sys_ini['type']=="Panel MIPs")	$parser->exec(get_path("ngs-bits")."VariantAnnotateStrand", "-bam $n_bam -vcf $tmp -out $tmp ".(isset($n_sys_ini['mip_file'])?$n_sys_ini['mip_file']:"/mnt/share/data/mipfiles/".$n_sys_ini["name_short"].".txt")." -name $n_id", true);
-
 	// zip vcf file
 	$parser->exec("bgzip", "-c $tmp > $som_vann", false);	// no output logging, because Toolbase::extractVersion() does not return
 	$parser->exec("tabix", "-f -p vcf $som_vann", false);	// no output logging, because Toolbase::extractVersion() does not return
 
 	// convert vcf to GSvar
 	$extra = "-t_col $t_id ".($single_sample?"":"-n_col $n_id");
-	if($t_sys_ini['umi_type']=="HaloPlex HS" || starts_with($t_sys_ini['name_short'], "mi"))	$extra .= " -strand";
 	$parser->execTool("NGS/vcf2gsvar_somatic.php", "-in $som_vann -out $som_gsvar $extra");
 
 	// annotate NGSD and dbNFSP

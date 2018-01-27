@@ -7,7 +7,7 @@ The design goals of the project are:
  * state-of-the-art in terms of sensitivity/specificity,
  * fast
  * and usable for diagnostics:
- 	* we use no tools that require a license for diagnostics e.g. [GATK](https://software.broadinstitute.org/gatk/)
+ 	* we use no tools that require a license for diagnostics
     * extensive logging (tools, versions, parameters) ensures reproducability of results
 	* extensive testing before adding/updating tools or databases makes sure the results are valid
 

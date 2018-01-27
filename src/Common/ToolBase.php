@@ -1021,11 +1021,11 @@ class ToolBase
 	}
 	
 	///Sort BAM file
-	function sortBam($in, $out, $threads)
+	function sortBam($in, $out, $threads, $by_name = FALSE)
 	{	
 		$threads -= 1; //number of additional threads, that's why -1
-		$tmp_for_sorting = $this->tempFile();		
-		$this->exec(get_path("samtools")." sort", "-T {$tmp_for_sorting} -@ {$threads} -m 1G -o $out $in", true);
+		$tmp_for_sorting = $this->tempFile();
+		$this->exec(get_path("samtools")." sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G -o $out $in", true);
 	}
 	
 	///Index BAM file
