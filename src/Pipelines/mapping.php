@@ -88,7 +88,7 @@ if($sys['umi_type']!="n/a")
 		$index_files = glob("$out_folder/*_index_*.fastq.gz");
 		if (count($index_files)>0) $parser->exec("cat",implode(" ",$index_files)." > $index_file",true);
 	}
-	else trigger_erorr("Unknown UMI-type ${sys['umi_type']}. Will be processed without molecular barcodes.",E_USER_WARNING);
+	else trigger_error("Unknown UMI-type ${sys['umi_type']}. Will be processed without molecular barcodes.",E_USER_WARNING);
 	
 	//3. annotate barcodes from index file to fastq header; fix read naming within fastq that is incorrect using barcode_to_header
 	if(file_exists($index_file))

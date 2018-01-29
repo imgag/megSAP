@@ -104,15 +104,15 @@ $pipeline[] = array($star, implode(" ", $arguments));
 //duplicate flagging with samblaster
 if (!$skip_dedup) $pipeline[] = array(get_path("samblaster"), "");
 
-//convert SAM to BAM (uncompressed) with samtools
-$pipeline[] = array(get_path("samtools"), "view -hu -");
-
 //sort BAM by coordinates
 $tmp_for_sorting = $parser->tempFile();
 $pipeline[] = array(get_path("samtools"), "sort -T $tmp_for_sorting -m 1G -@ ".min($threads, 4)." -o $out -", true);
 
 //execute (STAR -> samblaster -> samtools SAM to BAM -> samtools sort)
 $parser->execPipeline($pipeline, "mapping");
+
+//create BAM index file
+$parser->indexBam($out, $threads);
 
 //downstream analysis files
 $outfile_splicing= "{$prefix}_splicing.tsv";
@@ -153,8 +153,5 @@ file_put_contents($outfile_chimeric, file_get_contents("{$STAR_tmp_folder}/Chime
 //write the final log file into the tool log
 $final_log = "{$STAR_tmp_folder}/Log.final.out";
 $parser->log("STAR Log.final.out", file($final_log));
-
-//create BAM index file
-$parser->indexBam($out, $threads);
 
 ?>
