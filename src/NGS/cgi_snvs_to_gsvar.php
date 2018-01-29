@@ -185,7 +185,7 @@ for($i=0;$i<count($output_comments);$i++)
 	}
 	if(strpos($output_comments[$i],"CGI_ICD10_DIAGNOSES") !== false)
 	{
-		$output_comments[$i] = utf8_decode("#CGI_ICD10_DIAGNOSES=$cancer_type_cgi,$icd10_diagnosis_code,$icd10_diagnosis_text");
+		$output_comments[$i] = "#CGI_ICD10_DIAGNOSES=$cancer_type_cgi,$icd10_diagnosis_code,$icd10_diagnosis_text";
 		$diagnosis_already_in_gsvar = true;
 	}
 }
@@ -197,10 +197,8 @@ if($diagnosis_already_in_gsvar)
 else
 {
 	$gsvar_input->addComment("#GENES_FOR_REIMBURSEMENT=$genes_for_reimbursement");
-	$gsvar_input->addComment(utf8_decode("#CGI_ICD10_DIAGNOSES=$cancer_type_cgi,$icd10_diagnosis_code,$icd10_diagnosis_text"));
+	$gsvar_input->addComment("#CGI_ICD10_DIAGNOSES=$cancer_type_cgi,$icd10_diagnosis_code,$icd10_diagnosis_text");
 }
-
-
 
 $gsvar_input->addCol($gsvar_snvs_new_driver_statement,"CGI_driver_statement","Oncogenic Classification according CGI for tumor type $cancer_type_cgi");
 $gsvar_input->addCol($gsvar_snvs_gene_role,"CGI_gene_role","CGI gene role. LoF: Loss of Function, Act: Activating");
