@@ -97,7 +97,7 @@ function get_parameters($processed_sample_name)
 	$assoc_tumor = array_column($result, "id");
 	
 	//get type value from associated processing system
-	$result = $db_connect->executeQuery("SELECT processing_system.type FROM processing_system, processed_sample WHERE processed_sample.id=".$run_ID." AND processed_sample.processing_system_id=processing_system.id");
+	$result = $db_connect->executeQuery("SELECT processing_system.type FROM processing_system, processed_sample WHERE processed_sample.id=".$psample_id." AND processed_sample.processing_system_id=processing_system.id");
 	$sys_type = $result[0]["type"];
 	
 	return array($projectname, $project_type, $run_name, $tumor_status, $project_analysis, $internal_coord, $assoc_tumor, $sys_type);
