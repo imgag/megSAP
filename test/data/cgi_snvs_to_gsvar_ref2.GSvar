@@ -35,7 +35,7 @@
 ##DESCRIPTION=som_ihdb_p=Projects with somatic variant in NGSD.
 ##ANALYSISTYPE=SOMATIC_SINGLESAMPLE
 ##GENES_FOR_REIMBURSEMENT=BRAF,CDK4,CDKN2A,KIT,KRAS,NF1,NRAS,TP53
-##CGI_ICD10_DIAGNOSES=CM,C43.9,Bösartiges Melanom der Haut, nicht näher bezeichnet
+##CGI_ICD10_DIAGNOSES=CM,C43.9,BÃ¶sartiges Melanom der Haut, nicht nÃ¤her bezeichnet
 ##DESCRIPTION=CGI_driver_statement=Oncogenic Classification according CGI for tumor type CM
 ##DESCRIPTION=CGI_gene_role=CGI gene role. LoF: Loss of Function, Act: Activating
 ##DESCRIPTION=CGI_transcript=CGI Ensembl transcript ID
