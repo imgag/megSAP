@@ -13,9 +13,9 @@ git submodule update --recursive --init
 
 #download STAR-Fusion
 cd $folder
-wget https://github.com/STAR-Fusion/STAR-Fusion/releases/download/v1.0.0/STAR-Fusion-v1.0.0.FULL.tar.gz
-tar xzf STAR-Fusion-v1.0.0.FULL.tar.gz
-rm -rf STAR-Fusion-v1.0.0.FULL.tar.gz
+wget https://github.com/STAR-Fusion/STAR-Fusion/releases/download/STAR-Fusion-v1.2.0/STAR-Fusion-v1.2.0.FULL.tar.gz
+tar xzf STAR-Fusion-v1.2.0.FULL.tar.gz
+rm STAR-Fusion-v1.2.0.FULL.tar.gz
 
 #download subread (featureCounts, subjunc)
 cd $folder

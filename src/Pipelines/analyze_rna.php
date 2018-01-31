@@ -280,7 +280,7 @@ if (in_array("fu",$steps))
 		);
 
 		$parser->exec(get_path("STAR-Fusion"), implode(" ", $starfusion_params), true);
-		$parser->moveFile("{$fusion_tmp_folder}/star-fusion.fusion_candidates.final.abridged", "{$prefix}_var_fusions.tsv");
+		$parser->moveFile("{$fusion_tmp_folder}/star-fusion.fusion_predictions.tsv", "{$prefix}_var_fusions.tsv");
 	
 	}
 	else
