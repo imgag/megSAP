@@ -2,7 +2,6 @@ chr1	40539203	40539203	-	TGAT	anno_omim;trio_recessive
 chr2	166246710	166246710	A	C	anno_omim;trio_denovo
 chr2	179542499	179542499	T	C	anno_omim;trio_denovo
 chr3	58157799	58157799	T	G	anno_omim;trio_denovo
-chr4	3494898	3494898	C	T	anno_omim;trio_recessive
 chr5	138614072	138614072	T	G	anno_omim;trio_denovo
 chr12	7048292	7048292	C	T	pred_pathogenic;pred_pathogenic_3;anno_omim;trio_denovo
 chr12	31226934	31226934	C	T	low_MQM;anno_omim;trio_denovo
