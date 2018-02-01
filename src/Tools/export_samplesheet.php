@@ -106,7 +106,7 @@ foreach($barcodes as $lane => $data)
 			}
 			else if ($dist<=2)
 			{
-				trigger_error("Low barcode distiance ({$dist}) on lane {$lane}: {$name_i} ({$mid1_i},{$mid2_i}) / {$name_j} ({$mid1_j},{$mid2_j})", E_USER_WARNING);
+				trigger_error("Low barcode distance ({$dist}) on lane {$lane}: {$name_i} ({$mid1_i},{$mid2_i}) / {$name_j} ({$mid1_j},{$mid2_j})", E_USER_WARNING);
 			}
 		}
 	}
