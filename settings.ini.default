@@ -4,9 +4,6 @@
 ;If you use the download shell scripts in data/ to install tools, genomes and databases,
 ;only adapting the NGSD database credentials is necessary.
 
-[tools-generic]
-python = [path]/data/tools/python2_venv/bin/python
-
 [tools-ngs]
 ngs-bits = [path]/data/tools/ngs-bits/bin/
 samtools = [path]/data/tools/samtools-1.6/samtools
