@@ -38,6 +38,7 @@ case1_run:
 case1_diff:
 	# variants
 	php ../compare_variants.php expected_case1/GS150344_01.GSvar out_case1/GS150344_01.GSvar
+	test -s out_case1/GS150344_01_cnvs.tsv
 
 
 # tumor-normal (strelka)
@@ -60,6 +61,7 @@ case2_diff:
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription.tsv
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription_bioactivities.tsv
 	test -s out_case2/GS110168-GS110169_cgi_mutation_analysis.tsv
+	test -s out_case2/GS110168-GS110169_cnvs.tsv
 
 	# qcML files
 	php ../compare_qcml_xml.php expected_case2/GS110168-GS110169_stats_som.qcML out_case2/GS110168-GS110169_stats_som.qcML
@@ -86,6 +88,7 @@ case3_diff:
 	test -s out_case3/GS110168-GS110169_cgi_drug_prescription.tsv
 	test -s out_case3/GS110168-GS110169_cgi_drug_prescription_bioactivities.tsv
 	test -s out_case3/GS110168-GS110169_cgi_mutation_analysis.tsv
+	test -s out_case3/GS110168-GS110169_cnvs.tsv
 	
 	# qcML files
 	php ../compare_qcml_xml.php expected_case3/GS110168-GS110169_stats_som.qcML out_case3/GS110168-GS110169_stats_som.qcML
@@ -110,6 +113,7 @@ case4_diff:
 	test -s out_case4/Tumor2-Normal2_cgi_drug_prescription.tsv
 	test -s out_case4/Tumor2-Normal2_cgi_drug_prescription_bioactivities.tsv
 	test -s out_case4/Tumor2-Normal2_cgi_mutation_analysis.tsv
+	test -s out_case4/Tumor2-Normal2_cnvs.tsv
 
 	# qcML files
 	php ../compare_qcml_xml.php expected_case4/Tumor2-Normal2_stats_som.qcML out_case4/Tumor2-Normal2_stats_som.qcML
