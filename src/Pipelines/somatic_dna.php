@@ -234,7 +234,7 @@ if (!$single_sample)
 $prefix_som = $t_id . "-" . $n_id;		// "Tumor-Normal"
 $prefix = $single_sample ? $o_folder . $t_id : $o_folder . $prefix_som;
 $som_v     = $prefix . "_var.vcf.gz";	// variants
-$som_cnv   = $prefix . "_var_cnvs.tsv";	// copy-number variants
+$som_cnv   = $prefix . "_cnvs.tsv";		// copy-number variants
 $som_gsvar = $prefix . ".GSvar";		// GSvar variants
 $som_bafs  = $prefix . "_bafs.igv";		// B-allele frequencies
 if (!$single_sample)
