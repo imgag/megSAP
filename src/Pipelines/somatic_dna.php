@@ -564,6 +564,7 @@ if (in_array("an", $steps))
 
 // qci / CGI
 //TODO: implementation for translocation files
+$som_cnv   = $prefix . "_cnvs.tsv";	// copy-number variants
 if (in_array("ci", $steps))
 {
 	// add QCI output
@@ -593,7 +594,6 @@ if (in_array("ci", $steps))
 			//remove G and V from $icd10_diagnoses (sometimes there is a G or V assigned to its right)
 			$icd10_diagnosis = rtrim($icd10_diagnosis,'G');
 			$icd10_diagnosis = rtrim($icd10_diagnosis,'V');
-
 			$hpo_diagnosis = "";
 			if(!empty($result)) $hpo_diagnosis = $result[0]['HPOTERM1'];
 			if(empty($icd10_diagnosis))

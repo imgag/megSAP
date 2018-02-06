@@ -218,6 +218,20 @@ class Matrix
 		$this->comments[] = $line;
 	}
 	
+	/// Removes a Comment
+	function removeComment($comment_text)
+	{
+		for($i=0;$i<count($this->comments);$i++)
+		{
+			//print_r($comment_text." ".$this->comments[$i]."\n");
+			if($comment_text == $this->comments[$i])
+			{
+				array_splice($this->comments,$i,1);
+				break;
+			}
+		}
+	}
+	
 	/// Appends a column.
 	function addCol($column, $name = "", $desc = "")
 	{
