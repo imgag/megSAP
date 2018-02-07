@@ -62,10 +62,12 @@ $arguments = array(
 	"--readFilesIn", isset($in2) ? "{$in1} {$in2}" : $in1,
 	"--genomeDir {$genome}",
 	"--outFileNamePrefix {$STAR_tmp_folder}/",
-	"--outStd SAM",
+	"--outStd BAM_Unsorted",
+	"--outSAMtype BAM Unsorted",
 	"--outSAMunmapped Within",
 	"--runThreadN {$threads}",
 	"--outSAMattributes All",
+	"--chimOutType WithinBAM SoftClip",
 	"--chimSegmentMin 12",
 	"--chimJunctionOverhangMin 12",
 	"--chimSegmentReadGapMax 3",
@@ -100,6 +102,8 @@ $star = $long_reads ? get_path("STAR")."long" : get_path("STAR");
 //mapping with STAR
 $pipeline = array();
 $pipeline[] = array($star, implode(" ", $arguments));
+
+$pipeline[] = array(get_path("samtools"), "view -h");
 
 //duplicate flagging with samblaster
 if (!$skip_dedup) $pipeline[] = array(get_path("samblaster"), "");
