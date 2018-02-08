@@ -39,7 +39,7 @@ $in_file = Matrix::fromTSV($in);
 // check filter column
 $filter_column = "FILTER";
 $fc = $in_file->getColumnIndex($filter_column, false, false);
-if($fc!=6)	trigger_error("Wrong column index for filter column! Is ".(emtpy($fc)?"empty":$fc)." should be 6.",E_USER_ERROR);
+if($fc!=6)	trigger_error("Wrong column index for filter column! Is ".(empty($fc)?"empty":$fc)." should be 6.",E_USER_ERROR);
 $prefix = "";
 $comments = $in_file->getComments();
 $var_caller = NULL;
@@ -209,7 +209,7 @@ for($i=0;$i<$in_file->rows();++$i)
 	if(isset($tmp_filter_old[0]) && $tmp_filter_old[0]=="PASS")	unset($tmp_filter_old[0]);	
 	
 	// check if data was already annotated by filter_vcf or same filter
-	if(count($dup = array_intersect($tmp_filter_old,$tmp_filter))>0)	trigger_error("Found '".implode(", ",$dup)."' filter multiple times. Looks like this files was already annotated by filter_vcf.",E_USER_ERROR);
+	if(count($dup = array_intersect($tmp_filter_old,$tmp_filter))>0 && !$ignore_filter)	trigger_error("Found '".implode(", ",$dup)."' filter multiple times. Looks like this files was already annotated by filter_vcf.",E_USER_ERROR);
 	
 	$tmp_filter = array_unique(array_merge($tmp_filter,$tmp_filter_old));	//keep original filter
 	
