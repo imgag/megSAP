@@ -1,8 +1,8 @@
 <?php
 
 /**
-	@page analyze_rna
-*/
+ * @page analyze_rna
+ */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
@@ -78,7 +78,7 @@ $log_ma  = $prefix."_log1_map.log";
 $final_bam = $prefix.".bam";
 $qc_fastq = $prefix."_stats_fastq.qcML";
 $qc_map = $prefix."_stats_map.qcML";
-if (in_array("ma", $steps))
+if (in_array("ma", $steps) || in_array("fu", $steps))
 {
 	//check FASTQ quality encoding
 	$files = array_merge($in_for, $in_rev);
@@ -136,7 +136,9 @@ if (in_array("ma", $steps))
 		$pipeline[] = array("gzip", "-1 > {$fastq_trimmed1}");
 		$parser->execPipeline($pipeline, "skewer");
 	}
-
+}
+if (in_array("ma", $steps))
+{
 	//mapping
 	$args = array(
 		"-out", $final_bam,
@@ -259,9 +261,14 @@ if (in_array("fu",$steps))
 	if (is_dir($fusion_index)) {
 	
 		//add samtools to path
-		putenv("PATH=".dirname(get_path("samtools")).":".getenv("PATH"));
+		putenv("PATH=" . implode(":", [
+			dirname(get_path("samtools")),
+			dirname(get_path("STAR")),
+			getenv("PATH")
+		]));
 
 		$fusion_tmp_folder = $parser->tempFolder();
+		create_directory($fusion_tmp_folder);
 		$chimeric_file = "{$prefix}_chimeric.tsv";
 		if (!file_exists($chimeric_file))
 		{
@@ -274,15 +281,56 @@ if (in_array("fu",$steps))
 		array_shift($chimeric_file_f);
 		file_put_contents($chimeric_file_tmp, $chimeric_file_f);
 
-		$starfusion_params = array(
+		$starfusion_params = [
 			"--genome_lib_dir", $fusion_index,
-			"-J", $chimeric_file_tmp,
+			"--chimeric_junction", $chimeric_file_tmp,
 			"--output_dir", $fusion_tmp_folder
-		);
+		];
+
+		$input_reads_available = isset($fastq_trimmed1) &&
+			is_file($fastq_trimmed1) &&
+			(!$paired || (isset($fastq_trimmed2) && is_file($fastq_trimmed2)));
+		if ($input_reads_available)
+		{
+			$starfusion_params[] = "--FusionInspector inspect";
+			$starfusion_params[] = "--left_fq ". $fastq_trimmed1;
+			if ($paired)
+			{
+				$starfusion_params[] = "--right_fq " . $fastq_trimmed2;
+			}
+		}
 
 		$parser->exec(get_path("STAR-Fusion"), implode(" ", $starfusion_params), true);
-		$parser->moveFile("{$fusion_tmp_folder}/star-fusion.fusion_predictions.tsv", "{$prefix}_var_fusions.tsv");
-	
+
+		$output_files = [ "{$fusion_tmp_folder}/star-fusion.fusion_predictions.abridged.tsv" => "{$prefix}_var_fusions.tsv" ];
+		if ($input_reads_available)
+		{
+			$output_files = array_filter(array_merge([
+				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.consolidated.cSorted.bam" => "{$prefix}_var_fusions.bam",
+				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.consolidated.cSorted.bam.bai" => "{$prefix}_var_fusions.bam.bai",
+				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa" => "{$prefix}_var_fusions.fa",
+				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa.fai" => "{$prefix}_var_fusions.fa.fai",
+				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.gtf" => "{$prefix}_var_fusions.gtf"
+			], $output_files), "file_exists");
+		}
+		foreach ($output_files as $src => $dest)
+		{
+			$parser->moveFile($src, $dest);
+		}
+		if ($input_reads_available)
+		{
+			$igv_session_file = "{$prefix}_var_fusions.xml";
+			$igv_tracks = array_filter([
+					"{$prefix}_var_fusions.bam",
+					"{$prefix}_var_fusions.gtf"
+				], "file_exists");
+			if (count($igv_tracks) > 0)
+			{
+				$igv_tracks_arg = implode(" ", $igv_tracks);
+				$parser->execTool("NGS/igv_session.php", "-genome {$prefix}_var_fusions.fa -out {$igv_session_file} -in {$igv_tracks_arg} -relative");
+			}
+
+		}
 	}
 	else
 	{
