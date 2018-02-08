@@ -8,28 +8,40 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 $parser = new ToolBase("converter_manta2tsv", "Generate table from Manta structural variant vcf file.");
 $parser->addInfile("in",  "Input file in Manta variant call format.", false);
 $parser->addOutfile("out",  "Output file in tabular format.", true);
-$parser->addString("tumor_id", "Tumor processed sample identifier.", false);
+$parser->addString("tumor_id", "Tumor processed sample identifier.", true);
 extract($parser->parse($argv));
 
 $in_tmp = $parser->tempFile();
 $parser->exec("gzip -cd", "{$in} > {$in_tmp}", true);
 
 $vcf = Matrix::fromTSV($in_tmp);
-//$vcf->printInfo();
 
-if ($vcf->getHeader(9) === $tumor_id)
+ $somatic = $vcf->cols() == 11;
+ if ($somatic && !isset($tumor_id))
+ {
+	 trigger_error("Tumor ID must be specified for somatic VCF files!", E_USER_ERROR);
+ }
+
+if ($somatic)
 {
-	$tumor_col = 9;
-	$normal_col = 10;
-}
-else if ($vcf->getHeader(10) === $tumor_id)
-{
-	$tumor_col = 10;
-	$normal_col = 9;
+	if ($vcf->getHeader(9) === $tumor_id)
+	{
+		$tumor_col = 9;
+		$normal_col = 10;
+	}
+	else if ($vcf->getHeader(10) === $tumor_id)
+	{
+		$tumor_col = 10;
+		$normal_col = 9;
+	}
+	else
+	{
+		trigger_error("Tumor processed sample identifier is not contained in input file!", E_USER_ERROR);
+	}
 }
 else
 {
-	trigger_error("Tumor processed sample identifier is not contained in input file!", E_USER_ERROR);
+	$tumor_col = 9;
 }
 
 
@@ -76,16 +88,6 @@ $default_variant = array(
 		"mate_pos" => ".",
 		"mate_filter" => ".",
 		
-		"tumor_PR_ref" => "n/a",
-		"tumor_PR_alt" => "n/a",
-		"tumor_SR_ref" => "n/a",
-		"tumor_SR_alt" => "n/a",
-		
-		"normal_PR_ref" => "n/a",
-		"normal_PR_alt" => "n/a",
-		"normal_SR_ref" => "n/a",
-		"normal_SR_alt" => "n/a",
-		
 		"tumor_PR_freq" => "n/a",
 		"tumor_PR_depth" => "n/a",
 		"tumor_SR_freq" => "n/a",
@@ -108,10 +110,12 @@ for ($rowidx = 0; $rowidx < $vcf->rows(); $rowidx++)
 	$qual = $row[4];
 	$filter = $row[6];
 	$info = parse_info_field($row[7]);
-	
-	$tumor_values = parse_format_field($row[8], $row[$tumor_col]);
-	$normal_values = parse_format_field($row[8], $row[$normal_col]);
-	
+
+	if (!chr_check($chr, 22, false))
+	{
+		$filter = implode(";", array_merge([ "special-chr" ], explode(";", $filter)));
+	}
+
 	$variants[$id] = $default_variant;
 	$variants[$id]["type"] = $info["SVTYPE"];
 	$variants[$id]["chr"] = $chr;
@@ -119,49 +123,41 @@ for ($rowidx = 0; $rowidx < $vcf->rows(); $rowidx++)
 	$variants[$id]["end"] = array_key_exists("END", $info) ? $info["END"] : ".";
 	$variants[$id]["filter"] = $filter;
 	$variants[$id]["length"] = array_key_exists("SVLEN", $info) ? $info["SVLEN"] : ".";
-	$variants[$id]["score"] = $info["SOMATICSCORE"];
+	$variants[$id]["score"] = array_key_exists("SOMATICSCORE", $info) ? $info["SOMATICSCORE"] : ".";
 	$variants[$id]["mate_id"] = array_key_exists("MATEID", $info) ? $info["MATEID"] : ".";
-	
+
+	$tumor_values = parse_format_field($row[8], $row[$tumor_col]);
 	if (array_key_exists("PR", $tumor_values))
 	{
 		$n = parse_observation($tumor_values["PR"]);
-		$variants[$id]["tumor_PR_ref"] = $n["ref"];
-		$variants[$id]["tumor_PR_alt"] = $n["alt"];
-		
 		$variants[$id]["tumor_PR_depth"] = $n["ref"] + $n["alt"];
-		$variants[$id]["tumor_PR_freq"] = $n["alt"] / ($n["ref"] + $n["alt"]);
+		$variants[$id]["tumor_PR_freq"] = $variants[$id]["tumor_PR_depth"] != 0 ? $n["alt"] / ($n["ref"] + $n["alt"]) : "n/a";
 	}
 	
 	if (array_key_exists("SR", $tumor_values))
 	{
 		$n = parse_observation($tumor_values["SR"]);
-		$variants[$id]["tumor_SR_ref"] = $n["ref"];
-		$variants[$id]["tumor_SR_alt"] = $n["alt"];
-		
 		$variants[$id]["tumor_SR_depth"] = $n["ref"] + $n["alt"];
 		$variants[$id]["tumor_SR_freq"] = $n["alt"] / ($n["ref"] + $n["alt"]);
 	}
-	
-	if (array_key_exists("PR", $normal_values))
-	{
-		$n = parse_observation($normal_values["PR"]);
-		$variants[$id]["normal_PR_ref"] = $n["ref"];
-		$variants[$id]["normal_PR_alt"] = $n["alt"];
-		
-		$variants[$id]["normal_PR_depth"] = $n["ref"] + $n["alt"];
-		$variants[$id]["normal_PR_freq"] = $variants[$id]["normal_PR_depth"] != 0 ? $n["alt"] / ($n["ref"] + $n["alt"]) : "n/a";
-	}
-	
-	if (array_key_exists("SR", $normal_values))
-	{
-		$n = parse_observation($normal_values["SR"]);
-		$variants[$id]["normal_SR_ref"] = $n["ref"];
-		$variants[$id]["normal_SR_alt"] = $n["alt"];
-		
-		$variants[$id]["normal_SR_depth"] = $n["ref"] + $n["alt"];
-		$variants[$id]["normal_SR_freq"] = $variants[$id]["normal_SR_depth"] != 0 ? $n["alt"] / ($n["ref"] + $n["alt"]) : "n/a";
-	}
 
+	if ($somatic)
+	{
+		$normal_values = parse_format_field($row[8], $row[$normal_col]);
+		if (array_key_exists("PR", $normal_values))
+		{
+			$n = parse_observation($normal_values["PR"]);
+			$variants[$id]["normal_PR_depth"] = $n["ref"] + $n["alt"];
+			$variants[$id]["normal_PR_freq"] = $variants[$id]["normal_PR_depth"] != 0 ? $n["alt"] / ($n["ref"] + $n["alt"]) : "n/a";
+		}
+
+		if (array_key_exists("SR", $normal_values))
+		{
+			$n = parse_observation($normal_values["SR"]);
+			$variants[$id]["normal_SR_depth"] = $n["ref"] + $n["alt"];
+			$variants[$id]["normal_SR_freq"] = $variants[$id]["normal_SR_depth"] != 0 ? $n["alt"] / ($n["ref"] + $n["alt"]) : "n/a";
+		}
+	}
 }
 
 $table = new Matrix();
@@ -190,16 +186,13 @@ if ($vcf->rows() > 0)
 	}
 
 	$table->removeCol($table->getColumnIndex("mate_id"));
-
-	$table->removeCol($table->getColumnIndex("tumor_PR_ref"));
-	$table->removeCol($table->getColumnIndex("tumor_PR_alt"));
-	$table->removeCol($table->getColumnIndex("tumor_SR_ref"));
-	$table->removeCol($table->getColumnIndex("tumor_SR_alt"));
-
-	$table->removeCol($table->getColumnIndex("normal_PR_ref"));
-	$table->removeCol($table->getColumnIndex("normal_PR_alt"));
-	$table->removeCol($table->getColumnIndex("normal_SR_ref"));
-	$table->removeCol($table->getColumnIndex("normal_SR_alt"));
+	if (!$somatic)
+	{
+		$table->removeCol($table->getColumnIndex("normal_PR_freq"));
+		$table->removeCol($table->getColumnIndex("normal_PR_depth"));
+		$table->removeCol($table->getColumnIndex("normal_SR_freq"));
+		$table->removeCol($table->getColumnIndex("normal_SR_depth"));
+	}
 }
 
 if (isset($out))
