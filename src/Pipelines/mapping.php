@@ -52,58 +52,86 @@ if ($sys["adapter1_p5"]=="" && $sys["adapter2_p7"]=="")
 $stafile1 = $basename."_stats_fastq.qcML";
 $trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
 $trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
-$args = array();
-if($sys['umi_type']!="n/a") $args[] = "-qcut 0 -ncut 0";
-$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1)." ".implode(" ",$args), true);
 
-//extract barcodes and add to fastq header
+// barcode handling
 $barcode_correction = false;
-$index_file = $parser->tempFile("_index.fastq.gz");
-if($sys['umi_type']!="n/a")
+if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
 {
-	//1. barcode within insert - Adapter trimming needed, MIPs (single UMI, 8 bp at the beginning of read1), ThruPlex (dual UMI, 6 bp both at beginning and end of pair) => extract to index file
-	if($sys['umi_type']=="MIPs")
+	$index_files = glob("$out_folder/*_index_*.fastq.gz");
+
+	// merge read and index files
+	$merged_index = $parser->tempFile("_merged_index.fastq.gz");
+	$merged1 = $parser->tempFile("_merged1.fastq.gz");
+	$merged2 = $parser->tempFile("_merged2.fastq.gz");
+
+	// TODO refactor merge or pass
+	if (count($index_files) == 1)
 	{
-		// move trimmed reads to temp
-		$trimmed_mips2 = $parser->tempFile("_MB_001.fastq.gz");
-		$parser->exec(get_path("ngs-bits")."FastqExtractBarcode", "-in $trimmed2 -out_main $trimmed_mips2 -cut 8 -out_index $index_file",true);
-		$trimmed2 = $trimmed_mips2;		
+
+		$merged_index = implode(" ", $index_files);
 	}
-	//2. barcode within separate index read -  SureSelect HS (single UMI, index read 10 bp), HaloPlex HS (single UMI, index read 10 bp) => combine to single index file
-	else if($sys['umi_type']=="HaloPlex HS" || $sys['umi_type']=="SureSelect HS" )
+	else
 	{
-		//HaloPlex HS mismatch bases at the end and beginning
-		if($sys['umi_type']=="HaloPlex HS")
-		{
-			//cut extra C at beginning of read2 and end of read1
-			$trimmed_hs1 = $parser->tempFile("_trimmed_hs1.fastq.gz");
-			$trimmed_hs2 = $parser->tempFile("_trimmed_hs2.fastq.gz");
-			$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed1 -out $trimmed_hs1 -end 1",true);
-			$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed_hs2 -start 1",true);
-			$trimmed1 = $trimmed_hs1;
-			$trimmed2 = $trimmed_hs2;
-		}
-		
-		//merge index files (in case sample was distributed over several lanes)
-		$index_files = glob("$out_folder/*_index_*.fastq.gz");
-		if (count($index_files)>0) $parser->exec("cat",implode(" ",$index_files)." > $index_file",true);
+		$parser->exec("zcat", implode(" ", $index_files) . " > $merged_index", true);
 	}
-	else trigger_error("Unknown UMI-type ${sys['umi_type']}. Will be processed without molecular barcodes.",E_USER_WARNING);
-	
-	//3. annotate barcodes from index file to fastq header; fix read naming within fastq that is incorrect using barcode_to_header
-	if(file_exists($index_file))
+
+	if (count($in_for) == 1)
 	{
-		$barcode_correction = true;
-		
-		//move index to fastq header
-		$trimmed1_bc = $parser->tempFile("_trimmed_bc1.fastq.gz");
-		$parser->exec("python  ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed1 -bc1 $index_file -o $trimmed1_bc",true);
-		$trimmed1 = $trimmed1_bc;
-		$trimmed2_bc = $parser->tempFile("_trimmed_bc2.fastq.gz");
-		$parser->exec("python  ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed2 -bc1 $index_file -o $trimmed2_bc",true);
-		$trimmed2 = $trimmed2_bc;
+		$merged1 = implode(" ", $in_for);
 	}
-	else trigger_error("Index file '$index_file' was not found. The data will be processed without molecular barcodes!", E_USER_WARNING);
+	else
+	{
+		$parser->exec("zcat", implode(" ", $in_for) . " > $merged1", true);
+	}
+
+	if (count($in_rev) == 1)
+	{
+		$merged2 = implode(" ", $in_rev);
+	}
+	else
+	{
+		$parser->exec("zcat", implode(" ", $in_rev) . " > $merged2", true);
+	}
+
+	// add barcodes to header
+	$barcode_correction = true;
+
+	$trimmed1_bc = $parser->tempFile("_bc1.fastq.gz");
+	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $merged1 -bc1 $merged_index -o $trimmed1_bc",true);
+	$trimmed2_bc = $parser->tempFile("_bc2.fastq.gz");
+	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $merged2 -bc1 $merged_index -o $trimmed2_bc",true);
+
+	// run SeqPurge
+	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $trimmed1_bc -in2 $trimmed2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);
+
+	// trim 1 base from end of R1 and 1 base from start of R2 (only HaloPlex HS)
+	if ($sys['umi_type'] === "HaloPlex HS")
+	{
+		//cut extra C at beginning of read2 and end of read1
+		$trimmed_hs1 = $parser->tempFile("_merged_hs1.fastq.gz");
+		$trimmed_hs2 = $parser->tempFile("_merged_hs2.fastq.gz");
+
+		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed1 -out $trimmed_hs1 -end 1",true);
+		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed_hs2 -start 1",true);
+		$trimmed1 = $trimmed_hs1;
+		$trimmed2 = $trimmed_hs2;
+	}
+}
+else if ($sys['umi_type'] === "MIPs")
+{
+	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".($threads>2 ? 2 : 1), true);
+	// move trimmed reads to temp
+	$trimmed_mips2 = $parser->tempFile("_MB_001.fastq.gz");
+	$parser->exec(get_path("ngs-bits")."FastqExtractBarcode", "-in $trimmed2 -out_main $trimmed_mips2 -cut 8 -out_index $index_file",true);
+	$trimmed2 = $trimmed_mips2;
+}
+else if ($sys['umi_type'] !== "n/a")
+{
+	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".($threads>2 ? 2 : 1), true);
+}
+else
+{
+	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);
 }
 
 //clean up MIPs - remove single reads and MIP arms, skip all reads without perfect match mip arm
