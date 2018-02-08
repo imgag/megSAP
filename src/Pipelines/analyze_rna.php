@@ -227,6 +227,7 @@ if (in_array("rc", $steps))
 
 	// exon-level counting
 	$args_exon = array_merge($args_common, [
+		"-exon_level",
 		"-out", $counts_exon_raw
 	]);
 	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args_exon));
