@@ -461,6 +461,7 @@ foreach($res as $row)
 		}
 	
 		//handle tumor-normal pairs
+		$somatic_data_uploaded = false;
 		$normal_id = $sample1["normal_id"];
 		if ($normal_id!="")
 		{
@@ -542,6 +543,42 @@ foreach($res as $row)
 			{
 				$parser->moveFile($tmpfolder, $GLOBALS["datamover_path"]."/".$folder_name);
 				markAsUploaded($sample1, $sample2, $files);
+			}
+			printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(" ", $files));
+			
+			$somatic_data_uploaded = true;
+		}
+		
+		//Upload somatic data in special format for MTB (Molecular Tumor Board)
+		if ($somatic_data_uploaded && file_exists("{$data_folder}/QBIC_files/"))
+		{
+			$output[4] = "{$ps_name}-{$ps_name2} (MTB)";
+			
+			//determine files to zip
+			$files = glob("{$data_folder}/QBIC_files/*.tsv");
+			
+			//determine/create subfolder
+			$folder_name = "{$qbic_name}_{$ps_name}-{$ps_name2}-MTB";
+			$tmpfolder = $GLOBALS["datamover_tmp"]."/".$folder_name;
+			if (file_exists($tmpfolder)) exec2("rm -rf $tmpfolder");
+			mkdir($tmpfolder);
+			
+			//copy and rename files
+			foreach($files as $file)
+			{
+				$outfile = basename($file);
+				$outfile =  $qbic_name.substr($outfile, 4);
+				$parser->copyFile($file, $tmpfolder."/".$outfile);
+			}
+			
+			//zip files
+			$zip = "{$tmpfolder}/{$qbic_name}_{$ps_name}-{$ps_name2}.zip";
+			exec2("cd {$tmpfolder} && zip -@ {$zip} *.tsv");
+			
+			//upload data
+			if ($upload)
+			{
+				$parser->moveFile($zip, $GLOBALS["datamover_path"]."/".basename($zip));
 			}
 			printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(" ", $files));
 		}
