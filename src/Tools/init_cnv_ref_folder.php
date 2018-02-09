@@ -42,7 +42,7 @@ print "Coverage folder: $ref_folder\n";
 print "\n";
 
 //check samples
-list($samples) = exec2(get_path("ngs-bits")."NGSDExportSamples -sys {$name} -quality bad -check_path | cut -f1,16 | grep -v ps.name");
+list($samples) = exec2(get_path("ngs-bits")."NGSDExportSamples -sys {$name} -quality bad -check_path | cut -f1,18 | grep -v ps.name");
 $bams = array();
 $valid = 0;
 foreach($samples as $line)
