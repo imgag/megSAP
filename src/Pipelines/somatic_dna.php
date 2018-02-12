@@ -32,6 +32,7 @@ $parser->addFlag("nsc", "Skip sample correlation check (human only, only in pair
 $parser->addFlag("keep_all_variants_strelka", "Reduce number of variants to PASS by strelka.");
 $parser->addFlag("reduce_variants_filter", "Reduce number of variants to PASS by own filter tool.");
 $parser->addFlag("freebayes", "Use freebayes for variant calling (default: strelka).");
+$parser->addFlag("strelka1", "Use freebayes for variant calling (default: strelka).");
 $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal sample.", true, 0);
 $parser->addFlag("no_softclip", "Skip soft-clipping of overlapping reads. NOTE: This may increase rate of false positive variants.", true);
 $parser->addInfile("promoter","Bed file containing promoter regions. Will be used for filter column of vcf.",true);
@@ -342,6 +343,21 @@ if (in_array("vc", $steps))
 		$extra = array("-type somatic-lq","-keep");
 		$parser->execTool("NGS/filter_vcf.php", "-in $som_v -out $som_v -min_af $min_af  ".implode(" ", $extra));
 	}
+	elseif ($strelka1)
+	{
+		$args_strelka1 = [
+			"-t_bam", $t_bam,
+			"-n_bam", $n_bam,
+			"-out", $som_v,
+			"-build", $t_sys_ini['build'],
+			"-threads", $threads
+		];
+		if ($keep_all_variants_strelka)
+		{
+			$args_strelka1[] = "-k";
+		}
+		$parser->execTool("NGS/vc_strelka.php", implode(" ", $args_strelka1));
+	}
 	else
 	{
 		$args_strelka = [
@@ -349,7 +365,7 @@ if (in_array("vc", $steps))
 			"-n_bam", $n_bam,
 			"-out", $som_v,
 			"-build", $t_sys_ini['build'],
-			"-target", $t_sys_ini['target_file'],
+			"-target", $t_sys_ini['target_file']
 		];
 		if ($keep_all_variants_strelka)
 		{
