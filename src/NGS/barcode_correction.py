@@ -254,6 +254,10 @@ def GET_FINAL_READ(reads,minBQ,STEP):
 		    # Encoding quality
 		    CONSENSUS_READ = one_duplicate_qual(i, STEP, minBQ)
 		    
+		    		
+		    # We add info about the amount of duplicates per family group
+		    CONSENSUS_READ.tags += [('DP', len(reads))]
+
 		    # Info about barcode groups
 		    LOG_INFO = (CONSENSUS_READ.qname, str(CONSENSUS_READ.pos), str(len(reads))) 
 		    LOG_INFO = "\t".join(LOG_INFO)+"\n"
@@ -293,7 +297,10 @@ def GET_FINAL_READ(reads,minBQ,STEP):
 			    # When problems with Different indels between duplicates appear, we get as consensus read the first lexico read, and change or their base qualities to 0
 			    CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
 			    ###print "ERROR2", CONSENSUS_READ.qname, len(CONSENSUS_SEQ), DICT_READS[SORTED_READNAMES[0]].cigarstring, 
-
+			    
+			    # We add info about the amount of duplicates per family group
+			    CONSENSUS_READ.tags += [('DP', len(reads))]
+			    
 			    LOG_INFO = (CONSENSUS_READ.qname, str(CONSENSUS_READ.pos), str(len(reads))) 
 			    LOG_INFO = "\t".join(LOG_INFO)+"\n"
 			    return (CONSENSUS_READ, LOG_INFO)
@@ -395,7 +402,10 @@ def GET_FINAL_READ(reads,minBQ,STEP):
 		    # When problems with Different indels between duplicates appear, we get as consensus read the first lexico read, and change or their base qualities to 0
 		    CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
 		    ##print "ERROR", CONSENSUS_READ.qname, len(CONSENSUS_SEQ), DICT_READS[SORTED_READNAMES[0]].cigarstring, DICT_READS[SORTED_READNAMES[READ_COUNT]].rlen, DICT_READS[SORTED_READNAMES[READ_COUNT]].cigarstring
-
+		    
+		    # We add info about the amount of duplicates per family group
+		    CONSENSUS_READ.tags += [('DP', len(reads))]
+		
 		    LOG_INFO = (CONSENSUS_READ.qname, str(CONSENSUS_READ.pos), str(len(reads))) 
 		    LOG_INFO = "\t".join(LOG_INFO)+"\n"
 		    return (CONSENSUS_READ, LOG_INFO)
@@ -416,6 +426,9 @@ def GET_FINAL_READ(reads,minBQ,STEP):
 		CONSENSUS_QUAL = ''.join(CONSENSUS_QUAL)
 		CONSENSUS_READ.qual = CONSENSUS_QUAL
 		
+		# We add info about the amount of duplicates per family group
+		CONSENSUS_READ.tags += [('DP', len(reads))]
+		    		
 		# Info about barcode groups
 		LOG_INFO = (CONSENSUS_READ.qname, str(CONSENSUS_READ.pos), str(len(reads))) 
 		LOG_INFO = "\t".join(LOG_INFO)+"\n"
