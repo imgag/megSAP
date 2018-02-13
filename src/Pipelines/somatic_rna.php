@@ -72,14 +72,10 @@ if ($t_system["build"] !== $n_system["build"])
 // mapping
 if (in_array("ma", $steps))
 {
-	// submit both mapping jobs to queue
-	// TODO revert this?
-	$commands = [];
-	$commands[] = "php " . repository_basedir() . "/src/Pipelines/analyze_rna.php " .
-		"-folder Sample_{$t_id} -name {$t_id} -system {$t_sys} -steps ma,rc,an,fu,db --log Sample_{$t_id}/analyze_".date('YmdHis',mktime()).".log";
-	$commands[] = "php " . repository_basedir() . "/src/Pipelines/analyze_rna.php " .
-		"-folder Sample_{$n_id} -name {$n_id} -system {$n_sys} -steps ma,rc,an,fu,db --log Sample_{$n_id}/analyze_".date('YmdHis',mktime()).".log";
-	$parser->jobsSubmit($commands, realpath($p_folder), get_path("queues_high_mem"), true);
+	$parser->execTool("Pipelines/analyze_rna.php",
+		"-folder Sample_{$t_id} -name {$t_id} -system {$t_sys} -steps ma,rc,an,fu,db --log Sample_{$t_id}/analyze_".date('YmdHis',mktime()).".log");
+	$parser->execTool("Pipelines/analyze_rna.php",
+		"-folder Sample_{$n_id} -name {$n_id} -system {$n_sys} -steps ma,rc,an,fu,db --log Sample_{$n_id}/analyze_".date('YmdHis',mktime()).".log");
 }
 
 // define file paths

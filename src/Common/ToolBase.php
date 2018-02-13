@@ -1064,43 +1064,6 @@ class ToolBase
 		$this->log("Execution time of copying '".basename($from)."' to '".basename($to)."': ".time_readable(microtime(true) - $start));		
 	}
 	
-	function jobsSubmit($commands, $working_directory, $queue, $wait=false)
-	{		
-		$this->log("Submitting commands to queue '$queue':", $commands);
-		
-		foreach($commands as $command)
-		{
-			$sample_status = get_path("sample_status_folder")."/data/";
-			$this->queued_jobs[] = jobSubmit($command, $working_directory, $queue, $sample_status);
-			trigger_error("Submitted job '$command' to queue '$queue' (SGE). Job-ID is ".end($this->queued_jobs).".",E_USER_NOTICE);
-		}
-		
-		if($wait)
-		{
-			//wait for jobs until finished and collect qstat messages
-			trigger_error("Waiting for job(s) ".implode(", ", $this->queued_jobs)." to be finished.",E_USER_NOTICE);
-			$q_stats = jobsWait($this->queued_jobs);
-
-			//check end and exit status of finished jobs
-			$finished_jobs = array();
-			$error_jobs = array();
-			foreach($q_stats as $j => $s)
-			{
-				if($s == "queue error")	jobDelete($j);	//cleanup SGE queue				
-				if($s == "finished")	$finished_jobs[] = "$j";
-				else	$error_jobs[] = "$j ($s)";
-			}
-			
-			trigger_error("Jobs finished: ".(empty($finished_jobs)?"none":implode(", ", $finished_jobs)).".",E_USER_NOTICE);
-			trigger_error("Jobs unfinished: ".(empty($error_jobs)?"none":implode(", ", $error_jobs)).".",E_USER_NOTICE);
-			if(count($error_jobs)>0)	trigger_error("Not all jobs were finished properly! S. $sample_status/php.e[jobid] for details.", E_USER_ERROR);	//jobs finished in error mode
-			if(empty($finished_jobs) && empty($error_jobs))	trigger_error("None of the jobs was finished at all!", E_USER_ERROR);	//jobs finished in error mode
-		}
-		
-		$return = $this->queued_jobs;
-		$this->queued_jobs = array();
-		return $return;
-	}
 }
 
 ?>
