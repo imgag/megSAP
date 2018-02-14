@@ -46,7 +46,6 @@ db_log_path['NGSD'] = ""
 
 [grid_engine]
 ;leave accounting_file empty to use qacct with default accouting file
-queue_accounting_file = 
 queue_email = ""
 queues_default = ""
 queues_high_priority = ""

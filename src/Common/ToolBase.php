@@ -28,7 +28,6 @@ class ToolBase
 	private $temp_files = array();
 	private $temp_folders = array();
 	private $error_occurred = false;
-	private $queued_jobs = array();
 	
 	/// Constructor
 	function __construct($name, $description)
@@ -53,7 +52,6 @@ class ToolBase
 		// register callbacks
 		register_shutdown_function(array($this, 'shutdown'));
 		set_error_handler(array($this, 'error_handler'));
-		pcntl_signal(SIGINT, array($this, 'shutdownSIG'));
 	}
 	
 	/// Shutdown function (destructor cannot be used, because it is not called after 'trigger_error' is used)
@@ -79,30 +77,9 @@ class ToolBase
 			}
 		}
 		
-		if(!empty($this->queued_jobs))
-		{
-			$deleted_jobs = array();
-			$undeleted_jobs = array();
-			foreach($this->queued_jobs as $qj)
-			{
-				$qdel_message = jobDelete($qj);
-				if(strpos($qdel_message, "denied:")!==FALSE)	$undeleted_jobs[] = $qj;
-				else	$deleted_jobs[] = $qj;
-			}
-			if(!empty($deleted_jobs))	trigger_error("Deleted following child processes: ".implode(", ",$deleted_jobs),E_USER_NOTICE);
-			if(!empty($undeleted_jobs))	trigger_error("Could not delete the following child processes: ".implode(", ",$undeleted_jobs),E_USER_NOTICE);
-		}
-		
 		//final log message
 		$this->log("END ".$this->name);
 		$this->log("Execution time of '".$this->name."': ".time_readable(microtime(true) - $this->start_time));
-	}
-
-	/// Shutdown function for ctl-c, delete all jobs depending on this object, keep tmp files (no shutdown)
-	function shutdownSIG($sig)
-	{
-		trigger_error("Aborted by user; shutdown.", E_USER_NOTICE);
-		die;	//runs shutdown function to clean up files / folders / queued jobs
 	}
 	
 	/// Remove temporary folder
