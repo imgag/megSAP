@@ -1,8 +1,5 @@
 import pysam
 import argparse
-import timeit
-
-start = timeit.default_timer()
 
 # Quality filter flag. 1 if it passes the filter and 0 if not.
 def QC_read(read):
@@ -50,6 +47,8 @@ except:
 
 READNAME = ""
 PAIRED_COUNT = 0
+TOTAL_COUNT = 0;
+REMOVED_COUNT = 0;
 
 ### Parse BAM file.
 while 1:
@@ -78,11 +77,13 @@ while 1:
 		if (READ1_out == 0):
 			
 			
-			print "PAIR_REMOVED:", read.qname
+			#print "PAIR_REMOVED:", read.qname
 			#print read.tlen
 			#print READ1.is_unmapped, READ1.mapq,READ1.cigarstring, str(READ1.is_paired)
 			#print READ2.is_unmapped, READ2.mapq,READ2.cigarstring, str(READ2.is_paired)
 			#print "\n"
+			
+			REMOVED_COUNT += 1
 			
 			READ1_out = ""
 			READ2_out = ""
@@ -100,7 +101,8 @@ while 1:
 				outfile.write(READ1)
 				outfile.write(READ2)
 			else:
-				print "PAIR_REMOVED:", read.qname
+				#print "PAIR_REMOVED:", read.qname
+				REMOVED_COUNT += 1
 			
 			READ1_out = ""
 			READ2_out = ""
@@ -109,11 +111,10 @@ while 1:
 			READ2 = ""
 
 			PAIRED_COUNT = 0
-
-
-print 'TIME'
-stop = timeit.default_timer()
-print stop - start
+	
+	TOTAL_COUNT+= 1
+	
+print "Removed {} of {} pairs due to low quality.".format(REMOVED_COUNT, TOTAL_COUNT)
 
 ### Finish
 infile.close()
