@@ -136,7 +136,7 @@
 ##INFO=<ID=TQSI_NT,Number=1,Type=Integer,Description="Data tier used to compute QSI_NT">
 ##INFO=<ID=TQSS,Number=1,Type=Integer,Description="Data tier used to compute QSS">
 ##INFO=<ID=TQSS_NT,Number=1,Type=Integer,Description="Data tier used to compute QSS_NT">
-##FILTER=<ID=not_cod_spli,Description="Not a coding or splicing variant (filter_vcf).">
+##FILTER=<ID=not-cod-spli-pro,Description="Not a coding or splicing or promoter variant (filter_vcf).">
 ##FILTER=<ID=off_target,Description="Variant is off target (filter_vcf).">
 ##FILTER=<ID=som_all_freq,Description="Difference in allele frequencies too low (filter_vcf).">
 ##FILTER=<ID=som_all_freq_nor,Description="Allele frequency normal too high (filter_vcf).">
@@ -151,10 +151,9 @@
 ##FILTER=<ID=somca_depth_tum,Description="Sequencing depth tumor is too low < 100 (filter_vcf).">
 ##FILTER=<ID=syn_var,Description="Synonymous variant (filter_vcf).">
 ##PEDIGREE=<Tumor=tumor,Normal=normal>
-##FILTER=<ID=not-pro,Description="Variant is not part of a promoter (filter_vcf).">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	normal	tumor
-chr2	198245457	.	C	T	0.0	not-cod-spli;som-all-freq-tum;somca-all-freq;off-target	NT=ref;QSS=38;QSS_NT=38;SGT=CC->CT;TQSS=2;TQSS_NT=2;SOMATIC;ANN=T|intergenic_region|MODIFIER|ANKRD44-SF3B1|ANKRD44-SF3B1|intergenic_region|ANKRD44-SF3B1|||n.198245457C>T||||||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:323,332:323:0:0,0:0:0:0,0	0,0:233,241:240:0:0,0:0:0:7,7
-chr2	198245505	.	C	T	0.0	not-pro;not-cod-spli;som-all-freq-tum;somca-all-freq;off-target	NT=ref;QSS=35;QSS_NT=35;SGT=CC->CT;TQSS=1;TQSS_NT=1;SOMATIC;ANN=T|intergenic_region|MODIFIER|ANKRD44-SF3B1|ANKRD44-SF3B1|intergenic_region|ANKRD44-SF3B1|||n.198245505C>T||||||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:331,337:331:0:0,0:0:0:0,0	0,0:230,240:237:0:0,0:0:0:7,10
-chr2	204637890	.	T	C	0.0	not-pro;not-cod-spli;som-all-freq-tum;somca-all-freq;off-target	NT=ref;QSS=34;QSS_NT=34;SGT=TT->CT;TQSS=2;TQSS_NT=2;SOMATIC;ANN=C|intergenic_region|MODIFIER|CD28-CTLA4|CD28-CTLA4|intergenic_region|CD28-CTLA4|||n.204637890T>C||||||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:1,1:422:0:0,0:0:0:421,427	0,0:8,8:259:0:0,0:1:0:251,256
-chr3	146994617	.	G	A	0.0	not-cod-spli;somca-depth-tum;off-target	NT=ref;QSS=32;QSS_NT=32;SGT=GG->AG;TQSS=2;TQSS_NT=2;SOMATIC;ANN=A|intergenic_region|MODIFIER|PLSCR5-ZIC4|PLSCR5-ZIC4|intergenic_region|PLSCR5-ZIC4|||n.146994617G>A||||||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:138:0:138,140:0:0:0,0	5,5:0,0:97:0:92,94:0:0:0,0
-chr4	19815404	.	G	C	0.0	not-pro;not-cod-spli;off-target	NT=ref;QSS=94;QSS_NT=94;SGT=GG->CG;TQSS=1;TQSS_NT=1;SOMATIC;ANN=C|intergenic_region|MODIFIER|LCORL-SLIT2|LCORL-SLIT2|intergenic_region|LCORL-SLIT2|||n.19815404G>C||||||;GNOMAD_AF=0.0004928	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:200:0:200,204:0:0:0,0	1,1:10,13:192:0:181,188:0:0:0,0
+chr2	198245457	.	C	T	0.0	som-all-freq-tum;somca-all-freq;off-target	NT=ref;QSS=38;QSS_NT=38;SGT=CC->CT;TQSS=2;TQSS_NT=2;SOMATIC;ANN=T|intergenic_region|MODIFIER|ANKRD44-SF3B1|ANKRD44-SF3B1|intergenic_region|ANKRD44-SF3B1|||n.198245457C>T||||||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:323,332:323:0:0,0:0:0:0,0	0,0:233,241:240:0:0,0:0:0:7,7
+chr2	198245505	.	C	T	0.0	not-cod-spli-pro;som-all-freq-tum;somca-all-freq;off-target	NT=ref;QSS=35;QSS_NT=35;SGT=CC->CT;TQSS=1;TQSS_NT=1;SOMATIC;ANN=T|intergenic_region|MODIFIER|ANKRD44-SF3B1|ANKRD44-SF3B1|intergenic_region|ANKRD44-SF3B1|||n.198245505C>T||||||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:331,337:331:0:0,0:0:0:0,0	0,0:230,240:237:0:0,0:0:0:7,10
+chr2	204637890	.	T	C	0.0	not-cod-spli-pro;som-all-freq-tum;somca-all-freq;off-target	NT=ref;QSS=34;QSS_NT=34;SGT=TT->CT;TQSS=2;TQSS_NT=2;SOMATIC;ANN=C|intergenic_region|MODIFIER|CD28-CTLA4|CD28-CTLA4|intergenic_region|CD28-CTLA4|||n.204637890T>C||||||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:1,1:422:0:0,0:0:0:421,427	0,0:8,8:259:0:0,0:1:0:251,256
+chr3	146994617	.	G	A	0.0	somca-depth-tum;off-target	NT=ref;QSS=32;QSS_NT=32;SGT=GG->AG;TQSS=2;TQSS_NT=2;SOMATIC;ANN=A|intergenic_region|MODIFIER|PLSCR5-ZIC4|PLSCR5-ZIC4|intergenic_region|PLSCR5-ZIC4|||n.146994617G>A||||||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:138:0:138,140:0:0:0,0	5,5:0,0:97:0:92,94:0:0:0,0
+chr4	19815404	.	G	C	0.0	not-cod-spli-pro;off-target	NT=ref;QSS=94;QSS_NT=94;SGT=GG->CG;TQSS=1;TQSS_NT=1;SOMATIC;ANN=C|intergenic_region|MODIFIER|LCORL-SLIT2|LCORL-SLIT2|intergenic_region|LCORL-SLIT2|||n.19815404G>C||||||;GNOMAD_AF=0.0004928	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:200:0:200,204:0:0:0,0	1,1:10,13:192:0:181,188:0:0:0,0

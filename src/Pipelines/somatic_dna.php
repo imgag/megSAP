@@ -35,7 +35,7 @@ $parser->addFlag("freebayes", "Use freebayes for variant calling (default: strel
 $parser->addFlag("strelka1", "Use freebayes for variant calling (default: strelka).");
 $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal sample.", true, 0);
 $parser->addFlag("no_softclip", "Skip soft-clipping of overlapping reads. NOTE: This may increase rate of false positive variants.", true);
-$parser->addInfile("promoter","Bed file containing promoter regions. Will be used for filter column of vcf.",true);
+$parser->addInfile("promoter","Bed file containing promoter regions. Will be used for filter column of vcf if filter 'not-promoter' is part of the filter_set.",true);
 $parser->addEnum("clip", "Soft-clip overlapping read pairs.", true, array("sc","mfb","mfm","mfr"),"sc");
 $parser->addFlag("add_vc_folder", "Add folder containing variant calling results from variant caller.",true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
@@ -492,10 +492,6 @@ if (in_array("an", $steps))
 	if (isset($donor_ids))
 	{
 		$filter_set[] = "somatic-donor";
-	}
-	if (isset($promoter))
-	{
-		$filter_set[] = "promoter";
 	}
 	$args_filter_vcf = [
 		"-in", $som_unfi,

@@ -82,7 +82,7 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0)
 {
 	// run somatic_dna pipeline
 	$extras = array("-steps ".implode(",",$tmp_steps));
-	$extras[] = "-filter_set not-coding-splicing,synonymous";
+	$extras[] = "-filter_set not-coding-splicing-promoter,synonymous";
 	if($abra) $extras[] = "-abra";
 	if($amplicon) $extras[] = "-amplicon";
 	if($nsc) $extras[] = "-nsc";

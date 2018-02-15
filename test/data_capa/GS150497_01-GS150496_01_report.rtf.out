@@ -28,5 +28,5 @@
 {\trowd\trgaph70\fs20\cellx3500\cellx9500\pard\intbl\sa20\sb20 {Durchschnittl. Tiefe Normal:}\cell\pard\intbl\sa20\sb20 {0.85x}\cell\row}
 {\trowd\trgaph70\fs20\cellx3500\cellx9500\pard\intbl\sa20\sb20 {Prozessierungssystem Tumor:}\cell\pard\intbl\sa20\sb20 {SureSelect Somatic Cancer Panel v2}\cell\row}
 {\trowd\trgaph70\fs20\cellx3500\cellx9500\pard\intbl\sa20\sb20 {Prozessierungssystem Normal:}\cell\pard\intbl\sa20\sb20 {SureSelect Somatic Cancer Panel v2}\cell\row}
-{\trowd\trgaph70\fs20\cellx3500\cellx9500\pard\intbl\sa20\sb20 {verwendeter Variantenfilter für somatische SNVs / Indels:}\cell\pard\intbl\sa20\sb20 {not-cod-spli}\cell\row}
+{\trowd\trgaph70\fs20\cellx3500\cellx9500\pard\intbl\sa20\sb20 {verwendeter Variantenfilter für somatische SNVs / Indels:}\cell\pard\intbl\sa20\sb20 {not-cod-spli-pro}\cell\row}
 {\trowd\trgaph70\fs20\cellx3500\cellx9500\pard\intbl\sa20\sb20 {verwendeter Genfilter für Keimbahnvarianten:}\cell\pard\intbl\sa20\sb20 {APC, BMPR1A, BRCA1, BRCA2, MEN1, MLH1, MSH2, MSH6, MUTYH, NF2, PMS2, PTEN, RB1, RET, SDHAF2, SDHB, SDHC, SDHD, SMAD4, STK11, TP53, TSC1, TSC2, VHL, WT1.}\cell\row}}

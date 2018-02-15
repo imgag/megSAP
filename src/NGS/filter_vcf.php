@@ -15,7 +15,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("filter_vcf", "Filter VCF-files according to different filter criteria. This tool is designed to filter tumor/normal pair samples. This tools automatically chooses variant caller and tumor/normal sample from the vcf header.");
 $parser->addInfile("in", "Input variant file in VCF format containing all necessary columns (s. below for each filter).", false);
 $parser->addOutfile("out", "Output variant file in VCF format.", false);
-$filter = array('not-coding-splicing', 'synonymous', 'off-target', 'promoter', 'somatic-lq','min-af', 'somatic-donor');
+$filter = array('not-coding-splicing', 'synonymous', 'off-target', 'not-promoter', 'not-coding-splicing-promoter', 'somatic-lq','min-af', 'somatic-donor');
 $parser->addString("type", "Type(s) of variants that are supposed to be filtered out, can be comma delimited. Valid are: ".implode(",",$filter).".",false);
 //optional
 $parser->addFlag("keep", "Keep all variants. Otherwise only variants passing all filters will be removed.");
@@ -192,8 +192,9 @@ for($i=0;$i<$in_file->rows();++$i)
 	if(!is_null($normal_col))	$tmp_col_nor = $row[$normal_col];
 	if(in_array("somatic-lq",$types))	filter_somatic_lq($filter, $info, $genotype, $tmp_col_tum, $tmp_col_nor, $type,$row[4],$var_caller,100);
 	if(in_array("off-target",$types))	filter_off_target($filter, $chr, $start, $end, $tumor_id, $normal_id, $targets);
-	if(in_array("promoter",$types))	filter_promoter($filter, $chr, $start, $end, $tumor_id, $normal_id, $promoters);
 	if(in_array("not-coding-splicing",$types))	filter_not_coding_splicing($filter, $info, $miso_terms_coding);
+	if(in_array("not-coding-splicing-promoter",$types))	filter_not_coding_splicing_promoter($filter, $info, $miso_terms_coding,$chr, $start, $end, $tumor_id, $normal_id, $promoters);
+	if(in_array("not-promoter",$types))	filter_not_promoter($filter, $chr, $start, $end, $tumor_id, $normal_id, $promoters);
 	if(in_array("synonymous",$types))	filter_synonymous($filter, $info, $miso_terms_coding, $miso_terms_synonymous);
 	if(in_array("min-af",$types))	filter_min_af($filter,$info,$genotype,$tmp_col_tum,$row[4],$type,$var_caller, $min_af);
 	if(in_array("somatic-donor",$types))	filter_somatic_donor($filter, $info);
@@ -307,6 +308,21 @@ function filter_synonymous(&$filter, $info, $miso_terms_coding, $miso_terms_syno
 
 
 //filter functions
+function filter_not_coding_splicing_promoter(&$filter, $info, $miso_terms_coding, $chr, $start, $end, $tumor_id, $normal_id, $targets)
+{
+	add_filter($filter, "not-cod-spli-pro", "Not a coding or splicing or promoter variant (filter_vcf).");
+	
+	filter_not_coding_splicing($filter, $info, $miso_terms_coding);
+	filter_not_promoter($filter, $chr, $start, $end, $tumor_id, $normal_id, $targets);
+	
+	if($filter["not-pro"]["active"] && $filter["not-cod-spli"]["active"])
+	{
+		activate_filter($filter, "not-cod-spli-pro");
+	}
+	remove_filter($filter, "not-pro");
+	remove_filter($filter, "not-cod-spli");
+}
+
 function filter_not_coding_splicing(&$filter, $info, $miso_terms_coding)
 {
 	$skip_variant = true;
@@ -346,13 +362,13 @@ function filter_off_target(&$filter, $chr, $start, $end, $tumor_id, $normal_id, 
 	else	trigger_error("Cannot use off-target filter without targets.",E_USER_ERROR);
 }
 
-function filter_promoter(&$filter, $chr, $start, $end, $tumor_id, $normal_id, $promoters)
+function filter_not_promoter(&$filter, $chr, $start, $end, $tumor_id, $normal_id, $promoters)
 {
 	if(!empty($promoters))
 	{
 		$in_promoter = filter_regions($chr,$start,$end,$promoters);
-		add_filter($filter, "promoter", "Variant is part of a promoter (filter_vcf).");
-		if($in_promoter) activate_filter($filter, "promoter");
+		add_filter($filter, "not-pro", "Variant is not part of a promoter (filter_vcf).");
+		if(!$in_promoter) activate_filter($filter, "not-pro");
 	}
 	else	trigger_error("Cannot use promoter filter without promoters.",E_USER_ERROR);
 }
@@ -504,7 +520,7 @@ function filter_min_af(&$filter, $info, $genotype, $tumor, $alt, $type, $var_cal
 
 function add_filter(&$filter,$id,$desc)
 {
-	if(isset($filter[$id]))	trigger_error("Filter $id already declared.",E_USER_ERROR);
+	if(isset($filter[$id]))	trigger_error("Filter $id already declared.",E_USER_WARNING);
 	if(strpos($desc,",")!==FALSE || strpos($desc,"=")!==FALSE)	trigger_error("Error adding filter $id. ',=' currently not allowed in filter descriptions.",E_USER_ERROR);
 	$filter[$id] = array("desc" => $desc, "active" => false);
 }
@@ -513,4 +529,17 @@ function activate_filter(&$filter, $id)
 {
 	if(!isset($filter[$id]))	trigger_error("Unknown filter $id.",E_USER_ERROR);
 	$filter[$id]["active"] = true;	
+}
+
+function deactivate_filter(&$filter, $id)
+{
+	if(!isset($filter[$id]))	trigger_error("Unknown filter $id.",E_USER_ERROR);
+	$filter[$id]["active"] = false;	
+}
+
+function remove_filter(&$filter, $id)
+{
+	if(!isset($filter[$id]))	trigger_error("Unknown filter $id.",E_USER_ERROR);
+	unset($filter[$id]);
+	$filter = array_filter($filter);
 }
