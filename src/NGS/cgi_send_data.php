@@ -46,7 +46,7 @@ if(!isset($cancertype))
 //set user credentials
 $user =  get_path("cgi_user");
 $token = get_path("cgi_token");
-$url = get_path("cgi_url");
+$url =  get_path("cgi_url");
 $header = "Authorization: ".$user." ".$token;
 
 //get Sample IDs
@@ -86,11 +86,40 @@ function sendData($title,$cancer_type = "",$mutation_file = "",$cnv_file = "",$t
 	}
 	$parameters = $parameters."-F \"cancer_type=$cancer_type\" ";
 	$parameters = $parameters."-F \"title=$title\" ";
-	$result = $parser->exec("curl",$parameters,true);
 	
+	$result = $parser->exec("curl",$parameters,true,false);
+
+	//Exception handling for connection errors
+	$error_code = $result[2];
+	if($error_code != 0)
+	{
+		print("Error while sending data to CGI. CURL return error code ".$error_code."\n");
+		
+		//retry three times
+		for($i=0;$i<3;$i++)
+		{
+			print("Retrying\n");
+			sleep(20);
+			$result = $parser->exec("curl",$parameters,true,false);
+			$error_code = $result[2];
+			
+			//finish loop if retry was successful, end program 
+			if($error_code == 0)
+			{
+				print "Success. Data transfered successfully to CancerGenomeInterpreter.org\n";
+				break;
+			}
+		}
+		if($error_code != 0)
+		{
+			trigger_error("Error while sending data to CGI. CURL return error code ".$error_code,E_USER_ERROR);
+		}
+	}
+	
+	//array with the answer received by CGI
 	$cgi_answer = (array)json_decode($result[0][0],true);
 	
-	//Exception handling
+	//Exception handling for CGI errors
 	$error_in_job = false;
 	if(array_key_exists("error_code",$cgi_answer)) 
 	{

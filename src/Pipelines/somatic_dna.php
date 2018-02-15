@@ -554,7 +554,6 @@ if (in_array("an", $steps))
 
 // qci / CGI
 //TODO: implementation for translocation files
-$som_cnv   = $prefix . "_cnvs.tsv";	// copy-number variants
 if (in_array("ci", $steps))
 {
 	// add QCI output
@@ -648,8 +647,13 @@ if (in_array("ci", $steps))
 		$parameters = $parameters . " -t_region $genes_in_target_region";
 	}
 
-	$parser->execTool("NGS/cgi_send_data.php", $parameters);
-
+	//execution will not stop pipeline if it fails but display several errors
+	$result_send_data = $parser->execTool("NGS/cgi_send_data.php", $parameters,false);
+	$error_code = $result_send_data[2];
+	if($error_code != 0)
+	{
+		trigger_error("step \"ci\" did not exit cleanly. Please check sample CGI files manually. cgi_send_data returned error code ".$error_code,E_USER_WARNING);
+	}
 	$parameters = "";
 
 	//only try annotate SNVS to GSVar file if $som_vann (variant file) was uploaded to CGI

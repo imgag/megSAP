@@ -657,7 +657,7 @@ class ToolBase
 		
 		If the call exits with an error code, further execution of the calling script is aborted.
 	*/
-	function exec($command, $parameters, $log_output)
+	function exec($command, $parameters, $log_output,$abort_on_error=true)
 	{
 		//log call
 		if($log_output)
@@ -692,11 +692,11 @@ class ToolBase
 		if ($return != 0)
 		{	
 			$this->toStderr($stderr);
-			trigger_error("Call of external tool '$command' returned error code '$return'.", E_USER_ERROR);
+			trigger_error("Call of external tool '$command' returned error code '$return'.", $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
 		}
 		
-		//return results
-		return array($stdout, $stderr);
+		//return results, 3rd element "return" contains error code
+		return array($stdout, $stderr, $return);
 	}
 
 	/**
@@ -789,7 +789,7 @@ class ToolBase
 		
 		If the call exits with an error code, further execution of the calling script is aborted.
 	*/
-	function execTool($command, $parameters)
+	function execTool($command, $parameters,$abort_on_error=true)
 	{
 		//prepend php and path
 		$command = "php ".repository_basedir()."/src/".$command;
@@ -841,14 +841,14 @@ class ToolBase
 		}
 		
 		//abort on error
-		if ($return != 0)
+		if ($abort_on_error && $return != 0)
 		{	
 			$this->toStderr($stderr);
-			trigger_error("Call of external tool '$command' returned error code '$return'.", E_USER_ERROR);
+			trigger_error("Call of external tool '$command' returned error code '$return'.", $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
 		}
 		
 		//return results
-		return array($stdout, $stderr);
+		return array($stdout, $stderr,$return);
 	}
 	
 	/**
