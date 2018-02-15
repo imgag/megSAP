@@ -91,7 +91,7 @@ if (in_array("ma", $steps))
 	$files2 = glob($in_rev);
 	if (count($files1)!=count($files2))
 	{
-		trigger_error("Found mismatching forward and reverse read file count!\n Forward: ".implode(" ", $files1)."\n Reverse: ".implode(" ", $files2), E_USER_ERROR);
+		trigger_error("Found mismatching forward and reverse read file count!\n Forward: $in_for\n Reverse: $in_rev.", E_USER_ERROR);
 	}
 	if (count($files1)==0)
 	{

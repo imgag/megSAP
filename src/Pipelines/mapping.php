@@ -94,15 +94,13 @@ if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
 	}
 
 	// add barcodes to header
-	$barcode_correction = true;
-
-	$trimmed1_bc = $parser->tempFile("_bc1.fastq.gz");
-	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $merged1 -bc1 $merged_index -o $trimmed1_bc",true);
-	$trimmed2_bc = $parser->tempFile("_bc2.fastq.gz");
-	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $merged2 -bc1 $merged_index -o $trimmed2_bc",true);
+	$merged1_bc = $parser->tempFile("_bc1.fastq.gz");
+	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $merged1 -bc1 $merged_index -o $merged1_bc",true);
+	$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
+	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $merged2 -bc1 $merged_index -o $merged2_bc",true);
 
 	// run SeqPurge
-	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $trimmed1_bc -in2 $trimmed2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);
+	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $merged1_bc -in2 $merged2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);
 
 	// trim 1 base from end of R1 and 1 base from start of R2 (only HaloPlex HS)
 	if ($sys['umi_type'] === "HaloPlex HS")
@@ -116,17 +114,30 @@ if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
 		$trimmed1 = $trimmed_hs1;
 		$trimmed2 = $trimmed_hs2;
 	}
+	
+	$barcode_correction = true;
 }
 else if ($sys['umi_type'] === "MIPs")
 {
 	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".($threads>2 ? 2 : 1), true);
 	// move trimmed reads to temp
 	$trimmed_mips2 = $parser->tempFile("_MB_001.fastq.gz");
-	$parser->exec(get_path("ngs-bits")."FastqExtractBarcode", "-in $trimmed2 -out_main $trimmed_mips2 -cut 8 -out_index $index_file",true);
+	$index = $parser->tempFile("_index.fastq.gz");
+	$parser->exec(get_path("ngs-bits")."FastqExtractBarcode", "-in $trimmed2 -out_main $trimmed_mips2 -cut 8 -out_index $index",true);
 	$trimmed2 = $trimmed_mips2;
+	
+	$trimmed1_bc = $parser->tempFile("_bc1.fastq.gz");
+	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed1 -bc1 $index -o $trimmed1_bc",true);
+	$trimmed2_bc = $parser->tempFile("_bc2.fastq.gz");
+	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed2 -bc1 $index -o $trimmed2_bc",true);
+	$trimmed1 = $trimmed1_bc;
+	$trimmed2 = $trimmed2_bc;
+	
+	$barcode_correction = true;
 }
 else if ($sys['umi_type'] !== "n/a")
 {
+	trigger_error("Unknown UMI-type ".$sys['umi_type'].". No barcode correction skipped.",E_USER_WARNING);
 	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".($threads>2 ? 2 : 1), true);
 }
 else
