@@ -1,18 +1,35 @@
 import pysam
 import argparse
 
+
 # Quality filter flag. 1 if it passes the filter and 0 if not.
 def QC_read(read):
 	read_out=''
-	
-	if (read.is_unmapped or read.mapq < args.minMQ or read.cigarstring == None or read.opt("NM") > args.maxMM or (read.cigarstring.count("I") + read.cigarstring.count("D")) > args.maxGAP or not read.is_paired or read.mate_is_unmapped):
+	if (read.is_unmapped or read.mapq < args.minMQ or read.cigarstring == None or (read.cigarstring.count("I") + read.cigarstring.count("D")) > args.maxGAP or not read.is_paired or read.mate_is_unmapped):
 		read_out = 0
+	
 	else:
-		read_out = 1
+		INDEL_SIZES=0
+		if  ((read.cigarstring.count("I") + read.cigarstring.count("D")) > 0):
+			
+			for (cigarType,cigarLength) in read.cigar:
+				try:
+					if (cigarType == 1 or cigarType == 2):
+						INDEL_SIZES = INDEL_SIZES + cigarLength
+				except:
+					continue
+				
+						
+		NM = read.opt("NM") - INDEL_SIZES
+		
+		if (NM > args.maxMM):
+			#print read.qname, read.cigarstring, read.opt("NM"), NM
+			read_out = 0
+
+		else:
+			read_out = 1
 		
 	return (read_out)
-
-
 
 ### Read parameters
 parser = argparse.ArgumentParser(description='Filter bam file based on different values like mismatches, indels, paired reads and mapping quality. The input bam file has to be sorted by read name.')
@@ -62,7 +79,8 @@ while 1:
 	# Grouping and filtering
 	if (read.qname != READNAME):
 		if (PAIRED_COUNT == 1):
-			print "ERROR", READ1.qname
+			REMOVED_COUNT += 1
+			#print "ERROR", READ1.qname
 		PAIRED_COUNT = 1
 		READNAME = read.qname
 		READ1 = read
@@ -76,13 +94,7 @@ while 1:
 		# If the first read in the paired is already low quality, we do not consider none of them
 		if (READ1_out == 0):
 			
-			
-			#print "PAIR_REMOVED:", read.qname
-			#print read.tlen
-			#print READ1.is_unmapped, READ1.mapq,READ1.cigarstring, str(READ1.is_paired)
-			#print READ2.is_unmapped, READ2.mapq,READ2.cigarstring, str(READ2.is_paired)
-			#print "\n"
-			
+						
 			REMOVED_COUNT += 1
 			
 			READ1_out = ""
@@ -101,7 +113,7 @@ while 1:
 				outfile.write(READ1)
 				outfile.write(READ2)
 			else:
-				#print "PAIR_REMOVED:", read.qname
+				
 				REMOVED_COUNT += 1
 			
 			READ1_out = ""
