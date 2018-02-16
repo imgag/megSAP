@@ -1,7 +1,7 @@
 <?php 
 /** 
 	@page vc_cnvhunter
-	
+
 	@todo check if filtering for germline CN-polymorphisms improves somatic output
 */
 
@@ -253,6 +253,7 @@ if($somatic)
 	$tmp_matrix->setComments($cnvs_somatic->getComments());
 	$tmp_matrix->setHeaders($cnvs_somatic->getHeaders());
 	
+	//merge somatic regions
 	if($cnvs_somatic->rows()>1)
 	{
 		$tmp_matrix->addRow($cnvs_somatic->getRow(0));
@@ -323,7 +324,8 @@ if($somatic)
 	}
 	$cnvs_somatic = $tmp_matrix;
 	
-	// fix region information
+	//fix region information
+	//@todo use seg file to update marker count / zscores / regions
 	$tmp_matrix = new Matrix();
 	$tmp_matrix->setComments($cnvs_somatic->getComments());
 	$tmp_matrix->setHeaders($cnvs_somatic->getHeaders());
@@ -352,6 +354,7 @@ if($somatic)
 			$region_zscores[] = $rt[3];
 		}
 		
+		$current_region[4] = $current_region[2]-$current_region[1]+1;
 		$current_region[5] = $count_regions;
 		$current_region[6] = implode(",",$region_copy_numbers);
 		$current_region[7] = implode(",",$region_zscores);
@@ -361,7 +364,7 @@ if($somatic)
 		
 		$tmp_matrix->addRow($current_region);
 	}
-	trigger_error("Columns GENES and AF may contain all regions than due to the merging process.",E_USER_WARNING);
+	trigger_error("Columns GENES and AF may contain all regions due to the merging process.",E_USER_WARNING);
 	$cnvs_somatic = $tmp_matrix;
 
 	// anotate genes and replace old gene column
@@ -408,10 +411,9 @@ if($somatic)
 		}
 	}
 	if(!empty($chr))	$chrom_arms[] = array($chr,$start,$end,$arm);
-	//focal < 25 % chromosomal arm
-	//arm >= 50 % of chromosomal arm
-	//chromosome => centromer included
+	
 	$new_col = array();
+	$idx_genes = $cnvs_somatic->getColumnIndex("genes");
 	for($i=0;$i<$cnvs_somatic->rows();++$i)
 	{
 		$row = $cnvs_somatic->getRow($i);
@@ -421,29 +423,51 @@ if($somatic)
 		{
 			$r = $chrom_arms[$j];
 			if($row[0]!=$r[0])	continue;
-			if(!range_overlap($row[1],$row[2],$r[1],$r[2]))	continue;
 			
 			$intersect = range_intersect($row[1],$row[2],$r[1],$r[2]);
 			$size = $r[2]-$r[1];
 			
 			// overlap - arm, fraction
-			$overlap[] = array($r[3],($intersect[1]-$intersect[0])/$size);
+			if(isset($overlap[$r[3]]))	trigger_error("This should not happen.",E_USER_ERROR);
+			$overlap[$r[3]] = ($intersect[1]-$intersect[0])/$size;
 		}
 		
 		if(count($overlap)>2 || count($overlap)<1)	trigger_error("This should not happen.",E_USER_ERROR);
 		
-		if($overlap[0][1]<=0.25) $tmp_type = "focal";
-		else if($overlap[0][1]>0.25) $tmp_type = $overlap[0][0]."-arm";
-		if(isset($overlap[1]) && !empty($overlap[1]))
+		$p_arm = $overlap["p"];
+		$q_arm = $overlap["q"];
+		$chr = ($p_arm+$q_arm)/2;
+		$acrocentric = false;
+		if(in_array($row[0],array("chr13","chr14","chr15","chr21","chr22")))	$acrocentric = true;
+		$tmp_type = "unknown";
+		if($p_arm<=0.25 && $q_arm<=0.25)
 		{
-			$tmp_overlap = ($overlap[0][1] + $overlap[1][1])/2;
-			if($tmp_overlap>0.5) $tmp_type = "chromosome";
-			else if($tmp_overlap<0.5 && $overlap[1][1]>$overlap[0][1]) $tmp_type = $overlap[1][0]."-arm";
+			$tmp_type = "focal";
+			$count_genes = array_filter(explode(",",$row[$idx_genes]));
+			if(count($count_genes)==0)	$tmp_type = "no gene";
+			if(count($count_genes)>3)	$tmp_type = "cluster";
+		}
+		else if($p_arm>0.25 && $q_arm<=0.25)
+		{
+			$tmp_type = "partial p-arm";
+			if($p_arm>0.75)	$tmp_type = "p-arm";
+		}
+		else if($q_arm>0.25 && $p_arm<=0.25)
+		{
+			$tmp_type = "partial q-arm";
+			if($q_arm>0.75)	$tmp_type = "q-arm";
+			if($q_arm>0.25 && $acrocentric)	$tmp_type = "partial chromosome";
+			if($q_arm>0.75 && $acrocentric)	$tmp_type = "chromosome";
+		}
+		else if($p_arm>0.25 && $q_arm>0.25)
+		{
+			$tmp_type = "partial chromosome";
+			if(($q_arm+$p_arm)/2>0.75) $tmp_type = "chromosome";
 		}
 				
 		$new_col[] = $tmp_type;
 	}
-	$cnvs_somatic->insertCol(5,$new_col, "cnv_type","Type of CNV: focal (< 25 % of chrom. arm), p/q-arm (centromere not included), chromosome.");
+	$cnvs_somatic->insertCol(5,$new_col, "cnv_type","Type of CNV: focal (< 25 % of chrom. arm, < 3 genes), cluster (focal, > 3 genes), (partial) p/q-arm, (partial) chromosome.");
 
 	$cnvs_filtered = $cnvs_somatic;
 }

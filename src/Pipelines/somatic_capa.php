@@ -21,7 +21,7 @@ $parser->addString("o_folder", "Folder where output will be generated.", false);
 $parser->addString("n_id",  "Reference DNA-sample processing ID.", true, "");
 $parser->addInfile("t_sys",  "Tumor sample processing system INI file (determined from 't_id' by default).", true);
 $parser->addInfile("n_sys",  "Reference sample processing system INI file (determined from 'n_id' by default).", true);
-$parser->addInfile("promoter","Bed file containing promoter region.",true,"auto");
+$parser->addString("promoter", "Bed file containing promoter region." ,true, "auto");
 $steps_all = array("ma", "vc", "an", "ci", "db","re");
 $parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, implode(",", $steps_all));
 $parser->addFlag("abra", "Turn on ABRA realignment.");
@@ -82,7 +82,7 @@ if(count($tmp_steps=array_intersect($available_steps,$steps))>0)
 {
 	// run somatic_dna pipeline
 	$extras = array("-steps ".implode(",",$tmp_steps));
-	$extras[] = "-filter_set not-coding-splicing,synonymous";
+	$extras[] = "-filter_set not-coding-splicing-promoter,synonymous";
 	if($abra) $extras[] = "-abra";
 	if($amplicon) $extras[] = "-amplicon";
 	if($nsc) $extras[] = "-nsc";
@@ -170,7 +170,7 @@ foreach(array($s_tsv, $n_tsv) as $file)
 	if(!empty($filter))
 	{
 		$file_filtered = dirname($file)."/".basename($file,".GSvar")."_filtered.GSvar";;
-		$parser->exec(get_path("ngs-bits")."VariantFilterRegions","-in $file -mark -reg $filter -out $file_filtered", true);
+		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $file -mark off-target -reg $filter -out $file_filtered", true);
 		if($file==$s_tsv)	$s_tsv = $file_filtered;
 		if($file==$n_tsv)	$n_tsv = $file_filtered;
 	}

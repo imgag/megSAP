@@ -1,9 +1,9 @@
 ##Tumor1 ref_correl: 0.353 (median: 0.961)
 ##Tumor1 cnvs: 288 (median: 2)
-##Tumor1 qc_errors: 
+##Tumor1 qc_errors:
 ##Normal1 ref_correl: 0.914 (median: 0.961)
 ##Normal1 cnvs: 79 (median: 2)
-##Normal1 qc_errors: 
+##Normal1 qc_errors:
 ##DESCRIPTION=CGI_drug_assoc=Cancer Genome Interpreter - therapeutic biomarkers
 ##DESCRIPTION=CGI_evid_level=Cancer Genome Interpreter - evidence level
 #chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_coordinates	genes	CGI_drug_assoc	CGI_evid_level

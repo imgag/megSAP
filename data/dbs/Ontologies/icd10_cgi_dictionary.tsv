@@ -1,0 +1,36 @@
+#icd10_code	hpo_term	desc_de	desc_en	cgi_acronym
+C18		Bösartige Neubildung des Kolons	Malignant neoplasm of colon	COC
+C18.7		Colon sigmoideum	Sigmoid colon	COC
+C20		Bösartige Neubildung des Rektums	Malignant neoplasm of rectum	REC
+C25.9		Pankreas, nicht näher bezeichnet	Pancreas, unspecified	PA
+C26.9		Ungenau bezeichnete Lokalisationen des Verdauungssystems	Ill-defined sites within the digestive system	DS
+C40		Bösartige Neubildung des Knochens und des Gelenkknorpels der Extremitäten	Malignant neoplasm of bone and articular cartilage of limbs	S
+C43	HP:0012060,HP:0012056,NA	Bösartiges Melanom der Haut	Malignant melanoma of skin	ALM,CM,SK
+C43.2		Bösartiges Melanom des Ohres und des äußeren Gehörganges	Malignant melanoma of ear and external auricular canal	CM
+C43.3		Bösartiges Melanom sonstiger und nicht näher bezeichneter Teile des Gesichtes	Malignant melanoma of other and unspecified parts of face	CM
+C43.4		Bösartiges Melanom der behaarten Kopfhaut und des Halses	Malignant melanoma of scalp and neck	CM
+C43.5		Bösartiges Melanom des Rumpfes	Malignant melanoma of trunk	CM
+C43.6		Bösartiges Melanom der oberen Extremität, einschließlich Schulter	Malignant melanoma of upper limb, including shoulder	CM
+C43.7		Bösartiges Melanom der unteren Extremität, einschließlich Hüfte	Malignant melanoma of lower limb, including hip	CM
+C43.9		Bösartiges Melanom der Haut, nicht näher bezeichnet	Malignant melanoma of skin, unspecified	CM
+C44		Sonstige bösartige Neubildungen der Haut	Other malignant neoplasms of skin	BCC
+C44.6		Haut der oberen Extremität, einschließlich Schulter	Skin of upper limb, including shoulder	BCC
+C44.9		Bösartige Neubildung der Haut, nicht näher bezeichnet	Malignant neoplasm of skin, unspecified	BCC
+C49		Bösartige Neubildung sonstigen Bindegewebes und anderer Weichteilgewebe	Malignant neoplasm of other connective and soft tissue	S
+C49.3		Bindegewebe und andere Weichteilgewebe des Thorax	Connective and soft tissue of thorax	S
+C49.6		Bindegewebe und andere Weichteilgewebe des Rumpfes, nicht näher bezeichnet	Connective and soft tissue of trunk, unspecified	S
+C51		Bösartige Neubildung der Vulva	Malignant neoplasm of vulva	SCC
+C51.1		Labium minus	Labium minus	SCC
+C53		Bösartige Neubildung der Cervix uteri	Malignant neoplasm of cervix uteri	CER
+C53.9		Cervix uteri, nicht näher bezeichnet	Cervix uteri, unspecified	CER
+C56		Bösartige Neubildung des Ovars	Malignant neoplasm of ovary	OV
+C61		Bösartige Neubildung der Prostata	Malignant neoplasm of prostate	PRAD
+C69		Bösartige Neubildung des Auges und der Augenanhangsgebilde	Malignant neoplasm of eye and adnexa	EY
+C69.3		Chorioidea	Choroid	UVM
+C69.9		Auge, nicht näher bezeichnet	Eye, unspecified	EY
+C71		Bösartige Neubildung des Gehirns	Malignant neoplasm of brain	CNS
+C71.6		Zerebellum	Cerebellum	CNS
+C74		Bösartige Neubildung der Nebenniere	Malignant neoplasm of adrenal gland	AG
+C74.9		Nebenniere, nicht näher bezeichnet	Adrenal gland, unspecified	AG
+C91		Lymphatische Leukämie	Lymphoid leukaemia	LL
+C91.0		Akute lymphatische Leukämie [ALL]	Acute lymphoblastic leukaemia [ALL]	ALL

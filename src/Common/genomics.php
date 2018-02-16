@@ -380,7 +380,7 @@ function load_system(&$filename, $ps_name = "")
 		}
 
 		//get processed sample raw data
-		$res = $db->executeQuery("SELECT sys.name_manufacturer, sys.name_short, sys.adapter1_p5, sys.adapter2_p7, sys.type, sys.shotgun, sys.target_file, g.build FROM processing_system as sys, genome as g, processed_sample as ps, sample as s WHERE sys.genome_id=g.id and sys.id=ps.processing_system_id and ps.id=:pid", array("pid"=>$pid));
+		$res = $db->executeQuery("SELECT sys.name_manufacturer, sys.name_short, sys.adapter1_p5, sys.adapter2_p7, sys.type, sys.shotgun, sys.umi_type, sys.target_file, g.build FROM processing_system as sys, genome as g, processed_sample as ps, sample as s WHERE sys.genome_id=g.id and sys.id=ps.processing_system_id and ps.id=:pid", array("pid"=>$pid));
 		$output = array();
 		$output[] = "name_short = \"".$res[0]['name_short']."\"";
 		$output[] = "name_manufacturer = \"".$res[0]['name_manufacturer']."\"";
@@ -388,6 +388,7 @@ function load_system(&$filename, $ps_name = "")
 		$output[] = "adapter1_p5 = \"".$res[0]['adapter1_p5']."\"";
 		$output[] = "adapter2_p7 = \"".$res[0]['adapter2_p7']."\"";
 		$output[] = "shotgun = ".$res[0]['shotgun'];
+		$output[] = "umi_type = \"".$res[0]['umi_type']."\"";
 		$output[] = "type = \"".$res[0]['type']."\"";
 		$output[] = "build = \"".$res[0]['build']."\"";
 		
@@ -672,7 +673,7 @@ function updateLastAnalysisDate($psname, $file)
 }
 
 
-///Updates the last analysis date of a processed sample using a file date.
+///Updates normal sample entry for given tumor sample.
 function updateNormalSample($ps_tumor, $ps_normal, $overwrite = false)
 {
 	$db = DB::getInstance("NGSD");
@@ -1490,6 +1491,38 @@ function vcf_column_index($name, $header)
 	}
 	
 	return $indices[0];
+}
+
+//checks whether gene names are up to date. Expects array with genes as input.
+//Returns an array with approved symbols, obsolete gene names are replaced with up-to-data names
+//If gene symbol is not found it is returned unaltered.
+function approve_gene_names($input_genes)
+{
+	$genes_as_string = "";
+	foreach($input_genes as $gene)
+	{
+		//set dummy if there are empty lines in input file
+		if(trim($gene) == "")
+		{
+			$gene =  "NOT_AVAILABLE";
+		}
+		
+		$genes_as_string = $genes_as_string.$gene."\n";
+	}
+	$non_approved_genes_file = tempnam(sys_get_temp_dir(),"temp_");
+	file_put_contents($non_approved_genes_file,$genes_as_string);
+	
+	//write stdout to $approved_genes -> each checked gene is one array element
+	$approved_genes = exec2(get_path("ngs-bits",true)."GenesToApproved -in $non_approved_genes_file")[0];
+	
+	$output = array();
+	foreach($approved_genes as $gene)
+	{
+		//remove dummy before saving
+		if($gene == "NOT_AVAILABLE") $gene = "";
+		$output[] = (explode("\t",$gene))[0];
+	}
+	return $output;
 }
 
 ?>

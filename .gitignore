@@ -75,11 +75,8 @@
 /test/data_somatic_dna_rna/results_*
 /test/data_somatic_dna_rna/somatic_dna_rna_*.log
 
-/test/data_somatic/results_*/
-/test/data_somatic/Somatic_*/
+/test/data_somatic/out_*
 /test/data_somatic/Sample_*/
-/test/data_somatic/*_qcML.txt
-/test/data_somatic/*_var_qci.vcf.gz
 
 /test/data_out/tool_test_*
 

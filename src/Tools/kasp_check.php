@@ -21,8 +21,8 @@ function error_probabilty($match_prob, $matches, $mismatches)
 	return $p;
 }
 
-///Converts a KASP text export file from TXT to TSV format
-function txt2geno($snps, $in_file, $out_file)
+///Converts a LightCycler text export file to TSV format
+function txt2geno_lightcycler($snps, $in_file, $out_file)
 {
 	//parse data
 	$parsed = array();
@@ -34,8 +34,7 @@ function txt2geno($snps, $in_file, $out_file)
 		list($include, $color, $position, $sample, $x, $y, $call, $score, $status) = explode("\t", nl_trim($line));
 
 		//filter
-		if (starts_with($sample, "DNA-")) $sample = substr($sample, 4);
-		if (!preg_match("/^[0-9]{6}/", $sample) && !starts_with($sample, "FO")) continue;
+		if (!preg_match("/^[0-9]{6}/", $sample) && !preg_match("/^DNA-[0-9]{6}/", $sample) && !starts_with($sample, "FO")) continue;
 		if (!isset($snps[$position[0]])) continue;
 		
 		//determine genotype (KASP)
@@ -64,6 +63,66 @@ function txt2geno($snps, $in_file, $out_file)
 		$parsed[$sample][$rs] = array("geno"=>$geno, "score"=>$score);
 	}
 
+
+	//write header
+	$output = array();
+	$outline = "#sample";
+	foreach($snps as $row => $data)
+	{
+		list($rs, $chr, $pos, $x, $y) = $data;
+		$outline .= "\t{$rs}_{$chr}_{$pos}_{$x}_{$y}";
+	}
+	$output[] = $outline;
+
+	//write sample lines
+	foreach($parsed as $sample => $sample_data)
+	{
+		$outline = $sample;
+		foreach($snps as $row => $row_data)
+		{
+			$rs = $row_data[0];
+			if (isset($sample_data[$rs]))
+			{
+				$outline .= "\t".$sample_data[$rs]["geno"];
+			}
+			else
+			{
+				$outline .= "\tn/a";
+			}
+		}
+		$output[] = $outline;
+	}
+
+	file_put_contents($out_file, implode("\n", $output));
+}
+
+///Converts a StepOnePlus text export file to TSV format
+function txt2geno_steponeplus($snps, $in_file, $out_file)
+{
+	//parse data
+	$parsed = array();
+	$file = file($in_file);
+	foreach($file as $line)
+	{
+		$line = trim($line);
+		
+		//only content lines
+		if (!preg_match("/^[A-H][0-9]+\t/", $line)) continue;
+		
+		list($well, $sample, $rs, , , , , $quality, $call) = explode("\t", $line);
+		list(, $rs) = explode("_", $rs);
+		if (trim($call)=="" || starts_with($call, "Negative Control") || starts_with($call, "Undetermined"))
+		{
+			$call = "n/a";
+		}
+		else
+		{
+			list(, $call) = explode(" ", $call);
+		}
+		if (trim($call)=="") $call = "n/a";
+		
+		$parsed[$sample][$rs] = array("geno"=>$call, "score"=>$quality);
+	}
 
 	//write header
 	$output = array();
@@ -130,14 +189,39 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 	return "$b1/$b2";
 }
 
+
 //imports the result into NGSD
-function import_ngsd($bam, $rmp, $c_both, $c_match)
+function sample_from_ngsd(&$db, $sample_name, $irp)
+{
+	//sample name
+	$res = $db->executeQuery("SELECT s.name FROM sample s WHERE s.name='{$sample_name}' AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND (p.type='diagnostic'".($irp ? " OR p.type='research'" : "")."))");
+	if (count($res)>0) return $res;
+	
+	//DNA number
+	if (!starts_with($sample_name, "FO"))
+	{
+		if (starts_with($sample_name, "DNA-"))
+		{
+			$sample_name = substr($sample_name, 4);
+		}
+		$sample_name = substr($sample_name, 0, 6);
+		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name='DX{$sample_name}' OR s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND (p.type='diagnostic'".($irp ? " OR p.type='research'" : "")."))");
+		if (count($res)>0) return $res;
+	}
+	
+	//FO number
+	$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND (p.type='diagnostic'".($irp ? " OR p.type='research'" : "")."))");
+	
+	return $res;
+}
+
+//imports the result into NGSD
+function import_ngsd(&$db, $bam, $rmp, $c_both, $c_match)
 {
 	//determine processed sample id from BAM name
 	$ps_name = basename($bam,".bam");
 	$ps_id = get_processed_sample_id($ps_name);
 	
-	$db = DB::getInstance("NGSD");
 	$db->executeStmt("DELETE FROM kasp_status WHERE processed_sample_id=:ps_id", array("ps_id"=>$ps_id));
 	$db->executeStmt("INSERT INTO kasp_status VALUES (:ps_id,:rmp,:c_both,:c_match)", array("ps_id"=>$ps_id, "rmp"=>$rmp, "c_both"=>$c_both, "c_match"=>$c_match));
 }
@@ -147,6 +231,7 @@ $parser = new ToolBase("kasp_check", "Checks that the genotype of a KASP essay a
 $parser->addInfile("in", "KASP text export file.", false);
 $parser->addOutfile("out", "Output file in TSV format.", false);
 $parser->addEnum("snps", "SNP set.", false, array("set1", "set2"));
+$parser->addEnum("format", "Input text format.", false, array("LightCycler", "StepOnePlus"));
 $parser->addInt("min_depth", "Minimal depth for genotype determination in NGS data", true, 10);
 $parser->addInt("mep", "Maximum error probabilty of of genotype matches.", true, 0.01);
 $parser->addFlag("pmm", "Prints mismatches to the command line.");
@@ -194,10 +279,18 @@ if ($snps=="set2")
 
 //(re-)create TSV file
 $tsv_file = substr($in, 0, -4)."_converted.tsv";
-txt2geno($snps, $in, $tsv_file);
+if ($format=="LightCycler")
+{
+	txt2geno_lightcycler($snps, $in, $tsv_file);
+}
+else
+{
+	txt2geno_steponeplus($snps, $in, $tsv_file);
+}
 
+$db = DB::getInstance("NGSD");
 $output = array();
-$output[] = "#dna-nr\trandom_match_prob\tgenos_kasp\tgenos_both\tgenos_match\tbam\n";
+$output[] = "#sample_name\trandom_match_prob\tgenos_kasp\tgenos_both\tgenos_match\tbam\n";
 $file = file($tsv_file);
 foreach($file as $line)
 {
@@ -205,21 +298,19 @@ foreach($file as $line)
 	if ($line=="" || $line[0]=="#") continue;
 	
 	$genotypes = explode("\t", $line);
-	$dna = trim($genotypes[0]);
-	if (!starts_with($dna, "FO")) $dna = substr($dna, 0, 6);
+	$sample_name = trim($genotypes[0]);
 	$genotypes = array_slice($genotypes, 1);
 	
-	//determine BAM file of DNA-number
-	$db = DB::getInstance("NGSD");
-	$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (name='DX".$dna."' OR name_external LIKE '%".$dna."%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND (p.type='diagnostic' ".($irp ? "OR p.type='research'" : "")." OR p.name='GT'))");
+	//determine BAM file of sample
+	$res = sample_from_ngsd($db, $sample_name, $irp);
 	if (count($res)==0)
 	{
-		print "error - Could not find sample for DNA number '$dna' in NGSD!\n";
+		print "error - Could not find sample '$sample_name' in NGSD!\n";
 	}
 	foreach($res as $res_entry)
 	{
 		$sample = $res_entry["name"];
-		print "$dna (".$res_entry["name"].")\n";
+		print "$sample_name (".$res_entry["name"].")\n";
 		
 		//find BAM file(s) of sample
 		$project_folder  = get_path("project_folder");
@@ -290,7 +381,7 @@ foreach($file as $line)
 				if ($c_kasp>=10)
 				{
 					//NGSD import of results
-					import_ngsd($bam, 999, $c_both, $c_match);
+					import_ngsd($db, $bam, 999, $c_both, $c_match);
 				}
 			}
 			else
@@ -301,10 +392,10 @@ foreach($file as $line)
 				{
 					$messages[] = "ERROR - random_match_probabilty too high";
 				}
-				$output[] = "$dna\t$rmp\t$c_kasp\t$c_both\t$c_match\t$bam\n";
+				$output[] = "$sample_name\t$rmp\t$c_kasp\t$c_both\t$c_match\t$bam\n";
 			
 				//NGSD import of results
-				import_ngsd($bam, $rmp, $c_both, $c_match);
+				import_ngsd($db, $bam, $rmp, $c_both, $c_match);
 			}
 			print "\n";
 			foreach($messages as $message)

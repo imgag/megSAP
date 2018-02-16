@@ -7,21 +7,21 @@ import_runqc:
 	php /mnt/users/all/megSAP/src/NGS/runqc_parser.php -name "#00203" -run_dir Unaligned/../ -force
 
 copy_Leuk_research:
-	mv Unaligned/Project_Leuk/Sample_GS130500_01/ /mnt/projects/research/Leuk/
-	mv Unaligned/Project_Leuk/Sample_GS130501_01/ /mnt/projects/research/Leuk/
-	mv Unaligned/Project_Leuk/Sample_GS130502_01/ /mnt/projects/research/Leuk/
+	mv -f Unaligned/Project_Leuk/Sample_GS130500_01/ /mnt/projects/research/Leuk/
+	mv -f Unaligned/Project_Leuk/Sample_GS130501_01/ /mnt/projects/research/Leuk/
+	mv -f Unaligned/Project_Leuk/Sample_GS130502_01/ /mnt/projects/research/Leuk/
 
 copy_HepaVac_research:
-	mv Unaligned/Project_HepaVac/Sample_GS130715_01/ /mnt/projects/research/HepaVac/
-	mv Unaligned/Project_HepaVac/Sample_GS130717_01/ /mnt/projects/research/HepaVac/
+	mv -f Unaligned/Project_HepaVac/Sample_GS130715_01/ /mnt/projects/research/HepaVac/
+	mv -f Unaligned/Project_HepaVac/Sample_GS130717_01/ /mnt/projects/research/HepaVac/
 
 copy_Swed_research:
-	mv Unaligned/Project_Swed/Sample_GS130718_01/ /mnt/projects/research/Swed/
-	mv Unaligned/Project_Swed/Sample_GS130719_01/ /mnt/projects/research/Swed/
+	mv -f Unaligned/Project_Swed/Sample_GS130718_01/ /mnt/projects/research/Swed/
+	mv -f Unaligned/Project_Swed/Sample_GS130719_01/ /mnt/projects/research/Swed/
 
 queue_Swed_research:
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130718_01 
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130719_01 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130718_01 -high_priority 
+	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130719_01 -high_priority 
 
 qc_Leuk:
 	php /mnt/users/all/megSAP/src/NGS/qc_fastq.php -folder /mnt/projects/research/Leuk/Sample_GS130500_01 -import

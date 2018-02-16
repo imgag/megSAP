@@ -154,6 +154,7 @@ $filename = data_folder()."/genomics_load_system.ini";
 $sys = load_system($filename);
 check($sys['name_manufacturer'], "SureSelectXT Human All Exon v5");
 check($sys['shotgun'], true);
+check($sys['umi_type'], "n/a");
 
 if (db_is_enabled("NGSD"))
 {

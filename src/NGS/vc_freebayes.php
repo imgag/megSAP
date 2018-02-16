@@ -18,6 +18,7 @@ $parser->addInt("target_extend",  "Call variants up to n bases outside the targe
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 1);
+$parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 10);
 $parser->addFlag("no_ploidy", "Use freebayes parameter -K, i.e. output all alleles which pass input filters, regardles of genotyping outcome or model.");
 $parser->addFlag("no_bias", "Use freebayes parameter -V, i.e. ignore strand bias and read end distance bias.");
 extract($parser->parse($argv));
@@ -55,7 +56,7 @@ if ($no_bias)
 }
 $args[] = "--min-alternate-fraction $min_af";
 $args[] = "--min-mapping-quality $min_mq";
-$args[] = "--min-base-quality 10"; //max 10% error propbability
+$args[] = "--min-base-quality $min_bq"; //max 10% error propbability
 $args[] = "--min-alternate-qsum 90"; //At least 3 good observations
 $pipeline[] = array(get_path("freebayes"), "-b ".implode(" ",$bam)." -f $genome ".implode(" ", $args));
 
@@ -88,7 +89,7 @@ $parser->execPipeline($pipeline, "variant calling");
 if ($target_extend>0)
 {
 	$tmp = $parser->tempFile(".vcf");
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions","-in $out -mark -reg $target -out $tmp", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $out -mark off-target -reg $target -out $tmp", true);
 	$parser->exec("bgzip", "-c $tmp > $out", false);
 }
 

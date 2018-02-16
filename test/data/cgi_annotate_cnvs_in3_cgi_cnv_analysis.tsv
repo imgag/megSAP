@@ -1,0 +1,121 @@
+#sample	gene	cna	predicted_in_tumors	internal_id	cancer	known_in_tumors	gene_role	driver	driver_statement	predicted_match	known_match
+tcgi	RICTOR	AMP		16	CANCER	L	ambiguous	known	known in: L		known_match
+tcgi	PTEN	DEL	BLCA;CESC;COREAD;ESCA;GBM;HNSC;HC;LUSC;S;CM;STAD;UCEC	53	CANCER	G;PRAD;ED;BRCA;OV;THCA;CANCER;L;SOLID	LoF	known	known in: G;PRAD;ED;BRCA;OV;THCA;L;SOLID	known_match	known_match
+tcgi	SUFU	DEL		56	CANCER	MB	LoF	known	known in: MB		known_match
+tcgi	FANCA	DEL		101	CANCER	AML;LK	LoF	known	known in: AML;LK		known_match
+tcgi	FUBP1	AMP		0	CANCER		LoF		predicted passenger		
+tcgi	ADGRL3	AMP		1	CANCER		ambiguous		predicted passenger		
+tcgi	EPHA5	AMP		2	CANCER		ambiguous		predicted passenger		
+tcgi	FIP1L1	AMP	GBM;G;S	3	CANCER		Act		predicted passenger	known_match	
+tcgi	KDR	AMP		4	CANCER		Act		predicted passenger		
+tcgi	KIT	AMP	S	5	CANCER		Act		predicted passenger	known_match	
+tcgi	PDGFRA	AMP	GBM;G;S	6	CANCER		Act		predicted passenger	known_match	
+tcgi	F11-AS1	DEL		7	CANCER		ambiguous		predicted passenger		
+tcgi	FAT1	DEL	BLCA;BRCA;CESC;ESCA;HNSC;LUSC	8	CANCER		LoF		predicted passenger	known_match	
+tcgi	GALNTL6	DEL		9	CANCER		ambiguous		predicted passenger		
+tcgi	WWC2	DEL		10	CANCER		ambiguous		predicted passenger		
+tcgi	ADAMTS12	AMP		11	CANCER		ambiguous		predicted passenger		
+tcgi	FGF10	AMP		12	CANCER		ambiguous		predicted passenger		
+tcgi	IL7R	AMP		13	CANCER		Act		predicted passenger		
+tcgi	LIFR	AMP	LUSC;STAD	14	CANCER		Act		predicted passenger	known_match	
+tcgi	NIPBL	AMP		15	CANCER		ambiguous		predicted passenger		
+tcgi	BNIP1	DEL		17	CANCER		ambiguous		predicted passenger		
+tcgi	FGFR4	DEL		18	CANCER		Act		predicted passenger		
+tcgi	FLT4	DEL		19	CANCER		ambiguous		predicted passenger		
+tcgi	NSD1	DEL		20	CANCER		Act		predicted passenger		
+tcgi	RUFY1	DEL		21	CANCER		ambiguous		predicted passenger		
+tcgi	CMAHP	AMP		22	CANCER		ambiguous		predicted passenger		
+tcgi	E2F3	AMP		23	CANCER		ambiguous		predicted passenger		
+tcgi	F13A1	AMP		24	CANCER		ambiguous		predicted passenger		
+tcgi	FOXQ1	AMP		25	CANCER		ambiguous		predicted passenger		
+tcgi	IRF4	AMP		26	CANCER		ambiguous		predicted passenger		
+tcgi	LYRM4	AMP		27	CANCER		ambiguous		predicted passenger		
+tcgi	NUP153	AMP		28	CANCER		ambiguous		predicted passenger		
+tcgi	TPMT	AMP		29	CANCER		ambiguous		predicted passenger		
+tcgi	ABCC2	DEL		30	CANCER		ambiguous		predicted passenger		
+tcgi	ACTA2	DEL		31	CANCER		ambiguous		predicted passenger		
+tcgi	ANK3	DEL		32	CANCER		Act		predicted passenger		
+tcgi	ARID5B	DEL		33	CANCER		LoF		predicted passenger		
+tcgi	BICC1	DEL		34	CANCER		ambiguous		predicted passenger		
+tcgi	BMPR1A	DEL		35	CANCER		LoF		predicted passenger		
+tcgi	BTRC	DEL		36	CANCER		ambiguous		predicted passenger		
+tcgi	CCAR1	DEL		37	CANCER		LoF		predicted passenger		
+tcgi	CHUK	DEL		38	CANCER		LoF		predicted passenger		
+tcgi	CTNNA3	DEL		39	CANCER		ambiguous		predicted passenger		
+tcgi	CYP17A1	DEL		40	CANCER		ambiguous		predicted passenger		
+tcgi	CYP17A1-AS1	DEL		41	CANCER		ambiguous		predicted passenger		
+tcgi	CYP2C19	DEL		42	CANCER		ambiguous		predicted passenger		
+tcgi	CYP2C8	DEL		43	CANCER		ambiguous		predicted passenger		
+tcgi	CYP2C9	DEL		44	CANCER		ambiguous		predicted passenger		
+tcgi	FAM35A	DEL		45	CANCER		ambiguous		predicted passenger		
+tcgi	FAS	DEL		46	CANCER		LoF		predicted passenger		
+tcgi	GOT1	DEL		47	CANCER		ambiguous		predicted passenger		
+tcgi	LRRTM3	DEL		48	CANCER		ambiguous		predicted passenger		
+tcgi	NFKB2	DEL		49	CANCER		ambiguous		predicted passenger		
+tcgi	PCDH15	DEL		50	CANCER		ambiguous		predicted passenger		
+tcgi	PDE6C	DEL		51	CANCER		ambiguous		predicted passenger		
+tcgi	PIK3AP1	DEL		52	CANCER		ambiguous		predicted passenger		
+tcgi	RPL5P26	DEL		54	CANCER		ambiguous		predicted passenger		
+tcgi	SH3PXD2A	DEL		55	CANCER		ambiguous		predicted passenger		
+tcgi	TET1	DEL		57	CANCER		Act		predicted passenger		
+tcgi	FGFR2	DEL		58	CANCER		Act		predicted passenger		
+tcgi	PLPP4	DEL		59	CANCER		ambiguous		predicted passenger		
+tcgi	GRIA4	AMP		60	CANCER		ambiguous		predicted passenger		
+tcgi	YAP1	AMP		61	CANCER		LoF		predicted passenger		
+tcgi	CBL	DEL		62	CANCER		Act		predicted passenger		
+tcgi	CHEK1	DEL		63	CANCER		LoF		predicted passenger		
+tcgi	DRD2	DEL		64	CANCER		ambiguous		predicted passenger		
+tcgi	FLI1	DEL		65	CANCER		Act		predicted passenger		
+tcgi	HSPA8	DEL		66	CANCER		Act		predicted passenger		
+tcgi	KIRREL3	DEL		67	CANCER		ambiguous		predicted passenger		
+tcgi	KMT2A	DEL		68	CANCER		LoF		predicted passenger		
+tcgi	LINC02551	DEL		69	CANCER		ambiguous		predicted passenger		
+tcgi	NTM	DEL		70	CANCER		ambiguous		predicted passenger		
+tcgi	OPCML	DEL		71	CANCER		LoF		predicted passenger		
+tcgi	RDX	DEL		72	CANCER		ambiguous		predicted passenger		
+tcgi	SDHD	DEL	BRCA;CESC	73	CANCER		LoF		predicted passenger	known_match	
+tcgi	TEX12	DEL		74	CANCER		ambiguous		predicted passenger		
+tcgi	ZNF202	DEL		75	CANCER		ambiguous		predicted passenger		
+tcgi	LRRK2	AMP		76	CANCER		ambiguous		predicted passenger		
+tcgi	NAV3	DEL		77	CANCER		ambiguous		predicted passenger		
+tcgi	TPH2	DEL		78	CANCER		ambiguous		predicted passenger		
+tcgi	AKT1	DEL		79	CANCER		Act		predicted passenger		
+tcgi	JAG2	DEL		80	CANCER		ambiguous		predicted passenger		
+tcgi	KLC1	DEL		81	CANCER		ambiguous		predicted passenger		
+tcgi	MTA1	DEL		82	CANCER		ambiguous		predicted passenger		
+tcgi	TRAF3	DEL	HNSC	83	CANCER		LoF		predicted passenger	known_match	
+tcgi	XRCC3	DEL		84	CANCER		ambiguous		predicted passenger		
+tcgi	GABRB3	DEL		85	CANCER		ambiguous		predicted passenger		
+tcgi	GABRG3	DEL		86	CANCER		ambiguous		predicted passenger		
+tcgi	B2M	DEL	LUAD;LUSC	87	CANCER		LoF		predicted passenger	known_match	
+tcgi	BUB1B	DEL	COREAD	88	CANCER		LoF		predicted passenger	known_match	
+tcgi	C15ORF41	DEL		89	CANCER		ambiguous		predicted passenger		
+tcgi	DUT	DEL		90	CANCER		ambiguous		predicted passenger		
+tcgi	FAM227B	DEL		91	CANCER		ambiguous		predicted passenger		
+tcgi	FBN1	DEL		92	CANCER		ambiguous		predicted passenger		
+tcgi	FGF7	DEL		93	CANCER		ambiguous		predicted passenger		
+tcgi	MGA	DEL	COREAD;LUAD;OV	94	CANCER		LoF		predicted passenger	known_match	
+tcgi	NUTM1	DEL		95	CANCER		ambiguous		predicted passenger		
+tcgi	PAK6	DEL		96	CANCER		ambiguous		predicted passenger		
+tcgi	RAD51	DEL		97	CANCER		ambiguous		predicted passenger		
+tcgi	SHF	DEL		98	CANCER		ambiguous		predicted passenger		
+tcgi	TP53BP1	DEL	COREAD;LUAD	99	CANCER		LoF		predicted passenger	known_match	
+tcgi	CDH15	DEL		100	CANCER		ambiguous		predicted passenger		
+tcgi	HSD17B2	DEL		102	CANCER		ambiguous		predicted passenger		
+tcgi	MC1R	DEL		103	CANCER		ambiguous		predicted passenger		
+tcgi	PLCG2	DEL		104	CANCER		ambiguous		predicted passenger		
+tcgi	TUBB3	DEL		105	CANCER		ambiguous		predicted passenger		
+tcgi	WWOX	DEL	HNSC;LUSC;OV;S	106	CANCER		LoF		predicted passenger	known_match	
+tcgi	ZNF276	DEL		107	CANCER		ambiguous		predicted passenger		
+tcgi	BRIP1	AMP		108	CANCER		LoF		predicted passenger		
+tcgi	CLTC	AMP	BLCA	109	CANCER		Act		predicted passenger	known_match	
+tcgi	HLF	AMP		110	CANCER		Act		predicted passenger		
+tcgi	MPO	AMP		111	CANCER		ambiguous		predicted passenger		
+tcgi	PPM1D	AMP		112	CANCER		LoF		predicted passenger		
+tcgi	RAD51C	AMP		113	CANCER		LoF		predicted passenger		
+tcgi	RNF43	AMP		114	CANCER		LoF		predicted passenger		
+tcgi	TSPOAP1-AS1	AMP		115	CANCER		ambiguous		predicted passenger		
+tcgi	DNMT1	AMP		116	CANCER		Act		predicted passenger		
+tcgi	INSR	AMP		117	CANCER		ambiguous		predicted passenger		
+tcgi	MAP2K7	AMP		118	CANCER		ambiguous		predicted passenger		
+tcgi	ATRX	DEL	G;S	119	CANCER		LoF		predicted passenger	known_match	

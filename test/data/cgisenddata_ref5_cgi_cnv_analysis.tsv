@@ -1,0 +1,4 @@
+#sample	gene	cna	cancer	known_in_tumors	gene_role	internal_id	predicted_in_tumors	driver	driver_statement	predicted_match	known_match
+tcgi	PDCD1	DEL	SK		ambiguous	0			predicted passenger		
+tcgi	KMT2C	AMP	SK		LoF	1			predicted passenger		
+tcgi	RAD21	DEL	SK		LoF	2			predicted passenger		

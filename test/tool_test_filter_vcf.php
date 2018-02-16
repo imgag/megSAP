@@ -24,13 +24,17 @@ check_exec("php ".src_folder()."/NGS/filter_vcf.php -in ".data_folder().$name."_
 check_file($out_file4, data_folder().$name."_out4.vcf");
 
 $out_file5 = output_folder().$name."_out5.vcf";
-$return = check_exec("php ".src_folder()."/NGS/filter_vcf.php -in ".data_folder().$name."_in5.vcf -out $out_file5 -type not-coding-splicing,somatic-lq,off-target -ignore_filter -keep -roi ../data/enrichment/SeqCapEZv2_2013_02_19.bed",FALSE);
+$return = check_exec("php ".src_folder()."/NGS/filter_vcf.php -in ".data_folder().$name."_in5.vcf -out $out_file5 -type not-coding-splicing,somatic-lq,off-target -keep -roi ../data/enrichment/SeqCapEZv2_2013_02_19.bed",FALSE);
 list($return,) = explode(" in ",$return[0]);
 check($return,"ERROR: 'Found 'not-cod-spli, off-target' filter multiple times. Looks like this files was already annotated by filter_vcf.'");
 
 $out_file6 = output_folder().$name."_out6.vcf";
-$return = check_exec("php ".src_folder()."/NGS/filter_vcf.php -in ".data_folder().$name."_in6.vcf -out $out_file6 -type promoter -ignore_filter -keep -promoter ../data/enrichment/ssSC_v2_2015_01_26_promoters.bed -roi ../data/enrichment/SeqCapEZv2_2013_02_19.bed",FALSE);
+$return = check_exec("php ".src_folder()."/NGS/filter_vcf.php -in ".data_folder().$name."_in6.vcf -out $out_file6 -type not-promoter -ignore_filter -keep -promoter ../data/enrichment/ssSC_v2_2015_01_26_promoters.bed -roi ../data/enrichment/SeqCapEZv2_2013_02_19.bed",FALSE);
 check_file($out_file6, data_folder().$name."_out6.vcf");
+
+$out_file7 = output_folder().$name."_out7.vcf";
+$return = check_exec("php ".src_folder()."/NGS/filter_vcf.php -in ".data_folder().$name."_in7.vcf -out $out_file7 -type not-coding-splicing-promoter -ignore_filter -keep -promoter ../data/enrichment/ssSC_v2_2015_01_26_promoters.bed -roi ../data/enrichment/SeqCapEZv2_2013_02_19.bed",FALSE);
+check_file($out_file7, data_folder().$name."_out7.vcf");
 
 end_test();
 ?>

@@ -1,6 +1,6 @@
-<?php 
-/** 
-	@page strelka_callsnps
+<?php
+/**
+	@page vc_strelka
 	@todo use all.vcf from Strelka (currently only somatic variants are returned)
 	@todo sparate SNV and INDEL vcfs, might be better option to pass vcf integrity test; vcf2gsvar - use snv and indel file for conversion
 	@todo fix header (add tool name to filter name)
@@ -20,7 +20,8 @@ $parser->addOutfile("out", "Output file in VCF format (gzipped and tabix indexed
 $parser->addFlag("k", "Keep all variants. Otherwise all variants that do not pass all filters will be removed.");
 $parser->addFlag("amplicon",  "Enables amplicon mode.");
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
-$parser->addString("config", "Config file for strelka.", true, "auto");
+$parser->addInfile("config", "Config file for strelka.", true, true);
+$parser->addInt("threads", "Number of threads (make jobs) to use.", true, 4);
 extract($parser->parse($argv));
 
 //get processed sample names
@@ -30,31 +31,24 @@ $t_bam = realpath($t_bam);
 $n_bam = realpath($n_bam);
 
 //get config file
-if($config == "auto")
+if (!isset($config))
 {
-	if(is_dir(get_path('strelka')."/../etc/"))	//newer versions
+	if ($amplicon)
+	{
+		$config = get_path('strelka')."/../etc/strelka_config_bwa_amplicon.ini";
+	}
+	else
 	{
 		$config = get_path('strelka')."/../etc/strelka_config_bwa.ini";
-		if($amplicon)
-		{
-			$config = get_path('strelka')."/../etc/strelka_config_bwa_amplicon.ini";
-		}	
-	}
-	else if(is_dir(get_path('strelka')."/strelka/etc/"))	//version 0.4.7
-	{
-		$config = get_path('strelka')."/strelka/etc/strelka_config_bwa.ini";
-		if($amplicon)
-		{
-			$config = get_path('strelka')."/strelka/etc/strelka_config_bwa_amplicon.ini";
-		}
 	}
 }
-if(!is_file($config))	trigger_error("Could not find config file '".$conf."'.", E_USER_ERROR);
 
 //run strelka
 $strelka_folder = $parser->tempFolder()."/strelkaAnalysis";
-$parser->exec(get_path('strelka')."/configureStrelkaWorkflow.pl", "--tumor $t_bam --normal $n_bam --ref ".get_path("local_data")."/$build.fa --output-dir=$strelka_folder --config=$config", true, "1.0.13");
-$parser->exec("make", "-C $strelka_folder", false);
+$parser->exec(get_path('strelka')."/configureStrelkaWorkflow.pl",
+	"--tumor {$t_bam} --normal {$n_bam} --ref ".get_path("local_data")."/{$build}.fa --output-dir={$strelka_folder} --config={$config}",
+	true);
+$parser->exec("make", "-C {$strelka_folder} -j {$threads}", true);
 
 //merge vcf files
 $vcf_combined = $parser->tempFile("_combined.vcf");	//$out."_test";
@@ -88,7 +82,7 @@ foreach($file1->getComments() as $comment)	//from snv file
     foreach($filec->getComments() as $c)
     {
 		if($comment == $c) continue;
-    }	
+    }
     $filec->addComment($comment);
 }
 //set comments
@@ -109,7 +103,7 @@ foreach($filec->getComments() as $c)
 			if($n=="ID")	$id = $v;
 			if($n=="Description")	$desc = trim($v,"\"");
 		}
-		
+
 		if(is_null($id) || is_null($desc))	trigger_error("Could not identify filter in line '$c'!",E_USER_ERROR);
 		if(isset($tmp_filters[$id]) && $tmp_filters[$id]!=$desc)
 		{
@@ -119,7 +113,6 @@ foreach($filec->getComments() as $c)
 		$tmp_filters[$id] = $desc;
 		continue;
 	}
-	
 	//##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth for tier1 (used+filtered)">
 	if(strpos($c,"#FORMAT")===0)
 	{
@@ -134,14 +127,12 @@ foreach($filec->getComments() as $c)
 			if($n=="ID")	$id = $v;
 			if($n=="Type")	$desc = trim($v,"\"");
 		}
-		
 		if($id=="DP")
 		{
 			if($desc=="Read depth for tier1 (used+filtered)")	$desc = "Read depth for tier1";
 			$c = "#FORMAT=<ID=$id,Number=1,Type=Integer,Description=\"$desc\">";
 		}
 	}
-	
 	$tmp_comments[] = $c;
 }
 //if variant list is reduced add basic filter information. Example from freebayes: ##filter="QUAL > 5 & AO > 2"
@@ -215,15 +206,15 @@ $filec->toTSV($vcf_combined);
 
 //align INDELs to the left (this improves the ability of varFilter to remove overlapping indels)
 $vcf_aligned = $parser->tempFile("_aligned.vcf");
-$parser->exec(get_path("ngs-bits")."VcfLeftNormalize"," -in $vcf_combined -out $vcf_aligned -ref ".get_path("local_data")."/{$build}.fa", true);
+$parser->exec(get_path("ngs-bits")."VcfLeftNormalize"," -in {$vcf_combined} -out {$vcf_aligned} -ref ".get_path("local_data")."/{$build}.fa", true);
 
 //sort variants
 $vcf_sorted = $parser->tempFile("_sorted.vcf");
 //Nb: VcfStreamSort cannot be used since two vcf files (variants, indels) are concatenated and variants are not grouped by chromosome; total number of variants should be low (somatic).
-$parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf_aligned -out $vcf_sorted", true);
+$parser->exec(get_path("ngs-bits")."VcfSort","-in {$vcf_aligned} -out {$vcf_sorted}", true);
 
 //zip and index output file
-$parser->exec("bgzip", "-c $vcf_sorted > $out", false); //no output logging, because Toolbase::extractVersion() does not return
-$parser->exec("tabix", "-p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->exec("bgzip", "-c $vcf_sorted > $out", true);
+$parser->exec("tabix", "-p vcf $out", true);
 
 ?>

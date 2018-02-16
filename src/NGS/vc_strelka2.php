@@ -72,12 +72,12 @@ $n_index = -1;
 for($i=0;$i<count($tmp_headers);++$i)
 {
 	$value = $tmp_headers[$i];
-	if($value == "TUMOR")
+	if ($value == "TUMOR")
 	{
 		$tmp_headers[$i] = $t_ps;	//replace TUMOR header by tumor ID
 		$idx_tumor = $i;
 	}
-	if($value == "NORMAL")
+	else if ($value == "NORMAL")
 	{
 		$tmp_headers[$i] = $n_ps;	//replace NORMAL header by normal ID
 		$idx_normal = $i;
@@ -156,7 +156,7 @@ else
 		$tmp_comments[] = "#FILTER=<ID=$id,Description=\"$desc (strelka).\">";
 	}
 }
-$tmp_comments[] = "#FILTER=<ID=special_chromosome,Description=\"Special chromosome.\">";
+$tmp_comments[] = "#FILTER=<ID=special-chromosome,Description=\"Special chromosome.\">";
 $tmp_comments[] = "#PEDIGREE=<Tumor=$t_ps,Normal=$n_ps>";	//add pedigree information for SNPeff
 $tmp_comments = array_unique($tmp_comments);	//filter duplicate vcf comments
 $tmp_comments = sort_vcf_comments($tmp_comments);	//sort vcf comments
@@ -168,7 +168,7 @@ for($i=0; $i<$file1->rows();++$i)
 	if(chr_check($row[0], 22, false) === FALSE)
 	{
 		if($row[6] == "PASS")	$row[6] = "";
-		$row[6] .= ";special_chromosome"; //skip bad chromosomes
+		$row[6] .= ";special-chromosome"; //skip bad chromosomes
 	}
 	$row[6] = trim($row[6],';');
 	$filec->addRow($row);
@@ -189,7 +189,7 @@ for($i=0; $i<$file2->rows();++$i)
 	if(chr_check($tmp[0], 22, false) === FALSE)
 	{
 		if($tmp[6] == "PASS")	$row[6] = "";
-		$tmp[6] .= ";special_chromosome"; //skip bad chromosomes
+		$tmp[6] .= ";special-chromosome"; //skip bad chromosomes
 	}
 	$tmp[6] = trim($tmp[6],';');
 	$filec->addRow($tmp);
@@ -213,7 +213,7 @@ $filec->toTSV($vcf_combined);
 $vcf_aligned = $temp_folder."/strelka_aligned.vcf";
 $parser->exec(get_path("ngs-bits")."VcfLeftNormalize"," -in $vcf_combined -out $vcf_aligned -ref ".get_path("local_data")."/{$build}.fa", true);
 
-//sort variants
+// sort variants
 $vcf_sorted = $temp_folder."/strelka_sorted.vcf";
 //Nb: VcfStreamSort cannot be used since two vcf files (variants, indels) are concatenated and variants are not grouped by chromosome; total number of variants should be low (somatic).
 $parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf_aligned -out $vcf_sorted", true);
@@ -227,11 +227,11 @@ $vcf_filtered2 = $vcf_filtered1;
 if(!empty($target))
 {
 	$vcf_filtered2 = $temp_folder."/strelka_filtered2.vcf";
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions","-in $vcf_filtered1 -mark -reg $target -out $vcf_filtered2", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_filtered1 -mark off-target -reg $target -out $vcf_filtered2", true);
 }
 
 //zip and index output file
-$parser->exec("bgzip", "-c $vcf_filtered2 > $out", false); //no output logging, because Toolbase::extractVersion() does not return
-$parser->exec("tabix", "-p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->exec("bgzip", "-c $vcf_filtered2 > $out", true);
+$parser->exec("tabix", "-p vcf $out", true);
 
 ?>

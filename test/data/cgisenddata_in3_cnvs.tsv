@@ -1,0 +1,8 @@
+##DESCRIPTION=cnv_type=Type of CNV: focal (< 25 % of chrom. arm), p/q-arm (centromere not included), chromosome.													
+##GS000000 ref_correl: 0.057 (median: 0.9595)													
+##GS000000 cnvs: nan (median: 335.5)													
+##GS000000 qc_errors: avg_depth=0.811997 avg_depth_chrx=0.00012866 avg_depth_autosomes=0.811997													
+##GS000001 ref_correl: 0.075 (median: 0.9595)													
+##GS000001 cnvs: nan (median: 335.5)													
+##GS000001 qc_errors: avg_depth=0.745286 avg_depth_chrx=0.000149962 avg_depth_autosomes=0.745286													
+#chr	start	end	sample	size	cnv_type	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	genes	first_marker	last_marker

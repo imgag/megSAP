@@ -6,7 +6,6 @@ declare(ticks = 1);
 //functions
 require_once("functions.php");
 require_once("genomics.php");
-require_once("queue.php");
 
 //classes
 require_once("XMLConstructor.php");

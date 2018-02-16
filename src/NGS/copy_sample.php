@@ -12,6 +12,8 @@ $parser = new ToolBase("copy_sample", "Creates a Makefile to copy de-multiplexed
 $parser->addString("samplesheet",  "Input samplesheet that was used to create the data folder.", true, "SampleSheet_bcl2fastq.csv");
 $parser->addString("folder",  "Input data folder.", true, "Unaligned");
 $parser->addOutfile("out",  "Output Makefile. Default: 'Makefile'.", true);
+$parser->addFlag("high_priority", "Assign high priority to all queued samples.");
+$parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
 extract($parser->parse($argv));
 
 //finds and returns the SampleIDs from a Sample Sheet
@@ -95,7 +97,7 @@ function get_parameters($processed_sample_name)
 	$assoc_tumor = array_column($result, "id");
 	
 	//get type value from associated processing system
-	$result = $db_connect->executeQuery("SELECT processing_system.type FROM processing_system, processed_sample WHERE processed_sample.id=".$run_ID." AND processed_sample.processing_system_id=processing_system.id");
+	$result = $db_connect->executeQuery("SELECT processing_system.type FROM processing_system, processed_sample WHERE processed_sample.id=".$psample_id." AND processed_sample.processing_system_id=processing_system.id");
 	$sys_type = $result[0]["type"];
 	
 	return array($projectname, $project_type, $run_name, $tumor_status, $project_analysis, $internal_coord, $assoc_tumor, $sys_type);
@@ -122,7 +124,7 @@ function create_mail_command($coordinator, $email_ad, $samples, $project_name)
 //write makefile lines for file and folder operations and stores them in a dictionary
 function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map,
 	$project_coord_map,  $sample_tumor_status_map, $sample_assoc_tumor_map, $runnumber,
-	$makefile_name, $repo_folder, $nxtSeq, $sample_analysis_step_map, $sample_systype_map)
+	$makefile_name, $repo_folder, $nxtSeq, $sample_analysis_step_map, $sample_systype_map, $high_priority, $overwrite)
 {
 	if (!file_exists($folder))
 	{
@@ -197,7 +199,7 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 		{
 			$r3_count += contains($file, "_R3_");
 		}
-		if (count($fastqgz_files)>=3 && $r3_count==count($fastqgz_files)/3 ) //handling of molecular barcode in index read 2 (Haloplex HS, Swift, ...)
+		if (count($fastqgz_files)>=3 && $r3_count==count($fastqgz_files)/3 ) //handling of molecular barcode in index read 2 (HaloPlex HS, Swift, ...)
 		{
 			//create target folder
 			$target_to_copylines[$tag][]="\tmkdir -p ".$new_location."/Sample_".$sample_ID."/";
@@ -208,12 +210,12 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 			{
 				$old_name = basename($file);
 				$new_name = strtr($old_name, array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
-				$target_to_copylines[$tag][]="\tmv ".$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";				
+				$target_to_copylines[$tag][]="\tmv ".($overwrite ? "-f " : "").$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";				
 			}
 		}
 		else
 		{
-			$target_to_copylines[$tag][]="\tmv ".$old_location."/Sample_".$sample_ID."/ ".$new_location."/";
+			$target_to_copylines[$tag][]="\tmv ".($overwrite ? "-f " : "").$old_location."/Sample_".$sample_ID."/ ".$new_location."/";
 		}
 
 		//skip normal samples which have an associated tumor sample on the same run
@@ -231,18 +233,23 @@ function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_p
 			//build  first part of line for analysis using Sungrid Engine's queues,
 			$outputline= "php {$repo_folder}/src/NGS/queue_sample.php -sample ".$sample_ID;
 			
-				//stop at mapping if analysis for project is set to mapping
-				if ($sample_analysis_step_map[$sample_ID]=="mapping")
-				{
-					$outputline.=" -steps ma,db";
-				}
+			//stop at mapping if analysis for project is set to mapping
+			if ($sample_analysis_step_map[$sample_ID]=="mapping")
+			{
+				$outputline .= " -steps ma,db";
+			}
 
-				//stop at variant calling if analysis for project is set to variant calling
-				if ($sample_analysis_step_map[$sample_ID]=="variant calling")
-				{
-					$outputline.=" -steps ma,vc,db,cn";
-				}
-						
+			//stop at variant calling if analysis for project is set to variant calling
+			if ($sample_analysis_step_map[$sample_ID]=="variant calling")
+			{
+				$outputline .= " -steps ma,vc,db,cn";
+			}
+			
+			if ($high_priority)
+			{
+				$outputline .= " -high_priority";
+			}
+			
 			$target_to_queuelines[$tag][]="\t".$outputline." ";
 		}
 		elseif(!$is_normal_with_tumor)
@@ -352,6 +359,6 @@ foreach($sample_IDs as $sampleID)
 }
 
 build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map, $sample_tumor_status_map,
-	$sample_assoc_tumor_map, $runnumber, $out, $repo_folder, $nxtSeq, $sample_analysis_step_map, $sample_systype_map);
+	$sample_assoc_tumor_map, $runnumber, $out, $repo_folder, $nxtSeq, $sample_analysis_step_map, $sample_systype_map, $high_priority, $overwrite);
 
 ?>

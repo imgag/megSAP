@@ -1,0 +1,364 @@
+﻿* Block Type = 96well
+* Chemistry = OTHER
+* Experiment File Name = C:\Users\Pabstbr\Desktop\KASP_Desktop\KASP_Assay\KASP_Lauf_1\KASP Genotyping_01082017 Laufdaten_bearbeitet_Tue.eds
+* Experiment Run End Time = Not Started
+* Instrument Type = steponeplus
+* Passive Reference = ROX
+
+[Results]
+Well	Sample Name	SNP Assay Name	Task	Allele1 ΔRn	Allele2 ΔRn	Pass.Ref	Quality(%)	Call	Method	Allele1 Automatic Ct Threshold	Allele1 Ct Threshold	Allele1 Automatic Baseline	Allele1 Baseline Start	Allele1 Baseline End	Allele2 Automatic Ct Threshold	Allele2 Ct Threshold	Allele2 Automatic Baseline	Allele2 Baseline Start	Allele2 Baseline End	Comments
+
+A2	M44931	NCF2_rs2274064	UNKNOWN	0.1725	1.2483	11779.6406	98.3025	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A3	M44931	ATP13A4_rs6788448	UNKNOWN	0.1004	1.4813	10934.8555	99.9916	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A4	M44931	TMPRSS11A_rs1371932	UNKNOWN	0.1227	0.6658	11297.7959	99.4362	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A6	NA12877	NCF2_rs2274064	UNKNOWN	0.16	1.3814	11707.5625	99.7554	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A7	NA12877	ATP13A4_rs6788448	UNKNOWN	0.4738	-0.0689	13708.1885	99.9038	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A8	NA12877	TMPRSS11A_rs1371932	UNKNOWN	0.11	0.5353	13561.3262	99.9745	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A10	88686PR1	NCF2_rs2274064	UNKNOWN	0.3719	-0.0718	8495.5039	96.503	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A11	88686PR1	ATP13A4_rs6788448	UNKNOWN	0.4653	-0.1048	6818.0435	99.9822	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A12	88686PR1	TMPRSS11A_rs1371932	UNKNOWN	0.2384	0.0863	7096.2271	98.9985	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B2	M46728	NCF2_rs2274064	UNKNOWN	0.4378	0.0139	12538.9512	100	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B3	M46728	ATP13A4_rs6788448	UNKNOWN	0.1068	1.4331	12907.1211	99.8466	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B4	M46728_	TMPRSS11A_rs1371932	UNKNOWN	0.103	0.5485	14034.2441	99.9975	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B6	NA12878	NCF2_rs2274064	UNKNOWN	0.1502	1.5281	14182.707	99.7278	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B7	NA12878	ATP13A4_rs6788448	UNKNOWN	0.2909	1.1151	14593.6973	99.8658	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B8	NA12878	TMPRSS11A_rs1371932	UNKNOWN	0.3025	0.1952	15205.1475	99.1129	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B10	88691PR1	NCF2_rs2274064	UNKNOWN	0.1017	1.3779	10251.3457	98.9787	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B11	88691PR1	ATP13A4_rs6788448	UNKNOWN	0.0876	1.3812	6291.4385	98.8957	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B12	88691PR1	TMPRSS11A_rs1371932	UNKNOWN	0.3701	-0.0693	6970.1592	99.0175	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C2	M49328	NCF2_rs2274064	UNKNOWN	0.4493	0.0211	12881.6562	99.8966	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C3	M49328	ATP13A4_rs6788448	UNKNOWN	0.1219	1.4999	13800.9365	99.8278	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C4	M49328	TMPRSS11A_rs1371932	UNKNOWN	0.2862	0.1576	14698.0215	99.9056	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C6	M40464	NCF2_rs2274064	UNKNOWN	0.3232	1.1773	14172.125	99.8406	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C7	M40464	ATP13A4_rs6788448	UNKNOWN	0.1342	1.5138	13828.1436	99.5133	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C8	M40464	TMPRSS11A_rs1371932	UNKNOWN	0.4216	-0.0718	14909.7803	99.9999	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C10	88929PR1	NCF2_rs2274064	UNKNOWN	0.1158	1.492	11084.8613	99.6355	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C11	88929PR1	ATP13A4_rs6788448	UNKNOWN	0.0652	1.4686	7377.5015	99.5958	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C12	88929PR!	TMPRSS11A_rs1371932	UNKNOWN	0.4277	-0.0868	7442.0659	99.9036	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D2	M52139	NCF2_rs2274064	UNKNOWN	0.3217	1.0983	13275.6152	99.9593	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D3	M52139	ATP13A4_rs6788448	UNKNOWN	0.2824	1.0915	14427.748	100	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D4	M52139	TMPRSS11A_rs1371932	UNKNOWN	0.2623	0.1324	14550.9512	99.9343	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D6	M45223	NCF2_rs2274064	UNKNOWN	0.4355	0.0219	14916.2871	99.9949	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D7	M45223	ATP13A4_rs6788448	UNKNOWN	0.4765	-0.0459	14833.2334	99.8176	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D8	M45223	TMPRSS11A_rs1371932	UNKNOWN	0.1129	0.5455	14244.3848	99.9667	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D10	89113PR1	NCF2_rs2274064	UNKNOWN	0.4473	0.0149	12916.3096	99.9311	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D11	89113PR1	ATP13A4_rs6788448	UNKNOWN	0.2235	1.0241	7446.7871	96.7367	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D12	89113PR1	TMPRSS11A_rs1371932	UNKNOWN	0.2595	0.1092	6816.7026	99.6305	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E2	M48307	NCF2_rs2274064	UNKNOWN	0.2437	0.8818	13529.3076	94.1169	Undetermined	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E3	M48307	ATP13A4_rs6788448	UNKNOWN	0.1332	1.4814	13161.0322	99.7948	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E4	M48307	TMPRSS11A_rs1371932	UNKNOWN	0.4376	-0.0553	15393.3682	99.8232	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E6	M52136	NCF2_rs2274064	UNKNOWN	0.4418	0.0373	14741.3311	99.9759	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E7	M52136	ATP13A4_rs6788448	UNKNOWN	0.2812	1.0503	15691.1553	99.8741	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E8	M52136	TMPRSS11A_rs1371932	UNKNOWN	0.4175	-0.0497	15090.667	99.8192	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E10	89285PR1	NCF2_rs2274064	UNKNOWN	0.4294	-0.0145	11153.9414	99.9264	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E11	89285PR1	ATP13A4_rs6788448	UNKNOWN	0.007	1.4559	8108.981	97.8325	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E12	89285PR1	TMPRSS11A_rs1371932	UNKNOWN	0.3774	-0.1298	5875.8462	98.0803	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F2	88562PR1	NCF2_rs2274064	UNKNOWN	0.1567	1.432	12341.6133	99.9305	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F3	88562PR1	ATP13A4_rs6788448	UNKNOWN	0.1365	1.4919	14113.9854	99.676	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F4	88562PR1	TMPRSS11A_rs1371932	UNKNOWN	0.4215	-0.0822	14550.5186	99.9635	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F6	88212PR1	NCF2_rs2274064	UNKNOWN	0.1466	1.5064	14026.2285	99.865	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F7	88212PR1	ATP13A4_rs6788448	UNKNOWN	0.1253	1.4652	14364.3291	99.9329	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F8	88212PR1	TMPRSS11A_rs1371932	UNKNOWN	0.2852	0.1789	15525.1504	99.4263	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F10	90106PR1	NCF2_rs2274064	UNKNOWN	0.1217	1.5494	11116.3301	99.4726	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F11	90106PR1	ATP13A4_rs6788448	UNKNOWN	0.2409	1.1103	10049.1816	99.2385	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F12	90106PR1	TMPRSS11A_rs1371932	UNKNOWN	0.291	0.1593	5778.0142	99.8568	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G2	88563PR1	NCF2_rs2274064	UNKNOWN	0.1656	1.4644	11972.4863	99.792	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G3	88563PR1	ATP13A4_rs6788448	UNKNOWN	0.1429	1.4882	13370.1475	99.5819	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G4	88563PR1	TMPRSS11A_rs1371932	UNKNOWN	0.2622	0.124	15145.4053	99.9103	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G6	88341PR1	NCF2_rs2274064	UNKNOWN	0.1456	1.475	14297.0586	99.9712	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G7	88341PR1	ATP13A4_rs6788448	UNKNOWN	0.1255	1.463	14416.2803	99.9327	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G8	88341PR1	TMPRSS11A_rs1371932	UNKNOWN	0.1006	0.5076	15552.6826	99.9368	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G10	LW_01	NCF2_rs2274064	NTC	0.0545	-0.1028	10417.2246	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G11	LW_01	ATP13A4_rs6788448	NTC	-0.0068	-0.1675	5401.1304	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G12	LW_01	TMPRSS11A_rs1371932	NTC	0.05	-0.1093	9131.0723	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H2	88610PR1	NCF2_rs2274064	UNKNOWN	0.3325	1.0649	11491.5312	99.7898	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H3	88610PR1	ATP13A4_rs6788448	UNKNOWN	0.2907	1.0678	13128.7998	99.9779	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H4	88610PR1	TMPRSS11A_rs1371932	UNKNOWN	0.278	0.1289	11904.0459	99.8137	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H6	88568PR1	NCF2_rs2274064	UNKNOWN	0.2571	0.9759	11701.7285	96.8281	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H7	88568PR1	ATP13A4_rs6788448	UNKNOWN	0.4474	-0.0669	14065.2734	99.6409	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H8	88568PR1	TMPRSS11A_rs1371932	UNKNOWN	0.0669	0.4225	13831.6465	98.8635	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H10	LW_02	NCF2_rs2274064	NTC	0.1041	-0.1093	8298.1328	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H11	LW_02	ATP13A4_rs6788448	NTC							true	0.2	true	3	15	true	0.2	true	3	15	
+H12	LW_02	TMPRSS11A_rs1371932	NTC	0.0099	-0.1391	6658.9307	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+
+* Block Type = 96well
+* Chemistry = OTHER
+* Experiment File Name = C:\Users\Pabstbr\Desktop\KASP_Desktop\KASP_Assay\KASP_Lauf_2\KASP_Genotyping_15082017_bearbeitet.eds
+* Experiment Run End Time = Not Started
+* Instrument Type = steponeplus
+* Passive Reference = ROX
+
+[Results]
+Well	Sample Name	SNP Assay Name	Task	Allele1 ΔRn	Allele2 ΔRn	Pass.Ref	Quality(%)	Call	Method	Allele1 Automatic Ct Threshold	Allele1 Ct Threshold	Allele1 Automatic Baseline	Allele1 Baseline Start	Allele1 Baseline End	Allele2 Automatic Ct Threshold	Allele2 Ct Threshold	Allele2 Automatic Baseline	Allele2 Baseline Start	Allele2 Baseline End	Comments
+A1	M44931	WDFY3_rs2046402	UNKNOWN	0.1709	1.1389	9040.3125	99.7221	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A3	M44931	MUT_rs2229384	UNKNOWN	0.545	-0.0994	11094.1348	99.9977	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A4	M44931	PHIP_rs7742431	UNKNOWN	0.4139	0.7253	11623.1709	98.1095	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A5	NA12877	WDFY3_rs2046402	UNKNOWN	0.3479	0.5299	11628.8564	99.9705	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A7	NA12877	MUT_rs2229384	UNKNOWN	0.4325	0.3046	11329.4072	99.8836	Heterozygous A/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A8	NA12877	PHIP_rs7742431	UNKNOWN	0.2306	1.2058	13615.125	99.9745	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A9	88686PR1	WDFY3_rs2046402	UNKNOWN	0.2892	0.3673	6502.4058	99.0605	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A11	88686PR1	MUT_rs2229384	UNKNOWN	0.5069	-0.1455	6338.4355	97.9143	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A12	88686PR1	PHIP_rs7742431	UNKNOWN	0.3237	0.6417	6186.1665	99.0919	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B1	M46728	WDFY3_rs2046402	UNKNOWN	0.3642	0.5226	9886.2441	99.8964	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B3	M46728	MUT_rs2229384	UNKNOWN	0.4198	0.317	12974.3857	99.6837	Heterozygous A/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B4	M46728	PHIP_rs7742431	UNKNOWN	0.3669	0.7946	14176.4141	99.9999	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B5	NA12877_02	WDFY3_rs2046402	UNKNOWN	0.3717	0.5692	12616.7314	99.7927	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B7	NA12877_02	MUT_rs2229384	UNKNOWN	0.4228	0.2861	13415.4775	99.9761	Heterozygous A/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B8	NA12877_02	PHIP_rs7742431	UNKNOWN	0.2422	1.224	14415.8975	99.9812	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B9	88691PR1	WDFY3_rs2046402	UNKNOWN	0.289	0.3832	9098.3008	99.244	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B11	88691PR1	MUT_rs2229384	UNKNOWN	0.3625	0.1759	5873.6655	98.686	Heterozygous A/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B12	88691PR1	PHIP_rs7742431	UNKNOWN	0.3208	0.6723	5952.7871	99.3153	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C1	M52139	WDFY3_rs2046402	UNKNOWN	0.3529	0.551	10845.9736	99.9001	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C3	M52139	MUT_rs2229384	UNKNOWN	0.0933	1.0505	13441.0205	100	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C4	M52139	PHIP_rs7742431	UNKNOWN	0.4847	0.2961	14323.3447	99.8547	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C5	NA12878	WDFY3_rs2046402	UNKNOWN	0.3669	0.5942	13459.1904	99.6491	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C7	NA12878	MUT_rs2229384	UNKNOWN	0.4352	0.3364	13224.2559	99.4848	Heterozygous A/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C8	NA12878	PHIP_rs7742431	UNKNOWN	0.3858	0.8551	14427.6025	99.8533	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C9	89113PR1	WDFY3_rs2046402	UNKNOWN	0.4911	-0.1618	8998.1699	99.8202	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C11	89113PR1	MUT_rs2229384	UNKNOWN	0.5751	-0.1417	6203.8823	98.7034	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C12	89113PR1	PHIP_rs7742431	UNKNOWN	0.4718	0.2528	6855.7388	99.9025	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D1	M48307	WDFY3_rs2046402	UNKNOWN	0.1479	1.1569	10846.9902	100	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D3	M48307	MUT_rs2229384	UNKNOWN	0.5471	-0.0857	13654.7861	99.9133	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D4	M48307	PHIP_rs7742431	UNKNOWN	0.2726	1.2154	14544.8574	99.5755	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D5	M40464	WDFY3_rs2046402	UNKNOWN	0.356	0.5295	13706.2354	99.9628	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D7	M40464	MUT_rs2229384	UNKNOWN	0.4308	0.336	13526.5244	99.4556	Heterozygous A/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D8	M40464	PHIP_rs7742431	UNKNOWN	0.489	0.3186	13879.2168	99.6301	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D9	89113PR1_02	WDFY3_rs2046402	UNKNOWN	0.4896	-0.1781	9108.5693	99.6577	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D11	89113PR1_02	MUT_rs2229384	UNKNOWN	0.5495	-0.1131	7218.1201	99.9229	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D12	89113PR1_02	PHIP_rs7742431	UNKNOWN	0.447	0.1847	6649.1147	98.8631	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E1	88562PR1	WDFY3_rs2046402	UNKNOWN	0.5026	-0.096	11334.7266	99.9367	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E3	88562PR1	MUT_rs2229384	UNKNOWN	0.5546	-0.1016	13387.3027	99.8892	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E4	88562PR1	PHIP_rs7742431	UNKNOWN	0.5038	0.3009	14868.8721	99.8228	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E5	M45223	WDFY3_rs2046402	UNKNOWN	0.3418	0.5283	13966.5596	99.9511	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E7	M45223	MUT_rs2229384	UNKNOWN	0.5391	-0.0557	14265.2012	99.3884	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E8	M45223	PHIP_rs7742431	UNKNOWN	0.4499	0.2345	14483.7314	99.4644	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E9	89285PR1	WDFY3_rs2046402	UNKNOWN	0.4812	-0.1877	9167.0986	99.5208	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E11	89285PR1	MUT_rs2229384	UNKNOWN	0.3681	0.2129	7673.1274	99.6058	Heterozygous A/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E12	89285PR1	PHIP_rs7742431	UNKNOWN	0.2005	1.1444	5700.4609	99.4725	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F1	88562PR1_2	WDFY3_rs2046402	UNKNOWN	0.5117	-0.0891	11073.8135	99.8699	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F3	88562PR1_2	MUT_rs2229384	UNKNOWN	0.5342	-0.1146	13514.4629	99.831	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F4	88562PR1_2	PHIP_rs7742431	UNKNOWN	0.5093	0.278	14701.3574	99.8361	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F5	M52136	WDFY3_rs2046402	UNKNOWN	0.1283	1.1578	12516.6338	99.8234	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F7	M52136	MUT_rs2229384	UNKNOWN	0.5423	-0.0674	13955.2129	99.6646	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F8	M52136	PHIP_rs7742431	UNKNOWN	0.3585	0.7986	14239.3916	99.954	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F9	89285PR1_02	WDFY3_rs2046402	UNKNOWN	0.5068	-0.1171	10755.6865	99.9652	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F11	89285PR1_02	MUT_rs2229384	UNKNOWN	0.39	0.2189	9580.6992	99.57	Heterozygous A/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F12	89285PR1_02	PHIP_rs7742431	UNKNOWN	0.1841	1.1004	6223.5527	98.8292	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G1	88563PR1	WDFY3_rs2046402	UNKNOWN	0.3808	0.5661	11642.0488	99.7157	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G3	88563PR1	MUT_rs2229384	UNKNOWN	0.442	0.3053	13276.0674	99.8642	Heterozygous A/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G4	88563PR1	PHIP_rs7742431	UNKNOWN	0.2843	1.2478	14063.0742	99.3353	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G5	88212PR1	WDFY3_rs2046402	UNKNOWN	0.3462	0.5274	13376.4746	99.9737	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G7	88212PR1	MUT_rs2229384	UNKNOWN	0.5363	-0.0716	14316.6182	99.7363	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G8	88212PR1	PHIP_rs7742431	UNKNOWN	0.3714	0.8036	14540.457	99.9948	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G9	LW_01	WDFY3_rs2046402	NTC	-0.0095	-0.158	10592.5293	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G11	LW_01	MUT_rs2229384	NTC	-0.0151	-0.1668	6453.5103	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G12	LW_01	PHIP_rs7742431	NTC	-0.0049	-0.1507	6119.8364	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H1	88610PR1	WDFY3_rs2046402	UNKNOWN	0.4883	-0.043	9877.9678	99.4412	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H3	88610PR1	MUT_rs2229384	UNKNOWN	0.5379	-0.1008	12501.8105	99.9705	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H4	88610PR1	PHIP_rs7742431	UNKNOWN	0.3842	0.7504	11749.8516	99.5809	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H5	88568PR1	WDFY3_rs2046402	UNKNOWN	0.2993	0.4087	10375.1914	99.5227	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H7	88568PR1	MUT_rs2229384	UNKNOWN	0.3743	0.2336	13009.7227	99.8299	Heterozygous A/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H8	88568PR1	PHIP_rs7742431	UNKNOWN	0.3159	0.6769	12419.8496	99.2413	Heterozygous C/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H9	LW_02	WDFY3_rs2046402	NTC	-0.0268	-0.1799	5999.9365	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H11	LW_02	MUT_rs2229384	NTC	-0.0004	-0.143	6645.9385	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H12	LW_02	PHIP_rs7742431	NTC	0.0361	-0.104	5160.2095	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+
+* Block Type = 96well
+* Chemistry = OTHER
+* Experiment File Name = C:\Users\Pabstbr\Desktop\KASP_Desktop\KASP_Assay\KASP_Lauf_3\KASP_Genotyping_22082017_bearbeitet_Tue.eds
+* Experiment Run End Time = Not Started
+* Instrument Type = steponeplus
+* Passive Reference = ROX
+
+[Results]
+Well	Sample Name	SNP Assay Name	Task	Allele1 ΔRn	Allele2 ΔRn	Pass.Ref	Quality(%)	Call	Method	Allele1 Automatic Ct Threshold	Allele1 Ct Threshold	Allele1 Automatic Baseline	Allele1 Baseline Start	Allele1 Baseline End	Allele2 Automatic Ct Threshold	Allele2 Ct Threshold	Allele2 Automatic Baseline	Allele2 Baseline Start	Allele2 Baseline End	Comments
+A1	M44931	ASCC3_rs41288423	UNKNOWN	0.3192	0.7079	10926.8975	99.5054	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A4	M44931	HTR2A_rs6313	UNKNOWN	0.1722	1.3268	12600.0664	97.4213	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A5	NA12877	ASCC3_rs41288423	UNKNOWN	0.1401	1.1949	12401.0049	98.6328	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A8	NA12877	HTR2A_rs6313	UNKNOWN	0.5582	-0.0162	12617.0479	99.9813	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A9	88686PR1	ASCC3_rs41288423	UNKNOWN	0.2741	0.7027	6362.3413	99.3571	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A12	88686PR1	HTR2A_rs6313	UNKNOWN	0.1431	1.4546	5979.6802	99.5147	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B1	M46728	ASCC3_rs41288423	UNKNOWN	0.1139	1.3666	9542.999	99.9266	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B4	M46728	HTR2A_rs6313	UNKNOWN	0.1437	1.5692	12044.4688	99.8134	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B5	NA12877_02	ASCC3_rs41288423	UNKNOWN	0.1236	1.4879	12165.3418	99.8511	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B8	NA12877_02	HTR2A_rs6313	UNKNOWN	0.5237	-0.0418	14102.1221	99.7546	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B9	88691PR1	ASCC3_rs41288423	UNKNOWN	0.4405	-0.0969	8742.915	99.225	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B12	88691PR1	HTR2A_rs6313	UNKNOWN	0.515	-0.0642	6083.541	99.5232	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C1	M52139	ASCC3_rs41288423	UNKNOWN	0.3208	0.8513	10158.1133	99.8918	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C4	M52139	HTR2A_rs6313	UNKNOWN	0.5507	-0.0215	13753.4619	100	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C5	NA12878	ASCC3_rs41288423	UNKNOWN	0.296	0.8286	12886.2734	99.9936	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C8	NA12878	HTR2A_rs6313	UNKNOWN	0.408	1.0682	14342.9521	99.9788	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C9	89113PR1	ASCC3_rs41288423	UNKNOWN	0.287	0.9287	8589.7002	99.7138	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C12	89113PR1	HTR2A_rs6313	UNKNOWN	0.3945	0.9892	6455.1904	99.9425	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D1	M48307	ASCC3_rs41288423	UNKNOWN	0.1196	1.4154	10623.8379	99.9996	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D4	M48307	HTR2A_rs6313	UNKNOWN	0.1522	1.5342	11327.3184	99.6931	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D5	M40464	ASCC3_rs41288423	UNKNOWN	0.3358	0.9375	13352.1855	99.3837	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D8	M40464	HTR2A_rs6313	UNKNOWN	0.5635	-0.0026	13253.9473	99.9352	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D9	89113PR1_02	ASCC3_rs41288423	UNKNOWN	0.2661	0.9234	8908.417	99.4953	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D12	89113PR1_02	HTR2A_rs6313	UNKNOWN	0.2412	0.6607	6901.5386	97.9301	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E1	88562PR1	ASCC3_rs41288423	UNKNOWN	0.491	-0.0182	11457.9297	99.999	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E4	88562PR1	HTR2A_rs6313	UNKNOWN	0.4204	1.0542	14011.4346	99.8868	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E5	M45223	ASCC3_rs41288423	UNKNOWN	0.3292	0.8951	13516.3447	99.6877	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E8	M45223	HTR2A_rs6313	UNKNOWN	0.1241	1.6215	13429.0645	99.7993	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E9	89285PR1	ASCC3_rs41288423	UNKNOWN	0.2643	0.8694	8852.4199	99.6313	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E12	89285PR1	HTR2A_rs6313	UNKNOWN	0.1017	1.5051	5447.7017	99.839	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F1	88562PR1_2	ASCC3_rs41288423	UNKNOWN	0.4872	-0.0332	10752.3574	99.9943	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F4	88562PR1_2	HTR2A_rs6313	UNKNOWN	0.3986	0.9849	13659.8145	99.8892	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F5	M52136	ASCC3_rs41288423	UNKNOWN	0.5008	-0.0349	12074.7217	99.9755	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F8	M52136	HTR2A_rs6313	UNKNOWN	0.389	1.0376	14097.7783	99.9791	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F9	89285PR1_02	ASCC3_rs41288423	UNKNOWN	0.3006	0.9052	10903.748	99.8576	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F12	89285PR1_02	HTR2A_rs6313	UNKNOWN	0.0972	1.4361	6241.7266	99.3658	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G1	88563PR1	ASCC3_rs41288423	UNKNOWN	0.5075	0.0063	11646.5938	99.9112	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G4	88563PR1	HTR2A_rs6313	UNKNOWN	0.5643	-0.0127	13716.5859	99.9389	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G5	88212PR1	ASCC3_rs41288423	UNKNOWN	0.4987	-0.0229	13307.4336	99.986	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G8	88212PR1	HTR2A_rs6313	UNKNOWN	0.3859	1.0415	14529.1299	99.9512	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G9	LW_01	ASCC3_rs41288423	NTC	-0.0112	-0.1517	10306.5645	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G12	LW_01	HTR2A_rs6313	NTC	-0.0003	-0.1642	7228.7397	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H1	88610PR1	ASCC3_rs41288423	UNKNOWN	0.3955	-0.0032	12653.0791	97.7002	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H4	88610PR1	HTR2A_rs6313	UNKNOWN	0.4935	-0.0816	10711.3887	98.8233	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H5	88568PR1	ASCC3_rs41288423	UNKNOWN	0.3026	0.5946	11597.2148	98.4018	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H8	88568PR1	HTR2A_rs6313	UNKNOWN	0.1133	1.5541	12105.7529	99.9926	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H9	LW_02	ASCC3_rs41288423	NTC	-0.0174	-0.1727	6943.6782	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H12	LW_02	HTR2A_rs6313	NTC	-0.0404	-0.1931	5389.7114	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+
+* Block Type = 96well
+* Chemistry = OTHER
+* Experiment File Name = C:\Users\Pabstbr\Desktop\KASP_Desktop\KASP_Assay\KASP_Lauf_4\KASP_Genotyping_24082017_bearbeitet2.eds
+* Experiment Run End Time = Not Started
+* Instrument Type = steponeplus
+* Passive Reference = ROX
+
+[Results]
+Well	Sample Name	SNP Assay Name	Task	Allele1 ΔRn	Allele2 ΔRn	Pass.Ref	Quality(%)	Call	Method	Allele1 Automatic Ct Threshold	Allele1 Ct Threshold	Allele1 Automatic Baseline	Allele1 Baseline Start	Allele1 Baseline End	Allele2 Automatic Ct Threshold	Allele2 Ct Threshold	Allele2 Automatic Baseline	Allele2 Baseline Start	Allele2 Baseline End	Comments
+A1	M44931	EDNRB_rs5351	UNKNOWN	0.3616	0.6353	8479.1055	99.7546	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A2	M44931	GABRG3_rs140679	UNKNOWN	0.1794	1.1932	9968.7207	99.9964	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A5	NA12877	EDNRB_rs5351	UNKNOWN	0.355	0.588	11685.8174	99.9414	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A6	NA12877	GABRG3_rs140679	UNKNOWN	0.3887	0.0671	12166.8242	100	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A9	88686PR1	EDNRB_rs5351	UNKNOWN	0.3034	0.3913	6460.8755	98.8142	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A10	88686PR1	GABRG3_rs140679	UNKNOWN	0.3307	-0.0263	8383.5645	95.9458	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B1	M46728	EDNRB_rs5351	UNKNOWN	0.3445	0.5757	10185.5508	99.9827	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B2	M46728	GABRG3_rs140679	UNKNOWN	0.2662	0.7773	12411.4082	99.7267	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B5	NA12877_02	EDNRB_rs5351	UNKNOWN	0.3578	0.6133	12638.6738	99.8651	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B6	NA12877_02	GABRG3_rs140679	UNKNOWN	0.4056	0.1078	14100.0664	99.5933	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B9	88691PR1	EDNRB_rs5351	UNKNOWN	0.2605	0.3985	9014.3027	98.8522	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B10	88691PR1	GABRG3_rs140679	UNKNOWN	0.3342	-0.0012	9739.2383	96.6331	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C1	M52139	EDNRB_rs5351	UNKNOWN	0.3257	0.5933	10488.9053	99.8669	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C2	M52139	GABRG3_rs140679	UNKNOWN	0.281	0.8291	12401.2148	99.9309	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C5	NA12878	EDNRB_rs5351	UNKNOWN	0.3737	0.6669	13007.7705	99.518	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C6	NA12878	GABRG3_rs140679	UNKNOWN	0.3085	0.8471	13133.749	98.8148	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C9	89113PR1	EDNRB_rs5351	UNKNOWN	0.5029	-0.1446	7724.2529	99.7349	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C10	89113PR1	GABRG3_rs140679	UNKNOWN	0.2773	0.8624	10573.3965	99.8891	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D1	M48307	EDNRB_rs5351	UNKNOWN	0.3493	0.5752	11186.0068	99.9745	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D2	M48307	GABRG3_rs140679	UNKNOWN	0.2944	0.8123	12378.1162	99.59	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D5	M40464	EDNRB_rs5351	UNKNOWN	0.3619	0.584	15115.4492	99.912	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D6	M40464	GABRG3_rs140679	UNKNOWN	0.4299	0.1353	13886.7314	97.9405	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D9	89113PR1_02	EDNRB_rs5351	UNKNOWN	0.5028	-0.1545	9212.4004	99.6126	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D10	89113PR1_02	GABRG3_rs140679	UNKNOWN	0.2754	0.8719	11703.6787	99.8566	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E1	88562PR1	EDNRB_rs5351	UNKNOWN	0.4941	-0.1004	11523.501	99.9993	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E2	88562PR1	GABRG3_rs140679	UNKNOWN	0.3403	0.0247	12177.1455	97.4745	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E5	M45223	EDNRB_rs5351	UNKNOWN	0.4872	-0.0953	13986.7607	99.996	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E6	M45223	GABRG3_rs140679	UNKNOWN	0.1546	1.1787	13541.3418	99.6139	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E9	89285PR1	EDNRB_rs5351	UNKNOWN	0.2889	0.5391	9552.4277	99.6107	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E10	89285PR1	GABRG3_rs140679	UNKNOWN	0.2275	0.8597	9933.5137	98.3722	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F1	88562PR1_2	EDNRB_rs5351	UNKNOWN	0.4834	-0.1003	11085.6816	99.9955	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F2	88562PR1_2	GABRG3_rs140679	UNKNOWN	0.3986	0.0741	12167.0283	99.8956	Homozygous T/T	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F5	M52136	EDNRB_rs5351	UNKNOWN	0.4909	-0.0882	12642.9512	99.983	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F6	M52136	GABRG3_rs140679	UNKNOWN	0.27	0.7914	13666.3213	99.871	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F9	89285PR1_02	EDNRB_rs5351	UNKNOWN	0.3429	0.5613	10966.4541	99.9942	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F10	89285PR1_02	GABRG3_rs140679	UNKNOWN	0.2464	0.8444	11238.2412	99.4653	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G1	88563PR1	EDNRB_rs5351	UNKNOWN	0.5095	-0.0853	11595.2295	99.9538	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G2	88563PR1	GABRG3_rs140679	UNKNOWN	0.1801	1.206	11376.4834	99.9844	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G5	88212PR1	EDNRB_rs5351	UNKNOWN	0.4897	-0.0864	13310.8008	99.9768	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G6	88212PR1	GABRG3_rs140679	UNKNOWN	0.2728	0.7971	13656.3174	99.9148	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G9	LW_01	EDNRB_rs5351	NTC	0.031	-0.1169	9472.7188	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G10	LW_01	GABRG3_rs140679	NTC	0.0206	-0.1245	9497.0967	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H1	88610PR1	EDNRB_rs5351	UNKNOWN	0.3389	0.5002	8996.2197	99.813	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H2	88610PR1	GABRG3_rs140679	UNKNOWN	0.1692	1.1294	10157.7607	99.5492	Homozygous C/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H5	88568PR1	EDNRB_rs5351	UNKNOWN	0.4504	-0.123	9784.7842	99.8095	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H6	88568PR1	GABRG3_rs140679	UNKNOWN							true	0.2	true	3	15	true	0.2	true	3	15	
+H9	LW_02	EDNRB_rs5351	NTC	0.0189	-0.1487	5899.293	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H10	LW_02	GABRG3_rs140679	NTC	0.0198	-0.141	6826.6191	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+
+* Block Type = 96well
+* Chemistry = OTHER
+* Experiment File Name = C:\Users\Pabstbr\Desktop\KASP_Desktop\KASP_Assay\KASP_Lauf_9\KASP_Genotyp_23112017_bearb.eds
+* Experiment Run End Time = Not Started
+* Instrument Type = steponeplus
+* Passive Reference = ROX
+
+[Results]
+Well	Sample Name	SNP Assay Name	Task	Allele1 ΔRn	Allele2 ΔRn	Pass.Ref	Quality(%)	Call	Method	Allele1 Automatic Ct Threshold	Allele1 Ct Threshold	Allele1 Automatic Baseline	Allele1 Baseline Start	Allele1 Baseline End	Allele2 Automatic Ct Threshold	Allele2 Ct Threshold	Allele2 Automatic Baseline	Allele2 Baseline Start	Allele2 Baseline End	Comments
+
+A2	M44931	TPH2_rs4290270	UNKNOWN	0.2856	0.6427	9908.4385	99.6139	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A4	NA12877	TPH2_rs4290270	UNKNOWN	0.4933	-0.1366	10757.6182	99.9762	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A6	88686PR1	TPH2_rs4290270	UNKNOWN	0.0957	1.3413	11045.3701	99.2707	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+A7																				
+A8																				
+A9																				
+A10																				
+A11																				
+A12																				
+B2	M46728	TPH2_rs4290270	UNKNOWN	0.0759	1.4509	11904.8184	99.9997	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B4	NA12877_02	TPH2_rs4290270	UNKNOWN	0.4871	-0.0958	14540.8076	99.9768	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B6	88691PR1	TPH2_rs4290270	UNKNOWN	0.0788	1.3852	13419.7012	99.8182	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+B7																				
+B8																				
+B9																				
+B10																				
+B11																				
+B12																				
+C2	M52139	TPH2_rs4290270	UNKNOWN	0.5002	-0.1081	12129.9639	99.9373	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C4	NA12878	TPH2_rs4290270	UNKNOWN	0.2696	0.6529	13796.4482	99.9185	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C6	89113PR1	TPH2_rs4290270	UNKNOWN	0.2291	0.55	14002.8203	99.2815	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+C7																				
+C8																				
+C9																				
+C10																				
+C11																				
+C12																				
+D1	M48307	GABRG3_rs140679	UNKNOWN	0.3018	0.9719	10806.3184	96.8978	Heterozygous T/C	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D2	M48307	TPH2_rs4290270	UNKNOWN	0.2971	0.7337	12960.1357	98.8348	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D4	M40464	TPH2_rs4290270	UNKNOWN	0.2724	0.6507	14334.959	99.8974	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D6	89113PR1_02	TPH2_rs4290270	UNKNOWN	0.2521	0.6328	14121.3262	99.9077	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+D7																				
+D8																				
+D9																				
+D10																				
+D11																				
+D12																				
+E2	88562PR1	TPH2_rs4290270	UNKNOWN	0.265	0.6039	11950.2148	99.9512	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E4	M45223	TPH2_rs4290270	UNKNOWN	0.4889	-0.118	14185.7705	100	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E6	89285PR1	TPH2_rs4290270	UNKNOWN	0.2438	0.5911	13878.9111	99.806	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+E7																				
+E8																				
+E9																				
+E10																				
+E11																				
+E12																				
+F2	88562PR1_2	TPH2_rs4290270	UNKNOWN	0.2646	0.6166	11505.0908	99.9849	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F4	M52136	TPH2_rs4290270	UNKNOWN	0.247	0.6177	13818.3574	99.8546	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F6	89285PR1_02	TPH2_rs4290270	UNKNOWN	0.255	0.6145	14044.7881	99.9778	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+F7																				
+F8																				
+F9																				
+F10																				
+F11																				
+F12																				
+G2	88563PR1	TPH2_rs4290270	UNKNOWN	0.5014	-0.1151	12078.1738	99.9273	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G4	88212PR1	TPH2_rs4290270	UNKNOWN	0.0692	1.4507	13784.1543	99.9785	Homozygous A/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G6	LW_01	TPH2_rs4290270	NTC	0.0236	-0.1237	13847.4209	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+G7																				
+G8																				
+G9																				
+G10																				
+G11																				
+G12																				
+H2	88610PR1	TPH2_rs4290270	UNKNOWN	0.2493	0.5383	10024.6631	99.5512	Heterozygous G/A	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H4	88568PR1	TPH2_rs4290270	UNKNOWN	0.4326	-0.1435	11589.4131	98.5074	Homozygous G/G	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H6	LW_02	TPH2_rs4290270	NTC	0.011	-0.1455	11749.249	100	Negative Control (NC)	Auto	true	0.2	true	3	15	true	0.2	true	3	15	
+H7																				
+H8																				
+H9																				
+H10																				
+H11																				
+H12																				

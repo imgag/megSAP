@@ -62,10 +62,12 @@ $arguments = array(
 	"--readFilesIn", isset($in2) ? "{$in1} {$in2}" : $in1,
 	"--genomeDir {$genome}",
 	"--outFileNamePrefix {$STAR_tmp_folder}/",
-	"--outStd SAM",
+	"--outStd BAM_Unsorted",
+	"--outSAMtype BAM Unsorted",
 	"--outSAMunmapped Within",
 	"--runThreadN {$threads}",
 	"--outSAMattributes All",
+	"--chimOutType WithinBAM SoftClip",
 	"--chimSegmentMin 12",
 	"--chimJunctionOverhangMin 12",
 	"--chimSegmentReadGapMax 3",
@@ -101,11 +103,10 @@ $star = $long_reads ? get_path("STAR")."long" : get_path("STAR");
 $pipeline = array();
 $pipeline[] = array($star, implode(" ", $arguments));
 
+$pipeline[] = array(get_path("samtools"), "view -h");
+
 //duplicate flagging with samblaster
 if (!$skip_dedup) $pipeline[] = array(get_path("samblaster"), "");
-
-//convert SAM to BAM (uncompressed) with samtools
-$pipeline[] = array(get_path("samtools"), "view -hu -");
 
 //sort BAM by coordinates
 $tmp_for_sorting = $parser->tempFile();
@@ -113,6 +114,9 @@ $pipeline[] = array(get_path("samtools"), "sort -T $tmp_for_sorting -m 1G -@ ".m
 
 //execute (STAR -> samblaster -> samtools SAM to BAM -> samtools sort)
 $parser->execPipeline($pipeline, "mapping");
+
+//create BAM index file
+$parser->indexBam($out, $threads);
 
 //downstream analysis files
 $outfile_splicing= "{$prefix}_splicing.tsv";
@@ -153,8 +157,5 @@ file_put_contents($outfile_chimeric, file_get_contents("{$STAR_tmp_folder}/Chime
 //write the final log file into the tool log
 $final_log = "{$STAR_tmp_folder}/Log.final.out";
 $parser->log("STAR Log.final.out", file($final_log));
-
-//create BAM index file
-$parser->indexBam($out, $threads);
 
 ?>

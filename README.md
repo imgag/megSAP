@@ -1,15 +1,23 @@
 # *megSAP* - a Medical Genetics Sequence Analysis Pipeline
 
-The goal of the megSAP proejct is to develop an NGS data analysis pipeline for medical genetics, that is
+megSAP is a NGS data analysis pipeline for medical genetics, that is developed by the [Institute of Medical Genetics and Applied Genomics](http://www.uni-tuebingen.de/Klinische_Genetik/start.html) and several collaborators from academia and industry. Since December 2016 the project is publically available on GitHub, however closed-source development started already in 2012.  
 
- * state-of-the-art in terms of performance,
+The design goals of the project are:
+
+ * state-of-the-art in terms of sensitivity/specificity,
  * fast
  * and usable for diagnostics:
- 	* we use no tools that require a license for diagnostics e.g. [GATK](https://software.broadinstitute.org/gatk/)
+ 	* we use no tools that require a license for diagnostics
     * extensive logging (tools, versions, parameters) ensures reproducability of results
 	* extensive testing before adding/updating tools or databases makes sure the results are valid
 
-megSAP is developed by the [Institute of Medical Genetics and Applied Genomics](http://www.uni-tuebingen.de/Klinische_Genetik/start.html) and several collaborators from academia and industry. If you are interested to join the effort, please contact [Marc Sturm](https://github.com/marc-sturm).
+If you are interested to join the effort, please contact [Marc Sturm](https://github.com/marc-sturm).
+
+## ChangeLog
+
+* 18.01.2018: Added b-allele frequency files for visualization in IGV. 
+* 08.01.2018: Updated tools (BWA, samtools, snpEff) and databases (ClinVar, gnomAD, HGMD).
+* 15.12.2017: Added runs-of-homozygosity detection to the germline pipeline.
 
 ## Download
 
@@ -48,6 +56,10 @@ For example, the installation of the dependencies using Ubuntu 16.04 looks like 
 
 	> sudo apt-get install -y wget bzip2 unzip make g++ git cmake tabix build-essential qt5-default qt5-qmake qtbase5-dev libqt5sql5-mysql libqt5xmlpatterns5-dev php7.0-cli php7.0-xml php7.0-mysql python python-matplotlib libncurses5-dev bzip2 libbz2-dev liblzma-dev default-java
 
+For molecular barcode processing, several python dependencies are required. They can be installed with ``pip``:
+
+	> pip install -r data/python_requirements.txt
+
 ## Initial setup
 
 First, we need to download the tools the pipeline relies on:
@@ -82,3 +94,6 @@ Documentation about the different analysis pipelines can be found here:
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+
+
+

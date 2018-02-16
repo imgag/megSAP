@@ -28,7 +28,6 @@ class ToolBase
 	private $temp_files = array();
 	private $temp_folders = array();
 	private $error_occurred = false;
-	private $queued_jobs = array();
 	
 	/// Constructor
 	function __construct($name, $description)
@@ -53,7 +52,6 @@ class ToolBase
 		// register callbacks
 		register_shutdown_function(array($this, 'shutdown'));
 		set_error_handler(array($this, 'error_handler'));
-		pcntl_signal(SIGINT, array($this, 'shutdownSIG'));
 	}
 	
 	/// Shutdown function (destructor cannot be used, because it is not called after 'trigger_error' is used)
@@ -79,30 +77,9 @@ class ToolBase
 			}
 		}
 		
-		if(!empty($this->queued_jobs))
-		{
-			$deleted_jobs = array();
-			$undeleted_jobs = array();
-			foreach($this->queued_jobs as $qj)
-			{
-				$qdel_message = jobDelete($qj);
-				if(strpos($qdel_message, "denied:")!==FALSE)	$undeleted_jobs[] = $qj;
-				else	$deleted_jobs[] = $qj;
-			}
-			if(!empty($deleted_jobs))	trigger_error("Deleted following child processes: ".implode(", ",$deleted_jobs),E_USER_NOTICE);
-			if(!empty($undeleted_jobs))	trigger_error("Could not delete the following child processes: ".implode(", ",$undeleted_jobs),E_USER_NOTICE);
-		}
-		
 		//final log message
 		$this->log("END ".$this->name);
 		$this->log("Execution time of '".$this->name."': ".time_readable(microtime(true) - $this->start_time));
-	}
-
-	/// Shutdown function for ctl-c, delete all jobs depending on this object, keep tmp files (no shutdown)
-	function shutdownSIG($sig)
-	{
-		trigger_error("Aborted by user; shutdown.", E_USER_NOTICE);
-		die;	//runs shutdown function to clean up files / folders / queued jobs
 	}
 	
 	/// Remove temporary folder
@@ -680,7 +657,7 @@ class ToolBase
 		
 		If the call exits with an error code, further execution of the calling script is aborted.
 	*/
-	function exec($command, $parameters, $log_output)
+	function exec($command, $parameters, $log_output,$abort_on_error=true)
 	{
 		//log call
 		if($log_output)
@@ -715,11 +692,11 @@ class ToolBase
 		if ($return != 0)
 		{	
 			$this->toStderr($stderr);
-			trigger_error("Call of external tool '$command' returned error code '$return'.", E_USER_ERROR);
+			trigger_error("Call of external tool '$command' returned error code '$return'.", $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
 		}
 		
-		//return results
-		return array($stdout, $stderr);
+		//return results, 3rd element "return" contains error code
+		return array($stdout, $stderr, $return);
 	}
 
 	/**
@@ -812,7 +789,7 @@ class ToolBase
 		
 		If the call exits with an error code, further execution of the calling script is aborted.
 	*/
-	function execTool($command, $parameters)
+	function execTool($command, $parameters,$abort_on_error=true)
 	{
 		//prepend php and path
 		$command = "php ".repository_basedir()."/src/".$command;
@@ -864,14 +841,14 @@ class ToolBase
 		}
 		
 		//abort on error
-		if ($return != 0)
+		if ($abort_on_error && $return != 0)
 		{	
 			$this->toStderr($stderr);
-			trigger_error("Call of external tool '$command' returned error code '$return'.", E_USER_ERROR);
+			trigger_error("Call of external tool '$command' returned error code '$return'.", $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
 		}
 		
 		//return results
-		return array($stdout, $stderr);
+		return array($stdout, $stderr,$return);
 	}
 	
 	/**
@@ -1021,11 +998,11 @@ class ToolBase
 	}
 	
 	///Sort BAM file
-	function sortBam($in, $out, $threads)
+	function sortBam($in, $out, $threads, $by_name = FALSE)
 	{	
 		$threads -= 1; //number of additional threads, that's why -1
-		$tmp_for_sorting = $this->tempFile();		
-		$this->exec(get_path("samtools")." sort", "-T {$tmp_for_sorting} -@ {$threads} -m 1G -o $out $in", true);
+		$tmp_for_sorting = $this->tempFile();
+		$this->exec(get_path("samtools")." sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G -o $out $in", true);
 	}
 	
 	///Index BAM file
@@ -1064,43 +1041,6 @@ class ToolBase
 		$this->log("Execution time of copying '".basename($from)."' to '".basename($to)."': ".time_readable(microtime(true) - $start));		
 	}
 	
-	function jobsSubmit($commands, $working_directory, $queue, $wait=false)
-	{		
-		$this->log("Submitting commands to queue '$queue':", $commands);
-		
-		foreach($commands as $command)
-		{
-			$sample_status = get_path("sample_status_folder")."/data/";
-			$this->queued_jobs[] = jobSubmit($command, $working_directory, $queue, $sample_status);
-			trigger_error("Submitted job '$command' to queue '$queue' (SGE). Job-ID is ".end($this->queued_jobs).".",E_USER_NOTICE);
-		}
-		
-		if($wait)
-		{
-			//wait for jobs until finished and collect qstat messages
-			trigger_error("Waiting for job(s) ".implode(", ", $this->queued_jobs)." to be finished.",E_USER_NOTICE);
-			$q_stats = jobsWait($this->queued_jobs);
-
-			//check end and exit status of finished jobs
-			$finished_jobs = array();
-			$error_jobs = array();
-			foreach($q_stats as $j => $s)
-			{
-				if($s == "queue error")	jobDelete($j);	//cleanup SGE queue				
-				if($s == "finished")	$finished_jobs[] = "$j";
-				else	$error_jobs[] = "$j ($s)";
-			}
-			
-			trigger_error("Jobs finished: ".(empty($finished_jobs)?"none":implode(", ", $finished_jobs)).".",E_USER_NOTICE);
-			trigger_error("Jobs unfinished: ".(empty($error_jobs)?"none":implode(", ", $error_jobs)).".",E_USER_NOTICE);
-			if(count($error_jobs)>0)	trigger_error("Not all jobs were finished properly! S. $sample_status/php.e[jobid] for details.", E_USER_ERROR);	//jobs finished in error mode
-			if(empty($finished_jobs) && empty($error_jobs))	trigger_error("None of the jobs was finished at all!", E_USER_ERROR);	//jobs finished in error mode
-		}
-		
-		$return = $this->queued_jobs;
-		$this->queued_jobs = array();
-		return $return;
-	}
 }
 
 ?>

@@ -91,7 +91,7 @@ if (in_array("ma", $steps))
 	$files2 = glob($in_rev);
 	if (count($files1)!=count($files2))
 	{
-		trigger_error("Found mismatching forward and reverse read file count!\n Forward: ".implode(" ", $in_for)."\n Reverse: ".implode(" ", $in_rev), E_USER_ERROR);
+		trigger_error("Found mismatching forward and reverse read file count!\n Forward: $in_for\n Reverse: $in_rev.", E_USER_ERROR);
 	}
 	if (count($files1)==0)
 	{
@@ -129,6 +129,10 @@ if (in_array("vc", $steps))
 	else if (!$sys['shotgun']) //amplicon panels
 	{
 		$args[] = "-min_af 0.1";
+	}
+	if($sys['type']=="Panel MIPs")
+	{
+		$args[] = "-no_bias";
 	}
 	
 	if(file_exists($log_vc)) unlink($log_vc);

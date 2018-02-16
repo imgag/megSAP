@@ -193,6 +193,7 @@ if (in_array("ma", $steps))
 
 //read counting
 $counts_raw = $prefix."_counts_raw.tsv";
+$counts_exon_raw = $prefix."_counts_exon_raw.tsv";
 $counts_normalized = $prefix."_counts.tsv";
 $counts_qc = $prefix."_stats_rc.tsv";
 $repair_bam = $final_bam;
@@ -224,6 +225,13 @@ if (in_array("rc", $steps))
 
 	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args));
 
+	// exon-level counting
+	$args_exon = array_merge($args_common, [
+		"-exon_level",
+		"-out", $counts_exon_raw
+	]);
+	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args_exon));
+
 	// read count normalization
 	$parser->execTool("NGS/rc_normalize.php", "-in $counts_raw -out $counts_normalized");
 
@@ -239,8 +247,7 @@ if (in_array("rc", $steps))
 //annotate
 if (in_array("an", $steps))
 {
-	$parser->execTool("NGS/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtfFile $gtfFile");
-	$parser->execTool("NGS/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtfFile $gtfFile -annotationId gene_biotype");
+	$parser->execTool("NGS/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtfFile $gtfFile -annotationIds gene_name,gene_biotype");
 }
 
 //detect fusions
@@ -274,7 +281,7 @@ if (in_array("fu",$steps))
 		);
 
 		$parser->exec(get_path("STAR-Fusion"), implode(" ", $starfusion_params), true);
-		$parser->moveFile("{$fusion_tmp_folder}/star-fusion.fusion_candidates.final.abridged", "{$prefix}_var_fusions.tsv");
+		$parser->moveFile("{$fusion_tmp_folder}/star-fusion.fusion_predictions.tsv", "{$prefix}_var_fusions.tsv");
 	
 	}
 	else
