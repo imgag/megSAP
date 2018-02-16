@@ -1,5 +1,5 @@
 #type=GENE_EXPRESSION
-#track graphtype=heatmap name="NA12878_17 CN z-score" midRange=-2.5:2.5 color=0,0,255 altColor=255,0,0 viewLimits=-5:5 maxHeightPixels=80:80:80
+#track graphtype=points name="NA12878_17 CN z-score" midRange=-2.5:2.5 color=0,0,255 altColor=255,0,0 viewLimits=-5:5 maxHeightPixels=80:80:80
 ID	chr	start	end	log2-ratio	copy-number	z-score
 	chr4	90635576	90636579	0.10	2	0.71
 	chr4	90636579	90637582	0.10	2	0.70

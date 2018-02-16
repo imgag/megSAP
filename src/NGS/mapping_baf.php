@@ -157,12 +157,12 @@ $seg_firstline = "#track graphtype=points viewLimits=-0.2:1.2 maxHeightPixels=80
 $seg_header = [ "Chromosome", "Start", "End", "Feature" ];
 if ($is_somatic)
 {
-	$seg_header[] = "$ps_name (tumor)";
-	$seg_header[] = "$nor_name (normal)";
+	$seg_header[] = "{$ps_name} BAFs (tumor)";
+	$seg_header[] = "{$nor_name} BAFs (normal)";
 }
 else
 {
-	$seg_header[] = "$ps_name";
+	$seg_header[] = "{$ps_name} BAFs";
 }
 // write header lines
 $handle_out = fopen($out, "w");
