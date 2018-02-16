@@ -54,7 +54,14 @@ if(count($files)<2 && $info['sys_type'] != "RNA")
 if($info['is_tumor'] && $info['normal_name']!="" && $info['sys_type'] != "RNA")
 {	
 	$outfolder = $project_folder."/Somatic_".$sample."-".$info['normal_name']."/";
-	if (!file_exists($outfolder)) mkdir($outfolder);
+	if (!file_exists($outfolder))
+	{
+		mkdir($outfolder);		
+		if (!chmod($out_folder, 0777))
+		{
+			trigger_error("Could not change privileges of folder '{$out_folder}'!", E_USER_ERROR);
+		}
+	}
 	
 	//determine somatic steps
 	$steps_som = array_intersect(array("ma", "vc", "an", "db"), explode(",",$steps));

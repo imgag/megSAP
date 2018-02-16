@@ -61,6 +61,10 @@ if ($o_folder === "default")
 if (!file_exists($o_folder))
 {
 	mkdir($o_folder);
+	if (!chmod($o_folder, 0777))
+	{
+		trigger_error("Could not change privileges of folder '{$o_folder}'!", E_USER_ERROR);
+	}
 }
 
 // extract systems

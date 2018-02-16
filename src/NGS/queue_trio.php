@@ -41,7 +41,14 @@ $c_params = get_processed_sample_info($c);
 
 //create output folder
 $out_folder = $c_params["project_folder"]."/Trio_".$c."_".$f."_".$m."/";
-if (!file_exists($out_folder)) mkdir($out_folder);
+if (!file_exists($out_folder))
+{
+	mkdir($out_folder);
+	if (!chmod($out_folder, 0777))
+	{
+		trigger_error("Could not change privileges of folder '{$out_folder}'!", E_USER_ERROR);
+	}
+}
 
 //determine command and arguments
 $command = "php ".repository_basedir()."/src/Pipelines/trio.php";

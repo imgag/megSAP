@@ -48,7 +48,14 @@ if ($target_file=="")
 
 //create output folder if missing
 $out_folder .= "/";
-if (!file_exists($out_folder)) mkdir($out_folder);
+if (!file_exists($out_folder))
+{
+	mkdir($out_folder);
+	if (!chmod($out_folder, 0777))
+	{
+		trigger_error("Could not change privileges of folder '{$out_folder}'!", E_USER_ERROR);
+	}
+}
 
 //(1.1) check genders of parents
 if ($start=="check")

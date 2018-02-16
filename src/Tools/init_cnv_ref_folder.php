@@ -29,7 +29,14 @@ if ($roi=="")
 
 //create/clear folder
 $ref_folder = get_path("data_folder")."/coverage/$name/";		
-if (!is_dir($ref_folder)) mkdir($ref_folder);
+if (!is_dir($ref_folder))
+{
+	mkdir($ref_folder);
+	if (!chmod($ref_folder, 0777))
+	{
+		trigger_error("Could not change privileges of folder '{$ref_folder}'!", E_USER_ERROR);
+	}
+}
 if ($clear)
 {
 	exec2("rm -rf $ref_folder/*.cov");

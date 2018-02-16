@@ -251,7 +251,14 @@ if (in_array("cn", $steps) && $sys['type']!="WGS" && $sys['target_file']!="")
 	{
 		//create reference folder if it does not exist
 		$ref_folder = get_path("data_folder")."/coverage/".$sys['name_short']."/";
-		if (!is_dir($ref_folder)) mkdir($ref_folder);
+		if (!is_dir($ref_folder))
+		{
+			mkdir($ref_folder);
+			if (!chmod($ref_folder, 0777))
+			{
+				trigger_error("Could not change privileges of folder '{$ref_folder}'!", E_USER_ERROR);
+			}
+		}
 		
 		//copy file
 		$ref_file = $ref_folder.$name.".cov";

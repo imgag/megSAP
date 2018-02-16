@@ -60,6 +60,10 @@ $out_folder = $project_folder."/Multi_".implode("_", $samples)."/";
 if (!file_exists($out_folder)) 
 {
 	mkdir($out_folder);
+	if (!chmod($out_folder, 0777))
+	{
+		trigger_error("Could not change privileges of folder '{$out_folder}'!", E_USER_ERROR);
+	}
 }
 
 //determine command and arguments

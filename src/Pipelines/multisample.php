@@ -82,7 +82,14 @@ if ($target_file=="")
 
 //create output folder if missing
 $out_folder .= "/";
-if (!file_exists($out_folder)) mkdir($out_folder);
+if (!file_exists($out_folder))
+{
+	mkdir($out_folder);
+	if (!chmod($out_folder, 0777))
+	{
+		trigger_error("Could not change privileges of folder '{$out_folder}'!", E_USER_ERROR);
+	}
+}
 
 //(1) variant calling of all samples together (with very conservative parameters)
 $vcf_all = $out_folder."all.vcf.gz";
