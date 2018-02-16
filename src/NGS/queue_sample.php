@@ -61,12 +61,11 @@ if($info['is_tumor'] && $info['normal_name']!="" && $info['sys_type'] != "RNA")
 	if (in_array("an", $steps_som))
 	{
 		$steps_som[] = "ci"; 
-		$steps_som[] = "re";
 	}
 	$steps_som = implode(",",$steps_som);
 	
-	$command = "php ".repository_basedir()."/src/Pipelines/somatic_capa.php";
-	$args = "-p_folder {$project_folder} -t_id {$sample} -n_id ".$info['normal_name']." -o_folder {$outfolder} -steps {$steps_som} --log {$outfolder}somatic_capa_".date("YmdHis").".log";
+	$command = "php ".repository_basedir()."/src/Pipelines/somatic_dna.php";
+	$args = "-p_folder {$project_folder} -t_id {$sample} -n_id ".$info['normal_name']." -o_folder {$outfolder} -steps {$steps_som} --log {$outfolder}somatic_dna_".date("YmdHis").".log";
 }
 elseif ($info['sys_type'] == "RNA")
 {
