@@ -14,11 +14,11 @@ $parser->addInfile("in",  "Input BAM file.", false);
 $parser->addOutfile("out",  "Output IGV file.", false);
 //optional
 $parser->addInfile("target",  "Target bed file used to identify common SNPs in target region. If unspecified settings for WGS will be used. If -n_in is specified same target file will be used for this sample.", true);
-$parser->addInfile("n_in",  "Input normal file in bam format (somatic).", true);
-$parser->addFloat("min_af", "Minimum allele frequency of SNPs to use (in 1000g data).", true, 0.01);
+$parser->addFlag("wgs", "Enable WGS mode, downsamples variants by using every 100th variant.");
+$parser->addInfile("n_in",  "Input normal file in BAM format (somatic mode).", true);
+$parser->addFloat("min_af", "Minimum allele frequency of SNPs to use.", true, 0.01);
 $parser->addInt("min_dp", "Minimum depth of SNPs in BAM.", true, 20);
-$parser->addFlag("full_wgs", "Do not downsample variant list for WGS.", true);
-$parser->addString("base_vcf", "Base variant list, must contain AF field.", true, get_path("data_folder")."dbs/1000G/1000g_v5b.vcf.gz");
+$parser->addString("base_vcf", "Base variant list, records must contain AF field.", true, get_path("data_folder")."dbs/1000G/1000g_v5b.vcf.gz");
 extract($parser->parse($argv));
 
 // check if base VCF exists
@@ -36,30 +36,41 @@ if ($is_somatic)
 
 // filtered variants
 // variant list depends on target region and specified minimum allele fraction
-if (isset($target))
+// try to use pre-computed list, if available
+
+// if WGS flag is set, target region is not relevant
+if ($wgs)
 {
-	$target_shortname = basename($target, ".bed");
-}
-else if ($full_wgs)
-{
-	$target_shortname = "WGS_full";
+	$shortname = "wgs";
 }
 else
 {
-	$target_shortname = "WGS";
+	// for non-WGS, honor target region
+	if (isset($target))
+	{
+		$shortname = basename($target, ".bed") . "_" . sha1_file($target);
+	}
+	else
+	{
+		// abort on non-WGS and no target region
+		trigger_error("Target region must be specified or WGS mode enabled.", E_USER_ERROR);
+	}
 }
-$filtered_variants = sprintf("%s/baf_%s_%s_af%s.tsv",
-	dirname($base_vcf),
+
+# file naming scheme for cached list:
+# bav_<vcf base name>_af<min af value>_<target base name>_<bed file hash>.tsv
+$filtered_variants = sprintf("%s/baf_%s_af%0.2F_%s.tsv",
+	get_path("local_data"),
 	basename($base_vcf, ".vcf.gz"),
-	$target_shortname,
-	$min_af);
+	$min_af,
+	$shortname);
 
 if (!file_exists($filtered_variants))
 {
 	trigger_error("Filtered variant list does not exist, creating at '{$filtered_variants}'.");
 
 	// filter base VCF by target region (only for enrichment)
-	if (isset($target))
+	if (isset($target) && !$wgs)
 	{
 		$tmp_filtered_by_region = $parser->tempFile("_filtered_by_region.vcf");
 		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$base_vcf} -reg {$target} -out {$tmp_filtered_by_region}", true);
@@ -131,7 +142,7 @@ if (!file_exists($filtered_variants))
 		}
 
 		// WGS: use only every 100th variant
-		if (!isset($target) && !$full_wgs && $count++ % 100 !== 0)
+		if ($wgs && $count++ % 100 !== 0)
 		{
 			continue;
 		}
@@ -195,5 +206,6 @@ while (!feof($handle))
 	}
 	fwrite($handle_out, implode("\t", $row_out)."\n");
 }
+fclose($handle_out);
 
 ?>
