@@ -320,13 +320,9 @@ $parser->moveFile($bam_current.".bai", $out.".bai");
 
 //add baf file
 $params = array();
-if (!empty($sys['target_file']))
+if ($sys['type']!="WGS" && !empty($sys['target_file']))
 {
 	$params[] = "-target ".$sys['target_file'];
-}
-if ($sys['target_file'] === "WGS")
-{
-	$params[] = "-wgs";
 }
 $parser->execTool("NGS/mapping_baf.php", "-in ${out} -out ${basename}_bafs.igv ".implode(" ", $params));
 

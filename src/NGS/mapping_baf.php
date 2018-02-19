@@ -13,8 +13,7 @@ $parser = new ToolBase("mapping_baf", "Generate SEG file that contains bafs.");
 $parser->addInfile("in",  "Input BAM file.", false);
 $parser->addOutfile("out",  "Output IGV file.", false);
 //optional
-$parser->addInfile("target",  "Target bed file used to identify common SNPs in target region. If unspecified settings for WGS will be used. If -n_in is specified same target file will be used for this sample.", true);
-$parser->addFlag("wgs", "Enable WGS mode, downsamples variants by using every 100th variant.");
+$parser->addInfile("target",  "Target bed file used to identify common SNPs in target region. If unspecified, WGS mode (downsampling to every 100th SNP) will be used.", true);
 $parser->addInfile("n_in",  "Input normal file in BAM format (somatic mode).", true);
 $parser->addFloat("min_af", "Minimum allele frequency of SNPs to use.", true, 0.01);
 $parser->addInt("min_dp", "Minimum depth of SNPs in BAM.", true, 20);
@@ -27,57 +26,39 @@ if (!file_exists($base_vcf))
 	trigger_error("Base VCF '{$base_vcf}' does not exist!", E_USER_ERROR);
 }
 
-$is_somatic = isset($n_in);
 $ps_name = basename($in, ".bam");
+$is_somatic = isset($n_in);
 if ($is_somatic)
 {
 	$nor_name = basename($n_in, ".bam");
 }
 
-// filtered variants
-// variant list depends on target region and specified minimum allele fraction
-// try to use pre-computed list, if available
-
 // if WGS flag is set, target region is not relevant
-if ($wgs)
+$is_wgs = !isset($target);
+if ($is_wgs)
 {
-	$shortname = "wgs";
+	$shortname = "WGS";
 }
 else
 {
-	// for non-WGS, honor target region
-	if (isset($target))
-	{
-		$shortname = basename($target, ".bed") . "_" . sha1_file($target);
-	}
-	else
-	{
-		// abort on non-WGS and no target region
-		trigger_error("Target region must be specified or WGS mode enabled.", E_USER_ERROR);
-	}
+	$shortname = basename($target, ".bed") . "_" . sha1_file($target);
 }
 
-# file naming scheme for cached list:
-# bav_<vcf base name>_af<min af value>_<target base name>_<bed file hash>.tsv
-$filtered_variants = sprintf("%s/baf_%s_af%0.2F_%s.tsv",
-	get_path("local_data"),
-	basename($base_vcf, ".vcf.gz"),
-	$min_af,
-	$shortname);
-
+//use pre-computed SNP list if possible
+$filtered_variants = get_path("local_data")."/baf_".basename($base_vcf, ".vcf.gz")."_af{$min_af}_{$shortname}.tsv";
 if (!file_exists($filtered_variants))
 {
-	trigger_error("Filtered variant list does not exist, creating at '{$filtered_variants}'.");
+	trigger_error("Filtered variant list does not exist, creating at '{$filtered_variants}'.", E_USER_NOTICE);
 
 	// filter base VCF by target region (only for enrichment)
-	if (isset($target) && !$wgs)
+	if ($is_wgs)
+	{
+		$tmp_filtered_by_region = $base_vcf;
+	}
+	else
 	{
 		$tmp_filtered_by_region = $parser->tempFile("_filtered_by_region.vcf");
 		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$base_vcf} -reg {$target} -out {$tmp_filtered_by_region}", true);
-	}
-	else
-	{
-		$tmp_filtered_by_region = $base_vcf;
 	}
 
 	// filter known variants (SNPs with high population AF)
@@ -142,7 +123,7 @@ if (!file_exists($filtered_variants))
 		}
 
 		// WGS: use only every 100th variant
-		if ($wgs && $count++ % 100 !== 0)
+		if ($is_wgs && $count++ % 100 !== 0)
 		{
 			continue;
 		}
@@ -153,7 +134,7 @@ if (!file_exists($filtered_variants))
 	fclose($handle_out);
 }
 
-// annotate B-allele frequencies with BAM data
+// annotate B-allele frequencies from BAM
 $annotated_variants = $parser->tempFile(".tsv");
 $parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $filtered_variants -bam $in -out $annotated_variants -depth -name sample1", true);
 if ($is_somatic)
