@@ -13,12 +13,11 @@ $parser = new ToolBase("mapping_baf", "Generate SEG file that contains bafs.");
 $parser->addInfile("in",  "Input BAM file.", false);
 $parser->addOutfile("out",  "Output IGV file.", false);
 //optional
-$parser->addInfile("target",  "Target bed file used to identify common SNPs in target region. If unspecified settings for WGS will be used. If -n_in is specified same target file will be used for this sample.", true);
-$parser->addInfile("n_in",  "Input normal file in bam format (somatic).", true);
-$parser->addFloat("min_af", "Minimum allele frequency of SNPs to use (in 1000g data).", true, 0.01);
+$parser->addInfile("target",  "Target bed file used to identify common SNPs in target region. If unspecified, WGS mode (downsampling to every 100th SNP) will be used.", true);
+$parser->addInfile("n_in",  "Input normal file in BAM format (somatic mode).", true);
+$parser->addFloat("min_af", "Minimum allele frequency of SNPs to use.", true, 0.01);
 $parser->addInt("min_dp", "Minimum depth of SNPs in BAM.", true, 20);
-$parser->addFlag("full_wgs", "Do not downsample variant list for WGS.", true);
-$parser->addString("base_vcf", "Base variant list, must contain AF field.", true, get_path("data_folder")."dbs/1000G/1000g_v5b.vcf.gz");
+$parser->addString("base_vcf", "Base variant list, records must contain AF field.", true, get_path("data_folder")."dbs/1000G/1000g_v5b.vcf.gz");
 extract($parser->parse($argv));
 
 // check if base VCF exists
@@ -27,46 +26,39 @@ if (!file_exists($base_vcf))
 	trigger_error("Base VCF '{$base_vcf}' does not exist!", E_USER_ERROR);
 }
 
-$is_somatic = isset($n_in);
 $ps_name = basename($in, ".bam");
+$is_somatic = isset($n_in);
 if ($is_somatic)
 {
 	$nor_name = basename($n_in, ".bam");
 }
 
-// filtered variants
-// variant list depends on target region and specified minimum allele fraction
-if (isset($target))
+// if WGS flag is set, target region is not relevant
+$is_wgs = !isset($target);
+if ($is_wgs)
 {
-	$target_shortname = basename($target, ".bed");
-}
-else if ($full_wgs)
-{
-	$target_shortname = "WGS_full";
+	$shortname = "WGS";
 }
 else
 {
-	$target_shortname = "WGS";
+	$shortname = basename($target, ".bed") . "_" . sha1_file($target);
 }
-$filtered_variants = sprintf("%s/baf_%s_%s_af%s.tsv",
-	dirname($base_vcf),
-	basename($base_vcf, ".vcf.gz"),
-	$target_shortname,
-	$min_af);
 
+//use pre-computed SNP list if possible
+$filtered_variants = get_path("local_data")."/baf_".basename($base_vcf, ".vcf.gz")."_af{$min_af}_{$shortname}.tsv";
 if (!file_exists($filtered_variants))
 {
-	trigger_error("Filtered variant list does not exist, creating at '{$filtered_variants}'.");
+	trigger_error("Filtered variant list does not exist, creating at '{$filtered_variants}'.", E_USER_NOTICE);
 
 	// filter base VCF by target region (only for enrichment)
-	if (isset($target))
+	if ($is_wgs)
 	{
-		$tmp_filtered_by_region = $parser->tempFile("_filtered_by_region.vcf");
-		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$base_vcf} -reg {$target} -out {$tmp_filtered_by_region}", true);
+		$tmp_filtered_by_region = $base_vcf;
 	}
 	else
 	{
-		$tmp_filtered_by_region = $base_vcf;
+		$tmp_filtered_by_region = $parser->tempFile("_filtered_by_region.vcf");
+		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$base_vcf} -reg {$target} -out {$tmp_filtered_by_region}", true);
 	}
 
 	// filter known variants (SNPs with high population AF)
@@ -131,7 +123,7 @@ if (!file_exists($filtered_variants))
 		}
 
 		// WGS: use only every 100th variant
-		if (!isset($target) && !$full_wgs && $count++ % 100 !== 0)
+		if ($is_wgs && $count++ % 100 !== 0)
 		{
 			continue;
 		}
@@ -142,7 +134,7 @@ if (!file_exists($filtered_variants))
 	fclose($handle_out);
 }
 
-// annotate B-allele frequencies with BAM data
+// annotate B-allele frequencies from BAM
 $annotated_variants = $parser->tempFile(".tsv");
 $parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $filtered_variants -bam $in -out $annotated_variants -depth -name sample1", true);
 if ($is_somatic)
@@ -195,5 +187,6 @@ while (!feof($handle))
 	}
 	fwrite($handle_out, implode("\t", $row_out)."\n");
 }
+fclose($handle_out);
 
 ?>
