@@ -109,6 +109,11 @@ if (!$single_sample)
 	}
 }
 
+
+$target = $t_sys_ini['target_file'];
+
+list($stdout) = $parser->exec(get_path("ngs-bits")."BedInfo", "-in $target", false);
+
 // mapping
 $t_bam = $t_folder.$t_id.".bam";
 $n_bam = $n_folder.$n_id.".bam";
@@ -123,25 +128,25 @@ if (in_array("ma", $steps))
 	// tumor sample
 	if (!$smt)
 	{
-		$analyze_args_tum = [
+		$args = [
 			"-folder", $t_folder,
 			"-name", $t_id,
 			"-system", $t_sys,
 			"--log", "{$t_folder}analyze_" . date('YmdHis',mktime()) . ".log"
 		];
-		$parser->execTool("Pipelines/analyze.php", implode(" ", array_merge($analyze_args, $analyze_args_tum)));
+		$parser->execTool("Pipelines/analyze.php", "-steps ma -no_abra ".implode(" ", $args));
 	}
 
 	// normal sample
 	if (!$single_sample && !$smn)
 	{
-		$analyze_args_nor = [
+		$args = [
 			"-folder", $n_folder,
 			"-name", $n_id,
 			"-system", $n_sys,
 			"--log", "{$n_folder}analyze_" . date('YmdHis',mktime()) . ".log"
 		];
-		$parser->execTool("Pipelines/analyze.php", implode(" ", array_merge($analyze_args, $analyze_args_nor)));
+		$parser->execTool("Pipelines/analyze.php", "-steps ma,vc,an,cn -no_abra ".implode(" ", $args));
 	}
 
 	// overlap clipping, is not done by analyze.php to prevent import of QC data calculated on BamClipOverlap result
@@ -211,6 +216,25 @@ if (in_array("ma", $steps))
 			$parser->indexBam($n_bam, $threads);
 		}
 	}
+	
+	// Low coverage statistics
+	//get low_cov_statistics
+	$target_merged = $parser->tempFile("_merged.bed");
+	$parser->exec(get_path("ngs-bits")."BedMerge", "-in $target -out $target_merged", true);
+	//calculate low-coverage regions; 100x needed for 10 % sensitivity
+	$td = 100;
+	$low_cov = $o_folder."/".$t_id.($single_sample ? "" : "-".$n_id)."_stat_lowcov.bed";
+	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $t_bam -out $low_cov -cutoff ".$td, true);
+	if(!$single_sample)
+	{
+		$nd = 100;
+		$low_cov_n = $parser->tempFile("_nlowcov.bed");
+		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $n_bam -out $low_cov_n -cutoff ".$nd, true);
+		$parser->exec(get_path("ngs-bits")."BedAdd", "-in $low_cov -in2 $low_cov_n -out $low_cov", true);
+		$parser->exec(get_path("ngs-bits")."BedMerge", "-in $low_cov -out $low_cov", true);
+	}
+	//annotate gene names (with extended to annotate splicing regions as well)
+	$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $low_cov -extend 25 -out $low_cov", true);
 }
 
 // check if samples are related

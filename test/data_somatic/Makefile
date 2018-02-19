@@ -36,10 +36,10 @@ case1_run:
 	    --log out_case1/GS150344.log
 
 case1_diff:
+	php ../compare_bed.php expected_case1/GS150344_01_stat_lowcov.bed out_case1/GS150344_01_stat_lowcov.bed
 	# variants
 	php ../compare_variants.php expected_case1/GS150344_01.GSvar out_case1/GS150344_01.GSvar
 	test -s out_case1/GS150344_01_cnvs.tsv
-
 
 # tumor-normal (strelka)
 case2: case2_run case2_diff
@@ -58,6 +58,8 @@ case2_diff:
 	# variants
 	php ../compare_variants.php expected_case2/GS110168-GS110169.GSvar out_case2/GS110168-GS110169.GSvar
 	php ../compare_variants.php expected_case2/GS110168-GS110169_var_qci.vcf.gz out_case2/GS110168-GS110169_var_qci.vcf.gz
+	php ../compare_bed.php expected_case2/GS110168-GS110169_stat_lowcov.bed out_case2/GS110168-GS110169_stat_lowcov.bed
+	
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription.tsv
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription_bioactivities.tsv
 	test -s out_case2/GS110168-GS110169_cgi_mutation_analysis.tsv
