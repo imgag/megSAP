@@ -1,2 +1,2 @@
 numpy
-pysam
+pysam==0.12
