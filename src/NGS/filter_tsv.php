@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("filter_tsv", "Filter TSV-files according to different filters.");
 $parser->addInfile("in",  "Input variant file in TSV format containing all necessary columns (s. below for each filter).", false);
 $parser->addOutfile("out",  "Output variant file in TSV format.", false);
-$filter = array('somatic', 'somatic_ds', 'coding', 'non_synonymous', 'somatic_diag_capa', 'iVac');
+$filter = array('somatic', 'somatic_ds', 'coding', 'non_synonymous', 'iVac');
 $parser->addString("type", "Filter set to use, can be comma delimited. Valid are: ".implode(",",$filter).".",false);
 //optional
 $parser->addInfile("roi", "Target region BED file (for off-target filter)", true);
@@ -59,17 +59,6 @@ if(in_array("coding", $types))
 if(in_array("non_synonymous", $types))
 {
 	$in_file = filter_synonymous($in_file);
-}
-if(in_array("somatic_diag_capa", $types))
-{
-	$in_file = filter_coding($in_file);
-	$in_file = filter_synonymous($in_file);
-	$in_file = filter_somatic($in_file);
-	$in_file = filter_somatic_capa($in_file);
-	if ($roi!="")
-	{
-		$in_file = filter_off_target($in_file,$in,$roi);
-	}
 }
 if(in_array("iVac", $types))
 {
@@ -362,46 +351,6 @@ function filter_somatic_ds(Matrix $data)
 	//set filter row
 	$row[$f] = set_filter($filter,$row[$f]);
 	$output->addRow($row);	
-	return $output;
-}
-
-function filter_somatic_capa(Matrix $data)
-{
-	//
-	$min_td = 50;
-	$min_nd = 20;
-	
-	//determine column indices
-	$tumor_only = false;
-	$tf = $data->getColumnIndex("tumor_af");
-	$td = $data->getColumnIndex("tumor_dp");
-	$nf = $data->getColumnIndex("normal_af",false,false);
-	$nd = $data->getColumnIndex("normal_dp",false,false);
-	$tg = $data->getColumnIndex("1000g", true);
-	$ex = $data->getColumnIndex("ExAC", true);
-	$gn = $data->getColumnIndex("gnomAD", true);
-	$f = $data->getColumnIndex("filter_tsv");
-	if($nf===FALSE)	$tumor_only = true;
-	
-	//filter out bad rows
-	$output = new Matrix();
-	$output->setHeaders($data->getHeaders());
-	for ($i=0; $i<$data->rows(); ++$i)
-	{
-		$row = $data->getRow($i);
-		$skip_variant = false;
-		$filter = array();
-		
-		//skip variants with high MAF or low depth
-		if ($row[$td]<$min_td)	$filter[] = "depth_tumor_too_low";
-		if (!$tumor_only && $row[$nd]<$min_nd)	$filter[] = "depth_normal_too_low";
-		if(!$tumor_only &&  ($row[$tf]<0.05 || $row[$nf]>0.01))	$filter[] = "allele_frequencies";
-		if ($row[$tg]>0.05 || $row[$ex]>0.05 || $row[$gn]>0.05) $filter[] = "db_frequencies";
-		
-		$row[$f] = set_filter($filter,$row[$f]);
-		$output->addRow($row);
-	}
-	
 	return $output;
 }
 

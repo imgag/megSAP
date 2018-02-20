@@ -4,7 +4,7 @@
 	@todo revisit somatic and somatic_ds (freebayes!) filter
 	@todo rewrite - make filters selectable to the outside - not_off_target, not_coding_splicing, not_synonymous
 	@todo additional parameters: min_tumor_dp, min_normal_dp, min_var_reads, min_var_af, conatmination, max_nor_af, max_var_pf
-	@todo refactor somatic, somatic_ds, somatic_capa; add filter public db; add filter contamination (if > 0)
+	@todo refactor somatic, somatic_ds; add filter public db; add filter contamination (if > 0)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

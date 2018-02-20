@@ -54,9 +54,6 @@ test_pipeline_t: dummy
 test_pipeline_m: dummy
 	@cd test/data_multi && make all
 
-test_pipeline_c: dummy
-	@cd test/data_capa && make all
-
 test_pipeline_i: dummy
 	@cd test/data_ivac && make all
 
@@ -73,7 +70,6 @@ test_all: dummy
 	make test_pipeline_s > p_s.log 2>&1 &
 	make test_pipeline_t > p_t.log 2>&1 &
 	make test_pipeline_m > p_m.log 2>&1 &
-	make test_pipeline_c > p_c.log 2>&1 &
 	make test_pipeline_r > p_r.log 2>&1 &
 
 test_all_status:
