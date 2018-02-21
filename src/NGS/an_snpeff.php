@@ -83,7 +83,7 @@ $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name T1
 $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name EXAC_ -info AF,AC_Hom,Hom_NFE,Hom_AFR,AF_AFR,AF_AMR,AF_EAS,AF_NFE,AF_SAS ".get_path("data_folder")."/dbs/ExAC/ExAC_r0.3.1.vcf.gz");
 
 //ClinVar annotation
-$pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name CLINVAR_ -info SIG,ACC,DISEASE ".get_path("data_folder")."/dbs/ClinVar/clinvar_20171203_converted.vcf");
+$pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name CLINVAR_ -info SIG,ACC,DISEASE ".get_path("data_folder")."/dbs/ClinVar/clinvar_20180128_converted.vcf");
 
 //COSMIC annotation (optional because of license)
 $db_file = get_path("data_folder")."/dbs/COSMIC/cosmic.vcf.gz";

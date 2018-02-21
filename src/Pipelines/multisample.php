@@ -3,8 +3,8 @@
 /**
 	@page multisample
 	
-	@todo try with higher min_af
-	      Test case: /mnt//share/opt/freebayes-1.1.0/bin/freebayes -b Sample_DX173188_01/DX173188_01.bam Sample_DX173187_01/DX173187_01.bam -f /tmp/local_ngs_data//GRCh37.fa -r chr2:152402382-152402532 --min-alternate-fraction 0.1
+	@todo try with higher min_af=0.15
+	      Test case: /mnt/share/opt/freebayes-1.1.0/bin/freebayes -b Sample_DX173188_01/DX173188_01.bam Sample_DX173187_01/DX173187_01.bam -f /tmp/local_ngs_data//GRCh37.fa -r chr2:152402382-152402532 --min-alternate-fraction 0.1
 		  Correct  : chr2    152402515       .         TAAAAAAAAAAAAAAAAAC     TAAAAAAAAAAAAAAAAAAAC
 		  Wrong    : chr2    152402513       .       CTTAAAAAAAAAAAAAAAAAC   ATTAAAAAAAAAAAAAAAAAAAC
 		  
