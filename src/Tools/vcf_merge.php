@@ -1,6 +1,6 @@
 <?php
 /** 
-	@page vcf_outliers
+	@page vcf_merge
 	
 	@todo merge without vcftools 'vcf-merge'
 	@todo make format/sample column content configurable
