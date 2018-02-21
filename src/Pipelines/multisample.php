@@ -101,7 +101,15 @@ if (!file_exists($out_folder))
 $vcf_all = $out_folder."all.vcf.gz";
 if (in_array("vc", $steps))
 {
-	$parser->execTool("NGS/vc_freebayes.php", "-bam ".implode(" ", $bams)." -out $vcf_all -target $target_file -min_mq 20 -min_af 0.1 -build ".$sys['build'], true);	
+	$args = array();
+	$args[] = "-bam ".implode(" ", $bams);
+	$args[] = "-out $vcf_all";
+	$args[] = "-target $target_file";
+	$args[] = "-min_mq 20";
+	$args[] = "-min_af 0.1";
+	$args[] = "-target_extend 50";
+	$args[] = "-build ".$sys['build'];
+	$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);	
 }
 
 //(2) annotation
