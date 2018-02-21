@@ -69,8 +69,8 @@ $args[] = "-n $n";
 if ($somatic) $args[] = "-debug ALL";
 $temp_folder = !empty($debug) ? $debug : $parser->tempFolder();
 if(!is_dir($temp_folder))	mkdir ($temp_folder);
-$args[] = "-cnp_file {$data_folder}/dbs/CNPs/copy_number_map_strict.bed";
-$args[] = "-annotate {$data_folder}/gene_lists/genes.bed {$data_folder}/gene_lists/dosage_sensitive_disease_genes.bed {$data_folder}/dbs/OMIM/omim.bed";
+$args[] = "-cnp_file ".repository_basedir()."/data/dbs/CNPs/copy_number_map_strict.bed";
+$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed {$data_folder}/dbs/OMIM/omim.bed";
 $parser->exec(get_path("ngs-bits")."CnvHunter", "-in ".implode(" ",$cov_files)." -out ".$temp_folder."/cnvs.tsv ".implode(" ", $args), true);
 
 // filter results for given processed sample(s)
@@ -390,7 +390,7 @@ if($somatic)
 	$end = 0;
 	$arm = "";
 	$chrom_arms = array();
-	$matrix = Matrix::fromTSV(get_path("data_folder")."/dbs/UCSC/cytoBand.txt");
+	$matrix = Matrix::fromTSV(repository_basedir()."/data/dbs/UCSC/cytoBand.txt");
 	for($i=0;$i<$matrix->rows();++$i)
 	{
 		$row = $matrix->getRow($i);

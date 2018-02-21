@@ -214,7 +214,7 @@ if (in_array("an", $steps))
 		$args = array();
 		$args[] = "-in $vcffile_annotated";
 		$args[] = "-out $rohfile";
-		$args[] = "-annotate ".get_path("data_folder")."/gene_lists/genes.bed ".get_path("data_folder")."/dbs/OMIM/omim.bed";
+		$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".get_path("data_folder")."/dbs/OMIM/omim.bed";
 		$parser->exec(get_path("ngs-bits")."RohHunter", implode(" ", $args), true);
 	}
 }
