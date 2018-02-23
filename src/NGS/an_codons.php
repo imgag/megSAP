@@ -23,10 +23,10 @@ $parser->addString("field", "VCF field name.", true, "PEPTIDE");
 extract($parser->parse($argv));
 
 // reference genome
-$genome = "/mnt/share/data/genomes/{$build}.fa";
+$genome = get_path("local_data")."/{$build}.fa";
 
 // ensGene table
-$fp_ensgene = "/mnt/share/data/dbs/Ensembl/ensGene_GRCh37.tsv.gz";
+$fp_ensgene = get_path("data_folder")."/dbs/Ensembl/ensGene_GRCh37.tsv.gz";
 $ensgene_tsv = Matrix::fromTSV($fp_ensgene);
 $ensgene = array_column($ensgene_tsv->getData(), NULL, 1);
 // ensGene columns

@@ -63,7 +63,7 @@ function all_genes_blacklisted($genes)
 	static $blacklist = null;
 	if ($blacklist === null)
 	{
-		$file = file(get_path("data_folder")."/gene_lists/blacklist.tsv");
+		$file = file(repository_basedir()."/data/gene_lists/blacklist.tsv");
 		foreach($file as $line)
 		{
 			$line = trim($line);
@@ -159,7 +159,7 @@ $filter_desc = array(
 $gencode_basic = array();
 if ($build=="GRCh37")
 {
-	$file = file(get_path("data_folder")."/dbs/Ensembl/gencode_basic.txt");
+	$file = file(repository_basedir()."/data/dbs/Ensembl/gencode_basic.txt");
 	foreach($file as $line)
 	{
 		$line = trim($line);

@@ -3,8 +3,8 @@
 /**
 	@page multisample
 	
-	@todo try with higher min_af
-	      Test case: /mnt//share/opt/freebayes-1.1.0/bin/freebayes -b Sample_DX173188_01/DX173188_01.bam Sample_DX173187_01/DX173187_01.bam -f /tmp/local_ngs_data//GRCh37.fa -r chr2:152402382-152402532 --min-alternate-fraction 0.1
+	@todo try with higher min_af=0.15
+	      Test case: /mnt/share/opt/freebayes-1.1.0/bin/freebayes -b Sample_DX173188_01/DX173188_01.bam Sample_DX173187_01/DX173187_01.bam -f /tmp/local_ngs_data//GRCh37.fa -r chr2:152402382-152402532 --min-alternate-fraction 0.1
 		  Correct  : chr2    152402515       .         TAAAAAAAAAAAAAAAAAC     TAAAAAAAAAAAAAAAAAAAC
 		  Wrong    : chr2    152402513       .       CTTAAAAAAAAAAAAAAAAAC   ATTAAAAAAAAAAAAAAAAAAAC
 		  
@@ -101,7 +101,15 @@ if (!file_exists($out_folder))
 $vcf_all = $out_folder."all.vcf.gz";
 if (in_array("vc", $steps))
 {
-	$parser->execTool("NGS/vc_freebayes.php", "-bam ".implode(" ", $bams)." -out $vcf_all -target $target_file -min_mq 20 -min_af 0.1 -build ".$sys['build'], true);	
+	$args = array();
+	$args[] = "-bam ".implode(" ", $bams);
+	$args[] = "-out $vcf_all";
+	$args[] = "-target $target_file";
+	$args[] = "-min_mq 20";
+	$args[] = "-min_af 0.1";
+	$args[] = "-target_extend 50";
+	$args[] = "-build ".$sys['build'];
+	$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);	
 }
 
 //(2) annotation
@@ -344,7 +352,7 @@ if (in_array("cn", $steps))
 		//annotate CNP regions
 		$data_folder = get_path("data_folder");
 		$tmp2 = temp_file(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 {$data_folder}/dbs/CNPs/copy_number_map_strict.bed -out {$tmp2}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 ".repository_basedir()."/data/dbs/CNPs/copy_number_map_strict.bed -out {$tmp2}", true);
 		
 		//annotate gene names
 		$tmp3 = temp_file(".bed");
@@ -352,7 +360,7 @@ if (in_array("cn", $steps))
 		
 		//annotate dosage sensitive disease genes
 		$tmp4 = temp_file(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp3} -in2 {$data_folder}/gene_lists/dosage_sensitive_disease_genes.bed -out {$tmp4}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp3} -in2 ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed -out {$tmp4}", true);
 		
 		//annotate OMIM
 		$cnv_multi = $out_folder."multi_cnvs.tsv";
