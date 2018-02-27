@@ -57,9 +57,9 @@ if($info['is_tumor'] && $info['normal_name']!="" && $info['sys_type'] != "RNA")
 	if (!file_exists($outfolder))
 	{
 		mkdir($outfolder);		
-		if (!chmod($out_folder, 0777))
+		if (!chmod($outfolder, 0777))
 		{
-			trigger_error("Could not change privileges of folder '{$out_folder}'!", E_USER_ERROR);
+			trigger_error("Could not change privileges of folder '{$outfolder}'!", E_USER_ERROR);
 		}
 	}
 	
