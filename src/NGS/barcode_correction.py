@@ -120,6 +120,13 @@ def error_read_qual(read):
     READ.qual = QUAL	   
     return(READ)
 
+def error_read_seq(read):
+    READ = read
+    seq = READ.seq
+    LEN = len(seq)
+    SEQ = ''.join(["N" for i in xrange(LEN)])
+    READ.seq = SEQ	   
+    return(READ)
 
 def one_duplicate_qual(read, STEP, minBQ):
     #READ = reduce_mapq(read)
@@ -199,7 +206,7 @@ def consensus_quality(QUALITIES,minBQ,ERRORS,STEP):
     if (ERRORS > 5):
 	ERRORS = 5
     
-	# Doble check
+	# Double check
     MAX_QUAL = max(QUALITIES_NATIVE)
     if (MAX_QUAL < minBQ):
         NEW_QUAL = 0
@@ -235,7 +242,7 @@ def consensus_quality(QUALITIES,minBQ,ERRORS,STEP):
     return (NEW_QUAL)
     
 # Function to correct reads grouped by barcodes
-def GET_FINAL_READ(reads,minBQ,STEP):
+def GET_FINAL_READ(reads,minBQ,STEP,SET_N):
     
     CONSENSUS_SEQ = list()
     CONSENSUS_QUAL = list()
@@ -253,10 +260,18 @@ def GET_FINAL_READ(reads,minBQ,STEP):
 		    
 		    # Encoding quality
 		    CONSENSUS_READ = one_duplicate_qual(i, STEP, minBQ)
-		    
-		    		
+		
+		
 		    # We add info about the amount of duplicates per family group
-		    CONSENSUS_READ.tags += [('DP', len(reads))]
+		    count = len(reads)
+		    color = ['230,242,255','179,215,255','128,187,255','77,160,255','26,133,255']
+		    current_color = '0,0,0'
+		    if (count > 5):
+			current_color = color[4]
+		    else:
+			current_color = color[count-1]
+		    CONSENSUS_READ.tags += [('DP', count)]
+		    CONSENSUS_READ.tags += [('YC', current_color)]
 
 		    # Info about barcode groups
 		    LOG_INFO = (CONSENSUS_READ.qname, str(CONSENSUS_READ.pos), str(len(reads))) 
@@ -281,11 +296,11 @@ def GET_FINAL_READ(reads,minBQ,STEP):
 						
 			#print i.pos, i.aend, i.rlen, len(i.seq), i.qname, i.cigarstring, i.qstart, i.query
 			#print i.seq, i.qname, i.qual, i.cigarstring
-			
+
 			# In case that the amount of indels differ  between duplicates, we take the the first read in the lexico order and we label all them base qualities to 0
 			if (i.cigarstring == None or (i.cigarstring.count("I") + i.cigarstring.count("D")) != Ind_count):
-			    for j in reads:
 				
+			    for j in reads:
 				# Adding reads to a hash to later, sort them in lexicographical order
 				READNAME = j.qname
 			        DICT_READS[READNAME] = j
@@ -295,11 +310,23 @@ def GET_FINAL_READ(reads,minBQ,STEP):
 			    SORTED_READNAMES = sorted(LIST_READNAMES)
 			    
 			    # When problems with Different indels between duplicates appear, we get as consensus read the first lexico read, and change or their base qualities to 0
-			    CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
+			    if (not SET_N):
+				CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
+			    else:
+				CONSENSUS_READ = error_read_seq(DICT_READS[SORTED_READNAMES[0]])
+				
 			    ###print "ERROR2", CONSENSUS_READ.qname, len(CONSENSUS_SEQ), DICT_READS[SORTED_READNAMES[0]].cigarstring, 
 			    
 			    # We add info about the amount of duplicates per family group
-			    CONSENSUS_READ.tags += [('DP', len(reads))]
+			    count = len(reads)
+			    color = ['230,242,255','179,215,255','128,187,255','77,160,255','26,133,255']
+			    current_color = '0,0,0'
+			    if (count > 5):
+				current_color = color[4]
+			    else:
+				current_color = color[count-1]
+			    CONSENSUS_READ.tags += [('DP', count)]
+			    CONSENSUS_READ.tags += [('YC', current_color)]
 			    
 			    LOG_INFO = (CONSENSUS_READ.qname, str(CONSENSUS_READ.pos), str(len(reads))) 
 			    LOG_INFO = "\t".join(LOG_INFO)+"\n"
@@ -351,22 +378,30 @@ def GET_FINAL_READ(reads,minBQ,STEP):
 				NUM_DIFF_BASES = BASE[1]
 				CONSENSUS_BASE_COUNT = BASE[2]
 				DIFF_COUNT = BASE[3]
-		
-				CONSENSUS_SEQ.append(CONSENSUS_BASE)
-			
+					
 				QUALITIES = get_qualities(CONSENSUS_BASE,SEQ[position],QUAL[position])
 			
 				if (NUM_DIFF_BASES < 3 and CONSENSUS_BASE_COUNT > DIFF_COUNT):
-			
 					CONSENSUS_QUALITY_num = consensus_quality(QUALITIES,minBQ,DIFF_COUNT,STEP)
+
+					if (SET_N and CONSENSUS_QUALITY_num==0):
+						CONSENSUS_QUALITY_num = QUALITIES[0]
+						CONSENSUS_BASE = "N"
+										
 					CONSENSUS_QUALITY_ascii = chr(CONSENSUS_QUALITY_num + 33)
 					CONSENSUS_QUAL.append(CONSENSUS_QUALITY_ascii)
+					CONSENSUS_SEQ.append(CONSENSUS_BASE)
 			
 				elif (NUM_DIFF_BASES >= 3 or CONSENSUS_BASE_COUNT <= DIFF_COUNT ):
-				#else:
 					CONSENSUS_QUALITY_num = 0
+
+					if (SET_N):
+						CONSENSUS_QUALITY_num = QUALITIES[0]
+						CONSENSUS_BASE = "N"
+						
 					CONSENSUS_QUALITY_ascii = chr(CONSENSUS_QUALITY_num + 33)
 					CONSENSUS_QUAL.append(CONSENSUS_QUALITY_ascii)
+					CONSENSUS_SEQ.append(CONSENSUS_BASE)
 			
 				else:
 					print "Error"
@@ -374,9 +409,14 @@ def GET_FINAL_READ(reads,minBQ,STEP):
 			
 			else:
 				CONSENSUS_BASE = most_common_base_low_qual(SEQ[position])[0]
-				CONSENSUS_SEQ.append(CONSENSUS_BASE)
-
 				CONSENSUS_QUALITY_num = 0
+
+				if (SET_N):
+					QUALITIES = get_qualities(CONSENSUS_BASE,SEQ[position],QUAL[position])
+					CONSENSUS_QUALITY_num = QUALITIES[0]
+					CONSENSUS_BASE = "N"
+				
+				CONSENSUS_SEQ.append(CONSENSUS_BASE)
 				CONSENSUS_QUALITY_ascii = chr(CONSENSUS_QUALITY_num + 33)
 				CONSENSUS_QUAL.append(CONSENSUS_QUALITY_ascii)
 		    
@@ -397,14 +437,24 @@ def GET_FINAL_READ(reads,minBQ,STEP):
 		    ##print "YES", CONSENSUS_READ.qname, len(CONSENSUS_SEQ), DICT_READS[SORTED_READNAMES[0]].cigarstring, DICT_READS[SORTED_READNAMES[READ_COUNT]].rlen, DICT_READS[SORTED_READNAMES[READ_COUNT]].cigarstring
 
 		else:
-		   ## print "Error in read"
-
 		    # When problems with Different indels between duplicates appear, we get as consensus read the first lexico read, and change or their base qualities to 0
-		    CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
+		    if (not SET_N):
+			CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
+		    else:
+			CONSENSUS_READ = error_read_seq(DICT_READS[SORTED_READNAMES[0]])
+		    
 		    ##print "ERROR", CONSENSUS_READ.qname, len(CONSENSUS_SEQ), DICT_READS[SORTED_READNAMES[0]].cigarstring, DICT_READS[SORTED_READNAMES[READ_COUNT]].rlen, DICT_READS[SORTED_READNAMES[READ_COUNT]].cigarstring
 		    
 		    # We add info about the amount of duplicates per family group
-		    CONSENSUS_READ.tags += [('DP', len(reads))]
+		    count = len(reads)
+		    color = ['230,242,255','179,215,255','128,187,255','77,160,255','26,133,255']
+		    current_color = '0,0,0'
+		    if (count > 5):
+			current_color = color[4]
+		    else:
+			current_color = color[count-1]
+		    CONSENSUS_READ.tags += [('DP', count)]
+		    CONSENSUS_READ.tags += [('YC', current_color)]
 		
 		    LOG_INFO = (CONSENSUS_READ.qname, str(CONSENSUS_READ.pos), str(len(reads))) 
 		    LOG_INFO = "\t".join(LOG_INFO)+"\n"
@@ -416,18 +466,23 @@ def GET_FINAL_READ(reads,minBQ,STEP):
 	
 		# Consensus seq per position
 		CONSENSUS_SEQ = ''.join(CONSENSUS_SEQ)
-		#print SORTED_READNAMES[0],CONSENSUS_READ.rlen,len(CONSENSUS_SEQ)
-
 		CONSENSUS_READ.seq = CONSENSUS_SEQ
-
-	    
+		
 		# Base qualities are calcultated as the mean of the base qualities of each read.
 		# In case there were more than one SNP in the position, its base quality was 0.
 		CONSENSUS_QUAL = ''.join(CONSENSUS_QUAL)
 		CONSENSUS_READ.qual = CONSENSUS_QUAL
 		
 		# We add info about the amount of duplicates per family group
-		CONSENSUS_READ.tags += [('DP', len(reads))]
+		count = len(reads)
+		color = ['230,242,255','179,215,255','128,187,255','77,160,255','26,133,255']
+		current_color = '0,0,0'
+		if (count > 5):
+			current_color = color[4]
+		else:
+			current_color = color[count-1]
+		CONSENSUS_READ.tags += [('DP', count)]
+		CONSENSUS_READ.tags += [('YC', current_color)]
 		    		
 		# Info about barcode groups
 		LOG_INFO = (CONSENSUS_READ.qname, str(CONSENSUS_READ.pos), str(len(reads))) 
@@ -445,6 +500,7 @@ parser.add_argument('--barcodes', required=False, dest='barcodes', type=str,choi
 parser.add_argument('--minBQ', required=False, dest='minBQ', type=int, default=30, help='Minimum base quality to be considered. Default = 30')
 parser.add_argument('--BCerror', required=False, dest='BCerror', type=int, default=0, help='Maximum number of sequencing errors allowed in barcode sequence. Default = 0')
 parser.add_argument('--step', required=False, dest='step', type=int, default=0, choices=[0, 1, 2, 3], help='Protocol step. 0: Unique barcode correction; 1: Subfamily correction; 2: Family correction; 3: Not full Base quality recalibration, just error correction. Default = 0')
+parser.add_argument('--n', required=False, dest='n', action='store_true', help='Use Ns instead of reducing base quality.')
 
 
 args = ''
@@ -473,6 +529,7 @@ LOGFILE2=open(logfile2,'w')
 minBQ = args.minBQ
 Errors=(args.BCerror)
 STEP=args.step
+SET_N = args.n
 
 
 pos=0
@@ -528,7 +585,7 @@ for read in samfile.fetch():
 			
 			for barcode in DICTIONARY:
 			    # Printing consensus reads to a new bam file
-			    NEW_READ,LOG2 = GET_FINAL_READ(DICTIONARY[barcode],minBQ,STEP)
+			    NEW_READ,LOG2 = GET_FINAL_READ(DICTIONARY[barcode],minBQ,STEP,SET_N)
 			    #NEW_READ = DICTIONARY[barcode][0]
 			    ##print STEP, NEW_READ.qual
 			    
@@ -553,7 +610,7 @@ for read in samfile.fetch():
 		    ##print len(DICTIONARY)
 		    for barcode in DICTIONARY:
 			# printing consensus reads to a new bam file
-			NEW_READ,LOG2 = GET_FINAL_READ(DICTIONARY[barcode],minBQ,STEP)
+			NEW_READ,LOG2 = GET_FINAL_READ(DICTIONARY[barcode],minBQ,STEP,SET_N)
 			#NEW_READ = DICTIONARY[barcode][0]
 			##print STEP, NEW_READ.qual
 			
@@ -599,7 +656,7 @@ if (len(READ) > 0 and Errors > 0):
 	for barcode in DICTIONARY:
 	    
 	    # Printing consensus reads to a new bam file
-	    NEW_READ,LOG2 = GET_FINAL_READ(DICTIONARY[barcode],minBQ,STEP)
+	    NEW_READ,LOG2 = GET_FINAL_READ(DICTIONARY[barcode],minBQ,STEP,SET_N)
 	    #NEW_READ = DICTIONARY[barcode][0]
 	    #print STEP, NEW_READ.qual
 	    
@@ -611,7 +668,7 @@ elif (len(READ) > 0 and Errors == 0):
 
 	for barcode in DICTIONARY:
 	    # Printing consensus reads to a new bam file
-	    NEW_READ,LOG2 = GET_FINAL_READ(DICTIONARY[barcode],minBQ,STEP)
+	    NEW_READ,LOG2 = GET_FINAL_READ(DICTIONARY[barcode],minBQ,STEP,SET_N)
 	
 	    LOGFILE2.write(LOG2)
 	    outfile.write(NEW_READ)
