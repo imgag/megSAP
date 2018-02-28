@@ -21,6 +21,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addInt("thres", "Splicing region size used for annotation (flanking the exons).", true, 20);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
 $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
+$parser->addFlag("correction_n", "Use Ns for errors by barcode correction.", true);
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 extract($parser->parse($argv));
 
@@ -102,7 +103,7 @@ if (in_array("ma", $steps))
 	if($clip_overlap) $args[] = "-clip_overlap";
 	if($no_abra) $args[] = "-no_abra";
 	if(file_exists($log_ma)) unlink($log_ma);
-	
+	if($correction_n) $args[] = "-correction_n";
 	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $out_folder -out_name $name --log $log_ma ".implode(" ", $args)." -threads $threads");
 
 	//low-coverage report

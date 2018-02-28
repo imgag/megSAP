@@ -144,7 +144,7 @@ else
 		$tmp_comments[] = "#FILTER=<ID=s.$id,Description=\"$desc (strelka).\">";
 	}
 }
-$tmp_comments[] = "#FILTER=<ID=s.special_chromosome,Description=\"Special chromosome.\">";
+$tmp_comments[] = "#FILTER=<ID=special_chromosome,Description=\"Special chromosome.\">";
 $tmp_comments[] = "#PEDIGREE=<Tumor=$t_ps,Normal=$n_ps>";	//add pedigree information for SNPeff
 $tmp_comments = array_unique($tmp_comments);	//filter duplicate vcf comments
 $tmp_comments = sort_vcf_comments($tmp_comments);	//sort vcf comments
@@ -184,7 +184,7 @@ for($i=0; $i<$file2->rows();++$i)
 	if(chr_check($tmp[0], 22, false) === FALSE)
 	{
 		if($tmp[6] == "PASS")	$row[6] = "";
-		$tmp[6] .= ";s.special_chromosome"; //skip bad chromosomes
+		$tmp[6] .= ";special_chromosome"; //skip bad chromosomes
 	}
 	$tmp[6] = trim($tmp[6],';');
 	$filec->addRow($tmp);
@@ -213,8 +213,20 @@ $vcf_sorted = $parser->tempFile("_sorted.vcf");
 //Nb: VcfStreamSort cannot be used since two vcf files (variants, indels) are concatenated and variants are not grouped by chromosome; total number of variants should be low (somatic).
 $parser->exec(get_path("ngs-bits")."VcfSort","-in {$vcf_aligned} -out {$vcf_sorted}", true);
 
+// filter high quality variants
+$vcf_filtered1 = $strelka_folder."/strelka_filtered1.vcf";
+$parser->execTool("NGS/filter_vcf.php", "-in $vcf_sorted -out $vcf_filtered1 -type somatic-lq -keep", true);
+
+// flag off-target variants
+$vcf_filtered2 = $vcf_filtered1;
+if(!empty($target))
+{
+	$vcf_filtered2 = $strelka_folder."/strelka_filtered2.vcf";
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_filtered1 -mark off-target -reg $target -out $vcf_filtered2", true);
+}
+
 //zip and index output file
-$parser->exec("bgzip", "-c $vcf_sorted > $out", true);
+$parser->exec("bgzip", "-c $vcf_filtered2 > $out", true);
 $parser->exec("tabix", "-p vcf $out", true);
 
 ?>

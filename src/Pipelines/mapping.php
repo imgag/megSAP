@@ -20,6 +20,7 @@ $parser->addInfile("system",  "Processing system INI file (determined from 'out_
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
 $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
+$parser->addFlag("correction_n", "Use Ns for barcode correction.", true);
 extract($parser->parse($argv));
 
 //extract processing system information from DB
@@ -120,6 +121,7 @@ if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
 else if ($sys['umi_type'] === "MIPs")
 {
 	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".($threads>2 ? 2 : 1), true);
+	
 	// move trimmed reads to temp
 	$trimmed_mips2 = $parser->tempFile("_MB_001.fastq.gz");
 	$index = $parser->tempFile("_index.fastq.gz");
@@ -261,7 +263,9 @@ if($barcode_correction)
 
 	//barcode correction
 	$tmp_bam4 = $parser->tempFile("_dedup4.bam");
-	$parser->exec("python  ".repository_basedir()."/src/NGS/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 --step 3",true);
+	$args = "";
+	if($correction_n) $args .= "--n ";
+	$parser->exec("python  ".repository_basedir()."/src/NGS/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 --step 3 ".$args,true);
 	$parser->indexBam($tmp_bam4, $threads);
 	$parser->moveFile($tmp_bam4.".log", $out."_stats_dedup.tsv");
 	

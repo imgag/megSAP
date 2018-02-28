@@ -32,7 +32,6 @@ $parser->addFlag("nsc", "Skip sample correlation check (human only, only in pair
 $parser->addFlag("keep_all_variants_strelka", "Reduce number of variants to PASS by strelka.");
 $parser->addFlag("reduce_variants_filter", "Reduce number of variants to PASS by own filter tool.");
 $parser->addFlag("freebayes", "Use freebayes for variant calling (default: strelka).");
-$parser->addFlag("strelka1", "Use freebayes for variant calling (default: strelka).");
 $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal sample.", true, 0);
 $parser->addFlag("no_softclip", "Skip soft-clipping of overlapping reads. NOTE: This may increase rate of false positive variants.", true);
 $parser->addInfile("promoter","Bed file containing promoter regions. Will be used for filter column of vcf if filter 'not-promoter' is part of the filter_set.",true);
@@ -72,6 +71,14 @@ $t_sys_ini = load_system($t_sys, $t_id);
 if (!file_exists($t_folder))
 {
 	trigger_error("Tumor sample folder '$t_folder' does not exist.", E_USER_ERROR);
+}
+
+//amplicon mode
+$amplicon = false;
+if(!$t_sys_ini['shotgun'])
+{
+	$amplicon = true;
+	trigger_error("Amplicon mode.",E_USER_NOTICE);
 }
 
 // normal
@@ -132,7 +139,8 @@ if (in_array("ma", $steps))
 			"-folder", $t_folder,
 			"-name", $t_id,
 			"-system", $t_sys,
-			"--log", "{$t_folder}analyze_" . date('YmdHis',mktime()) . ".log"
+			"--log", "{$t_folder}analyze_" . date('YmdHis',mktime()) . ".log",
+			"-correction_n"
 		];
 		$parser->execTool("Pipelines/analyze.php", "-steps ma -no_abra ".implode(" ", $args));
 	}
@@ -144,12 +152,13 @@ if (in_array("ma", $steps))
 			"-folder", $n_folder,
 			"-name", $n_id,
 			"-system", $n_sys,
-			"--log", "{$n_folder}analyze_" . date('YmdHis',mktime()) . ".log"
+			"--log", "{$n_folder}analyze_" . date('YmdHis',mktime()) . ".log",
+			"-correction_n"
 		];
 		$parser->execTool("Pipelines/analyze.php", "-steps ma,vc,an,cn -no_abra ".implode(" ", $args));
 	}
 
-	// overlap clipping, is not done by analyze.php to prevent import of QC data calculated on BamClipOverlap result
+	// overlap clipping, is not done by analyze.php to prevent import of QC data calculated on BamClipOverlap results
 	if (!$no_softclip)
 	{
 		$clip_arg_map = [
@@ -281,7 +290,7 @@ if (in_array("vc", $steps))
 	{
 		trigger_error("Breakpoint detection deactivated for ThruPLEX samples.", E_USER_NOTICE);
 	}
-	else if (!$t_sys_ini['shotgun'])
+	else if ($amplicon)
 	{
 		trigger_error("Breakpoint detection deactivated for amplicon samples.", E_USER_NOTICE);
 	}
@@ -366,21 +375,6 @@ if (in_array("vc", $steps))
 		// filter for variants that are likely to be germline, included in strelka2
 		$extra = array("-type somatic-lq","-keep");
 		$parser->execTool("NGS/filter_vcf.php", "-in $som_v -out $som_v -min_af $min_af  ".implode(" ", $extra));
-	}
-	elseif ($strelka1)
-	{
-		$args_strelka1 = [
-			"-t_bam", $t_bam,
-			"-n_bam", $n_bam,
-			"-out", $som_v,
-			"-build", $t_sys_ini['build'],
-			"-threads", $threads
-		];
-		if ($keep_all_variants_strelka)
-		{
-			$args_strelka1[] = "-k";
-		}
-		$parser->execTool("NGS/vc_strelka.php", implode(" ", $args_strelka1));
 	}
 	else
 	{
