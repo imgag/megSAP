@@ -16,8 +16,8 @@ $parser->addString("p_folder", "Folder that contains Sample folders.", false);
 $parser->addString("t_id", "Tumor sample processing-ID (e.g. GSxyz_01).", false);
 $parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To process a tumor samples solely use 'na'.", false);
 $parser->addString("o_folder", "Output folder.", false);
-$steps_all = array("ma", "vc", "an", "ci", "db");
-$parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,db");
+$steps_all = array("ma", "vc", "an", "ci", "msi","db");
+$parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,msi,db");
 $parser->addString("cancer_type","Tumor type. See CancerGenomeInterpreter.org for nomenclature. If not set, megSAP will try to resolve cancer type from GENLAB.",true);
 $parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"synonymous,not-coding-splicing");
 // optional
@@ -592,12 +592,24 @@ if (in_array("ci", $steps))
 			//database connection to GENLAB
 			$db = DB::getInstance("GL8");
 			$laboratory_number = explode('_',$t_id)[0];
+			//icd10
+
 			$query = "SELECT ICD10DIAGNOSE,HPOTERM1 FROM `genlab8`.`v_ngs_sap` where labornummer = '$laboratory_number'";
 			$result = $db->executeQuery($query);
-
-			//icd10
+			if(count($result == 0)) //"sometimes" GENLAB uses the full tumor ID as laboratory number
+			{
+				$laboratory_number = $laboratory_number."_01";
+				$query = "SELECT ICD10DIAGNOSE,HPOTERM1 FROM `genlab8`.`v_ngs_sap` where labornummer = '$laboratory_number'";
+				$result = $db->executeQuery($query);
+			}
+			
 			$icd10_diagnosis = "";
-			if(!empty($result)) $icd10_diagnosis = $result[0]['ICD10DIAGNOSE'];
+			if(!empty($result))
+			{
+				$icd10_diagnosis = $result[0]['ICD10DIAGNOSE'];
+			}
+			
+			
 			//remove G and V from $icd10_diagnoses (sometimes there is a G or V assigned to its right)
 			$icd10_diagnosis = rtrim($icd10_diagnosis,'G');
 			$icd10_diagnosis = rtrim($icd10_diagnosis,'V');
@@ -670,7 +682,7 @@ if (in_array("ci", $steps))
 	$error_code = $result_send_data[2];
 	if($error_code != 0)
 	{
-		trigger_error("step \"ci\" did not exit cleanly. Please check sample CGI files manually. cgi_send_data returned error code ".$error_code,E_USER_WARNING);
+		trigger_error("step \"ci\" did not exit cleanly. Please check sample CGI files manually. cgi_send_data returned code ".$error_code,E_USER_WARNING);
 	}
 	$parameters = "";
 
@@ -688,6 +700,51 @@ if (in_array("ci", $steps))
 		$parameters = " -cnv_in $som_cnv -cnv_in_cgi $cgi_cnv_result_file -out $som_cnv";
 		$parser->execTool("NGS/cgi_annotate_cnvs.php",$parameters);
 	}
+}
+
+
+//msi: call microsatellite instabilities
+if (in_array("msi", $steps))
+{
+	if($single_sample)
+	{
+		trigger_error("Calling microsatellite instabilities is only possible for tumor-normal pairs",E_USER_ERROR);
+	}
+	
+	//check whether 
+	
+	$n_sys_ini = load_system($n_sys, $n_id);
+	$t_sys_ini = load_system($t_sys, $t_id);
+	
+	$build = $n_sys_ini['build'];
+	$reference_genome = get_path("data_folder") . "/genomes/" .$n_sys_ini['build'] . ".fa";
+	
+	
+	//check whether file with loci exists in output folder
+	
+	//if not: intersect with loci file of reference
+	
+	$reference_loci_file = get_path("data_folder") . "/dbs/MANTIS/".$build."_msi_loci.bed";
+	if(!file_exists($reference_loci_file))
+	{
+		print("Could not find loci reference file $reference_loci_file. Trying to generate it.\n");
+		$parser->exec(get_path("mantis")."/tools/RepeatFinder","-i $reference_genome -o $reference_loci_file",true);
+	}
+
+	//file that contains MSI in target region -> is intersection of loci reference with target region
+	$target_bed_file = $n_sys_ini['target_file'];
+	$target_loci_file = $o_folder . "/" .$t_id. "-" . $n_id . "_msi_loci_target.bed";
+	
+	//target loci file is intersection of reference loci with target region
+	if(!file_exists($target_loci_file));
+	{
+		$parameters = "intersect -a $reference_loci_file -b $target_bed_file > $target_loci_file";
+		$parser->exec(get_path("bedtools2"),$parameters,true);
+	}
+	print_r($n_bam."\n\n\n");
+	$parameters = "-n_bam $n_bam -t_bam $t_bam -threads $threads -bed_file $target_loci_file -out $o_folder/mantis_test_output -build $reference_genome";
+	$parser->execTool("NGS/detect_msi.php",$parameters);
+
 }
 
 // db
