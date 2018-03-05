@@ -591,12 +591,19 @@ if (in_array("ci", $steps))
 		{
 			//database connection to GENLAB
 			$db = DB::getInstance("GL8");
-			$laboratory_number = explode('_',$t_id)[0];
-			//icd10
 
+			//icd10
+			$laboratory_number = explode('_',$t_id)[0];
 			$query = "SELECT ICD10DIAGNOSE,HPOTERM1 FROM `genlab8`.`v_ngs_sap` where labornummer = '$laboratory_number'";
 			$result = $db->executeQuery($query);
-			if(count($result == 0)) //"sometimes" GENLAB uses the full tumor ID as laboratory number
+			
+			if(count($result) == 0) //"sometimes" GENLAB uses the full tumor ID as laboratory number
+			{
+				$query = "SELECT ICD10DIAGNOSE,HPOTERM1 FROM `genlab8`.`v_ngs_sap` where labornummer = '$t_id'";
+				$result = $db->executeQuery($query);
+			}
+			
+			if(count($result) == 0) //"sometimes" GENLAB uses the full tumor ID of the first processed sample as laboratory number
 			{
 				$laboratory_number = $laboratory_number."_01";
 				$query = "SELECT ICD10DIAGNOSE,HPOTERM1 FROM `genlab8`.`v_ngs_sap` where labornummer = '$laboratory_number'";

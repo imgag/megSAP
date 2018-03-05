@@ -317,7 +317,7 @@ function transform_cnv_annotations($tsv_in_file,$tsv_out_filename)
 	$cnv_to->toTSV($tsv_out_filename);
 }
 
-//return Matrix which includes only filtered variants (-> "PASS" in filter column)
+//return Matrix which includes only filtered variants (-> "PASS" or "freq-tum" in filter column)
 function filter_vcf_file($vcf_file)
 {
 	$vcf_filtered = new Matrix();
@@ -327,7 +327,7 @@ function filter_vcf_file($vcf_file)
 	
 	for($i=0;$i<$vcf_file->rows();$i++)
 	{
-		if($vcf_file->get($i,$i_filter) == "PASS")
+		if($vcf_file->get($i,$i_filter) == "PASS" || $vcf_file->get($i,$i_filter) == "freq-tum")
 		{
 			$filtered_row = $vcf_file->getRow($i);
 			$vcf_filtered->addRow($filtered_row);

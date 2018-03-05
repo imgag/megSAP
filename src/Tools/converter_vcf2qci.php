@@ -42,7 +42,7 @@ $file_qci->setHeaders($tmp_headers);
 for($i=0; $i<$filec->rows();++$i)
 {
 	$row = $filec->getRow($i);	
-	if($pass && $row[6]!="PASS")	continue; 
+	if($pass && $row[6]!="PASS" && $row[6] != "freq-tum")	continue; 
 	
 	//  format field: add allele frequency "AD - 0.3"
 	$alleles = "0,0";
