@@ -68,6 +68,8 @@ case2_diff:
 	# qcML files
 	php ../compare_qcml_xml.php expected_case2/GS110168-GS110169_stats_som.qcML out_case2/GS110168-GS110169_stats_som.qcML
 
+	# bafs
+	diff expected_case2/GS110168-GS110169_bafs.igv out_case2/GS110168-GS110169_bafs.igv
 
 # tumor-normal (freebayes)
 # depends on case2_run
@@ -95,6 +97,8 @@ case3_diff:
 	# qcML files
 	php ../compare_qcml_xml.php expected_case3/GS110168-GS110169_stats_som.qcML out_case3/GS110168-GS110169_stats_som.qcML
 
+	# bafs
+	diff expected_case3/GS110168-GS110169_bafs.igv out_case3/GS110168-GS110169_bafs.igv
 
 # tumor-normal (strelka)
 case4: case4_run case4_diff
@@ -119,3 +123,6 @@ case4_diff:
 
 	# qcML files
 	php ../compare_qcml_xml.php expected_case4/Tumor2-Normal2_stats_som.qcML out_case4/Tumor2-Normal2_stats_som.qcML
+	
+	# bafs
+	diff expected_case4/Tumor2-Normal2_bafs.igv out_case4/Tumor2-Normal2_bafs.igv

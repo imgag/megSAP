@@ -446,9 +446,9 @@ if (in_array("vc", $steps))
 	{
 		$baf_args[] = "-n_in $n_bam";
 	}
-	if (!empty($t_sys['target_file']))
+	if (!empty($t_sys_ini['target_file']))
 	{
-		$baf_args[] = "-target ".$t_sys['target_file'];
+		$baf_args[] = "-target ".$t_sys_ini['target_file'];
 	}
 	$parser->execTool("NGS/mapping_baf.php", implode(" ", $baf_args));
 }
