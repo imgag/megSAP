@@ -65,10 +65,9 @@ if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
 	$merged1 = $parser->tempFile("_merged1.fastq.gz");
 	$merged2 = $parser->tempFile("_merged2.fastq.gz");
 
-	// TODO refactor merge or pass
+	//TODO refactor merge or pass
 	if (count($index_files) == 1)
 	{
-
 		$merged_index = implode(" ", $index_files);
 	}
 	else

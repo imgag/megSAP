@@ -5,7 +5,7 @@
 ##DESCRIPTION=SIBPlatte2A2_01=genotype of sample SIBPlatte2A2_01
 ##DESCRIPTION=SIBPlatte2A3_01=genotype of sample SIBPlatte2A3_01
 ##DESCRIPTION=filter=Annotations for filtering and ranking variants.
-##DESCRIPTION=quality=Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), genotype, depth and allele frequency for child, mother and father (TRIO).
+##DESCRIPTION=quality=Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM).
 ##DESCRIPTION=gene=Affected gene list (comma-separated).
 ##DESCRIPTION=variant_type=Variant type.
 ##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon number, HGVS.c, HGVS.p).
@@ -37,7 +37,7 @@
 ##FILTER=anno_high_impact=Variant annotated to have high impact by SnpEff.
 ##FILTER=anno_omim=Variant annotated with information from OMIM.
 #chr	start	end	ref	obs	SIBPlatte2A1_01	SIBPlatte2A2_01	SIBPlatte2A3_01	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	ExAC_sub	gnomAD	phyloP	Sift	MetaLR	PolyPhen2	FATHMM	CADD	OMIM	ClinVar	HGMD	COSMIC
-chr1	13657	13658	AG	-	het	het	het	low_MQM	QUAL=428;DP=78,75,86;MQM=23	DDX11L1	non_coding_transcript_exon	DDX11L1:ENST00000456328:non_coding_transcript_exon:MODIFIER:exon3/3:n.900_901delAG:			0.0000	0.0000	0,0,0	0,0,0,0,0	0.0000										
+chr1	13657	13658	AG	-	het	het	het	low_MQM	QUAL=428;DP=78,75,86;AF=1.00,0.49,0.01;MQM=23	DDX11L1	non_coding_transcript_exon	DDX11L1:ENST00000456328:non_coding_transcript_exon:MODIFIER:exon3/3:n.900_901delAG:			0.0000	0.0000	0,0,0	0,0,0,0,0	0.0000										
 chr1	17385	17385	G	A	het	wt	het	low_MQM	QUAL=195;DP=43,41,55;MQM=36	WASH7P,MIR6859-1,MIR6859-2,MIR6859-3,MIR6859-4	splice_region&intron,non_coding_transcript_exon	WASH7P:ENST00000456328:splice_region&intron:LOW:exon5/10:n.588-17C>T:,MIR6859-1:ENST00000456328:non_coding_transcript_exon:MODIFIER:exon1/1:n.52C>T:,MIR6859-2:ENST00000456328:non_coding_transcript_exon:MODIFIER:exon1/1:n.52C>T:,MIR6859-3:ENST00000456328:non_coding_transcript_exon:MODIFIER:exon1/1:n.52C>T:,MIR6859-4:ENST00000456328:non_coding_transcript_exon:MODIFIER:exon1/1:n.52C>T:		rs201535981	0.0000	0.2454	2,0,1	0,0,0,0,0	0.0016										
 chr1	17407	17407	G	A	het	wt	wt	low_QUAL;low_MQM	QUAL=27;DP=49,43,75;MQM=43	WASH7P,MIR6859-1,MIR6859-2,MIR6859-3,MIR6859-4	intron,non_coding_transcript_exon	WASH7P:ENST00000456328:intron:MODIFIER:exon5/10:n.588-39C>T:,MIR6859-1:ENST00000456328:non_coding_transcript_exon:MODIFIER:exon1/1:n.30C>T:,MIR6859-2:ENST00000456328:non_coding_transcript_exon:MODIFIER:exon1/1:n.30C>T:,MIR6859-3:ENST00000456328:non_coding_transcript_exon:MODIFIER:exon1/1:n.30C>T:,MIR6859-4:ENST00000456328:non_coding_transcript_exon:MODIFIER:exon1/1:n.30C>T:		rs372841554	0.0000	0.0765	0,0,0	0,0,0,0,0	0.0030										
 chr1	69511	69511	A	G	hom	hom	hom	low_MQM;gene_blacklist	QUAL=10977;DP=138,115,134;MQM=38	OR4F5	missense	OR4F5:ENST00000456328:missense:MODERATE:exon1/1:c.421A>G:p.Thr141Ala		rs2691305	0.0000	0.9394	35477,18635,1681	0,0,0,0,0	0.5337	-0.2700	.,T	T	B	T	0.05				COSM4144171

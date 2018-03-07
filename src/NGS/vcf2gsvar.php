@@ -114,7 +114,7 @@ function write_header_line($handle, $column_desc, $filter_desc)
 //write column descriptions
 $column_desc = array(
 	array("filter", "Annotations for filtering and ranking variants."),
-	array("quality", "Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), genotype, depth and allele frequency for child, mother and father (TRIO)."),
+	array("quality", "Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM)."),
 	array("gene", "Affected gene list (comma-separated)."),
 	array("variant_type", "Variant type."),
 	array("coding_and_splicing", "Coding and splicing details (Gene, ENST number, type, impact, exon number, HGVS.c, HGVS.p)."),
@@ -268,24 +268,31 @@ while(!feof($handle))
 		//extract genotype/depth info
 		$tmp = array();
 		$tmp2 = array();
+		$tmp3 = array();
 		$parts = explode(",", $sample["MULTI"]);
 		foreach($parts as $part)
 		{
-			list($name, $gt, $dp) = explode("=", strtr($part, "|", "="));
+			$parts = explode("=", strtr($part, "|", "=")."=");
+			if (count($parts<4)) print_r($parts);
+			list($name, $gt, $dp, $ao) = $parts;
 			$tmp[$name] = $gt;
 			$tmp2[$name] = $dp;
+			$tmp3[$name] = $ao;
 		}
 		
 		//recombine GT/DP in the correct order
 		$genotype = array();
 		$depth = array();
+		$ao = array();
 		foreach($multi_cols as $col)
 		{
 			$genotype[] = $tmp[$col];
 			$depth[] = $tmp2[$col];
+			$ao[] = $tmp3[$col];
 		}
 		$genotype = implode("\t", $genotype);
 		$sample["DP"] = implode(",", $depth);
+		$sample["AO"] = implode(",", $ao);
 	}
 	else
 	{
@@ -314,24 +321,26 @@ while(!feof($handle))
 	}
 	if (isset($sample["AO"]) && isset($sample["DP"]))
 	{
-		//@todo check regularly if this bug is fixed in vcflib. Example: NA12878_03 chr2:215632255 (AF~0.5) and chr2:215632256 (AF~1.0)
-		/* 
-		if (contains($sample["AO"], ",")) 
+		//comma-separated values in case of multi-sample data
+		$afs = array();
+		$aos = explode(",", $sample["AO"]);
+		$dps = explode(",", $sample["DP"]);
+		for($i=0; $i<count($dps); ++$i)
 		{
-			$sample["AO"] = array_sum(explode(",", $sample["AO"]));
+			if (is_numeric($aos[$i]) && is_numeric($dps[$i]))
+			{
+				$afs[] = number_format($aos[$i]/$dps[$i], 2);
+			}
 		}
-		$quality[] = "AF=".number_format(min(1.0, $sample["AO"]/$sample["DP"]), 2);
-		*/
-		$quality[] = "AF=".number_format($sample["AO"]/$sample["DP"], 2);
+		if (count($afs)>0)
+		{
+			$quality[] = "AF=".implode(",", $afs);
+		}
 	}
 	if (isset($info["MQM"])) 
 	{
 		$quality[] = "MQM=".intval($info["MQM"]);
 		if ($info["MQM"]<50) $filter[] = "low_MQM";
-	}
-	if (isset($sample["TRIO"]))
-	{
-		$quality[] = "TRIO=".$sample["TRIO"];
 	}
 	
 	//variant details

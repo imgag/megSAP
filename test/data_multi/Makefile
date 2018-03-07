@@ -14,16 +14,16 @@ link:
 	php ../link_test_data.php GS140550_01.bam.bai
 
 vc:
-	rm -rf multi.log
-	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . --log multi.log -steps vc
+	rm -rf multi_log1_vc.log
+	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . --log multi_log1_vc.log -steps vc
 
 an:
-	rm -rf multi.log
-	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . --log multi.log -steps an
+	rm -rf multi_log2_an.log
+	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . --log multi_log2_an.log -steps an
 
 cn:
-	rm -rf multi.log
-	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . --log multi.log -steps cn
+	rm -rf multi_log3_cn.log
+	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . --log multi_log3_cn.log -steps cn
 
 diff:
 	php ../compare_variants.php multi.GSvar.out multi.GSvar

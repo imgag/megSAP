@@ -35,7 +35,7 @@
 /test/data_trio/*.bam.bai
 /test/data_trio/*.vcf.gz
 /test/data_trio/*.vcf.gz.tbi
-/test/data_trio/*_trio.tsv
+/test/data_trio/*_special.tsv
 
 /test/data_multi/*.GSvar
 /test/data_multi/*.log

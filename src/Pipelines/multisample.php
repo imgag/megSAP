@@ -23,9 +23,10 @@ function extract_info($format, $data)
 	
 	$data = explode(":", $data);
 	$data = array_combine($format, $data);
-	$depth = array_sum(explode(",",$data['DP'])); 
+	$depth = array_sum(explode(",", $data['DP'])); 
 	$genotype = vcfgeno2human($data['GT']);
-	return array($genotype, $depth);
+	$ao = $data['AO'];
+	return array($genotype, $depth, $ao);
 }
 
 
@@ -35,6 +36,7 @@ $parser->addInfileArray("bams", "Input BAM files.", false);
 $parser->addStringArray("status", "List of affected status of the input samples (BAMs) - can be 'affected' or 'control'.", false);
 $parser->addString("out_folder", "Output folder name.", false);
 //optional
+$parser->addString("prefix", "Output file prefix.", true, "multi");
 $parser->addInfile("system",  "Processing system INI file used for all samples (created from NGSD via first argument of 'bams' by default).", true);
 $steps_all = array("vc", "an", "cn");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, an=annotation, cn=copy-number analysis.", true, implode(",", $steps_all));
@@ -134,7 +136,7 @@ if (in_array("an", $steps))
 		else if ($line[0]=="#") //header
 		{
 			//add multi-sample comments
-			fwrite($h2, "##FORMAT=<ID=MULTI,Number=.,Type=String,Description=\"Multi-sample genotype information (genotype, depth).\">\n");		
+			fwrite($h2, "##FORMAT=<ID=MULTI,Number=.,Type=String,Description=\"Multi-sample genotype information (genotype, depth, alternate base observations).\">\n");		
 			fwrite($h2, "##ANALYSISTYPE=GERMLINE_MULTISAMPLE\n");
 			foreach($bams as $bam)
 			{
@@ -149,7 +151,7 @@ if (in_array("an", $steps))
 			}
 			
 			//write main header
-			fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\tmulti\n");
+			fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\t{$prefix}\n");
 		}
 		else //content
 		{
@@ -160,11 +162,11 @@ if (in_array("an", $steps))
 			{
 				
 				$index = $indices[$bam];
-				list($gt, $dp) = extract_info($format, $parts[$index]);
-				$muti_info[] = $names[$bam]."=$gt|$dp";
+				list($gt, $dp, $af) = extract_info($format, $parts[$index]);
+				$muti_info[] = $names[$bam]."=$gt|$dp|$af";
 			}
 			
-			//update format field and remove mother/father
+			//update format field
 			$parts[8] = "MULTI";
 			fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\t".implode(",", $muti_info)."\n");
 		}
@@ -173,12 +175,12 @@ if (in_array("an", $steps))
 	fclose($h2);
 
 	//zip variant list
-	$vcf_zipped = $out_folder."multi_var.vcf.gz";
+	$vcf_zipped = "{$out_folder}{$prefix}_var.vcf.gz";
 	$parser->exec("bgzip", "-c $vcf > $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 	$parser->exec("tabix", "-p vcf $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 
 	//basic annotation
-	$parser->execTool("Pipelines/annotate.php", "-out_name multi -out_folder $out_folder -system $system -multi");
+	$parser->execTool("Pipelines/annotate.php", "-out_name {$prefix} -out_folder $out_folder -system $system -multi");
 }
 
 //(3) copy-number calling
@@ -344,7 +346,7 @@ if (in_array("cn", $steps))
 				$cords[] = $reg[0];
 				
 			}
-			$output[] = "{$chr}\t{$start}\t{$end}\tmulti\t".($end-$start)."\t".count($regions)."\t".implode(",", $cns)."\t".implode(",", $zs)."\t".implode(",", $afs)."\t".implode(",", $cords);
+			$output[] = "{$chr}\t{$start}\t{$end}\t{$prefix}\t".($end-$start)."\t".count($regions)."\t".implode(",", $cns)."\t".implode(",", $zs)."\t".implode(",", $afs)."\t".implode(",", $cords);
 		}
 		$tmp1 = temp_file(".bed");
 		file_put_contents($tmp1, implode("\n", $output));
@@ -363,7 +365,7 @@ if (in_array("cn", $steps))
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp3} -in2 ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed -out {$tmp4}", true);
 		
 		//annotate OMIM
-		$cnv_multi = $out_folder."multi_cnvs.tsv";
+		$cnv_multi = "{$out_folder}{$prefix}_cnvs.tsv";
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp4} -in2 {$data_folder}/dbs/OMIM/omim.bed -out {$cnv_multi}", true);
 	}
 }
