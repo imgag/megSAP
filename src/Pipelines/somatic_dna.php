@@ -716,21 +716,13 @@ if (in_array("msi", $steps))
 	if($single_sample)
 	{
 		trigger_error("Calling microsatellite instabilities is only possible for tumor-normal pairs",E_USER_ERROR);
-	}
-	
-	//check whether 
-	
-	$n_sys_ini = load_system($n_sys, $n_id);
-	$t_sys_ini = load_system($t_sys, $t_id);
+	} 
 	
 	$build = $n_sys_ini['build'];
 	$reference_genome = get_path("data_folder") . "/genomes/" .$n_sys_ini['build'] . ".fa";
 	
-	
 	//check whether file with loci exists in output folder
-	
 	//if not: intersect with loci file of reference
-	
 	$reference_loci_file = get_path("data_folder") . "/dbs/MANTIS/".$build."_msi_loci.bed";
 	if(!file_exists($reference_loci_file))
 	{
@@ -745,13 +737,11 @@ if (in_array("msi", $steps))
 	//target loci file is intersection of reference loci with target region
 	if(!file_exists($target_loci_file));
 	{
-		$parameters = "intersect -a $reference_loci_file -b $target_bed_file > $target_loci_file";
-		$parser->exec(get_path("bedtools2"),$parameters,true);
+		$parameters = "-in ".$reference_loci_file." -in2 ".$target_bed_file ." -mode in -out ".$target_loci_file;
+		$parser->exec(get_path("ngs-bits")."BedIntersect",$parameters,true);
 	}
-	print_r($n_bam."\n\n\n");
 	$parameters = "-n_bam $n_bam -t_bam $t_bam -threads $threads -bed_file $target_loci_file -out $o_folder/mantis_test_output -build $reference_genome";
 	$parser->execTool("NGS/detect_msi.php",$parameters);
-
 }
 
 // db
