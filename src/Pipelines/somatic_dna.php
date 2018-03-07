@@ -271,22 +271,15 @@ $som_v     = $prefix . "_var.vcf.gz";	// variants
 $som_cnv   = $prefix . "_cnvs.tsv";		// copy-number variants
 $som_gsvar = $prefix . ".GSvar";		// GSvar variants
 $som_bafs  = $prefix . "_bafs.igv";		// B-allele frequencies
-if (!$single_sample)
-{
-	$som_qci = $prefix . "_var_qci.vcf.gz";
-	$som_sv  = $prefix . "_var_structural.vcf.gz";	// structural variants (vcf)
-	$som_svt = $prefix . "_var_structural.tsv";		// structural variants (tsv)
-	$som_si  = $prefix . "_var_smallIndels.vcf.gz";	// small indels (manta)
-}
+$som_qci = $prefix . "_var_qci.vcf.gz";
+$som_sv  = $prefix . "_var_structural.vcf.gz";	// structural variants (vcf)
+$som_svt = $prefix . "_var_structural.tsv";		// structural variants (tsv)
+$som_si  = $prefix . "_var_smallIndels.vcf.gz";	// small indels (manta)
 if (in_array("vc", $steps))
 {
 	// structural variant calling
 	// should be done before variant calling since strelka uses the smallIndel output
-	if ($single_sample)
-	{
-		trigger_error("Breakpoint detection not implemented for tumor-only analysis.", E_USER_NOTICE);
-	}
-	else if ($t_sys_ini['umi_type'] === "ThruPLEX")
+	if ($t_sys_ini['umi_type'] === "ThruPLEX")
 	{
 		trigger_error("Breakpoint detection deactivated for ThruPLEX samples.", E_USER_NOTICE);
 	}
@@ -298,11 +291,16 @@ if (in_array("vc", $steps))
 	{
 		$args_manta = [
 			"-t_bam", $t_bam,
-			"-bam", $n_bam,
 			"-out", $som_sv,
 			"-build", $t_sys_ini['build'],
-			"-smallIndels", $som_si
+			"-smallIndels", $som_si,
+			"-temp", $o_folder . "/manta"
 		];
+
+		if (!$single_sample)
+		{
+			$args_manta[] = "-bam $n_bam";
+		}
 
 		if ($t_sys_ini['type'] === "WES")
 		{
@@ -311,6 +309,10 @@ if (in_array("vc", $steps))
 		if ($add_vc_folder)
 		{
 			$args_manta[] = "-temp ".dirname($som_v)."/variant_calling";
+		}
+		if (!empty($t_sys_ini['target_file']))
+		{
+			$args_manta[] = "-target ".$t_sys_ini['target_file'];
 		}
 		$parser->execTool("NGS/vc_manta.php", implode(" ", $args_manta));
 		$parser->execTool("Tools/converter_manta2tsv.php", "-in $som_sv -out $som_svt -tumor_id $t_id");

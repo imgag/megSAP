@@ -60,7 +60,8 @@ $args = [
 	"--referenceFasta", $genome,
 	"--runDir", $manta_folder,
 	"--config", $config,
-	"--outputContig"
+	"--outputContig",
+	"--generateEvidenceBam"
 ];
 if ($exome)
 {
