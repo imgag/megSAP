@@ -44,10 +44,11 @@ The main parameters that you have to provide are:
 
 After the analysis, these files are created in the output folder:
 
-1. a multi-sample variant list `[name]_all.vcf.gz` in VCF format.
-2. a multi-sample variant list `[name].GSvar` in [GSvar format](gsvar_format.md).
+1. a multi-sample variant list `all.vcf.gz` in VCF format.
+2. a multi-sample variant list `trio.GSvar` in [GSvar format](gsvar_format.md).
 
 [back to the start page](../README.md)
+
 
 
 
