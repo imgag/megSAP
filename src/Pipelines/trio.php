@@ -147,16 +147,17 @@ if (in_array("an", $steps))
 		{
 			if (starts_with($line, "##SAMPLE=<ID="))
 			{
+				print "SAMPLE LINE: ".$line;
 				list($sample) = explode(",", substr($line, 13, -1));
 				if (contains($line, "DiseaseStatus=affected"))
 				{
 					$sample_c = $sample;
 				}
-				if (!contains($line, "DiseaseStatus=affected") && contains($line, "Gender=male"))
+				if (contains($line, "DiseaseStatus=control") && contains($line, "Gender=male"))
 				{
 					$sample_f = $sample;
 				}
-				if (!contains($line, "DiseaseStatus=affected") && contains($line, "Gender=female"))
+				if (contains($line, "DiseaseStatus=control") && contains($line, "Gender=female"))
 				{
 					$sample_m = $sample;
 				}
