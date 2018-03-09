@@ -130,6 +130,10 @@ if (in_array("an", $steps))
 	$vars_hemizygous = 0;
 	$vars_comphet = 0;
 	$vars_hemizygous_chrx = 0;
+		
+	$sample_c = basename($c, ".bam");
+	$sample_f = basename($f, ".bam");
+	$sample_m = basename($m, ".bam");
 	
 	$annotations = array();
 	$genes_comp_mother = array();
@@ -141,30 +145,8 @@ if (in_array("an", $steps))
 		$line = trim(fgets($h));
 		if ($line=="") continue;
 		
-		//comments (determine sample names)
-		//example: SAMPLE=<ID=GS140127_01,Gender=male,ExternalSampleName=131787,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=affected>
-		if (starts_with($line, "##"))
-		{
-			if (starts_with($line, "##SAMPLE=<ID="))
-			{
-				print "SAMPLE LINE: ".$line;
-				list($sample) = explode(",", substr($line, 13, -1));
-				if (contains($line, "DiseaseStatus=affected"))
-				{
-					$sample_c = $sample;
-				}
-				if (contains($line, "DiseaseStatus=control") && contains($line, "Gender=male"))
-				{
-					$sample_f = $sample;
-				}
-				if (contains($line, "DiseaseStatus=control") && contains($line, "Gender=female"))
-				{
-					$sample_m = $sample;
-				}
-			}
-
-			continue;
-		}
+		//skip comments
+		if (starts_with($line, "##")) continue;
 		
 		//header columns (determine column indices)		
 		if (starts_with($line, "#"))
