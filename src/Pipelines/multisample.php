@@ -25,7 +25,7 @@ function extract_info($format, $data)
 	$data = array_combine($format, $data);
 	$depth = array_sum(explode(",", $data['DP'])); 
 	$genotype = vcfgeno2human($data['GT']);
-	$ao = $data['AO'];
+	$ao = array_sum(explode(",", $data['AO']));
 	return array($genotype, $depth, $ao);
 }
 
@@ -160,10 +160,9 @@ if (in_array("an", $steps))
 			$muti_info = array();
 			foreach($bams as $bam)
 			{
-				
 				$index = $indices[$bam];
-				list($gt, $dp, $af) = extract_info($format, $parts[$index]);
-				$muti_info[] = $names[$bam]."=$gt|$dp|$af";
+				list($gt, $dp, $ao) = extract_info($format, $parts[$index]);
+				$muti_info[] = $names[$bam]."=$gt|$dp|$ao";
 			}
 			
 			//update format field

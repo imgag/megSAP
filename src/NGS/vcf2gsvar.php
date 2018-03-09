@@ -265,22 +265,20 @@ while(!feof($handle))
 			trigger_error("VCF sample column does not contain MULTI value!", E_USER_ERROR);
 		}
 		
-		//extract genotype/depth info
+		//extract GT/DP/AO info
 		$tmp = array();
 		$tmp2 = array();
 		$tmp3 = array();
 		$parts = explode(",", $sample["MULTI"]);
 		foreach($parts as $part)
 		{
-			$parts = explode("=", strtr($part, "|", "=")."=");
-			if (count($parts<4)) print_r($parts);
-			list($name, $gt, $dp, $ao) = $parts;
+			list($name, $gt, $dp, $ao) = explode("=", strtr($part, "|", "=")."=");
 			$tmp[$name] = $gt;
 			$tmp2[$name] = $dp;
 			$tmp3[$name] = $ao;
 		}
 		
-		//recombine GT/DP in the correct order
+		//recombine GT/DP/AO in the correct order
 		$genotype = array();
 		$depth = array();
 		$ao = array();
