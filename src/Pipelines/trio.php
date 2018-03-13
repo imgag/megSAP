@@ -44,6 +44,14 @@ foreach($steps as $step)
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 }
 
+//extract processing system information from DB
+$sys = load_system($system, basename($c, ".bam"));
+$target_file = $sys['type']!="WGS" ? $sys['target_file'] : get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed";
+if ($target_file=="")
+{
+	trigger_error("Cannot perform trio analysis without target region (processing systems of {$c} is '".$sys["name_short"]."')!", E_USER_ERROR);
+}
+
 //prepare multi-sample paramters
 $args_multisample = [
 	"-bams $f $m $c",

@@ -8,9 +8,9 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("queue_trio", "Queues a trio for analysis.");
+$parser->addString("c",  "Processed sample identifier of child", false);
 $parser->addString("f",  "Processed sample identifier of father", false);
 $parser->addString("m",  "Processed sample identifier of mother", false);
-$parser->addString("c",  "Processed sample identifier of child", false);
 //optional
 $parser->addString("start", "Start step.", true, "check");
 $parser->addString("user", "Name of the user who queued the analysis (current user if unset).", true, "");
@@ -52,7 +52,7 @@ if (!file_exists($out_folder))
 
 //determine command and arguments
 $command = "php ".repository_basedir()."/src/Pipelines/trio.php";
-$args = "-start {$start} -c ".$c_params["ps_bam"]." -f ".$f_params["ps_bam"]." -m ".$m_params["ps_bam"]." -out_folder {$out_folder} --log {$out_folder}trio.log";
+$args = "-c ".$c_params["ps_bam"]." -f ".$f_params["ps_bam"]." -m ".$m_params["ps_bam"]." -out_folder {$out_folder} --log {$out_folder}trio.log";
 
 //queue trio for analysis
 $queues = explode(",", get_path("queues_default"));
