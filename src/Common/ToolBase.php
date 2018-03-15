@@ -789,7 +789,7 @@ class ToolBase
 		
 		If the call exits with an error code, further execution of the calling script is aborted.
 	*/
-	function execTool($command, $parameters,$abort_on_error=true)
+	function execTool($command, $parameters, $abort_on_error=true)
 	{
 		//prepend php and path
 		$command = "php ".repository_basedir()."/src/".$command;
@@ -848,7 +848,7 @@ class ToolBase
 		}
 		
 		//return results
-		return array($stdout, $stderr,$return);
+		return array($stdout, $stderr, $return);
 	}
 	
 	/**
