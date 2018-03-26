@@ -12,8 +12,9 @@ rm -rf RepeatMasker-open-4-0-6.tar.gz
 
 #download and build ngs-bits
 cd $folder
-git clone --recursive https://github.com/imgag/ngs-bits.git
+git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
+git checkout 2018_03 && git submodule update --recursive --init
 make build_3rdparty
 make build_tools_release
 
