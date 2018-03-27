@@ -1,13 +1,18 @@
 import pysam
 import argparse
-
+import sys
 
 # Quality filter flag. 1 if it passes the filter and 0 if not.
 def QC_read(read):
+	
+	if (args.minDUP>0 and not read.has_tag("DP")):
+		sys.exit('Bam file error: DP tag missing.')
+	
 	read_out=''
 	if (read.is_unmapped or read.mapq < args.minMQ or read.cigarstring == None or (read.cigarstring.count("I") + read.cigarstring.count("D")) > args.maxGAP or not read.is_paired or read.mate_is_unmapped):
 		read_out = 0
-	
+	elif (args.minDUP>0 and read.get_tag("DP")<args.minDUP):
+		read_out = 0
 	else:
 		INDEL_SIZES=0
 		if  ((read.cigarstring.count("I") + read.cigarstring.count("D")) > 0):
@@ -25,7 +30,6 @@ def QC_read(read):
 		if (NM > args.maxMM):
 			#print read.qname, read.cigarstring, read.opt("NM"), NM
 			read_out = 0
-
 		else:
 			read_out = 1
 		
@@ -36,8 +40,9 @@ parser = argparse.ArgumentParser(description='Filter bam file based on different
 parser.add_argument('--infile', required=True, dest='infile', help='Input BAM file.')
 parser.add_argument('--outfile', required=True, dest='outfile', help='Output BAM file.')
 parser.add_argument('--minMQ', required=False, dest='minMQ', type=int, default=30, help='Minimum required mapping quality of aligned read. Default = 30')
-parser.add_argument('--maxMM', required=False, dest='maxMM', type=int, default=4, help='Maximum number of mismatches of aligned read . Default = 4')
-parser.add_argument('--maxGAP', required=False, dest='maxGAP', type=int, default=1, help='Maximum number of GAPs (indels) . Default = 1')
+parser.add_argument('--maxMM', required=False, dest='maxMM', type=int, default=4, help='Maximum number of mismatches of aligned read. Default = 4')
+parser.add_argument('--maxGAP', required=False, dest='maxGAP', type=int, default=1, help='Maximum number of GAPs (indels). Default = 1')
+parser.add_argument('--minDUP', required=False, dest='minDUP', type=int, default=0, help='Minimum numbers of duplicates per read. Set to zero to turn off. Requires DP bam tag. Default = 0')
 
 
 args = ''
@@ -91,11 +96,10 @@ while 1:
 		
 		READ1_out = QC_read(READ1)
 		#print READ1.qname, READ1_out
-		# If the first read in the paired is already low quality, we do not consider none of them
+		# If the first read in the paired is already low quality, we consider none of them
 		if (READ1_out == 0):
 			
-						
-			REMOVED_COUNT += 1
+			REMOVED_COUNT += 2
 			
 			READ1_out = ""
 			READ2_out = ""
@@ -114,7 +118,7 @@ while 1:
 				outfile.write(READ2)
 			else:
 				
-				REMOVED_COUNT += 1
+				REMOVED_COUNT += 2
 			
 			READ1_out = ""
 			READ2_out = ""
