@@ -26,7 +26,7 @@ salmon = [path]/data/tools/salmon-0.9.1/bin/salmon
 [tools-ngs-somatic]
 strelka = [path]/data/tools/strelka_workflow-1.0.14/bin
 strelka2 = [path]/data/tools/strelka-2.8.4.centos6_x86_64/bin/
-manta = [path]/data/tools/manta-1.2.2.centos6_x86_64/bin/
+manta = [path]/data/tools/manta-1.3.2.centos6_x86_64/bin/
 
 [folders]
 local_data = [path]/data/genomes/
