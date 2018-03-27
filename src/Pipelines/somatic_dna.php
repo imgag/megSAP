@@ -35,7 +35,7 @@ $parser->addFlag("freebayes", "Use freebayes for variant calling (default: strel
 $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal sample.", true, 0);
 $parser->addFlag("no_softclip", "Skip soft-clipping of overlapping reads. NOTE: This may increase rate of false positive variants.", true);
 $parser->addInfile("promoter","Bed file containing promoter regions. Will be used for filter column of vcf if filter 'not-promoter' is part of the filter_set.",true);
-$parser->addEnum("clip", "Soft-clip overlapping read pairs.", true, array("sc","mfb","mfm","mfr"),"sc");
+$parser->addEnum("clip", "Soft-clip overlapping read pairs.", true, array("sc","mfb","mfm","mfr","mfn"),"mfn");
 $parser->addFlag("add_vc_folder", "Add folder containing variant calling results from variant caller.",true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 extract($parser->parse($argv));
@@ -165,6 +165,7 @@ if (in_array("ma", $steps))
 			"mfb" => "-overlap_mismatch_baseq",
 			"mfm" => "-overlap_mismatch_mapq",
 			"mfr" => "-overlap_mismatch_remove",
+			"mfn" => "-overlap_mismatch_basen",
 			"sc" => ""
 		];
 		$clip_arg = $clip_arg_map[$clip];
@@ -711,15 +712,10 @@ if (in_array("ci", $steps))
 	}
 }
 
-
 //msi: call microsatellite instabilities
-if (in_array("msi", $steps))
+if ($single_sample) trigger_error("Calling microsatellite instabilities is only possible for tumor normal pairs",E_USER_NOTICE);
+else if (in_array("msi", $steps))
 {
-	if($single_sample)
-	{
-		trigger_error("Calling microsatellite instabilities is only possible for tumor-normal pairs",E_USER_ERROR);
-	} 
-	
 	$build = $n_sys_ini['build'];
 	$reference_genome = get_path("data_folder") . "/genomes/" .$n_sys_ini['build'] . ".fa";
 	
@@ -728,7 +724,7 @@ if (in_array("msi", $steps))
 	$reference_loci_file = get_path("data_folder") . "/dbs/MANTIS/".$build."_msi_loci.bed";
 	if(!file_exists($reference_loci_file))
 	{
-		print("Could not find loci reference file $reference_loci_file. Trying to generate it.\n");
+		trigger_error("Could not find loci reference file $reference_loci_file. Trying to generate it.",E_USER_WARNING);
 		$parser->exec(get_path("mantis")."/tools/RepeatFinder","-i $reference_genome -o $reference_loci_file",true);
 	}
 

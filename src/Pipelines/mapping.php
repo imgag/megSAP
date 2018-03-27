@@ -111,6 +111,7 @@ if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
 
 		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed1 -out $trimmed_hs1 -end 1",true);
 		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed_hs2 -start 1",true);
+		
 		$trimmed1 = $trimmed_hs1;
 		$trimmed2 = $trimmed_hs2;
 	}
@@ -131,18 +132,56 @@ else if ($sys['umi_type'] === "MIPs")
 	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed1 -bc1 $index -o $trimmed1_bc",true);
 	$trimmed2_bc = $parser->tempFile("_bc2.fastq.gz");
 	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed2 -bc1 $index -o $trimmed2_bc",true);
+	
 	$trimmed1 = $trimmed1_bc;
 	$trimmed2 = $trimmed2_bc;
 	
 	$barcode_correction = true;
 }
-else if ($sys['umi_type'] !== "n/a")
+else if ($sys['umi_type'] == "ThruPLEX")
 {
-	trigger_error("Unknown UMI-type ".$sys['umi_type'].". No barcode correction skipped.",E_USER_WARNING);
+
+	// do nothing, barcode handling done by connor
 	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".($threads>2 ? 2 : 1), true);
+	
+	$index1 = $parser->tempFile("_index1.fastq.gz");
+	$trimmed1_tp = $parser->tempFile("_MB_001.fastq.gz");
+	$parser->exec(get_path("ngs-bits")."FastqExtractBarcode", "-in $trimmed1 -out_main $trimmed1_tp -cut 8 -out_index $index1",true);
+	$index2 = $parser->tempFile("_index2.fastq.gz");
+	$trimmed2_tp = $parser->tempFile("_MB_001.fastq.gz");	
+	$parser->exec(get_path("ngs-bits")."FastqExtractBarcode", "-in $trimmed2 -out_main $trimmed2_tp -cut 8 -out_index $index2",true);
+	$trimmed1_bc = $parser->tempFile("_bc1.fastq.gz");
+	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed1_tp -bc1 $index1 -bc2 $index2 -o $trimmed1_bc",true);
+	$trimmed2_bc = $parser->tempFile("_bc2.fastq.gz");
+	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed2_tp -bc1 $index1 -bc2 $index2 -o $trimmed2_bc",true);
+	
+	$trimmed1 = $trimmed1_bc;
+	$trimmed2 = $trimmed2_bc;
+	
+	$barcode_correction = true;
+}
+else if ($sys['umi_type'] == "Safe-SeqS")
+{
+
+	// do nothing, barcode handling done by connor
+	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".($threads>2 ? 2 : 1), true);
+	
+	$index1 = $parser->tempFile("_index1.fastq.gz");
+	$trimmed1_tp = $parser->tempFile("_S_001.fastq.gz");
+	$parser->exec(get_path("ngs-bits")."FastqExtractBarcode", "-in $trimmed1 -out_main $trimmed1_tp -cut 12 -out_index $index1",true);
+	$trimmed1_bc = $parser->tempFile("_bc1.fastq.gz");
+	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed1_tp -bc1 $index1 -o $trimmed1_bc",true);
+	$trimmed2_bc = $parser->tempFile("_bc2.fastq.gz");
+	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed2 -bc1 $index1 -o $trimmed2_bc",true);
+	
+	$trimmed1 = $trimmed1_bc;
+	$trimmed2 = $trimmed2_bc;
+	
+	$barcode_correction = true;
 }
 else
 {
+	if ($sys['umi_type']!=="n/a") trigger_error("Unknown UMI-type ".$sys['umi_type'].". No barcode correction.",E_USER_WARNING);
 	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);
 }
 
@@ -227,19 +266,6 @@ $args[] = "-threads $threads";
 if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
 $parser->execTool("NGS/mapping_bwa.php", implode(" ", $args));
 
-//UMIs - ThruPlex; will be done by barcode_correction in the future
-if($sys['umi_type']=="ThruPLEX")
-{
-	//keep bam before deduplication
-	$parser->copyFile($bam_current, $basename."_before_dedup.bam");
-	$parser->copyFile($bam_current.".bai", $basename."_before_dedup.bam.bai");
-	
-	$tmp_bam = $parser->tempFile("_connor_dedup.bam");
-	$parser->exec(get_path("connor"), "$bam_current $tmp_bam --log_file ".$parser->tempFile("_connor_dedup.log"), true);
-	$parser->indexBam($tmp_bam, $threads);
-	$bam_current = $tmp_bam;
-}
-
 //UMIs - remove duplicates by molecular barcode
 if($barcode_correction)
 {
@@ -309,7 +335,7 @@ if ($sys['type']=="Panel Haloplex")
 if($clip_overlap)
 {
 	$tmp_bam = $parser->tempFile("_clip_overlap_unsorted.bam");
-	$parser->exec(get_path("ngs-bits")."BamClipOverlap", "-in $bam_current -out $tmp_bam", true);	
+	$parser->exec(get_path("ngs-bits")."BamClipOverlap", "-in $bam_current -out $tmp_bam -overlap_mismatch_basen", true);
 	$tmp_bam2 = $parser->tempFile("_clip_overlap_sorted.bam");
 	$parser->sortBam($tmp_bam, $tmp_bam2, $threads);
 	$parser->indexBam($tmp_bam2, $threads);
