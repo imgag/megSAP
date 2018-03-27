@@ -407,7 +407,7 @@ class Matrix
 	}
 	
 	/// Stores the matrix to a TSV file.
-	function toTSV($filename, $separator="\t", $comment="#")
+	function toTSV($filename, $separator="\t", $comment="#", $header = "#")
 	{
 		$handle = fopen($filename , "w");
 		
@@ -428,7 +428,7 @@ class Matrix
 		//header
 		if (implode("", $this->headers)!="")
 		{
-			fwrite($handle , $comment.implode($separator, $this->headers)."\n");
+			fwrite($handle , $header.implode($separator, $this->headers)."\n");
 		}
 		
 		//content
