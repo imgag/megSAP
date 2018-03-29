@@ -366,11 +366,7 @@ else
 {
 	$params[] = "-roi ".$sys['target_file'];
 }
-if ($sys['build']=="hg19" || $sys['build']=="GRCh37")
-{
-	$params[] = "-3exons";
-}
-else
+if ($sys['build']!="hg19" && $sys['build']!="GRCh37")
 {
 	$params[] = "-no_cont";
 }

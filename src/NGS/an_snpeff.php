@@ -25,7 +25,7 @@ if ($build=="GRCh37")
 
 //dbSNP annotation
 $pipeline = array();
-$pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noInfo -id ".get_path("data_folder")."/dbs/dbSNP/dbsnp_b149.vcf.gz $in");
+$pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noInfo -id ".get_path("data_folder")."/dbs/dbSNP/dbsnp_b150.vcf.gz $in");
 
 //workaround for crash in vcfannotate when input is an empty variant list
 $empty = true;
