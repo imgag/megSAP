@@ -18,7 +18,7 @@ $parser->addOutfile("out", "Output VCF file.", false);
 extract($parser->parse($argv));
 
 //create tmp folder
-$tmp_folder = temp_folder("vcf_merge");
+$tmp_folder = $parser->tempFolder();
 print "Temporary folder for simlyfied VCFs: $tmp_folder\n";
 
 //create simplyfied files
