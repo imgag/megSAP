@@ -240,7 +240,7 @@ if (in_array("ma", $steps))
 		$nd = 100;
 		$low_cov_n = $parser->tempFile("_nlowcov.bed");
 		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $n_bam -out $low_cov_n -cutoff ".$nd, true);
-		$parser->exec(get_path("ngs-bits")."BedAdd", "-in $low_cov -in2 $low_cov_n -out $low_cov", true);
+		$parser->exec(get_path("ngs-bits")."BedAdd", "-in $low_cov $low_cov_n -out $low_cov", true);
 		$parser->exec(get_path("ngs-bits")."BedMerge", "-in $low_cov -out $low_cov", true);
 	}
 	//annotate gene names (with extended to annotate splicing regions as well)

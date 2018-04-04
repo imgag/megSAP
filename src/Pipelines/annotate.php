@@ -112,7 +112,7 @@ if ($sys['type']=="WGS" && ($sys['build']=="hg19" || $sys['build']=="GRCh37"))
 	$tmp = $parser->tempFile(".bed");
 	file_put_contents($tmp, "chrMT\t0\t16569");
 	$roi_with_mito = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAdd", "-in ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed -in2 {$tmp} -out {$roi_with_mito}", false);
+	$parser->exec(get_path("ngs-bits")."BedAdd", "-in ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed {$tmp} -out {$roi_with_mito}", false);
 	$parser->exec(get_path("ngs-bits")."BedMerge", "-in {$roi_with_mito} -out {$roi_with_mito}", false);
 	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $varfile_full -out $varfile -reg {$roi_with_mito}", true);
 	$parser->exec(get_path("ngs-bits")."VariantFilterAnnotations", "-in $varfile_full -out $varfile_rare -max_af 0.01", true);
