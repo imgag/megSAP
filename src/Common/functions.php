@@ -271,16 +271,16 @@ function temp_file($suffix = "", $prefix = "tmp")
 	@brief Returns a writable temporary path.
 	@ingroup fileio
  */
-function temp_folder($prefix='php', $mode=0700)
+function temp_folder($prefix='megSAP_', $mode=0700)
 {
     $dir = sys_get_temp_dir();
 	if (!ends_with($dir, "/")) $dir .= '/';
     
     do
     {
-		$path = $dir.$prefix.mt_rand(0, 9999999);
+		$path = $dir.$prefix.random_string(6);
     }
-	while(!mkdir($path, $mode));
+	while(file_exists($path) || !mkdir($path, $mode));
     
     return $path;
 }

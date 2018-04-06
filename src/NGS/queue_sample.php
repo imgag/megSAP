@@ -12,6 +12,7 @@ $parser->addString("steps", "Comma-separated list of processing steps to perform
 //optional
 $parser->addString("user", "Name of the user who queued the analysis (current user if unset).", true, "");
 $parser->addFlag("high_priority", "Assign a high priority to job.");
+$parser->addString("queue", "Set queue - ignores possible other queues.", true);
 extract($parser->parse($argv));
 
 //init
@@ -100,25 +101,30 @@ else
 	}	
 }
 
-//submit to queue
+//determine possible queues
 $queues = explode(",", get_path("queues_default"));
 if($high_priority)
 {
 	$queues = array_merge($queues, explode(",", get_path("queues_high_priority")));
 }
-elseif ($info['sys_type']=="RNA")
+//RNA only high_mem
+if ($info['sys_type']=="RNA")
 {
 	$queues = explode(",", get_path("queues_high_mem"));
 }
+//overwrite queue
+if ($queue!="")
+{
+	$queues = array($queue);
+}
 
+//submit to queue
 $sample_status = get_path("sample_status_folder")."/data/";
 $slots = $info['sys_type']=="WGS" ? "-pe smp 2" : ""; //use two instead of one slots for WGS
-
-$qsub_return_line = exec("qsub -V $slots -b y -wd $project_folder -m n -M ".get_path("queue_email")." -e $sample_status -q ".implode(",", $queues)." -o $sample_status $command $args");
+list($stdout) = exec2("qsub -V $slots -b y -wd $project_folder -m n -M ".get_path("queue_email")." -e $sample_status -q ".implode(",", $queues)." -o $sample_status $command $args");
 
 //extract job number
-$exploded_qsub_return_line = explode(" ", $qsub_return_line);
-$jobnumber = intval($exploded_qsub_return_line[2]);
+$jobnumber = explode(" ", $stdout[0])[2];
 if($jobnumber>0)
 {
 	$outputline = array($jobnumber, date("d-m-Y_H:i:s"), $info['run_name'], $info['run_id'], $sample, $info['ps_id'], $info['project_name'], $info['project_id'], $user, $high_priority ? "high" : "low");
