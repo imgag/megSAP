@@ -3,7 +3,7 @@
 set -e -u -o pipefail
 
 # project specific parameters for somatic_dna_rna
-project_args="-steps_dna ma,vc,an -steps_rna ma,rc,fu -filter_set not-coding-splicing -germline_suffix _adme -germline_target /mnt/projects/research/eMed-HCC/+IKP/ADME_Genes_hg19_eMED_20161206.bed"
+project_args="-germline_suffix _adme -germline_target /mnt/projects/research/eMed-HCC/+IKP/ADME_Genes_hg19_eMED_20161206.bed"
 
 # SGE parameters
 _status='/mnt/users/all/http/SampleStatus/data'
@@ -22,12 +22,20 @@ If NOQUEUE is specified, the pipeline call is not submitted to SGE.
 EOT
 }
 
+#extract all arguments
+args=( "$@" )
+
 # check for NOQUEUE argument
 NOQUEUE=false
-if [[ ${1+} == "NOQUEUE" ]]; then
-    NOQUEUE=true
-    shift
-fi
+for (( i=0; i < ${#args[@]}; ++i))
+do
+	if [[ ${args[$i]} == "NOQUEUE" ]]
+	then
+		NOQUEUE=true
+		unset args[$i]
+	fi
+done
+args=( "${args[@]}" )
 
 # check for at least 2 remaining parameters
 if [[ $# -lt 2 ]]; then
@@ -36,14 +44,14 @@ if [[ $# -lt 2 ]]; then
 fi
 
 # output directory
-OUT_DIR="Somatic_${1}-${2}"
+OUT_DIR="Somatic_${args[0]}-${args[1]}"
 mkdir -p $OUT_DIR
 
 # log file path
 LOG="${OUT_DIR}/somatic_dna_rna_$(date +%Y%m%d%H%M%S).log"
 
 # pipeline command
-COMMAND="php ${SCRIPT_DIR}/../src/Pipelines/somatic_dna_rna.php -p_folder . -t_dna_id $1 -n_dna_id $2 -t_rna_id ${3:-na} -n_rna_id ${4:-na} ${project_args} --log $LOG"
+COMMAND="php ${SCRIPT_DIR}/../src/Pipelines/somatic_dna_rna.php -p_folder . -t_dna_id ${args[0]} -n_dna_id ${args[1]} -t_rna_id ${args[2]:-na} -n_rna_id ${args[3]:-na} ${project_args} ${args[@]:4} --log $LOG"
 
 # call
 if $NOQUEUE; then

@@ -294,8 +294,7 @@ if (in_array("vc", $steps))
 			"-t_bam", $t_bam,
 			"-out", $som_sv,
 			"-build", $t_sys_ini['build'],
-			"-smallIndels", $som_si,
-			"-temp", $o_folder . "/manta"
+			"-smallIndels", $som_si
 		];
 
 		if (!$single_sample)
@@ -309,7 +308,7 @@ if (in_array("vc", $steps))
 		}
 		if ($add_vc_folder)
 		{
-			$args_manta[] = "-temp ".dirname($som_v)."/variant_calling";
+			$args_manta[] = "-temp ".$o_folder."/manta";
 		}
 		if (!empty($t_sys_ini['target_file']))
 		{
@@ -394,7 +393,7 @@ if (in_array("vc", $steps))
 		}
 		if ($add_vc_folder)
 		{
-			$args_strelka[] = "-temp ".dirname($som_v)."/variant_calling";
+			$args_strelka[] = "-temp ".$o_folder."/strelka";
 		}
 		if (is_file($som_si))
 		{
