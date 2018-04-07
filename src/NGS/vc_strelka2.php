@@ -165,6 +165,10 @@ $filec->setComments($tmp_comments);
 for($i=0; $i<$file1->rows();++$i)
 {
 	$row = $file1->getRow($i);
+	
+	// Ns indicate bad quality bases and result in problems during annotation, therefore variants with Ns need to be removed
+	if(!preg_match("/^[acgtACGT]*$/",$row[4])) continue;
+	
 	if(chr_check($row[0], 22, false) === FALSE)
 	{
 		if($row[6] == "PASS")	$row[6] = "";
@@ -176,23 +180,28 @@ for($i=0; $i<$file1->rows();++$i)
 for($i=0; $i<$file2->rows();++$i)
 {
 	//remove overfluent '.' at end or beginning of indels that can be found with long indels - bug?
-	$tmp = $file2->getRow($i);
-	$tmp[3] = trim($tmp[3], ".");
-	$tmp[4] = trim($tmp[4], ".");
-	$filter = explode(";",$tmp[6]);
+	$row = $file2->getRow($i);
+	$row[3] = trim($row[3], ".");
+	$row[4] = trim($row[4], ".");
+	$filter = explode(";",$row[6]);
 	foreach($filter as $j => $f)	//prefix filter with 's.'
 	{
 		if(empty($f) || $f == "." || $f == "PASS")	continue;
 		$filter[$j] = "s.".$f;
 	}
-	$tmp[6] = implode(";",$filter);
-	if(chr_check($tmp[0], 22, false) === FALSE)
+	$row[6] = implode(";",$filter);
+	
+	// Ns indicate bad quality bases and result in problems during annotation, therefore variants with Ns need to be removed
+	if(!preg_match("/^[acgtACGT]*$/",$row[4])) continue;
+	
+	if(chr_check($row[0], 22, false) === FALSE)
 	{
-		if($tmp[6] == "PASS")	$row[6] = "";
-		$tmp[6] .= ";special-chromosome"; //skip bad chromosomes
+		if($row[6] == "PASS")	$row[6] = "";
+		$row[6] .= ";special-chromosome"; //skip bad chromosomes
 	}
-	$tmp[6] = trim($tmp[6],';');
-	$filec->addRow($tmp);
+
+	$row[6] = trim($row[6],';');
+	$filec->addRow($row);
 }
 if(!$k)
 {
