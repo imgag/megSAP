@@ -67,17 +67,18 @@ if (in_array("vc", $steps))
 	//check parent-child correlation
 	if (!$no_check)
 	{
+		$min_corr = 0.45;
 		$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in $f $c -mode bam -max_snps 4000", true);
 		$correlation = explode("\t", $output[0][1])[3];
-		if ($correlation<0.5)
+		if ($correlation<$min_corr)
 		{
-			trigger_error("The genotype correlation of father and child is {$correlation}; it should be above 0.5!", E_USER_ERROR);
+			trigger_error("The genotype correlation of father and child is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
 		}
 		$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in $m $c -mode bam -max_snps 4000", true);
 		$correlation = explode("\t", $output[0][1])[3];
-		if ($correlation<0.5)
+		if ($correlation<$min_corr)
 		{
-			trigger_error("The genotype correlation of mother and child is {$correlation}; it should be above 0.5!", E_USER_ERROR);
+			trigger_error("The genotype correlation of mother and child is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
 		}
 	}
 	
