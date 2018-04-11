@@ -25,6 +25,15 @@ check_column_exists($out_file_snv_analysis_1,$col_names_mut);
 check_file_exists(output_folder()."cgisenddata_in1_cgi_drug_prescription.tsv");
 check_file_exists(output_folder()."cgisenddata_in1_cgi_drug_prescription_bioactivities.tsv");
 
+clear_output_folder();
+
+
+//check for "is_germline" parameter
+check_exec("php ".src_folder()."/NGS/cgi_send_data.php -mutations $in_file_snv1 -is_germline -o_folder $out_folder1");
+check_column_exists($out_file_snv_analysis_1,$col_names_mut);
+
+clear_output_folder();
+
 
 //input file is .vcf file, output must be the same as if vcf.gz as input
 $in_file_snv2 = data_folder() . "/cgisenddata_in2_var_annotated.vcf";

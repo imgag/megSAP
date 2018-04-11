@@ -64,6 +64,9 @@ case2_diff:
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription_bioactivities.tsv
 	test -s out_case2/GS110168-GS110169_cgi_mutation_analysis.tsv
 	test -s out_case2/GS110168-GS110169_cnvs.tsv
+	
+	#check cgi germline annotation
+	test -s Sample_GS110169/GS110169_cgi_mutation_analysis.tsv
 
 	# qcML files
 	php ../compare_qcml_xml.php expected_case2/GS110168-GS110169_stats_som.qcML out_case2/GS110168-GS110169_stats_som.qcML

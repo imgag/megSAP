@@ -17,7 +17,7 @@ extract($parser->parse($argv));
 
 $parameters = "-n $n_bam -t $t_bam  -b $bed_file -o $out --threads $threads --genome $build";
 
-$parser->exec(get_path("mantis"),$parameters,true,true);
+$parser->exec(get_path("mantis"),$parameters,true,false);
 
 
 

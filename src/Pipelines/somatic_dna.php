@@ -574,6 +574,8 @@ if (in_array("an", $steps))
 
 // qci / CGI
 //TODO: implementation for translocation files
+$n_v = $prefix_nor . "_var.vcf.gz";
+$n_gsvar = $prefix_nor . ".GSvar";
 if (in_array("ci", $steps))
 {
 	// add QCI output
@@ -693,8 +695,8 @@ if (in_array("ci", $steps))
 	{
 		trigger_error("step \"ci\" did not exit cleanly. Please check sample CGI files manually. cgi_send_data returned code ".$error_code,E_USER_WARNING);
 	}
+	
 	$parameters = "";
-
 	//only try annotate SNVS to GSVar file if $som_vann (variant file) was uploaded to CGI
 	$cgi_snv_result_file = $o_folder . "/" .$t_id ."-".$n_id . "_cgi_mutation_analysis.tsv";
 	if(file_exists($cgi_snv_result_file) && file_exists($som_gsvar))
@@ -708,6 +710,32 @@ if (in_array("ci", $steps))
 	{
 		$parameters = " -cnv_in $som_cnv -cnv_in_cgi $cgi_cnv_result_file -out $som_cnv";
 		$parser->execTool("NGS/cgi_annotate_cnvs.php",$parameters);
+	}
+	
+	//parse germline variants
+	$parameters = "-o_folder $n_folder -is_germline -cancertype CANCER";
+	if(file_exists($n_v))
+	{
+		$parameters = $parameters . " -mutations $n_v";
+	}
+	else
+	{
+		print("Could not create CGI report for germline variants because germline variant file $n_v does not exist.\n");
+	}
+	$result_send_data = $parser->execTool("NGS/cgi_send_data.php",$parameters,false);
+	$error_code = $result_send_data[2];
+	if($error_code != 0)
+	{
+		trigger_error("step \"ci\" for germline variants did not exit cleanly. Please check sample CGI files manually. cgi_send_data returned code ".$error_code,E_USER_WARNING);
+	}
+	
+	$parameters = "";
+	$cgi_normal_snv_result_file = $n_folder . "/" . $n_id . "_cgi_mutation_analysis.tsv";
+	if(file_exists($cgi_normal_snv_result_file))
+	{
+		$normal_gsvar = $prefix_nor . ".GSvar";
+		$parameters = " -gsvar_in $n_gsvar -cgi_snv_in $cgi_normal_snv_result_file -out $n_gsvar";
+		$parser->execTool("NGS/cgi_snvs_to_gsvar.php",$parameters,false);
 	}
 }
 
@@ -723,8 +751,8 @@ else if (in_array("msi", $steps))
 	$reference_loci_file = get_path("data_folder") . "/dbs/MANTIS/".$build."_msi_loci.bed";
 	if(!file_exists($reference_loci_file))
 	{
-		trigger_error("Could not find loci reference file $reference_loci_file. Trying to generate it.",E_USER_WARNING);
-		$parser->exec(get_path("mantis")."/tools/RepeatFinder","-i $reference_genome -o $reference_loci_file",true);
+		print("Could not find loci reference file $reference_loci_file. Trying to generate it.\n");
+		$parser->exec(get_path("mantis")."/tools/RepeatFinder","-i $reference_genome -o $reference_loci_file",false);
 	}
 
 	//file that contains MSI in target region -> is intersection of loci reference with target region
@@ -735,7 +763,7 @@ else if (in_array("msi", $steps))
 	if(!file_exists($target_loci_file));
 	{
 		$parameters = "-in ".$reference_loci_file." -in2 ".$target_bed_file ." -mode in -out ".$target_loci_file;
-		$parser->exec(get_path("ngs-bits")."BedIntersect",$parameters,true);
+		$parser->exec(get_path("ngs-bits")."BedIntersect",$parameters,false);
 	}
 	$parameters = "-n_bam $n_bam -t_bam $t_bam -threads $threads -bed_file $target_loci_file -out $o_folder/mantis_test_output -build $reference_genome";
 	$parser->execTool("NGS/detect_msi.php",$parameters);

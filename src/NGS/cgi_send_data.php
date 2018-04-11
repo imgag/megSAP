@@ -9,6 +9,7 @@ $parser->addInfile("translocations","File containing the translocation data",tru
 $parser->addString("o_folder", "Output folder for CGI files. If not set, files are stored in the same folder as the input files.",true);
 $parser->addInfile("t_region", ".txt-File which contains the gene names of the target region, only these genes will be sent to CGI. If not set all genes will be sent to CGI", true);
 $parser->addFlag("no_del", "Do not delete Job in Cancer Genome Interpreter after submission");
+$parser->addFlag("is_germline","Mutation file is germline.");
 extract($parser->parse($argv));
 
 //discard if no input file given
@@ -17,12 +18,21 @@ if(!isset($mutations) && !isset($cnas) && !isset($translocations))
 	trigger_error("At least one file must be uploaded to CGI",E_USER_ERROR);
 	exit(1);
 }
+if(isset($translocations))
+{
+	trigger_error("Translocations currently not supported.",E_USER_WARNING);
+}
+
+if($is_germline && isset($cnas))
+{
+	trigger_error("Uploading CNA in germline mode is not supported.",E_USER_ERROR);
+	exit(1);
+}
 
 //determine destination folder 
 $destination_folder = "";
 if(isset($o_folder))
 {
-
 	$destination_folder = $o_folder;
 }
 else
@@ -49,7 +59,6 @@ $token = get_path("cgi_token");
 $url =  get_path("cgi_url");
 $header = "Authorization: ".$user." ".$token;
 
-//get Sample IDs
 
 //Creates header for cURL requests
 function generateHeader($user,$token)
@@ -209,7 +218,7 @@ function getJobStatus($job_id,$user,$token,$url='https://www.cancergenomeinterpr
 	return json_decode($result[0][0],true)["status"];
 }
 
-//results are stored as zip-files: ToDo: Error Check, if authorization fails, the error message is written to the destination file
+//Download results and store them as zip-files
 function downloadJobResults($destination,$job_id,$user,$token,$url='https://www.cancergenomeinterpreter.org/api/v1')
 {
 	global $parser;
@@ -220,8 +229,7 @@ function downloadJobResults($destination,$job_id,$user,$token,$url='https://www.
 	$result = $parser->exec("curl",$parameters,true);
 }
 
-
-//delete job
+//delete a job
 function delJob($job_id,$user,$token,$url='https://www.cancergenomeinterpreter.org/api/v1')
 {
 	global $parser;
@@ -230,7 +238,7 @@ function delJob($job_id,$user,$token,$url='https://www.cancergenomeinterpreter.o
 	$result = $parser->exec("curl",$parameters,true);
 }
 
-//read CNV .tsv-file and transform it into CGI specific format. if target region is set -> remove genes that do not lie inside the target region
+//read CNV .tsv-file and transform it into CGI specific format. If target region is set: remove genes that do not lie inside the target region
 function transform_cnv_annotations($tsv_in_file,$tsv_out_filename)
 {
 	global $t_region;
@@ -352,9 +360,23 @@ if(isset($mutations))
 {
 	if(strpos($mutations,".gz") !== false) 
 	{	
-		$sample_id = basename($mutations,"_var_annotated.vcf.gz");
+		if(strpos($mutations,"_var_annotated.vcf.gz") !== false)
+		{
+			$sample_id = basename($mutations,"_var_annotated.vcf.gz");
+		}
+		else
+		{
+			$sample_id = basename($mutations,"_var.vcf.gz");
+		}
 	}else{
-		$sample_id = basename($mutations,"_var_annotated.vcf");
+		if(strpos($mutations,"_var_annotated.vcf") !== false)
+		{
+			$sample_id = basename($mutations,"_var_annotated.vcf");
+		}
+		else
+		{
+			$sample_id = basename($mutations,"_var.vcf");
+		}
 	}
 }elseif(isset($cnas)){
 	$sample_id = basename($cnas,"_cnvs.tsv");
@@ -371,10 +393,14 @@ $temp_mutation_file = tempnam(sys_get_temp_dir(),"temp_");
 if(isset($mutations))
 {
 	$vcf_file = Matrix::fromTSV($mutations);
-	$vcf_file_filtered = filter_vcf_file($vcf_file);
 	
-	
+	$vcf_file_filtered = $vcf_file;
+	if(!$is_germline)
+	{
+		$vcf_file_filtered = filter_vcf_file($vcf_file);
+	}
 	$vcf_file_filtered->toTSV($temp_mutation_file);
+
 	chmod($temp_mutation_file,0666);
 	
 	//check whether filtered vcf file contains data
@@ -429,10 +455,16 @@ downloadJobResults($tmp_file,$jobId,$user,$token,$url);
 
 exec2("unzip -n $tmp_file -d $destination_folder");
 
-
 //change file names
+
+if($is_germline)
+{
+	$parser->exec("rm",$destination_folder."/"."drug_prescription.tsv",true);
+	$parser->exec("rm",$destination_folder."/"."drug_prescription_bioactivities.tsv",true);
+}
+
 if(file_exists($destination_folder."/"."mutation_analysis.tsv"))
-{	
+{
 	addCommentCharInHeader($destination_folder."/"."mutation_analysis.tsv");
 	$parameters = $destination_folder."/"."mutation_analysis.tsv $destination_folder"."/".$sample_id."_cgi_mutation_analysis.tsv";
 	$command = $parser->exec("mv",$parameters,true); 
@@ -455,7 +487,11 @@ if(file_exists($destination_folder."/"."drug_prescription_bioactivities.tsv"))
 	$parameters = $destination_folder."/drug_prescription_bioactivities.tsv ".$destination_folder."/".$sample_id."_cgi_drug_prescription_bioactivities.tsv";
 	$parser->exec("mv",$parameters,true);
 }
-
+if(file_exists($destination_folder."/"."not_mapped_entries.txt"))
+{
+	$parameters = $destination_folder. "/" . "not_mapped_entries.txt " . $destination_folder . "/" . $sample_id ."_cgi_not_mapped_entries.tsv";
+	$parser->exec("mv",$parameters,true);
+}
 $parser->exec("rm",$destination_folder."/"."input0*.tsv",true);
 
 if(!$no_del)

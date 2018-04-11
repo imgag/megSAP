@@ -24,5 +24,15 @@ check_exec("php ".src_folder()."/NGS/cgi_snvs_to_gsvar.php -gsvar_in $gsvar_inpu
 check_file($gsvar_output2,$gsvar_ref2,true);
 
 
+clear_output_folder();
+//3. test: input file with germline parameter set: no comments indicating cancer type should exist
+$gsvar_input3 = $gsvar_input2;
+$gsvar_ref3 = data_folder(). "cgi_snvs_to_gsvar_ref3.GSvar";
+$cgi_mutation_file_input3 = $cgi_mutation_file_input2;
+$gsvar_output3 = output_folder() . "cgi_snvs_to_gsvar_out3.GSvar";
+check_exec("php ".src_folder()."/NGS/cgi_snvs_to_gsvar.php -gsvar_in $gsvar_input3 -cgi_snv_in $cgi_mutation_file_input3 -out $gsvar_output3 -is_germline");
+check_file($gsvar_output3,$gsvar_ref3,true);
+
+
 
 ?>
