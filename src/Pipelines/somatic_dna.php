@@ -19,6 +19,7 @@ $parser->addString("o_folder", "Output folder.", false);
 $steps_all = array("ma", "vc", "an", "ci", "msi","db");
 $parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,msi,db");
 $parser->addString("cancer_type","Tumor type. See CancerGenomeInterpreter.org for nomenclature. If not set, megSAP will try to resolve cancer type from GENLAB.",true);
+$parser->addFlag("include_germline","Analyze normal sample for variants in normal-tumor pairs. ATTENTION: Mind legal restrictions!");
 $parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"synonymous,not-coding-splicing");
 // optional
 $parser->addStringArray("donor_ids", "Donor sample IDs in case of transplanted patients.", true);
@@ -127,10 +128,6 @@ $n_bam = $n_folder.$n_id.".bam";
 if (in_array("ma", $steps))
 {
 	// run analyze.php on tumor and normal
-	$analyze_args = [
-		"-steps ma",
-		"-no_abra" // disable ABRA realignment due to manta compatibility issues
-	];
 
 	// tumor sample
 	if (!$smt)
@@ -155,7 +152,7 @@ if (in_array("ma", $steps))
 			"--log", "{$n_folder}analyze_" . date('YmdHis',mktime()) . ".log",
 			"-correction_n"
 		];
-		$parser->execTool("Pipelines/analyze.php", "-steps ma,vc,an,cn -no_abra ".implode(" ", $args));
+		$parser->execTool("Pipelines/analyze.php", "-steps ma -no_abra ".implode(" ", $args));
 	}
 
 	// overlap clipping, is not done by analyze.php to prevent import of QC data calculated on BamClipOverlap results
@@ -263,6 +260,20 @@ if (!$single_sample)
 			trigger_error("Genotype correlation of samples {$t_bam} and {$n_bam} is {$correlation}; should be at least 0.8!", E_USER_ERROR);
 		}
 	}
+}
+
+//variant calling for control tissue (Rarely termed as germline)
+if($include_germline && !$single_sample)
+{
+	$args = [
+		"-folder", $n_folder,
+		"-name", $n_id,
+		"-system", $n_sys,
+		"--log", "{$n_folder}analyze_" . date('YmdHis',mktime()) . ".log",
+		"-correction_n"
+	];
+	
+	$parser->execTool("Pipelines/analyze.php", "-steps vc,an,cn ".implode(" ", $args));
 }
 
 // variant calling
@@ -714,34 +725,34 @@ if (in_array("ci", $steps))
 	
 	//parse germline variants
 	$parameters = "-o_folder $n_folder -is_germline -cancertype CANCER";
-	if(file_exists($n_v))
+	if(file_exists($n_v) && $include_germline)
 	{
 		$parameters = $parameters . " -mutations $n_v";
+		
+		$result_send_data = $parser->execTool("NGS/cgi_send_data.php",$parameters,false);
+		$error_code = $result_send_data[2];
+		if($error_code != 0)
+		{
+			trigger_error("step \"ci\" for germline variants did not exit cleanly. Please check sample CGI files manually. cgi_send_data returned code ".$error_code,E_USER_WARNING);
+		}
+		
+		$cgi_normal_snv_result_file = $n_folder . "/" . $n_id . "_cgi_mutation_analysis.tsv";
+		if(file_exists($cgi_normal_snv_result_file))
+		{
+			$normal_gsvar = $prefix_nor . ".GSvar";
+			$parameters = " -gsvar_in $n_gsvar -cgi_snv_in $cgi_normal_snv_result_file -out $n_gsvar";
+			$parser->execTool("NGS/cgi_snvs_to_gsvar.php",$parameters,false);
+		}
 	}
-	else
+	elseif($include_germline)
 	{
 		print("Could not create CGI report for germline variants because germline variant file $n_v does not exist.\n");
-	}
-	$result_send_data = $parser->execTool("NGS/cgi_send_data.php",$parameters,false);
-	$error_code = $result_send_data[2];
-	if($error_code != 0)
-	{
-		trigger_error("step \"ci\" for germline variants did not exit cleanly. Please check sample CGI files manually. cgi_send_data returned code ".$error_code,E_USER_WARNING);
-	}
-	
-	$parameters = "";
-	$cgi_normal_snv_result_file = $n_folder . "/" . $n_id . "_cgi_mutation_analysis.tsv";
-	if(file_exists($cgi_normal_snv_result_file))
-	{
-		$normal_gsvar = $prefix_nor . ".GSvar";
-		$parameters = " -gsvar_in $n_gsvar -cgi_snv_in $cgi_normal_snv_result_file -out $n_gsvar";
-		$parser->execTool("NGS/cgi_snvs_to_gsvar.php",$parameters,false);
 	}
 }
 
 //msi: call microsatellite instabilities
-if ($single_sample) trigger_error("Calling microsatellite instabilities is only possible for tumor normal pairs",E_USER_NOTICE);
-else if (in_array("msi", $steps))
+$msi_o_file = $o_folder . $t_id."-".$n_id."_msi.tsv";
+if(in_array("msi", $steps) && !$single_sample)
 {
 	$build = $n_sys_ini['build'];
 	$reference_genome = get_path("data_folder") . "/genomes/" .$n_sys_ini['build'] . ".fa";
@@ -765,8 +776,13 @@ else if (in_array("msi", $steps))
 		$parameters = "-in ".$reference_loci_file." -in2 ".$target_bed_file ." -mode in -out ".$target_loci_file;
 		$parser->exec(get_path("ngs-bits")."BedIntersect",$parameters,false);
 	}
-	$parameters = "-n_bam $n_bam -t_bam $t_bam -threads $threads -bed_file $target_loci_file -out $o_folder/mantis_test_output -build $reference_genome";
+
+	$parameters = "-n_bam $n_bam -t_bam $t_bam -threads $threads -bed_file $target_loci_file -out " .$msi_o_file. " -build $reference_genome";
 	$parser->execTool("NGS/detect_msi.php",$parameters);
+}
+elseif($single_sample && in_array("msi",$steps))
+{
+	trigger_error("Calling microsatellite instabilities is only possible for tumor normal pairs",E_USER_NOTICE);
 }
 
 // db

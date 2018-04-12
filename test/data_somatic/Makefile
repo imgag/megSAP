@@ -49,7 +49,7 @@ case2_run:
 	    -p_folder . \
 	    -t_id GS110168 -n_id GS110169 \
 	    -o_folder out_case2 \
-	    -steps ma,vc,an,ci \
+	    -steps ma,vc,an,ci,msi \
 	    -reduce_variants_filter \
 	    -t_sys system_pair.ini -n_sys system_pair.ini \
 	    --log out_case2/GS110168-GS110169.log
@@ -65,14 +65,18 @@ case2_diff:
 	test -s out_case2/GS110168-GS110169_cgi_mutation_analysis.tsv
 	test -s out_case2/GS110168-GS110169_cnvs.tsv
 	
-	#check cgi germline annotation
-	test -s Sample_GS110169/GS110169_cgi_mutation_analysis.tsv
+	#Germline variant files should not exist in case2 (flag include_germline is not set)
+	test ! -s Sample_GS110169/GS110169_var.vcf.gz
+	test ! -s Sample_GS110169/GS110169_cgi_mutation_analysis.tsv
 
 	# qcML files
 	php ../compare_qcml_xml.php expected_case2/GS110168-GS110169_stats_som.qcML out_case2/GS110168-GS110169_stats_som.qcML
 
 	# bafs
 	diff expected_case2/GS110168-GS110169_bafs.igv out_case2/GS110168-GS110169_bafs.igv
+	
+	#MSI file correct
+	diff expected_case2/GS110168-GS110169_msi.tsv out_case2/GS110168-GS110169_msi.tsv
 
 # tumor-normal (freebayes)
 # depends on case2_run
@@ -97,6 +101,10 @@ case3_diff:
 	test -s out_case3/GS110168-GS110169_cgi_mutation_analysis.tsv
 	test -s out_case3/GS110168-GS110169_cnvs.tsv
 	
+	#Germline variant files should not exist in case3 (flag include_germline is not set)
+	test ! -s Sample_GS110169/GS110169_var.vcf.gz
+	test ! -s Sample_GS110169/GS110169_cgi_mutation_analysis.tsv
+	
 	# qcML files
 	php ../compare_qcml_xml.php expected_case3/GS110168-GS110169_stats_som.qcML out_case3/GS110168-GS110169_stats_som.qcML
 
@@ -113,6 +121,7 @@ case4_run:
 	    -o_folder out_case4 \
 	    -steps ma,vc,an,ci \
 	    -t_sys system_pair.ini -n_sys system_pair.ini \
+	    -include_germline \
 	    --log out_case4/Tumor2-Normal2.log
 	
 case4_diff:
@@ -123,6 +132,10 @@ case4_diff:
 	test -s out_case4/Tumor2-Normal2_cgi_drug_prescription_bioactivities.tsv
 	test -s out_case4/Tumor2-Normal2_cgi_mutation_analysis.tsv
 	test -s out_case4/Tumor2-Normal2_cnvs.tsv
+	
+	#Germline variant files should exist in case4 (flag include_germline is set)
+	test -s Sample_Normal2/Normal2_var.vcf.gz
+	test -s Sample_Normal2/Normal2_var_annotated.vcf.gz
 
 	# qcML files
 	php ../compare_qcml_xml.php expected_case4/Tumor2-Normal2_stats_som.qcML out_case4/Tumor2-Normal2_stats_som.qcML

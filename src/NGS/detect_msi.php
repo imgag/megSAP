@@ -13,13 +13,24 @@ $parser->addOutfile("out","Path to the output file",true);
 $parser->addInfile("bed_file","Bed file that contains target region",true);
 //optional
 $parser->addString("build", "The reference genome build to use. ", true, "GRCh37");
+$parser->addFlag("keep_status_files","Keep MSI status files");
 extract($parser->parse($argv));
 
-$parameters = "-n $n_bam -t $t_bam  -b $bed_file -o $out --threads $threads --genome $build";
-
+$output_folder = realpath(dirname($out));
+$output_path = $output_folder . '/' . 'mantis';
+$parameters = "-n $n_bam -t $t_bam  -b $bed_file -o $output_path --threads $threads --genome $build";
 $parser->exec(get_path("mantis"),$parameters,true,false);
 
+//remove status files
+if(!$keep_status_files)
+{
+	if(file_exists($output_folder ."/mantis.kmer_counts")) exec2("rm $output_folder"."/mantis.kmer_counts");
+	if(file_exists($output_folder ."/mantis.kmer_counts_filtered")) exec2("rm $output_folder"."/mantis.kmer_counts_filtered");
+	if(file_exists($output_folder ."/mantis.status")) exec2("rm $output_folder"."/mantis.status");
+}
 
+//rename main output file
+if(file_exists($output_folder . "/mantis")) exec2("mv $output_path $out");
 
 
 ?>

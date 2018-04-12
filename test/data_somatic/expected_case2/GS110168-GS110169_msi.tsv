@@ -1,0 +1,4 @@
+Locus	Normal_Reads	Tumor_Reads	Difference	Distance	Dissimilarity
+chr21:33848453-33848462	62	74	0.0532	0.0376	0.0005
+chr21:47319496-47319505	79	65	0.0	0.0	0.0
+Average	-	-	0.0266	0.0188	0.0002
