@@ -17,7 +17,7 @@ $parser->addString("t_id", "Tumor sample processing-ID (e.g. GSxyz_01).", false)
 $parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To process a tumor samples solely use 'na'.", false);
 $parser->addString("o_folder", "Output folder.", false);
 $steps_all = array("ma", "vc", "an", "ci", "msi","db");
-$parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,msi,db");
+$parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,ci,msi,db");
 $parser->addString("cancer_type","Tumor type. See CancerGenomeInterpreter.org for nomenclature. If not set, megSAP will try to resolve cancer type from GENLAB.",true);
 $parser->addFlag("include_germline","Analyze normal sample for variants in normal-tumor pairs. ATTENTION: Mind legal restrictions!");
 $parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"synonymous,not-coding-splicing");
