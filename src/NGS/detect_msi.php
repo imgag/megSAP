@@ -21,16 +21,49 @@ $output_path = $output_folder . '/' . 'mantis';
 $parameters = "-n $n_bam -t $t_bam  -b $bed_file -o $output_path --threads $threads --genome $build";
 $parser->exec(get_path("mantis"),$parameters,true,false);
 
-//remove status files
+//adds comment char "#" to certain lines of the MANTIS status file
+function parse_mantis_status_file($out_file_name)
+{	
+	$file = fopen($out_file_name,'r');
+	$lines = array();
+	$i = 0;
+	while(!feof($file))
+	{
+		if($i == 0 || $i >= 4) //add comment char in line 0 and in lines 4-7
+		{
+			$lines[] = '#' . fgets($file);
+		}
+		else
+		{
+			$lines[] = fgets($file);
+		}
+		++$i;
+	}
+	fclose($file);
+	
+	$content_as_string = implode($lines);
+	file_put_contents($out_file_name,$content_as_string);
+}
+
+//main
+
+//remove not needed MANTIS output files
 if(!$keep_status_files)
 {
 	if(file_exists($output_folder ."/mantis.kmer_counts")) exec2("rm $output_folder"."/mantis.kmer_counts");
 	if(file_exists($output_folder ."/mantis.kmer_counts_filtered")) exec2("rm $output_folder"."/mantis.kmer_counts_filtered");
-	if(file_exists($output_folder ."/mantis.status")) exec2("rm $output_folder"."/mantis.status");
+	if(file_exists($output_folder . "/mantis")) exec2("rm $output_path");
 }
 
-//rename main output file
-if(file_exists($output_folder . "/mantis")) exec2("mv $output_path $out");
+//rename important main output file
+if(file_exists($output_folder ."/mantis.status"))
+{
+	exec2("mv $output_path".".status"." $out");
+}
+else
+{
+	trigger_error("MSI calling did not exit successfully. No MANTIS output file was created.",E_USER_WARNING);
+}
 
-
+parse_mantis_status_file($out);
 ?>
