@@ -44,7 +44,7 @@ INSERT INTO analysis_job (type, `high_priority`, args, sge_id, sge_queue) VALUES
 ('single sample', 0, '', '999003', 'default_srv018'),
 ('multi sample',  0, '', '', ''),
 ('trio',          0, '', '', ''),
-('somatic',       0, '', '', ''),
+('somatic',       0, '-include_germline', '', ''),
 ('single sample', 0, '', '', ''), /* WGS */
 ('single sample', 0, '', '', ''); /* RNA */
 

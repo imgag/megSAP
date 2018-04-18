@@ -202,7 +202,11 @@ foreach($sample_data as $sample => $sample_infos)
 			if (isset($tumor2normal[$sample]))
 			{
 				$normal = @$tumor2normal[$sample];
+							
 				$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal";
+				
+				if($project_type == 'diagnostic') $outputline .= " -args '-include_germline'";
+				
 			}
 			else
 			{
