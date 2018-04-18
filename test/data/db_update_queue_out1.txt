@@ -1,23 +1,23 @@
 Starting job 2 (single sample)
 	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /tmp/megSAP_sge_job_2.err -o /tmp/megSAP_sge_job_2.out -q default_srv016,default_srv017,default_srv018,priority_srv018
-	PIP: php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/Pipelines/analyze.php  -folder /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/ -name DX181109_01 --log /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/analyze_20000101000000.log
+	PIP: php [megSAP]/src/Pipelines/analyze.php  -folder /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/ -name DX181109_01 --log /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/analyze_20000101000000.log
 Canceling job 3 (single sample)
 	Canceled: [canceled SGE job 999002]
 Updating status job 4 (single sample)
 	Job finished with status 'finished'
 Starting job 5 (multi sample)
 	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /tmp/megSAP_sge_job_5.err -o /tmp/megSAP_sge_job_5.out -q default_srv016,default_srv017,default_srv018
-	PIP: php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/Pipelines/multisample.php  -bams /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/DX181109_01.bam /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181110_01/DX181110_01.bam -status affected control -out_folder /mnt/projects/diagnostic/Exome_Diagnostik//Multi_DX181109_01_DX181110_01/ --log /mnt/projects/diagnostic/Exome_Diagnostik//Multi_DX181109_01_DX181110_01/multi.log
+	PIP: php [megSAP]/src/Pipelines/multisample.php  -bams /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/DX181109_01.bam /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181110_01/DX181110_01.bam -status affected control -out_folder /mnt/projects/diagnostic/Exome_Diagnostik//Multi_DX181109_01_DX181110_01/ --log /mnt/projects/diagnostic/Exome_Diagnostik//Multi_DX181109_01_DX181110_01/multi.log
 Starting job 6 (trio)
 	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /tmp/megSAP_sge_job_6.err -o /tmp/megSAP_sge_job_6.out -q default_srv016,default_srv017,default_srv018
-	PIP: php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/Pipelines/trio.php  -c /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/DX181109_01.bam -f /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181110_01/DX181110_01.bam -m /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181111_01/DX181111_01.bam -out_folder /mnt/projects/diagnostic/Exome_Diagnostik//Trio_DX181109_01_DX181110_01_DX181111_01/ --log /mnt/projects/diagnostic/Exome_Diagnostik//Trio_DX181109_01_DX181110_01_DX181111_01/trio.log
+	PIP: php [megSAP]/src/Pipelines/trio.php  -c /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/DX181109_01.bam -f /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181110_01/DX181110_01.bam -m /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181111_01/DX181111_01.bam -out_folder /mnt/projects/diagnostic/Exome_Diagnostik//Trio_DX181109_01_DX181110_01_DX181111_01/ --log /mnt/projects/diagnostic/Exome_Diagnostik//Trio_DX181109_01_DX181110_01_DX181111_01/trio.log
 Starting job 7 (somatic)
 	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /tmp/megSAP_sge_job_7.err -o /tmp/megSAP_sge_job_7.out -q default_srv016,default_srv017,default_srv018
-	PIP: php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/Pipelines/somatic_dna.php  -p_folder /mnt/projects/diagnostic/Exome_Diagnostik/ -t_id DX181109_01 -n_id DX181110_01 -o_folder /mnt/projects/diagnostic/Exome_Diagnostik//Somatic_DX181109_01_DX181110_01/ --log /mnt/projects/diagnostic/Exome_Diagnostik//Somatic_DX181109_01_DX181110_01/somatic_dna_20000101000000.log
+	PIP: php [megSAP]/src/Pipelines/somatic_dna.php  -p_folder /mnt/projects/diagnostic/Exome_Diagnostik/ -t_id DX181109_01 -n_id DX181110_01 -o_folder /mnt/projects/diagnostic/Exome_Diagnostik//Somatic_DX181109_01_DX181110_01/ --log /mnt/projects/diagnostic/Exome_Diagnostik//Somatic_DX181109_01_DX181110_01/somatic_dna_20000101000000.log -include_germline
 Starting job 8 (single sample)
 	SGE: qsub -V -pe smp 2 -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /tmp/megSAP_sge_job_8.err -o /tmp/megSAP_sge_job_8.out -q default_srv016,default_srv017,default_srv018
-	PIP: php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/Pipelines/analyze.php  -folder /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181116_01/ -name DX181116_01 --log /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181116_01/analyze_20000101000000.log
+	PIP: php [megSAP]/src/Pipelines/analyze.php  -folder /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181116_01/ -name DX181116_01 --log /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181116_01/analyze_20000101000000.log
 Starting job 9 (single sample)
 	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /tmp/megSAP_sge_job_9.err -o /tmp/megSAP_sge_job_9.out -q highmem_srv018
-	PIP: php /mnt/SRV018/users/ahsturm1/SVN/megSAP//src/Pipelines/analyze_rna.php  -folder /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181117_01/ -name DX181117_01 --log /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181117_01/analyze_rna_20000101000000.log
+	PIP: php [megSAP]/src/Pipelines/analyze_rna.php  -folder /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181117_01/ -name DX181117_01 --log /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181117_01/analyze_rna_20000101000000.log
 Removing job 1 because it is older than 90 days.

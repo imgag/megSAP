@@ -226,6 +226,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 	if($debug)
 	{
 		 print "	SGE: {$command_sge}\n";
+		 $command_pip = str_replace(repository_basedir(), "[megSAP]", $command_pip);
 		 print "	PIP: {$command_pip}\n";
 		 $stdout = array();
 		 $stderr = array();
