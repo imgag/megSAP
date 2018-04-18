@@ -31,7 +31,7 @@ case1_run:
 	    -p_folder . \
 	    -t_id GS150344_01 -n_id na \
 	    -o_folder out_case1 \
-	    -steps ma,vc,an \
+	    -steps ma,vc,cn,an \
 	    -t_sys system_single.ini \
 	    --log out_case1/GS150344.log
 
@@ -49,7 +49,7 @@ case2_run:
 	    -p_folder . \
 	    -t_id GS110168 -n_id GS110169 \
 	    -o_folder out_case2 \
-	    -steps ma,vc,an,ci,msi \
+	    -steps ma,vc,cn,an,ci,msi \
 	    -reduce_variants_filter \
 	    -t_sys system_pair.ini -n_sys system_pair.ini \
 	    --log out_case2/GS110168-GS110169.log
@@ -87,7 +87,7 @@ case3_run:
 	    -p_folder . \
 	    -t_id GS110168 -n_id GS110169 \
 	    -o_folder out_case3 \
-	    -steps vc,an,ci \
+	    -steps vc,cn,an,ci \
 	    -t_sys system_pair.ini -n_sys system_pair.ini \
 	    -freebayes \
 	    --log out_case3/GS110168-GS110169.log
@@ -119,7 +119,7 @@ case4_run:
 	    -p_folder . \
 	    -t_id Tumor2 -n_id Normal2 \
 	    -o_folder out_case4 \
-	    -steps ma,vc,an,ci \
+	    -steps ma,vc,cn,an,ci \
 	    -t_sys system_pair.ini -n_sys system_pair.ini \
 	    -include_germline \
 	    --log out_case4/Tumor2-Normal2.log

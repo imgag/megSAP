@@ -16,8 +16,8 @@ $parser->addString("p_folder", "Folder that contains Sample folders.", false);
 $parser->addString("t_id", "Tumor sample processing-ID (e.g. GSxyz_01).", false);
 $parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To process a tumor samples solely use 'na'.", false);
 $parser->addString("o_folder", "Output folder.", false);
-$steps_all = array("ma", "vc", "an", "ci", "msi","db");
-$parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,an,ci,msi,db");
+$steps_all = array("ma", "vc", "cn", "an", "ci", "msi","db");
+$parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,cn,an,ci,msi,db");
 $parser->addString("cancer_type","Tumor type. See CancerGenomeInterpreter.org for nomenclature. If not set, megSAP will try to resolve cancer type from GENLAB.",true);
 $parser->addFlag("include_germline","Analyze normal sample for variants in normal-tumor pairs. ATTENTION: Mind legal restrictions!");
 $parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"synonymous,not-coding-splicing");
@@ -413,6 +413,26 @@ if (in_array("vc", $steps))
 		$parser->execTool("NGS/vc_strelka2.php", implode(" ", $args_strelka));
 	}
 
+	// add somatic baf file
+	$baf_args = [
+		"-in", $t_bam,
+		"-out", $som_bafs,
+
+	];
+	if (!$single_sample)
+	{
+		$baf_args[] = "-n_in $n_bam";
+	}
+	if (!empty($t_sys_ini['target_file']))
+	{
+		$baf_args[] = "-target ".$t_sys_ini['target_file'];
+	}
+	$parser->execTool("NGS/mapping_baf.php", implode(" ", $baf_args));
+}
+
+//CNV calling
+if(in_array("cn",$steps))
+{
 	// copy number variant calling
 	$tmp_folder = $parser->tempFolder();
 
@@ -448,22 +468,6 @@ if (in_array("vc", $steps))
 		$n = 30;
 	}
 	$parser->execTool("NGS/vc_cnvhunter.php", "-cov $t_cov $ncov -out $som_cnv -system $t_sys -min_corr 0 -seg $t_id -n $n");
-
-	// add somatic baf file
-	$baf_args = [
-		"-in", $t_bam,
-		"-out", $som_bafs,
-
-	];
-	if (!$single_sample)
-	{
-		$baf_args[] = "-n_in $n_bam";
-	}
-	if (!empty($t_sys_ini['target_file']))
-	{
-		$baf_args[] = "-target ".$t_sys_ini['target_file'];
-	}
-	$parser->execTool("NGS/mapping_baf.php", implode(" ", $baf_args));
 }
 
 // annotation

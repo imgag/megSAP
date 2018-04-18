@@ -209,6 +209,9 @@ function start_analysis($job_info, &$db_conn, $debug)
 	
 		$script = "somatic_dna.php";
 		$args = "-p_folder {$project_folder} -t_id ".$t_info['ps_name']." -n_id ".$n_info['ps_name']." -o_folder {$out_folder} --log {$out_folder}somatic_dna_{$timestamp}.log";
+		
+		if($sample_info['project_type'] == 'diagnostic') $args .= " -include_germline"; //for diagnostics 
+		
 	}
 	else
 	{
