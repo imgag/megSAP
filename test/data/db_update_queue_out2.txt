@@ -1,0 +1,12 @@
+Updating status job 2 (single sample)
+	Job finished with status 'finished'
+Updating status job 5 (multi sample)
+	Job finished with status 'finished'
+Updating status job 6 (trio)
+	Job finished with status 'finished'
+Updating status job 7 (somatic)
+	Job finished with status 'finished'
+Updating status job 8 (single sample)
+	Job finished with status 'finished'
+Updating status job 9 (single sample)
+	Job finished with status 'finished'

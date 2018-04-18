@@ -226,7 +226,7 @@ class ToolBase
 	private function add($name, $desc, $opt, $default, $type, $option1 = null, $option2 = null)
 	{
 		//check for duplicate name
-		if(in_array("-".$name, array_keys($this->params)))
+		if(isset($this->params["-".$name]))
 		{
 			trigger_error("Parameter name '-$name' given twice.", E_USER_ERROR);
 		}
@@ -322,7 +322,7 @@ class ToolBase
 			}
 			
 			
-			if (!in_array($par, array_keys($this->params)))
+			if (!isset($this->params[$par]))
 			{				
 				$this->printUsage();
 				trigger_error("Unknown parameter '$par' given.", E_USER_ERROR);
@@ -333,7 +333,7 @@ class ToolBase
 			if ($para_type=="par" || $para_type=="opt")
 			{
 				// get argument
-				if (!isset($argv[$i + 1]) || $argv[$i + 1][0]=="-")
+				if (!isset($argv[$i + 1]) || ($argv[$i + 1][0]=="-" && isset($this->params[$argv[$i + 1]])))
 				{
 					$this->printUsage();
 					trigger_error("Parameter '$par' given without argument.", E_USER_ERROR);
@@ -362,7 +362,7 @@ class ToolBase
 				else if($argu_type == "infile_array")
 				{
 					$arg = array();
-					while(isset($argv[$i + 1]) &&  $argv[$i + 1][0]!="-")
+					while(isset($argv[$i + 1]) && $argv[$i + 1][0]!="-")
 					{
 						//print $argv[$i+1]."\n";
 						$arg[] = $argv[$i+1];
@@ -387,7 +387,7 @@ class ToolBase
 				else if($argu_type == "outfile_array")
 				{
 					$arg = array();
-					while(isset($argv[$i + 1]) &&  $argv[$i + 1][0]!="-")
+					while(isset($argv[$i + 1]) && $argv[$i + 1][0]!="-")
 					{
 						$arg[] = $argv[$i+1];
 						if (!is_writable2(end($arg)))

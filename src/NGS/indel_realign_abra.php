@@ -20,7 +20,7 @@ $parser->addInt("threads", "Maximum number of threads used.", true, 1);
 $parser->addInfile("roi", "Target region for realignment.", true, "");
 $parser->addFloat("mer",  "ABRA2 minimum edge pruning ratio parameter. Default value is for germline - use 0.02 for somatic data.", true, 0.1);
 $parser->addFloat("mad",  "ABRA2 downsampling depth parameter. Default value is for germline - use 5000 for somatic data.", true, 250);
-$parser->addFlag("skip_kmer", "TODO REMOMVE");
+$parser->addFlag("skip_kmer", "Skips k-mer precalcuation (for benchmarking only).");
 $parser->addFlag("se", "RNA: Single-end input");
 $parser->addInfile("gtf",  "RNA: GTF annotation file.", true, "");
 $parser->addInfile("junctions",  "RNA: Junctions output file from STAR mapping.", true, "");

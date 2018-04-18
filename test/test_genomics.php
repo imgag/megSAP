@@ -171,10 +171,11 @@ start_test("get_processed_sample_id");
 
 if (db_is_enabled("NGSD"))
 {
-	check(get_processed_sample_id("GS130043_01"), 1498);
+	$db_conn = DB::getInstance("NGSD");
+	check(get_processed_sample_id($db_conn, "GS130043_01"), 1498);
+	check(get_processed_sample_id($db_conn, "GS130043", false), -1);
+	check(get_processed_sample_id($db_conn, "GS123456_01", false), -1);
 }
-check(get_processed_sample_id("GS130043", false), -1);
-check(get_processed_sample_id("GS123456_01", false), -1);
 
 end_test();
 

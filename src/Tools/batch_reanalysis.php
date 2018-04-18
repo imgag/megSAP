@@ -16,7 +16,8 @@ for ($i=1; $i<=$count; ++$i)
 	$ps = trim($samples[$i-1]);
 	
 	//determine folder name
-	$info = get_processed_sample_info($ps, false);
+	$db_conn = DB::getInstance("NGSD");
+	$info = get_processed_sample_info($db_conn, $ps, false);
 	if (is_null($info))
 	{
 		print "$i/$count: Skipped '$ps' because it was not found in NGSD!\n";

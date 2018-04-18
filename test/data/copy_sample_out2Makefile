@@ -1,39 +1,16 @@
-all: chmod import_runqc copy_Leuk_research copy_HepaVac_research copy_Swed_research queue_Swed_research qc_Leuk qc_HepaVac email_Leuk email_HepaVac skipped
+all: chmod import_runqc copy_SomaticAndTreatment_diagnostic queue_SomaticAndTreatment_diagnostic
 
 chmod:
 	chmod -R 775 Unaligned
 
 import_runqc:
-	php /mnt/users/all/megSAP/src/NGS/runqc_parser.php -name "#00203" -run_dir Unaligned/../ -force
+	php /mnt/users/all/megSAP/src/NGS/runqc_parser.php -name "#00001" -run_dir Unaligned/../ -force
 
-copy_Leuk_research:
-	mv -f Unaligned/Project_Leuk/Sample_GS130500_01/ /mnt/projects/research/Leuk/
-	mv -f Unaligned/Project_Leuk/Sample_GS130501_01/ /mnt/projects/research/Leuk/
-	mv -f Unaligned/Project_Leuk/Sample_GS130502_01/ /mnt/projects/research/Leuk/
+copy_SomaticAndTreatment_diagnostic:
+	mv Unaligned/SomaticAndTreatment/Sample_DX181277_01/ /mnt/projects/diagnostic/SomaticAndTreatment/
+	mv Unaligned/SomaticAndTreatment/Sample_DX181278_01/ /mnt/projects/diagnostic/SomaticAndTreatment/
+	mv Unaligned/SomaticAndTreatment/Sample_DX181279_01/ /mnt/projects/diagnostic/SomaticAndTreatment/
 
-copy_HepaVac_research:
-	mv -f Unaligned/Project_HepaVac/Sample_GS130715_01/ /mnt/projects/research/HepaVac/
-	mv -f Unaligned/Project_HepaVac/Sample_GS130717_01/ /mnt/projects/research/HepaVac/
-
-copy_Swed_research:
-	mv -f Unaligned/Project_Swed/Sample_GS130718_01/ /mnt/projects/research/Swed/
-	mv -f Unaligned/Project_Swed/Sample_GS130719_01/ /mnt/projects/research/Swed/
-
-queue_Swed_research:
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130718_01 -high_priority 
-	php /mnt/users/all/megSAP/src/NGS/queue_sample.php -sample GS130719_01 -high_priority 
-
-qc_Leuk:
-	php /mnt/users/all/megSAP/src/NGS/qc_fastq.php -folder /mnt/projects/research/Leuk/Sample_GS130500_01 -import
-	php /mnt/users/all/megSAP/src/NGS/qc_fastq.php -folder /mnt/projects/research/Leuk/Sample_GS130502_01 -import
-
-qc_HepaVac:
-	php /mnt/users/all/megSAP/src/NGS/qc_fastq.php -folder /mnt/projects/research/HepaVac/Sample_GS130715_01 -import
-
-email_Leuk:
-	php -r 'mail("christopher.schroeder@med.uni-tuebingen.de","Neue Daten fuer Leuk", "Hallo Christopher Schroeder,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts Leuk liegen vor:\n\nGS130500_01\nGS130502_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: medgen.bioinformatik@med.uni-tuebingen.de");'
-
-email_HepaVac:
-	php -r 'mail("christopher.schroeder@med.uni-tuebingen.de","Neue Daten fuer HepaVac", "Hallo Christopher Schroeder,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts HepaVac liegen vor:\n\nGS130715_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: medgen.bioinformatik@med.uni-tuebingen.de");'
-
-skipped:
+queue_SomaticAndTreatment_diagnostic:
+	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'somatic' -samples DX181278_01 DX181277_01 -info tumor normal
+	#Tumor sample 'DX181279_01' not queued for analysis because no normal samples is assigned in NGSD!

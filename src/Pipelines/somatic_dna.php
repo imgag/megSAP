@@ -557,7 +557,6 @@ if (in_array("an", $steps))
 	$tmp = $parser->tempFile(".vcf");
 	$s = Matrix::fromTSV($som_vann);
 	$comments = $s->getComments();
-	$details = get_processed_sample_info($t_id, false);
 	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"), "#", "");
 	if (!$single_sample)
 	{
@@ -810,12 +809,6 @@ if (in_array("db", $steps))
 		], "file_exists"));
 		$parser->execTool("NGS/db_import_qc.php", "-id $t_id -files $qcmls -force -min_depth 0 --log $log_db");
 
-		// update last analysis date
-		if (in_array("ma", $steps))
-		{
-			updateLastAnalysisDate($t_id, $t_bam);
-		}
-
 		// check tumor/normal flag
 		if (!isTumor($t_id))
 		{
@@ -836,12 +829,6 @@ if (in_array("db", $steps))
 				$prefix . "_stats_som.qcML"
 			], "file_exists"));
 			$parser->execTool("NGS/db_import_qc.php", "-id $n_id -files $qcmls -force -min_depth 0 --log $log_db");
-
-			// update last analysis date
-			if (in_array("ma", $steps))
-			{
-				updateLastAnalysisDate($n_id, $n_bam);
-			}
 
 			// check tumor/normal flag
 			if (isTumor($n_id))

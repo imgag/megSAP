@@ -41,7 +41,8 @@ exec2("mv $s1 $backup_folder/");
 
 //remove detected variants for s1
 $name = strtr($s1, array("Sample_"=>""));
-$ps_id = get_processed_sample_id($name, false);
+$db_conn = DB::getInstance("NGSD");
+$ps_id = get_processed_sample_id($db_conn, $name, false);
 if ($ps_id==-1)
 {
 	print "Skipping NGSD cleanup because sample '$name' was not found!\n";

@@ -4,7 +4,7 @@
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
-$repo_folder = "/mnt/users/all/megSAP"; //fixed absolute path to make the tests work
+$repo_folder = "/mnt/users/all/megSAP"; //fixed absolute path to make the tests work for all users
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
@@ -14,97 +14,55 @@ $parser->addString("folder",  "Input data folder.", true, "Unaligned");
 $parser->addOutfile("out",  "Output Makefile. Default: 'Makefile'.", true);
 $parser->addFlag("high_priority", "Assign high priority to all queued samples.");
 $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
+$parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
-//finds and returns the SampleIDs from a Sample Sheet
-function extract_IDs_from_samplesheet($samplesheet_name)
+//extract samples names and sequencer type from sample sheet
+function extract_sample_data(&$db_conn, $filename)
 {
-	$samplesheet_file=file($samplesheet_name);
-	if (trim($samplesheet_file[0])=="[Data]")//if NxtSeq 500 run
+	//determine type
+	$file = file($filename);
+	if (trim($file[0])=="[Data]")//NxtSeq run
 	{
-		array_shift($samplesheet_file);//skip [Data]
-		array_shift($samplesheet_file);//skip header
-		foreach($samplesheet_file as $line)
-		{
-			if (trim($line)=="") continue;
-			list(, $nameWithPrefix) = explode(",", $line);
-			$sampleIDs[] = substr($nameWithPrefix, strlen("Sample_"));//remove "Sample_"
-		}
-		return array($sampleIDs,true);//return sampleID and information that it's a NxtSeq
+		$is_nextseq = true;
+		array_shift($file);//skip [Data]
+		array_shift($file);//skip header
 	}
 	else
 	{
-		array_shift($samplesheet_file);//skip header
-		$sampleIDs=array();
+		$is_nextseq = false;
+		array_shift($file);//skip header
+	}
+	
+	//extract sample data
+	$sample_data = array();
+	foreach($file as $line)
+	{
+		if (trim($line)=="") continue;
 		
-		foreach($samplesheet_file as $line)
+		if ($is_nextseq)
 		{
-			list(, , $sampleIDs[]) = explode(",",$line);
+			list(, $name_with_prefix) = explode(",", $line);
+			$sample = substr($name_with_prefix, 7); //remove "Sample_"
 		}
-		return array($sampleIDs,false);//return sampleID and information that it's not a NxtSeq
+		else
+		{
+			list(, , $sample) = explode(",", $line);
+		}
+		$sample = trim($sample);
+		
+		$sample_data[$sample] = get_processed_sample_info($db_conn, $sample);
 	}
+	
+	return array($sample_data, $is_nextseq);
 }
 
-//find the project name and process sample type for a sample ID, find and check run number
-function get_parameters($processed_sample_name)
+function create_mail_command(&$db_conn, $project_name, $samples)
 {	
-	//get sample name and process ID
-	if (strpos($processed_sample_name,'_') !== false)
-	{
-		list($sample_name,$process_id) = explode("_",$processed_sample_name);
-	}
-	else
-	{
-		print "Warning: processed sample name \"$processed_sample_name\" is not of form SAMPLENAME_PROCESSID, Skipped it\n";
-		return array("SKIPPED", "SKIPPED", "SKIPPED", "SKIPPED");
-	}
-	$process_id = ltrim($process_id,'0');
-	$db_connect = DB::getInstance('NGSD');
+	$result = $db_conn->executeQuery("SELECT u.name, u.email FROM user u, project p WHERE p.internal_coordinator_id=u.id AND p.name=:name", array("name"=>$project_name));
+	$coordinator = $result[0]['name'];
+	$email = $result[0]['email'];
 	
-	//get tumour status
-	$result = $db_connect->executeQuery("SELECT tumor FROM  sample WHERE name='".$sample_name."'");
-	$tumor_status = $result[0]['tumor'];
-	
-	//get sample id
-	$sample_id = $db_connect->getId("sample", "name", $sample_name);
-	
-	//get processed sample processing_system and project ID
-	$result = $db_connect->executeQuery("SELECT id,project_id,processing_system_id FROM  processed_sample WHERE sample_id=".$sample_id." AND process_id= ".$process_id);
-	$psample_id = $result[0]["id"];
-	$projectID = $result[0]["project_id"];
-	$processing_systemID = $result[0]["processing_system_id"];
-	
-	//get project name, type, coordinator_id and analysis step
-	$result = $db_connect->executeQuery("SELECT  name,type, analysis,internal_coordinator_id FROM project WHERE id=".$projectID);
-	$projectname = $result[0]["name"];
-	$project_type = $result[0]["type"];
-	$project_analysis = $result[0]["analysis"];
-	$project_coord_id = $result[0]["internal_coordinator_id"];
-	
-	//get coordinator name and email
-	$result = $db_connect->executeQuery("SELECT name,email FROM user WHERE id=".$project_coord_id);
-	$internal_coord=array("name" => $result[0]["name"], "email" => $result[0]["email"]);
-	//get run ID
-	$result = $db_connect->executeQuery("SELECT sequencing_run_id FROM  processed_sample WHERE sample_id=".$sample_id." AND process_id= ".$process_id);
-	$run_ID = $result[0]["sequencing_run_id"];
-	
-	//get run name
-	$result = $db_connect->executeQuery("SELECT name FROM  sequencing_run WHERE id=".$run_ID);
-	$run_name = $result[0]["name"];
-	
-	//check for associated tumor sample(s)
-	$result = $db_connect->executeQuery("SELECT id FROM processed_sample WHERE normal_id=".$psample_id);
-	$assoc_tumor = array_column($result, "id");
-	
-	//get type value from associated processing system
-	$result = $db_connect->executeQuery("SELECT processing_system.type FROM processing_system, processed_sample WHERE processed_sample.id=".$psample_id." AND processed_sample.processing_system_id=processing_system.id");
-	$sys_type = $result[0]["type"];
-	
-	return array($projectname, $project_type, $run_name, $tumor_status, $project_analysis, $internal_coord, $assoc_tumor, $sys_type);
-}
-
-function create_mail_command($coordinator, $email_ad, $samples, $project_name)
-{
 	$mail_text = array();
 	$mail_text[] = "Hallo $coordinator,";
 	$mail_text[] = "";
@@ -118,247 +76,236 @@ function create_mail_command($coordinator, $email_ad, $samples, $project_name)
 	$mail_text[] = "Viele Gruesse";
 	$mail_text[] = "";
 	$mail_text[] = "  die Bioinformatik";
-	return "php -r 'mail(\"$email_ad\",\"Neue Daten fuer $project_name\", \"".implode("\\n",$mail_text)."\",\"Reply-To: ".get_path("queue_email")."\");'";
+	return "php -r 'mail(\"$email\",\"Neue Daten fuer $project_name\", \"".implode("\\n",$mail_text)."\",\"Reply-To: ".get_path("queue_email")."\");'";
 }
 
-//write makefile lines for file and folder operations and stores them in a dictionary
-function build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map,
-	$project_coord_map,  $sample_tumor_status_map, $sample_assoc_tumor_map, $runnumber,
-	$makefile_name, $repo_folder, $nxtSeq, $sample_analysis_step_map, $sample_systype_map, $high_priority, $overwrite)
-{
-	if (!file_exists($folder))
-	{
-		trigger_error("Folder '$folder' does not exist!", E_USER_ERROR);
-	}
-	
-	//init
-	$output = array();
-	$target_to_copylines = array();
-	$target_to_queuelines = array();
-	$skipped_lines = array();//stores lines to print the sample names which are not parseable and was not processed
-	$skipped_lines[] = "skipped:";
-	$project_to_fastqonly_samples = array();
-	$sample_to_newlocation = array();
-	
-	//parse input
-	foreach($sample_IDs as $sample_ID)
-	{
-		if ($sample_projectname_map[$sample_ID]=="SKIPPED")//if the correct parameters are not available
-		{
-			$skipped_lines[]="\t"."@echo '$sample_ID was skipped!'";
-			continue;
-		}
-		$project_name=$sample_projectname_map[$sample_ID];
-		$project_type=$sample_projecttype_map[$sample_ID];
-		//build line to copy sample
-		//calculate current location of sample
-		if ($nxtSeq)
-		{
-			$old_location= "{$folder}/".$project_name;
-		}
-		else
-		{
-			$old_location= "{$folder}/Project_".$project_name;
-		}
-		
-		//determine project 
-		$new_location = get_path("project_folder").$project_type."/".$project_name;
-		$sample_to_newlocation[$sample_ID] = $new_location."/Sample_".$sample_ID;
-		
-		//copy_target line if first sample of project in run, mkdir and chmod  if first sample of project at all
-		$tag = $project_name."_".$project_type;
-		if (!(array_key_exists($tag, $target_to_copylines)))
-		{
-			$outputline="copy_{$tag}:";
-			$target_to_copylines[$tag]=array($outputline);
-			if (!is_dir($new_location)) 
-			{
-				$outputline="mkdir -p ".$new_location."/";
-				$target_to_copylines[$tag][]="\t".$outputline;
-				$outputline="chmod 775 ".$new_location."/";
-				$target_to_copylines[$tag][]="\t".$outputline;
-			}
-		}
-		
-		//bcl2fastq2 changes "-" to "_" in sample name, revert that
-		if ($nxtSeq)
-		{
-			$sample_ID_modified = strtr($sample_ID, "_", "-");
-			$old_files = glob("{$old_location}/Sample_{$sample_ID}/{$sample_ID_modified}*.fastq.gz");
-			foreach($old_files as $file)
-			{
-				$file_corrected = strtr($file, array($sample_ID_modified => $sample_ID));
-				$parser->moveFile($file, $file_corrected);
-			}
-		}
-		
-		//build copy line
-		$fastqgz_files = glob($old_location."/Sample_".$sample_ID."/*.fastq.gz");
-		$r3_count = 0;
-		foreach($fastqgz_files as $file)
-		{
-			$r3_count += contains($file, "_R3_");
-		}
-		if (count($fastqgz_files)>=3 && $r3_count==count($fastqgz_files)/3 ) //handling of molecular barcode in index read 2 (HaloPlex HS, Swift, ...)
-		{
-			//create target folder
-			$target_to_copylines[$tag][]="\tmkdir -p ".$new_location."/Sample_".$sample_ID."/";
-			$target_to_copylines[$tag][]="\tchmod 775 ".$new_location."/Sample_".$sample_ID."/";
-				
-			//copy fastq.gz files and change names
-			foreach($fastqgz_files as $file) 
-			{
-				$old_name = basename($file);
-				$new_name = strtr($old_name, array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
-				$target_to_copylines[$tag][]="\tmv ".($overwrite ? "-f " : "").$old_location."/Sample_".$sample_ID."/$old_name ".$new_location."/Sample_".$sample_ID."/$new_name";				
-			}
-		}
-		else
-		{
-			$target_to_copylines[$tag][]="\tmv ".($overwrite ? "-f " : "").$old_location."/Sample_".$sample_ID."/ ".$new_location."/";
-		}
-
-		//skip normal samples which have an associated tumor sample on the same run
-		$is_normal_with_tumor = ($sample_tumor_status_map[$sample_ID] == 0) && !empty($sample_assoc_tumor_map[$sample_ID]);
-		
-		if($sample_analysis_step_map[$sample_ID]!="fastq" && !$is_normal_with_tumor) //if more than FASTQ creation should be done for samples's project
-		{					
-			//build target lines for analysis using Sungrid Engine's queues if first sample of project on this run
-			if (!(array_key_exists($tag, $target_to_queuelines)))
-			{
-				$outputline="queue_{$tag}:";//build target in the output makefile
-				$target_to_queuelines[$tag]=array($outputline);
-			}
-			
-			//build  first part of line for analysis using Sungrid Engine's queues,
-			$outputline= "php {$repo_folder}/src/NGS/queue_sample.php -sample ".$sample_ID;
-			
-			//stop at mapping if analysis for project is set to mapping
-			if ($sample_analysis_step_map[$sample_ID]=="mapping")
-			{
-				$outputline .= " -steps ma,db";
-			}
-
-			//stop at variant calling if analysis for project is set to variant calling
-			if ($sample_analysis_step_map[$sample_ID]=="variant calling")
-			{
-				$outputline .= " -steps ma,vc,db,cn";
-			}
-			
-			if ($high_priority)
-			{
-				$outputline .= " -high_priority";
-			}
-			
-			$target_to_queuelines[$tag][]="\t".$outputline." ";
-		}
-		elseif(!$is_normal_with_tumor)
-		{		
-			$project_to_fastqonly_samples[$project_name][] = $sample_ID;
-		}
-	}
-	
-	//target 'all'
-	$all_line="all: chmod import_runqc ";
-	foreach ($target_to_copylines as $target => $lines)
-	{
-		$all_line .= "copy_".$target." ";
-	}
-	foreach ($target_to_queuelines as $target => $lines)
-	{
-		$all_line .= "queue_".$target." ";	
-	}
-	foreach ($project_to_fastqonly_samples as $target => $samples)
-	{
-		$all_line .= "qc_".$target." ";
-	}
-	foreach ($project_to_fastqonly_samples as $target => $samples)
-	{
-		$all_line .= "email_".$target." ";
-	}
-	$all_line .= "skipped";
-	$output[] = $all_line;
-	$output[] = "";
-	
-	//target 'chmod'
-	$output[] = "chmod:";
-	$output[] = "\tchmod -R 775 {$folder}";
-	$output[] = "";
-	
-	//target 'import_runqc'
-	$output[] = "import_runqc:";
-	$output[] = "\tphp {$repo_folder}/src/NGS/runqc_parser.php -name \"$runnumber\" -run_dir $folder/../ -force";
-	$output[] = "";
-	
-	//target(s) 'copy_...'
-	foreach ($target_to_copylines as $target => $lines)
-	{
-		$output = array_merge($output, array_unique($lines));
-		$output[] = "";
-	}
-		
-	//target(s) 'queue_...'
-	foreach ($target_to_queuelines as $target => $lines)
-	{
-		$output = array_merge($output, array_unique($lines));
-		$output[] = "";	
-	}
-
-	//target(s) 'qc_...'
-	foreach ($project_to_fastqonly_samples as $project => $samples)
-	{
-		$output[] = "qc_".$project.":";
-		foreach (array_unique($samples) as $sample) {
-			$sample_location = $sample_to_newlocation[$sample];
-			$output[] = "\tphp {$repo_folder}/src/NGS/qc_fastq.php -folder {$sample_location} -import";
-		}
-		$output[] = "";
-	}
-	
-	//target(s) 'email_...'
-	foreach ($project_to_fastqonly_samples as $project => $samples)
-	{
-		$output[] = "email_".$project.":";
-		$output[] = "\t".create_mail_command($project_coord_map[$project]["name"], $project_coord_map[$project]["email"], $samples, $project);
-		$output[] = "";
-	}
-	
-	//target 'skipped'
-	$output = array_merge($output, $skipped_lines);
-	$output[] = "";
-	
-	//write data
-	file_put_contents($makefile_name, implode("\n", $output));
-}
-
+//init
 if (!isset($out)) $out = "Makefile";
-list($sample_IDs, $nxtSeq) = extract_IDs_from_samplesheet($samplesheet);
-$sample_projectname_map = array();
-$sample_projecttype_map = array();
-$sample_tumor_status_map = array();
-$sample_assoc_tumor_map = array();
-$sample_systype_map = array();
-$old_runnumber = -1;
-$project_coord_map = array();
-foreach($sample_IDs as $sampleID)
-{	
-	list($sample_projectname_map[$sampleID], $sample_projecttype_map[$sampleID], $runnumber, $sample_tumor_status_map[$sampleID],
-		$sample_analysis_step_map[$sampleID], $internal_coord, $sample_assoc_tumor_map[$sampleID],
-		$sample_systype_map[$sampleID]) = get_parameters($sampleID);
-	if ($sample_projectname_map[$sampleID]=="SKIPPED")//unable to extract all information due to malformed Sample ID
-	{
-		$runnumber = $old_runnumber;//set run number (which is "SKIPPED" now) back to last value
-		continue;
-	}
-	if ($old_runnumber!=$runnumber && $old_runnumber!=-1)
-	{
-		trigger_error("Inconsistent run numbers within samples found: ".$old_runnumber." and ".$runnumber, E_USER_ERROR);
-	}
-	$old_runnumber = $runnumber;
-	$project_coord_map[$sample_projectname_map[$sampleID]] = $internal_coord;
+$db_conn = DB::getInstance($db);
+
+if (!file_exists($folder))
+{
+	trigger_error("Folder '$folder' does not exist!", E_USER_ERROR);
 }
 
-build_makefile($folder, $sample_IDs, $sample_projectname_map, $sample_projecttype_map, $project_coord_map, $sample_tumor_status_map,
-	$sample_assoc_tumor_map, $runnumber, $out, $repo_folder, $nxtSeq, $sample_analysis_step_map, $sample_systype_map, $high_priority, $overwrite);
+//get sample data from samplesheet
+list($sample_data, $is_nextseq) = extract_sample_data($db_conn, $samplesheet);
+
+//extract tumor-normal pair infos
+$normal2tumor = array();
+$tumor2normal = array();
+foreach($sample_data as $sample => $sample_infos)
+{
+	$normal_name = $sample_infos['normal_name'];
+	if ($normal_name!="")
+	{
+		$normal2tumor[$normal_name] = $sample;
+		$tumor2normal[$sample] = $normal_name;
+	}
+	
+	//get run name (the same for all samples)
+	$run_name = $sample_infos['run_name'];
+}
+
+//parse input
+$target_to_copylines = array();
+$target_to_queuelines = array();
+$project_to_fastqonly_samples = array();
+$sample_to_newlocation = array();
+foreach($sample_data as $sample => $sample_infos)
+{
+	$project_name = $sample_infos['project_name'];
+	$project_type = $sample_infos['project_type'];
+	$project_folder = $sample_infos['project_folder'];
+	$project_analysis = $sample_infos['project_analysis'];
+	$sample_folder = $sample_infos['ps_folder'];
+	$sample_is_tumor = $sample_infos['is_tumor'];
+	$sys_type = $sample_infos['sys_type'];
+
+	//calculate current location of sample
+	if ($is_nextseq)
+	{
+		$old_location = "{$folder}/".$project_name;
+	}
+	else
+	{
+		$old_location = "{$folder}/Project_".$project_name;
+	}
+	
+	//determine project 
+	$sample_to_newlocation[$sample] = $sample_folder;
+	
+	//copy_target line if first sample of project in run, mkdir and chmod if first sample of project at all
+	$tag = $project_name."_".$project_type;
+	if (!isset($target_to_copylines[$tag]))
+	{
+		$target_to_copylines[$tag] = array("copy_{$tag}:");
+		if (!is_dir($project_folder)) 
+		{
+			$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}";
+			$target_to_copylines[$tag][] = "\tchmod 775 {$project_folder}";
+		}
+	}
+	
+	//bcl2fastq2 changes "-" to "_" in sample name, revert that
+	if ($is_nextseq)
+	{
+		$sample_modified = strtr($sample, "_", "-");
+		$old_files = glob("{$old_location}/Sample_{$sample}/{$sample_modified}*.fastq.gz");
+		foreach($old_files as $file)
+		{
+			$file_corrected = strtr($file, array($sample_modified => $sample));
+			$parser->moveFile($file, $file_corrected);
+		}
+	}
+	
+	//build copy line
+	$fastqgz_files = glob($old_location."/Sample_{$sample}/*.fastq.gz");
+	$r3_count = 0;
+	foreach($fastqgz_files as $file)
+	{
+		$r3_count += contains($file, "_R3_");
+	}
+	if (count($fastqgz_files)>=3 && $r3_count==count($fastqgz_files)/3 ) //handling of molecular barcode in index read 2 (HaloPlex HS, Swift, ...)
+	{
+		//create target folder
+		$target_to_copylines[$tag][] = "\tmkdir -p {$sample_folder}";
+		$target_to_copylines[$tag][] = "\tchmod 775 {$sample_folder}";
+			
+		//copy fastq.gz files and change names
+		foreach($fastqgz_files as $file) 
+		{
+			$old_name = basename($file);
+			$new_name = strtr($old_name, array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
+			$target_to_copylines[$tag][] = "\tmv ".($overwrite ? "-f " : "")."$old_location/Sample_{$sample}/$old_name {$sample_folder}/$new_name";				
+		}
+	}
+	else
+	{
+		$target_to_copylines[$tag][] = "\tmv ".($overwrite ? "-f " : "")."$old_location/Sample_{$sample}/ {$project_folder}";
+	}
+
+	//skip normal samples which have an associated tumor sample on the same run
+	$is_normal_with_tumor = !$sample_is_tumor && isset($normal2tumor[$sample]);
+	
+	if($project_analysis!="fastq" && !$is_normal_with_tumor) //if more than FASTQ creation should be done for samples's project
+	{					
+		//build target lines for analysis using Sungrid Engine's queues if first sample of project on this run
+		if (!array_key_exists($tag, $target_to_queuelines))
+		{
+			$target_to_queuelines[$tag] = array("queue_{$tag}:");
+		}
+		
+		//queue analysis
+		if ($sample_is_tumor && $sys_type!="RNA")
+		{
+			if (isset($tumor2normal[$sample]))
+			{
+				$normal = @$tumor2normal[$sample];
+				$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal";
+			}
+			else
+			{
+				$text = "Tumor sample '$sample' not queued for analysis because no normal samples is assigned in NGSD!";
+				$outputline = "#{$text}";
+				trigger_error($text, E_USER_NOTICE);
+			}
+		}
+		else
+		{
+			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample}";
+		}
+		
+		//determine analysis steps from project
+		$args = array();
+		if ($project_analysis=="mapping")
+		{
+			$args[] = "-steps ma,db";
+		}
+		if ($project_analysis=="variant calling")
+		{
+			$args[] = "-steps ma,vc,db,cn";
+		}
+		
+		if ($high_priority)
+		{
+			$args[] = "-high_priority";
+		}
+		
+		if(count($args)>0)
+		{
+			$outputline .= " -args '".implode(" ", $args)."'";
+		}
+		
+		$target_to_queuelines[$tag][]="\t".$outputline;
+	}
+	else if(!$is_normal_with_tumor)
+	{		
+		$project_to_fastqonly_samples[$project_name][] = $sample;
+	}
+}
+
+//create Makefile
+$output = array();
+$output[] = "all: chmod import_runqc ";
+$output[] = "";
+
+//target 'chmod'
+$output[] = "chmod:";
+$output[] = "\tchmod -R 775 {$folder}";
+$output[] = "";
+
+//target 'import_runqc'
+$output[] = "import_runqc:";
+$output[] = "\tphp {$repo_folder}/src/NGS/runqc_parser.php -name \"{$run_name}\" -run_dir $folder/../ -force";
+$output[] = "";
+
+//target(s) 'copy_...'
+$all_parts = array();
+foreach ($target_to_copylines as $target => $lines)
+{
+	$all_parts[] = "copy_{$target}";
+	
+	$output = array_merge($output, array_unique($lines));
+	$output[] = "";
+}
+	
+//target(s) 'queue_...'
+foreach ($target_to_queuelines as $target => $lines)
+{
+	$all_parts[] = "queue_{$target}";
+	
+	$output = array_merge($output, array_unique($lines));
+	$output[] = "";	
+}
+
+//target(s) 'qc_...'
+foreach ($project_to_fastqonly_samples as $target => $samples)
+{
+	$all_parts[] = "qc_{$target}";
+	
+	$output[] = "qc_{$target}:";
+	foreach (array_unique($samples) as $sample) {
+		$sample_location = $sample_to_newlocation[$sample];
+		$output[] = "\tphp {$repo_folder}/src/NGS/qc_fastq.php -folder {$sample_location} -import";
+	}
+	$output[] = "";
+}
+
+//target(s) 'email_...'
+foreach ($project_to_fastqonly_samples as $target => $samples)
+{
+	$all_parts[] = "email_{$target}";
+	
+	$output[] = "email_{$target}:";
+	$output[] = "\t".create_mail_command($db_conn, $target, $samples);
+	$output[] = "";
+}
+
+//add targets to 'all' target
+$output[0] .= implode(" ", $all_parts);
+
+//write data
+file_put_contents($out, implode("\n", $output));
 
 ?>

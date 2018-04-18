@@ -1,8 +1,14 @@
-FCID,Lane,SampleID,SampleRef,Index,Description,Control,Recipe,Operator,Project
-66698AAXX,2,GS130500_01,hg19,ACTTGA,Leukämieblasten zu GS130499,N,76+7+76,Claudia Bauer,Leuk
-66698AAXX,3,GS130501_01,hg19,GATCAG,Normal zu GS130502,N,76+7+76,Claudia Bauer,Leuk
-66698AAXX,4,GS130502_01,hg19,TAGCTT,Tumor zu GS130501,N,76+7+76,Claudia Bauer,Leuk
-66698AAXX,5,GS130715_01,hg19,ATCACG,Tumor,N,76+7+76,Sandra Junker,HepaVac
-66698AAXX,6,GS130717_01,hg19,CGATGT,Blut zu GS130715,N,76+7+76,Sandra Junker,HepaVac
-66698AAXX,7,GS130718_01,hg19,TTAGGC,,N,76+7+76,Claudia Bauer,Swed
-66698AAXX,8,GS130719_01,hg19,TGACCA,,N,76+7+76,Claudia Bauer,Swed
+[Data]
+Lane,Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description
+1,Sample_DX181277_01,DX181277_01,,,,TGGAACAA,,,SomaticAndTreatment, 
+2,Sample_DX181277_01,DX181277_01,,,,TGGAACAA,,,SomaticAndTreatment, 
+3,Sample_DX181277_01,DX181277_01,,,,TGGAACAA,,,SomaticAndTreatment, 
+4,Sample_DX181277_01,DX181277_01,,,,TGGAACAA,,,SomaticAndTreatment, 
+1,Sample_DX181278_01,DX181278_01,,,,TGGTGGTA,,,SomaticAndTreatment, 
+2,Sample_DX181278_01,DX181278_01,,,,TGGTGGTA,,,SomaticAndTreatment, 
+3,Sample_DX181278_01,DX181278_01,,,,TGGTGGTA,,,SomaticAndTreatment, 
+4,Sample_DX181278_01,DX181278_01,,,,TGGTGGTA,,,SomaticAndTreatment, 
+1,Sample_DX181279_01,DX181279_01,,,,AGCAGGAA,,,SomaticAndTreatment, 
+2,Sample_DX181279_01,DX181279_01,,,,AGCAGGAA,,,SomaticAndTreatment, 
+3,Sample_DX181279_01,DX181279_01,,,,AGCAGGAA,,,SomaticAndTreatment, 
+4,Sample_DX181279_01,DX181279_01,,,,AGCAGGAA,,,SomaticAndTreatment, 

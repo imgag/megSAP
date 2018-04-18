@@ -227,9 +227,6 @@ if (in_array("db", $steps))
 	{
 		$parser->execTool("NGS/db_import_variants.php", "-id $name -var $varfile -build ".$sys['build']." -force --log $log_db");
 	}
-	
-	//update last_analysis column of processed sample in NGSD (before db_import_qc.php because that can throw an error because of low coverage)
-	updateLastAnalysisDate($name, $bamfile);
 
 	//import QC data
 	$qc_files = array($qc_fastq, $qc_map);

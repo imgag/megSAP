@@ -220,7 +220,7 @@ function import_ngsd(&$db, $bam, $rmp, $c_both, $c_match)
 {
 	//determine processed sample id from BAM name
 	$ps_name = basename($bam,".bam");
-	$ps_id = get_processed_sample_id($ps_name);
+	$ps_id = get_processed_sample_id($db, $ps_name);
 	
 	$db->executeStmt("DELETE FROM kasp_status WHERE processed_sample_id=:ps_id", array("ps_id"=>$ps_id));
 	$db->executeStmt("INSERT INTO kasp_status VALUES (:ps_id,:rmp,:c_both,:c_match)", array("ps_id"=>$ps_id, "rmp"=>$rmp, "c_both"=>$c_both, "c_match"=>$c_match));

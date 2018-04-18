@@ -16,7 +16,8 @@ $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
 //get sample info from DB
-$info = get_processed_sample_info($pid, false, $db);
+$db_conn = DB::getInstance($db);
+$info = get_processed_sample_info($db_conn, $pid, false);
 if (is_null($info))
 {
 	$parser->log("Could not determine gender for processed sample '$pid' from DB: no sample entry.");

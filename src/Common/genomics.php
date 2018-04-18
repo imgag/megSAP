@@ -373,7 +373,7 @@ function load_system(&$filename, $ps_name = "")
 	{
 		//get ID of processed sample
 		$db = DB::getInstance("NGSD");
-		$pid = get_processed_sample_id($ps_name, false);
+		$pid = get_processed_sample_id($db, $ps_name, false);
 		if ($pid==-1)
 		{
 			trigger_error("load_system: Cannot determine processing system - processed sample name '$ps_name' is invalid!", E_USER_ERROR);
@@ -515,7 +515,7 @@ function gender($genotypes, $het, $male, $female)
 /**
 	@brief Returns the processed sample database ID for a processed sample name, or -1 if the processed sample is not in the database.
  */
-function get_processed_sample_id($name, $error_if_not_found=true)
+function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 {
 	//split name
 	$parts = explode("_", $name."_99");
@@ -525,8 +525,7 @@ function get_processed_sample_id($name, $error_if_not_found=true)
 	//query NGSD
 	try 
 	{
-		$db = DB::getInstance('NGSD');
-		$res = $db->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name=:name AND ps.process_id=:id", array('name' => $sname, "id"=>$id));
+		$res = $db_conn->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name=:name AND ps.process_id=:id", array('name' => $sname, "id"=>$id));
 	}
 	catch(PDOException $e)
 	{
@@ -655,23 +654,6 @@ function get_qcID($qc_name)
 	if(count($results)==0)	return false;	
 	return $results[0]['qcml_id'];
 }
-
-///Updates the last analysis date of a processed sample using a file date.
-function updateLastAnalysisDate($psname, $file)
-{
-	$db = DB::getInstance("NGSD");
-	
-	//get processed sample id
-	list($s, $p) = explode("_", $psname);
-	$p = (int)$p;
-	$res = $db->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='$s' and ps.process_id='$p'");
-	$ps_id = $res[0]['id'];
-	
-	//update last_analysis date
-	$date = date("Y-m-d", filemtime($file));
-	$db->executeStmt("UPDATE processed_sample SET last_analysis='$date' WHERE id='$ps_id'");
-}
-
 
 ///Updates normal sample entry for given tumor sample.
 function updateNormalSample($ps_tumor, $ps_normal, $overwrite = false)
@@ -1075,7 +1057,8 @@ function is_valid_ref_sample_for_cnv_analysis($file)
 	if (contains($file, "NA12878")) return false;
 
 	//check sample is in NGSD 
-	$ps_id = get_processed_sample_id($file, false);
+	$db_conn = DB::getInstance("NGSD");
+	$ps_id = get_processed_sample_id($db_conn, $file, false);
 	if ($ps_id<0) return false;
 	
 	//check that sample is not tumor and not not FFPE
@@ -1351,54 +1334,19 @@ function vcfgeno2human($gt, $upper_case=false)
 	return $upper_case ? strtoupper($geno) : $geno;
 }
 
-//returns information about currently running SGE jobs: id => array(status, command, start date/time, queue, queues possible, slots)
-function sge_jobinfo()
-{
-	$output = array();
-	list($stdout, $stderr) = exec2("qstat -u '*'");
-	foreach($stdout as $line)
-	{
-		if (starts_with($line, "---") || starts_with($line, "job-ID") || trim($line) == "") continue;
-		
-		$parts = explode(" ", preg_replace('!\s+!', ' ', trim($line)));
-		if (count($parts)==9) //running
-		{
-			list($id, , , , $status, $start_date, $start_time, $queue_used, $slots) = $parts;
-		}
-		else //queued
-		{
-			list($id, , , , $status, $start_date, $start_time, $slots) = $parts;
-			$queue_used = "";
-		}
-		$start = "$start_date $start_time";
-		$queue_used = substr($queue_used, 0, strpos($queue_used, '@'));
-		list($stdout2) = exec2("qstat -j $id | egrep 'job_args|hard_queue_list'");
-		$queues_possible = trim(substr($stdout2[0], 16));
-		$command = strtr(trim(substr($stdout2[1], 9)), ",", " ");
-		$output[$id] = array($status, $command, $start, $queue_used, $queues_possible, $slots);
-	}
-	return $output;
-}
-
 //Returns information from the NGSD about a processed sample (as key-value pairs), or null/error if the sample is not found.
-function get_processed_sample_info($ps_name, $error_if_not_found=true, $db_name="NGSD")
+function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true)
 {
-	if (!db_is_enabled($db_name))
-	{
-		return null;
-	}
-	
 	//get info from NGSD
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
-	$db = DB::getInstance($db_name);
-	$res = $db->executeQuery("SELECT p.name as project_name, p.type as project_type, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, s.name_external as name_external ".
+	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, s.name_external as name_external ".
 	                        "FROM project p, processed_sample ps, sample s, processing_system as sys, sequencing_run as r, device as d ".
 				"WHERE ps.sequencing_run_id=r.id AND ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND ps.process_id='".(int)$process_id."' AND r.device_id = d.id");
 	if (count($res)!=1)
 	{
 		if ($error_if_not_found)
 		{
-			trigger_error("Could not find information for processed sample '$ps_name' in NGSD!", E_USER_ERROR);
+			trigger_error("Could not find information for processed sample with name '$ps_name' in NGSD!", E_USER_ERROR);
 		}
 		else
 		{
@@ -1409,7 +1357,7 @@ function get_processed_sample_info($ps_name, $error_if_not_found=true, $db_name=
 	
 	if($info['normal_id']!="")
 	{
-		$info['normal_name'] = $db->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id='".$info['normal_id']."'");
+		$info['normal_name'] = $db_conn->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id='".$info['normal_id']."'");
 	}
 	else
 	{
@@ -1417,7 +1365,9 @@ function get_processed_sample_info($ps_name, $error_if_not_found=true, $db_name=
 	}
 	
 	//additional info
-	$info['project_folder'] = get_path("project_folder")."/".$info['project_type']."/".$info['project_name']."/";
+	$project_folder = get_path("project_folder");
+	if (!ends_with($project_folder, "/")) $project_folder .= "/";
+	$info['project_folder'] = $project_folder.$info['project_type']."/".$info['project_name']."/";
 	$info['ps_name'] = $ps_name;
 	$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
 	$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
@@ -1432,7 +1382,9 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 	//get information from NGSD
 	$parts = array();
 	$parts['ID'] = $ps_name;
-	$details = get_processed_sample_info($ps_name, false);
+	
+	$db_conn = DB::getInstance("NGSD");
+	$details = get_processed_sample_info($db_conn, $ps_name, false);
 	if (!is_null($details))
 	{
 		$parts['Gender'] = $details['gender'];
@@ -1523,6 +1475,44 @@ function approve_gene_names($input_genes)
 		$output[] = (explode("\t",$gene))[0];
 	}
 	return $output;
+}
+
+
+//Returns information about an analysis job from the NGSD
+function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
+{
+	$res = $db_conn->executeQuery("SELECT * FROM analysis_job WHERE id=:job_id", array("job_id"=>$job_id));
+	if (count($res)==0)
+	{
+		if ($error_if_not_found)
+		{
+			trigger_error("Could not find information for analyis job with ID '$job_id' in NGSD!", E_USER_ERROR);
+		}
+		else
+		{
+			return null;
+		}
+	}
+	$info = $res[0];
+	
+	//extract samples
+	$info['samples'] = array();
+	$res = $db_conn->executeQuery("SELECT processed_sample_id, info FROM analysis_job_sample WHERE analysis_job_id=:job_id ORDER BY id ASC", array("job_id"=>$job_id));
+	foreach($res as $row)
+	{
+		$sample = $db_conn->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id='".$row['processed_sample_id']."'");
+		$info['samples'][] = $sample."/".$row['info'];
+	}
+	
+	//extract history
+	$info['history'] = array();
+	$res = $db_conn->executeQuery("SELECT status FROM analysis_job_history WHERE analysis_job_id=:job_id ORDER BY id ASC", array("job_id"=>$job_id));
+	foreach($res as $row)
+	{
+		$info['history'][] = $row['status'];
+	}
+	
+	return $info;
 }
 
 ?>

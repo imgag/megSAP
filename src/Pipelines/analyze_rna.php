@@ -299,7 +299,4 @@ if (in_array("db", $steps))
 
 	//import QC data
 	$parser->execTool("NGS/db_import_qc.php", "-id $name -files $qc_fastq $qc_map -force -skip_parameters 'QC:2000024' --log $log_db");
-
-	//update last analysis date
-	updateLastAnalysisDate($name, $final_bam);
 }

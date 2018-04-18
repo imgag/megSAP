@@ -17,7 +17,8 @@ extract($parser->parse($argv));
 function load_rare_variants($sample, $max_af)
 {
 	//get infos
-	$info = get_processed_sample_info($sample, false);
+	$db_conn = DB::getInstance("NGSD");
+	$info = get_processed_sample_info($db_conn, $sample, false);
 	if (is_null($info)) return "No sample info in NGSD";
 		
 	//load variant list

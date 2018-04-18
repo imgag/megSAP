@@ -124,7 +124,8 @@ if(!$no_ngsd && $t_col=="na")
 	//find processed sample with equal processing system for NGSD-annotation
 	$extras = array();
 	$extras[] = "-psname $out_name";
-	if(get_processed_sample_id($out_name, false)==-1)
+	$db_conn = DB::getInstance("NGSD");
+	if(get_processed_sample_id($db_conn, $out_name, false)==-1)
 	{
 		$extras = array();
 		$tmp = get_processed_sample_name_by_processing_system($sys['name_short'], false);

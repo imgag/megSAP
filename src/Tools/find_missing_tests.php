@@ -11,12 +11,13 @@ $tests = array_map(function($value) { return substr($value, 10); }, $tests);
 
 //find tools under SVN control
 $tools = array();
-$tools2path = array();;
-list($tmp) = exec2("find {$src}NGS/ {$src}Tools/ {$src}Primer/ -name \"*.php\"");
+$tools2path = array();
+list($tmp) = exec2("find {$src}NGS/ {$src}Tools/ {$src}Primer/ -name \"*.php\" -or -name \"*.py\"");
 sort($tmp);
 foreach($tmp as $t)
 {
 	$tool = basename($t);
+	if (ends_with(".py", $tool)) $tool = substr($tool, 0, -3).".php";
 	$tools[] = $tool;
 	$tools2path[$tool] = substr($t, strlen($src));
 }
@@ -31,9 +32,7 @@ foreach($missing_tools as $tool)
 
 //find missing tests
 $excluded_patterns = array(
-				  "queue_sample.php", //needs SGE
-				  "queue_trio.php", //needs SGE
-				  "queue_multi.php", //needs SGE
+				  "db_update_queue.php", //needs SGE
 				  "qbic_copy.php", //needs datamover
 				  
 				  "db_converter_.*", //converters to set up annotation databases
@@ -57,15 +56,15 @@ foreach($missing_tests as $test)
 	//count usage in php
 	$usage = array();
 	$hits = array();
-	exec("find {$src}NGS/ {$src}Tools/ {$src}Primer/ {$src}Pipelines/ -name \"*.php\" | xargs grep $test", $hits);
+	exec("find {$src}NGS/ {$src}Tools/ {$src}Primer/ {$src}Pipelines/ -name \"*.php\" -or -name \"*.py\" | xargs grep $test", $hits);
 	if (count($hits)>0)
 	{
 		$usage[] = count($hits)."x in php";
 	}
 	
-	//count usge in DB
+	//count usage in DB
 	$hits = array();
-	exec("find /mnt/users/ahsturm1/SVN/DB/ -name \"*.php\" | xargs grep $test", $hits);
+	exec("find /mnt/users/ahsturm1/SVN/DB/ -name \"*.php\" -or -name \"*.py\" | xargs grep $test", $hits);
 	if (count($hits)>0)
 	{
 		$usage[] = count($hits)."x in DB";
@@ -73,7 +72,7 @@ foreach($missing_tests as $test)
 	
 	//count usge in webservices
 	$hits = array();
-	exec("find /mnt/users/ahsturm1/SVN/webservices/ -name \"*.php\" | xargs grep $test", $hits);
+	exec("find /mnt/users/ahsturm1/SVN/webservices/ -name \"*.php\" -or -name \"*.py\" | xargs grep $test", $hits);
 	if (count($hits)>0)
 	{
 		$usage[] = count($hits)."x in webservices";

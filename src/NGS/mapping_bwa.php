@@ -32,9 +32,10 @@ $group_props[] = "LB:{$sample}";
 $group_props[] = "CN:medical_genetics_tuebingen";
 $group_props[] = "DT:".date("c");
 $group_props[] = "PL:ILLUMINA";
-$psample_info = get_processed_sample_info($sample, false);
-if(!is_null($psample_info))
+if(db_is_enabled("NGSD"))
 {
+	$db_conn = DB::getInstance("NGSD");
+	$psample_info = get_processed_sample_info($db_conn, $sample, false);
 	$group_props[] = "PM:".$psample_info['device_type'];
 	$group_props[] = "en:".$psample_info['sys_name'];
 }

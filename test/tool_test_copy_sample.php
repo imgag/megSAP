@@ -7,21 +7,21 @@ $file = data_folder().$name;
 
 start_test($name);
 
-if (db_is_enabled("NGSD"))
-{
-	mkdir("Unaligned");
+//init
+check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
+mkdir("Unaligned");
 
-	$out_file = output_folder().$name."_out1Makefile";
-	check_exec("php ".src_folder()."/NGS/".$name.".php -samplesheet ".$file."_in1.csv -out ".$out_file);
-	check_file($out_file, data_folder().$name."_out1Makefile");
+//test 1 - default project handling, projects with 'analyze=fastq'
+$out_file = output_folder().$name."_out1Makefile";
+check_exec("php ".src_folder()."/NGS/{$name}.php -samplesheet {$file}_in1.csv -out {$out_file} -db NGSD_TEST");
+check_file($out_file, data_folder()."{$name}_out1Makefile");
 
-	$out_file = output_folder().$name."_out2Makefile";
-	check_exec("php ".src_folder()."/NGS/".$name.".php -high_priority -overwrite -samplesheet ".$file."_in2.csv -out ".$out_file);
-	check_file($out_file, data_folder().$name."_out2Makefile");
+//test 2 - NextSeq, several lanes per sample, somatic samples
+$out_file = output_folder().$name."_out2Makefile";
+check_exec("php ".src_folder()."/NGS/{$name}.php -samplesheet {$file}_in2.csv -out {$out_file} -db NGSD_TEST");
+check_file($out_file, data_folder()."{$name}_out2Makefile");
 
-	rmdir("Unaligned");
-}
-
+rmdir("Unaligned");
 end_test();
 
 ?>
