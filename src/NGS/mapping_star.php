@@ -58,6 +58,9 @@ if(db_is_enabled("NGSD"))
 	$group_props[] = "PM:".$psample_info['device_type'];
 	$group_props[] = "en:".$psample_info['sys_name'];
 }
+//add quotes
+$group_props = preg_filter('/^/', '"', $group_props);
+$group_props = preg_filter('/$/', '"', $group_props);
 
 $arguments = array(
 	"--readFilesIn", isset($in2) ? "{$in1} {$in2}" : $in1,
