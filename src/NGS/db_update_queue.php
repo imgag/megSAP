@@ -267,7 +267,8 @@ function update_analysis_status($job_info, &$db_conn, $debug)
 		//update queue info
 		if ($state=="r" && $job_info['sge_queue']=="")
 		{
-			$db_conn->executeStmt("UPDATE analysis_job SET sge_queue=:sge_queue WHERE id=:id", array("sge_queue"=>$parts[8], "id"=>$job_id));
+			list($queue) = explode("@", $parts[8]); //remove server part
+			$db_conn->executeStmt("UPDATE analysis_job SET sge_queue=:sge_queue WHERE id=:id", array("sge_queue"=>$queue, "id"=>$job_id));
 		}
 	}
 	else //finished => add status in NGSD
@@ -288,6 +289,7 @@ function canceled_analysis($job_info, &$db_conn, $debug)
 	if ($debug) print "Canceling job $job_id ($type)\n";
 	
 	//cancel job
+	$stdout = array();
 	if ($job_info['sge_id']!="") // not started yet => nothing to cancel
 	{
 		if ($debug)
