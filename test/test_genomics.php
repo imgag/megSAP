@@ -15,6 +15,7 @@ end_test();
 //##################################################################################
 start_test("is_valid_ref_sample_for_cnv_analysis");
 
+check(is_valid_ref_sample_for_cnv_analysis("NA12878"), false);
 if (db_is_enabled("NGSD"))
 {
 	check(is_valid_ref_sample_for_cnv_analysis("GS160265_06"), false); //tumor

@@ -900,7 +900,10 @@ function indel_for_vcf($chr, $start, $ref, $obs)
 }
 
 function is_valid_ref_sample_for_cnv_analysis($file)
-{	
+{
+	//check that sample is not NIST reference sample (it is a cell-line)
+	if (contains($file, "NA12878")) return false;
+
 	//not NGSD => all samples valid
 	if (!db_is_enabled("NGSD")) return true;
 

@@ -11,14 +11,20 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("find_same_sample_kasp", "Searches for .");
 $parser->addString("sample", "Sample name.", false);
 $parser->addInfile("file", "Sample data file (_converted.tsv).", false);
-$parser->addString("folder", "Data folder name.", false);
+$parser->addString("folder", "KASP data folder name.", false);
 $parser->addInt("max_mm", "Maximum number of mismatches.", true, 2);
 $parser->addInt("min_snps", "Minimum number of SNPs.", true, 6);
 extract($parser->parse($argv));
 
 //parse SNP set from file name
 $parts = explode("_", $file);
-$set = $parts[count($parts)-2];
+foreach($parts as $part)
+{
+	if (starts_with($part, "Set"))
+	{
+		$set = $part;
+	}
+}
 print "##Sample: {$sample}\n";
 print "##Set: {$set}\n";
 
