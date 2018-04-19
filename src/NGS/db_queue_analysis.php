@@ -54,7 +54,7 @@ foreach($result as $row)
 		
 	//only running jobs
 	$last_status = end($job_info['history']);
-	if ($last_status!="queued" && $last_status!="finished") continue;
+	if ($last_status!="queued" && $last_status!="started") continue;
 	
 	//same samples
 	if (count($job_info['samples'])!=count($samples)) continue;

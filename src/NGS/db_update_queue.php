@@ -38,6 +38,24 @@ function add_history_entry($job_id, &$db_conn, $status, $output = "")
 	$db_conn->executeStmt("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES ({$job_id}, '".get_timestamp(false)."', NULL, :status, :output)", array("status"=>$status, "output"=>$output));
 }
 
+function sample_analysis_running(&$db_conn, $ps_name)
+{
+	$ps_id = get_processed_sample_info($db_conn, $ps_name)['ps_id'];
+	
+	$result = $db_conn->executeQuery("SELECT j.id FROM analysis_job j, analysis_job_sample js WHERE j.type='single sample' AND js.analysis_job_id=j.id AND js.processed_sample_id=:ps_id ORDER BY id DESC", array("ps_id"=>$ps_id));
+	foreach($result as $row)
+	{
+		$job_info = analysis_job_info($db_conn, $row['id']);
+		$last_status = end($job_info['history']);
+		if ($last_status=="queued" || $last_status=="started")
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
+
 function start_analysis($job_info, &$db_conn, $debug)
 {
 	//init
@@ -55,12 +73,14 @@ function start_analysis($job_info, &$db_conn, $debug)
 		$sample_info = get_processed_sample_info($db_conn, $sample);
 		
 		//check sample folder exists
-		$sample_folder = $sample_info['ps_folder'];
-		if(!is_dir($sample_folder))
+		if (!$debug)
 		{
-			if ($debug) print "  Error: Sample folder not found: {$sample_folder}\n";
-			add_history_entry($job_id, $db_conn, 'error', "Error while submitting analysis to SGE: Sample folder not found: {$sample_folder}");
-			return;
+			$sample_folder = $sample_info['ps_folder'];
+			if(!is_dir($sample_folder))
+			{
+				add_history_entry($job_id, $db_conn, 'error', "Error while submitting analysis to SGE: Sample folder not found: {$sample_folder}");
+				return;
+			}
 		}
 		
 		$sample_infos[] = $sample_info;
@@ -111,9 +131,19 @@ function start_analysis($job_info, &$db_conn, $debug)
 	}
 	else if ($type=="trio")
 	{
+		//extract sample infos
 		for($i=0; $i<count($job_info['samples']); ++$i)
 		{
 			list($sample, $info) = explode("/", $job_info['samples'][$i]);
+			
+			
+			//do not start trio analysis if a single sample analysis is still running
+			if(sample_analysis_running($db_conn, $sample))
+			{
+				if ($debug) print "	Postponed because single sample analysis of '$sample' is running\n";
+				return;
+			}
+			
 			if ($info=="child")
 			{
 				$c_info = $sample_infos[$i];
@@ -132,7 +162,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 				return;
 			}
 		}
-		
+				
 		//create output folder
 		$out_folder = "{$project_folder}/Trio_".$c_info['ps_name']."_".$f_info['ps_name']."_".$m_info['ps_name']."/";
 		if (!$debug && !file_exists($out_folder))

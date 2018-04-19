@@ -31,11 +31,14 @@ INSERT INTO sample (name, sample_type, species_id, gender, tumor, ffpe, sender_i
 
 INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, processing_system_id, project_id, normal_id) VALUES
 (1,1,1,'1',1,1, NULL),
-(2,1,1,'1',1,1, NULL),
-(3,1,1,'1',1,1, NULL),
-(4,1,1,'1',1,1, NULL),
+(2,1,1,'1',1,1, NULL), /* TRIO 1 */
+(3,1,1,'1',1,1, NULL), /* TRIO 1 */
+(4,1,1,'1',1,1, NULL), /* TRIO 1 */
 (5,1,1,'1',2,1, NULL), /* WGS */
-(6,1,1,'1',3,1, NULL); /* RNA */
+(6,1,1,'1',3,1, NULL), /* RNA */
+(2,2,1,'1',1,1, NULL), /* TRIO 2 */
+(3,2,1,'1',1,1, NULL), /* TRIO 2 */
+(4,2,1,'1',1,1, NULL); /* TRIO 2 */
 
 INSERT INTO analysis_job (type, `high_priority`, args, sge_id, sge_queue) VALUES
 ('single sample', 1, '-steps ma,vc,an', '999001', 'priority_srv018'),
@@ -46,7 +49,8 @@ INSERT INTO analysis_job (type, `high_priority`, args, sge_id, sge_queue) VALUES
 ('trio',          0, '', '', ''),
 ('somatic',       0, '-include_germline', '', ''),
 ('single sample', 0, '', '', ''), /* WGS */
-('single sample', 0, '', '', ''); /* RNA */
+('single sample', 0, '', '', ''), /* RNA */
+('trio',          0, '', '', '');
 
 INSERT INTO analysis_job_sample (analysis_job_id, processed_sample_id, info) VALUES 
 (1, 1, ''),
@@ -61,7 +65,10 @@ INSERT INTO analysis_job_sample (analysis_job_id, processed_sample_id, info) VAL
 (7, 2, 'tumor'),
 (7, 3, 'normal'),
 (8, 5, ''),
-(9, 6, '');
+(9, 6, ''),
+(10, 7, 'child'),
+(10, 8, 'father'),
+(10, 9, 'mother');
 
 INSERT INTO analysis_job_history (analysis_job_id, time, user_id, status, output) VALUES 
 (1, '2017-01-01T00:00:00', 1, 'finished', ''),
@@ -75,4 +82,5 @@ INSERT INTO analysis_job_history (analysis_job_id, time, user_id, status, output
 (6, NOW(), 1, 'queued', ''),
 (7, NOW(), 1, 'queued', ''),
 (8, NOW(), 1, 'queued', ''),
-(9, NOW(), 1, 'queued', '');
+(9, NOW(), 1, 'queued', ''),
+(10, NOW(), 1, 'queued', '');
