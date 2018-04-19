@@ -209,6 +209,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 	
 		$script = "somatic_dna.php";
 		$args = "-p_folder {$project_folder} -t_id ".$t_info['ps_name']." -n_id ".$n_info['ps_name']." -o_folder {$out_folder} --log {$out_folder}somatic_dna_{$timestamp}.log";
+		
 	}
 	else
 	{
@@ -223,6 +224,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 	if($debug)
 	{
 		 print "	SGE: {$command_sge}\n";
+		 $command_pip = str_replace(repository_basedir(), "[megSAP]", $command_pip);
 		 print "	PIP: {$command_pip}\n";
 		 $stdout = array();
 		 $stderr = array();
