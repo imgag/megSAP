@@ -11,7 +11,6 @@ start_test($name);
 check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
 
 //test single
-
 $log_file = output_folder().$name."_out1.log";
 check_exec("php ".src_folder()."/NGS/{$name}.php -user ahklauo1 -db NGSD_TEST -type 'single sample' -samples DX181277_01 -args '-bla' --log $log_file");
 

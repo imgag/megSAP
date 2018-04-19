@@ -19,16 +19,17 @@ if (file_exists($out))
 	trigger_error("Output file '$out' already exists!", E_USER_ERROR);
 }
 
-//get processing system id
-$ps_id = get_processed_sample_name_by_processing_system($name);
-if ($ps_id===false)
+//get processed sample that was processed with this processing system
+$db_conn = DB::getInstance('NGSD');
+$results = $db_conn->executeQuery("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_id FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id = s.id AND ps.processing_system_id = sys.id AND sys.name_short = :system LIMIT 1", array('system' => $name));
+if(count($results)==0)
 {
-	trigger_error("Processing system short name '$name' unknown!", E_USER_ERROR);
+	trigger_error("Could not find processing system with short name '$name' in NGSD!", E_USER_ERROR);
 }
 
 //store system
 $tmp = "";
-load_system($tmp, $ps_id);
+load_system($tmp, $results[0]['ps_id']);
 
 //move system from temp to output file
 $parser->moveFile($tmp, $out);

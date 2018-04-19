@@ -12,5 +12,5 @@ copy_SomaticAndTreatment_diagnostic:
 	mv Unaligned/SomaticAndTreatment/Sample_DX181279_01/ /mnt/projects/diagnostic/SomaticAndTreatment/
 
 queue_SomaticAndTreatment_diagnostic:
-	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'somatic' -samples DX181278_01 DX181277_01 -info tumor normal
+	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'somatic' -samples DX181278_01 DX181277_01 -info tumor normal -args '-include_germline'
 	#Tumor sample 'DX181279_01' not queued for analysis because no normal samples is assigned in NGSD!

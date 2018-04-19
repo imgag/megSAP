@@ -543,138 +543,24 @@ function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 	return $res[0]['id'];
 }
 
-/**
-	@brief Returns the external name of a NGSD sample.
- */
-function get_external_sample_name($sample, $error_if_not_found=true)
-{
-	try 
-	{
-		$db = DB::getInstance('NGSD');
-		$res = $db->executeQuery("SELECT name_external FROM sample WHERE name=:sname", array("sname"=>$sample));
-		
-		if (count($res)==0)
-		{
-			if ($error_if_not_found) trigger_error("Could not find sample with name '$name' in NGSD!", E_USER_ERROR);
-		}
-		else
-		{
-			return $res[0]["name_external"];
-		}
-	}
-	catch(PDOException $e)
-	{
-		if ($error_if_not_found) throw $e;
-	}
-		
-	return "n/a";
-}
-
-/**
-	@brief Returns first sample found with same processing system
- */
-function get_processed_sample_name_by_processing_system($name, $error_if_not_found=true)
-{
-	try
-	{
-		$db_connect = DB::getInstance('NGSD');
-		$results = $db_connect->executeQuery("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_id FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id = s.id AND ps.processing_system_id = sys.id AND sys.name_short = :system LIMIT 1", array('system' => $name));
-		
-		if(count($results)==0)
-		{
-			if ($error_if_not_found) trigger_error("Could not find any sample with processing system short name '$name' in NGSD!", E_USER_ERROR);
-		}
-		else
-		{
-			return $results[0]['ps_id'];
-		}
-	}
-	catch(PDOException $e)
-	{
-		if ($error_if_not_found) throw $e;
-	}
-	
-	return false;
-}
-
-/**
-	@brief Returns requested qc value from NGSD
- */
-function get_qc_from_ngsd($processing_id, $qc_id, $qc_name=null)
-{
-	list($s,$p) = explode("_", $processing_id);
-	$query  = "SELECT value FROM processed_sample_qc as nm, processed_sample as ps, sample as s, qc_terms as n WHERE s.name = :s AND ps.sample_id = s.id AND ps.process_id = :p AND nm.processed_sample_id = ps.id AND nm.qc_terms_id = n.id AND n.qcml_id = :qc_id";
-	$par = array('s' => $s, 'p' => $p, 'qc_id' => $qc_id);
-	
-	if(!empty($qc_name))
-	{
-		$query .=  " AND n.name = :qc_name";
-		$par['qc_name'] = $qc_name;
-	}
-	
-	$db_connect = DB::getInstance('NGSD');
-	$results = $db_connect->executeQuery($query, $par);
-
-	if(count($results)>1)	trigger_error("Multiple occurrences of '".$qc_id."' was/were found in NGSD for sample $processing_id!", E_USER_ERROR);
-	if(count($results)==0)	return false;	
-	return $results[0]['value'];
-}
-
-/*
-	@brief parse qcml file and return qc value depending on qc_id
- */
-function get_qc_from_qcml($qcml_file, $qc_id, $qc_name=null, $error=true)
-{
-	$xml = simplexml_load_file($qcml_file);
-	$xml->registerXPathNamespace('q', 'http://www.prime-xs.eu/ms/qcml');
-	$match = $xml->xpath("//q:qualityParameter[@accession='".$qc_id."']");
-
-	if(count($match)>1)	trigger_error("Multiple occurrences of '".$qc_id."' was found in qcml file '".$qcml_file."'!", E_USER_ERROR);
-	if(count($match)==0)
-	{
-		if(!$error)	return null;
-		else	trigger_error("Could not find QC value with QC-ID ".$qc_id,E_USER_ERROR);
-	}
-	if(!empty($qc_name) && $qc_name!=$match[0]->attributes()->{'name'})	trigger_error("QC name extracted from qcml file '".$match[0]->attributes()->{'name'}."' does not match expected qcml name '".$qc_name."' in ".$qcml_file."'!", E_USER_ERROR);
-	return (string)$match[0]->attributes()->{'value'};
-}
-
-/*
-	@brief parse qcml file and return qc value depending on qc_id
- */
-function get_qcID($qc_name)
-{
-	$query  = "SELECT qcml_id FROM qc_terms WHERE name = :qc_name";
-	$par['qc_name'] = $qc_name;
-	
-	$db_connect = DB::getInstance('NGSD');
-	$results = $db_connect->executeQuery($query, $par);
-
-	if(count($results)>1)	trigger_error("Multiple QC-IDs found for '".$qc_name."'!", E_USER_ERROR);
-	if(count($results)==0)	return false;	
-	return $results[0]['qcml_id'];
-}
-
 ///Updates normal sample entry for given tumor sample.
-function updateNormalSample($ps_tumor, $ps_normal, $overwrite = false)
+function updateNormalSample(&$db_conn, $ps_tumor, $ps_normal, $overwrite = false)
 {
-	$db = DB::getInstance("NGSD");
-
 	//TUMOR
 	//get processed sample ID
 	list($s, $p) = explode("_", $ps_tumor);
 	$p = (int)$p;
-	$res = $db->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='$s' and ps.process_id='$p'");
+	$res = $db_conn->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='$s' and ps.process_id='$p'");
 	$ps_tid = $res[0]['id'];
 	// get normal_id
-	$res = $db->executeQuery("SELECT normal_id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='$s' and ps.process_id='$p'");
+	$res = $db_conn->executeQuery("SELECT normal_id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='$s' and ps.process_id='$p'");
 	$n = $res[0]['normal_id'];
 
 	//NORMAL
 	//get processed sample ID
 	list($s, $p) = explode("_", $ps_normal);
 	$p = (int)$p;
-	$res = $db->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='$s' and ps.process_id='$p'");
+	$res = $db_conn->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='$s' and ps.process_id='$p'");
 	$ps_nid = $res[0]['id'];
 
 	if(empty($ps_nid) || empty($ps_tid))	trigger_error("Could not find either tumor ($ps_tumor) or normal ($ps_normal) in NGSD.");
@@ -683,49 +569,11 @@ function updateNormalSample($ps_tumor, $ps_normal, $overwrite = false)
 
 	if(empty($n) || $overwrite)
 	{
-		$db->executeStmt("UPDATE processed_sample SET normal_id='$ps_nid' WHERE id='$ps_tid'");
+		$db_conn->executeStmt("UPDATE processed_sample SET normal_id='$ps_nid' WHERE id='$ps_tid'");
 		return true;
 	}
 
 	return false;
-}
-
-function isTumor($psname)
-{
-	$db = DB::getInstance("NGSD");
-	
-	//get processed sample id
-	list($s, $p) = explode("_", $psname);
-	$res = $db->executeQuery("SELECT s.tumor FROM sample s WHERE s.name='$s'");
-	return $res[0]['tumor'];
-}
-
-/**
-	@brief Checks if name is a valid processing name
-	PLEASE DO NOT DELETE THIS FUNCTION
-	used by unversioned analysis scripts that handle old sequencing data. 
-	THANK YOU. CS
- */
-function is_valid_processingid($id)
-{
-	try
-	{
-		$query = "SELECT ps.id, s.name FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) = :ps_id";
-		$par = array('ps_id' => $id);
-		$db_connect = DB::getInstance('NGSD');
-		$results = $db_connect->executeQuery($query, $par);
-	}
-	catch (PDOException $e) 
-	{
-		return false;
-	}
-
-	if(count($results) == 0)
-	{
-		return false;
-	}
-	
-	return true;
 }
 
 //@TODO implement *-syntax for HGVS compliance (end of coding)
@@ -1052,18 +900,17 @@ function indel_for_vcf($chr, $start, $ref, $obs)
 }
 
 function is_valid_ref_sample_for_cnv_analysis($file)
-{
-	//check that sample is not NIST reference sample (it is a cell-line)
-	if (contains($file, "NA12878")) return false;
+{	
+	//not NGSD => all samples valid
+	if (!db_is_enabled("NGSD")) return true;
 
-	//check sample is in NGSD 
+	//check sample is in NGSD
 	$db_conn = DB::getInstance("NGSD");
 	$ps_id = get_processed_sample_id($db_conn, $file, false);
 	if ($ps_id<0) return false;
 	
 	//check that sample is not tumor and not not FFPE
-	$db = DB::getInstance("NGSD");
-	$res = $db->executeQuery("SELECT s.tumor, s.ffpe, ps.quality q1, r.quality q2, p.type FROM sequencing_run r, sample s, processed_sample ps, project p WHERE s.id=ps.sample_id AND ps.id='$ps_id' AND ps.sequencing_run_id=r.id AND ps.project_id = p.id");
+	$res = $db_conn->executeQuery("SELECT s.tumor, s.ffpe, ps.quality q1, r.quality q2, p.type FROM sequencing_run r, sample s, processed_sample ps, project p WHERE s.id=ps.sample_id AND ps.id='$ps_id' AND ps.sequencing_run_id=r.id AND ps.project_id = p.id");
 	if ($res[0]['tumor']=="1") return false;
 	if ($res[0]['ffpe']=="1") return false;
 	
@@ -1383,10 +1230,10 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 	$parts = array();
 	$parts['ID'] = $ps_name;
 	
-	$db_conn = DB::getInstance("NGSD");
-	$details = get_processed_sample_info($db_conn, $ps_name, false);
-	if (!is_null($details))
+	if (db_is_enabled("NGSD"))
 	{
+		$db_conn = DB::getInstance("NGSD");
+		$details = get_processed_sample_info($db_conn, $ps_name, false);
 		$parts['Gender'] = $details['gender'];
 		$parts['ExternalSampleName'] = strtr($details['name_external'], ",", ";");
 		$parts['IsTumor'] = $details['is_tumor'] ? "yes" : "no";

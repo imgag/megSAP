@@ -15,7 +15,6 @@ end_test();
 //##################################################################################
 start_test("is_valid_ref_sample_for_cnv_analysis");
 
-check(is_valid_ref_sample_for_cnv_analysis("NA12878"), false);
 if (db_is_enabled("NGSD"))
 {
 	check(is_valid_ref_sample_for_cnv_analysis("GS160265_06"), false); //tumor
@@ -24,7 +23,11 @@ if (db_is_enabled("NGSD"))
 	check(is_valid_ref_sample_for_cnv_analysis("GS130071_01"), false); //bad processed sample
 	check(is_valid_ref_sample_for_cnv_analysis("GS123456_01"), false); //not in NGSD
 	check(is_valid_ref_sample_for_cnv_analysis("GS160561_02"), false); //not research/diagnostics
-	check(is_valid_ref_sample_for_cnv_analysis("GS160408_01"), true); 
+	check(is_valid_ref_sample_for_cnv_analysis("GS160408_01"), true);
+}
+else
+{
+	check(is_valid_ref_sample_for_cnv_analysis("GS123456_99"), true);
 }
 
 end_test();
@@ -175,59 +178,6 @@ if (db_is_enabled("NGSD"))
 	check(get_processed_sample_id($db_conn, "GS130043_01"), 1498);
 	check(get_processed_sample_id($db_conn, "GS130043", false), -1);
 	check(get_processed_sample_id($db_conn, "GS123456_01", false), -1);
-}
-
-end_test();
-
-//##################################################################################
-start_test("get_external_sample_name");
-
-if (db_is_enabled("NGSD"))
-{
-	check(get_external_sample_name("NA12878"), "Coriell-DNA");
-}
-check(get_external_sample_name("GS123456", false), "n/a");
-
-end_test();
-
-//##################################################################################
-start_test("get_processed_sample_name_by_processing_system");
-
-if (db_is_enabled("NGSD"))
-{
-	check(get_processed_sample_name_by_processing_system("SeqCapEZv2"), 'GS120385_01');
-	check(get_processed_sample_name_by_processing_system("hpPDv3"), 'GS120274_01');
-}
-check(get_processed_sample_name_by_processing_system("invalid", false), false);
-
-end_test();
-
-//##################################################################################
-start_test("get_qc_from_ngsd");
-
-if (db_is_enabled("NGSD"))
-{
-	check(get_qc_from_ngsd("DX131285_01","QC:2000005","read count"), 1218460);
-}
-
-end_test();
-
-//##################################################################################
-start_test("get_qc_from_qcml");
-
-check(get_qc_from_qcml(data_folder()."/genomics_stats_map.qcML","QC:2000029"),92.24);
-check(get_qc_from_qcml(data_folder()."/genomics_stats_map.qcML","QC:2000029","target region 50x percentage"),92.24);
-check(get_qc_from_qcml(data_folder()."/genomics_stats_map.qcML","QC:2000033"),231.79);
-
-
-end_test();
-
-//##################################################################################
-start_test("get_qc_id");
-
-if (db_is_enabled("NGSD"))
-{
-	check(get_qcID("target region 50x percentage"),"QC:2000029");
 }
 
 end_test();

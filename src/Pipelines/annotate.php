@@ -19,7 +19,6 @@ $parser->addString("n_col", "Column name of normal sample (for Strelka VCF files
 $parser->addString("vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_var.vcf.gz).", true, "");
 $parser->addInt("thres", "Number of flanking bases around exons which are considered as splicing region.", true, 20);
 $parser->addFlag("no_fc", "No format check (vcf/tsv).");
-$parser->addFlag("no_ngsd", "No annotation of variants with information from NGSD.");
 $parser->addFlag("multi", "Enable multi-sample mode.");
 $parser->addFlag("updown","Annotate variants up- or downstream of genes.");
 extract($parser->parse($argv));
@@ -119,23 +118,9 @@ if ($sys['type']=="WGS" && ($sys['build']=="hg19" || $sys['build']=="GRCh37"))
 }
 
 //annotated variant frequencies from NGSD (not for somatic)
-if(!$no_ngsd && $t_col=="na")
+if($t_col=="na")
 {
-	//find processed sample with equal processing system for NGSD-annotation
-	$extras = array();
-	$extras[] = "-psname $out_name";
-	$db_conn = DB::getInstance("NGSD");
-	if(get_processed_sample_id($db_conn, $out_name, false)==-1)
-	{
-		$extras = array();
-		$tmp = get_processed_sample_name_by_processing_system($sys['name_short'], false);
-		if($tmp !== false)
-		{
-			$extras[] = "-psname $tmp";
-			trigger_error("No valid processed sample id found ($out_name)! Used processing id $tmp instead. Statistics may be skewed!", E_USER_WARNING);
-		}
-	}
-	$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $varfile -out $varfile ".implode(" ", $extras), true);
+	$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in {$varfile} -out {$varfile} -psname {$out_name}", true);
 }
 
 //check output TSV file (not for somatic)

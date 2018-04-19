@@ -6,7 +6,7 @@
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 $parser = new ToolBase("db_queue_analysis", "Queues an analysis in the NGSD.");
-$parser->addEnum("type",  "Analysis type.", false, DB::getInstance('NGSD')->getEnum('analysis_job', 'type'));
+$parser->addEnum("type",  "Analysis type.", false, array('single sample','multi sample','trio','somatic'));
 $parser->addStringArray("samples", "Processed sample name(s).", false);
 //optional
 $parser->addStringArray("info", "Sample info entries for complex analysis jobs: 'affected/control' for multi sample, 'tumor/normal' for somatic, 'child/father/mother' for trio.", true);

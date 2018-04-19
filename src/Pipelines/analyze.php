@@ -110,7 +110,10 @@ if (in_array("ma", $steps))
 	if ($sys['type']!="WGS" && $sys['target_file']!="") //ROI (but not WGS)
 	{	
 		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", true);
-		if (db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
+		if (db_is_enabled("NGSD"))
+		{
+			$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
+		}
 	}
 }
 
@@ -202,7 +205,6 @@ if (in_array("an", $steps))
 
 	//annotate
 	$args = array("-out_name $name", "-out_folder $out_folder", "-system $system", "-thres $thres", "--log $log_an");
-	if (!db_is_enabled("NGSD")) $args[] = "-no_ngsd";
 	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
 	
 	//ROH detection

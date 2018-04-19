@@ -792,12 +792,16 @@ elseif($single_sample && in_array("msi",$steps))
 // add db import for qc parameters
 // no import of variants (only db import for proper somatic pairs)
 // import somatic variants to NGSD, check if sample within NGSD, otherwise skip QC import
-if (in_array("db", $steps))
+if (in_array("db", $steps) && db_is_enabled("NGSD"))
 {
-	if (!is_valid_processingid($t_id) || (!$single_sample && !is_valid_processingid($n_id)))
+	$db_conn = DB::getInstance("NGSD");
+	
+	$t_info = get_processed_sample_info($db_conn, $t_id, false);
+	$n_info = get_processed_sample_info($db_conn, $n_id, false);
+	
+	if (is_null($t_info) || (!$single_sample && is_null($n_info)))
 	{
-		trigger_error("No database import since no valid processing ID (T:" . $t_id . ($single_sample ? "" : "/N:" . $n_id).")",
-			E_USER_WARNING);
+		trigger_error("No database import since no valid processing ID (T: {$t_id}".($single_sample ? "" : " /N: {$n_id}").")", E_USER_WARNING);
 	}
 	else
 	{
@@ -814,7 +818,7 @@ if (in_array("db", $steps))
 		$parser->execTool("NGS/db_import_qc.php", "-id $t_id -files $qcmls -force -min_depth 0 --log $log_db");
 
 		// check tumor/normal flag
-		if (!isTumor($t_id))
+		if (!$t_info['is_tumor'])
 		{
 			trigger_error("Tumor sample $t_id is not flagged as tumor in NGSD!", E_USER_WARNING);
 		}
@@ -835,13 +839,13 @@ if (in_array("db", $steps))
 			$parser->execTool("NGS/db_import_qc.php", "-id $n_id -files $qcmls -force -min_depth 0 --log $log_db");
 
 			// check tumor/normal flag
-			if (isTumor($n_id))
+			if ($t_info['is_tumor'])
 			{
 				trigger_error("Normal sample $n_id is flagged as tumor in NGSD!", E_USER_WARNING);
 			}
 
-			// update normal sample entry for tumor, warn if different entry
-			if (updateNormalSample($t_id, $n_id))
+			// update normal sample entry for tumor
+			if (updateNormalSample($db_conn, $t_id, $n_id))
 			{
 				trigger_error("Updated normal sample ($n_id) for tumor ($t_id) in NGSD.", E_USER_NOTICE);
 			}
