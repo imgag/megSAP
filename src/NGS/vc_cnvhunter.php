@@ -73,7 +73,8 @@ if(!is_dir($temp_folder) || !is_writable($temp_folder))
 	trigger_error("Temp folder '$temp_folder' not writable.", E_USER_ERROR);
 }
 $args[] = "-cnp_file ".repository_basedir()."/data/dbs/CNPs/copy_number_map_strict.bed";
-$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed {$data_folder}/dbs/OMIM/omim.bed";
+$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
+$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed ".(file_exists($omim_file) ? $omim_file : "");
 $parser->exec(get_path("ngs-bits")."CnvHunter", "-in ".implode(" ",$cov_files)." -out ".$temp_folder."/cnvs.tsv ".implode(" ", $args), true);
 
 // filter results for given processed sample(s)

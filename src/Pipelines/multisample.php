@@ -365,7 +365,15 @@ if (in_array("cn", $steps))
 		
 		//annotate OMIM
 		$cnv_multi = "{$out_folder}{$prefix}_cnvs.tsv";
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp4} -in2 {$data_folder}/dbs/OMIM/omim.bed -out {$cnv_multi}", true);
+		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
+		if (file_exists($omim_file))
+		{
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp4} -in2 $omim_file -out {$cnv_multi}", true);
+		}
+		else
+		{
+			$parser->moveFile($tmp4, $cnv_multi);
+		}
 	}
 }
 
