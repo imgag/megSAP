@@ -136,7 +136,7 @@ $tmp_quant = $parser->tempFile("_quant.tsv");
 $quant = Matrix::fromTSV($out_raw);
 $quant->removeRow(0);
 $quant->removeCol(1);
-$quant->removeCol(2);
+$quant->removeCol(1);
 $quant->setHeaders(["transcript_id", "tpm", "estimated_count"]);
 $quant->toTSV($tmp_quant);
 
@@ -146,7 +146,7 @@ $args_annotate = ["-in", $tmp_quant,
 	"-gtfFile", $gtfFile,
 	"-column_name", "transcript_id",
 	"-keyId", "transcript_id",
-	"-annotationIds", "transcript_name,gene_biotype",
+	"-annotationIds", "transcript_name,gene_name,gene_biotype",
 	"-ignore_version_suffix"
 	];
 $parser->execTool("NGS/rc_annotate.php", implode(" ", $args_annotate));

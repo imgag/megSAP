@@ -1,9 +1,6 @@
 <?php
 /**
  * @page rc_annotate
- * 
- * TODO:
- * - support multiple annotation values
  */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -50,21 +47,18 @@ while ($line = fgets($handle_gtf))
 		$frame,
 		$attributes) = explode("\t", trim($line));
 
-	if ($feature === "gene")
-	{
-		$attrs = [];
-		// list of key-value pairs (strings)
-		foreach (preg_split("/;( )?/", $attributes, NULL, PREG_SPLIT_NO_EMPTY) as $kv)
-		{
-			list($k, $v) = preg_split("/[\s]+/", $kv, NULL, PREG_SPLIT_NO_EMPTY);
-			$attrs[$k] = preg_replace('/(^"|"$)/', "", $v);
-		}
+    $attrs = [];
+    // list of key-value pairs (strings)
+    foreach (preg_split("/;( )?/", $attributes, NULL, PREG_SPLIT_NO_EMPTY) as $kv)
+    {
+        list($k, $v) = preg_split("/[\s]+/", $kv, NULL, PREG_SPLIT_NO_EMPTY);
+        $attrs[$k] = preg_replace('/(^"|"$)/', "", $v);
+    }
 
-		if (array_key_exists($keyId, $attrs))
-		{
-			$mapping[$attrs[$keyId]] = $attrs;
-		}
-	}
+    if (array_key_exists($keyId, $attrs))
+    {
+        $mapping[$attrs[$keyId]] = $attrs;
+    }
 }
 fclose($handle_gtf);
 
@@ -72,6 +66,12 @@ fclose($handle_gtf);
 function map_id(&$item, $key, $ann_id)
 {
 	global $mapping;
+    global $ignore_version_suffix;
+
+    if ($ignore_version_suffix)
+    {
+        $item = preg_replace("/\.[0-9]+$/", "", $item);
+    }
 
 	if (isset($mapping[$item]) && isset($mapping[$item][$ann_id]))
 	{
