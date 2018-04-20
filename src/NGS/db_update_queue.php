@@ -305,9 +305,11 @@ function update_analysis_status($job_info, &$db_conn, $debug)
 	}
 	else //finished => add status in NGSD
 	{
-		list($stdout) = exec2("qacct -j {$sge_id} | grep failed 2>&1", false);
-		$failed = ends_with(trim(implode("", $stdout)), "1");
-		$status = $failed ? 'error' : 'finished';
+		list($stdout) = exec2("qacct -j {$sge_id} | grep exit_status 2>&1", false);
+		$stdout = trim(implode("", $stdout));
+		$stdout = preg_replace('/\s+/', ' ', $stdout);
+		$status = $stdout!="exit_status 0" ? 'error' : 'finished';
+		if ($debug) $status = 'finished';
 		add_history_entry($job_id, $db_conn, $status, load_sge_output($job_id));
 		if ($debug) print "	Job finished with status '{$status}'\n";
 	}
