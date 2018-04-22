@@ -15,6 +15,8 @@ If you are interested to join the effort, please contact [Marc Sturm](https://gi
 
 ## ChangeLog
 
+* 22.04.2018: NGSD import of germline variants restricted to variants with AF<5% to improve performance.
+* 20.04.2018: NGSD now handles analysis job queuing and execution on SGE.
 * 13.03.2018: Refactoring of trio analysis: it is now based on multi-sample pipeline, produces a GSvar file with three sample columns, and calls off-target variants.
 * 18.01.2018: Added b-allele frequency files for visualization in IGV. 
 * 08.01.2018: Updated tools (BWA, samtools, snpEff) and databases (ClinVar, gnomAD, HGMD).
@@ -94,6 +96,7 @@ Documentation about the different analysis pipelines can be found here:
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+
 
 
 

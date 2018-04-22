@@ -13,6 +13,7 @@ $parser->addString("id", "Processing ID (e.g. GS000123_01 for germline variants,
 $parser->addInfile("var",  "Input variant list in TSV format.", false);
 // optional
 $parser->addEnum("mode",  "Import mode.", true, array("germline", "somatic"), "germline");
+$parser->addFloat("max_af", "Maximum allele frequency for import of germline variants.", true, 0.05);
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addFlag("force", "Overwrites already existing DB entries instead of throwing an error.");
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
@@ -28,7 +29,7 @@ function getVariant($db, $id)
 }
 
 //adds variants or updates variants
-function updateVariantTable($parser, $db_connect, $file)
+function updateVariantTable($parser, $db_connect, $file, $max_af=-1.0)
 {	
 	//get column indices of input file
 	$i_chr = $file->getColumnIndex("chr");
@@ -45,6 +46,7 @@ function updateVariantTable($parser, $db_connect, $file)
 	$i_cod = $file->getColumnIndex("coding_and_splicing");
 	
 	$parser->log("INSERT/UPDATE VARIANT");
+	$c_skip = 0;
 	$c_ins = 0;
 	$c_upd = 0;
 	$t_start = microtime(true);
@@ -55,7 +57,16 @@ function updateVariantTable($parser, $db_connect, $file)
 	for($i=0; $i<$file->rows(); ++$i)
 	{
 		$row = $file->getRow($i);
-
+		
+		//skip variants with too high AF
+		if ($max_af>0 && ($row[$i_10g]>$max_af || $row[$i_exa]>$max_af || $row[$i_gno]>$max_af))
+		{
+			//print $row[$i_10g]."\t".$row[$i_exa]."\t".$row[$i_gno]."\n";
+			++$c_skip;
+			$var_ids[] = -1;
+			continue;
+		}
+		
 		//remove GSvar additional information from string
 		$dbsnp = trim($row[$i_snp]);
 		if (contains($dbsnp, "[")) $dbsnp = substr($dbsnp, 0, strpos($dbsnp, "[")-1);
@@ -131,6 +142,10 @@ function updateVariantTable($parser, $db_connect, $file)
 	}
 	$db_connect->unsetStmt($hash);
 	
+	if ($max_af>0)
+	{
+		$parser->log(" skipped variants: $c_skip (AF>$max_af)");
+	}
 	$parser->log(" inserted variants: $c_ins");
 	$parser->log(" updated variants: $c_upd");
 	$parser->log(" done ".time_readable(microtime(true) - $t_start));
@@ -231,7 +246,7 @@ if($mode=="germline")
 	}
 	
 	//add missing variants
-	$var_ids = updateVariantTable($parser, $db_connect, $file);
+	$var_ids = updateVariantTable($parser, $db_connect, $file, $max_af);
 	
 	//insert variants into table 'detected_variant'
 	$parser->log("INSERT DETECTED VARIANT");
@@ -245,6 +260,9 @@ if($mode=="germline")
 	{
 		$row = $file->getRow($i);
 		$variant_id = $var_ids[$i];
+		
+		//skip high-AF variants
+		if ($variant_id==-1) continue;
 
 		//skip invalid variants
 		if ($row[$i_typ]=="invalid") continue;
