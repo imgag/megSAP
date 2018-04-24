@@ -211,6 +211,14 @@ function start_analysis($job_info, &$db_conn, $debug)
 		for($i=0; $i<count($job_info['samples']); ++$i)
 		{
 			list($sample, $info) = explode("/", $job_info['samples'][$i]);
+
+			//do not start somatic analysis if a single sample analysis is still running
+			if (sample_analysis_running($db_conn, $sample))
+			{
+				if ($debug) print "	Postponed because single sample analysis of '$sample' is running.\n";
+				return;
+			}
+
 			if ($info=="tumor")
 			{
 				$t_info = $sample_infos[$i];
@@ -227,7 +235,18 @@ function start_analysis($job_info, &$db_conn, $debug)
 		}
 
 		//create output folder
-		$out_folder = "{$project_folder}/Somatic_".$t_info['ps_name']."-".$n_info['ps_name']."/";
+		//TODO check naming: Somatic_Tumor, Sample_Tumor, Somatic_Tumor-na
+		if (isset($n_info))
+		{
+			$out_folder = "{$project_folder}/Somatic_" . $t_info['ps_name'] . "-" . $n_info['ps_name'] . "/";
+			$n_ps_name = $n_info['ps_name'];
+		}
+		else
+		{
+			$out_folder = "{$project_folder}/Sample_" . $t_info['ps_name'] . "/";
+			$n_ps_name = "na";
+		}
+
 		if (!$debug && !file_exists($out_folder))
 		{
 			mkdir($out_folder);
@@ -239,7 +258,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 		}
 	
 		$script = "somatic_dna.php";
-		$args = "-p_folder {$project_folder} -t_id ".$t_info['ps_name']." -n_id ".$n_info['ps_name']." -o_folder {$out_folder} --log {$out_folder}somatic_dna_{$timestamp}.log";
+		$args = "-p_folder {$project_folder} -t_id ".$t_info['ps_name']." -n_id {$n_ps_name} -o_folder {$out_folder} --log {$out_folder}somatic_dna_{$timestamp}.log";
 		
 	}
 	else

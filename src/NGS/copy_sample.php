@@ -106,6 +106,7 @@ foreach($sample_data as $sample => $sample_infos)
 	//get run name (the same for all samples)
 	$run_name = $sample_infos['run_name'];
 }
+$queued_normal_samples = [];
 
 //parse input
 $target_to_copylines = array();
@@ -188,7 +189,10 @@ foreach($sample_data as $sample => $sample_infos)
 
 	//skip normal samples which have an associated tumor sample on the same run
 	$is_normal_with_tumor = !$sample_is_tumor && isset($normal2tumor[$sample]);
-	
+
+	//additional arguments for db_queue_analysis
+	$args = array();
+
 	if($project_analysis!="fastq" && !$is_normal_with_tumor) //if more than FASTQ creation should be done for samples's project
 	{					
 		//build target lines for analysis using Sungrid Engine's queues if first sample of project on this run
@@ -200,44 +204,55 @@ foreach($sample_data as $sample => $sample_infos)
 		//queue analysis
 		if ($sample_is_tumor && $sys_type!="RNA")
 		{
+			//queue tumor, with somatic specific options
+			$args_single_somatic = "'-steps ma -no_abra -clip_overlap -correction_n'";
+			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample} -args {$args_single_somatic}";
+			$outputline .= "\n\t";
+
 			if (isset($tumor2normal[$sample]))
 			{
-				$normal = @$tumor2normal[$sample];
-							
-				$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal";
-				
-				$args = array();				
-				if($project_type == 'diagnostic') $args[] =  "-include_germline"; 
-				
-				
-				$promoter_file = str_replace(".bed","",$sys_target) . "_promoters.bed";
-				if(file_exists($promoter_file))
+				$normal = $tumor2normal[$sample];
+				//queue normal if on same run, with somatic specific options
+				//TODO move germline variant calling (-include_germline) to this analysis and remove it from somatic_dna
+				if (!in_array($normal, $queued_normal_samples) && $sample_data[$normal]["run_name"] === $sample_infos["run_name"])
 				{
-					$args[] = "-promoter {$promoter_file}";
+					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal} -args {$args_single_somatic}";
+					$outputline .= "\n\t";
+					//track that normal sample is queued
+					$queued_normal_samples[] = $normal;
 				}
-				if(count($args) > 0) $outputline .= " -args '" . implode(' ',$args) . "'";
+
+				//queue somatic analysis
+				$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal";
 			}
 			else
 			{
-				$text = "Tumor sample '$sample' not queued for analysis because no normal samples is assigned in NGSD!";
-				$outputline = "#{$text}";
-				trigger_error($text, E_USER_NOTICE);
+				//queue tumor-only somatic analysis
+				$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} -info tumor";
+			}
+			if ($project_type === "diagnostic")
+			{
+				$args[] = "-include_germline";
+			}
+			$promoter_file = str_replace(".bed", "", $sys_target) . "_promoters.bed";
+			if(file_exists($promoter_file))
+			{
+				$args[] = "-promoter {$promoter_file}";
 			}
 		}
 		else
 		{
 			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample}";
-		}
-		
-		//determine analysis steps from project
-		$args = array();
-		if ($project_analysis=="mapping")
-		{
-			$args[] = "-steps ma,db";
-		}
-		if ($project_analysis=="variant calling")
-		{
-			$args[] = "-steps ma,vc,db,cn";
+
+			//determine analysis steps from project
+			if ($project_analysis=="mapping")
+			{
+				$args[] = "-steps ma,db";
+			}
+			if ($project_analysis=="variant calling")
+			{
+				$args[] = "-steps ma,vc,db,cn";
+			}
 		}
 		
 		if ($high_priority)
