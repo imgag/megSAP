@@ -226,7 +226,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 		}
 
 		//create output folder
-		$out_folder = "{$project_folder}/Somatic_".$t_info['ps_name']."_".$n_info['ps_name']."/";
+		$out_folder = "{$project_folder}/Somatic_".$t_info['ps_name']."-".$n_info['ps_name']."/";
 		if (!$debug && !file_exists($out_folder))
 		{
 			mkdir($out_folder);

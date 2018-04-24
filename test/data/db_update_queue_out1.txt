@@ -12,7 +12,7 @@ Starting job 6 (trio)
 	Postponed because single sample analysis of 'DX181109_01' is running
 Starting job 7 (somatic)
 	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /tmp/megSAP_sge_job_7.err -o /tmp/megSAP_sge_job_7.out -q default_srv016,default_srv017,default_srv018
-	PIP: php [megSAP]/src/Pipelines/somatic_dna.php -include_germline -p_folder /mnt/projects/diagnostic/Exome_Diagnostik/ -t_id DX181109_01 -n_id DX181110_01 -o_folder /mnt/projects/diagnostic/Exome_Diagnostik//Somatic_DX181109_01_DX181110_01/ --log /mnt/projects/diagnostic/Exome_Diagnostik//Somatic_DX181109_01_DX181110_01/somatic_dna_20000101000000.log
+	PIP: php [megSAP]/src/Pipelines/somatic_dna.php -include_germline -p_folder /mnt/projects/diagnostic/Exome_Diagnostik/ -t_id DX181109_01 -n_id DX181110_01 -o_folder /mnt/projects/diagnostic/Exome_Diagnostik//Somatic_DX181109_01-DX181110_01/ --log /mnt/projects/diagnostic/Exome_Diagnostik//Somatic_DX181109_01-DX181110_01/somatic_dna_20000101000000.log
 Starting job 8 (single sample)
 	SGE: qsub -V -pe smp 2 -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /tmp/megSAP_sge_job_8.err -o /tmp/megSAP_sge_job_8.out -q default_srv016,default_srv017,default_srv018
 	PIP: php [megSAP]/src/Pipelines/analyze.php  -folder /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181116_01/ -name DX181116_01 --log /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181116_01/analyze_20000101000000.log
