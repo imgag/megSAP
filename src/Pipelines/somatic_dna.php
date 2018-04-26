@@ -1,10 +1,8 @@
 <?php
 
 /**
-	@page somatic_dna
-	@todo recalculate QC-values at the end of the pipeline
-	@todo consider replacing analyze.php by own combinations of tools
-*/
+ * @page somatic_dna
+ */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
@@ -14,30 +12,34 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("somatic_dna", "Differential analysis of sequenced tumor and normal DNA samples.");
 $parser->addString("p_folder", "Folder that contains Sample folders.", false);
 $parser->addString("t_id", "Tumor sample processing-ID (e.g. GSxyz_01).", false);
-$parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To process a tumor samples solely use 'na'.", false);
+$parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). To process a tumor samples solely use 'na'.", true, "na");
 $parser->addString("o_folder", "Output folder.", false);
-$steps_all = array("ma", "vc", "cn", "an", "ci", "msi","db");
-$parser->addString("steps", "Comma-separated list of processing steps to perform. Available are: ".implode(",", $steps_all), true, "ma,vc,cn,an,ci,msi,db");
+$steps_all = array("vc", "cn", "an", "ci", "msi","db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\n" .
+	"vc=variant calling, an=annotation, ci=CGI annotation,\ncn=copy-number analysis, msi=microsatellite analysis, db=database import",
+	true, "vc,an,ci,cn,msi,db");
 $parser->addString("cancer_type","Tumor type. See CancerGenomeInterpreter.org for nomenclature. If not set, megSAP will try to resolve cancer type from GENLAB.",true);
+//TODO remove this option
 $parser->addFlag("include_germline","Analyze normal sample for variants in normal-tumor pairs. ATTENTION: Mind legal restrictions!");
-$parser->addString("filter_set","Filter set to use. Only if annotation step is selected. Multiple filters can be comma separated.",true,"synonymous,not-coding-splicing");
+$parser->addString("filter_set","Filter set to use (for annotation). Multiple filters can be comma separated.",true,"synonymous,not-coding-splicing");
 // optional
 $parser->addStringArray("donor_ids", "Donor sample IDs in case of transplanted patients.", true);
 $parser->addFloat("min_af", "Allele frequency detection limit.", true, 0.05);
 $parser->addInfile("t_sys",  "Tumor processing system INI file (determined from the NGSD using 't_id' by default).", true);
 $parser->addInfile("n_sys",  "Reference processing system INI file (determined from the NGSD using 'n_id' by default).", true);
-$parser->addFlag("abra", "Use Abra for combined indel realignment.");
-$parser->addFlag("smt", "Skip mapping tumor (only in pair mode).");
-$parser->addFlag("smn", "Skip mapping normal (only in pair mode).");
-$parser->addFlag("nsc", "Skip sample correlation check (human only, only in pair mode).");
-$parser->addFlag("keep_all_variants_strelka", "Reduce number of variants to PASS by strelka.");
-$parser->addFlag("reduce_variants_filter", "Reduce number of variants to PASS by own filter tool.");
+$parser->addFlag("skip_correlation", "Skip sample correlation check (human only, only in pair mode).");
+$parser->addFlag("keep_all_variants_strelka", "Do not reduce variants to PASS by strelka.");
+$parser->addFlag("reduce_variants_filter", "Do not reduce variants to PASS by filter_vcf.");
 $parser->addFlag("freebayes", "Use freebayes for variant calling (default: strelka).");
 $parser->addFloat("contamination", "Indicates fraction of tumor cells in normal sample.", true, 0);
-$parser->addFlag("no_softclip", "Skip soft-clipping of overlapping reads. NOTE: This may increase rate of false positive variants.", true);
 $parser->addInfile("promoter","Bed file containing promoter regions. Will be used for filter column of vcf if filter 'not-promoter' is part of the filter_set.",true);
-$parser->addEnum("clip", "Soft-clip overlapping read pairs.", true, array("sc","mfb","mfm","mfr","mfn"),"mfn");
-$parser->addFlag("add_vc_folder", "Add folder containing variant calling results from variant caller.",true);
+
+$parser->addFloat("min_correlation", "Minimum correlation for tumor/control pair.", true, 0.8);
+$parser->addFloat("min_depth_t", "Tumor sample coverage cut-off for low coverage statistic.", true, 100);
+$parser->addFloat("min_depth_n", "Control sample coverage cut-off for low coverage statistic.", true, 100);
+$parser->addInt("min_cov_files", "Minimum number of required coverage files for CNV calling.", true, 20);
+
+$parser->addFlag("add_vc_folder", "Add folder containing variant calling results from variant caller.");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 extract($parser->parse($argv));
 
@@ -54,19 +56,11 @@ foreach($steps as $step)
 
 // tumor only or tumor normal
 $single_sample = ($n_id === "na");
-if ($single_sample)
-{
-	trigger_error("Single sample mode.", E_USER_NOTICE);
-}
-else
-{
-	trigger_error("Paired sample mode.", E_USER_NOTICE);
-}
 
 // check and generate output folders
 $o_folder = $o_folder."/";
 // tumor
-$t_folder = $p_folder."/Sample_".$t_id."/";
+$t_folder = "{$p_folder}/Sample_{$t_id}/";
 $prefix_tum = $t_folder.$t_id;
 $t_sys_ini = load_system($t_sys, $t_id);
 if (!file_exists($t_folder))
@@ -74,28 +68,20 @@ if (!file_exists($t_folder))
 	trigger_error("Tumor sample folder '$t_folder' does not exist.", E_USER_ERROR);
 }
 
-//amplicon mode
-$amplicon = false;
-if(!$t_sys_ini['shotgun'])
-{
-	$amplicon = true;
-	trigger_error("Amplicon mode.",E_USER_NOTICE);
-}
-
 // normal
-$n_folder = $p_folder."/Sample_".$n_id."/";
+$n_folder = "{$p_folder}/Sample_{$n_id}/";
 $prefix_nor = $n_folder.$n_id;
 
 // get normal sample system and do some basic checks
 if (!$single_sample)
 {
-	$n_sys_ini = load_system(($n_sys), $n_id);
+	$n_sys_ini = load_system($n_sys, $n_id);
 	if (!file_exists($n_folder))
 	{
 		trigger_error("Reference sample folder '$n_folder' does not exist.", E_USER_ERROR);
 	}
 
-	// warn about missing target files
+	// warn about unset target files
 	if (empty($t_sys_ini['target_file']) || empty($n_sys_ini['target_file']))
 	{
 		trigger_error("Tumor system or normal system does not contain a target file.", E_USER_WARNING);
@@ -118,181 +104,79 @@ if (!$single_sample)
 }
 
 
-$target = $t_sys_ini['target_file'];
-
-list($stdout) = $parser->exec(get_path("ngs-bits")."BedInfo", "-in $target", false);
-
-// mapping
+// from single-sample mapping
 $t_bam = $t_folder.$t_id.".bam";
 $n_bam = $n_folder.$n_id.".bam";
-if (in_array("ma", $steps))
-{
-	// run analyze.php on tumor and normal
-
-	// tumor sample
-	if (!$smt)
-	{
-		$args = [
-			"-folder", $t_folder,
-			"-name", $t_id,
-			"-system", $t_sys,
-			"--log", "{$t_folder}analyze_" . date('YmdHis',mktime()) . ".log",
-			"-correction_n"
-		];
-		$parser->execTool("Pipelines/analyze.php", "-steps ma -no_abra ".implode(" ", $args));
-	}
-
-	// normal sample
-	if (!$single_sample && !$smn)
-	{
-		$args = [
-			"-folder", $n_folder,
-			"-name", $n_id,
-			"-system", $n_sys,
-			"--log", "{$n_folder}analyze_" . date('YmdHis',mktime()) . ".log",
-			"-correction_n"
-		];
-		$parser->execTool("Pipelines/analyze.php", "-steps ma -no_abra ".implode(" ", $args));
-	}
-
-	// overlap clipping, is not done by analyze.php to prevent import of QC data calculated on BamClipOverlap results
-	if (!$no_softclip)
-	{
-		$clip_arg_map = [
-			"mfb" => "-overlap_mismatch_baseq",
-			"mfm" => "-overlap_mismatch_mapq",
-			"mfr" => "-overlap_mismatch_remove",
-			"mfn" => "-overlap_mismatch_basen",
-			"sc" => ""
-		];
-		$clip_arg = $clip_arg_map[$clip];
-
-		if (!$smt)
-		{
-			$tmp1_t_bam = $parser->tempFile("_tumor.bam");
-			$parser->exec(get_path("ngs-bits")."BamClipOverlap", "-in {$t_bam} -out {$tmp1_t_bam} {$clip_arg}", true);
-			$parser->sortBam($tmp1_t_bam, $t_bam, $threads);
-			$parser->indexBam($t_bam, $threads);
-		}
-
-		if(!$single_sample && !$smn)
-		{
-			$tmp1_n_bam = $parser->tempFile("_normal.bam");
-			$parser->exec(get_path("ngs-bits")."BamClipOverlap", "-in {$n_bam} -out {$tmp1_n_bam} {$clip_arg}", true);
-			$parser->sortBam($tmp1_n_bam, $n_bam, $threads);
-			$parser->indexBam($n_bam, $threads);
-		}
-	}
-
-	// combined indel realignment with ABRA
-	if ($abra && $t_sys_ini['type'] !== "WGS" && ($single_sample || $n_sys_ini['type'] !== "WGS"))
-	{
-		// intersect both target files
-		$tmp_targets = $t_sys_ini['target_file'];
-		if (!$single_sample)
-		{
-			$tmp_targets = $parser->tempFile("_intersected.bed");
-			$commands_params = [];
-			$commands_params[] = [get_path("ngs-bits")."BedIntersect", "-in ".$t_sys_ini['target_file']." -in2 ".$n_sys_ini['target_file']." -mode intersect"];
-			$commands_params[] = [get_path("ngs-bits")."BedMerge", "-out $tmp_targets"];
-			$parser->execPipeline($commands_params, "intersect target regions", true);
-		}
-
-		// indel realignment with ABRA
-		$tmp1_t_bam = $parser->tempFile("_tumor.bam");
-		$tmp1_n_bam = $parser->tempFile("_normal.bam");
-		if (!$single_sample)
-		{
-			$tmp_in = "$n_bam $t_bam";
-			$tmp_out = "$tmp1_n_bam $tmp1_t_bam";
-		}
-		else
-		{
-			$tmp_in = $t_bam;
-			$tmp_out = $tmp1_t_bam;
-		}
-
-		$parser->execTool("NGS/indel_realign_abra.php", "-in $tmp_in -out $tmp_out -roi $tmp_targets -threads 8 -mer 0.02 -mad 5000");
-
-		// copy realigned files to output folder and overwrite previous bam files
-		$parser->moveFile($tmp1_t_bam, $t_bam);
-		$parser->indexBam($t_bam, $threads);
-		if (!$single_sample)
-		{
-			$parser->moveFile($tmp1_n_bam, $n_bam);
-			$parser->indexBam($n_bam, $threads);
-		}
-	}
-	
-	// Low coverage statistics
-	//get low_cov_statistics
-	$target_merged = $parser->tempFile("_merged.bed");
-	$parser->exec(get_path("ngs-bits")."BedMerge", "-in $target -out $target_merged", true);
-	//calculate low-coverage regions; 100x needed for 10 % sensitivity
-	$td = 100;
-	$low_cov = $o_folder."/".$t_id.($single_sample ? "" : "-".$n_id)."_stat_lowcov.bed";
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $t_bam -out $low_cov -cutoff ".$td, true);
-	if(!$single_sample)
-	{
-		$nd = 100;
-		$low_cov_n = $parser->tempFile("_nlowcov.bed");
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $target_merged -bam $n_bam -out $low_cov_n -cutoff ".$nd, true);
-		$parser->exec(get_path("ngs-bits")."BedAdd", "-in $low_cov $low_cov_n -out $low_cov", true);
-		$parser->exec(get_path("ngs-bits")."BedMerge", "-in $low_cov -out $low_cov", true);
-	}
-	//annotate gene names (with extended to annotate splicing regions as well)
-	$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $low_cov -extend 25 -out $low_cov", true);
-}
 
 // check if samples are related
 if (!$single_sample)
 {
-	if ($nsc)
-	{
-		trigger_error("Genotype correlation check has been disabled!", E_USER_WARNING);
-	}
-	else
-	{
-		$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in $t_bam $n_bam -mode bam -max_snps 4000", true);
-		$correlation = explode("\t", $output[0][1])[3];
-		if ($correlation < 0.8)
-		{
-			trigger_error("Genotype correlation of samples {$t_bam} and {$n_bam} is {$correlation}; should be at least 0.8!", E_USER_ERROR);
-		}
-	}
+    if ($skip_correlation)
+    {
+        trigger_error("Genotype correlation check has been disabled!", E_USER_WARNING);
+    }
+    else
+    {
+        $output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in $t_bam $n_bam -mode bam -max_snps 4000", true);
+        $correlation = explode("\t", $output[0][1])[3];
+        if ($correlation < $min_correlation)
+        {
+            trigger_error("Genotype correlation of samples {$t_bam} and {$n_bam} is {$correlation}; should be at least {$min_correlation}!", E_USER_ERROR);
+        }
+    }
 }
 
-//variant calling for control tissue (Rarely termed as germline)
+//prefixes for somatic analysis
+$prefix_som = $t_id . "-" . $n_id;		// "Tumor-Normal"
+$prefix = $single_sample ? $o_folder . $t_id : $o_folder . $prefix_som;
+
+// Low coverage statistics
+$low_cov = $prefix . "_stat_lowcov.bed";
+$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ".$t_sys_ini['target_file']." -bam $t_bam -out $low_cov -cutoff $min_depth_t", true);
+
+if(!$single_sample)
+{
+    $low_cov_n = $parser->tempFile("_nlowcov.bed");
+    $parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ".$n_sys_ini['target_file']." -bam $n_bam -out $low_cov_n -cutoff $min_depth_n", true);
+	$parser->execPipeline([
+		[get_path("ngs-bits") . "BedAdd", "-in $low_cov $low_cov_n"],
+		[get_path("ngs-bits") . "BedMerge", "-out $low_cov"]
+	], "merge low coverage BED files");
+}
+
+if (db_is_enabled("NGSD"))
+{
+	$parser->exec(get_path("ngs-bits") . "BedAnnotateGenes", "-in $low_cov -extend 25 -out $low_cov", true);
+}
+
+//variant calling for control tissue
+//TODO remove this
 if($include_germline && !$single_sample)
 {
+	$steps_germline = "vc,an,cn";
+	if(db_is_enabled("NGSD")) $steps_germline .= ",db";
+
 	$args = [
 		"-folder", $n_folder,
 		"-name", $n_id,
 		"-system", $n_sys,
 		"--log", "{$n_folder}analyze_" . date('YmdHis',mktime()) . ".log",
-		"-correction_n"
+		"-correction_n",
+		"-steps", $steps_germline
 	];
-	
-	$steps_parameter = "-steps vc,an,cn";
-	//If not in NGSD_TEST enable database import of variants
-	if(db_is_enabled("NGSD")) $steps_parameter .= ",db";
-	
-	$parameters = $steps_parameter . " " . implode(" ", $args);
-	
-	$parser->execTool("Pipelines/analyze.php", $parameters);
+	$parser->execTool("Pipelines/analyze.php", implode(" ", $args));
+
 }
 
 // variant calling
-$prefix_som = $t_id . "-" . $n_id;		// "Tumor-Normal"
-$prefix = $single_sample ? $o_folder . $t_id : $o_folder . $prefix_som;
-$som_v     = $prefix . "_var.vcf.gz";	// variants
-$som_cnv   = $prefix . "_cnvs.tsv";		// copy-number variants
-$som_gsvar = $prefix . ".GSvar";		// GSvar variants
-$som_bafs  = $prefix . "_bafs.igv";		// B-allele frequencies
-$som_qci = $prefix . "_var_qci.vcf.gz";
-$som_sv  = $prefix . "_var_structural.vcf.gz";	// structural variants (vcf)
-$som_svt = $prefix . "_var_structural.tsv";		// structural variants (tsv)
-$som_si  = $prefix . "_var_smallIndels.vcf.gz";	// small indels (manta)
+$som_v     = $prefix . "_var.vcf.gz";				// variants
+$som_cnv   = $prefix . "_cnvs.tsv";					// copy-number variants
+$som_gsvar = $prefix . ".GSvar";					// GSvar variants
+$som_bafs  = $prefix . "_bafs.igv";					// B-allele frequencies
+$som_qci   = $prefix . "_var_qci.vcf.gz";			// variants in QCI compatible format
+$som_sv    = $prefix . "_var_structural.vcf.gz";	// structural variants (vcf)
+$som_svt   = $prefix . "_var_structural.tsv";		// structural variants (tsv)
+$som_si    = $prefix . "_var_smallIndels.vcf.gz";	// small indels (manta)
 if (in_array("vc", $steps))
 {
 	// structural variant calling
@@ -301,7 +185,7 @@ if (in_array("vc", $steps))
 	{
 		trigger_error("Breakpoint detection deactivated for ThruPLEX samples.", E_USER_NOTICE);
 	}
-	else if ($amplicon)
+	else if (!$t_sys_ini['shotgun'])
 	{
 		trigger_error("Breakpoint detection deactivated for amplicon samples.", E_USER_NOTICE);
 	}
@@ -422,8 +306,7 @@ if (in_array("vc", $steps))
 	// add somatic baf file
 	$baf_args = [
 		"-in", $t_bam,
-		"-out", $som_bafs,
-
+		"-out", $som_bafs
 	];
 	if (!$single_sample)
 	{
@@ -468,12 +351,12 @@ if(in_array("cn",$steps))
 		$n_cov = $ref_file;
 	}
 	$ncov = $single_sample ? "" : "-n_cov $n_cov";
-	$n = 20;
+	//at least 30 coverage files for WES
 	if ($t_sys_ini['type'] == "WES")
 	{
-		$n = 30;
+		$min_cov_files = max($min_cov_files, 30);
 	}
-	$parser->execTool("NGS/vc_cnvhunter.php", "-cov $t_cov $ncov -out $som_cnv -system $t_sys -min_corr 0 -seg $t_id -n $n");
+	$parser->execTool("NGS/vc_cnvhunter.php", "-cov $t_cov $ncov -out $som_cnv -system $t_sys -min_corr 0 -seg $t_id -n $min_cov_files");
 }
 
 // annotation
@@ -776,7 +659,7 @@ if (in_array("ci", $steps))
 }
 
 //msi: call microsatellite instabilities
-$msi_o_file = $o_folder . $t_id."-".$n_id."_msi.tsv";
+$msi_o_file = $prefix . "_msi.tsv";
 if(in_array("msi", $steps) && !$single_sample)
 {
 	$build = $n_sys_ini['build'];
@@ -796,7 +679,7 @@ if(in_array("msi", $steps) && !$single_sample)
 	$target_loci_file = $o_folder . "/" .$t_id. "-" . $n_id . "_msi_loci_target.bed";
 	
 	//target loci file is intersection of reference loci with target region
-	if(!file_exists($target_loci_file));
+	if(!file_exists($target_loci_file))
 	{
 		$parameters = "-in ".$reference_loci_file." -in2 ".$target_bed_file ." -mode in -out ".$target_loci_file;
 		$parser->exec(get_path("ngs-bits")."BedIntersect",$parameters,false);

@@ -1,3 +1,6 @@
+#analyze.php arguments for single sample somatic analysis context
+ARGS_SINGLE := -steps ma -no_abra -clip_overlap -correction_n
+
 all: clear link case1 case2 case3 case4
 
 clear:
@@ -27,13 +30,19 @@ link:
 case1: case1_run case1_diff
 
 case1_run:
+	php ../../src/Pipelines/analyze.php \
+		-folder Sample_GS150344_01 \
+		-name GS150344_01 \
+		$(ARGS_SINGLE) \
+		-system system_single.ini \
+		--log Sample_GS150344_01/analyze.log
 	php ../../src/Pipelines/somatic_dna.php \
-	    -p_folder . \
-	    -t_id GS150344_01 -n_id na \
-	    -o_folder out_case1 \
-	    -steps ma,vc,cn,an \
-	    -t_sys system_single.ini \
-	    --log out_case1/GS150344.log
+		-p_folder . \
+		-t_id GS150344_01 -n_id na \
+		-o_folder out_case1 \
+		-steps vc,cn,an \
+		-t_sys system_single.ini \
+		--log out_case1/GS150344.log
 
 case1_diff:
 	php ../compare_bed.php expected_case1/GS150344_01_stat_lowcov.bed out_case1/GS150344_01_stat_lowcov.bed
@@ -45,15 +54,27 @@ case1_diff:
 case2: case2_run case2_diff
 
 case2_run:
+	php ../../src/Pipelines/analyze.php \
+		-folder Sample_GS110168 \
+		-name GS110168 \
+		$(ARGS_SINGLE) \
+		-system system_pair.ini \
+		--log Sample_GS110168/analyze.log
+	php ../../src/Pipelines/analyze.php \
+		-folder Sample_GS110169 \
+		-name GS110169 \
+		$(ARGS_SINGLE) \
+		-system system_pair.ini \
+		--log Sample_GS110169/analyze.log
 	php ../../src/Pipelines/somatic_dna.php \
-	    -p_folder . \
-	    -t_id GS110168 -n_id GS110169 \
-	    -o_folder out_case2 \
-	    -steps ma,vc,cn,an,ci,msi \
-	    -reduce_variants_filter \
+		-p_folder . \
+		-t_id GS110168 -n_id GS110169 \
+		-o_folder out_case2 \
+		-steps vc,cn,an,ci,msi \
+		-reduce_variants_filter \
 		-cancer_type CANCER \
-	    -t_sys system_pair.ini -n_sys system_pair.ini \
-	    --log out_case2/GS110168-GS110169.log
+		-t_sys system_pair.ini -n_sys system_pair.ini \
+		--log out_case2/GS110168-GS110169.log
 
 case2_diff:
 	# variants
@@ -85,14 +106,14 @@ case3: case3_run case3_diff
 
 case3_run:
 	php ../../src/Pipelines/somatic_dna.php \
-	    -p_folder . \
-	    -t_id GS110168 -n_id GS110169 \
-	    -o_folder out_case3 \
-	    -steps vc,cn,an,ci \
-	    -t_sys system_pair.ini -n_sys system_pair.ini \
-	    -freebayes \
+		-p_folder . \
+		-t_id GS110168 -n_id GS110169 \
+		-o_folder out_case3 \
+		-steps vc,cn,an,ci \
+		-t_sys system_pair.ini -n_sys system_pair.ini \
+		-freebayes \
 		-cancer_type CANCER \
-	    --log out_case3/GS110168-GS110169.log
+		--log out_case3/GS110168-GS110169.log
 
 case3_diff:
 	# variants
@@ -117,15 +138,27 @@ case3_diff:
 case4: case4_run case4_diff
 
 case4_run:
+	php ../../src/Pipelines/analyze.php \
+		-folder Sample_Tumor2 \
+		-name Tumor2 \
+		$(ARGS_SINGLE) \
+		-system system_pair.ini \
+		--log Sample_Tumor2/analyze.log
+	php ../../src/Pipelines/analyze.php \
+		-folder Sample_Normal2 \
+		-name Normal2 \
+		$(ARGS_SINGLE) \
+		-system system_pair.ini \
+		--log Sample_Normal2/analyze.log
 	php ../../src/Pipelines/somatic_dna.php \
-	    -p_folder . \
-	    -t_id Tumor2 -n_id Normal2 \
-	    -o_folder out_case4 \
-	    -steps ma,vc,cn,an,ci \
-	    -t_sys system_pair.ini -n_sys system_pair.ini \
-	    -include_germline \
+		-p_folder . \
+		-t_id Tumor2 -n_id Normal2 \
+		-o_folder out_case4 \
+		-steps vc,cn,an,ci \
+		-t_sys system_pair.ini -n_sys system_pair.ini \
+		-include_germline \
 		-cancer_type CANCER \
-	    --log out_case4/Tumor2-Normal2.log
+		--log out_case4/Tumor2-Normal2.log
 	
 case4_diff:
 	# variants
