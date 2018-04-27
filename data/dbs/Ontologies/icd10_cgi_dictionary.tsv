@@ -1,4 +1,11 @@
 #icd10_code	hpo_term	desc_de	desc_en	cgi_acronym
+C17		Bösartige Neubildung des Dünndarmes	Malignant neoplasm of small intestine	SIN
+C17.0		Duodenum	Duodenum	SIN
+C17.1		Jejunum	Jejunum	SIN
+C17.2		Ileum	Ileum	SIN
+C17.3		Meckel-Divertikel	Meckel diverticulum	SIN
+C17.8		Dünndarm, mehrere Teilbereiche überlappend	Overlapping lesion of small intestine	SIN
+C17.9		Dünndarm, nicht näher bezeichnet	Small intestine, unspecified	SIN
 C18		Bösartige Neubildung des Kolons	Malignant neoplasm of colon	COC
 C18.7		Colon sigmoideum	Sigmoid colon	COC
 C20		Bösartige Neubildung des Rektums	Malignant neoplasm of rectum	REC
