@@ -781,6 +781,9 @@ if(in_array("msi", $steps) && !$single_sample)
 	}
 
 	$parameters = "-n_bam $n_bam -t_bam $t_bam -threads $threads -bed_file $target_loci_file -out " .$msi_o_file. " -build $reference_genome";
+	
+	if($t_sys_ini['type'] == "WES") $parameters .= " -is_exome";
+	
 	$parser->execTool("NGS/detect_msi.php",$parameters);
 }
 elseif($single_sample && in_array("msi",$steps))
