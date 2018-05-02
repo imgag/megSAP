@@ -101,6 +101,8 @@ if (!file_exists($out_folder))
 
 //(1) variant calling of all samples together (with very conservative parameters)
 $vcf_all = $out_folder."all.vcf.gz";
+$vcf_all_mito = $out_folder."all_mito.vcf.gz";
+$mito = $sys['type']=="WES" && $sys['target_file']!="";
 if (in_array("vc", $steps))
 {
 	$args = array();
@@ -111,7 +113,34 @@ if (in_array("vc", $steps))
 	$args[] = "-min_af 0.1";
 	$args[] = "-target_extend 50";
 	$args[] = "-build ".$sys['build'];
-	$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);	
+	//TODO $parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);	
+
+	//variant calling for mito
+	if ($mito)
+	{
+		$target_mito = $parser->tempFile("_mito.bed");
+		if ($sys['build']=="hg19")
+		{
+			file_put_contents($target_mito, "chrM\t0\t16571");
+		}
+		else if ($sys['build']=="GRCh37")
+		{
+			file_put_contents($target_mito, "chrMT\t0\t16569");
+		}
+		else
+		{
+			trigger_error("No mitochondria target region available for genome ".$sys['build']."!", E_USER_ERROR);
+		}
+		
+		$args = array();
+		$args[] = "-bam ".implode(" ", $bams);
+		$args[] = "-out $vcf_all_mito";
+		$args[] = "-no_ploidy";
+		$args[] = "-min_af 0.01";
+		$args[] = "-target $target_mito";
+		$args[] = "-build ".$sys['build'];
+		$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);
+	}
 }
 
 //(2) annotation
@@ -168,6 +197,46 @@ if (in_array("an", $steps))
 			//update format field
 			$parts[8] = "MULTI";
 			fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\t".implode(",", $muti_info)."\n");
+		}
+	}
+	if ($mito)
+	{
+		//clean up
+		fclose($h1);
+		$indices = array();
+		$h1 = gzopen($vcf_all_mito, "r");
+		if ($h1===FALSE) trigger_error("Could not open file '" + $vcf_all_mito + "'.", E_USER_ERROR);
+		while(!gzeof($h1))
+		{
+			$line = trim(gzgets($h1));
+			if (strlen($line)==0) continue;
+			
+			if ($line[0]=="#") //header > determine indices
+			{
+				if ($line[1]=="#") continue; //comments
+				
+				$parts = explode("\t", $line);
+				foreach($bams as $bam)
+				{
+					$indices[$bam] = vcf_column_index($names[$bam], $parts); 
+				}
+			}
+			else //content > append
+			{
+				$parts = explode("\t", $line);
+				$format = explode(":", $parts[8]);
+				$muti_info = array();
+				foreach($bams as $bam)
+				{
+					$index = $indices[$bam];
+					list($gt, $dp, $ao) = extract_info($format, $parts[$index]);
+					$muti_info[] = $names[$bam]."=$gt|$dp|$ao";
+				}
+				
+				//update format field
+				$parts[8] = "MULTI";
+				fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\t".implode(",", $muti_info)."\n");
+			}
 		}
 	}
 	fclose($h1);
