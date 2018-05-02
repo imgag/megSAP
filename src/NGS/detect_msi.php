@@ -14,11 +14,17 @@ $parser->addInfile("bed_file","Bed file that contains target region",true);
 //optional
 $parser->addString("build", "The reference genome build to use. ", true, "GRCh37");
 $parser->addFlag("keep_status_files","Keep MSI status files");
+$parser->addFlag("is_exome","Use standard parameters for MSI calling dedicated for exomes.");
 extract($parser->parse($argv));
 
 $output_folder = realpath(dirname($out));
 $output_path = $output_folder . '/' . 'mantis';
-$parameters = "-n $n_bam -t $t_bam  -b $bed_file -o $output_path --threads $threads --genome $build";
+$parameters = 	"-n $n_bam -t $t_bam  -b $bed_file -o $output_path --threads $threads --genome $build";
+if($is_exome) //use non-standard MANTIS-parameters for whole exomes recommended by MANTIS
+{
+	$parameters .=  " -mrq 20 -mlq 25 -mlc 20 -mrr 1";
+}
+
 $parser->exec(get_path("mantis"),$parameters,true,false);
 
 //adds comment char "#" to certain lines of the MANTIS status file
