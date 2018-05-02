@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("find_same_sample_kasp", "Searches for .");
+$parser = new ToolBase("find_same_sample_kasp", "Searches for the sample sample using KASP data.");
 $parser->addString("sample", "Sample name.", false);
 $parser->addInfile("file", "Sample data file (_converted.tsv).", false);
 $parser->addString("folder", "KASP data folder name.", false);
