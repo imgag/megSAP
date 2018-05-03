@@ -12,7 +12,7 @@ extract($parser->parse($argv));
 
 function load_sge_output($job_id)
 {
-	$base = sys_get_temp_dir()."/megSAP_sge_job_{$job_id}";
+	$base = get_path("data_folder")."/sge/megSAP_sge_job_{$job_id}";
 	$output = array();
 	
 	if (file_exists($base.".out"))
@@ -248,7 +248,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 	}
 	
 	//submit to queue
-	$sge_output = sys_get_temp_dir()."/megSAP_sge_job_{$job_id}";
+	$sge_output = get_path("data_folder")."/sge/megSAP_sge_job_{$job_id}";
 	$command_sge = "qsub -V {$slots} -b y -wd {$project_folder} -m n -M ".get_path("queue_email")." -e {$sge_output}.err -o {$sge_output}.out -q ".implode(",", $queues);
 	$command_pip = "php ".repository_basedir()."/src/Pipelines/{$script} ".$job_info['args']." {$args}";
 	if($debug)
@@ -308,20 +308,43 @@ function update_analysis_status($job_info, &$db_conn, $debug)
 		
 		$output = load_sge_output($job_id);
 		
-		list($stdout) = exec2("qacct -j {$sge_id} | grep exit_status 2>&1", false);
-		$stdout = trim(implode("", $stdout));
-		$stdout = preg_replace('/\s+/', ' ', $stdout);
-		if ($stdout=="exit_status 0" || $debug)
+		list($stdout, $stderr, $exit_acct) = exec2("qacct -j {$sge_id}", false);
+		if ($exit_acct==0 || $debug)
 		{
-			$status = "finished";
+			$exit_status = "";
+			foreach($stdout as $line)
+			{
+				if (contains($line, "exit_status"))
+				{
+					$line = trim($line);
+					$line = preg_replace('/\s+/', ' ', $line);
+					list(, $exit_status) = explode(" ", $line);
+				}
+			}
+			if ($exit_status=="0" || $debug)
+			{
+				$status = "finished";
+			}
+			else
+			{
+				$status = "error";
+				$output[] = "qacct job exit: '{$exit_status}'";
+				foreach($stdout as $line)
+				{
+					$output[] = "qacct call stdout: ".trim($line);
+				}
+				foreach($stderr as $line)
+				{
+					$output[] = "qacct call stderr: ".trim($line);
+				}
+			}
+			add_history_entry($job_id, $db_conn, $status, $output);
+			if ($debug) print "	Job finished with status '{$status}'\n";
 		}
 		else
 		{
-			$status = "error";
-			$output[] = "qacct status: '{$stdout}'";
+			print get_timestamp(false)."\tCommand 'qacct -j {$sge_id}' returned exit code {$exit_acct} > Skipped job!\n";
 		}
-		add_history_entry($job_id, $db_conn, $status, $output);
-		if ($debug) print "	Job finished with status '{$status}'\n";
 	}
 }
 
@@ -358,7 +381,7 @@ if (file_exists($pid_file))
 	$pid_old = trim(file_get_contents($pid_file));
 	if (posix_getpgid($pid_old)!==FALSE)
 	{
-		print "Script 'db_update_queue' is still running with PID '$pid_old'. Aborting!\n";
+		print get_timestamp(false)."\tScript 'db_update_queue' is still running with PID '$pid_old'. Aborting!\n";
 		exit();
 	}
 }
