@@ -171,6 +171,20 @@ if (db_is_enabled("NGSD"))
 end_test();
 
 //##################################################################################
+start_test("store_system");
+
+if (db_is_enabled("NGSD"))
+{
+	$db_conn = DB::getInstance("NGSD");
+	$filename = temp_file(".ini");
+	$sys = store_system($db_conn, "hpSCAv2", $filename);
+	check(file_exists($filename), true);
+	check(contains(file_get_contents($filename), 'name_short = "hpSCAv2"'), true);
+}
+
+end_test();
+
+//##################################################################################
 start_test("get_processed_sample_id");
 
 if (db_is_enabled("NGSD"))

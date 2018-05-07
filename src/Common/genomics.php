@@ -372,38 +372,44 @@ function load_system(&$filename, $ps_name = "")
 	if (is_null($filename) || $filename=="")
 	{
 		//get ID of processed sample
-		$db = DB::getInstance("NGSD");
-		$pid = get_processed_sample_id($db, $ps_name, false);
-		if ($pid==-1)
+		$db_conn = DB::getInstance("NGSD");
+		$ps_id = get_processed_sample_id($db_conn, $ps_name, false);
+		if ($ps_id==-1)
 		{
 			trigger_error("load_system: Cannot determine processing system - processed sample name '$ps_name' is invalid!", E_USER_ERROR);
 		}
-
-		//get processed sample raw data
-		$res = $db->executeQuery("SELECT sys.name_manufacturer, sys.name_short, sys.adapter1_p5, sys.adapter2_p7, sys.type, sys.shotgun, sys.umi_type, sys.target_file, g.build FROM processing_system as sys, genome as g, processed_sample as ps, sample as s WHERE sys.genome_id=g.id and sys.id=ps.processing_system_id and ps.id=:pid", array("pid"=>$pid));
-		$output = array();
-		$output[] = "name_short = \"".$res[0]['name_short']."\"";
-		$output[] = "name_manufacturer = \"".$res[0]['name_manufacturer']."\"";
-		$output[] = "target_file = \"".$res[0]['target_file']."\"";
-		$output[] = "adapter1_p5 = \"".$res[0]['adapter1_p5']."\"";
-		$output[] = "adapter2_p7 = \"".$res[0]['adapter2_p7']."\"";
-		$output[] = "shotgun = ".$res[0]['shotgun'];
-		$output[] = "umi_type = \"".$res[0]['umi_type']."\"";
-		$output[] = "type = \"".$res[0]['type']."\"";
-		$output[] = "build = \"".$res[0]['build']."\"";
 		
-		//check that system is up-to-date
-		if (isset($res[0]['name']) || !isset($res[0]['type']) || !isset($res[0]['name_manufacturer']))
-		{
-			trigger_error("Outdated processing system INI file '$filename'!", E_USER_ERROR);
-		}
-		
-		//set filename and store
-		$filename = temp_file(".ini", "pro_sys_".$res[0]['name_short']."_");
-		file_put_contents($filename, implode("\n",$output));
+		//store system INI file
+		$sys_name = $db_conn->getValue("SELECT sys.name_short FROM processing_system sys, processed_sample ps WHERE ps.processing_system_id=sys.id AND ps.id=$ps_id");
+		$filename = temp_file(".ini", "pro_sys_".$sys_name."_");
+		store_system($db_conn, $sys_name, $filename);
 	}
 	
 	return parse_ini_file($filename);
+}
+
+function store_system(&$db_conn, $name_short, $filename)
+{
+	//execute query
+	$res = $db_conn->executeQuery("SELECT sys.*, g.build FROM processing_system sys, genome g WHERE sys.genome_id=g.id and sys.name_short=:name_short", array("name_short"=>$name_short));
+	if(count($res)==0)
+	{
+		trigger_error("Processing system with short name '$name_short' not found in NGSD!", E_USER_ERROR);
+	}
+	
+	//store output
+	$output = array();
+	$output[] = "name_short = \"".$name_short."\"";
+	$output[] = "name_manufacturer = \"".$res[0]['name_manufacturer']."\"";
+	$output[] = "target_file = \"".$res[0]['target_file']."\"";
+	$output[] = "adapter1_p5 = \"".$res[0]['adapter1_p5']."\"";
+	$output[] = "adapter2_p7 = \"".$res[0]['adapter2_p7']."\"";
+	$output[] = "shotgun = ".$res[0]['shotgun'];
+	$output[] = "umi_type = \"".$res[0]['umi_type']."\"";
+	$output[] = "type = \"".$res[0]['type']."\"";
+	$output[] = "build = \"".$res[0]['build']."\"";
+	$output[] = "";
+	file_put_contents($filename, implode("\n", $output));
 }
 
 /**
