@@ -237,7 +237,7 @@ if ($qc_file !== "")
 		$pipeline[] = ["wc", "-l"];
 		$ret = $parser->execPipeline($pipeline, "count-genes");
 		
-		$num_genes = intval($ret[0][0]);
+		$num_genes = intval($ret[0][0]) - 1;
 		$qc->addRow(["number of genes with at least {$cutoff} read(s)", $num_genes]);
 	}
 
