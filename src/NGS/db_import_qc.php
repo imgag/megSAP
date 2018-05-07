@@ -134,16 +134,28 @@ foreach($files as $file)
 $parser->log("Found ".count($qc_par)." QC terms for PID '$id' in log files.");
 
 // insert QC terms into the DB
-$hash = $db->prepare("INSERT INTO processed_sample_qc (processed_sample_id, qc_terms_id, value) VALUES (:0, (SELECT id FROM qc_terms WHERE qcml_id = :1), :2);");
+$hash1 = $db->prepare("SELECT id FROM qc_terms WHERE qcml_id = :0");
+$hash2 = $db->prepare("INSERT INTO processed_sample_qc (processed_sample_id, qc_terms_id, value) VALUES (:0, :1, :2)");
 $db->beginTransaction();
 foreach($qc_par as $key => $value)
 {
-	$db->bind($hash, "0", $psid);
-	$db->bind($hash, "1", $key);
-	$db->bind($hash, "2", $value);
-	$db->execute($hash, true, false);
+	//check if term is in NGSD
+	$db->bind($hash1, "0", $key);
+	$db->execute($hash1, true);
+	$res1 = $db->fetch($hash1);
+	if (count($res1)==0)
+	{
+		trigger_error("QC term '$key' it found in NGSD, thus not imported!", E_USER_NOTICE);
+		continue;
+	}
+	
+	$db->bind($hash2, "0", $psid);
+	$db->bind($hash2, "1", $res1[0]['id']);
+	$db->bind($hash2, "2", $value);
+	$db->execute($hash2, true);
 }
 $db->endTransaction();
-$db->unsetStmt($hash);
+$db->unsetStmt($hash1);
+$db->unsetStmt($hash2);
 
 ?>

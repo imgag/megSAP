@@ -59,64 +59,72 @@ $barcode_correction = false;
 if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
 {
 	$index_files = glob("$out_folder/*_index_*.fastq.gz");
-
-	// merge read and index files
-	$merged_index = $parser->tempFile("_merged_index.fastq.gz");
-	$merged1 = $parser->tempFile("_merged1.fastq.gz");
-	$merged2 = $parser->tempFile("_merged2.fastq.gz");
-
-	//TODO refactor merge or pass
-	if (count($index_files) == 1)
-	{
-		$merged_index = implode(" ", $index_files);
-	}
-	else
-	{
-		$parser->exec("zcat", implode(" ", $index_files) . " > $merged_index", true);
-	}
-
-	if (count($in_for) == 1)
-	{
-		$merged1 = implode(" ", $in_for);
-	}
-	else
-	{
-		$parser->exec("zcat", implode(" ", $in_for) . " > $merged1", true);
-	}
-
-	if (count($in_rev) == 1)
-	{
-		$merged2 = implode(" ", $in_rev);
-	}
-	else
-	{
-		$parser->exec("zcat", implode(" ", $in_rev) . " > $merged2", true);
-	}
-
-	// add barcodes to header
-	$merged1_bc = $parser->tempFile("_bc1.fastq.gz");
-	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $merged1 -bc1 $merged_index -o $merged1_bc",true);
-	$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
-	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $merged2 -bc1 $merged_index -o $merged2_bc",true);
-
-	// run SeqPurge
-	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $merged1_bc -in2 $merged2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);
-
-	// trim 1 base from end of R1 and 1 base from start of R2 (only HaloPlex HS)
-	if ($sys['umi_type'] === "HaloPlex HS")
-	{
-		//cut extra C at beginning of read2 and end of read1
-		$trimmed_hs1 = $parser->tempFile("_merged_hs1.fastq.gz");
-		$trimmed_hs2 = $parser->tempFile("_merged_hs2.fastq.gz");
-
-		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed1 -out $trimmed_hs1 -end 1",true);
-		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed_hs2 -start 1",true);
-		
-		$trimmed1 = $trimmed_hs1;
-		$trimmed2 = $trimmed_hs2;
-	}
 	
-	$barcode_correction = true;
+	if (count($index_files)==0)
+	{
+		trigger_error("Processing system ".$sys['name_short']." has UMI type ".$sys['umi_type'].", but no index files were found => UMI-based de-duplication skipped!", E_USER_NOTICE);
+		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".($threads>2 ? 2 : 1), true);
+	}
+	else
+	{
+		// merge read and index files
+		$merged_index = $parser->tempFile("_merged_index.fastq.gz");
+		$merged1 = $parser->tempFile("_merged1.fastq.gz");
+		$merged2 = $parser->tempFile("_merged2.fastq.gz");
+
+		//TODO refactor merge or pass
+		if (count($index_files) == 1)
+		{
+			$merged_index = implode(" ", $index_files);
+		}
+		else
+		{
+			$parser->exec("zcat", implode(" ", $index_files) . " > $merged_index", true);
+		}
+
+		if (count($in_for) == 1)
+		{
+			$merged1 = implode(" ", $in_for);
+		}
+		else
+		{
+			$parser->exec("zcat", implode(" ", $in_for) . " > $merged1", true);
+		}
+
+		if (count($in_rev) == 1)
+		{
+			$merged2 = implode(" ", $in_rev);
+		}
+		else
+		{
+			$parser->exec("zcat", implode(" ", $in_rev) . " > $merged2", true);
+		}
+
+		// add barcodes to header
+		$merged1_bc = $parser->tempFile("_bc1.fastq.gz");
+		$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $merged1 -bc1 $merged_index -o $merged1_bc",true);
+		$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
+		$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $merged2 -bc1 $merged_index -o $merged2_bc",true);
+
+		// run SeqPurge
+		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $merged1_bc -in2 $merged2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);
+
+		// trim 1 base from end of R1 and 1 base from start of R2 (only HaloPlex HS)
+		if ($sys['umi_type'] === "HaloPlex HS")
+		{
+			//cut extra C at beginning of read2 and end of read1
+			$trimmed_hs1 = $parser->tempFile("_merged_hs1.fastq.gz");
+			$trimmed_hs2 = $parser->tempFile("_merged_hs2.fastq.gz");
+
+			$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed1 -out $trimmed_hs1 -end 1",true);
+			$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed_hs2 -start 1",true);
+			
+			$trimmed1 = $trimmed_hs1;
+			$trimmed2 = $trimmed_hs2;
+		}
+		
+		$barcode_correction = true;
+	}
 }
 else if ($sys['umi_type'] === "MIPs")
 {
@@ -140,7 +148,6 @@ else if ($sys['umi_type'] === "MIPs")
 }
 else if ($sys['umi_type'] == "ThruPLEX")
 {
-
 	// do nothing, barcode handling done by connor
 	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".($threads>2 ? 2 : 1), true);
 	
