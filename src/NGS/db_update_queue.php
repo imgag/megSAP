@@ -33,6 +33,7 @@ function add_history_entry($job_id, &$db_conn, $status, $output = "")
 	if (is_array($output))
 	{
 		$output = implode("\n", $output);
+		$output = substr($output, 0, 65535);
 	}
 	
 	$db_conn->executeStmt("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES ({$job_id}, '".get_timestamp(false)."', NULL, :status, :output)", array("status"=>$status, "output"=>$output));
