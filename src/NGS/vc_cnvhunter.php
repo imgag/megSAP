@@ -50,13 +50,16 @@ if (count($cov_files)<$n+1)
 $cov_files[] = $cov;
 if ($somatic) $cov_files[] = $n_cov;
 
-//convert paths to absolute paths and remove duplicates
+//convert paths to absolute paths, remove duplicates and store input file list
 $tmp_cov_files = array_unique(array_map("realpath", $cov_files));
 foreach($tmp_cov_files as $key => $tcf)	if($tcf===FALSE)	trigger_error("Could not find coverage file ".$cov_files[$key],E_USER_ERROR);
 $cov_files = $tmp_cov_files;
+$cov_list = $parser->tempFile("_cov_files.txt");
+file_put_contents($cov_list, implode("\n", $cov_files));
 
 //run cnvhunter on all samples
 $args = array();
+$args[] = "-in {$cov_list}";
 $args[] = "-min_z $min_z";
 $args[] = "-sam_min_corr $min_corr";
 if($sys['type']=="WGS")
@@ -72,10 +75,11 @@ if(!is_dir($temp_folder) || !is_writable($temp_folder))
 {
 	trigger_error("Temp folder '$temp_folder' not writable.", E_USER_ERROR);
 }
+$args[] = "-out {$temp_folder}/cnvs.tsv";
 $args[] = "-cnp_file ".repository_basedir()."/data/dbs/CNPs/copy_number_map_strict.bed";
 $omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 $args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed ".(file_exists($omim_file) ? $omim_file : "");
-$parser->exec(get_path("ngs-bits")."CnvHunter", "-in ".implode(" ",$cov_files)." -out ".$temp_folder."/cnvs.tsv ".implode(" ", $args), true);
+$parser->exec(get_path("ngs-bits")."CnvHunter", implode(" ", $args), true);
 
 // filter results for given processed sample(s)
 $cnvs_unfiltered = Matrix::fromTSV($temp_folder."/cnvs.tsv");
