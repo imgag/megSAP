@@ -235,7 +235,6 @@ function start_analysis($job_info, &$db_conn, $debug)
 		}
 
 		//create output folder
-		//TODO check naming: Somatic_Tumor, Sample_Tumor, Somatic_Tumor-na
 		if (isset($n_info))
 		{
 			$out_folder = "{$project_folder}/Somatic_" . $t_info['ps_name'] . "-" . $n_info['ps_name'] . "/";
