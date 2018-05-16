@@ -186,6 +186,27 @@ else if ($sys['umi_type'] == "Safe-SeqS")
 	
 	$barcode_correction = true;
 }
+else if ($sys['umi_type'] == "QIAseq")
+{
+	//remove sequencing adapter
+	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".($threads>2 ? 2 : 1), true);
+
+	//extract UMI from head of R2
+	$umi = $parser->tempFile("_umi.fastq.gz");
+	$trimmed2_no_umi = $parser->tempFile("_R2_no_umi_001.fastq.gz");
+	$parser->exec(get_path("ngs-bits")."FastqExtractBarcode", "-in $trimmed2 -out_main $trimmed2_no_umi -cut 12 -out_index $umi",true);
+
+	//add UMI to both R1, R2 files
+	$trimmed1_bc = $parser->tempFile("_bc1.fastq.gz");
+	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed1 -bc1 $umi -o $trimmed1_bc",true);
+	$trimmed2_bc = $parser->tempFile("_bc2.fastq.gz");
+	$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $trimmed2_no_umi -bc1 $umi -o $trimmed2_bc",true);
+
+	$trimmed1 = $trimmed1_bc;
+	$trimmed2 = $trimmed2_bc;
+
+	$barcode_correction = true;
+}
 else
 {
 	if ($sys['umi_type']!=="n/a") trigger_error("Unknown UMI-type ".$sys['umi_type'].". No barcode correction.",E_USER_WARNING);
