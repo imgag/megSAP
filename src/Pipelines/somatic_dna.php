@@ -842,7 +842,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			$parser->execTool("NGS/db_import_qc.php", "-id $n_id -files $qcmls -force -min_depth 0 --log $log_db");
 
 			// check tumor/normal flag
-			if ($t_info['is_tumor'])
+			if ($n_info['is_tumor'])
 			{
 				trigger_error("Normal sample $n_id is flagged as tumor in NGSD!", E_USER_WARNING);
 			}
