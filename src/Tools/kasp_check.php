@@ -140,8 +140,8 @@ function txt2geno_steponeplus($snps, $in_file, $out_file)
 		$outline = $sample;
 		foreach($snps as $row => $row_data)
 		{
-			$rs = $row_data[0];
-			if (isset($sample_data[$rs]))
+			list($rs, $chr, $pos, $ref, $alt, $reverse) = $row_data;
+			if (!is_null($reverse) && isset($sample_data[$rs]))
 			{
 				$outline .= "\t".$sample_data[$rs]["geno"];
 			}
