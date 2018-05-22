@@ -121,6 +121,7 @@ foreach($sample_data as $sample => $sample_infos)
 	$sample_folder = $sample_infos['ps_folder'];
 	$sample_is_tumor = $sample_infos['is_tumor'];
 	$sys_type = $sample_infos['sys_type'];
+	$sys_target = $sample_infos['sys_target'];
 
 	//calculate current location of sample
 	if ($is_nextseq)
@@ -205,8 +206,16 @@ foreach($sample_data as $sample => $sample_infos)
 							
 				$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal";
 				
-				if($project_type == 'diagnostic') $outputline .= " -args '-include_germline'";
+				$args = array();				
+				if($project_type == 'diagnostic') $args[] =  "-include_germline"; 
 				
+				
+				$promoter_file = str_replace(".bed","",$sys_target) . "_promoters.bed";
+				if(file_exists($promoter_file))
+				{
+					$args[] = "-promoter {$promoter_file}";
+				}
+				if(count($args) > 0) $outputline .= " -args '" . implode(' ',$args) . "'";
 			}
 			else
 			{
