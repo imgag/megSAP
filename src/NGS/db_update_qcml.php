@@ -28,7 +28,9 @@ foreach($terms as $id => $data)
 	
 	$name = addslashes($data['name']);
 	$desc = addslashes($data['def']);
-	$db->executeStmt("INSERT INTO qc_terms (qcml_id, name, description) VALUES ('$id','{$name}','{$desc}') ON DUPLICATE KEY UPDATE name='{$name}',description='{$desc}'");
+	$type = addslashes($data['type']);
+	$obsolete = 0; //currently there are no obsolete terms in qcML obo list
+	$db->executeStmt("INSERT INTO qc_terms (qcml_id, name, description, type, obsolete) VALUES ('$id','{$name}','{$desc}','{$type}','{$obsolete}') ON DUPLICATE KEY UPDATE name='{$name}',description='{$desc}',type='{$type}',obsolete={$obsolete}");
 }
 
 //disconnect

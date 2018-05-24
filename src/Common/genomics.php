@@ -461,6 +461,10 @@ function load_qc_terms()
 		{
 			//nothing to do here
 		}
+		else if(starts_with($line, "is_obsolete:"))
+		{
+			//nothing to do here
+		}
 	}
 	if (isset($terms[$current['id']])) trigger_error("duplicate qcML term id '{$current['id']}'!", E_USER_ERROR);
 	$terms[$current['id']] = $current;
