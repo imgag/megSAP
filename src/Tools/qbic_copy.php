@@ -296,6 +296,7 @@ function printTSV($output, $state, $state_comment)
 	print implode("\t", $output)."\n";
 }
 
+
 //print TSV header
 $GLOBALS['tsv_header'] = array("sample_name", "qbic_name", "fo_name", "quality(sample,ps,run)", "ps_name(s)", "ps_project", "ps_system", "type", "quality_normal(sample,ps,run)", "state", "state_comment");
 print "#".implode("\t", $GLOBALS['tsv_header'])."\n";
@@ -317,15 +318,17 @@ else
 	}
 }
 
-$res = $db->executeQuery("SELECT id, name, name_external, quality FROM sample WHERE ".implode(" || ", $conditions)." ORDER BY name");
+$res = $db->executeQuery("SELECT id, name, name_external, quality, tumor FROM sample WHERE ".implode(" || ", $conditions)." ORDER BY name");
 foreach($res as $row)
 {
 	list ($s_id, $s_name, $s_name_ex, $s_qual) = array_values($row);
-	
 	//check if we have a QBIC name
 	$names = getExternalNames($s_name, $s_name_ex);
 	if (is_null($names)) continue;
 	list($qbic_name, $fo_name) = $names;
+	
+	$tumor = false;
+	if($row['tumor'] == 1) $tumor = true;
 	
 	$output = array();
 	$output[] = $s_name;
@@ -360,14 +363,14 @@ foreach($res as $row)
 		$output[] = $sys_name;
 		$output[3] .= ",".$sample1['quality_processed_sample'].",".$sample1['quality_run'];
 		$output[] = $sample1['experiment_type'];
-		
+
 		//skip wrong projects
 		if ($project!="" && $pro!=$project)
 		{
 			//printTSV($output, "RESTRICTED" ,"wrong project");
 			continue;
 		}
-		
+
 		//skip wrong samples
 		if (!empty($samples) && !in_array($ps_name,$samples))
 		{
@@ -388,7 +391,7 @@ foreach($res as $row)
 			printTSV($output, "SKIPPED" ,"bad run quality");
 			continue;
 		}
-		
+
 		//get folder and files
 		$skipped = false;
 		$missing = false;
@@ -408,12 +411,39 @@ foreach($res as $row)
 		$files = array();
 		$paths  = glob($data_folder.$s_name."*.*");
 		if(is_dir($data_folder."+original")) $paths = glob($data_folder."+original/".$ps_name."*.*");	//for backward compatibility
+		$tumor_normal_pair = false;
+		if(strpos($pro,"SomaticAndTreatment") !== false) $tumor_normal_pair = true;
 		foreach($paths as $file)
 		{
-			if (ends_with($file, ".fastq.gz")) $files[] = $file;
+			if (ends_with($file, ".fastq.gz") && !$tumor_normal_pair) $files[] = $file; //only take raw fastqs in case of single samples
 			if (ends_with($file, "_var_annotated.vcf.gz")) $files[] = $file;
 			if (ends_with($file, "_counts_raw.tsv")) $files[] = $file;
 			if (ends_with($file, "_counts.tsv")) $files[] = $file;
+		}
+		
+		//Special treatment for tumor-normal fastqs
+		$merged_fastq_files = array();
+		if($tumor_normal_pair) //merge fastqs in case of normal-tumor pairs 
+		{
+			if($tumor)
+			{
+				exec2("cat {$data_folder}*R1*.fastq.gz > {$data_folder}{$qbic_name}_tumor.1.fastq.gz");
+				$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor.1.fastq.gz";
+				exec2("cat {$data_folder}*R2*.fastq.gz > {$data_folder}{$qbic_name}_tumor.2.fastq.gz");
+				$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor.2.fastq.gz";
+			}
+			//parse related normal file if found
+			$normal_id = $sample1["normal_id"];
+			$normal_sample = getSampleInfo($normal_id);
+			if($normal_id != "" && $normal_sample['quality_sample'] != "bad" && $normal_sample['quality_processed_sample'] != "bad"
+				&& $normal_sample['quality_run'] != "bad")
+			{
+				$data_folder2 = $project_folder."/Sample_".$normal_sample['id_genetics']."/";
+				exec2("cat {$data_folder2}*R1*.fastq.gz > {$data_folder2}{$qbic_name}_normal.1.fastq.gz");
+				$merged_fastq_files[] = "{$data_folder2}{$qbic_name}_normal.1.fastq.gz";
+				exec2("cat {$data_folder2}*R2*.fastq.gz > {$data_folder2}{$qbic_name}_normal.2.fastq.gz");
+				$merged_fastq_files[] = "{$data_folder2}{$qbic_name}_normal.2.fastq.gz";
+			}
 		}
 		
 		//skip already uploaded
@@ -429,7 +459,7 @@ foreach($res as $row)
 		//skip if no files were found
 		if (!$skipped)
 		{
-			if (count($files)==0)
+			if (count($files)==0 && count($merged_fastq_files) == 0)
 			{
 				printTSV($output, "ERROR" ,"no files to transfer in data folder '$data_folder'");
 				$skipped = true;
@@ -446,6 +476,13 @@ foreach($res as $row)
 			
 			//copy files to folder
 			copyFiles($files, $tmpfolder, $upload);
+			if(!empty($merged_fastq_files))
+			{
+				foreach($merged_fastq_files as $file)
+				{
+					$parser->moveFile($file,$tmpfolder."/".basename($file));
+				}
+			}
 			
 			//store meta data file
 			storeMetaData($tmpfolder, $ps_name, array("type"=>$sample1["experiment_type"], "sample1"=>prepareForExport($sample1), "files"=>array_map("basename", $files)));
@@ -573,7 +610,7 @@ foreach($res as $row)
 			
 			//zip files
 			$zip = "{$tmpfolder}/{$qbic_name}_{$ps_name}-{$ps_name2}.zip";
-			exec2("cd {$tmpfolder} && zip -@ {$zip} *.tsv");
+			exec2("cd {$tmpfolder} && zip {$zip} *.tsv");
 			
 			//upload data
 			if ($upload)
