@@ -335,7 +335,7 @@ function filter_vcf_file($vcf_file)
 	
 	for($i=0;$i<$vcf_file->rows();$i++)
 	{
-		if($vcf_file->get($i,$i_filter) == "PASS" || $vcf_file->get($i,$i_filter) == "freq-tum")
+		if($vcf_file->get($i,$i_filter) == "PASS" || $vcf_file->get($i,$i_filter) == "freq-tum" || strpos($vcf_file->get($i,$i_filter),"syn-var") !== false)
 		{
 			$filtered_row = $vcf_file->getRow($i);
 			$vcf_filtered->addRow($filtered_row);
