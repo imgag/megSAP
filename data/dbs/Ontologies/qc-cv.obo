@@ -712,6 +712,7 @@ def: "Average read depth on the special target region used for error estimation 
 is_a: QC:2000003 ! NGS mapping parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: sturm
+is_obsolete: true
 
 [Term]
 id: QC:2000034
@@ -720,6 +721,7 @@ def: "No base call (N) percentage determined on special target region after mapp
 is_a: QC:2000003 ! NGS mapping parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: sturm
+is_obsolete: true
 
 [Term]
 id: QC:2000035
@@ -728,7 +730,7 @@ def: "SNV error percentage determined on special target region after mapping."
 is_a: QC:2000003 ! NGS mapping parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: sturm
-created_by: sturm
+is_obsolete: true
 
 [Term]
 id: QC:2000036
@@ -737,6 +739,7 @@ def: "indel error percentage determined on special target region after mapping."
 is_a: QC:2000003 ! NGS mapping parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: sturm
+is_obsolete: true
 
 [Term]
 id: QC:2000037

@@ -12,6 +12,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("init_cnv_ref_folder", "Initialize coverage folder of a processing system with data from all valid samples.");
 $parser->addString("name", "Processing system short name.", false);
 $parser->addFlag("clear", "Remove existing coverage files.");
+$parser->addFlag("tumor_only", "Keep only tumor samples, normally tumor samples are removed).");
 extract($parser->parse($argv));
 
 //check system
@@ -28,7 +29,7 @@ if ($roi=="")
 }
 
 //create/clear folder
-$ref_folder = get_path("data_folder")."/coverage/$name/";		
+$ref_folder = get_path("data_folder")."/coverage/$name".($tumor_only ? "-tumor" : "")."/";		
 if (!is_dir($ref_folder))
 {
 	mkdir($ref_folder);
@@ -56,7 +57,7 @@ foreach($samples as $line)
 {
 	list($sample, $path) = explode("\t", trim($line));
 	//check sample is valid
-	if(!is_valid_ref_sample_for_cnv_analysis($sample)) continue;
+	if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only)) continue;
 	++$valid;
 	//check bam
 	if (!starts_with($path, "found - ")) continue;
