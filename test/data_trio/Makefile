@@ -29,6 +29,7 @@ diff:
 	php ../compare_variants.php trio.GSvar.out trio.GSvar
 	cut -f 1-5,9 trio.GSvar | egrep -v "^#|off-target" | egrep "trio_" > trio_special.tsv
 	diff -b trio_special.tsv.out trio_special.tsv
+	diff -b trio_upd.tsv.out trio_upd.tsv
 
 ### debug targets
 

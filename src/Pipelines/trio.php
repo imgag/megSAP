@@ -37,6 +37,11 @@ $parser->addInt("max_ngsd", "Maximum occurances in NGSD with same genotype as ch
 
 extract($parser->parse($argv));
 
+//init
+$sample_c = basename($c, ".bam");
+$sample_f = basename($f, ".bam");
+$sample_m = basename($m, ".bam");
+
 //check steps
 $steps = explode(",", $steps);
 foreach($steps as $step)
@@ -109,7 +114,27 @@ if (in_array("vc", $steps))
 	}
 
 	//variant calling with multi-sample pipeline
-	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps vc", true);	
+	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps vc", true); 
+	
+	//UPD detection
+	$upd_file = "$out_folder/trio_upd.tsv";
+	$args_upd = [
+		"-in {$out_folder}/all.vcf.gz",
+		"-c {$sample_c}",
+		"-f {$sample_f}",
+		"-m {$sample_m}",
+		"-out {$upd_file}",
+		];
+	$c_cnvs = substr($c, 0, -4)."_cnvs.tsv";
+	if (file_exists($c_cnvs))
+	{
+		$args_upd[] = "-exclude {$c_cnvs}";
+	}
+	else
+	{
+		trigger_error("Child CNV file not found for UPD detection: {$c_cnvs}", E_USER_WARNING);
+	}
+	$parser->exec(get_path("ngs-bits")."UpdHunter", implode(" ", $args_upd), true);
 }
 
 //annotation
@@ -130,7 +155,7 @@ if (in_array("an", $steps))
 	//annotation with multi-sample pipeline
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps an", true);	
 	
-	//parse GSvar file - exract interesting variants and statistics
+	//parse GSvar file - extract interesting variants and statistics
 	$vars_high_depth = 0;
 	$vars_mendelian_error = 0;
 	$vars_rare = 0;
@@ -139,10 +164,6 @@ if (in_array("an", $steps))
 	$vars_hemizygous = 0;
 	$vars_comphet = 0;
 	$vars_hemizygous_chrx = 0;
-		
-	$sample_c = basename($c, ".bam");
-	$sample_f = basename($f, ".bam");
-	$sample_m = basename($m, ".bam");
 	
 	$annotations = array();
 	$genes_comp_mother = array();

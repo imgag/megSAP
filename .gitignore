@@ -36,6 +36,7 @@
 /test/data_trio/*.vcf.gz
 /test/data_trio/*.vcf.gz.tbi
 /test/data_trio/*_special.tsv
+/test/data_trio/*_upd.tsv
 
 /test/data_multi/*.GSvar
 /test/data_multi/*.log
