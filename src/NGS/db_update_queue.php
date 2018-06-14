@@ -94,7 +94,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 	$queues = explode(",", get_path("queues_default"));
 	if($high_priority)
 	{
-		$queues = array_merge($queues, explode(",", get_path("queues_high_priority")));
+		$queues = explode(",", get_path("queues_high_priority"));
 	}
 	
 	//slots to use
