@@ -1,5 +1,5 @@
 Starting job 2 (single sample)
-	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /mnt/share/data//sge/megSAP_sge_job_2.err -o /mnt/share/data//sge/megSAP_sge_job_2.out -q default_srv016,default_srv017,default_srv018,priority_srv018
+	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /mnt/share/data//sge/megSAP_sge_job_2.err -o /mnt/share/data//sge/megSAP_sge_job_2.out -q default_srv018,priority_srv018
 	PIP: php [megSAP]/src/Pipelines/analyze.php  -folder /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/ -name DX181109_01 --log /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/analyze_20000101000000.log
 Canceling job 3 (single sample)
 	Canceled: [canceled SGE job 999002]
