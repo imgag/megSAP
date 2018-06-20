@@ -35,6 +35,10 @@ C61		Bösartige Neubildung der Prostata	Malignant neoplasm of prostate	PRAD
 C69		Bösartige Neubildung des Auges und der Augenanhangsgebilde	Malignant neoplasm of eye and adnexa	EY
 C69.3		Chorioidea	Choroid	UVM
 C69.9		Auge, nicht näher bezeichnet	Eye, unspecified	EY
+C70		Bösartige Neubildung der Meningen	Malignant neoplasm of meninges	MEN
+C70.0		Hirnhäute	Cerebral meninges	MEN
+C70.1		Rückenmarkhäute	Spinal meninges	MEN
+C70.9		Meningen, nicht näher bezeichnet	Meninges, unspecified	MEN
 C71		Bösartige Neubildung des Gehirns	Malignant neoplasm of brain	CNS
 C71.6		Zerebellum	Cerebellum	CNS
 C71.8		Gehirn, mehrere Teilbereiche überlappend	Overlapping lesion of brain	G
