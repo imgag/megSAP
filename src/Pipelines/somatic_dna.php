@@ -253,7 +253,7 @@ if (!$single_sample)
 	}
 	else
 	{
-		$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in $t_bam $n_bam -mode bam -max_snps 4000", true);
+		$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in $t_bam $n_bam -mode bam -max_snps 4000", true);
 		$correlation = explode("\t", $output[0][1])[3];
 		if ($correlation < 0.8)
 		{

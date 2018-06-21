@@ -188,7 +188,7 @@ if (in_array("co", $process) && ($rna_tum_available || $rna_ref_available))
 	}
 	else if ($rna_tum_available)
 	{
-		$output = $parser->exec(get_path("ngs-bits")."SampleCorrelation", "-in {$t_dna_bam} {$t_rna_bam} -mode bam -max_snps 4000", true);
+		$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$t_dna_bam} {$t_rna_bam} -mode bam -max_snps 4000", true);
 		$correlation = explode("\t", $output[0][1])[3];
 		if ($correlation < 0.8)
 		{
