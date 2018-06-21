@@ -40,6 +40,10 @@ foreach($tmp as $line)
 	}
 }
 print "##Genotypes of sample: ".implode(" ", $genos)."\n";
+if (count($genos)==0)
+{
+	trigger_error("Found not genotypes for sample '{$sample}' file '{$file}'!", E_USER_ERROR);
+}
 
 //search in other files
 list($files) = exec2("find $folder -name '*_{$set}_converted.tsv'");
