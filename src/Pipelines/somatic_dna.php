@@ -273,7 +273,7 @@ if($include_germline && !$single_sample)
 		"-correction_n"
 	];
 	
-	$parser->execTool("Pipelines/analyze.php", "-steps vc,an,cn ".implode(" ", $args));
+	$parser->execTool("Pipelines/analyze.php", "-steps vc,an,db,cn ".implode(" ", $args));
 }
 
 // variant calling
@@ -599,7 +599,7 @@ if (in_array("ci", $steps))
 	$db_hosts = get_path("db_host",false);
 	if(!array_key_exists("GL8",$db_hosts))
 	{
-		trigger_error("No credentials for Genlab db found. Using generic cancertype CANCER",E_USER_WARNING);
+		trigger_error("Warning: No credentials for Genlab db found. Using generic cancertype CANCER",E_USER_WARNING);
 		$cancer_type = "CANCER";
 	}
 	else
@@ -642,7 +642,7 @@ if (in_array("ci", $steps))
 			if(!empty($result)) $hpo_diagnosis = $result[0]['HPOTERM1'];
 			if(empty($icd10_diagnosis))
 			{
-				trigger_error("There is no ICD10 diagnosis set in Genlab.",E_USER_WARNING);
+				trigger_error("Warning: There is no ICD10 diagnosis set in Genlab.",E_USER_WARNING);
 			}
 			
 			$dictionary = Matrix::fromTSV(repository_basedir()."/data/dbs/Ontologies/icd10_cgi_dictionary.tsv");
@@ -673,9 +673,15 @@ if (in_array("ci", $steps))
 						$cancer_type = $hpo_cgi_dictionary[$hpo_diagnosis];
 					}
 				}
-			} else {
+			} 
+			elseif($icd10_diagnosis != "")
+			{
 				trigger_error("Could not assign CGI Cancer acronym to ICD10-diagnosis '$icd10_diagnosis'. Using standard cancertype CANCER instead.",E_USER_WARNING);
 				$cancer_type = "CANCER";
+			}
+			else
+			{
+				trigger_error("Could not find ICD10 diagnosis '$icd10_diagnosis' in icd10_cgi_dictionary.tsv. Aborting." ,E_USER_ERROR);
 			}
 		}
 	}

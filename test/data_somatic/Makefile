@@ -51,6 +51,7 @@ case2_run:
 	    -o_folder out_case2 \
 	    -steps ma,vc,cn,an,ci,msi \
 	    -reduce_variants_filter \
+		-cancer_type CANCER \
 	    -t_sys system_pair.ini -n_sys system_pair.ini \
 	    --log out_case2/GS110168-GS110169.log
 
@@ -90,6 +91,7 @@ case3_run:
 	    -steps vc,cn,an,ci \
 	    -t_sys system_pair.ini -n_sys system_pair.ini \
 	    -freebayes \
+		-cancer_type CANCER \
 	    --log out_case3/GS110168-GS110169.log
 
 case3_diff:
@@ -122,6 +124,7 @@ case4_run:
 	    -steps ma,vc,cn,an,ci \
 	    -t_sys system_pair.ini -n_sys system_pair.ini \
 	    -include_germline \
+		-cancer_type CANCER \
 	    --log out_case4/Tumor2-Normal2.log
 	
 case4_diff:

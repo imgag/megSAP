@@ -90,27 +90,9 @@ if (in_array("vc", $steps))
 	//check gender of parents
 	if (!$no_check)
 	{
-		list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $f", true);
-		$gender = trim(substr($stdout[count($stdout)-1], 7));
-		if (starts_with($gender,"unknown"))
-		{
-			$parser->log("Could not check gender of father. It could not be determine from BAM file.");
-		}
-		else if (!starts_with($gender,"male"))
-		{
-			trigger_error("Gender of father is not male: '$gender'!", E_USER_ERROR);
-		}
-		
-		list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $m", true);
-		$gender = trim(substr($stdout[count($stdout)-1], 7));
-		if (starts_with($gender,"unknown"))
-		{
-			$parser->log("Could not check gender of mother. It could not be determine from BAM file.");
-		}
-		else if (!starts_with($gender,"female"))
-		{
-			trigger_error("Gender of mother is not female: '$gender'!", E_USER_ERROR);
-		}
+        //check gender of father
+        $parser->execTool("NGS/db_check_gender.php", " -in $f -pid $sample_f -gender male");
+        $parser->execTool("NGS/db_check_gender.php", " -in $m -pid $sample_m -gender female");
 	}
 
 	//variant calling with multi-sample pipeline
