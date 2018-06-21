@@ -46,3 +46,7 @@ C74		Bösartige Neubildung der Nebenniere	Malignant neoplasm of adrenal gland	AG
 C74.9		Nebenniere, nicht näher bezeichnet	Adrenal gland, unspecified	AG
 C91		Lymphatische Leukämie	Lymphoid leukaemia	LL
 C91.0		Akute lymphatische Leukämie [ALL]	Acute lymphoblastic leukaemia [ALL]	ALL
+D32		Gutartige Neubildung der Meningen	Benign neoplasm of meninges	MEN
+D32.0		Hirnhäute	Benign neoplasm of cerebral meninges	MEN
+D32.1		Rückenmarkhäute	Benign neoplasm of spinal meninges	MEN
+D32.9		Meningen, nicht näher bezeichnet	Benign neoplasm of meninges, unspecified	MEN
