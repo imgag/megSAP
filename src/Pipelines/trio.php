@@ -403,7 +403,7 @@ if (in_array("an", $steps))
 }
 
 //copy-number
-if (in_array("an", $steps))
+if (in_array("cn", $steps))
 {
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps cn", true);	
 }
