@@ -273,7 +273,13 @@ if($include_germline && !$single_sample)
 		"-correction_n"
 	];
 	
-	$parser->execTool("Pipelines/analyze.php", "-steps vc,an,db,cn ".implode(" ", $args));
+	$steps_parameter = "-steps vc,an,cn";
+	//If not in NGSD_TEST enable database import of variants
+	if(db_is_enabled("NGSD")) $steps_parameter .= ",db";
+	
+	$parameters = $steps_parameter . " " . implode(" ", $args);
+	
+	$parser->execTool("Pipelines/analyze.php", $parameters);
 }
 
 // variant calling

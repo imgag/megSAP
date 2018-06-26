@@ -87,8 +87,8 @@ if (in_array("vc", $steps))
 		}
 	}
 	
-	//check gender of parents
-	if (!$no_check)
+	//check gender of parents if NGSD is available and check is not disabled
+	if (!$no_check && db_is_enabled("NGSD"))
 	{
         //check gender of father
         $parser->execTool("NGS/db_check_gender.php", " -in $f -pid $sample_f -gender male");
