@@ -84,8 +84,8 @@ if($backup && in_array("ma", $steps))
 if (in_array("ma", $steps))
 {
 	//determine input FASTQ files
-	$in_for = $folder."/*_R1_001.fastq.gz";
-	$in_rev = $folder."/*_R2_001.fastq.gz";
+	$in_for = $folder."/*_R1_00?.fastq.gz";
+	$in_rev = $folder."/*_R2_00?.fastq.gz";
 	
 	//find FastQ input files
 	$files1 = glob($in_for);
