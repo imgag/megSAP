@@ -415,14 +415,14 @@ function time_readable($duration)
 	//hours
 	if ($duration>=3600)
 	{
-		$output[] = number_format($duration/3600, 0)."h";
+		$output[] = intdiv($duration, 3600)."h";
 		$duration %= 3600;
 	}
 	
 	//minutes
 	if (count($output)!=0 || $duration>=60)
 	{
-		$output[] = number_format($duration/60, 0)."m";
+		$output[] = intdiv($duration, 60)."m";
 		$duration %= 60;
 	}
 	
