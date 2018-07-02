@@ -57,9 +57,9 @@ start_test("time_readable");
 
 check(time_readable(15.33333), "15.3333s");
 check(time_readable(60), "1m 0s");
-check(time_readable(115.33333), "2m 55s");
+check(time_readable(115.33333), "1m 55s");
 check(time_readable(3600), "1h 0m 0s");
-check(time_readable(10015.33333), "3h 47m 55s");
+check(time_readable(10015.33333), "2h 46m 55s");
 
 end_test();
 
