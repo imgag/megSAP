@@ -67,45 +67,10 @@ if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
 	}
 	else
 	{
-		// merge read and index files
-		$merged_index = $parser->tempFile("_merged_index.fastq.gz");
-		$merged1 = $parser->tempFile("_merged1.fastq.gz");
-		$merged2 = $parser->tempFile("_merged2.fastq.gz");
-
-		//TODO refactor merge or pass
-		if (count($index_files) == 1)
-		{
-			$merged_index = implode(" ", $index_files);
-		}
-		else
-		{
-			$parser->exec("zcat", implode(" ", $index_files) . " > $merged_index", true);
-		}
-
-		if (count($in_for) == 1)
-		{
-			$merged1 = implode(" ", $in_for);
-		}
-		else
-		{
-			$parser->exec("zcat", implode(" ", $in_for) . " > $merged1", true);
-		}
-
-		if (count($in_rev) == 1)
-		{
-			$merged2 = implode(" ", $in_rev);
-		}
-		else
-		{
-			$parser->exec("zcat", implode(" ", $in_rev) . " > $merged2", true);
-		}
-
 		// add barcodes to header
 		$merged1_bc = $parser->tempFile("_bc1.fastq.gz");
-		$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $merged1 -bc1 $merged_index -o $merged1_bc",true);
 		$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
-		$parser->exec("python ".repository_basedir()."/src/NGS/barcode_to_header.py", "-i $merged2 -bc1 $merged_index -o $merged2_bc",true);
-
+		$parser->exec(get_path("ngs-bits")."FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $index_files)." -out1 $merged1_bc -out2 $merged2_bc", true);
 		// run SeqPurge
 		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $merged1_bc -in2 $merged2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);
 
