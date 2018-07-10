@@ -874,7 +874,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			}
 
 			// import variants (not for WGS)
-			if ($t_sys_ini['type'] !== "WGS")
+			if (file_exists($som_gsvar) && $t_sys_ini['type'] !== "WGS")
 			{
 				$parser->execTool("NGS/db_import_variants.php", "-id {$t_id}-{$n_id} -var {$som_gsvar} -build ".$t_sys_ini['build']." -force -mode somatic");
 			}
