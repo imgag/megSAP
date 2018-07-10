@@ -703,7 +703,9 @@ function sort_vcf_comments($comments_to_sort)
 	$sorted = array();
 	foreach($groups as $group => $comments)
 	{
-		if ($group!="other") //"other" contains fileformat and similar headers, which must not change the order!
+		//"other" contains fileformat and similar headers, which must not change order!
+		//"#SAMPLE" order must not change, otherwise the order of files shown in IGV is random
+		if ($group!="other" && $group!="#SAMPLE") 
 		{
 			sort($comments, SORT_FLAG_CASE|SORT_STRING);
 		}
