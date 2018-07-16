@@ -123,16 +123,9 @@ if (in_array("vc", $steps))
 if (in_array("an", $steps))
 {
 	//determine gender of child
-	$gender = "n/a";
-	list($stdout) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c", true);
-	foreach($stdout as $line)
-	{
-		if (starts_with($line, "gender:"))
-		{
-			list(, $gender) = explode(":", $line);
-		}
-	}
-	$child_is_male = trim($gender)=="male";
+	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c", true);
+	$gender = explode("\t", $stdout[1])[1];	
+	$child_is_male = $gender=="male";
 	
 	//annotation with multi-sample pipeline
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps an", true);	

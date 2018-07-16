@@ -600,19 +600,17 @@ if (in_array("ci", $steps))
 {
 	// add QCI output
 	$parser->execTool("Tools/converter_vcf2qci.php", "-in $som_vann -out $som_vqci -pass");
-
+	
+	// get cancer type from GenLab8 for diagnostic samples
 	$db_ngsd = DB::getInstance("NGSD");
-	$sample_info_normal = get_processed_sample_info($db_ngsd,$n_id);
-	$sample_info_tumor = get_processed_sample_info($db_ngsd,$t_id);
-	$is_diagnostic = ($sample_info_normal["project_type"] == "diagnostic") | ($sample_info_tumor["project_type"] == "diagnostic");
-
-	//check whether genlab credentials are available
-	$db_hosts = get_path("db_host",false);
-	if($is_diagnostic)
+	$t_info = get_processed_sample_info($db_ngsd, $t_id, false);
+	if(!is_null($t_info) && $t_info["project_type"] == "diagnostic")
 	{
+		//check whether genlab credentials are available
+		$db_hosts = get_path("db_host",false);
 		if(!array_key_exists("GL8",$db_hosts))
 		{
-			trigger_error("Warning: No credentials for Genlab db found. Using generic cancertype CANCER",E_USER_WARNING);
+			trigger_error("Warning: No credentials for Genlab db found. Using generic cancer type 'CANCER'!", E_USER_WARNING);
 			$cancer_type = "CANCER";
 		}
 		else
@@ -698,8 +696,12 @@ if (in_array("ci", $steps))
 				}
 			}
 		}
-	} elseif(!isset($cancer_type)) $cancer_type = "CANCER"; //set cancer type to CANCER if not set for research samples
-
+	}
+	else if (!isset($cancer_type)) //set cancer type to CANCER if not set for research samples
+	{
+		$cancer_type = "CANCER";
+	}
+	
 	$parameters = "";
 	if(file_exists($som_vann))
 	{
