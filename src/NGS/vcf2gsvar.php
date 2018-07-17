@@ -208,6 +208,11 @@ while(!feof($handle))
 			fwrite($handle_out, trim($line)."\n");
 		}
 		
+		if (starts_with($line, "##PIPELINE="))
+		{
+			fwrite($handle_out, trim($line)."\n");
+		}
+		
 		continue;
 	}
 	//after last header line, write our header

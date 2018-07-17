@@ -21,6 +21,8 @@ Similar to VCF format, the GSvar format can contain meta data in header lines th
 - The `##ANALYSISTYPE=` header specifies the analysis type. It can be present only once. Valid analysis types are:  
 	`GERMLINE_SINGLESAMPLE`, `GERMLINE_MULTISAMPLE`,  `GERMLINE_TRIO`,  `SOMATIC_SINGLESAMPLE`,  `SOMATIC_PAIR`  
 
+- The `##PIPELINE=` header specifies the analysis pipeline used to perform the analysis.
+	
 - The `##SAMPLE=` header specifies the analyzed sample name(s) and can contain additional annotations. It can be present several times.   
 
 - The `##DESCRIPTION=` header describes columns. It can be present several times.    

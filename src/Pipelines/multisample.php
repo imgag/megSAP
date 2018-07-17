@@ -167,6 +167,7 @@ if (in_array("an", $steps))
 			//add multi-sample comments
 			fwrite($h2, "##FORMAT=<ID=MULTI,Number=.,Type=String,Description=\"Multi-sample genotype information (genotype, depth, alternate base observations).\">\n");		
 			fwrite($h2, "##ANALYSISTYPE=GERMLINE_MULTISAMPLE\n");
+			fwrite($h2, "##PIPELINE=".repository_revision(true)."\n");
 			foreach($bams as $bam)
 			{
 				fwrite($h2, gsvar_sample_header($names[$bam], array("DiseaseStatus"=>$status[$bam])));

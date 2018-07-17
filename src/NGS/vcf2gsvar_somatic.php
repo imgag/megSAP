@@ -196,6 +196,7 @@ if($count>0)
 fwrite($handle_out, implode("\n",$filters)."\n");
 fwrite($handle_out, implode("\n",$samples)."\n");
 fwrite($handle_out, "##ANALYSISTYPE=SOMATIC_".($tumor_only ? "SINGLESAMPLE" : "PAIR")."\n");
+fwrite($handle_out, "##PIPELINE=".repository_revision(true)."\n");
 fwrite($handle_out, "#chr\tstart\tend\tref\tobs");
 foreach($anno_cols as $entry)
 {
