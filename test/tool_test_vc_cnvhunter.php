@@ -15,7 +15,7 @@ copy(data_folder().$name."_in_nor.cov", $cov_nor);
 $cov_folder = output_folder()."/cov_folder/";
 exec2("mkdir -p $cov_folder");
 exec2("rm -rf $cov_folder/*");
-exec2("tar xzf ".data_folder().$name."_cov_files.tgz -C $cov_folder");
+exec2("tar -m -xzf ".data_folder().$name."_cov_files.tgz -C $cov_folder");
 
 //test somatic
 $tmp = output_folder()."debug";
