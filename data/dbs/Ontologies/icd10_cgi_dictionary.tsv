@@ -7,6 +7,7 @@ C17.3		Meckel-Divertikel	Meckel diverticulum	SIN
 C17.8		Dünndarm, mehrere Teilbereiche überlappend	Overlapping lesion of small intestine	SIN
 C17.9		Dünndarm, nicht näher bezeichnet	Small intestine, unspecified	SIN
 C18		Bösartige Neubildung des Kolons	Malignant neoplasm of colon	COC
+C18.4		Colon transversum	Transverse colon	COC
 C18.7		Colon sigmoideum	Sigmoid colon	COC
 C20		Bösartige Neubildung des Rektums	Malignant neoplasm of rectum	REC
 C25.9		Pankreas, nicht näher bezeichnet	Pancreas, unspecified	PA
@@ -26,6 +27,7 @@ C44.9		Bösartige Neubildung der Haut, nicht näher bezeichnet	Malignant neoplas
 C49		Bösartige Neubildung sonstigen Bindegewebes und anderer Weichteilgewebe	Malignant neoplasm of other connective and soft tissue	S
 C49.3		Bindegewebe und andere Weichteilgewebe des Thorax	Connective and soft tissue of thorax	S
 C49.6		Bindegewebe und andere Weichteilgewebe des Rumpfes, nicht näher bezeichnet	Connective and soft tissue of trunk, unspecified	S
+C50		Bösartige Neubildung der Brustdrüse [Mamma]	Malignant neoplasm of breast	BRCA
 C51		Bösartige Neubildung der Vulva	Malignant neoplasm of vulva	SCC
 C51.1		Labium minus	Labium minus	SCC
 C53		Bösartige Neubildung der Cervix uteri	Malignant neoplasm of cervix uteri	CER
