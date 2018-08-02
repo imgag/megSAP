@@ -51,8 +51,16 @@ while ($line = fgets($handle_gtf))
     // list of key-value pairs (strings)
     foreach (preg_split("/;( )?/", $attributes, NULL, PREG_SPLIT_NO_EMPTY) as $kv)
     {
-        list($k, $v) = preg_split("/[\s]+/", $kv, NULL, PREG_SPLIT_NO_EMPTY);
-        $attrs[$k] = preg_replace('/(^"|"$)/', "", $v);
+		$ret = preg_split("/ /", $kv, 2, PREG_SPLIT_NO_EMPTY);
+		if ($ret !== FALSE)
+		{
+			list($k, $v) = $ret;
+			$attrs[$k] = preg_replace('/(^"|"$)/', "", $v);
+		}
+		else
+		{
+			var_dump($kv);
+		}
     }
 
     if (array_key_exists($keyId, $attrs))
