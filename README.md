@@ -16,6 +16,7 @@ If you are interested to join the effort, please contact [Marc Sturm](https://gi
 ## ChangeLog
 
 * 20.07.2018: Updated ABRA2 version (attention: this changes indel positions - see ABRA2 2.06 changelog) 
+* 17.07.2018: Added '##PIPELINE' header line to GSvar files to keep track of the megSAP version the file was created with.
 * 11.07.2018: Added UPD detection for trios.
 * 22.04.2018: NGSD import of germline variants restricted to variants with AF<5% to improve performance.
 * 20.04.2018: NGSD now handles analysis job queuing and execution on SGE.
@@ -103,6 +104,7 @@ Documentation about the different analysis pipelines can be found here:
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+
 
 
 
