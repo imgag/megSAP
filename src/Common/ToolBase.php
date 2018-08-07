@@ -633,7 +633,7 @@ class ToolBase
 		//tools with --version argument
 		$output = array();
 		exec($command." --version 2>&1", $output, $return);
-		if ($return==0 && preg_match("/[0-9]+[\.-][0-9\.]+[0-9A-Za-z_-]*$/", $output[0], $hits))
+		if ($return==0 && preg_match("/[0-9]+[\.-_][0-9\.]+[0-9A-Za-z_-]*$/", $output[0], $hits))
 		{
 			$version = $hits[0];
 		}
