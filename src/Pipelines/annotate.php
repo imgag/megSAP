@@ -113,8 +113,11 @@ if ($sys['type']=="WGS" && ($sys['build']=="hg19" || $sys['build']=="GRCh37"))
 	$roi_with_mito = $parser->tempFile(".bed");
 	$parser->exec(get_path("ngs-bits")."BedAdd", "-in ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed {$tmp} -out {$roi_with_mito}", false);
 	$parser->exec(get_path("ngs-bits")."BedMerge", "-in {$roi_with_mito} -out {$roi_with_mito}", false);
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $varfile_full -out $varfile -reg {$roi_with_mito}", true);
-	$parser->exec(get_path("ngs-bits")."VariantFilterAnnotations", "-in $varfile_full -out $varfile_rare -max_af 0.01", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$varfile_full} -out {$varfile} -reg {$roi_with_mito}", true);
+	$tmp2 = $parser->tempFile(".txt");
+	file_put_contents($tmp2, "Allele frequency\tmax_af=1.0");
+	$parser->exec(get_path("ngs-bits")."VariantFilterAnnotations", "-in {$varfile_full} -out {$varfile_rare} -filters {$tmp2}", true);
+	$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in {$varfile_rare} -out {$varfile_rare} -psname {$out_name}", true);
 }
 
 //annotated variant frequencies from NGSD (not for somatic)

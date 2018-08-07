@@ -31,9 +31,6 @@ $parser->addInfile("system",  "Processing system INI file used for all samples (
 $steps_all = array("vc", "an", "cn");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, an=annotation, cn=copy-number analysis.", true, implode(",", $steps_all));
 $parser->addFlag("no_check", "Skip gender check of parents and parent-child correlation check (otherwise done before variant calling)");
-$parser->addInt("min_dp", "Minimum depth in all three samples.", true, 10);
-$parser->addFloat("max_af", "Maximum allele frequency in 1000G, ExAC and gnomAD database.", true, 0.01);
-$parser->addInt("max_ngsd", "Maximum occurances in NGSD with same genotype as child.", true, 20);
 
 extract($parser->parse($argv));
 
@@ -122,27 +119,13 @@ if (in_array("vc", $steps))
 //annotation
 if (in_array("an", $steps))
 {
-	//determine gender of child
-	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c", true);
-	$gender = explode("\t", $stdout[1])[1];	
-	$child_is_male = $gender=="male";
-	
 	//annotation with multi-sample pipeline
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps an", true);	
 	
-	//parse GSvar file - extract interesting variants and statistics
+	//determine mendelian error rate
+	$vars_all = 0;
 	$vars_high_depth = 0;
 	$vars_mendelian_error = 0;
-	$vars_rare = 0;
-	$vars_denovo = 0;
-	$vars_recessive = 0;
-	$vars_hemizygous = 0;
-	$vars_comphet = 0;
-	$vars_hemizygous_chrx = 0;
-	
-	$annotations = array();
-	$genes_comp_mother = array();
-	$genes_comp_father = array();
 	$gsvar = "$out_folder/trio.GSvar";
 	$h = fopen($gsvar, "r");
 	while(!feof($h))
@@ -167,174 +150,63 @@ if (in_array("an", $steps))
 			$i_f = determine_index($sample_f, $parts);
 			$i_m = determine_index($sample_m, $parts);
 			$i_quality = determine_index("quality", $parts);
-			$i_1000g = determine_index("1000g", $parts);
-			$i_exac = determine_index("ExAC", $parts);
-			$i_gnomad = determine_index("gnomAD", $parts);
-			$i_ngsd_hom = determine_index("ihdb_allsys_hom", $parts);
-			$i_ngsd_het = determine_index("ihdb_allsys_het", $parts);
-			$i_class = determine_index("classification", $parts);
-			$i_filter = determine_index("filter", $parts);
-			$i_genes = determine_index("gene", $parts);
 			
 			continue;
 		}
 		
+		++$vars_all;
+		
 		//parse content lines
 		$parts = explode("\t", $line);
 		$chr = $parts[0];
-		$chr_is_autosome = $chr!="chrX" && $chr!="chrY" && $chr!="chrMT";
 		$geno_c = $parts[$i_c];
 		$geno_f = $parts[$i_f];
 		$geno_m = $parts[$i_m];
 		
 		//count mendelian errors
-		if (!contains($parts[$i_quality], "low_DP") && $chr_is_autosome)
+		if ($chr!="chrX" && $chr!="chrY" && $chr!="chrMT") //only for autosomes
 		{
-			++$vars_high_depth;
+			//only for variants with DP>=20
+			$high_depth = true;
+			$q_parts = explode(";", $parts[$i_quality]);
+			foreach($q_parts as $q_part)
+			{
+				if (starts_with($q_part, "DP="))
+				{
+					$dps = explode(",", substr($q_part, 3));
+					foreach($dps as $dp)
+					{
+						if ($dp<20) $high_depth = false;
+					}
+					break;
+				}
+			}
 			
-			//hom, hom => het/wt
-			if ($geno_f=="hom" && $geno_m=="hom" && $geno_c!="hom") $vars_mendelian_error += 1;
-			//hom, het => wt
-			else if ($geno_f=="hom" && $geno_m=="het" && $geno_c=="wt") $vars_mendelian_error += 1;
-			else if ($geno_f=="het" && $geno_m=="hom" && $geno_c=="wt") $vars_mendelian_error += 1;
-			//het, wt  => hom
-			else if ($geno_f=="het" && $geno_m=="wt" && $geno_c=="hom") $vars_mendelian_error += 1;
-			else if ($geno_f=="wt" && $geno_m=="het" && $geno_c=="hom") $vars_mendelian_error += 1;
-			//wt, wt  => het/hom
-			else if ($geno_f=="wt" && $geno_m=="wt" && $geno_c!="wt") $vars_mendelian_error += 1;
-		}
-		
-		//skip WT variants
-		if ($geno_c=="wt") continue;
-		
-		//skip non-rare variants in public databases
-		$skip = false;
-		if ($parts[$i_1000g]>$max_af || $parts[$i_exac]>$max_af || $parts[$i_gnomad]>$max_af) $skip = true;
-		
-		//skip variant with too high NGSD counts
-		if ($geno_c=="hom" && $parts[$i_ngsd_hom]>$max_ngsd) $skip = true;
-		if ($geno_c=="het" && $parts[$i_ngsd_het]>$max_ngsd) $skip = true;
-		
-		//skip low depth variant
-		$quality = explode(";", $parts[$i_quality]);
-		foreach($quality as $entry)
-		{
-			if (starts_with($entry, "DP="))
+			if ($high_depth)
 			{
-				$depths = explode(",", substr($entry, 3));
-				if (min($depths)<$min_dp) $skip = true;
-			}
-		}
-		
-		//make sure we consider class 3/4/5 variant
-		$class = $parts[$i_class];
-		if ($class=="1" || $class=="2") $skip = true;
-		$class_ge_3 = $class=="3" || $class=="4" || $class=="5";
-		
-		//skip non-interesting variants
-		if ($skip && !$class_ge_3) continue;
-		++$vars_rare;
-		
-		$tag = $parts[0].":".$parts[1]." ".$parts[3].">".$parts[4];
-		
-		//determine  allele frquency of each sample
-		foreach($quality as $entry)
-		{
-			if (starts_with($entry, "AF="))
-			{
-				$afs = explode(",", substr($entry, 3));
-				$i_min = min($i_c,$i_f,$i_m);
-				$af_c = $afs[$i_c-$i_min];
-				$af_f = $afs[$i_f-$i_min];
-				$af_m = $afs[$i_m-$i_min];
-			}
-		}
-		
-		//CASE 1: DENOVO
-		if ($geno_c!="wt" && $geno_f=="wt" && $geno_m=="wt" && $af_f<0.05 && $af_m<0.05)
-		{
-			//print "DENOVO: $tag C=$geno_c($af_c) F=$geno_f($af_f) M=$geno_m($af_m) $class ".implode(",", $quality)."\n";
-			$annotations[$tag][] = "trio_denovo";
-			++$vars_denovo;
-		}
-		
-		//CASE 2: RECESSIVE
-		if (!$child_is_male || $chr_is_autosome) //skip chrX/Y for males
-		{
-			if ($geno_c=="hom" && $geno_f=="het" && $geno_m=="het")
-			{
-				//print "RECESSIVE: $tag C=$geno_c($af_c) F=$geno_f($af_f) M=$geno_m($af_m) $class ".implode(",", $quality)."\n";
-				$annotations[$tag][] = "trio_recessive";
-				++$vars_recessive;
-			}
-		}
-		
-		//CASE 3.1: HEMIZYGOUS
-		if ($chr_is_autosome)
-		{
-			if (($geno_c=="hom" && $geno_f=="het" && $geno_m=="wt")
-				||
-				($geno_c=="hom" && $geno_f=="wt" && $geno_m=="het"))
-			{
-				//print "HEMIZYGOUS: $tag C=$geno_c($af_c) F=$geno_f($af_f) M=$geno_m($af_m) $class ".implode(",", $quality)."\n";
-				$annotations[$tag][] = "trio_hemizygous";
-				++$vars_hemizygous;
-			}
-		}
-		
-		//CASE 3.2: HEMIZYGOUS CHRX
-		if ($chr=="chrX" && $child_is_male)
-		{
-			if ($geno_c=="hom" && $geno_f=="wt" && $geno_m=="het")
-			{
-				//print "HEMIZYGOUS_CHRX: $tag C=$geno_c($af_c) F=$geno_f($af_f) M=$geno_m($af_m) $class ".implode(",", $quality)."\n";
-				$annotations[$tag][] = "trio_hemizygous_chrX";
-				++$vars_hemizygous_chrx;
-			}
-		}
-		
-		//CASE 4: COMPOUND-HETEROZYGOUS (mark genes)
-		if ($chr_is_autosome)
-		{
-			if (contains($line, ":HIGH:") || contains($line, ":MODERATE:") || contains($line, ":LOW:")) //filter for LOW/MODERATE/HIGH impact - otherwise we get too many UTR and intronic variants
-			{
+				++$vars_high_depth;
 				
-				if ($geno_c=="het" && $geno_f=="het" && $geno_m=="wt")
-				{
-					$genes = explode(",", $parts[$i_genes]);
-					foreach($genes as $gene)
-					{
-						$genes_comp_father[$gene][] = $tag;
-					}
-				}
-				
-				if ($geno_c=="het" && $geno_f=="wt" && $geno_m=="het")
-				{
-					$genes = explode(",", $parts[$i_genes]);
-					foreach($genes as $gene)
-					{
-						$genes_comp_mother[$gene][] = $tag;
-					}
-				}
+				//hom, hom => het/wt
+				if ($geno_f=="hom" && $geno_m=="hom" && $geno_c!="hom") $vars_mendelian_error += 1;
+				//hom, het => wt
+				else if ($geno_f=="hom" && $geno_m=="het" && $geno_c=="wt") $vars_mendelian_error += 1;
+				else if ($geno_f=="het" && $geno_m=="hom" && $geno_c=="wt") $vars_mendelian_error += 1;
+				//het, wt => hom
+				else if ($geno_f=="het" && $geno_m=="wt" && $geno_c=="hom") $vars_mendelian_error += 1;
+				else if ($geno_f=="wt" && $geno_m=="het" && $geno_c=="hom") $vars_mendelian_error += 1;
+				//wt, wt  => het/hom
+				else if ($geno_f=="wt" && $geno_m=="wt" && $geno_c!="wt") $vars_mendelian_error += 1;
 			}
 		}
 	}
+	print "Overall variants: {$vars_all}\n";
+	print "Medelian errors: ".number_format(100.0*$vars_mendelian_error/$vars_high_depth, 2)."% (of {$vars_high_depth} high-depth, autosomal variants)\n";
 	
-	//CASE 4: COMPOUND-HETEROZYGOUS (intersect genes and mark variants)
-	$genes_inter = array_intersect(array_keys($genes_comp_father), array_keys($genes_comp_mother));
-	foreach($genes_inter as $gene)
-	{
-		foreach($genes_comp_father[$gene] as $tag)
-		{
-			$annotations[$tag][] = "trio_comp_f";
-			++$vars_comphet;
-		}
-		foreach($genes_comp_mother[$gene] as $tag)
-		{
-			$annotations[$tag][] = "trio_comp_m";
-			++$vars_comphet;
-		}
-	}
+	//determine gender of child
+	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c", true);
+	$gender_data = explode("\t", $stdout[1])[1];
+	if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
+	print "Gender of child (from data): {$gender_data}\n";
 	
 	//write output file
 	$tmp = $parser->tempFile(".GSvar");
@@ -345,38 +217,37 @@ if (in_array("an", $steps))
 		$line = trim(fgets($h));
 		if ($line=="") continue;
 		
+		//compare child gender from data with gender from header
+		if (starts_with($line, "##SAMPLE=<ID={$sample_c},"))
+		{
+			//determine gender from header
+			$parts = explode(",", substr($line, 10, -1));
+			foreach($parts as $part)
+			{
+				if (starts_with($part, "Gender="))
+				{
+					list(, $gender_header) = explode("=", $part);
+				}
+			}
+			print "Gender of child (from header): {$gender_data}\n";
+			
+			//deviating => error
+			if ($gender_data!=$gender_header && $gender_header!="n/a" && $gender_data!="n/a")
+			{
+				trigger_error("Gender of child from sample header '{$gender_header}' deviates from gender from data '{$gender_data}'", E_USER_ERROR);
+			}
+				
+			//replace gender in header by gender from data
+			if ($gender_data!=$gender_header)
+			{
+				$line = strtr($line, array("Gender={$gender_header}"=>"Gender={$gender_data}"));
+			}
+		}
+		
 		//update analysis type
 		if (starts_with($line, "##ANALYSISTYPE="))
 		{
 			$line = "##ANALYSISTYPE=GERMLINE_TRIO";
-		}
-		
-		//add filter info lines
-		if (starts_with($line, "#chr"))
-		{
-			fwrite($h2, "##FILTER=trio_denovo=Trio analyis: Variant is de-novo in child.\n");
-			fwrite($h2, "##FILTER=trio_recessive=Trio analyis: Variant is recessively inherited from parents.\n");
-			fwrite($h2, "##FILTER=trio_hemizygous=Trio analyis: Variant is hemizygous.\n");
-			fwrite($h2, "##FILTER=trio_hemizygous_chrX=Trio analyis: Variant is hemizygous (for males on chrX).\n");
-			fwrite($h2, "##FILTER=trio_comp_m=Trio analyis: Variant is compound-heteroygous inherited from mother.\n");
-			fwrite($h2, "##FILTER=trio_comp_f=Trio analyis: Variant is compound-heteroygous inherited from father.\n");			
-		}
-		
-		//add annotations
-		if ($line[0]!="#")
-		{
-			$parts = explode("\t", $line);
-			$tag = $parts[0].":".$parts[1]." ".$parts[3].">".$parts[4];
-			if (isset($annotations[$tag]))
-			{
-				$filters = explode(";", $parts[$i_filter]);
-				foreach($annotations[$tag] as $anno)
-				{
-					$filters[] = $anno;
-				}
-				$parts[$i_filter] = implode(";", $filters);
-				$line = implode("\t", $parts);
-			}
 		}
 		
 		fwrite($h2, "$line\n");
@@ -384,15 +255,6 @@ if (in_array("an", $steps))
 	fclose($h);
 	fclose($h2);
 	$parser->moveFile($tmp, $gsvar);
-	
-	print "Medelian errors: ".number_format(100.0*$vars_mendelian_error/$vars_high_depth, 2)."% (of {$vars_high_depth} high-depth autosomal variants)\n";
-	print "Rare or class 3/4/5 variants: {$vars_rare} (min_dp, max_af, max_ngsd, classification>2)\n";
-	print "\n";
-	print "Denovo variants: {$vars_denovo}\n";
-	print "Recessive variants: {$vars_recessive}\n";
-	print "Compound-heterozygous variants: {$vars_comphet}\n";
-	print "Hemizygous variants: {$vars_hemizygous}\n";
-	print "Hemizygous variants (chrX of males) {$vars_hemizygous_chrx}\n";
 }
 
 //copy-number

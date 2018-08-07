@@ -21,14 +21,5 @@
 ##DESCRIPTION=ClinVar=ClinVar database annotation.
 ##DESCRIPTION=HGMD=HGMD database annotation.
 ##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
-##FILTER=low_DP=Depth less than 20.
-##FILTER=low_MQM=Mean mapping quality of alternate allele less than Q50.
-##FILTER=low_QUAL=Variant quality less than Q30.
-##FILTER=pred_pathogenic=Variant predicted to be pathogenic by one or more tools (conservation or effect prediction).
-##FILTER=pred_pathogenic_3=Variant predicted to be pathogenic by three or more tools (conservation or effect prediction).
 ##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.
-##FILTER=anno_pathogenic_clinvar=Variant annotated to be pathogenic by ClinVar.
-##FILTER=anno_pathogenic_hgmd=Variant annotated to be pathogenic by HGMD.
-##FILTER=anno_high_impact=Variant annotated to have high impact by SnpEff.
-##FILTER=anno_omim=Variant annotated with information from OMIM.
 #chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	ExAC_sub	gnomAD	phyloP	Sift	MetaLR	PolyPhen2	FATHMM	CADD	OMIM	ClinVar	HGMD	COSMIC

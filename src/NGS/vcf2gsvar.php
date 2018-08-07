@@ -143,16 +143,7 @@ if (!$multi)
 
 //write filter descriptions
 $filter_desc = array(
-	array("low_DP", "Depth less than 20."),
-	array("low_MQM", "Mean mapping quality of alternate allele less than Q50."),
-	array("low_QUAL", "Variant quality less than Q30."),
-	array("pred_pathogenic", "Variant predicted to be pathogenic by one or more tools (conservation or effect prediction)."),
-	array("pred_pathogenic_3", "Variant predicted to be pathogenic by three or more tools (conservation or effect prediction)."),
 	array("gene_blacklist", "The gene(s) are contained on the blacklist of unreliable genes."),
-	array("anno_pathogenic_clinvar", "Variant annotated to be pathogenic by ClinVar."),
-	array("anno_pathogenic_hgmd", "Variant annotated to be pathogenic by HGMD."),
-	array("anno_high_impact", "Variant annotated to have high impact by SnpEff."),
-	array("anno_omim", "Variant annotated with information from OMIM."),
 );
 
 //load gencode basic transcripts
@@ -313,14 +304,9 @@ while(!feof($handle))
 	$quality = array();
 	$qual = intval($qual);
 	$quality[] = "QUAL=".$qual;
-	if ($qual<30) $filter[] = "low_QUAL";
 	if (isset($sample["DP"]))
 	{
 		$quality[] = "DP=".$sample["DP"];
-		if (min(explode(",", $sample["DP"]))<20) //comma-separated values in case of multi-sample data
-		{
-			$filter[] = "low_DP";
-		}
 	}
 	if (isset($sample["AO"]) && isset($sample["DP"]))
 	{
@@ -343,7 +329,6 @@ while(!feof($handle))
 	if (isset($info["MQM"])) 
 	{
 		$quality[] = "MQM=".intval($info["MQM"]);
-		if ($info["MQM"]<50) $filter[] = "low_MQM";
 	}
 	
 	//variant details
@@ -403,7 +388,6 @@ while(!feof($handle))
 	}
 	$variant_details = implode(",", array_unique($variant_details));
 	$coding_and_splicing_details =  implode(",", $coding_and_splicing_details);
-	if(contains($coding_and_splicing_details, ":HIGH:")) $filter[] = "anno_high_impact";
 
 	//RepeatMasker
 	$repeatmasker = extract_string("REPEATMASKER", $info, "");
@@ -433,22 +417,12 @@ while(!feof($handle))
 	$fathmm = extract_string("dbNSFP_FATHMM_pred", $info, "");
 	$cadd = extract_numeric("dbNSFP_CADD_phred", $info, "", 2, "max");
 	if ($cadd!="") $cadd = number_format($cadd, 2);
-	$pp_count = contains($metalr, "D") + contains($sift, "D") + contains($pp2, "D") + contains($fathmm, "D") + ($cadd!="" && $cadd>20) + ($phylop>=1.6);
-	if ($pp_count>0)
-	{
-		$filter[] = "pred_pathogenic";
-	}
-	if ($pp_count>2)
-	{
-		$filter[] = "pred_pathogenic_3";
-	}
-	
+
 	//OMIM
 	$omim = strtr(extract_string("OMIM", $info, ""), "_", " ");
 	if ($omim!="")
 	{
-		$omim .= ";";	
-		$filter[] = "anno_omim";
+		$omim .= ";";
 	}
 	
 	//ClinVar
@@ -468,7 +442,6 @@ while(!feof($handle))
 		if ($disease!="") $disease = " DISEASE=".$disease;
 		$clinvar .= $clin_acc[$i]." [".strtr($clin_sig[$i], "_", " ").$disease."]; ";
 	}
-	if (contains($clinvar, "pathogenic") && !contains($clinvar, "conflicting")) $filter[] = "anno_pathogenic_clinvar";  //matches "pathogenic" and "likely pathogenic"
 	
 	//HGMD
 	$hgmd_id = explode("|", extract_string("HGMD_ID", $info, ""));
@@ -483,7 +456,6 @@ while(!feof($handle))
 		if (trim($hgmd_id[$i]=="")) continue;
 		$hgmd .= $hgmd_id[$i]." [CLASS=".$hgmd_class[$i]." MUT=".$hgmd_mut[$i]." PHEN=".strtr($hgmd_phen[$i], "_", " ")." GENE=".$hgmd_gene[$i]."]; ";
 	}
-	if (contains($hgmd, "CLASS=DM")) $filter[] = "anno_pathogenic_hgmd"; //matches both "DM" and "DM?"
 		
 	//COSMIC
 	$cosmic = strtr(extract_string("COSMIC_ID", $info, ""), array(","=>", "));

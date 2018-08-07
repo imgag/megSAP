@@ -1,9 +1,0 @@
-chr1	67465791	67465791	G	A	anno_omim;trio_denovo
-chr2	166246710	166246710	A	C	anno_omim;trio_denovo
-chr2	179542499	179542499	T	C	anno_omim;trio_denovo
-chr12	7048292	7048292	C	T	pred_pathogenic;pred_pathogenic_3;anno_omim;trio_denovo
-chrX	39911629	39911629	C	T	anno_omim;trio_hemizygous_chrX
-chrX	43605100	43605100	A	-	anno_omim;trio_hemizygous_chrX
-chrX	119561929	119561929	A	G	anno_omim;trio_hemizygous_chrX
-chrX	135742258	135742258	C	T	anno_omim;trio_hemizygous_chrX
-chrX	154488153	154488153	C	T	anno_omim;trio_hemizygous_chrX

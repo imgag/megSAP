@@ -66,7 +66,7 @@ $cols = array("phyloP100way_vertebrate","SIFT_pred","MetaLR_pred","FATHMM_pred",
 $pipeline[] =  array(get_path("SnpSift"), "dbnsfp -noLog -db ".get_path("data_folder")."/dbs/dbNSFP/dbNSFPv2.9.3.txt.gz -f ".implode(",",$cols)." -");
 
 //HGMD annotation (optional because of license)
-$db_file = get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2017_4_fixed.vcf";
+$db_file = get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf";
 if(file_exists($db_file))
 {
 	$pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name HGMD_ -info ID,CLASS,MUT,GENE,PHEN $db_file");
@@ -83,7 +83,7 @@ $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name T1
 $pipeline[] =  array(get_path("SnpSift"), "annotate -tabix -noLog -noId -name EXAC_ -info AF,AC_Hom,Hom_NFE,Hom_AFR,AF_AFR,AF_AMR,AF_EAS,AF_NFE,AF_SAS ".get_path("data_folder")."/dbs/ExAC/ExAC_r0.3.1.vcf.gz");
 
 //ClinVar annotation
-$pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name CLINVAR_ -info SIG,ACC,DISEASE ".get_path("data_folder")."/dbs/ClinVar/clinvar_20180128_converted.vcf");
+$pipeline[] =  array(get_path("SnpSift"), "annotate -mem -sorted -noLog -noId -name CLINVAR_ -info SIG,ACC,DISEASE ".get_path("data_folder")."/dbs/ClinVar/clinvar_20180701_converted.vcf");
 
 //COSMIC annotation (optional because of license)
 $db_file = get_path("data_folder")."/dbs/COSMIC/cosmic.vcf.gz";

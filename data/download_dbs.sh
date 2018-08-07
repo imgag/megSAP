@@ -71,9 +71,9 @@ rm -rf ExAC.r0.3.1.sites.vep.vcf.gz
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2018/clinvar_20180128.vcf.gz | gunzip > clinvar_20180128.vcf
-cat clinvar_20180128.vcf | php $src/Tools/db_converter_clinvar.php > clinvar_20180128_converted.vcf
-rm -rf clinvar_20180128.vcf
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2018/clinvar_20180701.vcf.gz | gunzip > clinvar_20180701.vcf
+cat clinvar_20180701.vcf | php $src/Tools/db_converter_clinvar.php > clinvar_20180701_converted.vcf
+rm -rf clinvar_20180701.vcf
 
 #Install gnomAD (exome data) - http://gnomad.broadinstitute.org/downloads
 cd $dbs
@@ -125,7 +125,7 @@ tabix -p vcf gnomAD_genome_r2.0.2.vcf.gz
 
 #Install HGMD (you need a license)
 #manual download https://portal.biobase-international.com/cgi-bin/portal/login.cgi 
-#cat HGMD_PRO_2017.4_hg19.vcf | php $src/Tools/db_converter_hgmd.php > HGMD_PRO_2017_4_fixed.vcf
+#cat HGMD_PRO_2018.2_hg19.vcf | php $src/Tools/db_converter_hgmd.php > HGMD_PRO_2018_2_fixed.vcf
 
 #install COSMIC (you need a license)
 #cd $dbs

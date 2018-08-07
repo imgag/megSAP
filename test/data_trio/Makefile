@@ -26,9 +26,18 @@ cn:
 	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder . --log trio_cn.log -steps cn
 
 diff:
+	#all variants
 	php ../compare_variants.php trio.GSvar.out trio.GSvar
-	cut -f 1-5,9 trio.GSvar | egrep -v "^#|off-target" | egrep "trio_" > trio_special.tsv
-	diff -b trio_special.tsv.out trio_special.tsv
+	#variants after filtering
+	php ../filter_variants.php -in trio.GSvar -out trio_denovo.GSvar -filters filter_denovo.txt
+	php ../compare_variants.php trio_denovo.GSvar.out trio_denovo.GSvar
+	php ../filter_variants.php -in trio.GSvar -out trio_recessive.GSvar -filters filter_recessive.txt
+	php ../compare_variants.php trio_recessive.GSvar.out trio_recessive.GSvar
+	php ../filter_variants.php -in trio.GSvar -out trio_comphet.GSvar -filters filter_comphet.txt
+	php ../compare_variants.php trio_comphet.GSvar.out trio_comphet.GSvar
+	php ../filter_variants.php -in trio.GSvar -out trio_loh.GSvar -filters filter_loh.txt
+	php ../compare_variants.php trio_loh.GSvar.out trio_loh.GSvar
+	#UPDs
 	diff -b trio_upd.tsv.out trio_upd.tsv
 
 ### debug targets
