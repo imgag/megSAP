@@ -13,6 +13,7 @@ $parser->addFlag("upload", "Enable real upload (otherwise a dry run is performed
 $parser->addString("project", "Restrict upload to a project.", true, "");
 $parser->addStringArray("samples", "Restrict upload to a list of processed sample.", true, "");
 $parser->addFlag("force_reupload", "Upload files even if already uploaded.", true, "");
+$parser->addFlag("ignore_quality", "Upload all samples regardless of quality.");
 extract($parser->parse($argv));
 
 //check project
@@ -337,7 +338,7 @@ foreach($res as $row)
 	$output[] = $s_qual;
 	
 	//skip bad samples
-	if ($s_qual=="bad")
+	if ($s_qual=="bad" && !$ignore_quality)
 	{
 		printTSV($output, "SKIPPED", "bad sample quality");
 		continue;
@@ -379,14 +380,14 @@ foreach($res as $row)
 		}
 
 		//skip bad processed samples
-		if ($sample1['quality_processed_sample']=="bad")
+		if ($sample1['quality_processed_sample']=="bad" && !$ignore_quality)
 		{
 			printTSV($output, "SKIPPED" ,"bad processed sample quality");
 			continue;
 		}
 		
 		//skip bad runs
-		if ($sample1['quality_run']=="bad")
+		if ($sample1['quality_run']=="bad" && !$ignore_quality)
 		{
 			printTSV($output, "SKIPPED" ,"bad run quality");
 			continue;
@@ -508,17 +509,17 @@ foreach($res as $row)
 			$output[] = $sample2['quality_sample'].",".$sample2['quality_processed_sample'].",".$sample2['quality_run'];
 			
 			//check sample quality	
-			if ($sample2['quality_sample']=="bad")
+			if ($sample2['quality_sample']=="bad" && !$ignore_quality)
 			{
 				printTSV($output, "SKIPPED" , "bad sample quality");
 				continue;
 			}
-			if ($sample2['quality_processed_sample']=="bad")
+			if ($sample2['quality_processed_sample']=="bad" && !$ignore_quality)
 			{ 
 				printTSV($output, "SKIPPED" , "bad processed sample quality");
 				continue;
 			}
-			if ($sample2['quality_run']=="bad")
+			if ($sample2['quality_run']=="bad" && !$ignore_quality)
 			{ 
 				printTSV($output, "SKIPPED" , "bad run quality");
 				continue;
