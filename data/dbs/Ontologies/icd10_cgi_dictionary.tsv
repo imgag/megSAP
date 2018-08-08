@@ -10,7 +10,7 @@ C18		Bösartige Neubildung des Kolons	Malignant neoplasm of colon	COC
 C18.4		Colon transversum	Transverse colon	COC
 C18.7		Colon sigmoideum	Sigmoid colon	COC
 C20		Bösartige Neubildung des Rektums	Malignant neoplasm of rectum	REC
-C25	Bösartige Neubildung des Pankreas	Malignant neoplasm of pancreas	PA
+C25		Bösartige Neubildung des Pankreas	Malignant neoplasm of pancreas	PA
 C25.9		Pankreas, nicht näher bezeichnet	Pancreas, unspecified	PA
 C26.9		Ungenau bezeichnete Lokalisationen des Verdauungssystems	Ill-defined sites within the digestive system	DS
 C40		Bösartige Neubildung des Knochens und des Gelenkknorpels der Extremitäten	Malignant neoplasm of bone and articular cartilage of limbs	S
