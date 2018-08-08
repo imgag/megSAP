@@ -15,6 +15,7 @@ If you are interested to join the effort, please contact [Marc Sturm](https://gi
 
 ## ChangeLog
 
+* 07.08.2018: Removed most annotation from the 'filter' column and moved the functionality to GSvar.
 * 20.07.2018: Updated ABRA2 version (attention: this changes indel positions - see ABRA2 2.06 changelog) 
 * 17.07.2018: Added '##PIPELINE' header line to GSvar files to keep track of the megSAP version the file was created with.
 * 11.07.2018: Added UPD detection for trios.
@@ -104,6 +105,7 @@ Documentation about the different analysis pipelines can be found here:
 
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
+
 
 
 

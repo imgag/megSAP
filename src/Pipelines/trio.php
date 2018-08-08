@@ -221,6 +221,7 @@ if (in_array("an", $steps))
 		if (starts_with($line, "##SAMPLE=<ID={$sample_c},"))
 		{
 			//determine gender from header
+			$gender_header = "n/a";
 			$parts = explode(",", substr($line, 10, -1));
 			foreach($parts as $part)
 			{
