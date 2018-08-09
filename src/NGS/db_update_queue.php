@@ -127,7 +127,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 			}
 			
 			$script = "analyze.php";
-			$args = "-folder {$sample_folder} -name {$sample} --log {$sample_folder}analyze_{$timestamp}.log";	
+			$args = "-folder {$sample_folder} -name {$sample} -threads {$threads} --log {$sample_folder}analyze_{$timestamp}.log";	
 		}
 	}
 	else if ($type=="trio")
