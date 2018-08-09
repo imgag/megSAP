@@ -113,12 +113,10 @@ wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes
 bgzip gnomAD_genome_r2.0.2.vcf
 tabix -p vcf gnomAD_genome_r2.0.2.vcf.gz
 
-#install OMIM (you might need a license)
+#install OMIM (you might need a license - installation only possible after ngs-bits including NGSD is installed)
 #cd $dbs
 #mkdir OMIM
 #cd OMIM
-#wget -O - http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/kgXref.txt.gz | gunzip > kgXref.txt
-#wget -O - http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/knownGene.txt.gz | gunzip > knownGene.txt
 #manual download of ftp://ftp.omim.org/OMIM/genemap.txt
 #manual download of ftp://ftp.omim.org/OMIM/mim2gene.txt
 #php $src/Tools/db_converter_omim.php > omim.bed

@@ -2,53 +2,6 @@
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-//read gene id => names association from UCSC
-$id2gene = array();
-$handle = fopen("./kgXref.txt", "r");
-while(!feof($handle))
-{
-	$line = trim(fgets($handle));
-	if ($line=="") continue;
-	
-	list ($id, , , , $name) = explode("\t", $line);
-	$id2gene[$id] = strtoupper($name);
-}
-fclose($handle);
-
-//load gene coordinates ranges from UCSC (with UTR and 20 flanking bases)
-$gene2coord = array();
-$handle = fopen("./knownGene.txt", "r");
-while(!feof($handle))
-{
-	$line = trim(fgets($handle));
-	if ($line=="" || $line[0]=="#") continue;
-	
-	list($id, $chr, , $start, $end) = explode("\t", $line);
-	if (!isset($id2gene[$id]))
-	{
-		trigger_error("Unknown UCSC identifier $id in knownGene.txt line: $line", E_USER_ERROR);
-	}
-	if ($start>=$end)
-	{
-		trigger_error("Invalid range $start-$end in knownGene.txt line: $line", E_USER_ERROR);
-	}
-	
-	$tag = $chr."_".$id2gene[$id];
-	$start -= 20;
-	$end +=20;
-	
-	if (!isset($gene2coord[$tag]))
-	{
-		$gene2coord[$tag] = array($start, $end);
-	}
-	else
-	{
-		list($start_prev, $end_prev) = $gene2coord[$tag];
-		$gene2coord[$tag] = array(min($start, $start_prev), max($end, $end_prev));
-	}
-}
-fclose($handle);
-
 //parse "mim2gene.txt" to get approved symbols
 /*
 # Mim Number	Type	Gene IDs	Approved Gene Symbols
@@ -106,13 +59,13 @@ while(!feof($handle))
 	//id
 	$mim_id = trim($parts[8]);
 	
-	//extract genes (approved and not approved symbols - checked later)
+	//extract genes
 	$genes = explode(",", $parts[5]);
 	$genes = array_map("trim", $genes);
 	if (isset($mim2gene[$mim_id])) $genes[] = $mim2gene[$mim_id];
 	$genes = array_unique($genes);
 	
-	//confiddence not limbo
+	//confidence not limbo
 	$status = trim($parts[6]);
 	if ($status=="C")
 	{
@@ -137,18 +90,37 @@ while(!feof($handle))
 	if ($disorders=="") continue;
 	
 	//chromosome
-	$chr = "chr".trim($parts[0]);
-	$chr = substr($chr, 0, strpos($chr, "."));
-	if ($chr=="chr23") $chr="chrX";
-	if ($chr=="chr24") $chr="chrY";
+	$chr_omim = "chr".trim($parts[0]);
+	$chr_omim = substr($chr_omim, 0, strpos($chr_omim, "."));
+	if ($chr_omim=="chr23") $chr_omim="chrX";
+	if ($chr_omim=="chr24") $chr_omim="chrY";
+	
+	//convert genes to approved symbols
+	$genes_approved = array();
+	list($stdout) = exec2("echo -e '".implode("\n", $genes)."' | ".get_path("ngs-bits")."GenesToApproved");
+	foreach($stdout as $line)
+	{
+		list($gene, $message) = explode("\t", $line);
+		if (contains($message, "ERROR")) continue;
+		if (in_array($gene, $genes_approved)) continue;
+		$genes_approved[] = $gene;
+	}
 	
 	//only with coordinates
-	foreach($genes as $gene)
+	foreach($genes_approved as $gene)
 	{
-		if(!isset($gene2coord[$chr."_".$gene])) continue;
-		
-		list($start, $end) = $gene2coord[$chr."_".$gene];
-		print "$chr	$start	$end	{$mim_id}_[{$gene}_({$status})_{$disorders}]\n";
+		list($stdout, $stderr, $exit_code) = exec2("echo '$gene' | ".get_path("ngs-bits")."GenesToBed -source ensembl -mode gene -fallback | ".get_path("ngs-bits")."BedMerge", false);
+		if ($exit_code==0 && trim(implode("", $stdout))!="")
+		{
+			foreach($stdout as $line)
+			{
+				list($chr, $start, $end) = explode("\t", trim($line));
+				if ($chr!=$chr_omim) continue;
+				$start -= 20;
+				$end += 20;
+				print "$chr	$start	$end	{$mim_id}_[{$gene}_({$status})_{$disorders}]\n";
+			}
+		}
 	}
 }
 
