@@ -5,4 +5,4 @@ Variant quality	qual=100	depth=20	mapq=60
 Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false
 Classification NGSD	action=REMOVE	classes=1,2
 Classification NGSD	action=KEEP	classes=4,5
-Trio	types=de-novo
+Trio	types=de-novo	gender_child=male
