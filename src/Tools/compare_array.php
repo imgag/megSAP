@@ -6,14 +6,14 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
 $parser = new ToolBase("compare_array", "Compare SNP genotypes from array and NGS.");
-$parser->addInfile("c", "SNP genotype export for CytoScan750K array.", false);
+$parser->addInfile("a", "SNP genotype export for CytoScan750K array.", false);
 $parser->addInfile("n", "NGS variant list in GSvar format.", false);
 $parser->addFlag("mm", "Print mismatches");
 extract($parser->parse($argv));
 
 //load chip data
 $chip = array();
-$file = file($c);
+$file = file($a);
 foreach($file as $line)
 {
 	$line = trim($line);
@@ -28,7 +28,7 @@ foreach($file as $line)
 	$tag = "chr".trim($parts[7]).":".trim($parts[8]);
 	$chip[$tag] = $geno;
 }
-print "Loaded ".count($chip)." genotypes from chip (".basename($c).")\n";
+print "Loaded ".count($chip)." genotypes from chip (".basename($a).")\n";
 
 //load ngs data (GSvar)
 $ngs = array();

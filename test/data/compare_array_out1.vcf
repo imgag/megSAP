@@ -1,0 +1,4 @@
+Loaded 2032 genotypes from chip (compare_array_cytoscan750K.txt)
+Loaded 1509 genotypes from NGS (compare_array_ngs.GSvar)
+Overlapping genotypes: 1309
+Matching genotypes: 573 (43.77%)
