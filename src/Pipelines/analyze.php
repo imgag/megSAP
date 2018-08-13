@@ -220,24 +220,6 @@ if (in_array("an", $steps))
 	}
 }
 
-//import to database
-if (in_array("db", $steps))
-{
-	if(file_exists($log_db)) unlink($log_db);
-	$parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name --log $log_db");
-	
-	//import variants
-	if (file_exists($varfile))
-	{
-		$parser->execTool("NGS/db_import_variants.php", "-id $name -var $varfile -build ".$sys['build']." -force --log $log_db");
-	}
-
-	//import QC data
-	$qc_files = array($qc_fastq, $qc_map);
-	if (file_exists($qc_vc)) $qc_files[] = $qc_vc; 
-	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force --log $log_db");
-}
-
 //copy-number analysis
 if (in_array("cn", $steps) && $sys['type']!="WGS" && $sys['target_file']!="")
 {
@@ -278,3 +260,22 @@ if (in_array("cn", $steps) && $sys['type']!="WGS" && $sys['target_file']!="")
 	if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
 }
 
+//import to database
+if (in_array("db", $steps))
+{
+	if(file_exists($log_db)) unlink($log_db);
+	
+	//import QC
+	$qc_files = array($qc_fastq, $qc_map);
+	if (file_exists($qc_vc)) $qc_files[] = $qc_vc; 
+	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force --log $log_db");
+	
+	//check gender
+	$parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name --log $log_db");
+	
+	//import variants
+	if (file_exists($varfile))
+	{
+		$parser->execTool("NGS/db_import_variants.php", "-id $name -var $varfile -build ".$sys['build']." -force --log $log_db");
+	}
+}

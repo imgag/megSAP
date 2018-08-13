@@ -18,7 +18,9 @@ if(isset($gender)) //gender given > no NGSD connection is used
 {
 	if ($gender!="male" && $gender!="female") trigger_error("Gender can only be 'male', 'female' and 'n/a'", E_USER_ERROR);
 	
-	$sry_in_roi = false; //we don't know > assume it is not
+	//we don't know and cannot check
+	$is_wgs = false;
+	$sry_in_roi = false;
 }
 else
 {
@@ -31,21 +33,31 @@ else
         $parser->log("Could not determine gender for processed sample '$pid' from DB '$db': gender not set in sample entry.");
         exit(0);
     }
-	
-	if ($info['sys_type']=="WGS" || $info['sys_type']=="WES")
+	if ($info['sys_type']=="WGS")
 	{
+		$is_wgs = true;
+		$sry_in_roi = true;
+	}
+	else if ($info['sys_type']=="WES")
+	{
+		$is_wgs = false;
 		$sry_in_roi = true;
 	}
 	else //check if sry is included in target region
 	{
-		list($stdout, $stderr) = exec2("echo -e 'chrY\\t2655030\\t2655644' | " . get_path("ngs-bits")."BedIntersect -in2 ".$info["sys_target"], false); //works for GRCh37 only
+		$is_wgs = false;
+		list($stdout, $stderr) = exec2("echo -e 'chrY\\t2655030\\t2655644' | ".get_path("ngs-bits")."BedIntersect -in2 ".$info["sys_target"], false); //works for GRCh37 only
 		$sry_in_roi = ($stdout[0] == "chrY\t2655030\t2655644");
 	}
 }
 
 //determine gender from BAM
 $extra = "";
-if ($sry_in_roi)
+if ($is_wgs)
+{
+	$method = "xy";
+}
+else if ($sry_in_roi)
 {
 	$method = "sry";
 	$extra = "-sry_cov 10";
