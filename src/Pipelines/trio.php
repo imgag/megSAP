@@ -245,6 +245,16 @@ if (in_array("an", $steps))
 			}
 		}
 		
+		//add gender of father/mother if missing (i.e. when NGSD is not enabled)
+		if (starts_with($line, "##SAMPLE=<ID={$sample_f},") && !contains($line, "Gender="))
+		{
+			$line = substr($line, 0, -1).",Gender=male>";
+		}
+		if (starts_with($line, "##SAMPLE=<ID={$sample_m},") && !contains($line, "Gender="))
+		{
+			$line = substr($line, 0, -1).",Gender=female>";
+		}
+		
 		//update analysis type
 		if (starts_with($line, "##ANALYSISTYPE="))
 		{
