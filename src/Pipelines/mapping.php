@@ -35,7 +35,7 @@ $basename = $out_folder."/".$out_name;
 $out = $basename.".bam";
 
 // check FASTQ quality encoding
-$files = array_merge($in_for, $in_rev, $in_index);
+$files = array_merge($in_for, $in_rev);
 foreach($files as $file)
 {
 	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."FastqFormat", "-in $file", true);
@@ -61,7 +61,7 @@ if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
 {
 	$index_files = glob("$out_folder/*_index_*.fastq.gz");
 
-	if (empty($in_index))
+	if ($in_index === NULL || empty($in_index))
 	{
 		trigger_error("Processing system ".$sys['name_short']." has UMI type ".$sys['umi_type'].", but no index files are specified => UMI-based de-duplication skipped!", E_USER_WARNING);
 		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads, 1, 4), true);
