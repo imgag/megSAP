@@ -86,10 +86,12 @@ if (in_array("ma", $steps))
 	//determine input FASTQ files
 	$in_for = $folder."/*_R1_00?.fastq.gz";
 	$in_rev = $folder."/*_R2_00?.fastq.gz";
+	$in_index = $folder."/*_index_*.fastq.gz";
 	
 	//find FastQ input files
 	$files1 = glob($in_for);
 	$files2 = glob($in_rev);
+	$files_index = glob($in_index);
 	if (count($files1)!=count($files2))
 	{
 		trigger_error("Found mismatching forward and reverse read file count!\n Forward: $in_for\n Reverse: $in_rev.", E_USER_ERROR);
@@ -104,6 +106,7 @@ if (in_array("ma", $steps))
 	if($no_abra) $args[] = "-no_abra";
 	if(file_exists($log_ma)) unlink($log_ma);
 	if($correction_n) $args[] = "-correction_n";
+	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
 	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $out_folder -out_name $name --log $log_ma ".implode(" ", $args)." -threads $threads");
 
 	//low-coverage report
