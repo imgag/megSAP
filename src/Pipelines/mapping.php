@@ -16,6 +16,7 @@ $parser->addInfileArray("in_rev",  "Reverse reads FASTQ file(s).", false);
 $parser->addString("out_folder", "Output folder.", false);
 $parser->addString("out_name", "Output file base name (e.g. 'GS120001_01').", false);
 //optional
+$parser->addInfileArray("in_index",  "Index reads FASTQ file(s).", true);
 $parser->addInfile("system",  "Processing system INI file (determined from 'out_name' by default).", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
@@ -59,10 +60,10 @@ $barcode_correction = false;
 if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
 {
 	$index_files = glob("$out_folder/*_index_*.fastq.gz");
-	
-	if (count($index_files)==0)
+
+	if ($in_index === NULL || empty($in_index))
 	{
-		trigger_error("Processing system ".$sys['name_short']." has UMI type ".$sys['umi_type'].", but no index files were found => UMI-based de-duplication skipped!", E_USER_NOTICE);
+		trigger_error("Processing system ".$sys['name_short']." has UMI type ".$sys['umi_type'].", but no index files are specified => UMI-based de-duplication skipped!", E_USER_WARNING);
 		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads, 1, 4), true);
 	}
 	else
@@ -70,7 +71,7 @@ if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
 		// add barcodes to header
 		$merged1_bc = $parser->tempFile("_bc1.fastq.gz");
 		$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
-		$parser->exec(get_path("ngs-bits")."FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $index_files)." -out1 $merged1_bc -out2 $merged2_bc", true);
+		$parser->exec(get_path("ngs-bits")."FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $in_index)." -out1 $merged1_bc -out2 $merged2_bc", true);
 		// run SeqPurge
 		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $merged1_bc -in2 $merged2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);
 
@@ -297,7 +298,7 @@ $parser->moveFile($bam_current.".bai", $out.".bai");
 
 //add baf file
 $params = array();
-if ($sys['type']!="WGS" && !empty($sys['target_file']))
+if ($sys['type']!="WGS" && !empty($sys['target_file']) && in_array($sys['build'], [ "hg19", "GRCh37" ]))
 {
 	$params[] = "-target ".$sys['target_file'];
 }
