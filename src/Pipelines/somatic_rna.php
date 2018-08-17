@@ -173,7 +173,7 @@ if (in_array("an", $steps))
 	trigger_error("Running step 'an' ...", E_USER_NOTICE);
 	
 	// annotate vcf
-	$parser->execTool("Pipelines/annotate.php", "-out_name {$t_id}-{$n_id} -out_folder {$o_folder} -system {$t_sys} -vcf {$som_variants} -t_col {$t_id} -n_col {$n_id}");
+	$parser->execTool("Pipelines/annotate.php", "-out_name {$t_id}-{$n_id} -out_folder {$o_folder} -system {$t_sys} -vcf {$som_variants} -somatic);
 	
 	// convert vcf to GSvar
 	$parser->execTool("NGS/vcf2gsvar_somatic.php", "-in {$som_variants_annotated} -out {$som_gsvar} -t_col {$t_id}");

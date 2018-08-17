@@ -85,7 +85,7 @@ while(!feof($handle))
 	$disorders = trim($parts[11]);
 	$disorders = trim(strtr($disorders, array("(1)"=>"", "(2)"=>"", "(3)"=>"", "(4)"=>"", "["=>"", "]"=>"", "{"=>"", "}"=>"", "?"=>"", ";"=>"|")));
 	$disorders = trim(strtr($disorders, array(" , "=>",", " ,"=>",", ", "=>",")));
-	$disorders = trim(strtr($disorders, array(" | "=>"|", " |"=>"|", "| "=>"|")));
+	$disorders = trim(strtr($disorders, array(" | "=>"/", " |"=>"/", "| "=>"/")));
 	$disorders = trim(strtr($disorders, array(" "=>"_")));
 	if ($disorders=="") continue;
 	

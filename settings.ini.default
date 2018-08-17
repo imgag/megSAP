@@ -12,8 +12,7 @@ vcflib = [path]/data/tools/vcflib/bin/
 abra2 = java -Xmx16g -jar [path]/data/tools/abra2-2.05/abra2.jar
 samblaster = [path]/data/tools/samblaster/samblaster
 bwa = [path]/data/tools/bwa-0.7.17/bwa
-SnpEff = java -Xmx4g -jar [path]/data/tools/snpEff/snpEff.jar
-SnpSift = java -Xmx4g -jar [path]/data/tools/snpEff/SnpSift.jar
+vep = java -Xmx4g -jar [path]/data/tools/ensembl-vep-93.2/vep
 
 [tools-ngs-rna]
 STAR = [path]/data/tools/STAR-2.5.4a/bin/Linux_x86_64/STAR

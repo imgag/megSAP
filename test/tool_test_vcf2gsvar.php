@@ -20,9 +20,9 @@ $out_file3 = output_folder().$name."_out3.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in2.vcf -build GRCh37 -out $out_file3 -multi --log ".output_folder().$name."_out3.log");
 check_file($out_file3, data_folder().$name."_out3.GSvar", true);
 
-//standard
+//with upstream/downstream
 $out_file4 = output_folder().$name."_out4.GSvar";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -build hg19 -out $out_file4 --log ".output_folder().$name."_out4.log");
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -build hg19 -updown -out $out_file4 --log ".output_folder().$name."_out4.log");
 check_file($out_file4, data_folder().$name."_out4.GSvar");
 
 end_test();

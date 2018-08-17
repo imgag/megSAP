@@ -145,7 +145,7 @@ else
 	}
 }
 $tmp_comments[] = "#FILTER=<ID=special_chromosome,Description=\"Special chromosome.\">";
-$tmp_comments[] = "#PEDIGREE=<Tumor=$t_ps,Normal=$n_ps>";	//add pedigree information for SNPeff
+$tmp_comments[] = "#PEDIGREE=<Tumor=$t_ps,Normal=$n_ps>";	//add pedigree information for SNPeff //TODO test if still necessary for VEP
 $tmp_comments = array_unique($tmp_comments);	//filter duplicate vcf comments
 $tmp_comments = sort_vcf_comments($tmp_comments);	//sort vcf comments
 $filec->setComments($tmp_comments);

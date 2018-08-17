@@ -485,8 +485,7 @@ if (in_array("an", $steps))
 	// annotate vcf into temp folder
 	$tmp_folder1 = $parser->tempFolder();
 	$tmp_vcf = $tmp_folder1."/".$prefix_som."_var_annotated.vcf.gz";
-	$parser->execTool("Pipelines/annotate.php",
-		"-out_name $prefix_som -out_folder $tmp_folder1 -system $t_sys -vcf $som_v -t_col $t_id " . ($single_sample ? "" : "-n_col $n_id") . " -thres 8 -updown");
+	$parser->execTool("Pipelines/annotate.php", "-out_name $prefix_som -out_folder $tmp_folder1 -system $t_sys -vcf $som_v -somatic -updown");
 	$parser->copyFile($tmp_vcf, $som_unfi);
 
 	// add donor annotation to full annotated vcf

@@ -14,13 +14,11 @@ $parser->addString("out_name", "Processed sample ID (e.g. 'GS120001_01').", fals
 $parser->addString("out_folder", "Output folder.", false);
 //optional
 $parser->addInfile("system", "Processing system INI file (determined from 'out_name' by default).", true);
-$parser->addString("t_col", "Column name of tumor sample (for Strelka VCF files only).", true, "na");
-$parser->addString("n_col", "Column name of normal sample (for Strelka VCF files only).", true, "na");
 $parser->addString("vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_var.vcf.gz).", true, "");
-$parser->addInt("thres", "Number of flanking bases around exons which are considered as splicing region.", true, 20);
 $parser->addFlag("no_fc", "No format check (vcf/tsv).");
 $parser->addFlag("multi", "Enable multi-sample mode.");
-$parser->addFlag("updown","Annotate variants up- or downstream of genes.");
+$parser->addFlag("somatic", "Enable somatic mode (no variant QC and no GSvar file).", true, "na");
+$parser->addFlag("updown", "Don't discard up- or downstream anntations (5000 bases around genes).");
 extract($parser->parse($argv));
 
 //input file names
@@ -57,13 +55,9 @@ if ($sys['build']!="hg19" && $sys['build']!="GRCh37" && $sys['build']!="mm10")
 }
 
 //annotate VCF
-$args = array("-in $vcf_unzipped", "-thres $thres", "-out $annfile");
-if ($sys['type']!="WGS" && !$updown)
-{
-	$args[] = "-no_updown";
-}
+$args = array("-in $vcf_unzipped", "-out $annfile");
 $args[] = "-build ".$sys['build'];
-$parser->execTool("NGS/an_snpeff.php", implode(" ", $args));
+$parser->execTool("NGS/an_vep.php", implode(" ", $args));
 
 //check vcf file
 if(!$no_fc)
@@ -72,32 +66,15 @@ if(!$no_fc)
 }
 
 //convert to GSvar file
-if ($t_col=="na") //germline
+if (!$somatic) //germline
 {
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
 	$parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $stafile", true);
 	
 	$args = array("-in $annfile", "-out $varfile", "-build ".$sys['build']);
-	if ($multi)
-	{
-		$args[] = "-multi";
-	}
+	if ($multi) $args[] = "-multi";
+	if ($updown) $args[] = "-updown";
 	$parser->execTool("NGS/vcf2gsvar.php", implode(" ", $args));
-}
-else //somatic
-{
-	$extra = "-t_col $t_col";
-	if($n_col!="na" && !empty($n_col))	$extra .= " -n_col $n_col";
-	
-	//annotate additional columns, somatic only
-	$tmp_annfile = $parser->tempFile("_somatic.vcf");
-	$parser->moveFile($annfile, $tmp_annfile);
-	$cols = array("Interpro_domain");
-	$parser->exec(get_path("SnpSift"), "dbnsfp -noLog -db ".get_path("data_folder")."/dbs/dbNSFP/dbNSFPv2.9.3.txt.gz -f ".implode(",",$cols)." $tmp_annfile > $annfile", true);
-	//SnpSift vcf comments are printed twice using dbNSFP -> remove duplicate comments
-	$af = Matrix::fromTSV($annfile);
-	$af->setComments(array_unique($af->getComments()));
-	$af->toTSV($annfile);
 }
 
 //zip annotated VCF file
@@ -111,7 +88,7 @@ if ($sys['type']=="WGS" && ($sys['build']=="hg19" || $sys['build']=="GRCh37"))
 	$tmp = $parser->tempFile(".bed");
 	file_put_contents($tmp, "chrMT\t0\t16569");
 	$roi_with_mito = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAdd", "-in ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed {$tmp} -out {$roi_with_mito}", false);
+	$parser->exec(get_path("ngs-bits")."BedAdd", "-in ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed {$tmp} -out {$roi_with_mito}", false); //TODO use CCDS/Ensembl coding instead! (everywhere)
 	$parser->exec(get_path("ngs-bits")."BedMerge", "-in {$roi_with_mito} -out {$roi_with_mito}", false);
 	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$varfile_full} -out {$varfile} -reg {$roi_with_mito}", true);
 	$tmp2 = $parser->tempFile(".txt");
@@ -121,13 +98,13 @@ if ($sys['type']=="WGS" && ($sys['build']=="hg19" || $sys['build']=="GRCh37"))
 }
 
 //annotated variant frequencies from NGSD (not for somatic)
-if($t_col=="na")
+if(!$somatic)
 {
 	$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in {$varfile} -out {$varfile} -psname {$out_name}", true);
 }
 
 //check output TSV file (not for somatic)
-if(!$no_fc && $t_col=="na")
+if(!$somatic && !$no_fc)
 {
 	$parser->execTool("NGS/check_tsv.php", "-in $varfile");
 }

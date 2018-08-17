@@ -15,6 +15,7 @@ If you are interested to join the effort, please contact [Marc Sturm](https://gi
 
 ## ChangeLog
 
+* TODO.2018: Using Ensembl VEP for variant annotation now (was SnpEff)
 * 07.08.2018: Removed most annotation from the 'filter' column and moved the functionality to GSvar.
 * 20.07.2018: Updated ABRA2 version (attention: this changes indel positions - see ABRA2 2.06 changelog) 
 * 17.07.2018: Added '##PIPELINE' header line to GSvar files to keep track of the megSAP version the file was created with.

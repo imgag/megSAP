@@ -75,7 +75,7 @@ gzclose($handle);
 //use SnpSIFT to check vcf-format - skip vcfcheck / vcf-output of freebayes not standard conform
 //output of vcf contains .. for somatic variant files (?)
 $stderr = "";
-list(,$lines) = $parser->exec(get_path("SnpSift"), "vcfCheck $tmp_vcf",false);
+list(,$lines) = $parser->exec(get_path("SnpSift"), "vcfCheck $tmp_vcf",false); //TODO remove!!
 foreach($lines as $line)
 {
 	$stderr .= str_replace("\t", " ",trim(nl_trim($line),". "));
@@ -84,7 +84,7 @@ if(!empty($stderr))	trigger_error("Invalid VCF-file. Output of vcfCheck: $stderr
 
 //check for valid MISO terms
 $pattern = "ANN[*].EFFECT";
-list($stdout, $stderr) = $parser->exec(get_path("SnpSift"), "extractFields $tmp_vcf '$pattern'", false);
+list($stdout, $stderr) = $parser->exec(get_path("SnpSift"), "extractFields $tmp_vcf '$pattern'", false); //TODO remove!!
 $effects = explode("\t", str_replace("&", "\t", implode("\t", $stdout)));
 $effects = array_map("trim", $effects);
 $effects = array_unique($effects);
@@ -93,7 +93,7 @@ foreach($effects as $e)
 	if ($e==$pattern || $e=="") continue;
 	if(!Obo::isValidTermByName(repository_basedir()."/data/dbs/Ontologies/so-xp_3_0_0.obo",$e))
 	{
-		trigger_error("Invalid VCF-file. SnpEff effect '$e' is not valid Miso term in '$in'.", E_USER_ERROR);
+		trigger_error("Invalid VCF-file. Effect '$e' is not valid Miso term in '$in'.", E_USER_ERROR);
 	}
 }
 

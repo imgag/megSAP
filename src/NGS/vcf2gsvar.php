@@ -13,48 +13,8 @@ $parser->addOutfile("out", "Output file in GSvar format.", false);
 $parser->addString("build", "The genome build to use.", false);
 //optional
 $parser->addFlag("multi", "Enable multi-sample mode.");
+$parser->addFlag("updown", "Don't discard up- or downstream anntations (5000 bases around genes).");
 extract($parser->parse($argv));
-
-//helper functions
-function extract_numeric($col, $data, $default, $decimal_places, $multi_strategy = "error")
-{
-	@$output = $data[$col];
-	if ($output=="") return $default;
-	
-	//split remove "." elements
-	$parts = explode(",", $output);
-	$parts = array_diff($parts, array("."));
-	if (count($parts)==0) return $default;
-	if ($multi_strategy=="error")
-	{
-		if (count($parts)>1) trigger_error("Cannot extract numeric value from '$output' in column '$col'!", E_USER_ERROR);
-		$output = $parts[0];
-	}
-	else
-	{
-		$output = $multi_strategy($parts);
-	}
-	
-	//formatting (round, but indicate that the value is not 0 if it isn't) 
-	$formatted = number_format($output, $decimal_places, ".", "");
-	if ($output>0 && $formatted==0)
-	{
-		return substr($formatted, 0, -1)."1";
-	}
-	else
-	{
-		return $formatted;
-	}
-}
-
-function extract_string($col, $data, $default)
-{
-	$output = ".";
-	if (isset($data[$col])) $output = $data[$col];
-	if ($output==".") $output = $default;
-	
-	return $output;
-}
 
 //determines if all the input genes are on the blacklist
 function all_genes_blacklisted($genes)
@@ -89,6 +49,66 @@ function all_genes_blacklisted($genes)
 	return true;
 }
 
+//get index of columnn in QSC header.
+function index_of($cols, $name, $error_if_missing = true)
+{
+	$index = array_search($name, $cols);
+	if ($index===FALSE && $error_if_missing)
+	{
+		trigger_error("Could not find column '$name' in VEP QSC annotation. Valid column names are: ".implode(", ", array_values($cols)), E_USER_ERROR);
+	}
+	return $index;
+}
+
+//translate value (and throw error if not valid)
+function translate($error_name, $value, $dict)
+{
+	$value = trim($value);
+	
+	if (!isset($dict[$value]))
+	{
+		trigger_error("Cannot translate value '{$value}' for '{$error_name}'. Valid terms are: '".implode("','", array_keys($dict)), E_USER_ERROR);
+	}
+	
+	return $dict[$value];
+}
+
+//collapse several values to a single value
+function collapse($error_name, $values, $mode, $replace_empty = null, $decimal_places = null)
+{
+	for($i=0; $i<count($values); ++$i)
+	{
+		$v = trim($values[$i]);
+		if (!is_null($replace_empty) && $v=="") $v = $replace_empty;
+		if (!is_null($decimal_places) && $v!="")
+		{
+			$v = number_format($v, $decimal_places, ".", "");
+			if ($values[$i]>0 && $v==0)
+			{
+				$v = substr($v, 0, -1)."1";
+			}
+		}
+		$values[$i] = $v;
+	}
+
+	if ($mode=="one")
+	{
+		$values = array_unique($values);
+		if (count($values)>1)
+		{
+			trigger_error("Several values '".implode("','", $values)."' in mode '{$mode}' while collapsing '{$error_name}'!", E_USER_ERROR);
+		}
+		return $values[0];
+	}
+	else if ($mode=="unique")
+	{
+		return array_unique($values);
+	}
+	else
+	{
+		trigger_error("Invalid mode '{$mode}' while collapsing '{$error_name}'!", E_USER_ERROR);
+	}
+}
 
 //write header line
 function write_header_line($handle, $column_desc, $filter_desc)
@@ -111,24 +131,24 @@ function write_header_line($handle, $column_desc, $filter_desc)
 	fwrite($handle, "\n");
 }
 
+//TODO re-order so that OMIM, ClinVar and HGMD are at the beginning
 //write column descriptions
 $column_desc = array(
 	array("filter", "Annotations for filtering and ranking variants."),
 	array("quality", "Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM)."),
 	array("gene", "Affected gene list (comma-separated)."),
 	array("variant_type", "Variant type."),
-	array("coding_and_splicing", "Coding and splicing details (Gene, ENST number, type, impact, exon number, HGVS.c, HGVS.p)."),
+	array("coding_and_splicing", "Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain)."),
 	array("RepeatMasker", "RepeatMasker annotation."),
 	array("dbSNP", "Identifier in dbSNP database."),
-	array("1000g", "Allele frequency in all populations of 1000g project."),
-	array("ExAC", "Allele frequency in all populations of ExAC project."),
-	array("ExAC_hom", "Homoyzgous counts for populations ALL, NFE and AFR of ExAC project."),
-	array("ExAC_sub", "Sub-population allele frequenciens for populations AFR,AMR,EAS,NFE,SAS of ExAC project."),
-	array("gnomAD", "Allele frequency in gnomAD database."),
+	array("1000g", "Allele frequency in 1000 genomes project."),
+	array("gnomAD", "Allele frequency in gnomAD project."),
+	array("gnomAD_hom", "Homoyzgous counts for populations (ALL,NFE,AFR) of gnomAD project."),
+	array("gnomAD_sub", "Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project."),
+	array("ESP_sub", "Sub-population allele frequency (EA,AA) in NHLBI Exome Sequencing project."),
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
-	array("Sift", "Sift effect prediction: D=damaging, T=tolerated."),
-	array("MetaLR", "MetaLR effect prediction: D=damaging, T=tolerated."),
-	array("PolyPhen2", "PolyPhen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign."),
+	array("Sift", "Sift effect prediction for each transcript: D=damaging, T=tolerated."),
+	array("PolyPhen", "PolyPhen (humVar) effect prediction for each transcript: D=probably damaging, P=possibly damaging, B=benign."),
 	array("FATHMM", "FATHMM effect prediction: D=damaging, T=tolerated."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20."),
 	array("OMIM", "OMIM database annotation."),
@@ -145,23 +165,6 @@ if (!$multi)
 $filter_desc = array(
 	array("gene_blacklist", "The gene(s) are contained on the blacklist of unreliable genes."),
 );
-
-//load gencode basic transcripts
-$gencode_basic = array();
-if ($build=="GRCh37")
-{
-	$file = file(repository_basedir()."/data/dbs/Ensembl/gencode_basic.txt");
-	foreach($file as $line)
-	{
-		$line = trim($line);
-		if ($line=="" || $line[0]=="#") continue;
-		$gencode_basic[$line] = true;
-	}
-}
-else
-{
-	trigger_error("No gencode basic transcripts available for genome '$build', skipping the gencode basic filter.", E_USER_WARNING);
-}
 
 //parse input
 $multi_cols = array();
@@ -204,6 +207,47 @@ while(!feof($handle))
 			fwrite($handle_out, trim($line)."\n");
 		}
 		
+		//get annotation indices in CSQ field
+		if (starts_with($line, "##INFO=<ID=CSQ,"))
+		{
+			$cols = explode("|", substr($line, 0, -2));
+			$cols[0] = "Allele";
+			$i_consequence = index_of($cols, "Consequence");
+			$i_impact = index_of($cols, "IMPACT");
+			$i_symbol = index_of($cols, "SYMBOL");
+			$i_feature = index_of($cols, "Feature");
+			$i_featuretype = index_of($cols, "Feature_type");
+			$i_exon = index_of($cols, "EXON");
+			$i_intron = index_of($cols, "INTRON");
+			$i_hgvsc = index_of($cols, "HGVSc");
+			$i_hgvsp = index_of($cols, "HGVSp");
+			$i_domains = index_of($cols, "DOMAINS");
+			$i_sift = index_of($cols, "SIFT");
+			$i_polyphen = index_of($cols, "PolyPhen");
+			//TODO $i_phylop = index_of($cols, "PHYLOP", false);
+			$i_cadd = index_of($cols, "CADD_RAW", false);
+			$i_existingvariation = index_of($cols, "Existing_variation");
+			$i_af_kg = index_of($cols, "AF");
+			$i_af_gnomad = index_of($cols, "gnomAD_AF");
+			$i_af_gnomad_genome = index_of($cols, "gnomADg_AF");
+			$i_af_gnomad_afr = index_of($cols, "gnomAD_AFR_AF");
+			$i_af_gnomad_amr = index_of($cols, "gnomAD_AMR_AF");
+			$i_af_gnomad_eas = index_of($cols, "gnomAD_EAS_AF");
+			$i_af_gnomad_nfe = index_of($cols, "gnomAD_NFE_AF");
+			$i_af_gnomad_sas = index_of($cols, "gnomAD_SAS_AF");
+			$i_af_esp_ea = index_of($cols, "EA_AF");
+			$i_af_esp_aa = index_of($cols, "AA_AF");
+			$i_repeat = index_of($cols, "REPEATMASKER");
+			$i_clinvar = index_of($cols, "CLINVAR");
+			$i_clinvar_details = index_of($cols, "CLINVAR_DETAILS");
+			$i_omim = index_of($cols, "OMIM", false);
+			$i_hgmd = index_of($cols, "HGMD", false);
+			$i_hgmd_class = index_of($cols, "HGMD_CLASS", false);
+			$i_hgmd_mut = index_of($cols, "HGMD_MUT", false);
+			$i_hgmd_gene = index_of($cols, "HGMD_GENE", false);
+			$i_hgmd_phen = index_of($cols, "HGMD_PHEN", false);
+		}
+
 		continue;
 	}
 	//after last header line, write our header
@@ -225,7 +269,7 @@ while(!feof($handle))
 	{
 		$filter = explode(";", $filter);
 	}
-	
+
 	//parse data from VCF
 	if(chr_check($chr, 22, false) === FALSE) continue; //skip bad chromosomes
 	$start = $pos;
@@ -330,55 +374,157 @@ while(!feof($handle))
 	{
 		$quality[] = "MQM=".intval($info["MQM"]);
 	}
-	
+
 	//variant details
-	//ANN field: Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO
+	$sift = array();
+	$polyphen = array();
+	$phylop = array();
+	$cadd = array();
+	$dbsnp = array();
+	$cosmic = array();
 	$genes = array();
 	$variant_details = array();
 	$coding_and_splicing_details = array();
-	$ann = extract_string("ANN", $info, "");
-	if ($ann!="")
+	$af_kg = array();
+	$af_gnomad = array();
+	$af_gnomad_genome = array();
+	$af_gnomad_afr = array();
+	$af_gnomad_amr = array();
+	$af_gnomad_eas = array();
+	$af_gnomad_nfe = array();
+	$af_gnomad_sas = array();
+	$af_esp_ea = array();
+	$af_esp_aa = array();
+	$repeat = array();
+	$clinvar = array();
+	$omim = array();
+	$hgmd = array();
+	if (isset($info["CSQ"]))
 	{
-		$anns = explode(",", $ann);
+		$anns = explode(",", $info["CSQ"]);
 		foreach($anns as $entry)
-		{
+		{			
 			$parts = explode("|", $entry);
 			
-			$details = strtr($parts[1], array("_variant"=>""));
-			$details = strtr($details, array("splice_acceptor&splice_region&intron"=>"splice_acceptor", "splice_donor&splice_region&intron"=>"splice_donor", "splice_acceptor&intron"=>"splice_acceptor", "splice_donor&intron"=>"splice_donor", "_prime_"=>"'"));
+			//######################### general information (not transcript-specific) #########################
 			
-			//skip sequence_feature
-			if ($details=="sequence_feature") continue; 
-
-			//skip empty gene names entries (TF-binding site, etc)
-			$gene = trim($parts[3]);
-			if ($gene=="") continue; 
+			//AFs
+			$af_kg[] = trim($parts[$i_af_kg]);
+			$af_gnomad[] = trim($parts[$i_af_gnomad]);
+			$af_gnomad_genome[] = trim($parts[$i_af_gnomad_genome]);
+			$af_gnomad_afr[] = trim($parts[$i_af_gnomad_afr]);
+			$af_gnomad_amr[] = trim($parts[$i_af_gnomad_amr]);
+			$af_gnomad_eas[] = trim($parts[$i_af_gnomad_eas]);
+			$af_gnomad_nfe[] = trim($parts[$i_af_gnomad_nfe]);
+			$af_gnomad_sas[] = trim($parts[$i_af_gnomad_sas]);
+			$af_esp_ea[] = trim($parts[$i_af_esp_ea]);
+			$af_esp_aa[] = trim($parts[$i_af_esp_aa]);
 			
-			//split genes
-			if ($details=="intergenic_region")
+			//dbSNP, COSMIC
+			$ids = explode("&", $parts[$i_existingvariation]);
+			foreach($ids as $id)
 			{
-				$gene_list = explode("-", $gene);
-				foreach($gene_list as $gene)
+				if (starts_with($id, "rs"))
 				{
-					$genes[] = $gene;
+					$dbsnp[] = $id;
+				}
+				if (starts_with($id, "COSM") || starts_with($id, "COSN"))
+				{
+					$cosmic[] = $id;
 				}
 			}
-			else
+			
+			//RepeatMasker
+			$repeat[] = trim($parts[$i_repeat]);
+			
+			//ClinVar
+			$clin_accs = explode("&", $parts[$i_clinvar]);
+			$clin_details = explode("&", $parts[$i_clinvar_details]);
+			for ($i=0; $i<count($clin_accs); ++$i)
 			{
-				$genes[] = $gene;
+				if ($clin_accs[$i]!="")
+				{
+					$clinvar[] = $clin_accs[$i]." [".strtr($clin_details[$i], array("[c]"=>",", "[p]"=>" DISEASE=", "_"=>" "))."];";
+				}
 			}
 			
-			//skip transcripts that are not flagged as "gencode basic"
-			if (count($gencode_basic)>0 && $details!="intergenic_region")
+			//OMIM
+			if ($i_omim!==FALSE)
 			{
-				$transcript = trim($parts[6]);
-				if (!isset($gencode_basic[$transcript])) continue;
+				$text = trim(strtr($parts[$i_omim], array("[c]"=>",", "&"=>",", "_"=>" ")));
+				if ($text!="") $text .= ";";
+				$omim[] = $text;
 			}
-
-			$variant_details[] = $details;
-			$exon = $parts[8];
+			
+			//HGMD
+			if ($i_hgmd!==FALSE)
+			{
+				$hgmd_id = explode("|", $parts[$i_hgmd]);
+				$hgmd_class = explode("|", $parts[$i_hgmd_class]);
+				$hgmd_mut = explode("|", $parts[$i_hgmd_mut]);
+				$hgmd_gene = explode("|", $parts[$i_hgmd_gene]);
+				$hgmd_phen = explode("|", $parts[$i_hgmd_phen]);
+				if (count($hgmd_id)!=count($hgmd_class) || count($hgmd_id)!=count($hgmd_mut) || count($hgmd_id)!=count($hgmd_phen) || count($hgmd_id)!=count($hgmd_gene)) trigger_error("HGMD field counts do not match:\n".implode("|",$hgmd_id)."\n".implode("|",$hgmd_class)."\n".implode("|",$hgmd_mut)."\n".implode("|",$hgmd_gene)."\n".implode("|",$hgmd_phen)."" , E_USER_ERROR);
+				$text = "";
+				for($i=0; $i<count($hgmd_id); ++$i)
+				{
+					if (trim($hgmd_id[$i]=="")) continue;
+					$text .= $hgmd_id[$i]." [CLASS=".$hgmd_class[$i]." MUT=".$hgmd_mut[$i]." PHEN=".strtr($hgmd_phen[$i], "_", " ")." GENE=".$hgmd_gene[$i]."]; ";
+				}
+				$hgmd[] = trim($text);
+			}
+			
+			//pathogenicity predictions (not transcript-specific)
+			$phylop[] = ""; //TODO trim($parts[$i_phylop]);
+			$cadd[] = trim($parts[$i_cadd]);
+			
+			//######################### transcript-specific information #########################
+			
+			//TODO what other feature types are there?
+			//only transcripts 
+			if ($parts[$i_featuretype]!="Transcript") continue; 
+			$transcript_id = $parts[$i_feature];
+			
+			//TODO do not skip if no other transcript type exists
+			//skip up-/down-stream annotations unless requested
+			$variant_type = strtr($parts[$i_consequence], array("_variant"=>""));
+			$variant_type = strtr($variant_type, array("splice_acceptor&splice_region&intron"=>"splice_acceptor", "splice_donor&splice_region&intron"=>"splice_donor", "splice_acceptor&intron"=>"splice_acceptor", "splice_donor&intron"=>"splice_donor", "_prime_"=>"'"));
+			if (!$updown && ($variant_type=="upstream_gene" || $variant_type=="downstream_gene")) continue;
+			$variant_details[] = $variant_type;
+			
+			//split genes
+			$gene = $parts[$i_symbol];
+			$genes[] = $gene;
+			
+			//pathogenicity predictions (transcript-specific)
+			$sift[] = translate("Sift", $parts[$i_sift], array(""=>" ", "deleterious"=>"D", "tolerated"=>"T", "tolerated_low_confidence"=>"T", "deleterious_low_confidence"=>"D"));
+			$polyphen[] = translate("PolyPhen", $parts[$i_polyphen], array(""=>" ", "unknown"=>" ",  "probably_damaging"=>"D", "possibly_damaging"=>"P", "benign"=>"B"));
+			
+			//exon
+			$exon = trim($parts[$i_exon]);
 			if ($exon!="") $exon = "exon".$exon;
-			$coding_and_splicing_details[] = $gene.":".$parts[6].":$details:".$parts[2].":$exon:".$parts[9].":".$parts[10];
+			$intron = trim($parts[$i_intron]);
+			if ($intron!="") $intron = "exon".$intron;
+			
+			//hgvs
+			$hgvs_c = trim($parts[$i_hgvsc]);
+			if ($hgvs_c!="") $hgvs_c = explode(":", $hgvs_c)[1];			
+			$hgvs_p = trim($parts[$i_hgvsp]);
+			if ($hgvs_p!="") $hgvs_p = explode(":", $hgvs_p)[1];
+			$hgvs_p = str_replace("%3D", "=", $hgvs_p);
+			
+			//domain
+			$domain = "";
+			$domains = explode("&", $parts[$i_domains]);
+			foreach($domains as $entry)
+			{
+				if(starts_with($entry, "Pfam_domain:"))
+				{
+					$domain = explode(":", $entry, 2)[1];
+				}
+			}
+						
+			$coding_and_splicing_details[] = "{$gene}:{$transcript_id}:".$parts[$i_consequence].":".$parts[$i_impact].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}:{$domain}";
 		}
 	}
 	$genes = array_unique($genes);
@@ -390,78 +536,41 @@ while(!feof($handle))
 	$coding_and_splicing_details =  implode(",", $coding_and_splicing_details);
 
 	//RepeatMasker
-	$repeatmasker = extract_string("REPEATMASKER", $info, "");
+	$repeatmasker = collapse("RepeatMasker", $repeat, "one");
 	
-	//Frequency databases
-	$dbsnp = "";
-	if ($id!=".") $dbsnp = $id;
-	$kgenomes = extract_numeric("T1000GP_AF", $info, "0.0000", 4, "max");
-	$gnomad = max(extract_numeric("GNOMAD_AF", $info, "0.0000", 4), extract_numeric("GNOMAD_GENOME_AF", $info, "0.0000", 4));
-	$exac = extract_numeric("EXAC_AF", $info, "0.0000", 4);
-	$exac_hom_all = extract_numeric("EXAC_AC_Hom", $info, "0", 0);
-	$exac_hom_nfe = extract_numeric("EXAC_Hom_NFE", $info, "0", 0);
-	$exac_hom_afr = extract_numeric("EXAC_Hom_AFR", $info, "0", 0);
-	$exac_hom = "$exac_hom_all,$exac_hom_nfe,$exac_hom_afr";
-	$exac_afr = extract_numeric("EXAC_AF_AFR", $info, "0", 4);
-	$exac_amr = extract_numeric("EXAC_AF_AMR", $info, "0", 4);
-	$exac_eas = extract_numeric("EXAC_AF_EAS", $info, "0", 4);
-	$exac_nfe = extract_numeric("EXAC_AF_NFE", $info, "0", 4);
-	$exac_sas = extract_numeric("EXAC_AF_SAS", $info, "0", 4);
-	$exac_sub = "$exac_afr,$exac_amr,$exac_eas,$exac_nfe,$exac_sas";
+	//AFs
+	$dbsnp = implode(",", collapse("dbSNP", $dbsnp, "unique"));	
+	$kg = collapse("1000g", $af_kg, "one", "0.0000", 4);
+	$gnomad = collapse("gnomAD", $af_gnomad, "one", "0.0000", 4);
+	$gnomad_genome = collapse("gnomAD genome", $af_gnomad_genome, "one", "0.0000", 4);
+	$gnomad = max($gnomad, $gnomad_genome);
+	$gnomad_hom = ""; //TODO
+	$gnomad_sub = collapse("gnomAD", $af_gnomad_afr, "one", "0.0000", 4).",".collapse("gnomAD", $af_gnomad_amr, "one", "0.0000", 4).",".collapse("gnomAD", $af_gnomad_eas, "one", "0.0000", 4).",".collapse("gnomAD", $af_gnomad_nfe, "one", "0.0000", 4).",".collapse("gnomAD", $af_gnomad_sas, "one", "0.0000", 4);
+	$esp_sub = collapse("ESP ea", $af_esp_ea, "one", "0.0000", 4).",".collapse("ESP aa", $af_esp_aa, "one", "0.0000", 4);
 	
 	//effect predicions
-	$phylop = extract_numeric("dbNSFP_phyloP100way_vertebrate", $info, "", 4, "max");
-	$sift = extract_string("dbNSFP_SIFT_pred", $info, "");
-	$metalr = extract_string("dbNSFP_MetaLR_pred", $info, "");
-	$pp2 = extract_string("dbNSFP_Polyphen2_HVAR_pred", $info, "");
-	$fathmm = extract_string("dbNSFP_FATHMM_pred", $info, "");
-	$cadd = extract_numeric("dbNSFP_CADD_phred", $info, "", 2, "max");
-	if ($cadd!="") $cadd = number_format($cadd, 2);
-
-	//OMIM
-	$omim = strtr(extract_string("OMIM", $info, ""), "_", " ");
-	if ($omim!="")
-	{
-		$omim .= ";";
-	}
+	$phylop = collapse("phyloP", $phylop, "one", null, 4);
+	$sift = implode(",", $sift);
+	if (trim(strtr($sift, ",", " "))=="") $sift = "";
+	$polyphen = implode(",", $polyphen);
+	if (trim(strtr($polyphen, ",", " "))=="") $polyphen = "";
+	$fathmm = ""; //TODO
+	$cadd = collapse("CADD", $cadd, "one", null, 2);
 	
+	//OMIM
+	$omim = collapse("OMIM", $omim, "one");
+
 	//ClinVar
-	$clin_acc = explode("|", extract_string("CLINVAR_ACC", $info, ""));
-	$clin_sig = explode("|", extract_string("CLINVAR_SIG", $info, ""));
-	$clin_dis = explode("|", extract_string("CLINVAR_DISEASE", $info, ""));
-	if (count($clin_acc)!=count($clin_sig)) trigger_error("ClinVar field counts do not match: ACC:".count($clin_acc)." SIG:".count($clin_sig)." DISEASE:".count($clin_dis) , E_USER_ERROR);
-	while (count($clin_dis)<count($clin_acc))
-	{
-		$clin_dis[] = "";
-	}
-	$clinvar = "";
-	for($i=0; $i<count($clin_acc); ++$i)
-	{
-		if (trim($clin_acc[$i]=="")) continue;
-		$disease = trim($clin_dis[$i]);
-		if ($disease!="") $disease = " DISEASE=".$disease;
-		$clinvar .= $clin_acc[$i]." [".strtr($clin_sig[$i], "_", " ").$disease."]; ";
-	}
+	$clinvar = implode(" ", collapse("ClinVar", $clinvar, "unique"));
 	
 	//HGMD
-	$hgmd_id = explode("|", extract_string("HGMD_ID", $info, ""));
-	$hgmd_class = explode("|", extract_string("HGMD_CLASS", $info, ""));
-	$hgmd_mut = explode("|", extract_string("HGMD_MUT", $info, ""));
-	$hgmd_gene = explode("|", extract_string("HGMD_GENE", $info, ""));
-	$hgmd_phen = explode("|", extract_string("HGMD_PHEN", $info, ""));
-	if (count($hgmd_id)!=count($hgmd_class) || count($hgmd_id)!=count($hgmd_mut) || count($hgmd_id)!=count($hgmd_phen) || count($hgmd_id)!=count($hgmd_gene)) trigger_error("HGMD field counts do not match:\n".implode("|",$hgmd_id)."\n".implode("|",$hgmd_class)."\n".implode("|",$hgmd_mut)."\n".implode("|",$hgmd_gene)."\n".implode("|",$hgmd_phen)."" , E_USER_ERROR);
-	$hgmd = "";
-	for($i=0; $i<count($hgmd_id); ++$i)
-	{
-		if (trim($hgmd_id[$i]=="")) continue;
-		$hgmd .= $hgmd_id[$i]." [CLASS=".$hgmd_class[$i]." MUT=".$hgmd_mut[$i]." PHEN=".strtr($hgmd_phen[$i], "_", " ")." GENE=".$hgmd_gene[$i]."]; ";
-	}
-		
+	$hgmd = collapse("HGMD", $hgmd, "one");
+	
 	//COSMIC
-	$cosmic = strtr(extract_string("COSMIC_ID", $info, ""), array(","=>", "));
+	$cosmic = implode(",", collapse("COSMIC", $cosmic, "unique"));
 
 	//write data
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kgenomes\t$exac\t$exac_hom\t$exac_sub\t$gnomad\t$phylop\t$sift\t$metalr\t$pp2\t$fathmm\t$cadd\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom\t$gnomad_sub\t$esp_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
 }
 
 //if no variants are present, we need to write the header line after the loop

@@ -1260,8 +1260,7 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 		$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
 		$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
 		$parts['DiseaseGroup'] = $details['disease_group'];
-		$parts['DiseaseStatus'] = $details['disease_status'];		
-		//TODO: take detailed phenotype info from NGSD as well
+		$parts['DiseaseStatus'] = $details['disease_status'];
 	}
 	
 	//apply overwrite settings
