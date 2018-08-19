@@ -37,11 +37,11 @@ $args[] = "--sift p --polyphen p"; //pathogenicity predictions
 $args[] = "--af --af_gnomad --af_esp --failed 1"; //population frequencies
 $args[] = "--plugin CADD,".get_path("data_folder")."/dbs/CADD/+old_1.3/whole_genome_SNVs.tsv.gz,".get_path("data_folder")."/dbs/CADD/InDels.tsv.gz"; //CADD //TODO update path
 //TODO $args[] = "--plugin REVEL,".get_path("data_folder")."/dbs/REVEL/revel_all_chromosomes.csv.gz"; //REVEL
-//TODO $args[] = "--plugin FATHMM_MKL,".get_path("data_folder")."/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz"; //fathmm-MKL
+$args[] = "--plugin FATHMM_MKL,".get_path("data_folder")."/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz"; //fathmm-MKL
 $args[] = "--custom ".get_path("data_folder")."/dbs/gnomAD/gnomad.genomes.r2.0.1.sites.noVEP.vcf.gz,gnomADg,vcf,exact,0,AF"; //genomAD genome AFs
 $args[] = "--custom ".get_path("data_folder")."/dbs/RepeatMasker/RepeatMasker.bed.gz,REPEATMASKER,bed,overlap,0"; //RepeatMasker
 $args[] = "--custom ".get_path("data_folder")."/dbs/ClinVar/clinvar_20180701_converted.vcf.gz,CLINVAR,vcf,exact,0,DETAILS"; //ClinVar
-//TODO $args[] = "--custom ".get_path("data_folder")."/dbs/phyloP/hg19.100way.phyloP100way.bw,PHYLOP,bigwig";
+$args[] = "--custom ".get_path("data_folder")."/dbs/phyloP/hg19.100way.phyloP100way.bw,PHYLOP,bigwig";
 if(file_exists(get_path("data_folder")."/dbs/OMIM/omim.bed.gz")) //OMIM annotation (optional because of license)
 {
 	$args[] = "--custom ".get_path("data_folder")."/dbs/OMIM/omim.bed.gz,OMIM,bed,overlap,0";

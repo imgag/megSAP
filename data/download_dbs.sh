@@ -60,6 +60,7 @@ cd $dbs
 mkdir fathmm-MKL
 cd fathmm-MKL
 wget http://fathmm.biocompute.org.uk/database/fathmm-MKL_Current.tab.gz
+tabix -p bed fathmm-MKL_Current.tab.gz
 
 #install OMIM (you might need a license - installation only possible after ngs-bits including NGSD is installed)
 #cd $dbs

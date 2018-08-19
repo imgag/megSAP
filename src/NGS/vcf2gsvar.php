@@ -149,7 +149,7 @@ $column_desc = array(
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
 	array("Sift", "Sift effect prediction for each transcript: D=damaging, T=tolerated."),
 	array("PolyPhen", "PolyPhen (humVar) effect prediction for each transcript: D=probably damaging, P=possibly damaging, B=benign."),
-	array("FATHMM", "FATHMM effect prediction: D=damaging, T=tolerated."),
+	array("FATHMM", "FATHMM-MKL score (coding and non-coding) TODO cutoffs."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20."),
 	array("OMIM", "OMIM database annotation."),
 	array("ClinVar", "ClinVar database annotation."),
@@ -224,8 +224,11 @@ while(!feof($handle))
 			$i_domains = index_of($cols, "DOMAINS");
 			$i_sift = index_of($cols, "SIFT");
 			$i_polyphen = index_of($cols, "PolyPhen");
-			//TODO $i_phylop = index_of($cols, "PHYLOP", false);
+			$i_phylop = index_of($cols, "PHYLOP", false);
 			$i_cadd = index_of($cols, "CADD_RAW", false);
+			$i_fathmm_c = index_of($cols, "FATHMM_MKL_C");
+			$i_fathmm_nc = index_of($cols, "FATHMM_MKL_NC");
+			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_existingvariation = index_of($cols, "Existing_variation");
 			$i_af_kg = index_of($cols, "AF");
 			$i_af_gnomad = index_of($cols, "gnomAD_AF");
@@ -379,6 +382,7 @@ while(!feof($handle))
 	$sift = array();
 	$polyphen = array();
 	$phylop = array();
+	$fathmm = array();
 	$cadd = array();
 	$dbsnp = array();
 	$cosmic = array();
@@ -475,8 +479,11 @@ while(!feof($handle))
 			}
 			
 			//pathogenicity predictions (not transcript-specific)
-			$phylop[] = ""; //TODO trim($parts[$i_phylop]);
+			$phylop[] = trim($parts[$i_phylop]);
 			$cadd[] = trim($parts[$i_cadd]);
+			$fathmm_c = trim($parts[$i_fathmm_c]);
+			$fathmm_nc = trim($parts[$i_fathmm_nc]);
+			$fathmm[] = ($fathmm_c=="" && $fathmm_nc=="") ? "" : number_format($fathmm_c, 2).",".number_format($fathmm_nc, 2);
 			
 			//######################### transcript-specific information #########################
 			
@@ -540,7 +547,7 @@ while(!feof($handle))
 	
 	//AFs
 	$dbsnp = implode(",", collapse("dbSNP", $dbsnp, "unique"));	
-	$kg = collapse("1000g", $af_kg, "one", "0.0000", 4);
+	$kg = collapse("1000g", $af_kg, "one", "0.0000", 4); //TODO do not replace if empty (all AFs) => indicate that there is no value in the DB
 	$gnomad = collapse("gnomAD", $af_gnomad, "one", "0.0000", 4);
 	$gnomad_genome = collapse("gnomAD genome", $af_gnomad_genome, "one", "0.0000", 4);
 	$gnomad = max($gnomad, $gnomad_genome);
@@ -554,7 +561,7 @@ while(!feof($handle))
 	if (trim(strtr($sift, ",", " "))=="") $sift = "";
 	$polyphen = implode(",", $polyphen);
 	if (trim(strtr($polyphen, ",", " "))=="") $polyphen = "";
-	$fathmm = ""; //TODO
+	$fathmm = collapse("FATHMM-MKL", $fathmm, "one");
 	$cadd = collapse("CADD", $cadd, "one", null, 2);
 	
 	//OMIM
