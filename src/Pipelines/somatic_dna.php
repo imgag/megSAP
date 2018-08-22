@@ -29,8 +29,8 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 
 $parser->addString("cancer_type", "Tumor type, see CancerGenomeInterpreter.org for nomenclature (resolved from GENLAB if not set).", true);
 
-$parser->addInfile("system",  "Processing system INI file used for tumor DNA sample (resolved from NGSD via tumor BAM by default).", true);
-$parser->addInfile("n_system",  "Processing system INI file used for normal DNA sample (resolved from NGSD via tumor BAM by default).", true);
+$parser->addInfile("system",  "Processing system file used for tumor DNA sample (resolved from NGSD via tumor BAM by default).", true);
+$parser->addInfile("n_system",  "Processing system file used for normal DNA sample (resolved from NGSD via tumor BAM by default).", true);
 
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 
@@ -360,7 +360,16 @@ if (in_array("an", $steps))
 		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $variants_gsvar -out $variants_gsvar -psname $t_id -mode germline", true);
 	}
 
-	//TODO annotate vcf, GSvar with frequency/depth in tumor RNA sample
+	//annotate vcf, GSvar with frequency/depth from tumor RNA sample
+	if (isset($t_rna_bam))
+	{
+		// annotate vcf
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency",
+			"-in $variants_annotated -bam $t_rna_bam -out $variants_annotated -name rna_tum -depth", true);
+		// annotate GSvar
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency",
+			"-in $variants_gsvar -bam $t_rna_bam -out $variants_gsvar -name rna_tum -depth", true);
+	}
 }
 
 //qci / CGI annotation
