@@ -149,18 +149,6 @@ foreach($sample_data as $sample => $sample_infos)
 		}
 	}
 	
-	//bcl2fastq2 changes "-" to "_" in sample name, revert that
-	if ($is_nextseq)
-	{
-		$sample_modified = strtr($sample, "_", "-");
-		$old_files = glob("{$old_location}/Sample_{$sample}/{$sample_modified}*.fastq.gz");
-		foreach($old_files as $file)
-		{
-			$file_corrected = strtr($file, array($sample_modified => $sample));
-			$parser->moveFile($file, $file_corrected);
-		}
-	}
-	
 	//build copy line
 	$fastqgz_files = glob($old_location."/Sample_{$sample}/*.fastq.gz");
 	$r3_count = 0;
@@ -205,18 +193,25 @@ foreach($sample_data as $sample => $sample_infos)
 		if ($sample_is_tumor && $sys_type!="RNA")
 		{
 			//queue tumor, with somatic specific options
-			$args_single_somatic = "'-steps ma -no_abra -clip_overlap -correction_n'";
-			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample} -args {$args_single_somatic}";
+			//add variant calling for diagnostic normal samples
+			if ($project_type === "diagnostic")
+			{
+				$steps_normal = "ma,vc,an";
+			}
+			else
+			{
+				$steps_normal = "ma";
+			}
+			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample} -args '-steps ma -no_abra -clip_overlap -correction_n'";
 			$outputline .= "\n\t";
 
 			if (isset($tumor2normal[$sample]))
 			{
 				$normal = $tumor2normal[$sample];
 				//queue normal if on same run, with somatic specific options
-				//TODO move germline variant calling (-include_germline) to this analysis and remove it from somatic_dna
 				if (!in_array($normal, $queued_normal_samples) && $sample_data[$normal]["run_name"] === $sample_infos["run_name"])
 				{
-					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal} -args {$args_single_somatic}";
+					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal} -args '-steps {$steps_normal} -no_abra -clip_overlap -correction_n'";
 					$outputline .= "\n\t";
 					//track that normal sample is queued
 					$queued_normal_samples[] = $normal;
