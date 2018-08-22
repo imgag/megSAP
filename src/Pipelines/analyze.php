@@ -23,7 +23,16 @@ $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
 $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.", true);
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
+$parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. no_abra, correction_n, clip_overlap).");
 extract($parser->parse($argv));
+
+//handle somatic flag
+if ($somatic)
+{
+	$clip_overlap = true;
+	$no_abra = true;
+	$correction_n = true;
+}
 
 $sys = load_system($system, $name);
 
