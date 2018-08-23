@@ -13,10 +13,10 @@ copy_SomaticAndTreatment_diagnostic:
 	mv Unaligned/SomaticAndTreatment/Sample_DX181279_01/ /mnt/projects/diagnostic/SomaticAndTreatment/
 
 queue_SomaticAndTreatment_diagnostic:
-	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX181280_01 -args '-steps ma -no_abra -clip_overlap -correction_n'
-	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX181277_01 -args '-steps ma,vc,an -no_abra -clip_overlap -correction_n'
+	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX181280_01 -args '-steps ma,db -somatic'
+	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX181277_01 -args '-steps ma,vc,an,db -somatic'
 	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'somatic' -samples DX181280_01 DX181277_01 -info tumor normal -args '-include_germline'
-	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX181278_01 -args '-steps ma -no_abra -clip_overlap -correction_n'
+	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX181278_01 -args '-steps ma,db -somatic'
 	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'somatic' -samples DX181278_01 DX181277_01 -info tumor normal -args '-include_germline'
-	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX181279_01 -args '-steps ma -no_abra -clip_overlap -correction_n'
+	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX181279_01 -args '-steps ma,db -somatic'
 	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'somatic' -samples DX181279_01 -info tumor -args '-include_germline'

@@ -1,7 +1,4 @@
-#analyze.php arguments for single sample somatic analysis context
-ARGS_SINGLE := -steps ma -no_abra -clip_overlap -correction_n
-
-all: clear link case1 case2 case3 case4
+all: clear link case1 case2 case4
 
 clear:
 	rm -rf Sample_GS110168 Sample_GS110169 Sample_GS150344_01 Sample_Tumor2 Sample_Normal2
@@ -30,12 +27,12 @@ link:
 case1: case1_run case1_diff
 
 case1_run:
-	# php ../../src/Pipelines/analyze.php \
-	# 	-folder Sample_GS150344_01 \
-	# 	-name GS150344_01 \
-	# 	$(ARGS_SINGLE) \
-	# 	-system system_single.ini \
-	# 	--log Sample_GS150344_01/analyze.log
+	php ../../src/Pipelines/analyze.php \
+		-folder Sample_GS150344_01 \
+		-name GS150344_01 \
+		-steps ma -somatic \
+		-system system_single.ini \
+		--log Sample_GS150344_01/analyze.log
 	php ../../src/Pipelines/somatic_dna.php \
 		-t_bam Sample_GS150344_01/GS150344_01.bam \
 		-out_folder out_case1 \
@@ -57,13 +54,13 @@ case2_analyze:
 	php ../../src/Pipelines/analyze.php \
 		-folder Sample_GS110168 \
 		-name GS110168 \
-		$(ARGS_SINGLE) \
+		-steps ma -somatic \
 		-system system_pair.ini \
 		--log Sample_GS110168/analyze.log
 	php ../../src/Pipelines/analyze.php \
 		-folder Sample_GS110169 \
 		-name GS110169 \
-		$(ARGS_SINGLE) \
+		-steps ma -somatic \
 		-system system_pair.ini \
 		--log Sample_GS110169/analyze.log
 
@@ -105,13 +102,13 @@ case4_analyze:
 	php ../../src/Pipelines/analyze.php \
 		-folder Sample_Tumor2 \
 		-name Tumor2 \
-		$(ARGS_SINGLE) \
+		-steps ma -somatic \
 		-system system_pair.ini \
 		--log Sample_Tumor2/analyze.log
 	php ../../src/Pipelines/analyze.php \
 		-folder Sample_Normal2 \
 		-name Normal2 \
-		$(ARGS_SINGLE) \
+		-steps ma,vc -somatic \
 		-system system_pair.ini \
 		--log Sample_Normal2/analyze.log
 
@@ -134,10 +131,6 @@ case4_diff:
 	test -s out_case4/Tumor2-Normal2_cgi_drug_prescription_bioactivities.tsv
 	test -s out_case4/Tumor2-Normal2_cgi_mutation_analysis.tsv
 	test -s out_case4/Tumor2-Normal2_cnvs.tsv
-	
-	#Germline variant files should exist in case4 (flag include_germline is set)
-	test -s Sample_Normal2/Normal2_var.vcf.gz
-	test -s Sample_Normal2/Normal2_var_annotated.vcf.gz
 
 	# qcML files
 	php ../compare_qcml_xml.php expected_case4/Tumor2-Normal2_stats_som.qcML out_case4/Tumor2-Normal2_stats_som.qcML

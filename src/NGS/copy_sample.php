@@ -194,8 +194,8 @@ foreach($sample_data as $sample => $sample_infos)
 		{
 			//queue tumor, with somatic specific options
 			//add variant calling for diagnostic normal samples
-			$steps_normal = $project_type === "diagnostic" ? "ma,vc,an,db" : "ma,db";
-			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample} -args '-steps ma -somatic'";
+			$steps_somatic = $project_type === "diagnostic" ? "ma,vc,an,db" : "ma,db";
+			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample} -args '-steps ma,db -somatic'";
 			$outputline .= "\n\t";
 
 			if (isset($tumor2normal[$sample]))
@@ -204,7 +204,7 @@ foreach($sample_data as $sample => $sample_infos)
 				//queue normal if on same run, with somatic specific options
 				if (!in_array($normal, $queued_normal_samples) && $sample_data[$normal]["run_name"] === $sample_infos["run_name"])
 				{
-					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal} -args '-steps {$steps_normal} -somatic'";
+					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal} -args '-steps $steps_somatic -somatic'";
 					$outputline .= "\n\t";
 					//track that normal sample is queued
 					$queued_normal_samples[] = $normal;
@@ -221,11 +221,6 @@ foreach($sample_data as $sample => $sample_infos)
 			if ($project_type === "diagnostic")
 			{
 				$args[] = "-include_germline";
-			}
-			$promoter_file = str_replace(".bed", "", $sys_target) . "_promoters.bed";
-			if(file_exists($promoter_file))
-			{
-				$args[] = "-promoter {$promoter_file}";
 			}
 		}
 		else
