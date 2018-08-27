@@ -471,7 +471,7 @@ if (in_array("ci", $steps))
 						}
 					}
 				} 
-				elseif($icd10_diagnosis != "")
+				elseif($icd10_diagnosis != "" || empty($icd10_diagnosis))
 				{
 					trigger_error("Could not assign CGI Cancer acronym to ICD10-diagnosis '$icd10_diagnosis'. Using standard cancertype CANCER instead.",E_USER_WARNING);
 					$cancer_type = "CANCER";
@@ -615,8 +615,13 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		$parser->execTool("NGS/db_check_gender.php", "-in $t_bam -pid $t_id");
 
 		// import qcML files
-		$log_db = $full_prefix."_log4_db.log";
-		$parser->execTool("NGS/db_import_qc.php", "-id $t_id -files $somaticqc -force -min_depth 0 --log $log_db");
+		$log_db = dirname($t_bam)."/{$t_id}_log4_db.log";
+		$qcmls = implode(" ", array_filter([
+			dirname($t_bam)."/{$t_id}_stats_fastq.qcML",
+			dirname($t_bam)."/{$t_id}_stats_map.qcML",
+			$somaticqc
+		], "file_exists"));
+		$parser->execTool("NGS/db_import_qc.php", "-id $t_id -files $qcmls -force -min_depth 0 --log $log_db");
 
 		// check tumor/normal flag
 		if (!$t_info['is_tumor'])
@@ -631,7 +636,13 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			$parser->execTool("NGS/db_check_gender.php", "-in $n_bam -pid $n_id");
 
 			// import qcML files
-			$parser->execTool("NGS/db_import_qc.php", "-id $n_id -files $somaticqc -force -min_depth 0 --log $log_db");
+			$log_db = dirname($n_bam)."/{$n_id}_log4_db.log";
+			$qcmls = implode(" ", array_filter([
+				dirname($n_bam)."/{$n_id}_stats_fastq.qcML",
+				dirname($n_bam)."/{$n_id}_stats_map.qcML",
+				dirname($n_bam)."/{$n_id}_stats_vc.qcML"
+			], "file_exists"));
+			$parser->execTool("NGS/db_import_qc.php", "-id $n_id -files $qcmls -force -min_depth 0 --log $log_db");
 
 			// check tumor/normal flag
 			if ($n_info['is_tumor'])
