@@ -67,7 +67,10 @@ $full_prefix = "{$out_folder}/{$prefix}";
 $t_id = basename($t_bam, ".bam");
 $n_id = basename($n_bam, ".bam");
 $sys = load_system($system, $t_id);
-$n_sys = load_system($n_system, $t_id); //TODO
+if (!$single_sample)
+{
+	$n_sys = load_system($n_system, $n_id);
+};
 $roi = $sys["target_file"];
 
 //sample similiarty check
