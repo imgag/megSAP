@@ -9,6 +9,7 @@ C17.9		Dünndarm, nicht näher bezeichnet	Small intestine, unspecified	SIN
 C18		Bösartige Neubildung des Kolons	Malignant neoplasm of colon	COC
 C18.4		Colon transversum	Transverse colon	COC
 C18.7		Colon sigmoideum	Sigmoid colon	COC
+C18.9		Bösartige Neubildung des Kolons, nicht näher bezeichnet	Malignant neoplasm of colon, unspecified	COREAD
 C20		Bösartige Neubildung des Rektums	Malignant neoplasm of rectum	REC
 C22		Bösartige Neubildung der Leber und der intrahepatischen Gallengänge	Malignant neoplasm of liver and intrahepatic bile ducts	H
 C22.1		Intrahepatisches Gallengangskarzinom Inkl.: Cholangiokarzinom	Intrahepatic bile duct carcinoma Cholangiocarcinoma	CH
@@ -56,3 +57,4 @@ D32.0		Hirnhäute	Benign neoplasm of cerebral meninges	MEN
 D32.1		Rückenmarkhäute	Benign neoplasm of spinal meninges	MEN
 D32.9		Meningen, nicht näher bezeichnet	Benign neoplasm of meninges, unspecified	MEN
 D33		Gutartige Neubildung des Gehirns und anderer Teile des Zentralnervensystems	Benign neoplasm of brain and other parts of central nervous system	NS
+D35.2		Gutartige Neubildung: Hypophyse	Benign neoplasm: Pituitary gland	PIGA
