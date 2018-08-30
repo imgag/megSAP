@@ -1,31 +1,53 @@
-# megSAP - DNA analysis (tumor-normal pair)
+# megSAP - DNA analysis (tumor samples, tumor/normal pairs)
 
-### Basics
+### Introduction
 
-Tumor-normal pairs can be analyzed by using the somatic_dna.php script. This script is also used by several project specific data analysis pipelines. For example, the script `somatic_emed.php` can be used for analysis of combined DNA/RNA tumor-normal data. 
+Somatic analysis of tumor/normal DNA sample pairs and of tumor-only DNA samples is
+performed with `somatic_dna.php`. It requires samples already aligned and present in
+BAM format. Please have a look at the help:
 
-Please also look at the help using:
-
-	> php megSAP/src/Pipelines/somatic_dna.php --help
+    > php megSAP/src/Pipelines/somatic_dna.php --help
 
 The main parameters that you have to provide are:
 
-* `p_folder` - Project folder that contains all sample folders that will be used for the current analysis. The sample folders should be named like `Sample_ID` while ID is the corresponding sample ID. Sample IDs are given by the parameters `t_id` and `n_id`. Sample folders contain the FASTQ files produced by bcl2fastq2.
-* `t_id` - The tumor sample name, which must be a prefix of the FASTQ files.
-* `n_id` -  The normal sample name, which must be a prefix of the FASTQ files.
-* `o_folder` - The output folder.
-* `steps` - Analysis steps to perform. Please use `ma,vc,an` to perform mapping, variant calling and variant annotation.
-* `filter_set` - Filter set to use for post-call variant filtering. Applies only if annotation step is selected. Multiple filters can be comma separated. Same options like in `filter_vcf.php`
-* `min_af` - Minimum variant allele frequency to detect.
-* `t_sys` - The [processing system INI file](processing_system_ini_file.md) for the tumor sample.
-* `n_sys` - The [processing system INI file](processing_system_ini_file.md) for the normal sample.
-* `nsc` - Skip sample correlation check. This is useful if sample correlation is low and the pipeline will give an error otherwise.
+* `t_bam` - the tumor DNA sample BAM file
+* `n_bam` - the normal DNA sample BAM file (only required for tumor/normal analysis)
+* `-out_folder` - the output folder
+
+Alignment of the individual DNA sample(s) can be performed with `analyze.php` using `-somatic`
+and `-steps ma` options (also see [single sample DNA analysis](dna_single_sample.md)).
+
 
 ### Output
 
-coming soon
+The main output files are listed below.
+
+**Variant calling step (`vc`, `an`):**
+
+* `somatic_var.vcf.gz` - SNVs and short indels called with Strelka2 (sample pairs) or FreeBayes (tumor sample only)
+* `somatic_var_annotated.vcf.gz` and `somatic.GSvar` - annotated variants
+* `somatic_var_structural.vcf.gz` and `somatic_var_structural.tsv` - structural variants called with manta
+* `somatic_bafs.igv` - B-allele frequencies in IGV-compatible tabular format
+
+**Copy-number variation calling step (`cn`):**
+
+* `somatic_cnvs.tsv` - copy-number variations called with CNVHunter
+
+**Microsatellite analysis step (`msi`):**
+
+* `somatic_msi.tsv` - microsatellite instabilities called with MANTIS
+
+
+### Single Sample Tumor DNA Analysis
+
+In tumor-only DNA analysis, variants are called with FreeBayes. Identification of somatic
+variants out of all the variant calls is realized by applying filters on variant allele
+frequencies from public databases (present in the annotated variant lists). This can be
+achieved interactively in GSvar (filter panel) or by using `VariantFilterAnnotations`
+(from `ngs-bits`) with the following filter specification file (for e.g. 1% filter):
+
+```
+Allele frequency    max_af=1
+```
 
 [back to the start page](../README.md)
-
-
-
