@@ -27,7 +27,8 @@ INSERT INTO sample (name, sample_type, species_id, gender, tumor, ffpe, sender_i
 ('FO180005', 'DNA', 1, 'male', '0', '0', 1),
 ('DX181277', 'DNA', 1, 'male', '0', '0', 1),
 ('DX181278', 'DNA', 1, 'male', '1', '1', 1),
-('DX181279', 'DNA', 1, 'male', '1', '1', 1);
+('DX181279', 'DNA', 1, 'male', '1', '1', 1),
+('DX181280', 'DNA', 1, 'male', '1', '1', 1);
 
 INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, processing_system_id, project_id, normal_id) VALUES
 (1,1,1,'1',1,1, NULL),
@@ -36,4 +37,5 @@ INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, pr
 (4,1,1,'1',1,2, NULL),
 (5,1,1,'1',1,3, NULL),
 (6,1,1,'1',1,3, 5),
-(7,1,1,'1',1,3, NULL);
+(7,1,1,'1',1,3, NULL),
+(8,1,1,'1',1,3, 5);

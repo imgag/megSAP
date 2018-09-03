@@ -311,7 +311,7 @@ if (in_array("fu",$steps))
 				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa" => "{$prefix}_var_fusions.fa",
 				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa.fai" => "{$prefix}_var_fusions.fa.fai",
 				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.gtf" => "{$prefix}_var_fusions.gtf"
-			], $output_files), "file_exists");
+			], $output_files), "file_exists", ARRAY_FILTER_USE_KEY);
 		}
 		foreach ($output_files as $src => $dest)
 		{

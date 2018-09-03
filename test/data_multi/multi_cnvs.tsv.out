@@ -65,7 +65,7 @@ chr6	32805304	32805438	multi	134	1	3	3.86	0.033	chr6:32805304-32805438		TAP2		17
 chr6	32819876	32820289	multi	413	2	3,3	4.2,4.07	0.026,0.026	chr6:32819876-32820026,chr6:32820155-32820289		PSMB9, TAP1		170260_[TAP1_(confirmed)_Bare_lymphocyte_syndrome,type_I,604571]
 chr6	52925724	52925854	multi	130	1	3	3.57	0.020	chr6:52925724-52925854		ICK		612325_[ICK_(provisional)_Endocrine-cerebroosteodysplasia,612651|Epilepsy,juvenile_myoclonic,susceptibility_to,10,617924]
 chr6	88258299	88258374	multi	75	1	3	3.72	0.013	chr6:88258299-88258374		RARS2		611524_[RARS2_(confirmed)_Pontocerebellar_hypoplasia,type_6,611523]
-chr7	73474460	73474841	multi	381	2	1,1	-3,-4.21	0.020,0.078	chr7:73474460-73474524,chr7:73474696-73474841		ELN, ELN-AS1	ELN	130160_[ELN_(confirmed)_Supravalvar_aortic_stenosis,185500|Cutis_laxa,autosomal_dominant,123700],194050_[ELN_(confirmed)_Williams-Beuren_syndrome]
+chr7	73474460	73474841	multi	381	2	1,1	-3,-4.21	0.020,0.078	chr7:73474460-73474524,chr7:73474696-73474841		ELN, ELN-AS1	ELN	194050_[ELN_(confirmed)_Williams-Beuren_syndrome],130160_[ELN_(confirmed)_Supravalvar_aortic_stenosis,185500|Cutis_laxa,autosomal_dominant,123700]
 chr7	127983720	127983972	multi	252	1	3	3.84	0.105	chr7:127983720-127983972		RBM28		612074_[RBM28_(confirmed)_Alopecia,neurologic_defects,and_endocrinopathy_syndrome,612079]
 chr7	128480592	128481034	multi	442	2	1,1	-3.14,-4.47	0.013,0.020	chr7:128480592-128480738,chr7:128480878-128481034	yes	FLNC		102565_[FLNC_(confirmed)_Myopathy,myofibrillar,5,609524|Myopathy,distal,4,614065|Cardiomyopathy,familial_hypertrophic,26|Cardiomyopathy,familial_restrictive_5,617047]
 chr7	142986671	142986759	multi	88	1	3	3.77	0.046	chr7:142986671-142986759		CASP2		

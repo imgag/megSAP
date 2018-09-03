@@ -106,6 +106,7 @@ foreach($sample_data as $sample => $sample_infos)
 	//get run name (the same for all samples)
 	$run_name = $sample_infos['run_name'];
 }
+$queued_normal_samples = [];
 
 //parse input
 $target_to_copylines = array();
@@ -148,18 +149,6 @@ foreach($sample_data as $sample => $sample_infos)
 		}
 	}
 	
-	//bcl2fastq2 changes "-" to "_" in sample name, revert that
-	if ($is_nextseq)
-	{
-		$sample_modified = strtr($sample, "_", "-");
-		$old_files = glob("{$old_location}/Sample_{$sample}/{$sample_modified}*.fastq.gz");
-		foreach($old_files as $file)
-		{
-			$file_corrected = strtr($file, array($sample_modified => $sample));
-			$parser->moveFile($file, $file_corrected);
-		}
-	}
-	
 	//build copy line
 	$fastqgz_files = glob($old_location."/Sample_{$sample}/*.fastq.gz");
 	$r3_count = 0;
@@ -188,7 +177,10 @@ foreach($sample_data as $sample => $sample_infos)
 
 	//skip normal samples which have an associated tumor sample on the same run
 	$is_normal_with_tumor = !$sample_is_tumor && isset($normal2tumor[$sample]);
-	
+
+	//additional arguments for db_queue_analysis
+	$args = array();
+
 	if($project_analysis!="fastq" && !$is_normal_with_tumor) //if more than FASTQ creation should be done for samples's project
 	{					
 		//build target lines for analysis using Sungrid Engine's queues if first sample of project on this run
@@ -200,44 +192,50 @@ foreach($sample_data as $sample => $sample_infos)
 		//queue analysis
 		if ($sample_is_tumor && $sys_type!="RNA")
 		{
+			//queue tumor, with somatic specific options
+			//add variant calling for diagnostic normal samples
+			$steps_somatic = $project_type === "diagnostic" ? "ma,vc,an,db" : "ma,db";
+			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample} -args '-steps ma,db -somatic'";
+			$outputline .= "\n\t";
+
 			if (isset($tumor2normal[$sample]))
 			{
-				$normal = @$tumor2normal[$sample];
-							
-				$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal";
-				
-				$args = array();				
-				if($project_type == 'diagnostic') $args[] =  "-include_germline"; 
-				
-				
-				$promoter_file = str_replace(".bed","",$sys_target) . "_promoters.bed";
-				if(file_exists($promoter_file))
+				$normal = $tumor2normal[$sample];
+				//queue normal if on same run, with somatic specific options
+				if (!in_array($normal, $queued_normal_samples) && $sample_data[$normal]["run_name"] === $sample_infos["run_name"])
 				{
-					$args[] = "-promoter {$promoter_file}";
+					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal} -args '-steps $steps_somatic -somatic'";
+					$outputline .= "\n\t";
+					//track that normal sample is queued
+					$queued_normal_samples[] = $normal;
 				}
-				if(count($args) > 0) $outputline .= " -args '" . implode(' ',$args) . "'";
+
+				//queue somatic analysis
+				$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal";
 			}
 			else
 			{
-				$text = "Tumor sample '$sample' not queued for analysis because no normal samples is assigned in NGSD!";
-				$outputline = "#{$text}";
-				trigger_error($text, E_USER_NOTICE);
+				//queue tumor-only somatic analysis
+				$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} -info tumor";
+			}
+			if ($project_type === "diagnostic")
+			{
+				$args[] = "-include_germline";
 			}
 		}
 		else
 		{
 			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample}";
-		}
-		
-		//determine analysis steps from project
-		$args = array();
-		if ($project_analysis=="mapping")
-		{
-			$args[] = "-steps ma,db";
-		}
-		if ($project_analysis=="variant calling")
-		{
-			$args[] = "-steps ma,vc,db,cn";
+
+			//determine analysis steps from project
+			if ($project_analysis=="mapping")
+			{
+				$args[] = "-steps ma,db";
+			}
+			if ($project_analysis=="variant calling")
+			{
+				$args[] = "-steps ma,vc,db,cn";
+			}
 		}
 		
 		if ($high_priority)

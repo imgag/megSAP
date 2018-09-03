@@ -57,7 +57,7 @@ if ($debug_region !== "")
 $parser->exec(get_path('strelka2')."/configureStrelkaSomaticWorkflow.py",
 	"--tumor $t_bam --normal $n_bam --referenceFasta ".get_path("local_data")."/$build.fa --runDir $strelka_folder --exome ".implode(" ",$args),
 	true);
-$parser->exec("$strelka_folder/runWorkflow.py", "-m local -j4 -g4", false);
+$parser->exec("$strelka_folder/runWorkflow.py", "-m local -j4 -g4", false); //TODO threads options
 
 //merge vcf files
 $vcf_combined = $temp_folder."/strelka_combined.vcf";	//$out."_test";

@@ -1,4 +1,4 @@
-all: clear link case1 case2 case3 case4
+all: clear link case1 case2 case4
 
 clear:
 	rm -rf Sample_GS110168 Sample_GS110169 Sample_GS150344_01 Sample_Tumor2 Sample_Normal2
@@ -27,13 +27,19 @@ link:
 case1: case1_run case1_diff
 
 case1_run:
+	php ../../src/Pipelines/analyze.php \
+		-folder Sample_GS150344_01 \
+		-name GS150344_01 \
+		-steps ma -somatic \
+		-system system_single.ini \
+		--log Sample_GS150344_01/analyze.log
 	php ../../src/Pipelines/somatic_dna.php \
-	    -p_folder . \
-	    -t_id GS150344_01 -n_id na \
-	    -o_folder out_case1 \
-	    -steps ma,vc,cn,an \
-	    -t_sys system_single.ini \
-	    --log out_case1/GS150344.log
+		-t_bam Sample_GS150344_01/GS150344_01.bam \
+		-out_folder out_case1 \
+		-prefix GS150344_01 \
+		-steps vc,cn,an \
+		-system system_single.ini \
+		--log out_case1/GS150344.log
 
 case1_diff:
 	php ../compare_bed.php expected_case1/GS150344_01_stat_lowcov.bed out_case1/GS150344_01_stat_lowcov.bed
@@ -42,18 +48,32 @@ case1_diff:
 	test -s out_case1/GS150344_01_cnvs.tsv
 
 # tumor-normal (strelka)
-case2: case2_run case2_diff
+case2: case2_analyze case2_somatic case2_diff
 
-case2_run:
+case2_analyze:
+	php ../../src/Pipelines/analyze.php \
+		-folder Sample_GS110168 \
+		-name GS110168 \
+		-steps ma -somatic \
+		-system system_pair.ini \
+		--log Sample_GS110168/analyze.log
+	php ../../src/Pipelines/analyze.php \
+		-folder Sample_GS110169 \
+		-name GS110169 \
+		-steps ma -somatic \
+		-system system_pair.ini \
+		--log Sample_GS110169/analyze.log
+
+case2_somatic:
 	php ../../src/Pipelines/somatic_dna.php \
-	    -p_folder . \
-	    -t_id GS110168 -n_id GS110169 \
-	    -o_folder out_case2 \
-	    -steps ma,vc,cn,an,ci,msi \
-	    -reduce_variants_filter \
+		-t_bam Sample_GS110168/GS110168.bam -n_bam Sample_GS110169/GS110169.bam \
+		-out_folder out_case2 \
+		-prefix GS110168-GS110169 \
+		-steps vc,cn,an,ci,msi \
 		-cancer_type CANCER \
-	    -t_sys system_pair.ini -n_sys system_pair.ini \
-	    --log out_case2/GS110168-GS110169.log
+		-system system_pair.ini \
+		-n_system system_pair.ini \
+		--log out_case2/GS110168-GS110169.log
 
 case2_diff:
 	# variants
@@ -65,10 +85,6 @@ case2_diff:
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription_bioactivities.tsv
 	test -s out_case2/GS110168-GS110169_cgi_mutation_analysis.tsv
 	test -s out_case2/GS110168-GS110169_cnvs.tsv
-	
-	#Germline variant files should not exist in case2 (flag include_germline is not set)
-	test ! -s Sample_GS110169/GS110169_var.vcf.gz
-	test ! -s Sample_GS110169/GS110169_cgi_mutation_analysis.tsv
 
 	# qcML files
 	php ../compare_qcml_xml.php expected_case2/GS110168-GS110169_stats_som.qcML out_case2/GS110168-GS110169_stats_som.qcML
@@ -76,57 +92,37 @@ case2_diff:
 	# bafs
 	diff expected_case2/GS110168-GS110169_bafs.igv out_case2/GS110168-GS110169_bafs.igv
 	
-	#MSI file correct
+	# MSI file
 	diff expected_case2/GS110168-GS110169_msi.tsv out_case2/GS110168-GS110169_msi.tsv
 
-# tumor-normal (freebayes)
-# depends on case2_run
-case3: case3_run case3_diff
-
-case3_run:
-	php ../../src/Pipelines/somatic_dna.php \
-	    -p_folder . \
-	    -t_id GS110168 -n_id GS110169 \
-	    -o_folder out_case3 \
-	    -steps vc,cn,an,ci \
-	    -t_sys system_pair.ini -n_sys system_pair.ini \
-	    -freebayes \
-		-cancer_type CANCER \
-	    --log out_case3/GS110168-GS110169.log
-
-case3_diff:
-	# variants
-	php ../compare_variants.php expected_case3/GS110168-GS110169.GSvar out_case3/GS110168-GS110169.GSvar
-	php ../compare_variants.php expected_case3/GS110168-GS110169_var_qci.vcf.gz out_case3/GS110168-GS110169_var_qci.vcf.gz
-	test -s out_case3/GS110168-GS110169_cgi_drug_prescription.tsv
-	test -s out_case3/GS110168-GS110169_cgi_drug_prescription_bioactivities.tsv
-	test -s out_case3/GS110168-GS110169_cgi_mutation_analysis.tsv
-	test -s out_case3/GS110168-GS110169_cnvs.tsv
-	
-	#Germline variant files should not exist in case3 (flag include_germline is not set)
-	test ! -s Sample_GS110169/GS110169_var.vcf.gz
-	test ! -s Sample_GS110169/GS110169_cgi_mutation_analysis.tsv
-	
-	# qcML files
-	php ../compare_qcml_xml.php expected_case3/GS110168-GS110169_stats_som.qcML out_case3/GS110168-GS110169_stats_som.qcML
-
-	# bafs
-	diff expected_case3/GS110168-GS110169_bafs.igv out_case3/GS110168-GS110169_bafs.igv
-
 # tumor-normal (strelka)
-case4: case4_run case4_diff
+case4: case4_analyze case4_somatic case4_diff
 
-case4_run:
+case4_analyze:
+	php ../../src/Pipelines/analyze.php \
+		-folder Sample_Tumor2 \
+		-name Tumor2 \
+		-steps ma -somatic \
+		-system system_pair.ini \
+		--log Sample_Tumor2/analyze.log
+	php ../../src/Pipelines/analyze.php \
+		-folder Sample_Normal2 \
+		-name Normal2 \
+		-steps ma,vc -somatic \
+		-system system_pair.ini \
+		--log Sample_Normal2/analyze.log
+
+case4_somatic:
 	php ../../src/Pipelines/somatic_dna.php \
-	    -p_folder . \
-	    -t_id Tumor2 -n_id Normal2 \
-	    -o_folder out_case4 \
-	    -steps ma,vc,cn,an,ci \
-	    -t_sys system_pair.ini -n_sys system_pair.ini \
-	    -include_germline \
+		-t_bam Sample_Tumor2/Tumor2.bam -n_bam Sample_Normal2/Normal2.bam \
+		-out_folder out_case4 \
+		-prefix Tumor2-Normal2 \
+		-steps vc,cn,an,ci \
+		-system system_pair.ini -n_system system_pair.ini \
+		-include_germline \
 		-cancer_type CANCER \
-	    --log out_case4/Tumor2-Normal2.log
-	
+		--log out_case4/Tumor2-Normal2.log
+
 case4_diff:
 	# variants
 	php ../compare_variants.php expected_case4/Tumor2-Normal2.GSvar out_case4/Tumor2-Normal2.GSvar
@@ -135,10 +131,6 @@ case4_diff:
 	test -s out_case4/Tumor2-Normal2_cgi_drug_prescription_bioactivities.tsv
 	test -s out_case4/Tumor2-Normal2_cgi_mutation_analysis.tsv
 	test -s out_case4/Tumor2-Normal2_cnvs.tsv
-	
-	#Germline variant files should exist in case4 (flag include_germline is set)
-	test -s Sample_Normal2/Normal2_var.vcf.gz
-	test -s Sample_Normal2/Normal2_var_annotated.vcf.gz
 
 	# qcML files
 	php ../compare_qcml_xml.php expected_case4/Tumor2-Normal2_stats_som.qcML out_case4/Tumor2-Normal2_stats_som.qcML

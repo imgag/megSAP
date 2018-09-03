@@ -1,5 +1,9 @@
 [Data]
 Lane,Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description
+1,Sample_DX181280_01,DX181280_01,,,,AGCTTGAA,,,SomaticAndTreatment, 
+2,Sample_DX181280_01,DX181280_01,,,,AGCTTGAA,,,SomaticAndTreatment, 
+3,Sample_DX181280_01,DX181280_01,,,,AGCTTGAA,,,SomaticAndTreatment, 
+4,Sample_DX181280_01,DX181280_01,,,,AGCTTGAA,,,SomaticAndTreatment, 
 1,Sample_DX181277_01,DX181277_01,,,,TGGAACAA,,,SomaticAndTreatment, 
 2,Sample_DX181277_01,DX181277_01,,,,TGGAACAA,,,SomaticAndTreatment, 
 3,Sample_DX181277_01,DX181277_01,,,,TGGAACAA,,,SomaticAndTreatment, 

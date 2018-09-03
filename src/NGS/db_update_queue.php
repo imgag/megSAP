@@ -211,6 +211,14 @@ function start_analysis($job_info, &$db_conn, $debug)
 		for($i=0; $i<count($job_info['samples']); ++$i)
 		{
 			list($sample, $info) = explode("/", $job_info['samples'][$i]);
+
+			//do not start somatic analysis if a single sample analysis is still running
+			if (sample_analysis_running($db_conn, $sample))
+			{
+				if ($debug) print "	Postponed because single sample analysis of '$sample' is running.\n";
+				return;
+			}
+
 			if ($info=="tumor")
 			{
 				$t_info = $sample_infos[$i];
@@ -218,6 +226,10 @@ function start_analysis($job_info, &$db_conn, $debug)
 			else if ($info=="normal")
 			{
 				$n_info = $sample_infos[$i];
+			}
+			else if ($info=="tumor_rna")
+			{
+				$t_rna_info = $sample_infos[$i];
 			}
 			else
 			{
@@ -227,7 +239,17 @@ function start_analysis($job_info, &$db_conn, $debug)
 		}
 
 		//create output folder
-		$out_folder = "{$project_folder}/Somatic_".$t_info['ps_name']."-".$n_info['ps_name']."/";
+		if (isset($n_info))
+		{
+			$prefix = $t_info['ps_name'] . "-" . $n_info['ps_name'];
+			$out_folder = "{$project_folder}/Somatic_" . $t_info['ps_name'] . "-" . $n_info['ps_name'] . "/";
+		}
+		else
+		{
+			$prefix = $t_info['ps_name'];
+			$out_folder = "{$project_folder}/Sample_" . $t_info['ps_name'] . "/";
+		}
+
 		if (!$debug && !file_exists($out_folder))
 		{
 			mkdir($out_folder);
@@ -239,8 +261,24 @@ function start_analysis($job_info, &$db_conn, $debug)
 		}
 	
 		$script = "somatic_dna.php";
-		$args = "-p_folder {$project_folder} -t_id ".$t_info['ps_name']." -n_id ".$n_info['ps_name']." -o_folder {$out_folder} --log {$out_folder}somatic_dna_{$timestamp}.log";
-		
+		$args_somatic = [
+			"--log", "{$out_folder}somatic_dna_{$timestamp}.log",
+			"-out_folder", $out_folder,
+			"-prefix", $prefix,
+			"-t_bam", $t_info['ps_bam']
+		];
+		if (isset($n_info))
+		{
+			$args_somatic[] = "-n_bam";
+			$args_somatic[] = $n_info['ps_bam'];
+		}
+		if (isset($t_rna_info))
+		{
+			$args_somatic[] = "-t_rna_bam";
+			$args_somatic[] = $t_rna_info['ps_bam'];
+		}
+		//t_bam, n_bam, t_rna_bam, out_folder, log
+		$args = implode(" ", $args_somatic);
 	}
 	else
 	{
