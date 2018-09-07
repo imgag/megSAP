@@ -11,7 +11,6 @@ require_once("genomics.php");
 require_once("XMLConstructor.php");
 require_once("ToolBase.php");
 require_once("Matrix.php");
-require_once("Obo.php");
 require_once("db.php");
 require_once("rtf.php");
 

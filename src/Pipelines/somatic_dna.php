@@ -202,10 +202,6 @@ if (in_array("vc", $steps))
 		}
 		$s->setHeaders($tmp_headers);
 
-		// add pedigree information for tumor and normal
-		$pedigree = $single_sample ? "#PEDIGREE=<Tumor={$t_id}>" : "#PEDIGREE=<Tumor={$t_id},Normal={$n_id}>";
-		$s->addComment($pedigree);
-
 		// zip and index output file
 		$s->toTSV($tmp2);
 		$parser->exec("bgzip", "-c $tmp2 > $variants", true);
@@ -374,7 +370,7 @@ if (in_array("an", $steps))
 	}
 }
 
-//qci / CGI annotation
+//QCI/CGI annotation
 //TODO: implementation for translocation files
 $variants_qci = $full_prefix . "_var_qci.vcf.gz";				//CGI annotated vcf file
 if (in_array("ci", $steps))
@@ -384,7 +380,7 @@ if (in_array("ci", $steps))
 	$variants_germline_gsvar = dirname($n_bam)."/{$n_id}.GSvar";
 
 	// add QCI output
-	$parser->execTool("Tools/converter_vcf2qci.php", "-in $variants_annotated -out $variants_qci -pass");
+	$parser->execTool("Tools/converter_vcf2qci.php", "-in $variants_annotated -t_id $t_id -n_id $n_id -out $variants_qci -pass");
 	
 	// get cancer type from GenLab8 for diagnostic samples if not set
 	if (!isset($cancer_type) && db_is_enabled("NGSD"))

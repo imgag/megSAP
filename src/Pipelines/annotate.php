@@ -19,6 +19,7 @@ $parser->addFlag("no_fc", "No format check (vcf/tsv).");
 $parser->addFlag("multi", "Enable multi-sample mode.");
 $parser->addFlag("somatic", "Enable somatic mode (no variant QC and no GSvar file).", true, "na");
 $parser->addFlag("updown", "Don't discard up- or downstream anntations (5000 bases around genes).");
+$parser->addInt("threads", "The maximum number of threads used.", true, 2);
 extract($parser->parse($argv));
 
 //input file names
@@ -55,14 +56,15 @@ if ($sys['build']!="hg19" && $sys['build']!="GRCh37" && $sys['build']!="mm10")
 }
 
 //annotate VCF
-$args = array("-in $vcf_unzipped", "-out $annfile");
+$args = array("-in {$vcf_unzipped}", "-out {$annfile}");
 $args[] = "-build ".$sys['build'];
+$args[] = "-threads {$threads}";
 $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 
 //check vcf file
 if(!$no_fc)
 {
-	$parser->execTool("NGS/check_vcf.php", "-in $annfile");
+	//$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $annfile", true); //TODO add when implemented 
 }
 
 //convert to GSvar file
@@ -88,8 +90,8 @@ if ($sys['type']=="WGS" && ($sys['build']=="hg19" || $sys['build']=="GRCh37"))
 	$tmp = $parser->tempFile(".bed");
 	file_put_contents($tmp, "chrMT\t0\t16569");
 	$roi_with_mito = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAdd", "-in ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed {$tmp} -out {$roi_with_mito}", false); //TODO use CCDS/Ensembl coding instead! (everywhere)
-	$parser->exec(get_path("ngs-bits")."BedMerge", "-in {$roi_with_mito} -out {$roi_with_mito}", false);
+	$parser->exec(get_path("ngs-bits")."BedAdd", "-in ".get_path("data_folder")."/gene_lists/genes_exons.bed {$tmp} -out {$roi_with_mito}", true);
+	$parser->exec(get_path("ngs-bits")."BedMerge", "-in {$roi_with_mito} -out {$roi_with_mito}", true);
 	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$varfile_full} -out {$varfile} -reg {$roi_with_mito}", true);
 	$tmp2 = $parser->tempFile(".txt");
 	file_put_contents($tmp2, "Allele frequency\tmax_af=1.0");

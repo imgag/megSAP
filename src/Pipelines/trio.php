@@ -48,7 +48,7 @@ foreach($steps as $step)
 
 //extract processing system information from DB
 $sys = load_system($system, basename($c, ".bam"));
-$target_file = $sys['type']!="WGS" ? $sys['target_file'] : get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed";
+$target_file = $sys['type']!="WGS" ? $sys['target_file'] : get_path("data_folder")."/gene_lists/genes_exons.bed";
 if ($target_file=="")
 {
 	trigger_error("Cannot perform trio analysis without target region (processing systems of {$c} is '".$sys["name_short"]."')!", E_USER_ERROR);

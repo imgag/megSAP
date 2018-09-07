@@ -5,7 +5,11 @@
 ##phasing=none
 ##commandline="/mnt/share/opt/freebayes20150204/bin/freebayes -b ./NA12878.bam -f /mnt/share/data/dbs//genomes/hg19.fa -t /tmp/vc_freebayes_U8iqnT.bed --min-alternate-fraction 0.15 --min-base-quality 30 --min-alternate-qsum 90"
 ##filter="QUAL > 5 & AO > 2"
-##SnpSiftVersion="SnpSift 4.3t (build 2017-11-24 10:18), by Pablo Cingolani"
+##CADD_PHRED=PHRED-like scaled CADD score
+##CADD_RAW=Raw CADD score
+##REVEL=Rare Exome Variant Ensemble Learner 
+##FATHMM_MKL_C=FATHMM-MKL coding score
+##FATHMM_MKL_NC=FATHMM-MKL non-coding score
 ##INFO=<ID=AB,Number=A,Type=Float,Description="Allele balance at heterozygous sites: a number between 0 and 1 representing the ratio of reads showing the reference allele to all reads, considering only reads from individuals called as heterozygous">
 ##INFO=<ID=ABP,Number=A,Type=Float,Description="Allele balance probability at heterozygous sites: Phred-scaled upper-bounds estimate of the probability of observing the deviation between ABR and ABA given E(ABR/ABA) ~ 0.5, derived using Hoeffding's inequality">
 ##INFO=<ID=AC,Number=A,Type=Integer,Description="Total number of alternate alleles in called genotypes">
@@ -13,38 +17,28 @@
 ##INFO=<ID=AN,Number=.,Type=Integer,Description="Total number of alleles in called genotypes">
 ##INFO=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observations, with partial observations recorded fractionally">
 ##INFO=<ID=CIGAR,Number=A,Type=String,Description="The extended CIGAR representation of each alternate allele, with the exception that '=' is replaced by 'M' to ease VCF parsing.  Note that INDEL alleles do not have the first matched base (which is provided by default, per the spec) referred to by the CIGAR.">
-##INFO=<ID=CLINVAR_ACC,Number=.,Type=String,Description="ClinVar variation ID">
-##INFO=<ID=CLINVAR_DISEASE,Number=.,Type=String,Description="ClinVar disease annotation">
-##INFO=<ID=CLINVAR_SIG,Number=.,Type=String,Description="ClinVar clinical significance">
-##INFO=<ID=COSMIC_ID,Number=.,Type=String,Description="COSMIC accession(s)">
-##INFO=<ID=dbNSFP_CADD_phred,Number=A,Type=Float,Description="Field 'CADD_phred' from dbNSFP">
-##INFO=<ID=dbNSFP_FATHMM_pred,Number=A,Type=Character,Description="Field 'FATHMM_pred' from dbNSFP">
-##INFO=<ID=dbNSFP_MetaLR_pred,Number=A,Type=Character,Description="Field 'MetaLR_pred' from dbNSFP">
-##INFO=<ID=dbNSFP_phyloP100way_vertebrate,Number=A,Type=Float,Description="Field 'phyloP100way_vertebrate' from dbNSFP">
-##INFO=<ID=dbNSFP_Polyphen2_HVAR_pred,Number=A,Type=Character,Description="Field 'Polyphen2_HVAR_pred' from dbNSFP">
-##INFO=<ID=dbNSFP_SIFT_pred,Number=A,Type=Character,Description="Field 'SIFT_pred' from dbNSFP">
+##INFO=<ID=CLINVAR,Number=.,Type=String,Description="/mnt/share/data//dbs/ClinVar/clinvar_20180701_converted.vcf.gz (exact)">
+##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="DETAILS field from /mnt/share/data//dbs/ClinVar/clinvar_20180701_converted.vcf.gz">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|Gene|Feature_type|Feature|BIOTYPE|EXON|INTRON|HGVSc|HGVSp|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|DISTANCE|STRAND|FLAGS|SYMBOL_SOURCE|HGNC_ID|SOURCE|SIFT|PolyPhen|DOMAINS|HGVS_OFFSET|AF|AA_AF|EA_AF|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_ASJ_AF|gnomAD_EAS_AF|gnomAD_FIN_AF|gnomAD_NFE_AF|gnomAD_OTH_AF|gnomAD_SAS_AF|CLIN_SIG|SOMATIC|PHENO|CADD_PHRED|CADD_RAW|REVEL|FATHMM_MKL_C|FATHMM_MKL_NC|gnomADg|gnomADg_AF|REPEATMASKER|CLINVAR|CLINVAR_DETAILS|PHYLOP|OMIM|HGMD|HGMD_CLASS|HGMD_MUT|HGMD_GENE|HGMD_PHEN">
 ##INFO=<ID=DP,Number=.,Type=Integer,Description="Total read depth at the locus">
 ##INFO=<ID=DPB,Number=.,Type=Float,Description="Total read depth per bp at the locus; bases in reads overlapping / bases in haplotype">
 ##INFO=<ID=DPRA,Number=A,Type=Float,Description="Alternate allele depth ratio.  Ratio between depth in samples with each called alternate allele and those without.">
 ##INFO=<ID=EPP,Number=A,Type=Float,Description="End Placement Probability: Phred-scaled upper-bounds estimate of the probability of observing the deviation between EL and ER given E(EL/ER) ~ 0.5, derived using Hoeffding's inequality">
 ##INFO=<ID=EPPR,Number=.,Type=Float,Description="End Placement Probability for reference observations: Phred-scaled upper-bounds estimate of the probability of observing the deviation between EL and ER given E(EL/ER) ~ 0.5, derived using Hoeffding's inequality">
-##INFO=<ID=EXAC_AC_Hom,Number=A,Type=Integer,Description="Adjusted Homozygous Counts">
-##INFO=<ID=EXAC_AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
 ##INFO=<ID=EXAC_AF_AFR,Number=1,Type=Float,Description="ExAC AFR subpopulation allele frequency.">
 ##INFO=<ID=EXAC_AF_AMR,Number=1,Type=Float,Description="ExAC AMR subpopulation allele frequency.">
 ##INFO=<ID=EXAC_AF_EAS,Number=1,Type=Float,Description="ExAC EAS subpopulation allele frequency.">
 ##INFO=<ID=EXAC_AF_NFE,Number=1,Type=Float,Description="ExAC NFE subpopulation allele frequency.">
 ##INFO=<ID=EXAC_AF_SAS,Number=1,Type=Float,Description="ExAC SAS subpopulation allele frequency.">
-##INFO=<ID=EXAC_Hom_AFR,Number=A,Type=Integer,Description="African/African American Homozygous Counts">
-##INFO=<ID=EXAC_Hom_NFE,Number=A,Type=Integer,Description="Non-Finnish European Homozygous Counts">
-##INFO=<ID=GNOMAD_AF,Number=A,Type=Float,Description="Allele Frequency among genotypes, for each ALT allele, in the same order as listed">
-##INFO=<ID=GNOMAD_GENOME_AF,Number=A,Type=Float,Description="Allele Frequency among genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=gnomADg,Number=.,Type=String,Description="/mnt/share/data//dbs/gnomAD/gnomad.genomes.r2.0.1.sites.noVEP.vcf.gz (exact)">
+##INFO=<ID=gnomADg_AF,Number=.,Type=String,Description="AF field from /mnt/share/data//dbs/gnomAD/gnomad.genomes.r2.0.1.sites.noVEP.vcf.gz">
 ##INFO=<ID=GTI,Number=.,Type=Integer,Description="Number of genotyping iterations required to reach convergence or bailout.">
-##INFO=<ID=HGMD_CLASS,Number=.,Type=String,Description="Mutation Category, https://portal.biobase-international.com/hgmd/pro/global.php#cats">
-##INFO=<ID=HGMD_GENE,Number=.,Type=String,Description="Gene symbol">
+##INFO=<ID=HGMD,Number=.,Type=String,Description="/mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz (exact)">
+##INFO=<ID=HGMD_CLASS,Number=.,Type=String,Description="CLASS field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz">
+##INFO=<ID=HGMD_GENE,Number=.,Type=String,Description="GENE field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz">
 ##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="HGMD identifier(s)">
-##INFO=<ID=HGMD_MUT,Number=.,Type=String,Description="HGMD mutant allele">
-##INFO=<ID=HGMD_PHEN,Number=.,Type=String,Description="HGMD primary phenotype">
+##INFO=<ID=HGMD_MUT,Number=.,Type=String,Description="MUT field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz">
+##INFO=<ID=HGMD_PHEN,Number=.,Type=String,Description="PHEN field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz">
 ##INFO=<ID=LEN,Number=A,Type=Integer,Description="allele length">
 ##INFO=<ID=MEANALT,Number=A,Type=Float,Description="Mean number of unique non-reference allele observations per sample with the corresponding alternate alleles.">
 ##INFO=<ID=MQM,Number=A,Type=Float,Description="Mean mapping quality of observed alternate alleles">
@@ -52,14 +46,17 @@
 ##INFO=<ID=NS,Number=.,Type=Integer,Description="Number of samples with data">
 ##INFO=<ID=NUMALT,Number=.,Type=Integer,Description="Number of unique non-reference alleles in called genotypes at this position.">
 ##INFO=<ID=ODDS,Number=.,Type=Float,Description="The log odds ratio of the best genotype combination to the second-best.">
+##INFO=<ID=OMIM,Number=.,Type=String,Description="/mnt/share/data//dbs/OMIM/omim.bed.gz (overlap)">
 ##INFO=<ID=PAIRED,Number=A,Type=Float,Description="Proportion of observed alternate alleles which are supported by properly paired read fragments">
 ##INFO=<ID=PAIREDR,Number=.,Type=Float,Description="Proportion of observed reference alleles which are supported by properly paired read fragments">
 ##INFO=<ID=PAO,Number=A,Type=Float,Description="Alternate allele observations, with partial observations recorded fractionally">
+##INFO=<ID=PHYLOP,Number=.,Type=String,Description="/mnt/share/data//dbs/phyloP/hg19.100way.phyloP100way.bw (overlap)">
 ##INFO=<ID=PQA,Number=A,Type=Float,Description="Alternate allele quality sum in phred for partial observations">
 ##INFO=<ID=PQR,Number=.,Type=Float,Description="Reference allele quality sum in phred for partial observations">
 ##INFO=<ID=PRO,Number=.,Type=Float,Description="Reference allele observation count, with partial observations recorded fractionally">
 ##INFO=<ID=QA,Number=A,Type=Integer,Description="Alternate allele quality sum in phred">
 ##INFO=<ID=QR,Number=.,Type=Integer,Description="Reference allele quality sum in phred">
+##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="/mnt/share/data//dbs/RepeatMasker/RepeatMasker.bed.gz (overlap)">
 ##INFO=<ID=RO,Number=.,Type=Integer,Description="Reference allele observation count, with partial observations recorded fractionally">
 ##INFO=<ID=RPL,Number=A,Type=Float,Description="Reads Placed Left: number of reads supporting the alternate balanced to the left (5') of the alternate allele">
 ##INFO=<ID=RPP,Number=A,Type=Float,Description="Read Placement Probability: Phred-scaled upper-bounds estimate of the probability of observing the deviation between RPL and RPR given E(RPL/RPR) ~ 0.5, derived using Hoeffding's inequality">
@@ -72,7 +69,6 @@
 ##INFO=<ID=SRF,Number=.,Type=Integer,Description="Number of reference observations on the forward strand">
 ##INFO=<ID=SRP,Number=.,Type=Float,Description="Strand balance probability for the reference allele: Phred-scaled upper-bounds estimate of the probability of observing the deviation between SRF and SRR given E(SRF/SRR) ~ 0.5, derived using Hoeffding's inequality">
 ##INFO=<ID=SRR,Number=.,Type=Integer,Description="Number of reference observations on the reverse strand">
-##INFO=<ID=T1000GP_AF,Number=A,Type=Float,Description="Estimated allele frequency in the range (0,1)">
 ##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
 ##INFO=<ID=TYPE,Number=A,Type=String,Description="The type of allele, either snp, mnp, ins, del, or complex.">
 ##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">

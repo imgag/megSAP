@@ -216,8 +216,9 @@ if (in_array("an", $steps))
 	if(file_exists($log_an)) unlink($log_an);
 
 	//annotate
-	$args = array("-out_name $name", "-out_folder $out_folder", "-system $system", "--log $log_an");
+	$args = array("-out_name $name", "-out_folder {$out_folder}", "-system {$system}", "--log {$log_an}");
 	if ($sys['type']=="WGS") $args[] = "-updown";
+	$args[] = "-threads {$threads}";
 	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
 	
 	//ROH detection

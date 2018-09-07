@@ -62,6 +62,15 @@ cd fathmm-MKL
 wget http://fathmm.biocompute.org.uk/database/fathmm-MKL_Current.tab.gz
 tabix -p bed fathmm-MKL_Current.tab.gz
 
+#Install REVEL - https://sites.google.com/site/revelgenomics/downloads
+cd $dbs
+mkdir REVEL
+cd REVEL
+wget https://rothsj06.u.hpc.mssm.edu/revel/revel_all_chromosomes.csv.zip
+unzip -p revel_all_chromosomes.csv.zip | tr ',' '\t' | sed '1s/.*/#&/' | bgzip > revel_all_chromosomes.tsv.gz
+tabix -f -s 1 -b 2 -e 2 revel_all_chromosomes.tsv.gz
+
+
 #install OMIM (you might need a license - installation only possible after ngs-bits including NGSD is installed)
 #cd $dbs
 #mkdir OMIM

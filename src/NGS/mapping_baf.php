@@ -17,7 +17,7 @@ $parser->addInfile("target",  "Target bed file used to identify common SNPs in t
 $parser->addInfile("n_in",  "Input normal file in BAM format (somatic mode).", true);
 $parser->addFloat("min_af", "Minimum allele frequency of SNPs to use.", true, 0.01);
 $parser->addInt("min_dp", "Minimum depth of SNPs in BAM.", true, 20);
-$parser->addString("base_vcf", "Base variant list, records must contain AF field.", true, get_path("data_folder")."dbs/1000G/1000g_v5b.vcf.gz");
+$parser->addString("base_vcf", "Base variant list, records must contain AF field.", true, get_path("data_folder")."dbs/1000G/1000g_v5b.vcf.gz"); //TODO
 extract($parser->parse($argv));
 
 // check if base VCF exists
@@ -136,7 +136,7 @@ if (!file_exists($filtered_variants))
 
 // annotate B-allele frequencies from BAM
 $annotated_variants = $parser->tempFile(".tsv");
-$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $filtered_variants -bam $in -out $annotated_variants -depth -name sample1", true);
+$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $filtered_variants -bam $in -out $annotated_variants -depth -name sample1", true); //TODO --ref {$local_data}/{$build}.fa for all calls of VariantAnnotateFrequency
 if ($is_somatic)
 {
 	$annotated_variants_2 = $parser->tempFile(".tsv");

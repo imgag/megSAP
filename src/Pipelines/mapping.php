@@ -258,7 +258,7 @@ if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 	$args[] = "-threads ".$threads;
 	if ($sys['type']=="WGS") //for WGS use exome target region
 	{
-		$args[] = "-roi ".get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed";
+		$args[] = "-roi ".get_path("data_folder")."/gene_lists/genes_exons.bed";
 	}
 	else if ($sys['target_file']!="")
 	{

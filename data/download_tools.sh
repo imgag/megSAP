@@ -62,4 +62,4 @@ cd bwa-0.7.17
 make
 
 #download VEP
-echo TODO
+echo TODO - BioConda/Docker?

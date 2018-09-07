@@ -26,7 +26,7 @@ $temp_folder = $parser->tempFolder("MipGenerator_");
 
 // 1. extract common SNPs
 $output = array();
-$tg_db = get_path('data_folder')."/dbs/1000G/1000g_v5b.vcf.gz";
+$tg_db = get_path('data_folder')."/dbs/1000G/1000g_v5b.vcf.gz"; //TODO
 $bed = file($target);
 foreach($bed as $reg)
 {

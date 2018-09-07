@@ -1,6 +1,6 @@
 <?php 
 /** 
-	@page strelka_callsnps
+	@page vc_strelka2
 	@todo use all.vcf from Strelka (currently only somatic variants are returned)
 	@todo sparate SNV and INDEL vcfs, might be better option to pass vcf integrity test; vcf2gsvar - use snv and indel file for conversion
 */
@@ -157,7 +157,6 @@ else
 	}
 }
 $tmp_comments[] = "#FILTER=<ID=special-chromosome,Description=\"Special chromosome.\">";
-$tmp_comments[] = "#PEDIGREE=<Tumor=$t_ps,Normal=$n_ps>";	//add pedigree information for SNPeff //TODO test if still necessary for VEP
 $tmp_comments = array_unique($tmp_comments);	//filter duplicate vcf comments
 $tmp_comments = sort_vcf_comments($tmp_comments);	//sort vcf comments
 $filec->setComments($tmp_comments);
@@ -229,7 +228,7 @@ $parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf_aligned -out $vcf_sorted"
 
 // filter high quality variants
 $vcf_filtered1 = $temp_folder."/strelka_filtered1.vcf";
-$parser->execTool("NGS/filter_vcf.php", "-in $vcf_sorted -out $vcf_filtered1 -type somatic-lq -keep", true);
+$parser->execTool("NGS/filter_vcf.php", "-in {$vcf_sorted} -t_id {$t_ps} -n_id {$n_ps} -out {$vcf_filtered1}", true);
 
 // flag off-target variants
 $vcf_filtered2 = $vcf_filtered1;

@@ -74,14 +74,17 @@ function translate($error_name, $value, $dict)
 }
 
 //collapse several values to a single value
-function collapse($error_name, $values, $mode, $replace_empty = null, $decimal_places = null)
+function collapse($error_name, $values, $mode, $decimal_places = null)
 {
 	for($i=0; $i<count($values); ++$i)
 	{
 		$v = trim($values[$i]);
-		if (!is_null($replace_empty) && $v=="") $v = $replace_empty;
 		if (!is_null($decimal_places) && $v!="")
 		{
+			if (!is_numeric($v))
+			{
+				trigger_error("Invalid numeric value '{$v}' in mode '{$mode}' while collapsing '{$error_name}'!", E_USER_ERROR);
+			}
 			$v = number_format($v, $decimal_places, ".", "");
 			if ($values[$i]>0 && $v==0)
 			{
@@ -99,6 +102,10 @@ function collapse($error_name, $values, $mode, $replace_empty = null, $decimal_p
 			trigger_error("Several values '".implode("','", $values)."' in mode '{$mode}' while collapsing '{$error_name}'!", E_USER_ERROR);
 		}
 		return $values[0];
+	}
+	else if ($mode=="max")
+	{
+		return max($values);
 	}
 	else if ($mode=="unique")
 	{
@@ -131,7 +138,6 @@ function write_header_line($handle, $column_desc, $filter_desc)
 	fwrite($handle, "\n");
 }
 
-//TODO re-order so that OMIM, ClinVar and HGMD are at the beginning
 //write column descriptions
 $column_desc = array(
 	array("filter", "Annotations for filtering and ranking variants."),
@@ -143,14 +149,15 @@ $column_desc = array(
 	array("dbSNP", "Identifier in dbSNP database."),
 	array("1000g", "Allele frequency in 1000 genomes project."),
 	array("gnomAD", "Allele frequency in gnomAD project."),
-	array("gnomAD_hom", "Homoyzgous counts for populations (ALL,NFE,AFR) of gnomAD project."),
+	array("gnomAD_hom_hemi", "Homoyzgous counts and hemizygous counts of gnomAD project (genome data)."),
 	array("gnomAD_sub", "Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project."),
 	array("ESP_sub", "Sub-population allele frequency (EA,AA) in NHLBI Exome Sequencing project."),
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
 	array("Sift", "Sift effect prediction for each transcript: D=damaging, T=tolerated."),
 	array("PolyPhen", "PolyPhen (humVar) effect prediction for each transcript: D=probably damaging, P=possibly damaging, B=benign."),
-	array("FATHMM", "FATHMM-MKL score (coding and non-coding) TODO cutoffs."),
+	array("fathmm-MKL", "fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5."), //TODO only non-coding score?
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20."),
+	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
 	array("OMIM", "OMIM database annotation."),
 	array("ClinVar", "ClinVar database annotation."),
 	array("HGMD", "HGMD database annotation."),
@@ -226,6 +233,7 @@ while(!feof($handle))
 			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_phylop = index_of($cols, "PHYLOP", false);
 			$i_cadd = index_of($cols, "CADD_RAW", false);
+			$i_revel = index_of($cols, "REVEL", false);
 			$i_fathmm_c = index_of($cols, "FATHMM_MKL_C");
 			$i_fathmm_nc = index_of($cols, "FATHMM_MKL_NC");
 			$i_polyphen = index_of($cols, "PolyPhen");
@@ -384,6 +392,7 @@ while(!feof($handle))
 	$phylop = array();
 	$fathmm = array();
 	$cadd = array();
+	$revel = array();
 	$dbsnp = array();
 	$cosmic = array();
 	$genes = array();
@@ -413,9 +422,10 @@ while(!feof($handle))
 			//######################### general information (not transcript-specific) #########################
 			
 			//AFs
-			$af_kg[] = trim($parts[$i_af_kg]);
+			$af_kg[] = max(explode("&", trim($parts[$i_af_kg]))); //some variants are annotated with two values, e.g. chr7:130297119 GA>G
 			$af_gnomad[] = trim($parts[$i_af_gnomad]);
-			$af_gnomad_genome[] = trim($parts[$i_af_gnomad_genome]);
+			$gnomad_value = trim($parts[$i_af_gnomad_genome]);
+			$af_gnomad_genome[] = $gnomad_value=="." ? "" : $gnomad_value;
 			$af_gnomad_afr[] = trim($parts[$i_af_gnomad_afr]);
 			$af_gnomad_amr[] = trim($parts[$i_af_gnomad_amr]);
 			$af_gnomad_eas[] = trim($parts[$i_af_gnomad_eas]);
@@ -479,8 +489,18 @@ while(!feof($handle))
 			}
 			
 			//pathogenicity predictions (not transcript-specific)
-			$phylop[] = trim($parts[$i_phylop]);
+			$phylop_parts = explode("&", trim($parts[$i_phylop]));
+			if (count($phylop_parts)>1) //deletions are annotated for each base => use maximum q
+			{
+				$phylop[] = max($phylop_parts);
+			}
+			else
+			{			
+				$phylop[] = trim($parts[$i_phylop]);
+			}
 			$cadd[] = trim($parts[$i_cadd]);
+			$revel_score = trim($parts[$i_revel]);
+			if ($revel_score!="") $revel[] = $revel_score;
 			$fathmm_c = trim($parts[$i_fathmm_c]);
 			$fathmm_nc = trim($parts[$i_fathmm_nc]);
 			$fathmm[] = ($fathmm_c=="" && $fathmm_nc=="") ? "" : number_format($fathmm_c, 2).",".number_format($fathmm_nc, 2);
@@ -547,22 +567,25 @@ while(!feof($handle))
 	
 	//AFs
 	$dbsnp = implode(",", collapse("dbSNP", $dbsnp, "unique"));	
-	$kg = collapse("1000g", $af_kg, "one", "0.0000", 4); //TODO do not replace if empty (all AFs) => indicate that there is no value in the DB
-	$gnomad = collapse("gnomAD", $af_gnomad, "one", "0.0000", 4);
-	$gnomad_genome = collapse("gnomAD genome", $af_gnomad_genome, "one", "0.0000", 4);
+	$kg = collapse("1000g", $af_kg, "one", 4);
+	$gnomad = collapse("gnomAD", $af_gnomad, "one", 4);
+	$gnomad_genome = collapse("gnomAD genome", $af_gnomad_genome, "one", 4);
 	$gnomad = max($gnomad, $gnomad_genome);
-	$gnomad_hom = ""; //TODO
-	$gnomad_sub = collapse("gnomAD", $af_gnomad_afr, "one", "0.0000", 4).",".collapse("gnomAD", $af_gnomad_amr, "one", "0.0000", 4).",".collapse("gnomAD", $af_gnomad_eas, "one", "0.0000", 4).",".collapse("gnomAD", $af_gnomad_nfe, "one", "0.0000", 4).",".collapse("gnomAD", $af_gnomad_sas, "one", "0.0000", 4);
-	$esp_sub = collapse("ESP ea", $af_esp_ea, "one", "0.0000", 4).",".collapse("ESP aa", $af_esp_aa, "one", "0.0000", 4);
+	$gnomad_hom_hemi = ""; //TODO from genomAD WGS data
+	$gnomad_sub = collapse("gnomAD", $af_gnomad_afr, "one", 4).",".collapse("gnomAD", $af_gnomad_amr, "one", 4).",".collapse("gnomAD", $af_gnomad_eas, "one", 4).",".collapse("gnomAD", $af_gnomad_nfe, "one", 4).",".collapse("gnomAD", $af_gnomad_sas, "one", 4);
+	if (str_replace(",", "", $gnomad_sub)=="") $gnomad_sub = "";
+	$esp_sub = collapse("ESP ea", $af_esp_ea, "one", 4).",".collapse("ESP aa", $af_esp_aa, "one", 4);
+	if (str_replace(",", "", $esp_sub)=="") $esp_sub = "";
 	
 	//effect predicions
-	$phylop = collapse("phyloP", $phylop, "one", null, 4);
+	$phylop = collapse("phyloP", $phylop, "one", 4);
 	$sift = implode(",", $sift);
 	if (trim(strtr($sift, ",", " "))=="") $sift = "";
 	$polyphen = implode(",", $polyphen);
 	if (trim(strtr($polyphen, ",", " "))=="") $polyphen = "";
-	$fathmm = collapse("FATHMM-MKL", $fathmm, "one");
-	$cadd = collapse("CADD", $cadd, "one", null, 2);
+	$fathmm = collapse("fathmm-MKL", $fathmm, "one");
+	$cadd = collapse("CADD", $cadd, "one", 2);
+	$revel = empty($revel) ? "" : collapse("REVEL", $revel, "max", 2);
 	
 	//OMIM
 	$omim = collapse("OMIM", $omim, "one");
@@ -577,7 +600,7 @@ while(!feof($handle))
 	$cosmic = implode(",", collapse("COSMIC", $cosmic, "unique"));
 
 	//write data
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom\t$gnomad_sub\t$esp_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$esp_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
 }
 
 //if no variants are present, we need to write the header line after the loop
