@@ -117,11 +117,14 @@ if ($sys['type']=="WGS" && ($sys['build']=="hg19" || $sys['build']=="GRCh37"))
 	$tmp2 = $parser->tempFile(".txt");
 	file_put_contents($tmp2, "Allele frequency\tmax_af=1.0");
 	$parser->exec(get_path("ngs-bits")."VariantFilterAnnotations", "-in {$varfile_full} -out {$varfile_rare} -filters {$tmp2}", true);
-	$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in {$varfile_rare} -out {$varfile_rare} -psname {$out_name}", true);
+	if (db_is_enabled("NGSD"))
+	{
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in {$varfile_rare} -out {$varfile_rare} -psname {$out_name}", true);
+	}
 }
 
 //annotated variant frequencies from NGSD (not for somatic)
-if($t_col=="na")
+if($t_col=="na" && db_is_enabled("NGSD"))
 {
 	$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in {$varfile} -out {$varfile} -psname {$out_name}", true);
 }

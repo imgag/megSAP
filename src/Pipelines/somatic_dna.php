@@ -231,9 +231,12 @@ if (in_array("vc", $steps))
 	}
 
 	// add somatic BAF file
+	if (in_array($sys['build'], [ "hg19", "GRCh37" ]))
+	{
 	$baf_args = [
-		"-in", $t_bam,
-		"-out", $ballele
+		"-in {$t_bam}",
+		"-out {$ballele}", 
+		"-build ".$sys['build']
 	];
 	if (!$single_sample)
 	{
@@ -241,7 +244,7 @@ if (in_array("vc", $steps))
 	}
 	if (!empty($roi))
 	{
-		$baf_args[] = "-target ".$roi;
+		$baf_args[] = "-target {$roi}";
 	}
 	$parser->execTool("NGS/mapping_baf.php", implode(" ", $baf_args));
 }
