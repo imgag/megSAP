@@ -247,6 +247,7 @@ if (in_array("vc", $steps))
 		$baf_args[] = "-target {$roi}";
 	}
 	$parser->execTool("NGS/mapping_baf.php", implode(" ", $baf_args));
+	}
 }
 
 //CNV calling
