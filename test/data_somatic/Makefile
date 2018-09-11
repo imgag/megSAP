@@ -28,15 +28,17 @@ link:
 	php ../link_test_data.php DX183927_01.GSvar Sample_DX183927_01/DX183927_01.GSvar
 
 # tumor-only
-case1: case1_run case1_diff
+case1: case1_analyze case1_somatic case1_diff
 
-case1_run:
+case1_analyze:
 	php ../../src/Pipelines/analyze.php \
 		-folder Sample_GS150344_01 \
 		-name GS150344_01 \
 		-steps ma -somatic \
 		-system system_single.ini \
 		--log Sample_GS150344_01/analyze.log
+
+case1_somatic:
 	php ../../src/Pipelines/somatic_dna.php \
 		-t_bam Sample_GS150344_01/GS150344_01.bam \
 		-out_folder out_case1 \

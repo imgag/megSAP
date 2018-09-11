@@ -204,7 +204,7 @@ if (in_array("vc", $steps))
 		$s->setHeaders($tmp_headers);
 
 		// add pedigree information for tumor and normal
-		$pedigree = $single_sample ? "#PEDIGREE=<Tumor={$t_id}>" : "#PEDIGREE=<Tumor={$t_id},Normal={$n_id}>";
+		$pedigree = "#PEDIGREE=<Tumor={$t_id}>";
 		$s->addComment($pedigree);
 
 		// zip and index output file
