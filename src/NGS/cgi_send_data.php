@@ -238,44 +238,72 @@ function delJob($job_id,$user,$token,$url='https://www.cancergenomeinterpreter.o
 	$result = $parser->exec("curl",$parameters,true);
 }
 
+//returns associative array (key=>value) with genes => alteration type
+function get_genes_from_file($file)
+{
+	$cnvs = Matrix::fromTSV($file);
+	$i_genes = $cnvs->getColumnIndex("genes");
+	
+	$i_copy_numbers = $cnvs->getColumnIndex("region_copy_numbers",false,false); // CNVHunter file
+	$i_cn_change = $cnvs->getColumnIndex("CN_change",false,false); //ClinCnv file
+	
+	if($i_copy_numbers === false && $i_cn_change === false) trigger_error("Unknown CNV format. Aborting.",E_USER_ERROR);
+	
+	$genes_type = array(); // ass. array with $genes => CNV_type
+	
+	if($i_copy_numbers !== false) //CNVHunter file
+	{
+		for($row=0;$row<$cnvs->rows();++$row)
+		{
+			$tmp_region_copy_numbers = median(explode(',',$cnvs->get($row,$i_copy_numbers)));
+			
+			$genes = $cnvs->get($row,$i_genes);
+			
+			if($tmp_region_copy_numbers>2.) $genes_type[$genes] = "AMP";
+			else $genes_type[$genes] = "DEL";
+		}
+	} else //ClinCNV
+	{
+		for($row=0;$row<$cnvs->rows();++$row)
+		{
+			$genes = $cnvs->get($row,$i_genes);
+			$cn_change = $cnvs->get($row,$i_cn_change);
+			if($cn_change > 2.) $genes_type[$genes] = "AMP";
+			elseif($cn_change < 2.) $genes_type[$genes] = "DEL";
+			else $genes_type[$genes] = "NA";
+		}
+	}
+	
+	//explode genes
+	$output = array();
+	foreach($genes_type as $genes_per_cnv => $type)
+	{
+		$genes = explode(',',$genes_per_cnv);
+		foreach($genes as $gene)
+		{
+			//skip genes that are annotated in CNVs with inconsistent CN type
+			if(array_key_exists($gene,$output) && $type != $output[$gene]) 
+			{
+				$output[$gene] = "NA";
+				continue;
+			}
+			$output[$gene] = $type;
+		}
+	}
+	
+	return $output;
+}
+
 //read CNV .tsv-file and transform it into CGI specific format. If target region is set: remove genes that do not lie inside the target region
 function transform_cnv_annotations($tsv_in_file,$tsv_out_filename)
 {
 	global $t_region;
-	
-	$cnvs = Matrix::fromTSV($tsv_in_file);
-	$i_genes = $cnvs->getColumnIndex("genes");
-	$i_copy_numbers = $cnvs->getColumnIndex("region_copy_numbers");
-	
-	$genes = array();
-	$cnv_type = array();
-
-	for($row=0;$row<$cnvs->rows();$row++)
-	{
-		$tmp_region_copy_numbers = median(explode(',',$cnvs->get($row,$i_copy_numbers)));
-		if($tmp_region_copy_numbers>2)
-		{
-			$cnv_type[] = "AMP";
-		}
-		else
-		{
-			$cnv_type[] = "DEL";
-		}
-		
-		$genes[] = $cnvs->get($row,$i_genes);
-	}
-	
+	$genes = get_genes_from_file($tsv_in_file);
 	$cnv_to = new Matrix();
-	
-	$cnv_to->addRow(array("gene","cna"));	
-	
-	for($row=0;$row<$cnvs->rows();$row++)
+	$cnv_to->addRow(array("gene","cna"));
+	foreach($genes as $gene => $cn_type)
 	{
-		$tmp_region_genes = explode(',',$genes[$row]);
-		for($i=0;$i<count($tmp_region_genes);$i++)
-		{
-			$cnv_to->addRow(array($tmp_region_genes[$i],$cnv_type[$row]));
-		}
+		$cnv_to->addRow(array($gene,$cn_type));
 	}
 
 	//transform all outdated gene names
@@ -284,7 +312,6 @@ function transform_cnv_annotations($tsv_in_file,$tsv_out_filename)
 	$cnv_to->setCol(0,$approved_gene_names);
 	//there can be duplicates in CNV list if a gene lies in two reported regions -> remove
 	$cnv_to->unique();
-
 	//discard all genes which do not lie in target region
 	if(isset($t_region))
 	{
@@ -344,6 +371,24 @@ function filter_vcf_file($vcf_file)
 	return $vcf_filtered;
 }
 
+//filters vcf file for germline analysis
+function filter_vcf_file_germline($vcf_file)
+{
+	$vcf_filtered = new Matrix();
+	$vcf_filtered->setHeaders($vcf_file->getHeaders());
+	$vcf_filtered->setComments($vcf_file->getComments());
+	$i_filter = $vcf_file->getColumnIndex("FILTER");
+	for($i=0;$i<$vcf_file->rows();$i++)
+	{
+		if($vcf_file->get($i,$i_filter) == ".")
+		{
+			$filtered_row = $vcf_file->getRow($i);
+			$vcf_filtered->addRow($filtered_row);
+		}
+	}
+	return $vcf_filtered;
+}
+
 //adds a # in the first line of a file
 function addCommentCharInHeader($filename)
 {
@@ -353,7 +398,10 @@ function addCommentCharInHeader($filename)
 	fwrite($file,$old_contents);
 }
 
-//Main
+/********
+ * MAIN *
+ ********/
+ 
 //get sample ID
 $sample_id = "";
 if(isset($mutations))
@@ -379,7 +427,14 @@ if(isset($mutations))
 		}
 	}
 }elseif(isset($cnas)){
-	$sample_id = basename($cnas,"_cnvs.tsv");
+	if(strpos($cnas,"_cnvs.tsv") !== false)
+	{
+		$sample_id = basename($cnas,"_cnvs.tsv");
+	}
+	elseif(strpos($cnas,"_clincnv.tsv") !== false)
+	{
+		$sample_id = basename($cnas,"_clincnv.tsv");
+	}
 }
 //TODO: sample_id if only translocations are given
 if(strpos($mutations,".gz") !== false)
@@ -398,6 +453,10 @@ if(isset($mutations))
 	if(!$is_germline)
 	{
 		$vcf_file_filtered = filter_vcf_file($vcf_file);
+	}
+	else
+	{
+		$vcf_file_filtered = filter_vcf_file_germline($vcf_file);
 	}
 	$vcf_file_filtered->toTSV($temp_mutation_file);
 
@@ -449,20 +508,19 @@ do
 	
 }while($status != "Done");
 
-//save results
+//extract CGI results
 $tmp_file = $parser->tempFile(".zip","temp");
 downloadJobResults($tmp_file,$jobId,$user,$token,$url);
-
 exec2("unzip -n $tmp_file -d $destination_folder");
 
-//change file names
-
+/********************
+ * ADAPT FILE NAMES *
+ ********************/
 if($is_germline)
 {
 	$parser->exec("rm",$destination_folder."/"."drug_prescription.tsv",true);
 	$parser->exec("rm",$destination_folder."/"."drug_prescription_bioactivities.tsv",true);
 }
-
 if(file_exists($destination_folder."/"."mutation_analysis.tsv"))
 {
 	addCommentCharInHeader($destination_folder."/"."mutation_analysis.tsv");
@@ -487,6 +545,10 @@ if(file_exists($destination_folder."/"."drug_prescription_bioactivities.tsv"))
 	$parameters = $destination_folder."/drug_prescription_bioactivities.tsv ".$destination_folder."/".$sample_id."_cgi_drug_prescription_bioactivities.tsv";
 	$parser->exec("mv",$parameters,true);
 }
+if(file_exists($destination_folder."/malformed_cnas.txt"))
+{
+	$parser->moveFile($destination_folder."/malformed_cnas.txt", $destination_folder."/".$sample_id."_cgi_malformed_cnas.txt");
+}
 if(file_exists($destination_folder."/"."not_mapped_entries.txt"))
 {
 	$parameters = $destination_folder. "/" . "not_mapped_entries.txt " . $destination_folder . "/" . $sample_id ."_cgi_not_mapped_entries.tsv";
@@ -494,8 +556,10 @@ if(file_exists($destination_folder."/"."not_mapped_entries.txt"))
 }
 $parser->exec("rm",$destination_folder."/"."input0*.tsv",true);
 
+//Delete job from remote server
 if(!$no_del)
 {
 	delJob($jobId,$user,$token,$url);
 }
+
 ?>

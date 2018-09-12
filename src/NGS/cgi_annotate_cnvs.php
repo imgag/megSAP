@@ -24,7 +24,19 @@ foreach($cnv_genes as $gene)
 	$approved_cnv_genes[] = implode(',',$temp_genes);
 }
 
-$cnv_region_copy_numbers = $cnv_input->getCol($cnv_input->getColumnIndex("region_copy_numbers"));
+$i_cn_cnvhunter = $cnv_input->getColumnIndex("region_copy_numbers",false,false); //CNVHunter
+$i_cn_clincnv = $cnv_input->getColumnIndex("CN_change",false,false); //ClinCnv
+
+if(($i_cn_cnvhunter == false && $i_cn_clincnv == false) || ($i_cn_cnvhunter !== false && $i_cn_clincnv !== false))
+{
+	trigger_error("Unknown format of CNV file {$cnv_in}. Aborting...",E_USER_ERROR);
+}
+
+$is_cnvhunter = false;
+if($i_cn_clincnv == false) $is_cnvhunter = true;
+
+$cn = $cnv_input->getCol($i_cn_clincnv); //column with copy numbers
+if($is_cnvhunter) $cn = $cnv_input->getCol($i_cn_cnvhunter); //CNVhunter file
 
 //new columns for CNV input
 $new_driver_statement = array();
@@ -36,7 +48,6 @@ for($i=0;$i<$cnv_input->rows();$i++)
 	$new_gene_role[] = "";
 	$new_genes[] = "";
 }
-
 
 for($i=0;$i<count($cgi_genes);$i++)
 {
@@ -50,14 +61,25 @@ for($i=0;$i<count($cgi_genes);$i++)
 		$genes = explode(',',$cnv_genes[$j]);
 		
 		//calc Copy number alteration type (amp or del) (!per region!) in input cnv file		
-		$copy_numbers_region = explode(',',$cnv_region_copy_numbers[$j]);
-		$median_copy_number = median($copy_numbers_region);
-		$cnv_alteration_type;
-		if($median_copy_number>2.)
+
+		$cnv_alteration_type = "";
+		
+		if($is_cnvhunter) //CNVHunter
 		{
-			$cnv_alteration_type = "AMP";
-		} else {
-			$cnv_alteration_type = "DEL";
+			$copy_numbers_region = explode(',',$cn[$j]);
+			$median_copy_number = median($copy_numbers_region);
+			if($median_copy_number>2.)
+			{
+				$cnv_alteration_type = "AMP";
+			} else {
+				$cnv_alteration_type = "DEL";
+			}
+		}
+		else //ClinCNV
+		{
+			if($cn[$j] > 2.) $cnv_alteration_type = "AMP";
+			elseif($cn[$j] < 2.) $cnv_alteration_type = "DEL";
+			else $cnv_alteration_type = "NA";
 		}
 		
 		foreach($genes as $cnv_gene)

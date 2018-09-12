@@ -67,6 +67,7 @@ $full_prefix = "{$out_folder}/{$prefix}";
 $t_id = basename($t_bam, ".bam");
 $n_id = basename($n_bam, ".bam");
 $sys = load_system($system, $t_id);
+$n_sys = array();
 if (!$single_sample)
 {
 	$n_sys = load_system($n_system, $n_id);
@@ -112,13 +113,13 @@ if (count($bams) > 1)
 $low_cov = "{$full_prefix}_stat_lowcov.bed";					// low coverage BED file
 if ($sys['type'] !== "WGS" && !empty($roi))
 {
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $t_bam -out $low_cov -cutoff $min_depth_t", true);
+	if(!file_exists($low_cov)) $parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $t_bam -out $low_cov -cutoff $min_depth_t", true);
 	//combined tumor and normal low coverage files
 	//normal coverage is calculated only for tumor target region
 	if(!$single_sample)
 	{
 		$low_cov_n = $parser->tempFile("_nlowcov.bed");
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $n_bam -out $low_cov_n -cutoff $min_depth_n", true);
+		if(!file_exists($low_cov_n)) $parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $n_bam -out $low_cov_n -cutoff $min_depth_n", true);
 		$parser->execPipeline([
 			[get_path("ngs-bits")."BedAdd", "-in $low_cov $low_cov_n"],
 			[get_path("ngs-bits")."BedMerge", "-out $low_cov"]
@@ -251,41 +252,119 @@ if (in_array("vc", $steps))
 }
 
 //CNV calling
-$cnvs = $full_prefix . "_cnvs.tsv";								// copy-number variants
-if (in_array("cn", $steps) && $sys['type'] !== "WGS" && !empty($sys['target_file']) && ($single_sample || !empty($n_sys['target_file'])))
+$som_cnv = $full_prefix . "_cnvs.tsv"; //CNVHunter output file
+$som_clincnv = $full_prefix . "_clincnv.tsv"; //ClinCNV output file
+//folder with reference coverage files of tumor samples of same processing system.
+$ref_folder_t = get_path("data_folder")."/coverage/".$sys['name_short']."-tumor"."/";
+//folder with reference coverage files of normal samples of same processing system.
+if(!$single_sample) $ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short']."/";
+if(in_array("cn",$steps))
 {
 	// copy number variant calling
 	$tmp_folder = $parser->tempFolder();
-
+	
+	/***************************************************
+	 * GENERATE AND COPY COVERAGE FILES TO DATA FOLDER *
+	 ***************************************************/
 	// coverage for tumor sample
 	$t_cov = "{$tmp_folder}/{$t_id}.cov";
 	$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $t_bam -in $roi -out $t_cov",true);
-
-	// coverage for normal sample
-	if (!$single_sample)
+	
+	//copy tumor sample coverage file to reference folder (has to be done before ClinCNV call to avoid analyzing the same sample twice)
+	if (is_valid_ref_tumor_sample_for_cnv_analysis($t_id) && db_is_enabled("NGSD"))
 	{
 		$n_cov = "{$tmp_folder}/{$n_id}.cov";
 		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov", true);
-	}
-
-	// copy normal samplecoverage file to reference folder (has to be done before CnvHunter call to avoid analyzing the same sample twice)
-	if (!$single_sample && is_valid_ref_sample_for_cnv_analysis($n_id))
-	{
 		//create reference folder if it does not exist
-		$ref_folder = get_path("data_folder")."/coverage/".$n_sys['name_short']."/";
-		create_directory($ref_folder);
+		if (!is_dir($ref_folder_t))
+		{
+			mkdir($ref_folder_t);
+		}
 		//copy file
-		$ref_file = $ref_folder.$n_id.".cov";
-		$parser->copyFile($n_cov, $ref_file);
-		$n_cov = $ref_file;
+		$ref_file_t = $ref_folder_t.$t_id.".cov";
+		
+		if(!file_exists($ref_file_t)) //Do not overwrite existing reference files in cov folder
+		{
+			$parser->copyFile($t_cov, $ref_file_t); 
+			$t_cov = $ref_file_t;
+		}
 	}
-	$ncov = $single_sample ? "" : "-n_cov $n_cov";
-	//at least 30 coverage files for WES
-	if ($sys['type'] == "WES")
+	
+	if($single_sample) //use CNVHunter in case of single samples
 	{
-		$min_cov_files = max($min_cov_files, 30);
+		trigger_error("Currently only tumor normal pairs are supported for ClinCNV calls. Using CNVHunter instead.",E_USER_WARNING);
+		$parser->execTool("NGS/vc_cnvhunter.php","-cov {$t_cov} -out {$cnvs} -system {$system} -min_corr 0 -seg {$t_id} -n {$min_cov_files}");
 	}
-	$parser->execTool("NGS/vc_cnvhunter.php", "-cov $t_cov $ncov -out $cnvs -system $system -min_corr 0 -seg $t_id -n $min_cov_files");
+	else //ClinCNV for differential sample
+	{
+		// coverage for normal sample
+		$n_cov = "{$tmp_folder}/{$n_id}.cov";
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov", true);
+		// copy normal sample coverage file to reference folder (only if valid). Check for NGSD because other test needs db.
+		if (is_valid_ref_sample_for_cnv_analysis($n_id) && db_is_enabled("NGSD"))
+		{
+			//create reference folder if it does not exist
+			$ref_folder = get_path("data_folder")."/coverage/".$n_sys['name_short']."/";
+			create_directory($ref_folder);
+			if (!is_dir($ref_folder_n))
+			{
+				mkdir($ref_folder_n);
+			}
+			
+			//copy file
+			$ref_file_n = $ref_folder_n.$n_id.".cov";
+			if (!file_exists($ref_file_n)) //do not overwrite existing coverage files in ref folder
+			{
+				$parser->copyFile($n_cov, $ref_file_n);
+				$n_cov = $ref_file_n;
+			}
+		}
+		
+		//append tumor-normal IDs to list with tumor normal IDs (stored in same folder as tumor coverage files)
+		$t_n_list_file = $ref_folder_t . "/" . "list_tid-nid.csv";
+		
+		if (!file_exists($t_n_list_file))
+		{
+			$header = "##THIS FILE CONTAINS TUMOR AND NORMAL IDS OF PROCESSING SYSTEM ".$n_sys['name_short']."\n";
+			$header .= "#tumor_id,normal_id\n";
+			file_put_contents($t_n_list_file,$header);
+		}
+		
+		//use temporary list file if n or t cov files are not valid
+		if(!is_valid_ref_sample_for_cnv_analysis($n_id) || !is_valid_ref_tumor_sample_for_cnv_analysis($t_id) || !db_is_enabled("NGSD"))
+		{
+			$tmp_file_name = temp_file(".csv");
+			$parser->copyFile($t_n_list_file,$tmp_file_name);
+			$t_n_list_file = $tmp_file_name;
+		}
+		
+		//Append tumor-normal pair to csv list in tumor coverage folder if not included yet
+		$already_in_list = false;
+		foreach(file($t_n_list_file) as $line)
+		{
+			if(starts_with($line,'#')) continue;
+			if(empty(trim($line))) continue;
+			list($t,$n) = explode(",",trim($line));
+			if($t == $t_id && $n == $n_id)
+			{
+				$already_in_list = true;
+				break;
+			}
+		}
+		if(!$already_in_list)
+		{
+			file_put_contents($t_n_list_file,"{$t_id},{$n_id}\n", FILE_APPEND | LOCK_EX);
+		}
+		/*********************
+		 * EXECUTE CNVHUNTER *
+		 *********************/
+		 $parser->execTool("NGS/vc_cnvhunter.php","-cov {$t_cov} -n_cov {$n_cov} -out {$som_cnv} -system {$system} -min_corr 0 -seg {$t_id} -n {$min_cov_files}");
+		
+		/*******************
+		 * EXECUTE CLINCNV *
+		 ******************/
+		$parser->execTool("NGS/vc_somatic_clincnv.php","-t_id {$t_id} -n_id {$n_id} -t_cov {$t_cov} -n_cov {$n_cov} -out {$som_clincnv} -cov_pairs {$t_n_list_file} -system {$system} -bed " .$sys['target_file']);
+	}
 }
 
 //annotation
@@ -439,6 +518,7 @@ if (in_array("ci", $steps))
 				//remove G and V from $icd10_diagnoses (sometimes there is a G or V assigned to its right)
 				$icd10_diagnosis = rtrim($icd10_diagnosis,'G');
 				$icd10_diagnosis = rtrim($icd10_diagnosis,'V');
+				$icd10_diagnosis = rtrim($icd10_diagnosis,".-");
 				$hpo_diagnosis = "";
 				if(!empty($result)) $hpo_diagnosis = $result[0]['HPOTERM1'];
 				if(empty($icd10_diagnosis))
@@ -487,7 +567,7 @@ if (in_array("ci", $steps))
 			}
 		}
 	}
-	else if (!isset($cancer_type)) //set cancer type to CANCER if not set for research samples
+	else if (!isset($cancer_type)) //set cancer type to CANCER for 1) research samples and 2) for NGSD disabled
 	{
 		$cancer_type = "CANCER";
 	}
@@ -497,11 +577,13 @@ if (in_array("ci", $steps))
 	{
 		$parameters = $parameters . " -mutations $variants_annotated";
 	}
-	if(file_exists($cnvs))
+	
+	if (file_exists($som_clincnv))
 	{
-		$parameters = $parameters . " -cnas $cnvs";
+		$parameters = $parameters . " -cnas $som_clincnv";
 	}
-	if($cancer_type != "")
+
+	if ($cancer_type != "")
 	{
 		$parameters = $parameters . " -cancertype $cancer_type";
 	}
@@ -534,7 +616,7 @@ if (in_array("ci", $steps))
 	$cgi_cnv_result_file = $full_prefix . "_cgi_cnv_analysis.tsv";
 	if(file_exists($cgi_cnv_result_file))
 	{
-		$parameters = " -cnv_in $cnvs -cnv_in_cgi $cgi_cnv_result_file -out $cnvs";
+		$parameters = " -cnv_in $som_clincnv -cnv_in_cgi $cgi_cnv_result_file -out $som_clincnv";
 		$parser->execTool("NGS/cgi_annotate_cnvs.php",$parameters);
 	}
 	
@@ -668,5 +750,4 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		}
 	}
 }
-
 ?>
