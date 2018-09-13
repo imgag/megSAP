@@ -39,7 +39,6 @@ function updateVariantTable($parser, $db_connect, $file, $max_af=-1.0)
 	$i_obs = $file->getColumnIndex("obs");
 	$i_snp = $file->getColumnIndex("dbSNP");
 	$i_10g = $file->getColumnIndex("1000g");
-	$i_exa = $file->getColumnIndex("ExAC");
 	$i_gno = $file->getColumnIndex("gnomAD");
 	$i_gen = $file->getColumnIndex("gene");
 	$i_typ = $file->getColumnIndex("variant_type");
@@ -53,15 +52,14 @@ function updateVariantTable($parser, $db_connect, $file, $max_af=-1.0)
 	
 	//insert/update table 'variant'
 	$var_ids = array();
-	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, exac, gnomad, gene, variant_type, coding) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :exac, :gnomad, :gene, :variant_type, :coding) ON DUPLICATE KEY UPDATE id=id");
+	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, gnomad, gene, variant_type, coding) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :gnomad, :gene, :variant_type, :coding) ON DUPLICATE KEY UPDATE id=id");
 	for($i=0; $i<$file->rows(); ++$i)
 	{
 		$row = $file->getRow($i);
 		
 		//skip variants with too high AF
-		if ($max_af>0 && ($row[$i_10g]>$max_af || $row[$i_exa]>$max_af || $row[$i_gno]>$max_af))
+		if ($max_af>0 && ((is_numeric($row[$i_10g]) && $row[$i_10g]>$max_af) || (is_numeric($row[$i_gno]) && $row[$i_gno]>$max_af)))
 		{
-			//print $row[$i_10g]."\t".$row[$i_exa]."\t".$row[$i_gno]."\n";
 			++$c_skip;
 			$var_ids[] = -1;
 			continue;
@@ -79,7 +77,6 @@ function updateVariantTable($parser, $db_connect, $file, $max_af=-1.0)
 			$metadata = array(
 							"dbsnp" => $dbsnp, 
 							"1000g" => $row[$i_10g],
-							"exac" => $row[$i_exa],
 							"gnomad" => $row[$i_gno],
 							"gene" => $row[$i_gen],
 							"variant_type" => $row[$i_typ],
@@ -128,7 +125,6 @@ function updateVariantTable($parser, $db_connect, $file, $max_af=-1.0)
 			$db_connect->bind($hash, "obs", $row[$i_obs]);
 			$db_connect->bind($hash, "dbsnp", $dbsnp, array(""));
 			$db_connect->bind($hash, "1000g", $row[$i_10g], array(""));
-			$db_connect->bind($hash, "exac", $row[$i_exa], array(""));
 			$db_connect->bind($hash, "gnomad", $row[$i_gno], array(""));
 			$db_connect->bind($hash, "gene", $row[$i_gen]);
 			$db_connect->bind($hash, "variant_type", $row[$i_typ], array(""));
