@@ -944,6 +944,36 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false)
 	return true;
 }
 
+function is_valid_ref_tumor_sample_for_cnv_analysis($file,$discard_ffpe = false)
+{
+	//check that sample is not NIST reference sample (it is a cell-line)
+	if (contains($file, "NA12878")) return false;
+
+	//not NGSD => all samples valid
+	if (!db_is_enabled("NGSD")) return true;
+	
+	//check sample is in NGSD
+	$db_conn = DB::getInstance("NGSD");
+	$ps_id = get_processed_sample_id($db_conn, $file, false);
+	
+	//check that sample is not FFPE
+	$res = $db_conn->executeQuery("SELECT s.tumor, s.ffpe, ps.quality q1, r.quality q2, p.type FROM sequencing_run r, sample s, processed_sample ps, project p WHERE s.id=ps.sample_id AND ps.id='$ps_id' AND ps.sequencing_run_id=r.id AND ps.project_id = p.id");
+	if ($ps_id<0) return false;
+	if ($discard_ffpe && $res[0]['ffpe']=="1") return false;
+	
+	//check that run and processed sample do not have bad quality
+	if ($res[0]['q1']=="bad") return false;
+	if ($res[0]['q2']=="bad") return false;
+	
+	//check that project type is research/diagnostics
+	if ($res[0]['type']!="research" && $res[0]['type']!="diagnostic") return false;
+	
+	//check that sample is tumor sample
+	if ($res[0]['tumor'] != "1") return false;
+	
+	return true;
+}
+
 ///Loads a VCF file in a normalized manner, e.g. for comparing them
 /// - sorts header lines
 /// - sorts info column by name
