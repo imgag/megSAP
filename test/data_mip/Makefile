@@ -31,4 +31,4 @@ cn:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_39 -system system.ini -steps cn
 
 diff:
-	php ../compare_variants.php NA12878_39.GSvar.out NA12878_39.GSvar
+	php ../compare_variants.php -in1 NA12878_39.GSvar.out -in2 NA12878_39.GSvar

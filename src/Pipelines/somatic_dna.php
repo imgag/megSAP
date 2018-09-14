@@ -286,8 +286,8 @@ if(in_array("cn",$steps))
 	
 	if($single_sample) //use CNVHunter in case of single samples
 	{
-		trigger_error("Currently only tumor normal pairs are supported for ClinCNV calls. Using CNVHunter instead.",E_USER_WARNING);
-		$parser->execTool("NGS/vc_cnvhunter.php","-cov {$t_cov} -out {$cnvs} -system {$system} -min_corr 0 -seg {$t_id} -n {$min_cov_files}");
+		trigger_error("Currently only tumor normal pairs are supported for ClinCNV calls. Using CNVHunter instead.", E_USER_WARNING);
+		$parser->execTool("NGS/vc_cnvhunter.php","-cov {$t_cov} -out {$som_cnv} -system {$system} -min_corr 0 -seg {$t_id} -n {$min_cov_files}");
 	}
 	else //ClinCNV for differential sample
 	{
@@ -357,7 +357,10 @@ if(in_array("cn",$steps))
 		/*******************
 		 * EXECUTE CLINCNV *
 		 ******************/
-		$parser->execTool("NGS/vc_somatic_clincnv.php","-t_id {$t_id} -n_id {$n_id} -t_cov {$t_cov} -n_cov {$n_cov} -out {$som_clincnv} -cov_pairs {$t_n_list_file} -system {$system} -bed " .$sys['target_file']);
+		if (db_is_enabled("NGSD"))
+		{
+			$parser->execTool("NGS/vc_somatic_clincnv.php","-t_id {$t_id} -n_id {$n_id} -t_cov {$t_cov} -n_cov {$n_cov} -out {$som_clincnv} -cov_pairs {$t_n_list_file} -system {$system} -bed " .$sys['target_file']);
+		}
 	}
 }
 

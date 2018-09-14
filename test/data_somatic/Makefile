@@ -44,7 +44,7 @@ case1_run:
 case1_diff:
 	php ../compare_bed.php expected_case1/GS150344_01_stat_lowcov.bed out_case1/GS150344_01_stat_lowcov.bed
 	# variants
-	php ../compare_variants.php expected_case1/GS150344_01.GSvar out_case1/GS150344_01.GSvar
+	php ../compare_variants.php -in1 expected_case1/GS150344_01.GSvar -in2 out_case1/GS150344_01.GSvar
 	test -s out_case1/GS150344_01_cnvs.tsv
 
 # tumor-normal (strelka)
@@ -77,8 +77,8 @@ case2_somatic:
 
 case2_diff:
 	# variants
-	php ../compare_variants.php expected_case2/GS110168-GS110169.GSvar out_case2/GS110168-GS110169.GSvar
-	php ../compare_variants.php expected_case2/GS110168-GS110169_var_qci.vcf.gz out_case2/GS110168-GS110169_var_qci.vcf.gz
+	php ../compare_variants.php -in1 expected_case2/GS110168-GS110169.GSvar -in2 out_case2/GS110168-GS110169.GSvar
+	php ../compare_variants.php -in1 expected_case2/GS110168-GS110169_var_qci.vcf.gz -in2 out_case2/GS110168-GS110169_var_qci.vcf.gz
 	php ../compare_bed.php expected_case2/GS110168-GS110169_stat_lowcov.bed out_case2/GS110168-GS110169_stat_lowcov.bed
 	
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription.tsv
@@ -125,8 +125,8 @@ case4_somatic:
 
 case4_diff:
 	# variants
-	php ../compare_variants.php expected_case4/Tumor2-Normal2.GSvar out_case4/Tumor2-Normal2.GSvar
-	php ../compare_variants.php expected_case4/Tumor2-Normal2_var_qci.vcf.gz out_case4/Tumor2-Normal2_var_qci.vcf.gz
+	php ../compare_variants.php -in1 expected_case4/Tumor2-Normal2.GSvar -in2 out_case4/Tumor2-Normal2.GSvar
+	php ../compare_variants.php -in1 expected_case4/Tumor2-Normal2_var_qci.vcf.gz -in2 out_case4/Tumor2-Normal2_var_qci.vcf.gz
 	test -s out_case4/Tumor2-Normal2_cgi_drug_prescription.tsv
 	test -s out_case4/Tumor2-Normal2_cgi_drug_prescription_bioactivities.tsv
 	test -s out_case4/Tumor2-Normal2_cgi_mutation_analysis.tsv

@@ -36,4 +36,4 @@ analyze:
 diff:
 	diff $(out_folder)/Somatic_$(X)-$(Y)/$(X)-$(Y)_counts.tsv results/$(X)-$(Y)_counts.tsv
 	diff $(out_folder)/Somatic_$(X)-$(Y)/$(X)-$(Y)_var_fusions.tsv results/$(X)-$(Y)_var_fusions.tsv
-	php ../compare_variants.php $(out_folder)/Somatic_$(X)-$(Y)/$(X)-$(Y).GSvar results/$(X)-$(Y).GSvar
+	php ../compare_variants.php -in1 $(out_folder)/Somatic_$(X)-$(Y)/$(X)-$(Y).GSvar -in2 results/$(X)-$(Y).GSvar

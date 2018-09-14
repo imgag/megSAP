@@ -26,5 +26,5 @@ cn:
 	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . --log multi_log3_cn.log -steps cn
 
 diff:
-	php ../compare_variants.php multi.GSvar.out multi.GSvar
+	php ../compare_variants.php -in1 multi.GSvar.out -in2 multi.GSvar
 	diff multi_cnvs.tsv multi_cnvs.tsv.out
