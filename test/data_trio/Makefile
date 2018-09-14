@@ -27,16 +27,16 @@ cn:
 
 diff:
 	#all variants
-	php ../compare_variants.php trio.GSvar.out trio.GSvar
-	#variants after filtering
-	php ../filter_variants.php -in trio.GSvar -out trio_denovo.GSvar -filters filter_denovo.txt
-	php ../compare_variants.php trio_denovo.GSvar.out trio_denovo.GSvar
-	php ../filter_variants.php -in trio.GSvar -out trio_recessive.GSvar -filters filter_recessive.txt
-	php ../compare_variants.php trio_recessive.GSvar.out trio_recessive.GSvar
-	php ../filter_variants.php -in trio.GSvar -out trio_comphet.GSvar -filters filter_comphet.txt
-	php ../compare_variants.php trio_comphet.GSvar.out trio_comphet.GSvar
-	php ../filter_variants.php -in trio.GSvar -out trio_loh.GSvar -filters filter_loh.txt
-	php ../compare_variants.php trio_loh.GSvar.out trio_loh.GSvar
+	php ../compare_variants.php -in1 trio.GSvar.out -in2 trio.GSvar
+	#variants after filtering (only when NGSD is enabled)
+	php ../filter_variants.php -in trio.GSvar -out trio_denovo.GSvar -filters filter_denovo.txt -requires_db NGSD
+	php ../compare_variants.php -in1 trio_denovo.GSvar.out -in2 trio_denovo.GSvar -requires_db NGSD
+	php ../filter_variants.php -in trio.GSvar -out trio_recessive.GSvar -filters filter_recessive.txt -requires_db NGSD
+	php ../compare_variants.php -in1 trio_recessive.GSvar.out -in2 trio_recessive.GSvar -requires_db NGSD
+	php ../filter_variants.php -in trio.GSvar -out trio_comphet.GSvar -filters filter_comphet.txt -requires_db NGSD
+	php ../compare_variants.php -in1 trio_comphet.GSvar.out -in2 trio_comphet.GSvar -requires_db NGSD
+	php ../filter_variants.php -in trio.GSvar -out trio_loh.GSvar -filters filter_loh.txt -requires_db NGSD
+	php ../compare_variants.php -in1 trio_loh.GSvar.out -in2 trio_loh.GSvar -requires_db NGSD
 	#UPDs
 	diff -b trio_upd.tsv.out trio_upd.tsv
 

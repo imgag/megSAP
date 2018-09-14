@@ -475,18 +475,11 @@ function repository_basedir()
 ///Returns the revision of the repository.
 function repository_revision($prefix_repos_name=false)
 {
-	$repos_rev = "";
-
-	if($prefix_repos_name)
-	{
-		$output1 = "";
-		exec("cd ".repository_basedir()." && git rev-parse --show-toplevel", $output1);
-		$repos_rev .= basename($output1[0])." ";
-	}
+	$repos_rev = $prefix_repos_name ? "megSAP " : "";
 	
-	$output2 = array();
-	exec("cd ".repository_basedir()." && git describe --tags", $output2);
-	$repos_rev .= trim($output2[0]);
+	$output = array();
+	exec("cd ".repository_basedir()." && git describe --tags", $output);
+	$repos_rev .= trim($output[0]);
 	
 	return $repos_rev;
 }
