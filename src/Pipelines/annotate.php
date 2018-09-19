@@ -64,7 +64,7 @@ $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 //check vcf file
 if(!$no_fc)
 {
-	//$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $annfile", true); //TODO add when implemented 
+	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $annfile -info", true);
 }
 
 //convert to GSvar file

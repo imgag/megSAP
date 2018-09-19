@@ -61,5 +61,8 @@ rm bwa-0.7.17.tar.bz2
 cd bwa-0.7.17
 make
 
-#download VEP
+#download and build VEP
 echo TODO - BioConda/Docker?
+
+#download and build ClinCnv
+echo TODO

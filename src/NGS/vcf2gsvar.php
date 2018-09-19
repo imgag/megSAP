@@ -155,7 +155,7 @@ $column_desc = array(
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
 	array("Sift", "Sift effect prediction for each transcript: D=damaging, T=tolerated."),
 	array("PolyPhen", "PolyPhen (humVar) effect prediction for each transcript: D=probably damaging, P=possibly damaging, B=benign."),
-	array("fathmm-MKL", "fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5."), //TODO only non-coding score?
+	array("fathmm-MKL", "fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
 	array("OMIM", "OMIM database annotation."),
@@ -241,6 +241,8 @@ while(!feof($handle))
 			$i_af_kg = index_of($cols, "AF");
 			$i_af_gnomad = index_of($cols, "gnomAD_AF");
 			$i_af_gnomad_genome = index_of($cols, "gnomADg_AF");
+			$i_hom_gnomad_genome = index_of($cols, "gnomADg_Hom");
+			$i_hemi_gnomad_genome = index_of($cols, "gnomADg_Hemi");
 			$i_af_gnomad_afr = index_of($cols, "gnomAD_AFR_AF");
 			$i_af_gnomad_amr = index_of($cols, "gnomAD_AMR_AF");
 			$i_af_gnomad_eas = index_of($cols, "gnomAD_EAS_AF");
@@ -408,10 +410,18 @@ while(!feof($handle))
 	$af_gnomad_sas = array();
 	$af_esp_ea = array();
 	$af_esp_aa = array();
+	$hom_gnomad = array();
+	$hemi_gnomad = array();
 	$repeat = array();
 	$clinvar = array();
 	$omim = array();
 	$hgmd = array();
+	//variant details (up/down-stream)
+	$variant_details_updown = array();
+	$genes_updown = array();
+	$sift_updown = array();
+	$polyphen_updown = array();
+	$coding_and_splicing_details_updown = array();
 	if (isset($info["CSQ"]))
 	{
 		$anns = explode(",", $info["CSQ"]);
@@ -433,6 +443,8 @@ while(!feof($handle))
 			$af_gnomad_sas[] = trim($parts[$i_af_gnomad_sas]);
 			$af_esp_ea[] = trim($parts[$i_af_esp_ea]);
 			$af_esp_aa[] = trim($parts[$i_af_esp_aa]);
+			$hom_gnomad[] = trim($parts[$i_hom_gnomad_genome]);
+			$hemi_gnomad[] = trim($parts[$i_hemi_gnomad_genome]);
 			
 			//dbSNP, COSMIC
 			$ids = explode("&", $parts[$i_existingvariation]);
@@ -512,20 +524,49 @@ while(!feof($handle))
 			if ($parts[$i_featuretype]!="Transcript") continue; 
 			$transcript_id = $parts[$i_feature];
 			
-			//TODO do not skip if no other transcript type exists
-			//skip up-/down-stream annotations unless requested
+			//extract variant type
 			$variant_type = strtr($parts[$i_consequence], array("_variant"=>""));
 			$variant_type = strtr($variant_type, array("splice_acceptor&splice_region&intron"=>"splice_acceptor", "splice_donor&splice_region&intron"=>"splice_donor", "splice_acceptor&intron"=>"splice_acceptor", "splice_donor&intron"=>"splice_donor", "_prime_"=>"'"));
-			if (!$updown && ($variant_type=="upstream_gene" || $variant_type=="downstream_gene")) continue;
-			$variant_details[] = $variant_type;
+			$is_updown = $variant_type=="upstream_gene" || $variant_type=="downstream_gene";
+			if (!$is_updown)
+			{
+				$variant_details[] = $variant_type;
+			}
+			else
+			{
+				$variant_details_updown[] = $variant_type;
+			}
 			
 			//split genes
 			$gene = $parts[$i_symbol];
-			$genes[] = $gene;
+			if (!$is_updown)
+			{
+				$genes[] = $gene;
+			}
+			else
+			{
+				$genes_updown[] = $gene;
+			}
 			
 			//pathogenicity predictions (transcript-specific)
-			$sift[] = translate("Sift", $parts[$i_sift], array(""=>" ", "deleterious"=>"D", "tolerated"=>"T", "tolerated_low_confidence"=>"T", "deleterious_low_confidence"=>"D"));
-			$polyphen[] = translate("PolyPhen", $parts[$i_polyphen], array(""=>" ", "unknown"=>" ",  "probably_damaging"=>"D", "possibly_damaging"=>"P", "benign"=>"B"));
+			$sift_entry = translate("Sift", $parts[$i_sift], array(""=>" ", "deleterious"=>"D", "tolerated"=>"T", "tolerated_low_confidence"=>"T", "deleterious_low_confidence"=>"D"));
+			if (!$is_updown)
+			{
+				$sift[] = $sift_entry;
+			}
+			else
+			{
+				$sift_updown[] = $sift_entry;
+			}
+			$polyphen_entry = translate("PolyPhen", $parts[$i_polyphen], array(""=>" ", "unknown"=>" ",  "probably_damaging"=>"D", "possibly_damaging"=>"P", "benign"=>"B"));
+			if (!$is_updown)
+			{
+				$polyphen[] = $polyphen_entry;
+			}
+			else
+			{
+				$polyphen_updown[] = $polyphen_entry;
+			}
 			
 			//exon
 			$exon = trim($parts[$i_exon]);
@@ -550,10 +591,29 @@ while(!feof($handle))
 					$domain = explode(":", $entry, 2)[1];
 				}
 			}
-						
-			$coding_and_splicing_details[] = "{$gene}:{$transcript_id}:".$parts[$i_consequence].":".$parts[$i_impact].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}:{$domain}";
+			
+			$transcript_entry = "{$gene}:{$transcript_id}:".$parts[$i_consequence].":".$parts[$i_impact].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}:{$domain}";
+			if (!$is_updown)
+			{
+				$coding_and_splicing_details[] = $transcript_entry;
+			}
+			else
+			{
+				$coding_and_splicing_details_updown[] = $transcript_entry;
+			}
 		}
 	}
+	
+	//add up/down-stream variants if requested (or no other transcripts exist)
+	if ($updown || count($coding_and_splicing_details)==0)
+	{
+		$variant_details = array_merge($variant_details, $variant_details_updown);
+		$genes = array_merge($genes, $genes_updown);
+		$sift = array_merge($sift, $sift_updown);
+		$polyphen = array_merge($polyphen, $polyphen_updown);
+		$coding_and_splicing_details = array_merge($coding_and_splicing_details, $coding_and_splicing_details_updown);
+	}
+	
 	$genes = array_unique($genes);
 	if (all_genes_blacklisted($genes))
 	{
@@ -571,8 +631,8 @@ while(!feof($handle))
 	$gnomad = collapse("gnomAD", $af_gnomad, "one", 4);
 	$gnomad_genome = collapse("gnomAD genome", $af_gnomad_genome, "one", 4);
 	$gnomad = max($gnomad, $gnomad_genome);
-	$gnomad_hom_hemi = ""; //TODO from genomAD WGS data
-	$gnomad_sub = collapse("gnomAD", $af_gnomad_afr, "one", 4).",".collapse("gnomAD", $af_gnomad_amr, "one", 4).",".collapse("gnomAD", $af_gnomad_eas, "one", 4).",".collapse("gnomAD", $af_gnomad_nfe, "one", 4).",".collapse("gnomAD", $af_gnomad_sas, "one", 4);
+	$gnomad_hom_hemi = collapse("gnomAD Hom", $hom_gnomad, "one").",".collapse("gnomAD Hemi", $hemi_gnomad, "one");
+	$gnomad_sub = collapse("gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse("gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse("gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse("gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse("gnomAD SAS", $af_gnomad_sas, "one", 4);
 	if (str_replace(",", "", $gnomad_sub)=="") $gnomad_sub = "";
 	$esp_sub = collapse("ESP ea", $af_esp_ea, "one", 4).",".collapse("ESP aa", $af_esp_aa, "one", 4);
 	if (str_replace(",", "", $esp_sub)=="") $esp_sub = "";
@@ -599,6 +659,7 @@ while(!feof($handle))
 	//COSMIC
 	$cosmic = implode(",", collapse("COSMIC", $cosmic, "unique"));
 
+	//TODO update order
 	//write data
 	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$esp_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
 }

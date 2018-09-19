@@ -227,7 +227,7 @@ if (in_array("vc", $steps))
 		$parser->execTool("NGS/vc_strelka2.php", implode(" ", $args_strelka));
 	}
 
-	// add somatic BAF file
+	//add somatic BAF file
 	$baf_args = [
 		"-in {$t_bam}",
 		"-out {$ballele}", 
@@ -242,7 +242,6 @@ if (in_array("vc", $steps))
 		$baf_args[] = "-target {$roi}";
 	}
 	$parser->execTool("NGS/mapping_baf.php", implode(" ", $baf_args));
-	}
 }
 
 //CNV calling
@@ -265,7 +264,7 @@ if(in_array("cn",$steps))
 	$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $t_bam -in $roi -out $t_cov",true);
 	
 	//copy tumor sample coverage file to reference folder (has to be done before ClinCNV call to avoid analyzing the same sample twice)
-	if (is_valid_ref_tumor_sample_for_cnv_analysis($t_id) && db_is_enabled("NGSD"))
+	if (!$single_sample && is_valid_ref_tumor_sample_for_cnv_analysis($t_id) && db_is_enabled("NGSD"))
 	{
 		$n_cov = "{$tmp_folder}/{$n_id}.cov";
 		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov", true);

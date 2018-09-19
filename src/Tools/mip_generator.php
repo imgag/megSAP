@@ -20,13 +20,13 @@ $parser->addInt("min_capture_size", "Min. capture size.", true, 120);
 $parser->addInt("max_capture_size", "Max. capture size.", true, 140);
 $parser->addFloat("min_svr", "Minimum SVR score.", true, 1.4);
 $parser->addFlag("no_svr", "Do not filter for svr score.");
+$parser->addString("snp_db", "Common variants database, which contains 'AF' info annoation.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz"); 
 extract($parser->parse($argv));
 
 $temp_folder = $parser->tempFolder("MipGenerator_");
 
 // 1. extract common SNPs
 $output = array();
-$tg_db = get_path('data_folder')."/dbs/1000G/1000g_v5b.vcf.gz"; //TODO
 $bed = file($target);
 foreach($bed as $reg)
 {
@@ -34,15 +34,14 @@ foreach($bed as $reg)
 	$c = substr($c, 3);
 	$s -= 1000;
 	$e += 1000;
-	list($snps,) = $parser->exec("tabix", "$tg_db $c:$s-$e", false); //no output logging, because Toolbase::extractVersion() does not return
+	list($snps,) = $parser->exec("tabix", "$snp_db $c:$s-$e", false); //no output logging, because Toolbase::extractVersion() does not return
 	foreach($snps as $snp)
 	{
-		$skip_variant = false;
-		
 		list(, , , , $obs, , , $info) = explode("\t", $snp);
-		$info = explode(";", $info);
-		unset($af);
 		
+		//skip low AF variants
+		$af = 0.0;
+		$info = explode(";", $info);
 		foreach($info as $entry)
 		{
 			if(starts_with($entry, "AF="))
@@ -50,31 +49,28 @@ foreach($bed as $reg)
 				$af = substr($entry, 3);
 			}
 		}
-		
 		if($af<0.01)
 		{
-			$skip_variant = true;
+			continue;
 		}
-
-		$obs = explode(",",$obs);
+		
+		//skip CNVs etc.
+		$obs = explode(",", $obs);
 		foreach($obs as $o)
 		{		
 			if (starts_with($o,'<'))
 			{
-				$skip_variant = true;
+				continue;
 			}
 		}
 		
-		if(!$skip_variant)
-		{
-			$output[] = $snp;
-		}
+		$output[] = $snp;
 	}
 }
 //remove duplicates
 $output = array_unique($output);
 //store with headers
-list($headers) = exec2("zcat $tg_db | head -1000 | egrep \"^#\"", false);	
+list($headers) = exec2("zcat $snp_db | head -1000 | egrep \"^#\"", false);	
 $unsorted = $temp_folder."/unsorted.vcf";
 file_put_contents($unsorted, implode("\n", $headers)."\n".implode("\n", $output));
 //sort
