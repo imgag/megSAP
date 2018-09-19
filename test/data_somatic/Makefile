@@ -2,17 +2,17 @@ all: clear link case1 case2 case4
 
 clear:
 	rm -rf Sample_GS110168 Sample_GS110169 Sample_GS150344_01 Sample_Tumor2 Sample_Normal2
-	rm -rf out_case1 out_case2 out_case3 out_case4
+	rm -rf out_case1 out_case2 out_case4
 
 link:
 	mkdir -p Sample_GS110169 Sample_GS110168 Sample_GS150344_01 Sample_GS150344_01 Sample_Tumor2 Sample_Normal2
-	mkdir -p out_case1 out_case2 out_case3 out_case4
+	mkdir -p out_case1 out_case2 out_case4
 	# input files for case 1
 	php ../link_test_data.php GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz Sample_GS150344_01/GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz
 	php ../link_test_data.php GS150344_01_GCTCGGTAextracted_L001_R2_001.fastq.gz Sample_GS150344_01/GS150344_01_GCTCGGTAextracted_L001_R2_001.fastq.gz
 	php ../link_test_data.php GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz Sample_GS150344_01/GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz
 	php ../link_test_data.php GS150344_01_GCTCGGTAextracted_L001_R2_001.fastq.gz Sample_GS150344_01/GS150344_01_GCTCGGTAextracted_L001_R2_001.fastq.gz
-	# input files for case 2, 3
+	# input files for case 2
 	php ../link_test_data.php GS110168_chr21_L007_R1_001.fastq.gz Sample_GS110168/GS110168_chr21_L007_R1_001.fastq.gz
 	php ../link_test_data.php GS110168_chr21_L007_R2_001.fastq.gz Sample_GS110168/GS110168_chr21_L007_R2_001.fastq.gz
 	php ../link_test_data.php GS110169_chr21_L008_R1_001.fastq.gz Sample_GS110169/GS110169_chr21_L008_R1_001.fastq.gz
@@ -69,7 +69,7 @@ case2_somatic:
 		-t_bam Sample_GS110168/GS110168.bam -n_bam Sample_GS110169/GS110169.bam \
 		-out_folder out_case2 \
 		-prefix GS110168-GS110169 \
-		-steps vc,cn,an,ci,msi \
+		-steps cn,an,ci,msi \
 		-cancer_type CANCER \
 		-system system_pair.ini \
 		-n_system system_pair.ini \
@@ -95,7 +95,7 @@ case2_diff:
 	# MSI file
 	diff expected_case2/GS110168-GS110169_msi.tsv out_case2/GS110168-GS110169_msi.tsv
 
-# tumor-normal (strelka)
+# tumor-normal (strelka) //TODO why do we need a second test for "tumor-normal (strelka)"
 case4: case4_analyze case4_somatic case4_diff
 
 case4_analyze:
