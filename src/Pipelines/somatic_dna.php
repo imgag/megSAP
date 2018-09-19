@@ -57,22 +57,22 @@ foreach($steps as $step)
 	}
 }
 
-//tumor only or tumor-normal
-$single_sample = !isset($n_bam);
-
 //output prefix
 $full_prefix = "{$out_folder}/{$prefix}";
 
 //IDs, system and target region
 $t_id = basename($t_bam, ".bam");
-$n_id = basename($n_bam, ".bam");
 $sys = load_system($system, $t_id);
-$n_sys = array();
+$roi = $sys["target_file"];
+
+//normal sample data (if not single sample analysis)
+$single_sample = !isset($n_bam);
 if (!$single_sample)
 {
+	$n_id = basename($n_bam, ".bam");
 	$n_sys = load_system($n_system, $n_id);
-};
-$roi = $sys["target_file"];
+	$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short']."/";
+}
 
 //sample similiarty check
 $bams = array_filter([$t_bam, $n_bam, $t_rna_bam]);
@@ -249,8 +249,6 @@ $som_cnv = $full_prefix . "_cnvs.tsv"; //CNVHunter output file
 $som_clincnv = $full_prefix . "_clincnv.tsv"; //ClinCNV output file
 //folder with reference coverage files of tumor samples of same processing system.
 $ref_folder_t = get_path("data_folder")."/coverage/".$sys['name_short']."-tumor"."/";
-//folder with reference coverage files of normal samples of same processing system.
-if(!$single_sample) $ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short']."/";
 if(in_array("cn",$steps))
 {
 	// copy number variant calling
@@ -264,10 +262,8 @@ if(in_array("cn",$steps))
 	$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $t_bam -in $roi -out $t_cov",true);
 	
 	//copy tumor sample coverage file to reference folder (has to be done before ClinCNV call to avoid analyzing the same sample twice)
-	if (!$single_sample && is_valid_ref_tumor_sample_for_cnv_analysis($t_id) && db_is_enabled("NGSD"))
+	if (is_valid_ref_tumor_sample_for_cnv_analysis($t_id) && db_is_enabled("NGSD")) //TODO why do we need the NGSD here?
 	{
-		$n_cov = "{$tmp_folder}/{$n_id}.cov";
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov", true);
 		//create reference folder if it does not exist
 		if (!is_dir($ref_folder_t))
 		{
@@ -293,8 +289,9 @@ if(in_array("cn",$steps))
 		// coverage for normal sample
 		$n_cov = "{$tmp_folder}/{$n_id}.cov";
 		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov", true);
-		// copy normal sample coverage file to reference folder (only if valid). Check for NGSD because other test needs db.
-		if (is_valid_ref_sample_for_cnv_analysis($n_id) && db_is_enabled("NGSD"))
+		
+		// copy normal sample coverage file to reference folder (only if valid).
+		if (is_valid_ref_sample_for_cnv_analysis($n_id) && db_is_enabled("NGSD")) //TODO why do we need the NGSD here?
 		{
 			//create reference folder if it does not exist
 			$ref_folder = get_path("data_folder")."/coverage/".$n_sys['name_short']."/";
@@ -356,10 +353,7 @@ if(in_array("cn",$steps))
 		/*******************
 		 * EXECUTE CLINCNV *
 		 ******************/
-		if (db_is_enabled("NGSD"))
-		{
-			$parser->execTool("NGS/vc_somatic_clincnv.php","-t_id {$t_id} -n_id {$n_id} -t_cov {$t_cov} -n_cov {$n_cov} -out {$som_clincnv} -cov_pairs {$t_n_list_file} -system {$system} -bed " .$sys['target_file']);
-		}
+		$parser->execTool("NGS/vc_somatic_clincnv.php","-t_id {$t_id} -n_id {$n_id} -t_cov {$t_cov} -n_cov {$n_cov} -out {$som_clincnv} -cov_pairs {$t_n_list_file} -system {$system} -bed " .$sys['target_file']);
 	}
 }
 

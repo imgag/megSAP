@@ -30,12 +30,10 @@ if(!db_is_enabled("NGSD") && ($n_id == "auto" || $cov_pairs == "auto" || !isset(
 	trigger_error("NGSD is not available. Please provide -n_id, -cov_pairs and -system manually.",E_USER_ERROR);
 }
 
-$db = DB::getInstance("NGSD");
-
 //creates file with all tumor-normal sample identifiers of the same processing system
 function get_somatic_pairs($cov_folder_tumor,$file_name)
 {
-	global $db;
+	$db = DB::getInstance("NGSD");
 	$tumor_ids = glob($cov_folder_tumor ."/*.cov");
 	for($i=0;$i<count($tumor_ids);++$i)
 	{
@@ -123,6 +121,7 @@ function create_file_with_paths($ref_cov_folder,$cov_path)
 
 if($n_id == "auto")
 {
+	$db = DB::getInstance("NGSD");
 	$t_sample_info = get_processed_sample_info($db,$t_id,false);
 	$n_id = $t_sample_info['normal_name'];
 }
