@@ -5,7 +5,6 @@
 
 //TODO test plugins: dbscSNV,GeneSplicer,MaxEntScan
 //TODO test: --regulatory --gene_phenotype --ccds --biotype --canonical --pubmed
-//TODO add test data: variant with two OMIM/HGMD numbers
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
