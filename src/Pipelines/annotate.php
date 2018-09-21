@@ -13,7 +13,7 @@ $parser = new ToolBase("annotate", "Annotate variants.");
 $parser->addString("out_name", "Processed sample ID (e.g. 'GS120001_01').", false);
 $parser->addString("out_folder", "Output folder.", false);
 //optional
-$parser->addInfile("system", "Processing system INI file (determined from 'out_name' by default).", true);
+$parser->addInfile("system", "Processing system INI file (automatically determined from NGSD if 'out_name' is a valid processed sample name).", true);
 $parser->addString("t_col", "Column name of tumor sample (for Strelka VCF files only).", true, "na");
 $parser->addString("n_col", "Column name of normal sample (for Strelka VCF files only).", true, "na");
 $parser->addString("vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_var.vcf.gz).", true, "");

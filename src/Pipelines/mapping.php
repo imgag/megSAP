@@ -17,7 +17,7 @@ $parser->addString("out_folder", "Output folder.", false);
 $parser->addString("out_name", "Output file base name (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfileArray("in_index",  "Index reads FASTQ file(s).", true);
-$parser->addInfile("system",  "Processing system INI file (determined from 'out_name' by default).", true);
+$parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'out_name' is a valid processed sample name).", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
 $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
