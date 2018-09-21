@@ -37,7 +37,7 @@ $parser->addStringArray("status", "List of affected status of the input samples 
 $parser->addString("out_folder", "Output folder name.", false);
 //optional
 $parser->addString("prefix", "Output file prefix.", true, "multi");
-$parser->addInfile("system",  "Processing system INI file used for all samples (created from NGSD via first argument of 'bams' by default).", true);
+$parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of the first file in 'bams' is a valid processed sample name).", true);
 $steps_all = array("vc", "an", "cn");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, an=annotation, cn=copy-number analysis.", true, implode(",", $steps_all));
 extract($parser->parse($argv));

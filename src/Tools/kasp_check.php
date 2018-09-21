@@ -31,8 +31,14 @@ function txt2geno_lightcycler($snps, $in_file, $out_file)
 	{
 		//parse
 		if (trim($line)=="" || starts_with($line, "Experiment") || starts_with($line, "Include")) continue;
-		list($include, $color, $position, $sample, $x, $y, $call, $score, $status) = explode("\t", nl_trim($line));
-
+		$parts = explode("\t", nl_trim($line));
+		if (count($parts)<9)
+		{
+			trigger_error("Found line with less than 9 tab-separated parts '$in_file'!", E_USER_WARNING);
+			continue;
+		}
+		list($include, $color, $position, $sample, $x, $y, $call, $score, $status) = $parts;
+		
 		//filter
 		if (!preg_match("/^[0-9]{6}/", $sample) && !preg_match("/^DNA-[0-9]{6}/", $sample) && !starts_with($sample, "FO")) continue;
 		if (!isset($snps[$position[0]])) continue;
@@ -58,6 +64,11 @@ function txt2geno_lightcycler($snps, $in_file, $out_file)
 		else
 		{
 			$geno = "n/a";
+		}
+		
+		if (isset($parsed[$sample]) && isset($parsed[$sample][$rs]))
+		{
+			trigger_error("Found two entries for sample '$sample' and SNP '$rs' in '$in_file'!", E_USER_WARNING);
 		}
 		
 		$parsed[$sample][$rs] = array("geno"=>$geno, "score"=>$score);
