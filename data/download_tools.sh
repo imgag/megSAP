@@ -62,7 +62,8 @@ cd bwa-0.7.17
 make
 
 #download and build VEP
-echo "TODO - BioConda/Docker?"
+chmod 755 download_tools_vep.sh
+./download_tools_vep.sh
 
 #download and build ClinCnv
 echo "TODO - including R"

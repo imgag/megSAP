@@ -27,7 +27,7 @@ perl $tools/RepeatMasker/util/rmOutToGFF3.pl hg19.fa.out > RepeatMasker.gff
 cat RepeatMasker.gff | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/BedSort | bgzip > RepeatMasker.bed
 tabix -p bed RepeatMasker.bed.gz
 rm -rf hg19.fa.out RepeatMasker.gff
-cd_st
+
 #Install ClinVar - https://www.ncbi.nlm.nih.gov/clinvar/
 cd $dbs
 mkdir ClinVar
@@ -64,35 +64,33 @@ wget -O - https://storage.googleapis.com/gnomad-public/release/2.0.2/vcf/genomes
 bgzip gnomAD_genome_r2.0.2.vcf
 tabix -p vcf gnomAD_genome_r2.0.2.vcf.gz
 
-
-#Install phyloP - https://www.ensembl.org/info/docs/tools/vep/script/vep_example.html#gerp
+#Install phyloP for VEP - https://www.ensembl.org/info/docs/tools/vep/script/vep_example.html#gerp
 cd $dbs
 mkdir phyloP
 cd phyloP
 wget ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/phyloP100way/hg19.100way.phyloP100way.bw
 
-#Install CADD - http://cadd.gs.washington.edu/download
+#Install CADD for VEP - http://cadd.gs.washington.edu/download
 cd $dbs
 mkdir CADD
 cd CADD
 wget http://krishna.gs.washington.edu/download/CADD/v1.4/GRCh37/InDels.tsv.gz
 wget http://krishna.gs.washington.edu/download/CADD/v1.4/GRCh37/whole_genome_SNVs.tsv.gz
 
-#Install fathmm-MKL - https://github.com/HAShihab/fathmm-MKL
+#Install fathmm-MKL for VEP - https://github.com/HAShihab/fathmm-MKL
 cd $dbs
 mkdir fathmm-MKL
 cd fathmm-MKL
 wget http://fathmm.biocompute.org.uk/database/fathmm-MKL_Current.tab.gz
 tabix -p bed fathmm-MKL_Current.tab.gz
 
-#Install REVEL - https://sites.google.com/site/revelgenomics/downloads
+#Install REVEL for VEP - https://sites.google.com/site/revelgenomics/downloads
 cd $dbs
 mkdir REVEL
 cd REVEL
 wget https://rothsj06.u.hpc.mssm.edu/revel/revel_all_chromosomes.csv.zip
 unzip -p revel_all_chromosomes.csv.zip | tr ',' '\t' | sed '1s/.*/#&/' | bgzip > revel_all_chromosomes.tsv.gz
 tabix -f -s 1 -b 2 -e 2 revel_all_chromosomes.tsv.gz
-
 
 #install OMIM (you might need a license - installation only possible after ngs-bits including NGSD is installed)
 #cd $dbs
