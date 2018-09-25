@@ -380,7 +380,7 @@ function filter_vcf_file_germline($vcf_file)
 	$i_filter = $vcf_file->getColumnIndex("FILTER");
 	for($i=0;$i<$vcf_file->rows();$i++)
 	{
-		if($vcf_file->get($i,$i_filter) == ".")
+		if($vcf_file->get($i,$i_filter) == "." || $vcf_file->get($i,$i_filter) == "PASS")
 		{
 			$filtered_row = $vcf_file->getRow($i);
 			$vcf_filtered->addRow($filtered_row);
@@ -472,6 +472,7 @@ if(isset($mutations))
 	//if no mutations given, make $temp_mutation_file empty
 	$temp_mutation_file =  "";
 }
+
 
 //convert CNVs to CGI format
 $temp_cnv_file = tempnam(sys_get_temp_dir(),"temp_");
