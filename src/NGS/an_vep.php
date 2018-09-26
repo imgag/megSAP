@@ -26,7 +26,7 @@ $vep_path = dirname(get_path("vep"));
 
 $args = array();
 $args[] = "-i $in --format vcf"; //input
-$args[] = "-o $out --vcf --no_stats"; //output
+$args[] = "-o $out --vcf --no_stats --force_overwrite"; //output
 $args[] = "--species homo_sapiens --assembly {$build}"; //species
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
 $args[] = "--offline --cache --dir_cache {$vep_path}/cache/ --fasta {$vep_path}/fasta/Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz"; //paths to data
