@@ -325,16 +325,14 @@ tcgi	RBM10	AMP	LoF			321	SK		predicted passenger
 tcgi	SSX1	AMP	Act			322	SK		predicted passenger		
 tcgi	EDA	AMP	ambiguous			324	SK		predicted passenger		
 tcgi	MED12	AMP	Act			325	SK		predicted passenger		
-tcgi	ATRX	AMP	LoF			326	SK		predicted passenger		
 tcgi	HDAC8	AMP	ambiguous			327	SK		predicted passenger		
 tcgi	TAF1	AMP	Act			328	SK		predicted passenger		
-tcgi	ATRX	DEL	LoF	G;S		329	SK		predicted passenger		
-tcgi	ARHGEF6	DEL	LoF			330	SK		predicted passenger		
-tcgi	BCORL1	DEL	ambiguous			331	SK		predicted passenger		
-tcgi	GPC4	DEL	ambiguous			332	SK		predicted passenger		
-tcgi	HCFC1	DEL	Act			333	SK		predicted passenger		
-tcgi	MTMR1	DEL	ambiguous			334	SK		predicted passenger		
-tcgi	PHF6	DEL	LoF			335	SK		predicted passenger		
-tcgi	RBMX	DEL	LoF			336	SK		predicted passenger		
-tcgi	SMARCA1	DEL	LoF			337	SK		predicted passenger		
-tcgi	SNORD61	DEL	ambiguous			338	SK		predicted passenger		
+tcgi	ARHGEF6	DEL	LoF			329	SK		predicted passenger		
+tcgi	BCORL1	DEL	ambiguous			330	SK		predicted passenger		
+tcgi	GPC4	DEL	ambiguous			331	SK		predicted passenger		
+tcgi	HCFC1	DEL	Act			332	SK		predicted passenger		
+tcgi	MTMR1	DEL	ambiguous			333	SK		predicted passenger		
+tcgi	PHF6	DEL	LoF			334	SK		predicted passenger		
+tcgi	RBMX	DEL	LoF			335	SK		predicted passenger		
+tcgi	SMARCA1	DEL	LoF			336	SK		predicted passenger		
+tcgi	SNORD61	DEL	ambiguous			337	SK		predicted passenger		
