@@ -363,22 +363,10 @@ $variants_gsvar     = $full_prefix . ".GSvar";					// GSvar variants
 $somaticqc          = $full_prefix . "_stats_som.qcML";			// SomaticQC qcML
 if (in_array("an", $steps))
 {
-	// annotate vcf into temp folder
+	// annotate vcf (in temp folder)
 	$tmp_folder1 = $parser->tempFolder();
 	$tmp_vcf = "{$tmp_folder1}/{$prefix}_var_annotated.vcf.gz";
 	$parser->execTool("Pipelines/annotate.php", "-out_name $prefix -out_folder $tmp_folder1 -system $system -vcf $variants -somatic -updown");
-
-	// add donor annotation to full annotated vcf
-	if (isset($donor_ids))
-	{
-		$donor_bams = [];
-		foreach ($donor_ids as $donor_id)
-		{
-			//TODO fix
-			$donor_bams[] = $p_folder."/Sample_{$donor_id}/{$donor_id}.bam";
-		}
-		$parser->execTool("NGS/vcf_somatic_donor.php", "-in_somatic {$tmp_vcf} -out_vcf {$tmp_vcf} -in_donor " . implode(" ", $donor_bams));
-	}
 
 	// run somatic QC
 	if (!$single_sample)
@@ -407,8 +395,7 @@ if (in_array("an", $steps))
 		$parser->exec(get_path("ngs-bits")."SomaticQC", implode(" ", $args_somaticqc), true);
 	}
 
-	// sort and dedup vcf comments
-	$tmp = $parser->tempFile(".vcf");
+	//add sample info to VCF header
 	$s = Matrix::fromTSV($tmp_vcf);
 	$comments = $s->getComments();
 	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"), "#", "");
@@ -417,33 +404,29 @@ if (in_array("an", $steps))
 		$comments[] = gsvar_sample_header($n_id, array("IsTumor" => "no"), "#", "");
 	}
 	$s->setComments(sort_vcf_comments($comments));
-	$s->toTSV($tmp);
+	$s->toTSV($tmp_vcf);
 
 	// zip and index vcf file
-	$parser->exec("bgzip", "-c $tmp > $variants_annotated", true);
+	$parser->exec("bgzip", "-c $tmp_vcf > $variants_annotated", true);
 	$parser->exec("tabix", "-f -p vcf $variants_annotated", true);
 
 	// convert vcf to GSvar
-	$extra = $single_sample ? "-t_col $t_id" : "-t_col $t_id -n_col $n_id";
-	$parser->execTool("NGS/vcf2gsvar_somatic.php", "-in $variants_annotated -out $variants_gsvar $extra");
+	$args = array("-in $tmp_vcf", "-out $variants_gsvar", "-t_col $t_id");
+	if (!$single_sample) $args[] = "-n_col $n_id";
+	$parser->execTool("NGS/vcf2gsvar_somatic.php", implode(" ", $args));
 
-	// annotate NGSD and dbNFSP
-	$parser->execTool("NGS/an_dbNFSPgene.php", "-in $variants_gsvar -out $variants_gsvar -build ".$sys['build']);
+	// annotate NGSD data
 	if (db_is_enabled("NGSD"))
 	{
 		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $variants_gsvar -out $variants_gsvar -psname $t_id -mode somatic", true);
 		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $variants_gsvar -out $variants_gsvar -psname $t_id -mode germline", true);
 	}
 
-	//annotate vcf, GSvar with frequency/depth from tumor RNA sample
+	//annotate vcf/GSvar with frequency/depth from tumor RNA sample
 	if (isset($t_rna_bam))
 	{
-		// annotate vcf
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency",
-			"-in $variants_annotated -bam $t_rna_bam -out $variants_annotated -name rna_tum -depth", true);
-		// annotate GSvar
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency",
-			"-in $variants_gsvar -bam $t_rna_bam -out $variants_gsvar -name rna_tum -depth", true);
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $variants_annotated -bam $t_rna_bam -out $variants_annotated -name rna_tum -depth", true);
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $variants_gsvar -bam $t_rna_bam -out $variants_gsvar -name rna_tum -depth", true);
 	}
 }
 

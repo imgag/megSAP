@@ -10,9 +10,8 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("vcf2gsvar", "Converts an annotated VCF file from freebayes to a GSvar file.");
 $parser->addInfile("in",  "Input file in VCF format.", false);
 $parser->addOutfile("out", "Output file in GSvar format.", false);
-$parser->addString("build", "The genome build to use.", false);
 //optional
-$parser->addFlag("multi", "Enable multi-sample mode.");
+$parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
 $parser->addFlag("updown", "Don't discard up- or downstream anntations (5000 bases around genes).");
 extract($parser->parse($argv));
 
@@ -163,7 +162,7 @@ $column_desc = array(
 	array("HGMD", "HGMD database annotation."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
 );
-if (!$multi)
+if ($genotype_mode=="single")
 {
 	array_unshift($column_desc, array("genotype", "Genotype of variant in sample."));	
 }
@@ -181,7 +180,7 @@ $handle_out = fopen($out, "w");
 while(!feof($handle))
 {
 	$line = nl_trim(fgets($handle));
-	if ($line=="") continue;
+	if ($line=="" || trim($line)=="") continue;
 	
 	//write filter descriptions
 	if ($line[0]=="#") 
@@ -196,7 +195,7 @@ while(!feof($handle))
 		{
 			$line = trim($line);
 			fwrite($handle_out, $line."\n");
-			if ($multi)
+			if ($genotype_mode=="multi")
 			{
 				list($name) = explode(",", substr($line, 13, -1));
 				$multi_cols[] = $name;
@@ -272,7 +271,7 @@ while(!feof($handle))
 	
 	//write content lines
 	$cols = explode("\t", $line);
-	if (count($cols)<10) trigger_error("VCF file line contains less than 10 columns:\n$line", E_USER_ERROR);
+	if (count($cols)<10) trigger_error("VCF file line contains less than 10 columns: '$line'", E_USER_ERROR);
 	list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = $cols;
 	if ($filter=="" || $filter=="." || $filter=="PASS")
 	{
@@ -311,7 +310,7 @@ while(!feof($handle))
 	$sample = array_combine(explode(":", $format), explode(":", $sample));
 	
 	//convert genotype information to TSV format
-	if ($multi)
+	if ($genotype_mode=="multi")
 	{
 		if (!isset($sample["MULTI"])) 
 		{
@@ -341,11 +340,11 @@ while(!feof($handle))
 			$depth[] = $tmp2[$col];
 			$ao[] = $tmp3[$col];
 		}
-		$genotype = implode("\t", $genotype);
+		$genotype = "\t".implode("\t", $genotype);
 		$sample["DP"] = implode(",", $depth);
 		$sample["AO"] = implode(",", $ao);
 	}
-	else
+	else if ($genotype_mode=="single")
 	{
 		if (!isset($sample["GT"])) 
 		{
@@ -355,6 +354,16 @@ while(!feof($handle))
 		
 		//skip wildtype
 		if ($genotype=="wt") continue;
+		
+		$genotype = "\t".$genotype;
+	}
+	else if ($genotype_mode=="skip")
+	{
+		$genotype = "";
+	}
+	else
+	{
+		trigger_error("Invalid mode '{$genotype_mode}'!", E_USER_ERROR);
 	}
 
 	//quality
@@ -632,6 +641,7 @@ while(!feof($handle))
 	$gnomad_genome = collapse("gnomAD genome", $af_gnomad_genome, "one", 4);
 	$gnomad = max($gnomad, $gnomad_genome);
 	$gnomad_hom_hemi = collapse("gnomAD Hom", $hom_gnomad, "one").",".collapse("gnomAD Hemi", $hemi_gnomad, "one");
+	if ($gnomad_hom_hemi==",") $gnomad_hom_hemi = "";
 	$gnomad_sub = collapse("gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse("gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse("gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse("gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse("gnomAD SAS", $af_gnomad_sas, "one", 4);
 	if (str_replace(",", "", $gnomad_sub)=="") $gnomad_sub = "";
 	$esp_sub = collapse("ESP ea", $af_esp_ea, "one", 4).",".collapse("ESP aa", $af_esp_aa, "one", 4);
@@ -661,7 +671,7 @@ while(!feof($handle))
 
 	//TODO update order
 	//write data
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t$alt\t$genotype\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$esp_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$esp_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
 }
 
 //if no variants are present, we need to write the header line after the loop

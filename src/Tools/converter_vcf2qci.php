@@ -106,7 +106,7 @@ $file_qci->setComments($comments);
 $vcf_qci = $parser->tempFile("_qci.vcf");
 $file_qci->toTSV($vcf_qci);
 
-//align INDELs to the left (this improves the ability of varFilter to remove overlapping indels)
+//align INDELs to the left
 $vcf_qci_aligned = $parser->tempFile("_qci_aligned.vcf");
 $parser->exec(get_path("ngs-bits")."VcfLeftNormalize"," -in $vcf_qci -out $vcf_qci_aligned -ref ".get_path("local_data")."/{$build}.fa", true);
 

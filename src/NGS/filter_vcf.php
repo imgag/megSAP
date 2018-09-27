@@ -15,8 +15,6 @@ $parser->addString("n_id",  "Normal ID in VCF file.", false);
 $parser->addOutfile("out", "Output variant file in VCF format.", false);
 extract($parser->parse($argv));
 
-//input zipped > output zipped
-$zipped = ends_with($in, ".gz");
 $in_file = Matrix::fromTSV($in);
 
 //check filter column present 
@@ -106,17 +104,4 @@ foreach($filters as $name => $desc)
 $in_file->setComments($comments);
 
 //store output file
-if(!$zipped)
-{
-	$in_file->toTSV($out);
-}
-else
-{
-	$tmp_out = $parser->tempFile("_filter.vcf.gz");
-	$in_file->toTSV($tmp_out);
-
-	//zip annotated VCF file
-	if(strpos($out, ".gz")===FALSE)	$out = $out.".gz";
-	$parser->exec("bgzip", "-c $tmp_out > $out", false); //no output logging, because Toolbase::extractVersion() does not return
-	$parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return	
-}
+$in_file->toTSV($out);
