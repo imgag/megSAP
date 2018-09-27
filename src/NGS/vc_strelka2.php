@@ -148,7 +148,10 @@ foreach($filec->getComments() as $c)
 	$tmp_comments[] = $c;
 }
 //if variant list is reduced add basic filter information. Example from freebayes: ##filter="QUAL > 5 & AO > 2"
-if(!$k)	$tmp_comments[] = "#filter=\"".implode(" & ",array_keys($tmp_filters))."\"";
+if(!$k)	
+{
+	$tmp_comments[] = "#filter=\"".implode(" & ",array_keys($tmp_filters))."\"";
+}
 else
 {
 	foreach($tmp_filters as $id => $desc)
@@ -160,11 +163,13 @@ $tmp_comments[] = "#FILTER=<ID=special-chromosome,Description=\"Special chromoso
 $tmp_comments = array_unique($tmp_comments);	//filter duplicate vcf comments
 $tmp_comments = sort_vcf_comments($tmp_comments);	//sort vcf comments
 $filec->setComments($tmp_comments);
+
 //combine variants
 for($i=0; $i<$file1->rows();++$i)
 {
 	$row = $file1->getRow($i);
 	
+	//TODO this removes multi-allelic sites as well - was this intentional?
 	// Ns indicate bad quality bases and result in problems during annotation, therefore variants with Ns need to be removed
 	if(!preg_match("/^[acgtACGT]*$/",$row[4])) continue;
 	
@@ -190,6 +195,7 @@ for($i=0; $i<$file2->rows();++$i)
 	}
 	$row[6] = implode(";",$filter);
 	
+	//TODO this removes multi-allelic sites as well - was this intentional?
 	// Ns indicate bad quality bases and result in problems during annotation, therefore variants with Ns need to be removed
 	if(!preg_match("/^[acgtACGT]*$/",$row[4])) continue;
 	
@@ -217,20 +223,20 @@ if(!$k)
 }
 $filec->toTSV($vcf_combined);
 
-//align INDELs to the left (this improves the ability of varFilter to remove overlapping indels)
+//align INDELs to the left
 $vcf_aligned = $temp_folder."/strelka_aligned.vcf";
-$parser->exec(get_path("ngs-bits")."VcfLeftNormalize"," -in $vcf_combined -out $vcf_aligned -ref ".get_path("local_data")."/{$build}.fa", true);
+$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-in $vcf_combined -out $vcf_aligned -ref ".get_path("local_data")."/{$build}.fa", true);
 
-// sort variants
+//sort variants
 $vcf_sorted = $temp_folder."/strelka_sorted.vcf";
-//Nb: VcfStreamSort cannot be used since two vcf files (variants, indels) are concatenated and variants are not grouped by chromosome; total number of variants should be low (somatic).
-$parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf_aligned -out $vcf_sorted", true);
+$parser->exec(get_path("ngs-bits")."VcfSort", "-in $vcf_aligned -out $vcf_sorted", true);
 
-// filter high quality variants
+//TODO merge filter_vcf into this script (it cannot be used anywhere else anyway)
+//flag low-quality variants
 $vcf_filtered1 = $temp_folder."/strelka_filtered1.vcf";
 $parser->execTool("NGS/filter_vcf.php", "-in {$vcf_sorted} -t_id {$t_ps} -n_id {$n_ps} -out {$vcf_filtered1}", true);
 
-// flag off-target variants
+//flag off-target variants
 $vcf_filtered2 = $vcf_filtered1;
 if(!empty($target))
 {

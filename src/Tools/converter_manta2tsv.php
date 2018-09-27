@@ -11,6 +11,44 @@ $parser->addOutfile("out",  "Output file in tabular format.", true);
 $parser->addString("tumor_id", "Tumor processed sample identifier.", true);
 extract($parser->parse($argv));
 
+//returns array with genes per chr. position. Input parameter are arrays
+function coords2genes($chr,$start,$end)
+{
+	if(count($chr) !== count($start) || count($start) !== count($end))
+	{
+		trigger_error("Cannot annotate genes to chromosomal positions because input params do not have the same length.",E_USER_ERROR);
+	}
+	
+	for($i=0;$i<count($end);++$i)
+	{
+		if($end[$i] == ".") $end[$i] = $start[$i]+1;
+	}
+	
+	$pos_to_be_annotated = "";
+	for($i=0;$i<count($chr);++$i)
+	{
+		if($start[$i] != $end[$i]) $pos_to_be_annotated .= $chr[$i]."\t".$start[$i]."\t".$end[$i]."\n";
+		elseif(is_numeric($start[$i])) $pos_to_be_annotated .= $chr[$i]."\t".$start[$i]."\t".($end[$i]+1)."\n"; 
+		else $pos_to_be_annotated .= ".\t0\t1\n"; //no coordinates, but BedAnnotateGenes will return empty line
+	}
+	
+	$tmp_bed = temp_file(".bed");
+	file_put_contents($tmp_bed,$pos_to_be_annotated);
+	$annotated_bed = temp_file(".bed");
+	exec2(get_path("ngs-bits")."/BedAnnotateGenes -in $tmp_bed -out $annotated_bed");
+	$genes = array();
+	foreach(file($annotated_bed,FILE_IGNORE_NEW_LINES) as $line)
+	{
+		$line = str_replace(" ","",$line);
+		list(,,,$genes[]) = explode("\t",$line);
+	}
+	
+	return $genes;
+}
+
+
+//MAIN
+
 $in_tmp = $parser->tempFile();
 $parser->exec("gzip -cd", "{$in} > {$in_tmp}", true);
 
@@ -194,6 +232,25 @@ if ($vcf->rows() > 0)
 		$table->removeCol($table->getColumnIndex("normal_SR_depth"));
 	}
 }
+
+
+$col_chr = $table->getCol("chr");
+$col_pos = $table->getCol("start");
+$col_end = $table->getCol("end");
+$col_type= $table->getCol("type");
+$col_mate_chr = $table->getCol("mate_chr");
+$col_mate_pos = $table->getCol("mate_pos");
+
+
+$col_genes = array();
+$col_mate_genes = array();
+
+
+$col_genes = coords2genes($col_chr,$col_pos,$col_end);
+$col_mate_genes = coords2genes($col_mate_chr,$col_mate_pos,$col_mate_pos);
+
+$table->addCol($col_genes,"genes");
+$table->addCol($col_mate_genes,"mate_genes");
 
 if (isset($out))
 {

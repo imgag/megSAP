@@ -1,19 +1,22 @@
 ##fileformat=VCFv4.1
-##fileDate=20150613
+##fileDate=20180926
 ##source=strelka
-##source_version=2.0.17.strelka1
-##startTime=Sat Jun 13 18:20:33 2015
-##reference=file:///mnt/SRV017/share/data/dbs/genomes/hg19.fa
-##contig=<ID=chrM,length=16571>
+##source_version=2.8.4
+##startTime=Wed Sep 26 10:11:19 2018
+##cmdline=/mnt/share/opt/strelka-2.8.4.centos6_x86_64/bin//configureStrelkaSomaticWorkflow.py --tumor /mnt/SRV018/users/ahsturm1/megSAP/test/data_somatic/Sample_GS110168/GS110168.bam --normal /mnt/SRV018/users/ahsturm1/megSAP/test/data_somatic/Sample_GS110169/GS110169.bam --referenceFasta /tmp/local_ngs_data//GRCh37.fa --runDir /tmp/vc_strelka2_jFscmH/strelkaAnalysis --exome --indelCandidates out_case2/GS110168-GS110169_var_smallIndels.vcf.gz
+##reference=file:///mnt/SRV018/tmp/local_ngs_data/GRCh37.fa
+##content=strelka somatic indel calls
+##priorSomaticIndelRate=1e-06
+##content=strelka somatic snv calls
+##priorSomaticSnvRate=0.0001
+##filter="LowEVS & LowDepth"
+##VEP="v93" time="2018-09-27 11:55:42" cache="/mnt/share/opt/ensembl-vep-93.2/cache/homo_sapiens/93_GRCh37" ensembl=93.b4d45ee ensembl-funcgen=93.0c98373 ensembl-io=93.cc29a66 ensembl-variation=93.9b583cc 1000genomes="phase3" COSMIC="81" ClinVar="201706" ESP="20141103" HGMD-PUBLIC="20164" assembly="GRCh37.p13" dbSNP="150" gencode="GENCODE 19" genebuild="2011-04" gnomAD="170228" polyphen="2.2.2" regbuild="1.0" sift="sift5.2.2"
+##CADD_PHRED=PHRED-like scaled CADD score
+##CADD_RAW=Raw CADD score
+##REVEL=Rare Exome Variant Ensemble Learner
+##FATHMM_MKL_C=FATHMM-MKL coding score
+##FATHMM_MKL_NC=FATHMM-MKL non-coding score
 ##contig=<ID=chr1,length=249250621>
-##contig=<ID=chr2,length=243199373>
-##contig=<ID=chr3,length=198022430>
-##contig=<ID=chr4,length=191154276>
-##contig=<ID=chr5,length=180915260>
-##contig=<ID=chr6,length=171115067>
-##contig=<ID=chr7,length=159138663>
-##contig=<ID=chr8,length=146364022>
-##contig=<ID=chr9,length=141213431>
 ##contig=<ID=chr10,length=135534747>
 ##contig=<ID=chr11,length=135006516>
 ##contig=<ID=chr12,length=133851895>
@@ -24,173 +27,148 @@
 ##contig=<ID=chr17,length=81195210>
 ##contig=<ID=chr18,length=78077248>
 ##contig=<ID=chr19,length=59128983>
+##contig=<ID=chr2,length=243199373>
 ##contig=<ID=chr20,length=63025520>
 ##contig=<ID=chr21,length=48129895>
 ##contig=<ID=chr22,length=51304566>
+##contig=<ID=chr3,length=198022430>
+##contig=<ID=chr4,length=191154276>
+##contig=<ID=chr5,length=180915260>
+##contig=<ID=chr6,length=171115067>
+##contig=<ID=chr7,length=159138663>
+##contig=<ID=chr8,length=146364022>
+##contig=<ID=chr9,length=141213431>
+##contig=<ID=chrGL000191.1,length=106433>
+##contig=<ID=chrGL000192.1,length=547496>
+##contig=<ID=chrGL000193.1,length=189789>
+##contig=<ID=chrGL000194.1,length=191469>
+##contig=<ID=chrGL000195.1,length=182896>
+##contig=<ID=chrGL000196.1,length=38914>
+##contig=<ID=chrGL000197.1,length=37175>
+##contig=<ID=chrGL000198.1,length=90085>
+##contig=<ID=chrGL000199.1,length=169874>
+##contig=<ID=chrGL000200.1,length=187035>
+##contig=<ID=chrGL000201.1,length=36148>
+##contig=<ID=chrGL000202.1,length=40103>
+##contig=<ID=chrGL000203.1,length=37498>
+##contig=<ID=chrGL000204.1,length=81310>
+##contig=<ID=chrGL000205.1,length=174588>
+##contig=<ID=chrGL000206.1,length=41001>
+##contig=<ID=chrGL000207.1,length=4262>
+##contig=<ID=chrGL000208.1,length=92689>
+##contig=<ID=chrGL000209.1,length=159169>
+##contig=<ID=chrGL000210.1,length=27682>
+##contig=<ID=chrGL000211.1,length=166566>
+##contig=<ID=chrGL000212.1,length=186858>
+##contig=<ID=chrGL000213.1,length=164239>
+##contig=<ID=chrGL000214.1,length=137718>
+##contig=<ID=chrGL000215.1,length=172545>
+##contig=<ID=chrGL000216.1,length=172294>
+##contig=<ID=chrGL000217.1,length=172149>
+##contig=<ID=chrGL000218.1,length=161147>
+##contig=<ID=chrGL000219.1,length=179198>
+##contig=<ID=chrGL000220.1,length=161802>
+##contig=<ID=chrGL000221.1,length=155397>
+##contig=<ID=chrGL000222.1,length=186861>
+##contig=<ID=chrGL000223.1,length=180455>
+##contig=<ID=chrGL000224.1,length=179693>
+##contig=<ID=chrGL000225.1,length=211173>
+##contig=<ID=chrGL000226.1,length=15008>
+##contig=<ID=chrGL000227.1,length=128374>
+##contig=<ID=chrGL000228.1,length=129120>
+##contig=<ID=chrGL000229.1,length=19913>
+##contig=<ID=chrGL000230.1,length=43691>
+##contig=<ID=chrGL000231.1,length=27386>
+##contig=<ID=chrGL000232.1,length=40652>
+##contig=<ID=chrGL000233.1,length=45941>
+##contig=<ID=chrGL000234.1,length=40531>
+##contig=<ID=chrGL000235.1,length=34474>
+##contig=<ID=chrGL000236.1,length=41934>
+##contig=<ID=chrGL000237.1,length=45867>
+##contig=<ID=chrGL000238.1,length=39939>
+##contig=<ID=chrGL000239.1,length=33824>
+##contig=<ID=chrGL000240.1,length=41933>
+##contig=<ID=chrGL000241.1,length=42152>
+##contig=<ID=chrGL000242.1,length=43523>
+##contig=<ID=chrGL000243.1,length=43341>
+##contig=<ID=chrGL000244.1,length=39929>
+##contig=<ID=chrGL000245.1,length=36651>
+##contig=<ID=chrGL000246.1,length=38154>
+##contig=<ID=chrGL000247.1,length=36422>
+##contig=<ID=chrGL000248.1,length=39786>
+##contig=<ID=chrGL000249.1,length=38502>
+##contig=<ID=chrhs37d5,length=35477943>
+##contig=<ID=chrMT,length=16569>
+##contig=<ID=chrNC_007605,length=171823>
 ##contig=<ID=chrX,length=155270560>
 ##contig=<ID=chrY,length=59373566>
-##contig=<ID=chr1_gl000191_random,length=106433>
-##contig=<ID=chr1_gl000192_random,length=547496>
-##contig=<ID=chr4_ctg9_hap1,length=590426>
-##contig=<ID=chr4_gl000193_random,length=189789>
-##contig=<ID=chr4_gl000194_random,length=191469>
-##contig=<ID=chr6_apd_hap1,length=4622290>
-##contig=<ID=chr6_cox_hap2,length=4795371>
-##contig=<ID=chr6_dbb_hap3,length=4610396>
-##contig=<ID=chr6_mann_hap4,length=4683263>
-##contig=<ID=chr6_mcf_hap5,length=4833398>
-##contig=<ID=chr6_qbl_hap6,length=4611984>
-##contig=<ID=chr6_ssto_hap7,length=4928567>
-##contig=<ID=chr7_gl000195_random,length=182896>
-##contig=<ID=chr8_gl000196_random,length=38914>
-##contig=<ID=chr8_gl000197_random,length=37175>
-##contig=<ID=chr9_gl000198_random,length=90085>
-##contig=<ID=chr9_gl000199_random,length=169874>
-##contig=<ID=chr9_gl000200_random,length=187035>
-##contig=<ID=chr9_gl000201_random,length=36148>
-##contig=<ID=chr11_gl000202_random,length=40103>
-##contig=<ID=chr17_ctg5_hap1,length=1680828>
-##contig=<ID=chr17_gl000203_random,length=37498>
-##contig=<ID=chr17_gl000204_random,length=81310>
-##contig=<ID=chr17_gl000205_random,length=174588>
-##contig=<ID=chr17_gl000206_random,length=41001>
-##contig=<ID=chr18_gl000207_random,length=4262>
-##contig=<ID=chr19_gl000208_random,length=92689>
-##contig=<ID=chr19_gl000209_random,length=159169>
-##contig=<ID=chr21_gl000210_random,length=27682>
-##contig=<ID=chrUn_gl000211,length=166566>
-##contig=<ID=chrUn_gl000212,length=186858>
-##contig=<ID=chrUn_gl000213,length=164239>
-##contig=<ID=chrUn_gl000214,length=137718>
-##contig=<ID=chrUn_gl000215,length=172545>
-##contig=<ID=chrUn_gl000216,length=172294>
-##contig=<ID=chrUn_gl000217,length=172149>
-##contig=<ID=chrUn_gl000218,length=161147>
-##contig=<ID=chrUn_gl000219,length=179198>
-##contig=<ID=chrUn_gl000220,length=161802>
-##contig=<ID=chrUn_gl000221,length=155397>
-##contig=<ID=chrUn_gl000222,length=186861>
-##contig=<ID=chrUn_gl000223,length=180455>
-##contig=<ID=chrUn_gl000224,length=179693>
-##contig=<ID=chrUn_gl000225,length=211173>
-##contig=<ID=chrUn_gl000226,length=15008>
-##contig=<ID=chrUn_gl000227,length=128374>
-##contig=<ID=chrUn_gl000228,length=129120>
-##contig=<ID=chrUn_gl000229,length=19913>
-##contig=<ID=chrUn_gl000230,length=43691>
-##contig=<ID=chrUn_gl000231,length=27386>
-##contig=<ID=chrUn_gl000232,length=40652>
-##contig=<ID=chrUn_gl000233,length=45941>
-##contig=<ID=chrUn_gl000234,length=40531>
-##contig=<ID=chrUn_gl000235,length=34474>
-##contig=<ID=chrUn_gl000236,length=41934>
-##contig=<ID=chrUn_gl000237,length=45867>
-##contig=<ID=chrUn_gl000238,length=39939>
-##contig=<ID=chrUn_gl000239,length=33824>
-##contig=<ID=chrUn_gl000240,length=41933>
-##contig=<ID=chrUn_gl000241,length=42152>
-##contig=<ID=chrUn_gl000242,length=43523>
-##contig=<ID=chrUn_gl000243,length=43341>
-##contig=<ID=chrUn_gl000244,length=39929>
-##contig=<ID=chrUn_gl000245,length=36651>
-##contig=<ID=chrUn_gl000246,length=38154>
-##contig=<ID=chrUn_gl000247,length=36422>
-##contig=<ID=chrUn_gl000248,length=39786>
-##contig=<ID=chrUn_gl000249,length=38502>
-##content=strelka somatic snv calls
-##germlineSnvTheta=0.001
-##priorSomaticSnvRate=1e-06
-##INFO=<ID=QSS,Number=1,Type=Integer,Description="Quality score for any somatic snv, ie. for the ALT allele to be present at a significantly different frequency in the tumor and normal">
-##INFO=<ID=TQSS,Number=1,Type=Integer,Description="Data tier used to compute QSS">
-##INFO=<ID=NT,Number=1,Type=String,Description="Genotype of the normal in all data tiers, as used to classify somatic variants. One of {ref,het,hom,conflict}.">
-##INFO=<ID=QSS_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant and NT">
-##INFO=<ID=TQSS_NT,Number=1,Type=Integer,Description="Data tier used to compute QSS_NT">
-##INFO=<ID=SGT,Number=1,Type=String,Description="Most likely somatic genotype excluding normal noise states">
-##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Somatic mutation">
-##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth for tier1 (used+filtered)">
-##FORMAT=<ID=FDP,Number=1,Type=Integer,Description="Number of basecalls filtered from original read depth for tier1">
-##FORMAT=<ID=SDP,Number=1,Type=Integer,Description="Number of reads with deletions spanning this site at tier1">
-##FORMAT=<ID=SUBDP,Number=1,Type=Integer,Description="Number of reads below tier1 mapping quality threshold aligned across this site">
-##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
-##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
-##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
-##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
-##FILTER=<ID=BCNoise,Description="Fraction of basecalls filtered at this site in either sample is at or above 0.4">
-##FILTER=<ID=SpanDel,Description="Fraction of reads crossing site with spanning deletions in either sample exceeeds 0.75">
-##FILTER=<ID=QSS_ref,Description="Normal sample is not homozygous ref or ssnv Q-score < 15, ie calls with NT!=ref or QSS_NT < 15">
-##cmdline=/mnt/SRV017/share/opt/strelka_workflow-1.0.14/libexec/consolidateResults.pl --config=/tmp/14955.1.NGSlong/strelka_callsnps_7771080/strelkaAnalysis/config/run.config.ini
-##content=strelka somatic indel calls
-##germlineIndelTheta=0.0001
-##priorSomaticIndelRate=1e-06
-##INFO=<ID=QSI,Number=1,Type=Integer,Description="Quality score for any somatic variant, ie. for the ALT haplotype to be present at a significantly different frequency in the tumor and normal">
-##INFO=<ID=TQSI,Number=1,Type=Integer,Description="Data tier used to compute QSI">
-##INFO=<ID=QSI_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant and NT">
-##INFO=<ID=TQSI_NT,Number=1,Type=Integer,Description="Data tier used to compute QSI_NT">
-##INFO=<ID=RU,Number=1,Type=String,Description="Smallest repeating sequence unit in inserted or deleted sequence">
-##INFO=<ID=RC,Number=1,Type=Integer,Description="Number of times RU repeats in the reference allele">
+##INFO=<ID=CLINVAR,Number=.,Type=String,Description="/mnt/share/data//dbs/ClinVar/clinvar_20180701_converted.vcf.gz (exact)">
+##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="DETAILS field from /mnt/share/data//dbs/ClinVar/clinvar_20180701_converted.vcf.gz">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|DOMAINS|SIFT|PolyPhen|Existing_variation|AF|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_EAS_AF|gnomAD_NFE_AF|gnomAD_SAS_AF|EA_AF|AA_AF|CADD_RAW|REVEL|FATHMM_MKL_C|FATHMM_MKL_NC|gnomADg_AF|gnomADg_Hom|gnomADg_Hemi|REPEATMASKER|CLINVAR|CLINVAR_DETAILS|PHYLOP|OMIM|HGMD|HGMD_CLASS|HGMD_MUT|HGMD_GENE|HGMD_PHEN">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Combined depth across samples">
+##INFO=<ID=gnomADg,Number=.,Type=String,Description="/mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz (exact)">
+##INFO=<ID=gnomADg_AF,Number=.,Type=String,Description="AF field from /mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz">
+##INFO=<ID=gnomADg_Hemi,Number=.,Type=String,Description="Hemi field from /mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz">
+##INFO=<ID=gnomADg_Hom,Number=.,Type=String,Description="Hom field from /mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz">
+##INFO=<ID=HGMD,Number=.,Type=String,Description="/mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz (exact)">
+##INFO=<ID=HGMD_CLASS,Number=.,Type=String,Description="CLASS field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz">
+##INFO=<ID=HGMD_GENE,Number=.,Type=String,Description="GENE field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz">
+##INFO=<ID=HGMD_MUT,Number=.,Type=String,Description="MUT field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz">
+##INFO=<ID=HGMD_PHEN,Number=.,Type=String,Description="PHEN field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz">
 ##INFO=<ID=IC,Number=1,Type=Integer,Description="Number of times RU repeats in the indel allele">
 ##INFO=<ID=IHP,Number=1,Type=Integer,Description="Largest reference interrupted homopolymer length intersecting with the indel">
-##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=MQ,Number=1,Type=Float,Description="RMS Mapping Quality">
+##INFO=<ID=MQ0,Number=1,Type=Integer,Description="Total Mapping Quality Zero Reads">
+##INFO=<ID=NT,Number=1,Type=String,Description="Genotype of the normal in all data tiers, as used to classify somatic variants. One of {ref,het,hom,conflict}.">
+##INFO=<ID=OMIM,Number=.,Type=String,Description="/mnt/share/data//dbs/OMIM/omim.bed.gz (overlap)">
 ##INFO=<ID=OVERLAP,Number=0,Type=Flag,Description="Somatic indel possibly overlaps a second indel.">
-##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth for tier1">
+##INFO=<ID=PHYLOP,Number=.,Type=String,Description="/mnt/share/data//dbs/phyloP/hg19.100way.phyloP100way.bw (overlap)">
+##INFO=<ID=PNOISE,Number=1,Type=Float,Description="Fraction of panel containing non-reference noise at this site">
+##INFO=<ID=PNOISE2,Number=1,Type=Float,Description="Fraction of panel containing more than one non-reference noise obs at this site">
+##INFO=<ID=QSI,Number=1,Type=Integer,Description="Quality score for any somatic variant, ie. for the ALT haplotype to be present at a significantly different frequency in the tumor and normal">
+##INFO=<ID=QSI_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant and NT">
+##INFO=<ID=QSS,Number=1,Type=Integer,Description="Quality score for any somatic snv, ie. for the ALT allele to be present at a significantly different frequency in the tumor and normal">
+##INFO=<ID=QSS_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant and NT">
+##INFO=<ID=RC,Number=1,Type=Integer,Description="Number of times RU repeats in the reference allele">
+##INFO=<ID=ReadPosRankSum,Number=1,Type=Float,Description="Z-score from Wilcoxon rank sum test of Alt Vs. Ref read-position in the tumor">
+##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="/mnt/share/data//dbs/RepeatMasker/RepeatMasker.bed.gz (overlap)">
+##INFO=<ID=RU,Number=1,Type=String,Description="Smallest repeating sequence unit in inserted or deleted sequence">
+##INFO=<ID=SGT,Number=1,Type=String,Description="Most likely somatic genotype excluding normal noise states">
+##INFO=<ID=SNVSB,Number=1,Type=Float,Description="Somatic SNV site strand bias">
+##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Somatic mutation">
+##INFO=<ID=SomaticEVS,Number=1,Type=Float,Description="Somatic Empirical Variant Score (EVS) expressing the phred-scaled probability of the call being a false positive observation.">
+##INFO=<ID=TQSI,Number=1,Type=Integer,Description="Data tier used to compute QSI">
+##INFO=<ID=TQSI_NT,Number=1,Type=Integer,Description="Data tier used to compute QSI_NT">
+##INFO=<ID=TQSS,Number=1,Type=Integer,Description="Data tier used to compute QSS">
+##INFO=<ID=TQSS_NT,Number=1,Type=Integer,Description="Data tier used to compute QSS_NT">
+##FILTER=<ID=depth-nor,Description="Sequencing depth normal is less than 20 (filter_vcf).">
+##FILTER=<ID=depth-tum,Description="Sequencing depth tumor is less than 20 (filter_vcf).">
+##FILTER=<ID=freq-nor,Description="Allele frequencies in normal > 1/6 of allele frequency in tumor (filter_vcf).">
+##FILTER=<ID=freq-tum,Description="Allele frequencies in tumor < 0.05 (filter_vcf).">
+##FILTER=<ID=lt-3-reads,Description="Less than 3 supporting tumor reads (filter_vcf).">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+##FILTER=<ID=special-chromosome,Description="Special chromosome.">
+##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
+##FORMAT=<ID=BCN50,Number=1,Type=Float,Description="Fraction of filtered reads within 50 bases of the indel.">
+##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Integer">
 ##FORMAT=<ID=DP2,Number=1,Type=Integer,Description="Read depth for tier2">
+##FORMAT=<ID=DP50,Number=1,Type=Float,Description="Average tier1 read depth within 50 bases">
+##FORMAT=<ID=FDP,Number=1,Type=Integer,Description="Number of basecalls filtered from original read depth for tier1">
+##FORMAT=<ID=FDP50,Number=1,Type=Float,Description="Average tier1 number of basecalls filtered from original read depth within 50 bases">
+##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
+##FORMAT=<ID=SDP,Number=1,Type=Integer,Description="Number of reads with deletions spanning this site at tier1">
+##FORMAT=<ID=SUBDP,Number=1,Type=Integer,Description="Number of reads below tier1 mapping quality threshold aligned across this site">
+##FORMAT=<ID=SUBDP50,Number=1,Type=Float,Description="Average number of reads below tier1 mapping quality threshold aligned across sites within 50 bases">
 ##FORMAT=<ID=TAR,Number=2,Type=Integer,Description="Reads strongly supporting alternate allele for tiers 1,2">
 ##FORMAT=<ID=TIR,Number=2,Type=Integer,Description="Reads strongly supporting indel allele for tiers 1,2">
 ##FORMAT=<ID=TOR,Number=2,Type=Integer,Description="Other reads (weak support or insufficient indel breakpoint overlap) for tiers 1,2">
-##FORMAT=<ID=DP50,Number=1,Type=Float,Description="Average tier1 read depth within 50 bases">
-##FORMAT=<ID=FDP50,Number=1,Type=Float,Description="Average tier1 number of basecalls filtered from original read depth within 50 bases">
-##FORMAT=<ID=SUBDP50,Number=1,Type=Float,Description="Average number of reads below tier1 mapping quality threshold aligned across sites within 50 bases">
-##FILTER=<ID=Repeat,Description="Sequence repeat of more than 8x in the reference sequence">
-##FILTER=<ID=iHpol,Description="Indel overlaps an interrupted homopolymer longer than 14x in the reference sequence">
-##FILTER=<ID=BCNoise,Description="Average fraction of filtered basecalls within 50 bases of the indel exceeds 0.3">
-##FILTER=<ID=QSI_ref,Description="Normal sample is not homozygous ref or sindel Q-score < 30, ie calls with NT!=ref or QSI_NT < 30">
-##PEDIGREE=<Tumor_DNA=GS140812,Normal_DNA=GS140813>
-##SAMPLE=<ID=GS140812,Tumor=yes,Gender=n/a>
-##SAMPLE=<ID=GS140813,Tumor=yes,Gender=n/a>
-##SnpSiftVersion="SnpSift 4.1c (build 2015-03-29), by Pablo Cingolani"
-##SnpSiftCmd="SnpSift annotate -tabix -id /mnt/share/data/dbs/dbSNP/dbsnp_latest.vcf.gz Somatic_GS140811_02-GS140812_02-GS140813_02//GS140812_02-GS140813_02_var_strelka.vcf"
-##INFO=<ID=OMIM,Number=1,Type=String,Description="Annotation from /mnt/share/data/dbs/OMIM/omim.bed delimited by ':'">
-##INFO=<ID=REPEATMASKER,Number=1,Type=String,Description="Annotation from /mnt/share/data/dbs/RepeatMasker/RepeatMasker.bed delimited by ':'">
-##SnpEffVersion="4.1c (build 2015-03-29), by Pablo Cingolani"
-##SnpEffCmd="SnpEff  -noStats hg19 "
-##INFO=<ID=ANN,Number=.,Type=String,Description="Functional annotations: 'Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO' ">
-##INFO=<ID=LOF,Number=.,Type=String,Description="Predicted loss of function effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' ">
-##INFO=<ID=NMD,Number=.,Type=String,Description="Predicted nonsense mediated decay effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' ">
-##SnpSiftCmd="SnpSift dbnsfp -f phyloP100way_vertebrate,MetaLR_pred,SIFT_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred -"
-##INFO=<ID=dbNSFP_Polyphen2_HDIV_pred,Number=A,Type=Character,Description="Field 'Polyphen2_HDIV_pred' from dbNSFP">
-##INFO=<ID=dbNSFP_MetaLR_pred,Number=A,Type=Character,Description="Field 'MetaLR_pred' from dbNSFP">
-##INFO=<ID=dbNSFP_phyloP100way_vertebrate,Number=A,Type=Float,Description="Field 'phyloP100way_vertebrate' from dbNSFP">
-##INFO=<ID=dbNSFP_Polyphen2_HVAR_pred,Number=A,Type=Character,Description="Field 'Polyphen2_HVAR_pred' from dbNSFP">
-##INFO=<ID=dbNSFP_SIFT_pred,Number=A,Type=Character,Description="Field 'SIFT_pred' from dbNSFP">
-##SnpSiftCmd="SnpSift annotate -mem -sorted -noId -name HGMD_ -info ID,CLASS,MUT,GENE,PHEN /mnt/share/data/dbs/HGMD/HGMD_PRO_2014_4_fixed.vcf"
-##INFO=<ID=HGMD_ID,Number=1,Type=String,Description="HGMD identifier(s)">
-##INFO=<ID=HGMD_MUT,Number=1,Type=String,Description="HGMD mutant allele">
-##INFO=<ID=HGMD_PHEN,Number=1,Type=String,Description="HGMD primary phenotype">
-##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category, https://portal.biobase-international.com/hgmd/pro/global.php#cats ">
-##INFO=<ID=HGMD_GENE,Number=1,Type=String,Description="Gene symbol">
-##SnpSiftCmd="SnpSift annotate -mem -sorted -noId -name ESP6500EA_ -info AF /mnt/share/data/dbs/ESP6500/ESP6500SI_EA.vcf"
-##INFO=<ID=ESP6500EA_AF,Number=A,Type=Float,Description="ESP6500 allele frequency in EA population.">
-##SnpSiftCmd="SnpSift annotate -mem -sorted -noId -name ESP6500AA_ -info AF /mnt/share/data/dbs/ESP6500/ESP6500SI_AA.vcf"
-##INFO=<ID=ESP6500AA_AF,Number=A,Type=Float,Description="ESP6500 allele frequency in AA population.">
-##SnpSiftCmd="SnpSift annotate -tabix -noId -name 1000G_ -info AF /mnt/share/data/dbs/1000G/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5a.20130502.sites.vcf.gz"
-##INFO=<ID=T1000GP_AF,Number=A,Type=Float,Description="Estimated allele frequency in the range (0,1)">
-##SnpSiftCmd="SnpSift annotate -tabix -noId -name EXAC_ -info AF /mnt/share/data/dbs/ExAC/ExAC.r0.3.sites.vep.vcf.gz"
-##INFO=<ID=EXAC_AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
-##SnpSiftCmd="SnpSift annotate -mem -sorted -noId -name CLINVAR_ -info SIG,ACC /mnt/share/data/dbs/ClinVar/clinvar_converted.vcf"
-##INFO=<ID=CLINVAR_SIG,Number=.,Type=String,Description="ClinVar clinical significance">
-##INFO=<ID=CLINVAR_ACC,Number=.,Type=String,Description="ClinVar accession">
-##INFO=<ID=CLINVAR_DISEASE,Number=.,Type=String,Description="ClinVar disease">
-##SnpSiftCmd="SnpSift annotate -tabix -noId -name COSMIC_ -info ID /mnt/share/data/dbs/COSMIC/cosmic.vcf.gz"
-##INFO=<ID=COSMIC_ID,Number=1,Type=String,Description="COSMIC accession">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Normal	Tumor
-chrM	16296	.	C	T	0.0	PASS	NT=ref;QSS=61;QSS_NT=42;SGT=CC->TT;TQSS=2;TQSS_NT=1;SOMATIC;ANN=T|intergenic_region|MODIFIER|||||||||||||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	18:3:0:0:0,0:15,21:0,0:0,0	22:2:0:0:0,0:0,2:0,0:20,21
-chrM	16300	.	T	C	0.0	QSS_ref	NT=hom;QSS=19;QSS_NT=18;SGT=CC->TT;TQSS=2;TQSS_NT=2;SOMATIC;ANN=C|intergenic_region|MODIFIER|||||||||||||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	18:3:0:0:0,0:15,20:0,0:0,1	22:2:0:0:0,0:0,0:0,0:20,23
-chrM	16528	.	G	A	0.0	PASS	NT=ref;QSS=16;QSS_NT=15;SGT=GG->AG;TQSS=1;TQSS_NT=1;SOMATIC;ANN=A|intergenic_region|MODIFIER|||||||||||||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	10:0:0:0:0,0:0,0:10,12:0,0	14:0:0:0:13,16:0,0:1,1:0,0
-chr1	777232	rs112618790	C	T	0.0	QSS_ref	NT=ref;QSS=10;QSS_NT=10;SGT=CC->CT;TQSS=1;TQSS_NT=1;SOMATIC;ANN=T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047519.1|Noncoding|2/5|n.288-5802C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_015368.2|Noncoding|2/7|n.288-5802C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047520.1|Noncoding|2/6|n.288-5802C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047521.1|Noncoding|2/4|n.288-10075C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047522.1|Noncoding|2/5|n.288-10075C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047523.1|Noncoding|2/3|n.288-10075C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047524.1|Noncoding|2/3|n.288-10819C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047525.1|Noncoding|2/4|n.155-10075C>T||||||,T|non_coding_exon_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047526.1|Noncoding|3/3|n.940C>T||||||;T1000GP_AF=0.066893	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	29:0:0:0:0,0:29,29:0,0:0,0	26:2:0:0:0,0:17,19:0,0:7,8
-chr1	878314	rs142558220	G	C	0.0	PASS	NT=ref;QSS=152;QSS_NT=131;SGT=GG->CG;TQSS=1;TQSS_NT=1;SOMATIC;ANN=C|synonymous_variant|LOW|SAMD11|SAMD11|transcript|NM_152486.2|Coding|11/14|c.1440G>C|p.Gly480Gly|1520/2554|1440/2046|480/681||,C|downstream_gene_variant|MODIFIER|NOC2L|NOC2L|transcript|NM_015658.3|Coding||c.*2309C>G|||||1269|;dbNSFP_MetaLR_pred=T;dbNSFP_phyloP100way_vertebrate=-0.015000;dbNSFP_SIFT_pred=T,T;GNOMAD_AF=0.0669;T1000GP_AF=0.043131;EXAC_AF=0.040;COSMIC_ID=COSM426784	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	139:1:0:0:0,0:0,0:137,139:1,1	66:0:0:0:0,0:26,27:40,40:0,0
-chr1	976481	.	CGGAGCGGGGCG	C	0.0	QSI_ref	IC=1;IHP=8;NT=ref;OMIM=103320_[AGRN_(provisional)_Myasthenic_syndrome,congenital,with_pre-_and_postsynaptic_defects];QSI=1;QSI_NT=1;RC=2;REPEATMASKER=(CGGGG)n;RU=GGAGCGGGGCG;SGT=het->het;TQSI=1;TQSI_NT=1;SOMATIC;ANN=C|intron_variant|MODIFIER|AGRN|AGRN|transcript|NM_198576.3|Coding|4/35|c.728-71_728-61delGGAGCGGGGCG||||||	DP:DP2:TAR:TIR:TOR:DP50:FDP50:SUBDP50	2:2:2,2:0,0:0,0:3.73:0.00:0.00	4:4:0,0:4,4:0,0:3.58:0.00:0.00
-chr1	1288932	rs201452853	GCA	G	0.0	PASS	IC=1;IHP=3;NT=ref;QSI=53;QSI_NT=53;RC=2;RU=CA;SGT=ref->het;TQSI=1;TQSI_NT=1;SOMATIC;ANN=G|3_prime_UTR_variant|MODIFIER|MXRA8|MXRA8|transcript|NM_001282584.1|Coding|9/9|c.*50_*51delTG|||||50|,G|3_prime_UTR_variant|MODIFIER|MXRA8|MXRA8|transcript|NM_032348.3|Coding|10/10|c.*50_*51delTG|||||50|,G|3_prime_UTR_variant|MODIFIER|MXRA8|MXRA8|transcript|NM_001282583.1|Coding|10/10|c.*50_*51delTG|||||50|,G|3_prime_UTR_variant|MODIFIER|MXRA8|MXRA8|transcript|NM_001282582.1|Coding|11/11|c.*50_*51delTG|||||50|,G|upstream_gene_variant|MODIFIER|DVL1|DVL1|transcript|NM_004421.2|Coding||c.-48_-48delTG|||||4441|,G|intron_variant|MODIFIER|MXRA8|MXRA8|transcript|NM_001282585.1|Coding|9/9|c.1322-222_1322-221delTG||||||;GNOMAD_AF=0.0276;T1000GP_AF=0.00519169	DP:DP2:TAR:TIR:TOR:DP50:FDP50:SUBDP50	23:23:24,25:0,0:0,0:22.06:0.00:0.00	21:21:6,6:14,14:1,1:19.35:0.40:0.00
-chr1	1571640	rs61774909	G	A,T	0.0	PASS	NT=ref;QSS=38;QSS_NT=29;SGT=GG->AT;TQSS=1;TQSS_NT=1;SOMATIC;ANN=A|downstream_gene_variant|MODIFIER|MMP23B|MMP23B|transcript|NM_006983.1|Coding||c.*1211G>A|||||1610|,T|downstream_gene_variant|MODIFIER|MMP23B|MMP23B|transcript|NM_006983.1|Coding||c.*1211G>T|||||1610|,A|downstream_gene_variant|MODIFIER|MMP23A|MMP23A|transcript|NR_002946.1|Noncoding||n.*906G>A|||||1613|,T|downstream_gene_variant|MODIFIER|MMP23A|MMP23A|transcript|NR_002946.1|Noncoding||n.*906G>T|||||1613|,A|intron_variant|MODIFIER|CDK11B|CDK11B|transcript|NM_001787.2|Coding|18/19|c.2099+55C>T||||||,T|intron_variant|MODIFIER|CDK11B|CDK11B|transcript|NM_001787.2|Coding|18/19|c.2099+55C>A||||||,A|intron_variant|MODIFIER|CDK11B|CDK11B|transcript|NM_001291345.1|Coding|18/19|c.2030+55C>T||||||,T|intron_variant|MODIFIER|CDK11B|CDK11B|transcript|NM_001291345.1|Coding|18/19|c.2030+55C>A||||||,A|intron_variant|MODIFIER|CDK11B|CDK11B|transcript|NM_033486.2|Coding|18/19|c.2060+55C>T||||||,T|intron_variant|MODIFIER|CDK11B|CDK11B|transcript|NM_033486.2|Coding|18/19|c.2060+55C>A||||||,A|intron_variant|MODIFIER|CDK11B|CDK11B|transcript|NM_033487.2|Coding|16/17|c.1298+55C>T||||||,T|intron_variant|MODIFIER|CDK11B|CDK11B|transcript|NM_033487.2|Coding|16/17|c.1298+55C>A||||||,A|intron_variant|MODIFIER|CDK11B|CDK11B|transcript|NM_033489.2|Coding|19/20|c.1958+55C>T||||||,T|intron_variant|MODIFIER|CDK11B|CDK11B|transcript|NM_033489.2|Coding|19/20|c.1958+55C>A||||||,A|intron_variant|MODIFIER|CDK11B|CDK11B|transcript|NM_033490.2|Coding|17/18|c.1415+55C>T||||||,T|intron_variant|MODIFIER|CDK11B|CDK11B|transcript|NM_033490.2|Coding|17/18|c.1415+55C>A||||||;T1000GP_AF=.,0.244209	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	11:0:0:0:0,0:0,0:11,11:0,0	10:0:0:0:1,1:0,0:0,0:9,9
-chr1	2535092	rs35090174	ACT	A	0.0	PASS	IC=1;IHP=2;NT=ref;QSI=34;QSI_NT=34;RC=2;RU=CT;SGT=ref->het;TQSI=1;TQSI_NT=1;SOMATIC;ANN=A|intron_variant|MODIFIER|MMEL1|MMEL1|transcript|NM_033467.3|Coding|11/23|c.1041+229_1041+230delAG||||||;T1000GP_AF=0.478235	DP:DP2:TAR:TIR:TOR:DP50:FDP50:SUBDP50	19:19:20,20:0,0:0,0:21.82:0.54:0.00	15:15:6,6:8,8:1,1:16.6:0.14:0.00
-chr9	117836188	rs2210108	A	G,T	0.0	PASS	NT=ref;OMIM=187380_[TNC_(confirmed)_Deafness,autosomal_dominant_56];QSS=103;QSS_NT=42;SGT=AA->GT;TQSS=1;TQSS_NT=1;SOMATIC;ANN=G|intron_variant|MODIFIER|TNC|TNC|transcript|NM_002160.3|Coding|9/27|c.2951-43T>C||||||,T|intron_variant|MODIFIER|TNC|TNC|transcript|NM_002160.3|Coding|9/27|c.2951-43T>A||||||;GNOMAD_AF=0.7352,.;T1000GP_AF=0.744409,.;EXAC_AF=0.719,.	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	15:0:0:0:15,15:0,0:0,0:0,0	31:1:0:0:0,0:0,0:29,29:1,2
-chr1	777232	rs112618790	C	T	0.0	PASS	NT=ref;QSS=10;QSS_NT=10;SGT=CC->CT;TQSS=1;TQSS_NT=1;SOMATIC;ANN=T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047519.1|Noncoding|2/5|n.288-5802C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_015368.2|Noncoding|2/7|n.288-5802C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047520.1|Noncoding|2/6|n.288-5802C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047521.1|Noncoding|2/4|n.288-10075C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047522.1|Noncoding|2/5|n.288-10075C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047523.1|Noncoding|2/3|n.288-10075C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047524.1|Noncoding|2/3|n.288-10819C>T||||||,T|intron_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047525.1|Noncoding|2/4|n.155-10075C>T||||||,T|non_coding_exon_variant|MODIFIER|LINC01128|LINC01128|transcript|NR_047526.1|Noncoding|3/3|n.940C>T||||||;HGMD_CLASS=DFP;HGMD_GENE=BRCA1;HGMD_ID=CM096315;HGMD_MUT=ALT;HGMD_PHEN="Cervical_cancer,_decreased_risk,_association_with";T1000GP_AF=0.066893;CLINVAR_ACC=RCV000162369.1|RCV000244202.1|RCV000298863.1;CLINVAR_SIG=benign|benign|likely_benign;CLINVAR_DISEASE=1|2	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	29:0:0:0:0,0:29,29:0,0:0,0	26:2:0:0:0,0:17,19:0,0:7,8
+##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
+##SAMPLE=<ID=GS110168,Gender=,ExternalSampleName=,IsTumor=yes,IsFFPE=no,DiseaseGroup=,DiseaseStatus=>
+##SAMPLE=<ID=GS110169,Gender=,ExternalSampleName=,IsTumor=no,IsFFPE=no,DiseaseGroup=,DiseaseStatus=>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	GS110169	GS110168
+chr21	10971453	.	T	C	.	depth-tum;depth-nor;off-target	DP=28;MQ=58.10;MQ0=0;NT=ref;QSS=18;QSS_NT=18;ReadPosRankSum=0.23;SGT=TT->CT;SNVSB=0.00;SOMATIC;SomaticEVS=8.86;TQSS=1;TQSS_NT=1;CSQ=C|intron_variant|MODIFIER|TPTE|ENST00000298232|Transcript||4/22|ENST00000298232.7:c.12-108A>G|||||rs1739180||||||||||0.046527||0.00431|0.07939|0.30861|1|||||-0.202999994158745||||||,C|intron_variant|MODIFIER|TPTE|ENST00000342420|Transcript||4/21|ENST00000342420.5:c.12-108A>G|||||rs1739180||||||||||0.046527||0.00431|0.07939|0.30861|1|||||-0.202999994158745||||||,C|intron_variant|MODIFIER|TPTE|ENST00000361285|Transcript||4/23|ENST00000361285.4:c.12-108A>G|||||rs1739180||||||||||0.046527||0.00431|0.07939|0.30861|1|||||-0.202999994158745||||||	AU:BCN50:CU:DP:DP2:DP50:FDP:FDP50:GU:SDP:SUBDP:SUBDP50:TAR:TIR:TOR:TU	0,0:.:0,0:10:.:.:0:.:0,0:0:0:.:.:.:.:10,10	0,0:.:6,6:18:.:.:0:.:0,0:0:0:.:.:.:.:12,12
+chr21	11039394	.	C	T	.	freq-nor;off-target	DP=89;MQ=59.61;MQ0=0;NT=ref;QSS=44;QSS_NT=44;ReadPosRankSum=0.44;SGT=CC->CT;SNVSB=0.00;SOMATIC;SomaticEVS=12.08;TQSS=1;TQSS_NT=1;CSQ=T|non_coding_transcript_exon_variant|MODIFIER|BAGE2|ENST00000470054|Transcript|6/10||ENST00000470054.1:n.810G>A|||||rs2698623||||||||||0.440510||0.02813|0.53701|||||||-1.2039999961853||||||	AU:BCN50:CU:DP:DP2:DP50:FDP:FDP50:GU:SDP:SUBDP:SUBDP50:TAR:TIR:TOR:TU	0,0:.:34,39:35:.:.:0:.:0,0:0:0:.:.:.:.:1,1	0,0:.:39,41:47:.:.:0:.:0,0:0:0:.:.:.:.:8,8
+chr21	31744239	.	C	A	.	PASS	DP=225;MQ=56.78;MQ0=14;NT=ref;QSS=216;QSS_NT=3070;ReadPosRankSum=1.38;SGT=CC->AC;SNVSB=0.00;SOMATIC;SomaticEVS=11.81;TQSS=1;TQSS_NT=1;CSQ=A|missense_variant|MODERATE|KRTAP13-2|ENST00000399889|Transcript|1/1||ENST00000399889.2:c.293G>T|ENSP00000382777.2:p.Gly98Val|Pfam_domain:PF05287&hmmpanther:PTHR19051&hmmpanther:PTHR19051:SF17|tolerated|benign|||||||||||1.370190|0.138|0.06455|0.19142|||||||0.375||||||,A|downstream_gene_variant|MODIFIER|MIR4327|ENST00000581194|Transcript||||||||||||||||||1.370190||0.06455|0.19142|||||||0.375||||||	AU:BCN50:CU:DP:DP2:DP50:FDP:FDP50:GU:SDP:SUBDP:SUBDP50:TAR:TIR:TOR:TU	0,0:.:104,115:104:.:.:0:.:0,0:0:0:.:.:.:.:0,0	46,48:.:60,62:106:.:.:0:.:0,0:0:0:.:.:.:.:0,0
+chr21	33974094	.	C	CT	.	depth-tum;depth-nor;off-target	IC=15;IHP=14;MQ=60.00;MQ0=0;NT=ref;QSI=4;QSI_NT=4;RC=14;RU=T;SGT=ref->het;SOMATIC;SomaticEVS=8.07;TQSI=1;TQSI_NT=1;CSQ=T|3_prime_UTR_variant|MODIFIER|C21orf59|ENST00000290155|Transcript|7/7||ENST00000290155.3:c.*78dup|||||||||||||||-0.177235||||0.00272|0||||||615494_[C21ORF59_(provisional)_Ciliary_dyskinesia&primary&26&615500]|||||,T|3_prime_UTR_variant|MODIFIER|C21orf59|ENST00000382549|Transcript|5/5||ENST00000382549.4:c.*1304dup|||||||||||||||-0.177235||||0.00272|0||||||615494_[C21ORF59_(provisional)_Ciliary_dyskinesia&primary&26&615500]|||||,T|downstream_gene_variant|MODIFIER|C21orf59|ENST00000540881|Transcript||||||||||||||||||-0.177235||||0.00272|0||||||615494_[C21ORF59_(provisional)_Ciliary_dyskinesia&primary&26&615500]|||||,T|intron_variant|MODIFIER|AP000275.65|ENST00000553001|Transcript||5/6|ENST00000553001.1:c.666+1376dup|||||||||||||||-0.177235||||0.00272|0||||||615494_[C21ORF59_(provisional)_Ciliary_dyskinesia&primary&26&615500]|||||	AU:BCN50:CU:DP:DP2:DP50:FDP:FDP50:GU:SDP:SUBDP:SUBDP50:TAR:TIR:TOR:TU	.:0.00:.:9:9:34.74:.:0.05:.:.:.:0.00:6,8:0,0:3,1:.	.:0.00:.:3:3:21.68:.:0.01:.:.:.:0.00:0,0:3,3:0,0:.
+chr21	47737850	.	G	T	.	depth-tum;depth-nor;off-target	DP=20;MQ=60.00;MQ0=0;NT=ref;QSS=18;QSS_NT=18;ReadPosRankSum=-0.18;SGT=GG->GT;SNVSB=0.00;SOMATIC;SomaticEVS=7.62;TQSS=1;TQSS_NT=1;CSQ=T|intron_variant|MODIFIER|C21orf58|ENST00000291691|Transcript||2/7|ENST00000291691.7:c.309+76C>A|||||||||||||||1.009415||0.17861|0.28134|||||||-0.0850000008940697||||||,T|intron_variant|MODIFIER|C21orf58|ENST00000397679|Transcript||1/6|ENST00000397679.1:c.-259+76C>A|||||||||||||||1.009415||0.17861|0.28134|||||||-0.0850000008940697||||||,T|intron_variant|MODIFIER|C21orf58|ENST00000397680|Transcript||2/7|ENST00000397680.1:c.-179+76C>A|||||||||||||||1.009415||0.17861|0.28134|||||||-0.0850000008940697||||||,T|intron_variant|MODIFIER|C21orf58|ENST00000397682|Transcript||2/8|ENST00000397682.3:c.-259+76C>A|||||||||||||||1.009415||0.17861|0.28134|||||||-0.0850000008940697||||||,T|intron_variant|MODIFIER|C21orf58|ENST00000397683|Transcript||2/8|ENST00000397683.1:c.-259+76C>A|||||||||||||||1.009415||0.17861|0.28134|||||||-0.0850000008940697||||||,T|intron_variant|MODIFIER|C21orf58|ENST00000397685|Transcript||3/5|ENST00000397685.4:c.60+76C>A|||||||||||||||1.009415||0.17861|0.28134|||||||-0.0850000008940697||||||	AU:BCN50:CU:DP:DP2:DP50:FDP:FDP50:GU:SDP:SUBDP:SUBDP50:TAR:TIR:TOR:TU	0,0:.:0,0:6:.:.:0:.:6,6:0:0:.:.:.:.:0,0	0,0:.:1,1:14:.:.:0:.:2,2:0:0:.:.:.:.:11,11

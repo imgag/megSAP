@@ -64,7 +64,7 @@ $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 //check vcf file
 if(!$no_fc)
 {
-	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $annfile -info", true);
+	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $annfile", true);
 }
 
 //convert to GSvar file
@@ -73,8 +73,8 @@ if (!$somatic) //germline
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
 	$parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $stafile", true);
 	
-	$args = array("-in $annfile", "-out $varfile", "-build ".$sys['build']);
-	if ($multi) $args[] = "-multi";
+	$args = array("-in $annfile", "-out $varfile");
+	if ($multi) $args[] = "-genotype_mode multi";
 	if ($updown) $args[] = "-updown";
 	$parser->execTool("NGS/vcf2gsvar.php", implode(" ", $args));
 }
