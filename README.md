@@ -65,7 +65,7 @@ For example, the installation of the dependencies using Ubuntu 16.04 looks like 
 
 For example, the installation of the dependencies using Ubuntu 18.04 looks like that:
 
-	> sudo apt-get install -y wget bzip2 unzip make cmake g++ git tabix build-essential qt5-default qt5-qmake qtbase5-dev libqt5sql5-mysql libqt5xmlpatterns5-dev php7.2-cli php7.2-xml php7.2-mysql python python-matplotlib libncurses5-dev bzip2 libbz2-dev liblzma-dev default-jre libssl-dev libpng-dev perl-base curl mysql-client
+	> sudo apt-get install -y wget bzip2 unzip make cmake g++ git tabix build-essential qt5-default qt5-qmake qtbase5-dev libqt5sql5-mysql libqt5xmlpatterns5-dev php7.2-cli php7.2-xml php7.2-mysql python python-matplotlib libncurses5-dev bzip2 libbz2-dev liblzma-dev default-jre libssl-dev libpng-dev perl-base curl libmysqlclient-dev cpanminus
 
 For molecular barcode processing, several python dependencies are required. They can be installed with ``pip``:
 
