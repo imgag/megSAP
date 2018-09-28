@@ -1,18 +1,17 @@
-set -e
-set -o pipefail
-set -o verbose
-
+#!/bin/bash
+mkdir -p `pwd`/tools
 folder=`pwd`/tools/
 
-#download RepeatMasker
 cd $folder
+
+#download RepeatMasker
 wget http://www.repeatmasker.org/RepeatMasker-open-4-0-6.tar.gz
 tar xzf RepeatMasker-open-4-0-6.tar.gz
 rm -rf RepeatMasker-open-4-0-6.tar.gz
 
 #download and build ngs-bits
 cd $folder
-git clone https://github.com/imgag/ngs-bits.git
+git clone https://github.com/imgag/ngs-bits.git --depth 1
 cd ngs-bits
 git checkout 2018_06 && git submodule update --recursive --init
 make build_3rdparty
@@ -28,14 +27,14 @@ make
 
 #download and build freebayes
 cd $folder
-git clone https://github.com/ekg/freebayes.git 
+git clone https://github.com/ekg/freebayes.git --depth 1
 cd freebayes
 git checkout v1.1.0 && git submodule update --recursive --init
 make
 
 #download and build vcflib
 cd $folder
-git clone https://github.com/vcflib/vcflib.git
+git clone https://github.com/vcflib/vcflib.git --depth 1
 cd vcflib
 git checkout v1.0.0-rc1 && git submodule update --recursive --init
 make
@@ -48,7 +47,7 @@ wget https://github.com/mozack/abra2/releases/download/v2.15/abra2-2.15.jar -O a
 
 #download and build samblaster
 cd $folder
-git clone https://github.com/GregoryFaust/samblaster.git
+git clone https://github.com/GregoryFaust/samblaster.git --depth 1
 cd samblaster
 git checkout v.0.1.24
 make
