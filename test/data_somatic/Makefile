@@ -1,4 +1,4 @@
-all: clear link case1 case2 case4
+all: clear link case1 case2 case3
 
 clear:
 	rm -rf Sample_GS110168 Sample_GS110169 Sample_GS150344_01  Sample_DX183978_01 Sample_DX183927_01
