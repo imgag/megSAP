@@ -22,6 +22,10 @@ link:
 	php ../link_test_data.php DX183978_01_chr1_chr2.bam.bai Sample_DX183978_01/DX183978_01.bam.bai
 	php ../link_test_data.php DX183927_01_chr1_chr2.bam Sample_DX183927_01/DX183927_01.bam
 	php ../link_test_data.php DX183927_01_chr1_chr2.bam.bai Sample_DX183927_01/DX183927_01.bam.bai
+	#link additional files for case 3, files are only neccessary to test the creation of the somatic report in GSvar
+	php ../link_test_data.php DX183978_01_stats_map.qcML Sample_DX183978_01/DX183978_01_stats_map.qcML
+	php ../link_test_data.php DX183927_01_stats_map.qcML Sample_DX183927_01/DX183927_01_stats_map.qcML
+	php ../link_test_data.php DX183927_01.GSvar Sample_DX183927_01/DX183927_01.GSvar
 
 # tumor-only
 case1: case1_run case1_diff
@@ -97,5 +101,5 @@ case3_somatic:
 		-cancer_type CANCER \
 		--log out_case3/DX183978_01-DX183927_01.log
 case3_diff:
+	php ../compare_variants.php -in1 expected_case3/DX183978_01-DX183927_01.GSvar -in2 out_case3/DX183978_01-DX183927_01.GSvar
 	diff expected_case3/DX183978_01-DX183927_01_clincnv.tsv out_case3/DX183978_01-DX183927_01_clincnv.tsv
-	diff expected_case3/DX183978_01-DX183927_01.GSvar out_case3/DX183978_01-DX183927_01.GSvar
