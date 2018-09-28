@@ -56,8 +56,8 @@ if ($target_file=="")
 
 //prepare multi-sample paramters
 $args_multisample = [
-	"-bams $f $m $c",
-	"-status control control affected",
+	"-bams $c $f $m",
+	"-status affected control control",
 	"-out_folder $out_folder",
 	"-system $system",
 	"-prefix trio",
