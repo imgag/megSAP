@@ -70,7 +70,10 @@ RUN chmod 755 data/download_*.sh && ./data/download_tools.sh && ./data/download_
 FROM base-${UBUNTU_VERSION}
 RUN useradd -d /home/ubuntu -ms /bin/bash -g root -p ubuntu ubuntu
 WORKDIR /home/ubuntu
-COPY --from=megSAP-tools-ubuntu-{UBUNTU_VERSION} --chown=ubuntu:ubuntu /megSAP/ .
-COPY --from=megSAP-tools-ubuntu-{UBUNTU_VERSION} --chown=ubuntu:ubuntu /.cpanm .
-# we need to copy compiled stuff here
+COPY --from=tools-ubuntu-${UBUNTU_VERSION} --chown=ubuntu:ubuntu /megSAP/src/ /home/ubuntu/megSAP/src/
+COPY --from=tools-ubuntu-${UBUNTU_VERSION} --chown=ubuntu:ubuntu /megSAP/tools/ /home/ubuntu/megSAP/tools/
+COPY --from=tools-ubuntu-${UBUNTU_VERSION} --chown=ubuntu:ubuntu /root/.cpanm/ /home/ubuntu/.cpanm/
+COPY --from=tools-ubuntu-${UBUNTU_VERSION} /usr/local/share/perl/5.26.1/ /usr/local/share/perl/5.26.1/
+COPY --from=tools-ubuntu-${UBUNTU_VERSION} /usr/local/lib/x86_64-linux-gnu/perl/5.26.1 /usr/local/lib/x86_64-linux-gnu/perl/5.26.1
+COPY --from=tools-UBUNTU-${UBUNTU_VERSION} /usr/local/bin/ /usr/local/bin/
 WORKDIR /home/ubuntu/megSAP

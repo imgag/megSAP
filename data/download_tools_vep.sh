@@ -1,12 +1,9 @@
 #!/bin/bash
-set -e
-set -o pipefail
-set -o verbose
-
-mkdir -p `pwd`/tools
 folder=`pwd`/tools/
 
-cd $folder
+if [ `basename "$PWD"` != "tools" ]; then
+  cd $folder
+fi
 
 # download ensembl-vep
 git clone https://github.com/Ensembl/ensembl-vep.git --depth 1
