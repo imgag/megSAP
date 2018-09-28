@@ -70,10 +70,10 @@ RUN chmod 755 download_*.sh && ./download_tools.sh && ./download_tools_vep.sh
 FROM base-${UBUNTU_VERSION}
 RUN useradd -d /home/ubuntu -ms /bin/bash -g root -p ubuntu ubuntu
 WORKDIR /home/ubuntu
-COPY --from=tools-ubuntu-${UBUNTU_VERSION} --chown=ubuntu:ubuntu /megSAP/src/ /home/ubuntu/megSAP/src/
-COPY --from=tools-ubuntu-${UBUNTU_VERSION} --chown=ubuntu:ubuntu /megSAP/data/ /home/ubuntu/megSAP/data/
-COPY --from=tools-ubuntu-${UBUNTU_VERSION} --chown=ubuntu:ubuntu /root/.cpanm/ /home/ubuntu/.cpanm/
-COPY --from=tools-ubuntu-${UBUNTU_VERSION} /usr/local/share/perl/5.26.1/ /usr/local/share/perl/5.26.1/
-COPY --from=tools-ubuntu-${UBUNTU_VERSION} /usr/local/lib/x86_64-linux-gnu/perl/5.26.1 /usr/local/lib/x86_64-linux-gnu/perl/5.26.1
-COPY --from=tools-UBUNTU-${UBUNTU_VERSION} /usr/local/bin/ /usr/local/bin/
+COPY --from=build --chown=ubuntu:ubuntu /megSAP/src/ /home/ubuntu/megSAP/src/
+COPY --from=build --chown=ubuntu:ubuntu /megSAP/data/ /home/ubuntu/megSAP/data/
+COPY --from=build --chown=ubuntu:ubuntu /root/.cpanm/ /home/ubuntu/.cpanm/
+COPY --from=build /usr/local/share/perl/5.26.1/ /usr/local/share/perl/5.26.1/
+COPY --from=build /usr/local/lib/x86_64-linux-gnu/perl/5.26.1 /usr/local/lib/x86_64-linux-gnu/perl/5.26.1
+COPY --from=build /usr/local/bin/ /usr/local/bin/
 WORKDIR /home/ubuntu/megSAP
