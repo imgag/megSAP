@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("mapping_baf", "Generate SEG file that contains bafs.");
+$parser = new ToolBase("mapping_baf", "Generate SEG file that contains b-allele frequencies.");
 $parser->addInfile("in",  "Input BAM file.", false);
 $parser->addOutfile("out",  "Output IGV file.", false);
 //optional
