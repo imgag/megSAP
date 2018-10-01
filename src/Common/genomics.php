@@ -914,8 +914,11 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false)
 	//check that sample is not NIST reference sample (it is a cell-line)
 	if (contains($file, "NA12878")) return false;
 
-	//not NGSD => all samples valid
-	if (!db_is_enabled("NGSD")) return true;
+	//no NGSD => error
+	if (!db_is_enabled("NGSD"))
+	{
+		trigger_error("is_valid_ref_sample_for_cnv_analysis needs NGSD access!", E_USER_ERROR);
+	}
 
 	//check sample is in NGSD
 	$db_conn = DB::getInstance("NGSD");
@@ -944,13 +947,16 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false)
 	return true;
 }
 
-function is_valid_ref_tumor_sample_for_cnv_analysis($file,$discard_ffpe = false)
+function is_valid_ref_tumor_sample_for_cnv_analysis($file, $discard_ffpe = false)
 {
 	//check that sample is not NIST reference sample (it is a cell-line)
 	if (contains($file, "NA12878")) return false;
 
-	//not NGSD => all samples valid
-	if (!db_is_enabled("NGSD")) return true;
+	//no NGSD => error
+	if (!db_is_enabled("NGSD"))
+	{
+		trigger_error("is_valid_ref_tumor_sample_for_cnv_analysis needs NGSD access!", E_USER_ERROR);
+	}
 	
 	//check sample is in NGSD
 	$db_conn = DB::getInstance("NGSD");
@@ -978,8 +984,6 @@ function is_valid_ref_tumor_sample_for_cnv_analysis($file,$discard_ffpe = false)
 /// - sorts header lines
 /// - sorts info column by name
 /// - sorts and format/sample columns by format string
-/// - TODO?: sort filter column
-/// - TODO?: sort variants by chr/pos
 function load_vcf_normalized($filename)
 {
 	$comments = array();

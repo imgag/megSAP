@@ -26,11 +26,6 @@ if (db_is_enabled("NGSD"))
 	check(is_valid_ref_sample_for_cnv_analysis("GS160561_02"), false); //not research/diagnostics
 	check(is_valid_ref_sample_for_cnv_analysis("GS160408_01"), true);
 }
-else
-{
-	check(is_valid_ref_sample_for_cnv_analysis("GS123456_99"), true);
-}
-
 end_test();
 
 //##################################################################################
