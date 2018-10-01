@@ -114,4 +114,4 @@ Finally, we need to download and convert some open-source databases for annotati
 
 ## Execution
 
-Now the pipelines with all it's required tools are installed. They can be found within the `src/Pipelines` folder. Go to the [documentation](https://github.com/imgag/megSAP#documentation) for further details.
+Now the pipelines with all it's required tools are installed. They can be found within the `src/Pipelines` folder. Go to the [documentation](./pipelines.md) for further details.

@@ -19,6 +19,8 @@ Binaries are available in the form of Docker. Alternatively _megSAP_  can be bui
 - **Docker** for [Linux/macOS/Windows](doc/install_docker.md)
 - From sources for [Linux/macOS](doc/install_unix.md)
 
+The currently supported pipelines are listed in the [pipeline documentation](./doc/pipelines.md).
+
 ## ChangeLog
 
 * TODO.2018: Using Ensembl VEP for variant annotation now (was SnpEff)
@@ -32,17 +34,6 @@ Binaries are available in the form of Docker. Alternatively _megSAP_  can be bui
 * 18.01.2018: Added b-allele frequency files for visualization in IGV. 
 * 08.01.2018: Updated tools (BWA, samtools, snpEff) and databases (ClinVar, gnomAD, HGMD).
 * 15.12.2017: Added runs-of-homozygosity detection to the germline pipeline.
-
-## Documentation
-
-Documentation about the different analysis pipelines can be found here:
-
-* [DNA analysis (single sample)](doc/dna_single_sample.md)
-* [DNA analysis (multi-sample and trio)](doc/dna_multi_sample.md)
-* [DNA analysis (tumor-normal pair)](doc/dna_tumor-normal_pair.md)
-* [RNA analysis (expression)](doc/rna_expression.md)
-* RNA analysis (variant calling)  - coming soon
-
 
 ## Support
 
