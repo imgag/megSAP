@@ -1,7 +1,7 @@
 ARG UBUNTU_VERSION=16
 
 FROM ubuntu:16.04 AS base-16
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -y install \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install \
     bzip2 \
     default-jre \
     git \ 
@@ -15,7 +15,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -y install \
     wget
 
 FROM ubuntu:18.04 AS base-18
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -y install \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install \
     bzip2 \
     default-jre \
     git \ 
@@ -29,7 +29,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -y install \
     wget
 
 FROM base-${UBUNTU_VERSION} AS tools-ubuntu-16
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -y install \
+RUN apt-get update &&  DEBIAN_FRONTEND=noninteractive apt-get -y install \
     build-essential \ 
     cmake \ 
     cpanminus \
@@ -46,7 +46,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -y install \
     qtbase5-dev 
 
 FROM base-${UBUNTU_VERSION} AS tools-ubuntu-18
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -y install \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install \
     build-essential \ 
     cmake \ 
     cpanminus \
