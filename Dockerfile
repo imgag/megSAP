@@ -1,6 +1,7 @@
 ARG UBUNTU_VERSION=16
 
 FROM ubuntu:16.04 AS base-16
+RUN export DEBIAN_FRONTEND=noninteractive 
 RUN apt-get update && apt-get -y install \
     bzip2 \
     default-jre \
@@ -15,6 +16,7 @@ RUN apt-get update && apt-get -y install \
     wget
 
 FROM ubuntu:18.04 AS base-18
+RUN export DEBIAN_FRONTEND=noninteractive 
 RUN apt-get update && apt-get -y install \
     bzip2 \
     default-jre \
