@@ -1,7 +1,5 @@
 ARG UBUNTU_VERSION=16
 
-MAINTAINER Marc Sturm
-
 FROM ubuntu:16.04 AS base-16
 RUN apt-get update && apt-get -y install \
     bzip2 \
