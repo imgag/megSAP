@@ -4,6 +4,7 @@ FROM ubuntu:16.04 AS base-16
 RUN apt-get update && apt-get -y install \
     bzip2 \
     default-jre \
+    git \ 
     perl-base \
     php7.0-cli \ 
     php7.0-xml \ 
@@ -17,6 +18,7 @@ FROM ubuntu:18.04 AS base-18
 RUN apt-get update && apt-get -y install \
     bzip2 \
     default-jre \
+    git \ 
     perl-base \ 
     php7.2-cli \ 
     php7.2-xml \ 
@@ -31,7 +33,6 @@ RUN apt-get update && apt-get -y install \
     build-essential \ 
     cmake \ 
     cpanminus \
-    git \ 
     libbz2-dev \ 
     liblzma-dev \ 
     libncurses5-dev \ 
@@ -49,7 +50,6 @@ RUN apt-get update && apt-get -y install \
     build-essential \ 
     cmake \ 
     cpanminus \
-    git \ 
     libbz2-dev \ 
     liblzma-dev \ 
     libmysqlclient-dev \
