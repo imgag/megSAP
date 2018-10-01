@@ -77,6 +77,7 @@ $somatic_indels = "$run_dir/results/variants/somatic.indels.vcf.gz";
 //STEP 2: Merge SNV and INDELs into one VCF file
 //################################################################################################
 
+//TODO split multi-allelic variants before merging
 $strelka_snvs = Matrix::fromTSV($somatic_snvs);
 $strelka_indels = Matrix::fromTSV($somatic_indels);
 $merged = new Matrix();

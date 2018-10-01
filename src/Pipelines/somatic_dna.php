@@ -34,8 +34,7 @@ $parser->addInfile("n_system",  "Processing system file used for normal DNA samp
 
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 
-//TODO remove this
-$parser->addFlag("include_germline", "Include germline variant annotation.");
+$parser->addFlag("include_germline", "Include germline variant annotation with CGI.");
 
 //default cut-offs
 $parser->addFloat("min_af", "Allele frequency detection limit.", true, 0.05);
@@ -262,7 +261,7 @@ if(in_array("cn",$steps))
 	$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $t_bam -in $roi -out $t_cov",true);
 	
 	//copy tumor sample coverage file to reference folder (has to be done before ClinCNV call to avoid analyzing the same sample twice)
-	if (is_valid_ref_tumor_sample_for_cnv_analysis($t_id) && db_is_enabled("NGSD")) //TODO why do we need the NGSD here?
+	if (db_is_enabled("NGSD") && is_valid_ref_tumor_sample_for_cnv_analysis($t_id))
 	{
 		//create reference folder if it does not exist
 		if (!is_dir($ref_folder_t))
@@ -291,7 +290,7 @@ if(in_array("cn",$steps))
 		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov", true);
 		
 		// copy normal sample coverage file to reference folder (only if valid).
-		if (is_valid_ref_sample_for_cnv_analysis($n_id) && db_is_enabled("NGSD")) //TODO why do we need the NGSD here?
+		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($n_id))
 		{
 			//create reference folder if it does not exist
 			$ref_folder = get_path("data_folder")."/coverage/".$n_sys['name_short']."/";
@@ -321,7 +320,7 @@ if(in_array("cn",$steps))
 		}
 		
 		//use temporary list file if n or t cov files are not valid
-		if(!is_valid_ref_sample_for_cnv_analysis($n_id) || !is_valid_ref_tumor_sample_for_cnv_analysis($t_id) || !db_is_enabled("NGSD"))
+		if(!db_is_enabled("NGSD") || !is_valid_ref_sample_for_cnv_analysis($n_id) || !is_valid_ref_tumor_sample_for_cnv_analysis($t_id))
 		{
 			$tmp_file_name = temp_file(".csv");
 			$parser->copyFile($t_n_list_file,$tmp_file_name);

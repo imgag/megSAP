@@ -105,8 +105,6 @@ $parser->exec(get_path("ngs-bits")."VcfSort","-in $sv -out $vcf_sorted", true);
 // flag off-target variants
 if (isset($target))
 {
-	// TODO pre-process target?
-
 	$vcf_filtered = "{$temp_folder}/{$outname}SV_filtered.vcf";
 	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_sorted -mark off-target -reg $target -out $vcf_filtered", true);
 }

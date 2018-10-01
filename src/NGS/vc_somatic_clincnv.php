@@ -238,9 +238,9 @@ if(is_dir($cohort_folder_normal_sample)) exec2("rm -r {$cohort_folder_normal_sam
 
 
 //Make sure all files in cohort folder have rw permisssions before exec
-exec2("find {$cohort_folder} -type f -print0  | xargs -0 chmod 766");
+exec2("chmod -R 777 {$cohort_folder}");
 $parser->exec($call_cnvs_exec_path,$call_cnvs_params,true);
-exec2("find {$cohort_folder} -type f -print0  | xargs -0 chmod 766");
+exec2("chmod -R 777 {$cohort_folder}");
 
 
 //copy segmentation files to folder containing output file
