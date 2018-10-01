@@ -11,12 +11,19 @@ if [ -z "$1" ]
 	mkdir -p $dbs
 fi
 
-
 src=`pwd`/../src/
 tools=`pwd`/tools/
 ngsbits=$tools/ngs-bits/bin
 vcflib=$tools/vcflib/bin
 genome=`pwd`/genomes/GRCh37.fa
+static_dbs=`pwd`/db_static
+
+# Resolve issues when mounting inside Docker (copies stuff from static_dbs)
+if [ -d `static_dbs` ]; then
+	cp -rn `static_dbs`/CNPs dbs
+	cp -rn `static_dbs`/UCSC dbs
+	cp -rn `static_dbs`/CNPs dbs
+fi
 
 #Install REPEATMASKER - http://www.repeatmasker.org/species/hg.html
 cd $dbs

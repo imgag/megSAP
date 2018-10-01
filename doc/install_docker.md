@@ -9,8 +9,8 @@ After you've successfully installed Docker you are ready to run megSAP.
 To set up megSAP using docker execute the below commands
 
 ```
-docker run -it -v $(pwd):/megSAP/data/genomes imgag/megSAP cd data && ./download_GRCh37.sh
-docker run -it -v $(pwd):/megSAP/data/genomes imgag/megSAP cd data && ./download_dbs
+docker run -it -v ./genomes:/megSAP/data/genomes -v imgag/megSAP cd data && ./download_GRCh37.sh
+docker run -it -v ./genomes:/megSAP/data/genomes -v ./dbs:/megSAP/data/dbs imgag/megSAP cd data && ./download_dbs
 ```
 
 This will download and execute the _megSAP_ container, thus downloading the needed databases in your **current working directory**.

@@ -13,7 +13,8 @@ Please refer to the [installation](./install_docker.md) if any of these does not
 Below is an example how to run the `RNA` pipeline
 
 ```
-docker run -v /Sample_X_folder:/megSAP/Sample_X_01/ /db_folder:/megSAP/data/genomes -it imgag/megSAP php src/Pipelines/analyze_rna.php \
+docker run -v /Sample_X_folder:/megSAP/Sample_X_01/ -v ./genomes:/megSAP/data/genomes -v ./dbs:/megSAP/data/dbs 
+  -it imgag/megSAP php src/Pipelines/analyze_rna.php \
   -folder Sample_X_01 -name X_01 \
   -system truseq.ini -steps ma,rc,an
 ```

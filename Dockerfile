@@ -72,6 +72,7 @@ RUN useradd -d /home/ubuntu -ms /bin/bash -g root -p ubuntu ubuntu
 WORKDIR /home/ubuntu
 COPY --from=build --chown=ubuntu:nogroup /megSAP/src/ /home/ubuntu/megSAP/src/
 COPY --from=build --chown=ubuntu:nogroup /megSAP/data/ /home/ubuntu/megSAP/data/
+COPY --from=build --chown=ubuntu:nogroup /megSAP/data/db /home/ubuntu/megSAP/data/db_static
 COPY --from=build --chown=ubuntu:nogroup /root/.cpanm/ /home/ubuntu/.cpanm/
 COPY --from=build /usr/local/share/perl/ /usr/local/share/perl/
 COPY --from=build /usr/local/lib/x86_64-linux-gnu/perl/ /usr/local/lib/x86_64-linux-gnu/perl/
