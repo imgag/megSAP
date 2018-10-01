@@ -29,7 +29,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -y install \
     wget
 
 FROM base-${UBUNTU_VERSION} AS tools-ubuntu-16
-RUN apt-get update && apt-get -y install \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -y install \
     build-essential \ 
     cmake \ 
     cpanminus \
@@ -46,7 +46,7 @@ RUN apt-get update && apt-get -y install \
     qtbase5-dev 
 
 FROM base-${UBUNTU_VERSION} AS tools-ubuntu-18
-RUN apt-get update && apt-get -y install \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -y install \
     build-essential \ 
     cmake \ 
     cpanminus \
