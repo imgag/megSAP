@@ -79,5 +79,4 @@ COPY --from=build /usr/local/lib/x86_64-linux-gnu/perl/ /usr/local/lib/x86_64-li
 COPY --from=build /usr/local/bin/ /usr/local/bin/
 
 WORKDIR /home/ubuntu/megSAP
-ENTRYPOINT ["bin", "sh"]
-CMD ["ls"]
+ENTRYPOINT ["/bin/sh"]
