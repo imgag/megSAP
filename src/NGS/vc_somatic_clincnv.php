@@ -216,9 +216,6 @@ if(!file_exists($cohort_folder))
 {
 	trigger_error("Directory for cohort output {$cohort_folder} does not exist.",E_USER_ERROR);
 }
-
-
- 
 $call_cnvs_exec_path = get_path("R_folder")."Rscript --vanilla ".get_path("ClinCnvSomatic")."/"."firstStep.R";
 $call_cnvs_params = " --normal {$merged_cov_normal} --tumor {$merged_cov_tumor} --out {$cohort_folder} --pair {$cov_pairs} --bed {$tmp_bed_annotated} --colNum 4 --folderWithScript ".get_path("ClinCnvSomatic")." --lengthS 1 --scoreS 40";
 print($call_cnvs_params ."\n");
@@ -239,7 +236,24 @@ if(is_dir($cohort_folder_somatic_sample)) exec2("rm -r {$cohort_folder_somatic_s
 $cohort_folder_normal_sample = "{$cohort_folder}/normal/{$n_id}/";
 if(is_dir($cohort_folder_normal_sample)) exec2("rm -r {$cohort_folder_normal_sample}");
 
+
+//Make sure all files in cohort folder have rw permisssions before exec
+exec2("find {$cohort_folder} -type f -print0  | xargs -0 chmod 766");
 $parser->exec($call_cnvs_exec_path,$call_cnvs_params,true);
+exec2("find {$cohort_folder} -type f -print0  | xargs -0 chmod 766");
+
+
+//copy segmentation files to folder containing output file
+$cnvs_seg_file = "{$cohort_folder_somatic_sample}/{$t_id}-{$n_id}_cnvs.seg";
+if(file_exists($cnvs_seg_file))
+{
+	$parser->copyFile($cnvs_seg_file,dirname($out)."/{$t_id}-{$n_id}_cnvs.seg");
+}
+$cnvs_cov_file = "{$cohort_folder_somatic_sample}/{$t_id}-{$n_id}_cov.seg";
+if(file_exists($cnvs_cov_file))
+{
+	$parser->copyFile($cnvs_cov_file,dirname($out)."/{$t_id}-{$n_id}_cov.seg");
+}
 
 //check whether desired tumor normal pair was created successfully
 $unparsed_cnv_file = "{$cohort_folder_somatic_sample}/CNAs.txt";
