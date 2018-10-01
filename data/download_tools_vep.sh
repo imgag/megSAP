@@ -13,7 +13,7 @@ cd ensembl-vep
 cpanm DBI DBD::mysql
 
 # build ensembl-vep without cache or plugins
-perl INSTALL.pl -a a
+perl INSTALL.pl -a ap
 
 # build BigWig
 cd $folder
