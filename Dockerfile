@@ -4,6 +4,7 @@ FROM ubuntu:16.04 AS base-16
 RUN apt-get update && apt-get -y install \
     bzip2 \
     default-jre \
+    git \ 
     perl-base \
     php7.0-cli \ 
     php7.0-xml \ 
@@ -17,6 +18,7 @@ FROM ubuntu:18.04 AS base-18
 RUN apt-get update && apt-get -y install \
     bzip2 \
     default-jre \
+    git \ 
     perl-base \ 
     php7.2-cli \ 
     php7.2-xml \ 
@@ -31,7 +33,6 @@ RUN apt-get update && apt-get -y install \
     build-essential \ 
     cmake \ 
     cpanminus \
-    git \ 
     libbz2-dev \ 
     liblzma-dev \ 
     libncurses5-dev \ 
@@ -49,7 +50,6 @@ RUN apt-get update && apt-get -y install \
     build-essential \ 
     cmake \ 
     cpanminus \
-    git \ 
     libbz2-dev \ 
     liblzma-dev \ 
     libmysqlclient-dev \
@@ -70,8 +70,7 @@ RUN chmod 755 download_*.sh && ./download_tools.sh && ./download_tools_vep.sh
 FROM base-${UBUNTU_VERSION}
 RUN useradd -d /home/ubuntu -ms /bin/bash -g root -p ubuntu ubuntu
 WORKDIR /home/ubuntu
-COPY --from=build --chown=ubuntu:nogroup /megSAP/src/ /home/ubuntu/megSAP/src/
-COPY --from=build --chown=ubuntu:nogroup /megSAP/data/ /home/ubuntu/megSAP/data/
+COPY --from=build --chown=ubuntu:nogroup /megSAP/ /home/ubuntu/megSAP/
 COPY --from=build --chown=ubuntu:nogroup /megSAP/data/dbs /home/ubuntu/megSAP/data/dbs_static
 COPY --from=build --chown=ubuntu:nogroup /root/.cpanm/ /home/ubuntu/.cpanm/
 COPY --from=build /usr/local/share/perl/ /usr/local/share/perl/
@@ -79,5 +78,4 @@ COPY --from=build /usr/local/lib/x86_64-linux-gnu/perl/ /usr/local/lib/x86_64-li
 COPY --from=build /usr/local/bin/ /usr/local/bin/
 
 WORKDIR /home/ubuntu/megSAP
-ENTRYPOINT ["bin", "sh"]
-CMD ["ls"]
+ENTRYPOINT ["/bin/sh"]
