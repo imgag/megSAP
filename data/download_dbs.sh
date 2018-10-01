@@ -16,7 +16,7 @@ tools=`pwd`/tools/
 ngsbits=$tools/ngs-bits/bin
 vcflib=$tools/vcflib/bin
 genome=`pwd`/genomes/GRCh37.fa
-static_dbs=`pwd`/db_static
+static_dbs=`pwd`/dbs_static
 
 # Resolve issues when mounting inside Docker (copies stuff from static_dbs)
 if [ -d `static_dbs` ]; then
