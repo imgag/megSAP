@@ -10,6 +10,14 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install \
     php7.0-xml \ 
     php7.0-mysql \
     python-matplotlib \ 
+    python-numpy \
+    python-pysam \
+    r-base-core \ 
+    r-cran-optparse \ 
+    r-cran-robustbase \ 
+    r-cran-foreach \ 
+    r-cran-doparallel \ 
+    r-cran-mass \
     tabix \
     unzip \
     wget
@@ -23,7 +31,15 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install \
     php7.2-cli \ 
     php7.2-xml \ 
     php7.2-mysql \ 
-    python-matplotlib \ 
+    python-matplotlib \
+    python-numpy \
+    python-pysam \
+    r-base-core \ 
+    r-cran-optparse \ 
+    r-cran-robustbase \ 
+    r-cran-foreach \ 
+    r-cran-doparallel \ 
+    r-cran-mass \
     tabix \ 
     unzip \ 
     wget
@@ -37,10 +53,10 @@ RUN apt-get update &&  DEBIAN_FRONTEND=noninteractive apt-get -y install \
     liblzma-dev \ 
     libncurses5-dev \ 
     libpng-dev \ 
+    libmysqlclient-dev \
     libqt5sql5-mysql \ 
     libqt5xmlpatterns5-dev \ 
     libssl-dev \ 
-    mysql-client \
     qt5-default \ 
     qt5-qmake \ 
     qtbase5-dev 
@@ -68,14 +84,12 @@ WORKDIR /megSAP/data
 RUN chmod 755 download_*.sh && ./download_tools.sh
 
 FROM base-${UBUNTU_VERSION}
-RUN useradd -d /home/ubuntu -ms /bin/bash -g root -p ubuntu ubuntu
-WORKDIR /home/ubuntu
-COPY --from=build --chown=ubuntu:nogroup /megSAP/ /home/ubuntu/megSAP/
-COPY --from=build --chown=ubuntu:nogroup /megSAP/data/dbs /home/ubuntu/megSAP/data/dbs_static
-COPY --from=build /usr/local/share/ /usr/local/share/
-COPY --from=build /usr/local/lib/ /usr/local/lib/
-COPY --from=build /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
+COPY --from=build /megSAP/ /megSAP/
+COPY --from=build /cpanm /cpanm
+COPY --from=build /megSAP/data/dbs/ /megSAP/data/dbs_static/
+COPY --from=build /usr/local/share/perl/ /usr/local/share/perl/
+COPY --from=build /usr/local/lib/x86_64-linux-gnu/perl/ /usr/local/lib/x86_64-linux-gnu/perl/
 COPY --from=build /usr/local/bin/ /usr/local/bin/
 
-WORKDIR /home/ubuntu/megSAP
-ENTRYPOINT ["/bin/sh"]
+WORKDIR /megSAP
+ENTRYPOINT ["/bin/bash"]

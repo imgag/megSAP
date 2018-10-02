@@ -13,7 +13,7 @@ cd ensembl-vep
 cpanm DBI DBD::mysql
 
 # build ensembl-vep without cache or plugins
-perl INSTALL.pl -a ap
+perl INSTALL.pl -a ap -g dbscSNV,GeneSplicer,MaxEntScan
 
 # build BigWig
 cd $folder
