@@ -1,15 +1,18 @@
 # Building megSAP from sources (Linux)
 
-Currently only Linux is supported. It is theoretically feasible to get this running on OSX, but we are not testing this regularily. If you do want to work on adding OSX support please contact [Lennard Berger](https://github.com/Fohlen).
+Currently only Linux is supported!  
+
+It is theoretically feasible to get this running on OSX, but we are not testing this regularily.  
+If you do want to work on adding OSX support please contact [Lennard Berger](https://github.com/Fohlen).
 
 ## Dependencies
 
-We are providing instructions for Ubuntu 16.04 and 18.04 officially. However this should be reasonably easy to port to any other distro.
+We are providing instructions for Ubuntu 16.04 and 18.04 officially. However this should be reasonably easy to port to any other Linux distribution.
 
-### Ubuntu 16.04
+### Base dependencies (Ubuntu 16.04)
 
 ```
-apt-get update && apt-get install -y
+	> sudo apt-get update && apt-get install -y
     bzip2 \
     default-jre \
     perl-base \
@@ -37,10 +40,10 @@ apt-get update && apt-get install -y
     qtbase5-dev 
 ```
 
-### Ubuntu 18.04
+### Base dependencies (Ubuntu 18.04)
 
 ```
-apt-get update && apt-get install -y \
+	> sudo apt-get update && apt-get install -y \
     bzip2 \
     default-jre \
     perl-base \ 
@@ -68,13 +71,19 @@ apt-get update && apt-get install -y \
     qtbase5-dev
 ```
 
+### Python dependencies (for molecular barcode handling)
+
+	> sudo apt install python-numpy python-pysam
+
+### R dependencies (for somatic CNV calling)
+
+	> sudo apt install r-base-core r-cran-optparse r-cran-robustbase r-cran-foreach r-cran-doparallel r-cran-mass
+
 ## Downloading
 
 If you haven't already, check out the repository with
 
-```
-git clone https://github.com/imgag/ngs-bits.git
-```
+	> git clone https://github.com/imgag/megSAP.git
 
 ### Resolving proxy issues with git
 
@@ -89,17 +98,19 @@ Then you have to adapt your ~/.gitconfig file like that:
     [http]
     proxy = http://[user]:[password]@[host]:[port]
 
-## Installing tools & initial setup
+## Initial setup
 
-To install the actual tools (including ngs-bits, ensembl-vep among others) you will need to execute custom script delivered by the repository.
+To install the required tools and data you will need to execute custom script delivered with the repository.
 If you work in a security critical environment it is advised that you use a [chroot environment](https://help.ubuntu.com/community/BasicChroot) as the scripts will attempt to install software with administrative privileges.
 
-```
-cd megSAP/data
-chmod 755 download_*.sh
-./download_tools.sh
-./download_tools_vep.sh
-```
+First, we make sure the privileges of the installation scripts are correct:
+
+	> cd megSAP/data
+	> chmod 755 *.sh
+
+Next, we install all required tools
+
+	> ./download_tools.sh
 
 Next, we need to download and index the reference genome:
 	
@@ -114,4 +125,6 @@ Finally, we need to download and convert some open-source databases for annotati
 
 ## Execution
 
-Now the pipelines with all it's required tools are installed. They can be found within the `src/Pipelines` folder. Go to the [documentation](./pipelines.md) for further details.
+Now the pipelines with all required tools and data are installed. They can be found within the `src/Pipelines` folder. Go to the [documentation](../README.md) for further details.
+
+

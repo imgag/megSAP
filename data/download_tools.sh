@@ -47,7 +47,7 @@ wget https://github.com/mozack/abra2/releases/download/v2.15/abra2-2.15.jar -O a
 
 #download and build samblaster
 cd $folder
-git clone https://github.com/GregoryFaust/samblaster.git --depth 1
+git clone https://github.com/GregoryFaust/samblaster.git
 cd samblaster
 git checkout v.0.1.24
 make
@@ -60,9 +60,11 @@ rm bwa-0.7.17.tar.bz2
 cd bwa-0.7.17
 make
 
-#download and build VEP
-chmod 755 download_tools_vep.sh
-./download_tools_vep.sh
+#download ClinCnv
+cd $folder
+git clone https://github.com/imgag/ClinCNV.git
+cd ClinCNV
+git checkout 1.01
 
-#download and build ClinCnv
-echo "TODO - including R"
+#download and build VEP
+./download_tools_vep.sh

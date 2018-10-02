@@ -159,7 +159,7 @@ $parser->exec(get_path("ngs-bits")."/"."BedAnnotateGenes"," -in {$tmp_bed_annota
 /************************
  * MERGE COVERAGE FILES *
  ************************/
-$merge_files_exec_path = get_path("R_folder")."Rscript --vanilla ".get_path("ClinCnvSomatic")."/"."mergeFilesFromFolder.R";
+$merge_files_exec_path = get_path("clincnv_somatic")."/mergeFilesFromFolder.R";
 $merged_cov_normal = $parser->tempFile(".txt");
 $merged_cov_tumor = $parser->tempFile(".txt");
 
@@ -216,7 +216,7 @@ if(!file_exists($cohort_folder))
 {
 	trigger_error("Directory for cohort output {$cohort_folder} does not exist.",E_USER_ERROR);
 }
-$call_cnvs_exec_path = get_path("R_folder")."Rscript --vanilla ".get_path("ClinCnvSomatic")."/"."firstStep.R";
+$call_cnvs_exec_path = get_path("clincnv_somatic")."/firstStep.R";
 $call_cnvs_params = " --normal {$merged_cov_normal} --tumor {$merged_cov_tumor} --out {$cohort_folder} --pair {$cov_pairs} --bed {$tmp_bed_annotated} --colNum 4 --folderWithScript ".get_path("ClinCnvSomatic")." --lengthS 1 --scoreS 40";
 print($call_cnvs_params ."\n");
 if($reanalyse_cohort) //Delete all sample files in cohort folder if reanalysis shall be performed

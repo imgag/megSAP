@@ -26,7 +26,7 @@ $parser->addInt("threads", "Number of threads to use.", true, 4);
 extract($parser->parse($argv));
 
 //################################################################################################
-//STEP 1: Run STRELKA2
+//Run Strelka2
 //################################################################################################
 
 //check config file
@@ -34,6 +34,7 @@ if (!is_file($config))
 {
 	trigger_error("Could not find strelka config file '" . $config . "'.", E_USER_ERROR);
 }
+
 //resolve run dir
 if (isset($analysis_dir))
 {
@@ -43,8 +44,10 @@ else
 {
 	$run_dir = $parser->tempFolder() . "/strelkaAnalysis";
 }
+$somatic_snvs = "$run_dir/results/variants/somatic.snvs.vcf.gz";
+$somatic_indels = "$run_dir/results/variants/somatic.indels.vcf.gz";
 
-//build Strelka2 arguments
+//arguments
 $args = [
 	"--tumor ".realpath($t_bam),
 	"--normal ".realpath($n_bam),
@@ -65,21 +68,26 @@ if (isset($debug_region))
 	$args[] = "--region {$debug_region}";
 }
 
-//run Strelka2
+//run
 $parser->exec(get_path("strelka2")."/configureStrelkaSomaticWorkflow.py", implode(" ", $args), true);
 $parser->exec("$run_dir/runWorkflow.py", "-m local -j $threads -g 4", false);
 
-//result files
-$somatic_snvs = "$run_dir/results/variants/somatic.snvs.vcf.gz";
-$somatic_indels = "$run_dir/results/variants/somatic.indels.vcf.gz";
-
 //################################################################################################
-//STEP 2: Merge SNV and INDELs into one VCF file
+//Split multi-allelic variants
 //################################################################################################
 
-//TODO split multi-allelic variants before merging
-$strelka_snvs = Matrix::fromTSV($somatic_snvs);
-$strelka_indels = Matrix::fromTSV($somatic_indels);
+$split_snvs = "$run_dir/results/variants/somatic.snvs.split.vcf.gz";
+$parser->exec("zcat", "$somatic_snvs | ".get_path("vcflib")."vcfbreakmulti > $split_snvs", true);
+
+$split_indels = "$run_dir/results/variants/somatic.indels.split.vcf.gz";
+$parser->exec("zcat", "$somatic_indels | ".get_path("vcflib")."vcfbreakmulti > $split_indels", true);
+
+//################################################################################################
+//Merge SNV and INDELs into one VCF file
+//################################################################################################
+
+$strelka_snvs = Matrix::fromTSV($split_snvs);
+$strelka_indels = Matrix::fromTSV($split_indels);
 $merged = new Matrix();
 
 //collect comments
@@ -126,7 +134,7 @@ $vcf_sorted = $parser->tempFile("_sorted.vcf");
 $parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf_aligned -out $vcf_sorted", true);
 
 //################################################################################################
-//STEP 3: Filter variants
+//Filter variants
 //################################################################################################
 
 $variants = Matrix::fromTSV($vcf_sorted);
@@ -141,8 +149,10 @@ $colnames[$colidx_normal] = basename($n_bam, ".bam");
 
 //quality cutoffs
 $min_td = 20;
-$min_nd = 20;
 $min_taf = 0.05;
+$min_tsupp = 3;
+$min_nd = 20;
+$max_naf_rel = 1/6;
 
 //set comments and column names
 $filter_format = '#FILTER=<ID=%s,Description="%s">';
@@ -152,8 +162,8 @@ $comments = [
 	sprintf($filter_format, "depth-tum", "Sequencing depth in tumor is too low (< {$min_td})"),
 	sprintf($filter_format, "freq-tum", "Allele frequency in tumor < {$min_taf}"),
 	sprintf($filter_format, "depth-nor", "Sequencing depth in normal is too low (< {$min_nd})"),
-	sprintf($filter_format, "freq-nor", "Allele frequency in normal > 1/6 * allele frequency in tumor"),
-	sprintf($filter_format, "lt-3-reads", "Less than 3 supporting tumor reads")
+	sprintf($filter_format, "freq-nor", "Allele frequency in normal > ".number_format($max_naf_rel, 2)." * allele frequency in tumor"),
+	sprintf($filter_format, "lt-3-reads", "Less than {$min_tsupp} supporting tumor reads")
 	];
 
 $variants_filtered->setComments(sort_vcf_comments(array_merge($variants->getComments(), $comments)));
@@ -197,11 +207,11 @@ for($i = 0; $i < $variants->rows(); ++$i)
 		list($nd, $nf) = vcf_strelka_indel($format, $normal);
 	}
 
-	if ($td * $tf < 3) $filter[] = "lt-3-reads";
+	if ($td * $tf < $min_tsupp) $filter[] = "lt-3-reads";
 	if ($td < $min_td) $filter[] = "depth-tum";
 	if ($nd < $min_nd) $filter[] = "depth-nor";
 	if ($tf < $min_taf) $filter[] = "freq-tum";
-	if ($nf > 1/6 * $tf) $filter[] = "freq-nor";
+	if ($nf > $max_naf_rel * $tf) $filter[] = "freq-nor";
 
 	$row[6] = implode(";", $filter);
 

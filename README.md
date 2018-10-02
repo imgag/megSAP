@@ -14,16 +14,15 @@ The design goals of the project are:
 If you are interested to join the effort, please contact [Marc Sturm](https://github.com/marc-sturm).
 
 ## Obtaining megSAP
-Binaries are available in the form of Docker. Alternatively _megSAP_  can be built from sources:
+The installaton of megSAP from sources is quite time-consumung.  
+Therefore, a ready-to-use version of _megSAP_ is available via a Docker image:
 
-- **Docker** for [Linux/macOS/Windows](doc/install_docker.md)
-- From sources for [Linux/macOS](doc/install_unix.md)
-
-The currently supported pipelines are listed in the [pipeline documentation](./doc/pipelines.md).
+- From **sources** for [Linux](doc/install_unix.md)
+- **Docker image** for [Linux/macOS/Windows](doc/install_docker.md)
 
 ## ChangeLog
 
-* TODO.2018: Using Ensembl VEP for variant annotation now (was SnpEff)
+* 02.10.2018: Using Ensembl VEP for variant annotation now (was SnpEff)
 * 07.08.2018: Removed most annotation from the 'filter' column and moved the functionality to GSvar.
 * 20.07.2018: Updated ABRA2 version (attention: this changes indel positions - see ABRA2 2.06 changelog) 
 * 17.07.2018: Added '##PIPELINE' header line to GSvar files to keep track of the megSAP version the file was created with.
@@ -40,4 +39,13 @@ The currently supported pipelines are listed in the [pipeline documentation](./d
 Please report any issues or questions to the [megSAP issue 
 tracker](https://github.com/imgag/megSAP/issues).
 
+
+## Documentation
+
+Documentation about the different analysis pipelines can be found here:
+
+* [DNA analysis (single sample)](doc/dna_single_sample.md)
+* [DNA analysis (multi-sample and trio)](doc/dna_multi_sample.md)
+* [DNA analysis (tumor-normal pair)](doc/dna_tumor-normal_pair.md)
+* [RNA analysis (expression)](doc/rna_expression.md)
 

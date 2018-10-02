@@ -21,6 +21,7 @@ feature_counts = [path]/data/tools/subread-1.6.0/bin/featureCounts
 skewer = [path]/data/tools/skewer_0.2.2/skewer
 subjunc = [path]/data/tools/subread-1.6.0/bin/subjunc
 salmon = [path]/data/tools/salmon-0.9.1/bin/salmon
+clincnv_somatic = Rscript --vanilla [path]/data/tools/ClinCNV-1.01/somatic/
 
 [tools-ngs-somatic]
 strelka = [path]/data/tools/strelka_workflow-1.0.14/bin
