@@ -4,6 +4,9 @@
 ##DESCRIPTION=gene=Affected gene list (comma-separated).
 ##DESCRIPTION=variant_type=Variant type.
 ##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
+##DESCRIPTION=OMIM=OMIM database annotation.
+##DESCRIPTION=ClinVar=ClinVar database annotation.
+##DESCRIPTION=HGMD=HGMD database annotation.
 ##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
 ##DESCRIPTION=dbSNP=Identifier in dbSNP database.
 ##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.
@@ -17,9 +20,6 @@
 ##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.
 ##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20.
 ##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
-##DESCRIPTION=OMIM=OMIM database annotation.
-##DESCRIPTION=ClinVar=ClinVar database annotation.
-##DESCRIPTION=HGMD=HGMD database annotation.
 ##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
 ##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.
-#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	ESP_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	OMIM	ClinVar	HGMD	COSMIC
+#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	ESP_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	COSMIC

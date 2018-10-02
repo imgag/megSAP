@@ -144,6 +144,9 @@ $column_desc = array(
 	array("gene", "Affected gene list (comma-separated)."),
 	array("variant_type", "Variant type."),
 	array("coding_and_splicing", "Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain)."),
+	array("OMIM", "OMIM database annotation."),
+	array("ClinVar", "ClinVar database annotation."),
+	array("HGMD", "HGMD database annotation."),
 	array("RepeatMasker", "RepeatMasker annotation."),
 	array("dbSNP", "Identifier in dbSNP database."),
 	array("1000g", "Allele frequency in 1000 genomes project."),
@@ -157,9 +160,6 @@ $column_desc = array(
 	array("fathmm-MKL", "fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
-	array("OMIM", "OMIM database annotation."),
-	array("ClinVar", "ClinVar database annotation."),
-	array("HGMD", "HGMD database annotation."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
 );
 if ($genotype_mode=="single")
@@ -528,9 +528,12 @@ while(!feof($handle))
 			
 			//######################### transcript-specific information #########################
 			
-			//TODO what other feature types are there?
-			//only transcripts 
-			if ($parts[$i_featuretype]!="Transcript") continue; 
+			//only transcripts
+			$feature_type = $parts[$i_featuretype];
+			if ($feature_type!="" && $feature_type!="Transcript")
+			{
+				trigger_error("Unknown VEP feature type '{$feature_type}' for variant $chr:$pos!", E_USER_ERROR);
+			}
 			$transcript_id = $parts[$i_feature];
 			
 			//extract variant type
@@ -669,9 +672,8 @@ while(!feof($handle))
 	//COSMIC
 	$cosmic = implode(",", collapse("COSMIC", $cosmic, "unique"));
 
-	//TODO update order
 	//write data
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$esp_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$omim\t$clinvar\t$hgmd\t$cosmic\n");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$esp_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$cosmic\n");
 }
 
 //if no variants are present, we need to write the header line after the loop

@@ -1,8 +1,6 @@
 <?php 
 /** 
 	@page vc_cnvhunter
-
-	@todo check if filtering for germline CN-polymorphisms improves somatic output
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -333,7 +331,6 @@ if($somatic)
 	$cnvs_somatic = $tmp_matrix;
 	
 	//fix region information
-	//@todo use seg file to update marker count / zscores / regions
 	$tmp_matrix = new Matrix();
 	$tmp_matrix->setComments($cnvs_somatic->getComments());
 	$tmp_matrix->setHeaders($cnvs_somatic->getHeaders());

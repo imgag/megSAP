@@ -259,7 +259,7 @@ check(convert_hgvs2genomic("NM_001166131.1", "c.410_412dupAGC"),array("chr17",48
 check(convert_hgvs2genomic("NM_000271.4", "c.3570_3573dupACTT"),array("chr18",21114431,21114431,"-","AAGT"));
 
 
-//TODO NPC1:
+//@TODO NPC1:
 #WARNING: 'Start of variant in row 144 does not match converted start (c.3245+1dupG, converted: chr18:21116638-21116637, previous: chr18:21115664-21115664). Skipping.' in /mnt/SRV017/users/ahschrc1/sandbox/NPC1_miriam/combine_annotate.php:94.
 check(convert_hgvs2genomic("NM_007294.3", "c.1A>G"),array("chr17",41276113,41276113,"T","C"));
 
