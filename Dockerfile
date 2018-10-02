@@ -85,7 +85,6 @@ RUN chmod 755 download_*.sh && ./download_tools.sh
 
 FROM base-${UBUNTU_VERSION}
 COPY --from=build /megSAP/ /megSAP/
-COPY --from=build /cpanm /cpanm
 COPY --from=build /megSAP/data/dbs/ /megSAP/data/dbs_static/
 COPY --from=build /usr/local/share/perl/ /usr/local/share/perl/
 COPY --from=build /usr/local/lib/x86_64-linux-gnu/perl/ /usr/local/lib/x86_64-linux-gnu/perl/
