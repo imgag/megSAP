@@ -82,7 +82,7 @@ find_unused_tools: dummy
 	php src/Tools/find_unused_tools.php -ngsbits ../ngs-bits/ -megsap .
 
 todos:
-	find . -name "*.php" | xargs grep "@todo" | egrep -v "somatic|strelka"
+	find . -name "*.php" | xargs grep -i "@todo" 
 
 swap_settings:
 	mv settings.ini settings.ini.swap

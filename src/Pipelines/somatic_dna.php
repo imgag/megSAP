@@ -151,11 +151,11 @@ if (in_array("vc", $steps))
 	else
 	{
 		$args_manta = [
-			"-t_bam", $t_bam,
-			"-out", $manta_sv,
-			"-build", $sys['build'],
-			"-smallIndels", $manta_indels,
-			"-threads", $threads
+			"-t_bam {$t_bam}",
+			"-out {$manta_sv}",
+			"-build ".$sys['build'],
+			"-smallIndels {$manta_indels}",
+			"-threads {$threads}"
 		];
 		if (!$single_sample)
 		{
@@ -210,18 +210,19 @@ if (in_array("vc", $steps))
 	else
 	{
 		$args_strelka = [
-			"-t_bam", $t_bam,
-			"-n_bam", $n_bam,
-			"-out", $variants,
-			"-build", $sys['build']
+			"-t_bam {$t_bam}",
+			"-n_bam {$n_bam}",
+			"-out {$variants}",
+			"-build ".$sys['build'],
+			"-threads {$threads}"
 		];
 		if (!empty($roi))
 		{
-			$args_strelka[] = "-target $roi";
+			$args_strelka[] = "-target {$roi}";
 		}
 		if (is_file($manta_indels))
 		{
-			$args_strelka[] = "-smallIndels $manta_indels";
+			$args_strelka[] = "-smallIndels {$manta_indels}";
 		}
 		$parser->execTool("NGS/vc_strelka2.php", implode(" ", $args_strelka));
 	}
@@ -430,7 +431,7 @@ if (in_array("an", $steps))
 }
 
 //QCI/CGI annotation
-//TODO: implementation for translocation files
+//@TODO: implementation for translocation files
 $variants_qci = $full_prefix . "_var_qci.vcf.gz";				//CGI annotated vcf file
 if (in_array("ci", $steps))
 {

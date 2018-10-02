@@ -22,7 +22,7 @@ Therefore, a ready-to-use version of _megSAP_ is available via a Docker image:
 
 ## ChangeLog
 
-* 02.10.2018: Using Ensembl VEP for variant annotation now (was SnpEff)
+* 04.10.2018: Using Ensembl VEP for variant annotation now (was SnpEff)
 * 07.08.2018: Removed most annotation from the 'filter' column and moved the functionality to GSvar.
 * 20.07.2018: Updated ABRA2 version (attention: this changes indel positions - see ABRA2 2.06 changelog) 
 * 17.07.2018: Added '##PIPELINE' header line to GSvar files to keep track of the megSAP version the file was created with.
@@ -48,4 +48,5 @@ Documentation about the different analysis pipelines can be found here:
 * [DNA analysis (multi-sample and trio)](doc/dna_multi_sample.md)
 * [DNA analysis (tumor-normal pair)](doc/dna_tumor-normal_pair.md)
 * [RNA analysis (expression)](doc/rna_expression.md)
+
 

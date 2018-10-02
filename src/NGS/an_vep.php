@@ -3,8 +3,10 @@
 	@page an_vep
 */
 
-//TODO test plugins: dbscSNV,GeneSplicer,MaxEntScan
-//TODO test: --regulatory --gene_phenotype --ccds --biotype --canonical --pubmed
+//@TODO - check for new VEP versions that bug is fixed: chr2:48033890 CT>C not annotated with dbSNP identifier rs267608137
+//@TODO - check for new VEP versions that bug is fixed: chr17:41244936 G>A not annotated with 1000 Genomes AF
+//@TODO test plugins: dbscSNV,GeneSplicer,MaxEntScan
+//@TODO test: --regulatory --gene_phenotype --ccds --biotype --canonical --pubmed
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 

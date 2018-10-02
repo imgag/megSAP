@@ -27,7 +27,22 @@ extract($parser->parse($argv));
 //init
 if(!db_is_enabled("NGSD") && ($n_id == "auto" || $cov_pairs == "auto" || !isset($system)))
 {
-	trigger_error("NGSD is not available. Please provide -n_id, -cov_pairs and -system manually.",E_USER_ERROR);
+	trigger_error("NGSD is not available. Please provide -n_id, -cov_pairs and -system manually.", E_USER_ERROR);
+}
+
+//extract tool path from ClinCNV command
+$tool_folder = "";
+$parts = explode(" ", get_path("clincnv_somatic"));
+foreach($parts as $part)
+{
+	if ($part!="" && file_exists($part))
+	{
+		$tool_folder = $part;
+	}
+}
+if ($tool_folder=="")
+{
+	trigger_error("Could not determine tool folder of ClinCNV!", E_USER_ERROR);
 }
 
 //creates file with all tumor-normal sample identifiers of the same processing system
@@ -198,14 +213,16 @@ foreach($somatic_pairs as $line)
  *******************/
 //Determine folder for cohort output
 if($cohort_folder == "auto")
-{
-	//create subdir in clincnv folder for cohort data
-	if(!file_exists(get_path("ClinCnvSomatic") . "/cohorts"))
+{	
+	//create main cohorts folder
+	if(!file_exists("{$tool_folder}/cohorts"))
 	{
-		mkdir(get_path("ClinCnvSomatic") . "/cohorts");
-		chmod($cohort_folder,0777);
+		mkdir("{$tool_folder}/cohorts");
+		chmod("{$tool_folder}/cohorts", 0777);
 	}
-	$cohort_folder = get_path("ClinCnvSomatic") . "/" . "cohorts/".$sys['name_short'] . "/";
+	
+	//create system-specific cohorts folder
+	$cohort_folder = "{$tool_folder}/cohorts/".$sys['name_short']."/";
 	if(!file_exists($cohort_folder))
 	{
 		mkdir($cohort_folder);
@@ -217,7 +234,7 @@ if(!file_exists($cohort_folder))
 	trigger_error("Directory for cohort output {$cohort_folder} does not exist.",E_USER_ERROR);
 }
 $call_cnvs_exec_path = get_path("clincnv_somatic")."/firstStep.R";
-$call_cnvs_params = " --normal {$merged_cov_normal} --tumor {$merged_cov_tumor} --out {$cohort_folder} --pair {$cov_pairs} --bed {$tmp_bed_annotated} --colNum 4 --folderWithScript ".get_path("ClinCnvSomatic")." --lengthS 1 --scoreS 40";
+$call_cnvs_params = " --normal {$merged_cov_normal} --tumor {$merged_cov_tumor} --out {$cohort_folder} --pair {$cov_pairs} --bed {$tmp_bed_annotated} --colNum 4 --folderWithScript {$tool_folder} --lengthS 1 --scoreS 40";
 print($call_cnvs_params ."\n");
 if($reanalyse_cohort) //Delete all sample files in cohort folder if reanalysis shall be performed
 {

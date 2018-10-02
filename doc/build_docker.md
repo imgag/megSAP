@@ -19,4 +19,4 @@ docker build --build-arg UBUNTU_VERSION=18 -t megSAP:local .
 ```
 
 ### Uploading Docker to the registry
-- [ ] TODO
+- [ ] @TODO

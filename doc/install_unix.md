@@ -12,7 +12,7 @@ We are providing instructions for Ubuntu 16.04 and 18.04 officially. However thi
 ### Base dependencies (Ubuntu 16.04)
 
 ```
-	> sudo apt-get update && apt-get install -y
+    > sudo apt-get update && apt-get install -y
     bzip2 \
     default-jre \
     perl-base \
@@ -43,7 +43,7 @@ We are providing instructions for Ubuntu 16.04 and 18.04 officially. However thi
 ### Base dependencies (Ubuntu 18.04)
 
 ```
-	> sudo apt-get update && apt-get install -y \
+    > sudo apt-get update && apt-get install -y \
     bzip2 \
     default-jre \
     perl-base \ 
@@ -89,7 +89,7 @@ If you haven't already, check out the repository with
 
 If you are behind a proxy that block the standard git port, you see something like this:
 
-    $ git clone --recursive https://github.com/imgag/megSAP.git
+    $ git clone https://github.com/imgag/megSAP.git
     Cloning into 'megSAP'...
     fatal: Unable to look up github.com (port 9418) (Name or service not known)
 
@@ -126,5 +126,6 @@ Finally, we need to download and convert some open-source databases for annotati
 ## Execution
 
 Now the pipelines with all required tools and data are installed. They can be found within the `src/Pipelines` folder. Go to the [documentation](../README.md) for further details.
+
 
 

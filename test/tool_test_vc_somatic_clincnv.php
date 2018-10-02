@@ -29,7 +29,7 @@ $t_cov = "{$cov_folder_t}/DX000002_01.cov";
 $n_cov = "{$cov_folder_n}/DX000002_02.cov";
 
 check_exec("php ".src_folder()."/NGS/{$name}.php -t_id DX000002_01 -n_id DX000002_02 -cov_folder_n $cov_folder_n -cov_folder_t $cov_folder_t -cohort_folder $cohort_folder -cov_pairs $t_n_pair_file -out $out_file1 -t_cov $t_cov -n_cov $n_cov -bed $bed_file -system $system_file");
-check_file($out_file1, data_folder().$name."_ref1.tsv");
+check_file($out_file1, data_folder().$name."_out1.tsv");
 
 //check whether each tumor-normal pair from $t_n_pair_file was created
 foreach(file($t_n_pair_file) as $line)
