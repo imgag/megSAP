@@ -202,6 +202,10 @@ for($i = 0; $i < $variants->rows(); ++$i)
 	if ($tf < $min_taf) $filter[] = "freq-tum";
 	if ($nf > 1/6 * $tf) $filter[] = "freq-nor";
 
+	if(empty($filter))
+	{
+		$filter[] = "PASS";
+	}
 	$row[6] = implode(";", $filter);
 
 	$variants_filtered->addRow($row);
