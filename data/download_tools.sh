@@ -1,4 +1,5 @@
 #!/bin/bash
+root=`pwd`
 mkdir -p `pwd`/tools
 folder=`pwd`/tools/
 
@@ -13,7 +14,7 @@ rm -rf RepeatMasker-open-4-0-6.tar.gz
 cd $folder
 git clone https://github.com/imgag/ngs-bits.git --depth 1
 cd ngs-bits
-git checkout 2018_06 && git submodule update --recursive --init
+git checkout 2018_06 && git submodule update --recursive --init --depth 1
 make build_3rdparty
 make build_tools_release
 
@@ -29,14 +30,14 @@ make
 cd $folder
 git clone https://github.com/ekg/freebayes.git --depth 1
 cd freebayes
-git checkout v1.1.0 && git submodule update --recursive --init
+git checkout v1.1.0 && git submodule update --recursive --init --depth 1
 make
 
 #download and build vcflib
 cd $folder
 git clone https://github.com/vcflib/vcflib.git --depth 1
 cd vcflib
-git checkout v1.0.0-rc1 && git submodule update --recursive --init
+git checkout v1.0.0-rc1 && git submodule update --recursive --init --depth 1
 make
 
 #download ABRA2
@@ -67,4 +68,6 @@ cd ClinCNV
 git checkout 1.01
 
 #download and build VEP
+cd $root
+chmod 755 download_tools_vep.sh
 ./download_tools_vep.sh
