@@ -19,3 +19,11 @@ tar xjf manta-1.3.2.centos6_x86_64.tar.bz2
 rm manta-1.3.2.centos6_x86_64.tar.bz2
 cd manta-1.3.2.centos6_x86_64
 sed -i 's#referenceFasta = /illumina/development/Isis/Genomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa##g' bin/configManta.py.ini
+
+
+#download mantis
+cd $folder
+wget https://github.com/OSU-SRLab/MANTIS/archive/v1.0.4.tar.gz
+tar xzf v1.0.4.tar.gz
+rm v1.0.4.tar.gz
+cd MANTIS-1.0.4
