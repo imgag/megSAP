@@ -14,6 +14,12 @@ samblaster = [path]/data/tools/samblaster/samblaster
 bwa = [path]/data/tools/bwa-0.7.17/bwa
 vep = [path]/data/tools/ensembl-vep/vep
 
+[tools-ngs-somatic]
+strelka2 = [path]/data/tools/strelka-2.8.4.centos6_x86_64/bin/
+manta = [path]/data/tools/manta-1.3.2.centos6_x86_64/bin/
+mantis = "@TODO"
+clincnv_somatic = Rscript --vanilla [path]/data/tools/ClinCNV-1.01/somatic/
+
 [tools-ngs-rna]
 STAR = [path]/data/tools/STAR-2.5.4a/bin/Linux_x86_64/STAR
 STAR-Fusion = [path]/data/tools/STAR-Fusion-v1.2.0/STAR-Fusion
@@ -21,20 +27,12 @@ feature_counts = [path]/data/tools/subread-1.6.0/bin/featureCounts
 skewer = [path]/data/tools/skewer_0.2.2/skewer
 subjunc = [path]/data/tools/subread-1.6.0/bin/subjunc
 salmon = [path]/data/tools/salmon-0.9.1/bin/salmon
-clincnv_somatic = Rscript --vanilla [path]/data/tools/ClinCNV-1.01/somatic/
-
-[tools-ngs-somatic]
-strelka = [path]/data/tools/strelka_workflow-1.0.14/bin
-strelka2 = [path]/data/tools/strelka-2.8.4.centos6_x86_64/bin/
-manta = [path]/data/tools/manta-1.3.2.centos6_x86_64/bin/
 
 [folders]
 local_data = [path]/data/genomes/
 data_folder = [path]/data/
 test_data_folder = [path]/data/test_data/
 project_folder = 
-project_folder_rna = 
-sample_status_folder = 
 
 [mysql-databases]
 db_host['NGSD'] = "localhost"
