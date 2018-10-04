@@ -703,7 +703,7 @@ while(!feof($handle))
 	$hgmd = collapse("HGMD", $hgmd, "one");
 
 	//MaxEntScan
-	$maxentscan = empty($maxentscan) ? "" : collapse("MaxEntScan", $maxentscan, "unique");
+	$maxentscan = implode(",", collapse("MaxEntScan", $maxentscan, "unique"));
 	
 	//GeneSplicer
 	$genesplicer = empty($genesplicer) ? "" : collapse("GeneSplicer", $genesplicer, "one");
