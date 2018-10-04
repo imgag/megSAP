@@ -3,9 +3,8 @@
 	@page an_vep
 */
 
-//@TODO - check for new VEP versions that bug is fixed: chr2:48033890 CT>C not annotated with dbSNP identifier rs267608137
-//@TODO - check for new VEP versions that bug is fixed: chr17:41244936 G>A not annotated with 1000 Genomes AF
-//@TODO test plugins: dbscSNV,GeneSplicer,MaxEntScan
+//@TODO check in new VEP versions that bug is fixed: chr2:48033890 CT>C not annotated with dbSNP identifier rs267608137
+//@TODO check in new VEP versions that bug is fixed: chr17:41244936 G>A not annotated with 1000 Genomes AF
 //@TODO test: --regulatory --gene_phenotype --ccds --biotype --canonical --pubmed
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -42,6 +41,14 @@ $fields[] = "REVEL";
 $args[] = "--plugin FATHMM_MKL,".get_path("data_folder")."/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz"; //fathmm-MKL
 $fields[] = "FATHMM_MKL_C";
 $fields[] = "FATHMM_MKL_NC";
+$args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
+$fields[] = "MaxEntScan_ref";
+$fields[] = "MaxEntScan_alt";
+$args[] = "--plugin GeneSplicer,{$vep_path}/GeneSplicer/bin/linux/genesplicer,{$vep_path}/GeneSplicer/human,context=50"; //GeneSplicer
+$fields[] = "GeneSplicer";
+$args[] = "--plugin dbscSNV,".get_path("data_folder")."/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"; //dbscSNV
+$fields[] = "ada_score";
+$fields[] = "rf_score";
 $args[] = "--custom ".get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz,gnomADg,vcf,exact,0,AF,Hom,Hemi"; //genomAD
 $fields[] = "gnomADg_AF";
 $fields[] = "gnomADg_Hom";

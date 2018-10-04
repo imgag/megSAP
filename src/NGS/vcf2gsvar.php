@@ -160,6 +160,9 @@ $column_desc = array(
 	array("fathmm-MKL", "fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
+	array("MaxEntScan", "MaxEntScan splicing prediction (difference in percent/reference bases score/alternate bases score)."),
+	array("GeneSplicer", "GeneSplicer splicing prediction (state/type/coordinates/confidence/score)."),
+	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
 );
 if ($genotype_mode=="single")
@@ -258,6 +261,11 @@ while(!feof($handle))
 			$i_hgmd_mut = index_of($cols, "HGMD_MUT", false);
 			$i_hgmd_gene = index_of($cols, "HGMD_GENE", false);
 			$i_hgmd_phen = index_of($cols, "HGMD_PHEN", false);
+			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
+			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
+			$i_genesplicer = index_of($cols, "GeneSplicer");
+			$i_dbscsnv_ada = index_of($cols, "ada_score");
+			$i_dbscsnv_rf = index_of($cols, "rf_score");
 		}
 
 		continue;
@@ -425,6 +433,10 @@ while(!feof($handle))
 	$clinvar = array();
 	$omim = array();
 	$hgmd = array();
+	$maxentscan = array();
+	$genesplicer = array();
+	$dbscsnv = array();
+	
 	//variant details (up/down-stream)
 	$variant_details_updown = array();
 	$genes_updown = array();
@@ -507,6 +519,27 @@ while(!feof($handle))
 					$text .= $hgmd_id[$i]." [CLASS=".$hgmd_class[$i]." MUT=".$hgmd_mut[$i]." PHEN=".strtr($hgmd_phen[$i], "_", " ")." GENE=".$hgmd_gene[$i]."]; ";
 				}
 				$hgmd[] = trim($text);
+			}
+			
+			//MaxEntScan
+			if ($parts[$i_maxes_ref]!="")
+			{
+				$diff = $parts[$i_maxes_alt] - $parts[$i_maxes_ref];
+				$result = number_format(100.0*$diff/$parts[$i_maxes_ref], 2). "% (".number_format($parts[$i_maxes_ref], 2).">".number_format($parts[$i_maxes_alt], 2).")";
+				if ($result>0) $result = "+".$result;
+				$maxentscan[] = $result;
+			}
+			
+			//GeneSplicer
+			if ($parts[$i_genesplicer]!="")
+			{
+				$genesplicer[] = $parts[$i_genesplicer];
+			}
+			
+			//dbscSNV
+			if ($parts[$i_dbscsnv_ada]!="" || $parts[$i_dbscsnv_rf]!="")
+			{
+				$dbscsnv[] = number_format($parts[$i_dbscsnv_ada],3)."/".number_format($parts[$i_dbscsnv_rf],3);
 			}
 			
 			//pathogenicity predictions (not transcript-specific)
@@ -668,12 +701,21 @@ while(!feof($handle))
 	
 	//HGMD
 	$hgmd = collapse("HGMD", $hgmd, "one");
+
+	//MaxEntScan
+	$maxentscan = empty($maxentscan) ? "" : collapse("MaxEntScan", $maxentscan, "unique");
+	
+	//GeneSplicer
+	$genesplicer = empty($genesplicer) ? "" : collapse("GeneSplicer", $genesplicer, "one");
+	
+	//dbscSNV
+	$dbscsnv = empty($dbscsnv) ? "" : collapse("dbscSNV", $dbscsnv, "one");
 	
 	//COSMIC
 	$cosmic = implode(",", collapse("COSMIC", $cosmic, "unique"));
 
 	//write data
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$esp_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$cosmic\n");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$esp_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic\n");
 }
 
 //if no variants are present, we need to write the header line after the loop

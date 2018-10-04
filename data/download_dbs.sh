@@ -3,27 +3,13 @@ set -e
 set -o pipefail
 set -o verbose
 
-if [ -z "$1" ]
-  then
-	dbs=`pwd`/dbs/
-  else	
-	dbs=$1/dbs/
-	mkdir -p $dbs
-fi
-
-src=`pwd`/../src/
-tools=`pwd`/tools/
+root=`pwd`
+src=$root/../src/
+tools=$root/tools/
+dbs=$root/dbs/
 ngsbits=$tools/ngs-bits/bin
 vcflib=$tools/vcflib/bin
-genome=`pwd`/genomes/GRCh37.fa
-static_dbs=`pwd`/dbs_static
-
-# Resolve issues when mounting inside Docker (copies stuff from static_dbs)
-if [ -d `static_dbs` ]; then
-	cp -rn `static_dbs`/CNPs dbs
-	cp -rn `static_dbs`/UCSC dbs
-	cp -rn `static_dbs`/CNPs dbs
-fi
+genome=$root/genomes/GRCh37.fa
 
 #Install REPEATMASKER - http://www.repeatmasker.org/species/hg.html
 cd $dbs
@@ -98,6 +84,16 @@ cd REVEL
 wget https://rothsj06.u.hpc.mssm.edu/revel/revel_all_chromosomes.csv.zip
 unzip -p revel_all_chromosomes.csv.zip | tr ',' '\t' | sed '1s/.*/#&/' | bgzip > revel_all_chromosomes.tsv.gz
 tabix -f -s 1 -b 2 -e 2 revel_all_chromosomes.tsv.gz
+
+#Install dbscSNV for VEP - https://academic.oup.com/nar/article/42/22/13534/2411339
+cd $dbs
+mkdir dbscSNV
+cd dbscSNV
+wget ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbscSNV1.1.zip
+unzip dbscSNV1.1.zip
+head -n1 dbscSNV1.1.chr1 > h
+cat dbscSNV1.1.chr* | grep -v ^chr | cat h - | bgzip -c > dbscSNV1.1_GRCh37.txt.gz
+tabix -s 1 -b 2 -e 2 -c c dbscSNV1.1_GRCh37.txt.gz
 
 #install OMIM (you might need a license - installation only possible after ngs-bits including NGSD is installed)
 #cd $dbs

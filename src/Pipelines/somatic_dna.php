@@ -498,7 +498,7 @@ if (in_array("ci", $steps))
 					trigger_error("Warning: There is no ICD10 diagnosis set in Genlab.",E_USER_WARNING);
 				}
 				
-				$dictionary = Matrix::fromTSV(repository_basedir()."/data/dbs/Ontologies/icd10_cgi_dictionary.tsv");
+				$dictionary = Matrix::fromTSV(repository_basedir()."/data/misc/icd10_cgi_dictionary.tsv");
 				$words_diagnoses = $dictionary->getCol($dictionary->getColumnIndex("icd10_code"));
 				$words_cgi_acronyms = $dictionary->getCol($dictionary->getColumnIndex("cgi_acronym"));
 				$words_hpo_terms = $dictionary->getCol($dictionary->getColumnIndex("hpo_term"));

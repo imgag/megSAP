@@ -423,7 +423,7 @@ if (in_array("cn", $steps))
 		//annotate CNP regions
 		$data_folder = get_path("data_folder");
 		$tmp2 = temp_file(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 ".repository_basedir()."/data/dbs/CNPs/copy_number_map_strict.bed -out {$tmp2}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 ".repository_basedir()."/data/dbs/misc/copy_number_map_strict.bed -out {$tmp2}", true);
 		
 		//annotate gene names
 		$tmp3 = temp_file(".bed");

@@ -1,11 +1,10 @@
 #!/bin/bash
-root=`pwd`
-mkdir -p `pwd`/tools
-folder=`pwd`/tools/
 
-cd $folder
+root=`pwd`
+folder=$root/tools/
 
 #download RepeatMasker
+cd $folder
 wget http://www.repeatmasker.org/RepeatMasker-open-4-0-6.tar.gz
 tar xzf RepeatMasker-open-4-0-6.tar.gz
 rm -rf RepeatMasker-open-4-0-6.tar.gz
@@ -71,3 +70,4 @@ git checkout 1.01
 cd $root
 chmod 755 download_tools_vep.sh
 ./download_tools_vep.sh
+

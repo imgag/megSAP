@@ -425,7 +425,7 @@ function load_qc_terms()
 	$terms = array();
 	
 	$current = array();
-	$h = fopen(repository_basedir()."/data/dbs/Ontologies/qc-cv.obo", "r");
+	$h = fopen(repository_basedir()."/data/misc/qc-cv.obo", "r");
 	while(!feof($h))
 	{
 		$line = trim(fgets($h));
