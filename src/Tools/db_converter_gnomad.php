@@ -2,8 +2,6 @@
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-$subpopulations = array("AFR"=>true, "AMR"=>true, "EAS"=>true, "NFE"=>true, "SAS"=>true);
-
 $handle = fopen("php://stdin", "r");
 while($line = fgets($handle))
 {
@@ -26,6 +24,8 @@ while($line = fgets($handle))
 	$info_new = array();
 	$af = null;
 	$an = null;
+	$hom = 0;
+	$hemi = 0;
 	foreach ($info as $entry)
 	{
 		//overall AF
@@ -36,6 +36,14 @@ while($line = fgets($handle))
 		else if (starts_with($entry, "AN="))
 		{
 			$an = substr($entry, 3);
+			$info_new[] = $entry;
+		}
+		else if (starts_with($entry, "Hom="))
+		{
+			$info_new[] = $entry;
+		}
+		else if (starts_with($entry, "Hemi="))
+		{
 			$info_new[] = $entry;
 		}
 	}

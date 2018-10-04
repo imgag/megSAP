@@ -425,7 +425,7 @@ function load_qc_terms()
 	$terms = array();
 	
 	$current = array();
-	$h = fopen(repository_basedir()."/data/dbs/Ontologies/qc-cv.obo", "r");
+	$h = fopen(repository_basedir()."/data/misc/qc-cv.obo", "r");
 	while(!feof($h))
 	{
 		$line = trim(fgets($h));
@@ -914,8 +914,11 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false)
 	//check that sample is not NIST reference sample (it is a cell-line)
 	if (contains($file, "NA12878")) return false;
 
-	//not NGSD => all samples valid
-	if (!db_is_enabled("NGSD")) return true;
+	//no NGSD => error
+	if (!db_is_enabled("NGSD"))
+	{
+		trigger_error("is_valid_ref_sample_for_cnv_analysis needs NGSD access!", E_USER_ERROR);
+	}
 
 	//check sample is in NGSD
 	$db_conn = DB::getInstance("NGSD");
@@ -944,13 +947,16 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false)
 	return true;
 }
 
-function is_valid_ref_tumor_sample_for_cnv_analysis($file,$discard_ffpe = false)
+function is_valid_ref_tumor_sample_for_cnv_analysis($file, $discard_ffpe = false)
 {
 	//check that sample is not NIST reference sample (it is a cell-line)
 	if (contains($file, "NA12878")) return false;
 
-	//not NGSD => all samples valid
-	if (!db_is_enabled("NGSD")) return true;
+	//no NGSD => error
+	if (!db_is_enabled("NGSD"))
+	{
+		trigger_error("is_valid_ref_tumor_sample_for_cnv_analysis needs NGSD access!", E_USER_ERROR);
+	}
 	
 	//check sample is in NGSD
 	$db_conn = DB::getInstance("NGSD");
@@ -978,8 +984,6 @@ function is_valid_ref_tumor_sample_for_cnv_analysis($file,$discard_ffpe = false)
 /// - sorts header lines
 /// - sorts info column by name
 /// - sorts and format/sample columns by format string
-/// - TODO?: sort filter column
-/// - TODO?: sort variants by chr/pos
 function load_vcf_normalized($filename)
 {
 	$comments = array();
@@ -1090,22 +1094,23 @@ function load_vcf_normalized($filename)
 
 function vcf_strelka_snv($format_col, $sample_col, $obs)
 {
-	if (!preg_match("/^[acgtACGT]*$/", $obs))	trigger_error("Invalid observed allele (".$format_col." ".$sample_col." ".$obs.").",E_USER_ERROR);
+	if (!preg_match("/^[acgtACGT]*$/", $obs))	trigger_error("Invalid observed allele (".$format_col." ".$sample_col." ".$obs.").", E_USER_ERROR);
 
-	$f = explode(":",$format_col);
+	$f = explode(":", $format_col);
 	$index_depth = array_search("DP",$f);
 	$index_TU = array_search("TU",$f);
 	$index_AU = array_search("AU",$f);
 	$index_CU = array_search("CU",$f);
 	$index_GU = array_search("GU",$f);
-	if($index_depth===FALSE || $index_TU===FALSE || $index_AU===FALSE || $index_CU===FALSE || $index_GU===FALSE)	trigger_error("Invalid strelka format; either field DP or A/C/G/T not available.",E_USER_ERROR);
+	if($index_depth===FALSE || $index_TU===FALSE || $index_AU===FALSE || $index_CU===FALSE || $index_GU===FALSE) trigger_error("Invalid strelka format: either field DP, TU, AU, CU or GU not available.", E_USER_ERROR);
 	
-	$d = explode(":",$sample_col)[$index_depth];
+	$entries = explode(":", $sample_col);
+	$d = $entries[$index_depth];
 	
-	list($tu,) = explode(",", explode(":",$sample_col)[$index_TU]);
-	list($au,) = explode(",", explode(":",$sample_col)[$index_AU]);
-	list($cu,) = explode(",", explode(":",$sample_col)[$index_CU]);
-	list($gu,) = explode(",", explode(":",$sample_col)[$index_GU]);
+	list($tu,) = explode(",", $entries[$index_TU]);
+	list($au,) = explode(",", $entries[$index_AU]);
+	list($cu,) = explode(",", $entries[$index_CU]);
+	list($gu,) = explode(",", $entries[$index_GU]);
 	$sum = $au + $tu + $cu + $gu;
 
 	$o = 0;
@@ -1113,7 +1118,7 @@ function vcf_strelka_snv($format_col, $sample_col, $obs)
 	else if($obs == "A") $o = $au;
 	else if($obs == "C") $o = $cu;
 	else if($obs == "G") $o = $gu;
-	else	trigger_error("Alternative allele '$obs' unknown (".$format_col." ".$sample_col." ".$obs.").",E_USER_WARNING);	// unknown alleles multiallelic or '.'
+	else trigger_error("Alternative allele '$obs' unknown (".$format_col." ".$sample_col." ".$obs.").", E_USER_WARNING);	// unknown alleles multiallelic or '.'
 
 	$f = 0;
 	if($sum!=0)	$f = number_format($o/$sum,4);
@@ -1123,22 +1128,21 @@ function vcf_strelka_snv($format_col, $sample_col, $obs)
 
 function vcf_strelka_indel($format_col, $sample_col)
 {
-	$f = explode(":",$format_col);
-
-	$index_depth =  array_search("DP",$f);
-	$index_TIR =  array_search("TIR",$f);
-	$index_TAR =  array_search("TAR",$f);
-	if($index_depth===FALSE || $index_TIR===FALSE || $index_TAR===FALSE)	trigger_error("Invalid strelka format; either field DP, TIR or TAR not available.",E_USER_ERROR);
+	$f = explode(":", $format_col);
+	$index_depth = array_search("DP",$f);
+	$index_TIR = array_search("TIR",$f);
+	$index_TAR = array_search("TAR",$f);
+	if($index_depth===FALSE || $index_TIR===FALSE || $index_TAR===FALSE) trigger_error("Invalid strelka format: either field DP, TIR or TAR not available.", E_USER_ERROR);
 	
-	$d = explode(":",$sample_col)[$index_depth];
-	list($tir,) = explode(",", explode(":",$sample_col)[$index_TIR]);
-	list($tar,) = explode(",", explode(":",$sample_col)[$index_TAR]);
-	if(!is_numeric($tir) || !is_numeric($tar))	trigger_error("Could not identify numeric depth for strelka indel (".$format_col." ".$sample_col.")", E_USER_ERROR);
+	$entries = explode(":", $sample_col);
+	$d = $entries[$index_depth];
+	list($tir,) = explode(",", $entries[$index_TIR]);
+	list($tar,) = explode(",", $entries[$index_TAR]);
+	if(!is_numeric($tir) || !is_numeric($tar)) trigger_error("Could not identify numeric depth for strelka indel (".$format_col." ".$sample_col.")", E_USER_ERROR);
 
 	//tir and tar contain strong supportin reads, tor (not considered here) contains weak supportin reads like breakpoints
 	//only strong supporting reads are used for calculation of allele fraction
-	$f = 0;
-	if(($tir+$tar) != 0)	$f = number_format($tir/($tir+$tar),4);
+	$f = ($tir+$tar)==0 ? 0.0 : number_format($tir/($tir+$tar), 4);
 	
 	return array($d,$f);
 }
@@ -1290,8 +1294,7 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 		$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
 		$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
 		$parts['DiseaseGroup'] = $details['disease_group'];
-		$parts['DiseaseStatus'] = $details['disease_status'];		
-		//TODO: take detailed phenotype info from NGSD as well
+		$parts['DiseaseStatus'] = $details['disease_status'];
 	}
 	
 	//apply overwrite settings

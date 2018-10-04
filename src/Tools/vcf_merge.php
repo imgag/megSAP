@@ -1,10 +1,6 @@
 <?php
 /** 
 	@page vcf_merge
-	
-	@todo merge without vcftools 'vcf-merge'
-	@todo make format/sample column content configurable
-	@todo make quality/info column content configurable
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

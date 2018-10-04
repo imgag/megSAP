@@ -93,6 +93,6 @@ $out = $out_folder."/".$name.".bam";
 $parser->sortBam($bismark_bam, $out, $threads);
 $parser->indexBam($out, $threads);
 
-//TODO MappingQC
+//@TODO MappingQC
 
 ?>

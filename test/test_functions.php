@@ -309,7 +309,6 @@ start_test("sort_vcf_comments");
 
 $comments = array(
 	"#contig=<ID=chrUn_gl000249,length=38502>",
-	"#PEDIGREE=<Tumor=GS140850_02,Normal=GS140851_02>",
 	"#SAMPLE=<ID=DX123458_01,Gender=n/a,DiseaseStatus=affected>",
 	"#SAMPLE=<ID=DX123457_01,Gender=female,DiseaseStatus=control>",
 	"#SAMPLE=<ID=DX123456_01,Gender=male,DiseaseStatus=control>",
@@ -327,7 +326,6 @@ $comments_out = array(
 	"#SAMPLE=<ID=DX123458_01,Gender=n/a,DiseaseStatus=affected>",
 	"#SAMPLE=<ID=DX123457_01,Gender=female,DiseaseStatus=control>",
 	"#SAMPLE=<ID=DX123456_01,Gender=male,DiseaseStatus=control>",
-	"#PEDIGREE=<Tumor=GS140850_02,Normal=GS140851_02>",
 );
 check(sort_vcf_comments($comments), $comments_out);
 

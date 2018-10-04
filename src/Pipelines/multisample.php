@@ -82,7 +82,7 @@ foreach($bams as $bam)
 
 //extract processing system information from DB
 $sys = load_system($system, $names[$bams[0]]);
-$target_file = $sys['type']!="WGS" ? $sys['target_file'] : get_path("data_folder")."/enrichment/ssHAEv6_2017_01_05.bed";
+$target_file = $sys['type']!="WGS" ? $sys['target_file'] : get_path("data_folder")."/gene_lists/genes_exons.bed";
 if ($target_file=="")
 {
 	trigger_error("Cannot perform multi-sample analysis without target region (processing systems of ".$bams[0]." is '".$sys["name_short"]."')!", E_USER_ERROR);
@@ -423,7 +423,7 @@ if (in_array("cn", $steps))
 		//annotate CNP regions
 		$data_folder = get_path("data_folder");
 		$tmp2 = temp_file(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 ".repository_basedir()."/data/dbs/CNPs/copy_number_map_strict.bed -out {$tmp2}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 ".repository_basedir()."/data/misc/copy_number_map_strict.bed -out {$tmp2}", true);
 		
 		//annotate gene names
 		$tmp3 = temp_file(".bed");

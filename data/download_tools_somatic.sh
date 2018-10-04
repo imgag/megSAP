@@ -9,7 +9,6 @@ cd $folder
 wget https://github.com/Illumina/strelka/releases/download/v2.8.4/strelka-2.8.4.centos6_x86_64.tar.bz2
 tar xjf strelka-2.8.4.centos6_x86_64.tar.bz2
 rm strelka-2.8.4.centos6_x86_64.tar.bz2
-cd strelka-2.8.4.centos6_x86_64
 
 
 #download manta
@@ -26,4 +25,3 @@ cd $folder
 wget https://github.com/OSU-SRLab/MANTIS/archive/v1.0.4.tar.gz
 tar xzf v1.0.4.tar.gz
 rm v1.0.4.tar.gz
-cd MANTIS-1.0.4

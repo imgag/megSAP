@@ -1,2 +1,0 @@
-numpy
-pysam==0.12

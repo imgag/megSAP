@@ -85,15 +85,25 @@ while(!feof($handle))
 	$disorders = trim($parts[11]);
 	$disorders = trim(strtr($disorders, array("(1)"=>"", "(2)"=>"", "(3)"=>"", "(4)"=>"", "["=>"", "]"=>"", "{"=>"", "}"=>"", "?"=>"", ";"=>"|")));
 	$disorders = trim(strtr($disorders, array(" , "=>",", " ,"=>",", ", "=>",")));
-	$disorders = trim(strtr($disorders, array(" | "=>"|", " |"=>"|", "| "=>"|")));
+	$disorders = trim(strtr($disorders, array(" | "=>"/", " |"=>"/", "| "=>"/")));
 	$disorders = trim(strtr($disorders, array(" "=>"_")));
 	if ($disorders=="") continue;
 	
-	//chromosome
-	$chr_omim = "chr".trim($parts[0]);
-	$chr_omim = substr($chr_omim, 0, strpos($chr_omim, "."));
-	if ($chr_omim=="chr23") $chr_omim="chrX";
-	if ($chr_omim=="chr24") $chr_omim="chrY";
+	//chromosome (from cytoband)
+	$chr_omim = strtr(trim($parts[4]), array("Chr."=>""));
+	if (contains($chr_omim, "p"))
+	{
+		$chr_omim = substr($chr_omim, 0, strpos($chr_omim, "p")); //p-arm
+	}
+	else if (contains($chr_omim, "q"))
+	{
+		$chr_omim = substr($chr_omim, 0, strpos($chr_omim, "q")); //q-arm
+	}
+	else if (contains($chr_omim, "c"))
+	{
+		$chr_omim = substr($chr_omim, 0, strpos($chr_omim, "c")); //centromer
+	}
+	$chr_omim = "chr".$chr_omim;
 	
 	//convert genes to approved symbols
 	$genes_approved = array();
@@ -110,12 +120,17 @@ while(!feof($handle))
 	foreach($genes_approved as $gene)
 	{
 		list($stdout, $stderr, $exit_code) = exec2("echo '$gene' | ".get_path("ngs-bits")."GenesToBed -source ensembl -mode gene -fallback | ".get_path("ngs-bits")."BedMerge", false);
+	
 		if ($exit_code==0 && trim(implode("", $stdout))!="")
 		{
 			foreach($stdout as $line)
 			{
 				list($chr, $start, $end) = explode("\t", trim($line));
-				if ($chr!=$chr_omim) continue;
+				if ($chr!=$chr_omim)
+				{
+					//print "For MIM/gene '$mim_id/$gene' chromosome is '$chr', but OMIM chromosome is '$chr_omim'!\n";
+					continue;
+				}
 				$start -= 20;
 				$end += 20;
 				print "$chr	$start	$end	{$mim_id}_[{$gene}_({$status})_{$disorders}]\n";

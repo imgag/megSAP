@@ -2,8 +2,6 @@
 
 /*
 	@page indel_realign_abra
-	
-	@todo Implement germline/tumor/rna mode with respective paramters (mad, mer, ...)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

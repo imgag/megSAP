@@ -436,7 +436,7 @@ if(isset($mutations))
 		$sample_id = basename($cnas,"_clincnv.tsv");
 	}
 }
-//TODO: sample_id if only translocations are given
+//@TODO: sample_id if only translocations are given
 if(strpos($mutations,".gz") !== false)
 {
 	exec2("gzip -d -k -f  $mutations");

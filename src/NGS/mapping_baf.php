@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("mapping_baf", "Generate SEG file that contains bafs.");
+$parser = new ToolBase("mapping_baf", "Generate SEG file that contains b-allele frequencies.");
 $parser->addInfile("in",  "Input BAM file.", false);
 $parser->addOutfile("out",  "Output IGV file.", false);
 //optional
@@ -17,7 +17,7 @@ $parser->addInfile("target",  "Target bed file used to identify common SNPs in t
 $parser->addInfile("n_in",  "Input normal file in BAM format (somatic mode).", true);
 $parser->addFloat("min_af", "Minimum allele frequency of SNPs to use.", true, 0.01);
 $parser->addInt("min_dp", "Minimum depth of SNPs in BAM.", true, 20);
-$parser->addString("base_vcf", "Base variant list, records must contain AF field.", true, get_path("data_folder")."dbs/1000G/1000g_v5b.vcf.gz");
+$parser->addString("base_vcf", "Base variant list, records must contain AF field.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz");
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
@@ -102,7 +102,7 @@ if (!file_exists($filtered_variants))
 			continue;
 		}
 
-		// skip indels
+		// skip indels and multi-allelic sites
 		if (strlen($ref) > 1 || strlen($alt) > 1)
 		{
 			continue;

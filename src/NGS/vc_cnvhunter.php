@@ -1,8 +1,6 @@
 <?php 
 /** 
 	@page vc_cnvhunter
-
-	@todo check if filtering for germline CN-polymorphisms improves somatic output
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -76,7 +74,7 @@ if(!is_dir($temp_folder) || !is_writable($temp_folder))
 	trigger_error("Temp folder '$temp_folder' not writable.", E_USER_ERROR);
 }
 $args[] = "-out {$temp_folder}/cnvs.tsv";
-$args[] = "-cnp_file ".repository_basedir()."/data/dbs/CNPs/copy_number_map_strict.bed";
+$args[] = "-cnp_file ".repository_basedir()."/data/misc/copy_number_map_strict.bed";
 $omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 $args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed ".(file_exists($omim_file) ? $omim_file : "");
 $parser->exec(get_path("ngs-bits")."CnvHunter", implode(" ", $args), true);
@@ -333,7 +331,6 @@ if($somatic)
 	$cnvs_somatic = $tmp_matrix;
 	
 	//fix region information
-	//@todo use seg file to update marker count / zscores / regions
 	$tmp_matrix = new Matrix();
 	$tmp_matrix->setComments($cnvs_somatic->getComments());
 	$tmp_matrix->setHeaders($cnvs_somatic->getHeaders());
@@ -398,7 +395,7 @@ if($somatic)
 	$end = 0;
 	$arm = "";
 	$chrom_arms = array();
-	$matrix = Matrix::fromTSV(repository_basedir()."/data/dbs/UCSC/cytoBand.txt");
+	$matrix = Matrix::fromTSV(repository_basedir()."/data/misc/cytoBand.txt");
 	for($i=0;$i<$matrix->rows();++$i)
 	{
 		$row = $matrix->getRow($i);

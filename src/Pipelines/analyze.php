@@ -18,7 +18,6 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mappi
 $parser->addFlag("backup", "Backup old analysis files to old_[date] folder.");
 $parser->addFlag("lofreq", "Add low frequency variant detection.", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
-$parser->addInt("thres", "Splicing region size used for annotation (flanking the exons).", true, 20);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
 $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.", true);
@@ -217,7 +216,9 @@ if (in_array("an", $steps))
 	if(file_exists($log_an)) unlink($log_an);
 
 	//annotate
-	$args = array("-out_name $name", "-out_folder $out_folder", "-system $system", "-thres $thres", "--log $log_an");
+	$args = array("-out_name $name", "-out_folder {$out_folder}", "-system {$system}", "--log {$log_an}");
+	if ($sys['type']=="WGS") $args[] = "-updown";
+	$args[] = "-threads {$threads}";
 	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
 	
 	//ROH detection
@@ -243,7 +244,7 @@ if (in_array("cn", $steps) && $sys['type']!="WGS" && $sys['target_file']!="")
 	$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $bamfile -in ".$sys['target_file']." -out $cov_file", true);
 
 	//copy coverage file to reference folder (has to be done before CnvHunter call to avoid analyzing the same sample twice)
-	if (is_valid_ref_sample_for_cnv_analysis($name))
+	if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
 	{
 		//create reference folder if it does not exist
 		$ref_folder = get_path("data_folder")."/coverage/".$sys['name_short']."/";

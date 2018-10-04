@@ -4,7 +4,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 function substr_clear($str, $start)
 {
-	return trim(strtolower(strtr(substr($str, $start), "|", ",")));
+	return trim(strtr(substr($str, $start), array("|"=>"[c]", ","=>"[c]")));
 }
 
 
@@ -13,9 +13,7 @@ setlocale(LC_ALL, 'de_DE.UTF8');
 
 //print header
 print "##fileformat=VCFv4.1\n";
-print "##INFO=<ID=SIG,Number=.,Type=String,Description=\"ClinVar clinical significance\">\n";
-print "##INFO=<ID=ACC,Number=.,Type=String,Description=\"ClinVar variation ID\">\n";
-print "##INFO=<ID=DISEASE,Number=.,Type=String,Description=\"ClinVar disease annotation\">\n";
+print "##INFO=<ID=DETAILS,Number=.,Type=String,Description=\"ClinVar disease/significance annotation\">\n";
 print "#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO\n";
 
 $debug = false;
@@ -88,22 +86,23 @@ while(!feof($in))
 		$accs[] = $acc_inc;
 		$diss[] = $dis_inc;
 	}
-		
-	//output
-	if  (count($sigs))
-	{
-		$parts[0] = "chr".$parts[0];
-		$parts[2] = ".";
-		$parts[5] = ".";
-		$parts[6] = ".";
-		
-		$disease = iconv("utf-8","ascii//TRANSLIT", implode("|", $diss));
-		$parts[7] = "SIG=".implode("|", $sigs).";ACC=".implode("|", $accs).";DISEASE=".$disease."";		
-		print implode("\t", $parts)."\n";
-	}
-	else		
+	
+	//skip variant without significance
+	if (count($sigs)==0)
 	{
 		if ($debug) print "SKIPPED NOSIG: $line\n";
+		continue;
+	}
+
+	//output
+	$parts[0] = "chr".$parts[0];
+	$parts[5] = ".";
+	$parts[6] = ".";		
+	for($i=0; $i<count($sigs); ++$i)
+	{
+		$parts[2] = $accs[$i];	
+		$parts[7] = "DETAILS=".strtolower($sigs[$i])."[p]".iconv("utf-8","ascii//TRANSLIT", $diss[$i]);		
+		print implode("\t", $parts)."\n";
 	}
 }
 

@@ -12,7 +12,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("check_tsv", "Performs TSV file format check.");
 $parser->addInfile("in",  "Input file in TSV format.", false);
 //optional
-$parser->addInt("limit", "The number of variants to check for format-specific checks. '0' means all.", true, 10000);
+$parser->addInt("limit", "The number of variants to check for format-specific checks. '0' means all.", true, 1000);
 extract($parser->parse($argv));
 
 //define format in the following format: column index, name, type

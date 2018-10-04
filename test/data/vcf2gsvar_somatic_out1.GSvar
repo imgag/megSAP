@@ -1,61 +1,50 @@
-##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample Tumor).
-##DESCRIPTION=tumor_dp=Tumor Depth (Sample Tumor).
-##DESCRIPTION=normal_af=Mutant allele frequency in normal (Sample Normal).
-##DESCRIPTION=normal_dp=Normal depth (Sample Normal).
-##DESCRIPTION=filter=Filter criteria from vcf file.
-##DESCRIPTION=snp_q=Quality parameters - SNP quality (QUAL).
+##ANALYSISTYPE=SOMATIC_PAIR
+##PIPELINE=megSAP 0.1-893-ga055b8e
+##FILTER=all-unknown=Allele unknown
+##FILTER=depth-nor=Sequencing depth in normal is too low (< 20)
+##FILTER=depth-tum=Sequencing depth in tumor is too low (< 20)
+##FILTER=freq-nor=Allele frequency in normal > 0.17 * allele frequency in tumor
+##FILTER=freq-tum=Allele frequency in tumor < 0.05
+##FILTER=LowDepth=Tumor sample read depth at this locus is below 2
+##FILTER=LowEVS=Somatic Empirical Variant Score (SomaticEVS) is below threshold
+##FILTER=lt-3-reads=Less than 3 supporting tumor reads
+##FILTER=off-target=Variant marked as 'off-target'.
+##FILTER=special-chromosome=Special chromosome
+##SAMPLE=<ID=GS110168,Gender=,ExternalSampleName=,IsTumor=yes,IsFFPE=no,DiseaseGroup=,DiseaseStatus=>
+##SAMPLE=<ID=GS110169,Gender=,ExternalSampleName=,IsTumor=no,IsFFPE=no,DiseaseGroup=,DiseaseStatus=>
+##DESCRIPTION=filter=Annotations for filtering and ranking variants.
+##DESCRIPTION=quality=Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM).
 ##DESCRIPTION=gene=Affected gene list (comma-separated).
 ##DESCRIPTION=variant_type=Variant type.
-##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon number, HGVS.c, HGVS.p).
-##DESCRIPTION=interpro=Interpro domains.
-##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
-##DESCRIPTION=dbSNP=Identifier in dbSNP database.
-##DESCRIPTION=1000g=Allele frequency in all populations of 1000g project.
-##DESCRIPTION=ExAC=Allele frequency in all populations of ExAC project.
-##DESCRIPTION=gnomAD=Allele frequency in gnomAD database.
-##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
 ##DESCRIPTION=OMIM=OMIM database annotation.
 ##DESCRIPTION=ClinVar=ClinVar database annotation.
 ##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.
+##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).
+##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.
+##DESCRIPTION=ESP_sub=Sub-population allele frequency (EA,AA) in NHLBI Exome Sequencing project.
 ##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
-##DESCRIPTION=MetaLR=MetaLR effect prediction: D=damaging, T=tolerated.
-##DESCRIPTION=Sift=Sift effect prediction: D=damaging, T=tolerated.
-##DESCRIPTION=PolyPhen2=Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
-##DESCRIPTION=FATHMM=FATHMM effect prediction: D=damaging, T=tolerated.
+##DESCRIPTION=Sift=Sift effect prediction for each transcript: D=damaging, T=tolerated.
+##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction for each transcript: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.
 ##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20.
-##DESCRIPTION=ihdb_hom=Homozygous variant counts in NGSD for the same processing system.
-##DESCRIPTION=ihdb_het=Heterozyous variant counts in NGSD for the same processing system.
-##DESCRIPTION=ihdb_wt=Wildtype variant counts in NGSD for the same processing system.
-##DESCRIPTION=ihdb_allsys_hom=Homozygous variant counts in NGSD independent of the processing system.
-##DESCRIPTION=ihdb_allsys_het=Heterozygous variant counts in NGSD independent of the processing system.
-##DESCRIPTION=classification=Classification from the NGSD.
-##DESCRIPTION=classification_comment=Classification comment from the NGSD.
-##DESCRIPTION=validated=Validation information from the NGSD. Validation results of other samples are listed in brackets!
-##DESCRIPTION=comment=Comments from the NGSD. Comments of other samples are listed in brackets!
-##DESCRIPTION=gene_info=General gene information from the NGSD.
-##DESCRIPTION=som_ihdb_c=Somatic variant count within NGSD.
-##DESCRIPTION=som_ihdb_p=Projects with somatic variant in NGSD.
-##FILTER=BCNoise=Fraction of basecalls filtered at this site in either sample is at or above 0.4
-##FILTER=SpanDel=Fraction of reads crossing site with spanning deletions in either sample exceeeds 0.75
-##FILTER=QSS_ref=Normal sample is not homozygous ref or ssnv Q-score < 15
-##FILTER=Repeat=Sequence repeat of more than 8x in the reference sequence
-##FILTER=iHpol=Indel overlaps an interrupted homopolymer longer than 14x in the reference sequence
-##FILTER=BCNoise=Average fraction of filtered basecalls within 50 bases of the indel exceeds 0.3
-##FILTER=QSI_ref=Normal sample is not homozygous ref or sindel Q-score < 30
-##SAMPLE=<ID=GS140812,Tumor=yes,Gender=n/a>
-##SAMPLE=<ID=GS140813,Tumor=yes,Gender=n/a>
-##ANALYSISTYPE=SOMATIC_PAIR
-#chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	snp_q	gene	variant_type	coding_and_splicing	interpro	RepeatMasker	dbSNP	1000g	ExAC	gnomAD	COSMIC	OMIM	ClinVar	HGMD	phyloP	MetaLR	Sift	PolyPhen2	FATHMM	CADD	ihdb_hom	ihdb_het	ihdb_wt	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info	som_ihdb_c	som_ihdb_p
-chrM	16296	16296	C	T	1.0000	22	0.0000	18		61		intergenic_region	::intergenic_region:MODIFIER:::				0.0000	0.0000	0.0000																						
-chrM	16300	16300	T	C	0.0000	22	1.0000	18	QSS_ref	19		intergenic_region	::intergenic_region:MODIFIER:::				0.0000	0.0000	0.0000																						
-chrM	16528	16528	G	A	0.9286	14	0.0000	10		16		intergenic_region	::intergenic_region:MODIFIER:::				0.0000	0.0000	0.0000																						
-chr1	777232	777232	C	T	0.2917	26	0.0000	29	QSS_ref	10	LINC01128	intron_variant,non_coding_exon_variant	LINC01128:NR_047519.1:intron_variant:MODIFIER:exon2/5:n.288-5802C>T:,LINC01128:NR_015368.2:intron_variant:MODIFIER:exon2/7:n.288-5802C>T:,LINC01128:NR_047520.1:intron_variant:MODIFIER:exon2/6:n.288-5802C>T:,LINC01128:NR_047521.1:intron_variant:MODIFIER:exon2/4:n.288-10075C>T:,LINC01128:NR_047522.1:intron_variant:MODIFIER:exon2/5:n.288-10075C>T:,LINC01128:NR_047523.1:intron_variant:MODIFIER:exon2/3:n.288-10075C>T:,LINC01128:NR_047524.1:intron_variant:MODIFIER:exon2/3:n.288-10819C>T:,LINC01128:NR_047525.1:intron_variant:MODIFIER:exon2/4:n.155-10075C>T:,LINC01128:NR_047526.1:non_coding_exon_variant:MODIFIER:exon3/3:n.940C>T:			rs112618790	0.066893	0.0000	0.0000																						
-chr1	878314	878314	G	C	0.3939	66	0.0000	139		152	SAMD11,NOC2L	synonymous_variant,downstream_gene_variant	SAMD11:NM_152486.2:synonymous_variant:LOW:exon11/14:c.1440G>C:p.Gly480Gly,NOC2L:NM_015658.3:downstream_gene_variant:MODIFIER::c.*2309C>G:			rs142558220	0.043131	0.040	0.0669	COSM426784				-0.015000	T	T,T															
-chr1	976482	976492	GGAGCGGGGCG	-	1.0000	4	0.0000	2	QSI_ref	1	AGRN	intron_variant	AGRN:NM_198576.3:intron_variant:MODIFIER:exon4/35:c.728-71_728-61delGGAGCGGGGCG:				0.0000	0.0000	0.0000		103320 [AGRN (provisional) Myasthenic syndrome,congenital,with pre- and postsynaptic defects];																				
-chr1	1288933	1288934	CA	-	0.7000	21	0.0000	23		53	MXRA8,DVL1	3_prime_UTR_variant,upstream_gene_variant,intron_variant	MXRA8:NM_001282584.1:3_prime_UTR_variant:MODIFIER:exon9/9:c.*50_*51delTG:,MXRA8:NM_032348.3:3_prime_UTR_variant:MODIFIER:exon10/10:c.*50_*51delTG:,MXRA8:NM_001282583.1:3_prime_UTR_variant:MODIFIER:exon10/10:c.*50_*51delTG:,MXRA8:NM_001282582.1:3_prime_UTR_variant:MODIFIER:exon11/11:c.*50_*51delTG:,DVL1:NM_004421.2:upstream_gene_variant:MODIFIER::c.-48_-48delTG:,MXRA8:NM_001282585.1:intron_variant:MODIFIER:exon9/9:c.1322-222_1322-221delTG:			rs201452853	0.00519169	0.0000	0.0276																						
-chr1	1571640	1571640	G	A	0.1000	10	0.0000	11		38	MMP23B,MMP23A,CDK11B	downstream_gene_variant,intron_variant	MMP23B:NM_006983.1:downstream_gene_variant:MODIFIER::c.*1211G>A:,MMP23A:NR_002946.1:downstream_gene_variant:MODIFIER::n.*906G>A:,CDK11B:NM_001787.2:intron_variant:MODIFIER:exon18/19:c.2099+55C>T:,CDK11B:NM_001291345.1:intron_variant:MODIFIER:exon18/19:c.2030+55C>T:,CDK11B:NM_033486.2:intron_variant:MODIFIER:exon18/19:c.2060+55C>T:,CDK11B:NM_033487.2:intron_variant:MODIFIER:exon16/17:c.1298+55C>T:,CDK11B:NM_033489.2:intron_variant:MODIFIER:exon19/20:c.1958+55C>T:,CDK11B:NM_033490.2:intron_variant:MODIFIER:exon17/18:c.1415+55C>T:			rs61774909	0.0000	0.0000	0.0000																						
-chr1	1571640	1571640	G	T	0.9000	10	0.0000	11		38	MMP23B,MMP23A,CDK11B	downstream_gene_variant,intron_variant	MMP23B:NM_006983.1:downstream_gene_variant:MODIFIER::c.*1211G>T:,MMP23A:NR_002946.1:downstream_gene_variant:MODIFIER::n.*906G>T:,CDK11B:NM_001787.2:intron_variant:MODIFIER:exon18/19:c.2099+55C>A:,CDK11B:NM_001291345.1:intron_variant:MODIFIER:exon18/19:c.2030+55C>A:,CDK11B:NM_033486.2:intron_variant:MODIFIER:exon18/19:c.2060+55C>A:,CDK11B:NM_033487.2:intron_variant:MODIFIER:exon16/17:c.1298+55C>A:,CDK11B:NM_033489.2:intron_variant:MODIFIER:exon19/20:c.1958+55C>A:,CDK11B:NM_033490.2:intron_variant:MODIFIER:exon17/18:c.1415+55C>A:			rs61774909	0.244209	0.0000	0.0000																						
-chr1	2535093	2535094	CT	-	0.5714	15	0.0000	19		34	MMEL1	intron_variant	MMEL1:NM_033467.3:intron_variant:MODIFIER:exon11/23:c.1041+229_1041+230delAG:			rs35090174	0.478235	0.0000	0.0000																						
-chr9	117836188	117836188	A	G	0.9667	31	0.0000	15		103	TNC	intron_variant	TNC:NM_002160.3:intron_variant:MODIFIER:exon9/27:c.2951-43T>C:			rs2210108	0.744409	0.719	0.7352		187380 [TNC (confirmed) Deafness,autosomal dominant 56];																				
-chr9	117836188	117836188	A	T	0.0333	31	0.0000	15		103	TNC	intron_variant	TNC:NM_002160.3:intron_variant:MODIFIER:exon9/27:c.2951-43T>A:			rs2210108	0.0000	0.0000	0.0000		187380 [TNC (confirmed) Deafness,autosomal dominant 56];																				
-chr1	777232	777232	C	T	0.2917	26	0.0000	29		10	LINC01128	intron_variant,non_coding_exon_variant	LINC01128:NR_047519.1:intron_variant:MODIFIER:exon2/5:n.288-5802C>T:,LINC01128:NR_015368.2:intron_variant:MODIFIER:exon2/7:n.288-5802C>T:,LINC01128:NR_047520.1:intron_variant:MODIFIER:exon2/6:n.288-5802C>T:,LINC01128:NR_047521.1:intron_variant:MODIFIER:exon2/4:n.288-10075C>T:,LINC01128:NR_047522.1:intron_variant:MODIFIER:exon2/5:n.288-10075C>T:,LINC01128:NR_047523.1:intron_variant:MODIFIER:exon2/3:n.288-10075C>T:,LINC01128:NR_047524.1:intron_variant:MODIFIER:exon2/3:n.288-10819C>T:,LINC01128:NR_047525.1:intron_variant:MODIFIER:exon2/4:n.155-10075C>T:,LINC01128:NR_047526.1:non_coding_exon_variant:MODIFIER:exon3/3:n.940C>T:			rs112618790	0.066893	0.0000	0.0000			RCV000162369.1 [benign DISEASE=1]; RCV000244202.1 [benign DISEASE=2]; RCV000298863.1 [likely benign]; 	CM096315 [CLASS=DFP MUT=ALT PHEN="Cervical cancer, decreased risk, association with" GENE=BRCA1]; 																		
+##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
+##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (difference in percent/reference bases score/alternate bases score).
+##DESCRIPTION=GeneSplicer=GeneSplicer splicing prediction (state/type/coordinates/confidence/score).
+##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
+##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.
+##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample GS110168).
+##DESCRIPTION=tumor_dp=Tumor Depth (Sample GS110168).
+##DESCRIPTION=normal_af=Mutant allele frequency in normal (Sample GS110169).
+##DESCRIPTION=normal_dp=Normal depth (Sample GS110169).
+#chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	quality	gene	variant_type	coding_and_splicing	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	ESP_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC
+chr21	10971453	10971453	T	C	0.3333	18	0.0000	10	depth-tum;depth-nor;off-target	QUAL=18	TPTE	intron	TPTE:ENST00000298232:intron_variant:MODIFIER:exon4/22:c.12-108A>G::,TPTE:ENST00000342420:intron_variant:MODIFIER:exon4/21:c.12-108A>G::,TPTE:ENST00000361285:intron_variant:MODIFIER:exon4/23:c.12-108A>G::					rs1739180		0.3086	1,			-0.2030			0.00,0.08	0.05					
+chr21	11039394	11039394	C	T	0.1702	47	0.0286	35	freq-nor;off-target	QUAL=44	BAGE2	non_coding_transcript_exon	BAGE2:ENST00000470054:non_coding_transcript_exon_variant:MODIFIER:exon6/10:n.810G>A::					rs2698623						-1.2040			0.03,0.54	0.44					
+chr21	31744239	31744239	C	A	0.4340	106	0.0000	104		QUAL=216	KRTAP13-2	missense	KRTAP13-2:ENST00000399889:missense_variant:MODERATE:exon1/1:c.293G>T:p.Gly98Val:PF05287											0.3750	T	B	0.06,0.19	1.37	0.14				
+chr21	33974094	33974094	-	T	1.0000	3	0.0000	9	depth-tum;depth-nor;off-target	QUAL=4	C21orf59,AP000275.65	3'UTR,intron	C21orf59:ENST00000290155:3_prime_UTR_variant:MODIFIER:exon7/7:c.*78dup::,C21orf59:ENST00000382549:3_prime_UTR_variant:MODIFIER:exon5/5:c.*1304dup::,AP000275.65:ENST00000553001:intron_variant:MODIFIER:exon5/6:c.666+1376dup::	615494 [C21ORF59 (provisional) Ciliary dyskinesia,primary,26,615500];						0.0027	0,							-0.18					
+chr21	47737850	47737850	G	T	0.7857	14	0.0000	6	depth-tum;depth-nor;off-target	QUAL=18	C21orf58	intron	C21orf58:ENST00000291691:intron_variant:MODIFIER:exon2/7:c.309+76C>A::,C21orf58:ENST00000397679:intron_variant:MODIFIER:exon1/6:c.-259+76C>A::,C21orf58:ENST00000397680:intron_variant:MODIFIER:exon2/7:c.-179+76C>A::,C21orf58:ENST00000397682:intron_variant:MODIFIER:exon2/8:c.-259+76C>A::,C21orf58:ENST00000397683:intron_variant:MODIFIER:exon2/8:c.-259+76C>A::,C21orf58:ENST00000397685:intron_variant:MODIFIER:exon3/5:c.60+76C>A::											-0.0850			0.18,0.28	1.01					

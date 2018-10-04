@@ -228,7 +228,7 @@ for($i=0;$i<$gsvar_input->rows();$i++)
 $cancer_type_cgi = $cgi_snvs->get(0,$cgi_snvs->getColumnIndex("cancer"));
 
 //insert header line which describes genes neccessary for reimbursement with health insurance
-$dictionary = Matrix::fromTSV(repository_basedir()."/data/dbs/Ontologies/icd10_cgi_dictionary.tsv");
+$dictionary = Matrix::fromTSV(repository_basedir()."/data/misc/icd10_cgi_dictionary.tsv");
 $row_cancer_type = -1;
 $i_cancer_acronym = $dictionary->getColumnIndex("cgi_acronym");
 for($i=0;$i<$dictionary->rows();$i++)

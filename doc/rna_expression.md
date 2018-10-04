@@ -21,8 +21,7 @@ In addition, you may want to specify:
 * `system` - The [processing system INI file](processing_system_ini_file.md).
 
 [RNA-seq Expression Pipeline](rna_expression_pipeline.md) gives a detailed
-description of the pipeline. Downstream analysis is facilitated by the
-structured output, for a primer see [Downstream Analysis](rna_expression_downstream.md).
+description of the pipeline. 
 
 ### Running an analysis
 
@@ -66,3 +65,4 @@ The genome can by specified in the [processing system INI
 file](processing_system_ini_file.md).
 
 [back to the start page](../README.md)
+

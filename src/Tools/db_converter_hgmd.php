@@ -4,8 +4,8 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 //Fixes several issues with the HGMD VCF format:
 //-missing 'chr' for chromosomes
-//-spaces in the INFO field (otherwise IGV/SnpSift does not load the file)
-//-additionally copies the ID field to the INFO field (needed for SnpSift annotation tool)
+//-spaces in the INFO field (otherwise IGV does not load the file)
+//-additionally copies the ID field to the INFO field (allows a more compact annotation with VEP --custom argument)
 //-removed MUT=REF variants
 
 $in = fopen("php://stdin", "r");

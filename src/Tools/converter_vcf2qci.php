@@ -6,36 +6,25 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
 $parser = new ToolBase("converter_vcf2qci", "Generate QCI compliant files from strelka vcf files.");
-$parser->addInfile("in",  "Input file in tsv-format.", false);
-$parser->addOutfile("out",  "Output file in vcf-format.", false);
+$parser->addInfile("in",  "Input file in VCF format.", false);
+$parser->addString("t_id",  "Tumor ID in VCF file.", false);
+$parser->addString("n_id",  "Normal ID in VCF file.", false);
+$parser->addOutfile("out",  "Output file in VCF format.", false);
 // optional
 $parser->addFlag("pass", "Keep only variants that passed all filter criteria");
 $parser->addString("build", "Build used for vcf file generation.", true, "GRCh37");
 extract($parser->parse($argv));
 
-$file_qci = new Matrix();
 $filec = Matrix::fromTSV($in);
 
-//find pedigree column
-##PEDIGREE=<Tumor=vc_strelka_tu_in,Normal=vc_strelka_no_in>
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	GS160288_02	GS150518_05
-$idx_tumor = null;
-$idx_normal = null;
-foreach($filec->getComments() as $comment)
-{
-	if(strpos($comment,"#PEDIGREE=<")!==FALSE)
-	{
-		$comment = trim(str_replace("#PEDIGREE=<","",$comment),">");
-		list($tumor,$normal) = explode(",",$comment);
-		$idx_tumor = $filec->getColumnIndex(explode("=",$tumor)[1]);
-		$idx_normal =  $filec->getColumnIndex(explode("=",$normal)[1]);
-	}
-}
-if(is_null($idx_tumor) || is_null($idx_normal))	trigger_error("Could not identify tumor or normal column in vcf $in.",E_USER_WARNING);
-if(is_null($idx_tumor))	$idx_tumor = 9;	// Column 9 is tumor
+$idx_tumor = $filec->getColumnIndex($t_id);
+$idx_normal = $filec->getColumnIndex($n_id);
+if(is_null($idx_tumor)) trigger_error("Could not identify tumor column in $in.", E_USER_ERROR);
+if(is_null($idx_normal)) trigger_error("Could not identify normal column in $in.", E_USER_ERROR);
+
+$file_qci = new Matrix();
 $tmp_headers = $filec->getHeaders();
 $tmp_headers[$idx_tumor] = "TUMOR";
-if((is_null($idx_tumor) || is_null($idx_normal)) && count($tmp_headers)>10)	trigger_error("Mulit-sample vcf and tumor or normal column not defined in vcf $in.",E_USER_WARNING);
 $file_qci->setHeaders($tmp_headers);
 
 // add additional format fields GT and AD
@@ -117,7 +106,7 @@ $file_qci->setComments($comments);
 $vcf_qci = $parser->tempFile("_qci.vcf");
 $file_qci->toTSV($vcf_qci);
 
-//align INDELs to the left (this improves the ability of varFilter to remove overlapping indels)
+//align INDELs to the left
 $vcf_qci_aligned = $parser->tempFile("_qci_aligned.vcf");
 $parser->exec(get_path("ngs-bits")."VcfLeftNormalize"," -in $vcf_qci -out $vcf_qci_aligned -ref ".get_path("local_data")."/{$build}.fa", true);
 

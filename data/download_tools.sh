@@ -1,8 +1,7 @@
-set -e
-set -o pipefail
-set -o verbose
+#!/bin/bash
 
-folder=`pwd`/tools/
+root=`pwd`
+folder=$root/tools/
 
 #download RepeatMasker
 cd $folder
@@ -12,9 +11,9 @@ rm -rf RepeatMasker-open-4-0-6.tar.gz
 
 #download and build ngs-bits
 cd $folder
-git clone https://github.com/imgag/ngs-bits.git
+git clone https://github.com/imgag/ngs-bits.git --depth 1
 cd ngs-bits
-git checkout 2018_06 && git submodule update --recursive --init
+git checkout 2018_06 && git submodule update --recursive --init --depth 1
 make build_3rdparty
 make build_tools_release
 
@@ -28,16 +27,16 @@ make
 
 #download and build freebayes
 cd $folder
-git clone https://github.com/ekg/freebayes.git 
+git clone https://github.com/ekg/freebayes.git --depth 1
 cd freebayes
-git checkout v1.1.0 && git submodule update --recursive --init
+git checkout v1.1.0 && git submodule update --recursive --init --depth 1
 make
 
 #download and build vcflib
 cd $folder
-git clone https://github.com/vcflib/vcflib.git
+git clone https://github.com/vcflib/vcflib.git --depth 1
 cd vcflib
-git checkout v1.0.0-rc1 && git submodule update --recursive --init
+git checkout v1.0.0-rc1 && git submodule update --recursive --init --depth 1
 make
 
 #download ABRA2
@@ -61,15 +60,14 @@ rm bwa-0.7.17.tar.bz2
 cd bwa-0.7.17
 make
 
-#download snpEff/SnpSift
+#download ClinCnv
 cd $folder
-wget https://downloads.sourceforge.net/project/snpeff/snpEff_v4_3t_core.zip
-unzip snpEff_v4_3t_core.zip
-rm snpEff_v4_3t_core.zip
-cd snpEff
-echo "GRCh37.75.MT.codonTable : Vertebrate_Mitochondrial" >> snpEff.config
-wget http://downloads.sourceforge.net/project/snpeff/databases/v4_3/snpEff_v4_3_GRCh37.75.zip
-unzip snpEff_v4_3_GRCh37.75.zip
-rm snpEff_v4_3_GRCh37.75.zip
+git clone https://github.com/imgag/ClinCNV.git
+cd ClinCNV
+git checkout 1.01
 
+#download and build VEP
+cd $root
+chmod 755 download_tools_vep.sh
+./download_tools_vep.sh
 

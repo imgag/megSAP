@@ -675,8 +675,7 @@ function sort_vcf_comments($comments_to_sort)
 		"#FORMAT"=>array(),
 		"#ALT"=>array(),
 		"#assembly"=>array(),
-		"#SAMPLE"=>array(),
-		"#PEDIGREE"=>array()
+		"#SAMPLE"=>array()
 		);
 	foreach($comments_to_sort as $comment)
 	{
