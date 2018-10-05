@@ -18,7 +18,24 @@ The installaton of megSAP from sources is quite time-consumung.
 Therefore, a ready-to-use version of _megSAP_ is available via a Docker image:
 
 - From **sources** for [Linux](doc/install_unix.md)
-- **Docker image** for [Linux/macOS/Windows](doc/install_docker.md)
+- **Beta Docker image** for [Linux/macOS/Windows](doc/install_docker.md)
+
+
+## Documentation
+
+Documentation about the different analysis pipelines can be found here:
+
+* [DNA analysis (single sample)](doc/dna_single_sample.md)
+* [DNA analysis (multi-sample and trio)](doc/dna_multi_sample.md)
+* [DNA analysis (tumor-normal pair)](doc/dna_tumor-normal_pair.md)
+* [RNA analysis (expression)](doc/rna_expression.md)
+
+
+## Support
+
+Please report any issues or questions to the [megSAP issue 
+tracker](https://github.com/imgag/megSAP/issues).
+
 
 ## ChangeLog
 
@@ -33,20 +50,3 @@ Therefore, a ready-to-use version of _megSAP_ is available via a Docker image:
 * 18.01.2018: Added b-allele frequency files for visualization in IGV. 
 * 08.01.2018: Updated tools (BWA, samtools, snpEff) and databases (ClinVar, gnomAD, HGMD).
 * 15.12.2017: Added runs-of-homozygosity detection to the germline pipeline.
-
-## Support
-
-Please report any issues or questions to the [megSAP issue 
-tracker](https://github.com/imgag/megSAP/issues).
-
-
-## Documentation
-
-Documentation about the different analysis pipelines can be found here:
-
-* [DNA analysis (single sample)](doc/dna_single_sample.md)
-* [DNA analysis (multi-sample and trio)](doc/dna_multi_sample.md)
-* [DNA analysis (tumor-normal pair)](doc/dna_tumor-normal_pair.md)
-* [RNA analysis (expression)](doc/rna_expression.md)
-
-

@@ -24,13 +24,14 @@ extract($parser->parse($argv));
 $fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation", "AF", "gnomAD_AF", "gnomAD_AFR_AF", "gnomAD_AMR_AF", "gnomAD_EAS_AF", "gnomAD_NFE_AF", "gnomAD_SAS_AF", "EA_AF", "AA_AF"); 
 
 $vep_path = dirname(get_path("vep"));
+$vep_data_path = get_path("data_folder")."/dbs/ensembl-vep-93/";
 
 $args = array();
 $args[] = "-i $in --format vcf"; //input
 $args[] = "-o $out --vcf --no_stats --force_overwrite"; //output
 $args[] = "--species homo_sapiens --assembly {$build}"; //species
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
-$args[] = "--offline --cache --dir_cache {$vep_path}/cache/ --fasta {$vep_path}/fasta/Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz"; //paths to data
+$args[] = "--offline --cache --dir_cache {$vep_data_path}/cache/ --fasta {$vep_data_path}/fasta/Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz"; //paths to data
 $args[] = "--numbers --hgvs --domains"; //annotation options
 $args[] = "--sift p --polyphen p"; //pathogenicity predictions
 $args[] = "--af --af_gnomad --af_esp --failed 1"; //population frequencies
@@ -55,7 +56,7 @@ $fields[] = "gnomADg_Hom";
 $fields[] = "gnomADg_Hemi";
 $args[] = "--custom ".get_path("data_folder")."/dbs/RepeatMasker/RepeatMasker.bed.gz,REPEATMASKER,bed,overlap,0"; //RepeatMasker
 $fields[] = "REPEATMASKER";
-$args[] = "--custom ".get_path("data_folder")."/dbs/ClinVar/clinvar_20180701_converted.vcf.gz,CLINVAR,vcf,exact,0,DETAILS"; //ClinVar
+$args[] = "--custom ".get_path("data_folder")."/dbs/ClinVar/clinvar_20180805_converted.vcf.gz,CLINVAR,vcf,exact,0,DETAILS"; //ClinVar
 $fields[] = "CLINVAR";
 $fields[] = "CLINVAR_DETAILS";
 $args[] = "--custom ".get_path("data_folder")."/dbs/phyloP/hg19.100way.phyloP100way.bw,PHYLOP,bigwig"; //phyloP
@@ -81,6 +82,7 @@ if (!$all_transcripts)
 	$args[] = "--gencode_basic";
 }
 $args[] = "--fields ".implode(",", $fields);
+putenv("PERL5LIB={$vep_path}/Bio/:{$vep_path}/cpan/lib/perl5/:".getenv("PERL5LIB"));
 $parser->exec(get_path("vep"), implode(" ", $args), true);
 
 ?>

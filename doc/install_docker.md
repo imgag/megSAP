@@ -14,7 +14,7 @@ docker run -it -v $(pwd)/genomes:/home/ubuntu/megSAP/data/genomes -v $(pwd)/dbs:
 ```
 
 This will download and execute the _megSAP_ container, thus downloading the needed databases in your **current working directory**.
-After setup you can use the _megSAP_ container to run pipelines. Please refer to the [documentation](./pipelines.md) on how to use individual pipelines.
+After setup you can use the _megSAP_ container to run pipelines. Please refer to the [documentation](../README.md) on how to use individual pipelines.
 
 ***Note:*** Please bear in mind that _megSAP_ uses a very versatile set of tools. Because of this the container is rather large and the initial download may be 1GB or larger, thus taking some time.
 
@@ -30,3 +30,4 @@ Generally the `data` and `src` folders of megSAP are available with all componen
 
 ### Running megSAP on a more recent Ubuntu
 It is possible to build megSAP on a recent Ubuntu. Please refer to the [docker build guide](./build_docker.md).
+

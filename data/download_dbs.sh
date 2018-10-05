@@ -25,8 +25,8 @@ rm -rf hg19.fa.out RepeatMasker.gff
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2018/clinvar_20180701.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20180701_converted.vcf.gz
-tabix -p vcf clinvar_20180701_converted.vcf.gz
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2018/clinvar_20180805.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20180805_converted.vcf.gz
+tabix -p vcf clinvar_20180805_converted.vcf.gz
 
 #Install gnomAD (genome data) - http://gnomad.broadinstitute.org/downloads
 cd $dbs
