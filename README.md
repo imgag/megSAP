@@ -18,7 +18,7 @@ The installaton of megSAP from sources is quite time-consumung.
 Therefore, a ready-to-use version of _megSAP_ is available via a Docker image:
 
 - From **sources** for [Linux](doc/install_unix.md)
-- **Beta Docker image** for [Linux/macOS/Windows](doc/install_docker.md)
+- **Docker image** for [Linux](doc/install_docker.md) (beta)
 
 
 ## Documentation
@@ -50,3 +50,4 @@ tracker](https://github.com/imgag/megSAP/issues).
 * 18.01.2018: Added b-allele frequency files for visualization in IGV. 
 * 08.01.2018: Updated tools (BWA, samtools, snpEff) and databases (ClinVar, gnomAD, HGMD).
 * 15.12.2017: Added runs-of-homozygosity detection to the germline pipeline.
+

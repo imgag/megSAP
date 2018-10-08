@@ -539,7 +539,9 @@ while(!feof($handle))
 			//dbscSNV
 			if ($parts[$i_dbscsnv_ada]!="" || $parts[$i_dbscsnv_rf]!="")
 			{
-				$dbscsnv[] = number_format($parts[$i_dbscsnv_ada],3)."/".number_format($parts[$i_dbscsnv_rf],3);
+				$ada = $parts[$i_dbscsnv_ada]=="" ? "" : number_format($parts[$i_dbscsnv_ada],3);
+				$rf = $parts[$i_dbscsnv_rf]=="" ? "" : number_format($parts[$i_dbscsnv_rf],3);
+				$dbscsnv[] = "{$ada}/{$rf}";
 			}
 			
 			//pathogenicity predictions (not transcript-specific)
@@ -706,7 +708,7 @@ while(!feof($handle))
 	$maxentscan = implode(",", collapse("MaxEntScan", $maxentscan, "unique"));
 	
 	//GeneSplicer
-	$genesplicer = empty($genesplicer) ? "" : collapse("GeneSplicer", $genesplicer, "one");
+	$genesplicer = implode(",", collapse("GeneSplicer", $genesplicer, "unique"));
 	
 	//dbscSNV
 	$dbscsnv = empty($dbscsnv) ? "" : collapse("dbscSNV", $dbscsnv, "one");

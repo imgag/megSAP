@@ -20,6 +20,8 @@ We are providing instructions for Ubuntu 16.04 and 18.04 officially. However thi
     php7.0-xml \ 
     php7.0-mysql \
     python-matplotlib \ 
+	python-numpy \
+	python-pysam \
     tabix \
     unzip \
     wget \
@@ -34,7 +36,6 @@ We are providing instructions for Ubuntu 16.04 and 18.04 officially. However thi
     libqt5sql5-mysql \ 
     libqt5xmlpatterns5-dev \ 
     libssl-dev \ 
-    mysql-client \
     qt5-default \ 
     qt5-qmake \ 
     qtbase5-dev 
@@ -51,6 +52,8 @@ We are providing instructions for Ubuntu 16.04 and 18.04 officially. However thi
     php7.2-xml \ 
     php7.2-mysql \ 
     python-matplotlib \ 
+	python-numpy \
+	python-pysam \
     tabix \ 
     unzip \ 
     wget \
@@ -60,7 +63,6 @@ We are providing instructions for Ubuntu 16.04 and 18.04 officially. However thi
     git \ 
     libbz2-dev \ 
     liblzma-dev \ 
-    libmysqlclient-dev \
     libncurses5-dev \ 
     libqt5sql5-mysql \ 
     libpng-dev \
@@ -71,13 +73,13 @@ We are providing instructions for Ubuntu 16.04 and 18.04 officially. However thi
     qtbase5-dev
 ```
 
-### Python dependencies (for molecular barcode handling)
-
-	> sudo apt install python-numpy python-pysam
-
 ### R dependencies (for somatic CNV calling)
 
 	> sudo apt install r-base-core r-cran-optparse r-cran-robustbase r-cran-foreach r-cran-doparallel r-cran-mass
+
+### R dependencies (for RNA pipeline)
+
+	> sudo -E cpanm Set::IntervalTree URI::Escape DB_File
 
 ## Downloading
 
@@ -129,6 +131,7 @@ Finally, we need to download and convert some open-source databases for annotati
 ## Execution
 
 Now the pipelines with all required tools and data are installed. They can be found within the `src/Pipelines` folder. Go to the [documentation](../README.md) for further details.
+
 
 
 

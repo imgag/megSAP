@@ -299,6 +299,14 @@ function get_path($name, $throw_on_error=true)
 	{
 		trigger_error("Could not parse INI file '$ini_file'.",E_USER_ERROR);
 	}
+
+	//get value (special handling for certain servers)
+	$server = implode("", exec2("hostname")[0]);
+	$name_server = $name.".".strtoupper(trim($server));
+	if (isset($parsed_ini[$name_server]))
+	{
+		return $parsed_ini[$name_server];
+	}
 	
 	//get value
 	if (!isset($parsed_ini[$name]) && $throw_on_error)

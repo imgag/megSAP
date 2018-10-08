@@ -18,15 +18,15 @@ tar xzf 93.2.tar.gz
 
 # install PERL dependencies
 mkdir -p $vep_cpan_dir
-cpanm -l $vep_cpan_dir -L $vep_cpan_dir Set::IntervalTree PerlIO::gzip
+cpanm -l $vep_cpan_dir -L $vep_cpan_dir Set::IntervalTree PerlIO::gzip DBI
 
 # install BigFile support (for BigWig support needed to annotate phyloP)
 cd $vep_install_dir
 export KENT_SRC=$PWD/kent-335_base/src
 export MACHTYPE=$(uname -m)
 export CFLAGS="-fPIC"
-export MYSQLINC=`mysql_config --include | sed -e 's/^-I//g'`
-export MYSQLLIBS=`mysql_config --libs`
+#TODO export MYSQLINC=`mysql_config --include | sed -e 's/^-I//g'`
+#TODO export MYSQLLIBS=`mysql_config --libs`
 wget https://github.com/ucscGenomeBrowser/kent/archive/v335_base.tar.gz
 tar xzf v335_base.tar.gz
 cd $KENT_SRC/lib
