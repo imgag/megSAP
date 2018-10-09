@@ -1,41 +1,43 @@
 ##ANALYSISTYPE=GERMLINE_TRIO
-##PIPELINE=megSAP 0.1-754-g14559e5
+##PIPELINE=megSAP 0.1-819-gb1a13f6
+##SAMPLE=<ID=GS140127_01,Gender=male,ExternalSampleName=131787,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=affected>
 ##SAMPLE=<ID=GS140550_01,Gender=male,ExternalSampleName=131751,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=control>
 ##SAMPLE=<ID=GS140549_01,Gender=female,ExternalSampleName=131752,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=control>
-##SAMPLE=<ID=GS140127_01,Gender=male,ExternalSampleName=131787,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=affected>
+##DESCRIPTION=GS140127_01=genotype of sample GS140127_01
 ##DESCRIPTION=GS140550_01=genotype of sample GS140550_01
 ##DESCRIPTION=GS140549_01=genotype of sample GS140549_01
-##DESCRIPTION=GS140127_01=genotype of sample GS140127_01
 ##DESCRIPTION=filter=Annotations for filtering and ranking variants.
 ##DESCRIPTION=quality=Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM).
 ##DESCRIPTION=gene=Affected gene list (comma-separated).
 ##DESCRIPTION=variant_type=Variant type.
-##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon number, HGVS.c, HGVS.p).
-##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
-##DESCRIPTION=dbSNP=Identifier in dbSNP database.
-##DESCRIPTION=1000g=Allele frequency in all populations of 1000g project.
-##DESCRIPTION=ExAC=Allele frequency in all populations of ExAC project.
-##DESCRIPTION=ExAC_hom=Homoyzgous counts for populations ALL, NFE and AFR of ExAC project.
-##DESCRIPTION=ExAC_sub=Sub-population allele frequenciens for populations AFR,AMR,EAS,NFE,SAS of ExAC project.
-##DESCRIPTION=gnomAD=Allele frequency in gnomAD database.
-##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
-##DESCRIPTION=Sift=Sift effect prediction: D=damaging, T=tolerated.
-##DESCRIPTION=MetaLR=MetaLR effect prediction: D=damaging, T=tolerated.
-##DESCRIPTION=PolyPhen2=PolyPhen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
-##DESCRIPTION=FATHMM=FATHMM effect prediction: D=damaging, T=tolerated.
-##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20.
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
 ##DESCRIPTION=OMIM=OMIM database annotation.
 ##DESCRIPTION=ClinVar=ClinVar database annotation.
 ##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.
+##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).
+##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.
+##DESCRIPTION=ESP_sub=Sub-population allele frequency (EA,AA) in NHLBI Exome Sequencing project.
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
+##DESCRIPTION=Sift=Sift effect prediction for each transcript: D=damaging, T=tolerated.
+##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction for each transcript: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20.
+##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
+##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (difference in percent/reference bases score/alternate bases score).
+##DESCRIPTION=GeneSplicer=GeneSplicer splicing prediction (state/type/coordinates/confidence/score).
+##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).
 ##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
-##DESCRIPTION=ihdb_allsys_hom=Homozygous variant counts in NGSD independent of the processing system.
-##DESCRIPTION=ihdb_allsys_het=Heterozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=NGSD_hom=Homozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=NGSD_het=Heterozygous variant counts in NGSD independent of the processing system.
 ##DESCRIPTION=classification=Classification from the NGSD.
 ##DESCRIPTION=classification_comment=Classification comment from the NGSD.
-##DESCRIPTION=validated=Validation information from the NGSD. Validation results of other samples are listed in brackets!
+##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!
 ##DESCRIPTION=comment=Variant comments from the NGSD.
 ##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, ExAC pLI score).
 ##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.
 ##FILTER=off-target=Variant marked as 'off-target'.
-#chr	start	end	ref	obs	GS140550_01	GS140549_01	GS140127_01	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	ExAC_sub	gnomAD	phyloP	Sift	MetaLR	PolyPhen2	FATHMM	CADD	OMIM	ClinVar	HGMD	COSMIC	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info
-chr22	21242600	21242607	CACACACA	-	wt	wt	hom		QUAL=2069;DP=115,89,97;AF=0.37,0.46,0.67;MQM=60	SNAP29	3'UTR	SNAP29:ENST00000215730:3'UTR:MODIFIER:exon5/5:c.*513_*520delACACACAC:	(CA)n	rs767127977	0.0000	0.0000	0,0,0	0,0,0,0,0	0.0000							604202 [SNAP29 (provisional) Cerebral dysgenesis,neuropathy,ichthyosis,and palmoplantar keratoderma syndrome,609528];				2	0					SNAP29 (inh=AR pLI=0.79)
+#chr	start	end	ref	obs	GS140127_01	GS140550_01	GS140549_01	filter	quality	gene	variant_type	coding_and_splicing	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	ESP_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC	NGSD_hom	NGSD_het	classification	classification_comment	validation	comment	gene_info

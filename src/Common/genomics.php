@@ -1223,7 +1223,8 @@ function vcf_iontorrent($format_col, $sample_col, $idx_al)
 function vcfgeno2human($gt, $upper_case=false)
 {
 	$gt = strtr($gt, "/.", "|0");
-	if ($gt=="0|0")
+	
+	if ($gt=="0" || $gt=="0|0")
 	{
 		$geno = "wt";
 	}

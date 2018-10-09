@@ -67,7 +67,7 @@ if(file_exists($omim_file))
 	$args[] = "--custom {$omim_file},OMIM,bed,overlap,0";
 	$fields[] = "OMIM";
 }
-$hgmd_file = get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz"; //HGMD annotation (optional because of license)
+$hgmd_file = get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2018_3_fixed.vcf.gz"; //HGMD annotation (optional because of license)
 if(file_exists($hgmd_file))
 {
 	$args[] = "--custom {$hgmd_file},HGMD,vcf,exact,0,CLASS,MUT,GENE,PHEN";

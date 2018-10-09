@@ -20,8 +20,8 @@ We are providing instructions for Ubuntu 16.04 and 18.04 officially. However thi
     php7.0-xml \ 
     php7.0-mysql \
     python-matplotlib \ 
-	python-numpy \
-	python-pysam \
+    python-numpy \
+    python-pysam \
     tabix \
     unzip \
     wget \
@@ -52,8 +52,8 @@ We are providing instructions for Ubuntu 16.04 and 18.04 officially. However thi
     php7.2-xml \ 
     php7.2-mysql \ 
     python-matplotlib \ 
-	python-numpy \
-	python-pysam \
+    python-numpy \
+    python-pysam \
     tabix \ 
     unzip \ 
     wget \

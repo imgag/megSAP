@@ -8,7 +8,7 @@
 ##DESCRIPTION=GS140550_01=genotype of sample GS140550_01
 ##DESCRIPTION=GS140549_01=genotype of sample GS140549_01
 ##DESCRIPTION=filter=Annotations for filtering and ranking variants.
-##DESCRIPTION=quality=Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM).
+##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM).
 ##DESCRIPTION=gene=Affected gene list (comma-separated).
 ##DESCRIPTION=variant_type=Variant type.
 ##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).

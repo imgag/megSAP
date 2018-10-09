@@ -76,9 +76,9 @@
 ##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="DETAILS field from /mnt/share/data//dbs/ClinVar/clinvar_20180805_converted.vcf.gz">
 ##INFO=<ID=PHYLOP,Number=.,Type=String,Description="/mnt/share/data//dbs/phyloP/hg19.100way.phyloP100way.bw (overlap)">
 ##INFO=<ID=OMIM,Number=.,Type=String,Description="/mnt/share/data//dbs/OMIM/omim.bed.gz (overlap)">
-##INFO=<ID=HGMD,Number=.,Type=String,Description="/mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz (exact)">
-##INFO=<ID=HGMD_CLASS,Number=.,Type=String,Description="CLASS field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz">
-##INFO=<ID=HGMD_MUT,Number=.,Type=String,Description="MUT field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz">
-##INFO=<ID=HGMD_GENE,Number=.,Type=String,Description="GENE field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz">
-##INFO=<ID=HGMD_PHEN,Number=.,Type=String,Description="PHEN field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_2_fixed.vcf.gz">
+##INFO=<ID=HGMD,Number=.,Type=String,Description="/mnt/share/data//dbs/HGMD/HGMD_PRO_2018_3_fixed.vcf.gz (exact)">
+##INFO=<ID=HGMD_CLASS,Number=.,Type=String,Description="CLASS field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_3_fixed.vcf.gz">
+##INFO=<ID=HGMD_MUT,Number=.,Type=String,Description="MUT field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_3_fixed.vcf.gz">
+##INFO=<ID=HGMD_GENE,Number=.,Type=String,Description="GENE field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_3_fixed.vcf.gz">
+##INFO=<ID=HGMD_PHEN,Number=.,Type=String,Description="PHEN field from /mnt/share/data//dbs/HGMD/HGMD_PRO_2018_3_fixed.vcf.gz">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878

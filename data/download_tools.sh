@@ -11,39 +11,39 @@ rm -rf RepeatMasker-open-4-0-6.tar.gz
 
 #download and build ngs-bits
 cd $folder
-git clone https://github.com/imgag/ngs-bits.git --depth 1
+git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2018_06 && git submodule update --recursive --init --depth 1
+git checkout 2018_10 && git submodule update --recursive --init
 make build_3rdparty
 make build_tools_release
 
 #download and build samtools
 cd $folder
-wget http://downloads.sourceforge.net/project/samtools/samtools/1.6/samtools-1.6.tar.bz2
-tar xjf samtools-1.6.tar.bz2
-rm samtools-1.6.tar.bz2
-cd samtools-1.6
+wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2
+tar xjf samtools-1.9.tar.bz2
+rm samtools-1.9.tar.bz2
+cd samtools-1.9
 make
 
 #download and build freebayes
 cd $folder
-git clone https://github.com/ekg/freebayes.git --depth 1
+git clone https://github.com/ekg/freebayes.git
 cd freebayes
-git checkout v1.1.0 && git submodule update --recursive --init --depth 1
+git checkout v1.2.0 && git submodule update --recursive --init
 make
 
 #download and build vcflib
 cd $folder
-git clone https://github.com/vcflib/vcflib.git --depth 1
+git clone https://github.com/vcflib/vcflib.git
 cd vcflib
-git checkout v1.0.0-rc1 && git submodule update --recursive --init --depth 1
+git checkout v1.0.0-rc2 && git submodule update --recursive --init
 make
 
 #download ABRA2
 cd $folder
-mkdir abra2-2.15
-cd abra2-2.15
-wget https://github.com/mozack/abra2/releases/download/v2.15/abra2-2.15.jar -O abra2.jar
+mkdir abra2-2.18
+cd abra2-2.18
+wget https://github.com/mozack/abra2/releases/download/v2.18/abra2-2.18.jar -O abra2.jar
 
 #download and build samblaster
 cd $folder

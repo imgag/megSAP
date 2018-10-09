@@ -27,7 +27,9 @@ The analysis pipeline assumes that that all data to analyze resides in a sample 
 
 In the example above, the configuration of the pipeline is done using the `hpHBOCv5.ini` file, which contains all necessary information (see [processing system INI file](processing_system_ini_file.md)).
 
-Example data with can be analyzed using the command above can be downloaded from [here](https://medgen.medizin.uni-tuebingen.de/NGS-downloads/NA12878_01.zip).
+### Test data
+
+Example data which can be analyzed using the command above can be downloaded from [here](https://medgen.medizin.uni-tuebingen.de/NGS-downloads/NA12878_01.zip).
 
 ### Output
 

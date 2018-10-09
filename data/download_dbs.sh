@@ -107,6 +107,6 @@ tabix -s 1 -b 2 -e 2 -c c dbscSNV1.1_GRCh37.txt.gz
 
 #Install HGMD (you need a license)
 #manual download https://portal.biobase-international.com/cgi-bin/portal/login.cgi 
-#cat HGMD_PRO_2018.2_hg19.vcf | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2018_2_fixed.vcf.gz
-#tabix -p vcf HGMD_PRO_2018_2_fixed.vcf.gz
+#cat HGMD_PRO_2018.3_hg19.vcf | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2018_3_fixed.vcf.gz
+#tabix -p vcf HGMD_PRO_2018_3_fixed.vcf.gz
 

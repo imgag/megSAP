@@ -140,7 +140,7 @@ function write_header_line($handle, $column_desc, $filter_desc)
 //write column descriptions
 $column_desc = array(
 	array("filter", "Annotations for filtering and ranking variants."),
-	array("quality", "Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM)."),
+	array("quality", "Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM)."),
 	array("gene", "Affected gene list (comma-separated)."),
 	array("variant_type", "Variant type."),
 	array("coding_and_splicing", "Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain)."),
@@ -390,9 +390,13 @@ while(!feof($handle))
 		$dps = explode(",", $sample["DP"]);
 		for($i=0; $i<count($dps); ++$i)
 		{
-			if (is_numeric($aos[$i]) && is_numeric($dps[$i]))
+			if (is_numeric($aos[$i]) && is_numeric($dps[$i]) && $dps[$i]>0)
 			{
 				$afs[] = number_format($aos[$i]/$dps[$i], 2);
+			}
+			else if ($genotype_mode=="multi")
+			{
+				$afs[] = "";
 			}
 		}
 		if (count($afs)>0)

@@ -25,8 +25,6 @@ cd $vep_install_dir
 export KENT_SRC=$PWD/kent-335_base/src
 export MACHTYPE=$(uname -m)
 export CFLAGS="-fPIC"
-#TODO export MYSQLINC=`mysql_config --include | sed -e 's/^-I//g'`
-#TODO export MYSQLLIBS=`mysql_config --libs`
 wget https://github.com/ucscGenomeBrowser/kent/archive/v335_base.tar.gz
 tar xzf v335_base.tar.gz
 cd $KENT_SRC/lib

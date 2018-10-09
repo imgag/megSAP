@@ -1,5 +1,5 @@
 ##fileformat=VCFv4.1
-##reference=/mnt/share/data/dbs//genomes/GRCh37.fa
+##reference=/mnt/share/data/genomes/GRCh37.fa
 ##INFO=<ID=variant_id,Number=1,Type=String,Description="ID of original variant.">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Sample
