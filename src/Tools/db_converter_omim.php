@@ -65,22 +65,6 @@ while(!feof($handle))
 	if (isset($mim2gene[$mim_id])) $genes[] = $mim2gene[$mim_id];
 	$genes = array_unique($genes);
 	
-	//confidence not limbo
-	$status = trim($parts[6]);
-	if ($status=="C")
-	{
-		$status = "confirmed";
-	}
-	else if ($status=="P")
-	{
-		$status = "provisional";
-	}
-	else if ($status=="I")
-	{
-		$status = "inconsistent";
-	}
-	else continue;
-	
 	//disorders not empty
 	$disorders = trim($parts[11]);
 	$disorders = trim(strtr($disorders, array("(1)"=>"", "(2)"=>"", "(3)"=>"", "(4)"=>"", "["=>"", "]"=>"", "{"=>"", "}"=>"", "?"=>"", ";"=>"|")));
@@ -133,7 +117,7 @@ while(!feof($handle))
 				}
 				$start -= 20;
 				$end += 20;
-				print "$chr	$start	$end	{$mim_id}_[{$gene}_({$status})_{$disorders}]\n";
+				print "$chr	$start	$end	{$mim_id}_[{$gene}_{$disorders}]\n";
 			}
 		}
 	}

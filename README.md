@@ -39,6 +39,7 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 ## ChangeLog
 
+* 10.10.2018: Updated all tools and databases to the latest releases.
 * 04.10.2018: Using Ensembl VEP for variant annotation now (was SnpEff)
 * 07.08.2018: Removed most annotation from the 'filter' column and moved the functionality to GSvar.
 * 20.07.2018: Updated ABRA2 version (attention: this changes indel positions - see ABRA2 2.06 changelog) 
@@ -50,4 +51,5 @@ tracker](https://github.com/imgag/megSAP/issues).
 * 18.01.2018: Added b-allele frequency files for visualization in IGV. 
 * 08.01.2018: Updated tools (BWA, samtools, snpEff) and databases (ClinVar, gnomAD, HGMD).
 * 15.12.2017: Added runs-of-homozygosity detection to the germline pipeline.
+
 

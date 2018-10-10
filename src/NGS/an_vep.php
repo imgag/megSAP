@@ -3,8 +3,10 @@
 	@page an_vep
 */
 
-//@TODO check in new VEP versions that bug is fixed: chr2:48033890 CT>C not annotated with dbSNP identifier rs267608137
-//@TODO check in new VEP versions that bug is fixed: chr17:41244936 G>A not annotated with 1000 Genomes AF
+//@TODO check bugs are fixed in new VEP version:
+//		- bug: chr2:48033890 CT>C not annotated with dbSNP identifier rs267608137
+//		- bug: chr17:41244936 G>A not annotated with 1000 Genomes AF
+//		- bug: custom annotations from BED.GZ sources do not work (RepeatMasker, OMIM)
 //@TODO test: --regulatory --gene_phenotype --ccds --biotype --canonical --pubmed
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
