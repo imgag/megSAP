@@ -15,8 +15,8 @@ bwa = [path]/data/tools/bwa-0.7.17/bwa
 vep = [path]/data/tools/ensembl-vep-release-93.2/vep
 
 [tools-ngs-somatic]
-strelka2 = [path]/data/tools/strelka-2.8.4.centos6_x86_64/bin/
-manta = [path]/data/tools/manta-1.3.2.centos6_x86_64/bin/
+strelka2 = [path]/data/tools/strelka-2.9.9.centos6_x86_64/bin/
+manta = [path]/data/tools/manta-1.4.0.centos6_x86_64/bin/
 mantis = [path]/data/tools/MANTIS-1.0.4/mantis.py
 clincnv_somatic = Rscript --vanilla [path]/data/tools/ClinCNV-1.01/somatic/
 
