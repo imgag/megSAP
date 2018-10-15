@@ -21,6 +21,7 @@ mkdir -p $vep_cpan_dir
 cpanm -l $vep_cpan_dir -L $vep_cpan_dir Set::IntervalTree PerlIO::gzip DBI
 
 # install BigFile support (for BigWig support needed to annotate phyloP)
+mkdir -p $vep_install_dir
 cd $vep_install_dir
 export KENT_SRC=$PWD/kent-335_base/src
 export MACHTYPE=$(uname -m)
@@ -35,6 +36,7 @@ make clean && make
 cpanm -l $vep_cpan_dir -L $vep_cpan_dir Bio::DB::BigFile
 
 #download VEP cache data
+mkdir -p $vep_data_dir
 cd $vep_data_dir
 mkdir -p ftp
 cd ftp
