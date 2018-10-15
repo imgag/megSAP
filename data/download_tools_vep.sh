@@ -34,14 +34,6 @@ cd ../jkOwnLib
 make clean && make
 cpanm -l $vep_cpan_dir -L $vep_cpan_dir Bio::DB::BigFile
 
-#download reference genome for VEP //@TODO can we perhaps use the genome from the genomes folder? Is re-zipping with bgzip really necessary?
-cd $vep_data_dir
-mkdir -p fasta
-cd fasta
-curl -O ftp://ftp.ensembl.org/pub/grch37/release-93/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz
-gzip -d Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz
-bgzip Homo_sapiens.GRCh37.dna.primary_assembly.fa
-
 #download VEP cache data
 cd $vep_data_dir
 mkdir -p ftp
@@ -50,7 +42,7 @@ wget ftp://ftp.ensembl.org/pub/release-93/variation/VEP/homo_sapiens_vep_93_GRCh
 
 #install ensembl-vep
 cd $vep_install_dir
-perl INSTALL.pl --SPECIES homo_sapiens --ASSEMBLY GRCh37 --AUTO acp --PLUGINS REVEL,FATHMM_MKL,CADD,dbscSNV,GeneSplicer,MaxEntScan --NO_UPDATE --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --FASTAURL $vep_data_dir/fasta
+perl INSTALL.pl --SPECIES homo_sapiens --ASSEMBLY GRCh37 --AUTO acp --PLUGINS REVEL,FATHMM_MKL,CADD,dbscSNV,GeneSplicer,MaxEntScan --NO_UPDATE --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp
 cp $vep_data_dir/cache/Plugins/*.pm $vep_install_dir/modules/ #should not be necessary - probably a bug in the VEP installation script when using the CACHEDIR option (MS)
 
 # install MaxEntScan (for MaxEntScan plugin)
