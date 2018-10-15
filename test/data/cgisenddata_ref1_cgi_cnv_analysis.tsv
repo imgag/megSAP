@@ -217,7 +217,7 @@ tcgi	CYP17A1-AS1	DEL	ambiguous			209	SK		predicted passenger
 tcgi	CYP2C19	DEL	ambiguous			210	SK		predicted passenger		
 tcgi	CYP2C8	DEL	ambiguous			211	SK		predicted passenger		
 tcgi	CYP2C9	DEL	ambiguous			212	SK		predicted passenger		
-tcgi	FAM35A	DEL	ambiguous			213	SK		predicted passenger		
+tcgi	SHLD2	DEL	ambiguous			213	SK		predicted passenger		
 tcgi	FAS	DEL	LoF			214	SK		predicted passenger		
 tcgi	GOT1	DEL	ambiguous			215	SK		predicted passenger		
 tcgi	LRRTM3	DEL	ambiguous			216	SK		predicted passenger		
@@ -315,7 +315,7 @@ tcgi	ARHGAP8	DEL	ambiguous			311	SK		predicted passenger
 tcgi	CYP2D6	DEL	ambiguous			312	SK		predicted passenger		
 tcgi	FAM118A	DEL	ambiguous			313	SK		predicted passenger		
 tcgi	FAM19A5	DEL	ambiguous			314	SK		predicted passenger		
-tcgi	NDUFA6-AS1	DEL	ambiguous			315	SK		predicted passenger		
+tcgi	NDUFA6-DT	DEL	ambiguous			315	SK		predicted passenger		
 tcgi	PARVB	DEL	ambiguous			316	SK		predicted passenger		
 tcgi	PRR5-ARHGAP8	DEL	ambiguous			317	SK		predicted passenger		
 tcgi	ARAF	AMP	Act			318	SK		predicted passenger		
