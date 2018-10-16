@@ -19,9 +19,10 @@ $parser->addFloat("min_af", "Minimum allele frequency of SNPs to use.", true, 0.
 $parser->addInt("min_dp", "Minimum depth of SNPs in BAM.", true, 20);
 $parser->addString("base_vcf", "Base variant list, records must contain AF field.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz");
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addFlag("depth", "Add depth column(s) to output.", true, 20);
 extract($parser->parse($argv));
 
-// check if base VCF exists
+//check if base VCF exists
 if (!file_exists($base_vcf))
 {
 	trigger_error("Base VCF '{$base_vcf}' does not exist!", E_USER_ERROR);
@@ -150,13 +151,26 @@ $seg_firstline = "#track graphtype=points viewLimits=-0.2:1.2 maxHeightPixels=80
 $seg_header = [ "Chromosome", "Start", "End", "Feature" ];
 if ($is_somatic)
 {
-	$seg_header[] = "{$ps_name} BAFs (tumor)";
-	$seg_header[] = "{$nor_name} BAFs (normal)";
+	$seg_header[] = "{$ps_name} BAF (tumor)";
+	$seg_header[] = "{$nor_name} BAF (normal)";
 }
 else
 {
-	$seg_header[] = "{$ps_name} BAFs";
+	$seg_header[] = "{$ps_name} BAF";
 }
+if ($depth)
+{
+	if ($is_somatic)
+	{
+		$seg_header[] = "{$ps_name} DP (tumor)";
+		$seg_header[] = "{$nor_name} DP (normal)";
+	}
+	else
+	{
+		$seg_header[] = "{$ps_name} DP";
+	}
+}
+
 // write header lines
 $handle_out = fopen($out, "w");
 fwrite($handle_out, $seg_firstline . "\n");
@@ -169,22 +183,31 @@ while (!feof($handle))
 	$row = nl_trim(fgets($handle));
 
 	// skip empty lines, comments and header
-	if ($row === "" || starts_with($row, "#"))
-	{
-		continue;
-	}
-
-	// skip low depth entries
-	$cols = explode("\t", $row);
-	if ($cols[7] < $min_dp || ($is_somatic && $cols[9] < $min_dp))
+	if (trim($row)=="" || $row[0]=="#")
 	{
 		continue;
 	}
 	
-	$row_out = [ $cols[0], $cols[1] - 1, $cols[2], $cols[5], $cols[6] ];
+	$cols = explode("\t", $row);
+	list($chr, $start, $end, $ref, $obs, $id, $af, $dp) = $cols;
+
+	// skip low depth entries
 	if ($is_somatic)
 	{
-		$row_out[] = "${cols[8]}";
+		$af_nor = $cols[8];
+		$dp_nor = $cols[9];
+	}
+	if ($dp<$min_dp || ($is_somatic && $dp_nor < $min_dp))
+	{
+		continue;
+	}
+	
+	$row_out = array($chr, $start-1, $end, $id, $af);
+	if ($is_somatic) $row_out[] = $af_nor;
+	if ($depth)
+	{
+		$row_out[] = $dp;
+		if ($is_somatic) $row_out[] = $dp_nor;
 	}
 	fwrite($handle_out, implode("\t", $row_out)."\n");
 }
