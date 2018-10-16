@@ -298,7 +298,6 @@ $parser->moveFile($bam_current.".bai", $out.".bai");
 
 //add baf file
 $params = array();
-$params[] = "-build ".$sys['build'];
 if ($sys['type']!="WGS" && !empty($sys['target_file']) && in_array($sys['build'], [ "hg19", "GRCh37" ]))
 {
 	$params[] = "-target ".$sys['target_file'];

@@ -9,23 +9,22 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("mapping_baf", "Generate SEG file that contains b-allele frequencies.");
+$parser = new ToolBase("mapping_baf", "Generate SEG file that contains b-allele frequencies from common snps.");
 $parser->addInfile("in",  "Input BAM file.", false);
 $parser->addOutfile("out",  "Output IGV file.", false);
 //optional
-$parser->addInfile("target",  "Target bed file used to identify common SNPs in target region. If unspecified, WGS mode (downsampling to every 100th SNP) will be used.", true);
+$parser->addInfile("target",  "Target region BED file defining which population SNPs are extracted from 'snp_db'. If unspecified, WGS mode (downsampling to every 100th SNP) will be used.", true);
 $parser->addInfile("n_in",  "Input normal file in BAM format (somatic mode).", true);
-$parser->addFloat("min_af", "Minimum allele frequency of SNPs to use.", true, 0.01);
+$parser->addFloat("min_af", "Minimum allele frequency of SNPs in 'snp_db' to use.", true, 0.01);
 $parser->addInt("min_dp", "Minimum depth of SNPs in BAM.", true, 20);
-$parser->addString("base_vcf", "Base variant list, records must contain AF field.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz");
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
-$parser->addFlag("depth", "Add depth column(s) to output.", true, 20);
+$parser->addString("snp_db", "SNP database in VCF.GZ format from which population SNPs are extracted. Records must contain AF field.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz");
+$parser->addFlag("depth", "Add depth column(s) to 'out'.", true, 20);
 extract($parser->parse($argv));
 
 //check if base VCF exists
-if (!file_exists($base_vcf))
+if (!file_exists($snp_db))
 {
-	trigger_error("Base VCF '{$base_vcf}' does not exist!", E_USER_ERROR);
+	trigger_error("SNP database '{$snp_db}' does not exist!", E_USER_ERROR);
 }
 
 $ps_name = basename($in, ".bam");
@@ -47,7 +46,7 @@ else
 }
 
 //use pre-computed SNP list if possible
-$filtered_variants = get_path("local_data")."/baf_".basename($base_vcf, ".vcf.gz")."_af{$min_af}_{$shortname}.tsv";
+$filtered_variants = get_path("local_data")."/baf_".basename($snp_db, ".vcf.gz")."_af{$min_af}_{$shortname}.tsv";
 if (!file_exists($filtered_variants))
 {
 	trigger_error("Filtered variant list does not exist, creating at '{$filtered_variants}'.", E_USER_NOTICE);
@@ -55,12 +54,12 @@ if (!file_exists($filtered_variants))
 	// filter base VCF by target region (only for enrichment)
 	if ($is_wgs)
 	{
-		$tmp_filtered_by_region = $base_vcf;
+		$tmp_filtered_by_region = $snp_db;
 	}
 	else
 	{
 		$tmp_filtered_by_region = $parser->tempFile("_filtered_by_region.vcf");
-		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$base_vcf} -reg {$target} -out {$tmp_filtered_by_region}", true);
+		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$snp_db} -reg {$target} -out {$tmp_filtered_by_region}", true);
 	}
 
 	// filter known variants (SNPs with high population AF)
@@ -138,11 +137,11 @@ if (!file_exists($filtered_variants))
 
 // annotate B-allele frequencies from BAM
 $annotated_variants = $parser->tempFile(".tsv");
-$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $filtered_variants -bam $in -out $annotated_variants -depth -name sample1 -ref ".get_path("local_data")."/{$build}.fa", true);
+$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $filtered_variants -bam $in -out $annotated_variants -depth -name sample1 -ref ".get_path("local_data")."/GRCh37.fa", true);
 if ($is_somatic)
 {
 	$annotated_variants_2 = $parser->tempFile(".tsv");
-	$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $annotated_variants -bam $n_in -out $annotated_variants_2 -depth -name sample2 -ref ".get_path("local_data")."/{$build}.fa", true);
+	$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $annotated_variants -bam $n_in -out $annotated_variants_2 -depth -name sample2 -ref ".get_path("local_data")."/GRCh37.fa", true);
 	$annotated_variants = $annotated_variants_2;
 }
 
