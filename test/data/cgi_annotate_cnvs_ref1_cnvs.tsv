@@ -7,6 +7,7 @@
 ##DESCRIPTION=CGI_genes=CGI annotated genes, genes which were classified as drivers for ???. Predicted/known passengers were discarded
 ##DESCRIPTION=CGI_driver_statement=Oncogenic Classification according CGI
 ##DESCRIPTION=CGI_gene_role=CGI gene role. LoF: Loss of Function, Act: Activating
+##CGI_CANCER_TYPE=CANCER
 ##DESCRIPTION=CGI_genes=Genes which were included in CancerGenomeInterpreter.org analysis.
 ##DESCRIPTION=CGI_driver_statement=Driver statement for cancer type CANCER according CancerGenomeInterpreter.org
 ##DESCRIPTION=CGI_gene_role=Gene role for cancer type CANCER according CancerGenomeInterpreter.org
