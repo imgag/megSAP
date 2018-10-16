@@ -1,7 +1,6 @@
 <?php 
 /** 
 	@page db_import_variants
-	@todo fix somatic variant import (s. column indices)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -148,6 +147,22 @@ function updateVariantTable($parser, $db_connect, $file, $max_af=-1.0)
 	
 	return $var_ids;
 }
+
+//extract variant quality (snp_q) from the GSvar 'quality' column
+function getVariantQuality($row, $i_qual)
+{
+	$quality_parts = explode(";", $row[$i_qual]);
+	foreach($quality_parts as $quality_part)
+	{
+		if (starts_with($quality_part, "QUAL="))
+		{
+			return explode("=", $quality_part)[1];
+		}
+	}
+	
+	trigger_error("Could not extract variant quality from quality entry '".$row[$i_qual]."' of variant ".$row[0].":".$row[1]." ".$row[3].">".$row[4], E_USER_ERROR);
+}
+		
 
 //check processed sample ID format
 $samples = array();
@@ -320,18 +335,18 @@ else if($mode=="somatic" && isset($samples["germline"]))
 	$var_ids = updateVariantTable($parser, $db_connect, $file);
 	
 	//insert variants into table 'detected_somatic_variant'
+	$i_frq = $file->getColumnIndex("tumor_af");
+	$i_dep = $file->getColumnIndex("tumor_dp");
+	$i_qual = $file->getColumnIndex("quality");
 	$hash = $db_connect->prepare("INSERT INTO detected_somatic_variant (processed_sample_id_tumor,processed_sample_id_normal,variant_id,variant_frequency,depth,quality_snp) VALUES ('".$samples["tumor"]["pid"]."','".$samples["germline"]["pid"]."',:variant_id,:variant_frequency,:depth,:snp_q);");
 	for($i=0; $i<$file->rows(); ++$i)
 	{
 		$row = $file->getRow($i);
-
-		$i_frq = $file->getColumnIndex("tumor_af");
-		$i_dep = $file->getColumnIndex("tumor_dp");
-		$i_qsn = $file->getColumnIndex("snp_q");
+		
 		$db_connect->bind($hash, "variant_id", $var_ids[$i]);
 		$db_connect->bind($hash, "variant_frequency", $row[$i_frq], array("n/a"));
 		$db_connect->bind($hash, "depth", $row[$i_dep]);
-		$db_connect->bind($hash, "snp_q", $row[$i_qsn], array("."));
+		$db_connect->bind($hash, "snp_q", getVariantQuality($row, $i_qual), array("."));
 		
 		$db_connect->execute($hash, true);
 	}
@@ -368,18 +383,18 @@ else if($mode=="somatic" && !isset($samples["germline"]))
 	$var_ids = updateVariantTable($parser, $db_connect, $file);
 
 	//insert variants into table 'detected_somatic_variant'
+	$i_frq = $file->getColumnIndex("tumor_af");
+	$i_dep = $file->getColumnIndex("tumor_dp");
+	$i_qual = $file->getColumnIndex("quality");
 	$hash = $db_connect->prepare("INSERT INTO detected_somatic_variant (processed_sample_id_tumor,processed_sample_id_normal,variant_id,variant_frequency,depth,quality_snp) VALUES ('".$samples["tumor"]["pid"]."',NULL,:variant_id,:variant_frequency,:depth,:snp_q);");
 	for($i=0; $i<$file->rows(); ++$i)
 	{
 		$row = $file->getRow($i);
-
-		$i_frq = $file->getColumnIndex("tumor_af");
-		$i_dep = $file->getColumnIndex("tumor_dp");
-		$i_qsn = $file->getColumnIndex("snp_q");
+		
 		$db_connect->bind($hash, "variant_id", $var_ids[$i]);
 		$db_connect->bind($hash, "variant_frequency", $row[$i_frq], array("n/a"));
 		$db_connect->bind($hash, "depth", $row[$i_dep]);
-		$db_connect->bind($hash, "snp_q", $row[$i_qsn], array("."));
+		$db_connect->bind($hash, "snp_q", getVariantQuality($row, $i_qual), array("."));
 		
 		$db_connect->execute($hash, true);
 	}
