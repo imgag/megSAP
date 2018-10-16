@@ -1,8 +1,0 @@
-Allele frequency	max_af=1.0
-Allele frequency (sub-populations)	max_af=1.0
-Count NGSD	max_count=20	ignore_genotype=false
-Variant quality	qual=100	depth=20	mapq=60
-Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false
-Classification NGSD	action=REMOVE	classes=1,2
-Classification NGSD	action=KEEP	classes=4,5
-Trio	types=comp-het	gender_child=male

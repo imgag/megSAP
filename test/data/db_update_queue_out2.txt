@@ -3,10 +3,10 @@ Updating status job 2 (single sample)
 Updating status job 5 (multi sample)
 	Job finished with status 'finished'
 Starting job 6 (trio)
-	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /mnt/share/data//sge/megSAP_sge_job_6.err -o /mnt/share/data//sge/megSAP_sge_job_6.out -q default_srv016,default_srv017,default_srv018
+	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /mnt/share/data//sge/megSAP_sge_job_6.err -o /mnt/share/data//sge/megSAP_sge_job_6.out -q default_srv015,default_srv016,default_srv017,default_srv018
 	PIP: php [megSAP]/src/Pipelines/trio.php  -c /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/DX181109_01.bam -f /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181110_01/DX181110_01.bam -m /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181111_01/DX181111_01.bam -out_folder /mnt/projects/diagnostic/Exome_Diagnostik//Trio_DX181109_01_DX181110_01_DX181111_01/ --log /mnt/projects/diagnostic/Exome_Diagnostik//Trio_DX181109_01_DX181110_01_DX181111_01/trio.log
 Starting job 7 (somatic)
-	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /mnt/share/data//sge/megSAP_sge_job_7.err -o /mnt/share/data//sge/megSAP_sge_job_7.out -q default_srv016,default_srv017,default_srv018
+	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /mnt/share/data//sge/megSAP_sge_job_7.err -o /mnt/share/data//sge/megSAP_sge_job_7.out -q default_srv015,default_srv016,default_srv017,default_srv018
 	PIP: php [megSAP]/src/Pipelines/somatic_dna.php -include_germline --log /mnt/projects/diagnostic/Exome_Diagnostik//Somatic_DX181109_01-DX181110_01/somatic_dna_20000101000000.log -out_folder /mnt/projects/diagnostic/Exome_Diagnostik//Somatic_DX181109_01-DX181110_01/ -prefix DX181109_01-DX181110_01 -t_bam /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/DX181109_01.bam -n_bam /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181110_01/DX181110_01.bam
 Updating status job 8 (single sample)
 	Job finished with status 'finished'

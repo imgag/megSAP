@@ -37,6 +37,7 @@
 /test/data_trio/*.vcf.gz.tbi
 /test/data_trio/*_special.tsv
 /test/data_trio/*_upd.tsv
+/test/data_trio/*_cnvs.tsv
 
 /test/data_multi/*.GSvar
 /test/data_multi/*.log
@@ -45,7 +46,7 @@
 /test/data_multi/*.bam.bai
 /test/data_multi/*.vcf.gz
 /test/data_multi/*.vcf.gz.tbi
-/test/data_multi/multi_cnvs.tsv
+/test/data_multi/*_cnvs.tsv
 
 /test/data_capa/*.GSvar
 /test/data_capa/*.log
