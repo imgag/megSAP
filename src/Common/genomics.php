@@ -1249,7 +1249,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 {
 	//get info from NGSD
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
-	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, s.name_external as name_external ".
+	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2 ".
 	                        "FROM project p, processed_sample ps, sample s, processing_system as sys, sequencing_run as r, device as d ".
 				"WHERE ps.sequencing_run_id=r.id AND ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND ps.process_id='".(int)$process_id."' AND r.device_id = d.id");
 	if (count($res)!=1)
@@ -1265,6 +1265,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	}
 	$info = $res[0];
 	
+	//normal sample name (tumor reference sample)
 	if($info['normal_id']!="")
 	{
 		$info['normal_name'] = $db_conn->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id='".$info['normal_id']."'");
@@ -1273,6 +1274,20 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	{
 		$info['normal_name'] = "";
 	}
+	
+	//replace fields to make them human_readable
+	if($info['ps_mid1']!="")
+	{
+		$info['ps_mid1'] = $db_conn->getValue("SELECT name FROM mid WHERE id='".$info['ps_mid1']."'");
+	}
+	if($info['ps_mid2']!="")
+	{
+		$info['ps_mid2'] = $db_conn->getValue("SELECT name FROM mid WHERE id='".$info['ps_mid2']."'");
+	}
+	
+	//split fields if required
+	$info['ps_comments'] = array_map("trim", explode("\n", $info['ps_comments']));
+	$info['ps_lanes'] = array_map("trim", explode(",", $info['ps_lanes']));
 	
 	//additional info
 	$project_folder = get_path("project_folder");

@@ -79,17 +79,97 @@ function create_mail_command(&$db_conn, $project_name, $samples)
 	return "php -r 'mail(\"$email\",\"Neue Daten fuer $project_name\", \"".implode("\\n",$mail_text)."\",\"Reply-To: ".get_path("queue_email")."\");'";
 }
 
+//get file size in MB
+function filesize_mb($file)
+{
+	return number_format(filesize($file)/1024/1024, 3, ".", "");
+}
+
 //init
 if (!isset($out)) $out = "Makefile";
 $db_conn = DB::getInstance($db);
 
-if (!file_exists($folder))
-{
-	trigger_error("Folder '$folder' does not exist!", E_USER_ERROR);
-}
-
 //get sample data from samplesheet
 list($sample_data, $is_nextseq) = extract_sample_data($db_conn, $samplesheet);
+
+//create Illumina-like folder for MGI data
+if (file_exists("Fq"))
+{
+	print "Detected that this is an MGI run folder!\n";
+	if (file_exists($folder))
+	{
+		print "Data folder '$folder' exists => skipping creation of Illumina-like folder at '$folder'.\n";
+	}
+	else
+	{
+		print "Creating Illumina-like folder at '$folder'...\n";
+		$copied_fastqs = [];
+		foreach($sample_data as $sample => $data)
+		{
+			$sample_folder = "{$folder}/".$data['project_name']."/Sample_{$sample}/";
+			print "$sample ($sample_folder)\n";
+			
+			//create sample folder
+			exec2("mkdir -p $sample_folder");
+			
+			//determine data for the next step
+			$fcid = $data["run_fcid"];
+			$lanes = $data["ps_lanes"];
+			$mids = array($data["ps_mid1"]);
+			$reads = array("1");
+			if (count(explode("+", $data['run_recipe']))>2) $reads[] = "2";
+			foreach($data['ps_comments'] as $comment_line)
+			{
+				if (starts_with($comment_line, "add_mids:"))
+				{
+					$add_mids = explode(",", substr($comment_line, strpos($comment_line, ":")+1));
+					foreach($add_mids as $mid)
+					{
+						$mids[] = trim($mid);
+					}
+				}
+			}
+			for ($i=0; $i<count($mids); ++$i)
+			{
+				$mids[$i] = trim(strtr($mids[$i], array("MGI"=>"")));
+			}
+			
+			//copy FASTQs
+			foreach($lanes as $lane)
+			{
+				foreach($mids as $mid)
+				{
+					foreach($reads as $read)
+					{
+						$from = "Fq/L0{$lane}/{$fcid}_L0{$lane}_{$mid}_{$read}.fq.gz";
+						$to = "{$sample_folder}/{$sample}_L00{$lane}_MID{$mid}_R{$read}_001.fastq.gz";
+						print "  Copying $from (".filesize_mb($from)." MB)\n";
+						$parser->copyFile($from, $to);
+						$copied_fastqs[] = $from;
+					}
+				}
+			}
+		}
+		
+		//check for large FASTQs that were not copied
+		list($big_fastqs) = exec2("find Fq -name '*.fq.gz' -size +50M | sort");
+		$unprocessed_fastqs = array_diff($big_fastqs, $copied_fastqs);
+		if (count($unprocessed_fastqs)>0)
+		{
+			print "Unprocessed FASTQ files larger than 50MB:\n";
+			foreach($unprocessed_fastqs as $fastq)
+			{
+				print "  $fastq (".filesize_mb($fastq)." MB)\n";
+			}
+		}
+	}
+}
+
+//check that data folder exists
+if (!file_exists($folder))
+{
+	trigger_error("Data folder '$folder' does not exist!", E_USER_ERROR);
+}
 
 //extract tumor-normal pair infos
 $normal2tumor = array();
