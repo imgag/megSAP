@@ -230,7 +230,7 @@ if (in_array("vc", $steps))
 	//add somatic BAF file
 	$baf_args = [
 		"-in {$t_bam}",
-		"-out {$ballele}"]
+		"-out {$ballele}"
 	];
 	if (!$single_sample)
 	{

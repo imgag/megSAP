@@ -1,5 +1,5 @@
 #track graphtype=points viewLimits=-0.2:1.2 maxHeightPixels=80:80:80
-Chromosome	Start	End	Feature	GS110168 BAFs (tumor)	GS110169 BAFs (normal)
+Chromosome	Start	End	Feature	GS110168 BAF (tumor)	GS110169 BAF (normal)
 chr7	151945139	151945140	rs2537263	0.2308	0.1111
 chr21	10862597	10862598	rs3916646	0.0000	0.0000
 chr21	10862598	10862599	rs3883945	1.0000	1.0000
