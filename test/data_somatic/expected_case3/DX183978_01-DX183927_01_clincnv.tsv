@@ -1,5 +1,6 @@
 ##  QC  6.2e-08
 ##DESCRIPTION=cnv_type=Type of CNV: focal (< 25 % of chrom. arm, < 3 genes), cluster (focal, > 3 genes), (partial) p/q-arm, (partial) chromosome.
+##CGI_CANCER_TYPE=CANCER
 ##DESCRIPTION=CGI_genes=Genes which were included in CancerGenomeInterpreter.org analysis.
 ##DESCRIPTION=CGI_driver_statement=Driver statement for cancer type CANCER according CancerGenomeInterpreter.org
 ##DESCRIPTION=CGI_gene_role=Gene role for cancer type CANCER according CancerGenomeInterpreter.org

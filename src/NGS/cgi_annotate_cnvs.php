@@ -135,6 +135,17 @@ if($output->getColumnIndex("CGI_gene_role",false,false) !== false)
 
 //add CGI data
 $cancertype = $cgi_input->get(0,$cgi_input->getColumnIndex("cancer"));
+
+$comments = $output->getComments();
+for($i=0;$i<count($comments);++$i)
+{
+	if(strpos($comments[$i],"#CGI_CANCER_TYPE") !== false)
+	{
+		$output->removeComment($comments[$i]);
+	}
+}
+$output->addComment("#CGI_CANCER_TYPE={$cancertype}");
+
 $output->addCol($new_genes,"CGI_genes","Genes which were included in CancerGenomeInterpreter.org analysis.");
 $output->addCol($new_driver_statement,"CGI_driver_statement","Driver statement for cancer type $cancertype according CancerGenomeInterpreter.org");
 $output->addCol($new_gene_role,"CGI_gene_role","Gene role for cancer type $cancertype according CancerGenomeInterpreter.org");
