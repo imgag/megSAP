@@ -344,10 +344,6 @@ if(in_array("cn",$steps))
 		{
 			file_put_contents($t_n_list_file,"{$t_id},{$n_id}\n", FILE_APPEND | LOCK_EX);
 		}
-		/*********************
-		 * EXECUTE CNVHUNTER *
-		 *********************/
-		 $parser->execTool("NGS/vc_cnvhunter.php","-cov {$t_cov} -n_cov {$n_cov} -out {$som_cnv} -system {$system} -min_corr 0 -seg {$t_id} -n {$min_cov_files}");
 		
 		/*******************
 		 * EXECUTE CLINCNV *

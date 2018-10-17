@@ -64,7 +64,7 @@ make
 cd $folder
 git clone https://github.com/imgag/ClinCNV.git
 cd ClinCNV
-git checkout 1.01
+git checkout 1.04
 
 #download and build VEP
 cd $root

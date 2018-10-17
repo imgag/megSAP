@@ -53,6 +53,9 @@ for($i=0;$i<count($cgi_genes);$i++)
 {
 	$cgi_gene = $cgi_genes[$i];
 	$cgi_driver_statement = $cgi_driver_statements[$i];
+	//In rare cases, CGI statement contains ",": must be removed because it is used as separator
+	$cgi_driver_statement = str_replace(",",";",$cgi_driver_statement);
+	
 	$cgi_gene_role = $cgi_gene_roles[$i];
 	$cgi_alteration_type = $cgi_alteration_types[$i];
 	
