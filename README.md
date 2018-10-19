@@ -39,6 +39,7 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 ## ChangeLog
 
+* 19.10.2018: Reverted to freebayes 1.1.0 because version 1.2.0 is too slow.
 * 10.10.2018: Updated all tools and databases to the latest releases.
 * 04.10.2018: Using Ensembl VEP for variant annotation now (was SnpEff)
 * 07.08.2018: Removed most annotation from the 'filter' column and moved the functionality to GSvar.
