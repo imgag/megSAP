@@ -42,59 +42,145 @@ if(!contains($run_dir, $flowcell_id))
 	trigger_error("Flowcell ID from NGSD ($flowcell_id) was not found in directory '$run_dir'.", E_USER_ERROR);
 }
 
-//parse number of cycles/index for each read
-$run_info_parsed = new SimpleXMLElement(file_get_contents($run_dir."/RunInfo.xml"));
-$read_metrics = array();
-foreach ($run_info_parsed->{'Run'}->{'Reads'}->{'Read'} as $read)
+if (!file_exists("Fq"))
 {
-	$read_num = intval($read["Number"]);
-	$read_metrics[$read_num]["cycles"] = intval($read["NumCycles"]);
-	$read_metrics[$read_num]["index"] = $read["IsIndexedRead"] == "Y" ? "1" : "0";
-}
+	//parse number of cycles/index for each read
+	$run_info_parsed = new SimpleXMLElement(file_get_contents($run_dir . "/RunInfo.xml"));
+	$read_metrics = array();
+	foreach ($run_info_parsed->{'Run'}->{'Reads'}->{'Read'} as $read)
+	{
+		$read_num = intval($read["Number"]);
+		$read_metrics[$read_num]["cycles"] = intval($read["NumCycles"]);
+		$read_metrics[$read_num]["index"] = $read["IsIndexedRead"] == "Y" ? "1" : "0";
+	}
 
-//parse QC data from InterOp summary output
-list($stdout) = exec2(get_path("interop")." $run_dir --level=3");
-foreach($stdout as $line)
+	//parse QC data from InterOp summary output
+	list($stdout) = exec2(get_path("interop") . " $run_dir --level=3");
+	foreach ($stdout as $line)
+	{
+		$line = trim($line);
+
+		//split line
+		$cols = str_getcsv($line);
+		$cols = array_map('trim', $cols);
+
+		//parse read number (for lane-wise QC)
+		if (count($cols) == 1 && starts_with($cols[0], "Read "))
+		{
+			$read_num = $cols[0][5];
+			continue;
+		}
+		if (count($cols) < 7) continue;
+
+		//parse header
+		if ($cols[0] == "Level" || $cols[0] == "Lane")
+		{
+			$indices = array_flip($cols);
+			continue;
+		}
+
+		//parse content lines (read-wise)
+		if (starts_with($cols[0], "Read "))
+		{
+			$read_num = $cols[0][5];
+			$read_metrics[$read_num]["error_rate"] = get_col_value($cols, $indices['Error Rate']);
+			$read_metrics[$read_num]["q30"] = get_col_value($cols, $indices['%>=Q30']);
+		}
+
+		//parse content lines (lane-wise)
+		if (is_numeric($cols[0]) && $cols[1] == "-")
+		{
+			$lane = intval($cols[0]);
+			$dens = get_col_value($cols, $indices['Density']) * 1000;
+			$read_metrics[$read_num]['lane_metrics'][$lane]['cluster_dens'] = $dens;
+			$read_metrics[$read_num]['lane_metrics'][$lane]['passed_filter'] = get_col_value($cols, $indices['Cluster PF']) / 100.0 * $dens;
+			$read_metrics[$read_num]['lane_metrics'][$lane]['yield'] = get_col_value($cols, $indices['Yield']) * pow(1000, 3);
+			$read_metrics[$read_num]['lane_metrics'][$lane]['error_rate'] = get_col_value($cols, $indices['Error']);
+			$read_metrics[$read_num]['lane_metrics'][$lane]['q30'] = get_col_value($cols, $indices['%>=Q30']);
+		}
+	}
+}
+else
 {
-	$line = trim($line);
-	
-	//split line
-	$cols = str_getcsv($line);
-	$cols = array_map('trim', $cols);
-	
-	//parse read number (for lane-wise QC)
-	if (count($cols)==1 && starts_with($cols[0], "Read "))
+	//get number of cycles from BioInfo.csv
+	$mgi_general = array_column(load_tsv("Fq/L01/BioInfo.csv", ","), 1, 0);
+	$read_metrics[1]["cycles"] = intval($mgi_general["Read1 Cycles"]);
+	$read_metrics[1]["index"] = "0";
+	$read_metrics[2]["cycles"] = intval($mgi_general["Read2 Cycles"]);
+	$read_metrics[2]["index"] = "0";
+	$read_metrics[3]["cycles"] = intval($mgi_general["Barcode"]);
+	$read_metrics[3]["index"] = "1";
+
+	//parse summary files
+	foreach (glob("Fq/L??/summaryTable.csv") as $f)
 	{
-		$read_num = $cols[0][5];
-		continue;
+		$lane = intval(substr(basename(dirname($f)), 1));
+		$summary[$lane] = array_column(load_tsv($f, ","), 1, 0);
 	}
-	if(count($cols)<7) continue;
-	
-	//parse header
-	if ($cols[0]=="Level" || $cols[0]=="Lane")
+
+	//parse Q30 and number of clusters
+	$q30 = [];
+	foreach (glob("Fq/L??/BasecallQC.txt") as $f)
 	{
-		$indices = array_flip($cols);
-		continue;
+		$handle = fopen($f, "r");
+		$lane = intval(substr(basename(dirname($f)), 1));
+		$q30[1][$lane] = [];
+		$q30[2][$lane] = [];
+		$q30[3][$lane] = [];
+
+		$cluster[$lane] = 0;
+
+		$parse = "";
+		while ( ($line = fgets($handle)) !== FALSE )
+		{
+			$line = trim($line);
+
+			if ($parse === "Q30")
+			{
+				$values = explode("\t", $line);
+				array_push($q30[1][$lane], array_sum(array_slice($values, 0, $read_metrics[1]["cycles"])));
+				array_push($q30[2][$lane], array_sum(array_slice($values, $read_metrics[1]["cycles"], $read_metrics[2]["cycles"])));
+				array_push($q30[3][$lane], array_sum(array_slice($values, $read_metrics[2]["cycles"], $read_metrics[3]["cycles"])));
+				$parse = "";
+			}
+			elseif ($parse === "cluster")
+			{
+				$cluster[$lane] += intval($line);
+				$parse = "";
+			}
+
+			if (starts_with($line, "#CycQ30"))
+			{
+				//per-cycle Q30 value
+				$parse = "Q30";
+			}
+			elseif (starts_with($line, "#NUMDNBS"))
+			{
+				//number of DNBs
+				$parse = "cluster";
+			}
+		}
 	}
-	
-	//parse content lines (read-wise)
-	if (starts_with($cols[0], "Read "))
+
+	foreach ($q30 as $read => $lane_q30_values)
 	{
-		$read_num = $cols[0][5];
-		$read_metrics[$read_num]["error_rate"] = get_col_value($cols, $indices['Error Rate']);
-		$read_metrics[$read_num]["q30"] = get_col_value($cols, $indices['%>=Q30']);
-	}
-	
-	//parse content lines (lane-wise)
-	if (is_numeric($cols[0]) && $cols[1]=="-")
-	{
-		$lane = intval($cols[0]);
-		$dens = get_col_value($cols, $indices['Density'])*1000;
-		$read_metrics[$read_num]['lane_metrics'][$lane]['cluster_dens'] = $dens;
-		$read_metrics[$read_num]['lane_metrics'][$lane]['passed_filter'] = get_col_value($cols, $indices['Cluster PF']) / 100.0 * $dens;
-		$read_metrics[$read_num]['lane_metrics'][$lane]['yield'] = get_col_value($cols, $indices['Yield'])*pow(1000,3);
-		$read_metrics[$read_num]['lane_metrics'][$lane]['error_rate'] = get_col_value($cols, $indices['Error']);
-		$read_metrics[$read_num]['lane_metrics'][$lane]['q30'] = get_col_value($cols, $indices['%>=Q30']);
+		$read_metrics[$read]["q30"] = 0;
+
+		foreach ($lane_q30_values as $lane => $values)
+		{
+			//per lane and read
+			$read_metrics[$read]["lane_metrics"][$lane]["q30"] = array_sum($values) / ($summary[$lane]["ImageArea"] * $read_metrics[$read]["cycles"]) * 100;
+			$read_metrics[$read]["q30"] += $read_metrics[$read]["lane_metrics"][$lane]["q30"];
+
+			$read_metrics[$read]["lane_metrics"][$lane]["cluster_dens"] = $cluster[$lane];
+			$read_metrics[$read]["lane_metrics"][$lane]["passed_filter"] = floatval($summary[$lane]["TotalReads(M)"]) * 1e6;
+			$read_metrics[$read]["lane_metrics"][$lane]["yield"] = floatval($summary[$lane]["TotalReads(M)"]) * 1e6 * $read_metrics[$read]["cycles"];
+			$read_metrics[$read]["lane_metrics"][$lane]["error_rate"] = .0;
+		}
+
+		//per read
+		$read_metrics[$read]["q30"] /= count($lane_q30_values);
+		$read_metrics[$read]["error_rate"] = .0;
 	}
 }
 
