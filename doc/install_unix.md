@@ -79,7 +79,7 @@ We are providing instructions for Ubuntu 16.04 and 18.04 officially. However thi
 
 ### Perl dependencies (for RNA pipeline)
 
-	> sudo -E cpanm Set::IntervalTree URI::Escape DB_File
+	> sudo -E cpanm Set::IntervalTree URI::Escape DB_File Carp::Assert JSON::XS PerlIO::gzip
 
 ## Downloading
 
