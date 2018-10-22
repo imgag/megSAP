@@ -202,7 +202,7 @@ function correlation($x, $y)
 	$n = count($x);
 	if ($n!=count($y))
 	{
-		warning("Samples must have the same size!", __FILE__, __LINE__, __FUNCTION__);
+		trigger_error("Samples must have the same size!", E_USER_ERROR);
 	}
 	
 	$x_mean = mean($x);
