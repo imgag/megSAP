@@ -70,7 +70,7 @@ if (!$single_sample)
 {
 	$n_id = basename($n_bam, ".bam");
 	$n_sys = load_system($n_system, $n_id);
-	$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short']."/";
+	$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
 }
 
 //sample similiarty check
@@ -246,38 +246,76 @@ if (in_array("vc", $steps))
 //CNV calling
 $som_cnv = $full_prefix . "_cnvs.tsv"; //CNVHunter output file
 $som_clincnv = $full_prefix . "_clincnv.tsv"; //ClinCNV output file
-//folder with reference coverage files of tumor samples of same processing system.
-$ref_folder_t = get_path("data_folder")."/coverage/".$sys['name_short']."-tumor"."/";
 if(in_array("cn",$steps))
 {
 	// copy number variant calling
 	$tmp_folder = $parser->tempFolder();
+	
+	
+	//Generate file with off-target region
+	$off_target_bed = get_path("data_folder")."/coverage/off_target_beds/".$sys['name_short'].".bed";
+	if(!file_exists($off_target_bed))
+	{
+		//generate bed file that contains edges of whole reference genome
+		$ref_content = array();
+		$ref_borders = file(get_path("data_folder")."/genomes/".$sys['build'].".fa.fai"); 
+		foreach($ref_borders as $line)
+		{
+			$line = trim($line);
+			list($chr,$chr_length) = explode("\t",$line);
+			if(chr_check($chr,22,false) === false) continue;
+			$chr_length--; //0-based coordinates
+			$ref_content[] = "{$chr}\t0\t{$chr_length}\n";
+		}
+		$ref_bed = temp_file(".bed");
+		file_put_contents($ref_bed,$ref_content);
+		$ngs_bits=get_path("ngs-bits");	
+		$tmp_bed = temp_file(".bed");
+		exec2("{$ngs_bits}BedExtend -in ". $sys['target_file'] ." -n 1000 | {$ngs_bits}BedMerge -out {$tmp_bed}");
+		exec2("{$ngs_bits}BedSubtract -in ".$ref_bed." -in2 {$tmp_bed} | {$ngs_bits}BedChunk -n 100000 | {$ngs_bits}BedShrink -n 25000 | {$ngs_bits}BedExtend -n 25000 | {$ngs_bits}BedAnnotateGC | {$ngs_bits}BedAnnotateGenes -out {$off_target_bed}"); //@TODO: Review parameters after a few samples have been analyzed
+	}
 	
 	/***************************************************
 	 * GENERATE AND COPY COVERAGE FILES TO DATA FOLDER *
 	 ***************************************************/
 	// coverage for tumor sample
 	$t_cov = "{$tmp_folder}/{$t_id}.cov";
-	$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $t_bam -in $roi -out $t_cov",true);
+	$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov",true); //@TODO Leave min_mapq at 0 as long as we have CNVHunter, when replaced, set to 2 or 3 and recalculate all .cov files
+	
+	// coverage for tumor sample (off-target)
+	$t_cov_off_target = "{$tmp_folder}/{$t_id}_off_target.cov";
+	$parser->exec(get_path("ngs-bits")."BedCoverage","-min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target",true);
+	
+	//folders with tumor reference coverage files (of same processing system)
+	$ref_folder_t = get_path("data_folder")."/coverage/".$sys['name_short']."-tumor";
+	$ref_folder_t_off_target = $ref_folder_t . "_off_target";
 	
 	//copy tumor sample coverage file to reference folder (has to be done before ClinCNV call to avoid analyzing the same sample twice)
 	if (db_is_enabled("NGSD") && is_valid_ref_tumor_sample_for_cnv_analysis($t_id))
 	{
 		//create reference folder if it does not exist
-		if (!is_dir($ref_folder_t))
-		{
-			mkdir($ref_folder_t);
-		}
+		create_directory($ref_folder_t);
+		
 		//copy file
-		$ref_file_t = $ref_folder_t.$t_id.".cov";
+		$ref_file_t = "{$ref_folder_t}/{$t_id}.cov";
 		
 		if(!file_exists($ref_file_t)) //Do not overwrite existing reference files in cov folder
 		{
 			$parser->copyFile($t_cov, $ref_file_t); 
 			$t_cov = $ref_file_t;
 		}
+		
+		//create reference folder for tumor off target coverage files
+		create_directory($ref_folder_t_off_target);
+		
+		$ref_file_t_off_target = "{$ref_folder_t_off_target}/{$t_id}.cov";
+		if(!file_exists($ref_file_t_off_target))
+		{
+			$parser->copyFile($t_cov_off_target,$ref_file_t_off_target);
+			$t_cov_off_target = $ref_file_t_off_target;
+		}
 	}
-	
+
 	if($single_sample) //use CNVHunter in case of single samples
 	{
 		trigger_error("Currently only tumor normal pairs are supported for ClinCNV calls. Using CNVHunter instead.", E_USER_WARNING);
@@ -287,25 +325,36 @@ if(in_array("cn",$steps))
 	{
 		// coverage for normal sample
 		$n_cov = "{$tmp_folder}/{$n_id}.cov";
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov", true);
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -decimals 4 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov", true);
+		
+		// coverage for normal sample (off-target)
+		$n_cov_off_target = "{$tmp_folder}/{$n_id}_off_target.cov";
+		$parser->exec(get_path("ngs-bits")."BedCoverage","-min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target",true);
 		
 		// copy normal sample coverage file to reference folder (only if valid).
 		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($n_id))
 		{
 			//create reference folder if it does not exist
-			$ref_folder = get_path("data_folder")."/coverage/".$n_sys['name_short']."/";
-			create_directory($ref_folder);
-			if (!is_dir($ref_folder_n))
-			{
-				mkdir($ref_folder_n);
-			}
+			$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
+			create_directory($ref_folder_n);
 			
 			//copy file
-			$ref_file_n = $ref_folder_n.$n_id.".cov";
+			$ref_file_n = $ref_folder_n."/".$n_id.".cov";
 			if (!file_exists($ref_file_n)) //do not overwrite existing coverage files in ref folder
 			{
 				$parser->copyFile($n_cov, $ref_file_n);
 				$n_cov = $ref_file_n;
+			}
+			
+			$ref_folder_n_off_target = $ref_folder_n . "_off_target";
+			create_directory($ref_folder_n_off_target);
+			
+			$ref_file_n_off_target = "{$ref_folder_n_off_target}/{$n_id}.cov";
+			
+			if(!file_exists($ref_file_n_off_target))
+			{
+				$parser->copyFile($n_cov_off_target,$ref_file_n_off_target);
+				$t_cov_off_target = $ref_file_t_off_target;
 			}
 		}
 		
@@ -345,10 +394,31 @@ if(in_array("cn",$steps))
 			file_put_contents($t_n_list_file,"{$t_id},{$n_id}\n", FILE_APPEND | LOCK_EX);
 		}
 		
-		/*******************
-		 * EXECUTE CLINCNV *
-		 ******************/
-		$parser->execTool("NGS/vc_somatic_clincnv.php","-t_id {$t_id} -n_id {$n_id} -t_cov {$t_cov} -n_cov {$n_cov} -out {$som_clincnv} -cov_pairs {$t_n_list_file} -system {$system} -bed " .$sys['target_file']);
+		//Skip CNV Calling if there are less than 5 tumor-normal coverage pairs
+		if(count(file($t_n_list_file)) > 7)
+		{
+			/*******************
+			 * EXECUTE CLINCNV *
+			 *******************/
+			$args_clincnv = [
+			"-t_id", $t_id,
+			"-n_id", $n_id,
+			"-t_cov", $t_cov,
+			"-n_cov", $n_cov,
+			"-out", $som_clincnv,
+			"-cov_pairs",$t_n_list_file,
+			"-system", $system,
+			"-bed", $sys['target_file'],
+			"-t_cov_off", $t_cov_off_target,
+			"-n_cov_off", $n_cov_off_target,
+			"-bed_off", $off_target_bed
+			];
+			$parser->execTool("NGS/vc_somatic_clincnv.php",implode(" ",$args_clincnv));
+		}
+		else
+		{
+			print("Not enough reference tumor-normal coverage files for processing system {$system} found. Skipping CNV calling.\n");
+		}
 	}
 }
 
@@ -433,7 +503,6 @@ if (in_array("ci", $steps))
 	//this step also annotates germline variants
 	$variants_germline = dirname($n_bam)."/{$n_id}_var.vcf.gz";
 	$variants_germline_gsvar = dirname($n_bam)."/{$n_id}.GSvar";
-
 	// add QCI output
 	$parser->execTool("Tools/converter_vcf2qci.php", "-in $variants_annotated -t_id $t_id -n_id $n_id -out $variants_qci -pass");
 	

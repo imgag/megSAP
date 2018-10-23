@@ -176,7 +176,7 @@ for ($rowidx = 0; $rowidx < $vcf->rows(); $rowidx++)
 	{
 		$n = parse_observation($tumor_values["SR"]);
 		$variants[$id]["tumor_SR_depth"] = $n["ref"] + $n["alt"];
-		$variants[$id]["tumor_SR_freq"] = $n["alt"] / ($n["ref"] + $n["alt"]);
+		$variants[$id]["tumor_SR_freq"] = ($n["ref"] + $n["alt"]) != 0 ? $n["alt"] / ($n["ref"] + $n["alt"]) : "n/a";
 	}
 
 	if ($somatic)

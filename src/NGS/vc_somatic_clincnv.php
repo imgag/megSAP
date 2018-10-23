@@ -15,6 +15,11 @@ $parser->addInfile("n_cov","Coverage file for normal sample",false);
 $parser->addOutFile("out", "Output file.",false);
 //optional
 $parser->addInfile("bed","Bed file for target region.",false);
+$parser->addInfile("bed_off","Off-target bed file.",true); //s_dna
+$parser->addInfile("t_cov_off","Off-target coverage file for tumor sample",true);
+$parser->addInfile("n_cov_off","Off-target coverage file for normal sample",true);
+$parser->addString("cov_folder_n_off", "Folder with off-target normal coverage files (if different from [data_folder]/coverage/[system_short_name]_off_target/.", true, "auto");
+$parser->addString("cov_folder_t_off", "Folder with all tumor coverage files (if different from [data_folder]/coverage/[system_short_name]-tumor_off_target/.", true,"auto");
 $parser->addString("cohort_folder", "Folder that contains ClinCNV cohort data (same processing system).", true,"auto");
 $parser->addString("n_id","Processed sample id of normal sample, e.g. 'GS123456_01'. Using normal sample ID from NGSD by default.",true,"auto");
 $parser->addString("cov_folder_n", "Folder with all coverage files (if different from [data_folder]/coverage/[system_short_name]/.", true, "auto");
@@ -28,6 +33,12 @@ extract($parser->parse($argv));
 if(!db_is_enabled("NGSD") && ($n_id == "auto" || $cov_pairs == "auto" || !isset($system)))
 {
 	trigger_error("NGSD is not available. Please provide -n_id, -cov_pairs and -system manually.", E_USER_ERROR);
+}
+
+$use_off_target = true;
+if(!isset($bed_off) || !isset($t_cov_off) || !isset($n_cov_off))
+{
+	$use_off_target = false;
 }
 
 //extract tool path from ClinCNV command
@@ -103,12 +114,10 @@ function sort_clincnv_file($in,$out)
 	file_put_contents($out,$merged);
 }
 
-//Creates file with paths to coverage files using ref folder and current sample cov path
-function create_file_with_paths($ref_cov_folder,$cov_path)
+//Creates file with paths to coverage files using ref folder and current sample cov path, if ids contains data: skip all ids not contained
+function create_file_with_paths($ref_cov_folder,$cov_path,$ids = array())
 {
 	$ref_paths = glob("{$ref_cov_folder}/*.cov");
-	
-
 	
 	//Check whether cov file is already in ref cov folder -> remove from list
 	for($i=0;$i<count($ref_paths);++$i)
@@ -126,6 +135,10 @@ function create_file_with_paths($ref_cov_folder,$cov_path)
 	for($i=0;$i<count($ref_paths);++$i)
 	{
 		$ref_paths[$i] .= "\n";
+	}
+	
+	if(!empty($ids))
+	{
 	}
 
 	$out_file = temp_file(".txt");
@@ -151,9 +164,19 @@ if($cov_folder_n=="auto")
 }
 if(!is_dir($cov_folder_n))
 {
-	trigger_error("CNV calling skipped. Coverage files folder '$cov_folder_n' does not exist!", E_USER_WARNING);
+	trigger_error("CNV calling skipped. Coverage files folder cov_folder_n '$cov_folder_n' does not exist!", E_USER_WARNING);
 	exit(0);
 }
+if($cov_folder_n_off == "auto")
+{
+	$cov_folder_n_off = "{$data_folder}/coverage/".$sys['name_short']."_off_target";
+}
+if($use_off_target && !is_dir($cov_folder_n_off))
+{
+	trigger_error("CNV calling skipped. Off-target Coverage files folder cov_folder_n_off '$cov_folder_n_off' does not exist!", E_USER_WARNING);
+	exit(0);
+}
+
 //get coverage tumor folder
 if($cov_folder_t=="auto")
 {
@@ -161,7 +184,16 @@ if($cov_folder_t=="auto")
 }
 if(!is_dir($cov_folder_t))
 {
-	trigger_error("CNV calling skipped. Coverage files folder '$cov_folder_t' does not exist!", E_USER_WARNING);
+	trigger_error("CNV calling skipped. Coverage files folder cov_folder_t '$cov_folder_t' does not exist!", E_USER_WARNING);
+	exit(0);
+}
+if($cov_folder_t_off=="auto")
+{
+	$cov_folder_t_off = "{$data_folder}/coverage/".$sys['name_short']."-tumor_off_target";
+}
+if($use_off_target && !is_dir($cov_folder_t_off))
+{
+	trigger_error("CNV calling skipped. Coverage files folder cov_folder_t_off '$cov_folder_t_off' does not exist!", E_USER_WARNING);
 	exit(0);
 }
 
@@ -177,12 +209,21 @@ $parser->exec(get_path("ngs-bits")."/"."BedAnnotateGenes"," -in {$tmp_bed_annota
 $merge_files_exec_path = get_path("clincnv_somatic")."/mergeFilesFromFolder.R";
 $merged_cov_normal = $parser->tempFile(".txt");
 $merged_cov_tumor = $parser->tempFile(".txt");
-
 $cov_paths_n = create_file_with_paths($cov_folder_n,realpath($n_cov));
 $cov_paths_t = create_file_with_paths($cov_folder_t,realpath($t_cov));
-
 $parser->exec($merge_files_exec_path," -i {$cov_paths_n} -o {$merged_cov_normal}",true);
 $parser->exec($merge_files_exec_path," -i {$cov_paths_t} -o {$merged_cov_tumor}",true);
+
+//off-targets
+if($use_off_target)
+{
+	$merged_cov_tumor_off = $parser->tempFile(".txt");
+	$merged_cov_normal_off = $parser->tempFile(".txt");
+	$cov_paths_n_off = create_file_with_paths($cov_folder_n_off,realpath($n_cov_off));
+	$cov_paths_t_off = create_file_with_paths($cov_folder_t_off,realpath($t_cov_off));
+	$parser->exec($merge_files_exec_path," -i {$cov_paths_n_off} -o {$merged_cov_normal_off}",true);
+	$parser->exec($merge_files_exec_path," -i {$cov_paths_t_off} -o {$merged_cov_tumor_off}",true);
+}
 
 /******************************************
  * CREATE PAIR FILE WITH TUMOR NORMAL IDS *
@@ -234,17 +275,35 @@ if(!file_exists($cohort_folder))
 	trigger_error("Directory for cohort output {$cohort_folder} does not exist.",E_USER_ERROR);
 }
 $call_cnvs_exec_path = get_path("clincnv_somatic")."/firstStep.R";
-$call_cnvs_params = " --normal {$merged_cov_normal} --tumor {$merged_cov_tumor} --out {$cohort_folder} --pair {$cov_pairs} --bed {$tmp_bed_annotated} --colNum 4 --folderWithScript {$tool_folder} --lengthS 1 --scoreS 40";
-print($call_cnvs_params ."\n");
+
+$args = [
+"--normal", $merged_cov_normal,
+"--tumor", $merged_cov_tumor,
+"--out", $cohort_folder,
+"--pair", $cov_pairs,
+"--bed", $tmp_bed_annotated,
+"--colNum", "4",
+"--folderWithScript", $tool_folder,
+"--lengthS", "1",
+"--scoreS", "100"
+];
+
+if($use_off_target)
+{
+	$args[] = "--tumorOfftarget $merged_cov_tumor_off";
+	$args[] = "--normalOfftarget $merged_cov_normal_off";
+	$args[] = "--bedOfftarget $bed_off";
+}
+
 if($reanalyse_cohort) //Delete all sample files in cohort folder if reanalysis shall be performed
 {
 	if(is_dir("{$cohort_folder}/somatic/")) exec2("rm -r {$cohort_folder}/somatic/");
 	if(is_dir("{$cohort_folder}/normal/")) exec2("rm -r {$cohort_folder}/normal/");
-	$call_cnvs_params .=" --reanalyseCohort TRUE";
+	$args[] = "--reanalyseCohort TRUE";
 }
 else
 {
-	$call_cnvs_params .=" --reanalyseCohort FALSE"; 
+	$args[] = "--reanalyseCohort FALSE"; 
 }
 
 //Remove old data from somatic cohort folders
@@ -256,7 +315,7 @@ if(is_dir($cohort_folder_normal_sample)) exec2("rm -r {$cohort_folder_normal_sam
 
 //Make sure all files in cohort folder have rw permisssions before exec
 exec2("chmod -R 777 {$cohort_folder}");
-$parser->exec($call_cnvs_exec_path,$call_cnvs_params,true);
+$parser->exec($call_cnvs_exec_path,implode(" ",$args),true);
 exec2("chmod -R 777 {$cohort_folder}");
 
 

@@ -452,10 +452,12 @@ if(isset($mutations))
 	$vcf_file_filtered = $vcf_file;
 	if(!$is_germline)
 	{
+		//@TODO: move filter out of this script, cgi_send_data must be able to send unfiltered data!
 		$vcf_file_filtered = filter_vcf_file($vcf_file);
 	}
 	else
 	{
+		//@TODO: move filter out of this script, cgi_send_data must be able to send unfiltered data!
 		$vcf_file_filtered = filter_vcf_file_germline($vcf_file);
 	}
 	$vcf_file_filtered->toTSV($temp_mutation_file);
