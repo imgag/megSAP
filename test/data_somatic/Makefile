@@ -43,7 +43,7 @@ case1_somatic:
 		-t_bam Sample_GS150344_01/GS150344_01.bam \
 		-out_folder out_case1 \
 		-prefix GS150344_01 \
-		-steps vc,an \
+		-steps vc,an,cn \
 		-system system_single.ini \
 		--log out_case1/GS150344.log
 case1_diff:
