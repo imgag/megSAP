@@ -9,7 +9,8 @@
 //		- bug: chr5:138658646 A>C not annotated with 1000 Genomes AF
 //		- bug: chr16:89346631 G>C not annotated with 1000 Genomes AF
 //		- bug: custom annotations from BED.GZ sources do not work (RepeatMasker, OMIM) - promised to be fixed in 94.2 or 93.7
-//@TODO test: --regulatory --gene_phenotype --ccds --biotype --canonical --pubmed
+//@TODO test: --regulatory (chr5:1295228 G>A, chr5:1295250 G>A) 
+//@TODO test: --gene_phenotype --ccds --biotype --canonical --pubmed
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 

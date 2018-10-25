@@ -2,6 +2,7 @@
 
 /** 
 	@page mapping_baf
+	@todo use sample VCF as input to make the BAF file more informative - remove gnomAD dependency - move to 'vc' step.
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
