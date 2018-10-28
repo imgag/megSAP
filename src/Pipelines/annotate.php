@@ -2,6 +2,8 @@
 
 /**
 	@page annotate
+	@todo import also non-coding variants into NGSD for WGS (only rare ones)
+	@todo remove full GSvar file - it cannot be opened in GSvar anyway...
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

@@ -29,14 +29,14 @@ extract($parser->parse($argv));
 $fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation", "AF", "gnomAD_AF", "gnomAD_AFR_AF", "gnomAD_AMR_AF", "gnomAD_EAS_AF", "gnomAD_NFE_AF", "gnomAD_SAS_AF", "EA_AF", "AA_AF"); 
 
 $vep_path = dirname(get_path("vep"));
-$vep_data_path = get_path("data_folder")."/dbs/ensembl-vep-93/";
+$vep_data_path = get_path("local_data")."/".basename(get_path("vep_data"))."/"; //the data is copied to the local data folder by 'data_setup' to speed up annotations (and prevent hanging annotation jobs)
 
 $args = array();
 $args[] = "-i $in --format vcf"; //input
 $args[] = "-o $out --vcf --no_stats --force_overwrite"; //output
 $args[] = "--species homo_sapiens --assembly {$build}"; //species
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
-$args[] = "--offline --cache --dir_cache {$vep_data_path}/cache/ --fasta ".get_path("local_data")."/{$build}.fa"; //paths to data
+$args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".get_path("local_data")."/{$build}.fa"; //paths to data
 $args[] = "--numbers --hgvs --domains"; //annotation options
 $args[] = "--sift p --polyphen p"; //pathogenicity predictions
 $args[] = "--af --af_gnomad --af_esp --failed 1"; //population frequencies
