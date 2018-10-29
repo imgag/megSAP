@@ -268,7 +268,6 @@ if (in_array("fu",$steps))
 		]));
 
 		$fusion_tmp_folder = $parser->tempFolder();
-		create_directory($fusion_tmp_folder);
 		$chimeric_file = "{$prefix}_chimeric.tsv";
 		if (!file_exists($chimeric_file))
 		{
@@ -284,7 +283,8 @@ if (in_array("fu",$steps))
 		$starfusion_params = [
 			"--genome_lib_dir", $fusion_index,
 			"--chimeric_junction", $chimeric_file_tmp,
-			"--output_dir", $fusion_tmp_folder
+			"--output_dir", $fusion_tmp_folder,
+			"--examine_coding_effect"
 		];
 
 		$input_reads_available = isset($fastq_trimmed1) &&
