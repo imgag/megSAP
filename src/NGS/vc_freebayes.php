@@ -18,6 +18,7 @@ $parser->addOutfile("out", "Output file in VCF.GZ format.", false);
 //optional
 $parser->addInfile("target",  "Enrichment targets BED file.", true);
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
+$parser->addInt("threads", "How many threads should be used at once to call freebayes", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 1);
@@ -61,7 +62,41 @@ $args[] = "--min-alternate-fraction $min_af";
 $args[] = "--min-mapping-quality $min_mq";
 $args[] = "--min-base-quality $min_bq"; //max 10% error propbability
 $args[] = "--min-alternate-qsum 90"; //At least 3 good observations
-$pipeline[] = array(get_path("freebayes"), "-b ".implode(" ",$bam)." -f $genome ".implode(" ", $args));
+
+// run freebayes
+if (isset($target) && $threads > 1) 
+{
+	// Split BED file by chromosomes into seperate files
+	// e.g chr1.bed, chr2.bed, chrY.bed
+	$roi = array();
+	$bedfile = fopen($target, "r") or die("Cannot read target file: " + $target);
+	while (($line = fgets($bedfile)) !== false)
+	{
+		if (strpos($line, "track") || strpos($line, "browser") || substr_count($line, "\t") > 3) continue;
+		$chrom = substr($line, 0, strpos($line, "\t")).trim();
+		if (!isset($roi[$chrom])) {
+			$roi[$chrom] = array();
+		}
+		$roi[$chrom][] = $line;
+	}
+	fclose($bedfile);
+
+	$bed_dir = $parser->tempDir();
+	foreach ($roi as $chrom) {
+		$stat = file_put_contents($bed_dir.$chrom, join("\n", $roi[$chrom]));
+		if (!stat) print("Having trouble saving chromosome ('" + $chrom + "') to: " + $bed_dir.$chrom);
+	}
+
+	// Then runs the pipeline for every chromosome. Add's n chromosomes to the pool according to the threads parameters at the same time.
+	
+	// After that merge the resulting VCF files
+
+	// And put a cut on the pipeline script
+} 
+else 
+{
+	$pipeline[] = array(get_path("freebayes"), "-b ".implode(" ",$bam)." -f $genome ".implode(" ", $args));
+}
 
 //filter variants according to variant quality>5 , alternate observations>=3
 $pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5 & AO > 2\"");
