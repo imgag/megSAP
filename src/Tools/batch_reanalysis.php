@@ -7,9 +7,10 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 // parse command line arguments
 $parser = new ToolBase("batch_reanalysis", "Batch re-analysis of single-sample analyses.");
 $parser->addStringArray("samples", "Processed sample names.", false);
-$parser->addString("steps", "Analysis steps to perform.", true);
-$parser->addInt("threads", "The maximum number of threads used.", true);
-$parser->addString("before", "Only samples analyzed before the given date in format DD.MM.YYYY are reanalyzed.", true);
+$parser->addString("steps", "Analysis steps to perform.", false);
+$parser->addEnum("mode", "Excution mode: 'default' executes the analysis sequentially in this script, 'print' only prints samples, but performs no analysis, 'sge' queues the analysis in SGE.", true, array("default", "print", "sge"), "default");
+$parser->addInt("threads", "Nmber of threads used.", true);
+$parser->addString("before", "Only samples analyzed before the date are reanalyzed (considers 'steps', format 'DD.MM.YYYY').", true);
 extract($parser->parse($argv));
 
 //convert 'before' to timestamp
@@ -48,36 +49,101 @@ for ($i=1; $i<=$count; ++$i)
 	//check last analysis date 
 	if (isset($before))
 	{
+		$skip = true;
+		
+		//check BAM
 		$bam = $info['ps_bam'];
-		$gsvar = substr($bam, 0, -3)."GSvar";
-		if (file_exists($bam) && filemtime($bam)>$before && file_exists($gsvar) && filemtime($gsvar)>$before)
+		if (contains($steps, "ma"))
+		{
+			if (!file_exists($bam) || filemtime($bam)<$before)
+			{
+				$skip = false;
+			}
+		}
+		
+		//check VCF
+		if (contains($steps, "vc"))
+		{
+			$vcf = substr($bam, 0, -4)."_var.vcf.gz";
+			if (!file_exists($vcf) || filemtime($vcf)<$before)
+			{
+				$skip = false;
+			}
+		}
+		
+		//check GSvar
+		if (contains($steps, "an"))
+		{
+			$gsvar = substr($bam, 0, -3)."GSvar";
+			if (!file_exists($gsvar) || filemtime($gsvar)<$before)
+			{
+				$skip = false;
+			}
+		}
+		
+		//check CNVs
+		if (contains($steps, "cn"))
+		{
+			$cnvs = substr($bam, 0, -4)."_cnvs.seg";
+			if (!file_exists($cnvs) || filemtime($cnvs)<$before)
+			{
+				$skip = false;
+			}
+		}
+		
+		if($skip)
 		{
 			print "$i/$count: Skipped '$ps' because it was analyzed after ".date("m.d.Y", $before)."\n";
 			continue;
 		}
 	}
+
+	//perform analysis
+	if ($mode=="print")
+	{
+		print "$i/$count: Analyzing '$folder'...\n";
+	}
+	else if ($mode=="default")
+	{
+		print "$i/$count: Analyzing '$folder'...\n";
 	
-	//variant calling with multi-sample pipeline
-	print "$i/$count: Analyzing '$folder'...\n";
-	$args = array();
-	$args[] = "-name $ps";
-	$args[] = "-folder $folder";
-	if (isset($steps))
-	{
+		$args = array();
+		$args[] = "-name $ps";
+		$args[] = "-folder $folder";
 		$args[] = "-steps $steps";
-	}
-	if (isset($threads))
-	{
-		$args[] = "-threads $threads";
-	}
-	list($stdout, $stderr, $return) = $parser->execTool("Pipelines/analyze.php", implode(" ", $args), false);
-	if ($return!=0)
-	{
-		print "  Error occurred:\n";
-		$lines = array_merge($stdout, $stderr);
-		foreach($lines as $line)
+		if (isset($threads))
 		{
-			print "  ".trim($line)."\n";
+			$args[] = "-threads $threads";
+		}
+		list($stdout, $stderr, $return) = $parser->execTool("Pipelines/analyze.php", implode(" ", $args), false);
+		if ($return!=0)
+		{
+			print "  Error occurred:\n";
+			$lines = array_merge($stdout, $stderr);
+			foreach($lines as $line)
+			{
+				print "  ".trim($line)."\n";
+			}
+		}
+	}
+	else if ($mode=="sge")
+	{
+		print "$i/$count: Queuing '$folder'.\n";
+		$args = array();
+		$args[] = "-steps $steps";
+		if (isset($threads))
+		{
+			$args[] = "-threads $threads";
+		}
+		list($stdout, $stderr, $return) = $parser->execTool("NGS/db_queue_analysis.php", "-type 'single sample' -samples $ps -args '".implode(" ", $args)."'", false);
+		if ($return!=0)
+		{
+			print "  Error occurred:\n";
+			$lines = array_merge($stdout, $stderr);
+			foreach($lines as $line)
+			{
+				print "  ".trim($line)."\n";
+			}
 		}
 	}
 }
