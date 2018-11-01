@@ -52,8 +52,8 @@ if ($dedup)
 }
 
 //convert sam to bam with samtools
-$tmp_unsorted = $parser->tempFile();
-$pipeline[] = array(get_path("samtools"), "view -1 - > $tmp_unsorted");
+$tmp_unsorted = $parser->tempFile("_unsorted.bam");
+$pipeline[] = array(get_path("samtools"), "view -Sb - > $tmp_unsorted");
 
 //execute (BWA -> samblaster -> BAM conversion)
 $parser->execPipeline($pipeline, "mapping");

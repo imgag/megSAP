@@ -315,8 +315,7 @@ if(is_dir($cohort_folder_normal_sample)) exec2("rm -r {$cohort_folder_normal_sam
 //execite ClinCNV and make sure all files in cohort folder have 777 permisssions
 function chmod_recursive($folder)
 {
-	$output = array();
-	exec("chmod -R 777 {$folder} 2>&1", $output, $exit_code);
+	list(, , $exit_code) = exec2("chmod -R 777 {$folder}", false);
 	if ($exit_code!=0)
 	{
 		trigger_error("Could not change permissions of all files in {$folder}!", E_USER_WARNING);
