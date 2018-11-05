@@ -36,6 +36,7 @@ $parser->addInfileArray("bams", "Input BAM files.", false);
 $parser->addStringArray("status", "List of affected status of the input samples (BAMs) - can be 'affected' or 'control'.", false);
 $parser->addString("out_folder", "Output folder name.", false);
 //optional
+$parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("prefix", "Output file prefix.", true, "multi");
 $parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of the first file in 'bams' is a valid processed sample name).", true);
 $steps_all = array("vc", "an", "cn");
@@ -113,6 +114,10 @@ if (in_array("vc", $steps))
 	$args[] = "-min_af 0.1";
 	$args[] = "-target_extend 50";
 	$args[] = "-build ".$sys['build'];
+	if ($threads)
+	{
+		$args[] = " -processes ".$threads;
+	}
 	$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);	
 
 	//variant calling for mito
@@ -139,6 +144,10 @@ if (in_array("vc", $steps))
 		$args[] = "-min_af 0.01";
 		$args[] = "-target $target_mito";
 		$args[] = "-build ".$sys['build'];
+		if ($threads)
+		{
+			$args[] = " -processes ".$threads;
+		}
 		$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);
 	}
 }

@@ -145,6 +145,10 @@ if (in_array("vc", $steps))
 	{
 		$args[] = "-min_af 0.1";
 	}
+	if ($threads)
+	{
+		$args[] = " -processes ".$threads;
+	}
 	
 	if(file_exists($log_vc)) unlink($log_vc);
 	$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc ".implode(" ", $args));
