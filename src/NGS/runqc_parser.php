@@ -42,7 +42,7 @@ if(!contains($run_dir, $flowcell_id))
 	trigger_error("Flowcell ID from NGSD ($flowcell_id) was not found in directory '$run_dir'.", E_USER_ERROR);
 }
 
-if (!file_exists("Fq"))
+if (!file_exists($run_dir."/Fq"))
 {
 	//parse number of cycles/index for each read
 	$run_info_parsed = new SimpleXMLElement(file_get_contents($run_dir . "/RunInfo.xml"));
@@ -103,31 +103,19 @@ if (!file_exists("Fq"))
 else
 {
 	//get number of cycles from BioInfo.csv
-	$mgi_general = array_column(load_tsv("Fq/L01/BioInfo.csv", ","), 1, 0);
+	$mgi_general = array_column(load_tsv($run_dir."/Fq/L01/BioInfo.csv", ","), 1, 0);
 	$read_metrics[1]["cycles"] = intval($mgi_general["Read1 Cycles"]);
 	$read_metrics[1]["index"] = "0";
 	$read_metrics[2]["cycles"] = intval($mgi_general["Read2 Cycles"]);
 	$read_metrics[2]["index"] = "0";
-	$read_metrics[3]["cycles"] = intval($mgi_general["Barcode"]);
-	$read_metrics[3]["index"] = "1";
+	//$read_metrics[3]["cycles"] = intval($mgi_general["Barcode"]);
+	//$read_metrics[3]["index"] = "1";
 
-	//parse summary files
-	foreach (glob("Fq/L??/summaryTable.csv") as $f)
-	{
-		$lane = intval(substr(basename(dirname($f)), 1));
-		$summary[$lane] = array_column(load_tsv($f, ","), 1, 0);
-	}
-
-	//parse Q30 and number of clusters
-	$q30 = [];
-	foreach (glob("Fq/L??/BasecallQC.txt") as $f)
+	//parse number of clusters
+	foreach (glob($run_dir."/Fq/L??/BasecallQC.txt") as $f)
 	{
 		$handle = fopen($f, "r");
 		$lane = intval(substr(basename(dirname($f)), 1));
-		$q30[1][$lane] = [];
-		$q30[2][$lane] = [];
-		$q30[3][$lane] = [];
-
 		$cluster[$lane] = 0;
 
 		$parse = "";
@@ -135,26 +123,13 @@ else
 		{
 			$line = trim($line);
 
-			if ($parse === "Q30")
-			{
-				$values = explode("\t", $line);
-				array_push($q30[1][$lane], array_sum(array_slice($values, 0, $read_metrics[1]["cycles"])));
-				array_push($q30[2][$lane], array_sum(array_slice($values, $read_metrics[1]["cycles"], $read_metrics[2]["cycles"])));
-				array_push($q30[3][$lane], array_sum(array_slice($values, $read_metrics[2]["cycles"], $read_metrics[3]["cycles"])));
-				$parse = "";
-			}
-			elseif ($parse === "cluster")
+			if ($parse === "cluster")
 			{
 				$cluster[$lane] += intval($line);
 				$parse = "";
 			}
 
-			if (starts_with($line, "#CycQ30"))
-			{
-				//per-cycle Q30 value
-				$parse = "Q30";
-			}
-			elseif (starts_with($line, "#NUMDNBS"))
+			if (starts_with($line, "#NUMDNBS"))
 			{
 				//number of DNBs
 				$parse = "cluster";
@@ -162,25 +137,35 @@ else
 		}
 	}
 
-	foreach ($q30 as $read => $lane_q30_values)
-	{
-		$read_metrics[$read]["q30"] = 0;
+	//parse *allfq.fqStat.txt files
+	foreach (glob($run_dir."/Fq/L??/*allfq.fqStat.txt") as $f) {
+		$lane = intval(substr(basename(dirname($f)), 1));
+		$read = strpos($f, "1allfq") !== FALSE ? "1" : "2";
 
-		foreach ($lane_q30_values as $lane => $values)
-		{
-			//per lane and read
-			$read_metrics[$read]["lane_metrics"][$lane]["q30"] = array_sum($values) / ($summary[$lane]["ImageArea"] * $read_metrics[$read]["cycles"]) * 100;
-			$read_metrics[$read]["q30"] += $read_metrics[$read]["lane_metrics"][$lane]["q30"];
-
-			$read_metrics[$read]["lane_metrics"][$lane]["cluster_dens"] = $cluster[$lane];
-			$read_metrics[$read]["lane_metrics"][$lane]["passed_filter"] = floatval($summary[$lane]["TotalReads(M)"]) * 1e6;
-			$read_metrics[$read]["lane_metrics"][$lane]["yield"] = floatval($summary[$lane]["TotalReads(M)"]) * 1e6 * $read_metrics[$read]["cycles"];
-			$read_metrics[$read]["lane_metrics"][$lane]["error_rate"] = .0;
+		$fqstat = [];
+		$handle = fopen($f, "r");
+		while ( ($line = fgets($handle)) !== FALSE ) {
+			$line = trim($line);
+			if (strpos($line, "#") === 0) {
+				list($key, $value) = explode("\t", trim($line, "#"), 2);
+				$fqstat[$key] = $value;
+			}
 		}
 
-		//per read
-		$read_metrics[$read]["q30"] /= count($lane_q30_values);
-		$read_metrics[$read]["error_rate"] = .0;
+		$read_metrics[$read]["lane_metrics"][$lane]["q30"] = $fqstat["Q30%"];
+		$read_metrics[$read]["lane_metrics"][$lane]["error_rate"] = $fqstat["EstErr%"];
+		$read_metrics[$read]["lane_metrics"][$lane]["yield"] = $fqstat["BaseNum"];
+		$read_metrics[$read]["lane_metrics"][$lane]["passed_filter"] = $fqstat["ReadNum"];
+		$read_metrics[$read]["lane_metrics"][$lane]["cluster_dens"] = $cluster[$lane];
+	}
+
+	foreach ($read_metrics as $key => $r)
+	{
+		foreach ([ "q30", "error_rate" ] as $metric)
+		{
+			$values = array_column($r["lane_metrics"], $metric);
+			$read_metrics[$key][$metric] = array_sum($values) / count($values);
+		}
 	}
 }
 
