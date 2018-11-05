@@ -73,7 +73,7 @@ if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
 		$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
 		$parser->exec(get_path("ngs-bits")."FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $in_index)." -out1 $merged1_bc -out2 $merged2_bc", true);
 		// run SeqPurge
-		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $merged1_bc -in2 $merged2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);
+		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $merged1_bc -in2 $merged2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads, 1, 4), true);
 
 		// trim 1 base from end of R1 and 1 base from start of R2 (only HaloPlex HS)
 		if ($sys['umi_type'] === "HaloPlex HS")
@@ -85,6 +85,9 @@ if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
 			$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed1 -out $trimmed_hs1 -end 1",true);
 			$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed_hs2 -start 1",true);
 			
+
+			$parser->deleteTempFile($trimmed1);
+			$parser->deleteTempFile($trimmed2);
 			$trimmed1 = $trimmed_hs1;
 			$trimmed2 = $trimmed_hs2;
 		}
@@ -97,7 +100,7 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 	//handle UMI protocols where the UMI is placed at the head of read 1 and/or read 2
 
 	//remove sequencing adapter
-	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".($threads>2 ? 2 : 1), true);
+	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads, 1, 4), true);
 
 	//set protocol specific UMI lengths
 	switch ($sys['umi_type'])
@@ -123,6 +126,9 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 	$trimmed1_bc = $parser->tempFile("_trimmed1_bc.fastq.gz");
 	$trimmed2_bc = $parser->tempFile("_trimmed2_bc.fastq.gz");
 	$parser->exec(get_path("ngs-bits")."FastqExtractUMI", "-in1 $trimmed1 -in2 $trimmed2 -out1 $trimmed1_bc -out2 $trimmed2_bc -cut1 $cut1 -cut2 $cut2", true);
+	
+	$parser->deleteTempFile($trimmed1);
+	$parser->deleteTempFile($trimmed2);
 	$trimmed1 = $trimmed1_bc;
 	$trimmed2 = $trimmed2_bc;
 
@@ -131,7 +137,7 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 else
 {
 	if ($sys['umi_type']!=="n/a") trigger_error("Unknown UMI-type ".$sys['umi_type'].". No barcode correction.",E_USER_WARNING);
-	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".($threads>2 ? 2 : 1), true);
+	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads, 1, 4), true);
 }
 
 //clean up MIPs - remove single reads and MIP arms, skip all reads without perfect match mip arm
@@ -215,6 +221,10 @@ $args[] = "-threads $threads";
 if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
 $parser->execTool("NGS/mapping_bwa.php", implode(" ", $args));
 
+// remove temporary FASTQs (they can be really large for WGS)
+$parser->deleteTempFile($trimmed1);
+$parser->deleteTempFile($trimmed2);
+
 //UMIs - remove duplicates by molecular barcode
 if($barcode_correction)
 {
@@ -231,7 +241,8 @@ if($barcode_correction)
 		$tmp_bam_filtered_sorted = $parser->tempFile("_filtered_sorted.bam");
 		$parser->sortBam($tmp_bam_filtered, $tmp_bam_filtered_sorted, $threads);
 		$parser->indexBam($tmp_bam_filtered_sorted, $threads);
-
+		
+		$parser->deleteTempFile($bam_current);
 		$bam_current = $tmp_bam_filtered_sorted;
 	}
 
@@ -243,6 +254,7 @@ if($barcode_correction)
 	$parser->indexBam($tmp_bam4, $threads);
 	$parser->moveFile($tmp_bam4.".log", $out."_stats_dedup.tsv");
 	
+	$parser->deleteTempFile($bam_current);
 	$bam_current = $tmp_bam4;
 }
 
@@ -267,6 +279,7 @@ if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 	$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $args));
 	$parser->indexBam($tmp_bam, $threads);
 	
+	$parser->deleteTempFile($bam_current);
 	$bam_current = $tmp_bam;
 }
 
@@ -277,6 +290,7 @@ if ($sys['type']=="Panel Haloplex")
 	$parser->exec(get_path("ngs-bits")."BamCleanHaloplex -min_match 30", "-in $bam_current -out $tmp_bam", true);
 	$parser->indexBam($tmp_bam, $threads);
 	
+	$parser->deleteTempFile($bam_current);
 	$bam_current = $tmp_bam;
 }
 
@@ -289,6 +303,7 @@ if($clip_overlap)
 	$parser->sortBam($tmp_bam, $tmp_bam2, $threads);
 	$parser->indexBam($tmp_bam2, $threads);
 
+	$parser->deleteTempFile($bam_current);
 	$bam_current = $tmp_bam2;
 }
 

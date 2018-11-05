@@ -100,6 +100,7 @@ if ($build=="GRCh37")
 	}
 	
 	//remove outdated annotation data
+	$update = true;
 	$info = "/homo_sapiens/93_GRCh37/info.txt";
 	if (file_exists("{$local_annotation_folder}/{$info}"))
 	{
@@ -107,6 +108,7 @@ if ($build=="GRCh37")
 		if ($code==0)
 		{
 			print "Annotation infos in '$info' match.\n";
+			$update = false;
 		}
 		else
 		{
@@ -115,11 +117,14 @@ if ($build=="GRCh37")
 		}
 	}
 	
-	print "rsync-ing annotation data...\n";
-	list($stdout) = exec2("rsync -a {$annotation_folder} {$local_annotation_folder}");
-	foreach($stdout as $line)
+	if ($update)
 	{
-		print trim($line)."\n";
+		print "rsync-ing annotation data...\n";
+		list($stdout) = exec2("rsync -a {$annotation_folder} {$local_annotation_folder}");
+		foreach($stdout as $line)
+		{
+			print trim($line)."\n";
+		}
 	}
 }
 
