@@ -69,7 +69,7 @@ if (isset($target) && $processes > 1)
 	// Split BED file by chromosomes into seperate files
 	// e.g chr1.bed, chr2.bed, chrY.bed
 	$roi = array();
-	$bedfile = fopen($target, "r") or die("Cannot read target file: " + $target);
+	$bedfile = fopen($target, "r") or die("Cannot read target file: ".$target);
 	while (($line = fgets($bedfile)) !== false)
 	{
 		if (strpos($line, "track") || strpos($line, "browser") || substr_count($line, "\t") > 3) continue;
@@ -85,8 +85,8 @@ if (isset($target) && $processes > 1)
 
 	$tmp_dir = $parser->tempFolder();
 	foreach ($chromosomes as $chrom) {
-		$stat = file_put_contents($tmp_dir.$chrom, join("\n", $roi[$chrom]));
-		if (!$stat) die("Having trouble saving chromosome ('" + $chrom + "') to: " + $tmp_dir.$chrom);
+		$stat = file_put_contents($tmp_dir."/".$chrom.".bed", join("", $roi[$chrom]));
+		if (!$stat) die("Having trouble saving chromosome ('".$chrom."') to: ".$tmp_dir."/".$chrom);
 	}
 
 	/**
@@ -100,12 +100,13 @@ if (isset($target) && $processes > 1)
 	 * @return {number} - returns the PID
 	 */
 	function run_freebayes_nohup($parser, $bam, $genome, $args, $path, $output) {
-		$args[0] = "-t " + $path;
+		$args[0] = "-t ".$path;
 		// now we do something like
 		// nohup freebayes params &> output &
 		// have a look at https://stackoverflow.com/a/4549515/3135319 for further info
-		$result = $parser->exec("nohup", get_path("freebayes") + "-b ".implode(" ",$bam)." -f $genome ".implode(" ", $args) + " &> " + $output + " &");
-		$pid = string_split($result[0], ' ')[1]; // stdout will yield output in form [1] PID
+		$parser->exec("nohup", get_path("freebayes")."-b ".implode(" ",$bam)." -f $genome ".implode(" ", $args)." &> ".$output." &");
+		$result = $parser->exec("sh", "-c \"echo $!\"", true);
+		$pid = int($result[0][0]);
 		return $pid;
 	}
 
@@ -114,7 +115,7 @@ if (isset($target) && $processes > 1)
 	for ($i = 0; $i < $processes; $i++)
 	{
 		$chrom = array_shift($chromosomes);
-		$pid = run_freebayes_nohup($parser, $bam, $genome, $args, $tmp_dir.$chrom.".bed", $tmp_dir.$chrom.".vcf");
+		$pid = run_freebayes_nohup($parser, $bam, $genome, $args, $tmp_dir."/".$chrom.".bed", $tmp_dir."/".$chrom.".vcf");
 		array_push($pids, $pid);
 	}
 
@@ -139,7 +140,7 @@ if (isset($target) && $processes > 1)
 		{
 			if (!length($chromosomes)) continue;
 			$chrom = array_shift($chromosomes);
-			$pid = run_freebayes_nohup($parser, $bam, $genome, $args, $tmp_dir.$chrom.".bed", $tmp_dir.$chrom.".vcf");
+			$pid = run_freebayes_nohup($parser, $bam, $genome, $args, $tmp_dir."/".$chrom.".bed", $tmp_dir."/".$chrom.".vcf");
 			array_push($pids, $pid);
 		}
 	}
