@@ -18,7 +18,7 @@ $parser->addOutfile("out", "Output file in VCF.GZ format.", false);
 //optional
 $parser->addInfile("target",  "Enrichment targets BED file.", true);
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
-$parser->addInt("threads", "How many threads should be used at once to call freebayes", true, 1);
+$parser->addInt("processes", "How many processes should be used at once to call freebayes", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 1);
@@ -64,8 +64,8 @@ $args[] = "--min-base-quality $min_bq"; //max 10% error propbability
 $args[] = "--min-alternate-qsum 90"; //At least 3 good observations
 
 // run freebayes
-if (isset($target) && $threads > 1) 
-{
+if (isset($target) && $processes > 1) 
+{	
 	// Split BED file by chromosomes into seperate files
 	// e.g chr1.bed, chr2.bed, chrY.bed
 	$roi = array();
@@ -80,18 +80,84 @@ if (isset($target) && $threads > 1)
 		$roi[$chrom][] = $line;
 	}
 	fclose($bedfile);
+	// The list of chromosomes to process for
+	$chromosomes = array_keys($roi);
 
-	$bed_dir = $parser->tempDir();
-	foreach ($roi as $chrom) {
-		$stat = file_put_contents($bed_dir.$chrom, join("\n", $roi[$chrom]));
-		if (!stat) print("Having trouble saving chromosome ('" + $chrom + "') to: " + $bed_dir.$chrom);
+	$tmp_dir = $parser->tempDir();
+	foreach ($chromosomes as $chrom) {
+		$stat = file_put_contents($tmp_dir.$chrom, join("\n", $roi[$chrom]));
+		if (!stat) die("Having trouble saving chromosome ('" + $chrom + "') to: " + $tmp_dir.$chrom);
 	}
 
-	// Then runs the pipeline for every chromosome. Add's n chromosomes to the pool according to the threads parameters at the same time.
+	$process_args = $args; // Interestingly arrays are assigned by copy in PHP. See https://stackoverflow.com/a/1533214/3135319
+
+	/**
+	 * Run's the freebayes script with nohup
+	 * @function
+	 * @param {string} path - the target path to use
+	 * @param {string} output - the output path that nohup should redirect stdout to
+	 * @return {number} - returns the PID
+	 */
+	function run_freebayes_nohup($path, $output) {
+		$process_args[0] = "-t " + $path;
+		// now we do something like
+		// nohup freebayes params &> output &
+		// have a look at https://stackoverflow.com/a/4549515/3135319 for further info
+		$result = $parser->exec("nohup", get_path("freebayes") + "-b ".implode(" ",$bam)." -f $genome ".implode(" ", $process_args) + " &> " + $output + " &");
+		$pid = string_split($result[0], ' ')[1]; // stdout will yield output in form [1] PID
+		return $pid;
+	}
+
+	// Then runs the pipeline for every chromosome. Add's n chromosomes to the pool according to the process parameter at the same time.
+	$pids = array();
+	for ($i = 0; $i < $processes; $i++)
+	{
+		$chrom = array_shift($chromosomes);
+		$pid = run_freebayes_nohup($tmp_dir.$chrom.".bed", $tmp_dir.$chrom.".vcf");
+		array_push($pids, $pid);
+	}
+
+	$running = true;
+	while ($running) 
+	{
+		// for all processes check if they are alive
+		$running_pids = array();
+		foreach($pids as $pid) {
+			$status = posix_kill($pid, 0); // issues the SIG signal to the process which returns it's status. Also see https://stackoverflow.com/a/27285056/3135319
+			if ($status) $running_pids[$pid] = $status; 
+		}
+
+		// if all chromosomes have been processed exit the while
+		if (!length($chromosomes) && !length($running_pids)) {
+			$running = false;
+			continue;
+		}
+
+		// if less running processes than process limit start a new process
+		for ($i = (length($pids) - length($running_pids)); $i < $processes; $i++) 
+		{
+			if (!length($chromosomes)) continue;
+			$chrom = array_shift($chromosomes);
+			$pid = run_freebayes_nohup($tmp_dir.$chrom.".bed", $tmp_dir.$chrom.".vcf");
+			array_push($pids, $pid);
+		}
+	}
 	
 	// After that merge the resulting VCF files
+	$chromosomes = array_keys($roi);
+	for ($i = 0; $i < length($chromosomes); $i++) // append all chromsome.vcf files to a combined.vcf
+	{
+		if ($i != 0) // except for the first chromsome delete all header lines 
+		{
+			$parser->exec("sed", "-i '/#/d' ".$tmp_dir.$chromosomes[$i].".vcf");
+		}
+		$parser->exec("cat", "".$tmp_dir.$chromosomes[$i].".vcf >> combined.vcf");
+	}
 
-	// And put a cut on the pipeline script
+	unset($roi); // explicitely clean up ROI's because they can be rather large
+
+	// And put a cat on the pipeline script
+	$pipeline[] = array("cat", $tmp_dir."combined.vcf");
 } 
 else 
 {
