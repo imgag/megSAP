@@ -230,10 +230,10 @@ if (in_array("an", $steps))
 					list(, $gender_header) = explode("=", $part);
 				}
 			}
-			print "Gender of child (from header): {$gender_data}\n";
+			print "Gender of child (from header): {$gender_header}\n";
 			
 			//deviating => error
-			if ($gender_data!=$gender_header && $gender_header!="n/a" && $gender_data!="n/a")
+			if ($gender_data!=$gender_header && $gender_header!="n/a" && $gender_header!="" && $gender_data!="n/a")
 			{
 				trigger_error("Gender of child from sample header '{$gender_header}' deviates from gender from data '{$gender_data}'", E_USER_ERROR);
 			}
