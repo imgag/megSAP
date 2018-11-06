@@ -128,15 +128,15 @@ if (isset($target) && $processes > 1)
 		}
 
 		// if all chromosomes have been processed exit the while
-		if (!length($chromosomes) && !length($running_pids)) {
+		if (!count($chromosomes) && !count($running_pids)) {
 			$running = false;
 			continue;
 		}
 
 		// if less running processes than process limit start a new process
-		for ($i = (length($pids) - length($running_pids)); $i < $processes; $i++) 
+		for ($i = (count($pids) - count($running_pids)); $i < $processes; $i++) 
 		{
-			if (!length($chromosomes)) continue;
+			if (!count($chromosomes)) continue;
 			$chrom = array_shift($chromosomes);
 			$pid = run_freebayes_nohup($parser, $bam, $genome, $args, $tmp_dir."/".$chrom.".bed", $tmp_dir."/".$chrom.".vcf");
 			array_push($pids, $pid);
@@ -145,7 +145,7 @@ if (isset($target) && $processes > 1)
 	
 	// After that merge the resulting VCF files
 	$chromosomes = array_keys($roi);
-	for ($i = 0; $i < length($chromosomes); $i++) // append all chromsome.vcf files to a combined.vcf
+	for ($i = 0; $i < count($chromosomes); $i++) // append all chromsome.vcf files to a combined.vcf
 	{
 		if ($i != 0) // except for the first chromsome delete all header lines 
 		{
