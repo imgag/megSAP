@@ -104,7 +104,7 @@ if (isset($target) && $processes > 1)
 		// now we do something like
 		// nohup freebayes params &> output &
 		// have a look at https://stackoverflow.com/a/4549515/3135319 for further info
-		$result = $parser->exec("nohup", get_path("freebayes")." -b ".implode(" ",$bam)." -f $genome ".implode(" ", $args)." &> ".$output." &", true);
+		$result = $parser->exec("nohup", get_path("freebayes")." -b ".implode(" ",$bam)." -f $genome ".implode(" ", $args)." </dev/null &> ".$output." &", true);
 		return $result[3]; // returns the PID
 	}
 
@@ -124,10 +124,10 @@ if (isset($target) && $processes > 1)
 		$running_pids = array();
 		foreach($pids as $pid) 
 		{
-			$running = posix_kill($pid, 0); // See https://stackoverflow.com/a/9874592/3135319
-			if ($running !== false) 
+			$status = posix_kill($pid, 0); // See https://stackoverflow.com/a/9874592/3135319
+			if ($status !== false) 
 			{
-				$running_pids[$pid] = $running; 
+				$running_pids[$pid] = $status; 
 			}
 			else
 			{
