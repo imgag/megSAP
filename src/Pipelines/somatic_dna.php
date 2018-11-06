@@ -240,6 +240,11 @@ if (in_array("vc", $steps))
 	{
 		$baf_args[] = "-target {$roi}";
 	}
+	$variants_germline_vcf = dirname($n_bam)."/{$n_id}_var.vcf.gz";
+	if (file_exists($variants_germline_vcf))
+	{
+		$baf_args[] = "-sites {$variants_germline_vcf}";
+	}
 	$parser->execTool("NGS/mapping_baf.php", implode(" ", $baf_args));
 }
 
