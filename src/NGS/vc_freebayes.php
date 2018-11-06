@@ -104,10 +104,8 @@ if (isset($target) && $processes > 1)
 		// now we do something like
 		// nohup freebayes params &> output &
 		// have a look at https://stackoverflow.com/a/4549515/3135319 for further info
-		$parser->exec("nohup", get_path("freebayes")."-b ".implode(" ",$bam)." -f $genome ".implode(" ", $args)." &> ".$output." &");
-		$result = $parser->exec("sh", "-c \"echo $!\"", true);
-		$pid = int($result[0][0]);
-		return $pid;
+		$result = $parser->exec("nohup", get_path("freebayes")."-b ".implode(" ",$bam)." -f $genome ".implode(" ", $args)." &> ".$output." &");
+		return $pid[3]; // returns the PID
 	}
 
 	// Then runs the pipeline for every chromosome. Add's n chromosomes to the pool according to the process parameter at the same time.

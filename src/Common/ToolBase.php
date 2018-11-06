@@ -671,17 +671,30 @@ class ToolBase
 		//execute call and pipe stderr stream to file
 		$exec_start = microtime(true);
 		$temp = $this->tempFile(".stderr");
+		$descriptorspec = array(
+			0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
+			1 => array("pipe", "w"),  // stdout is a pipe that the child will write to
+			2 => array("file", $temp) // stderr is a file to write to
+		 );
 		exec("$command $parameters 2>$temp", $stdout, $return);
-		$stderr = file($temp);
+		$process = proc_open("$command $parameters 2>$temp", $descriptorspec, $pipes);
+		$status = proc_get_status($process); // NOTE: There is a lot of usefull information in here, maybe some day we want to refactor. See http://php.net/manual/en/function.proc-get-status.php
+		$std_out = stream_get_contents($pipes[1]);
+		$std_err = stream_get_contents($pipes[2]);
+		foreach($pipes as $pipe)
+		{
+			fclose($pipe);
+		}
+		$return_value = proc_close($process);
 			
 		//log relevant information
-		if (($log_output || $return != 0) && count($stdout)>0)
+		if (($log_output || $return != 0) && count($std_out)>0)
 		{
-			$this->log("Stdout of '$command':", $stdout);
+			$this->log("Stdout of '$command':", $std_out);
 		}
-		if (($log_output || $return != 0) && count($stderr)>0)
+		if (($log_output || $return != 0) && count($std_err)>0)
 		{
-			$this->log("Stderr of '$command':", $stderr);
+			$this->log("Stderr of '$command':", $std_err);
 		}
 		if ($log_output)
 		{
@@ -691,12 +704,12 @@ class ToolBase
 		//abort on error
 		if ($return != 0)
 		{	
-			$this->toStderr($stderr);
+			$this->toStderr($std_err);
 			trigger_error("Call of external tool '$command' returned error code '$return'.", $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
 		}
 		
-		//return results, 3rd element "return" contains error code
-		return array($stdout, $stderr, $return);
+		//return results, 3rd element "return" contains error code, 4th element "status" contains the process ID
+		return array($std_out, $std_err, $return_value, $status["pid"]);
 	}
 
 	/**
