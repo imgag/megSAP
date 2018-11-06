@@ -124,8 +124,8 @@ if (isset($target) && $processes > 1)
 		$running_pids = array();
 		foreach($pids as $pid) 
 		{
-			$status = posix_kill($pid, 0); // issues the SIG signal to the process which returns it's status. Also see https://stackoverflow.com/a/27285056/3135319
-			if ($status) 
+			$status = posix_getpgid($pid); // See https://stackoverflow.com/a/9874592/3135319
+			if ($status !== false) 
 			{
 				$running_pids[$pid] = $status; 
 			}
