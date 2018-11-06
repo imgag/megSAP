@@ -13,6 +13,7 @@ $parser->addOutfile("out", "Output file in GSvar format.", false);
 //optional
 $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
 $parser->addFlag("updown", "Don't discard up- or downstream anntations (5000 bases around genes).");
+$parser->addFlag("blacklist", "Annotate variants in blacklisted genes with 'gene_blacklist' in filter column.");
 extract($parser->parse($argv));
 
 //determines if all the input genes are on the blacklist
@@ -171,9 +172,8 @@ if ($genotype_mode=="single")
 }
 
 //write filter descriptions
-$filter_desc = array(
-	array("gene_blacklist", "The gene(s) are contained on the blacklist of unreliable genes."),
-);
+$filter_desc = array();
+if ($blacklist) $filter_desc[] = array("gene_blacklist", "The gene(s) are contained on the blacklist of unreliable genes.");
 
 //parse input
 $multi_cols = array();
@@ -666,7 +666,7 @@ while(!feof($handle))
 	}
 	
 	$genes = array_unique($genes);
-	if (all_genes_blacklisted($genes))
+	if ($blacklist && all_genes_blacklisted($genes))
 	{
 		$filter[] = "gene_blacklist";
 	}

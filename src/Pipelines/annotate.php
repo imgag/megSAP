@@ -75,7 +75,7 @@ if (!$somatic) //germline
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
 	$parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $stafile", true);
 	
-	$args = array("-in $annfile", "-out $varfile");
+	$args = array("-in $annfile", "-out $varfile", "-blacklist");
 	if ($multi) $args[] = "-genotype_mode multi";
 	if ($updown) $args[] = "-updown";
 	$parser->execTool("NGS/vcf2gsvar.php", implode(" ", $args));
