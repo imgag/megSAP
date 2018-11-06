@@ -122,9 +122,18 @@ if (isset($target) && $processes > 1)
 	{
 		// for all processes check if they are alive
 		$running_pids = array();
-		foreach($pids as $pid) {
+		foreach($pids as $pid) 
+		{
 			$status = posix_kill($pid, 0); // issues the SIG signal to the process which returns it's status. Also see https://stackoverflow.com/a/27285056/3135319
-			if ($status) $running_pids[$pid] = $status; 
+			if ($status) 
+			{
+				$running_pids[$pid] = $status; 
+			}
+			else
+			{
+				$key = array_search($pid, $pids);
+				unset($pids[$key]);
+			}
 		}
 
 		// if all chromosomes have been processed exit the while
@@ -149,15 +158,15 @@ if (isset($target) && $processes > 1)
 	{
 		if ($i != 0) // except for the first chromsome delete all header lines 
 		{
-			$parser->exec("sed", "-i '/#/d' ".$tmp_dir.$chromosomes[$i].".vcf");
+			$parser->exec("sed", "-i '/#/d' ".$tmp_dir."/".$chromosomes[$i].".vcf");
 		}
-		$parser->exec("cat", "".$tmp_dir.$chromosomes[$i].".vcf >> combined.vcf");
+		$parser->exec("cat", "".$tmp_dir."/".$chromosomes[$i].".vcf >> ".$tmp_dir."/combined.vcf");
 	}
 
 	unset($roi); // explicitely clean up ROI's because they can be rather large
 
 	// And put a cat on the pipeline script
-	$pipeline[] = array("cat", $tmp_dir."combined.vcf");
+	$pipeline[] = array("cat", $tmp_dir."/combined.vcf");
 } 
 else 
 {
