@@ -677,7 +677,6 @@ class ToolBase
 			1 => array("file", $temp_out, "w"),  // stdout is a file that the child will write to
 			2 => array("file", $temp_err, "w") // stderr is a file to write to
 		 );
-		exec("$command $parameters 2>$temp_err", $stdout, $return);
 		$process = proc_open("$command $parameters 2>$temp_err", $descriptorspec, $pipes);
 		$status = proc_get_status($process); // NOTE: There is a lot of usefull information in here, maybe some day we want to refactor. See http://php.net/manual/en/function.proc-get-status.php
 		$stdout = file($temp_out);
@@ -686,11 +685,11 @@ class ToolBase
 		$return_value = proc_close($process);
 			
 		//log relevant information
-		if (($log_output || $return != 0) && count($stdout)>0)
+		if (($log_output || $return_value != 0) && count($stdout)>0)
 		{
 			$this->log("Stdout of '$command':", $stdout);
 		}
-		if (($log_output || $return != 0) && count($stderr)>0)
+		if (($log_output || $return_value != 0) && count($stderr)>0)
 		{
 			$this->log("Stderr of '$command':", $stderr);
 		}
@@ -700,10 +699,10 @@ class ToolBase
 		}
 		
 		//abort on error
-		if ($return != 0)
+		if ($return_value != 0)
 		{	
 			$this->toStderr($stderr);
-			trigger_error("Call of external tool '$command' returned error code '$return'.", $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
+			trigger_error("Call of external tool '$command' returned error code '$return_value'.", $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
 		}
 		
 		//return results, 3rd element "return" contains error code, 4th element "status" contains the process ID
