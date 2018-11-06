@@ -114,7 +114,7 @@ if (isset($target) && $processes > 1)
 	{
 		$chrom = array_shift($chromosomes);
 		$pid = run_freebayes_nohup($parser, $bam, $genome, $args, $tmp_dir."/".$chrom.".bed", $tmp_dir."/".$chrom.".vcf");
-		array_push($pids, $pid);
+		array_push($pids, $pid+1);
 	}
 
 	$running = true;
@@ -124,10 +124,10 @@ if (isset($target) && $processes > 1)
 		$running_pids = array();
 		foreach($pids as $pid) 
 		{
-			$status = posix_getpgid($pid); // See https://stackoverflow.com/a/9874592/3135319
-			if ($status !== false) 
+			$running = posix_kill($pid, 0); // See https://stackoverflow.com/a/9874592/3135319
+			if ($running !== false) 
 			{
-				$running_pids[$pid] = $status; 
+				$running_pids[$pid] = $running; 
 			}
 			else
 			{
@@ -148,7 +148,7 @@ if (isset($target) && $processes > 1)
 			if (!count($chromosomes)) continue;
 			$chrom = array_shift($chromosomes);
 			$pid = run_freebayes_nohup($parser, $bam, $genome, $args, $tmp_dir."/".$chrom.".bed", $tmp_dir."/".$chrom.".vcf");
-			array_push($pids, $pid);
+			array_push($pids, $pid+1);
 		}
 	}
 	
