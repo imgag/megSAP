@@ -16,6 +16,7 @@ $parser->addOutfile("out",  "Output IGV file.", false);
 //optional
 $parser->addInfile("target",  "Target region BED file defining which population SNPs are extracted from 'snp_db'. If unspecified, WGS mode (downsampling to every 100th SNP) will be used.", true);
 $parser->addInfile("n_in",  "Input normal file in BAM format (somatic mode).", true);
+$parser->addInfile("sites", "Additional sites to use (VCF/VCF.GZ format).", true);
 $parser->addFloat("min_af", "Minimum allele frequency of SNPs in 'snp_db' to use.", true, 0.01);
 $parser->addInt("min_dp", "Minimum depth of SNPs in BAM.", true, 20);
 $parser->addString("snp_db", "SNP database in VCF.GZ format from which population SNPs are extracted. Records must contain AF field.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz");
@@ -69,7 +70,7 @@ if (!file_exists($filtered_variants))
 	$handle = gzopen($tmp_filtered_by_region, "r");
 	if ($handle === FALSE)
 	{
-		trigger_error("Could not open file $known_variants for reading.", E_USER_ERROR);
+		trigger_error("Could not open file '{$snp_db}' for reading.", E_USER_ERROR);
 	}
 
 	$handle_out = fopen($filtered_variants, "w");
@@ -134,6 +135,48 @@ if (!file_exists($filtered_variants))
 	}
 	gzclose($handle);
 	fclose($handle_out);
+}
+
+//add sites from provided vcf
+if (isset($sites))
+{
+	$filtered_variants_add = $parser->tempFile("add.tsv");
+	$parser->copyFile($filtered_variants, $filtered_variants_add);
+
+	$handle = gzopen($sites, "r");
+	$handle_out = fopen($filtered_variants_add, "a");
+	while (!feof($handle))
+	{
+		$line = nl_trim(fgets($handle));
+		//skip empty lines and comments
+		if ($line == "" || starts_with($line, "#"))
+		{
+			continue;
+		}
+
+		$cols = explode("\t", $line, 8);
+		if (count($cols) < 8)
+		{
+			trigger_error("VCF file line contains less than 8 columns:\n$line", E_USER_ERROR);
+		}
+
+		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info) = $cols;
+		if (!($filter === "." || $filter === "PASS") ||	//skip filtered variants
+			!chr_check($chr, 22, false) ||				//skip special chromosomes
+			strlen($ref) > 1 || strlen($alt) > 1)		//skip indels, multi-allelic sites
+		{
+			continue;
+		}
+
+		fwrite($handle_out, implode("\t", [ $chr, $pos, $pos, strtoupper($ref), strtoupper($alt), $id ])."\n");
+	}
+	fclose($handle_out);
+
+	//sort variants from SNP DB + added sites
+	$filtered_variants_add_sorted = $parser->tempFile("sorted.tsv");
+	$parser->exec(get_path("ngs-bits")."/VcfSort", "-in $filtered_variants_add -out $filtered_variants_add_sorted", true);
+
+	$filtered_variants = $filtered_variants_add_sorted;
 }
 
 // annotate B-allele frequencies from BAM
