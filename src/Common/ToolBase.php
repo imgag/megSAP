@@ -670,20 +670,19 @@ class ToolBase
 		
 		//execute call and pipe stderr stream to file
 		$exec_start = microtime(true);
-		$temp = $this->tempFile(".stderr");
+		$temp_out = $this->tempFile(".stdout");
+		$temp_err = $this->tempFile(".stderr");
 		$descriptorspec = array(
 			0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
-			1 => array("pipe", "w"),  // stdout is a pipe that the child will write to
-			2 => array("file", $temp, "w") // stderr is a file to write to
+			1 => array("file", $temp_out, "w"),  // stdout is a file that the child will write to
+			2 => array("file", $temp_err, "w") // stderr is a file to write to
 		 );
 		exec("$command $parameters 2>$temp", $stdout, $return);
-		$process = proc_open("$command $parameters 2>$temp", $descriptorspec, $pipes);
+		$process = proc_open("$command $parameters 2>$temp_err", $descriptorspec, $pipes);
 		$status = proc_get_status($process); // NOTE: There is a lot of usefull information in here, maybe some day we want to refactor. See http://php.net/manual/en/function.proc-get-status.php
-        $stderr = file($temp);
-		foreach($pipes as $pipe)
-		{
-			fclose($pipe);
-		}
+		$stdout = file($temp_out);
+		$stderr = file($temp_err);
+		// we are not accessing any pipes, hence we do not need to close them
 		$return_value = proc_close($process);
 			
 		//log relevant information
