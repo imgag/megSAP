@@ -158,9 +158,9 @@ if (isset($target) && $processes > 1)
 	{
 		if ($i != 0) // except for the first chromsome delete all header lines 
 		{
-			$parser->exec("sed", "-i '/#/d' ".$tmp_dir."/".$chromosomes[$i].".vcf");
+			$parser->exec("sed", "-i '/#/d' ".$tmp_dir."/".$chromosomes[$i].".vcf", true);
 		}
-		$parser->exec("cat", "".$tmp_dir."/".$chromosomes[$i].".vcf >> ".$tmp_dir."/combined.vcf");
+		$parser->exec("cat", "".$tmp_dir."/".$chromosomes[$i].".vcf >> ".$tmp_dir."/combined.vcf", true);
 	}
 
 	unset($roi); // explicitely clean up ROI's because they can be rather large
