@@ -9,7 +9,6 @@
 //		- bug: chr5:138658646 A>C not annotated with 1000 Genomes AF
 //		- bug: chr16:89346631 G>C not annotated with 1000 Genomes AF
 //		- bug: custom annotations from BED.GZ sources do not work (RepeatMasker, OMIM) - promised to be fixed in 94.2 or 93.7
-//@TODO test: --regulatory (chr5:1295228 G>A, chr5:1295250 G>A) 
 //@TODO test: --gene_phenotype --ccds --biotype --canonical --pubmed
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -38,6 +37,8 @@ $args[] = "--species homo_sapiens --assembly {$build}"; //species
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
 $args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".get_path("local_data")."/{$build}.fa"; //paths to data
 $args[] = "--numbers --hgvs --domains"; //annotation options
+$args[] = "--regulatory"; //regulatory features
+$fields[] = "BIOTYPE"; 
 $args[] = "--sift p --polyphen p"; //pathogenicity predictions
 $args[] = "--af --af_gnomad --af_esp --failed 1"; //population frequencies
 $args[] = "--plugin CADD,".get_path("data_folder")."/dbs/CADD/whole_genome_SNVs.tsv.gz,".get_path("data_folder")."/dbs/CADD/InDels.tsv.gz"; //CADD

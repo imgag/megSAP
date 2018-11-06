@@ -109,7 +109,7 @@
 ##contig=<ID=chrY,length=59373566>
 ##INFO=<ID=CLINVAR,Number=.,Type=String,Description="/mnt/share/data//dbs/ClinVar/clinvar_20180701_converted.vcf.gz (exact)">
 ##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="DETAILS field from /mnt/share/data//dbs/ClinVar/clinvar_20180701_converted.vcf.gz">
-##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|DOMAINS|SIFT|PolyPhen|Existing_variation|AF|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_EAS_AF|gnomAD_NFE_AF|gnomAD_SAS_AF|EA_AF|AA_AF|CADD_RAW|REVEL|FATHMM_MKL_C|FATHMM_MKL_NC|MaxEntScan_ref|MaxEntScan_alt|GeneSplicer|ada_score|rf_score|gnomADg_AF|gnomADg_Hom|gnomADg_Hemi|REPEATMASKER|CLINVAR|CLINVAR_DETAILS|PHYLOP|OMIM|HGMD|HGMD_CLASS|HGMD_MUT|HGMD_GENE|HGMD_PHEN">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|DOMAINS|SIFT|PolyPhen|Existing_variation|AF|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_EAS_AF|gnomAD_NFE_AF|gnomAD_SAS_AF|EA_AF|AA_AF|CADD_RAW|REVEL|FATHMM_MKL_C|FATHMM_MKL_NC|MaxEntScan_ref|MaxEntScan_alt|GeneSplicer|ada_score|rf_score|gnomADg_AF|gnomADg_Hom|gnomADg_Hemi|REPEATMASKER|CLINVAR|CLINVAR_DETAILS|PHYLOP|OMIM|HGMD|HGMD_CLASS|HGMD_MUT|HGMD_GENE|HGMD_PHEN|BIOTYPE">
 ##INFO=<ID=DP,Number=1,Type=Integer,Description="Combined depth across samples">
 ##INFO=<ID=gnomADg,Number=.,Type=String,Description="/mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz (exact)">
 ##INFO=<ID=gnomADg_AF,Number=.,Type=String,Description="AF field from /mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz">
