@@ -104,7 +104,7 @@ if (isset($target) && $processes > 1)
 		// now we do something like
 		// nohup freebayes params &> output &
 		// have a look at https://stackoverflow.com/a/4549515/3135319 for further info
-		$result = $parser->exec("nohup", get_path("freebayes")."-b ".implode(" ",$bam)." -f $genome ".implode(" ", $args)." &> ".$output." &");
+		$result = $parser->exec("nohup", get_path("freebayes")."-b ".implode(" ",$bam)." -f $genome ".implode(" ", $args)." &> ".$output." &", true);
 		return $pid[3]; // returns the PID
 	}
 
