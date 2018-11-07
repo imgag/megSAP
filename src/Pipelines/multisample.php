@@ -1,13 +1,7 @@
 <?php
 
 /**
-	@page multisample
-	
-	@todo try with higher min_af=0.15
-	      Test case: /mnt/share/opt/freebayes-1.1.0/bin/freebayes -b Sample_DX173188_01/DX173188_01.bam Sample_DX173187_01/DX173187_01.bam -f /tmp/local_ngs_data//GRCh37.fa -r chr2:152402382-152402532 --min-alternate-fraction 0.1
-		  Correct  : chr2    152402515       .         TAAAAAAAAAAAAAAAAAC     TAAAAAAAAAAAAAAAAAAAC
-		  Wrong    : chr2    152402513       .       CTTAAAAAAAAAAAAAAAAAC   ATTAAAAAAAAAAAAAAAAAAAC
-		  
+	@page multisample	  
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -40,6 +34,7 @@ $parser->addString("prefix", "Output file prefix.", true, "multi");
 $parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of the first file in 'bams' is a valid processed sample name).", true);
 $steps_all = array("vc", "an", "cn");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, an=annotation, cn=copy-number analysis.", true, implode(",", $steps_all));
+$parser->addInt("threads", "The maximum number of threads used.", true, 2);
 extract($parser->parse($argv));
 
 //check steps
@@ -200,7 +195,7 @@ if (in_array("an", $steps))
 			fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\t".implode(",", $muti_info)."\n");
 		}
 	}
-	if ($mito)
+	if ($mito && file_exists($vcf_all_mito)) //check if file exists for downward compatibility with old analyses that did not include mito
 	{
 		//clean up
 		fclose($h1);
@@ -249,7 +244,7 @@ if (in_array("an", $steps))
 	$parser->exec("tabix", "-p vcf $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 
 	//basic annotation
-	$parser->execTool("Pipelines/annotate.php", "-out_name {$prefix} -out_folder $out_folder -system $system -multi");
+	$parser->execTool("Pipelines/annotate.php", "-out_name {$prefix} -out_folder $out_folder -system $system -threads $threads -multi");
 }
 
 //(3) copy-number calling
