@@ -119,7 +119,10 @@ if (isset($target) && $threads > 1)
 	while ($running) 
 	{
 		// for all processes check if they are alive
-		$running_pids = $parser->exec("pgrep", "-P ".getmypid(), true)[0]; // see https://stackoverflow.com/a/17743940/3135319
+		$output = $parser->exec("ps", "ax");
+		$running_pids = array_filter($output[0], function ($item) {
+			return (substr_count($item, $tmp_dir) && substr_count($item, "freebayes")); // checks for freebayes & tmp_folder
+		});
 
 		// if all chromosomes have been processed exit the while
 		if (!count($chromosomes) && !count($running_pids)) {
