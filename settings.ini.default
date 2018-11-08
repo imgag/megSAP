@@ -12,8 +12,8 @@ vcflib = [path]/data/tools/vcflib/bin/
 abra2 = java -Xmx16g -jar [path]/data/tools/abra2-2.18/abra2.jar
 samblaster = [path]/data/tools/samblaster/samblaster
 bwa = [path]/data/tools/bwa-0.7.17/bwa
-vep = [path]/data/tools/ensembl-vep-release-93.2/vep
-vep_data = [path]/data/dbs/ensembl-vep-93/
+vep = [path]/data/tools/ensembl-vep-release-94.5/vep
+vep_data = [path]/data/dbs/ensembl-vep-94/
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.9.centos6_x86_64/bin/
