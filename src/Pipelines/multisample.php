@@ -111,7 +111,7 @@ if (in_array("vc", $steps))
 	$args[] = "-build ".$sys['build'];
 	if ($threads)
 	{
-		$args[] = " -processes ".$threads;
+		$args[] = " -threads ".$threads;
 	}
 	$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);	
 
@@ -141,7 +141,7 @@ if (in_array("vc", $steps))
 		$args[] = "-build ".$sys['build'];
 		if ($threads)
 		{
-			$args[] = " -processes ".$threads;
+			$args[] = " -threads ".$threads;
 		}
 		$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);
 	}

@@ -147,7 +147,7 @@ if (in_array("vc", $steps))
 	}
 	if ($threads)
 	{
-		$args[] = " -processes ".$threads;
+		$args[] = " -threads ".$threads;
 	}
 	
 	if(file_exists($log_vc)) unlink($log_vc);
