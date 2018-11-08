@@ -76,7 +76,18 @@ function check($observed, $expected, $delta = null)
 	if (isset($delta))
 	{
 		$delta_string = ", delta='$delta'";
-		$passed = abs($observed - $expected) <= $delta;
+		if (is_array($observed))
+		{
+			$passed = true;
+			for ($i = 0; $i < count($observed); ++$i)
+			{
+				$passed = $passed && (abs($observed[$i] - $expected[$i]) <= $delta);
+			}
+		}
+		else
+		{
+			$passed = abs($observed - $expected) <= $delta;
+		}
 	}
 	else
 	{

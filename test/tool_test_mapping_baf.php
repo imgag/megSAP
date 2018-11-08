@@ -9,6 +9,7 @@ $t_bam = data_folder()."vc_strelka2_tu_in.bam";
 $n_bam = data_folder()."vc_strelka2_no_in.bam";
 
 $snp_db = data_folder()."/".$name."_snps.vcf.gz";
+$sites = data_folder()."/".$name."_sites.vcf.gz";
 $target = data_folder()."/".$name."_target.bed";
 
 // test1: somatic, target, with depth
@@ -29,6 +30,11 @@ $out3 = output_folder().$name."_out3.igv";
 check_exec("php ".src_folder()."/NGS/mapping_baf.php -in $t_bam -out $out3 -snp_db $snp_db --log ".output_folder().$name."_3.log");
 check_file($out3, data_folder().$name."_out3.igv");
 
+// test4: germline, target, with additional sites
+// expected output: variants in target regions + one additional site, one sample/column
+$out4 = output_folder().$name."_out4.igv";
+check_exec("php ".src_folder()."/NGS/mapping_baf.php -in $t_bam -out $out4 -target $target -snp_db $snp_db -sites $sites --log ".output_folder().$name."_4.log");
+check_file($out4, data_folder().$name."_out4.igv");
 
 end_test();
 

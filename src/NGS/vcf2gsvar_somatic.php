@@ -155,7 +155,7 @@ while(!feof($handle))
 		}
 	}
 	$gsvar->set($r, $i_tumor_dp, $tumor_dp);
-	$gsvar->set($r, $i_tumor_af, $tumor_af);
+	$gsvar->set($r, $i_tumor_af, number_format($tumor_af, 4));
 
 	//calculate DP/AF normal
 	if (!$tumor_only)
@@ -176,7 +176,7 @@ while(!feof($handle))
 			}
 		}
 		$gsvar->set($r, $i_normal_dp, $normal_dp);
-		$gsvar->set($r, $i_normal_af, $normal_af);
+		$gsvar->set($r, $i_normal_af, number_format($normal_af, 4));
 	}
 	
 }

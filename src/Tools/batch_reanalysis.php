@@ -9,7 +9,7 @@ $parser = new ToolBase("batch_reanalysis", "Batch re-analysis of single-sample a
 $parser->addStringArray("samples", "Processed sample names.", false);
 $parser->addString("steps", "Analysis steps to perform.", false);
 $parser->addEnum("mode", "Excution mode: 'default' executes the analysis sequentially in this script, 'print' only prints samples, but performs no analysis, 'sge' queues the analysis in SGE.", true, array("default", "print", "sge"), "default");
-$parser->addInt("threads", "Nmber of threads used.", true);
+$parser->addInt("threads", "Number of threads used.", true);
 $parser->addString("before", "Only samples analyzed before the date are reanalyzed (considers 'steps', format 'DD.MM.YYYY').", true);
 extract($parser->parse($argv));
 

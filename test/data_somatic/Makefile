@@ -35,6 +35,7 @@ case1_analyze:
 		-folder Sample_GS150344_01 \
 		-name GS150344_01 \
 		-steps ma -somatic \
+		-threads 1 \
 		-system system_single.ini \
 		--log Sample_GS150344_01/analyze.log
 
@@ -60,12 +61,14 @@ case2_analyze:
 		-name GS110168 \
 		-steps ma -somatic \
 		-system system_pair.ini \
+		-threads 1 \
 		--log Sample_GS110168/analyze.log
 	php ../../src/Pipelines/analyze.php \
 		-folder Sample_GS110169 \
 		-name GS110169 \
 		-steps ma -somatic \
 		-system system_pair.ini \
+		-threads 1 \
 		--log Sample_GS110169/analyze.log
 case2_somatic:
 	php ../../src/Pipelines/somatic_dna.php \

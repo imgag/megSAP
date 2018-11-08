@@ -141,7 +141,7 @@ if (in_array("vc", $steps))
 	{
 		$args[] = "-min_af 0.05";
 	}
-	else if (!$sys['shotgun']) //amplicon panels
+	else
 	{
 		$args[] = "-min_af 0.1";
 	}

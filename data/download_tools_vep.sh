@@ -7,14 +7,14 @@ root=`pwd`
 tools=$root/tools/
 dbs=$root/dbs/
 
-vep_install_dir=$tools/ensembl-vep-release-93.2/
+vep_install_dir=$tools/ensembl-vep-release-94.5/
 vep_cpan_dir=$vep_install_dir/cpan/
-vep_data_dir=$dbs/ensembl-vep-93/
+vep_data_dir=$dbs/ensembl-vep-94/
 
 # download ensembl-vep
 cd $tools
-wget https://github.com/Ensembl/ensembl-vep/archive/release/93.2.tar.gz
-tar xzf 93.2.tar.gz
+wget https://github.com/Ensembl/ensembl-vep/archive/release/94.5.tar.gz
+tar xzf 94.5.tar.gz
 
 # install PERL dependencies
 mkdir -p $vep_cpan_dir
@@ -40,7 +40,7 @@ mkdir -p $vep_data_dir
 cd $vep_data_dir
 mkdir -p ftp
 cd ftp
-wget ftp://ftp.ensembl.org/pub/release-93/variation/VEP/homo_sapiens_vep_93_GRCh37.tar.gz
+wget ftp://ftp.ensembl.org/pub/release-94/variation/VEP/homo_sapiens_vep_94_GRCh37.tar.gz
 
 #install ensembl-vep
 cd $vep_install_dir

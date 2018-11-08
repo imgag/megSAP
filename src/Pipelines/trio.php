@@ -30,6 +30,7 @@ $parser->addString("out_folder", "Output folder name.", false);
 $parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of 'c' is a valid processed sample name).", true);
 $steps_all = array("vc", "an", "cn");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, an=annotation, cn=copy-number analysis.", true, implode(",", $steps_all));
+$parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_check", "Skip gender check of parents and parent-child correlation check (otherwise done before variant calling)");
 
 extract($parser->parse($argv));
@@ -61,6 +62,7 @@ $args_multisample = [
 	"-out_folder $out_folder",
 	"-system $system",
 	"-prefix trio",
+	"-threads $threads",
 	];
 
 //variant calling
@@ -230,10 +232,10 @@ if (in_array("an", $steps))
 					list(, $gender_header) = explode("=", $part);
 				}
 			}
-			print "Gender of child (from header): {$gender_data}\n";
+			print "Gender of child (from header): {$gender_header}\n";
 			
 			//deviating => error
-			if ($gender_data!=$gender_header && $gender_header!="n/a" && $gender_data!="n/a")
+			if ($gender_data!=$gender_header && $gender_header!="n/a" && $gender_header!="" && $gender_data!="n/a")
 			{
 				trigger_error("Gender of child from sample header '{$gender_header}' deviates from gender from data '{$gender_data}'", E_USER_ERROR);
 			}

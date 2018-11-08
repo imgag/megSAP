@@ -1129,7 +1129,7 @@ function vcf_strelka_snv($format_col, $sample_col, $obs)
 	else trigger_error("Alternative allele '$obs' unknown (".$format_col." ".$sample_col." ".$obs.").", E_USER_WARNING);	// unknown alleles multiallelic or '.'
 
 	$f = 0;
-	if($sum!=0)	$f = number_format($o/$sum,4);
+	if($sum!=0)	$f = $o/$sum;
 
 	return array($d,$f);
 }
@@ -1148,9 +1148,9 @@ function vcf_strelka_indel($format_col, $sample_col)
 	list($tar,) = explode(",", $entries[$index_TAR]);
 	if(!is_numeric($tir) || !is_numeric($tar)) trigger_error("Could not identify numeric depth for strelka indel (".$format_col." ".$sample_col.")", E_USER_ERROR);
 
-	//tir and tar contain strong supportin reads, tor (not considered here) contains weak supportin reads like breakpoints
+	//tir and tar contain strong supporting reads, tor (not considered here) contains weak supportin reads like breakpoints
 	//only strong supporting reads are used for calculation of allele fraction
-	$f = ($tir+$tar)==0 ? 0.0 : number_format($tir/($tir+$tar), 4);
+	$f = ($tir+$tar)==0 ? 0.0 : $tir/($tir+$tar);
 	
 	return array($d,$f);
 }

@@ -10,6 +10,7 @@ C18		Bösartige Neubildung des Kolons	Malignant neoplasm of colon	COC
 C18.4		Colon transversum	Transverse colon	COC
 C18.7		Colon sigmoideum	Sigmoid colon	COC
 C18.9		Bösartige Neubildung des Kolons, nicht näher bezeichnet	Malignant neoplasm of colon, unspecified	COREAD
+C19		Bösartige Neubildung am Rektosigmoid, Übergang	Malignant neoplasm of rectosigmoid junction	COC
 C20		Bösartige Neubildung des Rektums	Malignant neoplasm of rectum	REC
 C22		Bösartige Neubildung der Leber und der intrahepatischen Gallengänge	Malignant neoplasm of liver and intrahepatic bile ducts	H
 C22.1		Intrahepatisches Gallengangskarzinom Inkl.: Cholangiokarzinom	Intrahepatic bile duct carcinoma Cholangiocarcinoma	CH
