@@ -18,7 +18,7 @@ $parser->addOutfile("out", "Output file in VCF.GZ format.", false);
 //optional
 $parser->addInfile("target",  "Enrichment targets BED file.", true);
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
-$parser->addInt("processes", "How many processes should be used at once to call freebayes", true, 1);
+$parser->addInt("threads", "How many threads should be used at once to call freebayes", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 1);
@@ -64,12 +64,12 @@ $args[] = "--min-base-quality $min_bq"; //max 10% error propbability
 $args[] = "--min-alternate-qsum 90"; //At least 3 good observations
 
 // run freebayes
-if (isset($target) && $processes > 1) 
+if (isset($target) && $threads > 1) 
 {	
 	// Split BED file by chromosomes into seperate files
 	// e.g chr1.bed, chr2.bed, chrY.bed
 	$roi = array();
-	$bedfile = fopen($target, "r") or die("Cannot read target file: ".$target);
+	$bedfile = fopen($args[0], "r") or die("Cannot read target file: ".$target); // use args[0] because if target is set it is always the first parameter
 	while (($line = fgets($bedfile)) !== false)
 	{
 		if (strpos($line, "track") || strpos($line, "browser") || substr_count($line, "\t") > 3) continue;
@@ -100,7 +100,7 @@ if (isset($target) && $processes > 1)
 	 * @return {number} - returns the PID
 	 */
 	function run_freebayes_nohup($parser, $bam, $genome, $args, $path, $output) {
-		$args[0] = "-t ".$path;
+		$args[0] = "-t ".$path; // use args[0] because if target is set it is always the first parameter
 		// now we do something like
 		// nohup freebayes params &> output &
 		// have a look at https://stackoverflow.com/a/4549515/3135319 for further info
@@ -109,7 +109,7 @@ if (isset($target) && $processes > 1)
 	}
 
 	// Then runs the pipeline for every chromosome. Add's n chromosomes to the pool according to the process parameter at the same time.
-	for ($i = 0; $i < $processes; $i++)
+	for ($i = 0; $i < $threads; $i++)
 	{
 		$chrom = array_shift($chromosomes);
 		run_freebayes_nohup($parser, $bam, $genome, $args, $tmp_dir."/".$chrom.".bed", $tmp_dir."/".$chrom.".vcf");
@@ -128,7 +128,7 @@ if (isset($target) && $processes > 1)
 		}
 
 		// if less running processes than process limit start a new process
-		for ($i = count($running_pids); $i < $processes; $i++) 
+		for ($i = count($running_pids); $i < $threads; $i++) 
 		{
 			if (!count($chromosomes)) continue;
 			$chrom = array_shift($chromosomes);
