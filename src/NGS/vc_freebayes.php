@@ -69,7 +69,7 @@ if (isset($target) && $threads > 1)
 	// Split BED file by chromosomes into seperate files
 	// e.g chr1.bed, chr2.bed, chrY.bed
 	$roi = array();
-	$bedfile = fopen($args[0], "r") or die("Cannot read target file: ".$target); // use args[0] because if target is set it is always the first parameter
+	$bedfile = fopen($target_merged, "r") or die("Cannot read target file: ".$target);
 	while (($line = fgets($bedfile)) !== false)
 	{
 		if (strpos($line, "track") || strpos($line, "browser") || substr_count($line, "\t") > 3) continue;
