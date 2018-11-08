@@ -651,13 +651,60 @@ class ToolBase
 		
 		return $version;
 	}
-	
+
 	/**
 		@brief Executes the command and returns an array with STDOUT and STDERR.
 		
 		If the call exits with an error code, further execution of the calling script is aborted.
 	*/
 	function exec($command, $parameters, $log_output,$abort_on_error=true)
+	{
+		//log call
+		if($log_output)
+		{
+			$add_info = array();
+			$add_info[] = "version    = ".$this->extractVersion($command);
+			$add_info[] = "parameters = $parameters";
+			$this->log("Calling external tool '$command'", $add_info);
+		}
+		
+		//execute call and pipe stderr stream to file
+		$exec_start = microtime(true);
+		$temp = $this->tempFile(".stderr");
+		exec("$command $parameters 2>$temp", $stdout, $return);
+		$stderr = file($temp);
+			
+		//log relevant information
+		if (($log_output || $return != 0) && count($stdout)>0)
+		{
+			$this->log("Stdout of '$command':", $stdout);
+		}
+		if (($log_output || $return != 0) && count($stderr)>0)
+		{
+			$this->log("Stderr of '$command':", $stderr);
+		}
+		if ($log_output)
+		{
+			$this->log("Execution time of '$command': ".time_readable(microtime(true) - $exec_start));
+		}
+		
+		//abort on error
+		if ($return != 0)
+		{	
+			$this->toStderr($stderr);
+			trigger_error("Call of external tool '$command' returned error code '$return'.", $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
+		}
+		
+		//return results, 3rd element "return" contains error code
+		return array($stdout, $stderr, $return);
+	}
+
+	/**
+		@brief Executes the command in paralell and returns an array with STDOUT and STDERR as files.
+
+		If the call exits with an error code, further execution of the calling script is aborted.
+	*/
+	function execParallel($command, $parameters, $log_output,$abort_on_error=true)
 	{
 		//log call
 		if($log_output)
