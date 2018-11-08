@@ -104,8 +104,8 @@ if (isset($target) && $processes > 1)
 		// now we do something like
 		// nohup freebayes params &> output &
 		// have a look at https://stackoverflow.com/a/4549515/3135319 for further info
-		$result = $parser->exec("nohup", get_path("freebayes")." -b ".implode(" ",$bam)." -f $genome ".implode(" ", $args)." </dev/null &> ".$output." &", true);
-		return $result[3]; // returns the PID
+		$result = $parser->exec("nohup", get_path("freebayes")." -b ".implode(" ",$bam)." -f $genome ".implode(" ", $args)." -v ".$output." </dev/null &", true);
+		return $result[3]+1; // returns the PID
 	}
 
 	// Then runs the pipeline for every chromosome. Add's n chromosomes to the pool according to the process parameter at the same time.
@@ -114,7 +114,7 @@ if (isset($target) && $processes > 1)
 	{
 		$chrom = array_shift($chromosomes);
 		$pid = run_freebayes_nohup($parser, $bam, $genome, $args, $tmp_dir."/".$chrom.".bed", $tmp_dir."/".$chrom.".vcf");
-		array_push($pids, $pid+1);
+		array_push($pids, $pid);
 	}
 
 	$running = true;
@@ -148,7 +148,7 @@ if (isset($target) && $processes > 1)
 			if (!count($chromosomes)) continue;
 			$chrom = array_shift($chromosomes);
 			$pid = run_freebayes_nohup($parser, $bam, $genome, $args, $tmp_dir."/".$chrom.".bed", $tmp_dir."/".$chrom.".vcf");
-			array_push($pids, $pid+1);
+			array_push($pids, $pid);
 		}
 	}
 	
