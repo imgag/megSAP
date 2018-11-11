@@ -9,8 +9,9 @@ $parser = new ToolBase("batch_reanalysis", "Batch re-analysis of single-sample a
 $parser->addStringArray("samples", "Processed sample names.", false);
 $parser->addString("steps", "Analysis steps to perform.", false);
 $parser->addEnum("mode", "Excution mode: 'default' executes the analysis sequentially in this script, 'print' only prints samples, but performs no analysis, 'sge' queues the analysis in SGE.", true, array("default", "print", "sge"), "default");
-$parser->addInt("threads", "Number of threads used.", true);
 $parser->addString("before", "Only samples analyzed before the date are reanalyzed (considers 'steps', format 'DD.MM.YYYY').", true);
+$parser->addInt("threads", "Number of threads used (for 'default' mode).", true);
+$parser->addInt("max", "Maximum number of jobs to start (for 'sge' mode).");
 extract($parser->parse($argv));
 
 //convert 'before' to timestamp
@@ -24,6 +25,7 @@ if (isset($before))
 	$before = $converted->getTimestamp();
 }
 
+$anaylzed = 0;
 $count = count($samples);
 for ($i=1; $i<=$count; ++$i)
 {
@@ -131,10 +133,6 @@ for ($i=1; $i<=$count; ++$i)
 		print "$i/$count: Queuing '$folder'.\n";
 		$args = array();
 		$args[] = "-steps $steps";
-		if (isset($threads))
-		{
-			$args[] = "-threads $threads";
-		}
 		list($stdout, $stderr, $return) = $parser->execTool("NGS/db_queue_analysis.php", "-type 'single sample' -samples $ps -args '".implode(" ", $args)."'", false);
 		if ($return!=0)
 		{
@@ -145,7 +143,14 @@ for ($i=1; $i<=$count; ++$i)
 				print "  ".trim($line)."\n";
 			}
 		}
-	}
+		
+		++$analyzed;
+		if ($analyzed>=$max)
+		{
+			print "Maximum number of SGE jobs reached - stopping\n";
+			break;
+		}
+	}	
 }
 
 ?>
