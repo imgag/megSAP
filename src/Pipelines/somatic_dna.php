@@ -495,7 +495,11 @@ if (in_array("an", $steps))
 	//annotate vcf/GSvar with frequency/depth from tumor RNA sample
 	if (isset($t_rna_bam))
 	{
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $variants_annotated -bam $t_rna_bam -out $variants_annotated -name rna_tum -depth", true);
+		$tmp_vcf_rna = $parser->tempFile("_var_rna.vcf");
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $tmp_vcf -bam $t_rna_bam -out $tmp_vcf_rna -name rna_tum -depth", true);
+		$parser->exec("bgzip", "-c $tmp_vcf_rna > $variants_annotated", true);
+		$parser->exec("tabix", "-f -p vcf $variants_annotated", true);
+
 		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $variants_gsvar -bam $t_rna_bam -out $variants_gsvar -name rna_tum -depth", true);
 	}
 }
