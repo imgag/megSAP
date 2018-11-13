@@ -61,7 +61,7 @@ if (!file_exists($filtered_variants))
 	else
 	{
 		$tmp_filtered_by_region = $parser->tempFile("_filtered_by_region.vcf");
-		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$snp_db} -reg {$target} -out {$tmp_filtered_by_region}", true);
+		$parser->exec(get_path("ngs-bits")."VcfFilter", "-in {$snp_db} -reg {$target} -out {$tmp_filtered_by_region}", true);
 	}
 
 	// filter known variants (SNPs with high population AF)

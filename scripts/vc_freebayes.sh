@@ -4,9 +4,11 @@ then
   echo "Usage:"
   echo " vc_freebayes.sh [chr:start-end] [bam] <options>"
   echo "Options:"
-  echo " --min-alternate-fraction [0.2]"
+  echo " --min-alternate-fraction [0.1]"
   echo " --min-mapping-quality [1]"
+  echo " --min-base-quality [10]"
+  echo " --min-alternate-qsum [90]"
   exit
 fi
 
-/mnt/share/opt/freebayes-1.1.0/bin/freebayes -b $2 -r $1 -f /mnt/share/data/genomes/GRCh37.fa --min-base-quality 20 --min-alternate-qsum 90 ${@:3}
+/mnt/share/opt/freebayes-1.1.0/bin/freebayes -f /mnt/share/data/genomes/GRCh37.fa -r $1 -b $2  ${@:3}

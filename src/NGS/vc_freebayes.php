@@ -63,15 +63,14 @@ $args[] = "--min-base-quality $min_bq"; //max 10% error propbability
 $args[] = "--min-alternate-qsum 90"; //At least 3 good observations
 $pipeline[] = array(get_path("freebayes"), "-b ".implode(" ",$bam)." -f $genome ".implode(" ", $args));
 
-//filter variants according to variant quality>5 , alternate observations>=3
-$pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5 & AO > 2\"");
+//split multi-allelic variants
+$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "");
+
+//filter variants according to variant quality>5 (~31% error probabilty) , alternate allele observations>2
+$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -info \"AO > 2\"");
 
 //split complex variants to primitives
-//this step has to be performed before vcfbreakmulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
 $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
-
-//split multi-allelic variants
-$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
 
 //normalize all variants and align INDELs to the left
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize","-ref $genome");
