@@ -124,7 +124,7 @@ if (isset($target) && $threads > 1)
 
 		// for all processes check if they are alive
 		$output = $parser->exec("ps", "ax");
-		$running_pids = array_filter($output[0], function ($item) {
+		$running_pids = array_filter($output[0], function ($item) use ($tmp_dir) {
 			return (substr_count($item, $tmp_dir) && substr_count($item, get_path("freebayes"))); // checks for freebayes & tmp_folder
 		});
 
