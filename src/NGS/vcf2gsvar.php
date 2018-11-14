@@ -1,6 +1,10 @@
 <?php 
 /** 
 	@page vcf2gsvar
+	
+	@todo replace blacklist genes by blacklist regions:
+			- /mnt/share/data/dbs/ABB/ABB_075.bed
+			- /mnt/share/data/blacklist_regions/blacklist.bed 
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
