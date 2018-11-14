@@ -64,6 +64,7 @@ $args[] = "--min-base-quality $min_bq"; //max 10% error propbability
 $args[] = "--min-alternate-qsum 90"; //At least 3 good observations
 
 // run freebayes
+$freebayes_start = microtime(true);
 if (isset($target) && $threads > 1) 
 {	
 	// Split BED file by chromosomes into seperate files
@@ -163,6 +164,12 @@ else
 	$pipeline[] = array(get_path("freebayes"), "-b ".implode(" ",$bam)." -f $genome ".implode(" ", $args));
 }
 
+$freebayes_end = microtime(true);
+$parser->log("Freebayes execution took ".$freebayes_end-$freebayes_start." milliseconds");
+
+// start post-processing
+$post_processing_start = microtime(true);
+
 //filter variants according to variant quality>5 , alternate observations>=3
 $pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5 & AO > 2\"");
 
@@ -198,5 +205,8 @@ if ($target_extend>0)
 
 //(4) index output file
 $parser->exec("tabix", "-p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
+
+$post_processing_end = microtime(true);
+$parser->log("Post processing took ".$post_processing_end-$post_processing_start." milliseconds");
 
 ?>
