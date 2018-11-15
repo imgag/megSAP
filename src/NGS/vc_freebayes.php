@@ -164,9 +164,9 @@ if (isset($target) && $threads > 1)
 	{
 		if ($i != 0) // except for the first chromsome delete all header lines 
 		{
-			$parser->exec("sed", "-i '/#/d' ".$tmp_dir."/".$chromosomes[$i].".vcf", true);
+			$parser->exec("sed", "-i '/#/d' ".$tmp_dir."/".$chromosomes[$i].".vcf", false);
 		}
-		$parser->exec("cat", "".$tmp_dir."/".$chromosomes[$i].".vcf >> ".$tmp_dir."/combined.vcf", true);
+		$parser->exec("cat", "".$tmp_dir."/".$chromosomes[$i].".vcf >> ".$tmp_dir."/combined.vcf", false);
 	}
 
 	unset($roi); // explicitely clean up ROI's because they can be rather large
@@ -181,9 +181,6 @@ else
 
 $freebayes_end = microtime(true);
 $parser->log("Freebayes execution took ".time_readable($freebayes_end-$freebayes_start));
-
-// start post-processing
-$post_processing_start = microtime(true);
 
 //filter variants according to variant quality>5 , alternate observations>=3
 $pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5 & AO > 2\"");
@@ -208,7 +205,7 @@ $pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", "", fals
 $pipeline[] = array("bgzip", "-c > $out", false);
 
 //(2) execute pipeline
-$parser->execPipeline($pipeline, "variant calling");
+$parser->execPipeline($pipeline, "post processing");
 
 //(3) mark off-target variants
 if ($target_extend>0)
@@ -220,8 +217,5 @@ if ($target_extend>0)
 
 //(4) index output file
 $parser->exec("tabix", "-p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
-
-$post_processing_end = microtime(true);
-$parser->log("Post processing took ".time_readable($post_processing_end-$post_processing_start));
 
 ?>
