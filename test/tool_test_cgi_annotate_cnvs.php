@@ -32,4 +32,6 @@ $cnv_output_3 = output_folder()."/cgi_annotate_cnvs_out3_cnvs.tsv";
 check_exec("php ".src_folder()."/NGS/cgi_annotate_cnvs.php -cnv_in $cnv_input_3 -cnv_in_cgi $cgi_input_3 -out $cnv_output_3");
 check_file($cnv_output_3,$cnv_ref_3,true);
 
+end_test();
+
 ?>

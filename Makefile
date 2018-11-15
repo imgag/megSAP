@@ -1,15 +1,16 @@
 help:
 	@echo "Main targets:"
-	@echo "  test            - perform function tests." 
+	@echo "  test_functions  - perform function tests." 
 	@echo "  test_tools      - perform tool tests."
 	@echo "  test_tools_db   - perform DB tool tests." 
-	@echo "  test_pipeline_a - perform DNA amplicon pipeline test (Haloplex HBOC v5)." 
+	@echo "  test_pipeline_a - perform DNA amplicon pipeline test." 
 	@echo "  test_pipeline_x - perform DNA shotgun pipeline test."
 	@echo "  test_pipeline_t - perform DNA trio pipeline test."
 	@echo "  test_pipeline_m - perform DNA multi-sample pipeline test."
 	@echo "  test_pipeline_s - perform DNA somatic pipeline test."
 	@echo "  test_pipeline_r - perform RNA pipeline test."
-	@echo "  test_all        - perform all tests."
+	@echo "  test_all        - perform all tests in parallel (functions, tools, pipelines)."
+	@echo "  test_all_status - shows the output summary of 'test_all'."
 	
 	@echo "" 
 	@echo "Auxilary targets:"
@@ -21,23 +22,23 @@ pull:
 	git pull --recurse-submodules
 	git submodule update --recursive
 
-test: dummy
-	@cd test && find . -name "test_*.php"  | xargs -l1000 php execute_tests.php ALL 
-
+test_functions: dummy
+	@cd test && find . -name "test_*.php" | sort | xargs -l1 php | egrep "^(FINISHED|FAILED)"
+	
 test_tools: dummy
-	@cd test && find . -name "tool_test_*.php" | xargs -l1000 php execute_tests.php ALL 
+	@cd test && find . -name "tool_test_*.php" | sort | xargs -l1 php | egrep "^(FINISHED|FAILED)"
 
 test_tools_primer: dummy
-	@cd test && find . -name "tool_test_*.php" | xargs -l1000 php execute_tests.php Primer 
+	@cd test && find . -name "tool_test_*.php" | xargs grep -l "/Primer/" | sort | xargs -l1 php | egrep "^(FINISHED|FAILED)"
 
 test_tools_ngs: dummy
-	@cd test && find . -name "tool_test_*.php" | xargs -l1000 php execute_tests.php NGS
+	@cd test && find . -name "tool_test_*.php" | xargs grep -l "/NGS/" | sort | xargs -l1 php | egrep "^(FINISHED|FAILED)"
 
 test_tools_tools: dummy
-	@cd test && find . -name "tool_test_*.php" | xargs -l1000 php execute_tests.php Tools  	
+	@cd test && find . -name "tool_test_*.php" | xargs grep -l "/Tools/" | sort | xargs -l1 php | egrep "^(FINISHED|FAILED)"
 
 test_tools_db:
-	@cd test && find . -name "tool_test_*.php" | grep tool_test_db | xargs -l1000 php execute_tests.php NGS 
+	@cd test && find . -name "tool_test_db*.php" | sort | xargs -l1 php | egrep "^(FINISHED|FAILED)"
 
 test_pipeline_a: dummy
 	@cd test/data_amplicon && make all
@@ -64,7 +65,9 @@ test_pipeline_r: dummy
 	@cd test/data_rna && make all
 
 test_all: dummy
-	make test test_tools > t.log 2>&1 &
+	(cd test && find . -name "test_*.php" | sort | xargs -l1 php && echo "DONE") > f.log 2>&1 &
+	(cd test && find . -name "tool_test_*.php" | sort | xargs -l1 php && echo "DONE") > t.log 2>&1 &
+tmp:
 	make test_pipeline_a > p_a.log 2>&1 &
 	make test_pipeline_x > p_x.log 2>&1 &
 	make test_pipeline_s > p_s.log 2>&1 &
@@ -73,7 +76,14 @@ test_all: dummy
 	make test_pipeline_r > p_r.log 2>&1 &
 
 test_all_status:
-	clear && tail -n5 *.log
+	@clear
+	@tail -v -n3 *.log
+	@echo ""
+	@echo "### WARNINGS ###"
+	@egrep -i "WARNING" *.log || :
+	@echo ""
+	@echo "### ERRORS ###"
+	@egrep -i "ERROR|FAILED" *.log || :
 
 find_missing_tests: dummy
 	php src/Tools/find_missing_tests.php

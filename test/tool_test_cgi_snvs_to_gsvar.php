@@ -33,6 +33,6 @@ $gsvar_output3 = output_folder() . "cgi_snvs_to_gsvar_out3.GSvar";
 check_exec("php ".src_folder()."/NGS/cgi_snvs_to_gsvar.php -gsvar_in $gsvar_input3 -cgi_snv_in $cgi_mutation_file_input3 -out $gsvar_output3 -is_germline");
 check_file($gsvar_output3,$gsvar_ref3,true);
 
-
+end_test();
 
 ?>

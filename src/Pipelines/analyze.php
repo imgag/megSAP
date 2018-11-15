@@ -145,13 +145,8 @@ if (in_array("vc", $steps))
 	{
 		$args[] = "-min_af 0.1";
 	}
-	if ($threads)
-	{
-		$args[] = " -threads ".$threads;
-	}
-	
 	if(file_exists($log_vc)) unlink($log_vc);
-	$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc ".implode(" ", $args));
+	$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc -threads $threads ".implode(" ", $args));
 	
 	//if WES, perform special variant calling for mitochondria
 	$mito = ($sys['type']=="WES" && $sys['target_file']!="");

@@ -66,4 +66,6 @@ $target_region = data_folder() . "/cgisenddata_target_region_genes.txt";
 check_exec("php ".src_folder()."/NGS/cgi_send_data.php -cnas $in_file_cnv4 -cancertype SK -o_folder $out_folder1 -t_region $target_region",true);
 check_tsv_file(output_folder()."cgisenddata_in4_cgi_cnv_analysis.tsv",data_folder()."cgisenddata_ref5_cgi_cnv_analysis.tsv");
 
+end_test();
+
 ?>
