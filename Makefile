@@ -67,7 +67,6 @@ test_pipeline_r: dummy
 test_all: dummy
 	(cd test && find . -name "test_*.php" | sort | xargs -l1 php && echo "DONE") > f.log 2>&1 &
 	(cd test && find . -name "tool_test_*.php" | sort | xargs -l1 php && echo "DONE") > t.log 2>&1 &
-tmp:
 	make test_pipeline_a > p_a.log 2>&1 &
 	make test_pipeline_x > p_x.log 2>&1 &
 	make test_pipeline_s > p_s.log 2>&1 &
@@ -80,10 +79,10 @@ test_all_status:
 	@tail -v -n3 *.log
 	@echo ""
 	@echo "### WARNINGS ###"
-	@egrep -i "WARNING" *.log || :
+	@egrep -a -i "WARNING" *.log || :
 	@echo ""
 	@echo "### ERRORS ###"
-	@egrep -i "ERROR|FAILED" *.log || :
+	@egrep -a -i "ERROR|FAILED" *.log || :
 
 find_missing_tests: dummy
 	php src/Tools/find_missing_tests.php
