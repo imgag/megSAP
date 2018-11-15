@@ -132,7 +132,7 @@ if (isset($target) && $threads > 1)
 
 		$processed_chromosomes = array_diff(array_keys($processing_chromosomes), array_map(function ($processing_chromosome) {
 			$matches = array();
-			preg_match_all('/(chr\w*)(\.bed)/',$processing_chromosomes, $matches);
+			preg_match_all('/(chr\w*)(\.bed)/',$processing_chromosome, $matches);
 			return $matches[1][0];
 		}, $running_pids));
 
