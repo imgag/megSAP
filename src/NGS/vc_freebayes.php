@@ -109,10 +109,12 @@ if (isset($target) && $threads > 1)
 		return $result[3]; // returns the PID for the nohup process. Using PID+1 is LIKELY yield the correct process, but not guaranteed
 	}
 
+	$processing_chromosomes = array();
 	// Then runs the pipeline for every chromosome. Add's n chromosomes to the pool according to the process parameter at the same time.
 	for ($i = 0; $i < $threads; $i++)
 	{
 		$chrom = array_shift($chromosomes);
+		$processing_chromosomes[$chrom] = microtime(true);
 		run_freebayes_nohup($parser, $bam, $genome, $args, $tmp_dir."/".$chrom.".bed", $tmp_dir."/".$chrom.".vcf");
 	}
 
@@ -123,10 +125,22 @@ if (isset($target) && $threads > 1)
 		sleep(10);
 
 		// for all processes check if they are alive
-		$output = $parser->exec("ps", "ax", true);
+		$output = $parser->exec("ps", "ax", false);
 		$running_pids = array_filter($output[0], function ($item) use ($tmp_dir) {
 			return (substr_count($item, $tmp_dir) && substr_count($item, get_path("freebayes"))); // checks for freebayes & tmp_folder
 		});
+
+		$processed_chromosomes = array_diff(array_keys($processing_chromosomes), array_map(function ($processing_chromosome) {
+			$matches = array();
+			preg_match_all('/(chr\w*)(\.bed)/',$processing_chromosomes, $matches);
+			return $matches[1][0];
+		}, $running_pids));
+
+		foreach ($processed_chromosomes as $processed_chromosome) {
+			$end_time = filemtime($tmp_dir."/".$processed_chromosome.".vcf");
+			$parser->log("Processed chromosome ".$processed_chromosome." in ".time_readable($end_time-$processing_chromosomes[$processed_chromosome])." milliseconds");
+			unset($processing_chromosomes[$processed_chromosome]);
+		}
 
 		// if all chromosomes have been processed exit the while
 		if (!count($chromosomes) && !count($running_pids)) {
@@ -139,6 +153,7 @@ if (isset($target) && $threads > 1)
 		{
 			if (!count($chromosomes)) continue;
 			$chrom = array_shift($chromosomes);
+			$processing_chromosomes[$chrom] = microtime(true);
 			run_freebayes_nohup($parser, $bam, $genome, $args, $tmp_dir."/".$chrom.".bed", $tmp_dir."/".$chrom.".vcf");
 		}
 	}
@@ -165,7 +180,7 @@ else
 }
 
 $freebayes_end = microtime(true);
-$parser->log("Freebayes execution took ".$freebayes_end-$freebayes_start." milliseconds");
+$parser->log("Freebayes execution took ".time_readable($freebayes_end-$freebayes_start)." milliseconds");
 
 // start post-processing
 $post_processing_start = microtime(true);
@@ -207,6 +222,6 @@ if ($target_extend>0)
 $parser->exec("tabix", "-p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
 
 $post_processing_end = microtime(true);
-$parser->log("Post processing took ".$post_processing_end-$post_processing_start." milliseconds");
+$parser->log("Post processing took ".time_readable($post_processing_end-$post_processing_start)." milliseconds");
 
 ?>
