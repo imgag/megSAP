@@ -138,7 +138,7 @@ if (isset($target) && $threads > 1)
 
 		foreach ($processed_chromosomes as $processed_chromosome) {
 			$end_time = filemtime($tmp_dir."/".$processed_chromosome.".vcf");
-			$parser->log("Processed chromosome ".$processed_chromosome." in ".time_readable($end_time-$processing_chromosomes[$processed_chromosome])." milliseconds");
+			$parser->log("Processed chromosome ".$processed_chromosome." in ".time_readable($end_time-$processing_chromosomes[$processed_chromosome]));
 			unset($processing_chromosomes[$processed_chromosome]);
 		}
 
@@ -180,7 +180,7 @@ else
 }
 
 $freebayes_end = microtime(true);
-$parser->log("Freebayes execution took ".time_readable($freebayes_end-$freebayes_start)." milliseconds");
+$parser->log("Freebayes execution took ".time_readable($freebayes_end-$freebayes_start));
 
 // start post-processing
 $post_processing_start = microtime(true);
@@ -222,6 +222,6 @@ if ($target_extend>0)
 $parser->exec("tabix", "-p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
 
 $post_processing_end = microtime(true);
-$parser->log("Post processing took ".time_readable($post_processing_end-$post_processing_start)." milliseconds");
+$parser->log("Post processing took ".time_readable($post_processing_end-$post_processing_start));
 
 ?>
