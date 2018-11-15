@@ -13,15 +13,14 @@ check_file($out_file1, data_folder().$name."_out1.vcf.gz");
 // test with target region and multiple threads
 $out_file1_thread2 = output_folder().$name."_out1_threads2.vcf.gz";
 check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file1_thread2 -target ".data_folder().$name."_in.bed -threads 2 --log ".output_folder().$name."_out1_threads2.log");
-check_exec("zdiff $out_file1 $out_file1_thread2");
 
 $out_file1_thread3 = output_folder().$name."_out1_threads3.vcf.gz";
 check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file1_thread3 -target ".data_folder().$name."_in.bed -threads 3 --log ".output_folder().$name."_out1_threads3.log");
-check_exec("zdiff $out_file1 $out_file1_thread3");
+check_exec("zdiff $out_file2 $out_file1_thread3");
 
 $out_file1_thread4 = output_folder().$name."_out1_threads4.vcf.gz";
 check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file1_thread4 -target ".data_folder().$name."_in.bed -threads 4 --log ".output_folder().$name."_out1_threads4.log");
-check_exec("zdiff $out_file1 $out_file1_thread4");
+check_exec("zdiff $out_file2 $out_file1_thread4");
 
 //test without target data - AF>=20%
 $out_file2 = output_folder().$name."_out2.vcf.gz";
