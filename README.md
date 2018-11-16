@@ -39,6 +39,8 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 ## ChangeLog
 
+* 16.11.2018: Updated to freebayes 1.2.0 (parallelized to compensate for the increased runtime)
+* 07.11.2018: Updated VEP from version 93.2 to 94.5
 * 19.10.2018: Reverted to freebayes 1.1.0 because version 1.2.0 is too slow.
 * 10.10.2018: Updated all tools and databases to the latest releases.
 * 04.10.2018: Using Ensembl VEP for variant annotation now (was SnpEff)
@@ -52,5 +54,6 @@ tracker](https://github.com/imgag/megSAP/issues).
 * 18.01.2018: Added b-allele frequency files for visualization in IGV. 
 * 08.01.2018: Updated tools (BWA, samtools, snpEff) and databases (ClinVar, gnomAD, HGMD).
 * 15.12.2017: Added runs-of-homozygosity detection to the germline pipeline.
+
 
 

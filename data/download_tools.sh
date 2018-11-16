@@ -29,7 +29,7 @@ make
 cd $folder
 git clone https://github.com/ekg/freebayes.git
 cd freebayes
-git checkout v1.1.0 && git submodule update --recursive --init
+git checkout v1.2.0 && git submodule update --recursive --init
 make
 
 #download and build vcflib
