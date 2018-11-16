@@ -2,55 +2,24 @@
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 $parser = new ToolBase("cgi_send_data", "Sends annotation file to CGI.");
-$parser->addString("cancertype", "cancer type, see cancergenomeinterpreter.org for nomenclature",true);
 $parser->addInfile("mutations", "Input .vcf-file with mutation annotations, hg19 coordinates.", true);
 $parser->addInfile("cnas","File containing the CNV data. ",true);
 $parser->addInfile("translocations","File containing the translocation data",true);
-$parser->addString("o_folder", "Output folder for CGI files. If not set, files are stored in the same folder as the input files.",true);
-$parser->addInfile("t_region", ".txt-File which contains the gene names of the target region, only these genes will be sent to CGI. If not set all genes will be sent to CGI", true);
-$parser->addFlag("no_del", "Do not delete Job in Cancer Genome Interpreter after submission");
-$parser->addFlag("is_germline","Mutation file is germline.");
+$parser->addString("cancertype", "cancer type, see cancergenomeinterpreter.org for nomenclature",true,"CANCER");
+$parser->addString("out", "Output file for zipped CGI result file",false);
+$parser->addInfile("t_region", ".txt-File which contains genes that shall be included in CNV analysis. If unset, all genes in the CNV file will be sent to CGI", true);
+$parser->addFlag("no_del", "Do not delete Job on Cancer Genome Interpreter after submission");
 extract($parser->parse($argv));
 
-//discard if no input file given
+//discard if no input files given
 if(!isset($mutations) && !isset($cnas) && !isset($translocations))
 {
-	trigger_error("At least one file must be uploaded to CGI",E_USER_ERROR);
-	exit(1);
+	$parser->printUsage();
+	trigger_error("At least one variant file must be uploaded to CGI",E_USER_ERROR);
 }
 if(isset($translocations))
 {
 	trigger_error("Translocations currently not supported.",E_USER_WARNING);
-}
-
-if($is_germline && isset($cnas))
-{
-	trigger_error("Uploading CNA in germline mode is not supported.",E_USER_ERROR);
-	exit(1);
-}
-
-//determine destination folder 
-$destination_folder = "";
-if(isset($o_folder))
-{
-	$destination_folder = $o_folder;
-}
-else
-{
-	if(isset($mutations))
-	{
-		$destination_folder = realpath(dirname($mutations));
-	}elseif(isset($cnas)) {
-		$destination_folder = realpath(dirname($cnas));
-	}elseif(isset($translocations)){
-		$destination_folder = realpath(dirname($translocations));
-	}
-}
-
-//if cancertype not set, use generic CGI type
-if(!isset($cancertype))
-{
-	$cancertype = "CANCER";
 }
 
 //set user credentials
@@ -352,140 +321,53 @@ function transform_cnv_annotations($tsv_in_file,$tsv_out_filename)
 	$cnv_to->toTSV($tsv_out_filename);
 }
 
-//return Matrix which includes only filtered variants (-> "PASS" or "freq-tum" in filter column)
-function filter_vcf_file($vcf_file)
-{
-	$vcf_filtered = new Matrix();
-	$vcf_filtered->setHeaders($vcf_file->getHeaders());
-	$vcf_filtered->setComments($vcf_file->getComments());
-	$i_filter = $vcf_file->getColumnIndex("FILTER");
-	
-	for($i=0;$i<$vcf_file->rows();$i++)
-	{
-		if($vcf_file->get($i,$i_filter) == "PASS" || $vcf_file->get($i,$i_filter) == "freq-tum" || strpos($vcf_file->get($i,$i_filter),"syn-var") !== false)
-		{
-			$filtered_row = $vcf_file->getRow($i);
-			$vcf_filtered->addRow($filtered_row);
-		}
-	}
-	return $vcf_filtered;
-}
-
-//filters vcf file for germline analysis
-function filter_vcf_file_germline($vcf_file)
-{
-	$vcf_filtered = new Matrix();
-	$vcf_filtered->setHeaders($vcf_file->getHeaders());
-	$vcf_filtered->setComments($vcf_file->getComments());
-	$i_filter = $vcf_file->getColumnIndex("FILTER");
-	for($i=0;$i<$vcf_file->rows();$i++)
-	{
-		if($vcf_file->get($i,$i_filter) == "." || $vcf_file->get($i,$i_filter) == "PASS")
-		{
-			$filtered_row = $vcf_file->getRow($i);
-			$vcf_filtered->addRow($filtered_row);
-		}
-	}
-	return $vcf_filtered;
-}
-
-//adds a # in the first line of a file
-function addCommentCharInHeader($filename)
-{
-	$file = fopen($filename,"r+");
-	$old_contents = file_get_contents($filename);
-	fwrite($file,"#");
-	fwrite($file,$old_contents);
-}
-
 /********
  * MAIN *
  ********/
- 
-//get sample ID
-$sample_id = "";
+
+//Parse SNV file
+$temp_mut_file = "";
 if(isset($mutations))
 {
-	if(strpos($mutations,".gz") !== false) 
-	{	
-		if(strpos($mutations,"_var_annotated.vcf.gz") !== false)
-		{
-			$sample_id = basename($mutations,"_var_annotated.vcf.gz");
-		}
-		else
-		{
-			$sample_id = basename($mutations,"_var.vcf.gz");
-		}
-	}else{
-		if(strpos($mutations,"_var_annotated.vcf") !== false)
-		{
-			$sample_id = basename($mutations,"_var_annotated.vcf");
-		}
-		else
-		{
-			$sample_id = basename($mutations,"_var.vcf");
-		}
-	}
-}elseif(isset($cnas)){
-	if(strpos($cnas,"_cnvs.tsv") !== false)
+	if(strpos($mutations,".gz") !== false)
 	{
-		$sample_id = basename($cnas,"_cnvs.tsv");
+		exec2("gzip -d -k -f  $mutations");
+		$mutations = str_replace(".gz","",$mutations);
 	}
-	elseif(strpos($cnas,"_clincnv.tsv") !== false)
-	{
-		$sample_id = basename($cnas,"_clincnv.tsv");
-	}
-}
-//@TODO: sample_id if only translocations are given
-if(strpos($mutations,".gz") !== false)
-{
-	exec2("gzip -d -k -f  $mutations");
-	$mutations = str_replace(".gz","",$mutations);
-}
 
-//only send filtered SNVs to CGI (->those with filter "PASS" entry)
-$temp_mutation_file = tempnam(sys_get_temp_dir(),"temp_");
-if(isset($mutations))
-{
-	$vcf_file = Matrix::fromTSV($mutations);
-	
-	$vcf_file_filtered = $vcf_file;
-	if(!$is_germline)
+	$vcf_in = file($mutations, FILE_IGNORE_NEW_LINES);
+	$temp_mut_cont = array("sample\tchr\tpos\tref\talt");
+	foreach($vcf_in as $line)
 	{
-		//@TODO: move filter out of this script, cgi_send_data must be able to send unfiltered data!
-		$vcf_file_filtered = filter_vcf_file($vcf_file);
-	}
-	else
-	{
-		//@TODO: move filter out of this script, cgi_send_data must be able to send unfiltered data!
-		$vcf_file_filtered = filter_vcf_file_germline($vcf_file);
-	}
-	$vcf_file_filtered->toTSV($temp_mutation_file);
-
-	chmod($temp_mutation_file,0666);
-	
-	//check whether filtered vcf file contains data
-	if($vcf_file_filtered->rows() < 1)
-	{
-		$temp_mutation_file = "";
+		if(starts_with($line,"#")) continue;
+		list($chr,$pos,,$ref,$alt) = explode("\t",$line);
+		
+		//unique identifier for each variant (needed to allocate drugs precisely to a SNPs)
+		$temp_id = "{$chr}_{$pos}_{$ref}_{$alt}";
+		
+		$temp_mut_cont[] = "{$temp_id}\t{$chr}\t{$pos}\t{$ref}\t{$alt}";
 	}
 	
-} else {
-	//if no mutations given, make $temp_mutation_file empty
-	$temp_mutation_file =  "";
+	if(count($temp_mut_cont) > 1000)
+	{
+		trigger_error("Too many variants in {$mutations}. Please filter SNPs before passing them to this tool.",E_USER_ERROR);
+	}
+	$temp_mut_file = temp_file(".tsv");
+	file_put_contents($temp_mut_file,implode("\n",$temp_mut_cont));
 }
 
 
 //convert CNVs to CGI format
-$temp_cnv_file = tempnam(sys_get_temp_dir(),"temp_");
-chmod($temp_cnv_file,0666);
-
+$temp_cnv_file = temp_file(".tsv");
 if(isset($cnas))
 {
 	transform_cnv_annotations($cnas,$temp_cnv_file);
-} else {
+} 
+else 
+{
 	$temp_cnv_file = "";
 }
+
 //check whether temp_cnv_file contains data
 if($temp_cnv_file != "" && count(file($temp_cnv_file)) <= 1)
 {
@@ -493,7 +375,7 @@ if($temp_cnv_file != "" && count(file($temp_cnv_file)) <= 1)
 }
 
 //Send data to CGI, save job_id 
-$jobId = sendData("Sample: $sample_id",$cancertype,$temp_mutation_file,$temp_cnv_file);
+$jobId = sendData("IMGAG",$cancertype,$temp_mut_file,$temp_cnv_file);
 //display job status
 do
 {
@@ -511,58 +393,12 @@ do
 	
 }while($status != "Done");
 
-//extract CGI results
-$tmp_file = $parser->tempFile(".zip","temp");
-downloadJobResults($tmp_file,$jobId,$user,$token,$url);
-exec2("unzip -n $tmp_file -d $destination_folder");
-
-/********************
- * ADAPT FILE NAMES *
- ********************/
-if($is_germline)
-{
-	$parser->exec("rm",$destination_folder."/"."drug_prescription.tsv",true);
-	$parser->exec("rm",$destination_folder."/"."drug_prescription_bioactivities.tsv",true);
-}
-if(file_exists($destination_folder."/"."mutation_analysis.tsv"))
-{
-	addCommentCharInHeader($destination_folder."/"."mutation_analysis.tsv");
-	$parameters = $destination_folder."/"."mutation_analysis.tsv $destination_folder"."/".$sample_id."_cgi_mutation_analysis.tsv";
-	$command = $parser->exec("mv",$parameters,true); 
-}
-if(file_exists($destination_folder."/"."cna_analysis.tsv"))
-{
-	addCommentCharInHeader($destination_folder."/"."cna_analysis.tsv");
-	$parameters = $destination_folder."/"."cna_analysis.tsv $destination_folder/".$sample_id."_cgi_cnv_analysis.tsv";
-	$parser->exec("mv",$parameters,true);
-}
-if(file_exists($destination_folder."/"."drug_prescription.tsv"))
-{
-	addCommentCharInHeader($destination_folder."/"."drug_prescription.tsv");
-	$parameters = $destination_folder."/"."drug_prescription.tsv ".$destination_folder."/".$sample_id."_cgi_drug_prescription.tsv";
-	$parser->exec("mv",$parameters,true);
-}
-if(file_exists($destination_folder."/"."drug_prescription_bioactivities.tsv"))
-{
-	addCommentCharInHeader($destination_folder."/"."drug_prescription_bioactivities.tsv");
-	$parameters = $destination_folder."/drug_prescription_bioactivities.tsv ".$destination_folder."/".$sample_id."_cgi_drug_prescription_bioactivities.tsv";
-	$parser->exec("mv",$parameters,true);
-}
-if(file_exists($destination_folder."/malformed_cnas.txt"))
-{
-	$parser->moveFile($destination_folder."/malformed_cnas.txt", $destination_folder."/".$sample_id."_cgi_malformed_cnas.txt");
-}
-if(file_exists($destination_folder."/"."not_mapped_entries.txt"))
-{
-	$parameters = $destination_folder. "/" . "not_mapped_entries.txt " . $destination_folder . "/" . $sample_id ."_cgi_not_mapped_entries.tsv";
-	$parser->exec("mv",$parameters,true);
-}
-$parser->exec("rm",$destination_folder."/"."input0*.tsv",true);
+//download CGI results
+downloadJobResults($out,$jobId,$user,$token,$url);
 
 //Delete job from remote server
 if(!$no_del)
 {
 	delJob($jobId,$user,$token,$url);
 }
-
 ?>

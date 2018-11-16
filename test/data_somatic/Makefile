@@ -66,7 +66,7 @@ case2_analyze:
 	php ../../src/Pipelines/analyze.php \
 		-folder Sample_GS110169 \
 		-name GS110169 \
-		-steps ma -somatic \
+		-steps ma,vc,an,cn -somatic \
 		-system system_pair.ini \
 		-threads 1 \
 		--log Sample_GS110169/analyze.log
@@ -78,6 +78,7 @@ case2_somatic:
 		-steps vc,an,msi,ci\
 		-system system_pair.ini -n_system system_pair.ini \
 		-cancer_type CANCER \
+		-include_germline \
 		--log out_case2/GS110168-GS110169.log
 case2_diff:
 	# variants
@@ -87,6 +88,7 @@ case2_diff:
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription.tsv
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription_bioactivities.tsv
 	test -s out_case2/GS110168-GS110169_cgi_mutation_analysis.tsv
+	test -s Sample_GS110169/GS110169_cgi_mutation_analysis.tsv
 	# qcML files
 	php ../compare_qcml_xml.php expected_case2/GS110168-GS110169_stats_som.qcML out_case2/GS110168-GS110169_stats_som.qcML
 	# bafs

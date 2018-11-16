@@ -707,19 +707,29 @@ function sort_vcf_comments($comments_to_sort)
 	return $sorted;
 }
 
-	function relative_path($start,$end)
+function relative_path($start,$end)
+{
+	$s = explode("/", realpath($start));
+	$e = explode("/", realpath($end));
+	$r = array();
+	while(isset($s[0]) && isset($e[0]) && $s[0]==$e[0])	// remove common prefix
 	{
-		$s = explode("/", realpath($start));
-		$e = explode("/", realpath($end));
-		$r = array();
-		while(isset($s[0]) && isset($e[0]) && $s[0]==$e[0])	// remove common prefix
-		{
-			array_shift($s);
-			array_shift($e);
-		}
-		$r = array_fill(0,count($s),"..");
-		$r = array_merge($r,$e);
-		return implode("/",$r);
+		array_shift($s);
+		array_shift($e);
 	}
+	$r = array_fill(0,count($s),"..");
+	$r = array_merge($r,$e);
+	return implode("/",$r);
+}
+	
+//adds a # in the first line of a file
+function addCommentCharInHeader($filename)
+{
+	$file = fopen($filename,"r+");
+	$old_contents = file_get_contents($filename);
+	if(starts_with($old_contents[0],"#")) return;
+	fwrite($file,"#");
+	fwrite($file,$old_contents);
+}
 	
 ?>

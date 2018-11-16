@@ -174,22 +174,23 @@ function check_file_exists($in_file)
 	print "  - $file:$line $result\n";
 }
 
-//checks whether column with a certain name exists in a TSV file
+//checks whether column with a certain name (that is: entry in 1st row) exists in a TSV file
 function check_column_exists($filename,$col_names)
 {
 	check_test_started();
 
 	$logfile = $filename ."_diff";
-	$passed = true;
-	
-	$input = Matrix::fromTSV($filename);
 	$report_errors = "";
 	
+	$headers = file($filename)[0];
+	$headers = str_replace("#","",$headers);
+	$headers  = explode("\t",$headers);
+	
+	$passed = true;
 	foreach($col_names as $col_name)
 	{
-		if($input->getColumnIndex($col_name,false,false) === false)
+		if(!in_array($col_name,$headers))
 		{
-			print_r("wirf error0\n.");
 			$report_errors = $report_errors . "Column ".$col_name." does not exist in file ".$filename.".\n";
 			$passed = false;
 		}
@@ -223,6 +224,13 @@ function check_tsv_file($out_file,$reference_file)
 	$logfile = $out_file."_diff";
 	
 	$report_errors = "";
+	
+	//Add "#" char in header (to be able to use Matrix::fromTSV)
+	$tmp = temp_file(".tsv");
+	copy($out_file,$tmp);
+	addCommentCharInHeader($tmp);
+	$out_file = $tmp;
+	
 	
 	$out = Matrix::fromTSV($out_file);
 	$out_headers = $out->getHeaders();
