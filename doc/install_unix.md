@@ -12,65 +12,13 @@ We are providing instructions for Ubuntu 16.04 and 18.04 officially. However thi
 ### Base dependencies (Ubuntu 16.04)
 
 ```
-    > sudo apt-get update && apt-get install -y
-    bzip2 \
-    default-jre \
-    perl-base \
-    php7.0-cli \ 
-    php7.0-xml \ 
-    php7.0-mysql \
-    python-matplotlib \ 
-    python-numpy \
-    python-pysam \
-    tabix \
-    unzip \
-    wget \
-    build-essential \ 
-    cmake \ 
-    cpanminus \
-    git \ 
-    libbz2-dev \ 
-    liblzma-dev \ 
-    libncurses5-dev \ 
-    libpng-dev \ 
-    libqt5sql5-mysql \ 
-    libqt5xmlpatterns5-dev \ 
-    libssl-dev \ 
-    qt5-default \ 
-    qt5-qmake \ 
-    qtbase5-dev 
+    > sudo apt-get install -y bzip2 default-jre perl-base php7.0-cli php7.0-xml php7.0-mysql python-matplotlib python-numpy python-pysam tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libpng-dev libqt5sql5-mysql libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev 
 ```
 
 ### Base dependencies (Ubuntu 18.04)
 
 ```
-    > sudo apt-get update && apt-get install -y \
-    bzip2 \
-    default-jre \
-    perl-base \ 
-    php7.2-cli \ 
-    php7.2-xml \ 
-    php7.2-mysql \ 
-    python-matplotlib \ 
-    python-numpy \
-    python-pysam \
-    tabix \ 
-    unzip \ 
-    wget \
-    build-essential \ 
-    cmake \ 
-    cpanminus \
-    git \ 
-    libbz2-dev \ 
-    liblzma-dev \ 
-    libncurses5-dev \ 
-    libqt5sql5-mysql \ 
-    libpng-dev \
-    libqt5xmlpatterns5-dev \ 
-    libssl-dev \
-    qt5-default \ 
-    qt5-qmake \ 
-    qtbase5-dev
+    > sudo apt-get install -y bzip2 default-jre perl-base php7.2-cli php7.2-xml php7.2-mysql python-matplotlib python-numpy python-pysam tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev
 ```
 
 ### R dependencies (for somatic CNV calling)
@@ -80,6 +28,7 @@ We are providing instructions for Ubuntu 16.04 and 18.04 officially. However thi
 ### Perl dependencies (for RNA pipeline)
 
 	> sudo -E cpanm Set::IntervalTree URI::Escape DB_File Carp::Assert JSON::XS PerlIO::gzip
+	> sudo chmod -R 777 ~/.cpanm
 
 ## Downloading
 

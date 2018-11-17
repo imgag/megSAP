@@ -43,6 +43,7 @@ cd ftp
 wget ftp://ftp.ensembl.org/pub/release-94/variation/VEP/homo_sapiens_vep_94_GRCh37.tar.gz
 
 #install ensembl-vep
+PERL5LIB=$vep_install_dir/Bio/:$vep_install_dir/cpan/lib/perl5/:$PERL5LIB
 cd $vep_install_dir
 perl INSTALL.pl --SPECIES homo_sapiens --ASSEMBLY GRCh37 --AUTO acp --PLUGINS REVEL,FATHMM_MKL,CADD,dbscSNV,GeneSplicer,MaxEntScan --NO_UPDATE --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp
 cp $vep_data_dir/cache/Plugins/*.pm $vep_install_dir/modules/ #should not be necessary - probably a bug in the VEP installation script when using the CACHEDIR option (MS)
