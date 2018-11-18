@@ -11,7 +11,7 @@ $parser->addString("steps", "Analysis steps to perform.", false);
 $parser->addEnum("mode", "Excution mode: 'default' executes the analysis sequentially in this script, 'print' only prints samples, but performs no analysis, 'sge' queues the analysis in SGE.", true, array("default", "print", "sge"), "default");
 $parser->addString("before", "Only samples analyzed before the date are reanalyzed (considers 'steps', format 'DD.MM.YYYY').", true);
 $parser->addInt("threads", "Number of threads used (for 'default' mode).", true);
-$parser->addInt("max", "Maximum number of jobs to start (for 'sge' mode).");
+$parser->addInt("max", "Maximum number of jobs to start (for 'sge' mode).", true);
 extract($parser->parse($argv));
 
 //convert 'before' to timestamp
@@ -25,7 +25,7 @@ if (isset($before))
 	$before = $converted->getTimestamp();
 }
 
-$anaylzed = 0;
+$analyzed = 0;
 $count = count($samples);
 for ($i=1; $i<=$count; ++$i)
 {
@@ -145,7 +145,7 @@ for ($i=1; $i<=$count; ++$i)
 		}
 		
 		++$analyzed;
-		if ($analyzed>=$max)
+		if (!is_null($max) && $analyzed>=$max)
 		{
 			print "Maximum number of SGE jobs reached - stopping\n";
 			break;
