@@ -65,14 +65,26 @@ function start_test($name)
 	$args = getopt("v");
 	if (isset($args["v"])) $GLOBALS["debug"] = true;
 	
-	print "TEST $name\n";
+	print "START $name\n";
 	$GLOBALS["failed"] = 0;
 	$GLOBALS["passed"] = 0;
+	$GLOBALS["test_name"] = $name;
+	$GLOBALS["start_time"] = microtime(true);
+}
+
+function check_test_started()
+{
+	if (!isset($GLOBALS["test_name"]))
+	{
+		trigger_error("Invalid test ".$_SERVER['SCRIPT_FILENAME'].": 'start_test' function not called!", E_USER_ERROR);
+	}
 }
 
 /// Performs a check within a test
 function check($observed, $expected, $delta = null)
 {
+	check_test_started();
+	
 	if (isset($delta))
 	{
 		$delta_string = ", delta='$delta'";
@@ -142,6 +154,8 @@ function remove_lines_containing($filename, $ignore_strings)
 ///Checks whether a file exists
 function check_file_exists($in_file)
 {
+	check_test_started();
+
 	if(file_exists($in_file))
 	{
 		$result = "PASSED";
@@ -160,20 +174,23 @@ function check_file_exists($in_file)
 	print "  - $file:$line $result\n";
 }
 
-//checks whether column with a certain name exists in a TSV file
+//checks whether column with a certain name (that is: entry in 1st row) exists in a TSV file
 function check_column_exists($filename,$col_names)
 {
+	check_test_started();
+
 	$logfile = $filename ."_diff";
-	$passed = true;
-	
-	$input = Matrix::fromTSV($filename);
 	$report_errors = "";
 	
+	$headers = file($filename)[0];
+	$headers = str_replace("#","",$headers);
+	$headers  = explode("\t",$headers);
+	
+	$passed = true;
 	foreach($col_names as $col_name)
 	{
-		if($input->getColumnIndex($col_name,false,false) === false)
+		if(!in_array($col_name,$headers))
 		{
-			print_r("wirf error0\n.");
 			$report_errors = $report_errors . "Column ".$col_name." does not exist in file ".$filename.".\n";
 			$passed = false;
 		}
@@ -202,9 +219,18 @@ function check_column_exists($filename,$col_names)
 /// Performs an equality check on a tsv file by column name. This can be used if the columns do not have the same order in ref and out
 function check_tsv_file($out_file,$reference_file)
 {
+	check_test_started();
+	
 	$logfile = $out_file."_diff";
 	
 	$report_errors = "";
+	
+	//Add "#" char in header (to be able to use Matrix::fromTSV)
+	$tmp = temp_file(".tsv");
+	copy($out_file,$tmp);
+	addCommentCharInHeader($tmp);
+	$out_file = $tmp;
+	
 	
 	$out = Matrix::fromTSV($out_file);
 	$out_headers = $out->getHeaders();
@@ -260,6 +286,8 @@ function check_tsv_file($out_file,$reference_file)
 /// Performs an equality check on files. Optionally, header lines starting with '#' can be compared as well.
 function check_file($out_file, $reference_file, $compare_header_lines = false)
 {
+	check_test_started();
+	
 	$logfile = $out_file."_diff";
 	
 	//zdiff
@@ -328,7 +356,9 @@ function check_file($out_file, $reference_file, $compare_header_lines = false)
 
 /// Executes a command and checks that it does not return an error code
 function check_exec($command, $fail = TRUE)
-{	
+{
+	check_test_started();
+	
 	// execute command
 	if ($GLOBALS["debug"]) print "    Executing: $command\n";
 	exec($command." 2>&1", $output, $return);
@@ -373,20 +403,13 @@ function check_exec($command, $fail = TRUE)
 /// Ends a test
 function end_test()
 {
-	if ($GLOBALS["failed"]==0)
-	{
-		print "PASSED (".$GLOBALS["passed"].")\n\n";
-		
-		if (!$GLOBALS['debug'])
-		{
-			clear_output_folder();
-		}
-	}
-	else
-	{
-		print "FAILED (".$GLOBALS["failed"]." of ".$GLOBALS["passed"].")\n\n";
-		exit(1);
-	}
+	check_test_started();
+
+	$failed = $GLOBALS["failed"]!=0;
+	
+	print ($failed ? "FAILED" : "FINISHED")." ".$GLOBALS["test_name"]." - passed: ".$GLOBALS["passed"]."/".($GLOBALS["passed"]+$GLOBALS["failed"])." - time: ".time_readable(microtime(true) - $GLOBALS["start_time"])."\n\n";
+	
+	if ($failed) exit(1);
 }
 
 ?>

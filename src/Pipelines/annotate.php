@@ -3,7 +3,7 @@
 /**
 	@page annotate
 	@todo import also non-coding variants into NGSD for WGS (only rare ones)
-	@todo remove full GSvar file - it cannot be opened in GSvar anyway...
+	@todo WGS: remove full GSvar file and merge exonic/rare GSvar file into one file
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

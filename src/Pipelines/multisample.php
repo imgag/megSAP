@@ -108,10 +108,7 @@ if (in_array("vc", $steps))
 	$args[] = "-min_af 0.1";
 	$args[] = "-target_extend 50";
 	$args[] = "-build ".$sys['build'];
-	if ($threads)
-	{
-		$args[] = " -threads ".$threads;
-	}
+	$args[] = "-threads $threads";
 	$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);	
 
 	//variant calling for mito
@@ -138,10 +135,6 @@ if (in_array("vc", $steps))
 		$args[] = "-min_af 0.01";
 		$args[] = "-target $target_mito";
 		$args[] = "-build ".$sys['build'];
-		if ($threads)
-		{
-			$args[] = " -threads ".$threads;
-		}
 		$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);
 	}
 }

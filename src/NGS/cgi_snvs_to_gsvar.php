@@ -5,303 +5,194 @@ $parser = new ToolBase("cgi_snvs_to_gsvar", "Annotates CGI data to GSvar file.")
 $parser->addInfile("gsvar_in", "Input .gsvar-file with SNV data.", false);
 $parser->addInfile("cgi_snv_in", "Input CGI data with SNV annotations",false);
 $parser->addOutfile("out", "Output file name", false);
-$parser->addFlag("is_germline","Mutation file is germline.");
 extract($parser->parse($argv));
 
-//sorts CGI variant file for chromosomes and positions and transforms file to vcf specification
+//transforms CGI mutation file to VCF and sorts chrom. positions
+//CHROM	POS	REF	ALT	CGI
 function cgi_variant_tsv_to_sorted_vcf($cgi_input)
 {
 	$cgi_file = Matrix::fromTSV($cgi_input);
+	$output_lines = array("#CHROM\tPOS\tREF\tALT\tCGI\n");
 	
-	$i_input = $cgi_file->getColumnIndex("input");
+	//Chromosomal positions
+	$i_pos = $cgi_file->getColumnIndex("pos",false,false);
+	$i_chr = $cgi_file->getColumnIndex("chr",false,false);
+	$i_ref = $cgi_file->getColumnIndex("ref",false,false);
+	$i_alt = $cgi_file->getColumnIndex("alt",false,false);
 	
-	$chromosomes= array();
-	$positions = array();
-	$references = array();
-	$alterations = array();
-	foreach($cgi_file->getCol($i_input) as $line)
+	//create array containing CGI information
+	//id,driver,gene_role,transcript,gene,consequence
+	$i_id = $cgi_file->getColumnIndex("sample",false,false); //contains ID for each passed variant;	
+	$i_drv = $cgi_file->getColumnIndex("driver_statement");
+	$i_role = $cgi_file->getColumnIndex("gene_role");
+	$i_trans = $cgi_file->getColumnIndex("transcript");
+	$i_gene = $cgi_file->getColumnIndex("gene");
+	$i_cons = $cgi_file->getColumnIndex("consequence");
+	$cgi_statements = array();
+	for($i=0;$i<$cgi_file->rows();++$i)
 	{
-		list($chr,$pos,$ref,$alt) = explode("|",$line);
-		$chromosomes[] = "chr".$chr;
-		$positions[] = $pos;
-		$references[] = $ref;
-		$alterations[] = $alt;
+		$temp = [
+			str_replace(",",";",trim($cgi_file->get($i,$i_id))),
+			str_replace(",",";",trim($cgi_file->get($i,$i_drv))),
+			(empty(trim($cgi_file->get($i,$i_role))) ? "." : str_replace(",",";",trim($cgi_file->get($i,$i_role))) ),
+			str_replace(",",";",trim($cgi_file->get($i,$i_trans))),
+			str_replace(",",";",trim($cgi_file->get($i,$i_gene))),
+			str_replace(",",";",trim($cgi_file->get($i,$i_cons)))
+		];
+		$cgi_statements[] = implode(",",$temp);
 	}
 	
-	//add columns to file
-	$cgi_file->insertCol(0,$chromosomes,"CHROM");
-	$cgi_file->insertCol(1,$positions, "POS");
-	$cgi_file->insertCol(3,$references,"REF");
-	$cgi_file->insertCol(4,$alterations,"ALT");
-	
-	//reorder columns according vcf file specification
-	$i_ID = $cgi_file->getColumnIndex("ID");
-	$i_QUAL = $cgi_file->getColumnIndex("QUAL");
-	$i_FILTER = $cgi_file->getColumnIndex("FILTER");
-	$i_INFO = $cgi_file->getColumnIndex("INFO");
-	$i_FORMAT = $cgi_file->getColumnIndex("FORMAT");
-	$columns_order = array(0,1,$i_ID,3,4,$i_QUAL,$i_FILTER,$i_INFO,$i_FORMAT);
-	$cgi_file->slice($columns_order,true);
+	if($i_pos !== false && $i_chr !== false && $i_ref !== false && $i_alt !== false) //chr. positions included in file
+	{
+		for($i=0;$i<$cgi_file->rows();++$i)
+		{
+			$chr = "chr" . $cgi_file->get($i,$i_chr);
+			$pos = $cgi_file->get($i,$i_pos);
+			$ref = $cgi_file->get($i,$i_ref);
+			$alt = $cgi_file->get($i,$i_alt);
+			$output_lines[] = "{$chr}\t{$pos}\t{$ref}\t{$alt}\t". $cgi_statements[$i] ."\n";
+		}
+	}
+	else //chrom. pos. can be found in input column if pos. do not have own columns
+	{
+		$i_input = $cgi_file->getColumnIndex("input",false,false);
+		if($i_input === false)
+		{
+			trigger_error("Could not determine chromosomal positions in CGI file {$cgi_snv_in}. Aborting.",E_USER_ERROR);
+		}
+		$input = $cgi_file->getCol($i_input);
+		for($i=0;$i<$cgi_file->rows();++$i)
+		{
+			list($chr,$pos,$ref,$alt) = explode("|",$input[$i]);
+			$output_lines[] = "chr{$chr}\t{$pos}\t{$ref}\t{$alt}\t". $cgi_statements[$i] ."\n";
+		}
+	}
 	
 	//save to temp file and use ngs-bits for sorting
-	$temp_cgi_file_with_pos = temp_file(".tsv");
-	$cgi_file->toTSV($temp_cgi_file_with_pos);
+	$temp_o_file = temp_file(".tsv");
+	file_put_contents($temp_o_file,$output_lines);
 	$output = temp_file(".tsv");
-	$command = get_path("ngs-bits") . "/" . "VcfSort" . " -in " . $temp_cgi_file_with_pos . " -out " . $output ;
-	exec2($command);
 	
-	return Matrix::fromTSV($output);
+	//sort file
+	exec2("( head -n1 {$temp_o_file}; tail -n+2 {$temp_o_file} | sort -k1.4,1 -k2,2 -n )   > {$output} ");
+	return $output;
 }
 
-//main
+//Checks if column exists in GSvar file and removes it
+function remove_col($col_name,&$matrix)
+{
+	if($matrix->getColumnIndex($col_name,false,false) !== false)
+	{
+		$matrix->removeCol($matrix->getColumnIndex($col_name,false,false));
+	}
+}
+
+/********
+ * MAIN *
+ ********/
 
 $gsvar_input = Matrix::fromTSV($gsvar_in);
 
-//remove old CGI annotations if annotated 
-if($gsvar_input->getColumnIndex("CGI_drug_assoc",false,false) !== false)
-{
-	$gsvar_input->removeCol($gsvar_input->getColumnIndex("CGI_drug_assoc"));
-	$gsvar_input->removeCol($gsvar_input->getColumnIndex("CGI_evid_level"));
-	$gsvar_input->removeCol($gsvar_input->getColumnIndex("CGI_transcript"));
-}
-//remove old columns created by this script
-if($gsvar_input->getColumnIndex("CGI_driver_statement",false,false) !== false)
-{
-	$gsvar_input->removeCol($gsvar_input->getColumnIndex("CGI_driver_statement",false,false));
-}
-if($gsvar_input->getColumnIndex("CGI_gene_role",false,false) !== false)
-{
-	$gsvar_input->removeCol($gsvar_input->getColumnIndex("CGI_gene_role",false,false));
-}
-if($gsvar_input->getColumnIndex("CGI_transcript",false,false) !== false)
-{
-	$gsvar_input->removeCol($gsvar_input->getColumnIndex("CGI_transcript",false,false));
-}
-if($gsvar_input->getColumnIndex("CGI_gene",false,false) !== false)
-{
-	$gsvar_input->removeCol($gsvar_input->getColumnIndex("CGI_gene",false,false));
-}
-if($gsvar_input->getColumnIndex("CGI_consequence",false,false) !== false)
-{
-	$gsvar_input->removeCol($gsvar_input->getColumnIndex("CGI_consequence",false,false));
-}
+/******************************
+ * REMOVE OLD CGI ANNOTATIONS *
+ ******************************/ 
+//old annotations created by former script
+$old_annotations = ["CGI_drug_assoc","CGI_evid_level","CGI_transcript","CGI_id","CGI_driver_statement","CGI_gene_role","CGI_gene","CGI_consequence"];
+foreach($old_annotations as $annotation_name) remove_col($annotation_name,$gsvar_input);
 
-//indices of gsvar position columns
+/***************************
+ * REMOVE OLD CGI COMMENTS *
+ ***************************/
+function remove_comment($old_comment,&$matrix)
+{
+	foreach($matrix->getComments() as $comment)
+	{
+		if(strpos($comment,$old_comment) !== false) $matrix->removeComment($comment);
+	}
+}
+$old_comments = ["CGI_ICD10_CODE","CGI_ICD10_TEXT","CGI_ICD10_DIAGNOSES","GENES_FOR_REIMBURSEMENT","CGI_CANCER_TYPE","CGI_id","CGI_driver_statement","CGI_gene_role","CGI_transcript","CGI_gene","CGI_consequence"];
+foreach($old_comments as $old_comment) remove_comment($old_comment,$gsvar_input);
+
+//indices of input gsvar position columns
 $i_gsvar_snvs_chr = $gsvar_input->getColumnIndex("chr");
 $i_gsvar_snvs_start = $gsvar_input->getColumnIndex("start");
 $i_gsvar_snvs_genes = $gsvar_input->getColumnIndex("gene");
 
-print_r("GSvar input rows:" . $gsvar_input->rows() ."\n\n\n");
+//VCF file with CGI mutation analysis
+$cgi_snvs = file(cgi_variant_tsv_to_sorted_vcf($cgi_snv_in),FILE_IGNORE_NEW_LINES);
 
-
-//tsv with cgi results
-$cgi_snvs = cgi_variant_tsv_to_sorted_vcf($cgi_snv_in);
-
-
-//column indices of input snv file
-$i_cgi_snvs_pos = $cgi_snvs->getColumnIndex("input");
-$i_cgi_snvs_driver = $cgi_snvs->getColumnIndex("driver");
-$i_cgi_snvs_driver_statement = $cgi_snvs->getColumnIndex("driver_statement");
-$i_cgi_snvs_gene_role = $cgi_snvs->GetColumnIndex("gene_role");
-$i_cgi_snvs_genes = $cgi_snvs->GetColumnIndex("gene");
-$i_cgi_snvs_transcript = $cgi_snvs->GetColumnIndex("transcript");
-$i_cgi_snvs_consequence = $cgi_snvs->GetColumnIndex("consequence");
-
-//CGI columns for positions
-$cgi_snvs_start = array();
-$cgi_snvs_chr = array();
-//reference allele in vcf file, important to annotate indels
-$cgi_snvs_ref_allele = array();
-//cgi gene names
-$cgi_snvs_gene_names = array();
-$cgi_snvs_transcript = array();
-$cgi_snvs_consequence = array();
-
-//fill CGI columns
-for($i=0;$i<$cgi_snvs->rows();$i++)
-{
-	$coordinates = explode('|',$cgi_snvs->getCol($i_cgi_snvs_pos)[$i]);
-	$cgi_snvs_chr[] = "chr".$coordinates[0];
-	$cgi_snvs_start[] = $coordinates[1];
-	$cgi_snvs_ref_allele[] = $coordinates[2];
-}
-
-$cgi_snvs_gene_names = $cgi_snvs->getCol($i_cgi_snvs_genes);
-//update gene names in CGI file
-$cgi_snvs_gene_names = approve_gene_names($cgi_snvs_gene_names);
-
-$cgi_snvs_transcript = $cgi_snvs->getCol($i_cgi_snvs_transcript);
-$cgi_snvs_consequence = $cgi_snvs->getCol($i_cgi_snvs_consequence);
-
-//new columns in GSVar file
-$gsvar_snvs_new_driver = array();
-$gsvar_snvs_new_driver_statement = array();
-$gsvar_snvs_gene_role = array();
-$gsvar_snvs_transcript = array();
-$gsvar_snvs_new_cgi_gene = array();
-$gsvar_snvs_cgi_consequence = array();
-for($i=0;$i<$gsvar_input->rows();$i++)
-{
-	$gsvar_snvs_new_driver[] = "";
-	$gsvar_snvs_new_driver_statement[] = "";
-	$gsvar_snvs_gene_role[] = "";
-	$gsvar_snvs_transcript[] = "";
-	$gsvar_snvs_new_cgi_gene[] = "";
-	$gsvar_snvs_cgi_consequence[] = "";
-}
+//arrays for CGI data
+$col_cgi_id = array_fill(0,$gsvar_input->rows(),"");
+$col_cgi_driver_statement = array_fill(0,$gsvar_input->rows(),"");
+$col_cgi_gene_role = array_fill(0,$gsvar_input->rows(),"");
+$col_cgi_transcript = array_fill(0,$gsvar_input->rows(),"");
+$col_cgi_gene = array_fill(0,$gsvar_input->rows(),"");
+$col_cgi_consequence = array_fill(0,$gsvar_input->rows(),"");
 
 //annotate GSvar file with CGI data, use positions of SNV for annotation
 for($i=0;$i<$gsvar_input->rows();$i++)
 {
 	$gsvar_chr = chr_trim($gsvar_input->get($i,$i_gsvar_snvs_chr));
-	$gsvar_start = $gsvar_input->get($i,$i_gsvar_snvs_start);
-	$gsvar_gene = $gsvar_input->get($i,$i_gsvar_snvs_genes);
+	$gsvar_pos = $gsvar_input->get($i,$i_gsvar_snvs_start);
 	
-	for($j=0;$j<$cgi_snvs->rows();$j++)
+	foreach($cgi_snvs as $cgi_line)
 	{
-		$cgi_chr = chr_trim($cgi_snvs_chr[$j]);
 		
-		//some SNVs are not present in CGI mutation file: try to skip as early as possible
+		if(starts_with($cgi_line,"#")) continue;
+		list($cgi_chr,$cgi_pos,$cgi_ref,$cgi_alt,$cgi_statements) = explode("\t",$cgi_line);
+		$cgi_statements = explode(",",$cgi_statements);
+		$cgi_chr = chr_trim($cgi_chr);
+		
 		if((is_numeric($cgi_chr) && is_numeric($gsvar_chr)) && ($cgi_chr > $gsvar_chr)) break;
-		//Skip current loop if chromosome does not fit
 		if($cgi_chr != $gsvar_chr) continue;
-		
-		
-		$cgi_start = $cgi_snvs_start[$j];
-		$cgi_ref = $cgi_snvs_ref_allele[$j];
-		
-		//Skip current loop if position does not fit (for SNV)
-		if((strlen($cgi_ref) == 1) && $gsvar_start != $cgi_start) continue;
-		//Skip current loop if position does not match (for INDELs)
-		if((strlen($cgi_ref) > 1) &&  $gsvar_start != $cgi_start+1) continue;
-		
-		
-		//CGI columns for annotation in GSvar
-		$cgi_gene = $cgi_snvs_gene_names[$j];
-		$cgi_transcript = $cgi_snvs_transcript[$j];
-		$cgi_snvs_driver = $cgi_snvs->getCol($i_cgi_snvs_driver)[$j];
-		$cgi_snvs_driver_statement = $cgi_snvs->getCol($i_cgi_snvs_driver_statement)[$j];
-		$cgi_snvs_gene_role = $cgi_snvs->getCol($i_cgi_snvs_gene_role)[$j];
-		$cgi_consequence = $cgi_snvs_consequence[$j];
-		
-		//Distinguish between SNVs and indels
-		if(strlen($cgi_ref) == 1)
+		if(strlen($cgi_ref) == 1 && $gsvar_pos != $cgi_pos) continue;
+		if(strlen($cgi_ref) > 1 && $gsvar_pos != $cgi_pos + 1) continue;
+		if(strlen($cgi_ref) == 1) //SNPs
 		{
-			if($gsvar_chr == $cgi_chr and $gsvar_start == $cgi_start)
+			if($gsvar_chr == $cgi_chr and $gsvar_pos == $cgi_pos)
 			{
-				//check whether gene names from CGI and in GSVAR match
-				if(strpos($gsvar_gene,$cgi_gene) === false)
-				{
-					trigger_error("gene in CGI does not match GSVar gene: $cgi_gene != $gsvar_gene",E_USER_WARNING);
-				}
-				
-				$gsvar_snvs_new_driver[$i] = $cgi_snvs_driver;
-				$gsvar_snvs_new_driver_statement[$i] = $cgi_snvs_driver_statement;
-				$gsvar_snvs_gene_role[$i] = $cgi_snvs_gene_role;
-				$gsvar_snvs_transcript[$i] = $cgi_transcript;
-				$gsvar_snvs_new_cgi_gene[$i]= $cgi_gene;
-				$gsvar_snvs_cgi_consequence[$i] = $cgi_consequence;
+				$col_cgi_id[$i] = $cgi_statements[0];
+				$col_cgi_driver_statement[$i] = $cgi_statements[1];
+				$col_cgi_gene_role[$i] = $cgi_statements[2];
+				$col_cgi_transcript[$i] = $cgi_statements[3];
+				$col_cgi_gene[$i] = $cgi_statements[4];
+				$col_cgi_consequence[$i] = $cgi_statements[5];
 				break;
 			}
 		}
-		elseif(strlen($cgi_ref)> 1) //indels, format in vcf is different than in GSVar
+		elseif(strlen($cgi_ref) > 1) //indels
 		{
 			//VCF Ref/Alt GXXXXX/G
 			//GSVar Ref/Alt XXXXX/-
-			$cgi_start_indel = $cgi_start+1;
+			$cgi_start_indel = $cgi_pos+1;
 			$cgi_ref_indel = substr($cgi_ref,1);
-			if($gsvar_chr == $cgi_chr and $gsvar_start == $cgi_start_indel)
+			if($gsvar_chr == $cgi_chr and $gsvar_pos == $cgi_start_indel)
 			{
-				$gsvar_snvs_new_driver[$i] = $cgi_snvs_driver;
-				$gsvar_snvs_new_driver_statement[$i] = $cgi_snvs_driver_statement;
-				$gsvar_snvs_gene_role[$i] = $cgi_snvs_gene_role;
-				$gsvar_snvs_transcript[$i] = $cgi_transcript;
-				$gsvar_snvs_new_cgi_gene[$i] = $cgi_gene;
-				$gsvar_snvs_cgi_consequence[$i] = $cgi_consequence;
+				$col_cgi_id[$i] = $cgi_statements[0];
+				$col_cgi_driver_statement[$i] = $cgi_statements[1];
+				$col_cgi_gene_role[$i] = $cgi_statements[2];
+				$col_cgi_transcript[$i] = $cgi_statements[3];
+				$col_cgi_gene[$i] = $cgi_statements[4];
+				$col_cgi_consequence[$i] = $cgi_statements[5];
 				break;
 			}
 		}
 	}
 }
-
 //get cancer type from CGI input file
-$cancer_type_cgi = $cgi_snvs->get(0,$cgi_snvs->getColumnIndex("cancer"));
+$cgi_file = Matrix::fromTSV($cgi_snv_in);
+$cancer_type_cgi = $cgi_file->get(0,$cgi_file->getColumnIndex("cancer"));
 
-//insert header line which describes genes neccessary for reimbursement with health insurance
-$dictionary = Matrix::fromTSV(repository_basedir()."/data/misc/icd10_cgi_dictionary.tsv");
-$row_cancer_type = -1;
-$i_cancer_acronym = $dictionary->getColumnIndex("cgi_acronym");
-for($i=0;$i<$dictionary->rows();$i++)
-{
-	if($dictionary->get($i,$i_cancer_acronym) == $cancer_type_cgi)
-	{
-		$row_cancer_type = $i;
-	}
-}
-
-$icd10_diagnosis_code = "";
-$icd10_diagnosis_text = "";
-if($row_cancer_type == -1)
-{
-	trigger_error("Could not determine ICD-10 diagnosis.",E_USER_WARNING);
-}
-else
-{
-	$icd10_diagnosis_code = $dictionary->get($row_cancer_type,$dictionary->getColumnIndex("icd10_code"));
-	$icd10_diagnosis_text = ($dictionary->get($row_cancer_type,$dictionary->getColumnIndex("desc_de")));
-}
-
-//remove old comment rows in GSvar
-$output_comments = $gsvar_input->getComments();
-for($i=0;$i<count($output_comments);$i++)
-{
-	if(strpos($output_comments[$i],"CGI_ICD10_CODE") !== false)
-	{
-		$gsvar_input->removeComment($output_comments[$i]);
-	}
-}
-for($i=0;$i<count($output_comments);$i++)
-{
-	if(strpos($output_comments[$i],"CGI_ICD10_TEXT") !== false)
-	{
-		$gsvar_input->removeComment($output_comments[$i]);
-	}
-}
-for($i=0;$i<count($output_comments);$i++)
-{
-	if(strpos($output_comments[$i],"CGI_ICD10_DIAGNOSES") !== false)
-	{
-		$gsvar_input->removeComment($output_comments[$i]);
-	}
-}
-for($i=0;$i<count($output_comments);$i++)
-{
-	if(strpos($output_comments[$i],"GENES_FOR_REIMBURSEMENT") !== false)
-	{
-		$gsvar_input->removeComment($output_comments[$i]);
-	}
-}
-for($i=0;$i<count($output_comments);$i++)
-{
-	if(strpos($output_comments[$i],"CGI_CANCER_TYPE") !== false)
-	{
-		$gsvar_input->removeComment($output_comments[$i]);
-	}
-}
-
-//add CGI information to comments
-if(!$is_germline)
-{
-	$gsvar_input->addComment("#CGI_ICD10_TEXT=$icd10_diagnosis_text");
-	$gsvar_input->addComment("#CGI_ICD10_CODE=$icd10_diagnosis_code");
-	$gsvar_input->addComment("#CGI_CANCER_TYPE=$cancer_type_cgi");
-}
+//add CGI cancer type information to GSVar
+if(!empty($cancer_type_cgi))	$gsvar_input->addComment("#CGI_CANCER_TYPE=$cancer_type_cgi");
 
 //save results to output GSvar file
-$gsvar_input->addCol($gsvar_snvs_new_driver_statement,"CGI_driver_statement","Oncogenic Classification according CGI for tumor type $cancer_type_cgi");
-$gsvar_input->addCol($gsvar_snvs_gene_role,"CGI_gene_role","CGI gene role. LoF: Loss of Function, Act: Activating");
-$gsvar_input->addCol($gsvar_snvs_transcript,"CGI_transcript","CGI Ensembl transcript ID");
-$gsvar_input->addCol($gsvar_snvs_new_cgi_gene,"CGI_gene","Gene returned by CGI");
-$gsvar_input->addCol($gsvar_snvs_cgi_consequence,"CGI_consequence","Consequence of the mutation assessed by CGI");
+$gsvar_input->addCol($col_cgi_id,"CGI_id","Identifier for CGI statements");
+$gsvar_input->addCol($col_cgi_driver_statement,"CGI_driver_statement","CancerGenomeInterpreter.org oncogenic classification");
+$gsvar_input->addCol($col_cgi_gene_role,"CGI_gene_role","CancerGenomeInterpreter.org gene role. LoF: Loss of Function, Act: Activating");
+$gsvar_input->addCol($col_cgi_transcript,"CGI_transcript","CancerGenomeInterpreter.org CGI Ensembl transcript ID");
+$gsvar_input->addCol($col_cgi_gene,"CGI_gene","Gene symbol returned by CancerGenomeInterpreter.org");
+$gsvar_input->addCol($col_cgi_consequence,"CGI_consequence","Consequence of the mutation assessed by CancerGenomeInterpreter.org");
+
 $gsvar_input->toTSV($out);
 ?>

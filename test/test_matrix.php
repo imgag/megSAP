@@ -303,7 +303,7 @@ end_test();
 //##################################################################################
 start_test("Matrix::fromTSV");
 
-$matrix = Matrix::fromTSV("data/matrix_fromTSV.txt");
+$matrix = Matrix::fromTSV(data_folder()."/matrix_fromTSV.txt");
 check($matrix->cols(), 3);
 check($matrix->rows(), 4);
 check($matrix->comments(), 1);
@@ -316,7 +316,7 @@ check($matrix->getCol(2), array(3, 6, 9, 12));
 $comments = $matrix->getComments();
 check($comments[0], "senseless comment");
 
-$matrix = Matrix::fromTSV("data/matrix_fromTSV.txt.gz");
+$matrix = Matrix::fromTSV(data_folder()."/matrix_fromTSV.txt.gz");
 check($matrix->cols(), 3);
 check($matrix->rows(), 4);
 check($matrix->comments(), 1);
@@ -330,7 +330,7 @@ $comments = $matrix->getComments();
 check($comments[0], "senseless comment");
 
 
-$matrix = Matrix::fromTSV("data/matrix_fromTSV_empty.txt");
+$matrix = Matrix::fromTSV(data_folder()."/matrix_fromTSV_empty.txt");
 check($matrix->cols(), 3);
 check($matrix->rows(), 0);
 check($matrix->comments(), 2);
@@ -344,7 +344,7 @@ end_test();
 start_test("Matrix::toTSV");
 
 $filename = temp_file();
-$matrix1 = Matrix::fromTSV("data/matrix_toTSV.txt");
+$matrix1 = Matrix::fromTSV(data_folder()."/matrix_toTSV.txt");
 $matrix1->toTSV($filename);
 
 $matrix = Matrix::fromTSV($filename);

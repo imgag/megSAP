@@ -1,7 +1,6 @@
 <?php
 
 require_once("framework.php");
-require_once("../src/Common/functions.php");
 
 
 //##################################################################################

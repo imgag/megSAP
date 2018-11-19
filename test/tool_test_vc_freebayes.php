@@ -20,6 +20,19 @@ $out_file3 = output_folder().$name."_out3.vcf.gz";
 check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file3 -target ".data_folder().$name."_in.bed -target_extend 50 --log ".output_folder().$name."_out3.log");
 check_file($out_file3, data_folder().$name."_out3.vcf.gz");
 
+// test with target region and multiple threads
+$out_file4_thread2 = output_folder().$name."_out4_threads2.vcf.gz";
+check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file4_thread2 -target ".data_folder().$name."_in.bed -threads 2 --log ".output_folder().$name."_out1_threads2.log");
+
+$out_file4_thread3 = output_folder().$name."_out4_threads3.vcf.gz";
+check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file4_thread3 -target ".data_folder().$name."_in.bed -threads 3 --log ".output_folder().$name."_out1_threads3.log");
+check_file($out_file4_thread3, $out_file4_thread2, false);
+
+$out_file4_thread4 = output_folder().$name."_out4_threads4.vcf.gz";
+check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file4_thread4 -target ".data_folder().$name."_in.bed -threads 4 --log ".output_folder().$name."_out1_threads4.log");
+check_file($out_file4_thread4, $out_file4_thread2, false);
+
+
 end_test();
 
 ?>
