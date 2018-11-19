@@ -29,7 +29,6 @@ extract($parser->parse($argv));
 if ($somatic)
 {
 	$clip_overlap = true;
-	$no_abra = true;
 	$correction_n = true;
 }
 
