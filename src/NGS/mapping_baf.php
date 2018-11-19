@@ -215,7 +215,8 @@ if ($depth)
 }
 
 // write header lines
-$handle_out = fopen($out, "w");
+$non_unique_out = $parser->tempFile(".vcf");
+$handle_out = fopen($non_unique_out, "w");
 fwrite($handle_out, $seg_firstline . "\n");
 fwrite($handle_out, implode("\t", $seg_header) . "\n");
 
@@ -245,7 +246,7 @@ while (!feof($handle))
 		continue;
 	}
 	
-	$row_out = array($chr, $start-1, $end, $id, $af);
+	$row_out = array($chr, $start-1, $end, ".", $af);
 	if ($is_somatic) $row_out[] = $af_nor;
 	if ($depth)
 	{
@@ -255,5 +256,7 @@ while (!feof($handle))
 	fwrite($handle_out, implode("\t", $row_out)."\n");
 }
 fclose($handle_out);
+//Make sure, out file only contains unique variants
+$parser->exec("uniq","$non_unique_out $out",true);
 
 ?>

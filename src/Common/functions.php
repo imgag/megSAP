@@ -730,6 +730,7 @@ function addCommentCharInHeader($filename)
 	if(starts_with($old_contents[0],"#")) return;
 	fwrite($file,"#");
 	fwrite($file,$old_contents);
+	fclose($file);
 }
 	
 ?>
