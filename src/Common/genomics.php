@@ -1102,36 +1102,41 @@ function load_vcf_normalized($filename)
 
 function vcf_strelka_snv($format_col, $sample_col, $obs)
 {
-	if (!preg_match("/^[acgtACGT]*$/", $obs))	trigger_error("Invalid observed allele (".$format_col." ".$sample_col." ".$obs.").", E_USER_ERROR);
+	if (!preg_match("/^[acgtACGT]$/", $obs))
+	{
+		trigger_error("Invalid observed allele ({$format_col} {$sample_col} {$obs}).", E_USER_ERROR);
+	}
 
+	$obs = strtoupper($obs);
 	$f = explode(":", $format_col);
-	$index_depth = array_search("DP",$f);
-	$index_TU = array_search("TU",$f);
-	$index_AU = array_search("AU",$f);
-	$index_CU = array_search("CU",$f);
-	$index_GU = array_search("GU",$f);
-	if($index_depth===FALSE || $index_TU===FALSE || $index_AU===FALSE || $index_CU===FALSE || $index_GU===FALSE) trigger_error("Invalid strelka format: either field DP, TU, AU, CU or GU not available.", E_USER_ERROR);
-	
-	$entries = explode(":", $sample_col);
-	$d = $entries[$index_depth];
-	
-	list($tu,) = explode(",", $entries[$index_TU]);
-	list($au,) = explode(",", $entries[$index_AU]);
-	list($cu,) = explode(",", $entries[$index_CU]);
-	list($gu,) = explode(",", $entries[$index_GU]);
-	$sum = $au + $tu + $cu + $gu;
+	$s = explode(":", $sample_col);
+	$data = array_combine($f, $s);
+	$required_fields = [ "DP", "TU", "AU", "CU", "GU" ];
+	foreach ($required_fields as $req)
+	{
+		if (!array_key_exists($req, $data))
+		{
+			trigger_error("Invalid strelka format: field {$req} not available.", E_USER_ERROR);
+		}
+	}
 
-	$o = 0;
-	if($obs == "T") $o = $tu;
-	else if($obs == "A") $o = $au;
-	else if($obs == "C") $o = $cu;
-	else if($obs == "G") $o = $gu;
-	else trigger_error("Alternative allele '$obs' unknown (".$format_col." ".$sample_col." ".$obs.").", E_USER_WARNING);	// unknown alleles multiallelic or '.'
+	//extract tier 1 counts
+	$observed_counts = [];
+	foreach ([ "T", "A", "C", "G" ] as $base)
+	{
+		$observed_count = $data["{$base}U"];
+		list($tier1, $tier2) = explode(",", $observed_count, 2);
+		$observed_counts[$base] = $tier1;
+	}
 
-	$f = 0;
-	if($sum!=0)	$f = $o/$sum;
+	$sum = array_sum($observed_counts);
+	$af = 0;
+	if ($sum != 0)
+	{
+		$af = $observed_counts[$obs] / $sum;
+	}
 
-	return array($d,$f);
+	return [ $data["DP"], $af ];
 }
 
 function vcf_strelka_indel($format_col, $sample_col)
