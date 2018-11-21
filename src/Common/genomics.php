@@ -1139,6 +1139,32 @@ function vcf_strelka_snv($format_col, $sample_col, $obs)
 	return [ $data["DP"], $af ];
 }
 
+/**
+ * Identifies bases above frequency cutoff from strelka2 VCF records.
+ *
+ * @param format_col	VCF format column
+ * @param sample_col	VCF sample column
+ * @param ref			reference base
+ * @param obs			observed base
+ * @param min_taf		minimum frequency required to call alternativ observation
+ *
+ * @return array Alternative observation base and frequency.
+ */
+function vcf_strelka_snv_postcall($format_col, $sample_col, $ref, $obs, $min_taf)
+{
+	$postcalls = [];
+	foreach (array_diff([ "T", "A", "C", "G" ], [ $ref, $obs ]) as $base)
+	{
+		list($depth, $freq) = vcf_strelka_snv($format_col, $sample_col, $base);
+
+		if ($freq >= $min_taf)
+		{
+			$postcalls[] = [ $base, $freq ];
+		}
+	}
+	return $postcalls;
+}
+
 function vcf_strelka_indel($format_col, $sample_col)
 {
 	$f = explode(":", $format_col);
