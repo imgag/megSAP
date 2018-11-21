@@ -298,10 +298,6 @@ foreach($sample_data as $sample => $sample_infos)
 				//queue tumor-only somatic analysis
 				$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} -info tumor";
 			}
-			if ($project_type === "diagnostic")
-			{
-				$args[] = "-include_germline";
-			}
 		}
 		else
 		{
