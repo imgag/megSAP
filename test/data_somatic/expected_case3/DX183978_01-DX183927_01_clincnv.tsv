@@ -1,9 +1,9 @@
 ##  QC  0
 ##DESCRIPTION=cnv_type=Type of CNV: focal (< 25 % of chrom. arm, < 3 genes), cluster (focal, > 3 genes), (partial) p/q-arm, (partial) chromosome.
-##CGI_CANCER_TYPE=CANCER
+##CGI_CANCER_TYPE=CM
 ##DESCRIPTION=CGI_genes=Genes which were included in CancerGenomeInterpreter.org analysis.
-##DESCRIPTION=CGI_driver_statement=Driver statement for cancer type CANCER according CancerGenomeInterpreter.org
-##DESCRIPTION=CGI_gene_role=Gene role for cancer type CANCER according CancerGenomeInterpreter.org
+##DESCRIPTION=CGI_driver_statement=Driver statement for cancer type CM according CancerGenomeInterpreter.org
+##DESCRIPTION=CGI_gene_role=Gene role for cancer type CM according CancerGenomeInterpreter.org
 #chr	start	end	sample	size	CN_change	loglikelihood	genes	cnv_type	CGI_genes	CGI_driver_statement	CGI_gene_role
 chr1	156811847	158819052	DX183978_01-DX183927_01	2007206	1.5	147	INSRR,NTRK1,FCRL4,CD1D,SPTA1,MNDA	cluster	INSRR,NTRK1,FCRL4,CD1D,SPTA1,MNDA	predicted passenger,predicted passenger,predicted passenger,predicted passenger,predicted passenger,predicted passenger	ambiguous,Act,Act,ambiguous,ambiguous,ambiguous
 chr2	139316826	148684868	DX183978_01-DX183927_01	9368043	1.5	175	SPOPL,LRP1B,ACVR2A	focal	SPOPL,LRP1B,ACVR2A	predicted passenger,predicted passenger,predicted passenger	ambiguous,LoF,LoF

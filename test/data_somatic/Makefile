@@ -105,7 +105,7 @@ case3_somatic:
 		-prefix DX183978_01-DX183927_01 \
 		-steps vc,an,cn,ci\
 		-system somatic_cn_test_pair.ini -n_system somatic_cn_test_pair.ini \
-		-cancer_type CANCER \
+		-cancer_type CM \
 		--log out_case3/DX183978_01-DX183927_01.log
 case3_diff:
 	php ../compare_variants.php -in1 expected_case3/DX183978_01-DX183927_01.GSvar -in2 out_case3/DX183978_01-DX183927_01.GSvar
