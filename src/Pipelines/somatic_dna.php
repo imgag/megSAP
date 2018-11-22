@@ -25,7 +25,7 @@ $steps_all = array("vc", "cn", "an", "ci", "msi","db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 	"vc=variant calling, an=annotation, ci=CGI annotation,\n" .
 	"cn=copy-number analysis, msi=microsatellite analysis, db=database import",
-	true, "vc,cn,an,ci,msi,db");
+	true, "vc,cn,an,msi,db");
 
 $parser->addString("cancer_type", "Tumor type, see CancerGenomeInterpreter.org for nomenclature (resolved from GENLAB if not set).", true);
 
