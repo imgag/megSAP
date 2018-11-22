@@ -700,23 +700,19 @@ class ToolBase
 	}
 
 	/**
-		@brief Executes the command in paralell and returns an array with STDOUT and STDERR as files.
+		@brief Executes the command in the background and returns an array with STDOUT file, STDERR file, proc status as files.
 
 		If the call exits with an error code, further execution of the calling script is aborted.
 	*/
-	function execParallel($command, $parameters, $log_output,$abort_on_error=true)
+	function execBackground($command, $parameters)
 	{
 		//log call
-		if($log_output)
-		{
-			$add_info = array();
-			$add_info[] = "version    = ".$this->extractVersion($command);
-			$add_info[] = "parameters = $parameters";
-			$this->log("Calling external tool '$command'", $add_info);
-		}
+		$add_info = array();
+		$add_info[] = "version    = ".$this->extractVersion($command);
+		$add_info[] = "parameters = $parameters";
+		$this->log("Executing command in background '$command'", $add_info);
 		
 		//execute call and pipe stderr stream to file
-		$exec_start = microtime(true);
 		$temp_out = $this->tempFile(".stdout");
 		$temp_err = $this->tempFile(".stderr");
 		$descriptorspec = array(
@@ -724,36 +720,11 @@ class ToolBase
 			1 => array("file", $temp_out, "w"),  // stdout is a file that the child will write to
 			2 => array("file", $temp_err, "w") // stderr is a file to write to
 		 );
-		$process = proc_open("$command $parameters 2>$temp_err", $descriptorspec, $pipes);
+		$process = proc_open("nohup $command $parameters 2>$temp_err </dev/null &", $descriptorspec, $pipes);
 		$status = proc_get_status($process); // NOTE: There is a lot of usefull information in here, maybe some day we want to refactor. See http://php.net/manual/en/function.proc-get-status.php
-		$stdout = file($temp_out);
-		$stderr = file($temp_err);
-		// we are not accessing any pipes, hence we do not need to close them
-		$return_value = proc_close($process);
-			
-		//log relevant information
-		if (($log_output || $return_value != 0) && count($stdout)>0)
-		{
-			$this->log("Stdout of '$command':", $stdout);
-		}
-		if (($log_output || $return_value != 0) && count($stderr)>0)
-		{
-			$this->log("Stderr of '$command':", $stderr);
-		}
-		if ($log_output)
-		{
-			$this->log("Execution time of '$command': ".time_readable(microtime(true) - $exec_start));
-		}
+		proc_close($process); // we are not accessing any pipes, hence we do not need to close them
 		
-		//abort on error
-		if ($return_value != 0)
-		{	
-			$this->toStderr($stderr);
-			trigger_error("Call of external tool '$command' returned error code '$return_value'.", $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
-		}
-		
-		//return results, 3rd element "return" contains error code, 4th element "status" contains the process ID
-		return array($stdout, $stderr, $return_value, $status["pid"]);
+		return array($temp_out, $temp_err, $status);
 	}
 
 	/**
