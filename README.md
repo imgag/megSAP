@@ -39,6 +39,7 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 ## ChangeLog
 
+* 22.11.2018: Retrieving CGI cancer type from new NGSD entry (somatic pipeline)
 * 16.11.2018: Updated to freebayes 1.2.0 (parallelized to compensate for the increased runtime)
 * 07.11.2018: Updated VEP from version 93.2 to 94.5
 * 19.10.2018: Reverted to freebayes 1.1.0 because version 1.2.0 is too slow.
