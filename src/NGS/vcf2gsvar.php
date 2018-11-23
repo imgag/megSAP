@@ -536,7 +536,6 @@ while(!feof($handle))
 			if ($parts[$i_maxes_ref]!="")
 			{
 				$result = number_format($parts[$i_maxes_ref], 2).">".number_format($parts[$i_maxes_alt], 2);
-				if ($result>0) $result = "+".$result;
 				$maxentscan[] = $result;
 			}
 			
