@@ -281,7 +281,7 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				$normal = $tumor2normal[$sample];
 				//queue normal if on same run, with somatic specific options
-				if (!in_array($normal, $queued_normal_samples) && $sample_data[$normal]["run_name"] === $sample_infos["run_name"])
+				if (!in_array($normal, $queued_normal_samples)  && array_key_exists($normal,$sample_data) && $sample_data[$normal]["run_name"] === $sample_infos["run_name"])
 				{
 					$steps = ($project_type=="diagnostic") ? "ma,vc,an,cn,db" : "ma,db";
 					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal} -args '-steps $steps -somatic'";
@@ -289,9 +289,18 @@ foreach($sample_data as $sample => $sample_infos)
 					//track that normal sample is queued
 					$queued_normal_samples[] = $normal;
 				}
-
-				//queue somatic analysis
-				$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal";
+				
+				$normal_processed_info = get_processed_sample_info($db_conn,$normal);
+				$n_dir = $normal_processed_info["ps_folder"];
+				//queue somatic analysis: only if normal sample is included in this run or its folder exists
+				if(in_array($normal,$queued_normal_samples) || is_dir($n_dir))
+				{
+					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal";
+				}
+				else
+				{
+					trigger_error("Skipping {$tumor}-{$normal} somatic analysis because normal folder $n_dir does not exist!",E_USER_WARNING);
+				}
 			}
 			else
 			{
