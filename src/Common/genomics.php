@@ -1334,6 +1334,9 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 			trigger_error("Invalid GSvar sample header key '$key'! Valid are: ".implode(",", $valid), E_USER_ERROR); 
 		}
 		
+		//skip empty entries
+		if ($value=="") continue;
+		
 		$output[] = "{$key}={$value}";
 	}
 	
