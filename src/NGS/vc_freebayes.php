@@ -27,7 +27,6 @@ $parser->addFlag("no_bias", "Use freebayes parameter -V, i.e. ignore strand bias
 extract($parser->parse($argv));
 
 //init
-$debug = false;
 $genome = get_path("local_data")."/{$build}.fa";
 
 //create basic variant calls
@@ -66,35 +65,45 @@ $args[] = "-b ".implode(" ", $bam);
 
 // run freebayes
 $pipeline = array();
-$freebayes_start = microtime(true);
 if (isset($target) && $threads > 1) 
 {	
+	$freebayes_start = microtime(true);
+	
 	// split BED file by chromosomes into seperate files  e.g chr1.bed, chr2.bed, chrY.bed
 	$roi_by_chr = array();
+	$chr_order_original = array();
+	$chr_order_by_size = array();
 	$file = file($target_merged);
 	foreach($file as $line)
 	{
 		$line = trim($line);
 		if ($line=="" || starts_with($line, "track") || starts_with($line, "browser") || substr_count($line, "\t") < 2) continue;
-		$chr = trim(substr($line, 0, strpos($line, "\t")));
+		list($chr, $start, $end) = explode("\t", $line);
 		if (!isset($roi_by_chr[$chr]))
 		{
 			$roi_by_chr[$chr] = array();
+			$chr_order_original[] = $chr;
+			$chr_order_by_size[$chr] = 0;
 		}
 		$roi_by_chr[$chr][] = $line."\n";
+		$chr_order_by_size[$chr] += $end - $start;
 	}
 	
 	// store each chromosome in separate file
-	$tmp_dir = $parser->tempFolder();
+	$tmp_dir = $parser->tempFolder("vc_freebayes_pid".getmypid()."_"); //we identify sub-processes using this folder name > include the PID
 	foreach ($roi_by_chr as $chr => $lines)
 	{
 		file_put_contents("{$tmp_dir}/{$chr}.bed", $lines);
 	}
-
-	// Then runs the pipeline for every chromosome. Add's n chromosomes to the pool according to the process parameter at the same time.
+	unset($roi_by_chr);
+	
+	//sort chromosomes by size
+	arsort($chr_order_by_size);
+	$chr_order_by_size = array_keys($chr_order_by_size);
+	
+	// run variant calling for every chromosome separately
 	$running = array();
-	$done = array();
-	$chrs = array_keys($roi_by_chr);
+	$chrs = $chr_order_by_size;
 	while (true) 
 	{
 		//wait a second
@@ -145,46 +154,49 @@ if (isset($target) && $threads > 1)
 				}
 				
 				//print execution time
-				$end_time = filemtime("{$tmp_dir}/{$chr}.vcf");
-				$parser->log("Finshed processing chromosome {$chr} in ".time_readable($end_time-$running[$chr][3]));
+				$parser->log("Finshed processing chromosome {$chr} in ".time_readable(microtime(true)-$running[$chr][3]));
 				
-				$done[$chr] = $running[$chr];
 				unset($running[$chr]);
 			}
 		}
-		
-		if ($debug)
-		{
-			print "=== RUNNING ===\n";
-			print_r($running);
-			print "=== DONE ===\n";
-			print_r($done);
-		}
 	}
+	$parser->log("Freebayes execution with $threads threads took ".time_readable(microtime(true)-$freebayes_start));
 	
-	// After that merge the resulting VCF files
-	$chrs = array_keys($roi_by_chr);
-	for ($i = 0; $i < count($chrs); $i++) // append all chromsome.vcf files to a combined.vcf
+	// combine individual chromosome VCFs to one file
+	$combine_start = microtime(true);
+	$vcf_combined = "{$tmp_dir}/combined.vcf";
+	$ho = fopen($vcf_combined, "w");
+	for ($i = 0; $i < count($chr_order_original); $i++)
 	{
-		if ($i != 0) // except for the first chromsome delete all header lines 
+		$h = fopen("{$tmp_dir}/".$chr_order_original[$i].".vcf", "r");
+		while(!feof($h))
 		{
-			$parser->exec("sed", "-i '/#/d' ".$tmp_dir."/".$chrs[$i].".vcf", false);
+			$line = fgets($h);
+			if (trim($line)=="") continue;
+			
+			//skip headers (except for first chromosome)
+			if ($line[0]=='#')
+			{
+				if ($i==0)
+				{
+					fwrite($ho, $line);
+				}
+				continue;
+			}
+			
+			fwrite($ho, $line);
 		}
-		$parser->exec("cat", "".$tmp_dir."/".$chrs[$i].".vcf >> ".$tmp_dir."/combined.vcf", false);
+		fclose($h);
 	}
+	fclose($ho);
+	$parser->log("Combining VCFs took ".time_readable(microtime(true)-$combine_start));
 
-	unset($roi_by_chr); // explicitely clean up ROI's because they can be rather large
-
-	// And put a cat on the pipeline script
-	$pipeline[] = array("cat", $tmp_dir."/combined.vcf");
+	$pipeline[] = array("cat", $vcf_combined);
 } 
 else 
 {
 	$pipeline[] = array(get_path("freebayes"), implode(" ", $args));
 }
-
-$freebayes_end = microtime(true);
-$parser->log("Freebayes execution took ".time_readable($freebayes_end-$freebayes_start));
 
 //filter variants according to variant quality>5 , alternate observations>=3
 $pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5 & AO > 2\"");
@@ -209,7 +221,7 @@ $pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", "", fals
 $pipeline[] = array("bgzip", "-c > $out", false);
 
 //(2) execute pipeline
-$parser->execPipeline($pipeline, "post processing");
+$parser->execPipeline($pipeline, "freebayes post processing");
 
 //(3) mark off-target variants
 if ($target_extend>0)

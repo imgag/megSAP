@@ -20,7 +20,7 @@ help:
 	
 pull:
 	git pull --recurse-submodules
-	git submodule update --recursive
+	git status
 
 test_functions: dummy
 	@cd test && find . -name "test_*.php" | sort | xargs -l1 php | egrep "^(FINISHED|FAILED)"
@@ -82,7 +82,7 @@ test_all_status:
 	@egrep -a -i "WARNING" *.log || :
 	@echo ""
 	@echo "### ERRORS ###"
-	@egrep -a -i "ERROR|FAILED" *.log || :
+	@egrep -a -i "ERROR|FAILED" *.log | grep -v "Medelian errors:" || :
 
 find_missing_tests: dummy
 	php src/Tools/find_missing_tests.php

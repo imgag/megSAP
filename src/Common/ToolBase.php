@@ -552,9 +552,9 @@ class ToolBase
 		print "  ".str_pad("--help", $offset, " ")."Shows this help.\n";
 		print "  ".str_pad("--version", $offset, " ")."Prints version and exits.\n";
 		print "  ".str_pad("--verbose", $offset, " ")."Verbose error messages including traceback.\n";
-		print "  ".str_pad("--log <file>", $offset, " ")."Enables logging to the specified file.\n";
+		print "  ".str_pad("--log <file>", $offset, " ")."Logs to the specified file. Use '-' to log to STDOUT.\n";
 		print "  ".str_pad("--log_id <id>", $offset, " ")."Uses the given identifier for logging.\n";
-		print "  ".str_pad("--conf <file>", $offset, " ")."Uses the given configuration file.\n";
+		print "  ".str_pad("--conf <file>", $offset, " ")."Uses the given INI file instead of the default settings.ini.\n";
 		print "  ".str_pad("--tdx", $offset, " ")."Writes a Tool Defition XML file.\n";
 		
 		print "\n";
@@ -570,7 +570,19 @@ class ToolBase
 	/// Logs a message and optional additional info.
 	public function log($message, $add_info = array())
 	{
-		if (isset($this->log_file))	//print to log file
+		if (!isset($this->log_file)) return;
+		
+		if ($this->log_file=="-") // to STDOUT
+		{
+			print $message."\n";
+			foreach($add_info as $line)
+			{
+				if (contains($line, "WARNING(freebayes): Could not find any mapped reads in target region")) continue; //excessive freebayes output
+
+				print "  ".trim($line)."\n";
+			}
+		}
+		else // to file
 		{
 			$prefix = get_timestamp()."\t".$this->log_id."\t";
 			
@@ -588,10 +600,6 @@ class ToolBase
 			{
 				trigger_error("Could not write to ".$this->log_file."!", E_USER_ERROR);
 			}
-		}
-		if($this->verbose)
-		{
-			print $message."\n";
 		}
 	}
 	
@@ -720,7 +728,7 @@ class ToolBase
 			1 => array("file", $temp_out, "w"),  // stdout is a file that the child will write to
 			2 => array("file", $temp_err, "w") // stderr is a file to write to
 		 );
-		$process = proc_open("nohup $command $parameters 2>$temp_err </dev/null &", $descriptorspec, $pipes);
+		$process = proc_open("$command $parameters 2>$temp_err &", $descriptorspec, $pipes);
 		$status = proc_get_status($process); // NOTE: There is a lot of usefull information in here, maybe some day we want to refactor. See http://php.net/manual/en/function.proc-get-status.php
 		proc_close($process); // we are not accessing any pipes, hence we do not need to close them
 		
