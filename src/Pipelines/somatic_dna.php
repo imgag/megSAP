@@ -181,7 +181,7 @@ if (in_array("vc", $steps))
 		// vc_freebayes uses ngs-bits that can not handle multi-sample vcfs
 		$tmp1 = $parser->tempFile();
 		$bams = $single_sample ? "$t_bam" : "$t_bam $n_bam";
-		$parser->execTool("NGS/vc_freebayes.php", "-bam $bams -out $tmp1 -build ".$sys['build']." -min_af $min_af -target ".$roi." -threads ".$threads);
+		$parser->execTool("NGS/vc_freebayes.php", "-bam $bams -out $tmp1 -build ".$sys['build']." -no_ploidy -min_af $min_af -target ".$roi." -threads ".$threads);
 
 		// find and rewrite header (tumor, normal sample columns)
 		$tmp2 = $parser->tempFile();
