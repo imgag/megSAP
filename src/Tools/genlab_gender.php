@@ -4,7 +4,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("db_get_gender_genlab", "Returns gender of sample ID from Genlab.");
+$parser = new ToolBase("genlab_gender", "Returns gender of sample ID from Genlab.");
 $parser->addOutFile("id","Sample ID (e.g DX152541_01).",false);
 //optional
 extract($parser->parse($argv));
