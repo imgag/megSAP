@@ -288,6 +288,12 @@ check(vcf_strelka_snv("AU:CU:DP:FDP:GU:SDP:SUBDP:TU","0,0:0,0:236:3:0,0:0:0:0,0"
 end_test();
 
 //##################################################################################
+start_test("vcf_strelka_snv_postcall");
+check(vcf_strelka_snv_postcall("DP:AU:GU:CU:TU","100:50,50:25,25:25,25:0,0", "A", "G", 0.05), [ [ "C", 0.25 ] ], null);
+check(vcf_strelka_snv_postcall("DP:AU:GU:CU:TU","100:25,25:25,25:25,25:25,25", "A", "G", 0.05), [ [ "T", 0.25 ], [ "C", 0.25 ] ], null);
+end_test();
+
+//##################################################################################
 start_test("vcf_strelka_indel");
 check(vcf_strelka_indel("DP:DP2:DP50:FDP50:SUBDP50:TAR:TIR:TOR","117:117:115.65:1.38:0.00:17,19:29,31:74,77"), array(117,0.6304), 1e-3);
 check(vcf_strelka_indel("DP:DP2:DP50:FDP50:SUBDP50:TAR:TIR:TOR","275:275:255.49:9.44:0.00:372,401:0,0:16,3"), array(275,0.0000), 1e-3);
