@@ -493,7 +493,7 @@ while(!feof($handle))
 			}
 			
 			//RepeatMasker
-			$repeat[] = trim($parts[$i_repeat]);
+			$repeat[] = strtr(trim($parts[$i_repeat]), array("[s]"=>" "));
 			
 			//ClinVar
 			$clin_accs = explode("&", $parts[$i_clinvar]);
