@@ -48,6 +48,7 @@ foreach($steps as $step)
 }
 
 //prepare multi-sample paramters
+load_system($system, basename($c, ".bam")); //required in case the the system is unset
 $args_multisample = [
 	"-bams $c $f $m",
 	"-status affected control control",
