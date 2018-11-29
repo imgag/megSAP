@@ -110,6 +110,9 @@ if (!is_dir($tmp_out_folder))
 	mkdir($tmp_out_folder);
 }
 
+//bismark spawns two bowtie processes, use approx. half of specified threads
+$threads_parg = max(1, intdiv($threads, 2));
+
 //bismark alignment
 $genome = get_path("data_folder")."/genomes/bismark/".$sys['build'];
 $bismark_params = [
@@ -119,7 +122,7 @@ $bismark_params = [
 	"--basename $name",
 	"-N 1 --unmapped",
 	"-o $tmp_out_folder",
-	"-p " . min(4, $threads),
+	"-p $threads_parg",
 	"--temp_dir $bismark_tmp",
 	"--unmapped",
 	"--ambiguous",
