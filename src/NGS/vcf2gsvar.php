@@ -18,7 +18,27 @@ $parser->addOutfile("out", "Output file in GSvar format.", false);
 $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
 $parser->addFlag("updown", "Don't discard up- or downstream anntations (5000 bases around genes).");
 $parser->addFlag("blacklist", "Annotate variants in blacklisted genes with 'gene_blacklist' in filter column.");
+$parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the numer of variants to a manageable size.");
 extract($parser->parse($argv));
+
+//skip common MODIFIER variants in WGS mode
+function skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd)
+{
+	//don't skip mito variants
+	if ($chr=='chrMT') return false;
+	
+	//don't skip exonic variants
+	if (contains($coding_and_splicing_details, ":LOW:") || contains($coding_and_splicing_details, ":MODERATE:") || contains($coding_and_splicing_details, ":HIGH:")) return false;
+	
+	//don't skip variants annotated to be (likely) pathognic
+	if (contains($hgmd, "CLASS=DM") || (contains($clinvar, "pathogenic") && !contains($clinvar, "conflicting"))) return false;	
+	
+	//skip common variants >2%AF
+	if ($kg!="" && $kg>0.02) return true;
+	if ($gnomad!="" && $gnomad>0.02) return true;
+	
+	return false; //non-exonic but rare
+}
 
 //determines if all the input genes are on the blacklist
 function all_genes_blacklisted($genes)
@@ -105,6 +125,10 @@ function collapse($error_name, $values, $mode, $decimal_places = null)
 		{
 			trigger_error("Several values '".implode("','", $values)."' in mode '{$mode}' while collapsing '{$error_name}'!", E_USER_ERROR);
 		}
+		else if (count($values)==0)
+		{
+			return "";
+		}
 		return $values[0];
 	}
 	else if ($mode=="max")
@@ -181,6 +205,8 @@ $filter_desc = array();
 if ($blacklist) $filter_desc[] = array("gene_blacklist", "The gene(s) are contained on the blacklist of unreliable genes.");
 
 //parse input
+$c_written = 0;
+$c_skipped_wgs = 0;
 $multi_cols = array();
 $in_header = true;
 $handle = fopen($in, "r");
@@ -738,8 +764,18 @@ while(!feof($handle))
 	
 	//COSMIC
 	$cosmic = implode(",", collapse("COSMIC", $cosmic, "unique"));
-
+	
+	//skip common MODIFIER variants in WGS mode
+	print "$chr $variant_details $kg $gnomad\n";
+	if ($wgs && skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd))
+	{
+		print "SKIPPED\n";
+		++$c_skipped_wgs;
+		continue;
+	}
+	
 	//write data
+	++$c_written;
 	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$esp_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic\n");
 }
 
@@ -751,5 +787,13 @@ if ($in_header)
 
 fclose($handle);
 fclose($handle_out);
+
+//print debug output
+print "Variants written: {$c_written}\n";
+if ($wgs)
+{
+	print "Variants skipped because WGS mode is enabled: {$c_skipped_wgs}\n";
+}
+
 
 ?>

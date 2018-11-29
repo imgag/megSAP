@@ -2,6 +2,8 @@
 
 /**
 	@page multisample	  
+	
+	@todo allow multi-sample analysis of non-coding variants for WGS
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -97,7 +99,7 @@ if (!file_exists($out_folder))
 //(1) variant calling of all samples together (with very conservative parameters)
 $vcf_all = $out_folder."all.vcf.gz";
 $vcf_all_mito = $out_folder."all_mito.vcf.gz";
-$mito = $sys['type']=="WES" && $sys['target_file']!="";
+$mito = enable_special_mito_vc($sys);
 if (in_array("vc", $steps))
 {
 	$args = array();
@@ -111,22 +113,11 @@ if (in_array("vc", $steps))
 	$args[] = "-threads $threads";
 	$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);	
 
-	//variant calling for mito
+	//variant calling for mito with special parameters
 	if ($mito)
 	{
 		$target_mito = $parser->tempFile("_mito.bed");
-		if ($sys['build']=="hg19")
-		{
-			file_put_contents($target_mito, "chrM\t0\t16571");
-		}
-		else if ($sys['build']=="GRCh37")
-		{
-			file_put_contents($target_mito, "chrMT\t0\t16569");
-		}
-		else
-		{
-			trigger_error("No mitochondria target region available for genome ".$sys['build']."!", E_USER_ERROR);
-		}
+		file_put_contents($target_mito, "chrMT\t0\t16569");
 		
 		$args = array();
 		$args[] = "-bam ".implode(" ", $bams);

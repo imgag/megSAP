@@ -182,79 +182,6 @@ function chr_check($chr, $max = 22, $fail_trigger_error = true)
 	return $chr;
 }
 
-
-/**
-	@brief Returns the base count of chromosomes for different builds.
-	@ingroup genomics
-*/
-function chr_info($chr, $build = "hg19")
-{
-	if($build=="hg19")
-	{
-		if ($chr=="all")  return 3095693983;
-		$chr = chr_check($chr);
-		if ($chr=="M") return 16571;
-		if ($chr=="1") return 249250621;
-		if ($chr=="2") return 243199373;
-		if ($chr=="3") return 198022430;
-		if ($chr=="4") return 191154276;
-		if ($chr=="5") return 180915260;
-		if ($chr=="6") return 171115067;
-		if ($chr=="7") return 159138663;
-		if ($chr=="8") return 146364022;
-		if ($chr=="9") return 141213431;
-		if ($chr=="10") return 135534747;
-		if ($chr=="11") return 135006516;
-		if ($chr=="12") return 133851895;
-		if ($chr=="13") return 115169878;
-		if ($chr=="14") return 107349540;
-		if ($chr=="15") return 102531392;
-		if ($chr=="16") return 90354753;
-		if ($chr=="17") return 81195210;
-		if ($chr=="18") return 78077248;
-		if ($chr=="19") return 59128983;
-		if ($chr=="20") return 63025520;
-		if ($chr=="21") return 48129895;
-		if ($chr=="22") return 51304566;
-		if ($chr=="X") return 155270560;
-		if ($chr=="Y") return 59373566;
-	}
-	else if($build=="mm9")
-	{
-		if ($chr=="all")  return 2654911517;
-		$chr = chr_check($chr, 19);
-		if ($chr=="M") return 16299;
-		if ($chr=="1") return 197195432;
-		if ($chr=="2") return 181748087;
-		if ($chr=="3") return 159599783;
-		if ($chr=="4") return 155630120;
-		if ($chr=="5") return 152537259;
-		if ($chr=="6") return 149517037;
-		if ($chr=="7") return 152524553;
-		if ($chr=="8") return 131738871;
-		if ($chr=="9") return 124076172;
-		if ($chr=="10") return 129993255;
-		if ($chr=="11") return 121843856;
-		if ($chr=="12") return 121257530;
-		if ($chr=="13") return 120284312;
-		if ($chr=="14") return 125194864;
-		if ($chr=="15") return 103494974;
-		if ($chr=="16") return 98319150;
-		if ($chr=="17") return 95272651;
-		if ($chr=="18") return 90772031;
-		if ($chr=="19") return 61342430;
-		if ($chr=="X") return 166650296;
-		if ($chr=="Y") return 15902555;
-	}
-	else
-	{
-		trigger_error("chr_info: Unknown build '$build'.", E_USER_ERROR);
-	}
-
-	return 0;
-}
-
-
 /**
 	@brief Returns the list of all chromosomes.
 	@ingroup genomics
@@ -1471,6 +1398,30 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 	}
 	
 	return $info;
+}
+
+//Returns if special variant calling for mitochondrial DNA should be performed
+function enable_special_mito_vc($sys)
+{
+	if ($sys['build']!="GRCh37") return false;
+	if ($sys['type']!="WES" && $sys['type']!="WGS") return false;
+	
+	//check if chrMT is already contained in the ROI
+	if ($sys['target_file']!="")
+	{
+		$roi = $sys['target_file'];
+		$file = file($roi);
+		foreach($file as $line)
+		{
+			if (starts_with($line, "chrMT"))
+			{
+				trigger_error("Special variant calling of chrMT disabled because target file '$roi' contains chrMT regions. Remove chrMT regions to enable high-sensitivity variant calling on chrMT!", E_USER_WARNING);
+				return false;
+			}
+		}
+	}
+	
+	return true;
 }
 
 ?>
