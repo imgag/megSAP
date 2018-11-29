@@ -9,10 +9,10 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("mapping_bismark", "Bisulfite treated DNA read mapping with Bismark.");
 
-// mandatory arguments
+//mandatory arguments
 $parser->addString("folder", "Sample folder with FASTQ files.", false);
 
-// optional arguments
+//optional arguments
 $parser->addString("out_folder", "Folder where results are stored, defaults to sample folder.", true, "");
 $parser->addString("name", "Sample name, extracted from folder if not specified.", true, "");
 $parser->addInfile("system", "Processing system INI file (determined from folder name by default).", true);
@@ -20,13 +20,13 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 
 extract($parser->parse($argv));
 
-// resolve output folder
+//resolve output folder
 if ($out_folder === "")
 {
 	$out_folder = $folder;
 }
 
-// input FASTQ files
+//input FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");
 $in_rev = glob($folder."/*_R2_001.fastq.gz");
 
@@ -37,7 +37,7 @@ if ((count($in_for) != count($in_rev)) && count($in_rev)>0) {
 	trigger_error("Mismatching number of R1 and R2 files!", E_USER_ERROR);
 }
 
-// use sample id, if possible
+//use sample id, if possible
 $p = basename(realpath($out_folder));
 if ($name === "" && preg_match('/^Sample_(.+)/', $p, $matches)) {
 	$name = $matches[1];
@@ -75,7 +75,7 @@ if ($paired)
 		"-a1", $sys["adapter1_p5"],
 		"-a2", $sys["adapter2_p7"],
 		"-qc", $qc_fastq,
-		"-threads", min($threads, 2), // use at most 2 threads
+		"-threads", min($threads, 2), //use at most 2 threads
 	);
 	$parser->exec(get_path("ngs-bits")."SeqPurge", implode(" ", $seqpurge_params), true);
 }
@@ -102,7 +102,7 @@ else
 	$parser->execPipeline($pipeline, "skewer");
 }
 
-// run bismark
+//run bismark
 $bismark_tmp = $parser->tempFolder();
 $tmp_out_folder = "{$out_folder}/bismark";
 if (!is_dir($tmp_out_folder))
@@ -136,7 +136,7 @@ else
 
 $parser->exec(get_path("bismark"), implode(" ", $bismark_params), true);
 
-// bismark output files
+//bismark output files
 $bismark_suffix = $paired ? "_pe" : "";
 $bismark_bam = $tmp_out_folder."/".$name.$bismark_suffix.".bam";
 
@@ -164,7 +164,7 @@ $args_extractor = [
 	"--gzip",
 	"--output", $tmp_out_folder,
 	"--parallel", $threads,
-	"--bedGraph", "--zero_based" //TODO evaluate
+	"--bedGraph"
 ];
 if ($paired)
 {
@@ -177,28 +177,36 @@ else
 $args_extractor[] = $bismark_bam;
 $parser->exec(dirname(get_path("bismark"))."/bismark_methylation_extractor", implode(" ", $args_extractor), true);
 
-//bismark bam2nuc
-$parser->exec(dirname(get_path("bismark"))."/bam2nuc", implode(" ", [
-	"--samtools_path", dirname(get_path("samtools")),
-	"--dir", $tmp_out_folder,
-	"--genome_folder", $genome,
-	$bismark_bam
-]), true);
+//bam2nuc
+//TODO disabled due to long runtime
+//$parser->exec(dirname(get_path("bismark"))."/bam2nuc", implode(" ", [
+//	"--samtools_path", dirname(get_path("samtools")),
+//	"--dir", $tmp_out_folder,
+//	"--genome_folder", $genome,
+//	$bismark_bam
+//]), true);
 
 //bismark report
 $pe = $paired ? "PE" : "SE";
 $parser->exec(dirname(get_path("bismark"))."/bismark2report", "--dir $tmp_out_folder --alignment_report {$tmp_out_folder}/{$name}_{$pe}_report.txt", true);
 $parser->copyFile($tmp_out_folder."/".$name."_{$pe}_report.html", "{$out_folder}/{$name}_bismark_report.html");
 
-//TODO coverage
+//TODO copy bedgraph and coverage files
 //$parser->moveFile($tmp_out_folder."/".$name."_pe.bismark.cov.gz", $out_folder."/".$name."_CpG.tsv.gz");
+//$parser->moveFile($tmp_out_folder."/".$name."_pe.bedGraph.gz", $out_folder."/".$name."_CpG.bedGraph.gz");
 
-// TODO handle unmapped reads?
+//TODO handle unmapped reads for accurate mapping statistics?
+//$tmp_out_folder."/".$name."_unmapped_reads_1.fq.gz"
+//$tmp_out_folder."/".$name."_unmapped_reads_2.fq.gz"
 
-//sort and index BAM
-//TODO add samblaster
+//mark duplicates, sort and index BAM
 $out = "{$out_folder}/{$name}.bam";
-$parser->sortBam($bismark_bam_dedup, $out, $threads);
+$pipeline = [];
+$pipeline[] = [get_path("samtools")." view", "-h $bismark_bam"];
+$pipeline[] = [get_path("samblaster"), ""];
+$tmp_for_sorting = $parser->tempFile();
+$pipeline[] = [get_path("samtools")." sort", "-T {$tmp_for_sorting} -@ {$threads} -m 1G -o $out"];
+$parser->execPipeline($pipeline, "sort and mark duplicates");
 $parser->indexBam($out, $threads);
 
 //run mapping QC
@@ -220,5 +228,5 @@ if(!in_array($sys['build'], [ "hg19", "hg38", "GRCh37", "GRCh38" ]))
 	$params[] = "-no_cont";
 }
 $parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
-//TODO QC import
+$parser->execTool("NGS/db_import_qc.php", "-id $name -files $qc_fastq $qc_map -force");
 ?>
