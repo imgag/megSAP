@@ -190,7 +190,7 @@ $column_desc = array(
 	array("fathmm-MKL", "fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
-	array("MaxEntScan", "MaxEntScan splicing prediction (difference in percent/reference bases score/alternate bases score)."),
+	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
 	array("GeneSplicer", "GeneSplicer splicing prediction (state/type/coordinates/confidence/score)."),
 	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),

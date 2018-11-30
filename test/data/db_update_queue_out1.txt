@@ -7,7 +7,7 @@ Updating status job 4 (single sample)
 	Job finished with status 'finished'
 Starting job 5 (multi sample)
 	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /mnt/share/data//sge/megSAP_sge_job_5.err -o /mnt/share/data//sge/megSAP_sge_job_5.out -q default_srv015,default_srv016,default_srv017,default_srv018
-	PIP: php [megSAP]/src/Pipelines/multisample.php  -bams /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/DX181109_01.bam /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181110_01/DX181110_01.bam -status affected control -out_folder /mnt/projects/diagnostic/Exome_Diagnostik//Multi_DX181109_01_DX181110_01/ --log /mnt/projects/diagnostic/Exome_Diagnostik//Multi_DX181109_01_DX181110_01/multi.log
+	PIP: php [megSAP]/src/Pipelines/multisample.php  -bams /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_01/DX181109_01.bam /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181110_01/DX181110_01.bam -status affected control -threads 2 -out_folder /mnt/projects/diagnostic/Exome_Diagnostik//Multi_DX181109_01_DX181110_01/ --log /mnt/projects/diagnostic/Exome_Diagnostik//Multi_DX181109_01_DX181110_01/multi.log
 Starting job 6 (trio)
 	Postponed because single sample analysis of 'DX181109_01' is running
 Starting job 7 (somatic)
@@ -20,5 +20,5 @@ Starting job 9 (single sample)
 	PIP: php [megSAP]/src/Pipelines/analyze_rna.php  -folder /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181117_01/ -name DX181117_01 --log /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181117_01/analyze_rna_20000101000000.log
 Starting job 10 (trio)
 	SGE: qsub -V  -b y -wd /mnt/projects/diagnostic/Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /mnt/share/data//sge/megSAP_sge_job_10.err -o /mnt/share/data//sge/megSAP_sge_job_10.out -q default_srv015,default_srv016,default_srv017,default_srv018
-	PIP: php [megSAP]/src/Pipelines/trio.php  -c /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_02/DX181109_02.bam -f /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181110_02/DX181110_02.bam -m /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181111_02/DX181111_02.bam -out_folder /mnt/projects/diagnostic/Exome_Diagnostik//Trio_DX181109_02_DX181110_02_DX181111_02/ --log /mnt/projects/diagnostic/Exome_Diagnostik//Trio_DX181109_02_DX181110_02_DX181111_02/trio.log
+	PIP: php [megSAP]/src/Pipelines/trio.php  -c /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181109_02/DX181109_02.bam -f /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181110_02/DX181110_02.bam -m /mnt/projects/diagnostic/Exome_Diagnostik/Sample_DX181111_02/DX181111_02.bam -threads 2 -out_folder /mnt/projects/diagnostic/Exome_Diagnostik//Trio_DX181109_02_DX181110_02_DX181111_02/ --log /mnt/projects/diagnostic/Exome_Diagnostik//Trio_DX181109_02_DX181110_02_DX181111_02/trio.log
 Removing job 1 because it is older than 90 days.
