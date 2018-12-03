@@ -100,6 +100,10 @@ foreach($barcodes as $lane => $data)
 			$dist2 = levenshtein($mid2_i, $mid2_j);
 			
 			$dist = $dist1 + $dist2;
+			
+			//Check whether dual and single barcodes are mixed (if so, the distance is only the first barcode for one of the samples)
+			if((empty($mid2_i) && !empty($mid2_j)) || (!empty($mid2_i) && empty($mid2_j))) $dist = $dist1;
+			
 			if ($dist==0)
 			{
 				trigger_error("Barcode clash on lane {$lane}: {$name_i} ({$mid1_i},{$mid2_i}) / {$name_j} ({$mid1_j},{$mid2_j})", E_USER_ERROR);
