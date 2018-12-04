@@ -7,27 +7,15 @@ If you do want to work on adding OSX support please contact [Lennard Berger](htt
 
 ## Dependencies
 
-We are providing instructions for Ubuntu 16.04 and 18.04 officially. However this should be reasonably easy to port to any other Linux distribution.
+We are providing instructions for Ubuntu 18.04 here. However this should be reasonably easy to port to any other Linux distribution.
 
-### Base dependencies (Ubuntu 16.04)
+### Base dependencies
 
-```
-    > sudo apt-get install -y bzip2 default-jre perl-base php7.0-cli php7.0-xml php7.0-mysql python-matplotlib python-numpy python-pysam tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libpng-dev libqt5sql5-mysql libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev 
-```
-
-### Base dependencies (Ubuntu 18.04)
-
-```
     > sudo apt-get install -y bzip2 default-jre perl-base php7.2-cli php7.2-xml php7.2-mysql python-matplotlib python-numpy python-pysam tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev
-```
 
-### R dependencies (for somatic CNV calling)
+### Perl dependencies
 
-	> sudo apt install r-base-core r-cran-optparse r-cran-robustbase r-cran-foreach r-cran-doparallel r-cran-mass r-cran-data.table
-
-### Perl dependencies (for RNA pipeline)
-
-	> sudo -E cpanm Set::IntervalTree URI::Escape DB_File Carp::Assert JSON::XS PerlIO::gzip
+	> sudo -E cpanm Set::IntervalTree URI::Escape DB_File Carp::Assert JSON::XS PerlIO::gzip DBI
 	> sudo chmod -R 777 ~/.cpanm
 
 ## Downloading
@@ -62,7 +50,8 @@ First, we make sure the privileges of the installation scripts are correct:
 Next, we install all required tools
 
 	> ./download_tools.sh
-	> ./download_tools_somatic.sh #only needed for tumor analysis
+	> ./download_tools_somatic.sh #only needed for somatic analysis
+	> sudo R -f install_deps_clincnv.R #only needed for somatic analysis
 	> ./download_tools_rna.sh #only needed for RNA analysis
 
 Next, we need to download and index the reference genome:
@@ -75,7 +64,7 @@ Finally, we need to download and convert some open-source databases for annotati
 	> ./download_dbs.sh
 	> ./download_dbs_rna.sh #only needed for RNA analysis
 
-**Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
+**Note:** OMIM and HGMD are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
 
 ## Execution
 

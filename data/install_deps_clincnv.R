@@ -1,0 +1,7 @@
+install.packages("optparse", repos="https://cran.rstudio.com")
+install.packages("robustbase", repos="https://cran.rstudio.com")
+install.packages("foreach", repos="https://cran.rstudio.com")
+install.packages("doparallel", repos="https://cran.rstudio.com")
+install.packages("mass", repos="https://cran.rstudio.com")
+install.packages("data.table", repos="https://cran.rstudio.com")
+install.packages("mclust", repos="https://cran.rstudio.com")

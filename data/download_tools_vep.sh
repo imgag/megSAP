@@ -16,10 +16,6 @@ cd $tools
 wget https://github.com/Ensembl/ensembl-vep/archive/release/94.5.tar.gz
 tar xzf 94.5.tar.gz
 
-# install PERL dependencies
-mkdir -p $vep_cpan_dir
-cpanm -l $vep_cpan_dir -L $vep_cpan_dir Set::IntervalTree PerlIO::gzip DBI
-
 # install BigFile support (for BigWig support needed to annotate phyloP)
 mkdir -p $vep_install_dir
 cd $vep_install_dir
@@ -33,6 +29,7 @@ echo 'CFLAGS="-fPIC"' > ../inc/localEnvironment.mk
 make clean && make
 cd ../jkOwnLib
 make clean && make
+mkdir -p $vep_cpan_dir
 cpanm -l $vep_cpan_dir -L $vep_cpan_dir Bio::DB::BigFile
 
 #download VEP cache data
