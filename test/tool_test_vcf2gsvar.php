@@ -30,6 +30,12 @@ $out_file5 = output_folder().$name."_out5.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -out $out_file5 --log ".output_folder().$name."_out5.log");
 check_file($out_file5, data_folder().$name."_out5.GSvar");
 
+//genotype_mode=single, DRAGEN
+$out_file6 = output_folder().$name."_out6.GSvar";
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in_dragen.vcf -out $out_file6 --log ".output_folder().$name."_out6.log");
+check_file($out_file6, data_folder().$name."_out6.GSvar");
+
+
 end_test();
 
 ?>

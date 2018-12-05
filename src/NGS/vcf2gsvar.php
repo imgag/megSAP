@@ -440,6 +440,16 @@ while(!feof($handle))
 	{
 		$quality[] = "MQM=".intval($info["MQM"]);
 	}
+	
+	//for dragen VCFs
+	if (isset($info["MQ"])) 
+	{
+		$quality[] = "MQM=".intval($info["MQ"]);
+	}
+	if (isset($sample["AF"]))
+	{
+		$quality[] = "AF=".$sample["AF"];
+	}
 
 	//variant details
 	$sift = array();
