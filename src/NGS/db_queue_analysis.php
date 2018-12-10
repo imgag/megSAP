@@ -9,7 +9,7 @@ $parser = new ToolBase("db_queue_analysis", "Queues an analysis in the NGSD.");
 $parser->addEnum("type",  "Analysis type.", false, array('single sample','multi sample','trio','somatic'));
 $parser->addStringArray("samples", "Processed sample name(s).", false);
 //optional
-$parser->addStringArray("info", "Sample info entries for complex analysis jobs: 'affected/control' for multi sample, 'tumor/normal' for somatic, 'child/father/mother' for trio.", true);
+$parser->addStringArray("info", "Sample info entries for complex analysis jobs: 'affected/control' for multi sample, 'tumor/normal/tumor_rna' for somatic, 'child/father/mother' for trio.", true);
 $parser->addFlag("high_priority", "Perform analysis with high priority");
 $parser->addString("args",  "Custom arguments passed on to the analysis script.", true);
 $parser->addString("user", "Name of the user who queued the analysis (current user if unset).", true, "");

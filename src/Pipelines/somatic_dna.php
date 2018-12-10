@@ -25,7 +25,7 @@ $steps_all = array("vc", "cn", "an", "ci", "msi","db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 	"vc=variant calling, an=annotation, ci=CGI annotation,\n" .
 	"cn=copy-number analysis, msi=microsatellite analysis, db=database import",
-	true, "vc,cn,an,ci,msi,db");
+	true, "vc,cn,an,msi,db");
 
 $parser->addString("cancer_type", "Tumor type, see CancerGenomeInterpreter.org for nomenclature (resolved from GENLAB if not set).", true);
 
@@ -156,7 +156,8 @@ if (in_array("vc", $steps))
 			"-out {$manta_sv}",
 			"-build ".$sys['build'],
 			"-smallIndels {$manta_indels}",
-			"-threads {$threads}"
+			"-threads {$threads}",
+			"-fix_bam"
 		];
 		if (!$single_sample)
 		{
@@ -180,7 +181,7 @@ if (in_array("vc", $steps))
 		// vc_freebayes uses ngs-bits that can not handle multi-sample vcfs
 		$tmp1 = $parser->tempFile();
 		$bams = $single_sample ? "$t_bam" : "$t_bam $n_bam";
-		$parser->execTool("NGS/vc_freebayes.php", "-bam $bams -out $tmp1 -build ".$sys['build']." -min_af $min_af -target ".$roi." -threads ".$threads);
+		$parser->execTool("NGS/vc_freebayes.php", "-bam $bams -out $tmp1 -build ".$sys['build']." -no_ploidy -min_af $min_af -target ".$roi." -threads ".$threads);
 
 		// find and rewrite header (tumor, normal sample columns)
 		$tmp2 = $parser->tempFile();
@@ -517,135 +518,88 @@ if (in_array("ci", $steps))
 	// add QCI output
 	$parser->execTool("Tools/converter_vcf2qci.php", "-in $variants_annotated -t_id $t_id -n_id $n_id -out $variants_qci -pass");
 	
-	// get cancer type from GenLab8 for diagnostic samples if not set
-	if (!isset($cancer_type) && db_is_enabled("NGSD"))
+	//Check whether cancer acronym appears in acronym list
+	function is_valid_cgi_acronym($name)
 	{
-		$db_ngsd = DB::getInstance("NGSD");
-		$t_info = get_processed_sample_info($db_ngsd, $t_id, false);
-		if (!is_null($t_info) && $t_info["project_type"] == "diagnostic")
+		$cancer_acronyms_list = file(repository_basedir()."/data/misc/cancer_types.tsv");
+		$valid_cgi_acronym = false;
+		foreach($cancer_acronyms_list as $line)
 		{
-			//check whether genlab credentials are available
-			$db_hosts = get_path("db_host", false);
-			if (!db_is_enabled("GL8"))
+			list($acronym,,,) = explode("\t",$line);
+			if($acronym == $name)
 			{
-				trigger_error("Warning: No credentials for Genlab db found. Using generic cancer type 'CANCER'!", E_USER_WARNING);
-				$cancer_type = "CANCER";
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/*********************************
+	 * GET CGI CANCER_TYPE FROM NGSD *
+	 *********************************/
+	if(db_is_enabled("NGSD"))
+	{
+		$db_conn = DB::getInstance("NGSD");
+		$t_name = explode("_",$t_id)[0];
+		$sample_id = $db_conn->getValue("SELECT id FROM sample WHERE name = '{$t_name}'");
+		$disease_info = $db_conn->executeQuery("SELECT * FROM sample_disease_info WHERE sample_id = '{$sample_id}'","");
+		$cancer_type_from_ngsd = "";
+		foreach($disease_info as $res)
+		{
+			if(array_key_exists("type",$res) && $res["type"] == "CGI cancer type")
+			{
+				$cancer_type_from_ngsd = $res["disease_info"];
+				break;
+			}
+		}
+		
+		//Abort if no cancer type is set
+		if($cancer_type_from_ngsd == "" && !isset($cancer_type))
+		{
+			trigger_error("There is no CGI cancer type set in NGSD and no parameter \"-cancer_type\" given. Aborting CGI analysis.",E_USER_ERROR);
+		}
+		//Abort if cancer type from parameter and NGSD differ
+		if($cancer_type_from_ngsd != "" && isset($cancer_type) && $cancer_type_from_ngsd != $cancer_type)
+		{
+			trigger_error("Cancer type \"{$cancer_type_from_ngsd}\" in NGSD and -cancer_type \"{$cancer_type}\" differ.", E_USER_ERROR);
+		}
+		
+		//Insert CGI cancer_type into NGSD if not set
+		if($cancer_type_from_ngsd == "" && isset($cancer_type))
+		{
+			$time = get_timestamp(false);
+			$user = exec2("whoami")[0][0];
+			$user_id = $db_conn->getValue("SELECT id FROM user WHERE user_id = '{$user}' AND active='1'",-1);
+			if($user_id != -1 && is_valid_cgi_acronym($cancer_type))
+			{
+				$db_conn->executeStmt("INSERT INTO sample_disease_info (`sample_id`,`disease_info`,`type`,`user_id`,`date`) VALUES ('{$sample_id}','{$cancer_type}','CGI cancer type','{$user_id}','{$time}')");
 			}
 			else
 			{
-				//if no cancer_type is set try to resolve cancer_type from GENLAB
-				//database connection to GENLAB
-				$db = DB::getInstance("GL8");
-
-				//icd10
-				$laboratory_number = explode('_',$t_id)[0];
-				$query = "SELECT ICD10DIAGNOSE,HPOTERM1 FROM `genlab8`.`v_ngs_sap` where labornummer = '$laboratory_number'";
-				$result = $db->executeQuery($query);
-				
-				if(count($result) == 0) //"sometimes" GENLAB uses the full tumor ID as laboratory number
-				{
-					$query = "SELECT ICD10DIAGNOSE,HPOTERM1 FROM `genlab8`.`v_ngs_sap` where labornummer = '$t_id'";
-					$result = $db->executeQuery($query);
-				}
-				
-				if(count($result) == 0) //"sometimes" GENLAB uses the full tumor ID of the first processed sample as laboratory number
-				{
-					$laboratory_number = $laboratory_number."_01";
-					$query = "SELECT ICD10DIAGNOSE,HPOTERM1 FROM `genlab8`.`v_ngs_sap` where labornummer = '$laboratory_number'";
-					$result = $db->executeQuery($query);
-				}
-				
-				$icd10_diagnosis = "";
-				if(!empty($result))
-				{
-					$icd10_diagnosis = $result[0]['ICD10DIAGNOSE'];
-				}
-				
-				//remove G and V from $icd10_diagnoses (sometimes there is a G or V assigned to its right)
-				$icd10_diagnosis = rtrim($icd10_diagnosis,'G');
-				$icd10_diagnosis = rtrim($icd10_diagnosis,'V');
-				$icd10_diagnosis = rtrim($icd10_diagnosis,".-");
-				$hpo_diagnosis = "";
-				if(!empty($result)) $hpo_diagnosis = $result[0]['HPOTERM1'];
-				if(empty($icd10_diagnosis))
-				{
-					trigger_error("Warning: There is no ICD10 diagnosis set in Genlab.",E_USER_WARNING);
-				}
-				
-				$dictionary = Matrix::fromTSV(repository_basedir()."/data/misc/icd10_cgi_dictionary.tsv");
-				$words_diagnoses = $dictionary->getCol($dictionary->getColumnIndex("icd10_code"));
-				$words_cgi_acronyms = $dictionary->getCol($dictionary->getColumnIndex("cgi_acronym"));
-				$words_hpo_terms = $dictionary->getCol($dictionary->getColumnIndex("hpo_term"));
-				$icd10_cgi_dictionary = array_combine($words_diagnoses,$words_cgi_acronyms);
-				$cgi_hpo_dictionary = array_combine($words_diagnoses,$words_hpo_terms);
-				//if there is a cancer acronym annotated to ICD10 diagnosis set cancertype according to ICD 10 diagnosis
-				if(!empty($icd10_cgi_dictionary[$icd10_diagnosis]))
-				{
-					//check whether assignment of ICD10 to CGI acronyms is unique
-					$cgi_acronyms = explode(',',$icd10_cgi_dictionary[$icd10_diagnosis]);
-					$hpo_terms = explode(',',$cgi_hpo_dictionary[$icd10_diagnosis]);
-					if(count($cgi_acronyms) == 1) //unique assignment
-					{
-						$cancer_type = $icd10_cgi_dictionary[$icd10_diagnosis];
-					} 
-					else //not unique: try to assign a CGI cancer acronym via HPO terms
-					{
-						$hpo_cgi_dictionary = array_combine($hpo_terms,$cgi_acronyms);
-
-						if(!array_key_exists($hpo_diagnosis,$hpo_cgi_dictionary))
-						{
-							trigger_error("Could not assign CGI Cancer acronym uniquely to ICD10-diagnosis '$icd10_diagnosis'. Using standard cancertype CANCER instead.",E_USER_WARNING);
-							$cancer_type = "CANCER";
-						} else {
-							$cancer_type = $hpo_cgi_dictionary[$hpo_diagnosis];
-						}
-					}
-				} 
-				elseif($icd10_diagnosis != "" || empty($icd10_diagnosis))
-				{
-					trigger_error("Could not assign CGI Cancer acronym to ICD10-diagnosis '$icd10_diagnosis'. Using standard cancertype CANCER instead.",E_USER_WARNING);
-					$cancer_type = "CANCER";
-				}
-				else
-				{
-					trigger_error("Could not find ICD10 diagnosis '$icd10_diagnosis' in icd10_cgi_dictionary.tsv. Aborting." ,E_USER_ERROR);
-				}
+				trigger_error("Could not insert CGI cancer type \"{$cancer_type}\" to NGSD table \"sample_disease_info\" because user \"{$user}\" was not found in NGSD or \"{$cancer_type}\" was not recognized as a valid CGI acronym.",E_USER_WARNING);
 			}
 		}
+		
+		if($cancer_type_from_ngsd != "") $cancer_type = $cancer_type_from_ngsd;
 	}
-	else if (!isset($cancer_type)) //set cancer type to CANCER for 1) research samples and 2) for NGSD disabled
+	if(!is_valid_cgi_acronym($cancer_type))
 	{
-		$cancer_type = "CANCER";
+		trigger_error("CGI cancer_type {$cancer_type} is invalid. Aborting CGI analysis.",E_USER_ERROR);
 	}
 	
+	/*************************
+	 * EXECUTE CGI_SEND_DATA *
+	 *************************/
 	$tmp_cgi_zipped_outfile = temp_file(".zip");
 	$parameters = [
-		"-out",$tmp_cgi_zipped_outfile
+		"-out",$tmp_cgi_zipped_outfile,
+		"-cancertype", $cancer_type
 	];
-	if(file_exists($variants_annotated))
-	{
-		$parameters[] = "-mutations";
-		$parameters[] = $variants_annotated;
-	}
-	if (file_exists($som_clincnv))
-	{
-		$parameters[] = "-cnas";
-		$parameters[] = $som_clincnv;
-	}
-	if ($cancer_type != "")
-	{
-		$parameters[] = "-cancertype";
-		$parameters[] = $cancer_type;
-	}
-
+	if (file_exists($variants_annotated)) $parameters[] = "-mutations $variants_annotated";
+	if (file_exists($som_clincnv)) $parameters[] = "-cnas $som_clincnv";
 	//if we know genes in target region we set parameter for this file
 	$genes_in_target_region =  dirname($sys["target_file"]) . "/" .basename($sys["target_file"],".bed")."_genes.txt";
-	if(file_exists($genes_in_target_region))
-	{
-		$parameters[] = "-t_region";
-		$parameters[] = $genes_in_target_region;
-	}
-
+	if(file_exists($genes_in_target_region)) $parameters[] = "-t_region $genes_in_target_region";
 	//execution will not stop pipeline if it fails but display several errors
 	$result_send_data = $parser->execTool("NGS/cgi_send_data.php", implode(" ",$parameters),false);
 	$error_code = $result_send_data[2];

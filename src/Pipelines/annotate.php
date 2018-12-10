@@ -2,8 +2,6 @@
 
 /**
 	@page annotate
-	@todo import also non-coding variants into NGSD for WGS (only rare ones)
-	@todo WGS: remove full GSvar file and merge exonic/rare GSvar file into one file
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -11,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("annotate", "Annotate variants.");
+$parser = new ToolBase("annotate", "Annotate variants called on genome build GRCh37.");
 $parser->addString("out_name", "Processed sample ID (e.g. 'GS120001_01').", false);
 $parser->addString("out_folder", "Output folder.", false);
 //optional
@@ -45,14 +43,12 @@ else
 //output file names
 $annfile = $parser->tempFile(".vcf");
 $annfile_zipped = $out_folder."/".$out_name."_var_annotated.vcf.gz";	
-$varfile = $out_folder."/".$out_name.".GSvar";	
-$varfile_full = $out_folder."/".$out_name."_full.GSvar";
-$varfile_rare = $out_folder."/".$out_name."_rare.GSvar";
+$varfile = $out_folder."/".$out_name.".GSvar";
 $stafile = $out_folder."/".$out_name."_stats_vc.qcML";
 
 //get system
 $sys = load_system($system, $out_name);
-if ($sys['build']!="hg19" && $sys['build']!="GRCh37" && $sys['build']!="mm10")
+if ($sys['build']!="GRCh37")
 {
 	trigger_error("Unknown genome build ".$sys['build']." cannot be annotated!", E_USER_ERROR);
 }
@@ -70,7 +66,7 @@ if(!$no_fc)
 }
 
 //convert to GSvar file
-if (!$somatic) //germline
+if (!$somatic) //germline only
 {
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
 	$parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $stafile", true);
@@ -78,31 +74,13 @@ if (!$somatic) //germline
 	$args = array("-in $annfile", "-out $varfile", "-blacklist");
 	if ($multi) $args[] = "-genotype_mode multi";
 	if ($updown) $args[] = "-updown";
+	if ($sys['type']=="WGS") $args[] = "-wgs";
 	$parser->execTool("NGS/vcf2gsvar.php", implode(" ", $args));
 }
 
 //zip annotated VCF file
 $parser->exec("bgzip", "-c $annfile > $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 $parser->exec("tabix", "-p vcf $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
-
-//use exonic/splicing variant list for WGS only (otherwise the NGSD annotation takes too long)
-if ($sys['type']=="WGS" && ($sys['build']=="hg19" || $sys['build']=="GRCh37")) 
-{
-	$parser->moveFile($varfile, $varfile_full);
-	$tmp = $parser->tempFile(".bed");
-	file_put_contents($tmp, "chrMT\t0\t16569");
-	$roi_with_mito = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAdd", "-in ".get_path("data_folder")."/gene_lists/genes_exons.bed {$tmp} -out {$roi_with_mito}", true);
-	$parser->exec(get_path("ngs-bits")."BedMerge", "-in {$roi_with_mito} -out {$roi_with_mito}", true);
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$varfile_full} -out {$varfile} -reg {$roi_with_mito}", true);
-	$tmp2 = $parser->tempFile(".txt");
-	file_put_contents($tmp2, "Allele frequency\tmax_af=1.0");
-	$parser->exec(get_path("ngs-bits")."VariantFilterAnnotations", "-in {$varfile_full} -out {$varfile_rare} -filters {$tmp2}", true);
-	if (db_is_enabled("NGSD"))
-	{
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in {$varfile_rare} -out {$varfile_rare} -psname {$out_name}", true);
-	}
-}
 
 //annotated variant frequencies from NGSD (not for somatic)
 if(!$somatic && db_is_enabled("NGSD"))

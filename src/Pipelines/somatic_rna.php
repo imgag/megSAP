@@ -13,9 +13,9 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("somatic_rna", "Differential analysis of tumor-normal RNA sample pairs.");
 $parser->addString("p_folder","Folder containing sample subfolders with fastqs (Sample_GSXYZ).",false);
 $parser->addString("t_id", "Tumor sample processing-ID (e.g. GSxyz_01). There should be a folder 'Sample_tsid' that contains fastq-files marked with the id within the p_folder.", false);
+$parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). There should be a folder 'Sample_nsid' that contains fastq-files marked with the id within the p_folder.", false);
 
 // optional arguments
-$parser->addString("n_id", "Normal sample processing-ID (e.g. GSxyz_01). There should be a folder 'Sample_nsid' that contains fastq-files marked with the id within the p_folder.", true, "na");
 $parser->addString("o_folder", "Output folder, defaults to <p_folder>/Somatic_<t_id>-<n_id>.", true, "default");
 
 $steps_all = array("ma", "rc", "fu", "vc", "an");
@@ -40,17 +40,6 @@ $parser->log("Pipeline revision: " . repository_revision(true));
 $t_system = load_system($t_sys, $t_id);
 $n_system = $n_id === "na" ? "na" : load_system($n_sys, $n_id);
 
-// if only tumor specified, completely hand off to analyze_rna.php
-if ($n_id == "na")
-{
-	if (in_array("ma", $steps))
-	{
-		$parser->execTool("Pipelines/analyze_rna.php",
-			"-folder {$p_folder}/Sample_{$t_id} -name {$t_id} -system {$t_sys} -steps ma,rc,an,fu,db --log {$p_folder}/Sample_{$t_id}/analyze_".date('YmdHis',mktime()).".log");
-	}
-	exit(0);
-}
-
 // resolve default output folder
 if ($o_folder === "default")
 {
@@ -73,9 +62,9 @@ if ($t_system["build"] !== $n_system["build"])
 if (in_array("ma", $steps))
 {
 	$parser->execTool("Pipelines/analyze_rna.php",
-		"-folder Sample_{$t_id} -name {$t_id} -system {$t_sys} -steps ma,rc,an,fu,db --log Sample_{$t_id}/analyze_".date('YmdHis',mktime()).".log");
+		"-folder Sample_{$t_id} -name {$t_id} -system {$t_sys} -steps ma,rc,an,fu --log Sample_{$t_id}/analyze_".date('YmdHis',mktime()).".log");
 	$parser->execTool("Pipelines/analyze_rna.php",
-		"-folder Sample_{$n_id} -name {$n_id} -system {$n_sys} -steps ma,rc,an,fu,db --log Sample_{$n_id}/analyze_".date('YmdHis',mktime()).".log");
+		"-folder Sample_{$n_id} -name {$n_id} -system {$n_sys} -steps ma,rc,an,fu --log Sample_{$n_id}/analyze_".date('YmdHis',mktime()).".log");
 }
 
 // define file paths

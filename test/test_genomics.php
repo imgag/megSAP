@@ -130,14 +130,6 @@ check(chr_check("chrO",22,false), false);
 end_test();
 
 //##################################################################################
-start_test("chr_info");
-
-check(chr_info("X"), 155270560);
-check(chr_info("10", "mm9"), 129993255);
-
-end_test();
-
-//##################################################################################
 start_test("get_ref_seq");
 
 check(get_ref_seq("chr14", 57349540, 57349542), "ACT");
@@ -285,6 +277,12 @@ check(vcf_strelka_snv("AU:CU:DP:FDP:GU:SDP:SUBDP:TU","0,0:0,0:236:3:231,314:0:0:
 check(vcf_strelka_snv("AU:CU:DP:FDP:GU:SDP:SUBDP:TU","0,0:0,0:236:3:231,314:0:0:2,6","T"), array(236,0.0086), 1e-3);
 check(vcf_strelka_snv("AU:CU:DP:FDP:GU:SDP:SUBDP:TU","0,0:0,0:236:3:231,314:0:0:2,6","G"), array(236,0.9914), 1e-3);
 check(vcf_strelka_snv("AU:CU:DP:FDP:GU:SDP:SUBDP:TU","0,0:0,0:236:3:0,0:0:0:0,0","G"), array(236,null), 1e-3);
+end_test();
+
+//##################################################################################
+start_test("vcf_strelka_snv_postcall");
+check(vcf_strelka_snv_postcall("DP:AU:GU:CU:TU","100:50,50:25,25:25,25:0,0", "A", "G", 0.05), [ [ "C", 0.25 ] ], null);
+check(vcf_strelka_snv_postcall("DP:AU:GU:CU:TU","100:25,25:25,25:25,25:25,25", "A", "G", 0.05), [ [ "T", 0.25 ], [ "C", 0.25 ] ], null);
 end_test();
 
 //##################################################################################

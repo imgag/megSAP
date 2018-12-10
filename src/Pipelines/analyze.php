@@ -29,7 +29,6 @@ extract($parser->parse($argv));
 if ($somatic)
 {
 	$clip_overlap = true;
-	$no_abra = true;
 	$correction_n = true;
 }
 
@@ -148,23 +147,13 @@ if (in_array("vc", $steps))
 	if(file_exists($log_vc)) unlink($log_vc);
 	$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc -threads $threads ".implode(" ", $args));
 	
-	//if WES, perform special variant calling for mitochondria
-	$mito = ($sys['type']=="WES" && $sys['target_file']!="");
+	//perform special variant calling for mitochondria
+	$mito = enable_special_mito_vc($sys);
 	if ($mito)
 	{
 		$target_mito = $parser->tempFile("_mito.bed");
-		if ($sys['build']=="hg19")
-		{
-			file_put_contents($target_mito, "chrM\t0\t16571");
-		}
-		else if ($sys['build']=="GRCh37")
-		{
-			file_put_contents($target_mito, "chrMT\t0\t16569");
-		}
-		else
-		{
-			trigger_error("No mitochondria target region available for genome ".$sys['build']."!", E_USER_ERROR);
-		}
+		file_put_contents($target_mito, "chrMT\t0\t16569");
+		
 		$args = array();
 		$args[] = "-no_ploidy";
 		$args[] = "-min_af 0.01";
@@ -192,7 +181,7 @@ if (in_array("vc", $steps))
 		fwrite($hw, $line."\n");
 	}
 	fclose($hr);
-	if ($mito) //special variant calling for mitochondria 
+	if ($mito)
 	{
 		$hr = gzopen($vcffile_mito, "r");
 		if ($hr===FALSE) trigger_error("Could not open file '" + $vcffile_mito + "'.", E_USER_ERROR);

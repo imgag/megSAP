@@ -3,17 +3,11 @@
 root=`pwd`
 folder=$root/tools/
 
-#download RepeatMasker
-cd $folder
-wget http://www.repeatmasker.org/RepeatMasker-open-4-0-6.tar.gz
-tar xzf RepeatMasker-open-4-0-6.tar.gz
-rm -rf RepeatMasker-open-4-0-6.tar.gz
-
 #download and build ngs-bits
 cd $folder
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2018_10 && git submodule update --recursive --init
+git checkout 2018_11 && git submodule update --recursive --init
 make build_3rdparty
 make build_tools_release
 

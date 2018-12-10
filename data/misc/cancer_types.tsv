@@ -1,0 +1,248 @@
+#ID	PARENTS	NAME	EXCLUDED_FROM_WEB_TREE
+AA	AG	Adrenal adenoma	
+ABC	MSKV	Aneurysmal bone cyst	
+AC	AG	Adrenal cortex	
+ACA	AC	Adrenal cortex adenoma	
+ACC	AC	Adrenal cortex carcinoma	
+ACML	CML	Atypical chronic myeloid leukemia	
+AEL	LK	Acute erythroid leukemia	
+AG	ES	Adrenal gland	
+ALCL	LY	Anaplastic large cell lymphoma	
+ALL	LL	Acute lymphoblastic leukemia	
+ALM	SK	Acral lentigious melanoma	
+AML	LK	Acute myeloid leukemia	
+AML-PR	LK	Acute myeloid leukemia predisposition	
+APML	LK	Acute promyelocytic leukemia	
+AS	S	Angiosarcoma	
+B	CNS	Brain	
+BCC	SK	Basal cell carcinoma	
+BCL	LY	B cell lymphoma	
+BLCA	US	Bladder	
+BLTC	BLCA	Bladder transitional cell	
+BLY	LY	Burkitt lymphoma	
+BRCA	TX	Breast adenocarcinoma	
+BRCA-PR	BRCA	Brest predisposition	TRUE
+BRCAL	BRCA	Breast lobular	
+BRCADC	BRCA	Breast ductal	
+BRCAMDLC	BRCA	Breast mixed ductal and lobular	
+BT	LVB	Billiary tract	
+CANCER		Any cancer type	
+CANCER-PR	CANCER	Cancer predisposition	TRUE
+CCS	S	Clear cell sarcoma	
+CER	FRS	Cervix	
+CESC	CER	Cervix squamous cell	
+CH	LVB	Cholangiocarcinoma	
+IHCH	CH	Intrahepatic cholangiocarcinoma	
+CLL	LK	Chronic lymphocytic leukemia	
+CM	SK	Cutaneous melanoma	
+CM-PR	CM	Cutaneous melanoma predisposition	TRUE
+CML	CMP,LK	Chronic myeloid leukemia	
+CMP	HEMATO	Chronic myeloproliferitve neoplasm	
+CNL	LK	Chronic neutrophilic leukemia	
+CNS	NS	Central nervous system	
+CNSLY	CNS,LY	Central nervous system lymphoma	
+COC	DT	Colon carcinoma	
+COC-PR	COC	Colon carcinoma predisposition	TRUE
+COCA	COC	Colon adenocarcinoma	
+COREAD	DT	Colorectal adenocarcinoma	
+COREAD-PR	COREAD	Colorectal adenocarcinoma predisposition	TRUE
+READ	DT	Rectal adenocarcinoma	
+CS	S	Chondrosarcoma	
+CTCL	LY	Cutaneous T-cell lymphoma	
+DEST	MSKV	Desmoid tumor	
+DFS	SK,S	Dermatofibrosarcoma	
+DLBCL	LBCL	Difuse large B Cell lymphoma	
+DNT	CNS	Dysembryoplastic neuroepithelial tumour	
+DS	SOLID	Digestive system	
+DSRCT	S	Desmoplastic small round cell tumor	
+DT	DS	Digestive tract	
+DT-PR	DT	Digestive tract predisposition	TRUE
+ECL	CMP,EOS,LK	Eosinophilic chronic leukemia	
+ED	U	Endometrium	
+EDA	ED	Endometrial adenocarcinoma	
+EDS	ED	Endometrial stromal	
+EOS	HEMATO	Eosinophilia	
+ES	SOLID	Endocrine System	
+ESCA	DT	Esophagous	
+ESA	ESCA	Esophagous adenocarcinoma	
+ESSC	ESCA	Esophagous squamous cell	
+EWS	S	Ewing sarcoma	
+EY	SS	Eye	
+FAP	DT	Familial adeno poliposis	TRUE_BENIGN
+FGCT	OV	Female germ cell tumor	
+FH	HIS	Fibrous histiocytoma	
+FIBS	S	Fibrosarcoma	
+FIBS-PR	S	Fibrosarcoma predisposition	TRUE
+FL	LY	Follicular lymphoma	
+FRS	SOLID	Female reproductory system	
+G	CNS	Glioma	
+GB	G	Glioblastoma	
+GBM	GB	Glioblastoma multiforme	
+GCA	MA	Giant cell astrocytoma	TRUE_BENIGN
+GEJA	ST	Gastroesophageal junction adenocarcinoma	
+GIST	DT	Gastrointestinal stromal	
+GIST-PR	GIST	Gastrointestinal stromal predisposition	TRUE
+H	LVB	Hepatic	
+HA	H	Hepatic adenoma	
+HB	H	Hepatic blastoma	
+HC	H	Hepatic carcinoma	
+HC-PR	HC	Hepatic carcinoma predisposition	TRUE
+HCL	LK	Hairy-Cell leukemia	
+HEMATO	CANCER	Hematologic malignancies	
+HEMATO-PR	HEMATO	Hematologic malignancies predisposition	TRUE
+HES	EOS	Hyper eosinophilic advanced snydrome	
+HGP	MSKV	Hemangiopericytoma	
+HIS	S	Histiocytoma	
+HISEC	HIS	Erdheim-Chester histiocytosis	
+HISLC	HIS	Lagerhans cell histiocytosis	
+HLY	LY	Hodking lymhpoma	
+HNC	SOLID	Head an neck	
+HNSC	HNC	Head an neck squamous	
+IM	MY	Inflammatory myofibroblastic	
+L	TX	Lung	
+LAM	L	Lymphangioleiomyomatosis	TRUE_BENIGN
+LBCL	BCL	Large B-Cell lymphoma	
+LEIS	S	Leiomyosarcoma	
+LEY	SCGS	Leydig cell adenoma	
+LGG	G	Lower grade glioma	
+LGLK	LK	Large granular leukemia	
+LIP	S	Liposarcoma	
+DLIP	LIP	Dedifferentiated liposarcoma	
+LK	HEMATO	Leukemia	
+LL	LK	Lymphoblastic leukemia	
+LPL	BCL	Lymphoblastic lymphoma	
+LUAD	NSCLC	Lung adenocarcinoma	
+LUSC	NSCLC	Lung squamous cell	
+LVB	DS	Liver & billiary tract	
+LY	HEMATO	Lymphoma	
+MA	G	Malignant astrocytoma	
+MALT	NHLY	MALT lymphoma	
+MAS	HEMATO	Mastocytosis	
+MB	CNS	Medulloblastoma	
+MCL	LY	Mantle cell lymphoma	
+MCLK	MAS	Mast cell leukemia	
+MDPS	MDS	Myelodisplasic proliferative syndrome	
+MDS	HEMATO	Myelodisplasic syndrome	
+MEN	CNS	Meningioma	
+MERC	SK	Merkel cell carcinoma	
+MESO	TX	Mesothelioma	
+PLMESO	MESO	Pleural mesothelioma	
+MFH	HIS	Myxoidfibrosarcoma	
+MGCT	T	Male germ cell tumor	
+MKB	LK	Megakaryoblastic leukemia	
+MM	MYMA	Multiple myeloma	
+MML	LK	Myelomonocyitic leukemia	
+MPN	PNS	Malignant peripheral nerve sheat tumor	
+MRS	SOLID	Male reproductory system	
+MRT	S	Malignant rhabdoid tumor	
+MRT-PR	MRT	Malignant rhabdoid tumor predisposition	TRUE
+MSKV	SOLID	Musculoskeletal & vascular systems	
+MUCLY	LY	Mucosa-associated lymphoma	
+MUCM	SK	Mucosal melanoma	
+MY	CMP	Myelofibrosis	
+MYEP	SG	Myoepithelioma	
+MYMA	HEMATO	Myeloma	
+MYX	MSKV	Myxoma	
+NB	PNS	Neuroblastoma	
+NEU	SOLID	Neuroendocrine	
+NF	PNS	Neurofibroma	TRUE_BENIGN
+NHLY	LY	Non-hodking lymphoma	
+NMC	MSKV	NUT midline carcinoma	
+NS	SOLID	Nervous system	
+NSCLC	L	Non-small cell lung	
+NSMGCT	MGCT	Non-seminomatous germ cell tumor	
+NSPH	DS	Nasopharyngeal	
+OC	DT,HNC	Oral cavity	
+OCSC	OC	Oral cavity squamous cell	
+OPH	DT	Ororpharynx squamous cell	
+OS	S	Osteosarcoma	
+OV	FRS	Ovary	
+OV-PR	OV	Ovary predisposition	TRUE
+OVCC	OV	Ovary clear cell	
+OVE	OV	Ovary epithelial cell	
+OVG	OV	Ovary granulosa cell	
+OVRT	OV,MRT	Ovary rhabdoid tumor	
+OVSC	OV	Ovary small cell	
+OVSE	OV	Ovary serous	
+PA	ES	Pancreas	
+PAAC	PAAD	Pancreas acinar	
+PAAD	PA	Pancreas adenocarcinoma	
+PAIS	PA,NEU	Pancreas neuroendocrine	
+PAMP	DT	Periampullary adenoma	
+PARG	ES	Paraganglioma	
+PATH	ES	Parathyroid adenoma	
+PCPG	PHEO	Pheochromocytoma and paraganglioma	
+PEC	SK	Perivascular epithelioid cell	
+PG	G	Pediatric glioma	
+PHEO	AOG	Pheochromocytoma	
+PIA	MA	Pilocityc astrocytoma	
+APA	MA	Anaplastic astrocytoma	
+AOG	G	Anaplastic oligodendroglioma	
+PIGA	ES	Pituitary gland adenoma	
+PL	TX	Pleura	
+PLEN	PNS	Plexiform neurofibroma	TRUE_BENIGN
+PNS	NS	Peripheral nervous system	
+PPB	PL,L	Pleuropulmonary blastoma	
+PRAD	MRS	Prostate adenocarcinoma	
+PTCL	NHLY	Perypheral T-cell lymphoma	
+NKTL	NHLY	Extranodal natural killer/T-cell lymphoma	
+PV	CMP	Polycitemia vera	
+R	US	Renal	
+R-PR	R	Renal predisposition	TRUE
+RA	R	Renal angiomyolipoma	TRUE
+RB	EY	Retinoblastoma	
+RCCC	R	Renal clear cell	
+RCH	R	Renal chromophobe cell	
+REC	DT	Rectal carcinoma	
+RHBDS	S,MRT	Rhabdomyosarcoma	
+RPC	R	Renal papillary cell	
+S	MSKV	Sarcoma	
+SCC	SK	Squamous cell carcinoma	
+SCC-PR	SCC	Squamous cell carcinoma predisposition	TRUE
+SCGS	OV,T	Sex-cord gonadal stromal	
+SCHW	PNS	Schwannoma	TRUE_BENIGN
+SCLC	L	Small cell lung	
+SG	OC	Salivary glands	
+SGA	SG	Salivary glands adenoma	
+SGM	SG	Salivary glands mucoepidermoid	
+ADCC	SG	Adenoid cystic carcinoma	
+SIN	DT	Small intestine	
+SINNE	SIN,NEU	Small intestine neuroendocrine	
+SK	SOLID	Skin	
+SK-PR	SK	Skin predisposition	TRUE
+SLL	NHLY	Small lymphocytic lymphoma	
+SM	MAS	Systemic mastocytosis	
+SMGCT	MGCT	Seminomatous germ cell tumor	
+MMGCT	MGCT	Mixed germ cell tumor	
+SOLID	CANCER	Solid tumors	
+SOLID-PR	SOLID	Solid tumors predisposition	TRUE
+SS	NS	Sensory system	
+ST	DT	Stomach	
+ST-PR	ST	Stomach predisposition	TRUE
+STAD	ST	Stomach adenocarcinoma	
+STS	S	Soft tissue sarcoma	
+SYNS	S	Synovial sarcoma	
+T	MRS	Testis	
+TCALL	ALL	T-cell acute lymphoblastic leukemia	
+TCPL	LK	T-cell prolymphocytic leukemia	
+TER	NSMGCT	Teratoma	
+TH	ES	Thyroid	
+THA	TH	Thyroid adenoma	
+THCA	TH	Thyroid carcinoma	
+THF	THCA	Thyroid follicular	
+THM	THF	Thyroid medullary	
+THP	TH	Thyroid papillary	
+THYM	LY	Thymic	
+TOSC	OC	Tongue squamous cell	
+TX	SOLID	Torax	
+U	FRS	Uterus	
+UCEC	ED	Uterine corpus endometroid carcinoma	
+UCS	U	Uterine carcinosarcoma	
+ULMS	U,LEIS	Uterine leiomyosarcoma	
+US	SOLID	Urinary system	
+UTC	US	Urinary tract carcinoma	
+UTH	US	Urothelial	
+UTUC	UTH	Upper tract urothelial carcinoma	
+UVM	EY	Uveal melanoma	
+WM	LPL	Waldenström macroglobulinemia	
+WT	R	Wilms tumor	

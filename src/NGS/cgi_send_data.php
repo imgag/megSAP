@@ -17,10 +17,6 @@ if(!isset($mutations) && !isset($cnas) && !isset($translocations))
 	$parser->printUsage();
 	trigger_error("At least one variant file must be uploaded to CGI",E_USER_ERROR);
 }
-if(isset($translocations))
-{
-	trigger_error("Translocations currently not supported.",E_USER_WARNING);
-}
 
 //set user credentials
 $user =  get_path("cgi_user");
@@ -374,8 +370,59 @@ if($temp_cnv_file != "" && count(file($temp_cnv_file)) <= 1)
 	$temp_cnv_file = "";
 }
 
+$temp_translocations_file;
+if(isset($translocations))
+{
+	$in = Matrix::fromTSV($translocations);
+	
+	$i_genes = $in->getColumnIndex("genes");
+	$i_mate_genes = $in->getColumnIndex("mate_genes");
+	
+	$i_type = $in->getColumnIndex("type");
+	
+	
+	$mate_pairs = array("fus");
+	
+	for($i = 0;$i<$in->rows();++$i)
+	{
+		$line = $in->getRow($i);
+		
+		if(trim($line[$i_type]) != "BND") continue;
+		$genes = explode(",",trim($line[$i_genes]));
+		$mate_genes = explode(",",trim($line[$i_mate_genes]));
+		
+		if(!empty($genes) && !empty($mate_genes) )
+		{
+			foreach($genes as $gene)
+			{
+				if($gene == "") continue;
+				foreach($mate_genes as $mate_gene)
+				{
+					if($mate_gene == "") continue;
+					$mate_pairs[] = "{$gene}__{$mate_gene}";
+				}
+			}
+		}
+		
+	}
+	
+	if(count($mate_pairs) > 1)
+	{
+		$temp_translocations_file = temp_file(".tsv");	
+		file_put_contents($temp_translocations_file,implode("\n",$mate_pairs));
+	}
+	else
+	{
+		$temp_translocations_file = "";
+	}
+}
+else
+{
+	$temp_translocations_file = "";
+}
+
 //Send data to CGI, save job_id 
-$jobId = sendData("IMGAG",$cancertype,$temp_mut_file,$temp_cnv_file);
+$jobId = sendData("IMGAG",$cancertype,$temp_mut_file,$temp_cnv_file,$temp_translocations_file);
 //display job status
 do
 {

@@ -173,6 +173,7 @@ for($i = 0; $i < $variants->rows(); ++$i)
 {
 	$row = $variants->getRow($i);
 
+	$ref = $row[3];
 	$alt = $row[4];
 	$format = $row[8];
 	$tumor = $row[$colidx_tumor];
@@ -196,30 +197,47 @@ for($i = 0; $i < $variants->rows(); ++$i)
 	{
 		$filter[] = "special-chromosome";
 	}
+	$calls = [];
 	if ($type === "SNV" && preg_match("/^[acgtACGT]*$/", $alt))
 	{
 		list($td, $tf) = vcf_strelka_snv($format, $tumor, $alt);
 		list($nd, $nf) = vcf_strelka_snv($format, $normal, $alt);
+		$calls[] = [ $alt, $td, $tf, $nd, $nf, $filter ];
+
+		//add post-call variants
+		$postcalls = vcf_strelka_snv_postcall($format, $tumor, $ref, $alt, $min_taf);
+		foreach ($postcalls as $pc)
+		{
+			$calls[] = [ $pc[0], $td, $pc[1], $nd, $nf, $filter ];
+		}
 	}
 	else if ($type === "INDEL")
 	{
 		list($td, $tf) = vcf_strelka_indel($format, $tumor);
 		list($nd, $nf) = vcf_strelka_indel($format, $normal);
+		$calls[] = [ $alt, $td, $tf, $nd, $nf, $filter ];
 	}
 
-	if ($td * $tf < $min_tsupp) $filter[] = "lt-3-reads";
-	if ($td < $min_td) $filter[] = "depth-tum";
-	if ($nd < $min_nd) $filter[] = "depth-nor";
-	if ($tf < $min_taf) $filter[] = "freq-tum";
-	if ($nf > $max_naf_rel * $tf) $filter[] = "freq-nor";
-
-	if(empty($filter))
+	foreach ($calls as $call)
 	{
-		$filter[] = "PASS";
-	}
-	$row[6] = implode(";", $filter);
+		$variant = $row;
+		list($alt, $td, $tf, $nd, $nf, $filter) = $call;
+		$variant[4] = $alt;
 
-	$variants_filtered->addRow($row);
+		if ($td * $tf < $min_tsupp) $filter[] = "lt-3-reads";
+		if ($td < $min_td) $filter[] = "depth-tum";
+		if ($nd < $min_nd) $filter[] = "depth-nor";
+		if ($tf < $min_taf) $filter[] = "freq-tum";
+		if ($nf > $max_naf_rel * $tf) $filter[] = "freq-nor";
+
+		if (empty($filter))
+		{
+			$filter[] = "PASS";
+		}
+		$variant[6] = implode(";", $filter);
+
+		$variants_filtered->addRow($variant);
+	}
 }
 $vcf_filtered = $parser->tempFile("_filtered.vcf");
 $variants_filtered->toTSV($vcf_filtered);

@@ -1,0 +1,107 @@
+##FILTER=DRAGENHardQUAL=Set if true:QUAL < 10.4139
+##DESCRIPTION=genotype=Genotype of variant in sample.
+##DESCRIPTION=filter=Annotations for filtering and ranking variants.
+##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM).
+##DESCRIPTION=gene=Affected gene list (comma-separated).
+##DESCRIPTION=variant_type=Variant type.
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
+##DESCRIPTION=regulatory=Regulatory consequence details.
+##DESCRIPTION=OMIM=OMIM database annotation.
+##DESCRIPTION=ClinVar=ClinVar database annotation.
+##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.
+##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).
+##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.
+##DESCRIPTION=ESP_sub=Sub-population allele frequency (EA,AA) in NHLBI Exome Sequencing project.
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
+##DESCRIPTION=Sift=Sift effect prediction for each transcript: D=damaging, T=tolerated.
+##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction for each transcript: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20.
+##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
+##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).
+##DESCRIPTION=GeneSplicer=GeneSplicer splicing prediction (state/type/coordinates/confidence/score).
+##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
+#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	ESP_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC
+chr1	69270	69270	A	G	hom		QUAL=184;DP=69;MQM=15;AF=0.986																								
+chr1	69428	69428	T	G	hom		QUAL=439;DP=138;MQM=21;AF=1.000																								
+chr1	69511	69511	A	G	hom		QUAL=496;DP=170;MQM=19;AF=0.994																								
+chr1	69761	69761	A	T	hom		QUAL=340;DP=103;MQM=18;AF=1.000																								
+chr1	69897	69897	T	C	hom		QUAL=138;DP=53;MQM=16;AF=0.981																								
+chr1	877831	877831	T	C	hom		QUAL=195;DP=51;MQM=249;AF=1.000																								
+chr1	879676	879676	G	A	hom		QUAL=468;DP=142;MQM=220;AF=1.000																								
+chr1	879687	879687	T	C	hom		QUAL=434;DP=130;MQM=214;AF=1.000																								
+chr1	881627	881627	G	A	hom		QUAL=328;DP=112;MQM=242;AF=0.982																								
+chr1	881918	881918	G	A	hom		QUAL=352;DP=103;MQM=216;AF=1.000																								
+chr1	883625	883625	A	G	hom		QUAL=273;DP=76;MQM=234;AF=1.000																								
+chr1	887801	887801	A	G	hom		QUAL=397;DP=118;MQM=228;AF=1.000																								
+chr1	888639	888639	T	C	hom		QUAL=178;DP=44;MQM=210;AF=1.000																								
+chr1	888659	888659	T	C	hom		QUAL=168;DP=41;MQM=209;AF=1.000																								
+chr1	889158	889158	G	C	hom		QUAL=225;DP=60;MQM=249;AF=1.000																								
+chr1	889159	889159	A	C	hom		QUAL=225;DP=60;MQM=249;AF=1.000																								
+chr1	896271	896271	C	T	hom		QUAL=69;DP=12;MQM=250;AF=1.000																								
+chr1	897325	897325	G	C	hom		QUAL=693;DP=218;MQM=249;AF=1.000																								
+chr1	899928	899928	G	C	hom		QUAL=58;DP=23;MQM=236;AF=0.826																								
+chr1	909221	909221	T	C	het		QUAL=50;DP=169;MQM=249;AF=0.533																								
+chr1	909238	909238	G	C	het		QUAL=49;DP=172;MQM=249;AF=0.465																								
+chr1	909419	909419	C	T	het		QUAL=50;DP=132;MQM=248;AF=0.530																								
+chr1	911595	911595	A	G	hom		QUAL=475;DP=145;MQM=250;AF=1.000																								
+chr1	912049	912049	T	C	het		QUAL=50;DP=65;MQM=230;AF=0.492																								
+chr1	914333	914333	C	G	het		QUAL=50;DP=250;MQM=249;AF=0.504																								
+chr1	914610	914610	C	T	het		QUAL=49;DP=332;MQM=250;AF=0.497																								
+chr1	914852	914852	G	C	het		QUAL=50;DP=277;MQM=249;AF=0.505																								
+chr1	914876	914876	T	C	hom		QUAL=857;DP=279;MQM=249;AF=0.993																								
+chr1	914940	914940	T	C	het		QUAL=49;DP=318;MQM=249;AF=0.475																								
+chr1	915227	915227	A	G	hom		QUAL=1375;DP=461;MQM=243;AF=0.998																								
+chr1	916549	916549	A	G	het		QUAL=50;DP=118;MQM=249;AF=0.508																								
+chr1	916590	916590	G	A	het		QUAL=50;DP=81;MQM=249;AF=0.519																								
+chr1	935222	935222	C	A	het		QUAL=50;DP=115;MQM=249;AF=0.548																								
+chr1	949608	949608	G	A	het		QUAL=49;DP=218;MQM=249;AF=0.486																								
+chr1	949654	949654	A	G	hom		QUAL=647;DP=205;MQM=249;AF=0.995																								
+chr1	955597	955597	G	T	het		QUAL=44;DP=25;MQM=250;AF=0.480																								
+chr1	969659	969659	G	A	het		QUAL=50;DP=185;MQM=249;AF=0.519																								
+chr1	977330	977330	T	C	hom		QUAL=663;DP=207;MQM=248;AF=1.000																								
+chr1	978604	978605	CT	-	het		QUAL=50;DP=130;MQM=250;AF=0.562																								
+chr1	981931	981931	A	G	hom		QUAL=377;DP=113;MQM=247;AF=1.000																								
+chr1	982844	982844	G	C	het		QUAL=49;DP=205;MQM=249;AF=0.449																								
+chr1	982941	982941	T	C	hom		QUAL=781;DP=248;MQM=249;AF=1.000																								
+chr1	982994	982994	T	C	hom		QUAL=838;DP=271;MQM=249;AF=0.996																								
+chr1	984302	984302	T	C	hom		QUAL=404;DP=120;MQM=248;AF=1.000																								
+chr1	984450	984450	A	T	het		QUAL=37;DP=63;MQM=226;AF=0.254																								
+chr1	985266	985266	C	T	het		QUAL=49;DP=177;MQM=249;AF=0.486																								
+chr1	986443	986443	C	T	hom		QUAL=363;DP=108;MQM=248;AF=1.000																								
+chr1	987200	987200	C	T	hom		QUAL=500;DP=152;MQM=249;AF=1.000																								
+chr1	990280	990280	C	T	het		QUAL=50;DP=171;MQM=249;AF=0.497																								
+chr1	990380	990380	C	T	het		QUAL=49;DP=167;MQM=250;AF=0.473																								
+chr1	1007203	1007203	A	G	het		QUAL=50;DP=37;MQM=250;AF=0.595																								
+chr1	1007222	1007222	G	T	het		QUAL=50;DP=34;MQM=250;AF=0.529																								
+chr1	1021346	1021346	A	G	het		QUAL=49;DP=140;MQM=249;AF=0.486																								
+chr1	1114668	1114668	G	A	het		QUAL=49;DP=64;MQM=250;AF=0.469																								
+chr1	1133077	1133077	A	G	het		QUAL=49;DP=43;MQM=250;AF=0.442																								
+chr1	1139202	1139202	T	C	het		QUAL=49;DP=346;MQM=249;AF=0.483																								
+chr1	1139353	1139353	-	G	het		QUAL=49;DP=310;MQM=249;AF=0.497																								
+chr1	1139862	1139862	T	C	het		QUAL=50;DP=38;MQM=250;AF=0.500																								
+chrX	153492772	153492772	C	T	hom		QUAL=78;DP=23;MQM=14;AF=1.000																								
+chrX	153492783	153492783	A	G	hom		QUAL=73;DP=21;MQM=14;AF=1.000																								
+chrX	153629155	153629155	A	G	hom		QUAL=364;DP=107;MQM=106;AF=1.000																								
+chrX	153633359	153633359	G	C	hom		QUAL=213;DP=56;MQM=250;AF=1.000																								
+chrX	153657083	153657083	A	G	hom		QUAL=395;DP=117;MQM=250;AF=1.000																								
+chrX	153788791	153788791	G	-	hom	DRAGENHardQUAL	QUAL=5;DP=1;MQM=14;AF=1.000																								
+chrX	153880830	153880830	A	C	hom		QUAL=409;DP=122;MQM=249;AF=1.000																								
+chrX	153881525	153881525	G	C	hom		QUAL=301;DP=86;MQM=228;AF=1.000																								
+chrX	153881773	153881773	T	C	hom		QUAL=313;DP=93;MQM=56;AF=1.000																								
+chrX	153979262	153979262	A	-	het		QUAL=26;DP=3;MQM=250;AF=0.667																								
+chrX	153994596	153994596	G	T	hom		QUAL=295;DP=87;MQM=248;AF=0.989																								
+chrX	154456747	154456747	A	G	hom		QUAL=159;DP=38;MQM=249;AF=1.000																								
+chrX	155004280	155004280	A	G	het		QUAL=49;DP=221;MQM=250;AF=0.462																								
+chrY	9175637	9175637	G	A	het		QUAL=10;DP=127;MQM=10;AF=0.394																								
+chrY	14898435	14898435	-	T	het		QUAL=50;DP=69;MQM=234;AF=0.638																								
+chrY	14954404	14954404	-	T	het		QUAL=50;DP=60;MQM=245;AF=0.617																								
+chrY	15027529	15027529	T	G	hom		QUAL=252;DP=69;MQM=249;AF=1.000																								
+chrY	21154323	21154323	G	A	het		QUAL=50;DP=128;MQM=202;AF=0.609																								
+chrY	21154466	21154466	T	A	het		QUAL=50;DP=162;MQM=236;AF=0.630																								
+chrY	24327124	24327124	T	A	het		QUAL=14;DP=7;MQM=16;AF=0.286																								

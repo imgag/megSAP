@@ -312,12 +312,17 @@ $parser->moveFile($bam_current, $out);
 $parser->moveFile($bam_current.".bai", $out.".bai");
 
 //add baf file
-$params = array();
-if ($sys['type']!="WGS" && !empty($sys['target_file']) && in_array($sys['build'], [ "hg19", "GRCh37" ]))
+if ($sys['build']=="GRCh37")
 {
-	$params[] = "-target ".$sys['target_file'];
+	$params = array();
+	$params[] = "-in ${out}";
+	$params[] = "-out ${basename}_bafs.igv";
+	if ($sys['type']!="WGS" && $sys['target_file']!="")
+	{
+		$params[] = "-target ".$sys['target_file'];
+	}
+	$parser->execTool("NGS/mapping_baf.php", implode(" ", $params));
 }
-$parser->execTool("NGS/mapping_baf.php", "-in ${out} -out ${basename}_bafs.igv ".implode(" ", $params));
 
 //run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
@@ -330,7 +335,7 @@ else
 {
 	$params[] = "-roi ".$sys['target_file'];
 }
-if ($sys['build']!="hg19" && $sys['build']!="GRCh37")
+if ($sys['build']!="GRCh37")
 {
 	$params[] = "-no_cont";
 }

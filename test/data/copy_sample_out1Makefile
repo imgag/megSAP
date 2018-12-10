@@ -25,4 +25,4 @@ qc_IVac:
 	php /mnt/users/all/megSAP/src/NGS/qc_fastq.php -folder /mnt/projects/research/IVac/Sample_FO180005_01/ -import
 
 email_IVac:
-	php -r 'mail("ouk@med.uni-tuebingen.de","Neue Daten fuer IVac", "Hallo Orang Utan Klaus,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts IVac liegen vor:\n\nFO180004_01\nFO180005_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: medgen.bioinformatik@med.uni-tuebingen.de");'
+	php -r 'mail("no_valid@email2.de","Neue Daten fuer IVac", "Hallo GenLab import,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts IVac liegen vor:\n\nFO180004_01\nFO180005_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: medgen.bioinformatik@med.uni-tuebingen.de");'

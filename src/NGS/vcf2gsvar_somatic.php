@@ -7,12 +7,12 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("vcf2gsvar_somatic", "Converts an annotated VCF file to GSvar file.");
+$parser = new ToolBase("vcf2gsvar_somatic", "Converts an annotated VCF file to a GSvar file.");
 $parser->addInfile("in", "Input file in VCF format.", false);
-$parser->addOutfile("out", "Output file in VCF format.", false);
+$parser->addOutfile("out", "Output file in GSvar format.", false);
 $parser->addString("t_col", "Column name of tumor sample.", false);
 //optional
-$parser->addString("n_col", "Column name of tumor sample.", true, "na");
+$parser->addString("n_col", "Column name of normal sample.", true, "na");
 $parser->addFlag("updown", "Don't discard up- or downstream anntations (5000 bases around genes).");
 extract($parser->parse($argv));
 
