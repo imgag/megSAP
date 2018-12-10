@@ -43,8 +43,10 @@ if (count($cov_files)<$cov_min)
 }
 
 //merge coverage files to one file
+$tmp = $parser->tempFile(".txt");
+file_put_contents($tmp, implode("\n", $cov_files));
 $cov_merged = $parser->tempFile(".cov");
-$parser->exec(get_path("ngs-bits")."TsvMerge", "-in ".implode(" ", $cov_files)." -cols chr,start,end -simple -out {$cov_merged}", true);
+$parser->exec(get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
 
 //execute ClinCNV
 $out_folder = $parser->tempFolder();
@@ -63,7 +65,6 @@ $parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cov.seg", substr($
 
 //TODO:
 //- annotate CNP regions, dosage-sensitive genes, OMIM
-//- use one file input for TsvMerge
 //- use same version in germline and somatic
 
 ?>
