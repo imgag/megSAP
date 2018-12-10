@@ -1,0 +1,7 @@
+##number of iterations: 1
+##fraction of outliers: 0.054
+#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes
+chr18	48573391	48604862	3	232	11	31.471	0.05	SMAD4
+chr22	42523779	42526818	1	89	4	3.039	0.05	CYP2D6,NDUFA6-DT
+chrX	1314864	1331552	2	195	6	16.688	0.05	CRLF2
+chrY	25276401	25338370	2	303	23	61.969	0.05	DAZ1

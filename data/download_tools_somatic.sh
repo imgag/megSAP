@@ -25,3 +25,11 @@ cd $folder
 wget https://github.com/OSU-SRLab/MANTIS/archive/v1.0.4.tar.gz
 tar xzf v1.0.4.tar.gz
 rm v1.0.4.tar.gz
+
+#download ClinCnv
+cd $folder
+git clone https://github.com/imgag/ClinCNV.git
+cd ClinCNV
+git checkout 1.06
+cd ..
+mv ClinCNV ClinCNV-1.06
