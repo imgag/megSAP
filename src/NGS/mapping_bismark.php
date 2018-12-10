@@ -122,12 +122,15 @@ $bismark_params = [
 	"--basename $name",
 	"-N 1 --unmapped",
 	"-o $tmp_out_folder",
-	"-p $threads_parg",
 	"--temp_dir $bismark_tmp",
 	"--unmapped",
-	"--ambiguous",
-	$genome
+	"--ambiguous"
 ];
+if ($threads_parg > 1)
+{
+	$bismark_params[] = "-p $threads_parg";
+}
+$bismark_params[] = $genome;
 if ($paired)
 {
 	$bismark_params[] = "-1 $fastq_trimmed1 -2 $fastq_trimmed2";
