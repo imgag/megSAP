@@ -189,7 +189,7 @@ $pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "");
 $pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -info \"AO > 2\"");
 
 //split complex variants to primitives
-$pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
+$pipeline[] = array(get_path("ngs-bits")."VcfBreakComplexVariants");
 
 //normalize all variants and align INDELs to the left
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize","-ref $genome");
