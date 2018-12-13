@@ -1,7 +1,8 @@
 <?php 
 /** 
 	@page vc_clincnv_germline
-
+	
+	@todo use same ClinCNV version in germline and somatic
 */
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
@@ -63,9 +64,14 @@ $parser->exec(get_path("clincnv_germline")."/firstStep.R", implode(" ", $args), 
 $parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv", $out);
 $parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
 
-//TODO:
-//- annotate CNP regions, dosage-sensitive genes, OMIM
-//- use same version in germline and somatic
+//annotate
+$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/misc/copy_number_map_strict.bed -out {$out}", true);
+$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed -out {$out}", true);
+$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; 
+if (file_exists($omim_file)) //optional because of license
+{
+	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$omim_file} -out {$out}", true);
+}
 
 ?>
 
