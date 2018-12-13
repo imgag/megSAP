@@ -369,7 +369,7 @@ if (in_array("cn", $steps))
 		}
 		
 		//write output
-		$output[] = "#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	overlaps_cnp_region	genes	dosage_sensitive_disease_genes	omim";	
+		$output[] = "#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	overlaps_cnp_region	genes	dosage_sensitive_disease_genes";	
 		foreach($regions_by_number as $cnv_num => $regions)
 		{
 			$chr = null;
