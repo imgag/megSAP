@@ -3,6 +3,7 @@
 	@page vc_clincnv_germline
 	
 	@todo use same ClinCNV version in germline and somatic
+	@todo update copy_number_map_strict
 */
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
