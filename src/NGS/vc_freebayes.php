@@ -64,10 +64,10 @@ $args[] = "-f $genome";
 $args[] = "-b ".implode(" ", $bam);
 
 // run freebayes
+$freebayes_start = microtime(true);
 $pipeline = array();
 if (isset($target) && $threads > 1) 
 {	
-	$freebayes_start = microtime(true);
 	
 	// split BED file by chromosomes into seperate files  e.g chr1.bed, chr2.bed, chrY.bed
 	$roi_by_chr = array();
@@ -201,11 +201,14 @@ else
 $freebayes_end = microtime(true);
 $parser->log("Freebayes execution took ".time_readable($freebayes_end-$freebayes_start));
 
-//filter variants according to variant quality>5 (~31% error probabilty) , alternate allele observations>2
-$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -info \"AO > 2\"");
+//filter variants according to variant quality>5 (~31% error probabilty)
+$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5");
 
 //split multi-allelic variants
 $pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "");
+
+//filter variants according to alternate allele observations>2
+$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-info \"AO > 2\"");
 
 //split complex variants to primitives
 $pipeline[] = array(get_path("ngs-bits")."VcfBreakComplex", "");

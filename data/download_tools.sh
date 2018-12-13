@@ -26,13 +26,6 @@ cd freebayes
 git checkout v1.2.0 && git submodule update --recursive --init
 make
 
-#download and build vcflib
-cd $folder
-git clone https://github.com/vcflib/vcflib.git
-cd vcflib
-git checkout v1.0.0-rc2 && git submodule update --recursive --init
-make
-
 #download ABRA2
 cd $folder
 mkdir abra2-2.18
