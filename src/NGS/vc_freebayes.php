@@ -208,7 +208,7 @@ $pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -info \"AO > 2\""
 $pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "");
 
 //split complex variants to primitives
-$pipeline[] = array(get_path("ngs-bits")."VcfBreakComplexVariants", "");
+$pipeline[] = array(get_path("ngs-bits")."VcfBreakComplex", "");
 
 //normalize all variants and align INDELs to the left
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize","-ref $genome");
