@@ -22,8 +22,8 @@ fi
 
 if [[ $1 == "-map" ]]; then
     shift
-    echo "php ${SCRIPT_DIR}/../src/NGS/db_queue_analysis.php -type 'single sample' -samples $1 -args '-steps ma -no_abra -clip_overlap -correction_n'"
-    echo "php ${SCRIPT_DIR}/../src/NGS/db_queue_analysis.php -type 'single sample' -samples $2 -args '-steps ma -no_abra -clip_overlap -correction_n'"
+    echo "php ${SCRIPT_DIR}/../src/NGS/db_queue_analysis.php -type 'single sample' -samples $1 -args '-steps ma,db -somatic'"
+    echo "php ${SCRIPT_DIR}/../src/NGS/db_queue_analysis.php -type 'single sample' -samples $2 -args '-steps ma,db -somatic'"
 fi
 
 echo "php ${SCRIPT_DIR}/../src/NGS/db_queue_analysis.php -type somatic -samples $1 $2 -info tumor normal"
