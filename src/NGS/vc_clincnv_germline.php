@@ -16,7 +16,7 @@ $parser->addInfile("cov_folder", "Coverage files folder.", false);
 $parser->addInfile("bed", "BED file with annotations e.g. GC-content and gene names.", false);
 $parser->addOutFile("out", "Output file in TSV format.", false);
 //optional
-$parser->addInt("cov_min", "Minimum number of coverage files required for CNV analysis.", true, 30);
+$parser->addInt("cov_min", "Minimum number of coverage files required for CNV analysis.", true, 20);
 extract($parser->parse($argv));
 
 //init

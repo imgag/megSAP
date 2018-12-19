@@ -20,6 +20,7 @@ $parser->addInt("min_capture_size", "Min. capture size.", true, 120);
 $parser->addInt("max_capture_size", "Max. capture size.", true, 140);
 $parser->addFloat("min_svr", "Minimum SVR score.", true, 1.4);
 $parser->addFlag("no_svr", "Do not filter for svr score.");
+$parser->addInt("overlap", "MIP overlap size (start value).", true, 0);
 $parser->addString("snp_db", "Common variants database, which contains 'AF' info annoation.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz"); 
 extract($parser->parse($argv));
 
@@ -86,6 +87,7 @@ $args = "-regions_to_scan $target ";
 $args .= "-project_name $temp_folder/$project_name ";
 $args .= "-bwa_genome_index ".get_path('data_folder')."/genomes/GRCh37.fa -bwa_threads 2 ";
 $args .= "-snp_file $common_snps ";
+$args .= "-starting_mip_overlap $overlap ";
 $args .= "-arm_length_sums 40,41,42 -tag_sizes 8,0 -score_method mixed ";
 $args .= "-min_capture_size $min_capture_size -max_capture_size $max_capture_size ";
 if($mode=="ffpe")	$args .= "-half_seal_both_strands off -double_tile_strands_separately on ";
