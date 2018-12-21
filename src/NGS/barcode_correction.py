@@ -312,7 +312,7 @@ def GET_FINAL_READ(reads,minBQ,STEP,SET_N):
                 if (not SET_N):
                     CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
                 else:
-                    CONSENSUS_READ = error_read_seq(DICT_READS[SORTED_READNAMES[0]])
+                    CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
 
                 ###print "ERROR2", CONSENSUS_READ.qname, len(CONSENSUS_SEQ), DICT_READS[SORTED_READNAMES[0]].cigarstring,
 
@@ -440,7 +440,7 @@ def GET_FINAL_READ(reads,minBQ,STEP,SET_N):
             if (not SET_N):
                 CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
             else:
-                CONSENSUS_READ = error_read_seq(DICT_READS[SORTED_READNAMES[0]])
+                CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
 
             ##print "ERROR", CONSENSUS_READ.qname, len(CONSENSUS_SEQ), DICT_READS[SORTED_READNAMES[0]].cigarstring, DICT_READS[SORTED_READNAMES[READ_COUNT]].rlen, DICT_READS[SORTED_READNAMES[READ_COUNT]].cigarstring
 
