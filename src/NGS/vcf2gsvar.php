@@ -776,10 +776,8 @@ while(!feof($handle))
 	$cosmic = implode(",", collapse("COSMIC", $cosmic, "unique"));
 	
 	//skip common MODIFIER variants in WGS mode
-	print "$chr $variant_details $kg $gnomad\n";
 	if ($wgs && skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd))
 	{
-		print "SKIPPED\n";
 		++$c_skipped_wgs;
 		continue;
 	}
