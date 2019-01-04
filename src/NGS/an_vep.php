@@ -91,4 +91,18 @@ $args[] = "--fields ".implode(",", $fields);
 putenv("PERL5LIB={$vep_path}/Bio/:{$vep_path}/cpan/lib/perl5/:".getenv("PERL5LIB"));
 $parser->exec(get_path("vep"), implode(" ", $args), true);
 
+//print VEP warnings
+$warn_file = $out."_warnings.txt";
+if (file_exists($warn_file))
+{
+	$file = file($warn_file);
+	foreach($file as $line)
+	{
+		$line = trim($line);
+		if ($line=="") continue;
+		
+		print $line."\n";
+	}
+}
+
 ?>
