@@ -188,7 +188,7 @@ $column_desc = array(
 	array("Sift", "Sift effect prediction for each transcript: D=damaging, T=tolerated."),
 	array("PolyPhen", "PolyPhen (humVar) effect prediction for each transcript: D=probably damaging, P=possibly damaging, B=benign."),
 	array("fathmm-MKL", "fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5."),
-	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 15-20."),
+	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
 	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
 	array("GeneSplicer", "GeneSplicer splicing prediction (state/type/coordinates/confidence/score)."),
@@ -266,7 +266,7 @@ while(!feof($handle))
 			$i_sift = index_of($cols, "SIFT");
 			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_phylop = index_of($cols, "PHYLOP", false);
-			$i_cadd = index_of($cols, "CADD_RAW", false);
+			$i_cadd = index_of($cols, "CADD_PHRED", false);
 			$i_revel = index_of($cols, "REVEL", false);
 			$i_fathmm_c = index_of($cols, "FATHMM_MKL_C");
 			$i_fathmm_nc = index_of($cols, "FATHMM_MKL_NC");
@@ -776,10 +776,8 @@ while(!feof($handle))
 	$cosmic = implode(",", collapse("COSMIC", $cosmic, "unique"));
 	
 	//skip common MODIFIER variants in WGS mode
-	print "$chr $variant_details $kg $gnomad\n";
 	if ($wgs && skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd))
 	{
-		print "SKIPPED\n";
 		++$c_skipped_wgs;
 		continue;
 	}

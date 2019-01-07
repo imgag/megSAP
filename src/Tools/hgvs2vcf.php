@@ -5,7 +5,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
-$parser = new ToolBase("hgvs2vcf", "Convert a list of genomic HGVS variants to VCF format.");
+$parser = new ToolBase("hgvs2vcf", "Convert a list of genomic HGVS.g variants to VCF format.");
 $parser->addInfile("in", "Input TXT file (one variant per line).", false);
 $parser->addOutfile("out",  "Output VCF file.", false);
 //optional
@@ -26,8 +26,8 @@ foreach($file as $line)
 	$line = trim($line);
 	if ($line=="" || $line[0]=="#") continue;
 	
-	$parts = explode("\t", strtr($line, array(">"=>"\t", "_"=>"\t", ":"=>"\t", "dup"=>"\t", "del"=>"\t", "ins"=>"\t")));
-
+	$parts = explode("\t", strtr($line, array("g."=>"", ">"=>"\t", "_"=>"\t", ":"=>"\t", "dup"=>"\t", "del"=>"\t", "ins"=>"\t")));
+	//print_r($parts);
 	if (contains($line, ">"))
 	{
 		list($chr, $pos, $obs) = $parts;
@@ -64,7 +64,14 @@ foreach($file as $line)
 	}
 	else if (contains($line, "dup"))
 	{
-		list($chr, $pos, , $ref) = $parts;
+		if (count($parts)==3)
+		{
+			list($chr, $pos, $ref) = $parts;
+		}
+		else
+		{
+			list($chr, $pos, , $ref) = $parts;
+		}
 		$pos -= 1;
 		$anker = get_ref_seq($chr, $pos, $pos);
 		$obs = $anker.$ref.$ref;

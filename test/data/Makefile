@@ -1,7 +1,9 @@
 help:
 	@cat Makefile
 	
-	
+vcf2gsvar:
+	cp an_vep_out1.vcf vcf2gsvar_in1.vcf
+
 vc_freebayes:
 	#creating input BAM
 	cut -f 1,2,3 /mnt/projects/test/KontrollDNACoriell/Sample_NA12878_13/NA12878_13.GSvar | egrep "chr3|chr7|chr8|chr10" | awk '{print $$1 "\t" $$2 "\t" ($$3+1)}' > tmp_vars.bed

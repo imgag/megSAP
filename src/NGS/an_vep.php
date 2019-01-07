@@ -42,7 +42,7 @@ $fields[] = "BIOTYPE";
 $args[] = "--sift p --polyphen p"; //pathogenicity predictions
 $args[] = "--af --af_gnomad --af_esp --failed 1"; //population frequencies
 $args[] = "--plugin CADD,".get_path("data_folder")."/dbs/CADD/whole_genome_SNVs.tsv.gz,".get_path("data_folder")."/dbs/CADD/InDels.tsv.gz"; //CADD
-$fields[] = "CADD_RAW";
+$fields[] = "CADD_PHRED";
 $args[] = "--plugin REVEL,".get_path("data_folder")."/dbs/REVEL/revel_all_chromosomes.tsv.gz"; //REVEL
 $fields[] = "REVEL";
 $args[] = "--plugin FATHMM_MKL,".get_path("data_folder")."/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz"; //fathmm-MKL
@@ -90,5 +90,19 @@ if (!$all_transcripts)
 $args[] = "--fields ".implode(",", $fields);
 putenv("PERL5LIB={$vep_path}/Bio/:{$vep_path}/cpan/lib/perl5/:".getenv("PERL5LIB"));
 $parser->exec(get_path("vep"), implode(" ", $args), true);
+
+//print VEP warnings
+$warn_file = $out."_warnings.txt";
+if (file_exists($warn_file))
+{
+	$file = file($warn_file);
+	foreach($file as $line)
+	{
+		$line = trim($line);
+		if ($line=="") continue;
+		
+		print $line."\n";
+	}
+}
 
 ?>
