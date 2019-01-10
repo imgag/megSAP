@@ -185,8 +185,8 @@ $column_desc = array(
 	array("gnomAD_sub", "Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project."),
 	array("ESP_sub", "Sub-population allele frequency (EA,AA) in NHLBI Exome Sequencing project."),
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
-	array("Sift", "Sift effect prediction for each transcript: D=damaging, T=tolerated."),
-	array("PolyPhen", "PolyPhen (humVar) effect prediction for each transcript: D=probably damaging, P=possibly damaging, B=benign."),
+	array("Sift", "Sift effect prediction and score for each transcript: D=damaging, T=tolerated."),
+	array("PolyPhen", "PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign."),
 	array("fathmm-MKL", "fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
@@ -639,7 +639,17 @@ while(!feof($handle))
 				}
 				
 				//pathogenicity predictions (transcript-specific)
-				$sift_entry = translate("Sift", $parts[$i_sift], array(""=>" ", "deleterious"=>"D", "tolerated"=>"T", "tolerated_low_confidence"=>"T", "deleterious_low_confidence"=>"D"));
+				list($sift_type, $sift_score) = explode("(", strtr($parts[$i_sift], ")", "(")."(");
+				if ($sift_type!="")
+				{
+					$sift_type = translate("Sift", $sift_type, array("deleterious"=>"D", "tolerated"=>"T", "tolerated_low_confidence"=>"T", "deleterious_low_confidence"=>"D"));
+					$sift_score = number_format($sift_score, 2);
+					$sift_entry = $sift_type."($sift_score)";
+				}
+				else
+				{
+					$sift_entry = " ";
+				}
 				if (!$is_updown)
 				{
 					$sift[] = $sift_entry;
@@ -648,7 +658,22 @@ while(!feof($handle))
 				{
 					$sift_updown[] = $sift_entry;
 				}
-				$polyphen_entry = translate("PolyPhen", $parts[$i_polyphen], array(""=>" ", "unknown"=>" ",  "probably_damaging"=>"D", "possibly_damaging"=>"P", "benign"=>"B"));
+				
+				list($pp_type, $pp_score) = explode("(", strtr($parts[$i_polyphen], ")", "(")."(");
+				if ($pp_type!="")
+				{
+					$pp_type = translate("PolyPhen", $pp_type, array("unknown"=>" ",  "probably_damaging"=>"D", "possibly_damaging"=>"P", "benign"=>"B"));
+					$pp_score = number_format($pp_score, 2);
+					if (!is_numeric($pp_score))
+					{
+						print "ERROR: ".$parts[$i_polyphen]." ".$pp_score."\n";
+					}
+					$polyphen_entry = $pp_type."($pp_score)";
+				}
+				else
+				{
+					$polyphen_entry = " ";
+				}
 				if (!$is_updown)
 				{
 					$polyphen[] = $polyphen_entry;
