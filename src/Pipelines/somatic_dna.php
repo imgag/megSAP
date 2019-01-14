@@ -21,7 +21,7 @@ $parser->addInfile("t_rna_bam", "Tumor RNA sample BAM file.", true);
 
 $parser->addString("prefix", "Output file prefix.", true, "somatic");
 
-$steps_all = array("vc", "cn", "an", "ci", "msi","db");
+$steps_all = array("vc", "vi", "cn", "an", "ci", "msi","db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 	"vc=variant calling, an=annotation, ci=CGI annotation,\n" .
 	"cn=copy-number analysis, msi=microsatellite analysis, db=database import",
@@ -246,6 +246,7 @@ $manta_sv_tsv  = $full_prefix . "_var_structural.tsv";			// structural variants 
 $manta_sv_bedpe= $full_prefix . "_var_structural.bedpe"; 		// structural variants (bedpe)
 $variants      = $full_prefix . "_var.vcf.gz";					// variants
 $ballele       = $full_prefix . "_bafs.igv";					// B-allele frequencies
+
 if (in_array("vc", $steps))
 {
 	// structural variant calling
@@ -361,6 +362,32 @@ if (in_array("vc", $steps))
 		}
 	}
 	$parser->execTool("NGS/mapping_baf.php", implode(" ", $baf_args));
+}
+
+//Viral sequences alignment
+$viral         = $full_prefix . "_viral.tsv";					// viral sequences results
+$viral_bam     = $full_prefix . "_viral.bam";					// viral sequences alignment
+$viral_bam_raw = $full_prefix . "_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
+if (in_array("vi", $steps))
+{
+	//detection of viral sequences
+	$t_bam_dedup = dirname($t_bam) . "/" . basename($t_bam, ".bam") . "_before_dedup.bam";
+	$t_bam_map_qc = dirname($t_bam) . "/" . basename($t_bam, ".bam") . "_stats_map.qcML";
+	$dedup_used = file_exists($t_bam_dedup);
+	$vc_viral_args = [
+		"-in", $dedup_used ? $t_bam_dedup : $t_bam,
+		"-viral_bam", $viral_bam,
+		"-viral_bam_raw", $viral_bam_raw,
+		"-viral_cov", $viral_cov,
+		"-viral_chrs", "chrNC_007605",
+		"-build_viral", "somatic_viral",
+		"-in_qcml", $t_bam_map_qc
+	];
+	if ($dedup_used)
+	{
+		$vc_viral_args[] = "-barcode_correction";
+	}
+	$parser->execTool("NGS/vc_viral_load.php", implode(" ", $vc_viral_args));
 }
 
 //CNV calling
