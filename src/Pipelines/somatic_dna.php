@@ -821,6 +821,11 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			{
 				trigger_error("Updated normal sample ($n_id) for tumor ($t_id) in NGSD.", E_USER_NOTICE);
 			}
+			
+			// import sample relation
+			$s_id_t = $t_info['s_id'];
+			$s_id_n = $n_info['s_id'];
+			$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$s_id_t},'tumor-normal',{$s_id_n})");
 
 			// import variants (not for WGS)
 			if (file_exists($variants_gsvar) && $sys['type'] !== "WGS")
