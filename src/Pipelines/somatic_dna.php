@@ -30,7 +30,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 $parser->addString("cancer_type", "Tumor type, see CancerGenomeInterpreter.org for nomenclature (resolved from GENLAB if not set).", true);
 
 $parser->addInfile("system",  "Processing system file used for tumor DNA sample (resolved from NGSD via tumor BAM by default).", true);
-$parser->addInfile("n_system",  "Processing system file used for normal DNA sample (resolved from NGSD via tumor BAM by default).", true);
+$parser->addInfile("n_system",  "Processing system file used for normal DNA sample (resolved from NGSD via normal BAM by default).", true);
 
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 
@@ -109,7 +109,7 @@ if (count($bams) > 1)
 }
 
 //low coverage statistics
-
+/*
 $low_cov = "{$full_prefix}_stat_lowcov.bed";					// low coverage BED file
 if ($sys['type'] !== "WGS" && !empty($roi))
 {
@@ -130,7 +130,7 @@ if ($sys['type'] !== "WGS" && !empty($roi))
 	{
 		$parser->exec(get_path("ngs-bits") . "BedAnnotateGenes", "-in $low_cov -extend 25 -out $low_cov", true);
 	}
-}
+}*/
 
 //variant calling
 $manta_indels = $full_prefix . "_var_smallIndels.vcf.gz";		// small indels from manta
@@ -262,6 +262,61 @@ if(in_array("cn",$steps))
 	// copy number variant calling
 	$tmp_folder = $parser->tempFolder();
 	
+	//Creates BAF file from "$gsvar" and "bam" file and writes content to "out_file"
+	function create_baf_file($gsvar,$bam,$out_file)
+	{
+		if(!file_exists($gsvar) || !file_exists($bam)) return;
+		
+		//Abort if out_file exists to prevent interference with other jobs
+		if(file_exists($out_file)) return;
+		
+		$tmp_out = temp_file(".tsv");
+		exec2(get_path("ngs-bits")."/VariantAnnotateFrequency -in {$gsvar} -bam {$bam} -depth -out {$tmp_out}",true);
+		
+		$in_handle  = fopen($tmp_out,"r");
+		$out_handle = fopen($out_file,"w");
+		while(!feof($in_handle))
+		{
+			$line = trim(fgets($in_handle));
+			if(starts_with($line,"#")) continue;
+			if(empty($line)) continue;
+			
+			$parts = explode("\t",$line);
+			list($chr,$start,$end,$ref,$alt) = $parts;
+			if(strlen($ref) != 1 || strlen($alt) != 1 ) continue; //Skip INDELs
+
+			$freq = $parts[count($parts)-2]; //freq annotation ist 2nd last col
+			$depth= $parts[count($parts)-1]; //depth annotation is last col
+			fputs($out_handle,"{$chr}\t{$start}\t{$end}\t{$chr}_{$start}\t{$freq}\t{$depth}\n");
+		}
+		fclose($in_handle);
+		fclose($out_handle);
+	}
+	//Checks $baf_folder for missing B-AF files and creates them if neccessary
+	function complement_baf_folder($t_n_id_file,$baf_folder,&$db_conn)
+	{
+		$ids = file($t_n_id_file);
+		foreach($ids as $line)
+		{
+			if(starts_with($line,"#")) continue;
+			list($tid,$nid) = explode(",",trim($line));
+			if(!file_exists("{$baf_folder}/{$nid}.tsv"))
+			{
+				$ninfo = get_processed_sample_info($db_conn,$nid);
+				$n_gsvar = $ninfo["ps_folder"] ."/{$nid}.GSvar";
+				$n_bam = $ninfo["ps_bam"];
+				create_baf_file($n_gsvar,$n_bam,"{$baf_folder}/{$nid}.tsv");
+			}
+			if(!file_exists("{$baf_folder}/{$tid}.tsv"))
+			{
+				$ninfo = get_processed_sample_info($db_conn,$nid);
+				$n_gsvar = $ninfo["ps_folder"] ."/{$nid}.GSvar";
+				$tinfo = get_processed_sample_info($db_conn,$tid);
+				$t_bam = $tinfo["ps_bam"];
+				create_baf_file($n_gsvar,$t_bam,"{$baf_folder}/{$tid}.tsv");
+			}
+		}
+	}
 	
 	//Generate file with off-target region
 	$off_target_bed = get_path("data_folder")."/coverage/off_target_beds/".$sys['name_short'].".bed";
@@ -280,7 +335,7 @@ if(in_array("cn",$steps))
 		}
 		$ref_bed = temp_file(".bed");
 		file_put_contents($ref_bed,$ref_content);
-		$ngs_bits=get_path("ngs-bits");	
+		$ngs_bits = get_path("ngs-bits");
 		$tmp_bed = temp_file(".bed");
 		exec2("{$ngs_bits}BedExtend -in ". $sys['target_file'] ." -n 1000 | {$ngs_bits}BedMerge -out {$tmp_bed}");
 		exec2("{$ngs_bits}BedSubtract -in ".$ref_bed." -in2 {$tmp_bed} | {$ngs_bits}BedChunk -n 100000 | {$ngs_bits}BedShrink -n 25000 | {$ngs_bits}BedExtend -n 25000 | {$ngs_bits}BedAnnotateGC | {$ngs_bits}BedAnnotateGenes -out {$off_target_bed}"); //@TODO: Review parameters after a few samples have been analyzed
@@ -404,7 +459,22 @@ if(in_array("cn",$steps))
 		{
 			file_put_contents($t_n_list_file,"{$t_id},{$n_id}\n", FILE_APPEND | LOCK_EX);
 		}
-		
+
+		$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
+		create_directory($baf_folder);
+		if(db_is_enabled("NGSD"))
+		{
+			$db_conn = DB::getInstance("NGSD");
+			//Create BAF file for each sample with the same processing system if not existing
+			complement_baf_folder($t_n_list_file,$baf_folder,$db_conn);
+		}
+		else
+		{
+			$normal_gsvar = dirname($n_bam) ."/{$n_id}.GSvar";
+			create_baf_file($normal_gsvar,$n_bam,"{$baf_folder}/{$n_id}.tsv");
+			create_baf_file($normal_gsvar,$t_bam,"{$baf_folder}/{$t_id}.tsv");
+		}
+
 		//Skip CNV Calling if there are less than 5 tumor-normal coverage pairs
 		if(count(file($t_n_list_file)) > 7)
 		{
@@ -422,9 +492,10 @@ if(in_array("cn",$steps))
 			"-bed", $sys['target_file'],
 			"-t_cov_off", $t_cov_off_target,
 			"-n_cov_off", $n_cov_off_target,
-			"-bed_off", $off_target_bed
+			"-bed_off", $off_target_bed,
+			"-baf_folder", $baf_folder
 			];
-			$parser->execTool("NGS/vc_somatic_clincnv.php",implode(" ",$args_clincnv));
+			$parser->execTool("NGS/vc_clincnv_somatic.php",implode(" ",$args_clincnv));
 		}
 		else
 		{
@@ -516,7 +587,7 @@ $variants_qci = $full_prefix . "_var_qci.vcf.gz";				//CGI annotated vcf file
 if (in_array("ci", $steps))
 {
 	// add QCI output
-	$parser->execTool("Tools/converter_vcf2qci.php", "-in $variants_annotated -t_id $t_id -n_id $n_id -out $variants_qci -pass");
+	//$parser->execTool("Tools/converter_vcf2qci.php", "-in $variants_annotated -t_id $t_id -n_id $n_id -out $variants_qci -pass");
 	
 	//Check whether cancer acronym appears in acronym list
 	function is_valid_cgi_acronym($name)
@@ -597,6 +668,7 @@ if (in_array("ci", $steps))
 	];
 	if (file_exists($variants_annotated)) $parameters[] = "-mutations $variants_annotated";
 	if (file_exists($som_clincnv)) $parameters[] = "-cnas $som_clincnv";
+	if (file_exists($manta_sv_tsv)) $parameters[] = "-translocations $manta_sv_tsv";
 	//if we know genes in target region we set parameter for this file
 	$genes_in_target_region =  dirname($sys["target_file"]) . "/" .basename($sys["target_file"],".bed")."_genes.txt";
 	if(file_exists($genes_in_target_region)) $parameters[] = "-t_region $genes_in_target_region";
@@ -625,6 +697,7 @@ if (in_array("ci", $steps))
 		
 		parse_cgi_single_result("{$tmp_cgi_results_folder}/mutation_analysis.tsv","{$dest_folder}/{$prefix}_cgi_mutation_analysis.tsv");
 		parse_cgi_single_result("{$tmp_cgi_results_folder}/cna_analysis.tsv","{$dest_folder}/{$prefix}_cgi_cnv_analysis.tsv");
+		parse_cgi_single_result("{$tmp_cgi_results_folder}/fusion_analysis.txt","{$dest_folder}/{$prefix}_cgi_fusion_analysis.tsv");
 		parse_cgi_single_result("{$tmp_cgi_results_folder}/drug_prescription.tsv","{$dest_folder}/{$prefix}_cgi_drug_prescription.tsv");
 		parse_cgi_single_result("{$tmp_cgi_results_folder}/drug_prescription_bioactivities.tsv","{$dest_folder}/{$prefix}_cgi_drug_prescription_bioactivities.tsv");
 		parse_cgi_single_result("{$tmp_cgi_results_folder}/malformed_cnas.txt","{$dest_folder}/{$prefix}_cgi_malformed_cnas.txt");
@@ -643,7 +716,7 @@ if (in_array("ci", $steps))
 	}
 	//annotate CGI cnv genes to cnv input file (which was originally created by CNVHunter)
 	$cgi_cnv_result_file = $full_prefix . "_cgi_cnv_analysis.tsv";
-	if(file_exists($cgi_cnv_result_file))
+	if(file_exists($som_clincnv) && file_exists($cgi_cnv_result_file))
 	{
 		$parser->execTool("NGS/cgi_annotate_cnvs.php","-cnv_in $som_clincnv -cnv_in_cgi $cgi_cnv_result_file -out $som_clincnv");
 	}

@@ -9,6 +9,7 @@ $parser->addString("cancertype", "cancer type, see cancergenomeinterpreter.org f
 $parser->addString("out", "Output file for zipped CGI result file",false);
 $parser->addInfile("t_region", ".txt-File which contains genes that shall be included in CNV analysis. If unset, all genes in the CNV file will be sent to CGI", true);
 $parser->addFlag("no_del", "Do not delete Job on Cancer Genome Interpreter after submission");
+$parser->addFlag("no_snv_limit","Allow uploading more than 1000 SNPs");
 extract($parser->parse($argv));
 
 //discard if no input files given
@@ -344,7 +345,7 @@ if(isset($mutations))
 		$temp_mut_cont[] = "{$temp_id}\t{$chr}\t{$pos}\t{$ref}\t{$alt}";
 	}
 	
-	if(count($temp_mut_cont) > 1000)
+	if(!$no_snv_limit && count($temp_mut_cont) > 2000)
 	{
 		trigger_error("Too many variants in {$mutations}. Please filter SNPs before passing them to this tool.",E_USER_ERROR);
 	}
@@ -370,7 +371,10 @@ if($temp_cnv_file != "" && count(file($temp_cnv_file)) <= 1)
 	$temp_cnv_file = "";
 }
 
-$temp_translocations_file;
+/****************************
+ * PARSE TRANSLOCATION FILE *
+ ****************************/
+$temp_translocations_file = "";
 if(isset($translocations))
 {
 	$in = Matrix::fromTSV($translocations);
@@ -380,9 +384,7 @@ if(isset($translocations))
 	
 	$i_type = $in->getColumnIndex("type");
 	
-	
 	$mate_pairs = array("fus");
-	
 	for($i = 0;$i<$in->rows();++$i)
 	{
 		$line = $in->getRow($i);
@@ -411,14 +413,6 @@ if(isset($translocations))
 		$temp_translocations_file = temp_file(".tsv");	
 		file_put_contents($temp_translocations_file,implode("\n",$mate_pairs));
 	}
-	else
-	{
-		$temp_translocations_file = "";
-	}
-}
-else
-{
-	$temp_translocations_file = "";
 }
 
 //Send data to CGI, save job_id 
