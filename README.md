@@ -39,6 +39,7 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 ## ChangeLog
 
+* 16.01.2018: Upgrade to somatic ClinCNV 1.081 including support for B-AFs
 * 10.12.2018: Added germline CNV calling for WGS using ClinCNV
 * 29.11.2018: WGS analysis now generates a single GSvar file with all relevant variants (Impact HIGH/MODERATE/LOW or AF<=2% in public databases)
 * 22.11.2018: Retrieving CGI cancer type from new NGSD entry (somatic pipeline)

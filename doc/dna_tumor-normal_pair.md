@@ -31,7 +31,7 @@ The main output files are listed below.
 
 **Copy-number variation calling step (`cn`):**
 
-* `somatic_cnvs.tsv` - copy-number variations called with CNVHunter
+* `somatic_clincnv.tsv` - copy-number variations called with ClinCNV
 
 **Microsatellite analysis step (`msi`):**
 

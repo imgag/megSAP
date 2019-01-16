@@ -30,6 +30,6 @@ rm v1.0.4.tar.gz
 cd $folder
 git clone https://github.com/imgag/ClinCNV.git
 cd ClinCNV
-git checkout 1.04
+git checkout 1.081
 cd ..
-mv ClinCNV ClinCNV-1.04
+mv ClinCNV ClinCNV-1.081
