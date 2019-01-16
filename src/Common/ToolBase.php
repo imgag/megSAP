@@ -23,7 +23,7 @@ class ToolBase
 	private $log_file = null;
 	private $log_id = "";
 	private $start_time = null;
-	private $verbose = false;
+	private $debug = false;
 	
 	private $temp_files = array();
 	private $temp_folders = array();
@@ -138,7 +138,7 @@ class ToolBase
 		//log and print known types
 		if ($type!="")
 		{
-			if ($this->verbose)
+			if ($this->debug)
 			{
 				$tb = traceback();
 				$this->log("$type: '$message' in $file:$line.", array($tb));
@@ -261,10 +261,10 @@ class ToolBase
 			print "$this->name version ".$this->version()."\n";
 			exit(0);
 		}
-		if(in_array("--verbose", $argv))
+		if(in_array("--debug", $argv))
 		{
-			$this->verbose = true;
-			$arg_index = array_search("--verbose", $argv);
+			$this->debug = true;
+			$arg_index = array_search("--debug", $argv);
 			array_splice($argv, $arg_index, 1, array());	
 		}
 		if(in_array("--log", $argv))
@@ -294,7 +294,7 @@ class ToolBase
 		
 		//log tool start
 		$this->log("START ".$this->name." (version: ".$this->version().")");
-		$this->log("Verbose: ".($this->verbose ? "true" : "false"));
+		$this->log("Debug: ".($this->debug ? "true" : "false"));
 		
 		//set default values
 		$output = array();
@@ -551,7 +551,7 @@ class ToolBase
 		print "Special parameters:\n";
 		print "  ".str_pad("--help", $offset, " ")."Shows this help.\n";
 		print "  ".str_pad("--version", $offset, " ")."Prints version and exits.\n";
-		print "  ".str_pad("--verbose", $offset, " ")."Verbose error messages including traceback.\n";
+		print "  ".str_pad("--debug", $offset, " ")."Enables verbose error messages including traceback and disables automatic deletion of temporary files/folders.\n";
 		print "  ".str_pad("--log <file>", $offset, " ")."Logs to the specified file. Use '-' to log to STDOUT.\n";
 		print "  ".str_pad("--log_id <id>", $offset, " ")."Uses the given identifier for logging.\n";
 		print "  ".str_pad("--conf <file>", $offset, " ")."Uses the given INI file instead of the default settings.ini.\n";
@@ -857,9 +857,9 @@ class ToolBase
 		{
 			$addinfo .= "--conf ".$GLOBALS["path_ini"]." ";
 		}
-		if ($this->verbose && !contains($parameters, "--verbose"))
+		if ($this->debug && !contains($parameters, "--debug"))
 		{
-			$addinfo .= "--verbose ";
+			$addinfo .= "--debug ";
 		}
 		
 		exec($command." ".$parameters." $addinfo 2>$temp", $stdout, $return);
