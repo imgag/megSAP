@@ -109,7 +109,7 @@ if (count($bams) > 1)
 }
 
 //low coverage statistics
-/*
+
 $low_cov = "{$full_prefix}_stat_lowcov.bed";					// low coverage BED file
 if ($sys['type'] !== "WGS" && !empty($roi))
 {
@@ -130,7 +130,7 @@ if ($sys['type'] !== "WGS" && !empty($roi))
 	{
 		$parser->exec(get_path("ngs-bits") . "BedAnnotateGenes", "-in $low_cov -extend 25 -out $low_cov", true);
 	}
-}*/
+}
 
 //variant calling
 $manta_indels = $full_prefix . "_var_smallIndels.vcf.gz";		// small indels from manta
