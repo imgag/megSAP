@@ -587,7 +587,7 @@ $variants_qci = $full_prefix . "_var_qci.vcf.gz";				//CGI annotated vcf file
 if (in_array("ci", $steps))
 {
 	// add QCI output
-	//$parser->execTool("Tools/converter_vcf2qci.php", "-in $variants_annotated -t_id $t_id -n_id $n_id -out $variants_qci -pass");
+	$parser->execTool("Tools/converter_vcf2qci.php", "-in $variants_annotated -t_id $t_id -n_id $n_id -out $variants_qci -pass");
 	
 	//Check whether cancer acronym appears in acronym list
 	function is_valid_cgi_acronym($name)
