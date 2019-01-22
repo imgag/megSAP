@@ -39,6 +39,9 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 ## ChangeLog
 
+* 16.01.2018: Upgrade to somatic ClinCNV 1.081 including support for B-AFs
+* 10.12.2018: Added germline CNV calling for WGS using ClinCNV
+* 29.11.2018: WGS analysis now generates a single GSvar file with all relevant variants (Impact HIGH/MODERATE/LOW or AF<=2% in public databases)
 * 22.11.2018: Retrieving CGI cancer type from new NGSD entry (somatic pipeline)
 * 16.11.2018: Updated to freebayes 1.2.0 (parallelized to compensate for the increased runtime)
 * 07.11.2018: Updated VEP from version 93.2 to 94.5
@@ -55,6 +58,7 @@ tracker](https://github.com/imgag/megSAP/issues).
 * 18.01.2018: Added b-allele frequency files for visualization in IGV. 
 * 08.01.2018: Updated tools (BWA, samtools, snpEff) and databases (ClinVar, gnomAD, HGMD).
 * 15.12.2017: Added runs-of-homozygosity detection to the germline pipeline.
+
 
 
 

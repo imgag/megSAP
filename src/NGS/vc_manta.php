@@ -16,6 +16,7 @@ $parser->addInfile("t_bam", "Tumor BAM file, for somatic mode.", true, false);
 $parser->addInfileArray("bam", "Normal BAM file(s). Only one normal BAM file allowed for somatic mode.", true, false);
 $parser->addFlag("exome", "If set, settings for exome analysis are used.", true);
 $parser->addOutfile("smallIndels", "Output file for candidate small indels.", true);
+$parser->addString("evid_dir","Output folder for BAM files containing evidence reads.",true);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addString("temp", "Temporary folder for manta analysis.", true, "auto");
 $parser->addStringArray("regions", "Limit analysis to specified regions.", true);
@@ -148,6 +149,13 @@ else
 //zip and index output file
 $parser->exec("bgzip", "-c $vcf_filtered > $out", true);
 $parser->exec("tabix", "-p vcf $out", true);
+
+//Copy evidence bams in case of somatic/ tumor only sample
+if(isset($evid_dir))
+{
+	create_directory($evid_dir);
+	$parser->exec("cp","{$temp_folder}/mantaAnalysis/results/evidence/* {$evid_dir}",true);
+}
 
 $small = "{$manta_folder}/results/variants/candidateSmallIndels.vcf.gz";
 if (isset($smallIndels))
