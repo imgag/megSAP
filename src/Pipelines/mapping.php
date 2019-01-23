@@ -123,14 +123,17 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 			break;
 	}
 
-	$trimmed1_bc = $parser->tempFile("_trimmed1_bc.fastq.gz");
-	$trimmed2_bc = $parser->tempFile("_trimmed2_bc.fastq.gz");
-	$parser->exec(get_path("ngs-bits")."FastqExtractUMI", "-in1 $trimmed1 -in2 $trimmed2 -out1 $trimmed1_bc -out2 $trimmed2_bc -cut1 $cut1 -cut2 $cut2", true);
-	
-	$parser->deleteTempFile($trimmed1);
-	$parser->deleteTempFile($trimmed2);
-	$trimmed1 = $trimmed1_bc;
-	$trimmed2 = $trimmed2_bc;
+	if ($sys['umi_type'] != "MIPs")
+	{
+		$trimmed1_bc = $parser->tempFile("_trimmed1_bc.fastq.gz");
+		$trimmed2_bc = $parser->tempFile("_trimmed2_bc.fastq.gz");
+		$parser->exec(get_path("ngs-bits")."FastqExtractUMI", "-in1 $trimmed1 -in2 $trimmed2 -out1 $trimmed1_bc -out2 $trimmed2_bc -cut1 $cut1 -cut2 $cut2", true);
+
+		$parser->deleteTempFile($trimmed1);
+		$parser->deleteTempFile($trimmed2);
+		$trimmed1 = $trimmed1_bc;
+		$trimmed2 = $trimmed2_bc;
+	}
 
 	$barcode_correction = true;
 }
