@@ -4,6 +4,8 @@ import argparse
 import pysam
 import numpy
 import timeit
+import re
+import networkx as nx
 
 start = timeit.default_timer()
 
@@ -18,6 +20,13 @@ def keywithmaxval(d):
     v=list(d.values())
     k=list(d.keys())
     return k[v.index(max(v))]
+
+def update_tag(TAG, VALUE):
+    return [VALUE if x[0] == VALUE[0] else x for x in TAG]
+
+def get_edge(CODE, LIST, Errors):
+    EDGE = [[CODE,LIST[x]] for x in range(0,len(LIST)) if (similarity(LIST[x], CODE) <= Errors)]
+    return EDGE
 
 def extract_barcode(READ,BC_TYPE): # Individual read. It returns the barcode of the read
     NAME = str(READ.qname)
@@ -37,32 +46,29 @@ def extract_barcode(READ,BC_TYPE): # Individual read. It returns the barcode of 
     ##print bc
     return(bc)
 
-def extract_bc_groups(BC, Errors): # Input, list of reads that start are end are equal
-    BARCODE_DICT={}
+def extract_bc_groups(BC, BC_NETWORK): # Input, list of reads that start are end are equal
+    BARCODE_DICT = {}
 
-    ##print BC.keys()
+    sortedKeyList = sorted(BC.keys(), key=lambda s: len(BC.get(s)), reverse = True)
 
     while len(BC) > 0:
 
-        # The reads are stored in dict BC. Their keys are Barcode;Start_read_2.
-        # We get the more common KEY and split it in Barcode and Start_read_2 (POS2).
-        MAX = "".join(([k for k in BC.keys() if BC[k]==max(BC.values(),key=len)]))
-        Barcode = MAX.split(';')[0]
-        POS2 = MAX.split(';')[1]
-
-        # We get those indexes that Barcodes are similar to the most common one (allowing Errors) and with the same Start_read_2
-        SIM = [BC.keys()[x] for x in range(0,len(BC.keys())) if (similarity(BC.keys()[x].split(';')[0], MAX) <= Errors and BC.keys()[x].split(';')[1] == POS2)]
+        # The reads are stored in dict BC. Their keys are the Barcodes.
+        # We get the most frequent KEY (Barcode)
+        MAX = sortedKeyList[0]
 
         # We create a new key of the most common Barcode and we add later all the similar reads.
         BARCODE_DICT[MAX] = list() # Creating key in the hash based on our barcode where reads of this group will be saved
 
+        SIM = list(BC_NETWORK.adj[MAX])
+
         for i in SIM:
             BARCODE_DICT[MAX].extend(BC[i]) # Grouping reads based on similarity of the barcodes
             del BC[i] # Removing barcodes already considered
-
+            BC_NETWORK.remove_node(i)
+            sortedKeyList.remove(i)
 
     return BARCODE_DICT # Dictionary with Barcode as a key and reads as values
-
 
 def ReverseComplement(seq):
     seq_dict = {'A':'T','T':'A','G':'C','C':'G','N':'N'}
@@ -83,7 +89,7 @@ def ascii2dec(ASCII):
     return qual
 
 
-def most_common_base(LIST, QUALITIES, minBQ,STEP):
+def most_common_base(LIST, QUALITIES, minBQ):
     QUALITIES_NATIVE = QUALITIES
 
     HQ = [x for x in range(0,len(QUALITIES_NATIVE)) if QUALITIES_NATIVE[x] >= minBQ]
@@ -105,6 +111,23 @@ def most_common_base_low_qual(LIST):
 
     return BASE,NUM_DIFF_BASES
 
+def recalculate_NM(READ):
+#   # There is a problem when the cigar length does not fit to the MD tag
+#
+#   print READ.reference_name, READ.pos
+#   print READ.cigarstring, get_md_reference_length(read.get_tag("MD"))
+
+#
+#   refSeq = READ.get_reference_sequence()
+#   readSeq = READ.query_alignment_sequence
+#
+#
+#   if ('I' not in READ.cigarstring and 'I' not in READ.cigarstring and len(refSeq) == len(readSeq)):
+#       New_NM = sum(x.upper()!=y.upper() for x,y in zip(refSeq,readSeq))
+#   else:
+#   New_NM = READ.opt("NM")
+    New_NM = READ.opt("NM")
+    return New_NM
 
 def get_qualities(BASE,BASES,QUALITIES):
     QUAL = [(ord(QUALITIES[x])-33) for x in range(0,len(BASES)) if BASES[x] == BASE]
@@ -120,6 +143,7 @@ def error_read_qual(read):
     READ.qual = QUAL
     return(READ)
 
+# Change base errors to Ns
 def error_read_seq(read):
     READ = read
     seq = READ.seq
@@ -128,115 +152,30 @@ def error_read_seq(read):
     READ.seq = SEQ
     return(READ)
 
-def one_duplicate_qual(read, STEP, minBQ):
-    #READ = reduce_mapq(read)
-    READ = read
+# Check if there is at least one high quality base
+def low_quality_base_check(QUALITIES,minBQ):
+    return (max(QUALITIES) >= minBQ)
 
-    # No Variant Quality score recalibration. Just error correction. Not necessary anything else in this
-    if (STEP == 3):
-        return (READ)
-
-    qualities = READ.qual
-    QUALITIES = ascii2dec(qualities)
-    QUAL=[]
-    QUALITIES_NATIVE = QUALITIES
-
-    # Variant quality score recalibration for general barcode strategy
-    if (STEP == 0):
-        for i in range(0,len(QUALITIES_NATIVE)):
-            if (QUALITIES_NATIVE[i] >= minBQ):
-                MEDIAN = int(round(QUALITIES_NATIVE[i]/10,0))
-                # Fixing max value
-                if (MEDIAN > 5):
-                    MEDIAN = 5
-                QUALi = 10 + MEDIAN
-            else:
-                QUALi = 0
-
-            QUAL.append(str(chr(QUALi + 33)))
-
-    # Variant quality score recalibration for sub-family barcode
-    elif (STEP == 1):
-        for i in range(0,len(QUALITIES_NATIVE)):
-            if (QUALITIES_NATIVE[i] >= minBQ):
-                QUAL.append(str(chr(10 + 33)))
-            else:
-                QUAL.append("!") # 0 quality = chr(0 + 33)
-
-    # Variant quality score recalibration for family barcode
-    elif (STEP == 2):
-        for i in range(0,len(QUALITIES_NATIVE)):
-            if (QUALITIES_NATIVE[i] >= 10):
-                MEDIAN = int(round(QUALITIES_NATIVE[i]/10,0))
-
-                # Fixing max value
-                if (MEDIAN > 5):
-                    MEDIAN = 5
-                QUALi = 10 + MEDIAN
-            else:
-                QUALi = 0
-
-            QUAL.append(str(chr(QUALi + 33)))
-
-    QUAL = ''.join(QUAL)
-    #print STEP
-    #print QUAL
-    #print QUALITIES_NATIVE
-
-    READ.qual = QUAL
-    return(READ)
-
-def low_quality_base_check(QUALITIES,minBQ,STEP):
-    QUALITIES_NATIVE = QUALITIES
-    return (len(QUALITIES_NATIVE) >  len([x for x in range(0,len(QUALITIES_NATIVE)) if QUALITIES_NATIVE[x] < minBQ]))
-
+# Get consensus read qualities
 def consensus_quality(QUALITIES,minBQ,ERRORS,STEP):
     QUALITIES_NATIVE = QUALITIES
 
     # How many bases with high good quality
     COPIES = len([x for x in range(0,len(QUALITIES_NATIVE)) if QUALITIES_NATIVE[x] >= minBQ])
 
-    # Consider more or equal than 5 as best agreement
-    if (COPIES >= 5):
-        NEW_COPIES = 5
-    else:
-        NEW_COPIES = COPIES
-
-
-    if (ERRORS > 5):
-        ERRORS = 5
-
-    # Double check
     MAX_QUAL = max(QUALITIES_NATIVE)
     if (MAX_QUAL < minBQ):
-        NEW_QUAL = 0
+        NEW_QUAL = MAX_QUAL
     else:
-    # Base qualities are correlated with how many reads with good quality are showing the same allele and how many of them had errors
-    # COPIES * 10 + ERRORS
-        if (STEP == 1):
-            if ((ERRORS >= 1 and float(ERRORS)/(COPIES+ERRORS) > 0.25) or ERRORS >= 3):
-                NEW_QUAL = 0
-            else:
-                NEW_QUAL = NEW_COPIES * 10 + int(ERRORS)
-
-        elif (STEP == 2 or STEP == 0):
-            if ((ERRORS >= 1 and float(ERRORS)/(COPIES+ERRORS) > 0.25) or ERRORS >= 3):
-                NEW_QUAL = 0
-            else:
-                MEDIAN = int(round((numpy.mean(QUALITIES_NATIVE))/10,0))
-
-                # Fixing max value
-                if (MEDIAN > 5):
-                    MEDIAN = 5
-
-                NEW_QUAL = NEW_COPIES * 10 + MEDIAN
-
-        elif (STEP == 3):
+        # We label errors with base quality 0
+        # For consensus bases, we take the max as the new quality base
+        if (STEP == 1 or STEP == 2):
             if ((ERRORS >= 1 and float(ERRORS)/(COPIES+ERRORS) > 0.25) or ERRORS >= 3):
                 NEW_QUAL = 0
             else:
                 # We take the max base quality as the concensus one
-                MAX = max(QUALITIES_NATIVE)
+                MAX1 = max(QUALITIES_NATIVE)
+                MAX = max(30,MAX1)
                 NEW_QUAL = MAX
 
     return (NEW_QUAL)
@@ -254,12 +193,18 @@ def GET_FINAL_READ(reads,minBQ,STEP,SET_N):
     LIST_READNAMES = list()
     DICT_READS = {}
     READNAME = ''
+    FLAG = ''
+    DICT_FLAG = {}
+    DP1_TAG = list()
+
+
 
     if (len(reads) <= 1):
         for i in reads:
 
             # Encoding quality
-            CONSENSUS_READ = one_duplicate_qual(i, STEP, minBQ)
+            CONSENSUS_READ = i
+
 
             # We add info about the amount of duplicates per family group
             count = len(reads)
@@ -269,72 +214,82 @@ def GET_FINAL_READ(reads,minBQ,STEP,SET_N):
                 current_color = color[4]
             else:
                 current_color = color[count-1]
-            CONSENSUS_READ.tags += [('DP', count)]
-            CONSENSUS_READ.tags += [('YC', current_color)]
+
+            # adding barcodes to tag in bam file
+            if (STEP == 1):
+                CONSENSUS_READ.tags += [('DP', count)]
+                CONSENSUS_READ.tags += [('YC', current_color)]
+            elif (STEP == 2):
+                CONSENSUS_READ.tags += [('DF', count)]
 
             # Info about barcode groups
             LOG_INFO = (CONSENSUS_READ.qname, str(CONSENSUS_READ.pos), str(len(reads)))
             LOG_INFO = "\t".join(LOG_INFO)+"\n"
 
     else:
-        #SEQ = collections.OrderedDict()
-        #QUAL = collections.OrderedDict()
+        REF_LENGTH = [(k.reference_length, k.rlen,  k.cigarstring) for k in reads]
+
+        MAX_INFO = max(set(REF_LENGTH), key=REF_LENGTH.count)
+
+        #print '\n'
+        #print REF_LENGTH
+
+        # Reference length
+        MAX_REF_LENGTH = MAX_INFO[0]
+
+        # Read length
+        MAX_READ_LENGTH = MAX_INFO[1]
+
+        # Max cigarstring
+        MAX_CIGAR_LENGTH = MAX_INFO[2]
+
+
+        #print MAX_REF_LENGTH, MAX_READ_LENGTH
+
         SEQ = {}
         QUAL = {}
         MAPQ = list()
+        LQ_read = 0
 
         # Variable count for compare indels between duplicates
         # The first read is taken as reference
-        ##print reads[0].qname, reads[0].cigarstring
-        if (reads[0].cigarstring == None):
-            Ind_count = 0
-        else:
-            Ind_count = reads[0].cigarstring.count("I") + reads[0].cigarstring.count("D")
+
+        #if (reads[0].cigarstring == None):
+        #    Ind_count = 0
+        #else:
+        #    Ind_count = reads[0].cigarstring.count("I") + reads[0].cigarstring.count("D")
+
 
         for i in reads:
 
-            #print i.pos, i.aend, i.rlen, len(i.seq), i.qname, i.cigarstring, i.qstart, i.query
-            #print i.seq, i.qname, i.qual, i.cigarstring
-
             # In case that the amount of indels differ  between duplicates, we take the the first read in the lexico order and we label all them base qualities to 0
-            if (i.cigarstring == None or (i.cigarstring.count("I") + i.cigarstring.count("D")) != Ind_count):
+            if ((MAX_REF_LENGTH != i.reference_length or MAX_READ_LENGTH != i.rlen or MAX_CIGAR_LENGTH != i.cigarstring)): #and (i.cigarstring == None or "I" in i.cigarstring or "D" in i.cigarstring)):
+            #if ((MAX_REF_LENGTH != i.reference_length or MAX_READ_LENGTH != i.rlen) and (i.cigarstring == None or "I" in i.cigarstring or "D" in i.cigarstring)):
+                #print 'BULSHIT READ'
+                #print MAX_REF_LENGTH, len(i.get_reference_sequence()), i.rlen
+                READNAME = i.qname
+                FLAG = i.flag
+                DICT_READS[READNAME] = i
+                DICT_FLAG[READNAME] = FLAG
+                LIST_READNAMES.append(READNAME)
+                LQ_read = LQ_read + 1
+                continue
 
-                for j in reads:
-                # Adding reads to a hash to later, sort them in lexicographical order
-                    READNAME = j.qname
-                    DICT_READS[READNAME] = j
-                    LIST_READNAMES.append(READNAME)
+            #else:
+            #    print 'PASS READ'
+            #    print MAX_REF_LENGTH, len(i.get_reference_sequence()), i.rlen
 
-                # We take the info from the last read in the group
-                SORTED_READNAMES = sorted(LIST_READNAMES)
+            # Saving the amount of duplicates from first round of correction
+            LAST_READ = i
 
-                # When problems with Different indels between duplicates appear, we get as consensus read the first lexico read, and change or their base qualities to 0
-                if (not SET_N):
-                    CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
-                else:
-                    CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
-
-                ###print "ERROR2", CONSENSUS_READ.qname, len(CONSENSUS_SEQ), DICT_READS[SORTED_READNAMES[0]].cigarstring,
-
-                # We add info about the amount of duplicates per family group
-                count = len(reads)
-                color = ['230,242,255','179,215,255','128,187,255','77,160,255','26,133,255']
-                current_color = '0,0,0'
-                if (count > 5):
-                    current_color = color[4]
-                else:
-                    current_color = color[count-1]
-                CONSENSUS_READ.tags += [('DP', count)]
-                CONSENSUS_READ.tags += [('YC', current_color)]
-
-                LOG_INFO = (CONSENSUS_READ.qname, str(CONSENSUS_READ.pos), str(len(reads)))
-                LOG_INFO = "\t".join(LOG_INFO)+"\n"
-                return (CONSENSUS_READ, LOG_INFO)
-
+            if (STEP == 2):
+                DP1_TAG.append(i.opt("DP"))
 
             # Adding reads to a hash to later, sort them in lexicographical order
             READNAME = i.qname
+            FLAG = i.flag
             DICT_READS[READNAME] = i
+            DICT_FLAG[READNAME] = FLAG
             LIST_READNAMES.append(READNAME)
 
             LEN = i.rlen
@@ -343,9 +298,7 @@ def GET_FINAL_READ(reads,minBQ,STEP,SET_N):
             qual = i.qual
             MAPQ.append(i.mapq)
 
-
             SOFT = i.pos - i.qstart
-            ##print "SOFT", i.pos, i.qstart
 
             for b in range(0,LEN):
                 BASE = seq[b]
@@ -370,8 +323,8 @@ def GET_FINAL_READ(reads,minBQ,STEP,SET_N):
             DIFF_COUNT = ""
 
             Q = ascii2dec(QUAL[position])
-            if (low_quality_base_check(Q,minBQ,STEP)):
-                BASE = most_common_base(SEQ[position],Q,minBQ,STEP)
+            if (low_quality_base_check(Q,minBQ)):
+                BASE = most_common_base(SEQ[position],Q,minBQ)
 
                 CONSENSUS_BASE = BASE[0]
                 NUM_DIFF_BASES = BASE[1]
@@ -425,43 +378,13 @@ def GET_FINAL_READ(reads,minBQ,STEP,SET_N):
         ##print LIST_READNAMES
         READ_COUNT = 0
 
-        while (READ_COUNT < len(SORTED_READNAMES) and len(CONSENSUS_SEQ) != DICT_READS[SORTED_READNAMES[READ_COUNT]].rlen):
-            ##print "NO", len(CONSENSUS_SEQ), DICT_READS[SORTED_READNAMES[READ_COUNT]].rlen, DICT_READS[SORTED_READNAMES[0]].cigarstring, DICT_READS[SORTED_READNAMES[READ_COUNT]].rlen, DICT_READS[SORTED_READNAMES[READ_COUNT]].cigarstring
-            READ_COUNT = READ_COUNT + 1
-
-        if (READ_COUNT < len(SORTED_READNAMES) and len(CONSENSUS_SEQ) == DICT_READS[SORTED_READNAMES[READ_COUNT]].rlen):
-            CONSENSUS_READ = DICT_READS[SORTED_READNAMES[READ_COUNT]]
-            CONSENSUS_READ.qname = DICT_READS[SORTED_READNAMES[0]].qname
-            ##print ''.join(CONSENSUS_SEQ), ''.join(CONSENSUS_QUAL)
-            ##print "YES", CONSENSUS_READ.qname, len(CONSENSUS_SEQ), DICT_READS[SORTED_READNAMES[0]].cigarstring, DICT_READS[SORTED_READNAMES[READ_COUNT]].rlen, DICT_READS[SORTED_READNAMES[READ_COUNT]].cigarstring
-
-        else:
-            # When problems with Different indels between duplicates appear, we get as consensus read the first lexico read, and change or their base qualities to 0
-            if (not SET_N):
-                CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
-            else:
-                CONSENSUS_READ = error_read_qual(DICT_READS[SORTED_READNAMES[0]])
-
-            ##print "ERROR", CONSENSUS_READ.qname, len(CONSENSUS_SEQ), DICT_READS[SORTED_READNAMES[0]].cigarstring, DICT_READS[SORTED_READNAMES[READ_COUNT]].rlen, DICT_READS[SORTED_READNAMES[READ_COUNT]].cigarstring
-
-            # We add info about the amount of duplicates per family group
-            count = len(reads)
-            color = ['230,242,255','179,215,255','128,187,255','77,160,255','26,133,255']
-            current_color = '0,0,0'
-            if (count > 5):
-                current_color = color[4]
-            else:
-                current_color = color[count-1]
-            CONSENSUS_READ.tags += [('DP', count)]
-            CONSENSUS_READ.tags += [('YC', current_color)]
-
-            LOG_INFO = (CONSENSUS_READ.qname, str(CONSENSUS_READ.pos), str(len(reads)))
-            LOG_INFO = "\t".join(LOG_INFO)+"\n"
-            return (CONSENSUS_READ, LOG_INFO)
-
+        # We take as template the last HQ read, but we change the read name and the flag
+        CONSENSUS_READ = LAST_READ
+        CONSENSUS_READ.qname = SORTED_READNAMES[0]
 
         # Mapping quality == mean of reads' mapq
         CONSENSUS_READ.mapq = int(round(float(sum(MAPQ))/len(MAPQ)))
+        CONSENSUS_READ.flag = DICT_FLAG[SORTED_READNAMES[0]]
 
         # Consensus seq per position
         CONSENSUS_SEQ = ''.join(CONSENSUS_SEQ)
@@ -473,20 +396,48 @@ def GET_FINAL_READ(reads,minBQ,STEP,SET_N):
         CONSENSUS_READ.qual = CONSENSUS_QUAL
 
         # We add info about the amount of duplicates per family group
-        count = len(reads)
+        count = len(reads) - LQ_read
         color = ['230,242,255','179,215,255','128,187,255','77,160,255','26,133,255']
         current_color = '0,0,0'
+
         if (count > 5):
             current_color = color[4]
         else:
             current_color = color[count-1]
-        CONSENSUS_READ.tags += [('DP', count)]
-        CONSENSUS_READ.tags += [('YC', current_color)]
+
+        # Different correction type
+        if (STEP == 1):
+            #New_NM = recalculate_NM(CONSENSUS_READ)
+
+            # Add DP tag
+            CONSENSUS_READ.tags += [('DP', count)]
+
+            # Add color
+            CONSENSUS_READ.tags += [('YC', current_color)]
+
+            ## Update NM tag
+            #CONSENSUS_READ.tags = update_tag(CONSENSUS_READ.tags,('NM', New_NM))
+
+        elif (STEP == 2):
+            DP1_value = int(round(numpy.median(DP1_TAG)))
+            #New_NM = recalculate_NM(CONSENSUS_READ)
+
+            # Update DP tag
+            CONSENSUS_READ.tags = update_tag(CONSENSUS_READ.tags,('DP',DP1_value))
+
+            # Add DF tag
+            CONSENSUS_READ.tags += [('DF', count)]
+
+            # Update Color tag
+            CONSENSUS_READ.tags = update_tag(CONSENSUS_READ.tags,('YC', current_color))
+
+            ## Update NM tag
+            #CONSENSUS_READ.tags = update_tag(CONSENSUS_READ.tags,('NM', New_NM))
 
         # Info about barcode groups
         LOG_INFO = (CONSENSUS_READ.qname, str(CONSENSUS_READ.pos), str(len(reads)))
         LOG_INFO = "\t".join(LOG_INFO)+"\n"
-        #print "\n"
+
 
     return (CONSENSUS_READ, LOG_INFO)
 
@@ -496,9 +447,9 @@ parser = argparse.ArgumentParser(description='Correcting bamfiles using barcodes
 parser.add_argument('--infile', required=True, dest='infile', help='Input BAM file.')
 parser.add_argument('--outfile', required=True, dest='outfile', help='Output BAM file.')
 parser.add_argument('--barcodes', required=False, dest='barcodes', type=str,choices=['BEGINNING', 'END', 'BOTH'], default='BOTH', help='Barcodes to use. BEGGINING = Barcode 1; END = Barcode 2; BOTH = Barcode 1 and 2. Default = BOTH')
-parser.add_argument('--minBQ', required=False, dest='minBQ', type=int, default=30, help='Minimum base quality to be considered. Default = 30')
+parser.add_argument('--minBQ', required=False, dest='minBQ', type=int, default=10, help='Minimum base quality to be considered. Default = 30')
 parser.add_argument('--BCerror', required=False, dest='BCerror', type=int, default=0, help='Maximum number of sequencing errors allowed in barcode sequence. Default = 0')
-parser.add_argument('--step', required=False, dest='step', type=int, default=0, choices=[0, 1, 2, 3], help='Protocol step. 0: Unique barcode correction; 1: Subfamily correction; 2: Family correction; 3: Not full Base quality recalibration, just error correction. Default = 0')
+parser.add_argument('--step', required=False, dest='step', type=int, default=1, choices=[1, 2], help='Protocol step. 1: Unique barcode correction; 2: Family correction. Default = 1')
 parser.add_argument('--n', required=False, dest='n', action='store_true', help='Use Ns instead of reducing base quality.')
 
 
@@ -534,143 +485,195 @@ SET_N = args.n
 pos=0
 end=0
 BARCODE = ""
-READ = {}
 POSITIONS_DICT = {}
 ENDS = []
+UNIQUE_BARCODES = {}
+EDGE = ''
 for read in samfile.fetch():
-    length = str(read.rlen)
-    ref_end = str(read.aend)
-    ref_start = str(read.pos)
+    if not read.is_secondary:
+            length = str(read.rlen)
+            ref_end = str(read.aend)
+            ref_start = str(read.pos)
 
-    # Ref start of the paired read
-    #ref_length = str(read.next_reference_start)
-    ref_length = str(read.tlen)
+            # Both are required. Start of next read, and tlen shows the sign of othe read (- or +), which helps to separate pair reads when they map to the same coordinates
+            ref_length = str(read.next_reference_start)+','+str(read.tlen)
 
-    # Getting the barcodes
-    NAME = str(read.qname)
-    bc = extract_barcode(read,args.barcodes) # Extract the barcode
+            # Getting the barcodes
+            NAME = str(read.qname)
+            bc = extract_barcode(read,args.barcodes) # Extract the barcode
 
-    CODE = bc + ";" + ref_length
+            #CODE = bc + ";" + ref_length
+            CODE = bc
 
-    if (ref_start == pos):
+            if (ref_start == pos):
 
-        # To store the CODEs for each ref_length
-        if ref_length in POSITIONS_DICT:
-            POSITIONS_DICT[ref_length].append(CODE)
-        else:
-            POSITIONS_DICT[ref_length] = list()
-            POSITIONS_DICT[ref_length].append(CODE)
+                # To store the CODEs for each ref_length
+                if ref_length in POSITIONS_DICT:
+                    if CODE in POSITIONS_DICT[ref_length]:
+                        POSITIONS_DICT[ref_length][CODE].append(read)
+                    else:
+                        POSITIONS_DICT[ref_length][CODE] = list()
+                        POSITIONS_DICT[ref_length][CODE].append(read)
+                else:
+                        POSITIONS_DICT[ref_length] = {}
+                        POSITIONS_DICT[ref_length][CODE] = list()
+                        POSITIONS_DICT[ref_length][CODE].append(read)
 
-        # To create a Dictionary to store all reads with the code as key (create above)
-        if CODE in READ:
-            READ[CODE].append(read)
-        else:
-            READ[CODE] = list()
-            READ[CODE].append(read)
+                # Allowing errors
+                if (Errors > 0):
+                    if ref_length in UNIQUE_BARCODES:
+                        if CODE in list(UNIQUE_BARCODES[ref_length].nodes):
+                            UNIQUE_BARCODES[ref_length].add_node(CODE)
+                        else:
+                            UNIQUE_BARCODES[ref_length].add_node(CODE)
+                            EDGE = get_edge(CODE, list(UNIQUE_BARCODES[ref_length].nodes), Errors)
+                            UNIQUE_BARCODES[ref_length].add_edges_from(EDGE)
+                    else:
+                        UNIQUE_BARCODES[ref_length] = nx.Graph()
+                        UNIQUE_BARCODES[ref_length].add_node(CODE)
+                        EDGE = get_edge(CODE, list(UNIQUE_BARCODES[ref_length].nodes), Errors)
+                        UNIQUE_BARCODES[ref_length].add_edges_from(EDGE)
 
+            else:
 
-    else:
+                if (len(POSITIONS_DICT) > 0 and Errors > 0):
+                    for pos2 in POSITIONS_DICT:
+                        # When we allow errors in the Barcodes, we re-group them by similarity (Errors specified in parameter)
+                        DICTIONARY = extract_bc_groups(POSITIONS_DICT[pos2],UNIQUE_BARCODES[pos2])
 
-        if (len(READ) > 0 and Errors > 0):
-            ##print POSITIONS_DICT.keys(), len(READ), len(POSITIONS_DICT)
-            for pos2 in POSITIONS_DICT:
-                ##print pos2, len(POSITIONS_DICT[pos2])
+                        for barcode in DICTIONARY:
 
-                NEW_READS =  dict((key,value) for key, value in READ.iteritems() if key in POSITIONS_DICT[pos2])
+                            # Printing consensus reads to a new bam file
+                            NEW_READ,LOG2 = GET_FINAL_READ(DICTIONARY[barcode],minBQ,STEP,SET_N)
 
-                # When we allow errors in the Barcodes, we re-group them by similarity (Errors specified in parameter)
-                DICTIONARY = extract_bc_groups(NEW_READS,Errors)
-                #print len(DICTIONARY)
+                            LOGFILE2.write(LOG2)
+                            outfile.write(NEW_READ)
 
-                for barcode in DICTIONARY:
-                    # Printing consensus reads to a new bam file
-                    NEW_READ,LOG2 = GET_FINAL_READ(DICTIONARY[barcode],minBQ,STEP,SET_N)
-                    #NEW_READ = DICTIONARY[barcode][0]
-                    ##print STEP, NEW_READ.qual
+                    POSITIONS_DICT = {}
+                    UNIQUE_BARCODES = {}
+                    EDGE = ''
 
-                    LOGFILE2.write(LOG2)
-                    outfile.write(NEW_READ)
+                    pos = ref_start
+                    end = ref_length
 
-            READ = {}
-            POSITIONS_DICT = {}
+                    if ref_length in POSITIONS_DICT:
+                        if CODE in POSITIONS_DICT[ref_length]:
+                            POSITIONS_DICT[ref_length][CODE].append(read)
+                        else:
+                            POSITIONS_DICT[ref_length][CODE] = list()
+                            POSITIONS_DICT[ref_length][CODE].append(read)
+                    else:
+                            POSITIONS_DICT[ref_length] = {}
+                            POSITIONS_DICT[ref_length][CODE] = list()
+                            POSITIONS_DICT[ref_length][CODE].append(read)
 
-            pos = ref_start
-            end = ref_length
+                    # Allowing errors
+                    if (Errors > 0):
+                        if ref_length in UNIQUE_BARCODES:
+                            if CODE in list(UNIQUE_BARCODES[ref_length].nodes):
+                                UNIQUE_BARCODES[ref_length].add_node(CODE)
+                            else:
+                                UNIQUE_BARCODES[ref_length].add_node(CODE)
+                                EDGE = get_edge(CODE, list(UNIQUE_BARCODES[ref_length].nodes), Errors)
+                                UNIQUE_BARCODES[ref_length].add_edges_from(EDGE)
+                        else:
+                            UNIQUE_BARCODES[ref_length] = nx.Graph()
+                            UNIQUE_BARCODES[ref_length].add_node(CODE)
+                            EDGE = get_edge(CODE, list(UNIQUE_BARCODES[ref_length].nodes), Errors)
+                            UNIQUE_BARCODES[ref_length].add_edges_from(EDGE)
 
-            READ[CODE] = list()
-            READ[CODE].append(read)
+                elif (len(POSITIONS_DICT) > 0 and Errors == 0):
 
-            POSITIONS_DICT[ref_length] = list()
-            POSITIONS_DICT[ref_length].append(CODE)
+                    DICTIONARY = POSITIONS_DICT
 
-        elif (len(READ) > 0 and Errors == 0):
+                    for pos2 in DICTIONARY:
+                        # printing consensus reads to a new bam file
+                        for barcode in DICTIONARY[pos2]:
+                            NEW_READ,LOG2 = GET_FINAL_READ(list(DICTIONARY[pos2][barcode]),minBQ,STEP,SET_N)
+                            #NEW_READ = DICTIONARY[barcode][0]
+                            ##print STEP, NEW_READ.qual
 
-            DICTIONARY = READ
-            ##print len(DICTIONARY)
-            for barcode in DICTIONARY:
-                # printing consensus reads to a new bam file
-                NEW_READ,LOG2 = GET_FINAL_READ(DICTIONARY[barcode],minBQ,STEP,SET_N)
-                #NEW_READ = DICTIONARY[barcode][0]
-                ##print STEP, NEW_READ.qual
+                            LOGFILE2.write(LOG2)
+                            outfile.write(NEW_READ)
 
-                LOGFILE2.write(LOG2)
-                outfile.write(NEW_READ)
+                    POSITIONS_DICT = {}
 
-            READ = {}
-            POSITIONS_DICT = {}
+                    pos = ref_start
+                    end = ref_length
 
-            pos = ref_start
-            end = ref_length
+                    if ref_length in POSITIONS_DICT:
+                        if CODE in POSITIONS_DICT[ref_length]:
+                            POSITIONS_DICT[ref_length][CODE].append(read)
+                        else:
+                            POSITIONS_DICT[ref_length][CODE] = list()
+                            POSITIONS_DICT[ref_length][CODE].append(read)
+                    else:
+                            POSITIONS_DICT[ref_length] = {}
+                            POSITIONS_DICT[ref_length][CODE] = list()
+                            POSITIONS_DICT[ref_length][CODE].append(read)
 
-            READ[CODE] = list()
-            READ[CODE].append(read)
+                else:
+                    POSITIONS_DICT = {}
+                    UNIQUE_BARCODES = {}
+                    EDGE = ''
 
-            POSITIONS_DICT[ref_length] = list()
-            POSITIONS_DICT[ref_length].append(CODE)
+                    pos = ref_start
+                    end = ref_end
 
-        else:
-            READ = {}
-            POSITIONS_DICT = {}
+                    if ref_length in POSITIONS_DICT:
+                        if CODE in POSITIONS_DICT[ref_length]:
+                            POSITIONS_DICT[ref_length][CODE].append(read)
+                        else:
+                            POSITIONS_DICT[ref_length][CODE] = list()
+                            POSITIONS_DICT[ref_length][CODE].append(read)
+                    else:
+                            POSITIONS_DICT[ref_length] = {}
+                            POSITIONS_DICT[ref_length][CODE] = list()
+                            POSITIONS_DICT[ref_length][CODE].append(read)
 
-            pos = ref_start
-            end = ref_end
-
-            READ[CODE] = list()
-            READ[CODE].append(read)
-
-            POSITIONS_DICT[ref_length] = list()
-            POSITIONS_DICT[ref_length].append(CODE)
-
-
+                    # Allowing errors
+                    if (Errors > 0):
+                        if ref_length in UNIQUE_BARCODES:
+                            if CODE in list(UNIQUE_BARCODES[ref_length].nodes):
+                                UNIQUE_BARCODES[ref_length].add_node(CODE)
+                            else:
+                                UNIQUE_BARCODES[ref_length].add_node(CODE)
+                                EDGE = get_edge(CODE, list(UNIQUE_BARCODES[ref_length].nodes), Errors)
+                                UNIQUE_BARCODES[ref_length].add_edges_from(EDGE)
+                        else:
+                            UNIQUE_BARCODES[ref_length] = nx.Graph()
+                            UNIQUE_BARCODES[ref_length].add_node(CODE)
+                            EDGE = get_edge(CODE, list(UNIQUE_BARCODES[ref_length].nodes), Errors)
+                            #print EDGE
+                            UNIQUE_BARCODES[ref_length].add_edges_from(EDGE)
 
 
 #### We need to print the last groups of reads
-if (len(READ) > 0 and Errors > 0):
+if (len(POSITIONS_DICT) > 0 and Errors > 0):
     for pos2 in POSITIONS_DICT:
-        NEW_READS =  dict((key,value) for key, value in READ.iteritems() if key in POSITIONS_DICT[pos2])
 
         # When we allow errors in the Barcodes, we re-group them by similarity (Errors specified in parameter)
-        DICTIONARY = extract_bc_groups(NEW_READS,Errors)
+        DICTIONARY = extract_bc_groups(POSITIONS_DICT[pos2],UNIQUE_BARCODES[pos2])
 
         for barcode in DICTIONARY:
 
             # Printing consensus reads to a new bam file
             NEW_READ,LOG2 = GET_FINAL_READ(DICTIONARY[barcode],minBQ,STEP,SET_N)
-            #NEW_READ = DICTIONARY[barcode][0]
-            #print STEP, NEW_READ.qual
 
             LOGFILE2.write(LOG2)
             outfile.write(NEW_READ)
 
-elif (len(READ) > 0 and Errors == 0):
-    DICTIONARY = READ
+elif (len(POSITIONS_DICT) > 0 and Errors == 0):
 
-    for barcode in DICTIONARY:
-        # Printing consensus reads to a new bam file
-        NEW_READ,LOG2 = GET_FINAL_READ(DICTIONARY[barcode],minBQ,STEP,SET_N)
+    DICTIONARY = POSITIONS_DICT
+    for pos2 in DICTIONARY:
 
-        LOGFILE2.write(LOG2)
-        outfile.write(NEW_READ)
+        # printing consensus reads to a new bam file
+        for barcode in DICTIONARY[pos2]:
+            NEW_READ,LOG2 = GET_FINAL_READ(list(DICTIONARY[pos2][barcode]),minBQ,STEP,SET_N)
+
+            LOGFILE2.write(LOG2)
+            outfile.write(NEW_READ)
 
 
 samfile.close()
