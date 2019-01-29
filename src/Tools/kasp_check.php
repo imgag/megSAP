@@ -326,7 +326,7 @@ foreach($file as $line)
 		
 		//find BAM file(s) of sample
 		$project_folder  = get_path("project_folder");
-		list($stdout) = $parser->exec("find", "-L {$project_folder}/diagnostic/ ".($irp ? "{$project_folder}/research/" : "").($itp ? "{$project_folder}/test/" : "")." -maxdepth 3 -name \"{$sample}_0?.bam\" | grep -v bad | sort", true);	
+		list($stdout) = $parser->exec("find", "-L {$project_folder}/diagnostic/ ".($irp ? "{$project_folder}/research/" : "")." ".($itp ? "{$project_folder}/test/" : "")." -maxdepth 3 -name \"{$sample}_0?.bam\" | grep -v bad | sort", true);	
 		if (count($stdout)==0)
 		{
 			print "error - Could not find BAM file for sample $sample!\n";
