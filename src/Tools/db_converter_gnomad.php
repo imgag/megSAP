@@ -24,8 +24,6 @@ while($line = fgets($handle))
 	$info_new = array();
 	$af = null;
 	$an = null;
-	$hom = 0;
-	$hemi = 0;
 	foreach ($info as $entry)
 	{
 		//overall AF

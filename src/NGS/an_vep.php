@@ -62,7 +62,7 @@ $fields[] = "gnomADg_Hom";
 $fields[] = "gnomADg_Hemi";
 $args[] = "--custom ".get_path("data_folder")."/dbs/RepeatMasker/RepeatMasker.bed.gz,REPEATMASKER,bed,overlap,0"; //RepeatMasker
 $fields[] = "REPEATMASKER";
-$args[] = "--custom ".get_path("data_folder")."/dbs/ClinVar/clinvar_20180805_converted.vcf.gz,CLINVAR,vcf,exact,0,DETAILS"; //ClinVar
+$args[] = "--custom ".get_path("data_folder")."/dbs/ClinVar/clinvar_20190123_converted.vcf.gz,CLINVAR,vcf,exact,0,DETAILS"; //ClinVar
 $fields[] = "CLINVAR";
 $fields[] = "CLINVAR_DETAILS";
 $args[] = "--custom ".get_path("data_folder")."/dbs/phyloP/hg19.100way.phyloP100way.bw,PHYLOP,bigwig"; //phyloP
@@ -73,7 +73,7 @@ if(file_exists($omim_file))
 	$args[] = "--custom {$omim_file},OMIM,bed,overlap,0";
 	$fields[] = "OMIM";
 }
-$hgmd_file = get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2018_3_fixed.vcf.gz"; //HGMD annotation (optional because of license)
+$hgmd_file = get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2018_4_fixed.vcf.gz"; //HGMD annotation (optional because of license)
 if(file_exists($hgmd_file))
 {
 	$args[] = "--custom {$hgmd_file},HGMD,vcf,exact,0,CLASS,MUT,GENE,PHEN";
