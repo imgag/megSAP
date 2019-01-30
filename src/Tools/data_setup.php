@@ -41,7 +41,6 @@ if (!file_exists($local_folder))
 	}
 }
 
-
 //remove outdated genome FASTA files
 if (file_exists("{$local_folder}/{$build}.fa.md5"))
 {
@@ -112,11 +111,20 @@ if ($build=="GRCh37")
 		}
 		else
 		{
-			print "Annotation infos in '$info' differ. Deleting old data!\n";
+			print "Annotation infos in '$info' differ. Deleting old data and performing update!\n";
 			exec2("rm -rf {$local_annotation_folder}/*");
 		}
 	}
 	
+	//check that at least one rsync finished
+	$finished = "/rsync_done.txt";
+	if (!file_exists("{$local_annotation_folder}/{$finished}"))
+	{
+		print "No rsync finished. Performing update!\n";
+		$update = true;
+	}
+		
+	//perform update
 	if ($update)
 	{
 		print "rsync-ing annotation data...\n";
@@ -125,6 +133,8 @@ if ($build=="GRCh37")
 		{
 			print trim($line)."\n";
 		}
+		
+		touch("{$local_annotation_folder}/{$finished}");
 	}
 }
 
