@@ -19,7 +19,7 @@ $parser->addInfile("n_in",  "Input normal file in BAM format (somatic mode).", t
 $parser->addInfile("sites", "Additional sites to use (VCF/VCF.GZ format).", true);
 $parser->addFloat("min_af", "Minimum allele frequency of SNPs in 'snp_db' to use.", true, 0.01);
 $parser->addInt("min_dp", "Minimum depth of SNPs in BAM.", true, 20);
-$parser->addString("snp_db", "SNP database in VCF.GZ format from which population SNPs are extracted. Records must contain AF field.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz");
+$parser->addString("snp_db", "SNP database in VCF.GZ format from which population SNPs are extracted. Records must contain AF field.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.1.vcf.gz");
 $parser->addFlag("depth", "Add depth column(s) to 'out'.", true, 20);
 extract($parser->parse($argv));
 

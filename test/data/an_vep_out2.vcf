@@ -67,10 +67,10 @@
 ##GeneSplicer=GeneSplicer predictions
 ##ada_score=dbscSNV ADA score
 ##rf_score=dbscSNV RF score
-##INFO=<ID=gnomADg,Number=.,Type=String,Description="/mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz (exact)">
-##INFO=<ID=gnomADg_AF,Number=.,Type=String,Description="AF field from /mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz">
-##INFO=<ID=gnomADg_Hom,Number=.,Type=String,Description="Hom field from /mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz">
-##INFO=<ID=gnomADg_Hemi,Number=.,Type=String,Description="Hemi field from /mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.0.2.vcf.gz">
+##INFO=<ID=gnomADg,Number=.,Type=String,Description="/mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.1.vcf.gz (exact)">
+##INFO=<ID=gnomADg_AF,Number=.,Type=String,Description="AF field from /mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.1.vcf.gz">
+##INFO=<ID=gnomADg_Hom,Number=.,Type=String,Description="Hom field from /mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.1.vcf.gz">
+##INFO=<ID=gnomADg_Hemi,Number=.,Type=String,Description="Hemi field from /mnt/share/data//dbs/gnomAD/gnomAD_genome_r2.1.vcf.gz">
 ##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="/mnt/share/data//dbs/RepeatMasker/RepeatMasker.bed.gz (overlap)">
 ##INFO=<ID=CLINVAR,Number=.,Type=String,Description="/mnt/share/data//dbs/ClinVar/clinvar_20190123_converted.vcf.gz (exact)">
 ##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="DETAILS field from /mnt/share/data//dbs/ClinVar/clinvar_20190123_converted.vcf.gz">
