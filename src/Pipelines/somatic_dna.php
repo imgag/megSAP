@@ -275,6 +275,12 @@ if(in_array("cn",$steps))
 		
 		$in_handle  = fopen($tmp_out,"r");
 		$out_handle = fopen($out_file,"w");
+		
+		if($out_handle === false)
+		{
+			trigger_error("Could not open BAF file for writing: {$out_file}.",E_USER_WARNING);
+		}
+		
 		while(!feof($in_handle))
 		{
 			$line = trim(fgets($in_handle));
@@ -641,13 +647,17 @@ if (in_array("ci", $steps))
 			$time = get_timestamp(false);
 			$user = exec2("whoami")[0][0];
 			$user_id = $db_conn->getValue("SELECT id FROM user WHERE user_id = '{$user}' AND active='1'",-1);
-			if($user_id != -1 && is_valid_cgi_acronym($cancer_type))
+			
+			//If user is not in NGSD, we use the user "noone"
+			if($user_id == -1) $user_id = 1;
+			
+			if(is_valid_cgi_acronym($cancer_type))
 			{
 				$db_conn->executeStmt("INSERT INTO sample_disease_info (`sample_id`,`disease_info`,`type`,`user_id`,`date`) VALUES ('{$sample_id}','{$cancer_type}','CGI cancer type','{$user_id}','{$time}')");
 			}
 			else
 			{
-				trigger_error("Could not insert CGI cancer type \"{$cancer_type}\" to NGSD table \"sample_disease_info\" because user \"{$user}\" was not found in NGSD or \"{$cancer_type}\" was not recognized as a valid CGI acronym.",E_USER_WARNING);
+				trigger_error("Could not insert CGI cancer type \"{$cancer_type}\" to NGSD table \"sample_disease_info\" because \"{$cancer_type}\" was not recognized as a valid CGI acronym.",E_USER_WARNING);
 			}
 		}
 		
