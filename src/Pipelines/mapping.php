@@ -123,14 +123,17 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 			break;
 	}
 
-	$trimmed1_bc = $parser->tempFile("_trimmed1_bc.fastq.gz");
-	$trimmed2_bc = $parser->tempFile("_trimmed2_bc.fastq.gz");
-	$parser->exec(get_path("ngs-bits")."FastqExtractUMI", "-in1 $trimmed1 -in2 $trimmed2 -out1 $trimmed1_bc -out2 $trimmed2_bc -cut1 $cut1 -cut2 $cut2", true);
-	
-	$parser->deleteTempFile($trimmed1);
-	$parser->deleteTempFile($trimmed2);
-	$trimmed1 = $trimmed1_bc;
-	$trimmed2 = $trimmed2_bc;
+	if ($sys['umi_type'] != "MIPs")
+	{
+		$trimmed1_bc = $parser->tempFile("_trimmed1_bc.fastq.gz");
+		$trimmed2_bc = $parser->tempFile("_trimmed2_bc.fastq.gz");
+		$parser->exec(get_path("ngs-bits")."FastqExtractUMI", "-in1 $trimmed1 -in2 $trimmed2 -out1 $trimmed1_bc -out2 $trimmed2_bc -cut1 $cut1 -cut2 $cut2", true);
+
+		$parser->deleteTempFile($trimmed1);
+		$parser->deleteTempFile($trimmed2);
+		$trimmed1 = $trimmed1_bc;
+		$trimmed2 = $trimmed2_bc;
+	}
 
 	$barcode_correction = true;
 }
@@ -225,6 +228,31 @@ $parser->execTool("NGS/mapping_bwa.php", implode(" ", $args));
 $parser->deleteTempFile($trimmed1);
 $parser->deleteTempFile($trimmed2);
 
+//perform indel realignment
+if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
+{
+	$tmp_bam = $parser->tempFile("_indel_realign.bam");
+
+	$args = array();
+	$args[] = "-in $bam_current";
+	$args[] = "-out $tmp_bam";
+	$args[] = "-build ".$sys['build'];
+	$args[] = "-threads ".$threads;
+	if ($sys['type']=="WGS") //for WGS use exome target region
+	{
+		$args[] = "-roi ".get_path("data_folder")."/gene_lists/genes_exons.bed";
+	}
+	else if ($sys['target_file']!="")
+	{
+		$args[] = "-roi ".$sys['target_file'];
+	}
+	$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $args));
+	$parser->indexBam($tmp_bam, $threads);
+
+	$parser->deleteTempFile($bam_current);
+	$bam_current = $tmp_bam;
+}
+
 //UMIs - remove duplicates by molecular barcode
 if($barcode_correction)
 {
@@ -256,31 +284,6 @@ if($barcode_correction)
 	
 	$parser->deleteTempFile($bam_current);
 	$bam_current = $tmp_bam4;
-}
-
-//perform indel realignment
-if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
-{
-	$tmp_bam = $parser->tempFile("_indel_realign.bam");
-	
-	$args = array();
-	$args[] = "-in $bam_current";
-	$args[] = "-out $tmp_bam";
-	$args[] = "-build ".$sys['build'];
-	$args[] = "-threads ".$threads;
-	if ($sys['type']=="WGS") //for WGS use exome target region
-	{
-		$args[] = "-roi ".get_path("data_folder")."/gene_lists/genes_exons.bed";
-	}
-	else if ($sys['target_file']!="")
-	{
-		$args[] = "-roi ".$sys['target_file'];
-	}
-	$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $args));
-	$parser->indexBam($tmp_bam, $threads);
-	
-	$parser->deleteTempFile($bam_current);
-	$bam_current = $tmp_bam;
 }
 
 //remove reads from HaloPlex data that are short

@@ -202,10 +202,10 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 
 
 //imports the result into NGSD
-function sample_from_ngsd(&$db, $sample_name, $irp)
+function sample_from_ngsd(&$db, $sample_name, $irp, $itp)
 {
 	//sample name
-	$res = $db->executeQuery("SELECT s.name FROM sample s WHERE s.name='{$sample_name}' AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND (p.type='diagnostic'".($irp ? " OR p.type='research'" : "")."))");
+	$res = $db->executeQuery("SELECT s.name FROM sample s WHERE s.name='{$sample_name}' AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND (p.type='diagnostic'".($irp ? " OR p.type='research'" : "").($itp ? " OR p.type='test'" : "")."))");
 	if (count($res)>0) return $res;
 	
 	//DNA number
@@ -216,12 +216,12 @@ function sample_from_ngsd(&$db, $sample_name, $irp)
 			$sample_name = substr($sample_name, 4);
 		}
 		$sample_name = substr($sample_name, 0, 6);
-		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name='DX{$sample_name}' OR s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND (p.type='diagnostic'".($irp ? " OR p.type='research'" : "")."))");
+		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name='DX{$sample_name}' OR s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND (p.type='diagnostic'".($irp ? " OR p.type='research'" : "").($itp ? " OR p.type='test'" : "")."))");
 		if (count($res)>0) return $res;
 	}
 	
 	//FO number
-	$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND (p.type='diagnostic'".($irp ? " OR p.type='research'" : "")."))");
+	$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND (p.type='diagnostic'".($irp ? " OR p.type='research'" : "").($itp ? " OR p.type='test'" : "")."))");
 	
 	return $res;
 }
@@ -247,6 +247,7 @@ $parser->addInt("min_depth", "Minimal depth for genotype determination in NGS da
 $parser->addInt("mep", "Maximum error probabilty of of genotype matches.", true, 0.01);
 $parser->addFlag("pmm", "Prints mismatches to the command line.");
 $parser->addFlag("irp", "Include research projects.");
+$parser->addFlag("itp", "Include test projects.");
 extract($parser->parse($argv));
 
 if ($snps=="set1")
@@ -313,7 +314,7 @@ foreach($file as $line)
 	$genotypes = array_slice($genotypes, 1);
 	
 	//determine BAM file of sample
-	$res = sample_from_ngsd($db, $sample_name, $irp);
+	$res = sample_from_ngsd($db, $sample_name, $irp, $itp);
 	if (count($res)==0)
 	{
 		print "error - Could not find sample '$sample_name' in NGSD!\n";
@@ -325,10 +326,10 @@ foreach($file as $line)
 		
 		//find BAM file(s) of sample
 		$project_folder  = get_path("project_folder");
-		list($stdout) = $parser->exec("find", "-L {$project_folder}/diagnostic/ ".($irp ? "{$project_folder}/research/" : "")." -maxdepth 3 -name \"{$sample}_0?.bam\" | grep -v bad | sort", true);	
+		list($stdout) = $parser->exec("find", "-L {$project_folder}/diagnostic/ ".($irp ? "{$project_folder}/research/" : "")." ".($itp ? "{$project_folder}/test/" : "")." -maxdepth 3 -name \"{$sample}_0?.bam\" | grep -v bad | sort", true);	
 		if (count($stdout)==0)
 		{
-			trigger_error("Could not find BAM file for sample $sample!", E_USER_ERROR);
+			print "error - Could not find BAM file for sample $sample!\n";
 		}	
 		
 		//check each matching BAM file

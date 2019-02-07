@@ -20,15 +20,15 @@ while($line = fgets($handle))
 	list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info) = $parts;
 	$info = explode(";", $info);
 	
-	//get AF
-	$info_new = array();
+	//get required infos
+	$is_chrx = $chr=="X";
+	$nonpar = in_array("nonpar", $info);
 	$af = null;
 	$an = null;
-	$hom = 0;
-	$hemi = 0;
+	$hom = null;
+	$hemi = null;
 	foreach ($info as $entry)
 	{
-		//overall AF
 		if (starts_with($entry, "AF="))
 		{
 			$af = substr($entry, 3);
@@ -36,18 +36,22 @@ while($line = fgets($handle))
 		else if (starts_with($entry, "AN="))
 		{
 			$an = substr($entry, 3);
-			$info_new[] = $entry;
 		}
-		else if (starts_with($entry, "Hom="))
+		else if (starts_with($entry, "nhomalt="))
 		{
-			$info_new[] = $entry;
+			$hom = substr($entry, 8);
 		}
-		else if (starts_with($entry, "Hemi="))
+		else if ($is_chrx && $nonpar && starts_with($entry, "AC_male="))
 		{
-			$info_new[] = $entry;
+			$hemi = substr($entry, 8);
 		}
 	}
-	$info_new[] = 'AF='.($an<200 ? '0.0' : number_format($af, 5));
+	
+	$info_new = array();
+	$info_new[] = "AN=".$an;
+	$info_new[] = "Hemi=".($is_chrx && $nonpar ? $hemi : ".");
+	$info_new[] = "Hom=".$hom;
+	$info_new[] = "AF=".($an<200 ? '0.0' : number_format($af, 5));
 
 	print "$chr\t$pos\t$id\t$ref\t$alt\t$qual\t$filter\t".implode(";", $info_new)."\n";
 }

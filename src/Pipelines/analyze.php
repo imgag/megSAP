@@ -129,7 +129,8 @@ if (in_array("ma", $steps))
 
 //variant calling
 if (in_array("vc", $steps))
-{	
+{
+	
 	$args = array();
 	if ($sys['target_file']!="")
 	{
@@ -145,10 +146,17 @@ if (in_array("vc", $steps))
 		$args[] = "-min_af 0.1";
 	}
 	if(file_exists($log_vc)) unlink($log_vc);
-	$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc -threads $threads ".implode(" ", $args));
+	
+	
+	$only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT" ? true : false;
+	//Do not call standard pipeline if there is only mitochondiral chrMT in target region
+	if(!$only_mito_in_target_region)
+	{
+		$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc -threads $threads ".implode(" ", $args));
+	}
 	
 	//perform special variant calling for mitochondria
-	$mito = enable_special_mito_vc($sys);
+	$mito = enable_special_mito_vc($sys) || $only_mito_in_target_region;
 	if ($mito)
 	{
 		$target_mito = $parser->tempFile("_mito.bed");
@@ -162,7 +170,12 @@ if (in_array("vc", $steps))
 		$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile_mito -build ".$sys['build']." --log $log_vc ".implode(" ", $args));
 	}
 	
-	//add sample header to VCF
+	if($only_mito_in_target_region) 
+	{
+		$parser->copyFile($vcffile_mito,$vcffile);
+	}
+	
+	//Add header to VCF file
 	$hr = gzopen($vcffile, "r");
 	if ($hr===FALSE) trigger_error("Could not open file '" + $vcffile + "'.", E_USER_ERROR);
 	$vcf = $parser->tempFile("_unzipped.vcf");
@@ -181,7 +194,9 @@ if (in_array("vc", $steps))
 		fwrite($hw, $line."\n");
 	}
 	fclose($hr);
-	if ($mito)
+	
+	//Add mitochondrial variants to vcffile in case mito was called and it is not a pure mitochondrial sample
+	if($mito && !$only_mito_in_target_region)
 	{
 		$hr = gzopen($vcffile_mito, "r");
 		if ($hr===FALSE) trigger_error("Could not open file '" + $vcffile_mito + "'.", E_USER_ERROR);
@@ -194,6 +209,7 @@ if (in_array("vc", $steps))
 		fclose($hr);
 	}
 	fclose($hw);
+	
 	$parser->exec("bgzip", "-c $vcf > $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
 	$parser->exec("tabix", "-f -p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
 }
