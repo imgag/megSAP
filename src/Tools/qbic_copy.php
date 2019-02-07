@@ -337,13 +337,6 @@ foreach($res as $row)
 	$output[] = $fo_name;
 	$output[] = $s_qual;
 	
-	//skip bad samples
-	if ($s_qual=="bad" && !$ignore_quality)
-	{
-		printTSV($output, "SKIPPED", "bad sample quality");
-		continue;
-	}
-	
 	//check all processed samples
 	$output_sample = $output;
 	$res2 = $db->executeQuery("SELECT ps.id, p.name FROM processed_sample ps, project p WHERE sample_id='$s_id' AND ps.project_id=p.id");
