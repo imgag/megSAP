@@ -44,7 +44,7 @@ if(!isset($bed_off) || !isset($t_cov_off) || !isset($n_cov_off))
 
 //extract tool path from ClinCNV command
 $tool_folder = "";
-$parts = explode(" ", get_path("clincnv_somatic"));
+$parts = explode(" ", get_path("clincnv"));
 foreach($parts as $part)
 {
 	if ($part!="" && file_exists($part))
@@ -271,7 +271,7 @@ if(!file_exists($cohort_folder))
 {
 	trigger_error("Directory for cohort output {$cohort_folder} does not exist.",E_USER_ERROR);
 }
-$call_cnvs_exec_path = get_path("clincnv_somatic")."/clinCNV.R";
+$call_cnvs_exec_path = get_path("clincnv")."/clinCNV.R";
 
 $args = [
 "--normal", $merged_cov_normal,
@@ -280,7 +280,6 @@ $args = [
 "--pair", $cov_pairs,
 "--bed", $tmp_bed_annotated,
 "--colNum", "4",
-//"--folderWithScript", $tool_folder,
 "--lengthS", "5",
 "--scoreS", "100"
 ];

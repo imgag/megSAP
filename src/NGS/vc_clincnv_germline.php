@@ -2,7 +2,6 @@
 /** 
 	@page vc_clincnv_germline
 	
-	@todo use same ClinCNV version in germline and somatic
 	@todo update copy_number_map_strict
 */
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -21,18 +20,6 @@ extract($parser->parse($argv));
 
 //init
 $ps_name = basename($cov,".cov");
-
-//extract tool path from ClinCNV command
-$tool_folder = "";
-$parts = explode(" ", get_path("clincnv_germline"));
-foreach($parts as $part)
-{
-	if ($part!="" && file_exists($part))
-	{
-		$tool_folder = $part;
-	}
-}
-if ($tool_folder=="") trigger_error("Could not determine tool folder of ClinCNV!", E_USER_ERROR);
 
 //determine coverage files
 $cov_files = glob($cov_folder."/*.cov");
@@ -56,10 +43,9 @@ $args = [
 "--normal {$cov_merged}",
 "--normalSample {$ps_name}",
 "--bed {$bed}",
-"--out {$out_folder}",
-"--folderWithScript {$tool_folder}"
+"--out {$out_folder}"
 ];
-$parser->exec(get_path("clincnv_germline")."/firstStep.R", implode(" ", $args), true);
+$parser->exec(get_path("clincnv")."/clinCNV.R", implode(" ", $args), true);
 
 //extract sample data from output folder
 $parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv", $out);
