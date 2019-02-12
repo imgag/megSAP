@@ -1,12 +1,12 @@
 all: clear link case1 case2 case3
 
 clear:
-	rm -rf Sample_GS110168 Sample_GS110169 Sample_GS150344_01  Sample_DX183978_01 Sample_DX183927_01
-	rm -rf out_case1 out_case2 out_case3
+	rm -rf Sample_GS110168 Sample_GS110169 Sample_GS150344_01
+	rm -rf out_case1 out_case2
 
 link:
-	mkdir -p Sample_GS110168 Sample_GS110169 Sample_GS150344_01 Sample_DX183978_01 Sample_DX183927_01
-	mkdir -p out_case1 out_case2 out_case3
+	mkdir -p Sample_GS110168 Sample_GS110169 Sample_GS150344_01
+	mkdir -p out_case1 out_case2
 	# input files for case 1
 	php ../link_test_data.php GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz Sample_GS150344_01/GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz
 	php ../link_test_data.php GS150344_01_GCTCGGTAextracted_L001_R2_001.fastq.gz Sample_GS150344_01/GS150344_01_GCTCGGTAextracted_L001_R2_001.fastq.gz
@@ -17,15 +17,6 @@ link:
 	php ../link_test_data.php GS110168_chr21_L007_R2_001.fastq.gz Sample_GS110168/GS110168_chr21_L007_R2_001.fastq.gz
 	php ../link_test_data.php GS110169_chr21_L008_R1_001.fastq.gz Sample_GS110169/GS110169_chr21_L008_R1_001.fastq.gz
 	php ../link_test_data.php GS110169_chr21_L008_R2_001.fastq.gz Sample_GS110169/GS110169_chr21_L008_R2_001.fastq.gz
-	#input files for case 3
-	php ../link_test_data.php DX183978_01_chr1_chr2.bam Sample_DX183978_01/DX183978_01.bam
-	php ../link_test_data.php DX183978_01_chr1_chr2.bam.bai Sample_DX183978_01/DX183978_01.bam.bai
-	php ../link_test_data.php DX183927_01_chr1_chr2.bam Sample_DX183927_01/DX183927_01.bam
-	php ../link_test_data.php DX183927_01_chr1_chr2.bam.bai Sample_DX183927_01/DX183927_01.bam.bai
-	#link additional files for case 3, files are only neccessary to test the creation of the somatic report in GSvar
-	php ../link_test_data.php DX183978_01_stats_map.qcML Sample_DX183978_01/DX183978_01_stats_map.qcML
-	php ../link_test_data.php DX183927_01_stats_map.qcML Sample_DX183927_01/DX183927_01_stats_map.qcML
-	php ../link_test_data.php DX183927_01.GSvar Sample_DX183927_01/DX183927_01.GSvar
 
 # tumor-only
 case1: case1_analyze case1_somatic case1_diff
@@ -95,18 +86,3 @@ case2_diff:
 	diff expected_case2/GS110168-GS110169_bafs.igv out_case2/GS110168-GS110169_bafs.igv
 	# MSI file
 	diff expected_case2/GS110168-GS110169_msi.tsv out_case2/GS110168-GS110169_msi.tsv
-
-# tumor-normal, intended for testing CNV calls, bam file already exists
-case3: case3_somatic case3_diff
-case3_somatic:
-	php ../../src/Pipelines/somatic_dna.php \
-		-t_bam Sample_DX183978_01/DX183978_01.bam -n_bam Sample_DX183927_01/DX183927_01.bam \
-		-out_folder out_case3 \
-		-prefix DX183978_01-DX183927_01 \
-		-steps vc,an,cn,ci\
-		-system somatic_cn_test_pair.ini -n_system somatic_cn_test_pair.ini \
-		-cancer_type CM \
-		--log out_case3/DX183978_01-DX183927_01.log
-case3_diff:
-	php ../compare_variants.php -in1 expected_case3/DX183978_01-DX183927_01.GSvar -in2 out_case3/DX183978_01-DX183927_01.GSvar
-	diff expected_case3/DX183978_01-DX183927_01_clincnv.tsv out_case3/DX183978_01-DX183927_01_clincnv.tsv
