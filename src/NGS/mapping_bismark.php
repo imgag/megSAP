@@ -75,7 +75,7 @@ if ($paired)
 		"-a1", $sys["adapter1_p5"],
 		"-a2", $sys["adapter2_p7"],
 		"-qc", $qc_fastq,
-		"-threads", min($threads, 2), //use at most 2 threads
+		"-threads", bound($threads, 1, 6)
 	);
 	$parser->exec(get_path("ngs-bits")."SeqPurge", implode(" ", $seqpurge_params), true);
 }
