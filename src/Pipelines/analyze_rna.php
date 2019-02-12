@@ -284,7 +284,8 @@ if (in_array("fu",$steps))
 			"--genome_lib_dir", $fusion_index,
 			"--chimeric_junction", $chimeric_file_tmp,
 			"--output_dir", $fusion_tmp_folder,
-			"--examine_coding_effect"
+			"--examine_coding_effect",
+			"--CPU", $threads
 		];
 
 		$input_reads_available = isset($fastq_trimmed1) &&
@@ -327,7 +328,8 @@ if (in_array("fu",$steps))
 			if (count($igv_tracks) > 0)
 			{
 				$igv_tracks_arg = implode(" ", $igv_tracks);
-				$parser->execTool("NGS/igv_session.php", "-genome {$prefix}_var_fusions.fa -out {$igv_session_file} -in {$igv_tracks_arg} -relative");
+				$genome_rel = relative_path(dirname($igv_session_file), "{$prefix}_var_fusions.fa");
+				$parser->execTool("NGS/igv_session.php", "-genome {$genome_rel} -out {$igv_session_file} -in {$igv_tracks_arg} -relative");
 			}
 
 		}
