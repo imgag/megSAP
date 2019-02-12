@@ -66,8 +66,11 @@ if ($fix_bam)
 		$parser->execPipeline($pipeline, "filter bam");
 		$parser->indexBam($b_tmp, $threads);
 	}
-
-	$bam = array_slice($bams_nocomplex, 0, count($bam));
+	
+	if (!$mode_tumor_only)
+	{
+		$bam = array_slice($bams_nocomplex, 0, count($bam));
+	}
 	if (isset($t_bam))
 	{
 		$t_bam = array_pop($bams_nocomplex);
