@@ -230,9 +230,12 @@ if (in_array("an", $steps))
 	fclose($h1);
 	fclose($h2);
 
+	//Sort variant list (neccessary for tabix)
+	$vcf_sorted = $parser->tempFile("_unsorted.vcf");
+	$parser->exec(get_path("ngs-bits")."VcfStreamSort","-in $vcf -out $vcf_sorted",true);
 	//zip variant list
 	$vcf_zipped = "{$out_folder}{$prefix}_var.vcf.gz";
-	$parser->exec("bgzip", "-c $vcf > $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
+	$parser->exec("bgzip", "-c $vcf_sorted > $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 	$parser->exec("tabix", "-p vcf $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 
 	//basic annotation
