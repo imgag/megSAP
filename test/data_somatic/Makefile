@@ -1,4 +1,4 @@
-all: clear link case1 case2 case3
+all: clear link case1 case2
 
 clear:
 	rm -rf Sample_GS110168 Sample_GS110169 Sample_GS150344_01
@@ -82,7 +82,7 @@ case2_diff:
 	test -s Sample_GS110169/GS110169_cgi_mutation_analysis.tsv
 	# qcML files
 	php ../compare_qcml_xml.php expected_case2/GS110168-GS110169_stats_som.qcML out_case2/GS110168-GS110169_stats_som.qcML
-	# bafs
-	diff expected_case2/GS110168-GS110169_bafs.igv out_case2/GS110168-GS110169_bafs.igv
 	# MSI file
 	diff expected_case2/GS110168-GS110169_msi.tsv out_case2/GS110168-GS110169_msi.tsv
+	# bafs
+	diff expected_case2/GS110168-GS110169_bafs.igv out_case2/GS110168-GS110169_bafs.igv

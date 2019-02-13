@@ -147,9 +147,8 @@ if (in_array("vc", $steps))
 	}
 	if(file_exists($log_vc)) unlink($log_vc);
 	
-	
-	$only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT" ? true : false;
 	//Do not call standard pipeline if there is only mitochondiral chrMT in target region
+	$only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT";
 	if(!$only_mito_in_target_region)
 	{
 		$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc -threads $threads ".implode(" ", $args));
@@ -172,7 +171,7 @@ if (in_array("vc", $steps))
 	
 	if($only_mito_in_target_region) 
 	{
-		$parser->copyFile($vcffile_mito,$vcffile);
+		$parser->copyFile($vcffile_mito, $vcffile);
 	}
 	
 	//Add header to VCF file

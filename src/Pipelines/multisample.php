@@ -1,9 +1,7 @@
 <?php
 
 /**
-	@page multisample	  
-	
-	@todo allow multi-sample analysis of non-coding variants for WGS
+	@page multisample
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -79,7 +77,7 @@ foreach($bams as $bam)
 
 //extract processing system information from DB
 $sys = load_system($system, $names[$bams[0]]);
-$target_file = $sys['type']!="WGS" ? $sys['target_file'] : get_path("data_folder")."/gene_lists/genes_exons.bed";
+$target_file = $sys['type']!="WGS" ? $sys['target_file'] : get_path("data_folder")."/enrichment/WGS_hg19.bed";
 if ($target_file=="")
 {
 	trigger_error("Cannot perform multi-sample analysis without target region (processing systems of ".$bams[0]." is '".$sys["name_short"]."')!", E_USER_ERROR);
