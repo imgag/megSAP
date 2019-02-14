@@ -47,7 +47,7 @@ $fields[] = "FATHMM_MKL_NC";
 $args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
 $fields[] = "MaxEntScan_ref";
 $fields[] = "MaxEntScan_alt";
-$args[] = "--plugin GeneSplicer,{$vep_path}/GeneSplicer/bin/linux/genesplicer,{$vep_path}/GeneSplicer/human,context=50"; //GeneSplicer
+$args[] = "--plugin GeneSplicer,{$vep_path}/GeneSplicer/sources/genesplicer,{$vep_path}/GeneSplicer/human,context=50"; //GeneSplicer
 $fields[] = "GeneSplicer";
 $args[] = "--plugin dbscSNV,".get_path("data_folder")."/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"; //dbscSNV
 $fields[] = "ada_score";

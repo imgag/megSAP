@@ -125,7 +125,7 @@ if (isset($target) && $threads > 1)
 		
 		//check which started processes are still runnning
 		$tmp_base = basename($tmp_dir);
-		list($processes) = exec2("ps ax | grep ".get_path("freebayes"));
+		list($processes) = exec2("ps auxww | grep ".get_path("freebayes"));
 		$chrs_running = array_keys($running);
 		foreach($chrs_running as $chr)
 		{

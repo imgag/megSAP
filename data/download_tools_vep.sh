@@ -7,6 +7,7 @@ root=`pwd`
 tools=$root/tools/
 dbs=$root/dbs/
 
+
 vep_install_dir=$tools/ensembl-vep-release-95.1/
 vep_cpan_dir=$vep_install_dir/cpan/
 vep_data_dir=$dbs/ensembl-vep-95/
@@ -17,7 +18,6 @@ wget https://github.com/Ensembl/ensembl-vep/archive/release/95.1.tar.gz
 tar xzf 95.1.tar.gz
 
 # install BigFile support (for BigWig support needed to annotate phyloP)
-mkdir -p $vep_install_dir
 cd $vep_install_dir
 export KENT_SRC=$PWD/kent-335_base/src
 export MACHTYPE=$(uname -m)
@@ -59,3 +59,5 @@ cd $vep_install_dir
 wget ftp://ccb.jhu.edu/pub/software/genesplicer/GeneSplicer.tar.gz
 tar -xzf GeneSplicer.tar.gz
 rm -rf GeneSplicer.tar.gz
+cd GeneSplicer/sources/
+make
