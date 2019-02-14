@@ -4,11 +4,7 @@
 	
 	@todo test extended splice region plugin: https://github.com/Ensembl/VEP_plugins/blob/release/94/SpliceRegion.pm
 	@todo test parameters: --gene_phenotype --ccds --biotype --canonical --pubmed
-	@todo check bugs are fixed in new VEP version:
-		- bug: chr2:48033890 CT>C not annotated with dbSNP identifier rs267608137
-		- bug: chr17:41244936 G>A not annotated with 1000 Genomes AF
-		- bug: chr5:138658646 A>C not annotated with dbSNP identifier, 1000 Genomes AF, genomAD AF
-		- bug: chr16:89346631 G>C not annotated with dbSNP identifier, 1000 Genomes AF, genomAD AF
+	@todo check annotation bugs are fixed in /mnt/users/ahsturm1/Sandbox/bugs/vep/annotations/
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

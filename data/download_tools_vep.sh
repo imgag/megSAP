@@ -7,14 +7,14 @@ root=`pwd`
 tools=$root/tools/
 dbs=$root/dbs/
 
-vep_install_dir=$tools/ensembl-vep-release-94.5/
+vep_install_dir=$tools/ensembl-vep-release-95.1/
 vep_cpan_dir=$vep_install_dir/cpan/
-vep_data_dir=$dbs/ensembl-vep-94/
+vep_data_dir=$dbs/ensembl-vep-95/
 
 # download ensembl-vep
 cd $tools
-wget https://github.com/Ensembl/ensembl-vep/archive/release/94.5.tar.gz
-tar xzf 94.5.tar.gz
+wget https://github.com/Ensembl/ensembl-vep/archive/release/95.1.tar.gz
+tar xzf 95.1.tar.gz
 
 # install BigFile support (for BigWig support needed to annotate phyloP)
 mkdir -p $vep_install_dir
@@ -37,7 +37,7 @@ mkdir -p $vep_data_dir
 cd $vep_data_dir
 mkdir -p ftp
 cd ftp
-wget ftp://ftp.ensembl.org/pub/release-94/variation/VEP/homo_sapiens_vep_94_GRCh37.tar.gz
+wget ftp://ftp.ensembl.org/pub/release-95/variation/VEP/homo_sapiens_vep_95_GRCh37.tar.gz
 
 #install ensembl-vep
 PERL5LIB=$vep_install_dir/Bio/:$vep_install_dir/cpan/lib/perl5/:$PERL5LIB
