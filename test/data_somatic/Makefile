@@ -83,6 +83,6 @@ case2_diff:
 	# qcML files
 	php ../compare_qcml_xml.php expected_case2/GS110168-GS110169_stats_som.qcML out_case2/GS110168-GS110169_stats_som.qcML
 	# MSI file
-	diff expected_case2/GS110168-GS110169_msi.tsv out_case2/GS110168-GS110169_msi.tsv
+	numdiff expected_case2/GS110168-GS110169_msi.tsv out_case2/GS110168-GS110169_msi.tsv --absolute-tolerance 0.01
 	# bafs
-	diff expected_case2/GS110168-GS110169_bafs.igv out_case2/GS110168-GS110169_bafs.igv
+	numdiff expected_case2/GS110168-GS110169_bafs.igv out_case2/GS110168-GS110169_bafs.igv --absolute-tolerance 0.01
