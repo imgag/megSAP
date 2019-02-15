@@ -254,7 +254,6 @@ if (in_array("cn", $steps))
 		
 		if (!file_exists($filename))
 		{
-			substr($bam, 0, -4)."_clicnv.tsv";
 			trigger_error("Skipping CN analysis because sample CNV file is missing: $filename", E_USER_WARNING);
 			$skip_cn = true;
 			break;
