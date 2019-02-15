@@ -16,10 +16,11 @@ vep_data_dir=$dbs/ensembl-vep-95/
 cd $tools
 wget https://github.com/Ensembl/ensembl-vep/archive/release/95.1.tar.gz
 tar xzf 95.1.tar.gz
+rm 95.1.tar.gz
 
 # install BigFile support (for BigWig support needed to annotate phyloP)
 cd $vep_install_dir
-export KENT_SRC=$PWD/kent-335_base/src
+export KENT_SRC=$vep_install_dir/kent-335_base/src
 export MACHTYPE=$(uname -m)
 export CFLAGS="-fPIC"
 wget https://github.com/ucscGenomeBrowser/kent/archive/v335_base.tar.gz

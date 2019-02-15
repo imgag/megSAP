@@ -11,7 +11,7 @@ We are providing instructions for Ubuntu 18.04 here. However this should be reas
 
 ### Base dependencies
 
-    > sudo apt-get install -y bzip2 default-jre perl-base php7.2-cli php7.2-xml php7.2-mysql python-matplotlib python-numpy python-pysam tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev
+    > sudo apt-get install -y bzip2 default-jre perl-base libgd-dev libxml2-dev libxml2-utils php7.2-cli php7.2-xml php7.2-mysql python-matplotlib python-numpy python-pysam tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev
 
 ### Perl dependencies
 
