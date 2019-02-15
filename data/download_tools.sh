@@ -35,9 +35,9 @@ make
 
 #download ABRA2
 cd $folder
-mkdir abra2-2.18
-cd abra2-2.18
-wget https://github.com/mozack/abra2/releases/download/v2.18/abra2-2.18.jar -O abra2.jar
+mkdir abra2-2.19
+cd abra2-2.19
+wget https://github.com/mozack/abra2/releases/download/v2.19/abra2-2.19.jar -O abra2.jar
 
 #download and build samblaster
 cd $folder
