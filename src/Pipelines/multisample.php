@@ -243,20 +243,197 @@ if (in_array("an", $steps))
 //(3) copy-number calling
 if (in_array("cn", $steps))
 {
+	$cn_type = array(); //"clincnv" or "cnvhunter"
+	
 	//check that sample CNV files are present
 	$skip_cn = false;
 	foreach($bams as $bam)
 	{
-		$filename = substr($bam, 0, -4)."_cnvs.tsv";
+		$filename = substr($bam, 0, -4)."_clincnv.tsv"; //ClinCNV file
+		if (!file_exists($filename)) $filename = substr($bam, 0, -4)."_cnvs.tsv"; //CNVHunter file
+		
 		if (!file_exists($filename))
 		{
+			substr($bam, 0, -4)."_clicnv.tsv";
 			trigger_error("Skipping CN analysis because sample CNV file is missing: $filename", E_USER_WARNING);
 			$skip_cn = true;
 			break;
 		}
+		
+		//Determine filetype (ClinCNV or CNVHunter)
+		$filetype = "";
+		$handle = fopen($filename,"r");
+		while(!feof($handle))
+		{
+			$line = trim(fgets($handle));
+			if(!starts_with($line,"#chr")) continue;
+			
+			$parts = explode("\t",$line);
+			foreach($parts as $part)
+			{
+				if($part == "region_zscores") //CNVHunter-specific entry
+				{
+					$filetype = "cnvhunter";
+					break;
+				}
+				if($part == "CN_change") //ClinCNV-specific entry
+				{
+					$filetype = "clincnv";
+				}
+			}
+			break;
+		}
+		fclose($handle);
+		if($filetype == "")
+		{
+			trigger_error("Could not determine filetype of {$filename}. Aborting CNV multisample call.",E_USER_WARNING);
+			$skip_cn = true;
+			break;
+		}
+		$cn_type[] = $filetype;
 	}
 	
-	if (!$skip_cn)
+	$cn_type = array_unique($cn_type);
+	if(count($cn_type) == 1)
+	{
+		$cn_type = $cn_type[0];
+	}
+	else
+	{
+		trigger_error("Input CNVs have different filetypes. Aborting CNV multisample call.",E_USER_WARNING);
+		$skip_cn = true;
+	}
+	
+	
+	/******************
+	 * MERGE CLINCNVS *
+	 ******************/
+	if(!$skip_cn && $cn_type == "clincnv")
+	{
+		//load CNV files
+		$output = array();
+		$cnv_data = array();
+
+		foreach($bams as $bam)
+		{
+			//parse CNV file
+			$cnv_num = 0;
+			$data = array();
+			$file = file(substr($bam, 0, -4)."_cnvs.tsv");
+
+			foreach($file as $line)
+			{
+				$line = nl_trim($line);
+				if($line == "") continue;
+				
+				if(starts_with($line, "#"))
+				{
+					if(starts_with($line,"##"))
+					{
+						$output[] = $line;
+					}
+					continue;
+				}
+				//content line
+				$parts = explode("\t",$line);
+				list($chr,$start,$end,$cn,$loglikelihood,$no_of_regions,$length_KB,$potential_af) =  explode("\t", $line);
+			
+				$data[] = array("chr" => $chr, "start" => $start, "end" =>$end, "cn" => $cn, "loglike" =>$loglikelihood, "cnv_num" =>$cnv_num, "pot_af" => $potential_af);
+				++$cnv_num;
+			}
+			$cnv_data[] = $data;
+		}
+
+		
+		//intersect CNV regions of affected (with same CN state)
+		$regions = null;
+		$i = -1;
+		
+		foreach($status as $bam => $stat)
+		{
+			++$i;
+			
+			//skip controls;
+			if ($stat != "affected") continue;
+			
+			//first affected => init
+			if (is_null($regions))
+			{
+				$regions = $cnv_data[$i];
+				continue;
+			}
+			
+			$tmp = array();
+			foreach($regions as $cnv)
+			{
+				foreach($cnv_data[$i] as $cnv2)
+				{
+					if($cnv["chr"]==$cnv2["chr"] && $cnv["start"] == $cnv2["start"] && $cnv["end"] == $cnv2["end"] && $cnv["cn"] == $cnv2["cn"])
+					{
+						$new_entry = $cnv;
+						$new_entry["loglike"] .= ",".$cnv2["loglike"];
+						$new_entry["pot_af"] .= ",".$cnv2["pot_af"];
+						$tmp[] = $new_entry;
+						break;
+					}
+				}
+			}
+			$regions = $tmp;
+		}
+		
+		//subtract CNV regions of controls (with same CN state)
+		$i=-1;
+		
+		foreach($status as $bam => $stat)
+		{
+			++$i;
+			
+			if($stat == "affected") continue;
+			
+			//subtract
+			$tmp = array();
+			foreach($regions as $cnv)
+			{
+				$match = false;
+				foreach($cnv_data[$i] as $cnv2)
+				{
+					if($cnv["chr"]==$cnv2["chr"] && $cnv["start"] == $cnv2["start"] && $cnv["end"] == $cnv2["end"] && $cnv["cn"] == $cnv2["cn"])
+					{
+						$match = true;
+						break;
+					}
+				}
+				if(!$match)
+				{
+					$tmp[] = $cnv;
+				}
+			}
+			$regions = $tmp;
+		}
+		
+		$output[] = "#chr\tstart\tend\tsample\tsize\tCN_change\tloglikelihood\tpotential_AFs\toverlaps_cnp_region\tgenes\tdosage_sensitive_disease_genes";
+		foreach($regions as $reg)
+		{
+			
+			$line = array(
+				$reg["chr"],
+				$reg["start"],
+				$reg["end"],
+				$prefix,
+				intval($reg["end"])-intval($reg["start"]),
+				$reg["cn"],
+				$reg["loglike"],
+				$reg["pot_af"]
+			);
+			
+			$output[] = implode("\t",$line);
+		}
+	}
+	
+	/*******************
+	 * MERGE CNVHUNTER *
+	 *******************/
+	if (!$skip_cn && $cn_type == "cnvhunter")
 	{
 		//load CNV files
 		$output = array();
@@ -405,6 +582,13 @@ if (in_array("cn", $steps))
 			}
 			$output[] = "{$chr}\t{$start}\t{$end}\t{$prefix}\t".($end-$start)."\t".count($regions)."\t".implode(",", $cns)."\t".implode(",", $zs)."\t".implode(",", $afs)."\t".implode(",", $cords);
 		}
+	}
+	
+	/************************
+	 * ANNOTATE MERGED FILE *
+	 ************************/
+	if(!$skip_cn)
+	{
 		$tmp1 = temp_file(".bed");
 		file_put_contents($tmp1, implode("\n", $output));
 		
@@ -422,7 +606,8 @@ if (in_array("cn", $steps))
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp3} -in2 ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed -out {$tmp4}", true);
 		
 		//annotate OMIM
-		$cnv_multi = "{$out_folder}{$prefix}_cnvs.tsv";
+		if($cn_type == "cnvhunter")	$cnv_multi = "{$out_folder}{$prefix}_cnvs.tsv";
+		elseif($cn_type == "clincnv") $cnv_multi = "{$out_folder}{$prefix}_clincnv.tsv";
 		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 		if (file_exists($omim_file))
 		{
