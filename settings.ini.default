@@ -14,7 +14,7 @@ samblaster = [path]/data/tools/samblaster/samblaster
 bwa = [path]/data/tools/bwa-0.7.17/bwa
 vep = [path]/data/tools/ensembl-vep-release-95.1/vep
 vep_data = [path]/data/dbs/ensembl-vep-95/
-clincnv = Rscript --vanilla [path]/data/tools/ClinCNV-1.11.0/
+clincnv = Rscript --vanilla [path]/data/tools/ClinCNV-1.12.0/
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.9.centos6_x86_64/bin/
