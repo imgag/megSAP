@@ -318,7 +318,7 @@ if (in_array("cn", $steps))
 			//parse CNV file
 			$cnv_num = 0;
 			$data = array();
-			$file = file(substr($bam, 0, -4)."_cnvs.tsv");
+			$file = file(substr($bam, 0, -4)."_clincnv.tsv");
 
 			foreach($file as $line)
 			{
