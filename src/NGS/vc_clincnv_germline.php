@@ -45,7 +45,8 @@ $args = [
 "--normal {$cov_merged}",
 "--normalSample {$ps_name}",
 "--bed {$bed}",
-"--out {$out_folder}"
+"--out {$out_folder}",
+"--maxNumGermCNVs {$max_cnvs}"
 ];
 $parser->exec(get_path("clincnv")."/clinCNV.R", implode(" ", $args), true);
 
