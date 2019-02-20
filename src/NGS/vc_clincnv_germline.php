@@ -50,8 +50,8 @@ $args = [
 ];
 $parser->exec(get_path("clincnv")."/clinCNV.R", implode(" ", $args), true);
 
-//extract sample data from output folder
-$parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv", $out);
+//sort and extract sample data from output folder
+$parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv -out $out",true);
 $parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
 
 //annotate
