@@ -50,9 +50,13 @@ $args = [
 ];
 $parser->exec(get_path("clincnv")."/clinCNV.R", implode(" ", $args), true);
 
+
 //sort and extract sample data from output folder
 $parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv -out $out",true);
 $parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
+
+//Add header line holding type of analysis
+file_put_contents($out,"##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE\n".file_get_contents($out));
 
 //annotate
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/misc/copy_number_map_strict.bed -out {$out}", true);

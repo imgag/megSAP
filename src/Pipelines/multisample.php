@@ -249,7 +249,7 @@ if (in_array("cn", $steps))
 	$skip_cn = false;
 	foreach($bams as $bam)
 	{
-		$filename = substr($bam, 0, -4)."_clincnv.tsv"; //ClinCNV file
+		$filename = substr($bam, 0, -4)."_cnvs_clincnv.tsv"; //ClinCNV file
 		if (!file_exists($filename)) $filename = substr($bam, 0, -4)."_cnvs.tsv"; //CNVHunter file
 		
 		if (!file_exists($filename))
@@ -311,6 +311,8 @@ if (in_array("cn", $steps))
 	{
 		//load CNV files
 		$output = array();
+		//Comment in output describing AnalysisType
+		$output[] = "##ANALYSISTYPE=CLINCNV_GERMLINE_MULTI";
 		$cnv_data = array();
 
 		foreach($bams as $bam)
@@ -318,7 +320,7 @@ if (in_array("cn", $steps))
 			//parse CNV file
 			$cnv_num = 0;
 			$data = array();
-			$file = file(substr($bam, 0, -4)."_clincnv.tsv");
+			$file = file(substr($bam, 0, -4)."_cnvs_clincnv.tsv");
 
 			foreach($file as $line)
 			{

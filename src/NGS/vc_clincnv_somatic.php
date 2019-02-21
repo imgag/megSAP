@@ -87,34 +87,6 @@ function get_somatic_pairs($cov_folder_tumor,$file_name)
 	fclose($handle_tmp_file_pairs);
 }
 
-//sorts tsv file according to chromosome and start position
-function sort_clincnv_file($in,$out)
-{
-	$data = file($in);
-	$header = "";
-	$contents ="";
-	foreach($data as $line)
-	{
-		if(starts_with($line,"#"))
-		{
-			$header .= $line;
-			continue;
-		}
-		$contents .= $line;
-	}
-	
-	$tmp_file1 = temp_file(".tsv");
-	$tmp_file2 = temp_file(".tsv");
-	file_put_contents($tmp_file1,$contents);
-	exec2("sort -k1.4,1 -k2,2 -V {$tmp_file1}  > {$tmp_file2}");
-	
-	$contents_sorted = file_get_contents($tmp_file2);
-	
-	$merged = $header . $contents_sorted;
-	
-	file_put_contents($out,$merged);
-}
-
 //Creates file with paths to coverage files using ref folder and current sample cov path, if ids contains data: skip all ids not contained
 function create_file_with_paths($ref_cov_folder,$cov_path)
 {
@@ -349,10 +321,11 @@ if(!file_exists($unparsed_cnv_file))
  * PARSE RAW CLINCNV FILE *
  **************************/
 //sort by chromosome and cnv start position
-sort_clincnv_file($unparsed_cnv_file,$unparsed_cnv_file);
+$parser->exec(get_path("ngs-bits")."/BedSort","-in $unparsed_cnv_file -out $unparsed_cnv_file",true);
  
 //insert column with sample identifier for convenience (next to "end"-column")
 $cnvs = Matrix::fromTSV($unparsed_cnv_file);
+$cnvs->addComment("#ANALYSISTYPE=CLINCNV_TUMOR_NORMAL_PAIR");
 
 $sample_col = array_fill(0,$cnvs->rows(),"{$t_id}-{$n_id}");
 $cnvs->insertCol($cnvs->getColumnIndex("end")+1,$sample_col,"sample");
