@@ -5,7 +5,7 @@
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-$parser = new ToolBase("db_update_queue", "Queues an analysis in the NGSD.");
+$parser = new ToolBase("db_update_queue", "Manages analysis jobs from NGSD.");
 $parser->addFlag("debug", "Debug mode: Debug output and no changes to the SGE queue.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
@@ -163,7 +163,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 				return;
 			}
 		}
-				
+		
 		//create output folder
 		$out_folder = "{$project_folder}/Trio_".$c_info['ps_name']."_".$f_info['ps_name']."_".$m_info['ps_name']."/";
 		if (!$debug && !file_exists($out_folder))
@@ -174,6 +174,12 @@ function start_analysis($job_info, &$db_conn, $debug)
 				add_history_entry($job_id, $db_conn, 'error', "Error while submitting analysis to SGE: Could not change privileges of folder: {$out_folder}");
 				return;
 			}
+		}
+		
+		//use 5 threads if one of the samples is WGS
+		foreach($sample_infos as $sample_info)
+		{
+			if ($sample_info['sys_type']=='WGS') $threads = 5;
 		}
 		
 		$script = "trio.php";
@@ -201,7 +207,13 @@ function start_analysis($job_info, &$db_conn, $debug)
 				return;
 			}
 		}
-
+		
+		//use 5 threads if one of the samples is WGS
+		foreach($sample_infos as $sample_info)
+		{
+			if ($sample_info['sys_type']=='WGS') $threads = 5;
+		}
+		
 		//determine command and arguments
 		$script = "multisample.php";
 		$args = "-bams ".implode(" ", $bams)." -status ".implode(" ", $status)." -threads {$threads} -out_folder {$out_folder} --log {$out_folder}multi.log";
