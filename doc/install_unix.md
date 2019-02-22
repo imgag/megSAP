@@ -48,6 +48,7 @@ First, we make sure the privileges of the installation scripts are correct:
 	> chmod 755 *.sh
 
 Next, we install all required tools
+
 	> ./download_tools.sh
 	> ./download_tools_somatic.sh #only needed for somatic analysis
 	> ./download_tools_rna.sh #only needed for RNA analysis

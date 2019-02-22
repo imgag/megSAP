@@ -179,7 +179,11 @@ function start_analysis($job_info, &$db_conn, $debug)
 		//use 5 threads if one of the samples is WGS
 		foreach($sample_infos as $sample_info)
 		{
-			if ($sample_info['sys_type']=='WGS') $threads = 5;
+			if ($sample_info['sys_type']=='WGS')
+			{
+				$threads = 5;
+				$slots = "-pe smp 2";
+			}
 		}
 		
 		$script = "trio.php";
@@ -211,7 +215,11 @@ function start_analysis($job_info, &$db_conn, $debug)
 		//use 5 threads if one of the samples is WGS
 		foreach($sample_infos as $sample_info)
 		{
-			if ($sample_info['sys_type']=='WGS') $threads = 5;
+			if ($sample_info['sys_type']=='WGS')
+			{
+				$threads = 5;	
+				$slots = "-pe smp 2";
+			}
 		}
 		
 		//determine command and arguments
