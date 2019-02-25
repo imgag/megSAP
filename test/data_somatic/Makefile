@@ -85,4 +85,4 @@ case2_diff:
 	# MSI file
 	numdiff expected_case2/GS110168-GS110169_msi.tsv out_case2/GS110168-GS110169_msi.tsv --absolute-tolerance 0.01
 	# bafs
-	numdiff expected_case2/GS110168-GS110169_bafs.igv out_case2/GS110168-GS110169_bafs.igv --absolute-tolerance 0.01
+	numdiff expected_case2/GS110168-GS110169_bafs.igv out_case2/GS110168-GS110169_bafs.igv --absolute-tolerance 0.02

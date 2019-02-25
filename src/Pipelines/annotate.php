@@ -62,7 +62,7 @@ $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 //check vcf file
 if(!$no_fc)
 {
-	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $annfile", true);
+	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $annfile -ref ".genome_fasta($sys['build']), true);
 }
 
 //convert to GSvar file
@@ -91,7 +91,7 @@ if(!$somatic && db_is_enabled("NGSD"))
 //check output TSV file (not for somatic)
 if(!$somatic && !$no_fc)
 {
-	$parser->execTool("NGS/check_tsv.php", "-in $varfile");
+	$parser->execTool("NGS/check_tsv.php", "-in $varfile -build ".$sys['build']);
 }
 
 ?>

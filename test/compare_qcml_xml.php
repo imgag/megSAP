@@ -23,7 +23,7 @@ function rewrite_qcml($qcml, &$tmpfile)
 			(string) $qp["value"]
 		];
 	}
-	// sorty array by key
+	// sort array by key
 	ksort($values);
 	// write values as tab-separated (accession, name, value)
 	$handle = fopen($tmpfile, "w");
@@ -37,8 +37,16 @@ function rewrite_qcml($qcml, &$tmpfile)
 rewrite_qcml($argv[1], $tmp1);
 rewrite_qcml($argv[2], $tmp2);
 
-// diff tsv outputs
-list($stdout, $stderr, $code) = exec2("diff -b $tmp1 $tmp2", false);
+//diff tsv outputs
+if (isset($argv[3]))
+{
+	$diff_command = "numdiff --absolute-tolerance ".$argv[3];
+}
+else
+{
+	$diff_command = "diff -b";
+}
+list($stdout, $stderr, $code) = exec2("$diff_command $tmp1 $tmp2", false);
 foreach ($stdout as $line)
 {
 	print $line."\n";

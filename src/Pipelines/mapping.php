@@ -320,6 +320,7 @@ if ($sys['build']=="GRCh37")
 	$params = array();
 	$params[] = "-in ${out}";
 	$params[] = "-out ${basename}_bafs.igv";
+	$params[] = "-build ".$sys['build'];
 	if ($sys['type']!="WGS" && $sys['target_file']!="")
 	{
 		$params[] = "-target ".$sys['target_file'];

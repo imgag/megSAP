@@ -63,6 +63,7 @@ $full_prefix = "{$out_folder}/{$prefix}";
 $t_id = basename($t_bam, ".bam");
 $sys = load_system($system, $t_id);
 $roi = $sys["target_file"];
+$ref_genome = genome_fasta($sys['build']);
 
 //normal sample data (if not single sample analysis)
 $single_sample = !isset($n_bam);
@@ -232,7 +233,8 @@ if (in_array("vc", $steps))
 	//add somatic BAF file
 	$baf_args = [
 		"-in {$t_bam}",
-		"-out {$ballele}"
+		"-out {$ballele}",
+		"-build ".$sys['build']
 	];
 	if (!$single_sample)
 	{
@@ -242,7 +244,6 @@ if (in_array("vc", $steps))
 	{
 		$baf_args[] = "-target {$roi}";
 	}
-	
 	if(!$single_sample)
 	{
 		$variants_germline_vcf = dirname($n_bam)."/{$n_id}_var.vcf.gz";
@@ -271,7 +272,7 @@ if(in_array("cn",$steps))
 		if(file_exists($out_file)) return;
 		
 		$tmp_out = temp_file(".tsv");
-		exec2(get_path("ngs-bits")."/VariantAnnotateFrequency -in {$gsvar} -bam {$bam} -depth -out {$tmp_out}",true);
+		exec2(get_path("ngs-bits")."/VariantAnnotateFrequency -in {$gsvar} -bam {$bam} -depth -out {$tmp_out} -ref {$ref_genome}", true);
 		
 		$in_handle  = fopen($tmp_out,"r");
 		$out_handle = fopen($out_file,"w");
@@ -330,7 +331,7 @@ if(in_array("cn",$steps))
 	{
 		//generate bed file that contains edges of whole reference genome
 		$ref_content = array();
-		$ref_borders = file(get_path("data_folder")."/genomes/".$sys['build'].".fa.fai"); 
+		$ref_borders = file("{$ref_genome}.fai"); 
 		foreach($ref_borders as $line)
 		{
 			$line = trim($line);
@@ -343,8 +344,8 @@ if(in_array("cn",$steps))
 		file_put_contents($ref_bed,$ref_content);
 		$ngs_bits = get_path("ngs-bits");
 		$tmp_bed = temp_file(".bed");
-		exec2("{$ngs_bits}BedExtend -in ". $sys['target_file'] ." -n 1000 | {$ngs_bits}BedMerge -out {$tmp_bed}");
-		exec2("{$ngs_bits}BedSubtract -in ".$ref_bed." -in2 {$tmp_bed} | {$ngs_bits}BedChunk -n 100000 | {$ngs_bits}BedShrink -n 25000 | {$ngs_bits}BedExtend -n 25000 | {$ngs_bits}BedAnnotateGC | {$ngs_bits}BedAnnotateGenes -out {$off_target_bed}"); //@TODO: Review parameters after a few samples have been analyzed
+		exec2("{$ngs_bits}BedExtend -in ".$sys['target_file']." -n 1000 -fai {$ref_genome}.fai | {$ngs_bits}BedMerge -out {$tmp_bed}");
+		exec2("{$ngs_bits}BedSubtract -in ".$ref_bed." -in2 {$tmp_bed} | {$ngs_bits}BedChunk -n 100000 | {$ngs_bits}BedShrink -n 25000 | {$ngs_bits}BedExtend -n 25000 -fai {$ref_genome}.fai | {$ngs_bits}BedAnnotateGC -ref {$ref_genome} | {$ngs_bits}BedAnnotateGenes -out {$off_target_bed}"); //@TODO: Review parameters after a few samples have been analyzed
 	}
 	
 	/***************************************************
@@ -536,7 +537,7 @@ if (in_array("an", $steps))
 			"-normal_bam", $n_bam,
 			"-somatic_vcf", $tmp_vcf,
 			"-target_bed", $roi,
-			"-ref_fasta", get_path("local_data")."/".$sys['build'].".fa",
+			"-ref_fasta", $ref_genome,
 			"-out", $somaticqc
 		];
 		if (!empty($links))
@@ -579,11 +580,11 @@ if (in_array("an", $steps))
 	if (isset($t_rna_bam))
 	{
 		$tmp_vcf_rna = $parser->tempFile("_var_rna.vcf");
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $tmp_vcf -bam $t_rna_bam -out $tmp_vcf_rna -name rna_tum -depth", true);
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $tmp_vcf -bam $t_rna_bam -out $tmp_vcf_rna -name rna_tum -depth -ref $ref_genome", true);
 		$parser->exec("bgzip", "-c $tmp_vcf_rna > $variants_annotated", true);
 		$parser->exec("tabix", "-f -p vcf $variants_annotated", true);
 
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $variants_gsvar -bam $t_rna_bam -out $variants_gsvar -name rna_tum -depth", true);
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $variants_gsvar -bam $t_rna_bam -out $variants_gsvar -name rna_tum -depth -ref $ref_genome", true);
 	}
 }
 
@@ -813,15 +814,13 @@ if (in_array("ci", $steps))
 $msi_o_file = $full_prefix . "_msi.tsv";						//MSI
 if (in_array("msi", $steps) && !$single_sample)
 {
-	$reference_genome = get_path("data_folder") . "/genomes/" .$n_sys['build'] . ".fa";
-	
 	//check whether file with loci exists in output folder
 	//if not: intersect with loci file of reference
 	$reference_loci_file = get_path("data_folder") . "/dbs/MANTIS/".$n_sys['build']."_msi_loci.bed";
 	if(!file_exists($reference_loci_file))
 	{
 		print("Could not find loci reference file $reference_loci_file. Trying to generate it.\n");
-		$parser->exec(get_path("mantis")."/tools/RepeatFinder","-i $reference_genome -o $reference_loci_file",false);
+		$parser->exec(get_path("mantis")."/tools/RepeatFinder","-i $ref_genome -o $reference_loci_file",false);
 	}
 
 	//file that contains MSI in target region -> is intersection of loci reference with target region
@@ -835,7 +834,7 @@ if (in_array("msi", $steps) && !$single_sample)
 		$parser->exec(get_path("ngs-bits")."BedIntersect",$parameters,false);
 	}
 
-	$parameters = "-n_bam $n_bam -t_bam $t_bam -threads $threads -bed_file $target_loci_file -out " .$msi_o_file. " -build $reference_genome";
+	$parameters = "-n_bam $n_bam -t_bam $t_bam -threads $threads -bed_file $target_loci_file -out " .$msi_o_file. " -build ".$n_sys['build'];
 	
 	if($sys['type'] == "WES") $parameters .= " -is_exome";
 	

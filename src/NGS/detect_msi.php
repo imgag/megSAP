@@ -19,7 +19,7 @@ extract($parser->parse($argv));
 
 $output_folder = realpath(dirname($out));
 $output_path = $output_folder . '/' . 'mantis';
-$parameters = 	"-n $n_bam -t $t_bam  -b $bed_file -o $output_path --threads $threads --genome $build";
+$parameters = 	"-n $n_bam -t $t_bam  -b $bed_file -o $output_path --threads $threads --genome ".genome_fasta($build);
 if($is_exome) //use non-standard MANTIS-parameters for whole exomes recommended by MANTIS
 {
 	$parameters .=  " -mrq 20 -mlq 25 -mlc 20 -mrr 1";

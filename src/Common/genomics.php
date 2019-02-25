@@ -93,14 +93,14 @@ function rev_comp($input)
 	@brief Returns a genomic reference sequence (1-based chromosomal coordinates).	
 	@ingroup genomics
 */
-function get_ref_seq($chr, $start, $end)
+function get_ref_seq($build, $chr, $start, $end)
 {
 	//fix chromosome for GHCh37
 	if ($chr=="chrM") $chr = "chrMT";
 	
 	//get sequence
 	$output = array();
-	exec(get_path("samtools")." faidx ".get_path("local_data")."/GRCh37.fa $chr:{$start}-$end 2>&1", $output, $ret);
+	exec(get_path("samtools")." faidx ".genome_fasta($build)." $chr:{$start}-$end 2>&1", $output, $ret);
 	if ($ret!=0)
 	{
 		trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
@@ -522,7 +522,7 @@ function updateNormalSample(&$db_conn, $ps_tumor, $ps_normal, $overwrite = false
 }
 
 //@TODO implement *-syntax for HGVS compliance (end of coding)
-function convert_hgvs2genomic($transcript, $cdna, $error = true)
+function convert_hgvs2genomic($build, $transcript, $cdna, $error = true)
 {
 	//extract cDNA position and
 	$chr = null;
@@ -603,7 +603,7 @@ function convert_hgvs2genomic($transcript, $cdna, $error = true)
 		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
 		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
 		if(!empty($matches["ref"]))	$ref = $matches["ref"];
-		if(empty($ref))	$ref = get_ref_seq($chr,$start,$end);
+		if(empty($ref))	$ref = get_ref_seq($build,$chr,$start,$end);
 		if($strand=="-")	$ref = rev_comp ($ref);
 		$obs = $matches["obs"];			
 	}
@@ -621,7 +621,7 @@ function convert_hgvs2genomic($transcript, $cdna, $error = true)
 		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
 		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
 		$ref = "-";
-		$obs = get_ref_seq($chr,$start,$end);
+		$obs = get_ref_seq($build,$chr,$start,$end);
 		if(!empty($matches["obs"]))	$obs = $matches["obs"];			
 		if(strlen($obs)==1)	$start=--$end;
 	}
@@ -640,7 +640,7 @@ function convert_hgvs2genomic($transcript, $cdna, $error = true)
 	{
 		$start += $offset1;
 		$end += $offset2;
-		if($obs=="-" && empty($ref))	$ref = get_ref_seq($chr,$start,$end);
+		if($obs=="-" && empty($ref))	$ref = get_ref_seq($build,$chr,$start,$end);
 		$ref = strtoupper($ref);
 		$obs = strtoupper($obs);
 	}
@@ -650,7 +650,7 @@ function convert_hgvs2genomic($transcript, $cdna, $error = true)
 		$end -= $offset1;
 		
 		//convert reference
-		if($obs=="-" && empty($ref))	$ref = strtoupper(get_ref_seq($chr,$start,$end));
+		if($obs=="-" && empty($ref))	$ref = strtoupper(get_ref_seq($build,$chr,$start,$end));
 		else if($ref!="-")	$ref = strtoupper(rev_comp($ref));
 		
 		//convert obs
@@ -658,7 +658,7 @@ function convert_hgvs2genomic($transcript, $cdna, $error = true)
 	}
 
 	//check if reference is valid
-	$r = get_ref_seq($chr,$start,$end);	//adopt for different builds
+	$r = get_ref_seq($build,$chr,$start,$end);	//adopt for different builds
 	if(!empty($chr) && !empty($ref) && $ref!="-" && strtoupper($r)!=strtoupper($ref))
 	{
 		if($error)	trigger_error("Wrong reference sequence for HGVS '$transcript:$cdna': is '$ref', should be '".$r."' ($chr:$start-$end).",E_USER_ERROR);
@@ -814,7 +814,7 @@ function convert_coding2genomic($transcript,$cdna_start,$cdna_end, $error = true
 	return array($chr,$start,$end,$strand);
 }
 
-function indel_for_vcf($chr, $start, $ref, $obs)
+function indel_for_vcf($build, $chr, $start, $ref, $obs)
 {
 	$ref = trim($ref,"-");
 	$obs = trim($obs,"-");
@@ -825,14 +825,14 @@ function indel_for_vcf($chr, $start, $ref, $obs)
 	// 1. simple insertion - add prefix
 	if(strlen($ref)==0 && strlen($obs)>=1)
 	{
-		$extra1 = get_ref_seq($chr,$start,$start);
+		$extra1 = get_ref_seq($build, $chr,$start,$start);
 	}
 
 	// 2. simple deletion - correct start and add prefix
 	if(strlen($ref)>=1 && strlen($obs)==0)
 	{
 		$start -= 1;
-		$extra1 = get_ref_seq($chr,$start,$start);
+		$extra1 = get_ref_seq($build, $chr,$start,$start);
 	}
 
 	// 3. complex indel, nothing to do
@@ -1422,6 +1422,12 @@ function enable_special_mito_vc($sys)
 	}
 	
 	return true;
+}
+
+//Returns the FASTA file of the genome
+function genome_fasta($build)
+{
+	return get_path("local_data")."/".$build.".fa";
 }
 
 ?>

@@ -42,7 +42,7 @@ if(db_is_enabled("NGSD"))
 
 //mapping with bwa
 $pipeline = array();
-$bwa_params = "mem ".get_path("local_data")."/{$build}.fa -M -R '@RG\\t".implode("\\t", $group_props)."' -t $threads";
+$bwa_params = "mem ".genome_fasta($build)." -M -R '@RG\\t".implode("\\t", $group_props)."' -t $threads";
 $pipeline[] = array(get_path("bwa"), "$bwa_params $in1 $in2");
 
 //duplicate removal with samblaster

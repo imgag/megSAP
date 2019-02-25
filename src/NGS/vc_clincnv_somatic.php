@@ -168,7 +168,7 @@ if($use_off_target && !is_dir($cov_folder_t_off))
 
 $tmp_bed_annotated = $parser->tempFile(".bed");
 
-$parser->exec(get_path("ngs-bits")."/"."BedAnnotateGC", " -in {$bed} -out {$tmp_bed_annotated}",true);
+$parser->exec(get_path("ngs-bits")."/"."BedAnnotateGC", " -in {$bed} -out {$tmp_bed_annotated} -ref ".genome_fasta($sys['build']),true);
 $parser->exec(get_path("ngs-bits")."/"."BedAnnotateGenes"," -in {$tmp_bed_annotated} -out {$tmp_bed_annotated}",true);
 
 

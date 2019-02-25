@@ -8,7 +8,9 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 $parser = new ToolBase("converter_Hgvs2Genomic", "Convert HGSV coordinates to genomic positions. Prints convertes position to stdout.");
 $parser->addString("refseq",  "Refseq transcript ID.", false);
 $parser->addString("hgvs",  "cDNA position in HGVS format.", false);
+//optional
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
-list($chr,$start,$end,$ref,$obs) = convert_hgvs2genomic($refseq, $hgvs);
+list($chr,$start,$end,$ref,$obs) = convert_hgvs2genomic($build, $refseq, $hgvs);
 print "$chr\t$start\t$end\t$ref\t$obs";

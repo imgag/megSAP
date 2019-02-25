@@ -21,6 +21,7 @@ $parser->addFloat("min_af", "Minimum allele frequency of SNPs in 'snp_db' to use
 $parser->addInt("min_dp", "Minimum depth of SNPs in BAM.", true, 20);
 $parser->addString("snp_db", "SNP database in VCF.GZ format from which population SNPs are extracted. Records must contain AF field.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.1.vcf.gz");
 $parser->addFlag("depth", "Add depth column(s) to 'out'.", true, 20);
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
 //check if base VCF exists
@@ -181,11 +182,11 @@ if (isset($sites))
 
 // annotate B-allele frequencies from BAM
 $annotated_variants = $parser->tempFile(".tsv");
-$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $filtered_variants -bam $in -out $annotated_variants -depth -name sample1 -ref ".get_path("local_data")."/GRCh37.fa", true);
+$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $filtered_variants -bam $in -out $annotated_variants -depth -name sample1 -ref ".genome_fasta($build), true);
 if ($is_somatic)
 {
 	$annotated_variants_2 = $parser->tempFile(".tsv");
-	$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $annotated_variants -bam $n_in -out $annotated_variants_2 -depth -name sample2 -ref ".get_path("local_data")."/GRCh37.fa", true);
+	$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $annotated_variants -bam $n_in -out $annotated_variants_2 -depth -name sample2 -ref ".genome_fasta($build), true);
 	$annotated_variants = $annotated_variants_2;
 }
 

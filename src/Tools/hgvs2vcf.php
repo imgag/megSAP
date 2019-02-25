@@ -9,7 +9,7 @@ $parser = new ToolBase("hgvs2vcf", "Convert a list of genomic HGVS.g variants to
 $parser->addInfile("in", "Input TXT file (one variant per line).", false);
 $parser->addOutfile("out",  "Output VCF file.", false);
 //optional
-
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
 //write header
@@ -38,12 +38,12 @@ foreach($file as $line)
 	{
 		list($chr, $pos, $pos2) = $parts;
 		$obs = end($parts);
-		$ref = get_ref_seq($chr, $pos, $pos2);
+		$ref = get_ref_seq($build, $chr, $pos, $pos2);
 	}
 	else if (contains($line, "ins"))
 	{
 		list($chr, $pos, , $obs) = $parts;
-		$anker = get_ref_seq($chr, $pos, $pos);
+		$anker = get_ref_seq($build, $chr, $pos, $pos);
 		$ref = $anker;
 		$obs = $anker.$obs;
 	}
@@ -58,7 +58,7 @@ foreach($file as $line)
 			list($chr, $pos, , $ref) = $parts;
 		}
 		$pos -= 1;
-		$anker = get_ref_seq($chr, $pos, $pos);
+		$anker = get_ref_seq($build, $chr, $pos, $pos);
 		$obs = $anker;
 		$ref = $anker.$ref;
 	}
@@ -73,7 +73,7 @@ foreach($file as $line)
 			list($chr, $pos, , $ref) = $parts;
 		}
 		$pos -= 1;
-		$anker = get_ref_seq($chr, $pos, $pos);
+		$anker = get_ref_seq($build, $chr, $pos, $pos);
 		$obs = $anker.$ref.$ref;
 		$ref = $anker.$ref;
 	}

@@ -13,6 +13,7 @@ $parser = new ToolBase("check_tsv", "Performs TSV file format check.");
 $parser->addInfile("in",  "Input file in TSV format.", false);
 //optional
 $parser->addInt("limit", "The number of variants to check for format-specific checks. '0' means all.", true, 1000);
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
 //define format in the following format: column index, name, type
@@ -106,7 +107,7 @@ while(!feof($handle))
 			}
 				
 			//check reference genome
-			$ref_seq = get_ref_seq($chr, $start, $end);
+			$ref_seq = get_ref_seq($build, $chr, $start, $end);
 			if(strcasecmp($ref_seq, $ref)!=0)
 			{
 				trigger_error("SNP ref base '$ref' does not match genome sequence '$ref_seq' in line with index '$i'.", E_USER_ERROR);
@@ -116,7 +117,7 @@ while(!feof($handle))
 		else if($ref!="-")
 		{
 			//check reference genome
-			$ref_seq = get_ref_seq($chr, $start, $end);
+			$ref_seq = get_ref_seq($build, $chr, $start, $end);
 			if(strcasecmp($ref_seq, $ref)!=0)
 			{
 				trigger_error("INDEL reference sequence '$ref' does not match genome sequence '$ref_seq' in line with index '$i'.", E_USER_ERROR);

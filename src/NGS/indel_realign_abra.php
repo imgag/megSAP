@@ -25,7 +25,7 @@ $parser->addInfile("junctions",  "RNA: Junctions output file from STAR mapping."
 extract($parser->parse($argv));
 
 //init
-$local_data = get_path("local_data");
+$ref_genome = genome_fasta($build);
 if (count($in)!=count($out))
 {
 	trigger_error("The number of input and output files must match!", E_USER_ERROR);
@@ -46,7 +46,7 @@ if (!$skip_kmer && isset($roi))
 	{
 		$read_length = 100;
 		$kmer_tmp = $parser->tempFile();
-		$parser->exec(str_replace("-jar", "-cp", get_path("abra2"))." abra.KmerSizeEvaluator", "$read_length {$local_data}/{$build}.fa $kmer_tmp $threads $roi", true);
+		$parser->exec(str_replace("-jar", "-cp", get_path("abra2"))." abra.KmerSizeEvaluator", "$read_length $ref_genome $kmer_tmp $threads $roi", true);
 		$parser->moveFile($kmer_tmp, $kmer_file);
 	}
 }
@@ -61,7 +61,7 @@ if (!$skip_kmer && isset($roi))
 }
 $params[] = "--threads ".$threads;
 $params[] = "--tmpdir ".$parser->tempFolder("abra");
-$params[] = "--ref {$local_data}/{$build}.fa";
+$params[] = "--ref {$ref_genome}";
 $params[] = "--mer ".$mer;
 $params[] = "--mad ".$mad;
 if ($se) {

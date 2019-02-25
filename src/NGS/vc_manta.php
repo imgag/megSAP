@@ -90,12 +90,11 @@ if ($config_preset === "high_sensitivity")
 
 $temp_folder = $temp === "auto" ? $parser->tempFolder() : $temp;
 $manta_folder = "{$temp_folder}/mantaAnalysis";
-$genome = get_path("local_data")."/{$build}.fa";
 
 $args = [
-	"--referenceFasta", $genome,
-	"--runDir", $manta_folder,
-	"--config", $config,
+	"--referenceFasta ".genome_fasta($build),
+	"--runDir ".$manta_folder,
+	"--config ".$config,
 	"--outputContig",
 	"--generateEvidenceBam"
 ];

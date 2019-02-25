@@ -43,13 +43,11 @@ if ($downsample)
 
 //annotate variant frequencies from BAM
 $annotated1 = $parser->tempFile("_sample1.tsv");
-$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency",
-	"-in $vcf -bam $bam -out $annotated1 -depth -name sample1 -ref ".get_path("local_data")."/{$build}.fa", true);
+$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $vcf -bam $bam -out $annotated1 -depth -name sample1 -ref ".genome_fasta($build), true);
 if ($is_somatic)
 {
 	$annotated2 = $parser->tempFile("_sample2.tsv");
-	$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency",
-		"-in $annotated1 -bam $n_bam -out $annotated2 -depth -name sample2 -ref ".get_path("local_data")."/{$build}.fa", true);
+	$parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $annotated1 -bam $n_bam -out $annotated2 -depth -name sample2 -ref ".genome_fasta($build), true);
 }
 
 //extract relevant columns and filter by depth

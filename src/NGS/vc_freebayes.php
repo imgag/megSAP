@@ -27,7 +27,7 @@ $parser->addFlag("no_bias", "Use freebayes parameter -V, i.e. ignore strand bias
 extract($parser->parse($argv));
 
 //init
-$genome = get_path("local_data")."/{$build}.fa";
+$genome = genome_fasta($build);
 
 //create basic variant calls
 $args = array();
@@ -36,7 +36,7 @@ if(isset($target))
 	if ($target_extend>0)
 	{
 		$target_extended = $parser->tempFile("_extended.bed");
-		$parser->exec(get_path("ngs-bits")."BedExtend"," -in $target -n $target_extend -out $target_extended -fai ".get_path("data_folder")."/genomes/".$build.".fa.fai", true);
+		$parser->exec(get_path("ngs-bits")."BedExtend"," -in $target -n $target_extend -out $target_extended -fai {$genome}.fai", true);
 	}
 	else
 	{
@@ -209,10 +209,10 @@ $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
 $pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
 
 //normalize all variants and align INDELs to the left
-$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize","-ref $genome");
+$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-ref $genome");
 
 //sort variants by genomic position
-$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort","");
+$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
 
 //fix error in VCF file and strip unneeded information
 $pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", "", false);

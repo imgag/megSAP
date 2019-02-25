@@ -85,7 +85,7 @@ $parser->exec("tabix", "$common_snps.gz", false); //no output logging, because T
 putenv("PATH=".dirname(get_path("samtools")).":".dirname(get_path("bwa")).":".getenv("PATH"));
 $args = "-regions_to_scan $target ";
 $args .= "-project_name $temp_folder/$project_name ";
-$args .= "-bwa_genome_index ".get_path('data_folder')."/genomes/GRCh37.fa -bwa_threads 2 ";
+$args .= "-bwa_genome_index ".genome_fasta("GRCh37")." -bwa_threads 2 ";
 $args .= "-snp_file $common_snps ";
 $args .= "-starting_mip_overlap $overlap ";
 $args .= "-arm_length_sums 40,41,42 -tag_sizes 8,0 -score_method mixed ";
