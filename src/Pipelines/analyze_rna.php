@@ -285,7 +285,8 @@ if (in_array("fu",$steps))
 			"--chimeric_junction", $chimeric_file_tmp,
 			"--output_dir", $fusion_tmp_folder,
 			"--examine_coding_effect",
-			"--CPU", $threads
+			"--CPU", $threads,
+			"--min_FFPM", "0"
 		];
 
 		$input_reads_available = isset($fastq_trimmed1) &&
@@ -303,7 +304,7 @@ if (in_array("fu",$steps))
 
 		$parser->exec(get_path("STAR-Fusion"), implode(" ", $starfusion_params), true);
 
-		$output_files = [ "{$fusion_tmp_folder}/star-fusion.fusion_predictions.abridged.tsv" => "{$prefix}_var_fusions.tsv" ];
+		$output_files = [ "{$fusion_tmp_folder}/star-fusion.fusion_predictions.abridged.coding_effect.tsv" => "{$prefix}_var_fusions.tsv" ];
 		if ($input_reads_available)
 		{
 			$output_files = array_filter(array_merge([
