@@ -97,12 +97,6 @@ function start_analysis($job_info, &$db_conn, $debug)
 		$queues = explode(",", get_path("queues_high_priority"));
 	}
 	
-	//slots to use
-	$slots = "";
-	
-	//threads to use
-	$threads = 2;
-	
 	if ($type=="single sample")
 	{
 		$sys_type = $sample_infos[0]['sys_type'];
@@ -119,15 +113,8 @@ function start_analysis($job_info, &$db_conn, $debug)
 		}
 		else //DNA
 		{
-			//use two instead of one slots for WGS
-			if ($sys_type=="WGS")
-			{
-				$slots = "-pe smp 2";
-				$threads = 5;
-			}
-			
 			$script = "analyze.php";
-			$args = "-folder {$sample_folder} -name {$sample} -threads {$threads} --log {$sample_folder}analyze_{$timestamp}.log";	
+			$args = "-folder {$sample_folder} -name {$sample} --log {$sample_folder}analyze_{$timestamp}.log";	
 		}
 	}
 	else if ($type=="trio")
@@ -176,18 +163,8 @@ function start_analysis($job_info, &$db_conn, $debug)
 			}
 		}
 		
-		//use 5 threads if one of the samples is WGS
-		foreach($sample_infos as $sample_info)
-		{
-			if ($sample_info['sys_type']=='WGS')
-			{
-				$threads = 5;
-				$slots = "-pe smp 2";
-			}
-		}
-		
 		$script = "trio.php";
-		$args = "-c ".$c_info["ps_bam"]." -f ".$f_info["ps_bam"]." -m ".$m_info["ps_bam"]." -threads {$threads} -out_folder {$out_folder} --log {$out_folder}trio.log";
+		$args = "-c ".$c_info["ps_bam"]." -f ".$f_info["ps_bam"]." -m ".$m_info["ps_bam"]." -out_folder {$out_folder} --log {$out_folder}trio.log";
 	}
 	else if ($type=="multi sample")
 	{
@@ -212,19 +189,9 @@ function start_analysis($job_info, &$db_conn, $debug)
 			}
 		}
 		
-		//use 5 threads if one of the samples is WGS
-		foreach($sample_infos as $sample_info)
-		{
-			if ($sample_info['sys_type']=='WGS')
-			{
-				$threads = 5;	
-				$slots = "-pe smp 2";
-			}
-		}
-		
 		//determine command and arguments
 		$script = "multisample.php";
-		$args = "-bams ".implode(" ", $bams)." -status ".implode(" ", $status)." -threads {$threads} -out_folder {$out_folder} --log {$out_folder}multi.log";
+		$args = "-bams ".implode(" ", $bams)." -status ".implode(" ", $status)." -out_folder {$out_folder} --log {$out_folder}multi.log";
 	}
 	else if ($type=="somatic")
 	{
@@ -279,7 +246,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 				return;
 			}
 		}
-	
+		
 		$script = "somatic_dna.php";
 		$args_somatic = [
 			"--log", "{$out_folder}somatic_dna_{$timestamp}.log",
@@ -306,9 +273,32 @@ function start_analysis($job_info, &$db_conn, $debug)
 		return;
 	}
 	
+	//threads to use (equal to the number of SGE slots)
+	$threads = 2;
+	if ($type=="somatic") $threads = 4;
+	foreach($sample_infos as $sample_info) //use two instead of one slots for WGS	
+	{
+		if ($sample_info['sys_type']=='WGS') $threads = 5;
+	}
+	//handle number of threads when set in custom arguments
+	$parts = explode(' ', preg_replace('/\s+/', ' ', $job_info['args']));
+	$threads_custom = false;
+	for ($i=0; $i<count($parts); ++$i)
+	{
+		if ($parts[$i]=="-threads" && is_numeric($parts[$i+1]))
+		{
+			$threads_custom = true;
+			$threads = $parts[$i+1];
+		}
+	}
+	if (!$threads_custom)
+	{
+		$args .= " -threads $threads";
+	}
+	
 	//submit to queue
 	$sge_output = get_path("data_folder")."/sge/megSAP_sge_job_{$job_id}";
-	$command_sge = "qsub -V {$slots} -b y -wd {$project_folder} -m n -M ".get_path("queue_email")." -e {$sge_output}.err -o {$sge_output}.out -q ".implode(",", $queues);
+	$command_sge = "qsub -V -pe smp {$threads} -b y -wd {$project_folder} -m n -M ".get_path("queue_email")." -e {$sge_output}.err -o {$sge_output}.out -q ".implode(",", $queues);
 	$command_pip = "php ".repository_basedir()."/src/Pipelines/{$script} ".$job_info['args']." {$args}";
 	if($debug)
 	{
