@@ -57,19 +57,22 @@ if (file_exists("{$local_folder}/{$build}.fa.md5"))
 }
 
 //copy reference genome and index files
-print "Copying genome files (if missing)...\n";
+print "Copying genome files...\n";
 list($files) = exec2("ls {$genome_folder}/{$build}.*");
 foreach($files as $file)
 {
 	$base = basename($file);
-	if (!file_exists($local_folder.$base))
+	print "  rsync-ing genome file '$base'.\n";
+	list($stdout) = exec2("rsync --archive --acls --perms ".$genome_folder.$base." ".$local_folder.$base);
+	foreach($stdout as $line)
 	{
-		print "Copying genome file '$base'.\n";
-		$parser->copyFile($genome_folder.$base, $local_folder.$base);
-		if (!chmod($local_folder.$base, 0777))
-		{
-			trigger_error("Could not change privileges of local data folder '{$local_folder}{$base}'!", E_USER_ERROR);
-		}
+		$line = trim($line);
+		if ($line=="") continue;
+		print "    $line\n";
+	}
+	if (!chmod($local_folder.$base, 0777))
+	{
+		trigger_error("Could not change privileges of local data folder '{$local_folder}{$base}'!", E_USER_ERROR);
 	}
 }
 
