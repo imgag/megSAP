@@ -63,16 +63,20 @@ foreach($files as $file)
 {
 	$base = basename($file);
 	print "  rsync-ing genome file '$base'.\n";
-	list($stdout) = exec2("rsync --archive --acls --perms ".$genome_folder.$base." ".$local_folder.$base);
+	$existed_before = file_exists($local_folder.$base);
+	list($stdout) = exec2("rsync --archive --acls --no-perms ".$genome_folder.$base." ".$local_folder.$base);
 	foreach($stdout as $line)
 	{
 		$line = trim($line);
 		if ($line=="") continue;
 		print "    $line\n";
 	}
-	if (!chmod($local_folder.$base, 0777))
+	if (!$existed_before)
 	{
-		trigger_error("Could not change privileges of local data folder '{$local_folder}{$base}'!", E_USER_ERROR);
+		if (!chmod($local_folder.$base, 0777))
+		{
+			trigger_error("Could not change privileges of local data folder '{$local_folder}{$base}'!", E_USER_ERROR);
+		}
 	}
 }
 
