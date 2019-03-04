@@ -544,7 +544,8 @@ if(in_array("cn",$steps))
 			"-t_cov_off", $t_cov_off_target,
 			"-n_cov_off", $n_cov_off_target,
 			"-bed_off", $off_target_bed,
-			"-baf_folder", $baf_folder
+			"-baf_folder", $baf_folder,
+			"-threads {$threads}"
 			];
 			$parser->execTool("NGS/vc_clincnv_somatic.php",implode(" ",$args_clincnv));
 		}

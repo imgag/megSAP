@@ -31,6 +31,6 @@ diff:
 	php ../compare_variants.php -in1 NA12878_17.GSvar.out -in2 NA12878_17.GSvar
 	php ../compare_bed.php NA12878_17_nxLRRK2_SNCA_lowcov.bed.out NA12878_17_nxLRRK2_SNCA_lowcov.bed
 	diff NA12878_17_cnvs.tsv.out NA12878_17_cnvs.tsv
-	numdiff NA12878_17_cnvs.seg.out NA12878_17_cnvs.seg --absolute-tolerance 0.01
+	numdiff NA12878_17_cnvs.seg.out NA12878_17_cnvs.seg --absolute-tolerance 0.04
 
 

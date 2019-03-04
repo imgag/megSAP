@@ -317,7 +317,7 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 		//execute
 		$cnv_out = $tmp_folder."/output.tsv";
 		$cnv_out2 = $tmp_folder."/output.seg";
-		$parser->execTool("NGS/vc_clincnv_germline.php", "-cov {$cov_file} -cov_folder {$bin_folder} -bed {$bed} -max_cnvs 10000 -out {$cnv_out} --log $log_cn", true);
+		$parser->execTool("NGS/vc_clincnv_germline.php", "-cov {$cov_file} -cov_folder {$bin_folder} -bed {$bed} -out {$cnv_out} --log $log_cn -threads $threads", true);
 		
 		//copy results to output folder
 		$cnvfile = substr($cnvfile, 0, -4)."_clincnv.tsv";

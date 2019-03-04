@@ -14,9 +14,10 @@ $parser->addInfile("cov", "Coverage file for sample (tab-separated file with col
 $parser->addInfile("cov_folder", "Coverage files folder.", false);
 $parser->addInfile("bed", "BED file with annotations e.g. GC-content and gene names.", false);
 $parser->addOutFile("out", "Output file in TSV format.", false);
-$parser->addInt("max_cnvs", "Number of expected CNVs (~100 for WES and ~TODO for WGS).", false);
+$parser->addInt("threads", "The maximum number of threads used.", true, 1);
 //optional
 $parser->addInt("cov_min", "Minimum number of coverage files required for CNV analysis.", true, 20);
+$parser->addInt("max_cnvs", "Number of expected CNVs (~100 for WES and ~TODO for WGS).", true, 10000);
 
 extract($parser->parse($argv));
 
@@ -46,7 +47,8 @@ $args = [
 "--normalSample {$ps_name}",
 "--bed {$bed}",
 "--out {$out_folder}",
-"--maxNumGermCNVs {$max_cnvs}"
+"--maxNumGermCNVs {$max_cnvs}",
+"--numberOfThreads {$threads}"
 ];
 $parser->exec(get_path("clincnv")."/clinCNV.R", implode(" ", $args), true);
 

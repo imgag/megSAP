@@ -28,6 +28,7 @@ $parser->addString("cov_pairs","ClinCNV file with tumor-normal pairs. Will be cr
 $parser->addString("baf_folder","Folder containing files with B-Allele frequencies.",true);
 $parser->addInfile("system", "Processing system INI file (obligatory if NGSD is not available).", true);
 $parser->addFlag("reanalyse_cohort","Reanalyse whole cohort of the same processing system.",true,"auto");
+$parser->addInt("threads", "The maximum number of threads used.", true, 1);
 extract($parser->parse($argv));
 
 //init
@@ -253,7 +254,8 @@ $args = [
 "--bed", $tmp_bed_annotated,
 "--colNum", "4",
 "--lengthS", "5",
-"--scoreS", "100"
+"--scoreS", "100",
+"--numberOfThreads {$threads}"
 ];
 
 if($use_off_target)
