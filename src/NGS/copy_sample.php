@@ -11,6 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("copy_sample", "Creates a Makefile to copy de-multiplexed sample data to projects and queue data analysis.");
 $parser->addString("samplesheet",  "Input samplesheet that was used to create the data folder.", true, "SampleSheet_bcl2fastq.csv");
 $parser->addString("folder",  "Input data folder.", true, "Unaligned");
+$parser->addString("runinfo" ,"Illumina RunInfo.xml file. Necessary for checking metadata in NGSD",true, "RunInfo.xml");
 $parser->addOutfile("out",  "Output Makefile. Default: 'Makefile'.", true);
 $parser->addFlag("high_priority", "Assign high priority to all queued samples.");
 $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
@@ -85,9 +86,62 @@ function filesize_mb($file)
 	return number_format(filesize($file)/1024/1024, 3, ".", "");
 }
 
+//Checks whether there is at least one sample in "sample_sheet" that has the same number of lanes as specified Illumina RunInfo.xml. Returns false if RunInfo XML-file or samplesheet could not be parsed.
+function check_number_of_lanes($run_info_xml_file, $sample_sheet)
+{
+	//RunInfo.xml contains attribute "LaneCount"
+	if(!file_exists($run_info_xml_file))
+	{
+		return false;
+	}
+	$xml = simplexml_load_file($run_info_xml_file);
+	if(empty($xml->Run->FlowcellLayout->attributes()->LaneCount))
+	{
+		return false;
+	}
+	$lane_count = (int) $xml->Run->FlowcellLayout->attributes()->LaneCount;
+	
+	
+	$sample_sheet_data = Matrix::fromTSV($sample_sheet);
+	$i_lane = $sample_sheet_data->getColumnIndex("Lane",false,false);
+	if($i_lane == -1)
+	if(empty($xml->Run->FlowcellLayout->attributes()->LaneCount))
+	{
+		return false;
+	}
+	
+	
+	//Check whether LaneCount from RunInfo.xml occurs at least one time in samplesheet
+	$sample_sheet_content = Matrix::fromTSV($sample_sheet);
+	$i_lane = $sample_sheet_content->getColumnIndex("Lane",false,false);
+	if($i_lane == -1) return false;
+	
+	$lane_count_found_in_samplesheet = false;
+	for($i=0;$i<$sample_sheet_content->rows();++$i)
+	{
+		$lane = $sample_sheet_content->get($i,$i_lane);
+		if($lane == $lane_count)
+		{
+			$lane_count_found_in_samplesheet = true;
+			break;
+		}
+	}
+	
+	if(!$lane_count_found_in_samplesheet)
+	{
+		trigger_error("Could not find any sample that uses $lane_count lanes as specified in {$run_info_xml_file}. Please check number of lanes in database and {$sample_sheet}!",E_USER_WARNING);
+	}
+	return true;
+}
+
 //init
 if (!isset($out)) $out = "Makefile";
 $db_conn = DB::getInstance($db);
+
+if(!check_number_of_lanes($runinfo,$samplesheet))
+{
+	trigger_error("Could not verify number of lanes used for Demultiplexing and actually used on Sequencer. Please check manually!",E_USER_WARNING);
+}
 
 //get sample data from samplesheet
 list($sample_data, $is_nextseq) = extract_sample_data($db_conn, $samplesheet);
