@@ -65,6 +65,10 @@ if($sys['type']=="WGS")
 	$args[] = "-reg_min_cov 0.5";
 	$args[] = "-sam_min_depth 0.5";
 }
+else
+{
+	$args[] = "-sam_min_depth 10";
+}
 if(isset($seg) && is_null($n_cov)) $args[] = "-seg $seg";
 $args[] = "-n $n";
 if ($somatic) $args[] = "-debug ALL";

@@ -1,3 +1,5 @@
+##ANALYSISTYPE=SOMATIC_SINGLESAMPLE
+##SAMPLE=<ID=GS150344_01,Gender=female,ExternalSampleName=151172,IsTumor=yes,IsFFPE=yes,DiseaseGroup=Neoplasms,DiseaseStatus=Affected>
 ##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample GS150344).
 ##DESCRIPTION=tumor_dp=Tumor Depth (Sample GS150344).
 ##DESCRIPTION=snp_q=Quality parameters - SNP quality (QUAL).

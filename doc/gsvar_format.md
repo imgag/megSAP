@@ -34,7 +34,7 @@ Similar to VCF format, the GSvar format can contain meta data in header lines th
 
 After the meta data header line, the main header line and the variant lines follow:
 
-	#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	Kaviar	phyloP	Sift	MetaLR	PolyPhen2	FATHMM	CADD	OMIM	ClinVar	HGMD	COSMIC	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info
+	#chr	start	end	ref	obs	sample_genotype	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	Kaviar	phyloP	Sift	MetaLR	PolyPhen2	FATHMM	CADD	OMIM	ClinVar	HGMD	COSMIC	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info
 	chr1	27682481	27682481	G	A	het	off-target	QUAL=2181;DP=169;AF=0.51;MQM=60	MAP3K6	intron	MAP3K6:NM_004672.4:intron:MODIFIER:exon27/28:c.3711+36C>T:,MAP3K6:NM_001297609.1:intron:MODIFIER:exon26/27:c.3687+36C>T:		rs12569127	0.1903	0.2656	4554/3529/231	0.2588											95	396					MAP3K6 (inh=n/a pLI=0.00)
 	...
 

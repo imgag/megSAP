@@ -229,9 +229,17 @@ while(!feof($handle))
 		{
 			$line = trim($line);
 			fwrite($handle_out, $line."\n");
-			if ($genotype_mode=="multi")
+			list($name) = explode(",", substr($line, 13, -1));
+			if ($genotype_mode=="single")
 			{
-				list($name) = explode(",", substr($line, 13, -1));
+				if ($column_desc[0][0]!="genotype")
+				{
+					trigger_error("Several sample header lines in 'single' mode!", E_USER_ERROR);
+				}
+				$column_desc[0][0] = $name;
+			}
+			else if ($genotype_mode=="multi")
+			{
 				$multi_cols[] = $name;
 				array_splice($column_desc, count($multi_cols)-1, 0, array(array($name, "genotype of sample $name")));
 			}
