@@ -206,7 +206,7 @@ if (file_exists("Fq"))
 						$from = "Fq/L0{$lane}/{$fcid}_L0{$lane}_{$mid}_{$read}.fq.gz";
 						$to = "{$sample_folder}/{$sample}_L00{$lane}_MID{$mid}_R{$read}_001.fastq.gz";
 						print "  Copying $from (".filesize_mb($from)." MB)\n";
-						$parser->copyFile($from, $to);
+						$parser->exec("cp", "-l {$from} {$to}", true);
 						$copied_fastqs[] = $from;
 					}
 				}
