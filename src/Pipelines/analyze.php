@@ -13,8 +13,8 @@ $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
-$steps_all = array("ma", "vc", "an", "db", "cn");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, an=annotation, db=import into NGSD, cn=copy-number analysis.", true, implode(",", $steps_all));
+$steps_all = array("ma", "vc", "an", "db", "cn","sv");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, an=annotation, db=import into NGSD, cn=copy-number analysis, sv=structural-variant analysis.", true, implode(",", $steps_all));
 $parser->addFlag("backup", "Backup old analysis files to old_[date] folder.");
 $parser->addFlag("lofreq", "Add low frequency variant detection.", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
@@ -69,12 +69,17 @@ $log_vc  = $out_folder."/".$name."_log2_vc.log";
 $log_an  = $out_folder."/".$name."_log3_anno.log";
 $log_db  = $out_folder."/".$name."_log4_db.log";
 $log_cn  = $out_folder."/".$name."_log5_cn.log";
+$log_sv = $out_folder ."/".$name."_log6_sv.log";
 $qc_fastq  = $out_folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $out_folder."/".$name."_stats_map.qcML";
 $qc_vc  = $out_folder."/".$name."_stats_vc.qcML";
 $cnvfile = $out_folder."/".$name."_cnvs.tsv";
 $cnvfile2 = $out_folder."/".$name."_cnvs.seg";
 $rohfile = $out_folder."/".$name."_rohs.tsv";
+
+$sv_manta_file = $out_folder ."/". $name . "_manta_var_structural.vcf.gz";
+$small_indel_manta_file =  $out_folder ."/". $name . "_manta_var_smallIndels.vcf.gz";
+$sv_delly_file = $out_folder ."/". $name . "_delly_var_structural.vcf.gz";
 
 //move old data to old_[date]_[random]-folder
 if($backup && in_array("ma", $steps))
@@ -326,6 +331,35 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 		$cnvfile2 = substr($cnvfile2, 0, -4)."_clincnv.seg";
 		if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
 	}
+}
+
+//structural variants
+if (in_array("sv", $steps))
+{
+	/*****************************
+	 * MANTA STRUCTURAL VARIANTS *
+	 *****************************/
+	$manta_evidence_dir = "{$out_folder}/manta_evid";
+	create_directory($manta_evidence_dir);
+
+	$manta_args = [
+		"-bam", $bamfile,
+		"-evid_dir", $manta_evidence_dir,
+		"-out", $sv_manta_file,
+		"-smallIndels", $small_indel_manta_file,
+		"-threads", $threads,
+		"-fix_bam",
+		"--log",$log_sv
+	];
+	if($sys['target_file'] != "") $manta_args[] = "-target " . $sys['target_file'];
+	
+	//settings for non-WGS data
+	if($sys['type']!="WGS") $manta_args[] = "-exome";
+
+	if(file_exists($log_sv)) unlink($log_sv);
+
+	
+	$parser->execTool("NGS/vc_manta.php",implode(" ",$manta_args));
 }
 
 //import to database
