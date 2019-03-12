@@ -14,7 +14,7 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
 $steps_all = array("ma", "vc", "an", "db", "cn","sv");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, an=annotation, db=import into NGSD, cn=copy-number analysis, sv=structural-variant analysis.", true, implode(",", $steps_all));
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, an=annotation, db=import into NGSD, cn=copy-number analysis, sv=structural-variant analysis.", true, "ma,vc,an,db,cn");
 $parser->addFlag("backup", "Backup old analysis files to old_[date] folder.");
 $parser->addFlag("lofreq", "Add low frequency variant detection.", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
