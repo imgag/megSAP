@@ -1,0 +1,6 @@
+#type=GENE_EXPRESSION
+#track graphtype=points name="DX000018_02" color=0,0,255 altColor=255,0,0 maxHeightPixels=80:80:80 viewLimits=0:2:6 yLineMark=2 yLineOnOff=on
+ID	chr	start	end	CN	loglik	value
+DX000018_02	chr18	48573391	51274861	3	-717.211137913145	3
+DX000018_02	chr22	42522550	42526818	1	-363.841804203802	1
+DX000018_02	chrY	25276401	25344972	2	-1303.21071014826	2

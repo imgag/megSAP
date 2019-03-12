@@ -336,6 +336,8 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 //structural variants
 if (in_array("sv", $steps))
 {
+	if(file_exists($log_sv)) unlink($log_sv);
+	
 	/*****************************
 	 * MANTA STRUCTURAL VARIANTS *
 	 *****************************/
@@ -355,11 +357,21 @@ if (in_array("sv", $steps))
 	
 	//settings for non-WGS data
 	if($sys['type']!="WGS") $manta_args[] = "-exome";
-
-	if(file_exists($log_sv)) unlink($log_sv);
-
-	
 	$parser->execTool("NGS/vc_manta.php",implode(" ",$manta_args));
+
+
+	/*****************************
+	 * DELLY STRUCTURAL VARIANTS *
+	 *****************************/
+	$delly_args = [
+	"-out",$sv_delly_file,
+	"-bam",$bamfile,
+	"-exclude", repository_basedir() . "/data/misc/delly_exclude_regions_hg19.tsv",
+	"--log",$log_sv
+	];
+	if($sys['target_file'] != "") $delly_args[] = "-target ".$sys['target_file'];
+	
+	$parser->execTool("NGS/vc_delly.php",implode(" ",$delly_args));
 }
 
 //import to database
