@@ -23,6 +23,7 @@ $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.", true);
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
+$parser->addString("sv_caller","Comma-separated list of SV callers to be used. Possible are delly,manta.",true,"delly,manta");
 extract($parser->parse($argv));
 
 //handle somatic flag
@@ -338,40 +339,55 @@ if (in_array("sv", $steps))
 {
 	if(file_exists($log_sv)) unlink($log_sv);
 	
+	$sv_caller_all = array("delly","manta");
+	$sv_caller = explode(",",$sv_caller);
+	foreach($sv_caller as $sv_caller_single)
+	{
+		if(!in_array($sv_caller_single,$sv_caller_all))
+		{
+			trigger_error("Unknown Structure Variant caller {$sv_caller_single}.", E_USER_WARNING);
+		}
+	}
+	
 	/*****************************
 	 * MANTA STRUCTURAL VARIANTS *
 	 *****************************/
-	$manta_evidence_dir = "{$out_folder}/manta_evid";
-	create_directory($manta_evidence_dir);
+	if(in_array("manta",$sv_caller))
+	{
+		$manta_evidence_dir = "{$out_folder}/manta_evid";
+		create_directory($manta_evidence_dir);
 
-	$manta_args = [
-		"-bam", $bamfile,
-		"-evid_dir", $manta_evidence_dir,
-		"-out", $sv_manta_file,
-		"-smallIndels", $small_indel_manta_file,
-		"-threads", $threads,
-		"-fix_bam",
-		"--log",$log_sv
-	];
-	if($sys['target_file'] != "") $manta_args[] = "-target " . $sys['target_file'];
-	
-	//settings for non-WGS data
-	if($sys['type']!="WGS") $manta_args[] = "-exome";
-	$parser->execTool("NGS/vc_manta.php",implode(" ",$manta_args));
-
+		$manta_args = [
+			"-bam", $bamfile,
+			"-evid_dir", $manta_evidence_dir,
+			"-out", $sv_manta_file,
+			"-smallIndels", $small_indel_manta_file,
+			"-threads", $threads,
+			"-fix_bam",
+			"--log",$log_sv
+		];
+		if($sys['target_file'] != "") $manta_args[] = "-target " . $sys['target_file'];
+		
+		//settings for non-WGS data
+		if($sys['type']!="WGS") $manta_args[] = "-exome";
+		
+		$parser->execTool("NGS/vc_manta.php",implode(" ",$manta_args));
+	}
 
 	/*****************************
 	 * DELLY STRUCTURAL VARIANTS *
 	 *****************************/
-	$delly_args = [
-	"-out",$sv_delly_file,
-	"-bam",$bamfile,
-	"-exclude", repository_basedir() . "/data/misc/delly_exclude_regions_hg19.tsv",
-	"--log",$log_sv
-	];
-	if($sys['target_file'] != "") $delly_args[] = "-target ".$sys['target_file'];
-	
-	$parser->execTool("NGS/vc_delly.php",implode(" ",$delly_args));
+	if(in_array("delly",$sv_caller))
+	{
+		$delly_args = [
+			"-out",$sv_delly_file,
+			"-bam",$bamfile,
+			"-exclude", repository_basedir() . "/data/misc/delly_exclude_regions_hg19.tsv",
+			"--log",$log_sv
+		];
+		if($sys['target_file'] != "") $delly_args[] = "-target ".$sys['target_file'];
+		$parser->execTool("NGS/vc_delly.php",implode(" ",$delly_args));
+	}
 }
 
 //import to database
