@@ -78,7 +78,7 @@ if(!is_dir($temp_folder) || !is_writable($temp_folder))
 	trigger_error("Temp folder '$temp_folder' not writable.", E_USER_ERROR);
 }
 $args[] = "-out {$temp_folder}/cnvs.tsv";
-$args[] = "-cnp_file ".repository_basedir()."/data/misc/copy_number_map_strict.bed";
+$args[] = "-cnp_file ".repository_basedir()."/data/misc/cn_polymorphisms_zarrei.bed";
 $omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 $args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed ".(file_exists($omim_file) ? $omim_file : "");
 $parser->exec(get_path("ngs-bits")."CnvHunter", implode(" ", $args), true);
