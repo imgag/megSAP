@@ -249,7 +249,6 @@ if (in_array("an", $steps))
 //copy-number analysis
 if (in_array("cn", $steps) && $sys['target_file']!="")
 {
-		
 	//remove log file
 	if(file_exists($log_cn)) unlink($log_cn);
 	
@@ -263,42 +262,12 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 			trigger_error("Could not change privileges of folder '{$ref_folder}'!", E_USER_ERROR);
 		}
 	}
+	$cov_folder = $ref_folder;
 	
-	//create BED file if missing
-	$bed = $ref_folder."/roi_annotated.bed";
-	if (!file_exists($bed))
+	//WGS: create folder for binned coverage data - if missing
+	$is_wgs = $sys['type']=="WGS";
+	if ($is_wgs)
 	{
-		$parser->exec("{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".genome_fasta($sys['build'])." | {$ngsbits}BedAnnotateGenes -out {$bed}", true);
-	}
-	
-	//perform CNV analysis
-	if ($sys['type']!="WGS") //Panel, Exome
-	{
-		//create coverage file
-		$tmp_folder = $parser->tempFolder();
-		$cov_file = $tmp_folder."/{$name}.cov";
-		$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -bam $bamfile -in ".$sys['target_file']." -out $cov_file", true);
-
-		//copy coverage file to reference folder (has to be done before CnvHunter call to avoid analyzing the same sample twice)
-		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
-		{
-			$ref_file = $ref_folder.$name.".cov";
-			$parser->copyFile($cov_file, $ref_file);
-			$cov_file = $ref_file;
-		}
-		
-		//execute		
-		$cnv_out = $tmp_folder."/output.tsv";
-		$cnv_out2 = $tmp_folder."/output.seg";
-		$parser->execTool("NGS/vc_clincnv_germline.php", "-cov {$cov_file} -cov_folder {$ref_folder} -bed {$bed} -out {$cnv_out} --log $log_cn -threads $threads", true);
-
-		//copy results to output folder
-		if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
-		if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
-	}
-	else //WGS
-	{	
-		//create bin folder if missing
 		$bin_size = 1000;
 		$bin_folder = "{$ref_folder}/bins{$bin_size}/";
 		if (!is_dir($bin_folder))
@@ -309,36 +278,55 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 				trigger_error("Could not change privileges of folder '{$bin_folder}'!", E_USER_ERROR);
 			}
 		}
-		
-		//create BED file if missing
+		$cov_folder = $bin_folder;
+	}
+	
+	//create BED file with GC and gene anntations - if missing
+	if ($is_wgs)
+	{
 		$bed = $ref_folder."/bins{$bin_size}.bed";
 		if (!file_exists($bed))
 		{
 			$parser->exec("{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size} | {$ngsbits}BedAnnotateGC -ref ".genome_fasta($sys['build'])." | {$ngsbits}BedAnnotateGenes -out {$bed}", true);
 		}
-
-		//create coverage file
-		$tmp_folder = $parser->tempFolder();
-		$cov_file = $tmp_folder."/{$name}.cov";
-		$parser->exec("{$ngsbits}BedCoverage", "-decimals 4 -min_mapq 0 -bam $bamfile -in {$bed} -out $cov_file", true);
-
-		//copy coverage file to bin folder
-		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
-		{
-			$ref_file = "{$bin_folder}{$name}.cov";
-			$parser->copyFile($cov_file, $ref_file);
-			$cov_file = $ref_file;
-		}
-		
-		//execute
-		$cnv_out = $tmp_folder."/output.tsv";
-		$cnv_out2 = $tmp_folder."/output.seg";
-		$parser->execTool("NGS/vc_clincnv_germline.php", "-cov {$cov_file} -cov_folder {$bin_folder} -bed {$bed} -out {$cnv_out} --log {$log_cn} -threads {$threads} -cov_max 100", true);
-		
-		//copy results to output folder
-		if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
-		if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
 	}
+	else
+	{
+		$bed = $ref_folder."/roi_annotated.bed";
+		if (!file_exists($bed))
+		{
+			$parser->exec("{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".genome_fasta($sys['build'])." | {$ngsbits}BedAnnotateGenes -out {$bed}", true);
+		}
+	}
+	
+	//create coverage profile
+	$tmp_folder = $parser->tempFolder();
+	$cov_file = $tmp_folder."/{$name}.cov";
+	$parser->exec("{$ngsbits}BedCoverage", "-decimals 4 -min_mapq 0 -bam {$bamfile} -in {$bed} -out {$cov_file}", true);
+
+	//copy coverage file to reference folder if valid
+	if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
+	{
+		$parser->copyFile($cov_file, $cov_folder.$name.".cov");
+	}
+
+	//perform CNV analysis
+	$cnv_out = $tmp_folder."/output.tsv";
+	$cnv_out2 = $tmp_folder."/output.seg";
+	$args = array(
+		"-cov {$cov_file}",
+		"-cov_folder {$cov_folder}",
+		"-bed {$bed}",
+		"-out {$cnv_out}",
+		"-threads {$threads}",
+		"-cov_max ".($is_wgs ? "100" : "200"),
+		"--log {$log_cn}",
+	);
+	$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
+	
+	//copy results to output folder
+	if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
+	if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
 }
 
 //structural variants
