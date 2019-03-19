@@ -551,7 +551,8 @@ if (in_array("cn", $steps))
 				}
 				
 				$cns[] = $reg[1];
-				$zs[] = mean(explode(",", $reg[2]));
+				$z_scores = explode(",", $reg[2]);
+				$zs[] = mean($z_scores);
 				$afs[] = $reg[3];
 				$cords[] = $reg[0];
 				
@@ -569,7 +570,7 @@ if (in_array("cn", $steps))
 		//annotate CNP regions
 		$data_folder = get_path("data_folder");
 		$tmp2 = temp_file(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 ".repository_basedir()."/data/misc/copy_number_map_strict.bed -out {$tmp2}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 ".repository_basedir()."/data/misc/cn_polymorphisms_zarrei.bed -out {$tmp2}", true);
 		
 		//annotate gene names
 		$tmp3 = temp_file(".bed");
