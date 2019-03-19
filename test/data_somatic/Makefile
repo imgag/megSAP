@@ -74,7 +74,6 @@ case2_somatic:
 case2_diff:
 	# variants
 	php ../compare_variants.php -in1 expected_case2/GS110168-GS110169.GSvar -in2 out_case2/GS110168-GS110169.GSvar
-	php ../compare_variants.php -in1 expected_case2/GS110168-GS110169_var_qci.vcf.gz -in2 out_case2/GS110168-GS110169_var_qci.vcf.gz
 	php ../compare_bed.php expected_case2/GS110168-GS110169_stat_lowcov.bed out_case2/GS110168-GS110169_stat_lowcov.bed
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription.tsv
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription_bioactivities.tsv

@@ -79,8 +79,23 @@ foreach($res as $row)
 			$mid2 = substr($mid2, 0, $mid2_len);
 		}
 		$name = $row["psname"];
-		$barcodes[$lane][] = array($mid1, $mid2, $name);
-		$output[] = $lane.",Sample_".$row["psname"].",".$name.",,,,".$mid1.",,".$mid2.",".$row["pname"].",".$row["pscomment"]." ".$row["scomment"];
+
+		$mids_i7 = [ $mid1 ];
+		if (starts_with($row["pscomment"], "add_mids:"))
+		{
+			$add_mids = explode(".", substr($row["pscomment"], strpos($row["pscomment"], ":")+1));
+			foreach ($add_mids as $mid)
+			{
+				$res = $db->executeQuery("SELECT name, sequence FROM mid WHERE name = :name", array("name" => trim($mid)));
+				$mids_i7[] = $res[0]["sequence"];
+			}
+		}
+
+		foreach ($mids_i7 as $mid1)
+		{
+			$barcodes[$lane][] = array($mid1, $mid2, $name);
+			$output[] = $lane.",Sample_".$row["psname"].",".$name.",,,,".$mid1.",,".$mid2.",".$row["pname"].",".$row["pscomment"]." ".$row["scomment"];
+		}
 	}
 }
 

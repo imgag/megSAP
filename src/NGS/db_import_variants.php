@@ -9,7 +9,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("db_import_variants", "Imports variants to NGSD.");
 $parser->addString("id", "Processing ID (e.g. GS000123_01 for germline variants, GS000123_01-GS000124_01 for tumor-normal pairs).", false);
-$parser->addInfile("var",  "Input variant list in TSV format.", false);
+$parser->addInfile("var",  "Input variant list in GSvar format.", false);
 // optional
 $parser->addEnum("mode",  "Import mode.", true, array("germline", "somatic"), "germline");
 $parser->addFloat("max_af", "Maximum allele frequency for import of germline variants.", true, 0.05);
@@ -265,7 +265,7 @@ if($mode=="germline")
 	
 	$db_connect->beginTransaction();
 	$hash = $db_connect->prepare("INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES ('$psid', :variant_id, :genotype);");
-	$i_geno = $file->getColumnIndex("genotype");
+	$i_geno = 5; //genotype is always the 5th column
 	$i_typ = $file->getColumnIndex("variant_type");
 	for($i=0; $i<$file->rows(); ++$i)
 	{

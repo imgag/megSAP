@@ -13,8 +13,8 @@ $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
-$steps_all = array("ma", "vc", "an", "db", "cn");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, an=annotation, db=import into NGSD, cn=copy-number analysis.", true, implode(",", $steps_all));
+$steps_all = array("ma", "vc", "an", "db", "cn","sv");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, an=annotation, db=import into NGSD, cn=copy-number analysis, sv=structural-variant analysis.", true, "ma,vc,an,db,cn");
 $parser->addFlag("backup", "Backup old analysis files to old_[date] folder.");
 $parser->addFlag("lofreq", "Add low frequency variant detection.", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
@@ -23,6 +23,7 @@ $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.", true);
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
+$parser->addString("sv_caller","Comma-separated list of SV callers to be used. Possible are delly,manta.",true,"delly,manta");
 extract($parser->parse($argv));
 
 //handle somatic flag
@@ -72,12 +73,17 @@ $log_vc  = $out_folder."/".$name."_log2_vc.log";
 $log_an  = $out_folder."/".$name."_log3_anno.log";
 $log_db  = $out_folder."/".$name."_log4_db.log";
 $log_cn  = $out_folder."/".$name."_log5_cn.log";
+$log_sv = $out_folder ."/".$name."_log6_sv.log";
 $qc_fastq  = $out_folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $out_folder."/".$name."_stats_map.qcML";
 $qc_vc  = $out_folder."/".$name."_stats_vc.qcML";
 $cnvfile = $out_folder."/".$name."_cnvs_clincnv.tsv";
 $cnvfile2 = $out_folder."/".$name."_cnvs_clincnv.seg";
 $rohfile = $out_folder."/".$name."_rohs.tsv";
+
+$sv_manta_file = $out_folder ."/". $name . "_manta_var_structural.vcf.gz";
+$small_indel_manta_file =  $out_folder ."/". $name . "_manta_var_smallIndels.vcf.gz";
+$sv_delly_file = $out_folder ."/". $name . "_delly_var_structural.vcf.gz";
 
 //move old data to old_[date]_[random]-folder
 if($backup && in_array("ma", $steps))
@@ -233,6 +239,7 @@ if (in_array("an", $steps))
 		$args = array();
 		$args[] = "-in $vcffile_annotated";
 		$args[] = "-out $rohfile";
+		$args[] = "-var_af_keys AF,gnomAD_AF,gnomADg_AF"; //use 1000g, gnomAD exome, genomAD genome
 		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 		$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".(file_exists($omim_file) ? $omim_file : "");
 		$parser->exec("{$ngsbits}RohHunter", implode(" ", $args), true);
@@ -326,11 +333,67 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 		//execute
 		$cnv_out = $tmp_folder."/output.tsv";
 		$cnv_out2 = $tmp_folder."/output.seg";
-		$parser->execTool("NGS/vc_clincnv_germline.php", "-cov {$cov_file} -cov_folder {$bin_folder} -bed {$bed} -out {$cnv_out} --log $log_cn -threads $threads", true);
+		$parser->execTool("NGS/vc_clincnv_germline.php", "-cov {$cov_file} -cov_folder {$bin_folder} -bed {$bed} -out {$cnv_out} --log {$log_cn} -threads {$threads} -cov_max 100", true);
 		
 		//copy results to output folder
 		if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
 		if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
+	}
+}
+
+//structural variants
+if (in_array("sv", $steps))
+{
+	if(file_exists($log_sv)) unlink($log_sv);
+	
+	$sv_caller_all = array("delly","manta");
+	$sv_caller = explode(",",$sv_caller);
+	foreach($sv_caller as $sv_caller_single)
+	{
+		if(!in_array($sv_caller_single,$sv_caller_all))
+		{
+			trigger_error("Unknown Structure Variant caller {$sv_caller_single}.", E_USER_WARNING);
+		}
+	}
+	
+	/*****************************
+	 * MANTA STRUCTURAL VARIANTS *
+	 *****************************/
+	if(in_array("manta",$sv_caller))
+	{
+		$manta_evidence_dir = "{$out_folder}/manta_evid";
+		create_directory($manta_evidence_dir);
+
+		$manta_args = [
+			"-bam", $bamfile,
+			"-evid_dir", $manta_evidence_dir,
+			"-out", $sv_manta_file,
+			"-smallIndels", $small_indel_manta_file,
+			"-threads", $threads,
+			"-fix_bam",
+			"--log",$log_sv
+		];
+		if($sys['target_file'] != "") $manta_args[] = "-target " . $sys['target_file'];
+		
+		//settings for non-WGS data
+		if($sys['type']!="WGS") $manta_args[] = "-exome";
+		
+		$parser->execTool("NGS/vc_manta.php",implode(" ",$manta_args));
+	}
+
+	/*****************************
+	 * DELLY STRUCTURAL VARIANTS *
+	 *****************************/
+	if(in_array("delly",$sv_caller))
+	{
+		$delly_args = [
+			"-out",$sv_delly_file,
+			"-bam",$bamfile,
+			"-exclude", repository_basedir() . "/data/misc/delly_exclude_regions_hg19.tsv",
+			"--log",$log_sv
+		];
+		if($sys['target_file'] != "") $delly_args[] = "-target ".$sys['target_file'];
+		$parser->execTool("NGS/vc_delly.php",implode(" ",$delly_args));
 	}
 }
 

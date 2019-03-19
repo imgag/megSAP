@@ -17,6 +17,7 @@ $out_file1 = output_folder().$name."_out1.tsv";
 check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX000018_02.cov -cov_folder {$cov_folder} -cov_min 20 -bed {$bed} -out {$out_file1}");
 check_file($out_file1, data_folder().$name."_out1.tsv");
 check_file(substr($out_file1,0,-4).".seg", data_folder().$name."_out1.seg");
+check_file(substr($out_file1,0,-4)."_cnvs.seg",data_folder().$name."_out2.seg");
 
 end_test();
 

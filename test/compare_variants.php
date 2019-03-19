@@ -19,7 +19,7 @@ if ($requires_db!="" && !db_is_enabled($requires_db))
 }
 
 //exec
-list($stdout, $stderr) = exec2(get_path("ngs-bits")."/SampleDiff -window 0 -ei -in1 {$in1} -in2 {$in2}");
+list($stdout, $stderr) = exec2(get_path("ngs-bits")."/SampleDiff -window 0 -ei -in1 {$in1} -in2 {$in2} 2>&1");
 foreach($stdout as $line)
 {
 	print $line."\n";

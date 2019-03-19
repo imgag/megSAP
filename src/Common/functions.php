@@ -124,7 +124,7 @@ function winsored_statistics($data, $num)
 	@return The mean value
 	@ingroup statistics
 */
-function mean($data)
+function mean(&$data)
 {
 	return array_sum($data)/count($data);
 }
@@ -134,7 +134,7 @@ function mean($data)
 	@return The standard deviation value
 	@ingroup statistics
 */
-function stdev($data, $mean=null)
+function stdev(&$data, $mean=null)
 {
 	if($mean==null)
 	{
@@ -197,7 +197,7 @@ function mad($data, $median = null)
 	@return The Pearson correlation coefficient.
 	@ingroup statistics
 */
-function correlation($x, $y)
+function correlation(&$x, &$y)
 {
 	$n = count($x);
 	if ($n!=count($y))

@@ -90,7 +90,7 @@ tcgi	MDC1	AMP	ambiguous			78	SK		predicted passenger
 tcgi	MDC1-AS1	AMP	ambiguous			79	SK		predicted passenger		
 tcgi	MIR4640	AMP	ambiguous			80	SK		predicted passenger		
 tcgi	HLA-B	AMP	ambiguous			81	SK		predicted passenger		
-tcgi	C6ORF106	AMP	ambiguous			82	SK		predicted passenger		
+tcgi	ILRUN	AMP	ambiguous			82	SK		predicted passenger		
 tcgi	DAXX	AMP	LoF			83	SK		predicted passenger		
 tcgi	FANCE	AMP	LoF			84	SK		predicted passenger		
 tcgi	PSMB8-AS1	AMP	ambiguous			85	SK		predicted passenger		
@@ -101,7 +101,7 @@ tcgi	KIF6	AMP	ambiguous			89	SK		predicted passenger
 tcgi	PIM1	AMP	Act			90	SK		predicted passenger		
 tcgi	ADGRF5	AMP	ambiguous			91	SK		predicted passenger		
 tcgi	HSP90AB1	AMP	Act	COREAD		92	SK		predicted passenger		
-tcgi	MUT	AMP	ambiguous			93	SK		predicted passenger		
+tcgi	MMUT	AMP	ambiguous			93	SK		predicted passenger		
 tcgi	RUNX2	AMP	ambiguous			94	SK		predicted passenger		
 tcgi	ASCC3	DEL	ambiguous			95	SK		predicted passenger		
 tcgi	EPHA7	DEL	ambiguous			96	SK		predicted passenger		
@@ -114,7 +114,7 @@ tcgi	PNRC1	DEL	ambiguous			102	SK		predicted passenger
 tcgi	ROS1	DEL	Act			104	SK		predicted passenger		
 tcgi	SLC35F1	DEL	ambiguous			105	SK		predicted passenger		
 tcgi	TTK	DEL	ambiguous			106	SK		predicted passenger		
-tcgi	WISP3	DEL	LoF			107	SK		predicted passenger		
+tcgi	CCN6	DEL	ambiguous			107	SK		predicted passenger		
 tcgi	MED23	DEL	LoF			108	SK		predicted passenger		
 tcgi	MYB	DEL	Act			109	SK		predicted passenger		
 tcgi	MYB-AS1	DEL	ambiguous			110	SK		predicted passenger		
@@ -314,7 +314,7 @@ tcgi	GRIK1-AS2	AMP	ambiguous			310	SK		predicted passenger
 tcgi	ARHGAP8	DEL	ambiguous			311	SK		predicted passenger		
 tcgi	CYP2D6	DEL	ambiguous			312	SK		predicted passenger		
 tcgi	FAM118A	DEL	ambiguous			313	SK		predicted passenger		
-tcgi	FAM19A5	DEL	ambiguous			314	SK		predicted passenger		
+tcgi	TAFA5	DEL	ambiguous			314	SK		predicted passenger		
 tcgi	NDUFA6-DT	DEL	ambiguous			315	SK		predicted passenger		
 tcgi	PARVB	DEL	ambiguous			316	SK		predicted passenger		
 tcgi	PRR5-ARHGAP8	DEL	ambiguous			317	SK		predicted passenger		
