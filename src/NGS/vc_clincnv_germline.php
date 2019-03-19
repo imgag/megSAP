@@ -190,7 +190,9 @@ $args = [
 "--bed {$bed}",
 "--out {$out_folder}",
 "--maxNumGermCNVs {$max_cnvs}",
-"--numberOfThreads {$threads}"
+"--numberOfThreads {$threads}",
+"--lengthG 0", //actually means length 1 ;)
+"--scoreG 30"
 ];
 $parser->exec(get_path("clincnv")."/clinCNV.R", implode(" ", $args), true);
 
