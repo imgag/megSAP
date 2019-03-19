@@ -1,6 +1,7 @@
+##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE
 ##number of iterations: 1 , gender of sample: M , was it outlier after clustering? FALSE
 ##fraction of outliers: 0.058
-#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	copy_number_map_strict	dosage_sensitive_disease_genes	omim
-chr18	48573391	51274861	3	717	13	2701.470	0.050	SMAD4	yes	SMAD4	600993_[SMAD4_Pancreatic_cancer,somatic,260350/Juvenile_polyposis/hereditary_hemorrhagic_telangiectasia_syndrome,175050/Myhre_syndrome,139210/Polyposis,juvenile_intestinal,174900],120470_[DCC_Mirror_movements_1_and/or_agenesis_of_the_corpus_callosum,157600/Gaze_palsy,familial_horizontal,with_progressive_scoliosis,2,617542/Colorectal_cancer,somatic,114500/Esophageal_carcinoma,somatic,133239]
-chr22	42522550	42526818	1	364	8	   4.268	0.050	CYP2D6,NDUFA6-DT	yes	CYP2D6	124030_[CYP2D6_Debrisoquine_sensitivity,608902/Codeine_sensitivity,608902]
-chrY	25276401	25344972	2	1303	27	  68.571	0.050	DAZ1		DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
+#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	qvalue	cn_polymorphisms_zarrei	dosage_sensitive_disease_genes	omim
+chr18	48573391	51274861	3	723	13	2701.470	0.050	SMAD4	0	yes	SMAD4	600993_[SMAD4_Pancreatic_cancer,somatic,260350/Juvenile_polyposis/hereditary_hemorrhagic_telangiectasia_syndrome,175050/Myhre_syndrome,139210/Polyposis,juvenile_intestinal,174900],120470_[DCC_Mirror_movements_1_and/or_agenesis_of_the_corpus_callosum,157600/Gaze_palsy,familial_horizontal,with_progressive_scoliosis,2,617542/Colorectal_cancer,somatic,114500/Esophageal_carcinoma,somatic,133239]
+chr22	42522550	42526818	1	372	8	   4.268	0.050	CYP2D6,NDUFA6-DT	0	yes	CYP2D6	124030_[CYP2D6_Debrisoquine_sensitivity,608902/Codeine_sensitivity,608902]
+chrY	25276401	25344972	2	1368	27	  68.571	0.050	DAZ1	0		DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
