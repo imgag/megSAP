@@ -17,6 +17,7 @@ vep_data = [path]/data/dbs/ensembl-vep-95/
 clincnv = Rscript --vanilla [path]/data/tools/ClinCNV-1.13.0/
 delly = [path]/data/tools/delly-0.8.1/delly_v0.8.1_linux_x86_64bit
 bcftools = [path]/data/tools/bcftools-1.9/bcftools
+svtools = "PYTHONPATH=[path]/data/tools/svtools-0.4.0/lib/python2.7/site-packages/ [path]/data/tools/svtools-0.4.0/bin/svtools"
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.9.centos6_x86_64/bin/

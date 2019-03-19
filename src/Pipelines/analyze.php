@@ -388,6 +388,15 @@ if (in_array("sv", $steps))
 		if($sys['target_file'] != "") $delly_args[] = "-target ".$sys['target_file'];
 		$parser->execTool("NGS/vc_delly.php",implode(" ",$delly_args));
 	}
+	
+	//Create BEDPE-Files for each structural variant VCF-file
+	$sv_files = glob("{$out_folder}/*_var_structural.vcf.gz");
+	
+	foreach($sv_files as $sv_file)
+	{
+		$bedpe_out = substr($sv_file,0,-6) . "bedpe";
+		exec2(get_path("svtools") . " vcftobedpe -i $sv_file -o $bedpe_out");
+	}
 }
 
 //import to database
