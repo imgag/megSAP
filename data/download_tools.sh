@@ -79,3 +79,14 @@ tar xjf bcftools-1.9.tar.bz2
 rm bcftools-1.9.tar.bz2
 cd bcftools-1.9
 make
+
+#download and install svtools
+cd $folder
+wget https://github.com/hall-lab/svtools/archive/v0.4.0.tar.gz
+tar xf v0.4.0.tar.gz
+rm v0.4.0.tar.gz
+cd svtools-0.4.0/
+mkdir -p lib/python2.7/site-packages/
+export PYTHONPATH=$(pwd)/lib/python2.7/site-packages/
+echo "python2.7 setup.py install --prefix=$(pwd)"
+python2.7 setup.py install --prefix=$(pwd)
