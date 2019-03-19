@@ -240,11 +240,12 @@ if ($sys['type'] !== "WGS" && !empty($roi))
 }
 
 //variant calling
-$manta_indels = $full_prefix . "_var_smallIndels.vcf.gz";		// small indels from manta
-$manta_sv     = $full_prefix . "_var_structural.vcf.gz";		// structural variants (vcf)
-$manta_sv_tsv = $full_prefix . "_var_structural.tsv";			// structural variants (tsv)
-$variants     = $full_prefix . "_var.vcf.gz";					// variants
-$ballele      = $full_prefix . "_bafs.igv";						// B-allele frequencies
+$manta_indels  = $full_prefix . "_var_smallIndels.vcf.gz";		// small indels from manta
+$manta_sv      = $full_prefix . "_var_structural.vcf.gz";		// structural variants (vcf)
+$manta_sv_tsv  = $full_prefix . "_var_structural.tsv";			// structural variants (tsv)
+$manta_sv_bedpe= $full_prefix . "_var_structural.bedpe"; 		// structural variants (bedpe)
+$variants      = $full_prefix . "_var.vcf.gz";					// variants
+$ballele       = $full_prefix . "_bafs.igv";					// B-allele frequencies
 if (in_array("vc", $steps))
 {
 	// structural variant calling
@@ -279,6 +280,7 @@ if (in_array("vc", $steps))
 			$args_manta[] = "-target {$roi}";
 		}
 		$parser->execTool("NGS/vc_manta.php", implode(" ", $args_manta));
+		exec2(get_path("svtools") . " vcftobedpe -i $manta_sv -o $manta_sv_bedpe");
 		$parser->execTool("Tools/converter_manta2tsv.php", "-in $manta_sv -out $manta_sv_tsv -tumor_id $t_id");
 	}
 
@@ -565,7 +567,7 @@ if (in_array("an", $steps))
 	// annotate vcf (in temp folder)
 	$tmp_folder1 = $parser->tempFolder();
 	$tmp_vcf = "{$tmp_folder1}/{$prefix}_var_annotated.vcf.gz";
-	$parser->execTool("Pipelines/annotate.php", "-out_name $prefix -out_folder $tmp_folder1 -system $system -vcf $variants -somatic -updown");
+	$parser->execTool("Pipelines/annotate.php", "-out_name $prefix -out_folder $tmp_folder1 -system $system -vcf $variants -somatic -updown -threads $threads");
 
 	// run somatic QC
 	if (!$single_sample)
