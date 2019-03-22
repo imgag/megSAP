@@ -18,6 +18,10 @@ wget https://github.com/Ensembl/ensembl-vep/archive/release/95.1.tar.gz
 tar xzf 95.1.tar.gz
 rm 95.1.tar.gz
 
+#install dependencies
+mkdir -p $vep_cpan_dir
+cpanm -l $vep_cpan_dir -L $vep_cpan_dir Set::IntervalTree URI::Escape DB_File Carp::Assert JSON::XS PerlIO::gzip DBI
+
 # install BigFile support (for BigWig support needed to annotate phyloP)
 cd $vep_install_dir
 export KENT_SRC=$vep_install_dir/kent-335_base/src
@@ -25,12 +29,12 @@ export MACHTYPE=$(uname -m)
 export CFLAGS="-fPIC"
 wget https://github.com/ucscGenomeBrowser/kent/archive/v335_base.tar.gz
 tar xzf v335_base.tar.gz
+rm v335_base.tar.gz
 cd $KENT_SRC/lib
 echo 'CFLAGS="-fPIC"' > ../inc/localEnvironment.mk
 make clean && make
 cd ../jkOwnLib
 make clean && make
-mkdir -p $vep_cpan_dir
 cpanm -l $vep_cpan_dir -L $vep_cpan_dir Bio::DB::BigFile
 
 #download VEP cache data
@@ -41,7 +45,7 @@ cd ftp
 wget ftp://ftp.ensembl.org/pub/release-95/variation/VEP/homo_sapiens_vep_95_GRCh37.tar.gz
 
 #install ensembl-vep
-PERL5LIB=$vep_install_dir/Bio/:$vep_install_dir/cpan/lib/perl5/:$PERL5LIB
+PERL5LIB=$vep_install_dir/Bio/:$vep_cpan_dir/lib/perl5/:$PERL5LIB
 cd $vep_install_dir
 perl INSTALL.pl --SPECIES homo_sapiens --ASSEMBLY GRCh37 --AUTO acp --PLUGINS REVEL,FATHMM_MKL,CADD,dbscSNV,GeneSplicer,MaxEntScan --NO_UPDATE --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp
 cp $vep_data_dir/cache/Plugins/*.pm $vep_install_dir/modules/ #should not be necessary - probably a bug in the VEP installation script when using the CACHEDIR option (MS)
