@@ -320,6 +320,7 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 		"-out {$cnv_out}",
 		"-threads {$threads}",
 		"-cov_max ".($is_wgs ? "100" : "200"),
+		"-max_cnvs ".($is_wgs ? "2000" : "200"),
 		"--log {$log_cn}",
 	);
 	$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);

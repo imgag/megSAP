@@ -16,7 +16,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 //optional
 $parser->addInt("cov_min", "Minimum number of coverage files required for CNV analysis.", true, 20);
 $parser->addInt("cov_max", "Maximum number of coverage files used for CNV analysis, used to keep run-time and RAM requirement manageable (~TODO for WES and ~TODO for WGS).", true, 200);
-$parser->addInt("max_cnvs", "Number of expected CNVs (~TODO for WES and ~2000 for WGS).", true, 2000);
+$parser->addInt("max_cnvs", "Number of expected CNVs (~200 for WES and ~2000 for WGS).", true, 2000);
 
 extract($parser->parse($argv));
 
@@ -207,7 +207,7 @@ $args = [
 "--maxNumGermCNVs {$max_cnvs}",
 "--numberOfThreads {$threads}",
 "--lengthG 0", //actually means length 1 ;)
-"--scoreG 30"
+"--scoreG 20"
 ];
 $parser->exec(get_path("clincnv")."/clinCNV.R", implode(" ", $args), true);
 
