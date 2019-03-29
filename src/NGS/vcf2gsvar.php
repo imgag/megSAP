@@ -166,6 +166,31 @@ function write_header_line($handle, $column_desc, $filter_desc)
 	fwrite($handle, "\n");
 }
 
+//load HGNC data
+function load_hgnc_db()
+{
+	$output = array();
+	
+	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_complete_set.txt";
+	$file = file($filename);
+	foreach ($file as $line)
+	{
+		$line = trim($line);
+		if ($line=="" || starts_with($line, "HGNC ID\t")) continue;
+		list($id, $symbol, $name, $status) = explode("\t", $line);
+		
+		if ($status!="Approved") continue;
+		
+		$id = trim(strtr($id, array("HGNC:"=>"")));
+		$symbol = trim($symbol);
+		
+		$output[$id] = $symbol;
+	}
+
+	return $output;
+}
+$hgnc = load_hgnc_db();
+
 //write column descriptions
 $column_desc = array(
 	array("filter", "Annotations for filtering and ranking variants."),
@@ -208,6 +233,7 @@ if ($blacklist) $filter_desc[] = array("gene_blacklist", "The gene(s) are contai
 $c_written = 0;
 $c_skipped_wgs = 0;
 $multi_cols = array();
+$hgnc_messages = array();
 $in_header = true;
 $handle = fopen($in, "r");
 $handle_out = fopen($out, "w");
@@ -263,6 +289,7 @@ while(!feof($handle))
 			$i_consequence = index_of($cols, "Consequence");
 			$i_impact = index_of($cols, "IMPACT");
 			$i_symbol = index_of($cols, "SYMBOL");
+			$i_hgnc_id = index_of($cols, "HGNC_ID", false);
 			$i_feature = index_of($cols, "Feature");
 			$i_featuretype = index_of($cols, "Feature_type");
 			$i_biotype = index_of($cols, "BIOTYPE");
@@ -635,8 +662,25 @@ while(!feof($handle))
 					$variant_details_updown[] = $variant_type;
 				}
 				
-				//split genes
-				$gene = $parts[$i_symbol];
+				//determine gene name (update if neccessary)
+				$gene = trim($parts[$i_symbol]);
+				if ($i_hgnc_id!==false && $gene!="")
+				{
+					$hgnc_id = $parts[$i_hgnc_id];
+					if (isset($hgnc[$hgnc_id]))
+					{
+						$hgnc_gene = $hgnc[$hgnc_id];
+						if ($gene!=$hgnc_gene)
+						{
+							@$hgnc_messages["gene name '$gene' with ID '$hgnc_id replaced by '$hgnc_gene'"] += 1;
+							$gene = $hgnc_gene;
+						}
+					}
+					else if ($hgnc_id!="")
+					{
+						@$hgnc_messages["ID '$hgnc_id' not valid or withdrawn for gene '$gene'"] += 1;
+					}
+				}
 				if (!$is_updown)
 				{
 					$genes[] = $gene;
@@ -818,6 +862,12 @@ while(!feof($handle))
 	//write data
 	++$c_written;
 	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$esp_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic\n");
+}
+
+//print HGNC messages
+foreach($hgnc_messages as $message => $c)
+{
+	$parser->log("HGNC: {$message} ({$c}x)");
 }
 
 //if no variants are present, we need to write the header line after the loop
