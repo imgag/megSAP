@@ -20,8 +20,8 @@ $parser->addFlag("all_transcripts", "Annotate all transcripts - if unset only GE
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 extract($parser->parse($argv));
 
-//annotate only field we really need to prevent bloatinf the VCF file 
-$fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation", "AF", "gnomAD_AF", "gnomAD_AFR_AF", "gnomAD_AMR_AF", "gnomAD_EAS_AF", "gnomAD_NFE_AF", "gnomAD_SAS_AF", "EA_AF", "AA_AF"); 
+//annotate only fields we really need to prevent bloating the VCF file 
+$fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation", "AF", "gnomAD_AF", "gnomAD_AFR_AF", "gnomAD_AMR_AF", "gnomAD_EAS_AF", "gnomAD_NFE_AF", "gnomAD_SAS_AF", "EA_AF", "AA_AF"); 
 
 $vep_path = dirname(get_path("vep"));
 $vep_data_path = get_path("local_data")."/".basename(get_path("vep_data"))."/"; //the data is copied to the local data folder by 'data_setup' to speed up annotations (and prevent hanging annotation jobs)
