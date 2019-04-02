@@ -35,9 +35,10 @@ foreach($in as $bed)
 	$sample_tumor = $db->getValue("SELECT tumor FROM sample WHERE name='$sample'", "n/a");
 	if ($sample_tumor=="n/a")
 	{
-		trigger_error("Could not determine if sample '$sample' is a tumor sample. Assuming it is a normal sample!", E_USER_WARNING);
+		trigger_error("Could not determine if sample '$sample' is a tumor sample. Skipping it!", E_USER_WARNING);
+		continue;
 	}
-	if ($tumor && ($sample_tumor=="0" || $sample_tumor=="n/a"))
+	if ($tumor && $sample_tumor=="0")
 	{
 		continue;
 	}
