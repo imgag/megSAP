@@ -207,7 +207,8 @@ $args = [
 "--maxNumGermCNVs {$max_cnvs}",
 "--numberOfThreads {$threads}",
 "--lengthG 0", //actually means length 1 ;)
-"--scoreG 20"
+"--scoreG 20",
+"--superRecall 3"
 ];
 $parser->exec(get_path("clincnv")."/clinCNV.R", implode(" ", $args), true);
 
