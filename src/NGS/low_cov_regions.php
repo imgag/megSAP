@@ -52,6 +52,13 @@ foreach($in as $bed)
 		continue;
 	}
 	
+	//filter for female samples (otherwise results for chrX are wrong)
+	if ($info['gender']!="female")
+	{
+		print "skipping: $base (not 'female' gender)\n";
+		continue;
+	}
+	
 	++$samples_processed;
 	
 	//process low-coverage file
