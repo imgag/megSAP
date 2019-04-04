@@ -150,8 +150,8 @@ if($sys['type']=="Panel MIPs")
 	$count2 = 0;
 	
 	//remove ligation and extension arms from read start (overlap clipping removes the arms at the end of a read later), filter for perfect match ligation/extension arms
-	$mip_file = isset($sys['mip_file']) ? $sys['mip_file'] : "/mnt/share/data/mipfiles/".$sys["name_short"].".txt";
-	if(!is_file($mip_file))	trigger_error("MIP file '".$sys['mip_file']."' is not available.",E_USER_ERROR);
+	$mip_file = isset($sys['mip_file']) ? $sys['mip_file'] : get_path("data_folder")."/mipfiles/".$sys["name_short"].".txt";
+	if(!file_exists($mip_file))	trigger_error("MIP file '{$mip_file}' is not available.",E_USER_ERROR);
 	$mips = Matrix::fromTSV($mip_file,"\t",">");
 	$tmp1 = $parser->tempFile("_R1_woarms.fastq.gz");
 	$tmp2 = $parser->tempFile("_R2_woarms.fastq.gz");

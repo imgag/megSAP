@@ -2,8 +2,6 @@
 
 /**
 	@page mFastSeqS
-	
-	@todo Use reference data specific for each male/female?
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

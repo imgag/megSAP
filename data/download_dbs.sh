@@ -10,6 +10,12 @@ dbs=$root/dbs/
 ngsbits=$tools/ngs-bits/bin
 genome=$root/genomes/GRCh37.fa
 
+#Install HGNC
+cd $dbs
+mkdir HGNC
+cd HGNC
+wget -O - ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc_complete_set.txt.gz | gunzip > hgnc_complete_set.txt
+
 #Install REPEATMASKER - http://www.repeatmasker.org/species/hg.html
 cd $dbs
 mkdir RepeatMasker

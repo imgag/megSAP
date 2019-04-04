@@ -399,7 +399,7 @@ if(in_array("cn",$steps))
 	 ***************************************************/
 	// coverage for tumor sample
 	$t_cov = "{$tmp_folder}/{$t_id}.cov";
-	$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov",true); //@TODO Leave min_mapq at 0 as long as we have CNVHunter, when replaced, set to 2 or 3 and recalculate all .cov files
+	$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov",true);
 	
 	// coverage for tumor sample (off-target)
 	$t_cov_off_target = "{$tmp_folder}/{$t_id}_off_target.cov";
