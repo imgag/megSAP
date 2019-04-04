@@ -1,4 +1,4 @@
-#sample	gene	cna	predicted_in_tumors	known_in_tumors	cancer	gene_role	internal_id	driver	driver_statement	predicted_match	known_match
-tcgi	MDM4	AMP	G	GBM;BLCA;RB;S	SK	Act	0	known	known in: GBM;BLCA;RB;S		
-tcgi	EGFR	AMP	BLCA;CESC;ESCA;HNSC;LUAD;LUSC;STAD	G;NSCLC;COREAD;ED	SK	Act	1	known	known in: G;NSCLC;COREAD;ED		
-tcgi	BRAF	AMP	G;CM		SK	Act	2		predicted passenger	known_match	
+#sample	gene	cna	predicted_in_tumors	internal_id	gene_role	cancer	known_in_tumors	driver	driver_statement	predicted_match	known_match
+cgi	MDM4	AMP	LGG	0	Act	SK	GBM;BLCA;RB;S	known	known in: GBM;BLCA;RB;S		
+cgi	EGFR	AMP	BLCA;CESC;ESCA;LGG;LUAD;LUSC;STAD	1	Act	SK	G;NSCLC;HNSC;COREAD;ED	known	known in: G;NSCLC;HNSC;COREAD;ED		
+cgi	BRAF	AMP	LGG;CM	2	Act	SK			predicted passenger	known_match	
