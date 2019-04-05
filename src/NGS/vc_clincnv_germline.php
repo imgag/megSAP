@@ -177,25 +177,10 @@ if (count($cov_files)>$cov_max)
 }
 
 //merge coverage files to one file
-$prefix = "";
-$max_open_files_soft = trim(implode("", exec2("ulimit -Sn")[0]));
-if (count($cov_files)>=$max_open_files_soft)
-{
-	$max_open_files_hard = trim(implode("", exec2("ulimit -Hn")[0]));
-	if (count($cov_files)>=$max_open_files_hard)
-	{
-		trigger_error("Number of coverage files (".count($cov_files).") is bigger than the maximum number of open files (hard limit: {$max_open_files_hard})!", E_USER_ERROR);
-	}
-	else
-	{
-		trigger_error("Number of coverage files ({".count($cov_files)."}) is bigger than the maximum number of open files (soft limit: {$max_open_files_soft}). Trying to increase the soft limit...", E_USER_WARNING);
-		$prefix = "ulimit -Sn 10000; ";
-	}
-}
 $tmp = $parser->tempFile(".txt");
 file_put_contents($tmp, implode("\n", $cov_files));
 $cov_merged = $parser->tempFile(".cov");
-$parser->exec($prefix.get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
+$parser->exec(get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
 
 //execute ClinCNV
 $out_folder = $parser->tempFolder();
