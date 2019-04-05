@@ -105,9 +105,9 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 	//set protocol specific UMI lengths
 	switch ($sys['umi_type'])
 	{
-		case "MIPS":		//8bp from R1
-			$cut1 = 8;
-			$cut2 = 0;
+		case "MIPs":		//8bp from R2
+			$cut1 = 0;
+			$cut2 = 8;
 			break;
 		case "ThruPLEX":	//8bp each from R1, R2
 			$cut1 = 8;
@@ -123,17 +123,14 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 			break;
 	}
 
-	if ($sys['umi_type'] != "MIPs")
-	{
-		$trimmed1_bc = $parser->tempFile("_trimmed1_bc.fastq.gz");
-		$trimmed2_bc = $parser->tempFile("_trimmed2_bc.fastq.gz");
-		$parser->exec(get_path("ngs-bits")."FastqExtractUMI", "-in1 $trimmed1 -in2 $trimmed2 -out1 $trimmed1_bc -out2 $trimmed2_bc -cut1 $cut1 -cut2 $cut2", true);
+	$trimmed1_bc = $parser->tempFile("_trimmed1_bc.fastq.gz");
+	$trimmed2_bc = $parser->tempFile("_trimmed2_bc.fastq.gz");
+	$parser->exec(get_path("ngs-bits")."FastqExtractUMI", "-in1 $trimmed1 -in2 $trimmed2 -out1 $trimmed1_bc -out2 $trimmed2_bc -cut1 $cut1 -cut2 $cut2", true);
 
-		$parser->deleteTempFile($trimmed1);
-		$parser->deleteTempFile($trimmed2);
-		$trimmed1 = $trimmed1_bc;
-		$trimmed2 = $trimmed2_bc;
-	}
+	$parser->deleteTempFile($trimmed1);
+	$parser->deleteTempFile($trimmed2);
+	$trimmed1 = $trimmed1_bc;
+	$trimmed2 = $trimmed2_bc;
 
 	$barcode_correction = true;
 }
@@ -157,7 +154,6 @@ if($sys['type']=="Panel MIPs")
 	$tmp2 = $parser->tempFile("_R2_woarms.fastq.gz");
 	$idx_ext_seq = $mips->getColumnIndex("ext_probe_sequence");
 	$idx_lig_seq = $mips->getColumnIndex("lig_probe_sequence");
-	$idx_strand = $mips->getColumnIndex("probe_strand");
 	$handle1 = gzopen($trimmed1, "r");
 	if($handle1===FALSE) trigger_error("Could not open file $trimmed1 for reading.",E_USER_ERROR);
 	$handle2 = gzopen($trimmed2, "r");
@@ -179,9 +175,12 @@ if($sys['type']=="Panel MIPs")
 		for($i=0;$i<$mips->rows();++$i)
 		{
 			$mip = $mips->getRow($i);
-
 			$pos1 = strpos($line1[1], rev_comp($mip[$idx_lig_seq]));
+			if ($pos1===FALSE) continue;
 			$pos2 = strpos($line2[1], $mip[$idx_ext_seq]);
+			if ($pos2===FALSE) continue;
+			
+			//$parser->log(__LINE__.": mip_index=$i pos1=$pos1 pos2=$pos2");
 			
 			if($pos1===0 && $pos2===0)
 			{
