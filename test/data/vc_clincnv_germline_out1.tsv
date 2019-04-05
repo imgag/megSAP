@@ -1,17 +1,17 @@
 ##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE
 ##number of iterations: 1 , gender of sample: M , was it outlier after clustering? FALSE
 ##fraction of outliers: 0.056
-#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	qvalue	cn_polymorphisms_zarrei	dosage_sensitive_disease_genes	omim
-chr1	158584017	158584121	3	14	1	 0.104	0.350	SPTA1	0.04694			182860_[SPTA1_Elliptocytosis-2,130600/Pyropoikilocytosis,266140/Spherocytosis,type_3,270970]
-chr3	10091032	10091214	3	8	1	 0.182	0.100	FANCD2	0.21626			613984_[FANCD2_Fanconi_anemia,complementation_group_D2,227646]
-chr6	31948405	31948603	1	14	1	 0.198	0.150	STK19	0.00268	yes		
-chr8	90990422	90990576	1	6	1	 0.154	0.150	NBN	0.02556			602667_[NBN_Nijmegen_breakage_syndrome,251260/Aplastic_anemia,609135/Leukemia,acute_lymphoblastic,613065]
-chr16	28617351	28617582	1	7	1	 0.231	0.200	SULT1A1	0.28728	yes		
-chr18	48573391	48575719	3	193	3	 2.328	0.050	SMAD4	0.00000		SMAD4	600993_[SMAD4_Pancreatic_cancer,somatic,260350/Juvenile_polyposis/hereditary_hemorrhagic_telangiectasia_syndrome,175050/Myhre_syndrome,139210/Polyposis,juvenile_intestinal,174900]
-chr18	48581125	48604862	3	546	8	23.737	0.050	SMAD4	0.00000		SMAD4	600993_[SMAD4_Pancreatic_cancer,somatic,260350/Juvenile_polyposis/hereditary_hemorrhagic_telangiectasia_syndrome,175050/Myhre_syndrome,139210/Polyposis,juvenile_intestinal,174900]
-chr22	42522550	42526818	1	319	7	 4.268	0.050	CYP2D6,NDUFA6-DT	0.00000	yes	CYP2D6	124030_[CYP2D6_Debrisoquine_sensitivity,608902/Codeine_sensitivity,608902]
-chrY	25276401	25289254	2	354	4	12.853	0.050	DAZ1	0.00013		DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
-chrY	25298918	25301417	3	196	2	 2.499	0.050	DAZ1	0.00618		DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
-chrY	25303691	25315121	2	438	7	11.430	0.050	DAZ1	0.00038		DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
-chrY	25316119	25336809	2	445	9	20.690	0.050	DAZ1	0.00000		DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
-chrY	25337807	25338370	2	121	2	 0.563	0.050	DAZ1	0.00276		DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
+#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	qvalue	cn_polymorphisms_zarrei	cn_polymorphisms_demidov	dosage_sensitive_disease_genes	omim
+chr1	158584017	158584121	3	14	1	 0.104	0.350	SPTA1	0.04694				182860_[SPTA1_Elliptocytosis-2,130600/Pyropoikilocytosis,266140/Spherocytosis,type_3,270970]
+chr3	10091032	10091214	3	8	1	 0.182	0.100	FANCD2	0.21626				613984_[FANCD2_Fanconi_anemia,complementation_group_D2,227646]
+chr6	31948405	31948603	1	14	1	 0.198	0.150	STK19	0.00268	yes	yes		
+chr8	90990422	90990576	1	6	1	 0.154	0.150	NBN	0.02556				602667_[NBN_Nijmegen_breakage_syndrome,251260/Aplastic_anemia,609135/Leukemia,acute_lymphoblastic,613065]
+chr16	28617351	28617582	1	7	1	 0.231	0.200	SULT1A1	0.28728	yes	yes		
+chr18	48573391	48575719	3	193	3	 2.328	0.050	SMAD4	0.00000			SMAD4	600993_[SMAD4_Pancreatic_cancer,somatic,260350/Juvenile_polyposis/hereditary_hemorrhagic_telangiectasia_syndrome,175050/Myhre_syndrome,139210/Polyposis,juvenile_intestinal,174900]
+chr18	48581125	48604862	3	546	8	23.737	0.050	SMAD4	0.00000			SMAD4	600993_[SMAD4_Pancreatic_cancer,somatic,260350/Juvenile_polyposis/hereditary_hemorrhagic_telangiectasia_syndrome,175050/Myhre_syndrome,139210/Polyposis,juvenile_intestinal,174900]
+chr22	42522550	42526818	1	319	7	 4.268	0.050	CYP2D6,NDUFA6-DT	0.00000	yes	yes	CYP2D6	124030_[CYP2D6_Debrisoquine_sensitivity,608902/Codeine_sensitivity,608902]
+chrY	25276401	25289254	2	354	4	12.853	0.050	DAZ1	0.00013			DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
+chrY	25298918	25301417	3	196	2	 2.499	0.050	DAZ1	0.00618			DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
+chrY	25303691	25315121	2	438	7	11.430	0.050	DAZ1	0.00038			DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
+chrY	25316119	25336809	2	445	9	20.690	0.050	DAZ1	0.00000			DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
+chrY	25337807	25338370	2	121	2	 0.563	0.050	DAZ1	0.00276			DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
