@@ -40,6 +40,9 @@ if($out_folder=="default")
 	$out_folder = $folder;
 }
 
+
+$ngsbits = get_path("ngs-bits");
+
 //check steps
 $steps = explode(",", $steps);
 foreach($steps as $step)
@@ -74,8 +77,8 @@ $log_sv = $out_folder ."/".$name."_log6_sv.log";
 $qc_fastq  = $out_folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $out_folder."/".$name."_stats_map.qcML";
 $qc_vc  = $out_folder."/".$name."_stats_vc.qcML";
-$cnvfile = $out_folder."/".$name."_cnvs.tsv";
-$cnvfile2 = $out_folder."/".$name."_cnvs.seg";
+$cnvfile = $out_folder."/".$name."_cnvs_clincnv.tsv";
+$cnvfile2 = $out_folder."/".$name."_cnvs_clincnv.seg";
 $rohfile = $out_folder."/".$name."_rohs.tsv";
 
 $sv_manta_file = $out_folder ."/". $name . "_manta_var_structural.vcf.gz";
@@ -125,10 +128,10 @@ if (in_array("ma", $steps))
 	//low-coverage report
 	if ($sys['type']!="WGS" && $sys['target_file']!="") //ROI (but not WGS)
 	{	
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", true);
+		$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", true);
 		if (db_is_enabled("NGSD"))
 		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
+			$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
 		}
 	}
 }
@@ -239,7 +242,7 @@ if (in_array("an", $steps))
 		$args[] = "-var_af_keys AF,gnomAD_AF,gnomADg_AF"; //use 1000g, gnomAD exome, genomAD genome
 		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 		$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".(file_exists($omim_file) ? $omim_file : "");
-		$parser->exec(get_path("ngs-bits")."RohHunter", implode(" ", $args), true);
+		$parser->exec("{$ngsbits}RohHunter", implode(" ", $args), true);
 	}
 }
 
@@ -259,14 +262,85 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 			trigger_error("Could not change privileges of folder '{$ref_folder}'!", E_USER_ERROR);
 		}
 	}
+	$cov_folder = $ref_folder;
 	
-	//perform CNV analysis
-	if ($sys['type']!="WGS") //Panel, Exome
+	if ($sys['type']=="WGS" || $sys['type']=="WES") //Genome/Exome: ClinCNV
 	{
+		//WGS: create folder for binned coverage data - if missing
+		$is_wgs = $sys['type']=="WGS";
+		if ($is_wgs)
+		{
+			$bin_size = 1000;
+			$bin_folder = "{$ref_folder}/bins{$bin_size}/";
+			if (!is_dir($bin_folder))
+			{
+				mkdir($bin_folder);
+				if (!chmod($bin_folder, 0777))
+				{
+					trigger_error("Could not change privileges of folder '{$bin_folder}'!", E_USER_ERROR);
+				}
+			}
+			$cov_folder = $bin_folder;
+		}
+		
+		//create BED file with GC and gene anntations - if missing
+		if ($is_wgs)
+		{
+			$bed = $ref_folder."/bins{$bin_size}.bed";
+			if (!file_exists($bed))
+			{
+				$parser->exec("{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size} | {$ngsbits}BedAnnotateGC -ref ".genome_fasta($sys['build'])." | {$ngsbits}BedAnnotateGenes -out {$bed}", true);
+			}
+		}
+		else
+		{
+			$bed = $ref_folder."/roi_annotated.bed";
+			if (!file_exists($bed))
+			{
+				$parser->exec("{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".genome_fasta($sys['build'])." | {$ngsbits}BedAnnotateGenes -out {$bed}", true);
+			}
+		}
+		
+		//create coverage profile
+		$tmp_folder = $parser->tempFolder();
+		$cov_file = $tmp_folder."/{$name}.cov";
+		$parser->exec("{$ngsbits}BedCoverage", "-decimals 4 -min_mapq 0 -bam {$bamfile} -in {$bed} -out {$cov_file}", true);
+
+		//copy coverage file to reference folder if valid
+		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
+		{
+			$parser->copyFile($cov_file, $cov_folder.$name.".cov");
+		}
+
+		//perform CNV analysis
+		$cnv_out = $tmp_folder."/output.tsv";
+		$cnv_out2 = $tmp_folder."/output.seg";
+		$args = array(
+			"-cov {$cov_file}",
+			"-cov_folder {$cov_folder}",
+			"-bed {$bed}",
+			"-out {$cnv_out}",
+			"-threads {$threads}",
+			"-cov_max ".($is_wgs ? "100" : "200"),
+			"-max_cnvs ".($is_wgs ? "2000" : "200"),
+			"--log {$log_cn}",
+		);
+		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
+		
+		//copy results to output folder
+		if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
+		if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
+	}
+	else //Panels: CnvHunter
+	{
+		//overwrite output file names
+		$cnvfile = $out_folder."/".$name."_cnvs.tsv";
+		$cnvfile2 = $out_folder."/".$name."_cnvs.seg";
+		
 		//create coverage file
 		$tmp_folder = $parser->tempFolder();
 		$cov_file = $tmp_folder."/{$name}.cov";
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -bam $bamfile -in ".$sys['target_file']." -out $cov_file", true);
+		$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -bam $bamfile -in ".$sys['target_file']." -out $cov_file", true);
 
 		//copy coverage file to reference folder (has to be done before CnvHunter call to avoid analyzing the same sample twice)
 		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
@@ -279,57 +353,10 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 		//execute
 		$cnv_out = $tmp_folder."/output.tsv";
 		$cnv_out2 = $tmp_folder."/output.seg";
-		$parser->execTool("NGS/vc_cnvhunter.php", "-min_z 3.5 -cov $cov_file -system $system -out $cnv_out -seg $name -n ".($sys['type']=="WES" ? "30" : "20")." --log $log_cn");
+		$parser->execTool("NGS/vc_cnvhunter.php", "-min_z 3.5 -cov $cov_file -system $system -out $cnv_out -seg $name -n 20 --log $log_cn");
 
 		//copy results to output folder
 		if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
-		if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
-	}
-	else //WGS
-	{
-		$ngsbits = get_path("ngs-bits");
-		
-		//create bin folder if missing
-		$bin_size = 1000;
-		$bin_folder = "{$ref_folder}/bins{$bin_size}/";
-		if (!is_dir($bin_folder))
-		{
-			mkdir($bin_folder);
-			if (!chmod($bin_folder, 0777))
-			{
-				trigger_error("Could not change privileges of folder '{$bin_folder}'!", E_USER_ERROR);
-			}
-		}
-		
-		//create BED file if missing
-		$bed = $ref_folder."/bins{$bin_size}.bed";
-		if (!file_exists($bed))
-		{
-			$parser->exec("{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size} | {$ngsbits}BedAnnotateGC -ref ".genome_fasta($sys['build'])." | {$ngsbits}BedAnnotateGenes -out {$bed}", true);
-		}
-
-		//create coverage file
-		$tmp_folder = $parser->tempFolder();
-		$cov_file = $tmp_folder."/{$name}.cov";
-		$parser->exec("{$ngsbits}BedCoverage", "-decimals 4 -min_mapq 0 -bam $bamfile -in {$bed} -out $cov_file", true);
-
-		//copy coverage file to bin folder
-		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
-		{
-			$ref_file = "{$bin_folder}{$name}.cov";
-			$parser->copyFile($cov_file, $ref_file);
-			$cov_file = $ref_file;
-		}
-		
-		//execute
-		$cnv_out = $tmp_folder."/output.tsv";
-		$cnv_out2 = $tmp_folder."/output.seg";
-		$parser->execTool("NGS/vc_clincnv_germline.php", "-cov {$cov_file} -cov_folder {$bin_folder} -bed {$bed} -out {$cnv_out} --log {$log_cn} -threads {$threads} -cov_max 100", true);
-		
-		//copy results to output folder
-		$cnvfile = substr($cnvfile, 0, -4)."_clincnv.tsv";
-		if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
-		$cnvfile2 = substr($cnvfile2, 0, -4)."_clincnv.seg";
 		if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
 	}
 }
