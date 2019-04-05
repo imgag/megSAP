@@ -53,7 +53,7 @@ $parser->exec("tar", "cfW $tmp_tar --exclude '$in/Data/Intensities/L00?/C*' --ex
 //zip archive with full compression
 print date("Y-m-d H:i:s")." creating tar.gz file\n";
 $tmp_zip = $parser->tempFile(".tar.gz");
-$parser->exec("gzip", "-c -9 $tmp_tar > $tmp_zip", true);
+$parser->exec("gzip", "-c -5 $tmp_tar > $tmp_zip", true);
 
 //test zip archive integrity
 print date("Y-m-d H:i:s")." testing tar.gz file integrity\n";

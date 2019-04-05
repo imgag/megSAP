@@ -16,7 +16,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 //optional
 $parser->addInt("cov_min", "Minimum number of coverage files required for CNV analysis.", true, 20);
 $parser->addInt("cov_max", "Maximum number of coverage files used for CNV analysis, used to keep run-time and RAM requirement manageable (~TODO for WES and ~TODO for WGS).", true, 200);
-$parser->addInt("max_cnvs", "Number of expected CNVs (~TODO for WES and ~2000 for WGS).", true, 2000);
+$parser->addInt("max_cnvs", "Number of expected CNVs (~200 for WES and ~2000 for WGS).", true, 2000);
 
 extract($parser->parse($argv));
 
@@ -119,10 +119,9 @@ if (count($cov_files)<$cov_min)
 }
 
 //select the most similar samples
-
 if (count($cov_files)>$cov_max)
 {
-	trigger_error(count($cov_files)." coverge files are given. Selecting the most similar {$cov_max} samples as reference samples!", E_USER_NOTICE);
+	$parser->log(count($cov_files)." coverge files are given. Selecting the most similar {$cov_max} samples as reference samples!");
 	
 	//sort coverage files
 	sort($cov_files);
@@ -167,11 +166,12 @@ if (count($cov_files)>$cov_max)
 	
 	//selects best n
 	$file2corr = array_slice($file2corr, 0, $cov_max);
-	print "Selected the following files (correlation):\n";
+	$add_info = array();
 	foreach ($file2corr as $f => $c)
 	{
-		print " - $f ($c)\n";
+		$add_info[] = "$f ($c)";
 	}
+	$parser->log("Selected the following files as reference samples (correlation):", $add_info);
 	
 	$cov_files = array_keys($file2corr);
 }
@@ -192,7 +192,8 @@ $args = [
 "--maxNumGermCNVs {$max_cnvs}",
 "--numberOfThreads {$threads}",
 "--lengthG 0", //actually means length 1 ;)
-"--scoreG 30"
+"--scoreG 20",
+"--superRecall 3"
 ];
 $parser->exec(get_path("clincnv")."/clinCNV.R", implode(" ", $args), true);
 

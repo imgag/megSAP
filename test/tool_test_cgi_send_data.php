@@ -10,12 +10,10 @@ $col_names_mut = array("driver_statement","gene_role","transcript");
 
 $out_zip = output_folder() ."/cgi_results1.zip";
 
-//Case 1: input is vcf.gz file, CNV is CNVHunter file
+//Case 1: input is vcf.gz file
 $in_file_snv1 = data_folder() . "/cgisenddata_in1_var_annotated.vcf.gz";
-$in_file_cnv1 = data_folder() . "/cgisenddata_in1_cnvs.tsv";
-check_exec("php ".src_folder()."/NGS/cgi_send_data.php -mutations $in_file_snv1 -cnas $in_file_cnv1 -cancertype SK -out $out_zip");
+check_exec("php ".src_folder()."/NGS/cgi_send_data.php -mutations $in_file_snv1 -cancertype SK -out $out_zip");
 exec2("unzip -n $out_zip -d " . output_folder() );
-check_tsv_file(output_folder()."cna_analysis.tsv",data_folder()."cgisenddata_ref1_cgi_cnv_analysis.tsv");
 //check mutation file for columns which are later annotated to GSvar (sometimes CGI adds/removes columns, order changes often)
 check_column_exists(output_folder()."mutation_analysis.tsv",$col_names_mut);
 check_file_exists(output_folder()."drug_prescription.tsv");
