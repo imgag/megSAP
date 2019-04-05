@@ -1,10 +1,69 @@
 ##ANALYSISTYPE=SOMATIC_PAIR
+##PIPELINE=megSAP 0.1-1053-g83b60ad
 ##SAMPLE=<ID=GS110168,IsTumor=yes,IsFFPE=no>
 ##SAMPLE=<ID=GS110169,IsTumor=no,IsFFPE=no>
-#chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	snp_q	gene	variant_type	coding_and_splicing	interpro	Pathway_KEGG_full	Function_description	Pathway_BioCarta_full	RepeatMasker	dbSNP	1000g	ExAC	gnomAD	COSMIC	OMIM	ClinVar	HGMD	phyloP	MetaLR	Sift	PolyPhen2	FATHMM	CADD	ihdb_hom	ihdb_het	ihdb_wt	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info	som_ihdb_c	som_ihdb_p	CGI_driver_statement	CGI_gene_role	CGI_transcript	CGI_gene	CGI_consequence
-chr21	10971453	10971453	T	C	0.3333	18	0.0000	10	depth-tum;depth-nor;off-target	18	TPTE	intron_variant	TPTE:ENST00000361285:intron_variant:MODIFIER:exon4/23:c.12-108A>G:,TPTE:ENST00000298232:intron_variant:MODIFIER:exon4/22:c.12-108A>G:,TPTE:ENST00000342420:intron_variant:MODIFIER:exon4/21:c.12-108A>G:,TPTE:ENST00000447568:intron_variant:MODIFIER:exon3/18:n.287+13592A>G:,TPTE:ENST00000415664:intron_variant:MODIFIER:exon14/31:n.1688-108A>G:,TPTE:ENST00000328758:intron_variant:MODIFIER:exon4/8:c.12-108A>G:			Could be involved in signal transduction			rs1739180	0.0000	0.0000	0.0000														0	0					TPTE (inh=n/a pLI=n/a)	0						
-chr21	11039394	11039394	C	T	0.1739	46	0.0286	35	freq-nor;off-target	44	BAGE2	non_coding_transcript_exon_variant	BAGE2:ENST00000496773:non_coding_transcript_exon_variant:MODIFIER:exon4/15:n.504G>A:,BAGE2:ENST00000470054:non_coding_transcript_exon_variant:MODIFIER:exon6/10:n.810G>A:			Unknown. Candidate gene encoding tumor antigens			rs2698623	0.0000	0.0000	0.0000														0	0					BAGE2 (inh=n/a pLI=n/a)	0						
-chr21	31744239	31744239	C	A	0.4340	106	0.0000	104		216	KRTAP13-2,MIR4327	missense_variant,downstream_gene_variant	KRTAP13-2:ENST00000399889:missense_variant:MODERATE:exon1/1:c.293G>T:p.Gly98Val,MIR4327:ENST00000581194:downstream_gene_variant:MODIFIER::n.*3373G>T:			In the hair cortex, hair keratin intermediate filaments are embedded in an interfilamentous matrix, consisting of hair keratin-associated proteins (KRTAP), which are essential for the formation of a rigid and resistant hair shaft through their extensive disulfide bond cross-linking with abundant cysteine residues of hair keratins. The matrix proteins include the high- sulfur and high-glycine-tyrosine keratins (By similarity)				0.0000	0.0000	0.0000					0.375000	T	D	B	T	23.10				0	0					KRTAP13-2 (inh=n/a pLI=n/a), MIR4327 (inh=n/a pLI=n/a)	0		predicted passenger		ENST00000399889	KRTAP13-2	Missense
-chr21	33974094	33974094	-	T	1.0000	3	0.0000	9	depth-tum;depth-nor;off-target	4	C21orf59,AP000275.65	splice_region_variant,3_prime_UTR_variant,downstream_gene_variant,intron_variant	C21orf59:ENST00000300260:splice_region_variant:LOW:exon6/6:c.*466dupA:,C21orf59:ENST00000290155:3_prime_UTR_variant:MODIFIER:exon7/7:c.*78dupA:,C21orf59:ENST00000440966:3_prime_UTR_variant:MODIFIER:exon6/6:c.*78dupA:,C21orf59:ENST00000382549:3_prime_UTR_variant:MODIFIER:exon5/5:c.*1304dupA:,C21orf59:ENST00000425336:3_prime_UTR_variant:MODIFIER:exon3/3:c.*439dupA:,C21orf59:ENST00000300260:3_prime_UTR_variant:MODIFIER:exon6/6:c.*466dupA:,C21orf59:ENST00000483315:downstream_gene_variant:MODIFIER::n.*25dupA:,C21orf59:ENST00000540881:downstream_gene_variant:MODIFIER::c.*1304dupA:,C21orf59:ENST00000458138:downstream_gene_variant:MODIFIER::c.*1440dupA:,AP000275.65:ENST00000553001:intron_variant:MODIFIER:exon5/6:c.666+1376dupA:,AP000275.65:ENST00000431216:intron_variant:MODIFIER:exon6/7:c.663+487dupA:,C21orf59:ENST00000431599:intron_variant:MODIFIER:exon1/1:c.75+1376dupA:							0.0000	0.0000	0.0000		615494 [C21ORF59 (provisional) Ciliary dyskinesia,primary,26,615500];												0	0					C21orf59 (inh=n/a pLI=n/a), AP000275.65 (inh=n/a pLI=n/a)	0						
-chr21	47737850	47737850	G	T	0.7857	14	0.0000	6	depth-tum;depth-nor;off-target	18	C21orf58	intron_variant	C21orf58:ENST00000291691:intron_variant:MODIFIER:exon2/7:c.309+76C>A:,C21orf58:ENST00000491666:intron_variant:MODIFIER:exon1/7:c.195+76C>A:,C21orf58:ENST00000397683:intron_variant:MODIFIER:exon2/8:c.-259+76C>A:,C21orf58:ENST00000417060:intron_variant:MODIFIER:exon1/7:c.195+76C>A:,C21orf58:ENST00000397682:intron_variant:MODIFIER:exon2/8:c.-259+76C>A:,C21orf58:ENST00000397679:intron_variant:MODIFIER:exon1/6:c.-259+76C>A:,C21orf58:ENST00000397680:intron_variant:MODIFIER:exon2/7:c.-179+76C>A:,C21orf58:ENST00000397685:intron_variant:MODIFIER:exon3/5:c.60+76C>A:,C21orf58:ENST00000445935:intron_variant:MODIFIER:exon3/5:c.-179+76C>A:,C21orf58:ENST00000475776:intron_variant:MODIFIER:exon2/3:n.1440+76C>A:							0.0000	0.0000	0.0000														0	0					C21orf58 (inh=n/a pLI=n/a)	0						
-chr21	47737850	47737850	G	C	0.0714	14	0.0000	6	lt-3-reads;depth-tum;depth-nor;off-target	QUAL=18	C21orf58	intron	C21orf58:ENST00000291691:intron_variant:MODIFIER:exon2/7:c.309+76C>G::,C21orf58:ENST00000397679:intron_variant:MODIFIER:exon1/6:c.-259+76C>G::,C21orf58:ENST00000397680:intron_variant:MODIFIER:exon2/7:c.-179+76C>G::,C21orf58:ENST00000397682:intron_variant:MODIFIER:exon2/8:c.-259+76C>G::,C21orf58:ENST00000397683:intron_variant:MODIFIER:exon2/8:c.-259+76C>G::,C21orf58:ENST00000397685:intron_variant:MODIFIER:exon3/5:c.60+76C>G::												-0.0850			0.18,0.28	1.00						0		0	0					C21orf58 (inh=n/a pLI=0.00)	chr21_47737850_G_C	not protein-affecting	.	ENST00000291691	C21orf58	IntronicSNV
+##DESCRIPTION=filter=Annotations for filtering and ranking variants.
+##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM).
+##DESCRIPTION=gene=Affected gene list (comma-separated).
+##DESCRIPTION=variant_type=Variant type.
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
+##DESCRIPTION=regulatory=Regulatory consequence details.
+##DESCRIPTION=OMIM=OMIM database annotation.
+##DESCRIPTION=ClinVar=ClinVar database annotation.
+##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.
+##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).
+##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.
+##DESCRIPTION=ESP_sub=Sub-population allele frequency (EA,AA) in NHLBI Exome Sequencing project.
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
+##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.
+##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.
+##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
+##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).
+##DESCRIPTION=GeneSplicer=GeneSplicer splicing prediction (state/type/coordinates/confidence/score).
+##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
+##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample GS110168).
+##DESCRIPTION=tumor_dp=Tumor Depth (Sample GS110168).
+##DESCRIPTION=normal_af=Mutant allele frequency in normal (Sample GS110169).
+##DESCRIPTION=normal_dp=Normal depth (Sample GS110169).
+##DESCRIPTION=NGSD_som_c=Somatic variant count in the NGSD.
+##DESCRIPTION=NGSD_som_p=Project names of project containing this somatic variant in the NGSD.
+##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.
+##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.
+##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group (Neoplasms).
+##DESCRIPTION=classification=Classification from the NGSD.
+##DESCRIPTION=classification_comment=Classification comment from the NGSD.
+##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!
+##DESCRIPTION=comment=Variant comments from the NGSD.
+##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).
+##FILTER=LowDepth=Tumor or normal sample read depth at this locus is below 2
+##FILTER=LowEVS=Somatic Empirical Variant Score (SomaticEVS) is below threshold
+##FILTER=all-unknown=Allele unknown
+##FILTER=depth-nor=Sequencing depth in normal is too low (< 20)
+##FILTER=depth-tum=Sequencing depth in tumor is too low (< 20)
+##FILTER=freq-nor=Allele frequency in normal > 0.17 * allele frequency in tumor
+##FILTER=freq-tum=Allele frequency in tumor < 0.05
+##FILTER=lt-3-reads=Less than 3 supporting tumor reads
+##FILTER=off-target=Variant marked as 'off-target'.
+##FILTER=special-chromosome=Special chromosome
+##CGI_CANCER_TYPE=CANCER
+##DESCRIPTION=CGI_id=Identifier for CGI statements
+##DESCRIPTION=CGI_driver_statement=CancerGenomeInterpreter.org oncogenic classification
+##DESCRIPTION=CGI_gene_role=CancerGenomeInterpreter.org gene role. LoF: Loss of Function, Act: Activating
+##DESCRIPTION=CGI_transcript=CancerGenomeInterpreter.org CGI Ensembl transcript ID
+##DESCRIPTION=CGI_gene=Gene symbol returned by CancerGenomeInterpreter.org
+##DESCRIPTION=CGI_consequence=Consequence of the mutation assessed by CancerGenomeInterpreter.org
+#chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	ESP_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC	NGSD_som_c	NGSD_som_p	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info	CGI_id	CGI_driver_statement	CGI_gene_role	CGI_transcript	CGI_gene	CGI_consequence
+chr21	10971453	10971453	T	C	0.3333	18	0.0000	10	depth-tum;depth-nor;off-target	QUAL=18	TPTE	intron	TPTE:ENST00000298232:intron_variant:MODIFIER:exon4/22:c.12-108A>G::,TPTE:ENST00000342420:intron_variant:MODIFIER:exon4/21:c.12-108A>G::,TPTE:ENST00000361285:intron_variant:MODIFIER:exon4/23:c.12-108A>G::						rs1739180		0.3091	0,.			-0.2030			0.00,0.08	3.37						2	I17R006,eMed-HCC	n/a (AF>5%)	n/a (AF>5%)	n/a (AF>5%)					TPTE (inh=n/a oe_syn=0.86 oe_mis=1.13 oe_lof=1.08)	chr21_10971453_T_C	not protein-affecting	.	ENST00000361285	TPTE	IntronicSNV
+chr21	11039394	11039394	C	T	0.1739	46	0.0286	35	off-target	QUAL=44	BAGE2	non_coding_transcript_exon	BAGE2:ENST00000470054:non_coding_transcript_exon_variant:MODIFIER:exon6/10:n.810G>A::						rs2698623						-1.2040			0.03,0.54	8.81						0		0	265	0 / 6					BAGE2 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)						
+chr21	31744239	31744239	C	A	0.4340	106	0.0000	104		QUAL=216	KRTAP13-2	missense	KRTAP13-2:ENST00000399889:missense_variant:MODERATE:exon1/1:c.293G>T:p.Gly98Val:PF05287												0.3750	T(0.06)	B(0.30)	0.06,0.19	15.24	0.14					0		0	0	0 / 0					KRTAP13-2 (inh=n/a oe_syn=1.25 oe_mis=1.23 oe_lof=1.73)	chr21_31744239_C_A	predicted passenger	.	ENST00000399889	KRTAP13-2	Missense
+chr21	33974094	33974094	-	T	1.0000	3	0.0000	9	depth-tum;depth-nor;off-target	QUAL=4	CFAP298,AP000275.65	3'UTR,intron	CFAP298:ENST00000290155:3_prime_UTR_variant:MODIFIER:exon7/7:c.*78dup::,CFAP298:ENST00000382549:3_prime_UTR_variant:MODIFIER:exon5/5:c.*1304dup::,AP000275.65:ENST00000553001:intron_variant:MODIFIER:exon5/6:c.666+1376dup::		615494 [CFAP298 Ciliary dyskinesia,primary,26,615500];				rs763462577		0.0030	0,.							0.83						1	eMed-HCC	0	1	0 / 0					CFAP298 (inh=AR oe_syn=1.13 oe_mis=0.92 oe_lof=0.65), AP000275.65 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)						
+chr21	45971408	45971408	A	T	0.2273	46	0.0333	31	off-target	QUAL=58	TSPEAR	intron	TSPEAR:ENST00000323084:intron_variant:MODIFIER:exon2/11:c.303+16261T>A::,TSPEAR:ENST00000397916:intron_variant:MODIFIER:exon2/10:c.99+16261T>A::		612920 [TSPEAR Deafness,autosomal recessive 98,614861/Ectodermal dysplasia 14,hair/tooth type with or without hypohidrosis,618180];			(GTGA)n (Simple_repeat)	rs76008453	0.0106	0.0005	0,.			-0.2840			0.00,0.12	0.69						0		3	1836	0 / 85					TSPEAR (inh=AR oe_syn=1.04 oe_mis=1.11 oe_lof=0.84)	chr21_45971408_A_T	not protein-affecting	.	ENST00000323084	TSPEAR	IntronicSNV
+chr21	47737850	47737850	G	T	0.7857	14	0.0000	6	depth-tum;depth-nor;off-target	QUAL=18	C21orf58	intron	C21orf58:ENST00000291691:intron_variant:MODIFIER:exon2/7:c.309+76C>A::,C21orf58:ENST00000397679:intron_variant:MODIFIER:exon1/6:c.-259+76C>A::,C21orf58:ENST00000397680:intron_variant:MODIFIER:exon2/7:c.-179+76C>A::,C21orf58:ENST00000397682:intron_variant:MODIFIER:exon2/8:c.-259+76C>A::,C21orf58:ENST00000397683:intron_variant:MODIFIER:exon2/8:c.-259+76C>A::,C21orf58:ENST00000397685:intron_variant:MODIFIER:exon3/5:c.60+76C>A::												-0.0850			0.18,0.28	13.34						0		0	0	0 / 0					C21orf58 (inh=n/a oe_syn=1.19 oe_mis=0.89 oe_lof=1.15)	chr21_47737850_G_C	not protein-affecting	.	ENST00000291691	C21orf58	IntronicSNV
+chr21	47737850	47737850	G	C	0.0714	14	0.0000	6	lt-3-reads;depth-tum;depth-nor;off-target	QUAL=18	C21orf58	intron	C21orf58:ENST00000291691:intron_variant:MODIFIER:exon2/7:c.309+76C>G::,C21orf58:ENST00000397679:intron_variant:MODIFIER:exon1/6:c.-259+76C>G::,C21orf58:ENST00000397680:intron_variant:MODIFIER:exon2/7:c.-179+76C>G::,C21orf58:ENST00000397682:intron_variant:MODIFIER:exon2/8:c.-259+76C>G::,C21orf58:ENST00000397683:intron_variant:MODIFIER:exon2/8:c.-259+76C>G::,C21orf58:ENST00000397685:intron_variant:MODIFIER:exon3/5:c.60+76C>G::												-0.0850			0.18,0.28	13.28						0		0	0	0 / 0					C21orf58 (inh=n/a oe_syn=1.19 oe_mis=0.89 oe_lof=1.15)	chr21_47737850_G_C	not protein-affecting	.	ENST00000291691	C21orf58	IntronicSNV
