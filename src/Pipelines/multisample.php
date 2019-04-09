@@ -313,9 +313,9 @@ if (in_array("cn", $steps))
 				
 				//content line
 				$parts = explode("\t",$line);
-				list($chr,$start,$end,$cn,$loglikelihood,$no_of_regions,$length_KB,$potential_af,$genes,$qscore) = explode("\t", $line);
+				list($chr,$start,$end,$cn,$loglikelihood,$no_of_regions,$length_KB,$potential_af,$genes,$qvalue) = explode("\t", $line);
 				
-				$data[] = array("chr" => $chr, "start" => $start, "end" =>$end, "cn" => $cn, "loglike" =>$loglikelihood, "pot_af" => $potential_af, "qscore" => $qscore);
+				$data[] = array("chr" => $chr, "start" => $start, "end" =>$end, "cn" => $cn, "loglike" =>$loglikelihood, "pot_af" => $potential_af, "qvalue" => $qvalue);
 			}
 			$cnv_data[] = $data;
 		}
@@ -349,7 +349,7 @@ if (in_array("cn", $steps))
 						$new_entry["start"] = max($cnv["start"], $cnv2["start"]);
 						$new_entry["end"] = min($cnv["end"], $cnv2["end"]);
 						$new_entry["loglike"] .= ",".$cnv2["loglike"];
-						$new_entry["qscore"] .= ",".$cnv2["qscore"];
+						$new_entry["qvalue"] .= ",".$cnv2["qvalue"];
 						$new_entry["pot_af"] = max($cnv["pot_af"], $cnv2["pot_af"]);
 						$tmp[] = $new_entry;
 						break;
@@ -392,7 +392,7 @@ if (in_array("cn", $steps))
 			$regions = $tmp;
 		}
 		
-		$output[] = "#chr\tstart\tend\tsample\tsize\tCN_change\tloglikelihood\tpotential_AF\tqscore\toverlaps_cnp_region\tgenes\tdosage_sensitive_disease_genes";
+		$output[] = "#chr\tstart\tend\tsample\tsize\tCN_change\tloglikelihood\tpotential_AF\tqvalue\tcn_polymorphisms_zarrei\tcn_polymorphisms_demidov\tgenes\tdosage_sensitive_disease_genes";
 		foreach($regions as $reg)
 		{
 			
@@ -404,7 +404,7 @@ if (in_array("cn", $steps))
 				intval($reg["end"])-intval($reg["start"]),
 				$reg["cn"],
 				$reg["loglike"],
-				$reg["qscore"],
+				$reg["qvalue"],
 				number_format(max(explode(",", $reg["pot_af"])), 3)
 			);
 			
@@ -527,7 +527,7 @@ if (in_array("cn", $steps))
 		}
 		
 		//write output
-		$output[] = "#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	overlaps_cnp_region	genes	dosage_sensitive_disease_genes";	
+		$output[] = "#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	cn_polymorphisms_zarrei	cn_polymorphisms_demidov	genes	dosage_sensitive_disease_genes";	
 		foreach($regions_by_number as $cnv_num => $regions)
 		{
 			$chr = null;
@@ -573,12 +573,14 @@ if (in_array("cn", $steps))
 		
 		//annotate CNP regions
 		$data_folder = get_path("data_folder");
-		$tmp2 = temp_file(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 ".repository_basedir()."/data/misc/cn_polymorphisms_zarrei.bed -out {$tmp2}", true);
+		$tmp2_1 = temp_file(".bed");
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 ".repository_basedir()."/data/misc/cn_polymorphisms_zarrei.bed -out {$tmp2_1}", true);
+		$tmp2_2 = temp_file(".bed");
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp2_1} -in2 ".repository_basedir()."/data/misc/cn_polymorphisms_demidov.bed -out {$tmp2_2}", true);
 		
 		//annotate gene names
 		$tmp3 = temp_file(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in {$tmp2} -extend 20 -out {$tmp3}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in {$tmp2_2} -extend 20 -out {$tmp3}", true);
 		
 		//annotate dosage sensitive disease genes
 		$tmp4 = temp_file(".bed");
