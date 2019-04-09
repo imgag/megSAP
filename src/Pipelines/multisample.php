@@ -314,9 +314,9 @@ if (in_array("cn", $steps))
 				
 				//content line
 				$parts = explode("\t",$line);
-				list($chr,$start,$end,$cn,$loglikelihood,$no_of_regions,$length_KB,$potential_af) = explode("\t", $line);
-			
-				$data[] = array("chr" => $chr, "start" => $start, "end" =>$end, "cn" => $cn, "loglike" =>$loglikelihood, "pot_af" => $potential_af);
+				list($chr,$start,$end,$cn,$loglikelihood,$no_of_regions,$length_KB,$potential_af,$genes,$qscore) = explode("\t", $line);
+				
+				$data[] = array("chr" => $chr, "start" => $start, "end" =>$end, "cn" => $cn, "loglike" =>$loglikelihood, "pot_af" => $potential_af, "qscore" => $qscore);
 			}
 			$cnv_data[] = $data;
 		}
@@ -349,6 +349,7 @@ if (in_array("cn", $steps))
 					{
 						$new_entry = $cnv;
 						$new_entry["loglike"] .= ",".$cnv2["loglike"];
+						$new_entry["qscore"] .= ",".$cnv2["qscore"];
 						$new_entry["pot_af"] .= ",".$cnv2["pot_af"];
 						$tmp[] = $new_entry;
 						break;
@@ -389,7 +390,7 @@ if (in_array("cn", $steps))
 			$regions = $tmp;
 		}
 		
-		$output[] = "#chr\tstart\tend\tsample\tsize\tCN_change\tloglikelihood\tpotential_AF\toverlaps_cnp_region\tgenes\tdosage_sensitive_disease_genes";
+		$output[] = "#chr\tstart\tend\tsample\tsize\tCN_change\tloglikelihood\tpotential_AF\tqscore\toverlaps_cnp_region\tgenes\tdosage_sensitive_disease_genes";
 		foreach($regions as $reg)
 		{
 			
@@ -401,6 +402,7 @@ if (in_array("cn", $steps))
 				intval($reg["end"])-intval($reg["start"]),
 				$reg["cn"],
 				$reg["loglike"],
+				$reg["qscore"],
 				number_format(max(explode(",", $reg["pot_af"])), 3)
 			);
 			

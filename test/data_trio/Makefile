@@ -29,7 +29,7 @@ diff:
 	#variants
 	php ../compare_variants.php -in1 trio.GSvar.out -in2 trio.GSvar
 	#CNVs
-	diff trio_cnvs.tsv trio_cnvs.tsv.out
+	diff trio_clincnv.tsv trio_clincnv.tsv.out
 	#UPDs
 	diff -b trio_upd.tsv.out trio_upd.tsv
 	#variants after filtering (only when NGSD is enabled)
