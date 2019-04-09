@@ -46,7 +46,7 @@
 /test/data_multi/*.bam.bai
 /test/data_multi/*.vcf.gz
 /test/data_multi/*.vcf.gz.tbi
-/test/data_multi/*_cnvs.tsv
+/test/data_multi/*_clincnv.tsv
 
 /test/data_capa/*.GSvar
 /test/data_capa/*.log

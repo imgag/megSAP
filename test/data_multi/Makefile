@@ -3,7 +3,7 @@ all:
 	make clear link vc an cn diff
 	
 clear:
-	rm -rf *.bam *.bai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML
+	rm -rf *.bam *.bai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv
 
 link:
 	php ../link_test_data.php GS140127_01.bam
@@ -29,4 +29,4 @@ diff:
 	#variants
 	php ../compare_variants.php -in1 multi.GSvar.out -in2 multi.GSvar
 	#CNVs
-	diff multi_cnvs.tsv multi_cnvs.tsv.out
+	diff multi_cnvs_clincnv.tsv multi_cnvs_clincnv.tsv.out

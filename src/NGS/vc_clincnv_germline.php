@@ -191,7 +191,7 @@ $args = [
 "--out {$out_folder}",
 "--maxNumGermCNVs {$max_cnvs}",
 "--numberOfThreads {$threads}",
-"--lengthG 0", //actually means length 1 ;)
+"--lengthG 1", //actually means length 2 - superRecall will call down to one region in the second step 
 "--scoreG 20",
 "--superRecall 3"
 ];

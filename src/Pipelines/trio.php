@@ -86,26 +86,6 @@ if (in_array("vc", $steps))
 {
 	//variant calling with multi-sample pipeline
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps vc", true); 
-	
-	//UPD detection
-	$upd_file = "$out_folder/trio_upd.tsv";
-	$args_upd = [
-		"-in {$out_folder}/all.vcf.gz",
-		"-c {$sample_c}",
-		"-f {$sample_f}",
-		"-m {$sample_m}",
-		"-out {$upd_file}",
-		];
-	$c_cnvs = substr($c, 0, -4)."_cnvs.tsv";
-	if (file_exists($c_cnvs))
-	{
-		$args_upd[] = "-exclude {$c_cnvs}";
-	}
-	else
-	{
-		trigger_error("Child CNV file not found for UPD detection: {$c_cnvs}", E_USER_WARNING);
-	}
-	$parser->exec(get_path("ngs-bits")."UpdHunter", implode(" ", $args_upd), true);
 }
 
 //annotation
@@ -260,10 +240,33 @@ if (in_array("an", $steps))
 	$parser->moveFile($tmp, $gsvar);
 }
 
-//copy-number
+//copy-number and UPD
 if (in_array("cn", $steps))
 {
-	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps cn", true);	
+	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps cn", true);
+	
+	//UPD detection
+	$args_upd = [
+		"-in {$out_folder}/all.vcf.gz",
+		"-c {$sample_c}",
+		"-f {$sample_f}",
+		"-m {$sample_m}",
+		"-out {$out_folder}/trio_upd.tsv",
+		];
+	$base = substr($c, 0, -4);
+	if (file_exists("{$base}_cnvs.tsv"))
+	{
+		$args_upd[] = "-exclude {$base}_cnvs.tsv";
+	}
+	else if (file_exists("{$base}_cnvs_clincnv.tsv"))
+	{
+		$args_upd[] = "-exclude {$base}_cnvs_clincnv.tsv";
+	}
+	else
+	{
+		trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
+	}
+	$parser->exec(get_path("ngs-bits")."UpdHunter", implode(" ", $args_upd), true);
 }
 
 //everything worked > import/update sample data in NGSD

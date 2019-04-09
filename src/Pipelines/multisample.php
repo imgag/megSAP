@@ -286,7 +286,6 @@ if (in_array("cn", $steps))
 		//load CNV data
 		$output = array();
 		$output[] = "##ANALYSISTYPE=CLINCNV_GERMLINE_MULTI";
-
 		$cnv_data = array();
 		foreach($bams as $bam)
 		{
@@ -325,7 +324,6 @@ if (in_array("cn", $steps))
 		//intersect CNV regions of affected (with same CN state)
 		$regions = null;
 		$i = -1;
-		
 		foreach($status as $bam => $stat)
 		{
 			++$i;
@@ -345,12 +343,14 @@ if (in_array("cn", $steps))
 			{
 				foreach($cnv_data[$i] as $cnv2)
 				{
-					if($cnv["chr"]==$cnv2["chr"] && $cnv["start"] == $cnv2["start"] && $cnv["end"] == $cnv2["end"] && $cnv["cn"] == $cnv2["cn"])
+					if($cnv["chr"]==$cnv2["chr"] && $cnv["cn"] == $cnv2["cn"] && range_overlap($cnv["start"], $cnv["end"], $cnv2["start"], $cnv2["end"]))
 					{
 						$new_entry = $cnv;
+						$new_entry["start"] = max($cnv["start"], $cnv2["start"]);
+						$new_entry["end"] = min($cnv["end"], $cnv2["end"]);
 						$new_entry["loglike"] .= ",".$cnv2["loglike"];
 						$new_entry["qscore"] .= ",".$cnv2["qscore"];
-						$new_entry["pot_af"] .= ",".$cnv2["pot_af"];
+						$new_entry["pot_af"] = max($cnv["pot_af"], $cnv2["pot_af"]);
 						$tmp[] = $new_entry;
 						break;
 					}
@@ -361,7 +361,6 @@ if (in_array("cn", $steps))
 		
 		//subtract CNV regions of controls (with same CN state)
 		$i=-1;
-		
 		foreach($status as $bam => $stat)
 		{
 			++$i;
@@ -376,7 +375,10 @@ if (in_array("cn", $steps))
 				$match = false;
 				foreach($cnv_data[$i] as $cnv2)
 				{
-					if($cnv["chr"]==$cnv2["chr"] && $cnv["start"] == $cnv2["start"] && $cnv["end"] == $cnv2["end"] && $cnv["cn"] == $cnv2["cn"])
+					//skip low-confidence CNVs (avoids that noise in unaffected samples removes true-positives in affected samples)
+					if ($cnv2["loglike"]<40) continue;
+					
+					if($cnv["chr"]==$cnv2["chr"] && $cnv["cn"] == $cnv2["cn"] && range_overlap($cnv["start"], $cnv["end"], $cnv2["start"], $cnv2["end"]))
 					{
 						$match = true;
 						break;
@@ -584,7 +586,7 @@ if (in_array("cn", $steps))
 		
 		//annotate OMIM
 		if($cn_type == "cnvhunter")	$cnv_multi = "{$out_folder}{$prefix}_cnvs.tsv";
-		elseif($cn_type == "clincnv") $cnv_multi = "{$out_folder}{$prefix}_clincnv.tsv";
+		elseif($cn_type == "clincnv") $cnv_multi = "{$out_folder}{$prefix}_cnvs_clincnv.tsv";
 		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 		if (file_exists($omim_file))
 		{
