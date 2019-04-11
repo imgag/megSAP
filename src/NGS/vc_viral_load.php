@@ -16,7 +16,7 @@ $parser->addOutfile("viral_cov", "Output file in TSV format.", false);
 
 $parser->addInfile("in_qcml", "Mapping statistics of input data in qcML format for relative coverage values.", true);
 $parser->addFlag("barcode_correction", "Run UMI-specific deduplication steps.");
-$parser->addStringArray("viral_chrs", "Viral chromosome names or region specifiers in original alignment, i.e. for HHV-4.", true, "chrNC_007605");
+$parser->addStringArray("viral_chrs", "Viral chromosome names or region specifiers in original alignment, i.e. for HHV-4.", true, ["chrNC_007605"]);
 
 $parser->addString("build_viral", "Build name of viral references.", true, "somatic_viral");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
@@ -82,9 +82,24 @@ $parser->exec(get_path("ngs-bits")."BamClipOverlap", "-in $viral_tmp2 -out $vira
 $parser->sortBam($viral_tmp3, $viral_bam, $threads);
 $parser->indexBam($viral_bam, $threads);
 
+//run variant calling
+$viral_vcfgz = $parser->tempFile("_viral.vcf.gz");
+$parser->execTool("NGS/vc_freebayes.php", "-bam {$viral_bam} -target {$viral_enrichment} -build {$build_viral} -no_ploidy -min_af 0.01 -out {$viral_vcfgz}");
+$viral_vcf = $parser->tempFile("_viral.vcf");
+$parser->exec("gzip", "-cd {$viral_vcfgz} > {$viral_vcf}");
+
 //create output report file
 $viral_cov_tmp = $parser->tempFile("_viral_cov.bed");
-$parser->exec(get_path("ngs-bits")."/BedCoverage", "-out {$viral_cov_tmp} -min_mapq 30 -decimals 4 -mode panel -in {$viral_enrichment} -bam {$viral_bam}", "coverage");
+$parser->exec(get_path("ngs-bits")."/BedCoverage", "-out {$viral_cov_tmp} -min_mapq 30 -decimals 4 -mode panel -in {$viral_enrichment} -bam {$viral_bam}", true);
+
+$viral_reads_tmp = $parser->tempFile("_viral_reads.bed");
+$parser->exec(get_path("ngs-bits")."/BedReadCount", "-out {$viral_reads_tmp} -min_mapq 30 -in {$viral_enrichment} -bam {$viral_bam}", true);
+
+$viral_result_tmp = $parser->tempFile("_viral_result.bed");
+$pipeline = [];
+$pipeline[] = [ get_path("ngs-bits")."/BedAnnotateFromBed", "-in {$viral_enrichment} -in2 {$viral_reads_tmp}" ];
+$pipeline[] = [ get_path("ngs-bits")."/BedAnnotateFromBed", "-in2 {$viral_cov_tmp} -out {$viral_result_tmp}" ];
+$parser->execPipeline($pipeline, "result file");
 
 //extract average target coverage from provided qcML file
 $avg_target_cov = 0.0;
@@ -104,18 +119,26 @@ $handle_out = fopen($viral_cov, "w");
 preg_match('/.+ : ([0-9]+)/', $stdout[0], $matches);
 fwrite($handle_out,         "##number of reads used for analysis:        " . $matches[1] . "\n");
 fwrite($handle_out, sprintf("##average target region depth of input BAM: %.4f\n", $avg_target_cov));
-fwrite($handle_out, "#chr\tstart\tend\tcoverage\tcoverage_rel\tname\n");
+fwrite($handle_out, "#chr\tstart\tend\tname\treads\tcoverage\tcoverage_rel\tmismatches\tidentity%\n");
 
-$handle = fopen($viral_cov_tmp, "r");
+$handle = fopen($viral_result_tmp, "r");
 while ($line = fgets($handle))
 {
     if (starts_with($line, "#chr")) continue;
     $fields = explode("\t", nl_trim($line));
-    $fields[] = sprintf("%.4f", $fields[3] / $avg_target_cov);
+
+    // relative coverage
+    $fields[] = sprintf("%.4f", $fields[5] / $avg_target_cov);
+
+    // mismatches
+    $region = implode("\t", array_slice($fields, 0, 3));
+    $stdout = $parser->exec(get_path("ngs-bits")."/VcfFilter", "-in {$viral_vcf} -reg '{$region}' | grep -c -v '^#' || true", true);
+    $variant_count = intval(nl_trim($stdout[0][0]));
+    $fields[] = $variant_count;
+    $fields[] = 100 * (1 - $variant_count / ($fields[2] - $fields[1]));
     fwrite($handle_out, implode("\t", $fields) . "\n");
 }
 fclose($handle);
 fclose($handle_out);
-$parser->exec(get_path("ngs-bits")."/BedAnnotateFromBed", "-out {$viral_cov} -in2 {$viral_enrichment} -in {$viral_cov}", true);
 
 ?>
