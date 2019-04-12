@@ -86,7 +86,7 @@ $parser->indexBam($viral_bam, $threads);
 $viral_vcfgz = $parser->tempFile("_viral.vcf.gz");
 $parser->execTool("NGS/vc_freebayes.php", "-bam {$viral_bam} -target {$viral_enrichment} -build {$build_viral} -no_ploidy -min_af 0.01 -out {$viral_vcfgz}");
 $viral_vcf = $parser->tempFile("_viral.vcf");
-$parser->exec("gzip", "-cd {$viral_vcfgz} > {$viral_vcf}");
+$parser->exec("gzip", "-cd {$viral_vcfgz} > {$viral_vcf}", true);
 
 //create output report file
 $viral_cov_tmp = $parser->tempFile("_viral_cov.bed");

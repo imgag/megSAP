@@ -378,7 +378,7 @@ if (in_array("vi", $steps))
 		"-in", $dedup_used ? $t_bam_dedup : $t_bam,
 		"-viral_bam", $viral_bam,
 		"-viral_bam_raw", $viral_bam_raw,
-		"-viral_cov", $viral_cov,
+		"-viral_cov", $viral,
 		"-viral_chrs", "chrNC_007605",
 		"-build_viral", "somatic_viral",
 		"-in_qcml", $t_bam_map_qc
