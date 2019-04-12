@@ -364,65 +364,72 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 //structural variants
 if (in_array("sv", $steps))
 {
-	if(file_exists($log_sv)) unlink($log_sv);
-	
-	$sv_caller_all = array("delly","manta");
-	$sv_caller = explode(",",$sv_caller);
-	foreach($sv_caller as $sv_caller_single)
+	if($sys['type'] != "WGS")
 	{
-		if(!in_array($sv_caller_single,$sv_caller_all))
+		print "Skipping step sv. That step is available for whole genomes only.";
+	}
+	else
+	{
+		if(file_exists($log_sv)) unlink($log_sv);
+		
+		$sv_caller_all = array("delly","manta");
+		$sv_caller = explode(",",$sv_caller);
+		foreach($sv_caller as $sv_caller_single)
 		{
-			trigger_error("Unknown Structure Variant caller {$sv_caller_single}.", E_USER_WARNING);
+			if(!in_array($sv_caller_single,$sv_caller_all))
+			{
+				trigger_error("Unknown Structure Variant caller {$sv_caller_single}.", E_USER_WARNING);
+			}
 		}
-	}
-	
-	/*****************************
-	 * MANTA STRUCTURAL VARIANTS *
-	 *****************************/
-	if(in_array("manta",$sv_caller))
-	{
-		$manta_evidence_dir = "{$out_folder}/manta_evid";
-		create_directory($manta_evidence_dir);
-
-		$manta_args = [
-			"-bam", $bamfile,
-			"-evid_dir", $manta_evidence_dir,
-			"-out", $sv_manta_file,
-			"-smallIndels", $small_indel_manta_file,
-			"-threads", $threads,
-			"-fix_bam",
-			"--log",$log_sv
-		];
-		if($sys['target_file'] != "") $manta_args[] = "-target " . $sys['target_file'];
 		
-		//settings for non-WGS data
-		if($sys['type']!="WGS") $manta_args[] = "-exome";
-		
-		$parser->execTool("NGS/vc_manta.php",implode(" ",$manta_args));
-	}
+		/*****************************
+		 * MANTA STRUCTURAL VARIANTS *
+		 *****************************/
+		if(in_array("manta",$sv_caller))
+		{
+			$manta_evidence_dir = "{$out_folder}/manta_evid";
+			create_directory($manta_evidence_dir);
 
-	/*****************************
-	 * DELLY STRUCTURAL VARIANTS *
-	 *****************************/
-	if(in_array("delly",$sv_caller))
-	{
-		$delly_args = [
-			"-out",$sv_delly_file,
-			"-bam",$bamfile,
-			"-exclude", repository_basedir() . "/data/misc/delly_exclude_regions_hg19.tsv",
-			"--log",$log_sv
-		];
-		if($sys['target_file'] != "") $delly_args[] = "-target ".$sys['target_file'];
-		$parser->execTool("NGS/vc_delly.php",implode(" ",$delly_args));
-	}
-	
-	//Create BEDPE-Files for each structural variant VCF-file
-	$sv_files = glob("{$out_folder}/*_var_structural.vcf.gz");
-	
-	foreach($sv_files as $sv_file)
-	{
-		$bedpe_out = substr($sv_file,0,-6) . "bedpe";
-		exec2(get_path("svtools") . " vcftobedpe -i $sv_file -o $bedpe_out");
+			$manta_args = [
+				"-bam", $bamfile,
+				"-evid_dir", $manta_evidence_dir,
+				"-out", $sv_manta_file,
+				"-smallIndels", $small_indel_manta_file,
+				"-threads", $threads,
+				"-fix_bam",
+				"--log",$log_sv
+			];
+			if($sys['target_file'] != "") $manta_args[] = "-target " . $sys['target_file'];
+			
+			//settings for non-WGS data
+			if($sys['type']!="WGS") $manta_args[] = "-exome";
+			
+			$parser->execTool("NGS/vc_manta.php",implode(" ",$manta_args));
+		}
+
+		/*****************************
+		 * DELLY STRUCTURAL VARIANTS *
+		 *****************************/
+		if(in_array("delly",$sv_caller))
+		{
+			$delly_args = [
+				"-out",$sv_delly_file,
+				"-bam",$bamfile,
+				"-exclude", repository_basedir() . "/data/misc/delly_exclude_regions_hg19.tsv",
+				"--log",$log_sv
+			];
+			if($sys['target_file'] != "") $delly_args[] = "-target ".$sys['target_file'];
+			$parser->execTool("NGS/vc_delly.php",implode(" ",$delly_args));
+		}
+		
+		//Create BEDPE-Files for each structural variant VCF-file
+		$sv_files = glob("{$out_folder}/*_var_structural.vcf.gz");
+		
+		foreach($sv_files as $sv_file)
+		{
+			$bedpe_out = substr($sv_file,0,-6) . "bedpe";
+			exec2(get_path("svtools") . " vcftobedpe -i $sv_file -o $bedpe_out");
+		}
 	}
 }
 
