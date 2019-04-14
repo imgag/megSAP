@@ -435,6 +435,11 @@ if (file_exists($pid_file))
 	}
 }
 file_put_contents($pid_file, getmypid());
+$pid_mod = substr(sprintf('%o', fileperms($pid_file)), -4);
+if ($pid_mod!="0777")
+{
+	chmod($pid_file, 0777);
+}
 
 //process jobs
 $db_conn = DB::getInstance($db);
