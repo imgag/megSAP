@@ -14,3 +14,5 @@ extract($parser->parse($argv));
 
 list($chr,$start,$end,$ref,$obs) = convert_hgvs2genomic($build, $refseq, $hgvs);
 print "$chr\t$start\t$end\t$ref\t$obs";
+
+?>
