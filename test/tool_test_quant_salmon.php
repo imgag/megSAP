@@ -10,7 +10,9 @@ function column_correlation($tsv1, $tsv2, $col1, $col2)
 	$table1->removeRow(0);
 	$table2 = Matrix::fromTSV($tsv2);
 	$table2->removeRow(0);
-	$corr = correlation($table1->getCol($col1), $table2->getCol($col2));
+	$values1 = $table1->getCol($col1);
+	$values2 = $table2->getCol($col2);
+	$corr = correlation($values1, $values2);
 	return($corr);
 }
 
