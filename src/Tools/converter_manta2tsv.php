@@ -21,7 +21,7 @@ function coords2genes($chr,$start,$end)
 	
 	for($i=0;$i<count($end);++$i)
 	{
-		if($end[$i] == ".") $end[$i] = $start[$i]+1;
+		if($end[$i] == ".") $end[$i] = intval($start[$i])+1;
 	}
 	
 	$pos_to_be_annotated = "";
