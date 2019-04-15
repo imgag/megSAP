@@ -312,20 +312,6 @@ if($clip_overlap)
 $parser->moveFile($bam_current, $out);
 $parser->moveFile($bam_current.".bai", $out.".bai");
 
-//add baf file
-if ($sys['build']=="GRCh37")
-{
-	$params = array();
-	$params[] = "-in ${out}";
-	$params[] = "-out ${basename}_bafs.igv";
-	$params[] = "-build ".$sys['build'];
-	if ($sys['type']!="WGS" && $sys['target_file']!="")
-	{
-		$params[] = "-target ".$sys['target_file'];
-	}
-	$parser->execTool("NGS/mapping_baf.php", implode(" ", $params));
-}
-
 //run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
 $params = array("-in $out", "-out $stafile2");
@@ -343,4 +329,17 @@ if ($sys['build']!="GRCh37")
 }
 $parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
 
+//create b-allele frequency file
+if ($sys['build']=="GRCh37")
+{
+	$params = array();
+	$params[] = "-in ${out}";
+	$params[] = "-out ${basename}_bafs.igv";
+	$params[] = "-build ".$sys['build'];
+	if ($sys['type']!="WGS" && $sys['target_file']!="")
+	{
+		$params[] = "-target ".$sys['target_file'];
+	}
+	$parser->execTool("NGS/mapping_baf.php", implode(" ", $params));
+}
 ?>
