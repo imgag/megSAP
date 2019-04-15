@@ -56,6 +56,27 @@ if (file_exists("{$local_folder}/{$build}.fa.md5"))
 	}
 }
 
+//wait sync is done by another process 
+$pid_file = sys_get_temp_dir()."/megSAP_data_setup_{$build}.txt";
+if (file_exists($pid_file))
+{
+	$pid_old = trim(file_get_contents($pid_file));
+	$iter = 0;
+	while (posix_getpgid($pid_old)!==FALSE)
+	{
+		++$iter;
+		if ($iter>30) break; //wait for 30 min max
+		print "Process with PID {$pid_old} is already syncing. Waiting one minute...\n";
+		sleep(60);
+	}
+}
+file_put_contents($pid_file, getmypid());
+$pid_mod = substr(sprintf('%o', fileperms($pid_file)), -4);
+if ($pid_mod!="0777")
+{
+	chmod($pid_file, 0777);
+}
+
 //copy reference genome and index files
 print "Copying genome files...\n";
 list($files) = exec2("ls {$genome_folder}/{$build}.*");
@@ -135,6 +156,7 @@ if ($build=="GRCh37")
 	if ($update)
 	{
 		print "rsync-ing annotation data...\n";
+		
 		list($stdout) = exec2("rsync --archive --omit-dir-times --acls --perms {$annotation_folder} {$local_annotation_folder}");
 		foreach($stdout as $line)
 		{
