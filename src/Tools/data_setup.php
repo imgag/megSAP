@@ -70,7 +70,10 @@ if (file_exists($pid_file))
 		sleep(60);
 	}
 }
-file_put_contents($pid_file, getmypid());
+if (!file_put_contents($pid_file, getmypid(), LOCK_EX))
+{
+	trigger_error("Could not create PID file {$pid_file}", E_USER_ERROR);
+}
 $pid_mod = substr(sprintf('%o', fileperms($pid_file)), -4);
 if ($pid_mod!="0777")
 {
