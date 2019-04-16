@@ -80,6 +80,7 @@ $qc_vc  = $out_folder."/".$name."_stats_vc.qcML";
 $cnvfile = $out_folder."/".$name."_cnvs_clincnv.tsv";
 $cnvfile2 = $out_folder."/".$name."_cnvs_clincnv.seg";
 $rohfile = $out_folder."/".$name."_rohs.tsv";
+$baffile = $out_folder."/".$name."_bafs.igv";
 
 $sv_manta_file = $out_folder ."/". $name . "_manta_var_structural.vcf.gz";
 $small_indel_manta_file =  $out_folder ."/". $name . "_manta_var_smallIndels.vcf.gz";
@@ -220,6 +221,19 @@ if (in_array("vc", $steps))
 	
 	$parser->exec("bgzip", "-c $vcf > $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
 	$parser->exec("tabix", "-f -p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
+	
+	
+	//create b-allele frequency file
+	$params = array();
+	$params[] = "-vcf {$vcffile}";
+	$params[] = "-bam {$bamfile}";
+	$params[] = "-out {$baffile}";
+	$params[] = "-build ".$sys['build'];
+	if ($sys['type']=="WGS")
+	{
+		$params[] = "-downsample 100";
+	}
+	$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
 }
 
 //annotation and reports
