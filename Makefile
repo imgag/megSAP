@@ -55,12 +55,6 @@ test_pipeline_t: dummy
 test_pipeline_m: dummy
 	@cd test/data_multi && make all
 
-test_pipeline_i: dummy
-	@cd test/data_ivac && make all
-
-test_pipeline_e: dummy
-	@cd test/data_emed && make all
-
 test_pipeline_r: dummy
 	@cd test/data_rna && make all
 
