@@ -88,7 +88,7 @@ foreach($files as $file)
 	$base = basename($file);
 	print "  rsync-ing genome file '$base'.\n";
 	$existed_before = file_exists($local_folder.$base);
-	list($stdout) = exec2("rsync --archive --acls --no-perms ".$genome_folder.$base." ".$local_folder.$base);
+	list($stdout) = exec2("rsync --archive --acls --no-perms --no-group --no-owner --chmod=ugo=rwX ".$genome_folder.$base." ".$local_folder.$base);
 	foreach($stdout as $line)
 	{
 		$line = trim($line);
@@ -160,7 +160,7 @@ if ($build=="GRCh37")
 	{
 		print "rsync-ing annotation data...\n";
 		
-		list($stdout) = exec2("rsync --archive --omit-dir-times --acls --perms {$annotation_folder} {$local_annotation_folder}");
+		list($stdout) = exec2("rsync --archive --omit-dir-times --acls --no-perms --no-group --no-owner --chmod=ugo=rwX {$annotation_folder} {$local_annotation_folder}");
 		foreach($stdout as $line)
 		{
 			print trim($line)."\n";
