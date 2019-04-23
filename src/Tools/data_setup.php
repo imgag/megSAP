@@ -56,7 +56,7 @@ if (file_exists("{$local_folder}/{$build}.fa.md5"))
 	}
 }
 
-//wait sync is done by another process 
+//wait sync is done by another processes
 $pid_file = sys_get_temp_dir()."/megSAP_data_setup_{$build}.txt";
 if (file_exists($pid_file))
 {
@@ -68,6 +68,9 @@ if (file_exists($pid_file))
 		if ($iter>30) break; //wait for 30 min max
 		print "Process with PID {$pid_old} is already syncing. Waiting one minute...\n";
 		sleep(60);
+		
+		//update PID in case another process took over
+		$pid_old = trim(file_get_contents($pid_file));
 	}
 }
 if (!file_put_contents($pid_file, getmypid(), LOCK_EX))
