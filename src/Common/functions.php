@@ -475,13 +475,19 @@ function repository_basedir()
 ///Returns the revision of the repository.
 function repository_revision($prefix_repos_name=false)
 {
-	$repos_rev = $prefix_repos_name ? "megSAP " : "";
+	$tag_file = repository_basedir()."/megSAP_tag.txt";
+	if (file_exists($tag_file))
+	{
+		$tag = trim(file_get_contents($tag_file));
+	}
+	else
+	{
+		$output = array();
+		exec("cd ".repository_basedir()." && git describe --tags", $output);
+		$tag = trim($output[0]);
+	}
 	
-	$output = array();
-	exec("cd ".repository_basedir()." && git describe --tags", $output);
-	$repos_rev .= trim($output[0]);
-	
-	return $repos_rev;
+	return ($prefix_repos_name ? "megSAP " : "").$tag;
 }
 
 /*

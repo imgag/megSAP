@@ -1,5 +1,6 @@
 /settings.ini
 /*.log
+/megSAP_tag.txt
 
 /test/data_amplicon/*.fastq.gz
 /test/data_amplicon/*.bam
