@@ -57,7 +57,7 @@ if (file_exists("{$local_folder}/{$build}.fa.md5"))
 }
 
 //wait sync is done by another processes
-$pid_file = sys_get_temp_dir()."/megSAP_data_setup_{$build}.txt";
+$pid_file = "{$local_folder}/megSAP_data_setup_{$build}.txt";
 if (file_exists($pid_file))
 {
 	$pid_old = trim(file_get_contents($pid_file));
