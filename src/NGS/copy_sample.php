@@ -129,7 +129,15 @@ function check_number_of_lanes($run_info_xml_file, $sample_sheet)
 	
 	if(!$lane_count_found_in_samplesheet)
 	{
-		trigger_error("Could not find any sample that uses $lane_count lanes as specified in {$run_info_xml_file}. Please check number of lanes in database and {$sample_sheet}!",E_USER_WARNING);
+		$message = array("",
+		"*** !!!!!!!!!!!!!!! ***",
+		"*** !!! WARNING !!! ***",
+		"*** !!!!!!!!!!!!!!! ***",
+		"*** Could not find any sample that uses $lane_count lanes as specified in {$run_info_xml_file}. ***",
+		"*** CHECK NUMBER OF LANES IN DATABASE AND {$sample_sheet}! ***",
+		""
+		);
+		trigger_error(implode("\n",$message),E_USER_WARNING);
 	}
 	return true;
 }
@@ -140,7 +148,7 @@ $db_conn = DB::getInstance($db);
 
 if(!check_number_of_lanes($runinfo,$samplesheet))
 {
-	trigger_error("Could not verify number of lanes used for Demultiplexing and actually used on Sequencer. Please check manually!",E_USER_WARNING);
+	trigger_error("***!!!WARNING!!!***\nCould not verify number of lanes used for Demultiplexing and actually used on Sequencer. Please check manually!",E_USER_WARNING);
 }
 
 //get sample data from samplesheet
