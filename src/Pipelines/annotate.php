@@ -65,6 +65,10 @@ if(!$no_fc)
 	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $annfile -ref ".genome_fasta($sys['build']), true);
 }
 
+//zip annotated VCF file
+$parser->exec("bgzip", "-c $annfile > $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->exec("tabix", "-p vcf $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
+
 //convert to GSvar file
 if (!$somatic) //germline only
 {
@@ -76,22 +80,22 @@ if (!$somatic) //germline only
 	if ($updown) $args[] = "-updown";
 	if ($sys['type']=="WGS") $args[] = "-wgs";
 	$parser->execTool("NGS/vcf2gsvar.php", implode(" ", $args));
+	
+	//annotated variant frequencies from NGSD (not for somatic)
+	if(db_is_enabled("NGSD"))
+	{
+		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in {$varfile} -out {$varfile} -psname {$out_name}", true);
+	}
+	
+	//check output TSV file (not for somatic)
+	if(!$no_fc)
+	{
+		$parser->execTool("NGS/check_tsv.php", "-in $varfile -build ".$sys['build']);
+	}
 }
 
-//zip annotated VCF file
-$parser->exec("bgzip", "-c $annfile > $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
-$parser->exec("tabix", "-p vcf $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 
-//annotated variant frequencies from NGSD (not for somatic)
-if(!$somatic && db_is_enabled("NGSD"))
-{
-	$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in {$varfile} -out {$varfile} -psname {$out_name}", true);
-}
 
-//check output TSV file (not for somatic)
-if(!$somatic && !$no_fc)
-{
-	$parser->execTool("NGS/check_tsv.php", "-in $varfile -build ".$sys['build']);
-}
+
 
 ?>
