@@ -342,28 +342,22 @@ if (in_array("vc", $steps))
 	}
 
 	//add somatic BAF file
-	$baf_args = [
-		"-in {$t_bam}",
-		"-out {$ballele}",
-		"-build ".$sys['build']
-	];
 	if (!$single_sample)
-	{
-		$baf_args[] = "-n_in $n_bam";
-	}
-	if (!empty($roi))
-	{
-		$baf_args[] = "-target {$roi}";
-	}
-	if(!$single_sample)
 	{
 		$variants_germline_vcf = dirname($n_bam)."/{$n_id}_var.vcf.gz";
 		if (file_exists($variants_germline_vcf))
 		{
-			$baf_args[] = "-sites {$variants_germline_vcf}";
+			$baf_args = [
+				"-bam_t {$t_bam}",
+				"-bam_n {$n_bam}",
+				"-vcf {$variants_germline_vcf}",
+				"-out {$ballele}",
+				"-build ".$sys['build']
+			];
+			
+			$parser->execTool("NGS/baf_somatic.php", implode(" ", $baf_args));
 		}
 	}
-	$parser->execTool("NGS/mapping_baf.php", implode(" ", $baf_args));
 }
 
 //Viral sequences alignment
