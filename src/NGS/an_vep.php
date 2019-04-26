@@ -24,7 +24,8 @@ extract($parser->parse($argv));
 $fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation", "AF", "gnomAD_AF", "gnomAD_AFR_AF", "gnomAD_AMR_AF", "gnomAD_EAS_AF", "gnomAD_NFE_AF", "gnomAD_SAS_AF", "EA_AF", "AA_AF"); 
 
 $vep_path = dirname(get_path("vep"));
-$vep_data_path = get_path("local_data")."/".basename(get_path("vep_data"))."/"; //the data is copied to the local data folder by 'data_setup' to speed up annotations (and prevent hanging annotation jobs)
+$local_data = get_path("local_data");
+$vep_data_path = "{$local_data}/".basename(get_path("vep_data"))."/"; //the data is copied to the local data folder by 'data_setup' to speed up annotations (and prevent hanging annotation jobs)
 
 $args = array();
 $args[] = "-i $in --format vcf"; //input
@@ -47,7 +48,7 @@ $fields[] = "FATHMM_MKL_NC";
 $args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
 $fields[] = "MaxEntScan_ref";
 $fields[] = "MaxEntScan_alt";
-$args[] = "--plugin GeneSplicer,{$vep_path}/GeneSplicer/sources/genesplicer,{$vep_path}/GeneSplicer/human,context=50"; //GeneSplicer
+$args[] = "--plugin GeneSplicer,{$vep_path}/GeneSplicer/sources/genesplicer,{$local_data}/GeneSplicer/,context=50"; //GeneSplicer
 $fields[] = "GeneSplicer";
 $args[] = "--plugin dbscSNV,".get_path("data_folder")."/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"; //dbscSNV
 $fields[] = "ada_score";

@@ -12,8 +12,11 @@ $parser = new ToolBase("data_setup", "Creates a local copy of the reference geno
 $parser->addString("build", "Genome build.", false);
 extract($parser->parse($argv));
 
+
+//init
 $local_folder = get_path("local_data");
 $genome_folder = get_path("data_folder")."/genomes/";
+$rsync = "rsync --archive --omit-dir-times --acls --no-perms --no-group --no-owner --chmod=ugo=rwX";
 
 ######################### reference genome #########################
 print "### Reference genome ###\n";
@@ -91,8 +94,8 @@ foreach($files as $file)
 	$base = basename($file);
 	print "  rsync-ing genome file '$base'.\n";
 	$existed_before = file_exists($local_folder.$base);
-	list($stdout) = exec2("rsync --archive --acls --no-perms --no-group --no-owner --chmod=ugo=rwX ".$genome_folder.$base." ".$local_folder.$base);
-	foreach($stdout as $line)
+	list($stdout, $stderr) = exec2("{$rsync} {$genome_folder}{$base} {$local_folder}{$base}");
+	foreach(array_merge($stdout, $stderr) as $line)
 	{
 		$line = trim($line);
 		if ($line=="") continue;
@@ -163,14 +166,39 @@ if ($build=="GRCh37")
 	{
 		print "rsync-ing annotation data...\n";
 		
-		list($stdout) = exec2("rsync --archive --omit-dir-times --acls --no-perms --no-group --no-owner --chmod=ugo=rwX {$annotation_folder} {$local_annotation_folder}");
-		foreach($stdout as $line)
+		list($stdout, $stderr) = exec2("{$rsync} {$annotation_folder} {$local_annotation_folder}");
+		foreach(array_merge($stdout, $stderr) as $line)
 		{
 			print trim($line)."\n";
 		}
 		
 		touch("{$local_annotation_folder}/{$finished}");
 	}
+	else
+	{
+		print "No rsync necessary!\n";
+	}
+}
+
+######################### GeneSplicer data #########################
+if ($build=="GRCh37")
+{
+	$annotation_folder = dirname(get_path("vep"))."/GeneSplicer/human/";
+	$local_annotation_folder = get_path("local_data")."/GeneSplicer/";
+	
+	print "\n";
+	print "### GeneSplicer data ###\n";
+	print "from: {$annotation_folder}\n";
+	print "to  : {$local_annotation_folder}\n";
+	print "\n";
+		
+	print "rsync-ing GeneSplicer data...\n";
+	list($stdout, $stderr) = exec2("{$rsync} {$annotation_folder} {$local_annotation_folder}");
+	foreach(array_merge($stdout, $stderr) as $line)
+	{
+		print trim($line)."\n";
+	}
+	
 }
 
 ?>
