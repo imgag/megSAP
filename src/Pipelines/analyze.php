@@ -334,7 +334,7 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 			"-cov_folder {$cov_folder}",
 			"-bed {$bed}",
 			"-out {$cnv_out}",
-			"-threads {$threads}",
+			//"-threads {$threads}", //TODO removed to test if it is still hanging
 			"-cov_max ".($is_wgs ? "100" : "200"),
 			"-max_cnvs ".($is_wgs ? "2000" : "200"),
 			"--log {$log_cn}",
