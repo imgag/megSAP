@@ -116,45 +116,72 @@ if (isset($target) && $threads > 1)
 		while(count($running)<$threads && count($chrs)>0)
 		{
 			$chr = array_shift($chrs);
+			
+			//prepare freebayes arguments
 			$args_chr = $args;
 			$args_chr[0] = "-t {$tmp_dir}/{$chr}.bed"; //target is always the first parameter
 			$args_chr[] = "-v {$tmp_dir}/{$chr}.vcf";
-			list($stdout, $stderr, $status) = $parser->execBackground(get_path("freebayes"), implode(" ", $args_chr));
-			$running[$chr] = array($status['pid'], $stdout, $stderr, microtime(true));
+			$stdout_file = "{$tmp_dir}/{$chr}.stdout";
+			$args_chr[] = "> $stdout_file";
+			$stderr_file = "{$tmp_dir}/{$chr}.stderr";
+			$args_chr[] = "2> $stderr_file";
+			$parameters = implode(" ", $args_chr);
+			
+			//start in background
+			$command = get_path("freebayes");			
+			$output = array();
+			$exitcode_file = "{$tmp_dir}/{$chr}.exitcode";
+			exec('('.$command.' '.$parameters.' & PID=$!; echo $PID) && (wait $PID; echo $? > '.$exitcode_file.')', $output);
+			$pid = trim(implode("", $output));
+			
+			//log start
+			$add_info = array();
+			$add_info[] = "version    = ".$parser->extractVersion($command);
+			$add_info[] = "parameters = {$parameters}";
+			$add_info[] = "pid = {$pid}";
+			$parser->log("Executing command in background '{$command}'", $add_info);
+			
+			$running[$chr] = array($pid, $stdout_file, $stderr_file, $exitcode_file, microtime(true));
 		}
 		
 		//check which started processes are still runnning
-		$tmp_base = basename($tmp_dir);
-		list($processes) = exec2("ps auxww | grep ".get_path("freebayes"));
 		$chrs_running = array_keys($running);
 		foreach($chrs_running as $chr)
 		{
-			$still_running = false;
-			foreach($processes as $process)
+			list($pid, $stdout_file, $stderr_file, $exitcode_file, $start_time) = $running[$chr];
+			if(!file_exists("/proc/{$pid}"))
 			{
-				if (contains($process, $tmp_base) && contains($process, "/{$chr}.vcf"))
+				//prepare additional infos for logging
+				$add_info = array();
+				$stdout = trim(file_get_contents($stdout_file));
+				if ($stdout!="")
 				{
-					$still_running = true;
+					$add_info[] = "STDOUT:";
+					foreach(explode("\n", $stdout) as $line)
+					{
+						$add_info[] = nl_trim($line);
+					}
 				}
-			}
-			if(!$still_running)
-			{
-				//check for error
-				$stderr = trim(file_get_contents($running[$chr][2]));
+				$stderr = trim(file_get_contents($stderr_file));
 				if ($stderr!="")
 				{
-					if(stripos($stderr, "error")!==FALSE)
+					$add_info[] = "STDERR:";
+					foreach(explode("\n", $stderr) as $line)
 					{
-						trigger_error("Processing of chromosome $chr with freebayes failed: ".$stderr, E_USER_ERROR);
-					}
-					else
-					{
-						trigger_error("Processing of chromosome $chr returned the following output on STDERR: ".$stderr, E_USER_WARNING);
+						$add_info[] = nl_trim($line);
 					}
 				}
+				$exit_code = file_get_contents($exitcode_file);
+				if($exit_code!=0)
+				{
+					$add_info[] = "EXIT CODE: ".$exit_code;
+				}
 				
-				//print execution time
-				$parser->log("Finshed processing chromosome {$chr} in ".time_readable(microtime(true)-$running[$chr][3]));
+				//log output
+				$parser->log("Finshed processing chromosome {$chr} in ".time_readable(microtime(true)-$start_time), $add_info);
+				
+				//abort if failed
+				if ($exit_code!=0) trigger_error("Processing of chromosome $chr with freebayes failed: ".$stderr, E_USER_ERROR);
 				
 				unset($running[$chr]);
 			}

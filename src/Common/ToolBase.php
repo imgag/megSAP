@@ -708,34 +708,6 @@ class ToolBase
 	}
 
 	/**
-		@brief Executes the command in the background and returns an array with STDOUT file, STDERR file, proc status as files.
-
-		If the call exits with an error code, further execution of the calling script is aborted.
-	*/
-	function execBackground($command, $parameters)
-	{
-		//log call
-		$add_info = array();
-		$add_info[] = "version    = ".$this->extractVersion($command);
-		$add_info[] = "parameters = $parameters";
-		$this->log("Executing command in background '$command'", $add_info);
-		
-		//execute call and pipe stderr stream to file
-		$temp_out = $this->tempFile(".stdout");
-		$temp_err = $this->tempFile(".stderr");
-		$descriptorspec = array(
-			0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
-			1 => array("file", $temp_out, "w"),  // stdout is a file that the child will write to
-			2 => array("file", $temp_err, "w") // stderr is a file to write to
-		 );
-		$process = proc_open("$command $parameters 2>$temp_err &", $descriptorspec, $pipes);
-		$status = proc_get_status($process); // NOTE: There is a lot of usefull information in here, maybe some day we want to refactor. See http://php.net/manual/en/function.proc-get-status.php
-		proc_close($process); // we are not accessing any pipes, hence we do not need to close them
-		
-		return array($temp_out, $temp_err, $status);
-	}
-
-	/**
 		@brief Executes a pipeline (array of commands and parameters) and returns an array with STDOUT and STDERR.
 		
 		If the call exits with an error code, further execution of the calling script is aborted.
