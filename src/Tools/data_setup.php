@@ -69,7 +69,7 @@ if (file_exists($pid_file))
 	while (posix_getpgid($pid_old)!==FALSE)
 	{
 		++$iter;
-		if ($iter>120) break; //wait for 2h max
+		if ($iter>180) break; //wait for 3h max
 		print "Process with PID {$pid_old} is already syncing. Waiting one minute...\n";
 		sleep(60);
 		
