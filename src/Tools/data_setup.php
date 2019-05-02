@@ -25,13 +25,6 @@ print "from: {$genome_folder}\n";
 print "to  : {$local_data}\n";
 print "\n";
 
-//skip if they are the same
-if (realpath($local_data)==realpath($genome_folder))
-{
-	print "Skipping, because local and remote genome folders are the same!\n";
-	return;
-}
-
 //make local folder
 if (!file_exists($local_data))
 {

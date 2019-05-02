@@ -22,7 +22,7 @@ $threads = (count($bam) < $max_threads) ? count($bam) : $max_threads;
 
 
 //Reference genome
-$genome = get_path("local_data")."/{$build}.fa";
+$genome = genome_fasta($build);
 
 //switch for somatic and germline mode
 $somatic = isset($t_bam);

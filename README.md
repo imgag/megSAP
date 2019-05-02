@@ -39,8 +39,11 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 ## ChangeLog
 
-* 26.02.2018: Using gnomAD o/e instead of ExAC pLI in NGSD.
-* 22.02.2018: Updated all tools and databases.
+* 02.05.2019: Genome data and annotation databases (about 210GB) are now always copied to the local /tmp/ folder. See `local_data` in `settings.ini`.
+* 05.04.2019: Using ClinCNV for exomes and genomes now (CnvHunter is still used for panels)
+* 29.03.2019: Outdated gene names annotated by VEP are now corrected via the HGNC identifier if possible.
+* 26.02.2019: Using gnomAD o/e instead of ExAC pLI in NGSD.
+* 22.02.2019: Updated all tools and databases.
 * 10.12.2018: Added germline CNV calling for WGS using ClinCNV
 * 29.11.2018: WGS analysis now generates a single GSvar file with all relevant variants (Impact HIGH/MODERATE/LOW or AF<=2% in public databases)
 * 22.11.2018: Retrieving CGI cancer type from new NGSD entry (somatic pipeline)
@@ -59,6 +62,8 @@ tracker](https://github.com/imgag/megSAP/issues).
 * 18.01.2018: Added b-allele frequency files for visualization in IGV. 
 * 08.01.2018: Updated tools (BWA, samtools, snpEff) and databases (ClinVar, gnomAD, HGMD).
 * 15.12.2017: Added runs-of-homozygosity detection to the germline pipeline.
+
+
 
 
 
