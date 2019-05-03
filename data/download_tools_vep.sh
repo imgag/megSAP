@@ -22,7 +22,7 @@ rm 95.1.tar.gz
 mkdir -p $vep_cpan_dir
 cpanm -l $vep_cpan_dir -L $vep_cpan_dir Set::IntervalTree URI::Escape DB_File Carp::Assert JSON::XS PerlIO::gzip DBI
 
-# install BigFile support (for BigWig support needed to annotate phyloP)
+#install BigWig support (needed to annotate phyloP)
 cd $vep_install_dir
 export KENT_SRC=$vep_install_dir/kent-335_base/src
 export MACHTYPE=$(uname -m)
@@ -58,6 +58,7 @@ wget http://hollywood.mit.edu/burgelab/maxent/download/fordownload.tar.gz
 tar xzf fordownload.tar.gz
 mv fordownload/* .
 rm -rf fordownload*
+chmod -R 755 $vep_install_dir/MaxEntScan
 
 # install GeneSplicer (for GeneSplicer plugin)
 cd $vep_install_dir
@@ -66,3 +67,4 @@ tar -xzf GeneSplicer.tar.gz
 rm -rf GeneSplicer.tar.gz
 cd GeneSplicer/sources/
 make
+chmod -R 755 $vep_install_dir/GeneSplicer
