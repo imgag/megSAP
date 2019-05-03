@@ -16,7 +16,7 @@ extract($parser->parse($argv));
 //init
 $data_folder = get_path("data_folder");
 $local_data = get_path("local_data");
-$rsync = "rsync --archive --omit-dir-times --acls --no-perms --no-group --no-owner --chmod=ugo=rwX";
+$rsync = "rsync --size-only --recursive --no-perms --no-acls --omit-dir-times --no-group --no-owner --chmod=ugo=rwX";
 
 ######################### reference genome #########################
 $genome_folder = "{$data_folder}/genomes/";
