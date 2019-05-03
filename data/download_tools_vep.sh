@@ -47,14 +47,14 @@ wget ftp://ftp.ensembl.org/pub/release-95/variation/VEP/homo_sapiens_vep_95_GRCh
 #install ensembl-vep
 PERL5LIB=$vep_install_dir/Bio/:$vep_cpan_dir/lib/perl5/:$PERL5LIB
 cd $vep_install_dir
-perl INSTALL.pl --SPECIES homo_sapiens --ASSEMBLY GRCh37 --AUTO acp --PLUGINS REVEL,FATHMM_MKL,CADD,dbscSNV,GeneSplicer,MaxEntScan --NO_UPDATE --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp
+perl INSTALL.pl --SPECIES homo_sapiens --ASSEMBLY GRCh37 --AUTO acp --PLUGINS REVEL,FATHMM_MKL,CADD,dbscSNV,GeneSplicer,MaxEntScan --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp
 cp $vep_data_dir/cache/Plugins/*.pm $vep_install_dir/modules/ #should not be necessary - probably a bug in the VEP installation script when using the CACHEDIR option (MS)
 
 # install MaxEntScan (for MaxEntScan plugin)
 cd $vep_install_dir
 mkdir -p MaxEntScan
 cd MaxEntScan
-wget http://genes.mit.edu/burgelab/maxent/download/fordownload.tar.gz
+wget http://hollywood.mit.edu/burgelab/maxent/download/fordownload.tar.gz
 tar xzf fordownload.tar.gz
 mv fordownload/* .
 rm -rf fordownload*
