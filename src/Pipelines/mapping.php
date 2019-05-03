@@ -22,6 +22,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
 $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
 $parser->addFlag("correction_n", "Use Ns for barcode correction.", true);
+$parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.", true);
 extract($parser->parse($argv));
 
 //extract processing system information from DB
@@ -260,7 +261,7 @@ if($barcode_correction)
 	$parser->copyFile($bam_current.".bai", $basename."_before_dedup.bam.bai");
 	
 	//additional mismatch filter for MIP experiments
-	if($sys['umi_type']=="MIPs")
+	if($sys['umi_type']=="MIPs" || $filter_bam)
 	{
 		$tmp_bam_filtered = $parser->tempFile("_filtered.bam");
 		$parser->exec(get_path("ngs-bits")."BamFilter", "-in $bam_current -out $tmp_bam_filtered", true);
