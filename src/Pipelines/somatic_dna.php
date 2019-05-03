@@ -172,6 +172,9 @@ $sys = load_system($system, $t_id);
 $roi = $sys["target_file"];
 $ref_genome = genome_fasta($sys['build']);
 
+//set up local NGS data copy (to reduce network traffic and speed up analysis)
+$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
+
 //normal sample data (if not single sample analysis)
 $single_sample = !isset($n_bam);
 if (!$single_sample)
