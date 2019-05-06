@@ -351,6 +351,10 @@ if (in_array("cn", $steps))
 						$new_entry["loglike"] .= ",".$cnv2["loglike"];
 						$new_entry["qvalue"] .= ",".$cnv2["qvalue"];
 						$new_entry["pot_af"] = max($cnv["pot_af"], $cnv2["pot_af"]);
+						
+						//Skip cases where overlap is only between end of cnv1 and start of cnv2 (resulting in zero length)
+						if($new_entry["end"]-$new_entry["start"] == 0) continue;
+						
 						$tmp[] = $new_entry;
 						break;
 					}
@@ -570,7 +574,6 @@ if (in_array("cn", $steps))
 	{
 		$tmp1 = temp_file(".bed");
 		file_put_contents($tmp1, implode("\n", $output));
-		
 		//annotate CNP regions
 		$data_folder = get_path("data_folder");
 		$tmp2_1 = temp_file(".bed");
