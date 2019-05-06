@@ -3,41 +3,41 @@
 ##number of iterations: 1 , quality used at final iteration: 20
 ##was it outlier after clustering? FALSE
 ##fraction of outliers: 0.058
-#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	qvalue	cn_polymorphisms_zarrei	cn_polymorphisms_demidov	dosage_sensitive_disease_genes	omim
-chr1	158507158	158507209	3	8	1	   0.051	0.350	na	0.19173				
-chr1	158584017	158584121	3	7	1	   0.104	0.350	SPTA1	0.36529				182860_[SPTA1_Elliptocytosis-2,130600/Pyropoikilocytosis,266140/Spherocytosis,type_3,270970]
-chr1	221345716	221345767	3	4	1	   0.051	0.050	na	0.06566				
-chr2	7541743	7541794	1	4	1	   0.051	0.350	na	0.51968				
-chr2	141599192	141599243	4	33	1	   0.051	0.350	LRP1B	0.00076				
-chr2	159560022	159560073	3	5	1	   0.051	0.350	na	0.33319				
-chr2	189541662	189541713	3	16	1	   0.051	0.050	na	0.00116				
-chr3	10091032	10091214	3	4	1	   0.182	0.100	FANCD2	0.29385				613984_[FANCD2_Fanconi_anemia,complementation_group_D2,227646]
-chr5	21760576	21760627	3	14	1	   0.051	0.400	CDH12	0.24169				
-chr5	26678567	26678618	3	3	1	   0.051	0.150	na	0.08009				
-chr5	97303808	97303859	1	12	1	   0.051	0.350	na	0.31768				
-chr6	31358917	31358968	3	7	1	   0.051	0.250	na	0.21479	yes	yes		
-chr6	31948405	31948851	1	12	2	   0.446	0.100	STK19	0.03621	yes	yes		
-chr7	11691270	11691321	3	10	1	   0.051	0.150	THSD7A	0.06193				
-chr7	87600900	87600951	5	43	1	   0.051	0.400	ADAM22	0.31768				603709_[ADAM22_Epileptic_encephalopathy,early_infantile,61,617933]
-chr7	154799067	154799118	3	14	1	   0.051	0.250	na	0.09982				
-chr8	6327248	6327299	3	8	1	   0.051	0.150	MCPH1	0.10605				607117_[MCPH1_Microcephaly_1,primary,autosomal_recessive,251200]
-chr8	90990422	90990576	1	5	1	   0.154	0.150	NBN	0.04461				602667_[NBN_Nijmegen_breakage_syndrome,251260/Aplastic_anemia,609135/Leukemia,acute_lymphoblastic,613065]
-chr9	4110921	4110972	3	4	1	   0.051	0.050	GLIS3	0.10605				610192_[GLIS3_Diabetes_mellitus,neonatal,with_congenital_hypothyroidism,610199]
-chr9	18995124	18995175	3	5	1	   0.051	0.250	SAXO1	0.21479				
-chr10	117888412	117888463	1	4	1	   0.051	0.100	GFRA1	0.27865			GFRA1	
-chr10	121932807	121932858	1	4	1	   0.051	0.300	na	0.34851				
-chr10	127191096	127191147	1	5	1	   0.051	0.100	na	0.29654	yes	yes		
-chr12	16394822	16394873	1	25	1	   0.051	0.150	SLC15A5	0.10605				
-chr12	93919271	93919322	3	5	1	   0.051	0.100	na	0.04461				
-chr13	80561410	80561461	3	7	1	   0.051	0.200	na	0.09982				
-chr14	20347538	20347589	3	4	1	   0.051	0.300	na	0.37910	yes	yes		
-chr14	36558051	36558102	3	5	1	   0.051	0.050	LINC00609	0.00027				
-chr14	48351596	48351647	3	4	1	   0.051	0.200	na	0.48572				
-chr16	28617351	28617582	1	3	1	   0.231	0.200	SULT1A1	0.42766	yes	yes		
-chr16	89805860	89805986	3	5	1	   0.126	0.050	FANCA,ZNF276	0.01035			FANCA	607139_[FANCA_Fanconi_anemia,complementation_group_A,227650]
-chr18	48573391	51274861	3	722	13	2701.470	0.050	SMAD4	0.00000	yes	yes	SMAD4	600993_[SMAD4_Pancreatic_cancer,somatic,260350/Juvenile_polyposis/hereditary_hemorrhagic_telangiectasia_syndrome,175050/Myhre_syndrome,139210/Polyposis,juvenile_intestinal,174900],120470_[DCC_Mirror_movements_1_and/or_agenesis_of_the_corpus_callosum,157600/Gaze_palsy,familial_horizontal,with_progressive_scoliosis,2,617542/Colorectal_cancer,somatic,114500/Esophageal_carcinoma,somatic,133239]
-chr22	42522550	42526818	1	372	8	   4.268	0.050	CYP2D6,NDUFA6-DT	0.00000	yes	yes	CYP2D6	124030_[CYP2D6_Debrisoquine_sensitivity,608902/Codeine_sensitivity,608902]
-chrX	140519341	140519392	2	50	1	   0.051	0.050	na	0.00002				
-chrY	25276401	25289254	2	332	4	  12.853	0.050	DAZ1	0.00003			DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
-chrY	25298918	25301417	3	178	2	   2.499	0.050	DAZ1	0.00759			DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
-chrY	25303691	25344972	2	932	21	  41.281	0.050	DAZ1	0.00000			DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
+#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	qvalue	cn_polymorphisms_zarrei	cn_polymorphisms_demidov	cn_pathogenic	dosage_sensitive_disease_genes	omim
+chr1	158507158	158507209	3	8	1	   0.051	0.350	na	0.19173					
+chr1	158584017	158584121	3	7	1	   0.104	0.350	SPTA1	0.36529					182860_[SPTA1_Elliptocytosis-2,130600/Pyropoikilocytosis,266140/Spherocytosis,type_3,270970]
+chr1	221345716	221345767	3	4	1	   0.051	0.050	na	0.06566					
+chr2	7541743	7541794	1	4	1	   0.051	0.350	na	0.51968					
+chr2	141599192	141599243	4	33	1	   0.051	0.350	LRP1B	0.00076					
+chr2	159560022	159560073	3	5	1	   0.051	0.350	na	0.33319					
+chr2	189541662	189541713	3	16	1	   0.051	0.050	na	0.00116					
+chr3	10091032	10091214	3	4	1	   0.182	0.100	FANCD2	0.29385					613984_[FANCD2_Fanconi_anemia,complementation_group_D2,227646]
+chr5	21760576	21760627	3	14	1	   0.051	0.400	CDH12	0.24169					
+chr5	26678567	26678618	3	3	1	   0.051	0.150	na	0.08009					
+chr5	97303808	97303859	1	12	1	   0.051	0.350	na	0.31768					
+chr6	31358917	31358968	3	7	1	   0.051	0.250	na	0.21479	yes	yes			
+chr6	31948405	31948851	1	12	2	   0.446	0.100	STK19	0.03621	yes	yes			
+chr7	11691270	11691321	3	10	1	   0.051	0.150	THSD7A	0.06193					
+chr7	87600900	87600951	5	43	1	   0.051	0.400	ADAM22	0.31768					603709_[ADAM22_Epileptic_encephalopathy,early_infantile,61,617933]
+chr7	154799067	154799118	3	14	1	   0.051	0.250	na	0.09982					
+chr8	6327248	6327299	3	8	1	   0.051	0.150	MCPH1	0.10605					607117_[MCPH1_Microcephaly_1,primary,autosomal_recessive,251200]
+chr8	90990422	90990576	1	5	1	   0.154	0.150	NBN	0.04461					602667_[NBN_Nijmegen_breakage_syndrome,251260/Aplastic_anemia,609135/Leukemia,acute_lymphoblastic,613065]
+chr9	4110921	4110972	3	4	1	   0.051	0.050	GLIS3	0.10605					610192_[GLIS3_Diabetes_mellitus,neonatal,with_congenital_hypothyroidism,610199]
+chr9	18995124	18995175	3	5	1	   0.051	0.250	SAXO1	0.21479					
+chr10	117888412	117888463	1	4	1	   0.051	0.100	GFRA1	0.27865				GFRA1	
+chr10	121932807	121932858	1	4	1	   0.051	0.300	na	0.34851					
+chr10	127191096	127191147	1	5	1	   0.051	0.100	na	0.29654	yes	yes			
+chr12	16394822	16394873	1	25	1	   0.051	0.150	SLC15A5	0.10605					
+chr12	93919271	93919322	3	5	1	   0.051	0.100	na	0.04461					
+chr13	80561410	80561461	3	7	1	   0.051	0.200	na	0.09982					
+chr14	20347538	20347589	3	4	1	   0.051	0.300	na	0.37910	yes	yes			
+chr14	36558051	36558102	3	5	1	   0.051	0.050	LINC00609	0.00027					
+chr14	48351596	48351647	3	4	1	   0.051	0.200	na	0.48572					
+chr16	28617351	28617582	1	3	1	   0.231	0.200	SULT1A1	0.42766	yes	yes			
+chr16	89805860	89805986	3	5	1	   0.126	0.050	FANCA,ZNF276	0.01035				FANCA	607139_[FANCA_Fanconi_anemia,complementation_group_A,227650]
+chr18	48573391	51274861	3	722	13	2701.470	0.050	SMAD4	0.00000	yes	yes		SMAD4	600993_[SMAD4_Pancreatic_cancer,somatic,260350/Juvenile_polyposis/hereditary_hemorrhagic_telangiectasia_syndrome,175050/Myhre_syndrome,139210/Polyposis,juvenile_intestinal,174900],120470_[DCC_Mirror_movements_1_and/or_agenesis_of_the_corpus_callosum,157600/Gaze_palsy,familial_horizontal,with_progressive_scoliosis,2,617542/Colorectal_cancer,somatic,114500/Esophageal_carcinoma,somatic,133239]
+chr22	42522550	42526818	1	372	8	   4.268	0.050	CYP2D6,NDUFA6-DT	0.00000	yes	yes		CYP2D6	124030_[CYP2D6_Debrisoquine_sensitivity,608902/Codeine_sensitivity,608902]
+chrX	140519341	140519392	2	50	1	   0.051	0.050	na	0.00002					
+chrY	25276401	25289254	2	332	4	  12.853	0.050	DAZ1	0.00003				DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
+chrY	25298918	25301417	3	178	2	   2.499	0.050	DAZ1	0.00759				DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]
+chrY	25303691	25344972	2	932	21	  41.281	0.050	DAZ1	0.00000				DAZ1	400003_[DAZ1_Sertoli-cell-only_syndrome]

@@ -209,6 +209,7 @@ file_put_contents($out,"##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE\n".file_get_conte
 //annotate
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/misc/cn_polymorphisms_zarrei.bed -out {$out}", true);
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/misc/cn_polymorphisms_demidov.bed -out {$out}", true);
+$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/misc/cn_pathogenic.bed -out {$out}", true);
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed -out {$out}", true);
 $omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; 
 if (file_exists($omim_file)) //optional because of license
