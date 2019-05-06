@@ -10,8 +10,8 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("backup_run", "Creates a backup of a Illumina run folder that was created by RTA 1.9 or higher.");
-$parser->addInfile("in",  "Input run folder.", false);
+$parser = new ToolBase("backup_run", "Creates a backup of a (sequencing run) folder.");
+$parser->addInfile("in",  "Input folder.", false);
 $parser->addString("when",  "Start time in format '20:15' or 'now'.", false);
 $parser->addString("out_folder", "Output folder path.", false);
 extract($parser->parse($argv));
@@ -50,34 +50,20 @@ print date("Y-m-d H:i:s")." creating tar file\n";
 $tmp_tar = $parser->tempFile(".tar");
 $parser->exec("tar", "cfW $tmp_tar --exclude '$in/Data/Intensities/L00?/C*' --exclude '$in/Unaligned*' --exclude '$in/Thumbnail_Images' --exclude '$in/Images' $in/", true);
 
-//zip archive with full compression
+//zip archive with medium compression (way faster than full compression and the contents are already compressed in most cases)
 print date("Y-m-d H:i:s")." creating tar.gz file\n";
-$tmp_zip = $parser->tempFile(".tar.gz");
-$parser->exec("gzip", "-c -5 $tmp_tar > $tmp_zip", true);
+$zipfile = $out_folder."/".basename($in).".tar.gz";
+$parser->exec("gzip", "-c -5 $tmp_tar > $zipfile", true);
 
 //test zip archive integrity
 print date("Y-m-d H:i:s")." testing tar.gz file integrity\n";
-$parser->exec("gzip", "-t $tmp_zip", true);
+$parser->exec("gzip", "-t $zipfile", true);
 $parser->deleteTempFile($tmp_tar);
 
 //calculate MD5 checksum of zip archive
 print date("Y-m-d H:i:s")." calulating md5sum checksum of tar.gz file\n";
-list($stdout) = $parser->exec("md5sum", "$tmp_zip", true);
-list($md5) = explode(" ", $stdout[0]);
-
-//copy zip file to archive folder
-print date("Y-m-d H:i:s")." copying tar.gz file into archive\n";
-$zipfile = $out_folder."/".basename($in).".tar.gz";
-$parser->copyFile($tmp_zip, $zipfile);
-
-//validate remote checksum
-print date("Y-m-d H:i:s")." calulating md5sum checksum of copy\n";
 list($stdout) = $parser->exec("md5sum", "$zipfile", true);
-list($md5_2) = explode(" ", $stdout[0]);
-if ($md5 != $md5_2)
-{
-	trigger_error("MD5 checksums do not match: '$md5' != '$md5_2'!", E_USER_ERROR);
-}
+list($md5) = explode(" ", $stdout[0]);
 
 //copy log file to remote archive folder
 $logfile = $out_folder."/".basename($in).".log";
