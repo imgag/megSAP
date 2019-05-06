@@ -343,7 +343,7 @@ if (in_array("cn", $steps))
 			{
 				foreach($cnv_data[$i] as $cnv2)
 				{
-					if($cnv["chr"]==$cnv2["chr"] && $cnv["cn"] == $cnv2["cn"] && range_overlap($cnv["start"], $cnv["end"], $cnv2["start"], $cnv2["end"]))
+					if($cnv["chr"]==$cnv2["chr"] && $cnv["cn"] == $cnv2["cn"] && range_overlap($cnv["start"]+1, $cnv["end"], $cnv2["start"]+1, $cnv2["end"]))
 					{
 						$new_entry = $cnv;
 						$new_entry["start"] = max($cnv["start"], $cnv2["start"]);
@@ -351,9 +351,6 @@ if (in_array("cn", $steps))
 						$new_entry["loglike"] .= ",".$cnv2["loglike"];
 						$new_entry["qvalue"] .= ",".$cnv2["qvalue"];
 						$new_entry["pot_af"] = max($cnv["pot_af"], $cnv2["pot_af"]);
-						
-						//Skip cases where overlap is only between end of cnv1 and start of cnv2 (resulting in zero length)
-						if($new_entry["end"]-$new_entry["start"] == 0) continue;
 						
 						$tmp[] = $new_entry;
 						break;
