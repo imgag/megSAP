@@ -20,6 +20,7 @@ help:
 	
 pull:
 	git pull --recurse-submodules
+	git describe --tags > megSAP_tag.txt
 	git status
 
 test_functions: dummy

@@ -18,10 +18,12 @@ $output = array();
 
 //extract matching exons
 list($c, $s, $e) = preg_split("/[\s:-]+/", $reg);
-list($exons) = $parser->exec("echo '$c\t$s\t$e' | ".get_path("ngs-bits")."/BedIntersect", "-in2 ".get_path("data_folder")."/dbs/UCSC/exons.bed -mode in2", false);
+list($exons) = $parser->exec("echo", " '$c\t$s\t$e' | ".get_path("ngs-bits")."/BedIntersect -in2 ".get_path("data_folder")."/dbs/UCSC/exons.bed -mode in2", false);
 $hits = array();
 foreach ($exons as $exon)
 {
+	$exon = trim($exon);
+	if ($exon=="") continue;
 	$hits[] = array_slice(explode("\t", $exon), 1); //start, end, gene_exon, strand
 }
 

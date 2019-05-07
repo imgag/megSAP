@@ -661,11 +661,9 @@ class ToolBase
 	}
 
 	/**
-		@brief Executes the command and returns an array with STDOUT and STDERR.
-		
-		If the call exits with an error code, further execution of the calling script is aborted.
+		@brief Executes the command and returns an array with STDOUT, STDERR and exit code.
 	*/
-	function exec($command, $parameters, $log_output,$abort_on_error=true)
+	function exec($command, $parameters, $log_output, $abort_on_error=true, $warn_on_error=true)
 	{
 		//log call
 		if($log_output)
@@ -676,18 +674,24 @@ class ToolBase
 			$this->log("Calling external tool '$command'", $add_info);
 		}
 		
-		//execute call and pipe stderr stream to file
+		//execute call - pipe stdout/stderr to file
+		$pid = getmypid();
+		$stdout_file = $this->tempFile(".stdout", "megSAP_exec_pid{$pid}_");
+		$stderr_file = $this->tempFile(".stderr", "megSAP_exec_pid{$pid}_");
 		$exec_start = microtime(true);
-		$temp = $this->tempFile(".stderr");
-		exec("$command $parameters 2>$temp", $stdout, $return);
-		$stderr = file($temp);
+		$proc = proc_open($command." ".$parameters, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
+		
+		//get stdout, stderr and exit code
+		$return = proc_close($proc);
+		$stdout = explode("\n", rtrim(file_get_contents($stdout_file)));
+		$stderr = explode("\n", rtrim(file_get_contents($stderr_file)));
 			
 		//log relevant information
-		if (($log_output || $return != 0) && count($stdout)>0)
+		if (($log_output || $return!=0) && count($stdout)>0)
 		{
 			$this->log("Stdout of '$command':", $stdout);
 		}
-		if (($log_output || $return != 0) && count($stderr)>0)
+		if (($log_output || $return!=0) && count($stderr)>0)
 		{
 			$this->log("Stderr of '$command':", $stderr);
 		}
@@ -696,14 +700,14 @@ class ToolBase
 			$this->log("Execution time of '$command': ".time_readable(microtime(true) - $exec_start));
 		}
 		
-		//abort on error
-		if ($return != 0)
-		{	
+		//abort/warn if failed
+		if ($return!=0 && ($abort_on_error || $warn_on_error))
+		{
+			$this->toStderr($stdout);
 			$this->toStderr($stderr);
 			trigger_error("Call of external tool '$command' returned error code '$return'.", $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
 		}
 		
-		//return results, 3rd element "return" contains error code
 		return array($stdout, $stderr, $return);
 	}
 
