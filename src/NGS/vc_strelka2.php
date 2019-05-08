@@ -77,10 +77,18 @@ $parser->exec("$run_dir/runWorkflow.py", "-m local -j $threads -g 4", false);
 //################################################################################################
 
 $split_snvs = "$run_dir/results/variants/somatic.snvs.split.vcf.gz";
-$parser->exec("zcat", "$somatic_snvs | ".get_path("vcflib")."vcfbreakmulti > $split_snvs", true);
+$pipeline = [
+		["zcat", $somatic_snvs],
+		[get_path("vcflib")."vcfbreakmulti", "> $split_snvs"]
+	];
+$parser->execPipeline($pipeline, "splitting SNVs");
 
 $split_indels = "$run_dir/results/variants/somatic.indels.split.vcf.gz";
-$parser->exec("zcat", "$somatic_indels | ".get_path("vcflib")."vcfbreakmulti > $split_indels", true);
+$pipeline = [
+		["zcat", $somatic_indels],
+		[get_path("vcflib")."vcfbreakmulti", "> $split_indels"]
+	];
+$parser->execPipeline($pipeline, "splitting InDels");
 
 //################################################################################################
 //Merge SNV and INDELs into one VCF file

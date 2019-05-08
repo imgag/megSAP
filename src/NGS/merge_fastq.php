@@ -75,5 +75,5 @@ foreach($groups as $name => $files)
 		$param .= $out.$backup.$file." ";
 	}
 
-	$parser->exec("zcat", $param." | gzip -1 > ".$out."/".$name, true);
+	exec2("zcat {$param} | gzip -1 > {$out}/{$name}");
 }

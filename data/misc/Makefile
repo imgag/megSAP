@@ -9,3 +9,6 @@ cn_polymorphisms_zarrei:
 
 cn_polymorphisms_demidov:
 	TODO
+	
+cn_pathogenic:
+	cd /mnt/share/data/dbs/CNVs_pathogenic/ && make convert deploy

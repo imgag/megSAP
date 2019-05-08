@@ -663,8 +663,15 @@ class ToolBase
 	/**
 		@brief Executes the command and returns an array with STDOUT, STDERR and exit code.
 	*/
-	function exec($command, $parameters, $log_output, $abort_on_error=true, $warn_on_error=true)
+	function exec($command, $parameters, $log_output=true, $abort_on_error=true, $warn_on_error=true)
 	{
+		//prevent execution of pipes - exit code is not handled correctly with pipes!
+		$command_and_parameters = $command." ".$parameters;
+		if(contains($command_and_parameters, "|"))
+		{
+			trigger_error("Error in 'exec' method call: Command must not contain pipe symbol '|'. Please use the execPipeline function instead!\n$command_and_parameters", E_USER_ERROR);
+		}
+		
 		//log call
 		if($log_output)
 		{
@@ -679,7 +686,7 @@ class ToolBase
 		$stdout_file = $this->tempFile(".stdout", "megSAP_exec_pid{$pid}_");
 		$stderr_file = $this->tempFile(".stderr", "megSAP_exec_pid{$pid}_");
 		$exec_start = microtime(true);
-		$proc = proc_open($command." ".$parameters, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
+		$proc = proc_open($command_and_parameters, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
 		
 		//get stdout, stderr and exit code
 		$return = proc_close($proc);
@@ -747,6 +754,7 @@ class ToolBase
 		}
 			
 		$exec_start = microtime(true);
+		print "bash -c \"set -o pipefail && ".strtr($pipeline, array("\""=>"\\\""))."\"\n";
 		exec("bash -c \"set -o pipefail && ".strtr($pipeline, array("\""=>"\\\""))."\"", $stdout, $return); //pipefail is needed because otherwise only the exit code of the last tool is returned!
 		
 		//log stdout

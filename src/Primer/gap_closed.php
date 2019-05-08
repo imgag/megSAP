@@ -192,7 +192,7 @@ foreach($output as $line)
 print "TraceTuner info: ".$version."\n";
 
 //print Blast information
-$output = $parser->exec("blastn", "-h | grep BLAST", false);
+$output = $parser->exec("blastn", "-version", false);
 print "BLAST info: ".$output[0][0]."\n";
 
 $blast_chrom_to_regions=array();

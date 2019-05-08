@@ -16,10 +16,6 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("transcript_variant_primer", "Design primers surrounding a variant in a specific transcript.");
-//mandatory
-//$parser->addString("prefix", "User prefix/name for primer design.", true, "QO002-RAPGEF4");
-//$parser->addString("transcript_id", "Target transcript identifier.", true, "ENST00000397081");
-//$parser->addInt("variant_position", "Position of variant in transcript.", true, 500);
 $parser->addString("prefix", "User prefix/name for primer design.", false);
 $parser->addString("transcript_id", "Target transcript identifier (Ensembl).", false);
 $parser->addInt("variant_position", "Coding (start) position of variant.", false);
@@ -119,7 +115,12 @@ array_pop($junctions_arr);
 $junctions = implode(" ", $junctions_arr);
 
 //get transcript (cDNA) sequence
-list($stdout, ) = $parser->exec(get_path("samtools"), "faidx $reference $transcript_id | tail -n+2 | tr -d '\n'", true);
+$pipeline = [
+	[get_path("samtools"), "faidx $reference $transcript_id"],
+	["tail", "-n+2"],
+	["tr", "-d '\n'"]
+];
+list($stdout) = $parser->exec($pipeline, "get transcript cDNA");
 $transcript_sequence = $stdout[0];
 
 //primer3
@@ -396,17 +397,5 @@ foreach (file($star_out) as $line)
 }
 
 $out_table->toTSV($out);
-
-/*
- * # transcript_primer
- *
- * Designs primer for variant validation in transcripts.
- *
- * ## Warnings
- * SNP:	region of primer contains a known SNP
- * multiple alignments: primer aligns to multiple locations
- * mismatch: primer alignment contains mismatch
- * wrong strand: left primer does not align to forward, or right primer to reverse strand
- */
 
 ?>

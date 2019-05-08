@@ -303,7 +303,12 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 			$bed = $ref_folder."/bins{$bin_size}.bed";
 			if (!file_exists($bed))
 			{
-				$parser->exec("{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size} | {$ngsbits}BedAnnotateGC -ref ".genome_fasta($sys['build'])." | {$ngsbits}BedAnnotateGenes -out {$bed}", true);
+				$pipeline = [
+						["{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size}"],
+						["{$ngsbits}BedAnnotateGC", "-ref ".genome_fasta($sys['build'])],
+						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"]
+					];
+				$parser->exec($pipeline, "creating annotated BED file for ClinCNV");
 			}
 		}
 		else
@@ -311,7 +316,11 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 			$bed = $ref_folder."/roi_annotated.bed";
 			if (!file_exists($bed))
 			{
-				$parser->exec("{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".genome_fasta($sys['build'])." | {$ngsbits}BedAnnotateGenes -out {$bed}", true);
+				$pipeline = [
+						["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".genome_fasta($sys['build'])],
+						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
+					];
+				$parser->exec($pipeline, "creating annotated BED file for ClinCNV");
 			}
 		}
 		

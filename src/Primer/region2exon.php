@@ -18,7 +18,11 @@ $output = array();
 
 //extract matching exons
 list($c, $s, $e) = preg_split("/[\s:-]+/", $reg);
-list($exons) = $parser->exec("echo", " '$c\t$s\t$e' | ".get_path("ngs-bits")."/BedIntersect -in2 ".get_path("data_folder")."/dbs/UCSC/exons.bed -mode in2", false);
+$pipeline = [
+	["echo", "'$c\t$s\t$e'"],
+	[get_path("ngs-bits")."BedIntersect", "-in2 ".get_path("data_folder")."/dbs/UCSC/exons.bed -mode in2" ]
+];
+list($exons) = $parser->execPipeline($pipeline, "extrac matching exons");
 $hits = array();
 foreach ($exons as $exon)
 {

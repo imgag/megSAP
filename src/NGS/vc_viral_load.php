@@ -132,8 +132,14 @@ while ($line = fgets($handle))
 
     // mismatches
     $region = implode("\t", array_slice($fields, 0, 3));
-    $stdout = $parser->exec(get_path("ngs-bits")."/VcfFilter", "-in {$viral_vcf} -reg '{$region}' | grep -c -v '^#' || true", true);
-    $variant_count = intval(nl_trim($stdout[0][0]));
+    list($stdout) = $parser->exec(get_path("ngs-bits")."VcfFilter", "-in {$viral_vcf} -reg '{$region}'", false);
+    $variant_count = 0;
+	foreach($stdout as $line)
+	{
+		$line = trim($line);
+		if ($line=="" || $line[0]=="#") continue;
+		++$variant_count;
+	}
     $fields[] = $variant_count;
     $fields[] = 100 * (1 - $variant_count / ($fields[2] - $fields[1]));
     fwrite($handle_out, implode("\t", $fields) . "\n");
