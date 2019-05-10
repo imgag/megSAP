@@ -204,56 +204,60 @@ if ($build=="GRCh37")
 ######################### VEP annotation databases #########################
 if ($build=="GRCh37")
 {
-	$local_annotation_folder = "{$local_data}/ensembl-vep-dbs/";
+	$copy_vep_dbs_to_local_data = get_path("copy_vep_dbs_to_local_data", true);
+	if ($copy_vep_dbs_to_local_data==true || $copy_vep_dbs_to_local_data=="true")
+	{
+		$local_annotation_folder = "{$local_data}/ensembl-vep-dbs/";
 
-	//create local folder if missing
-	if (!file_exists($local_annotation_folder))
-	{
-		if (!mkdir($local_annotation_folder))
+		//create local folder if missing
+		if (!file_exists($local_annotation_folder))
 		{
-			trigger_error("Could not create local data annotation folder '{$local_annotation_folder}'!", E_USER_ERROR);
-		}
-		if (!chmod($local_annotation_folder, 0777))
-		{
-			trigger_error("Could not change privileges of local annotation data folder '{$local_annotation_folder}'!", E_USER_ERROR);
-		}
-	}
-	
-	print "\n";
-	print "### VEP annotation databases ###\n";
-	print "to  : {$local_annotation_folder}\n";
-	print "\n";
-		
-	print "rsync-ing annotation databases...\n";
-	
-	$db_files = array("/dbs/CADD/whole_genome_SNVs.tsv.gz", "/dbs/CADD/InDels.tsv.gz", "/dbs/REVEL/revel_all_chromosomes.tsv.gz", "/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz", "/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz", "/dbs/gnomAD/gnomAD_genome_r2.1.vcf.gz", "/dbs/RepeatMasker/RepeatMasker.bed.gz", "/dbs/ClinVar/clinvar_20190123_converted.vcf.gz", "/dbs/phyloP/hg19.100way.phyloP100way.bw", "/dbs/OMIM/omim.bed.gz", "/dbs/HGMD/HGMD_PRO_2018_4_fixed.vcf.gz");
-	foreach($db_files as $db_file)
-	{
-		$source = $data_folder.$db_file;
-		$target = $local_annotation_folder.basename($db_file);
-		print "  rsync-ing database {$source}\n";
-		list($stdout, $stderr) = exec2("{$rsync} {$source} {$target}");
-		foreach(array_merge($stdout, $stderr) as $line)
-		{
-			$line = trim($line);
-			if ($line=="") continue;
-			
-			print "    {$line}\n";
+			if (!mkdir($local_annotation_folder))
+			{
+				trigger_error("Could not create local data annotation folder '{$local_annotation_folder}'!", E_USER_ERROR);
+			}
+			if (!chmod($local_annotation_folder, 0777))
+			{
+				trigger_error("Could not change privileges of local annotation data folder '{$local_annotation_folder}'!", E_USER_ERROR);
+			}
 		}
 		
-		$source_index = $source.".tbi";
-		if (file_exists($source_index))
-		{
-			print "  rsync-ing database index {$source_index}\n";
+		print "\n";
+		print "### VEP annotation databases ###\n";
+		print "to  : {$local_annotation_folder}\n";
+		print "\n";
 			
-			$target_index = $target.".tbi";
-			list($stdout, $stderr) = exec2("{$rsync} {$source_index} {$target_index}");
+		print "rsync-ing annotation databases...\n";
+		
+		$db_files = array("/dbs/CADD/whole_genome_SNVs.tsv.gz", "/dbs/CADD/InDels.tsv.gz", "/dbs/REVEL/revel_all_chromosomes.tsv.gz", "/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz", "/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz", "/dbs/gnomAD/gnomAD_genome_r2.1.vcf.gz", "/dbs/RepeatMasker/RepeatMasker.bed.gz", "/dbs/ClinVar/clinvar_20190123_converted.vcf.gz", "/dbs/phyloP/hg19.100way.phyloP100way.bw", "/dbs/OMIM/omim.bed.gz", "/dbs/HGMD/HGMD_PRO_2018_4_fixed.vcf.gz");
+		foreach($db_files as $db_file)
+		{
+			$source = $data_folder.$db_file;
+			$target = $local_annotation_folder.basename($db_file);
+			print "  rsync-ing database {$source}\n";
+			list($stdout, $stderr) = exec2("{$rsync} {$source} {$target}");
 			foreach(array_merge($stdout, $stderr) as $line)
 			{
 				$line = trim($line);
 				if ($line=="") continue;
 				
 				print "    {$line}\n";
+			}
+			
+			$source_index = $source.".tbi";
+			if (file_exists($source_index))
+			{
+				print "  rsync-ing database index {$source_index}\n";
+				
+				$target_index = $target.".tbi";
+				list($stdout, $stderr) = exec2("{$rsync} {$source_index} {$target_index}");
+				foreach(array_merge($stdout, $stderr) as $line)
+				{
+					$line = trim($line);
+					if ($line=="") continue;
+					
+					print "    {$line}\n";
+				}
 			}
 		}
 	}
