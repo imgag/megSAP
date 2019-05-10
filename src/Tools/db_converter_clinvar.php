@@ -25,8 +25,8 @@ function value2cons($value)
 	}
 	if ($value>4.5) return "Pathogenic";
 	if ($value>3.5) return "Likely_pathogenic";
-	if ($value<0.5) return "Benign";
-	if ($value<1.5) return "Likely_benign";
+	if ($value<1.5) return "Benign";
+	if ($value<2.5) return "Likely_benign";
 	return "Uncertain_significance";
 }
 //locale for iconv below
