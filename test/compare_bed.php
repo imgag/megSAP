@@ -18,9 +18,9 @@ function load_bed_coords($filename)
 }
 
 //store data to tmp files
-$file1 = temp_file();
+$file1 = temp_file(".bed", "compare_bed");
 file_put_contents($file1, load_bed_coords($argv[1]));
-$file2 = temp_file();
+$file2 = temp_file(".bed", "compare_bed");
 file_put_contents($file2, load_bed_coords($argv[2]));
 
 //diff

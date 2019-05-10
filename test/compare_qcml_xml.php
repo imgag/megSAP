@@ -14,7 +14,7 @@ function rewrite_qcml($qcml, &$tmpfile)
 	// array to hold entries as accession => [name, value]
 	$values = [];
 	// output file
-	$tmpfile = temp_file();
+	$tmpfile = temp_file("", "rewrite_qcml");
 	// read values into array
 	foreach ($sxml->runQuality->qualityParameter as $qp)
 	{
