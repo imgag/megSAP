@@ -754,7 +754,6 @@ class ToolBase
 		}
 			
 		$exec_start = microtime(true);
-		print "bash -c \"set -o pipefail && ".strtr($pipeline, array("\""=>"\\\""))."\"\n";
 		exec("bash -c \"set -o pipefail && ".strtr($pipeline, array("\""=>"\\\""))."\"", $stdout, $return); //pipefail is needed because otherwise only the exit code of the last tool is returned!
 		
 		//log stdout
