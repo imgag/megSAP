@@ -20,6 +20,12 @@ while(!feof($in))
 		$line[7] = "ID=".$line[2].";".strtr($line[7], array(" "=>"_"));
 		$line = "chr".implode("\t", $line);
 	}
+	
+	//IGV does not support VCF v4.3 > make it compatible with v4.2
+	if (starts_with($line, "##fileformat")) $line = "##fileformat=VCFv4.2";
+	if (starts_with($line, "##INFO=<ID=PROT,")) $line = "##INFO=<ID=PROT,Number=1,Type=String,Description=\"Protein annotation\">";
+	$line = strtr($line, array("%3D"=>"="));
+	
 	print $line."\n";
 }
 
