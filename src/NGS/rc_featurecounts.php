@@ -50,7 +50,8 @@ $reverse_library_type = [
 ];
 
 $tmp_dir = $parser->tempFolder();
-$tmp_out = $parser->tempFile();
+$tmp_dir2 = $parser->tempFolder();
+$tmp_out = "{$tmp_dir2}/counts";
 
 //build arguments array
 $args = [
@@ -95,7 +96,8 @@ $parser->copyFile($tmp_out, $out);
 // report BAM file
 if (isset($out_report))
 {
-	$report_bam = "{$in}.featureCounts.bam";
+	$in_basename = basename($in);
+	$report_bam = "{$tmp_dir2}/{$in_basename}.featureCounts.bam";
 	$sort_tmp = $parser->tempFile(".bam");
 	$parser->exec(get_path("samtools"), "sort -T {$sort_tmp} -m 1G -@ 4 -o {$out_report} {$report_bam}", true);
 	$parser->indexBam($out_report, $threads);
