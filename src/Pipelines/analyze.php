@@ -420,6 +420,7 @@ if (in_array("sv", $steps))
 				"-smallIndels", $small_indel_manta_file,
 				"-threads", $threads,
 				"-fix_bam",
+				"-build", $sys['build'],
 				"--log",$log_sv
 			];
 			if($sys['target_file'] != "") $manta_args[] = "-target " . $sys['target_file'];
