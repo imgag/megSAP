@@ -229,7 +229,7 @@ if ($build=="GRCh37")
 			
 		print "rsync-ing annotation databases...\n";
 		
-		$db_files = array("/dbs/CADD/whole_genome_SNVs.tsv.gz", "/dbs/CADD/InDels.tsv.gz", "/dbs/REVEL/revel_all_chromosomes.tsv.gz", "/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz", "/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz", "/dbs/gnomAD/gnomAD_genome_r2.1.vcf.gz", "/dbs/RepeatMasker/RepeatMasker.bed.gz", "/dbs/ClinVar/clinvar_20190123_converted.vcf.gz", "/dbs/phyloP/hg19.100way.phyloP100way.bw", "/dbs/OMIM/omim.bed.gz", "/dbs/HGMD/HGMD_PRO_2018_4_fixed.vcf.gz");
+		$db_files = array("/dbs/CADD/whole_genome_SNVs.tsv.gz", "/dbs/CADD/InDels.tsv.gz", "/dbs/REVEL/revel_all_chromosomes.tsv.gz", "/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz", "/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz", "/dbs/gnomAD/gnomAD_genome_r2.1.vcf.gz", "/dbs/RepeatMasker/RepeatMasker.bed.gz", "/dbs/ClinVar/clinvar_20190503_converted.vcf.gz", "/dbs/phyloP/hg19.100way.phyloP100way.bw", "/dbs/OMIM/omim.bed.gz", "/dbs/HGMD/HGMD_PRO_2019_1_fixed.vcf.gz");
 		foreach($db_files as $db_file)
 		{
 			$source = $data_folder.$db_file;

@@ -72,13 +72,13 @@
 ##INFO=<ID=gnomADg_Hom,Number=.,Type=String,Description="Hom field from /tmp/local_ngs_data//ensembl-vep-dbs/gnomAD_genome_r2.1.vcf.gz">
 ##INFO=<ID=gnomADg_Hemi,Number=.,Type=String,Description="Hemi field from /tmp/local_ngs_data//ensembl-vep-dbs/gnomAD_genome_r2.1.vcf.gz">
 ##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/RepeatMasker.bed.gz (overlap)">
-##INFO=<ID=CLINVAR,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/clinvar_20190123_converted.vcf.gz (exact)">
-##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="DETAILS field from /tmp/local_ngs_data//ensembl-vep-dbs/clinvar_20190123_converted.vcf.gz">
+##INFO=<ID=CLINVAR,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/clinvar_20190503_converted.vcf.gz (exact)">
+##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="DETAILS field from /tmp/local_ngs_data//ensembl-vep-dbs/clinvar_20190503_converted.vcf.gz">
 ##INFO=<ID=PHYLOP,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/hg19.100way.phyloP100way.bw (overlap)">
 ##INFO=<ID=OMIM,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/omim.bed.gz (overlap)">
-##INFO=<ID=HGMD,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/HGMD_PRO_2018_4_fixed.vcf.gz (exact)">
-##INFO=<ID=HGMD_CLASS,Number=.,Type=String,Description="CLASS field from /tmp/local_ngs_data//ensembl-vep-dbs/HGMD_PRO_2018_4_fixed.vcf.gz">
-##INFO=<ID=HGMD_MUT,Number=.,Type=String,Description="MUT field from /tmp/local_ngs_data//ensembl-vep-dbs/HGMD_PRO_2018_4_fixed.vcf.gz">
-##INFO=<ID=HGMD_GENE,Number=.,Type=String,Description="GENE field from /tmp/local_ngs_data//ensembl-vep-dbs/HGMD_PRO_2018_4_fixed.vcf.gz">
-##INFO=<ID=HGMD_PHEN,Number=.,Type=String,Description="PHEN field from /tmp/local_ngs_data//ensembl-vep-dbs/HGMD_PRO_2018_4_fixed.vcf.gz">
+##INFO=<ID=HGMD,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/HGMD_PRO_2019_1_fixed.vcf.gz (exact)">
+##INFO=<ID=HGMD_CLASS,Number=.,Type=String,Description="CLASS field from /tmp/local_ngs_data//ensembl-vep-dbs/HGMD_PRO_2019_1_fixed.vcf.gz">
+##INFO=<ID=HGMD_MUT,Number=.,Type=String,Description="MUT field from /tmp/local_ngs_data//ensembl-vep-dbs/HGMD_PRO_2019_1_fixed.vcf.gz">
+##INFO=<ID=HGMD_GENE,Number=.,Type=String,Description="GENE field from /tmp/local_ngs_data//ensembl-vep-dbs/HGMD_PRO_2019_1_fixed.vcf.gz">
+##INFO=<ID=HGMD_PHEN,Number=.,Type=String,Description="PHEN field from /tmp/local_ngs_data//ensembl-vep-dbs/HGMD_PRO_2019_1_fixed.vcf.gz">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878

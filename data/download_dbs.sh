@@ -28,8 +28,8 @@ tabix -p bed RepeatMasker.bed.gz
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2019/clinvar_20190123.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20190123_converted.vcf.gz
-tabix -p vcf clinvar_20190123_converted.vcf.gz
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2019/clinvar_20190503.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20190503_converted.vcf.gz
+tabix -p vcf clinvar_20190503_converted.vcf.gz
 
 #Install gnomAD (genome data) - http://gnomad.broadinstitute.org/downloads
 cd $dbs
@@ -105,14 +105,13 @@ tabix -s 1 -b 2 -e 2 -c c dbscSNV1.1_GRCh37.txt.gz
 #cd $dbs
 #mkdir OMIM
 #cd OMIM
-#manual download of ftp://ftp.omim.org/OMIM/genemap.txt
-#manual download of ftp://ftp.omim.org/OMIM/mim2gene.txt
+#manual download of ftp://ftp.omim.org/OMIM/genemap2.txt
 #php $src/Tools/db_converter_omim.php | $ngsbits/BedSort > omim.bed
 #bgzip -c omim.bed > omim.bed.gz
 #tabix -p bed omim.bed.gz
 
 #Install HGMD (you need a license)
 #manual download https://portal.biobase-international.com/cgi-bin/portal/login.cgi 
-#cat HGMD_PRO_2018.4_hg19.vcf | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2018_4_fixed.vcf.gz
-#tabix -p vcf HGMD_PRO_2018_4_fixed.vcf.gz
+#cat HGMD_PRO_2019.1_hg19.vcf | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2019_1_fixed.vcf.gz
+#tabix -p vcf HGMD_PRO_2019_1_fixed.vcf.gz
 
