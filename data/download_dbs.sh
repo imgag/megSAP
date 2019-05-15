@@ -10,6 +10,14 @@ dbs=$root/dbs/
 ngsbits=$tools/ngs-bits/bin
 genome=$root/genomes/GRCh37.fa
 
+
+#Download NCG6.0 - information about oncogenes and TSG
+cd $dbs
+mkdir NCG6.0
+cd NCG6.0
+curl --silent --request POST --url http://ncg.kcl.ac.uk/download.php --data "filename=NCG6_tsgoncogene.tsv&downloadtsgoncogene=Download" --output NCG6.0_oncogene.tsv
+
+
 #Install HGNC
 cd $dbs
 mkdir HGNC
@@ -100,6 +108,7 @@ unzip dbscSNV1.1.zip
 head -n1 dbscSNV1.1.chr1 > h
 cat dbscSNV1.1.chr* | grep -v ^chr | cat h - | bgzip -c > dbscSNV1.1_GRCh37.txt.gz
 tabix -s 1 -b 2 -e 2 -c c dbscSNV1.1_GRCh37.txt.gz
+
 
 #install OMIM (you might need a license - installation only possible after ngs-bits including NGSD is installed)
 #cd $dbs

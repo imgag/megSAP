@@ -760,7 +760,7 @@ if (in_array("ci", $steps))
 	$cgi_snv_result_file = $full_prefix . "_cgi_mutation_analysis.tsv";
 	if(file_exists($cgi_snv_result_file) && file_exists($variants_gsvar))
 	{
-		$parser->execTool("NGS/cgi_snvs_to_gsvar.php","-gsvar_in $variants_gsvar -cgi_snv_in $cgi_snv_result_file -out $variants_gsvar");
+		$parser->execTool("NGS/an_somatic_gsvar.php","-gsvar_in $variants_gsvar -cgi_snv_in $cgi_snv_result_file -out $variants_gsvar -include_ncg");
 	}
 	//annotate CGI cnv genes to cnv input file (which was originally created by CNVHunter)
 	$cgi_cnv_result_file = $full_prefix . "_cgi_cnv_analysis.tsv";
@@ -832,7 +832,7 @@ if (in_array("ci", $steps))
 		if(file_exists("{$out_folder_germline}/{$n_id}_cgi_mutation_analysis.tsv") && file_exists($germline_gsvar_file))
 		{
 			$parameters = " -gsvar_in $germline_gsvar_file -cgi_snv_in {$out_folder_germline}/{$n_id}_cgi_mutation_analysis.tsv -out $germline_gsvar_file";
-			$parser->execTool("NGS/cgi_snvs_to_gsvar.php",$parameters,false);
+			$parser->execTool("NGS/an_somatic_gsvar.php",$parameters,false);
 		}
 		if(file_exists($germline_cnv_file) && file_exists("{$out_folder_germline}/{$n_id}_cgi_cnv_analysis.tsv"))
 		{
