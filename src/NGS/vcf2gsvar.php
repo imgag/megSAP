@@ -406,18 +406,22 @@ while(!feof($handle))
 		}
 		
 		//recombine GT/DP/AO in the correct order
-		$genotype = array();
-		$depth = array();
-		$ao = array();
+		$genotypes = array();
+		$depths = array();
+		$aos = array();
 		foreach($multi_cols as $col)
 		{
-			$genotype[] = $tmp[$col];
-			$depth[] = $tmp2[$col];
-			$ao[] = $tmp3[$col];
+			$gt = $tmp[$col];
+			$dp = $tmp2[$col];
+			$ao = $tmp3[$col];
+			if ($dp<3) $gt = "n/a";
+			$genotypes[] = $gt;
+			$depths[] = $dp;
+			$aos[] = $ao;
 		}
-		$genotype = "\t".implode("\t", $genotype);
-		$sample["DP"] = implode(",", $depth);
-		$sample["AO"] = implode(",", $ao);
+		$genotype = "\t".implode("\t", $genotypes);
+		$sample["DP"] = implode(",", $depths);
+		$sample["AO"] = implode(",", $aos);
 	}
 	else if ($genotype_mode=="single")
 	{
