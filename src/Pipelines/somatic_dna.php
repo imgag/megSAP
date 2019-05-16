@@ -26,7 +26,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 	"vc=variant calling, an=annotation, ci=CGI annotation,\n" .
 	"cn=copy-number analysis, msi=microsatellite analysis,\n".
 	"vi=virus detection, db=database import",
-	true, "vc,cn,an,msi,db");
+	true, "vc,cn,an,msi,vi,db");
 
 $parser->addString("cancer_type", "Tumor type, see CancerGenomeInterpreter.org for nomenclature (resolved from GENLAB if not set).", true);
 
@@ -364,9 +364,12 @@ if (in_array("vc", $steps))
 }
 
 //Viral sequences alignment
-$viral         = $full_prefix . "_viral.tsv";					// viral sequences results
-$viral_bam     = $full_prefix . "_viral.bam";					// viral sequences alignment
-$viral_bam_raw = $full_prefix . "_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
+$tumor_prefix = dirname($t_bam) . "/" . basename($t_bam, ".bam");
+
+$viral         = $tumor_prefix . "_viral.tsv";					// viral sequences results
+$viral_bam     = $tumor_prefix . "_viral.bam";					// viral sequences alignment
+$viral_bam_raw = $tumor_prefix . "_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
+$viral_igv     = $tumor_prefix . "_viral.xml";					// IGV session
 if (in_array("vi", $steps))
 {
 	//detection of viral sequences
@@ -387,6 +390,14 @@ if (in_array("vi", $steps))
 		$vc_viral_args[] = "-barcode_correction";
 	}
 	$parser->execTool("NGS/vc_viral_load.php", implode(" ", $vc_viral_args));
+
+	$igv_tracks = implode(" ", array_filter([
+		$viral_bam,
+		$viral_bam_raw,
+		get_path("data_folder") . "/enrichment/somatic_viral.bed" ],
+		"file_exists"));
+	$genome_rel = relative_path(dirname($viral_igv), get_path("data_folder") . "/genomes/somatic_viral.fa");
+	$parser->execTool("NGS/igv_session.php", "-genome {$genome_rel} -out {$viral_igv} -in {$igv_tracks} -relative");
 }
 
 //CNV calling
