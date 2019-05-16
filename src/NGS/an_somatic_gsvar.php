@@ -82,9 +82,20 @@ function cgi_variant_tsv_to_sorted_vcf($cgi_input)
 //Checks if column exists in GSvar file and removes it
 function remove_col($col_name,&$matrix)
 {
-	if($matrix->getColumnIndex($col_name,false,false) !== false)
+	$col_indices = array();
+	foreach($matrix->getHeaders() as $index => $name)
 	{
-		$matrix->removeCol($matrix->getColumnIndex($col_name,false,false));
+		if($col_name == $name)
+		{
+			$col_indices[] = $index;
+		}
+	}
+	
+	if(empty($col_indices)) return;
+	
+	for($i=count($col_indices)-1;$i>=0;--$i)
+	{
+		$matrix->removeCol($col_indices[$i]);
 	}
 }
 
@@ -246,6 +257,11 @@ if($include_ncg)
 {
 	$gsvar_input = Matrix::fromTSV($gsvar_in);
 	
+
+	//Remove potential old NCG annotation
+	remove_col("ncg_oncogene",$gsvar_input);
+	remove_col("ncg_tsg",$gsvar_input);
+	$gsvar_input->toTSV($out);
 	
 	$col_oncogene  = array();
 	$col_tsg  = array();
