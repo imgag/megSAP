@@ -777,7 +777,7 @@ if (in_array("ci", $steps))
 	$cgi_cnv_result_file = $full_prefix . "_cgi_cnv_analysis.tsv";
 	if(file_exists($som_clincnv) && file_exists($cgi_cnv_result_file))
 	{
-		$parser->execTool("NGS/cgi_annotate_cnvs.php","-cnv_in $som_clincnv -cnv_in_cgi $cgi_cnv_result_file -out $som_clincnv");
+		$parser->execTool("NGS/an_somatic_cnvs.php","-cnv_in $som_clincnv -cnv_in_cgi $cgi_cnv_result_file -out $som_clincnv -include_ncg");
 	}
 	
 	/*************************

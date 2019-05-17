@@ -219,15 +219,25 @@ class Matrix
 	}
 	
 	/// Removes a Comment
-	function removeComment($comment_text)
+	function removeComment($comment_text, $containing = false)
 	{
 		for($i=0;$i<count($this->comments);$i++)
 		{
 			//print_r($comment_text." ".$this->comments[$i]."\n");
+			if(!$containing)
+			{
 			if($comment_text == $this->comments[$i])
 			{
 				array_splice($this->comments,$i,1);
 				break;
+			}
+			}
+			else
+			{
+				if(strpos($this->comments[$i],$comment_text) !== false)
+				{
+					array_splice($this->comments,$i,1);
+				}
 			}
 		}
 	}
@@ -304,6 +314,26 @@ class Matrix
 			$tmp_c[] = $c;
 		}
 		$this->comments = $tmp_c;
+	}
+	
+	//Removes all columns with "name" as header
+	function removeColByName($name)
+	{
+		$col_indices = array();
+		foreach($this->headers as $index => $col_name)
+		{
+			if($col_name == $name)
+			{
+				$col_indices[] = $index;
+			}
+		}
+		
+		if(empty($col_indices)) return;
+		
+		for($i=count($col_indices)-1;$i>=0;--$i)
+		{
+			$this->removeCol($col_indices[$i]);
+		}
 	}
 
 	/// Removes a row by index.

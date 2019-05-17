@@ -79,69 +79,6 @@ function cgi_variant_tsv_to_sorted_vcf($cgi_input)
 	return $output;
 }
 
-//Checks if column exists in GSvar file and removes it
-function remove_col($col_name,&$matrix)
-{
-	$col_indices = array();
-	foreach($matrix->getHeaders() as $index => $name)
-	{
-		if($col_name == $name)
-		{
-			$col_indices[] = $index;
-		}
-	}
-	
-	if(empty($col_indices)) return;
-	
-	for($i=count($col_indices)-1;$i>=0;--$i)
-	{
-		$matrix->removeCol($col_indices[$i]);
-	}
-}
-
-//Returns whether a certain gene is an oncogene or tsg gene according NCG6.0
-function ncg_gene_statements($gene)
-{
-	$result = array("is_oncogene" => "na", "is_tsg" => "na");
-	
-	$ncg_file = get_path("data_folder") . "/dbs/NCG6.0/NCG6.0_oncogene.tsv";
-	
-	if(!file_exists($ncg_file))
-	{
-		trigger_error("Could not find file with NCG6.0 data",E_USER_WARNING);
-		return $result;
-	}
-	
-	$handle = fopen($ncg_file,"r");
-	while(!feof($handle))
-	{
-		$line = fgets($handle);
-		if(empty($line)) continue;
-		if(starts_with($line,"entrez")) continue;
-		
-		list($entrez,$ncg_gene,$cgc,$vogelstein,$is_oncogene,$is_tsg) = explode("\t",trim($line));
-		
-		if(($is_oncogene) == "")
-		{
-			echo "empty: $entrez $is_oncogene \n";
-			die();
-		}
-		
-		if(trim($gene) == trim($ncg_gene))
-		{
-			$result["is_oncogene"] = $is_oncogene;
-			
-			$result["is_tsg"] = $is_tsg;
-			break;
-		}
-	}
-	
-	fclose($handle);
-	
-	return $result;
-}
-
-
 /********
  * MAIN *
  ********/
@@ -154,20 +91,13 @@ if(isset($cgi_snv_in))
 	 ******************************/ 
 	//old annotations created by former script
 	$old_annotations = ["CGI_drug_assoc","CGI_evid_level","CGI_transcript","CGI_id","CGI_driver_statement","CGI_gene_role","CGI_gene","CGI_consequence"];
-	foreach($old_annotations as $annotation_name) remove_col($annotation_name,$gsvar_input);
+	foreach($old_annotations as $annotation_name) $gsvar_input->removeColByName($annotation_name);
 
 	/***************************
 	 * REMOVE OLD CGI COMMENTS *
 	 ***************************/
-	function remove_comment($old_comment,&$matrix)
-	{
-		foreach($matrix->getComments() as $comment)
-		{
-			if(strpos($comment,$old_comment) !== false) $matrix->removeComment($comment);
-		}
-	}
 	$old_comments = ["CGI_ICD10_CODE","CGI_ICD10_TEXT","CGI_ICD10_DIAGNOSES","GENES_FOR_REIMBURSEMENT","CGI_CANCER_TYPE","CGI_id","CGI_driver_statement","CGI_gene_role","CGI_transcript","CGI_gene","CGI_consequence"];
-	foreach($old_comments as $old_comment) remove_comment($old_comment,$gsvar_input);
+	foreach($old_comments as $old_comment) $gsvar_input->removeComment($old_comment,true);
 
 	//indices of input gsvar position columns
 	$i_gsvar_snvs_chr = $gsvar_input->getColumnIndex("chr");
@@ -256,12 +186,9 @@ if(isset($cgi_snv_in))
 if($include_ncg)
 {
 	$gsvar_input = Matrix::fromTSV($gsvar_in);
-	
-
 	//Remove potential old NCG annotation
-	remove_col("ncg_oncogene",$gsvar_input);
-	remove_col("ncg_tsg",$gsvar_input);
-	$gsvar_input->toTSV($out);
+	$gsvar_input->removeColByName("ncg_oncogene");
+	$gsvar_input->removeColByName("ncg_tsg");
 	
 	$col_oncogene  = array();
 	$col_tsg  = array();

@@ -1430,4 +1430,39 @@ function genome_fasta($build)
 	return get_path("local_data")."/".$build.".fa";
 }
 
+//Returns whether a certain gene is an oncogene or tsg gene according NCG6.0, "na" otherwise
+function ncg_gene_statements($gene)
+{
+	$result = array("is_oncogene" => "na", "is_tsg" => "na");
+	
+	//file with data about TSG / oncogene from NCG6.0
+	$ncg_file = get_path("data_folder") . "/dbs/NCG6.0/NCG6.0_oncogene.tsv";
+	
+	if(!file_exists($ncg_file))
+	{
+		trigger_error("Could not find file with NCG6.0 data",E_USER_WARNING);
+		return $result;
+	}
+	
+	$handle = fopen($ncg_file,"r");
+	while(!feof($handle))
+	{
+		$line = fgets($handle);
+		if(empty($line)) continue;
+		if(starts_with($line,"entrez")) continue; //Skip header line
+		
+		list($entrez,$ncg_gene,$cgc,$vogelstein,$is_oncogene,$is_tsg) = explode("\t",trim($line));
+		
+		if(trim($gene) == trim($ncg_gene))
+		{
+			$result["is_oncogene"] = $is_oncogene;
+			$result["is_tsg"] = $is_tsg;
+			break;
+		}
+	}
+	
+	fclose($handle);
+	return $result;
+}
+
 ?>
