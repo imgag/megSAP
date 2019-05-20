@@ -328,8 +328,6 @@ foreach($res as $row)
 	if (is_null($names)) continue;
 	list($qbic_name, $fo_name) = $names;
 	
-	$tumor = false;
-	if($row['tumor'] == 1) $tumor = true;
 	
 	$output = array();
 	$output[] = $s_name;
@@ -406,7 +404,10 @@ foreach($res as $row)
 		$paths  = glob($data_folder.$s_name."*.*");
 		if(is_dir($data_folder."+original")) $paths = glob($data_folder."+original/".$ps_name."*.*");	//for backward compatibility
 		$tumor_normal_pair = false;
-		if(strpos($pro,"SomaticAndTreatment") !== false) $tumor_normal_pair = true;
+		
+		$info = get_processed_sample_info($db,$ps_name);
+		
+		if($info["is_tumor"] == 1 && !empty($info["normal_id"])) $tumor_normal_pair = true;
 		foreach($paths as $file)
 		{
 			if (ends_with($file, ".fastq.gz") && !$tumor_normal_pair) $files[] = $file; //only take raw fastqs in case of single samples
@@ -419,7 +420,7 @@ foreach($res as $row)
 		$merged_fastq_files = array();
 		if($tumor_normal_pair) //merge fastqs in case of normal-tumor pairs 
 		{
-			if($tumor)
+			if($row['tumor'] == 1)
 			{
 				exec2("cat {$data_folder}*R1*.fastq.gz > {$data_folder}{$qbic_name}_tumor.1.fastq.gz");
 				$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor.1.fastq.gz";
