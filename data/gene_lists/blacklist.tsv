@@ -11,7 +11,6 @@ ADAM20P1	https://dx.doi.org/10.1002/humu.22033
 ADAM21P1	https://dx.doi.org/10.1002/humu.22033
 ADAM3A	https://dx.doi.org/10.1002/humu.22033
 ADGRE1	https://dx.doi.org/10.1002/humu.22033
-ADGRV1	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
 AFG3L1P	https://dx.doi.org/10.1002/humu.22033
 AGAP4	NGSD_TUE
 AHCTF1P1	https://dx.doi.org/10.1002/humu.22033
@@ -47,9 +46,9 @@ AOX2P	https://dx.doi.org/10.1002/humu.22033
 APOA2	https://dx.doi.org/10.1002/humu.22033
 APOC1P1	https://dx.doi.org/10.1002/humu.22033
 AQP7	https://dx.doi.org/10.1002/humu.22033
-ATP5EP2	https://dx.doi.org/10.1002/humu.22033
-ATP5G1P5	https://dx.doi.org/10.1002/humu.22033
-AURKAPS1	https://dx.doi.org/10.1002/humu.22033
+ATP5F1EP2	https://dx.doi.org/10.1002/humu.22033
+ATP5MC1P5	https://dx.doi.org/10.1002/humu.22033
+AURKAP1	https://dx.doi.org/10.1002/humu.22033
 AZGP1P1	https://dx.doi.org/10.1002/humu.22033
 BCLAF1	https://dx.doi.org/10.1002/humu.22033
 BCORP1	https://dx.doi.org/10.1002/humu.22033
@@ -67,32 +66,31 @@ C1DP2	https://dx.doi.org/10.1002/humu.22033
 C1DP3	https://dx.doi.org/10.1002/humu.22033
 C1DP4	https://dx.doi.org/10.1002/humu.22033
 C3P1	https://dx.doi.org/10.1002/humu.22033
-C6ORF10	https://dx.doi.org/10.1002/humu.22033
+TSBP1	https://dx.doi.org/10.1002/humu.22033
 CA5BP1	https://dx.doi.org/10.1002/humu.22033
 CATSPER2P1	https://dx.doi.org/10.1002/humu.22033
-CCBL2	https://dx.doi.org/10.1002/humu.22033
+KYAT3	https://dx.doi.org/10.1002/humu.22033
 CCDC144NL	https://dx.doi.org/10.1002/humu.22033
-CCDC163P	https://dx.doi.org/10.1002/humu.22033
+CCDC163	https://dx.doi.org/10.1002/humu.22033
 CCDC168	NGSD_TUE
 CCDC180	https://dx.doi.org/10.1002/humu.22033
 CCHCR1	https://dx.doi.org/10.1002/humu.22033
 CCT6P3	https://dx.doi.org/10.1002/humu.22033
 CD99P1	https://dx.doi.org/10.1002/humu.22033
 CDC27	https://dx.doi.org/10.1002/humu.22033
-CDH23	NGSD_TUE
 CDRT15P2	https://dx.doi.org/10.1002/humu.22033
 CEACAM22P	https://dx.doi.org/10.1002/humu.22033
 CELP	https://dx.doi.org/10.1002/humu.22033
 CELSR1	https://dx.doi.org/10.1002/humu.22033
 CELSR2	NGSD_TUE
 CENPF	https://dx.doi.org/10.1002/humu.22033
-CENPVP1	https://dx.doi.org/10.1002/humu.22033
+CENPVL1	https://dx.doi.org/10.1002/humu.22033
 CES1P2	https://dx.doi.org/10.1002/humu.22033
 CETN4P	https://dx.doi.org/10.1002/humu.22033
 CFL1P1	https://dx.doi.org/10.1002/humu.22033
 CHMP1AP1	https://dx.doi.org/10.1002/humu.22033
 CICP14	https://dx.doi.org/10.1002/humu.22033
-CIDECP	https://dx.doi.org/10.1002/humu.22033
+CIDECP1	https://dx.doi.org/10.1002/humu.22033
 CLEC4GP1	https://dx.doi.org/10.1002/humu.22033
 CLK2P1	https://dx.doi.org/10.1002/humu.22033
 CMAHP	https://dx.doi.org/10.1002/humu.22033
@@ -157,7 +155,7 @@ EGFEM1P	https://dx.doi.org/10.1002/humu.22033
 EMBP1	https://dx.doi.org/10.1002/humu.22033
 ENSAP3	https://dx.doi.org/10.1002/humu.22033
 EP400	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
-EP400NL	https://dx.doi.org/10.1002/humu.22033
+EP400P1	https://dx.doi.org/10.1002/humu.22033
 EPPK1	https://dx.doi.org/10.1002/humu.22033
 ERICH6B	https://dx.doi.org/10.1002/humu.22033
 FAM106CP	https://dx.doi.org/10.1002/humu.22033
@@ -255,7 +253,6 @@ HLA-DRB5	https://dx.doi.org/10.1002/humu.22033
 HLA-G	https://dx.doi.org/10.1002/humu.22033
 HLA-H	https://dx.doi.org/10.1002/humu.22033
 HLA-L	https://dx.doi.org/10.1002/humu.22033
-HMCN1	NGSD_TUE
 HMCN2	NGSD_TUE
 HMGA1P7	https://dx.doi.org/10.1002/humu.22033
 HMGB3P1	https://dx.doi.org/10.1002/humu.22033
@@ -284,7 +281,7 @@ IP6K1	https://dx.doi.org/10.1002/humu.22033
 IPMKP1	https://dx.doi.org/10.1002/humu.22033
 ITGB1P1	https://dx.doi.org/10.1002/humu.22033
 KCNJ12	https://dx.doi.org/10.1002/humu.22033
-KIAA1683	https://dx.doi.org/10.1002/humu.22033
+IQCN	https://dx.doi.org/10.1002/humu.22033
 KIR3DL1	https://dx.doi.org/10.1002/humu.22033
 KIR3DX1	https://dx.doi.org/10.1002/humu.22033
 KLRA1P	https://dx.doi.org/10.1002/humu.22033
@@ -368,7 +365,7 @@ NCOR1P1	https://dx.doi.org/10.1002/humu.22033
 NEB	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
 NKAPP1	https://dx.doi.org/10.1002/humu.22033
 NLRP1	https://dx.doi.org/10.1002/humu.22033
-NLRP3P	https://dx.doi.org/10.1002/humu.22033
+NUDT4B	https://dx.doi.org/10.1002/humu.22033
 NPIPA1	https://dx.doi.org/10.1002/humu.22033
 NPIPB11	NGSD_TUE
 NPIPB3	https://dx.doi.org/10.1002/humu.22033
@@ -380,7 +377,7 @@ NRAP	https://dx.doi.org/10.1002/humu.22033
 NSUN5P1	https://dx.doi.org/10.1002/humu.22033
 NSUN5P2	https://dx.doi.org/10.1002/humu.22033
 NUDT16P1	https://dx.doi.org/10.1002/humu.22033
-NUDT4P1	https://dx.doi.org/10.1002/humu.22033
+NUDT4B	https://dx.doi.org/10.1002/humu.22033
 NUDT4P2	https://dx.doi.org/10.1002/humu.22033
 NUP210P1	https://dx.doi.org/10.1002/humu.22033
 NUS1P3	https://dx.doi.org/10.1002/humu.22033
@@ -534,7 +531,6 @@ OR2T6	https://dx.doi.org/10.1002/humu.22033
 OR2T8	https://dx.doi.org/10.1002/humu.22033
 OR2V1	https://dx.doi.org/10.1002/humu.22033
 OR2W1	https://dx.doi.org/10.1002/humu.22033
-OR2W3	https://dx.doi.org/10.1002/humu.22033
 OR2W5	https://dx.doi.org/10.1002/humu.22033
 OR2Y1	https://dx.doi.org/10.1002/humu.22033
 OR2Z1	https://dx.doi.org/10.1002/humu.22033
@@ -712,7 +708,7 @@ OR8D1	https://dx.doi.org/10.1002/humu.22033
 OR8D2	https://dx.doi.org/10.1002/humu.22033
 OR8D4	https://dx.doi.org/10.1002/humu.22033
 OR8G1	https://dx.doi.org/10.1002/humu.22033
-OR8G2	https://dx.doi.org/10.1002/humu.22033
+OR8G2P	https://dx.doi.org/10.1002/humu.22033
 OR8H1	https://dx.doi.org/10.1002/humu.22033
 OR8H2	https://dx.doi.org/10.1002/humu.22033
 OR8H3	https://dx.doi.org/10.1002/humu.22033
@@ -779,13 +775,13 @@ POU5F1P4	https://dx.doi.org/10.1002/humu.22033
 PPBPP1	https://dx.doi.org/10.1002/humu.22033
 PPBPP2	https://dx.doi.org/10.1002/humu.22033
 PPIEL	https://dx.doi.org/10.1002/humu.22033
-PPP1R2P3	https://dx.doi.org/10.1002/humu.22033
+PPP1R2B	https://dx.doi.org/10.1002/humu.22033
 PPP4R1L	https://dx.doi.org/10.1002/humu.22033
 PRAMEF1	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
 PRAMEF10	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
 PRAMEF18	https://dx.doi.org/10.1002/humu.22033
 PRAMEF2	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
-PRAMEF33P	NGSD_TUE
+PRAMEF33	NGSD_TUE
 PRAMEF4	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
 PRAMEF6	https://dx.doi.org/10.1002/humu.22033
 PRB1	https://dx.doi.org/10.1002/humu.22033
@@ -829,7 +825,6 @@ RNU5B-4P	https://dx.doi.org/10.1002/humu.22033
 RNU5B-5P	https://dx.doi.org/10.1002/humu.22033
 RNU5B-6P	https://dx.doi.org/10.1002/humu.22033
 ROCK1P1	https://dx.doi.org/10.1002/humu.22033
-RP1L1	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
 RPL10AP12	https://dx.doi.org/10.1002/humu.22033
 RPL10AP3	https://dx.doi.org/10.1002/humu.22033
 RPL12P9	https://dx.doi.org/10.1002/humu.22033
@@ -960,7 +955,7 @@ SRP68P1	https://dx.doi.org/10.1002/humu.22033
 SRRM2	NGSD_TUE
 SSC5D	NGSD_TUE
 SSPO	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
-SSX8	https://dx.doi.org/10.1002/humu.22033
+SSX8P	https://dx.doi.org/10.1002/humu.22033
 ST13P6	https://dx.doi.org/10.1002/humu.22033
 STARD9	NGSD_TUE
 STSP1	https://dx.doi.org/10.1002/humu.22033
@@ -971,7 +966,7 @@ SVEP1	https://dx.doi.org/10.1002/humu.22033
 SYNE2	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
 SYT14P1	https://dx.doi.org/10.1002/humu.22033
 TAAR2	https://dx.doi.org/10.1002/humu.22033
-TAAR3	https://dx.doi.org/10.1002/humu.22033
+TAAR3P	https://dx.doi.org/10.1002/humu.22033
 TACC2	https://dx.doi.org/10.1002/humu.22033
 TAS1R1	https://dx.doi.org/10.1002/humu.22033
 TAS1R2	https://dx.doi.org/10.1002/humu.22033
@@ -1002,7 +997,7 @@ TAS2R8	https://dx.doi.org/10.1002/humu.22033
 TAS2R9	https://dx.doi.org/10.1002/humu.22033
 TBC1D3P1	https://dx.doi.org/10.1002/humu.22033
 TBC1D4	https://dx.doi.org/10.1002/humu.22033
-TCEB1P20	https://dx.doi.org/10.1002/humu.22033
+ELOCP20	https://dx.doi.org/10.1002/humu.22033
 TCHH	NGSD_TUE
 TCP10	https://dx.doi.org/10.1002/humu.22033
 TEKT4	https://dx.doi.org/10.1002/humu.22033
@@ -1036,7 +1031,6 @@ UGT2B11	https://dx.doi.org/10.1002/humu.22033
 UGT2B24P	https://dx.doi.org/10.1002/humu.22033
 UMODL1	https://dx.doi.org/10.1002/humu.22033
 UOX	https://dx.doi.org/10.1002/humu.22033
-USH2A	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
 USP17L2	https://dx.doi.org/10.1002/humu.22033
 USP17L6P	https://dx.doi.org/10.1002/humu.22033
 USP6	https://dx.doi.org/10.1002/humu.22033
@@ -1045,7 +1039,7 @@ VCX3A	https://dx.doi.org/10.1002/humu.22033
 VCX3B	NGSD_TUE
 VENTXP1	https://dx.doi.org/10.1002/humu.22033
 VENTXP6	https://dx.doi.org/10.1002/humu.22033
-WASH1	https://dx.doi.org/10.1002/humu.22033
+WASHC1	https://dx.doi.org/10.1002/humu.22033
 WASH2P	https://dx.doi.org/10.1002/humu.22033
 WASH3P	https://dx.doi.org/10.1002/humu.22033
 WASH5P	https://dx.doi.org/10.1002/humu.22033
@@ -1070,7 +1064,6 @@ ZNF321P	https://dx.doi.org/10.1002/humu.22033
 ZNF37BP	https://dx.doi.org/10.1002/humu.22033
 ZNF402P	https://dx.doi.org/10.1002/humu.22033
 ZNF443	https://dx.doi.org/10.1002/humu.22033
-ZNF469	NGSD_TUE
 ZNF492	https://dx.doi.org/10.1002/humu.22033
 ZNF525	https://dx.doi.org/10.1002/humu.22033
 ZNF542P	https://dx.doi.org/10.1002/humu.22033
@@ -1083,7 +1076,7 @@ ZNF717	https://dx.doi.org/10.1002/humu.22033
 ZNF738	https://dx.doi.org/10.1002/humu.22033
 ZNF75BP	https://dx.doi.org/10.1002/humu.22033
 ZNF767P	https://dx.doi.org/10.1002/humu.22033
-ZNF788	https://dx.doi.org/10.1002/humu.22033
+ZNF788P	https://dx.doi.org/10.1002/humu.22033
 ZNF799	https://dx.doi.org/10.1002/humu.22033
 ZNF815P	https://dx.doi.org/10.1002/humu.22033
 ZNF826P	https://dx.doi.org/10.1002/humu.22033
@@ -1092,3 +1085,12 @@ ZNF847P	https://dx.doi.org/10.1002/humu.22033
 ZNF876P	https://dx.doi.org/10.1002/humu.22033
 ZNF890P	https://dx.doi.org/10.1002/humu.22033
 ZNF99	https://dx.doi.org/10.1002/humu.22033
+
+##REMOVED GENES BECAUSE RELATED TO EYE DISORDERS
+##ADGRV1	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
+##CDH23	NGSD_TUE
+##HMCN1	NGSD_TUE
+##OR2W3	https://dx.doi.org/10.1002/humu.22033
+##RP1L1	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
+##USH2A	https://dx.doi.org/10.1002/humu.22033 NGSD_TUE
+##ZNF469	NGSD_TUE
