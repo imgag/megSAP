@@ -12,3 +12,7 @@ cn_polymorphisms_demidov:
 	
 cn_pathogenic:
 	cd /mnt/share/data/dbs/CNVs_pathogenic/ && make convert deploy
+	
+nobase_regions_GRCh37:
+	php extract_nobase.php GRCh37 > nobase_regions_GRCh37.bed
+	
