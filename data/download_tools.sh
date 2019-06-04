@@ -54,7 +54,7 @@ rm bwa-0.7.17.tar.bz2
 cd bwa-0.7.17
 make
 
-#download ClinCnv
+#download ClinCNV
 cd $folder
 git clone https://github.com/imgag/ClinCNV.git
 cd ClinCNV

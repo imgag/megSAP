@@ -182,7 +182,7 @@ file_put_contents($tmp, implode("\n", $cov_files));
 $cov_merged = $parser->tempFile(".cov");
 $parser->exec(get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
 
-//execute ClinCNV
+//execute ClinCNV (with workaround for hanging jobs)
 $out_folder = $parser->tempFolder();
 $args = [
 "--normal {$cov_merged}",
@@ -195,8 +195,71 @@ $args = [
 "--scoreG 20",
 "--superRecall 3"
 ];
-$parser->exec(get_path("clincnv")."/clinCNV.R", implode(" ", $args), true);
 
+$command = get_path("clincnv")."/clinCNV.R";
+$parameters = implode(" ", $args);
+$pid = getmypid();
+$stdout_file = $parser->tempFile(".stdout", "megSAP_clincnv_pid{$pid}_");
+$stderr_file = $parser->tempFile(".stderr", "megSAP_clincnv_pid{$pid}_");
+$try_max = 10;
+$try_nr = 0;
+$return = -1;
+while($return!=0 && $try_nr < $try_max)
+{
+	++$try_nr;
+	
+	//log
+	$add_info = array();
+	$add_info[] = "version    = ".$parser->extractVersion($command);
+	$add_info[] = "parameters = $parameters";
+	$parser->log("Calling external tool '$command' ({$try_nr}. try)", $add_info);
+
+	$exec_start = microtime(true);
+	$proc = proc_open($command." ".$parameters, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
+	while(true)
+	{
+		sleep(5);
+		
+		//check that clusters could be allocated
+		$cluster_allocated = contains(file_get_contents($stdout_file), "Cluster allocated.");
+		$sec_passed = microtime(true)-$exec_start;
+		if ($sec_passed > 30 && !$cluster_allocated)
+		{
+			$parser->log("No clusters were allocated when running '$command'. Stopping it and trying again...");
+			proc_terminate($proc);
+			$return = -999;
+			break;
+		}
+		
+		$status  = proc_get_status($proc);
+		if (!$status['running'])
+		{
+			$return = $status['exitcode'];
+			break;
+		}
+	}
+	
+	//log output
+	$stdout = explode("\n", rtrim(file_get_contents($stdout_file)));
+	$stderr = explode("\n", rtrim(file_get_contents($stderr_file)));
+	if (count($stdout)>0)
+	{
+		$parser->log("Stdout of '$command':", $stdout);
+	}
+	if (count($stderr)>0)
+	{
+		$parser->log("Stderr of '$command':", $stderr);
+	}
+}
+
+//log error
+$parser->log("Execution time of '$command': ".time_readable(microtime(true) - $exec_start));
+if ($return!=0)
+{
+	$this->toStderr($stdout);
+	$this->toStderr($stderr);
+	trigger_error("Call of external tool '$command' returned error code '$return'.", E_USER_ERROR);
+}
 
 //sort and extract sample data from output folder
 $parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv -out $out",true);
