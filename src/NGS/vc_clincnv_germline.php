@@ -256,8 +256,8 @@ while($return!=0 && $try_nr < $try_max)
 $parser->log("Execution time of '$command': ".time_readable(microtime(true) - $exec_start));
 if ($return!=0)
 {
-	$this->toStderr($stdout);
-	$this->toStderr($stderr);
+	$parser->toStderr($stdout);
+	$parser->toStderr($stderr);
 	trigger_error("Call of external tool '$command' returned error code '$return'.", E_USER_ERROR);
 }
 
