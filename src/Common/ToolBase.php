@@ -1042,7 +1042,7 @@ class ToolBase
 		
 		$this->exec("mv", "$from $to", false);
 		
-		$this->log("Execution time of moving '".basename($from)."' to '".basename($to)."': ".time_readable(microtime(true) - $start));	
+		$this->log("Execution time of moving '$from' to '$to': ".time_readable(microtime(true) - $start));		
 	}
 	
 	///Copy file with error checks
