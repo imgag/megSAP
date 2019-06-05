@@ -235,8 +235,8 @@ $c_skipped_wgs = 0;
 $multi_cols = array();
 $hgnc_messages = array();
 $in_header = true;
-$handle = fopen($in, "r");
-$handle_out = fopen($out, "w");
+$handle = fopen2($in, "r");
+$handle_out = fopen2($out, "w");
 while(!feof($handle))
 {
 	$line = nl_trim(fgets($handle));

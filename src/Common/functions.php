@@ -731,12 +731,37 @@ function relative_path($start,$end)
 //adds a # in the first line of a file
 function addCommentCharInHeader($filename)
 {
-	$file = fopen($filename,"r+");
+	$file = fopen2($filename,"r+");
 	$old_contents = file_get_contents($filename);
 	if(starts_with($old_contents[0],"#")) return;
 	fwrite($file,"#");
 	fwrite($file,$old_contents);
 	fclose($file);
 }
+
+//open an file and returns the file handle. Throws an error if it fails!
+function fopen2($filename, $mode)
+{
+	$handle = fopen($filename, $mode);
 	
+	if ($handle===false)
+	{
+		trigger_error("Could not open file '$filename' in mode '$mode'!", E_USER_ERROR);
+	}
+	
+	return $handle;
+}
+	
+//open a GZ file and returns the file handle. Throws an error if it fails!
+function gzopen2($filename, $mode)
+{
+	$handle = gzopen($filename, $mode);
+	
+	if ($handle===false)
+	{
+		trigger_error("Could not open GZ file '$filename' in mode '$mode'!", E_USER_ERROR);
+	}
+	
+	return $handle;
+}
 ?>

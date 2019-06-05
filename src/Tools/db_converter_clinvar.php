@@ -40,7 +40,7 @@ print "#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO\n";
 $debug = false;
 
 //reduce/reformat info
-$in = fopen("php://stdin", "r");
+$in = fopen2("php://stdin", "r");
 while(!feof($in))
 {
 	$line =  trim(fgets($in));

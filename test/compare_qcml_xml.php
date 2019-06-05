@@ -26,7 +26,7 @@ function rewrite_qcml($qcml, &$tmpfile)
 	// sort array by key
 	ksort($values);
 	// write values as tab-separated (accession, name, value)
-	$handle = fopen($tmpfile, "w");
+	$handle = fopen2($tmpfile, "w");
 	foreach ($values as $key => $value)
 	{
 		fwrite($handle, implode("\t", [ $key, $value[0], $value[1] ]) . "\n");

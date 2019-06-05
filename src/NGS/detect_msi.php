@@ -30,7 +30,7 @@ $parser->exec(get_path("mantis"),$parameters,true,false);
 //adds comment char "#" to certain lines of the MANTIS status file
 function parse_mantis_status_file($out_file_name)
 {	
-	$file = fopen($out_file_name,'r');
+	$file = fopen2($out_file_name,'r');
 	$lines = array();
 	$i = 0;
 	while(!feof($file))

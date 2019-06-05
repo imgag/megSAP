@@ -185,11 +185,9 @@ if (in_array("vc", $steps))
 	}
 	
 	//Add header to VCF file
-	$hr = gzopen($vcffile, "r");
-	if ($hr===FALSE) trigger_error("Could not open file '" + $vcffile + "'.", E_USER_ERROR);
+	$hr = gzopen2($vcffile, "r");
 	$vcf = $parser->tempFile("_unzipped.vcf");
-	$hw = fopen($vcf, "w");
-	if ($hw===FALSE) trigger_error("Could not open file '" + $vcf + "'.", E_USER_ERROR);
+	$hw = fopen2($vcf, "w");
 	while(!gzeof($hr))
 	{
 		$line = trim(gzgets($hr));
@@ -207,8 +205,7 @@ if (in_array("vc", $steps))
 	//Add mitochondrial variants to vcffile in case mito was called and it is not a pure mitochondrial sample
 	if($mito && !$only_mito_in_target_region)
 	{
-		$hr = gzopen($vcffile_mito, "r");
-		if ($hr===FALSE) trigger_error("Could not open file '" + $vcffile_mito + "'.", E_USER_ERROR);
+		$hr = gzopen2($vcffile_mito, "r");
 		while(!gzeof($hr))
 		{
 			$line = trim(gzgets($hr));
@@ -326,15 +323,23 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 		
 		//create coverage profile
 		$tmp_folder = $parser->tempFolder();
-		$cov_file = $tmp_folder."/{$name}.cov";
-		$parser->exec("{$ngsbits}BedCoverage", "-decimals 4 -min_mapq 0 -bam {$bamfile} -in {$bed} -out {$cov_file}", true);
-
-		//copy coverage file to reference folder if valid
-		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
+		$cov_file = $cov_folder.$name.".cov";
+		if (!file_exists($cov_file))
 		{
-			$parser->copyFile($cov_file, $cov_folder.$name.".cov");
+			$cov_tmp = $tmp_folder."/{$name}.cov";
+			$parser->exec("{$ngsbits}BedCoverage", "-decimals 4 -min_mapq 0 -bam {$bamfile} -in {$bed} -out {$cov_tmp}", true);
+			
+			//copy coverage file to reference folder if valid
+			if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
+			{
+				$parser->copyFile($cov_tmp, $cov_file);
+			}
+			else
+			{
+				$cov_file = $cov_tmp;
+			}
 		}
-
+		
 		//perform CNV analysis
 		$cnv_out = $tmp_folder."/output.tsv";
 		$cnv_out2 = $tmp_folder."/output.seg";
@@ -343,7 +348,6 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 			"-cov_folder {$cov_folder}",
 			"-bed {$bed}",
 			"-out {$cnv_out}",
-			//"-threads {$threads}", //TODO removed to test if it is still hanging
 			"-cov_max ".($is_wgs ? "100" : "200"),
 			"-max_cnvs ".($is_wgs ? "2000" : "200"),
 			"--log {$log_cn}",

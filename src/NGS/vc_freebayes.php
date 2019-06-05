@@ -192,10 +192,10 @@ if (isset($target) && $threads > 1)
 	// combine individual chromosome VCFs to one file
 	$combine_start = microtime(true);
 	$vcf_combined = "{$tmp_dir}/combined.vcf";
-	$ho = fopen($vcf_combined, "w");
+	$ho = fopen2($vcf_combined, "w");
 	for ($i = 0; $i < count($chr_order_original); $i++)
 	{
-		$h = fopen("{$tmp_dir}/".$chr_order_original[$i].".vcf", "r");
+		$h = fopen2("{$tmp_dir}/".$chr_order_original[$i].".vcf", "r");
 		while(!feof($h))
 		{
 			$line = fgets($h);

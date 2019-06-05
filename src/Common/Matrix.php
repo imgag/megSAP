@@ -400,7 +400,7 @@ class Matrix
 		
 		if(!file_exists($filename))	trigger_error("Could not find file '$filename'.",E_USER_ERROR);
 		
-		$handle = gzopen($filename , "r");
+		$handle = gzopen2($filename , "r");
 		while (!feof($handle)) 
 		{
 			$line = nl_trim(fgets($handle));
@@ -439,12 +439,7 @@ class Matrix
 	/// Stores the matrix to a TSV file.
 	function toTSV($filename, $separator="\t", $comment="#", $header = "#")
 	{
-		$handle = fopen($filename , "w");
-		
-		if ($handle===FALSE)
-		{
-			trigger_error("Could not write to file '$filename'.", E_USER_ERROR);
-		}
+		$handle = fopen2($filename , "w");
 		
 		//comments
 		if (implode("", $this->comments)!="")

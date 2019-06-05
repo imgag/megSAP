@@ -23,11 +23,7 @@ extract($parser->parse($argv));
 // create mapping from GTF file
 $mapping = array();
 
-$handle_gtf = fopen($gtfFile, "r");
-if ($handle_gtf === FALSE)
-{
-	trigger_error("Could not open file '$gtfFile' for reading!", E_USER_ERROR);
-}
+$handle_gtf = fopen2($gtfFile, "r");
 
 while ($line = fgets($handle_gtf))
 {

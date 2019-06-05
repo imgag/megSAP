@@ -133,11 +133,9 @@ if (in_array("an", $steps))
 {
 	//Convert VCF to single-sample format
 	$indices = array();
-	$h1 = gzopen($vcf_all, "r");
-	if ($h1===FALSE) trigger_error("Could not open file '" + $vcf_all + "'.", E_USER_ERROR);
+	$h1 = gzopen2($vcf_all, "r");
 	$vcf = $parser->tempFile("_unzipped.vcf");
-	$h2 = fopen($vcf, "w");
-	if ($h2===FALSE) trigger_error("Could not open file '" + $vcf + "'.", E_USER_ERROR);
+	$h2 = fopen2($vcf, "w");
 	while(!gzeof($h1))
 	{
 		$line = trim(gzgets($h1));
@@ -190,8 +188,7 @@ if (in_array("an", $steps))
 		//clean up
 		fclose($h1);
 		$indices = array();
-		$h1 = gzopen($vcf_all_mito, "r");
-		if ($h1===FALSE) trigger_error("Could not open file '" + $vcf_all_mito + "'.", E_USER_ERROR);
+		$h1 = gzopen2($vcf_all_mito, "r");
 		while(!gzeof($h1))
 		{
 			$line = trim(gzgets($h1));

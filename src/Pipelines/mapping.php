@@ -155,14 +155,10 @@ if($sys['type']=="Panel MIPs")
 	$tmp2 = $parser->tempFile("_R2_woarms.fastq.gz");
 	$idx_ext_seq = $mips->getColumnIndex("ext_probe_sequence");
 	$idx_lig_seq = $mips->getColumnIndex("lig_probe_sequence");
-	$handle1 = gzopen($trimmed1, "r");
-	if($handle1===FALSE) trigger_error("Could not open file $trimmed1 for reading.",E_USER_ERROR);
-	$handle2 = gzopen($trimmed2, "r");
-	if($handle2===FALSE) trigger_error("Could not open file $trimmed2 for reading.",E_USER_ERROR);
-	$handle4 = gzopen($tmp1, "w");
-	if($handle4===FALSE) trigger_error("Could not open file $tmp1 for writing.",E_USER_ERROR);
-	$handle5 = gzopen($tmp2, "w");
-	if($handle5===FALSE) trigger_error("Could not open file $tmp2 for writing.",E_USER_ERROR);
+	$handle1 = gzopen2($trimmed1, "r");
+	$handle2 = gzopen2($trimmed2, "r");
+	$handle4 = gzopen2($tmp1, "w");
+	$handle5 = gzopen2($tmp2, "w");
 	while(!feof($handle1) && !feof($handle2))
 	{
 		$line1 = array(fgets($handle1),fgets($handle1),fgets($handle1),fgets($handle1));

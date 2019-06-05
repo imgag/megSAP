@@ -360,7 +360,7 @@ function load_qc_terms()
 	$terms = array();
 	
 	$current = array();
-	$h = fopen(repository_basedir()."/data/misc/qc-cv.obo", "r");
+	$h = fopen2(repository_basedir()."/data/misc/qc-cv.obo", "r");
 	while(!feof($h))
 	{
 		$line = trim(fgets($h));
@@ -693,7 +693,7 @@ function convert_coding2genomic($transcript,$cdna_start,$cdna_end, $error = true
 	$strand = null;
 	$transcript_length = 0;
 	$known_gene = get_path("data_folder")."/dbs/UCSC/refGene.txt";
-	$handle = fopen($known_gene, "r");
+	$handle = fopen2($known_gene, "r");
 	if($handle)
 	{
 		while(($buffer=fgets($handle)) !== FALSE)
@@ -1444,7 +1444,7 @@ function ncg_gene_statements($gene)
 		return $result;
 	}
 	
-	$handle = fopen($ncg_file,"r");
+	$handle = fopen2($ncg_file,"r");
 	while(!feof($handle))
 	{
 		$line = fgets($handle);

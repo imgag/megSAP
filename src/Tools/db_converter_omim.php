@@ -13,7 +13,7 @@ $c_no_approved_gene = 0;
 chr1	975197	982116	1p36.33	1p36.33	615921	PERM1, C1orf170	PPARGC1-and ESRR-induced regulator, muscle, 1	PERM1	84808	ENSG00000187642			
 chr1	998961	1001051	1p36.31	1p36.33	608060	HES4	Hairy/enhancer of split, Drosophila, homolog of, 4	HES4	57801	ENSG00000188290			
 */
-$handle = fopen("genemap2.txt", "r");
+$handle = fopen2("genemap2.txt", "r");
 print "#chr	start	end	omim\n";
 while(!feof($handle))
 {

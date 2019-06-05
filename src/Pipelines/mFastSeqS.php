@@ -186,7 +186,7 @@ if (in_array("rc", $steps))
 	$sum = array_sum(array_values($counts));
 
 	//write count percentages
-	$h = fopen($reads, "w");
+	$h = fopen2($reads, "w");
 	fwrite($h, "#arm\tread_count_percentage\n");
 	foreach($arms as $arm => $coords)
 	{
@@ -213,7 +213,7 @@ if (in_array("zc", $steps))
 
 	//write z-scores for arms (and genome-wide)
 	$square_sum = 0;
-	$h = fopen($zscores, "w");
+	$h = fopen2($zscores, "w");
 	fwrite($h, "#arm\tz-score\n");
 	foreach($arms as $arm => $coords)
 	{

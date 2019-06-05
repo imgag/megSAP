@@ -114,7 +114,7 @@ else
 	//parse number of clusters
 	foreach (glob($run_dir."/Fq/L??/BasecallQC.txt") as $f)
 	{
-		$handle = fopen($f, "r");
+		$handle = fopen2($f, "r");
 		$lane = intval(substr(basename(dirname($f)), 1));
 		$cluster[$lane] = 0;
 
@@ -143,7 +143,7 @@ else
 		$read = strpos($f, "1allfq") !== FALSE ? "1" : "2";
 
 		$fqstat = [];
-		$handle = fopen($f, "r");
+		$handle = fopen2($f, "r");
 		while ( ($line = fgets($handle)) !== FALSE ) {
 			$line = trim($line);
 			if (strpos($line, "#") === 0) {

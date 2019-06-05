@@ -16,7 +16,7 @@ score  div. del. ins.  sequence    begin     end    (left)    repeat         cla
   270  33.1  0.7  2.7  chr1        20531   20679 (249229942) +  Plat_L3        LINE/CR1              2802 2947  (639)     10
 */
 
-$handle = fopen("php://stdin", "r");
+$handle = fopen2("php://stdin", "r");
 while (!feof($handle))
 {
 	//load

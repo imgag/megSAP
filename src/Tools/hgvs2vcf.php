@@ -13,7 +13,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
 //write header
-$out_h = fopen($out, "w");
+$out_h = fopen2($out, "w");
 fwrite($out_h, "##fileformat=VCFv4.0\n");
 fwrite($out_h, "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n");
 fwrite($out_h, "##INFO=<ID=ORIG,Number=A,Type=String,Description=\"Original HGVS variant string\">\n");

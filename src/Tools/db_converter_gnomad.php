@@ -2,7 +2,7 @@
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-$handle = fopen("php://stdin", "r");
+$handle = fopen2("php://stdin", "r");
 while($line = fgets($handle))
 {
 	$line = trim($line);

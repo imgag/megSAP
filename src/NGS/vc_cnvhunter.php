@@ -104,7 +104,7 @@ if($somatic)
 	$reduced_tumor = new Matrix();
 	$reduced_normal = new Matrix();
 	$z_normal = array();
-	$handle = fopen($temp_folder."/cnvs_debug.tsv", "r", "r");
+	$handle = fopen2($temp_folder."/cnvs_debug.tsv", "r", "r");
 	while(!feof($handle))
 	{
 		$line = nl_trim(fgets($handle));

@@ -15,7 +15,7 @@ extract($parser->parse($argv));
 $bases = array("A", "C", "G", "T", "N");
 
 //parse input
-$handle = fopen($in, 'r');
+$handle = fopen2($in, 'r');
 $stats = array();
 while(!feof($handle))
 {

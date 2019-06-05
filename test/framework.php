@@ -131,7 +131,7 @@ function remove_lines_containing($filename, $ignore_strings)
 	//load input
 	$file = file($filename);
 	
-	$h = fopen($filename, "w");
+	$h = fopen2($filename, "w");
 	for($i=0; $i<count($file); ++$i)
 	{
 		$ignore = false;

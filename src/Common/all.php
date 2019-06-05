@@ -24,7 +24,7 @@ function basic_error_handler($level, $message, $file, $line, $context)
 			$message = array($message);
 		}
 		
-		$handle = fopen('php://stderr', 'w');
+		$handle = fopen2('php://stderr', 'w');
 		foreach($message as $line)
 		{
 			fwrite($handle,"ERROR: ".nl_trim($line)."\n");

@@ -35,7 +35,7 @@ function get_arm_counts($bam, $roi, $fastq_r1, $arm_len)
 	$fastq_out = $parser->tempFile(".txt");
 	list($read_data) = $parser->exec(get_path("ngs-bits")."FastqExtract", "-in {$fastq_r1} -ids {$ids_file} -out {$fastq_out}", true);
 	$i=0;
-	$h = gzopen($fastq_out, "r");
+	$h = gzopen2($fastq_out, "r");
 	while(!feof($h))
 	{
 		$line = fgets($h);

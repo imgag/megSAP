@@ -61,13 +61,8 @@ function create_baf_file($gsvar,$bam,$out_file, $ref_genome)
 	$tmp_out = temp_file(".tsv");
 	exec2(get_path("ngs-bits")."/VariantAnnotateFrequency -in {$gsvar} -bam {$bam} -depth -out {$tmp_out} -ref {$ref_genome}", true);
 	
-	$in_handle  = fopen($tmp_out,"r");
-	$out_handle = fopen($out_file,"w");
-	
-	if($out_handle === false)
-	{
-		trigger_error("Could not open BAF file for writing: {$out_file}.",E_USER_WARNING);
-	}
+	$in_handle  = fopen2($tmp_out,"r");
+	$out_handle = fopen2($out_file,"w");
 	
 	while(!feof($in_handle))
 	{

@@ -79,7 +79,7 @@ function get_somatic_pairs($cov_folder_tumor,$file_name)
 	}
 	
 	//write data to file
-	$handle_tmp_file_pairs = fopen($file_name,'w');
+	$handle_tmp_file_pairs = fopen2($file_name,'w');
 	foreach($tumor_normal_ids as $tumor_id => $normal_id)
 	{
 		$line = "{$tumor_id},{$normal_id}\n";

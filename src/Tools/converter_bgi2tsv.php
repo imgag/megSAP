@@ -24,13 +24,13 @@ $headers = array('chr' => 'chr', 'start' => 'start', 'end' => 'end',
 				 'sample' => 'sample', 'function' => 'function',
 				 'gene' => 'gene', 'rest' => 'rest');
 
-$handle1 = fopen($out, "w");
+$handle1 = fopen2($out, "w");
 fwrite($handle1, "#".implode("\t", $headers)."\n");
 foreach($files as $file)
 {
 	
 	//read file
-	$handle2 = gzopen($file , "r");
+	$handle2 = gzopen2($file , "r");
 	while (!feof($handle2))
 	{
 		$line = nl_trim(fgets($handle2));

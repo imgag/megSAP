@@ -99,7 +99,7 @@ if (in_array("an", $steps))
 	$vars_high_depth = 0;
 	$vars_mendelian_error = 0;
 	$gsvar = "$out_folder/trio.GSvar";
-	$h = fopen($gsvar, "r");
+	$h = fopen2($gsvar, "r");
 	while(!feof($h))
 	{
 		$line = trim(fgets($h));
@@ -182,7 +182,7 @@ if (in_array("an", $steps))
 	
 	//write output file
 	$tmp = $parser->tempFile(".GSvar");
-	$h2 = fopen($tmp, "w");
+	$h2 = fopen2($tmp, "w");
 	rewind($h);
 	while(!feof($h))
 	{

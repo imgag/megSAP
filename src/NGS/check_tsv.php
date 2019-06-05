@@ -28,7 +28,7 @@ $col_desc = array(
 
 //load input
 $i = -1;
-$handle = fopen($in, "r");
+$handle = fopen2($in, "r");
 while(!feof($handle))
 {
 	++$i;

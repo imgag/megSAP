@@ -27,11 +27,8 @@ $name_n = basename($bam_n, ".bam");
 //extract SNP list
 $snps_filtered = $parser->tempFile("snps.tsv");
 
-$handle = gzopen($vcf, "r");
-if ($handle === FALSE) trigger_error("Could not open file '{$vcf}' for reading.", E_USER_ERROR);
-
-$handle_out = fopen($snps_filtered, "w");
-if ($handle_out === FALSE) trigger_error("Could not open file '{$snps_filtered}' for writing.", E_USER_ERROR);
+$handle = gzopen2($vcf, "r");
+$handle_out = fopen2($snps_filtered, "w");
 fwrite($handle_out, "#chr\tstart\tend\tref\tobs\n");
 
 $snps_passed = 0;
@@ -84,12 +81,12 @@ if ($depth)
 
 //write header lines
 $non_unique_out = $parser->tempFile(".vcf");
-$handle_out = fopen($non_unique_out, "w");
+$handle_out = fopen2($non_unique_out, "w");
 fwrite($handle_out, $seg_firstline . "\n");
 fwrite($handle_out, implode("\t", $seg_header) . "\n");
 
 //filter B-allele frequencies by depth
-$handle = fopen($annotated_variants_2, "r");
+$handle = fopen2($annotated_variants_2, "r");
 while (!feof($handle))
 {
 	$row = nl_trim(fgets($handle));

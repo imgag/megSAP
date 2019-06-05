@@ -17,6 +17,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addInt("cov_min", "Minimum number of coverage files required for CNV analysis.", true, 20);
 $parser->addInt("cov_max", "Maximum number of coverage files used for CNV analysis, used to keep run-time and RAM requirement manageable (~TODO for WES and ~TODO for WGS).", true, 200);
 $parser->addInt("max_cnvs", "Number of expected CNVs (~200 for WES and ~2000 for WGS).", true, 2000);
+$parser->addInt("max_tries", "Maximum number of tries for calling ClinCNV (R parallelization sometimes breaks with no reason", true, 10);
 
 extract($parser->parse($argv));
 
@@ -88,7 +89,7 @@ function load_coverage_profile($filename, &$rows_to_use, &$output)
 	$output = array();
 
 	$i = -1;
-	$h = fopen($filename, "r");
+	$h = fopen2($filename, "r");
 	while(!feof($h))
 	{
 		$line = fgets($h);
@@ -201,10 +202,9 @@ $parameters = implode(" ", $args);
 $pid = getmypid();
 $stdout_file = $parser->tempFile(".stdout", "megSAP_clincnv_pid{$pid}_");
 $stderr_file = $parser->tempFile(".stderr", "megSAP_clincnv_pid{$pid}_");
-$try_max = 10;
 $try_nr = 0;
 $return = -1;
-while($return!=0 && $try_nr < $try_max)
+while($return!=0 && $try_nr < $max_tries)
 {
 	++$try_nr;
 	

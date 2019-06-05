@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 //-additionally copies the ID field to the INFO field (allows a more compact annotation with VEP --custom argument)
 //-removed MUT=REF variants
 
-$in = fopen("php://stdin", "r");
+$in = fopen2("php://stdin", "r");
 while(!feof($in))
 {
 	$line =  trim(fgets($in));

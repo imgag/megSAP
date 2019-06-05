@@ -48,7 +48,7 @@ if(!$tumor_only)
 }
 
 //process VCF header (extract variant caller and tumor/normal index)
-$handle = fopen($in, "r");
+$handle = fopen2($in, "r");
 $var_caller = false;
 $source_lines = 0;
 $tumor_idx = false;

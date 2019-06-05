@@ -115,13 +115,13 @@ if (isset($in_qcml)) {
 }
 
 //add additional columns with relative coverage and name
-$handle_out = fopen($viral_cov, "w");
+$handle_out = fopen2($viral_cov, "w");
 preg_match('/.+ : ([0-9]+)/', $stdout[0], $matches);
 fwrite($handle_out,         "##number of reads used for analysis:        " . $matches[1] . "\n");
 fwrite($handle_out, sprintf("##average target region depth of input BAM: %.4f\n", $avg_target_cov));
 fwrite($handle_out, "#chr\tstart\tend\tname\treads\tcoverage\tcoverage_rel\tmismatches\tidentity%\n");
 
-$handle = fopen($viral_result_tmp, "r");
+$handle = fopen2($viral_result_tmp, "r");
 while ($line = fgets($handle))
 {
     if (starts_with($line, "#chr")) continue;

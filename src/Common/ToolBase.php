@@ -611,7 +611,7 @@ class ToolBase
 			$message = array($message);
 		}
 		
-		$handle = fopen('php://stderr', 'w');
+		$handle = fopen2('php://stderr', 'w');
 		foreach($message as $line)
 		{
 			fwrite($handle,nl_trim($line)."\n");
@@ -681,8 +681,8 @@ class ToolBase
 			$this->log("Calling external tool '$command'", $add_info);
 		}
 		
-		//execute call - pipe stdout/stderr to file
 		$pid = getmypid();
+		//execute call - pipe stdout/stderr to file
 		$stdout_file = $this->tempFile(".stdout", "megSAP_exec_pid{$pid}_");
 		$stderr_file = $this->tempFile(".stderr", "megSAP_exec_pid{$pid}_");
 		$exec_start = microtime(true);
@@ -1057,7 +1057,7 @@ class ToolBase
 		
 		$this->exec("cp", "$from $to", false);
 		
-		$this->log("Execution time of copying '".basename($from)."' to '".basename($to)."': ".time_readable(microtime(true) - $start));		
+		$this->log("Execution time of copying '$from' to '$to': ".time_readable(microtime(true) - $start));		
 	}
 	
 }

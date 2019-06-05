@@ -68,8 +68,8 @@ function write($h_out, $var)
 //main loop
 $ids = array("RO","GTI","NS","SRF","NUMALT","DP","QR","SRR","SRP","PRO","EPPR","DPB","PQR","ROOR","MQMR","ODDS","AN","RPPR","PAIREDR");
 $var_last = array("","","","","","","","","GT","0/0");
-$h_in = fopen("php://stdin", "r");
-$h_out = fopen("php://stdout", "w");
+$h_in = fopen2("php://stdin", "r");
+$h_out = fopen2("php://stdout", "w");
 while(!feof($h_in))
 {
 	$line = trim(fgets($h_in));
@@ -112,7 +112,7 @@ while(!feof($h_in))
 		if ($sample['GT']!="0/1" || $sample_last['GT']!="0/1")
 		{
 			//this happens sometimes when a large variant block overlaps two target region blocks (see https://github.com/ekg/freebayes/issues/351)
-			$stderr = fopen('php://stderr', 'w');
+			$stderr = fopen2('php://stderr', 'w');
 			fwrite($stderr, "Warning: merging same variant {$var[0]}:{$var[1]} {$var[3]}>{$var[4]} with genotypes '".$sample['GT']."' and '".$sample_last['GT']."'\n");
 			fclose($stderr);
 		}
