@@ -221,14 +221,17 @@ while($return!=0 && $try_nr < $max_tries)
 		sleep(5);
 		
 		//check that clusters could be allocated
-		$cluster_allocated = contains(file_get_contents($stdout_file), "Cluster allocated.");
-		$sec_passed = microtime(true)-$exec_start;
-		if ($sec_passed > 30 && !$cluster_allocated)
+		$at_cluster_allocation = ends_with(trim(file_get_contents($stdout_file)), "START cluster allocation.");
+		if ($at_cluster_allocation)
 		{
-			$parser->log("No clusters were allocated when running '$command'. Stopping it and trying again...");
-			proc_terminate($proc);
-			$return = -999;
-			break;
+			$sec_passed = time() - filectime($stdout_file);
+			if ($sec_passed>60)
+			{
+				$parser->log("Cluster allocation stuck in command '$command'. Stopping it and trying again...");
+				proc_terminate($proc);
+				$return = -999;
+				break;
+			}
 		}
 		
 		$status  = proc_get_status($proc);
