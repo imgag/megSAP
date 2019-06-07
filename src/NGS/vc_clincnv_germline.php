@@ -221,7 +221,7 @@ while($return!=0 && $try_nr < $max_tries)
 		sleep(5);
 		
 		//check that clusters could be allocated
-		$at_cluster_allocation = ends_with(trim(file_get_contents($stdout_file)), "START cluster allocation.");
+		$at_cluster_allocation = ends_with(trim(file_get_contents($stdout_file)), "\"START cluster allocation.\"");
 		if ($at_cluster_allocation)
 		{
 			$sec_passed = time() - filemtime($stdout_file);
