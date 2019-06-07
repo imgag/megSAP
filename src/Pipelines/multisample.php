@@ -390,7 +390,7 @@ if (in_array("cn", $steps))
 			$regions = $tmp;
 		}
 		
-		$output[] = "#chr\tstart\tend\tsample\tsize\tCN_change\tloglikelihood\tpotential_AF\tqvalue\tcn_polymorphisms_zarrei\tcn_polymorphisms_demidov\tcn_pathogenic\tgenes\tdosage_sensitive_disease_genes";
+		$output[] = "#chr\tstart\tend\tsample\tsize\tCN_change\tloglikelihood\tqvalue\tpotential_AF\tcn_polymorphisms_zarrei\tcn_polymorphisms_demidov\tcn_pathogenic\tgenes\tdosage_sensitive_disease_genes";
 		foreach($regions as $reg)
 		{
 			
