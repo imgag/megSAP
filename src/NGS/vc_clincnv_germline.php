@@ -224,7 +224,7 @@ while($return!=0 && $try_nr < $max_tries)
 		$at_cluster_allocation = ends_with(trim(file_get_contents($stdout_file)), "START cluster allocation.");
 		if ($at_cluster_allocation)
 		{
-			$sec_passed = time() - filectime($stdout_file);
+			$sec_passed = time() - filemtime($stdout_file);
 			if ($sec_passed>60)
 			{
 				$parser->log("Cluster allocation stuck in command '$command'. Stopping it and trying again...");

@@ -48,7 +48,7 @@ function bound($v, $min, $max)
 function exec2($command, $abort_on_error = true)
 {
     //start processing
-	$proc = proc_open("bash -c \"set -o pipefail && ".$command."\"", array(1 => array('pipe','w'), 2 => array('pipe','a')), $pipes);
+	$proc = proc_open("bash -c \"set -o pipefail && ".$command."\"", array(1 => array('pipe','w'), 2 => array('pipe','w')), $pipes);
 	
 	//get stdout, stderr and exit code
     $stdout = stream_get_contents($pipes[1]);
