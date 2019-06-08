@@ -11,7 +11,7 @@
 ##GS140550_01 number of iterations: 1 , quality used at final iteration: 20
 ##GS140550_01 was it outlier after clustering? FALSE
 ##GS140550_01 fraction of outliers: 0.029
-#chr	start	end	sample	size	CN_change	loglikelihood	potential_AF	qvalue	cn_polymorphisms_zarrei	cn_polymorphisms_demidov	cn_pathogenic	genes	dosage_sensitive_disease_genes	omim
+#chr	start	end	sample	size	CN_change	loglikelihood	qvalue	potential_AF	cn_polymorphisms_zarrei	cn_polymorphisms_demidov	cn_pathogenic	genes	dosage_sensitive_disease_genes	omim
 chr1	983382	983755	multi	373	1	6	0.01920	0.057	yes			AGRN		103320_[AGRN_Myasthenic_syndrome,congenital,8,with_pre-_and_postsynaptic_defects,615120,Autosomal_recessive]
 chr1	1960540	1961211	multi	671	1	7	0.03429	0.025				GABRD	GABRD	137163_[GABRD_Epilepsy,generalized,with_febrile_seizures_plus,type_5,susceptibility_to,613060,Autosomal_dominant/Epilepsy,idiopathic_generalized,10,613060,Autosomal_dominant/Epilepsy,juvenile_myoclonic,susceptibility_to,613060,Autosomal_dominant]
 chr1	2337913	2338068	multi	155	3	4	0.04650	0.140				PEX10		602859_[PEX10_Peroxisome_biogenesis_disorder_6A_(Zellweger),614870,Autosomal_recessive/Peroxisome_biogenesis_disorder_6B,614871,Autosomal_recessive]
