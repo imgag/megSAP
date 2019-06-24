@@ -305,7 +305,7 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 						["{$ngsbits}BedAnnotateGC", "-ref ".genome_fasta($sys['build'])],
 						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"]
 					];
-				$parser->exec($pipeline, "creating annotated BED file for ClinCNV");
+				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 			}
 		}
 		else
@@ -317,7 +317,7 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 						["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".genome_fasta($sys['build'])],
 						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
 					];
-				$parser->exec($pipeline, "creating annotated BED file for ClinCNV");
+				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 			}
 		}
 		
