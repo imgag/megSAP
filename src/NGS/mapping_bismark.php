@@ -120,7 +120,7 @@ $bismark_params = [
 	"--bowtie2 --path_to_bowtie ".dirname(get_path("bowtie2")),
 	"--rg_tag --rg_id SAMPLE --rg_sample $name",
 	"--basename $name",
-	"-N 1 --unmapped",
+	"-N 1",
 	"-o $tmp_out_folder",
 	"--temp_dir $bismark_tmp",
 	"--unmapped",
