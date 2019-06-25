@@ -14,9 +14,9 @@ $parser->addString("into", "Processed sample into which the first sample is merg
 extract($parser->parse($argv));
 
 //get processed sample infos
-$db_conn = DB::getInstance("NGSD");
-$info1 = get_processed_sample_info($ps);
-$info2 = get_processed_sample_info($into);
+$db = DB::getInstance("NGSD");
+$info1 = get_processed_sample_info($db,$ps);
+$info2 = get_processed_sample_info($db,$into);
 
 //check input folders
 $folder1 = $info1['ps_folder'];
