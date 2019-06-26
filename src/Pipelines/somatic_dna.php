@@ -332,6 +332,10 @@ if (in_array("vc", $steps))
 		{
 			$args_strelka[] = "-target {$roi}";
 		}
+		if ($sys['type'] === "WGS")
+		{
+			$args_strelka[] = "-wgs";
+		}
 		if (is_file($manta_indels))
 		{
 			$args_strelka[] = "-smallIndels {$manta_indels}";
