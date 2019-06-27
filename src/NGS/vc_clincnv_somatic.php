@@ -91,6 +91,8 @@ function get_somatic_pairs($cov_folder_tumor,$file_name)
 //Creates file with paths to coverage files using ref folder and current sample cov path, if ids contains data: skip all ids not contained
 function create_file_with_paths($ref_cov_folder,$cov_path)
 {
+	global $parser;
+	
 	$ref_paths = glob("{$ref_cov_folder}/*.cov");
 	
 	//Check whether cov file is already in ref cov folder -> remove from list
@@ -111,7 +113,7 @@ function create_file_with_paths($ref_cov_folder,$cov_path)
 		$ref_paths[$i] .= "\n";
 	}
 
-	$out_file = temp_file(".txt");
+	$out_file = $parser->tempFile(".txt");
 	file_put_contents($out_file,$ref_paths);
 	
 	return $out_file;

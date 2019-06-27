@@ -22,7 +22,7 @@ $folder = $out."/";
 exec2("mkdir -p $folder");
 
 //store region as BED file
-$roi = temp_file(".bed");
+$roi = $parser->tempFile(".bed");
 $reg = strtr($reg, array(","=>""));
 if(!starts_with($reg, "chr")) $reg = "chr".$reg;
 file_put_contents($roi, strtr($reg, array(":"=>"\t", "-"=>"\t")));

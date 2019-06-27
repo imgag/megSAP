@@ -150,8 +150,8 @@ function parse_primer3_result($primer3_result_file)
 }
 
 //convert input to bed file
-$temp_bed=temp_file("","bed");
-$temp_fasta=temp_file("","fasta");
+$temp_bed=$parser->tempFile("","bed");
+$temp_fasta=$parser->tempFile("","fasta");
 convert_region_list_to_bed($in,$temp_bed,$max_len*2);
 
 //convert bed file (location) to fasta (sequences)

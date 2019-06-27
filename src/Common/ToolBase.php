@@ -665,6 +665,12 @@ class ToolBase
 	*/
 	function exec($command, $parameters, $log_output=true, $abort_on_error=true, $warn_on_error=true)
 	{
+		if (is_array($command) || is_array($parameters))
+		{
+			print_r($command);
+			print_r($parameters);
+			die;
+		}
 		//prevent execution of pipes - exit code is not handled correctly with pipes!
 		$command_and_parameters = $command." ".$parameters;
 		if(contains($command_and_parameters, "|"))
@@ -692,6 +698,8 @@ class ToolBase
 		$return = proc_close($proc);
 		$stdout = explode("\n", rtrim(file_get_contents($stdout_file)));
 		$stderr = explode("\n", rtrim(file_get_contents($stderr_file)));
+		$this->deleteTempFile($stdout_file);
+		$this->deleteTempFile($stderr_file);
 			
 		//log relevant information
 		if (($log_output || $return!=0) && count($stdout)>0)
@@ -935,7 +943,7 @@ class ToolBase
 			trigger_error("Temporary file '$file' for which deletion was requested is unknown!", E_USER_ERROR);
 		}
 		
-		if (!unlink($file))
+		if (file_exists($file) && !unlink($file))
 		{
 			trigger_error("Temporary file '$file' could not be deleted.", E_USER_NOTICE);
 		}

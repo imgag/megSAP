@@ -349,13 +349,13 @@ if(isset($mutations))
 	{
 		trigger_error("Too many variants in {$mutations}. Please filter SNPs before passing them to this tool.",E_USER_ERROR);
 	}
-	$temp_mut_file = temp_file(".tsv");
+	$temp_mut_file = $parser->tempFile(".tsv");
 	file_put_contents($temp_mut_file,implode("\n",$temp_mut_cont));
 }
 
 
 //convert CNVs to CGI format
-$temp_cnv_file = temp_file(".tsv");
+$temp_cnv_file = $parser->tempFile(".tsv");
 if(isset($cnas))
 {
 	transform_cnv_annotations($cnas,$temp_cnv_file);
@@ -410,7 +410,7 @@ if(isset($translocations))
 	
 	if(count($mate_pairs) > 1)
 	{
-		$temp_translocations_file = temp_file(".tsv");	
+		$temp_translocations_file = $parser->tempFile(".tsv");	
 		file_put_contents($temp_translocations_file,implode("\n",$mate_pairs));
 	}
 }

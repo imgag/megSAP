@@ -14,6 +14,8 @@ extract($parser->parse($argv));
 //returns array with genes per chr. position. Input parameter are arrays
 function coords2genes($chr,$start,$end)
 {
+	global $parser;
+	
 	if(count($chr) !== count($start) || count($start) !== count($end))
 	{
 		trigger_error("Cannot annotate genes to chromosomal positions because input params do not have the same length.",E_USER_ERROR);
@@ -32,9 +34,9 @@ function coords2genes($chr,$start,$end)
 		else $pos_to_be_annotated .= ".\t0\t1\n"; //no coordinates, but BedAnnotateGenes will return empty line
 	}
 	
-	$tmp_bed = temp_file(".bed");
+	$tmp_bed = $parser->tempFile(".bed");
 	file_put_contents($tmp_bed,$pos_to_be_annotated);
-	$annotated_bed = temp_file(".bed");
+	$annotated_bed = $parser->tempFile(".bed");
 	exec2(get_path("ngs-bits")."/BedAnnotateGenes -in $tmp_bed -out $annotated_bed");
 	$genes = array();
 	foreach(file($annotated_bed,FILE_IGNORE_NEW_LINES) as $line)

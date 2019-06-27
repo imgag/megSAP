@@ -28,7 +28,7 @@ $genome = genome_fasta($build);
 $somatic = isset($t_bam);
 
 //original bcf out file of delly
-$tmp_bcf_out = temp_file(".bcf");
+$tmp_bcf_out = $parser->tempFile(".bcf");
 
 if(!$somatic) //germline SV calling
 {
@@ -71,15 +71,15 @@ else //somatic SV calling
  * PARSE RAW BCF FILE TO VCF.GZ *
  ********************************/
 //transform to VCF
-$tmp_vcf_file = temp_file("SV_raw.vcf");
+$tmp_vcf_file = $parser->tempFile("SV_raw.vcf");
 $parser->exec(get_path("bcftools")." view"," $tmp_bcf_out > $tmp_vcf_file",true,true);
 
 //sort VCF
-$tmp_vcf_sorted = temp_file("SV_sorted.vcf");
+$tmp_vcf_sorted = $parser->tempFile("SV_sorted.vcf");
 $parser->exec(get_path("ngs-bits")."VcfSort","-in $tmp_vcf_file -out $tmp_vcf_sorted", true,true);
 
 //Flag outliers out of target region
-$tmp_vcf_filtered = temp_file("SV_filtered.vcf");
+$tmp_vcf_filtered = $parser->tempFile("SV_filtered.vcf");
 if(isset($target))
 {
 	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $tmp_vcf_sorted -mark off-target -reg $target -out $tmp_vcf_filtered", true);

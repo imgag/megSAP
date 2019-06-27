@@ -12,6 +12,8 @@ extract($parser->parse($argv));
 //CHROM	POS	REF	ALT	CGI
 function cgi_variant_tsv_to_sorted_vcf($cgi_input)
 {
+	global $parser;
+	
 	$cgi_file = Matrix::fromTSV($cgi_input);
 	$output_lines = array("#CHROM\tPOS\tREF\tALT\tCGI\n");
 	
@@ -70,9 +72,9 @@ function cgi_variant_tsv_to_sorted_vcf($cgi_input)
 	}
 	
 	//save to temp file and use ngs-bits for sorting
-	$temp_o_file = temp_file(".tsv");
+	$temp_o_file = $parser->tempFile(".tsv");
 	file_put_contents($temp_o_file,$output_lines);
-	$output = temp_file(".tsv");
+	$output = $parser->tempFile(".tsv");
 	
 	//sort file
 	exec2("( head -n1 {$temp_o_file}; tail -n+2 {$temp_o_file} | sort -k1.4,1 -k2,2 -n )   > {$output} ");

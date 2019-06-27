@@ -53,12 +53,14 @@ extract($parser->parse($argv));
 //Creates BAF file from "$gsvar" and "bam" file and writes content to "out_file"
 function create_baf_file($gsvar,$bam,$out_file, $ref_genome)
 {
+	global $parser;
+	
 	if(!file_exists($gsvar) || !file_exists($bam)) return;
 	
 	//Abort if out_file exists to prevent interference with other jobs
 	if(file_exists($out_file)) return;
 	
-	$tmp_out = temp_file(".tsv");
+	$tmp_out = $parser->tempFile(".tsv");
 	exec2(get_path("ngs-bits")."/VariantAnnotateFrequency -in {$gsvar} -bam {$bam} -depth -out {$tmp_out} -ref {$ref_genome}", true);
 	
 	$in_handle  = fopen2($tmp_out,"r");
@@ -422,10 +424,10 @@ if(in_array("cn",$steps))
 			$chr_length--; //0-based coordinates
 			$ref_content[] = "{$chr}\t0\t{$chr_length}\n";
 		}
-		$ref_bed = temp_file(".bed");
+		$ref_bed = $parser->tempFile(".bed");
 		file_put_contents($ref_bed,$ref_content);
 		$ngs_bits = get_path("ngs-bits");
-		$tmp_bed = temp_file(".bed");
+		$tmp_bed = $parser->tempFile(".bed");
 		exec2("{$ngs_bits}BedExtend -in ".$sys['target_file']." -n 1000 -fai {$ref_genome}.fai | {$ngs_bits}BedMerge -out {$tmp_bed}");
 		exec2("{$ngs_bits}BedSubtract -in ".$ref_bed." -in2 {$tmp_bed} | {$ngs_bits}BedChunk -n 100000 | {$ngs_bits}BedShrink -n 25000 | {$ngs_bits}BedExtend -n 25000 -fai {$ref_genome}.fai | {$ngs_bits}BedAnnotateGC -ref {$ref_genome} | {$ngs_bits}BedAnnotateGenes -out {$off_target_bed}"); //@TODO: Review parameters after a few samples have been analyzed
 	}
@@ -526,7 +528,7 @@ if(in_array("cn",$steps))
 		//use temporary list file if n or t cov files are not valid
 		if(!db_is_enabled("NGSD") || !is_valid_ref_sample_for_cnv_analysis($n_id) || !is_valid_ref_tumor_sample_for_cnv_analysis($t_id))
 		{
-			$tmp_file_name = temp_file(".csv");
+			$tmp_file_name = $parser->tempFile(".csv");
 			$parser->copyFile($t_n_list_file,$tmp_file_name);
 			$t_n_list_file = $tmp_file_name;
 		}
@@ -739,7 +741,7 @@ if (in_array("ci", $steps))
 	/*************************
 	 * EXECUTE CGI_SEND_DATA *
 	 *************************/
-	$tmp_cgi_zipped_outfile = temp_file(".zip");
+	$tmp_cgi_zipped_outfile = $parser->tempFile(".zip");
 	$parameters = [
 		"-out",$tmp_cgi_zipped_outfile,
 		"-cancertype", $cancer_type
@@ -785,7 +787,7 @@ if (in_array("ci", $steps))
 	$variants_germline = dirname($n_bam)."/{$n_id}_var_annotated.vcf.gz";
 	if(file_exists($variants_germline) && $include_germline)
 	{
-		$tmp_file = temp_file(".vcf");
+		$tmp_file = $parser->tempFile(".vcf");
 		exec2("gzip -d -k -c  $variants_germline > $tmp_file");
 		$tmp_file_content = file($tmp_file, FILE_IGNORE_NEW_LINES);
 		$tmp_new_file = array("#CHROM\tPOS\tID\tREF\tALT\n");
@@ -805,9 +807,9 @@ if (in_array("ci", $steps))
 			
 			$tmp_new_file[] = "{$chr}\t{$pos}\t.\t{$ref}\t{$alt}\n";
 		}
-		$filtered_germline_variants = temp_file(".vcf");
+		$filtered_germline_variants = $parser->tempFile(".vcf");
 		file_put_contents($filtered_germline_variants,$tmp_new_file);
-		$tmp_cgi_zipped_outfile = temp_file();
+		$tmp_cgi_zipped_outfile = $parser->tempFile();
 		
 		$params = [
 			"-out",$tmp_cgi_zipped_outfile,

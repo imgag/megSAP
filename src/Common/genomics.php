@@ -1346,18 +1346,18 @@ function approve_gene_names($input_genes)
 		
 		$genes_as_string = $genes_as_string.$gene."\n";
 	}
-	$non_approved_genes_file = tempnam(sys_get_temp_dir(),"temp_");
+	$non_approved_genes_file = temp_file("txt", "approve_gene_names");
 	file_put_contents($non_approved_genes_file,$genes_as_string);
 	
 	//write stdout to $approved_genes -> each checked gene is one array element
-	$approved_genes = exec2(get_path("ngs-bits",true)."GenesToApproved -in $non_approved_genes_file")[0];
+	list($approved_genes) = exec2(get_path("ngs-bits",true)."GenesToApproved -in $non_approved_genes_file");
 	
 	$output = array();
 	foreach($approved_genes as $gene)
 	{
 		//remove dummy before saving
 		if($gene == "NOT_AVAILABLE") $gene = "";
-		$output[] = (explode("\t",$gene))[0];
+		list($output[]) = explode("\t",$gene);
 	}
 	return $output;
 }

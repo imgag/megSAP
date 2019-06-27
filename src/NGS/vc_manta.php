@@ -65,6 +65,7 @@ if ($fix_bam)
 		$pipeline[] = [ get_path("samtools"), "view -@{$threads} -o {$b_tmp}" ];
 		$parser->execPipeline($pipeline, "filter bam");
 		$parser->indexBam($b_tmp, $threads);
+		$parser->addTempFile($b_tmp.".bai");
 	}
 	
 	if (!$mode_tumor_only)

@@ -259,7 +259,10 @@ function nl_trim($string)
 */
 function temp_file($suffix = "", $prefix = "tmp")
 {
-	$filename = tempnam(sys_get_temp_dir(), $prefix);
+	$user_tmp_dir = sys_get_temp_dir()."/megSAP_user_".get_current_user()."/";
+	create_directory($user_tmp_dir);
+	
+	$filename = tempnam($user_tmp_dir, $prefix);
 	if ($suffix!="")
 	{
 		unlink($filename);
@@ -273,12 +276,12 @@ function temp_file($suffix = "", $prefix = "tmp")
  */
 function temp_folder($prefix='megSAP_', $mode=0700)
 {
-    $dir = sys_get_temp_dir();
-	if (!ends_with($dir, "/")) $dir .= '/';
+	$user_tmp_dir = sys_get_temp_dir()."/megSAP_user_".get_current_user()."/";
+	create_directory($user_tmp_dir);
     
     do
     {
-		$path = $dir.$prefix.random_string(6);
+		$path = $user_tmp_dir.$prefix.random_string(6);
     }
 	while(file_exists($path) || !mkdir($path, $mode));
     

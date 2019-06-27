@@ -22,7 +22,7 @@ for($i=0; $i<count($regs); ++$i)
 {
 	$regs[$i] = strtr($regs[$i], array("-"=>"\t", ":"=>"\t", " "=>""));
 }
-$regs_file = temp_file(".bed");
+$regs_file = $parser->tempFile(".bed");
 file_put_contents($regs_file, implode("\n", $regs));
 
 //extract sample names to correct readgroup info in SAM header
@@ -33,19 +33,19 @@ $ps_name3 = basename($out, ".bam");
 
 //extract data from 'in1'
 print "Extracting data from 'in1'.\n";
-$roi_sub = temp_file(".bed");
+$roi_sub = $parser->tempFile(".bed");
 exec2(get_path("ngs-bits")."BedSubtract -in {$roi} -in2 {$regs_file} -out {$roi_sub}");
-$bam_in1 = temp_file(".bam");
+$bam_in1 = $parser->tempFile(".bam");
 exec2(get_path("samtools")." view -h -L {$roi_sub} {$in1} | sed \"s/{$ps_name1}/{$ps_name3}/g\" | sed \"s/{$s_name1}/{$ps_name3}/g\" | ".get_path("samtools")." view -Sb > {$bam_in1}");
 
 //extract data from 'in2'
 print "Extracting data from 'in2'.\n";
-$bam_in2 = temp_file(".bam");
+$bam_in2 = $parser->tempFile(".bam");
 exec2(get_path("samtools")." view -h -L {$regs_file} {$in2} | sed \"s/{$ps_name2}/{$ps_name3}/g\" | ".get_path("samtools")." view -Sb > {$bam_in2}");
 
 //merge bam files
 print "Merging data.\n";
-$bam_merge = temp_file(".bam");
+$bam_merge = $parser->tempFile(".bam");
 exec2(get_path("samtools")." merge -f {$bam_merge} {$bam_in1} {$bam_in2}");
 
 //sort and index output

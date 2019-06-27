@@ -566,26 +566,26 @@ if (in_array("cn", $steps))
 	//(3.2) annotate merged file
 	if(!$skip_cn)
 	{
-		$tmp1 = temp_file(".bed");
+		$tmp1 = $parser->tempFile(".bed");
 		file_put_contents($tmp1, implode("\n", $output));
 
 		//copy-number polymorphisms
 		$data_folder = get_path("data_folder");
-		$tmp2_1 = temp_file(".bed");
+		$tmp2_1 = $parser->tempFile(".bed");
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 ".repository_basedir()."/data/misc/cn_polymorphisms_zarrei.bed -out {$tmp2_1}", true);
-		$tmp2_2 = temp_file(".bed");
+		$tmp2_2 = $parser->tempFile(".bed");
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp2_1} -in2 ".repository_basedir()."/data/misc/cn_polymorphisms_demidov.bed -out {$tmp2_2}", true);
 		
 		//knowns pathogenic CNVs
-		$tmp2_3 = temp_file(".bed");
+		$tmp2_3 = $parser->tempFile(".bed");
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp2_2} -in2 ".repository_basedir()."/data/misc/cn_pathogenic.bed -out {$tmp2_3}", true);
 		
 		//gene names
-		$tmp3 = temp_file(".bed");
+		$tmp3 = $parser->tempFile(".bed");
 		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in {$tmp2_3} -extend 20 -out {$tmp3}", true);
 		
 		//dosage sensitive disease genes
-		$tmp4 = temp_file(".bed");
+		$tmp4 = $parser->tempFile(".bed");
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp3} -in2 ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed -out {$tmp4}", true);
 		
 		//OMIM
