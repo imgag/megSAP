@@ -86,7 +86,7 @@ foreach($bams as $bam)
 	
 	//calculate coverage file
 	print "$bam processing...\n";
-	exec2(get_path("ngs-bits")."BedCoverage -bam $bam -in $roi -out $cov_file -min_mapq 0");
+	exec2(get_path("ngs-bits")."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out $cov_file");
 }
 
 //chmod

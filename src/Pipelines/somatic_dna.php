@@ -120,7 +120,9 @@ function parse_cgi_single_result($from,$to)
 
 function extract_and_move_cgi_results($zip_file,$dest_folder,$prefix = "CGI")
 {
-	$tmp_cgi_results_folder = temp_folder();
+	global $parser;
+	
+	$tmp_cgi_results_folder = $parser->tempFolder();
 	exec2("unzip -n $zip_file -d $tmp_cgi_results_folder");
 	
 	parse_cgi_single_result("{$tmp_cgi_results_folder}/mutation_analysis.tsv","{$dest_folder}/{$prefix}_cgi_mutation_analysis.tsv");
