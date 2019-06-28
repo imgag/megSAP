@@ -403,17 +403,16 @@ foreach($res as $row)
 		$files = array();
 		$paths  = glob($data_folder.$s_name."*.*");
 		if(is_dir($data_folder."+original")) $paths = glob($data_folder."+original/".$ps_name."*.*");	//for backward compatibility
-		$tumor_normal_pair = false;
-		
+
 		$info = get_processed_sample_info($db,$ps_name);
+		$tumor_normal_pair = $info["is_tumor"] == 1 && !empty($info["normal_id"]);
 		
-		if($info["is_tumor"] == 1 && !empty($info["normal_id"])) $tumor_normal_pair = true;
 		foreach($paths as $file)
 		{
-			if (ends_with($file, ".fastq.gz") && !$tumor_normal_pair) $files[] = $file; //only take raw fastqs in case of single samples
+			if (ends_with($file, ".fastq.gz") && !$tumor_normal_pair && $sample1["experiment_type"] != "rna_seq") $files[] = $file; //only take raw fastqs in case of single DNA samples
 			if (ends_with($file, "_var_annotated.vcf.gz")) $files[] = $file;
-			if (ends_with($file, "_counts_raw.tsv")) $files[] = $file;
-			if (ends_with($file, "_counts.tsv")) $files[] = $file;
+			//if (ends_with($file, "_counts_raw.tsv")) $files[] = $file;
+			//if (ends_with($file, "_counts.tsv")) $files[] = $file;
 		}
 		
 		//Special treatment for tumor-normal fastqs
@@ -440,6 +439,14 @@ foreach($res as $row)
 				$merged_fastq_files[] = "{$data_folder2}{$qbic_name}_normal.2.fastq.gz";
 			}
 		}
+		elseif($sample1["experiment_type"] == "rna_seq")
+		{
+			exec2("cat {$data_folder}*R1*.fastq.gz > {$data_folder}{$qbic_name}_tumor_rna.1.fastq.gz");
+			$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor_rna.1.fastq.gz";
+			exec2("cat {$data_folder}*R2*.fastq.gz > {$data_folder}{$qbic_name}_tumor_rna.2.fastq.gz");
+			$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor_rna.2.fastq.gz";
+		}
+
 		
 		//skip already uploaded
 		$skipped = false;
@@ -479,8 +486,8 @@ foreach($res as $row)
 				}
 			}
 			
-			//store meta data file
-			storeMetaData($tmpfolder, $ps_name, array("type"=>$sample1["experiment_type"], "sample1"=>prepareForExport($sample1), "files"=>array_map("basename", $files)));
+			//store meta data file (not for RNA samples
+			if($sample1["experiment_type"] != "rna_seq") storeMetaData($tmpfolder, $ps_name, array("type"=>$sample1["experiment_type"], "sample1"=>prepareForExport($sample1), "files"=>array_map("basename", $files)));
 			exec2("chmod -R 777 $tmpfolder");
 			
 			//upload data
