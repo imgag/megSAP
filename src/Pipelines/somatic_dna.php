@@ -286,7 +286,6 @@ if (in_array("vc", $steps))
 		$parser->execTool("NGS/vc_manta.php", implode(" ", $args_manta));
 		putenv("PYTHONPATH=" . get_path("svtools_pythonpath"));
 		exec2(get_path("svtools") . " vcftobedpe -i $manta_sv -o $manta_sv_bedpe");
-		$parser->execTool("Tools/converter_manta2tsv.php", "-in $manta_sv -out $manta_sv_tsv -tumor_id $t_id");
 	}
 
 	// variant calling

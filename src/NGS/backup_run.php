@@ -27,6 +27,16 @@ if ($user!="archive-gs")
 $in = rtrim($in, "/");
 $out_folder = rtrim($out_folder, "/");
 
+//determine output file names
+$basename = basename($in);
+if (!preg_match("/^([0-9]{2})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1]))
+{
+	$basename = date("ymd")."_".$basename;
+	print "Notice: Folder name does not start with date. Prefixing date: $basename\n";
+}
+$zipfile = "{$out_folder}/{$basename}.tar.gz";
+$logfile = "{$out_folder}/{$basename}.log";
+
 //set temporary logfile if unset
 if ($parser->getLogFile()==null)
 {
@@ -52,7 +62,6 @@ $parser->exec("tar", "cfW $tmp_tar --exclude '$in/Data/Intensities/L00?/C*' --ex
 
 //zip archive with medium compression (way faster than full compression and the contents are already compressed in most cases)
 print date("Y-m-d H:i:s")." creating tar.gz file\n";
-$zipfile = $out_folder."/".basename($in).".tar.gz";
 $parser->exec("gzip", "-c -5 $tmp_tar > $zipfile", true);
 
 //test zip archive integrity
@@ -66,7 +75,6 @@ list($stdout) = $parser->exec("md5sum", "$zipfile", true);
 list($md5) = explode(" ", $stdout[0]);
 
 //copy log file to remote archive folder
-$logfile = $out_folder."/".basename($in).".log";
 $parser->copyFile($parser->getLogFile(), $logfile);
 
 //print log file to console
