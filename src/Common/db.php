@@ -399,7 +399,7 @@ class DB
 	public function log($hash)
 	{
 		//generate message
-		$user = get_current_user()." (SYSTEM)";
+		$user = trim(exec('whoami'))." (SYSTEM)";
 		if(isset($_SESSION['user']))
 		{
 			$tmp = $_SESSION['user'];

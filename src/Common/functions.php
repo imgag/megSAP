@@ -259,7 +259,8 @@ function nl_trim($string)
 */
 function temp_file($suffix = "", $prefix = "tmp")
 {
-	$user_tmp_dir = sys_get_temp_dir()."/megSAP_user_".get_current_user()."/";
+	$user = trim(exec('whoami'));
+	$user_tmp_dir = sys_get_temp_dir()."/megSAP_user_{$user}/";
 	create_directory($user_tmp_dir);
 	
 	$filename = tempnam($user_tmp_dir, $prefix);
@@ -276,7 +277,8 @@ function temp_file($suffix = "", $prefix = "tmp")
  */
 function temp_folder($prefix='megSAP_', $mode=0700)
 {
-	$user_tmp_dir = sys_get_temp_dir()."/megSAP_user_".get_current_user()."/";
+	$user = trim(exec('whoami'));
+	$user_tmp_dir = sys_get_temp_dir()."/megSAP_user_{$user}/";
 	create_directory($user_tmp_dir);
     
     do
