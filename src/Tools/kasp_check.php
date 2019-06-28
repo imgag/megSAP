@@ -24,6 +24,8 @@ function error_probabilty($match_prob, $matches, $mismatches)
 ///Converts a LightCycler text export file to TSV format
 function txt2geno_lightcycler($snps, $in_file, $out_file)
 {
+	$skipped = array();
+	
 	//parse data
 	$parsed = array();
 	$file = file($in_file);
@@ -40,8 +42,12 @@ function txt2geno_lightcycler($snps, $in_file, $out_file)
 		list($include, $color, $position, $sample, $x, $y, $call, $score, $status) = $parts;
 		
 		//filter
-		if (!preg_match("/^[0-9]{6}/", $sample) && !preg_match("/^DNA-[0-9]{6}/", $sample) && !starts_with($sample, "FO")) continue;
 		if (!isset($snps[$position[0]])) continue;
+		if (!preg_match("/^[0-9]{6}/", $sample) && !preg_match("/^DNA-[0-9]{6}/", $sample) && !starts_with($sample, "FO"))
+		{
+			$skipped[$sample] = true;
+			continue;
+		}
 		
 		//determine genotype (KASP)
 		list($rs, $chr, $pos, $ref, $alt, $reverse) = $snps[$position[0]];
@@ -74,7 +80,6 @@ function txt2geno_lightcycler($snps, $in_file, $out_file)
 		$parsed[$sample][$rs] = array("geno"=>$geno, "score"=>$score);
 	}
 
-
 	//write header
 	$output = array();
 	$outline = "#sample";
@@ -103,7 +108,13 @@ function txt2geno_lightcycler($snps, $in_file, $out_file)
 		}
 		$output[] = $outline;
 	}
-
+	
+	//print skipped samples
+	foreach($skipped as $sample => $dummy)
+	{
+		print "Skipped sample '{$sample}'. Only samples with DNA and FO number are processed!\n";
+	}
+	
 	file_put_contents($out_file, implode("\n", $output));
 }
 
