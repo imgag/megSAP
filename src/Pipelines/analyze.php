@@ -328,7 +328,7 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 		{
 			$parser->log("Calculating coverage file for CN calling...");
 			$cov_tmp = $tmp_folder."/{$name}.cov";
-			$parser->exec("{$ngsbits}BedCoverage", "-decimals 4 -min_mapq 0 -bam {$bamfile} -in {$bed} -out {$cov_tmp}", true);
+			$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -decimals 4 -bam {$bamfile} -in {$bed} -out {$cov_tmp}", true);
 			
 			//copy coverage file to reference folder if valid
 			if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
@@ -373,7 +373,7 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 		//create coverage file
 		$tmp_folder = $parser->tempFolder();
 		$cov_file = $tmp_folder."/{$name}.cov";
-		$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -bam $bamfile -in ".$sys['target_file']." -out $cov_file", true);
+		$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -decimals 4 -bam $bamfile -in ".$sys['target_file']." -out $cov_file", true);
 
 		//copy coverage file to reference folder (has to be done before CnvHunter call to avoid analyzing the same sample twice)
 		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))

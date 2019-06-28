@@ -3,7 +3,7 @@
 ##number of iterations: 1 , quality used at final iteration: 20
 ##was it outlier after clustering? FALSE
 ##fraction of outliers: 0.058
-#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	qvalue	cn_polymorphisms_zarrei	cn_polymorphisms_demidov	cn_pathogenic	dosage_sensitive_disease_genes	omim
+#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	qvalue	cn_polymorphisms_300genomes_imgag	cn_polymorphisms_700genomes_pcawg	cn_pathogenic	dosage_sensitive_disease_genes	omim
 chr1	158507158	158507209	3	8	1	   0.051	0.350	na	0.19173					
 chr1	158584017	158584121	3	7	1	   0.104	0.350	SPTA1	0.36529					182860_[SPTA1_Elliptocytosis-2,130600,Autosomal_dominant/Pyropoikilocytosis,266140,Autosomal_recessive/Spherocytosis,type_3,270970,Autosomal_recessive]
 chr1	221345716	221345767	3	4	1	   0.051	0.050	na	0.06566					
@@ -15,8 +15,8 @@ chr3	10091032	10091214	3	4	1	   0.182	0.100	FANCD2	0.29385					613984_[FANCD2_Fa
 chr5	21760576	21760627	3	14	1	   0.051	0.400	CDH12	0.24169					
 chr5	26678567	26678618	3	3	1	   0.051	0.150	na	0.08009					
 chr5	97303808	97303859	1	12	1	   0.051	0.350	na	0.31768					
-chr6	31358917	31358968	3	7	1	   0.051	0.250	na	0.21479	yes	yes			
-chr6	31948405	31948851	1	12	2	   0.446	0.100	STK19	0.03621	yes	yes			
+chr6	31358917	31358968	3	7	1	   0.051	0.250	na	0.21479	yes				
+chr6	31948405	31948851	1	12	2	   0.446	0.100	STK19	0.03621					
 chr7	11691270	11691321	3	10	1	   0.051	0.150	THSD7A	0.06193					
 chr7	87600900	87600951	5	43	1	   0.051	0.400	ADAM22	0.31768					603709_[ADAM22_Epileptic_encephalopathy,early_infantile,61,617933,Autosomal_recessive]
 chr7	154799067	154799118	3	14	1	   0.051	0.250	na	0.09982					
@@ -26,7 +26,7 @@ chr9	4110921	4110972	3	4	1	   0.051	0.050	GLIS3	0.10605					610192_[GLIS3_Diabet
 chr9	18995124	18995175	3	5	1	   0.051	0.250	SAXO1	0.21479					
 chr10	117888412	117888463	1	4	1	   0.051	0.100	GFRA1	0.27865				GFRA1	
 chr10	121932807	121932858	1	4	1	   0.051	0.300	na	0.34851					
-chr10	127191096	127191147	1	5	1	   0.051	0.100	na	0.29654	yes	yes			
+chr10	127191096	127191147	1	5	1	   0.051	0.100	na	0.29654	yes				
 chr12	16394822	16394873	1	25	1	   0.051	0.150	SLC15A5	0.10605					
 chr12	93919271	93919322	3	5	1	   0.051	0.100	na	0.04461					
 chr13	80561410	80561461	3	7	1	   0.051	0.200	na	0.09982					
