@@ -1,0 +1,35 @@
+##fileformat=VCFv4.3
+##INFO=<ID=CLASS,Number=1,Type=String,Description="Variant classification. Valid classes are: n/a, 1, 2, 3, 4, 5, M">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	94577158	.	A	C	.	.	CLASS=5
+chr1	94549781	.	G	A	.	.	CLASS=5
+chr1	94546814	.	G	C	.	.	CLASS=5
+chr1	94546780	.	C	G	.	.	CLASS=5
+chr1	94527698	.	G	C	.	.	CLASS=5
+chr1	94526934	.	T	C	.	.	CLASS=5
+chr1	94511126	.	A	T	.	.	CLASS=3
+chr1	94509799	.	G	A	.	.	CLASS=5
+chr1	94508465	.	A	T	.	.	CLASS=5
+chr1	94471747	.	A	T	.	.	CLASS=5
+chr1	94496509	.	C	T	.	.	CLASS=5
+chr1	94495923	.	C	T	.	.	CLASS=3
+chr1	94493901	.	T	C	.	.	CLASS=5
+chr1	94493895	.	G	A	.	.	CLASS=5
+chr1	94493272	.	C	A	.	.	CLASS=5
+chr1	94493000	.	C	T	.	.	CLASS=5
+chr1	94492973	.	G	A	.	.	CLASS=5
+chr1	94492937	.	G	A	.	.	CLASS=5
+chr1	94492936	.	G	A	.	.	CLASS=3
+chr1	94492640	.	G	T	.	.	CLASS=3
+chr1	94484125	.	T	C	.	.	CLASS=3
+chr1	94484082	.	T	C	.	.	CLASS=5
+chr1	94484002	.	G	T	.	.	CLASS=3
+chr1	94484001	.	C	T	.	.	CLASS=5
+chr1	94483979	.	C	T	.	.	CLASS=3
+chr1	94483922	.	G	T	.	.	CLASS=5
+chr1	94481967	.	C	A	.	.	CLASS=5
+chr6	100040906	.	G	T	.	.	CLASS=5
+chr6	100041040	.	C	T	.	.	CLASS=5
+chr8	87617644	.	C	T	.	.	CLASS=3
+chr8	87618576	.	G	A	.	.	CLASS=3
+chr8	87742484	.	A	T	.	.	CLASS=3
