@@ -301,7 +301,8 @@ if (in_array("fu",$steps))
 				$starfusion_params[] = "--right_fq " . $fastq_trimmed2;
 			}
 		}
-
+		//specify neccessary pythonpath
+		putenv("PYTHONPATH=" . get_path("STAR-Fusion_pythonpath"));
 		$parser->exec(get_path("STAR-Fusion"), implode(" ", $starfusion_params), true);
 
 		$output_files = [ "{$fusion_tmp_folder}/star-fusion.fusion_predictions.abridged.coding_effect.tsv" => "{$prefix}_var_fusions.tsv" ];
