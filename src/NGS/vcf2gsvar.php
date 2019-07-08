@@ -18,7 +18,7 @@ $parser->addOutfile("out", "Output file in GSvar format.", false);
 $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
 $parser->addFlag("updown", "Don't discard up- or downstream anntations (5000 bases around genes).");
 $parser->addFlag("blacklist", "Annotate variants in blacklisted genes with 'gene_blacklist' in filter column.");
-$parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the numer of variants to a manageable size.");
+$parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
 extract($parser->parse($argv));
 
 //skip common MODIFIER variants in WGS mode
