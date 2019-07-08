@@ -269,8 +269,27 @@ $parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/normal/{$ps_nam
 $parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
 $parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
 
-//Add header line holding type of analysis
-file_put_contents($out,"##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE\n".file_get_contents($out));
+//count high-loglikelihood CNVs
+$hq_cnvs = 0;
+$tmp = file($out);
+foreach($tmp as $line)
+{
+	$line = trim($line);
+	if ($line=="" || $line[0]=="#") continue;
+	
+	list($c, $s, $e, $tmp_cn, $ll) = explode("\t", $line);
+	if ($ll>=20)
+	{
+		++$hq_cnvs;
+	}	
+}
+
+//Add header lines
+$add_headers = array();
+$add_headers[] = "##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE";
+$add_headers[] = "##high-quality cnvs: {$hq_cnvs}";
+
+file_put_contents($out,implode("\n", $add_headers)."\n".file_get_contents($out));
 
 //annotate
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/misc/cn_polymorphisms_300genomes_imgag.bed -out {$out}", true);
