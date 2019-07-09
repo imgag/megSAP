@@ -7,5 +7,8 @@ dosage_sensitive_disease_genes:
 genes:
 	NGSDExportGenes | cut -f1 | grep -v "#symbol" | GenesToBed -mode gene -source ensembl | BedExtend -n 20 -out genes.bed
 
-genes_exons:
-	NGSDExportGenes | cut -f1 | grep -v "#symbol" | GenesToBed -mode exon -source ensembl | BedExtend -n 20 | BedMerge -out genes_exons.bed
+gene_exons:
+	NGSDExportGenes | cut -f1 | grep -v "#symbol" | GenesToBed -mode exon -source ensembl | BedMerge -out gene_exons.bed
+
+gene_exons_pad20:
+	BedExtend -n 20 -in gene_exons.bed | BedMerge -out gene_exons_pad20.bed
