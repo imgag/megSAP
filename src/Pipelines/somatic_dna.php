@@ -626,7 +626,7 @@ if (in_array("an", $steps))
 			"-target_exons", repository_basedir()."/data/gene_lists/gene_exons.bed", //file containing all human exons to determine exonic variants in TMB calculation
 			"-blacklist", repository_basedir()."/data/misc/somatic_tmb_blacklist.bed", //Blacklisted genes that are not included in TMB calculation (e.g. HLA-A and HLA-B)
 			"-tsg_bed", get_path("data_folder")."/dbs/NCG6.0/somatic_tmb_tsg.bed", //TSG genes whose mutations are treated specially in TMB calculation
-			"-ref_fasta", $ref_genome,
+			"-ref", $ref_genome,
 			"-out", $somaticqc
 		];
 		if (!empty($links))

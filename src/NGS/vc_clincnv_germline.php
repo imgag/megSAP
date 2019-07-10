@@ -130,7 +130,7 @@ if (count($cov_files)>$cov_max)
 	//create target region without polymorphic regions
 	//$t_start = microtime(true);
 	$poly_merged = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAdd", "-in ".repository_basedir()."/data/misc/cn_polymorphisms_300genomes_imgag.bed ".repository_basedir()."/data/misc/cn_polymorphisms_300genomes_imgag.bed ".repository_basedir()."/data/misc/centromer_telomer_hg19.bed -out {$poly_merged}", true);
+	$parser->exec(get_path("ngs-bits")."BedAdd", "-in ".repository_basedir()."/data/misc/cnps_300genomes_imgag.bed ".repository_basedir()."/data/misc/cnps_300genomes_imgag.bed ".repository_basedir()."/data/misc/centromer_telomer_hg19.bed -out {$poly_merged}", true);
 	$roi_poly = $parser->tempFile(".bed");
 	$parser->exec(get_path("ngs-bits")."BedIntersect", "-in {$bed} -in2 {$poly_merged} -out {$roi_poly} -mode in", true);
 	$roi_nonpoly = $parser->tempFile(".bed");
@@ -292,14 +292,14 @@ $add_headers[] = "##high-quality cnvs: {$hq_cnvs}";
 file_put_contents($out,implode("\n", $add_headers)."\n".file_get_contents($out));
 
 //annotate
-$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/misc/cn_polymorphisms_300genomes_imgag.bed -out {$out}", true);
-$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/misc/cn_polymorphisms_700genomes_pcawg.bed -out {$out}", true);
-$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/misc/cn_pathogenic.bed -out {$out}", true);
-$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed -out {$out}", true);
+$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/misc/cnps_300genomes_imgag.bed -overlap -out {$out}", true);
+$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/misc/cnps_700genomes_pcawg.bed -overlap -out {$out}", true);
+$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/misc/cn_pathogenic.bed -no_duplicates -out {$out}", true);
+$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed -no_duplicates -out {$out}", true);
 $omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; 
 if (file_exists($omim_file)) //optional because of license
 {
-	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$omim_file} -out {$out}", true);
+	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$omim_file} -no_duplicates -out {$out}", true);
 }
 
 ?>

@@ -1,4 +1,4 @@
-chr5	4409260	4421010	PHENOTYPE: North Carolina Macula Dystrophy - TYPE: Duplication - SOURCE: PMID:28790370
-chr6	100020205	100143306	PHENOTYPE: North Carolina Macula Dystrophy - TYPE: Duplication - SOURCE: PMID:26507665
+chr5	4409260	4421010	PHENOTYPE: North Carolina Macula Dystrophy - TYPE: Duplication - SOURCE: https://www.ncbi.nlm.nih.gov/pubmed/28790370
+chr6	100020205	100143306	PHENOTYPE: North Carolina Macula Dystrophy - TYPE: Duplication - SOURCE: https://www.ncbi.nlm.nih.gov/pubmed/26507665
 chrX	860549	908093	PHENOTYPE: Short stature - TYPE: Deletion - SOURCE: 
-chrX	153404152	153406656	PHENOTYPE: Blue Cone Monochromatism/Cone Dystrophy - TYPE: Deletion - SOURCE: PMID:11773636
+chrX	153404152	153406656	PHENOTYPE: Blue Cone Monochromatism/Cone Dystrophy - TYPE: Deletion - SOURCE: https://www.ncbi.nlm.nih.gov/pubmed/11773636

@@ -390,7 +390,7 @@ if (in_array("cn", $steps))
 			$regions = $tmp;
 		}
 		
-		$output[] = "#chr\tstart\tend\tsample\tsize\tCN_change\tloglikelihood\tqvalue\tpotential_AF\tcn_polymorphisms_300genomes_imgag\tcn_polymorphisms_700genomes_pcawg\tcn_pathogenic\tgenes\tdosage_sensitive_disease_genes";
+		$output[] = "#chr\tstart\tend\tsample\tsize\tCN_change\tloglikelihood\tqvalue\tpotential_AF\toverlap cnps_300genomes_imgag\toverlap cnps_700genomes_pcawg\tcn_pathogenic\tgenes\tdosage_sensitive_disease_genes";
 		foreach($regions as $reg)
 		{
 			
@@ -525,7 +525,7 @@ if (in_array("cn", $steps))
 		}
 		
 		//write output
-		$output[] = "#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	cn_polymorphisms_300genomes_imgag	cn_polymorphisms_700genomes_pcawg	genes	dosage_sensitive_disease_genes";	
+		$output[] = "#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	cnps_300genomes_imgag	cnps_700genomes_pcawg	genes	dosage_sensitive_disease_genes";	
 		foreach($regions_by_number as $cnv_num => $regions)
 		{
 			$chr = null;
@@ -572,13 +572,13 @@ if (in_array("cn", $steps))
 		//copy-number polymorphisms
 		$data_folder = get_path("data_folder");
 		$tmp2_1 = $parser->tempFile(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 ".repository_basedir()."/data/misc/cn_polymorphisms_300genomes_imgag.bed -out {$tmp2_1}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 ".repository_basedir()."/data/misc/cnps_300genomes_imgag.bed -overlap -out {$tmp2_1}", true);
 		$tmp2_2 = $parser->tempFile(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp2_1} -in2 ".repository_basedir()."/data/misc/cn_polymorphisms_700genomes_pcawg.bed -out {$tmp2_2}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp2_1} -in2 ".repository_basedir()."/data/misc/cnps_700genomes_pcawg.bed -overlap -out {$tmp2_2}", true);
 		
 		//knowns pathogenic CNVs
 		$tmp2_3 = $parser->tempFile(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp2_2} -in2 ".repository_basedir()."/data/misc/cn_pathogenic.bed -out {$tmp2_3}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp2_2} -in2 ".repository_basedir()."/data/misc/cn_pathogenic.bed -no_duplicates -out {$tmp2_3}", true);
 		
 		//gene names
 		$tmp3 = $parser->tempFile(".bed");
@@ -586,7 +586,7 @@ if (in_array("cn", $steps))
 		
 		//dosage sensitive disease genes
 		$tmp4 = $parser->tempFile(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp3} -in2 ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed -out {$tmp4}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp3} -in2 ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed -no_duplicates -out {$tmp4}", true);
 		
 		//OMIM
 		if($cn_type == "cnvhunter")	$cnv_multi = "{$out_folder}{$prefix}_cnvs.tsv";
@@ -594,7 +594,7 @@ if (in_array("cn", $steps))
 		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 		if (file_exists($omim_file))
 		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp4} -in2 $omim_file -out {$cnv_multi}", true);
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp4} -in2 $omim_file -no_duplicates -out {$cnv_multi}", true);
 		}
 		else
 		{
