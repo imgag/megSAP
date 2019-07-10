@@ -17,6 +17,13 @@ wget https://github.com/STAR-Fusion/STAR-Fusion/releases/download/v1.6.0/STAR-Fu
 tar xzf STAR-Fusion-v1.6.0.FULL.tar.gz
 rm STAR-Fusion-v1.6.0.FULL.tar.gz
 
+#download igv-reports, neccessary for STAR-fusion
+wget https://github.com/igvteam/igv-reports/archive/v0.9.1.tar.gz
+tar xzf v0.9.1.tar.gz
+rm v0.9.1.tar.gz
+cd igv-reports-0.9.1
+python3 setup.py build
+
 #download subread (featureCounts)
 wget http://downloads.sourceforge.net/project/subread/subread-1.6.4/subread-1.6.4-Linux-x86_64.tar.gz
 tar xzf subread-1.6.4-Linux-x86_64.tar.gz

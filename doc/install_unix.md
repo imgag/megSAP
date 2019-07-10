@@ -11,7 +11,7 @@ We are providing instructions for Ubuntu 18.04 here. However this should be reas
 
 ### Base dependencies
 
-    > sudo apt-get install -y bzip2 default-jre bioperl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.2-cli php7.2-xml php7.2-mysql python-matplotlib python-networkx python-numpy python-pysam python-statsmodels python-pandas python-setuptools tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev r-base
+    > sudo apt-get install -y bzip2 default-jre bioperl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.2-cli php7.2-xml php7.2-mysql python-matplotlib python-networkx python-numpy python-pysam python-statsmodels python-pandas python-setuptools python3-pysam python3-intervaltree tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev r-base
 
 ## Downloading
 
