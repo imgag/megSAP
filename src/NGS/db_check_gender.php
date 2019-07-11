@@ -21,6 +21,7 @@ if(isset($gender)) //gender given > no NGSD connection is used
 	//we don't know and cannot check
 	$is_wgs = false;
 	$sry_in_roi = false;
+	$is_rna = false;
 }
 else
 {
@@ -37,17 +38,26 @@ else
 	{
 		$is_wgs = true;
 		$sry_in_roi = true;
+		$is_rna = false;
 	}
 	else if ($info['sys_type']=="WES")
 	{
 		$is_wgs = false;
 		$sry_in_roi = true;
+		$is_rna = false;
+	}
+	else if ($info['sys_type']=="RNA")
+	{
+		$is_wgs = false;
+		$sry_in_roi = false;
+		$is_rna = true;
 	}
 	else //check if sry is included in target region
 	{
 		$is_wgs = false;
 		list($stdout, $stderr) = exec2("echo -e 'chrY\\t2655030\\t2655644' | ".get_path("ngs-bits")."BedIntersect -in2 ".$info["sys_target"], false); //works for GRCh37 only
 		$sry_in_roi = ($stdout[0] == "chrY\t2655030\t2655644");
+		$is_rna = false;
 	}
 }
 
@@ -56,6 +66,11 @@ $extra = "";
 if ($is_wgs)
 {
 	$method = "xy";
+}
+else if ($is_rna)
+{
+	$method = "xy";
+	$extra = "-min_male 0.012 -max_female 0.008";
 }
 else if ($sry_in_roi)
 {
