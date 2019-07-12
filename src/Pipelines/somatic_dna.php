@@ -412,26 +412,7 @@ if(in_array("cn",$steps))
 	
 	//Generate file with off-target region
 	$off_target_bed = get_path("data_folder")."/coverage/off_target_beds/".$sys['name_short'].".bed";
-	if(!file_exists($off_target_bed))
-	{
-		//generate bed file that contains edges of whole reference genome
-		$ref_content = array();
-		$ref_borders = file("{$ref_genome}.fai"); 
-		foreach($ref_borders as $line)
-		{
-			$line = trim($line);
-			list($chr,$chr_length) = explode("\t",$line);
-			if(chr_check($chr,22,false) === false) continue;
-			$chr_length--; //0-based coordinates
-			$ref_content[] = "{$chr}\t0\t{$chr_length}\n";
-		}
-		$ref_bed = $parser->tempFile(".bed");
-		file_put_contents($ref_bed,$ref_content);
-		$ngs_bits = get_path("ngs-bits");
-		$tmp_bed = $parser->tempFile(".bed");
-		exec2("{$ngs_bits}BedExtend -in ".$sys['target_file']." -n 1000 -fai {$ref_genome}.fai | {$ngs_bits}BedMerge -out {$tmp_bed}");
-		exec2("{$ngs_bits}BedSubtract -in ".$ref_bed." -in2 {$tmp_bed} | {$ngs_bits}BedChunk -n 100000 | {$ngs_bits}BedShrink -n 25000 | {$ngs_bits}BedExtend -n 25000 -fai {$ref_genome}.fai | {$ngs_bits}BedAnnotateGC -ref {$ref_genome} | {$ngs_bits}BedAnnotateGenes -out {$off_target_bed}"); //@TODO: Review parameters after a few samples have been analyzed
-	}
+	if(!file_exists($off_target_bed))	create_off_target_bed_file($off_target_bed,$sys['target_file'],"{$ref_genome}.fai");
 	
 	/***************************************************
 	 * GENERATE AND COPY COVERAGE FILES TO DATA FOLDER *
