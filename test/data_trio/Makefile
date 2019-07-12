@@ -32,9 +32,6 @@ diff:
 	diff trio_cnvs_clincnv.tsv trio_cnvs_clincnv.tsv.out
 	#UPDs
 	diff -b trio_upd.tsv.out trio_upd.tsv
-	#variants after filtering (only when NGSD is enabled)
-	php ../filter_variants.php -in trio.GSvar -out trio_denovo.GSvar -filters filter_denovo.txt -requires_db NGSD
-	php ../compare_variants.php -in1 trio_denovo.GSvar.out -in2 trio_denovo.GSvar -requires_db NGSD
 	
 ######################### AUXILARY TARGETS #########################
 
