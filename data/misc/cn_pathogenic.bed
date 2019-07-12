@@ -1,4 +1,71 @@
+chr1	10001	12840259	PHENOTYPE: 1p36 microdeletion syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/18
+chr1	145386506	145748067	PHENOTYPE: 1q21.1 susceptibility locus for Thrombocytopenia-Absent Radius (TAR) syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/64
+chr1	146533376	147883376	PHENOTYPE: 1q21.1 recurrent microdeletion (susceptibility locus for neurodevelopmental disorders) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/62
+chr1	146533376	147883376	PHENOTYPE: 1q21.1 recurrent microduplication (possible susceptibility locus for neurodevelopmental disorders) - TYPE: Heterozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/67
+chr2	44410451	44589584	PHENOTYPE: 2p21 Microdeletion Syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/87
+chr2	59285696	61819815	PHENOTYPE: 2p15-16.1 microdeletion syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/70
+chr2	196925121	205206939	PHENOTYPE: 2q33.1 deletion syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/51
+chr2	239969863	240322643	PHENOTYPE: 2q37 monosomy - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/44
+chr3	195726835	197344663	PHENOTYPE: 3q29 microdeletion syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/37
+chr3	195726835	197344663	PHENOTYPE: 3q29 microduplication syndrome - TYPE: Heterozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/77
+chr4	1569197	2110236	PHENOTYPE: Wolf-Hirschhorn Syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/1
+chr5	10001	12533304	PHENOTYPE: Cri du Chat Syndrome (5p deletion) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/2
 chr5	4409260	4421010	PHENOTYPE: North Carolina Macula Dystrophy - TYPE: Duplication - SOURCE: https://www.ncbi.nlm.nih.gov/pubmed/28790370
+chr5	112043201	112181936	PHENOTYPE: Familial Adenomatous Polyposis - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/49
+chr5	126112314	126172712	PHENOTYPE: Adult-onset autosomal dominant leukodystrophy (ADLD) - TYPE: Heterozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/59
+chr5	175724636	177052116	PHENOTYPE: Sotos syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/17
 chr6	100020205	100143306	PHENOTYPE: North Carolina Macula Dystrophy - TYPE: Duplication - SOURCE: https://www.ncbi.nlm.nih.gov/pubmed/26507665
+chr7	72744455	74142672	PHENOTYPE: Williams-Beuren Syndrome (WBS) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/3
+chr7	72744455	74142672	PHENOTYPE: 7q11.23 duplication syndrome - TYPE: Heterozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/43
+chr7	96318078	96339203	PHENOTYPE: Split hand/foot malformation 1 (SHFM1) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/46
+chr8	8100055	11764629	PHENOTYPE: 8p23.1 duplication syndrome - TYPE: Heterozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/85
+chr8	8100055	11764629	PHENOTYPE: 8p23.1 deletion syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/39
+chr8	77226464	77766239	PHENOTYPE: 8q21.11 Microdeletion Syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/86
+chr9	140513443	140730578	PHENOTYPE: 9q subtelomeric deletion syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/52
+chr11	31806339	32457087	PHENOTYPE: WAGR 11p13 deletion syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/35
+chr11	43994800	46052450	PHENOTYPE: Potocki-Shaffer syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/34
+chr12	1080000	1346471	PHENOTYPE: 12p13.33 Microdeletion Syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/91
+chr12	65071919	68645525	PHENOTYPE: 12q14 microdeletion syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/76
+chr15	22749354	28438266	PHENOTYPE: Angelman syndrome (Type 1) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/4
+chr15	22749354	28438266	PHENOTYPE: Prader-Willi syndrome (Type 1) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/14
+chr15	23619912	28438266	PHENOTYPE: Angelman syndrome (Type 2) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/54
+chr15	23619912	28438266	PHENOTYPE: Prader-Willi Syndrome (Type 2) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/53
+chr15	30910306	32445407	PHENOTYPE: 15q13.3 microdeletion syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/74
+chr15	74412643	75972911	PHENOTYPE: 15q24 recurrent microdeletion syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/66
+chr15	99357970	102521392	PHENOTYPE: 15q26 overgrowth syndrome - TYPE: Heterozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/81
+chr16	60001	834372	PHENOTYPE: ATR-16 syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/65
+chr16	3775055	3930121	PHENOTYPE: Rubinstein-Taybi Syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/7
+chr16	14986684	16486684	PHENOTYPE: 16p13.11 recurrent microdeletion (neurocognitive disorder susceptibility locus) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/79
+chr16	14986684	16486684	PHENOTYPE: 16p13.11 recurrent microduplication (neurocognitive disorder susceptibility locus)    - TYPE: Heterozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/80
+chr16	21475060	29284077	PHENOTYPE: 16p11.2-p12.2 microduplication syndrome - TYPE: Heterozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/96
+chr16	21512062	30199854	PHENOTYPE: 16p11.2-p12.2 microdeletion syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/68
+chr16	21946524	22467284	PHENOTYPE: Recurrent 16p12.1 microdeletion (neurodevelopmental susceptibility locus) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/92
+chr16	29606852	30199855	PHENOTYPE: 16p11.2 microduplication syndrome - TYPE: Heterozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/78
+chr17	1	2588909	PHENOTYPE: Miller-Dieker syndrome (MDS) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/21
+chr17	14097915	15470903	PHENOTYPE: Charcot-Marie-Tooth syndrome type 1A (CMT1A) - TYPE: Heterozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/29
+chr17	14097915	15470903	PHENOTYPE: Hereditary Liability to Pressure Palsies (HNPP) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/31
+chr17	16773072	20222149	PHENOTYPE: Smith-Magenis Syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/8
+chr17	16773072	20222149	PHENOTYPE: Potocki-Lupski syndrome (17p11.2 duplication syndrome) - TYPE: Heterozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/19
+chr17	29107097	30263321	PHENOTYPE: NF1-microdeletion syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/15
+chr17	34815072	36215917	PHENOTYPE: RCAD (renal cysts and diabetes) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/47
+chr17	43705166	44294406	PHENOTYPE: 17q21.31 recurrent microdeletion syndrome (Koolen de Vries syndrome) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/57
+chr21	27252860	27543446	PHENOTYPE: Early-onset Alzheimer disease with cerebral amyloid angiopathy - TYPE: Heterozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/48
+chr22	1	16971860	PHENOTYPE: Cat-Eye Syndrome (Type I) - TYPE: Homozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/42
+chr22	19009792	21452445	PHENOTYPE: 22q11 deletion syndrome (Velocardiofacial / DiGeorge syndrome) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/16
+chr22	19009792	21452445	PHENOTYPE: 22q11 duplication syndrome - TYPE: Heterozygous duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/32
+chr22	21917117	23722445	PHENOTYPE: 22q11.2 distal deletion syndrome - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/72
+chr22	51045516	51187844	PHENOTYPE: 22q13 deletion syndrome (Phelan-Mcdermid syndrome) - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/20
+chrX	460558	753877	PHENOTYPE: Leri-Weill dyschondrostosis (LWD) - SHOX deletion - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/58
+chrX	751878	867875	PHENOTYPE: Leri-Weill dyschondrostosis (LWD) - SHOX deletion - TYPE: Heterozygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/58
 chrX	860549	908093	PHENOTYPE: Short stature - TYPE: Deletion - SOURCE: 
+chrX	6455812	8133195	PHENOTYPE: Steroid sulphatase deficiency (STS) - TYPE: Hemizygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/27
+chrX	48334549	52117661	PHENOTYPE: Xp11.22-p11.23 Microduplication - TYPE: Duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/89
+chrX	53401070	53683275	PHENOTYPE: Xp11.22-linked intellectual disability - TYPE: Duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/90
+chrX	103031438	103047547	PHENOTYPE: Pelizaeus-Merzbacher disease - TYPE: Duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/38
+chrX	153287263	153363188	PHENOTYPE: Xq28 (MECP2) duplication - TYPE: Duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/45
 chrX	153404152	153406656	PHENOTYPE: Blue Cone Monochromatism/Cone Dystrophy - TYPE: Deletion - SOURCE: https://www.ncbi.nlm.nih.gov/pubmed/11773636
+chrX	153624563	153881853	PHENOTYPE: Xq28 Microduplication - TYPE: Duplication - SOURCE: https://decipher.sanger.ac.uk/syndrome/88
+chrY	14352761	15154862	PHENOTYPE: AZFa - TYPE: Hemizygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/23
+chrY	19964826	27793830	PHENOTYPE: AZFb+AZFc - TYPE: Hemizygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/26
+chrY	20118045	26065197	PHENOTYPE: AZFb - TYPE: Hemizygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/25
+chrY	24977425	28033929	PHENOTYPE: AZFc - TYPE: Hemizygous deletion - SOURCE: https://decipher.sanger.ac.uk/syndrome/24
