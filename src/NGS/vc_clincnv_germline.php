@@ -269,10 +269,10 @@ $parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/normal/{$ps_nam
 $parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
 $parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
 
-//count high-loglikelihood CNVs
+//add high-quality CNV count to header
+$cnv_calls = file($out);
 $hq_cnvs = 0;
-$tmp = file($out);
-foreach($tmp as $line)
+foreach($cnv_calls as $line)
 {
 	$line = trim($line);
 	if ($line=="" || $line[0]=="#") continue;
@@ -283,13 +283,8 @@ foreach($tmp as $line)
 		++$hq_cnvs;
 	}	
 }
-
-//Add header lines
-$add_headers = array();
-$add_headers[] = "##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE";
-$add_headers[] = "##high-quality cnvs: {$hq_cnvs}";
-
-file_put_contents($out,implode("\n", $add_headers)."\n".file_get_contents($out));
+array_splice($cnv_calls, 3, 0, array("##high-quality cnvs: {$hq_cnvs}\n"));
+file_put_contents($out, $cnv_calls);
 
 //annotate
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 ".repository_basedir()."/data/misc/cnps_300genomes_imgag.bed -overlap -out {$out}", true);

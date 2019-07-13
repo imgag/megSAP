@@ -1,10 +1,11 @@
 ##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE
-##high-quality cnvs: 9
 ##ClinCNV version: v1.16.0
-##Analysis finished on  2019-07-12 10:41:06
+##Analysis finished on: 2019-07-12 13:06:47
+##high-quality cnvs: 9
 ##gender of sample: M
-##number of iterations: 1 , quality used at final iteration: 20
-##was it outlier after clustering? FALSE
+##number of iterations: 1
+##quality used at final iteration: 20
+##was it outlier after clustering: FALSE
 ##fraction of outliers: 0.058
 #chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	qvalue	overlap cnps_300genomes_imgag	overlap cnps_700genomes_pcawg	cn_pathogenic	dosage_sensitive_disease_genes	omim
 chr1	158507158	158507209	3	8	1	   0.051	0.350	na	0.19173	0.000	0.000			

@@ -329,7 +329,6 @@ $parser->exec(get_path("ngs-bits")."/BedSort","-in $unparsed_cnv_file -out $unpa
  
 //insert column with sample identifier for convenience (next to "end"-column")
 $cnvs = Matrix::fromTSV($unparsed_cnv_file);
-$cnvs->addComment("#ANALYSISTYPE=CLINCNV_TUMOR_NORMAL_PAIR");
 
 $sample_col = array_fill(0,$cnvs->rows(),"{$t_id}-{$n_id}");
 $cnvs->insertCol($cnvs->getColumnIndex("end")+1,$sample_col,"sample");
@@ -347,6 +346,12 @@ for($r=0;$r<$cnvs->rows();++$r)
 }
 
 $cnvs->insertCol($cnvs->getColumnIndex("sample")+1,$col_sizes,"size");
+
+//remove unneeded columns
+$cnvs->removeCol($cnvs->getColumnIndex("median_loglikelihood"));
+$cnvs->removeCol($cnvs->getColumnIndex("major_CN_allele2"));
+$cnvs->removeCol($cnvs->getColumnIndex("minor_CN_allele2"));
+$cnvs->removeCol($cnvs->getColumnIndex("tumor_clonality2"));
 
 /**********************
  * DETERMINE CNV TYPE *
