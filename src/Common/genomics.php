@@ -1465,4 +1465,30 @@ function ncg_gene_statements($gene)
 	return $result;
 }
 
+//Create Bed File that contains off target regions of a target region
+function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
+{
+	//generate bed file that contains edges of whole reference genome
+	$handle_in = fopen("{$ref_genome_fasta}.fai","r");
+	$ref_bed = temp_file(".bed");
+	$handle_out = fopen($ref_bed,"w");
+	while(!feof($handle_in))
+	{
+		$line = trim(fgets($handle_in));
+		if(empty($line)) continue;
+		list($chr,$chr_length) = explode("\t",$line);
+		if(chr_check($chr,22,false) === false) continue;
+		$chr_length--; //0-based coordinates
+		fputs($handle_out,"{$chr}\t0\t{$chr_length}\n");
+	}
+	fclose($handle_in);
+	fclose($handle_out);
+	
+	//Create off target bed file
+	$ngs_bits = get_path("ngs-bits");
+	$tmp_bed = temp_file(".bed");
+	exec2("{$ngs_bits}BedExtend -in ".$target_file." -n 1000 -fai {$ref_genome_fasta}.fai | {$ngs_bits}BedMerge -out {$tmp_bed}");
+	exec2("{$ngs_bits}BedSubtract -in ".$ref_bed." -in2 {$tmp_bed} | {$ngs_bits}BedChunk -n 100000 | {$ngs_bits}BedShrink -n 25000 | {$ngs_bits}BedExtend -n 25000 -fai {$ref_genome_fasta}.fai | {$ngs_bits}BedAnnotateGC -ref {$ref_genome_fasta} | {$ngs_bits}BedAnnotateGenes -out {$out}"); //@TODO: Review parameters after a few samples have been analyzed
+}
+
 ?>
