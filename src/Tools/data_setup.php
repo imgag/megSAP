@@ -131,7 +131,7 @@ if ($build=="GRCh37")
 	
 	//remove outdated annotation data
 	$update = true;
-	$info = "/homo_sapiens/95_GRCh37/info.txt";
+	$info = "/homo_sapiens/96_GRCh37/info.txt"; //ensembl-vep-96
 	if (file_exists("{$local_annotation_folder}/{$info}"))
 	{
 		exec("diff {$local_annotation_folder}/{$info} {$annotation_folder}/{$info}", $output, $code);
