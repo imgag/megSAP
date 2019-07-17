@@ -1,5 +1,7 @@
 <?php
 
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+
 /*
    SW  perc perc perc  query      position in query           matching       repeat              position in  repeat
 score  div. del. ins.  sequence    begin     end    (left)    repeat         class/family         begin  end (left)   ID
