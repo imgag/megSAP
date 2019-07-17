@@ -203,7 +203,8 @@ if (in_array("rc", $steps))
 {
 	if ($paired)
 	{
-		$repair_bam = $parser->tempFile(".bam", "{$name}_");
+		$tmpdir = $parser->tempFolder();
+		$repair_bam = "{$tmpdir}/{$name}.bam";
 		$parser->exec(dirname(get_path("feature_counts")) . "/utilities/repair",
 			"-i {$final_bam} -o {$repair_bam} -T {$threads}", true);
 	}
