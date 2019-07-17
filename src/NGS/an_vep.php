@@ -78,7 +78,7 @@ $fields[] = "GeneSplicer";
 $args[] = "--plugin dbscSNV,".annotation_file_path("/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"); //dbscSNV
 $fields[] = "ada_score";
 $fields[] = "rf_score";
-$args[] = "--custom ".annotation_file_path("/dbs/gnomAD/gnomAD_genome_r2.1.vcf.gz").",gnomADg,vcf,exact,0,AF,Hom,Hemi"; //genomAD
+$args[] = "--custom ".annotation_file_path("/dbs/gnomAD/gnomAD_genome_r2.1.1.vcf.gz").",gnomADg,vcf,exact,0,AF,Hom,Hemi"; //genomAD
 $fields[] = "gnomADg_AF";
 $fields[] = "gnomADg_Hom";
 $fields[] = "gnomADg_Hemi";
@@ -95,7 +95,7 @@ if(file_exists($omim_file))
 	$args[] = "--custom {$omim_file},OMIM,bed,overlap,0";
 	$fields[] = "OMIM";
 }
-$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2019_1_fixed.vcf.gz"); //HGMD annotation (optional because of license)
+$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2019_2_fixed.vcf.gz"); //HGMD annotation (optional because of license)
 if(file_exists($hgmd_file))
 {
 	$args[] = "--custom {$hgmd_file},HGMD,vcf,exact,0,CLASS,MUT,GENE,PHEN";

@@ -64,7 +64,7 @@ for ($i=0; $i<count($db_vars); ++$i)
 	}
 
 	$clinvar = array();
-	list($anno) = exec2("tabix -p vcf ".get_path("data_folder")."/dbs/ClinVar/clinvar_20190503_converted.vcf.gz $chr:$s-$e");
+	list($anno) = exec2("tabix -p vcf ".get_path("data_folder")."/dbs/ClinVar/clinvar_20190708_converted.vcf.gz $chr:$s-$e");
 	foreach($anno as $line2)
 	{
 		if (contains($line2, "pathogenic"))
@@ -92,7 +92,7 @@ for ($i=0; $i<count($db_vars); ++$i)
 	
 	//get HGMD annotation
 	$hgmd = array();
-	list($anno) = exec2("tabix -p vcf ".get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2019_1_fixed.vcf.gz $chr:$s-$e");
+	list($anno) = exec2("tabix -p vcf ".get_path("data_folder")."/dbs/HGMD/HGMD_PRO_2019_2_fixed.vcf.gz $chr:$s-$e");
 	foreach($anno as $line2)
 	{
 		if (contains($line2, "CLASS=DM"))

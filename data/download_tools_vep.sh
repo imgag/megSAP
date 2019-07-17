@@ -31,9 +31,9 @@ wget https://github.com/ucscGenomeBrowser/kent/archive/v335_base.tar.gz
 tar xzf v335_base.tar.gz
 rm v335_base.tar.gz
 cd $KENT_SRC/lib
-echo 'CFLAGS="-fPIC"' > ../inc/localEnvironment.mk
+echo 'CFLAGS="-fPIC"' > $KENT_SRC/inc/localEnvironment.mk
 make clean && make
-cd ../jkOwnLib
+cd $KENT_SRC/jkOwnLib
 make clean && make
 cpanm -l $vep_cpan_dir -L $vep_cpan_dir Bio::DB::BigFile
 
