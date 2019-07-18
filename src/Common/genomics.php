@@ -1403,21 +1403,24 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 //Returns if special variant calling for mitochondrial DNA should be performed
 function enable_special_mito_vc($sys)
 {
+	//only for GRCh37
 	if ($sys['build']!="GRCh37") return false;
+	
+	//only exome/genome
 	if ($sys['type']!="WES" && $sys['type']!="WGS") return false;
 	
+	//no ROI > chrMT is called anyway > no special calling
+	if ($sys['target_file']=="") false;
+	
 	//check if chrMT is already contained in the ROI
-	if ($sys['target_file']!="")
+	$roi = $sys['target_file'];
+	$file = file($roi);
+	foreach($file as $line)
 	{
-		$roi = $sys['target_file'];
-		$file = file($roi);
-		foreach($file as $line)
+		if (starts_with($line, "chrMT"))
 		{
-			if (starts_with($line, "chrMT"))
-			{
-				trigger_error("Special variant calling of chrMT disabled because target file '$roi' contains chrMT regions. Remove chrMT regions to enable high-sensitivity variant calling on chrMT!", E_USER_WARNING);
-				return false;
-			}
+			trigger_error("Special variant calling of chrMT disabled because target file '$roi' contains chrMT regions. Remove chrMT regions to enable high-sensitivity variant calling on chrMT!", E_USER_WARNING);
+			return false;
 		}
 	}
 	
