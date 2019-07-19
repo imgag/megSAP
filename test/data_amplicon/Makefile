@@ -27,9 +27,9 @@ cn:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps cn
 
 diff:
+	php ../compare_variants.php -in1 NA12878_03.GSvar.out -in2 NA12878_03.GSvar
 	php ../compare_qcml_xml.php NA12878_03_stats_fastq.qcML.out NA12878_03_stats_fastq.qcML
 	php ../compare_qcml_xml.php NA12878_03_stats_map.qcML.out NA12878_03_stats_map.qcML
 	php ../compare_qcml_xml.php NA12878_03_stats_vc.qcML.out NA12878_03_stats_vc.qcML
-	php ../compare_variants.php -in1 NA12878_03.GSvar.out -in2 NA12878_03.GSvar
-	php ../compare_bed.php NA12878_03_hpHBOCv5_lowcov.bed.out NA12878_03_hpHBOCv5_lowcov.bed
 	diff NA12878_03_cnvs.tsv.out NA12878_03_cnvs.tsv
+	php ../compare_bed.php NA12878_03_hpHBOCv5_lowcov.bed.out NA12878_03_hpHBOCv5_lowcov.bed
