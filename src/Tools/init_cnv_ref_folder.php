@@ -31,7 +31,7 @@ if ($roi=="")
 }
 
 //Make list of samples that have same processing system
-list($samples) = exec2(get_path("ngs-bits")."NGSDExportSamples -system {$name} -add_path | cut -f1,18 | grep -v ps.name");
+list($samples) = exec2(get_path("ngs-bits")."NGSDExportSamples -system {$name} -add_path | egrep  '\\s{$name}\\s' | cut -f1,19");
 
 if(!$somatic)
 {
@@ -205,7 +205,7 @@ else //somatic tumor-normal pairs
 	
 	//Create list with tumor normal pairs, has to be done every time any cov file is changed
 	print "Creating list with tumor-normal ids {$t_n_list}\n";
-	$handle = fopen($t_n_list,"w");
+	$handle = fopen2($t_n_list,"w");
 	fputs($handle,"##THIS FILE CONTAINS TUMOR AND NORMAL IDS OF PROCESSING SYSTEM {$name}\n#tumor_id,normal_id\n");
 	
 	$t_covs = glob("{$ref_t_dir}/*.cov");

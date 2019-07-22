@@ -862,6 +862,7 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false)
 	
 	//check that sample is not tumor and not not FFPE
 	$res = $db_conn->executeQuery("SELECT s.tumor, s.ffpe, ps.quality q1, r.quality q2, p.type FROM sequencing_run r, sample s, processed_sample ps, project p WHERE s.id=ps.sample_id AND ps.id='$ps_id' AND ps.sequencing_run_id=r.id AND ps.project_id = p.id");
+	if (count($res)==0) return false;
 	if ($tumor_only)
 	{
 		if ($res[0]['tumor']!="1") return false;
@@ -1472,7 +1473,7 @@ function ncg_gene_statements($gene)
 function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 {
 	//generate bed file that contains edges of whole reference genome
-	$handle_in = fopen("{$ref_genome_fasta}.fai","r");
+	$handle_in = fopen2("{$ref_genome_fasta}.fai","r");
 	$ref_bed = temp_file(".bed");
 	$handle_out = fopen($ref_bed,"w");
 	while(!feof($handle_in))
