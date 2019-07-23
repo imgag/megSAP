@@ -90,9 +90,12 @@ $args[] = $in;
 // execute command
 $parser->exec(get_path("feature_counts"), implode(" ", $args), true);
 
+//write summary into the tool log
+$parser->log("featureCounts summary", file("{$tmp_out}.summary"));
 
 // read counts TSV
 $parser->copyFile($tmp_out, $out);
+$parser->copyFile("{$tmp_out}.summary", "${out}.summary");
 // report BAM file
 if (isset($out_report))
 {

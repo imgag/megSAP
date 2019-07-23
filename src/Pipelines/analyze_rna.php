@@ -119,21 +119,22 @@ if (in_array("ma", $steps) || in_array("fu", $steps))
 	{
 		$parser->exec(get_path("ngs-bits")."ReadQC", "-in1 ".implode(" ", $in_for)." -out $qc_fastq", true);
 
-		$fastq_trimmed1 = $parser->tempFile("_trimmed.fastq.gz");
+		$fastq_trimmed_tmpdir = $parser->tempFolder();
+		$fastq_trimmed1 = "{$fastq_trimmed_tmpdir}/{$name}-trimmed.fastq.gz";
 		
-		$skewer_params = array(
+		$skewer_params = [
 			"-x", $sys["adapter1_p5"],
-			"-y", $sys["adapter2_p7"],
-			"-m any",
-			"--threads", min($threads, 2), // use at most 2 threads
-			"--stdout",
+			"--mode tail",
+			"--threads", bound($threads, 1, 6),
+			"--compress",
+			"--output", "{$fastq_trimmed_tmpdir}/{$name}",
 			"-"
-		);
+		];
 		
-		$pipline = array();
-		$pipeline[] = array("zcat", implode(" ", $in_for));
-		$pipeline[] = array(get_path("skewer"), implode(" ", $skewer_params));
-		$pipeline[] = array("gzip", "-1 > {$fastq_trimmed1}");
+		$pipline = [
+			["zcat", implode(" ", $in_for)],
+			[get_path("skewer"), implode(" ", $skewer_params)]
+		];
 		$parser->execPipeline($pipeline, "skewer");
 	}
 }
@@ -203,7 +204,8 @@ if (in_array("rc", $steps))
 {
 	if ($paired)
 	{
-		$repair_bam = $parser->tempFile(".bam", "{$name}_");
+		$tmpdir = $parser->tempFolder();
+		$repair_bam = "{$tmpdir}/{$name}.bam";
 		$parser->exec(dirname(get_path("feature_counts")) . "/utilities/repair",
 			"-i {$final_bam} -o {$repair_bam} -T {$threads}", true);
 	}
