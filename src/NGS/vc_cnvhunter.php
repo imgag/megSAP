@@ -28,6 +28,7 @@ $psid1 = basename($cov,".cov");
 $psid2 = $somatic ? basename($n_cov,".cov") : null;
 $sys = load_system($system, $psid1);
 $data_folder = get_path("data_folder");
+$repository_basedir = repository_basedir();
 
 //get coverage files (background)
 if($cov_folder=="auto")
@@ -78,9 +79,9 @@ if(!is_dir($temp_folder) || !is_writable($temp_folder))
 	trigger_error("Temp folder '$temp_folder' not writable.", E_USER_ERROR);
 }
 $args[] = "-out {$temp_folder}/cnvs.tsv";
-$args[] = "-cnp_file ".repository_basedir()."/data/misc/cnps_300genomes_imgag.bed";
-$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
-$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".repository_basedir()."/data/gene_lists/dosage_sensitive_disease_genes.bed ".(file_exists($omim_file) ? $omim_file : "");
+$args[] = "-cnp_file {$repository_basedir}/data/misc/cnps_300genomes_imgag.bed";
+$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
+$args[] = "-annotate {$repository_basedir}/data/gene_lists/genes.bed {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed ".(file_exists($omim_file) ? $omim_file : "");
 $parser->exec(get_path("ngs-bits")."CnvHunter", implode(" ", $args), true);
 
 // filter results for given processed sample(s)
@@ -399,7 +400,7 @@ if($somatic)
 	$end = 0;
 	$arm = "";
 	$chrom_arms = array();
-	$matrix = Matrix::fromTSV(repository_basedir()."/data/misc/cytoBand.txt");
+	$matrix = Matrix::fromTSV("{$repository_basedir}/data/misc/cytoBand.txt");
 	for($i=0;$i<$matrix->rows();++$i)
 	{
 		$row = $matrix->getRow($i);

@@ -11,7 +11,15 @@ ngsbits=$tools/ngs-bits/bin
 genome=$root/genomes/GRCh37.fa
 
 
-#Download NCG6.0 - information about oncogenes and TSG
+#Install ClinGen dosage sensitivity
+cd $dbs
+mkdir ClinGen
+cd ClinGen
+wget ftp://ftp.ncbi.nlm.nih.gov/pub/dbVar/clingen/ClinGen_gene_curation_list_GRCh37.tsv
+cat ClinGen_gene_curation_list_GRCh37.tsv | php $src/Tools/db_converter_clingen_dosage.php > dosage_sensitive_disease_genes.bed
+$ngsbits/BedSort -in dosage_sensitive_disease_genes.bed -out dosage_sensitive_disease_genes.bed
+
+#Install NCG6.0 - information about oncogenes and tumor suppressor genes
 cd $dbs
 mkdir NCG6.0
 cd NCG6.0
@@ -37,6 +45,12 @@ mkdir ClinVar
 cd ClinVar
 wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2019/clinvar_20190708.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20190503_converted.vcf.gz
 tabix -p vcf clinvar_20190503_converted.vcf.gz
+#CNVs
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2019-07.txt.gz | gunzip > variant_summary_2019-07.txt
+cat variant_summary_2019-07.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" > clinvar_cnvs_pathogenic.bed
+$ngsbits/BedSort -in clinvar_cnvs_pathogenic.bed -out clinvar_cnvs_pathogenic.bed
+cat variant_summary_2019-07.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Benign/Likely benign" > clinvar_cnvs_benign.bed
+$ngsbits/BedSort -in clinvar_cnvs_benign.bed -out clinvar_cnvs_benign.bed
 
 #Install gnomAD (genome data) - http://gnomad.broadinstitute.org/downloads
 cd $dbs

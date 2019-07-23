@@ -7,9 +7,6 @@ create_somatic_tmb_tsg_bed:
 create_somatic_tmb_blacklist:
 	echo "HLA-A\nHLA-B" | GenesToBed -source ensembl -mode exon | BedMerge -merge_names > somatic_tmb_blacklist.bed
 
-dosage_sensitive_disease_genes:
-	GenesToBed -in dosage_sensitive_disease_genes.txt -mode gene -source ensembl | BedExtend -n 20 -out dosage_sensitive_disease_genes.bed
-
 genes:
 	NGSDExportGenes | cut -f1 | grep -v "#symbol" | GenesToBed -mode gene -source ensembl | BedExtend -n 20 -out genes.bed
 
