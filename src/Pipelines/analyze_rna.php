@@ -131,7 +131,7 @@ if (in_array("ma", $steps) || in_array("fu", $steps))
 			"-"
 		];
 		
-		$pipline = [
+		$pipeline = [
 			["zcat", implode(" ", $in_for)],
 			[get_path("skewer"), implode(" ", $skewer_params)]
 		];
