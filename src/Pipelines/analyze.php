@@ -444,21 +444,21 @@ if (in_array("sv", $steps))
 			create_directory($manta_evidence_dir);
 
 			$manta_args = [
-				"-bam", $bamfile,
-				"-evid_dir", $manta_evidence_dir,
-				"-out", $sv_manta_file,
-				"-smallIndels", $small_indel_manta_file,
-				"-threads", $threads,
+				"-bam ".$bamfile,
+				"-evid_dir ".$manta_evidence_dir,
+				"-out ".$sv_manta_file,
+				"-smallIndels ".$small_indel_manta_file,
+				"-threads ".$threads,
 				"-fix_bam",
-				"-build", $sys['build'],
-				"--log",$log_sv
+				"-build ".$sys['build'],
+				"--log ".$log_sv
 			];
 			if($sys['target_file'] != "") $manta_args[] = "-target " . $sys['target_file'];
 			
 			//settings for non-WGS data
 			if($sys['type']!="WGS") $manta_args[] = "-exome";
 			
-			$parser->execTool("NGS/vc_manta.php",implode(" ",$manta_args));
+			$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
 		}
 
 		/*****************************
@@ -467,13 +467,14 @@ if (in_array("sv", $steps))
 		if(in_array("delly",$sv_caller))
 		{
 			$delly_args = [
-				"-out",$sv_delly_file,
-				"-bam",$bamfile,
-				"-exclude", repository_basedir() . "/data/misc/delly_exclude_regions_hg19.tsv",
-				"--log",$log_sv
+				"-out ".$sv_delly_file,
+				"-bam ".$bamfile,
+				"-exclude ".repository_basedir()."/data/misc/delly_exclude_regions_hg19.tsv",
+				"-build ".$sys['build'],
+				"--log ".$log_sv
 			];
 			if($sys['target_file'] != "") $delly_args[] = "-target ".$sys['target_file'];
-			$parser->execTool("NGS/vc_delly.php",implode(" ",$delly_args));
+			$parser->execTool("NGS/vc_delly.php", implode(" ", $delly_args));
 		}
 		
 		//Create BEDPE-Files for each structural variant VCF-file

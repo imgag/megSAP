@@ -293,10 +293,14 @@ $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$repo
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$repository_basedir}/data/misc/cnps_700genomes_pcawg.bed -overlap -out {$out}", true);
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$out}", true);
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -out {$out}", true);
-$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_benign.bed -no_duplicates -out {$out}", true);
-$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_pathogenic.bed -no_duplicates -out {$out}", true);
-$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; 
-if (file_exists($omim_file)) //optional because of license
+$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs.bed -no_duplicates -out {$out}", true);
+$hgmd_file = "{$data_folder}/dbs/HGMD/hgmd_cnvs.bed"; //optional because of license
+if (file_exists($hgmd_file))
+{
+	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$hgmd_file} -no_duplicates -out {$out}", true);
+}
+$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
+if (file_exists($omim_file))
 {
 	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$omim_file} -no_duplicates -out {$out}", true);
 }

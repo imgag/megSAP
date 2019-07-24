@@ -40,6 +40,8 @@ extract($parser->parse($argv));
 //init
 $repository_basedir = repository_basedir();
 $data_folder = get_path("data_folder");
+$hgmd_file = "{$data_folder}/dbs/HGMD/hgmd_cnvs.bed";
+$omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
 
 //check steps
 $steps = explode(",", $steps);
@@ -280,7 +282,19 @@ if (in_array("cn", $steps))
 		trigger_error("Input CNVs have different filetypes. Aborting CNV multisample call.",E_USER_WARNING);
 		$skip_cn = true;
 	}
-
+	
+	//annotation column headers
+	$anno_headers = ["overlap cnps_300genomes_imgag", "overlap cnps_700genomes_pcawg", "cn_pathogenic", "genes", "dosage_sensitive_disease_genes", "clinvar_cnvs"];
+	
+	if (file_exists($hgmd_file))
+	{
+		$anno_headers[] = "hgmd_cnvs";
+	}
+	if (file_exists($omim_file))
+	{
+		$anno_headers[] = "omim";
+	}
+	
 	//(3.1a) merge ClinCNV
 	if(!$skip_cn && $cn_type == "clincnv")
 	{
@@ -394,7 +408,7 @@ if (in_array("cn", $steps))
 			$regions = $tmp;
 		}
 		
-		$output[] = "#chr\tstart\tend\tsample\tsize\tCN_change\tloglikelihood\tqvalue\tpotential_AF\toverlap cnps_300genomes_imgag\toverlap cnps_700genomes_pcawg\tcn_pathogenic\tgenes\tdosage_sensitive_disease_genes";
+		$output[] = "#chr\tstart\tend\tsample\tsize\tCN_change\tloglikelihood\tqvalue\tpotential_AF\t".implode("\t", $anno_headers);
 		foreach($regions as $reg)
 		{
 			
@@ -529,7 +543,7 @@ if (in_array("cn", $steps))
 		}
 		
 		//write output
-		$output[] = "#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	cnps_300genomes_imgag	cnps_700genomes_pcawg	genes	dosage_sensitive_disease_genes";	
+		$output[] = "#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	".implode("\t", $anno_headers);	
 		foreach($regions_by_number as $cnv_num => $regions)
 		{
 			$chr = null;
@@ -570,39 +584,42 @@ if (in_array("cn", $steps))
 	//(3.2) annotate merged file
 	if(!$skip_cn)
 	{
-		$tmp1 = $parser->tempFile(".bed");
-		file_put_contents($tmp1, implode("\n", $output));
+		$tmp = $parser->tempFile(".bed");
+		file_put_contents($tmp, implode("\n", $output));
 
 		//copy-number polymorphisms
-		$tmp2_1 = $parser->tempFile(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp1} -in2 {$repository_basedir}/data/misc/cnps_300genomes_imgag.bed -overlap -out {$tmp2_1}", true);
-		$tmp2_2 = $parser->tempFile(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp2_1} -in2 {$repository_basedir}/data/misc/cnps_700genomes_pcawg.bed -overlap -out {$tmp2_2}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$repository_basedir}/data/misc/cnps_300genomes_imgag.bed -overlap -out {$tmp}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$repository_basedir}/data/misc/cnps_700genomes_pcawg.bed -overlap -out {$tmp}", true);
 		
 		//knowns pathogenic CNVs
-		$tmp2_3 = $parser->tempFile(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp2_2} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$tmp2_3}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$tmp}", true);
 		
 		//gene names
-		$tmp3 = $parser->tempFile(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in {$tmp2_3} -extend 20 -out {$tmp3}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in {$tmp} -extend 20 -out {$tmp}", true);
 		
 		//dosage sensitive disease genes
-		$tmp4 = $parser->tempFile(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp3} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -out {$tmp4}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -out {$tmp}", true);
+		
+		//pathogenic ClinVar CNVs
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs.bed -no_duplicates -out {$tmp}", true);
+		
+		//HGMD CNVs
+		if (file_exists($hgmd_file)) //optional because of license
+		{
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$hgmd_file} -no_duplicates -out {$tmp}", true);
+		}
 		
 		//OMIM
+		if (file_exists($omim_file)) //optional because of license
+		{
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 $omim_file -no_duplicates -out {$tmp}", true);
+		}
+		
+		//write output
 		if($cn_type == "cnvhunter")	$cnv_multi = "{$out_folder}{$prefix}_cnvs.tsv";
-		elseif($cn_type == "clincnv") $cnv_multi = "{$out_folder}{$prefix}_cnvs_clincnv.tsv";
-		$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
-		if (file_exists($omim_file))
-		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp4} -in2 $omim_file -no_duplicates -out {$cnv_multi}", true);
-		}
-		else
-		{
-			$parser->moveFile($tmp4, $cnv_multi);
-		}
+		else if($cn_type == "clincnv") $cnv_multi = "{$out_folder}{$prefix}_cnvs_clincnv.tsv";
+		else trigger_error("Invalid CNV list type '{$cn_type}'!", E_USER_ERROR);
+		$parser->moveFile($tmp, $cnv_multi);
 	}
 }
 

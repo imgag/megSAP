@@ -47,10 +47,8 @@ wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2019/cli
 tabix -p vcf clinvar_20190503_converted.vcf.gz
 #CNVs
 wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2019-07.txt.gz | gunzip > variant_summary_2019-07.txt
-cat variant_summary_2019-07.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" > clinvar_cnvs_pathogenic.bed
-$ngsbits/BedSort -in clinvar_cnvs_pathogenic.bed -out clinvar_cnvs_pathogenic.bed
-cat variant_summary_2019-07.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Benign/Likely benign" > clinvar_cnvs_benign.bed
-$ngsbits/BedSort -in clinvar_cnvs_benign.bed -out clinvar_cnvs_benign.bed
+cat variant_summary_2019-07.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" > clinvar_cnvs.bed
+$ngsbits/BedSort -in clinvar_cnvs.bed -out clinvar_cnvs.bed
 
 #Install gnomAD (genome data) - http://gnomad.broadinstitute.org/downloads
 cd $dbs
@@ -132,7 +130,10 @@ tabix -s 1 -b 2 -e 2 -c c dbscSNV1.1_GRCh37.txt.gz
 #tabix -p bed omim.bed.gz
 
 #Install HGMD (you need a license)
-#manual download https://portal.biobase-international.com/cgi-bin/portal/login.cgi 
+#manual download of files hgmd_pro_2019.2_hg19.vcf and hgmd_pro-2019.2.dump.gz from https://portal.biobase-international.com/cgi-bin/portal/login.cgi 
 #cat hgmd_pro_2019.2_hg19.vcf | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2019_2_fixed.vcf.gz
 #tabix -p vcf HGMD_PRO_2019_2_fixed.vcf.gz
+##CNVs
+#zcat hgmd_pro-2019.2.dump.gz | gunzip | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVs.bed
+#$ngsbits/BedSort -in HGMD_CNVs.bed -out HGMD_CNVs.bed
 
