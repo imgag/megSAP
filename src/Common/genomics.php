@@ -307,7 +307,7 @@ function load_system(&$filename, $ps_name = "")
 	if (is_null($filename) || $filename=="")
 	{
 		//get ID of processed sample
-		$db_conn = DB::getInstance("NGSD");
+		$db_conn = DB::getInstance("NGSD", false);
 		$ps_id = get_processed_sample_id($db_conn, $ps_name, false);
 		if ($ps_id==-1)
 		{
@@ -856,7 +856,7 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false)
 	}
 
 	//check sample is in NGSD
-	$db_conn = DB::getInstance("NGSD");
+	$db_conn = DB::getInstance("NGSD", false);
 	$ps_id = get_processed_sample_id($db_conn, $file, false);
 	if ($ps_id<0) return false;
 	
@@ -895,7 +895,7 @@ function is_valid_ref_tumor_sample_for_cnv_analysis($file, $discard_ffpe = false
 	}
 	
 	//check sample is in NGSD
-	$db_conn = DB::getInstance("NGSD");
+	$db_conn = DB::getInstance("NGSD", false);
 	$ps_id = get_processed_sample_id($db_conn, $file, false);
 	
 	//check that sample is not FFPE
@@ -1269,7 +1269,7 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 	
 	if (db_is_enabled("NGSD"))
 	{
-		$db_conn = DB::getInstance("NGSD");
+		$db_conn = DB::getInstance("NGSD", false);
 		$details = get_processed_sample_info($db_conn, $ps_name, false);
 		$parts['Gender'] = $details['gender'];
 		$parts['ExternalSampleName'] = strtr($details['name_external'], ",", ";");

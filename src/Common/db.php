@@ -4,39 +4,44 @@ require_once("genomics.php");
 
 class DB
 {
-	protected static $instance = null;
+	protected static $instances = array();
 	protected $connection = null;
 	protected $prep_stmts = array();
 	protected $stmt_counter = 0;
 	protected $log = false;
 	protected $path_to_log = '';
 	protected $log_messages = array();
-	protected $db_info = "";
 	const PERSISTENT_STORAGE = TRUE;
 	
-	/**
-	 * Returns current instance of the DB connection and - if
-	 * not yet available - creates a new one.
- 	 * 
-	 * @param $db string Name of database to access
-	 * @return PDO_Connection
-	 */
-	public static function getInstance($db)
+	///Returns a new instance
+	protected static function get_instance($db)
 	{
 		$host = "mysql:host=".get_db($db, 'db_host');
 		$name = "dbname=".get_db($db, 'db_name');
+		$user = get_db($db, 'db_user');
+		$pass = get_db($db, 'db_pass');
+		$log = get_db($db, 'db_log');
+		$path_to_log = get_db($db, 'db_log_path');
 		
-		//create a new connection if no connection exists OR if the DB host/name have changed
-		if(is_null(self::$instance) || self::$instance->getDBInfo()!=$host.";".$name || !self::$instance->ping())
+		return new self($host, $name, $user, $pass, $log, $path_to_log);
+	}
+	
+	/**
+	 * Returns current instance of the DB connection and - if not yet available - creates a new one.
+ 	 * 
+	 * @param $db Name of database to access
+	 * @param $persistent If true, a persistent singleton instance is returned. If false, an instance is returned that is deleted when it leaves the scope.
+	 */
+	public static function getInstance($db, $persistent = true)
+	{
+		if (!$persistent) return self::get_instance($db);
+		
+		//create a new connection if no connection exists OR the connection is no longer alive
+		if(!isset(self::$instances[$db]) || !self::$instances[$db]->isAlive())
 		{
-			$user = get_db($db, 'db_user');
-			$pass = get_db($db, 'db_pass');
-			$log = get_db($db, 'db_log');
-			$path_to_log = get_db($db, 'db_log_path');
-			self::$instance = new self($host, $name, $user, $pass, $log, $path_to_log);
+			self::$instances[$db] = self::get_instance($db);
 		}
-		
-		return self::$instance;
+		return self::$instances[$db];
 	}
 	
 	protected function __construct($host, $name, $user, $pass, $log, $path_to_log)
@@ -53,8 +58,6 @@ class DB
 			$this->log = $log;
 			$this->path_to_log = $path_to_log;
 			$this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);		
-			
-			$this->db_info = $host.";".$name;
 		}
 		catch(PDOException $e)
 		{
@@ -62,8 +65,12 @@ class DB
 		}
 	}
 	
-	///custom ping functoin
-	function ping() 
+	public function __destruct()
+	{
+	}
+	
+	///checks if the connection is still alive (it can be closed by the server if idle too long)
+	function isAlive() 
 	{
         try 
 		{
@@ -76,13 +83,6 @@ class DB
  
         return true;
     }
-	
-	
-	///Returns the DB info string ($host.";".$name)
-	function getDBInfo()
-	{
-		return $this->db_info;
-	}
 	
 	/**
 	 * Prepares a statement for execution.
