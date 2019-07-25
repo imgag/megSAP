@@ -14,7 +14,6 @@
 ##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.
 ##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).
 ##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.
-##DESCRIPTION=ESP_sub=Sub-population allele frequency (EA,AA) in NHLBI Exome Sequencing project.
 ##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
 ##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.
 ##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.
@@ -26,4 +25,4 @@
 ##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).
 ##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
 ##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.
-#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	ESP_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC
+#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC
