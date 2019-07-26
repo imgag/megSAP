@@ -80,8 +80,17 @@ if(!is_dir($temp_folder) || !is_writable($temp_folder))
 }
 $args[] = "-out {$temp_folder}/cnvs.tsv";
 $args[] = "-cnp_file {$repository_basedir}/data/misc/cnps_300genomes_imgag.bed";
+$anno_files = array(
+	"{$repository_basedir}/data/gene_lists/genes.bed",
+	"{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed",
+	"{$repository_basedir}/data/misc/cn_pathogenic.bed",
+	"{$data_folder}/dbs/ClinVar/clinvar_cnvs.bed",
+);
+$hgmd_file = "{$data_folder}/dbs/HGMD/hgmd_cnvs.bed"; //optional because of license
+if (file_exists($hgmd_file)) $anno_files[] = $hgmd_file;
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
-$args[] = "-annotate {$repository_basedir}/data/gene_lists/genes.bed {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed ".(file_exists($omim_file) ? $omim_file : "");
+if (file_exists($omim_file)) $anno_files[] = $omim_file;
+$args[] = "-annotate ".implode(" ", $anno_files);
 $parser->exec(get_path("ngs-bits")."CnvHunter", implode(" ", $args), true);
 
 // filter results for given processed sample(s)
@@ -513,6 +522,7 @@ $median_cnvs = median($median_cnvs);
 foreach($hits as $values)
 {
 	list($sample, $ref_correl, $cnvs, $qc_info) = $values;
+	$cnvs_filtered->addComment("#ANALYSISTYPE=CNVHUNTER_".($somatic ? "SOMATIC" : "GERMLINE")."_SINGLE");
 	$cnvs_filtered->addComment("#$sample ref_correl: $ref_correl (median: $median_correl)");
 	$cnvs_filtered->addComment("#$sample cnvs: $cnvs (median: $median_cnvs)");
 	$cnvs_filtered->addComment("#$sample qc_errors: $qc_info");
