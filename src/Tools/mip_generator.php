@@ -32,6 +32,7 @@ $bed = file($target);
 foreach($bed as $reg)
 {
 	list($c, $s, $e) = explode("\t", $reg);
+	$e = trim($e);
 	$c = substr($c, 3);
 	$s -= 1000;
 	$e += 1000;
@@ -80,6 +81,7 @@ $parser->exec(get_path('ngs-bits')."VcfStreamSort", "-in $unsorted -out $common_
 //index
 $parser->exec("bgzip", "-f $common_snps", false); //no output logging, because Toolbase::extractVersion() does not return
 $parser->exec("tabix", "$common_snps.gz", false); //no output logging, because Toolbase::extractVersion() does not return
+$common_snps = "${common_snps}.gz";
 
 // 2. generate MIPs
 putenv("PATH=".dirname(get_path("samtools")).":".dirname(get_path("bwa")).":".getenv("PATH"));
@@ -90,6 +92,7 @@ $args .= "-snp_file $common_snps ";
 $args .= "-starting_mip_overlap $overlap ";
 $args .= "-arm_length_sums 40,41,42 -tag_sizes 8,0 -score_method mixed ";
 $args .= "-min_capture_size $min_capture_size -max_capture_size $max_capture_size ";
+$args .= "-capture_increment 1 " ;
 if($mode=="ffpe")	$args .= "-half_seal_both_strands off -double_tile_strands_separately on ";
 if($mode=="cfdna")	$args .= "-half_seal_both_strands off -double_tile_strands_separately on ";
 $parser->exec(get_path('mipgen'), $args, true);
@@ -105,6 +108,8 @@ $i_start = $mips->getColumnIndex("mip_scan_start_position");
 $i_end = $mips->getColumnIndex("mip_scan_stop_position");
 $i_strand = $mips->getColumnIndex("probe_strand");
 $i_name = $mips->getColumnIndex("mip_name");
+$i_e_copies = $mips->getColumnIndex("ext_probe_copy");
+$i_l_copies = $mips->getColumnIndex("lig_probe_copy");
 $c_mips = 0;
 $p_mips_new = $out_folder."/".$project_name."_mips_picked.tsv";
 $mips_new = new Matrix();
@@ -116,11 +121,15 @@ for($i=0;$i<$mips->rows();++$i)
 	$row = $mips->getRow($i);
 	if($row[$i_svr]<$min_svr && !$no_svr)	continue;
 	$mips_new->addRow($row);
-	$bed->addRow(array("chr".$row[$i_chr],$row[$i_start]-1,$row[$i_end],$row[$i_name],0,$row[$i_strand]));
+	$info = sprintf("Name=%s;SVR=%.2f;ext_probe_copy=%d;lig_probe_copy=%d", $row[$i_name], $row[$i_svr], $row[$i_e_copies], $row[$i_l_copies]);
+	$color = "22,111,255";
+	if($row[$i_svr]<$min_svr) $color = "255,53,22";
+	$bed->addRow(array("chr".$row[$i_chr],$row[$i_start]-1,$row[$i_end],$info,$row[$i_svr],$row[$i_strand],$row[$i_start]-1,$row[$i_start]-1,$color));
 	$c_mips += $row[$i_end]-($row[$i_start]-1);
 }
 $mips_new->toTSV($p_mips_new);
 $p_cov = $out_folder."/".$project_name."_target_covered.bed";
+$bed->addComment("gffTags");
 $bed->toTSV($p_cov);
 // statistics
 $c_cov = 0;
