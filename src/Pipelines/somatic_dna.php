@@ -181,6 +181,12 @@ if (!$single_sample)
 	$n_id = basename($n_bam, ".bam");
 	$n_sys = load_system($n_system, $n_id);
 	$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
+	
+	//Check whether both samples have same processing system
+	if($roi != $n_sys["target_file"])
+	{
+		trigger_error("Tumor sample $t_id and normal sample $n_id have different target regions. Aborting...",E_USER_ERROR);
+	}
 }
 
 //sample similiarty check
@@ -548,7 +554,7 @@ if(in_array("cn",$steps))
 			create_baf_file($normal_gsvar,$t_bam,"{$baf_folder}/{$t_id}.tsv", $ref_genome);
 		}
 
-		//Skip CNV Calling if there are less than 5 tumor-normal coverage pairs
+		//Skip CNV Calling if there are less than 7 tumor-normal coverage pairs
 		if(count(file($t_n_list_file)) > 7)
 		{
 			/*******************
