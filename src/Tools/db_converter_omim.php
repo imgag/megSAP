@@ -84,7 +84,7 @@ while(!feof($handle))
 					++$c_chr_mismatch;
 					continue;
 				}
-				print "$chr	$start	$end	{$mim_id}_[{$gene}_{$disorders}]\n";
+				print "$chr	$start	$end	{$mim_id}_[GENE={$gene}_PHENOS={$disorders}]\n";
 			}
 		}
 	}
