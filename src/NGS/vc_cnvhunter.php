@@ -523,6 +523,9 @@ foreach($hits as $values)
 {
 	list($sample, $ref_correl, $cnvs, $qc_info) = $values;
 	$cnvs_filtered->addComment("#ANALYSISTYPE=CNVHUNTER_".($somatic ? "SOMATIC" : "GERMLINE")."_SINGLE");
+	list($cnvhunter_version) = exec2(get_path("ngs-bits")."CnvHunter --version");
+	$cnvhunter_version = trim(substr($cnvhunter_version[0], 9));
+	$cnvs_filtered->addComment("#CnvHunter version: $cnvhunter_version");
 	$cnvs_filtered->addComment("#$sample ref_correl: $ref_correl (median: $median_correl)");
 	$cnvs_filtered->addComment("#$sample cnvs: $cnvs (median: $median_cnvs)");
 	$cnvs_filtered->addComment("#$sample qc_errors: $qc_info");
