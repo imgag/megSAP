@@ -433,6 +433,7 @@ if (in_array("cn", $steps))
 	{
 		//load CNV files
 		$output = array();
+		$output[] = "##ANALYSISTYPE=CNVHUNTER_GERMLINE_MULTI";
 		$cnv_data = array();
 		foreach($bams as $bam)
 		{
@@ -450,6 +451,8 @@ if (in_array("cn", $steps))
 				{
 					if (starts_with($line, "##"))
 					{
+						if (starts_with($line, "##ANALYSISTYPE=")) continue;
+						
 						$output[] = $line;
 					}
 					continue;
