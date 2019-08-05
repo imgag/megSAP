@@ -463,7 +463,7 @@ if(in_array("cn",$steps))
 
 	if($single_sample) //use CNVHunter in case of single samples
 	{
-		trigger_error("Currently only tumor normal pairs are supported for ClinCNV calls. Using CNVHunter instead.", E_USER_WARNING);
+		trigger_error("Currently only tumor normal pairs are supported for ClinCNV calls. Using CNVHunter on tumor sample instead.", E_USER_WARNING);
 		$parser->execTool("NGS/vc_cnvhunter.php","-cov {$t_cov} -out {$som_cnv} -system {$system} -min_corr 0 -seg {$t_id} -n {$min_cov_files}");
 	}
 	else //ClinCNV for differential sample
