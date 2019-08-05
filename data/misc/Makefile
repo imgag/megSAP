@@ -4,9 +4,9 @@ help:
 cytoBand:
 	wget -O - http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/cytoBand.txt.gz | gunzip > cytoBand.txt
 
-cnps_300genomes_imgag:
-	cp /mnt/SRV018/users/ahsturm1/Sandbox/ClinCNV/cnps_genomes/cnps_300genomes_imgag.igv .
-	cut -f1,2,3,5 cnps_300genomes_imgag.igv | grep -v "Chromosome" > cnps_300genomes_imgag.bed
+cnps_genomes_imgag:
+	cp /mnt/SRV018/users/ahsturm1/Sandbox/ClinCNV/cnps_genomes/cnps_genomes_imgag.igv .
+	cut -f1,2,3,5 cnps_genomes_imgag.igv | grep -v "Chromosome" > cnps_genomes_imgag.bed
 
 cnps_700genomes_pcawg:
 	cp /mnt/SRV018/users/ahsturm1/Sandbox/ClinCNV/cnps_genomes/cnps_700genomes_pcawg.igv .

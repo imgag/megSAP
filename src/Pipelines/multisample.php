@@ -284,7 +284,7 @@ if (in_array("cn", $steps))
 	}
 	
 	//annotation column headers
-	$anno_headers = ["overlap cnps_300genomes_imgag", "overlap cnps_700genomes_pcawg", "cn_pathogenic", "genes", "dosage_sensitive_disease_genes", "clinvar_cnvs"];
+	$anno_headers = ["overlap cnps_genomes_imgag", "overlap cnps_700genomes_pcawg", "cn_pathogenic", "genes", "dosage_sensitive_disease_genes", "clinvar_cnvs"];
 	
 	if (file_exists($hgmd_file))
 	{
@@ -591,7 +591,7 @@ if (in_array("cn", $steps))
 		file_put_contents($tmp, implode("\n", $output));
 
 		//copy-number polymorphisms
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$repository_basedir}/data/misc/cnps_300genomes_imgag.bed -overlap -out {$tmp}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$repository_basedir}/data/misc/cnps_genomes_imgag.bed -overlap -out {$tmp}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$repository_basedir}/data/misc/cnps_700genomes_pcawg.bed -overlap -out {$tmp}", true);
 		
 		//knowns pathogenic CNVs

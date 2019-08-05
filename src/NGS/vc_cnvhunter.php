@@ -74,7 +74,7 @@ if(!is_dir($temp_folder) || !is_writable($temp_folder))
 	trigger_error("Temp folder '$temp_folder' not writable.", E_USER_ERROR);
 }
 $args[] = "-out {$temp_folder}/cnvs.tsv";
-$args[] = "-cnp_file {$repository_basedir}/data/misc/cnps_300genomes_imgag.bed";
+$args[] = "-cnp_file {$repository_basedir}/data/misc/cnps_genomes_imgag.bed";
 $anno_files = array(
 	"{$repository_basedir}/data/gene_lists/genes.bed",
 	"{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed",
