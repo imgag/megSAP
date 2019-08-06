@@ -669,7 +669,7 @@ while(!feof($handle))
 						$hgnc_gene = $hgnc[$hgnc_id];
 						if ($gene!=$hgnc_gene)
 						{
-							@$hgnc_messages["gene name '$gene' with ID '$hgnc_id replaced by '$hgnc_gene'"] += 1;
+							//@$hgnc_messages["gene name '$gene' with ID '$hgnc_id' replaced by '$hgnc_gene'"] += 1;
 							$gene = $hgnc_gene;
 						}
 					}
