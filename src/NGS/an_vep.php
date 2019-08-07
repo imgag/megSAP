@@ -21,7 +21,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 extract($parser->parse($argv));
 
 //get local/global data file path - depending on what is available
-function annotation_file_path($rel_path)
+function annotation_file_path($rel_path, $is_optional)
 {
 	global $data_folder;
 	global $local_data;
@@ -30,6 +30,10 @@ function annotation_file_path($rel_path)
 	$orig = $data_folder.$rel_path;
 	if (!file_exists($orig))
 	{
+		if ($is_optional)
+		{
+			return $orig;
+		}
 		trigger_error("VEP annotation file '$orig' missing!", E_USER_ERROR);
 	}
 	
@@ -89,13 +93,13 @@ $fields[] = "CLINVAR";
 $fields[] = "CLINVAR_DETAILS";
 $args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg19.100way.phyloP100way.bw").",PHYLOP,bigwig"; //phyloP
 $fields[] = "PHYLOP";
-$omim_file = annotation_file_path("/dbs/OMIM/omim.bed.gz"); //OMIM annotation (optional because of license)
+$omim_file = annotation_file_path("/dbs/OMIM/omim.bed.gz", true); //OMIM annotation (optional because of license)
 if(file_exists($omim_file))
 {
 	$args[] = "--custom {$omim_file},OMIM,bed,overlap,0";
 	$fields[] = "OMIM";
 }
-$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2019_2_fixed.vcf.gz"); //HGMD annotation (optional because of license)
+$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2019_2_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
 if(file_exists($hgmd_file))
 {
 	$args[] = "--custom {$hgmd_file},HGMD,vcf,exact,0,CLASS,MUT,GENE,PHEN";
