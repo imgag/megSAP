@@ -21,7 +21,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 extract($parser->parse($argv));
 
 //get local/global data file path - depending on what is available
-function annotation_file_path($rel_path, $is_optional)
+function annotation_file_path($rel_path, $is_optional=false)
 {
 	global $data_folder;
 	global $local_data;
