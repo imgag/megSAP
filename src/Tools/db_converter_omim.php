@@ -4,10 +4,13 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 //init
 $ngsbits = get_path("ngs-bits");
-$c_chr_mismatch = 0;
-$c_no_approved_gene = 0;
+$skipped = array(
+	"approved gene missing" => array(),
+	"approved gene name unknown" => array(),
+	"approved gene not convertable to genomic coordinates" => array(),
+	);
 
-//parse "genemap2.txt" for coordinates and disorders
+//parse "genemap2.txt" for genes and disorders
 /*
 # Chromosome	Genomic Position Start	Genomic Position End	Cyto Location	Computed Cyto Location	Mim Number	Gene Symbols	Gene Name	Approved Symbol	Entrez Gene ID	Ensembl Gene ID	Comments	Phenotypes	Mouse Gene Symbol/ID
 chr1	975197	982116	1p36.33	1p36.33	615921	PERM1, C1orf170	PPARGC1-and ESRR-induced regulator, muscle, 1	PERM1	84808	ENSG00000187642			
@@ -41,57 +44,46 @@ while(!feof($handle))
 	//chromosome
 	$chr_omim = trim($parts[0]);
 	
-	//extract genes
-	$genes = array();
-	foreach(explode(",", $parts[6].",".$parts[8]) as $gene)
+	//extract gene
+	$gene = trim($parts[8]);
+	if ($gene=="")
 	{
-		$gene = trim($gene);
-		if ($gene=="") continue;
-		
-		$genes[] = $gene;
-	}
-	
-	//convert genes to approved symbols
-	$genes_approved = array();
-	list($stdout) = exec2("echo -e '".implode("\n", $genes)."' | {$ngsbits}GenesToApproved");
-	foreach($stdout as $line)
-	{
-		list($gene, $message) = explode("\t", $line);
-		if (contains($message, "ERROR")) continue;
-		if (in_array($gene, $genes_approved)) continue;
-		$genes_approved[] = $gene;
-	}
-	if (count($genes_approved)==0)
-	{
-		//print "##Warning: No approved genes for MIM {$mim_id}!\n";
-		++$c_no_approved_gene;
+		$skipped["approved gene missing"][] = $mim_id;
 		continue;
 	}
 	
-	//only with coordinates
-	foreach($genes_approved as $gene)
+	//convert gene name to approved symbol
+	list($stdout) = exec2("echo '{$gene}' | {$ngsbits}GenesToApproved");
+	list($gene_approved, $message) = explode("\t", trim(implode(" ", $stdout)));
+	if (contains($message, "ERROR"))
 	{
-		list($stdout, $stderr, $exit_code) = exec2("echo '$gene' | {$ngsbits}GenesToBed -source ensembl -mode gene -fallback | {$ngsbits}BedExtend -n 20 | {$ngsbits}BedMerge", false);
-	
-		if ($exit_code==0 && trim(implode("", $stdout))!="")
-		{
-			foreach($stdout as $line)
-			{
-				list($chr, $start, $end) = explode("\t", trim($line));
-				if ($chr!=$chr_omim)
-				{
-					//print "##Warning: For MIM/gene '$mim_id/$gene' chromosome is '$chr', but OMIM chromosome is '$chr_omim'!\n";
-					++$c_chr_mismatch;
-					continue;
-				}
-				print "$chr	$start	$end	{$mim_id}_[GENE={$gene}_PHENOS={$disorders}]\n";
-			}
-		}
+		$skipped["approved gene name unknown"][] = $mim_id."/".$gene;
+		continue;
 	}
+	
+	//only genes with coorinates on right chromosome
+	list($stdout, $stderr, $exit_code) = exec2("echo '{$gene_approved}' | {$ngsbits}GenesToBed -source ensembl -mode gene -fallback | egrep '{$chr_omim}\s' | {$ngsbits}BedExtend -n 20 | {$ngsbits}BedMerge", false);
+	if ($exit_code!=0 && trim(implode("", $stdout))=="")
+	{
+		$skipped["approved gene not convertable to genomic coordinates"][] = $mim_id."/".$gene_approved."/".$chr_omim;
+		continue;
+	}
+	
+	//output
+	foreach($stdout as $line)
+	{
+		$line = trim($line);
+		if ($line=="") continue;
+		list($chr, $start, $end) = explode("\t", trim($line));
+		print "$chr	$start	$end	{$mim_id}_[GENE={$gene_approved}_PHENOS={$disorders}]\n";
+	}	
 }
 fclose($handle);
 
-print "##MIM entries without approved gene symbols: {$c_no_approved_gene}\n";
-print "##MIM entries with chromosome mismatch: {$c_chr_mismatch}\n";
+print "##MIM entries skipped because:\n";
+foreach($skipped as $reason => $entries)
+{
+	print "##  {$reason}: ".count($entries)."\n";
+}
 
 ?>
