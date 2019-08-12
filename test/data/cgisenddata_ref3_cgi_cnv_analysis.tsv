@@ -29,7 +29,7 @@ cgi	IKBKE	AMP			13	ambiguous	SK		predicted passenger
 cgi	C1ORF147	AMP			14	ambiguous	SK		predicted passenger		
 cgi	IL10	AMP			15	ambiguous	SK		predicted passenger		
 cgi	TMEM63A	AMP			16	ambiguous	SK		predicted passenger		
-cgi	H3F3A	AMP		UCEC	17	Act	SK		predicted passenger		
+cgi	H3-3A	AMP			17	ambiguous	SK		predicted passenger		
 cgi	PARP1	AMP			18	ambiguous	SK		predicted passenger		
 cgi	GALNT2	AMP			19	ambiguous	SK		predicted passenger		
 cgi	SLC35F3	AMP			20	ambiguous	SK		predicted passenger		
@@ -201,7 +201,7 @@ cgi	SLCO1B7	AMP			193	ambiguous	SK		predicted passenger
 cgi	SLCO1B1	AMP			194	ambiguous	SK		predicted passenger		
 cgi	PYROXD1	AMP			195	ambiguous	SK		predicted passenger		
 cgi	KRAS	AMP		BLCA;ESCA;LUAD;OV;STAD;UCEC	196	Act	SK		predicted passenger		
-cgi	H3F3C	AMP			197	ambiguous	SK		predicted passenger		
+cgi	H3-5	AMP			197	ambiguous	SK		predicted passenger		
 cgi	PKP2	AMP			198	ambiguous	SK		predicted passenger		
 cgi	LRRK2	AMP			199	ambiguous	SK		predicted passenger		
 cgi	ARID2	AMP			200	LoF	SK		predicted passenger		
