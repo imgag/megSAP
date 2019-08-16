@@ -69,6 +69,12 @@ class DB
 	{
 	}
 	
+	///quotes special characters for use in a SQL query
+	function quote($string)
+	{
+		return $this->connection->quote($string);
+	}
+	
 	///checks if the connection is still alive (it can be closed by the server if idle too long)
 	function isAlive() 
 	{
