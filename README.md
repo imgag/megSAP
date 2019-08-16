@@ -38,7 +38,8 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 
 ## ChangeLog
-
+* 06.08.2019: Updated all tools and databases to the latest version
+* 05.08.2019: Finished refactoring and update of CNV calling and annotation 
 * 02.05.2019: Genome data and annotation databases (about 210GB) are now always copied to the local /tmp/ folder. See `local_data` in `settings.ini`.
 * 05.04.2019: Using ClinCNV for exomes and genomes now (CnvHunter is still used for panels)
 * 29.03.2019: Outdated gene names annotated by VEP are now corrected via the HGNC identifier if possible.
