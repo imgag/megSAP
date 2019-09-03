@@ -29,6 +29,7 @@ $parser->addString("baf_folder","Folder containing files with B-Allele frequenci
 $parser->addInfile("system", "Processing system INI file (obligatory if NGSD is not available).", true);
 $parser->addFlag("reanalyse_cohort","Reanalyse whole cohort of the same processing system.",true,"auto");
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
+$parser->addString("guide_baseline","baseline region, format e.g. chr1:12-12532",true);
 extract($parser->parse($argv));
 
 //init
@@ -265,6 +266,11 @@ if($use_off_target)
 	$args[] = "--tumorOfftarget $merged_cov_tumor_off";
 	$args[] = "--normalOfftarget $merged_cov_normal_off";
 	$args[] = "--bedOfftarget $bed_off";
+}
+
+if(isset($guide_baseline))
+{
+	$args[] = "--guideBaseline $guide_baseline";
 }
 
 if($reanalyse_cohort) //Delete all sample files in cohort folder if reanalysis shall be performed

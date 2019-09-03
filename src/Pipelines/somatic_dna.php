@@ -43,7 +43,7 @@ $parser->addFloat("min_correlation", "Minimum correlation for tumor/control pair
 $parser->addFloat("min_depth_t", "Tumor sample coverage cut-off for low coverage statistic.", true, 100);
 $parser->addFloat("min_depth_n", "Control sample coverage cut-off for low coverage statistic.", true, 100);
 $parser->addInt("min_cov_files", "Minimum number of required coverage files for CNV calling.", true, 20);
-
+$parser->addString("cnv_baseline_pos","baseline region for ClinCNV, format e.g. chr1:12-12532",true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 extract($parser->parse($argv));
 
@@ -290,8 +290,7 @@ if (in_array("vc", $steps))
 			$args_manta[] = "-target {$roi}";
 		}
 		$parser->execTool("NGS/vc_manta.php", implode(" ", $args_manta));
-		putenv("PYTHONPATH=" . get_path("svtools_pythonpath"));
-		exec2(get_path("svtools") . " vcftobedpe -i $manta_sv -o $manta_sv_bedpe");
+		exec2(get_path("ngs-bits") . "VcfToBedpe -in $manta_sv -out $manta_sv_bedpe");
 	}
 
 	// variant calling
@@ -575,6 +574,12 @@ if(in_array("cn",$steps))
 			"-baf_folder", $baf_folder,
 			"-threads {$threads}"
 			];
+			
+			if(isset($cnv_baseline_pos))
+			{
+				$args_clincnv[] = "-guide_baseline $cnv_baseline_pos";
+			}
+			
 			$parser->execTool("NGS/vc_clincnv_somatic.php",implode(" ",$args_clincnv));
 		}
 		else
