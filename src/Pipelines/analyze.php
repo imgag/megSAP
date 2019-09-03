@@ -483,8 +483,7 @@ if (in_array("sv", $steps))
 		foreach($sv_files as $sv_file)
 		{
 			$bedpe_out = substr($sv_file,0,-6) . "bedpe";
-			putenv("PYTHONPATH=" . get_path("svtools_pythonpath"));
-			exec2(get_path("svtools") . " vcftobedpe -i $sv_file -o $bedpe_out");
+			exec2("{$ngsbits}VcfToBedpe -in $sv_file -out $bedpe_out");
 		}
 	}
 }
