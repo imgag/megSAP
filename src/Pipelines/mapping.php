@@ -133,6 +133,14 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 	$trimmed1 = $trimmed1_bc;
 	$trimmed2 = $trimmed2_bc;
 
+	if ($sys['umi_type'] === "QIAseq")
+	{
+		$trimmed2_trim = $parser->tempFile("_trimmed2_trim.fastq.gz");
+		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed2_trim -start 11", true);
+		$parser->deleteTempFile($trimmed2);
+		$trimmed2 = $trimmed2_trim;
+	}
+
 	$barcode_correction = true;
 }
 else
