@@ -320,6 +320,15 @@ if(file_exists($cnvs_cov_file))
 	$parser->copyFile($cnvs_cov_file,dirname($out)."/{$t_id}-{$n_id}_cov.seg");
 }
 
+$cnv_plots = glob("{$cohort_folder_somatic_sample}/*.png");
+if(count($cnv_plots) > 0)
+{
+	foreach($cnv_plots as $plot)
+	{
+		$parser->copyFile($plot,dirname($out). "/" .basename($plot));
+	}
+}
+
 //check whether desired tumor normal pair was created successfully
 $unparsed_cnv_file = "{$cohort_folder_somatic_sample}/CNAs_{$t_id}-{$n_id}.txt";
 if(!file_exists($unparsed_cnv_file))
@@ -358,6 +367,14 @@ $cnvs->removeCol($cnvs->getColumnIndex("median_loglikelihood"));
 $cnvs->removeCol($cnvs->getColumnIndex("major_CN_allele2"));
 $cnvs->removeCol($cnvs->getColumnIndex("minor_CN_allele2"));
 $cnvs->removeCol($cnvs->getColumnIndex("tumor_clonality2"));
+
+
+//Add baseline value as comment to output file
+if(isset($guide_baseline))
+{
+	$cnvs->addComment("#guideBaseline: $guide_baseline");
+}
+
 
 /**********************
  * DETERMINE CNV TYPE *
