@@ -77,7 +77,7 @@ $arguments = array(
 	"--chimJunctionOverhangMin 12",
 	"--chimSegmentReadGapMax 3",
 	"--seedSearchStartLmax $Lmax",
-	"--alignMatesGapMax 1000000",
+	"--alignMatesGapMax 100000",
 	"--alignSJoverhangMin $sj_overhang",
 	"--alignSJDBoverhangMin $sjdb_overhang",
 	"--alignSJstitchMismatchNmax 5 -1 5 5",
@@ -97,7 +97,7 @@ if ($no_splicing)
 }
 else
 {
-	$arguments[] = "--alignIntronMax 1000000 --alignIntronMin 20";
+	$arguments[] = "--alignIntronMax 100000 --alignIntronMin 20";
 	$arguments[] = "--twopassMode Basic";
 }
 
