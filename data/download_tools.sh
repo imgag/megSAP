@@ -70,6 +70,8 @@ chmod 755 download_tools_vep.sh
 
 #download delly
 cd $folder
+mkdir delly-0.8.1
+cd delly-0.8.1
 wget https://github.com/dellytools/delly/releases/download/v0.8.1/delly_v0.8.1_linux_x86_64bit
 chmod +x delly_v0.8.1_linux_x86_64bit
 
@@ -83,8 +85,8 @@ make
 
 #download manta
 cd $folder
-wget https://github.com/Illumina/manta/releases/download/v1.5.0/manta-1.5.0.centos6_x86_64.tar.bz2
-tar xjf manta-1.5.0.centos6_x86_64.tar.bz2
-rm manta-1.5.0.centos6_x86_64.tar.bz2
-cd manta-1.5.0.centos6_x86_64
+wget https://github.com/Illumina/manta/releases/download/v1.4.0/manta-1.4.0.centos6_x86_64.tar.bz2
+tar xjf manta-1.4.0.centos6_x86_64.tar.bz2
+rm manta-1.4.0.centos6_x86_64.tar.bz2
+cd manta-1.4.0.centos6_x86_64
 sed -i 's#referenceFasta = /illumina/development/Isis/Genomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa##g' bin/configManta.py.ini
