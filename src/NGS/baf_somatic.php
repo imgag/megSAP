@@ -71,7 +71,7 @@ $annotated_variants_2 = $parser->tempFile(".tsv");
 $parser->exec(get_path("ngs-bits")."/VariantAnnotateFrequency", "-in $annotated_variants -bam $bam_n -out $annotated_variants_2 -depth -name sample2 -ref ".genome_fasta($build), true);
 
 //prepare IGV/SEG header
-$seg_firstline = "#track graphtype=points viewLimits=-0.2:1.2 maxHeightPixels=80:80:80";
+$seg_firstline = "#track graphtype=points viewLimits=-0.2:0.5:1.2 maxHeightPixels=80:80:80";
 $seg_header = [ "Chromosome", "Start", "End", "Feature", "{$name_t} BAF (tumor)", "{$name_n} BAF (normal)" ];
 if ($depth)
 {

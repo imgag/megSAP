@@ -1,4 +1,4 @@
-#track graphtype=points viewLimits=-0.2:1.2 maxHeightPixels=80:80:80
+#track graphtype=points viewLimits=-0.2:0.5:1.2 maxHeightPixels=80:80:80
 Chromosome	Start	End	Feature	vc_strelka2_tu_in BAF (tumor)	vc_strelka2_no_in BAF (normal)	vc_strelka2_tu_in DP (tumor)	vc_strelka2_no_in DP (normal)
 chr12	49424533	49424534	.	0.0000	0.0000	146	137
 chr12	49425977	49425978	.	0.2456	0.4713	171	174
