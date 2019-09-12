@@ -14,12 +14,8 @@ The design goals of the project are:
 If you are interested to join the effort, please contact [Marc Sturm](https://github.com/marc-sturm).
 
 ## Obtaining megSAP
-The installaton of megSAP from sources is quite time-consumung.  
-Therefore, a ready-to-use version of _megSAP_ is available via a Docker image:
-
-- From **sources** for [Linux](doc/install_unix.md)
-- **Docker image** for [Linux](doc/install_docker.md) (beta)
-
+The installaton of megSAP is quite time-consuming because many tools and big databases need to installed.  
+The installation instructions can be found [here](doc/install_unix.md).
 
 ## Documentation
 

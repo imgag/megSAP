@@ -2,9 +2,6 @@
 
 Currently only Linux is supported!  
 
-It is theoretically feasible to get this running on OSX, but we are not testing this regularily.  
-If you do want to work on adding OSX support please contact [Lennard Berger](https://github.com/Fohlen).
-
 ## Dependencies
 
 We are providing instructions for Ubuntu 18.04 here. However this should be reasonably easy to port to any other Linux distribution.
@@ -15,7 +12,11 @@ We are providing instructions for Ubuntu 18.04 here. However this should be reas
 
 ## Downloading
 
-If you haven't already, check out the repository with
+Clone the latest release of megSAP:
+
+	> git clone -b 0.2 https://github.com/imgag/megSAP.git
+
+Or, if you want to test the current development version:
 
 	> git clone https://github.com/imgag/megSAP.git
 
@@ -65,9 +66,3 @@ Finally, we need to download and convert some open-source databases for annotati
 ## Execution
 
 Now the pipelines with all required tools and data are installed. They can be found within the `src/Pipelines` folder. Go to the [documentation](../README.md) for further details.
-
-
-
-
-
-
