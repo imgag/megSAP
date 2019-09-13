@@ -41,6 +41,10 @@ check_exec("php ".src_folder()."/NGS/{$name}.php -t_id DX000015_01 -n_id DX00001
 
 check_file($out_file, data_folder().$name."_out.tsv");
 
+check_file_exists(output_folder()."/DX000015_01-DX000015_02_clonality.png");
+check_file_exists(output_folder()."/DX000015_01-DX000015_02_clonalityBarplot.png");
+check_file_exists(output_folder()."/DX000015_01-DX000015_02_CNAs_plot.png");
+
 end_test();
 
 ?>
