@@ -89,26 +89,29 @@ if (!$somatic) //germline only
 		//annotate variant allele frequency and depth from related RNA sample, if available
 		//sample id from name
 		$db = DB::getInstance("NGSD");
-		list($sample_name, $ps_num) = explode("_", $name);
+		list($sample_name, $ps_num) = explode("_", $out_name);
 		$res = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", array("name" => $sample_name));
-		$sample_id = $res[0]['id'];
-
-		//related samples
-		$res = $db->executeQuery("SELECT * FROM sample_relations WHERE relation='same sample' AND (sample1_id=:sid OR sample2_id=:sid)", array("sid" => $sample_id));
-
-		//collect potential samples (sample IDs)
-		$psamples_for_annotation = [];
-		foreach ($res as $row)
+		if (count($res) >= 1)
 		{
-			$sample_id_annotation = $row['sample1_id'] != $sample_id ? $row['sample1_id'] : $row['sample2_id'];
-			$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND sys.type='RNA' AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND (NOT ps.quality='bad')", array("sid" => $sample_id_annotation));
-			$psamples_for_annotation = array_merge($psamples_for_annotation, array_column($res, 'psample'));
-		}
-		if (count($psamples_for_annotation) > 0)
-		{
-			//use BAM file from last entry
-			$bam_rna = get_processed_sample_info($db, end($psamples_for_annotation))["ps_bam"];
-			$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in {$varfile} -out {$varfile} -bam {$bam_rna} -depth -name rna", true);
+			$sample_id = $res[0]['id'];
+
+			//related samples
+			$res = $db->executeQuery("SELECT * FROM sample_relations WHERE relation='same sample' AND (sample1_id=:sid OR sample2_id=:sid)", array("sid" => $sample_id));
+
+			//collect potential samples (sample IDs)
+			$psamples_for_annotation = [];
+			foreach ($res as $row)
+			{
+				$sample_id_annotation = $row['sample1_id'] != $sample_id ? $row['sample1_id'] : $row['sample2_id'];
+				$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND sys.type='RNA' AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND (NOT ps.quality='bad')", array("sid" => $sample_id_annotation));
+				$psamples_for_annotation = array_merge($psamples_for_annotation, array_column($res, 'psample'));
+			}
+			if (count($psamples_for_annotation) > 0)
+			{
+				//use BAM file from last entry
+				$bam_rna = get_processed_sample_info($db, end($psamples_for_annotation))["ps_bam"];
+				$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in {$varfile} -out {$varfile} -bam {$bam_rna} -depth -name rna", true);
+			}
 		}
 	}
 	
