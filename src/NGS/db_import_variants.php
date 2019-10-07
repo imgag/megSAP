@@ -36,7 +36,6 @@ function updateVariantTable($parser, $db_connect, $file, $max_af=-1.0)
 	$i_end = $file->getColumnIndex("end");
 	$i_ref = $file->getColumnIndex("ref");
 	$i_obs = $file->getColumnIndex("obs");
-	$i_snp = $file->getColumnIndex("dbSNP");
 	$i_10g = $file->getColumnIndex("1000g");
 	$i_gno = $file->getColumnIndex("gnomAD");
 	$i_gen = $file->getColumnIndex("gene");
@@ -51,7 +50,7 @@ function updateVariantTable($parser, $db_connect, $file, $max_af=-1.0)
 	
 	//insert/update table 'variant'
 	$var_ids = array();
-	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, gnomad, gene, variant_type, coding) VALUES (:chr, :start, :end, :ref, :obs, :dbsnp, :1000g, :gnomad, :gene, :variant_type, :coding) ON DUPLICATE KEY UPDATE id=id");
+	$hash = $db_connect->prepare("INSERT INTO variant (chr, start, end, ref, obs, 1000g, gnomad, gene, variant_type, coding) VALUES (:chr, :start, :end, :ref, :obs, :1000g, :gnomad, :gene, :variant_type, :coding) ON DUPLICATE KEY UPDATE id=id");
 	for($i=0; $i<$file->rows(); ++$i)
 	{
 		$row = $file->getRow($i);
@@ -64,17 +63,12 @@ function updateVariantTable($parser, $db_connect, $file, $max_af=-1.0)
 			continue;
 		}
 		
-		//remove GSvar additional information from string
-		$dbsnp = trim($row[$i_snp]);
-		if (contains($dbsnp, "[")) $dbsnp = substr($dbsnp, 0, strpos($dbsnp, "[")-1);
-		
 		//determine variant ID
 		$variant_id = $db_connect->getValue("SELECT id FROM variant WHERE chr='".$row[$i_chr]."' AND start='".$row[$i_sta]."' AND end='".$row[$i_end]."' AND ref='".$row[$i_ref]."' AND obs='".$row[$i_obs]."'", -1);
 		if ($variant_id!=-1) //update (common case)
 		{
 			//compose array of meta data
 			$metadata = array(
-							"dbsnp" => $dbsnp, 
 							"1000g" => $row[$i_10g],
 							"gnomad" => $row[$i_gno],
 							"gene" => $row[$i_gen],
@@ -122,7 +116,6 @@ function updateVariantTable($parser, $db_connect, $file, $max_af=-1.0)
 			$db_connect->bind($hash, "end", $row[$i_end]);
 			$db_connect->bind($hash, "ref", $row[$i_ref]);
 			$db_connect->bind($hash, "obs", $row[$i_obs]);
-			$db_connect->bind($hash, "dbsnp", $dbsnp, array(""));
 			$db_connect->bind($hash, "1000g", $row[$i_10g], array(""));
 			$db_connect->bind($hash, "gnomad", $row[$i_gno], array(""));
 			$db_connect->bind($hash, "gene", $row[$i_gen]);

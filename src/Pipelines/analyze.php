@@ -77,8 +77,16 @@ $log_sv = $out_folder ."/".$name."_log6_sv.log";
 $qc_fastq  = $out_folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $out_folder."/".$name."_stats_map.qcML";
 $qc_vc  = $out_folder."/".$name."_stats_vc.qcML";
-$cnvfile = $out_folder."/".$name."_cnvs_clincnv.tsv";
-$cnvfile2 = $out_folder."/".$name."_cnvs_clincnv.seg";
+if ($sys['type']=="WGS" || $sys['type']=="WES") //Genome/Exome: ClinCNV
+{
+	$cnvfile = $out_folder."/".$name."_cnvs_clincnv.tsv";
+	$cnvfile2 = $out_folder."/".$name."_cnvs_clincnv.seg";
+}
+else //Panel: CNVHunter
+{
+	$cnvfile = $out_folder."/".$name."_cnvs.tsv";
+	$cnvfile2 = $out_folder."/".$name."_cnvs.seg";
+}	
 $rohfile = $out_folder."/".$name."_rohs.tsv";
 $baffile = $out_folder."/".$name."_bafs.igv";
 
@@ -367,10 +375,6 @@ if (in_array("cn", $steps) && $sys['target_file']!="")
 	}
 	else //Panels: CnvHunter
 	{
-		//overwrite output file names
-		$cnvfile = $out_folder."/".$name."_cnvs.tsv";
-		$cnvfile2 = $out_folder."/".$name."_cnvs.seg";
-		
 		//create coverage file
 		$tmp_folder = $parser->tempFolder();
 		$cov_file = $tmp_folder."/{$name}.cov";
@@ -409,9 +413,19 @@ if (in_array("db", $steps))
 	$parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name --log $log_db");
 	
 	//import variants
-	if (file_exists($varfile))
+	if (file_exists($varfile) || file_exists($cnvfile))
 	{
-		$parser->execTool("NGS/db_import_variants.php", "-id $name -var $varfile -build ".$sys['build']." -force --log $log_db");
+		$args = ["-ps {$name}", "-out {$log_db}"];
+		if (file_exists($varfile))
+		{
+			$args[] = "-var {$varfile}";
+			$args[] = "-var_force";			
+		}
+		if (file_exists($cnvfile))
+		{
+			$args[] = "-cnv {$cnvfile}";
+		}
+		$parser->exec("{$ngsbits}NGSDAddVariantsGermline", implode(" ", $args));
 	}
 }
 
