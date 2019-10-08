@@ -415,7 +415,7 @@ if (in_array("db", $steps))
 	//import variants
 	if (file_exists($varfile) || file_exists($cnvfile))
 	{
-		$args = ["-ps {$name}", "-out {$log_db}"];
+		$args = ["-ps {$name}"];
 		if (file_exists($varfile))
 		{
 			$args[] = "-var {$varfile}";
@@ -425,7 +425,7 @@ if (in_array("db", $steps))
 		{
 			$args[] = "-cnv {$cnvfile}";
 		}
-		$parser->exec("{$ngsbits}NGSDAddVariantsGermline", implode(" ", $args));
+		$parser->exec("{$ngsbits}NGSDAddVariantsGermline", implode(" ", $args), true);
 	}
 }
 
