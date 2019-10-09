@@ -223,11 +223,26 @@ if (!$skip_ngsd)
 	}
 	array_push($ngsd_columns, "HAF", "CLAS", "CLAS_COM", "COM");
 
-	fwrite($config_file, $ngsd_file."\tNGSD\t".implode(",", $ngsd_columns)."\t\n");
+	if (file_exists($ngsd_file))
+	{
+		fwrite($config_file, $ngsd_file."\tNGSD\t".implode(",", $ngsd_columns)."\t\n");
+	}
+	else
+	{
+		trigger_error("VCF file for NGSD germline annotation not found at '".$ngsd_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
+	}
+	
 
 	if ($somatic)
 	{
-		fwrite($config_file, $ngsd_som_file."\tNGSD\tSOM_C,SOM_P\t\n");
+		if (file_exists($ngsd_som_file))
+		{
+			fwrite($config_file, $ngsd_som_file."\tNGSD\tSOM_C,SOM_P\t\n");
+		}
+		else
+		{
+			trigger_error("VCF file for NGSD somatic annotation not found at '".$ngsd_som_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
+		}
 	}
 	
 }
@@ -245,7 +260,14 @@ if (!$skip_ngsd)
 {
 	// annotate genes
 	$gene_file = annotation_file_path("/dbs/NGSD/NGSD_genes.bed");
-	$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -in $vafv_output -out $out", true);
+	if (file_exists($gene_file))
+	{
+		$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -in $vafv_output -out $out", true);
+	}
+	else
+	{
+		trigger_error("BED file for NGSD gene annotation not found at '".$gene_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
+	}
 }
 else
 {
