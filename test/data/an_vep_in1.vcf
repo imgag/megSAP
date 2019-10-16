@@ -148,7 +148,7 @@
 ##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##SAMPLE=<ID=NA12878_03,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Other diseases,DiseaseStatus=affected>
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	INPUT
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_03
 chr1	6526183	.	G	A	3484	.	MQM=60	GT:DP:AO	1/1:113:113
 chr1	10460485	.	T	C	769	.	MQM=60	GT:DP:AO	0/1:79:37
 chr1	11856378	.	G	A	2227	.	MQM=60	GT:DP:AO	0/1:162:

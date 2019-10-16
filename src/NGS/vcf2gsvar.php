@@ -829,6 +829,17 @@ while(!feof($handle))
 		$hgmd[] = trim($text);
 	}
 
+	//AFs
+	$dbsnp = implode(",", collapse("dbSNP", $dbsnp, "unique"));	
+	$kg = collapse("1000g", $af_kg, "one", 4);
+	$gnomad = collapse("gnomAD", $af_gnomad, "one", 4);
+	$gnomad_genome = collapse("gnomAD genome", $af_gnomad_genome, "one", 4);
+	$gnomad = max($gnomad, $gnomad_genome);
+	$gnomad_hom_hemi = collapse("gnomAD Hom", $hom_gnomad, "one").",".collapse("gnomAD Hemi", $hemi_gnomad, "one");
+	if ($gnomad_hom_hemi==",") $gnomad_hom_hemi = "";
+	$gnomad_sub = collapse("gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse("gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse("gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse("gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse("gnomAD SAS", $af_gnomad_sas, "one", 4);
+	if (str_replace(",", "", $gnomad_sub)=="") $gnomad_sub = "";
+
 
 	if (!$skip_ngsd)
 	{
@@ -855,7 +866,7 @@ while(!feof($handle))
 		}
 
 		//NGSD
-		if (isset($info["NGSD_HAF"]))
+		if (isset($info["NGSD_HAF"]) || $gnomad >= 0.05 || $kg >= 0.05)
 		{
 			$ngsd_hom = "n/a (AF>5%)";
 			$ngsd_het = "n/a (AF>5%)";
@@ -869,7 +880,7 @@ while(!feof($handle))
 			if (isset($info["NGSD_GROUP"]))
 			{
 				$ngsd_group_raw = explode(",", trim($info["NGSD_GROUP"]));
-				$ngsd_group = intval($ngsd_group_raw[0])." / ".intval($ngsd_group_raw[0]);
+				$ngsd_group = intval($ngsd_group_raw[0])." / ".intval($ngsd_group_raw[1]);
 			}
 			else
 			{
@@ -914,7 +925,7 @@ while(!feof($handle))
 
 		if (isset($info["NGSD_GENE_INFO"]))
 		{
-			$ngsd_gene_info = trim($info["NGSD_GENE_INFO"]);
+			$ngsd_gene_info = str_replace(":", ", ", trim($info["NGSD_GENE_INFO"]));
 		}
 		else
 		{
@@ -947,17 +958,6 @@ while(!feof($handle))
 	
 	//RepeatMasker
 	$repeatmasker = collapse("RepeatMasker", $repeat, "one");
-	
-	//AFs
-	$dbsnp = implode(",", collapse("dbSNP", $dbsnp, "unique"));	
-	$kg = collapse("1000g", $af_kg, "one", 4);
-	$gnomad = collapse("gnomAD", $af_gnomad, "one", 4);
-	$gnomad_genome = collapse("gnomAD genome", $af_gnomad_genome, "one", 4);
-	$gnomad = max($gnomad, $gnomad_genome);
-	$gnomad_hom_hemi = collapse("gnomAD Hom", $hom_gnomad, "one").",".collapse("gnomAD Hemi", $hemi_gnomad, "one");
-	if ($gnomad_hom_hemi==",") $gnomad_hom_hemi = "";
-	$gnomad_sub = collapse("gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse("gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse("gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse("gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse("gnomAD SAS", $af_gnomad_sas, "one", 4);
-	if (str_replace(",", "", $gnomad_sub)=="") $gnomad_sub = "";
 	
 	//effect predicions
 	$phylop = collapse("phyloP", $phylop, "one", 4);
