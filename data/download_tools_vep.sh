@@ -62,7 +62,7 @@ chmod -R 755 $vep_install_dir/MaxEntScan
 
 # install GeneSplicer (for GeneSplicer plugin)
 cd $vep_install_dir
-wget ftp://ccb.jhu.edu/pub/software/genesplicer/GeneSplicer.tar.gz
+wget ftp://ftp.ccb.jhu.edu/pub/software/genesplicer/GeneSplicer.tar.gz
 tar -xzf GeneSplicer.tar.gz
 rm -rf GeneSplicer.tar.gz
 cd GeneSplicer/sources/

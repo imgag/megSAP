@@ -14,7 +14,7 @@ samblaster = [path]/data/tools/samblaster/samblaster
 bwa = [path]/data/tools/bwa-0.7.17/bwa
 vep = [path]/data/tools/ensembl-vep-release-96.3/vep
 vep_data = [path]/data/dbs/ensembl-vep-96/
-clincnv = Rscript --vanilla [path]/data/tools/ClinCNV-1.16.0/
+clincnv = Rscript --vanilla [path]/data/tools/ClinCNV-1.16.1/
 delly = [path]/data/tools/delly-0.8.1/delly_v0.8.1_linux_x86_64bit
 bcftools = [path]/data/tools/bcftools-1.9/bcftools
 
