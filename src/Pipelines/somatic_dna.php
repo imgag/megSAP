@@ -810,7 +810,8 @@ if (in_array("ci", $steps))
 		$params = [
 			"-out",$tmp_cgi_zipped_outfile,
 			"-mutations",$filtered_germline_variants,
-			"-cancertype","CANCER"
+			"-cancertype","CANCER",
+			"-no_snv_limit"
 		];
 		
 		//Include germline CNVs if available
