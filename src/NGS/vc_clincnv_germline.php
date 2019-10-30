@@ -99,8 +99,10 @@ function load_coverage_profile($filename, &$rows_to_use, &$output)
 		
 		$line = trim($line);
 		if ($line=="" || $line[0]=="#") continue;
+		$parts = explode("\t", $line);
+		if (count($parts)<4) trigger_error("Invalid coverage file line in file {$filename}:\n{$line}", E_USER_ERROR);
 		
-		list($chr, $start, $end, $avg_cov) = explode("\t", $line);
+		list($chr, $start, $end, $avg_cov) = $parts;
 		$output[$chr][] = $avg_cov;
 	}
 	//print "COV DONE ".time_readable(microtime(true) - $t_start)." (".basename($filename).")\n";
