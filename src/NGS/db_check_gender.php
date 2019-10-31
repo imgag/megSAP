@@ -34,7 +34,7 @@ else
         $parser->log("Could not determine gender for processed sample '$pid' from DB '$db': gender not set in sample entry.");
         exit(0);
     }
-	if ($info['sys_type']=="WGS")
+	if ($info['sys_type']=="WGS" || $info['sys_type']=="WGS (shallow)")
 	{
 		$is_wgs = true;
 		$sry_in_roi = true;

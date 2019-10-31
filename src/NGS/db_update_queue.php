@@ -278,7 +278,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 	if ($type=="somatic") $threads = 4;
 	foreach($sample_infos as $sample_info) //use two instead of one slots for WGS	
 	{
-		if ($sample_info['sys_type']=='WGS') $threads = 5;
+		if ($sample_info['sys_type']=="WGS" || $sample_info['sys_type']=="WGS (shallow)") $threads = 5;
 	}
 	//handle number of threads when set in custom arguments
 	$parts = explode(' ', preg_replace('/\s+/', ' ', $job_info['args']));

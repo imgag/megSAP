@@ -81,13 +81,20 @@ foreach($bams as $bam)
 	$tmp[$name] = true;
 }
 
-//extract processing system information from DB
-$sys = load_system($system, $names[$bams[0]]);
-$target_file = $sys['type']!="WGS" ? $sys['target_file'] : "{$data_folder}/enrichment/WGS_hg19.bed";
-if ($target_file=="")
+//check processing systems are supported
+foreach($bams as $bam)
 {
-	trigger_error("Cannot perform multi-sample analysis without target region (processing systems of ".$bams[0]." is '".$sys["name_short"]."')!", E_USER_ERROR);
+	$sys = load_system($system, $names[$bam]);
+	if ($sys['target_file']=="")
+	{
+		trigger_error("Cannot perform multi-sample analysis without target region (processing systems of ".$bam." is '".$sys["name_short"]."')!", E_USER_ERROR);
+	}
+	if ($sys['type']=="WGS (shallow)")
+	{
+		trigger_error("Cannot perform multi-sample analysis with shallow WGS sample (processing systems of ".$bam." is '".$sys["name_short"]."')!", E_USER_ERROR);
+	}
 }
+$sys = load_system($system, $names[$bams[0]]);
 
 //create output folder if missing
 $out_folder .= "/";
@@ -109,7 +116,7 @@ if (in_array("vc", $steps))
 	$args = array();
 	$args[] = "-bam ".implode(" ", $bams);
 	$args[] = "-out $vcf_all";
-	$args[] = "-target $target_file";
+	$args[] = "-target ".$sys['target_file'];
 	$args[] = "-min_mq 20";
 	$args[] = "-min_af 0.1";
 	$args[] = "-target_extend 50";
