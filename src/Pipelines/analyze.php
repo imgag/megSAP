@@ -123,7 +123,24 @@ if (in_array("ma", $steps))
 	}
 	if (count($files1)==0)
 	{
-		trigger_error("Found no read files found matching '$in_for' or '$in_rev'!", E_USER_ERROR);
+		if(file_exists($bamfile))
+		{
+			trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files.", E_USER_NOTICE);
+
+			// extract reads from BAM file
+			$in_fq_for = $folder."/{$name}_BamToFastq_R1_001.fastq.gz";
+			$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
+			$parser->exec("{$ngsbits}BamToFastq", "-in $bamfile -out1 $in_fq_for -out2 $in_fq_rev -remove_duplicates", true);
+
+			// use generated fastq files for mapping
+			$files1 = array($in_fq_for);
+			$files2 = array($in_fq_rev);
+		}
+		else
+		{
+			trigger_error("Found no read files found matching '$in_for' or '$in_rev'!", E_USER_ERROR);
+		}
+		
 	}
 	
 	$args = array();
@@ -141,6 +158,20 @@ if (in_array("ma", $steps))
 		if (db_is_enabled("NGSD"))
 		{
 			$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
+		}
+	}
+
+	// delete fastq files after mapping
+	$delete_fastq_files = get_path("delete_fastq_files", true);
+	if ($delete_fastq_files==true || $delete_fastq_files=="true")
+	{
+		foreach($files1 as $fastq_file)
+		{
+			unlink($fastq_file);
+		}
+		foreach($files2 as $fastq_file)
+		{
+			unlink($fastq_file);
 		}
 	}
 }

@@ -33,10 +33,13 @@ salmon = [path]/data/tools/salmon-0.13.1/bin/salmon
 
 [folders]
 local_data = /tmp/local_ngs_data/
-copy_vep_dbs_to_local_data = false
 data_folder = [path]/data/
 test_data_folder = [path]/data/test_data/
 project_folder = 
+
+[general]
+copy_vep_dbs_to_local_data = false
+delete_fastq_files = false
 
 [mysql-databases]
 db_host['NGSD'] = "localhost"
