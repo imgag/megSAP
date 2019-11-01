@@ -68,13 +68,6 @@ cd $root
 chmod 755 download_tools_vep.sh
 ./download_tools_vep.sh
 
-#download delly
-cd $folder
-mkdir delly-0.8.1
-cd delly-0.8.1
-wget https://github.com/dellytools/delly/releases/download/v0.8.1/delly_v0.8.1_linux_x86_64bit
-chmod +x delly_v0.8.1_linux_x86_64bit
-
 #download bcftools
 cd $folder
 wget https://github.com/samtools/bcftools/releases/download/1.9/bcftools-1.9.tar.bz2
