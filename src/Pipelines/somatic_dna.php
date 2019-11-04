@@ -417,7 +417,7 @@ if(in_array("cn",$steps))
 	
 	//Generate file with off-target region
 	$off_target_bed = get_path("data_folder")."/coverage/off_target_beds/".$sys['name_short'].".bed";
-	if(!file_exists($off_target_bed))	create_off_target_bed_file($off_target_bed,$sys['target_file'],"{$ref_genome}.fai");
+	if(!file_exists($off_target_bed))	create_off_target_bed_file($off_target_bed,$sys['target_file'], $ref_genome);
 	
 	/***************************************************
 	 * GENERATE AND COPY COVERAGE FILES TO DATA FOLDER *
