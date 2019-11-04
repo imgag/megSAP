@@ -57,7 +57,7 @@ $args = array();
 $args[] = "-in {$cov_list}";
 $args[] = "-min_z $min_z";
 $args[] = "-sam_min_corr $min_corr";
-if($sys['type']=="WGS")
+if($sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
 {
 	$args[] = "-reg_min_cov 0.5";
 	$args[] = "-sam_min_depth 0.5";

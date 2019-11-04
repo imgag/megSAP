@@ -118,9 +118,9 @@ while(!feof($h_in))
 		}
 		$dp = $sample['DP'];
 		$ao = $sample['AO'];
-		if (contains($ao, ",")) list($ao) = explode(",", $ao); //TODO this should not be needed. Remove once ngs-bits:VcfBreakComplex works
+		if (contains($ao, ",")) list($ao) = explode(",", $ao);
 		$ao_last = $sample_last['AO'];
-		if (contains($ao_last, ",")) list($ao_last) = explode(",", $ao_last); //TODO this should not be needed. Remove once ngs-bits:VcfBreakComplex works
+		if (contains($ao_last, ",")) list($ao_last) = explode(",", $ao_last);
 		$ao = min($dp, $ao + $ao_last);
 		$var_last[8] = "GT:DP:AO";
 		$var_last[9] = "1/1:$dp:$ao";

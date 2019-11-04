@@ -23,8 +23,21 @@ $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.", true);
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
-$parser->addString("sv_caller","Comma-separated list of SV callers to be used. Possible are delly,manta.",true,"delly,manta");
 extract($parser->parse($argv));
+
+//init
+if($out_folder=="default")
+{
+	$out_folder = $folder;
+}
+$ngsbits = get_path("ngs-bits");
+
+//determine processing system
+$sys = load_system($system, $name);
+$is_wes = $sys['type']=="WES";
+$is_wgs = $sys['type']=="WGS";
+$is_wgs_shallow = $sys['type']=="WGS (shallow)";
+$has_roi = $sys['target_file']!="";
 
 //handle somatic flag
 if ($somatic)
@@ -32,16 +45,6 @@ if ($somatic)
 	$clip_overlap = true;
 	$correction_n = true;
 }
-
-$sys = load_system($system, $name);
-
-if($out_folder=="default")
-{
-	$out_folder = $folder;
-}
-
-
-$ngsbits = get_path("ngs-bits");
 
 //check steps
 $steps = explode(",", $steps);
@@ -77,7 +80,7 @@ $log_sv = $out_folder ."/".$name."_log6_sv.log";
 $qc_fastq  = $out_folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $out_folder."/".$name."_stats_map.qcML";
 $qc_vc  = $out_folder."/".$name."_stats_vc.qcML";
-if ($sys['type']=="WGS" || $sys['type']=="WES") //Genome/Exome: ClinCNV
+if ($is_wgs || $is_wgs_shallow || $is_wes) //Genome/Exome: ClinCNV
 {
 	$cnvfile = $out_folder."/".$name."_cnvs_clincnv.tsv";
 	$cnvfile2 = $out_folder."/".$name."_cnvs_clincnv.seg";
@@ -92,7 +95,6 @@ $baffile = $out_folder."/".$name."_bafs.igv";
 
 $sv_manta_file = $out_folder ."/". $name . "_manta_var_structural.vcf.gz";
 $small_indel_manta_file =  $out_folder ."/". $name . "_manta_var_smallIndels.vcf.gz";
-$sv_delly_file = $out_folder ."/". $name . "_delly_var_structural.vcf.gz";
 
 //move old data to old_[date]_[random]-folder
 if($backup && in_array("ma", $steps))
@@ -152,7 +154,7 @@ if (in_array("ma", $steps))
 	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $out_folder -out_name $name --log $log_ma ".implode(" ", $args)." -threads $threads");
 
 	//low-coverage report
-	if ($sys['type']!="WGS" && $sys['target_file']!="") //ROI (but not WGS)
+	if ($has_roi && !$is_wgs && !$is_wgs_shallow)
 	{	
 		$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", true);
 		if (db_is_enabled("NGSD"))
@@ -179,254 +181,273 @@ if (in_array("ma", $steps))
 //variant calling
 if (in_array("vc", $steps))
 {
-	
-	$args = array();
-	if ($sys['target_file']!="")
+	if($is_wgs_shallow)
 	{
-		$args[] = "-target ".$sys['target_file'];
-		$args[] = "-target_extend 50";
-	}
-	if ($lofreq) //lofreq
-	{
-		$args[] = "-min_af 0.05";
+		trigger_error("Skipping step 'vc' - Variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
 	}
 	else
 	{
-		$args[] = "-min_af 0.1";
-	}
-	if(file_exists($log_vc)) unlink($log_vc);
-	
-	//Do not call standard pipeline if there is only mitochondiral chrMT in target region
-	$only_mito_in_target_region = false;
-	if ($sys['target_file']!="") $only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT";
-	if(!$only_mito_in_target_region)
-	{
-		$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc -threads $threads ".implode(" ", $args));
-	}
-	
-	//perform special variant calling for mitochondria
-	$mito = enable_special_mito_vc($sys) || $only_mito_in_target_region;
-	if ($mito)
-	{
-		$target_mito = $parser->tempFile("_mito.bed");
-		file_put_contents($target_mito, "chrMT\t0\t16569");
-		
 		$args = array();
-		$args[] = "-no_ploidy";
-		$args[] = "-min_af 0.01";
-		$args[] = "-target $target_mito";
-		$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
-		$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile_mito -build ".$sys['build']." --log $log_vc ".implode(" ", $args));
-	}
-	
-	if($only_mito_in_target_region) 
-	{
-		$parser->copyFile($vcffile_mito, $vcffile);
-	}
-	
-	//Add header to VCF file
-	$hr = gzopen2($vcffile, "r");
-	$vcf = $parser->tempFile("_unzipped.vcf");
-	$hw = fopen2($vcf, "w");
-	while(!gzeof($hr))
-	{
-		$line = trim(gzgets($hr));
-		if (strlen($line)==0) continue;
-		if ($line[0]=="#" && $line[1]!="#")
+		if ($has_roi)
 		{
-			fwrite($hw, "##ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n");
-			fwrite($hw, "##PIPELINE=".repository_revision(true)."\n");
-			fwrite($hw, gsvar_sample_header($name, array("DiseaseStatus"=>"affected")));
+			$args[] = "-target ".$sys['target_file'];
+			$args[] = "-target_extend 50";
 		}
-		fwrite($hw, $line."\n");
-	}
-	fclose($hr);
-	
-	//Add mitochondrial variants to vcffile in case mito was called and it is not a pure mitochondrial sample
-	if($mito && !$only_mito_in_target_region)
-	{
-		$hr = gzopen2($vcffile_mito, "r");
+		if ($lofreq) //lofreq
+		{
+			$args[] = "-min_af 0.05";
+		}
+		else
+		{
+			$args[] = "-min_af 0.1";
+		}
+		if(file_exists($log_vc)) unlink($log_vc);
+		
+		//Do not call standard pipeline if there is only mitochondiral chrMT in target region
+		$only_mito_in_target_region = false;
+		if ($has_roi) $only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT";
+		if(!$only_mito_in_target_region)
+		{
+			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc -threads $threads ".implode(" ", $args));
+		}
+		
+		//perform special variant calling for mitochondria
+		$mito = enable_special_mito_vc($sys) || $only_mito_in_target_region;
+		if ($mito)
+		{
+			$target_mito = $parser->tempFile("_mito.bed");
+			file_put_contents($target_mito, "chrMT\t0\t16569");
+			
+			$args = array();
+			$args[] = "-no_ploidy";
+			$args[] = "-min_af 0.01";
+			$args[] = "-target $target_mito";
+			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
+			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile_mito -build ".$sys['build']." --log $log_vc ".implode(" ", $args));
+		}
+		
+		if($only_mito_in_target_region) 
+		{
+			$parser->copyFile($vcffile_mito, $vcffile);
+		}
+		
+		//Add header to VCF file
+		$hr = gzopen2($vcffile, "r");
+		$vcf = $parser->tempFile("_unzipped.vcf");
+		$hw = fopen2($vcf, "w");
 		while(!gzeof($hr))
 		{
 			$line = trim(gzgets($hr));
-			if ($line=="" || $line[0]=="#") continue;
+			if (strlen($line)==0) continue;
+			if ($line[0]=="#" && $line[1]!="#")
+			{
+				fwrite($hw, "##ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n");
+				fwrite($hw, "##PIPELINE=".repository_revision(true)."\n");
+				fwrite($hw, gsvar_sample_header($name, array("DiseaseStatus"=>"affected")));
+			}
 			fwrite($hw, $line."\n");
 		}
 		fclose($hr);
+		
+		//Add mitochondrial variants to vcffile in case mito was called and it is not a pure mitochondrial sample
+		if($mito && !$only_mito_in_target_region)
+		{
+			$hr = gzopen2($vcffile_mito, "r");
+			while(!gzeof($hr))
+			{
+				$line = trim(gzgets($hr));
+				if ($line=="" || $line[0]=="#") continue;
+				fwrite($hw, $line."\n");
+			}
+			fclose($hr);
+		}
+		fclose($hw);
+		
+		$parser->exec("bgzip", "-c $vcf > $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
+		$parser->exec("tabix", "-f -p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
+		
+		
+		//create b-allele frequency file
+		$params = array();
+		$params[] = "-vcf {$vcffile}";
+		$params[] = "-bam {$bamfile}";
+		$params[] = "-out {$baffile}";
+		$params[] = "-build ".$sys['build'];
+		if ($is_wgs)
+		{
+			$params[] = "-downsample 100";
+		}
+		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
 	}
-	fclose($hw);
-	
-	$parser->exec("bgzip", "-c $vcf > $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
-	$parser->exec("tabix", "-f -p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
-	
-	
-	//create b-allele frequency file
-	$params = array();
-	$params[] = "-vcf {$vcffile}";
-	$params[] = "-bam {$bamfile}";
-	$params[] = "-out {$baffile}";
-	$params[] = "-build ".$sys['build'];
-	if ($sys['type']=="WGS")
-	{
-		$params[] = "-downsample 100";
-	}
-	$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
 }
 
 //annotation and reports
 if (in_array("an", $steps))
 {
-	if(file_exists($log_an)) unlink($log_an);
-
-	//annotate
-	$args = array("-out_name $name", "-out_folder {$out_folder}", "-system {$system}", "--log {$log_an}");
-	if ($sys['type']=="WGS") $args[] = "-updown";
-	$args[] = "-threads {$threads}";
-	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
-	
-	//ROH detection
-	if ($sys['type']=="WGS" || $sys['type']=="WES")
+	if($is_wgs_shallow)
 	{
-		$args = array();
-		$args[] = "-in $vcffile_annotated";
-		$args[] = "-out $rohfile";
-		$args[] = "-var_af_keys AF,gnomAD_AF,gnomADg_AF"; //use 1000g, gnomAD exome, genomAD genome
-		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
-		$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".(file_exists($omim_file) ? $omim_file : "");
-		$parser->exec("{$ngsbits}RohHunter", implode(" ", $args), true);
+		trigger_error("Skipping step 'an' - Variant annotation is not supported for shallow WGS samples!", E_USER_NOTICE);
+	}
+	else
+	{
+		if(file_exists($log_an)) unlink($log_an);
+
+		//annotate
+		$args = array("-out_name $name", "-out_folder {$out_folder}", "-system {$system}", "--log {$log_an}");
+		if ($is_wgs) $args[] = "-updown";
+		$args[] = "-threads {$threads}";
+		$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
+		
+		//ROH detection
+		if ($is_wes || $is_wgs)
+		{
+			$args = array();
+			$args[] = "-in $vcffile_annotated";
+			$args[] = "-out $rohfile";
+			$args[] = "-var_af_keys AF,gnomAD_AF,gnomADg_AF"; //use 1000g, gnomAD exome, genomAD genome
+			$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
+			$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".(file_exists($omim_file) ? $omim_file : "");
+			$parser->exec("{$ngsbits}RohHunter", implode(" ", $args), true);
+		}
 	}
 }
 
 //copy-number analysis
-if (in_array("cn", $steps) && $sys['target_file']!="")
+if (in_array("cn", $steps))
 {
-	//remove log file
-	if(file_exists($log_cn)) unlink($log_cn);
-	
-	//create reference folder if it does not exist
-	$ref_folder = get_path("data_folder")."/coverage/".$sys['name_short']."/";
-	if (!is_dir($ref_folder))
+	if(!$has_roi)
 	{
-		mkdir($ref_folder);
-		if (!chmod($ref_folder, 0777))
-		{
-			trigger_error("Could not change privileges of folder '{$ref_folder}'!", E_USER_ERROR);
-		}
+		trigger_error("Skipping step 'cn' - Copy number analysis is only supported for processing systems with target region BED file!", E_USER_NOTICE);
 	}
-	$cov_folder = $ref_folder;
-	
-	if ($sys['type']=="WGS" || $sys['type']=="WES") //Genome/Exome: ClinCNV
+	else
 	{
-		//WGS: create folder for binned coverage data - if missing
-		$is_wgs = $sys['type']=="WGS";
-		if ($is_wgs)
+		//remove log file
+		if(file_exists($log_cn)) unlink($log_cn);
+		
+		//create reference folder if it does not exist
+		$ref_folder = get_path("data_folder")."/coverage/".$sys['name_short']."/";
+		if (!is_dir($ref_folder))
 		{
-			$bin_size = 1000;
-			$bin_folder = "{$ref_folder}/bins{$bin_size}/";
-			if (!is_dir($bin_folder))
+			mkdir($ref_folder);
+			if (!chmod($ref_folder, 0777))
 			{
-				mkdir($bin_folder);
-				if (!chmod($bin_folder, 0777))
+				trigger_error("Could not change privileges of folder '{$ref_folder}'!", E_USER_ERROR);
+			}
+		}
+		$cov_folder = $ref_folder;
+		
+		if ($is_wes || $is_wgs || $is_wgs_shallow) //Genome/Exome: ClinCNV
+		{
+			//WGS: create folder for binned coverage data - if missing
+			if ($is_wgs || $is_wgs_shallow)
+			{
+				$bin_size = 1000;
+				$bin_folder = "{$ref_folder}/bins{$bin_size}/";
+				if (!is_dir($bin_folder))
 				{
-					trigger_error("Could not change privileges of folder '{$bin_folder}'!", E_USER_ERROR);
+					mkdir($bin_folder);
+					if (!chmod($bin_folder, 0777))
+					{
+						trigger_error("Could not change privileges of folder '{$bin_folder}'!", E_USER_ERROR);
+					}
 				}
+				$cov_folder = $bin_folder;
 			}
-			$cov_folder = $bin_folder;
-		}
-		
-		//create BED file with GC and gene anntations - if missing
-		if ($is_wgs)
-		{
-			$bed = $ref_folder."/bins{$bin_size}.bed";
-			if (!file_exists($bed))
-			{
-				$pipeline = [
-						["{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size}"],
-						["{$ngsbits}BedAnnotateGC", "-ref ".genome_fasta($sys['build'])],
-						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"]
-					];
-				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
-			}
-		}
-		else
-		{
-			$bed = $ref_folder."/roi_annotated.bed";
-			if (!file_exists($bed))
-			{
-				$pipeline = [
-						["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".genome_fasta($sys['build'])],
-						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
-					];
-				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
-			}
-		}
-		
-		//create coverage profile
-		$tmp_folder = $parser->tempFolder();
-		$cov_file = $cov_folder."/{$name}.cov";
-		if (!file_exists($cov_file))
-		{
-			$parser->log("Calculating coverage file for CN calling...");
-			$cov_tmp = $tmp_folder."/{$name}.cov";
-			$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -decimals 4 -bam {$bamfile} -in {$bed} -out {$cov_tmp}", true);
 			
-			//copy coverage file to reference folder if valid
-			if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
+			//create BED file with GC and gene anntations - if missing
+			if ($is_wgs || $is_wgs_shallow)
 			{
-				$parser->log("Moving coverage file to reference folder...");
-				$parser->moveFile($cov_tmp, $cov_file);
+				$bed = $ref_folder."/bins{$bin_size}.bed";
+				if (!file_exists($bed))
+				{
+					$pipeline = [
+							["{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size}"],
+							["{$ngsbits}BedAnnotateGC", "-ref ".genome_fasta($sys['build'])],
+							["{$ngsbits}BedAnnotateGenes", "-out {$bed}"]
+						];
+					$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
+				}
 			}
 			else
 			{
-				$cov_file = $cov_tmp;
+				$bed = $ref_folder."/roi_annotated.bed";
+				if (!file_exists($bed))
+				{
+					$pipeline = [
+							["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".genome_fasta($sys['build'])],
+							["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
+						];
+					$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
+				}
 			}
+			
+			//create coverage profile
+			$tmp_folder = $parser->tempFolder();
+			$cov_file = $cov_folder."/{$name}.cov";
+			if (!file_exists($cov_file))
+			{
+				$parser->log("Calculating coverage file for CN calling...");
+				$cov_tmp = $tmp_folder."/{$name}.cov";
+				$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -decimals 4 -bam {$bamfile} -in {$bed} -out {$cov_tmp}", true);
+				
+				//copy coverage file to reference folder if valid
+				if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
+				{
+					$parser->log("Moving coverage file to reference folder...");
+					$parser->moveFile($cov_tmp, $cov_file);
+				}
+				else
+				{
+					$cov_file = $cov_tmp;
+				}
+			}
+			else
+			{
+				$parser->log("Using previously calculated coverage file for CN calling: $cov_file");
+			}
+			
+			//perform CNV analysis
+			$cnv_out = $tmp_folder."/output.tsv";
+			$cnv_out2 = $tmp_folder."/output.seg";
+			$args = array(
+				"-cov {$cov_file}",
+				"-cov_folder {$cov_folder}",
+				"-bed {$bed}",
+				"-out {$cnv_out}",
+				"-cov_max ".($is_wgs ? "100" : "200"),
+				"-max_cnvs ".($is_wgs ? "2000" : "200"),
+				"--log {$log_cn}",
+			);
+			$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
+			
+			//copy results to output folder
+			if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
+			if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
 		}
-		else
+		else //Panels: CnvHunter
 		{
-			$parser->log("Using previously calculated coverage file for CN calling: $cov_file");
-		}
-		
-		//perform CNV analysis
-		$cnv_out = $tmp_folder."/output.tsv";
-		$cnv_out2 = $tmp_folder."/output.seg";
-		$args = array(
-			"-cov {$cov_file}",
-			"-cov_folder {$cov_folder}",
-			"-bed {$bed}",
-			"-out {$cnv_out}",
-			"-cov_max ".($is_wgs ? "100" : "200"),
-			"-max_cnvs ".($is_wgs ? "2000" : "200"),
-			"--log {$log_cn}",
-		);
-		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
-		
-		//copy results to output folder
-		if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
-		if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
-	}
-	else //Panels: CnvHunter
-	{
-		//create coverage file
-		$tmp_folder = $parser->tempFolder();
-		$cov_file = $tmp_folder."/{$name}.cov";
-		$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -decimals 4 -bam $bamfile -in ".$sys['target_file']." -out $cov_file", true);
+			//create coverage file
+			$tmp_folder = $parser->tempFolder();
+			$cov_file = $tmp_folder."/{$name}.cov";
+			$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -decimals 4 -bam $bamfile -in ".$sys['target_file']." -out $cov_file", true);
 
-		//copy coverage file to reference folder (has to be done before CnvHunter call to avoid analyzing the same sample twice)
-		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
-		{
-			$ref_file = $ref_folder.$name.".cov";
-			$parser->copyFile($cov_file, $ref_file);
-			$cov_file = $ref_file;
-		}
-		
-		//execute
-		$cnv_out = $tmp_folder."/output.tsv";
-		$cnv_out2 = $tmp_folder."/output.seg";
-		$parser->execTool("NGS/vc_cnvhunter.php", "-min_z 3.5 -cov $cov_file -system $system -out $cnv_out -seg $name -n 20 --log $log_cn");
+			//copy coverage file to reference folder (has to be done before CnvHunter call to avoid analyzing the same sample twice)
+			if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
+			{
+				$ref_file = $ref_folder.$name.".cov";
+				$parser->copyFile($cov_file, $ref_file);
+				$cov_file = $ref_file;
+			}
+			
+			//execute
+			$cnv_out = $tmp_folder."/output.tsv";
+			$cnv_out2 = $tmp_folder."/output.seg";
+			$parser->execTool("NGS/vc_cnvhunter.php", "-min_z 3.5 -cov $cov_file -system $system -out $cnv_out -seg $name -n 20 --log $log_cn");
 
-		//copy results to output folder
-		if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
-		if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
+			//copy results to output folder
+			if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
+			if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
+		}
 	}
 }
 
@@ -463,74 +484,35 @@ if (in_array("db", $steps))
 //structural variants
 if (in_array("sv", $steps))
 {
-	if($sys['type'] != "WGS")
+	if(!$is_wgs)
 	{
-		print "Skipping step sv. That step is available for whole genomes only.";
+		trigger_error("Skipping step 'sv' - Structural variant calling is only supported for WGS samples!", E_USER_NOTICE);
 	}
 	else
 	{
 		if(file_exists($log_sv)) unlink($log_sv);
 		
-		$sv_caller_all = array("delly","manta");
-		$sv_caller = explode(",",$sv_caller);
-		foreach($sv_caller as $sv_caller_single)
-		{
-			if(!in_array($sv_caller_single,$sv_caller_all))
-			{
-				trigger_error("Unknown Structure Variant caller {$sv_caller_single}.", E_USER_WARNING);
-			}
-		}
-		
-		/*****************************
-		 * MANTA STRUCTURAL VARIANTS *
-		 *****************************/
-		if(in_array("manta",$sv_caller))
-		{
-			$manta_evidence_dir = "{$out_folder}/manta_evid";
-			create_directory($manta_evidence_dir);
+		//SV calling with manta
+		$manta_evidence_dir = "{$out_folder}/manta_evid";
+		create_directory($manta_evidence_dir);
 
-			$manta_args = [
-				"-bam ".$bamfile,
-				"-evid_dir ".$manta_evidence_dir,
-				"-out ".$sv_manta_file,
-				"-smallIndels ".$small_indel_manta_file,
-				"-threads ".$threads,
-				"-fix_bam",
-				"-build ".$sys['build'],
-				"--log ".$log_sv
-			];
-			if($sys['target_file'] != "") $manta_args[] = "-target " . $sys['target_file'];
-			
-			//settings for non-WGS data
-			if($sys['type']!="WGS") $manta_args[] = "-exome";
-			
-			$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
-		}
+		$manta_args = [
+			"-bam ".$bamfile,
+			"-evid_dir ".$manta_evidence_dir,
+			"-out ".$sv_manta_file,
+			"-smallIndels ".$small_indel_manta_file,
+			"-threads ".$threads,
+			"-fix_bam",
+			"-build ".$sys['build'],
+			"--log ".$log_sv
+		];
+		if($has_roi) $manta_args[] = "-target ".$sys['target_file'];
+		
+		$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
 
-		/*****************************
-		 * DELLY STRUCTURAL VARIANTS *
-		 *****************************/
-		if(in_array("delly",$sv_caller))
-		{
-			$delly_args = [
-				"-out ".$sv_delly_file,
-				"-bam ".$bamfile,
-				"-exclude ".repository_basedir()."/data/misc/delly_exclude_regions_hg19.tsv",
-				"-build ".$sys['build'],
-				"--log ".$log_sv
-			];
-			if($sys['target_file'] != "") $delly_args[] = "-target ".$sys['target_file'];
-			$parser->execTool("NGS/vc_delly.php", implode(" ", $delly_args));
-		}
-		
-		//Create BEDPE-Files for each structural variant VCF-file
-		$sv_files = glob("{$out_folder}/*_var_structural.vcf.gz");
-		
-		foreach($sv_files as $sv_file)
-		{
-			$bedpe_out = substr($sv_file,0,-6) . "bedpe";
-			exec2("{$ngsbits}VcfToBedpe -in $sv_file -out $bedpe_out");
-		}
+		//create BEDPE files
+		$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
+		exec2("{$ngsbits}VcfToBedpe -in $$sv_manta_file -out $bedpe_out");
 	}
 }
 
