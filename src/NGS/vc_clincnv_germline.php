@@ -15,10 +15,11 @@ $parser->addOutFile("out", "Output file in TSV format.", false);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 //optional
 $parser->addInt("cov_min", "Minimum number of coverage files required for CNV analysis.", true, 20);
-$parser->addInt("cov_max", "Maximum number of coverage files used for CNV analysis, used to keep run-time and RAM requirement manageable (~TODO for WES and ~TODO for WGS).", true, 200);
+$parser->addInt("cov_max", "Maximum number of coverage files used for CNV analysis, used to keep run-time and RAM requirement manageable (~200 for WES and ~100 for WGS).", true, 200);
 $parser->addInt("max_cnvs", "Number of expected CNVs (~200 for WES and ~2000 for WGS).", true, 2000);
 $parser->addInt("max_tries", "Maximum number of tries for calling ClinCNV (R parallelization sometimes breaks with no reason", true, 10);
-
+$parser->addInt("regions", "Number of subsequent regions that must show a signal for a call.", true, 2);
+$parser->addFlag("skip_super_recall", "Skip super-recall (down to one region and log-likelihood 3).");
 extract($parser->parse($argv));
 
 function determine_rows_to_use($cov, $roi_nonpoly)
@@ -196,10 +197,14 @@ $args = [
 "--out {$out_folder}",
 "--maxNumGermCNVs {$max_cnvs}",
 "--numberOfThreads {$threads}",
-"--lengthG 1", //actually means length 2 - superRecall will call down to one region in the second step 
-"--scoreG 20",
-"--superRecall 3"
+"--lengthG ".($regions-1), //lengthG actually gives the number of additional regions > subtract 1
+"--scoreG 20", 
 ];
+
+if (!$skip_super_recall)
+{
+	$args[] = "--superRecall 3"; //superRecall will call down to one region and to log-likelihood 3
+}
 
 $command = get_path("clincnv")."/clinCNV.R";
 $parameters = implode(" ", $args);

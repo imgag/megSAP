@@ -342,6 +342,7 @@ if (in_array("cn", $steps))
 			if ($is_wgs || $is_wgs_shallow)
 			{
 				$bin_size = 1000;
+				if ($is_wgs_shallow) $bin_size = 5000;
 				$bin_folder = "{$ref_folder}/bins{$bin_size}/";
 				if (!is_dir($bin_folder))
 				{
@@ -418,6 +419,11 @@ if (in_array("cn", $steps))
 				"-max_cnvs ".($is_wgs ? "2000" : "200"),
 				"--log {$log_cn}",
 			);
+			if ($is_wgs_shallow)
+			{
+				$args[] = "-skip_super_recall";
+				$args[] = "-regions 3";
+			}
 			$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 			
 			//copy results to output folder
