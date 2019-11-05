@@ -3,7 +3,8 @@
 	@page an_vep
 	
 	@todo test extended splice region plugin: https://github.com/Ensembl/VEP_plugins/blob/release/94/SpliceRegion.pm
-	@todo test Mastermind plugin: https://www.ensembl.org/info/docs/tools/vep/script/vep_plugins.html#mastermind
+	@todo test Mastermind plugin: https://github.com/Ensembl/VEP_plugins/blob/release/98/Mastermind.pm
+	@todo test FunMotifs plugin: https://github.com/Ensembl/VEP_plugins/blob/release/98/FunMotifs.pm
 	@todo test parameters: --gene_phenotype --ccds --biotype --canonical --pubmed
 */
 

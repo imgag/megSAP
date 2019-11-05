@@ -30,14 +30,14 @@ make
 cd $folder
 git clone https://github.com/vcflib/vcflib.git
 cd vcflib
-git checkout v1.0.0-rc2 && git submodule update --recursive --init
+git checkout v1.0.1 && git submodule update --recursive --init
 make
 
 #download ABRA2
 cd $folder
-mkdir abra2-2.19
-cd abra2-2.19
-wget https://github.com/mozack/abra2/releases/download/v2.19/abra2-2.19.jar -O abra2.jar
+mkdir abra2-2.22
+cd abra2-2.22
+wget https://github.com/mozack/abra2/releases/download/v2.22/abra2-2.22.jar -O abra2.jar
 
 #download and build samblaster
 cd $folder
@@ -68,18 +68,10 @@ cd $root
 chmod 755 download_tools_vep.sh
 ./download_tools_vep.sh
 
-#download bcftools
-cd $folder
-wget https://github.com/samtools/bcftools/releases/download/1.9/bcftools-1.9.tar.bz2
-tar xjf bcftools-1.9.tar.bz2
-rm bcftools-1.9.tar.bz2
-cd bcftools-1.9
-make
-
 #download manta
 cd $folder
-wget https://github.com/Illumina/manta/releases/download/v1.4.0/manta-1.4.0.centos6_x86_64.tar.bz2
-tar xjf manta-1.4.0.centos6_x86_64.tar.bz2
-rm manta-1.4.0.centos6_x86_64.tar.bz2
-cd manta-1.4.0.centos6_x86_64
+wget https://github.com/Illumina/manta/releases/download/v1.6.0/manta-1.6.0.centos6_x86_64.tar.bz2
+tar xjf manta-1.6.0.centos6_x86_64.tar.bz2
+rm manta-1.6.0.centos6_x86_64.tar.bz2
+cd manta-1.6.0.centos6_x86_64
 sed -i 's#referenceFasta = /illumina/development/Isis/Genomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa##g' bin/configManta.py.ini
