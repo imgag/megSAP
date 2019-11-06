@@ -512,7 +512,7 @@ if (in_array("sv", $steps))
 
 		//create BEDPE files
 		$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
-		exec2("{$ngsbits}VcfToBedpe -in $$sv_manta_file -out $bedpe_out");
+		exec2("{$ngsbits}VcfToBedpe -in $sv_manta_file -out $bedpe_out");
 	}
 }
 
