@@ -198,11 +198,11 @@ if (!$skip_ngsd)
 				$details = get_processed_sample_info($db_conn, $ps_name, false);
 				$disease_group = $details['disease_group'];
 				$disease_group_column = "";
-				if ($disease_group != "n/a" && $disease_group != "")
+				if ($disease_group != "")
 				{
 					print "Sample '$ps_name' belongs to disease group ".$details['disease_group']."\n";
 					$disease_group_column_idx = array_search($disease_group, $disease_groups);
-					$disease_group_column = "GSC".sprintf('%02d', $disease_group_column_idx);
+					$disease_group_column = "GSC".sprintf('%02d', $disease_group_column_idx + 1);
 				}
 			}
 			else

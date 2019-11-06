@@ -220,6 +220,12 @@ $column_desc = array(
 	array("COSMIC", "COSMIC somatic variant database anntotation.")
 );
 
+// optional NGSD somatic header description if vcf contains NGSD somatic information
+$column_desc_ngsd_som = array(
+	array("NGSD_som_c", "Somatic variant count in the NGSD."),
+	array("NGSD_som_p", "Project names of project containing this somatic variant in the NGSD.")
+);
+
 // optional NGSD header description if vcf contains NGSD information
 $column_desc_ngsd = array(
 	array("NGSD_hom", "Homozygous variant count in NGSD."),
@@ -232,11 +238,6 @@ $column_desc_ngsd = array(
 	array("gene_info", "Gene information from NGSD (inheritance mode, gnomAD o/e scores).")
 );
 
-// optional NGSD somatic header description if vcf contains NGSD somatic information
-$column_desc_ngsd_som = array(
-	array("NGSD_som_c", "Somatic variant count in the NGSD."),
-	array("NGSD_som_p", "Project names of project containing this somatic variant in the NGSD.")
-);
 
 if ($genotype_mode=="single")
 {
@@ -369,16 +370,15 @@ while(!feof($handle))
 	//after last header line, write our header
 	else if ($in_header) 
 	{
-		
-		if (!$skip_ngsd)
-		{
-			// append optional NGSD header
-			$column_desc = array_merge($column_desc, $column_desc_ngsd);
-		}
 		if (!$skip_ngsd_som)
 		{
 			// append optional NGSD somatic header
 			$column_desc = array_merge($column_desc, $column_desc_ngsd_som);
+		}
+		if (!$skip_ngsd)
+		{
+			// append optional NGSD header
+			$column_desc = array_merge($column_desc, $column_desc_ngsd);
 		}
 		write_header_line($handle_out, $column_desc, $filter_desc);
 		$in_header = false;
@@ -897,11 +897,18 @@ while(!feof($handle))
 		if (isset($info["NGSD_CLAS"]))
 		{
 			$ngsd_clas = trim($info["NGSD_CLAS"]);
-			$ngsd_clas_com = trim($info["NGSD_CLAS_COM"]);
 		}
 		else
 		{
 			$ngsd_clas = "";
+		}
+
+		if (isset($info["NGSD_CLAS_COM"]))
+		{
+			$ngsd_clas_com = trim($info["NGSD_CLAS_COM"]);
+		}
+		else
+		{
 			$ngsd_clas_com = "";
 		}
 
