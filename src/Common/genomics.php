@@ -1495,4 +1495,47 @@ function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 	exec2("{$ngs_bits}BedSubtract -in ".$ref_bed." -in2 {$tmp_bed} | {$ngs_bits}BedChunk -n 100000 | {$ngs_bits}BedShrink -n 25000 | {$ngs_bits}BedExtend -n 25000 -fai {$ref_genome_fasta}.fai | {$ngs_bits}BedAnnotateGC -ref {$ref_genome_fasta} | {$ngs_bits}BedAnnotateGenes -out {$out}");
 }
 
+//returns the allele counts for a sample at a certain position as an associative array, reference skips and start/ends of read segments are ignored
+function allele_count($bam, $chr, $pos)
+{
+	//get pileup
+	list($output) = exec2(get_path("samtools")." mpileup -aa -r $chr:$pos-$pos $bam");
+	list($chr2, $pos2, $ref2,, $bases) = explode("\t", $output[0]);;
+	
+	//count bases
+	$bases = strtoupper($bases);
+	$counts = array("A"=>0, "C"=>0, "G"=>0, "T"=>0, "*"=>0); //4 bases and "*" denoting an insertion or deletion
+	
+	for($i=0; $i<strlen($bases); ++$i)
+	{
+		$char = $bases[$i];
+		
+		if($char == "^") break; //skip qual bases/segment start at the end of pileup string
+		if($char == "$") continue;
+		
+		if (isset($counts[$char]))
+		{
+			++$counts[$char];
+		}
+		elseif($char == "-" || $char == "+") //start of an deletion or insertion
+		{
+			$indel_size_as_string = "";
+			++$i;
+			while(is_numeric($bases[$i])) //Determine size of the indel, is decimal with multiple places in orgiinal pileup format, e.g. "+99AGTC...."
+			{
+				$indel_size_as_string .= $bases[$i];
+				++$i;
+			}
+
+			$indel_size = intval($indel_size_as_string);
+			
+			$counts["*"] = $counts["*"] + 1;
+			$i += $indel_size - 1; //skip bases that belong to the descroption of the indel, -1 is neccessary due to for loop
+		}
+	}
+	arsort($counts);
+	
+	return $counts;
+}
+
 ?>
