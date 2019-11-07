@@ -6,7 +6,7 @@ $name = "an_somatic_gsvar";
 
 start_test($name);
 
-//1. test: input file without known CGI cancer acronym translation
+//2. test: input file without known CGI cancer acronym translation
 $gsvar_input1 = data_folder() . "an_somatic_gsvar_in1.GSvar";
 $gsvar_ref1 = data_folder() . "an_somatic_gsvar_ref1.GSvar";
 $cgi_mutation_file_input1 = data_folder() . "an_somatic_gsvar_in1_cgi_mutation_analysis.tsv";
@@ -22,5 +22,13 @@ $gsvar_output2 = output_folder() . "an_somatic_gsvar_out2.GSvar";
 check_exec("php ".src_folder()."/NGS/an_somatic_gsvar.php -gsvar_in $gsvar_input2 -cgi_snv_in $cgi_mutation_file_input2 -out $gsvar_output2 -include_ncg");
 check_file($gsvar_output2,$gsvar_ref2,true);
 
+//3.test: annotate RNA BAM file
+$gsvar_input3 = data_folder() . "an_somatic_gsvar_in3.GSvar";
+$gsvar_ref3 = data_folder() . "an_somatic_gsvar_ref3.GSvar";
+$rna_bam = data_folder() . "an_somatic_gsvar_in3.bam";
+$gsvar_output3 = output_folder() . "an_somatic_gsvar_out3.GSvar"; 
+$rna_counts = data_folder() . "an_somatic_gsvar_in3_counts.tsv"; 
+check_exec("php ".src_folder()."/NGS/an_somatic_gsvar.php -gsvar_in $gsvar_input3 -rna_bam $rna_bam -rna_counts $rna_counts -out $gsvar_output3");
+check_file($gsvar_output3,$gsvar_ref3,false);
 end_test();
 ?>

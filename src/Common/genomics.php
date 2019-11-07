@@ -1500,7 +1500,7 @@ function allele_count($bam, $chr, $pos)
 {
 	//get pileup
 	list($output) = exec2(get_path("samtools")." mpileup -aa -r $chr:$pos-$pos $bam");
-	list($chr2, $pos2, $ref2,, $bases) = explode("\t", $output[0]);;
+	list($chr2, $pos2, $ref2,, $bases) = explode("\t", $output[0]);
 	
 	//count bases
 	$bases = strtoupper($bases);

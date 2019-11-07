@@ -4,6 +4,8 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 $parser = new ToolBase("an_somatic_gsvar", "Annotates additional somatic data to GSvar file (CGI / NCG6.0).");
 $parser->addInfile("gsvar_in", "Input .gsvar-file with SNV data.", false);
 $parser->addInfile("cgi_snv_in", "Input CGI data with SNV annotations",true);
+$parser->addInfile("rna_counts", "Input file that contains RNA transcript counts.",true);
+$parser->addInfile("rna_bam", "RNA-BAM file that is used to annotate and calculate variant depth and frequency in RNA sample.",true);
 $parser->addFlag("include_ncg", "Annotate column with info from NCG6.0 whether a gene is TSG or oncogene");
 $parser->addOutfile("out", "Output file name", false);
 extract($parser->parse($argv));
@@ -81,13 +83,130 @@ function cgi_variant_tsv_to_sorted_vcf($cgi_input)
 	return $output;
 }
 
+
 /********
  * MAIN *
  ********/
+$gsvar_input = Matrix::fromTSV($gsvar_in);
+
+if(isset($rna_bam))
+{
+	$rna_afs = array();
+	$rna_depths = array();
+	
+	$i_variant_type = $gsvar_input->getColumnIndex("variant_type");
+	
+	for($i=0; $i<$gsvar_input->rows(); ++$i)
+	{
+		//Skip intronic variants
+		$variant_type =  $gsvar_input->get($i, $i_variant_type);
+		if($variant_type== "intron" || $variant_type == "intergenic")
+		{
+			$rna_depths[] = ".";
+			$rna_afs[] = ".";
+			continue;
+		}
+		
+		list($chr,$start,$end,$ref,$obs) = $gsvar_input->getRow($i);
+
+		$counts = allele_count($rna_bam,$chr,$start);
+		
+		$depth = 0; //we use depth that only counts bases from mpileup and e.g. no reference skips
+		foreach(array_values($counts) as $val) $depth += $val; 
+		
+		$obs = str_replace("-", "*", $obs);
+		$obs = str_replace("+", "*", $obs);
+		
+		$rna_depths[] = $depth;
+		$rna_afs[] = ($depth != 0) ? number_format($counts[$obs] / $depth,  2) : number_format(0, 2);
+	}
+	
+	$gsvar_input->removeColByName("rna_depth");
+	$gsvar_input->removeColByName("rna_af");
+	$gsvar_input->addCol($rna_depths, "rna_depth", "Depth in RNA BAM file $rna_bam");
+	$gsvar_input->addCol($rna_afs, "rna_af", "Allele frequency in RNA BAM file $rna_bam");
+	
+	$gsvar_input->toTSV($out);
+}
+
+if(isset($rna_counts)) //Annotate GSvar file with transcript counts file created by RNA pipeline
+{
+	$handle = fopen($rna_counts,"r");	
+	
+	$genes_of_interest = array();
+	$i_dna_gene =  $gsvar_input->getColumnIndex("gene");
+	
+	//Make list of genes that appear in GSvar file, as associative array
+	for($i=0; $i<$gsvar_input->rows(); ++$i)
+	{
+		list($chr,$start,$end,$ref,$obs) = $gsvar_input->getRow($i);
+		
+		$genes = explode(",", $gsvar_input->get($i,$i_dna_gene));
+		
+		if(db_is_enabled("NGSD")) $genes = approve_gene_names($genes);
+		
+		$genes_of_interest["{$chr}_{$start}_{$end}_{$ref}_{$obs}"] = $genes;
+	}
+	
+	$i_rna_gene = -1;
+	$i_rna_tpm = -1;
+	
+	$results  = array();
+	
+	while(!feof($handle))
+	{
+		$line = trim(fgets($handle));
+		
+		//get indices of RNA gene and RNA TPM
+		if(starts_with($line,"#gene_id"))
+		{
+			$parts = explode("\t", $line);
+			for($i=0; $i<count($parts); ++$i)
+			{
+				if($parts[$i] ==  "gene_name") $i_rna_gene = $i;
+				if($parts[$i] == "tpm") $i_rna_tpm = $i;
+			}
+		}
+		
+		//skip comments
+		if(starts_with($line,"#")) continue;
+		if(empty($line)) continue;
+		
+		
+		$parts = explode("\t", $line);
+		
+		if(db_is_enabled("NGSD")) list($rna_gene) = approve_gene_names(explode(",", $parts[$i_rna_gene])); //use first gene in case there is more than one gene
+		else list($rna_gene) = explode(",", $parts[$i_rna_gene]);
+		
+		foreach($genes_of_interest as $key => $dna_genes)
+		{
+			if(!array_key_exists($key, $results)) $results[$key] = "."; //Make a dummy entry "." in case we find nothing
+			
+			
+			foreach($dna_genes as $dna_gene)
+			{
+				if($dna_gene == $rna_gene)
+				{
+					$results[$key] = $parts[$i_rna_tpm];
+				}
+			}
+		}
+	}
+	fclose($handle);
+	
+	//Remove old annotations 
+	$gsvar_input->removeComment("RNA_SAMPLE",true);
+	$gsvar_input->removeColByName("rna_tpm");
+	
+	$gsvar_input->addComment("#RNA_TRANSCRIPT_COUNT_FILE=$rna_counts");
+	$gsvar_input->addCol(array_values($results),"rna_tpm","Transcript count as annotated per gene from $rna_counts");
+	
+	$gsvar_input->toTSV($out);
+}
+
 
 if(isset($cgi_snv_in))
 {
-	$gsvar_input = Matrix::fromTSV($gsvar_in);
 	/******************************
 	 * REMOVE OLD CGI ANNOTATIONS *
 	 ******************************/ 
