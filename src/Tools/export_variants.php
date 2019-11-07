@@ -120,6 +120,7 @@ $h = fopen($out, "w");
 fputs($h, "##fileformat=VCFv4.2\n");
 fputs($h, "##ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n");
 fputs($h, "##SAMPLE=<ID={$sample_name},Gender=n/a,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=affected>\n");
+fputs($h, "##FILTER=<ID=off-target,Description=\"Variant marked as 'off-target'\">\n");
 fputs($h, "#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	{$sample_name}\n");
 foreach($variants as $variant => $dummy)
 {
