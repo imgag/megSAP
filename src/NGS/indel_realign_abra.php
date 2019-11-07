@@ -2,8 +2,6 @@
 
 /*
 	@page indel_realign_abra
-	
-	@todo test option --no-edge-ci > fixing BAM for manta should not be needed anymore!
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

@@ -2,7 +2,11 @@
 
 /**
   @page vc_manta
- */
+  
+  @todo add test (somatic and germline)
+  @todo test ABRA2 option --no-edge-ci > fixing BAM for manta should not be needed anymore!
+  @todo remove all germline small_indel files (Sample_)
+*/
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
@@ -10,23 +14,21 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
 $parser = new ToolBase("vc_manta", "Call somatic structural variants with manta. Creates an VCF file.");
-$parser->addOutfile("out", "Output file (gzipped and tabix indexed).", false);
+$parser->addOutfile("out", "Output VCF file (gzipped and tabix indexed).", false);
 //optional
-$parser->addInfile("t_bam", "Tumor BAM file, for somatic mode.", true, false);
 $parser->addInfileArray("bam", "Normal BAM file(s). Only one normal BAM file allowed for somatic mode.", true, false);
-$parser->addFlag("exome", "If set, settings for exome analysis are used.", true);
-$parser->addOutfile("smallIndels", "Output file for candidate small indels.", true);
-$parser->addString("evid_dir","Output folder for BAM files containing evidence reads.",true);
+$parser->addInfile("t_bam", "Tumor BAM file, for somatic mode.", true, false);
+$parser->addOutfile("smallIndels", "Output VCF file for candidate small indels (gzipped and tabix indexed).", true);
+$parser->addString("evid_dir", "Output folder for BAM files containing evidence reads.",true);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
-$parser->addString("temp", "Temporary folder for manta analysis.", true, "auto");
-$parser->addStringArray("regions", "Limit analysis to specified regions.", true);
-$parser->addInfile("target",  "Enrichment targets BED file.", true);
-
-$parser->addEnum("config_preset", "Use preset configuration.", true, array("default", "high_sensitivity"), "default");
-
+$parser->addInfile("target",  "Enrichment target BED file (used for flagging off-target variants).", true);
+$parser->addFlag("exome", "If set, manta settings for exome/panel analysis are used (no depth filtering).", true);
 $parser->addFlag("fix_bam", "Remove incompatible alignments from BAM prior to running manta.");
 $parser->addInt("threads", "Number of threads used.", true, 4);
-
+//debugging options
+$parser->addEnum("config_preset", "Use preset configuration.", true, array("default", "high_sensitivity"), "default");
+$parser->addStringArray("regions", "Limit analysis to specified regions (for debugging).", true);
+$parser->addString("temp", "Temporary folder for manta analysis (for debugging).", true, "auto");
 extract($parser->parse($argv));
 
 // determine mode (somatic, tumor-only, germline)
@@ -117,7 +119,7 @@ if (isset($regions)) {
 
 //run manta
 $parser->exec("python ".get_path('manta')."/configManta.py", implode(" ", $args), true);
-$parser->exec("python {$manta_folder}/runWorkflow.py", "--mode local --jobs {$threads} --memGb 4", false);
+$parser->exec("python {$manta_folder}/runWorkflow.py", "--mode local --jobs {$threads} --memGb ".(2*$threads), false);
 
 //copy files to output folder
 if ($mode_somatic)

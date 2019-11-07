@@ -94,7 +94,6 @@ $rohfile = $out_folder."/".$name."_rohs.tsv";
 $baffile = $out_folder."/".$name."_bafs.igv";
 
 $sv_manta_file = $out_folder ."/". $name . "_manta_var_structural.vcf.gz";
-$small_indel_manta_file =  $out_folder ."/". $name . "_manta_var_smallIndels.vcf.gz";
 
 //move old data to old_[date]_[random]-folder
 if($backup && in_array("ma", $steps))
@@ -490,36 +489,29 @@ if (in_array("db", $steps))
 //structural variants
 if (in_array("sv", $steps))
 {
-	if(!$is_wgs)
-	{
-		trigger_error("Skipping step 'sv' - Structural variant calling is only supported for WGS samples!", E_USER_NOTICE);
-	}
-	else
-	{
-		if(file_exists($log_sv)) unlink($log_sv);
-		
-		//SV calling with manta
-		$manta_evidence_dir = "{$out_folder}/manta_evid";
-		create_directory($manta_evidence_dir);
+	if(file_exists($log_sv)) unlink($log_sv);
+	
+	//SV calling with manta
+	$manta_evidence_dir = "{$out_folder}/manta_evid";
+	create_directory($manta_evidence_dir);
 
-		$manta_args = [
-			"-bam ".$bamfile,
-			"-evid_dir ".$manta_evidence_dir,
-			"-out ".$sv_manta_file,
-			"-smallIndels ".$small_indel_manta_file,
-			"-threads ".$threads,
-			"-fix_bam",
-			"-build ".$sys['build'],
-			"--log ".$log_sv
-		];
-		if($has_roi) $manta_args[] = "-target ".$sys['target_file'];
-		
-		$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
+	$manta_args = [
+		"-bam ".$bamfile,
+		"-evid_dir ".$manta_evidence_dir,
+		"-out ".$sv_manta_file,
+		"-threads ".$threads,
+		"-fix_bam",
+		"-build ".$sys['build'],
+		"--log ".$log_sv
+	];
+	if($has_roi) $manta_args[] = "-target ".$sys['target_file'];
+	if(!$is_wgs) $manta_args[] = "-exome";
+	
+	$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
 
-		//create BEDPE files
-		$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
-		exec2("{$ngsbits}VcfToBedpe -in $$sv_manta_file -out $bedpe_out");
-	}
+	//create BEDPE files
+	$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
+	exec2("{$ngsbits}VcfToBedpe -in $sv_manta_file -out $bedpe_out");
 }
 
 ?>
