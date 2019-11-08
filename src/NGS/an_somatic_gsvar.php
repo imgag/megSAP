@@ -195,7 +195,7 @@ if(isset($rna_counts)) //Annotate GSvar file with transcript counts file created
 	fclose($handle);
 	
 	//Remove old annotations 
-	$gsvar_input->removeComment("RNA_SAMPLE",true);
+	$gsvar_input->removeComment("RNA_TRANSCRIPT_COUNT_FILE",true);
 	$gsvar_input->removeColByName("rna_tpm");
 	
 	$gsvar_input->addComment("#RNA_TRANSCRIPT_COUNT_FILE=$rna_counts");
