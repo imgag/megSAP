@@ -169,53 +169,73 @@ if (!$skip_ngsd)
 	$disease_group_column = "";
 	if (db_is_enabled("NGSD"))
 	{
-		// check file format
-		if (ends_with($in, ".vcf"))
+		if ($somatic)
 		{
-			// parse vcf to get sample name
-			$handle = fopen2($in, "r");
-			$ps_name = "";
-			while(!feof($handle))
+			$db_conn = DB::getInstance("NGSD", false);
+			$disease_groups = $db_conn->getEnum("sample", "disease_group");
+			trigger_error("All somatic samples belongs to disease group Neoplasms", E_USER_NOTICE);
+			$disease_group_column_idx = array_search("Neoplasms", $disease_groups);
+			$disease_group_column = "GSC".sprintf('%02d', $disease_group_column_idx + 1);
+		}
+		else
+		{
+			// check file format
+			if (ends_with($in, ".vcf"))
 			{
-				
-				$line = nl_trim(fgets($handle));
-				if($line=="") continue;
+				// parse vcf to get sample name
+				$handle = fopen2($in, "r");
+				$ps_name = "";
+				while(!feof($handle))
+				{
+					
+					$line = nl_trim(fgets($handle));
+					if($line=="") continue;
 
-				//header line
-				if(starts_with($line, "#CHROM")) 
-				{
-					$parts = explode("\t", $line);
-					$format_idx = array_search("FORMAT", $parts);
-					$ps_name = $parts[($format_idx + 1)];
-					print "Processed sample id: $ps_name \n";
-					break;
+					//header line
+					if(starts_with($line, "#CHROM")) 
+					{
+						$parts = explode("\t", $line);
+						$format_idx = array_search("FORMAT", $parts);
+						$ps_name = $parts[($format_idx + 1)];
+						trigger_error("Processed sample id: $ps_name ", E_USER_NOTICE);
+						break;
+					}
 				}
-			}
-			if ($ps_name != "")
-			{
-				$db_conn = DB::getInstance("NGSD", false);
-				$disease_groups = $db_conn->getEnum("sample", "disease_group");
-				$details = get_processed_sample_info($db_conn, $ps_name, false);
-				$disease_group = $details['disease_group'];
-				$disease_group_column = "";
-				if ($disease_group != "")
+				if ($ps_name != "")
 				{
-					print "Sample '$ps_name' belongs to disease group ".$details['disease_group']."\n";
-					$disease_group_column_idx = array_search($disease_group, $disease_groups);
-					$disease_group_column = "GSC".sprintf('%02d', $disease_group_column_idx + 1);
+					$db_conn = DB::getInstance("NGSD", false);
+					$disease_groups = $db_conn->getEnum("sample", "disease_group");
+					$details = get_processed_sample_info($db_conn, $ps_name, false);
+					$disease_group = $details['disease_group'];
+					$disease_group_column = "";
+					if ($disease_group != "")
+					{
+						trigger_error("Sample '$ps_name' belongs to disease group $disease_group.", E_USER_NOTICE);
+						$disease_group_column_idx = array_search($disease_group, $disease_groups);
+						$disease_group_column = "GSC".sprintf('%02d', $disease_group_column_idx + 1);
+					}
+					else
+					{
+						trigger_error("No disease group found for sample $ps_name. NGSD count annotation for disease group will be missing in output file.",E_USER_WARNING);
+					}
+				}
+				else
+				{
+					trigger_error("No sample name found in VCF file. NGSD count annotation for disease group will be missing in output file.",E_USER_WARNING);
 				}
 			}
 			else
 			{
-				trigger_error("No sample name found in VCF file.",E_USER_WARNING);
+				trigger_error("Can not extract disease group from gzipped VCF files. NGSD count annotation for disease group will be missing in output file.",E_USER_WARNING);
 			}
-		}
-		else
-		{
-			trigger_error("Can not extract disease group from gzipped VCF files. NGSD count annotation for disease group will be missing in output file.",E_USER_WARNING);
 		}
 		
 	}
+	else
+	{
+		trigger_error("No connection to NGSD. NGSD count annotation for disease group will be missing in output file.",E_USER_WARNING);
+	}
+	
 	$ngsd_columns = ["COUNTS"];
 	if ($disease_group_column != "")
 	{
