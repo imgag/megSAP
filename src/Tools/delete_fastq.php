@@ -10,117 +10,95 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("delete_fastq", "Deletes all FASTQ files of a given processing system.");
-$parser->addString("processing_system", "Processing system of the FASTQ files.", false);
-$parser->addFlag("delete", "Deletes the FASTQ files. Warning: No additionaol warning before deleting files!");
+$parser->addString("processing_system", "Processing system of the samples.", false);
+$parser->addFlag("delete", "Deletes the FASTQ files. Warning: No additional warning before deleting files!");
 extract($parser->parse($argv));
 
 $ngsbits = get_path("ngs-bits");
 
-
-// get all samples with matching processing system
+//get samples with matching processing system
 $sample_table_file = $parser->tempFile(".tsv");
-$parser->exec("{$ngsbits}NGSDExportSamples", "-out $sample_table_file -system $processing_system -add_path", true);
+$pipeline= [
+	["{$ngsbits}NGSDExportSamples", "-system $processing_system -add_path"],
+	["{$ngsbits}TsvFilter", "-filter 'system_name_short is $processing_system'"], //this is necessary because NGSDExportSamples performs fuzzy match
+	["{$ngsbits}TsvSlice", "-cols name,path -out $sample_table_file"],
+];
+$parser->execPipeline($pipeline, "NGSD sample extraction", true);
 $sample_table = load_tsv($sample_table_file);
 
-// overall stats:
-$overall_fastq_size = 0;
-
-
+//process samples
+print "#ps_name\tfolder\tfastq_file_size\tbam_file_size\taction\terrors\n";
 foreach($sample_table as $sample)
-{
-	// print sample infos
-	print substr($sample[0], 0, -3)." at: ".$sample[18]."\n";
-
+{	
+	//init
+	$ps_name = $sample[0];
+	$s_name = substr($sample[0], 0, -3);
+	$folder = $sample[1];
+	$size = "0.0";
+	$errors = array();
+	
 	// get FASTQ files:
-	$in_for = $sample[18].substr($sample[0], 0, -3)."*_R1_00?.fastq.gz";
-	$in_rev = $sample[18].substr($sample[0], 0, -3)."*_R2_00?.fastq.gz";
-	$files1 = glob($in_for);
-	$files2 = glob($in_rev);
-
-	// check if forward and reverse file count is equal
+	$files1 = glob($folder."/".$s_name."*_R1_00?.fastq.gz");
+	$files2 = glob($folder."/".$s_name."*_R2_00?.fastq.gz");
+	$fastq_files = array_merge($files1, $files2);
+	
+	// check FASTQ files
 	if(count($files1)!=count($files2))
 	{
-		trigger_error("Found mismatching forward and reverse read file count!\n Forward: $in_for\n Reverse: $in_rev.", E_USER_WARNING);
-		print "\033[0;31m Mismatching forward and reverse read file count! Skipping deletion. \033[0m\n\n\n";
-		continue;
+		$errors[] = "Mismatching forward and reverse FASTQ count";
 	}
-	if(count($files1) == 0)
+	if(count($fastq_files)==0)
 	{
-		trigger_error("No FASTQ files found!", E_USER_WARNING);
-		
-		print "\033[0;31m No FASTQ files! Skipping deletion. \033[0m\n\n\n";
-		continue;
+		$errors[] = "No FASTQ files found";
 	}
 
-	// print file names and calculate FASTQ file size:
+	// determine FASTQ file(s) size
 	$fastq_file_size = 0;
-	print "FASTQ files:\n";
-	foreach($files1 as $fq_file)
+	foreach($fastq_files as $fq_file)
 	{
 		$fastq_file_size += filesize($fq_file);
-		print "\t".$fq_file."\n";
 	}
-	foreach($files2 as $fq_file)
+	$size = number_format($fastq_file_size/1024/1024/1024, 3, ".", "");
+
+
+	//check BAM file
+	$bam_file = $folder."/".$ps_name.".bam";
+	$bam_exists = file_exists($bam_file) && file_exists($bam_file.".bai"); 
+	if(!$bam_exists)
 	{
-		$fastq_file_size += filesize($fq_file);
-		print "\t".$fq_file."\n";
+		$errors[] = "No BAM/BAI file found!";
 	}
 	
-	// print FASTQ filesize
-	print "FASTQ file size:\t\t ".number_format($fastq_file_size/1024/1024/1024, 3)." GB \n";
-
-
-	// check if BAM file exists
-	$bam_file = $sample[18].$sample[0].".bam";
-	if(!file_exists($bam_file) || !file_exists($bam_file.".bai"))
+	//check BAM file size
+	$bam_file_size = 0;
+	if ($bam_exists && count($fastq_files)>0)
 	{
-		trigger_error("No BAM file found!", E_USER_WARNING);
-		print "\033[0;31m No BAM file found! Skipping deletion. \033[0m\n\n\n";
-		continue;
-	}
-
-	// print BAM file and file size
-	$bam_file_size = filesize($bam_file);
-	print "\nBAM file:\n\t".$bam_file."\n";
-	print "BAM file size:\t\t\t ".number_format($bam_file_size/1024/1024/1024, 3)." GB \n";
-
-
-	// check if BAM file size fits 
-	$bam_fastq_ratio = $bam_file_size / $fastq_file_size;
-
-	if ($bam_fastq_ratio > 0.5)
-	{
-		print "\033[0;32m Bam file larger than 50% of FASTQ: FASTQ files ready for deletion. \033[0m\n";
-
-		$overall_fastq_size += $fastq_file_size;
-
-		if ($delete)
+		$bam_file_size = filesize($bam_file);
+		
+		if ($bam_file_size / $fastq_file_size < 0.5)
 		{
-			print "\tDeleting files...";
-			foreach($files1 as $fq_file)
-			{
-				unlink($fq_file);
-			}
-			foreach($files2 as $fq_file)
-			{
-				unlink($fq_file);
-			}
-		}
-		else
-		{
-			print "\tSimulation run. No files will be deleted.";
+			$errors[] = "BAM file smaller than 50% of FASTQ";
 		}
 	}
-	else
+	
+	//determine action
+	$action = "SKIP";
+	if (count($errors)==0)
 	{
-		print "\033[0;31m Bam file smaller than 50% of FASTQ: FASTQ will not be deleted. \033[0m\n\n\n";
-		continue;
+		$action = "DELETE ".count($fastq_files)." files".($delete ? "" : " (dry-run)");
 	}
-
-
-	print "\n\n\n";
+	
+	//output
+	print "{$ps_name}\t{$folder}\t".number_format($fastq_file_size/1024/1024/1024, 3, ".", "")."\t".number_format($bam_file_size/1024/1024/1024, 3, ".", "")."\t{$action}\t".implode(" ", $errors)."\n";
+	
+	//delete
+	if ($delete && starts_with($action, "DELETE"))
+	{
+		foreach($fastq_files as $fq_file)
+		{
+			unlink($fq_file);
+		}
+	}
 }
-
-print "\nOverall size of deleted files:\t\t".number_format($overall_fastq_size/1024/1024/1024, 0)." GB\n";
 
 ?>
