@@ -1,12 +1,23 @@
 <?php
+/** 
+	@page an_somatic_cnvs
+*/
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+
+error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("an_somatic_cnvs", "Annotates additional somatic data to ClinCNV file (CGI / NCG6.0).");
 $parser->addInfile("cnv_in", "Input .gsvar-file with SNV data.", false);
 $parser->addInfile("cnv_in_cgi", "Input CGI data with SNV annotations",true);
 $parser->addFlag("include_ncg", "Annotate column with info from NCG6.0 whether a gene is TSG or oncogene");
+$parser->addInfile("rna_counts", "File with RNA transcript counts.", true);
 $parser->addOutfile("out", "Output file name", false);
 extract($parser->parse($argv));
+
+if(!isset($cnv_in_cgi) && !$include_ncg && !isset($rna_counts))
+{
+	trigger_error("At least one input file with annotation data must be given.", E_USER_ERROR);
+}
 
 if(isset($cnv_in_cgi))
 {
@@ -206,4 +217,82 @@ if($include_ncg)
 	
 	$cnv_input->toTSV($out);
 }
+
+if(isset($rna_counts))
+{
+	if(isset($cnv_in_cgi) || $include_ncg) //use fresh cgi/ncg-annotated file if newly annotated
+	{
+		$cnv_input = Matrix::fromTSV($out);
+	}
+	else 
+	{
+		$cnv_input = Matrix::fromTSV($cnv_in);
+	}
+	
+	//Make list of genes that occur in CNV file
+	$i_genes = $cnv_input->getColumnIndex("genes", false, false);
+	$genes_of_interest = array();
+	for($row=0; $row<$cnv_input->rows(); ++$row)
+	{
+		$temp = approve_gene_names(explode(",",trim($cnv_input->get($row, $i_genes))));
+		foreach($temp as $gene) $genes_of_interest[] = $gene;
+	}
+	
+	//Create result array of genes and tpm that occur in RNA_counts and CNV file
+	$i_rna_genes = -1;
+	$i_rna_tpm = -1;
+	$results = array();
+	$handle = fopen($rna_counts, "r");
+	while(!feof($handle))
+	{
+		$line = fgets($handle);
+		
+		//Determine column indices
+		if(starts_with($line,"#gene_id"))
+		{
+			$parts = explode("\t",$line);
+			for($i=0; $i<count($parts); ++$i)
+			{
+				if($parts[$i] == "gene_name") $i_rna_genes = $i;
+				if($parts[$i] == "tpm") $i_rna_tpm = $i;
+			}
+		}
+		
+		if(starts_with($line,"#")) continue;
+		if(empty($line)) continue;
+		
+		list(,,,,$tpm, $rna_gene) = explode("\t", $line);
+		
+		if(in_array($rna_gene, $genes_of_interest))
+		{
+			$results[$rna_gene] = $tpm;
+		}
+	}
+	fclose($handle);
+	
+	//Parse results to out file
+	$new_col = array();
+	for($row=0; $row<$cnv_input->rows(); ++$row)
+	{
+		$dna_genes = approve_gene_names(explode(",",trim($cnv_input->get($row, $i_genes))));
+		$new_entry = array();
+		foreach($dna_genes as $dna_gene)
+		{
+			if(array_key_exists($dna_gene,$results))
+			{
+				$new_entry[] = "{$dna_gene}=". number_format($results[$dna_gene], 2);
+			}
+			else
+			{
+				$new_entry[] = "{$dna_gene}=.";
+			}
+		}
+		$new_col[] = implode(",",$new_entry);
+	}
+	
+	$cnv_input->removeColByName("RNA_tpm_per_gene");
+	$cnv_input->addCol($new_col, "RNA_tpm_per_gene", "RNA TPM counts per gene from file {$rna_counts}.");
+	$cnv_input->toTSV($out);
+}
+
 ?>
