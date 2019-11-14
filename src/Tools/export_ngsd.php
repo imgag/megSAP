@@ -72,7 +72,7 @@ if (file_exists($out)) unlink($out);
 $out_handle = fopen($out, "a");
 
 //remove all initial data from NGSD (not by TUNCATE in case someone applies the SQL import to a production database)
-fputs($out_handle, "DELETE FROM user WHERE user_id='admin' OR user_id='genlab_import';\n");
+fputs($out_handle, "DELETE FROM user WHERE user_id='admin' OR user_id='genlab_import' OR user_id='unknown';\n");
 fputs($out_handle, "DELETE FROM species WHERE name='human';\n");
 fputs($out_handle, "DELETE FROM genome WHERE build='hg19' OR build='hg38';\n");
 
