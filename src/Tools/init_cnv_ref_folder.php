@@ -22,16 +22,29 @@ $db = DB::getInstance("NGSD");
 $res = $db->executeQuery("SELECT * FROM processing_system WHERE name_short=:sys", array("sys"=>$name));
 if (count($res)!=1)
 {
-	trigger_error("Invalid processing system short name '$name'! Valid names are: ".implode(", ", $db->getEnum("processing_system", "name_short")), E_USER_ERROR);	
+	trigger_error("Invalid processing system short name '$name'! Valid names are:\n".implode("\n", $db->getValues("SELECT name_short FROM processing_system ORDER BY name_short ASC")), E_USER_ERROR);	
 }
 $roi = trim($res[0]['target_file']);
 if ($roi=="")
 {
 	trigger_error("Processing system '$name' has no target region file annotated!", E_USER_ERROR);	
 }
+$type = $res[0]['type'];
+if ($type=="WGS" || $type=="WGS (shallow)")
+{
+	trigger_error("This script does not support WGS processing systems!", E_USER_ERROR);	
+}
 
 //Make list of samples that have same processing system
-list($samples) = exec2(get_path("ngs-bits")."NGSDExportSamples -system {$name} -add_path | egrep  '\\s{$name}\\s' | cut -f1,19");
+$ngsbits = get_path("ngs-bits");
+$sample_table_file = $parser->tempFile(".tsv");
+$pipeline= [
+	["{$ngsbits}NGSDExportSamples", "-system $name -add_path"],
+	["{$ngsbits}TsvFilter", "-filter 'system_name_short is $name'"], //this is necessary because NGSDExportSamples performs fuzzy match
+	["{$ngsbits}TsvSlice", "-cols name,path -out $sample_table_file"],
+];
+$parser->execPipeline($pipeline, "NGSD sample extraction", true);
+$samples = file($sample_table_file);
 
 if(!$somatic)
 {
@@ -62,7 +75,10 @@ if(!$somatic)
 	$valid = 0;
 	foreach($samples as $line)
 	{
-		list($sample, $path) = explode("\t", trim($line));
+		$line = trim($line);
+		if ($line=="" || $line=="#") continue;
+		
+		list($sample, $path) = explode("\t", $line);
 		
 		//check sample is valid
 		if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only)) continue;
@@ -93,7 +109,7 @@ if(!$somatic)
 		
 		//calculate coverage file
 		print "$bam processing...\n";
-		exec2(get_path("ngs-bits")."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out $cov_file");
+		exec2($ngsbits."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out $cov_file");
 	}
 
 	//chmod
@@ -169,13 +185,13 @@ else //somatic tumor-normal pairs
 			if(!is_valid_ref_tumor_sample_for_cnv_analysis($sample))  continue;
 			if(!file_exists("{$ref_t_dir}/{$sample}.cov"))
 			{
-				exec2(get_path("ngs-bits")."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out {$ref_t_dir}/{$sample}.cov",true);
+				exec2($ngsbits."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out {$ref_t_dir}/{$sample}.cov",true);
 				++$t_count;
 			}
 			//off-target
 			if(!file_exists("{$ref_off_t_dir}/{$sample}.cov"))
 			{
-				exec2(get_path("ngs-bits")."BedCoverage -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam -out {$ref_off_t_dir}/{$sample}.cov" ,true);
+				exec2($ngsbits."BedCoverage -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam -out {$ref_off_t_dir}/{$sample}.cov" ,true);
 				++$t_off_count;
 			}
 		}
@@ -185,13 +201,13 @@ else //somatic tumor-normal pairs
 			if(!is_valid_ref_sample_for_cnv_analysis($sample)) continue;
 			if(!file_exists("{$ref_n_dir}/{$sample}.cov"))
 			{
-				exec2(get_path("ngs-bits")."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out {$ref_n_dir}/{$sample}.cov",true);
+				exec2($ngsbits."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out {$ref_n_dir}/{$sample}.cov",true);
 				++$n_count;
 			}
 			//off-target
 			if(!file_exists("{$ref_off_n_dir}/{$sample}.cov"))
 			{
-				exec2(get_path("ngs-bits")."BedCoverage -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam -out {$ref_off_n_dir}/{$sample}.cov" ,true);
+				exec2($ngsbits."BedCoverage -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam -out {$ref_off_n_dir}/{$sample}.cov" ,true);
 				++$n_off_count;
 			}
 		}
