@@ -298,7 +298,7 @@ file_put_contents($out, $cnv_calls);
 
 //annotate
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$repository_basedir}/data/misc/cnps_genomes_imgag.bed -overlap -out {$out}", true);
-$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$repository_basedir}/data/misc/cnps_700genomes_pcawg.bed -overlap -out {$out}", true);
+$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$out}", true);
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$out}", true);
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -out {$out}", true);
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs.bed -no_duplicates -out {$out}", true);
