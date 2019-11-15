@@ -1,0 +1,49 @@
+##ANALYSISTYPE=MANTA_TUMOR_NORMAL_PAIR
+##fileformat=BEDPE_TUMOR_NORMAL_PAIR
+##fileDate=20191108
+##source=GenerateSVCandidates 1.4.0
+##reference=file:///tmp/local_ngs_data/GRCh37.fa
+##ALT=<ID=INV,Description="Inversion">
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=INS,Description="Insertion">
+##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
+##cmdline=/mnt/share/opt/manta-1.4.0.centos6_x86_64/bin//configManta.py --referenceFasta /tmp/local_ngs_data//GRCh37.fa --runDir temp/mantaAnalysis --config /mnt/share/opt/manta-1.4.0.centos6_x86_64/bin//configManta.py.ini --outputContig --generateEvidenceBam --exome --tumorBam /tmp/megSAP_user_ahgscha1/vc_manta_lel4Zt_nocomplex.bam --normalBam /tmp/megSAP_user_ahgscha1/vc_manta_hPJcGP_nocomplex.bam
+##INFO=<ID=IMPRECISE,Number=0,Type=Flag,Description="Imprecise structural variation">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=POS,Number=1,Type=Integer,Description="Position of the variant described in the original VCF file.">
+##INFO=<ID=SVLEN,Number=.,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=CIPOS,Number=2,Type=Integer,Description="Confidence interval around POS">
+##INFO=<ID=CIEND,Number=2,Type=Integer,Description="Confidence interval around END">
+##INFO=<ID=CIGAR,Number=A,Type=String,Description="CIGAR alignment for each alternate indel allele">
+##INFO=<ID=MATEID,Number=.,Type=String,Description="ID of mate breakend">
+##INFO=<ID=EVENT,Number=1,Type=String,Description="ID of event associated to breakend">
+##INFO=<ID=HOMLEN,Number=.,Type=Integer,Description="Length of base pair identical homology at event breakpoints">
+##INFO=<ID=HOMSEQ,Number=.,Type=String,Description="Sequence of base pair identical homology at event breakpoints">
+##INFO=<ID=SVINSLEN,Number=.,Type=Integer,Description="Length of insertion">
+##INFO=<ID=SVINSSEQ,Number=.,Type=String,Description="Sequence of insertion">
+##INFO=<ID=LEFT_SVINSSEQ,Number=.,Type=String,Description="Known left side of insertion for an insertion of unknown length">
+##INFO=<ID=RIGHT_SVINSSEQ,Number=.,Type=String,Description="Known right side of insertion for an insertion of unknown length">
+##INFO=<ID=INV3,Number=0,Type=Flag,Description="Inversion breakends open 3' of reported location">
+##INFO=<ID=INV5,Number=0,Type=Flag,Description="Inversion breakends open 5' of reported location">
+##INFO=<ID=CONTIG,Number=1,Type=String,Description="Assembled contig sequence">
+##INFO=<ID=BND_DEPTH,Number=1,Type=Integer,Description="Read depth at local translocation breakend">
+##INFO=<ID=MATE_BND_DEPTH,Number=1,Type=Integer,Description="Read depth at remote translocation mate breakend">
+##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Somatic mutation">
+##INFO=<ID=SOMATICSCORE,Number=1,Type=Integer,Description="Somatic variant quality score">
+##INFO=<ID=JUNCTION_SOMATICSCORE,Number=1,Type=Integer,Description="If the SV junctino is part of an EVENT (ie. a multi-adjacency variant), this field provides the SOMATICSCORE value for the adjacency in question only">
+##FILTER=<ID=MaxMQ0Frac,Description="For a small variant (<1000 bases) in the normal sample, the fraction of reads with MAPQ0 around either breakend exceeds 0.4">
+##FILTER=<ID=MinSomaticScore,Description="Somatic score is less than 30">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+##DESCRIPTION=SOMATICSCORE=Somatic variant quality score
+##DESCRIPTION=JUNCTION_SOMATICSCORE=If the SV junctino is part of an EVENT (ie. a multi-adjacency variant), this field provides the SOMATICSCORE value for the adjacency in question only
+##DESCRIPTION=TUM_PR_REF=Spanning paired-read support for the ref alleles in DX000002_01.
+##DESCRIPTION=TUM_SR_REF=Split reads for the ref alleles in the order listed, for reads where P(allele|read)>0.999 in DX000002_01.
+##DESCRIPTION=TUM_PR_ALT=Spanning paired-read support for the alt alleles in DX000002_01.
+##DESCRIPTION=TUM_SR_ALT=Split reads for the alt alleles in the order listed, for reads where P(allele|read)>0.999 in DX000002_01.
+##DESCRIPTION=NOR_PR_REF=Spanning paired-read support for the ref alleles in DX000001_01.
+##DESCRIPTION=NOR_PR_ALT=Spanning paired-read support for the alt alleles in DX000001_01.
+##DESCRIPTION=NOR_SR_REF=Split reads for the ref alleles in the order listed, for reads where P(allele|read)>0.999 in DX000001_01.
+##DESCRIPTION=NOR_SR_ALT=Split reads for the alt alleles in the order listed, for reads where P(allele|read)>0.999 in DX000001_01.
+##DESCRIPTION=FLAGS=Flags that occur in INFO column.
+#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	TYPE	FILTER	SOMATICSCORE	JUNCTION_SOMATICSCORE	TUM_PR_REF	TUM_SR_REF	TUM_PR_ALT	TUM_SR_ALT	NOR_PR_REF	NOR_PR_ALT	NOR_SR_REF	NOR_SR_ALT	FLAGS	REF_A	ALT_A	REF_B	ALT_B	INFO_A	INFO_B	NAME_A	NAME_B
