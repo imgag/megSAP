@@ -9,6 +9,7 @@ dbs=$root/dbs/
 
 #Ignore this - used for local installation
 #tools=/mnt/share/opt/
+#tools=/home/bioinf/
 #dbs=/mnt/share/data/dbs/
 
 vep_install_dir=$tools/ensembl-vep-release-98.3/
