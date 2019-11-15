@@ -32,6 +32,12 @@ $cnv_output_3 = output_folder()."/an_somatic_cnvs_out3_cnvs.tsv";
 check_exec("php ".src_folder()."/NGS/an_somatic_cnvs.php -cnv_in $cnv_input_3 -cnv_in_cgi $cgi_input_3 -out $cnv_output_3");
 check_file($cnv_output_3,$cnv_ref_3,true);
 
+//4th case: annotate RNA data
+$rna_counts = data_folder()."/an_somatic_cnvs_rna_counts.tsv";
+$cnv_output_4 = output_folder()."/an_somatic_cnvs_out4_cnvs.tsv";
+$cnv_ref_4 = data_folder()."/an_somatic_cnvs_ref4_cnvs.tsv";
+check_exec("php ".src_folder()."/NGS/an_somatic_cnvs.php -cnv_in $cnv_input_3 -rna_counts $rna_counts -out $cnv_output_4");
+check_file($cnv_output_4,$cnv_ref_4,false);
 end_test();
 
 ?>

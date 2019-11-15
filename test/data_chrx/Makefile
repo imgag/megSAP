@@ -1,8 +1,8 @@
 
-all: clean link map vc an cn diff
+all: clean link map vc an cn sv diff
 
 clean:
-	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs.seg *_cnvs.tsv
+	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs.seg *_cnvs.tsv *.bedpe manta_evid
 
 link:
 	php ../link_test_data.php NA12878_17_GTAGAGGATATCCTCT_L001_R1_001.fastq.gz
@@ -22,7 +22,12 @@ an:
 	php ../../src/Pipelines/analyze.php  -folder . -name NA12878_17  -system system.ini -steps an
 
 cn:
+	rm -rf NA12878_17_log5_cn.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps cn
+
+sv:
+	rm -rf NA12878_17_log6_sv.log
+	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps sv
 
 diff:
 	php ../compare_variants.php -in1 NA12878_17.GSvar.out -in2 NA12878_17.GSvar
@@ -32,5 +37,6 @@ diff:
 	diff NA12878_17_cnvs.tsv.out NA12878_17_cnvs.tsv --ignore-matching-lines="CnvHunter version:"
 	numdiff NA12878_17_cnvs.seg.out NA12878_17_cnvs.seg --absolute-tolerance 0.04
 	php ../compare_bed.php NA12878_17_nxLRRK2_SNCA_lowcov.bed.out NA12878_17_nxLRRK2_SNCA_lowcov.bed
+	diff NA12878_17_manta_var_structural.bedpe.out NA12878_17_manta_var_structural.bedpe --ignore-matching-lines="^##"
 
 

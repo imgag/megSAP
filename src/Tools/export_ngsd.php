@@ -12,7 +12,7 @@ function export_table(&$out_handle, $table, $conditions = "1")
 	//init
 	global $db;
 	
-	print "  Exporting table {$table}\n";
+	print "  Exporting table {$table}";
 	
 	//extract field names
 	$fields = array();
@@ -26,15 +26,18 @@ function export_table(&$out_handle, $table, $conditions = "1")
 	}
 	
 	//write output
+	$max_elements = 1000;
 	$res = $db->executeQuery("SELECT * FROM {$table} WHERE {$conditions}");
 	$row_count = count($res);
 	if ($row_count>0)
 	{
-		fputs($out_handle, "\n");
-		fputs($out_handle, "INSERT INTO `{$table}`(`".implode("`, `", array_keys($fields))."`) VALUES\n");
-		$is_first = true;
 		for ($i=0; $i<$row_count; ++$i)
 		{
+			if ($i%$max_elements==0)
+			{
+				fputs($out_handle, "\n");
+				fputs($out_handle, "INSERT INTO `{$table}`(`".implode("`, `", array_keys($fields))."`) VALUES\n");
+			}
 			$row = $res[$i];
 			$line = "  (";
 			
@@ -53,10 +56,12 @@ function export_table(&$out_handle, $table, $conditions = "1")
 			}
 			$line .= implode(",", $items);
 			$line .= ")";
-			$line .= ($i+1==$row_count) ? ";" : ",";
+			$line .= ($i+1==$row_count || ($i+1)%$max_elements==0) ? ";" : ",";
 			fputs($out_handle, $line."\n");
 		}
 	}
+	
+	print " ({$row_count} rows)\n";
 }
 
 //parse command line arguments
@@ -72,7 +77,7 @@ if (file_exists($out)) unlink($out);
 $out_handle = fopen($out, "a");
 
 //remove all initial data from NGSD (not by TUNCATE in case someone applies the SQL import to a production database)
-fputs($out_handle, "DELETE FROM user WHERE user_id='admin' OR user_id='genlab_import';\n");
+fputs($out_handle, "DELETE FROM user WHERE user_id='admin' OR user_id='genlab_import' OR user_id='unknown';\n");
 fputs($out_handle, "DELETE FROM species WHERE name='human';\n");
 fputs($out_handle, "DELETE FROM genome WHERE build='hg19' OR build='hg38';\n");
 
@@ -123,6 +128,11 @@ foreach($samples as $sample)
 	
 	//diagnostic status
 	export_table($out_handle, "diag_status", "processed_sample_id IN (".implode(",", $processed_sample_ids).")");
+	
+	//cnv callset
+	export_table($out_handle, "cnv_callset", "processed_sample_id IN (".implode(",", $processed_sample_ids).")");
+	$cnv_callset_ids = $db->getValues("SELECT id FROM cnv_callset WHERE processed_sample_id IN (".implode(",", $processed_sample_ids).")");
+	export_table($out_handle, "cnv", "cnv_callset_id IN (".implode(",", $cnv_callset_ids).")");
 }
 
 fclose($out_handle);

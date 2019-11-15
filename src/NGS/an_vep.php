@@ -3,8 +3,9 @@
 	@page an_vep
 	
 	@todo test extended splice region plugin: https://github.com/Ensembl/VEP_plugins/blob/release/94/SpliceRegion.pm
+	@todo test Mastermind plugin: https://github.com/Ensembl/VEP_plugins/blob/release/98/Mastermind.pm
+	@todo test FunMotifs plugin: https://github.com/Ensembl/VEP_plugins/blob/release/98/FunMotifs.pm
 	@todo test parameters: --gene_phenotype --ccds --biotype --canonical --pubmed
-	@todo check annotation bugs are fixed in /mnt/users/ahsturm1/Sandbox/bugs/vep/annotations/
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

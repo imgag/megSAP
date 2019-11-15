@@ -7,16 +7,20 @@ root=`pwd`
 tools=$root/tools/
 dbs=$root/dbs/
 
+#Ignore this - used for local installation
+#tools=/mnt/share/opt/
+#tools=/home/bioinf/
+#dbs=/mnt/share/data/dbs/
 
-vep_install_dir=$tools/ensembl-vep-release-96.3/
+vep_install_dir=$tools/ensembl-vep-release-98.3/
 vep_cpan_dir=$vep_install_dir/cpan/
-vep_data_dir=$dbs/ensembl-vep-96/
+vep_data_dir=$dbs/ensembl-vep-98/
 
 # download ensembl-vep
 cd $tools
-wget https://github.com/Ensembl/ensembl-vep/archive/release/96.3.tar.gz
-tar xzf 96.3.tar.gz
-rm 96.3.tar.gz
+wget https://github.com/Ensembl/ensembl-vep/archive/release/98.3.tar.gz
+tar xzf 98.3.tar.gz
+rm 98.3.tar.gz
 
 #install dependencies
 mkdir -p $vep_cpan_dir
@@ -42,7 +46,7 @@ mkdir -p $vep_data_dir
 cd $vep_data_dir
 mkdir -p ftp
 cd ftp
-wget ftp://ftp.ensembl.org/pub/release-96/variation/VEP/homo_sapiens_vep_96_GRCh37.tar.gz
+wget ftp://ftp.ensembl.org/pub/release-98/variation/vep/homo_sapiens_vep_98_GRCh37.tar.gz
 
 #install ensembl-vep
 PERL5LIB=$vep_install_dir/Bio/:$vep_cpan_dir/lib/perl5/:$PERL5LIB
