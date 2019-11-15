@@ -301,7 +301,7 @@ if (in_array("cn", $steps))
 	{
 		$anno_headers[] = "omim";
 	}
-	
+
 	//(3.1a) merge ClinCNV
 	if(!$skip_cn && $cn_type == "clincnv")
 	{
@@ -630,6 +630,9 @@ if (in_array("cn", $steps))
 		else if($cn_type == "clincnv") $cnv_multi = "{$out_folder}{$prefix}_cnvs_clincnv.tsv";
 		else trigger_error("Invalid CNV list type '{$cn_type}'!", E_USER_ERROR);
 		$parser->moveFile($tmp, $cnv_multi);
+
+		//annotate additional gene info
+		$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$cnv_multi} -out {$cnv_multi}", true);
 	}
 }
 

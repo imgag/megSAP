@@ -152,4 +152,7 @@ if(isset($seg) && !$qc_problems)
 	$parser->moveFile($temp_folder."/cnvs.seg", substr($out, 0, -4).".seg");
 }
 
+//annotate additional gene info
+$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$out} -out {$out}", true);
+
 ?>

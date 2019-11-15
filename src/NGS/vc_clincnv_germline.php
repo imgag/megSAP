@@ -293,6 +293,7 @@ foreach($cnv_calls as $line)
 	}	
 }
 array_splice($cnv_calls, 3, 0, array("##high-quality cnvs: {$hq_cnvs}\n"));
+
 file_put_contents($out, $cnv_calls);
 
 //annotate
@@ -312,5 +313,7 @@ if (file_exists($omim_file))
 	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$omim_file} -no_duplicates -out {$out}", true);
 }
 
+//annotate additional gene info
+$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$out} -out {$out}", true);
 ?>
 

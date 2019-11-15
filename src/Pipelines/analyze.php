@@ -162,17 +162,42 @@ if (in_array("ma", $steps))
 		}
 	}
 
-	// delete fastq files after mapping
+	//delete fastq files after mapping
 	$delete_fastq_files = get_path("delete_fastq_files", true);
 	if ($delete_fastq_files==true || $delete_fastq_files=="true")
 	{
-		foreach($files1 as $fastq_file)
+		$fastq_files = array_merge($files1, $files2);
+		//check if BAM and BAM index exists:
+		$bam_exists = file_exists($bam_file) && file_exists($bam_file.".bai"); 
+		if ($bam_exists && count($files1)>0 && count($files1)>0)
 		{
-			unlink($fastq_file);
+			//check file sizes:
+			//FASTQ
+			$fastq_file_size = 0;
+			foreach($fastq_files as $fq_file)
+			{
+				$fastq_file_size += filesize($fq_file);
+			}
+
+			//BAM
+			$bam_file_size = filesize($bam_file);
+
+			if ($bam_file_size / $fastq_file_size > 0.5)
+			{
+				// BAM exists and has a propper size: FASTQ files can be deleted
+				foreach($fastq_files as $fq_file)
+				{
+					unlink($fq_file);
+				}
+			}
+			else
+			{
+				trigger_error("BAM file smaller than 50% of FASTQ", E_USER_ERROR);
+			}
 		}
-		foreach($files2 as $fastq_file)
+		else
 		{
-			unlink($fastq_file);
+			trigger_error("No BAM/BAI file found!", E_USER_ERROR);
 		}
 	}
 }
