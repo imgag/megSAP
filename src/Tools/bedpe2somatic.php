@@ -1,6 +1,6 @@
 <?php
 /** 
-	@page expand_bedpe
+	@page bedpe2somatic
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
