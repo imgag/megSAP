@@ -162,17 +162,42 @@ if (in_array("ma", $steps))
 		}
 	}
 
-	// delete fastq files after mapping
+	//delete fastq files after mapping
 	$delete_fastq_files = get_path("delete_fastq_files", true);
 	if ($delete_fastq_files==true || $delete_fastq_files=="true")
 	{
-		foreach($files1 as $fastq_file)
+		$fastq_files = array_merge($files1, $files2);
+		//check if BAM and BAM index exists:
+		$bam_exists = file_exists($bam_file) && file_exists($bam_file.".bai"); 
+		if ($bam_exists && count($files1)>0 && count($files1)>0)
 		{
-			unlink($fastq_file);
+			//check file sizes:
+			//FASTQ
+			$fastq_file_size = 0;
+			foreach($fastq_files as $fq_file)
+			{
+				$fastq_file_size += filesize($fq_file);
+			}
+
+			//BAM
+			$bam_file_size = filesize($bam_file);
+
+			if ($bam_file_size / $fastq_file_size > 0.5)
+			{
+				// BAM exists and has a propper size: FASTQ files can be deleted
+				foreach($fastq_files as $fq_file)
+				{
+					unlink($fq_file);
+				}
+			}
+			else
+			{
+				trigger_error("BAM file smaller than 50% of FASTQ", E_USER_ERROR);
+			}
 		}
-		foreach($files2 as $fastq_file)
+		else
 		{
-			unlink($fastq_file);
+			trigger_error("No BAM/BAI file found!", E_USER_ERROR);
 		}
 	}
 }
@@ -414,8 +439,8 @@ if (in_array("cn", $steps))
 				"-cov_folder {$cov_folder}",
 				"-bed {$bed}",
 				"-out {$cnv_out}",
-				"-cov_max ".($is_wgs ? "100" : "200"),
-				"-max_cnvs ".($is_wgs ? "2000" : "200"),
+				"-cov_max ".($is_wgs||$is_wgs_shallow ? "100" : "200"),
+				"-max_cnvs ".($is_wgs||$is_wgs_shallow ? "2000" : "200"),
 				"--log {$log_cn}",
 			);
 			if ($is_wgs_shallow)
@@ -428,6 +453,53 @@ if (in_array("cn", $steps))
 			//copy results to output folder
 			if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
 			if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
+			
+			//create dummy GSvar file for shallow WGS (needed to be able to open the sample in GSvar)
+			if ($is_wgs_shallow)
+			{
+				$content = array(
+					"##ANALYSISTYPE=GERMLINE_SINGLESAMPLE",
+					"##SAMPLE=<ID={$name},Gender=n/a,ExternalSampleName=n/a,IsTumor=n/a,IsFFPE=n/a,DiseaseGroup=n/a,DiseaseStatus=affected>",
+					"##DESCRIPTION={$name}=Genotype of variant in sample.",
+					"##DESCRIPTION=filter=Annotations for filtering and ranking variants.",
+					"##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM).",
+					"##DESCRIPTION=gene=Affected gene list (comma-separated).",
+					"##DESCRIPTION=variant_type=Variant type.",
+					"##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).",
+					"##DESCRIPTION=regulatory=Regulatory consequence details.",
+					"##DESCRIPTION=OMIM=OMIM database annotation.",
+					"##DESCRIPTION=ClinVar=ClinVar database annotation.",
+					"##DESCRIPTION=HGMD=HGMD database annotation.",
+					"##DESCRIPTION=RepeatMasker=RepeatMasker annotation.",
+					"##DESCRIPTION=dbSNP=Identifier in dbSNP database.",
+					"##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.",
+					"##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.",
+					"##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).",
+					"##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.",
+					"##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.",
+					"##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.",
+					"##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.",
+					"##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.",
+					"##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.",
+					"##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.",
+					"##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).",
+					"##DESCRIPTION=GeneSplicer=GeneSplicer splicing prediction (state/type/coordinates/confidence/score).",
+					"##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).",
+					"##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.",
+					"##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.",
+					"##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.",
+					"##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group (Neoplasms).",
+					"##DESCRIPTION=classification=Classification from the NGSD.",
+					"##DESCRIPTION=classification_comment=Classification comment from the NGSD.",
+					"##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!",
+					"##DESCRIPTION=comment=Variant comments from the NGSD.",
+					"##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).",
+					"##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.",
+					"##FILTER=off-target=Variant marked as 'off-target'.",
+					"#chr	start	end	ref	obs	{$name}	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info",
+				);
+				file_put_contents($varfile, implode("\n", $content));
+			}
 		}
 		else //Panels: CnvHunter
 		{
@@ -470,18 +542,21 @@ if (in_array("db", $steps))
 	$parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name --log $log_db");
 	
 	//import variants
-	if (file_exists($varfile) || file_exists($cnvfile))
+	$args = ["-ps {$name}"];
+	$import = false;
+	if (file_exists($varfile) && !$is_wgs_shallow)
 	{
-		$args = ["-ps {$name}"];
-		if (file_exists($varfile))
-		{
-			$args[] = "-var {$varfile}";
-			$args[] = "-var_force";			
-		}
-		if (file_exists($cnvfile))
-		{
-			$args[] = "-cnv {$cnvfile}";
-		}
+		$args[] = "-var {$varfile}";
+		$args[] = "-var_force";
+		$import = true;
+	}
+	if (file_exists($cnvfile))
+	{
+		$args[] = "-cnv {$cnvfile}";
+		$import = true;
+	}
+	if ($import)
+	{
 		$parser->exec("{$ngsbits}NGSDAddVariantsGermline", implode(" ", $args), true);
 	}
 }
@@ -489,29 +564,36 @@ if (in_array("db", $steps))
 //structural variants
 if (in_array("sv", $steps))
 {
-	if(file_exists($log_sv)) unlink($log_sv);
-	
-	//SV calling with manta
-	$manta_evidence_dir = "{$out_folder}/manta_evid";
-	create_directory($manta_evidence_dir);
+	if($is_wgs_shallow)
+	{
+		trigger_error("Skipping step 'sv' - Structural variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
+	}
+	else
+	{
+		if(file_exists($log_sv)) unlink($log_sv);
+		
+		//SV calling with manta
+		$manta_evidence_dir = "{$out_folder}/manta_evid";
+		create_directory($manta_evidence_dir);
 
-	$manta_args = [
-		"-bam ".$bamfile,
-		"-evid_dir ".$manta_evidence_dir,
-		"-out ".$sv_manta_file,
-		"-threads ".$threads,
-		"-fix_bam",
-		"-build ".$sys['build'],
-		"--log ".$log_sv
-	];
-	if($has_roi) $manta_args[] = "-target ".$sys['target_file'];
-	if(!$is_wgs) $manta_args[] = "-exome";
-	
-	$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
+		$manta_args = [
+			"-bam ".$bamfile,
+			"-evid_dir ".$manta_evidence_dir,
+			"-out ".$sv_manta_file,
+			"-threads ".$threads,
+			"-fix_bam",
+			"-build ".$sys['build'],
+			"--log ".$log_sv
+		];
+		if($has_roi) $manta_args[] = "-target ".$sys['target_file'];
+		if(!$is_wgs) $manta_args[] = "-exome";
+		
+		$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
 
-	//create BEDPE files
-	$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
-	exec2("{$ngsbits}VcfToBedpe -in $sv_manta_file -out $bedpe_out");
+		//create BEDPE files
+		$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
+		exec2("{$ngsbits}VcfToBedpe -in $sv_manta_file -out $bedpe_out");
+	}
 }
 
 ?>

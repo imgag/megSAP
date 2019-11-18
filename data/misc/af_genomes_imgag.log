@@ -1,0 +1,92 @@
+Found 592 high-quality CNV callsets for the processing system.
+Skipping sample DX163053_03 - CNV count (2160) is higher than 2000!
+Skipping sample DX174243_03 - CNV count (13950) is higher than 2000!
+Skipping sample DX185042_03 - CNV count (2037) is higher than 2000!
+Skipping sample DX185733_02 - CNV count (21206) is higher than 2000!
+Skipping sample DX185587_02 - CNV count (2069) is higher than 2000!
+Skipping sample DX190078_02 - CNV count (5811) is higher than 2000!
+Skipping sample DX170516_03 - CNV count (3220) is higher than 2000!
+Skipping sample DX190639_02 - CNV count (3126) is higher than 2000!
+Skipping sample DX190948_02 - CNV count (2223) is higher than 2000!
+Skipping sample DX191038_02 - CNV count (2807) is higher than 2000!
+Skipping sample DX181066_02 - CNV count (2385) is higher than 2000!
+Skipping sample DX192832_02 - depth (28.27) is below 30!
+Skipping sample DX192883_02 - depth (29.99) is below 30!
+Skipping sample DX192348_03 - CNV count (2250) is higher than 2000!
+Skipping sample DX193934_02 - CNV count (3824) is higher than 2000!
+Skipping sample DX194255_02 - CNV count (2381) is higher than 2000!
+Skipping sample DX194489_02 - CNV count (12836) is higher than 2000!
+Skipping sample DX194519_02 - CNV count (4613) is higher than 2000!
+Skipping sample DX194655_02 - CNV count (2226) is higher than 2000!
+Skipping sample DX194860_02 - CNV count (6528) is higher than 2000!
+Skipping sample DX194169_02 - CNV count (2821) is higher than 2000!
+Skipping sample DX195190_02 - CNV count (2466) is higher than 2000!
+Skipping sample DX191697_02 - CNV count (3548) is higher than 2000!
+Skipping sample DX195593_02 - CNV count (60986) is higher than 2000!
+Skipping sample DX195596_02 - CNV count (58754) is higher than 2000!
+Skipping sample DX195671_02 - CNV count (2335) is higher than 2000!
+Skipping sample DX196171_02 - CNV count (2390) is higher than 2000!
+Skipping sample DX196404_02 - CNV count (2074) is higher than 2000!
+Using 564 of 592 callsets
+Statistics - number of CNVs
+  min   : 879
+  q1    : 1139
+  median: 1203
+  q3    : 1301
+  max   : 1939
+Statistics - depth
+  min   : 30.87
+  q1    : 46.78
+  median: 50.76
+  q3    : 54.15
+  max   : 91.04
+Processing chromosome chr1...
+  Found 57901 CNVs
+Processing chromosome chr2...
+  Found 39211 CNVs
+Processing chromosome chr3...
+  Found 26904 CNVs
+Processing chromosome chr4...
+  Found 33879 CNVs
+Processing chromosome chr5...
+  Found 35885 CNVs
+Processing chromosome chr6...
+  Found 32396 CNVs
+Processing chromosome chr7...
+  Found 40490 CNVs
+Processing chromosome chr8...
+  Found 35794 CNVs
+Processing chromosome chr9...
+  Found 71957 CNVs
+Processing chromosome chr10...
+  Found 41738 CNVs
+Processing chromosome chr11...
+  Found 25937 CNVs
+Processing chromosome chr12...
+  Found 19786 CNVs
+Processing chromosome chr13...
+  Found 12963 CNVs
+Processing chromosome chr14...
+  Found 18739 CNVs
+Processing chromosome chr15...
+  Found 27253 CNVs
+Processing chromosome chr16...
+  Found 25291 CNVs
+Processing chromosome chr17...
+  Found 28446 CNVs
+Processing chromosome chr18...
+  Found 9541 CNVs
+Processing chromosome chr19...
+  Found 20283 CNVs
+Processing chromosome chr20...
+  Found 8312 CNVs
+Processing chromosome chr21...
+  Found 11776 CNVs
+Processing chromosome chr22...
+  Found 18986 CNVs
+Processing chromosome chrY...
+  Found 5671 CNVs
+Processing chromosome chrX...
+  Found 44823 CNVs
+Processing chromosome chrMT...
+  Found 0 CNVs

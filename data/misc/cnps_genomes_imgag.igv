@@ -1,4 +1,4 @@
-Chromosome	Start	End	CN histogram (0-10)	AF 300genomes_imgag
+Chromosome	Start	End	CN histogram (0-10)	AF_cnps_genomes_imgag
 chr1	53946	58941	32 50 88 16 38 12 0 3 0 1 0 	0.63
 chr1	58941	60939	20 82 86 44 7 0 1 0 0 0 0 	0.64
 chr1	60939	63936	20 111 92 16 0 0 1 0 0 0 0 	0.62

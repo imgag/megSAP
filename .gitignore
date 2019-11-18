@@ -14,6 +14,8 @@
 /test/data_amplicon/*_cnvs.tsv
 /test/data_amplicon/*_lowcov.bed
 /test/data_amplicon/*.igv
+/test/data_amplicon/*.bedpe
+/test/data_amplicon/manta_evid/
 
 /test/data_chrx/*.fastq.gz
 /test/data_chrx/*.bam
@@ -28,6 +30,8 @@
 /test/data_chrx/*_cnvs.seg
 /test/data_chrx/*_lowcov.bed
 /test/data_chrx/*.igv
+/test/data_chrx/*.bedpe
+/test/data_chrx/manta_evid/
 
 /test/data_trio/*.GSvar
 /test/data_trio/*.log
