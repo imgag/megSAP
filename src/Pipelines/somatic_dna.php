@@ -715,7 +715,7 @@ if (in_array("ci", $steps))
 			$user_id = $db_conn->getValue("SELECT id FROM user WHERE user_id = '{$user}' AND active='1'",-1);
 			
 			//If user is not in NGSD, we use the user "unknown"
-			if($user_id == -1) $user_id = $db->getValue("SELECT id FROM user WHERE user_id='unknown'");
+			if($user_id == -1) $user_id = $db_conn->getValue("SELECT id FROM user WHERE user_id='unknown'");
 			
 			if(is_valid_cgi_acronym($cancer_type))
 			{
