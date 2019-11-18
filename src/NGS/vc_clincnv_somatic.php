@@ -459,5 +459,10 @@ for($i=0;$i<$cnvs->rows();++$i)
 	$new_col[] = $tmp_type;
 }
 $cnvs->addCol($new_col, "cnv_type","Type of CNV: focal (< 25 % of chrom. arm, < 3 genes), cluster (focal, > 3 genes), (partial) p/q-arm, (partial) chromosome.");
+
+//store output tsv file
 $cnvs->toTSV($out);
+
+//annotate additional gene info
+$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$out} -out {$out}", true);
 ?>
