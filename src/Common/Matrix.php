@@ -194,6 +194,32 @@ class Matrix
 		++$this->cols;
 	}
 	
+	/// Moves a column to the end of the matrix
+	function moveColToEnd($i_col)
+	{
+		$temp_header = $this->getHeaders()[$i_col];
+		$temp_col = $this->getCol($i_col);
+		$temp_desc = "";
+		foreach($this->getComments() as $comment)
+		{
+			if(starts_with($comment, "#DESCRIPTION="))
+			{
+				list(,$name,$desc) = explode("=",$comment);
+				
+				if($name == $temp_header)
+				{
+					list(,,$temp_desc) = explode("=",$comment); //3d part of comment field contains description e.g. '#DESCRIPTION=BLA=WHAT I DESCRIBE'
+					$this->removeComment($name);
+					break;
+				}
+			}
+		}
+		
+		$this->removeCol($i_col);
+		
+		$this->addCol($temp_col, $temp_header, $temp_desc);
+	}
+	
 	/// Sets the values of a row.
 	function setRow($row, $values)
 	{
@@ -218,23 +244,35 @@ class Matrix
 		$this->comments[] = $line;
 	}
 	
+	/// Adds a Comment (at the beginning)
+	function prependComment($line)
+	{
+		array_unshift($this->comments, $line);
+	}
+	
 	/// Removes a Comment
 	function removeComment($comment_text, $containing = false)
 	{
-		for($i=0;$i<count($this->comments);$i++)
+		
+		if(!$containing)
 		{
-			//print_r($comment_text." ".$this->comments[$i]."\n");
-			if(!$containing)
+			for($i=0;$i<count($this->comments);$i++)
 			{
-			if($comment_text == $this->comments[$i])
-			{
-				array_splice($this->comments,$i,1);
-				break;
+				if(!$containing)
+				{
+					if($comment_text == $this->comments[$i])
+					{
+						array_splice($this->comments,$i,1);
+						break;
+					}
+				}
 			}
-			}
-			else
+		}
+		else //if containing is select, start from the end because it can affect multiple comments
+		{
+			for($i=(count($this->comments)-1); $i>=0; --$i)
 			{
-				if(strpos($this->comments[$i],$comment_text) !== false)
+				if(strpos($this->comments[$i], $comment_text) !== false)
 				{
 					array_splice($this->comments,$i,1);
 				}
