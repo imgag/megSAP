@@ -281,7 +281,7 @@ if (in_array("vc", $steps))
 		{
 			$args_manta[] = "-bam $n_bam";
 		}
-		if ($sys['type'] === "WES")
+		if ($sys['type'] !== "WGS") //use exome flag for non targeted / exome samples (i.e. non WGS samples)
 		{
 			$args_manta[] = "-exome";
 		}
