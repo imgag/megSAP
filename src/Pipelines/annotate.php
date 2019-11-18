@@ -57,6 +57,10 @@ if ($sys['build']!="GRCh37")
 $args = array("-in {$vcf_unzipped}", "-out {$annfile}");
 $args[] = "-build ".$sys['build'];
 $args[] = "-threads {$threads}";
+if ($somatic)
+{
+	$args[] = "-somatic";
+}
 $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 
 //check vcf file
@@ -83,9 +87,6 @@ if (!$somatic) //germline only
 	
 	if(db_is_enabled("NGSD"))
 	{
-		//annotate variant frequencies from NGSD (not for somatic)
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in {$varfile} -out {$varfile} -psname {$out_name}", true);
-
 		//annotate variant allele frequency and depth from related RNA sample, if available
 		//sample id from name
 		$db = DB::getInstance("NGSD");

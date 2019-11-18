@@ -1,6 +1,6 @@
 ##fileformat=VCFv4.2
-##fileDate=20180710
-##source=freeBayes v1.1.0
+##fileDate=20190627
+##source=freeBayes v1.2.0
 ##reference=/tmp/local_ngs_data//GRCh37.fa
 ##contig=<ID=chr1,length=249250621>
 ##contig=<ID=chr2,length=243199373>
@@ -89,7 +89,7 @@
 ##contig=<ID=chrNC_007605,length=171823>
 ##contig=<ID=chrhs37d5,length=35477943>
 ##phasing=none
-##commandline="/mnt/share/opt/freebayes-1.1.0/bin/freebayes -b /mnt/projects/test/KontrollDNACoriell/Sample_NA12878_03//NA12878_03.bam -f /tmp/local_ngs_data//GRCh37.fa -t /mnt/SRV018/tmp/8392.1.default_srv018/vc_freebayes_CTGyh3_merged.bed --min-alternate-fraction 0.1 --min-mapping-quality 1 --min-base-quality 10 --min-alternate-qsum 90"
+##commandline="/mnt/share/opt/freebayes-1.2.0/bin/freebayes -t /tmp/6286.1.priority_srv018/megSAP_user_ahsturm1/vc_freebayes_pid12396_pYbTpM/chr1.bed --min-alternate-fraction 0.1 --min-mapping-quality 1 --min-base-quality 10 --min-alternate-qsum 90 -f /tmp/local_ngs_data//GRCh37.fa -b /mnt/projects/test/KontrollDNACoriell/Sample_NA12878_38//NA12878_38.bam -v /tmp/6286.1.priority_srv018/megSAP_user_ahsturm1/vc_freebayes_pid12396_pYbTpM/chr1.vcf"
 ##filter="QUAL > 5 & AO > 2"
 ##INFO=<ID=NS,Number=.,Type=Integer,Description="Number of samples with data">
 ##INFO=<ID=DP,Number=.,Type=Integer,Description="Total read depth at the locus">
@@ -117,8 +117,8 @@
 ##INFO=<ID=RPP,Number=A,Type=Float,Description="Read Placement Probability: Phred-scaled upper-bounds estimate of the probability of observing the deviation between RPL and RPR given E(RPL/RPR) ~ 0.5, derived using Hoeffding's inequality">
 ##INFO=<ID=RPPR,Number=.,Type=Float,Description="Read Placement Probability for reference observations: Phred-scaled upper-bounds estimate of the probability of observing the deviation between RPL and RPR given E(RPL/RPR) ~ 0.5, derived using Hoeffding's inequality">
 ##INFO=<ID=RPL,Number=A,Type=Float,Description="Reads Placed Left: number of reads supporting the alternate balanced to the left (5') of the alternate allele">
-##INFO=<ID=EPP,Number=A,Type=Float,Description="End Placement Probability: Phred-scaled upper-bounds estimate of the probability of observing the deviation between EL and ER given E(EL/ER) ~ 0.5, derived using Hoeffding's inequality">
 ##INFO=<ID=RPR,Number=A,Type=Float,Description="Reads Placed Right: number of reads supporting the alternate balanced to the right (3') of the alternate allele">
+##INFO=<ID=EPP,Number=A,Type=Float,Description="End Placement Probability: Phred-scaled upper-bounds estimate of the probability of observing the deviation between EL and ER given E(EL/ER) ~ 0.5, derived using Hoeffding's inequality">
 ##INFO=<ID=EPPR,Number=.,Type=Float,Description="End Placement Probability for reference observations: Phred-scaled upper-bounds estimate of the probability of observing the deviation between EL and ER given E(EL/ER) ~ 0.5, derived using Hoeffding's inequality">
 ##INFO=<ID=DPRA,Number=A,Type=Float,Description="Alternate allele depth ratio.  Ratio between depth in samples with each called alternate allele and those without.">
 ##INFO=<ID=ODDS,Number=.,Type=Float,Description="The log odds ratio of the best genotype combination to the second-best.">
@@ -147,33 +147,79 @@
 ##FORMAT=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
 ##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
-##SAMPLE=<ID=NA12878_03,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Other diseases,DiseaseStatus=affected>
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_03
-chr1	6526183	.	G	A	3484	.	MQM=60	GT:DP:AO	1/1:113:113
-chr1	10460485	.	T	C	769	.	MQM=60	GT:DP:AO	0/1:79:37
-chr1	11856378	.	G	A	2227	.	MQM=60	GT:DP:AO	0/1:162:
-chr1	31905889	.	A	ACAG	7465	.	MQM=60	GT:DP:AO	1/1:238:231
-chr1	57422472	.	G	A	2962	.	MQM=60	GT:DP:AO	0/1:205:112
-chr1	62740780	.	TA	T	265	off-target	MQM=60	GT:DP:AO	0/1:121:2487
-chr1	120612002	.	CGG	C	3950	.	MQM=48	GT:DP:AO	0/1:2047:409
-chr1	144206548	.	C	T	3611	.	MQM=60	GT:DP:AO	0/1:400:200
-chr1	156565049	.	A	AAC	6110	.	MQM=60	GT:DP:AO	1/1:216:215
-chr1	171112490	.	C	T	870	.	MQM=60	GT:DP:AO	1/1:32:31
-chr1	183191250	.	C	T	1289	.	MQM=60	GT:DP:AO	0/1:109:52
-chr2	38301847	.	C	T	4465	.	MQM=60	GT:DP:AO	0/1:321:169
-chr2	168041152	.	T	C	717	.	MQM=60	GT:DP:AO	0/1:66:32
-chr3	38645420	.	T	C	3985	.	MQM=60	GT:DP:AO	0/1:361:161
-chr3	142231062	.	T	TA	5	off-target	MQM=56	GT:DP:AO	0/1:31:5
-chr7	130297119	.	GA	G	1215	.	MQM=60	GT:DP:AO	1/1:53:49
-chr11	117772955	.	T	C	2020	.	MQM=60	GT:DP:AO	0/1:173:82
-chr12	6397417	.	C	G	30	off-target	MQM=60	GT:DP:AO	0/1:361:161
-chr12	11420421	.	TCCTCCTTGTGGGGGTGGTCCTTCTGGCTTTCCTGGACGAGGTGGGGGACCTTGAGGTTTGTTG	T	337	.	MQM=54	GT:DP:AO	1/1:27:26
-chr12	133264022	.	C	G	30	.	MQM=60	GT:DP:AO	0/1:58:25
-chr15	43701946	.	TA	T	368	.	MQM=60	GT:DP:AO	0/1:58:25
-chr16	48329922	.	C	CT	297	.	MQM=60	GT:DP:AO	0/1:61:20
-chr16	88921634	.	C	G	520	.	MQM=60	GT:DP:AO	0/1:69:27
-chr17	41244936	.	G	A	2131	.	MQM=60	GT:DP:AO	0/1:132:77
-chrX	93983960	.	G	T	2131	.	MQM=60	GT:DP:AO	1/1:132:77
-
-
-
+##PIPELINE=megSAP 0.1-1150-g9c8dd4c
+##SAMPLE=<ID=NA12878_38,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_38
+chr1	13656	.	CAG	C	426	.	MQM=18	GT:DP:AO	1/1:37:37
+chr1	17385	.	G	A	292	.	MQM=33	GT:DP:AO	0/1:56:21
+chr1	17407	.	G	A	53	.	MQM=39	GT:DP:AO	0/1:72:13
+chr1	139781	.	G	A	39	.	MQM=24	GT:DP:AO	1/1:3:3
+chr1	324822	.	A	T	383	.	MQM=37	GT:DP:AO	1/1:21:18
+chr1	664834	.	T	G	44	.	MQM=25	GT:DP:AO	0/1:34:14
+chr1	762273	.	G	A	4198	.	MQM=39	GT:DP:AO	1/1:150:150
+chr1	762589	.	G	C	1056	.	MQM=46	GT:DP:AO	1/1:35:34
+chr1	762592	.	C	G	1056	off-target	MQM=46	GT:DP:AO	1/1:35:34
+chr1	762601	.	T	C	923	off-target	MQM=46	GT:DP:AO	1/1:31:31
+chr1	762632	.	T	A	531	off-target	MQM=47	GT:DP:AO	1/1:18:18
+chr1	866511	.	C	CCCCT	308	off-target	MQM=60	GT:DP:AO	1/1:12:11
+chr1	871334	.	G	T	179	off-target	MQM=60	GT:DP:AO	1/1:7:7
+chr1	876499	.	A	G	933	off-target	MQM=60	GT:DP:AO	1/1:29:29
+chr1	877831	.	T	C	183	.	MQM=60	GT:DP:AO	1/1:6:6
+chr1	879676	.	G	A	540	.	MQM=60	GT:DP:AO	1/1:20:20
+chr1	879687	.	T	C	389	.	MQM=60	GT:DP:AO	1/1:14:14
+chr1	880238	.	A	G	2963	off-target	MQM=60	GT:DP:AO	1/1:89:89
+chr1	881627	.	G	A	2945	.	MQM=60	GT:DP:AO	1/1:90:90
+chr1	883625	.	A	G	4031	.	MQM=60	GT:DP:AO	1/1:121:121
+chr1	883899	.	T	G	2797	.	MQM=60	GT:DP:AO	0/1:203:107
+chr1	887560	.	A	C	3354	off-target	MQM=60	GT:DP:AO	1/1:102:102
+chr1	887801	.	A	G	5310	.	MQM=60	GT:DP:AO	1/1:164:164
+chr1	888639	.	T	C	5210	.	MQM=60	GT:DP:AO	1/1:159:159
+chr1	888659	.	T	C	5231	.	MQM=60	GT:DP:AO	1/1:159:158
+chr1	889158	.	G	C	721	.	MQM=60	GT:DP:AO	1/1:23:23
+chr1	889159	.	A	C	721	.	MQM=60	GT:DP:AO	1/1:23:23
+chr1	894573	.	G	A	2888	off-target	MQM=60	GT:DP:AO	1/1:87:87
+chr1	897325	.	G	C	8595	.	MQM=60	GT:DP:AO	1/1:262:260
+chr1	897460	.	A	C	38	.	MQM=59	GT:DP:AO	0/1:161:52
+chr1	897564	.	T	C	8755	.	MQM=60	GT:DP:AO	1/1:265:265
+chr1	898323	.	T	C	2817	off-target	MQM=60	GT:DP:AO	1/1:87:87
+chr1	899928	.	G	C	1131	.	MQM=60	GT:DP:AO	1/1:40:40
+chr1	899937	.	G	T	761	off-target	MQM=60	GT:DP:AO	1/1:27:27
+chr1	899938	.	G	C	761	off-target	MQM=60	GT:DP:AO	1/1:27:27
+chr1	899942	.	G	A	761	off-target	MQM=60	GT:DP:AO	1/1:27:27
+chr1	900285	.	C	T	1204	off-target	MQM=60	GT:DP:AO	1/1:41:41
+chr1	900286	.	A	G	1204	off-target	MQM=60	GT:DP:AO	1/1:41:41
+chr1	900298	.	C	G	555	off-target	MQM=60	GT:DP:AO	0/1:59:27
+chr1	909419	.	C	T	364	.	MQM=60	GT:DP:AO	0/1:23:15
+chr1	909768	.	A	G	6715	off-target	MQM=60	GT:DP:AO	1/1:205:205
+chr1	911595	.	A	G	2800	.	MQM=60	GT:DP:AO	1/1:84:84
+chr1	912049	.	T	C	125	off-target	MQM=60	GT:DP:AO	0/1:22:8
+chr1	914333	.	C	G	828	.	MQM=60	GT:DP:AO	0/1:67:32
+chr1	914414	.	CGAA	C	1098	.	MQM=60	GT:DP:AO	0/1:129:50
+chr1	914852	.	G	C	1737	.	MQM=60	GT:DP:AO	0/1:141:67
+chr1	914876	.	T	C	5914	.	MQM=60	GT:DP:AO	1/1:178:178
+chr1	914940	.	T	C	2456	.	MQM=60	GT:DP:AO	0/1:218:96
+chr1	915227	.	A	G	3781	.	MQM=60	GT:DP:AO	1/1:118:117
+chr1	916549	.	A	G	980	.	MQM=60	GT:DP:AO	0/1:120:44
+chr1	916590	.	G	A	1461	off-target	MQM=60	GT:DP:AO	0/1:78:55
+chr1	935222	.	C	A	292	.	MQM=60	GT:DP:AO	0/1:30:14
+chr1	948921	.	T	C	2133	off-target	MQM=60	GT:DP:AO	1/1:65:65
+chr1	948929	.	GGCCCACA	G	734	.	MQM=60	GT:DP:AO	0/1:65:31
+chr1	949608	.	G	A	2872	.	MQM=60	GT:DP:AO	0/1:266:111
+chr1	949654	.	A	G	7618	.	MQM=60	GT:DP:AO	1/1:231:230
+chr1	949925	.	C	T	410	off-target	MQM=60	GT:DP:AO	1/1:14:14
+chr1	976514	.	C	A	205	off-target	MQM=60	GT:DP:AO	0/1:16:11
+chr1	977330	.	T	C	475	.	MQM=60	GT:DP:AO	0/1:73:24
+chr1	977570	.	G	A	1179	off-target	MQM=60	GT:DP:AO	0/1:82:46
+chr1	978603	.	CCT	C	1857	.	MQM=60	GT:DP:AO	0/1:159:75
+chr1	981087	.	A	G	4270	off-target	MQM=60	GT:DP:AO	0/1:317:160
+chr1	981931	.	A	G	1582	.	MQM=60	GT:DP:AO	0/1:163:70
+chr1	982941	.	T	C	1977	.	MQM=60	GT:DP:AO	0/1:166:76
+chr1	982994	.	T	C	2281	.	MQM=60	GT:DP:AO	0/1:210:90
+chr1	984302	.	T	C	125	.	MQM=60	GT:DP:AO	0/1:14:6
+chr1	985266	.	C	T	1697	.	MQM=60	GT:DP:AO	0/1:144:66
+chr1	985446	.	G	T	179	off-target	MQM=60	GT:DP:AO	0/1:12:4
+chr1	985449	.	G	A	179	off-target	MQM=59	GT:DP:AO	1/1:12:4
+chr1	986443	.	C	T	1558	off-target	MQM=60	GT:DP:AO	0/1:132:61
+chr1	987200	.	C	T	854	.	MQM=60	GT:DP:AO	0/1:56:32
+chr1	988932	.	G	C	1141	off-target	MQM=60	GT:DP:AO	0/1:83:44
+chr1	990280	.	C	T	1275	.	MQM=60	GT:DP:AO	1/1:40:40

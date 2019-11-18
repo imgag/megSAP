@@ -148,6 +148,7 @@ if ($anno && $gsvar)
 	$gsvar = substr($out, 0, 4).".GSvar";
 	$parser->execTool("NGS/vcf2gsvar.php", "-in {$vcf_anno} -out {$gsvar}");
 	
-	$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in {$gsvar} -out {$gsvar}", true);
+	// already performed by an_vep.php
+	// $parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in {$gsvar} -out {$gsvar}", true);
 }
 ?>
