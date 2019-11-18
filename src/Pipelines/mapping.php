@@ -58,7 +58,7 @@ $trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
 
 // barcode handling
 $barcode_correction = false;
-if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
+if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT"]))
 {
 	$index_files = glob("$out_folder/*_index_*.fastq.gz");
 
