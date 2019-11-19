@@ -145,5 +145,21 @@ tabix -s 1 -b 2 -e 2 -c c dbscSNV1.1_GRCh37.txt.gz
 #	- "NGSD_germline.vcf.gz" for the germline export 
 #	- "NGSD_somatic.vcf.gz" for the somatic export 
 #	- "NGSD_genes.bed" for the gene info
-#These files should be updated on regular bases (e.g. by using a cron job).
+#These files should be updated on regular bases (e.g. by using a cron job):
+#cd $dbs
+#mkdir NGSD
+#cd NGSD
+#$ngsbits/NGSDExportAnnotationData -variants NGSD_germline_unsorted.vcf -genes NGSD_genes.bed
+#$ngsbits/VcfStreamSort -in NGSD_germline_unsorted.vcf -out NGSD_germline.vcf
+#bgzip -c NGSD_germline.vcf > NGSD_germline.vcf.gz
+#tabix -p vcf NGSD_germline.vcf.gz
+#rm NGSD_germline_unsorted.vcf
+#rm NGSD_germline.vcf
+#
+#$ngsbits/NGSDExportAnnotationData -variants NGSD_somatic_unsorted.vcf -mode somatic
+#$ngsbits/VcfStreamSort -in NGSD_somatic_unsorted.vcf -out NGSD_somatic.vcf
+#bgzip -c NGSD_somatic.vcf > NGSD_somatic.vcf.gz
+#tabix -p vcf NGSD_somatic.vcf.gz
+#rm NGSD_somatic_unsorted.vcf
+#rm NGSD_somatic.vcf
 
