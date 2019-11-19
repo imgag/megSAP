@@ -290,7 +290,12 @@ if (in_array("vc", $steps))
 			$args_manta[] = "-target {$roi}";
 		}
 		$parser->execTool("NGS/vc_manta.php", implode(" ", $args_manta));
+		
 		exec2(get_path("ngs-bits") . "VcfToBedpe -in $manta_sv -out $manta_sv_bedpe");
+		if(!$single_sample)
+		{
+			$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
+		}
 	}
 
 	// variant calling
