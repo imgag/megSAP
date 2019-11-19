@@ -655,13 +655,6 @@ if (in_array("an", $steps))
 	if (!$single_sample) $args[] = "-n_col $n_id";
 	$parser->execTool("NGS/vcf2gsvar_somatic.php", implode(" ", $args));
 
-	// annotate NGSD data
-	if (db_is_enabled("NGSD"))
-	{
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $variants_gsvar -out $variants_gsvar -psname $t_id -mode somatic", true);
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in $variants_gsvar -out $variants_gsvar -psname $t_id -mode germline", true);
-	}
-
 	//annotate vcf/GSvar with frequency/depth from tumor RNA sample
 	if (isset($t_rna_bam))
 	{

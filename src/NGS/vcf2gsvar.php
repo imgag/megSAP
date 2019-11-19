@@ -217,8 +217,28 @@ $column_desc = array(
 	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
 	array("GeneSplicer", "GeneSplicer splicing prediction (state/type/coordinates/confidence/score)."),
 	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
-	array("COSMIC", "COSMIC somatic variant database anntotation."),
+	array("COSMIC", "COSMIC somatic variant database anntotation.")
 );
+
+// optional NGSD somatic header description if vcf contains NGSD somatic information
+$column_desc_ngsd_som = array(
+	array("NGSD_som_c", "Somatic variant count in the NGSD."),
+	array("NGSD_som_p", "Project names of project containing this somatic variant in the NGSD.")
+);
+
+// optional NGSD header description if vcf contains NGSD information
+$column_desc_ngsd = array(
+	array("NGSD_hom", "Homozygous variant count in NGSD."),
+	array("NGSD_het", "Heterozygous variant count in NGSD."),
+	array("NGSD_group", "Homozygous / heterozygous variant count in NGSD with the same disease group (Neoplasms)."),
+	array("classification", "Classification from the NGSD."),
+	array("classification_comment", "Classification comment from the NGSD."),
+	array("validation", "Validation information from the NGSD. Validation results of other samples are listed in brackets!"),
+	array("comment", "Variant comments from the NGSD."),
+	array("gene_info", "Gene information from NGSD (inheritance mode, gnomAD o/e scores).")
+);
+
+
 if ($genotype_mode=="single")
 {
 	array_unshift($column_desc, array("genotype", "Genotype of variant in sample."));	
@@ -236,6 +256,9 @@ $hgnc_messages = array();
 $in_header = true;
 $handle = fopen2($in, "r");
 $handle_out = fopen2($out, "w");
+$skip_ngsd = true; // true as long as no NGSD header is found
+$skip_ngsd_som = true; // true as long as no NGSD somatic header is found
+
 while(!feof($handle))
 {
 	$line = nl_trim(fgets($handle));
@@ -308,23 +331,23 @@ while(!feof($handle))
 			$i_existingvariation = index_of($cols, "Existing_variation");
 			$i_af_kg = index_of($cols, "AF");
 			$i_af_gnomad = index_of($cols, "gnomAD_AF");
-			$i_af_gnomad_genome = index_of($cols, "gnomADg_AF");
-			$i_hom_gnomad_genome = index_of($cols, "gnomADg_Hom");
-			$i_hemi_gnomad_genome = index_of($cols, "gnomADg_Hemi");
+			// $i_af_gnomad_genome = index_of($cols, "gnomADg_AF");			//now in INFO column
+			// $i_hom_gnomad_genome = index_of($cols, "gnomADg_Hom");		//now in INFO column
+			// $i_hemi_gnomad_genome = index_of($cols, "gnomADg_Hemi");		//now in INFO column
 			$i_af_gnomad_afr = index_of($cols, "gnomAD_AFR_AF");
 			$i_af_gnomad_amr = index_of($cols, "gnomAD_AMR_AF");
 			$i_af_gnomad_eas = index_of($cols, "gnomAD_EAS_AF");
 			$i_af_gnomad_nfe = index_of($cols, "gnomAD_NFE_AF");
 			$i_af_gnomad_sas = index_of($cols, "gnomAD_SAS_AF");
 			$i_repeat = index_of($cols, "REPEATMASKER");
-			$i_clinvar = index_of($cols, "CLINVAR");
-			$i_clinvar_details = index_of($cols, "CLINVAR_DETAILS");
+			// $i_clinvar = index_of($cols, "CLINVAR");						//now in INFO column
+			// $i_clinvar_details = index_of($cols, "CLINVAR_DETAILS");		//now in INFO column
 			$i_omim = index_of($cols, "OMIM", false);
-			$i_hgmd = index_of($cols, "HGMD", false);
-			$i_hgmd_class = index_of($cols, "HGMD_CLASS", false);
-			$i_hgmd_mut = index_of($cols, "HGMD_MUT", false);
-			$i_hgmd_gene = index_of($cols, "HGMD_GENE", false);
-			$i_hgmd_phen = index_of($cols, "HGMD_PHEN", false);
+			// $i_hgmd = index_of($cols, "HGMD", false);					//now in INFO column
+			// $i_hgmd_class = index_of($cols, "HGMD_CLASS", false);		//now in INFO column
+			// $i_hgmd_mut = index_of($cols, "HGMD_MUT", false);			//now in INFO column
+			// $i_hgmd_gene = index_of($cols, "HGMD_GENE", false);			//now in INFO column
+			// $i_hgmd_phen = index_of($cols, "HGMD_PHEN", false);			//now in INFO column
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
 			$i_genesplicer = index_of($cols, "GeneSplicer");
@@ -332,11 +355,31 @@ while(!feof($handle))
 			$i_dbscsnv_rf = index_of($cols, "rf_score");
 		}
 
+
+		// detect NGSD header lines
+		if (starts_with($line, "##INFO=<ID=NGSD_"))
+		{
+			$skip_ngsd = false;
+			if (starts_with($line, "##INFO=<ID=NGSD_SOM_"))
+			{
+				$skip_ngsd_som = false;
+			}
+		}
 		continue;
 	}
 	//after last header line, write our header
 	else if ($in_header) 
 	{
+		if (!$skip_ngsd_som)
+		{
+			// append optional NGSD somatic header
+			$column_desc = array_merge($column_desc, $column_desc_ngsd_som);
+		}
+		if (!$skip_ngsd)
+		{
+			// append optional NGSD header
+			$column_desc = array_merge($column_desc, $column_desc_ngsd);
+		}
 		write_header_line($handle_out, $column_desc, $filter_desc);
 		$in_header = false;
 	}
@@ -536,15 +579,11 @@ while(!feof($handle))
 			//AFs
 			$af_kg[] = max(explode("&", trim($parts[$i_af_kg]))); //some variants are annotated with two values, e.g. chr7:130297119 GA>G
 			$af_gnomad[] = trim($parts[$i_af_gnomad]);
-			$gnomad_value = trim($parts[$i_af_gnomad_genome]);
-			$af_gnomad_genome[] = $gnomad_value=="." ? "" : $gnomad_value;
 			$af_gnomad_afr[] = trim($parts[$i_af_gnomad_afr]);
 			$af_gnomad_amr[] = trim($parts[$i_af_gnomad_amr]);
 			$af_gnomad_eas[] = trim($parts[$i_af_gnomad_eas]);
 			$af_gnomad_nfe[] = trim($parts[$i_af_gnomad_nfe]);
 			$af_gnomad_sas[] = trim($parts[$i_af_gnomad_sas]);
-			$hom_gnomad[] = trim($parts[$i_hom_gnomad_genome]);
-			$hemi_gnomad[] = trim($parts[$i_hemi_gnomad_genome]);
 			
 			//dbSNP, COSMIC
 			$ids = explode("&", $parts[$i_existingvariation]);
@@ -563,41 +602,12 @@ while(!feof($handle))
 			//RepeatMasker
 			$repeat[] = strtr(trim($parts[$i_repeat]), array("[s]"=>" "));
 			
-			//ClinVar
-			$clin_accs = explode("&", $parts[$i_clinvar]);
-			$clin_details = explode("&", $parts[$i_clinvar_details]);
-			for ($i=0; $i<count($clin_accs); ++$i)
-			{
-				if ($clin_accs[$i]!="")
-				{
-					$clinvar[] = $clin_accs[$i]." [".strtr($clin_details[$i], array("[c]"=>",", "[p]"=>" DISEASE=", "_"=>" "))."];";
-				}
-			}
-			
 			//OMIM
 			if ($i_omim!==FALSE)
 			{
 				$text = trim(strtr($parts[$i_omim], array("[c]"=>",", "&"=>",", "_"=>" ")));
 				if ($text!="") $text .= ";";
 				$omim[] = $text;
-			}
-			
-			//HGMD
-			if ($i_hgmd!==FALSE)
-			{
-				$hgmd_id = explode("|", $parts[$i_hgmd]);
-				$hgmd_class = explode("|", $parts[$i_hgmd_class]);
-				$hgmd_mut = explode("|", $parts[$i_hgmd_mut]);
-				$hgmd_gene = explode("|", $parts[$i_hgmd_gene]);
-				$hgmd_phen = explode("|", $parts[$i_hgmd_phen]);
-				if (count($hgmd_id)!=count($hgmd_class) || count($hgmd_id)!=count($hgmd_mut) || count($hgmd_id)!=count($hgmd_phen) || count($hgmd_id)!=count($hgmd_gene)) trigger_error("HGMD field counts do not match:\n".implode("|",$hgmd_id)."\n".implode("|",$hgmd_class)."\n".implode("|",$hgmd_mut)."\n".implode("|",$hgmd_gene)."\n".implode("|",$hgmd_phen)."" , E_USER_ERROR);
-				$text = "";
-				for($i=0; $i<count($hgmd_id); ++$i)
-				{
-					if (trim($hgmd_id[$i]=="")) continue;
-					$text .= $hgmd_id[$i]." [CLASS=".$hgmd_class[$i]." MUT=".$hgmd_mut[$i]." PHEN=".strtr($hgmd_phen[$i], "_", " ")." GENE=".$hgmd_gene[$i]."]; ";
-				}
-				$hgmd[] = trim($text);
 			}
 			
 			//MaxEntScan
@@ -780,7 +790,158 @@ while(!feof($handle))
 			}
 		}
 	}
+
+	// gnomAD_genome
+	if (isset($info["gnomADg_AF"]))
+	{
+		$gnomad_value = trim($info["gnomADg_AF"]);
+		$af_gnomad_genome[] = $gnomad_value=="." ? "" : $gnomad_value;
+	}
+	if (isset($info["gnomADg_Hom"])) $hom_gnomad[] = trim($info["gnomADg_Hom"]);
+	if (isset($info["gnomADg_Hemi"])) $hemi_gnomad[] = trim($info["gnomADg_Hemi"]);
+
+	//ClinVar
+	if (isset($info["CLINVAR_ID"]) && isset($info["CLINVAR_DETAILS"]))
+	{
+		$clin_accs = explode("&", trim($info["CLINVAR_ID"]));
+		$clin_details = explode("&", trim($info["CLINVAR_DETAILS"]));
+		for ($i=0; $i<count($clin_accs); ++$i)
+		{
+			if ($clin_accs[$i]!="")
+			{
+				$clinvar[] = $clin_accs[$i]." [".strtr($clin_details[$i], array("[c]"=>",", "[p]"=>" DISEASE=", "_"=>" "))."];";
+			}
+		}
+	}
 	
+
+	//HGMD
+	if (isset($info["HGMD_ID"]))
+	{
+		$hgmd_id = trim($info["HGMD_ID"]);
+		$hgmd_class = trim($info["HGMD_CLASS"]);
+		$hgmd_mut = trim($info["HGMD_MUT"]);
+		$hgmd_gene = trim($info["HGMD_GENE"]);
+		$hgmd_phen = trim($info["HGMD_PHEN"]);
+		
+		// TODO: Possible to have more than one match per varaint?
+		$text = $hgmd_id." [CLASS=".$hgmd_class." MUT=".$hgmd_mut." PHEN=".strtr($hgmd_phen, "_", " ")." GENE=".$hgmd_gene."]; ";
+		$hgmd[] = trim($text);
+	}
+
+	//AFs
+	$dbsnp = implode(",", collapse("dbSNP", $dbsnp, "unique"));	
+	$kg = collapse("1000g", $af_kg, "one", 4);
+	$gnomad = collapse("gnomAD", $af_gnomad, "one", 4);
+	$gnomad_genome = collapse("gnomAD genome", $af_gnomad_genome, "one", 4);
+	$gnomad = max($gnomad, $gnomad_genome);
+	$gnomad_hom_hemi = collapse("gnomAD Hom", $hom_gnomad, "one").",".collapse("gnomAD Hemi", $hemi_gnomad, "one");
+	if ($gnomad_hom_hemi==",") $gnomad_hom_hemi = "";
+	$gnomad_sub = collapse("gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse("gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse("gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse("gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse("gnomAD SAS", $af_gnomad_sas, "one", 4);
+	if (str_replace(",", "", $gnomad_sub)=="") $gnomad_sub = "";
+
+
+	if (!$skip_ngsd)
+	{
+		// extract NGSD somatic counts
+		if (!$skip_ngsd_som)
+		{
+			if (isset($info["NGSD_SOM_C"]))
+			{
+				$ngsd_som_counts = intval(trim($info["NGSD_SOM_C"]));
+			}
+			else
+			{
+				$ngsd_som_counts = "0";
+			}
+
+			if (isset($info["NGSD_SOM_P"]))
+			{
+				$ngsd_som_projects = trim($info["NGSD_SOM_P"]);
+			}
+			else
+			{
+				$ngsd_som_projects = "";
+			}
+		}
+
+		//NGSD
+		if (isset($info["NGSD_HAF"]) || $gnomad >= 0.05 || $kg >= 0.05)
+		{
+			$ngsd_hom = "n/a (AF>5%)";
+			$ngsd_het = "n/a (AF>5%)";
+			$ngsd_group = "n/a (AF>5%)";
+		}
+		elseif(isset($info["NGSD_COUNTS"]))
+		{
+			$ngsd_counts = explode(",", trim($info["NGSD_COUNTS"]));
+			$ngsd_hom = $ngsd_counts[0];
+			$ngsd_het = $ngsd_counts[1];
+			if (isset($info["NGSD_GROUP"]))
+			{
+				$ngsd_group_raw = explode(",", trim($info["NGSD_GROUP"]));
+				$ngsd_group = intval($ngsd_group_raw[0])." / ".intval($ngsd_group_raw[1]);
+			}
+			else
+			{
+				$ngsd_group = "0 / 0";
+			}
+		}
+		else
+		{
+			$ngsd_hom = "0";
+			$ngsd_het = "0";
+			$ngsd_group = "0 / 0";
+		}
+
+		if (isset($info["NGSD_CLAS"]))
+		{
+			$ngsd_clas = trim($info["NGSD_CLAS"]);
+		}
+		else
+		{
+			$ngsd_clas = "";
+		}
+
+		if (isset($info["NGSD_CLAS_COM"]))
+		{
+			$ngsd_clas_com = trim($info["NGSD_CLAS_COM"]);
+		}
+		else
+		{
+			$ngsd_clas_com = "";
+		}
+
+		if (isset($info["NGSD_COM"]))
+		{
+			$ngsd_com = trim($info["NGSD_COM"]);
+		}
+		else
+		{
+			$ngsd_com = "";
+		}
+
+		if (isset($info["NGSD_VAL"]))
+		{
+			$ngsd_val = trim($info["NGSD_VAL"]);
+		}
+		else
+		{
+			$ngsd_val = "";
+		}
+
+		if (isset($info["NGSD_GENE_INFO"]))
+		{
+			$ngsd_gene_info = str_replace(":", ", ", trim($info["NGSD_GENE_INFO"]));
+		}
+		else
+		{
+			$ngsd_gene_info = "";
+		}
+	}
+	
+
+
 	//add up/down-stream variants if requested (or no other transcripts exist)
 	if ($updown || count($coding_and_splicing_details)==0)
 	{
@@ -804,17 +965,6 @@ while(!feof($handle))
 	
 	//RepeatMasker
 	$repeatmasker = collapse("RepeatMasker", $repeat, "one");
-	
-	//AFs
-	$dbsnp = implode(",", collapse("dbSNP", $dbsnp, "unique"));	
-	$kg = collapse("1000g", $af_kg, "one", 4);
-	$gnomad = collapse("gnomAD", $af_gnomad, "one", 4);
-	$gnomad_genome = collapse("gnomAD genome", $af_gnomad_genome, "one", 4);
-	$gnomad = max($gnomad, $gnomad_genome);
-	$gnomad_hom_hemi = collapse("gnomAD Hom", $hom_gnomad, "one").",".collapse("gnomAD Hemi", $hemi_gnomad, "one");
-	if ($gnomad_hom_hemi==",") $gnomad_hom_hemi = "";
-	$gnomad_sub = collapse("gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse("gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse("gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse("gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse("gnomAD SAS", $af_gnomad_sas, "one", 4);
-	if (str_replace(",", "", $gnomad_sub)=="") $gnomad_sub = "";
 	
 	//effect predicions
 	$phylop = collapse("phyloP", $phylop, "one", 4);
@@ -856,7 +1006,16 @@ while(!feof($handle))
 	
 	//write data
 	++$c_written;
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic\n");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic");
+	if (!$skip_ngsd_som)
+	{
+		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects");
+	}
+	if (!$skip_ngsd)
+	{
+		fwrite($handle_out, "\t$ngsd_hom\t$ngsd_het\t$ngsd_group\t$ngsd_clas\t$ngsd_clas_com\t$ngsd_val\t$ngsd_com\t$ngsd_gene_info");
+	}
+	fwrite($handle_out, "\n");
 }
 
 //print HGNC messages

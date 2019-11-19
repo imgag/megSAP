@@ -168,7 +168,6 @@ if (in_array("an", $steps))
 	$parser->execTool("NGS/vcf2gsvar_somatic.php", "-in {$som_variants_annotated} -out {$som_gsvar} -t_col {$t_id}");
 	
 	// annotate GSvar (NGSD, frequency + depth)
-	$parser->exec(get_path("ngs-bits")."VariantAnnotateNGSD", "-in {$som_gsvar} -out {$som_gsvar} -psname {$t_id} -mode somatic", true);
 	$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in {$som_gsvar} -bam {$tum_bam} -out {$som_gsvar} -name rna_tum -depth", true);
 	$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in {$som_gsvar} -bam {$ref_bam} -out {$som_gsvar} -name rna_ref -depth", true);
 }
