@@ -19,7 +19,6 @@ $parser->addOutfile("out", "Output file in VCF format.", false);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addFlag("all_transcripts", "Annotate all transcripts - if unset only GENCODE basic transcripts are annotated.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
-$parser->addFlag("skip_ngsd", "Do not annotate the NGSD counts.");
 $parser->addFlag("somatic", "Also annotate the NGSD somatic counts.");
 $parser->addFlag("test", "Use limited constant NGSD VCF file from test folder for annotation.");
 extract($parser->parse($argv));
@@ -148,22 +147,43 @@ if(file_exists($hgmd_file))
 	fwrite($config_file, $hgmd_file."\tHGMD\tCLASS,MUT,GENE,PHEN\tID\n");
 }
 
+// check if NGSD export file is available:
+$skip_ngsd = false;
+$ngsd_symlink = annotation_file_path("/dbs/NGSD/NGSD_germline.vcf.gz");
+$ngsd_som_symlink = annotation_file_path("/dbs/NGSD/NGSD_somatic.vcf.gz");
+if (!file_exists($ngsd_symlink))
+{
+	trigger_error("VCF file for NGSD germline annotation not found at '".$ngsd_symlink."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
+	$skip_ngsd = true;
+}
+if ($somatic && !file_exists($ngsd_som_symlink))
+{
+	trigger_error("VCF file for NGSD somatic annotation not found at '".$ngsd_som_symlink."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
+	$skip_ngsd = true;
+}
 
 if (!$skip_ngsd)
 {
 	// add NGSD annotation
 
-	// determine NGSD annotation file:
+	// resolve symlink of NGSD annotation file:
+	if (!is_link($ngsd_symlink))
+	{
+		trigger_error("The NGSD variant file ({$ngsd_symlink}) is not a symbolic link! This is required to allow updating the data.", E_USER_ERROR);
+	}
+	if (!is_link($ngsd_som_symlink))
+	{
+		trigger_error("The NGSD variant file ({$ngsd_som_symlink}) is not a symbolic link! This is required to allow updating the data.", E_USER_ERROR);
+	}
+	$ngsd_file = annotation_file_path("/dbs/NGSD/".readlink($ngsd_symlink));
+	$ngsd_som_file = annotation_file_path("/dbs/NGSD/".readlink($ngsd_som_symlink));
+
 	if ($test)
 	{
 		$ngsd_som_file = repository_basedir()."/test/data/an_vep_NGSD_somatic.vcf.gz";
 		$ngsd_file = repository_basedir()."/test/data/an_vep_NGSD_germline.vcf.gz";
 	}
-	else
-	{
-		$ngsd_som_file = annotation_file_path("/dbs/NGSD/NGSD_somatic.vcf.gz");
-		$ngsd_file = annotation_file_path("/dbs/NGSD/NGSD_germline.vcf.gz");
-	}
+	
 	
 
 	// get disease group column name:
@@ -250,7 +270,7 @@ if (!$skip_ngsd)
 	}
 	else
 	{
-		trigger_error("VCF file for NGSD germline annotation not found at '".$ngsd_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
+		trigger_error("VCF file for NGSD germline annotation not found at '".$ngsd_file."'!",E_USER_ERROR);
 	}
 	
 
@@ -262,7 +282,7 @@ if (!$skip_ngsd)
 		}
 		else
 		{
-			trigger_error("VCF file for NGSD somatic annotation not found at '".$ngsd_som_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
+			trigger_error("VCF file for NGSD somatic annotation not found at '".$ngsd_som_file."'!",E_USER_ERROR);
 		}
 	}
 	
