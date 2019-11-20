@@ -17,3 +17,15 @@ vc_freebayes:
 	BedIntersect -in tmp_roi_ext.bed -in2 tmp_vars.bed -mode in -out tmp_roi_overlap.bed
 	BedShrink -in tmp_roi_overlap.bed -n 50 -out vc_freebayes_in.bed
 	rm tmp*
+
+#Creating input BAM files for somatic pipeline Manta SV positive control
+sv_somatic:
+	samtools view -h /mnt/projects/diagnostic/SomaticAndTreatment/Sample_DX197143_01/DX197143_01.bam chr10:123238830-123240576 chr12:80078296-80080042 | sed "s/DX197143_01/manta_sv_tumor/g" | samtools view -bSh > temp_tumor.bam
+	samtools view -h /mnt/projects/diagnostic/SomaticAndTreatment/Sample_DX196743_01/DX196743_01.bam chr10:123238830-123240576 chr12:80078296-80080042 | sed "s/DX196743_01/manta_sv_normal/g" | samtools view -bSh > temp_normal.bam
+	samtools view -H temp_tumor.bam | sed "s/DX197143_01/manta_sv_tumor/g" > temp_header_tumor.sam
+	samtools view -H temp_normal.bam | sed "s/DX196743_01/manta_sv_normal/g" > temp_header_normal.sam
+	samtools reheader temp_header_tumor.sam  temp_tumor.bam > manta_sv_tumor.bam
+	samtools reheader temp_header_normal.sam  temp_normal.bam > manta_sv_normal.bam 
+	samtools index manta_sv_tumor.bam
+	samtools index manta_sv_normal.bam
+	rm temp_tumor.bam temp_header_tumor.sam temp_normal.bam temp_header_normal.sam

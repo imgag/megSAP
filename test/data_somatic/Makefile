@@ -1,12 +1,12 @@
-all: clear link case1 case2
+all: clear link case1 case2 case3
 
 clear:
 	rm -rf Sample_GS110168 Sample_GS110169 Sample_GS150344_01
-	rm -rf out_case1 out_case2
+	rm -rf out_case1 out_case2 out_case3
 
 link:
 	mkdir -p Sample_GS110168 Sample_GS110169 Sample_GS150344_01
-	mkdir -p out_case1 out_case2
+	mkdir -p out_case1 out_case2 out_case3
 	# input files for case 1
 	php ../link_test_data.php GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz Sample_GS150344_01/GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz
 	php ../link_test_data.php GS150344_01_GCTCGGTAextracted_L001_R2_001.fastq.gz Sample_GS150344_01/GS150344_01_GCTCGGTAextracted_L001_R2_001.fastq.gz
@@ -85,3 +85,17 @@ case2_diff:
 	numdiff expected_case2/GS110168-GS110169_msi.tsv out_case2/GS110168-GS110169_msi.tsv --absolute-tolerance 0.01
 	# bafs
 	numdiff expected_case2/GS110168-GS110169_bafs.igv out_case2/GS110168-GS110169_bafs.igv --absolute-tolerance 0.02
+
+#Test MANTA SV calls with positive fusion control
+case3: case3_somatic case3_diff
+case3_somatic:
+	php ../../src/Pipelines/somatic_dna.php \
+		-t_bam ../data/manta_sv_tumor.bam -n_bam ../data/manta_sv_normal.bam \
+		-out_folder out_case3 \
+		-prefix manta_sv_tumor-manta_sv_normal \
+		-steps vc\
+		-system system_pair_sv.ini -n_system system_pair_sv.ini \
+		-skip_correlation \
+		--log out_case3/tumor-normal.log
+case3_diff:
+	diff expected_case3/manta_sv_tumor-manta_sv_normal_var_structural.bedpe out_case3/manta_sv_tumor-manta_sv_normal_var_structural.bedpe --ignore-matching-lines="##cmdline"

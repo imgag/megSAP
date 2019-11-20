@@ -63,6 +63,8 @@ Finally, we need to download and convert some open-source databases for annotati
 
 **Note:** OMIM and HGMD are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
 
+**Note:** The use of the optional NGSD annotation requires an export of the variants to VCF files. These files should be updated on regular bases. For example code take a look at the NGSD section in the download script
+
 ## Execution
 
 Now the pipelines with all required tools and data are installed. They can be found within the `src/Pipelines` folder. Go to the [documentation](../README.md) for further details.
