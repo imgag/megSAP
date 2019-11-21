@@ -12,8 +12,8 @@ vcflib = [path]/data/tools/vcflib/bin/
 abra2 = java -Xmx16g -jar [path]/data/tools/abra2-2.22/abra2.jar
 samblaster = [path]/data/tools/samblaster/samblaster
 bwa = [path]/data/tools/bwa-0.7.17/bwa
-vep = [path]/data/tools/ensembl-vep-release-98.3/vep
-vep_data = [path]/data/dbs/ensembl-vep-98/
+vep = [path]/data/tools/ensembl-vep-release-96.3/vep
+vep_data = [path]/data/dbs/ensembl-vep-96/
 clincnv = Rscript --vanilla [path]/data/tools/ClinCNV-1.16.2/
 bcftools = [path]/data/tools/bcftools-1.9/bcftools
 

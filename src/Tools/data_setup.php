@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("data_setup", "Creates a local copy of the reference genome and annotation data. They are heavily used during data analysis and should not be accessed via the network!.");
+$parser = new ToolBase("data_setup", "Creates a local copy of the reference genome and annotation data. They are heavily used during data analysis and should not be accessed via the network.");
 $parser->addString("build", "Genome build.", false);
 extract($parser->parse($argv));
 
@@ -131,7 +131,7 @@ if ($build=="GRCh37")
 	
 	//remove outdated annotation data
 	$update = true;
-	$info = "/homo_sapiens/98_GRCh37/info.txt"; //ensembl-vep-98
+	$info = "/homo_sapiens/96_GRCh37/info.txt"; //ensembl-vep-96
 	if (file_exists("{$local_annotation_folder}/{$info}"))
 	{
 		exec("diff {$local_annotation_folder}/{$info} {$annotation_folder}/{$info}", $output, $code);
