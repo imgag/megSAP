@@ -166,11 +166,11 @@ tabix -s 1 -b 2 -e 2 -c c dbscSNV1.1_GRCh37.txt.gz
 #rm NGSD_somatic.vcf
 #cd ..
 #
-#rm NGSD_germline.vcf.gz.tbi
-#rm NGSD_somatic.vcf.gz.tbi
-#rm NGSD_germline.vcf.gz
-#rm NGSD_genes.bed
-#rm NGSD_somatic.vcf.gz
+#rm -f NGSD_germline.vcf.gz.tbi
+#rm -f NGSD_somatic.vcf.gz.tbi
+#rm -f NGSD_germline.vcf.gz
+#rm -f NGSD_genes.bed
+#rm -f NGSD_somatic.vcf.gz
 #ln -s $curdate/NGSD_genes.bed NGSD_genes.bed
 #ln -s $curdate/NGSD_germline.vcf.gz NGSD_germline.vcf.gz
 #ln -s $curdate/NGSD_somatic.vcf.gz NGSD_somatic.vcf.gz
