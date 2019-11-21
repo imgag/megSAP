@@ -124,7 +124,6 @@ if (file_exists($warn_file))
 }
 
 
-
 // custom annotation by VcfAnnotateFromVcf
 
 // create config file
@@ -149,35 +148,25 @@ if(file_exists($hgmd_file))
 
 // check if NGSD export file is available:
 $skip_ngsd = false;
-$ngsd_symlink = annotation_file_path("/dbs/NGSD/NGSD_germline.vcf.gz");
-$ngsd_som_symlink = annotation_file_path("/dbs/NGSD/NGSD_somatic.vcf.gz");
-if (!file_exists($ngsd_symlink))
+$ngsd_file = $data_folder."/dbs/NGSD/NGSD_germline.vcf.gz";
+$ngsd_som_file = $data_folder."/dbs/NGSD/NGSD_somatic.vcf.gz";
+if (!file_exists($ngsd_file))
 {
-	trigger_error("VCF file for NGSD germline annotation not found at '".$ngsd_symlink."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
+	trigger_error("VCF file for NGSD germline annotation not found at '".$ngsd_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
 	$skip_ngsd = true;
 }
-if ($somatic && !file_exists($ngsd_som_symlink))
+if ($somatic && !file_exists($ngsd_som_file))
 {
-	trigger_error("VCF file for NGSD somatic annotation not found at '".$ngsd_som_symlink."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
+	trigger_error("VCF file for NGSD somatic annotation not found at '".$ngsd_som_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
 	$skip_ngsd = true;
 }
+
+
+
 
 if (!$skip_ngsd)
 {
 	// add NGSD annotation
-
-	// resolve symlink of NGSD annotation file:
-	if (!is_link($ngsd_symlink))
-	{
-		trigger_error("The NGSD variant file ({$ngsd_symlink}) is not a symbolic link! This is required to allow updating the data.", E_USER_ERROR);
-	}
-	if (!is_link($ngsd_som_symlink))
-	{
-		trigger_error("The NGSD variant file ({$ngsd_som_symlink}) is not a symbolic link! This is required to allow updating the data.", E_USER_ERROR);
-	}
-	$ngsd_file = annotation_file_path("/dbs/NGSD/".readlink($ngsd_symlink));
-	$ngsd_som_file = annotation_file_path("/dbs/NGSD/".readlink($ngsd_som_symlink));
-
 	if ($test)
 	{
 		$ngsd_som_file = repository_basedir()."/test/data/an_vep_NGSD_somatic.vcf.gz";
@@ -292,15 +281,43 @@ if (!$skip_ngsd)
 // close config file
 fclose($config_file);
 
+// store file date of NGSD files to detect file changes during annotation
+$ngsd_file_mtime = filemtime($ngsd_file);
+if ($ngsd_file_mtime == false)
+{
+	trigger_error("Cannot get modification date of '".$ngsd_file."'!",E_USER_ERROR);
+}
+if ($somatic)
+{
+	$ngsd_som_file_mtime = filemtime($ngsd_som_file);
+	if ($ngsd_file_mtime == false)
+	{
+		trigger_error("Cannot get modification date of '".$ngsd_som_file."'!",E_USER_ERROR);
+	}
+}
 
 // execute VcfAnnotateFromVcf
 $vafv_output = $parser->tempFile("_vafv.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output -out $vafv_output", true);
 
+// check if files have changed during annotation:
+if (!($ngsd_file_mtime == filemtime($ngsd_file)))
+{
+	trigger_error("Annotation file '".$ngsd_file."' has changed during annotation!",E_USER_ERROR);
+}
+if ($somatic)
+{
+	if (!($ngsd_som_file_mtime == filemtime($ngsd_som_file)))
+	{
+		trigger_error("Annotation file '".$ngsd_som_file."' has changed during annotation!",E_USER_ERROR);
+	}
+}
+
+
 if (!$skip_ngsd)
 {
 	// annotate genes
-	$gene_file = annotation_file_path("/dbs/NGSD/NGSD_genes.bed");
+	$gene_file = $data_folder."/dbs/NGSD/NGSD_genes.bed";
 	if (file_exists($gene_file))
 	{
 		$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -in $vafv_output -out $out", true);
