@@ -379,9 +379,9 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				$args[] = "-steps ma,db";
 			}
-			if ($project_analysis=="variant calling")
+			if ($project_analysis=="variants")
 			{
-				$args[] = "-steps ma,vc,db,cn";
+				//no steps parameter > use all default steps
 			}
 		}
 		

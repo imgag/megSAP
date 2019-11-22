@@ -166,38 +166,53 @@ if (in_array("ma", $steps))
 	$delete_fastq_files = get_path("delete_fastq_files", true);
 	if ($delete_fastq_files==true || $delete_fastq_files=="true")
 	{
-		$fastq_files = array_merge($files1, $files2);
-		//check if BAM and BAM index exists:
-		$bam_exists = file_exists($bam_file) && file_exists($bam_file.".bai"); 
-		if ($bam_exists && count($files1)>0 && count($files1)>0)
+		//check if project overwrites the settings
+		$preserve_fastqs = false;
+		if (db_is_enabled("NGSD"))
 		{
-			//check file sizes:
-			//FASTQ
-			$fastq_file_size = 0;
-			foreach($fastq_files as $fq_file)
+			$db = DB::getInstance("NGSD");
+			$info = get_processed_sample_info($db, $name, false);
+			if (!is_null($info))
 			{
-				$fastq_file_size += filesize($fq_file);
+				$preserve_fastqs = $info['preserve_fastqs'];
 			}
-
-			//BAM
-			$bam_file_size = filesize($bam_file);
-
-			if ($bam_file_size / $fastq_file_size > 0.5)
+		}
+		
+		if(!$preserve_fastqs)
+		{
+			$fastq_files = array_merge($files1, $files2);
+			//check if BAM and BAM index exists:
+			$bam_exists = file_exists($bam_file) && file_exists($bam_file.".bai"); 
+			if ($bam_exists && count($files1)>0 && count($files1)>0)
 			{
-				// BAM exists and has a propper size: FASTQ files can be deleted
+				//check file sizes:
+				//FASTQ
+				$fastq_file_size = 0;
 				foreach($fastq_files as $fq_file)
 				{
-					unlink($fq_file);
+					$fastq_file_size += filesize($fq_file);
+				}
+
+				//BAM
+				$bam_file_size = filesize($bam_file);
+
+				if ($bam_file_size / $fastq_file_size > 0.5)
+				{
+					// BAM exists and has a propper size: FASTQ files can be deleted
+					foreach($fastq_files as $fq_file)
+					{
+						unlink($fq_file);
+					}
+				}
+				else
+				{
+					trigger_error("BAM file smaller than 50% of FASTQ", E_USER_ERROR);
 				}
 			}
 			else
 			{
-				trigger_error("BAM file smaller than 50% of FASTQ", E_USER_ERROR);
+				trigger_error("No BAM/BAI file found!", E_USER_ERROR);
 			}
-		}
-		else
-		{
-			trigger_error("No BAM/BAI file found!", E_USER_ERROR);
 		}
 	}
 }
