@@ -21,6 +21,7 @@ $parser->addFlag("all_transcripts", "Annotate all transcripts - if unset only GE
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("somatic", "Also annotate the NGSD somatic counts.");
 $parser->addFlag("test", "Use limited constant NGSD VCF file from test folder for annotation.");
+$parser->addFlag("no_groups", "Skips the NGSD group annotation (requires NGSD database lookup).");
 extract($parser->parse($argv));
 
 //get local/global data file path - depending on what is available
@@ -177,7 +178,7 @@ if (!$skip_ngsd)
 
 	// get disease group column name:
 	$disease_group_column = "";
-	if (db_is_enabled("NGSD"))
+	if (db_is_enabled("NGSD") && !$no_groups)
 	{
 		if ($somatic)
 		{
@@ -243,7 +244,10 @@ if (!$skip_ngsd)
 	}
 	else
 	{
-		trigger_error("No connection to NGSD. NGSD count annotation for disease group will be missing in output file.",E_USER_WARNING);
+		if (!$no_groups)
+		{
+			trigger_error("No connection to NGSD. NGSD count annotation for disease group will be missing in output file.",E_USER_WARNING);
+		}
 	}
 	
 	$ngsd_columns = ["COUNTS"];
