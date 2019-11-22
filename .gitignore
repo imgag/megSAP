@@ -72,8 +72,10 @@
 
 /test/data_rna/analyze_rna_out_se.log
 /test/data_rna/analyze_rna_out_pe.log
+/test/data_rna/analyze_rna_out_fu.log
 /test/data_rna/paired_end/
 /test/data_rna/single_end/
+/test/data_rna/paired_end_fusion/
 
 /test/data_somatic_rna/project_folder/
 /test/data_somatic_rna/somatic_rna_out.log
