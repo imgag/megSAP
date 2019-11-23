@@ -9,9 +9,9 @@ INSERT INTO device (type, name) VALUES
 ('GAIIx', 'test');
 
 INSERT INTO project (name, type, internal_coordinator_id, analysis) VALUES
-('Exome_Diagnostik','diagnostic', 2, 'annotation'),
+('Exome_Diagnostik','diagnostic', 2, 'variants'),
 ('IVac','research', 2, 'fastq'),
-('SomaticAndTreatment','diagnostic', 2, 'annotation');
+('SomaticAndTreatment','diagnostic', 2, 'variants');
 
 INSERT INTO processing_system (name_short, name_manufacturer, shotgun, genome_id, type) VALUES
 ('ssHAEv6', 'SureSelect Human All Exon v6', '1', 1, 'WES'),
