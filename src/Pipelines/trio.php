@@ -48,7 +48,7 @@ foreach($steps as $step)
 }
 
 //prepare multi-sample paramters
-load_system($system, basename($c, ".bam")); //required in case the the system is unset
+$sys = load_system($system, basename($c, ".bam")); //required in case the the system is unset
 $args_multisample = [
 	"-bams $c $f $m",
 	"-status affected control control",
@@ -186,7 +186,7 @@ if (in_array("an", $steps))
 	rewind($h);
 	while(!feof($h))
 	{
-		$line = trim(fgets($h));
+		$line = nl_trim(fgets($h));
 		if ($line=="") continue;
 		
 		//compare child gender from data with gender from header
@@ -238,6 +238,9 @@ if (in_array("an", $steps))
 	fclose($h);
 	fclose($h2);
 	$parser->moveFile($tmp, $gsvar);
+	
+	//double check modified output file
+	$parser->execTool("NGS/check_tsv.php", "-in $gsvar -build ".$sys['build']);
 }
 
 //copy-number and UPD

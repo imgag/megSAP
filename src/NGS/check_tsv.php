@@ -58,6 +58,12 @@ while(!feof($handle))
 	//content lines
 	$row_values = explode("\t", $line);
 	
+	//check that number of columns is correct
+	if (count($row_values)!=count($headers))
+	{
+		trigger_error("Column count is ".count($row_values).", but should be ".count($headers)." in line:\n$line", E_USER_ERROR);
+	}
+	
 	//check column types
 	foreach ($col_desc as $col)
 	{
