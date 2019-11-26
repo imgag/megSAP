@@ -6,7 +6,6 @@ $parser->addInfile("gsvar_in", "Input .gsvar-file with SNV data.", false);
 $parser->addInfile("cgi_snv_in", "Input CGI data with SNV annotations",true);
 $parser->addInfile("rna_counts", "Input file that contains RNA transcript counts.",true);
 $parser->addInfile("rna_bam", "RNA-BAM file that is used to annotate and calculate variant depth and frequency in RNA sample.",true);
-$parser->addFlag("som_classification", "Annotate somatic variant classification from NGSD.", true);
 $parser->addFlag("include_ncg", "Annotate column with info from NCG6.0 whether a gene is TSG or oncogene");
 $parser->addOutfile("out", "Output file name", false);
 extract($parser->parse($argv));
