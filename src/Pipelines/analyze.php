@@ -182,7 +182,7 @@ if (in_array("ma", $steps))
 		{
 			$fastq_files = array_merge($files1, $files2);
 			//check if BAM and BAM index exists:
-			$bam_exists = file_exists($bam_file) && file_exists($bam_file.".bai"); 
+			$bam_exists = file_exists($bamfile) && file_exists($bamfile.".bai"); 
 			if ($bam_exists && count($files1)>0 && count($files1)>0)
 			{
 				//check file sizes:
@@ -194,9 +194,9 @@ if (in_array("ma", $steps))
 				}
 
 				//BAM
-				$bam_file_size = filesize($bam_file);
+				$bamfile_size = filesize($bamfile);
 
-				if ($bam_file_size / $fastq_file_size > 0.5)
+				if ($bamfile_size / $fastq_file_size > 0.5)
 				{
 					// BAM exists and has a propper size: FASTQ files can be deleted
 					foreach($fastq_files as $fq_file)
