@@ -6,6 +6,7 @@ $parser->addInfile("gsvar_in", "Input .gsvar-file with SNV data.", false);
 $parser->addInfile("cgi_snv_in", "Input CGI data with SNV annotations",true);
 $parser->addInfile("rna_counts", "Input file that contains RNA transcript counts.",true);
 $parser->addInfile("rna_bam", "RNA-BAM file that is used to annotate and calculate variant depth and frequency in RNA sample.",true);
+$parser->addFlag("som_classification", "Annotate somatic variant classification from NGSD.", true);
 $parser->addFlag("include_ncg", "Annotate column with info from NCG6.0 whether a gene is TSG or oncogene");
 $parser->addOutfile("out", "Output file name", false);
 extract($parser->parse($argv));
@@ -125,8 +126,6 @@ if(isset($rna_bam))
 	$gsvar_input->removeColByName("rna_af");
 	$gsvar_input->addCol($rna_depths, "rna_depth", "Depth in RNA BAM file $rna_bam");
 	$gsvar_input->addCol($rna_afs, "rna_af", "Allele frequency in RNA BAM file $rna_bam");
-	
-	$gsvar_input->toTSV($out);
 }
 
 if(isset($rna_counts)) //Annotate GSvar file with transcript counts file created by RNA pipeline
@@ -200,8 +199,6 @@ if(isset($rna_counts)) //Annotate GSvar file with transcript counts file created
 	
 	$gsvar_input->addComment("#RNA_TRANSCRIPT_COUNT_FILE=$rna_counts");
 	$gsvar_input->addCol(array_values($results),"rna_tpm","Transcript count as annotated per gene from $rna_counts");
-	
-	$gsvar_input->toTSV($out);
 }
 
 
@@ -300,8 +297,6 @@ if(isset($cgi_snv_in))
 	$gsvar_input->addCol($col_cgi_transcript,"CGI_transcript","CancerGenomeInterpreter.org CGI Ensembl transcript ID");
 	$gsvar_input->addCol($col_cgi_gene,"CGI_gene","Gene symbol returned by CancerGenomeInterpreter.org");
 	$gsvar_input->addCol($col_cgi_consequence,"CGI_consequence","Consequence of the mutation assessed by CancerGenomeInterpreter.org");
-
-	$gsvar_input->toTSV($out);
 }
 
 if($include_ncg)
@@ -339,8 +334,9 @@ if($include_ncg)
 	
 	$gsvar_input->addCol($col_oncogene,"ncg_oncogene","1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.");
 	$gsvar_input->addCol($col_tsg,"ncg_tsg","1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.");
-	
-	$gsvar_input->toTSV($out);
 }
+
+
+$gsvar_input->toTSV($out);
 
 ?>

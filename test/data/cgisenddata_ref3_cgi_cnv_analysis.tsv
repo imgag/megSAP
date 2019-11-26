@@ -221,7 +221,7 @@ cgi	TPH2	AMP			215	ambiguous	SK		predicted passenger
 cgi	NAV3	AMP			216	ambiguous	SK		predicted passenger		
 cgi	BTG1	AMP			217	Act	SK		predicted passenger		
 cgi	CLLU1	AMP			218	ambiguous	SK		predicted passenger		
-cgi	CLLU1OS	AMP			219	ambiguous	SK		predicted passenger		
+cgi	CLLU1-AS1	AMP			219	ambiguous	SK		predicted passenger		
 cgi	NTN4	AMP		PRAD	220	Act	SK		predicted passenger		
 cgi	PGAM1P5	AMP			221	ambiguous	SK		predicted passenger		
 cgi	APAF1	AMP			222	LoF	SK		predicted passenger		
