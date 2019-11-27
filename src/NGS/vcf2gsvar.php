@@ -198,6 +198,7 @@ $column_desc = array(
 	array("gene", "Affected gene list (comma-separated)."),
 	array("variant_type", "Variant type."),
 	array("coding_and_splicing", "Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain)."),
+	array("coding_and_splicing_refseq", "Coding and splicing details based on RefSeq (Gene, RefSeq id, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain)."),
 	array("regulatory", "Regulatory consequence details."),
 	array("OMIM", "OMIM database annotation."),
 	array("ClinVar", "ClinVar database annotation."),
@@ -343,6 +344,24 @@ while(!feof($handle))
 			$i_genesplicer = index_of($cols, "GeneSplicer");
 			$i_dbscsnv_ada = index_of($cols, "ada_score");
 			$i_dbscsnv_rf = index_of($cols, "rf_score");
+		}
+
+		//get annotation indices in CSQ_refseq field
+		if (starts_with($line, "##INFO=<ID=CSQ_refseq,"))
+		{
+			$cols = explode("|", substr($line, 0, -2));
+			$cols[0] = "Allele";
+			$i_consequence_refseq = index_of($cols, "Consequence");
+			$i_impact_refseq = index_of($cols, "IMPACT");
+			$i_symbol_refseq = index_of($cols, "SYMBOL");
+			$i_hgnc_id_refseq = index_of($cols, "HGNC_ID", false);
+			$i_feature_refseq = index_of($cols, "Feature");
+			$i_featuretype_refseq = index_of($cols, "Feature_type");
+			$i_exon_refseq = index_of($cols, "EXON");
+			$i_intron_refseq = index_of($cols, "INTRON");
+			$i_hgvsc_refseq = index_of($cols, "HGVSc");
+			$i_hgvsp_refseq = index_of($cols, "HGVSp");
+			$i_domains_refseq = index_of($cols, "DOMAINS");
 		}
 
 
@@ -557,6 +576,12 @@ while(!feof($handle))
 	$sift_updown = array();
 	$polyphen_updown = array();
 	$coding_and_splicing_details_updown = array();
+
+	// RefSeq transcript annotation
+	$coding_and_splicing_details_refseq = array();
+	$coding_and_splicing_details_updown_refseq = array();
+
+	
 	if (isset($info["CSQ"]))
 	{
 		$anns = explode(",", $info["CSQ"]);
@@ -736,7 +761,7 @@ while(!feof($handle))
 				$exon = trim($parts[$i_exon]);
 				if ($exon!="") $exon = "exon".$exon;
 				$intron = trim($parts[$i_intron]);
-				if ($intron!="") $intron = "exon".$intron;
+				if ($intron!="") $intron = "exon".$intron; //TODO: change to intron and adapt ngs-bits
 				
 				//hgvs
 				$hgvs_c = trim($parts[$i_hgvsc]);
@@ -777,6 +802,66 @@ while(!feof($handle))
 			else
 			{				
 				trigger_error("Unknown VEP feature type '{$feature_type}' for variant $chr:$pos!", E_USER_ERROR);
+			}
+		}
+	}
+
+	// annotation of RefSeq transcripts
+	if (isset($info["CSQ_refseq"]))
+	{
+		$anns = explode(",", $info["CSQ_refseq"]);
+		foreach($anns as $entry)
+		{			
+			$parts = explode("|", $entry);
+			
+			//only transcripts
+			$feature_type = $parts[$i_featuretype_refseq];
+			if ($feature_type=="Transcript" || $feature_type=="")
+			{
+				$transcript_id = $parts[$i_feature_refseq];
+				
+				//extract variant type
+				$variant_type = strtr($parts[$i_consequence_refseq], array("_variant"=>""));
+				$variant_type = strtr($variant_type, array("splice_acceptor&splice_region&intron"=>"splice_acceptor", "splice_donor&splice_region&intron"=>"splice_donor", "splice_acceptor&intron"=>"splice_acceptor", "splice_donor&intron"=>"splice_donor", "_prime_"=>"'"));
+				$is_updown = $variant_type=="upstream_gene" || $variant_type=="downstream_gene";
+				
+				//determine gene name (update if neccessary)
+				$gene = trim($parts[$i_symbol_refseq]);
+				
+				//exon
+				$exon = trim($parts[$i_exon_refseq]);
+				if ($exon!="") $exon = "exon".$exon;
+				$intron = trim($parts[$i_intron_refseq]);
+				if ($intron!="") $intron = "intron".$intron; //?
+				
+				//hgvs
+				$hgvs_c = trim($parts[$i_hgvsc_refseq]);
+				if ($hgvs_c!="") $hgvs_c = explode(":", $hgvs_c)[1];			
+				$hgvs_p = trim($parts[$i_hgvsp_refseq]);
+				if ($hgvs_p!="") $hgvs_p = explode(":", $hgvs_p)[1];
+				$hgvs_p = str_replace("%3D", "=", $hgvs_p);
+				
+				//domain
+				$domain = "";
+				$domains = explode("&", $parts[$i_domains_refseq]);
+				foreach($domains as $entry)
+				{
+					if(starts_with($entry, "Pfam_domain:"))
+					{
+						$domain = explode(":", $entry, 2)[1];
+					}
+				}
+				
+				$transcript_entry = "{$gene}:{$transcript_id}:".$parts[$i_consequence_refseq].":".$parts[$i_impact_refseq].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}:{$domain}";
+				if (!$is_updown)
+				{
+					$coding_and_splicing_details_refseq[] = $transcript_entry;
+				}
+				else
+				{
+					$coding_and_splicing_details_updown_refseq[] = $transcript_entry;
+				}
+			
 			}
 		}
 	}
@@ -996,7 +1081,7 @@ while(!feof($handle))
 	
 	//write data
 	++$c_written;
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects");

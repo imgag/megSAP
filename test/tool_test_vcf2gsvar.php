@@ -35,6 +35,16 @@ $out_file6 = output_folder().$name."_out6.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in_dragen.vcf -out $out_file6 --log ".output_folder().$name."_out6.log");
 check_file($out_file6, data_folder().$name."_out6.GSvar");
 
+//genotype_mode=single, RefSeq annotation
+$out_file7 = output_folder().$name."_out7.GSvar";
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in3.vcf -blacklist -out $out_file7 --log ".output_folder().$name."_out7.log");
+check_file($out_file7, data_folder().$name."_out7.GSvar");
+
+//genotype_mode=single, RefSeq annotation
+$out_file8 = output_folder().$name."_out8.GSvar";
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in4.vcf -blacklist -out $out_file8 --log ".output_folder().$name."_out8.log");
+check_file($out_file8, data_folder().$name."_out8.GSvar");
+
 
 end_test();
 

@@ -124,6 +124,42 @@ if (file_exists($warn_file))
 	}
 }
 
+// second VEP run to annotate RefSeq transcripts
+// generate temp file for vep output
+$vep_output_refseq = $parser->tempFile("_vep.vcf");
+
+//annotate only fields we really need to prevent bloating the VCF file 
+$fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS");
+
+$args = array();
+$args[] = "-i $vep_output --format vcf"; //input
+$args[] = "-o $vep_output_refseq --vcf --no_stats --force_overwrite"; //output
+$args[] = "--species homo_sapiens --assembly {$build}"; //species
+$args[] = "--refseq"; //use RefSeq annotation instead of ensemble
+$args[] = "--vcf_info_field CSQ_refseq"; //store annotation in custom info field to keep RefSeq and ensemble separate
+$args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
+$args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".genome_fasta($build); //paths to data
+$args[] = "--numbers --hgvs --domains"; //annotation options
+
+
+$args[] = "--fields ".implode(",", $fields);
+putenv("PERL5LIB={$vep_path}/Bio/:{$vep_path}/cpan/lib/perl5/:".getenv("PERL5LIB"));
+$parser->exec(get_path("vep"), implode(" ", $args), true);
+
+//print VEP warnings
+$warn_file = $vep_output_refseq."_warnings.txt";
+if (file_exists($warn_file))
+{
+	$file = file($warn_file);
+	foreach($file as $line)
+	{
+		$line = trim($line);
+		if ($line=="") continue;
+		
+		print $line."\n";
+	}
+}
+
 
 // custom annotation by VcfAnnotateFromVcf
 
@@ -302,7 +338,7 @@ if ($somatic)
 
 // execute VcfAnnotateFromVcf
 $vafv_output = $parser->tempFile("_vafv.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output -out $vafv_output", true);
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output_refseq -out $vafv_output", true);
 
 // check if files have changed during annotation:
 if (!($ngsd_file_mtime == filemtime($ngsd_file)))

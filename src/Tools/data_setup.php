@@ -130,7 +130,7 @@ if ($build=="GRCh37")
 	}
 	
 	//remove outdated annotation data
-	$update = true;
+	$update = false;
 	$info = "/homo_sapiens/96_GRCh37/info.txt"; //ensembl-vep-96
 	if (file_exists("{$local_annotation_folder}/{$info}"))
 	{
@@ -138,13 +138,41 @@ if ($build=="GRCh37")
 		if ($code==0)
 		{
 			print "Annotation infos in '$info' match.\n";
-			$update = false;
 		}
 		else
 		{
 			print "Annotation infos in '$info' differ. Deleting old data and performing update!\n";
 			exec2("rm -rf {$local_annotation_folder}/*");
+			$update = true;
 		}
+	}
+	else
+	{
+		// info.txt missing -> perform update
+		print "$info missing. Performing update!\n";
+		$update = true;
+	}
+
+	$info = "/homo_sapiens_refseq/96_GRCh37/info.txt"; //ensembl-vep-96
+	if (file_exists("{$local_annotation_folder}/{$info}"))
+	{
+		exec("diff {$local_annotation_folder}/{$info} {$annotation_folder}/{$info}", $output, $code);
+		if ($code==0)
+		{
+			print "Annotation infos in '$info' match.\n";
+		}
+		else
+		{
+			print "Annotation infos in '$info' differ. Deleting old data and performing update!\n";
+			exec2("rm -rf {$local_annotation_folder}/*");
+			$update = true;
+		}
+	}
+	else
+	{
+		// info.txt missing -> perform update
+		print "$info missing. Performing update!\n";
+		$update = true;
 	}
 	
 	//check that at least one rsync finished

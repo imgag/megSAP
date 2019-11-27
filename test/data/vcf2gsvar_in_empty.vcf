@@ -1,4 +1,10 @@
 ##fileformat=VCFv4.1
+##fileDate=20150309
+##source=freeBayes v0.9.20-16-g3e35e72
+##reference=/mnt/share/data/dbs//genomes/hg19.fa
+##phasing=none
+##commandline="/mnt/share/opt/freebayes20150204/bin/freebayes -b ./NA12878.bam -f /mnt/share/data/dbs//genomes/hg19.fa -t /tmp/vc_freebayes_U8iqnT.bed --min-alternate-fraction 0.15 --min-base-quality 30 --min-alternate-qsum 90"
+##filter="QUAL > 5 & AO > 2"
 ##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">
 ##INFO=<ID=DP,Number=1,Type=Integer,Description="Total read depth at the locus">
 ##INFO=<ID=DPB,Number=1,Type=Float,Description="Total read depth per bp at the locus; bases in reads overlapping / bases in haplotype">
@@ -49,21 +55,35 @@
 ##FORMAT=<ID=QR,Number=1,Type=Integer,Description="Sum of quality of the reference observations">
 ##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
 ##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
-##INFO=<ID=OMIM,Number=1,Type=String,Description="Annotation from /mnt/share/data/dbs/OMIM/omim.bed delimited by ':'">
-##INFO=<ID=REPEATMASKER,Number=1,Type=String,Description="Annotation from /mnt/share/data/dbs/RepeatMasker/RepeatMasker.bed delimited by ':'">
-##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|DOMAINS|SIFT|PolyPhen|Existing_variation|AF|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_EAS_AF|gnomAD_NFE_AF|gnomAD_SAS_AF|EA_AF|AA_AF|CADD_RAW|REVEL|FATHMM_MKL_C|FATHMM_MKL_NC|MaxEntScan_ref|MaxEntScan_alt|GeneSplicer|ada_score|rf_score|gnomADg_AF|gnomADg_Hom|gnomADg_Hemi|REPEATMASKER|CLINVAR|CLINVAR_DETAILS|PHYLOP|OMIM|HGMD|HGMD_CLASS|HGMD_MUT|HGMD_GENE|HGMD_PHEN|BIOTYPE">
-##INFO=<ID=LOF,Number=.,Type=String,Description="Predicted loss of function effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' ">
-##INFO=<ID=NMD,Number=.,Type=String,Description="Predicted nonsense mediated decay effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' ">
-##INFO=<ID=dbNSFP_Polyphen2_HDIV_pred,Number=A,Type=Character,Description="Field 'Polyphen2_HDIV_pred' from dbNSFP">
-##INFO=<ID=dbNSFP_MetaLR_pred,Number=A,Type=Character,Description="Field 'MetaLR_pred' from dbNSFP">
-##INFO=<ID=dbNSFP_phyloP100way_vertebrate,Number=A,Type=Float,Description="Field 'phyloP100way_vertebrate' from dbNSFP">
-##INFO=<ID=dbNSFP_Polyphen2_HVAR_pred,Number=A,Type=Character,Description="Field 'Polyphen2_HVAR_pred' from dbNSFP">
-##INFO=<ID=dbNSFP_SIFT_pred,Number=A,Type=Character,Description="Field 'SIFT_pred' from dbNSFP">
-##INFO=<ID=HGMD_MUT,Number=1,Type=String,Description="HGMD mutant allele">
-##INFO=<ID=HGMD_PHEN,Number=1,Type=String,Description="HGMD primary phenotype">
-##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category, https://portal.biobase-international.com/hgmd/pro/global.php#cats ">
-##INFO=<ID=HGMD_GENE,Number=1,Type=String,Description="Gene symbol">
-##INFO=<ID=CLINVAR_SIG,Number=.,Type=String,Description="ClinVar clinical significance">
-##INFO=<ID=CLINVAR_ACC,Number=.,Type=String,Description="ClinVar accession">
-##INFO=<ID=COSMIC_ID,Number=1,Type=String,Description="COSMIC accession">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|DOMAINS|SIFT|PolyPhen|Existing_variation|AF|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_EAS_AF|gnomAD_NFE_AF|gnomAD_SAS_AF|BIOTYPE|CADD_PHRED|REVEL|FATHMM_MKL_C|FATHMM_MKL_NC|MaxEntScan_ref|MaxEntScan_alt|GeneSplicer|ada_score|rf_score|REPEATMASKER|PHYLOP|OMIM">
+##CADD_PHRED=PHRED-like scaled CADD score
+##CADD_RAW=Raw CADD score
+##REVEL=Rare Exome Variant Ensemble Learner 
+##FATHMM_MKL_C=FATHMM-MKL coding score
+##FATHMM_MKL_NC=FATHMM-MKL non-coding score
+##MaxEntScan_alt=MaxEntScan alternate sequence score
+##MaxEntScan_diff=MaxEntScan score difference
+##MaxEntScan_ref=MaxEntScan reference sequence score
+##GeneSplicer=GeneSplicer predictions
+##ada_score=dbscSNV ADA score
+##rf_score=dbscSNV RF score
+##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/RepeatMasker.bed.gz (overlap)">
+##INFO=<ID=PHYLOP,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/hg19.100way.phyloP100way.bw (overlap)">
+##INFO=<ID=OMIM,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/omim.bed.gz (overlap)">
+##INFO=<ID=gnomADg_AF,Number=A,Type=Float,Description="Alternate allele frequency in samples (from file gnomAD_genome_r2.1.1.vcf.gz)">
+##INFO=<ID=gnomADg_Hom,Number=.,Type=String,Description=" (from file gnomAD_genome_r2.1.1.vcf.gz)">
+##INFO=<ID=gnomADg_Hemi,Number=.,Type=String,Description=" (from file gnomAD_genome_r2.1.1.vcf.gz)">
+##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_20190503_converted.vcf.gz)">
+##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_20190503_converted.vcf.gz)">
+##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category (from file HGMD_PRO_2019_2_fixed.vcf.gz)", https://portal.biobase-international.com/hgmd/pro/global.php#cats">
+##INFO=<ID=HGMD_MUT,Number=1,Type=String,Description="HGMD mutant allele (from file HGMD_PRO_2019_2_fixed.vcf.gz)">
+##INFO=<ID=HGMD_GENE,Number=1,Type=String,Description="Gene symbol (from file HGMD_PRO_2019_2_fixed.vcf.gz)">
+##INFO=<ID=HGMD_PHEN,Number=1,Type=String,Description="HGMD primary phenotype (from file HGMD_PRO_2019_2_fixed.vcf.gz)">
+##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="ID column (from file HGMD_PRO_2019_2_fixed.vcf.gz)">
+##INFO=<ID=NGSD_COUNTS,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD. (from file NGSD_germline.vcf.gz)">
+##INFO=<ID=NGSD_HAF,Number=0,Type=Flag,Description="Indicates a allele frequency above a threshold of 0.05. (from file NGSD_germline.vcf.gz)">
+##INFO=<ID=NGSD_CLAS,Number=1,Type=String,Description="Classification from the NGSD. (from file NGSD_germline.vcf.gz)">
+##INFO=<ID=NGSD_CLAS_COM,Number=1,Type=String,Description="Classification comment from the NGSD. (from file NGSD_germline.vcf.gz)">
+##INFO=<ID=NGSD_COM,Number=1,Type=String,Description="Variant comments from the NGSD. (from file NGSD_germline.vcf.gz)">
+##INFO=<ID=NGSD_GENE_INFO,Number=.,Type=String,Description="Annotation from /mnt/share/data//dbs/NGSD/NGSD_genes.bed delimited by ':'">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878
