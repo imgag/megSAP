@@ -32,16 +32,7 @@ $data_folder/tools/STAR-2.7.0f/bin/Linux_x86_64/STAR \
 cd $data_folder
 mkdir -p genomes/STAR-Fusion
 cd genomes/STAR-Fusion
-wget https://data.broadinstitute.org/Trinity/CTAT_RESOURCE_LIB/__genome_libs_StarFv1.6/GRCh37_gencode_v19_CTAT_lib_Mar272019.plug-n-play.tar.gz
-tar xzf GRCh37_gencode_v19_CTAT_lib_Mar272019.plug-n-play.tar.gz
-mv GRCh37_gencode_v19_CTAT_lib_Mar272019.plug-n-play/ctat_genome_lib_build_dir GRCh37
-rm -r GRCh37_gencode_v19_CTAT_lib_Mar272019.plug-n-play #GRCh37_gencode_v19_CTAT_lib_Mar272019.plug-n-play.tar.gz
-
-#salmon: transcript sequences and salmon index
-wget -O - ftp://ftp.ensembl.org/pub/grch37/current/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh37.cdna.all.fa.gz > genomes/GRCh37_cDNA.fa
-mkdir -p genomes/salmon/GRCh37_cDNA
-$data_folder/tools/salmon-0.13.1/bin/salmon index \
-  --no-version-check \
-  --perfectHash \
-  --index genomes/salmon/GRCh37_cDNA \
-  --transcripts genomes/GRCh37_cDNA.fa
+wget https://data.broadinstitute.org/Trinity/CTAT_RESOURCE_LIB/__genome_libs_StarFv1.8/GRCh37_gencode_v19_CTAT_lib_Oct012019.plug-n-play.tar.gz
+tar xzf GRCh37_gencode_v19_CTAT_lib_Oct012019.plug-n-play.tar.gz
+mv GRCh37_gencode_v19_CTAT_lib_Oct012019.plug-n-play/ctat_genome_lib_build_dir GRCh37
+rm -r GRCh37_gencode_v19_CTAT_lib_Oct012019.plug-n-play GRCh37_gencode_v19_CTAT_lib_Oct012019.plug-n-play.tar.gz
