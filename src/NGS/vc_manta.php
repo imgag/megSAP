@@ -3,9 +3,7 @@
 /**
   @page vc_manta
   
-  @todo add test (somatic and germline)
   @todo test ABRA2 option --no-edge-ci > fixing BAM for manta should not be needed anymore!
-  @todo remove all germline small_indel files (Sample_)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
