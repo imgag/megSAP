@@ -219,12 +219,12 @@ if(db_is_enabled("NGSD"))
 	$idx = $gsvar->getColumnIndex("classification_comment", false, false);
 	if($idx !== false)
 	{
-		$gsvar->insertCol(1+$idx, $som_class_comments, "somatic_classification_comment", "Somatic classificaiton comment from the NGSD.");
+		$gsvar->insertCol(1+$idx, $som_class_comments, "somatic_classification_comment", "Somatic classification comment from the NGSD.");
 		$gsvar->insertCol(1+$idx, $som_classifications, "somatic_classification", "Somatic classification from the NGSD.");
 	}
 	else
 	{
-		$gsvar->addCol($som_class_comments, "somatic_classification_comment", "Somatic classificaiton comment from the NGSD.");
+		$gsvar->addCol($som_class_comments, "somatic_classification_comment", "Somatic classification comment from the NGSD.");
 		$gsvar->addCol($som_classifications, "somatic_classification", "Somatic classification from the NGSD.");
 	}
 	

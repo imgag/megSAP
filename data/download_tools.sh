@@ -75,3 +75,9 @@ tar xjf manta-1.6.0.centos6_x86_64.tar.bz2
 rm manta-1.6.0.centos6_x86_64.tar.bz2
 cd manta-1.6.0.centos6_x86_64
 sed -i 's#referenceFasta = /illumina/development/Isis/Genomes/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa##g' bin/configManta.py.ini
+
+#download InterOp
+cd $folder
+wget https://github.com/Illumina/interop/releases/download/v1.0.25/InterOp-1.0.25-Linux-GNU-4.8.2.tar.gz
+tar xzf InterOp-1.0.25-Linux-GNU-4.8.2.tar.gz
+rm InterOp-1.0.25-Linux-GNU-4.8.2.tar.gz
