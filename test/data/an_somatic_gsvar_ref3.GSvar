@@ -60,10 +60,12 @@
 ##DESCRIPTION=CGI_consequence=Consequence of the mutation assessed by CancerGenomeInterpreter.org
 ##DESCRIPTION=ncg_oncogene=1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
 ##DESCRIPTION=ncg_tsg=1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
-##DESCRIPTION=rna_depth=Depth in RNA BAM file ...
-##DESCRIPTION=rna_af=Allele frequency in RNA BAM file ...
-##RNA_TRANSCRIPT_COUNT_FILE=an_somatic_gsvar_in3_counts.tsv
-##DESCRIPTION=rna_tpm=Transcript count as annotated per gene from an_somatic_gsvar_in3_counts.tsv
+##DESCRIPTION=rna_depth=Depth in RNA BAM file /mnt/SRV018/users/ahgscha1/megSAP/test/data/an_somatic_gsvar_in3.bam
+##DESCRIPTION=rna_af=Allele frequency in RNA BAM file /mnt/SRV018/users/ahgscha1/megSAP/test/data/an_somatic_gsvar_in3.bam
+##DESCRIPTION=rna_tpm=Transcript count as annotated per gene from /mnt/SRV018/users/ahgscha1/megSAP/test/data/an_somatic_gsvar_in3_counts.tsv
+##RNA_PROCESSED_SAMPLE_ID=an_somatic_gsvar_in3
+##RNA_TRANSCRIPT_COUNT_FILE=/mnt/SRV018/users/ahgscha1/megSAP/test/data/an_somatic_gsvar_in3_counts.tsv
+##RNA_BAM_FILE=/mnt/SRV018/users/ahgscha1/megSAP/test/data/an_somatic_gsvar_in3.bam
 #chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC	NGSD_som_c	NGSD_som_p	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info	rna_depth	rna_af	rna_tpm
 chr1	6257785	6257785	T	-	0.1053	2392	0.0005	2246		QUAL=685	RPL22	frameshift,5'UTR	RPL22:ENST00000234875:frameshift_variant:HIGH:exon2/4:c.44del:p.Lys15ArgfsTer5:PF01776,RPL22:ENST00000484532:5_prime_UTR_variant:MODIFIER:exon1/3:c.-56del::,RPL22:ENST00000497965:5_prime_UTR_variant:MODIFIER:exon2/4:c.-56del::						rs759765382		0.0001		0.0000,0.0000,0.0001,0.0001,0.0000	4.8770				29.80					COSM179404,COSM6290773	4	SomaticAndTreatment	0	0						RPL22 (inh=n/a oe_syn=0.97 oe_mis=0.45 oe_lof=0.33)	291	0.15	16.149642105015
 chr3	105421138	105421138	G	A	0.1558	2823	0.0000	2619		QUAL=1429	CBLB	missense	CBLB:ENST00000264122:missense_variant:MODERATE:exon12/19:c.1759C>T:p.Pro587Ser:,CBLB:ENST00000394027:missense_variant:MODERATE:exon12/18:c.1825C>T:p.Pro609Ser:,CBLB:ENST00000403724:missense_variant:MODERATE:exon12/15:c.1759C>T:p.Pro587Ser:,CBLB:ENST00000405772:missense_variant:MODERATE:exon12/16:c.1759C>T:p.Pro587Ser:											3.7760	T(0.11),T(0.13),T(0.28),T(0.20)	B(0.01),B(0.28),B(0.01),B(0.01)	0.82,0.98	22.20	0.42					0		0	0						CBLB (inh=n/a oe_syn=1.05 oe_mis=0.84 oe_lof=0.14)	312	0.14	18.728830147191

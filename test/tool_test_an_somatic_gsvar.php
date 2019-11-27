@@ -28,7 +28,7 @@ $gsvar_ref3 = data_folder() . "an_somatic_gsvar_ref3.GSvar";
 $rna_bam = data_folder() . "an_somatic_gsvar_in3.bam";
 $gsvar_output3 = output_folder() . "an_somatic_gsvar_out3.GSvar"; 
 $rna_counts = data_folder() . "an_somatic_gsvar_in3_counts.tsv"; 
-check_exec("php ".src_folder()."/NGS/an_somatic_gsvar.php -gsvar_in $gsvar_input3 -rna_bam $rna_bam -rna_counts $rna_counts -out $gsvar_output3");
+check_exec("php ".src_folder()."/NGS/an_somatic_gsvar.php -gsvar_in $gsvar_input3 -rna_bam $rna_bam -rna_counts $rna_counts -rna_id an_somatic_gsvar_in3 -out $gsvar_output3");
 check_file($gsvar_output3,$gsvar_ref3,false);
 end_test();
 ?>

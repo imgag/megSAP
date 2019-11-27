@@ -4,9 +4,10 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 $parser = new ToolBase("an_somatic_gsvar", "Annotates additional somatic data to GSvar file (CGI / NCG6.0).");
 $parser->addInfile("gsvar_in", "Input .gsvar-file with SNV data.", false);
 $parser->addInfile("cgi_snv_in", "Input CGI data with SNV annotations",true);
-$parser->addInfile("rna_counts", "Input file that contains RNA transcript counts.",true);
-$parser->addInfile("rna_bam", "RNA-BAM file that is used to annotate and calculate variant depth and frequency in RNA sample.",true);
 $parser->addFlag("include_ncg", "Annotate column with info from NCG6.0 whether a gene is TSG or oncogene");
+$parser->addString("rna_id", "ID of RNA sample if RNA data is annotated.", true);
+$parser->addInfile("rna_counts", "Input file that contains RNA transcript counts.", true);
+$parser->addInfile("rna_bam", "RNA-BAM file that is used to annotate and calculate variant depth and frequency in RNA sample.", true);
 $parser->addOutfile("out", "Output file name", false);
 extract($parser->parse($argv));
 
@@ -83,14 +84,21 @@ function cgi_variant_tsv_to_sorted_vcf($cgi_input)
 	return $output;
 }
 
-
 /********
  * MAIN *
  ********/
 $gsvar_input = Matrix::fromTSV($gsvar_in);
 
-if(isset($rna_bam))
+if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 {
+	if(!isset($rna_counts) || !isset($rna_id) || !isset($rna_bam))
+	{
+		trigger_error("For annotation of RNA data the parameters -rna_bam, -rna_counts and -rna_id must be specified jointly.", E_USER_ERROR);
+	}
+	
+	/************************
+	 * RNA DEPTH AND RNA AF *
+	 ************************/
 	$rna_afs = array();
 	$rna_depths = array();
 	
@@ -114,21 +122,25 @@ if(isset($rna_bam))
 		$depth = 0; //we use depth that only counts bases from mpileup and e.g. no reference skips
 		foreach(array_values($counts) as $val) $depth += $val; 
 		
-		$obs = str_replace("-", "*", $obs);
-		$obs = str_replace("+", "*", $obs);
+		$obs = str_replace("-", "*", $obs); //deletion
+		$obs = str_replace("+", "*", $obs); //insertion
+		if(strlen($obs) != 1) $obs = "*"; //insertion 
 		
 		$rna_depths[] = $depth;
 		$rna_afs[] = ($depth != 0) ? number_format($counts[$obs] / $depth,  2) : number_format(0, 2);
+		
+		if(!array_key_exists($obs,$counts)) echo $obs ."\n";
 	}
 	
 	$gsvar_input->removeColByName("rna_depth");
 	$gsvar_input->removeColByName("rna_af");
-	$gsvar_input->addCol($rna_depths, "rna_depth", "Depth in RNA BAM file $rna_bam");
-	$gsvar_input->addCol($rna_afs, "rna_af", "Allele frequency in RNA BAM file $rna_bam");
-}
+	$gsvar_input->addCol($rna_depths, "rna_depth", "Depth in RNA BAM file " . realpath($rna_bam));
+	$gsvar_input->addCol($rna_afs, "rna_af", "Allele frequency in RNA BAM file " . realpath($rna_bam));
 
-if(isset($rna_counts)) //Annotate GSvar file with transcript counts file created by RNA pipeline
-{
+	
+	/*********************
+	 * TRANSCRIPT COUNTS *
+	 *********************/
 	$handle = fopen($rna_counts,"r");	
 	
 	$genes_of_interest = array();
@@ -150,6 +162,8 @@ if(isset($rna_counts)) //Annotate GSvar file with transcript counts file created
 	$i_rna_tpm = -1;
 	
 	$results  = array();
+	
+	$db_is_enabled = db_is_enabled("NGSD");
 	
 	while(!feof($handle))
 	{
@@ -173,7 +187,7 @@ if(isset($rna_counts)) //Annotate GSvar file with transcript counts file created
 		
 		$parts = explode("\t", $line);
 		
-		if(db_is_enabled("NGSD")) list($rna_gene) = approve_gene_names(explode(",", $parts[$i_rna_gene])); //use first gene in case there is more than one gene
+		if($db_is_enabled) list($rna_gene) = (explode(",", $parts[$i_rna_gene])); //use first gene in case there is more than one gene
 		else list($rna_gene) = explode(",", $parts[$i_rna_gene]);
 		
 		foreach($genes_of_interest as $key => $dna_genes)
@@ -190,14 +204,20 @@ if(isset($rna_counts)) //Annotate GSvar file with transcript counts file created
 			}
 		}
 	}
+	echo "after";
 	fclose($handle);
 	
 	//Remove old annotations 
-	$gsvar_input->removeComment("RNA_TRANSCRIPT_COUNT_FILE",true);
 	$gsvar_input->removeColByName("rna_tpm");
+	$gsvar_input->addCol(array_values($results),"rna_tpm","Transcript count as annotated per gene from " . realpath($rna_counts));
 	
-	$gsvar_input->addComment("#RNA_TRANSCRIPT_COUNT_FILE=$rna_counts");
-	$gsvar_input->addCol(array_values($results),"rna_tpm","Transcript count as annotated per gene from $rna_counts");
+	//Add info about RNA to header
+	$gsvar_input->removeComment("RNA_PROCESSED_SAMPLE_ID", true);
+	$gsvar_input->removeComment("RNA_TRANSCRIPT_COUNT_FILE", true);
+	$gsvar_input->removeComment("RNA_BAM_FILE", true);
+	$gsvar_input->addComment("#RNA_PROCESSED_SAMPLE_ID={$rna_id}");
+	$gsvar_input->addComment("#RNA_TRANSCRIPT_COUNT_FILE=".realpath($rna_counts));
+	$gsvar_input->addComment("#RNA_BAM_FILE=".realpath($rna_bam));
 }
 
 
