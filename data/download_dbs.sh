@@ -44,6 +44,12 @@ wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_s
 cat variant_summary_2019-11.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" > clinvar_cnvs_2019-11.bed
 $ngsbits/BedSort -in clinvar_cnvs_2019-11.bed -out clinvar_cnvs.bed
 
+#Install HGNC - ftp://ftp.ebi.ac.uk/pub/databases/genenames/
+cd $dbs
+mkdir HGNC
+cd HGNC
+wget -O - ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc_complete_set.txt.gz | gunzip > hgnc_complete_set.txt
+
 #Install gnomAD (genome data) - http://gnomad.broadinstitute.org/downloads
 cd $dbs
 mkdir gnomAD
