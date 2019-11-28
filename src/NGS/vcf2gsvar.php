@@ -171,6 +171,8 @@ function load_hgnc_db()
 {
 	$output = array();
 	
+	$withdrawn = array();
+	
 	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_complete_set.txt";
 	$file = file($filename);
 	foreach ($file as $line)
@@ -179,16 +181,41 @@ function load_hgnc_db()
 		if ($line=="" || starts_with($line, "HGNC ID\t")) continue;
 		list($id, $symbol, $name, $status) = explode("\t", $line);
 		
-		if ($status!="Approved") continue;
-		
 		$id = trim(strtr($id, array("HGNC:"=>"")));
 		$symbol = trim($symbol);
 		
+		//cache withdrawn sybols that have exactly one new ID
+		if ($status=="Symbol Withdrawn" && substr_count($name, "see [HGNC:")==1)
+		{
+			$start = strpos($name, "see [HGNC:") + 10;
+			$end = strpos($name, "]", $start);
+			$new_id = trim(substr($name, $start, $end-$start)); 
+			if (!is_numeric($new_id) || contains($new_id, " "))
+			{
+				trigger_error("Found non-numeric HGNC identifier in line: $line", E_USER_ERROR);
+			}
+			$withdrawn[$id] = $new_id;
+			continue;
+		}
+		
+		if ($status!="Approved") continue;
+		
 		$output[$id] = $symbol;
 	}
-
+	
+	//try to replace withdrawn symbols by current symbols
+	foreach($withdrawn as $id_old => $new_id)
+	{
+		if(isset($output[$new_id]))
+		{
+			//print "replaced: $id_old > $new_id (".$output[$new_id].")\n";
+			$output[$id_old] = $output[$new_id];
+		}
+	}
+	
 	return $output;
 }
+
 $hgnc = load_hgnc_db();
 
 //write column descriptions
