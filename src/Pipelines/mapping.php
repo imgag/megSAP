@@ -58,7 +58,7 @@ $trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
 
 // barcode handling
 $barcode_correction = false;
-if ($sys['umi_type'] === "HaloPlex HS" || $sys['umi_type'] === "SureSelect HS" )
+if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT"]))
 {
 	$index_files = glob("$out_folder/*_index_*.fastq.gz");
 
@@ -132,6 +132,14 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 	$parser->deleteTempFile($trimmed2);
 	$trimmed1 = $trimmed1_bc;
 	$trimmed2 = $trimmed2_bc;
+
+	if ($sys['umi_type'] === "QIAseq")
+	{
+		$trimmed2_trim = $parser->tempFile("_trimmed2_trim.fastq.gz");
+		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed2_trim -start 11", true);
+		$parser->deleteTempFile($trimmed2);
+		$trimmed2 = $trimmed2_trim;
+	}
 
 	$barcode_correction = true;
 }

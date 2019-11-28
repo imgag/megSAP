@@ -23,12 +23,11 @@ manta = [path]/data/tools/manta-1.6.0.centos6_x86_64/bin/
 mantis = [path]/data/tools/MANTIS-1.0.4/mantis.py
 
 [tools-ngs-rna]
-STAR = [path]/data/tools/STAR-2.7.0f/bin/Linux_x86_64/STAR
-STAR-Fusion = [path]/data/tools/STAR-Fusion-v1.6.0/STAR-Fusion
-STAR-Fusion_pythonpath = "[path]/data/tools/igv-reports-0.9.1/lib/python2.7/site-packages/:[path]/data/tools/pysam-0.15.2/lib/python2.7/site-packages/"
-feature_counts = [path]/data/tools/subread-1.6.4/bin/featureCounts
+STAR = [path]/data/tools/STAR-2.7.3a/bin/Linux_x86_64/STAR
+STAR-Fusion = [path]/data/tools/STAR-Fusion-v1.8.1/STAR-Fusion
+STAR-Fusion_pythonpath = "[path]/data/tools/igv-reports-0.9.1/build/lib"
+feature_counts = [path]/data/tools/subread-2.0.0/bin/featureCounts
 skewer = [path]/data/tools/skewer-0.2.2/skewer
-salmon = [path]/data/tools/salmon-0.13.1/bin/salmon
 
 [folders]
 local_data = /tmp/local_ngs_data/
