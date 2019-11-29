@@ -166,6 +166,66 @@ function write_header_line($handle, $column_desc, $filter_desc)
 	fwrite($handle, "\n");
 }
 
+//load replaced/removed Pfam IDs
+function load_pfam_replacements()
+{
+	$pfam_filepath = repository_basedir()."/data/misc/pfam_replacements.tsv";
+	if (!is_readable($pfam_filepath))
+	{
+		trigger_error("Pfam replacement file '$pfam_filepath' is not readable!", E_USER_ERROR);
+	}
+	$pfam_list = file($pfam_filepath);
+	$pfam_replacements = array();
+	foreach($pfam_list as $line)
+	{
+		// ignore comments
+		if (starts_with($line, '#'))
+		{
+			continue;
+		}
+
+		$split_line = explode("\t",$line);
+		if (count($split_line) < 2)
+		{
+			trigger_error("Error parsing Pfam file '$pfam_filepath'!", E_USER_ERROR);
+		}
+		$pfam_replacements[trim($split_line[0])] = trim($split_line[1]);
+	}
+	return $pfam_replacements;
+}
+$pfam_replacements = load_pfam_replacements();
+
+//load Pfam description
+function load_pfam_description()
+{
+	$pfam_filepath = repository_basedir()."/data/misc/pfam_description.tsv";
+	if (!is_readable($pfam_filepath))
+	{
+		trigger_error("Pfam description file '$pfam_filepath' is not readable!", E_USER_ERROR);
+	}
+	$pfam_list = file($pfam_filepath);
+	$pfam_description = array();
+	foreach($pfam_list as $line)
+	{
+		// ignore comments
+		if (starts_with($line, '#'))
+		{
+			continue;
+		}
+
+		$split_line = explode("\t",$line);
+		if (count($split_line) < 2)
+		{
+			trigger_error("Error parsing Pfam file '$pfam_filepath'!", E_USER_ERROR);
+		}
+		$description_string = trim($split_line[1]);
+		$description_string = strtr($description_string, array(":" => " ", "," => "", "[" => "(", "]" => ")"));
+		$pfam_description[trim($split_line[0])] = $description_string;
+	}
+	return $pfam_description;
+}
+$pfam_description = load_pfam_description();
+
 //load HGNC data
 function load_hgnc_db()
 {
@@ -807,6 +867,39 @@ while(!feof($handle))
 						$domain = explode(":", $entry, 2)[1];
 					}
 				}
+
+				// extend domain ID by description
+				$domain_description = "";
+				if ($domain != "")
+				{
+					// update Pfam ID 
+					if (array_key_exists($domain, $pfam_replacements))
+					{
+						if ($pfam_replacements[$domain] == "")
+						{
+							$domain_description = "removed";
+						}
+						else
+						{
+							$domain_description = "(new id of $domain) ";
+							$domain = $pfam_replacements[$domain];
+						}
+					}
+					// append description
+					if (array_key_exists($domain, $pfam_description))
+					{
+						$domain_description = $domain_description.$pfam_description[$domain];
+					}
+
+					// throw error if Pfam id is neither found in replacement data nor in description data
+					if ($domain_description == "")
+					{
+						trigger_error("No description found for '$domain'!", E_USER_WARNING);
+					}
+
+					// combine decription and id
+					$domain = "$domain [$domain_description]";
+				}
 				
 				$transcript_entry = "{$gene}:{$transcript_id}:".$parts[$i_consequence].":".$parts[$i_impact].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}:{$domain}";
 				if (!$is_updown)
@@ -877,6 +970,39 @@ while(!feof($handle))
 					{
 						$domain = explode(":", $entry, 2)[1];
 					}
+				}
+
+				// extend domain ID by description
+				$domain_description = "";
+				if ($domain != "")
+				{
+					// update Pfam ID 
+					if (array_key_exists($domain, $pfam_replacements))
+					{
+						if ($pfam_replacements[$domain] == "")
+						{
+							$domain_description = "removed";
+						}
+						else
+						{
+							$domain_description = "(new id of $domain) ";
+							$domain = $pfam_replacements[$domain];
+						}
+					}
+					// append description
+					if (array_key_exists($domain, $pfam_description))
+					{
+						$domain_description = $domain_description.$pfam_description[$domain];
+					}
+
+					// throw error if Pfam id is neither found in replacement data nor in description data
+					if ($domain_description == "")
+					{
+						trigger_error("No description found for '$domain'!", E_USER_WARNING);
+					}
+
+					// combine decription and id
+					$domain = "$domain [$domain_description]";
 				}
 				
 				$transcript_entry = "{$gene}:{$transcript_id}:".$parts[$i_consequence_refseq].":".$parts[$i_impact_refseq].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}:{$domain}";
