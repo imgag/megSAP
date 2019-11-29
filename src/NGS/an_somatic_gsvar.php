@@ -320,7 +320,6 @@ if(isset($cgi_snv_in))
 
 if($include_ncg)
 {
-	$gsvar_input = Matrix::fromTSV($gsvar_in);
 	//Remove potential old NCG annotation
 	$gsvar_input->removeColByName("ncg_oncogene");
 	$gsvar_input->removeColByName("ncg_tsg");
