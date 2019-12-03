@@ -5,7 +5,7 @@ clear:
 	rm -rf out_case1 out_case2 out_case3
 
 link:
-	mkdir -p Sample_GS110168 Sample_GS110169 Sample_GS150344_01
+	mkdir -p Sample_GS110168 Sample_GS110169 Sample_GS150344_01 Sample_RX000001_01
 	mkdir -p out_case1 out_case2 out_case3
 	# input files for case 1
 	php ../link_test_data.php GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz Sample_GS150344_01/GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz
@@ -17,6 +17,10 @@ link:
 	php ../link_test_data.php GS110168_chr21_L007_R2_001.fastq.gz Sample_GS110168/GS110168_chr21_L007_R2_001.fastq.gz
 	php ../link_test_data.php GS110169_chr21_L008_R1_001.fastq.gz Sample_GS110169/GS110169_chr21_L008_R1_001.fastq.gz
 	php ../link_test_data.php GS110169_chr21_L008_R2_001.fastq.gz Sample_GS110169/GS110169_chr21_L008_R2_001.fastq.gz
+	# input RNA data for an_rna_step of case 2
+	cp ../data/somatic_pipeline_rna_counts.tsv Sample_RX000001_01/RX000001_01_counts.tsv
+	cp ../data/somatic_pipeline_tumor_rna.bam Sample_RX000001_01/RX000001_01.bam
+	cp ../data/somatic_pipeline_tumor_rna.bam.bai Sample_RX000001_01/RX000001_01.bam.bai
 
 # tumor-only
 case1: case1_analyze case1_somatic case1_diff
@@ -66,14 +70,16 @@ case2_somatic:
 		-t_bam Sample_GS110168/GS110168.bam -n_bam Sample_GS110169/GS110169.bam \
 		-out_folder out_case2 \
 		-prefix GS110168-GS110169 \
-		-steps vc,an,msi,ci\
+		-steps vc,an,msi,an_rna,ci\
+		-t_rna_bam Sample_RX000001_01/RX000001_01.bam \
+		-rna_ref_tissue gallbladder \
 		-system system_pair.ini -n_system system_pair.ini \
 		-cancer_type CANCER \
 		-include_germline \
 		--log out_case2/GS110168-GS110169.log
 case2_diff:
 	# variants
-	php ../compare_variants.php -in1 expected_case2/GS110168-GS110169.GSvar -in2 out_case2/GS110168-GS110169.GSvar
+	diff expected_case2/GS110168-GS110169.GSvar out_case2/GS110168-GS110169.GSvar --ignore-matching-lines="##PIPELINE=" --ignore-matching-lines="##RNA_TRANSCRIPT_COUNT_FILE=" --ignore-matching-lines="##RNA_BAM_FILE="
 	php ../compare_bed.php expected_case2/GS110168-GS110169_stat_lowcov.bed out_case2/GS110168-GS110169_stat_lowcov.bed
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription.tsv
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription_bioactivities.tsv

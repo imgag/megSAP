@@ -36,7 +36,7 @@ check_file($cnv_output_3,$cnv_ref_3,true);
 $rna_counts = data_folder()."/an_somatic_cnvs_rna_counts.tsv";
 $cnv_output_4 = output_folder()."/an_somatic_cnvs_out4_cnvs.tsv";
 $cnv_ref_4 = data_folder()."/an_somatic_cnvs_ref4_cnvs.tsv";
-check_exec("php ".src_folder()."/NGS/an_somatic_cnvs.php -cnv_in $cnv_input_3 -rna_counts $rna_counts -out $cnv_output_4");
+check_exec("php ".src_folder()."/NGS/an_somatic_cnvs.php -cnv_in $cnv_input_3 -rna_counts $rna_counts -out $cnv_output_4 -rna_id RX01_01 -rna_ref_tissue colon");
 check_file($cnv_output_4,$cnv_ref_4,false);
 end_test();
 

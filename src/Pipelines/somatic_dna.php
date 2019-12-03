@@ -18,23 +18,22 @@ $parser->addString("out_folder", "Output folder.", false);
 //optional
 $parser->addInfile("n_bam", "Normal sample BAM file.", true);
 $parser->addInfile("t_rna_bam", "Tumor RNA sample BAM file.", true);
-
+$parser->addString("rna_id", "Tumor processed sample ID. If given, all neccessary infos will be determined from NGSD.", true);
 $parser->addString("prefix", "Output file prefix.", true, "somatic");
 
-$steps_all = array("vc", "vi", "cn", "an", "ci", "msi","db");
+$steps_all = array("vc", "vi", "cn", "an", "ci", "msi", "an_rna", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 	"vc=variant calling, an=annotation, ci=CGI annotation,\n" .
 	"cn=copy-number analysis, msi=microsatellite analysis,\n".
+	"an_rna=annotate data from somatic RNA files,\n".
 	"vi=virus detection, db=database import",
 	true, "vc,cn,an,msi,vi,db");
 
 $parser->addString("cancer_type", "Tumor type, see CancerGenomeInterpreter.org for nomenclature (resolved from GENLAB if not set).", true);
-
 $parser->addInfile("system",  "Processing system file used for tumor DNA sample (resolved from NGSD via tumor BAM by default).", true);
 $parser->addInfile("n_system",  "Processing system file used for normal DNA sample (resolved from NGSD via normal BAM by default).", true);
 
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
-
 $parser->addFlag("include_germline", "Include germline variant annotation with CGI.");
 
 //default cut-offs
@@ -44,6 +43,7 @@ $parser->addFloat("min_depth_t", "Tumor sample coverage cut-off for low coverage
 $parser->addFloat("min_depth_n", "Control sample coverage cut-off for low coverage statistic.", true, 100);
 $parser->addInt("min_cov_files", "Minimum number of required coverage files for CNV calling.", true, 20);
 $parser->addString("cnv_baseline_pos","baseline region for ClinCNV, format e.g. chr1:12-12532",true);
+$parser->addString("rna_ref_tissue", "Reference data for RNA annotation", true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 extract($parser->parse($argv));
 
@@ -187,6 +187,28 @@ if (!$single_sample)
 	{
 		trigger_error("Tumor sample $t_id and normal sample $n_id have different target regions. Aborting...",E_USER_ERROR);
 	}
+}
+
+//For RNA annotation. If $t_rna_bam is set, it will be overwritten.
+if(isset($rna_id))
+{
+	if(!db_is_enabled("NGSD"))
+	{
+		trigger_error("Without NGSD access, please only specify tumor BAM-file only for RNA annotation.", E_USER_ERROR);
+	}
+	
+	$db = DB::getInstance("NGSD");
+	$rna_info = get_processed_sample_info($db,$rna_id);
+	
+	if($rna_info["sys_type"] != "RNA")
+	{
+		trigger_error("System type of $rna_id has to be \"RNA\".", E_USER_ERROR);
+	}
+	if(isset($t_rna_bam))
+	{
+		trigger_error("Overwriting parameter \"-t_rna_bam\" by the value that is set in NGSD.", E_USER_NOTICE);
+	}
+	$t_rna_bam = $rna_info["ps_bam"];
 }
 
 //sample similiarty check
@@ -887,6 +909,64 @@ if (in_array("msi", $steps) && !$single_sample)
 elseif ($single_sample && in_array("msi",$steps))
 {
 	trigger_error("Calling microsatellite instabilities is only possible for tumor normal pairs",E_USER_NOTICE);
+}
+
+//RNA annotation
+if (in_array("an_rna", $steps))
+{
+	if(!isset($t_rna_bam))
+	{
+		trigger_error("For annotation step \"an_rna\" a tumor RNA bam file must be specified (via paramter -t_rna_bam).", E_USER_ERROR);
+	}
+	
+	//Determine reference tissue type 1.) from parameter -rna_ref_tissue or 2.) from NGSD (if available)
+	if(!isset($rna_ref_tissue) && !db_is_enabled("NGSD"))
+	{
+		trigger_error("For annotation step \"an_rna\" a tissue type for RNA reference data has to be specified.", E_USER_ERROR);
+	}
+	if(!isset($rna_ref_tissue) && db_is_enabled("NGSD"))
+	{
+		list($t_name) = explode("_", $t_id);
+		$db = DB::getInstance("NGSD");
+		$res = $db->getValues("SELECT di.disease_info FROM sample as s, sample_disease_info as di WHERE s.name = '{$t_name}' AND s.id = di.sample_id AND di.type = 'RNA reference tissue'");
+		if(count($res) == 1)
+		{
+			list($rna_ref_tissue) = $res;
+		}
+		else
+		{
+			trigger_error("Found multiple or no RNA reference tissue in NGSD. Aborting...", E_USER_ERROR);
+		}
+	}
+	
+	$rna_counts = glob(dirname($t_rna_bam)."/*_counts.tsv"); //file contains transcript counts
+	if(count($rna_counts) != 1)
+	{
+		trigger_error("Could not find or found multiple RNA count files in sample folder dirname($t_rna_bam)", E_USER_ERROR);
+	}
+	list($rna_counts) = $rna_counts;
+	
+	if(!isset($rna_id)) $rna_id = basename($rna_counts, "_counts.tsv");
+	
+	$args = [
+		"-gsvar_in $variants_gsvar",
+		"-out $variants_gsvar",
+		"-rna_id $rna_id",
+		"-rna_counts $rna_counts",
+		"-rna_bam $t_rna_bam",
+		"-rna_ref_tissue $rna_ref_tissue" ];
+	
+	$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
+
+	//Annotate Copy Number Files with RNA data
+	if(file_exists($som_clincnv))
+	{
+		$parser->execTool("NGS/an_somatic_cnvs.php", " -cnv_in $som_clincnv -out $som_clincnv -rna_counts $rna_counts -rna_id $rna_id -rna_ref_tissue $rna_ref_tissue");
+	}
+	elseif(file_exists($som_cnv))
+	{
+		trigger_error("RNA annotation not available for somatic CNVHunter files. Please run ClinCNV instead.", E_USER_WARNING);
+	}
 }
 
 //DB import

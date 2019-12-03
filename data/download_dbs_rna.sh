@@ -11,6 +11,14 @@ if [ -z "$1" ]
     data_folder=$1
 fi
 
+#download reference data for gene expression
+cd $data_folder
+mkdir -p dbs/gene_expression
+cd dbs/gene_expression
+wget https://www.proteinatlas.org/download/rna_tissue_hpa.tsv.zip
+unzip -o rna_tissue_hpa.tsv.zip
+rm rna_tissue_hpa.tsv.zip
+
 #download Ensembl data
 cd $data_folder
 mkdir -p dbs/gene_annotations

@@ -29,3 +29,12 @@ sv_somatic:
 	samtools index manta_sv_tumor.bam
 	samtools index manta_sv_normal.bam
 	rm temp_tumor.bam temp_header_tumor.sam temp_normal.bam temp_header_normal.sam
+
+#Creating RNA test files for somatic pipeline test
+an_somatic_gsvar_rna:
+	cat /mnt/projects/diagnostic/SomaticAndTreatment/Sample_RX196019_01/RX196019_01_counts.tsv | egrep "#|TPTE|BAGE2|KRTAP13-2|CFAP298|AP000275.65|C21orf58" > somatic_pipeline_rna_counts.tsv
+	samtools view -h /mnt/projects/diagnostic/SomaticAndTreatment/Sample_RX196019_01/RX196019_01.bam chr21:10971403-10971503 chr21:11039344-11039444 chr21:31744189-31744289 chr21:33974044-33974144 chr21:47737800-47737900 | sed "s/RX196019_01/somatic_rna/g" | samtools view -bSh > temp_rna.bam
+	samtools view -H temp_rna.bam | sed "s/RX196019_01/somatic_rna/g" > temp_header_rna.sam
+	samtools reheader temp_header_rna.sam temp_rna.bam > somatic_pipeline_tumor_rna.bam
+	samtools index somatic_pipeline_tumor_rna.bam
+	rm temp_rna.bam temp_header_rna.sam

@@ -8,6 +8,7 @@ $parser->addFlag("include_ncg", "Annotate column with info from NCG6.0 whether a
 $parser->addString("rna_id", "ID of RNA sample if RNA data is annotated.", true);
 $parser->addInfile("rna_counts", "Input file that contains RNA transcript counts.", true);
 $parser->addInfile("rna_bam", "RNA-BAM file that is used to annotate and calculate variant depth and frequency in RNA sample.", true);
+$parser->addString("rna_ref_tissue", "Annotate RNA reference data from The Human Protein Atlas in TPM (transcripts per million). Specify tissue, e.g. \"colon\".", true);
 $parser->addOutfile("out", "Output file name", false);
 extract($parser->parse($argv));
 
@@ -89,6 +90,7 @@ function cgi_variant_tsv_to_sorted_vcf($cgi_input)
  ********/
 $gsvar_input = Matrix::fromTSV($gsvar_in);
 
+
 if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 {
 	if(!isset($rna_counts) || !isset($rna_id) || !isset($rna_bam))
@@ -106,9 +108,9 @@ if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 	
 	for($i=0; $i<$gsvar_input->rows(); ++$i)
 	{
-		//Skip intronic variants
+		//Skip intronic variants (in these cases we only see DNA artefacts)
 		$variant_type =  $gsvar_input->get($i, $i_variant_type);
-		if($variant_type== "intron" || $variant_type == "intergenic")
+		if($variant_type == "intron" || $variant_type == "intergenic")
 		{
 			$rna_depths[] = ".";
 			$rna_afs[] = ".";
@@ -152,8 +154,6 @@ if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 		list($chr,$start,$end,$ref,$obs) = $gsvar_input->getRow($i);
 		
 		$genes = explode(",", $gsvar_input->get($i,$i_dna_gene));
-		
-		if(db_is_enabled("NGSD")) $genes = approve_gene_names($genes);
 		
 		$genes_of_interest["{$chr}_{$start}_{$end}_{$ref}_{$obs}"] = $genes;
 	}
@@ -199,12 +199,11 @@ if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 			{
 				if($dna_gene == $rna_gene)
 				{
-					$results[$key] = $parts[$i_rna_tpm];
+					$results[$key] = number_format($parts[$i_rna_tpm], 2);
 				}
 			}
 		}
 	}
-	echo "after";
 	fclose($handle);
 	
 	//Remove old annotations 
@@ -220,6 +219,77 @@ if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 	$gsvar_input->addComment("#RNA_BAM_FILE=".realpath($rna_bam));
 }
 
+if(isset($rna_ref_tissue))
+{
+	$genes_of_interest = array();
+	$i_dna_gene =  $gsvar_input->getColumnIndex("gene");
+	
+	//Make list of genes that appear in GSvar file, as associative array
+	for($i=0; $i<$gsvar_input->rows(); ++$i)
+	{
+		list($chr,$start,$end,$ref,$obs) = $gsvar_input->getRow($i);
+		$genes_of_interest["{$chr}_{$start}_{$end}_{$ref}_{$obs}"] = $gsvar_input->get($i,$i_dna_gene);
+	}
+	
+	
+	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_hpa.tsv";
+	
+	$handle = fopen($ref_file, "r");
+	
+	$i_ref_gene = -1;
+	$i_ref_tpm = -1;
+	$i_ref_tissue_type = -1;
+	
+	//first line of $ref_file contains header
+	$header_parts = explode("\t", fgets($handle));
+	for($i=0; $i<count($header_parts); ++$i)
+	{
+		if($header_parts[$i] == "Gene name") $i_ref_gene = $i;
+		if($header_parts[$i] == "TPM") $i_ref_tpm = $i;
+		if($header_parts[$i] == "Tissue") $i_ref_tissue_type = $i;
+	}
+
+	//ref_results contains contents of column with ref values to be annotated
+	$ref_results = array_fill_keys(array_keys($genes_of_interest), ".");
+	
+	$ref_entry_count = 0;
+	while(!feof($handle))
+	{
+		$line = trim(fgets($handle));
+		if(empty($line)) continue; 
+		$parts = explode("\t",$line);
+		
+		if($parts[$i_ref_tissue_type] != $rna_ref_tissue) continue; 
+		
+		foreach($genes_of_interest as $key => $dna_genes)
+		{
+			$expression_data = array();
+			
+			$tmp_dna_genes = explode(",", $dna_genes);
+			foreach($tmp_dna_genes as $dna_gene)
+			{
+				if($dna_gene == $parts[$i_ref_gene])
+				{
+					$expression_data[] = $parts[$i_ref_tpm];
+				}
+			}
+			if(!empty($expression_data))$ref_results[$key] = implode(",", $expression_data);
+		}
+		
+		++$ref_entry_count;
+	}
+	
+	if($ref_entry_count == 0)
+	{
+		trigger_error("Could not find any entry for tissue type $rna_ref_tissue in {$ref_file}.", E_USER_ERROR);
+	}
+	
+	$gsvar_input->removeComment("RNA_REF_TPM_TISSUE=", true);
+	$gsvar_input->addComment("#RNA_REF_TPM_TISSUE={$rna_ref_tissue}");
+	
+	$gsvar_input->removeColByName("rna_ref_tpm");
+	$gsvar_input->addCol(array_values($ref_results), "rna_ref_tpm", "RNA reference data in transcripts per million for tissue {$rna_ref_tissue} from proteinatlas.org.");
+}
 
 if(isset($cgi_snv_in))
 {
