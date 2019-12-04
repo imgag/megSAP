@@ -676,17 +676,6 @@ if (in_array("an", $steps))
 	$args = array("-in $tmp_vcf", "-out $variants_gsvar", "-t_col $t_id");
 	if (!$single_sample) $args[] = "-n_col $n_id";
 	$parser->execTool("NGS/vcf2gsvar_somatic.php", implode(" ", $args));
-
-	//annotate vcf/GSvar with frequency/depth from tumor RNA sample
-	if (isset($t_rna_bam))
-	{
-		$tmp_vcf_rna = $parser->tempFile("_var_rna.vcf");
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $tmp_vcf -bam $t_rna_bam -out $tmp_vcf_rna -name rna_tum -depth -ref $ref_genome", true);
-		$parser->exec("bgzip", "-c $tmp_vcf_rna > $variants_annotated", true);
-		$parser->exec("tabix", "-f -p vcf $variants_annotated", true);
-
-		$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $variants_gsvar -bam $t_rna_bam -out $variants_gsvar -name rna_tum -depth -ref $ref_genome", true);
-	}
 }
 
 //QCI/CGI annotation
