@@ -79,7 +79,7 @@ case2_somatic:
 		--log out_case2/GS110168-GS110169.log
 case2_diff:
 	# variants
-	diff expected_case2/GS110168-GS110169.GSvar out_case2/GS110168-GS110169.GSvar --ignore-matching-lines="##PIPELINE=" --ignore-matching-lines="##RNA_TRANSCRIPT_COUNT_FILE=" --ignore-matching-lines="##RNA_BAM_FILE="
+	php ../compare_variants.php -in1 expected_case2/GS110168-GS110169.GSvar -in2 out_case2/GS110168-GS110169.GSvar
 	php ../compare_bed.php expected_case2/GS110168-GS110169_stat_lowcov.bed out_case2/GS110168-GS110169_stat_lowcov.bed
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription.tsv
 	test -s out_case2/GS110168-GS110169_cgi_drug_prescription_bioactivities.tsv
