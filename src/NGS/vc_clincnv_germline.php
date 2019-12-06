@@ -135,7 +135,7 @@ if (count($cov_files)>$cov_max)
 	//create target region without polymorphic regions
 	//$t_start = microtime(true);
 	$poly_merged = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$repository_basedir}/data/misc/cnps_genomes_imgag.bed {$repository_basedir}/data/misc/centromer_telomer_hg19.bed -out {$poly_merged}", true);
+	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$repository_basedir}/data/misc/cnps_genomes_imgag.bed {$repository_basedir}/data/misc/centromer_telomer_hg19.bed -out {$poly_merged}", true); //TODO replace by af_genomes_imgag!?
 	$roi_poly = $parser->tempFile(".bed");
 	$parser->exec(get_path("ngs-bits")."BedIntersect", "-in {$bed} -in2 {$poly_merged} -out {$roi_poly} -mode in", true);
 	$roi_nonpoly = $parser->tempFile(".bed");
@@ -198,7 +198,8 @@ $args = [
 "--maxNumGermCNVs {$max_cnvs}",
 "--numberOfThreads {$threads}",
 "--lengthG ".($regions-1), //lengthG actually gives the number of additional regions > subtract 1
-"--scoreG 20", 
+"--scoreG 20",
+"--par \"chrX:60001-2699520;chrX:154931044-155260560\"" //this is correct for hg19 only!
 ];
 
 if (!$skip_super_recall)

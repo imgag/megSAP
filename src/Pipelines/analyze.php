@@ -454,14 +454,25 @@ if (in_array("cn", $steps))
 				"-cov_folder {$cov_folder}",
 				"-bed {$bed}",
 				"-out {$cnv_out}",
-				"-cov_max ".($is_wgs||$is_wgs_shallow ? "100" : "200"),
-				"-max_cnvs ".($is_wgs||$is_wgs_shallow ? "2000" : "200"),
 				"--log {$log_cn}",
 			);
-			if ($is_wgs_shallow)
+			if ($is_wgs)
 			{
+				$args[] = "-cov_max 100";
+				$args[] = "-max_cnvs 2000";
+			}
+			else if ($is_wgs_shallow)
+			{
+				$args[] = "-cov_max 100";
+				$args[] = "-max_cnvs 400";
 				$args[] = "-skip_super_recall";
 				$args[] = "-regions 3";
+				$args[] = "-cov_min 10"; //TODO remove once we have enough > MARC
+			}
+			else
+			{
+				$args[] = "-cov_max 200";
+				$args[] = "-max_cnvs 200";
 			}
 			$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 			
