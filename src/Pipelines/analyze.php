@@ -579,6 +579,7 @@ if (in_array("db", $steps))
 	if (file_exists($cnvfile))
 	{
 		$args[] = "-cnv {$cnvfile}";
+		$args[] = "-cnv_force";
 		$import = true;
 	}
 	if ($import)
