@@ -231,6 +231,9 @@ if(isset($rna_counts))
 		$cnv_input = Matrix::fromTSV($cnv_in);
 	}
 	
+	//Resubstitute zeroes by spaces (opposite happens in somatic_dna.php)
+	$rna_ref_tissue = str_replace("0", " ", $rna_ref_tissue);
+	
 	if(!isset($rna_id) || !isset($rna_ref_tissue))
 	{
 		trigger_error("Both parameters \"-rna_ref_tissue\" and \"-rna_id\" have to be specified for the annotation of RNA data.", E_USER_ERROR);
