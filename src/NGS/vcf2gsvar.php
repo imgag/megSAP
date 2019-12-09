@@ -276,6 +276,15 @@ function load_hgnc_db()
 	return $output;
 }
 
+// decode URL encoded string
+function decode_url_string($encoded_string)
+{
+	// define decode mapping:
+	// (also replaces newlines and tabs with spaces)
+	$mapping = array("%09" => " ", "%0d%0a" => " ", "%0a" => " ", "%0d" => " ", "%20" => " ", "%2C" => ",", "%3B" => ";", "%3D" => "=", "%25" => "%");
+	return strtr($encoded_string, $mapping);
+}
+
 $hgnc = load_hgnc_db();
 
 //write column descriptions
@@ -1085,7 +1094,7 @@ while(!feof($handle))
 
 			if (isset($info["NGSD_SOM_P"]))
 			{
-				$ngsd_som_projects = trim($info["NGSD_SOM_P"]);
+				$ngsd_som_projects = decode_url_string(trim($info["NGSD_SOM_P"]));
 			}
 			else
 			{
@@ -1133,7 +1142,7 @@ while(!feof($handle))
 
 		if (isset($info["NGSD_CLAS_COM"]))
 		{
-			$ngsd_clas_com = trim($info["NGSD_CLAS_COM"]);
+			$ngsd_clas_com = decode_url_string(trim($info["NGSD_CLAS_COM"]));
 		}
 		else
 		{
@@ -1142,7 +1151,7 @@ while(!feof($handle))
 
 		if (isset($info["NGSD_COM"]))
 		{
-			$ngsd_com = trim($info["NGSD_COM"]);
+			$ngsd_com = decode_url_string(trim($info["NGSD_COM"]));
 		}
 		else
 		{
@@ -1160,7 +1169,7 @@ while(!feof($handle))
 
 		if (isset($info["NGSD_GENE_INFO"]))
 		{
-			$ngsd_gene_info = str_replace(":", ", ", trim($info["NGSD_GENE_INFO"]));
+			$ngsd_gene_info = decode_url_string(str_replace(":", ", ", trim($info["NGSD_GENE_INFO"])));
 		}
 		else
 		{
