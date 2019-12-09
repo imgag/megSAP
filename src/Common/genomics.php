@@ -1538,4 +1538,19 @@ function allele_count($bam, $chr, $pos)
 	return $counts;
 }
 
+/**
+	@brief Returns an array with (1) report configuration id of processed sample or -1 (2) if small variants report config exists and (3) CNV report config exists
+ */
+function report_config(&$db_conn, $name, $error_if_not_found=false)
+{
+	$ps_id = get_processed_sample_id($db_conn, $name, $error_if_not_found);
+		
+	$rc_id = $db_conn->getValue("SELECT id FROM report_configuration WHERE processed_sample_id=".$ps_id, -1);
+	
+	$var_ids = $db_conn->getValues("SELECT id FROM report_configuration_variant WHERE report_configuration_id=".$rc_id);
+	$cnv_ids = $db_conn->getValues("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=".$rc_id);
+	
+	
+	return array($rc_id, count($var_ids)>0, count($cnv_ids)>0);
+}
 ?>
