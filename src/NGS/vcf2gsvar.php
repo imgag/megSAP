@@ -848,7 +848,7 @@ while(!feof($handle))
 				$exon = trim($parts[$i_exon]);
 				if ($exon!="") $exon = "exon".$exon;
 				$intron = trim($parts[$i_intron]);
-				if ($intron!="") $intron = "exon".$intron; //TODO: change to intron and adapt ngs-bits
+				if ($intron!="") $intron = "intron".$intron;
 				
 				//hgvs
 				$hgvs_c = trim($parts[$i_hgvsc]);
@@ -952,7 +952,7 @@ while(!feof($handle))
 				$exon = trim($parts[$i_exon_refseq]);
 				if ($exon!="") $exon = "exon".$exon;
 				$intron = trim($parts[$i_intron_refseq]);
-				if ($intron!="") $intron = "intron".$intron; //?
+				if ($intron!="") $intron = "intron".$intron;
 				
 				//hgvs
 				$hgvs_c = trim($parts[$i_hgvsc_refseq]);

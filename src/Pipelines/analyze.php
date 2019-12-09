@@ -467,7 +467,7 @@ if (in_array("cn", $steps))
 				$args[] = "-max_cnvs 400";
 				$args[] = "-skip_super_recall";
 				$args[] = "-regions 3";
-				$args[] = "-cov_min 10"; //TODO remove once we have enough > MARC
+				$args[] = "-cov_min 10";
 			}
 			else
 			{
