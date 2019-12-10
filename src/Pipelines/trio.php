@@ -57,9 +57,25 @@ $args_multisample = [
 	"-prefix trio",
 	"-threads $threads",
 	];
+	
+//check steps
+$is_wgs_shallow = $sys['type']=="WGS (shallow)";
+if ($is_wgs_shallow)
+{
+	if (in_array("vc", $steps))
+	{
+		trigger_error("Skipping step 'vc' - Variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
+		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
+	}
+	if (in_array("an", $steps))
+	{
+		trigger_error("Skipping step 'an' - Annotation is not supported for shallow WGS samples!", E_USER_NOTICE);
+		if (($key = array_search("an", $steps)) !== false) unset($steps[$key]);
+	}
+}
 
 //pre-analysis checks
-if (!$no_check)
+if (!$no_check && !$is_wgs_shallow)
 {
 	//check parent-child correlation
 	$min_corr = 0.45;
@@ -249,27 +265,30 @@ if (in_array("cn", $steps))
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps cn", true);
 	
 	//UPD detection
-	$args_upd = [
-		"-in {$out_folder}/all.vcf.gz",
-		"-c {$sample_c}",
-		"-f {$sample_f}",
-		"-m {$sample_m}",
-		"-out {$out_folder}/trio_upd.tsv",
-		];
-	$base = substr($c, 0, -4);
-	if (file_exists("{$base}_cnvs.tsv"))
+	if (!$is_wgs_shallow)
 	{
-		$args_upd[] = "-exclude {$base}_cnvs.tsv";
+		$args_upd = [
+			"-in {$out_folder}/all.vcf.gz",
+			"-c {$sample_c}",
+			"-f {$sample_f}",
+			"-m {$sample_m}",
+			"-out {$out_folder}/trio_upd.tsv",
+			];
+		$base = substr($c, 0, -4);
+		if (file_exists("{$base}_cnvs.tsv"))
+		{
+			$args_upd[] = "-exclude {$base}_cnvs.tsv";
+		}
+		else if (file_exists("{$base}_cnvs_clincnv.tsv"))
+		{
+			$args_upd[] = "-exclude {$base}_cnvs_clincnv.tsv";
+		}
+		else
+		{
+			trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
+		}
+		$parser->exec(get_path("ngs-bits")."UpdHunter", implode(" ", $args_upd), true);
 	}
-	else if (file_exists("{$base}_cnvs_clincnv.tsv"))
-	{
-		$args_upd[] = "-exclude {$base}_cnvs_clincnv.tsv";
-	}
-	else
-	{
-		trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
-	}
-	$parser->exec(get_path("ngs-bits")."UpdHunter", implode(" ", $args_upd), true);
 }
 
 //everything worked > import/update sample data in NGSD

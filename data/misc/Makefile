@@ -10,6 +10,8 @@ cnps_genomes_imgag:
 
 af_genomes_imgag:
 	NGSDExportCnvTrack -system TruSeqPCRfree -min_af 0.02 -min_dp 30 -max_cnvs 2000 -caller_version 'v1.16.4' -out af_genomes_imgag.igv -stats af_genomes_imgag.log
+	php merge_cnps.php  af_genomes_imgag.igv cnps_genomes_imgag.igv > tmp.igv
+	mv tmp.igv af_genomes_imgag.igv
 	cut -f1,2,3,5 af_genomes_imgag.igv | grep -v "Chromosome" > af_genomes_imgag.bed
 	
 cn_pathogenic:

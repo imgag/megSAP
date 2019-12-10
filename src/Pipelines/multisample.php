@@ -89,12 +89,24 @@ foreach($bams as $bam)
 	{
 		trigger_error("Cannot perform multi-sample analysis without target region (processing systems of ".$bam." is '".$sys["name_short"]."')!", E_USER_ERROR);
 	}
-	if ($sys['type']=="WGS (shallow)")
-	{
-		trigger_error("Cannot perform multi-sample analysis with shallow WGS sample (processing systems of ".$bam." is '".$sys["name_short"]."')!", E_USER_ERROR);
-	}
 }
 $sys = load_system($system, $names[$bams[0]]);
+
+//check steps
+$is_wgs_shallow = $sys['type']=="WGS (shallow)";
+if ($is_wgs_shallow)
+{
+	if (in_array("vc", $steps))
+	{
+		trigger_error("Skipping step 'vc' - Variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
+		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
+	}
+	if (in_array("an", $steps))
+	{
+		trigger_error("Skipping step 'an' - Annotation is not supported for shallow WGS samples!", E_USER_NOTICE);
+		if (($key = array_search("an", $steps)) !== false) unset($steps[$key]);
+	}
+}
 
 //create output folder if missing
 $out_folder .= "/";
@@ -291,7 +303,7 @@ if (in_array("cn", $steps))
 	}
 	
 	//annotation column headers
-	$anno_headers = ["overlap cnps_genomes_imgag", "overlap af_genomes_imgag", "cn_pathogenic", "genes", "dosage_sensitive_disease_genes", "clinvar_cnvs"];
+	$anno_headers = ["overlap af_genomes_imgag", "cn_pathogenic", "genes", "dosage_sensitive_disease_genes", "clinvar_cnvs"];
 	
 	if (file_exists($hgmd_file))
 	{
@@ -598,7 +610,6 @@ if (in_array("cn", $steps))
 		file_put_contents($tmp, implode("\n", $output));
 
 		//copy-number polymorphisms
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$repository_basedir}/data/misc/cnps_genomes_imgag.bed -overlap -out {$tmp}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$tmp}", true);
 		
 		//knowns pathogenic CNVs
