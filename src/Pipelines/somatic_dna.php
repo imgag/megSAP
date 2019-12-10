@@ -943,14 +943,14 @@ if (in_array("an_rna", $steps))
 		"-rna_id $rna_id",
 		"-rna_counts $rna_counts",
 		"-rna_bam $t_rna_bam",
-		"-rna_ref_tissue $rna_ref_tissue" ];
+		"-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue) ]; //Replace spaces by 0 because it is diffcult to pass spaces via command line.
 	
 	$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
 
 	//Annotate Copy Number Files with RNA data
 	if(file_exists($som_clincnv))
 	{
-		$parser->execTool("NGS/an_somatic_cnvs.php", " -cnv_in $som_clincnv -out $som_clincnv -rna_counts $rna_counts -rna_id $rna_id -rna_ref_tissue $rna_ref_tissue");
+		$parser->execTool("NGS/an_somatic_cnvs.php", " -cnv_in $som_clincnv -out $som_clincnv -rna_counts $rna_counts -rna_id $rna_id -rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue));
 	}
 	elseif(file_exists($som_cnv))
 	{
