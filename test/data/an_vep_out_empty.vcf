@@ -55,7 +55,7 @@
 ##FORMAT=<ID=QR,Number=1,Type=Integer,Description="Sum of quality of the reference observations">
 ##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
 ##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
-##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|DOMAINS|SIFT|PolyPhen|Existing_variation|AF|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_EAS_AF|gnomAD_NFE_AF|gnomAD_SAS_AF|BIOTYPE|CADD_PHRED|REVEL|FATHMM_MKL_C|FATHMM_MKL_NC|MaxEntScan_ref|MaxEntScan_alt|GeneSplicer|ada_score|rf_score|REPEATMASKER|PHYLOP|OMIM">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|DOMAINS|SIFT|PolyPhen|Existing_variation|AF|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_EAS_AF|gnomAD_NFE_AF|gnomAD_SAS_AF|BIOTYPE|CADD_PHRED|REVEL|FATHMM_MKL_C|FATHMM_MKL_NC|MaxEntScan_ref|MaxEntScan_alt|ada_score|rf_score|REPEATMASKER|PHYLOP|OMIM">
 ##CADD_PHRED=PHRED-like scaled CADD score
 ##CADD_RAW=Raw CADD score
 ##REVEL=Rare Exome Variant Ensemble Learner 
@@ -64,7 +64,6 @@
 ##MaxEntScan_alt=MaxEntScan alternate sequence score
 ##MaxEntScan_diff=MaxEntScan score difference
 ##MaxEntScan_ref=MaxEntScan reference sequence score
-##GeneSplicer=GeneSplicer predictions
 ##ada_score=dbscSNV ADA score
 ##rf_score=dbscSNV RF score
 ##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/RepeatMasker.bed.gz (overlap)">

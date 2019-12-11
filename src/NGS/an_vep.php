@@ -84,8 +84,8 @@ $fields[] = "FATHMM_MKL_NC";
 $args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
 $fields[] = "MaxEntScan_ref";
 $fields[] = "MaxEntScan_alt";
-$args[] = "--plugin GeneSplicer,{$vep_path}/GeneSplicer/sources/genesplicer,{$local_data}/GeneSplicer/,tmpdir=".sys_get_temp_dir(); //GeneSplicer
-$fields[] = "GeneSplicer";
+//$args[] = "--plugin GeneSplicer,{$vep_path}/GeneSplicer/sources/genesplicer,{$local_data}/GeneSplicer/,tmpdir=".sys_get_temp_dir(); //GeneSplicer
+//$fields[] = "GeneSplicer"; //TODO reactivate GeneSplicer when runtime problems are fixed in VEP 100 (https://github.com/Ensembl/ensembl-vep/issues/641)
 $args[] = "--plugin dbscSNV,".annotation_file_path("/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"); //dbscSNV
 $fields[] = "ada_score";
 $fields[] = "rf_score";;

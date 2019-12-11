@@ -437,7 +437,7 @@ while(!feof($handle))
 			$i_omim = index_of($cols, "OMIM", false);
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
-			$i_genesplicer = index_of($cols, "GeneSplicer");
+			$i_genesplicer = index_of($cols, "GeneSplicer", false); //TODO reactivate error if missing when runtime problems are fixed in VEP 100
 			$i_dbscsnv_ada = index_of($cols, "ada_score");
 			$i_dbscsnv_rf = index_of($cols, "rf_score");
 		}
