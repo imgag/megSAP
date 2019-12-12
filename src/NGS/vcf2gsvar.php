@@ -729,7 +729,7 @@ while(!feof($handle))
 			}
 			
 			//GeneSplicer
-			if ($parts[$i_genesplicer]!="")
+			if ($i_genesplicer!==FALSE && $parts[$i_genesplicer]!="")
 			{
 				$genesplicer[] = $parts[$i_genesplicer];
 			}
