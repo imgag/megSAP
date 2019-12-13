@@ -60,7 +60,6 @@ function sort_consequences($filename)
 $out_file1 = output_folder().$name."_out1.vcf";
 check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in1.vcf -out $out_file1 --log ".output_folder().$name."_out1.log -no_groups");
 remove_lines_containing($out_file1, array("##VEP=\"v"));
-
 // TODO: Remove when VEP generates consistent refseq output for this variant
 sort_consequences($out_file1);
 check_file($out_file1, data_folder().$name."_out1.vcf", true);
@@ -86,7 +85,7 @@ remove_lines_containing($out_file2, array("##VEP=\"v"));
 check_file($out_file2, data_folder().$name."_out2-3.vcf", true);
 
 //NA12878_38 head zipped
-$out_file3 = output_folder().$name."_out5.vcf";
+$out_file3 = output_folder().$name."_out3.vcf";
 check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in3.vcf.gz -out $out_file3 --log ".output_folder().$name."_out3.log -no_groups");
 remove_lines_containing($out_file3, array("##VEP=\"v"));
 check_file($out_file3, data_folder().$name."_out2-3.vcf", true);

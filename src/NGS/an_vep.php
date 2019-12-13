@@ -313,46 +313,46 @@ if (!$skip_ngsd)
 		{
 			trigger_error("VCF file for NGSD somatic annotation not found at '".$ngsd_som_file."'!",E_USER_ERROR);
 		}
+
+		// store file date of NGSD files to detect file changes during annotation
+		$ngsd_som_file_mtime = filemtime($ngsd_som_file);
+		if ($ngsd_som_file_mtime == false)
+		{
+			trigger_error("Cannot get modification date of '".$ngsd_som_file."'!",E_USER_ERROR);
+		}
 	}
 	
+	// store file date of NGSD files to detect file changes during annotation
+	$ngsd_file_mtime = filemtime($ngsd_file);
+	if ($ngsd_file_mtime == false)
+	{
+		trigger_error("Cannot get modification date of '".$ngsd_file."'!",E_USER_ERROR);
+	}
 }
 
 
 // close config file
 fclose($config_file);
 
-// store file date of NGSD files to detect file changes during annotation
-$ngsd_file_mtime = filemtime($ngsd_file);
-if ($ngsd_file_mtime == false)
-{
-	trigger_error("Cannot get modification date of '".$ngsd_file."'!",E_USER_ERROR);
-}
-if ($somatic)
-{
-	$ngsd_som_file_mtime = filemtime($ngsd_som_file);
-	if ($ngsd_file_mtime == false)
-	{
-		trigger_error("Cannot get modification date of '".$ngsd_som_file."'!",E_USER_ERROR);
-	}
-}
-
 // execute VcfAnnotateFromVcf
 $vafv_output = $parser->tempFile("_vafv.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output_refseq -out $vafv_output", true);
 
-// check if files have changed during annotation:
-if (!($ngsd_file_mtime == filemtime($ngsd_file)))
+if (!$skip_ngsd)
 {
-	trigger_error("Annotation file '".$ngsd_file."' has changed during annotation!",E_USER_ERROR);
-}
-if ($somatic)
-{
-	if (!($ngsd_som_file_mtime == filemtime($ngsd_som_file)))
+	// check if files have changed during annotation:
+	if (!($ngsd_file_mtime == filemtime($ngsd_file)))
 	{
-		trigger_error("Annotation file '".$ngsd_som_file."' has changed during annotation!",E_USER_ERROR);
+		trigger_error("Annotation file '".$ngsd_file."' has changed during annotation!",E_USER_ERROR);
+	}
+	if ($somatic)
+	{
+		if (!($ngsd_som_file_mtime == filemtime($ngsd_som_file)))
+		{
+			trigger_error("Annotation file '".$ngsd_som_file."' has changed during annotation!",E_USER_ERROR);
+		}
 	}
 }
-
 
 if (!$skip_ngsd)
 {
