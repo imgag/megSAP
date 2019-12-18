@@ -58,7 +58,7 @@ class ToolBase
 	function shutdown()
 	{
 		//remove all temp files
-		if (!$this->error_occurred)
+		if (!$this->error_occurred && !$this->debug)
 		{
 			foreach($this->temp_files as $file)
 			{
