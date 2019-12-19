@@ -8,7 +8,7 @@ create_somatic_tmb_blacklist:
 	echo "HLA-A\nHLA-B" | GenesToBed -source ensembl -mode exon | BedMerge -merge_names > somatic_tmb_blacklist.bed
 
 genes:
-	NGSDExportGenes | cut -f1 | grep -v "#symbol" | GenesToBed -mode gene -source ensembl | BedExtend -n 20 -out genes.bed
+	NGSDExportGenes | cut -f1 | grep -v "#symbol" | GenesToBed -mode gene -source ensembl | BedExtend -n 5000 -out genes.bed
 
 gene_exons:
 	NGSDExportGenes | cut -f1 | grep -v "#symbol" | GenesToBed -mode exon -source ensembl | BedMerge -out gene_exons.bed
