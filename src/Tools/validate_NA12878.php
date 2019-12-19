@@ -14,6 +14,8 @@ $parser = new ToolBase("validate_NA12878", "Validates the performance of a seque
 $parser->addInfile("vcf", "Input variant list of sequencing experiment (VCF.GZ format).", false);
 $parser->addInfile("bam", "Mapped reads of sequencing experiment (BAM format).", false);
 $parser->addInfile("roi", "Target region of sequencing experiment (BED format).", false);
+//optional
+$parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf' file base name is used.", true);
 $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the given depth are evaluated.", true, 0);
 $parser->addOutfile("stats", "Write statistics to this file instead of STDOUT.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
@@ -227,7 +229,7 @@ print "\n";
 
 
 //print statistics
-function stats_line($name, $options, $expected, $var_diff, $var_type=null)
+function stats_line($name, $options, $date, $expected, $var_diff, $var_type=null)
 {
 	global $bases_used;
 	
@@ -282,18 +284,19 @@ function stats_line($name, $options, $expected, $var_diff, $var_type=null)
 	$spec = number_format($tn/($tn+$fp),5);
 	
 	if (!is_null($var_type)) $name .= " ".$var_type;
-	return implode("\t", array($name, $options, $c_expected, $tp, $tn, $fp, $fn, $recall, $precision, $spec));
+	return implode("\t", array($name, $options, $date, $c_expected, $tp, $tn, $fp, $fn, $recall, $precision, $spec));
 }
 
-$name = basename($vcf, ".vcf.gz");
+if ($name=="") $name = basename($vcf, ".vcf.gz");
 $options = array();
 if ($min_dp>0) $options[] = "min_dp={$min_dp}";
 $options = implode(" ", $options);
+$date = strtr(date("Y-m-d H:i:s", filemtime($vcf)), "T", " ");
 $output = array();
-$output[] = "#name\toptions\texpected variants\tTP\tTN\tFP\tFN\trecall/sensitivity\tprecision/ppv\tspecificity";
-$output[] = stats_line($name, $options, $expected, $var_diff);
-$output[] = stats_line($name, $options, $expected, $var_diff, "SNVS");
-$output[] = stats_line($name, $options, $expected, $var_diff, "INDELS");
+$output[] = "#name\toptions\tdate\texpected variants\tTP\tTN\tFP\tFN\trecall/sensitivity\tprecision/ppv\tspecificity";
+$output[] = stats_line($name, $options, $date, $expected, $var_diff);
+$output[] = stats_line($name, $options, $date, $expected, $var_diff, "SNVS");
+$output[] = stats_line($name, $options, $date, $expected, $var_diff, "INDELS");
 file_put_contents(isset($stats) ? $stats  : "php://stdout", implode("\n", $output)."\n");
 
 ?>
