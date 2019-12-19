@@ -1,8 +1,6 @@
 <?php
 /** 
 	@page validate_NA12878
-	
-	@todo add option to ignore the GT (validate only calling, not genotyping)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -247,7 +245,9 @@ function stats_line($name, $options, $date, $expected, $var_diff, $var_type=null
 	
 	//count FP/FN
 	$fp = 0;
+	$fp_geno = 0;
 	$fn = 0;
+	$fn_geno = 0;
 	foreach($var_diff as $pos => list($type, $ref, $obs))
 	{
 		if (!is_null($var_type))
@@ -265,10 +265,12 @@ function stats_line($name, $options, $date, $expected, $var_diff, $var_type=null
 			if($obs['GT']=="1/1")
 			{
 				$fp++;
+				$fp_geno++;
 			}
 			else
 			{
 				$fn++;
+				$fn_geno++;
 			}
 		}
 		if ($type=="+")
@@ -284,7 +286,7 @@ function stats_line($name, $options, $date, $expected, $var_diff, $var_type=null
 	$spec = number_format($tn/($tn+$fp),5);
 	
 	if (!is_null($var_type)) $name .= " ".$var_type;
-	return implode("\t", array($name, $options, $date, $c_expected, $tp, $tn, $fp, $fn, $recall, $precision, $spec));
+	return implode("\t", array($name, $options, $date, $c_expected, $tp, $tn, "{$fp} ({$fp_geno} genotype)", "{$fn} ({$fn_geno} genotype)", $recall, $precision, $spec));
 }
 
 if ($name=="") $name = basename($vcf, ".vcf.gz");
