@@ -14,6 +14,10 @@ af_genomes_imgag:
 	mv tmp.igv af_genomes_imgag.igv
 	cut -f1,2,3,5 af_genomes_imgag.igv | grep -v "Chromosome" > af_genomes_imgag.bed
 	
+af_ssHAEv7_imgag:
+	NGSDExportCnvTrack -system ssHAEv7 -min_af 0.02 -min_dp 80 -max_cnvs 200 -caller_version 'v1.16.4' -out af_ssHAEv7_imgag.igv -stats af_ssHAEv7_imgag.log
+	cut -f1,2,3,5 af_ssHAEv7_imgag.igv | grep -v "Chromosome" > af_ssHAEv7_imgag.bed
+	
 cn_pathogenic:
 	cd /mnt/share/data/dbs/CNVs_pathogenic/ && make convert deploy
 	
