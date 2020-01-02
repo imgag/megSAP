@@ -16,12 +16,12 @@ $parser = new ToolBase("an_vep", "Variant annotation with Ensembl VEP.");
 $parser->addInfile("in",  "Input file in VCF format.", false);
 $parser->addOutfile("out", "Output file in VCF format.", false);
 //optional
+$parser->addString("ps_name", "Processed sample name (used to determine sample meta info from NGSD (e.g. disease group).", true, "");
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addFlag("all_transcripts", "Annotate all transcripts - if unset only GENCODE basic transcripts are annotated.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("somatic", "Also annotate the NGSD somatic counts.");
 $parser->addFlag("test", "Use limited constant NGSD VCF file from test folder for annotation.");
-$parser->addFlag("no_groups", "Skips the NGSD group annotation (requires NGSD database lookup).");
 extract($parser->parse($argv));
 
 //get local/global data file path - depending on what is available
@@ -198,9 +198,6 @@ if ($somatic && !file_exists($ngsd_som_file))
 	$skip_ngsd = true;
 }
 
-
-
-
 if (!$skip_ngsd)
 {
 	// add NGSD annotation
@@ -210,80 +207,45 @@ if (!$skip_ngsd)
 		$ngsd_file = repository_basedir()."/test/data/an_vep_NGSD_germline.vcf.gz";
 	}
 	
-	
-
-	// get disease group column name:
+	// get disease group column name
 	$disease_group_column = "";
-	if (db_is_enabled("NGSD") && !$no_groups)
+	if (db_is_enabled("NGSD"))
 	{
+		$db_conn = DB::getInstance("NGSD", false);
+		$disease_groups = $db_conn->getEnum("sample", "disease_group");
 		if ($somatic)
 		{
-			$db_conn = DB::getInstance("NGSD", false);
-			$disease_groups = $db_conn->getEnum("sample", "disease_group");
 			trigger_error("All somatic samples belongs to disease group Neoplasms", E_USER_NOTICE);
 			$disease_group_column_idx = array_search("Neoplasms", $disease_groups);
 			$disease_group_column = "GSC".sprintf('%02d', $disease_group_column_idx + 1);
 		}
-		else
+		else //germline
 		{
-			// check file format
-			if (ends_with($in, ".vcf"))
+			if ($ps_name!="")
 			{
-				// parse vcf to get sample name
-				$handle = fopen2($in, "r");
-				$ps_name = "";
-				while(!feof($handle))
+				$details = get_processed_sample_info($db_conn, $ps_name, false);
+				$disease_group = $details['disease_group'];
+				$disease_group_column = "";
+				if ($disease_group != "")
 				{
-					
-					$line = nl_trim(fgets($handle));
-					if($line=="") continue;
-
-					//header line
-					if(starts_with($line, "#CHROM")) 
-					{
-						$parts = explode("\t", $line);
-						$format_idx = array_search("FORMAT", $parts);
-						$ps_name = $parts[($format_idx + 1)];
-						trigger_error("Processed sample id: $ps_name ", E_USER_NOTICE);
-						break;
-					}
-				}
-				if ($ps_name != "")
-				{
-					$db_conn = DB::getInstance("NGSD", false);
-					$disease_groups = $db_conn->getEnum("sample", "disease_group");
-					$details = get_processed_sample_info($db_conn, $ps_name, false);
-					$disease_group = $details['disease_group'];
-					$disease_group_column = "";
-					if ($disease_group != "")
-					{
-						trigger_error("Sample '$ps_name' belongs to disease group $disease_group.", E_USER_NOTICE);
-						$disease_group_column_idx = array_search($disease_group, $disease_groups);
-						$disease_group_column = "GSC".sprintf('%02d', $disease_group_column_idx + 1);
-					}
-					else
-					{
-						trigger_error("No disease group found for sample $ps_name. NGSD count annotation for disease group will be missing in output file.",E_USER_WARNING);
-					}
+					trigger_error("Sample '$ps_name' belongs to disease group $disease_group.", E_USER_NOTICE);
+					$disease_group_column_idx = array_search($disease_group, $disease_groups);
+					$disease_group_column = "GSC".sprintf('%02d', $disease_group_column_idx + 1);
 				}
 				else
 				{
-					trigger_error("No sample name found in VCF file. NGSD count annotation for disease group will be missing in output file.",E_USER_WARNING);
+					trigger_error("NGSD count annotation for disease group will be missing in output file (no disease group set in NGSD for sample '$ps_name').", E_USER_WARNING);
 				}
 			}
 			else
 			{
-				trigger_error("Can not extract disease group from gzipped VCF files. NGSD count annotation for disease group will be missing in output file.",E_USER_WARNING);
+				trigger_error("NGSD count annotation for disease group will be missing in output file ('ps_name' not given).", E_USER_WARNING);
 			}
 		}
-		
 	}
 	else
 	{
-		if (!$no_groups)
-		{
-			trigger_error("No connection to NGSD. NGSD count annotation for disease group will be missing in output file.",E_USER_WARNING);
-		}
+		trigger_error("NGSD count annotation for disease group will be missing in output file (NGSD is disabled).", E_USER_WARNING);
 	}
 	
 	$ngsd_columns = ["COUNTS"];
@@ -335,8 +297,7 @@ if (!$skip_ngsd)
 fclose($config_file);
 
 // execute VcfAnnotateFromVcf
-$vafv_output = $parser->tempFile("_vafv.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output_refseq -out $vafv_output", true);
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output_refseq -out $out", true);
 
 if (!$skip_ngsd)
 {
@@ -352,25 +313,20 @@ if (!$skip_ngsd)
 			trigger_error("Annotation file '".$ngsd_som_file."' has changed during annotation!",E_USER_ERROR);
 		}
 	}
-}
-
-if (!$skip_ngsd)
-{
+	
 	// annotate genes
 	$gene_file = $data_folder."/dbs/NGSD/NGSD_genes.bed";
 	if (file_exists($gene_file))
 	{
-		$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -in $vafv_output -out $out", true);
+		
+		$tmp = $parser->tempFile(".vcf");
+		$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -in $out -out $tmp", true);
+		$parser->moveFile($tmp, $out);
 	}
 	else
 	{
 		trigger_error("BED file for NGSD gene annotation not found at '".$gene_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
 	}
-}
-else
-{
-	// use temp file as output
-	$parser->moveFile($vafv_output, $out);
 }
 
 

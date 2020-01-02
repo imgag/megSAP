@@ -2,28 +2,25 @@
 
 require_once("genomics.php");
 
+//Connection to NGSD database (MySQL)
 class DB
 {
 	protected static $instances = array();
 	protected $connection = null;
 	protected $prep_stmts = array();
 	protected $stmt_counter = 0;
-	protected $log = false;
-	protected $path_to_log = '';
 	protected $log_messages = array();
 	const PERSISTENT_STORAGE = TRUE;
 	
 	///Returns a new instance
 	protected static function get_instance($db)
 	{
-		$host = "mysql:host=".get_db($db, 'db_host');
-		$name = "dbname=".get_db($db, 'db_name');
+		$host = get_db($db, 'db_host');
+		$name = get_db($db, 'db_name');
 		$user = get_db($db, 'db_user');
 		$pass = get_db($db, 'db_pass');
-		$log = get_db($db, 'db_log');
-		$path_to_log = get_db($db, 'db_log_path');
 		
-		return new self($host, $name, $user, $pass, $log, $path_to_log);
+		return new self($host, $name, $user, $pass);
 	}
 	
 	/**
@@ -44,20 +41,14 @@ class DB
 		return self::$instances[$db];
 	}
 	
-	protected function __construct($host, $name, $user, $pass, $log, $path_to_log)
-	{
-		// setup connection
-		$this->connection = new PDO($host.";".$name, $user, $pass, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
-		$hash = $this->prepare("SET SESSION sql_mode = 'STRICT_TRANS_TABLES';");
-		
+	protected function __construct($host, $name, $user, $pass)
+	{		
 		try 
 		{
+			$this->connection = new PDO("mysql:host={$host};dbname={$name}", $user, $pass, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+			$this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);	
+			$hash = $this->prepare("SET SESSION sql_mode = 'STRICT_TRANS_TABLES';");
 			$this->execute($hash);
-			
-			// error reporting
-			$this->log = $log;
-			$this->path_to_log = $path_to_log;
-			$this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);		
 		}
 		catch(PDOException $e)
 		{
@@ -99,11 +90,11 @@ class DB
 	public function prepare($stmt)
 	{
 		$hash = md5($stmt);
-		$this->log_messages[$hash] = array('sql' => "", 'par' => array());
+		$this->log_messages[$hash] = array('query' => "", 'bind' => array());
 		
 		try
 		{
-			$this->log_messages[$hash]['sql'] = "SQL: ".$stmt;
+			$this->log_messages[$hash]['query'] = $stmt;
 			$this->prep_stmts[$hash] = $this->connection->prepare($stmt);			
 		}
 		catch(PDOException $e)
@@ -127,17 +118,6 @@ class DB
 		{
 			$result = $this->prep_stmts[$hash]->execute();
 			
-			//normal log message (!= error)
-			if($this->log)
-			{
-				if(stripos($this->log_messages[$hash]['sql'],'insert into')!==false || 
-				   stripos($this->log_messages[$hash]['sql'],'delete from')!==false || 
-				   stripos($this->log_messages[$hash]['sql'],'update')!==false)
-				{
-					$this->log($hash);
-				}
-			}
-			
 			if(!$persist)
 			{
 				$this->unsetStmt($hash);
@@ -145,8 +125,6 @@ class DB
 		}
 		catch(PDOException $e)
 		{
-			print $e->getMessage();
-			//error log message
 			$this->error($hash, $e->getMessage());
 		}
 		
@@ -160,9 +138,8 @@ class DB
 	 * @param array $par associative array with parameter bindings
 	 * @param boolean $log Should logging be activated for this query
 	 */
-	public function executeStmt($sql, $par = NULL, $log = FALSE)
+	public function executeStmt($sql, $par = NULL)
 	{
-		$this->log = $log;
 		$hash = $this->prepare($sql);
 		if(!empty($par))
 		{
@@ -181,9 +158,8 @@ class DB
 	 * @param boolean $log Sets logging
 	 * @return array Array of query results 
 	 */
-	public function executeQuery($query, $par = NULL, $log = FALSE)
+	public function executeQuery($query, $par = NULL)
 	{
-		$this->log = $log;
 		try
 		{
 			$hash = $this->prepare($query);
@@ -203,7 +179,7 @@ class DB
 			$extra = "";
 			if (starts_with($query, "INSERT") || starts_with($query, "UPDATE"))
 			{
-				$extra = " - EXECUTEQUERY expects results";
+				$extra = " - DB::executeQuery expects results";
 			}
 			$this->prep_stmts[$hash]->debugDumpParams();
 			$this->error($hash, $e->getMessage().$extra);
@@ -231,7 +207,7 @@ class DB
 			$extra = "";
 			if (starts_with($query, "INSERT") || starts_with($query, "UPDATE"))
 			{
-				$extra = " - EXECUTEQUERY expects results";
+				$extra = " - DB::getValue expects results";
 			}
 			$this->prep_stmts[$hash]->debugDumpParams();
 			$this->error($hash, $e->getMessage().$extra);
@@ -356,7 +332,7 @@ class DB
 		
 		try
 		{
-			$this->log_messages[$hash]['par'][] = "$id = $value;";
+			$this->log_messages[$hash]['bind'][] = "$id = $value;";
 			$this->prep_stmts[$hash]->bindValue(":".$id, $value);
 		}
 		catch(PDOException $e)
@@ -393,49 +369,27 @@ class DB
 	 */
 	protected function error($hash, $message)
 	{
-		$this->log_messages[$hash]['sql'] = "ERROR: ".$message."; ".$this->log_messages[$hash]['sql'];
-		$this->log($hash);
-	}
-	
-	/**
-	 * Logs all kind of messages to a log-file
-	 * 
-	 * @param string $hash Identifies sql-statement
-	 */
-	public function log($hash)
-	{
 		//generate message
-		$user = trim(exec('whoami'))." (SYSTEM)";
-		if(isset($_SESSION['user']))
+		$messages = [];
+		$messages[] = trim($message);
+		if (isset($this->log_messages[$hash]))
 		{
-			$tmp = $_SESSION['user'];
-			$user = $tmp->user_id." (WEBGUI)";
-		}
-
-		$message = "";
-		if (isset($this->log_messages) && isset($this->log_messages[$hash]))
-		{
-			$message = get_timestamp()."\t".$user."\t".str_replace(array("\r\n", "\n", "\r"), " ", $this->log_messages[$hash]['sql'])."; PAR: ".implode(" ", $this->log_messages[$hash]['par'])."\n";
+			if (isset($this->log_messages[$hash]['query']))
+			{
+				$messages[] = "QUERY:";
+				$messages[] = trim($this->log_messages[$hash]['query']);
+			}
+			if (isset($this->log_messages[$hash]['bind']))
+			{
+				$messages[] = "BOUND PARAMETERS:";
+				foreach($this->log_messages[$hash]['bind'] as $binding)
+				{
+					$messages[] = trim($binding);
+				}
+			}
 		}
 		
-		//if log set to true write to file
-		if($this->log)
-		{
-			$pathtolog = $this->path_to_log;
-			file_put_contents($pathtolog, $message, FILE_APPEND);
-		}
-		
-		//handle real errors
-		if(isset($_SESSION['user']) && strpos($message, "ERROR") !== FALSE)
-		{
-			lib::setError($message);
-			lib::sendTo();
-		}
-		elseif(strpos($message, "ERROR") !== FALSE)
-		{
-			trigger_error($message, E_USER_ERROR);			
-		}
+		//throw message
+		trigger_error(implode("\n", $messages)."\n", E_USER_ERROR);	
 	}
 }
-
-

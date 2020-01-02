@@ -54,13 +54,13 @@ if ($sys['build']!="GRCh37")
 }
 
 //annotate VCF
-$args = array("-in {$vcf_unzipped}", "-out {$annfile}");
+$args = [];
+$args[] = "-in ".$vcf_unzipped;
+$args[] = "-out ".$annfile;
 $args[] = "-build ".$sys['build'];
-$args[] = "-threads {$threads}";
-if ($somatic)
-{
-	$args[] = "-somatic";
-}
+$args[] = "-threads ".$threads;
+$args[] = "-ps_name ".$out_name;
+if ($somatic) $args[] = "-somatic";
 $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 
 //check vcf file

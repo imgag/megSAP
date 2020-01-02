@@ -258,13 +258,20 @@ function get_path($name, $throw_on_error=true)
 		
 	@ingroup helpers
 */
-function get_db($db, $name)
+function get_db($db, $name, $default_value=null)
 {
 	$values = get_path($name);
 	
 	if (!isset($values[$db]))
 	{
-		trigger_error("get_db could not find value '$name' for DB '$db'!", E_USER_ERROR);
+		if (is_null($default_value))
+		{
+			trigger_error("get_db could not find value '$name' for DB '$db'!", E_USER_ERROR);
+		}
+		else
+		{
+			return $default_value;
+		}
 	}
 	
 	return $values[$db];

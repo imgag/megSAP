@@ -44,9 +44,6 @@ db_host['NGSD'] = "localhost"
 db_name['NGSD'] = "ngsd"
 db_user['NGSD'] = "ngsduser"
 db_pass['NGSD'] = ""
-db_log['NGSD'] = FALSE
-db_log_path['NGSD'] = ""
-
 
 [grid_engine]
 queue_email = ""
