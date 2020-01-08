@@ -212,29 +212,51 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 }
 
 
-//imports the result into NGSD
+//searches for sample in NGSD and returns processed sample meta data
 function sample_from_ngsd(&$db, $sample_name, $irp, $itp)
 {
-	//sample name
-	$res = $db->executeQuery("SELECT s.name FROM sample s WHERE s.name='{$sample_name}' AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND (p.type='diagnostic'".($irp ? " OR p.type='research'" : "").($itp ? " OR p.type='test'" : "")."))");
-	if (count($res)>0) return $res;
+	$output = array();
 	
-	//DNA number
-	if (!starts_with($sample_name, "FO"))
+	$project_conditions = "(p.type='diagnostic'".($irp ? " OR p.type='research'" : "").($itp ? " OR p.type='test'" : "").")";
+	
+	//### get sample name ###
+	
+	//1. try (sample name)
+	$res = $db->executeQuery("SELECT s.name FROM sample s WHERE s.name='{$sample_name}' AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
+	
+	//2. try (DNA number)
+	if (count($res)==0 && !starts_with($sample_name, "FO"))
 	{
 		if (starts_with($sample_name, "DNA-"))
 		{
 			$sample_name = substr($sample_name, 4);
 		}
 		$sample_name = substr($sample_name, 0, 6);
-		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name='DX{$sample_name}' OR s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND (p.type='diagnostic'".($irp ? " OR p.type='research'" : "").($itp ? " OR p.type='test'" : "")."))");
-		if (count($res)>0) return $res;
+		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name='DX{$sample_name}' OR s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
 	}
 	
-	//FO number
-	$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND (p.type='diagnostic'".($irp ? " OR p.type='research'" : "").($itp ? " OR p.type='test'" : "")."))");
+	//3. try (FO number)
+	if (count($res)==0)
+	{
+		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
+	}
 	
-	return $res;
+	//determine processed sample meta data
+	$ngsbits = get_path("ngs-bits");
+	foreach($res as $row)
+	{
+		$sample = $row['name'];
+		list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} -run_finished -add_path | {$ngsbits}TsvSlice -cols 'name,path'");
+		foreach($stdout as $line)
+		{
+			$line = trim($line);
+			if ($line=="" || $line[0]=="#") continue;
+			
+			$output[$sample][] = explode("\t", $line);
+		}
+	}
+	
+	return $output;
 }
 
 //imports the result into NGSD
@@ -330,105 +352,107 @@ foreach($file as $line)
 	{
 		print "error - Could not find sample '$sample_name' in NGSD!\n";
 	}
-	foreach($res as $res_entry)
+	else
 	{
-		$sample = $res_entry["name"];
-		print "$sample_name (".$res_entry["name"].")\n";
-		
-		//find BAM file(s) of sample
-		$project_folder  = get_path("project_folder");
-		$pipeline = [
-			["find", "-L {$project_folder}/diagnostic/ ".($irp ? "{$project_folder}/research/" : "")." ".($itp ? "{$project_folder}/test/" : "")." -maxdepth 3 -name \"{$sample}_0?.bam\""],
-			["grep", "-v bad"],
-			["sort", ""]
-		];
-		list($stdout) = $parser->execPipeline($pipeline, "BAM search");	
-		if (count($stdout)==0)
+		foreach($res as $sample => $ps_data)
 		{
-			print "error - Could not find BAM file for sample $sample!\n";
-		}	
-		
-		//check each matching BAM file
-		foreach($stdout as $bam)
-		{
-			$messages = array();
+			print "$sample_name (NGSD: {$sample})\n";
 			
-			//find genotype matches
-			$c_kasp = 0;
-			$c_both = 0;
-			$c_match = 0;
-			for($i=0; $i<count($genotypes); ++$i)
+			$bams_found = 0;
+			foreach($ps_data as list($ps, $folder))
 			{
-				$g = $genotypes[$i];
-				if ($g=="n/a") continue;
-				++$c_kasp;
-				$snp = $snps[chr(65+$i)];
-				//print "  SNP: ".$snp[1].":".$snp[2]." ".$snp[3].">".$snp[4]."\n";
-				//print "  KASP: $g\n";
-				$g2 = ngs_geno($bam, $snp[1], $snp[2], $snp[3], $min_depth);
-
-				if ($g2=="n/a") continue;
-				++$c_both;
-				//print "  NGS: $g2\n";
-				
-				//normalize genotypes
-				$g = explode("/", $g);
-				sort($g);
-				$g = implode("/", array_unique($g));
-				$g_hom = (strlen($g)==1);
-				
-				$g2 = explode("/", $g2);
-				sort($g2);
-				$g2 = implode("/", array_unique($g2));
-				$g2_hom = (strlen($g2)==1);
-				
-				if ($g==$g2)
+				$bam = "$folder/{$ps}.bam";
+				if (file_exists($bam))
 				{
-					++$c_match;
-				}
-				else if ($pmm) //debug
-				{
-					$messages[] = "MISMATCH - snp:".implode("|", $snp)." kasp:$g ngs:$g2";
-				}
-				else 
-				{
-					if ($g_hom && $g2_hom) //WT vs HOM
+					++$bams_found;
+					
+					$messages = array();
+					
+					//find genotype matches
+					$c_kasp = 0;
+					$c_both = 0;
+					$c_match = 0;
+					for($i=0; $i<count($genotypes); ++$i)
 					{
-						$messages[] = "WARNING - snp:".implode("|", $snp)." kasp:$g ngs:$g2";
+						$g = $genotypes[$i];
+						if ($g=="n/a") continue;
+						++$c_kasp;
+						$snp = $snps[chr(65+$i)];
+						//print "  SNP: ".$snp[1].":".$snp[2]." ".$snp[3].">".$snp[4]."\n";
+						//print "  KASP: $g\n";
+						$g2 = ngs_geno($bam, $snp[1], $snp[2], $snp[3], $min_depth);
+
+						if ($g2=="n/a") continue;
+						++$c_both;
+						//print "  NGS: $g2\n";
+						
+						//normalize genotypes
+						$g = explode("/", $g);
+						sort($g);
+						$g = implode("/", array_unique($g));
+						$g_hom = (strlen($g)==1);
+						
+						$g2 = explode("/", $g2);
+						sort($g2);
+						$g2 = implode("/", array_unique($g2));
+						$g2_hom = (strlen($g2)==1);
+						
+						if ($g==$g2)
+						{
+							++$c_match;
+						}
+						else if ($pmm) //debug
+						{
+							$messages[] = "MISMATCH - snp:".implode("|", $snp)." kasp:$g ngs:$g2";
+						}
+						else 
+						{
+							if ($g_hom && $g2_hom) //WT vs HOM
+							{
+								$messages[] = "WARNING - snp:".implode("|", $snp)." kasp:$g ngs:$g2";
+							}
+						}
+					}
+
+					//determine overall match
+					print "  $bam kasp:$c_kasp both:$c_both match:$c_match";
+					if ($c_both<=6)
+					{
+						$messages[] = "ERROR - too few common snps";
+						
+						//handle case where KASP was ok, but sample is not
+						if ($c_kasp>=10)
+						{
+							//NGSD import of results
+							import_ngsd($db, $bam, 999, $c_both, $c_match);
+						}
+					}
+					else
+					{
+						$rmp = number_format(error_probabilty(0.5, $c_match, $c_both-$c_match), 6);
+						print " random_match_probabilty:$rmp";
+						if($rmp>=$mep)
+						{
+							$messages[] = "ERROR - random_match_probabilty too high";
+						}
+						$output[] = "$sample_name\t$rmp\t$c_kasp\t$c_both\t$c_match\t$bam\n";
+					
+						//NGSD import of results
+						import_ngsd($db, $bam, $rmp, $c_both, $c_match);
+					}
+					print "\n";
+					foreach($messages as $message)
+					{
+						print "    $message\n";
 					}
 				}
 			}
-
-			//determine overall match
-			print "  $bam kasp:$c_kasp both:$c_both match:$c_match";
-			if ($c_both<=6)
-			{
-				$messages[] = "ERROR - too few common snps";
-				
-				//handle case where KASP was ok, but sample is not
-				if ($c_kasp>=10)
-				{
-					//NGSD import of results
-					import_ngsd($db, $bam, 999, $c_both, $c_match);
-				}
-			}
-			else
-			{
-				$rmp = number_format(error_probabilty(0.5, $c_match, $c_both-$c_match), 6);
-				print " random_match_probabilty:$rmp";
-				if($rmp>=$mep)
-				{
-					$messages[] = "ERROR - random_match_probabilty too high";
-				}
-				$output[] = "$sample_name\t$rmp\t$c_kasp\t$c_both\t$c_match\t$bam\n";
 			
-				//NGSD import of results
-				import_ngsd($db, $bam, $rmp, $c_both, $c_match);
-			}
-			print "\n";
-			foreach($messages as $message)
+			//error 
+			if($bams_found==0)
 			{
-				print "    $message\n";
+				print "  error - Could not find any BAM file for sample '$sample_name'!\n";
+				$output[] = "##no BAM file for sample '$sample_name'\n";
 			}
 		}
 	}
