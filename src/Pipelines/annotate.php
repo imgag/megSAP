@@ -63,12 +63,6 @@ $args[] = "-ps_name ".$out_name;
 if ($somatic) $args[] = "-somatic";
 $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 
-//check vcf file
-if(!$no_fc)
-{
-	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $annfile -ref ".genome_fasta($sys['build']), true);
-}
-
 //zip annotated VCF file
 $parser->exec("bgzip", "-c $annfile > $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 $parser->exec("tabix", "-p vcf $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return

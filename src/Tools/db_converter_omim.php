@@ -75,7 +75,7 @@ while(!feof($handle))
 		$line = trim($line);
 		if ($line=="") continue;
 		list($chr, $start, $end) = explode("\t", trim($line));
-		print "$chr	$start	$end	{$mim_id}_[GENE={$gene_approved}_PHENOS={$disorders}]\n";
+		print "$chr	$start	$end	{$mim_id}_[GENE%3D{$gene_approved}_PHENOS%3D{$disorders}]\n";
 	}	
 }
 fclose($handle);

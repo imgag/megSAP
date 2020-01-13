@@ -622,18 +622,18 @@ if (in_array("cn", $steps))
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -out {$tmp}", true);
 		
 		//pathogenic ClinVar CNVs
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs.bed -no_duplicates -out {$tmp}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs.bed -url_decode -no_duplicates -out {$tmp}", true);
 		
 		//HGMD CNVs
 		if (file_exists($hgmd_file)) //optional because of license
 		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$hgmd_file} -no_duplicates -out {$tmp}", true);
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$hgmd_file} -no_duplicates -url_decode -out {$tmp}", true);
 		}
 		
 		//OMIM
 		if (file_exists($omim_file)) //optional because of license
 		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 $omim_file -no_duplicates -out {$tmp}", true);
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 $omim_file -no_duplicates -url_decode -out {$tmp}", true);
 		}
 		
 		//write output

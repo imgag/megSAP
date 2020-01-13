@@ -4,7 +4,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 function substr_clear($str, $start)
 {
-	return trim(strtr(substr($str, $start), array("|"=>"[c]", ","=>"[c]")));
+	return trim(strtr(substr($str, $start), array("|"=>",")));
 }
 
 function cons2value($cons)
@@ -126,7 +126,7 @@ while(!feof($in))
 			}
 			$avg /= array_sum(array_values($cons_counts));
 			$sig = value2cons($avg);
-			$replace_msg = "(replaced_by_megSAP_based_on_classifications:".implode("[c]", $counts).")";
+			$replace_msg = "(replaced_by_megSAP_based_on_classifications:".implode(",", $counts).")";
 		}
 	}
 	
@@ -160,7 +160,7 @@ while(!feof($in))
 	for($i=0; $i<count($sigs); ++$i)
 	{
 		$parts[2] = $accs[$i];	
-		$parts[7] = "DETAILS=".strtolower($sigs[$i])."{$replace_msg}[p]".iconv("utf-8","ascii//TRANSLIT", $diss[$i]);		
+		$parts[7] = "DETAILS=".vcf_encode_url_string(strtolower($sigs[$i])."{$replace_msg} DISEASE=".iconv("utf-8", "ascii//TRANSLIT", $diss[$i]));		
 		print implode("\t", $parts)."\n";
 	}
 }

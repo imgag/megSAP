@@ -22,6 +22,7 @@ $parser->addFlag("all_transcripts", "Annotate all transcripts - if unset only GE
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("somatic", "Also annotate the NGSD somatic counts.");
 $parser->addFlag("test", "Use limited constant NGSD VCF file from test folder for annotation.");
+$parser->addInt("check_lines", "Number of VCF lines that will be validated in the output file. (If set to 0 all lines will be checked, if set to -1 the validation will be skipped.)", true, 1000);
 extract($parser->parse($argv));
 
 //get local/global data file path - depending on what is available
@@ -95,6 +96,7 @@ $args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg19.100way.phyloP100way
 $fields[] = "PHYLOP";
 
 $omim_file = annotation_file_path("/dbs/OMIM/omim.bed.gz", true); //OMIM annotation (optional because of license)
+
 if(file_exists($omim_file))
 {
 	$args[] = "--custom {$omim_file},OMIM,bed,overlap,0";
@@ -327,6 +329,14 @@ if (!$skip_ngsd)
 	{
 		trigger_error("BED file for NGSD gene annotation not found at '".$gene_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
 	}
+}
+
+//validate created VCF file
+
+//check vcf file
+if($check_lines >= 0)
+{
+	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $out -lines $check_lines -ref ".genome_fasta($build), true);
 }
 
 

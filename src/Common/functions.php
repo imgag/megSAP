@@ -769,4 +769,23 @@ function gzopen2($filename, $mode)
 	
 	return $handle;
 }
+
+//functions to encode and decode VCF INFO values using URL encoding
+$vcf_encode_mapping = array("%" => "%25", "\t" => "%09", "\n" => "%0a", "\r" => "%0d", " " => "%20", "," => "%2C", ";" => "%3B", "=" => "%3D");
+$vcf_decode_mapping = array_reverse(array_flip($vcf_encode_mapping));
+
+// encode string using URL encoding
+function vcf_encode_url_string($input_string)
+{
+	//encode string
+	return strtr($input_string, $GLOBALS['vcf_encode_mapping']);
+}
+// decode URL encoded string
+function vcf_decode_url_string($encoded_string)
+{
+	// define decode mapping:
+	// (also replaces newlines and tabs with spaces)
+	$additional_mapping = array("\t" => " ", "\n" => " ", "\r" => " ");
+	return strtr(strtr($encoded_string, $GLOBALS['vcf_decode_mapping']), $additional_mapping);
+}
 ?>
