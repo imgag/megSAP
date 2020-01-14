@@ -246,13 +246,15 @@ function sample_from_ngsd(&$db, $sample_name, $irp, $itp)
 	foreach($res as $row)
 	{
 		$sample = $row['name'];
-		list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} -run_finished -add_path | {$ngsbits}TsvSlice -cols 'name,path'");
+		list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} -run_finished -add_path | {$ngsbits}TsvSlice -cols 'name,project_type,path'");
 		foreach($stdout as $line)
 		{
 			$line = trim($line);
 			if ($line=="" || $line[0]=="#") continue;
-			
-			$output[$sample][] = explode("\t", $line);
+			list($ps, $project_type, $path) = explode("\t", $line);
+			if ($project_type=="research" && !$irp) continue;
+			if ($project_type=="test" && !$itp) continue;
+			$output[$sample][] = array($ps, $path);
 		}
 	}
 	
@@ -361,7 +363,7 @@ foreach($file as $line)
 			$bams_found = 0;
 			foreach($ps_data as list($ps, $folder))
 			{
-				$bam = "$folder/{$ps}.bam";
+				$bam = realpath("$folder/{$ps}.bam");
 				if (file_exists($bam))
 				{
 					++$bams_found;

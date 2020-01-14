@@ -9,7 +9,8 @@ $parser->addInfileArray("in", "Low-coverage BED files for several samples OR one
 $parser->addOutfile("out", "Output BED file with low-coverage regions.", false);
 //optional
 $parser->addInt("percentile", "Percentile of samples with low coverage needed for output.", true, 40);
-$parser->addFlag("tumor", "Only process tumor samples, otherwise only non-tumor samples are process).", true, 40);
+$parser->addFlag("tumor", "Only process tumor samples, otherwise only non-tumor samples are process).");
+$parser->addFlag("only_females", "Only process female samples (otherwise gaps for chrX are over-estimated).");
 extract($parser->parse($argv));
 
 //load input file names
@@ -53,7 +54,7 @@ foreach($in as $bed)
 	}
 	
 	//filter for female samples (otherwise results for chrX are wrong)
-	if ($info['gender']!="female")
+	if ($only_females && $info['gender']!="female")
 	{
 		print "skipping: $base (not 'female' gender)\n";
 		continue;

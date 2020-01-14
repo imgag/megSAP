@@ -49,7 +49,7 @@ function get_variants($vcf_gz, $roi, $normalize)
 		$pipeline[] = array("{$vcflib}vcfbreakmulti", "");
 		$pipeline[] = array("{$ngsbits}VcfLeftNormalize", "-ref $genome");
 	}
-	$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "-out {$tmp}");
+	$pipeline[] = array("{$ngsbits}VcfStreamSort", "-out {$tmp}");
 	$parser->execPipeline($pipeline, "variant extraction");
 	
 	//put together output

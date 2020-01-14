@@ -81,7 +81,7 @@ if (in_array("sv", $steps) && $is_wgs_shallow)
 }
 if (db_is_enabled("NGSD"))
 {
-	$db = DB::getInstance("NGSD");
+	$db = DB::getInstance("NGSD", false);
 	list($rc_id, $rc_vars_exist, $rc_cnvs_exist) = report_config($db, $name);
 	if (in_array("vc", $steps) && $rc_vars_exist)
 	{
@@ -207,7 +207,7 @@ if (in_array("ma", $steps))
 		$preserve_fastqs = false;
 		if (db_is_enabled("NGSD"))
 		{
-			$db = DB::getInstance("NGSD");
+			$db = DB::getInstance("NGSD", false);
 			$info = get_processed_sample_info($db, $name, false);
 			if (!is_null($info))
 			{

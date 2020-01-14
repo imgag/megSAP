@@ -1,3 +1,4 @@
+#track graphtype=heatmap viewLimits=0.0:1.0 color=0,0,255 altColor=255,255,255 midRange=0.001:0.02 midColor=204,204,255 windowingFunction=maximum
 Chromosome	Start	End	CN histogram (0-10)	AF TruSeqPCRfree
 chr1	9990	10989	0,1,0,12,0,0,0,0,0,0	0.02
 chr1	10989	11988	0,14,0,27,0,3,1,0,0,0	0.07

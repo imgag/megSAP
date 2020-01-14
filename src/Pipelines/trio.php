@@ -294,7 +294,7 @@ if (in_array("cn", $steps))
 //everything worked > import/update sample data in NGSD
 if (in_array("db", $steps) && db_is_enabled("NGSD"))
 {
-	$db_conn = DB::getInstance("NGSD");
+	$db_conn = DB::getInstance("NGSD", false);
 	
 	//gender father
 	$info_f = get_processed_sample_info($db_conn, $sample_f);
