@@ -296,8 +296,7 @@ if (in_array("vc", $steps))
 			"-out {$manta_sv}",
 			"-build ".$sys['build'],
 			"-smallIndels {$manta_indels}",
-			"-threads {$threads}",
-			"-fix_bam"
+			"-threads {$threads}"
 		];
 		if (!$single_sample)
 		{

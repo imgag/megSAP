@@ -55,6 +55,8 @@ if (!$skip_kmer && isset($roi))
 $params = array();
 $params[] = "--in ".implode(",", $in);
 $params[] = "--out ".implode(",", $out);
+//manta fix
+$params[] = "--no-edge-ci";
 if (!$skip_kmer && isset($roi))
 {
 	$params[] = "--target-kmers ".$kmer_file;

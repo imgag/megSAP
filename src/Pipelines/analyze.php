@@ -618,7 +618,6 @@ if (in_array("sv", $steps))
 		"-evid_dir ".$manta_evidence_dir,
 		"-out ".$sv_manta_file,
 		"-threads ".$threads,
-		"-fix_bam",
 		"-build ".$sys['build'],
 		"--log ".$log_sv
 	];
