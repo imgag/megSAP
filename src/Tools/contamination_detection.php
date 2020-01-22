@@ -10,6 +10,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //parse command line arguments
 $parser = new ToolBase("contamination_detection", "Detects which sample caused the contamination of a second sample.");
 $parser->addString("ps", "Processed sample identifier of contaminated sample.", false);
+$parser->addString("processing_system", "Short name of pocessing system to compare with. If unset, same system as of ps is used.", true);
 extract($parser->parse($argv));
 
 //init
@@ -90,6 +91,11 @@ print "##Selected ".count($vars)." variants (".number_format(100.0*count($vars)/
 //determine samples of the same processing system
 $tmp = temp_file(".tsv");
 $sys = $info['sys_name_short'];
+if(isset($processing_system))
+{
+	$sys = $processing_system;
+}
+
 $pipeline = [
 	["{$ngsbits}NGSDExportSamples", "-system {$sys} -no_bad_runs -no_bad_samples -no_tumor -no_ffpe -add_path"],
 	["{$ngsbits}TsvFilter", "-filter 'system_name_short is {$sys}'"], //this is necessary because NGSDExportSamples performs fuzzy match
