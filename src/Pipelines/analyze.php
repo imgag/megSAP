@@ -629,6 +629,13 @@ if (in_array("sv", $steps))
 	//create BEDPE files
 	$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
 	exec2("{$ngsbits}VcfToBedpe -in $sv_manta_file -out $bedpe_out");
+
+	//add gene info annotation
+	if (db_is_enabled("NGSD"))
+	{
+		exec2("{$ngsbits}BedpeGeneAnnotation -in $bedpe_out -out $bedpe_out -add_simple_gene_names");
+	}
+
 }
 
 ?>
