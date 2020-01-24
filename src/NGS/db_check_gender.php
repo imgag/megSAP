@@ -52,7 +52,7 @@ else
 		if ($stdout[0] == "chrY\t2655030\t2655644") //SRY is in roi
 		{
 			$method = "sry";
-			$args$ = "-sry_cov 10";
+			$args = "-sry_cov 10";
 		}
 	}
 }
