@@ -14,14 +14,12 @@ $parser->addString("gender", "Gender of the input. If unset, gender is looked up
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
-if(isset($gender)) //gender given > no NGSD connection is used
+//determine method and method parameters
+$method = "hetx"; //this is the slowest but safest method, always use this if nothing better is available
+$args = "";
+if(isset($gender)) //gender given > no NGSD connection is used, so nothing can be checked
 {
 	if ($gender!="male" && $gender!="female") trigger_error("Gender can only be 'male', 'female' and 'n/a'", E_USER_ERROR);
-	
-	//we don't know and cannot check
-	$is_wgs = false;
-	$sry_in_roi = false;
-	$is_rna = false;
 }
 else
 {
@@ -34,54 +32,33 @@ else
         $parser->log("Could not determine gender for processed sample '$pid' from DB '$db': gender not set in sample entry.");
         exit(0);
     }
+	
 	if ($info['sys_type']=="WGS" || $info['sys_type']=="WGS (shallow)")
 	{
-		$is_wgs = true;
-		$sry_in_roi = true;
-		$is_rna = false;
+		$method = "xy";
 	}
 	else if ($info['sys_type']=="WES")
 	{
-		$is_wgs = false;
-		$sry_in_roi = true;
-		$is_rna = false;
+		$method = "xy"; //defaults work for WES as well, e.g. in ssHAEv7 the distribution is 15% chrY in males and 0.2% chrY in females
 	}
 	else if ($info['sys_type']=="RNA")
 	{
-		$is_wgs = false;
-		$sry_in_roi = false;
-		$is_rna = true;
+		$method = "xy";
+		$args = "-min_male 0.012 -max_female 0.008";
 	}
 	else //check if sry is included in target region
 	{
-		$is_wgs = false;
 		list($stdout, $stderr) = exec2("echo -e 'chrY\\t2655030\\t2655644' | ".get_path("ngs-bits")."BedIntersect -in2 ".$info["sys_target"], false); //works for GRCh37 only
-		$sry_in_roi = ($stdout[0] == "chrY\t2655030\t2655644");
-		$is_rna = false;
+		if ($stdout[0] == "chrY\t2655030\t2655644") //SRY is in roi
+		{
+			$method = "sry";
+			$args$ = "-sry_cov 10";
+		}
 	}
 }
 
 //determine gender from BAM
-$extra = "";
-if ($is_wgs)
-{
-	$method = "xy";
-}
-else if ($is_rna)
-{
-	$method = "xy";
-	$extra = "-min_male 0.012 -max_female 0.008";
-}
-else if ($sry_in_roi)
-{
-	$method = "sry";
-	$extra = "-sry_cov 10";
-}
-else
-{
-	$method = "hetx";
-}
-list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-in {$in} -method {$method} {$extra}", true);
+list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-in {$in} -method {$method} {$args}", true);
 $gender2 = explode("\t", $stdout[1])[1];
 if (starts_with($gender2, "unknown"))
 {
