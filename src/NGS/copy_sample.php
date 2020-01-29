@@ -361,7 +361,7 @@ foreach($sample_data as $sample => $sample_infos)
 				}
 				else
 				{
-					trigger_error("Skipping {$tumor}-{$normal} somatic analysis because normal folder $n_dir does not exist!",E_USER_WARNING);
+					trigger_error("Skipping {$sample}-{$normal} somatic analysis because normal folder $n_dir does not exist!",E_USER_WARNING);
 				}
 			}
 			else
