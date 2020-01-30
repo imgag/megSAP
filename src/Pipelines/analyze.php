@@ -637,11 +637,12 @@ if (in_array("sv", $steps))
 	}
 
 	//add optional OMIM annotation
+	$data_folder = get_path("data_folder");
 	$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //OMIM annotation (optional because of license)
 
 	if(file_exists($omim_file))
 	{
-		exec2("{$ngsbits}BedpeAnnotateFromBed -in $bedpe_out -out $bedpe_out -add_simple_gene_names -bed $omim_file -url_decode -replace_underscore -col_name OMIM");
+		exec2("{$ngsbits}BedpeAnnotateFromBed -in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM");
 	}
 }
 
