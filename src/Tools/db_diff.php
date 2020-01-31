@@ -11,7 +11,6 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("db_diff", "Checks for schema differences between test and productive NGSD.");
 //optional
 $parser->addFlag("init", "Freshly initialize test database.");
-$parser->addFlag("local", "Create database TSV in current directory instead of in /tmp/ folder.");
 extract($parser->parse($argv));
 
 //Returns a description of the database in TSV format
@@ -21,23 +20,34 @@ function get_desc($db_name)
 	$db = DB::getInstance($db_name);
 	$tables = $db->getValues("SHOW TABLES");
 	sort($tables);
-	$fields = array("Field","Type","Null","Key","Default","Extra");
+	$description_fields = array("Field","Type","Null","Key","Default","Extra");
 	
-	$output = array();
-	$output[] = "#Table\t".implode("\t", $fields)."\n";
-	
+	$output = array();	
 	foreach($tables as $table)
 	{
 		$res = $db->executeQuery("DESCRIBE $table");
 		foreach($res as $row)
 		{
-			$line = "$table";
-			foreach($fields as $field)
+			$field_name = $row["Field"];
+			$tag = $table."/".$field_name;
+			
+			//DESCRIBE
+			foreach($description_fields as $description_field)
 			{
-				$line .= "\t".$row[$field];
+				$value = $row[$description_field];
+				//ignore order of enums
+				if ($description_field=="Type" && starts_with($value, "enum("))
+				{
+					$enum = substr($row["Type"], 6, -2);
+					$enum = explode("','", $enum);
+					sort($enum);	
+					$value = "enum('".implode("','", $enum)."')";
+				}
+				$output[$tag][$description_field] = $value;
 			}
-			$line .= "\n";
-			$output[] = $line;
+			
+			//comment
+			$output[$tag]["Comment"] = $db->getValue("SELECT COLUMN_COMMENT FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=database() AND TABLE_NAME='{$table}' AND COLUMN_NAME='{$field_name}'");			
 		}
 	}
 	return $output;
@@ -50,23 +60,36 @@ if ($init)
 }
 
 //diff columns
-if ($local)
-{
-	$file_p = "ngsd_prod.tsv";
-	$file_t = "ngsd_test.tsv";
-}
-else
-{
-	$file_p = $parser->tempFile("_prod.tsv");
-	$file_t = $parser->tempFile("_test.tsv");
-}
-file_put_contents($file_t, get_desc("NGSD"));
-file_put_contents($file_p, get_desc("NGSD_TEST"));
-exec("diff $file_p $file_t", $diff);
-foreach($diff as $line)
-{
-	print $line."\n";
-}
+$db_prod = get_desc("NGSD");
+$db_test = get_desc("NGSD_TEST");
 
+//determine all tags
+$tags = array_merge(array_keys($db_prod), array_keys($db_test));
+sort($tags);
+$tags = array_unique($tags);
+
+//search for additional/missing fields
+foreach($tags as $tag)
+{
+	if (!isset($db_prod[$tag]))
+	{
+		print "Missing table field in production database: $tag\n";
+	}
+	else if (!isset($db_test[$tag]))
+	{
+		print "Extra table field in production database: $tag\n";
+	}
+	else
+	{
+		$keys = array_keys($db_prod[$tag]);
+		foreach($keys as $key)
+		{
+			if ($db_prod[$tag][$key] != $db_test[$tag][$key])
+			{
+				print "Difference in {$tag} in property {$key}: is '".$db_prod[$tag][$key]."', but should be '".$db_test[$tag][$key]."'\n";
+			}
+		}
+	}
+}
 
 ?>
