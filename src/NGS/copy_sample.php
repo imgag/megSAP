@@ -405,7 +405,7 @@ foreach($sample_data as $sample => $sample_infos)
 
 //create Makefile
 $output = array();
-$output[] = "all: chmod import_runqc ";
+$output[] = "all: chmod import_runqc import_read_counts ";
 $output[] = "";
 
 //target 'chmod'
@@ -416,6 +416,11 @@ $output[] = "";
 //target 'import_runqc'
 $output[] = "import_runqc:";
 $output[] = "\tphp {$repo_folder}/src/NGS/runqc_parser.php -name \"{$run_name}\" -run_dir $folder/../ -force";
+$output[] = "";
+
+//target 'import_read_counts'
+$output[] = "import_read_counts:";
+$output[] = "\tphp {$repo_folder}/src/NGS/import_sample_read_counts.php -stats $folder/Stats/Stats.json -db $db ";
 $output[] = "";
 
 //target(s) 'copy_...'
