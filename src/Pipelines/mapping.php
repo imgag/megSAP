@@ -320,13 +320,9 @@ if($clip_overlap)
 	$bam_current = $tmp_bam2;
 }
 
-//move BAM to final output location
-$parser->moveFile($bam_current, $out);
-$parser->moveFile($bam_current.".bai", $out.".bai");
-
 //run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
-$params = array("-in $out", "-out $stafile2");
+$params = array("-in $bam_current", "-out $stafile2");
 if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
 {
 	$params[] = "-wgs";
@@ -340,5 +336,9 @@ if ($sys['build']!="GRCh37")
 	$params[] = "-no_cont";
 }
 $parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
+
+//move BAM to final output location
+$parser->moveFile($bam_current, $out);
+$parser->moveFile($bam_current.".bai", $out.".bai");
 
 ?>
