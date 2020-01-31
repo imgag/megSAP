@@ -32,6 +32,8 @@ sv:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps sv
 	# remove gene annotation
 	cut -f1-22 NA12878_03_manta_var_structural.bedpe > NA12878_03_manta_var_structural_cut.bedpe
+	# create file from OMIM annotation
+	cat NA12878_03_manta_var_structural.bedpe | rev | cut -f 1| rev > NA12878_03_manta_var_structural_cut2.bedpe
 
 diff:
 	php ../compare_variants.php -in1 NA12878_03.GSvar.out -in2 NA12878_03.GSvar
@@ -41,3 +43,4 @@ diff:
 	diff NA12878_03_cnvs.tsv.out NA12878_03_cnvs.tsv --ignore-matching-lines="CnvHunter version:"
 	php ../compare_bed.php NA12878_03_hpHBOCv5_lowcov.bed.out NA12878_03_hpHBOCv5_lowcov.bed
 	diff NA12878_03_manta_var_structural.bedpe.out NA12878_03_manta_var_structural_cut.bedpe --ignore-matching-lines="^##"
+	diff NA12878_03_manta_var_structural_omim_col.bedpe.out NA12878_03_manta_var_structural_cut2.bedpe --ignore-matching-lines="^##"
