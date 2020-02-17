@@ -1560,4 +1560,31 @@ function report_config(&$db_conn, $name, $error_if_not_found=false)
 	
 	return array($rc_id, count($var_ids)>0, count($cnv_ids)>0);
 }
+
+//Returns cytobands of given genomic range as array
+function cytoBands($chr, $start, $end)
+{
+	$handle = fopen(repository_basedir()."/data/misc/cytoBand.txt", "r");
+	
+	$out = array();
+	
+	while(!feof($handle))
+	{
+		$line = trim(fgets($handle));
+		if(empty($line)) continue;
+		list($cchr, $cstart, $cend, $cname) = explode( "\t", $line );
+		if($chr != $cchr) continue;
+		
+		if(range_overlap($start, $end, $cstart, $cend))
+		{
+			$out[] =  $cname;
+		}
+	}
+	fclose($handle);
+
+	asort($out);
+	
+	return $out;
+}
+
 ?>
