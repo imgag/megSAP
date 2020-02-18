@@ -495,6 +495,23 @@ function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 	return $res[0]['id'];
 }
 
+///returns array with processed sample names in the form DX******_** from run name
+function get_processed_samples_from_run(&$db, $run_id)
+{
+	$query = "SELECT ps.process_id, s.name FROM sequencing_run as run, processed_sample as ps, sample as s WHERE run.name = '{$run_id}' AND ps.sequencing_run_id = run.id AND s.id = ps.sample_id";
+	
+	$res = $db->executeQuery($query);
+	
+	$sample_names = array();
+	
+	foreach($res as $data)
+	{
+		$sample_names[] = $data['name'] . "_" . str_pad($data['process_id'],2,'0',STR_PAD_LEFT);
+	}
+	
+	return $sample_names;
+}
+
 ///Updates normal sample entry for given tumor sample.
 function updateNormalSample(&$db_conn, $ps_tumor, $ps_normal, $overwrite = false)
 {

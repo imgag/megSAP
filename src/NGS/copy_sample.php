@@ -142,6 +142,45 @@ function check_number_of_lanes($run_info_xml_file, $sample_sheet)
 	return true;
 }
 
+//Checks whether there is former run containing more than 50% same sample names of current run
+function check_former_run(&$db, $current_run)
+{
+	$res = $db->getValues("SELECT id FROM sequencing_run WHERE name='{$current_run}'");
+	if(count($res) != 1)
+	{
+		trigger_error("Could not find info for run '{$current_run}'.\nNo check for former run to be merged...", E_USER_WARNING);
+		return "";
+	}
+	$current_id = $res[0];
+	
+	$current_samples = get_processed_samples_from_run($db, $current_run);
+	for($i=0; $i<count($current_samples); ++$i)
+	{
+		$current_samples[$i] = explode("_",$current_samples[$i])[0];
+	}
+	
+	//Check former 50 runs
+	$res = $db->executeQuery($query = "SELECT id,name FROM sequencing_run WHERE id < $current_id AND id > $current_id - 50");
+	foreach($res as $res2)
+	{
+		$other_ps = get_processed_samples_from_run($db, $res2["name"]);
+		
+		for($i=0; $i<count($other_ps); ++$i)
+		{
+			$other_ps[$i] = explode("_", $other_ps[$i])[0];
+		}
+		
+		
+		if(count(array_intersect($current_samples, $other_ps)) > count($current_samples)/2 )
+		{
+			return $res2["name"];
+		}
+
+	}
+	return "";
+}
+
+
 //init
 if (!isset($out)) $out = "Makefile";
 $db_conn = DB::getInstance($db);
@@ -403,6 +442,72 @@ foreach($sample_data as $sample => $sample_infos)
 	}
 }
 
+
+//Check for former run which can be merged
+$path_parts = explode("/", realpath($folder));
+$current_run = "";
+//Determine current run name from path
+foreach($path_parts as $part)
+{
+	if(strpos($part, "_") !== false) 
+	{
+		$dir_parts = explode("_", $part);
+		if(count($dir_parts) == 5) //dir nomenclature according illumina + "_run number"
+		{
+			$current_run = "#" . $dir_parts[count($dir_parts)-1]; //last part is run number
+			break;
+		}
+	}
+}
+
+//Check for former run that contains more than 50% same samples and offer merging to user
+$former_run = "";
+$merge_files = array(); //contains merge commands, commands are inserted before queue
+
+if($current_run != "")
+{
+	$former_run =  check_former_run($db_conn, $current_run);
+	echo "Former run '{$former_run}' detected. Merge (y/n)?\n";
+	$answer = trim(fgets(STDIN));
+	
+	if($answer == "y")
+	{
+		$old_samples = array();
+		foreach(get_processed_samples_from_run($db_conn, $former_run) as $ps)
+		{
+			$key = explode("_", $ps)[0];
+			$old_samples[$key] = $ps;
+		}
+		$current_samples = array();
+		
+		foreach(get_processed_samples_from_run($db_conn, $current_run) as $ps)
+		{
+			$key = explode("_", $ps)[0];
+			$current_samples[$key] = $ps;
+		}
+		
+		$merge_files[] = "merge:";
+		
+		//match samples from old and new run
+		foreach($current_samples as $current_key => $current_ps)
+		{
+			if(array_key_exists($current_key, $old_samples))
+			{
+				$merge_files[] = "\tphp {$repo_folder}/src/Tools/merge_samples.php -ps ".$old_samples[$current_key]." -into $current_ps";
+			}
+		}
+	}
+	elseif($answer != "n")
+	{
+		trigger_error("Please choose whether files from both runs shall be merged.", E_USER_ERROR);
+	}
+}
+else
+{
+	trigger_error("Could not determine current run name. Skipping check for former run that could be merged into current run.", E_USER_WARNING);
+}
+
+
 //create Makefile
 $output = array();
 $output[] = "all: chmod import_runqc import_read_counts ";
@@ -432,6 +537,15 @@ foreach ($target_to_copylines as $target => $lines)
 	$output = array_merge($output, array_unique($lines));
 	$output[] = "";
 }
+
+//target 'merge'
+if(count($merge_files) > 0)
+{
+	$all_parts[] = "merge";
+	$output = array_merge($output, $merge_files);
+	$output[] = "";
+}
+
 	
 //target(s) 'queue_...'
 foreach ($target_to_queuelines as $target => $lines)
