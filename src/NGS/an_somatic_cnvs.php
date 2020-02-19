@@ -10,16 +10,20 @@ $parser = new ToolBase("an_somatic_cnvs", "Annotates additional somatic data to 
 $parser->addInfile("cnv_in", "Input .gsvar-file with SNV data.", false);
 $parser->addInfile("cnv_in_cgi", "Input CGI data with SNV annotations",true);
 $parser->addFlag("include_ncg", "Annotate column with info from NCG6.0 whether a gene is TSG or oncogene");
+$parser->addFlag("include_cytoband", "Annotate column with cytoband names.");
 $parser->addInfile("rna_counts", "Annotate transcript counts from RNA counts file", true);
 $parser->addString("rna_id", "Processed sample ID of RNA to be annotated.", true);
 $parser->addString("rna_ref_tissue", "RNA tissue type for annotation of RNA reference transciptome data.", true);
 $parser->addOutfile("out", "Output file name", false);
 extract($parser->parse($argv));
 
-if(!isset($cnv_in_cgi) && !$include_ncg && !isset($rna_counts))
+if(!isset($cnv_in_cgi) && !$include_ncg && !isset($rna_counts) && !$include_cytoband)
 {
 	trigger_error("At least one input file with annotation data must be given.", E_USER_ERROR);
 }
+
+$cnv_input = Matrix::fromTSV($cnv_in);
+
 
 if(isset($cnv_in_cgi))
 {
@@ -128,61 +132,52 @@ if(isset($cnv_in_cgi))
 		}
 	}
 
-	$output = $cnv_input;
+
 
 	//remove old CGI data
 
-	if($output->getColumnIndex("CGI_drug_assoc",false,false) !== false)
+	if($cnv_input->getColumnIndex("CGI_drug_assoc",false,false) !== false)
 	{
-		$output->removeCol($output->getColumnIndex("CGI_drug_assoc"));
+		$cnv_input->removeCol($cnv_input->getColumnIndex("CGI_drug_assoc"));
 	}
-	if($output->getColumnIndex("CGI_evid_level",false,false) !== false)
+	if($cnv_input->getColumnIndex("CGI_evid_level",false,false) !== false)
 	{
-		$output->removeCol($output->getColumnIndex("CGI_evid_level"));
+		$cnv_input->removeCol($cnv_input->getColumnIndex("CGI_evid_level"));
 	}
-	if($output->getColumnIndex("CGI_genes",false,false) !== false)
+	if($cnv_input->getColumnIndex("CGI_genes",false,false) !== false)
 	{
-		$output->removeCol($output->getColumnIndex("CGI_genes"));
+		$cnv_input->removeCol($cnv_input->getColumnIndex("CGI_genes"));
 	}
-	if($output->getColumnIndex("CGI_driver_statement",false,false) !== false)
+	if($cnv_input->getColumnIndex("CGI_driver_statement",false,false) !== false)
 	{
-		$output->removeCol($output->getColumnIndex("CGI_driver_statement"));
+		$cnv_input->removeCol($cnv_input->getColumnIndex("CGI_driver_statement"));
 	}
-	if($output->getColumnIndex("CGI_gene_role",false,false) !== false)
+	if($cnv_input->getColumnIndex("CGI_gene_role",false,false) !== false)
 	{
-		$output->removeCol($output->getColumnIndex("CGI_gene_role"));
+		$cnv_input->removeCol($cnv_input->getColumnIndex("CGI_gene_role"));
 	}
 
 	//add CGI data
 	$cancertype = $cgi_input->get(0,$cgi_input->getColumnIndex("cancer"));
 
-	$comments = $output->getComments();
+	$comments = $cnv_input->getComments();
 	for($i=0;$i<count($comments);++$i)
 	{
 		if(strpos($comments[$i],"#CGI_CANCER_TYPE") !== false)
 		{
-			$output->removeComment($comments[$i]);
+			$cnv_input->removeComment($comments[$i]);
 		}
 	}
-	$output->addComment("#CGI_CANCER_TYPE={$cancertype}");
+	$cnv_input->addComment("#CGI_CANCER_TYPE={$cancertype}");
 
-	$output->addCol($new_genes,"CGI_genes","Genes which were included in CancerGenomeInterpreter.org analysis.");
-	$output->addCol($new_driver_statement,"CGI_driver_statement","Driver statement for cancer type $cancertype according CancerGenomeInterpreter.org");
-	$output->addCol($new_gene_role,"CGI_gene_role","Gene role for cancer type $cancertype according CancerGenomeInterpreter.org");
-	$output->toTSV($out);
+	$cnv_input->addCol($new_genes,"CGI_genes","Genes which were included in CancerGenomeInterpreter.org analysis.");
+	$cnv_input->addCol($new_driver_statement,"CGI_driver_statement","Driver statement for cancer type $cancertype according CancerGenomeInterpreter.org");
+	$cnv_input->addCol($new_gene_role,"CGI_gene_role","Gene role for cancer type $cancertype according CancerGenomeInterpreter.org");
 }
 
 if($include_ncg)
 {
-	if(isset($cnv_in_cgi)) //use new cgi-annotated file if new annotated
-	{
-		$cnv_input = Matrix::fromTSV($out);
-	}
-	else 
-	{
-		$cnv_input = Matrix::fromTSV($cnv_in);
-	}
-	
+
 	$i_cgi_genes = $cnv_input->getColumnIndex("CGI_genes",false,false);
 	
 	if($i_cgi_genes === false) 
@@ -216,21 +211,22 @@ if($include_ncg)
 	}
 	$cnv_input->addCol($col_oncogene,"ncg_oncogene","1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column CGI_genes.");
 	$cnv_input->addCol($col_tsg,"ncg_tsg","1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column CGI_genes.");
-	
-	$cnv_input->toTSV($out);
+}
+
+if($include_cytoband)
+{
+	//determine cytobands
+	$cytobands = array();
+	for($i=0;$i<$cnv_input->rows();++$i)
+	{
+		list($chr, $start, $end) = $cnv_input->getRow($i);
+		$cytobands[] = implode(",", cytobands($chr, $start, $end));
+	}
+	$cnv_input->addCol($cytobands, "cytoband", "Cytobands that are affected by CNV.");
 }
 
 if(isset($rna_counts))
 {
-	if(isset($cnv_in_cgi) || $include_ncg) //use fresh cgi/ncg-annotated file if newly annotated
-	{
-		$cnv_input = Matrix::fromTSV($out);
-	}
-	else 
-	{
-		$cnv_input = Matrix::fromTSV($cnv_in);
-	}
-	
 	//Resubstitute zeroes by spaces (opposite happens in somatic_dna.php)
 	$rna_ref_tissue = str_replace("0", " ", $rna_ref_tissue);
 	
@@ -359,8 +355,8 @@ if(isset($rna_counts))
 	
 	$cnv_input->removeColByName("rna_ref_tpm");
 	$cnv_input->addCol($new_col_ref, "rna_ref_tpm", "RNA reference data in transcripts per million for tissue {$rna_ref_tissue} from proteinatlas.org.");
-	
-	$cnv_input->toTSV($out);
 }
+
+$cnv_input->toTSV($out);
 
 ?>

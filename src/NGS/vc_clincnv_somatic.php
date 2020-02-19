@@ -305,6 +305,8 @@ function chmod_recursive($folder)
 }
 chmod_recursive($cohort_folder);
 
+echo($call_cnvs_exec_path . " " .implode(" ", $args));
+echo "\n";
 $parser->exec($call_cnvs_exec_path,implode(" ",$args),true);
 chmod_recursive($cohort_folder);
 
@@ -459,17 +461,6 @@ for($i=0;$i<$cnvs->rows();++$i)
 	$new_col[] = $tmp_type;
 }
 $cnvs->addCol($new_col, "cnv_type","Type of CNV: focal (< 25 % of chrom. arm, < 3 genes), cluster (focal, > 3 genes), (partial) p/q-arm, (partial) chromosome.");
-
-
-//determine cytobands
-$cytobands = array();
-for($i=0;$i<$cnvs->rows();++$i)
-{
-	list($chr, $start, $end) = $cnvs->getRow($i);
-	$cytobands[] = implode(",", cytobands($chr, $start, $end));
-}
-
-$cnvs->addCol($cytobands, "cytoband", "Cytobands that are affected by CNV.");
 
 
 //store output tsv file
