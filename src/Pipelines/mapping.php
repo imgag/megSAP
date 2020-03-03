@@ -237,7 +237,7 @@ if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 {
 	if($sys['type']=="WGS (shallow)")
 	{
-		trigger_error("Skipping indel realignment - it is not needed for shallow WGS samples since no variant calling is preformed!", E_USER_NOTICE);
+		trigger_error("Skipping indel realignment - it is not needed for shallow WGS samples since no variant calling is performed!", E_USER_NOTICE);
 	}
 	else
 	{
