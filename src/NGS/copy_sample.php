@@ -467,39 +467,42 @@ $merge_files = array(); //contains merge commands, commands are inserted before 
 if($current_run != "")
 {
 	$former_run =  check_former_run($db_conn, $current_run);
-	echo "Former run '{$former_run}' detected. Merge (y/n)?\n";
-	$answer = trim(fgets(STDIN));
-	
-	if($answer == "y")
+	if($former_run != "")
 	{
-		$old_samples = array();
-		foreach(get_processed_samples_from_run($db_conn, $former_run) as $ps)
-		{
-			$key = explode("_", $ps)[0];
-			$old_samples[$key] = $ps;
-		}
-		$current_samples = array();
+		echo "Former run '{$former_run}' detected. Merge (y/n)?\n";
+		$answer = trim(fgets(STDIN));
 		
-		foreach(get_processed_samples_from_run($db_conn, $current_run) as $ps)
+		if($answer == "y")
 		{
-			$key = explode("_", $ps)[0];
-			$current_samples[$key] = $ps;
-		}
-		
-		$merge_files[] = "merge:";
-		
-		//match samples from old and new run
-		foreach($current_samples as $current_key => $current_ps)
-		{
-			if(array_key_exists($current_key, $old_samples))
+			$old_samples = array();
+			foreach(get_processed_samples_from_run($db_conn, $former_run) as $ps)
 			{
-				$merge_files[] = "\tphp {$repo_folder}/src/Tools/merge_samples.php -ps ".$old_samples[$current_key]." -into $current_ps";
+				$key = explode("_", $ps)[0];
+				$old_samples[$key] = $ps;
+			}
+			$current_samples = array();
+			
+			foreach(get_processed_samples_from_run($db_conn, $current_run) as $ps)
+			{
+				$key = explode("_", $ps)[0];
+				$current_samples[$key] = $ps;
+			}
+			
+			$merge_files[] = "merge:";
+			
+			//match samples from old and new run
+			foreach($current_samples as $current_key => $current_ps)
+			{
+				if(array_key_exists($current_key, $old_samples))
+				{
+					$merge_files[] = "\tphp {$repo_folder}/src/Tools/merge_samples.php -ps ".$old_samples[$current_key]." -into $current_ps";
+				}
 			}
 		}
-	}
-	elseif($answer != "n")
-	{
-		trigger_error("Please choose whether files from both runs shall be merged.", E_USER_ERROR);
+		elseif($answer != "n")
+		{
+			trigger_error("Please choose whether files from both runs shall be merged.", E_USER_ERROR);
+		}
 	}
 }
 else
