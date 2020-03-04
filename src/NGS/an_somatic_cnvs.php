@@ -222,6 +222,9 @@ if($include_cytoband)
 		list($chr, $start, $end) = $cnv_input->getRow($i);
 		$cytobands[] = implode(",", cytobands($chr, $start, $end));
 	}
+	$cnv_input->removeComment("cytoband", true);
+	$cnv_input->removeColByName("cytoband");
+	
 	$cnv_input->addCol($cytobands, "cytoband", "Cytobands that are affected by CNV.");
 }
 
