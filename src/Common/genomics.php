@@ -1578,6 +1578,25 @@ function report_config(&$db_conn, $name, $error_if_not_found=false)
 	return array($rc_id, count($var_ids)>0, count($cnv_ids)>0);
 }
 
+function somatic_report_config(&$db_conn, $t_ps, $n_ps, $error_if_not_found=false)
+{
+	$t_ps_id = get_processed_sample_id($db_conn, $t_ps, $error_if_not_found);
+	$n_ps_id = get_processed_sample_id($db_conn, $n_ps, $error_if_not_found);
+	
+	$config_id = $db_conn->getValue("SELECT id FROM somatic_report_configuration WHERE ps_tumor_id='{$t_ps_id}' AND ps_normal_id='{$n_ps_id}'", -1);
+	
+	if($error_if_not_found && $config_id == -1)
+	{
+		trigger_error("Could not find somatic report id for $t_ps_id {$n_ps_id}.", E_USER_ERROR);
+	}
+	
+	
+	$var_ids = $db_conn->getValues("SELECT id FROM somatic_report_configuration_variant WHERE somatic_report_configuration_id=".$config_id);
+	$cnv_ids = $db_conn->getValues("SELECT id FROM somatic_report_configuration_cnv WHERE somatic_report_configuration_id=".$config_id);
+	
+	return array($config_id, count($var_ids)>0, count($cnv_ids) > 0);	
+}
+
 //Returns cytobands of given genomic range as array
 function cytoBands($chr, $start, $end)
 {

@@ -189,6 +189,23 @@ if (!$single_sample)
 	}
 }
 
+//Disable steps "vc" and "cnv" if somatic report config exists in NGSD
+if (db_is_enabled("NGSD"))
+{
+	$db = DB::getInstance("NGSD", false);
+	list($config_id, $config_vars_exist, $config_cnvs_exist) = somatic_report_config($db, $t_id, $n_id);
+	if (in_array("vc", $steps) && $config_vars_exist)
+	{
+		trigger_error("Skipping step 'vc' - Somatic report configuration with small variants exists in NGSD!", E_USER_NOTICE);
+		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
+	}
+	if (in_array("cn", $steps) && $config_vars_exist)
+	{
+		trigger_error("Skipping step 'cn' - Somatic report configuration with CNVs exists in NGSD!", E_USER_NOTICE);
+		if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
+	}
+}
+
 //For RNA annotation. If $t_rna_bam is set, it will be overwritten.
 if(isset($rna_id))
 {
@@ -1021,10 +1038,17 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			$s_id_n = $n_info['s_id'];
 			$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$s_id_t},'tumor-normal',{$s_id_n})");
 
-			// import variants (not for WGS)
+			
+			// import SNVS (not for WGS)
 			if (file_exists($variants_gsvar) && $sys['type'] !== "WGS")
 			{
-				$parser->execTool("NGS/db_import_variants.php", "-id {$t_id}-{$n_id} -var {$variants_gsvar} -build ".$sys['build']." -force -mode somatic");
+				
+				$parser->exec(get_path("ngs-bits") . "/NGSDAddVariantsSomatic", " -t_ps $t_id -n_ps $n_id -var $variants_gsvar -var_force");
+			}
+			
+			if(file_exists($som_clincnv) && $sys['type'] !== "WGS")
+			{
+				$parser->exec(get_path("ngs-bits") . "/NGSDAddVariantsSomatic", " -t_ps $t_id -n_ps $n_id -cnv $som_clincnv -cnv_force");
 			}
 		}
 	}
