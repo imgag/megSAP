@@ -35,8 +35,13 @@ foreach($samples as $ps)
 	$info = get_processed_sample_info($db, $ps);
 	$quality = $info['ps_quality'];
 	if ($quality=="bad") trigger_error("Sample '$ps' has 'bad' quality!", E_USER_ERROR);
+	
 	$bam = $info['ps_bam'];
-	if (!file_exists($bam)) trigger_error("Sample '$ps' BAM file is missing: $bam", E_USER_ERROR);
+	$fastqs = glob($info['ps_folder']."/*.fastq.gz");
+	if (count($fastqs)==0 && !file_exists($bam))
+	{
+		trigger_error("Sample '$ps': BAM file is missing and no FASTQs found!", E_USER_ERROR);
+	}
 	
 	$gender = $info['gender'];
 	$external = $info['name_external'];
@@ -54,9 +59,20 @@ foreach($samples as $ps)
 {
 	print "  $ps\n";
 	$info = get_processed_sample_info($db, $ps);
-	$bam = $info['ps_bam'];
 	
-	exec2("{$ngsbits}/BamToFastq -in {$bam} -out1 {$out}/{$ps}_R1_001.fastq.gz -out2 {$out}/{$ps}_R2_001.fastq.gz");
+	$fastqs = glob($info['ps_folder']."/*.fastq.gz");
+	if (count($fastqs)>0)
+	{
+		foreach($fastqs as $fastq)
+		{
+			exec2("ln -s {$fastq} {$out}/".basename($fastq));
+		}
+	}
+	else
+	{
+		$bam = $info['ps_bam'];
+		exec2("{$ngsbits}/BamToFastq -in {$bam} -out1 {$out}/{$ps}_R1_001.fastq.gz -out2 {$out}/{$ps}_R2_001.fastq.gz");
+	}
 }
 
 //zip
