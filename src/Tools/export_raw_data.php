@@ -20,7 +20,8 @@ $ngsbits = get_path("ngs-bits");
 //check folder
 if (!file_exists($out) || !is_dir($out))
 {
-	trigger_error("Output folder '$out' is missing!", E_USER_ERROR);
+	print "Output folder '$out' is missing - creating it ...\n";
+	mkdir($out, 0777, true);
 }
 
 //check and create meta data file
@@ -60,6 +61,12 @@ foreach($samples as $ps)
 
 //zip
 print "Zipping output folder...\n";
-exec2("zip -r {$out}.zip $out");
+exec2("zip -r {$out}.zip $out"); //TODO -e for excryption?
+
+//move
+print "You can move the file to the webserver using:\n";
+$user = exec('whoami');
+print "scp {$out}.zip {$user}@imgag.de:/var/www/html/download/{$user}/\n";
+
 
 ?>
