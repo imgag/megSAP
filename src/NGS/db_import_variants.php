@@ -159,7 +159,7 @@ function getVariantQuality($row, $i_qual)
 
 //check processed sample ID format
 $samples = array();
-if(preg_match("/^([A-Za-z0-9]{4,})_(\d{2})$/", $id, $matches))
+if(preg_match("/^([A-Za-z0-9\-]{4,})_(\d{2})$/", $id, $matches))
 {
 	if ($mode=="germline")
 	{
