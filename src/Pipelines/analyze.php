@@ -570,6 +570,50 @@ if (in_array("cn", $steps))
 	}
 }
 
+//structural variants
+if (in_array("sv", $steps))
+{
+	if(file_exists($log_sv)) unlink($log_sv);
+	
+	//SV calling with manta
+	$manta_evidence_dir = "{$out_folder}/manta_evid";
+	create_directory($manta_evidence_dir);
+
+	$manta_args = [
+		"-bam ".$bamfile,
+		"-evid_dir ".$manta_evidence_dir,
+		"-out ".$sv_manta_file,
+		"-threads ".$threads,
+		"-build ".$sys['build'],
+		"--log ".$log_sv
+	];
+	if($has_roi) $manta_args[] = "-target ".$sys['target_file'];
+	if(!$is_wgs) $manta_args[] = "-exome";
+	
+	$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
+
+	//create BEDPE files
+	$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
+	exec2("{$ngsbits}VcfToBedpe -in $sv_manta_file -out $bedpe_out");
+
+	//add gene info annotation and NGSD counts
+	if (db_is_enabled("NGSD"))
+	{
+		exec2("{$ngsbits}BedpeGeneAnnotation -in $bedpe_out -out $bedpe_out -add_simple_gene_names");
+		exec2("{$ngsbits}NGSDAnnotateSV -in $bedpe_out -out $bedpe_out -ps $name");
+	}
+
+	//add optional OMIM annotation
+	$data_folder = get_path("data_folder");
+	$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //OMIM annotation (optional because of license)
+
+	if(file_exists($omim_file))
+	{
+		exec2("{$ngsbits}BedpeAnnotateFromBed -in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM");
+	}
+
+}
+
 //import to database
 if (in_array("db", $steps))
 {
@@ -598,52 +642,18 @@ if (in_array("db", $steps))
 		$args[] = "-cnv_force";
 		$import = true;
 	}
+	if (file_exists($bedpe_out))
+	{
+		$args[] = "-sv {$bedpe_out}";
+		$args[] = "-sv_force";
+		$import = true;
+	}
 	if ($import)
 	{
 		$parser->exec("{$ngsbits}NGSDAddVariantsGermline", implode(" ", $args), true);
 	}
 }
 
-//structural variants
-if (in_array("sv", $steps))
-{
-	if(file_exists($log_sv)) unlink($log_sv);
-	
-	//SV calling with manta
-	$manta_evidence_dir = "{$out_folder}/manta_evid";
-	create_directory($manta_evidence_dir);
 
-	$manta_args = [
-		"-bam ".$bamfile,
-		"-evid_dir ".$manta_evidence_dir,
-		"-out ".$sv_manta_file,
-		"-threads ".$threads,
-		"-build ".$sys['build'],
-		"--log ".$log_sv
-	];
-	if($has_roi) $manta_args[] = "-target ".$sys['target_file'];
-	if(!$is_wgs) $manta_args[] = "-exome";
-	
-	$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
-
-	//create BEDPE files
-	$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
-	exec2("{$ngsbits}VcfToBedpe -in $sv_manta_file -out $bedpe_out");
-
-	//add gene info annotation
-	if (db_is_enabled("NGSD"))
-	{
-		exec2("{$ngsbits}BedpeGeneAnnotation -in $bedpe_out -out $bedpe_out -add_simple_gene_names");
-	}
-
-	//add optional OMIM annotation
-	$data_folder = get_path("data_folder");
-	$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //OMIM annotation (optional because of license)
-
-	if(file_exists($omim_file))
-	{
-		exec2("{$ngsbits}BedpeAnnotateFromBed -in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM");
-	}
-}
 
 ?>
