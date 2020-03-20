@@ -15,7 +15,7 @@ genome=$root/genomes/GRCh37.fa
 cd $dbs
 mkdir ClinGen
 cd ClinGen
-wget ftp://ftp.ncbi.nlm.nih.gov/pub/dbVar/clingen/ClinGen_gene_curation_list_GRCh37.tsv
+wget ftp://ftp.clinicalgenome.org/ClinGen_gene_curation_list_GRCh37.tsv
 cat ClinGen_gene_curation_list_GRCh37.tsv | php $src/Tools/db_converter_clingen_dosage.php > dosage_sensitive_disease_genes.bed
 $ngsbits/BedSort -in dosage_sensitive_disease_genes.bed -out dosage_sensitive_disease_genes.bed
 
