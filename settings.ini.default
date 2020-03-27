@@ -15,7 +15,7 @@ bwa = [path]/data/tools/bwa-0.7.17/bwa
 vep = [path]/data/tools/ensembl-vep-release-96.3/vep
 vep_data = [path]/data/dbs/ensembl-vep-96/
 interop = [path]/data/tools/InterOp-1.0.25-Linux-GNU-4.8.2/bin/summary
-clincnv = Rscript --vanilla [path]/data/tools/ClinCNV-1.16.5/
+clincnv = Rscript --vanilla [path]/data/tools/ClinCNV-1.16.6/
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.9.centos6_x86_64/bin/

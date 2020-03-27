@@ -256,7 +256,6 @@ if (in_array("an", $steps))
 	
 	//determine gender of child
 	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c", true);
-	print_r($stdout);
 	$gender_data = explode("\t", $stdout[1])[1];
 	if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 	print "Gender of child (from data): {$gender_data}\n";
