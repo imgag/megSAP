@@ -200,9 +200,15 @@ if(db_is_enabled($db))
 			$res = $db->executeQuery("SELECT id, class, comment FROM somatic_variant_classification WHERE variant_id = $variant_id");
 			
 			if(!empty($res))
-			{
+			{				
 				$som_classifications[] = $res[0]["class"];
-				$som_class_comments[] = $res[0]["comment"];
+				$tmp = $res[0]["comment"];
+				//replace \t and \n
+				$tmp = str_replace("\t"," ",$tmp);
+				$tmp = str_replace("\n", " ", $tmp);
+				
+				$som_class_comments[] = $tmp;
+				
 			}
 			else
 			{
