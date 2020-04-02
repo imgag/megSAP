@@ -12,10 +12,10 @@ $parser = new ToolBase("validate_NA12878", "Validates the performance of a seque
 $parser->addInfile("vcf", "Input variant list of sequencing experiment (VCF.GZ format).", false);
 $parser->addInfile("bam", "Mapped reads of sequencing experiment (BAM format).", false);
 $parser->addInfile("roi", "Target region of sequencing experiment (BED format).", false);
+$parser->addOutfile("stats", "Append statistics to this file.", false);
 //optional
 $parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf' file base name is used.", true);
 $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the given depth are evaluated.", true, 0);
-$parser->addOutfile("stats", "Write statistics to this file instead of STDOUT.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
@@ -245,9 +245,8 @@ function stats_line($name, $options, $date, $expected, $var_diff, $var_type=null
 	
 	//count FP/FN
 	$fp = 0;
-	$fp_geno = 0;
 	$fn = 0;
-	$fn_geno = 0;
+	$gt_false = 0;
 	foreach($var_diff as $pos => list($type, $ref, $obs))
 	{
 		if (!is_null($var_type))
@@ -262,16 +261,7 @@ function stats_line($name, $options, $date, $expected, $var_diff, $var_type=null
 		}
 		if ($type=="g")
 		{
-			if($obs['GT']=="1/1")
-			{
-				$fp++;
-				$fp_geno++;
-			}
-			else
-			{
-				$fn++;
-				$fn_geno++;
-			}
+			++$gt_false;
 		}
 		if ($type=="+")
 		{	
@@ -284,9 +274,10 @@ function stats_line($name, $options, $date, $expected, $var_diff, $var_type=null
 	$recall = number_format($tp/($tp+$fn),5);
 	$precision = number_format($tp/($tp+$fp),5);
 	$spec = number_format($tn/($tn+$fp),5);
+	$geno_acc = number_format(($tp-$gt_false)/$tp,5);
 	
 	if (!is_null($var_type)) $name .= " ".$var_type;
-	return implode("\t", array($name, $options, $date, $c_expected, $tp, $tn, "{$fp} ({$fp_geno} genotype)", "{$fn} ({$fn_geno} genotype)", $recall, $precision, $spec));
+	return implode("\t", array($name, $options, $date, $c_expected, $tp, $tn, $fp, $fn, $gt_false, $recall, $precision, $spec, $geno_acc));
 }
 
 if ($name=="") $name = basename($vcf, ".vcf.gz");
@@ -295,10 +286,19 @@ if ($min_dp>0) $options[] = "min_dp={$min_dp}";
 $options = implode(" ", $options);
 $date = strtr(date("Y-m-d H:i:s", filemtime($vcf)), "T", " ");
 $output = array();
-$output[] = "#name\toptions\tdate\texpected variants\tTP\tTN\tFP\tFN\trecall/sensitivity\tprecision/ppv\tspecificity";
+$output[] = "#name\toptions\tdate\texpected variants\tTP\tTN\tFP\tFN\tgenotyping_errors\trecall/sensitivity\tprecision/ppv\tspecificity\tgenotyping_accuracy";
+if (file_exists($stats))
+{
+	foreach(file($stats) as $line)
+	{
+		$line = trim($line);
+		if ($line=="" || $line[0]=="#") continue;
+		$output[] = $line;
+	}
+}
 $output[] = stats_line($name, $options, $date, $expected, $var_diff);
 $output[] = stats_line($name, $options, $date, $expected, $var_diff, "SNVS");
 $output[] = stats_line($name, $options, $date, $expected, $var_diff, "INDELS");
-file_put_contents(isset($stats) ? $stats  : "php://stdout", implode("\n", $output)."\n");
+file_put_contents($stats, implode("\n", $output)."\n");
 
 ?>
