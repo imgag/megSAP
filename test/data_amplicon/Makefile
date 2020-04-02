@@ -40,7 +40,7 @@ diff:
 	php ../compare_qcml_xml.php NA12878_03_stats_fastq.qcML.out NA12878_03_stats_fastq.qcML
 	php ../compare_qcml_xml.php NA12878_03_stats_map.qcML.out NA12878_03_stats_map.qcML
 	php ../compare_qcml_xml.php NA12878_03_stats_vc.qcML.out NA12878_03_stats_vc.qcML
-	diff NA12878_03_cnvs.tsv.out NA12878_03_cnvs.tsv --ignore-matching-lines="CnvHunter version:"
+	diff NA12878_03_cnvs.tsv.out NA12878_03_cnvs.tsv --ignore-matching-lines="#"
 	php ../compare_bed.php NA12878_03_hpHBOCv5_lowcov.bed.out NA12878_03_hpHBOCv5_lowcov.bed
 	diff NA12878_03_manta_var_structural.bedpe.out NA12878_03_manta_var_structural_cut.bedpe --ignore-matching-lines="^##"
 	diff NA12878_03_manta_var_structural_omim_col.bedpe.out NA12878_03_manta_var_structural_cut2.bedpe --ignore-matching-lines="^##"

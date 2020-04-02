@@ -38,7 +38,7 @@ diff:
 	php ../compare_qcml_xml.php NA12878_17_stats_fastq.qcML.out NA12878_17_stats_fastq.qcML
 	php ../compare_qcml_xml.php NA12878_17_stats_map.qcML.out NA12878_17_stats_map.qcML 0.01
 	php ../compare_qcml_xml.php NA12878_17_stats_vc.qcML.out NA12878_17_stats_vc.qcML
-	diff NA12878_17_cnvs.tsv.out NA12878_17_cnvs.tsv --ignore-matching-lines="CnvHunter version:"
+	diff NA12878_17_cnvs.tsv.out NA12878_17_cnvs.tsv  --ignore-matching-lines="#"
 	numdiff NA12878_17_cnvs.seg.out NA12878_17_cnvs.seg --absolute-tolerance 0.04
 	php ../compare_bed.php NA12878_17_nxLRRK2_SNCA_lowcov.bed.out NA12878_17_nxLRRK2_SNCA_lowcov.bed
 	diff NA12878_17_manta_var_structural.bedpe.out NA12878_17_manta_var_structural_cut.bedpe --ignore-matching-lines="^##"
