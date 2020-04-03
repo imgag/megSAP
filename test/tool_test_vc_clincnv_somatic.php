@@ -3,7 +3,12 @@ require_once("framework.php");
 
 $name = "vc_clincnv_somatic";
 start_test($name);
-//prepare input data_folder
+
+//Check whether cohort folder for real samples exists in ClinCNV directory
+$cohorts_dir = str_replace("Rscript --vanilla ", "", get_path("clincnv")) . "/cohorts";
+check(is_dir($cohorts_dir), true);
+
+//prepare input data_folder for test cases
 $cov_folder = output_folder()."/cov_folder/";
 $cohort_folder1 = output_folder()."/cohorts1/";
 $cohort_folder2 = output_folder()."/cohorts2/";
@@ -13,7 +18,7 @@ exec2("tar xzf ".data_folder().$name."_files.tar.gz -C $cov_folder");
 create_directory($cohort_folder1);
 create_directory($cohort_folder2);
 
-//test output folders for
+//output folders
 $cov_folder_n = $cov_folder ."cov-normal/";
 $cov_folder_t = $cov_folder ."cov-tumor/";
 
