@@ -23,6 +23,7 @@ $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
 $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
 $parser->addFlag("correction_n", "Use Ns for barcode correction.", true);
 $parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.", true);
+$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for maping instead of standard bwa mem.", true);
 extract($parser->parse($argv));
 
 //extract processing system information from DB
@@ -216,21 +217,141 @@ if($sys['type']=="Panel MIPs")
 	trigger_error(($count2-$count1)."/$count2 read pairs were removed by filtering for MIP arms.",E_USER_NOTICE);
 }
 
-// mapping
-$bam_current = $parser->tempFile("_mapping_bwa.bam");
-$args = array();
-$args[] = "-in1 $trimmed1";
-$args[] = "-in2 $trimmed2";
-$args[] = "-out $bam_current";
-$args[] = "-sample $out_name";
-$args[] = "-build ".$sys['build'];
-$args[] = "-threads $threads";
-if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
-$parser->execTool("NGS/mapping_bwa.php", implode(" ", $args));
+// use DRAGEN or std bwa mem
+if ($use_dragen)
+{
+	// check if output is on /mnt/SRV018
+	if (!starts_with(realpath($out_folder), "/mnt/SRV018/"))
+	{
+		trigger_error("The output folder '".$out_folder."' is not accessible by the DRAGEN server. It has to be located at '/mnt/'.", E_USER_ERROR);
+	}
+	
+	// move files to project folders
+	$dragen_in1 = realpath("$out_folder")."/{$out_name}_".basename($trimmed1);
+	$dragen_in2 = realpath("$out_folder")."/{$out_name}_".basename($trimmed2);
 
-// remove temporary FASTQs (they can be really large for WGS)
-$parser->deleteTempFile($trimmed1);
-$parser->deleteTempFile($trimmed2);
+	// $dragen_in1 = "$out_folder/{$out_name}_".basename($trimmed1);
+	// $dragen_in2 = "$out_folder/{$out_name}_".basename($trimmed2);
+	
+	print $dragen_in1."\n";
+	print $dragen_in2."\n";
+
+	$parser->moveFile($trimmed1, $dragen_in1);
+	$parser->moveFile($trimmed2, $dragen_in2);
+
+	$dragen_out = realpath("$out_folder")."/{$out_name}_dragen.bam";
+
+	// create cmd for mapping_dragen.php
+	$args = array();
+	$args[] = "-in1 $dragen_in1";
+	$args[] = "-in2 $dragen_in2";
+	$args[] = "-out $dragen_out";
+	$args[] = "-sample $out_name";
+	$args[] = "-build ".$sys['build'];
+	$args[] = "--log ".realpath($parser->getLogFile());
+	if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
+	$cmd_mapping = "php ".realpath(repository_basedir())."/src/NGS/mapping_dragen.php ".implode(" ", $args);
+
+
+	// submit GridEngine job to dragen queue
+	$dragen_queues = explode(",", get_path("queues_dragen"));
+	$sge_output = $parser->tempFile("_dragen_sge.log");
+	$sge_parameter = "-V -pe smp 1 -b y -wd ".$out_folder." -m n -M ".get_path("queue_email")." -e {$sge_output}.err -o {$sge_output}.out -q ".implode(",", $dragen_queues);
+	
+	list($stdout, $stderr) = $parser->exec("qsub", $sge_parameter." ".$cmd_mapping);
+	$sge_id = explode(" ", $stdout[0])[2];
+
+
+	// check if submission was successful
+	if ($sge_id<=0) 
+	{
+		trigger_error("SGE command failed:\n{$command_sge}\n{$command_pip}\nSTDOUT:\n".implode("\n", $stdout)."\nSTDERR:\n".implode("\n", $stderr), E_USER_ERROR);
+	}
+
+	// wait for job to finish
+	do 
+	{
+		// wait for one minute
+		sleep(60);
+
+		// check if job is still running
+		list($stdout) = exec2("qstat -u '*' | egrep '^\s+{$sge_id}\s+' 2>&1", false);
+		$finished = trim(implode("", $stdout))=="";
+
+		// log running state
+		if (!$finished)
+		{
+			$state = explode(" ", preg_replace('/\s+/', ' ', $stdout[0]))[5];
+			trigger_error("SGE job $sge_id still queued/running (state: {$state}).", E_USER_NOTICE);
+		}
+	} 
+	while (!$finished);
+	trigger_error("SGE job $sge_id finished.", E_USER_NOTICE);
+
+
+
+	// check if job exited successfully
+	list($stdout, $stderr, $exit_acct) = exec2("qacct -j {$sge_id}", false);
+		if ($exit_acct==0 || $debug)
+		{
+			$exit_status = "";
+			foreach($stdout as $line)
+			{
+				if (contains($line, "exit_status"))
+				{
+					$line = trim($line);
+					$line = preg_replace('/\s+/', ' ', $line);
+					list(, $exit_status) = explode(" ", $line);
+				}
+			}
+			if ($exit_status=="0" || $debug)
+			{
+				trigger_error("SGE job $sge_id successfully finished with exit status 0.", E_USER_NOTICE);
+			}
+			else
+			{
+				// write qacct stdout and stderr to log:
+				$parser->log("qacct stdout:", $stdout);
+				$parser->log("qacct stderr:", $stderr);
+				trigger_error("SGE job $sge_id failed!\nExit status: {$exit_status}", E_USER_ERROR);
+			}
+		}
+		else
+		{
+			trigger_error("Command 'qacct -j {$sge_id}' returned exit code {$exit_acct}.", E_USER_ERROR);
+		}
+
+
+	// move mapping file back to temp (to be consistent with mapping_bwa.php)
+	$bam_current = $parser->tempFile("_mapping_dragen.bam");
+	$parser->moveFile($dragen_out, $bam_current);
+
+
+	// clean up temporary dragen input files
+	unlink($dragen_in1);
+	unlink($dragen_in2);
+	
+}
+else
+{
+	// mapping
+	$bam_current = $parser->tempFile("_mapping_bwa.bam");
+	$args = array();
+	$args[] = "-in1 $trimmed1";
+	$args[] = "-in2 $trimmed2";
+	$args[] = "-out $bam_current";
+	$args[] = "-sample $out_name";
+	$args[] = "-build ".$sys['build'];
+	$args[] = "-threads $threads";
+	if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
+	$parser->execTool("NGS/mapping_bwa.php", implode(" ", $args));
+
+	// remove temporary FASTQs (they can be really large for WGS)
+	$parser->deleteTempFile($trimmed1);
+	$parser->deleteTempFile($trimmed2);
+
+}
+
 
 //perform indel realignment
 if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))

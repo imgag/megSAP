@@ -651,7 +651,7 @@ function create_directory($path)
 	}
 }
 
-///Own implementation of is_writable, because ???
+///Own implementation of is_writable, checks if existing file is writable or if writable file can be created otherwise
 function is_writable2($file)
 {
 	$existed = file_exists($file);
