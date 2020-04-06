@@ -17,14 +17,27 @@ while(!feof($in))
 	{
 		$line = explode("\t", $line);
 		if (contains($line[7], "MUT=REF")) continue;
-		$line[7] = "ID=".$line[2].";".strtr($line[7], array(" "=>"_"));
+		//replace invalid characters in INFO column with URL encoded string
+		$info_entries = array();
+		$info_entries[] = "ID=".$line[2];
+		foreach (explode(";", $line[7]) as $key_value_pair) 
+		{
+			list($key, $value) = explode("=", $key_value_pair, 2);
+			$info_entries[] = $key."=".vcf_encode_url_string($value);
+		}
+		$line[7] = implode(";", $info_entries);
 		$line = "chr".implode("\t", $line);
 	}
 	
 	//IGV does not support VCF v4.3 > make it compatible with v4.2
 	if (starts_with($line, "##fileformat")) $line = "##fileformat=VCFv4.2";
 	if (starts_with($line, "##INFO=<ID=PROT,")) $line = "##INFO=<ID=PROT,Number=1,Type=String,Description=\"Protein annotation\">";
-	$line = strtr($line, array("%3D"=>"="));
+	
+	//add INFO description for ID column right before header line
+	if (starts_with($line, "#CHROM"))
+	{
+		print "##INFO=<ID=ID,Number=1,Type=String,Description=\"HGMD id\">\n";
+	} 
 	
 	print $line."\n";
 }

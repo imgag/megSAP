@@ -49,6 +49,12 @@ for($i=0; $i<count($file1); ++$i)
 		print $line1;
 		continue;
 	}
+
+	// check for header mismatches
+	if (starts_with($line1, "#") || starts_with($line2, "#"))
+	{
+		trigger_error("Number of header lines is different in files (in line $i)!\n", E_USER_ERROR);
+	}
 	
 	//header/content > compare
 	if ($line1!=$line2)
@@ -61,7 +67,7 @@ for($i=0; $i<count($file1); ++$i)
 		{
 			if ($parts1[$j]!=$parts2[$j])
 			{
-				trigger_error("Column with index {$j} (keep_cols) is different in files!\n", E_USER_ERROR); 
+				trigger_error("Column with index {$j} (keep_cols) is different in files (in line $i)!\n", E_USER_ERROR); 
 			}
 			
 			if ($j!=0) print "\t";

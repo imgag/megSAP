@@ -428,7 +428,7 @@ while(!feof($handle))
 			$i_omim = index_of($cols, "OMIM", false);
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
-			$i_genesplicer = index_of($cols, "GeneSplicer");
+			$i_genesplicer = index_of($cols, "GeneSplicer", false); //TODO reactivate error if missing when runtime problems are fixed in VEP 100
 			$i_dbscsnv_ada = index_of($cols, "ada_score");
 			$i_dbscsnv_rf = index_of($cols, "rf_score");
 		}
@@ -707,7 +707,7 @@ while(!feof($handle))
 			//OMIM
 			if ($i_omim!==FALSE)
 			{
-				$text = trim(strtr($parts[$i_omim], array("[c]"=>",", "&"=>",", "_"=>" ")));
+				$text = trim(strtr(vcf_decode_url_string($parts[$i_omim]), array("[c]"=>",", "&"=>",", "_"=>" ")));
 				if ($text!="") $text .= ";";
 				$omim[] = $text;
 			}
@@ -720,7 +720,7 @@ while(!feof($handle))
 			}
 			
 			//GeneSplicer
-			if ($parts[$i_genesplicer]!="")
+			if ($i_genesplicer!==FALSE && $parts[$i_genesplicer]!="")
 			{
 				$genesplicer[] = $parts[$i_genesplicer];
 			}
@@ -848,7 +848,7 @@ while(!feof($handle))
 				$exon = trim($parts[$i_exon]);
 				if ($exon!="") $exon = "exon".$exon;
 				$intron = trim($parts[$i_intron]);
-				if ($intron!="") $intron = "exon".$intron; //TODO: change to intron and adapt ngs-bits
+				if ($intron!="") $intron = "intron".$intron;
 				
 				//hgvs
 				$hgvs_c = trim($parts[$i_hgvsc]);
@@ -952,7 +952,7 @@ while(!feof($handle))
 				$exon = trim($parts[$i_exon_refseq]);
 				if ($exon!="") $exon = "exon".$exon;
 				$intron = trim($parts[$i_intron_refseq]);
-				if ($intron!="") $intron = "intron".$intron; //?
+				if ($intron!="") $intron = "intron".$intron;
 				
 				//hgvs
 				$hgvs_c = trim($parts[$i_hgvsc_refseq]);
@@ -1037,7 +1037,7 @@ while(!feof($handle))
 		{
 			if ($clin_accs[$i]!="")
 			{
-				$clinvar[] = $clin_accs[$i]." [".strtr($clin_details[$i], array("[c]"=>",", "[p]"=>" DISEASE=", "_"=>" "))."];";
+				$clinvar[] = $clin_accs[$i]." [".strtr(vcf_decode_url_string($clin_details[$i]), array("_"=>" "))."];";
 			}
 		}
 	}
@@ -1052,7 +1052,7 @@ while(!feof($handle))
 		$hgmd_gene = trim($info["HGMD_GENE"]);
 		$hgmd_phen = trim($info["HGMD_PHEN"]);
 		
-		// TODO: Possible to have more than one match per varaint?
+		//TODO: Possible to have more than one match per varaint?
 		$text = $hgmd_id." [CLASS=".$hgmd_class." MUT=".$hgmd_mut." PHEN=".strtr($hgmd_phen, "_", " ")." GENE=".$hgmd_gene."]; ";
 		$hgmd[] = trim($text);
 	}
@@ -1085,7 +1085,7 @@ while(!feof($handle))
 
 			if (isset($info["NGSD_SOM_P"]))
 			{
-				$ngsd_som_projects = trim($info["NGSD_SOM_P"]);
+				$ngsd_som_projects = vcf_decode_url_string(trim($info["NGSD_SOM_P"]));
 			}
 			else
 			{
@@ -1133,7 +1133,7 @@ while(!feof($handle))
 
 		if (isset($info["NGSD_CLAS_COM"]))
 		{
-			$ngsd_clas_com = trim($info["NGSD_CLAS_COM"]);
+			$ngsd_clas_com = vcf_decode_url_string(trim($info["NGSD_CLAS_COM"]));
 		}
 		else
 		{
@@ -1142,7 +1142,7 @@ while(!feof($handle))
 
 		if (isset($info["NGSD_COM"]))
 		{
-			$ngsd_com = trim($info["NGSD_COM"]);
+			$ngsd_com = vcf_decode_url_string(trim($info["NGSD_COM"]));
 		}
 		else
 		{
@@ -1160,7 +1160,7 @@ while(!feof($handle))
 
 		if (isset($info["NGSD_GENE_INFO"]))
 		{
-			$ngsd_gene_info = str_replace(":", ", ", trim($info["NGSD_GENE_INFO"]));
+			$ngsd_gene_info = vcf_decode_url_string(str_replace(":", ", ", trim($info["NGSD_GENE_INFO"])));
 		}
 		else
 		{

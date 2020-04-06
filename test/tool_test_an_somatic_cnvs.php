@@ -38,6 +38,11 @@ $cnv_output_4 = output_folder()."/an_somatic_cnvs_out4_cnvs.tsv";
 $cnv_ref_4 = data_folder()."/an_somatic_cnvs_ref4_cnvs.tsv";
 check_exec("php ".src_folder()."/NGS/an_somatic_cnvs.php -cnv_in $cnv_input_3 -rna_counts $rna_counts -out $cnv_output_4 -rna_id RX01_01 -rna_ref_tissue colon");
 check_file($cnv_output_4,$cnv_ref_4,false);
-end_test();
 
+//5th case: annotate cytobands
+$cnv_output_5 = output_folder()."/an_somatic_cnvs_out5_cnvs.tsv";
+$cnv_ref_5 = data_folder()."/an_somatic_cnvs_ref5_cnvs.tsv";
+check_exec("php ".src_folder()."/NGS/an_somatic_cnvs.php -cnv_in $cnv_input_3 -out $cnv_output_5 -include_cytoband");
+check_file($cnv_output_5,$cnv_ref_5,false);
+end_test();
 ?>

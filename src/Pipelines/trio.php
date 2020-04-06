@@ -20,6 +20,69 @@ function determine_index($name, $parts)
 	return $index;
 }
 
+function fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data)
+{
+	global $parser;
+	
+	$h = fopen2($gsvar, "r");
+	$tmp = $parser->tempFile(".GSvar");
+	$h2 = fopen2($tmp, "w");
+	while(!feof($h))
+	{
+		$line = nl_trim(fgets($h));
+		if ($line=="") continue;
+		
+		//compare child gender from data with gender from header
+		if (starts_with($line, "##SAMPLE=<ID={$sample_c},"))
+		{
+			//determine gender from header
+			$gender_header = "n/a";
+			$parts = explode(",", substr($line, 10, -1));
+			foreach($parts as $part)
+			{
+				if (starts_with($part, "Gender="))
+				{
+					list(, $gender_header) = explode("=", $part);
+				}
+			}
+			print "Gender of child (from header): {$gender_header}\n";
+			
+			//deviating => error
+			if ($gender_data!=$gender_header && $gender_header!="n/a" && $gender_header!="" && $gender_data!="n/a")
+			{
+				trigger_error("Gender of child from sample header '{$gender_header}' deviates from gender from data '{$gender_data}'", E_USER_ERROR);
+			}
+				
+			//replace gender in header by gender from data
+			if ($gender_data!=$gender_header)
+			{
+				$line = strtr($line, array("Gender={$gender_header}"=>"Gender={$gender_data}"));
+			}
+		}
+		
+		//add gender of father/mother if missing (i.e. when NGSD is not enabled)
+		if (starts_with($line, "##SAMPLE=<ID={$sample_f},") && !contains($line, "Gender="))
+		{
+			$line = substr($line, 0, -1).",Gender=male>";
+		}
+		if (starts_with($line, "##SAMPLE=<ID={$sample_m},") && !contains($line, "Gender="))
+		{
+			$line = substr($line, 0, -1).",Gender=female>";
+		}
+		
+		//update analysis type
+		if (starts_with($line, "##ANALYSISTYPE="))
+		{
+			$line = "##ANALYSISTYPE=GERMLINE_TRIO";
+		}
+		
+		fwrite($h2, "$line\n");
+	}
+	fclose($h2);
+	fclose($h);
+	$parser->moveFile($tmp, $gsvar);
+}
+
 //parse command line arguments
 $parser = new ToolBase("trio", "Trio analysis pipeline.");
 $parser->addInfile("f", "BAM file of father.", false, true);
@@ -57,9 +120,25 @@ $args_multisample = [
 	"-prefix trio",
 	"-threads $threads",
 	];
+	
+//check steps
+$is_wgs_shallow = $sys['type']=="WGS (shallow)";
+if ($is_wgs_shallow)
+{
+	if (in_array("vc", $steps))
+	{
+		trigger_error("Skipping step 'vc' - Variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
+		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
+	}
+	if (in_array("an", $steps))
+	{
+		trigger_error("Skipping step 'an' - Annotation is not supported for shallow WGS samples!", E_USER_NOTICE);
+		if (($key = array_search("an", $steps)) !== false) unset($steps[$key]);
+	}
+}
 
 //pre-analysis checks
-if (!$no_check)
+if (!$no_check && !$is_wgs_shallow)
 {
 	//check parent-child correlation
 	$min_corr = 0.45;
@@ -89,6 +168,7 @@ if (in_array("vc", $steps))
 }
 
 //annotation
+$gsvar = "$out_folder/trio.GSvar";
 if (in_array("an", $steps))
 {
 	//annotation with multi-sample pipeline
@@ -98,7 +178,6 @@ if (in_array("an", $steps))
 	$vars_all = 0;
 	$vars_high_depth = 0;
 	$vars_mendelian_error = 0;
-	$gsvar = "$out_folder/trio.GSvar";
 	$h = fopen2($gsvar, "r");
 	while(!feof($h))
 	{
@@ -171,6 +250,7 @@ if (in_array("an", $steps))
 			}
 		}
 	}
+	fclose($h);
 	print "Overall variants: {$vars_all}\n";
 	print "Medelian errors: ".number_format(100.0*$vars_mendelian_error/$vars_high_depth, 2)."% (of {$vars_high_depth} high-depth, autosomal variants)\n";
 	
@@ -181,63 +261,7 @@ if (in_array("an", $steps))
 	print "Gender of child (from data): {$gender_data}\n";
 	
 	//write output file
-	$tmp = $parser->tempFile(".GSvar");
-	$h2 = fopen2($tmp, "w");
-	rewind($h);
-	while(!feof($h))
-	{
-		$line = nl_trim(fgets($h));
-		if ($line=="") continue;
-		
-		//compare child gender from data with gender from header
-		if (starts_with($line, "##SAMPLE=<ID={$sample_c},"))
-		{
-			//determine gender from header
-			$gender_header = "n/a";
-			$parts = explode(",", substr($line, 10, -1));
-			foreach($parts as $part)
-			{
-				if (starts_with($part, "Gender="))
-				{
-					list(, $gender_header) = explode("=", $part);
-				}
-			}
-			print "Gender of child (from header): {$gender_header}\n";
-			
-			//deviating => error
-			if ($gender_data!=$gender_header && $gender_header!="n/a" && $gender_header!="" && $gender_data!="n/a")
-			{
-				trigger_error("Gender of child from sample header '{$gender_header}' deviates from gender from data '{$gender_data}'", E_USER_ERROR);
-			}
-				
-			//replace gender in header by gender from data
-			if ($gender_data!=$gender_header)
-			{
-				$line = strtr($line, array("Gender={$gender_header}"=>"Gender={$gender_data}"));
-			}
-		}
-		
-		//add gender of father/mother if missing (i.e. when NGSD is not enabled)
-		if (starts_with($line, "##SAMPLE=<ID={$sample_f},") && !contains($line, "Gender="))
-		{
-			$line = substr($line, 0, -1).",Gender=male>";
-		}
-		if (starts_with($line, "##SAMPLE=<ID={$sample_m},") && !contains($line, "Gender="))
-		{
-			$line = substr($line, 0, -1).",Gender=female>";
-		}
-		
-		//update analysis type
-		if (starts_with($line, "##ANALYSISTYPE="))
-		{
-			$line = "##ANALYSISTYPE=GERMLINE_TRIO";
-		}
-		
-		fwrite($h2, "$line\n");
-	}
-	fclose($h);
-	fclose($h2);
-	$parser->moveFile($tmp, $gsvar);
+	fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data);
 	
 	//double check modified output file
 	$parser->execTool("NGS/check_tsv.php", "-in $gsvar -build ".$sys['build']);
@@ -249,33 +273,48 @@ if (in_array("cn", $steps))
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps cn", true);
 	
 	//UPD detection
-	$args_upd = [
-		"-in {$out_folder}/all.vcf.gz",
-		"-c {$sample_c}",
-		"-f {$sample_f}",
-		"-m {$sample_m}",
-		"-out {$out_folder}/trio_upd.tsv",
-		];
-	$base = substr($c, 0, -4);
-	if (file_exists("{$base}_cnvs.tsv"))
+	if (!$is_wgs_shallow)
 	{
-		$args_upd[] = "-exclude {$base}_cnvs.tsv";
+		$args_upd = [
+			"-in {$out_folder}/all.vcf.gz",
+			"-c {$sample_c}",
+			"-f {$sample_f}",
+			"-m {$sample_m}",
+			"-out {$out_folder}/trio_upd.tsv",
+			];
+		$base = substr($c, 0, -4);
+		if (file_exists("{$base}_cnvs.tsv"))
+		{
+			$args_upd[] = "-exclude {$base}_cnvs.tsv";
+		}
+		else if (file_exists("{$base}_cnvs_clincnv.tsv"))
+		{
+			$args_upd[] = "-exclude {$base}_cnvs_clincnv.tsv";
+		}
+		else
+		{
+			trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
+		}
+		$parser->exec(get_path("ngs-bits")."UpdHunter", implode(" ", $args_upd), true);
 	}
-	else if (file_exists("{$base}_cnvs_clincnv.tsv"))
+	
+	//update GSvar file (because 'an' is skipped)
+	if ($is_wgs_shallow)
 	{
-		$args_upd[] = "-exclude {$base}_cnvs_clincnv.tsv";
+		//determine gender of child
+		list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method xy -in $c", true);
+		$gender_data = explode("\t", $stdout[1])[1];
+		if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
+		print "Gender of child (from data): {$gender_data}\n";
+	
+		fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data);
 	}
-	else
-	{
-		trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
-	}
-	$parser->exec(get_path("ngs-bits")."UpdHunter", implode(" ", $args_upd), true);
 }
 
 //everything worked > import/update sample data in NGSD
 if (in_array("db", $steps) && db_is_enabled("NGSD"))
 {
-	$db_conn = DB::getInstance("NGSD");
+	$db_conn = DB::getInstance("NGSD", false);
 	
 	//gender father
 	$info_f = get_processed_sample_info($db_conn, $sample_f);

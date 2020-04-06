@@ -1,0 +1,14 @@
+#chr	start	end	ref	obs	genotype	quality	gene	variant_type	coding_and_splicing	1000g	ExAC	gnomAD	dbSNP	ljb2_phylop	ljb2_mt	ljb2_sift	ljb2_pp2hvar	esp6500si_ea	cosmic64	RepeatMasker	OMIM	ClinVar	ihdb_hom_80	ihdb_het_80	ihdb_wt_80	ihdb_allsys	classification	validated	
+chrX	47444879	47444879	G	C	hom	222	SYN1;TIMP1			0.45	0.45	0.45	rs5953060 [];	-0.0050	0.2709	0.0000	0.0000				313440 [Synapsin I - Epilepsy, X-linked, with variable learning disabilities andbehavior disorders, 300491 (3)];		0.2125	0.025	0.7625	22		
+chrX	47444985	47444985	T	C	hom	222	TIMP1	synonymous SNV	TIMP1:NM_003254:exon5:c.T372C:p.F124F,	0.45	0.45	0.45	rs4898 [];	-0.3520	0.2772			0.4575			313440 [Synapsin I - Epilepsy, X-linked, with variable learning disabilities andbehavior disorders, 300491 (3)];		0.4625	0.0375	0.5	67		
+chrX	47466361	47466361	A	G	hom	222	SYN1	synonymous SNV	SYN1:NM_133499:exon3:c.T510C:p.N170N,SYN1:NM_006950:exon3:c.T510C:p.N170N,	0.35	0.35	0.35	rs1142636 [];					0.3786			313440 [Synapsin I - Epilepsy, X-linked, with variable learning disabilities andbehavior disorders, 300491 (3)];		0.2625	0.0625	0.675	72		
+chrX	47484680	47484680	C	A	hom	222	CFP			0.14	0.14	0.14	rs2239455 [];								300383 [Properdin P factor, complement - Properdin deficiency, X-linked, 312060 (3)];		0.0125	0.05	0.9375	6		
+chrX	47484840	47484840	C	T	hom	222	CFP			0.14	0.14	0.14	rs7060246 [];								300383 [Properdin P factor, complement - Properdin deficiency, X-linked, 312060 (3)];		0.0125	0.05	0.9375	6		
+chrX	47485245	47485245	G	A	hom	222	CFP			0.84	0.84	0.84	rs8177079 [];								300383 [Properdin P factor, complement - Properdin deficiency, X-linked, 312060 (3)];		0.7625	0.0375	0.2	75		
+chrX	47487913	47487913	-	G	hom	214	CFP			0	0	0	rs11453568 [];								300383 [Properdin P factor, complement - Properdin deficiency, X-linked, 312060 (3)];		0.9625	0	0.0375	89		
+chrX	47863552	47863552	-	C	hom	214	SPACA5;ZNF182			0	0	0	rs36101191 [];										0.4375	0	0.5625	46		
+chrX	47920356	47920356	A	G	hom	222	ZNF630			1	1	1	rs727079 [];					0.9945					0.4375	0	0.5625	74		
+chrX	47967040	47967040	G	A	hom	186	SSX6			0.44	0.44	0.44	rs12156664 [];										0.125	0.025	0.85	17		
+chrX	47967162	47967162	C	T	hom	222	SSX6			0.36	0.36	0.36	rs12156676 [];										0.225	0.05	0.725	28		
+chrX	47967190	47967190	A	G	hom	222	SSX6			0.36	0.36	0.36	rs12156891 [];										0.225	0.0625	0.7125	29		
+chrX	47970842	47970842	A	T	hom	222	SSX6			0.47	0.47	0.47	rs543755 [];							534			0.125	0.0375	0.8375	18		

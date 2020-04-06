@@ -1,0 +1,408 @@
+Found 4531 high-quality CNV callsets for the processing system.
+Skipping sample DX170052_05 - depth (69.78) is below 80!
+Skipping sample DX170149_03 - depth (69.65) is below 80!
+Skipping sample DX171830_04 - depth (63.53) is below 80!
+Skipping sample DX172659_04 - depth (66.83) is below 80!
+Skipping sample DX172877_03 - depth (26.49) is below 80!
+Skipping sample DX172878_06 - depth (48.89) is below 80!
+Skipping sample DX174496_04 - depth (35.62) is below 80!
+Skipping sample NA12878_56 - depth (71.04) is below 80!
+Skipping sample DX173236_03 - caller version (v1.16.1) is wrong!
+Skipping sample DX173639_07 - caller version (v1.16.1) is wrong!
+Skipping sample DX173668_03 - caller version (v1.16.1) is wrong!
+Skipping sample DX173669_05 - caller version (v1.16.1) is wrong!
+Skipping sample DX173675_03 - caller version (v1.16.1) is wrong!
+Skipping sample DX173730_03 - caller version (v1.16.1) is wrong!
+Skipping sample DX174020_03 - caller version (v1.16.1) is wrong!
+Skipping sample NA20502_20 - caller version (v1.16.1) is wrong!
+Skipping sample DX183455_01 - CNV count (319) is higher than 200!
+Skipping sample DX183506_01 - CNV count (436) is higher than 200!
+Skipping sample DX183526_01 - CNV count (223) is higher than 200!
+Skipping sample DX183530_01 - CNV count (566) is higher than 200!
+Skipping sample DX160221_01 - depth (78.75) is below 80!
+Skipping sample DX183216_01 - depth (79.92) is below 80!
+Skipping sample DX183658_01 - CNV count (254) is higher than 200!
+Skipping sample DX183662_01 - CNV count (243) is higher than 200!
+Skipping sample DX183693_01 - CNV count (203) is higher than 200!
+Skipping sample DX183699_01 - CNV count (415) is higher than 200!
+Skipping sample DX183703_01 - CNV count (695) is higher than 200!
+Skipping sample DX183717_01 - CNV count (266) is higher than 200!
+Skipping sample DX183721_01 - CNV count (1259) is higher than 200!
+Skipping sample DX183728_01 - CNV count (293) is higher than 200!
+Skipping sample DX183766_01 - CNV count (236) is higher than 200!
+Skipping sample DX183768_01 - CNV count (418) is higher than 200!
+Skipping sample DX183770_01 - CNV count (304) is higher than 200!
+Skipping sample DX183495_01 - CNV count (1372) is higher than 200!
+Skipping sample DX183496_01 - CNV count (213) is higher than 200!
+Skipping sample DX183497_01 - CNV count (467) is higher than 200!
+Skipping sample DX183705_01 - CNV count (254) is higher than 200!
+Skipping sample DX183800_01 - CNV count (529) is higher than 200!
+Skipping sample DX183811_01 - CNV count (522) is higher than 200!
+Skipping sample DX183838_01 - CNV count (212) is higher than 200!
+Skipping sample DX183872_01 - CNV count (210) is higher than 200!
+Skipping sample DX183890_01 - depth (76.51) is below 80!
+Skipping sample DX183894_01 - depth (50.44) is below 80!
+Skipping sample DX183917_01 - depth (77.49) is below 80!
+Skipping sample DX183793_01 - depth (79.77) is below 80!
+Skipping sample NA12878x2_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX183998_01 - CNV count (730) is higher than 200!
+Skipping sample DX184050_01 - CNV count (303) is higher than 200!
+Skipping sample DX184056_01 - CNV count (362) is higher than 200!
+Skipping sample DX184057_01 - CNV count (682) is higher than 200!
+Skipping sample DX183678_02 - CNV count (321) is higher than 200!
+Skipping sample DX184332_01 - CNV count (481) is higher than 200!
+Skipping sample DX184280_01 - CNV count (331) is higher than 200!
+Skipping sample DX184288_01 - CNV count (204) is higher than 200!
+Skipping sample DX184300_01 - CNV count (701) is higher than 200!
+Skipping sample DX184481_01 - CNV count (427) is higher than 200!
+Skipping sample DX184483_01 - CNV count (202) is higher than 200!
+Skipping sample DX184485_01 - CNV count (497) is higher than 200!
+Skipping sample DX184372_01 - CNV count (1603) is higher than 200!
+Skipping sample DX184576_01 - depth (78.68) is below 80!
+Skipping sample DX181666_01 - CNV count (246) is higher than 200!
+Skipping sample DX184489_01 - CNV count (431) is higher than 200!
+Skipping sample DX184490_01 - CNV count (227) is higher than 200!
+Skipping sample DX184506_01 - depth (77.7) is below 80!
+Skipping sample DX184606_01 - CNV count (238) is higher than 200!
+Skipping sample DX184211_01 - CNV count (933) is higher than 200!
+Skipping sample DX184664_01 - CNV count (760) is higher than 200!
+Skipping sample DX184665_01 - CNV count (1448) is higher than 200!
+Skipping sample DX184668_01 - CNV count (1249) is higher than 200!
+Skipping sample DX184033_01 - CNV count (836) is higher than 200!
+Skipping sample DX184785_01 - CNV count (240) is higher than 200!
+Skipping sample DX184786_01 - CNV count (262) is higher than 200!
+Skipping sample DX184788_01 - CNV count (502) is higher than 200!
+Skipping sample DX185141_01 - CNV count (524) is higher than 200!
+Skipping sample DX184911_01 - CNV count (254) is higher than 200!
+Skipping sample DX184804_01 - CNV count (361) is higher than 200!
+Skipping sample DX184890_01 - CNV count (247) is higher than 200!
+Skipping sample DX184913_01 - CNV count (420) is higher than 200!
+Skipping sample DX185005_01 - CNV count (203) is higher than 200!
+Skipping sample DX185066_01 - CNV count (2177) is higher than 200!
+Skipping sample FO12607x01_01 - caller version (v1.16.1) is wrong!
+Skipping sample FO12895x01_01 - CNV count (747) is higher than 200!
+Skipping sample DX185115_01 - CNV count (202) is higher than 200!
+Skipping sample DX185116_01 - CNV count (413) is higher than 200!
+Skipping sample DX185206_01 - CNV count (227) is higher than 200!
+Skipping sample DX185202_01 - CNV count (301) is higher than 200!
+Skipping sample DX185101_01 - CNV count (487) is higher than 200!
+Skipping sample DX185309_01 - CNV count (385) is higher than 200!
+Skipping sample FO12766x01_02 - CNV count (230) is higher than 200!
+Skipping sample DX185278_01 - CNV count (1231) is higher than 200!
+Skipping sample DX185304_01 - CNV count (829) is higher than 200!
+Skipping sample DX185456_01 - CNV count (435) is higher than 200!
+Skipping sample DX185464_01 - CNV count (787) is higher than 200!
+Skipping sample DX185469_01 - CNV count (276) is higher than 200!
+Skipping sample DX183932_01 - CNV count (253) is higher than 200!
+Skipping sample DX183933_01 - CNV count (252) is higher than 200!
+Skipping sample DX185520_01 - CNV count (202) is higher than 200!
+Skipping sample DX185521_01 - depth (78.82) is below 80!
+Skipping sample I17R018Dd02_03 - CNV count (1630) is higher than 200!
+Skipping sample I18R020Dg02_01 - CNV count (1613) is higher than 200!
+Skipping sample DX185614_01 - CNV count (414) is higher than 200!
+Skipping sample DX185743_01 - CNV count (241) is higher than 200!
+Skipping sample DX185772_01 - CNV count (529) is higher than 200!
+Skipping sample DX185832_01 - CNV count (457) is higher than 200!
+Skipping sample DX184746_01 - CNV count (988) is higher than 200!
+Skipping sample DX185978_02 - CNV count (234) is higher than 200!
+Skipping sample DX185988_02 - CNV count (1304) is higher than 200!
+Skipping sample DX141489_02 - CNV count (219) is higher than 200!
+Skipping sample DX186026_01 - CNV count (589) is higher than 200!
+Skipping sample DX186197_01 - CNV count (213) is higher than 200!
+Skipping sample DX185991_01 - CNV count (1350) is higher than 200!
+Skipping sample DX186381_01 - CNV count (1049) is higher than 200!
+Skipping sample I18R005Dj02_01 - CNV count (1607) is higher than 200!
+Skipping sample DX184037_01 - CNV count (1546) is higher than 200!
+Skipping sample DX186284_01 - CNV count (251) is higher than 200!
+Skipping sample DX186654_01 - CNV count (572) is higher than 200!
+Skipping sample DX186656_01 - CNV count (2412) is higher than 200!
+Skipping sample DX186659_01 - CNV count (449) is higher than 200!
+Skipping sample DX186464_01 - CNV count (1115) is higher than 200!
+Skipping sample DX186277_01 - CNV count (815) is higher than 200!
+Skipping sample DX186673_01 - CNV count (352) is higher than 200!
+Skipping sample DX185920_01 - CNV count (226) is higher than 200!
+Skipping sample DX190010_01 - CNV count (288) is higher than 200!
+Skipping sample DX190033_01 - CNV count (1255) is higher than 200!
+Skipping sample DX170014_01 - CNV count (294) is higher than 200!
+Skipping sample DX190076_01 - CNV count (212) is higher than 200!
+Skipping sample DX190096_01 - CNV count (214) is higher than 200!
+Skipping sample DX190187_01 - CNV count (219) is higher than 200!
+Skipping sample DX190377_01 - CNV count (466) is higher than 200!
+Skipping sample DX190427_01 - CNV count (1111) is higher than 200!
+Skipping sample DX190248_01 - CNV count (762) is higher than 200!
+Skipping sample DX190422_01 - CNV count (367) is higher than 200!
+Skipping sample DX190352_01 - CNV count (1185) is higher than 200!
+Skipping sample DX190482_01 - CNV count (953) is higher than 200!
+Skipping sample DX190607_01 - CNV count (464) is higher than 200!
+Skipping sample DX190610_01 - CNV count (1300) is higher than 200!
+Skipping sample DX190612_01 - CNV count (926) is higher than 200!
+Skipping sample DX190905_01 - CNV count (863) is higher than 200!
+Skipping sample DX190799_01 - CNV count (902) is higher than 200!
+Skipping sample DX190833_01 - CNV count (219) is higher than 200!
+Skipping sample DX191202_01 - CNV count (233) is higher than 200!
+Skipping sample DX191026_01 - CNV count (269) is higher than 200!
+Skipping sample DX190778_01 - CNV count (1038) is higher than 200!
+Skipping sample DX191365_01 - CNV count (669) is higher than 200!
+Skipping sample DX191286_01 - CNV count (1038) is higher than 200!
+Skipping sample I19R014Da02_01 - CNV count (1222) is higher than 200!
+Skipping sample DX191635_01 - CNV count (692) is higher than 200!
+Skipping sample DX191637_01 - CNV count (467) is higher than 200!
+Skipping sample DX191645_01 - CNV count (288) is higher than 200!
+Skipping sample DX191700_01 - CNV count (216) is higher than 200!
+Skipping sample DX191822_01 - CNV count (864) is higher than 200!
+Skipping sample DX186446_01 - CNV count (1756) is higher than 200!
+Skipping sample DX191857_01 - CNV count (220) is higher than 200!
+Skipping sample DX191923_01 - CNV count (235) is higher than 200!
+Skipping sample DX191927_01 - CNV count (212) is higher than 200!
+Skipping sample DX192208_01 - CNV count (466) is higher than 200!
+Skipping sample DX181504_01 - CNV count (204) is higher than 200!
+Skipping sample DX185619_01 - CNV count (435) is higher than 200!
+Skipping sample DX192031_01 - CNV count (1069) is higher than 200!
+Skipping sample DX192596_01 - CNV count (557) is higher than 200!
+Skipping sample DX192389_01 - CNV count (266) is higher than 200!
+Skipping sample DX192622_01 - CNV count (828) is higher than 200!
+Skipping sample DX192534_01 - CNV count (251) is higher than 200!
+Skipping sample DX192537_01 - CNV count (274) is higher than 200!
+Skipping sample DX192599_01 - CNV count (269) is higher than 200!
+Skipping sample DX192601_01 - CNV count (237) is higher than 200!
+Skipping sample DX184198_01 - CNV count (230) is higher than 200!
+Skipping sample DX192490_01 - CNV count (210) is higher than 200!
+Skipping sample DX192683_01 - CNV count (420) is higher than 200!
+Skipping sample DX192727_01 - CNV count (498) is higher than 200!
+Skipping sample DX192771_01 - CNV count (418) is higher than 200!
+Skipping sample DX192806_01 - CNV count (411) is higher than 200!
+Skipping sample FO13539x01_01 - CNV count (390) is higher than 200!
+Skipping sample DX192418_01 - CNV count (252) is higher than 200!
+Skipping sample DX192907_01 - CNV count (233) is higher than 200!
+Skipping sample DX193032_01 - CNV count (220) is higher than 200!
+Skipping sample DX192073_01 - CNV count (906) is higher than 200!
+Skipping sample DX193162_01 - CNV count (960) is higher than 200!
+Skipping sample DX193219_01 - CNV count (209) is higher than 200!
+Skipping sample DX191742_01 - CNV count (413) is higher than 200!
+Skipping sample DX193685_01 - CNV count (1405) is higher than 200!
+Skipping sample DX193800_01 - CNV count (337) is higher than 200!
+Skipping sample DX193864_01 - CNV count (235) is higher than 200!
+Skipping sample DX192950_01 - CNV count (257) is higher than 200!
+Skipping sample DX192942_01 - CNV count (554) is higher than 200!
+Skipping sample DX193714_01 - CNV count (530) is higher than 200!
+Skipping sample DX193790_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX193186_01 - CNV count (712) is higher than 200!
+Skipping sample DX194091_01 - CNV count (244) is higher than 200!
+Skipping sample DX190796_01 - CNV count (267) is higher than 200!
+Skipping sample DX194021_01 - CNV count (276) is higher than 200!
+Skipping sample DX185980_01 - CNV count (1295) is higher than 200!
+Skipping sample DX194029_01 - CNV count (247) is higher than 200!
+Skipping sample DX162210_01 - CNV count (791) is higher than 200!
+Skipping sample DX193688_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX194308_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX192730_01 - CNV count (541) is higher than 200!
+Skipping sample DX194496_01 - CNV count (799) is higher than 200!
+Skipping sample DX194592_01 - CNV count (246) is higher than 200!
+Skipping sample DX194630_01 - CNV count (235) is higher than 200!
+Skipping sample DX194633_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX194639_01 - CNV count (248) is higher than 200!
+Skipping sample DX194849_01 - CNV count (228) is higher than 200!
+Skipping sample DX184787_01 - CNV count (360) is higher than 200!
+Skipping sample DX193263_01 - CNV count (578) is higher than 200!
+Skipping sample DX193981_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX194837_01 - CNV count (751) is higher than 200!
+Skipping sample DX194709_01 - CNV count (336) is higher than 200!
+Skipping sample DX195005_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX195192_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX195312_01 - CNV count (290) is higher than 200!
+Skipping sample DX195352_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX195411_01 - CNV count (204) is higher than 200!
+Skipping sample DX195430_01 - CNV count (1567) is higher than 200!
+Skipping sample DX195467_01 - CNV count (1494) is higher than 200!
+Skipping sample DX195473_01 - CNV count (629) is higher than 200!
+Skipping sample DX195474_01 - CNV count (242) is higher than 200!
+Skipping sample DX195042_02 - CNV count (1370) is higher than 200!
+Skipping sample DX192144_01 - CNV count (318) is higher than 200!
+Skipping sample DX195532_01 - CNV count (2501) is higher than 200!
+Skipping sample DX195537_01 - CNV count (309) is higher than 200!
+Skipping sample DX195538_01 - CNV count (490) is higher than 200!
+Skipping sample DX195565_01 - CNV count (440) is higher than 200!
+Skipping sample DX195590_01 - CNV count (336) is higher than 200!
+Skipping sample DX195615_01 - CNV count (1219) is higher than 200!
+Skipping sample DX195678_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX194413_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX195731_01 - CNV count (265) is higher than 200!
+Skipping sample DX195732_01 - CNV count (262) is higher than 200!
+Skipping sample DX195733_01 - CNV count (209) is higher than 200!
+Skipping sample DX195734_01 - CNV count (243) is higher than 200!
+Skipping sample DX195711_01 - CNV count (644) is higher than 200!
+Skipping sample DX195830_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX195855_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX195923_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX195929_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX195982_01 - CNV count (262) is higher than 200!
+Skipping sample DX195175_01 - CNV count (245) is higher than 200!
+Skipping sample DX195628_01 - CNV count (236) is higher than 200!
+Skipping sample DX190734_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX192175_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX194506_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX195418_01 - CNV count (540) is higher than 200!
+Skipping sample DX195934_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196036_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196093_01 - CNV count (396) is higher than 200!
+Skipping sample DX196246_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX195726_02 - CNV count (1769) is higher than 200!
+Skipping sample DX196105_01 - CNV count (445) is higher than 200!
+Skipping sample DX196108_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196152_01 - CNV count (234) is higher than 200!
+Skipping sample DX196198_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196250_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196251_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196252_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196261_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX195405_01 - CNV count (203) is higher than 200!
+Skipping sample DX195901_01 - CNV count (267) is higher than 200!
+Skipping sample DX196199_01 - CNV count (294) is higher than 200!
+Skipping sample DX196300_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196302_01 - CNV count (487) is higher than 200!
+Skipping sample DX196328_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196348_01 - CNV count (395) is higher than 200!
+Skipping sample DX196350_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196370_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196376_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196033_01 - CNV count (389) is higher than 200!
+Skipping sample DX196390_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196526_01 - CNV count (669) is higher than 200!
+Skipping sample DX196528_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196563_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196502_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196585_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196589_01 - caller version (v1.16.1) is wrong!
+Skipping sample DX196609_01 - CNV count (501) is higher than 200!
+Skipping sample DX196630_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196632_01 - CNV count (202) is higher than 200!
+Skipping sample DX196641_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196673_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196705_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196706_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196730_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196745_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197087_02 - caller version (v1.16.2) is wrong!
+Skipping sample DX190569_01 - CNV count (561) is higher than 200!
+Skipping sample DX196885_01 - CNV count (265) is higher than 200!
+Skipping sample DX196749_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196837_01 - CNV count (293) is higher than 200!
+Skipping sample DX196920_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196971_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197122_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX181206_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX192063_01 - CNV count (335) is higher than 200!
+Skipping sample DX195297_01 - CNV count (1954) is higher than 200!
+Skipping sample DX195298_01 - CNV count (918) is higher than 200!
+Skipping sample DX196983_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196985_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196995_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197112_01 - CNV count (271) is higher than 200!
+Skipping sample DX197164_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197166_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197185_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197270_01 - CNV count (407) is higher than 200!
+Skipping sample DX195676_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196485_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196620_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196647_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197189_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197372_01 - CNV count (289) is higher than 200!
+Skipping sample DX197455_01 - CNV count (654) is higher than 200!
+Skipping sample DX197457_01 - CNV count (202) is higher than 200!
+Skipping sample DX197463_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197566_01 - CNV count (244) is higher than 200!
+Skipping sample DX197568_01 - CNV count (220) is higher than 200!
+Skipping sample DX195569_01 - CNV count (423) is higher than 200!
+Skipping sample DX196476_01 - CNV count (1557) is higher than 200!
+Skipping sample DX197051_01 - CNV count (1186) is higher than 200!
+Skipping sample DX197874_01 - CNV count (1274) is higher than 200!
+Skipping sample DX197876_01 - CNV count (1330) is higher than 200!
+Skipping sample DX197878_01 - CNV count (1225) is higher than 200!
+Skipping sample DX153309_01 - CNV count (230) is higher than 200!
+Skipping sample DX153310_01 - CNV count (1330) is higher than 200!
+Skipping sample DX196642_01 - CNV count (300) is higher than 200!
+Skipping sample DX196731_01 - CNV count (224) is higher than 200!
+Skipping sample DX196820_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196876_01 - CNV count (276) is higher than 200!
+Skipping sample DX196918_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196922_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX196980_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197674_01 - CNV count (779) is higher than 200!
+Skipping sample DX197704_01 - CNV count (208) is higher than 200!
+Skipping sample DX197724_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197748_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197765_01 - CNV count (483) is higher than 200!
+Skipping sample DX197852_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197699_01 - CNV count (464) is higher than 200!
+Skipping sample DX198168_01 - caller version (v1.16.2) is wrong!
+Skipping sample DX197800_01 - CNV count (569) is higher than 200!
+Skipping sample DX197801_01 - CNV count (281) is higher than 200!
+Skipping sample DX197802_01 - CNV count (324) is higher than 200!
+Skipping sample DX197886_01 - CNV count (1453) is higher than 200!
+Skipping sample DX195319_01 - CNV count (358) is higher than 200!
+Skipping sample DX195506_01 - CNV count (547) is higher than 200!
+Skipping sample DX197682_01 - CNV count (381) is higher than 200!
+Using 4187 of 4531 callsets
+Statistics - number of CNVs
+  min   : 62
+  q1    : 111
+  median: 121
+  q3    : 131
+  max   : 199
+Statistics - depth
+  min   : 80.11
+  q1    : 126.38
+  median: 138.78
+  q3    : 150.79
+  max   : 580.28
+Processing chromosome chr1...
+  Found 62276 CNVs
+Processing chromosome chr2...
+  Found 31148 CNVs
+Processing chromosome chr3...
+  Found 11413 CNVs
+Processing chromosome chr4...
+  Found 13857 CNVs
+Processing chromosome chr5...
+  Found 24942 CNVs
+Processing chromosome chr6...
+  Found 20128 CNVs
+Processing chromosome chr7...
+  Found 28167 CNVs
+Processing chromosome chr8...
+  Found 15607 CNVs
+Processing chromosome chr9...
+  Found 17888 CNVs
+Processing chromosome chr10...
+  Found 37077 CNVs
+Processing chromosome chr11...
+  Found 17582 CNVs
+Processing chromosome chr12...
+  Found 13104 CNVs
+Processing chromosome chr13...
+  Found 4813 CNVs
+Processing chromosome chr14...
+  Found 18911 CNVs
+Processing chromosome chr15...
+  Found 34829 CNVs
+Processing chromosome chr16...
+  Found 23242 CNVs
+Processing chromosome chr17...
+  Found 30150 CNVs
+Processing chromosome chr18...
+  Found 2462 CNVs
+Processing chromosome chr19...
+  Found 37979 CNVs
+Processing chromosome chr20...
+  Found 7623 CNVs
+Processing chromosome chr21...
+  Found 3509 CNVs
+Processing chromosome chr22...
+  Found 21959 CNVs
+Processing chromosome chrY...
+  Found 1374 CNVs
+Processing chromosome chrX...
+  Found 29633 CNVs
+Processing chromosome chrMT...
+  Found 0 CNVs

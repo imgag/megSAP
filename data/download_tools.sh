@@ -7,7 +7,7 @@ folder=$root/tools/
 cd $folder
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2019_09 && git submodule update --recursive --init
+git checkout 2020_03 && git submodule update --recursive --init
 make build_3rdparty
 make build_tools_release
 
@@ -59,9 +59,9 @@ cd $folder
 git clone https://github.com/imgag/ClinCNV.git
 cd ClinCNV
 git fetch && git fetch --tags
-git checkout 1.16.2
+git checkout 1.16.6
 cd ..
-mv ClinCNV ClinCNV-1.16.2
+mv ClinCNV ClinCNV-1.16.6
 
 #download and build VEP
 cd $root

@@ -30,6 +30,10 @@ check_exec("php ".src_folder()."/NGS/db_import_variants.php -id GS130796_01-GS13
 $log6_file = output_folder().$name."_out6.log";
 check_exec("php ".src_folder()."/NGS/db_import_variants.php -id GS130796_01 -var ".data_db_folder()."GS130796_01.GSvar -db NGSD_TEST -mode somatic --log $log6_file --debug");
 
+//germline with dash
+$log7_file = output_folder().$name."_out7.log";
+check_exec("php ".src_folder()."/NGS/db_import_variants.php -id GS-120699_01 -var ".data_db_folder()."GS-120699_01_annotated.tsv -db NGSD_TEST -mode germline --log $log7_file --debug");
+
 
 end_test();
 

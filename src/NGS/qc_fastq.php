@@ -58,7 +58,7 @@ else
 // if import set and sample id available, import ReadQC results into database
 if ($import && ($name != ""))
 {
-	$parser->execTool("NGS/db_import_qc.php", "-id $name -files $readqc_out");
+	$parser->execTool("NGS/db_import_qc.php", "-id $name -files $readqc_out -force");
 }
 
 ?>

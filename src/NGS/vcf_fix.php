@@ -108,7 +108,7 @@ while(!feof($h_in))
 	if ($var[0]==$var_last[0] && $var[1]==$var_last[1] && $var[3]==$var_last[3] && $var[4]==$var_last[4])
 	{
 		$sample = sample_data($var[8], $var[9]);
-		$sample_last = sample_data($var[8], $var[9]);
+		$sample_last = sample_data($var_last[8], $var_last[9]);
 		if ($sample['GT']!="0/1" || $sample_last['GT']!="0/1")
 		{
 			//this happens sometimes when a large variant block overlaps two target region blocks (see https://github.com/ekg/freebayes/issues/351)

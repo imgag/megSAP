@@ -11,7 +11,30 @@ while($line = fgets($handle))
 	{
 		if (in_array("-header", $argv))
 		{
-			print $line."\n";
+			if($line[1]=="#")
+			{
+				//comment section
+
+				//skip INFO ID headers (not present in output file)
+				if (starts_with($line, "##INFO=<ID=")) continue;
+
+				//print comment line
+				print $line."\n";
+			}
+			else
+			{
+				//actual header line
+
+				// add INFO column header:
+				print "##INFO=<ID=AN,Number=1,Type=Integer,Description=\"Total number of alleles in samples\">\n";
+				print "##INFO=<ID=AF,Number=A,Type=Float,Description=\"Alternate allele frequency in samples\">\n";
+				print "##INFO=<ID=Hom,Number=A,Type=Integer,Description=\"Count of homozygous individuals in samples\">\n";
+				print "##INFO=<ID=Hemi,Number=A,Type=Integer,Description=\"Alternate allele count for male samples\">\n";
+
+				//print header line
+				print $line."\n";
+			}
+			
 		}
 		continue;
 	}

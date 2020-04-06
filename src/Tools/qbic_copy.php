@@ -411,8 +411,6 @@ foreach($res as $row)
 		{
 			if (ends_with($file, ".fastq.gz") && !$tumor_normal_pair && $sample1["experiment_type"] != "rna_seq") $files[] = $file; //only take raw fastqs in case of single DNA samples
 			if (ends_with($file, "_var_annotated.vcf.gz")) $files[] = $file;
-			//if (ends_with($file, "_counts_raw.tsv")) $files[] = $file;
-			//if (ends_with($file, "_counts.tsv")) $files[] = $file;
 		}
 		
 		//Special treatment for tumor-normal fastqs
@@ -478,12 +476,10 @@ foreach($res as $row)
 			
 			//copy files to folder
 			copyFiles($files, $tmpfolder, $upload);
-			if(!empty($merged_fastq_files))
+
+			foreach($merged_fastq_files as $file)
 			{
-				foreach($merged_fastq_files as $file)
-				{
-					$parser->moveFile($file,$tmpfolder."/".basename($file));
-				}
+				$parser->moveFile($file,$tmpfolder."/".basename($file));
 			}
 			
 			//store meta data file (not for RNA samples
@@ -494,6 +490,7 @@ foreach($res as $row)
 			if ($upload)
 			{
 				$parser->moveFile($tmpfolder, $GLOBALS["datamover_path"]."/".$folder_name);
+				$files = array_merge($files, $merged_fastq_files);
 				markAsUploaded($sample1, null, $files);
 			}
 			printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(", ", $files));

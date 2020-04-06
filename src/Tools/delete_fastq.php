@@ -75,9 +75,9 @@ foreach($sample_table as $sample)
 	{
 		$bam_file_size = filesize($bam_file);
 		
-		if ($bam_file_size / $fastq_file_size < 0.5)
+		if ($bam_file_size / $fastq_file_size < 0.4)
 		{
-			$errors[] = "BAM file smaller than 50% of FASTQ";
+			$errors[] = "BAM file smaller than 40% of FASTQ";
 		}
 	}
 	

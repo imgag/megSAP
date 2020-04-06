@@ -1,10 +1,13 @@
-all: chmod import_runqc copy_Exome_Diagnostik_diagnostic copy_IVac_research queue_Exome_Diagnostik_diagnostic qc_IVac email_IVac
+all: chmod import_runqc import_read_counts copy_Exome_Diagnostik_diagnostic copy_IVac_research queue_Exome_Diagnostik_diagnostic qc_IVac email_IVac
 
 chmod:
 	chmod -R 775 Unaligned
 
 import_runqc:
 	php /mnt/users/all/megSAP/src/NGS/runqc_parser.php -name "#00001" -run_dir Unaligned/../ -force
+
+import_read_counts:
+	php /mnt/users/all/megSAP/src/NGS/import_sample_read_counts.php -stats Unaligned/Stats/Stats.json -db NGSD_TEST 
 
 copy_Exome_Diagnostik_diagnostic:
 	mv Unaligned/Project_Exome_Diagnostik/Sample_DX180049_01/ /mnt/projects/diagnostic/Exome_Diagnostik/

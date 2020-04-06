@@ -86,7 +86,6 @@ function determine_rows_to_use($cov, $roi_nonpoly)
 //function to load coverage profiles
 function load_coverage_profile($filename, &$rows_to_use, &$output)
 {
-	//$t_start = microtime(true);
 	$output = array();
 
 	$i = -1;
@@ -106,7 +105,6 @@ function load_coverage_profile($filename, &$rows_to_use, &$output)
 		list($chr, $start, $end, $avg_cov) = $parts;
 		$output[$chr][] = $avg_cov;
 	}
-	//print "COV DONE ".time_readable(microtime(true) - $t_start)." (".basename($filename).")\n";
 }
 
 //init
@@ -124,28 +122,23 @@ if (count($cov_files)<$cov_min)
 	exit(0);
 }
 
-//select the most similar samples
-if (count($cov_files)>$cov_max)
+//select coverage files of most similar samples
+$corr_start = microtime(true);
+$mean_correlation = 0.0;
 {
-	$parser->log(count($cov_files)." coverge files are given. Selecting the most similar {$cov_max} samples as reference samples!");
-	
 	//sort coverage files
 	sort($cov_files);
 	
 	//create target region without polymorphic regions
-	//$t_start = microtime(true);
 	$poly_merged = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$repository_basedir}/data/misc/cnps_genomes_imgag.bed {$repository_basedir}/data/misc/centromer_telomer_hg19.bed -out {$poly_merged}", true);
+	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$repository_basedir}/data/misc/af_genomes_imgag.bed {$repository_basedir}/data/misc/centromer_telomer_hg19.bed -out {$poly_merged}", true);
 	$roi_poly = $parser->tempFile(".bed");
 	$parser->exec(get_path("ngs-bits")."BedIntersect", "-in {$bed} -in2 {$poly_merged} -out {$roi_poly} -mode in", true);
 	$roi_nonpoly = $parser->tempFile(".bed");
 	$parser->exec(get_path("ngs-bits")."BedSubtract", "-in {$bed} -in2 {$roi_poly} -out {$roi_nonpoly}", true);
-	//print "PREP DONE ".time_readable(microtime(true) - $t_start)."\n";
-
+	
 	//determine which rows of coverage profiles to use
-	//$t_start = microtime(true);
 	$rows_to_use = determine_rows_to_use($cov, $roi_nonpoly);
-	//print "INDICES DONE ".time_readable(microtime(true) - $t_start)."\n";
 	
 	//determine correlation of each sample/cov file
 	$file2corr = array();
@@ -156,15 +149,13 @@ if (count($cov_files)>$cov_max)
 	{
 		load_coverage_profile($cov_file, $rows_to_use, $cov2);
 		
-		//$t_start = microtime(true);
 		$corr = array();
 		foreach($cov1 as $chr => $profile1)
 		{
-			$corr[] = number_format(correlation($profile1, $cov2[$chr]), 2);
+			$corr[] = number_format(correlation($profile1, $cov2[$chr]), 3);
 		}
-		//print "CALC DONE ".time_readable(microtime(true) - $t_start)."\n";
 		
-		$file2corr[$cov_file] = number_format(median($corr),2);
+		$file2corr[$cov_file] = number_format(median($corr), 3);
 	}
 		
 	//sort by correlation
@@ -175,12 +166,17 @@ if (count($cov_files)>$cov_max)
 	$add_info = array();
 	foreach ($file2corr as $f => $c)
 	{
+		$mean_correlation += $c;
 		$add_info[] = "$f ($c)";
 	}
+	$mean_correlation = number_format($mean_correlation/count($file2corr), 3);
+	
+	$parser->log("Mean correlation to reference samples is {$mean_correlation}");
 	$parser->log("Selected the following files as reference samples (correlation):", $add_info);
 	
 	$cov_files = array_keys($file2corr);
 }
+$parser->log("Execution time of determining reference samples: ".time_readable(microtime(true) - $corr_start));
 
 //merge coverage files to one file
 $tmp = $parser->tempFile(".txt");
@@ -198,7 +194,8 @@ $args = [
 "--maxNumGermCNVs {$max_cnvs}",
 "--numberOfThreads {$threads}",
 "--lengthG ".($regions-1), //lengthG actually gives the number of additional regions > subtract 1
-"--scoreG 20", 
+"--scoreG 20",
+"--par \"chrX:60001-2699520;chrX:154931044-155260560\"" //this is correct for hg19 only!
 ];
 
 if (!$skip_super_recall)
@@ -292,28 +289,29 @@ foreach($cnv_calls as $line)
 		++$hq_cnvs;
 	}	
 }
-array_splice($cnv_calls, 3, 0, array("##high-quality cnvs: {$hq_cnvs}\n"));
+array_splice($cnv_calls, 3, 0, array("##high-quality cnvs: {$hq_cnvs}\n", "##mean correlation to reference samples: {$mean_correlation}\n"));
 
 file_put_contents($out, $cnv_calls);
 
 //annotate
-$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$repository_basedir}/data/misc/cnps_genomes_imgag.bed -overlap -out {$out}", true);
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$out}", true);
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$out}", true);
 $parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -out {$out}", true);
-$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs.bed -no_duplicates -out {$out}", true);
+$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs.bed -no_duplicates -url_decode -out {$out}", true);
 $hgmd_file = "{$data_folder}/dbs/HGMD/hgmd_cnvs.bed"; //optional because of license
 if (file_exists($hgmd_file))
 {
-	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$hgmd_file} -no_duplicates -out {$out}", true);
+	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$hgmd_file} -no_duplicates -url_decode -out {$out}", true);
 }
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
 if (file_exists($omim_file))
 {
-	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$omim_file} -no_duplicates -out {$out}", true);
+	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$omim_file} -no_duplicates -url_decode -out {$out}", true);
 }
 
 //annotate additional gene info
 $parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$out} -out {$out}", true);
+//annotate overlap with pathogenic CNVs
+$parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$out} -out {$out}", true);
 ?>
 

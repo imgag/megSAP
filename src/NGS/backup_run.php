@@ -77,6 +77,34 @@ list($md5) = explode(" ", $stdout[0]);
 //copy log file to remote archive folder
 $parser->copyFile($parser->getLogFile(), $logfile);
 
+
+// update NGSD run information
+if (db_is_enabled("NGSD"))
+{
+	// get run id
+	$split_filename = explode("_", $in);
+	$run_id = "#".strtr(end($split_filename), array('/' => ''));
+
+	// get run entry from NGSD
+	$db = DB::getInstance("NGSD");
+	$query = "SELECT id FROM sequencing_run WHERE name = '{$run_id}'";
+	$res = $db->executeQuery($query);
+
+	if (sizeof($res) == 0)
+	{
+		trigger_error("No run with name \"$run_id\" found in NGSD", E_USER_WARNING);
+	}
+	else
+	{
+		$query = "UPDATE sequencing_run SET backup_done = 1 WHERE id = '".$res[0]["id"]."'";
+		$db->executeStmt($query);
+	}
+}
+else
+{
+	trigger_error("No Connection to the NGSD available! Couldnt update run information.", E_USER_WARNING);
+}
+
 //print log file to console
 print date("Y-m-d H:i:s")." done\n";
 print implode("", file($parser->getLogFile()));

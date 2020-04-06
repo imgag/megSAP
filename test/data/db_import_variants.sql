@@ -28,3 +28,7 @@ INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, pr
 INSERT INTO sample (name, sample_type, species_id, gender, tumor, ffpe, sender_id) VALUES ('GS130797', 'DNA', 1, 'male', '0', '0', 1);
 INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, processing_system_id, project_id) VALUES (5,1,1,'1',1,1);
 
+-- germline with "-" in name
+INSERT INTO sample (name, sample_type, species_id, gender, tumor, ffpe, sender_id) VALUES ('GS-120699', 'DNA', 1, 'male', '0', '0', 1);
+INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, processing_system_id, project_id) VALUES (6,1,1,'1',1,1);
+

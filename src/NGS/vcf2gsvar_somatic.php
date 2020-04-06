@@ -14,6 +14,7 @@ $parser->addString("t_col", "Column name of tumor sample.", false);
 //optional
 $parser->addString("n_col", "Column name of normal sample.", true, "na");
 $parser->addFlag("updown", "Don't discard up- or downstream anntations (5000 bases around genes).");
+$parser->addEnum("db", "Database to connect to", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
 //init
@@ -183,9 +184,9 @@ while(!feof($handle))
 gzclose($handle);
 
 //add somatic variant classification from NGSD (just after classification_comment column
-if(db_is_enabled("NGSD"))
+if(db_is_enabled($db))
 {
-	$db = DB::getInstance("NGSD");
+	$db = DB::getInstance($db);
 	$som_classifications = array();
 	$som_class_comments = array();
 	for($i=0; $i<$gsvar->rows(); ++$i)
@@ -199,9 +200,15 @@ if(db_is_enabled("NGSD"))
 			$res = $db->executeQuery("SELECT id, class, comment FROM somatic_variant_classification WHERE variant_id = $variant_id");
 			
 			if(!empty($res))
-			{
+			{				
 				$som_classifications[] = $res[0]["class"];
-				$som_class_comments[] = $res[0]["comment"];
+				$tmp = $res[0]["comment"];
+				//replace \t and \n
+				$tmp = str_replace("\t"," ",$tmp);
+				$tmp = str_replace("\n", " ", $tmp);
+				
+				$som_class_comments[] = $tmp;
+				
 			}
 			else
 			{

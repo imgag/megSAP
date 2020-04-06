@@ -7,7 +7,7 @@ $parser->addInfile("cnas","File containing the CNV data. ",true);
 $parser->addInfile("translocations","File containing the translocation data",true);
 $parser->addString("cancertype", "cancer type, see cancergenomeinterpreter.org for nomenclature",true,"CANCER");
 $parser->addString("out", "Output file for zipped CGI result file",false);
-$parser->addInfile("t_region", ".txt-File which contains genes that shall be included in CNV analysis. If unset, all genes in the CNV file will be sent to CGI", true);
+$parser->addInfile("t_region", ".txt-File which contains genes that shall be included in CNV analysis. Neccessary for CNV files.", true);
 $parser->addFlag("no_del", "Do not delete Job on Cancer Genome Interpreter after submission");
 $parser->addFlag("no_snv_limit","Allow uploading more than 1000 SNPs");
 extract($parser->parse($argv));
@@ -17,6 +17,12 @@ if(!isset($mutations) && !isset($cnas) && !isset($translocations))
 {
 	$parser->printUsage();
 	trigger_error("At least one variant file must be uploaded to CGI",E_USER_ERROR);
+}
+
+//t_region neccessary for CNV upload
+if(isset($cnas) && !isset($t_region))
+{
+	trigger_error("No target region \"-t_region\" specified. Neccessary for CNV upload.");
 }
 
 //set user credentials
@@ -204,72 +210,73 @@ function delJob($job_id,$user,$token,$url='https://www.cancergenomeinterpreter.o
 	$result = $parser->exec("curl",$parameters,true);
 }
 
-//returns associative array (key=>value) with genes => alteration type
-function get_genes_from_file($file)
-{
-	$cnvs = Matrix::fromTSV($file);
-	$i_genes = $cnvs->getColumnIndex("genes");
-	
-	$i_copy_numbers = $cnvs->getColumnIndex("region_copy_numbers",false,false); // CNVHunter file
-	$i_cn_change = $cnvs->getColumnIndex("CN_change",false,false); //ClinCnv file
-	
-	if($i_copy_numbers === false && $i_cn_change === false) trigger_error("Unknown CNV format. Aborting.",E_USER_ERROR);
-	
-	$genes_type = array(); // ass. array with $genes => CNV_type
-	
-	if($i_copy_numbers !== false) //CNVHunter file
-	{
-		for($row=0;$row<$cnvs->rows();++$row)
-		{
-			$tmp_region_copy_numbers = median(explode(',',$cnvs->get($row,$i_copy_numbers)));
-			
-			$genes = $cnvs->get($row,$i_genes);
-			
-			if($tmp_region_copy_numbers>2.) $genes_type[$genes] = "AMP";
-			else $genes_type[$genes] = "DEL";
-		}
-	} else //ClinCNV
-	{
-		for($row=0;$row<$cnvs->rows();++$row)
-		{
-			$genes = $cnvs->get($row,$i_genes);
-			$cn_change = $cnvs->get($row,$i_cn_change);
-			if($cn_change > 2.) $genes_type[$genes] = "AMP";
-			elseif($cn_change < 2.) $genes_type[$genes] = "DEL";
-			else $genes_type[$genes] = "NA";
-		}
-	}
-	
-	//explode genes
-	$output = array();
-	foreach($genes_type as $genes_per_cnv => $type)
-	{
-		$genes = explode(',',$genes_per_cnv);
-		foreach($genes as $gene)
-		{
-			//skip genes that are annotated in CNVs with inconsistent CN type
-			if(array_key_exists($gene,$output) && $type != $output[$gene]) 
-			{
-				$output[$gene] = "NA";
-				continue;
-			}
-			$output[$gene] = $type;
-		}
-	}
-	
-	return $output;
-}
-
 //read CNV .tsv-file and transform it into CGI specific format. If target region is set: remove genes that do not lie inside the target region
 function transform_cnv_annotations($tsv_in_file,$tsv_out_filename)
 {
 	global $t_region;
-	$genes = get_genes_from_file($tsv_in_file);
+
+	//get genes (column "gene_info")
+	$file = Matrix::fromTSV($tsv_in_file);
+	$i_gene_info = $file->getColumnIndex("gene_info");
+	$i_cn_change_clincnv =  $file->getColumnIndex("CN_change", false, false);
+	$i_cn_change_cnvhunter = $file->getColumnIndex("region_copy_numbers", false, false);
+	
+	//file for upload
 	$cnv_to = new Matrix();
 	$cnv_to->addRow(array("gene","cna"));
-	foreach($genes as $gene => $cn_type)
+	
+	//resolve genes from col gene_info
+	if($i_cn_change_clincnv > -1)
 	{
-		$cnv_to->addRow(array($gene,$cn_type));
+		for($r=0; $r<$file->rows(); ++$r)
+		{		
+			$gene_infos = explode(",", $file->get($r, $i_gene_info));
+			$cn_change = $file->get($r, $i_cn_change_clincnv);
+			$type = "NA";
+			if($cn_change > 2.) $type = "AMP";
+			elseif($cn_change < 2.) $type = "DEL";
+			
+			foreach($gene_infos as $tmp_gene_info)
+			{
+				$parts = explode(" ", $tmp_gene_info);
+				if(count($parts) <= 1)
+				{
+					trigger_error("Could not parse gene_info entry \"{$tmp_gene_info}\". Ignoring this entry.", E_USER_WARNING);
+					continue;
+				}
+
+				$cnv_to->addRow(array($parts[0],$type));
+			}	
+		}
+	}
+	elseif($i_cn_change_cnvhunter > -1) //CnvHunter
+	{
+		for($row=0;$row<$file->rows();++$row)
+		{
+			$tmp_region_copy_numbers = median(explode(',',$file->get($row,$i_cn_change_cnvhunter)));
+			$genes = $file->get($row,$i_cn_change_cnvhunter);
+			$type = "NA";
+			if($tmp_region_copy_numbers>2.) $type = "AMP";
+			else $type = "DEL";
+			
+			$gene_infos = explode(",", $file->get($row, $i_gene_info));
+			
+			foreach($gene_infos as $tmp_gene_info)
+			{
+				$parts = explode(" ", $tmp_gene_info);
+				if(count($parts) <= 1)
+				{
+					trigger_error("Could not parse gene_info entry \"{$tmp_gene_info}\". Ignoring this entry.", E_USER_WARNING);
+					continue;
+				}
+
+				$cnv_to->addRow(array($parts[0],$type));
+			}	
+		}
+	}
+	else
+	{
+		trigger_error("Could not parse CNV file $tsv_in_file for sending CGI data.", E_USER_ERROR);
 	}
 
 	//transform all outdated gene names
@@ -279,41 +286,40 @@ function transform_cnv_annotations($tsv_in_file,$tsv_out_filename)
 	//there can be duplicates in CNV list if a gene lies in two reported regions -> remove
 	$cnv_to->unique();
 	//discard all genes which do not lie in target region
-	if(isset($t_region))
-	{
-		$genes_in_region = explode("\n",file_get_contents($t_region));
-		if(count($genes_in_region) == 0)
-		{
-			trigger_error("Target region file $t_region does not contain any genes.",E_USER_ERROR);
-		}
-		
-		//approve gene names in target region
-		$genes_in_region = approve_gene_names($genes_in_region);
-		
-		//Only use genes which are listed in target region
-		$index_discarded_genes = array();
-		for($i=0;$i<$cnv_to->rows();$i++)
-		{
-			if(!in_array($cnv_to->get($i,0),$genes_in_region))
-			{
-				$index_discarded_genes[] = $i;
-			}
-		}
 
-		//Remove genes that lie outside target region, begin at the end of cnv_to
-		for($i=count($index_discarded_genes)-1;$i>0;$i--)
-		{
-			$cnv_to->removeRow($index_discarded_genes[$i]);
-		}
-		
-		if($cnv_to->rows() <= 1)
-		{
-			trigger_error("Warning: CNV file does not contain any genes after filtering for target region.\n",E_USER_WARNING);
-		}
-	
-		global $cnas;
-		print(count($index_discarded_genes) . " genes from ".$cnas." were discarded because they do not lie in target region $t_region\n");
+	$genes_in_region = explode("\n",file_get_contents($t_region));
+	if(count($genes_in_region) == 0)
+	{
+		trigger_error("Target region file $t_region does not contain any genes.",E_USER_ERROR);
 	}
+	
+	//approve gene names in target region
+	$genes_in_region = approve_gene_names($genes_in_region);
+	
+	//Only use genes which are listed in target region
+	$index_discarded_genes = array();
+	for($i=0;$i<$cnv_to->rows();$i++)
+	{
+		if(!in_array($cnv_to->get($i,0),$genes_in_region))
+		{
+			$index_discarded_genes[] = $i;
+		}
+	}
+
+	//Remove genes that lie outside target region, begin at the end of cnv_to
+	for($i=count($index_discarded_genes)-1;$i>0;$i--)
+	{
+		$cnv_to->removeRow($index_discarded_genes[$i]);
+	}
+	
+	if($cnv_to->rows() <= 1)
+	{
+		trigger_error("Warning: CNV file does not contain any genes after filtering for target region.\n",E_USER_WARNING);
+	}
+
+	global $cnas;
+	print(count($index_discarded_genes) . " genes from ".$cnas." were discarded because they do not lie in target region $t_region\n");
+		
 	//write to temporary file
 	$cnv_to->toTSV($tsv_out_filename);
 }

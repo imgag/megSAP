@@ -1,92 +1,134 @@
-Found 592 high-quality CNV callsets for the processing system.
-Skipping sample DX163053_03 - CNV count (2160) is higher than 2000!
-Skipping sample DX174243_03 - CNV count (13950) is higher than 2000!
-Skipping sample DX185042_03 - CNV count (2037) is higher than 2000!
-Skipping sample DX185733_02 - CNV count (21206) is higher than 2000!
-Skipping sample DX185587_02 - CNV count (2069) is higher than 2000!
-Skipping sample DX190078_02 - CNV count (5811) is higher than 2000!
-Skipping sample DX170516_03 - CNV count (3220) is higher than 2000!
-Skipping sample DX190639_02 - CNV count (3126) is higher than 2000!
-Skipping sample DX190948_02 - CNV count (2223) is higher than 2000!
-Skipping sample DX191038_02 - CNV count (2807) is higher than 2000!
-Skipping sample DX181066_02 - CNV count (2385) is higher than 2000!
+Found 718 high-quality CNV callsets for the processing system.
+Skipping sample DX163053_03 - CNV count (2265) is higher than 2000!
+Skipping sample DX174243_03 - CNV count (8311) is higher than 2000!
+Skipping sample DX185042_03 - CNV count (2090) is higher than 2000!
+Skipping sample DX185733_02 - CNV count (18901) is higher than 2000!
+Skipping sample GS130909_05 - wrong caller version 'v1.16.1'!
+Skipping sample GS130910_04 - wrong caller version 'v1.16.1'!
+Skipping sample FO12897x03_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX185587_02 - CNV count (2274) is higher than 2000!
+Skipping sample DX190078_02 - CNV count (5837) is higher than 2000!
+Skipping sample DX170516_03 - CNV count (3305) is higher than 2000!
+Skipping sample DX190639_02 - CNV count (3160) is higher than 2000!
+Skipping sample DX190948_02 - CNV count (2260) is higher than 2000!
+Skipping sample DX191038_02 - CNV count (2607) is higher than 2000!
+Skipping sample DX181066_02 - CNV count (2446) is higher than 2000!
 Skipping sample DX192832_02 - depth (28.27) is below 30!
 Skipping sample DX192883_02 - depth (29.99) is below 30!
-Skipping sample DX192348_03 - CNV count (2250) is higher than 2000!
-Skipping sample DX193934_02 - CNV count (3824) is higher than 2000!
-Skipping sample DX194255_02 - CNV count (2381) is higher than 2000!
-Skipping sample DX194489_02 - CNV count (12836) is higher than 2000!
-Skipping sample DX194519_02 - CNV count (4613) is higher than 2000!
-Skipping sample DX194655_02 - CNV count (2226) is higher than 2000!
-Skipping sample DX194860_02 - CNV count (6528) is higher than 2000!
-Skipping sample DX194169_02 - CNV count (2821) is higher than 2000!
-Skipping sample DX195190_02 - CNV count (2466) is higher than 2000!
-Skipping sample DX191697_02 - CNV count (3548) is higher than 2000!
-Skipping sample DX195593_02 - CNV count (60986) is higher than 2000!
-Skipping sample DX195596_02 - CNV count (58754) is higher than 2000!
-Skipping sample DX195671_02 - CNV count (2335) is higher than 2000!
-Skipping sample DX196171_02 - CNV count (2390) is higher than 2000!
+Skipping sample DX192348_03 - CNV count (2304) is higher than 2000!
+Skipping sample DX193934_02 - CNV count (3080) is higher than 2000!
+Skipping sample DX194255_02 - CNV count (2209) is higher than 2000!
+Skipping sample DX194460_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX194489_02 - CNV count (11549) is higher than 2000!
+Skipping sample DX194519_02 - CNV count (4418) is higher than 2000!
+Skipping sample DX194655_02 - CNV count (2244) is higher than 2000!
+Skipping sample DX194860_02 - CNV count (6531) is higher than 2000!
+Skipping sample DX195143_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195190_02 - CNV count (2338) is higher than 2000!
+Skipping sample DX195398_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195400_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195445_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195460_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195462_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195486_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195519_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195520_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195551_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195593_02 - CNV count (55591) is higher than 2000!
+Skipping sample DX195596_02 - CNV count (53215) is higher than 2000!
+Skipping sample DX195607_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195608_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195671_02 - CNV count (2355) is higher than 2000!
+Skipping sample DX195742_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195770_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX195899_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX196082_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX196401_02 - wrong caller version 'v1.16.1'!
+Skipping sample DX196171_02 - CNV count (2534) is higher than 2000!
+Skipping sample DX196281_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196402_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196403_02 - wrong caller version 'v1.16.2'!
 Skipping sample DX196404_02 - CNV count (2074) is higher than 2000!
-Using 564 of 592 callsets
+Skipping sample DX196405_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196409_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196415_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196424_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196430_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196451_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196454_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX185580_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196469_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196650_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196783_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196794_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196934_02 - CNV count (2023) is higher than 2000!
+Skipping sample DX196956_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX195795_04 - CNV count (20907) is higher than 2000!
+Skipping sample DX197163_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX196505_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX197228_02 - wrong caller version 'v1.16.2'!
+Skipping sample DX110314_02 - CNV count (26560) is higher than 2000!
+Skipping sample DX197487_02 - CNV count (2360) is higher than 2000!
+Using 648 of 718 callsets
 Statistics - number of CNVs
-  min   : 879
-  q1    : 1139
-  median: 1203
-  q3    : 1301
-  max   : 1939
+  min   : 888
+  q1    : 1190
+  median: 1264
+  q3    : 1361
+  max   : 1968
 Statistics - depth
   min   : 30.87
-  q1    : 46.78
-  median: 50.76
-  q3    : 54.15
+  q1    : 46.38
+  median: 49.91
+  q3    : 53.48
   max   : 91.04
 Processing chromosome chr1...
-  Found 57901 CNVs
+  Found 67143 CNVs
 Processing chromosome chr2...
-  Found 39211 CNVs
+  Found 47996 CNVs
 Processing chromosome chr3...
-  Found 26904 CNVs
+  Found 31287 CNVs
 Processing chromosome chr4...
-  Found 33879 CNVs
+  Found 44150 CNVs
 Processing chromosome chr5...
-  Found 35885 CNVs
+  Found 42255 CNVs
 Processing chromosome chr6...
-  Found 32396 CNVs
+  Found 38422 CNVs
 Processing chromosome chr7...
-  Found 40490 CNVs
+  Found 52225 CNVs
 Processing chromosome chr8...
-  Found 35794 CNVs
+  Found 42909 CNVs
 Processing chromosome chr9...
-  Found 71957 CNVs
+  Found 83666 CNVs
 Processing chromosome chr10...
-  Found 41738 CNVs
+  Found 48282 CNVs
 Processing chromosome chr11...
-  Found 25937 CNVs
+  Found 34357 CNVs
 Processing chromosome chr12...
-  Found 19786 CNVs
+  Found 24553 CNVs
 Processing chromosome chr13...
-  Found 12963 CNVs
+  Found 16174 CNVs
 Processing chromosome chr14...
-  Found 18739 CNVs
+  Found 21869 CNVs
 Processing chromosome chr15...
-  Found 27253 CNVs
+  Found 33014 CNVs
 Processing chromosome chr16...
-  Found 25291 CNVs
+  Found 29370 CNVs
 Processing chromosome chr17...
-  Found 28446 CNVs
+  Found 32944 CNVs
 Processing chromosome chr18...
-  Found 9541 CNVs
+  Found 11257 CNVs
 Processing chromosome chr19...
-  Found 20283 CNVs
+  Found 25017 CNVs
 Processing chromosome chr20...
-  Found 8312 CNVs
+  Found 11441 CNVs
 Processing chromosome chr21...
-  Found 11776 CNVs
+  Found 13886 CNVs
 Processing chromosome chr22...
-  Found 18986 CNVs
+  Found 25949 CNVs
 Processing chromosome chrY...
-  Found 5671 CNVs
+  Found 5943 CNVs
 Processing chromosome chrX...
-  Found 44823 CNVs
+  Found 53531 CNVs
 Processing chromosome chrMT...
   Found 0 CNVs

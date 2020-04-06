@@ -29,7 +29,7 @@ In the example above, the configuration of the pipeline is done using the `hpHBO
 
 ### Test data
 
-Example data which can be analyzed using the command above can be downloaded from [here](https://medgen.medizin.uni-tuebingen.de/NGS-downloads/NA12878_01.zip).
+Example data which can be analyzed using the command above can be downloaded from [here](https://download.imgag.de/NA12878_01.zip).
 
 ### Output
 

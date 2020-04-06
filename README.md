@@ -34,6 +34,11 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 
 ## ChangeLog
+* 04.12.2019: Updated all tools and databases to the latest version
+* 18.11.2019: Decoupled NGSD database and megSAP for annotations (data from NGSD is now exported to VCF/BED format and annotated just as any other data source)
+* 07.11.2019: Enabled SV calling for exomes/panels
+* 04.11.2019: Added option to automatically delete FASTQ files after mapping to save disk space (see settings.ini)
+* 31.11.2019: Added support for shallow WGS as replacement for arrays
 * 06.08.2019: Updated all tools and databases to the latest version
 * 05.08.2019: Finished refactoring and update of CNV calling and annotation 
 * 02.05.2019: Genome data and annotation databases (about 210GB) are now always copied to the local /tmp/ folder. See `local_data` in `settings.ini`.

@@ -36,7 +36,7 @@ while (!feof($handle))
 	$class = $parts[10];
 	
 	//write
-	print "$chr\t$start\t$end\t{$repeat}[s]($class)\n";
+	print "$chr\t$start\t$end\t{$repeat}%20($class)\n";
 }
 
 fclose($handle);

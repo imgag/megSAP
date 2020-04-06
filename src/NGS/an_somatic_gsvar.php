@@ -8,7 +8,7 @@ $parser->addFlag("include_ncg", "Annotate column with info from NCG6.0 whether a
 $parser->addString("rna_id", "ID of RNA sample if RNA data is annotated.", true);
 $parser->addInfile("rna_counts", "Input file that contains RNA transcript counts.", true);
 $parser->addInfile("rna_bam", "RNA-BAM file that is used to annotate and calculate variant depth and frequency in RNA sample.", true);
-$parser->addString("rna_ref_tissue", "Annotate RNA reference data from The Human Protein Atlas in TPM (transcripts per million). Specify tissue, e.g. \"colon\".", true);
+$parser->addString("rna_ref_tissue", "Annotate RNA reference data from The Human Protein Atlas in TPM (transcripts per million). Specify tissue, e.g. \"colon\". Zeroes will be replaced by blank space", true);
 $parser->addOutfile("out", "Output file name", false);
 extract($parser->parse($argv));
 
@@ -221,6 +221,9 @@ if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 
 if(isset($rna_ref_tissue))
 {
+	//Resubstitute zeroes by spaces (opposite happens in somatic_dna.php)
+	$rna_ref_tissue = str_replace("0", " ", $rna_ref_tissue);
+	
 	$genes_of_interest = array();
 	$i_dna_gene =  $gsvar_input->getColumnIndex("gene");
 	

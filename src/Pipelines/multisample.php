@@ -89,12 +89,24 @@ foreach($bams as $bam)
 	{
 		trigger_error("Cannot perform multi-sample analysis without target region (processing systems of ".$bam." is '".$sys["name_short"]."')!", E_USER_ERROR);
 	}
-	if ($sys['type']=="WGS (shallow)")
-	{
-		trigger_error("Cannot perform multi-sample analysis with shallow WGS sample (processing systems of ".$bam." is '".$sys["name_short"]."')!", E_USER_ERROR);
-	}
 }
 $sys = load_system($system, $names[$bams[0]]);
+
+//check steps
+$is_wgs_shallow = $sys['type']=="WGS (shallow)";
+if ($is_wgs_shallow)
+{
+	if (in_array("vc", $steps))
+	{
+		trigger_error("Skipping step 'vc' - Variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
+		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
+	}
+	if (in_array("an", $steps))
+	{
+		trigger_error("Skipping step 'an' - Annotation is not supported for shallow WGS samples!", E_USER_NOTICE);
+		if (($key = array_search("an", $steps)) !== false) unset($steps[$key]);
+	}
+}
 
 //create output folder if missing
 $out_folder .= "/";
@@ -291,7 +303,7 @@ if (in_array("cn", $steps))
 	}
 	
 	//annotation column headers
-	$anno_headers = ["overlap cnps_genomes_imgag", "overlap af_genomes_imgag", "cn_pathogenic", "genes", "dosage_sensitive_disease_genes", "clinvar_cnvs"];
+	$anno_headers = ["overlap af_genomes_imgag", "cn_pathogenic", "genes", "dosage_sensitive_disease_genes", "clinvar_cnvs"];
 	
 	if (file_exists($hgmd_file))
 	{
@@ -341,7 +353,6 @@ if (in_array("cn", $steps))
 			}
 			$cnv_data[] = $data;
 		}
-
 		
 		//intersect CNV regions of affected (with same CN state)
 		$regions = null;
@@ -350,7 +361,7 @@ if (in_array("cn", $steps))
 		{
 			++$i;
 			
-			//skip controls;
+			//skip controls
 			if ($stat != "affected") continue;
 			
 			//first affected => init
@@ -395,19 +406,22 @@ if (in_array("cn", $steps))
 			$tmp = array();
 			foreach($regions as $cnv)
 			{
-				$match = false;
+				$match_bases = 0;
 				foreach($cnv_data[$i] as $cnv2)
 				{
 					//skip low-confidence CNVs (avoids that noise in unaffected samples removes true-positives in affected samples)
-					if ($cnv2["loglike"]<40) continue;
+					if ($cnv2["loglike"]<20) continue;
 					
 					if($cnv["chr"]==$cnv2["chr"] && $cnv["cn"] == $cnv2["cn"] && range_overlap($cnv["start"], $cnv["end"], $cnv2["start"], $cnv2["end"]))
 					{
-						$match = true;
+						$overlap_start = max($cnv["start"], $cnv2["start"]);
+						$overlap_end = min($cnv["end"], $cnv2["end"]);
+						$match_bases += $overlap_end - $overlap_start;
 						break;
 					}
 				}
-				if(!$match)
+				$min_match_bases = 0.5 * ($cnv["end"] - $cnv["start"]);
+				if($match_bases < $min_match_bases)
 				{
 					$tmp[] = $cnv;
 				}
@@ -598,7 +612,6 @@ if (in_array("cn", $steps))
 		file_put_contents($tmp, implode("\n", $output));
 
 		//copy-number polymorphisms
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$repository_basedir}/data/misc/cnps_genomes_imgag.bed -overlap -out {$tmp}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$tmp}", true);
 		
 		//knowns pathogenic CNVs
@@ -611,18 +624,18 @@ if (in_array("cn", $steps))
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -out {$tmp}", true);
 		
 		//pathogenic ClinVar CNVs
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs.bed -no_duplicates -out {$tmp}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs.bed -url_decode -no_duplicates -out {$tmp}", true);
 		
 		//HGMD CNVs
 		if (file_exists($hgmd_file)) //optional because of license
 		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$hgmd_file} -no_duplicates -out {$tmp}", true);
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$hgmd_file} -no_duplicates -url_decode -out {$tmp}", true);
 		}
 		
 		//OMIM
 		if (file_exists($omim_file)) //optional because of license
 		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 $omim_file -no_duplicates -out {$tmp}", true);
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 $omim_file -no_duplicates -url_decode -out {$tmp}", true);
 		}
 		
 		//write output
@@ -633,6 +646,57 @@ if (in_array("cn", $steps))
 
 		//annotate additional gene info
 		$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$cnv_multi} -out {$cnv_multi}", true);
+	}
+	
+	//create dummy GSvar file for shallow WGS (needed to be able to open the sample in GSvar)
+	if ($is_wgs_shallow)
+	{
+		$content = array();
+		$content[] = "##ANALYSISTYPE=GERMLINE_TRIO";
+		foreach($bams as $bam)
+		{
+			$content[] = trim(gsvar_sample_header($names[$bam], array("DiseaseStatus"=>$status[$bam])));
+		}
+		$desc_and_filter = array(
+			"##DESCRIPTION=filter=Annotations for filtering and ranking variants.",
+			"##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM).",
+			"##DESCRIPTION=gene=Affected gene list (comma-separated).",
+			"##DESCRIPTION=variant_type=Variant type.",
+			"##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).",
+			"##DESCRIPTION=regulatory=Regulatory consequence details.",
+			"##DESCRIPTION=OMIM=OMIM database annotation.",
+			"##DESCRIPTION=ClinVar=ClinVar database annotation.",
+			"##DESCRIPTION=HGMD=HGMD database annotation.",
+			"##DESCRIPTION=RepeatMasker=RepeatMasker annotation.",
+			"##DESCRIPTION=dbSNP=Identifier in dbSNP database.",
+			"##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.",
+			"##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.",
+			"##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).",
+			"##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.",
+			"##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.",
+			"##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.",
+			"##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.",
+			"##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.",
+			"##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.",
+			"##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.",
+			"##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).",
+			"##DESCRIPTION=GeneSplicer=GeneSplicer splicing prediction (state/type/coordinates/confidence/score).",
+			"##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).",
+			"##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.",
+			"##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.",
+			"##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.",
+			"##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group (Neoplasms).",
+			"##DESCRIPTION=classification=Classification from the NGSD.",
+			"##DESCRIPTION=classification_comment=Classification comment from the NGSD.",
+			"##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!",
+			"##DESCRIPTION=comment=Variant comments from the NGSD.",
+			"##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).",
+			"##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.",
+			"##FILTER=off-target=Variant marked as 'off-target'."
+			);
+		$content = array_merge($content, $desc_and_filter);
+		$content[] = "#chr	start	end	ref	obs	".implode("\t", array_values($names))."	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info";
+		file_put_contents("{$out_folder}{$prefix}.GSvar", implode("\n", $content));
 	}
 }
 

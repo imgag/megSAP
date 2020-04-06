@@ -3,7 +3,6 @@
 /**
   @page vc_manta
   
-  @todo test ABRA2 option --no-edge-ci > fixing BAM for manta should not be needed anymore!
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -21,7 +20,6 @@ $parser->addString("evid_dir", "Output folder for BAM files containing evidence 
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addInfile("target",  "Enrichment target BED file (used for flagging off-target variants).", true);
 $parser->addFlag("exome", "If set, manta settings for exome/panel analysis are used (no depth filtering).", true);
-$parser->addFlag("fix_bam", "Remove incompatible alignments from BAM prior to running manta.");
 $parser->addInt("threads", "Number of threads used.", true, 4);
 //debugging options
 $parser->addEnum("config_preset", "Use preset configuration.", true, array("default", "high_sensitivity"), "default");
@@ -42,41 +40,6 @@ else if (isset($t_bam) && isset($bam) && count($bam) > 1)
 $mode_somatic = isset($t_bam) && isset($bam) && count($bam) == 1;
 $mode_tumor_only = isset($t_bam) && !isset($bam);
 $mode_germline = !isset($t_bam) && isset($bam);
-
-//rewrite BAM files
-if ($fix_bam)
-{
-	$all_bams = $bam;
-	if (isset($t_bam))
-	{
-		$all_bams[] = $t_bam;
-	}
-
-	$bams_nocomplex = [];
-
-	foreach ($all_bams as $b) {
-		$b_tmp = $parser->tempFile("_nocomplex.bam");
-		$bams_nocomplex[] = $b_tmp;
-
-		$pipeline = [];
-		$pipeline[] = [ get_path("samtools"), "view -@{$threads} -O SAM -h {$b}" ];
-		//use awk to filter the CIGAR field by regexp, remove reads with I/D/S combination at begin or end
-		$pipeline[] = [ "awk", "-- '\\$6 !~ /^([0-9]+S)?[0-9]+[IDS][0-9]+[ID]|[0-9]+[ID][0-9]+[ID]([0-9]+S)?$/'" ];
-		$pipeline[] = [ get_path("samtools"), "view -@{$threads} -o {$b_tmp}" ];
-		$parser->execPipeline($pipeline, "filter bam");
-		$parser->indexBam($b_tmp, $threads);
-		$parser->addTempFile($b_tmp.".bai");
-	}
-	
-	if (!$mode_tumor_only)
-	{
-		$bam = array_slice($bams_nocomplex, 0, count($bam));
-	}
-	if (isset($t_bam))
-	{
-		$t_bam = array_pop($bams_nocomplex);
-	}
-}
 
 //resolve configuration preset
 $config_default = get_path("manta")."/configManta.py.ini";

@@ -258,13 +258,20 @@ function get_path($name, $throw_on_error=true)
 		
 	@ingroup helpers
 */
-function get_db($db, $name)
+function get_db($db, $name, $default_value=null)
 {
 	$values = get_path($name);
 	
 	if (!isset($values[$db]))
 	{
-		trigger_error("get_db could not find value '$name' for DB '$db'!", E_USER_ERROR);
+		if (is_null($default_value))
+		{
+			trigger_error("get_db could not find value '$name' for DB '$db'!", E_USER_ERROR);
+		}
+		else
+		{
+			return $default_value;
+		}
 	}
 	
 	return $values[$db];
@@ -486,6 +493,23 @@ function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 	}
 	
 	return $res[0]['id'];
+}
+
+///returns array with processed sample names in the form DX******_** from run name
+function get_processed_samples_from_run(&$db, $run_id)
+{
+	$query = "SELECT ps.process_id, s.name FROM sequencing_run as run, processed_sample as ps, sample as s WHERE run.name = '{$run_id}' AND ps.sequencing_run_id = run.id AND s.id = ps.sample_id";
+	
+	$res = $db->executeQuery($query);
+	
+	$sample_names = array();
+	
+	foreach($res as $data)
+	{
+		$sample_names[] = $data['name'] . "_" . str_pad($data['process_id'],2,'0',STR_PAD_LEFT);
+	}
+	
+	return $sample_names;
 }
 
 ///Updates normal sample entry for given tumor sample.
@@ -1536,6 +1560,67 @@ function allele_count($bam, $chr, $pos)
 	arsort($counts);
 	
 	return $counts;
+}
+
+/**
+	@brief Returns an array with (1) report configuration id of processed sample or -1 (2) if small variants report config exists and (3) CNV report config exists
+ */
+function report_config(&$db_conn, $name, $error_if_not_found=false)
+{
+	$ps_id = get_processed_sample_id($db_conn, $name, $error_if_not_found);
+		
+	$rc_id = $db_conn->getValue("SELECT id FROM report_configuration WHERE processed_sample_id=".$ps_id, -1);
+	
+	$var_ids = $db_conn->getValues("SELECT id FROM report_configuration_variant WHERE report_configuration_id=".$rc_id);
+	$cnv_ids = $db_conn->getValues("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=".$rc_id);
+	
+	
+	return array($rc_id, count($var_ids)>0, count($cnv_ids)>0);
+}
+
+function somatic_report_config(&$db_conn, $t_ps, $n_ps, $error_if_not_found=false)
+{
+	$t_ps_id = get_processed_sample_id($db_conn, $t_ps, $error_if_not_found);
+	$n_ps_id = get_processed_sample_id($db_conn, $n_ps, $error_if_not_found);
+	
+	$config_id = $db_conn->getValue("SELECT id FROM somatic_report_configuration WHERE ps_tumor_id='{$t_ps_id}' AND ps_normal_id='{$n_ps_id}'", -1);
+	
+	if($error_if_not_found && $config_id == -1)
+	{
+		trigger_error("Could not find somatic report id for $t_ps_id {$n_ps_id}.", E_USER_ERROR);
+	}
+	
+	
+	$var_ids = $db_conn->getValues("SELECT id FROM somatic_report_configuration_variant WHERE somatic_report_configuration_id=".$config_id);
+	$cnv_ids = $db_conn->getValues("SELECT id FROM somatic_report_configuration_cnv WHERE somatic_report_configuration_id=".$config_id);
+	
+	return array($config_id, count($var_ids)>0, count($cnv_ids) > 0);	
+}
+
+//Returns cytobands of given genomic range as array
+function cytoBands($chr, $start, $end)
+{
+	$handle = fopen(repository_basedir()."/data/misc/cytoBand.txt", "r");
+	
+	$out = array();
+	
+	while(!feof($handle))
+	{
+		$line = trim(fgets($handle));
+		if(empty($line)) continue;
+		list($cchr, $cstart, $cend, $cname) = explode( "\t", $line );
+		if($chr != $cchr) continue;
+		
+		if(range_overlap($start, $end, $cstart, $cend))
+		{
+			$out[] =  $cname;
+		}
+	}
+	fclose($handle);
+
+	asort($out);
+	
+	return $out;
 }
 
 ?>

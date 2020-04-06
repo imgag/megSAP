@@ -66,7 +66,7 @@ if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT"]))
 	if ($in_index === NULL || empty($in_index))
 	{
 		trigger_error("Processing system ".$sys['name_short']." has UMI type ".$sys['umi_type'].", but no index files are specified => UMI-based de-duplication skipped!", E_USER_WARNING);
-		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads, 1, 6), true);
+		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads-2, 1, 6), true);
 	}
 	else
 	{
@@ -75,7 +75,7 @@ if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT"]))
 		$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
 		$parser->exec(get_path("ngs-bits")."FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $in_index)." -out1 $merged1_bc -out2 $merged2_bc", true);
 		// run SeqPurge
-		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $merged1_bc -in2 $merged2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads, 1, 6), true);
+		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $merged1_bc -in2 $merged2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 6), true);
 
 		// trim 1 base from end of R1 and 1 base from start of R2 (only HaloPlex HS)
 		if ($sys['umi_type'] === "HaloPlex HS")
@@ -102,7 +102,7 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 	//handle UMI protocols where the UMI is placed at the head of read 1 and/or read 2
 
 	//remove sequencing adapter
-	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads, 1, 6), true);
+	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads-2, 1, 6), true);
 
 	//set protocol specific UMI lengths
 	switch ($sys['umi_type'])
@@ -147,7 +147,7 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 else
 {
 	if ($sys['umi_type']!=="n/a") trigger_error("Unknown UMI-type ".$sys['umi_type'].". No barcode correction.",E_USER_WARNING);
-	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads, 1, 6), true);
+	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 6), true);
 }
 
 //clean up MIPs - remove single reads and MIP arms, skip all reads without perfect match mip arm
@@ -358,7 +358,7 @@ if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 {
 	if($sys['type']=="WGS (shallow)")
 	{
-		trigger_error("Skipping indel realignment - it is not needed for shallow WGS samples since no variant calling is preformed!", E_USER_NOTICE);
+		trigger_error("Skipping indel realignment - it is not needed for shallow WGS samples since no variant calling is performed!", E_USER_NOTICE);
 	}
 	else
 	{
@@ -441,13 +441,9 @@ if($clip_overlap)
 	$bam_current = $tmp_bam2;
 }
 
-//move BAM to final output location
-$parser->moveFile($bam_current, $out);
-$parser->moveFile($bam_current.".bai", $out.".bai");
-
 //run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
-$params = array("-in $out", "-out $stafile2");
+$params = array("-in $bam_current", "-out $stafile2");
 if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
 {
 	$params[] = "-wgs";
@@ -461,5 +457,9 @@ if ($sys['build']!="GRCh37")
 	$params[] = "-no_cont";
 }
 $parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
+
+//move BAM to final output location
+$parser->moveFile($bam_current, $out);
+$parser->moveFile($bam_current.".bai", $out.".bai");
 
 ?>

@@ -305,6 +305,8 @@ function chmod_recursive($folder)
 }
 chmod_recursive($cohort_folder);
 
+echo($call_cnvs_exec_path . " " .implode(" ", $args));
+echo "\n";
 $parser->exec($call_cnvs_exec_path,implode(" ",$args),true);
 chmod_recursive($cohort_folder);
 
@@ -460,9 +462,13 @@ for($i=0;$i<$cnvs->rows();++$i)
 }
 $cnvs->addCol($new_col, "cnv_type","Type of CNV: focal (< 25 % of chrom. arm, < 3 genes), cluster (focal, > 3 genes), (partial) p/q-arm, (partial) chromosome.");
 
+
 //store output tsv file
 $cnvs->toTSV($out);
 
 //annotate additional gene info
 $parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$out} -out {$out}", true);
+//annotate overlap with pathogenic CNVs
+$parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$out} -out {$out}", true);
+
 ?>
