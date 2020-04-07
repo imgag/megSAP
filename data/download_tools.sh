@@ -81,3 +81,10 @@ cd $folder
 wget https://github.com/Illumina/interop/releases/download/v1.0.25/InterOp-1.0.25-Linux-GNU-4.8.2.tar.gz
 tar xzf InterOp-1.0.25-Linux-GNU-4.8.2.tar.gz
 rm InterOp-1.0.25-Linux-GNU-4.8.2.tar.gz
+
+#download Circos
+cd $folder
+wget http://circos.ca/distribution/circos-0.69-9.tgz
+tar xzf circos-0.69-9.tgz
+rm circos-0.69-9.tgz
+circos-0.69-9/bin/circos -modules
