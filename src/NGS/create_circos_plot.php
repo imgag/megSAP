@@ -147,71 +147,85 @@ $roh_temp_file = $parser->tempFile("_roh.tsv");
 
 if (!file_exists($roh_file)) 
 {
-    trigger_error("No ROH file found!", E_USER_ERROR);
+    trigger_error("WARNING: No ROH file found!", E_USER_WARNING);
+    
+    # create empty temp file
+    touch($roh_temp_file);
 }
-
-$input_fh = fopen2($roh_file, "r");
-$output_fh = fopen2($roh_temp_file, "w");
-
-if ($input_fh) 
+else
 {
-    while (($buffer = fgets($input_fh)) !== FALSE) 
+    $input_fh = fopen2($roh_file, "r");
+    $output_fh = fopen2($roh_temp_file, "w");
+
+    if ($input_fh) 
     {
-        # skip comments and header
-        if (starts_with($buffer, "#")) continue;
-        $row = explode("\t", $buffer);
+        while (($buffer = fgets($input_fh)) !== FALSE) 
+        {
+            # skip comments and header
+            if (starts_with($buffer, "#")) continue;
+            $row = explode("\t", $buffer);
 
-        # skip undefined segments 
-        if ((float) $row[5] < 100.0) continue;
+            # skip undefined segments 
+            if ((float) $row[5] < 100.0) continue;
 
-        $cn = min(4.0, (float) $row[5]);
+            $cn = min(4.0, (float) $row[5]);
 
-        # write modified roh file to temp
-        fwrite($output_fh, $row[0] . "\t" . $row[1] . "\t" . $row[2] . "\n");
+            # write modified roh file to temp
+            fwrite($output_fh, $row[0] . "\t" . $row[1] . "\t" . $row[2] . "\n");
+        }
+        fclose($input_fh);
+        fclose($output_fh);
+    } 
+    else 
+    {
+        if ($error) trigger_error("Could not open file $roh_file.", E_USER_ERROR);
+        return  "Could not open file $roh_file.";
     }
-    fclose($input_fh);
-    fclose($output_fh);
-} 
-else 
-{
-    if ($error) trigger_error("Could not open file $roh_file.", E_USER_ERROR);
-    return  "Could not open file $roh_file.";
 }
+
+
 
 
 # parse BAFs file and generate temp file for circos plot
-$bafs_file = "$folder/${name}_bafs.igv";
+$baf_file = "$folder/${name}_bafs.igv";
 
-$bafs_temp_file = $parser->tempFile("_bafs.tsv");
+$baf_temp_file = $parser->tempFile("_bafs.tsv");
 
-if (!file_exists($bafs_file)) 
+if (!file_exists($baf_file)) 
 {
-    trigger_error("No BAF file found!", E_USER_ERROR);
+    trigger_error("WARNING: No BAF file found!", E_USER_WARNING);
+
+    # create empty temp file
+    touch($baf_temp_file);
 }
-
-$input_fh = fopen2($bafs_file, "r");
-$output_fh = fopen2($bafs_temp_file, "w");
-
-if ($input_fh) 
+else
 {
-    while (($buffer = fgets($input_fh)) !== FALSE) 
+    $input_fh = fopen2($baf_file, "r");
+    $output_fh = fopen2($baf_temp_file, "w");
+
+    if ($input_fh) 
     {
-        # skip comments and header
-        if (starts_with($buffer, "#")) continue;
-        if (starts_with($buffer, "Chromosome\tStart\tEnd")) continue;
-        $row = explode("\t", $buffer);
+        while (($buffer = fgets($input_fh)) !== FALSE) 
+        {
+            # skip comments and header
+            if (starts_with($buffer, "#")) continue;
+            if (starts_with($buffer, "Chromosome\tStart\tEnd")) continue;
+            $row = explode("\t", $buffer);
 
-        # write modified baf file to temp
-        fwrite($output_fh, $row[0] . "\t" . $row[1] . "\t" . $row[2] . "\t" . $row[4] . "\n");
+            # write modified baf file to temp
+            fwrite($output_fh, $row[0] . "\t" . $row[1] . "\t" . $row[2] . "\t" . $row[4] . "\n");
+        }
+        fclose($input_fh);
+        fclose($output_fh);
+    } 
+    else 
+    {
+        if ($error) trigger_error("Could not open file $baf_file.", E_USER_ERROR);
+        return  "Could not open file $baf_file.";
     }
-    fclose($input_fh);
-    fclose($output_fh);
-} 
-else 
-{
-    if ($error) trigger_error("Could not open file $bafs_file.", E_USER_ERROR);
-    return  "Could not open file $bafs_file.";
 }
+
+
 
 # create dummy file to add sample name to plot
 $sample_label = $parser->tempFile("_sample_label.txt");
@@ -226,7 +240,7 @@ $file_names["[PNG_OUTPUT]"] = "${name}_circos.png";
 $file_names["[KARYOTYPE_FILE]"] = $karyotype_file;
 $file_names["[CHR_FILE]"] = $chr_file;
 $file_names["[TELOMERE_FILE]"] = $telomere_file;
-$file_names["[BAF_FILE]"] = $bafs_temp_file;
+$file_names["[BAF_FILE]"] = $baf_temp_file;
 $file_names["[CN_FILE]"] = $cn_temp_file;
 $file_names["[CNV_DUP_FILE]"] = $cnv_temp_file_dup;
 $file_names["[CNV_DEL_FILE]"] = $cnv_temp_file_del;
