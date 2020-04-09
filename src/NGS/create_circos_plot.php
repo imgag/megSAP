@@ -13,6 +13,13 @@ $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 $parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
 
+# optional
+$parser->addString("cnv_min_ll", "Minimum loglikelyhood for CNVs to be shown in the plot.", true, 20);
+$parser->addString("cnv_min_nor", "Minimum number of regions for CNVs to be shown in the plot.", true, 3);
+$parser->addString("cnv_max_af", "Maximum IMGAG allele frequency for CNVs to be shown in the plot.", true, 0.5);
+$parser->addString("cnv_min_length", "Minimimal CNV length (in kb) for CNVs to be shown in the plot.", true, 15.0);
+$parser->addString("roh_min_length", "Minimimal ROH length (in kb) for ROHs to be shown in the plot.", true, 100.0);
+
 extract($parser->parse($argv));
 
 # get Cicos config and genome files 
@@ -116,13 +123,13 @@ for ($row_idx=0; $row_idx < $cnv_matrix->rows(); $row_idx++)
 { 
     # filter CNV
     # loglikelihood
-    if ((int) $cnv_matrix->get($row_idx, $ll_idx) < 20) continue;
+    if ((int) $cnv_matrix->get($row_idx, $ll_idx) < $cnv_min_ll) continue;
     # no_of_regions
-    if ((int) $cnv_matrix->get($row_idx, $nor_idx) < 3) continue;
+    if ((int) $cnv_matrix->get($row_idx, $nor_idx) < $cnv_min_nor) continue;
     # overlap af (imgag)
-    if ((float) $cnv_matrix->get($row_idx, $overlap_af_idx) > 0.5) continue;
+    if ((float) $cnv_matrix->get($row_idx, $overlap_af_idx) > $cnv_max_af) continue;
     # CNV size
-    if ((float) $cnv_matrix->get($row_idx, $length_idx) < 15.0) continue;
+    if ((float) $cnv_matrix->get($row_idx, $length_idx) < $cnv_min_length) continue;
 
 
     # write modified cnv files to temp
@@ -165,8 +172,8 @@ else
             if (starts_with($buffer, "#")) continue;
             $row = explode("\t", $buffer);
 
-            # skip undefined segments 
-            if ((float) $row[5] < 100.0) continue;
+            # skip small ROHs 
+            if ((float) $row[5] < $roh_min_length) continue;
 
             $cn = min(4.0, (float) $row[5]);
 
