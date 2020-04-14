@@ -17,6 +17,7 @@ $parser->addOutfile("stats", "Append statistics to this file.", false);
 $parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf' file base name is used.", true);
 $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the given depth are evaluated.", true, 0);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("ref_sample", "Reference sample to use for validation.", true, "NA12878");
 extract($parser->parse($argv));
 
 //returns the base count of a BED file
@@ -127,10 +128,10 @@ function get_prop($var, $name, $digits = null)
 $ngsbits = get_path("ngs-bits");
 $vcflib = get_path("vcflib");
 $genome = genome_fasta($build);
-$giab_bed = get_path("data_folder")."/dbs/GIAB/NA12878/high_conf_regions.bed";
-if (!file_exists($giab_bed)) trigger_error("GiaB NA12878 BED file missing: {$giab_bed}", E_USER_ERROR);
-$giab_vcfgz = get_path("data_folder")."/dbs/GIAB/NA12878/high_conf_variants.vcf.gz";
-if (!file_exists($giab_vcfgz)) trigger_error("GiaB NA12878 VCF file missing: {$giab_vcfgz}", E_USER_ERROR);
+$giab_bed = get_path("data_folder")."/dbs/GIAB/{$ref_sample}/high_conf_regions.bed";
+if (!file_exists($giab_bed)) trigger_error("GiaB {$ref_sample} BED file missing: {$giab_bed}", E_USER_ERROR);
+$giab_vcfgz = get_path("data_folder")."/dbs/GIAB/{$ref_sample}/high_conf_variants.vcf.gz";
+if (!file_exists($giab_vcfgz)) trigger_error("GiaB {$ref_sample} VCF file missing: {$giab_vcfgz}", E_USER_ERROR);
 
 //Target region base statistics
 print "##Target region     : $roi\n";
@@ -163,14 +164,14 @@ if ($min_dp>0)
 print "##Notice: Reference variants in the above region are evaluated!\n";
 print "##\n";
 
-//get NA12878 variants in ROI
+//get reference variants in ROI
 print "##Variant list      : $vcf\n";
 $found = get_variants($vcf, $roi_used, false);
 print "##Variants observed : ".count($found)."\n";
 $expected = get_variants($giab_vcfgz, $roi_used, true);
 print "##Variants expected : ".count($expected)."\n";
 
-//find missing NA12878 variants and variants with genotype mismatch
+//find missing reference variants and variants with genotype mismatch
 $var_diff = array();
 foreach($expected as $pos => $var)
 {
