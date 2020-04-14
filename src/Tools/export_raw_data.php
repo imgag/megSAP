@@ -9,7 +9,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("export_raw_data", "Exports RAW data.");
-$parser->addStringArray("samples", "Processed sample names.", false);
+$parser->addStringArray("samples", "Processed sample names (or file with one sample per line).", false);
 $parser->addString("out", "Output folder name.", false);
 extract($parser->parse($argv));
 
@@ -22,6 +22,19 @@ if (!file_exists($out) || !is_dir($out))
 {
 	print "Output folder '$out' is missing - creating it ...\n";
 	mkdir($out, 0777, true);
+}
+
+//load samples from file
+if (count($samples)==1 && file_exists($samples[0]))
+{
+	$file = file($samples[0]);
+	$samples = array();
+	foreach($file as $line)
+	{
+		$line = trim($line);
+		if ($line=="" || $line[0]=='#') continue;
+		$samples[] = $line;
+	}
 }
 
 //check and create meta data file
