@@ -11,9 +11,9 @@ $parser = new ToolBase("create_circos_plot", "Creates a Circos plot with CN, CNV
 
 $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
-$parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
 
 // optional
+$parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
 $parser->addString("cnv_min_ll", "Minimum loglikelyhood for CNVs to be shown in the plot.", true, 20);
 $parser->addString("cnv_min_nor", "Minimum number of regions for CNVs to be shown in the plot.", true, 3);
 $parser->addString("cnv_max_af", "Maximum IMGAG allele frequency for CNVs to be shown in the plot.", true, 0.5);
@@ -83,6 +83,7 @@ if ($input_fh)
 
         # skip undefined segments 
         if ((float) $row[5] < 0.0) continue;
+        if ($row[5] == "QC failed") continue;
 
         $cn = min(4.0, (float) $row[5]);
 
@@ -139,9 +140,6 @@ else
     $length_idx = $cnv_matrix->getColumnIndex("length_KB");
 }
 
-
-
-// $input_fh = fopen2($cnv_file, "r");
 $output_fh_del = fopen2($cnv_temp_file_del, "w");
 $output_fh_dup = fopen2($cnv_temp_file_dup, "w");
 for ($row_idx=0; $row_idx < $cnv_matrix->rows(); $row_idx++) 
@@ -181,7 +179,6 @@ for ($row_idx=0; $row_idx < $cnv_matrix->rows(); $row_idx++)
 
 fclose($output_fh_del);
 fclose($output_fh_dup);
-
 
 // parse ROHs file and generate temp file for circos plot
 $roh_file = "$folder/${name}_rohs.tsv";
@@ -225,9 +222,6 @@ else
         return  "Could not open file $roh_file.";
     }
 }
-
-
-
 
 // parse BAFs file and generate temp file for circos plot
 $baf_file = "$folder/${name}_bafs.igv";
