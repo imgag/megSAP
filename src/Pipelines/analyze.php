@@ -655,5 +655,24 @@ if (in_array("db", $steps))
 }
 
 
+// Create Circos plot
+if ($is_wes || $is_wgs || $is_wgs_shallow)
+{
+	if (file_exists($cnvfile))
+	{
+		if (file_exists($cnvfile2))
+		{
+			$parser->execTool("NGS/create_circos_plot.php", "-folder $out_folder -name $name -build ".$sys['build']." --log $log_db");
+		}
+		else
+		{
+			trigger_error("CNV file $cnvfile2 missing. Cannot create Circos plot!", E_USER_WARNING);
+		}
+	}
+	else
+	{
+		trigger_error("CNV file $cnvfile missing. Cannot create Circos plot!", E_USER_WARNING);
+	}
+}
 
 ?>
