@@ -190,19 +190,17 @@ if (!$single_sample)
 }
 
 //Disable steps "vc" and "cnv" if somatic report config exists in NGSD
-if (db_is_enabled("NGSD"))
+if (!$single_sample && db_is_enabled("NGSD"))
 {
 	$db = DB::getInstance("NGSD", false);
 	list($config_id, $config_vars_exist, $config_cnvs_exist) = somatic_report_config($db, $t_id, $n_id);
 	if (in_array("vc", $steps) && $config_vars_exist)
 	{
-		trigger_error("Skipping step 'vc' - Somatic report configuration with small variants exists in NGSD!", E_USER_NOTICE);
-		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
+		trigger_error("Somatic report configuration with SNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
 	}
-	if (in_array("cn", $steps) && $config_vars_exist)
+	if (in_array("cn", $steps) && $config_cnvs_exist)
 	{
-		trigger_error("Skipping step 'cn' - Somatic report configuration with CNVs exists in NGSD!", E_USER_NOTICE);
-		if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
+		trigger_error("Somatic report configuration with CNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'cn'.", E_USER_ERROR);
 	}
 }
 
@@ -341,8 +339,8 @@ if (in_array("vc", $steps))
 	{
 		// vc_freebayes uses ngs-bits that can not handle multi-sample vcfs
 		$tmp1 = $parser->tempFile();
-		$bams = $single_sample ? "$t_bam" : "$t_bam $n_bam";
-		$parser->execTool("NGS/vc_freebayes.php", "-bam $bams -out $tmp1 -build ".$sys['build']." -no_ploidy -min_af $min_af -target ".$roi." -threads ".$threads);
+
+		$parser->execTool("NGS/vc_freebayes.php", "-bam $t_bam -out $tmp1 -build ".$sys['build']." -no_ploidy -min_af $min_af -target ".$roi." -threads ".$threads);
 
 		// find and rewrite header (tumor, normal sample columns)
 		$tmp2 = $parser->tempFile();
