@@ -10,16 +10,16 @@ link:
 
 map:
 	rm -rf NA12878_17_log1_map.log
-	php ../../src/Pipelines/analyze.php  -folder . -name NA12878_17  -system system.ini -steps ma -threads 1
+	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps ma -threads 1
 
 vc:
 	rm -rf NA12878_17_log2_vc.log
-	php ../../src/Pipelines/analyze.php  -folder . -name NA12878_17  -system system.ini -steps vc
+	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps vc
 
 an:
 	rm -rf NA12878_17_log3_anno.log
 	rm -rf NA12878_17_log5_diag.log
-	php ../../src/Pipelines/analyze.php  -folder . -name NA12878_17  -system system.ini -steps an
+	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps an
 
 cn:
 	rm -rf NA12878_17_log5_cn.log
@@ -38,7 +38,7 @@ diff:
 	php ../compare_qcml_xml.php NA12878_17_stats_fastq.qcML.out NA12878_17_stats_fastq.qcML
 	php ../compare_qcml_xml.php NA12878_17_stats_map.qcML.out NA12878_17_stats_map.qcML 0.01
 	php ../compare_qcml_xml.php NA12878_17_stats_vc.qcML.out NA12878_17_stats_vc.qcML
-	diff NA12878_17_cnvs.tsv.out NA12878_17_cnvs.tsv  --ignore-matching-lines="#"
+	diff NA12878_17_cnvs.tsv.out NA12878_17_cnvs.tsv --ignore-matching-lines="#"
 	numdiff NA12878_17_cnvs.seg.out NA12878_17_cnvs.seg --absolute-tolerance 0.04
 	php ../compare_bed.php NA12878_17_nxLRRK2_SNCA_lowcov.bed.out NA12878_17_nxLRRK2_SNCA_lowcov.bed
 	diff NA12878_17_manta_var_structural.bedpe.out NA12878_17_manta_var_structural_cut.bedpe --ignore-matching-lines="^##"

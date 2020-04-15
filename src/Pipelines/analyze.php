@@ -20,6 +20,7 @@ $parser->addFlag("lofreq", "Add low frequency variant detection.", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
 $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
+$parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.", true);
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.", true);
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
@@ -159,31 +160,34 @@ if (in_array("ma", $steps))
 	{
 		trigger_error("Found mismatching forward and reverse read file count!\n Forward: $in_for\n Reverse: $in_rev.", E_USER_ERROR);
 	}
-	if (count($files1)==0)
+	if (!$start_with_abra)
 	{
-		if(file_exists($bamfile))
+		if (count($files1)==0)
 		{
-			trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files.", E_USER_NOTICE);
+			if(file_exists($bamfile))
+			{
+				trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files.", E_USER_NOTICE);
 
-			// extract reads from BAM file
-			$in_fq_for = $folder."/{$name}_BamToFastq_R1_001.fastq.gz";
-			$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
-			$parser->exec("{$ngsbits}BamToFastq", "-in $bamfile -out1 $in_fq_for -out2 $in_fq_rev", true);
+				// extract reads from BAM file
+				$in_fq_for = $folder."/{$name}_BamToFastq_R1_001.fastq.gz";
+				$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
+				$parser->exec("{$ngsbits}BamToFastq", "-in $bamfile -out1 $in_fq_for -out2 $in_fq_rev", true);
 
-			// use generated fastq files for mapping
-			$files1 = array($in_fq_for);
-			$files2 = array($in_fq_rev);
+				// use generated fastq files for mapping
+				$files1 = array($in_fq_for);
+				$files2 = array($in_fq_rev);
+			}
+			else
+			{
+				trigger_error("Found no read files found matching '$in_for' or '$in_rev'!", E_USER_ERROR);
+			}
 		}
-		else
-		{
-			trigger_error("Found no read files found matching '$in_for' or '$in_rev'!", E_USER_ERROR);
-		}
-		
 	}
 	
 	$args = array();
 	if($clip_overlap) $args[] = "-clip_overlap";
 	if($no_abra) $args[] = "-no_abra";
+	if($start_with_abra) $args[] = "-start_with_abra";
 	if(file_exists($log_ma)) unlink($log_ma);
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);

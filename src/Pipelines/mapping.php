@@ -21,6 +21,7 @@ $parser->addInfile("system",  "Processing system INI file (automatically determi
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
 $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
+$parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.", true);
 $parser->addFlag("correction_n", "Use Ns for barcode correction.", true);
 $parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.", true);
 extract($parser->parse($argv));
@@ -28,21 +29,21 @@ extract($parser->parse($argv));
 //extract processing system information from DB
 $sys = load_system($system, $out_name);
 
-//detmerine sample sheet name
-$sheet = dirname($in_for[0])."/SampleSheet.csv";
-
 // determine output file base name
 $basename = $out_folder."/".$out_name;
 $out = $basename.".bam";
 
 // check FASTQ quality encoding
-$files = array_merge($in_for, $in_rev);
-foreach($files as $file)
+if (!$start_with_abra)
 {
-	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."FastqFormat", "-in $file", true);
-	if (!contains($stdout[2], "Sanger"))
+	$files = array_merge($in_for, $in_rev);
+	foreach($files as $file)
 	{
-		trigger_error("Input file '$file' is not in Sanger/Illumina 1.8 format!", E_USER_ERROR);
+		list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."FastqFormat", "-in $file", true);
+		if (!contains($stdout[2], "Sanger"))
+		{
+			trigger_error("Input file '$file' is not in Sanger/Illumina 1.8 format!", E_USER_ERROR);
+		}
 	}
 }
 
@@ -146,7 +147,11 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 else
 {
 	if ($sys['umi_type']!=="n/a") trigger_error("Unknown UMI-type ".$sys['umi_type'].". No barcode correction.",E_USER_WARNING);
-	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 6), true);
+		
+	if (!$start_with_abra)
+	{
+		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 6), true);
+	}
 }
 
 //clean up MIPs - remove single reads and MIP arms, skip all reads without perfect match mip arm
@@ -218,19 +223,27 @@ if($sys['type']=="Panel MIPs")
 
 // mapping
 $bam_current = $parser->tempFile("_mapping_bwa.bam");
-$args = array();
-$args[] = "-in1 $trimmed1";
-$args[] = "-in2 $trimmed2";
-$args[] = "-out $bam_current";
-$args[] = "-sample $out_name";
-$args[] = "-build ".$sys['build'];
-$args[] = "-threads $threads";
-if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
-$parser->execTool("NGS/mapping_bwa.php", implode(" ", $args));
+if (!$start_with_abra)
+{
+	$args = array();
+	$args[] = "-in1 $trimmed1";
+	$args[] = "-in2 $trimmed2";
+	$args[] = "-out $bam_current";
+	$args[] = "-sample $out_name";
+	$args[] = "-build ".$sys['build'];
+	$args[] = "-threads $threads";
+	if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
+	$parser->execTool("NGS/mapping_bwa.php", implode(" ", $args));
 
-// remove temporary FASTQs (they can be really large for WGS)
-$parser->deleteTempFile($trimmed1);
-$parser->deleteTempFile($trimmed2);
+	// remove temporary FASTQs (they can be really large for WGS)
+	$parser->deleteTempFile($trimmed1);
+	$parser->deleteTempFile($trimmed2);
+}
+else
+{
+	$parser->copyFile($out, $bam_current);
+	$parser->copyFile($out.".bai", $bam_current.".bai");
+}
 
 //perform indel realignment
 if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
