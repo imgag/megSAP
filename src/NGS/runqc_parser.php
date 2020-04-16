@@ -140,7 +140,7 @@ else
 	//parse *allfq.fqStat.txt files
 	foreach (glob($run_dir."/Fq/L??/*allfq.fqStat.txt") as $f) {
 		$lane = intval(substr(basename(dirname($f)), 1));
-		$read = strpos($f, "1allfq") !== FALSE ? "1" : "2";
+		$read = strpos($f, "1.allfq") !== FALSE ? "1" : "2";
 
 		$fqstat = [];
 		$handle = fopen2($f, "r");
