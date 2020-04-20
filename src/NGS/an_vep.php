@@ -299,7 +299,7 @@ if (!$skip_ngsd)
 fclose($config_file);
 
 // execute VcfAnnotateFromVcf
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output_refseq -out $out", true);
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output_refseq -out $out -threads $threads", true);
 
 if (!$skip_ngsd)
 {
