@@ -6,16 +6,28 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
 $parser = new ToolBase("reannotate_unsolved_diagnostic_cases", "Re-annotation of unsolved diagnostic cases (not bad quality, WES/WGS).");
-$parser->addInt("sequenced_ago", "Maximum number of days the sample was sequenced ago.", true, 365); //1 year
+$parser->addInt("sequenced_ago", "Maximum number of days the sample was sequenced ago.", true, 240); //~ 8 months
 $parser->addInt("annotated_ago", "Maximum number of days the sample was last annotated ago.", true, 42); //6 weeks
 extract($parser->parse($argv));
 
 //select diagnostic samples with good/medium quality that were sequenced in the defined time range
 $db = DB::getInstance("NGSD");
-$query = "SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as id ".
-			 "FROM processed_sample ps, sample s, project p, sequencing_run r, diag_status ds, processing_system sys ".
-			 "WHERE sys.id=ps.processing_system_id AND ps.sample_id = s.id AND ps.project_id=p.id AND ds.processed_sample_id=ps.id AND (sys.type='WGS' OR sys.type='WES') AND p.type='diagnostic' AND ps.sequencing_run_id=r.id AND ps.quality!='bad' AND ds.outcome='n/a' AND r.start_date>SUBDATE(NOW(), INTERVAL $sequenced_ago DAY)";
+$query = "SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as id, ds.outcome ".
+			 "FROM sample s, project p, sequencing_run r, processing_system sys, processed_sample ps LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id ".
+			 "WHERE sys.id=ps.processing_system_id AND ps.sample_id = s.id AND ps.project_id=p.id AND (sys.type='WGS' OR sys.type='WES') AND p.type='diagnostic' AND ps.sequencing_run_id=r.id AND ps.quality!='bad' AND r.start_date>SUBDATE(NOW(), INTERVAL $sequenced_ago DAY) AND r.end_date<NOW() AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
 $result = $db->executeQuery($query);
+
+
+//skip if outcome is set
+$tmp = array();
+for ($i=0; $i<count($result); ++$i)
+{
+	$outcome = $result[$i]["outcome"];
+	if ($outcome!="n/a" && $outcome!="") continue;
+	
+	$tmp[] = $result[$i];
+}
+$result = $tmp;
 
 //construct date
 $anno_date = new DateTime();
