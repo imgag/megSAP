@@ -39,6 +39,8 @@ project_folder =
 [general]
 copy_vep_dbs_to_local_data = false
 delete_fastq_files = false
+cnv_bin_size_wgs = 1000
+cnv_bin_size_shallow_wgs = 5000
 
 [mysql-databases]
 db_host['NGSD'] = "localhost"

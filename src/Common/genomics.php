@@ -1300,7 +1300,7 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 		$parts['IsTumor'] = $details['is_tumor'] ? "yes" : "no";
 		$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
 		$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
-		$parts['DiseaseGroup'] = $details['disease_group'];
+		$parts['DiseaseGroup'] = strtr($details['disease_group'], ",", ";");
 		$parts['DiseaseStatus'] = $details['disease_status'];
 	}
 	
