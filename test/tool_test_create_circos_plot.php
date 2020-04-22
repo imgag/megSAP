@@ -20,7 +20,7 @@ copy(data_folder()."create_circos_plot_in_rohs.tsv", $roh_file);
 check_exec("php ".src_folder()."/NGS/".$name.".php -folder ".output_folder()." -name clincnvTest");
 check_file(output_folder()."clincnvTest_circos.png", data_folder().$name."_out_circos_clincnv.png");
 
-//test 2: CnvHunter
+//test 2: CnvHunter and modified parameter
 // copy data 
 $baf_file = output_folder()."cnvHunterTest_bafs.igv";
 $seg_file = output_folder()."cnvHunterTest_cnvs.seg";
@@ -31,7 +31,7 @@ copy(data_folder()."create_circos_plot_in_seg_cnvHunter.seg", $seg_file);
 copy(data_folder()."create_circos_plot_in_cnv_cnvHunter.tsv", $cnv_file);
 copy(data_folder()."create_circos_plot_in_rohs.tsv", $roh_file);
 // create plot
-check_exec("php ".src_folder()."/NGS/".$name.".php -folder ".output_folder()." -name cnvHunterTest");
+check_exec("php ".src_folder()."/NGS/".$name.".php -folder ".output_folder()." -name cnvHunterTest -cn_offset 0 -roh_min_length 100");
 check_file(output_folder()."cnvHunterTest_circos.png", data_folder().$name."_out_circos_cnvHunter.png");
 
 end_test();

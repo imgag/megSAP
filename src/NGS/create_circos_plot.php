@@ -14,11 +14,12 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 
 // optional
 $parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
-$parser->addString("cnv_min_ll", "Minimum loglikelyhood for CNVs to be shown in the plot.", true, 20);
-$parser->addString("cnv_min_nor", "Minimum number of regions for CNVs to be shown in the plot.", true, 3);
-$parser->addString("cnv_max_af", "Maximum IMGAG allele frequency for CNVs to be shown in the plot.", true, 0.5);
-$parser->addString("cnv_min_length", "Minimimal CNV length (in kb) for CNVs to be shown in the plot.", true, 15.0);
-$parser->addString("roh_min_length", "Minimimal ROH length (in kb) for ROHs to be shown in the plot.", true, 100.0);
+$parser->addFloat("cn_offset", "Copy number between 2 +/- offset will not be plotted. (Offset has to be positive or 0 to deactivate filter)", true, 0.3);
+$parser->addInt("cnv_min_ll", "Minimum loglikelyhood for CNVs to be shown in the plot.", true, 20);
+$parser->addInt("cnv_min_nor", "Minimum number of regions for CNVs to be shown in the plot.", true, 3);
+$parser->addFloat("cnv_max_af", "Maximum IMGAG allele frequency for CNVs to be shown in the plot.", true, 0.5);
+$parser->addFloat("cnv_min_length", "Minimimal CNV length (in kb) for CNVs to be shown in the plot.", true, 15.0);
+$parser->addFloat("roh_min_length", "Minimimal ROH length (in kb) for ROHs to be shown in the plot.", true, 300.0);
 
 extract($parser->parse($argv));
 
@@ -71,24 +72,27 @@ $cn_temp_file = $parser->tempFile("_cn.seg");
 
 $input_fh = fopen2($seg_file, "r");
 $output_fh = fopen2($cn_temp_file, "w");
+$n_copy_numbers = 0;
 
 if ($input_fh) 
 {
     while (($buffer = fgets($input_fh)) !== FALSE) 
     {
-        # skip comments and header
+        // skip comments and header
         if (starts_with($buffer, "#")) continue;
         if (starts_with($buffer, "ID\tchr\tstart\tend")) continue;
         $row = explode("\t", $buffer);
 
-        # skip undefined segments 
+        // skip undefined segments 
         if ((float) $row[5] < 0.0) continue;
+        if (((float) $row[5] > (2 - $cn_offset)) && ((float) $row[5] < (2 + $cn_offset))) continue;
         if ($row[5] == "QC failed") continue;
 
         $cn = min(4.0, (float) $row[5]);
 
-        # write modified seg file to temp
+        //write modified seg file to temp
         fwrite($output_fh, $row[1] . "\t" . $row[2] . "\t" . $row[3] . "\t$cn\n");
+        $n_copy_numbers++;
     }
     fclose($input_fh);
     fclose($output_fh);
@@ -118,6 +122,7 @@ if (!file_exists($cnv_file))
 
 $cnv_temp_file_del = $parser->tempFile("_cnv_del.tsv");
 $cnv_temp_file_dup = $parser->tempFile("_cnv_dup.tsv");
+$n_cnvs = 0;
 
 // load CNV file as matrix
 $cnv_matrix = Matrix::fromTSV($cnv_file);
@@ -175,6 +180,7 @@ for ($row_idx=0; $row_idx < $cnv_matrix->rows(); $row_idx++)
     {
         fwrite($output_fh_dup, $cnv_matrix->get($row_idx, $chr_idx)."\t".$cnv_matrix->get($row_idx, $start_idx)."\t".$cnv_matrix->get($row_idx, $end_idx)."\n");
     }
+    $n_cnvs++;
 }
 
 fclose($output_fh_del);
@@ -184,6 +190,7 @@ fclose($output_fh_dup);
 $roh_file = "$folder/${name}_rohs.tsv";
 
 $roh_temp_file = $parser->tempFile("_roh.tsv");
+$n_rohs = 0;
 
 if (!file_exists($roh_file)) 
 {
@@ -212,6 +219,7 @@ else
 
             // write modified roh file to temp
             fwrite($output_fh, $row[0] . "\t" . $row[1] . "\t" . $row[2] . "\n");
+            $n_rohs++;
         }
         fclose($input_fh);
         fclose($output_fh);
@@ -227,6 +235,7 @@ else
 $baf_file = "$folder/${name}_bafs.igv";
 
 $baf_temp_file = $parser->tempFile("_bafs.tsv");
+$n_bafs = 0;
 
 if (!file_exists($baf_file)) 
 {
@@ -251,6 +260,7 @@ else
 
             // write modified baf file to temp
             fwrite($output_fh, $row[0] . "\t" . $row[1] . "\t" . $row[2] . "\t" . $row[4] . "\n");
+            $n_bafs++;
         }
         fclose($input_fh);
         fclose($output_fh);
@@ -316,6 +326,14 @@ else
     return  "Could not open file $circos_template_file.";
 }
 
+// report preprocessing stats
+trigger_error("Preprocessing finished.", E_USER_NOTICE);
+trigger_error("Remaining CN entries: \t$n_copy_numbers", E_USER_NOTICE);
+trigger_error("Remaining CNV entries: \t$n_cnvs", E_USER_NOTICE);
+trigger_error("Remaining ROH entries: \t$n_rohs", E_USER_NOTICE);
+trigger_error("Remaining BAF entries: \t$n_bafs", E_USER_NOTICE);
 
 // create Circos plot
-$parser->exec(get_path("circos"), "-conf $circos_config_file", true);
+$circos_bin = get_path("circos");
+putenv("PERL5LIB=".dirname($circos_bin, 2)."/cpan/lib/perl5/:".getenv("PERL5LIB"));
+$parser->exec($circos_bin, "-conf $circos_config_file", true);
