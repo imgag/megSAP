@@ -401,8 +401,8 @@ if (in_array("cn", $steps))
 		//WGS: create folder for binned coverage data - if missing
 		if ($is_wgs || $is_wgs_shallow)
 		{
-			$bin_size = 1000;
-			if ($is_wgs_shallow) $bin_size = 5000;
+			$bin_size = get_path("cnv_bin_size_wgs");
+			if ($is_wgs_shallow) $bin_size = get_path("cnv_bin_size_shallow_wgs");
 			$bin_folder = "{$ref_folder}/bins{$bin_size}/";
 			if (!is_dir($bin_folder))
 			{
