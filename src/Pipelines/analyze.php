@@ -596,6 +596,10 @@ if (in_array("sv", $steps))
 	
 	$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
 
+	//Rename Manta evidence file
+	rename("$manta_evidence_dir/evidence_0.$name.bam", "$manta_evidence_dir/{$name}_manta_evidence.bam");
+	rename("$manta_evidence_dir/evidence_0.$name.bam.bai", "$manta_evidence_dir/{$name}_manta_evidence.bam.bai");
+
 	//create BEDPE files
 	$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
 	exec2("{$ngsbits}VcfToBedpe -in $sv_manta_file -out $bedpe_out");
