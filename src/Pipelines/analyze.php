@@ -75,9 +75,9 @@ if (in_array("cn", $steps) && !$has_roi)
 	trigger_error("Skipping step 'cn' - Copy number analysis is only supported for processing systems with target region BED file!", E_USER_NOTICE);
 	if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
 }
-if (in_array("sv", $steps) && $is_wgs_shallow)
+if (in_array("sv", $steps) && ($is_wgs || $is_wes))
 {
-	trigger_error("Skipping step 'sv' - Structural variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
+	trigger_error("Skipping step 'sv' - Structural variant calling is only supported for WGS and WES samples!", E_USER_NOTICE);
 	if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 }
 if (db_is_enabled("NGSD"))
@@ -602,13 +602,13 @@ if (in_array("sv", $steps))
 	rename("$manta_evidence_dir/evidence_0.$name.bam.bai", "$manta_evidence_dir/{$name}_manta_evidence.bam.bai");
 
 	//create BEDPE files
-	exec2("{$ngsbits}VcfToBedpe -in $sv_manta_file -out $bedpe_out");
+	$parser->exec("{$ngsbits}VcfToBedpe", "-in $sv_manta_file -out $bedpe_out", true);
 
 	//add gene info annotation and NGSD counts
 	if (db_is_enabled("NGSD"))
 	{
-		exec2("{$ngsbits}BedpeGeneAnnotation -in $bedpe_out -out $bedpe_out -add_simple_gene_names");
-		exec2("{$ngsbits}NGSDAnnotateSV -in $bedpe_out -out $bedpe_out -ps $name");
+		$parser->exec("{$ngsbits}BedpeGeneAnnotation", "-in $bedpe_out -out $bedpe_out -add_simple_gene_names", true);
+		$parser->exec("{$ngsbits}NGSDAnnotateSV", "-in $bedpe_out -out $bedpe_out -ps $name", true);
 	}
 
 	//add optional OMIM annotation
@@ -617,7 +617,7 @@ if (in_array("sv", $steps))
 
 	if(file_exists($omim_file))
 	{
-		exec2("{$ngsbits}BedpeAnnotateFromBed -in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM");
+		$parser->exec("{$ngsbits}BedpeAnnotateFromBed", "-in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM", true);
 	}
 
 }
