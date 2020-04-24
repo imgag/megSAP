@@ -132,6 +132,7 @@ $rohfile = $out_folder."/".$name."_rohs.tsv";
 $baffile = $out_folder."/".$name."_bafs.igv";
 
 $sv_manta_file = $out_folder ."/". $name . "_manta_var_structural.vcf.gz";
+$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
 
 //move old data to old_[date]_[random]-folder
 if($backup && in_array("ma", $steps))
@@ -601,7 +602,6 @@ if (in_array("sv", $steps))
 	rename("$manta_evidence_dir/evidence_0.$name.bam.bai", "$manta_evidence_dir/{$name}_manta_evidence.bam.bai");
 
 	//create BEDPE files
-	$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
 	exec2("{$ngsbits}VcfToBedpe -in $sv_manta_file -out $bedpe_out");
 
 	//add gene info annotation and NGSD counts
