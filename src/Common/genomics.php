@@ -868,7 +868,7 @@ function indel_for_vcf($build, $chr, $start, $ref, $obs)
 	return array($chr,$start,$ref,$obs);
 }
 
-function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false)
+function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false, $include_test_projects = false)
 {
 	//check that sample is not NIST reference sample (it is a cell-line)
 	if (contains($file, "NA12878")) return false;
@@ -902,7 +902,7 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false)
 	if ($res[0]['q2']=="bad") return false;
 	
 	//check that project type is research/diagnostics
-	if ($res[0]['type']!="research" && $res[0]['type']!="diagnostic") return false;
+	if (!($res[0]['type']=="research" || $res[0]['type']=="diagnostic" || ($res[0]['type']=="test" && $include_test_projects))) return false;
 	
 	return true;
 }
