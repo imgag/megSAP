@@ -339,4 +339,4 @@ trigger_error("Remaining BAF entries: \t$n_bafs", E_USER_NOTICE);
 // create Circos plot
 $circos_bin = get_path("circos");
 putenv("PERL5LIB=".dirname($circos_bin, 2)."/cpan/lib/perl5/:".getenv("PERL5LIB"));
-$parser->exec($circos_bin, "-conf $circos_config_file", true);
+$parser->exec($circos_bin, "-nosvg -conf $circos_config_file", true);
