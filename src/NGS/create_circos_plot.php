@@ -56,6 +56,9 @@ if (!file_exists($telomere_file))
 // preprocess data
 // parse CN file and generate temp file for circos plot
 
+// create temporary working folder
+$temp_folder = $parser->tempFolder("circos");
+
 // clinCNV seg file:
 $seg_file = "$folder/${name}_cnvs_clincnv.seg";
 if (!file_exists($seg_file)) 
@@ -68,7 +71,7 @@ if (!file_exists($seg_file))
     }
 }
 
-$cn_temp_file = $parser->tempFile("_cn.seg");
+$cn_temp_file = $temp_folder."/cn.seg";
 
 $input_fh = fopen2($seg_file, "r");
 $output_fh = fopen2($cn_temp_file, "w");
@@ -120,8 +123,8 @@ if (!file_exists($cnv_file))
     }
 }
 
-$cnv_temp_file_del = $parser->tempFile("_cnv_del.tsv");
-$cnv_temp_file_dup = $parser->tempFile("_cnv_dup.tsv");
+$cnv_temp_file_del = $temp_folder."/cnv_del.tsv";
+$cnv_temp_file_dup = $temp_folder."/cnv_dup.tsv";
 $n_cnvs = 0;
 
 // load CNV file as matrix
@@ -189,7 +192,7 @@ fclose($output_fh_dup);
 // parse ROHs file and generate temp file for circos plot
 $roh_file = "$folder/${name}_rohs.tsv";
 
-$roh_temp_file = $parser->tempFile("_roh.tsv");
+$roh_temp_file = $temp_folder."/roh.tsv";
 $n_rohs = 0;
 
 if (!file_exists($roh_file)) 
@@ -234,7 +237,7 @@ else
 // parse BAFs file and generate temp file for circos plot
 $baf_file = "$folder/${name}_bafs.igv";
 
-$baf_temp_file = $parser->tempFile("_bafs.tsv");
+$baf_temp_file = $temp_folder."/bafs.tsv";
 $n_bafs = 0;
 
 if (!file_exists($baf_file)) 
@@ -275,14 +278,14 @@ else
 
 
 // create dummy file to add sample name to plot
-$sample_label = $parser->tempFile("_sample_label.txt");
+$sample_label = $temp_folder."/sample_label.txt";
 $output_fh = fopen2($sample_label, "w");
 fwrite($output_fh, "chr1\t1\t1000000\t$name\n");
 fclose($output_fh);
 
 // create modified Circos config file
 $file_names = array();
-$file_names["[OUTPUT_FOLDER]"] = $folder;
+$file_names["[OUTPUT_FOLDER]"] = $temp_folder;
 $file_names["[PNG_OUTPUT]"] = "${name}_circos.png";
 $file_names["[KARYOTYPE_FILE]"] = $karyotype_file;
 $file_names["[CHR_FILE]"] = $chr_file;
@@ -297,7 +300,7 @@ $file_names["[LABEL_FOLDER]"] = repository_basedir()."/data/misc/circos";
 $file_names["[HOUSEKEEPING_FILE]"] = $circos_housekeeping_file;
 
 // parse circos template file and replace file names
-$circos_config_file = "$folder/${name}_circos_config.conf";
+$circos_config_file = $temp_folder."/circos_config.conf";
 
 $input_fh = fopen2($circos_template_file, "r");
 $output_fh = fopen2($circos_config_file, "w");
@@ -336,4 +339,8 @@ trigger_error("Remaining BAF entries: \t$n_bafs", E_USER_NOTICE);
 // create Circos plot
 $circos_bin = get_path("circos");
 putenv("PERL5LIB=".dirname($circos_bin, 2)."/cpan/lib/perl5/:".getenv("PERL5LIB"));
-$parser->exec($circos_bin, "-conf $circos_config_file", true);
+$parser->exec($circos_bin, "-nosvg -conf $circos_config_file", true);
+
+// copy PNG to sample folder
+$parser->moveFile("$temp_folder/${name}_circos.png", "$folder/${name}_circos.png");
+
