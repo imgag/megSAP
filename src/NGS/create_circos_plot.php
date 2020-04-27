@@ -14,14 +14,17 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 
 // optional
 $parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
-$parser->addFloat("cn_offset", "Copy number between 2 +/- offset will not be plotted. (Offset has to be positive or 0 to deactivate filter)", true, 0.3);
+$parser->addFloat("cn_offset", "Copy number between 2-offset and 2+offset will not be plotted to reduce the runtime of the script. Filter is deactivated if offset is 0.", true, 0.3);
 $parser->addInt("cnv_min_ll", "Minimum loglikelyhood for CNVs to be shown in the plot.", true, 20);
 $parser->addInt("cnv_min_nor", "Minimum number of regions for CNVs to be shown in the plot.", true, 3);
-$parser->addFloat("cnv_max_af", "Maximum IMGAG allele frequency for CNVs to be shown in the plot.", true, 0.5);
+$parser->addFloat("cnv_max_af", "Maximum overlap with CNP regions (af_genomes_imgag column) for CNVs.", true, 0.5);
 $parser->addFloat("cnv_min_length", "Minimimal CNV length (in kb) for CNVs to be shown in the plot.", true, 15.0);
 $parser->addFloat("roh_min_length", "Minimimal ROH length (in kb) for ROHs to be shown in the plot.", true, 300.0);
 
 extract($parser->parse($argv));
+
+//init
+$cn_offset = abs($cn_offset);
 
 // get Cicos config and genome files 
 $karyotype_file = repository_basedir() . "/data/misc/circos/karyotype.human.$build.txt";
@@ -166,7 +169,7 @@ for ($row_idx=0; $row_idx < $cnv_matrix->rows(); $row_idx++)
     {
         // loglikelihood
         if ((int) $cnv_matrix->get($row_idx, $ll_idx) < $cnv_min_ll) continue;
-        // overlap af (imgag)
+        // overlap with CNPs
         if ((float) $cnv_matrix->get($row_idx, $overlap_af_idx) > $cnv_max_af) continue;
         // CNV size
         if ((float) $cnv_matrix->get($row_idx, $length_idx) < $cnv_min_length) continue;
@@ -343,4 +346,3 @@ $parser->exec($circos_bin, "-nosvg -conf $circos_config_file", true);
 
 // copy PNG to sample folder
 $parser->moveFile("$temp_folder/${name}_circos.png", "$folder/${name}_circos.png");
-
