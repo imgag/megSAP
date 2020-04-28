@@ -172,8 +172,12 @@ if (in_array("ma", $steps))
 				// extract reads from BAM file
 				$in_fq_for = $folder."/{$name}_BamToFastq_R1_001.fastq.gz";
 				$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
-				$parser->exec("{$ngsbits}BamToFastq", "-in $bamfile -out1 $in_fq_for -out2 $in_fq_rev", true);
-
+				$tmp1 = $parser->tempFile(".fastq.gz");
+				$tmp2 = $parser->tempFile(".fastq.gz");
+				$parser->exec("{$ngsbits}BamToFastq", "-in $bamfile -out1 $tmp1 -out2 $tmp2", true);
+				$parser->moveFile($tmp1, $in_fq_for);
+				$parser->moveFile($tmp2, $in_fq_rev);
+				
 				// use generated fastq files for mapping
 				$files1 = array($in_fq_for);
 				$files2 = array($in_fq_rev);
