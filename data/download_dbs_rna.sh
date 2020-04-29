@@ -29,7 +29,7 @@ wget -O - 'ftp://ftp.ensembl.org/pub/grch37/current/gtf/homo_sapiens/Homo_sapien
 #STAR: index genome
 cd $data_folder
 mkdir -p genomes/STAR/GRCh37
-$data_folder/tools/STAR-2.7.0f/bin/Linux_x86_64/STAR \
+$data_folder/tools/STAR-2.7.3a/bin/Linux_x86_64/STAR \
 --runThreadN 20 \
 --runMode genomeGenerate \
 --genomeDir genomes/STAR/GRCh37/ \
@@ -40,7 +40,7 @@ $data_folder/tools/STAR-2.7.0f/bin/Linux_x86_64/STAR \
 cd $data_folder
 mkdir -p genomes/STAR-Fusion
 cd genomes/STAR-Fusion
-wget https://data.broadinstitute.org/Trinity/CTAT_RESOURCE_LIB/__genome_libs_StarFv1.8/GRCh37_gencode_v19_CTAT_lib_Oct012019.plug-n-play.tar.gz
-tar xzf GRCh37_gencode_v19_CTAT_lib_Oct012019.plug-n-play.tar.gz
-mv GRCh37_gencode_v19_CTAT_lib_Oct012019.plug-n-play/ctat_genome_lib_build_dir GRCh37
-rm -r GRCh37_gencode_v19_CTAT_lib_Oct012019.plug-n-play GRCh37_gencode_v19_CTAT_lib_Oct012019.plug-n-play.tar.gz
+wget https://data.broadinstitute.org/Trinity/CTAT_RESOURCE_LIB/__genome_libs_StarFv1.9/GRCh37_gencode_v19_CTAT_lib_Apr032020.plug-n-play.tar.gz
+tar xzf GRCh37_gencode_v19_CTAT_lib_Apr032020.plug-n-play.tar.gz
+mv GRCh37_gencode_v19_CTAT_lib_Apr032020.plug-n-play/ctat_genome_lib_build_dir GRCh37
+rm -r GRCh37_gencode_v19_CTAT_lib_Apr032020.plug-n-play GRCh37_gencode_v19_CTAT_lib_Apr032020.plug-n-play.tar.gz
