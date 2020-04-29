@@ -22,8 +22,8 @@ $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are sk
 extract($parser->parse($argv));
 
 //skip common MODIFIER variants in WGS mode
-function skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd)
-{
+function skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd, $ngsd_clas)
+{	
 	//don't skip mito variants
 	if ($chr=='chrMT') return false;
 	
@@ -32,6 +32,9 @@ function skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $cli
 	
 	//don't skip variants annotated to be (likely) pathognic
 	if (contains($hgmd, "CLASS=DM") || (contains($clinvar, "pathogenic") && !contains($clinvar, "conflicting"))) return false;	
+	
+	//don't skip variants of class 4/5 in NGSD
+	if ($ngsd_clas=='4' || $ngsd_clas=='5') return false;
 	
 	//skip common variants >2%AF
 	if ($kg!="" && $kg>0.02) return true;
@@ -1168,8 +1171,6 @@ while(!feof($handle))
 		}
 	}
 	
-
-
 	//add up/down-stream variants if requested (or no other transcripts exist)
 	if ($updown || count($coding_and_splicing_details)==0)
 	{
@@ -1226,7 +1227,7 @@ while(!feof($handle))
 	$cosmic = implode(",", collapse("COSMIC", $cosmic, "unique"));
 	
 	//skip common MODIFIER variants in WGS mode
-	if ($wgs && skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd))
+	if ($wgs && skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd, $ngsd_clas))
 	{
 		++$c_skipped_wgs;
 		continue;
