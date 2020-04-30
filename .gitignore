@@ -26,12 +26,14 @@
 /test/data_chrx/*.vcf.gz.tbi
 /test/data_chrx/*.GSvar
 /test/data_chrx/*_QCML.txt
-/test/data_chrx/*_cnvs.tsv
-/test/data_chrx/*_cnvs.seg
+/test/data_chrx/*_cnvs_clincnv.tsv
+/test/data_chrx/*_cnvs_clincnv.seg
+/test/data_chrx/*_rohs.tsv
 /test/data_chrx/*_lowcov.bed
 /test/data_chrx/*.igv
 /test/data_chrx/*.bedpe
 /test/data_chrx/manta_evid/
+/test/data_chrx/*_circos.png
 
 /test/data_trio/*.GSvar
 /test/data_trio/*.log

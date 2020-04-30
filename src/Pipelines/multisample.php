@@ -93,6 +93,7 @@ foreach($bams as $bam)
 $sys = load_system($system, $names[$bams[0]]);
 
 //check steps
+$is_wgs = $sys['type']=="WGS";
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
 if ($is_wgs_shallow)
 {
@@ -429,21 +430,31 @@ if (in_array("cn", $steps))
 			$regions = $tmp;
 		}
 		
-		$output[] = "#chr\tstart\tend\tsample\tsize\tCN_change\tloglikelihood\tqvalue\tpotential_AF\t".implode("\t", $anno_headers);
+		$headers = array("chr", "start", "end", "sample", "size", "CN_change", "loglikelihood");
+		if($is_wgs || $is_wgs_shallow) $headers[] = "no_of_regions";
+		$headers[] = "qvalue";
+		$headers[] = "potential_AF";
+		$output[] = "#".implode("\t", $headers)."\t".implode("\t", $anno_headers);
 		foreach($regions as $reg)
 		{
-			
+			$size = intval($reg["end"])-intval($reg["start"]);
 			$line = array(
 				$reg["chr"],
 				$reg["start"],
 				$reg["end"],
 				$prefix,
-				intval($reg["end"])-intval($reg["start"]),
+				$size,
 				$reg["cn"],
-				$reg["loglike"],
-				$reg["qvalue"],
-				number_format(max(explode(",", $reg["pot_af"])), 3)
-			);
+				$reg["loglike"]
+				);
+			if($is_wgs || $is_wgs_shallow)
+			{
+				$bin_size = get_path("cnv_bin_size_wgs");
+				if ($is_wgs_shallow) $bin_size = get_path("cnv_bin_size_shallow_wgs");
+				$line[] = round($size/$bin_size); 
+			}
+			$line[] = $reg["qvalue"];
+			$line[] = number_format(max(explode(",", $reg["pot_af"])), 3);
 			
 			$output[] = implode("\t",$line);
 		}

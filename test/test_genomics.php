@@ -23,7 +23,8 @@ if (db_is_enabled("NGSD"))
 	check(is_valid_ref_sample_for_cnv_analysis("I16D005a01_01"), false); //bad run
 	check(is_valid_ref_sample_for_cnv_analysis("GS130071_01"), false); //bad processed sample
 	check(is_valid_ref_sample_for_cnv_analysis("GS123456_01"), false); //not in NGSD
-	check(is_valid_ref_sample_for_cnv_analysis("GS160561_02"), false); //not research/diagnostics
+	check(is_valid_ref_sample_for_cnv_analysis("GS150155_05"), false); //test project
+	check(is_valid_ref_sample_for_cnv_analysis("GS150155_05", false, true), true); //test project
 	check(is_valid_ref_sample_for_cnv_analysis("GS160408_01"), true);
 }
 end_test();

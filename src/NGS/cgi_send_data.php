@@ -1,6 +1,8 @@
 <?php
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
+error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+
 $parser = new ToolBase("cgi_send_data", "Sends annotation file to CGI.");
 $parser->addInfile("mutations", "Input .vcf-file with mutation annotations, hg19 coordinates.", true);
 $parser->addInfile("cnas","File containing the CNV data. ",true);

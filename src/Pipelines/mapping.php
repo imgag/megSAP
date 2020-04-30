@@ -23,14 +23,11 @@ $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
 $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
 $parser->addFlag("correction_n", "Use Ns for barcode correction.", true);
 $parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.", true);
-$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for maping instead of standard bwa mem.", true);
+$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard bwa mem.", true);
 extract($parser->parse($argv));
 
 //extract processing system information from DB
 $sys = load_system($system, $out_name);
-
-//detmerine sample sheet name
-$sheet = dirname($in_for[0])."/SampleSheet.csv";
 
 // determine output file base name
 $basename = $out_folder."/".$out_name;
@@ -54,13 +51,46 @@ if ($sys["adapter1_p5"]=="" && $sys["adapter2_p7"]=="")
 }
 
 $stafile1 = $basename."_stats_fastq.qcML";
-$trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
-$trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
+
+if ($use_dragen && $sys['type']!="Panel MIPs")
+{
+	// get transfer folders for DRAGEN server from settings
+	$dragen_input_folder = get_path("dragen_in");
+	$dragen_output_folder = get_path("dragen_out");
+
+	// check if transfer folders exists
+	if (!file_exists($dragen_input_folder)) trigger_error("DRAGEN input folder \"".$dragen_input_folder."\" does not exist!", E_USER_ERROR);
+	if (!file_exists($dragen_output_folder)) trigger_error("DRAGEN input folder \"".$dragen_output_folder."\" does not exist!", E_USER_ERROR);
+
+	$trimmed1 = "$dragen_input_folder/{$out_name}_trimmed1.fastq.gz";
+	$trimmed2 = "$dragen_input_folder/{$out_name}_trimmed1.fastq.gz";
+}
+else
+{
+	// deactivate DRAGEN for this sample
+	if($sys['type']=="Panel MIPs") 
+	{
+		trigger_error("Panel MIPs are not supported by the DRAGEN pipeline, using local mapping instead.", E_USER_WARNING);
+		$use_dragen = false;
+	}
+	$trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
+	$trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
+}
+
 
 // barcode handling
 $barcode_correction = false;
 if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT"]))
 {
+	// deactivate DRAGEN
+	if ($use_dragen)
+	{
+		trigger_error("UMI handling is not supported by the DRAGEN pipeline, using local mapping instead.", E_USER_WARNING);
+		$use_dragen = false;
+		$trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
+		$trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
+	}
+
 	$index_files = glob("$out_folder/*_index_*.fastq.gz");
 
 	if ($in_index === NULL || empty($in_index))
@@ -99,6 +129,15 @@ if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT"]))
 }
 else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" ]))
 {
+	// deactivate DRAGEN
+	if ($use_dragen)
+	{
+		trigger_error("UMI handling is not supported by the DRAGEN pipeline, using local mapping instead.", E_USER_WARNING);
+		$use_dragen = false;
+		$trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
+		$trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
+	}
+
 	//handle UMI protocols where the UMI is placed at the head of read 1 and/or read 2
 
 	//remove sequencing adapter
@@ -147,6 +186,7 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 else
 {
 	if ($sys['umi_type']!=="n/a") trigger_error("Unknown UMI-type ".$sys['umi_type'].". No barcode correction.",E_USER_WARNING);
+		
 	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 6), true);
 }
 
@@ -220,32 +260,13 @@ if($sys['type']=="Panel MIPs")
 // use DRAGEN or std bwa mem
 if ($use_dragen)
 {
-	// check if output is on /mnt/SRV018
-	if (!starts_with(realpath($out_folder), "/mnt/SRV018/"))
-	{
-		trigger_error("The output folder '".$out_folder."' is not accessible by the DRAGEN server. It has to be located at '/mnt/'.", E_USER_ERROR);
-	}
-	
-	// move files to project folders
-	$dragen_in1 = realpath("$out_folder")."/{$out_name}_".basename($trimmed1);
-	$dragen_in2 = realpath("$out_folder")."/{$out_name}_".basename($trimmed2);
-
-	// $dragen_in1 = "$out_folder/{$out_name}_".basename($trimmed1);
-	// $dragen_in2 = "$out_folder/{$out_name}_".basename($trimmed2);
-	
-	print $dragen_in1."\n";
-	print $dragen_in2."\n";
-
-	$parser->moveFile($trimmed1, $dragen_in1);
-	$parser->moveFile($trimmed2, $dragen_in2);
-
-	$dragen_out = realpath("$out_folder")."/{$out_name}_dragen.bam";
+	$dragen_output_bam = "$dragen_output_folder/{$out_name}_dragen.bam";
 
 	// create cmd for mapping_dragen.php
 	$args = array();
-	$args[] = "-in1 $dragen_in1";
-	$args[] = "-in2 $dragen_in2";
-	$args[] = "-out $dragen_out";
+	$args[] = "-in1 $trimmed1";
+	$args[] = "-in2 $trimmed2";
+	$args[] = "-out $dragen_output_bam";
 	$args[] = "-sample $out_name";
 	$args[] = "-build ".$sys['build'];
 	$args[] = "--log ".realpath($parser->getLogFile());
@@ -256,9 +277,19 @@ if ($use_dragen)
 	// submit GridEngine job to dragen queue
 	$dragen_queues = explode(",", get_path("queues_dragen"));
 	$sge_output = $parser->tempFile("_dragen_sge.log");
-	$sge_parameter = "-V -pe smp 1 -b y -wd ".$out_folder." -m n -M ".get_path("queue_email")." -e {$sge_output}.err -o {$sge_output}.out -q ".implode(",", $dragen_queues);
-	
-	list($stdout, $stderr) = $parser->exec("qsub", $sge_parameter." ".$cmd_mapping);
+	$sge_args = array();
+	$sge_args[] = "-V";
+	$sge_args[] = "-pe smp 1";
+	$sge_args[] = "-b y"; // treat as binary
+	$sge_args[] = "-wd $dragen_output_folder";
+	$sge_args[] = "-u bioinf";
+	$sge_args[] = "-m n";
+	$sge_args[] = "-M ".get_path("queue_email");
+	$sge_args[] = "-e $dragen_output_folder/{$out_name}_sge.err";
+	$sge_args[] = "-o $dragen_output_folder/{$out_name}_sge.out";
+	$sge_args[] = "-q ".implode(",", $dragen_queues);
+
+	list($stdout, $stderr) = $parser->exec("qsub", implode(" ", $sge_args)." ".$cmd_mapping);
 	$sge_id = explode(" ", $stdout[0])[2];
 
 
@@ -322,19 +353,16 @@ if ($use_dragen)
 		}
 
 
-	// move mapping file back to temp (to be consistent with mapping_bwa.php)
-	$bam_current = $parser->tempFile("_mapping_dragen.bam");
-	$parser->moveFile($dragen_out, $bam_current);
+	// use created bam as input for further post-processing
+	$bam_current = $dragen_output_bam;
 
-
-	// clean up temporary dragen input files
-	unlink($dragen_in1);
-	unlink($dragen_in2);
-	
+	// remove trimmed fastq files
+	unlink($trimmed1);
+	unlink($trimmed2);
 }
 else
 {
-	// mapping
+	// local mapping with bwa
 	$bam_current = $parser->tempFile("_mapping_bwa.bam");
 	$args = array();
 	$args[] = "-in1 $trimmed1";
@@ -380,7 +408,16 @@ if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 		$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $args));
 		$parser->indexBam($tmp_bam, $threads);
 
-		$parser->deleteTempFile($bam_current);
+		// delete local bam file or DRAGEN bam file
+		if ($use_dragen)
+		{
+			unlink($dragen_output_bam);
+			unlink($dragen_output_bam.".bai");
+		}
+		else
+		{
+			$parser->deleteTempFile($bam_current);
+		}
 		$bam_current = $tmp_bam;
 	}
 }
@@ -437,7 +474,16 @@ if($clip_overlap)
 	$parser->sortBam($tmp_bam, $tmp_bam2, $threads);
 	$parser->indexBam($tmp_bam2, $threads);
 
-	$parser->deleteTempFile($bam_current);
+	// delete local bam file or DRAGEN bam file
+	if ($use_dragen && starts_with($bam_current, $dragen_output_folder))
+	{
+		unlink($dragen_output_bam);
+		unlink($dragen_output_bam.".bai");
+	}
+	else
+	{
+		$parser->deleteTempFile($bam_current);
+	}
 	$bam_current = $tmp_bam2;
 }
 

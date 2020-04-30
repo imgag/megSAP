@@ -20,6 +20,7 @@ $parser->addFlag("lofreq", "Add low frequency variant detection.", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
 $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
+$parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.", true);
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.", true);
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
@@ -75,9 +76,9 @@ if (in_array("cn", $steps) && !$has_roi)
 	trigger_error("Skipping step 'cn' - Copy number analysis is only supported for processing systems with target region BED file!", E_USER_NOTICE);
 	if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
 }
-if (in_array("sv", $steps) && $is_wgs_shallow)
+if (in_array("sv", $steps) && !$is_wgs && !$is_wes)
 {
-	trigger_error("Skipping step 'sv' - Structural variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
+	trigger_error("Skipping step 'sv' - Structural variant calling is only supported for WGS and WES samples!", E_USER_NOTICE);
 	if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 }
 if (db_is_enabled("NGSD"))
@@ -132,6 +133,7 @@ $rohfile = $out_folder."/".$name."_rohs.tsv";
 $baffile = $out_folder."/".$name."_bafs.igv";
 
 $sv_manta_file = $out_folder ."/". $name . "_manta_var_structural.vcf.gz";
+$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
 
 //move old data to old_[date]_[random]-folder
 if($backup && in_array("ma", $steps))
@@ -160,31 +162,38 @@ if (in_array("ma", $steps))
 	{
 		trigger_error("Found mismatching forward and reverse read file count!\n Forward: $in_for\n Reverse: $in_rev.", E_USER_ERROR);
 	}
-	if (count($files1)==0)
+	if (!$start_with_abra)
 	{
-		if(file_exists($bamfile))
+		if (count($files1)==0)
 		{
-			trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files.", E_USER_NOTICE);
+			if(file_exists($bamfile))
+			{
+				trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files.", E_USER_NOTICE);
 
-			// extract reads from BAM file
-			$in_fq_for = $folder."/{$name}_BamToFastq_R1_001.fastq.gz";
-			$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
-			$parser->exec("{$ngsbits}BamToFastq", "-in $bamfile -out1 $in_fq_for -out2 $in_fq_rev", true);
-
-			// use generated fastq files for mapping
-			$files1 = array($in_fq_for);
-			$files2 = array($in_fq_rev);
+				// extract reads from BAM file
+				$in_fq_for = $folder."/{$name}_BamToFastq_R1_001.fastq.gz";
+				$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
+				$tmp1 = $parser->tempFile(".fastq.gz");
+				$tmp2 = $parser->tempFile(".fastq.gz");
+				$parser->exec("{$ngsbits}BamToFastq", "-in $bamfile -out1 $tmp1 -out2 $tmp2", true);
+				$parser->moveFile($tmp1, $in_fq_for);
+				$parser->moveFile($tmp2, $in_fq_rev);
+				
+				// use generated fastq files for mapping
+				$files1 = array($in_fq_for);
+				$files2 = array($in_fq_rev);
+			}
+			else
+			{
+				trigger_error("Found no read files found matching '$in_for' or '$in_rev'!", E_USER_ERROR);
+			}
 		}
-		else
-		{
-			trigger_error("Found no read files found matching '$in_for' or '$in_rev'!", E_USER_ERROR);
-		}
-		
 	}
 	
 	$args = array();
 	if($clip_overlap) $args[] = "-clip_overlap";
 	if($no_abra) $args[] = "-no_abra";
+	if($start_with_abra) $args[] = "-start_with_abra";
 	if(file_exists($log_ma)) unlink($log_ma);
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
@@ -399,8 +408,8 @@ if (in_array("cn", $steps))
 		//WGS: create folder for binned coverage data - if missing
 		if ($is_wgs || $is_wgs_shallow)
 		{
-			$bin_size = 1000;
-			if ($is_wgs_shallow) $bin_size = 5000;
+			$bin_size = get_path("cnv_bin_size_wgs");
+			if ($is_wgs_shallow) $bin_size = get_path("cnv_bin_size_shallow_wgs");
 			$bin_folder = "{$ref_folder}/bins{$bin_size}/";
 			if (!is_dir($bin_folder))
 			{
@@ -594,15 +603,18 @@ if (in_array("sv", $steps))
 	
 	$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
 
+	//Rename Manta evidence file
+	rename("$manta_evidence_dir/evidence_0.$name.bam", "$manta_evidence_dir/{$name}_manta_evidence.bam");
+	rename("$manta_evidence_dir/evidence_0.$name.bam.bai", "$manta_evidence_dir/{$name}_manta_evidence.bam.bai");
+
 	//create BEDPE files
-	$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
-	exec2("{$ngsbits}VcfToBedpe -in $sv_manta_file -out $bedpe_out");
+	$parser->exec("{$ngsbits}VcfToBedpe", "-in $sv_manta_file -out $bedpe_out", true);
 
 	//add gene info annotation and NGSD counts
 	if (db_is_enabled("NGSD"))
 	{
-		exec2("{$ngsbits}BedpeGeneAnnotation -in $bedpe_out -out $bedpe_out -add_simple_gene_names");
-		exec2("{$ngsbits}NGSDAnnotateSV -in $bedpe_out -out $bedpe_out -ps $name");
+		$parser->exec("{$ngsbits}BedpeGeneAnnotation", "-in $bedpe_out -out $bedpe_out -add_simple_gene_names", true);
+		$parser->exec("{$ngsbits}NGSDAnnotateSV", "-in $bedpe_out -out $bedpe_out -ps $name", true);
 	}
 
 	//add optional OMIM annotation
@@ -611,7 +623,7 @@ if (in_array("sv", $steps))
 
 	if(file_exists($omim_file))
 	{
-		exec2("{$ngsbits}BedpeAnnotateFromBed -in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM");
+		$parser->exec("{$ngsbits}BedpeAnnotateFromBed", "-in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM", true);
 	}
 
 }
@@ -657,5 +669,24 @@ if (in_array("db", $steps))
 }
 
 
+// Create Circos plot
+if ($is_wes || $is_wgs || $is_wgs_shallow)
+{
+	if (file_exists($cnvfile))
+	{
+		if (file_exists($cnvfile2))
+		{
+			$parser->execTool("NGS/create_circos_plot.php", "-folder $out_folder -name $name -build ".$sys['build']." --log $log_db");
+		}
+		else
+		{
+			trigger_error("CNV file $cnvfile2 missing. Cannot create Circos plot!", E_USER_WARNING);
+		}
+	}
+	else
+	{
+		trigger_error("CNV file $cnvfile missing. Cannot create Circos plot!", E_USER_WARNING);
+	}
+}
 
 ?>

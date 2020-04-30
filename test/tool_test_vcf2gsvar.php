@@ -17,7 +17,7 @@ check_file($out_file1, data_folder().$name."_out1.GSvar");
 
 //genotype_mode=skip, with upstream/downstream 
 $out_file2 = output_folder().$name."_out2.GSvar";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -blacklist  -updown -out $out_file2 -genotype_mode skip --log ".output_folder().$name."_out2.log");
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -blacklist -updown -out $out_file2 -genotype_mode skip --log ".output_folder().$name."_out2.log");
 check_file($out_file2, data_folder().$name."_out2.GSvar");
 
 //genotype_mode=single, no blacklist
@@ -39,6 +39,11 @@ check_file($out_file_db, data_folder().$name."_out_db2.GSvar");
 $out_file_empty = output_folder().$name."_out_empty.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in_empty.vcf -blacklist -out $out_file_empty --log ".output_folder().$name."_out_empty.log");
 check_file($out_file_empty, data_folder().$name."_out_empty.GSvar", true);
+
+//genotype_mode=single, WGS mode
+$out_file1 = output_folder().$name."_out5.GSvar";
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in3.vcf -blacklist -updown -wgs -out $out_file1 --log ".output_folder().$name."_out1.log");
+check_file($out_file1, data_folder().$name."_out5.GSvar");
 
 //genotype_mode=multi
 $out_file_multi = output_folder().$name."_out_multi.GSvar";

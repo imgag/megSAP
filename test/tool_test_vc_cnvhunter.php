@@ -18,7 +18,15 @@ exec2("tar -m -xzf ".data_folder().$name."_cov_files.tgz -C $cov_folder");
 $out_file1 = output_folder().$name."_out1.tsv";
 $out_file2seg = output_folder().$name."_out1.seg";
 check_exec("php ".src_folder()."/NGS/{$name}.php -n 20  -cov $cov_nor --log ".output_folder().$name."_out2.log -system ".data_folder().$name."_system.ini -out $out_file1 -seg GS140794_02 -cov_folder $cov_folder");
-check_file($out_file1, data_folder().$name."_out1.tsv");
+// results depend on the availability of the NGSD 
+if (db_is_enabled("NGSD"))
+{
+	check_file($out_file1, data_folder().$name."_out1.tsv");
+}
+else
+{
+	check_file($out_file1, data_folder().$name."_out1_noNGSD.tsv");
+}
 check_file($out_file2seg, data_folder().$name."_out1.seg");
 
 end_test();

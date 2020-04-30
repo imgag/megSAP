@@ -14,6 +14,7 @@ $parser->addString("name", "Processing system short name.", false);
 $parser->addFlag("clear", "Remove existing coverage files.");
 $parser->addFlag("tumor_only", "Keep only tumor samples, normally tumor samples are removed.");
 $parser->addFlag("somatic","Create coverage files for tumor-normal samples, including off-target coverage files.");
+$parser->addFlag("include_test_projects","Includes also projects of type 'test'. By default, only 'diagnostic' and 'research' projects are included.");
 $parser->addString("build","reference genome",true,"GRCh37");
 extract($parser->parse($argv));
 
@@ -29,11 +30,21 @@ if ($roi=="")
 {
 	trigger_error("Processing system '$name' has no target region file annotated!", E_USER_ERROR);	
 }
+
+//init
+$ref_folder = get_path("data_folder")."/coverage/$name".($tumor_only ? "-tumor" : "")."/";		
+
+//WGS/sWGS: fix ref folder and ROI
 $type = $res[0]['type'];
 if ($type=="WGS" || $type=="WGS (shallow)")
 {
-	trigger_error("This script does not support WGS processing systems!", E_USER_ERROR);	
-}
+	$bin_size = get_path("cnv_bin_size_wgs");
+	if ($type=="WGS (shallow)") $bin_size = get_path("cnv_bin_size_shallow_wgs");
+	
+	$roi = "{$ref_folder}/bins{$bin_size}.bed";
+	if (!file_exists($roi)) trigger_error("WGS/sWGS regions file '$roi' does not exist!", E_USER_ERROR);	
+	$ref_folder = "{$ref_folder}/bins{$bin_size}/";
+}	
 
 //Make list of samples that have same processing system
 $ngsbits = get_path("ngs-bits");
@@ -49,7 +60,6 @@ $samples = file($sample_table_file);
 if(!$somatic)
 {
 	//create/clear folder
-	$ref_folder = get_path("data_folder")."/coverage/$name".($tumor_only ? "-tumor" : "")."/";		
 	if (!is_dir($ref_folder))
 	{
 		mkdir($ref_folder);
@@ -70,7 +80,6 @@ if(!$somatic)
 	print "\n";
 
 	//check samples
-	
 	$bams = array();
 	$valid = 0;
 	foreach($samples as $line)
@@ -81,7 +90,7 @@ if(!$somatic)
 		list($sample, $path) = explode("\t", $line);
 		
 		//check sample is valid
-		if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only)) continue;
+		if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only, $include_test_projects)) continue;
 		++$valid;
 		
 		//check bam
@@ -94,7 +103,7 @@ if(!$somatic)
 	print "Found ".count($samples)." samples for this processing system in NGSD.\n";
 	print "Found $valid samples that are valid reference samples.\n";
 	print "Found ".count($bams)." samples with BAM files.\n";
-
+	
 	//create new coverage files
 	foreach($bams as $bam)
 	{
@@ -107,8 +116,6 @@ if(!$somatic)
 			continue;
 		}
 		
-		//calculate coverage file
-		print "$bam processing...\n";
 		exec2($ngsbits."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out $cov_file");
 	}
 
@@ -198,7 +205,7 @@ else //somatic tumor-normal pairs
 		else
 		{
 			echo "normal $bam processing...\n";
-			if(!is_valid_ref_sample_for_cnv_analysis($sample)) continue;
+			if(!is_valid_ref_sample_for_cnv_analysis($sample, $include_test_projects)) continue;
 			if(!file_exists("{$ref_n_dir}/{$sample}.cov"))
 			{
 				exec2($ngsbits."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out {$ref_n_dir}/{$sample}.cov",true);

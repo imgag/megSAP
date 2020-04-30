@@ -101,7 +101,7 @@ $parser->log("DRAGEN mapping metrics:", $mapping_metrics);
 // copy result to sample folder
 $parser->log("Copy alignment back to /mnt/...");
 $parser->copyFile($working_dir.basename($out), $out);
-$parser->copyFile($working_dir.basename($out).".bai", $out."bai");
+$parser->copyFile($working_dir.basename($out).".bai", $out.".bai");
 
 
 // delete working directory
