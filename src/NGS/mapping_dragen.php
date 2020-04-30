@@ -30,8 +30,8 @@ if (!in_array($build, array("GRCh37", "GRCh38", "hg19")))
 if ($sample=="") $sample = basename($out, ".bam");
 
 // path to data folder and reference genomes
-$dragen_data_path = get_path("data_folder_dragen");
-$dragen_ref_path = get_path("genome_folder_dragen");
+$dragen_data_path = get_path("dragen_data");
+$dragen_genome_path = get_path("dragen_genomes");
 
 //check if input files are readable and output file is writeable:
 if (!is_readable($in1)) trigger_error("Input file '.$in1.' is not readable!", E_USER_ERROR);
@@ -55,7 +55,7 @@ $parser->copyFile($in2, $local_fastq2);
 
 // generate parameter list for dragen
 $dragen_parameter = array();
-$dragen_parameter[] = "-r ".$dragen_ref_path.$build."/dragen/";
+$dragen_parameter[] = "-r ".$dragen_genome_path.$build."/dragen/";
 $dragen_parameter[] = "-1 ".$local_fastq1;
 $dragen_parameter[] = "-2 ".$local_fastq2;
 $dragen_parameter[] = "--output-directory $working_dir";
@@ -69,13 +69,14 @@ $dragen_parameter[] = "--RGLB $sample";
 $dragen_parameter[] = "--RGCN medical_genetics_tuebingen";
 $dragen_parameter[] = "--RGDT ".date("c");
 $dragen_parameter[] = "--RGPL ILLUMINA";
-// if(db_is_enabled("NGSD"))
-// {
-// 	$db_conn = DB::getInstance("NGSD");
-// 	$psample_info = get_processed_sample_info($db_conn, $sample, false);
-// 	$dragen_parameter[] = "--RGPM '".$psample_info['device_type']."'";
-// 	$dragen_parameter[] = "--RGEN '".$psample_info['sys_name']."'";
-// }
+
+if(db_is_enabled("NGSD"))
+{
+	$db_conn = DB::getInstance("NGSD");
+	$psample_info = get_processed_sample_info($db_conn, $sample, false);
+	$dragen_parameter[] = "--RGPM '".$psample_info['device_type']."'";
+	$dragen_parameter[] = "--RGEN '".$psample_info['sys_name']."'";
+}
 
 // remove duplicates
 if ($dedup) $dragen_parameter[] = "--enable-duplicate-marking true";
