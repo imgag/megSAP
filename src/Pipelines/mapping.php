@@ -260,39 +260,11 @@ if($sys['type']=="Panel MIPs")
 	trigger_error(($count2-$count1)."/$count2 read pairs were removed by filtering for MIP arms.",E_USER_NOTICE);
 }
 
-// mapping
-$bam_current = $parser->tempFile("_mapping_bwa.bam");
-$args = array();
-$args[] = "-in1 $trimmed1";
-$args[] = "-in2 $trimmed2";
-$args[] = "-out $bam_current";
-$args[] = "-sample $out_name";
-$args[] = "-build ".$sys['build'];
-$args[] = "-threads $threads";
-if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
-$parser->execTool("NGS/mapping_bwa.php", implode(" ", $args));
 // use DRAGEN or std bwa mem
 if ($use_dragen)
 {
 	$dragen_output_bam = "$dragen_output_folder/{$out_name}_dragen.bam";
-
-
-
-
-
-
-
-
-
-
-// remove temporary FASTQs (they can be really large for WGS)
-$parser->deleteTempFile($trimmed1);
-$parser->deleteTempFile($trimmed2);
-
-
-
-
-
+	$dragen_log_file = "$dragen_output_folder/{$out_name}_dragen.log";
 
 	// create cmd for mapping_dragen.php
 	$args = array();
@@ -301,25 +273,24 @@ $parser->deleteTempFile($trimmed2);
 	$args[] = "-out $dragen_output_bam";
 	$args[] = "-sample $out_name";
 	$args[] = "-build ".$sys['build'];
-	$args[] = "--log ".realpath($parser->getLogFile());
+	$args[] = "--log $dragen_log_file";
 	if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
 	$cmd_mapping = "php ".realpath(repository_basedir())."/src/NGS/mapping_dragen.php ".implode(" ", $args);
-
 
 	// submit GridEngine job to dragen queue
 	$dragen_queues = explode(",", get_path("queues_dragen"));
 	$sge_output = $parser->tempFile("_dragen_sge.log");
 	$sge_args = array();
 	$sge_args[] = "-V";
-	$sge_args[] = "-pe smp 1";
+	$sge_args[] = "-pe smp 1"; // run with 1 slot
 	$sge_args[] = "-b y"; // treat as binary
 	$sge_args[] = "-wd $dragen_output_folder";
-	$sge_args[] = "-u bioinf";
-	$sge_args[] = "-m n";
+	$sge_args[] = "-u bioinf"; // user
+	$sge_args[] = "-m n"; // switch off messages
 	$sge_args[] = "-M ".get_path("queue_email");
-	$sge_args[] = "-e $dragen_output_folder/{$out_name}_sge.err";
-	$sge_args[] = "-o $dragen_output_folder/{$out_name}_sge.out";
-	$sge_args[] = "-q ".implode(",", $dragen_queues);
+	$sge_args[] = "-e $dragen_output_folder/{$out_name}_sge.err"; // stdout
+	$sge_args[] = "-o $dragen_output_folder/{$out_name}_sge.out"; // stderr
+	$sge_args[] = "-q ".implode(",", $dragen_queues); // define queue
 
 	list($stdout, $stderr) = $parser->exec("qsub", implode(" ", $sge_args)." ".$cmd_mapping);
 	$sge_id = explode(" ", $stdout[0])[2];
@@ -387,6 +358,10 @@ $parser->deleteTempFile($trimmed2);
 
 	// use created bam as input for further post-processing
 	$bam_current = $dragen_output_bam;
+
+	//copy DRAGEN log to current mapping log and delete it:
+	$parser->log("DRAGEN mapping log: ", file($dragen_log_file));
+	unlink($dragen_log_file);
 
 	// remove trimmed fastq files
 	unlink($trimmed1);
