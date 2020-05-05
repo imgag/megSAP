@@ -667,23 +667,26 @@ if (in_array("db", $steps))
 }
 
 
-// Create Circos plot
-if ($is_wes || $is_wgs || $is_wgs_shallow)
+// Create Circos plot only if VC or CNC was done
+if (in_array("vc", $steps) || in_array("cn", $steps))
 {
-	if (file_exists($cnvfile))
+	if ($is_wes || $is_wgs || $is_wgs_shallow)
 	{
-		if (file_exists($cnvfile2))
+		if (file_exists($cnvfile))
 		{
-			$parser->execTool("NGS/create_circos_plot.php", "-folder $out_folder -name $name -build ".$sys['build']." --log $log_db");
+			if (file_exists($cnvfile2))
+			{
+				$parser->execTool("NGS/create_circos_plot.php", "-folder $out_folder -name $name -build ".$sys['build']." --log $log_db");
+			}
+			else
+			{
+				trigger_error("CNV file $cnvfile2 missing. Cannot create Circos plot!", E_USER_WARNING);
+			}
 		}
 		else
 		{
-			trigger_error("CNV file $cnvfile2 missing. Cannot create Circos plot!", E_USER_WARNING);
+			trigger_error("CNV file $cnvfile missing. Cannot create Circos plot!", E_USER_WARNING);
 		}
-	}
-	else
-	{
-		trigger_error("CNV file $cnvfile missing. Cannot create Circos plot!", E_USER_WARNING);
 	}
 }
 
