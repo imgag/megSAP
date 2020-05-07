@@ -16,7 +16,7 @@ $parser->addOutfile("stats", "Append statistics to this file.", false);
 //optional
 $parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf' file base name is used.", true);
 $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the given depth are evaluated.", true, 0);
-$parser->addInt("max_indel", "Maximum indel size (larger indels are ignored).", 0);
+$parser->addInt("max_indel", "Maximum indel size (larger indels are ignored).", true, 0);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addString("ref_sample", "Reference sample to use for validation.", true, "NA12878");
 extract($parser->parse($argv));
