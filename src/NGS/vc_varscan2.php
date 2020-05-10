@@ -3,7 +3,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("vc_varscan2", "Variant calling with freebayes.");
+$parser = new ToolBase("vc_varscan2", "Variant calling with VarScan2.");
 $parser->addInfile("bam",  "Input file in BAM format. Space separated. Note: .bam.bai file is required!", false);
 $parser->addOutfile("out", "Output file in VCF.GZ format.", false);
 //optional
@@ -39,15 +39,19 @@ $pipeline = array(
 );
 $parser->execPipeline($pipeline, "Varscan2 INDELs");
 
-//merge/rename header/sort/bgzip SNPs and INDELs into one vcf file
-$tmp_merged_file = temp_file("varscan2_all_variants.vcf.gz");
+//merge/rename header SNPs and INDELs into one vcf file
+$tmp_merged_file = temp_file("varscan2_all_variants.vcf");
 $pipeline = array(
 	array("cat", "$tmp_snp_file $tmp_indel_file"),
-	array("sed", "'s/Sample1/{$name}/'"), //replace sample1 by actual sample $name
-	array(get_path("ngs-bits")."/VcfStreamSort", ""),
-	array("bgzip", "-c > $out")
+	array("sed", "'s/Sample1/{$name}/' > $tmp_merged_file"), //replace sample1 by actual sample $name
 );
 $parser->execPipeline($pipeline, "merge");
+
+//Sort file
+$tmp_sorted_file = temp_file("varscan2_all_variants_sorted.vcf");
+$parser->exec(get_path("ngs-bits")."/VcfSort", "-in $tmp_merged_file -out $tmp_sorted_file");
+$parser->exec("bgzip", "-c $tmp_sorted_file > $out");
+
 
 //flag off-targets
 if(isset($target))
