@@ -12,6 +12,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.05);
 $parser->addInt("min_dp", "Minimum depth cutoff for variant calling.", true, 20);
 $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 15);
+$parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 1);
 $parser->addFloat("pval_thres", "p-Value threshold for varinat calling", true, 0.0001);
 $parser->addString("name", "Sample name to be used in output.", true, "SAMPLE");
 extract($parser->parse($argv));
@@ -23,7 +24,7 @@ $genome = genome_fasta($build);
 $tmp_snp_file = temp_file("varscan2_snps.vcf");
 $pipeline = array(
 	array(get_path("samtools"), "mpileup -f $genome $bam"),
-	array(get_path("varscan2"), "mpileup2snp --min-var-freq $min_af --min_avg_qual $min_bq --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
+	array(get_path("varscan2"), "mpileup2snp --min-MQ $min_mq --min-var-freq $min_af --min_avg_qual $min_bq --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
 	array(get_path("ngs-bits")."/VcfLeftNormalize", "-ref $genome -out $tmp_snp_file")
 );
 
@@ -33,7 +34,7 @@ $parser->execPipeline($pipeline, "Varscan2 SNPs");
 $tmp_indel_file = temp_file("varscan2_indels.vcf");
 $pipeline = array(
 	array(get_path("samtools"), "mpileup -f $genome $bam" ),
-	array(get_path("varscan2"), "mpileup2indel --min-var-freq $min_af --min_avg_qual $min_bq --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
+	array(get_path("varscan2"), "mpileup2indel --min-MQ $min_mq --min-var-freq $min_af --min_avg_qual $min_bq --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
 	array(get_path("ngs-bits")."/VcfLeftNormalize", "-ref $genome"),
 	array("egrep", "-v '##|#CHROM' > $tmp_indel_file") //filter out header lines (already included in calls for snps, will be merged in later step)
 );
@@ -57,7 +58,7 @@ $parser->exec("bgzip", "-c $tmp_sorted_file > $out");
 if(isset($target))
 {
 	$tmp = temp_file("target.vcf");
-	$parser->exec("VariantFilterRegions", "-in $out -reg $target -mark off-target -out $tmp");
+	$parser->exec(get_path("ngs-bits") . "/VariantFilterRegions", "-in $out -reg $target -mark off-target -out $tmp");
 	$parser->exec("bgzip", "-c $tmp > $out");
 }
 
