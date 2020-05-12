@@ -39,6 +39,8 @@ mkdir ClinVar
 cd ClinVar
 wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2019/clinvar_20191111.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20191111_converted.vcf.gz
 tabix -p vcf clinvar_20191111_converted.vcf.gz
+ln -s  clinvar_20191111_converted.vcf.gz clinvar_current_converted.vcf.gz
+ln -s  clinvar_20191111_converted.vcf.gz.tbi clinvar_current_converted.vcf.gz.tbi
 #CNVs
 wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2019-11.txt.gz | gunzip > variant_summary_2019-11.txt
 cat variant_summary_2019-11.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" > clinvar_cnvs_2019-11.bed
