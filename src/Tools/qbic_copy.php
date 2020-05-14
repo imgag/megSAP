@@ -414,15 +414,21 @@ foreach($res as $row)
 			}
 			if (ends_with($file, "_var_annotated.vcf.gz")) $files[] = $file;
 		}
-		//get BAM if FASTQ is not available
+		//generate FASTQs from BAM is not available
 		if ($is_single_sample_dna && !$fastqs_present)
 		{
-			foreach($paths as $file)
+			$bam = "{$data_folder}/{$ps_name}.bam";
+			if (file_exists($bam))
 			{
-				if (ends_with($file, "{$ps_name}.bam"))
+				$tmp_folder = $parser->tempFolder();	
+				$fq1 = $tmp_folder."/{$ps_name}_BamToFastq_R1_001.fastq.gz";
+				$fq2 = $tmp_folder."/{$ps_name}_BamToFastq_R2_001.fastq.gz";
+				if ($upload) //skip generating FASTQs in dry run
 				{
-					$files[] = $file;
+					$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam} -out1 $fq1 -out2 $fq2", true);
 				}
+				$files[] = $fq1;
+				$files[] = $fq2;
 			}
 		}
 		
