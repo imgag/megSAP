@@ -4,9 +4,9 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 //Fixes several issues with the HGMD VCF format:
 //-missing 'chr' for chromosomes
-//-spaces in the INFO field (otherwise IGV does not load the file)
 //-additionally copies the ID field to the INFO field (allows a more compact annotation with VEP --custom argument)
 //-removed MUT=REF variants
+//-makes the output IGV-compatible
 
 $in = fopen2("php://stdin", "r");
 while(!feof($in))
@@ -17,15 +17,10 @@ while(!feof($in))
 	{
 		$line = explode("\t", $line);
 		if (contains($line[7], "MUT=REF")) continue;
-		//replace invalid characters in INFO column with URL encoded string
-		$info_entries = array();
-		$info_entries[] = "ID=".$line[2];
-		foreach (explode(";", $line[7]) as $key_value_pair) 
-		{
-			list($key, $value) = explode("=", $key_value_pair, 2);
-			$info_entries[] = $key."=".vcf_encode_url_string($value);
-		}
-		$line[7] = implode(";", $info_entries);
+		
+		$line[7] = strtr($line[7], ["%3A"=>":", "%2C"=>""]);
+		$line[7] = "ID=".$line[2].";".$line[7];
+		
 		$line = "chr".implode("\t", $line);
 	}
 	

@@ -234,39 +234,44 @@ function load_hgnc_db()
 {
 	$output = array();
 	
-	$withdrawn = array();
-	
-	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_complete_set.txt";
-	$file = file($filename);
-	foreach ($file as $line)
+	//parse approved genes
+	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_complete_set.tsv";
+	foreach (file($filename) as $line)
 	{
 		$line = trim($line);
-		if ($line=="" || starts_with($line, "HGNC ID\t")) continue;
-		list($id, $symbol, $name, $status) = explode("\t", $line);
+		if ($line=="" || starts_with($line, "hgnc_id\t")) continue;
+		list($id, $symbol, $name, $locus_group, $locus_type, $status) = explode("\t", $line);
 		
 		$id = trim(strtr($id, array("HGNC:"=>"")));
 		$symbol = trim($symbol);
 		
-		//cache withdrawn sybols that have exactly one new ID
-		if ($status=="Symbol Withdrawn" && substr_count($name, "see [HGNC:")==1)
-		{
-			$start = strpos($name, "see [HGNC:") + 10;
-			$end = strpos($name, "]", $start);
-			$new_id = trim(substr($name, $start, $end-$start)); 
-			if (!is_numeric($new_id) || contains($new_id, " "))
-			{
-				trigger_error("Found non-numeric HGNC identifier in line: $line", E_USER_ERROR);
-			}
-			$withdrawn[$id] = $new_id;
-			continue;
-		}
-		
+		$status = trim($status);
 		if ($status!="Approved") continue;
 		
 		$output[$id] = $symbol;
 	}
 	
 	//try to replace withdrawn symbols by current symbols
+	$withdrawn = array();
+	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_withdrawn.tsv";
+	foreach (file($filename) as $line)
+	{
+		$line = nl_trim($line);
+		if ($line=="" || starts_with($line, "HGNC_ID\t")) continue;
+		list($id, $status, $symbol, $merged_into) = explode("\t", $line);
+		
+		//skip all but approved merged
+		$status = trim($status);
+		if ($status!="Merged/Split") continue;		
+		if(contains($merged_into, ",")) continue; 
+		if(!contains($merged_into, "Approved")) continue;
+		
+		$id = trim(strtr($id, array("HGNC:"=>"")));
+		$id_new = explode("|", $merged_into)[0];
+		$id_new = trim(strtr($id_new, array("HGNC:"=>"")));
+		$withdrawn[$id] = $id_new;
+	}
+	
 	foreach($withdrawn as $id_old => $new_id)
 	{
 		if(isset($output[$new_id]))

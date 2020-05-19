@@ -40,7 +40,7 @@ extract($parser->parse($argv));
 //init
 $repository_basedir = repository_basedir();
 $data_folder = get_path("data_folder");
-$hgmd_file = "{$data_folder}/dbs/HGMD/hgmd_cnvs.bed";
+$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_1.bed";
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
 
 //check steps
@@ -635,7 +635,7 @@ if (in_array("cn", $steps))
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -out {$tmp}", true);
 		
 		//pathogenic ClinVar CNVs
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs.bed -url_decode -no_duplicates -out {$tmp}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$tmp} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2020-05.bed -url_decode -no_duplicates -out {$tmp}", true);
 		
 		//HGMD CNVs
 		if (file_exists($hgmd_file)) //optional because of license

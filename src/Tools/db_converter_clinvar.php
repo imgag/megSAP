@@ -105,7 +105,7 @@ while(!feof($in))
 		{
 			//calcualate the mean consequence
 			$cons_counts = array(1=>0, 2=>0, 3=>0, 4=>0, 5=>0);
-			$sig_conf = explode("%3b", $sig_conf);
+			$sig_conf = explode(",", $sig_conf);
 			foreach($sig_conf as $entry)
 			{
 				$entry = trim($entry);

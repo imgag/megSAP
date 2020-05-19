@@ -73,13 +73,13 @@
 ##INFO=<ID=gnomADg_AF,Number=A,Type=Float,Description="Alternate allele frequency in samples (from file gnomAD_genome_r2.1.1.vcf.gz)">
 ##INFO=<ID=gnomADg_Hom,Number=A,Type=Integer,Description="Count of homozygous individuals in samples (from file gnomAD_genome_r2.1.1.vcf.gz)">
 ##INFO=<ID=gnomADg_Hemi,Number=A,Type=Integer,Description="Alternate allele count for male samples (from file gnomAD_genome_r2.1.1.vcf.gz)">
-##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_current_converted.vcf.gz)">
-##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_current_converted.vcf.gz)">
-##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category (from file HGMD_PRO_2019_3_fixed.vcf.gz)", https://portal.biobase-international.com/hgmd/pro/global.php#cats">
-##INFO=<ID=HGMD_MUT,Number=1,Type=String,Description="HGMD mutant allele (from file HGMD_PRO_2019_3_fixed.vcf.gz)">
-##INFO=<ID=HGMD_GENE,Number=1,Type=String,Description="Gene symbol (from file HGMD_PRO_2019_3_fixed.vcf.gz)">
-##INFO=<ID=HGMD_PHEN,Number=1,Type=String,Description="HGMD primary phenotype (from file HGMD_PRO_2019_3_fixed.vcf.gz)">
-##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="ID column (from file HGMD_PRO_2019_3_fixed.vcf.gz)">
+##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_20200506_converted.vcf.gz)">
+##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_20200506_converted.vcf.gz)">
+##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category (from file HGMD_PRO_2020_1_fixed.vcf.gz)", https://portal.biobase-international.com/hgmd/pro/global.php#cats">
+##INFO=<ID=HGMD_MUT,Number=1,Type=String,Description="HGMD mutant allele (from file HGMD_PRO_2020_1_fixed.vcf.gz)">
+##INFO=<ID=HGMD_GENE,Number=1,Type=String,Description="Gene symbol (from file HGMD_PRO_2020_1_fixed.vcf.gz)">
+##INFO=<ID=HGMD_PHEN,Number=1,Type=String,Description="HGMD primary phenotype.  The ' (from file HGMD_PRO_2020_1_fixed.vcf.gz)",' (comma) in primary phenotype descriptions have been replaced with '%2C'.  Instructions to deal with such characters with special meaning are given in Section 1.2 of the VCFv4.3 specfication.">
+##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="ID column (from file HGMD_PRO_2020_1_fixed.vcf.gz)">
 ##INFO=<ID=NGSD_COUNTS,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_HAF,Number=0,Type=Flag,Description="Indicates a allele frequency above a threshold of 0.05. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_CLAS,Number=1,Type=String,Description="Classification from the NGSD. (from file NGSD_germline.vcf.gz)">

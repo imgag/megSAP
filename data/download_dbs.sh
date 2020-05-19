@@ -37,20 +37,19 @@ tabix -p bed RepeatMasker.bed.gz
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2019/clinvar_20191111.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20191111_converted.vcf.gz
-tabix -p vcf clinvar_20191111_converted.vcf.gz
-ln -s  clinvar_20191111_converted.vcf.gz clinvar_current_converted.vcf.gz
-ln -s  clinvar_20191111_converted.vcf.gz.tbi clinvar_current_converted.vcf.gz.tbi
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2020/clinvar_20200506.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20200506_converted.vcf.gz
+tabix -p vcf clinvar_20200506_converted.vcf.gz
 #CNVs
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2019-11.txt.gz | gunzip > variant_summary_2019-11.txt
-cat variant_summary_2019-11.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" > clinvar_cnvs_2019-11.bed
-$ngsbits/BedSort -in clinvar_cnvs_2019-11.bed -out clinvar_cnvs.bed
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2020-05.txt.gz | gunzip > variant_summary_2020-05.txt
+cat variant_summary_2020-05.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2020-05.bed
+$ngsbits/BedSort -with_name -in clinvar_cnvs_2020-05.bed -out clinvar_cnvs_2020-05.bed
 
-#Install HGNC - ftp://ftp.ebi.ac.uk/pub/databases/genenames/
+#Install HGNC - ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
 cd $dbs
 mkdir HGNC
 cd HGNC
-wget -O - ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc_complete_set.txt.gz | gunzip > hgnc_complete_set.txt
+wget -O - ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/hgnc_complete_set.txt > hgnc_complete_set.tsv
+wget -O - ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/withdrawn.txt > hgnc_withdrawn.tsv
 
 #Install gnomAD (genome data) - http://gnomad.broadinstitute.org/downloads
 cd $dbs
@@ -92,10 +91,10 @@ wget ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/phyloP100way/hg19.100way.phyl
 cd $dbs
 mkdir CADD
 cd CADD
-wget http://krishna.gs.washington.edu/download/CADD/v1.4/GRCh37/InDels.tsv.gz
-wget http://krishna.gs.washington.edu/download/CADD/v1.4/GRCh37/InDels.tsv.gz.tbi
-wget http://krishna.gs.washington.edu/download/CADD/v1.4/GRCh37/whole_genome_SNVs.tsv.gz
-wget http://krishna.gs.washington.edu/download/CADD/v1.4/GRCh37/whole_genome_SNVs.tsv.gz.tbi
+wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/InDels.tsv.gz > CADD_InDels_1.6.tsv.gz
+wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/InDels.tsv.gz.tbi > CADD_InDels_1.6.tsv.gz.tbi
+wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/whole_genome_SNVs.tsv.gz > CADD_SNVs_1.6.tsv.gz
+wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/whole_genome_SNVs.tsv.gz.tbi > CADD_SNVs_1.6.tsv.gz.tbi
 
 #Install fathmm-MKL for VEP - https://github.com/HAShihab/fathmm-MKL
 cd $dbs
@@ -135,17 +134,17 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GR
 #mkdir OMIM
 #cd OMIM
 #manual download of ftp://ftp.omim.org/OMIM/genemap2.txt
-#php $src/Tools/db_converter_omim.php | $ngsbits/BedSort > omim.bed
+#php $src/Tools/db_converter_omim.php | $ngsbits/BedSort -with_name > omim.bed
 #bgzip -c omim.bed > omim.bed.gz
 #tabix -p bed omim.bed.gz
 
 #Install HGMD (you need a license)
-#manual download of files hgmd_pro_2019.3_hg19.vcf and hgmd_pro-2019.3.dump.gz from https://portal.biobase-international.com/cgi-bin/portal/login.cgi 
-#cat hgmd_pro_2019.3_hg19.vcf | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2019_3_fixed.vcf.gz
-#tabix -p vcf HGMD_PRO_2019_3_fixed.vcf.gz
+#manual download of files hgmd_pro_2020.1_hg19.vcf and hgmd_pro-2020.1.dump.gz from https://portal.biobase-international.com/cgi-bin/portal/login.cgi 
+#cat hgmd_pro_2020.1_hg19.vcf | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2020_1_fixed.vcf.gz
+#tabix -p vcf HGMD_PRO_2020_1_fixed.vcf.gz
 ##CNVs
-#zcat hgmd_pro-2019.3.dump.gz | gunzip | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2019_3.bed
-#$ngsbits/BedSort -in HGMD_CNVS_2019_3.bed -out hgmd_cnvs.bed
+#zcat hgmd_pro-2020.1.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2020_1.bed
+#$ngsbits/BedSort -with_name -in HGMD_CNVS_2020_1.bed -out HGMD_CNVS_2020_1.bed
 
 #install NGSD
 #
