@@ -51,7 +51,7 @@ if (db_is_enabled("NGSD"))
 }
 else
 {
-	check_file($out_file1, data_folder().$name."_out_noNGSD.tsv");
+	check_file($out_file, data_folder().$name."_out_noNGSD.tsv");
 }
 
 check_file_exists(output_folder()."/DX000015_01-DX000015_02_clonality.png");
