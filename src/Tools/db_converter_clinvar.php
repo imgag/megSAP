@@ -62,6 +62,13 @@ while(!feof($in))
 		continue;
 	}
 	
+	//skip invalid alternative alleles
+	if (!preg_match("/^[NACGT]+$/", $parts[4]))
+	{
+		if ($debug) print "SKIPPED invalid alternative allele: $line\n";
+		continue;
+	}
+	
 	//extract accession
 	$acc = $parts[2];
 	
