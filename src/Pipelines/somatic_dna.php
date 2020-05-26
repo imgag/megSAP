@@ -286,10 +286,9 @@ if ($sys['type'] !== "WGS" && !empty($roi))
 }
 
 //variant calling
-$manta_indels  = $full_prefix . "_var_smallIndels.vcf.gz";		// small indels from manta
-$manta_sv      = $full_prefix . "_var_structural.vcf.gz";		// structural variants (vcf)
-$manta_sv_tsv  = $full_prefix . "_var_structural.tsv";			// structural variants (tsv)
-$manta_sv_bedpe= $full_prefix . "_var_structural.bedpe"; 		// structural variants (bedpe)
+$manta_indels  = $full_prefix . "_manta_var_smallIndels.vcf.gz";		// small indels from manta
+$manta_sv      = $full_prefix . "_manta_var_structural.vcf.gz";		// structural variants (vcf)
+$manta_sv_bedpe= $full_prefix . "_manta_var_structural.bedpe"; 		// structural variants (bedpe)
 $variants      = $full_prefix . "_var.vcf.gz";					// variants
 $ballele       = $full_prefix . "_bafs.igv";					// B-allele frequencies
 
@@ -767,7 +766,6 @@ if (in_array("ci", $steps))
 	];
 	if (file_exists($variants_annotated)) $parameters[] = "-mutations $variants_annotated";
 	if (file_exists($som_clincnv)) $parameters[] = "-cnas $som_clincnv";
-	if (file_exists($manta_sv_tsv)) $parameters[] = "-translocations $manta_sv_tsv";
 	//if we know genes in target region we set parameter for this file
 	$genes_in_target_region =  dirname($sys["target_file"]) . "/" .basename($sys["target_file"],".bed")."_genes.txt";
 	if(file_exists($genes_in_target_region)) $parameters[] = "-t_region $genes_in_target_region";
