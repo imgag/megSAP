@@ -289,7 +289,7 @@ if ($sys['type'] !== "WGS" && !empty($roi))
 $manta_indels  = $full_prefix . "_var_smallIndels.vcf.gz";		// small indels from manta
 $manta_sv      = $full_prefix . "_var_structural.vcf.gz";		// structural variants (vcf)
 $manta_sv_tsv  = $full_prefix . "_var_structural.tsv";			// structural variants (tsv)
-$manta_sv_bedpe= $full_prefix . "_var_structural.bedpe"; 		// structural variants (bedpe)
+$manta_sv_bedpe= $full_prefix . "manta_var_structural.bedpe"; 		// structural variants (bedpe)
 $variants      = $full_prefix . "_var.vcf.gz";					// variants
 $ballele       = $full_prefix . "_bafs.igv";					// B-allele frequencies
 
@@ -335,37 +335,9 @@ if (in_array("vc", $steps))
 	}
 
 	// variant calling
-	if ($single_sample)	// variant calling using freebayes
+	if ($single_sample)	// variant calling using varscan2
 	{
-		// vc_freebayes uses ngs-bits that can not handle multi-sample vcfs
-		$tmp1 = $parser->tempFile();
-
-		$parser->execTool("NGS/vc_freebayes.php", "-bam $t_bam -out $tmp1 -build ".$sys['build']." -no_ploidy -min_af $min_af -target ".$roi." -threads ".$threads);
-
-		// find and rewrite header (tumor, normal sample columns)
-		$tmp2 = $parser->tempFile();
-		$s = Matrix::fromTSV($tmp1);
-		$tmp_headers = $s->getHeaders();
-		$tumor_col = NULL;
-		$normal_col = NULL;
-		for ($i=0; $i < count($tmp_headers); ++$i)
-		{
-			if (contains($tmp_headers[$i], $t_id))
-			{
-				$tumor_col = $i;
-				$tmp_headers[$tumor_col] = $t_id;
-			}
-			else if (!$single_sample && contains($tmp_headers[$i],$n_id))
-			{
-				$normal_col = $i;
-				$tmp_headers[$normal_col] = $n_id;
-			}
-		}
-		$s->setHeaders($tmp_headers);
-
-		// zip and index output file
-		$s->toTSV($tmp2);
-		$parser->exec("bgzip", "-c $tmp2 > $variants", true);
+		$parser->execTool("NGS/vc_varscan2.php", "-bam $t_bam -out $variants -build " .$sys['build']. " -target ". $roi. " -name $t_id -min_af $min_af");
 		$parser->exec("tabix", "-f -p vcf $variants", true);
 	}
 	else

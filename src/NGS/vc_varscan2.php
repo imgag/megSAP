@@ -23,8 +23,8 @@ $genome = genome_fasta($build);
 //Call SNPs
 $tmp_snp_file = temp_file("varscan2_snps.vcf");
 $pipeline = array(
-	array(get_path("samtools"), "mpileup -f $genome $bam"),
-	array(get_path("varscan2"), "mpileup2snp --min-MQ $min_mq --min-var-freq $min_af --min_avg_qual $min_bq --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
+	array(get_path("samtools"), "mpileup --min-MQ $min_mq -f $genome $bam"),
+	array(get_path("varscan2"), "mpileup2snp --min-var-freq $min_af --min_avg_qual $min_bq --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
 	array(get_path("ngs-bits")."/VcfLeftNormalize", "-ref $genome -out $tmp_snp_file")
 );
 
@@ -33,8 +33,8 @@ $parser->execPipeline($pipeline, "Varscan2 SNPs");
 //Call INDELs
 $tmp_indel_file = temp_file("varscan2_indels.vcf");
 $pipeline = array(
-	array(get_path("samtools"), "mpileup -f $genome $bam" ),
-	array(get_path("varscan2"), "mpileup2indel --min-MQ $min_mq --min-var-freq $min_af --min_avg_qual $min_bq --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
+	array(get_path("samtools"), "mpileup --min-MQ $min_mq -f $genome $bam" ),
+	array(get_path("varscan2"), "mpileup2indel --min-var-freq $min_af --min_avg_qual $min_bq --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
 	array(get_path("ngs-bits")."/VcfLeftNormalize", "-ref $genome"),
 	array("egrep", "-v '##|#CHROM' > $tmp_indel_file") //filter out header lines (already included in calls for snps, will be merged in later step)
 );
