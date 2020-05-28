@@ -504,6 +504,34 @@ if(in_array("cn",$steps))
 	{
 		trigger_error("Currently only tumor normal pairs are supported for ClinCNV calls. Using CNVHunter on tumor sample instead.", E_USER_WARNING);
 		$parser->execTool("NGS/vc_cnvhunter.php","-cov {$t_cov} -out {$som_cnv} -system {$system} -min_corr 0 -seg {$t_id} -n {$min_cov_files}");
+
+		// annotate CNV file
+		$repository_basedir = repository_basedir();
+		$data_folder = get_path("data_folder");
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$som_cnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode -out {$som_cnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2020-05.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_cnv}", true);
+
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_1.bed"; //optional because of license
+		if (file_exists($hgmd_file))
+		{
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$som_cnv}", true);
+		}
+		$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
+		if (file_exists($omim_file))
+		{
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$omim_file} -no_duplicates -url_decode -out {$som_cnv}", true);
+		}
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$repository_basedir}/data/gene_lists/genes.bed -no_duplicates -url_decode -out {$som_cnv}", true);
+
+		//annotate additional gene info
+		$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$som_cnv} -out {$som_cnv}", true);
+		// skip annotation if no connection to the NGSD is possible
+		if (db_is_enabled("NGSD"))
+		{
+			//annotate overlap with pathogenic CNVs
+			$parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$som_cnv} -out {$som_cnv}", true);
+		}
 	}
 	else //ClinCNV for differential sample
 	{

@@ -41,7 +41,7 @@ INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, pr
 (4,2,1,'1',1,1, NULL); /* TRIO 2 */
 
 INSERT INTO analysis_job (type, `high_priority`, args, sge_id, sge_queue) VALUES
-('single sample', 1, '-steps ma,vc,an', '999001', 'priority_srv018'),
+('single sample', 1, '-steps ma,vc', '999001', 'priority_srv018'),
 ('single sample', 1, '-threads  10', '', ''),
 ('single sample', 0, '', '999002', 'default_srv018'),
 ('single sample', 0, '', '999003', 'default_srv018'),

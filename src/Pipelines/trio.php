@@ -91,10 +91,11 @@ $parser->addInfile("c", "BAM file of child (index).", false, true);
 $parser->addString("out_folder", "Output folder name.", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of 'c' is a valid processed sample name).", true);
-$steps_all = array("vc", "an", "cn", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, an=annotation, cn=copy-number analysis, cn=copy-number analysis, db=database import.", true, implode(",", $steps_all));
+$steps_all = array("vc", "cn", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, cn=copy-number analysis, cn=copy-number analysis, db=database import.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_check", "Skip gender check of parents and parent-child correlation check (otherwise done before variant calling)");
+$parser->addFlag("annotation_only", "Performs only a reannotation of the already created varaint calls.");
 
 extract($parser->parse($argv));
 
@@ -103,11 +104,37 @@ $sample_c = basename($c, ".bam");
 $sample_f = basename($f, ".bam");
 $sample_m = basename($m, ".bam");
 
+//file names
+$gsvar = "{$out_folder}/trio.GSvar";
+$vcf_all = "{$out_folder}/all.vcf.gz";
+$vcf_all_mito = "{$out_folder}/all_mito.vcf.gz";
+$cnv_multi = "{$out_folder}/trio_cnvs_clincnv.tsv";
+
 //check steps
 $steps = explode(",", $steps);
 foreach($steps as $step)
 {
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
+}
+
+if ($annotation_only)
+{
+	// check if required VC files for annotation is available and print warning otherwise
+	if (in_array("vc", $steps) && !file_exists($vcf_all))
+	{
+		trigger_error("VCF for reannotation is missing. Skipping 'vc' step!", E_USER_WARNING);
+		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
+	}
+
+	if (in_array("cn", $steps) && !file_exists($cnv_multi))
+	{
+		$cnv_multi = "{$out_folder}/trio_cnvs.tsv";
+		if (!file_exists($cnv_multi))
+		{
+			trigger_error("CN file for reannotation is missing. Skipping 'cn' step!", E_USER_WARNING);
+			if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
+		}
+	}
 }
 
 //prepare multi-sample paramters
@@ -120,6 +147,7 @@ $args_multisample = [
 	"-prefix trio",
 	"-threads $threads",
 	];
+if ($annotation_only) $args_multisample[] = "-annotation_only";
 	
 //check steps
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
@@ -130,15 +158,10 @@ if ($is_wgs_shallow)
 		trigger_error("Skipping step 'vc' - Variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
 		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
 	}
-	if (in_array("an", $steps))
-	{
-		trigger_error("Skipping step 'an' - Annotation is not supported for shallow WGS samples!", E_USER_NOTICE);
-		if (($key = array_search("an", $steps)) !== false) unset($steps[$key]);
-	}
 }
 
 //pre-analysis checks
-if (!$no_check && !$is_wgs_shallow)
+if (!$no_check && !$is_wgs_shallow && !$annotation_only)
 {
 	//check parent-child correlation
 	$min_corr = 0.45;
@@ -160,20 +183,12 @@ if (!$no_check && !$is_wgs_shallow)
 	$parser->execTool("NGS/db_check_gender.php", " -in $m -pid $sample_m -gender female");
 }
 
-//variant calling
+//variant calling (and annotation)
 if (in_array("vc", $steps))
 {
 	//variant calling with multi-sample pipeline
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps vc", true); 
-}
 
-//annotation
-$gsvar = "$out_folder/trio.GSvar";
-if (in_array("an", $steps))
-{
-	//annotation with multi-sample pipeline
-	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps an", true);	
-	
 	//determine mendelian error rate
 	$vars_all = 0;
 	$vars_high_depth = 0;
@@ -265,6 +280,7 @@ if (in_array("an", $steps))
 	
 	//double check modified output file
 	$parser->execTool("NGS/check_tsv.php", "-in $gsvar -build ".$sys['build']);
+	
 }
 
 //copy-number and UPD
@@ -272,42 +288,45 @@ if (in_array("cn", $steps))
 {
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps cn", true);
 	
-	//UPD detection
-	if (!$is_wgs_shallow)
+	if (!$annotation_only)
 	{
-		$args_upd = [
-			"-in {$out_folder}/all.vcf.gz",
-			"-c {$sample_c}",
-			"-f {$sample_f}",
-			"-m {$sample_m}",
-			"-out {$out_folder}/trio_upd.tsv",
-			];
-		$base = substr($c, 0, -4);
-		if (file_exists("{$base}_cnvs.tsv"))
+		//UPD detection
+		if (!$is_wgs_shallow)
 		{
-			$args_upd[] = "-exclude {$base}_cnvs.tsv";
+			$args_upd = [
+				"-in {$out_folder}/all.vcf.gz",
+				"-c {$sample_c}",
+				"-f {$sample_f}",
+				"-m {$sample_m}",
+				"-out {$out_folder}/trio_upd.tsv",
+				];
+			$base = substr($c, 0, -4);
+			if (file_exists("{$base}_cnvs.tsv"))
+			{
+				$args_upd[] = "-exclude {$base}_cnvs.tsv";
+			}
+			else if (file_exists("{$base}_cnvs_clincnv.tsv"))
+			{
+				$args_upd[] = "-exclude {$base}_cnvs_clincnv.tsv";
+			}
+			else
+			{
+				trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
+			}
+			$parser->exec(get_path("ngs-bits")."UpdHunter", implode(" ", $args_upd), true);
 		}
-		else if (file_exists("{$base}_cnvs_clincnv.tsv"))
+		
+		//update GSvar file (because 'an' is skipped)
+		if ($is_wgs_shallow)
 		{
-			$args_upd[] = "-exclude {$base}_cnvs_clincnv.tsv";
+			//determine gender of child
+			list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method xy -in $c", true);
+			$gender_data = explode("\t", $stdout[1])[1];
+			if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
+			print "Gender of child (from data): {$gender_data}\n";
+		
+			fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data);
 		}
-		else
-		{
-			trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
-		}
-		$parser->exec(get_path("ngs-bits")."UpdHunter", implode(" ", $args_upd), true);
-	}
-	
-	//update GSvar file (because 'an' is skipped)
-	if ($is_wgs_shallow)
-	{
-		//determine gender of child
-		list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method xy -in $c", true);
-		$gender_data = explode("\t", $stdout[1])[1];
-		if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
-		print "Gender of child (from data): {$gender_data}\n";
-	
-		fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data);
 	}
 }
 

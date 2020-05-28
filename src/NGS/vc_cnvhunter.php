@@ -79,23 +79,6 @@ $args[] = "-out {$out_tmp}";
 $args[] = "-cnp_file {$repository_basedir}/data/misc/af_genomes_imgag.bed";
 $parser->exec("{$ngsbits}CnvHunter", implode(" ", $args), true);
 
-//annotate
-$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in $out_tmp -out $out_tmp -in2 {$repository_basedir}/data/gene_lists/genes.bed -no_duplicates -url_decode", true);
-$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in $out_tmp -out $out_tmp -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode", true);
-$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in $out_tmp -out $out_tmp -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode", true);
-$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in $out_tmp -out $out_tmp -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2020-05.bed -name clinvar_cnvs -no_duplicates -url_decode", true);
-
-$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_1.bed"; //optional because of license
-if (file_exists($hgmd_file))
-{
-	$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in $out_tmp -out $out_tmp -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode", true);
-}
-$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
-if (file_exists($hgmd_file))
-{
-	$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in $out_tmp -out $out_tmp -in2 {$omim_file} -no_duplicates -url_decode", true);
-}
-
 // filter results for given processed sample(s)
 $cnvs_unfiltered = Matrix::fromTSV($out_tmp);
 $cnvs_filtered = new Matrix();
@@ -158,16 +141,6 @@ $cnvs_filtered->toTSV($out);
 if(isset($seg) && !$qc_problems)
 {
 	$parser->moveFile($temp_folder."/cnvs.seg", substr($out, 0, -4).".seg");
-}
-
-//annotate additional gene info
-$parser->exec("{$ngsbits}CnvGeneAnnotation", "-in {$out} -out {$out}", true);
-
-// skip annotation if no connection to the NGSD is possible
-if (db_is_enabled("NGSD"))
-{
-	//annotate overlap with pathogenic CNVs
-	$parser->exec("{$ngsbits}NGSDAnnotateCNV", "-in {$out} -out {$out}", true);
 }
 
 ?>

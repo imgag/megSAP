@@ -112,3 +112,5 @@
 /test/data_ivac/*.vcf.gz
 /test/data_ivac/*.tsv
 /test/data_ivac/*_qcML.txt
+/test/data_trio/reanno
+/test/data_multi/reanno

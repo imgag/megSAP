@@ -65,7 +65,7 @@ for ($i=0; $i<count($result); ++$i)
 	
 	//queue
 	print "Queuing...\n";
-	list($stdout, $stderr, $return) = $parser->execTool("NGS/db_queue_analysis.php", "-type 'single sample' -samples $ps -args '-steps an'", false);
+	list($stdout, $stderr, $return) = $parser->execTool("NGS/db_queue_analysis.php", "-type 'single sample' -samples $ps -args '-steps vc,cn,sv -annotation_only'", false);
 	if ($return!=0)
 	{
 		print "  Error occurred:\n";
