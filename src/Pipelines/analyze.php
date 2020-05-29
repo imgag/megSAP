@@ -23,7 +23,7 @@ $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
 $parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.", true);
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.", true);
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
-$parser->addFlag("annotation_only", "Performs only a reannotation of the already created varaint calls.");
+$parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 extract($parser->parse($argv));
 
 //init
@@ -706,7 +706,7 @@ if (in_array("db", $steps))
 	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force --log $log_db");
 	
 	//check gender
-	$parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name --log $log_db");
+	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name --log $log_db");
 	
 	//import variants
 	$args = ["-ps {$name}"];

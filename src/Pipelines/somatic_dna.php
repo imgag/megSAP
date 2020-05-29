@@ -1012,9 +1012,6 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	}
 	else
 	{
-		// check sex
-		$parser->execTool("NGS/db_check_gender.php", "-in $t_bam -pid $t_id");
-
 		// import qcML files
 		$log_db = dirname($t_bam)."/{$t_id}_log4_db.log";
 		$qcmls = implode(" ", array_filter([
@@ -1033,7 +1030,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		// analogous steps for normal sample, plus additional
 		if (!$single_sample)
 		{
-			// check sex
+			// check sex using control sample
 			$parser->execTool("NGS/db_check_gender.php", "-in $n_bam -pid $n_id");
 
 			// import qcML files
