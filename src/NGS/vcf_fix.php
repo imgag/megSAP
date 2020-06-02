@@ -49,9 +49,23 @@ function sample_data($format, $sample)
 //write variant
 function write($h_out, $var)
 {
+	// create format value column for each sample
+	$format_values = array();
+	$all_wt = true;
+	for ($i=9; $i < count($var); $i++) 
+	{ 
+		$sample= sample_data($var[8], $var[$i]);
+		if($sample['GT']!="0/0")
+		{
+			//non wt variant -> keep in file
+			$all_wt = false;
+		}
+		// create output string
+		$format_values[] = $sample['GT'].":".$sample['DP'].":".(int)($sample['AO']);
+	}
+
 	//skip wildtype variants
-	$sample = sample_data($var[8], $var[9]);
-	if ($sample['GT']=="0/0") return;
+	if ($all_wt) return;
 	
 	//write base info
 	fwrite($h_out, $var[0]."\t".$var[1]."\t".$var[2]."\t".$var[3]."\t".$var[4]."\t".number_format($var[5], 0, ".", "")."\t".$var[6]."\t");
@@ -61,13 +75,13 @@ function write($h_out, $var)
 	fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "")."\t");
 
 	//write FORMAT/SAMPLE
-	fwrite($h_out, "GT:DP:AO\t".$sample['GT'].":".$sample['DP'].":".(int)($sample['AO'])."\n");
+	fwrite($h_out, "GT:DP:AO\t".implode("\t", $format_values)."\n");
 }
 
 
 //main loop
 $ids = array("RO","GTI","NS","SRF","NUMALT","DP","QR","SRR","SRP","PRO","EPPR","DPB","PQR","ROOR","MQMR","ODDS","AN","RPPR","PAIREDR");
-$var_last = array("","","","","","","","","GT","0/0");
+$var_last = array("","","","","","","","","GT:DP:AO","0/0:0:0");
 $h_in = fopen2("php://stdin", "r");
 $h_out = fopen2("php://stdout", "w");
 while(!feof($h_in))
@@ -95,35 +109,65 @@ while(!feof($h_in))
 	}
 	
 	//write content
-	$var = explode("\t", $line); //chr, pos, id, ref, alt, qual, filter, info, format, sample
-	
-	//do not convert multi-sample files
-	if (count($var)>10)
-	{
-		fwrite($h_out, "$line\n");
-		continue;
-	}
+	$var = explode("\t", $line); //chr, pos, id, ref, alt, qual, filter, info, format, sample_1, ..., sample_n
 	
 	//same variant twice => merge
 	if ($var[0]==$var_last[0] && $var[1]==$var_last[1] && $var[3]==$var_last[3] && $var[4]==$var_last[4])
 	{
-		$sample = sample_data($var[8], $var[9]);
-		$sample_last = sample_data($var_last[8], $var_last[9]);
-		if ($sample['GT']!="0/1" || $sample_last['GT']!="0/1")
+		for ($i=9; $i < count($var); $i++) 
 		{
-			//this happens sometimes when a large variant block overlaps two target region blocks (see https://github.com/ekg/freebayes/issues/351)
-			$stderr = fopen2('php://stderr', 'w');
-			fwrite($stderr, "Warning: merging same variant {$var[0]}:{$var[1]} {$var[3]}>{$var[4]} with genotypes '".$sample['GT']."' and '".$sample_last['GT']."'\n");
-			fclose($stderr);
-		}
-		$dp = $sample['DP'];
-		$ao = $sample['AO'];
-		if (contains($ao, ",")) list($ao) = explode(",", $ao);
-		$ao_last = $sample_last['AO'];
-		if (contains($ao_last, ",")) list($ao_last) = explode(",", $ao_last);
-		$ao = min($dp, $ao + $ao_last);
+			$sample = sample_data($var[8], $var[$i]);
+			$sample_last = sample_data($var_last[8], $var_last[$i]);
+			// check if merging can be performed and determine resulting genotype
+			if (count($var) <= 10)
+			{
+				// single sample (only merging of 0/1 and 0/1 is allowed)
+				if ($sample['GT']!="0/1" || $sample_last['GT']!="0/1")
+				{
+					//this happens sometimes when a large variant block overlaps two target region blocks (see https://github.com/ekg/freebayes/issues/351)
+					trigger_error("Error: merging same variant {$var[0]}:{$var[1]} {$var[3]}>{$var[4]} with genotypes '".$sample['GT']."' and '".$sample_last['GT']." in single sample VCF is not possible!", E_USER_WARNING);
+				}
+				$gt = "1/1";
+			}
+			else
+			{
+				// multisample (also allow merging of 0/0 and 1/1 of the same sample)
+				if (($sample['GT']=="0/1" && $sample_last['GT']=="1/1") || 
+					(!$sample['GT']=="1/1" && $sample_last['GT']=="0/1") || 
+					(!$sample['GT']=="1/1" && $sample_last['GT']=="1/1"))
+				{
+					trigger_error("Warning: merging same variant {$var[0]}:{$var[1]} {$var[3]}>{$var[4]} with genotypes '".$sample['GT']."' and '".$sample_last['GT']." in multisample VCF is not possible!", E_USER_WARNING);
+				}
+
+				if ($sample['GT']=="0/0" && $sample_last['GT']=="0/0")
+				{
+					// wt
+					$gt = "0/0";
+				}
+				else if (($sample['GT']=="0/1" && $sample_last['GT']=="0/1") || ($sample['GT']=="1/1" && $sample_last['GT']=="0/0") || ($sample['GT']=="0/0" && $sample_last['GT']=="1/1"))
+				{
+					// hom
+					$gt = "1/1";
+				}
+				else
+				{
+					// het
+					$gt = "0/1";
+				}
+			}
+			
+			$dp = $sample['DP'];
+			$ao = $sample['AO'];
+			if (contains($ao, ",")) list($ao) = explode(",", $ao);
+			$ao_last = $sample_last['AO'];
+			if (contains($ao_last, ",")) list($ao_last) = explode(",", $ao_last);
+			$ao = min($dp, $ao + $ao_last);
+
+			// determine genotype
+			$var_last[$i] = "$gt:$dp:$ao";
+		} 
+		// change FORMAT column at last to prevent FORMAT/SAMPLE key<->value errors 
 		$var_last[8] = "GT:DP:AO";
-		$var_last[9] = "1/1:$dp:$ao";
 	}
 	else
 	{
