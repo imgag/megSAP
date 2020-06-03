@@ -113,7 +113,6 @@ for ($i=1; $i<=$count; ++$i)
 		$args[] = "-name $ps";
 		$args[] = "-folder $folder";
 		$args[] = "-steps $steps";
-		$args[] = "-annotation_only"
 		if (isset($threads))
 		{
 			$args[] = "-threads $threads";
@@ -134,7 +133,6 @@ for ($i=1; $i<=$count; ++$i)
 		print "$i/$count: Queuing '$folder'.\n";
 		$args = array();
 		$args[] = "-steps $steps";
-		$args[] = "-annotation_only";
 		list($stdout, $stderr, $return) = $parser->execTool("NGS/db_queue_analysis.php", "-type 'single sample' -samples $ps -args '".implode(" ", $args)."'", false);
 		if ($return!=0)
 		{

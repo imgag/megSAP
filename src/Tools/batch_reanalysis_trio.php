@@ -70,7 +70,6 @@ for ($i=1; $i<=$count; ++$i)
 	$args[] = "-c {$bam_m}";
 	$args[] = "-out_folder {$out_folder}";
 	$args[] = "-steps {$steps}";
-	$args[] = "-annotation_only";
 	$args[] = "--log {$out_folder}/trio.log";
 	if (isset($threads))
 	{
