@@ -469,6 +469,6 @@ $cnvs->toTSV($out);
 //annotate additional gene info
 $parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$out} -out {$out}", true);
 //annotate overlap with pathogenic CNVs
-$parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$out} -out {$out}", true);
+if(db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$out} -out {$out}", true);
 
 ?>

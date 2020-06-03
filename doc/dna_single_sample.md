@@ -11,7 +11,7 @@ The main parameters that you have to provide are:
 
 * `folder` - The sample folder, which contains the the FASTQ files as produced by bcl2fastq2.
 * `name` - The sample name, which must be a prefix of the FASTQ files.
-* `steps` -  Analysis steps to perform. Please use `ma,vc,an` to perform mapping, variant calling and variant annotation.
+* `steps` -  Analysis steps to perform. Please use `ma,vc` to perform mapping and variant calling (with annotation).
 * `system` - The [processing system INI file](processing_system_ini_file.md).
 
 ### Poster
@@ -23,7 +23,7 @@ A poster about megSAP which describes the all steps of the single-sample analysi
 
 The analysis pipeline assumes that that all data to analyze resides in a sample folder as produced by Illumina's [bcl2fastq](http://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html) tool. If that is the case, the whole analysis is performed with one command, for example like this:
 
-	php megSAP/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5.ini -steps ma,vc,an
+	php megSAP/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5.ini -steps ma,vc
 
 In the example above, the configuration of the pipeline is done using the `hpHBOCv5.ini` file, which contains all necessary information (see [processing system INI file](processing_system_ini_file.md)).
 

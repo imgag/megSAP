@@ -1,9 +1,9 @@
 
 all:
-	make clear link vc an cn diff
+	make clear link vc cn diff ra
 	
 clear:
-	rm -rf *.bam *.bai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv trio_upd.tsv
+	rm -rf *.bam *.bai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv trio_upd.tsv reanno
 
 link:
 	php ../link_test_data.php GS140127_01.bam
@@ -17,10 +17,6 @@ vc:
 	rm -rf trio_vc.log
 	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder . --log trio_vc.log -steps vc
 
-an:
-	rm -rf trio_an.log
-	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder . --log trio_an.log -steps an
-
 cn:
 	rm -rf trio_cn.log
 	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder . --log trio_cn.log -steps cn
@@ -32,7 +28,19 @@ diff:
 	diff trio_cnvs_clincnv.tsv trio_cnvs_clincnv.tsv.out
 	#UPDs
 	diff -b trio_upd.tsv.out trio_upd.tsv
-	
+
+ra:
+	mkdir -p reanno
+	# copy files
+	cp all.vcf.gz reanno/
+	cp all_mito.vcf.gz reanno/
+	cp trio_cnvs_clincnv.tsv reanno/
+	# run reannotation
+	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder reanno --log trio_reanno.log -steps vc,cn -annotation_only
+	# diff
+	diff trio_cnvs_clincnv.tsv reanno/trio_cnvs_clincnv.tsv
+	diff trio.GSvar reanno/trio.GSvar
+
 ######################### AUXILARY TARGETS #########################
 
 update_cnv_data:

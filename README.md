@@ -34,6 +34,10 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 
 ## ChangeLog
+* 19.05.2020: Updated databases (Clinvar 20200506, CADD 1.6, HGNC)
+* 05.05.2020: Added Circos plots for exome/genome germline samples containing (CNVs, ROHs, BAFs)
+* 24.04.2020: Added NGSD annotation of SV calls, which allows effective filtering.
+* 03.03.2020: Implemented multi/trio CNV calling for shallow WGS
 * 04.12.2019: Updated all tools and databases to the latest version
 * 18.11.2019: Decoupled NGSD database and megSAP for annotations (data from NGSD is now exported to VCF/BED format and annotated just as any other data source)
 * 07.11.2019: Enabled SV calling for exomes/panels
@@ -64,10 +68,3 @@ tracker](https://github.com/imgag/megSAP/issues).
 * 18.01.2018: Added b-allele frequency files for visualization in IGV. 
 * 08.01.2018: Updated tools (BWA, samtools, snpEff) and databases (ClinVar, gnomAD, HGMD).
 * 15.12.2017: Added runs-of-homozygosity detection to the germline pipeline.
-
-
-
-
-
-
-

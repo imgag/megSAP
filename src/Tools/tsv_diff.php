@@ -10,7 +10,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //parse command line arguments
 $parser = new ToolBase("tsv_diff", "Writes out mismatching lines of two TSVs.");
 $parser->addInfile("in1", "First input TSV file.", false);
-$parser->addInfile("in2", "Sedond input TSV file.", false);
+$parser->addInfile("in2", "Second input TSV file.", false);
 $parser->addInt("keep_cols", "Always show the first n columns.", true, 3);
 $parser->addOutfile("out", "Output file.", true);
 extract($parser->parse($argv));

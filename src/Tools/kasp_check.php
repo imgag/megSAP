@@ -353,6 +353,7 @@ foreach($file as $line)
 	if (count($res)==0)
 	{
 		print "error - Could not find sample '$sample_name' in NGSD!\n";
+		$output[] = "##no NGSD entry for sample '$sample_name'\n";
 	}
 	else
 	{

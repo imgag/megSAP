@@ -16,6 +16,7 @@ $parser->addOutfile("stats", "Append statistics to this file.", false);
 //optional
 $parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf' file base name is used.", true);
 $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the given depth are evaluated.", true, 0);
+$parser->addInt("max_indel", "Maximum indel size (larger indels are ignored).", true, 0);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addString("ref_sample", "Reference sample to use for validation.", true, "NA12878");
 extract($parser->parse($argv));
@@ -33,7 +34,7 @@ function get_bases($filename)
 }
 
 //returns the variants of a VCF file in the given ROI
-function get_variants($vcf_gz, $roi, $normalize)
+function get_variants($vcf_gz, $roi, $normalize, $max_indel)
 {
 	global $parser;
 	global $ngsbits;
@@ -92,7 +93,15 @@ function get_variants($vcf_gz, $roi, $normalize)
 		if ($idx!==FALSE) $var['AO'] = $sample[$idx];
 		$idx = array_search("RO", $format);
 		if ($idx!==FALSE) $var['RO'] = $sample[$idx];
-		$var["TYPE"] = (strlen($ref)>1 || strlen($alt)>1) ? "INDELS" : "SNVS";
+		if (strlen($ref)>1 || strlen($alt)>1)
+		{
+			$var["TYPE"] = "INDELS";
+			if ($max_indel>0 && (strlen($ref)>$max_indel || strlen($alt)>$max_indel)) continue;
+		}
+		else
+		{
+			$var["TYPE"] = "SNVS";
+		}
 		
 		$tag = "{$chr}:{$pos} {$ref}>{$alt}";
 		if (isset($output[$tag])) trigger_error("Variant $tag twice in $vcf_gz!", E_USER_ERROR);
@@ -166,9 +175,9 @@ print "##\n";
 
 //get reference variants in ROI
 print "##Variant list      : $vcf\n";
-$found = get_variants($vcf, $roi_used, false);
+$found = get_variants($vcf, $roi_used, false, $max_indel);
 print "##Variants observed : ".count($found)."\n";
-$expected = get_variants($giab_vcfgz, $roi_used, true);
+$expected = get_variants($giab_vcfgz, $roi_used, true, $max_indel);
 print "##Variants expected : ".count($expected)."\n";
 
 //find missing reference variants and variants with genotype mismatch
@@ -284,6 +293,7 @@ function stats_line($name, $options, $date, $expected, $var_diff, $var_type=null
 if ($name=="") $name = basename($vcf, ".vcf.gz");
 $options = array();
 if ($min_dp>0) $options[] = "min_dp={$min_dp}";
+if ($max_indel>0) $options[] = "max_indel={$max_indel}";
 $options = implode(" ", $options);
 $date = strtr(date("Y-m-d H:i:s", filemtime($vcf)), "T", " ");
 $output = array();

@@ -26,6 +26,7 @@ $psid = basename($cov,".cov");
 $sys = load_system($system, $psid);
 $data_folder = get_path("data_folder");
 $repository_basedir = repository_basedir();
+$ngsbits = get_path("ngs-bits");
 
 //get coverage files (background)
 if($cov_folder=="auto")
@@ -73,23 +74,13 @@ if(!is_dir($temp_folder) || !is_writable($temp_folder))
 {
 	trigger_error("Temp folder '$temp_folder' not writable.", E_USER_ERROR);
 }
-$args[] = "-out {$temp_folder}/cnvs.tsv";
+$out_tmp = "{$temp_folder}/cnvs.tsv";
+$args[] = "-out {$out_tmp}";
 $args[] = "-cnp_file {$repository_basedir}/data/misc/af_genomes_imgag.bed";
-$anno_files = array(
-	"{$repository_basedir}/data/gene_lists/genes.bed",
-	"{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed",
-	"{$repository_basedir}/data/misc/cn_pathogenic.bed",
-	"{$data_folder}/dbs/ClinVar/clinvar_cnvs.bed",
-);
-$hgmd_file = "{$data_folder}/dbs/HGMD/hgmd_cnvs.bed"; //optional because of license
-if (file_exists($hgmd_file)) $anno_files[] = $hgmd_file;
-$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
-if (file_exists($omim_file)) $anno_files[] = $omim_file;
-$args[] = "-annotate ".implode(" ", $anno_files);
-$parser->exec(get_path("ngs-bits")."CnvHunter", implode(" ", $args), true);
+$parser->exec("{$ngsbits}CnvHunter", implode(" ", $args), true);
 
 // filter results for given processed sample(s)
-$cnvs_unfiltered = Matrix::fromTSV($temp_folder."/cnvs.tsv");
+$cnvs_unfiltered = Matrix::fromTSV($out_tmp);
 $cnvs_filtered = new Matrix();
 $cnvs_filtered->setHeaders($cnvs_unfiltered->getHeaders());
 for($i=0; $i<$cnvs_unfiltered->rows(); ++$i)
@@ -130,7 +121,7 @@ foreach($sample_info as $line)
 
 //add analysis infos to TSV header
 $cnvs_filtered->addComment("#ANALYSISTYPE=CNVHUNTER_GERMLINE_SINGLE");
-list($cnvhunter_version) = exec2(get_path("ngs-bits")."CnvHunter --version");
+list($cnvhunter_version) = exec2("{$ngsbits}CnvHunter --version");
 $cnvhunter_version = trim(substr($cnvhunter_version[0], 9));
 $cnvs_filtered->addComment("#CnvHunter version: $cnvhunter_version");
 
@@ -150,16 +141,6 @@ $cnvs_filtered->toTSV($out);
 if(isset($seg) && !$qc_problems)
 {
 	$parser->moveFile($temp_folder."/cnvs.seg", substr($out, 0, -4).".seg");
-}
-
-//annotate additional gene info
-$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$out} -out {$out}", true);
-
-// skip annotation if no connection to the NGSD is possible
-if (db_is_enabled("NGSD"))
-{
-	//annotate overlap with pathogenic CNVs
-	$parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$out} -out {$out}", true);
 }
 
 ?>

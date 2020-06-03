@@ -82,6 +82,7 @@ for ($i=1; $i<=$count; ++$i)
 	$args[] = "-status ".implode(" ", $status);
 	$args[] = "-out_folder {$out_folder}";
 	$args[] = "-steps {$steps}";
+	$args[] = "-annotation_only";
 	$args[] = "--log {$out_folder}/multi.log";
 	if (isset($threads))
 	{

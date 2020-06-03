@@ -73,11 +73,6 @@ if (!$upload)
 	print "##===============================================================\n";
 }
 
-//cache samples folders list to speed up RNA samples search
-print "##\n";
-print "##Caching sample folders...\n";
-list($sample_folders) = exec2("find ".get_path("project_folder")." -maxdepth 3 -type d -name 'Sample_*'");
-
 //determine QBIC/FO ID from Probeneingang
 function checkProbeneingang($name, $table)
 {
@@ -337,7 +332,7 @@ foreach($res as $row)
 	
 	//check all processed samples
 	$output_sample = $output;
-	$res2 = $db->executeQuery("SELECT ps.id, p.name FROM processed_sample ps, project p WHERE sample_id='$s_id' AND ps.project_id=p.id");
+	$res2 = $db->executeQuery("SELECT ps.id, p.name FROM processed_sample ps, project p WHERE sample_id='$s_id' AND ps.project_id=p.id AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)");
 	foreach($res2 as $row2)
 	{
 		//truncate output to sample info
@@ -405,12 +400,36 @@ foreach($res as $row)
 		if(is_dir($data_folder."+original")) $paths = glob($data_folder."+original/".$ps_name."*.*");	//for backward compatibility
 
 		$info = get_processed_sample_info($db,$ps_name);
-		$tumor_normal_pair = $info["is_tumor"] == 1 && !empty($info["normal_id"]);
 		
+		//get FASTQ/VCF
+		$tumor_normal_pair = $info["is_tumor"] == 1 && !empty($info["normal_id"]);
+		$is_single_sample_dna = !$tumor_normal_pair && $sample1["experiment_type"] != "rna_seq";
+		$fastqs_present = false;
 		foreach($paths as $file)
 		{
-			if (ends_with($file, ".fastq.gz") && !$tumor_normal_pair && $sample1["experiment_type"] != "rna_seq") $files[] = $file; //only take raw fastqs in case of single DNA samples
+			if ($is_single_sample_dna && ends_with($file, ".fastq.gz"))
+			{
+				$files[] = $file;
+				$fastqs_present= true;
+			}
 			if (ends_with($file, "_var_annotated.vcf.gz")) $files[] = $file;
+		}
+		//generate FASTQs from BAM is not available
+		if ($is_single_sample_dna && !$fastqs_present)
+		{
+			$bam = "{$data_folder}/{$ps_name}.bam";
+			if (file_exists($bam))
+			{
+				$tmp_folder = $parser->tempFolder();	
+				$fq1 = $tmp_folder."/{$ps_name}_BamToFastq_R1_001.fastq.gz";
+				$fq2 = $tmp_folder."/{$ps_name}_BamToFastq_R2_001.fastq.gz";
+				if ($upload) //skip generating FASTQs in dry run
+				{
+					$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam} -out1 $fq1 -out2 $fq2", true);
+				}
+				$files[] = $fq1;
+				$files[] = $fq2;
+			}
 		}
 		
 		//Special treatment for tumor-normal fastqs

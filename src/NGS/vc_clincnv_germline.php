@@ -109,7 +109,6 @@ function load_coverage_profile($filename, &$rows_to_use, &$output)
 
 //init
 $repository_basedir = repository_basedir();
-$data_folder = get_path("data_folder");
 $ps_name = basename($cov,".cov");
 
 //determine coverage files
@@ -292,26 +291,5 @@ foreach($cnv_calls as $line)
 array_splice($cnv_calls, 3, 0, array("##high-quality cnvs: {$hq_cnvs}\n", "##mean correlation to reference samples: {$mean_correlation}\n"));
 
 file_put_contents($out, $cnv_calls);
-
-//annotate
-$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$out}", true);
-$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$out}", true);
-$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -out {$out}", true);
-$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs.bed -no_duplicates -url_decode -out {$out}", true);
-$hgmd_file = "{$data_folder}/dbs/HGMD/hgmd_cnvs.bed"; //optional because of license
-if (file_exists($hgmd_file))
-{
-	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$hgmd_file} -no_duplicates -url_decode -out {$out}", true);
-}
-$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
-if (file_exists($omim_file))
-{
-	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$out} -in2 {$omim_file} -no_duplicates -url_decode -out {$out}", true);
-}
-
-//annotate additional gene info
-$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$out} -out {$out}", true);
-//annotate overlap with pathogenic CNVs
-$parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$out} -out {$out}", true);
 ?>
 

@@ -72,7 +72,7 @@ while(!feof($in))
 			//print $entry."\n";
 			$parts = str_getcsv($entry, ',', '\'');
 			//print_r($parts);
-			if (count($parts)!=15) trigger_error("Expected 15 parts, but got ".count($parts)."!", E_USER_ERROR);
+			if (count($parts)!=15) trigger_error("Expected 15 parts, but got ".count($parts)." in deletion entry: {$entry}", E_USER_ERROR);
 			
 			list($disease, $gene, $desc, $cdna, $tag, $author, $journal, $fullname, $vol, $page, $year, $pmid, $comments, $acc_num, $new_date) = $parts;
 			
@@ -124,7 +124,7 @@ while(!feof($in))
 			//print $entry."\n";
 			$parts = str_getcsv($entry, ',', '\'');
 			//print_r($parts);
-			if (count($parts)!=16) trigger_error("Expected 16 parts, but got ".count($parts)."!", E_USER_ERROR);
+			if (count($parts)!=16) trigger_error("Expected 16 parts, but got ".count($parts)." in insertion entry: {$entry}", E_USER_ERROR);
 			
 			list($disease, $gene, $type, $desc, $cdna, $tag, $author, $journal, $fullname, $vol, $page, $year, $pmid, $comments, $acc_num, $new_date) = $parts;
 			
@@ -139,7 +139,11 @@ while(!feof($in))
 			$type = trim($type);
 			if ($type=="I") $type = "insertion";
 			else if ($type=="D") $type = "duplication";
-			else trigger_error("Invalid type '$type'!", E_USER_ERROR);
+			else
+			{
+				trigger_error("Invalid type '$type' in insertion entry: {$entry}", E_USER_WARNING);
+				continue;
+			}
 			
 			//convert gene to coordinates
 			list($chr, $start, $end, $gene_approved, $error) = gene2coords($gene);

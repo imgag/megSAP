@@ -16,7 +16,7 @@ extract($parser->parse($argv));
 //init
 $data_folder = get_path("data_folder");
 $local_data = get_path("local_data");
-$rsync = "rsync --size-only --recursive --no-perms --no-acls --omit-dir-times --no-group --no-owner --chmod=ugo=rwX";
+$rsync = "rsync --size-only --recursive --no-perms --no-acls --omit-dir-times --no-group --no-owner --chmod=ugo=rwX --copy-links";
 
 ######################### reference genome #########################
 $genome_folder = "{$data_folder}/genomes/";
@@ -257,7 +257,13 @@ if ($build=="GRCh37")
 			
 		print "rsync-ing annotation databases...\n";
 		
-		$db_files = array("/dbs/CADD/whole_genome_SNVs.tsv.gz", "/dbs/CADD/InDels.tsv.gz", "/dbs/REVEL/revel_all_chromosomes.tsv.gz", "/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz", "/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz", "/dbs/gnomAD/gnomAD_genome_r2.1.1.vcf.gz", "/dbs/RepeatMasker/RepeatMasker.bed.gz", "/dbs/ClinVar/clinvar_20191111_converted.vcf.gz", "/dbs/phyloP/hg19.100way.phyloP100way.bw", "/dbs/OMIM/omim.bed.gz", "/dbs/HGMD/HGMD_PRO_2019_3_fixed.vcf.gz");
+		//determine databases to sync
+		$db_files = array("/dbs/CADD/CADD_SNVs_1.6.tsv.gz", "/dbs/CADD/CADD_InDels_1.6.tsv.gz", "/dbs/REVEL/revel_all_chromosomes.tsv.gz", "/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz", "/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz", "/dbs/gnomAD/gnomAD_genome_r2.1.1.vcf.gz", "/dbs/RepeatMasker/RepeatMasker.bed.gz", "/dbs/ClinVar/clinvar_20200506_converted.vcf.gz", "/dbs/phyloP/hg19.100way.phyloP100way.bw");
+		$omim =  "/dbs/OMIM/omim.bed.gz";
+		if (file_exists($data_folder.$omim)) $db_files[] = $omim; //optional
+		$hgmd =  "/dbs/HGMD/HGMD_PRO_2020_1_fixed.vcf.gz";
+		if (file_exists($data_folder.$hgmd)) $db_files[] = $hgmd; //optional
+		
 		foreach($db_files as $db_file)
 		{
 			$source = $data_folder.$db_file;

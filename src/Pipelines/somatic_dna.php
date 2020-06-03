@@ -286,10 +286,9 @@ if ($sys['type'] !== "WGS" && !empty($roi))
 }
 
 //variant calling
-$manta_indels  = $full_prefix . "_var_smallIndels.vcf.gz";		// small indels from manta
-$manta_sv      = $full_prefix . "_var_structural.vcf.gz";		// structural variants (vcf)
-$manta_sv_tsv  = $full_prefix . "_var_structural.tsv";			// structural variants (tsv)
-$manta_sv_bedpe= $full_prefix . "_var_structural.bedpe"; 		// structural variants (bedpe)
+$manta_indels  = $full_prefix . "_manta_var_smallIndels.vcf.gz";		// small indels from manta
+$manta_sv      = $full_prefix . "_manta_var_structural.vcf.gz";		// structural variants (vcf)
+$manta_sv_bedpe= $full_prefix . "_manta_var_structural.bedpe"; 		// structural variants (bedpe)
 $variants      = $full_prefix . "_var.vcf.gz";					// variants
 $ballele       = $full_prefix . "_bafs.igv";					// B-allele frequencies
 
@@ -505,6 +504,34 @@ if(in_array("cn",$steps))
 	{
 		trigger_error("Currently only tumor normal pairs are supported for ClinCNV calls. Using CNVHunter on tumor sample instead.", E_USER_WARNING);
 		$parser->execTool("NGS/vc_cnvhunter.php","-cov {$t_cov} -out {$som_cnv} -system {$system} -min_corr 0 -seg {$t_id} -n {$min_cov_files}");
+
+		// annotate CNV file
+		$repository_basedir = repository_basedir();
+		$data_folder = get_path("data_folder");
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$som_cnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode -out {$som_cnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2020-05.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_cnv}", true);
+
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_1.bed"; //optional because of license
+		if (file_exists($hgmd_file))
+		{
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$som_cnv}", true);
+		}
+		$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
+		if (file_exists($omim_file))
+		{
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$omim_file} -no_duplicates -url_decode -out {$som_cnv}", true);
+		}
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$repository_basedir}/data/gene_lists/genes.bed -no_duplicates -url_decode -out {$som_cnv}", true);
+
+		//annotate additional gene info
+		$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$som_cnv} -out {$som_cnv}", true);
+		// skip annotation if no connection to the NGSD is possible
+		if (db_is_enabled("NGSD"))
+		{
+			//annotate overlap with pathogenic CNVs
+			$parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$som_cnv} -out {$som_cnv}", true);
+		}
 	}
 	else //ClinCNV for differential sample
 	{
@@ -767,7 +794,6 @@ if (in_array("ci", $steps))
 	];
 	if (file_exists($variants_annotated)) $parameters[] = "-mutations $variants_annotated";
 	if (file_exists($som_clincnv)) $parameters[] = "-cnas $som_clincnv";
-	if (file_exists($manta_sv_tsv)) $parameters[] = "-translocations $manta_sv_tsv";
 	//if we know genes in target region we set parameter for this file
 	$genes_in_target_region =  dirname($sys["target_file"]) . "/" .basename($sys["target_file"],".bed")."_genes.txt";
 	if(file_exists($genes_in_target_region)) $parameters[] = "-t_region $genes_in_target_region";
@@ -986,9 +1012,6 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	}
 	else
 	{
-		// check sex
-		$parser->execTool("NGS/db_check_gender.php", "-in $t_bam -pid $t_id");
-
 		// import qcML files
 		$log_db = dirname($t_bam)."/{$t_id}_log4_db.log";
 		$qcmls = implode(" ", array_filter([
@@ -1007,7 +1030,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		// analogous steps for normal sample, plus additional
 		if (!$single_sample)
 		{
-			// check sex
+			// check sex using control sample
 			$parser->execTool("NGS/db_check_gender.php", "-in $n_bam -pid $n_id");
 
 			// import qcML files

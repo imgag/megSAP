@@ -81,6 +81,7 @@ $arguments = array(
 	"--alignSJoverhangMin $sj_overhang",
 	"--alignSJDBoverhangMin $sjdb_overhang",
 	"--alignSJstitchMismatchNmax 5 -1 5 5",
+	"--limitOutSJcollapsed 2000000",
 	"--outSAMattrRGline", implode(" ", $group_props)
 );
 	
