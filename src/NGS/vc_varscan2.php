@@ -12,7 +12,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.05);
 $parser->addInt("min_dp", "Minimum depth cutoff for variant calling.", true, 20);
 $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 15);
-$parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 1);
+$parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 15);
 $parser->addFloat("pval_thres", "p-Value threshold for varinat calling", true, 0.0001);
 $parser->addString("name", "Sample name to be used in output.", true, "SAMPLE");
 extract($parser->parse($argv));
@@ -20,28 +20,36 @@ extract($parser->parse($argv));
 //init
 $genome = genome_fasta($build);
 
-//Call SNPs
-$tmp_snp_file = temp_file("varscan2_snps.vcf");
+//create mpileup
+$pileup_file = $parser->tempFile("_pileup.gz");
 $pipeline = array(
-	array(get_path("samtools"), "mpileup -f $genome $bam"),
-	array(get_path("varscan2"), "mpileup2snp --min-MQ $min_mq --min-var-freq $min_af --min_avg_qual $min_bq --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
+	array(get_path("samtools"), "mpileup --min-MQ $min_mq --min-BQ $min_bq -f $genome $bam"), //TODO try target region here (--positions) with extend parameter (default=500)
+	array("gzip", "> $pileup_file")
+);
+$parser->execPipeline($pipeline, "mpileup");
+
+//Call SNPs
+$tmp_snp_file = $parser->tempFile("varscan2_snps.vcf");
+$pipeline = array(
+	array("zcat", "{$pileup_file}"),
+	array(get_path("varscan2"), "mpileup2snp --min-var-freq $min_af --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
 	array(get_path("ngs-bits")."/VcfLeftNormalize", "-ref $genome -out $tmp_snp_file")
 );
 
 $parser->execPipeline($pipeline, "Varscan2 SNPs");
 
 //Call INDELs
-$tmp_indel_file = temp_file("varscan2_indels.vcf");
+$tmp_indel_file = $parser->tempFile("varscan2_indels.vcf");
 $pipeline = array(
-	array(get_path("samtools"), "mpileup -f $genome $bam" ),
-	array(get_path("varscan2"), "mpileup2indel --min-MQ $min_mq --min-var-freq $min_af --min_avg_qual $min_bq --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
+	array("zcat", "{$pileup_file}"),
+	array(get_path("varscan2"), "mpileup2indel --min-var-freq $min_af --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
 	array(get_path("ngs-bits")."/VcfLeftNormalize", "-ref $genome"),
 	array("egrep", "-v '##|#CHROM' > $tmp_indel_file") //filter out header lines (already included in calls for snps, will be merged in later step)
 );
 $parser->execPipeline($pipeline, "Varscan2 INDELs");
 
 //merge/rename header SNPs and INDELs into one vcf file
-$tmp_merged_file = temp_file("varscan2_all_variants.vcf");
+$tmp_merged_file = $parser->tempFile("varscan2_all_variants.vcf");
 $pipeline = array(
 	array("cat", "$tmp_snp_file $tmp_indel_file"),
 	array("sed", "'s/Sample1/{$name}/' > $tmp_merged_file"), //replace sample1 by actual sample $name
@@ -49,15 +57,14 @@ $pipeline = array(
 $parser->execPipeline($pipeline, "merge");
 
 //Sort file
-$tmp_sorted_file = temp_file("varscan2_all_variants_sorted.vcf");
+$tmp_sorted_file = $parser->tempFile("varscan2_all_variants_sorted.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfSort", "-in $tmp_merged_file -out $tmp_sorted_file");
 $parser->exec("bgzip", "-c $tmp_sorted_file > $out");
-
 
 //flag off-targets
 if(isset($target))
 {
-	$tmp = temp_file("target.vcf");
+	$tmp = $parser->tempFile("target.vcf");
 	$parser->exec(get_path("ngs-bits") . "/VariantFilterRegions", "-in $out -reg $target -mark off-target -out $tmp");
 	$parser->exec("bgzip", "-c $tmp > $out");
 }
