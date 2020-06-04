@@ -104,8 +104,43 @@ if (!$somatic) //germline only
 			if (count($psamples_for_annotation) > 0)
 			{
 				//use BAM file from last entry
-				$bam_rna = get_processed_sample_info($db, end($psamples_for_annotation))["ps_bam"];
+				$psample = end($psamples_for_annotation);
+				$psample_info = get_processed_sample_info($db, $psample);
+				$bam_rna = $psample_info["ps_bam"];
 				$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in {$varfile} -out {$varfile} -bam {$bam_rna} -depth -name rna", true);
+
+				//load TPM values form counts file, as associative array gene name => TPM value
+				$expr = $psample_info['ps_folder']."{$psample}_counts.tsv";
+				$expr_m = array_column(load_tsv($expr), 4, 5);
+				$gsvar = Matrix::fromTSV($varfile);
+				$genes = $gsvar->getCol($gsvar->getColumnIndex("gene"));
+
+				// map function to map gene name to tpm value
+				function get_tpm(&$item, $key)
+				{
+					global $expr_m;
+					//use first gene in case multiple comma-separated genes are listed
+					$gene = explode(',', $item)[0];
+					
+					if (isset($expr_m[$gene]))
+					{
+						$item = number_format($expr_m[$gene], 2);
+					}
+					elseif ($item !== "")
+					{
+						print("No expression value found for gene: {$gene}\n");
+						$item = "n/a";
+					}
+					else
+					{
+						$item = "n/a";
+					}
+				}
+
+
+				array_walk($genes, "get_tpm");
+				$gsvar->addCol($genes, "tpm", "Gene expression strength in transcripts-per-million.");
+				$gsvar->toTSV($varfile);
 			}
 		}
 	}
