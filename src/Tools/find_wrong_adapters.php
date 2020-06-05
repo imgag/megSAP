@@ -30,18 +30,18 @@ function mm_perc($a, $c, $n)
 $parser = new ToolBase("find_wrong_adapters", "Checks for mismatches between given and consensus adapter in all samples.");
 extract($parser->parse($argv));
 
-//get list of mapping log files
+//get list of mapping qcML files
 $project_folder  = get_path("project_folder");
-list($log_files) = exec2("find -L {$project_folder}/research/ {$project_folder}/diagnostic/  -maxdepth 3 -name \"*_log1_map.log\"");
+list($qc_files) = exec2("find -L {$project_folder}/research/ {$project_folder}/diagnostic/ -maxdepth 3 -name \"*_stats_map.qcML\"");
 
 //NGSD connection
 $db = DB::getInstance("NGSD");
 
 print "#sample\tsystem\ta1_len\ta1_mismatch_perc\ta2_len\ta2_mismatch_perc\n";
-foreach($log_files as $file)
+foreach($qc_files as $file)
 {
 	//check sample exists in NGSD
-	list($name, $ps_id) = explode("_", str_replace("_log1_map.log", "", basename($file))."_");
+	list($name, $ps_id) = explode("_", str_replace("_stats_map.qcML", "", basename($file))."_");
 	$s_id = $db->getID("sample", "name", $name, false);
 	if($s_id==-1) continue;
 	
