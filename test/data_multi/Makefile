@@ -14,12 +14,10 @@ link:
 	php ../link_test_data.php GS140550_01.bam.bai
 
 vc:
-	rm -rf multi_log1_vc.log
-	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . --log multi_log1_vc.log -steps vc
+	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . -steps vc
 
 cn:
-	rm -rf multi_log3_cn.log
-	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . --log multi_log3_cn.log -steps cn
+	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . -steps cn
 
 diff:
 	#variants
@@ -34,7 +32,7 @@ ra:
 	cp all_mito.vcf.gz reanno/ 
 	cp multi_cnvs_clincnv.tsv reanno/
 	# run reannotation
-	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder reanno --log multi_reanno.log -steps vc,cn -annotation_only
+	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder reanno -steps vc,cn -annotation_only
 	# diff
 	diff multi_cnvs_clincnv.tsv reanno/multi_cnvs_clincnv.tsv
 	diff multi.GSvar reanno/multi.GSvar

@@ -16,15 +16,12 @@ link:
 
 
 map:
-	rm -rf NA12878_39_log1_map.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_39 -system system.ini -steps ma -threads 1
 
 vc:
-	rm -rf NA12878_39_log2_vc.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_39 -system system.ini -steps vc
 
 an:
-	rm -rf NA12878_39_log3_anno.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_39 -system system.ini -steps an
 
 cn:
