@@ -103,44 +103,58 @@ if (!$somatic) //germline only
 			}
 			if (count($psamples_for_annotation) > 0)
 			{
-				//use BAM file from last entry
+				//last entry
 				$psample = end($psamples_for_annotation);
 				$psample_info = get_processed_sample_info($db, $psample);
+
+				//BAM file for variant depth and frequency
 				$bam_rna = $psample_info["ps_bam"];
-				$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in {$varfile} -out {$varfile} -bam {$bam_rna} -depth -name rna", true);
+				if (file_exists($bam_rna))
+				{
+					$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in {$varfile} -out {$varfile} -bam {$bam_rna} -depth -name rna", true);
+				}
+				else
+				{
+					trigger_error("BAM file does not exist for RNA sample '{$psample}'!", E_USER_WARNING);
+				}
 
 				//load TPM values form counts file, as associative array gene name => TPM value
 				$expr = $psample_info['ps_folder']."{$psample}_counts.tsv";
-				$expr_m = array_column(load_tsv($expr), 4, 5);
-				$gsvar = Matrix::fromTSV($varfile);
-				$genes = $gsvar->getCol($gsvar->getColumnIndex("gene"));
-
-				// map function to map gene name to tpm value
-				function get_tpm(&$item, $key)
+				if (file_exists($expr))
 				{
-					global $expr_m;
-					//use first gene in case multiple comma-separated genes are listed
-					$gene = explode(',', $item)[0];
-					
-					if (isset($expr_m[$gene]))
+					$expr_m = array_column(load_tsv($expr), 4, 5);
+					$gsvar = Matrix::fromTSV($varfile);
+					$genes = $gsvar->getCol($gsvar->getColumnIndex("gene"));
+	
+					// map function to map gene name to tpm value
+					function get_tpm(&$item, $key)
 					{
-						$item = number_format($expr_m[$gene], 2);
+						global $expr_m;
+						//use first gene in case multiple comma-separated genes are listed
+						$gene = explode(',', $item)[0];
+						
+						if (isset($expr_m[$gene]))
+						{
+							$item = number_format($expr_m[$gene], 2);
+						}
+						elseif ($item !== "")
+						{
+							trigger_error("No expression value found for gene: {$gene}", E_USER_NOTICE);
+							$item = "n/a";
+						}
+						else
+						{
+							$item = "n/a";
+						}
 					}
-					elseif ($item !== "")
-					{
-						print("No expression value found for gene: {$gene}\n");
-						$item = "n/a";
-					}
-					else
-					{
-						$item = "n/a";
-					}
+					array_walk($genes, "get_tpm");
+					$gsvar->addCol($genes, "tpm", "Gene expression strength in transcripts-per-million.");
+					$gsvar->toTSV($varfile);
 				}
-
-
-				array_walk($genes, "get_tpm");
-				$gsvar->addCol($genes, "tpm", "Gene expression strength in transcripts-per-million.");
-				$gsvar->toTSV($varfile);
+				else
+				{
+					trigger_error("Count file does not exist for RNA sample '{$psample}'!", E_USER_WARNING);
+				}
 			}
 		}
 	}
