@@ -104,6 +104,9 @@ $sample_c = basename($c, ".bam");
 $sample_f = basename($f, ".bam");
 $sample_m = basename($m, ".bam");
 
+// create logfile in output folder if no filepath is provided:
+if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/trio_".date("YmdHis").".log");
+
 //file names
 $gsvar = "{$out_folder}/trio.GSvar";
 $vcf_all = "{$out_folder}/all.vcf.gz";
@@ -179,15 +182,15 @@ if (!$no_check && !$is_wgs_shallow && !$annotation_only)
 	}
 	
 	//check gender of parents
-	$parser->execTool("NGS/db_check_gender.php", " -in $f -pid $sample_f -gender male");
-	$parser->execTool("NGS/db_check_gender.php", " -in $m -pid $sample_m -gender female");
+	$parser->execTool("NGS/db_check_gender.php", " -in $f -pid $sample_f -gender male --log ".$parser->getLogFile());
+	$parser->execTool("NGS/db_check_gender.php", " -in $m -pid $sample_m -gender female --log ".$parser->getLogFile());
 }
 
 //variant calling (and annotation)
 if (in_array("vc", $steps))
 {
 	//variant calling with multi-sample pipeline
-	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps vc", true); 
+	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps vc --log ".$parser->getLogFile(), true); 
 
 	//determine mendelian error rate
 	$vars_all = 0;
@@ -286,7 +289,7 @@ if (in_array("vc", $steps))
 //copy-number and UPD
 if (in_array("cn", $steps))
 {
-	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps cn", true);
+	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps cn --log ".$parser->getLogFile(), true);
 	
 	if (!$annotation_only)
 	{

@@ -35,6 +35,9 @@ if($out_folder=="default")
 	$out_folder = $folder;
 }
 
+// create logfile in output folder if no filepath is provided:
+	if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/analyze_rna_".date("YmdHis").".log");
+
 //check steps
 $steps = explode(",", $steps);
 foreach($steps as $step)
@@ -74,7 +77,6 @@ if ((count($in_for) == 0) && (count($in_rev) == 0))
 $paired = (count($in_rev) != 0);
 
 //mapping and QC
-$log_ma  = $prefix."_log1_map.log";
 $final_bam = $prefix.".bam";
 $qc_fastq = $prefix."_stats_fastq.qcML";
 $qc_map = $prefix."_stats_map.qcML";
@@ -146,13 +148,12 @@ if (in_array("ma", $steps))
 		"-threads", $threads,
 		"-in1", $fastq_trimmed1,
 		"-genome", $genome,
-		"--log", $log_ma
+		"--log", $parser->getLogFile()
 	);
 
 	if ($paired) $args[] = "-in2 $fastq_trimmed2";
 	if ($no_splicing) $args[] = "-no_splicing";
 	
-	if (file_exists($log_ma)) unlink($log_ma);
 	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
 
 	//indel realignment
@@ -346,12 +347,10 @@ if (in_array("fu",$steps))
 }
 
 //import to database
-$log_db  = $prefix."_log_db.log";
 if (in_array("db", $steps))
 {
-	if(file_exists($log_db)) unlink($log_db);
-	$parser->execTool("NGS/db_check_gender.php", "-in $final_bam -pid $name --log $log_db");
+	$parser->execTool("NGS/db_check_gender.php", "-in $final_bam -pid $name --log ".$parser->getLogFile());
 
 	//import QC data
-	$parser->execTool("NGS/db_import_qc.php", "-id $name -files $qc_fastq $qc_map -force -skip_parameters 'QC:2000024' --log $log_db");
+	$parser->execTool("NGS/db_import_qc.php", "-id $name -files $qc_fastq $qc_map -force -skip_parameters 'QC:2000024' --log ".$parser->getLogFile());
 }

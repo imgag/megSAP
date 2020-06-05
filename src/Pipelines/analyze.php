@@ -225,7 +225,8 @@ if (in_array("ma", $steps))
 
 	//delete fastq files after mapping
 	$delete_fastq_files = get_path("delete_fastq_files", true);
-	if ($delete_fastq_files==true || $delete_fastq_files=="true")
+	// remove files only if sample doesn't contain UMIs and the corresponding setting is set in the settings.ini
+	if (($sys['umi_type'] == "n/a") && ($delete_fastq_files==true || $delete_fastq_files=="true")) 
 	{
 		//check if project overwrites the settings
 		$preserve_fastqs = false;
@@ -238,7 +239,7 @@ if (in_array("ma", $steps))
 				$preserve_fastqs = $info['preserve_fastqs'];
 			}
 		}
-		
+
 		if(!$preserve_fastqs)
 		{
 			$fastq_files = array_merge($files1, $files2);
