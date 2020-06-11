@@ -9,9 +9,9 @@ $parser->addOutfile("out", "Output file in VCF.GZ format.", false);
 //optional
 $parser->addInfile("target",  "Enrichment target BED file.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
-$parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.05);
+$parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.02);
 $parser->addInt("min_dp", "Minimum depth cutoff for variant calling.", true, 20);
-$parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 15);
+$parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 30);
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 15);
 $parser->addFloat("pval_thres", "p-Value threshold for varinat calling", true, 0.0001);
 $parser->addString("name", "Sample name to be used in output.", true, "SAMPLE");
