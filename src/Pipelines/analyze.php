@@ -221,7 +221,7 @@ if (in_array("ma", $steps))
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
 	if($use_dragen) $args[] = "-use_dragen";
-	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $out_folder -out_name $name --log $log_ma ".implode(" ", $args)." -threads $threads");
+	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name --log $log_ma ".implode(" ", $args)." -threads $threads");
 
 	//low-coverage report
 	if ($has_roi && !$is_wgs && !$is_wgs_shallow)

@@ -70,13 +70,13 @@ $dragen_parameter[] = "--RGCN medical_genetics_tuebingen";
 $dragen_parameter[] = "--RGDT ".date("c");
 $dragen_parameter[] = "--RGPL ILLUMINA";
 
-if(db_is_enabled("NGSD"))
-{
-	$db_conn = DB::getInstance("NGSD");
-	$psample_info = get_processed_sample_info($db_conn, $sample, false);
-	$dragen_parameter[] = "--RGPM '".$psample_info['device_type']."'";
-	$dragen_parameter[] = "--RGEN '".$psample_info['sys_name']."'";
-}
+// if(db_is_enabled("NGSD"))
+// {
+// 	$db_conn = DB::getInstance("NGSD");
+// 	$psample_info = get_processed_sample_info($db_conn, $sample, false);
+// 	$dragen_parameter[] = "--RGPM '".$psample_info['device_type']."'";
+// 	$dragen_parameter[] = "--RGEN '".$psample_info['sys_name']."'";
+// }
 
 // remove duplicates
 if ($dedup) $dragen_parameter[] = "--enable-duplicate-marking true";

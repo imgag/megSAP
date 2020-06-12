@@ -68,7 +68,7 @@ if ($use_dragen && $sys['type']!="Panel MIPs")
 	if (!file_exists($dragen_output_folder)) trigger_error("DRAGEN input folder \"".$dragen_output_folder."\" does not exist!", E_USER_ERROR);
 
 	$trimmed1 = "$dragen_input_folder/{$out_name}_trimmed1.fastq.gz";
-	$trimmed2 = "$dragen_input_folder/{$out_name}_trimmed1.fastq.gz";
+	$trimmed2 = "$dragen_input_folder/{$out_name}_trimmed2.fastq.gz";
 }
 else
 {
@@ -287,7 +287,6 @@ if (!$start_with_abra)
 		$sge_output = $parser->tempFile("_dragen_sge.log");
 		$sge_args = array();
 		$sge_args[] = "-V";
-		$sge_args[] = "-pe smp 1"; // run with 1 slot
 		$sge_args[] = "-b y"; // treat as binary
 		$sge_args[] = "-wd $dragen_output_folder";
 		$sge_args[] = "-u bioinf"; // user
@@ -296,8 +295,10 @@ if (!$start_with_abra)
 		$sge_args[] = "-e $dragen_output_folder/{$out_name}_sge.err"; // stdout
 		$sge_args[] = "-o $dragen_output_folder/{$out_name}_sge.out"; // stderr
 		$sge_args[] = "-q ".implode(",", $dragen_queues); // define queue
-
+		// log sge command
+		$parser->log("SGE command:\tqsub ".implode(" ", $sge_args)." ".$cmd_mapping);
 		list($stdout, $stderr) = $parser->exec("qsub", implode(" ", $sge_args)." ".$cmd_mapping);
+
 		$sge_id = explode(" ", $stdout[0])[2];
 
 
@@ -327,38 +328,40 @@ if (!$start_with_abra)
 		while (!$finished);
 		trigger_error("SGE job $sge_id finished.", E_USER_NOTICE);
 
+		//sleep for 10s to wait for qacct to report proper results
+		sleep(10);
 
 
 		// check if job exited successfully
 		list($stdout, $stderr, $exit_acct) = exec2("qacct -j {$sge_id}", false);
-			if ($exit_acct==0 || $debug)
+			// if ($exit_acct==0)
+			// {
+		$exit_status = "";
+		foreach($stdout as $line)
+		{
+			if (contains($line, "exit_status"))
 			{
-				$exit_status = "";
-				foreach($stdout as $line)
-				{
-					if (contains($line, "exit_status"))
-					{
-						$line = trim($line);
-						$line = preg_replace('/\s+/', ' ', $line);
-						list(, $exit_status) = explode(" ", $line);
-					}
-				}
-				if ($exit_status=="0" || $debug)
-				{
-					trigger_error("SGE job $sge_id successfully finished with exit status 0.", E_USER_NOTICE);
-				}
-				else
-				{
-					// write qacct stdout and stderr to log:
-					$parser->log("qacct stdout:", $stdout);
-					$parser->log("qacct stderr:", $stderr);
-					trigger_error("SGE job $sge_id failed!\nExit status: {$exit_status}", E_USER_ERROR);
-				}
+				$line = trim($line);
+				$line = preg_replace('/\s+/', ' ', $line);
+				list(, $exit_status) = explode(" ", $line);
 			}
-			else
-			{
-				trigger_error("Command 'qacct -j {$sge_id}' returned exit code {$exit_acct}.", E_USER_ERROR);
-			}
+		}
+		if (trim($exit_status)=="0")
+		{
+			trigger_error("SGE job $sge_id successfully finished with exit status 0.", E_USER_NOTICE);
+		}
+		else
+		{
+			// write qacct stdout and stderr to log:
+			$parser->log("qacct stdout:", $stdout);
+			$parser->log("qacct stderr:", $stderr);
+			trigger_error("SGE job $sge_id failed!\nExit status: {$exit_status}", E_USER_ERROR);
+		}
+			// }
+			// else
+			// {
+			// 	trigger_error("Command 'qacct -j {$sge_id}' returned exit code {$exit_acct}.", E_USER_ERROR);
+			// }
 
 
 		// use created bam as input for further post-processing
