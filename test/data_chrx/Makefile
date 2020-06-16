@@ -1,32 +1,23 @@
 
-all: clean link map vc an cn sv diff
+all: clean link map vc cn sv diff ra
 
 clean:
-	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs.seg *_cnvs.tsv *.bedpe manta_evid
+	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid
 
 link:
 	php ../link_test_data.php NA12878_17_GTAGAGGATATCCTCT_L001_R1_001.fastq.gz
 	php ../link_test_data.php NA12878_17_GTAGAGGATATCCTCT_L001_R2_001.fastq.gz
 
 map:
-	rm -rf NA12878_17_log1_map.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps ma -threads 1
 
 vc:
-	rm -rf NA12878_17_log2_vc.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps vc
 
-an:
-	rm -rf NA12878_17_log3_anno.log
-	rm -rf NA12878_17_log5_diag.log
-	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps an
-
 cn:
-	rm -rf NA12878_17_log5_cn.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps cn
 
 sv:
-	rm -rf NA12878_17_log6_sv.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps sv
 	# remove gene annotation
 	cut -f1-22 NA12878_17_manta_var_structural.bedpe > NA12878_17_manta_var_structural_cut.bedpe
@@ -45,3 +36,11 @@ diff:
 	diff NA12878_17_manta_var_structural_omim_col.bedpe.out NA12878_17_manta_var_structural_cut2.bedpe --ignore-matching-lines="^##"
 	diff NA12878_17_circos.png.out NA12878_17_circos.png
 
+ra:
+	cp NA12878_17.GSvar NA12878_17_old.GSvar
+	cp NA12878_17_cnvs_clincnv.tsv NA12878_17_old_cnvs_clincnv.tsv
+	cp NA12878_17_manta_var_structural.bedpe NA12878_17_old_manta_var_structural.bedpe
+	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps vc,cn,sv -annotation_only
+	diff NA12878_17.GSvar NA12878_17_old.GSvar
+	diff NA12878_17_cnvs_clincnv.tsv NA12878_17_old_cnvs_clincnv.tsv
+	diff NA12878_17_manta_var_structural.bedpe NA12878_17_old_manta_var_structural.bedpe

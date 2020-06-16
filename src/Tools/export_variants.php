@@ -23,7 +23,7 @@ $ngsbits = get_path("ngs-bits");
 
 //determine ROI from genes
 print "determining ROI from genes...\n";
-$bed = temp_file(".bed", "export_variants");
+$bed = $parser->tempFile(".bed", "export_variants");
 $pipeline = [
 	[$ngsbits."GenesToBed", "-in {$genes} -source ensembl -mode gene"],
 	[$ngsbits."BedExtend", "-n 5000"],

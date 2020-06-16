@@ -1,5 +1,5 @@
 
-all: clean link map vc an cn diff
+all: clean link map vc cn diff reanno
 
 clean:
 	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs.seg *_cnvs.tsv *.bedpe manta_evid
@@ -10,21 +10,13 @@ link:
 	php ../link_test_data.php NA12878_03_AACGTGAT_L001_R1_001.fastq.gz
 	php ../link_test_data.php NA12878_03_AACGTGAT_L001_R2_001.fastq.gz
 
-
 map:
-	rm -rf NA12878_03_log1_map.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps ma -threads 1
 
 vc:
-	rm -rf NA12878_03_log2_vc.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps vc
 
-an:
-	rm -rf NA12878_03_log3_anno.log
-	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps an
-
 cn:
-	rm -rf NA12878_03_log5_cn.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps cn
 
 diff:
@@ -34,3 +26,10 @@ diff:
 	php ../compare_qcml_xml.php NA12878_03_stats_vc.qcML.out NA12878_03_stats_vc.qcML
 	diff NA12878_03_cnvs.tsv.out NA12878_03_cnvs.tsv --ignore-matching-lines="#"
 	php ../compare_bed.php NA12878_03_hpHBOCv5_lowcov.bed.out NA12878_03_hpHBOCv5_lowcov.bed
+
+reanno:
+	cp NA12878_03.GSvar NA12878_03_old.GSvar
+	cp NA12878_03_cnvs.tsv NA12878_03_old_cnvs.tsv
+	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps vc,cn -annotation_only
+	diff NA12878_03.GSvar NA12878_03_old.GSvar
+	diff NA12878_03_cnvs.tsv NA12878_03_old_cnvs.tsv
