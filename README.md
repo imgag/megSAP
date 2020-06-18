@@ -23,7 +23,7 @@ Documentation about the different analysis pipelines can be found here:
 
 * [DNA analysis (single sample)](doc/dna_single_sample.md)
 * [DNA analysis (multi-sample and trio)](doc/dna_multi_sample.md)
-* [DNA analysis (tumor-normal pair)](doc/dna_tumor-normal_pair.md)
+* [DNA analysis (somatic tumor-normal pair / tumor only)](doc/dna_tumor-normal_pair.md)
 * [RNA analysis (expression)](doc/rna_expression.md)
 
 
@@ -34,6 +34,7 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 
 ## ChangeLog
+* 18.06.2020: Replaced freebayes by varscan2 in somatic tumor-only pipeline
 * 19.05.2020: Updated databases (Clinvar 20200506, CADD 1.6, HGNC)
 * 05.05.2020: Added Circos plots for exome/genome germline samples containing (CNVs, ROHs, BAFs)
 * 24.04.2020: Added NGSD annotation of SV calls, which allows effective filtering.
