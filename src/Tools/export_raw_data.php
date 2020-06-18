@@ -11,6 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("export_raw_data", "Exports RAW data.");
 $parser->addStringArray("samples", "Processed sample names (or file with one sample per line).", false);
 $parser->addString("out", "Output folder name.", false);
+$parser->addFlag("bam_export", "Export BAM instead of FASTQ files.");
 extract($parser->parse($argv));
 
 //init
@@ -43,17 +44,25 @@ $meta = [];
 $meta[] = "#sample\texternal_name\tgender\tdisease_group_and_status\tkit\tsequencer\n";
 foreach($samples as $ps)
 {
-	print "  $ps\n";
-
 	$info = get_processed_sample_info($db, $ps);
 	$quality = $info['ps_quality'];
 	if ($quality=="bad") trigger_error("Sample '$ps' has 'bad' quality!", E_USER_ERROR);
 	
 	$bam = $info['ps_bam'];
-	$fastqs = glob($info['ps_folder']."/*.fastq.gz");
-	if (count($fastqs)==0 && !file_exists($bam))
+	if ($bam_export)
 	{
-		trigger_error("Sample '$ps': BAM file is missing and no FASTQs found!", E_USER_ERROR);
+		if (!file_exists($bam))
+		{
+			trigger_error("Sample '$ps': BAM file is missing!", E_USER_ERROR);
+		}
+	}
+	else
+	{
+		$fastqs = glob($info['ps_folder']."/*.fastq.gz");
+		if (count($fastqs)==0 && !file_exists($bam))
+		{
+			trigger_error("Sample '$ps': BAM file is missing and no FASTQs found!", E_USER_ERROR);
+		}
 	}
 	
 	$gender = $info['gender'];
@@ -66,25 +75,34 @@ foreach($samples as $ps)
 }
 file_put_contents("$out/meta_data.tsv", $meta);
 
-//export FASTQ data
-print "Creating FASTQ files ...\n";
+//export FASTQ/BAM data
 foreach($samples as $ps)
 {
-	print "  $ps\n";
+	print "$ps\n";
 	$info = get_processed_sample_info($db, $ps);
+	$bam = $info['ps_bam'];
 	
-	$fastqs = glob($info['ps_folder']."/*.fastq.gz");
-	if (count($fastqs)>0)
+	if ($bam_export)
 	{
-		foreach($fastqs as $fastq)
-		{
-			exec2("ln -s {$fastq} {$out}/".basename($fastq));
-		}
+		print "  Copying BAM file ...\n";
+		exec2("ln -s {$bam} {$out}/".basename($bam));
 	}
 	else
-	{
-		$bam = $info['ps_bam'];
-		exec2("{$ngsbits}/BamToFastq -in {$bam} -out1 {$out}/{$ps}_R1_001.fastq.gz -out2 {$out}/{$ps}_R2_001.fastq.gz");
+	{		
+		$fastqs = glob($info['ps_folder']."/*.fastq.gz");
+		if (count($fastqs)>0)
+		{
+			print "  Copying FASTQ files ...\n";
+			foreach($fastqs as $fastq)
+			{
+				exec2("ln -s {$fastq} {$out}/".basename($fastq));
+			}
+		}
+		else
+		{
+			print "  Generating FASTQ files from BAM ...\n";
+			exec2("{$ngsbits}/BamToFastq -in {$bam} -out1 {$out}/{$ps}_R1_001.fastq.gz -out2 {$out}/{$ps}_R2_001.fastq.gz");
+		}
 	}
 }
 
