@@ -3,6 +3,7 @@
 ##fileDate=20191119
 ##source=GenerateSVCandidates 1.6.0
 ##reference=file:///tmp/local_ngs_data/GRCh37.fa
+##ALT=<ID=INV,Description="Inversion">
 ##ALT=<ID=DEL,Description="Deletion">
 ##ALT=<ID=INS,Description="Insertion">
 ##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
@@ -29,6 +30,8 @@
 ##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Somatic mutation">
 ##INFO=<ID=SOMATICSCORE,Number=1,Type=Integer,Description="Somatic variant quality score">
 ##INFO=<ID=JUNCTION_SOMATICSCORE,Number=1,Type=Integer,Description="If the SV junctino is part of an EVENT (ie. a multi-adjacency variant), this field provides the SOMATICSCORE value for the adjacency in question only">
+##INFO=<ID=INV3,Number=0,Type=Flag,Description="Inversion breakends open 3' of reported location">
+##INFO=<ID=INV5,Number=0,Type=Flag,Description="Inversion breakends open 5' of reported location">
 ##FILTER=<ID=MaxMQ0Frac,Description="For a small variant (<1000 bases) in the normal sample, the fraction of reads with MAPQ0 around either breakend exceeds 0.4">
 ##FILTER=<ID=MinSomaticScore,Description="Somatic score is less than 30">
 ##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
