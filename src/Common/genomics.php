@@ -1139,6 +1139,7 @@ function vcf_strelka_indel($format_col, $sample_col)
 	return array($d,$f);
 }
 
+//Calculates depth and variant allele frequency for varscan2 output line.
 function vcf_varscan2($format_col, $sample_col)
 {
 	$format_data = explode(":", $format_col);
