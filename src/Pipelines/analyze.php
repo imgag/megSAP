@@ -27,6 +27,9 @@ $parser->addFlag("annotation_only", "Performs only a reannotation of the already
 $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard bwa mem.", true);
 extract($parser->parse($argv));
 
+// create logfile in output folder if no filepath is provided:
+if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_".date("YmdHis").".log");
+
 //init
 if($folder=="default")
 {
@@ -78,7 +81,7 @@ if (in_array("sv", $steps) && !$is_wgs && !$is_wes)
 	if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 }
 
-if (db_is_enabled("NGSD"))
+if (db_is_enabled("NGSD") && !$annotation_only)
 {
 	$db = DB::getInstance("NGSD", false);
 	list($rc_id, $rc_vars_exist, $rc_cnvs_exist) = report_config($db, $name);
@@ -123,13 +126,6 @@ else //Panel: CNVHunter
 //structural variant calling
 $sv_manta_file = $folder ."/". $name . "_manta_var_structural.vcf.gz";
 $bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
-//log files
-$log_ma  = $folder."/".$name."_log1_map.log";
-$log_vc  = $folder."/".$name."_log2_vc.log";
-$log_an  = $folder."/".$name."_log3_anno.log";
-$log_db  = $folder."/".$name."_log4_db.log";
-$log_cn  = $folder."/".$name."_log5_cn.log";
-$log_sv = $folder ."/".$name."_log6_sv.log";
 //db import
 $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
@@ -217,11 +213,10 @@ if (in_array("ma", $steps))
 	if($clip_overlap) $args[] = "-clip_overlap";
 	if($no_abra) $args[] = "-no_abra";
 	if($start_with_abra) $args[] = "-start_with_abra";
-	if(file_exists($log_ma)) unlink($log_ma);
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
 	if($use_dragen) $args[] = "-use_dragen";
-	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name --log $log_ma ".implode(" ", $args)." -threads $threads");
+	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name --log ".$parser->getLogFile()." ".implode(" ", $args)." -threads $threads");
 
 	//low-coverage report
 	if ($has_roi && !$is_wgs && !$is_wgs_shallow)
@@ -235,7 +230,8 @@ if (in_array("ma", $steps))
 
 	//delete fastq files after mapping
 	$delete_fastq_files = get_path("delete_fastq_files", true);
-	if ($delete_fastq_files==true || $delete_fastq_files=="true")
+	// remove files only if sample doesn't contain UMIs and the corresponding setting is set in the settings.ini
+	if (($sys['umi_type'] == "n/a") && ($delete_fastq_files==true || $delete_fastq_files=="true")) 
 	{
 		//check if project overwrites the settings
 		$preserve_fastqs = false;
@@ -309,14 +305,13 @@ if (in_array("vc", $steps))
 		{
 			$args[] = "-min_af 0.1";
 		}
-		if(file_exists($log_vc)) unlink($log_vc);
 		
 		//Do not call standard pipeline if there is only mitochondiral chrMT in target region
 		$only_mito_in_target_region = false;
 		if ($has_roi) $only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT";
 		if(!$only_mito_in_target_region)
 		{
-			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log $log_vc -threads $threads ".implode(" ", $args));
+			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log ".$parser->getLogFile()." -threads $threads ".implode(" ", $args));
 		}
 		
 		//perform special variant calling for mitochondria
@@ -331,7 +326,7 @@ if (in_array("vc", $steps))
 			$args[] = "-min_af 0.01";
 			$args[] = "-target $target_mito";
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
-			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile_mito -build ".$sys['build']." --log $log_vc ".implode(" ", $args));
+			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile_mito -build ".$sys['build']." --log ".$parser->getLogFile()." ".implode(" ", $args));
 		}
 		
 		if($only_mito_in_target_region) 
@@ -389,10 +384,7 @@ if (in_array("vc", $steps))
 	}
 
 	// annotation
-	if(file_exists($log_an)) unlink($log_an);
-
-	//annotate
-	$args = array("-out_name $name", "-out_folder {$folder}", "-system {$system}", "--log {$log_an}");
+	$args = array("-out_name $name", "-out_folder {$folder}", "-system {$system}", "--log ".$parser->getLogFile());
 	if ($is_wgs) $args[] = "-updown";
 	$args[] = "-threads {$threads}";
 	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
@@ -418,11 +410,7 @@ if (in_array("cn", $steps))
 	// skip CN calling if only annotation should be done
 	if (!$annotation_only)
 	{
-
-
-		//remove log file
-		if(file_exists($log_cn)) unlink($log_cn);
-		
+	
 		//create reference folder if it does not exist
 		$ref_folder = get_path("data_folder")."/coverage/".$sys['name_short']."/";
 		if (!is_dir($ref_folder))
@@ -527,7 +515,7 @@ if (in_array("cn", $steps))
 				"-cov_folder {$cov_folder}",
 				"-bed {$bed}",
 				"-out {$cnv_out}",
-				"--log {$log_cn}",
+				"--log ".$parser->getLogFile(),
 			);
 			if ($is_wgs)
 			{
@@ -620,7 +608,7 @@ if (in_array("cn", $steps))
 			//execute
 			$cnv_out = $tmp_folder."/output.tsv";
 			$cnv_out2 = $tmp_folder."/output.seg";
-			$parser->execTool("NGS/vc_cnvhunter.php", "-min_z 3.5 -cov $cov_file -system $system -out $cnv_out -seg $name -n 20 --log $log_cn");
+			$parser->execTool("NGS/vc_cnvhunter.php", "-min_z 3.5 -cov $cov_file -system $system -out $cnv_out -seg $name -n 20 --log ".$parser->getLogFile());
 
 			//copy results to output folder
 			if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
@@ -681,10 +669,6 @@ if (in_array("sv", $steps))
 	// skip CN calling if only annotation should be done
 	if (!$annotation_only)
 	{
-
-
-		if(file_exists($log_sv)) unlink($log_sv);
-		
 		//SV calling with manta
 		$manta_evidence_dir = "{$folder}/manta_evid";
 		create_directory($manta_evidence_dir);
@@ -696,7 +680,7 @@ if (in_array("sv", $steps))
 			"-out ".$sv_manta_file,
 			"-threads ".$threads,
 			"-build ".$sys['build'],
-			"--log ".$log_sv
+			"--log ".$parser->getLogFile()
 		];
 		if($has_roi) $manta_args[] = "-target ".$sys['target_file'];
 		if(!$is_wgs) $manta_args[] = "-exome";
@@ -731,17 +715,14 @@ if (in_array("sv", $steps))
 //import to database
 if (in_array("db", $steps))
 {
-	if(file_exists($log_db)) unlink($log_db);
-	
+
 	//import QC
 	$qc_files = array($qc_fastq, $qc_map);
 	if (file_exists($qc_vc)) $qc_files[] = $qc_vc; 
-	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force --log $log_db");
+	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force --log ".$parser->getLogFile());
 	
 	//check gender
-
-	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name --log $log_db");
-	
+	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name --log ".$parser->getLogFile());	
 	//import variants
 	$args = ["-ps {$name}"];
 	$import = false;
@@ -783,7 +764,8 @@ if (in_array("vc", $steps) || in_array("cn", $steps))
 
 			if (file_exists($cnvfile2))
 			{
-				$parser->execTool("NGS/create_circos_plot.php", "-folder $folder -name $name -build ".$sys['build']." --log $log_db");
+
+				$parser->execTool("NGS/create_circos_plot.php", "-folder $folder -name $name -build ".$sys['build']." --log ".$parser->getLogFile());
 			}
 			else
 			{

@@ -47,6 +47,9 @@ $vcf_all = "{$out_folder}/all.vcf.gz";
 $vcf_all_mito = "{$out_folder}/all_mito.vcf.gz";
 $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
 
+// create logfile in output folder if no filepath is provided:
+if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/multi_".date("YmdHis").".log");
+
 //check steps
 $steps = explode(",", $steps);
 foreach($steps as $step)
@@ -161,6 +164,7 @@ if (in_array("vc", $steps))
 		$args[] = "-target_extend 50";
 		$args[] = "-build ".$sys['build'];
 		$args[] = "-threads $threads";
+		$args[] = "--log ".$parser->getLogFile();
 		$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);	
 
 		//variant calling for mito with special parameters
@@ -176,6 +180,7 @@ if (in_array("vc", $steps))
 			$args[] = "-min_af 0.01";
 			$args[] = "-target $target_mito";
 			$args[] = "-build ".$sys['build'];
+			$args[] = "--log ".$parser->getLogFile();
 			$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);
 		}
 	}
@@ -283,7 +288,7 @@ if (in_array("vc", $steps))
 	$parser->exec("tabix", "-p vcf $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 
 	//basic annotation
-	$parser->execTool("Pipelines/annotate.php", "-out_name {$prefix} -out_folder $out_folder -system $system -threads $threads -multi");
+	$parser->execTool("Pipelines/annotate.php", "-out_name {$prefix} -out_folder $out_folder -system $system -threads $threads -multi --log ".$parser->getLogFile());
 
 }
 

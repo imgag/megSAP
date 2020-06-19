@@ -9,19 +9,15 @@ link:
 	php ../link_test_data.php NA12878_17_GTAGAGGATATCCTCT_L001_R2_001.fastq.gz
 
 map:
-	rm -rf NA12878_17_log1_map.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps ma -threads 1
 
 vc:
-	rm -rf NA12878_17_log2_vc.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps vc
 
 cn:
-	rm -rf NA12878_17_log5_cn.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps cn
 
 sv:
-	rm -rf NA12878_17_log6_sv.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps sv
 	# remove gene annotation
 	cut -f1-22 NA12878_17_manta_var_structural.bedpe > NA12878_17_manta_var_structural_cut.bedpe

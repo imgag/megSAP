@@ -328,14 +328,27 @@ if (!$start_with_abra)
 		while (!$finished);
 		trigger_error("SGE job $sge_id finished.", E_USER_NOTICE);
 
-		//sleep for 10s to wait for qacct to report proper results
-		sleep(10);
-
 
 		// check if job exited successfully
-		list($stdout, $stderr, $exit_acct) = exec2("qacct -j {$sge_id}", false);
-			// if ($exit_acct==0)
-			// {
+		list($stdout, $stderr, $exit_code_qacct) = exec2("qacct -j {$sge_id}", false);
+		$qacct_delay = 0;
+		while($exit_code_qacct != 0 && $qacct_delay < 120)
+		{
+			sleep(2);
+			$qacct_delay += 2;
+			list($stdout, $stderr, $exit_code_qacct) = exec2("qacct -j {$sge_id}", false);
+		}
+
+		if ($exit_code_qacct != 0)
+		{
+			trigger_error("Command 'qacct -j {$sge_id}' returned exit code {$exit_code_qacct}.\n STDOUT: $stdout \n STDERR: $stdout", E_USER_ERROR);
+		}
+		else 
+		{
+			trigger_error("Command 'qacct -j {$sge_id}' returned exit code {$exit_code_qacct} after {$qacct_delay}s delay.", E_USER_NOTICE);
+		}
+
+		// parse stdout to determine exit code of SGE job
 		$exit_status = "";
 		foreach($stdout as $line)
 		{
@@ -344,8 +357,14 @@ if (!$start_with_abra)
 				$line = trim($line);
 				$line = preg_replace('/\s+/', ' ', $line);
 				list(, $exit_status) = explode(" ", $line);
+				break;
 			}
 		}
+
+		//copy DRAGEN log to current mapping log and delete it:
+		$parser->log("DRAGEN mapping log: ", file($dragen_log_file));
+		unlink($dragen_log_file);
+
 		if (trim($exit_status)=="0")
 		{
 			trigger_error("SGE job $sge_id successfully finished with exit status 0.", E_USER_NOTICE);
@@ -357,19 +376,10 @@ if (!$start_with_abra)
 			$parser->log("qacct stderr:", $stderr);
 			trigger_error("SGE job $sge_id failed!\nExit status: {$exit_status}", E_USER_ERROR);
 		}
-			// }
-			// else
-			// {
-			// 	trigger_error("Command 'qacct -j {$sge_id}' returned exit code {$exit_acct}.", E_USER_ERROR);
-			// }
 
 
 		// use created bam as input for further post-processing
 		$bam_current = $dragen_output_bam;
-
-		//copy DRAGEN log to current mapping log and delete it:
-		$parser->log("DRAGEN mapping log: ", file($dragen_log_file));
-		unlink($dragen_log_file);
 
 		// remove trimmed fastq files
 		unlink($trimmed1);

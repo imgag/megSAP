@@ -296,7 +296,7 @@ else
 
 
 //determine samples of the same processing system
-$tmp = temp_file(".tsv");
+$tmp = $parser->tempFile(".tsv");
 $sys = $info['sys_name_short'];
 if(isset($processing_system))
 {

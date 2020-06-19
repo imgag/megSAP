@@ -11,15 +11,12 @@ link:
 	php ../link_test_data.php NA12878_03_AACGTGAT_L001_R2_001.fastq.gz
 
 map:
-	rm -rf NA12878_03_log1_map.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps ma -threads 1
 
 vc:
-	rm -rf NA12878_03_log2_vc.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps vc
 
 cn:
-	rm -rf NA12878_03_log5_cn.log
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps cn
 
 diff:
