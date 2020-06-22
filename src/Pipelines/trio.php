@@ -346,8 +346,7 @@ if (in_array("cn", $steps))
 					{
 						foreach($stdout as $trio_info)
 						{
-							$child = basename($c, ".bam");
-							fwrite($new_file, "##{$child} ".$trio_info . PHP_EOL);
+							fwrite($new_file, "##TrioMaternalContamination: ".$trio_info . PHP_EOL);
 						}
 						$print_headers = false;
 					}
