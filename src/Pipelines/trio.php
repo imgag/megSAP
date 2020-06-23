@@ -344,10 +344,8 @@ if (in_array("cn", $steps))
 				{
 					if( strcmp(substr($line, 0, 2), "##") != 0 && $print_headers)
 					{
-						foreach($stdout as $trio_info)
-						{
-							fwrite($new_file, "##TrioMaternalContamination: ".$trio_info . PHP_EOL);
-						}
+						$trio_info = implode(" | ", $stdout);						
+						fwrite($new_file, "##TrioMaternalContamination ".$trio_info . PHP_EOL);
 						$print_headers = false;
 					}
 					fwrite($new_file, $line . PHP_EOL);
