@@ -254,15 +254,17 @@ elseif ($mode == "AF_outlier_calling")
 		$output_fh = fopen($gsvar_output, "w");
 	}
 
+	$header_written = false;
 	foreach (array($gsvar_1_filtered, $gsvar_2_filtered) as $file_name) 
 	{
-		$header_written = false;
 		$fh = fopen($file_name, "r");
 		while(!feof($fh))
 		{
-			$line = trim(fgets($fh));
+			$line = nl_trim(fgets($fh));
+			if (trim($line)=="") continue;
+			
 			// skip comments and header
-			if ($line=="" || $line[0]=="#") 
+			if ($line[0]=="#") 
 			{
 				// write header lines (only for the first file)
 				if (!$skip_output_gsvar && !$header_written)
