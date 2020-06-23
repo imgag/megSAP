@@ -434,7 +434,7 @@ if (in_array("cn", $steps))
 				$cov_folder = $bin_folder;
 			}
 			
-			//create BED file with GC and gene anntations - if missing
+			//create BED file with GC and gene annotations - if missing
 			if ($is_wgs || $is_wgs_shallow)
 			{
 				$bed = $ref_folder."/bins{$bin_size}.bed";

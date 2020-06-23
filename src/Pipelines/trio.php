@@ -95,7 +95,7 @@ $steps_all = array("vc", "cn", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, cn=copy-number analysis, cn=copy-number analysis, db=database import.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_check", "Skip gender check of parents and parent-child correlation check (otherwise done before variant calling)");
-$parser->addFlag("annotation_only", "Performs only a reannotation of the already created varaint calls.");
+$parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 
 extract($parser->parse($argv));
 
