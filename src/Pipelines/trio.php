@@ -332,7 +332,7 @@ if (in_array("cn", $steps))
 
 			//add Contamination data
 			list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."TrioMaternalContamination", "-bam_m $m -bam_f $f -bam_c $c", true);
-			if(($old_file = fopen("$cnv_multi", "r")) && $stdout)
+			if(($old_file = fopen("$cnv_multi", "r")) && !empty($stdout))
 			{
 				$array = explode(PHP_EOL, fread($old_file, filesize($cnv_multi)));
 				fclose($old_file);
