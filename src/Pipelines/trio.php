@@ -340,16 +340,18 @@ if (in_array("cn", $steps))
 				$new_file = fopen("$cnv_multi", "w");
 				$print_headers = true;
 
+				$print_data = [];
 				foreach($array as $line)
 				{
 					if( strcmp(substr($line, 0, 2), "##") != 0 && $print_headers)
 					{
 						$trio_info = implode(" | ", $stdout);						
-						fwrite($new_file, "##TrioMaternalContamination ".$trio_info . PHP_EOL);
+						$print_data[] = "##TrioMaternalContamination ".$trio_info;
 						$print_headers = false;
 					}
-					fwrite($new_file, $line . PHP_EOL);
+					$print_data[] = $line;
 				}
+				fwrite($new_file, implode(PHP_EOL, $print_data));
 				fclose($new_file);
 			}
 		}
