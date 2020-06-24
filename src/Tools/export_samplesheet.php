@@ -86,8 +86,16 @@ foreach($res as $row)
 			$add_mids = explode(".", substr($row["pscomment"], strpos($row["pscomment"], ":")+1));
 			foreach ($add_mids as $mid)
 			{
-				$res = $db->executeQuery("SELECT name, sequence FROM mid WHERE name = :name", array("name" => trim($mid)));
-				$mids_i7[] = $res[0]["sequence"];
+				$mid_trimmed = trim($mid);
+				$res = $db->executeQuery("SELECT name, sequence FROM mid WHERE name = :name", array("name" => $mid_trimmed));
+				if (count($res) === 0)
+				{
+					trigger_error("Invalid MID name: '{$mid_trimmed}'", E_USER_WARNING);
+				}
+				else
+				{
+					$mids_i7[] = $res[0]["sequence"];
+				}
 			}
 		}
 
