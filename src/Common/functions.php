@@ -49,6 +49,7 @@ function exec2($command, $abort_on_error = true)
 {
     //start processing
 	$proc = proc_open("bash -c \"set -o pipefail && ".$command."\"", array(1 => array('pipe','w'), 2 => array('pipe','w')), $pipes);
+	if ($proc===false) trigger_error("Could not start process with exec2 function!", E_USER_ERROR);
 	
 	//get stdout, stderr and exit code
     $stdout = stream_get_contents($pipes[1]);
