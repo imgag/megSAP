@@ -9,12 +9,16 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("db_background_jobs", "Runs jobs in the SGE queue without interferring with the NGSD queuing system.");
-$parser->addInfile("commands", "Input text file containing one 'db_queue_analysis' command per line.", false);
+$parser->addInfile("commands", "Input text file containing command per line.", false);
 $parser->addInt("slots_per_job", "Number of SGE slots to use per command", false);
 //optional
-$parser->addFloat("max_slots", "Maximum percentage of SGE slots to use.", true, 80.0);
+$parser->addFloat("max_slots", "Maximum percentage of SGE slots to use.", true, 50.0);
 $parser->addInt("sleep_secs", "Number of seconds to sleep between tries to start jobs.", true, 120);
 extract($parser->parse($argv));
+
+//init
+$user = trim(exec('whoami'));
+$queues = get_path("queues_default");
 
 //load commands
 $file = file($commands);
@@ -52,11 +56,30 @@ while(count($commands)>0)
 	}
 	else
 	{
+		$id = 0;
 		while ($slots_free >= $slots_per_job)
 		{
+			++$id;
 			$command = array_shift($commands);
 			print "  Starting command: {$command}\n";
-			exec2($command);
+			if (contains($command, "megSAP/src/NGS/db_queue_analysis.php")) //queue via NGSD
+			{
+				exec2($command);
+			}
+			else //submit to SGE directly
+			{
+				$sge_folder = get_path("data_folder")."/sge/background_jobs/";
+				$base = "{$sge_folder}".date("Ymdhis")."_".str_pad($id, 3, '0', STR_PAD_LEFT)."_{$user}";
+				$sge_out = "{$base}.out";
+				$sge_err = "{$base}.err";
+				$command_sge = "qsub -V -pe smp {$slots_per_job} -b y -wd {$sge_folder} -m n -M ".get_path("queue_email")." -e {$sge_err} -o {$sge_out} -q {$queues} -shell n";
+				list($stdout, $stderr) = exec2($command_sge." ".$command);
+				
+				$sge_id = explode(" ", $stdout[0])[2];
+				print "    SGE job id: {$sge_id}\n";
+				print "    SGE stdout: {$sge_out}\n";
+				print "    SGE stderr: {$sge_err}\n";
+			}
 			$slots_free -= $slots_per_job;
 		}
 		print "  Commands remaining: ".count($commands)."\n";
