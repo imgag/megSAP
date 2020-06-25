@@ -13,7 +13,7 @@ $parser->addOutfile("out", "Output file in GSvar format.", false);
 $parser->addString("t_col", "Column name of tumor sample.", false);
 //optional
 $parser->addString("n_col", "Column name of normal sample.", true, "na");
-$parser->addFlag("updown", "Don't discard up- or downstream anntations (5000 bases around genes).");
+$parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addEnum("db", "Database to connect to", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 

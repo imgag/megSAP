@@ -85,7 +85,7 @@ check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name
 remove_lines_containing($out_file_dragen, array("##VEP=\"v"));
 check_file($out_file_dragen, data_folder().$name."_out_dragen.vcf", true);
 
-//tests with NGSD disease group anntations - these tests will be run only if NGSD is available (i.e. not in nightly tests)
+//tests with NGSD disease group annotations - these tests will be run only if NGSD is available (i.e. not in nightly tests)
 if (db_is_enabled("NGSD")) 
 {
 	//standard

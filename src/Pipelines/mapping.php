@@ -59,7 +59,7 @@ $trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
 
 // barcode handling
 $barcode_correction = false;
-if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT"]))
+if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT-UDI-UMI"]))
 {
 	if ($in_index === false || empty($in_index))
 	{
@@ -95,7 +95,7 @@ if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT"]))
 		$barcode_correction = true;
 	}
 }
-else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" ]))
+else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq", "IDT-xGen-Prism"]))
 {
 	//handle UMI protocols where the UMI is placed at the head of read 1 and/or read 2
 
@@ -110,6 +110,7 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 			$cut2 = 8;
 			break;
 		case "ThruPLEX":	//8bp each from R1, R2
+		case "IDT-xGen-Prism":
 			$cut1 = 8;
 			$cut2 = 8;
 			break;

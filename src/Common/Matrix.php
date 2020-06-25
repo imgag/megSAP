@@ -355,12 +355,16 @@ class Matrix
 	}
 	
 	//Removes all columns with "name" as header
-	function removeColByName($name)
+	function removeColByName($name, $containing = false)
 	{
 		$col_indices = array();
 		foreach($this->headers as $index => $col_name)
 		{
-			if($col_name == $name)
+			if(!$containing && $col_name == $name)
+			{
+				$col_indices[] = $index;
+			}
+			if($containing && strpos($col_name, $name) !== false)
 			{
 				$col_indices[] = $index;
 			}
