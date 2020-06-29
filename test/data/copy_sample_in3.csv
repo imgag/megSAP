@@ -1,0 +1,14 @@
+[Data]
+Lane,Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description
+1,Sample_DX203663_02,DX203663_02,,,,GCCAAGAC,,,Exome_Diagnostik,Index
+2,Sample_DX203663_02,DX203663_02,,,,GCCAAGAC,,,Exome_Diagnostik,Index
+3,Sample_DX203663_02,DX203663_02,,,,GCCAAGAC,,,Exome_Diagnostik,Index
+4,Sample_DX203663_02,DX203663_02,,,,GCCAAGAC,,,Exome_Diagnostik,Index
+1,Sample_DX203664_03,DX203664_03,,,,CACTTCGA,,,Exome_Diagnostik,Mutter
+2,Sample_DX203664_03,DX203664_03,,,,CACTTCGA,,,Exome_Diagnostik,Mutter
+3,Sample_DX203664_03,DX203664_03,,,,CACTTCGA,,,Exome_Diagnostik,Mutter
+4,Sample_DX203664_03,DX203664_03,,,,CACTTCGA,,,Exome_Diagnostik,Mutter
+1,Sample_DX203665_04,DX203665_04,,,,CTAAGGTC,,,Exome_Diagnostik,Vater
+2,Sample_DX203665_04,DX203665_04,,,,CTAAGGTC,,,Exome_Diagnostik,Vater
+3,Sample_DX203665_04,DX203665_04,,,,CTAAGGTC,,,Exome_Diagnostik,Vater
+4,Sample_DX203665_04,DX203665_04,,,,CTAAGGTC,,,Exome_Diagnostik,Vater

@@ -143,9 +143,9 @@ function check_number_of_lanes($run_info_xml_file, $sample_sheet)
 }
 
 //Checks whether there is former run containing more than 50% same sample names of current run
-function check_former_run(&$db, $current_run)
+function check_former_run(&$db_conn, $current_run)
 {
-	$res = $db->getValues("SELECT id FROM sequencing_run WHERE name='{$current_run}'");
+	$res = $db_conn->getValues("SELECT id FROM sequencing_run WHERE name='{$current_run}'");
 	if(count($res) != 1)
 	{
 		trigger_error("Could not find info for run '{$current_run}'.\nNo check for former run to be merged...", E_USER_WARNING);
@@ -153,17 +153,17 @@ function check_former_run(&$db, $current_run)
 	}
 	$current_id = $res[0];
 	
-	$current_samples = get_processed_samples_from_run($db, $current_run);
+	$current_samples = get_processed_samples_from_run($db_conn, $current_run);
 	for($i=0; $i<count($current_samples); ++$i)
 	{
 		$current_samples[$i] = explode("_",$current_samples[$i])[0];
 	}
 	
 	//Check former 50 runs
-	$res = $db->executeQuery($query = "SELECT id,name FROM sequencing_run WHERE id < $current_id AND id > $current_id - 50");
+	$res = $db_conn->executeQuery($query = "SELECT id,name FROM sequencing_run WHERE id < $current_id AND id > $current_id - 50");
 	foreach($res as $res2)
 	{
-		$other_ps = get_processed_samples_from_run($db, $res2["name"]);
+		$other_ps = get_processed_samples_from_run($db_conn, $res2["name"]);
 		
 		for($i=0; $i<count($other_ps); ++$i)
 		{
@@ -180,10 +180,55 @@ function check_former_run(&$db, $current_run)
 	return "";
 }
 
+//Returns father/mother of the sample, if present in GenLab
+function get_trio_parents($ps)
+{
+	$father = get_parent($ps, 'Vater');
+	if (is_null($father)) return null;
+	
+	$mother = get_parent($ps, 'Mutter');
+	if (is_null($mother)) return null;
+	
+	return array($father, $mother);
+}
+
+//Returns father/mother of the sample, if present in GenLab
+function get_parent($ps, $relation)
+{
+	global $db_conn;
+	global $db_genlab;
+	
+	//try with processed sample name
+	$name = $db_genlab->getValue("SELECT DISTINCT Labornummer_Verwandter FROM v_ngs_duo WHERE Labornummer_Index='{$ps}' AND BEZIEHUNGSTEXT='{$relation}'", "");
+	
+	//try with sample name (not consistent in GenLab)
+	if ($name=="")
+	{
+		$sample = explode("_", $ps."_")[0];
+		$name = $db_genlab->getValue("SELECT DISTINCT Labornummer_Verwandter FROM v_ngs_duo WHERE Labornummer_Index='{$sample}' AND BEZIEHUNGSTEXT='{$relation}'", "");
+	}
+	
+	if ($name=="") return null;
+	
+	//convert processed sample name to sample name (not consistent in GenLab)
+	if (contains($name, "_"))
+	{
+		$name = explode("_", $name."_");
+	}
+	
+	//search for processed sample with same processing system as index
+	$sys_id = $db_conn->getValue("SELECT processing_system_id FROM processed_sample WHERE id='".get_processed_sample_id($db_conn, $ps)."'");
+	$sample_id = $db_conn->getValue("SELECT id FROM sample WHERE name='{$name}'", -1);
+	$ps_ids = $db_conn->getValues("SELECT id FROM processed_sample WHERE processing_system_id='{$sys_id}' AND sample_id='{$sample_id}' AND quality!='bad'");
+	if (count($ps_ids)!=1) return null;
+	
+	return $db_conn->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id=".$ps_ids[0]);
+}
 
 //init
 if (!isset($out)) $out = "Makefile";
 $db_conn = DB::getInstance($db);
+$db_genlab = GenLabDB::isEnabled() ? GenLabDB::getInstance() : null;
 
 if(!check_number_of_lanes($runinfo,$samplesheet))
 {
@@ -292,6 +337,7 @@ $queued_normal_samples = [];
 //parse input
 $target_to_copylines = array();
 $target_to_queuelines = array();
+$queue_trios = array();
 $project_to_fastqonly_samples = array();
 $sample_to_newlocation = array();
 foreach($sample_data as $sample => $sample_infos)
@@ -422,6 +468,19 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				//no steps parameter > use all default steps
 			}
+			
+			//check if trio needs to be queued
+			if (!is_null($db_genlab))
+			{
+				$parents = get_trio_parents($sample);
+				if (!is_null($parents))
+				{
+					list($father, $mother) = $parents;
+					$command = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'trio' -samples {$sample} {$father} {$mother} -info child father mother";
+					if ($high_priority) $command .= " -high_priority";
+					$queue_trios[] = "\t".$command;
+				}
+			}
 		}
 		
 		if ($high_priority)
@@ -548,7 +607,6 @@ if(count($merge_files) > 0)
 	$output = array_merge($output, $merge_files);
 	$output[] = "";
 }
-
 	
 //target(s) 'queue_...'
 foreach ($target_to_queuelines as $target => $lines)
@@ -556,6 +614,15 @@ foreach ($target_to_queuelines as $target => $lines)
 	$all_parts[] = "queue_{$target}";
 	
 	$output = array_merge($output, array_unique($lines));
+	$output[] = "";	
+}
+
+//target(s) 'queue_trios'
+if (count($queue_trios)>0)
+{
+	$all_parts[] = "queue_trios";
+	
+	$output = array_merge($output, ["queue_trios:"], array_unique($queue_trios));
 	$output[] = "";	
 }
 
