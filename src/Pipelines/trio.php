@@ -332,7 +332,23 @@ if (in_array("cn", $steps))
 
 			//add Contamination data
 			list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."TrioMaternalContamination", "-bam_m $m -bam_f $f -bam_c $c", true);
-			if(($old_file = fopen("$cnv_multi", "r")) && !empty($stdout))
+			//new version
+			if($lines = file($cnv_multi))
+			{
+				$trio_info = "##TrioMaternalContamination ".implode(" | ", $stdout).PHP_EOL;
+				foreach($lines as $line_num => $line)
+				{
+					if(!starts_with($line, "##"))
+					{
+						array_splice($lines, $line_num, 0, $trio_info);
+						break;
+					}
+				}
+				file_put_contents($cnv_multi, $lines);
+			}
+			
+			//old version
+			/*if(($old_file = fopen("$cnv_multi", "r")) && !empty($stdout))
 			{
 				$array = explode(PHP_EOL, fread($old_file, filesize($cnv_multi)));
 				fclose($old_file);
@@ -353,7 +369,7 @@ if (in_array("cn", $steps))
 				}
 				fwrite($new_file, implode(PHP_EOL, $print_data));
 				fclose($new_file);
-			}
+			}*/
 		}
 	}
 }
