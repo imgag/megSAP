@@ -53,8 +53,7 @@ $dragen_parameter[] = "--output-file-prefix ".basename($out, ".vcf.gz");
 
 
 // run SV calling
-print "dragen ".implode(" ", $dragen_parameter)."\n";
-
+print basename($in)."\n";
 $result = $parser->exec("dragen", implode(" ", $dragen_parameter));
 
 // save stdout and stderr in output folder:

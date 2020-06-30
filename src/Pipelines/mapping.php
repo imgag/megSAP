@@ -289,7 +289,6 @@ if (!$start_with_abra)
 		$sge_args[] = "-V";
 		$sge_args[] = "-b y"; // treat as binary
 		$sge_args[] = "-wd $dragen_output_folder";
-		$sge_args[] = "-u bioinf"; // user
 		$sge_args[] = "-m n"; // switch off messages
 		$sge_args[] = "-M ".get_path("queue_email");
 		$sge_args[] = "-e $dragen_output_folder/{$out_name}_sge.err"; // stdout
@@ -297,7 +296,9 @@ if (!$start_with_abra)
 		$sge_args[] = "-q ".implode(",", $dragen_queues); // define queue
 		// log sge command
 		$parser->log("SGE command:\tqsub ".implode(" ", $sge_args)." ".$cmd_mapping);
-		list($stdout, $stderr) = $parser->exec("qsub", implode(" ", $sge_args)." ".$cmd_mapping);
+
+		// run qsub as user bioinf
+		list($stdout, $stderr) = $parser->exec("sudo", "-u bioinf qsub ".implode(" ", $sge_args)." ".$cmd_mapping);
 
 		$sge_id = explode(" ", $stdout[0])[2];
 
