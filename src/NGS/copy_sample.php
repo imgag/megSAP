@@ -225,6 +225,34 @@ function get_parent($ps, $relation)
 	return $db_conn->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id=".$ps_ids[0]);
 }
 
+function import_genlab_disease_group($ps)
+{
+	global $db_conn;
+	global $db_genlab;
+	
+	//get processed sample info from NGSD
+	$info = get_processed_sample_info($db_conn, $ps);
+	$sample = explode("_", $ps."_")[0];
+	if ($info['disease_group']!="n/a") return;
+	
+	//try with processed sample
+	$group = $db_genlab->getValue("SELECT krankheitsgruppe FROM v_krankheitsgruppe_pattyp WHERE labornummer='{$ps}'", "");
+	
+	//try with sample name (not consistent in GenLab)
+	if ($group=="")
+	{
+		$group = $db_genlab->getValue("SELECT krankheitsgruppe FROM v_krankheitsgruppe_pattyp WHERE labornummer='{$sample}'", "");
+	}
+	
+	//set in NGSD
+	$group = trim($group);		
+	if (in_array($group, $db_conn->getEnum("sample", "disease_group")))
+	{
+		print "Importing disease_group from GenLab to NGSD for sample {$sample}: {$group}\n";
+		$db_conn->executeStmt("UPDATE sample SET disease_group='{$group}' WHERE name='{$sample}'");
+	}
+}
+
 //init
 if (!isset($out)) $out = "Makefile";
 $db_conn = DB::getInstance($db);
@@ -480,6 +508,12 @@ foreach($sample_data as $sample => $sample_infos)
 					if ($high_priority) $command .= " -high_priority";
 					$queue_trios[] = "\t".$command;
 				}
+			}
+			
+			//try to import disease_group
+			if (!is_null($db_genlab))
+			{
+				import_genlab_disease_group($sample);
 			}
 		}
 		
