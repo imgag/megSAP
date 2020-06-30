@@ -126,6 +126,8 @@ else //Panel: CNVHunter
 //structural variant calling
 $sv_manta_file = $folder ."/". $name . "_manta_var_structural.vcf.gz";
 $bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
+//repeat expansions
+$expansion_hunter_file = $folder."/".$name."_repeats_expansionhunter.vcf";
 //db import
 $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
@@ -447,7 +449,7 @@ if (in_array("cn", $steps))
 			}
 
 			
-			//create BED file with GC and gene anntations - if missing
+			//create BED file with GC and gene annotations - if missing
 			if ($is_wgs || $is_wgs_shallow)
 			{
 
@@ -665,9 +667,7 @@ if (in_array("cn", $steps))
 //structural variants
 if (in_array("sv", $steps))
 {
-
-	// skip CN calling if only annotation should be done
-	if (!$annotation_only)
+	// skip CN calling if only annotation should be done	if (!$annotation_only)
 	{
 		//SV calling with manta
 		$manta_evidence_dir = "{$folder}/manta_evid";
@@ -687,8 +687,7 @@ if (in_array("sv", $steps))
 		
 		$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
 
-
-		//Rename Manta evidence file
+		// Rename Manta evidence file
 		rename("$manta_evidence_dir/evidence_0.$name.bam", "$manta_evidence_dir/{$name}_manta_evidence.bam");
 		rename("$manta_evidence_dir/evidence_0.$name.bam.bai", "$manta_evidence_dir/{$name}_manta_evidence.bam.bai");
 
@@ -710,6 +709,16 @@ if (in_array("sv", $steps))
 	{
 		$parser->exec("{$ngsbits}BedpeAnnotateFromBed", "-in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM", true);
 	}
+
+	//add CNV overlap annotation
+	if (file_exists($cnvfile))
+	{
+		$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnvfile", true);
+	}
+
+
+	//perform repeat-expansion analysis (only for WGS/WES):
+	$parser->execTool("NGS/vc_expansionhunter.php", "-in $bamfile -out $expansion_hunter_file -build ".$sys['build']." -pid $name");
 }
 
 //import to database
@@ -751,20 +760,15 @@ if (in_array("db", $steps))
 }
 
 
-
 // Create Circos plot only if VC or CNC was done
 if (in_array("vc", $steps) || in_array("cn", $steps))
 {
-
 	if ($is_wes || $is_wgs || $is_wgs_shallow)
 	{
-
 		if (file_exists($cnvfile))
 		{
-
 			if (file_exists($cnvfile2))
 			{
-
 				$parser->execTool("NGS/create_circos_plot.php", "-folder $folder -name $name -build ".$sys['build']." --log ".$parser->getLogFile());
 			}
 			else
@@ -774,11 +778,9 @@ if (in_array("vc", $steps) || in_array("cn", $steps))
 		}
 		else
 		{
-
 			trigger_error("CNV file $cnvfile missing. Cannot create Circos plot!", E_USER_WARNING);
 		}
 	}
-
 }
 
 ?>

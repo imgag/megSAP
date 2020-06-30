@@ -97,9 +97,15 @@ else if ($mode_germline)
 }
 $sv = "{$manta_folder}/results/variants/{$outname}SV.vcf.gz";
 
+// TODO: check if it works!
+// modify VCF (combine BND of INVs to one INV in VCF)
+$sv_inv = "{$manta_folder}/results/variants/{$outname}SV_inv.vcf.gz";
+$parser->exec("python ".get_path('manta')."/../libexec/convertInversion.py", get_path("samtools")." ".genome_fasta($build)." {$sv} > {$sv_inv}");
+
+
 //sort variants
 $vcf_sorted = "{$temp_folder}/{$outname}SV_sorted.vcf";
-$parser->exec(get_path("ngs-bits")."VcfSort","-in $sv -out $vcf_sorted", true);
+$parser->exec(get_path("ngs-bits")."VcfSort","-in {$sv_inv} -out $vcf_sorted", true);
 
 // flag off-target variants
 if (isset($target))

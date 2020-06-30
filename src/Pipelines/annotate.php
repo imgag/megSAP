@@ -18,7 +18,7 @@ $parser->addString("vcf", "Path to (bgzipped) VCF file (if different from {outpu
 $parser->addFlag("no_fc", "No format check (vcf/tsv).");
 $parser->addFlag("multi", "Enable multi-sample mode.");
 $parser->addFlag("somatic", "Enable somatic mode (no variant QC and no GSvar file).", true, "na");
-$parser->addFlag("updown", "Don't discard up- or downstream anntations (5000 bases around genes).");
+$parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 extract($parser->parse($argv));
 

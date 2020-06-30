@@ -343,20 +343,20 @@ if(isset($rna_counts))
 		$new_col_ref[] = implode(",", $new_entry_ref);
 	}
 	
-	if(isset($rna_id))
-	{
-		$cnv_input->removeComment("RNA_PROCESSED_SAMPLE_ID", true);
-		$cnv_input->addComment("#RNA_PROCESSED_SAMPLE_ID={$rna_id}");
-	}
-	
+
+	//remove outdated annotation columns/comments
+	$cnv_input->removeComment("RNA_PROCESSED_SAMPLE_ID", true);
 	$cnv_input->removeColByName("rna_tpm");
-	$cnv_input->addCol($new_col, "rna_tpm", "RNA TPM counts per gene from file {$rna_counts}.");
-	
-	
+	$cnv_input->removeColByName("rna_ref_tpm");
+
+	//Add annotation data
 	$cnv_input->removeComment("RNA_REF_TPM_TISSUE=", true);
 	$cnv_input->addComment("#RNA_REF_TPM_TISSUE={$rna_ref_tissue}");
 	
-	$cnv_input->removeColByName("rna_ref_tpm");
+	$cnv_input->removeColByName("{$rna_id}_rna_tpm");
+	$cnv_input->addCol($new_col, "{$rna_id}_rna_tpm", "RNA TPM counts per gene from file {$rna_counts}.");
+	
+	$cnv_input->removeColByName("rna_ref_tpm", true);
 	$cnv_input->addCol($new_col_ref, "rna_ref_tpm", "RNA reference data in transcripts per million for tissue {$rna_ref_tissue} from proteinatlas.org.");
 }
 

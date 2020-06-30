@@ -85,7 +85,7 @@ else
 
 // barcode handling
 $barcode_correction = false;
-if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT"]))
+if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT-UDI-UMI"]))
 {
 	// deactivate DRAGEN
 	if ($use_dragen)
@@ -128,7 +128,7 @@ if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT"]))
 		$barcode_correction = true;
 	}
 }
-else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" ]))
+else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq", "IDT-xGen-Prism"]))
 {
 	// deactivate DRAGEN
 	if ($use_dragen)
@@ -152,6 +152,7 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq" 
 			$cut2 = 8;
 			break;
 		case "ThruPLEX":	//8bp each from R1, R2
+		case "IDT-xGen-Prism":
 			$cut1 = 8;
 			$cut2 = 8;
 			break;

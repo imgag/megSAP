@@ -18,7 +18,6 @@ $parser->addString("out_folder", "Output folder.", false);
 //optional
 $parser->addInfile("n_bam", "Normal sample BAM file.", true);
 $parser->addInfile("t_rna_bam", "Tumor RNA sample BAM file.", true);
-$parser->addString("rna_id", "Tumor processed sample ID. If given, all neccessary infos will be determined from NGSD.", true);
 $parser->addString("prefix", "Output file prefix.", true, "somatic");
 
 $steps_all = array("vc", "vi", "cn", "an", "ci", "msi", "an_rna", "db");
@@ -34,6 +33,7 @@ $parser->addInfile("system",  "Processing system file used for tumor DNA sample 
 $parser->addInfile("n_system",  "Processing system file used for normal DNA sample (resolved from NGSD via normal BAM by default).", true);
 
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
+$parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
 $parser->addFlag("include_germline", "Include germline variant annotation with CGI.");
 
 //default cut-offs
@@ -204,30 +204,8 @@ if (!$single_sample && db_is_enabled("NGSD"))
 	}
 }
 
-//For RNA annotation. If $t_rna_bam is set, it will be overwritten.
-if(isset($rna_id))
-{
-	if(!db_is_enabled("NGSD"))
-	{
-		trigger_error("Without NGSD access, please only specify tumor BAM-file only for RNA annotation.", E_USER_ERROR);
-	}
-	
-	$db = DB::getInstance("NGSD");
-	$rna_info = get_processed_sample_info($db,$rna_id);
-	
-	if($rna_info["sys_type"] != "RNA")
-	{
-		trigger_error("System type of $rna_id has to be \"RNA\".", E_USER_ERROR);
-	}
-	if(isset($t_rna_bam))
-	{
-		trigger_error("Overwriting parameter \"-t_rna_bam\" by the value that is set in NGSD.", E_USER_NOTICE);
-	}
-	$t_rna_bam = $rna_info["ps_bam"];
-}
-
 //sample similiarty check
-$bams = array_filter([$t_bam, $n_bam, $t_rna_bam]);
+$bams = array_filter([$t_bam, $n_bam]);
 if (count($bams) > 1)
 {
     if ($skip_correlation)
@@ -264,7 +242,7 @@ if (count($bams) > 1)
 //low coverage statistics
 
 $low_cov = "{$full_prefix}_stat_lowcov.bed";					// low coverage BED file
-if ($sys['type'] !== "WGS" && !empty($roi))
+if ($sys['type'] !== "WGS" && !empty($roi) && !$skip_low_cov)
 {
 	if(!file_exists($low_cov)) $parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $t_bam -out $low_cov -cutoff $min_depth_t", true);
 	//combined tumor and normal low coverage files
@@ -334,37 +312,9 @@ if (in_array("vc", $steps))
 	}
 
 	// variant calling
-	if ($single_sample)	// variant calling using freebayes
+	if ($single_sample)	// variant calling using varscan2
 	{
-		// vc_freebayes uses ngs-bits that can not handle multi-sample vcfs
-		$tmp1 = $parser->tempFile();
-
-		$parser->execTool("NGS/vc_freebayes.php", "-bam $t_bam -out $tmp1 -build ".$sys['build']." -no_ploidy -min_af $min_af -target ".$roi." -threads ".$threads);
-
-		// find and rewrite header (tumor, normal sample columns)
-		$tmp2 = $parser->tempFile();
-		$s = Matrix::fromTSV($tmp1);
-		$tmp_headers = $s->getHeaders();
-		$tumor_col = NULL;
-		$normal_col = NULL;
-		for ($i=0; $i < count($tmp_headers); ++$i)
-		{
-			if (contains($tmp_headers[$i], $t_id))
-			{
-				$tumor_col = $i;
-				$tmp_headers[$tumor_col] = $t_id;
-			}
-			else if (!$single_sample && contains($tmp_headers[$i],$n_id))
-			{
-				$normal_col = $i;
-				$tmp_headers[$normal_col] = $n_id;
-			}
-		}
-		$s->setHeaders($tmp_headers);
-
-		// zip and index output file
-		$s->toTSV($tmp2);
-		$parser->exec("bgzip", "-c $tmp2 > $variants", true);
+		$parser->execTool("NGS/vc_varscan2.php", "-bam $t_bam -out $variants -build " .$sys['build']. " -target ". $roi. " -name $t_id -min_af $min_af");
 		$parser->exec("tabix", "-f -p vcf $variants", true);
 	}
 	else
@@ -943,9 +893,43 @@ elseif ($single_sample && in_array("msi",$steps))
 //RNA annotation
 if (in_array("an_rna", $steps))
 {
-	if(!isset($t_rna_bam))
+	list($t_name) = explode("_", $t_id);
+	
+	//Determine tumor rna sample from NGSD via sample_relations
+	$ps_rna_bams = array();
+	
+	if( db_is_enabled("NGSD") && !isset($t_rna_bam) )
 	{
-		trigger_error("For annotation step \"an_rna\" a tumor RNA bam file must be specified (via paramter -t_rna_bam).", E_USER_ERROR);
+		$db = DB::getInstance("NGSD");
+		$res = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", array("name" => $t_name));
+		$sample_id = $res[0]["id"];
+		
+		//get related RNA samples from NGSD
+		if (count($res) >= 1)
+		{
+			$res = $db->executeQuery("SELECT * FROM sample_relations WHERE relation='same sample' AND (sample1_id=:sid OR sample2_id=:sid)", array("sid" => $sample_id));
+			foreach($res as $row)
+			{
+				$sample_id_annotation = $row['sample1_id'] != $sample_id ? $row['sample1_id'] : $row['sample2_id'];
+				
+				$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND sys.type='RNA' AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND (NOT ps.quality='bad')", array("sid" => $sample_id_annotation));
+				
+				$rna_ids = array_column($res, 'psample');
+				foreach($rna_ids as $rna_id)
+				{
+					$ps_rna_bams[$rna_id] = get_processed_sample_info($db, $rna_id)["ps_bam"];
+				}
+			}
+		}
+	}
+	elseif(isset($t_rna_bam))
+	{
+		$ps_rna_bams[basename($t_rna_bam)] = $t_rna_bam; 
+	}
+	
+	if(count($ps_rna_bams) < 1)
+	{
+		trigger_error("For annotation step \"an_rna\" tumor RNA bam file must be specified (via paramter -t_rna_bam or determined via sample_relations).", E_USER_ERROR);
 	}
 	
 	//Determine reference tissue type 1.) from parameter -rna_ref_tissue or 2.) from NGSD (if available)
@@ -955,7 +939,6 @@ if (in_array("an_rna", $steps))
 	}
 	if(!isset($rna_ref_tissue) && db_is_enabled("NGSD"))
 	{
-		list($t_name) = explode("_", $t_id);
 		$db = DB::getInstance("NGSD");
 		$res = $db->getValues("SELECT di.disease_info FROM sample as s, sample_disease_info as di WHERE s.name = '{$t_name}' AND s.id = di.sample_id AND di.type = 'RNA reference tissue'");
 		if(count($res) == 1)
@@ -968,34 +951,50 @@ if (in_array("an_rna", $steps))
 		}
 	}
 	
-	$rna_counts = glob(dirname($t_rna_bam)."/*_counts.tsv"); //file contains transcript counts
-	if(count($rna_counts) != 1)
+	$rna_counts = array(); //file contains transcript counts
+	foreach($ps_rna_bams as $rna_id => $rna_bam)
 	{
-		trigger_error("Could not find or found multiple RNA count files in sample folder dirname($t_rna_bam)", E_USER_ERROR);
+		$rna_counts_tmp = glob(dirname($rna_bam)."/*_counts.tsv");
+		if(count($rna_counts_tmp) != 1)
+		{
+			trigger_error("Could not find or found multiple RNA count files in sample folder dirname($rna_bam)", E_USER_ERROR);
+		}
+		
+		$rna_counts[$rna_id] = $rna_counts_tmp[0];
 	}
-	list($rna_counts) = $rna_counts;
-	
-	if(!isset($rna_id)) $rna_id = basename($rna_counts, "_counts.tsv");
-	
-	$args = [
+
+	//Annotate data from all detected RNA files
+	foreach($ps_rna_bams as $rna_id => $rna_bam)
+	{
+		$rna_count = $rna_counts[$rna_id];
+		
+		//SNVs
+		$args = [
 		"-gsvar_in $variants_gsvar",
 		"-out $variants_gsvar",
 		"-rna_id $rna_id",
-		"-rna_counts $rna_counts",
-		"-rna_bam $t_rna_bam",
-		"-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue) ]; //Replace spaces by 0 because it is diffcult to pass spaces via command line.
+		"-rna_counts $rna_count",
+		"-rna_bam $rna_bam"];
+		$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
+		
+		//CNVs
+		if(file_exists($som_clincnv))
+		{
+			$parser->execTool("NGS/an_somatic_cnvs.php", " -cnv_in $som_clincnv -out $som_clincnv -rna_counts $rna_count -rna_id $rna_id -rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue));
+		}
+		elseif(file_exists($som_cnv))
+		{
+			trigger_error("RNA annotation not available for somatic CNVHunter files. Please run ClinCNV instead.", E_USER_WARNING);
+		}
+	}
 	
+	//Reference tissue SNVs
+	$args = [
+		"-gsvar_in $variants_gsvar",
+		"-out $variants_gsvar",
+		"-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue)//Replace spaces by 0 because it is diffcult to pass spaces via command line.
+	];
 	$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
-
-	//Annotate Copy Number Files with RNA data
-	if(file_exists($som_clincnv))
-	{
-		$parser->execTool("NGS/an_somatic_cnvs.php", " -cnv_in $som_clincnv -out $som_clincnv -rna_counts $rna_counts -rna_id $rna_id -rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue));
-	}
-	elseif(file_exists($som_cnv))
-	{
-		trigger_error("RNA annotation not available for somatic CNVHunter files. Please run ClinCNV instead.", E_USER_WARNING);
-	}
 }
 
 //DB import

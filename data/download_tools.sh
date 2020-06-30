@@ -7,7 +7,7 @@ folder=$root/tools/
 cd $folder
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2020_03 && git submodule update --recursive --init
+git checkout 2020_06 && git submodule update --recursive --init
 make build_3rdparty
 make build_tools_release
 
@@ -127,3 +127,15 @@ cpanm -l $circos_cpan_dir -L $circos_cpan_dir Text::Balanced
 cpanm -l $circos_cpan_dir -L $circos_cpan_dir Text::Format
 cpanm -l $circos_cpan_dir -L $circos_cpan_dir Time::HiRes
 circos-0.69-9/bin/circos -modules
+
+#download ExpansionHunter
+cd $folder
+wget https://github.com/Illumina/ExpansionHunter/releases/download/v3.2.2/ExpansionHunter-v3.2.2-linux_x86_64.tar.gz
+tar xzf ExpansionHunter-v3.2.2-linux_x86_64.tar.gz
+rm ExpansionHunter-v3.2.2-linux_x86_64.tar.gz
+#update variant catalog with newer github version (commit 274903d (25 Oct 2019))
+wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc546aac98c85bbfe51701fd3b/variant_catalog/grch37/variant_catalog.json -O ExpansionHunter-v3.2.2-linux_x86_64/variant_catalog/grch37/variant_catalog.json
+wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc546aac98c85bbfe51701fd3b/variant_catalog/grch38/variant_catalog.json -O ExpansionHunter-v3.2.2-linux_x86_64/variant_catalog/grch38/variant_catalog.json
+wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc546aac98c85bbfe51701fd3b/variant_catalog/hg19/variant_catalog.json -O ExpansionHunter-v3.2.2-linux_x86_64/variant_catalog/hg19/variant_catalog.json
+wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc546aac98c85bbfe51701fd3b/variant_catalog/hg38/variant_catalog.json -O ExpansionHunter-v3.2.2-linux_x86_64/variant_catalog/hg38/variant_catalog.json
+

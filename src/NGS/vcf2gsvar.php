@@ -16,7 +16,7 @@ $parser->addInfile("in",  "Input file in VCF format.", false);
 $parser->addOutfile("out", "Output file in GSvar format.", false);
 //optional
 $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
-$parser->addFlag("updown", "Don't discard up- or downstream anntations (5000 bases around genes).");
+$parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addFlag("blacklist", "Annotate variants in blacklisted genes with 'gene_blacklist' in filter column.");
 $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
 extract($parser->parse($argv));
@@ -1060,7 +1060,7 @@ while(!feof($handle))
 		$hgmd_gene = trim($info["HGMD_GENE"]);
 		$hgmd_phen = trim($info["HGMD_PHEN"]);
 		
-		//TODO: Possible to have more than one match per varaint?
+		//TODO: Possible to have more than one match per variant?
 		$text = $hgmd_id." [CLASS=".$hgmd_class." MUT=".$hgmd_mut." PHEN=".strtr($hgmd_phen, "_", " ")." GENE=".$hgmd_gene."]; ";
 		$hgmd[] = trim($text);
 	}

@@ -13,7 +13,7 @@ $parser->addOutfile("out", "Output file in GSvar format.", false);
 $parser->addString("t_col", "Column name of tumor sample.", false);
 //optional
 $parser->addString("n_col", "Column name of normal sample.", true, "na");
-$parser->addFlag("updown", "Don't discard up- or downstream anntations (5000 bases around genes).");
+$parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addEnum("db", "Database to connect to", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
@@ -66,6 +66,8 @@ while(!feof($handle))
 		$line = strtolower($line);
 		if(contains($line, "freebayes")) $var_caller = "freebayes";
 		if(contains($line, "strelka")) $var_caller = "strelka";
+		if(contains($line, "varscan2") ) $var_caller = "varscan2";
+		echo $line."\n";
 	}
 	
 	//header line
@@ -137,6 +139,33 @@ while(!feof($handle))
 		}
 		if ($snp_q=="") trigger_error("Could not find entry '$field_name' in INFO '$info'.", E_USER_ERROR);
 	}
+	else if ($var_caller == "varscan2")
+	{
+		//Convert quality p-value to phred score
+		$i_p_value = false;
+		$f_parts = explode(":", $format);
+		
+		for($i=0; $i< count($f_parts); ++$i)
+		{
+			if($f_parts[$i] == "PVAL")
+			{
+				$i_p_value = $i;
+				break;
+			}
+		}
+	
+		if($i_p_value !== false)
+		{
+			$parts = explode(":", $cols[$tumor_idx]);
+			$snp_q = -10 * log10( $parts[$i_p_value] );	//calculate phred score from pvalue
+			if($snp_q > 255) $snp_q = 255;
+		}
+		else
+		{
+			$snp_q = "0";
+		}
+	}
+	
 	$gsvar->set($r, $i_quality, "QUAL={$snp_q}");
 
 	//calculate DP/AF tumor
@@ -155,6 +184,11 @@ while(!feof($handle))
 			list($tumor_dp, $tumor_af) = vcf_strelka_snv($format, $cols[$tumor_idx], $alt);
 		}
 	}
+	else if($var_caller == "varscan2")
+	{
+		list($tumor_dp, $tumor_af) = vcf_varscan2($format, $cols[$tumor_idx]);
+	}
+	
 	$gsvar->set($r, $i_tumor_dp, $tumor_dp);
 	$gsvar->set($r, $i_tumor_af, number_format($tumor_af, 4));
 

@@ -101,6 +101,20 @@ if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 	/************************
 	 * RNA DEPTH AND RNA AF *
 	 ************************/
+	//Remove old annotations 
+	$gsvar_input->removeColByName("{$rna_id}_rna_tpm");
+	$gsvar_input->removeColByName("{$rna_id}_rna_depth");
+	$gsvar_input->removeColByName("{$rna_id}_rna_af");
+	
+	//Remove outdated comments/columns in header
+	$gsvar_input->removeColByName("rna_tpm");
+	$gsvar_input->removeColByName("rna_depth");
+	$gsvar_input->removeColByName("rna_af");
+	$gsvar_input->removeComment("RNA_PROCESSED_SAMPLE_ID", true);
+	$gsvar_input->removeComment("RNA_TRANSCRIPT_COUNT_FILE", true);
+	$gsvar_input->removeComment("RNA_BAM_FILE", true);
+	 
+	 
 	$rna_afs = array();
 	$rna_depths = array();
 	
@@ -134,10 +148,8 @@ if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 		if(!array_key_exists($obs,$counts)) echo $obs ."\n";
 	}
 	
-	$gsvar_input->removeColByName("rna_depth");
-	$gsvar_input->removeColByName("rna_af");
-	$gsvar_input->addCol($rna_depths, "rna_depth", "Depth in RNA BAM file " . realpath($rna_bam));
-	$gsvar_input->addCol($rna_afs, "rna_af", "Allele frequency in RNA BAM file " . realpath($rna_bam));
+	$gsvar_input->addCol($rna_depths, "{$rna_id}_rna_depth", "Depth in RNA BAM file " . realpath($rna_bam));
+	$gsvar_input->addCol($rna_afs, "{$rna_id}_rna_af", "Allele frequency in RNA BAM file " . realpath($rna_bam));
 
 	
 	/*********************
@@ -206,17 +218,7 @@ if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 	}
 	fclose($handle);
 	
-	//Remove old annotations 
-	$gsvar_input->removeColByName("rna_tpm");
-	$gsvar_input->addCol(array_values($results),"rna_tpm","Transcript count as annotated per gene from " . realpath($rna_counts));
-	
-	//Add info about RNA to header
-	$gsvar_input->removeComment("RNA_PROCESSED_SAMPLE_ID", true);
-	$gsvar_input->removeComment("RNA_TRANSCRIPT_COUNT_FILE", true);
-	$gsvar_input->removeComment("RNA_BAM_FILE", true);
-	$gsvar_input->addComment("#RNA_PROCESSED_SAMPLE_ID={$rna_id}");
-	$gsvar_input->addComment("#RNA_TRANSCRIPT_COUNT_FILE=".realpath($rna_counts));
-	$gsvar_input->addComment("#RNA_BAM_FILE=".realpath($rna_bam));
+	$gsvar_input->addCol(array_values($results),"{$rna_id}_rna_tpm","Transcript count as annotated per gene from " . realpath($rna_counts));
 }
 
 if(isset($rna_ref_tissue))

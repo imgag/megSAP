@@ -52,7 +52,8 @@ $args = [
 	"--tumor ".realpath($t_bam),
 	"--normal ".realpath($n_bam),
 	"--referenceFasta ".genome_fasta($build),
-	"--runDir ".$run_dir
+	"--runDir ".$run_dir,
+	"--config ". $config
 ];
 if (!$wgs)
 {

@@ -302,6 +302,13 @@ check(vcf_freebayes("GT:DP:AD:RO:QR:AO:QA:GL","0/1:14:10,4:10:327:4:132:-7.98514
 end_test();
 
 //##################################################################################
+start_test("vcf_varscan2");
+check(vcf_varscan2("GT:GQ:SDP:DP:RD:AD:FREQ:PVAL:RBQ:ABQ:RDF:RDR:ADF:ADR","0/1:255:1560:1560:1070:489:31.37\%:2.7462E-165:36:35:707:363:355:134"), array(1560, 0.3137));
+check(vcf_varscan2("GT:GQ:SDP:DP:RD:AD:FREQ:PVAL:RBQ:ABQ:RDF:RDR:ADF:ADR", "0/1:52:200:200:183:17:8.5%:5.3509E-6:36:36:138:45:14:3"), array(200,0.085));
+end_test();
+
+
+//##################################################################################
 start_test("vcf_iontorrent");
 check(vcf_iontorrent("GT:GQ:DP:FDP:RO:FRO:AO:FAO:AF:SAR:SAF:SRF:SRR:FSAR:FSAF:FSRF:FSRR","6/6:125:5162:3914:72:0:0,5,0,6,2,5072:3,2,0,0,0,3909:0.000766479,0.000510986,0,0,0,0.998723:0,3,0,3,0,2683:0,2,0,3,2,2389:35:37:0,0,0,0,0,2045:3,2,0,0,0,1864:0:0",5), array(5162,0.9987));
 end_test();

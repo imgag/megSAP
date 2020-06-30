@@ -114,3 +114,5 @@
 /test/data_ivac/*_qcML.txt
 /test/data_trio/reanno
 /test/data_multi/reanno
+/test/data_chrx/*.vcf
+/test/data_chrx/*.json

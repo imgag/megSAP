@@ -15,6 +15,7 @@ $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 15);
 $parser->addFloat("pval_thres", "p-Value threshold for varinat calling", true, 0.0001);
 $parser->addString("name", "Sample name to be used in output.", true, "SAMPLE");
+$parser->addString("debug_region", "Debug option to limit analysis to one region.", true);
 extract($parser->parse($argv));
 
 //init
@@ -22,8 +23,10 @@ $genome = genome_fasta($build);
 
 //create mpileup
 $pileup_file = $parser->tempFile("_pileup.gz");
+$args = array("--min-MQ $min_mq", "--min-BQ $min_bq", "-f $genome");
+if(isset($debug_region)) $args[] = "-r $debug_region";
 $pipeline = array(
-	array(get_path("samtools"), "mpileup --min-MQ $min_mq --min-BQ $min_bq -f $genome $bam"), //TODO try target region here (--positions) with extend parameter (default=500)
+	array(get_path("samtools"), "mpileup ".implode(" ", $args)." $bam"),
 	array("gzip", "> $pileup_file")
 );
 $parser->execPipeline($pipeline, "mpileup");

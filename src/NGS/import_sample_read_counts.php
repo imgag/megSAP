@@ -65,7 +65,7 @@ foreach($read_counts as $sample_name => $read_count)
 	// get psid
 	$ps_id = get_processed_sample_id($db_conn, $sample_name);
 	// generate query:
-	$query = "INSERT INTO processed_sample_qc (processed_sample_id, qc_terms_id, value) "
+	$query = "REPLACE INTO processed_sample_qc (processed_sample_id, qc_terms_id, value) "
 			."VALUES ($ps_id, $qc_term_id, $read_count)";
 	//print $query.PHP_EOL;
 	$db_conn->executeStmt($query); 

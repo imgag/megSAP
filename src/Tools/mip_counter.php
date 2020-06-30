@@ -21,7 +21,7 @@ function get_arm_counts($bam, $roi, $fastq_r1, $arm_len)
 	
 	//extract reads IDs
 	$read_ids = array();
-	list($tmp) = $parser->exec(get_path("samtools")." view", "-L $roi $bam", true);
+	list($tmp) = $parser->exec(get_path("samtools")." view", "-L $roi -M $bam", true);
 	foreach($tmp as $line)
 	{
 		$parts = explode(":", $line);

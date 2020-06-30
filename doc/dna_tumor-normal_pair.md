@@ -47,7 +47,7 @@ This step will send the SNVs and CNVs from `somatic.GSvar` and `somatic_clincnv.
 
 ### Single Sample Tumor DNA Analysis
 
-In tumor-only DNA analysis, variants are called with FreeBayes. Identification of somatic
+In tumor-only DNA analysis, variants are called with VarScan2. Identification of somatic
 variants out of all the variant calls is realized by applying filters on variant allele
 frequencies from public databases (present in the annotated variant lists). This can be
 achieved interactively in GSvar (filter panel) or by using `VariantFilterAnnotations`
