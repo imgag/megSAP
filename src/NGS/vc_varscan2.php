@@ -23,10 +23,10 @@ $genome = genome_fasta($build);
 
 //create mpileup
 $pileup_file = $parser->tempFile("_pileup.gz");
-$args = array("mpileup --min-MQ $min_mq --min-BQ $min_bq -f $genome $bam");
+$args = array("--min-MQ $min_mq", "--min-BQ $min_bq", "-f $genome");
 if(isset($debug_region)) $args[] = "-r $debug_region";
 $pipeline = array(
-	array(get_path("samtools"), implode(" ", $args)), //TODO try target region here (--positions) with extend parameter (default=500)
+	array(get_path("samtools"), "mpileup ".implode(" ", $args)." $bam"),
 	array("gzip", "> $pileup_file")
 );
 $parser->execPipeline($pipeline, "mpileup");
