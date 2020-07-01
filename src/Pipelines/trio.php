@@ -329,6 +329,22 @@ if (in_array("cn", $steps))
 			print "Gender of child (from data): {$gender_data}\n";
 		
 			fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data);
+
+			//add Contamination data
+			if($lines = file($cnv_multi))
+			{
+				list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."TrioMaternalContamination", "-bam_m $m -bam_f $f -bam_c $c", true);
+				$trio_info = "##TrioMaternalContamination ".implode(" | ", $stdout)."\n";
+				foreach($lines as $line_num => $line)
+				{
+					if(!starts_with($line, "##"))
+					{
+						array_splice($lines, $line_num, 0, $trio_info);
+						break;
+					}
+				}
+				file_put_contents($cnv_multi, $lines);
+			}
 		}
 	}
 }
