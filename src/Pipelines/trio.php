@@ -331,10 +331,10 @@ if (in_array("cn", $steps))
 			fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data);
 
 			//add Contamination data
-			list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."TrioMaternalContamination", "-bam_m $m -bam_f $f -bam_c $c", true);
 			if($lines = file($cnv_multi))
 			{
-				$trio_info = "##TrioMaternalContamination ".implode(" | ", $stdout).PHP_EOL;
+				list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."TrioMaternalContamination", "-bam_m $m -bam_f $f -bam_c $c", true);
+				$trio_info = "##TrioMaternalContamination ".implode(" | ", $stdout)."\n";
 				foreach($lines as $line_num => $line)
 				{
 					if(!starts_with($line, "##"))
