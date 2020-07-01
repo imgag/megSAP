@@ -4,7 +4,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("cgi_send_data", "Sends annotation file to CGI.");
-$parser->addInfile("mutations", "Input .vcf-file with mutation annotations, hg19 coordinates.", true);
+$parser->addInfile("mutations", "Input GSVar file with mutation annotations.", true);
 $parser->addInfile("cnas","File containing the CNV data. ",true);
 $parser->addInfile("translocations","File containing the translocation data",true);
 $parser->addString("cancertype", "cancer type, see cancergenomeinterpreter.org for nomenclature",true,"CANCER");
@@ -334,25 +334,66 @@ function transform_cnv_annotations($tsv_in_file,$tsv_out_filename)
 $temp_mut_file = "";
 if(isset($mutations))
 {
-	if(strpos($mutations,".gz") !== false)
-	{
-		exec2("gzip -d -k -f  $mutations");
-		$mutations = str_replace(".gz","",$mutations);
-	}
+	$handle_in = fopen($mutations, "r");
 
-	$vcf_in = file($mutations, FILE_IGNORE_NEW_LINES);
-	$temp_mut_cont = array("sample\tchr\tpos\tref\talt");
-	foreach($vcf_in as $line)
-	{
-		if(starts_with($line,"#")) continue;
-		list($chr,$pos,,$ref,$alt) = explode("\t",$line);
-		
-		//unique identifier for each variant (needed to allocate drugs precisely to a SNPs)
-		$temp_id = "{$chr}_{$pos}_{$ref}_{$alt}";
-		
-		$temp_mut_cont[] = "{$temp_id}\t{$chr}\t{$pos}\t{$ref}\t{$alt}";
-	}
+	$temp_mut_cont = array("sample\tprotein");
 	
+	$i_co_sp = -1;
+	while(!feof($handle_in))
+	{
+		$line = trim(fgets($handle_in));
+		
+		if(empty($line)) continue;
+		
+		if(starts_with($line, "##")) continue;
+		$parts = explode("\t", $line);
+		if(starts_with($line, "#chr"))
+		{
+
+			for($i=0;$i<count($parts); ++$i)
+			{
+				if($parts[$i] == "coding_and_splicing")
+				{
+					$i_co_sp = $i;
+					break;
+				}
+			}
+			
+			if($i_co_sp == -1)
+			{
+				trigger_error("Could not find column \"coding_and_splicing\" in GSVar file {$mutations}.", E_USER_ERROR);
+			}
+		}
+		
+		//Write all transcript - protein changes into array
+		$co_sps = explode(",", $parts[$i_co_sp]);
+		foreach($co_sps as $co_sp)
+		{
+			$parts = explode(":", $co_sp);
+			
+			if(count($parts) < 7) continue;
+			if(empty($parts[1]) || empty($parts[6]) ) continue;
+			$trans = $parts[1];
+			$prot_change = $parts[6];
+			
+			
+			$prot_change = str_replace("Ter", "*", $prot_change); //stop codons are only recognized having a * instead of Ter
+			if(strpos($prot_change, "=") !== false) //"=" for synonyms is not recognized by CGI => replace by ref aa
+			{
+				$ref_aa = substr(str_replace("p.", "", $prot_change), 0, 3);
+				$prot_change = str_replace("=",$ref_aa, $prot_change);
+			}
+			
+			
+			//create identifier for each variant from genomic coordinates
+			list($chr,$start,$end,$ref,$obs) = explode("\t",$line);
+			$temp_id = "{$chr}_{$start}_{$end}_{$ref}_{$obs}";
+			
+			$temp_mut_cont[] = "{$temp_id}\t{$trans}:{$prot_change}";
+		}
+	}
+	fclose($handle_in);
+
 	if(!$no_snv_limit && count($temp_mut_cont) > 2000)
 	{
 		trigger_error("Too many variants in {$mutations}. Please filter SNPs before passing them to this tool.",E_USER_ERROR);
