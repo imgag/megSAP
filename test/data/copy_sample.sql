@@ -21,18 +21,18 @@ INSERT INTO sequencing_run (name, fcid, start_date, end_date, device_id, recipe)
 ('#00002', 'FCID4712', '2018-02-05', '2018-02-05', 1, '100+8+100'),
 ('#01489', 'FCID4713', '2012-06-27', '2020-06-29', 1, '100+8+100');
 
-INSERT INTO sample (name, sample_type, species_id, gender, tumor, ffpe, sender_id) VALUES 
-('DX180049', 'DNA', 1, 'male', '0', '0', 1),
-('DX180050', 'DNA', 1, 'male', '0', '0', 1),
-('FO180004', 'DNA', 1, 'male', '1', '1', 1),
-('FO180005', 'DNA', 1, 'male', '0', '0', 1),
-('DX181277', 'DNA', 1, 'male', '0', '0', 1),
-('DX181278', 'DNA', 1, 'male', '1', '1', 1),
-('DX181279', 'DNA', 1, 'male', '1', '1', 1),
-('DX181280', 'DNA', 1, 'male', '1', '1', 1),
-('DX203663', 'DNA', 1, 'male', '0', '0', 1),
-('DX203664', 'DNA', 1, 'male', '0', '0', 1),
-('DX203665', 'DNA', 1, 'male', '0', '0', 1);
+INSERT INTO sample (name, sample_type, species_id, gender, tumor, ffpe, sender_id, disease_group) VALUES 
+('DX180049', 'DNA', 1, 'male', '0', '0', 1, 'n/a'),
+('DX180050', 'DNA', 1, 'male', '0', '0', 1, 'n/a'),
+('FO180004', 'DNA', 1, 'male', '1', '1', 1, 'n/a'),
+('FO180005', 'DNA', 1, 'male', '0', '0', 1, 'n/a'),
+('DX181277', 'DNA', 1, 'male', '0', '0', 1, 'n/a'),
+('DX181278', 'DNA', 1, 'male', '1', '1', 1, 'n/a'),
+('DX181279', 'DNA', 1, 'male', '1', '1', 1, 'n/a'),
+('DX181280', 'DNA', 1, 'male', '1', '1', 1, 'n/a'),
+('DX203663', 'DNA', 1, 'male', '0', '0', 1, 'n/a'),
+('DX203664', 'DNA', 1, 'male', '0', '0', 1, 'n/a'),
+('DX203665', 'DNA', 1, 'male', '0', '0', 1, 'Diseases of the respiratory system');
 
 INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, processing_system_id, project_id, normal_id) VALUES
 (1,1,1,'1',1,1, NULL),

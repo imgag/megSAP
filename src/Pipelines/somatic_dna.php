@@ -366,35 +366,43 @@ $tumor_prefix = dirname($t_bam) . "/" . basename($t_bam, ".bam");
 $viral         = $tumor_prefix . "_viral.tsv";					// viral sequences results
 $viral_bam     = $tumor_prefix . "_viral.bam";					// viral sequences alignment
 $viral_bam_raw = $tumor_prefix . "_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
+$viral_bed = get_path("data_folder") . "/enrichment/somatic_viral.bed"; //viral enrichment
 $viral_igv     = $tumor_prefix . "_viral.xml";					// IGV session
 if (in_array("vi", $steps))
 {
-	//detection of viral sequences
-	$t_bam_dedup = dirname($t_bam) . "/" . basename($t_bam, ".bam") . "_before_dedup.bam";
-	$t_bam_map_qc = dirname($t_bam) . "/" . basename($t_bam, ".bam") . "_stats_map.qcML";
-	$dedup_used = file_exists($t_bam_dedup);
-	$vc_viral_args = [
-		"-in", $dedup_used ? $t_bam_dedup : $t_bam,
-		"-viral_bam", $viral_bam,
-		"-viral_bam_raw", $viral_bam_raw,
-		"-viral_cov", $viral,
-		"-viral_chrs", "chrNC_007605",
-		"-build_viral", "somatic_viral",
-		"-in_qcml", $t_bam_map_qc
-	];
-	if ($dedup_used)
-	{
-		$vc_viral_args[] = "-barcode_correction";
-	}
-	$parser->execTool("NGS/vc_viral_load.php", implode(" ", $vc_viral_args));
-
-	$igv_tracks = implode(" ", array_filter([
-		$viral_bam,
-		$viral_bam_raw,
-		get_path("data_folder") . "/enrichment/somatic_viral.bed" ],
-		"file_exists"));
 	$genome_rel = relative_path(dirname($viral_igv), get_path("data_folder") . "/genomes/somatic_viral.fa");
-	$parser->execTool("NGS/igv_session.php", "-genome {$genome_rel} -out {$viral_igv} -in {$igv_tracks} -relative");
+	if(!file_exists($genome_rel) || !file_exists($viral_bed))
+	{
+		trigger_error("Could not find reference genome {$genome_rel}. Skipping step \"vi\".", E_USER_WARNING);
+	}
+	else
+	{
+		//detection of viral sequences
+		$t_bam_dedup = dirname($t_bam) . "/" . basename($t_bam, ".bam") . "_before_dedup.bam";
+		$t_bam_map_qc = dirname($t_bam) . "/" . basename($t_bam, ".bam") . "_stats_map.qcML";
+		$dedup_used = file_exists($t_bam_dedup);
+		$vc_viral_args = [
+			"-in", $dedup_used ? $t_bam_dedup : $t_bam,
+			"-viral_bam", $viral_bam,
+			"-viral_bam_raw", $viral_bam_raw,
+			"-viral_cov", $viral,
+			"-viral_chrs", "chrNC_007605",
+			"-build_viral", "somatic_viral",
+			"-in_qcml", $t_bam_map_qc
+		];
+		if ($dedup_used)
+		{
+			$vc_viral_args[] = "-barcode_correction";
+		}
+		$parser->execTool("NGS/vc_viral_load.php", implode(" ", $vc_viral_args));
+
+		$igv_tracks = implode(" ", array_filter([
+			$viral_bam,
+			$viral_bam_raw,
+			$viral_bed],
+			"file_exists"));
+		$parser->execTool("NGS/igv_session.php", "-genome {$genome_rel} -out {$viral_igv} -in {$igv_tracks} -relative");
+	}
 }
 
 //CNV calling
@@ -742,7 +750,7 @@ if (in_array("ci", $steps))
 		"-out",$tmp_cgi_zipped_outfile,
 		"-cancertype", $cancer_type
 	];
-	if (file_exists($variants_annotated)) $parameters[] = "-mutations $variants_annotated";
+	if (file_exists($variants_annotated)) $parameters[] = "-mutations $variants_gsvar";
 	if (file_exists($som_clincnv)) $parameters[] = "-cnas $som_clincnv";
 	//if we know genes in target region we set parameter for this file
 	$genes_in_target_region =  dirname($sys["target_file"]) . "/" .basename($sys["target_file"],".bed")."_genes.txt";
@@ -779,40 +787,64 @@ if (in_array("ci", $steps))
 	/*************************
 	 * GERMLINE CGI ANALYSIS *
 	 *************************/
-	$variants_germline = dirname($n_bam)."/{$n_id}_var_annotated.vcf.gz";
+	$variants_germline = dirname($n_bam)."/{$n_id}.GSvar";
 	if(file_exists($variants_germline) && $include_germline)
 	{
-		$tmp_file = $parser->tempFile(".vcf");
-		exec2("gzip -d -k -c  $variants_germline > $tmp_file");
-		$tmp_file_content = file($tmp_file, FILE_IGNORE_NEW_LINES);
-		$tmp_new_file = array("#CHROM\tPOS\tID\tREF\tALT\n");
+		$germl_gsvar_content = file($variants_germline, FILE_IGNORE_NEW_LINES);
+		$tmp_new_file = array();
 		
-		//Remove variants for CGI upload with more than 3% AF in 1000G/GnomAD
-		foreach($tmp_file_content as $line)
+		//Create temporary GSvar file filtered for variants with < 3% AF in gnomAD for CGI annotation
+		$i_gnomad = -1;
+		$skip_germline_snvs = false;
+		foreach($germl_gsvar_content as $line)
 		{
-			if(starts_with($line,"#")) continue;
-			list($chr,$pos,$id,$ref,$alt,$qual,$filter,$info) = explode("\t",$line);
-		
-			list($qual,$filters) = explode(";",$info);
-			$filters = explode(",",$filters)[0]; //take 1st transcript (is equal in all transcripts?)
-			$af_1000g = explode("|",$filters)[14];
-			$af_gnomad = explode("|",$filters)[15];
-			if(!empty($af_1000g) && floatval($af_1000g) > 0.03) continue;
+			if(starts_with($line, "#chr") )
+			{
+				$parts = explode("\t",$line);
+				for($i=0; $i<count($parts); ++$i)
+				{
+					if($parts[$i] == "gnomAD")
+					{
+						$i_gnomad = $i;
+						break;
+					}
+				}
+				$tmp_new_file[] = $line;
+				continue;
+			}
+			if(starts_with($line,"#"))
+			{
+				$tmp_new_file[]= $line;
+				continue;
+			}
+			
+			if($i_gnomad < -1)
+			{
+				trigger_error("Could not find column \"gnomAD\" for filtering germline variants for CGI annotation. Skipping germline SNV CGI annotation.", E_USER_WARNING);
+				$skip_germline_snvs = true;
+				break;
+			}
+			
+			$parts = explode("\t",$line);
+			
+			$af_gnomad = $parts[$i_gnomad];
 			if(!empty($af_gnomad) && floatval($af_gnomad) > 0.03) continue;
 			
-			$tmp_new_file[] = "{$chr}\t{$pos}\t.\t{$ref}\t{$alt}\n";
+			$tmp_new_file[] = $line;
 		}
-		$filtered_germline_variants = $parser->tempFile(".vcf");
-		file_put_contents($filtered_germline_variants,$tmp_new_file);
+		$filtered_germline_variants = $parser->tempFile(".GSvar");
+		file_put_contents($filtered_germline_variants, implode("\n",$tmp_new_file) );
+		
 		$tmp_cgi_zipped_outfile = $parser->tempFile();
 		
 		$params = [
 			"-out",$tmp_cgi_zipped_outfile,
-			"-mutations",$filtered_germline_variants,
 			"-cancertype","CANCER",
 			"-no_snv_limit"
 		];
 		
+		if(!$skip_germline_snvs) $params[] = "-mutations $filtered_germline_variants";
+
 		//Include germline CNVs if available
 		$germline_cnv_file = dirname($n_bam)."/{$n_id}_clincnv.tsv";
 		if(!file_exists($germline_cnv_file)) $germline_cnv_file = dirname($n_bam)."/{$n_id}_cnvs.tsv";

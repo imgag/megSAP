@@ -48,3 +48,6 @@ vc_varscan2:
 	samtools reheader varscan_temp_header.sam vc_varscan2_tu_temp.bam > vc_varscan2_tu.bam
 	samtools index vc_varscan2_tu.bam
 	rm varscan_temp_header.sam vc_varscan2_tu_temp.bam
+
+cgi_send_data:
+	cat /mnt/projects/diagnostic/SomaticAndTreatment/Somatic_DX200770_01-DX200448_01/DX200770_01-DX200448_01.GSvar | sed "s/DX200770_01/DX000000_01/g" | sed "s/DX200448_01/DX000000_01/g" > cgisenddata_in1.GSvar 

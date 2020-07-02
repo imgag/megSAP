@@ -25,13 +25,15 @@ $parser->addOutFile("id","Sample ID (e.g DX152541/DX152541_01).",false);
 extract($parser->parse($argv));
 
 //check DB is enabled
-if(!db_is_enabled("GL8"))
+
+
+if(!GenLabDB::isEnabled())
 {
-	trigger_error("Could not connect to GenLab database.", E_USER_ERROR);
+	trigger_error("GenLab database is not enabled - please add credentials to settings file!", E_USER_ERROR);
 }
 
 //get gender
-$db = DB::getInstance("GL8");
+$db = GenLabDB::getInstance();
 $res = $db->executeQuery("SELECT geschlecht,identnr FROM v_ngs_geschlecht WHERE labornummer = '{$id}'");
 if(empty($res))
 {
