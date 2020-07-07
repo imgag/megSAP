@@ -686,9 +686,12 @@ if (in_array("sv", $steps))
 	{
 		$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnvfile", true);
 	}
+}
 
-
-	//perform repeat-expansion analysis (only for WGS/WES):
+//repeat expansions
+if (in_array("sv", $steps) && !$annotation_only)
+{
+	//perform repeat expansion analysis (only for WGS/WES):
 	$parser->execTool("NGS/vc_expansionhunter.php", "-in $bamfile -out $expansion_hunter_file -build ".$sys['build']." -pid $name");
 }
 
