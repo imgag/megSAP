@@ -42,6 +42,8 @@ while(count($commands)>0)
 	{
 		$line = preg_replace('/\s+/', ' ', $line);
 		$line = explode(" ", $line);
+		// skip queues which are in any error/warning state (additional column)
+		if ((count($line) > 5) && (trim($line[5]) != "")) continue; 
 		list(, $used, $overall) = explode("/", $line[2]);
 		$slots_overall += $overall;
 		$slots_used += $used;

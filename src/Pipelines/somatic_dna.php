@@ -524,7 +524,7 @@ if(in_array("cn",$steps))
 			if(!file_exists($ref_file_n_off_target))
 			{
 				$parser->copyFile($n_cov_off_target,$ref_file_n_off_target);
-				$t_cov_off_target = $ref_file_t_off_target;
+				$n_cov_off_target = $ref_file_n_off_target;
 			}
 		}
 		
