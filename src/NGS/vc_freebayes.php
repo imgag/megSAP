@@ -57,7 +57,7 @@ if ($no_bias)
 $args[] = "--min-alternate-fraction $min_af";
 $args[] = "--min-mapping-quality $min_mq";
 $args[] = "--min-base-quality $min_bq";
-$args[] = "--min-alternate-qsum 90"; //At least 3 good observations
+$args[] = "--min-alternate-count 3";
 $args[] = "-f $genome";
 $args[] = "-b ".implode(" ", $bam);
 
