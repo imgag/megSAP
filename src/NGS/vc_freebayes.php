@@ -224,7 +224,7 @@ else
 }
 
 //filter variants according to variant quality>5 , alternate observations>=3
-$pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5 & AO > 2\"");
+$pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5\"");
 
 //split complex variants to primitives
 //this step has to be performed before vcfbreakmulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276

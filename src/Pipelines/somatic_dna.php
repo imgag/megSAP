@@ -37,10 +37,10 @@ $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
 $parser->addFlag("include_germline", "Include germline variant annotation with CGI.");
 
 //default cut-offs
-$parser->addFloat("min_af", "Allele frequency detection limit.", true, 0.05);
-$parser->addFloat("min_correlation", "Minimum correlation for tumor/control pair.", true, 0.8);
-$parser->addFloat("min_depth_t", "Tumor sample coverage cut-off for low coverage statistic.", true, 100);
-$parser->addFloat("min_depth_n", "Control sample coverage cut-off for low coverage statistic.", true, 100);
+$parser->addFloat("min_af", "Allele frequency detection limit (for tumor-only calling only).", true, 0.05);
+$parser->addFloat("min_correlation", "Minimum correlation for tumor/normal pair.", true, 0.8);
+$parser->addFloat("min_depth_t", "Tumor sample coverage cut-off for low coverage statistics.", true, 100);
+$parser->addFloat("min_depth_n", "Normal sample coverage cut-off for low coverage statistics.", true, 100);
 $parser->addInt("min_cov_files", "Minimum number of required coverage files for CNV calling.", true, 20);
 $parser->addString("cnv_baseline_pos","baseline region for ClinCNV, format e.g. chr1:12-12532",true);
 $parser->addString("rna_ref_tissue", "Reference data for RNA annotation", true);
