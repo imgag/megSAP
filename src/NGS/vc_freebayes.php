@@ -57,7 +57,7 @@ if ($no_bias)
 $args[] = "--min-alternate-fraction $min_af";
 $args[] = "--min-mapping-quality $min_mq";
 $args[] = "--min-base-quality $min_bq";
-$args[] = "--min-alternate-qsum 90"; //At least 3 good observations
+$args[] = "--min-alternate-count 3";
 $args[] = "-f $genome";
 $args[] = "-b ".implode(" ", $bam);
 
@@ -224,7 +224,7 @@ else
 }
 
 //filter variants according to variant quality>5 , alternate observations>=3
-$pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5 & AO > 2\"");
+$pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5\"");
 
 //split complex variants to primitives
 //this step has to be performed before vcfbreakmulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276

@@ -4,7 +4,7 @@ then
   echo "Usage:"
   echo " vc_freebayes.sh [chr:start-end] [bam] <options>"
   echo "Default options for germline calling:"
-  echo " --min-alternate-fraction 0.1 --min-mapping-quality 1 --min-base-quality 15 --min-alternate-qsum 90"
+  echo " --min-alternate-fraction 0.1 --min-mapping-quality 1 --min-base-quality 15 --min-alternate-count 3"
   exit
 fi
 

@@ -1,12 +1,19 @@
 # megSAP - DNA analysis (tumor samples, tumor/normal pairs)
 
-### Introduction
+## Analysis pipeline
 
 Somatic analysis of tumor/normal DNA sample pairs and of tumor-only DNA samples is
-performed with `somatic_dna.php`. It requires samples already aligned and present in
-BAM format. Please have a look at the help:
+performed with `somatic_dna.php`.
 
-    > php megSAP/src/Pipelines/somatic_dna.php --help
+### Mapping single samples
+
+The somatic pipeline requires requires tumor and normal sample BAM files.  
+Thus, they need to be mapped first using the `analysis.php` with the parameter `-steps ma -somatic`.  
+For more information, see the documentation at [single sample DNA analysis](dna_single_sample.md).
+
+### Somatic variant calling (tumor/normal)
+
+After mapping, the tumor and normal BAM files are used to perform somatic variant calling withformat.  
 
 The main parameters that you have to provide are:
 
@@ -14,11 +21,11 @@ The main parameters that you have to provide are:
 * `n_bam` - the normal DNA sample BAM file (only required for tumor/normal analysis)
 * `-out_folder` - the output folder
 
-Alignment of the individual DNA sample(s) can be performed with `analyze.php` using `-somatic`
-and `-steps ma` options (also see [single sample DNA analysis](dna_single_sample.md)).
+Please have a look at the help:
 
+    > php megSAP/src/Pipelines/somatic_dna.php --help
 
-### Output
+## Output
 
 The main output files are listed below.
 
@@ -45,13 +52,18 @@ If you have data from the [RNA pipeline](../doc/rna_expression.md), this data ca
 This step will send the SNVs and CNVs from `somatic.GSvar` and `somatic_clincnv.tsv` to CancerGenomeInterpreter.org. The results will be downloaded into the out folder and annotated to both files. Provide a tumor type using the parameter `-cancer_type` for more accurate results, acronyms can be found on CancerGenomeInterpreter.org.
 
 
-### Single Sample Tumor DNA Analysis
+## Somatic variant calling (tumor only)
 
-In tumor-only DNA analysis, variants are called with VarScan2. Identification of somatic
-variants out of all the variant calls is realized by applying filters on variant allele
-frequencies from public databases (present in the annotated variant lists). This can be
-achieved interactively in GSvar (filter panel) or by using `VariantFilterAnnotations`
-(from `ngs-bits`) with the following filter specification file (for e.g. 1% filter):
+
+### Somatic variant calling (tumor only)
+
+Somatic variant calling is also possible without normal sample.  
+However this leads to a lot of false-positive somatic variant calls because artefacts cannot be removed efficiently.  
+To use the tumor-only pipeline, simply skip the `n_bam` parameter of `somatic_dna.php`.
+
+To remove false-positives, filtering on variant allele frequencies from public databases can be done.  
+This can be done interactively in GSvar or using `VariantFilterAnnotations` from `ngs-bits`.  
+For 1% AF filter specify this line in the filter definition:
 
 ```
 Allele frequency    max_af=1
