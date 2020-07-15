@@ -289,7 +289,7 @@ $hgnc = load_hgnc_db();
 //write column descriptions
 $column_desc = array(
 	array("filter", "Annotations for filtering and ranking variants."),
-	array("quality", "Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM)."),
+	array("quality", "Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP)"),
 	array("gene", "Affected gene list (comma-separated)."),
 	array("variant_type", "Variant type."),
 	array("coding_and_splicing", "Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain)."),
@@ -622,6 +622,14 @@ while(!feof($handle))
 	if (isset($info["MQM"])) 
 	{
 		$quality[] = "MQM=".intval($info["MQM"]);
+	}
+	if (isset($info["SAP"])) 
+	{
+		$quality[] = "SAP=".intval($info["SAP"]);
+	}
+	if (isset($info["ABP"])) 
+	{
+		$quality[] = "ABP=".intval($info["ABP"]);
 	}
 	
 	//for dragen VCFs

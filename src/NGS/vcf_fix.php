@@ -72,7 +72,7 @@ function write($h_out, $var)
 	
 	//write INFO
 	$info = info_data($var[7]);
-	fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "")."\t");
+	fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "")."\t");
 
 	//write FORMAT/SAMPLE
 	fwrite($h_out, "GT:DP:AO\t".implode("\t", $format_values)."\n");
