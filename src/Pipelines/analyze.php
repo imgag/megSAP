@@ -673,7 +673,8 @@ if (in_array("cn", $steps))
 //structural variants
 if (in_array("sv", $steps))
 {
-	// skip CN calling if only annotation should be done	if (!$annotation_only)
+	// skip SV calling if only annotation should be done	
+	if (!$annotation_only)
 	{
 		//SV calling with manta
 		$manta_evidence_dir = "{$folder}/manta_evid";
