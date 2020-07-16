@@ -27,6 +27,17 @@ The analysis pipeline assumes that that all data to analyze resides in a sample 
 
 In the example above, the configuration of the pipeline is done using the `hpHBOCv5.ini` file, which contains all necessary information (see [processing system INI file](processing_system_ini_file.md)).
 
+### Running an analysis with DRAGEN
+
+A short instruction how to setup the DRAGEN can be found [here](setup_dragen.md).
+To run an analysis with DRAGEN mapping you simply has to pass the parameter `-use_dragen` to the `analysis.php`: 
+
+	php megSAP/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5.ini -steps ma,vc -use_dragen
+
+### Performance
+
+A performance comparison between the megSAP pipeline using DRAGEN vs. bwa can be found [here](performance.md)
+
 ### Test data
 
 Example data which can be analyzed using the command above can be downloaded from [here](https://download.imgag.de/NA12878_01.zip).

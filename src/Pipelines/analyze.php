@@ -24,6 +24,7 @@ $parser->addFlag("start_with_abra", "Skip all steps before indel realignment of 
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.", true);
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
+$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard bwa mem.", true);
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
@@ -62,12 +63,19 @@ list($server) = exec2("hostname -f");
 $user = exec('whoami');
 $parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 
+//check user for DRAGEN mapping
+if ($use_dragen && ($user != get_path("dragen_user")))
+{
+	trigger_error("Analysis has to be run as user '".get_path("dragen_user")."' if DRAGEN mapping should be used!", E_USER_ERROR);
+}
+
 //remove invalid steps
 if (in_array("vc", $steps) && $is_wgs_shallow)
 {
 	trigger_error("Skipping step 'vc' - Variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
 	if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
 }
+
 if (in_array("cn", $steps) && !$has_roi)
 {
 	trigger_error("Skipping step 'cn' - Copy number analysis is only supported for processing systems with target region BED file!", E_USER_NOTICE);
@@ -98,6 +106,7 @@ if (db_is_enabled("NGSD") && !$annotation_only)
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 
+
 //output file names:
 //mapping
 $bamfile = $folder."/".$name.".bam";
@@ -111,6 +120,7 @@ $baffile = $folder."/".$name."_bafs.igv";
 //copy-number calling
 if ($is_wgs || $is_wgs_shallow || $is_wes) //Genome/Exome: ClinCNV
 {
+
 	$cnvfile = $folder."/".$name."_cnvs_clincnv.tsv";
 	$cnvfile2 = $folder."/".$name."_cnvs_clincnv.seg";
 }
@@ -213,6 +223,7 @@ if (in_array("ma", $steps))
 	if($start_with_abra) $args[] = "-start_with_abra";
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
+	if($use_dragen) $args[] = "-use_dragen";
 	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name --log ".$parser->getLogFile()." ".implode(" ", $args)." -threads $threads");
 
 	//low-coverage report
@@ -241,7 +252,7 @@ if (in_array("ma", $steps))
 				$preserve_fastqs = $info['preserve_fastqs'];
 			}
 		}
-
+		
 		if(!$preserve_fastqs)
 		{
 			$fastq_files = array_merge($files1, $files2);
@@ -293,6 +304,7 @@ if (in_array("vc", $steps))
 			$args[] = "-target ".$sys['target_file'];
 			$args[] = "-target_extend 50";
 		}
+
 		if ($lofreq) //lofreq
 		{
 			$args[] = "-min_af 0.05";
@@ -402,9 +414,11 @@ if (in_array("vc", $steps))
 //copy-number analysis
 if (in_array("cn", $steps))
 {
+
 	// skip CN calling if only annotation should be done
 	if (!$annotation_only)
 	{
+	
 		//create reference folder if it does not exist
 		$ref_folder = get_path("data_folder")."/coverage/".$sys['name_short']."/";
 		if (!is_dir($ref_folder))
@@ -415,18 +429,22 @@ if (in_array("cn", $steps))
 				trigger_error("Could not change privileges of folder '{$ref_folder}'!", E_USER_ERROR);
 			}
 		}
+
 		$cov_folder = $ref_folder;
 		
 		if ($is_wes || $is_wgs || $is_wgs_shallow) //Genome/Exome: ClinCNV
 		{
+
 			//WGS: create folder for binned coverage data - if missing
 			if ($is_wgs || $is_wgs_shallow)
 			{
+
 				$bin_size = get_path("cnv_bin_size_wgs");
 				if ($is_wgs_shallow) $bin_size = get_path("cnv_bin_size_shallow_wgs");
 				$bin_folder = "{$ref_folder}/bins{$bin_size}/";
 				if (!is_dir($bin_folder))
 				{
+
 					mkdir($bin_folder);
 					if (!chmod($bin_folder, 0777))
 					{
@@ -435,10 +453,12 @@ if (in_array("cn", $steps))
 				}
 				$cov_folder = $bin_folder;
 			}
+
 			
 			//create BED file with GC and gene annotations - if missing
 			if ($is_wgs || $is_wgs_shallow)
 			{
+
 				$bed = $ref_folder."/bins{$bin_size}.bed";
 				if (!file_exists($bed))
 				{
@@ -450,8 +470,10 @@ if (in_array("cn", $steps))
 					$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 				}
 			}
+
 			else
 			{
+
 				$bed = $ref_folder."/roi_annotated.bed";
 				if (!file_exists($bed))
 				{
@@ -462,12 +484,16 @@ if (in_array("cn", $steps))
 					$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 				}
 			}
+
+
 			
+
 			//create coverage profile
 			$tmp_folder = $parser->tempFolder();
 			$cov_file = $cov_folder."/{$name}.cov";
 			if (!file_exists($cov_file))
 			{
+
 				$parser->log("Calculating coverage file for CN calling...");
 				$cov_tmp = $tmp_folder."/{$name}.cov";
 				$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -decimals 4 -bam {$bamfile} -in {$bed} -out {$cov_tmp}", true);
@@ -485,6 +511,7 @@ if (in_array("cn", $steps))
 			}
 			else
 			{
+
 				$parser->log("Using previously calculated coverage file for CN calling: $cov_file");
 			}
 			
@@ -569,8 +596,10 @@ if (in_array("cn", $steps))
 				file_put_contents($varfile, implode("\n", $content));
 			}
 		}
+
 		else //Panels: CnvHunter
 		{
+
 			//create coverage file
 			$tmp_folder = $parser->tempFolder();
 			$cov_file = $tmp_folder."/{$name}.cov";
@@ -594,20 +623,24 @@ if (in_array("cn", $steps))
 			if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
 		}
 
+
 		// use created CNV file for annotation
 		$cnvfile_in = $cnvfile;
 	}
+
 
 	// annotate CNV file
 	$repository_basedir = repository_basedir();
 	$data_folder = get_path("data_folder");
 	if ($is_wes || $is_wgs || $is_wgs_shallow) //Genome/Exome: ClinCNV
 	{
+
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnvfile}", true);
 	}
 	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
 	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode -out {$cnvfile}", true);
 	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2020-05.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
+
 
 	$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_1.bed"; //optional because of license
 	if (file_exists($hgmd_file))
@@ -619,6 +652,7 @@ if (in_array("cn", $steps))
 	{
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$omim_file} -no_duplicates -url_decode -out {$cnvfile}", true);
 	}
+
 
 	if (!$is_wes && !$is_wgs && !$is_wgs_shallow) //Panels: CnvHunter
 	{
@@ -639,12 +673,13 @@ if (in_array("cn", $steps))
 //structural variants
 if (in_array("sv", $steps))
 {
-	//skip CN calling if only annotation should be done
+	// skip SV calling if only annotation should be done	
 	if (!$annotation_only)
 	{
 		//SV calling with manta
 		$manta_evidence_dir = "{$folder}/manta_evid";
 		create_directory($manta_evidence_dir);
+
 
 		$manta_args = [
 			"-bam ".$bamfile,
@@ -659,7 +694,7 @@ if (in_array("sv", $steps))
 		
 		$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
 
-		//rename Manta evidence file
+		// Rename Manta evidence file
 		rename("$manta_evidence_dir/evidence_0.$name.bam", "$manta_evidence_dir/{$name}_manta_evidence.bam");
 		rename("$manta_evidence_dir/evidence_0.$name.bam.bai", "$manta_evidence_dir/{$name}_manta_evidence.bam.bai");
 
@@ -675,6 +710,7 @@ if (in_array("sv", $steps))
 	}
 
 	//add optional OMIM annotation
+
 	$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; 
 	if(file_exists($omim_file))//OMIM annotation (optional because of license)
 	{
@@ -698,14 +734,14 @@ if (in_array("sv", $steps) && !$annotation_only)
 //import to database
 if (in_array("db", $steps))
 {
+
 	//import QC
 	$qc_files = array($qc_fastq, $qc_map);
 	if (file_exists($qc_vc)) $qc_files[] = $qc_vc; 
 	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force --log ".$parser->getLogFile());
 	
 	//check gender
-	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name --log ".$parser->getLogFile());
-	
+	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name --log ".$parser->getLogFile());	
 	//import variants
 	$args = ["-ps {$name}"];
 	$import = false;
