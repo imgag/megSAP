@@ -557,7 +557,7 @@ if (in_array("cn", $steps))
 					"##SAMPLE=<ID={$name},Gender=n/a,ExternalSampleName=n/a,IsTumor=n/a,IsFFPE=n/a,DiseaseGroup=n/a,DiseaseStatus=affected>",
 					"##DESCRIPTION={$name}=Genotype of variant in sample.",
 					"##DESCRIPTION=filter=Annotations for filtering and ranking variants.",
-					"##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM).",
+					"##DESCRIPTION=quality=Quality parameters - Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP).",
 					"##DESCRIPTION=gene=Affected gene list (comma-separated).",
 					"##DESCRIPTION=variant_type=Variant type.",
 					"##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).",
