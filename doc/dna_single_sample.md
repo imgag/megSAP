@@ -27,23 +27,9 @@ The analysis pipeline assumes that that all data to analyze resides in a sample 
 
 In the example above, the configuration of the pipeline is done using the `hpHBOCv5.ini` file, which contains all necessary information (see [processing system INI file](processing_system_ini_file.md)).
 
-### Configure mapping using DRAGEN
-
-The megSAP pipeline also supports mapping using the illumina DRAGEN server. 
-For that you have to install and configure `php` and `Sun GridEngine` on the DRAGEN server. Additionally some settings in the `settings.ini` of megSAP needs to be configured:
-
-* `dragen_user` - User which is used to run the analysis on the DRAGEN server. It has to be the same user who started the complete analysis and has to have read and write access to the folders defined below.
-
-* `dragen_in`/`dragen_out` - Transfer folders which have to be accessible from both the server which performs the analysis and the DRAGEN server. These two foloders are used to transfer data to the DRAGEN server (e. g. FastQ files) and transfer data from the DRAGEN server to the analysis server (e. g. BAM files).
-
-* `dragen_data` - Temporary folder on the DRAGEN server in which the mapping is performed. This folder should be located on the fast SSD storage of the DRAGEN server (usually: `/staging/...`) and is created for each mapping and deleted after the mapped data has been moved to the tranfer folder.
-
-* `dragen_genomes` - Path to the genome reference hash tables. Should also be stored on the DRAGEN SSD storage.
-
-* `queues_dragen` - Queue(s) with 1 slot where the DRAGEN mapping jobs are submitted to and are run on the DRAGEN server(s).
-
 ### Running an analysis with DRAGEN
 
+A short instruction how to setup the DRAGEN can be found here [here](setup_dragen.md).
 After megSAP is configured correctly using the DRAGEN server you can perform a analysis using the DRAGEN mapping by passing the parameter `-use_dragen` to the `analysis.php`: 
 
 	php megSAP/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5.ini -steps ma,vc -use_dragen
