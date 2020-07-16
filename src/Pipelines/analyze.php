@@ -63,6 +63,12 @@ list($server) = exec2("hostname -f");
 $user = exec('whoami');
 $parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 
+//check user for DRAGEN mapping
+if ($use_dragen && ($user != get_path("dragen_user")))
+{
+	trigger_error("Analysis has to be run as user '".get_path("dragen_user")."' if DRAGEN mapping should be used!", E_USER_ERROR);
+}
+
 //remove invalid steps
 if (in_array("vc", $steps) && $is_wgs_shallow)
 {

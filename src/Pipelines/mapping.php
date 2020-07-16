@@ -27,6 +27,12 @@ $parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.",
 $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard bwa mem.", true);
 extract($parser->parse($argv));
 
+//check user for DRAGEN mapping
+if ($use_dragen && (exec('whoami') != get_path("dragen_user")))
+{
+	trigger_error("Mapping has to be run as user '".get_path("dragen_user")."' if DRAGEN mapping should be used!", E_USER_ERROR);
+}
+
 //extract processing system information from DB
 $sys = load_system($system, $out_name);
 
@@ -299,7 +305,7 @@ if (!$start_with_abra)
 		$parser->log("SGE command:\tqsub ".implode(" ", $sge_args)." ".$cmd_mapping);
 
 		// run qsub as user bioinf
-		list($stdout, $stderr) = $parser->exec("sudo", "-u bioinf qsub ".implode(" ", $sge_args)." ".$cmd_mapping);
+		list($stdout, $stderr) = $parser->exec("qsub", implode(" ", $sge_args)." ".$cmd_mapping);
 
 		$sge_id = explode(" ", $stdout[0])[2];
 
