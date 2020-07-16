@@ -4,6 +4,8 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 $parser = new ToolBase("an_somatic_gsvar", "Annotates additional somatic data to GSvar file (CGI / NCG6.0).");
 $parser->addInfile("gsvar_in", "Input .gsvar-file with SNV data.", false);
 $parser->addInfile("cgi_snv_in", "Input CGI data with SNV annotations",true);
+$parser->addFlag("cgi_empty", "Add empty CGI columns for convenience e.g. if there is no CGI output for variants of sample.");
+$parser->addString("cgi_empty_cancer_type", "Cancer type for empty CGI columns.", true, "CANCER");
 $parser->addFlag("include_ncg", "Annotate column with info from NCG6.0 whether a gene is TSG or oncogene");
 $parser->addString("rna_id", "ID of RNA sample if RNA data is annotated.", true);
 $parser->addInfile("rna_counts", "Input file that contains RNA transcript counts.", true);
@@ -345,6 +347,35 @@ if(isset($cgi_snv_in))
 	$gsvar_input->addCol($col_cgi_transcript,"CGI_transcript","CancerGenomeInterpreter.org CGI Ensembl transcript ID");
 	$gsvar_input->addCol($col_cgi_gene,"CGI_gene","Gene symbol returned by CancerGenomeInterpreter.org");
 	$gsvar_input->addCol($col_cgi_consequence,"CGI_consequence","Consequence of the mutation assessed by CancerGenomeInterpreter.org");
+}
+
+//Add empty CGI columns for convenience
+if($cgi_empty)
+{
+	/******************************
+	 * REMOVE OLD CGI ANNOTATIONS *
+	 ******************************/ 
+	//old annotations created by former script
+	$old_annotations = ["CGI_drug_assoc","CGI_evid_level","CGI_transcript","CGI_id","CGI_driver_statement","CGI_gene_role","CGI_gene","CGI_consequence"];
+	foreach($old_annotations as $annotation_name) $gsvar_input->removeColByName($annotation_name);
+
+	/***************************
+	 * REMOVE OLD CGI COMMENTS *
+	 ***************************/
+	$old_comments = ["CGI_ICD10_CODE","CGI_ICD10_TEXT","CGI_ICD10_DIAGNOSES","GENES_FOR_REIMBURSEMENT","CGI_CANCER_TYPE","CGI_id","CGI_driver_statement","CGI_gene_role","CGI_transcript","CGI_gene","CGI_consequence"];
+	foreach($old_comments as $old_comment) $gsvar_input->removeComment($old_comment,true);
+	
+	
+	$empty_col = array_fill(0, $gsvar_input->rows(), "");
+	
+	$gsvar_input->addCol($empty_col,"CGI_id","Identifier for CGI statements");
+	$gsvar_input->addCol($empty_col,"CGI_driver_statement","CancerGenomeInterpreter.org oncogenic classification");
+	$gsvar_input->addCol($empty_col,"CGI_gene_role","CancerGenomeInterpreter.org gene role. LoF: Loss of Function, Act: Activating");
+	$gsvar_input->addCol($empty_col,"CGI_transcript","CancerGenomeInterpreter.org CGI Ensembl transcript ID");
+	$gsvar_input->addCol($empty_col,"CGI_gene","Gene symbol returned by CancerGenomeInterpreter.org");
+	$gsvar_input->addCol($empty_col,"CGI_consequence","Consequence of the mutation assessed by CancerGenomeInterpreter.org");
+	
+	$gsvar_input->addComment("#CGI_CANCER_TYPE=$cgi_empty_cancer_type");
 }
 
 if($include_ncg)
