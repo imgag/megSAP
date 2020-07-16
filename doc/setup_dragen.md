@@ -1,5 +1,7 @@
 ## megSAP and DRAGEN
-The megSAP pipeline also supports mapping using the illumina DRAGEN server. For that some additional software is required and some settings has to be adapted.
+The megSAP pipeline also supports mapping using the illumina DRAGEN server. This requires additional software on the DRAGEN server and some modifications to the settings.
+
+(For general setup instructions use the [illumina DRAGEN documentation](https://emea.support.illumina.com/sequencing/sequencing_software/dragen-bio-it-platform/documentation.html))
 
 ### Required software
 
@@ -7,7 +9,7 @@ To use the DRAGEN server in the megSAP pipeline some aditional software has to b
 
 * `php` - is required to run the mapping script which manages the file transfer to and from the DRAGEN server and starts the mapping. Additionally the modules `PDO` and `mysql` are required.
 
-* `Sun GridEngine` - is required to queue mapping jobs from other servers. For that a seperate queue with 1 slot (on each DRAGEN server) has to be configured. This prevents the DRAGEN server to run more than one mapping job at a time.
+* `Sun GridEngine` - is required to queue and execute mapping jobs from other servers. For that a seperate queue with 1 slot (on each DRAGEN server) has to be configured. This prevents the DRAGEN server to run more than one mapping job at a time.
 
 * `megSAP` - has to be installed to the same path as it is installed on the server which runs the analysis. Alternatively megSAP can be installed on a network share which is available DRAGEN and analysis server.
 
