@@ -29,7 +29,7 @@ if(count($res_new) !== 0)
 }
 
 //move files
-$processed_samples = $db->executeQuery("SELECT ps.id, ps.process_id, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample FROM processed_sample as ps, sample as s WHERE ps.sample_id=:id AND s.id=:id", array("id" => $res[0]["id"]));
+$processed_samples = $db->executeQuery("SELECT ps.id, ps.process_id, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample FROM processed_sample as ps, sample as s WHERE ps.sample_id=:id AND s.id=:id AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)", array("id" => $res[0]["id"]));
 foreach ($processed_samples as $ps)
 {
 	$old_ps = $ps["psample"];

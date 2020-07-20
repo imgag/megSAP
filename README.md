@@ -34,6 +34,9 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 
 ## ChangeLog
+* 16.07.2020: Added support for mapping on Illumina Dragen
+* 16.07.2020: Added strand bias and allele balance to output VCF/GSvar files
+* 25.06.2020: Added repeat expansion calling with ExpansionHunter (for exomes and genomes)
 * 18.06.2020: Replaced freebayes by varscan2 in somatic tumor-only pipeline
 * 19.05.2020: Updated databases (Clinvar 20200506, CADD 1.6, HGNC)
 * 05.05.2020: Added Circos plots for exome/genome germline samples containing (CNVs, ROHs, BAFs)
