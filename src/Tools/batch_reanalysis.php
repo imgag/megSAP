@@ -25,7 +25,7 @@ if (isset($before))
 }
 
 //init
-$analyze_script = realpath(dirname($_SERVER['SCRIPT_FILENAME'])."/../Pipelines/analyze.php");
+$analyze_script = "php ".realpath(dirname($_SERVER['SCRIPT_FILENAME'])."/../Pipelines/analyze.php");
 
 foreach($samples as $ps)
 {
