@@ -10,17 +10,17 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("backup_run", "Creates a backup of a (sequencing run) folder.");
-$parser->addInfile("in",  "Input folder.", false);
-$parser->addString("when",  "Start time in format '20:15' or 'now'.", false);
-$parser->addString("out_folder", "Output folder path.", false);
+$parser = new ToolBase("backup_run", "Creates a backup of a run folder.");
+$parser->addInfile("in",  "Input run folder.", false);
+$parser->addString("when",  "Start time in format '20:15' or 'now'.", true, "now");
+$parser->addString("out_folder", "Output folder path.", true, "/mnt/raw_data_archive/runs/");
 extract($parser->parse($argv));
 
 //check that the correct user is executing the script
 $user = exec('whoami');
 if ($user!="archive-gs")
 {
-	trigger_error("Only user 'archive-gs' can execute this script!", E_USER_ERROR);
+	trigger_error("Only user 'archive-gs' can execute this script - use 'sudo -u archive-gs php backup_run.php ...'!", E_USER_ERROR);
 }
 
 //strip slashes at the end of folder names
@@ -77,7 +77,6 @@ list($md5) = explode(" ", $stdout[0]);
 //copy log file to remote archive folder
 $parser->copyFile($parser->getLogFile(), $logfile);
 
-
 // update NGSD run information
 if (db_is_enabled("NGSD"))
 {
@@ -102,7 +101,7 @@ if (db_is_enabled("NGSD"))
 }
 else
 {
-	trigger_error("No Connection to the NGSD available! Couldnt update run information.", E_USER_WARNING);
+	trigger_error("No Connection to the NGSD available! Could not update run information.", E_USER_WARNING);
 }
 
 //print log file to console
