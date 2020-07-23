@@ -5,13 +5,12 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
-$parser = new ToolBase("batch_reanalysis", "Batch re-analysis of single-sample analyses.");
+$parser = new ToolBase("batch_reanalysis", "Creates commands for batch re-analysis of single samples.");
 $parser->addStringArray("samples", "Processed sample names.", false);
 $parser->addString("steps", "Analysis steps to perform.", false);
-$parser->addEnum("mode", "Excution mode: 'default' executes the analysis sequentially in this script, 'print' only prints samples, but performs no analysis, 'sge' queues the analysis in SGE.", true, array("default", "print", "sge"), "default");
+$parser->addInt("threads", "Number of threads used.", true);
+$parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addString("before", "Only samples analyzed before the date are reanalyzed (considers 'steps', format 'DD.MM.YYYY').", true);
-$parser->addInt("threads", "Number of threads used (for 'default' mode).", true);
-$parser->addInt("max", "Maximum number of jobs to start (for 'sge' mode).", true);
 extract($parser->parse($argv));
 
 //convert 'before' to timestamp
@@ -25,18 +24,19 @@ if (isset($before))
 	$before = $converted->getTimestamp();
 }
 
-$analyzed = 0;
-$count = count($samples);
-for ($i=1; $i<=$count; ++$i)
+//init
+$analyze_script = realpath(dirname($_SERVER['SCRIPT_FILENAME'])."/../Pipelines/analyze.php");
+
+foreach($samples as $ps)
 {
-	$ps = trim($samples[$i-1]);
+	$ps = trim($ps);
 	
 	//determine folder name
 	$db_conn = DB::getInstance("NGSD");
 	$info = get_processed_sample_info($db_conn, $ps, false);
 	if (is_null($info))
 	{
-		print "$i/$count: Skipped '$ps' because it was not found in NGSD!\n";
+		fwrite(STDERR, "Skipped '$ps' because it was not found in NGSD!\n");
 		continue;
 	}
 	$folder = $info['ps_folder'];
@@ -44,7 +44,7 @@ for ($i=1; $i<=$count; ++$i)
 	//check folder exists
 	if(!file_exists($folder))
 	{
-		print "$i/$count: Skipped '$ps' because folder does not exist: $folder\n";
+		fwrite(STDERR, "Skipped '$ps' because folder does not exist: $folder\n");
 		continue;
 	}
 	
@@ -63,7 +63,7 @@ for ($i=1; $i<=$count; ++$i)
 			}
 		}
 		
-		//check VCF
+		//check VCF/GSvar
 		if (contains($steps, "vc"))
 		{
 			$vcf = substr($bam, 0, -4)."_var.vcf.gz";
@@ -71,12 +71,8 @@ for ($i=1; $i<=$count; ++$i)
 			{
 				$skip = false;
 			}
-		}
-		
-		//check GSvar
-		if (contains($steps, "an"))
-		{
-			$gsvar = substr($bam, 0, -3)."GSvar";
+			
+			$gsvar = substr($bam, 0, -4).".GSvar";
 			if (!file_exists($gsvar) || filemtime($gsvar)<$before)
 			{
 				$skip = false;
@@ -86,8 +82,18 @@ for ($i=1; $i<=$count; ++$i)
 		//check CNVs
 		if (contains($steps, "cn"))
 		{
-			$cnvs = substr($bam, 0, -4)."_cnvs.seg";
+			$cnvs = substr($bam, 0, -4)."_cnvs_clincnv.tsv";
 			if (!file_exists($cnvs) || filemtime($cnvs)<$before)
+			{
+				$skip = false;
+			}
+		}
+		
+		//check SVs
+		if (contains($steps, "sv"))
+		{
+			$svs = substr($bam, 0, -4)."_manta_var_structural.bedpe";
+			if (!file_exists($svs) || filemtime($svs)<$before)
 			{
 				$skip = false;
 			}
@@ -95,62 +101,26 @@ for ($i=1; $i<=$count; ++$i)
 		
 		if($skip)
 		{
-			print "$i/$count: Skipped '$ps' because it was analyzed after ".date("m.d.Y", $before)."\n";
+			fwrite(STDERR, "Skipped '$ps' because it was analyzed after ".date("m.d.Y", $before)."\n");
 			continue;
 		}
 	}
 
-	//perform analysis
-	if ($mode=="print")
+	//create command
+	$args = array();
+	$args[] = "-name $ps";
+	$args[] = "-folder $folder";
+	$args[] = "-steps $steps";
+	if (isset($threads))
 	{
-		print "$i/$count: Analyzing '$folder'...\n";
+		$args[] = "-threads $threads";
 	}
-	else if ($mode=="default")
+	if (isset($annotation_only))
 	{
-		print "$i/$count: Analyzing '$folder'...\n";
+		$args[] = "-annotation_only";
+	}
 	
-		$args = array();
-		$args[] = "-name $ps";
-		$args[] = "-folder $folder";
-		$args[] = "-steps $steps";
-		if (isset($threads))
-		{
-			$args[] = "-threads $threads";
-		}
-		list($stdout, $stderr, $return) = $parser->execTool("Pipelines/analyze.php", implode(" ", $args), false);
-		if ($return!=0)
-		{
-			print "  Error occurred:\n";
-			$lines = array_merge($stdout, $stderr);
-			foreach($lines as $line)
-			{
-				print "  ".trim($line)."\n";
-			}
-		}
-	}
-	else if ($mode=="sge")
-	{
-		print "$i/$count: Queuing '$folder'.\n";
-		$args = array();
-		$args[] = "-steps $steps";
-		list($stdout, $stderr, $return) = $parser->execTool("NGS/db_queue_analysis.php", "-type 'single sample' -samples $ps -args '".implode(" ", $args)."'", false);
-		if ($return!=0)
-		{
-			print "  Error occurred:\n";
-			$lines = array_merge($stdout, $stderr);
-			foreach($lines as $line)
-			{
-				print "  ".trim($line)."\n";
-			}
-		}
-		
-		++$analyzed;
-		if (!is_null($max) && $analyzed>=$max)
-		{
-			print "Maximum number of SGE jobs reached - stopping\n";
-			break;
-		}
-	}	
+	print "{$analyze_script} ".implode(" ", $args)."\n";
 }
 
 ?>

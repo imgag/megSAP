@@ -14,9 +14,8 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
 $steps_all = array("ma", "vc", "cn", "sv", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, db=import into NGSD, cn=copy-number analysis, sv=structural-variant analysis.", true, "ma,vc,cn,db,sv");
-$parser->addFlag("backup", "Backup old analysis files to old_[date] folder.");
-$parser->addFlag("lofreq", "Add low frequency variant detection.", true);
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, db=import into NGSD.", true, "ma,vc,cn,sv,db");
+$parser->addFlag("lofreq", "Perform low frequency variant detection (down to 5% AF).", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
 $parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
@@ -24,7 +23,7 @@ $parser->addFlag("start_with_abra", "Skip all steps before indel realignment of 
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.", true);
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
-$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard bwa mem.", true);
+$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard BWA-MEM.", true);
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
@@ -138,18 +137,6 @@ $expansion_hunter_file = $folder."/".$name."_repeats_expansionhunter.vcf";
 $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
 $qc_vc  = $folder."/".$name."_stats_vc.qcML";
-
-
-//move old data to old_[date]_[random]-folder
-if($backup && in_array("ma", $steps))
-{
-	$backup_pattern = "$name*.*,analyze*.log";
-	$skip_pattern = array();
-	$skip_pattern[] = "\w+\.fastq\.gz$";
-	$skip_pattern[] = "SampleSheet\.csv$";
-	if(!is_null($parser->getLogFile()))	$skip_pattern[] = $parser->getLogFile()."$";
-	backup($folder, $backup_pattern, "#".implode("|", $skip_pattern)."#");
-}
 
 // for annotation_only: check if all files are available
 if ($annotation_only)
@@ -770,7 +757,7 @@ if (in_array("db", $steps))
 }
 
 
-// Create Circos plot only if VC or CNC was done
+// Create Circos plot only if variant or copy-number calling was done
 if (in_array("vc", $steps) || in_array("cn", $steps))
 {
 	if ($is_wes || $is_wgs || $is_wgs_shallow)
