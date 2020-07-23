@@ -7,6 +7,8 @@ install.packages("doParallel", repos="https://cran.rstudio.com")
 install.packages("mclust", repos="https://cran.rstudio.com")
 install.packages("R.utils", repos="https://cran.rstudio.com")
 install.packages("RColorBrewer", repos="https://cran.rstudio.com")
+install.packages("devtools", repos="https://cran.rstudio.com")
+install.packages("Rcpp", repos="https://cran.rstudio.com")
 
 #Party is no longer available for R 3.4, which is installed on Ubuntu 18.04. So we install the old version manually
 library("devtools")
