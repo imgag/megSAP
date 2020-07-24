@@ -111,6 +111,11 @@ function start_analysis($job_info, &$db_conn, $debug)
 			$script = "analyze_rna.php";
 			$args = "-folder {$sample_folder} -name {$sample} --log {$sample_folder}analyze_rna_{$timestamp}.log";
 		}
+		elseif ($sys_type=="cfDNA (patient-specific)")
+		{
+			$script = "analyze_cfdna.php";
+			$args = "-folder {$sample_folder} -name {$sample} --log {$sample_folder}analyze_cfdna_{$timestamp}.log";
+		}
 		else //DNA
 		{
 			$script = "analyze.php";
