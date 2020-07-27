@@ -66,10 +66,13 @@ foreach($samples as $ps)
 		//check VCF/GSvar
 		if (contains($steps, "vc"))
 		{
-			$vcf = substr($bam, 0, -4)."_var.vcf.gz";
-			if (!file_exists($vcf) || filemtime($vcf)<$before)
+			if (!isset($annotation_only))
 			{
-				$skip = false;
+				$vcf = substr($bam, 0, -4)."_var.vcf.gz";
+				if (!file_exists($vcf) || filemtime($vcf)<$before)
+				{
+					$skip = false;
+				}
 			}
 			
 			$gsvar = substr($bam, 0, -4).".GSvar";
