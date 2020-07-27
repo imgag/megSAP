@@ -183,7 +183,7 @@ if (in_array("vc", $steps))
 		"-vcf", $vcffile,
 		"--log", $parser->getLogFile()
 	];
-	$parser->execTool("Tools/vc_cfdna.php", implode(" ", $args));
+	$parser->execTool("NGS/vc_cfdna.php", implode(" ", $args));
 }
 
 //import to database
