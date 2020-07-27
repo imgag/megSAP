@@ -412,7 +412,8 @@ foreach($res as $row)
 		$fastqs_present = false;
 		foreach($paths as $file)
 		{
-			if ($is_single_sample_dna && ends_with($file, ".fastq.gz"))
+			if (!$tumor_normal_pair && ends_with($file, ".fastq.gz") &&
+					!($sample1["experiment_type"] == "rna_seq" && $sample1["tumor"] == 1))
 			{
 				$files[] = $file;
 				$fastqs_present= true;
@@ -461,7 +462,7 @@ foreach($res as $row)
 				$merged_fastq_files[] = "{$data_folder2}{$qbic_name}_normal.2.fastq.gz";
 			}
 		}
-		elseif($sample1["experiment_type"] == "rna_seq")
+		elseif($sample1["experiment_type"] == "rna_seq" && $sample1["tumor"] == 1)
 		{
 			exec2("cat {$data_folder}*R1*.fastq.gz > {$data_folder}{$qbic_name}_tumor_rna.1.fastq.gz");
 			$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor_rna.1.fastq.gz";
@@ -506,8 +507,8 @@ foreach($res as $row)
 				$parser->moveFile($file,$tmpfolder."/".basename($file));
 			}
 			
-			//store meta data file (not for RNA samples
-			if($sample1["experiment_type"] != "rna_seq") storeMetaData($tmpfolder, $ps_name, array("type"=>$sample1["experiment_type"], "sample1"=>prepareForExport($sample1), "files"=>array_map("basename", $files)));
+			//store meta data file
+			storeMetaData($tmpfolder, $ps_name, array("type"=>$sample1["experiment_type"], "sample1"=>prepareForExport($sample1), "files"=>array_map("basename", $files)));
 			exec2("chmod -R 777 $tmpfolder");
 			
 			//upload data
