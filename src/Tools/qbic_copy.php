@@ -257,12 +257,12 @@ function copyFiles($files, $to_folder, $upload)
 		else
 		{
 			$parser->copyFile($file, $outfile);
-		}
 		
-		//determine SHA2
-		list($stdout) = $parser->exec("sha256sum", $outfile, true);
-		list($checksum) = explode(" ", $stdout[0]);
-		print "##sha256sum ".basename($outfile)." {$checksum}\n";
+			//determine SHA256
+			list($stdout) = $parser->exec("sha256sum", $outfile, true);
+			list($checksum) = explode(" ", $stdout[0]);
+			print "##sha256sum ".basename($outfile)." {$checksum}\n";
+		}
 	}
 }
 
