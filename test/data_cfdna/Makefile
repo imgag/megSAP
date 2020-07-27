@@ -1,7 +1,7 @@
 all: clean link map diff
 
 clean:
-	rm -rf CFDNA_01* *.log
+	rm -rf CFDNA_01*.bam* CFDNA_01*.qcML CFDNA_01*.bed *.log
 
 link:
 	php ../link_test_data.php FO13609x01_01_L001_R1_001.fastq.gz CFDNA_01_L001_R1_001.fastq.gz
