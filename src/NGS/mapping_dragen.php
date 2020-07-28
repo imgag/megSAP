@@ -112,5 +112,5 @@ if (file_exists($working_dir))
 	trigger_error("Folder '$working_dir' could not be removed.", E_USER_ERROR);
 }
 
-
+print "\nDRAGEN mapping successfully finished, exit code 0.";
 ?>
