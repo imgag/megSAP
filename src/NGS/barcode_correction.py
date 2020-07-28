@@ -49,7 +49,7 @@ def extract_barcode(READ,BC_TYPE): # Individual read. It returns the barcode of 
 def extract_bc_groups(BC, BC_NETWORK): # Input, list of reads that start are end are equal
     BARCODE_DICT = {}
 
-    sortedKeyList = sorted(BC.keys(), key=lambda s: len(BC.get(s)), reverse = True)
+    sortedKeyList = sorted(list(BC.keys()), key=lambda s: len(BC.get(s)), reverse = True)
 
     while len(BC) > 0:
 
@@ -139,7 +139,7 @@ def error_read_qual(read):
     READ = read
     qualities = READ.qual
     LEN = len(qualities)
-    QUAL = ''.join(["!" for i in xrange(LEN)])
+    QUAL = ''.join(["!" for i in range(LEN)])
     READ.qual = QUAL
     return(READ)
 
@@ -148,7 +148,7 @@ def error_read_seq(read):
     READ = read
     seq = READ.seq
     LEN = len(seq)
-    SEQ = ''.join(["N" for i in xrange(LEN)])
+    SEQ = ''.join(["N" for i in range(LEN)])
     READ.seq = SEQ
     return(READ)
 
@@ -356,7 +356,7 @@ def GET_FINAL_READ(reads,minBQ,STEP,SET_N):
                     CONSENSUS_SEQ.append(CONSENSUS_BASE)
 
                 else:
-                    print "Error"
+                    print("Error")
                     #print SEQ[position], BASE
 
             else:
@@ -457,7 +457,7 @@ args = ''
 try:
     args = parser.parse_args()
 except IOError as io:
-    print io
+    print(io)
     sys.exit('Error reading parameters.')
 
 
@@ -681,5 +681,5 @@ LOGFILE2.close()
 outfile.close()
 
 stop = timeit.default_timer()
-print 'TIME'
-print stop - start
+print('TIME')
+print(stop - start)
