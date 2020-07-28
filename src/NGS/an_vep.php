@@ -482,11 +482,27 @@ if (file_exists($warn_file))
 }
 
 
+$family_file = "None"; // handle as single sample (specify a ped file if a multisample vcf is given)
+$aidiva_config = get_path("aidiva")."data/AIdiva_configuration_annotated.yaml";
+
+$temp_results = $parser->tempFolder("aidiva_workdir");
+$args = array("-vcf {$in}", "-outdir {$temp_results} -family {$family_file} -ps_name {$ps_name} -config {$aidiva_config}");
+$args[] = "-threads {$threads}";
+$parser->execTool("NGS/sp_aidiva.php", implode(" ", $args));
+
+$aidiva_result_file = $temp_results."/".basename($in, ".vcf")."_result_sorted.vcf.gz";
+
+
+
 // custom annotation by VcfAnnotateFromVcf
 
 // create config file
 $config_file_path = $parser->tempFile(".config");
 $config_file = fopen($config_file_path, 'w');
+
+
+// add AIdiva annotation
+fwrite($config_file, $aidiva_result_file."\t\tAIDIVA_SCORE,AIDIVA_SCORE_FINAL\t\ttrue\n");
 
 
 // add gnomAD annotation
