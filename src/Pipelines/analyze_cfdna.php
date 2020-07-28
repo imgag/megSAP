@@ -104,10 +104,22 @@ $bamfile = "{$folder}/{$name}.bam";
 $bamfile_raw = "{$folder}/{$name}_before_dedup.bam";
 $lowcov_file = "{$folder}/{$name}_{$sys['name_short']}-{$tumor_id}_lowcov.bed";
 //variant calling
-$vcffile = "{$folder}/{$name}_var.vcf.gz";
+$vcffile = "{$folder}/{$name}_var.vcf";
 //db import
 $qc_fastq = "{$folder}/{$name}_stats_fastq.qcML";
 $qc_map  = "{$folder}/{$name}_stats_map.qcML";
+
+//create merged BED file for mapping or variant calling
+if (in_array("ma", $steps) || in_array("vc", $steps))
+{
+	//recalculate MappingQC, based on base ROI + patient ROI
+	$roi_merged = $parser->tempFile("_merged.bed");
+	$pipeline = [];
+	$pipeline[] = [ "cat", "{$roi_base} {$roi_patient}" ];
+	$pipeline[] = [ get_path("ngs-bits")."BedSort", "" ];
+	$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$roi_merged}" ];
+	$parser->execPipeline($pipeline, "merge BED files");
+}
 
 //mapping
 if (in_array("ma", $steps))
@@ -132,6 +144,7 @@ if (in_array("ma", $steps))
 	$args = [
 		"-in_for", implode(" ", $files1),
 		"-in_rev", implode(" ", $files2),
+		"-clip_overlap",
 		"-system", $system,
 		"-out_folder", $folder,
 		"-out_name", $name,
@@ -147,14 +160,6 @@ if (in_array("ma", $steps))
 	{
 		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in {$lowcov_file} -clear -extend 25 -out {$lowcov_file}", true);
 	}
-
-	//recalculate MappingQC, based on base ROI + patient ROI
-	$roi_merged = $parser->tempFile("_merged.bed");
-	$pipeline = [];
-	$pipeline[] = [ "cat", "{$roi_base} {$roi_patient}" ];
-	$pipeline[] = [ get_path("ngs-bits")."BedSort", "" ];
-	$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$roi_merged}" ];
-	$parser->execPipeline($pipeline, "merge BED files");
 
 	$parser->exec(get_path("ngs-bits")."MappingQC", "-roi {$roi_merged} -in {$bamfile} -out {$qc_map}");
 }
@@ -179,8 +184,10 @@ if (in_array("vc", $steps))
 {
 	$args = [
 		"-bam", $bamfile,
-		"-target", $roi_patient,
+		"-target", $roi_merged,
+		"-build", $sys['build'],
 		"-vcf", $vcffile,
+		// "-model", "params.txt",
 		"--log", $parser->getLogFile()
 	];
 	$parser->execTool("NGS/vc_cfdna.php", implode(" ", $args));
