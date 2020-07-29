@@ -1,6 +1,6 @@
 <?php 
 /** 
-	@page an_aidiva_vep
+	@page an_vep_aidiva
 	
 	@todo remove all unnecessary annotations
 */
@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("an_aidiva_vep", "Variant annotation with Ensembl VEP.");
+$parser = new ToolBase("an_vep_aidiva", "Variant annotation with Ensembl VEP.");
 $parser->addInfile("in",  "Input file in VCF format.", false);
 $parser->addOutfile("out", "Output file in VCF format.", false);
 //optional
