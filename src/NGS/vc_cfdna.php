@@ -11,26 +11,22 @@ $parser->addOutfile("vcf", "Variant call output as VCF file.", false);
 //$parser->addOutfile("tsv", "Variant call output as TSV file.", true);
 //$parser->addOutfile("mrd", "MRD probability output file.", true);
 $parser->addInfile("model", "Error model parameters.", true);
-//$parser->addInfile("model_region", "Target region to use for parameter estimation.", true);
 
 extract($parser->parse($argv));
 
 $genome = genome_fasta($build);
 
-// $workdir = $parser->tempFolder("cfdna_tmp");
-// $workdir = dirname($vcf);
-// $vcf_name = basename($vcf);
-// $temp_vcf = "{$workdir}/{$vcf_name}";
+$tempdir = $parser->tempFolder("cfdna_tmp");
 $args = [
     "--bam", $bam,
     "--ref", $genome,
     "--bed", $target,
-    "--out_file", $vcf
+    "--out_file", $vcf,
+    "--temp_dir", $tempdir
 ];
 if (isset($model))
 {
-    $args[] = "--param";
-    $args[] = $model;
+    $args[] = "--param {$model}";
 }
 else
 {
