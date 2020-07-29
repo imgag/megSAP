@@ -187,9 +187,13 @@ if (in_array("vc", $steps))
 		"-target", $roi_merged,
 		"-build", $sys['build'],
 		"-vcf", $vcffile,
-		// "-model", "params.txt",
 		"--log", $parser->getLogFile()
 	];
+	$model = get_path("data")."/dbs/cfdna_caller/{$sys['name_short']}.txt";
+	if (file_exists($model))
+	{
+		$args[] = "-model {$model}";
+	}
 	$parser->execTool("NGS/vc_cfdna.php", implode(" ", $args));
 }
 
