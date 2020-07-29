@@ -1,7 +1,6 @@
 <?php
 /** 
 	@page validate_somatic
-	//TODO: split in SNV/Indel
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
