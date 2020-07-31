@@ -137,10 +137,14 @@ class DB
 	 * @param string $sql SQL Query to execute
 	 * @param array $par associative array with parameter bindings
 	 * @param boolean $log Should logging be activated for this query
+	 * @return int The number of affected rows
 	 */
 	public function executeStmt($sql, $par = NULL)
 	{
+		//prepare
 		$hash = $this->prepare($sql);
+		
+		//bind
 		if(!empty($par))
 		{
 			foreach($par as $key => $value)
@@ -148,7 +152,22 @@ class DB
 				$this->bind($hash, $key, $value);
 			}			
 		}
-		$this->execute($hash, false);
+		
+		//execute
+		try
+		{
+			$this->prep_stmts[$hash]->execute();
+			$affected_rows = $this->prep_stmts[$hash]->rowCount();
+		}
+		catch(PDOException $e)
+		{
+			$this->error($hash, $e->getMessage());
+		}
+		
+		//delete
+		$this->unsetStmt($hash);
+		
+		return $affected_rows;
 	}
 	
 	/**
