@@ -8,9 +8,9 @@ tools=$root/tools/
 dbs=$root/dbs/
 
 #Ignore this - used for local installation
-tools=/mnt/share/opt/
-#tools=/home/bioinf/
-dbs=/mnt/share/data/dbs/
+# tools=/mnt/share/opt/
+# tools=/home/bioinf/
+# dbs=/mnt/share/data/dbs/
 
 vep_install_dir=$tools/ensembl-vep-release-100.3/
 vep_cpan_dir=$vep_install_dir/cpan/
