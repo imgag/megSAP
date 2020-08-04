@@ -13,17 +13,17 @@ make build_tools_release
 
 #download and build samtools
 cd $folder
-wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2
-tar xjf samtools-1.9.tar.bz2
-rm samtools-1.9.tar.bz2
-cd samtools-1.9
+wget https://github.com/samtools/samtools/releases/download/1.10/samtools-1.10.tar.bz2
+tar xjf samtools-1.10.tar.bz2
+rm samtools-1.10.tar.bz2
+cd samtools-1.10
 make
 
 #download and build freebayes
 cd $folder
 git clone https://github.com/ekg/freebayes.git
 cd freebayes
-git checkout v1.2.0 && git submodule update --recursive --init
+git checkout v1.3.2 && git submodule update --recursive --init
 make
 
 #download and build vcflib
@@ -43,7 +43,7 @@ wget https://github.com/mozack/abra2/releases/download/v2.22/abra2-2.22.jar -O a
 cd $folder
 git clone https://github.com/GregoryFaust/samblaster.git
 cd samblaster
-git checkout v.0.1.24
+git checkout v.0.1.26
 make
 
 #download and build BWA
