@@ -75,6 +75,18 @@ git checkout 1.17.0
 cd ..
 mv ClinCNV ClinCNV-1.17.0
 
+#download AIdiva
+cd $folder
+git clone https://github.com/imgag/AIdiva.git
+cd AIdiva
+#git fetch && git fetch --tags
+#git checkout 0.1
+#cd data
+#TODO add link to rf_model_snp
+#TODO add link to rf_model_inframe_indel
+#cd ..
+#mv AIdiva AIdiva-0.1
+
 #download and build VEP
 cd $root
 chmod 755 download_tools_vep.sh
