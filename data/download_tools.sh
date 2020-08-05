@@ -63,6 +63,18 @@ git checkout 1.16.6
 cd ..
 mv ClinCNV ClinCNV-1.16.6
 
+#download AIdiva
+cd $folder
+git clone https://github.com/imgag/AIdiva.git
+cd AIdiva
+#git fetch && git fetch --tags
+#git checkout 0.1
+#cd data
+#TODO add link to rf_model_snp
+#TODO add link to rf_model_inframe_indel
+#cd ..
+#mv AIdiva AIdiva-0.1
+
 #download and build VEP
 cd $root
 chmod 755 download_tools_vep.sh
@@ -138,4 +150,3 @@ wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc
 wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc546aac98c85bbfe51701fd3b/variant_catalog/grch38/variant_catalog.json -O ExpansionHunter-v3.2.2-linux_x86_64/variant_catalog/grch38/variant_catalog.json
 wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc546aac98c85bbfe51701fd3b/variant_catalog/hg19/variant_catalog.json -O ExpansionHunter-v3.2.2-linux_x86_64/variant_catalog/hg19/variant_catalog.json
 wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc546aac98c85bbfe51701fd3b/variant_catalog/hg38/variant_catalog.json -O ExpansionHunter-v3.2.2-linux_x86_64/variant_catalog/hg38/variant_catalog.json
-
