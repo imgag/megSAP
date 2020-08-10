@@ -15,4 +15,4 @@ vc:
 
 diff:
 	php ../compare_qcml_xml.php CFDNA_01_stats_map.qcML.out CFDNA_01_stats_map.qcML 0.01
-	diff CFDNA_01_var.vcf.out CFDNA_01_var.vcf
+	diff --ignore-matching-lines '^##' CFDNA_01_var.vcf.out CFDNA_01_var.vcf
