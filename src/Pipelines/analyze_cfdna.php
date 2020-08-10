@@ -189,7 +189,7 @@ if (in_array("vc", $steps))
 		"-vcf", $vcffile,
 		"--log", $parser->getLogFile()
 	];
-	$model = get_path("data")."/dbs/cfdna_caller/{$sys['name_short']}.txt";
+	$model = get_path("data_folder")."/dbs/cfdna_caller/{$sys['name_short']}.txt";
 	if (file_exists($model))
 	{
 		$args[] = "-model {$model}";
