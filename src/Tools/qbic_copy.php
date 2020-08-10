@@ -203,7 +203,7 @@ function markAsUploaded($sample1, $sample2=null, $files)
 	$db = DB::getInstance("NGSD");
 	$text = "\nUploaded $name to QBIC with QBIC-ID ".$sample1['id_qbic'];
 	if (isset($sample2)) $name .= "/".$sample2['id_qbic'];
-	$db->executeStmt("UPDATE processed_sample SET comment = CONCAT(comment, '$text') WHERE id='".$sample1['ngsd_processedsample_id']."'");
+	$db->executeStmt("UPDATE processed_sample SET comment = CONCAT(COALESCE(comment,''), '$text') WHERE id='".$sample1['ngsd_processedsample_id']."'");
 }
 
 
