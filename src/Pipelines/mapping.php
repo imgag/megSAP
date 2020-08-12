@@ -487,7 +487,7 @@ if($barcode_correction)
 	$tmp_bam4 = $parser->tempFile("_dedup4.bam");
 	$args = "";
 	if($correction_n) $args .= "--n ";
-	$parser->exec("python  ".repository_basedir()."/src/NGS/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 ".$args,true);
+	$parser->exec("python3 ".repository_basedir()."/src/NGS/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 ".$args,true);
 	$parser->indexBam($tmp_bam4, $threads);
 	
 	$parser->deleteTempFile($bam_current);
