@@ -291,15 +291,15 @@ if (!$start_with_abra)
 
 		// submit GridEngine job to dragen queue
 		$dragen_queues = explode(",", get_path("queues_dragen"));
-		$sge_output = $parser->tempFile("_dragen_sge.log");
+		$sge_logfile = date("YmdHis")."_".exec2("hostname -f")[0]."_".getmypid();
 		$sge_args = array();
 		$sge_args[] = "-V";
 		$sge_args[] = "-b y"; // treat as binary
 		$sge_args[] = "-wd $dragen_output_folder";
 		$sge_args[] = "-m n"; // switch off messages
 		$sge_args[] = "-M ".get_path("queue_email");
-		$sge_args[] = "-e $dragen_output_folder/{$out_name}_sge.err"; // stdout
-		$sge_args[] = "-o $dragen_output_folder/{$out_name}_sge.out"; // stderr
+		$sge_args[] = "-e ".get_path("dragen_log")."/$sge_logfile.err"; // stderr
+		$sge_args[] = "-o ".get_path("dragen_log")."/$sge_logfile.out"; // stdout
 		$sge_args[] = "-q ".implode(",", $dragen_queues); // define queue
 		// log sge command
 		$parser->log("SGE command:\tqsub ".implode(" ", $sge_args)." ".$cmd_mapping);
@@ -337,51 +337,23 @@ if (!$start_with_abra)
 		trigger_error("SGE job $sge_id finished.", E_USER_NOTICE);
 
 
-		// check if job exited successfully
-		list($stdout, $stderr, $exit_code_qacct) = exec2("qacct -j {$sge_id}", false);
-		$qacct_delay = 0;
-		while($exit_code_qacct != 0 && $qacct_delay < 120)
-		{
-			sleep(2);
-			$qacct_delay += 2;
-			list($stdout, $stderr, $exit_code_qacct) = exec2("qacct -j {$sge_id}", false);
-		}
-
-		if ($exit_code_qacct != 0)
-		{
-			trigger_error("Command 'qacct -j {$sge_id}' returned exit code {$exit_code_qacct}.\n STDOUT: $stdout \n STDERR: $stdout", E_USER_ERROR);
-		}
-		else 
-		{
-			trigger_error("Command 'qacct -j {$sge_id}' returned exit code {$exit_code_qacct} after {$qacct_delay}s delay.", E_USER_NOTICE);
-		}
-
-		// parse stdout to determine exit code of SGE job
-		$exit_status = "";
-		foreach($stdout as $line)
-		{
-			if (contains($line, "exit_status"))
-			{
-				$line = trim($line);
-				$line = preg_replace('/\s+/', ' ', $line);
-				list(, $exit_status) = explode(" ", $line);
-				break;
-			}
-		}
+		// parse sge stdout file to determine if mapping was successful:
+		$sge_stdout = file(get_path("dragen_log")."/$sge_logfile.out", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+		$sge_stderr = file(get_path("dragen_log")."/$sge_logfile.err", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
 		//copy DRAGEN log to current mapping log and delete it:
 		$parser->log("DRAGEN mapping log: ", file($dragen_log_file));
 		unlink($dragen_log_file);
 
-		if (trim($exit_status)=="0")
+		if (end($sge_stdout) == "DRAGEN mapping successfully finished, exit code 0.")
 		{
 			trigger_error("SGE job $sge_id successfully finished with exit status 0.", E_USER_NOTICE);
 		}
 		else
 		{
-			// write qacct stdout and stderr to log:
-			$parser->log("qacct stdout:", $stdout);
-			$parser->log("qacct stderr:", $stderr);
+			// write dragen log stdout and stderr to log:
+			$parser->log("sge stdout:", $sge_stdout);
+			$parser->log("sge stderr:", $sge_stderr);
 			trigger_error("SGE job $sge_id failed!\nExit status: {$exit_status}", E_USER_ERROR);
 		}
 

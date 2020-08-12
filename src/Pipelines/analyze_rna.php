@@ -352,5 +352,7 @@ if (in_array("db", $steps))
 	$parser->execTool("NGS/db_check_gender.php", "-in $final_bam -pid $name --log ".$parser->getLogFile());
 
 	//import QC data
-	$parser->execTool("NGS/db_import_qc.php", "-id $name -files $qc_fastq $qc_map -force -skip_parameters 'QC:2000024' --log ".$parser->getLogFile());
+	$parser->execTool("NGS/db_import_qc.php", "-id $name -files $qc_fastq $qc_map -force --log ".$parser->getLogFile());
 }
+
+?>

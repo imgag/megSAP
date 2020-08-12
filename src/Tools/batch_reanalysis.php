@@ -25,7 +25,7 @@ if (isset($before))
 }
 
 //init
-$analyze_script = realpath(dirname($_SERVER['SCRIPT_FILENAME'])."/../Pipelines/analyze.php");
+$analyze_script = "php ".realpath(dirname($_SERVER['SCRIPT_FILENAME'])."/../Pipelines/analyze.php");
 
 foreach($samples as $ps)
 {
@@ -66,10 +66,13 @@ foreach($samples as $ps)
 		//check VCF/GSvar
 		if (contains($steps, "vc"))
 		{
-			$vcf = substr($bam, 0, -4)."_var.vcf.gz";
-			if (!file_exists($vcf) || filemtime($vcf)<$before)
+			if (!isset($annotation_only))
 			{
-				$skip = false;
+				$vcf = substr($bam, 0, -4)."_var.vcf.gz";
+				if (!file_exists($vcf) || filemtime($vcf)<$before)
+				{
+					$skip = false;
+				}
 			}
 			
 			$gsvar = substr($bam, 0, -4).".GSvar";

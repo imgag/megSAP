@@ -258,7 +258,7 @@ if (!isset($out)) $out = "Makefile";
 $db_conn = DB::getInstance($db);
 $db_genlab = GenLabDB::isEnabled() ? GenLabDB::getInstance() : null;
 
-if(!check_number_of_lanes($runinfo,$samplesheet))
+if(!file_exists("Fq") && !check_number_of_lanes($runinfo,$samplesheet))
 {
 	trigger_error("***!!!WARNING!!!***\nCould not verify number of lanes used for Demultiplexing and actually used on Sequencer. Please check manually!",E_USER_WARNING);
 }

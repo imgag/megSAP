@@ -116,6 +116,7 @@ $vcffile_annotated = $folder."/".$name."_var_annotated.vcf.gz";
 $varfile = $folder."/".$name.".GSvar";
 $rohfile = $folder."/".$name."_rohs.tsv";
 $baffile = $folder."/".$name."_bafs.igv";
+$prsfile = $folder."/".$name."_prs.tsv";
 //copy-number calling
 if ($is_wgs || $is_wgs_shallow || $is_wes) //Genome/Exome: ClinCNV
 {
@@ -211,7 +212,7 @@ if (in_array("ma", $steps))
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
 	if($use_dragen) $args[] = "-use_dragen";
-	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name --log ".$parser->getLogFile()." ".implode(" ", $args)." -threads $threads");
+	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name ".implode(" ", $args)." -threads $threads");
 
 	//low-coverage report
 	if ($has_roi && !$is_wgs && !$is_wgs_shallow)
@@ -306,7 +307,7 @@ if (in_array("vc", $steps))
 		if ($has_roi) $only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT";
 		if(!$only_mito_in_target_region)
 		{
-			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." --log ".$parser->getLogFile()." -threads $threads ".implode(" ", $args));
+			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." -threads $threads ".implode(" ", $args));
 		}
 		
 		//perform special variant calling for mitochondria
@@ -321,7 +322,7 @@ if (in_array("vc", $steps))
 			$args[] = "-min_af 0.01";
 			$args[] = "-target $target_mito";
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
-			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile_mito -build ".$sys['build']." --log ".$parser->getLogFile()." ".implode(" ", $args));
+			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile_mito -build ".$sys['build']." ".implode(" ", $args));
 		}
 		
 		if($only_mito_in_target_region) 
@@ -394,6 +395,14 @@ if (in_array("vc", $steps))
 		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 		$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".(file_exists($omim_file) ? $omim_file : "");
 		$parser->exec("{$ngsbits}RohHunter", implode(" ", $args), true);
+	}
+
+	//PRS calculation 
+	if ($is_wgs)
+	{
+		$prs_folder = repository_basedir()."/data/misc/prs/";
+		$prs_scoring_files = glob($prs_folder."/*.vcf");
+		$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
 	}
 }
 
@@ -603,7 +612,7 @@ if (in_array("cn", $steps))
 			//execute
 			$cnv_out = $tmp_folder."/output.tsv";
 			$cnv_out2 = $tmp_folder."/output.seg";
-			$parser->execTool("NGS/vc_cnvhunter.php", "-min_z 3.5 -cov $cov_file -system $system -out $cnv_out -seg $name -n 20 --log ".$parser->getLogFile());
+			$parser->execTool("NGS/vc_cnvhunter.php", "-min_z 3.5 -cov $cov_file -system $system -out $cnv_out -seg $name -n 20");
 
 			//copy results to output folder
 			if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
@@ -617,42 +626,49 @@ if (in_array("cn", $steps))
 
 
 	// annotate CNV file
-	$repository_basedir = repository_basedir();
-	$data_folder = get_path("data_folder");
-	if ($is_wes || $is_wgs || $is_wgs_shallow) //Genome/Exome: ClinCNV
+	if (file_exists($cnvfile))
 	{
+		$repository_basedir = repository_basedir();
+		$data_folder = get_path("data_folder");
+		if ($is_wes || $is_wgs || $is_wgs_shallow) //Genome/Exome: ClinCNV
+		{
 
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnvfile}", true);
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnvfile}", true);
+		}
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode -out {$cnvfile}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2020-05.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
+
+
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_1.bed"; //optional because of license
+		if (file_exists($hgmd_file))
+		{
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
+		}
+		$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
+		if (file_exists($omim_file))
+		{
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$omim_file} -no_duplicates -url_decode -out {$cnvfile}", true);
+		}
+
+
+		if (!$is_wes && !$is_wgs && !$is_wgs_shallow) //Panels: CnvHunter
+		{
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/gene_lists/genes.bed -no_duplicates -url_decode -out {$cnvfile}", true);
+		}
+
+		//annotate additional gene info
+		$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$cnvfile} -out {$cnvfile}", true);
+		// skip annotation if no connection to the NGSD is possible
+		if (db_is_enabled("NGSD"))
+		{
+			//annotate overlap with pathogenic CNVs
+			$parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$cnvfile} -out {$cnvfile}", true);
+		}
 	}
-	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
-	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode -out {$cnvfile}", true);
-	$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2020-05.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
-
-
-	$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_1.bed"; //optional because of license
-	if (file_exists($hgmd_file))
+	else
 	{
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
-	}
-	$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
-	if (file_exists($omim_file))
-	{
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$omim_file} -no_duplicates -url_decode -out {$cnvfile}", true);
-	}
-
-
-	if (!$is_wes && !$is_wgs && !$is_wgs_shallow) //Panels: CnvHunter
-	{
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/gene_lists/genes.bed -no_duplicates -url_decode -out {$cnvfile}", true);
-	}
-
-	//annotate additional gene info
-	$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$cnvfile} -out {$cnvfile}", true);
-	// skip annotation if no connection to the NGSD is possible
-	if (db_is_enabled("NGSD"))
-	{
-		//annotate overlap with pathogenic CNVs
-		$parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$cnvfile} -out {$cnvfile}", true);
+		trigger_error("CNV file {$cnvfile} does not exist, skipping CNV annotation!", E_USER_WARNING);
 	}
 	
 }
@@ -725,10 +741,10 @@ if (in_array("db", $steps))
 	//import QC
 	$qc_files = array($qc_fastq, $qc_map);
 	if (file_exists($qc_vc)) $qc_files[] = $qc_vc; 
-	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force --log ".$parser->getLogFile());
+	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force");
 	
 	//check gender
-	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name --log ".$parser->getLogFile());	
+	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name");	
 	//import variants
 	$args = ["-ps {$name}"];
 	$import = false;
@@ -766,7 +782,7 @@ if (in_array("vc", $steps) || in_array("cn", $steps))
 		{
 			if (file_exists($cnvfile2))
 			{
-				$parser->execTool("NGS/create_circos_plot.php", "-folder $folder -name $name -build ".$sys['build']." --log ".$parser->getLogFile());
+				$parser->execTool("NGS/create_circos_plot.php", "-folder $folder -name $name -build ".$sys['build']);
 			}
 			else
 			{

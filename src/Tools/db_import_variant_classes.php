@@ -22,7 +22,11 @@ $valid_classes = $db->getEnum("variant_classification", "class");
 $hash_var = $db->prepare("INSERT INTO `variant`(`chr`, `start`, `end`, `ref`, `obs`) VALUES (:0, :1, :2, :3, :4, :5)");
 
 //check input VCF
-$parser->exec(get_path("ngs-bits")."VcfCheck", "-in {$in}");
+list($stderr, $stdout, $exit_code) = $parser->exec(get_path("ngs-bits")."VcfCheck", "-in {$in}", true, false, false);
+if ($exit_code!=0)
+{
+	trigger_error("Invalid input VCF:\n".implode("\n", $stderr), E_USER_ERROR);
+}
 
 //check user id
 $users = $db->getValues("SELECT user_id FROM user WHERE active='1' ORDER BY user_id");
