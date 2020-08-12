@@ -1,5 +1,5 @@
 ##fileformat=VCFv4.1
-##fileDate=10/08/2020
+##fileDate=12/08/2020
 ##source=CRG_UKT_somatic_variant_calling
 ##reference=/tmp/local_ngs_data//GRCh37.fa
 ##INFO=<ID=Variant_Dist,Number=1,Type=Integer,Description="Distance to the closest short variant">
@@ -25,5 +25,5 @@
 ##FORMAT=<ID=VCB,Number=1,Type=Integer,Description="Variant Count bias, number of other different alternative alleles found">
 ##FORMAT=<ID=Perror,Number=1,Type=Float,Description="Q-value to belong to the error rate distribution (beta binomial distribution) - After FDR correction">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	CFDNA_01
-chr1	115256530	.	G	T	.	Error	Variant_dist=Inf;Upstream=TTCTT;Downstream=TCCAG	GT:Alt_Count:DP:AB:Strand:FS:VCB:Pvcb:Perror	T:44:4238:0.010491:28-16-3034-1160:4.70e-01:0:1.00e+00:2.30e-01
-chr1	115256536	.	C	T	.	Error	Variant_dist=Inf;Upstream=TCCAG;Downstream=TGTAT	GT:Alt_Count:DP:AB:Strand:FS:VCB:Pvcb:Perror	T:43:4430:0.009806:14-29-3215-1170:6.74e-08:2:1.00e+00:4.74e-01
+chr1	115256530	.	G	T	.	Error	Variant_dist=Inf;Upstream=TTCTT;Downstream=TCCAG	GT:Alt_Count:DP:AB:Strand:FS:VCB:Pvcb:Perror	T:44:4237:0.010494:28-16-3033-1160:4.70e-01:0:1.00e+00:2.30e-01
+chr1	115256536	.	C	T	.	Error	Variant_dist=Inf;Upstream=TCCAG;Downstream=TGTAT	GT:Alt_Count:DP:AB:Strand:FS:VCB:Pvcb:Perror	T:43:4429:0.009808:14-29-3214-1170:6.77e-08:2:1.00e+00:4.74e-01
