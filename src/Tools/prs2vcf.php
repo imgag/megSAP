@@ -123,7 +123,7 @@ if(!isset($citation)) trigger_error("Citation missing in PRS file!");
 
 //left-align VCF file
 $normalize_out = $parser->tempFile("_leftNormalized.vcf");
-$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-ref $genome_fasta -in $temp_file -out $normalize_out");
+$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-ref $genome_fasta -in $temp_file -out $normalize_out -comp 0");
 $temp_file = $normalize_out;
 
 

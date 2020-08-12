@@ -234,7 +234,7 @@ $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
 $pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
 
 //normalize all variants and align INDELs to the left
-$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-ref $genome");
+$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-comp 0 -ref $genome");
 
 //sort variants by genomic position
 $pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
@@ -252,7 +252,7 @@ $parser->execPipeline($pipeline, "freebayes post processing");
 if ($target_extend>0)
 {
 	$tmp = $parser->tempFile(".vcf");
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $out -mark off-target -reg $target -out $tmp", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $out -comp 0 -mark off-target -reg $target -out $tmp", true);
 	$parser->exec("bgzip", "-c $tmp > $out", false);
 }
 
