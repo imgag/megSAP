@@ -1,7 +1,7 @@
-<?php 
-/** 
+<?php
+/**
 	@page an_vep
-	
+
 	@todo test extended splice region plugin: https://github.com/Ensembl/VEP_plugins/blob/release/94/SpliceRegion.pm
 	@todo test Mastermind plugin: https://github.com/Ensembl/VEP_plugins/blob/release/98/Mastermind.pm
 	@todo test FunMotifs plugin: https://github.com/Ensembl/VEP_plugins/blob/release/98/FunMotifs.pm
@@ -31,7 +31,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 {
 	global $data_folder;
 	global $local_data;
-	
+
 	//check if original exists
 	$orig = $data_folder.$rel_path;
 	if (!file_exists($orig))
@@ -42,7 +42,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 		}
 		trigger_error("VEP annotation file '$orig' missing!", E_USER_ERROR);
 	}
-	
+
 	//check if copy exists
 	$copy = $local_data."/ensembl-vep-dbs/".basename($rel_path);
 	if (!file_exists($copy))
@@ -50,7 +50,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 		trigger_error("VEP annotation file '$rel_path' not found in local data copy. Using (possibly slow) remote file '$orig'!", E_USER_NOTICE);
 		return $orig;
 	}
-	
+
 	return $copy;
 }
 
@@ -377,7 +377,7 @@ function annotate_splice_predictions($splicing_output)
 // generate temp file for vep output
 $vep_output = $parser->tempFile("_vep.vcf");
 
-//annotate only fields we really need to prevent bloating the VCF file 
+//annotate only fields we really need to prevent bloating the VCF file
 $fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation", "AF", "gnomAD_AF", "gnomAD_AFR_AF", "gnomAD_AMR_AF", "gnomAD_EAS_AF", "gnomAD_NFE_AF", "gnomAD_SAS_AF");
 
 $vep_path = dirname(get_path("vep"));
@@ -393,7 +393,7 @@ $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time wh
 $args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".genome_fasta($build); //paths to data
 $args[] = "--numbers --hgvs --domains --transcript_version"; //annotation options
 $args[] = "--regulatory"; //regulatory features
-$fields[] = "BIOTYPE"; 
+$fields[] = "BIOTYPE";
 $args[] = "--sift b --polyphen b"; //pathogenicity predictions
 $args[] = "--af --af_gnomad --failed 1"; //population frequencies
 $args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_all_chromosomes.tsv.gz"); //REVEL
@@ -440,7 +440,7 @@ if (file_exists($warn_file))
 	{
 		$line = trim($line);
 		if ($line=="") continue;
-		
+
 		print $line."\n";
 	}
 }
@@ -449,7 +449,7 @@ if (file_exists($warn_file))
 // generate temp file for vep output
 $vep_output_refseq = $parser->tempFile("_vep.vcf");
 
-//annotate only fields we really need to prevent bloating the VCF file 
+//annotate only fields we really need to prevent bloating the VCF file
 $fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS");
 
 $args = array();
@@ -476,7 +476,7 @@ if (file_exists($warn_file))
 	{
 		$line = trim($line);
 		if ($line=="") continue;
-		
+
 		print $line."\n";
 	}
 }
@@ -484,9 +484,10 @@ if (file_exists($warn_file))
 
 $family_file = "None"; // handle as single sample (specify a ped file if a multisample vcf is given)
 $aidiva_config = get_path("aidiva")."data/AIdiva_configuration_annotated.yaml";
+$ref_genome = annotation_file_path("/genomes/GRCh37.fa");
 
 $temp_results = $parser->tempFolder("aidiva_workdir");
-$args = array("-vcf {$in}", "-outdir {$temp_results} -family {$family_file} -ps_name {$ps_name} -config {$aidiva_config}");
+$args = array("-vcf {$in}", "-outdir {$temp_results} -family {$family_file} -ps_name {$ps_name} -genome_file {$ref_genome} -config {$aidiva_config}");
 $args[] = "-threads {$threads}";
 $parser->execTool("NGS/sp_aidiva.php", implode(" ", $args));
 
@@ -502,7 +503,7 @@ $config_file = fopen($config_file_path, 'w');
 
 
 // add AIdiva annotation
-fwrite($config_file, $aidiva_result_file."\t\tAIDIVA_SCORE,AIDIVA_SCORE_FINAL\t\ttrue\n");
+fwrite($config_file, $aidiva_result_file."\t\tAIDIVA\t\ttrue\n");
 
 
 // add gnomAD annotation
@@ -547,7 +548,7 @@ if (!$skip_ngsd)
 		$ngsd_som_file = repository_basedir()."/test/data/an_vep_NGSD_somatic.vcf.gz";
 		$ngsd_file = repository_basedir()."/test/data/an_vep_NGSD_germline.vcf.gz";
 	}
-	
+
 	// get disease group column name
 	$disease_group_column = "";
 	if (db_is_enabled("NGSD"))
@@ -588,7 +589,7 @@ if (!$skip_ngsd)
 	{
 		trigger_error("NGSD count annotation for disease group will be missing in output file (NGSD is disabled).", E_USER_WARNING);
 	}
-	
+
 	$ngsd_columns = ["COUNTS"];
 	if ($disease_group_column != "")
 	{
@@ -604,7 +605,7 @@ if (!$skip_ngsd)
 	{
 		trigger_error("VCF file for NGSD germline annotation not found at '".$ngsd_file."'!",E_USER_ERROR);
 	}
-	
+
 
 	if ($somatic)
 	{
@@ -624,7 +625,7 @@ if (!$skip_ngsd)
 			trigger_error("Cannot get modification date of '".$ngsd_som_file."'!",E_USER_ERROR);
 		}
 	}
-	
+
 	// store file date of NGSD files to detect file changes during annotation
 	$ngsd_file_mtime = filemtime($ngsd_file);
 	if ($ngsd_file_mtime == false)
@@ -655,7 +656,7 @@ if (!$skip_ngsd)
 			trigger_error("Annotation file '".$ngsd_som_file."' has changed during annotation!",E_USER_ERROR);
 		}
 	}
-	
+
 	// annotate genes
 	$gene_file = $data_folder."/dbs/NGSD/NGSD_genes.bed";
 	if (file_exists($gene_file))
