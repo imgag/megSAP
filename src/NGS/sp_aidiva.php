@@ -1,8 +1,8 @@
-<?php 
-/** 
+<?php
+/**
 	@page sp_aidiva
-	
-	
+
+
 */
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
@@ -14,6 +14,7 @@ $parser->addString("vcf", "Path to VCF file.", true);
 $parser->addString("outdir", "Path to output directory.", true);
 $parser->addString("family", "File showing the family and who is affected.", true);
 $parser->addString("ps_name", "HPO terms of the observed phenotypes of the patient.", true);
+$parser->addString("genome_file", "Reference genome file.", true);
 $parser->addString("config", "YAML file with the configuration for AIdiva.", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 
@@ -24,14 +25,14 @@ $vcf_indel = $outdir."/".$vcf_name."_indel.vcf";
 $vcf_indel_expanded = $outdir."/".$vcf_name."_indel_expanded.vcf";
 $vcf_snp = $outdir."/".$vcf_name."_snp.vcf";
 
-$hg19_path = annotation_file_path("/dbs/hg19/Sequence/Chromosomes/");
+$hg19_path = $genome_file;
 $feature_list = "SIFT,PolyPhen,REVEL,CADD_PHRED,ABB_SCORE,MAX_AF,segmentDuplication,custom_EIGEN_PHRED,fannsdb_CONDEL,custom_FATHMM_XF,custom_MutationAssessor,phastCons46mammal,phastCons46primate,phastCons46vertebrate,phyloP46mammal,phyloP46primate,phyloP46vertebrate";
-$coding_regions = annotation_file_path("/dbs/hg19/Annotation/hg19.Ensembl_gene.bed");
+$coding_regions = get_path("aidiva")."data/GRCh37_coding_sequences.bed";
 $family_file = $family;
 //$hpo_resources = get_path("aidiva")."data/";
 
-//$model_snp = "get_path("aidiva")."data/rf_snp_clinvar_hgmd_1to1.pkl";
-//$model_indel = "get_path("aidiva")."data/inframe_indel_clinvar_hgmd_balanced.pkl";
+//$model_snp = get_path("aidiva")."/data/rf_model_snp_scikit0-19-1.pkl";
+//$model_indel = get_path("aidiva")."/data/rf_model_inframe_indel_scikit0-19-1.pkl";
 
 $parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/split_vcf_in_indel_and_snp_set.py", "--in_file $vcf --snp_file $vcf_snp --indel_file $vcf_indel", true);
 $parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/convert_indels_to_snps_and_create_vcf.py", "--in_data $vcf_indel --out_data $vcf_indel_expanded --hg19_path $hg19_path", true);

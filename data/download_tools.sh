@@ -67,13 +67,13 @@ mv ClinCNV ClinCNV-1.16.6
 cd $folder
 git clone https://github.com/imgag/AIdiva.git
 cd AIdiva
-#git fetch && git fetch --tags
-#git checkout 0.1
-#cd data
-#TODO add link to rf_model_snp
-#TODO add link to rf_model_inframe_indel
-#cd ..
-#mv AIdiva AIdiva-0.1
+git fetch && git fetch --tags
+git checkout v0.1
+cd data
+wget -c https://download.imgag.de/ahboced1/AIdiva_pretrained_models/rf_model_inframe_indel_scikit0-19-1.pkl
+wget -c https://download.imgag.de/ahboced1/AIdiva_pretrained_models/rf_model_snp_scikit0-19-1.pkl
+cd ..
+mv AIdiva AIdiva-v0.1
 
 #download and build VEP
 cd $root
