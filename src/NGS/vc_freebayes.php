@@ -20,6 +20,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 1);
 $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 15);
+$parser->addInt("min_ao", "Minimum alternative base observation count.", true, 3);
 $parser->addFlag("no_ploidy", "Use freebayes parameter -K, i.e. output all alleles which pass input filters, regardles of genotyping outcome or model.");
 $parser->addFlag("no_bias", "Use freebayes parameter -V, i.e. ignore strand bias and read end distance bias.");
 extract($parser->parse($argv));
@@ -57,7 +58,7 @@ if ($no_bias)
 $args[] = "--min-alternate-fraction $min_af";
 $args[] = "--min-mapping-quality $min_mq";
 $args[] = "--min-base-quality $min_bq";
-$args[] = "--min-alternate-count 3";
+$args[] = "--min-alternate-count $min_ao";
 $args[] = "-f $genome";
 $args[] = "-b ".implode(" ", $bam);
 
