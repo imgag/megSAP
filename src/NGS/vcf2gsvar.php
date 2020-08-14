@@ -272,6 +272,9 @@ $column_desc = array(
 	array("fathmm-MKL", "fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
+	array("AIDIVA", "AIdiva pathogenicity prediction."),
+	array("AIDIVA_HPO", "AIdiva pathogenicity prediction adjusted with given HPO terms.")
+	array("AIDIVA_FILTER", "Flag that indicates if the variant passed all internal filters of AIdiva (0 or 1).")
 	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
 	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
@@ -676,6 +679,9 @@ while(!feof($handle))
 	$phylop = array();
 	$fathmm = array();
 	$revel = array();
+	$aidiva = array();
+	$aidiva_hpo = array();
+	$aidiva_filter = array();
 	$dbsnp = array();
 	$cosmic = array();
 	$genes = array();
@@ -1091,6 +1097,14 @@ while(!feof($handle))
 		$text = $hgmd_id." [CLASS=".$hgmd_class." MUT=".$hgmd_mut." PHEN=".strtr($hgmd_phen, "_", " ")." GENE=".$hgmd_gene."]; ";
 		$hgmd[] = trim($text);
 	}
+	
+	//AIdiva
+	if (isset($info["AIDIVA"]))
+	{
+		$aidiva[] = explode(",", trim($info["AIDIVA"]))[0]
+		$aidiva_hpo[] = explode(",", trim($info["AIDIVA"]))[1]
+		$aidiva_filter[] = explode(",", trim($info["AIDIVA"]))[3]
+	}
 
 	//AFs
 	$dbsnp = implode(",", collapse("dbSNP", $dbsnp, "unique"));	
@@ -1403,6 +1417,9 @@ while(!feof($handle))
 	$fathmm = collapse("fathmm-MKL", $fathmm, "one");
 	
 	$revel = empty($revel) ? "" : collapse("REVEL", $revel, "max", 2);
+	$aidiva = empty($aidiva) ? "" collapse("AIDIVA", $aidiva, "one", 4):
+	$aidiva_hpo = empty($aidiva_hpo) ? "" collapse("AIDIVA_HPO", $aidiva_hpo, "one", 4):
+	$aidiva_filter = empty($aidiva_filter) ? "" collapse("AIDIVA_FILTER", $aidiva_filter, "one"):
 	
 	//OMIM
 	$omim = collapse("OMIM", $omim, "one");
