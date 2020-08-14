@@ -310,6 +310,9 @@ $column_desc = array(
 	array("fathmm-MKL", "fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
+	array("AIDIVA", "AIdiva pathogenicity prediction."),
+	array("AIDIVA_HPO", "AIdiva pathogenicity prediction adjusted with given HPO terms.")
+	array("AIDIVA_FILTER", "Flag that indicates if the variant passed all internal filters of AIdiva (0 or 1).")
 	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
 	array("GeneSplicer", "GeneSplicer splicing prediction (state/type/coordinates/confidence/score)."),
 	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
@@ -649,6 +652,9 @@ while(!feof($handle))
 	$fathmm = array();
 	$cadd = array();
 	$revel = array();
+	$aidiva = array();
+	$aidiva_hpo = array();
+	$aidiva_filter = array();
 	$dbsnp = array();
 	$cosmic = array();
 	$genes = array();
@@ -1072,6 +1078,14 @@ while(!feof($handle))
 		$text = $hgmd_id." [CLASS=".$hgmd_class." MUT=".$hgmd_mut." PHEN=".strtr($hgmd_phen, "_", " ")." GENE=".$hgmd_gene."]; ";
 		$hgmd[] = trim($text);
 	}
+	
+	//AIdiva
+	if (isset($info["AIDIVA"]))
+	{
+		$aidiva[] = explode(",", trim($info["AIDIVA"]))[0]
+		$aidiva_hpo[] = explode(",", trim($info["AIDIVA"]))[1]
+		$aidiva_filter[] = explode(",", trim($info["AIDIVA"]))[3]
+	}
 
 	//AFs
 	$dbsnp = implode(",", collapse("dbSNP", $dbsnp, "unique"));	
@@ -1217,6 +1231,9 @@ while(!feof($handle))
 	$fathmm = collapse("fathmm-MKL", $fathmm, "one");
 	$cadd = collapse("CADD", $cadd, "one", 2);
 	$revel = empty($revel) ? "" : collapse("REVEL", $revel, "max", 2);
+	$aidiva = empty($aidiva) ? "" collapse("AIDIVA", $aidiva, "one", 4):
+	$aidiva_hpo = empty($aidiva_hpo) ? "" collapse("AIDIVA_HPO", $aidiva_hpo, "one", 4):
+	$aidiva_filter = empty($aidiva_filter) ? "" collapse("AIDIVA_FILTER", $aidiva_filter, "one"):
 	
 	//OMIM
 	$omim = collapse("OMIM", $omim, "one");
@@ -1248,7 +1265,7 @@ while(!feof($handle))
 	
 	//write data
 	++$c_written;
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$aidiva\t$aidiva_hpo\t$aidiva_filter\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects");
