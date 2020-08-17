@@ -164,11 +164,20 @@ if (file_exists($warn_file))
 
 
 $family_file = "None"; // handle as single sample (specify a ped file if a multisample vcf is given)
-$aidiva_config = get_path("aidiva")."data/AIdiva_configuration_annotated.yaml";
+$aidiva_config = get_path("aidiva")."/data/AIdiva_configuration_smallTestFile_annotated.yaml";
 $ref_genome = annotation_file_path("/genomes/GRCh37.fa");
 
 $temp_results = $parser->tempFolder("aidiva_workdir");
-$args = array("-vcf {$in}", "-outdir {$temp_results} -family {$family_file} -ps_name {$ps_name} -genome_file {$ref_genome} -config {$aidiva_config}");
+$args = array();
+$args[] = "-vcf {$in}";
+$args[] = "-outdir {$temp_results}";
+$args[] = "-family {$family_file}";
+if ($ps_name != "")
+{
+	$args[] = "-ps_name {$ps_name}";
+}
+$args[] = "-genome_file {$ref_genome}";
+$args[] = "-config {$aidiva_config}";
 $args[] = "-threads {$threads}";
 $parser->execTool("NGS/sp_aidiva.php", implode(" ", $args));
 
