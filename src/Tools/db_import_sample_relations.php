@@ -21,10 +21,16 @@ function get_sample_id($sample_name)
 	$res = $db->executeQuery("SELECT id FROM sample WHERE name=:name", array('name' => $sample_name));
 	if (count($res)!=1)
 	{
-		trigger_error("Invalid line (less than 3 tab-separated columns): ".$line, E_USER_ERROR);
+		trigger_error("Sample name not found: ".$sample_name, E_USER_WARNING);
+		$sampleid = "";
+	}
+	else
+	{
+		$sampleid = $res[0]['id'];
 	}
 	
-	return $res[0]['id'];
+	# return: sample found, sample id
+	return [count($res)===1, $sampleid];
 }
 
 function is_contained($id1, $rel, $id2)
@@ -52,8 +58,12 @@ foreach($file as $line)
 	list($s1, $rel, $s2) = $parts;
 		
 	//check input data
-	$id1 = get_sample_id($s1);
-	$id2 = get_sample_id($s2);
+	list($sample1_found, $id1) = get_sample_id($s1);
+	list($sample2_found, $id2) = get_sample_id($s2);
+	if (!$sample1_found || !$sample2_found)
+	{
+		continue;
+	}
 	if (!in_array($rel, $valid_relations)) trigger_error("Invalid sample relation '$rel' in line : ".$line, E_USER_ERROR);
 	
 	//check if already contained

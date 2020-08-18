@@ -6,7 +6,7 @@
 
 [tools-ngs]
 ngs-bits = [path]/data/tools/ngs-bits/bin/
-samtools = [path]/data/tools/samtools-1.9/samtools
+samtools = [path]/data/tools/samtools-1.10/samtools
 freebayes = [path]/data/tools/freebayes/bin/freebayes
 vcflib = [path]/data/tools/vcflib/bin/
 abra2 = java -Xmx16g -jar [path]/data/tools/abra2-2.22/abra2.jar
@@ -23,12 +23,12 @@ aidiva = [path]/data/tools/AIdiva/
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.9.centos6_x86_64/bin/
 manta = [path]/data/tools/manta-1.6.0.centos6_x86_64/bin/
-mantis = [path]/data/tools/MANTIS-1.0.4/mantis.py
+mantis = [path]/data/tools/MANTIS-1.0.5/mantis.py
 varscan2 = java -jar [path]/data/tools/VarScan.v2.4.4/VarScan.v2.4.4.jar
 
 [tools-ngs-rna]
 STAR = [path]/data/tools/STAR-2.7.3a/bin/Linux_x86_64/STAR
-STAR-Fusion = [path]/data/tools/STAR-Fusion-v1.8.1/STAR-Fusion
+STAR-Fusion = [path]/data/tools/STAR-Fusion-v1.9.1/STAR-Fusion
 STAR-Fusion_pythonpath = [path]/data/tools/igv-reports-0.9.1/build/lib
 feature_counts = [path]/data/tools/subread-2.0.0/bin/featureCounts
 skewer = [path]/data/tools/skewer-0.2.2/skewer

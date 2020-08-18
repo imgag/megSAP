@@ -35,7 +35,7 @@
 ##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
 ##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.
 ##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.
-##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group (Neoplasms).
+##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group.
 ##DESCRIPTION=classification=Classification from the NGSD.
 ##DESCRIPTION=classification_comment=Classification comment from the NGSD.
 ##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!

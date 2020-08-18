@@ -693,6 +693,7 @@ class ToolBase
 		$stderr_file = $this->tempFile(".stderr", "megSAP_exec_pid{$pid}_");
 		$exec_start = microtime(true);
 		$proc = proc_open($command_and_parameters, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
+		if ($proc===false) trigger_error("Could not start process with ToolBase::exec function!\nCommand: {$command}\nParameters: {$parameters}", E_USER_ERROR);
 		
 		//get stdout, stderr and exit code
 		$return = proc_close($proc);

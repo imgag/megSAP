@@ -13,10 +13,10 @@ tar xzf 2.7.3a.tar.gz
 rm 2.7.3a.tar.gz
 
 #download STAR-Fusion
-wget https://github.com/STAR-Fusion/STAR-Fusion/releases/download/STAR-Fusion-v1.9.0/STAR-Fusion.v1.9.0.FULL.tar.gz
-tar xzf STAR-Fusion.v1.9.0.FULL.tar.gz
-rm STAR-Fusion.v1.9.0.FULL.tar.gz
-sed -i '1s/python/python3/' STAR-Fusion.v1.9.0/FusionInspector/FusionInspector
+wget https://github.com/STAR-Fusion/STAR-Fusion/releases/download/v1.9.1/STAR-Fusion-v1.9.1.FULL.tar.gz
+tar xzf STAR-Fusion-v1.9.1.FULL.tar.gz
+rm STAR-Fusion-v1.9.1.FULL.tar.gz
+sed -i '1s/python/python3/' STAR-Fusion-v1.9.1/FusionInspector/FusionInspector
 
 #download igv-reports, neccessary for STAR-fusion
 wget https://github.com/igvteam/igv-reports/archive/v0.9.1.tar.gz

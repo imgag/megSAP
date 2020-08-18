@@ -1,8 +1,6 @@
 <?php
 /** 
 	@page validate_somatic
-	//TODO: split in SNV/Indel
-	//TODO: Add min_dp parameter
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -14,12 +12,31 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("validate_somatic", "Validates the somatic variant calling performance.");
 $parser->addInfile("normal", "Expected germline variants (VCF.GZ).", false);
 $parser->addInfile("tumor", "Expected tumor variants  (VCF.GZ).", false);
-$parser->addInfile("roi", "Target region for the validation.", false);
+$parser->addInfile("roi", "Target region for the validation (high-confidence region of reference samples intersected with high-depth region of experiment.", false);
 $parser->addInfileArray("calls", "Somatic variant call files (VCF.GZ).", false);
 $parser->addOutfile("vars_details", "Output TSV file for variant details.", false);
 extract($parser->parse($argv));
 
+//returns if the variant is an InDels
+function is_indel($tag)
+{
+	list($chr, $pos, $ref, $alt) = explode(" ", strtr($tag, ":>", "  "));
+	return strlen($ref) > 1 || strlen($alt) > 1;
+}
 
+//returns the base count of a BED file
+function get_bases($filename)
+{
+	global $parser;
+	global $ngsbits;
+	
+	list($stdout) = $parser->exec("{$ngsbits}BedInfo", "-in $filename", true);
+	$hits = array_containing($stdout, "Bases ");
+	$parts = explode(":", $hits[0]);
+	return trim($parts[1]);
+}
+
+//load VCF
 function load_vcf($filename, $roi, $strelka)
 {
 	$output = array();
@@ -30,7 +47,6 @@ function load_vcf($filename, $roi, $strelka)
 		if ($line=="") continue;
 		
 		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample_normal, $sample_tumor) = explode("\t", $line."\t");
-		$is_indel = strlen($ref) > 1 || strlen($alt) > 1;
 		
 		//fix chr
 		if (!starts_with($chr, "chr")) $chr = "chr".$chr;
@@ -39,7 +55,7 @@ function load_vcf($filename, $roi, $strelka)
 		$tag = "$chr:$pos $ref>$alt";
 		if ($strelka)
 		{
-			list($tumor_dp, $tumor_af) = $is_indel ? vcf_strelka_indel($format, $sample_tumor) : vcf_strelka_snv($format, $sample_tumor, $alt);
+			list($tumor_dp, $tumor_af) = is_indel($tag) ? vcf_strelka_indel($format, $sample_tumor) : vcf_strelka_snv($format, $sample_tumor, $alt);
 			$output[$tag] = $tumor_af;
 		}
 		else
@@ -59,6 +75,22 @@ function load_vcf($filename, $roi, $strelka)
 	return $output;
 }
 
+//checks if the variant type matches
+function type_matches($type, $tag)
+{	
+	if ($type=="SNVs" && is_indel($tag)) return false;
+	if ($type=="InDels" && !is_indel($tag)) return false;
+	
+	return true;
+}
+
+//init
+$ngsbits = get_path("ngs-bits");
+
+//determine target region size
+$roi_bases = get_bases($roi);
+print "##ROI bases: {$roi_bases}\n";
+
 //load germline variants
 $vars_germline = load_vcf($normal, $roi, false);
 print "##Germline variants: ".count($vars_germline)."\n";
@@ -67,10 +99,6 @@ print "##Germline variants: ".count($vars_germline)."\n";
 $tmp = $parser->tempFile(".bed");
 exec2("cat {$roi} | tr -d 'chr' > {$tmp}");
 $vars_somatic = load_vcf($tumor, $tmp, false);
-list($stdout, $stderr) = exec2("BedInfo -in {$tmp} | grep Bases");
-$roi_bases = trim(explode(":", $stdout[0])[1]);
-print "##ROI bases: {$roi_bases}\n";
-
 print "##Tumor variants: ".count($vars_somatic)."\n";
 foreach($vars_germline as $var => $gt)
 {
@@ -82,53 +110,62 @@ foreach($vars_germline as $var => $gt)
 print "##Tumor variants after removing overlap with germline: ".count($vars_somatic)."\n";
 
 //benchmark
-$details = [];
+$details_all = [];
 print "#name\texpected\tTP\tTN\tFP\tFN\trecall/sensitivity\tprecision/ppv\tspecificity\n";
 foreach($calls as $filename)
 {
-	$name = basename($filename, ".vcf.gz");
+	$name = basename($filename, "_var.vcf.gz");
 	$vars = load_vcf($filename, $roi, true);
-	
-	$tp = 0;
-	$fp = 0;
-	$fn = 0;
-	foreach($vars as $var => $af)
+	foreach(["", "SNVs", "InDels"] as $type)
 	{
-		if (isset($vars_somatic[$var]))
+		$details = [];
+		$c_expected = 0;
+		$tp = 0;
+		$fp = 0;
+		$fn = 0;
+		foreach($vars as $var => $af)
 		{
-			++$tp;
+			if (!type_matches($type, $var)) continue;
+			if (isset($vars_somatic[$var]))
+			{
+				++$tp;
+			}
+			else if(!isset($vars_germline[$var]))
+			{
+				++$fp;
+			}
+			$details[$name][$var] = $af;
 		}
-		else if(!isset($vars_germline[$var]))
+		
+		foreach($vars_somatic as $var => $gt)
 		{
-			++$fp;
+			if (!type_matches($type, $var)) continue;
+			++$c_expected;
+			
+			if (!isset($details[$name][$var]))
+			{
+				$details[$name][$var] = "MISSED";
+				++$fn;
+			}
 		}
-		$details[$name][$var] = $af;
+		
+		$tn = $roi_bases - $c_expected - $fp;
+		
+		$recall = ($tp+$fn==0) ? "0.00000" : number_format($tp/($tp+$fn),5);
+		$precision = ($tp+$fp==0) ? "0.00000" : number_format($tp/($tp+$fp),5);
+		$spec = number_format($tn/($tn+$fp),5);
+		
+		print implode("\t", array(trim($name." ".$type), $c_expected, $tp, $tn, $fp, $fn, $recall, $precision, $spec))."\n";
+		
+		if ($type=="") $details_all[$name] = $details[$name];
 	}
-	
-	foreach($vars_somatic as $var => $gt)
-	{
-		if (!isset($details[$name][$var]))
-		{
-			$details[$name][$var] = "MISSED";
-			++$fn;
-		}
-	}
-	
-	$c_expected = count($vars_somatic);
-	$tn = $roi_bases - $c_expected - $fp;
-	
-	$recall = number_format($tp/($tp+$fn),5);
-	$precision = number_format($tp/($tp+$fp),5);
-	$spec = number_format($tn/($tn+$fp),5);
-	
-	print implode("\t", array(basename($filename, ".vcf.gz"), $c_expected, $tp, $tn, $fp, $fn, $recall, $precision, $spec))."\n";
 }
 
 //create sorted variant list
 $vars_all = [];
 $vcf = [];
 $vcf[] = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
-foreach($details as $name => $tmp)
+foreach($details_all as $name => $tmp)
 {
 	foreach($tmp as $var => $result)
 	{
@@ -139,7 +176,7 @@ foreach($details as $name => $tmp)
 $tmp = $parser->tempFile(".vcf");
 file_put_contents($tmp, implode("\n", $vcf));
 $tmp2 = $parser->tempFile(".vcf");
-list($stdout) = exec2(get_path("ngs-bits")."VcfSort -in $tmp -out $tmp2 && sort --uniq $tmp2", true);
+list($stdout) = exec2("{$ngsbits}VcfSort -in $tmp -out $tmp2 && sort --uniq $tmp2", true);
 foreach($stdout as $line)
 {
 	$line = trim($line);
@@ -151,7 +188,7 @@ foreach($stdout as $line)
 //write details
 $output = [];
 $header = "#variant\ttype";
-foreach($details as $name => $tmp)
+foreach($details_all as $name => $tmp)
 {
 	$header .= "\t$name";
 }
@@ -161,11 +198,15 @@ foreach($vars_all as $var)
 	if (isset($vars_germline[$var])) continue;
 	$type = "ARTEFACT";
 	if (isset($vars_somatic[$var])) $type = "SOMATIC (".$vars_somatic[$var].")";
-	$line = "{$var}\t{$type}";
-	foreach($details as $name => $tmp)
+	$line = "{$var}".(is_indel($var) ? " (INDEL)" : "")."\t{$type}";
+	foreach($details_all as $name => $tmp)
 	{
 		$value = "";
-		if (isset($tmp[$var])) $value = $tmp[$var];
+		if (isset($tmp[$var]))
+		{
+			$value = $tmp[$var];
+			if (is_numeric($value)) $value = number_format($value, 5);
+		}
 		$line .= "\t$value";
 	}
 	$output[] = $line;

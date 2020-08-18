@@ -329,7 +329,7 @@ $column_desc_ngsd_som = array(
 $column_desc_ngsd = array(
 	array("NGSD_hom", "Homozygous variant count in NGSD."),
 	array("NGSD_het", "Heterozygous variant count in NGSD."),
-	array("NGSD_group", "Homozygous / heterozygous variant count in NGSD with the same disease group (Neoplasms)."),
+	array("NGSD_group", "Homozygous / heterozygous variant count in NGSD with the same disease group."),
 	array("classification", "Classification from the NGSD."),
 	array("classification_comment", "Classification comment from the NGSD."),
 	array("validation", "Validation information from the NGSD. Validation results of other samples are listed in brackets!"),
@@ -1229,7 +1229,11 @@ while(!feof($handle))
 	$polyphen = implode(",", $polyphen);
 	if (trim(strtr($polyphen, ",", " "))=="") $polyphen = "";
 	$fathmm = collapse("fathmm-MKL", $fathmm, "one");
+	
+	// remove empty scores
+	$cadd = array_values(array_filter($cadd, "strlen"));
 	$cadd = collapse("CADD", $cadd, "one", 2);
+	
 	$revel = empty($revel) ? "" : collapse("REVEL", $revel, "max", 2);
 	$aidiva = empty($aidiva) ? "" : collapse("AIDIVA", $aidiva, "one", 4);
 	$aidiva_hpo = empty($aidiva_hpo) ? "" : collapse("AIDIVA_HPO", $aidiva_hpo, "one", 4);
