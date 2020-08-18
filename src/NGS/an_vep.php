@@ -86,7 +86,7 @@ $args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
 $fields[] = "MaxEntScan_ref";
 $fields[] = "MaxEntScan_alt";
 $args[] = "--plugin GeneSplicer,{$vep_path}/GeneSplicer/sources/genesplicer,{$local_data}/GeneSplicer/,tmpdir=".sys_get_temp_dir(); //GeneSplicer
-$fields[] = "GeneSplicer"; 
+$fields[] = "GeneSplicer"; //TODO reactivate GeneSplicer when runtime problems are fixed in VEP 100 (https://github.com/Ensembl/ensembl-vep/issues/641)
 $args[] = "--plugin dbscSNV,".annotation_file_path("/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"); //dbscSNV
 $fields[] = "ada_score";
 $fields[] = "rf_score";;
@@ -110,9 +110,7 @@ if (!$all_transcripts)
 
 $args[] = "--fields ".implode(",", $fields);
 putenv("PERL5LIB={$vep_path}/Bio/:{$vep_path}/cpan/lib/perl5/:".getenv("PERL5LIB"));
-
 $parser->exec(get_path("vep"), implode(" ", $args), true);
-
 
 //print VEP warnings
 $warn_file = $vep_output."_warnings.txt";
@@ -132,7 +130,7 @@ if (file_exists($warn_file))
 // generate temp file for vep output
 $vep_output_refseq = $parser->tempFile("_vep.vcf");
 
-//annotate only fields we really need to prevent bloating the VCF file
+// annotate only fields we really need to prevent bloating the VCF file
 $fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS");
 
 $args = array();
@@ -163,9 +161,7 @@ if (file_exists($warn_file))
 		print $line."\n";
 	}
 }
-
-
-$family_file = "None"; // handle as single sample (specify a ped file if a multisample vcf is given)
+$family_file = ""; // handle sample as single sample
 $aidiva_config = get_path("aidiva")."/data/AIdiva_configuration_smallTestFile_annotated.yaml";
 $ref_genome = annotation_file_path("/genomes/GRCh37.fa");
 
@@ -173,7 +169,10 @@ $temp_results = $parser->tempFolder("aidiva_workdir");
 $args = array();
 $args[] = "-vcf {$in}";
 $args[] = "-outdir {$temp_results}";
-$args[] = "-family {$family_file}";
+if ($family_file != "")
+{
+	$args[] = "-family {$family_file}";
+}
 if ($ps_name != "")
 {
 	$args[] = "-ps_name {$ps_name}";
@@ -186,13 +185,11 @@ $parser->execTool("NGS/sp_aidiva.php", implode(" ", $args));
 $aidiva_result_file = $temp_results."/".basename($in, ".vcf")."_result_sorted.vcf.gz";
 
 
-
 // custom annotation by VcfAnnotateFromVcf
 
 // create config file
 $config_file_path = $parser->tempFile(".config");
 $config_file = fopen($config_file_path, 'w');
-
 
 // add AIdiva annotation
 fwrite($config_file, $aidiva_result_file."\t\tAIDIVA\t\ttrue\n");
@@ -359,6 +356,8 @@ if (!$skip_ngsd)
 	}
 }
 
+
+
 //validate created VCF file
 
 //check vcf file
@@ -366,6 +365,5 @@ if($check_lines >= 0)
 {
 	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $out -lines $check_lines -ref ".genome_fasta($build), true);
 }
-
 
 ?>
