@@ -427,9 +427,7 @@ if (!$all_transcripts)
 
 $args[] = "--fields ".implode(",", $fields);
 putenv("PERL5LIB={$vep_path}/Bio/:{$vep_path}/cpan/lib/perl5/:".getenv("PERL5LIB"));
-
 $parser->exec(get_path("vep"), implode(" ", $args), true);
-
 
 //print VEP warnings
 $warn_file = $vep_output."_warnings.txt";
@@ -449,7 +447,7 @@ if (file_exists($warn_file))
 // generate temp file for vep output
 $vep_output_refseq = $parser->tempFile("_vep.vcf");
 
-//annotate only fields we really need to prevent bloating the VCF file
+// annotate only fields we really need to prevent bloating the VCF file
 $fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS");
 
 $args = array();
@@ -480,9 +478,7 @@ if (file_exists($warn_file))
 		print $line."\n";
 	}
 }
-
-
-$family_file = "None"; // handle as single sample (specify a ped file if a multisample vcf is given)
+$family_file = ""; // handle sample as single sample
 $aidiva_config = get_path("aidiva")."/data/AIdiva_configuration_smallTestFile_annotated.yaml";
 $ref_genome = annotation_file_path("/genomes/GRCh37.fa");
 
@@ -490,7 +486,10 @@ $temp_results = $parser->tempFolder("aidiva_workdir");
 $args = array();
 $args[] = "-vcf {$in}";
 $args[] = "-outdir {$temp_results}";
-$args[] = "-family {$family_file}";
+if ($family_file != "")
+{
+	$args[] = "-family {$family_file}";
+}
 if ($ps_name != "")
 {
 	$args[] = "-ps_name {$ps_name}";
@@ -503,13 +502,11 @@ $parser->execTool("NGS/sp_aidiva.php", implode(" ", $args));
 $aidiva_result_file = $temp_results."/".basename($in, ".vcf")."_result_sorted.vcf.gz";
 
 
-
 // custom annotation by VcfAnnotateFromVcf
 
 // create config file
 $config_file_path = $parser->tempFile(".config");
 $config_file = fopen($config_file_path, 'w');
-
 
 // add AIdiva annotation
 fwrite($config_file, $aidiva_result_file."\t\tAIDIVA\t\ttrue\n");
@@ -680,11 +677,17 @@ if (!$skip_ngsd)
 	}
 }
 
+<<<<<<< HEAD
 //annotate MMSplice and SpliceAI predictions
 if (!$no_splice)
 {
 	annotate_splice_predictions($vcf_annotate_output);
 }
+=======
+
+
+//validate created VCF file
+>>>>>>> Improvements and bugfixes
 
 //mark variants in low-confidence regions
 $low_conf_bed = repository_basedir()."/data/misc/low_conf_regions.bed";
@@ -697,4 +700,8 @@ if($check_lines >= 0)
 	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $out -lines $check_lines -ref ".genome_fasta($build), true);
 }
 
+<<<<<<< HEAD
 ?>
+=======
+?>
+>>>>>>> Improvements and bugfixes
