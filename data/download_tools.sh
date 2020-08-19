@@ -68,20 +68,12 @@ cd $folder
 git clone https://github.com/imgag/AIdiva.git
 cd AIdiva
 git fetch && git fetch --tags
-<<<<<<< HEAD
 git checkout 0.3
-=======
-git checkout 0.2
->>>>>>> 06462e54a4eda6f93b0bb640e314ea1a0db85fce
 cd data
 wget -c https://download.imgag.de/ahboced1/AIdiva_pretrained_models/rf_model_inframe_indel_scikit0-19-1.pkl
 wget -c https://download.imgag.de/ahboced1/AIdiva_pretrained_models/rf_model_snp_scikit0-19-1.pkl
 cd ..
-<<<<<<< HEAD
 mv AIdiva AIdiva-0.3
-=======
-mv AIdiva AIdiva-0.2
->>>>>>> 06462e54a4eda6f93b0bb640e314ea1a0db85fce
 
 #download and build VEP
 cd $root
