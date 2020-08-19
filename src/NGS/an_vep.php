@@ -499,7 +499,7 @@ $args[] = "-config {$aidiva_config}";
 $args[] = "-threads {$threads}";
 $parser->execTool("NGS/sp_aidiva.php", implode(" ", $args));
 
-$aidiva_result_file = $temp_results."/".basename($in, ".vcf")."_result_sorted.vcf.gz";
+$aidiva_result_file = $temp_results."/"."aidiva"."_result_sorted.vcf.gz";
 
 
 // custom annotation by VcfAnnotateFromVcf

@@ -98,8 +98,8 @@ if ($family_file != "")
 $args[] = "--config {$config}";
 $parser->exec("python3 ".get_path("aidiva")."aidiva/run_AIdiva.py", implode(" ", $args), true);
 
-$parser->exec(get_path("ngs-bits")."/VcfSort", "-in ".$outdir."/".basename($vcf, ".vcf")."_result.vcf"." -out ".$outdir."/".basename($vcf, ".vcf")."_result_sorted.vcf", true);
-$parser->exec("bgzip", $outdir."/".basename($vcf, ".vcf")."_result_sorted.vcf", true);
-$parser->exec("tabix", " -p vcf ".$outdir."/".basename($vcf, ".vcf")."_result_sorted.vcf.gz", true);
+$parser->exec(get_path("ngs-bits")."/VcfSort", "-in ".$outdir."/".basename($vcf, ".vcf")."_result.vcf"." -out ".$outdir."/"."aidiva"."_result_sorted.vcf", true);
+$parser->exec("bgzip", $outdir."/"."aidiva"."_result_sorted.vcf", true);
+$parser->exec("tabix", " -p vcf ".$outdir."/"."aidiva"."_result_sorted.vcf.gz", true);
 
 ?>
