@@ -139,3 +139,13 @@ wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc
 wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc546aac98c85bbfe51701fd3b/variant_catalog/hg19/variant_catalog.json -O ExpansionHunter-v3.2.2-linux_x86_64/variant_catalog/hg19/variant_catalog.json
 wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc546aac98c85bbfe51701fd3b/variant_catalog/hg38/variant_catalog.json -O ExpansionHunter-v3.2.2-linux_x86_64/variant_catalog/hg38/variant_catalog.json
 
+#download MMSplice
+cd $folder
+mmsplice=$folder/MMSplice
+mkdir -p $mmsplice
+cd $mmsplice
+python3 -m venv mmsplice_env
+source $mmsplice/mmsplice_env/bin/activate
+pip install cyvcf2 cython
+pip install mmsplice
+deactivate
