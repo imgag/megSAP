@@ -176,7 +176,7 @@ foreach($details_all as $name => $tmp)
 $tmp = $parser->tempFile(".vcf");
 file_put_contents($tmp, implode("\n", $vcf));
 $tmp2 = $parser->tempFile(".vcf");
-list($stdout) = exec2("{$ngsbits}VcfSort -in $tmp -out $tmp2 && sort --uniq $tmp2", true);
+list($stdout) = exec2("{$ngsbits}VcfSort -in $tmp -out $tmp2 -comp 0 && sort --uniq $tmp2", true);
 foreach($stdout as $line)
 {
 	$line = trim($line);
