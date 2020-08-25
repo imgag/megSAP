@@ -18,7 +18,7 @@ interop = [path]/data/tools/InterOp-1.0.25-Linux-GNU-4.8.2/bin/summary
 clincnv = Rscript --vanilla [path]/data/tools/ClinCNV-1.16.6/
 circos = [path]/data/tools/circos-0.69-9/bin/circos
 expansion_hunter = [path]/data/tools/ExpansionHunter-v3.2.2-linux_x86_64/bin/ExpansionHunter
-aidiva = [path]/data/tools/AIdiva/
+aidiva = [path]/data/tools/AIdiva-0.3/
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.9.centos6_x86_64/bin/
@@ -37,7 +37,7 @@ skewer = [path]/data/tools/skewer-0.2.2/skewer
 local_data = /tmp/local_ngs_data/
 data_folder = [path]/data/
 test_data_folder = [path]/data/test_data/
-project_folder = 
+project_folder =
 
 [general]
 copy_vep_dbs_to_local_data = false
@@ -59,13 +59,5 @@ queues_high_mem = ""
 
 [cancer_genome_interpreter]
 cgi_user = ""
-cgi_token = "" 
+cgi_token = ""
 cgi_url = "https://www.cancergenomeinterpreter.org/api/v1"
-
-
-
-
-
-
-
-
