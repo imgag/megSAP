@@ -72,7 +72,7 @@ git checkout 0.3
 cd data
 wget -c https://download.imgag.de/ahboced1/AIdiva_pretrained_models/rf_model_inframe_indel_scikit0-19-1.pkl
 wget -c https://download.imgag.de/ahboced1/AIdiva_pretrained_models/rf_model_snp_scikit0-19-1.pkl
-cd ..
+cd ../..
 mv AIdiva AIdiva-0.3
 
 #download and build VEP
