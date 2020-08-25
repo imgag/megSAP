@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 
+from keras import backend as K
+import tensorflow as tf
+
+config = tf.ConfigProto(intra_op_parallelism_threads=1, 
+                        inter_op_parallelism_threads=1,
+                        allow_soft_placement=True,
+                        device_count = {'CPU': 1})
+session = tf.Session(config=config)
+K.set_session(session)
+
 # Import
 import sys
 import argparse
@@ -13,7 +23,7 @@ exon_sep = ['[', ']']
 
 def writeTempVCF(vcf_in, vcf_out, predictions):
 
-    info_header = "##INFO=<ID=mmsplice,Number=.,Type=Character,Description=\"mmsplice splice variant effect: delta_logit_psi(logit scale of variant\'s effect on the exon inclusion, positive score shows higher exon inclusion, negative higher excusion rate - a score beyond 2, -2 can be considered strong); pathogenicity(Potential pathogenic effect of the variant)\">\n"
+    info_header = "##INFO=<ID=mmsplice,Number=.,Type=String,Description=\"mmsplice splice variant effect: delta_logit_psi(logit scale of variant\'s effect on the exon inclusion, positive score shows higher exon inclusion, negative higher excusion rate - a score beyond 2, -2 can be considered strong); pathogenicity(Potential pathogenic effect of the variant)\">\n"
 
     in_file = open(vcf_in, "r")
     out = open(vcf_out, "w")

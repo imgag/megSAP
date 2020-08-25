@@ -313,7 +313,8 @@ $column_desc = array(
 	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
 	array("GeneSplicer", "GeneSplicer splicing prediction (state/type/coordinates/confidence/score)."),
 	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
-	array("COSMIC", "COSMIC somatic variant database anntotation.")
+	array("COSMIC", "COSMIC somatic variant database anntotation."),
+	array("MMSplice", "mmsplice splice variant effect: delta_logit_psi(logit scale of variant's effect on the exon inclusion, positive score shows higher exon inclusion, negative higher excusion rate - a score beyond 2, -2 can be considered strong); pathogenicity(Potential pathogenic effect of the variant)")
 );
 
 // optional NGSD somatic header description if vcf contains NGSD somatic information
@@ -1180,6 +1181,13 @@ while(!feof($handle))
 			$ngsd_gene_info = "";
 		}
 	}
+
+	//MMSplice
+	$mmsplice = "";
+	if (isset($info["mmsplice"]))
+	{
+		$mmsplice = trim($info["mmsplice"]);
+	}
 	
 	// CADD
 	$cadd_scores = array();
@@ -1270,7 +1278,7 @@ while(!feof($handle))
 	
 	//write data
 	++$c_written;
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic\t$mmsplice");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects");
