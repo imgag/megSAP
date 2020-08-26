@@ -242,6 +242,7 @@ rm fathmm_xf_coding.vcf.gz
 cd $dbs
 mkdir ABB
 cd ABB
+wget https://public_docs.crg.es/sossowski/publication_data/ABB/ABB_SCORE.txt
 python3 $src/Tools/create_ABB-SCORE_bed.py ABB_SCORE.txt hg19_ABB-SCORE.bed
 bgzip hg19_ABB-SCORE.bed
 tabix -p bed hg19_ABB-SCORE.bed.gz
