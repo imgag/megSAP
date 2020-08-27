@@ -80,8 +80,8 @@ def writeMMSpliceToVcf(vcf_in, vcf_out, gtf, fasta):
 
 
 def checkIfEmpty(f, vcf_out):
-    if not any(not line.startswith("#") for line in f):
-        with open(vcf_out, "w") as out:
+    if not any(not line.startswith(b"#") for line in f):
+        with open(vcf_out, "wb") as out:
             f.seek(0)
             for line in f:
                 out.write(line)
@@ -110,7 +110,7 @@ def main():
         with gzip.open(args.vcf_in, 'rb') as f:
             checkIfEmpty(f, args.vcf_out)
     elif args.vcf_in.endswith(".vcf"):      
-        with open(args.vcf_in, 'r') as f:
+        with open(args.vcf_in, 'rb') as f:
             checkIfEmpty(f, args.vcf_out)
     else:
         sys.exit('Wrong file format. Support only \'vcf\' and \'vcf.gz\'')
