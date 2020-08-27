@@ -25,7 +25,14 @@ def writeTempVCF(vcf_in, vcf_out, predictions):
 
     info_header = "##INFO=<ID=mmsplice,Number=.,Type=String,Description=\"mmsplice splice variant effect: delta_logit_psi(logit scale of variant\'s effect on the exon inclusion, positive score shows higher exon inclusion, negative higher exclusion rate - a score beyond 2, -2 can be considered strong); pathogenicity(Potential pathogenic effect of the variant)\">\n"
 
-    in_file = open(vcf_in, "r")
+    if vcf_in.endswith(".vcf.gz"):
+        import gzip
+        in_file = gzip.open(vcf_in, 'rt')
+    elif vcf_in.endswith(".vcf"):      
+        in_file = open(vcf_in, 'r')
+    else:
+        sys.exit('Wrong file format. Support only \'vcf\' and \'vcf.gz\'')
+
     out = open(vcf_out, "w")
 
     for line in in_file.readlines():
@@ -105,7 +112,6 @@ def main():
     #check if VCF empty (just output input file)
     # we do not want an INFO field mmsplice / mmsplice crashes if no contig line is given
     import gzip
-
     if args.vcf_in.endswith(".vcf.gz"):
         with gzip.open(args.vcf_in, 'rb') as f:
             checkIfEmpty(f, args.vcf_out)
