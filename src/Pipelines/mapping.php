@@ -457,13 +457,15 @@ if($barcode_correction)
 
 	//barcode correction
 	$tmp_bam4 = $parser->tempFile("_dedup4.bam");
+	$tmp_bam4_sorted = $parser->tempFile("_dedup4_sorted.bam");
 	$args = "";
 	if($correction_n) $args .= "--n ";
 	$parser->exec("python  ".repository_basedir()."/src/NGS/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 ".$args,true);
-	$parser->indexBam($tmp_bam4, $threads);
+	$parser->sortBam($tmp_bam4, $tmp_bam4_sorted, $threads);
+	$parser->indexBam($tmp_bam4_sorted, $threads);
 	
 	$parser->deleteTempFile($bam_current);
-	$bam_current = $tmp_bam4;
+	$bam_current = $tmp_bam4_sorted;
 }
 
 //remove reads from HaloPlex data that are short
