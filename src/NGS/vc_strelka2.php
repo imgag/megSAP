@@ -136,11 +136,11 @@ $merged->toTSV($vcf_merged);
 
 //left-align
 $vcf_aligned = $parser->tempFile("_aligned.vcf");
-$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", " -in $vcf_merged -out $vcf_aligned -comp 0 -ref ".genome_fasta($build), true);
+$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", " -in $vcf_merged -out $vcf_aligned -ref ".genome_fasta($build), true);
 
 //sort
 $vcf_sorted = $parser->tempFile("_sorted.vcf");
-$parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf_aligned -out $vcf_sorted -comp 0", true);
+$parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf_aligned -out $vcf_sorted", true);
 
 //################################################################################################
 //Filter variants
@@ -256,7 +256,7 @@ $final = $vcf_filtered;
 if (!empty($target))
 {
 	$vcf_offtarget = $parser->tempFile("_filtered.vcf");
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_filtered -mark off-target -reg $target -out $vcf_offtarget -comp 0", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_filtered -mark off-target -reg $target -out $vcf_offtarget", true);
 	$final = $vcf_offtarget;
 }
 
