@@ -711,7 +711,7 @@ while(!feof($handle))
 				{
 					$dbsnp[] = $id;
 				}
-				if (starts_with($id, "COSM") || starts_with($id, "COSN"))
+				if (starts_with($id, "COSM") || starts_with($id, "COSN") || starts_with($id, "COSV"))
 				{
 					$cosmic[] = $id;
 				}
