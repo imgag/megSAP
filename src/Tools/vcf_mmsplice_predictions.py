@@ -50,15 +50,8 @@ def writeTempVCF(vcf_in, vcf_out, dict):
 
             #generate an ID of CHROM:POS:REF>ALT
             ID = f"{vcf_fields[0]}:{vcf_fields[1]}:{vcf_fields[3]}>{vcf_fields[4]}"
-            #get list of indices containing mmsplice info
-        #indices =  predictions.ID[predictions.ID == ID].index.tolist()
-            #extract useful information of mmsplice (delta_logit_psi + pathogenicity)
             used_pred = ""
-            #for all annotated exons that the variant influences
-        #for index in indices:
-        #    pred = predictions.iloc[index]
-        #    used_pred += exon_sep[0] + "exon:" + pred.exons + "," + "delta_logit_psi:" + str(pred.delta_logit_psi) + "," + "pathogenicity:" + str(pred.pathogenicity) + exon_sep[1]
-            #add information to vcf file
+
             if ID in dict:
                 used_pred = dict[ID]
 
