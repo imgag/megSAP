@@ -4,9 +4,9 @@ from keras import backend as K
 import tensorflow as tf
 
 config = tf.ConfigProto(intra_op_parallelism_threads=1, 
-                        inter_op_parallelism_threads=1,
+                        inter_op_parallelism_threads=5,
                         allow_soft_placement=True,
-                        device_count = {'CPU': 1})
+                        device_count = {'CPU': 5})
 session = tf.Session(config=config)
 K.set_session(session)
 
@@ -16,12 +16,12 @@ import argparse
 from os import stat
 
 from mmsplice.vcf_dataloader import SplicingVCFDataloader
-from mmsplice import MMSplice, predict_all_table, writeVCF
-from mmsplice.utils import max_varEff
+from mmsplice import MMSplice, predict_all_table
+from mmsplice.utils import max_varEff, writeVCF
 
 exon_sep = ['[', ']']
 
-def writeTempVCF(vcf_in, vcf_out, predictions):
+def writeTempVCF(vcf_in, vcf_out, dict):
 
     info_header = "##INFO=<ID=mmsplice,Number=.,Type=String,Description=\"mmsplice splice variant effect: delta_logit_psi(logit scale of variant\'s effect on the exon inclusion, positive score shows higher exon inclusion, negative higher exclusion rate - a score beyond 2, -2 can be considered strong); pathogenicity(Potential pathogenic effect of the variant)\">\n"
 
@@ -40,8 +40,8 @@ def writeTempVCF(vcf_in, vcf_out, predictions):
             out.write(line)
         elif line.startswith("#CHROM"):
             header = line.split('\t')
-            if(not header[7]=="INFO"):
-                sys.exit('Wrong file format. 8th column of vcf file input is no info column.')
+            if(not header[7].startswith("INFO")):
+                sys.exit(f"Wrong file format. 8th column of vcf file input is no info column: \'{header[7]}\'.")
             out.write(info_header)
             out.write(line)
         else:
@@ -51,14 +51,17 @@ def writeTempVCF(vcf_in, vcf_out, predictions):
             #generate an ID of CHROM:POS:REF>ALT
             ID = f"{vcf_fields[0]}:{vcf_fields[1]}:{vcf_fields[3]}>{vcf_fields[4]}"
             #get list of indices containing mmsplice info
-            indices =  predictions.ID[predictions.ID == ID].index.tolist()
+        #indices =  predictions.ID[predictions.ID == ID].index.tolist()
             #extract useful information of mmsplice (delta_logit_psi + pathogenicity)
             used_pred = ""
             #for all annotated exons that the variant influences
-            for index in indices:
-                pred = predictions.iloc[index]
-                used_pred += exon_sep[0] + "exon:" + pred.exons + "," + "delta_logit_psi:" + str(pred.delta_logit_psi) + "," + "pathogenicity:" + str(pred.pathogenicity) + exon_sep[1]
+        #for index in indices:
+        #    pred = predictions.iloc[index]
+        #    used_pred += exon_sep[0] + "exon:" + pred.exons + "," + "delta_logit_psi:" + str(pred.delta_logit_psi) + "," + "pathogenicity:" + str(pred.pathogenicity) + exon_sep[1]
             #add information to vcf file
+            if ID in dict:
+                used_pred = dict[ID]
+
             if used_pred:
                 new_info = vcf_fields[7] + ";" + "mmsplice=" + used_pred
             else:
@@ -81,10 +84,28 @@ def writeMMSpliceToVcf(vcf_in, vcf_out, gtf, fasta):
 
     # Or predict and return as df
     predictions = predict_all_table(model, dl, pathogenicity=True, splicing_efficiency=True, progress = True)
+    print(predictions)
 
     # Summerize with maximum effect size
-    writeTempVCF(vcf_in, vcf_out, predictions)
 
+    #generate hash
+    dict = {}
+    for row in predictions.itertuples():
+        id = row.ID
+        string = exon_sep[0] + "exon:" + row.exons + "," + "delta_logit_psi:" + str(row.delta_logit_psi) + "," + "pathogenicity:" + str(row.pathogenicity) + exon_sep[1]
+        if id in dict:
+            dict[id] = dict[id] + string
+        else:
+            dict[id] = string    
+
+    import time
+    start = time.time()
+    writeTempVCF(vcf_in, vcf_out, dict)
+    end = time.time()
+    x=end-start
+    print("ELAPSED TIME FOR VCF PRINTING: " + str(x))
+
+    writeVCF(vcf_in, vcf_out + "WRITEVCFOFMMS.vcf", predictions)
 
 def checkIfEmpty(f, vcf_out):
     if not any(not line.startswith(b"#") for line in f):
