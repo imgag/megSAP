@@ -4,7 +4,7 @@
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
-$repo_folder = "/mnt/users/all/megSAP"; //fixed absolute path to make the tests work for all users
+$repo_folder = "/mnt/users/bioinf/megSAP"; //fixed absolute path to make the tests work for all users
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
