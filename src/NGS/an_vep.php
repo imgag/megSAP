@@ -327,20 +327,21 @@ if (!$skip_ngsd)
 		
 		$tmp = $parser->tempFile(".vcf");
 		$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -in $out -out $tmp", true);
-		
+
 		// generate temp file for mmsplice output
-		$out_mmsplice = $parser->tempFile("_vep.vcf");
+		$out_mmsplice = $parser->tempFile("_mmsplice.vcf");
 		$gtf = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 		$fasta = genome_fasta($build);
 		$mmsplice_env = get_path("MMSplice", true);
 		// execute mmsplice script in its virtual enviroment
+
 		$args = array();
 		$args[] = "--vcf_in {$tmp}"; //input vcf
 		$args[] = "--vcf_out {$out_mmsplice}"; //output vcf
 		$args[] = "--gtf {$gtf}"; //gtf annotation file
 		$args[] = "--fasta {$fasta}"; //fasta reference file
 		$parser->exec("OMP_NUM_THREADS={$threads} {$mmsplice_env}/mmsplice_env/bin/python3 ".repository_basedir()."/src/Tools/vcf_mmsplice_predictions.py", implode(" ", $args), true);
-		
+
 		$parser->moveFile($out_mmsplice, $out);
 	}
 	else

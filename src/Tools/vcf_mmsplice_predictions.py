@@ -77,28 +77,18 @@ def writeMMSpliceToVcf(vcf_in, vcf_out, gtf, fasta):
 
     # Or predict and return as df
     predictions = predict_all_table(model, dl, pathogenicity=True, splicing_efficiency=True, progress = True)
-    print(predictions)
-
-    # Summerize with maximum effect size
 
     #generate hash
     dict = {}
     for row in predictions.itertuples():
         id = row.ID
-        string = exon_sep[0] + "exon:" + row.exons + "," + "delta_logit_psi:" + str(row.delta_logit_psi) + "," + "pathogenicity:" + str(row.pathogenicity) + exon_sep[1]
+        string = exon_sep[0] + "exon:" + row.exons + "," + "delta_logit_psi:" + str(round(row.delta_logit_psi, 4)) + "," + "pathogenicity:" + str(round(row.pathogenicity, 4)) + exon_sep[1]
         if id in dict:
             dict[id] = dict[id] + string
         else:
             dict[id] = string    
 
-    import time
-    start = time.time()
     writeTempVCF(vcf_in, vcf_out, dict)
-    end = time.time()
-    x=end-start
-    print("ELAPSED TIME FOR VCF PRINTING: " + str(x))
-
-    writeVCF(vcf_in, vcf_out + "WRITEVCFOFMMS.vcf", predictions)
 
 def checkIfEmpty(f, vcf_out):
     if not any(not line.startswith(b"#") for line in f):
