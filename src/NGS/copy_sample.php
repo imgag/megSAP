@@ -362,6 +362,104 @@ foreach($sample_data as $sample => $sample_infos)
 }
 $queued_normal_samples = [];
 
+//Check for former run which can be merged
+$path_parts = explode("/", realpath($folder));
+$current_run = "";
+//Determine current run name from path
+foreach($path_parts as $part)
+{
+	if(strpos($part, "_") !== false) 
+	{
+		$dir_parts = explode("_", $part);
+		if(count($dir_parts) == 5) //dir nomenclature according illumina + "_run number"
+		{
+			$current_run = "#" . $dir_parts[count($dir_parts)-1]; //last part is run number
+			break;
+		}
+	}
+}
+
+//Check for former run that contains more than 50% same samples and offer merging to user
+$former_run = "";
+$merge_files = array(); //contains merge commands, commands are inserted before queue
+$use_dragen = false; //parameter to enable DRAGEN mapping
+$skip_queuing = false; //parameter to skip queuing if run is first genome run
+
+if($current_run != "")
+{
+	$former_run =  check_former_run($db_conn, $current_run);
+	if($former_run != "")
+	{
+		echo "Former run '{$former_run}' detected. Merge (y/n)?\n";
+		$answer = trim(fgets(STDIN));
+		
+		if($answer == "y")
+		{
+			$old_samples = array();
+			foreach(get_processed_samples_from_run($db_conn, $former_run) as $ps)
+			{
+				$key = explode("_", $ps)[0];
+				$old_samples[$key] = $ps;
+			}
+			$current_samples = array();
+			
+			foreach(get_processed_samples_from_run($db_conn, $current_run) as $ps)
+			{
+				$key = explode("_", $ps)[0];
+				$current_samples[$key] = $ps;
+			}
+			
+			$merge_files[] = "merge:";
+			
+			//match samples from old and new run
+			foreach($current_samples as $current_key => $current_ps)
+			{
+				if(array_key_exists($current_key, $old_samples))
+				{
+					$merge_files[] = "\tphp {$repo_folder}/src/Tools/merge_samples.php -ps ".$old_samples[$current_key]." -into $current_ps";
+				}
+			}
+
+			// check if DRAGEN can be used
+			if ((get_path("dragen_user", false) != "") && (get_path("queues_dragen", false) != ""))
+			{
+				// ask if DRAGEN should be used
+				echo "Should the genome samples on this run mapped with DRAGEN mapping? (y/n)?\n";
+				if(trim(fgets(STDIN)) == "y") $use_dragen = true;
+				
+			}
+
+		}
+		elseif($answer != "n")
+		{
+			trigger_error("Please choose whether files from both runs shall be merged.", E_USER_ERROR);
+		}
+	}
+	else
+	{
+		// check if run is first genome run
+		$processed_samples = get_processed_samples_from_run($db_conn, $current_run);
+		$n_samples = count($processed_samples);
+		$n_genomes = 0;
+		foreach($processed_samples as $ps)
+		{
+			$processed_sample_info = get_processed_sample_info($db_conn,$ps);
+			if ($processed_sample_info['sys_type'] == "WGS") $n_genomes++;
+		}
+
+		if (($n_genomes/$n_samples) >= 0.9)
+		{
+			// ask if queuing should be skipped
+			echo "The current run seems to be the first of a genome run. Should the queuing of the samples be skipped? (y/n)?\n";
+			if(trim(fgets(STDIN)) == "y") $skip_queuing = true;
+		}
+	}
+}
+else
+{
+	trigger_error("Could not determine current run name. Skipping check for former run that could be merged into current run.", E_USER_WARNING);
+}
+
 //parse input
 $target_to_copylines = array();
 $target_to_queuelines = array();
@@ -487,6 +585,13 @@ foreach($sample_data as $sample => $sample_infos)
 		{
 			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample}";
 
+			// add DRAGEN parameter
+			if ($use_dragen)
+			{
+				$processed_sample_info = get_processed_sample_info($db_conn,$sample);
+				if ($processed_sample_info['sys_type'] == "WGS") $outputline .= " -args '-use_dragen'";
+			}
+
 			//determine analysis steps from project
 			if ($project_analysis=="mapping")
 			{
@@ -536,72 +641,7 @@ foreach($sample_data as $sample => $sample_infos)
 }
 
 
-//Check for former run which can be merged
-$path_parts = explode("/", realpath($folder));
-$current_run = "";
-//Determine current run name from path
-foreach($path_parts as $part)
-{
-	if(strpos($part, "_") !== false) 
-	{
-		$dir_parts = explode("_", $part);
-		if(count($dir_parts) == 5) //dir nomenclature according illumina + "_run number"
-		{
-			$current_run = "#" . $dir_parts[count($dir_parts)-1]; //last part is run number
-			break;
-		}
-	}
-}
 
-//Check for former run that contains more than 50% same samples and offer merging to user
-$former_run = "";
-$merge_files = array(); //contains merge commands, commands are inserted before queue
-
-if($current_run != "")
-{
-	$former_run =  check_former_run($db_conn, $current_run);
-	if($former_run != "")
-	{
-		echo "Former run '{$former_run}' detected. Merge (y/n)?\n";
-		$answer = trim(fgets(STDIN));
-		
-		if($answer == "y")
-		{
-			$old_samples = array();
-			foreach(get_processed_samples_from_run($db_conn, $former_run) as $ps)
-			{
-				$key = explode("_", $ps)[0];
-				$old_samples[$key] = $ps;
-			}
-			$current_samples = array();
-			
-			foreach(get_processed_samples_from_run($db_conn, $current_run) as $ps)
-			{
-				$key = explode("_", $ps)[0];
-				$current_samples[$key] = $ps;
-			}
-			
-			$merge_files[] = "merge:";
-			
-			//match samples from old and new run
-			foreach($current_samples as $current_key => $current_ps)
-			{
-				if(array_key_exists($current_key, $old_samples))
-				{
-					$merge_files[] = "\tphp {$repo_folder}/src/Tools/merge_samples.php -ps ".$old_samples[$current_key]." -into $current_ps";
-				}
-			}
-		}
-		elseif($answer != "n")
-		{
-			trigger_error("Please choose whether files from both runs shall be merged.", E_USER_ERROR);
-		}
-	}
-}
-else
-{
-	trigger_error("Could not determine current run name. Skipping check for former run that could be merged into current run.", E_USER_WARNING);
-}
 
 
 //create Makefile
@@ -643,22 +683,30 @@ if(count($merge_files) > 0)
 }
 	
 //target(s) 'queue_...'
-foreach ($target_to_queuelines as $target => $lines)
+if (!$skip_queuing)
 {
-	$all_parts[] = "queue_{$target}";
-	
-	$output = array_merge($output, array_unique($lines));
-	$output[] = "";	
+	foreach ($target_to_queuelines as $target => $lines)
+	{
+		$all_parts[] = "queue_{$target}";
+		
+		$output = array_merge($output, array_unique($lines));
+		$output[] = "";	
+	}
 }
 
+
 //target(s) 'queue_trios'
-if (count($queue_trios)>0)
+if (!$skip_queuing)
 {
-	$all_parts[] = "queue_trios";
-	
-	$output = array_merge($output, ["queue_trios:"], array_unique($queue_trios));
-	$output[] = "";	
+	if (count($queue_trios)>0)
+	{
+		$all_parts[] = "queue_trios";
+		
+		$output = array_merge($output, ["queue_trios:"], array_unique($queue_trios));
+		$output[] = "";	
+	}
 }
+
 
 //target(s) 'qc_...'
 foreach ($project_to_fastqonly_samples as $target => $samples)

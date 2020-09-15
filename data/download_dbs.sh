@@ -95,6 +95,12 @@ wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/InDels.tsv.
 wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/InDels.tsv.gz.tbi > CADD_InDels_1.6.tsv.gz.tbi
 wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/whole_genome_SNVs.tsv.gz > CADD_SNVs_1.6.tsv.gz
 wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/whole_genome_SNVs.tsv.gz.tbi > CADD_SNVs_1.6.tsv.gz.tbi
+zcat CADD_InDels_1.6.tsv.gz | php $src/Tools/db_converter_cadd.php -in - -out - | VcfStreamSort | bgzip > CADD_InDels_1.6.vcf.gz
+tabix -f -p vcf CADD_InDels_1.6.vcf.gz
+zcat CADD_SNVs_1.6.tsv.gz | php $src/Tools/db_converter_cadd.php -in - -out - | VcfStreamSort | bgzip > CADD_SNVs_1.6.vcf.gz
+tabix -f -p vcf CADD_SNVs_1.6.vcf.gz
+VcfCheck -in CADD_InDels_1.6.vcf.gz -lines 0
+VcfCheck -in CADD_SNVs_1.6.vcf.gz -lines 0
 
 #Install fathmm-MKL for VEP - https://github.com/HAShihab/fathmm-MKL
 cd $dbs

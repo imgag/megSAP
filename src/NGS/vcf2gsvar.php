@@ -419,7 +419,6 @@ while(!feof($handle))
 			$i_sift = index_of($cols, "SIFT");
 			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_phylop = index_of($cols, "PHYLOP", false);
-			$i_cadd = index_of($cols, "CADD_PHRED", false);
 			$i_revel = index_of($cols, "REVEL", false);
 			$i_fathmm_c = index_of($cols, "FATHMM_MKL_C");
 			$i_fathmm_nc = index_of($cols, "FATHMM_MKL_NC");
@@ -647,7 +646,6 @@ while(!feof($handle))
 	$polyphen = array();
 	$phylop = array();
 	$fathmm = array();
-	$cadd = array();
 	$revel = array();
 	$dbsnp = array();
 	$cosmic = array();
@@ -759,7 +757,6 @@ while(!feof($handle))
 			{			
 				$phylop[] = trim($parts[$i_phylop]);
 			}
-			$cadd[] = trim($parts[$i_cadd]);
 			$revel_score = trim($parts[$i_revel]);
 			if ($revel_score!="") $revel[] = $revel_score;
 			$fathmm_c = trim($parts[$i_fathmm_c]);
@@ -1184,6 +1181,31 @@ while(!feof($handle))
 		}
 	}
 	
+	// CADD
+	$cadd_scores = array();
+	if (isset($info["CADD_SNV"]))
+	{
+		$cadd_scores = array_map(function($score){return number_format($score, 2, ".", "");}, explode("&", $info["CADD_SNV"]));
+	}
+	if (isset($info["CADD_INDEL"]))
+	{
+		$cadd_scores = array_map(function($score){return number_format($score, 2, ".", "");}, explode("&", $info["CADD_INDEL"]));
+	}
+	if (count(array_unique($cadd_scores)) == 0)
+	{
+		//No CADD score available
+		$cadd = "";
+	}
+	else if (count(array_unique($cadd_scores)) > 1)
+	{
+		trigger_error("Multiple values for CADD score for variant $chr:$pos! Choosing max value.", E_USER_WARNING);
+		$cadd = max($cadd_scores);
+	}
+	else
+	{
+		$cadd = $cadd_scores[0];
+	}
+
 	//add up/down-stream variants if requested (or no other transcripts exist)
 	if ($updown || count($coding_and_splicing_details)==0)
 	{
@@ -1215,10 +1237,6 @@ while(!feof($handle))
 	$polyphen = implode(",", $polyphen);
 	if (trim(strtr($polyphen, ",", " "))=="") $polyphen = "";
 	$fathmm = collapse("fathmm-MKL", $fathmm, "one");
-	
-	// remove empty scores
-	$cadd = array_values(array_filter($cadd, "strlen"));
-	$cadd = collapse("CADD", $cadd, "one", 2);
 	
 	$revel = empty($revel) ? "" : collapse("REVEL", $revel, "max", 2);
 	

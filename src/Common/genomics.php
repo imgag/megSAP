@@ -91,22 +91,85 @@ function rev_comp($input)
 
 /**
 	@brief Returns a genomic reference sequence (1-based chromosomal coordinates).	
+
+	if $cache_size is greater than 0, the requested region is extended by the given number and cached for further function calls
+
 	@ingroup genomics
 */
-function get_ref_seq($build, $chr, $start, $end)
+function get_ref_seq($build, $chr, $start, $end, $cache_size=0)
 {
+	// init vars for cache:
+	static $cache_build = null;
+	static $cache_chr = null;
+	static $cache_start = null;
+	static $cache_end = null;
+	static $cache_sequence = null;
+
 	//fix chromosome for GHCh37
 	if ($chr=="chrM") $chr = "chrMT";
-	
-	//get sequence
-	$output = array();
-	exec(get_path("samtools")." faidx ".genome_fasta($build)." $chr:{$start}-$end 2>&1", $output, $ret);
-	if ($ret!=0)
+
+	if ($cache_size > 0)
 	{
-		trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
+		if ($end < $start)
+		{
+			// report invalid chr position
+			trigger_error("Error: Invalid chromosomal range {$chr}:{$start}-{$end} given for get_ref_seq()!", E_USER_ERROR);
+		}
+		// check if interval is in cache
+		if ($build == $cache_build && $chr == $cache_chr && $start > $cache_start && $end < $cache_end)
+		{
+			// interval in cache -> return sequence from cache
+			return substr($cache_sequence, $start - $cache_start, $end - $start + 1);
+		}
+		else
+		{
+			// interval not in cache -> create new cache
+			$cache_build = $build;
+			$cache_chr = $chr;
+			$cache_start = max($start - $cache_size, 1);
+			$cache_end = $end + $cache_size;
+
+			// get sequence
+			$output = array();
+			exec(get_path("samtools")." faidx ".genome_fasta($build)." $chr:{$cache_start}-{$cache_end} 2>&1", $output, $ret);
+			if ($ret!=0)
+			{
+				trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
+			}
+			
+			// check if chr range exceeds chr end:
+			if (starts_with($output[0], "[faidx] Truncated sequence:"))
+			{
+				//skip warning
+				$cache_sequence = trim(implode("", array_slice($output, 2)));
+				// correct cached end position, if cache exceeds chr end
+				$cache_end = $cache_start + strlen($cache_sequence);
+			}
+			else
+			{
+				$cache_sequence = trim(implode("", array_slice($output, 1)));
+			}
+
+			// return requested interval
+			return substr($cache_sequence, $start - $cache_start, $end - $start + 1);
+		}
+	}
+	else
+	{
+		// run without caching
+
+		//get sequence
+		$output = array();
+		exec(get_path("samtools")." faidx ".genome_fasta($build)." $chr:{$start}-$end 2>&1", $output, $ret);
+		if ($ret!=0)
+		{
+			trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
+		}
+		
+		return implode("", array_slice($output, 1));
 	}
 	
-	return implode("", array_slice($output, 1));
+	
 }
 
 /**
