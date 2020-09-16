@@ -1,20 +1,33 @@
 #!/usr/bin/env python3
 
-from keras import backend as K
-import tensorflow as tf
-
-config = tf.ConfigProto(intra_op_parallelism_threads=1, 
-                        inter_op_parallelism_threads=5,
-                        allow_soft_placement=True,
-                        device_count = {'CPU': 5})
-session = tf.Session(config=config)
-K.set_session(session)
-
 # Import
 import sys
 import argparse
-from os import stat
 
+parser = argparse.ArgumentParser(description='Run MMSplice on Input VCF file and write Output VCF file with MMSplice predictions in Info.')
+parser.add_argument('--vcf_in', required=True, dest='vcf_in', help='Input  VCF file.')
+parser.add_argument('--vcf_out', required=True, dest='vcf_out', help='Output VCF file.')
+parser.add_argument('--gtf', required=True, dest='gtf', help='GTF annotation file.')
+parser.add_argument('--fasta', required=True, dest='fasta', help='reference Fasta file.')
+parser.add_argument('--threads', required=True, dest='threads', help='Number of threads for MMSplice predictions.')
+
+args = ''
+try:
+    args = parser.parse_args()
+except IOError as io:
+    print(io)
+    sys.exit('Error reading parameters.')
+
+from keras import backend as K
+import tensorflow as tf
+config = tf.ConfigProto(intra_op_parallelism_threads=1, 
+                        inter_op_parallelism_threads=int(args.threads),
+                        allow_soft_placement=True,
+                        device_count = {'CPU': int(args.threads)})
+session = tf.Session(config=config)
+K.set_session(session)
+
+from os import stat
 from mmsplice.vcf_dataloader import SplicingVCFDataloader
 from mmsplice import MMSplice, predict_all_table
 from mmsplice.utils import max_varEff, writeVCF
@@ -99,19 +112,6 @@ def checkIfEmpty(f, vcf_out):
         sys.exit()
 
 def main():
-
-    parser = argparse.ArgumentParser(description='Run MMSplice on Input VCF file and write Output VCF file with MMSplice predictions in Info.')
-    parser.add_argument('--vcf_in', required=True, dest='vcf_in', help='Input  VCF file.')
-    parser.add_argument('--vcf_out', required=True, dest='vcf_out', help='Output VCF file.')
-    parser.add_argument('--gtf', required=True, dest='gtf', help='GTF annotation file.')
-    parser.add_argument('--fasta', required=True, dest='fasta', help='reference Fasta file.')
-
-    args = ''
-    try:
-	    args = parser.parse_args()
-    except IOError as io:
-	    print(io)
-	    sys.exit('Error reading parameters.')
 
     #check if VCF empty (just output input file)
     # we do not want an INFO field mmsplice / mmsplice crashes if no contig line is given

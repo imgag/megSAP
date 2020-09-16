@@ -340,6 +340,8 @@ if (!$skip_ngsd)
 		$args[] = "--vcf_out {$out_mmsplice}"; //output vcf
 		$args[] = "--gtf {$gtf}"; //gtf annotation file
 		$args[] = "--fasta {$fasta}"; //fasta reference file
+		$args[] = "--threads {$threads}"; //fasta reference file
+
 		$parser->exec("OMP_NUM_THREADS={$threads} {$mmsplice_env}/mmsplice_env/bin/python3 ".repository_basedir()."/src/Tools/vcf_mmsplice_predictions.py", implode(" ", $args), true);
 
 		$parser->moveFile($out_mmsplice, $out);
