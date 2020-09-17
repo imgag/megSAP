@@ -303,7 +303,7 @@ if (!$skip_ngsd)
 fclose($config_file);
 
 // execute VcfAnnotateFromVcf
-$vcf_annotate_output = $parser->tempFile("_mmsplice.vcf");
+$vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output_refseq -out $vcf_annotate_output -threads $threads", true);
 
 // generate temp file for mmsplice output
@@ -312,6 +312,7 @@ $gtf = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 $fasta = genome_fasta($build);
 $mmsplice_env = get_path("MMSplice", true);
 // execute mmsplice script in its virtual enviroment
+addMissingContigsToVcf($build, $vcf_annotate_output);
 $args = array();
 $args[] = "--vcf_in {$vcf_annotate_output}"; //input vcf
 $args[] = "--vcf_out {$out}"; //output vcf

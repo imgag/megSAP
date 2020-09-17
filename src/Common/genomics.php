@@ -1724,7 +1724,8 @@ function cytoBands($chr, $start, $end)
 	return $out;
 }
 
-function addMissingContigsToVcf($ref, $vcf)
+//checks if any contig line is given, if not adds all contig lines from reference genome (only GRCh37 supported)
+function addMissingContigsToVcf($build, $vcf)
 {
 	$file = fopen($vcf, 'c+');
 	$new_file_lines = array();
@@ -1733,10 +1734,13 @@ function addMissingContigsToVcf($ref, $vcf)
 		$new_file_lines = explode("\n", fread($file, filesize($vcf)));
 		fseek($file, 0);
 	}
-	trigger_error(implode("\n", $new_file_lines));
+	else
+	{
+		trigger_error("Could not open file ".$vcf.": no new contig lines written.", E_USER_WARNING);
+	}
 
 	$contains_contig = false;
-	$reference = 0;
+	$line_below_reference_info = 0;
 	$count = 0;
 
 	$new_contigs = array();
@@ -1751,7 +1755,7 @@ function addMissingContigsToVcf($ref, $vcf)
 
 		if(starts_with($line, "##reference"))
 		{
-			$reference = $count;
+			$line_below_reference_info = $count;
 		}
 		else if (starts_with($line, "##"))
 		{
@@ -1763,40 +1767,63 @@ function addMissingContigsToVcf($ref, $vcf)
 		}
 		else
 		{
-			if($reference == 0)
+			//write contigs in second line if no reference genome line is given
+			if($line_below_reference_info == 0)
 			{
-				$reference = 1;
+				$line_below_reference_info = 1;
 			}
 			break;
 		}
 	}
 	if(!$contains_contig)
 	{
-		$build = genome_fasta($ref);
-		list($chr_lines) = exec2("grep chr {$build}");
+		if ($build!="GRCh37")
+		{
+			trigger_error("Unknown genome build ".$build." cannot be annotated!", E_USER_ERROR);
+		}
+		$build_path = genome_fasta($build);
+		list($chr_lines) = exec2("grep chr {$build_path}");
 		foreach($chr_lines as $line)
 		{
+			$chr = "";
+			$len = "";
 			$parts = explode(" ", $line);
-			$chr = $parts[0];
-			$chr = ltrim($chr, '>');
-			
+			if(sizeof($parts) >= 1)
+			{
+				$chr = $parts[0];
+				$chr = ltrim($chr, '>');
+			}
+			else
+			{
+				trigger_error("No chromosome information found in line(".$line.") for reference genome(".$build.")", E_USER_WARNING);
+			}
 
 			preg_match('/.*:(\d+):.*$/', $parts[2], $matches);
-			$len = $matches[1];
-			trigger_error($len);
-
+			if(sizeof($matches)>=2)
+			{
+				$len = $matches[1];
+			}
+			else
+			{
+				trigger_error("No length information for chromosome ".$chr." found in line(".$line.") for reference genome(".$build.")", E_USER_WARNING);
+			}
 			if($chr && $len)
 			{
 				$new_contigs[] = "##contig=<ID={$chr}, length={$len}>";
 			}
 		}
-		trigger_error("REF LINE".$reference);
 
-		array_splice( $new_file_lines, $reference, 0, $new_contigs);  
-		trigger_error(implode("\n", $new_file_lines));
+		if(empty($new_contigs))
+		{
+			trigger_error("No new contig lines were written for ".$vcf, E_USER_WARNING);
+		}
+		else
+		{
+			array_splice( $new_file_lines, $line_below_reference_info, 0, $new_contigs);  
+			file_put_contents($vcf, implode("\n", $new_file_lines));
+		}
+	}
 
-		file_put_contents($vcf, implode("\n", $new_file_lines));
-	}	
 }
 
 ?>
