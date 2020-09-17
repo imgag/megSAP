@@ -1744,14 +1744,11 @@ function addMissingContigsToVcf($build, $vcf)
 	$count = 0;
 
 	$new_contigs = array();
-	trigger_error("START");
 
 	while(!feof($file))
 	{
 		$count += 1;
-
 		$line = trim(fgets($file));
-		trigger_error($line);
 
 		if(starts_with($line, "##reference"))
 		{
@@ -1788,28 +1785,32 @@ function addMissingContigsToVcf($build, $vcf)
 			$chr = "";
 			$len = "";
 			$parts = explode(" ", $line);
-			if(sizeof($parts) >= 1)
+			if(sizeof($parts) >= 3)
 			{
+				//get chromosome
 				$chr = $parts[0];
 				$chr = ltrim($chr, '>');
-			}
-			else
-			{
-				trigger_error("No chromosome information found in line(".$line.") for reference genome(".$build.")", E_USER_WARNING);
-			}
 
-			preg_match('/.*:(\d+):.*$/', $parts[2], $matches);
-			if(sizeof($matches)>=2)
-			{
-				$len = $matches[1];
+				//get length
+				preg_match('/.*:(\d+):.*$/', $parts[2], $matches);
+				if(sizeof($matches)>=2)
+				{
+					$len = $matches[1];
+				}
+				else
+				{
+					trigger_error("No length information for chromosome ".$chr." found in line(".$line.") for reference genome(".$build.")", E_USER_WARNING);
+				}
+
+				//add information to contig array
+				if($chr && $len)
+				{
+					$new_contigs[] = "##contig=<ID={$chr}, length={$len}>";
+				}
 			}
 			else
 			{
-				trigger_error("No length information for chromosome ".$chr." found in line(".$line.") for reference genome(".$build.")", E_USER_WARNING);
-			}
-			if($chr && $len)
-			{
-				$new_contigs[] = "##contig=<ID={$chr}, length={$len}>";
+				trigger_error("Contig information could not be parsed for line(".$line.") from reference genome(".$build.").", E_USER_WARNING);
 			}
 		}
 
