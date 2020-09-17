@@ -75,8 +75,6 @@ $args[] = "--regulatory"; //regulatory features
 $fields[] = "BIOTYPE"; 
 $args[] = "--sift b --polyphen b"; //pathogenicity predictions
 $args[] = "--af --af_gnomad --failed 1"; //population frequencies
-$args[] = "--plugin CADD,".annotation_file_path("/dbs/CADD/CADD_SNVs_1.6.tsv.gz").",".annotation_file_path("/dbs/CADD/CADD_InDels_1.6.tsv.gz"); //CADD
-$fields[] = "CADD_PHRED";
 $args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_all_chromosomes.tsv.gz"); //REVEL
 $fields[] = "REVEL";
 $args[] = "--plugin FATHMM_MKL,".annotation_file_path("/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz"); //fathmm-MKL
@@ -186,6 +184,10 @@ if(file_exists($hgmd_file))
 {
 	fwrite($config_file, $hgmd_file."\tHGMD\tCLASS,MUT,GENE,PHEN\tID\n");
 }
+
+//add CADD score annotation
+fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.6.vcf.gz")."\tCADD\tCADD=SNV\t\n");
+fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
 
 // check if NGSD export file is available:
 $skip_ngsd = false;

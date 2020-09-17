@@ -577,8 +577,11 @@ class ToolBase
 			print $message."\n";
 			foreach($add_info as $line)
 			{
-				if (contains($line, "WARNING(freebayes): Could not find any mapped reads in target region")) continue; //excessive freebayes output
-
+				//skip excessive output
+				if (contains($line, "WARNING(freebayes): Could not find any mapped reads in target region")) continue; //freebayes
+				if (contains($line, "[M::mem_pestat]") || contains($line, "[M::process]") || contains($line, "[M::mem_process_seqs]")) continue; //BWA mem
+				if (contains($line, "PROCESS_REGION_MSECS") || contains($line, "Processing chromosome chunk:") || contains($line, "Clock time in Chromosome:")) continue; //ABRA2
+				
 				print "  ".trim($line)."\n";
 			}
 		}
@@ -590,7 +593,10 @@ class ToolBase
 			$lines[] = $prefix."$message\n";
 			foreach($add_info as $line)
 			{
-				if (contains($line, "WARNING(freebayes): Could not find any mapped reads in target region")) continue; //excessive freebayes output
+				//skip excessive output
+				if (contains($line, "WARNING(freebayes): Could not find any mapped reads in target region")) continue; //freebayes
+				if (contains($line, "[M::mem_pestat]") || contains($line, "[M::process]") || contains($line, "[M::mem_process_seqs]")) continue; //BWA mem
+				if (contains($line, "PROCESS_REGION_MSECS") || contains($line, "Processing chromosome chunk:") || contains($line, "Clock time in Chromosome:")) continue; //ABRA2
 
 				$lines[] = $prefix."    ".strtr($line, array("\n" => "", "\c" => "", "\t" => "  "))."\n";
 			}

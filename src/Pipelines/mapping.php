@@ -291,7 +291,8 @@ if (!$start_with_abra)
 
 		// submit GridEngine job to dragen queue
 		$dragen_queues = explode(",", get_path("queues_dragen"));
-		$sge_logfile = date("YmdHis")."_".exec2("hostname -f")[0]."_".getmypid();
+		list($server) = exec2("hostname -f");
+		$sge_logfile = date("YmdHis")."_".implode("_", $server)."_".getmypid();
 		$sge_args = array();
 		$sge_args[] = "-V";
 		$sge_args[] = "-b y"; // treat as binary
@@ -338,10 +339,18 @@ if (!$start_with_abra)
 
 
 		// parse sge stdout file to determine if mapping was successful:
+		if (!(file_exists(get_path("dragen_log")."/$sge_logfile.out") && (get_path("dragen_log")."/$sge_logfile.err")))
+		{
+			trigger_error("Cannot find log files of DRAGEN mapping SGE job at '".get_path("dragen_log")."/$sge_logfile.out'!", E_USER_ERROR);
+		}
 		$sge_stdout = file(get_path("dragen_log")."/$sge_logfile.out", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 		$sge_stderr = file(get_path("dragen_log")."/$sge_logfile.err", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
 		//copy DRAGEN log to current mapping log and delete it:
+		if (!file_exists($dragen_log_file))
+		{
+			trigger_error("Cannot find DRAGEN log file '$dragen_log_file'!", E_USER_ERROR);
+		}
 		$parser->log("DRAGEN mapping log: ", file($dragen_log_file));
 		unlink($dragen_log_file);
 
@@ -354,7 +363,7 @@ if (!$start_with_abra)
 			// write dragen log stdout and stderr to log:
 			$parser->log("sge stdout:", $sge_stdout);
 			$parser->log("sge stderr:", $sge_stderr);
-			trigger_error("SGE job $sge_id failed!\nExit status: {$exit_status}", E_USER_ERROR);
+			trigger_error("SGE job $sge_id failed!", E_USER_ERROR);
 		}
 
 
@@ -457,13 +466,15 @@ if($barcode_correction)
 
 	//barcode correction
 	$tmp_bam4 = $parser->tempFile("_dedup4.bam");
+	$tmp_bam4_sorted = $parser->tempFile("_dedup4_sorted.bam");
 	$args = "";
 	if($correction_n) $args .= "--n ";
 	$parser->exec("python  ".repository_basedir()."/src/NGS/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 ".$args,true);
-	$parser->indexBam($tmp_bam4, $threads);
+	$parser->sortBam($tmp_bam4, $tmp_bam4_sorted, $threads);
+	$parser->indexBam($tmp_bam4_sorted, $threads);
 	
 	$parser->deleteTempFile($bam_current);
-	$bam_current = $tmp_bam4;
+	$bam_current = $tmp_bam4_sorted;
 }
 
 //remove reads from HaloPlex data that are short

@@ -4,10 +4,10 @@ chmod:
 	chmod -R 775 Unaligned
 
 import_runqc:
-	php /mnt/users/all/megSAP/src/NGS/runqc_parser.php -name "#01489" -run_dir Unaligned/../ -force
+	php /mnt/users/bioinf/megSAP/src/NGS/runqc_parser.php -name "#01489" -run_dir Unaligned/../ -force
 
 import_read_counts:
-	php /mnt/users/all/megSAP/src/NGS/import_sample_read_counts.php -stats Unaligned/Stats/Stats.json -db NGSD_TEST 
+	php /mnt/users/bioinf/megSAP/src/NGS/import_sample_read_counts.php -stats Unaligned/Stats/Stats.json -db NGSD_TEST 
 
 copy_Exome_Diagnostik_diagnostic:
 	mv Unaligned/Exome_Diagnostik/Sample_DX203663_02/ /mnt/projects/diagnostic/Exome_Diagnostik/
@@ -15,9 +15,9 @@ copy_Exome_Diagnostik_diagnostic:
 	mv Unaligned/Exome_Diagnostik/Sample_DX203665_04/ /mnt/projects/diagnostic/Exome_Diagnostik/
 
 queue_Exome_Diagnostik_diagnostic:
-	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX203663_02
-	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX203664_03
-	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX203665_04
+	php /mnt/users/bioinf/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX203663_02
+	php /mnt/users/bioinf/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX203664_03
+	php /mnt/users/bioinf/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX203665_04
 
 queue_trios:
-	php /mnt/users/all/megSAP/src/NGS/db_queue_analysis.php -type 'trio' -samples DX203663_02 DX203665_04 DX203664_03 -info child father mother
+	php /mnt/users/bioinf/megSAP/src/NGS/db_queue_analysis.php -type 'trio' -samples DX203663_02 DX203665_04 DX203664_03 -info child father mother

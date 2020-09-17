@@ -239,6 +239,26 @@ if (count($bams) > 1)
     }
 }
 
+
+//Check samples are flagged correctly in NGSD
+if( db_is_enabled("NGSD") && count($bams) > 1 )
+{
+	$db = DB::getInstance("NGSD");
+	
+	$tinfo = get_processed_sample_info($db, $t_id, false);
+
+	if(!is_null($tinfo) && $tinfo["is_tumor"] != 1)
+	{
+		trigger_error("Please check tumor processed sample {$t_id} in NGSD. The sample is not flagged as tumor tissue.", E_USER_ERROR);
+	}
+	
+	$ninfo = get_processed_sample_info($db, $n_id, false);
+	if(!is_null($ninfo) && $ninfo["is_tumor"] != 0)
+	{
+		trigger_error("Please check normal processed sample {$n_id} in NGSD. The sample is flagged as tumor tissue.", E_USER_ERROR);
+	}
+}
+
 //low coverage statistics
 
 $low_cov = "{$full_prefix}_stat_lowcov.bed";					// low coverage BED file
@@ -308,6 +328,11 @@ if (in_array("vc", $steps))
 		if(!$single_sample)
 		{
 			$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
+		}
+		
+		if( db_is_enabled("NGSD") )
+		{
+			$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", true );
 		}
 	}
 
