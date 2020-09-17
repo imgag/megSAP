@@ -54,6 +54,7 @@ if ($sys['build']!="GRCh37")
 }
 
 //annotate VCF
+addMissingContigsToVcf("GRCh37", $vcf_unzipped);
 $args = [];
 $args[] = "-in ".$vcf_unzipped;
 $args[] = "-out ".$annfile;

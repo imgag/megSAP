@@ -1724,4 +1724,79 @@ function cytoBands($chr, $start, $end)
 	return $out;
 }
 
+function addMissingContigsToVcf($ref, $vcf)
+{
+	$file = fopen($vcf, 'c+');
+	$new_file_lines = array();
+	if($file)
+	{
+		$new_file_lines = explode("\n", fread($file, filesize($vcf)));
+		fseek($file, 0);
+	}
+	trigger_error(implode("\n", $new_file_lines));
+
+	$contains_contig = false;
+	$reference = 0;
+	$count = 0;
+
+	$new_contigs = array();
+	trigger_error("START");
+
+	while(!feof($file))
+	{
+		$count += 1;
+
+		$line = trim(fgets($file));
+		trigger_error($line);
+
+		if(starts_with($line, "##reference"))
+		{
+			$reference = $count;
+		}
+		else if (starts_with($line, "##"))
+		{
+			if(starts_with($line, "##contig"))
+			{
+				$contains_contig = true;
+				break;
+			}
+		}
+		else
+		{
+			if($reference == 0)
+			{
+				$reference = 1;
+			}
+			break;
+		}
+	}
+	if(!$contains_contig)
+	{
+		$build = genome_fasta($ref);
+		list($chr_lines) = exec2("grep chr {$build}");
+		foreach($chr_lines as $line)
+		{
+			$parts = explode(" ", $line);
+			$chr = $parts[0];
+			$chr = ltrim($chr, '>');
+			
+
+			preg_match('/.*:(\d+):.*$/', $parts[2], $matches);
+			$len = $matches[1];
+			trigger_error($len);
+
+			if($chr && $len)
+			{
+				$new_contigs[] = "##contig=<ID={$chr}, length={$len}>";
+			}
+		}
+		trigger_error("REF LINE".$reference);
+
+		array_splice( $new_file_lines, $reference, 0, $new_contigs);  
+		trigger_error(implode("\n", $new_file_lines));
+
+		file_put_contents($vcf, implode("\n", $new_file_lines));
+	}	
+}
+
 ?>
