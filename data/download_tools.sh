@@ -146,6 +146,6 @@ mkdir -p $mmsplice
 cd $mmsplice
 python3 -m venv mmsplice_env
 source $mmsplice/mmsplice_env/bin/activate
-pip install cyvcf2 cython
-pip install mmsplice
+pip install cyvcf2==0.20.5 cython==0.29.21
+pip install mmsplice==2.1.1
 deactivate
