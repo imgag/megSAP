@@ -48,7 +48,7 @@ After the analysis, these files are created in the output folder:
 
 1. mapped reads in BAM format  
 2. a variant list in VCF format
-3. a variant list in [GSvar format](gsvar_format.md)
+3. a variant list in [GSvar format](https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/gsvar_format.md)
 4. QC data in [qcML format](https://www.ncbi.nlm.nih.gov/pubmed/24760958), which can be opened with a web browser
 
 [back to the start page](../README.md)
