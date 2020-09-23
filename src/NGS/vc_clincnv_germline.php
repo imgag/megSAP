@@ -207,6 +207,8 @@ $parameters = implode(" ", $args);
 $pid = getmypid();
 $stdout_file = $parser->tempFile(".stdout", "megSAP_clincnv_pid{$pid}_");
 $stderr_file = $parser->tempFile(".stderr", "megSAP_clincnv_pid{$pid}_");
+$stdout = array();
+$stderr = array();
 $try_nr = 0;
 $return = -1;
 while($return!=0 && $try_nr < $max_tries)
@@ -269,27 +271,57 @@ if ($return!=0)
 	trigger_error("Call of external tool '$command' returned error code '$return'.", E_USER_ERROR);
 }
 
-//sort and extract sample data from output folder
-$parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv -out $out",true);
-$parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
-$parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
-
-//add high-quality CNV count to header
-$cnv_calls = file($out);
-$hq_cnvs = 0;
-foreach($cnv_calls as $line)
+if(file_exists("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv"))
 {
-	$line = trim($line);
-	if ($line=="" || $line[0]=="#") continue;
-	
-	list($c, $s, $e, $tmp_cn, $ll) = explode("\t", $line);
-	if ($ll>=20)
-	{
-		++$hq_cnvs;
-	}	
-}
-array_splice($cnv_calls, 3, 0, array("##high-quality cnvs: {$hq_cnvs}\n", "##mean correlation to reference samples: {$mean_correlation}\n"));
+	//sort and extract sample data from output folder
+	$parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv -out $out",true);
+	$parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
+	$parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
 
-file_put_contents($out, $cnv_calls);
+	//add high-quality CNV count to header
+	$cnv_calls = file($out);
+	$hq_cnvs = 0;
+	foreach($cnv_calls as $line)
+	{
+		$line = trim($line);
+		if ($line=="" || $line[0]=="#") continue;
+		
+		list($c, $s, $e, $tmp_cn, $ll) = explode("\t", $line);
+		if ($ll>=20)
+		{
+			++$hq_cnvs;
+		}	
+	}
+	array_splice($cnv_calls, 3, 0, array("##high-quality cnvs: {$hq_cnvs}\n", "##mean correlation to reference samples: {$mean_correlation}\n"));
+
+	file_put_contents($out, $cnv_calls);
+}
+else
+{
+	//ClinVAR did not generate CNV file
+	$cnv_output = fopen($out, w);
+	fwrite($cnv_output, "##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE\n");
+	preg_match('/^.*ClinCNV-([\d\.]*).*$/', $command, $matches);
+	if(sizeof($mathces >= 2))
+	{
+		fwrite($cnv_output, "##ClinCNV version: v{$matches[1]}\n");
+	}
+	fwrite($cnv_output, "##ClinVar did not write CNV file\n");
+	foreach($stdout as $line)
+	{
+		if(strpos($line, "{$ps_name} did not pass QC") == true)
+		{
+			preg_match('/^.*\"(.*)\".*$/', $line, $matches);
+			if(sizeof($mathces >= 2))
+			{
+				fwrite($cnv_output, "##{$matches[1]}\n");
+			}
+		}
+	}
+	fwrite($cnv_output, "#chr\tstart\tend\tCN_change\tloglikelihood\tno_of_regions\tlength_KB\tpotential_AF\tgenes\n");
+
+	fclose($cnv_output);
+}
+
 ?>
 
