@@ -299,16 +299,19 @@ if(file_exists("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv"))
 else
 {
 	//ClinVAR did not generate CNV file
-	$cnv_output = fopen($out, w);
+	//generate file with basic header lines
+	$cnv_output = fopen($out, "w");
 	fwrite($cnv_output, "##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE\n");
 	preg_match('/^.*ClinCNV-([\d\.]*).*$/', $command, $matches);
-	if(sizeof($mathces >= 2))
+	if(sizeof($matches) >= 2)
 	{
 		fwrite($cnv_output, "##ClinCNV version: v{$matches[1]}\n");
 	}
 	fwrite($cnv_output, "##ClinVar did not write CNV file\n");
+	//search in CLinCNV stdout for lines indicating failed QC
 	foreach($stdout as $line)
 	{
+		//if QC for input sample failed, add it to header line
 		if(strpos($line, "{$ps_name} did not pass QC") == true)
 		{
 			preg_match('/^.*\"(.*)\".*$/', $line, $matches);
