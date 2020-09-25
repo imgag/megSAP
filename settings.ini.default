@@ -37,6 +37,7 @@ local_data = /tmp/local_ngs_data/
 data_folder = [path]/data/
 test_data_folder = [path]/data/test_data/
 project_folder = 
+MMSplice = [path]/data/tools/MMSplice
 
 [general]
 copy_vep_dbs_to_local_data = false

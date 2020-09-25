@@ -1724,4 +1724,107 @@ function cytoBands($chr, $start, $end)
 	return $out;
 }
 
+//checks if any contig line is given, if not adds all contig lines from reference genome (only GRCh37 supported)
+function addMissingContigsToVcf($build, $vcf)
+{
+	$file = fopen($vcf, 'c+');
+	$new_file_lines = array();
+	if($file)
+	{
+		$new_file_lines = explode("\n", fread($file, filesize($vcf)));
+		fseek($file, 0);
+	}
+	else
+	{
+		trigger_error("Could not open file ".$vcf.": no new contig lines written.", E_USER_WARNING);
+	}
+
+	$contains_contig = false;
+	$line_below_reference_info = 0;
+	$count = 0;
+
+	$new_contigs = array();
+
+	while(!feof($file))
+	{
+		$count += 1;
+		$line = trim(fgets($file));
+
+		if(starts_with($line, "##reference"))
+		{
+			$line_below_reference_info = $count;
+		}
+		else if (starts_with($line, "##"))
+		{
+			if(starts_with($line, "##contig"))
+			{
+				$contains_contig = true;
+				break;
+			}
+		}
+		else
+		{
+			//write contigs in second line if no reference genome line is given
+			if($line_below_reference_info == 0)
+			{
+				$line_below_reference_info = 1;
+			}
+			break;
+		}
+	}
+	if(!$contains_contig)
+	{
+		if ($build!="GRCh37")
+		{
+			trigger_error("Unknown genome build ".$build." cannot be annotated!", E_USER_ERROR);
+		}
+		$build_path = genome_fasta($build);
+		list($chr_lines) = exec2("grep chr {$build_path}");
+		foreach($chr_lines as $line)
+		{
+			$chr = "";
+			$len = "";
+			$parts = explode(" ", $line);
+			if(sizeof($parts) >= 3)
+			{
+				//get chromosome
+				$chr = $parts[0];
+				$chr = ltrim($chr, '>');
+
+				//get length
+				preg_match('/.*:(\d+):.*$/', $parts[2], $matches);
+				if(sizeof($matches)>=2)
+				{
+					$len = $matches[1];
+				}
+				else
+				{
+					trigger_error("No length information for chromosome ".$chr." found in line(".$line.") for reference genome(".$build.")", E_USER_WARNING);
+				}
+
+				//add information to contig array
+				if($chr && $len)
+				{
+					$new_contigs[] = "##contig=<ID={$chr}, length={$len}>";
+				}
+			}
+			else
+			{
+				trigger_error("Contig information could not be parsed for line(".$line.") from reference genome(".$build.").", E_USER_WARNING);
+			}
+		}
+
+		if(empty($new_contigs))
+		{
+			trigger_error("No new contig lines were written for ".$vcf, E_USER_WARNING);
+		}
+		else
+		{
+			array_splice( $new_file_lines, $line_below_reference_info, 0, $new_contigs);  
+			file_put_contents($vcf, implode("\n", $new_file_lines));
+		}
+	}
+
+}
+
 ?>

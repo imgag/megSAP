@@ -313,7 +313,10 @@ $column_desc = array(
 	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
 	array("GeneSplicer", "GeneSplicer splicing prediction (state/type/coordinates/confidence/score)."),
 	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
-	array("COSMIC", "COSMIC somatic variant database anntotation.")
+	array("COSMIC", "COSMIC somatic variant database anntotation."),
+	array("MMSplice_DeltaLogitPSI", "mmsplice splice variant effect: max. delta_logit_psi score (logit scale of variant's effect on the exon inclusion, positive score shows higher exon inclusion, negative higher excusion rate - a score beyond 2, -2 can be considered strong)"),
+	array("MMSplice_pathogenicity", "mmsplice splice variant effect: max. pathogenicity score (probability of the pathogenic effect of the variant)")
+
 );
 
 // optional NGSD somatic header description if vcf contains NGSD somatic information
@@ -1180,6 +1183,60 @@ while(!feof($handle))
 			$ngsd_gene_info = "";
 		}
 	}
+
+	//MMSplice
+	$mmsplice_deltaLogitPsi = "";
+	$mmsplice_pathogenicity = "";
+	if (isset($info["mmsplice"]))
+	{
+		$delta_logit_psi = null;
+		$pathogenicity = null;
+		$mmsplice = trim($info["mmsplice"]);
+		$mmsplice_values = array();
+
+		if(preg_match_all('/delta_logit_psi:(-?[0-9]+\.[0-9]+)/', $mmsplice, $delta_logit_psi_match))
+		{
+			if(count($delta_logit_psi_match[1]) > 1)
+			{
+				foreach($delta_logit_psi_match[1] as $delta_logit_psi_value)
+				{
+					if(abs($delta_logit_psi_value) > abs($delta_logit_psi))
+					{
+						$delta_logit_psi = $delta_logit_psi_value;
+					}
+				}
+			}
+			else if(count($delta_logit_psi_match[1]) == 1)
+			{
+				$delta_logit_psi = $delta_logit_psi_match[1][0];
+			}
+		}
+
+		if(preg_match_all('/pathogenicity:(-?[0-9]+\.[0-9]+)/', $mmsplice, $pathogenicity_match))
+		{
+			if(count($pathogenicity_match[1]) > 1)
+			{
+				foreach($pathogenicity_match[1] as $pathogenicity_value)
+				{
+					if(abs($pathogenicity_value) > abs($pathogenicity))
+					{
+						$pathogenicity = $pathogenicity_value;
+					}
+				}
+			}
+			else if(count($pathogenicity_match[1]) == 1)
+			{
+				$pathogenicity = $pathogenicity_match[1][0];
+			}
+		}
+
+		if($pathogenicity != null && $delta_logit_psi != null)
+		{
+			$mmsplice_deltaLogitPsi = $delta_logit_psi;
+			$mmsplice_pathogenicity = $pathogenicity;
+		}
+
+	}
 	
 	// CADD
 	$cadd_scores = array();
@@ -1270,7 +1327,7 @@ while(!feof($handle))
 	
 	//write data
 	++$c_written;
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects");
