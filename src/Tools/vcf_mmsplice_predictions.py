@@ -30,53 +30,55 @@ K.set_session(session)
 from os import stat
 from mmsplice.vcf_dataloader import SplicingVCFDataloader
 from mmsplice import MMSplice, predict_all_table
-from mmsplice.utils import max_varEff, writeVCF
+from mmsplice.utils import max_varEff
 
 exon_sep = ['[', ']']
 
 def writeTempVCF(vcf_in, vcf_out, dict):
 
-    info_header = "##INFO=<ID=mmsplice,Number=.,Type=String,Description=\"mmsplice splice variant effect: delta_logit_psi(logit scale of variant\'s effect on the exon inclusion, positive score shows higher exon inclusion, negative higher exclusion rate - a score beyond 2, -2 can be considered strong); pathogenicity(Potential pathogenic effect of the variant)\">\n"
+    info_header = b'##INFO=<ID=mmsplice,Number=.,Type=String,Description=\"mmsplice splice variant effect: delta_logit_psi(logit scale of variant\'s effect on the exon inclusion, positive score shows higher exon inclusion, negative higher exclusion rate - a score beyond 2, -2 can be considered strong); pathogenicity(Potential pathogenic effect of the variant)\">\n'
 
     if vcf_in.endswith(".vcf.gz"):
         import gzip
-        in_file = gzip.open(vcf_in, 'rt')
+        in_file = gzip.open(vcf_in, 'rb')
     elif vcf_in.endswith(".vcf"):      
-        in_file = open(vcf_in, 'r')
+        in_file = open(vcf_in, 'rb')
     else:
         sys.exit('Wrong file format. Support only \'vcf\' and \'vcf.gz\'')
 
-    out = open(vcf_out, "w")
+    out = open(vcf_out, "wb")
 
     for line in in_file.readlines():
-        if line.startswith("##"):
+        if line.startswith(b'##'):
             out.write(line)
-        elif line.startswith("#CHROM"):
-            header = line.split('\t')
-            if(not header[7].startswith("INFO")):
-                sys.exit(f"Wrong file format. 8th column of vcf file input is no info column: \'{header[7]}\'.")
+        elif line.startswith(b'#CHROM'):
+            header = line.split(b'\t')
+            if(not header[7].startswith(b'INFO')):
+                sys.exit("Wrong file format. 8th column of vcf file input is no info column: \'" + header[7].decode('ascii') + "\'.")
             out.write(info_header)
             out.write(line)
         else:
-            vcf_fields = line.split('\t')
-            out.write('\t'.join(vcf_fields[0:7]))
+            vcf_fields = line.split(b'\t')
+            out.write(b'\t'.join(vcf_fields[0:7]))
 
             #generate an ID of CHROM:POS:REF>ALT
-            ID = f"{vcf_fields[0]}:{vcf_fields[1]}:{vcf_fields[3]}>{vcf_fields[4]}"
-            used_pred = ""
+            ID = vcf_fields[0] + b":" + vcf_fields[1] + b":" + vcf_fields[3] + b">" + vcf_fields[4]
+            ID_ascii = ID.decode('ascii')
+            used_pred = b""
 
-            if ID in dict:
-                used_pred = dict[ID]
+            if ID_ascii in dict:
+                used_pred = dict[ID_ascii]
+                used_pred = used_pred.encode('ascii')
 
             if used_pred:
-                new_info = vcf_fields[7] + ";" + "mmsplice=" + used_pred
+                new_info = vcf_fields[7] + b";" + b"mmsplice=" + used_pred
             else:
                 new_info = vcf_fields[7]
 
             if(len(vcf_fields) > 8):
-                line_rest = "\t" + new_info + "\t" + "\t".join(vcf_fields[8:len(vcf_fields)])
+                line_rest = b"\t" + new_info + b"\t" + b"\t".join(vcf_fields[8:len(vcf_fields)])
             else:
-                line_rest = "\t" + new_info
+                line_rest = b"\t" + new_info
 
             out.write(line_rest)    
 
