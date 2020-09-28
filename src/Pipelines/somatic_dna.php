@@ -635,7 +635,7 @@ if(in_array("cn",$steps))
 		}
 		else
 		{
-			print("Not enough reference tumor-normal coverage files for processing system {$system} found. Skipping CNV calling.\n");
+			trigger_error("Not enough reference tumor-normal coverage files for processing system {$system} found. Skipping CNV calling.\n", E_USER_NOTICE);
 		}
 	}
 }
