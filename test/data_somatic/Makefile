@@ -104,4 +104,6 @@ case3_somatic:
 		-skip_correlation \
 		--log out_case3/tumor-normal.log
 case3_diff:
-	diff expected_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe --ignore-matching-lines="##cmdline" --ignore-matching-lines="##fileDate="
+	# remove gene annotation if present
+	cut -f1-27 out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe > out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe
+	diff expected_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe --ignore-matching-lines="##cmdline" --ignore-matching-lines="##fileDate="
