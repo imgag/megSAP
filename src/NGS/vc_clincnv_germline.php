@@ -20,6 +20,8 @@ $parser->addInt("max_cnvs", "Number of expected CNVs (~200 for WES and ~2000 for
 $parser->addInt("max_tries", "Maximum number of tries for calling ClinCNV (R parallelization sometimes breaks with no reason", true, 10);
 $parser->addInt("regions", "Number of subsequent regions that must show a signal for a call.", true, 2);
 $parser->addFlag("skip_super_recall", "Skip super-recall (down to one region and log-likelihood 3).");
+$parser->addFlag("mosaicism", "Analyze tumor sample without a paired normal sample.");
+
 extract($parser->parse($argv));
 
 function determine_rows_to_use($cov, $roi_nonpoly)
@@ -107,9 +109,41 @@ function load_coverage_profile($filename, &$rows_to_use, &$output)
 	}
 }
 
+//fucntion to write an empty cnv file
+function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_message)
+{
+		//ClinVAR did not generate CNV file
+	//generate file with basic header lines
+	$cnv_output = fopen($out, "w");
+	fwrite($cnv_output, "##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE\n");
+	preg_match('/^.*ClinCNV-([\d\.]*).*$/', $command, $matches);
+	if(sizeof($matches) >= 2)
+	{
+		fwrite($cnv_output, "##ClinCNV version: v{$matches[1]}\n");
+	}
+	fwrite($cnv_output, "##CNV calling skipped: {$error_message}.\n");
+	//search in CLinCNV stdout for lines indicating failed QC
+	foreach($stdout as $line)
+	{
+		//if QC for input sample failed, add it to header line
+		if(strpos($line, "{$ps_name} did not pass QC") == true)
+		{
+			preg_match('/^.*\"(.*)\".*$/', $line, $matches);
+			if(sizeof($mathces >= 2))
+			{
+				fwrite($cnv_output, "##{$matches[1]}\n");
+			}
+		}
+	}
+	fwrite($cnv_output, "#chr\tstart\tend\tCN_change\tloglikelihood\tno_of_regions\tlength_KB\tpotential_AF\tgenes\n");
+
+	fclose($cnv_output);
+}
+
 //init
 $repository_basedir = repository_basedir();
 $ps_name = basename($cov,".cov");
+$command = get_path("clincnv")."/clinCNV.R";
 
 //determine coverage files
 $cov_files = glob($cov_folder."/*.cov");
@@ -117,6 +151,7 @@ $cov_files[] = $cov;
 $cov_files = array_unique(array_map("realpath", $cov_files));
 if (count($cov_files)<$cov_min)
 {
+	generate_empty_cnv_file($out, $command, "", $ps_name, "Only ".count($cov_files)." coverage files found in folder '{$cov_folder}'");
 	trigger_error("CNV calling skipped. Only ".count($cov_files)." coverage files found in folder '$cov_folder'. At least {$cov_min} files are needed!", E_USER_WARNING);
 	exit(0);
 }
@@ -201,8 +236,11 @@ if (!$skip_super_recall)
 {
 	$args[] = "--superRecall 3"; //superRecall will call down to one region and to log-likelihood 3
 }
+if($mosaicism)
+{
+	$args[] = "--mosaicism";
+}
 
-$command = get_path("clincnv")."/clinCNV.R";
 $parameters = implode(" ", $args);
 $pid = getmypid();
 $stdout_file = $parser->tempFile(".stdout", "megSAP_clincnv_pid{$pid}_");
@@ -299,31 +337,7 @@ if(file_exists("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv"))
 else
 {
 	//ClinVAR did not generate CNV file
-	//generate file with basic header lines
-	$cnv_output = fopen($out, "w");
-	fwrite($cnv_output, "##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE\n");
-	preg_match('/^.*ClinCNV-([\d\.]*).*$/', $command, $matches);
-	if(sizeof($matches) >= 2)
-	{
-		fwrite($cnv_output, "##ClinCNV version: v{$matches[1]}\n");
-	}
-	fwrite($cnv_output, "##ClinVar did not write CNV file\n");
-	//search in CLinCNV stdout for lines indicating failed QC
-	foreach($stdout as $line)
-	{
-		//if QC for input sample failed, add it to header line
-		if(strpos($line, "{$ps_name} did not pass QC") == true)
-		{
-			preg_match('/^.*\"(.*)\".*$/', $line, $matches);
-			if(sizeof($mathces >= 2))
-			{
-				fwrite($cnv_output, "##{$matches[1]}\n");
-			}
-		}
-	}
-	fwrite($cnv_output, "#chr\tstart\tend\tCN_change\tloglikelihood\tno_of_regions\tlength_KB\tpotential_AF\tgenes\n");
-
-	fclose($cnv_output);
+	generate_empty_cnv_file($out, $command, $stdout, $ps_name, $stderr);
 }
 
 ?>
