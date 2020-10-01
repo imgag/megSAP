@@ -236,9 +236,12 @@ if (!$skip_super_recall)
 {
 	$args[] = "--superRecall 3"; //superRecall will call down to one region and to log-likelihood 3
 }
+//analyzing a single tumor sample
 if($mosaicism)
 {
 	$args[] = "--mosaicism";
+	$args[] = "--lengthS 5";
+	$args[] = "--scoreS 100";
 }
 
 $parameters = implode(" ", $args);
@@ -337,7 +340,7 @@ if(file_exists("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv"))
 else
 {
 	//ClinVAR did not generate CNV file
-	generate_empty_cnv_file($out, $command, $stdout, $ps_name, $stderr);
+	generate_empty_cnv_file($out, $command, $stdout, $ps_name,$stderr);
 }
 
 ?>
