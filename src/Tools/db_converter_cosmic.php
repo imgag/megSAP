@@ -93,6 +93,7 @@ while(!feof($in_fp))
 		$temp = str_replace(" ","%20", $temp);
 		$temp = str_replace("=","%3D", $temp);
 		$temp = str_replace(";", "%3B", $temp);
+		$temp = str_replace(",", "%2C", $temp);
 		
 		$cmc_data[] = $temp;
 	}

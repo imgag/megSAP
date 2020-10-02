@@ -152,6 +152,15 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GR
 #zcat hgmd_pro-2020.1.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2020_1.bed
 #$ngsbits/BedSort -with_name -in HGMD_CNVS_2020_1.bed -out HGMD_CNVS_2020_1.bed
 
+
+#Install COSMIC Cancer Mutation Census CMC  (you need a license, CMC tsv.gz file has to be downloaded manually from https://cancer.sanger.ac.uk/cmc/download)
+#cd $dbs
+#mkdir -p COSMIC
+#cd COSMIC
+##Login and download cmc_export.v92.tsv.gz from https://cancer.sanger.ac.uk/cmc/download to data/dbs/COSMIC. There is no download API for CMC file.
+#mv cmc_export.v92.tsv.gz cmc_export.v92.tar.gz #CMC file is incorrectly name as tsv.gz when downloaded from COSMIC
+#tar -xOzf cmc_export.v92.tar.gz cmc_export.tsv | php $src/Tools/db_converter_cosmic.php -in - -out cosmic_cmc_v92_converted.vcf.gz
+
 #install NGSD
 #
 #The usage of the NGSD annotation is optional. 
