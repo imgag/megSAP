@@ -158,6 +158,7 @@ while(!feof($handle))
 		{
 			$parts = explode(":", $cols[$tumor_idx]);
 			$snp_q = -10 * log10( $parts[$i_p_value] );	//calculate phred score from pvalue
+			$snp_q = floor($snp_q);
 			if($snp_q > 255) $snp_q = 255;
 		}
 		else
