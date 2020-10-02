@@ -5,35 +5,36 @@ $name = "vc_clincnv_germline";
 $ngsbits = get_path("ngs-bits");
 
 start_test($name);
+
 //test germline
 //prepare input data_folder
-$tmp_folder = output_folder()."/vc_clincnv_germline_data/";
+$tmp_folder = output_folder()."/vc_clincnv_germline_data1/";
 exec2("rm -rf $tmp_folder/*");
-exec2("tar xzf ".data_folder()."{$name}_data.tgz -C ".output_folder());
+exec2("tar -m -xzf ".data_folder()."{$name}_data1.tar.gz -C ".output_folder());
 $bed = $tmp_folder."/target_region.bed";
 $cov_folder = $tmp_folder."/coverage/";
-//test
-$out_file1 = output_folder().$name."_out1.tsv";
-$log_file1 = output_folder().$name."_out1.log";
+//test1
+$out_file1 = output_folder().$name."test1_out.tsv";
+$log_file1 = output_folder().$name."test1_out.log";
 check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX000018_02.cov -cov_folder {$cov_folder} -cov_min 20 -bed {$bed} -out {$out_file1} --log {$log_file1}");
-check_file($out_file1, data_folder().$name."_out1.tsv");
-check_file(substr($out_file1,0,-4).".seg", data_folder().$name."_out1.seg");
-check_file(substr($out_file1,0,-4)."_cnvs.seg",data_folder().$name."_out2.seg");
+check_file($out_file1, data_folder().$name."_test1_out.tsv");
+check_file(substr($out_file1,0,-4).".seg", data_folder().$name."_test1_out1.seg");
+check_file(substr($out_file1,0,-4)."_cnvs.seg",data_folder().$name."_test1_out2.seg");
 
-//test germline for panel (sample is supposed to be remission, but contains 1230 exon deletion chr6:28478466-33424368)
+//test germline (sample is supposed to be remission, but contains 1230 exon deletion chr6:28478466-33424368)
 //prepare input data_folder
-$cov_folder = output_folder()."/vc_clincnv_germline_panel_data/";
+$cov_folder = output_folder()."/vc_clincnv_germline_data2/";
 exec2("mkdir -p $cov_folder");
 exec2("rm -rf $cov_folder/*");
-exec2("tar -m -xzf ".data_folder()."{$name}_panel_data.tar.gz -C ".output_folder());
+exec2("tar -m -xzf ".data_folder()."{$name}_data2.tar.gz -C ".output_folder());
 $bed = $cov_folder."/ssHAEv5_2016_07_11_annotated.bed";
-//test
-$out_file2 = output_folder().$name."_panel_out1.tsv";
-$log_file2 = output_folder().$name."_panel_out1.log";
+//test2
+$out_file2 = output_folder().$name."_test2_out.tsv";
+$log_file2 = output_folder().$name."_test2_out.log";
 check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/GS140794_02.cov -cov_folder {$cov_folder} -cov_min 20 -max_cnvs 200 -bed {$bed} -out {$out_file2} --log {$log_file2}");
-check_file($out_file2, data_folder().$name."_panel_out1.tsv");
-check_file(substr($out_file2,0,-4).".seg", data_folder().$name."_panel_out1.seg");
-check_file(substr($out_file2,0,-4)."_cnvs.seg",data_folder().$name."_panel_out2.seg");
+check_file($out_file2, data_folder().$name."_test2_out.tsv");
+check_file(substr($out_file2,0,-4).".seg", data_folder().$name."_test2_out1.seg");
+check_file(substr($out_file2,0,-4)."_cnvs.seg",data_folder().$name."_test2_out2.seg");
 
 //test clincnv for somatic single sample (vc_clincnv_germline is used in this case)
 //prepare input data_folder
@@ -51,12 +52,34 @@ $parser = new ToolBase("tool_test_vc_clincnv_germline", "Pipeline for Bed Annota
 $parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 $cov_folder = $tmp_folder."/cov-tumor/";
 //test
-$out_file3 = output_folder().$name."_tumor_out1.tsv";
-$log_file3 = output_folder().$name."_tumor_out1.log";
+$out_file3 = output_folder().$name."_tumor_out.tsv";
+$log_file3 = output_folder().$name."_tumor_out.log";
 check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX000015_01.cov -cov_folder {$cov_folder} -cov_min 20 -max_cnvs 200 -bed {$bed} -out {$out_file3} --log {$log_file3} -mosaicism");
-check_file($out_file3, data_folder().$name."_tumor_out1.tsv");
+check_file($out_file3, data_folder().$name."_tumor_out.tsv");
 check_file(substr($out_file3,0,-4).".seg", data_folder().$name."_tumor_out1.seg");
 check_file(substr($out_file3,0,-4)."_cnvs.seg",data_folder().$name."_tumor_out2.seg");
+
+//test ClinCNV for panel 
+//prepare input data_folder
+$cov_folder = output_folder()."/vc_clincnv_germline_panel_data/";
+exec2("mkdir -p $cov_folder");
+exec2("rm -rf $cov_folder/*");
+exec2("tar -m -xzf ".data_folder()."{$name}_panel_data.tar.gz -C ".output_folder());
+$bed = $cov_folder."/target_region_annotated.bed";
+//test1
+$out_file3 = output_folder().$name."_panel1_out.tsv";
+$log_file3 = output_folder().$name."_panel1_out.log";
+check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX162181_01.cov -cov_folder {$cov_folder} -cov_min 20 -max_cnvs 200 -bed {$bed} -out {$out_file3} --log {$log_file3}");
+check_file($out_file3, data_folder().$name."_panel1_out.tsv");
+check_file(substr($out_file3,0,-4).".seg", data_folder().$name."_panel1_out1.seg");
+check_file(substr($out_file3,0,-4)."_cnvs.seg",data_folder().$name."_panel1_out2.seg");
+//test2
+$out_file4 = output_folder().$name."_panel2_out.tsv";
+$log_file4 = output_folder().$name."_panel2_out.log";
+check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX162337_02.cov -cov_folder {$cov_folder} -cov_min 20 -max_cnvs 200 -bed {$bed} -out {$out_file4} --log {$log_file4}");
+check_file($out_file4, data_folder().$name."_panel2_out.tsv");
+check_file(substr($out_file4,0,-4).".seg", data_folder().$name."_panel2_out1.seg");
+check_file(substr($out_file4,0,-4)."_cnvs.seg",data_folder().$name."_panel2_out2.seg");
 
 end_test();
 
