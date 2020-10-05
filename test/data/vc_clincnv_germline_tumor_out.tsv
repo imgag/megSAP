@@ -1,4 +1,4 @@
-##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE
+##ANALYSISTYPE=CLINCNV_TUMOR_ONLY
 ##ClinCNV version: v1.16.6
 ##Analysis finished on: 2020-09-30 16:53:07
 ##high-quality cnvs: 37

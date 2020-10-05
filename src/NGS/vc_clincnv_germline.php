@@ -110,12 +110,19 @@ function load_coverage_profile($filename, &$rows_to_use, &$output)
 }
 
 //fucntion to write an empty cnv file
-function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_message)
+function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_message, $tumor_only)
 {
 		//ClinVAR did not generate CNV file
 	//generate file with basic header lines
 	$cnv_output = fopen($out, "w");
-	fwrite($cnv_output, "##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE\n");
+	if($tumor_only)
+	{
+		fwrite($cnv_output, "##ANALYSISTYPE=CLINCNV_TUMOR_ONLY\n");
+	}
+	else
+	{
+		fwrite($cnv_output, "##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE\n");
+	}
 	preg_match('/^.*ClinCNV-([\d\.]*).*$/', $command, $matches);
 	if(sizeof($matches) >= 2)
 	{
@@ -151,7 +158,7 @@ $cov_files[] = $cov;
 $cov_files = array_unique(array_map("realpath", $cov_files));
 if (count($cov_files)<$cov_min)
 {
-	generate_empty_cnv_file($out, $command, "", $ps_name, "Only ".count($cov_files)." coverage files found in folder '{$cov_folder}'");
+	generate_empty_cnv_file($out, $command, "", $ps_name, "Only ".count($cov_files)." coverage files found in folder '{$cov_folder}'", $mosaicism);
 	trigger_error("CNV calling skipped. Only ".count($cov_files)." coverage files found in folder '$cov_folder'. At least {$cov_min} files are needed!", E_USER_WARNING);
 	exit(0);
 }
@@ -334,13 +341,17 @@ if(file_exists("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv"))
 		}	
 	}
 	array_splice($cnv_calls, 3, 0, array("##high-quality cnvs: {$hq_cnvs}\n", "##mean correlation to reference samples: {$mean_correlation}\n"));
+	if($mosaicism)
+	{
+		array_splice($cnv_calls, 0, 1, array("##ANALYSISTYPE=CLINCNV_TUMOR_ONLY\n"));
+	}
 
 	file_put_contents($out, $cnv_calls);
 }
 else
 {
 	//ClinVAR did not generate CNV file
-	generate_empty_cnv_file($out, $command, $stdout, $ps_name,$stderr);
+	generate_empty_cnv_file($out, $command, $stdout, $ps_name,$stderr, $mosaicism);
 }
 
 ?>
