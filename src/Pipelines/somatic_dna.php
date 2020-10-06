@@ -555,6 +555,14 @@ if(in_array("cn",$steps))
 		
 		//append tumor-normal IDs to list with tumor normal IDs (stored in same folder as tumor coverage files)
 		$t_n_list_file = $ref_folder_t . "/" . "list_tid-nid.csv";
+
+		// create folder
+		if (!file_exists($ref_folder_t))
+		{
+			mkdir($ref_folder_t);
+			// check if successfull
+			if (!file_exists($ref_folder_t)) trigger_error("Couldn't create folder '$ref_folder_t'!", E_USER_ERROR);
+		}
 		
 		if (!file_exists($t_n_list_file))
 		{
