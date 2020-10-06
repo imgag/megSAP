@@ -504,10 +504,10 @@ if(in_array("cn",$steps))
 			"-cov_folder {$ref_folder_t}",
 			"-bed {$bed}",
 			"-out {$som_clincnv}",
-			"--log ".$parser->getLogFile(),
-			"-mosaicism",
+			"-tumor_only",
 			"-cov_max 200",
-			"-max_cnvs 200"
+			"-max_cnvs 200",
+			"--log ".$parser->getLogFile()
 		);
 		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 

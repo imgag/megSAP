@@ -20,7 +20,7 @@ $parser->addInt("max_cnvs", "Number of expected CNVs (~200 for WES and ~2000 for
 $parser->addInt("max_tries", "Maximum number of tries for calling ClinCNV (R parallelization sometimes breaks with no reason", true, 10);
 $parser->addInt("regions", "Number of subsequent regions that must show a signal for a call.", true, 2);
 $parser->addFlag("skip_super_recall", "Skip super-recall (down to one region and log-likelihood 3).");
-$parser->addFlag("mosaicism", "Analyze tumor sample without a paired normal sample.");
+$parser->addFlag("tumor_only", "Analyze tumor sample without a paired normal sample.");
 
 extract($parser->parse($argv));
 
@@ -158,7 +158,7 @@ $cov_files[] = $cov;
 $cov_files = array_unique(array_map("realpath", $cov_files));
 if (count($cov_files)<$cov_min)
 {
-	generate_empty_cnv_file($out, $command, "", $ps_name, "Only ".count($cov_files)." coverage files found in folder '{$cov_folder}'", $mosaicism);
+	generate_empty_cnv_file($out, $command, "", $ps_name, "Only ".count($cov_files)." coverage files found in folder '{$cov_folder}'", $tumor_only);
 	trigger_error("CNV calling skipped. Only ".count($cov_files)." coverage files found in folder '$cov_folder'. At least {$cov_min} files are needed!", E_USER_WARNING);
 	exit(0);
 }
@@ -243,8 +243,9 @@ if (!$skip_super_recall)
 {
 	$args[] = "--superRecall 3"; //superRecall will call down to one region and to log-likelihood 3
 }
+
 //analyzing a single tumor sample
-if($mosaicism)
+if($tumor_only)
 {
 	$args[] = "--mosaicism";
 	$args[] = "--lengthS 5";
@@ -329,8 +330,14 @@ if(file_exists("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv"))
 	//add high-quality CNV count to header
 	$cnv_calls = file($out);
 	$hq_cnvs = 0;
+	$analysistype = 0;
+	$i = 0;
 	foreach($cnv_calls as $line)
 	{
+		if(starts_with($line, "##ANALYSISTYPE"))
+		{
+			$analysistype = $i;
+		}
 		$line = trim($line);
 		if ($line=="" || $line[0]=="#") continue;
 		
@@ -339,11 +346,12 @@ if(file_exists("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv"))
 		{
 			++$hq_cnvs;
 		}	
+		$i++;
 	}
 	array_splice($cnv_calls, 3, 0, array("##high-quality cnvs: {$hq_cnvs}\n", "##mean correlation to reference samples: {$mean_correlation}\n"));
-	if($mosaicism)
+	if($tumor_only)
 	{
-		array_splice($cnv_calls, 0, 1, array("##ANALYSISTYPE=CLINCNV_TUMOR_ONLY\n"));
+		array_splice($cnv_calls, $analysistype, 1, array("##ANALYSISTYPE=CLINCNV_TUMOR_ONLY\n"));
 	}
 
 	file_put_contents($out, $cnv_calls);
@@ -351,7 +359,7 @@ if(file_exists("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv"))
 else
 {
 	//ClinVAR did not generate CNV file
-	generate_empty_cnv_file($out, $command, $stdout, $ps_name,$stderr, $mosaicism);
+	generate_empty_cnv_file($out, $command, $stdout, $ps_name,$stderr, $tumor_only);
 }
 
 ?>
