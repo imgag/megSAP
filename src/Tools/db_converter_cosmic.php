@@ -88,14 +88,8 @@ while(!feof($in_fp))
 	foreach($ann_cols as $col_name)
 	{
 		$temp = $parts[$indices[$col_name]];
-		
-		//spaces and = are not allowed in vcf, replace by % encoding
-		$temp = str_replace(" ","%20", $temp);
-		$temp = str_replace("=","%3D", $temp);
-		$temp = str_replace(";", "%3B", $temp);
-		$temp = str_replace(",", "%2C", $temp);
-		
-		$cmc_data[] = $temp;
+		$temp = str_replace(",", ";", $temp); //replace "," by ";", otherwise there is no in-field separator for later processing left.
+		$cmc_data[] = vcf_encode_url_string($temp);
 	}
 	
 	fwrite($out_fp, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tCOSMIC_CMC=". implode("|", $cmc_data) ."\n");
