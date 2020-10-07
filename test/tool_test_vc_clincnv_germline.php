@@ -54,7 +54,7 @@ $cov_folder = $tmp_folder."/cov-tumor/";
 //test
 $out_file3 = output_folder().$name."_tumor_out.tsv";
 $log_file3 = output_folder().$name."_tumor_out.log";
-check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX000015_01.cov -cov_folder {$cov_folder} -cov_min 20 -max_cnvs 200 -bed {$bed} -out {$out_file3} --log {$log_file3} -mosaicism");
+check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX000015_01.cov -cov_folder {$cov_folder} -cov_min 20 -max_cnvs 200 -bed {$bed} -out {$out_file3} --log {$log_file3} -tumor_only");
 check_file($out_file3, data_folder().$name."_tumor_out.tsv");
 check_file(substr($out_file3,0,-4).".seg", data_folder().$name."_tumor_out1.seg");
 check_file(substr($out_file3,0,-4)."_cnvs.seg",data_folder().$name."_tumor_out2.seg");
