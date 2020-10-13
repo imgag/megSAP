@@ -618,6 +618,9 @@ if(in_array("cn",$steps))
 			/*******************
 			 * EXECUTE CLINCNV *
 			 *******************/
+			$cohort_folder = get_path("clincnv_cohorts")."/". $sys['name_short'];
+			if(!file_exists($cohort_folder)) mkdir($cohort_folder, 0777);
+			 
 			$args_clincnv = [
 			"-t_id", $t_id,
 			"-n_id", $n_id,
@@ -631,6 +634,7 @@ if(in_array("cn",$steps))
 			"-n_cov_off", $n_cov_off_target,
 			"-bed_off", $off_target_bed,
 			"-baf_folder", $baf_folder,
+			"-cohort_folder", $cohort_folder,
 			"-threads {$threads}"
 			];
 			
@@ -712,12 +716,8 @@ if (in_array("an", $steps))
 
 //QCI/CGI annotation
 //@TODO: implementation for translocation files
-$variants_qci = $full_prefix . "_var_qci.vcf.gz";				//CGI annotated vcf file
 if (in_array("ci", $steps))
 {
-	// add QCI output
-	$parser->execTool("Tools/converter_vcf2qci.php", "-in $variants_annotated -t_id $t_id -n_id $n_id -out $variants_qci -pass");
-	
 	/*********************************
 	 * GET CGI CANCER_TYPE FROM NGSD *
 	 *********************************/
@@ -785,6 +785,7 @@ if (in_array("ci", $steps))
 	];
 	if (file_exists($variants_annotated)) $parameters[] = "-mutations $variants_gsvar";
 	if (file_exists($som_clincnv)) $parameters[] = "-cnas $som_clincnv";
+	if ($single_sample) $parameters[] = "-single_sample";
 	//if we know genes in target region we set parameter for this file
 	$genes_in_target_region =  dirname($sys["target_file"]) . "/" .basename($sys["target_file"],".bed")."_genes.txt";
 	if(file_exists($genes_in_target_region)) $parameters[] = "-t_region $genes_in_target_region";

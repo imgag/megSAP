@@ -258,7 +258,7 @@ if($use_off_target)
 /*******************
  * EXECUTE CLINCNV *
  *******************/
-//Determine folder for cohort output
+//Determine folder for cohort output, standard is in ClinCNV app directory.
 if($cohort_folder == "auto")
 {	
 	//create main cohorts folder
