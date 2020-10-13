@@ -119,9 +119,9 @@ function create_file_with_paths($ref_cov_folder,$cov_path, $sample_ids = array()
 			$paths_to_be_included[] = $ref_paths[$i];
 		}
 	}
-	
+
 	//Check whether cov file is already in cov folder -> remove from list (could be specified in another dir!)
-	for($i=0;$i<count($ref_paths);++$i)
+	for($i=0;$i<count($paths_to_be_included);++$i)
 	{
 		if(strpos($paths_to_be_included[$i],basename($cov_path,".cov")) !== false)
 		{
