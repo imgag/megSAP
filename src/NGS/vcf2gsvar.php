@@ -314,8 +314,8 @@ $column_desc = array(
 	array("GeneSplicer", "GeneSplicer splicing prediction (state/type/coordinates/confidence/score)."),
 	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
-	array("MMSplice_DeltaLogitPSI", "mmsplice splice variant effect: max. delta_logit_psi score (logit scale of variant's effect on the exon inclusion, positive score shows higher exon inclusion, negative higher excusion rate - a score beyond 2, -2 can be considered strong)"),
-	array("MMSplice_pathogenicity", "mmsplice splice variant effect: max. pathogenicity score (probability of the pathogenic effect of the variant)")
+	array("MMSplice_DeltaLogitPSI", "MMsplice delta Logit PSI score: variant's effect on the exon inclusion - positive score shows higher exon inclusion, negative higher exclusion rate. A score greater than 2 or less than -2 can be considered strong."),
+	array("MMSplice_pathogenicity", "MMsplice pathogenicity score: probability of pathogenic effect of the variant on splicing")
 
 );
 
