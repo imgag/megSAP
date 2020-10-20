@@ -965,8 +965,8 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false, $inclu
 	if ($res[0]['q1']=="bad") return false;
 	if ($res[0]['q2']=="bad") return false;
 	
-	//check that project type is research/diagnostics
-	if (!($res[0]['type']=="research" || $res[0]['type']=="diagnostic" || ($res[0]['type']=="test" && $include_test_projects))) return false;
+	//include test projects only if requested
+	if ($res[0]['type']=="test" && !$include_test_projects) return false;
 	
 	return true;
 }
