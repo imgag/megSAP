@@ -821,7 +821,7 @@ if (in_array("ci", $steps))
 	/*************************
 	 * GERMLINE CGI ANALYSIS *
 	 *************************/
-	$variants_germline = dirname($n_bam)."/{$n_id}.GSvar";
+	$variants_germline = ( isset($n_bam)? dirname($n_bam)."/{$n_id}.GSvar" : "" );
 	if(file_exists($variants_germline) && $include_germline)
 	{
 		$germl_gsvar_content = file($variants_germline, FILE_IGNORE_NEW_LINES);
