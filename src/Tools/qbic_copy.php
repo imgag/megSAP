@@ -389,9 +389,9 @@ foreach($res as $row)
 		$missing = false;
 
 		//skip samples where data is not at default location
-		$res3 = $db->executeQuery("SELECT p.type, p.name FROM processed_sample ps, project p WHERE ps.id='$ps_id' AND ps.project_id=p.id");
-		$project_folder = get_path("project_folder")."/".$res3[0]['type']."/".$res3[0]['name']."/";
-		$data_folder = $project_folder."Sample_".$ps_name."/";
+		$info = get_processed_sample_info($db,$ps_name);
+		$project_folder = $info["project_folder"];
+		$data_folder = $info["ps_folder"];
 		if (!$skipped && !file_exists($data_folder))
 		{
 			printTSV($output, "ERROR" ,"folder does not exist");
@@ -403,8 +403,6 @@ foreach($res as $row)
 		$files = array();
 		$paths  = glob($data_folder.$s_name."*.*");
 		if(is_dir($data_folder."+original")) $paths = glob($data_folder."+original/".$ps_name."*.*");	//for backward compatibility
-
-		$info = get_processed_sample_info($db,$ps_name);
 		
 		//get FASTQ/VCF
 		$tumor_normal_pair = $info["is_tumor"] == 1 && !empty($info["normal_id"]);

@@ -1375,8 +1375,17 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	
 	//additional info
 	$project_folder = get_path("project_folder");
-	if (!ends_with($project_folder, "/")) $project_folder .= "/";
-	$info['project_folder'] = $project_folder.$info['project_type']."/".$info['project_name']."/";
+	$project_type = $info['project_type'];
+	if (is_array($project_folder))
+	{
+		$project_folder = $project_folder[$project_type];
+	}
+	else
+	{
+		if (!ends_with($project_folder, "/")) $project_folder .= "/";
+		$project_folder = $project_folder.$project_type;
+	}
+	$info['project_folder'] = $project_folder."/".$info['project_name']."/";
 	$info['ps_name'] = $ps_name;
 	$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
 	$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";

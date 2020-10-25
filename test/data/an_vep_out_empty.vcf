@@ -169,5 +169,5 @@
 ##INFO=<ID=NGSD_CLAS,Number=1,Type=String,Description="Classification from the NGSD. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_CLAS_COM,Number=1,Type=String,Description="Classification comment from the NGSD. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_COM,Number=1,Type=String,Description="Variant comments from the NGSD. (from file NGSD_germline.vcf.gz)">
-##INFO=<ID=NGSD_GENE_INFO,Number=.,Type=String,Description="Annotation from /mnt/share/data//dbs/NGSD/NGSD_genes.bed delimited by ':'">
+##INFO=<ID=NGSD_GENE_INFO,Number=.,Type=String,Description="Annotation from /mnt/storage1/share/data//dbs/NGSD/NGSD_genes.bed delimited by ':'">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878
