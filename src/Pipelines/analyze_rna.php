@@ -265,7 +265,7 @@ if (in_array("fu",$steps))
 	
 		//add samtools to path
 		putenv("PATH=" . implode(":", [
-			dirname(get_path("samtools")),
+			dirname(get_path("STAR-Fusion_samtools")),
 			dirname(get_path("STAR")),
 			getenv("PATH")
 		]));
