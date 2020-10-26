@@ -69,7 +69,7 @@ $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 
 
 //annotate COSMIC
-$cosmic_cmc = get_path("cosmic_cmc", false);
+$cosmic_cmc = get_path("cosmic_cmc", false); //TODO Use relative path based on data_folder! > AXEL
 if(!empty($cosmic_cmc) && $somatic)
 {
 	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
