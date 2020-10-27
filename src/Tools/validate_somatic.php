@@ -15,6 +15,7 @@ $parser->addInfile("tumor", "Expected tumor variants  (VCF.GZ).", false);
 $parser->addInfile("roi", "Target region for the validation (high-confidence region of reference samples intersected with high-depth region of experiment.", false);
 $parser->addInfileArray("calls", "Somatic variant call files (VCF.GZ).", false);
 $parser->addOutfile("vars_details", "Output TSV file for variant details.", false);
+$parser->addFlag("with_low_evs", "Ignores 'LowEVS' filter column entry");
 extract($parser->parse($argv));
 
 //returns if the variant is an InDels
@@ -39,6 +40,8 @@ function get_bases($filename)
 //load VCF
 function load_vcf($filename, $roi, $strelka)
 {
+	global $with_low_evs;
+	
 	$output = array();
 	list($lines) = exec2("tabix --regions {$roi} {$filename}");
 	foreach($lines as $line)
@@ -56,7 +59,13 @@ function load_vcf($filename, $roi, $strelka)
 		if ($strelka)
 		{
 			list($tumor_dp, $tumor_af) = is_indel($tag) ? vcf_strelka_indel($format, $sample_tumor) : vcf_strelka_snv($format, $sample_tumor, $alt);
-			$output[$tag] = $tumor_af;
+			
+			//clear filter column
+			$filter_replace = ["PASS"=>"", "freq-tum"=>"", ";"=>""];
+			if ($with_low_evs) $filter_replace ["LowEVS"] = "";
+			$filter = trim(strtr($filter, $filter_replace));
+			
+			$output[$tag] = array($tumor_af, $tumor_dp, $filter);
 		}
 		else
 		{
@@ -123,12 +132,21 @@ foreach($calls as $filename)
 		$tp = 0;
 		$fp = 0;
 		$fn = 0;
-		foreach($vars as $var => $af)
+		foreach($vars as $var => list($af, $dp, $filter))
 		{
 			if (!type_matches($type, $var)) continue;
 			if (isset($vars_somatic[$var]))
 			{
-				++$tp;
+				
+				//flag filtered out
+				if ($filter!="")
+				{
+					$af = "FILTERED";
+				}
+				else
+				{
+					++$tp;
+				}
 			}
 			else if(!isset($vars_germline[$var]))
 			{
