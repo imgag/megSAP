@@ -159,7 +159,7 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GR
 #cd COSMIC
 ##Login and download cmc_export.v92.tsv.gz from https://cancer.sanger.ac.uk/cmc/download to data/dbs/COSMIC. There is no download API for CMC file.
 #mv cmc_export.v92.tsv.gz cmc_export.v92.tar.gz #CMC file is incorrectly name as tsv.gz when downloaded from COSMIC
-#tar -xOzf cmc_export.v92.tar.gz cmc_export.tsv | php $src/Tools/db_converter_cosmic.php -in - -out cosmic_cmc_v92_converted.vcf.gz
+#tar -xOzf cmc_export.v92.tar.gz cmc_export.tsv | php $src/Tools/db_converter_cosmic.php -in - -out cmc_export.vcf.gz
 
 #install NGSD
 #
