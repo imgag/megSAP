@@ -191,10 +191,6 @@ for($i = 0; $i < $variants->rows(); ++$i)
 	$filters = [];
 	$type = (strlen($row[3]) > 1 || strlen($row[4]) > 1) ? "INDEL" : "SNV";
 
-	if (!$keep_lq && $row[6] !== "PASS")
-	{
-		continue;
-	}
 
 	$filter = array_diff(explode(";", $row[6]), ["PASS"]);
 
@@ -243,11 +239,43 @@ for($i = 0; $i < $variants->rows(); ++$i)
 		{
 			$filter[] = "PASS";
 		}
-		$variant[6] = implode(";", $filter);
 
-		$variants_filtered->addRow($variant);
+		if (!$keep_lq && $row[6] !== "PASS") //variants that do not pass strelka2 quality "PASS" filter -> post filter do detect potential false negatives
+		{
+			
+			//Common filter for low quality (depth, frequency, special chromosome)
+			if( in_array("lt-3-reads", $filter) || in_array("depth-tum", $filter) || in_array("depth-nor", $filter) || $tf < 0.045 || in_array("freq-nor", $filter) || in_array("special-chromosome", $filter) )
+			{
+				continue;
+			}
+			
+			$infos = explode(";", $variant[7]);
+			
+			$keep_add_variant = true;
+			
+			//Also filter for SomaticEVS, Mapping Quality (MQ), Strand bias (SNVSB)
+			foreach($infos as $info)
+			{
+				if( starts_with($info, "SomaticEVS=") && str_replace("SomaticEVS=","", $info) < 4) $keep_add_variant = false;
+				if( starts_with($info, "MQ=") && str_replace("MQ=","", $info) < 30 ) $keep_add_variant = false;
+				if( starts_with($info, "SNVSB=") && str_replace("SNVSB=","", $info) > 0.05) $keep_add_variant = false;
+			}
+			if($keep_add_variant)
+			{
+				$variant[6] = implode(";", $filter);
+				$variants_filtered->addRow($variant);
+			}
+		}
+		else //variants that pass strelka2 quality filter -> add immediatly
+		{
+			$variant[6] = implode(";", $filter);
+			$variants_filtered->addRow($variant);
+		}
+		
 	}
 }
+
+//Add variants 
 $vcf_filtered = $parser->tempFile("_filtered.vcf");
 $variants_filtered->toTSV($vcf_filtered);
 $final = $vcf_filtered;

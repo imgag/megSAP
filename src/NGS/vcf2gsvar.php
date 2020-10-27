@@ -313,7 +313,10 @@ $column_desc = array(
 	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
 	array("GeneSplicer", "GeneSplicer splicing prediction (state/type/coordinates/confidence/score)."),
 	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
-	array("COSMIC", "COSMIC somatic variant database anntotation.")
+	array("COSMIC", "COSMIC somatic variant database anntotation."),
+	array("MMSplice_DeltaLogitPSI", "MMsplice delta Logit PSI score: variant's effect on the exon inclusion - positive score shows higher exon inclusion, negative higher exclusion rate. A score greater than 2 or less than -2 can be considered strong."),
+	array("MMSplice_pathogenicity", "MMsplice pathogenicity score: probability of pathogenic effect of the variant on splicing")
+
 );
 
 // optional NGSD somatic header description if vcf contains NGSD somatic information
@@ -332,6 +335,15 @@ $column_desc_ngsd = array(
 	array("validation", "Validation information from the NGSD. Validation results of other samples are listed in brackets!"),
 	array("comment", "Variant comments from the NGSD."),
 	array("gene_info", "Gene information from NGSD (inheritance mode, gnomAD o/e scores).")
+);
+
+//optional COSMIC CMC header description if vcf contains COSMIC CMC information
+$colum_desc_cosmic_cmc = array(
+	array("CMC_genes", "Gene symbol from COSMIC Cancer Mutation Census (CMC)."),
+	array("CMC_MUTATION_ID", "COSV identifier of variant from COSMIC Cancer Mutation Census (CMC)."),
+	array("CMC_disease", "diseases with > 1% of samples mutated where disease = Primary site(tissue) / Primary histology / Sub-histology = Samples mutated / Samples tested = Frequency from COSMIC Cancer Mutation Census (CMC)."),
+	array("CMC_DNDS_ratio", "diseases with significant dn/ds ratio (q-value < 5%) from COSMIC Cancer Mutation Census (CMC)."),
+	array("CMC_mutation_significance", "Significance tier of the variant from COSMIC Cancer Mutation Census (CMC).")
 );
 
 
@@ -354,6 +366,7 @@ $handle = fopen2($in, "r");
 $handle_out = fopen2($out, "w");
 $skip_ngsd = true; // true as long as no NGSD header is found
 $skip_ngsd_som = true; // true as long as no NGSD somatic header is found
+$skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC) header is found.
 
 while(!feof($handle))
 {
@@ -435,7 +448,7 @@ while(!feof($handle))
 			$i_omim = index_of($cols, "OMIM", false);
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
-			$i_genesplicer = index_of($cols, "GeneSplicer", false); //TODO reactivate error if missing when runtime problems are fixed in VEP 100
+			$i_genesplicer = index_of($cols, "GeneSplicer", false);
 			$i_dbscsnv_ada = index_of($cols, "ada_score");
 			$i_dbscsnv_rf = index_of($cols, "rf_score");
 		}
@@ -468,6 +481,24 @@ while(!feof($handle))
 				$skip_ngsd_som = false;
 			}
 		}
+		
+		//COSMIC CMC (Cancer Mutation Census) header line
+		if (starts_with($line, "##INFO=<ID=COSMIC_CMC,") )
+		{
+			$skip_cosmic_cmc = false;
+		
+			//trim to " (from file "... and split by "|"
+			$cols = explode("|", substr($line, 0, strpos($line, " (from file")) );
+			$cols[0] = "GENE_NAME";
+			
+			$i_cosmic_cmc_gene_name = index_of($cols, "GENE_NAME");
+			$i_cosmic_cmc_mut_id = index_of($cols, "GENOMIC_MUTATION_ID");
+			$i_cosmic_cmc_disease = index_of($cols, "DISEASE");
+			$i_cosmic_cmc_dnds_disease = index_of($cols, "DNDS_DISEASE_QVAL");
+			$i_cosmic_cmc_mut_sign_tier = index_of($cols, "MUTATION_SIGNIFICANCE_TIER");
+		}
+		
+		
 		continue;
 	}
 	//after last header line, write our header
@@ -483,6 +514,12 @@ while(!feof($handle))
 			// append optional NGSD header
 			$column_desc = array_merge($column_desc, $column_desc_ngsd);
 		}
+		if (!$skip_cosmic_cmc)
+		{
+			//append optional COSMIC CMC header
+			$column_desc = array_merge($column_desc, $colum_desc_cosmic_cmc);
+		}
+		
 		write_header_line($handle_out, $column_desc, $filter_desc);
 		$in_header = false;
 	}
@@ -525,6 +562,7 @@ while(!feof($handle))
 		}
 	}
 	$info = $tmp;
+
 	$sample = array_combine(explode(":", $format), explode(":", $sample));
 	
 	//convert genotype information to TSV format
@@ -1180,6 +1218,60 @@ while(!feof($handle))
 			$ngsd_gene_info = "";
 		}
 	}
+
+	//MMSplice
+	$mmsplice_deltaLogitPsi = "";
+	$mmsplice_pathogenicity = "";
+	if (isset($info["mmsplice"]))
+	{
+		$delta_logit_psi = null;
+		$pathogenicity = null;
+		$mmsplice = trim($info["mmsplice"]);
+		$mmsplice_values = array();
+
+		if(preg_match_all('/delta_logit_psi:(-?[0-9]+\.[0-9]+)/', $mmsplice, $delta_logit_psi_match))
+		{
+			if(count($delta_logit_psi_match[1]) > 1)
+			{
+				foreach($delta_logit_psi_match[1] as $delta_logit_psi_value)
+				{
+					if(abs($delta_logit_psi_value) > abs($delta_logit_psi))
+					{
+						$delta_logit_psi = $delta_logit_psi_value;
+					}
+				}
+			}
+			else if(count($delta_logit_psi_match[1]) == 1)
+			{
+				$delta_logit_psi = $delta_logit_psi_match[1][0];
+			}
+		}
+
+		if(preg_match_all('/pathogenicity:(-?[0-9]+\.[0-9]+)/', $mmsplice, $pathogenicity_match))
+		{
+			if(count($pathogenicity_match[1]) > 1)
+			{
+				foreach($pathogenicity_match[1] as $pathogenicity_value)
+				{
+					if(abs($pathogenicity_value) > abs($pathogenicity))
+					{
+						$pathogenicity = $pathogenicity_value;
+					}
+				}
+			}
+			else if(count($pathogenicity_match[1]) == 1)
+			{
+				$pathogenicity = $pathogenicity_match[1][0];
+			}
+		}
+
+		if($pathogenicity != null && $delta_logit_psi != null)
+		{
+			$mmsplice_deltaLogitPsi = $delta_logit_psi;
+			$mmsplice_pathogenicity = $pathogenicity;
+		}
+
+	}
 	
 	// CADD
 	$cadd_scores = array();
@@ -1205,6 +1297,33 @@ while(!feof($handle))
 	{
 		$cadd = $cadd_scores[0];
 	}
+	
+	
+	// COSMIC CMC
+	if ( !$skip_cosmic_cmc && isset($info["COSMIC_CMC"]) )
+	{
+		$anns = explode("&", $info["COSMIC_CMC"]);
+		
+		$cmc_gene = array();
+		$cmc_mut_id = array();
+		$cmc_disease = array();
+		$cmc_dnds_disease = array();
+		$cmc_mut_sign_tier = array();
+		
+
+		foreach($anns as $entry)
+		{
+			$parts = explode("|", $entry);
+			
+			$cmc_gene[] = vcf_decode_url_string( $parts[$i_cosmic_cmc_gene_name] );
+			$cmc_mut_id[] = vcf_decode_url_string( $parts[$i_cosmic_cmc_mut_id] ) ;
+			$cmc_disease[] = vcf_decode_url_string( $parts[$i_cosmic_cmc_disease] );
+			$cmc_dnds_disease[] = vcf_decode_url_string( $parts[$i_cosmic_cmc_dnds_disease] );
+			$cmc_mut_sign_tier[] = vcf_decode_url_string( $parts[$i_cosmic_cmc_mut_sign_tier] );
+			
+		}
+	}
+	
 
 	//add up/down-stream variants if requested (or no other transcripts exist)
 	if ($updown || count($coding_and_splicing_details)==0)
@@ -1270,7 +1389,7 @@ while(!feof($handle))
 	
 	//write data
 	++$c_written;
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects");
@@ -1279,6 +1398,17 @@ while(!feof($handle))
 	{
 		fwrite($handle_out, "\t$ngsd_hom\t$ngsd_het\t$ngsd_group\t$ngsd_clas\t$ngsd_clas_com\t$ngsd_val\t$ngsd_com\t$ngsd_gene_info");
 	}
+	
+	if ( !$skip_cosmic_cmc && isset($info["COSMIC_CMC"]) )
+	{
+		fwrite($handle_out, "\t". implode(",",$cmc_gene) ."\t". implode(",",$cmc_mut_id) ."\t". implode(",",$cmc_disease) ."\t" . implode(",",$cmc_dnds_disease) ."\t".implode(",",$cmc_mut_sign_tier));
+	}
+	elseif( !$skip_cosmic_cmc)
+	{
+		fwrite( $handle_out, str_repeat("\t", count($colum_desc_cosmic_cmc)) );
+	}
+	
+	
 	fwrite($handle_out, "\n");
 }
 

@@ -10,9 +10,9 @@ import_read_counts:
 	php /mnt/users/bioinf/megSAP/src/NGS/import_sample_read_counts.php -stats Unaligned/Stats/Stats.json -db NGSD_TEST 
 
 copy_Exome_Diagnostik_diagnostic:
-	mv Unaligned/Exome_Diagnostik/Sample_DX203663_02/ /mnt/projects/diagnostic/Exome_Diagnostik/
-	mv Unaligned/Exome_Diagnostik/Sample_DX203664_03/ /mnt/projects/diagnostic/Exome_Diagnostik/
-	mv Unaligned/Exome_Diagnostik/Sample_DX203665_04/ /mnt/projects/diagnostic/Exome_Diagnostik/
+	mv Unaligned/Exome_Diagnostik/Sample_DX203663_02/ /mnt/storage2/projects/diagnostic//Exome_Diagnostik/
+	mv Unaligned/Exome_Diagnostik/Sample_DX203664_03/ /mnt/storage2/projects/diagnostic//Exome_Diagnostik/
+	mv Unaligned/Exome_Diagnostik/Sample_DX203665_04/ /mnt/storage2/projects/diagnostic//Exome_Diagnostik/
 
 queue_Exome_Diagnostik_diagnostic:
 	php /mnt/users/bioinf/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX203663_02

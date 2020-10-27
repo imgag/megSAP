@@ -29,6 +29,11 @@ $out_file4 = output_folder().$name."_out4.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in4.vcf -out $out_file4 -t_col GS150344_01 -db NGSD_TEST --log ".output_folder().$name."_out4.log");
 check_file($out_file4, data_folder().$name."_out4.GSvar");
 
+//varscan2 (tumor only) and COSMIC annotation
+$out_file5 = output_folder().$name."_out5.GSvar";
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in5.vcf -out $out_file5 -t_col GS150344_01 -db NGSD_TEST --log ".output_folder().$name."_out5.log");
+check_file($out_file5, data_folder().$name."_out5.GSvar");
+
 end_test();
 
 ?>

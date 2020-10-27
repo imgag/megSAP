@@ -7,8 +7,8 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("an_somatic_cnvs", "Annotates additional somatic data to ClinCNV file (CGI / NCG6.0 / RNA counts).");
-$parser->addInfile("cnv_in", "Input .gsvar-file with SNV data.", false);
-$parser->addInfile("cnv_in_cgi", "Input CGI data with SNV annotations",true);
+$parser->addInfile("cnv_in", "Input CNV file.", false);
+$parser->addInfile("cnv_in_cgi", "Input CNV CGI data",true);
 $parser->addFlag("include_ncg", "Annotate column with info from NCG6.0 whether a gene is TSG or oncogene");
 $parser->addFlag("include_cytoband", "Annotate column with cytoband names.");
 $parser->addInfile("rna_counts", "Annotate transcript counts from RNA counts file", true);
@@ -322,7 +322,7 @@ if(isset($rna_counts))
 		{
 			if(array_key_exists($dna_gene,$results))
 			{
-				$new_entry[] = "{$dna_gene}=". number_format($results[$dna_gene], 2);
+				$new_entry[] = "{$dna_gene}=". sprintf( "%.2f", round($results[$dna_gene], 2) );
 			}
 			else
 			{
@@ -332,7 +332,7 @@ if(isset($rna_counts))
 			
 			if(array_key_exists($dna_gene,$ref_results))
 			{
-				$new_entry_ref[] = "{$dna_gene}=". number_format($ref_results[$dna_gene], 2);
+				$new_entry_ref[] = "{$dna_gene}=". sprintf( "%.2f",round($ref_results[$dna_gene], 2) );
 			}
 			else
 			{
