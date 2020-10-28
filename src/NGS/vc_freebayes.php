@@ -176,9 +176,9 @@ if (isset($target) && $threads > 1)
 					}
 				}
 				$exit_code = trim(file_get_contents($exitcode_file));
+				$add_info[] = "EXIT CODE: ".$exit_code;
 				if(!is_numeric($exit_code) || $exit_code!=0)
 				{
-					$add_info[] = "EXIT CODE: ".$exit_code;
 					$job_aborted = true;
 				}
 				
