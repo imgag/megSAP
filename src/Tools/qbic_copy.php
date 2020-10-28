@@ -420,8 +420,17 @@ foreach($res as $row)
 			}
 			if (ends_with($file, "_var_annotated.vcf.gz")) $files[] = $file;
 		}
+
+		// Special treatment for PacBio project (Currently works for unmapped CLR Reads)
+		if($info['device_type']=="SequelII")
+		{	
+			$files[] = "{$data_folder}{$ps_name}.bam";
+			$files[] = "{$data_folder}{$ps_name}.bam.pbi";
+			$files[] = "{$data_folder}{$ps_name}.subreadset.xml";
+		} 
+	
 		//generate FASTQs from BAM is not available
-		if ($is_single_sample_dna && !$fastqs_present)
+		if ($is_single_sample_dna && !$fastqs_present && !$info['device_type']=="SequelII")
 		{
 			$bam = "{$data_folder}/{$ps_name}.bam";
 			if (file_exists($bam))
@@ -469,7 +478,7 @@ foreach($res as $row)
 			exec2("cat {$data_folder}*R2*.fastq.gz > {$data_folder}{$qbic_name}_tumor_rna.2.fastq.gz");
 			$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor_rna.2.fastq.gz";
 		}
-
+		
 		
 		//skip already uploaded
 		$skipped = false;
