@@ -26,4 +26,6 @@ After the required software is installed, some parameters in the megSAP `setting
 
 * `dragen_genomes` - Path to the genome reference hash tables. Should also be stored on the DRAGEN SSD storage.
 
+* `dragen_log` - Folder to store STDOUT and STDERR of the queued DRAGEN mapping jobs to determine if a finished job has ended successfully.
+
 * `queues_dragen` - Queue name(s) to which the DRAGEN mapping jobs are submitted. These queues must have 1 slot.

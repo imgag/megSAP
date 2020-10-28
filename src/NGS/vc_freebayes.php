@@ -161,6 +161,7 @@ if (isset($target) && $threads > 1)
 						$add_info[] = nl_trim($line);
 					}
 				}
+				$job_aborted = false;
 				$stderr = trim(file_get_contents($stderr_file));
 				if ($stderr!="")
 				{
@@ -168,19 +169,24 @@ if (isset($target) && $threads > 1)
 					foreach(explode("\n", $stderr) as $line)
 					{
 						$add_info[] = nl_trim($line);
+						if (contains($line, "terminate called after throwing an instance of 'std::runtime_error'"))
+						{
+							$job_aborted = true;
+						}
 					}
 				}
-				$exit_code = file_get_contents($exitcode_file);
-				if($exit_code!=0)
+				$exit_code = trim(file_get_contents($exitcode_file));
+				$add_info[] = "EXIT CODE: ".$exit_code;
+				if(!is_numeric($exit_code) || $exit_code!=0)
 				{
-					$add_info[] = "EXIT CODE: ".$exit_code;
+					$job_aborted = true;
 				}
 				
 				//log output
 				$parser->log("Finshed processing chromosome {$chr} in ".time_readable(microtime(true)-$start_time), $add_info);
 				
 				//abort if failed
-				if ($exit_code!=0) trigger_error("Processing of chromosome $chr with freebayes failed: ".$stderr, E_USER_ERROR);
+				if ($job_aborted) trigger_error("Processing of chromosome $chr with freebayes failed: ".$stderr, E_USER_ERROR);
 				
 				unset($running[$chr]);
 			}
@@ -235,7 +241,7 @@ $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
 $pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
 
 //normalize all variants and align INDELs to the left
-$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-comp 0 -ref $genome");
+$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-ref $genome");
 
 //sort variants by genomic position
 $pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
@@ -253,7 +259,7 @@ $parser->execPipeline($pipeline, "freebayes post processing");
 if ($target_extend>0)
 {
 	$tmp = $parser->tempFile(".vcf");
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $out -comp 0 -mark off-target -reg $target -out $tmp", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $out -mark off-target -reg $target -out $tmp", true);
 	$parser->exec("bgzip", "-c $tmp > $out", false);
 }
 

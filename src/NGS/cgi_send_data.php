@@ -12,6 +12,7 @@ $parser->addString("out", "Output file for zipped CGI result file",false);
 $parser->addInfile("t_region", ".txt-File which contains genes that shall be included in CNV analysis. Neccessary for CNV files.", true);
 $parser->addFlag("no_del", "Do not delete Job on Cancer Genome Interpreter after submission");
 $parser->addFlag("no_snv_limit","Allow uploading more than 1000 SNPs");
+$parser->addFlag("single_sample", "Filter SNVs for upload by gnomAD allele frequency");
 extract($parser->parse($argv));
 
 //discard if no input files given
@@ -339,6 +340,7 @@ if(isset($mutations))
 	$temp_mut_cont = array("sample\tprotein");
 	
 	$i_co_sp = -1;
+	$i_gnomad = -1;
 	while(!feof($handle_in))
 	{
 		$line = trim(fgets($handle_in));
@@ -352,18 +354,23 @@ if(isset($mutations))
 
 			for($i=0;$i<count($parts); ++$i)
 			{
-				if($parts[$i] == "coding_and_splicing")
-				{
-					$i_co_sp = $i;
-					break;
-				}
+				if($parts[$i] == "coding_and_splicing")	$i_co_sp = $i;
+				if($single_sample && $parts[$i] == "gnomAD") $i_gnomad = $i;
 			}
 			
 			if($i_co_sp == -1)
 			{
 				trigger_error("Could not find column \"coding_and_splicing\" in GSVar file {$mutations}.", E_USER_ERROR);
 			}
+			
+			if($single_sample && $i_gnomad == -1)
+			{
+				trigger_error("Could not find column \"gnomAD\" in GSVar file {$mutations}.", E_USER_ERROR);
+			}
+			
 		}
+		
+		if($single_sample && (float)$parts[$i_gnomad] > 0.01) continue;
 		
 		//Write all transcript - protein changes into array
 		$co_sps = explode(",", $parts[$i_co_sp]);

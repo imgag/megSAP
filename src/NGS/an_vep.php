@@ -75,8 +75,6 @@ $args[] = "--regulatory"; //regulatory features
 $fields[] = "BIOTYPE"; 
 $args[] = "--sift b --polyphen b"; //pathogenicity predictions
 $args[] = "--af --af_gnomad --failed 1"; //population frequencies
-$args[] = "--plugin CADD,".annotation_file_path("/dbs/CADD/CADD_SNVs_1.6.tsv.gz").",".annotation_file_path("/dbs/CADD/CADD_InDels_1.6.tsv.gz"); //CADD
-$fields[] = "CADD_PHRED";
 $args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_all_chromosomes.tsv.gz"); //REVEL
 $fields[] = "REVEL";
 $args[] = "--plugin FATHMM_MKL,".annotation_file_path("/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz"); //fathmm-MKL
@@ -186,6 +184,10 @@ if(file_exists($hgmd_file))
 {
 	fwrite($config_file, $hgmd_file."\tHGMD\tCLASS,MUT,GENE,PHEN\tID\n");
 }
+
+//add CADD score annotation
+fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.6.vcf.gz")."\tCADD\tCADD=SNV\t\n");
+fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
 
 // check if NGSD export file is available:
 $skip_ngsd = false;
@@ -301,7 +303,24 @@ if (!$skip_ngsd)
 fclose($config_file);
 
 // execute VcfAnnotateFromVcf
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output_refseq -out $out -threads $threads", true);
+$vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output_refseq -out $vcf_annotate_output -threads $threads", true);
+
+// generate temp file for mmsplice output
+$out_mmsplice = $parser->tempFile("_mmsplice.vcf");
+$gtf = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
+$fasta = genome_fasta($build);
+$mmsplice_env = get_path("MMSplice", true);
+// execute mmsplice script in its virtual enviroment
+addMissingContigsToVcf($build, $vcf_annotate_output);
+$args = array();
+$args[] = "--vcf_in {$vcf_annotate_output}"; //input vcf
+$args[] = "--vcf_out {$out}"; //output vcf
+$args[] = "--gtf {$gtf}"; //gtf annotation file
+$args[] = "--fasta {$fasta}"; //fasta reference file
+$args[] = "--threads {$threads}"; //fasta reference file
+putenv("PYTHONPATH");
+$parser->exec("OMP_NUM_THREADS={$threads} {$mmsplice_env}/mmsplice_env/bin/python3 ".repository_basedir()."/src/Tools/vcf_mmsplice_predictions.py", implode(" ", $args), false);
 
 if (!$skip_ngsd)
 {
@@ -322,7 +341,6 @@ if (!$skip_ngsd)
 	$gene_file = $data_folder."/dbs/NGSD/NGSD_genes.bed";
 	if (file_exists($gene_file))
 	{
-		
 		$tmp = $parser->tempFile(".vcf");
 		$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -in $out -out $tmp", true);
 		$parser->moveFile($tmp, $out);

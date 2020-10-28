@@ -239,6 +239,26 @@ if (count($bams) > 1)
     }
 }
 
+
+//Check samples are flagged correctly in NGSD
+if( db_is_enabled("NGSD") && count($bams) > 1 )
+{
+	$db = DB::getInstance("NGSD");
+	
+	$tinfo = get_processed_sample_info($db, $t_id, false);
+
+	if(!is_null($tinfo) && $tinfo["is_tumor"] != 1)
+	{
+		trigger_error("Please check tumor processed sample {$t_id} in NGSD. The sample is not flagged as tumor tissue.", E_USER_ERROR);
+	}
+	
+	$ninfo = get_processed_sample_info($db, $n_id, false);
+	if(!is_null($ninfo) && $ninfo["is_tumor"] != 0)
+	{
+		trigger_error("Please check normal processed sample {$n_id} in NGSD. The sample is flagged as tumor tissue.", E_USER_ERROR);
+	}
+}
+
 //low coverage statistics
 
 $low_cov = "{$full_prefix}_stat_lowcov.bed";					// low coverage BED file
@@ -308,6 +328,11 @@ if (in_array("vc", $steps))
 		if(!$single_sample)
 		{
 			$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
+		}
+		
+		if( db_is_enabled("NGSD") )
+		{
+			$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", true );
 		}
 	}
 
@@ -530,6 +555,14 @@ if(in_array("cn",$steps))
 		
 		//append tumor-normal IDs to list with tumor normal IDs (stored in same folder as tumor coverage files)
 		$t_n_list_file = $ref_folder_t . "/" . "list_tid-nid.csv";
+
+		// create folder
+		if (!file_exists($ref_folder_t))
+		{
+			mkdir($ref_folder_t);
+			// check if successfull
+			if (!file_exists($ref_folder_t)) trigger_error("Couldn't create folder '$ref_folder_t'!", E_USER_ERROR);
+		}
 		
 		if (!file_exists($t_n_list_file))
 		{
@@ -585,6 +618,9 @@ if(in_array("cn",$steps))
 			/*******************
 			 * EXECUTE CLINCNV *
 			 *******************/
+			$cohort_folder = get_path("clincnv_cohorts")."/". $sys['name_short'];
+			if(!file_exists($cohort_folder)) mkdir($cohort_folder, 0777);
+			 
 			$args_clincnv = [
 			"-t_id", $t_id,
 			"-n_id", $n_id,
@@ -598,6 +634,7 @@ if(in_array("cn",$steps))
 			"-n_cov_off", $n_cov_off_target,
 			"-bed_off", $off_target_bed,
 			"-baf_folder", $baf_folder,
+			"-cohort_folder", $cohort_folder,
 			"-threads {$threads}"
 			];
 			
@@ -610,7 +647,7 @@ if(in_array("cn",$steps))
 		}
 		else
 		{
-			print("Not enough reference tumor-normal coverage files for processing system {$system} found. Skipping CNV calling.\n");
+			trigger_error("Not enough reference tumor-normal coverage files for processing system {$system} found. Skipping CNV calling.\n", E_USER_NOTICE);
 		}
 	}
 }
@@ -679,12 +716,8 @@ if (in_array("an", $steps))
 
 //QCI/CGI annotation
 //@TODO: implementation for translocation files
-$variants_qci = $full_prefix . "_var_qci.vcf.gz";				//CGI annotated vcf file
 if (in_array("ci", $steps))
 {
-	// add QCI output
-	$parser->execTool("Tools/converter_vcf2qci.php", "-in $variants_annotated -t_id $t_id -n_id $n_id -out $variants_qci -pass");
-	
 	/*********************************
 	 * GET CGI CANCER_TYPE FROM NGSD *
 	 *********************************/
@@ -752,6 +785,7 @@ if (in_array("ci", $steps))
 	];
 	if (file_exists($variants_annotated)) $parameters[] = "-mutations $variants_gsvar";
 	if (file_exists($som_clincnv)) $parameters[] = "-cnas $som_clincnv";
+	if ($single_sample) $parameters[] = "-single_sample";
 	//if we know genes in target region we set parameter for this file
 	$genes_in_target_region =  dirname($sys["target_file"]) . "/" .basename($sys["target_file"],".bed")."_genes.txt";
 	if(file_exists($genes_in_target_region)) $parameters[] = "-t_region $genes_in_target_region";
@@ -787,7 +821,7 @@ if (in_array("ci", $steps))
 	/*************************
 	 * GERMLINE CGI ANALYSIS *
 	 *************************/
-	$variants_germline = dirname($n_bam)."/{$n_id}.GSvar";
+	$variants_germline = ( isset($n_bam)? dirname($n_bam)."/{$n_id}.GSvar" : "" );
 	if(file_exists($variants_germline) && $include_germline)
 	{
 		$germl_gsvar_content = file($variants_germline, FILE_IGNORE_NEW_LINES);

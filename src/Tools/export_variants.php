@@ -129,7 +129,7 @@ foreach($variants as $variant => $dummy)
 fclose($h);
 
 //sort
-$parser->exec($ngsbits."VcfSort", "-in $out -out $out -comp 0");
+$parser->exec($ngsbits."VcfSort", "-in $out -out $out");
 
 //annotate
 $vcf_anno = substr($out, 0, 4)."_anno.vcf";

@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("export_raw_data", "Exports RAW data.");
 $parser->addStringArray("samples", "Processed sample names (or file with one sample per line).", false);
 $parser->addString("out", "Output folder name.", false);
-$parser->addFlag("bam_export", "Export BAM instead of FASTQ files.");
+$parser->addEnum("mode", "Export mode (FASTQ only, BAM only, whole analysis folder).", true, ["fastq", "bam", "folder"], "fastq");
 extract($parser->parse($argv));
 
 //init
@@ -48,9 +48,17 @@ foreach($samples as $ps)
 	$quality = $info['ps_quality'];
 	if ($quality=="bad") trigger_error("Sample '$ps' has 'bad' quality!", E_USER_ERROR);
 	
-	$bam = $info['ps_bam'];
-	if ($bam_export)
+	if ($mode=="folder")
 	{
+		$folder = $info['ps_folder'];
+		if (!file_exists($folder))
+		{
+			trigger_error("Sample folder '$folder' is missing!", E_USER_ERROR);
+		}
+	}
+	else if ($mode=="bam")
+	{
+		$bam = $info['ps_bam'];
 		if (!file_exists($bam))
 		{
 			trigger_error("Sample '$ps': BAM file is missing!", E_USER_ERROR);
@@ -58,6 +66,7 @@ foreach($samples as $ps)
 	}
 	else
 	{
+		$bam = $info['ps_bam'];
 		$fastqs = glob($info['ps_folder']."/*.fastq.gz");
 		if (count($fastqs)==0 && !file_exists($bam))
 		{
@@ -75,20 +84,26 @@ foreach($samples as $ps)
 }
 file_put_contents("$out/meta_data.tsv", $meta);
 
-//export FASTQ/BAM data
+//export data
 foreach($samples as $ps)
 {
 	print "$ps\n";
 	$info = get_processed_sample_info($db, $ps);
-	$bam = $info['ps_bam'];
 	
-	if ($bam_export)
+	if ($mode=="folder")
+	{
+		$folder = $info['ps_folder'];
+		exec2("ln -s {$folder} {$out}/Sample_{$ps}");
+	}
+	else if ($mode=="bam")
 	{
 		print "  Copying BAM file ...\n";
+		$bam = $info['ps_bam'];
 		exec2("ln -s {$bam} {$out}/".basename($bam));
 	}
 	else
 	{		
+		$bam = $info['ps_bam'];
 		$fastqs = glob($info['ps_folder']."/*.fastq.gz");
 		if (count($fastqs)>0)
 		{

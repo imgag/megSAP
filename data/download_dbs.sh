@@ -95,6 +95,12 @@ wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/InDels.tsv.
 wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/InDels.tsv.gz.tbi > CADD_InDels_1.6.tsv.gz.tbi
 wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/whole_genome_SNVs.tsv.gz > CADD_SNVs_1.6.tsv.gz
 wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/whole_genome_SNVs.tsv.gz.tbi > CADD_SNVs_1.6.tsv.gz.tbi
+zcat CADD_InDels_1.6.tsv.gz | php $src/Tools/db_converter_cadd.php -in - -out - | VcfStreamSort | bgzip > CADD_InDels_1.6.vcf.gz
+tabix -f -p vcf CADD_InDels_1.6.vcf.gz
+zcat CADD_SNVs_1.6.tsv.gz | php $src/Tools/db_converter_cadd.php -in - -out - | VcfStreamSort | bgzip > CADD_SNVs_1.6.vcf.gz
+tabix -f -p vcf CADD_SNVs_1.6.vcf.gz
+VcfCheck -in CADD_InDels_1.6.vcf.gz -lines 0
+VcfCheck -in CADD_SNVs_1.6.vcf.gz -lines 0
 
 #Install fathmm-MKL for VEP - https://github.com/HAShihab/fathmm-MKL
 cd $dbs
@@ -145,6 +151,15 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GR
 ##CNVs
 #zcat hgmd_pro-2020.1.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2020_1.bed
 #$ngsbits/BedSort -with_name -in HGMD_CNVS_2020_1.bed -out HGMD_CNVS_2020_1.bed
+
+
+#Install COSMIC Cancer Mutation Census CMC  (you need a license, CMC tsv.gz file has to be downloaded manually from https://cancer.sanger.ac.uk/cmc/download)
+#cd $dbs
+#mkdir -p COSMIC
+#cd COSMIC
+##Login and download cmc_export.v92.tsv.gz from https://cancer.sanger.ac.uk/cmc/download to data/dbs/COSMIC. There is no download API for CMC file.
+#mv cmc_export.v92.tsv.gz cmc_export.v92.tar.gz #CMC file is incorrectly name as tsv.gz when downloaded from COSMIC
+#tar -xOzf cmc_export.v92.tar.gz cmc_export.tsv | php $src/Tools/db_converter_cosmic.php -in - -out cmc_export.vcf.gz
 
 #install NGSD
 #
