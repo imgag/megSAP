@@ -263,6 +263,11 @@ foreach($afs as $col => $values)
 
 //calculate performance for given AF cutoff
 $output_af = [];
+foreach($afs as $col => $af)
+{
+	$name = array_keys($details_all)[$col-2];
+	$output_af[] = "##tumor fraction {$name}: ".number_format(2.0*$af, 4);
+}
 $output_af[] = "#af\texpected\tTP\tFP\tFN\trecall/sensitivity\tprecision/ppv";
 foreach([0.05, 0.1, 0.2] as $min_af)
 {
@@ -288,8 +293,17 @@ foreach([0.05, 0.1, 0.2] as $min_af)
 				//artefacts (FP)
 				if ($type=="ARTEFACT")
 				{
+					for($col=2; $col<count($parts); ++$col)
+					{
+						$value = $parts[$col];
+						if (is_numeric($value) && $value>=$min_af)
+						{
+							++$fp;
+						}
+					}
+					
 					$done[$var] = true;
-					++$fp;
+					
 					continue;
 				}
 				
@@ -297,12 +311,11 @@ foreach([0.05, 0.1, 0.2] as $min_af)
 				
 				for($col=2; $col<count($parts); ++$col)
 				{
-					$af = $afs[$col];
-					if ($type=="SOMATIC (hom)") $af *= 2.0;
+					$af_expected = trim($afs[$col]);
+					if ($type=="SOMATIC (hom)") $af_expected *= 2.0;
 					
-					if ($af>$min_af)
+					if ($af_expected>$min_af)
 					{
-						$done[$var] = true;
 						$value = $parts[$col];
 						if (!is_numeric($value)) //"MISSING", "FILTERED"
 						{
@@ -312,6 +325,9 @@ foreach([0.05, 0.1, 0.2] as $min_af)
 						{
 							++$tp;
 						}
+						
+						$done[$var] = true;
+						
 						break;
 					}
 				}
