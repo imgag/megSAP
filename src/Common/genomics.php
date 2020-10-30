@@ -1836,4 +1836,15 @@ function addMissingContigsToVcf($build, $vcf)
 
 }
 
+
+$aa1_to_aa3 = array( 'A'=>"Ala", 'R'=>"Arg", 'N'=>"Asn", 'D'=>"Asp", 'C'=>"Cys", 'E'=>"Glu", 'Q'=>"Gln", 'G'=>"Gly", 'H'=>"His", 'I'=>"Ile", 'L'=>"Leu", 'K'=>"Lys", 'M'=>"Met", 'F'=>"Phe", 'P'=>"Pro", 'S'=>"Ser", 'T'=>"Thr", 'W'=>"Trp", 'Y'=>"Tyr", 'V'=>"Val", '*'=>"Ter");
+$aa3_to_aa1 = array_flip($aa1_to_aa3);
+
+//converts amino acid from three letter notation to 1 letter notation
+function aa3_to_aa1($three_letter_notation)
+{
+	return strtr($three_letter_notation, $GLOBALS["aa3_to_aa1"]);
+}
+
+
 ?>
