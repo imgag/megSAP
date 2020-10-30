@@ -19,7 +19,7 @@
     <qualityParameter ID="qp0007" name="duplicate read percentage" description="Percentage of reads removed because they were duplicates (PCR, optical, etc)." value="n/a (no duplicates marked or duplicates removed during data analysis)" cvRef="QC" accession="QC:2000024"/>
     <qualityParameter ID="qp0008" name="bases usable (MB)" description="Bases sequenced that are usable for variant calling (in megabases)." value="0.01" cvRef="QC" accession="QC:2000050"/>
     <qualityParameter ID="qp0009" name="target region read depth" description="Average sequencing depth in target region." value="2926.33" cvRef="QC" accession="QC:2000025"/>
-    <qualityParameter ID="qp0010" name="target region 10x percentage" description="Percentage of the target region that is covered at least 10-fold." value="100.00" cvRef="QC" accession="QC:2000026"/>
+    <qualityParameter ID="qp0010" name="target region 10x percentage" description="Percentage of the target region that is covered at least 10-fold." value="66.67" cvRef="QC" accession="QC:2000026"/>
     <qualityParameter ID="qp0011" name="target region 20x percentage" description="Percentage of the target region that is covered at least 20-fold." value="66.67" cvRef="QC" accession="QC:2000027"/>
     <qualityParameter ID="qp0012" name="target region 30x percentage" description="Percentage of the target region that is covered at least 30-fold." value="66.67" cvRef="QC" accession="QC:2000028"/>
     <qualityParameter ID="qp0013" name="target region 50x percentage" description="Percentage of the target region that is covered at least 50-fold." value="66.67" cvRef="QC" accession="QC:2000029"/>

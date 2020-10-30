@@ -15,6 +15,7 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 $parser->addString("tumor_id", "Related tumor processed sample.", true, "");
 $parser->addString("tumor_bam", "BAM file of related tumor processed sample.", true, "");
 $parser->addString("roi_patient", "Patient-specific target BED file.", true, "");
+$parser->addFlag("skip_tumor", "Skip comparison with related tumor sample");
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
 $steps_all = array("ma", "vc", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, db=import into NGSD.", true, "ma,vc,db");
@@ -45,15 +46,22 @@ $roi_base = $sys['target_file'];
 //database
 $db = DB::getInstance("NGSD", false);
 
+// overwrite tumor_bam and tumor_id if run with -skip_tumor
+if ($skip_tumor)
+{
+	$tumor_bam = "";
+	$tumor_id = "";
+}
+
 //resolve tumor id if not given
-if ($tumor_id == "")
+if ($tumor_id == "" && !$skip_tumor)
 {
 	//related samples
 	list($sample_name, $ps_num) = explode("_", $name);
 	$res_samples = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", ["name" => $sample_name]);
 	if (count($res_samples) !== 1)
 	{
-		trigger_error("Could not find sample for processed sample {$name}!", E_USER_ERROR);
+		trigger_error("Could not find sample for processed sample {$name}!", E_USER_WARNING);
 	}
 	$sample_id = $res_samples[0]['id'];
 	$res = $db->executeQuery("SELECT * FROM sample_relations WHERE relation='tumor-cfDNA' AND (sample1_id=:sid OR sample2_id=:sid)", array("sid" => $sample_id));
@@ -84,7 +92,7 @@ if ($tumor_id == "")
 }
 
 //patient specific target regions
-$roi_patient = $roi_patient == "" ? get_path("data_folder")."/enrichment/patient-specific/{$sys['name_short']}/{$tumor_id}.bed" : $roi_patient;
+if (!$skip_tumor) $roi_patient = $roi_patient == "" ? get_path("data_folder")."/enrichment/patient-specific/{$sys['name_short']}/{$tumor_id}.bed" : $roi_patient;
 if (!file_exists($roi_patient))
 {
 	trigger_error("Patient-specific enrichment target BED file '{$roi_patient}' is missing!", E_USER_ERROR);
@@ -120,6 +128,28 @@ if (in_array("ma", $steps) || in_array("vc", $steps))
 	$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$roi_merged}" ];
 	$parser->execPipeline($pipeline, "merge BED files");
 }
+
+//create BED file containing only KASP variants (for tumor-sample check)
+$roi_kasp = $parser->tempFile("KASP.bed");
+$kasp_regions = array();
+$unfiltered_bed_content = explode("\n", file_get_contents($roi_patient));
+foreach ($unfiltered_bed_content as $line) 
+{
+	//skip empty and comment lines
+	if(trim($line) == "") continue;
+	if(starts_with($line, "#")) continue;
+	$split_line = explode("\t", $line);
+	// check if name column indicates sample identifier:
+	if ((count($split_line) > 3) && starts_with($split_line[3], "SNP_for_sample_identification:"))
+	{
+		$kasp_regions[] = $line;
+	}
+}
+if (count($kasp_regions) == 0) 
+{
+	trigger_error("No SNPs for sample identification found in patient-specific BED file! Can't perform similarity check!", E_USER_WARNING);
+}
+file_put_contents($roi_kasp, implode("\n", $kasp_regions));
 
 //mapping
 if (in_array("ma", $steps))
@@ -167,11 +197,14 @@ if (in_array("ma", $steps))
 //check sample similarity with referenced tumor
 if ($tumor_bam != "")
 {
-	$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -roi {$roi_base}", true);
-	$correlation = explode("\t", $output[0][1])[3];
-	if ($correlation < $min_corr)
+	if (count($kasp_regions) > 0)
 	{
-		trigger_error("The genotype correlation of cfDNA and tumor is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
+		$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -roi {$roi_kasp}", true);
+		$correlation = explode("\t", $output[0][1])[3];
+		if ($correlation < $min_corr)
+		{
+			trigger_error("The genotype correlation of cfDNA and tumor is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
+		}
 	}
 }
 else
