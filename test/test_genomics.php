@@ -340,4 +340,11 @@ check(vcf_column_index("KLO0051", array("#CHROM", "POS", "ID", "REF", "ALT", "QU
 check(vcf_column_index("KLO0051_01", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "KLO0052", "KLO0051")), 10);
 end_test();
 
+start_test("aa1_to_aa3");
+check( aa1_to_aa3("*") , "Ter" );
+check( aa1_to_aa3("F") , "Phe" );
+check( aa3_to_aa1("Ter") , "*" );
+check( aa3_to_aa1("Asp") , "D" );
+end_test();
+
 ?>

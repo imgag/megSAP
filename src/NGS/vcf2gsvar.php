@@ -346,6 +346,13 @@ $colum_desc_cosmic_cmc = array(
 	array("CMC_mutation_significance", "Significance tier of the variant from COSMIC Cancer Mutation Census (CMC).")
 );
 
+//optional CANCERHOTSPOTS header description if vcf contains Cancerhotspots.org information
+$column_desc_cancerhotspots = array(
+	array("CANCERHOTSPOTS_AA_CHANGE", "Amino acid change as in original cancerhotspots.org file"),
+	array("CANCERHOTSPOTS_TOTAL_MUT", "Total mutation count in cancerhotspots.org at certain amino acid position."),
+	array("CANCERHOTSPOTS_ALT_COUNT", "Count of specific amino acid alteration at same position in cancerhotspots.org.")
+);
+
 
 if ($genotype_mode=="single")
 {
@@ -367,6 +374,7 @@ $handle_out = fopen2($out, "w");
 $skip_ngsd = true; // true as long as no NGSD header is found
 $skip_ngsd_som = true; // true as long as no NGSD somatic header is found
 $skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC) header is found.
+$skip_cancerhotspots = true; //true as long as no CANCERHOTSPOTS header is found.
 
 while(!feof($handle))
 {
@@ -498,6 +506,21 @@ while(!feof($handle))
 			$i_cosmic_cmc_mut_sign_tier = index_of($cols, "MUTATION_SIGNIFICANCE_TIER");
 		}
 		
+		//Cancerhotspots.org header line
+		if( starts_with($line, "##INFO=<ID=CANCERHOTSPOTS,") )
+		{
+			$skip_cancerhotspots = false;
+			$cols = explode("|", substr($line, 0,-2) );
+			$cols[0] = "GENE_SYMBOL";
+			
+			$i_cancerhotspots_gene_symbol = index_of($cols, "GENE_SYMBOL");
+			$i_cancerhotspots_transcript_id = index_of($cols, "ENSEMBL_TRANSCRIPT");
+			$i_cancerhotspots_aa_pos = index_of($cols, "AA_POS");
+			$i_cancerhotspots_aa_ref = index_of($cols, "AA_REF");
+			$i_cancerhotspots_aa_alt = index_of($cols, "AA_ALT");
+			$i_cancerhotspots_total_count = index_of($cols, "TOTAL_COUNT");
+			$i_cancerhotspots_alt_count = index_of($cols, "ALT_COUNT");
+		}
 		
 		continue;
 	}
@@ -518,6 +541,12 @@ while(!feof($handle))
 		{
 			//append optional COSMIC CMC header
 			$column_desc = array_merge($column_desc, $colum_desc_cosmic_cmc);
+		}
+		
+		if( !$skip_cancerhotspots )
+		{
+			//append optional cancerhotspots header
+			$column_desc = array_merge($column_desc, $column_desc_cancerhotspots);
 		}
 		
 		write_header_line($handle_out, $column_desc, $filter_desc);
@@ -1324,6 +1353,23 @@ while(!feof($handle))
 		}
 	}
 	
+	// CANCERHOTSPOTS
+	if( !$skip_cancerhotspots && isset($info["CANCERHOTSPOTS"]) )
+	{
+		$anns = explode(",", $info["CANCERHOTSPOTS"] );
+		
+		$cancerhotspots_protein_change = array();
+		$cancerhotspots_total_count = array();
+		$cancerhotspots_alt_count = array();
+		
+		foreach($anns as $entry)
+		{
+			$parts = explode("|", $entry);
+			$cancerhotspots_protein_change[] = ($parts[$i_cancerhotspots_transcript_id]) .":p." . aa1_to_aa3($parts[$i_cancerhotspots_aa_ref]) .$parts[$i_cancerhotspots_aa_pos] .  aa1_to_aa3($parts[$i_cancerhotspots_aa_alt]);
+			$cancerhotspots_total_count[] =  $parts[$i_cancerhotspots_total_count];
+			$cancerhotspots_alt_count[] = $parts[$i_cancerhotspots_alt_count];
+		}
+	}
 
 	//add up/down-stream variants if requested (or no other transcripts exist)
 	if ($updown || count($coding_and_splicing_details)==0)
@@ -1408,7 +1454,15 @@ while(!feof($handle))
 		fwrite( $handle_out, str_repeat("\t", count($colum_desc_cosmic_cmc)) );
 	}
 	
-	
+	if( !$skip_cancerhotspots &&isset($info["CANCERHOTSPOTS"]) )
+	{
+		fwrite( $handle_out, "\t" . implode(",",  $cancerhotspots_protein_change) . "\t" . implode(",", $cancerhotspots_total_count) ."\t" . implode(",", $cancerhotspots_alt_count) ); 
+	}
+	elseif( !$skip_cancerhotspots )
+	{
+		fwrite( $handle_out, str_repeat("\t", count($column_desc_cancerhotspots) ) );
+	}
+
 	fwrite($handle_out, "\n");
 }
 

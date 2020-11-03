@@ -1846,5 +1846,10 @@ function aa3_to_aa1($three_letter_notation)
 	return strtr($three_letter_notation, $GLOBALS["aa3_to_aa1"]);
 }
 
+function aa1_to_aa3($one_letter_notation)
+{
+	return strtr($one_letter_notation, $GLOBALS["aa1_to_aa3"]);
+}
+
 
 ?>

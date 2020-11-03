@@ -41,7 +41,6 @@ while(!feof($handle_in))
 	
 	if(empty($line_in))
 	{
-		fwrite($handle_out, "{$line_in}\n");
 		continue;
 	}
 	
@@ -118,7 +117,7 @@ while(!feof($handle_in))
 	$matches = array();
 	foreach($vep_alterations as $vep_alt)
 	{
-		list($res,,$exit_code) = $parser->exec("grep" , $vep_alt["transcript"] ." $in_db", false, false, false);
+		list($res,,$exit_code) = exec2("grep " . $vep_alt["transcript"] ." $in_db", false);
 		
 		if($exit_code != 0) continue; //grep returns 1 if entry not found
 		
