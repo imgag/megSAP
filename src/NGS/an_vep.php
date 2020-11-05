@@ -163,7 +163,7 @@ if (file_exists($warn_file))
 }
 $family_file = ""; // handle sample as single sample
 $aidiva_config = get_path("aidiva")."/data/AIdiva_configuration_smallTestFile_annotated.yaml";
-$ref_genome = annotation_file_path("/genomes/GRCh37.fa");
+$ref_genome = genome_fasta($build);
 
 $temp_results = $parser->tempFolder("aidiva_workdir");
 $args = array();
@@ -365,5 +365,7 @@ if($check_lines >= 0)
 {
 	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $out -lines $check_lines -ref ".genome_fasta($build), true);
 }
+
+$parser->exec("bgzip", "$out", true);
 
 ?>

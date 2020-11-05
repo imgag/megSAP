@@ -20,13 +20,13 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 
 extract($parser->parse($argv));
 
-$vcf_name = basename($vcf, ".vcf");
-$vcf_indel = $outdir."/".$vcf_name."_indel.vcf";
-$vcf_indel_expanded = $outdir."/".$vcf_name."_indel_expanded.vcf";
-$vcf_snp = $outdir."/".$vcf_name."_snp.vcf";
+//$vcf_name = basename($vcf, ".vcf");
+$vcf_indel = $outdir."/".$ps_name."_indel.vcf";
+$vcf_indel_expanded = $outdir."/".$ps_name."_indel_expanded.vcf";
+$vcf_snp = $outdir."/".$ps_name."_snp.vcf";
 
 $hg19_path = $genome_file;
-$feature_list = "SIFT,PolyPhen,REVEL,CADD_PHRED,ABB_SCORE,MAX_AF,segmentDuplication,custom_EIGEN_PHRED,fannsdb_CONDEL,custom_FATHMM_XF,custom_MutationAssessor,phastCons46mammal,phastCons46primate,phastCons46vertebrate,phyloP46mammal,phyloP46primate,phyloP46vertebrate";
+$feature_list = "SIFT,PolyPhen,REVEL,CADD_PHRED,ABB_SCORE,MAX_AF,segmentDuplication,EIGEN_PHRED,CONDEL,FATHMM_XF,MutationAssessor,phastCons46mammal,phastCons46primate,phastCons46vertebrate,phyloP46mammal,phyloP46primate,phyloP46vertebrate";
 $coding_regions = get_path("aidiva")."data/GRCh37_coding_sequences.bed";
 $family_file = $family;
 $temp_hpo_file_path = "";
@@ -82,10 +82,10 @@ if ($ps_name != "")
 // process annotated vcf and perform pathogenicity scoring and prioritization
 //$parser->exec("python3 ".get_path("aidiva")."aidiva/run_AIdiva.py", "--snp_vcf ".$outdir."/".basename($vcf_snp, ".vcf")."_vep.vcf --indel_vcf ".$outdir."/".basename($vcf_indel, ".vcf")."_vep.vcf --expanded_indel_vcf ".$outdir."/".basename($vcf_indel_expanded, ".vcf")."_vep.vcf --out_prefix {$vcf_name}_result --workdir $outdir --hpo_list $temp_hpo_file_path --family_file $family_file --config $config", true);
 $args = array();
-$args[] = "--snp_vcf ".$outdir."/".$vcf_name."_snp_vep.vcf";
-$args[] = "--indel_vcf ".$outdir."/".$vcf_name."_indel_vep.vcf";
-$args[] = "--expanded_indel_vcf ".$outdir."/".$vcf_name."_indel_expanded_vep.vcf";
-$args[] = "--out_prefix ".$vcf_name."_result";
+$args[] = "--snp_vcf ".$outdir."/".$ps_name."_snp_vep.vcf";
+$args[] = "--indel_vcf ".$outdir."/".$ps_name."_indel_vep.vcf";
+$args[] = "--expanded_indel_vcf ".$outdir."/".$ps_name."_indel_expanded_vep.vcf";
+$args[] = "--out_prefix ".$ps_name."_result";
 $args[] = "--workdir $outdir";
 if ($temp_hpo_file_path != "")
 {
@@ -98,8 +98,8 @@ if ($family_file != "")
 $args[] = "--config {$config}";
 $parser->exec("python3 ".get_path("aidiva")."aidiva/run_AIdiva.py", implode(" ", $args), true);
 
-$parser->exec(get_path("ngs-bits")."/VcfSort", "-in ".$outdir."/".basename($vcf, ".vcf")."_result.vcf"." -out ".$outdir."/"."aidiva"."_result_sorted.vcf", true);
-$parser->exec("bgzip", $outdir."/"."aidiva"."_result_sorted.vcf", true);
-$parser->exec("tabix", " -p vcf ".$outdir."/"."aidiva"."_result_sorted.vcf.gz", true);
+$parser->exec(get_path("ngs-bits")."/VcfSort", "-in ".$outdir."/".$ps_name."_result.vcf"." -out ".$outdir."/"."${ps_name}_aidiva_result_sorted.vcf", true);
+$parser->exec("bgzip --force", $outdir."/"."${ps_name}_aidiva_result_sorted.vcf", true);
+$parser->exec("tabix", " -p vcf ".$outdir."/"."${ps_name}_aidiva_result_sorted.vcf.gz", true);
 
 ?>

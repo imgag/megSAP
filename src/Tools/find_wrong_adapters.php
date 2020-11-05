@@ -1,5 +1,5 @@
 <?php
-/** 
+/**
 	@page find_wrong_adapters
 */
 
@@ -32,6 +32,10 @@ extract($parser->parse($argv));
 
 //get list of mapping qcML files
 $project_folder  = get_path("project_folder");
+if (is_array($project_folder))
+{
+	$project_folder = realpath($project_folder['diagnostic']."/../");
+}
 list($qc_files) = exec2("find -L {$project_folder}/research/ {$project_folder}/diagnostic/ -maxdepth 3 -name \"*_stats_map.qcML\"");
 
 //NGSD connection
@@ -44,22 +48,22 @@ foreach($qc_files as $file)
 	list($name, $ps_id) = explode("_", str_replace("_stats_map.qcML", "", basename($file))."_");
 	$s_id = $db->getID("sample", "name", $name, false);
 	if($s_id==-1) continue;
-	
+
 	//check processed sample exists in NGSD and extract processing system name
 	$res = $db->executeQuery("SELECT ps.id, sys.name_manufacturer FROM processed_sample ps, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id='$s_id' AND ps.process_id='".(int)($ps_id)."'");
 	if(count($res)!=1) continue;
 	$sys = $res[0]['name_manufacturer'];
-	
+
 	//grep for SeqPurge output
 	list($matches, $stderr) = exec2("grep 'adapter sequence (' $file", false);
 	if(trim(implode("", $stderr))!="") trigger_error("Grep error: ".implode("\n", $stderr), E_USER_ERROR);
-	
+
 	//skip log files that contain no/several SeqPurge outputs
 	if(count($matches)!=4) continue;
-	
+
 	//extract adapters
-	list($a1, $a1_con, $a2, $a2_con) = array_map("extract_adapter", $matches);	
-	
+	list($a1, $a1_con, $a2, $a2_con) = array_map("extract_adapter", $matches);
+
 	//calculate length/distance
 	$a1_len = min(strlen($a1), strlen($a1_con));
 	if ($a1_len<10) continue;
@@ -69,7 +73,7 @@ foreach($qc_files as $file)
 	$a2_len = min(strlen($a2), strlen($a2_con));
 	if ($a2_len<10) continue;
 	$a2_mmp = mm_perc($a2, $a2_con, $a2_len);
-	
+
 	print "{$name}_{$ps_id}\t$sys\t$a1_len\t$a1_mmp\t$a2_len\t$a2_mmp\n";
 }
 

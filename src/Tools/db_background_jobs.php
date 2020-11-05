@@ -1,5 +1,5 @@
 <?php
-/** 
+/**
 	@page db_background_jobs
 */
 
@@ -14,11 +14,12 @@ $parser->addInt("slots_per_job", "Number of SGE slots to use per command", false
 //optional
 $parser->addFloat("max_slots", "Maximum percentage of SGE slots to use.", true, 50.0);
 $parser->addInt("sleep_secs", "Number of seconds to sleep between tries to start jobs.", true, 120);
+$parser->addString("queue_set", "Queue set from INI file to use", true, "queues_default");
 extract($parser->parse($argv));
 
 //init
 $user = trim(exec('whoami'));
-$queues = get_path("queues_default");
+$queues = explode(",", get_path($queue_set));
 
 //load commands
 $file = file($commands);
@@ -33,20 +34,23 @@ foreach($file as $line)
 while(count($commands)>0)
 {
 	print date("Y-m-d h:i:s")."\n";
-	
+
 	//determine slots
-	list($stdout) = exec2("qstat -u '*' -f | grep default");
 	$slots_overall = 0;
 	$slots_used = 0;
-	foreach($stdout as $line)
+	foreach($queues as $queue)
 	{
-		$line = preg_replace('/\s+/', ' ', $line);
-		$line = explode(" ", $line);
-		// skip queues which are in any error/warning state (additional column)
-		if ((count($line) > 5) && (trim($line[5]) != "")) continue; 
-		list(, $used, $overall) = explode("/", $line[2]);
-		$slots_overall += $overall;
-		$slots_used += $used;
+		list($stdout) = exec2("qstat -u '*' -f | grep {$queue}");
+		foreach($stdout as $line)
+		{
+			$line = preg_replace('/\s+/', ' ', $line);
+			$line = explode(" ", $line);
+			// skip queues which are in any error/warning state (additional column)
+			if ((count($line) > 5) && (trim($line[5]) != "")) continue;
+			list(, $used, $overall) = explode("/", $line[2]);
+			$slots_overall += $overall;
+			$slots_used += $used;
+		}
 	}
 
 	$slots_max_used = (int)($max_slots/100.0*$slots_overall);
@@ -74,9 +78,9 @@ while(count($commands)>0)
 				$base = "{$sge_folder}".date("Ymdhis")."_".str_pad($id, 3, '0', STR_PAD_LEFT)."_{$user}";
 				$sge_out = "{$base}.out";
 				$sge_err = "{$base}.err";
-				$command_sge = "qsub -V -pe smp {$slots_per_job} -b y -wd {$sge_folder} -m n -M ".get_path("queue_email")." -e {$sge_err} -o {$sge_out} -q {$queues} -shell n";
+				$command_sge = "qsub -V -pe smp {$slots_per_job} -b y -wd {$sge_folder} -m n -M ".get_path("queue_email")." -e {$sge_err} -o {$sge_out} -q ".implode(",", $queues)." -shell n";
 				list($stdout, $stderr) = exec2($command_sge." ".$command);
-				
+
 				$sge_id = explode(" ", $stdout[0])[2];
 				print "    SGE job id: {$sge_id}\n";
 				print "    SGE stdout: {$sge_out}\n";
@@ -86,7 +90,7 @@ while(count($commands)>0)
 		}
 		print "  Commands remaining: ".count($commands)."\n";
 	}
-	
+
 	sleep($sleep_secs);
 }
 

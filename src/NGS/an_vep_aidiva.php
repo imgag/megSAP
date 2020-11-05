@@ -53,6 +53,8 @@ function annotation_file_path($rel_path, $is_optional=false)
 //annotate only fields we really need to prevent bloating the VCF file
 $fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation", "AF", "gnomAD_AF", "gnomAD_AFR_AF", "gnomAD_AMR_AF", "gnomAD_EAS_AF", "gnomAD_NFE_AF", "gnomAD_SAS_AF");
 
+$vep_output = $parser->tempFile("_customAnnot.vcf");
+
 $vep_path = dirname(get_path("vep"));
 $local_data = get_path("local_data");
 $vep_data_path = "{$local_data}/".basename(get_path("vep_data"))."/"; //the data is copied to the local data folder by 'data_setup' to speed up annotations (and prevent hanging annotation jobs)
@@ -60,12 +62,15 @@ $data_folder = get_path("data_folder");
 
 $args = array();
 $args[] = "-i $in --format vcf"; //input
-$args[] = "-o $out --vcf --no_stats --force_overwrite"; //output
+$args[] = "-o $vep_output --vcf --no_stats --force_overwrite"; //output
 $args[] = "--species homo_sapiens --assembly {$build}"; //species
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
 $args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".genome_fasta($build); //paths to data
 $args[] = "--max_af --af --af_gnomad --failed 1"; //population frequencies
+#$args[] = "--max_af --failed 1"; //population frequencies
 $fields[] = "MAX_AF";
+$args[] = "--custom ".annotation_file_path("/dbs/UCSC/hg19_simpleRepeat.bed.gz").",simpleRepeat,bed,overlap,0";
+$fields[] = "simpleRepeat";
 
 if(!$basic)
 {
@@ -74,20 +79,18 @@ if(!$basic)
 	$fields[] = "CADD_PHRED";
 	$args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_all_chromosomes.tsv.gz"); //REVEL
 	$fields[] = "REVEL";
-	$args[] = "--custom ".annotation_file_path("/dbs/UCSC/hg19_simpleRepeat.bed.gz").",simpleRepeat,bed,overlap,0";
-	$fields[] = "simpleRepeat";
 	$args[] = "--custom ".annotation_file_path("/dbs/UCSC/hg19_genomicSuperDups.bed.gz").",segmentDuplication,bed,overlap,0";
 	$fields[] = "segmentDuplication";
 	$args[] = "--custom ".annotation_file_path("/dbs/ABB/hg19_ABB-SCORE.bed.gz").",ABB_SCORE,bed,exact,0";
 	$fields[] = "ABB_SCORE";
-	$args[] = "--custom ".annotation_file_path("/dbs/Eigen/hg19_Eigen-phred_coding_chrom1-22.vcf.gz").",eigen,vcf,exact,0,EIGEN_PHRED";
-	$fields[] = "custom_EIGEN_PHRED";
-	$args[] = "--custom ".annotation_file_path("/dbs/Condel/hg19_precomputed_Condel.vcf.gz").",fannsdb,vcf,exact,0,CONDEL";
-	$fields[] = "fannsdb_CONDEL";
-	$args[] = "--custom ".annotation_file_path("/dbs/fathmm-XF/hg19_fathmm_xf_coding.vcf.gz").",fathmm_xf,vcf,exact,0,FATHMM_XF";
-	$fields[] = "custom_FATHMM_XF";
-	$args[] = "--custom ".annotation_file_path("/dbs/MutationAssessor/hg19_precomputed_MutationAssessor.vcf.gz").",mutationassessor,vcf,exact,0,MutationAssessor";
-	$fields[] = "custom_MutationAssessor";
+	//$args[] = "--custom ".annotation_file_path("/dbs/Eigen/hg19_Eigen-phred_coding_chrom1-22.vcf.gz").",eigen,vcf,exact,0,EIGEN_PHRED";
+	//$fields[] = "EIGEN_PHRED";
+	//$args[] = "--custom ".annotation_file_path("/dbs/Condel/hg19_precomputed_Condel.vcf.gz").",fannsdb,vcf,exact,0,CONDEL";
+	//$fields[] = "CONDEL";
+	//$args[] = "--custom ".annotation_file_path("/dbs/fathmm-XF/hg19_fathmm_xf_coding.vcf.gz").",fathmm_xf,vcf,exact,0,FATHMM_XF";
+	//$fields[] = "FATHMM_XF";
+	//$args[] = "--custom ".annotation_file_path("/dbs/MutationAssessor/hg19_precomputed_MutationAssessor.vcf.gz").",mutationassessor,vcf,exact,0,MutationAssessor";
+	//$fields[] = "MutationAssessor";
 	$args[] = "--custom ".annotation_file_path("/dbs/phastCons/hg19_phastCons46way_mammal.bw").",phastCons46mammal,bigwig"; //
 	$fields[] = "phastCons46mammal";
 	$args[] = "--custom ".annotation_file_path("/dbs/phastCons/hg19_phastCons46way_primate.bw").",phastCons46primate,bigwig"; //
@@ -124,6 +127,22 @@ if (file_exists($warn_file))
 		print $line."\n";
 	}
 }
+
+// create config file
+$config_file_path = $parser->tempFile(".config");
+$config_file = fopen($config_file_path, 'w');
+
+// add custom annotations
+fwrite($config_file, annotation_file_path("/dbs/Condel/hg19_precomputed_Condel.vcf.gz")."\t\tCONDEL\t\ttrue\n");
+fwrite($config_file, annotation_file_path("/dbs/Eigen/hg19_Eigen-phred_coding_chrom1-22.vcf.gz")."\t\tEIGEN_PHRED\t\ttrue\n");
+fwrite($config_file, annotation_file_path("/dbs/fathmm-XF/hg19_fathmm_xf_coding.vcf.gz")."\t\tFATHMM_XF\t\ttrue\n");
+fwrite($config_file, annotation_file_path("/dbs/MutationAssessor/hg19_precomputed_MutationAssessor.vcf.gz")."\t\tMutationAssessor\t\ttrue\n");
+
+// close config file
+fclose($config_file);
+
+// execute VcfAnnotateFromVcf
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output -out $out -threads $threads", true);
 
 //validate created VCF file
 

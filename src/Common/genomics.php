@@ -15,10 +15,10 @@ function correct_indel($start, $ref, $obs)
     {
 		trigger_error("Cannot correct position of already normalized variant $start:$ref>$obs!", E_USER_ERROR);
     }
-	
+
     $ref = strtoupper($ref);
     $obs = strtoupper($obs);
-    
+
     //remove common first base
     if($ref!="" && $obs!="" && $ref[0]==$obs[0])
     {
@@ -26,7 +26,7 @@ function correct_indel($start, $ref, $obs)
 		$obs = substr($obs,1);
 		$start +=1;
     }
-    
+
     //remove common suffix
     $suff = strlen(common_suffix($ref, $obs));
     if ($suff>0)
@@ -43,12 +43,12 @@ function correct_indel($start, $ref, $obs)
 		$obs = substr($obs,$pref);
 		$start += $pref;
     }
- 
+
     //determine start and end
-    $end = $start;        
+    $end = $start;
     $ref_c = strlen($ref);
     $obs_c = strlen($obs);
-	
+
     if ($obs_c==1 && $ref_c==1) //SNV
 	{
 		//nothing to do for SNVs
@@ -56,21 +56,21 @@ function correct_indel($start, $ref, $obs)
 	else if($ref_c == 0) //insertion
     {
         $ref="-";
-		
+
 		//change insertions from before the coordinate to are after the coordinate!!!!
-		$start -= 1; 
+		$start -= 1;
 		$end -= 1;
     }
     else if($obs_c == 0) //deletion
     {
-        $end = $start + $ref_c -1;        
+        $end = $start + $ref_c -1;
         $obs="-";
     }
     else if($obs_c>=1 && $ref_c>1) //complex indel
-    { 
-        $end = $start + $ref_c -1;       
+    {
+        $end = $start + $ref_c -1;
     }
-    
+
     return array($start, $end, $ref, $obs);
 }
 
@@ -85,19 +85,19 @@ function rev_comp($input)
 	{
 		trigger_error("The input sequence '$input' contains characters other than 'acgtACGT'.", E_USER_ERROR);
 	}
-	
+
 	return strtr(strrev($input), array("A"=>"T", "T"=>"A", "G"=>"C", "C"=>"G", "a"=>"t", "t"=>"a", "c"=>"g", "g"=>"c"));
 }
 
 /**
-	@brief Returns a genomic reference sequence (1-based chromosomal coordinates).	
+	@brief Returns a genomic reference sequence (1-based chromosomal coordinates).
 	@ingroup genomics
 */
 function get_ref_seq($build, $chr, $start, $end)
 {
 	//fix chromosome for GHCh37
 	if ($chr=="chrM") $chr = "chrMT";
-	
+
 	//get sequence
 	$output = array();
 	exec(get_path("samtools")." faidx ".genome_fasta($build)." $chr:{$start}-$end 2>&1", $output, $ret);
@@ -105,7 +105,7 @@ function get_ref_seq($build, $chr, $start, $end)
 	{
 		trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
 	}
-	
+
 	return implode("", array_slice($output, 1));
 }
 
@@ -122,7 +122,7 @@ function from_IUPAC($in)
 	{
 		trigger_error("Genotype '$in' not valid for IUPAC-code. Should be within 'ACTGKMRYSW'.", E_USER_ERROR);
 	}
-		
+
 	if($in == "K") {$nuc1 = "G"; $nuc2 = "T";}
 	elseif($in == "M" or $in == "m") {$nuc1 = "A"; $nuc2 = "C";}
 	elseif($in == "R" or $in == "r") {$nuc1 = "A"; $nuc2 = "G";}
@@ -133,17 +133,17 @@ function from_IUPAC($in)
 	elseif($in == "C" or $in == "c") {$nuc1 = "C"; $nuc2 = "C";}
 	elseif($in == "T" or $in == "t") {$nuc1 = "T"; $nuc2 = "T";}
 	elseif($in == "G" or $in == "g") {$nuc1 = "G"; $nuc2 = "G";}
-         	
+
 	return array($nuc1, $nuc2);
 }
 
 /**
 	@brief Sanitizes the a chromosome string.
-	
+
 	The following changes are made:
 	- strips the leading 'chr' if it is present.
 	- changes M, X and Y to upper-case.
-	
+
 	@return The sanitized chromosome string.
 	@ingroup genomics
 */
@@ -159,14 +159,14 @@ function chr_trim($chr)
 
 /**
 	@brief Checks if a chromosome string is valid: 1, 2, ..., $max, X, Y, M.
-	
+
 	@return The sanitized chromosome string.
 	@ingroup genomics
 */
 function chr_check($chr, $max = 22, $fail_trigger_error = true)
 {
 	$chr = chr_trim($chr);
-	
+
 	if($chr!="X" && $chr!="Y" && $chr!="M" && $chr!="MT" && (!ctype_digit($chr) || $chr<1 || $chr>$max))
 	{
 		if ($fail_trigger_error)
@@ -178,7 +178,7 @@ function chr_check($chr, $max = 22, $fail_trigger_error = true)
 			return false;
 		}
 	}
-	
+
 	return $chr;
 }
 
@@ -193,16 +193,16 @@ function chr_list()
 
 /**
 	@brief Function to get central organized paths to tools.
-	
+
 	@param name name of variable in ini-file.
 	@return value of variable in ini-file (e.g. path).
-		
+
 	@ingroup helpers
 */
 function get_path($name, $throw_on_error=true)
 {
 	$dir = repository_basedir();
-	
+
 	//determine INI file to name
 	if (isset($GLOBALS["path_ini"]))
 	{
@@ -219,9 +219,9 @@ function get_path($name, $throw_on_error=true)
 			$ini_file = $dir."settings.ini.default";
 		}
 	}
-		
+
 	//parse ini file
-	$parsed_ini = parse_ini_file($ini_file);	
+	$parsed_ini = parse_ini_file($ini_file);
 	if($parsed_ini===FALSE)
 	{
 		trigger_error("Could not parse INI file '$ini_file'.",E_USER_ERROR);
@@ -234,7 +234,7 @@ function get_path($name, $throw_on_error=true)
 	{
 		return $parsed_ini[$name_server];
 	}
-	
+
 	//get value
 	if (!isset($parsed_ini[$name]) && $throw_on_error)
 	{
@@ -244,24 +244,24 @@ function get_path($name, $throw_on_error=true)
 
 	//replace [path] by base path
 	$value = str_replace("[path]", $dir, $value);
-	
+
 	return $value;
 }
 
 
 /**
 	@brief Function to get central organized db credentials.
-	
+
 	@param database name of database in ini-file.
 	@param name name of variable in ini-file.
 	@return value of variable in ini-file (e.g. path).
-		
+
 	@ingroup helpers
 */
 function get_db($db, $name, $default_value=null)
 {
 	$values = get_path($name);
-	
+
 	if (!isset($values[$db]))
 	{
 		if (is_null($default_value))
@@ -273,13 +273,13 @@ function get_db($db, $name, $default_value=null)
 			return $default_value;
 		}
 	}
-	
+
 	return $values[$db];
 }
 
 /**
 	@brief Returns the list of all databases from the settings INI file.
-	
+
 	@ingroup helpers
 */
 function db_names()
@@ -289,7 +289,7 @@ function db_names()
 
 /**
 	@brief Returns if a database is enabled (all properties set).
-	
+
 	@ingroup helpers
 */
 function db_is_enabled($name)
@@ -303,13 +303,13 @@ function db_is_enabled($name)
 			return false;
 		}
 	}
-	
+
 	return true;
 }
 
 ///Loads a processing system INI file. If the file name is empty, the system is determine from the processed sample name, written to a temporary file and the filename is set to that temporary file.
 function load_system(&$filename, $ps_name = "")
-{	
+{
 	//determine system from processed sample name
 	if (is_null($filename) || $filename=="")
 	{
@@ -320,13 +320,13 @@ function load_system(&$filename, $ps_name = "")
 		{
 			trigger_error("load_system: Cannot determine processing system - processed sample name '$ps_name' is invalid!", E_USER_ERROR);
 		}
-		
+
 		//store system INI file
 		$sys_name = $db_conn->getValue("SELECT sys.name_short FROM processing_system sys, processed_sample ps WHERE ps.processing_system_id=sys.id AND ps.id=$ps_id");
 		$filename = temp_file(".ini", "pro_sys_".$sys_name."_");
 		store_system($db_conn, $sys_name, $filename);
 	}
-	
+
 	return parse_ini_file($filename);
 }
 
@@ -338,7 +338,7 @@ function store_system(&$db_conn, $name_short, $filename)
 	{
 		trigger_error("Processing system with short name '$name_short' not found in NGSD!", E_USER_ERROR);
 	}
-	
+
 	//store output
 	$output = array();
 	$output[] = "name_short = \"".$name_short."\"";
@@ -362,10 +362,10 @@ function load_qc_terms()
 {
 	//do nothing if already loaded
 	if (isset($GLOBALS["qcml"])) return;
-	
+
 	//load terms
 	$terms = array();
-	
+
 	$current = array();
 	$h = fopen2(repository_basedir()."/data/misc/qc-cv.obo", "r");
 	while(!feof($h))
@@ -410,7 +410,7 @@ function load_qc_terms()
 	}
 	if (isset($terms[$current['id']])) trigger_error("duplicate qcML term id '{$current['id']}'!", E_USER_ERROR);
 	$terms[$current['id']] = $current;
-	
+
 	//remove QC terms we do not need
 	foreach($terms as $id => $data)
 	{
@@ -431,26 +431,26 @@ function load_qc_terms()
 
 /**
 	@brief Determines the gender based on a list of genotypes.
-	
+
 	@param genotypes The array of genotypes
 	@param het The genotype string used for heterocygote.
 	@param male Cutoff for male (below this fraction).
 	@param female Cutoff for female (above this fraction).
 	@return Returns an array with gender ('m' or 'f') and herocygote ratio. Or FALSE (if undetermined).
-	
+
 	@ingroup genomics
 */
 function gender($genotypes, $het, $male, $female)
 {
 	$counts = array_count_values($genotypes);
-	
+
 	if (!isset($counts[$het]))
 	{
 		$counts[$het] = 0;
 	}
 
 	$ratio = $counts[$het] / count($genotypes);
-	
+
 	if ($ratio > $female)
 	{
 		return array('f', $ratio);
@@ -459,7 +459,7 @@ function gender($genotypes, $het, $male, $female)
 	{
 		return array('m', $ratio);
 	}
-	
+
 	// unsure
 	return array(false, $ratio);
 }
@@ -474,9 +474,9 @@ function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 	$parts = explode("_", $name."_99");
 	list($sname, $id) = $parts;
 	$id = ltrim($id, "0");
-	
+
 	//query NGSD
-	try 
+	try
 	{
 		$res = $db_conn->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name=:name AND ps.process_id=:id", array('name' => $sname, "id"=>$id));
 	}
@@ -485,14 +485,14 @@ function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 		if ($error_if_not_found) throw $e;
 		return -1;
 	}
-	
+
 	//processed sample not found
 	if (count($res)!=1)
 	{
 		if ($error_if_not_found) trigger_error("Could not find processed sample with name '$name' in NGSD!", E_USER_ERROR);
 		return -1;
 	}
-	
+
 	return $res[0]['id'];
 }
 
@@ -500,16 +500,16 @@ function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 function get_processed_samples_from_run(&$db, $run_id)
 {
 	$query = "SELECT ps.process_id, s.name FROM sequencing_run as run, processed_sample as ps, sample as s WHERE run.name = '{$run_id}' AND ps.sequencing_run_id = run.id AND s.id = ps.sample_id";
-	
+
 	$res = $db->executeQuery($query);
-	
+
 	$sample_names = array();
-	
+
 	foreach($res as $data)
 	{
 		$sample_names[] = $data['name'] . "_" . str_pad($data['process_id'],2,'0',STR_PAD_LEFT);
 	}
-	
+
 	return $sample_names;
 }
 
@@ -568,16 +568,16 @@ function convert_hgvs2genomic($build, $transcript, $cdna, $error = true)
 		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
 		$offset2 = $offset1;
 		$ref = $matches["ref"];
-		$obs = $matches["obs"];			
+		$obs = $matches["obs"];
 	}
 	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?del(?<ref>[CATG]+)?$/i",$cdna,$matches)!=0)	//Deletion
 	{
 		if(empty($matches["end"]))	$matches["end"] = $matches["start"];	//if no end position is given
-		
+
 		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
 		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
 		else	$e = $result;
-		
+
 		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
 		$offset2 = $offset1;
 		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
@@ -587,14 +587,14 @@ function convert_hgvs2genomic($build, $transcript, $cdna, $error = true)
 	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?del(?<ref_count>\d+)?$/i",$cdna,$matches)!=0)	//Deletion, e.g. c.644-12del16
 	{
 		if(empty($matches["end"]))	$matches["end"] = $matches["start"];	//if no end position is given
-		
+
 		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
 		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
 		else	$e = $result;
 
 		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
 		$offset2 = $offset1;
-		if(!empty($matches["ref_count"]))	$offset2 += $matches["ref_count"]-1;	//if no end position is given		
+		if(!empty($matches["ref_count"]))	$offset2 += $matches["ref_count"]-1;	//if no end position is given
 		$obs = "-";
 	}
 	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?ins(?<obs>[CATG]+)$/i",$cdna,$matches)!=0)	//Insertion
@@ -611,7 +611,7 @@ function convert_hgvs2genomic($build, $transcript, $cdna, $error = true)
 		if($strand=="-" && $offset1!=0 && $offset2!=0)	$offset1 = max($offset1, $offset2);
 		$offset2 = $offset1;
 		if($strand=="-" && empty($offset1) && empty($offset2))	$end = --$start;	//change of insertion site required for "-"-strand variants.
-		
+
 		//alleles
 		$ref = "-";
 		$obs = $matches["obs"];
@@ -624,18 +624,18 @@ function convert_hgvs2genomic($build, $transcript, $cdna, $error = true)
 		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
 		else	$e = $result;
 
-		
+
 		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
 		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
 		if(!empty($matches["ref"]))	$ref = $matches["ref"];
 		if(empty($ref))	$ref = get_ref_seq($build,$chr,$start,$end);
 		if($strand=="-")	$ref = rev_comp ($ref);
-		$obs = $matches["obs"];			
+		$obs = $matches["obs"];
 	}
 	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?dup(?<obs>[CATG]+)?$/i",$cdna,$matches)!=0)	//Duplication
 	{
 		if(empty($matches["end"]))	$matches["end"] = $matches["start"];
-		
+
 		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
 		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
 		else	$e = $result;
@@ -647,7 +647,7 @@ function convert_hgvs2genomic($build, $transcript, $cdna, $error = true)
 		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
 		$ref = "-";
 		$obs = get_ref_seq($build,$chr,$start,$end);
-		if(!empty($matches["obs"]))	$obs = $matches["obs"];			
+		if(!empty($matches["obs"]))	$obs = $matches["obs"];
 		if(strlen($obs)==1)	$start=--$end;
 	}
 	else	//default (not identifiable)
@@ -660,7 +660,7 @@ function convert_hgvs2genomic($build, $transcript, $cdna, $error = true)
 	{
 		return $e;
 	}
-	
+
 	if($strand=="+")
 	{
 		$start += $offset1;
@@ -669,15 +669,15 @@ function convert_hgvs2genomic($build, $transcript, $cdna, $error = true)
 		$ref = strtoupper($ref);
 		$obs = strtoupper($obs);
 	}
-	if($strand == "-")	
+	if($strand == "-")
 	{
 		$start -= $offset2;
 		$end -= $offset1;
-		
+
 		//convert reference
 		if($obs=="-" && empty($ref))	$ref = strtoupper(get_ref_seq($build,$chr,$start,$end));
 		else if($ref!="-")	$ref = strtoupper(rev_comp($ref));
-		
+
 		//convert obs
 		if($obs!="-")	$obs = strtoupper(rev_comp($obs));
 	}
@@ -698,7 +698,7 @@ function convert_hgvs2genomic($build, $transcript, $cdna, $error = true)
 		if($error)	trigger_error("HGVS ref does not match lenght of variant '$transcript:$cdna': $chr:$start-$end, ref is '$ref', obs is '$obs'.",E_USER_ERROR);
 		return "HGVS ref does not match lenght of variant '$transcript:$cdna': $chr:$start-$end, ref is '$ref', obs is '$obs'.";
 	}
-	
+
 	return array($chr,$start,$end,$ref,$obs);
 }
 
@@ -753,7 +753,7 @@ function convert_coding2genomic($transcript,$cdna_start,$cdna_end, $error = true
 		if($error)	trigger_error("Could not find exons for $ucsc_id.",E_USER_ERROR);
 		return "Could not find exons for $ucsc_id.";
 	}
-		
+
 	//get genomic positions for coding cDNA position, all coordinates are 0-based (knownGene.txt)
 	$start = null;
 	$end = null;
@@ -781,7 +781,7 @@ function convert_coding2genomic($transcript,$cdna_start,$cdna_end, $error = true
 				$coding_end = true;
 			}
 			$length = $tmp_end - $tmp_start;
-			
+
 			//subtract coding basepairs of this exon from given cDNA positions
 			if($coding_start)
 			{
@@ -815,7 +815,7 @@ function convert_coding2genomic($transcript,$cdna_start,$cdna_end, $error = true
 				$coding_end = true;
 			}
 			$length = $tmp_end - $tmp_start;
-		
+
 			//subtract coding basepairs of this exon from given cDNA positions
 			if($coding_start)
 			{
@@ -823,7 +823,7 @@ function convert_coding2genomic($transcript,$cdna_start,$cdna_end, $error = true
 				$tmp_basepairs_end-=$length;
 				$coding_length+=$length;
 			}
-			
+
 			//identify cDNA start and end position (no more tmp_basepairs left)
 			if($tmp_basepairs_start<=0 && $end==null)	$end = $tmp_start - $tmp_basepairs_start + 1;	//convert 0-based start to 1-based start, convert strand
 			if($tmp_basepairs_end<=0 && $start==null)	$start = $tmp_start - $tmp_basepairs_end + 1;	//convert 0-based start to 1-based start, convert strand
@@ -846,7 +846,7 @@ function indel_for_vcf($build, $chr, $start, $ref, $obs)
 
 	// handle indels
 	$extra1 = "";
-	
+
 	// 1. simple insertion - add prefix
 	if(strlen($ref)==0 && strlen($obs)>=1)
 	{
@@ -861,11 +861,11 @@ function indel_for_vcf($build, $chr, $start, $ref, $obs)
 	}
 
 	// 3. complex indel, nothing to do
-	
+
 	// combine all information
 	$ref = strtoupper($extra1.$ref);
 	$obs = strtoupper($extra1.$obs);
-	
+
 	return array($chr,$start,$ref,$obs);
 }
 
@@ -884,7 +884,7 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false, $inclu
 	$db_conn = DB::getInstance("NGSD", false);
 	$ps_id = get_processed_sample_id($db_conn, $file, false);
 	if ($ps_id<0) return false;
-	
+
 	//check that sample is not tumor and not not FFPE
 	$res = $db_conn->executeQuery("SELECT s.tumor, s.ffpe, ps.quality q1, r.quality q2, p.type FROM sequencing_run r, sample s, processed_sample ps, project p WHERE s.id=ps.sample_id AND ps.id='$ps_id' AND ps.sequencing_run_id=r.id AND ps.project_id = p.id");
 	if (count($res)==0) return false;
@@ -897,14 +897,14 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false, $inclu
 		if ($res[0]['tumor']=="1") return false;
 		if ($res[0]['ffpe']=="1") return false;
 	}
-	
+
 	//check that run and processed sample do not have bad quality
 	if ($res[0]['q1']=="bad") return false;
 	if ($res[0]['q2']=="bad") return false;
-	
+
 	//check that project type is research/diagnostics
 	if (!($res[0]['type']=="research" || $res[0]['type']=="diagnostic" || ($res[0]['type']=="test" && $include_test_projects))) return false;
-	
+
 	return true;
 }
 
@@ -918,26 +918,26 @@ function is_valid_ref_tumor_sample_for_cnv_analysis($file, $discard_ffpe = false
 	{
 		trigger_error("is_valid_ref_tumor_sample_for_cnv_analysis needs NGSD access!", E_USER_ERROR);
 	}
-	
+
 	//check sample is in NGSD
 	$db_conn = DB::getInstance("NGSD", false);
 	$ps_id = get_processed_sample_id($db_conn, $file, false);
-	
+
 	//check that sample is not FFPE
 	$res = $db_conn->executeQuery("SELECT s.tumor, s.ffpe, ps.quality q1, r.quality q2, p.type FROM sequencing_run r, sample s, processed_sample ps, project p WHERE s.id=ps.sample_id AND ps.id='$ps_id' AND ps.sequencing_run_id=r.id AND ps.project_id = p.id");
 	if ($ps_id<0) return false;
 	if ($discard_ffpe && $res[0]['ffpe']=="1") return false;
-	
+
 	//check that run and processed sample do not have bad quality
 	if ($res[0]['q1']=="bad") return false;
 	if ($res[0]['q2']=="bad") return false;
-	
+
 	//check that project type is research/diagnostics
 	if ($res[0]['type']!="research" && $res[0]['type']!="diagnostic") return false;
-	
+
 	//check that sample is tumor sample
 	if ($res[0]['tumor'] != "1") return false;
-	
+
 	return true;
 }
 
@@ -950,7 +950,7 @@ function load_vcf_normalized($filename)
 	$comments = array();
 	$header = "";
 	$vars = array();
-	
+
 	//load and normalize data
 	if(!is_file($filename))	trigger_error("Could not find file $filename.",E_USER_WARNING);
 	$file = file($filename);
@@ -958,7 +958,7 @@ function load_vcf_normalized($filename)
 	{
 		$line = nl_trim($line);
 		if ($line=="") continue;
-		
+
 		if (starts_with($line, "##"))
 		{
 			$comments[] = $line;
@@ -972,8 +972,8 @@ function load_vcf_normalized($filename)
 			$parts = explode("\t", $line);
 			if (count($parts)<10) trigger_error("VCF file $filename has line with less than 10 colums: $line", E_USER_ERROR);
 			list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format) = $parts;
-			
-			
+
+
 			//convert INFO data to associative array
 			$info = explode(";", $info);
 			$tmp = array();
@@ -992,7 +992,7 @@ function load_vcf_normalized($filename)
 			$info = $tmp;
 			ksort($info);
 			$var = array($chr, $pos, $id, $ref, $alt, $qual, $filter, $info);
-			
+
 			//convert format/sample data (also additional sample columns of multi-sample VCF)
 			for($i=9; $i<count($parts); ++$i)
 			{
@@ -1000,7 +1000,7 @@ function load_vcf_normalized($filename)
 				ksort($sample);
 				$var[] = $sample;
 			}
-			
+
 			$vars[] = $var;
 		}
 	}
@@ -1019,15 +1019,15 @@ function load_vcf_normalized($filename)
 	{
 		if (starts_with($line, "##FORMAT")) $output[] = $line;
 	}
-	
+
 	//output: header
 	$output[] = $header;
-	
+
 	//output: variants
 	foreach($vars as $var)
 	{
 		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info) = $var;
-		
+
 		//info
 		$tmp = array();
 		foreach($info as $key => $value)
@@ -1035,20 +1035,20 @@ function load_vcf_normalized($filename)
 			$tmp[] = "$key=$value";
 		}
 		$info = implode(";", $tmp);
-		
+
 		//format
 		$format = implode(":", array_keys($var[8]));
-				
+
 		//sample columns (also additional sample columns of multi-sample VCF)
 		$samples = array();
 		for($i=8; $i<count($var); ++$i)
 		{
 			$samples[] = implode(":", array_values($var[$i]));
 		}
-		
+
 		$output[] = "$chr\t$pos\t$id\t$ref\t$alt\t$qual\t$filter\t$info\t$format\t".implode("\t", $samples);
 	}
-	
+
 	return $output;
 }
 
@@ -1125,7 +1125,7 @@ function vcf_strelka_indel($format_col, $sample_col)
 	$index_TIR = array_search("TIR",$f);
 	$index_TAR = array_search("TAR",$f);
 	if($index_depth===FALSE || $index_TIR===FALSE || $index_TAR===FALSE) trigger_error("Invalid strelka format: either field DP, TIR or TAR not available.", E_USER_ERROR);
-	
+
 	$entries = explode(":", $sample_col);
 	$d = $entries[$index_depth];
 	list($tir,) = explode(",", $entries[$index_TIR]);
@@ -1135,7 +1135,7 @@ function vcf_strelka_indel($format_col, $sample_col)
 	//tir and tar contain strong supporting reads, tor (not considered here) contains weak supportin reads like breakpoints
 	//only strong supporting reads are used for calculation of allele fraction
 	$f = ($tir+$tar)==0 ? 0.0 : $tir/($tir+$tar);
-	
+
 	return array($d,$f);
 }
 
@@ -1148,7 +1148,7 @@ function vcf_varscan2($format_col, $sample_col)
 	{
 		trigger_error("FORMAT column and sample column have different count of entries.", E_USER_ERROR);
 	}
-	
+
 	$i_dp = NULL;
 	$i_dp_ref = NULL; //index depth referennce
 	$i_dp_alt = NULL; //index depth alteration
@@ -1160,18 +1160,18 @@ function vcf_varscan2($format_col, $sample_col)
 		if($format_data[$i] == "AD") $i_dp_alt = $i;
 		if($format_data[$i] == "FREQ") $i_freq = $i;
 	}
-	
+
 	if(is_null($i_dp) ||is_null($i_dp_ref) || is_null($i_dp_alt) || is_null($i_freq))
 	{
 		trigger_error("Invalid Varscan2 format. Missing one of the fields 'DP', 'RD', 'AD' or 'FREQ'", E_USER_ERROR);
 	}
 
-	
+
 	$af = $sample_data[$i_freq];
 	$af = str_replace("\%","",$af);
-	
+
 	$af  = number_format((float)$af / 100., 4);
-	
+
 	return array($sample_data[$i_dp], $af);
 }
 
@@ -1188,33 +1188,33 @@ function vcf_freebayes($format_col, $sample_col)
 		if($g[$i]=="GT")	$index_GT = $i;
 	}
 
-	if(is_null($index_DP) || is_null($index_AO) ||is_null($index_GT))	trigger_error("Invalid freebayes format; either field DP, GT or AO not available.",E_USER_ERROR);	
-	
+	if(is_null($index_DP) || is_null($index_AO) ||is_null($index_GT))	trigger_error("Invalid freebayes format; either field DP, GT or AO not available.",E_USER_ERROR);
+
 	$s = explode(":",$sample_col);
 
 	// workaround for bug during splitting of multi-allelic variants - allele counts for multiple alleles are kept
 	if(strpos($s[$index_AO],",")!==FALSE)
-	{		
+	{
 		$gt = $s[$index_GT];
-		
+
 		$sep = "/";
 		if(strpos($s[$index_GT],"|")!==FALSE)	$sep = "|";
-		
+
 		$idx_al1 = min(explode($sep,$gt));
 		$idx_al2 = max(explode($sep,$gt));
-		if($idx_al1!=0 || $idx_al2!=1)	trigger_error("Unexpected error. Allele 1 is $idx_al1, Allele 2 is $idx_al2; expected 0 and 1  (".$format_col." ".$sample_col.").",E_USER_ERROR); 
-				
+		if($idx_al1!=0 || $idx_al2!=1)	trigger_error("Unexpected error. Allele 1 is $idx_al1, Allele 2 is $idx_al2; expected 0 and 1  (".$format_col." ".$sample_col.").",E_USER_ERROR);
+
 		$tmp = 0;
 		$tmp = explode(",",$s[$index_AO])[$idx_al2-1];
 		$s[$index_AO] = $tmp;
 	}
-	
+
 	if(!is_numeric($s[$index_AO]))	trigger_error("Invalid alternative allele count (".$format_col." ".$sample_col.").",E_USER_ERROR);	// currently no multiallelic variants supported
 	if(!is_numeric($s[$index_DP]))	trigger_error("Could not identify numeric depth (".$format_col." ".$sample_col.").",E_USER_ERROR);
 
 	$d1 = $s[$index_DP];
 	$d2 = $s[$index_AO];
-	
+
 	$f = null;
 	if($d1>0)	$f = number_format($d2/$d1, 4);
 	return array($d1,$f);
@@ -1232,18 +1232,18 @@ function vcf_iontorrent($format_col, $sample_col, $idx_al)
 	}
 
 	if(is_null($index_DP) || is_null($index_AF))	trigger_error("Invalid iontorrent format; either field DP or AF not available.",E_USER_ERROR);
-	
+
 	$d = explode(":",$sample_col)[$index_DP];
 	$f = number_format(explode(",",explode(":",$sample_col)[$index_AF])[$idx_al], 4);
 
 	return array($d,$f);
 }
 
-//Converts genotye 
+//Converts genotye
 function vcfgeno2human($gt, $upper_case=false)
 {
 	$gt = strtr($gt, "/.", "|0");
-	
+
 	if ($gt=="0" || $gt=="0|0")
 	{
 		$geno = "wt";
@@ -1260,7 +1260,7 @@ function vcfgeno2human($gt, $upper_case=false)
 	{
 		trigger_error("Invalid VCF genotype '$gt'!", E_USER_ERROR);
 	}
-	
+
 	return $upper_case ? strtoupper($geno) : $geno;
 }
 
@@ -1285,7 +1285,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 		}
 	}
 	$info = $res[0];
-	
+
 	//normal sample name (tumor reference sample)
 	if($info['normal_id']!="")
 	{
@@ -1295,7 +1295,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	{
 		$info['normal_name'] = "";
 	}
-	
+
 	//replace fields to make them human_readable
 	if($info['ps_mid1']!="")
 	{
@@ -1305,19 +1305,30 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	{
 		$info['ps_mid2'] = $db_conn->getValue("SELECT name FROM mid WHERE id='".$info['ps_mid2']."'");
 	}
-	
+
 	//split fields if required
 	$info['ps_comments'] = array_map("trim", explode("\n", $info['ps_comments']));
 	$info['ps_lanes'] = array_map("trim", explode(",", $info['ps_lanes']));
-	
+
 	//additional info
 	$project_folder = get_path("project_folder");
-	if (!ends_with($project_folder, "/")) $project_folder .= "/";
-	$info['project_folder'] = $project_folder.$info['project_type']."/".$info['project_name']."/";
-	$info['ps_name'] = $ps_name;
+	//if (!ends_with($project_folder, "/")) $project_folder .= "/";
+	//$info['project_folder'] = $project_folder.$info['project_type']."/".$info['project_name']."/";
+  $project_type = $info['project_type'];
+  if (is_array($project_folder))
+  {
+    $project_folder = $project_folder[$project_type];
+  }
+  else
+  {
+    if (!ends_with($project_folder, "/")) $project_folder .= "/";
+    $project_folder = $project_folder.$project_type;
+  }
+  $info['project_folder'] = $project_folder."/".$info['project_name']."/";
+  $info['ps_name'] = $ps_name;
 	$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
 	$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
-	
+
 	ksort($info);
 	return $info;
 }
@@ -1328,7 +1339,7 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 	//get information from NGSD
 	$parts = array();
 	$parts['ID'] = $ps_name;
-	
+
 	if (db_is_enabled("NGSD"))
 	{
 		$db_conn = DB::getInstance("NGSD", false);
@@ -1341,10 +1352,10 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 		$parts['DiseaseGroup'] = strtr($details['disease_group'], ",", ";");
 		$parts['DiseaseStatus'] = $details['disease_status'];
 	}
-	
+
 	//apply overwrite settings
 	$parts = array_merge($parts, $override_map);
-	
+
 	//create and check output
 	$output = array();
 	$valid = array('ID','Gender','ExternalSampleName','SampleName','IsTumor','IsFFPE','DiseaseGroup','DiseaseStatus');
@@ -1352,15 +1363,15 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 	{
 		if (!in_array($key, $valid))
 		{
-			trigger_error("Invalid GSvar sample header key '$key'! Valid are: ".implode(",", $valid), E_USER_ERROR); 
+			trigger_error("Invalid GSvar sample header key '$key'! Valid are: ".implode(",", $valid), E_USER_ERROR);
 		}
-		
+
 		//skip empty entries
 		if ($value=="") continue;
-		
+
 		$output[] = "{$key}={$value}";
 	}
-	
+
 	return "{$prefix}SAMPLE=<".implode(",", $output).">{$suffix}";
 }
 
@@ -1376,7 +1387,7 @@ function vcf_column_index($name, $header)
 		$tmp_e = substr($header[$i], 0, $min_len);
 		$dists[levenshtein($tmp_n, $tmp_e)][] = $i;
 	}
-	
+
 	//determine minimum
 	$min = min(array_keys($dists));
 	$indices = $dists[$min];
@@ -1389,7 +1400,7 @@ function vcf_column_index($name, $header)
 		}
 		trigger_error("Cannot determine sample column of '$name'. Samples '".implode("','", $hits)."' have the same edit distance ($min)!", E_USER_ERROR);
 	}
-	
+
 	return $indices[0];
 }
 
@@ -1406,15 +1417,15 @@ function approve_gene_names($input_genes)
 		{
 			$gene =  "NOT_AVAILABLE";
 		}
-		
+
 		$genes_as_string = $genes_as_string.$gene."\n";
 	}
 	$non_approved_genes_file = temp_file("txt", "approve_gene_names");
 	file_put_contents($non_approved_genes_file,$genes_as_string);
-	
+
 	//write stdout to $approved_genes -> each checked gene is one array element
 	list($approved_genes) = exec2(get_path("ngs-bits",true)."GenesToApproved -in $non_approved_genes_file");
-	
+
 	$output = array();
 	foreach($approved_genes as $gene)
 	{
@@ -1442,7 +1453,7 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 		}
 	}
 	$info = $res[0];
-	
+
 	//extract samples
 	$info['samples'] = array();
 	$res = $db_conn->executeQuery("SELECT processed_sample_id, info FROM analysis_job_sample WHERE analysis_job_id=:job_id ORDER BY id ASC", array("job_id"=>$job_id));
@@ -1451,7 +1462,7 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 		$sample = $db_conn->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id='".$row['processed_sample_id']."'");
 		$info['samples'][] = $sample."/".$row['info'];
 	}
-	
+
 	//extract history
 	$info['history'] = array();
 	$res = $db_conn->executeQuery("SELECT status FROM analysis_job_history WHERE analysis_job_id=:job_id ORDER BY id ASC", array("job_id"=>$job_id));
@@ -1459,7 +1470,7 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 	{
 		$info['history'][] = $row['status'];
 	}
-	
+
 	return $info;
 }
 
@@ -1468,13 +1479,13 @@ function enable_special_mito_vc($sys)
 {
 	//only for GRCh37
 	if ($sys['build']!="GRCh37") return false;
-	
+
 	//only exome/genome
 	if ($sys['type']!="WES" && $sys['type']!="WGS") return false;
-	
+
 	//no ROI > chrMT is called anyway > no special calling
 	if ($sys['target_file']=="") false;
-	
+
 	//check if chrMT is already contained in the ROI
 	$roi = $sys['target_file'];
 	$file = file($roi);
@@ -1486,7 +1497,7 @@ function enable_special_mito_vc($sys)
 			return false;
 		}
 	}
-	
+
 	return true;
 }
 
@@ -1500,25 +1511,25 @@ function genome_fasta($build)
 function ncg_gene_statements($gene)
 {
 	$result = array("is_oncogene" => "na", "is_tsg" => "na");
-	
+
 	//file with data about TSG / oncogene from NCG6.0
 	$ncg_file = get_path("data_folder") . "/dbs/NCG6.0/NCG6.0_oncogene.tsv";
-	
+
 	if(!file_exists($ncg_file))
 	{
 		trigger_error("Could not find file with NCG6.0 data",E_USER_WARNING);
 		return $result;
 	}
-	
+
 	$handle = fopen2($ncg_file,"r");
 	while(!feof($handle))
 	{
 		$line = fgets($handle);
 		if(empty($line)) continue;
 		if(starts_with($line,"entrez")) continue; //Skip header line
-		
+
 		list($entrez,$ncg_gene,$cgc,$vogelstein,$is_oncogene,$is_tsg) = explode("\t",trim($line));
-		
+
 		if(trim($gene) == trim($ncg_gene))
 		{
 			$result["is_oncogene"] = $is_oncogene;
@@ -1526,7 +1537,7 @@ function ncg_gene_statements($gene)
 			break;
 		}
 	}
-	
+
 	fclose($handle);
 	return $result;
 }
@@ -1549,7 +1560,7 @@ function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 	}
 	fclose($handle_in);
 	fclose($handle_out);
-	
+
 	//Create off target bed file
 	$ngs_bits = get_path("ngs-bits");
 	$tmp_bed = temp_file(".bed");
@@ -1563,18 +1574,18 @@ function allele_count($bam, $chr, $pos)
 	//get pileup
 	list($output) = exec2(get_path("samtools")." mpileup -aa -r $chr:$pos-$pos $bam");
 	list($chr2, $pos2, $ref2,, $bases) = explode("\t", $output[0]);
-	
+
 	//count bases
 	$bases = strtoupper($bases);
 	$counts = array("A"=>0, "C"=>0, "G"=>0, "T"=>0, "*"=>0); //4 bases and "*" denoting an insertion or deletion
-	
+
 	for($i=0; $i<strlen($bases); ++$i)
 	{
 		$char = $bases[$i];
-		
+
 		if($char == "^") break; //skip qual bases/segment start at the end of pileup string
 		if($char == "$") continue;
-		
+
 		if (isset($counts[$char]))
 		{
 			++$counts[$char];
@@ -1590,13 +1601,13 @@ function allele_count($bam, $chr, $pos)
 			}
 
 			$indel_size = intval($indel_size_as_string);
-			
+
 			$counts["*"] = $counts["*"] + 1;
 			$i += $indel_size - 1; //skip bases that belong to the descroption of the indel, -1 is neccessary due to for loop
 		}
 	}
 	arsort($counts);
-	
+
 	return $counts;
 }
 
@@ -1606,13 +1617,13 @@ function allele_count($bam, $chr, $pos)
 function report_config(&$db_conn, $name, $error_if_not_found=false)
 {
 	$ps_id = get_processed_sample_id($db_conn, $name, $error_if_not_found);
-		
+
 	$rc_id = $db_conn->getValue("SELECT id FROM report_configuration WHERE processed_sample_id=".$ps_id, -1);
-	
+
 	$var_ids = $db_conn->getValues("SELECT id FROM report_configuration_variant WHERE report_configuration_id=".$rc_id);
 	$cnv_ids = $db_conn->getValues("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=".$rc_id);
-	
-	
+
+
 	return array($rc_id, count($var_ids)>0, count($cnv_ids)>0);
 }
 
@@ -1620,35 +1631,35 @@ function somatic_report_config(&$db_conn, $t_ps, $n_ps, $error_if_not_found=fals
 {
 	$t_ps_id = get_processed_sample_id($db_conn, $t_ps, $error_if_not_found);
 	$n_ps_id = get_processed_sample_id($db_conn, $n_ps, $error_if_not_found);
-	
+
 	$config_id = $db_conn->getValue("SELECT id FROM somatic_report_configuration WHERE ps_tumor_id='{$t_ps_id}' AND ps_normal_id='{$n_ps_id}'", -1);
-	
+
 	if($error_if_not_found && $config_id == -1)
 	{
 		trigger_error("Could not find somatic report id for $t_ps_id {$n_ps_id}.", E_USER_ERROR);
 	}
-	
-	
+
+
 	$var_ids = $db_conn->getValues("SELECT id FROM somatic_report_configuration_variant WHERE somatic_report_configuration_id=".$config_id);
 	$cnv_ids = $db_conn->getValues("SELECT id FROM somatic_report_configuration_cnv WHERE somatic_report_configuration_id=".$config_id);
-	
-	return array($config_id, count($var_ids)>0, count($cnv_ids) > 0);	
+
+	return array($config_id, count($var_ids)>0, count($cnv_ids) > 0);
 }
 
 //Returns cytobands of given genomic range as array
 function cytoBands($chr, $start, $end)
 {
 	$handle = fopen(repository_basedir()."/data/misc/cytoBand.txt", "r");
-	
+
 	$out = array();
-	
+
 	while(!feof($handle))
 	{
 		$line = trim(fgets($handle));
 		if(empty($line)) continue;
 		list($cchr, $cstart, $cend, $cname) = explode( "\t", $line );
 		if($chr != $cchr) continue;
-		
+
 		if(range_overlap($start, $end, $cstart, $cend))
 		{
 			$out[] =  $cname;
@@ -1657,7 +1668,7 @@ function cytoBands($chr, $start, $end)
 	fclose($handle);
 
 	asort($out);
-	
+
 	return $out;
 }
 
