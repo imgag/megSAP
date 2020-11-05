@@ -480,7 +480,7 @@ if (file_exists($warn_file))
 }
 $family_file = ""; // handle sample as single sample
 $aidiva_config = get_path("aidiva")."/data/AIdiva_configuration_smallTestFile_annotated.yaml";
-$ref_genome = annotation_file_path("/genomes/GRCh37.fa");
+$ref_genome = genome_fasta($build);
 
 $temp_results = $parser->tempFolder("aidiva_workdir");
 $args = array();
@@ -677,17 +677,11 @@ if (!$skip_ngsd)
 	}
 }
 
-<<<<<<< HEAD
 //annotate MMSplice and SpliceAI predictions
 if (!$no_splice)
 {
 	annotate_splice_predictions($vcf_annotate_output);
 }
-=======
-
-
-//validate created VCF file
->>>>>>> Improvements and bugfixes
 
 //mark variants in low-confidence regions
 $low_conf_bed = repository_basedir()."/data/misc/low_conf_regions.bed";
@@ -701,7 +695,12 @@ if($check_lines >= 0)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ?>
 =======
+=======
+$parser->exec("bgzip", "$out", true);
+
+>>>>>>> Include current changes from Master and current local changes
 ?>
 >>>>>>> Improvements and bugfixes
