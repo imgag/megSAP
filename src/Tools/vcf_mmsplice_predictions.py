@@ -3,9 +3,11 @@
 # Import
 import sys
 import argparse
+import re 
 
 parser = argparse.ArgumentParser(description='Run MMSplice on Input VCF file and write Output VCF file with MMSplice predictions in Info.')
 parser.add_argument('--vcf_in', required=True, dest='vcf_in', help='Input  VCF file.')
+parser.add_argument('--vcf_lowAF', required=True, dest='vcf_lowAF', help='VCF file storing low AF variants.')
 parser.add_argument('--vcf_out', required=True, dest='vcf_out', help='Output VCF file.')
 parser.add_argument('--gtf', required=True, dest='gtf', help='GTF annotation file.')
 parser.add_argument('--fasta', required=True, dest='fasta', help='reference Fasta file.')
@@ -33,6 +35,62 @@ from mmsplice import MMSplice, predict_all_table
 from mmsplice.utils import max_varEff
 
 exon_sep = ['[', ']']
+
+def lowFrequencyVariants(vcf_in, vcf_lowAF):
+
+    if vcf_in.endswith(".vcf.gz"):
+        import gzip
+        in_file = gzip.open(vcf_in, 'rb')
+    elif vcf_in.endswith(".vcf"):      
+        in_file = open(vcf_in, 'rb')
+    else:
+        sys.exit('Wrong file format. Support only \'vcf\' and \'vcf.gz\'')
+
+    out = open(vcf_lowAF, "wb")
+
+    AF_id = None
+    gnomAD_AF_id = None
+    for line in in_file.readlines():
+        if line.startswith(b'#'):
+            #store all header lines
+            out.write(line)
+            if(line.startswith(b'##INFO=<ID=CSQ,')):
+                pattern = re.compile(b'.*Description=\"(.*)\".*')
+                description = re.match(pattern, line)
+                entries = line.split(b'|')
+                count = 0
+                for entry in entries:
+                    if(entry.strip()==b'AF'):
+                        AF_id = count
+                    elif(entry.strip()==b'gnomAD_AF'):
+                        gnomAD_AF_id = count
+                    count+=1
+
+        else:
+            #else store only lines with variants AF | gnomAD_Af <= 0.2
+            vcf_line = line.split(b'\t')
+            info = vcf_line[7]
+            info = info.split(b';')
+
+            af = None
+            gnomad_af = None
+            for info_col in info:
+                if(info_col.startswith(b'CSQ=')):
+
+                    info_col=info_col.split(b'=')
+                    csq_annotations=info_col[1].split(b'|')
+
+                    try:
+                        af = float((csq_annotations[AF_id]).decode('ascii'))
+                        gnomad_af = float((csq_annotations[gnomAD_AF_id]).decode('ascii'))
+                    except:
+                        af = 0
+                        gnomad_af = 0
+                    break
+
+            if(af<=0.02 and gnomad_af<=0.02):        
+                out.write(line)
+    out.close()
 
 def writeTempVCF(vcf_in, vcf_out, dict):
 
@@ -82,10 +140,11 @@ def writeTempVCF(vcf_in, vcf_out, dict):
 
             out.write(line_rest)    
 
-def writeMMSpliceToVcf(vcf_in, vcf_out, gtf, fasta):
+def writeMMSpliceToVcf(vcf_in, vcf_lowAF, vcf_out, gtf, fasta):
 
+    lowFrequencyVariants(vcf_in, vcf_lowAF)
     # dataloader to load variants from vcf
-    dl = SplicingVCFDataloader(gtf, fasta, vcf_in, tissue_specific=False)
+    dl = SplicingVCFDataloader(gtf, fasta, vcf_lowAF, tissue_specific=False)
 
     # Specify model
     model = MMSplice()
@@ -128,7 +187,7 @@ def main():
         sys.exit('Wrong file format. Support only \'vcf\' and \'vcf.gz\'')
 
     #call tool
-    writeMMSpliceToVcf(args.vcf_in, args.vcf_out, args.gtf, args.fasta)
+    writeMMSpliceToVcf(args.vcf_in, args.vcf_lowAF, args.vcf_out, args.gtf, args.fasta)
 
 if __name__ == "__main__":
     main()

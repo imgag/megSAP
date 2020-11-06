@@ -53,7 +53,7 @@ wget ftp://ftp.ensembl.org/pub/release-100/variation/indexed_vep_cache/homo_sapi
 #install ensembl-vep
 PERL5LIB=$vep_install_dir/Bio/:$vep_cpan_dir/lib/perl5/:$PERL5LIB
 cd $vep_install_dir
-perl INSTALL.pl --SPECIES homo_sapiens,homo_sapiens_refseq --ASSEMBLY GRCh37 --AUTO acp --PLUGINS REVEL,FATHMM_MKL,CADD,dbscSNV,GeneSplicer,MaxEntScan --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST
+perl INSTALL.pl --SPECIES homo_sapiens,homo_sapiens_refseq --ASSEMBLY GRCh37 --AUTO acp --PLUGINS REVEL,FATHMM_MKL,CADD,dbscSNV,MaxEntScan --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST
 cp $vep_data_dir/cache/Plugins/*.pm $vep_install_dir/modules/ #should not be necessary - probably a bug in the VEP installation script when using the CACHEDIR option (MS)
 
 # install MaxEntScan (for MaxEntScan plugin)
@@ -65,12 +65,3 @@ tar xzf fordownload.tar.gz
 mv fordownload/* .
 rm -rf fordownload*
 chmod -R 755 $vep_install_dir/MaxEntScan
-
-# install GeneSplicer (for GeneSplicer plugin)
-cd $vep_install_dir
-wget ftp://ftp.ccb.jhu.edu/pub/software/genesplicer/GeneSplicer.tar.gz
-tar -xzf GeneSplicer.tar.gz
-rm -rf GeneSplicer.tar.gz
-cd GeneSplicer/sources/
-make
-chmod -R 755 $vep_install_dir/GeneSplicer

@@ -581,6 +581,7 @@ class ToolBase
 				if (contains($line, "WARNING(freebayes): Could not find any mapped reads in target region")) continue; //freebayes
 				if (contains($line, "[M::mem_pestat]") || contains($line, "[M::process]") || contains($line, "[M::mem_process_seqs]")) continue; //BWA mem
 				if (contains($line, "PROCESS_REGION_MSECS") || contains($line, "Processing chromosome chunk:") || contains($line, "Clock time in Chromosome:")) continue; //ABRA2
+				if (contains($line, "I tensorflow") || contains($line, "bcf_hdr_parse") || contains($line, "FutureWarning") || contains($line, "Using TensorFlow backend") || contains($line, "WARNING:tensorflow")) continue; //mmsplice
 				
 				print "  ".trim($line)."\n";
 			}
