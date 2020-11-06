@@ -75,17 +75,23 @@ def lowFrequencyVariants(vcf_in, vcf_lowAF):
             af = None
             gnomad_af = None
             for info_col in info:
+                
                 if(info_col.startswith(b'CSQ=')):
 
                     info_col=info_col.split(b'=')
                     csq_annotations=info_col[1].split(b'|')
 
+                    #try to set AF
                     try:
                         af = float((csq_annotations[AF_id]).decode('ascii'))
-                        gnomad_af = float((csq_annotations[gnomAD_AF_id]).decode('ascii'))
                     except:
                         af = 0
+                    #try to set gnomAD_AF
+                    try:
+                        gnomad_af = float((csq_annotations[gnomAD_AF_id]).decode('ascii'))
+                    except:
                         gnomad_af = 0
+
                     break
 
             if(af<=0.02 and gnomad_af<=0.02):        
