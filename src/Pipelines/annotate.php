@@ -69,8 +69,8 @@ $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 
 
 //annotate COSMIC
-$cosmic_cmc = get_path("cosmic_cmc", false); //TODO Use relative path based on data_folder! > AXEL
-if(!empty($cosmic_cmc) && $somatic)
+$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export.vcf.gz";
+if(file_exists($cosmic_cmc) && $somatic)
 {
 	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
 	$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in $annfile -annotation_file $cosmic_cmc -info_ids COSMIC_CMC -out $temp_annfile" );
