@@ -255,10 +255,12 @@ mkdir MutationAssessor
 cd MutationAssessor
 wget -c http://mutationassessor.org/r3/MA_scores_rel3_hg19_full.tar.gz
 tar -xzf MA_scores_rel3_hg19_full.tar.gz
-python3 $src/Tools/create_MutationAssessor_vcf.py $(ls -m MA_scores_rel3_hg19_full/*.csv | tr -d '[:space:]') hg19_precomputed_MutationAssessor.vcf
+python3 $src/Tools/create_MutationAssessor_vcf.py $(ls -m MA_scores_rel3_hg19_full/*.csv | tr -d '[:space:]') hg19_precomputed_MutationAssessor_unsort.vcf
+sort -k1,1 -k2,2n hg19_precomputed_MutationAssessor_unsort.vcf > hg19_precomputed_MutationAssessor.vcf
 bgzip hg19_precomputed_MutationAssessor.vcf
 tabix -p vcf hg19_precomputed_MutationAssessor.vcf.gz
 rm MA_scores_rel3_hg19_full.tar.gz
+rm hg19_precomputed_MutationAssessor_unsort.vcf
 rm -r MA_scores_rel3_hg19_full/
 
 #Install segment duplication and simple repeats for AIdiva (custom VEP annotation)
@@ -266,13 +268,14 @@ cd $dbs
 mkdir UCSC
 cd UCSC
 wget -O hg19_genomicSuperDups.txt.gz ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/database/genomicSuperDups.txt.gz
-gunzip hg19_genomicSuperDups.txt.gz | cut -d$'\t' -f2,3,4,27 > hg19_genomicSuperDups.bed
+gunzip hg19_genomicSuperDups.txt.gz
+cut -f2,3,4,27 hg19_genomicSuperDups.txt > hg19_genomicSuperDups.bed
 grep -v "#" hg19_genomicSuperDups.bed | sort -k1,1 -k2,2n -k3,3n -t$'\t' | bgzip -c > hg19_genomicSuperDups.bed.gz
 tabix -p bed hg19_genomicSuperDups.bed.gz
 wget -O hg19_simpleRepeat.txt.gz ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/database/simpleRepeat.txt.gz
 gunzip hg19_simpleRepeat.txt.gz
 cut -f2,3,4,11 hg19_simpleRepeat.txt > hg19_simpleRepeat.bed
-grep -v '#' hg19_simpleRepeat.bed | sort -k1,1 -k2,2n -k3,3n -t '\t' | bgzip -c > hg19_simpleRepeat.bed.gz
+grep -v '#' hg19_simpleRepeat.bed | sort -k1,1 -k2,2n -k3,3n -t$'\t' | bgzip -c > hg19_simpleRepeat.bed.gz
 tabix -p bed hg19_simpleRepeat.bed.gz
 
 #Install phastCons46way vertebrate for AIdiva (custom VEP annotation)
@@ -594,7 +597,7 @@ wget -c http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/bigWigCat
 chmod +x wigToBigWig
 chmod +x bigWigCat
 gunzip *.wigFix.gz
-for f in *.wigFix; do ./wigToBigWig -fixedSummaries -keepAllChromosomes $$f hg19.chrom.sizes $$(basename $$f ".wigFix").bw; done;
+for f in *.wigFix; do ./wigToBigWig -fixedSummaries -keepAllChromosomes $f hg19.chrom.sizes $(basename $f ".wigFix").bw; done;
 rm *.wigFix
 ./bigWigCat hg19_phastCons46way_mammal.bw *.phastCons46way.placental.bw
 rm *.phastCons46way.placental.bw
@@ -707,6 +710,9 @@ rm *.wigFix
 rm *.phyloP46way.primate.bw
 
 #Install phyloP46way mammal for AIdiva (custom VEP annotation)
+cd $dbs
+mkdir -p phyloP
+cd phyloP
 wget -c http://hgdownload.cse.ucsc.edu/goldenpath/hg19/phyloP46way/placentalMammals/chr1.phyloP46way.placental.wigFix.gz
 wget -c http://hgdownload.cse.ucsc.edu/goldenpath/hg19/phyloP46way/placentalMammals/chr10.phyloP46way.placental.wigFix.gz
 wget -c http://hgdownload.cse.ucsc.edu/goldenpath/hg19/phyloP46way/placentalMammals/chr11.phyloP46way.placental.wigFix.gz
@@ -811,6 +817,9 @@ rm *.wigFix
 rm *.phyloP46way.placental.bw
 
 #Install phyloP46way vertebrate for AIdiva (custom VEP annotation)
+cd $dbs
+mkdir -p phyloP
+cd phyloP
 wget -c http://hgdownload.cse.ucsc.edu/goldenpath/hg19/phyloP46way/vertebrate/chr1.phyloP46way.wigFix.gz
 wget -c http://hgdownload.cse.ucsc.edu/goldenpath/hg19/phyloP46way/vertebrate/chr10.phyloP46way.wigFix.gz
 wget -c http://hgdownload.cse.ucsc.edu/goldenpath/hg19/phyloP46way/vertebrate/chr11.phyloP46way.wigFix.gz

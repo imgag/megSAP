@@ -54,6 +54,7 @@ db_pass['NGSD'] = ""
 [grid_engine]
 queue_email = ""
 queues_default = ""
+queues_research = ""
 queues_high_priority = ""
 queues_high_mem = ""
 

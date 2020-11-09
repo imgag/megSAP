@@ -161,13 +161,19 @@ if (file_exists($warn_file))
 		print $line."\n";
 	}
 }
+
+// TODO: prefilter VCF to only pass coding variants to the AIdiva subroutine
+$coding_filtered = $parser->tempFile("_coding.vcf");
+$parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/filter_vcf.py", "--in_file $vep_output --out_file $coding_filtered", true);
+
+
 $family_file = ""; // handle sample as single sample
 $aidiva_config = get_path("aidiva")."/data/AIdiva_configuration_smallTestFile_annotated.yaml";
-$ref_genome = annotation_file_path("/genomes/GRCh37.fa");
+$ref_genome = genome_fasta($build);
 
 $temp_results = $parser->tempFolder("aidiva_workdir");
 $args = array();
-$args[] = "-vcf {$in}";
+$args[] = "-vcf {$coding_filtered}";
 $args[] = "-outdir {$temp_results}";
 if ($family_file != "")
 {
@@ -365,5 +371,7 @@ if($check_lines >= 0)
 {
 	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $out -lines $check_lines -ref ".genome_fasta($build), true);
 }
+
+$parser->exec("bgzip", "$out", true);
 
 ?>
