@@ -22,10 +22,9 @@
 ##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.
 ##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
 ##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).
-##DESCRIPTION=GeneSplicer=GeneSplicer splicing prediction (state/type/coordinates/confidence/score).
 ##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).
 ##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
 ##DESCRIPTION=MMSplice_DeltaLogitPSI=MMsplice delta Logit PSI score: variant's effect on the exon inclusion - positive score shows higher exon inclusion, negative higher exclusion rate. A score greater than 2 or less than -2 can be considered strong.
 ##DESCRIPTION=MMSplice_pathogenicity=MMsplice pathogenicity score: probability of pathogenic effect of the variant on splicing
 ##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.
-#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	coding_and_splicing_refseq	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC	MMSplice_DeltaLogitPSI	MMSplice_pathogenicity
+#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	coding_and_splicing_refseq	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	dbscSNV	COSMIC	MMSplice_DeltaLogitPSI	MMSplice_pathogenicity

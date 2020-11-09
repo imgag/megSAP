@@ -205,30 +205,6 @@ if ($build=="GRCh37")
 	}
 }
 
-######################### VEP GeneSplicer data #########################
-if ($build=="GRCh37")
-{
-	$annotation_folder = dirname(get_path("vep"))."/GeneSplicer/human/";
-	$local_annotation_folder = "{$local_data}/GeneSplicer/";
-	
-	print "\n";
-	print "### VEP GeneSplicer data ###\n";
-	print "from: {$annotation_folder}\n";
-	print "to  : {$local_annotation_folder}\n";
-	print "\n";
-		
-	print "rsync-ing GeneSplicer data...\n";
-	list($stdout, $stderr) = exec2("{$rsync} {$annotation_folder} {$local_annotation_folder}");
-	foreach(array_merge($stdout, $stderr) as $line)
-	{
-			$line = trim($line);
-			if ($line=="") continue;
-			
-			print "  {$line}\n";
-	}
-}
-
-
 ######################### VEP annotation databases #########################
 if ($build=="GRCh37")
 {

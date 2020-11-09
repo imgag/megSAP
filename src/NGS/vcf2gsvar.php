@@ -311,7 +311,6 @@ $column_desc = array(
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
 	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
-	array("GeneSplicer", "GeneSplicer splicing prediction (state/type/coordinates/confidence/score)."),
 	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
 	array("MMSplice_DeltaLogitPSI", "MMsplice delta Logit PSI score: variant's effect on the exon inclusion - positive score shows higher exon inclusion, negative higher exclusion rate. A score greater than 2 or less than -2 can be considered strong."),
@@ -456,7 +455,6 @@ while(!feof($handle))
 			$i_omim = index_of($cols, "OMIM", false);
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
-			$i_genesplicer = index_of($cols, "GeneSplicer", false);
 			$i_dbscsnv_ada = index_of($cols, "ada_score");
 			$i_dbscsnv_rf = index_of($cols, "rf_score");
 		}
@@ -734,7 +732,6 @@ while(!feof($handle))
 	$omim = array();
 	$hgmd = array();
 	$maxentscan = array();
-	$genesplicer = array();
 	$dbscsnv = array();
 	$regulatory = array();
 	
@@ -798,12 +795,6 @@ while(!feof($handle))
 			{
 				$result = number_format($parts[$i_maxes_ref], 2).">".number_format($parts[$i_maxes_alt], 2);
 				$maxentscan[] = $result;
-			}
-			
-			//GeneSplicer
-			if ($i_genesplicer!==FALSE && $parts[$i_genesplicer]!="")
-			{
-				$genesplicer[] = $parts[$i_genesplicer];
 			}
 			
 			//dbscSNV
@@ -1416,10 +1407,7 @@ while(!feof($handle))
 
 	//MaxEntScan
 	$maxentscan = implode(",", collapse("MaxEntScan", $maxentscan, "unique"));
-	
-	//GeneSplicer
-	$genesplicer = implode(",", collapse("GeneSplicer", $genesplicer, "unique"));
-	
+		
 	//dbscSNV
 	$dbscsnv = empty($dbscsnv) ? "" : collapse("dbscSNV", $dbscsnv, "one");
 	
@@ -1435,7 +1423,7 @@ while(!feof($handle))
 	
 	//write data
 	++$c_written;
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects");

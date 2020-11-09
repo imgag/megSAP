@@ -581,6 +581,7 @@ class ToolBase
 				if (contains($line, "WARNING(freebayes): Could not find any mapped reads in target region")) continue; //freebayes
 				if (contains($line, "[M::mem_pestat]") || contains($line, "[M::process]") || contains($line, "[M::mem_process_seqs]")) continue; //BWA mem
 				if (contains($line, "PROCESS_REGION_MSECS") || contains($line, "Processing chromosome chunk:") || contains($line, "Clock time in Chromosome:")) continue; //ABRA2
+				if (contains($line, "tensorflow") || contains($line, "TensorFlow") || contains($line, "bcf_hdr_parse") || contains($line, "FutureWarning") || contains($line, "_np_") || contains($line, "Instructions") || contains($line, "it [") || contains($line, "[W::vcf_parse]") || contains($line, "future version") || contains($line, "Colocations handled") || contains($line, "Please use") ) continue; //mmsplice
 				
 				print "  ".trim($line)."\n";
 			}
@@ -597,6 +598,7 @@ class ToolBase
 				if (contains($line, "WARNING(freebayes): Could not find any mapped reads in target region")) continue; //freebayes
 				if (contains($line, "[M::mem_pestat]") || contains($line, "[M::process]") || contains($line, "[M::mem_process_seqs]")) continue; //BWA mem
 				if (contains($line, "PROCESS_REGION_MSECS") || contains($line, "Processing chromosome chunk:") || contains($line, "Clock time in Chromosome:")) continue; //ABRA2
+				if (contains($line, "tensorflow") || contains($line, "TensorFlow") || contains($line, "bcf_hdr_parse") || contains($line, "FutureWarning") || contains($line, "_np_") || contains($line, "Instructions") || contains($line, "it [") || contains($line, "[W::vcf_parse]") || contains($line, "future version") || contains($line, "Colocations handled") || contains($line, "Please use") ) continue; //mmsplice
 
 				$lines[] = $prefix."    ".strtr($line, array("\n" => "", "\c" => "", "\t" => "  "))."\n";
 			}
