@@ -55,6 +55,8 @@ $fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature
 
 $vep_output = $parser->tempFile("_customAnnot.vcf");
 
+$vep_output = $parser->tempFile("_customAnnot.vcf");
+
 $vep_path = dirname(get_path("vep"));
 $local_data = get_path("local_data");
 $vep_data_path = "{$local_data}/".basename(get_path("vep_data"))."/"; //the data is copied to the local data folder by 'data_setup' to speed up annotations (and prevent hanging annotation jobs)
@@ -62,7 +64,7 @@ $data_folder = get_path("data_folder");
 
 $args = array();
 $args[] = "-i $in --format vcf"; //input
-$args[] = "-o $out --vcf --no_stats --force_overwrite"; //output
+$args[] = "-o $vep_output --vcf --no_stats --force_overwrite"; //output
 $args[] = "--species homo_sapiens --assembly {$build}"; //species
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
 $args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".genome_fasta($build); //paths to data
@@ -135,46 +137,21 @@ if (file_exists($warn_file))
 	}
 }
 
+// create config file
+$config_file_path = $parser->tempFile(".config");
+$config_file = fopen($config_file_path, 'w');
 
-//if (!$expanded)
-//{
-	//$tmp = $parser->tempFile(".vcf");
-	//$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/UCSC/hg19_simpleRepeat.bed.gz")." -name simpleRepeat -in $vep_output -out $tmp", true);
-	//$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed /mnt/storage1/users/ahboced1/databases/hg19_simpleRepeat.bed -name simpleRepeat -in $vep_output -out $tmp", true);
-	//$parser->moveFile($tmp, $out);
-//}
+// add custom annotations
+fwrite($config_file, annotation_file_path("/dbs/Condel/hg19_precomputed_Condel.vcf.gz")."\t\tCONDEL\t\ttrue\n");
+fwrite($config_file, annotation_file_path("/dbs/Eigen/hg19_Eigen-phred_coding_chrom1-22.vcf.gz")."\t\tEIGEN_PHRED\t\ttrue\n");
+fwrite($config_file, annotation_file_path("/dbs/fathmm-XF/hg19_fathmm_xf_coding.vcf.gz")."\t\tFATHMM_XF\t\ttrue\n");
+fwrite($config_file, annotation_file_path("/dbs/MutationAssessor/hg19_precomputed_MutationAssessor.vcf.gz")."\t\tMutationAssessor\t\ttrue\n");
 
-if (!$basic)
-{
-	//$tmp = $parser->tempFile(".vcf");
-	//$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/UCSC/hg19_genomicSuperDups.bed.gz")." -name segmentDuplication -in $out -out $tmp", true);
-	//$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed /mnt/storage1/users/ahboced1/databases/hg19_genomicSuperDups.bed -name segmentDuplication -in $vep_output -out $tmp", true);
-	//$parser->moveFile($tmp, $out);
-	
-	//$tmp = $parser->tempFile(".vcf");
-	//$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/ABB/hg19_ABB-SCORE.bed.gz")." -name ABB_SCORE -in $out -out $tmp", true);
-	//$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed /mnt/storage1/users/ahboced1/databases/hg19_ABB-SCORE.bed -name ABB_SCORE -in $vep_output -out $tmp", true);
-	//$parser->moveFile($tmp, $out);
-	
-	// create config file
-	$config_file_path = $parser->tempFile(".config");
-	$config_file = fopen($config_file_path, 'w');
+// close config file
+fclose($config_file);
 
-	// add custom annotations
-	fwrite($config_file, annotation_file_path("/dbs/Condel/hg19_precomputed_Condel.vcf.gz")."\t\tCONDEL\t\ttrue\n");
-	fwrite($config_file, annotation_file_path("/dbs/Eigen/hg19_Eigen-phred_coding_chrom1-22.vcf.gz")."\t\tEIGEN_PHRED\t\ttrue\n");
-	fwrite($config_file, annotation_file_path("/dbs/fathmm-XF/hg19_fathmm_xf_coding.vcf.gz")."\t\tFATHMM_XF\t\ttrue\n");
-	fwrite($config_file, annotation_file_path("/dbs/MutationAssessor/hg19_precomputed_MutationAssessor.vcf.gz")."\t\tMutationAssessor\t\ttrue\n");
-
-	// close config file
-	fclose($config_file);
-
-	// execute VcfAnnotateFromVcf
-	$tmp = $parser->tempFile(".vcf");
-	$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $out -out $tmp -threads $threads", true);
-	$parser->moveFile($tmp, $out);
-}
-
+// execute VcfAnnotateFromVcf
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output -out $out -threads $threads", true);
 
 //validate created VCF file
 

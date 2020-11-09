@@ -8,7 +8,7 @@ import sys
 
 chroms = str(sys.argv[1]).split(",")
 outfile_coding = sys.argv[2]
-outfile_noncoding = sys.argv[3]
+#outfile_noncoding = sys.argv[3]
 
 coding = csv.writer(open(outfile_coding, "w"), delimiter="\t")
 #noncoding = csv.writer(open(outfile_noncoding, "w"), delimiter="\t")
