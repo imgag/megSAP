@@ -116,3 +116,13 @@
 /test/data_multi/reanno
 /test/data_chrx/*.vcf
 /test/data_chrx/*.json
+
+/test/data_cfdna/*.bam
+/test/data_cfdna/*.bai
+/test/data_cfdna/*.fastq.gz
+/test/data_cfdna/*.bed
+/test/data_cfdna/*.qcML
+/test/data_cfdna/*.mrd
+/test/data_cfdna/*.tsv
+/test/data_cfdna/*.vcf
+/test/data_cfdna/*.log
