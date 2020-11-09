@@ -1310,7 +1310,7 @@ while(!feof($handle))
 	}
 	else if (count(array_unique($cadd_scores)) > 1)
 	{
-		trigger_error("Multiple values for CADD score for variant $chr:$pos! Choosing max value.", E_USER_WARNING);
+		//trigger_error("Multiple values for CADD score for variant $chr:$pos! Choosing max value.", E_USER_WARNING);
 		$cadd = max($cadd_scores);
 	}
 	else
