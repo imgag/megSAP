@@ -16,9 +16,8 @@ $parser->addOutfile("out", "Output file in VCF format.", false);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addFlag("all_transcripts", "Annotate all transcripts - if unset only GENCODE basic transcripts are annotated.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
-$parser->addFlag("somatic", "Also annotate the NGSD somatic counts.");
 $parser->addFlag("basic", "Skips major part of the annotation.");
-$parser->addFlag("test", "Use limited constant NGSD VCF file from test folder for annotation.");
+$parser->addFlag("expanded", "Skip unused annotation for the expanded indel file.");
 $parser->addInt("check_lines", "Number of VCF lines that will be validated in the output file. (If set to 0 all lines will be checked, if set to -1 the validation will be skipped.)", true, 1000);
 extract($parser->parse($argv));
 
@@ -51,7 +50,10 @@ function annotation_file_path($rel_path, $is_optional=false)
 }
 
 //annotate only fields we really need to prevent bloating the VCF file
-$fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation", "AF", "gnomAD_AF", "gnomAD_AFR_AF", "gnomAD_AMR_AF", "gnomAD_EAS_AF", "gnomAD_NFE_AF", "gnomAD_SAS_AF");
+//$fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation", "AF", "gnomAD_AF", "gnomAD_AFR_AF", "gnomAD_AMR_AF", "gnomAD_EAS_AF", "gnomAD_NFE_AF", "gnomAD_SAS_AF");
+$fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "Existing_variation");
+
+$vep_output = $parser->tempFile("_customAnnot.vcf");
 
 $vep_output = $parser->tempFile("_customAnnot.vcf");
 
@@ -66,15 +68,22 @@ $args[] = "-o $vep_output --vcf --no_stats --force_overwrite"; //output
 $args[] = "--species homo_sapiens --assembly {$build}"; //species
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
 $args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".genome_fasta($build); //paths to data
-$args[] = "--max_af --af --af_gnomad --failed 1"; //population frequencies
-#$args[] = "--max_af --failed 1"; //population frequencies
-$fields[] = "MAX_AF";
-$args[] = "--custom ".annotation_file_path("/dbs/UCSC/hg19_simpleRepeat.bed.gz").",simpleRepeat,bed,overlap,0";
-$fields[] = "simpleRepeat";
+//$args[] = "--max_af --af --af_gnomad --failed 1"; //population frequencies
+
+if (!$expanded)
+{
+	$args[] = "--max_af --failed 1"; //population frequencies
+	$fields[] = "MAX_AF";
+	$args[] = "--custom ".annotation_file_path("/dbs/UCSC/hg19_simpleRepeat.bed.gz").",simpleRepeat,bed,overlap,0";
+	$fields[] = "simpleRepeat";
+}
 
 if(!$basic)
 {
-	$args[] = "--sift s --polyphen s"; //pathogenicity predictions
+	$args[] = "--sift s";
+	$fields[] = "SIFT";
+	$args[] = "--polyphen s";
+	$fields[] = "PolyPhen";
 	$args[] = "--plugin CADD,".annotation_file_path("/dbs/CADD/CADD_SNVs_1.6.tsv.gz").",".annotation_file_path("/dbs/CADD/CADD_InDels_1.6.tsv.gz"); //CADD
 	$fields[] = "CADD_PHRED";
 	$args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_all_chromosomes.tsv.gz"); //REVEL
@@ -128,21 +137,46 @@ if (file_exists($warn_file))
 	}
 }
 
-// create config file
-$config_file_path = $parser->tempFile(".config");
-$config_file = fopen($config_file_path, 'w');
 
-// add custom annotations
-fwrite($config_file, annotation_file_path("/dbs/Condel/hg19_precomputed_Condel.vcf.gz")."\t\tCONDEL\t\ttrue\n");
-fwrite($config_file, annotation_file_path("/dbs/Eigen/hg19_Eigen-phred_coding_chrom1-22.vcf.gz")."\t\tEIGEN_PHRED\t\ttrue\n");
-fwrite($config_file, annotation_file_path("/dbs/fathmm-XF/hg19_fathmm_xf_coding.vcf.gz")."\t\tFATHMM_XF\t\ttrue\n");
-fwrite($config_file, annotation_file_path("/dbs/MutationAssessor/hg19_precomputed_MutationAssessor.vcf.gz")."\t\tMutationAssessor\t\ttrue\n");
+//if (!$expanded)
+//{
+	//$tmp = $parser->tempFile(".vcf");
+	//$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/UCSC/hg19_simpleRepeat.bed.gz")." -name simpleRepeat -in $vep_output -out $tmp", true);
+	//$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed /mnt/storage1/users/ahboced1/databases/hg19_simpleRepeat.bed -name simpleRepeat -in $vep_output -out $tmp", true);
+	//$parser->moveFile($tmp, $out);
+//}
 
-// close config file
-fclose($config_file);
+if (!$basic)
+{
+	//$tmp = $parser->tempFile(".vcf");
+	//$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/UCSC/hg19_genomicSuperDups.bed.gz")." -name segmentDuplication -in $out -out $tmp", true);
+	//$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed /mnt/storage1/users/ahboced1/databases/hg19_genomicSuperDups.bed -name segmentDuplication -in $vep_output -out $tmp", true);
+	//$parser->moveFile($tmp, $out);
+	
+	//$tmp = $parser->tempFile(".vcf");
+	//$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/ABB/hg19_ABB-SCORE.bed.gz")." -name ABB_SCORE -in $out -out $tmp", true);
+	//$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed /mnt/storage1/users/ahboced1/databases/hg19_ABB-SCORE.bed -name ABB_SCORE -in $vep_output -out $tmp", true);
+	//$parser->moveFile($tmp, $out);
+	
+	// create config file
+	$config_file_path = $parser->tempFile(".config");
+	$config_file = fopen($config_file_path, 'w');
 
-// execute VcfAnnotateFromVcf
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output -out $out -threads $threads", true);
+	// add custom annotations
+	fwrite($config_file, annotation_file_path("/dbs/Condel/hg19_precomputed_Condel.vcf.gz")."\t\tCONDEL\t\ttrue\n");
+	fwrite($config_file, annotation_file_path("/dbs/Eigen/hg19_Eigen-phred_coding_chrom1-22.vcf.gz")."\t\tEIGEN_PHRED\t\ttrue\n");
+	fwrite($config_file, annotation_file_path("/dbs/fathmm-XF/hg19_fathmm_xf_coding.vcf.gz")."\t\tFATHMM_XF\t\ttrue\n");
+	fwrite($config_file, annotation_file_path("/dbs/MutationAssessor/hg19_precomputed_MutationAssessor.vcf.gz")."\t\tMutationAssessor\t\ttrue\n");
+
+	// close config file
+	fclose($config_file);
+
+	// execute VcfAnnotateFromVcf
+	$tmp = $parser->tempFile(".vcf");
+	$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $out -out $tmp -threads $threads", true);
+	$parser->moveFile($tmp, $out);
+}
+
 
 //validate created VCF file
 

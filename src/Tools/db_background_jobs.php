@@ -1,5 +1,9 @@
 <?php
+<<<<<<< HEAD
 /** 
+=======
+/**
+>>>>>>> Add current development state and include necessary changes from master
 	@page db_background_jobs
 */
 
