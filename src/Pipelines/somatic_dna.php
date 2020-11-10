@@ -204,7 +204,7 @@ if (!$single_sample && db_is_enabled("NGSD"))
 	}
 }
 
-//sample similiarty check
+//sample similarity check
 $bams = array_filter([$t_bam, $n_bam]);
 if (count($bams) > 1)
 {
@@ -226,7 +226,7 @@ if (count($bams) > 1)
 		}
         $output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", implode(" ", $args_similarity), true);
 
-		//extract columen 3 from output
+		//extract colum 3 from output
 		$table = array_map(
 			function($str) { return explode("\t", $str); },
 			array_slice($output[0], 1)
@@ -237,6 +237,25 @@ if (count($bams) > 1)
             trigger_error("Genotype correlation lower than {$min_correlation}!\n" . implode("\n", $output[0]), E_USER_ERROR);
         }
     }
+}
+
+//check SRY coverage of tumor for female samples, can be a hint for contamination with male DNA
+if( db_is_enabled("NGSD") )
+{
+	$db = DB::getInstance("NGSD");
+	$tinfo = get_processed_sample_info($db, $t_id, false);
+	
+	if(!is_null($tinfo) && $tinfo["gender"] == "female")
+	{
+		$hg_build = ( $sys['build'] == "GRCh37" ? "hg19" : "hg38" );
+		$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build $hg_build -method sry", true);
+		list(,,$cov_sry) = explode("\t", $out[0][1]);
+
+		if(is_numeric($cov_sry) && (float)$cov_sry >= 20)
+		{
+			trigger_error("Detected contamination of female tumor sample {$t_id} with male genomic DNA on SRY. SRY coverage is at {$cov_sry}x.", E_USER_ERROR);
+		}
+	}
 }
 
 

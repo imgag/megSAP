@@ -311,7 +311,6 @@ $column_desc = array(
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
 	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
-	array("GeneSplicer", "GeneSplicer splicing prediction (state/type/coordinates/confidence/score)."),
 	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
 	array("MMSplice_DeltaLogitPSI", "MMsplice delta Logit PSI score: variant's effect on the exon inclusion - positive score shows higher exon inclusion, negative higher exclusion rate. A score greater than 2 or less than -2 can be considered strong."),
@@ -346,6 +345,13 @@ $colum_desc_cosmic_cmc = array(
 	array("CMC_mutation_significance", "Significance tier of the variant from COSMIC Cancer Mutation Census (CMC).")
 );
 
+//optional CANCERHOTSPOTS header description if vcf contains Cancerhotspots.org information
+$column_desc_cancerhotspots = array(
+	array("CANCERHOTSPOTS_AA_CHANGE", "Amino acid change as in original cancerhotspots.org file"),
+	array("CANCERHOTSPOTS_TOTAL_MUT", "Total mutation count in cancerhotspots.org at certain amino acid position."),
+	array("CANCERHOTSPOTS_ALT_COUNT", "Count of specific amino acid alteration at same position in cancerhotspots.org.")
+);
+
 
 if ($genotype_mode=="single")
 {
@@ -367,6 +373,7 @@ $handle_out = fopen2($out, "w");
 $skip_ngsd = true; // true as long as no NGSD header is found
 $skip_ngsd_som = true; // true as long as no NGSD somatic header is found
 $skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC) header is found.
+$skip_cancerhotspots = true; //true as long as no CANCERHOTSPOTS header is found.
 
 while(!feof($handle))
 {
@@ -448,7 +455,6 @@ while(!feof($handle))
 			$i_omim = index_of($cols, "OMIM", false);
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
-			$i_genesplicer = index_of($cols, "GeneSplicer", false);
 			$i_dbscsnv_ada = index_of($cols, "ada_score");
 			$i_dbscsnv_rf = index_of($cols, "rf_score");
 		}
@@ -498,6 +504,21 @@ while(!feof($handle))
 			$i_cosmic_cmc_mut_sign_tier = index_of($cols, "MUTATION_SIGNIFICANCE_TIER");
 		}
 		
+		//Cancerhotspots.org header line
+		if( starts_with($line, "##INFO=<ID=CANCERHOTSPOTS,") )
+		{
+			$skip_cancerhotspots = false;
+			$cols = explode("|", substr($line, 0,-2) );
+			$cols[0] = "GENE_SYMBOL";
+			
+			$i_cancerhotspots_gene_symbol = index_of($cols, "GENE_SYMBOL");
+			$i_cancerhotspots_transcript_id = index_of($cols, "ENSEMBL_TRANSCRIPT");
+			$i_cancerhotspots_aa_pos = index_of($cols, "AA_POS");
+			$i_cancerhotspots_aa_ref = index_of($cols, "AA_REF");
+			$i_cancerhotspots_aa_alt = index_of($cols, "AA_ALT");
+			$i_cancerhotspots_total_count = index_of($cols, "TOTAL_COUNT");
+			$i_cancerhotspots_alt_count = index_of($cols, "ALT_COUNT");
+		}
 		
 		continue;
 	}
@@ -518,6 +539,12 @@ while(!feof($handle))
 		{
 			//append optional COSMIC CMC header
 			$column_desc = array_merge($column_desc, $colum_desc_cosmic_cmc);
+		}
+		
+		if( !$skip_cancerhotspots )
+		{
+			//append optional cancerhotspots header
+			$column_desc = array_merge($column_desc, $column_desc_cancerhotspots);
 		}
 		
 		write_header_line($handle_out, $column_desc, $filter_desc);
@@ -705,7 +732,6 @@ while(!feof($handle))
 	$omim = array();
 	$hgmd = array();
 	$maxentscan = array();
-	$genesplicer = array();
 	$dbscsnv = array();
 	$regulatory = array();
 	
@@ -769,12 +795,6 @@ while(!feof($handle))
 			{
 				$result = number_format($parts[$i_maxes_ref], 2).">".number_format($parts[$i_maxes_alt], 2);
 				$maxentscan[] = $result;
-			}
-			
-			//GeneSplicer
-			if ($i_genesplicer!==FALSE && $parts[$i_genesplicer]!="")
-			{
-				$genesplicer[] = $parts[$i_genesplicer];
 			}
 			
 			//dbscSNV
@@ -1290,7 +1310,7 @@ while(!feof($handle))
 	}
 	else if (count(array_unique($cadd_scores)) > 1)
 	{
-		trigger_error("Multiple values for CADD score for variant $chr:$pos! Choosing max value.", E_USER_WARNING);
+		//trigger_error("Multiple values for CADD score for variant $chr:$pos! Choosing max value.", E_USER_WARNING);
 		$cadd = max($cadd_scores);
 	}
 	else
@@ -1324,6 +1344,23 @@ while(!feof($handle))
 		}
 	}
 	
+	// CANCERHOTSPOTS
+	if( !$skip_cancerhotspots && isset($info["CANCERHOTSPOTS"]) )
+	{
+		$anns = explode(",", $info["CANCERHOTSPOTS"] );
+		
+		$cancerhotspots_protein_change = array();
+		$cancerhotspots_total_count = array();
+		$cancerhotspots_alt_count = array();
+		
+		foreach($anns as $entry)
+		{
+			$parts = explode("|", $entry);
+			$cancerhotspots_protein_change[] = ($parts[$i_cancerhotspots_transcript_id]) .":p." . aa1_to_aa3($parts[$i_cancerhotspots_aa_ref]) .$parts[$i_cancerhotspots_aa_pos] .  aa1_to_aa3($parts[$i_cancerhotspots_aa_alt]);
+			$cancerhotspots_total_count[] =  $parts[$i_cancerhotspots_total_count];
+			$cancerhotspots_alt_count[] = $parts[$i_cancerhotspots_alt_count];
+		}
+	}
 
 	//add up/down-stream variants if requested (or no other transcripts exist)
 	if ($updown || count($coding_and_splicing_details)==0)
@@ -1370,10 +1407,7 @@ while(!feof($handle))
 
 	//MaxEntScan
 	$maxentscan = implode(",", collapse("MaxEntScan", $maxentscan, "unique"));
-	
-	//GeneSplicer
-	$genesplicer = implode(",", collapse("GeneSplicer", $genesplicer, "unique"));
-	
+		
 	//dbscSNV
 	$dbscsnv = empty($dbscsnv) ? "" : collapse("dbscSNV", $dbscsnv, "one");
 	
@@ -1389,7 +1423,7 @@ while(!feof($handle))
 	
 	//write data
 	++$c_written;
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$genesplicer\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects");
@@ -1408,7 +1442,15 @@ while(!feof($handle))
 		fwrite( $handle_out, str_repeat("\t", count($colum_desc_cosmic_cmc)) );
 	}
 	
-	
+	if( !$skip_cancerhotspots &&isset($info["CANCERHOTSPOTS"]) )
+	{
+		fwrite( $handle_out, "\t" . implode(",",  $cancerhotspots_protein_change) . "\t" . implode(",", $cancerhotspots_total_count) ."\t" . implode(",", $cancerhotspots_alt_count) ); 
+	}
+	elseif( !$skip_cancerhotspots )
+	{
+		fwrite( $handle_out, str_repeat("\t", count($column_desc_cancerhotspots) ) );
+	}
+
 	fwrite($handle_out, "\n");
 }
 

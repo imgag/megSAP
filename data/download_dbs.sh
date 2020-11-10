@@ -10,6 +10,18 @@ dbs=$root/dbs/
 ngsbits=$tools/ngs-bits/bin
 genome=$root/genomes/GRCh37.fa
 
+#Install CancerHotspots.org
+cd $dbs
+mkdir -p cancerhotspots
+cd cancerhotspots
+wget https://www.cancerhotspots.org/files/hotspots_v2.xls
+wget http://download.cbioportal.org/cancerhotspots/cancerhotspots.v2.maf.gz
+ssconvert -O 'separator="	" format=raw' -T Gnumeric_stf:stf_assistant -S hotspots_v2.xls hotspots.tsv
+php $src/Tools/db_converter_cancerhotspots.php -in hotspots.tsv.0 -maf cancerhotspots.v2.maf.gz -out cancerhotspots_snv.tsv
+rm hotspots_v2.xls
+rm hotspots.tsv.0 
+rm hotspots.tsv.1
+rm cancerhotspots.v2.maf.gz
 
 #Install ClinGen dosage sensitivity - ftp://ftp.ncbi.nlm.nih.gov/pub/dbVar/clingen
 cd $dbs

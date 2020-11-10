@@ -26,6 +26,7 @@ $parser->addFlag("abra", "Enable indel realignment with ABRA.");
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
+$parser->addInt("min_read_length", " Minimum read length after SeqPurge adapter trimming. Shorter reads are discarded.", true, 30);   
 
 extract($parser->parse($argv));
 
@@ -113,7 +114,8 @@ if (in_array("ma", $steps) || in_array("fu", $steps))
 			"-a2", $sys["adapter2_p7"],
 			"-qc", $qc_fastq,
 			"-threads", bound($threads, 1, 6),
-			"-qcut 0"
+			"-qcut 0",
+			"-min_len", $min_read_length
 			);
 		$parser->exec(get_path("ngs-bits")."SeqPurge", implode(" ", $seqpurge_params), true);
 	}

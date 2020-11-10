@@ -77,6 +77,13 @@ if(file_exists($cosmic_cmc) && $somatic)
 	$parser->moveFile($temp_annfile, $annfile);
 }
 
+if( $somatic && file_exists(get_path("data_folder")."/dbs/cancerhotspots/cancerhotspots_snv.tsv") )
+{
+	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
+	$parser->execTool("NGS/an_somatic_cancerhotspots.php", "-in $annfile -out $temp_annfile");
+	$parser->moveFile($temp_annfile, $annfile);
+}
+
 
 //zip annotated VCF file
 $parser->exec("bgzip", "-c $annfile > $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return

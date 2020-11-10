@@ -394,6 +394,9 @@ if(isset($mutations))
 			
 			//create identifier for each variant from genomic coordinates
 			list($chr,$start,$end,$ref,$obs) = explode("\t",$line);
+			
+			if($chr == "chrMT") continue; //Skip mito because it cannot be parsed by CGI
+			
 			$temp_id = "{$chr}_{$start}_{$end}_{$ref}_{$obs}";
 			
 			$temp_mut_cont[] = "{$temp_id}\t{$trans}:{$prot_change}";
