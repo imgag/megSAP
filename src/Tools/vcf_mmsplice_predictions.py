@@ -94,7 +94,7 @@ def lowFrequencyVariants(vcf_in, vcf_lowAF):
 
                     break
 
-            if(af<=0.02 and gnomad_af<=0.02):        
+            if(af<=0.01 and gnomad_af<=0.01):        
                 out.write(line)
     out.close()
 
