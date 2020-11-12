@@ -69,6 +69,8 @@ def lowFrequencyVariants(vcf_in, vcf_lowAF):
         else:
             #else store only lines with variants AF | gnomAD_Af <= 0.2
             vcf_line = line.split(b'\t')
+            if(len(vcf_line) < 8):
+                sys.exit("Wrong vcf file format of vcf file " + vcf_in + ": Missing INFO column.")
             info = vcf_line[7]
             info = info.split(b';')
 
@@ -76,6 +78,7 @@ def lowFrequencyVariants(vcf_in, vcf_lowAF):
             gnomad_af = None
             for info_col in info:
                 
+                #parse CSQ entry
                 if(info_col.startswith(b'CSQ=')):
 
                     info_col=info_col.split(b'=')
@@ -91,12 +94,20 @@ def lowFrequencyVariants(vcf_in, vcf_lowAF):
                         gnomad_af = float((csq_annotations[gnomAD_AF_id]).decode('ascii'))
                     except:
                         gnomad_af = 0
-
-                    break
-
+                #parse gnomADg_AF entry
+                elif(info_col.startswith(b'gnomADg_AF=')):
+                    try:
+                        info_col=info_col.split(b'=')
+                        gnomadg_af_annotation=info_col[1]
+                        gnomad_af_g = float((gnomadg_af_annotation).decode('ascii'))
+                        if(gnomad_af_g>gnomad_af):
+                            gnomad_af=gnomad_af_g
+                    except:
+                        pass
             if(af<=0.01 and gnomad_af<=0.01):        
                 out.write(line)
     out.close()
+    in_file.close()
 
 def writeTempVCF(vcf_in, vcf_out, dict):
 
@@ -144,7 +155,9 @@ def writeTempVCF(vcf_in, vcf_out, dict):
             else:
                 line_rest = b"\t" + new_info
 
-            out.write(line_rest)    
+            out.write(line_rest)
+    out.close()
+    in_file.close()
 
 def writeMMSpliceToVcf(vcf_in, vcf_lowAF, vcf_out, gtf, fasta):
 
