@@ -9,7 +9,8 @@ We are providing instructions for Ubuntu 18.04 and RHEL 8.3 here. However this s
 ### Base dependencies
 
 Ubuntu 18.04
-    > sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.2-cli php7.2-xml php7.2-mysql python-matplotlib python3-networkx python-numpy python-pysam python-statsmodels python-pandas python-setuptools python3-pysam python3-intervaltree tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev r-base r-cran-devtools libcurl4-openssl-dev
+
+	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.2-cli php7.2-xml php7.2-mysql python-matplotlib python3-networkx python-numpy python-pysam python-statsmodels python-pandas python-setuptools python3-pysam python3-intervaltree tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev r-base r-cran-devtools libcurl4-openssl-dev
     
 RHEL 8.3
 
