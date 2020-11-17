@@ -305,7 +305,6 @@ $vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output_refseq -out $vcf_annotate_output -threads $threads", true);
 
 // generate temp file for mmsplice output
-$out_mmsplice = $parser->tempFile("_mmsplice.vcf");
 $lowAF_variants = $parser->tempFile("_mmsplice_lowAF.vcf");
 
 $gtf = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";

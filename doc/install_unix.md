@@ -4,12 +4,28 @@ Currently only Linux is supported!
 
 ## Dependencies
 
-We are providing instructions for Ubuntu 18.04 here. However this should be reasonably easy to port to any other Linux distribution.
+We are providing instructions for Ubuntu 18.04 and RHEL 8.3 here. However this should be reasonably easy to port to any other Linux distribution.
 
 ### Base dependencies
 
-    > sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.2-cli php7.2-xml php7.2-mysql python-matplotlib python3-networkx python-numpy python-pysam python-statsmodels python-pandas python-setuptools python3-pysam python3-intervaltree tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev r-base r-cran-devtools libcurl4-openssl-dev
+Ubuntu 18.04
 
+	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.2-cli php7.2-xml php7.2-mysql python-matplotlib python3-networkx python-numpy python-pysam python-statsmodels python-pandas python-setuptools python3-pysam python3-intervaltree tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev r-base r-cran-devtools libcurl4-openssl-dev
+    
+RHEL 8.3
+
+	> add LANGUAGE and LC_ALL to /etc/locale.conf
+    
+	Example:
+	LANGUAGE="en_US.UTF-8"
+	LANG="en_US.UTF-8"
+	LC_ALL="en_US.UTF-8"
+
+	> subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms
+	> yum groupinstall "Development Tools" -y
+	> yum install zlib-devel bzip2-devel xz-devel ncurses-devel libcurl-devel cpan cpanminus gd-devel libdb-devel -y
+	> dnf install php-cli php-xml  php-mysqlnd R-core R-core-devel -y
+    
 ## Downloading
 
 Clone the latest release of megSAP:

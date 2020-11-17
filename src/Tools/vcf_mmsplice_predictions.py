@@ -67,36 +67,45 @@ def lowFrequencyVariants(vcf_in, vcf_lowAF):
                     count+=1
 
         else:
-            #else store only lines with variants AF | gnomAD_Af <= 0.2
+            #else store only lines with variants AF<=1%
             vcf_line = line.split(b'\t')
+            if(len(vcf_line) < 8):
+                sys.exit("Wrong vcf file format of vcf file " + vcf_in + ": Missing INFO column.")
             info = vcf_line[7]
             info = info.split(b';')
 
-            af = None
-            gnomad_af = None
+            af = 0
+            gnomad_af = 0
+            gnomad_af_genome = 0
             for info_col in info:
                 
+                #parse CSQ entry
                 if(info_col.startswith(b'CSQ=')):
 
                     info_col=info_col.split(b'=')
                     csq_annotations=info_col[1].split(b'|')
 
-                    #try to set AF
+                    #1000 Genomes AF
                     try:
                         af = float((csq_annotations[AF_id]).decode('ascii'))
                     except:
-                        af = 0
-                    #try to set gnomAD_AF
+                        pass
+                    #gnomAD exome AF
                     try:
                         gnomad_af = float((csq_annotations[gnomAD_AF_id]).decode('ascii'))
                     except:
-                        gnomad_af = 0
-
-                    break
-
-            if(af<=0.02 and gnomad_af<=0.02):        
+                        pass
+                #gnomAD genome AF
+                elif(info_col.startswith(b'gnomADg_AF=')):
+                    try:
+                        info_col=info_col.split(b'=')
+                        gnomad_af_genome = float((info_col[1]).decode('ascii'))
+                    except:
+                        pass
+            if(af<=0.01 and gnomad_af<=0.01 and gnomad_af_genome<=0.01):
                 out.write(line)
     out.close()
+    in_file.close()
 
 def writeTempVCF(vcf_in, vcf_out, dict):
 
@@ -144,7 +153,9 @@ def writeTempVCF(vcf_in, vcf_out, dict):
             else:
                 line_rest = b"\t" + new_info
 
-            out.write(line_rest)    
+            out.write(line_rest)
+    out.close()
+    in_file.close()
 
 def writeMMSpliceToVcf(vcf_in, vcf_lowAF, vcf_out, gtf, fasta):
 
