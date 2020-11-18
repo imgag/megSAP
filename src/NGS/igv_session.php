@@ -16,6 +16,7 @@ $parser->addOutfile("out", "Output IGV session XML file.", false);
 
 //optional arguments
 $parser->addFlag("relative", "Make paths relative to output directory.");
+$parser->addFlag("win_path", "Convert unix paths to absolute windows paths. Flag is ignored if -relative flag is set.");
 $parser->addString("genome", "IGV genome build.", true, "1kg_v37");
 $parser->addString("locus", "Locus/region to display.", true, "all");
 
@@ -23,6 +24,11 @@ $parser->addString("locus", "Locus/region to display.", true, "all");
 extract($parser->parse($argv));
 
 $out_lines = [];
+
+if(!$relative && $win_path)
+{
+	$genome = unix2winpath(realpath($genome), true);
+}
 
 $out_lines[] = <<<EOT
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -32,9 +38,14 @@ EOT;
 
 foreach ($in as $resource)
 {
-	if ($relative)
+	if($relative)
 	{
 		$resource = relative_path(dirname($out), $resource);
+	}
+	
+	if ($win_path && !$relative)
+	{
+		$resource = unix2winpath(realpath($resource),true);
 	}
 
 	$out_lines[] = <<<EOT

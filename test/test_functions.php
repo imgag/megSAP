@@ -4,6 +4,15 @@ require_once("framework.php");
 
 
 //##################################################################################
+start_test("unix2windows_paths");
+check(unix2winpath("/mnt/storage1/share/data/genomes/somatic_viral.fa"), "W:/share/data/genomes/somatic_viral.fa");
+check(unix2winpath("/mnt/storage1/share/data/genomes/somatic_viral.fa", true), "W:\\share\\data\\genomes\\somatic_viral.fa");
+check(unix2winpath("/mnt/storage2/projects/diagnostic/SomaticAndTreatment/", true), "W:\\projects\\diagnostic\\SomaticAndTreatment\\");
+check(unix2winpath("/mnt_UNKNOWN_PREFIX/projects/diagnostic/SomaticAndTreatment/"), "/mnt_UNKNOWN_PREFIX/projects/diagnostic/SomaticAndTreatment/");
+
+end_test();
+
+//##################################################################################
 start_test("bound");
 
 check(bound(-1.0,0.0,1.0), 0.0);

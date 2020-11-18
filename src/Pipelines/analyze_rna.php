@@ -337,7 +337,7 @@ if (in_array("fu",$steps))
 			{
 				$igv_tracks_arg = implode(" ", $igv_tracks);
 				$genome_rel = relative_path(dirname($igv_session_file), "{$prefix}_var_fusions.fa");
-				$parser->execTool("NGS/igv_session.php", "-genome {$genome_rel} -out {$igv_session_file} -in {$igv_tracks_arg} -relative");
+				$parser->execTool("NGS/igv_session.php", "-genome {$genome_rel} -out {$igv_session_file} -in {$igv_tracks_arg} -win_path");
 			}
 
 		}

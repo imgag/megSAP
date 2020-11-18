@@ -410,8 +410,8 @@ $tumor_prefix = dirname($t_bam) . "/" . basename($t_bam, ".bam");
 $viral         = $tumor_prefix . "_viral.tsv";					// viral sequences results
 $viral_bam     = $tumor_prefix . "_viral.bam";					// viral sequences alignment
 $viral_bam_raw = $tumor_prefix . "_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
-$viral_bed = get_path("data_folder") . "/enrichment/somatic_viral.bed"; //viral enrichment
-$viral_genome = get_path("data_folder") . "/genomes/somatic_viral.fa"; //viral reference genome
+$viral_bed     = get_path("data_folder") . "/enrichment/somatic_viral.bed"; //viral enrichment
+$viral_genome  = get_path("data_folder") . "/genomes/somatic_viral.fa"; //viral reference genome
 $viral_igv     = $tumor_prefix . "_viral.xml";					// IGV session
 if (in_array("vi", $steps))
 {
@@ -444,7 +444,7 @@ if (in_array("vi", $steps))
 			$viral_bam_raw,
 			$viral_bed],
 			"file_exists"));
-		$parser->execTool("NGS/igv_session.php", "-genome " . relative_path(dirname($viral_igv), $viral_genome) . " -out {$viral_igv} -in {$igv_tracks} -relative");
+		$parser->execTool("NGS/igv_session.php", "-genome $viral_genome -out {$viral_igv} -in {$igv_tracks} -win_path");
 	}
 }
 
