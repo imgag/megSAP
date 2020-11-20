@@ -38,6 +38,9 @@ exon_sep = ['[', ']']
 
 def lowFrequencyVariants(vcf_in, vcf_lowAF):
 
+    #boolean to check if any variant is left to score with mmsplice
+    empty_vcf_file = True
+
     if vcf_in.endswith(".vcf.gz"):
         import gzip
         in_file = gzip.open(vcf_in, 'rb')
@@ -104,8 +107,10 @@ def lowFrequencyVariants(vcf_in, vcf_lowAF):
                         pass
             if(af<=0.01 and gnomad_af<=0.01 and gnomad_af_genome<=0.01):
                 out.write(line)
+                empty_vcf_file = False
     out.close()
     in_file.close()
+    return empty_vcf_file
 
 def writeTempVCF(vcf_in, vcf_out, dict):
 
@@ -159,7 +164,15 @@ def writeTempVCF(vcf_in, vcf_out, dict):
 
 def writeMMSpliceToVcf(vcf_in, vcf_lowAF, vcf_out, gtf, fasta):
 
-    lowFrequencyVariants(vcf_in, vcf_lowAF)
+    #If VCF file is empty after removel of high AF variants, skip mmsplice annotation
+    empty_vcf_file = lowFrequencyVariants(vcf_in, vcf_lowAF)
+    if(empty_vcf_file):
+        with open(vcf_in, "rb") as in_file:
+            with open(vcf_out, "wb") as out_file:
+                for line in in_file:
+                    out_file.write(line)
+        sys.exit()
+           
     # dataloader to load variants from vcf
     dl = SplicingVCFDataloader(gtf, fasta, vcf_lowAF, tissue_specific=False)
 
