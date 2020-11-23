@@ -44,7 +44,10 @@ $sys = load_system($system, $name);
 $roi_base = $sys['target_file'];
 
 //database
-$db = DB::getInstance("NGSD", false);
+if (db_is_enabled("NGSD"))
+{
+	$db = DB::getInstance("NGSD", false);
+}
 
 // overwrite tumor_bam and tumor_id if run with -skip_tumor
 if ($skip_tumor)
@@ -54,7 +57,7 @@ if ($skip_tumor)
 }
 
 //resolve tumor id if not given
-if ($tumor_id == "" && !$skip_tumor)
+if ($tumor_id == "" && !$skip_tumor && isset($db))
 {
 	//related samples
 	list($sample_name, $ps_num) = explode("_", $name);
