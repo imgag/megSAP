@@ -85,6 +85,7 @@ foreach($samples as $ps)
 file_put_contents("$out/meta_data.tsv", $meta);
 
 //export data
+/*
 foreach($samples as $ps)
 {
 	print "$ps\n";
@@ -120,10 +121,12 @@ foreach($samples as $ps)
 		}
 	}
 }
+*/
 
 //zip
-print "Zipping output folder...\n";
-exec2("zip -r {$out}.zip $out"); //TODO -e for excryption?
+$password = random_string(20);
+print "Zipping output folder using the password '{$password}'...\n";
+exec2("zip --password {$password} -r {$out}.zip $out");
 
 //move
 print "You can move the file to the webserver using:\n";
