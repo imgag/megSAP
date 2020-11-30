@@ -10,6 +10,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //parse command line arguments
 $parser = new ToolBase("generate_demux_details", "Exports Stats.json information for each project and create sample sheet for MultiQC report");
 $parser->addString("run", "Run name.", false);
+$parser->addFlag("execute_multiqc", "Executes multiqc for each project in the run.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
@@ -52,7 +53,6 @@ foreach($res as $row)
 	if(array_key_exists($row['pname'], $projects)) {
 		$projects[$row['pname']][] = $row['psname']."\t".$row['ename']."\t".$row['stype'];
 	} else {
-		$projects[$row['pname']][] = "[Data]";
 		$projects[$row['pname']][] = "Internal Name\tExternal Name\tType";
 		$projects[$row['pname']][] = $row['psname']."\t".$row['ename']."\t".$row['stype'];
 		$project_locations[$row['pname']] = "/mnt/projects/".$row['ptype']."/".$row['pname'];
@@ -105,6 +105,14 @@ if(file_exists($demux_file)) {
 		
 		//store Stats.json files
 		file_put_contents($project_locations[$project]."/Stats.json", json_encode($data));
+	}
+}
+
+if ($execute_multiqc)
+{
+	foreach($projects as $key =>$value)
+	{
+		exec("multiqc ".$project_locations[$key]."/ --sample-names ".$project_locations[$key]."/".$key."_samplesheet.tsv -f -o ".$project_locations[$key]);
 	}
 }
 
