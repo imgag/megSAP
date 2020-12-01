@@ -733,6 +733,32 @@ function relative_path($start,$end)
 	$r = array_merge($r,$e);
 	return implode("/",$r);
 }
+
+//translates unix path to windows path
+function unix2winpath($unix_path, $use_backslashes = false)
+{
+	$data = get_path("unix2windows_path");
+	if(!is_array($data) || count($data) == 0)
+	{
+		trigger_error("Cannot translate unix path \"{$unix_path}\" to windows path. No settings array \"unix2windows_path\" found in settings.ini.");
+	}
+	
+	$out = "";
+	foreach($data as $unix_prefix => $win_prefix)
+	{
+		if(strpos($unix_path, $unix_prefix) !== false)
+		{
+			$out = str_replace($unix_prefix, $win_prefix, $unix_path);
+		}
+	}
+	
+	if($use_backslashes)
+	{
+		$out = str_replace("/", "\\", $out);
+	}
+	
+	return ($out != "" ? $out : $unix_path);
+}
 	
 //adds a # in the first line of a file
 function addCommentCharInHeader($filename)
@@ -772,7 +798,7 @@ function gzopen2($filename, $mode)
 }
 
 //functions to encode and decode VCF INFO values using URL encoding
-$vcf_encode_mapping = array("%" => "%25", "\t" => "%09", "\n" => "%0a", "\r" => "%0d", " " => "%20", "," => "%2C", ";" => "%3B", "=" => "%3D");
+$vcf_encode_mapping = array("%" => "%25", "\t" => "%09", "\n" => "%0a", "\r" => "%0d", " " => "%20", "," => "%2C", ";" => "%3B", "=" => "%3D", "&" => "%26");
 $vcf_decode_mapping = array_reverse(array_flip($vcf_encode_mapping));
 
 // encode string using URL encoding

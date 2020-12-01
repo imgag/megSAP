@@ -10,6 +10,18 @@ dbs=$root/dbs/
 ngsbits=$tools/ngs-bits/bin
 genome=$root/genomes/GRCh37.fa
 
+#Install CancerHotspots.org
+cd $dbs
+mkdir -p cancerhotspots
+cd cancerhotspots
+wget https://www.cancerhotspots.org/files/hotspots_v2.xls
+wget http://download.cbioportal.org/cancerhotspots/cancerhotspots.v2.maf.gz
+ssconvert -O 'separator="	" format=raw' -T Gnumeric_stf:stf_assistant -S hotspots_v2.xls hotspots.tsv
+php $src/Tools/db_converter_cancerhotspots.php -in hotspots.tsv.0 -maf cancerhotspots.v2.maf.gz -out cancerhotspots_snv.tsv
+rm hotspots_v2.xls
+rm hotspots.tsv.0 
+rm hotspots.tsv.1
+rm cancerhotspots.v2.maf.gz
 
 #Install ClinGen dosage sensitivity - ftp://ftp.ncbi.nlm.nih.gov/pub/dbVar/clingen
 cd $dbs
@@ -151,6 +163,15 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GR
 ##CNVs
 #zcat hgmd_pro-2020.1.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2020_1.bed
 #$ngsbits/BedSort -with_name -in HGMD_CNVS_2020_1.bed -out HGMD_CNVS_2020_1.bed
+
+
+#Install COSMIC Cancer Mutation Census CMC  (you need a license, CMC tsv.gz file has to be downloaded manually from https://cancer.sanger.ac.uk/cmc/download)
+#cd $dbs
+#mkdir -p COSMIC
+#cd COSMIC
+##Login and download cmc_export.v92.tsv.gz from https://cancer.sanger.ac.uk/cmc/download to data/dbs/COSMIC. There is no download API for CMC file.
+#mv cmc_export.v92.tsv.gz cmc_export.v92.tar.gz #CMC file is incorrectly name as tsv.gz when downloaded from COSMIC
+#tar -xOzf cmc_export.v92.tar.gz cmc_export.tsv | php $src/Tools/db_converter_cosmic.php -in - -out cmc_export.vcf.gz
 
 #install NGSD
 #

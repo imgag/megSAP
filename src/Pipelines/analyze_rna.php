@@ -26,6 +26,7 @@ $parser->addFlag("abra", "Enable indel realignment with ABRA.");
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
+$parser->addInt("min_read_length", " Minimum read length after SeqPurge adapter trimming. Shorter reads are discarded.", true, 30);   
 
 extract($parser->parse($argv));
 
@@ -113,7 +114,8 @@ if (in_array("ma", $steps) || in_array("fu", $steps))
 			"-a2", $sys["adapter2_p7"],
 			"-qc", $qc_fastq,
 			"-threads", bound($threads, 1, 6),
-			"-qcut 0"
+			"-qcut 0",
+			"-min_len", $min_read_length
 			);
 		$parser->exec(get_path("ngs-bits")."SeqPurge", implode(" ", $seqpurge_params), true);
 	}
@@ -265,7 +267,7 @@ if (in_array("fu",$steps))
 	
 		//add samtools to path
 		putenv("PATH=" . implode(":", [
-			dirname(get_path("samtools")),
+			dirname(get_path("STAR-Fusion_samtools")),
 			dirname(get_path("STAR")),
 			getenv("PATH")
 		]));
@@ -335,7 +337,7 @@ if (in_array("fu",$steps))
 			{
 				$igv_tracks_arg = implode(" ", $igv_tracks);
 				$genome_rel = relative_path(dirname($igv_session_file), "{$prefix}_var_fusions.fa");
-				$parser->execTool("NGS/igv_session.php", "-genome {$genome_rel} -out {$igv_session_file} -in {$igv_tracks_arg} -relative");
+				$parser->execTool("NGS/igv_session.php", "-genome {$genome_rel} -out {$igv_session_file} -in {$igv_tracks_arg} -win_path");
 			}
 
 		}

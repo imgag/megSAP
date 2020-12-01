@@ -7,37 +7,49 @@ $ngsbits = get_path("ngs-bits");
 function gene2coords($gene)
 {
 	global $ngsbits;
+	static $cache = [];
 	
-	list($stdout, $stderr) = exec2("echo '{$gene}' | $ngsbits/GenesToBed -source ensembl -mode gene");
-	
-	//error
-	$error = trim(implode("", $stderr));
-	if ($error!="")
+	if (!isset($cache[$gene]))
 	{
-		return [null, null, null, null, "Could not convert gene '{$gene}' to coordinates: {$error}"];
-	}
-	
-	//convert
-	$start = null;
-	$end = null;
-	foreach($stdout as $line2)
-	{
-		$line2 = trim($line2);
-		if ($line2=="") continue;
-		list($chr, $s, $e, $gene_approved) = explode("\t", $line2);
-		if (is_null($start))
+		list($stdout, $stderr, $exit_code) = exec2("echo '{$gene}' | $ngsbits/GenesToApproved | cut -f1");
+		$gene_approved = trim($stdout[0]);
+		
+		list($stdout, $stderr, $exit_code) = exec2("echo '{$gene_approved}' | $ngsbits/GenesToBed -source ensembl -mode gene | $ngsbits/BedMerge");
+		$stdout = array_map('trim', $stdout);
+		$stdout = array_diff($stdout, [""]);
+		
+		//error
+		if (count($stdout)==0)
 		{
-			$start = $s;
-			$end = $e;
+			$cache[$gene] = [null, null, null, null, "No coordinates for gene '{$gene}'!"];
+		}
+		else if (count($stdout)>1)
+		{
+			trigger_error("Several genomic ranges for gene '{$gene}'. Selecting the largest range.", E_USER_WARNING);
+			
+			$max_size = -1;
+			$max_size_i = -1;
+			for($i=0; $i<count($stdout); ++$i)
+			{
+				list($chr, $start, $end) =  explode("\t", $stdout[0]);
+				$size = $end-$start;
+				if ($size>$max_size)
+				{
+					$max_size = $size;
+					$max_size_i = $i;
+				}
+			}
+			list($chr, $start, $end) =  explode("\t", $stdout[$max_size_i]);
+			$cache[$gene] = [$chr, $start, $end, $gene_approved, null];
 		}
 		else
 		{
-			$start = min($s, $start);
-			$end = max($e, $end);
+			list($chr, $start, $end) =  explode("\t", $stdout[0]);
+			$cache[$gene] = [$chr, $start, $end, $gene_approved, null];
 		}
 	}
 	
-	return [$chr, $start, $end, $gene_approved, null];
+	return $cache[$gene];
 }
 
 $in = fopen2("php://stdin", "r");

@@ -965,8 +965,8 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false, $inclu
 	if ($res[0]['q1']=="bad") return false;
 	if ($res[0]['q2']=="bad") return false;
 	
-	//check that project type is research/diagnostics
-	if (!($res[0]['type']=="research" || $res[0]['type']=="diagnostic" || ($res[0]['type']=="test" && $include_test_projects))) return false;
+	//include test projects only if requested
+	if ($res[0]['type']=="test" && !$include_test_projects) return false;
 	
 	return true;
 }
@@ -1375,8 +1375,17 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	
 	//additional info
 	$project_folder = get_path("project_folder");
-	if (!ends_with($project_folder, "/")) $project_folder .= "/";
-	$info['project_folder'] = $project_folder.$info['project_type']."/".$info['project_name']."/";
+	$project_type = $info['project_type'];
+	if (is_array($project_folder))
+	{
+		$project_folder = $project_folder[$project_type];
+	}
+	else
+	{
+		if (!ends_with($project_folder, "/")) $project_folder .= "/";
+		$project_folder = $project_folder.$project_type;
+	}
+	$info['project_folder'] = $project_folder."/".$info['project_name']."/";
 	$info['ps_name'] = $ps_name;
 	$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
 	$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
@@ -1826,5 +1835,21 @@ function addMissingContigsToVcf($build, $vcf)
 	}
 
 }
+
+
+$aa1_to_aa3 = array( 'A'=>"Ala", 'R'=>"Arg", 'N'=>"Asn", 'D'=>"Asp", 'C'=>"Cys", 'E'=>"Glu", 'Q'=>"Gln", 'G'=>"Gly", 'H'=>"His", 'I'=>"Ile", 'L'=>"Leu", 'K'=>"Lys", 'M'=>"Met", 'F'=>"Phe", 'P'=>"Pro", 'S'=>"Ser", 'T'=>"Thr", 'W'=>"Trp", 'Y'=>"Tyr", 'V'=>"Val", '*'=>"Ter");
+$aa3_to_aa1 = array_flip($aa1_to_aa3);
+
+//converts amino acid from three letter notation to 1 letter notation
+function aa3_to_aa1($three_letter_notation)
+{
+	return strtr($three_letter_notation, $GLOBALS["aa3_to_aa1"]);
+}
+
+function aa1_to_aa3($one_letter_notation)
+{
+	return strtr($one_letter_notation, $GLOBALS["aa1_to_aa3"]);
+}
+
 
 ?>

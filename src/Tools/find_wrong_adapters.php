@@ -32,6 +32,10 @@ extract($parser->parse($argv));
 
 //get list of mapping qcML files
 $project_folder  = get_path("project_folder");
+if (is_array($project_folder))
+{
+	$project_folder = realpath($project_folder['diagnostic']."/../");
+}
 list($qc_files) = exec2("find -L {$project_folder}/research/ {$project_folder}/diagnostic/ -maxdepth 3 -name \"*_stats_map.qcML\"");
 
 //NGSD connection

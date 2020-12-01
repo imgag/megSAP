@@ -43,7 +43,12 @@ for($i=0; $i<count($parts); ++$i)
 	$indices[$parts[$i]] = $i;
 }
 //columns to be included in INFO field (without coordinates/reference/alteration fields)
-$ann_cols = array_values(array_diff(array_keys($indices), ["GENOMIC_WT_ALLELE_SEQ","GENOMIC_MUT_ALLELE_SEQ", "Mutation genome position GRCh37", "Mutation genome position GRCh38"]));
+$ann_cols = array_values(
+	array_diff(
+		array_keys($indices), 
+		["GENOMIC_WT_ALLELE_SEQ","GENOMIC_MUT_ALLELE_SEQ", "Mutation genome position GRCh37", "Mutation genome position GRCh38", "EXAC_AF" , "EXAC_AFR_AF" , "EXAC_AMR_AF" , "EXAC_EAS_AF" , "EXAC_FIN_AF" , "EXAC_NFE_AF" , "EXAC_SAS_AF" , "GNOMAD_EXOMES_AF" , "GNOMAD_EXOMES_AFR_AF" , "GNOMAD_EXOMES_AMR_AF" , "GNOMAD_EXOMES_ASJ_AF" , "GNOMAD_EXOMES_EAS_AF" , "GNOMAD_EXOMES_FIN_AF" , "GNOMAD_EXOMES_NFE_AF" , "GNOMAD_EXOMES_SAS_AF" , "GNOMAD_EXOMES_OTH_AF" , "GNOMAD_GENOMES_AF" , "GNOMAD_GENOMES_AFR_AF" , "GNOMAD_GENOMES_AMR_AF" , "GNOMAD_GENOMES_ASJ_AF" , "GNOMAD_GENOMES_EAS_AF" , "GNOMAD_GENOMES_FIN_AF" , "GNOMAD_GENOMES_NFE_AF" , "GNOMAD_GENOMES_OTH_AF"]
+	) 
+);
 
 fwrite($out_fp, "##INFO=<ID=COSMIC_CMC,Number=1,Type=String,Description=\"COSMIC Cancer Mutation Census (CMC) Data. Format: ". implode("|",$ann_cols)    ."\">\n");
 fwrite($out_fp, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
@@ -88,13 +93,8 @@ while(!feof($in_fp))
 	foreach($ann_cols as $col_name)
 	{
 		$temp = $parts[$indices[$col_name]];
-		
-		//spaces and = are not allowed in vcf, replace by % encoding
-		$temp = str_replace(" ","%20", $temp);
-		$temp = str_replace("=","%3D", $temp);
-		$temp = str_replace(";", "%3B", $temp);
-		
-		$cmc_data[] = $temp;
+		$temp = str_replace(",", ";", $temp); //replace "," by ";", otherwise there is no in-field separator for later processing left.
+		$cmc_data[] = vcf_encode_url_string($temp);
 	}
 	
 	fwrite($out_fp, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tCOSMIC_CMC=". implode("|", $cmc_data) ."\n");

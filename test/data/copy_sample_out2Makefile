@@ -10,10 +10,10 @@ import_read_counts:
 	php /mnt/users/bioinf/megSAP/src/NGS/import_sample_read_counts.php -stats Unaligned/Stats/Stats.json -db NGSD_TEST 
 
 copy_SomaticAndTreatment_diagnostic:
-	mv Unaligned/SomaticAndTreatment/Sample_DX181280_01/ /mnt/projects/diagnostic/SomaticAndTreatment/
-	mv Unaligned/SomaticAndTreatment/Sample_DX181277_01/ /mnt/projects/diagnostic/SomaticAndTreatment/
-	mv Unaligned/SomaticAndTreatment/Sample_DX181278_01/ /mnt/projects/diagnostic/SomaticAndTreatment/
-	mv Unaligned/SomaticAndTreatment/Sample_DX181279_01/ /mnt/projects/diagnostic/SomaticAndTreatment/
+	mv Unaligned/SomaticAndTreatment/Sample_DX181280_01/ /mnt/storage2/projects/diagnostic//SomaticAndTreatment/
+	mv Unaligned/SomaticAndTreatment/Sample_DX181277_01/ /mnt/storage2/projects/diagnostic//SomaticAndTreatment/
+	mv Unaligned/SomaticAndTreatment/Sample_DX181278_01/ /mnt/storage2/projects/diagnostic//SomaticAndTreatment/
+	mv Unaligned/SomaticAndTreatment/Sample_DX181279_01/ /mnt/storage2/projects/diagnostic//SomaticAndTreatment/
 
 queue_SomaticAndTreatment_diagnostic:
 	php /mnt/users/bioinf/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX181280_01 -args '-steps ma,db -somatic'

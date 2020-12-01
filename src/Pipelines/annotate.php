@@ -53,6 +53,10 @@ if ($sys['build']!="GRCh37")
 	trigger_error("Unknown genome build ".$sys['build']." cannot be annotated!", E_USER_ERROR);
 }
 
+
+
+
+
 //annotate VCF
 $args = [];
 $args[] = "-in ".$vcf_unzipped;
@@ -62,6 +66,24 @@ $args[] = "-threads ".$threads;
 $args[] = "-ps_name ".$out_name;
 if ($somatic) $args[] = "-somatic";
 $parser->execTool("NGS/an_vep.php", implode(" ", $args));
+
+
+//annotate COSMIC
+$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export.vcf.gz";
+if(file_exists($cosmic_cmc) && $somatic)
+{
+	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
+	$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in $annfile -annotation_file $cosmic_cmc -info_ids COSMIC_CMC -out $temp_annfile" );
+	$parser->moveFile($temp_annfile, $annfile);
+}
+
+if( $somatic && file_exists(get_path("data_folder")."/dbs/cancerhotspots/cancerhotspots_snv.tsv") )
+{
+	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
+	$parser->execTool("NGS/an_somatic_cancerhotspots.php", "-in $annfile -out $temp_annfile");
+	$parser->moveFile($temp_annfile, $annfile);
+}
+
 
 //zip annotated VCF file
 $parser->exec("bgzip", "-c $annfile > $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return

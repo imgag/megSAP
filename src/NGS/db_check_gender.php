@@ -46,6 +46,10 @@ else
 		$method = "xy";
 		$args = "-min_male 0.012 -max_female 0.008";
 	}
+	else if ($info['sys_type']=="cfDNA (patient-specific)")
+	{
+		$method = "sry";
+	}
 	else //check if sry is included in target region
 	{
 		list($stdout, $stderr) = exec2("echo -e 'chrY\\t2655030\\t2655644' | ".get_path("ngs-bits")."BedIntersect -in2 ".$info["sys_target"], false); //works for GRCh37 only

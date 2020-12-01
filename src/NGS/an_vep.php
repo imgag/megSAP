@@ -83,8 +83,6 @@ $fields[] = "FATHMM_MKL_NC";
 $args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
 $fields[] = "MaxEntScan_ref";
 $fields[] = "MaxEntScan_alt";
-$args[] = "--plugin GeneSplicer,{$vep_path}/GeneSplicer/sources/genesplicer,{$local_data}/GeneSplicer/,tmpdir=".sys_get_temp_dir(); //GeneSplicer
-$fields[] = "GeneSplicer"; 
 $args[] = "--plugin dbscSNV,".annotation_file_path("/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"); //dbscSNV
 $fields[] = "ada_score";
 $fields[] = "rf_score";;
@@ -307,7 +305,8 @@ $vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output_refseq -out $vcf_annotate_output -threads $threads", true);
 
 // generate temp file for mmsplice output
-$out_mmsplice = $parser->tempFile("_mmsplice.vcf");
+$lowAF_variants = $parser->tempFile("_mmsplice_lowAF.vcf");
+
 $gtf = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 $fasta = genome_fasta($build);
 $mmsplice_env = get_path("MMSplice", true);
@@ -315,11 +314,13 @@ $mmsplice_env = get_path("MMSplice", true);
 addMissingContigsToVcf($build, $vcf_annotate_output);
 $args = array();
 $args[] = "--vcf_in {$vcf_annotate_output}"; //input vcf
+$args[] = "--vcf_lowAF {$lowAF_variants}"; //input vcf storing only low allel frequency variants
 $args[] = "--vcf_out {$out}"; //output vcf
 $args[] = "--gtf {$gtf}"; //gtf annotation file
 $args[] = "--fasta {$fasta}"; //fasta reference file
 $args[] = "--threads {$threads}"; //fasta reference file
-$parser->exec("OMP_NUM_THREADS={$threads} {$mmsplice_env}/mmsplice_env/bin/python3 ".repository_basedir()."/src/Tools/vcf_mmsplice_predictions.py", implode(" ", $args), false);
+putenv("PYTHONPATH");
+$parser->exec("OMP_NUM_THREADS={$threads} {$mmsplice_env}/mmsplice_env/bin/python3 ".repository_basedir()."/src/Tools/vcf_mmsplice_predictions.py", implode(" ", $args), true);
 
 if (!$skip_ngsd)
 {

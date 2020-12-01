@@ -11,6 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("db_import_variant_classes", "Imports variants with classification into the NGSD.");
 $parser->addString("user",  "NGSD user used in the classification comment.", false);
 $parser->addInfile("in", "Input VCF file.", false);
+$parser->addString("text", "Classification text added to NGSD entry.", true, "");
 //optional
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
@@ -100,7 +101,7 @@ foreach($file as $line)
 	
 	//set classification
 	$c_data = $db->executeQuery("SELECT id, comment, class FROM variant_classification WHERE variant_id='{$v_id}'");
-	$comment = "[$class] $user ".date("Y-m-d")."\nBatch import from command line.\n";
+	$comment = "[{$class}] {$user} ".date("Y-m-d")."\nBatch import from command line.\n{$text}\n";
 	if (count($c_data)==0) //new classification
 	{
 		$db->executeStmt("INSERT INTO variant_classification SET variant_id='{$v_id}', class='{$class}', comment='{$comment}'");

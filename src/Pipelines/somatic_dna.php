@@ -204,7 +204,7 @@ if (!$single_sample && db_is_enabled("NGSD"))
 	}
 }
 
-//sample similiarty check
+//sample similarity check
 $bams = array_filter([$t_bam, $n_bam]);
 if (count($bams) > 1)
 {
@@ -226,7 +226,7 @@ if (count($bams) > 1)
 		}
         $output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", implode(" ", $args_similarity), true);
 
-		//extract columen 3 from output
+		//extract colum 3 from output
 		$table = array_map(
 			function($str) { return explode("\t", $str); },
 			array_slice($output[0], 1)
@@ -237,6 +237,25 @@ if (count($bams) > 1)
             trigger_error("Genotype correlation lower than {$min_correlation}!\n" . implode("\n", $output[0]), E_USER_ERROR);
         }
     }
+}
+
+//check SRY coverage of tumor for female samples, can be a hint for contamination with male DNA
+if( db_is_enabled("NGSD") )
+{
+	$db = DB::getInstance("NGSD");
+	$tinfo = get_processed_sample_info($db, $t_id, false);
+	
+	if(!is_null($tinfo) && $tinfo["gender"] == "female")
+	{
+		$hg_build = ( $sys['build'] == "GRCh37" ? "hg19" : "hg38" );
+		$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build $hg_build -method sry", true);
+		list(,,$cov_sry) = explode("\t", $out[0][1]);
+
+		if(is_numeric($cov_sry) && (float)$cov_sry >= 20)
+		{
+			trigger_error("Detected contamination of female tumor sample {$t_id} with male genomic DNA on SRY. SRY coverage is at {$cov_sry}x.", E_USER_ERROR);
+		}
+	}
 }
 
 
@@ -391,14 +410,14 @@ $tumor_prefix = dirname($t_bam) . "/" . basename($t_bam, ".bam");
 $viral         = $tumor_prefix . "_viral.tsv";					// viral sequences results
 $viral_bam     = $tumor_prefix . "_viral.bam";					// viral sequences alignment
 $viral_bam_raw = $tumor_prefix . "_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
-$viral_bed = get_path("data_folder") . "/enrichment/somatic_viral.bed"; //viral enrichment
+$viral_bed     = get_path("data_folder") . "/enrichment/somatic_viral.bed"; //viral enrichment
+$viral_genome  = get_path("data_folder") . "/genomes/somatic_viral.fa"; //viral reference genome
 $viral_igv     = $tumor_prefix . "_viral.xml";					// IGV session
 if (in_array("vi", $steps))
 {
-	$genome_rel = relative_path(dirname($viral_igv), get_path("data_folder") . "/genomes/somatic_viral.fa");
-	if(!file_exists($genome_rel) || !file_exists($viral_bed))
+	if(!file_exists($viral_genome) || !file_exists($viral_bed))
 	{
-		trigger_error("Could not find reference genome {$genome_rel}. Skipping step \"vi\".", E_USER_WARNING);
+		trigger_error("Could not find reference genome {$viral_genome}. Skipping step \"vi\".", E_USER_ERROR);
 	}
 	else
 	{
@@ -420,13 +439,12 @@ if (in_array("vi", $steps))
 			$vc_viral_args[] = "-barcode_correction";
 		}
 		$parser->execTool("NGS/vc_viral_load.php", implode(" ", $vc_viral_args));
-
 		$igv_tracks = implode(" ", array_filter([
 			$viral_bam,
 			$viral_bam_raw,
 			$viral_bed],
 			"file_exists"));
-		$parser->execTool("NGS/igv_session.php", "-genome {$genome_rel} -out {$viral_igv} -in {$igv_tracks} -relative");
+		$parser->execTool("NGS/igv_session.php", "-genome $viral_genome -out {$viral_igv} -in {$igv_tracks} -win_path");
 	}
 }
 
@@ -578,6 +596,14 @@ if(in_array("cn",$steps))
 		
 		//append tumor-normal IDs to list with tumor normal IDs (stored in same folder as tumor coverage files)
 		$t_n_list_file = $ref_folder_t . "/" . "list_tid-nid.csv";
+
+		// create folder
+		if (!file_exists($ref_folder_t))
+		{
+			mkdir($ref_folder_t);
+			// check if successfull
+			if (!file_exists($ref_folder_t)) trigger_error("Couldn't create folder '$ref_folder_t'!", E_USER_ERROR);
+		}
 		
 		if (!file_exists($t_n_list_file))
 		{
@@ -633,6 +659,9 @@ if(in_array("cn",$steps))
 			/*******************
 			 * EXECUTE CLINCNV *
 			 *******************/
+			$cohort_folder = get_path("clincnv_cohorts")."/". $sys['name_short'];
+			if(!file_exists($cohort_folder)) mkdir($cohort_folder, 0777);
+			 
 			$args_clincnv = [
 			"-t_id", $t_id,
 			"-n_id", $n_id,
@@ -646,6 +675,7 @@ if(in_array("cn",$steps))
 			"-n_cov_off", $n_cov_off_target,
 			"-bed_off", $off_target_bed,
 			"-baf_folder", $baf_folder,
+			"-cohort_folder", $cohort_folder,
 			"-threads {$threads}"
 			];
 			
@@ -727,12 +757,8 @@ if (in_array("an", $steps))
 
 //QCI/CGI annotation
 //@TODO: implementation for translocation files
-$variants_qci = $full_prefix . "_var_qci.vcf.gz";				//CGI annotated vcf file
 if (in_array("ci", $steps))
 {
-	// add QCI output
-	$parser->execTool("Tools/converter_vcf2qci.php", "-in $variants_annotated -t_id $t_id -n_id $n_id -out $variants_qci -pass");
-	
 	/*********************************
 	 * GET CGI CANCER_TYPE FROM NGSD *
 	 *********************************/
@@ -800,6 +826,7 @@ if (in_array("ci", $steps))
 	];
 	if (file_exists($variants_annotated)) $parameters[] = "-mutations $variants_gsvar";
 	if (file_exists($som_clincnv)) $parameters[] = "-cnas $som_clincnv";
+	if ($single_sample) $parameters[] = "-single_sample";
 	//if we know genes in target region we set parameter for this file
 	$genes_in_target_region =  dirname($sys["target_file"]) . "/" .basename($sys["target_file"],".bed")."_genes.txt";
 	if(file_exists($genes_in_target_region)) $parameters[] = "-t_region $genes_in_target_region";
@@ -835,7 +862,7 @@ if (in_array("ci", $steps))
 	/*************************
 	 * GERMLINE CGI ANALYSIS *
 	 *************************/
-	$variants_germline = dirname($n_bam)."/{$n_id}.GSvar";
+	$variants_germline = ( isset($n_bam)? dirname($n_bam)."/{$n_id}.GSvar" : "" );
 	if(file_exists($variants_germline) && $include_germline)
 	{
 		$germl_gsvar_content = file($variants_germline, FILE_IGNORE_NEW_LINES);

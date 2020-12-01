@@ -79,6 +79,13 @@ check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name
 remove_lines_containing($out_file3, array("##VEP=\"v"));
 check_file($out_file3, data_folder().$name."_out2-3.vcf", true);
 
+//zero variants to score with mmsplice
+$out_file1 = output_folder().$name."_out4.vcf";
+check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in4.vcf -out $out_file1 --log ".output_folder().$name."_out4.log");
+remove_lines_containing($out_file1, array("##VEP=\"v"));
+sort_consequences($out_file1);
+check_file($out_file1, data_folder().$name."_out4.vcf", true);
+
 //DRAGEN
 $out_file_dragen = output_folder().$name."_out_dragen.vcf";
 check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in_dragen.vcf -out $out_file_dragen --log ".output_folder().$name."_out_dragen.log");
