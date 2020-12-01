@@ -488,7 +488,8 @@ $family_file = ""; // handle sample as single sample
 $aidiva_config = get_path("aidiva")."/data/AIdiva_configuration_smallTestFile_annotated.yaml";
 $ref_genome = genome_fasta($build);
 
-$temp_results = $parser->tempFolder("aidiva_workdir");
+//$temp_results = $parser->tempFolder("aidiva_workdir");
+$temp_results = "/mnt/storage1/users/ahboced1/AIdiva_project/Reannotation_Results_pediatricSamples/"
 $args = array();
 $args[] = "-vcf {$coding_filtered}";
 $args[] = "-outdir {$temp_results}";
