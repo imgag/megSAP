@@ -26,7 +26,7 @@ $vcf_indel_expanded = $outdir."/".$ps_name."_indel_expanded.vcf";
 $vcf_snp = $outdir."/".$ps_name."_snp.vcf";
 
 $hg19_path = $genome_file;
-$feature_list = "SIFT,PolyPhen,REVEL,CADD_PHRED,ABB_SCORE,MAX_AF,segmentDuplication,EIGEN_PHRED,CONDEL,FATHMM_XF,MutationAssessor,phastCons46mammal,phastCons46primate,phastCons46vertebrate,phyloP46mammal,phyloP46primate,phyloP46vertebrate";
+$feature_list = "SIFT,PolyPhen,REVEL,CADD_PHRED,ABB_SCORE,MAX_AF,segmentDuplication,EIGEN_PHRED,CONDEL,FATHMM_XF,MutationAssessor,phastCons46mammal,phastCons46primate,phastCons46vertebrate,phyloP46mammal,phyloP46primate,phyloP46vertebrate,oe_lof,homAF";
 $coding_regions = get_path("aidiva")."data/GRCh37_coding_sequences.bed";
 $family_file = $family;
 $temp_hpo_file_path = "";
@@ -50,15 +50,16 @@ $args = array("-in {$vcf_snp}", "-out ".$outdir."/".basename($vcf_snp, ".vcf")."
 $args[] = "-threads {$threads}";
 $parser->execTool("NGS/an_vep_aidiva.php", implode(" ", $args));
 
+$args = array("-in {$vcf_indel}", "-out ".$outdir."/".basename($vcf_indel, ".vcf")."_vep.vcf");
+$args[] = "-basic";
+$args[] = "-threads {$threads}";
+$parser->execTool("NGS/an_vep_aidiva.php", implode(" ", $args));
+
 $args = array("-in {$vcf_indel_expanded}", "-out ".$outdir."/".basename($vcf_indel_expanded, ".vcf")."_vep.vcf");
 $args[] = "-expanded";
 $args[] = "-threads {$threads}";
 $parser->execTool("NGS/an_vep_aidiva.php", implode(" ", $args));
 
-$args = array("-in {$vcf_indel}", "-out ".$outdir."/".basename($vcf_indel, ".vcf")."_vep.vcf");
-$args[] = "-basic";
-$args[] = "-threads {$threads}";
-$parser->execTool("NGS/an_vep_aidiva.php", implode(" ", $args));
 
 
 $time_end1 = microtime(true);
@@ -89,7 +90,7 @@ if ($ps_name != "")
 			for ($j = 0; $j < count($HPO_terms_unprocessed); ++$j)
 			{
 				$hpo_temp = explode('-', $HPO_terms_unprocessed[$j]);
-				fwrite($temp_hpo_file, trim($hpo_temp[0]));
+				fwrite($temp_hpo_file, trim($hpo_temp[0])."\n");
 				$hpo_list[] = trim($hpo_temp[0]);
 			}
 		}
