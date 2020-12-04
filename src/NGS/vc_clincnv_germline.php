@@ -280,16 +280,18 @@ file_put_contents($tmp, implode("\n", $cov_files));
 $cov_merged = $parser->tempFile(".cov");
 $parser->exec(get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
 
-print("#COVERAGE_FILES: ".$cov_folder);
-print_r($cov_files);
-
+$parser->log("#COVERAGE_FILES: ".$cov_folder."\n");
+foreach($cov_files as $x)
+{
+	$parser->log("->{$x}");
+}
 //collect off-target files for coverage files
 $use_off_target = false;
 if($tumor_only)
 {
 	if(isset($bed_off) && isset($cov_off))
 	{
-
+		$parser->log("### COLLINGTING OFF TARGET STUFF\n");
 		if($cov_folder_off == "auto")
 		{
 			$cov_folder_off = "{$cov_folder}_off_target";
@@ -300,12 +302,24 @@ if($tumor_only)
 			exit(0);
 		}
 
+		$parser->log("### ERRONEOUS STUFF\n");
+
 		$merged_cov_off = $parser->tempFile(".txt");
-		$cov_paths_off = create_file_with_paths($cov_folder_off,realpath($cov_off), $cov_files);
-		$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple",true, $cov_files);
+		$sample_ids = basename($cov_files, ".cov");
+		$cov_paths_off = create_file_with_paths($cov_folder_off,realpath($cov_off), $sample_ids);
+		//$cov_paths_off = create_file_with_paths($cov_folder_off,realpath($cov_off));
+		$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple",true, true);
+		$parser->log("### ERRONEOUS STUFF ENDED\n");
 
 		$use_off_target = true;
 	}
+}
+
+$parser->log("### PATHS TO KEEP FOR OFF TARGET COVERAGE: \n");
+
+foreach($cov_paths_off as $x)
+{
+	$parser->log("->{$x}");
 }
 
 //execute ClinCNV (with workaround for hanging jobs)
