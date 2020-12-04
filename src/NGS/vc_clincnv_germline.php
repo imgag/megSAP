@@ -37,7 +37,6 @@ function create_file_with_paths($ref_cov_folder,$cov_path, $sample_ids = array()
 	
 	$paths_to_be_included = array();
 	
-
 	//Remove samples that are not in $sample_ids
 	if(count($sample_ids) > 0)
 	{	
@@ -70,7 +69,6 @@ function create_file_with_paths($ref_cov_folder,$cov_path, $sample_ids = array()
 		}
 	}
 	$paths_to_be_included[] = $cov_path;
-	
 
 	$out_file = $parser->tempFile(".txt");
 	file_put_contents($out_file,implode("\n",$paths_to_be_included) );
@@ -280,18 +278,12 @@ file_put_contents($tmp, implode("\n", $cov_files));
 $cov_merged = $parser->tempFile(".cov");
 $parser->exec(get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
 
-$parser->log("#COVERAGE_FILES: ".$cov_folder."\n");
-foreach($cov_files as $x)
-{
-	$parser->log("->{$x}");
-}
 //collect off-target files for coverage files
 $use_off_target = false;
 if($tumor_only)
 {
 	if(isset($bed_off) && isset($cov_off))
 	{
-		$parser->log("### COLLINGTING OFF TARGET STUFF\n");
 		if($cov_folder_off == "auto")
 		{
 			$cov_folder_off = "{$cov_folder}_off_target";
@@ -302,24 +294,18 @@ if($tumor_only)
 			exit(0);
 		}
 
-		$parser->log("### ERRONEOUS STUFF\n");
-
 		$merged_cov_off = $parser->tempFile(".txt");
-		$sample_ids = basename($cov_files, ".cov");
-		$cov_paths_off = create_file_with_paths($cov_folder_off,realpath($cov_off), $sample_ids);
+		$sample_ids = array();
+		foreach($cov_files as $cov_name)
+		{
+			$sample_ids[] = basename($cov_name, ".cov");
+		}
+		$cov_paths_off = create_file_with_paths($cov_folder_off, realpath($cov_off), $sample_ids);
 		//$cov_paths_off = create_file_with_paths($cov_folder_off,realpath($cov_off));
 		$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple",true, true);
-		$parser->log("### ERRONEOUS STUFF ENDED\n");
 
 		$use_off_target = true;
 	}
-}
-
-$parser->log("### PATHS TO KEEP FOR OFF TARGET COVERAGE: \n");
-
-foreach($cov_paths_off as $x)
-{
-	$parser->log("->{$x}");
 }
 
 //execute ClinCNV (with workaround for hanging jobs)

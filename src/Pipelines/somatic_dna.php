@@ -529,6 +529,7 @@ if(in_array("cn",$steps))
 			"-cov_off", $t_cov_off_target,
 			"--log ".$parser->getLogFile()
 		);
+		print("#### CALLING vc_clincnv_germline\n");
 		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 
 		// annotate CNV file
