@@ -20,9 +20,64 @@ $parser->addInt("max_cnvs", "Number of expected CNVs (~200 for WES and ~2000 for
 $parser->addInt("max_tries", "Maximum number of tries for calling ClinCNV (R parallelization sometimes breaks with no reason", true, 10);
 $parser->addInt("regions", "Number of subsequent regions that must show a signal for a call.", true, 2);
 $parser->addFlag("skip_super_recall", "Skip super-recall (down to one region and log-likelihood 3).");
+//tumor only flags (use for somatic with no normal sample)
 $parser->addFlag("tumor_only", "Analyze tumor sample without a paired normal sample.");
+$parser->addInfile("bed_off","Off-target bed file.",true); //s_dna
+$parser->addInfile("cov_off","Off-target coverage file for normal sample",true);
+$parser->addString("cov_folder_off", "Folder with off-target normal coverage files (if different from [data_folder]/coverage/[system_short_name]_off_target/.", true, "auto");
 
 extract($parser->parse($argv));
+
+//Creates file with paths to coverage files using ref folder and current sample cov path, if $sample_ids is set: skip all ids not contained
+function create_file_with_paths($ref_cov_folder,$cov_path, $sample_ids = array())
+{
+	global $parser;
+	
+	$ref_paths = glob("{$ref_cov_folder}/*.cov");
+	
+	$paths_to_be_included = array();
+	
+
+	//Remove samples that are not in $sample_ids
+	if(count($sample_ids) > 0)
+	{	
+		for($i=0;$i<count($ref_paths);++$i)
+		{	
+			$id = basename($ref_paths[$i], ".cov");
+
+			if(in_array($id, $sample_ids))
+			{
+				$paths_to_be_included[] = $ref_paths[$i];
+			}
+		}
+	}
+	else
+	{
+		for($i=0;$i<count($ref_paths);++$i)
+		{	
+			$paths_to_be_included[] = $ref_paths[$i];
+		}
+	}
+
+	//Check whether cov file is already in cov folder -> remove from list (could be specified in another dir!)
+	for($i=0;$i<count($paths_to_be_included);++$i)
+	{
+		if(strpos($paths_to_be_included[$i],basename($cov_path,".cov")) !== false)
+		{
+			unset($paths_to_be_included[$i]);
+			$paths_to_be_included = array_values($paths_to_be_included); //reassign correct indices
+			break;
+		}
+	}
+	$paths_to_be_included[] = $cov_path;
+	
+
+	$out_file = $parser->tempFile(".txt");
+	file_put_contents($out_file,implode("\n",$paths_to_be_included) );
+	
+	return $out_file;
+}
+
 
 function determine_rows_to_use($cov, $roi_nonpoly)
 {	
@@ -225,6 +280,34 @@ file_put_contents($tmp, implode("\n", $cov_files));
 $cov_merged = $parser->tempFile(".cov");
 $parser->exec(get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
 
+print("#COVERAGE_FILES: ".$cov_folder);
+print_r($cov_files);
+
+//collect off-target files for coverage files
+$use_off_target = false;
+if($tumor_only)
+{
+	if(isset($bed_off) && isset($cov_off))
+	{
+
+		if($cov_folder_off == "auto")
+		{
+			$cov_folder_off = "{$cov_folder}_off_target";
+		}
+		if(!is_dir($cov_folder_off))
+		{
+			trigger_error("CNV calling skipped. Off-target Coverage files folder cov_folder_n_off '$cov_folder_off' does not exist!", E_USER_WARNING);
+			exit(0);
+		}
+
+		$merged_cov_off = $parser->tempFile(".txt");
+		$cov_paths_off = create_file_with_paths($cov_folder_off,realpath($cov_off), $cov_files);
+		$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple",true, $cov_files);
+
+		$use_off_target = true;
+	}
+}
+
 //execute ClinCNV (with workaround for hanging jobs)
 $out_folder = $parser->tempFolder();
 $args = [
@@ -250,6 +333,11 @@ if($tumor_only)
 	$args[] = "--mosaicism";
 	$args[] = "--lengthS 5";
 	$args[] = "--scoreS 100";
+	if($use_off_target)
+	{
+		$args[] = "--bedOfftarget $bed_off";
+		$args[] = "--normalOfftarget $merged_cov_off";
+	}
 }
 
 $parameters = implode(" ", $args);

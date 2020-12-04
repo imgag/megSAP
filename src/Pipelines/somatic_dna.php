@@ -525,6 +525,8 @@ if(in_array("cn",$steps))
 			"-tumor_only",
 			"-cov_max 200",
 			"-max_cnvs 200",
+			"-bed_off", $off_target_bed,
+			"-cov_off", $t_cov_off_target,
 			"--log ".$parser->getLogFile()
 		);
 		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
