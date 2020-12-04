@@ -301,7 +301,6 @@ if($tumor_only)
 			$sample_ids[] = basename($cov_name, ".cov");
 		}
 		$cov_paths_off = create_file_with_paths($cov_folder_off, realpath($cov_off), $sample_ids);
-		//$cov_paths_off = create_file_with_paths($cov_folder_off,realpath($cov_off));
 		$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple",true, true);
 
 		$use_off_target = true;
