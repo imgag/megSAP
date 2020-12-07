@@ -321,22 +321,21 @@ $args = [
 "--par \"chrX:60001-2699520;chrX:154931044-155260560\"" //this is correct for hg19 only!
 ];
 
-if (!$skip_super_recall)
-{
-	$args[] = "--superRecall 3"; //superRecall will call down to one region and to log-likelihood 3
-}
-
 //analyzing a single tumor sample
 if($tumor_only)
 {
 	$args[] = "--mosaicism";
-	$args[] = "--lengthS 5";
-	$args[] = "--scoreS 100";
 	if($use_off_target)
 	{
 		$args[] = "--bedOfftarget $bed_off";
 		$args[] = "--normalOfftarget $merged_cov_off";
 	}
+}
+
+//use_off_target is set for tumor_only with off target cov/bed files
+if (!$skip_super_recall && !$use_off_target)
+{
+	$args[] = "--superRecall 3"; //superRecall will call down to one region and to log-likelihood 3
 }
 
 $parameters = implode(" ", $args);
