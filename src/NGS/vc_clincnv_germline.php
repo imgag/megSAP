@@ -316,8 +316,6 @@ $args = [
 "--out {$out_folder}",
 "--maxNumGermCNVs {$max_cnvs}",
 "--numberOfThreads {$threads}",
-"--lengthG ".($regions-1), //lengthG actually gives the number of additional regions > subtract 1
-"--scoreG 20",
 "--par \"chrX:60001-2699520;chrX:154931044-155260560\"" //this is correct for hg19 only!
 ];
 
@@ -329,7 +327,14 @@ if($tumor_only)
 	{
 		$args[] = "--bedOfftarget $bed_off";
 		$args[] = "--normalOfftarget $merged_cov_off";
+		$args[] = "--lengthG 5"; //lengthG actually gives the number of additional regions > subtract 1
+		$args[] = "--scoreG 50";
 	}
+}
+else
+{
+	$args[] = "--lengthG ".($regions-1); //lengthG actually gives the number of additional regions > subtract 1
+	$args[] = "--scoreG 20";
 }
 
 //use_off_target is set for tumor_only with off target cov/bed files
