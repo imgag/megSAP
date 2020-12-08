@@ -89,7 +89,7 @@ if (in_array("sv", $steps) && !$is_wgs && !$is_wes)
 if (db_is_enabled("NGSD") && !$annotation_only)
 {
 	$db = DB::getInstance("NGSD", false);
-	list($rc_id, $rc_vars_exist, $rc_cnvs_exist) = report_config($db, $name);
+	list($rc_id, $rc_vars_exist, $rc_cnvs_exist, $rc_svs_exist) = report_config($db, $name);
 	if (in_array("vc", $steps) && $rc_vars_exist)
 	{
 		trigger_error("Skipping step 'vc' - Report configuration with small variants exists in NGSD!", E_USER_NOTICE);
@@ -99,6 +99,11 @@ if (db_is_enabled("NGSD") && !$annotation_only)
 	{
 		trigger_error("Skipping step 'cn' - Report configuration with CNVs exists in NGSD!", E_USER_NOTICE);
 		if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
+	}
+	if (in_array("sv", $steps) && $rc_svs_exist)
+	{
+		trigger_error("Skipping step 'sv' - Report configuration with SVs exists in NGSD!", E_USER_NOTICE);
+		if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 	}
 }
 
