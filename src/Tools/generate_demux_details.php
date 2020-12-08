@@ -19,7 +19,8 @@ $db = DB::getInstance($db);
 $output = array();
 
 //execute query
-$res = $db->executeQuery("SELECT CONCAT(s.name, '_', LPAD(ps.process_id,2,'0')) as psname, (select sequence from mid where id = ps.mid1_i7) as mid1_i7, (select sequence from mid where id = ps.mid2_i5) as mid2_i5, ps.comment as pscomment,ps.lane as lane, s.comment as scomment, p.name as pname, p.type as ptype, s.name_external as ename, s.name as sname, s.sample_type as stype, s.species_id as sspecies FROM processed_sample as ps, sample as s, genome as g, project as p, sequencing_run as sr, device as d, processing_system as sys WHERE ps.sample_id = s.id and ps.project_id = p.id and sys.id = ps.processing_system_id and sys.genome_id = g.id and sr.id = ps.sequencing_run_id AND sr.device_id = d.id and sr.name = :run ORDER BY psname", array("run" => $run));
+$projects_in_run = $db->executeQuery("Select p.id as pid from project as p, processed_sample as ps, sequencing_run as sr where ps.project_id = p.id and sr.id = ps.sequencing_run_id and sr.name = :run group by pid", array("run" => $run));
+$res = $db->executeQuery("SELECT CONCAT(s.name, '_', LPAD(ps.process_id,2,'0')) as psname,ps.process_id as psid, p.name as pname, p.type as ptype, s.name_external as ename, s.sample_type as stype FROM processed_sample as ps, sample as s, project as p  WHERE ps.project_id IN (" . implode(',',array_column($projects_in_run, 'pid')) . ") and ps.sample_id = s.id and ps.project_id = p.id");
 
 if(count($res)==0)
 {
@@ -48,6 +49,7 @@ foreach($res as $index => $row)
 //generate sample sheets
 $projects = array();
 $project_locations = array();
+$process_ids = array();
 foreach($res as $row)
 {
 	if(array_key_exists($row['pname'], $projects)) {
@@ -56,6 +58,7 @@ foreach($res as $row)
 		$projects[$row['pname']][] = "Internal Name\tExternal Name\tType";
 		$projects[$row['pname']][] = $row['psname']."\t".$row['ename']."\t".$row['stype'];
 		$project_locations[$row['pname']] = "/mnt/projects/".$row['ptype']."/".$row['pname'];
+		$process_ids[$row['pname']] = $row['psid'];
 	}
 }
 
@@ -69,22 +72,25 @@ foreach($projects as $key =>$value)
 $projects = array();
 foreach($res as $row)
 {
-	if(array_key_exists($row['pname'], $projects)) {
+	$projects[$row['pname']][] = $row['psname'];
+	
+	/*if(array_key_exists($row['pname'], $projects)) {
 		$projects[$row['pname']][] = $row['psname'];
 	} else {
 		$projects[$row['pname']][] = array();
 		$projects[$row['pname']][] = $row['psname'];
-	}
+	}*/
 }
 
 $demux_file = 'Unaligned/Stats/Stats.json';
-$unset_keys = array();
+
 
 if(file_exists($demux_file)) {
     $file = file_get_contents('Unaligned/Stats/Stats.json');
 	foreach($projects as $project => $samples)
 	{
 		$data = json_decode($file);
+		$unset_keys = array();
 		foreach($data->ConversionResults as $conversion_result) {
 			foreach($conversion_result->DemuxResults as $key => $value) {
 				foreach($value as $k => $v) {
@@ -96,7 +102,7 @@ if(file_exists($demux_file)) {
 				}
 				$value->SampleId = $value->SampleName;
 			}
-			
+		
 			foreach($unset_keys as $u_key) {
 				unset($conversion_result->DemuxResults[$u_key]);
 			}
@@ -104,7 +110,7 @@ if(file_exists($demux_file)) {
 		}
 		
 		//store Stats.json files
-		file_put_contents($project_locations[$project]."/Stats.json", json_encode($data));
+		file_put_contents($project_locations[$project]."/Stats_0".$process_ids[$project].".json", json_encode($data));
 	}
 }
 
@@ -115,5 +121,4 @@ if ($execute_multiqc)
 		exec("multiqc ".$project_locations[$key]."/ --sample-names ".$project_locations[$key]."/".$key."_samplesheet.tsv -f -o ".$project_locations[$key]);
 	}
 }
-
 ?>
