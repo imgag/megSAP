@@ -49,7 +49,6 @@ foreach($res as $index => $row)
 //generate sample sheets
 $projects = array();
 $project_locations = array();
-$process_ids = array();
 foreach($res as $row)
 {
 	if(array_key_exists($row['pname'], $projects)) {
@@ -58,7 +57,6 @@ foreach($res as $row)
 		$projects[$row['pname']][] = "Internal Name\tExternal Name\tType";
 		$projects[$row['pname']][] = $row['psname']."\t".$row['ename']."\t".$row['stype'];
 		$project_locations[$row['pname']] = "/mnt/projects/".$row['ptype']."/".$row['pname'];
-		$process_ids[$row['pname']] = $row['psid'];
 	}
 }
 
@@ -73,13 +71,6 @@ $projects = array();
 foreach($res as $row)
 {
 	$projects[$row['pname']][] = $row['psname'];
-	
-	/*if(array_key_exists($row['pname'], $projects)) {
-		$projects[$row['pname']][] = $row['psname'];
-	} else {
-		$projects[$row['pname']][] = array();
-		$projects[$row['pname']][] = $row['psname'];
-	}*/
 }
 
 $demux_file = 'Unaligned/Stats/Stats.json';
@@ -110,7 +101,7 @@ if(file_exists($demux_file)) {
 		}
 		
 		//store Stats.json files
-		file_put_contents($project_locations[$project]."/Stats_0".$process_ids[$project].".json", json_encode($data));
+		file_put_contents($project_locations[$project]."/Stats_".$run.".json", json_encode($data));
 	}
 }
 
