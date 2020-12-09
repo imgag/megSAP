@@ -327,7 +327,7 @@ if($tumor_only)
 	{
 		$args[] = "--bedOfftarget $bed_off";
 		$args[] = "--normalOfftarget $merged_cov_off";
-		$args[] = "--lengthG 5"; //lengthG actually gives the number of additional regions > subtract 1
+		$args[] = "--lengthG 10"; //lengthG actually gives the number of additional regions > subtract 1
 		$args[] = "--scoreG 100";
 	}
 }
