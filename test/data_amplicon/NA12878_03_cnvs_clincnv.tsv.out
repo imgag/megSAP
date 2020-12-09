@@ -1,6 +1,5 @@
-##ANALYSISTYPE=CNVHUNTER_GERMLINE_SINGLE
-##CnvHunter version: 2020_03-49-g89d426ea
-##NA12878_03 ref_correl: 0.635 (median: 0.977)
-##NA12878_03 cnvs: nan (median: 4)
-##NA12878_03 qc_errors: corr=0.635
-#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	region_cnv_af	region_coordinates	overlaps_cnp_region	genes	dosage_sensitive_disease_genes	cn_pathogenic	clinvar_cnvs	hgmd_cnvs	omim	gene_info	ngsd_pathogenic_cnvs
+##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE
+##ClinCNV version: v1.16.6
+##CNV calling skipped: Array.
+##Germline samples NA12878_03 did not pass QC due to high level of noise
+#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	cn_pathogenic	dosage_sensitive_disease_genes	clinvar_cnvs	hgmd_cnvs	omim	gene_info	ngsd_pathogenic_cnvs
