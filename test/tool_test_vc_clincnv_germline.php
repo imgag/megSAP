@@ -13,6 +13,7 @@ exec2("rm -rf $tmp_folder/*");
 exec2("tar -m -xzf ".data_folder()."{$name}_data1.tar.gz -C ".output_folder());
 $bed = $tmp_folder."/target_region.bed";
 $cov_folder = $tmp_folder."/coverage/";
+
 //test1
 $out_file1 = output_folder().$name."test1_out.tsv";
 $log_file1 = output_folder().$name."test1_out.log";
@@ -43,18 +44,22 @@ exec2("mkdir -p $tmp_folder");
 exec2("rm -rf $tmp_folder/*");
 exec2("tar xzf ".data_folder()."vc_clincnv_somatic_files.tar.gz -C {$tmp_folder}");
 $bed_in = $tmp_folder."/target_region.bed";
+$cov_folder = $tmp_folder."cov-tumor";
 $bed = $tmp_folder."/target_region_annotated.bed";
 $pipeline = [
         ["{$ngsbits}BedAnnotateGC", "-in {$bed_in} -ref /mnt/share/data/genomes/GRCh37.fa"],
         ["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
     ];
+//off target
+$bed_off = $tmp_folder . "off_target.bed";
+$cov_off = $tmp_folder . "cov-tumor_off_target/DX000015_01.cov";
 $parser = new ToolBase("tool_test_vc_clincnv_germline", "Pipeline for Bed Annotation.");
 $parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
-$cov_folder = $tmp_folder."/cov-tumor/";
+$cov_folder = $tmp_folder."/cov-tumor";
 //test
 $out_file3 = output_folder().$name."_tumor_out.tsv";
 $log_file3 = output_folder().$name."_tumor_out.log";
-check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX000015_01.cov -cov_folder {$cov_folder} -cov_min 20 -max_cnvs 200 -bed {$bed} -out {$out_file3} --log {$log_file3} -tumor_only");
+check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX000015_01.cov -cov_folder {$cov_folder} -cov_max 200 -max_cnvs 200 -bed {$bed} -bed_off {$bed_off} -cov_off {$cov_off} -out {$out_file3} --log {$log_file3} -tumor_only");
 check_file($out_file3, data_folder().$name."_tumor_out.tsv");
 check_file(substr($out_file3,0,-4).".seg", data_folder().$name."_tumor_out1.seg");
 check_file(substr($out_file3,0,-4)."_cnvs.seg",data_folder().$name."_tumor_out2.seg");
