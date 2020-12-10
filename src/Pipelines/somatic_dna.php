@@ -402,6 +402,16 @@ if (in_array("vc", $steps))
 			$parser->execTool("NGS/baf_somatic.php", implode(" ", $baf_args));
 		}
 	}
+	else
+	{
+		//create b-allele frequency file
+		$params = array();
+		$params[] = "-vcf {$variants}";
+		$params[] = "-bam {$t_bam}";
+		$params[] = "-out {$ballele}";
+		$params[] = "-build ".$sys['build'];
+		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
+	}
 }
 
 //Viral sequences alignment
