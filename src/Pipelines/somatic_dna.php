@@ -1155,6 +1155,9 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 				$parser->exec(get_path("ngs-bits") . "/NGSDAddVariantsSomatic", " -t_ps $t_id -n_ps $n_id -cnv $som_clincnv -cnv_force");
 			}
 		}
+		
+		//add secondary analysis (if missing)
+		$parser->execTool("NGS/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
 	}
 }
 ?>
