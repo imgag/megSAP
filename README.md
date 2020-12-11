@@ -34,6 +34,9 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 
 ## ChangeLog
+* 23.11.2020: Added support for monitoring tumor progression via cfDNA.
+* 20.11.2020: Added MMsplice splicing predictions.
+* 04.08.2020: Updated tools for megSAP to the newest version (freebayes, VEP, samtools,...)
 * 16.07.2020: Added support for mapping on Illumina Dragen
 * 16.07.2020: Added strand bias and allele balance to output VCF/GSvar files
 * 25.06.2020: Added repeat expansion calling with ExpansionHunter (for exomes and genomes)
