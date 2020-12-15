@@ -7,7 +7,7 @@ folder=$root/tools/
 cd $folder
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2020_09 && git submodule update --recursive --init
+git checkout 2020_12 && git submodule update --recursive --init
 make build_3rdparty
 make build_tools_release
 
