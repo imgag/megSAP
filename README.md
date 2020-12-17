@@ -14,7 +14,7 @@ The design goals of the project are:
 If you are interested to join the effort, please contact [Marc Sturm](https://github.com/marc-sturm).
 
 ## Obtaining megSAP
-The installaton of megSAP is quite time-consuming because many tools and big databases need to installed.  
+The installation of megSAP is quite time-consuming because many tools and big databases need to installed.  
 The installation instructions can be found [here](doc/install_unix.md).
 
 ## Documentation
@@ -34,6 +34,7 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 
 ## ChangeLog
+* 17.12.2020: Switched to [bwa-mem2](https://github.com/bwa-mem2/bwa-mem2) for mapping. WARNING: requires to build a new index for the reference genome (see [bwa-mem2 page](doc/bwa-mem2.md)). 
 * 23.11.2020: Added support for monitoring tumor progression via cfDNA.
 * 20.11.2020: Added MMsplice splicing predictions.
 * 04.08.2020: Updated tools for megSAP to the newest version (freebayes, VEP, samtools,...)

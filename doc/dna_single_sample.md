@@ -27,6 +27,8 @@ The analysis pipeline assumes that that all data to analyze resides in a sample 
 
 In the example above, the configuration of the pipeline is done using the `hpHBOCv5.ini` file, which contains all necessary information (see [processing system INI file](processing_system_ini_file.md)).
 
+Since December 2020 megSAP uses [bwa-mem2](https://github.com/bwa-mem2/bwa-mem2) for mapping. More information can be found [here](doc/bwa-mem2.md).
+
 ### Running an analysis with DRAGEN
 
 A short instruction how to setup the DRAGEN can be found [here](setup_dragen.md).

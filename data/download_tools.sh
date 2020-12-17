@@ -54,6 +54,12 @@ rm bwa-0.7.17.tar.bz2
 cd bwa-0.7.17
 make
 
+#download bwa-mem2
+cd $folder
+wget https://github.com/bwa-mem2/bwa-mem2/releases/download/v2.1/bwa-mem2-2.1_x64-linux.tar.bz2
+tar xjf bwa-mem2-2.1_x64-linux.tar.bz2
+rm bwa-mem2-2.1_x64-linux.tar.bz2
+
 #download ClinCNV
 cd $folder
 git clone https://github.com/imgag/ClinCNV.git
