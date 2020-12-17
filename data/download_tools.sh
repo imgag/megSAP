@@ -156,14 +156,15 @@ make install
 rm -R Python-3.6.9
 rm Python-3.6.9.tgz
 
-#download MMSplice
+#download Splicing tools
 cd $folder
-mmsplice=$folder/MMSplice
-mkdir -p $mmsplice
-cd $mmsplice
-$folder/Python3/bin/python3 -m venv mmsplice_env
-source $mmsplice/mmsplice_env/bin/activate
+spliceFolder=$folder/SplicingTools
+mkdir -p $spliceFolder
+cd $spliceFolder
+$folder/Python3/bin/python3 -m venv splice_env
+source $spliceFolder/splice_env/bin/activate
 pip install cyvcf2==0.20.5 cython==0.29.21
 pip install h5py==2.10.0
 pip install mmsplice==2.1.1
+pip install spliceai==1.3.1
 deactivate

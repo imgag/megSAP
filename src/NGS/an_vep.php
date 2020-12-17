@@ -304,12 +304,11 @@ fclose($config_file);
 $vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output_refseq -out $vcf_annotate_output -threads $threads", true);
 
-// generate temp file for mmsplice output
+//Annotation of splice site variations with MMSplice
 $lowAF_variants = $parser->tempFile("_mmsplice_lowAF.vcf");
-
 $gtf = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 $fasta = genome_fasta($build);
-$mmsplice_env = get_path("MMSplice", true);
+$splice_env = get_path("Splicing", true);
 // execute mmsplice script in its virtual enviroment
 addMissingContigsToVcf($build, $vcf_annotate_output);
 $args = array();
@@ -320,7 +319,7 @@ $args[] = "--gtf {$gtf}"; //gtf annotation file
 $args[] = "--fasta {$fasta}"; //fasta reference file
 $args[] = "--threads {$threads}"; //fasta reference file
 putenv("PYTHONPATH");
-$parser->exec("OMP_NUM_THREADS={$threads} {$mmsplice_env}/mmsplice_env/bin/python3 ".repository_basedir()."/src/Tools/vcf_mmsplice_predictions.py", implode(" ", $args), true);
+$parser->exec("OMP_NUM_THREADS={$threads} {$splice_env}/splice_env/bin/python3 ".repository_basedir()."/src/Tools/vcf_mmsplice_predictions.py", implode(" ", $args), true);
 
 if (!$skip_ngsd)
 {
@@ -350,6 +349,47 @@ if (!$skip_ngsd)
 		trigger_error("BED file for NGSD gene annotation not found at '".$gene_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
 	}
 }
+
+//Annotation of splice site variations with SpliceAI
+//additionally filter low_af_file of mmsplice for NGSD_count
+$low_af_file_mmsplice = fopen2($lowAF_variants, 'r');
+$low_af_file_spliceai = $parser->tempFile("_spliceai_lowAF.vcf");
+while(!feof($low_af_file_mmsplice))
+{
+	$line = fgets($low_af_file_mmsplice);
+	
+	//skip headers (except for fileformat/ contig lines)
+	if(starts_with($line, "##fileformat") || starts_with($line, "##contig") || starts_with($line, "#CHROM"))
+	{
+		fwrite($low_af_file_spliceai, $line);
+	}
+	elseif(!(starts_with($line, "##")))
+	{
+		$fields = explode("\t", $line);
+		$info_field = $fields[7];
+		$info_field = explode(";", $info_field);
+
+		foreach($info_field as $info)
+		{
+			if(starts_with($info, "NGSD_COUNTS="))
+			{
+				$ngsd_count = explode($info, "=")[1];
+				$ngsd_counts = explode(",", trim($ngsd_count));
+				$ngsd_hom = $ngsd_counts[0];
+				$ngsd_het = $ngsd_counts[1];
+
+				
+
+				if(!is_numeric($ngsd_count) || intval($ngsd_count) > 0) continue;
+
+			}
+		}
+		fwrite($low_af_file_spliceai, $line);
+	}
+	
+	fwrite($ho, $line);
+}
+fclose($h);
 
 //validate created VCF file
 
