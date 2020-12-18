@@ -314,8 +314,8 @@ $column_desc = array(
 	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
 	array("MMSplice_DeltaLogitPSI", "MMsplice delta Logit PSI score: variant's effect on the exon inclusion - positive score shows higher exon inclusion, negative higher exclusion rate. A score greater than 2 or less than -2 can be considered strong."),
-	array("MMSplice_pathogenicity", "MMsplice pathogenicity score: probability of pathogenic effect of the variant on splicing")
-
+	array("MMSplice_pathogenicity", "MMsplice pathogenicity score: probability of pathogenic effect of the variant on splicing"),
+	array("SpliceAI", "SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes.")
 );
 
 // optional NGSD somatic header description if vcf contains NGSD somatic information
@@ -1312,7 +1312,37 @@ while(!feof($handle))
 		}
 
 	}
-	
+
+	//SpliceAI
+	$spliceai = "";
+	if (isset($info["SpliceAI"]))
+	{
+		$splice_number = null;
+		$spliceai_info = trim($info["SpliceAI"]);
+		$spliceai_values = array();
+
+		$entries = explode("&", $spliceai_info);
+		foreach($entries as $entry)
+		{
+			$delta_scores = explode("|", $entry);
+			if(sizeof($delta_scores) == 10)
+			{
+				$tmp_score = max(floatval($delta_scores[2]), floatval($delta_scores[3]), floatval($delta_scores[4]), floatval($delta_scores[5]));
+				$splice_number = max($splice_number, $tmp_score);
+			}
+			else
+			{
+				trigger_error("Wrong SpliceAI annotation in line: ${line}!", E_USER_WARNING);
+			}
+		}
+
+		if($splice_number)
+		{
+			$spliceai = $splice_number;
+		}
+
+	}
+
 	// CADD
 	$cadd_scores = array();
 	if (isset($info["CADD_SNV"]))
@@ -1443,7 +1473,7 @@ while(!feof($handle))
 	
 	//write data
 	++$c_written;
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity\t$spliceai");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");
