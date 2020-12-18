@@ -306,6 +306,8 @@ $parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$confi
 
 //Annotation of splice site variations with MMSplice
 $lowAF_variants = $parser->tempFile("_mmsplice_lowAF.vcf");
+$mmsplice_output = $parser->tempFile("_mmsplice.vcf");
+
 $gtf = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 $fasta = genome_fasta($build);
 $splice_env = get_path("Splicing", true);
@@ -314,7 +316,7 @@ addMissingContigsToVcf($build, $vcf_annotate_output);
 $args = array();
 $args[] = "--vcf_in {$vcf_annotate_output}"; //input vcf
 $args[] = "--vcf_lowAF {$lowAF_variants}"; //input vcf storing only low allel frequency variants
-$args[] = "--vcf_out {$out}"; //output vcf
+$args[] = "--vcf_out {$mmsplice_output}"; //output vcf
 $args[] = "--gtf {$gtf}"; //gtf annotation file
 $args[] = "--fasta {$fasta}"; //fasta reference file
 $args[] = "--threads {$threads}"; //fasta reference file
@@ -336,68 +338,146 @@ if (!$skip_ngsd)
 		}
 	}
 	
+	$tmp = $parser->tempFile(".vcf");
 	// annotate genes
 	$gene_file = $data_folder."/dbs/NGSD/NGSD_genes.bed";
 	if (file_exists($gene_file))
 	{
-		$tmp = $parser->tempFile(".vcf");
-		$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -in $out -out $tmp", true);
-		$parser->moveFile($tmp, $out);
+		$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -in $mmsplice_output -out $tmp", true);
+		$parser->moveFile($tmp, $mmsplice_output);
 	}
 	else
 	{
 		trigger_error("BED file for NGSD gene annotation not found at '".$gene_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
 	}
+
+	// annotate SpliceAI
+	$spliceai_file =  $data_folder."/dbs/SpliceAI/spliceai_scores.ngsd.13.12.20.vcf.gz";
+	if (file_exists($spliceai_file))
+	{
+		$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in $mmsplice_output -annotation_file $spliceai_file -info_ids SpliceAI -out $tmp" );
+		$parser->moveFile($tmp, $mmsplice_output);
+	}
+	else
+	{
+		trigger_error("SpliceAI file for annotation not found at '".$spliceai_file."'. SpliceAI annotation will be missing in output file.",E_USER_WARNING);
+	}
 }
 
 //Annotation of splice site variations with SpliceAI
 //additionally filter low_af_file of mmsplice for NGSD_count
-$low_af_file_mmsplice = fopen2($lowAF_variants, 'r');
+$low_af_file_mmsplice_h = fopen2($lowAF_variants, 'r');
 $low_af_file_spliceai = $parser->tempFile("_spliceai_lowAF.vcf");
-while(!feof($low_af_file_mmsplice))
+$low_af_file_spliceai_h = fopen2($low_af_file_spliceai, 'w');
+//filter lowAF file of MMSplice to keep only those variants with NGSD_COUNTS == 0 (runtime of SpliceAI is extremely slow)
+$private_variant_count = 0;
+while(!feof($low_af_file_mmsplice_h))
 {
-	$line = fgets($low_af_file_mmsplice);
+	$line = fgets($low_af_file_mmsplice_h);
 	
 	//skip headers (except for fileformat/ contig lines)
-	if(starts_with($line, "##fileformat") || starts_with($line, "##contig") || starts_with($line, "#CHROM"))
+	if(starts_with($line, "##fileformat") || starts_with($line, "##contig"))
 	{
-		fwrite($low_af_file_spliceai, $line);
+		fwrite($low_af_file_spliceai_h, $line);
+	}
+	else if(starts_with($line, "#CHROM"))
+	{
+		fwrite($low_af_file_spliceai_h, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
 	}
 	elseif(!(starts_with($line, "##")))
 	{
+		if (strlen(trim($line))==0) continue;
 		$fields = explode("\t", $line);
 		$info_field = $fields[7];
 		$info_field = explode(";", $info_field);
 
+		$ngsd_sum = 0;
+		$spliceai_annotated = FALSE;
 		foreach($info_field as $info)
 		{
 			if(starts_with($info, "NGSD_COUNTS="))
 			{
-				$ngsd_count = explode($info, "=")[1];
+				$ngsd_count = explode("=", $info)[1];
+
 				$ngsd_counts = explode(",", trim($ngsd_count));
+				if(sizeof($ngsd_counts) != 2)
+				{
+					continue;
+				}
 				$ngsd_hom = $ngsd_counts[0];
 				$ngsd_het = $ngsd_counts[1];
 
-				
-
-				if(!is_numeric($ngsd_count) || intval($ngsd_count) > 0) continue;
-
+				if(is_numeric($ngsd_hom))
+				{
+					$ngsd_sum += intval($ngsd_hom);
+				}
+				if(is_numeric($ngsd_het))
+				{
+					$ngsd_sum += intval($ngsd_het);
+				}			
+			}
+			else if(starts_with($info, "SpliceAI="))
+			{
+				$spliceai_annotated = TRUE;
 			}
 		}
-		fwrite($low_af_file_spliceai, $line);
+		if($ngsd_sum == 0 && !$spliceai_annotated)
+		{
+			$new_line = array_slice($fields, 0, 5);
+			$line_wo_info = implode("\t", $new_line);
+			$line_wo_info = $line_wo_info."\t.\t.\t.\n";
+			fwrite($low_af_file_spliceai_h, $line_wo_info);
+			++$private_variant_count;
+		}	
 	}
-	
-	fwrite($ho, $line);
 }
-fclose($h);
+fclose($low_af_file_mmsplice_h);
+fclose($low_af_file_spliceai_h);
+
+
+$new_spliceai_annotation = $parser->tempFile("_newSpliceAi_annotations.vcf");
+$spliceai_annotated = FALSE;
+//run SpliceAI if feasible for private variants
+//(better: check only count of variants within GENCODE v24 +- 50 bases as spliceai scores only those)
+$spliceai_threshold = 2000;
+if($private_variant_count <= $spliceai_threshold && $private_variant_count > 0)
+{
+	$args = array();
+	$args[] = "-I {$low_af_file_spliceai}"; //input vcf
+	$args[] = "-O {$new_spliceai_annotation}"; //input vcf storing only low allel frequency variants
+	$args[] = "-R {$fasta}"; //output vcf
+	$lower_build = strtolower($build);
+	$args[] = "-A {$lower_build}"; //gtf annotation file
+	putenv("PYTHONPATH");
+	$parser->exec("OMP_NUM_THREADS={$threads} {$splice_env}/splice_env/bin/python3 {$splice_env}/splice_env/lib/python3.6/site-packages/spliceai", implode(" ", $args), true);
+	$spliceai_annotated = TRUE;
+}
+else
+{
+	trigger_error("SpliceAI annotation of private variants will be missing (More than ".$spliceai_threshold." variants).", E_USER_WARNING);
+}
+
+//include whole spliceai annotation
+if($spliceai_annotated)
+{
+	exec2("sed -i '/^##INFO=<ID=SpliceAI/d' ".$mmsplice_output);
+
+	$new_annotations_zipped = $parser->tempFile("_newSpliceAi_annotations.vcf.gz");
+	$parser->exec("bgzip", "-c $new_spliceai_annotation > $new_annotations_zipped", false);
+	$parser->exec("tabix", "-f -p vcf $new_annotations_zipped", false);
+
+	$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in $mmsplice_output -annotation_file $new_annotations_zipped -info_ids SpliceAI -out $out" );
+}
+else
+{
+	$parser->moveFile($mmsplice_output, $out);
+}
 
 //validate created VCF file
-
 //check vcf file
 if($check_lines >= 0)
 {
 	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $out -lines $check_lines -ref ".genome_fasta($build), true);
 }
-
 
 ?>
