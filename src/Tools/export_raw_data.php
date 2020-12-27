@@ -39,7 +39,7 @@ if (count($samples)==1 && file_exists($samples[0]))
 }
 
 //check and create meta data file
-print "Checking samples ...\n";
+print "Checking ".count($samples)." samples ...\n";
 $meta = [];
 $meta[] = "#sample\texternal_name\tgender\tdisease_group_and_status\tkit\tsequencer\n";
 foreach($samples as $ps)
@@ -85,7 +85,6 @@ foreach($samples as $ps)
 file_put_contents("$out/meta_data.tsv", $meta);
 
 //export data
-/*
 foreach($samples as $ps)
 {
 	print "$ps\n";
@@ -121,7 +120,6 @@ foreach($samples as $ps)
 		}
 	}
 }
-*/
 
 //zip
 $password = random_string(20);
