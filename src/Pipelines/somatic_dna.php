@@ -251,7 +251,7 @@ if( db_is_enabled("NGSD") )
 		$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build $hg_build -method sry", true);
 		list(,,$cov_sry) = explode("\t", $out[0][1]);
 
-		if(is_numeric($cov_sry) && (float)$cov_sry >= 20)
+		if(is_numeric($cov_sry) && (float)$cov_sry >= 30)
 		{
 			trigger_error("Detected contamination of female tumor sample {$t_id} with male genomic DNA on SRY. SRY coverage is at {$cov_sry}x.", E_USER_ERROR);
 		}
