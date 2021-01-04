@@ -10,6 +10,7 @@ $parser = new ToolBase("db_check_gender", "Checks the gender of a sample.");
 $parser->addInfile("in",  "Input file in BAM format.", false);
 $parser->addString("pid",  "Processed sample ID, e.g. GS120001_01, used to determine the sample gender from the NGSD.", false);
 $parser->addString("gender", "Gender of the input. If unset, gender is looked up in NGSD.", true);
+$parser->addInt("sry_cov", "Minimum SRY coverage to consider a sample as male.", true, "10");
 //optional
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
@@ -56,7 +57,7 @@ else
 		if ($stdout[0] == "chrY\t2655030\t2655644") //SRY is in roi
 		{
 			$method = "sry";
-			$args = "-sry_cov 10";
+			$args = "-sry_cov $sry_cov";
 		}
 	}
 }
