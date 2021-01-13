@@ -335,7 +335,7 @@ if($tumor_only)
 	if($use_off_target)
 	{
 		#$args[] = "--bedOfftarget $bed_off"; //debug
-		#$args[] = "--normalOfftarget $merged_cov_off"; //7debug
+		$args[] = "--normalOfftarget $merged_cov_off"; //7debug
 		#$args[] = "--lengthG 10"; //lengthG actually gives the number of additional regions > subtract 1
 		#$args[] = "--scoreG 100";
 	}
