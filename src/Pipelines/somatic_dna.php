@@ -110,6 +110,46 @@ function complement_baf_folder($t_n_id_file,$baf_folder,&$db_conn, $ref_genome)
 	}
 }
 
+function complement_baf_folder_tumor_only($t_id, $baf_folder, &$db_conn, $ref_genome)
+{
+	//get processing system
+	$ps_id = get_processed_sample_id($db_conn, $t_id, false);
+	if ($ps_id==-1)
+	{
+		trigger_error("load_system: Cannot determine processing system - processed sample name '$ps_name' is invalid!", E_USER_ERROR);
+	}
+	$sys_name = $db_conn->getValue("SELECT sys.name_short FROM processing_system sys, processed_sample ps WHERE ps.processing_system_id=sys.id AND ps.id=$ps_id");
+
+	//get all samples of processing system
+	$ngsbits = get_path("ngs-bits");
+	$sample_table_file = $parser->tempFile(".tsv");
+	$pipeline= [
+		["{$ngsbits}NGSDExportSamples", "-system $sys_name -add_path -no_bad_samples"],
+		["{$ngsbits}TsvFilter", "-filter 'system_name_short is $sys_name'"], //this is necessary because NGSDExportSamples performs fuzzy match
+		["{$ngsbits}TsvSlice", "-cols name,path -out $sample_table_file"],
+	];
+	$parser->execPipeline($pipeline, "NGSD sample extraction", true);
+	$samples = file($sample_table_file);
+
+	foreach($samples as $line)
+	{
+		$line = trim($line);
+		if ($line=="" || $line=="#") continue;
+		list($sample, $path) = explode("\t", $line);
+		
+		$t_info = get_processed_sample_info($db_conn,$line, false);
+		if(is_null($t_info))
+		{
+			trigger_error("Could not find file \'$line\' with path \'$path\'.",E_USER_WARNING);
+			continue;
+		}
+		$t_gsvar = $t_info["ps_folder"] ."/{$line}.GSvar";
+		$t_bam = $t_info["ps_bam"];
+		create_baf_file($t_gsvar,$t_bam,"{$baf_folder}/{$t_id}.tsv", $ref_genome);
+	}	
+
+}
+
 //parse and copy single CGI results files
 function parse_cgi_single_result($from,$to)
 {
@@ -523,10 +563,34 @@ if(in_array("cn",$steps))
 				];
 			$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 		}
+
+		//create 
+		$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
+		create_directory($baf_folder);
+		print("BAM: {$t_bam} -> {$t_id} \n");
+		if(db_is_enabled("NGSD"))
+		{
+			$db_conn = DB::getInstance("NGSD");
+			//Create BAF file for each sample with the same processing system if not existing
+			if(!file_exists("{$baf_folder}/{$t_id}.tsv"))
+			{
+				//Create BAF file for each sample with the same processing system if not existing
+				#complement_baf_folder_tumor_only($t_id, $baf_folder, $db_conn, $ref_genome);
+			}
+		}
+		else
+		{
+			$t_gsvar = dirname($t_bam) ."/{$t_id}.GSvar";
+			##create_baf_file($t_gsvar,$t_bam,"{$baf_folder}/{$t_id}.tsv", $ref_genome);
+		}
+
 		//perform CNV analysis
 		// no off-target analysis/ usage of BAF data
 		$cnv_out = $tmp_folder."/output.tsv";
 		$cnv_out2 = $tmp_folder."/output.seg";
+
+		$ref_folder_t = get_path("data_folder")."/coverage/".$sys['name_short']; //debug
+		$ref_folder_t_off_target = $ref_folder_t . "_off_target"; //debug
 		$args = array(
 			"-cov {$t_cov}",
 			"-cov_folder {$ref_folder_t}",
@@ -537,7 +601,10 @@ if(in_array("cn",$steps))
 			"-max_cnvs 200",
 			"-bed_off", $off_target_bed,
 			"-cov_off", $t_cov_off_target,
-			"--log ".$parser->getLogFile()
+			"-baf_folder", $baf_folder,
+			#"--log ".$parser->getLogFile()
+			"--log /mnt/users/ahstoht1/yyy.log"
+
 		);
 		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 

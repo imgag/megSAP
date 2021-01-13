@@ -25,6 +25,7 @@ $parser->addFlag("tumor_only", "Analyze tumor sample without a paired normal sam
 $parser->addInfile("bed_off","Off-target bed file.",true); //s_dna
 $parser->addInfile("cov_off","Off-target coverage file for normal sample",true);
 $parser->addString("cov_folder_off", "Folder with off-target normal coverage files (if different from [data_folder]/coverage/[system_short_name]_off_target/.", true, "auto");
+$parser->addString("baf_folder","Folder containing files with B-Allele frequencies.",true);
 
 extract($parser->parse($argv));
 
@@ -207,6 +208,7 @@ $command = get_path("clincnv")."/clinCNV.R";
 
 //determine coverage files
 $cov_files = glob($cov_folder."/*.cov");
+trigger_error("##COV FOLDER: {$cov_folder},\n", E_USER_WARNING); //DEBUG
 $cov_files[] = $cov;
 $cov_files = array_unique(array_map("realpath", $cov_files));
 if (count($cov_files)<$cov_min)
@@ -241,8 +243,10 @@ $mean_correlation = 0.0;
 	load_coverage_profile($cov, $rows_to_use, $cov1);
 	foreach($cov_files as $cov_file)
 	{
+
 		load_coverage_profile($cov_file, $rows_to_use, $cov2);
-		
+		trigger_error("##FILE => : {$cov_file},\n", E_USER_WARNING); //DEBUG
+
 		$corr = array();
 		foreach($cov1 as $chr => $profile1)
 		{
@@ -309,32 +313,44 @@ if($tumor_only)
 
 //execute ClinCNV (with workaround for hanging jobs)
 $out_folder = $parser->tempFolder();
+$out_folder = "/mnt/users/ahstoht1/ClinCNV_Benchmark/Results_clinCNV_inMegSap";
 $args = [
-"--normal {$cov_merged}",
-"--normalSample {$ps_name}",
+"--normal {$cov_merged}", //debug
+#"--normal /mnt/users/ahdemig1/test_panel_v4/mergedCoverage/panel_v4LI_normal.cov", //debug
 "--bed {$bed}",
-"--out {$out_folder}",
-"--maxNumGermCNVs {$max_cnvs}",
+"--normalSample {$ps_name}",
+"--out {$out_folder}", //debug
+#"--out  /mnt/users/ahstoht1/ClinCNV_Benchmark/Results_clinCNV_inMegSap",
 "--numberOfThreads {$threads}",
-"--par \"chrX:60001-2699520;chrX:154931044-155260560\"" //this is correct for hg19 only!
 ];
 
 //analyzing a single tumor sample
 if($tumor_only)
 {
-	$args[] = "--mosaicism";
+	$args[] = "--onlyTumor";
+	$args[] = "--minimumPurity 30";
+	$args[] = "--purityStep 5";
+	$args[] = "--scoreS 150";
+	#$args[] = "--folderWithScript /mnt/share/opt/ClinCNV-1.17.0/";
 	if($use_off_target)
 	{
-		$args[] = "--bedOfftarget $bed_off";
-		$args[] = "--normalOfftarget $merged_cov_off";
-		$args[] = "--lengthG 10"; //lengthG actually gives the number of additional regions > subtract 1
-		$args[] = "--scoreG 100";
+		#$args[] = "--bedOfftarget $bed_off"; //debug
+		#$args[] = "--normalOfftarget $merged_cov_off"; //7debug
+		#$args[] = "--lengthG 10"; //lengthG actually gives the number of additional regions > subtract 1
+		#$args[] = "--scoreG 100";
 	}
+	if(is_dir($baf_folder)) $args[] = "--bafFolder {$baf_folder}"; //debug
+	#$args[] = "--bafFolder /mnt/users/ahdemig1/test_panel_v4/baf/"; //debug
+
+	trigger_error("##PATH TO CHECK:\n normals -> {$cov_merged}\n, normalSample -> {$ps_name}\n, bed -> {$bed}\n, out -> {$out_folder}\n,  baf -> {$baf_folder}\n, bed_off -> {$bed_off}\n, normal_off -> {$merged_cov_off}\n,\n", E_USER_WARNING);
+
 }
 else
 {
+	$args[] = "--maxNumGermCNVs {$max_cnvs}";
 	$args[] = "--lengthG ".($regions-1); //lengthG actually gives the number of additional regions > subtract 1
 	$args[] = "--scoreG 20";
+	$args[] = "--par \"chrX:60001-2699520;chrX:154931044-155260560\""; //this is correct for hg19 only!
 }
 
 //use_off_target is set for tumor_only with off target cov/bed files
@@ -411,12 +427,20 @@ if ($return!=0)
 	trigger_error("Call of external tool '$command' returned error code '$return'.", E_USER_ERROR);
 }
 
-if(file_exists("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv"))
+$clinCNV_result_folder = "normal";
+if($tumor_only)
 {
+	$clinCNV_result_folder="tumorOnly";
+}
+
+trigger_error("###=> TRYING TO FIND FILE IN: "."{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.seg", E_USER_WARNING);
+if(file_exists("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv"))
+{
+	trigger_error("###=> FOUND FILE IN: "."{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv", E_USER_WARNING);
 	//sort and extract sample data from output folder
-	$parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.tsv -out $out",true);
-	$parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
-	$parser->copyFile("{$out_folder}/normal/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
+	$parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv -out $out",true);
+	$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
+	$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
 
 	//add high-quality CNV count to header
 	$cnv_calls = file($out);
