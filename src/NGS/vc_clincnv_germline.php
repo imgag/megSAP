@@ -163,7 +163,7 @@ function load_coverage_profile($filename, &$rows_to_use, &$output)
 	}
 }
 
-//fucntion to write an empty cnv file
+//function to write an empty cnv file
 function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_message, $tumor_only)
 {
 	//ClinVAR did not generate CNV file
