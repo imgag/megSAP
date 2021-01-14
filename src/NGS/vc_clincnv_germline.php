@@ -317,6 +317,7 @@ $args = [
 "--normalSample {$ps_name}",
 "--out {$out_folder}",
 "--numberOfThreads {$threads}",
+"--par \"chrX:60001-2699520;chrX:154931044-155260560\"" //this is correct for hg19 only!
 ];
 
 //analyzing a single tumor sample
@@ -339,7 +340,6 @@ else
 	$args[] = "--maxNumGermCNVs {$max_cnvs}";
 	$args[] = "--lengthG ".($regions-1); //lengthG actually gives the number of additional regions > subtract 1
 	$args[] = "--scoreG 20";
-	$args[] = "--par \"chrX:60001-2699520;chrX:154931044-155260560\""; //this is correct for hg19 only!
 }
 
 //use_off_target is set for tumor_only with off target cov/bed files
