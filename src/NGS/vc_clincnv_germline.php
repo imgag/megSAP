@@ -313,7 +313,7 @@ if($tumor_only)
 
 //execute ClinCNV (with workaround for hanging jobs)
 $out_folder = $parser->tempFolder();
-$out_folder = "/mnt/users/ahstoht1/ClinCNV_Benchmark/Results_clinCNV_inMegSap";
+#$out_folder = "/mnt/users/ahstoht1/ClinCNV_Benchmark/Results_clinCNV_inMegSap";
 $args = [
 "--normal {$cov_merged}", //debug
 #"--normal /mnt/users/ahdemig1/test_panel_v4/mergedCoverage/panel_v4LI_normal.cov", //debug
@@ -334,8 +334,10 @@ if($tumor_only)
 	#$args[] = "--folderWithScript /mnt/share/opt/ClinCNV-1.17.0/";
 	if($use_off_target)
 	{
-		#$args[] = "--bedOfftarget $bed_off"; //debug
+		$args[] = "--bedOfftarget $bed_off"; //debug
+		#$args[] = "--bedOfftarget /mnt/users/ahdemig1/test_panel_v4/offtaget_annotated_ssSC_v4_2018_03_23.bed"; //debug
 		$args[] = "--normalOfftarget $merged_cov_off"; //7debug
+		#$args[] = "--normalOfftarget /mnt/users/ahdemig1/test_panel_v4/mergedCoverage/panel_v4LI_normal_off.cov"; //debug
 		#$args[] = "--lengthG 10"; //lengthG actually gives the number of additional regions > subtract 1
 		#$args[] = "--scoreG 100";
 	}

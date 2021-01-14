@@ -589,8 +589,6 @@ if(in_array("cn",$steps))
 		$cnv_out = $tmp_folder."/output.tsv";
 		$cnv_out2 = $tmp_folder."/output.seg";
 
-		$ref_folder_t = get_path("data_folder")."/coverage/".$sys['name_short']; //debug
-		$ref_folder_t_off_target = $ref_folder_t . "_off_target"; //debug
 		$args = array(
 			"-cov {$t_cov}",
 			"-cov_folder {$ref_folder_t}",
