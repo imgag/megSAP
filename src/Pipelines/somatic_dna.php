@@ -600,9 +600,7 @@ if(in_array("cn",$steps))
 			"-bed_off", $off_target_bed,
 			"-cov_off", $t_cov_off_target,
 			"-baf_folder", $baf_folder,
-			#"--log ".$parser->getLogFile()
-			"--log /mnt/users/ahstoht1/yyy.log"
-
+			"--log ".$parser->getLogFile()
 		);
 		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 

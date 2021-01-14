@@ -166,7 +166,7 @@ function load_coverage_profile($filename, &$rows_to_use, &$output)
 //fucntion to write an empty cnv file
 function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_message, $tumor_only)
 {
-		//ClinVAR did not generate CNV file
+	//ClinVAR did not generate CNV file
 	//generate file with basic header lines
 	$cnv_output = fopen($out, "w");
 	if($tumor_only)
@@ -208,7 +208,6 @@ $command = get_path("clincnv")."/clinCNV.R";
 
 //determine coverage files
 $cov_files = glob($cov_folder."/*.cov");
-trigger_error("##COV FOLDER: {$cov_folder},\n", E_USER_WARNING); //DEBUG
 $cov_files[] = $cov;
 $cov_files = array_unique(array_map("realpath", $cov_files));
 if (count($cov_files)<$cov_min)
@@ -245,7 +244,6 @@ $mean_correlation = 0.0;
 	{
 
 		load_coverage_profile($cov_file, $rows_to_use, $cov2);
-		trigger_error("##FILE => : {$cov_file},\n", E_USER_WARNING); //DEBUG
 
 		$corr = array();
 		foreach($cov1 as $chr => $profile1)
@@ -313,14 +311,11 @@ if($tumor_only)
 
 //execute ClinCNV (with workaround for hanging jobs)
 $out_folder = $parser->tempFolder();
-#$out_folder = "/mnt/users/ahstoht1/ClinCNV_Benchmark/Results_clinCNV_inMegSap";
 $args = [
-"--normal {$cov_merged}", //debug
-#"--normal /mnt/users/ahdemig1/test_panel_v4/mergedCoverage/panel_v4LI_normal.cov", //debug
+"--normal {$cov_merged}",
 "--bed {$bed}",
 "--normalSample {$ps_name}",
-"--out {$out_folder}", //debug
-#"--out  /mnt/users/ahstoht1/ClinCNV_Benchmark/Results_clinCNV_inMegSap",
+"--out {$out_folder}",
 "--numberOfThreads {$threads}",
 ];
 
@@ -331,20 +326,12 @@ if($tumor_only)
 	$args[] = "--minimumPurity 30";
 	$args[] = "--purityStep 5";
 	$args[] = "--scoreS 150";
-	#$args[] = "--folderWithScript /mnt/share/opt/ClinCNV-1.17.0/";
 	if($use_off_target)
 	{
-		$args[] = "--bedOfftarget $bed_off"; //debug
-		#$args[] = "--bedOfftarget /mnt/users/ahdemig1/test_panel_v4/offtaget_annotated_ssSC_v4_2018_03_23.bed"; //debug
-		$args[] = "--normalOfftarget $merged_cov_off"; //7debug
-		#$args[] = "--normalOfftarget /mnt/users/ahdemig1/test_panel_v4/mergedCoverage/panel_v4LI_normal_off.cov"; //debug
-		#$args[] = "--lengthG 10"; //lengthG actually gives the number of additional regions > subtract 1
-		#$args[] = "--scoreG 100";
+		$args[] = "--bedOfftarget $bed_off";
+		$args[] = "--normalOfftarget $merged_cov_off";
 	}
-	if(is_dir($baf_folder)) $args[] = "--bafFolder {$baf_folder}"; //debug
-	#$args[] = "--bafFolder /mnt/users/ahdemig1/test_panel_v4/baf/"; //debug
-
-	trigger_error("##PATH TO CHECK:\n normals -> {$cov_merged}\n, normalSample -> {$ps_name}\n, bed -> {$bed}\n, out -> {$out_folder}\n,  baf -> {$baf_folder}\n, bed_off -> {$bed_off}\n, normal_off -> {$merged_cov_off}\n,\n", E_USER_WARNING);
+	if(is_dir($baf_folder)) $args[] = "--bafFolder {$baf_folder}";
 
 }
 else
@@ -435,10 +422,8 @@ if($tumor_only)
 	$clinCNV_result_folder="tumorOnly";
 }
 
-trigger_error("###=> TRYING TO FIND FILE IN: "."{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.seg", E_USER_WARNING);
 if(file_exists("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv"))
 {
-	trigger_error("###=> FOUND FILE IN: "."{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv", E_USER_WARNING);
 	//sort and extract sample data from output folder
 	$parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv -out $out",true);
 	$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
