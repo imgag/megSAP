@@ -295,7 +295,15 @@ if (!file_exists($sv_file))
 else
 {
     // filter SV file
-    $parser->exec(get_path("ngs-bits")."SvFilterAnnotations", "-in $sv_file -out $sv_temp_file -filters $sv_filter", true);
+    list($stdout, $stderr, $return_code) = $parser->exec(get_path("ngs-bits")."SvFilterAnnotations", "-in $sv_file -out $sv_temp_file -filters $sv_filter", true, false, true);
+
+    // abort if filter fails
+    if($return_code != 0)
+    {
+        trigger_error("WARNING: SV file filtering failed! Skipping SV break points in circos plot.", E_USER_WARNING);
+        // create empty temp file
+        touch($sv_temp_file);
+    }
 
     // cleanup filtered SV file
     $svs = file($sv_temp_file);
