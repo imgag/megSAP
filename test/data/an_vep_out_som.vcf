@@ -181,6 +181,8 @@
 ##INFO=<ID=NGSD_COM,Number=1,Type=String,Description="Variant comments from the NGSD. (from file an_vep_NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_SOM_C,Number=1,Type=Integer,Description="Somatic variant count in the NGSD. (from file an_vep_NGSD_somatic.vcf.gz)">
 ##INFO=<ID=NGSD_SOM_P,Number=.,Type=String,Description="Project names of project containing this somatic variant in the NGSD. (from file an_vep_NGSD_somatic.vcf.gz)">
+##INFO=<ID=NGSD_SOM_VICC,Number=1,Type=String,Description="Somatic variant interpretation according VICC standard in the NGSD. (from file an_vep_NGSD_somatic.vcf.gz)">
+##INFO=<ID=NGSD_SOM_VICC_COMMENT,Number=1,Type=String,Description="Somatic VICC interpretation comment in the NGSD. (from file an_vep_NGSD_somatic.vcf.gz)">
 ##INFO=<ID=mmsplice,Number=.,Type=String,Description="mmsplice splice variant effect: delta_logit_psi(logit scale of variant's effect on the exon inclusion, positive score shows higher exon inclusion, negative higher exclusion rate - a score beyond 2, -2 can be considered strong); pathogenicity(Potential pathogenic effect of the variant)">
 ##INFO=<ID=NGSD_GENE_INFO,Number=.,Type=String,Description="Annotation from /mnt/storage1/share/data//dbs/NGSD/NGSD_genes.bed delimited by ':'">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_03

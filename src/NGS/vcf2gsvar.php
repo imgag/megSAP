@@ -321,7 +321,9 @@ $column_desc = array(
 // optional NGSD somatic header description if vcf contains NGSD somatic information
 $column_desc_ngsd_som = array(
 	array("NGSD_som_c", "Somatic variant count in the NGSD."),
-	array("NGSD_som_p", "Project names of project containing this somatic variant in the NGSD.")
+	array("NGSD_som_p", "Project names of project containing this somatic variant in the NGSD."),
+	array("NGSD_som_vicc_interpretation", "Somatic variant interpretation according VICC standard in the NGSD."),
+	array("NGSD_som_vicc_comment", "Somatic VICC interpretation comment in the NGSD.")
 );
 
 // optional NGSD header description if vcf contains NGSD information
@@ -1162,6 +1164,24 @@ while(!feof($handle))
 			{
 				$ngsd_som_projects = "";
 			}
+			
+			if (isset($info["NGSD_SOM_VICC"]))
+			{
+				$ngsd_som_vicc = trim($info["NGSD_SOM_VICC"]);
+			}
+			else
+			{
+				$ngsd_som_vicc = "";
+			}
+			
+			if (isset($info["NGSD_SOM_VICC_COMMENT"]))
+			{
+				$ngsd_som_vicc_comment = vcf_decode_url_string(trim($info["NGSD_SOM_VICC_COMMENT"]) );
+			}
+			else
+			{
+				$ngsd_som_vicc_comment = "";
+			}
 		}
 
 		//NGSD
@@ -1426,7 +1446,7 @@ while(!feof($handle))
 	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity");
 	if (!$skip_ngsd_som)
 	{
-		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects");
+		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");
 	}
 	if (!$skip_ngsd)
 	{

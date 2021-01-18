@@ -273,7 +273,7 @@ if (!$skip_ngsd)
 	{
 		if (file_exists($ngsd_som_file))
 		{
-			fwrite($config_file, $ngsd_som_file."\tNGSD\tSOM_C,SOM_P\t\n");
+			fwrite($config_file, $ngsd_som_file."\tNGSD\tSOM_C,SOM_P,SOM_VICC,SOM_VICC_COMMENT\t\n");
 		}
 		else
 		{
