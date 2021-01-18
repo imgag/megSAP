@@ -352,7 +352,7 @@ if (!$skip_ngsd)
 	}
 
 	// annotate SpliceAI
-	$spliceai_file =  $data_folder."/dbs/SpliceAI/spliceai_scores.ngsd.13.12.20.vcf.gz";
+	$spliceai_file =  annotation_file_path("/dbs/SpliceAI/spliceai_scores.ngsd.13.12.20.vcf.gz");
 	if (file_exists($spliceai_file))
 	{
 		$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in $mmsplice_output -annotation_file $spliceai_file -info_ids SpliceAI -out $tmp" );
@@ -437,8 +437,23 @@ fclose($low_af_file_spliceai_h);
 
 $new_spliceai_annotation = $parser->tempFile("_newSpliceAi_annotations.vcf");
 $spliceai_annotated = FALSE;
-//run SpliceAI if feasible for private variants
-//(better: check only count of variants within GENCODE v24 +- 50 bases as spliceai scores only those)
+
+//calculate number of missing SpAI annotations in private variants
+//create bed file of SpliceAI regions and filter vcf
+$spai_regions = $parser->tempFile("spai_scoring_regions.bed");
+$spai_build = strtolower($build);
+exec2("cut -f 2,4,5 -d'\t' {$splice_env}/splice_env/lib/python3.6/site-packages/spliceai/annotations/{$spai_build}.txt | sed 's/^/chr/' | sed '1d' > {$spai_regions}");
+
+$low_af_file_spliceai_filtered = $parser->tempFile("_private_spliceai.vcf");
+exec2("cp {$spai_regions} /mnt/users/ahstoht1/TmpSpaiRegions.vcf");
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$spai_regions." -in $low_af_file_spliceai -out $low_af_file_spliceai_filtered -threads $threads", true);
+
+$x=$private_variant_count;
+list($private_variant_lines, $stderr)  = exec2("grep -v '##' $low_af_file_spliceai_filtered");
+$private_variant_count = count($private_variant_lines);
+trigger_error("before {$x} after {$private_variant_count}", E_USER_WARNING);
+
+
 $spliceai_threshold = 2000;
 if($private_variant_count <= $spliceai_threshold && $private_variant_count > 0)
 {
@@ -460,6 +475,10 @@ else
 //include whole spliceai annotation
 if($spliceai_annotated)
 {
+	//cut old header line, since new annotation produces additional line
+	list($spai_header, $stderr)  = exec2("grep '##INFO=<ID=SpliceAI' {$mmsplice_output}");
+	$spai_header = $spai_header[0]; //if grep produces no error there must be at least one match
+	$spai_header = str_replace("\"", "\\\"", $spai_header); //SpAI header has doubles quotes which need to be escaped
 	exec2("sed -i '/^##INFO=<ID=SpliceAI/d' ".$mmsplice_output);
 
 	$new_annotations_zipped = $parser->tempFile("_newSpliceAi_annotations.vcf.gz");
@@ -467,6 +486,9 @@ if($spliceai_annotated)
 	$parser->exec("tabix", "-f -p vcf $new_annotations_zipped", false);
 
 	$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in $mmsplice_output -annotation_file $new_annotations_zipped -info_ids SpliceAI -out $out" );
+	
+	//replace the header line with the origional one, station the annotation file of SpliceAI
+	exec2("sed -i 's/##INFO=<ID=SpliceAI.*/{$spai_header}/g' {$out}");
 }
 else
 {

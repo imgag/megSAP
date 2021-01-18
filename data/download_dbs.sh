@@ -147,6 +147,13 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GR
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh37/HG001_GRCh37_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-10X-SOLID_CHROM1-X_v.3.3.2_highconf_PGandRTGphasetransfer.vcf.gz.tbi -O high_conf_variants.vcf.gz.tbi
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh37/HG001_GRCh37_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-10X-SOLID_CHROM1-X_v.3.3.2_highconf_nosomaticdel.bed -O high_conf_regions.bed
 
+#download annotation file for SpliceAI
+cd $dbs
+mkdir SpliceAI
+cd SpliceAI
+wget https://download.imgag.de/ahsturm1/spliceai_scores_2021_01_15.vcf.gz -O spliceai_scores.ngsd.13.12.20.vcf.gz
+tabix -p vcf spliceai_scores.ngsd.13.12.20.vcf.gz
+
 #install OMIM (you might need a license, installation only possible after ngs-bits including NGSD is installed)
 #cd $dbs
 #mkdir OMIM
