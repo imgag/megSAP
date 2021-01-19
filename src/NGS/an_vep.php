@@ -443,16 +443,13 @@ $spliceai_annotated = FALSE;
 $spai_regions = $parser->tempFile("spai_scoring_regions.bed");
 $spai_build = strtolower($build);
 exec2("cut -f 2,4,5 -d'\t' {$splice_env}/splice_env/lib/python3.6/site-packages/spliceai/annotations/{$spai_build}.txt | sed 's/^/chr/' | sed '1d' > {$spai_regions}");
-
 $low_af_file_spliceai_filtered = $parser->tempFile("_private_spliceai.vcf");
-exec2("cp {$spai_regions} /mnt/users/ahstoht1/TmpSpaiRegions.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$spai_regions." -in $low_af_file_spliceai -out $low_af_file_spliceai_filtered -threads $threads", true);
-
+#$spai_regions_string = implode("\n",file($spai_regions));
+$parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg ".$spai_regions." -in $low_af_file_spliceai -out $low_af_file_spliceai_filtered", true);
 $x=$private_variant_count;
 list($private_variant_lines, $stderr)  = exec2("grep -v '##' $low_af_file_spliceai_filtered");
 $private_variant_count = count($private_variant_lines);
 trigger_error("before {$x} after {$private_variant_count}", E_USER_WARNING);
-
 
 $spliceai_threshold = 2000;
 if($private_variant_count <= $spliceai_threshold && $private_variant_count > 0)
