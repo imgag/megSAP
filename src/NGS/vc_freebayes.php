@@ -59,6 +59,7 @@ $args[] = "--min-alternate-fraction $min_af";
 $args[] = "--min-mapping-quality $min_mq";
 $args[] = "--min-base-quality $min_bq";
 $args[] = "--min-alternate-count $min_ao";
+$args[] = "--genotype-qualities";
 $args[] = "-f $genome";
 $args[] = "-b ".implode(" ", $bam);
 
@@ -230,7 +231,7 @@ else
 	$pipeline[] = array(get_path("freebayes"), implode(" ", $args));
 }
 
-//filter variants according to variant quality>5 , alternate observations>=3
+//filter variants according to variant quality>5
 $pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5\"");
 
 //split complex variants to primitives
