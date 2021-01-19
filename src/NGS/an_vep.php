@@ -442,7 +442,6 @@ $spai_regions = $parser->tempFile("spai_scoring_regions.bed");
 $spai_build = strtolower($build);
 exec2("cut -f 2,4,5 -d'\t' {$splice_env}/splice_env/lib/python3.6/site-packages/spliceai/annotations/{$spai_build}.txt | sed 's/^/chr/' | sed '1d' > {$spai_regions}");
 $low_af_file_spliceai_filtered = $parser->tempFile("_private_spliceai.vcf");
-#$spai_regions_string = implode("\n",file($spai_regions));
 $parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg ".$spai_regions." -in $low_af_file_spliceai -out $low_af_file_spliceai_filtered", true);
 list($private_variant_lines, $stderr)  = exec2("grep -v '##' $low_af_file_spliceai_filtered");
 $private_variant_count = count($private_variant_lines);
