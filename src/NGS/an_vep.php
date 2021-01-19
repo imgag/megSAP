@@ -370,7 +370,6 @@ $low_af_file_mmsplice_h = fopen2($lowAF_variants, 'r');
 $low_af_file_spliceai = $parser->tempFile("_spliceai_lowAF.vcf");
 $low_af_file_spliceai_h = fopen2($low_af_file_spliceai, 'w');
 //filter lowAF file of MMSplice to keep only those variants with NGSD_COUNTS == 0 (runtime of SpliceAI is extremely slow)
-$private_variant_count = 0;
 while(!feof($low_af_file_mmsplice_h))
 {
 	$line = fgets($low_af_file_mmsplice_h);
@@ -427,7 +426,6 @@ while(!feof($low_af_file_mmsplice_h))
 			$line_wo_info = implode("\t", $new_line);
 			$line_wo_info = $line_wo_info."\t.\t.\t.\n";
 			fwrite($low_af_file_spliceai_h, $line_wo_info);
-			++$private_variant_count;
 		}	
 	}
 }
@@ -446,17 +444,15 @@ exec2("cut -f 2,4,5 -d'\t' {$splice_env}/splice_env/lib/python3.6/site-packages/
 $low_af_file_spliceai_filtered = $parser->tempFile("_private_spliceai.vcf");
 #$spai_regions_string = implode("\n",file($spai_regions));
 $parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg ".$spai_regions." -in $low_af_file_spliceai -out $low_af_file_spliceai_filtered", true);
-$x=$private_variant_count;
 list($private_variant_lines, $stderr)  = exec2("grep -v '##' $low_af_file_spliceai_filtered");
 $private_variant_count = count($private_variant_lines);
-trigger_error("before {$x} after {$private_variant_count}", E_USER_WARNING);
 
 $spliceai_threshold = 2000;
 if($private_variant_count <= $spliceai_threshold && $private_variant_count > 0)
 {
 	$args = array();
-	$args[] = "-I {$low_af_file_spliceai}"; //input vcf
-	$args[] = "-O {$new_spliceai_annotation}"; //input vcf storing only low allel frequency variants
+	$args[] = "-I {$low_af_file_spliceai}";
+	$args[] = "-O {$new_spliceai_annotation}";
 	$args[] = "-R {$fasta}"; //output vcf
 	$lower_build = strtolower($build);
 	$args[] = "-A {$lower_build}"; //gtf annotation file
