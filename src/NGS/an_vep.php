@@ -364,15 +364,39 @@ if (!$skip_ngsd)
 	}
 }
 
-//Annotation of splice site variations with SpliceAI
-//additionally filter low_af_file of mmsplice for NGSD_count
+
+//filter private variants
+$private_var_dict = array();
 $low_af_file_mmsplice_h = fopen2($lowAF_variants, 'r');
-$low_af_file_spliceai = $parser->tempFile("_spliceai_lowAF.vcf");
-$low_af_file_spliceai_h = fopen2($low_af_file_spliceai, 'w');
-//filter lowAF file of MMSplice to keep only those variants with NGSD_COUNTS == 0 (runtime of SpliceAI is extremely slow)
 while(!feof($low_af_file_mmsplice_h))
 {
 	$line = fgets($low_af_file_mmsplice_h);
+	trigger_error("PRIVATE DICT: ".implode("", $field[0], $fields[1], $fields[3], $fields[4])."!", E_USER_WARNING); //DEBUG
+
+	//skip headers
+	if(starts_with($line, "#"))
+	{
+		continue;
+	}
+	else
+	{
+		if (strlen(trim($line))==0) continue;
+		$fields = explode("\t", $line);
+		$private_var_dict[] = implode("", $field[0], $fields[1], $fields[3], $fields[4]); 
+		trigger_error("PRIVATE DICT: ".implode("", $field[0], $fields[1], $fields[3], $fields[4])."!", E_USER_WARNING); //DEBUG
+	}
+}
+fclose($low_af_file_mmsplice_h);
+
+//parse all lines that are not annotated with SpliceAI yet
+//Annotation of splice site variations with SpliceAI
+//additionally filter low_af_file of mmsplice for NGSD_count
+$low_af_file_spliceai = $parser->tempFile("_spliceai_lowAF.vcf");
+$low_af_file_spliceai_h = fopen2($low_af_file_spliceai, 'w');
+$mmsplice_output_h = fopen2($mmsplice_output, 'r');
+while(!feof($mmsplice_output_h))
+{
+	$line = fgets($mmsplice_output_h);
 	
 	//skip headers (except for fileformat/ contig lines)
 	if(starts_with($line, "##fileformat") || starts_with($line, "##contig"))
@@ -394,34 +418,17 @@ while(!feof($low_af_file_mmsplice_h))
 		$spliceai_annotated = FALSE;
 		foreach($info_field as $info)
 		{
-			if(starts_with($info, "NGSD_COUNTS="))
-			{
-				$ngsd_count = explode("=", $info)[1];
-
-				$ngsd_counts = explode(",", trim($ngsd_count));
-				if(sizeof($ngsd_counts) != 2)
-				{
-					continue;
-				}
-				$ngsd_hom = $ngsd_counts[0];
-				$ngsd_het = $ngsd_counts[1];
-
-				if(is_numeric($ngsd_hom))
-				{
-					$ngsd_sum += intval($ngsd_hom);
-				}
-				if(is_numeric($ngsd_het))
-				{
-					$ngsd_sum += intval($ngsd_het);
-				}			
-			}
-			else if(starts_with($info, "SpliceAI="))
+			if(starts_with($info, "SpliceAI="))
 			{
 				$spliceai_annotated = TRUE;
+				break;
 			}
 		}
-		if($ngsd_sum == 0 && !$spliceai_annotated)
+		trigger_error("CHECKING VARIANT: ".implode("", $field[0], $fields[1], $fields[3], $fields[4])."!", E_USER_WARNING); //DEBUG
+		if(!$spliceai_annotated && in_array(implode("", $field[0], $fields[1], $fields[3], $fields[4]), $private_var_dict))
 		{
+			trigger_error("		INSIDE: ".implode("", $field[0], $fields[1], $fields[3], $fields[4])."!", E_USER_WARNING); //DEBUG
+
 			$new_line = array_slice($fields, 0, 5);
 			$line_wo_info = implode("\t", $new_line);
 			$line_wo_info = $line_wo_info."\t.\t.\t.\n";
@@ -429,9 +436,10 @@ while(!feof($low_af_file_mmsplice_h))
 		}	
 	}
 }
-fclose($low_af_file_mmsplice_h);
+fclose($mmsplice_output_h);
 fclose($low_af_file_spliceai_h);
 
+//get rid of all lines with high 
 
 $new_spliceai_annotation = $parser->tempFile("_newSpliceAi_annotations.vcf");
 $spliceai_annotated = FALSE;
