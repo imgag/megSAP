@@ -137,6 +137,8 @@ def writeTempVCF(vcf_in, vcf_out, dict):
             out.write(line)
         else:
             vcf_fields = line.split(b'\t')
+            if(len(vcf_fields)==8):
+                vcf_fields[7] = vcf_fields[7].rstrip(b'\n')
             out.write(b'\t'.join(vcf_fields[0:7]))
 
             #generate an ID of CHROM:POS:REF>ALT
@@ -156,7 +158,7 @@ def writeTempVCF(vcf_in, vcf_out, dict):
             if(len(vcf_fields) > 8):
                 line_rest = b"\t" + new_info + b"\t" + b"\t".join(vcf_fields[8:len(vcf_fields)])
             else:
-                line_rest = b"\t" + new_info
+                line_rest = b"\t" + new_info + b"\n"
 
             out.write(line_rest)
     out.close()
@@ -180,8 +182,16 @@ def writeMMSpliceToVcf(vcf_in, vcf_lowAF, vcf_out, gtf, fasta):
     model = MMSplice()
 
     # Or predict and return as df
-    predictions = predict_all_table(model, dl, pathogenicity=True, splicing_efficiency=True, progress = True)
-
+    try:
+        predictions = predict_all_table(model, dl, pathogenicity=True, splicing_efficiency=True, progress = True)
+    except Exception as e:
+        sys.stderr.write("Skipping MMSplice prediction. MMsplice was not able to score the variant list of low AF variants with error: " + e)
+        with open(vcf_in, "rb") as in_file:
+            with open(vcf_out, "wb") as out_file:
+                for line in in_file:
+                    out_file.write(line)
+        sys.exit()
+        
     #generate hash
     dict = {}
     for row in predictions.itertuples():

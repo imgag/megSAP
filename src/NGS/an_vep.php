@@ -101,6 +101,7 @@ function annotate_splice_predictions(&$vcf_annotate_output, $spliceai_threshold 
 	while(!feof($low_af_file_mmsplice_h))
 	{
 		$line = fgets($low_af_file_mmsplice_h);
+		if (strlen(trim($line))==0) continue;
 		//skip headers
 		if(starts_with($line, "#"))
 		{
@@ -111,7 +112,8 @@ function annotate_splice_predictions(&$vcf_annotate_output, $spliceai_threshold 
 			if(strlen(trim($line))==0) continue;
 			$fields = explode("\t", $line);
 			if(count($fields) < 5) continue;
-			$private_var_dict[] = implode("", "{$fields[0]},{$fields[1]},{$fields[3]},{$fields[4]}"); //string describing private variant
+			$var_ids = array($fields[0],$fields[1],$fields[3],$fields[4]);
+			$private_var_dict[] = implode("", $var_ids); //string describing private variant
 		}
 	}
 	fclose($low_af_file_mmsplice_h);
@@ -130,18 +132,16 @@ function annotate_splice_predictions(&$vcf_annotate_output, $spliceai_threshold 
 	exec2("cut -f 2,4,5 -d'\t' {$splice_env}/splice_env/lib/python3.6/site-packages/spliceai/annotations/{$spai_build}.txt | sed 's/^/chr/' | sed '1d' > {$spai_regions}");
 	$low_af_file_spliceai_filtered = $parser->tempFile("_private_spliceai.vcf");
 
-	exec2("cp {$low_af_file_spliceai} /mnt/users/ahstoht1/TMP/before");
 	$parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg ".$spai_regions." -in $low_af_file_spliceai -out $low_af_file_spliceai_filtered", true);
 	list($private_variant_lines, $stderr)  = exec2("grep -v '##' $low_af_file_spliceai_filtered", false); //SpAI annotation might be empty
 	$private_variant_count = count(array_filter($private_variant_lines));
-	exec2("cp {$low_af_file_spliceai_filtered} /mnt/users/ahstoht1/TMP/after");
 
 	//calculate new SpliceAI score for private variants
 	$spliceai_annotated = FALSE;
 	if($private_variant_count <= $spliceai_threshold && $private_variant_count > 0)
 	{
 		$args = array();
-		$args[] = "-I {$low_af_file_spliceai}";
+		$args[] = "-I {$low_af_file_spliceai_filtered}";
 		$args[] = "-O {$new_spliceai_annotation}";
 		$args[] = "-R {$fasta}"; //output vcf
 		$lower_build = strtolower($build);
