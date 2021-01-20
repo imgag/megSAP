@@ -231,7 +231,7 @@ uksort($var_diff, "pos_gt");
 
 //print TSV output
 $sample = substr(basename($vcf), 0, 10);
-print "#sample\tstatus\tpos\tvariant\tvariant_type\tref_GT\tobs_GT\tobs_DP\tobs_QUAL\tobs_MQM\tobs_AO\tobs_AF\tobs_GQ\n";
+print "#sample\tstatus\tpos\tvariant\tvariant_type\tref_GT\tobs_GT\tobs_DP\tobs_QUAL\tobs_MQM\tobs_AO\tobs_AF\tobs_QUAL_per_DP\n";
 foreach($var_diff as $pos => list($status, $ref, $obs))
 {
 	if($status=="=" && !$matches) continue;
@@ -245,7 +245,11 @@ foreach($var_diff as $pos => list($status, $ref, $obs))
 	$af = "n/a";
 	if ($ao!="" && $dp!="" && $dp>0) $af = number_format($ao/$dp,2);
 	
-	print "$sample\t$status\t".strtr($pos, " ", "\t")."\t".$variant_type."\t".get_prop($ref, "GT")."\t".get_prop($obs, "GT")."\t".$dp."\t".get_prop($obs, "QUAL", 2)."\t".get_prop($obs, "MQM", 2)."\t".$ao."\t".$af."\t".$gq."\n";
+	$qual = get_prop($obs, "QUAL", 2);
+	$qpd = "n/a";
+	if ($qual!="" && $dp!="" && $dp>0) $qpd = number_format($qual/$dp, 2);
+	
+	print "$sample\t$status\t".strtr($pos, " ", "\t")."\t".$variant_type."\t".get_prop($ref, "GT")."\t".get_prop($obs, "GT")."\t".$dp."\t".$qual."\t".get_prop($obs, "MQM", 2)."\t".$ao."\t".$af."\t".$qpd."\n";
 }
 print "\n";
 
