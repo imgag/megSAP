@@ -185,7 +185,7 @@ def writeMMSpliceToVcf(vcf_in, vcf_lowAF, vcf_out, gtf, fasta):
     try:
         predictions = predict_all_table(model, dl, pathogenicity=True, splicing_efficiency=True, progress = True)
     except Exception as e:
-        sys.stderr.write("Skipping MMSplice prediction. MMsplice was not able to score the variant list of low AF variants with error: " + e)
+        sys.stderr.write("Warning: Skipping MMSplice prediction; MMsplice was not able to score the variant list of low AF variants (this can happen if no variant is inside MMSplice's scoring region): " + e)
         with open(vcf_in, "rb") as in_file:
             with open(vcf_out, "wb") as out_file:
                 for line in in_file:
