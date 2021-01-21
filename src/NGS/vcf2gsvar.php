@@ -1321,7 +1321,7 @@ while(!feof($handle))
 		$spliceai_info = trim($info["SpliceAI"]);
 		$spliceai_values = array();
 
-		$entries = explode("&", $spliceai_info);
+		$entries = explode(",", $spliceai_info);
 		foreach($entries as $entry)
 		{
 			$delta_scores = explode("|", $entry);
@@ -1332,7 +1332,7 @@ while(!feof($handle))
 			}
 			else
 			{
-				trigger_error("Wrong SpliceAI annotation in line: ${line}!", E_USER_WARNING);
+				trigger_error("Wrong SpliceAI annotation in line: ${line} in SpliceAI annotation: ${spliceai_info}! Delimiter for several genes must be ','.", E_USER_WARNING);
 			}
 		}
 
