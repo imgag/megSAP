@@ -71,13 +71,13 @@ check_file($out_file_empty, data_folder().$name."_out_empty.vcf", true);
 $out_file2 = output_folder().$name."_out2.vcf";
 check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in2.vcf -out $out_file2 --log ".output_folder().$name."_out2.log");
 remove_lines_containing($out_file2, array("##VEP=\"v"));
-check_file($out_file2, data_folder().$name."_out2-3.vcf", true);
+check_file($out_file2, data_folder().$name."_out2.vcf", true);
 
 //NA12878_38 head zipped
 $out_file3 = output_folder().$name."_out3.vcf";
 check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in3.vcf.gz -out $out_file3 --log ".output_folder().$name."_out3.log");
 remove_lines_containing($out_file3, array("##VEP=\"v"));
-check_file($out_file3, data_folder().$name."_out2-3.vcf", true);
+check_file($out_file3, data_folder().$name."_out3.vcf", true);
 
 //zero variants to score with mmsplice
 $out_file1 = output_folder().$name."_out4.vcf";
