@@ -119,11 +119,39 @@ function annotate_splice_predictions(&$vcf_annotate_output, $spliceai_threshold 
 	fclose($low_af_file_mmsplice_h);
 
 	//parse all lines that are not annotated with SpliceAI yet
+	$wo_spliceai_annotation_file = $parser->tempFile("_wo_spliceai.vcf");
+	exec2("grep '##fileformat' {$mmsplice_output} >> {$wo_spliceai_annotation_file}", true);
+	exec2("grep '##contig' {$mmsplice_output} >> {$wo_spliceai_annotation_file}", true);
+	exec2("grep '#CHROM' {$mmsplice_output} | cut -f1-8 -d'\t' >> {$wo_spliceai_annotation_file}", true);
+	exec2("grep -v '#\|SpliceAI' {$mmsplice_output} | cut -f1-5 -d'\t' | sed 's/$/\t.\t.\t./' >> {$wo_spliceai_annotation_file}", false); //SpAI annotation might be empty
+
+	//filter for regions of low AF
 	$low_af_file_spliceai = $parser->tempFile("_spliceai_lowAF.vcf");
-	exec2("grep '##fileformat' {$mmsplice_output} >> {$low_af_file_spliceai}", true);
-	exec2("grep '##contig' {$mmsplice_output} >> {$low_af_file_spliceai}", true);
-	exec2("grep '#CHROM' {$mmsplice_output} | cut -f1-8 -d'\t' >> {$low_af_file_spliceai}", true);
-	exec2("grep -v '#\|SpliceAI' {$mmsplice_output} | cut -f1-5 -d'\t' | sed 's/$/\t.\t.\t./' >> {$low_af_file_spliceai}", false); //SpAI annotation might be empty
+	$low_af_file_spliceai_h = fopen2($low_af_file_spliceai, 'w');
+	$wo_spliceai_annotation_file_h = fopen2($wo_spliceai_annotation_file, 'r');
+	while(!feof($wo_spliceai_annotation_file_h))
+	{
+		$line = fgets($wo_spliceai_annotation_file_h);
+		//skip headers
+		if(!starts_with($line, "chr"))
+		{
+			fwrite($low_af_file_spliceai_h, $line);
+		}
+		else
+		{
+			if(strlen(trim($line))==0) continue;
+			$fields = explode("\t", $line);
+			if(count($fields) < 5) continue;
+			$var_ids = array($fields[0],$fields[1],$fields[3],$fields[4]);
+			$needle = implode("", $var_ids);
+			if(in_array($needle, $private_var_dict))
+			{
+				fwrite($low_af_file_spliceai_h, $line);
+			}
+		}
+	}
+	fclose($wo_spliceai_annotation_file_h);
+	fclose($low_af_file_spliceai_h);
 
 	//create bed file of SpliceAI variants that are scored 
 	$new_spliceai_annotation = $parser->tempFile("_newSpliceAi_annotations.vcf");

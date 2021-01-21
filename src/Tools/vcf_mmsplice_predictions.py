@@ -22,8 +22,8 @@ except IOError as io:
 
 from keras import backend as K
 import tensorflow as tf
-config = tf.ConfigProto(intra_op_parallelism_threads=1, 
-                        inter_op_parallelism_threads=int(args.threads),
+config = tf.ConfigProto(intra_op_parallelism_threads=int(args.threads), 
+                        inter_op_parallelism_threads=1,
                         allow_soft_placement=True,
                         device_count = {'CPU': int(args.threads)})
 session = tf.Session(config=config)
@@ -127,6 +127,7 @@ def writeTempVCF(vcf_in, vcf_out, dict):
     out = open(vcf_out, "wb")
 
     for line in in_file.readlines():
+        print(line)
         if line.startswith(b'##'):
             out.write(line)
         elif line.startswith(b'#CHROM'):
@@ -136,15 +137,18 @@ def writeTempVCF(vcf_in, vcf_out, dict):
             out.write(info_header)
             out.write(line)
         else:
+            print("b")
             vcf_fields = line.split(b'\t')
             if(len(vcf_fields)==8):
                 vcf_fields[7] = vcf_fields[7].rstrip(b'\n')
             out.write(b'\t'.join(vcf_fields[0:7]))
+            print("c")
 
             #generate an ID of CHROM:POS:REF>ALT
             ID = vcf_fields[0] + b":" + vcf_fields[1] + b":" + vcf_fields[3] + b">" + vcf_fields[4]
             ID_ascii = ID.decode('ascii')
             used_pred = b""
+            print("d")
 
             if ID_ascii in dict:
                 used_pred = dict[ID_ascii]
@@ -154,11 +158,15 @@ def writeTempVCF(vcf_in, vcf_out, dict):
                 new_info = vcf_fields[7] + b";" + b"mmsplice=" + used_pred
             else:
                 new_info = vcf_fields[7]
+            print("e")
 
             if(len(vcf_fields) > 8):
+                print("f_a")
+
                 line_rest = b"\t" + new_info + b"\t" + b"\t".join(vcf_fields[8:len(vcf_fields)])
             else:
                 line_rest = b"\t" + new_info + b"\n"
+            print("f")
 
             out.write(line_rest)
     out.close()
@@ -194,6 +202,7 @@ def writeMMSpliceToVcf(vcf_in, vcf_lowAF, vcf_out, gtf, fasta):
         
     #generate hash
     dict = {}
+    print("hashing")
     for row in predictions.itertuples():
         id = row.ID
         string = exon_sep[0] + "exon:" + row.exons + "," + "delta_logit_psi:" + str(round(row.delta_logit_psi, 4)) + "," + "pathogenicity:" + str(round(row.pathogenicity, 4)) + exon_sep[1]
@@ -201,7 +210,7 @@ def writeMMSpliceToVcf(vcf_in, vcf_lowAF, vcf_out, gtf, fasta):
             dict[id] = dict[id] + string
         else:
             dict[id] = string    
-
+    print("writing")
     writeTempVCF(vcf_in, vcf_out, dict)
 
 def checkIfEmpty(f, vcf_out, vcf_lowAF):
