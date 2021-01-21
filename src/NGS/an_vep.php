@@ -55,7 +55,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 
 //calculates MMSplice score for all variants of AF<=1
 //annotates SpliceAI score for all variants inside NGSD + calculates score for private variants if less than threshold
-function annotate_splice_predictions(&$vcf_annotate_output, $spliceai_threshold = 2000)
+function annotate_splice_predictions(&$vcf_annotate_output, $spliceai_threshold = 1000)
 {
 	global $build;
 	global $threads;
