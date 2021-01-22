@@ -22,8 +22,8 @@ except IOError as io:
 
 from keras import backend as K
 import tensorflow as tf
-config = tf.ConfigProto(intra_op_parallelism_threads=1, 
-                        inter_op_parallelism_threads=int(args.threads),
+config = tf.ConfigProto(intra_op_parallelism_threads=int(args.threads), 
+                        inter_op_parallelism_threads=1,
                         allow_soft_placement=True,
                         device_count = {'CPU': int(args.threads)})
 session = tf.Session(config=config)
@@ -137,6 +137,8 @@ def writeTempVCF(vcf_in, vcf_out, dict):
             out.write(line)
         else:
             vcf_fields = line.split(b'\t')
+            if(len(vcf_fields)==8):
+                vcf_fields[7] = vcf_fields[7].rstrip(b'\n')
             out.write(b'\t'.join(vcf_fields[0:7]))
 
             #generate an ID of CHROM:POS:REF>ALT
@@ -154,9 +156,10 @@ def writeTempVCF(vcf_in, vcf_out, dict):
                 new_info = vcf_fields[7]
 
             if(len(vcf_fields) > 8):
+
                 line_rest = b"\t" + new_info + b"\t" + b"\t".join(vcf_fields[8:len(vcf_fields)])
             else:
-                line_rest = b"\t" + new_info
+                line_rest = b"\t" + new_info + b"\n"
 
             out.write(line_rest)
     out.close()
@@ -180,8 +183,16 @@ def writeMMSpliceToVcf(vcf_in, vcf_lowAF, vcf_out, gtf, fasta):
     model = MMSplice()
 
     # Or predict and return as df
-    predictions = predict_all_table(model, dl, pathogenicity=True, splicing_efficiency=True, progress = True)
-
+    try:
+        predictions = predict_all_table(model, dl, pathogenicity=True, splicing_efficiency=True, progress = True)
+    except Exception as e:
+        sys.stderr.write("Warning: Skipping MMSplice prediction; MMsplice was not able to score the variant list of low AF variants (this can happen if no variant is inside MMSplice's scoring region): " + str(e))
+        with open(vcf_in, "rb") as in_file:
+            with open(vcf_out, "wb") as out_file:
+                for line in in_file:
+                    out_file.write(line)
+        sys.exit()
+        
     #generate hash
     dict = {}
     for row in predictions.itertuples():
@@ -191,15 +202,19 @@ def writeMMSpliceToVcf(vcf_in, vcf_lowAF, vcf_out, gtf, fasta):
             dict[id] = dict[id] + string
         else:
             dict[id] = string    
-
     writeTempVCF(vcf_in, vcf_out, dict)
 
-def checkIfEmpty(f, vcf_out):
+def checkIfEmpty(f, vcf_out, vcf_lowAF):
     if not any(not line.startswith(b"#") for line in f):
         with open(vcf_out, "wb") as out:
             f.seek(0)
+            lowAF_h = open(vcf_lowAF, "wb")
             for line in f:
                 out.write(line)
+                lowAF_h.write(line)
+            lowAF_h.close()
+        out.close()
+        f.close()
         sys.exit()
 
 def main():
@@ -209,10 +224,10 @@ def main():
     import gzip
     if args.vcf_in.endswith(".vcf.gz"):
         with gzip.open(args.vcf_in, 'rb') as f:
-            checkIfEmpty(f, args.vcf_out)
+            checkIfEmpty(f, args.vcf_out, args.vcf_lowAF)
     elif args.vcf_in.endswith(".vcf"):      
         with open(args.vcf_in, 'rb') as f:
-            checkIfEmpty(f, args.vcf_out)
+            checkIfEmpty(f, args.vcf_out, args.vcf_lowAF)
     else:
         sys.exit('Wrong file format. Support only \'vcf\' and \'vcf.gz\'')
 
