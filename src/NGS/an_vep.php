@@ -109,7 +109,6 @@ function annotate_splice_predictions(&$vcf_annotate_output, $spliceai_threshold 
 		}
 		else
 		{
-			if(strlen(trim($line))==0) continue;
 			$fields = explode("\t", $line);
 			if(count($fields) < 5) continue;
 			$var_ids = array($fields[0],$fields[1],$fields[3],$fields[4]);
@@ -132,7 +131,7 @@ function annotate_splice_predictions(&$vcf_annotate_output, $spliceai_threshold 
 	while(!feof($wo_spliceai_annotation_file_h))
 	{
 		$line = fgets($wo_spliceai_annotation_file_h);
-		//skip headers
+		//keep headers
 		if(!starts_with($line, "chr"))
 		{
 			fwrite($low_af_file_spliceai_h, $line);
