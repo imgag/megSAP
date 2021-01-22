@@ -34,6 +34,7 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 
 ## ChangeLog
+* 21.01.2020: Updated databases (HGMD, ClinVar, ...)
 * 17.12.2020: Switched to [bwa-mem2](https://github.com/bwa-mem2/bwa-mem2) for mapping. WARNING: requires to build a new index for the reference genome (see [bwa-mem2 page](doc/bwa-mem2.md)). 
 * 23.11.2020: Added support for monitoring tumor progression via cfDNA.
 * 20.11.2020: Added MMsplice splicing predictions.

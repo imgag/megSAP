@@ -10,8 +10,9 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //parse command line arguments
 $parser = new ToolBase("export_raw_data", "Exports RAW data.");
 $parser->addStringArray("samples", "Processed sample names (or file with one sample per line).", false);
-$parser->addString("out", "Output folder name.", false);
+$parser->addString("out", "Output folder and ZIP file name.", false);
 $parser->addEnum("mode", "Export mode (FASTQ only, BAM only, whole analysis folder).", true, ["fastq", "bam", "folder"], "fastq");
+$parser->addFlag("internal", "Use internal webserver and do not use password.");
 extract($parser->parse($argv));
 
 //init
@@ -121,15 +122,38 @@ foreach($samples as $ps)
 	}
 }
 
+//determine password
+$password = "";
+if(!$internal)
+{
+	$password = random_string(20);
+}
+ 
 //zip
-$password = random_string(20);
-print "Zipping output folder using the password '{$password}'...\n";
-exec2("zip --password {$password} -r {$out}.zip $out");
+print "Zipping output folder".($password=="" ? "" : " using the password '{$password}'")."...\n";
+exec2("zip -1 ".($password=="" ? "" : "--password {$password} ")."-r {$out}.zip $out");
 
 //move
 print "You can move the file to the webserver using:\n";
 $user = exec('whoami');
-print "scp {$out}.zip {$user}@imgag.de:/var/www/html/download/{$user}/\n";
+if($internal)
+{
+	print "  > mv {$out}.zip /mnt/users/bioinf/http_shareukt/{$user}/\n";
+}
+else
+{
+	print "  > scp {$out}.zip {$user}@imgag.de:/var/www/html/download/{$user}/\n";
+}
+
+print "The URL of the file is:\n";
+if($internal)
+{
+	print "  http://srv018.img.med.uni-tuebingen.de:8080/{$user}/{$out}.zip\n";
+}
+else
+{
+	print "  https://download.imgag.de/{$user}/{$out}.zip\n";
+}
 
 
 ?>

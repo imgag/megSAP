@@ -19,6 +19,7 @@ $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the g
 $parser->addInt("max_indel", "Maximum indel size (larger indels are ignored).", true, 0);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addString("ref_sample", "Reference sample to use for validation.", true, "NA12878");
+$parser->addFlag("matches", "Do not only show variants that were missed (-), are novel (+) or with genotype mismatch (g), but also show matches (=) in output.", true, "NA12878");
 extract($parser->parse($argv));
 
 //returns the base count of a BED file
@@ -93,6 +94,8 @@ function get_variants($vcf_gz, $roi, $normalize, $max_indel)
 		if ($idx!==FALSE) $var['AO'] = $sample[$idx];
 		$idx = array_search("RO", $format);
 		if ($idx!==FALSE) $var['RO'] = $sample[$idx];
+		$idx = array_search("GQ", $format);
+		if ($idx!==FALSE) $var['GQ'] = $sample[$idx];
 		if (strlen($ref)>1 || strlen($alt)>1)
 		{
 			$var["TYPE"] = "INDELS";
@@ -195,6 +198,10 @@ foreach($expected as $pos => $var)
 	{		
 		$var_diff[$pos] = array("g", $var, $found[$pos]);
 	}
+	else
+	{
+		$var_diff[$pos] = array("=", $var, $found[$pos]);
+	}
 }
 
 //find unexpected variants
@@ -224,14 +231,25 @@ uksort($var_diff, "pos_gt");
 
 //print TSV output
 $sample = substr(basename($vcf), 0, 10);
-print "#sample\tstatus\tpos\tvariant\tref_GT\tobs_GT\tobs_DP\tobs_QUAL\tobs_MQM\tobs_AO\tobs_af\n";
-foreach($var_diff as $pos => list($type, $ref, $obs))
+print "#sample\tstatus\tpos\tvariant\tvariant_type\tref_GT\tobs_GT\tobs_DP\tobs_QUAL\tobs_MQM\tobs_AO\tobs_AF\tobs_QUAL_per_DP\n";
+foreach($var_diff as $pos => list($status, $ref, $obs))
 {
+	if($status=="=" && !$matches) continue;
+	
+	$exchange = explode(" ", $pos)[1];
+	$variant_type = strlen($exchange)==3 ? "SNV" : "INDEL";
+
 	$ao = get_prop($obs, "AO");
 	$dp = get_prop($obs, "DP");
+	$gq = get_prop($obs, "GQ");
 	$af = "n/a";
 	if ($ao!="" && $dp!="" && $dp>0) $af = number_format($ao/$dp,2);
-	print "$sample\t$type\t".strtr($pos, " ", "\t")."\t".get_prop($ref, "GT")."\t".get_prop($obs, "GT")."\t".$dp."\t".get_prop($obs, "QUAL", 2)."\t".get_prop($obs, "MQM", 2)."\t".$ao."\t".$af."\n";
+	
+	$qual = get_prop($obs, "QUAL", 2);
+	$qpd = "n/a";
+	if ($qual!="" && $dp!="" && $dp>0) $qpd = number_format($qual/$dp, 2);
+	
+	print "$sample\t$status\t".strtr($pos, " ", "\t")."\t".$variant_type."\t".get_prop($ref, "GT")."\t".get_prop($obs, "GT")."\t".$dp."\t".$qual."\t".get_prop($obs, "MQM", 2)."\t".$ao."\t".$af."\t".$qpd."\n";
 }
 print "\n";
 
@@ -259,6 +277,9 @@ function stats_line($name, $options, $date, $expected, $var_diff, $var_type=null
 	$gt_false = 0;
 	foreach($var_diff as $pos => list($type, $ref, $obs))
 	{
+		//skip matches
+		if ($type=="=") continue;
+		
 		if (!is_null($var_type))
 		{
 			if (isset($ref['TYPE']) && $ref['TYPE']!=$var_type) continue;
