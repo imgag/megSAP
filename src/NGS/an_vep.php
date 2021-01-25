@@ -485,11 +485,10 @@ $parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/filter_vcf.py
 
 
 $family_file = ""; // handle sample as single sample
-$aidiva_config = get_path("aidiva")."/data/AIdiva_configuration_smallTestFile_annotated.yaml";
+$aidiva_config = get_path("aidiva")."/data/AIdiva_configuration_annotated.yaml";
 $ref_genome = genome_fasta($build);
 
-//$temp_results = $parser->tempFolder("aidiva_workdir");
-$temp_results = "/mnt/storage1/users/ahboced1/AIdiva_project/Reannotation_Results_pediatricSamples/"
+$temp_results = $parser->tempFolder("aidiva_workdir");
 $args = array();
 $args[] = "-vcf {$coding_filtered}";
 $args[] = "-outdir {$temp_results}";
@@ -497,6 +496,7 @@ if ($family_file != "")
 {
 	$args[] = "-family {$family_file}";
 }
+$args[] = "-gene_blacklist ".$data_folder."/gene_lists/blacklist.tsv";
 if ($ps_name != "")
 {
 	$args[] = "-ps_name {$ps_name}";
