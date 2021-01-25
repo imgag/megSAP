@@ -15,35 +15,23 @@ $parser->addString("outdir", "Path to output directory.", false);
 $parser->addString("genome_file", "Reference genome file.", false);
 $parser->addString("config", "YAML file with the configuration for AIdiva.", false);
 $parser->addString("family", "File showing the family and who is affected.", true, "");
+$parser->addString("gene_blacklist", "File containing blacklisted genes.", true, "");
 $parser->addString("ps_name", "HPO terms of the observed phenotypes of the patient.", true, "");
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 
 extract($parser->parse($argv));
 
-//$vcf_name = basename($vcf, ".vcf");
 $vcf_indel = $outdir."/".$ps_name."_indel.vcf";
 $vcf_indel_expanded = $outdir."/".$ps_name."_indel_expanded.vcf";
 $vcf_snp = $outdir."/".$ps_name."_snp.vcf";
 
 $hg19_path = $genome_file;
 $feature_list = "SIFT,PolyPhen,REVEL,CADD_PHRED,ABB_SCORE,MAX_AF,segmentDuplication,EIGEN_PHRED,CONDEL,FATHMM_XF,MutationAssessor,phastCons46mammal,phastCons46primate,phastCons46vertebrate,phyloP46mammal,phyloP46primate,phyloP46vertebrate,oe_lof,homAF";
-$coding_regions = get_path("aidiva")."data/GRCh37_coding_sequences.bed";
 $family_file = $family;
 $temp_hpo_file_path = "";
 
-$time_start1 = microtime(true);
-
 $parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/split_vcf_in_indel_and_snp_set.py", "--in_file $vcf --snp_file $vcf_snp --indel_file $vcf_indel", true);
 $parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/convert_indels_to_snps_and_create_vcf.py", "--in_data $vcf_indel --out_data $vcf_indel_expanded --hg19_path $hg19_path", true);
-
-
-$time_end1 = microtime(true);
-$execution_time1 = ($time_end1 - $time_start1)/60;
-
-echo "VEP annotation finished in ${execution_time1} minutes\n";
-
-$time_start1 = microtime(true);
-
 
 // annotate VCF
 $args = array("-in {$vcf_snp}", "-out ".$outdir."/".basename($vcf_snp, ".vcf")."_vep.vcf");
@@ -59,14 +47,6 @@ $args = array("-in {$vcf_indel_expanded}", "-out ".$outdir."/".basename($vcf_ind
 $args[] = "-expanded";
 $args[] = "-threads {$threads}";
 $parser->execTool("NGS/an_vep_aidiva.php", implode(" ", $args));
-
-
-
-$time_end1 = microtime(true);
-$execution_time1 = ($time_end1 - $time_start1)/60;
-
-echo "VEP annotation for AIdiva finished in ${execution_time1} minutes\n";
-
 
 if ($ps_name != "")
 {
@@ -99,16 +79,14 @@ if ($ps_name != "")
 	fclose($temp_hpo_file);
 }
 
-$time_start1 = microtime(true);
-
 // process annotated vcf and perform pathogenicity scoring and prioritization
-//$parser->exec("python3 ".get_path("aidiva")."aidiva/run_AIdiva.py", "--snp_vcf ".$outdir."/".basename($vcf_snp, ".vcf")."_vep.vcf --indel_vcf ".$outdir."/".basename($vcf_indel, ".vcf")."_vep.vcf --expanded_indel_vcf ".$outdir."/".basename($vcf_indel_expanded, ".vcf")."_vep.vcf --out_prefix {$vcf_name}_result --workdir $outdir --hpo_list $temp_hpo_file_path --family_file $family_file --config $config", true);
 $args = array();
 $args[] = "--snp_vcf ".$outdir."/".$ps_name."_snp_vep.vcf";
 $args[] = "--indel_vcf ".$outdir."/".$ps_name."_indel_vep.vcf";
 $args[] = "--expanded_indel_vcf ".$outdir."/".$ps_name."_indel_expanded_vep.vcf";
 $args[] = "--out_prefix ".$ps_name."_result";
 $args[] = "--workdir $outdir";
+$args[] = "--gene_exclusion $gene_blacklist";
 if ($temp_hpo_file_path != "")
 {
 	$args[] = "--hpo_list {$temp_hpo_file_path}";
@@ -124,10 +102,4 @@ $parser->exec("python3 ".get_path("aidiva")."aidiva/run_AIdiva.py", implode(" ",
 $parser->exec(get_path("ngs-bits")."/VcfSort", "-in ".$outdir."/".$ps_name."_result.vcf"." -out ".$outdir."/"."${ps_name}_aidiva_result_sorted.vcf", true);
 $parser->exec("bgzip --force", $outdir."/"."${ps_name}_aidiva_result_sorted.vcf", true);
 $parser->exec("tabix", " -p vcf ".$outdir."/"."${ps_name}_aidiva_result_sorted.vcf.gz", true);
-
-$time_end1 = microtime(true);
-$execution_time1 = ($time_end1 - $time_start1)/60;
-
-echo "AIdiva execution finished in ${execution_time1} minutes\n";
-
 ?>

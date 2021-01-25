@@ -50,7 +50,6 @@ function annotation_file_path($rel_path, $is_optional=false)
 }
 
 //annotate only fields we really need to prevent bloating the VCF file
-//$fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation", "AF", "gnomAD_AF", "gnomAD_AFR_AF", "gnomAD_AMR_AF", "gnomAD_EAS_AF", "gnomAD_NFE_AF", "gnomAD_SAS_AF");
 $fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "Existing_variation");
 
 $vep_output = $parser->tempFile("_customAnnot.vcf");
@@ -66,7 +65,6 @@ $args[] = "-o $vep_output --vcf --no_stats --force_overwrite"; //output
 $args[] = "--species homo_sapiens --assembly {$build}"; //species
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
 $args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".genome_fasta($build); //paths to data
-//$args[] = "--max_af --af --af_gnomad --failed 1"; //population frequencies
 
 if (!$expanded)
 {
@@ -74,7 +72,7 @@ if (!$expanded)
 	$fields[] = "MAX_AF";
 	$args[] = "--custom ".annotation_file_path("/dbs/UCSC/hg19_simpleRepeat.bed.gz").",simpleRepeat,bed,overlap,0";
 	$fields[] = "simpleRepeat";
-	$args[] = "--custom /mnt/storage1/users/ahboced1/AIdiva_project/current_model/gnomAD_OE_sorted.bed.gz,oe_lof,bed,overlap,0";
+	$args[] = "--custom ".annotation_file_path("/dbs/gnomAD/gnomAD_OE_sorted.bed.gz").",oe_lof,bed,overlap,0";
 	$fields[] = "oe_lof";
 }
 
@@ -92,14 +90,6 @@ if(!$basic)
 	$fields[] = "segmentDuplication";
 	$args[] = "--custom ".annotation_file_path("/dbs/ABB/hg19_ABB-SCORE.bed.gz").",ABB_SCORE,bed,exact,0";
 	$fields[] = "ABB_SCORE";
-	//$args[] = "--custom ".annotation_file_path("/dbs/Eigen/hg19_Eigen-phred_coding_chrom1-22.vcf.gz").",eigen,vcf,exact,0,EIGEN_PHRED";
-	//$fields[] = "EIGEN_PHRED";
-	//$args[] = "--custom ".annotation_file_path("/dbs/Condel/hg19_precomputed_Condel.vcf.gz").",fannsdb,vcf,exact,0,CONDEL";
-	//$fields[] = "CONDEL";
-	//$args[] = "--custom ".annotation_file_path("/dbs/fathmm-XF/hg19_fathmm_xf_coding.vcf.gz").",fathmm_xf,vcf,exact,0,FATHMM_XF";
-	//$fields[] = "FATHMM_XF";
-	//$args[] = "--custom ".annotation_file_path("/dbs/MutationAssessor/hg19_precomputed_MutationAssessor.vcf.gz").",mutationassessor,vcf,exact,0,MutationAssessor";
-	//$fields[] = "MutationAssessor";
 	$args[] = "--custom ".annotation_file_path("/dbs/phastCons/hg19_phastCons46way_mammal.bw").",phastCons46mammal,bigwig"; //
 	$fields[] = "phastCons46mammal";
 	$args[] = "--custom ".annotation_file_path("/dbs/phastCons/hg19_phastCons46way_primate.bw").",phastCons46primate,bigwig"; //
@@ -112,6 +102,47 @@ if(!$basic)
 	$fields[] = "phyloP46primate";
 	$args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg19_phyloP46way_vertebrate.bw").",phyloP46vertebrate,bigwig"; //
 	$fields[] = "phyloP46vertebrate";
+	//$args[] = "--plugin dbNSFP".annotation_file_path("/dbs/dbNSFP/4.1a_grch37.gz").",SIFT_score,SIFT4G_score,Polyphen2_HDIV_score,Polyphen2_HVAR_score,LRT_score,MutationTaster_score,MutationAssessor_score,FATHMM_score,PROVEAN_score,VEST4_score,MetaSVM_score,MetaLR_score,M-CAP_score,REVEL_score,MutPred_score,MVP_score,MPC_score,PrimateAI_score,DEOGEN2_score,BayesDel_addAF_score,BayesDel_noAF_score,ClinPred_score,LIST-S2_score,DANN_score,fathmm-MKL_coding_score,fathmm-XF_coding_score,Eigen-raw_coding,Eigen-phred_coding,GenoCanyon_score,GERP++_RS,phyloP100way_vertebrate,phyloP30way_mammalian,phyloP17way_primate,phastCons100way_vertebrate,phastCons30way_mammalian,phastCons17way_primate,SiPhy_29way_logOdds";
+	//$fields[] = "SIFT_score";
+	//$fields[] = "SIFT4G_score";
+	//$fields[] = "Polyphen2_HDIV_score";
+	//$fields[] = "Polyphen2_HVAR_score";
+	//$fields[] = "LRT_score";
+	//$fields[] = "MutationTaster_score";
+	//$fields[] = "MutationAssessor_score";
+	//$fields[] = "FATHMM_score";
+	//$fields[] = "PROVEAN_score";
+	//$fields[] = "VEST4_score";
+	//$fields[] = "MetaSVM_score";
+	//$fields[] = "MetaLR_score";
+	//$fields[] = "M-CAP_score";
+	//$fields[] = "REVEL_score";
+	//$fields[] = "MutPred_score";
+	//$fields[] = "MVP_score";
+	//$fields[] = "MPC_score";
+	//$fields[] = "PrimateAI_score";
+	//$fields[] = "DEOGEN2_score";
+	//$fields[] = "BayesDel_addAF_score";
+	//$fields[] = "BayesDel_noAF_score";
+	//$fields[] = "ClinPred_score";
+	//$fields[] = "LIST-S2_score";
+	//$fields[] = "DANN_score";
+	//$fields[] = "fathmm-MKL_coding_score";
+	//$fields[] = "fathmm-XF_coding_score";
+	//$fields[] = "Eigen-raw_coding";
+	//$fields[] = "Eigen-phred_coding";
+	//$fields[] = "GenoCanyon_score";
+	//$fields[] = "GERP++_RS";
+	//$fields[] = "phyloP100way_vertebrate";
+	//$fields[] = "phyloP30way_mammalian";
+	//$fields[] = "phyloP17way_primate";
+	//$fields[] = "phastCons100way_vertebrate";
+	//$fields[] = "phastCons30way_mammalian";
+	//$fields[] = "phastCons17way_primate";
+	//$fields[] = "SiPhy_29way_logOdds";
+	//$args[] = "--plugin FATHMM_MKL,".annotation_file_path("/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz"); //fathmm-MKL
+	//$fields[] = "FATHMM_MKL_C";
+	//$fields[] = "FATHMM_MKL_NC";
 }
 
 if (!$all_transcripts)

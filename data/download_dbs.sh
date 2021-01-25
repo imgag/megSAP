@@ -271,12 +271,12 @@ cd UCSC
 wget -O hg19_genomicSuperDups.txt.gz ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/database/genomicSuperDups.txt.gz
 gunzip hg19_genomicSuperDups.txt.gz
 cut -f2,3,4,27 hg19_genomicSuperDups.txt > hg19_genomicSuperDups.bed
-grep -v "#" hg19_genomicSuperDups.bed | sort -k1,1 -k2,2n -k3,3n -t$'\t' | bgzip -c > hg19_genomicSuperDups.bed.gz
+grep -v "#" hg19_genomicSuperDups.bed | sort -k1,1 -k2,2n -k3,3n -t '	' | bgzip -c > hg19_genomicSuperDups.bed.gz
 tabix -p bed hg19_genomicSuperDups.bed.gz
 wget -O hg19_simpleRepeat.txt.gz ftp://hgdownload.soe.ucsc.edu/goldenPath/hg19/database/simpleRepeat.txt.gz
 gunzip hg19_simpleRepeat.txt.gz
 cut -f2,3,4,11 hg19_simpleRepeat.txt > hg19_simpleRepeat.bed
-grep -v '#' hg19_simpleRepeat.bed | sort -k1,1 -k2,2n -k3,3n -t$'\t' | bgzip -c > hg19_simpleRepeat.bed.gz
+grep -v '#' hg19_simpleRepeat.bed | sort -k1,1 -k2,2n -k3,3n -t '	' | bgzip -c > hg19_simpleRepeat.bed.gz
 tabix -p bed hg19_simpleRepeat.bed.gz
 
 #Install phastCons46way vertebrate for AIdiva (custom VEP annotation)
