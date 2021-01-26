@@ -7,7 +7,6 @@ import re
 
 parser = argparse.ArgumentParser(description='Run MMSplice on Input VCF file and write Output VCF file with MMSplice predictions in Info.')
 parser.add_argument('--vcf_in', required=True, dest='vcf_in', help='Input  VCF file.')
-parser.add_argument('--vcf_lowAF', required=True, dest='vcf_lowAF', help='VCF file storing low AF variants.')
 parser.add_argument('--vcf_out', required=True, dest='vcf_out', help='Output VCF file.')
 parser.add_argument('--gtf', required=True, dest='gtf', help='GTF annotation file.')
 parser.add_argument('--fasta', required=True, dest='fasta', help='reference Fasta file.')
@@ -36,9 +35,7 @@ from mmsplice.utils import max_varEff
 
 exon_sep = ['[', ']']
 
-def lowFrequencyVariants(vcf_in, vcf_lowAF):
-
-    #boolean to check if any variant is left to score with mmsplice
+def isEmptyVcfFile(vcf_in):
     empty_vcf_file = True
 
     if vcf_in.endswith(".vcf.gz"):
@@ -49,68 +46,14 @@ def lowFrequencyVariants(vcf_in, vcf_lowAF):
     else:
         sys.exit('Wrong file format. Support only \'vcf\' and \'vcf.gz\'')
 
-    out = open(vcf_lowAF, "wb")
-
-    AF_id = None
-    gnomAD_AF_id = None
     for line in in_file.readlines():
         if line.startswith(b'#'):
-            #store all header lines
-            out.write(line)
-            if(line.startswith(b'##INFO=<ID=CSQ,')):
-                pattern = re.compile(b'.*Description=\"(.*)\".*')
-                description = re.match(pattern, line)
-                entries = line.split(b'|')
-                count = 0
-                for entry in entries:
-                    if(entry.strip()==b'AF'):
-                        AF_id = count
-                    elif(entry.strip()==b'gnomAD_AF'):
-                        gnomAD_AF_id = count
-                    count+=1
+            continue
+        else:    
+            empty_vcf_file = False
 
-        else:
-            #else store only lines with variants AF<=1%
-            vcf_line = line.split(b'\t')
-            if(len(vcf_line) < 8):
-                sys.exit("Wrong vcf file format of vcf file " + vcf_in + ": Missing INFO column.")
-            info = vcf_line[7]
-            info = info.split(b';')
-
-            af = 0
-            gnomad_af = 0
-            gnomad_af_genome = 0
-            for info_col in info:
-                
-                #parse CSQ entry
-                if(info_col.startswith(b'CSQ=')):
-
-                    info_col=info_col.split(b'=')
-                    csq_annotations=info_col[1].split(b'|')
-
-                    #1000 Genomes AF
-                    try:
-                        af = float((csq_annotations[AF_id]).decode('ascii'))
-                    except:
-                        pass
-                    #gnomAD exome AF
-                    try:
-                        gnomad_af = float((csq_annotations[gnomAD_AF_id]).decode('ascii'))
-                    except:
-                        pass
-                #gnomAD genome AF
-                elif(info_col.startswith(b'gnomADg_AF=')):
-                    try:
-                        info_col=info_col.split(b'=')
-                        gnomad_af_genome = float((info_col[1]).decode('ascii'))
-                    except:
-                        pass
-            if(af<=0.01 and gnomad_af<=0.01 and gnomad_af_genome<=0.01):
-                out.write(line)
-                empty_vcf_file = False
-    out.close()
     in_file.close()
-    return empty_vcf_file
+    return empty_vcf_file       
 
 def writeTempVCF(vcf_in, vcf_out, dict):
 
@@ -165,10 +108,10 @@ def writeTempVCF(vcf_in, vcf_out, dict):
     out.close()
     in_file.close()
 
-def writeMMSpliceToVcf(vcf_in, vcf_lowAF, vcf_out, gtf, fasta):
+def writeMMSpliceToVcf(vcf_in, vcf_out, gtf, fasta):
 
     #If VCF file is empty after removel of high AF variants, skip mmsplice annotation
-    empty_vcf_file = lowFrequencyVariants(vcf_in, vcf_lowAF)
+    empty_vcf_file = isEmptyVcfFile(vcf_in)
     if(empty_vcf_file):
         with open(vcf_in, "rb") as in_file:
             with open(vcf_out, "wb") as out_file:
@@ -177,7 +120,7 @@ def writeMMSpliceToVcf(vcf_in, vcf_lowAF, vcf_out, gtf, fasta):
         sys.exit()
            
     # dataloader to load variants from vcf
-    dl = SplicingVCFDataloader(gtf, fasta, vcf_lowAF, tissue_specific=False)
+    dl = SplicingVCFDataloader(gtf, fasta, vcf_in, tissue_specific=False)
 
     # Specify model
     model = MMSplice()
@@ -204,15 +147,12 @@ def writeMMSpliceToVcf(vcf_in, vcf_lowAF, vcf_out, gtf, fasta):
             dict[id] = string    
     writeTempVCF(vcf_in, vcf_out, dict)
 
-def checkIfEmpty(f, vcf_out, vcf_lowAF):
+def checkIfEmpty(f, vcf_out):
     if not any(not line.startswith(b"#") for line in f):
         with open(vcf_out, "wb") as out:
             f.seek(0)
-            lowAF_h = open(vcf_lowAF, "wb")
             for line in f:
                 out.write(line)
-                lowAF_h.write(line)
-            lowAF_h.close()
         out.close()
         f.close()
         sys.exit()
@@ -224,15 +164,15 @@ def main():
     import gzip
     if args.vcf_in.endswith(".vcf.gz"):
         with gzip.open(args.vcf_in, 'rb') as f:
-            checkIfEmpty(f, args.vcf_out, args.vcf_lowAF)
+            checkIfEmpty(f, args.vcf_out)
     elif args.vcf_in.endswith(".vcf"):      
         with open(args.vcf_in, 'rb') as f:
-            checkIfEmpty(f, args.vcf_out, args.vcf_lowAF)
+            checkIfEmpty(f, args.vcf_out)
     else:
         sys.exit('Wrong file format. Support only \'vcf\' and \'vcf.gz\'')
 
     #call tool
-    writeMMSpliceToVcf(args.vcf_in, args.vcf_lowAF, args.vcf_out, args.gtf, args.fasta)
+    writeMMSpliceToVcf(args.vcf_in, args.vcf_out, args.gtf, args.fasta)
 
 if __name__ == "__main__":
     main()
