@@ -21,7 +21,7 @@ extract($parser->parse($argv));
 
 
 // check if valid reference genome is provided
-if (!in_array($build, array("GRCh37", "GRCh38", "hg19")))
+if (!in_array($build, array("GRCh37", "GRCh38", "GRCh38_alt", "hg19")))
 {
 	trigger_error("Invalid genome build '".$build."' given!", E_USER_ERROR);
 }
@@ -101,7 +101,6 @@ $parser->log("DRAGEN mapping metrics:", $mapping_metrics);
 $parser->log("Copy alignment back to /mnt/...");
 $parser->copyFile($working_dir.basename($out), $out);
 $parser->copyFile($working_dir.basename($out).".bai", $out.".bai");
-
 
 // delete working directory
 $parser->exec("rm", "-rf $working_dir");

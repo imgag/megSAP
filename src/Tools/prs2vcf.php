@@ -21,7 +21,7 @@ $out_h = fopen2($temp_file, "w");
 fwrite($out_h, "##fileformat=VCFv4.2\n");
 fwrite($out_h, "##fileDate=".date("Ymd")."\n");
 
-//parse intput and convert
+//parse input and convert
 $header_parsed = false;
 $file = file($in);
 foreach($file as $line)
