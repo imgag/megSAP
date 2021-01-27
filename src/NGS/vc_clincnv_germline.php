@@ -130,7 +130,7 @@ $mean_correlation = 0.0;
 	
 	//create target region without polymorphic regions
 	$poly_merged = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$repository_basedir}/data/misc/af_genomes_imgag.bed {$repository_basedir}/data/misc/centromer_telomer_hg19.bed -out {$poly_merged}", true);
+	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$repository_basedir}/data/misc/af_genomes_imgag_GRCh37.bed {$repository_basedir}/data/misc/centromer_telomer_hg19.bed -out {$poly_merged}", true);
 	$roi_poly = $parser->tempFile(".bed");
 	$parser->exec(get_path("ngs-bits")."BedIntersect", "-in {$bed} -in2 {$poly_merged} -out {$roi_poly} -mode in", true);
 	$roi_nonpoly = $parser->tempFile(".bed");

@@ -76,7 +76,7 @@ if(!is_dir($temp_folder) || !is_writable($temp_folder))
 }
 $out_tmp = "{$temp_folder}/cnvs.tsv";
 $args[] = "-out {$out_tmp}";
-$args[] = "-cnp_file {$repository_basedir}/data/misc/af_genomes_imgag.bed";
+$args[] = "-cnp_file {$repository_basedir}/data/misc/af_genomes_imgag_GRCh37.bed";
 $parser->exec("{$ngsbits}CnvHunter", implode(" ", $args), true);
 
 // filter results for given processed sample(s)

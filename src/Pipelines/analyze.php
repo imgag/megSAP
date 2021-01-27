@@ -637,7 +637,7 @@ if (in_array("cn", $steps))
 		if ($is_wes || $is_wgs || $is_wgs_shallow) //Genome/Exome: ClinCNV
 		{
 
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnvfile}", true);
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/af_genomes_imgag_GRCh37.bed -overlap -out {$cnvfile}", true);
 		}
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode -out {$cnvfile}", true);
