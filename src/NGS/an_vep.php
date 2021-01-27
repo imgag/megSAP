@@ -53,7 +53,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 	return $copy;
 }
 
-function get_lowAF_variants(&$low_af_file_spliceai, $unscored_variants, $private_var_dict)
+function write_lowAF_variants(&$low_af_file_spliceai, $unscored_variants, $private_var_dict)
 {
 	$low_af_file_spliceai_h = fopen2($low_af_file_spliceai, 'w');
 	$unscored_variants_h = fopen2($unscored_variants, 'r');
@@ -202,7 +202,7 @@ function annotate_mmsplice_score(&$splicing_output, $private_var_dict, $threshol
 	exec2("grep '#CHROM' {$splicing_output} | cut -f1-8 -d'\t' >> {$mmsplice_unscored_variants}", true);
 	exec2("grep -v '#\|mmsplice' {$splicing_output} | cut -f1-5 -d'\t' | sed 's/$/\t.\t.\t./' >> {$mmsplice_unscored_variants}", false); //false in case grep can not find anything
 	$low_af_file_mmsplice = $parser->tempFile("_mmsplice_lowAF.vcf");
-	get_lowAF_variants($low_af_file_mmsplice, $mmsplice_unscored_variants, $private_var_dict);
+	write_lowAF_variants($low_af_file_mmsplice, $mmsplice_unscored_variants, $private_var_dict);
 	list($private_variant_lines, $stderr)  = exec2("grep -v '#' $low_af_file_mmsplice", false);
 	$private_variant_count = count(array_filter($private_variant_lines));
 	$mmsplice_annotated = FALSE;
@@ -291,7 +291,7 @@ function annotate_spliceai_score(&$splicing_output, $private_var_dict, $threshol
 	exec2("grep -v '#\|SpliceAI' {$splicing_output} | cut -f1-5 -d'\t' | sed 's/$/\t.\t.\t./' >> {$spliceai_unscored_variants}", false); //SpAI annotation might be empty
 	//filter for regions of low AF
 	$low_af_file_spliceai = $parser->tempFile("_spliceai_lowAF.vcf");
-	get_lowAF_variants($low_af_file_spliceai, $spliceai_unscored_variants, $private_var_dict);
+	write_lowAF_variants($low_af_file_spliceai, $spliceai_unscored_variants, $private_var_dict);
 	//filter variants according to spai regions
 	$new_spliceai_annotation = $parser->tempFile("_newSpliceAi_annotations.vcf");
 	$spai_regions = $parser->tempFile("spai_scoring_regions.bed");
