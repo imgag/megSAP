@@ -203,7 +203,7 @@ function annotate_mmsplice_score(&$splicing_output, $private_var_dict, $threshol
 	exec2("grep -v '#\|mmsplice' {$splicing_output} | cut -f1-5 -d'\t' | sed 's/$/\t.\t.\t./' >> {$mmsplice_unscored_variants}", false); //false in case grep can not find anything
 	$low_af_file_mmsplice = $parser->tempFile("_mmsplice_lowAF.vcf");
 	get_lowAF_variants($low_af_file_mmsplice, $mmsplice_unscored_variants, $private_var_dict);
-	list($private_variant_lines, $stderr)  = exec2("grep -v '#' $low_af_file_mmsplice", false); //SpAI annotation might be empty
+	list($private_variant_lines, $stderr)  = exec2("grep -v '#' $low_af_file_mmsplice", false);
 	$private_variant_count = count(array_filter($private_variant_lines));
 	$mmsplice_annotated = FALSE;
 	if($private_variant_count <= $threshold && $private_variant_count > 0)
@@ -214,7 +214,7 @@ function annotate_mmsplice_score(&$splicing_output, $private_var_dict, $threshol
 		$fasta = genome_fasta($build);
 		$splice_env = get_path("Splicing", true);
 		$args = array();
-		$args[] = "--vcf_in {$mmsplice_unscored_variants}"; //input vcf
+		$args[] = "--vcf_in {$low_af_file_mmsplice}"; //input vcf
 		$args[] = "--vcf_out {$private_mms_annotation}"; //output vcf
 		$args[] = "--gtf {$gtf}"; //gtf annotation file
 		$args[] = "--fasta {$fasta}"; //fasta reference file
@@ -307,7 +307,7 @@ function annotate_spliceai_score(&$splicing_output, $private_var_dict, $threshol
 	if($private_variant_count <= $threshold && $private_variant_count > 0)
 	{
 		$args = array();
-		$args[] = "-I {$low_af_file_spliceai_filtered}";
+		$args[] = "-I {$low_af_file_spliceai}";
 		$args[] = "-O {$new_spliceai_annotation}";
 		$fasta = genome_fasta($build);
 		$args[] = "-R {$fasta}"; //output vcf
@@ -355,7 +355,7 @@ function annotate_spliceai_score(&$splicing_output, $private_var_dict, $threshol
 	}
 }
 
-//annotates SpliceAI/ MMSplice score for all variants inside NGSD + calculates score for private variants if less than threshold
+//annotates SpliceAI/ MMSplice score for all variants inside NGSD and GnomAD + calculates scores for private variants if less than threshold
 function annotate_splice_predictions(&$splicing_output)
 {
 	global $build;

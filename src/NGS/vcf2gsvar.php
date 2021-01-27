@@ -1328,6 +1328,7 @@ while(!feof($handle))
 			if(sizeof($delta_scores) == 10)
 			{
 				$tmp_score = max(floatval($delta_scores[2]), floatval($delta_scores[3]), floatval($delta_scores[4]), floatval($delta_scores[5]));
+				if(is_null($splice_number)) $splice_number = $tmp_score;
 				$splice_number = max($splice_number, $tmp_score);
 			}
 			else
@@ -1336,7 +1337,7 @@ while(!feof($handle))
 			}
 		}
 
-		if($splice_number)
+		if(!is_null($splice_number))
 		{
 			$spliceai = $splice_number;
 		}
