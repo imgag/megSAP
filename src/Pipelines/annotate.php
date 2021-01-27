@@ -53,10 +53,6 @@ if ($sys['build']!="GRCh37")
 	trigger_error("Unknown genome build ".$sys['build']." cannot be annotated!", E_USER_ERROR);
 }
 
-
-
-
-
 //annotate VCF
 $args = [];
 $args[] = "-in ".$vcf_unzipped;
@@ -66,7 +62,6 @@ $args[] = "-threads ".$threads;
 $args[] = "-ps_name ".$out_name;
 if ($somatic) $args[] = "-somatic";
 $parser->execTool("NGS/an_vep.php", implode(" ", $args));
-
 
 //annotate COSMIC
 $cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export.vcf.gz";

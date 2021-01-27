@@ -1,10 +1,6 @@
 <?php 
 /** 
 	@page vcf2gsvar
-	
-	@todo replace blacklist genes by blacklist regions:
-			- /mnt/share/data/dbs/ABB/ABB_075.bed
-			- /mnt/share/data/blacklist_regions/blacklist.bed 
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -363,6 +359,7 @@ if ($genotype_mode=="single")
 //write filter descriptions
 $filter_desc = array();
 if ($blacklist) $filter_desc[] = array("gene_blacklist", "The gene(s) are contained on the blacklist of unreliable genes.");
+$filter_desc[] = array("low_conf_region", "Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.");
 
 //parse input
 $c_written = 0;

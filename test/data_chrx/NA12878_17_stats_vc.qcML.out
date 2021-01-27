@@ -6,15 +6,15 @@
   ]>
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
-    <metaDataParameter ID="md0001" name="creation software" value="VariantQC 2020_03-10-g519b9074" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0001" name="creation software" value="VariantQC 2020_12-39-gfed8f622" cvRef="QC" accession="QC:1000002"/>
     <metaDataParameter ID="md0002" name="creation software parameters" value="" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2020-07-29T11:45:02" cvRef="QC" accession="QC:1000004"/>
-    <metaDataParameter ID="md0004" name="source file" value="annotate_74ji6w.vcf" cvRef="QC" accession="QC:1000005"/>
-    <qualityParameter ID="qp0001" name="variant count" description="Total number of variants in the target region." value="790" cvRef="QC" accession="QC:2000013"/>
-    <qualityParameter ID="qp0002" name="known variants percentage" description="Percentage of variants that are known polymorphisms in the dbSNP database." value="99.24" cvRef="QC" accession="QC:2000014"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2021-01-27T14:39:17" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0004" name="source file" value="annotate_iVdtoX.vcf" cvRef="QC" accession="QC:1000005"/>
+    <qualityParameter ID="qp0001" name="variant count" description="Total number of variants in the target region." value="718" cvRef="QC" accession="QC:2000013"/>
+    <qualityParameter ID="qp0002" name="known variants percentage" description="Percentage of variants that are known polymorphisms in the dbSNP database." value="99.58" cvRef="QC" accession="QC:2000014"/>
     <qualityParameter ID="qp0003" name="high-impact variants percentage" description="Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants." value="0.00" cvRef="QC" accession="QC:2000015"/>
-    <qualityParameter ID="qp0004" name="homozygous variants percentage" description="Percentage of variants that are called as homozygous." value="60.38" cvRef="QC" accession="QC:2000016"/>
-    <qualityParameter ID="qp0005" name="indel variants percentage" description="Percentage of variants that are insertions/deletions." value="22.03" cvRef="QC" accession="QC:2000017"/>
+    <qualityParameter ID="qp0004" name="homozygous variants percentage" description="Percentage of variants that are called as homozygous." value="64.48" cvRef="QC" accession="QC:2000016"/>
+    <qualityParameter ID="qp0005" name="indel variants percentage" description="Percentage of variants that are insertions/deletions." value="16.57" cvRef="QC" accession="QC:2000017"/>
     <qualityParameter ID="qp0006" name="transition/transversion ratio" description="Transition/transversion ratio of SNV variants." value="1.92" cvRef="QC" accession="QC:2000018"/>
   </runQuality>
   <cvList>
