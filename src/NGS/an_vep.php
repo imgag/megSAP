@@ -172,7 +172,7 @@ function get_private_variants($vcf_file)
 	return $private_var_dict;
 }
 
-function annotate_mmsplice_score(&$splicing_output, $private_var_dict, $threshold = 20000)
+function annotate_mmsplice_score(&$splicing_output, $private_var_dict, $threshold = 2000)
 {
 	global $build;
 	global $threads;
