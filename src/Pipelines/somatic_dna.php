@@ -114,54 +114,6 @@ function complement_baf_folder($t_n_id_file,$baf_folder,&$db_conn, $ref_genome)
 	}
 }
 
-function complement_baf_folder_tumor_only($t_id, $baf_folder, &$db_conn, $ref_genome)
-{
-	//get processing system
-	$ps_id = get_processed_sample_id($db_conn, $t_id, false);
-	if ($ps_id==-1)
-	{
-		trigger_error("load_system: Cannot determine processing system - processed sample name '$ps_name' is invalid!", E_USER_ERROR);
-	}
-	$sys_name = $db_conn->getValue("SELECT sys.name_short FROM processing_system sys, processed_sample ps WHERE ps.processing_system_id=sys.id AND ps.id=$ps_id");
-
-	//get all samples of processing system
-	global $parser;
-	$ngsbits = get_path("ngs-bits");
-	$sample_table_file = $parser->tempFile(".tsv");
-	trigger_error("### HAVING SYS: {$sys_name}",E_USER_WARNING);
-
-	$pipeline= [
-		["{$ngsbits}NGSDExportSamples", "-system $sys_name -add_path -no_bad_samples"],
-		["{$ngsbits}TsvFilter", "-filter 'system_name_short is $sys_name'"], //this is necessary because NGSDExportSamples performs fuzzy match
-		["{$ngsbits}TsvSlice", "-cols name,path -out $sample_table_file"],
-	];
-	$parser->execPipeline($pipeline, "NGSD sample extraction", true);
-	$samples = file($sample_table_file);
-
-	foreach($samples as $line)
-	{
-
-		trigger_error("### HAVING HERE: {$line}",E_USER_WARNING);
-
-		$line = trim($line);
-		if ($line=="" || $line=="#") continue;
-		list($sample, $path) = explode("\t", $line);
-		
-		$t_info = get_processed_sample_info($db_conn,$sample, false);
-		if(is_null($t_info))
-		{
-			trigger_error("Could not find file {$sample} with path {$path}.",E_USER_WARNING);
-			continue;
-		}
-		$t_gsvar = $t_info["ps_folder"] ."/{$sample}.GSvar";
-		$t_bam = $t_info["ps_bam"];
-		trigger_error("ID of T GSVAR: #{$t_gsvar}# #{$t_bam}#",E_USER_WARNING);
-
-		create_baf_file($t_gsvar,$t_bam,"{$baf_folder}/{$t_id}.tsv", $ref_genome);
-	}	
-
-}
-
 //parse and copy single CGI results files
 function parse_cgi_single_result($from,$to)
 {
@@ -566,21 +518,12 @@ if(in_array("cn",$steps))
 	{		
 
 		//get directory for normal and Offtarget coverages
-		//##############################
-		//create reference folder if it does not exist
-
-		# normal folder als input
-
-		#ref_file_t und ref_file_t_off_target als tumor dateien
-
-		$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
+		$ref_folder_n = get_path("data_folder")."/coverage/".$sys['name_short'];
 		create_directory($ref_folder_n);
 
 		$ref_folder_n_off_target = $ref_folder_n . "_off_target";
 		create_directory($ref_folder_n_off_target);
 		
-		//##############################
-
 		//create BED file with GC and gene annotations - if missing
 		$bed = $ref_folder_t."/roi_annotated.bed";
 		if (!file_exists($bed))
@@ -596,33 +539,32 @@ if(in_array("cn",$steps))
 		//create BAF folder
 		$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
 		create_directory($baf_folder);
-		//create BAf file if not available
 		$baf_file = "{$baf_folder}/{$t_id}.tsv";
+		//create BAf file if not available
 		if(!file_exists($baf_file))
 		{
 			$t_gsvar = dirname($t_bam) ."/{$t_id}.GSvar";
 			create_baf_file($t_gsvar,$t_bam,"{$baf_file}", $ref_genome);
 		}
 
-		//perform CNV analysis
-		// no off-target analysis/ usage of BAF data
-		$cnv_out = $tmp_folder."/output.tsv";
-		$cnv_out2 = $tmp_folder."/output.seg";
-
+		//perform CNV analysis		
 		$args = array(
 			"-cov {$t_cov}",
-			"-cov_folder {$ref_folder_t}",
+			"-cov_folder {$ref_folder_n}",
 			"-bed {$bed}",
 			"-out {$som_clincnv}",
 			"-tumor_only",
-			"-cov_max 200",
+			"-cov_max 200", //debug
 			"-max_cnvs 200",
-			"-bed_off", $off_target_bed,
-			"-cov_off", $t_cov_off_target,
-			"-baf_folder", $baf_folder,
-			#"--log ".$parser->getLogFile() // debug
-			"--log /mnt/users/ahstoht1/ClinBench.log" // debug
+			"-bed_off {$off_target_bed}",
+			"-cov_off {$t_cov_off_target}",
+			"-cov_folder_off {$ref_folder_n_off_target}",
+			"-baf_folder {$baf_folder}",
+			#"--log ".$parser->getLogFile()
+			"--log /mnt/users/ahstoht1/TMP/log.txt"
 		);
+		trigger_error("RUNNIG NOW CLINCNV.", E_USER_WARNING);
+		exec2("cp {$t_cov_off_target} /mnt/users/ahstoht1/TMP/offTargetFileNotreadable.txt");
 		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 
 		// annotate CNV file

@@ -46,6 +46,7 @@ case1_diff:
 	php ../compare_bed.php expected_case1/GS150344_01_stat_lowcov.bed out_case1/GS150344_01_stat_lowcov.bed
 	php ../compare_variants.php -in1 expected_case1/GS150344_01.GSvar -in2 out_case1/GS150344_01.GSvar
 	test -s out_case1/GS150344_01_clincnv.tsv
+	test -s out_case1/GS150344_01_bafs.igv
 
 # tumor-normal (strelka), testing without ClinCNV (GC content too low in input files reduced to one chr)
 case2: case2_analyze case2_somatic case2_diff

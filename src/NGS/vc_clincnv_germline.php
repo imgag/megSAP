@@ -30,31 +30,26 @@ $parser->addString("baf_folder","Folder containing files with B-Allele frequenci
 extract($parser->parse($argv));
 
 //Creates file with paths to coverage files using ref folder and current sample cov path, if $sample_ids is set: skip all ids not contained
-function create_file_with_paths($ref_cov_folder,$cov_path, $sample_ids = array())
+function create_file_with_paths($ref_cov_folder,$cov_path, &$sample_ids, &$debug)
 {
 	global $parser;
-	
-	$ref_paths = glob("{$ref_cov_folder}/*.cov");
-	
-	$paths_to_be_included = array();
-	
-	//Remove samples that are not in $sample_ids
-	if(count($sample_ids) > 0)
-	{	
-		for($i=0;$i<count($ref_paths);++$i)
-		{	
-			$id = basename($ref_paths[$i], ".cov");
+	//$parser->log("\n++++++ IDS OF POS SAMPLES:", $sample_ids); //DEBUG
+	$new_sample_ids;
 
-			if(in_array($id, $sample_ids))
-			{
-				$paths_to_be_included[] = $ref_paths[$i];
-			}
-		}
-	}
-	else
-	{
-		for($i=0;$i<count($ref_paths);++$i)
-		{	
+	$ref_paths = glob("{$ref_cov_folder}/*.cov");
+	//$parser->log("\n++++++ FOLLOWING POSSIBLE REF PATH FOR OFF:", $ref_paths); //DEBUG
+
+	$paths_to_be_included = array();
+	//Remove samples that are not in $sample_ids
+	for($i=0;$i<count($ref_paths);++$i)
+	{	
+		$id = basename($ref_paths[$i], ".cov");
+		//$parser->log("IF: {$id} is inspected for path {$ref_paths}"); //DEBUG
+
+		if(in_array($id, $sample_ids))
+		{
+			$new_sample_ids[] = $id; // DEBUG
+			//trigger_error("++++=> adding to off targets: {$ref_paths[$i]}", E_USER_WARNING);
 			$paths_to_be_included[] = $ref_paths[$i];
 		}
 	}
@@ -64,15 +59,21 @@ function create_file_with_paths($ref_cov_folder,$cov_path, $sample_ids = array()
 	{
 		if(strpos($paths_to_be_included[$i],basename($cov_path,".cov")) !== false)
 		{
+			// DEBUG WE DO NOT REMOVE THE COV FILE FROM NEW_SAMPLE_IDS BUT ADD IT AGAIN BELOW A SCOND TIME
 			unset($paths_to_be_included[$i]);
 			$paths_to_be_included = array_values($paths_to_be_included); //reassign correct indices
 			break;
 		}
 	}
 	$paths_to_be_included[] = $cov_path;
+	$new_sample_ids[] = basename($cov_path, "_off_target.cov");
 
 	$out_file = $parser->tempFile(".txt");
+	sort($paths_to_be_included);
 	file_put_contents($out_file,implode("\n",$paths_to_be_included) );
+
+	$sample_ids = $new_sample_ids;
+	$debug = $paths_to_be_included;
 	
 	return $out_file;
 }
@@ -208,7 +209,8 @@ $command = get_path("clincnv")."/clinCNV.R";
 
 //determine coverage files
 $cov_files = glob($cov_folder."/*.cov");
-$cov_files[] = $cov;
+$cov_files[] = $cov; //DEBUG undo
+
 $cov_files = array_unique(array_map("realpath", $cov_files));
 if (count($cov_files)<$cov_min)
 {
@@ -250,8 +252,10 @@ $mean_correlation = 0.0;
 		{
 			$corr[] = number_format(correlation($profile1, $cov2[$chr]), 3);
 		}
-		
-		$file2corr[$cov_file] = number_format(median($corr), 3);
+		if(contains($cov_file, "DX")) //DEBUG
+		{
+			$file2corr[$cov_file] = number_format(median($corr), 3);
+		}
 	}
 		
 	//sort by correlation
@@ -276,9 +280,13 @@ $parser->log("Execution time of determining reference samples: ".time_readable(m
 
 //merge coverage files to one file
 $tmp = $parser->tempFile(".txt");
+sort($cov_files);
 file_put_contents($tmp, implode("\n", $cov_files));
 $cov_merged = $parser->tempFile(".cov");
 $parser->exec(get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
+
+$from = realpath($cov_merged);
+exec2("cp {$from} /mnt/users/ahstoht1/TMP/COV_MERGED_normalPlusOneTumor.cov", true);
 
 //collect off-target files for coverage files
 $use_off_target = false;
@@ -298,12 +306,45 @@ if($tumor_only)
 
 		$merged_cov_off = $parser->tempFile(".txt");
 		$sample_ids = array();
+		$sample_id_to_path = array();
 		foreach($cov_files as $cov_name)
 		{
 			$sample_ids[] = basename($cov_name, ".cov");
+			$x = basename($cov_name, ".cov"); //DEBUG
+			$sample_id_to_path[$x] = $cov_name;
+			$y = $sample_id_to_path[$x];
+			//trigger_error("ßßßß HAVING FOR ID{$x} PATH{$y}.\n", E_USER_WARNING); //DEBUG
 		}
-		$cov_paths_off = create_file_with_paths($cov_folder_off, realpath($cov_off), $sample_ids);
+		$debug = array();
+		$cov_paths_off = create_file_with_paths($cov_folder_off, realpath($cov_off), $sample_ids, $debug);
 		$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple",true, true);
+		//trigger_error("## off target files in {$merged_cov_off}", E_USER_WARNING); //DEBUG
+		
+		#############################// DEBUG RIGHT NORMAL FILES
+		//merge coverage files to one file
+		
+$from = realpath($merged_cov_off);
+exec2("cp {$from} /mnt/users/ahstoht1/TMP/COV_MERGED_OFF_normalPlusOneTumor.cov", true);
+
+/*
+$new_cov_files = array();
+//last time to use sample IDS
+foreach($sample_ids as $sid)
+{
+	$new_cov_files[] = $sample_id_to_path[$sid];
+	trigger_error("## => 1 ADDING NORMAL SAMPLE ID|{$sid}| PATH|{$sample_id_to_path[$sid]}|.\n", E_USER_WARNING); //DEBUG
+
+}
+$tmp = $parser->tempFile(".txt");
+file_put_contents($tmp, implode("\n", $new_cov_files));
+$cov_merged = $parser->tempFile(".cov");
+$parser->exec(get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
+*/
+
+$parser->log("### NORMAL FILES:", $cov_files);
+$parser->log("### NORMAL OFF TARGET FILE:", $debug);
+
+#################################
 
 		$use_off_target = true;
 	}
@@ -333,7 +374,8 @@ if($tumor_only)
 		$args[] = "--normalOfftarget $merged_cov_off";
 	}
 	if(is_dir($baf_folder)) $args[] = "--bafFolder {$baf_folder}";
-
+	exec2("cp {$cov_merged} /mnt/users/ahstoht1/TMP/COV.cov"); //debug
+	exec2("cp {$merged_cov_off} /mnt/users/ahstoht1/TMP/COVOFF.cov"); //debug
 }
 else
 {
