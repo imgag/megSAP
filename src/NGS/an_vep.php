@@ -53,7 +53,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 	return $copy;
 }
 
-function write_lowAF_variants(&$low_af_file_spliceai, $unscored_variants, $private_var_dict)
+function write_lowAF_variants($low_af_file_spliceai, $unscored_variants, $private_var_dict)
 {
 	$low_af_file_spliceai_h = fopen2($low_af_file_spliceai, 'w');
 	$unscored_variants_h = fopen2($unscored_variants, 'r');
@@ -172,7 +172,7 @@ function get_private_variants($vcf_file)
 	return $private_var_dict;
 }
 
-function annotate_mmsplice_score(&$splicing_output, $private_var_dict, $threshold = 2000)
+function annotate_mmsplice_score($splicing_output, $private_var_dict, $threshold = 2000)
 {
 	global $build;
 	global $threads;
@@ -261,7 +261,7 @@ function annotate_mmsplice_score(&$splicing_output, $private_var_dict, $threshol
 	}
 }
 
-function annotate_spliceai_score(&$splicing_output, $private_var_dict, $threshold = 1000)
+function annotate_spliceai_score($splicing_output, $private_var_dict, $threshold = 1000)
 {
 	global $build;
 	global $threads;
@@ -356,7 +356,7 @@ function annotate_spliceai_score(&$splicing_output, $private_var_dict, $threshol
 }
 
 //annotates SpliceAI/ MMSplice score for all variants inside NGSD and GnomAD + calculates scores for private variants if less than threshold
-function annotate_splice_predictions(&$splicing_output)
+function annotate_splice_predictions($splicing_output)
 {
 	global $build;
 
@@ -649,7 +649,10 @@ if (!$skip_ngsd)
 
 //annotate MMSplice and SpliceAI predictions
 annotate_splice_predictions($vcf_annotate_output);
-$parser->moveFile($vcf_annotate_output, $out);
+
+//mark variants in low-confidence regions
+$low_conf_bed = repository_basedir()."/data/misc/low_conf_regions.bed";
+$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_annotate_output -mark low_conf_region -inv -reg $low_conf_bed -out $out", true);
 
 //validate created VCF file
 //check vcf file

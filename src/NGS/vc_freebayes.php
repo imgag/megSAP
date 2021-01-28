@@ -264,13 +264,7 @@ if ($target_extend>0)
 	$parser->exec("bgzip", "-c $tmp > $out", false);
 }
 
-//(4) mark variants in low-confidence regions
-$low_conf_bed = repository_basedir()."/data/misc/low_conf_regions.bed";
-$tmp = $parser->tempFile(".vcf");
-$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $out -mark low_conf_region -inv -reg $low_conf_bed -out $tmp", true);
-$parser->exec("bgzip", "-c $tmp > $out", false);
-
-//(5) index output file
+//(4) index output file
 $parser->exec("tabix", "-p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
 
 ?>
