@@ -51,13 +51,14 @@ extract($parser->parse($argv));
 ###################################### AUXILARY FUNCTIONS ######################################
 
 //Creates BAF file from "$gsvar" and "bam" file and writes content to "out_file"
-function create_baf_file($gsvar,$bam,$out_file, $ref_genome)
+function create_baf_file($gsvar,$bam,$out_file, $ref_genome, &$error = False)
 {
 	global $parser;
 
 	if(!file_exists($gsvar) || !file_exists($bam)) 
 	{
 		trigger_error("Could not create BAF file {$out_file}, no GSvar or BAM file available.", E_USER_WARNING);
+		$error = True;
 		return;
 	}
 	//Abort if out_file exists to prevent interference with other jobs
@@ -544,7 +545,8 @@ if(in_array("cn",$steps))
 		if(!file_exists($baf_file))
 		{
 			$t_gsvar = dirname($t_bam) ."/{$t_id}.GSvar";
-			create_baf_file($t_gsvar,$t_bam,"{$baf_file}", $ref_genome);
+			$error = False;
+			create_baf_file($t_gsvar, $t_bam, $baf_file, $ref_genome, $error);
 		}
 
 		//perform CNV analysis		
@@ -554,17 +556,16 @@ if(in_array("cn",$steps))
 			"-bed {$bed}",
 			"-out {$som_clincnv}",
 			"-tumor_only",
-			"-cov_max 200", //debug
 			"-max_cnvs 200",
 			"-bed_off {$off_target_bed}",
 			"-cov_off {$t_cov_off_target}",
 			"-cov_folder_off {$ref_folder_n_off_target}",
-			"-baf_folder {$baf_folder}",
-			#"--log ".$parser->getLogFile()
-			"--log /mnt/users/ahstoht1/TMP/log.txt"
+			"--log ".$parser->getLogFile()
 		);
-		trigger_error("RUNNIG NOW CLINCNV.", E_USER_WARNING);
-		exec2("cp {$t_cov_off_target} /mnt/users/ahstoht1/TMP/offTargetFileNotreadable.txt");
+		if(!$error)
+		{
+			$args[] = "-baf_folder {$baf_folder}";
+		}
 		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 
 		// annotate CNV file
