@@ -13,7 +13,6 @@ $parser->addOutfile("out", "Output file in GSvar format.", false);
 //optional
 $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
 $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
-$parser->addFlag("blacklist", "Annotate variants in blacklisted genes with 'gene_blacklist' in filter column.");
 $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
 extract($parser->parse($argv));
 
@@ -37,39 +36,6 @@ function skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $cli
 	if ($gnomad!="" && $gnomad>0.02) return true;
 	
 	return false; //non-exonic but rare
-}
-
-//determines if all the input genes are on the blacklist
-function all_genes_blacklisted($genes)
-{
-	//init blacklist on first call
-	static $blacklist = null;
-	if ($blacklist === null)
-	{
-		$file = file(repository_basedir()."/data/gene_lists/blacklist.tsv");
-		foreach($file as $line)
-		{
-			$line = trim($line);
-			if ($line=="" || $line[0]=="#") continue;
-			list($gene) = explode("\t", $line);
-			$blacklist[$gene] = true;
-		}
-	}
-  
-	if (count($genes)==0)
-	{
-		return false;
-	}
-	
-	foreach ($genes as $gene)
-	{
-		if (!isset($blacklist[$gene]))
-		{
-			return false;
-		}
-	}
-	
-	return true;
 }
 
 //get index of columnn in QSC header.
@@ -358,7 +324,6 @@ if ($genotype_mode=="single")
 
 //write filter descriptions
 $filter_desc = array();
-if ($blacklist) $filter_desc[] = array("gene_blacklist", "The gene(s) are contained on the blacklist of unreliable genes.");
 $filter_desc[] = array("low_conf_region", "Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.");
 
 //parse input
@@ -1420,11 +1385,6 @@ while(!feof($handle))
 		$coding_and_splicing_details = array_merge($coding_and_splicing_details, $coding_and_splicing_details_updown);
 	}
 	
-	$genes = array_unique($genes);
-	if ($blacklist && all_genes_blacklisted($genes))
-	{
-		$filter[] = "gene_blacklist";
-	}
 	$variant_details = implode(",", array_unique($variant_details));
 	$coding_and_splicing_details =  implode(",", $coding_and_splicing_details);
 	
@@ -1471,6 +1431,7 @@ while(!feof($handle))
 	
 	//write data
 	++$c_written;
+	$genes = array_unique($genes);
 	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity\t$spliceai");
 	if (!$skip_ngsd_som)
 	{
