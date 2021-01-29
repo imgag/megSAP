@@ -325,9 +325,6 @@ $cov_merged = $parser->tempFile(".cov");
 $parser->exec(get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
 */
 
-$parser->log("### NORMAL FILES:", $cov_files);
-$parser->log("### NORMAL OFF TARGET FILE:", $debug);
-
 #################################
 
 		$use_off_target = true;
