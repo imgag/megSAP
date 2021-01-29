@@ -26,9 +26,9 @@
 
 |database               |used for                |last update/check               |notes                                                                                               |url                                                                     |GRCh38                                                   |
 |-----------------------|------------------------|--------------------------------|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|---------------------------------------------------------|
-|CancerHotspots         |pipeline (somatic)      |                                |                                                                                                    |https://www.cancerhotspots.org                                          |                                                         |
-|NCG6.0                 |pipeline (somatic)      |                                |                                                                                                    |                                                                        |                                                         |
-|COSMIC                 |pipeline (somatic)      |                                |                                                                                                    |                                                                        |                                                         |
+|CancerHotspots         |pipeline (somatic)      |01.2021                         |version is final and does not change                                                                |https://www.cancerhotspots.org                                          |annotation is based on protein change                    |
+|NCG6.0                 |pipeline (somatic)      |01.2021                         |                                                                                                    |http://ncg.kcl.ac.uk/                                                   |annotation is based on gene symbols                      |
+|COSMIC CMC             |pipeline (somatic)      |01.2021                         |                                                                                                    |https://cancer.sanger.ac.uk/cmc                                         |annotation is based on protein change                    |
 
 
 ## Tools
@@ -55,9 +55,9 @@
 
 |tool somatic           |used for                                                 |last update/check   |notes  |url                                                                     |
 |-----------------------|---------------------------------------------------------|--------------------|-------|------------------------------------------------------------------------|
-|strelka2               |variant calling (tumor/normal)                           |08.2020 (2.9.10)    |       |https://github.com/Illumina/strelka                                     |
-|mantis                 |microsatelite instability (tumor/normal)                 |08.2020 (v1.0.5)    |       |https://github.com/OSU-SRLab/MANTIS/releases                            |
-|varscan2               |variant calling                                          |08.2020 (2.4.4)     |       |https://github.com/dkoboldt/varscan                                     |
+|strelka2               |variant calling (tumor/normal)                           |01.2021 (2.9.10)    |       |https://github.com/Illumina/strelka                                     |
+|mantis                 |microsatelite instability (tumor/normal)                 |01.2021 (v1.0.5)    |       |https://github.com/OSU-SRLab/MANTIS/releases                            |
+|varscan2               |variant calling                                          |01.2021 (2.4.4)     |       |https://github.com/dkoboldt/varscan                                     |
 
 
 ## Tools RNA
