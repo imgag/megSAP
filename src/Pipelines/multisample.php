@@ -689,7 +689,6 @@ if (in_array("cn", $steps))
 				"##DESCRIPTION=comment=Variant comments from the NGSD.",
 				"##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).",
 				"##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.",
-				"##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.",
 				"##FILTER=off-target=Variant marked as 'off-target'."
 				);
 			$content = array_merge($content, $desc_and_filter);

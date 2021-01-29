@@ -43,7 +43,6 @@
 ##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!
 ##DESCRIPTION=comment=Variant comments from the NGSD.
 ##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).
-##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.
 ##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.
 #chr	start	end	ref	obs	GS140127_01	GS140550_01	GS140549_01	filter	quality	gene	variant_type	coding_and_splicing	coding_and_splicing_refseq	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	dbscSNV	COSMIC	MMSplice_DeltaLogitPSI	MMSplice_pathogenicity	SpliceAI	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info
 chr1	957898	957898	G	T	hom	het	hom	off-target	QUAL=3685;DP=63,55,45;AF=0.98,0.64,1.00;MQM=60;SAP=302;ABP=11	AGRN	intron	AGRN:ENST00000379370:intron_variant:MODIFIER:intron2/35:c.463+56G>T::			103320 [GENE=AGRN PHENOS=Myasthenic syndrome,congenital,8,with pre- and postsynaptic defects,615120,Autosomal recessive];				rs2799064	0.3285	0.3627	2084,.		-2.0720			0.00,0.12						-0.26459811417403506	0.14764630911973206		n/a (AF>5%)	n/a (AF>5%)	n/a (AF>5%)					AGRN(inh=AR oe_syn=1.20 oe_mis=0.98 oe_lof=0.32)
