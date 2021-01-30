@@ -26,6 +26,7 @@ $parser->addInfile("bed_off","Off-target bed file.",true); //s_dna
 $parser->addInfile("cov_off","Off-target coverage file for normal sample",true);
 $parser->addString("cov_folder_off", "Folder with off-target normal coverage files (if different from [data_folder]/coverage/[system_short_name]_off_target/.", true, "auto");
 $parser->addString("baf_folder","Folder containing files with B-Allele frequencies.",true);
+$parser->addString("cov_off_min","Minimum number of off-target coverage files required for CNV analysis.",true, 10);
 
 extract($parser->parse($argv));
 
@@ -55,8 +56,12 @@ function create_file_with_paths($ref_cov_folder,$cov_path, &$sample_ids, &$debug
 	{
 		if(strpos($paths_to_be_included[$i],basename($cov_path,".cov")) !== false)
 		{
+			//for tumor only delete the old tumor cov file from folder if it exists, 
+			//and add the new calculated cov file again and reassign correct indices
 			unset($paths_to_be_included[$i]);
-			$paths_to_be_included = array_values($paths_to_be_included); //reassign correct indices
+			$paths_to_be_included = array_values($paths_to_be_included);
+			unset($new_sample_ids[$i]);
+			$new_sample_ids = array_values($new_sample_ids);
 			break;
 		}
 	}
@@ -72,7 +77,6 @@ function create_file_with_paths($ref_cov_folder,$cov_path, &$sample_ids, &$debug
 	
 	return $out_file;
 }
-
 
 function determine_rows_to_use($cov, $roi_nonpoly)
 {	
@@ -210,8 +214,7 @@ $cov_files = array_unique(array_map("realpath", $cov_files));
 if (count($cov_files)<$cov_min)
 {
 	generate_empty_cnv_file($out, $command, "", $ps_name, "Only ".count($cov_files)." coverage files found in folder '{$cov_folder}'", $tumor_only);
-	trigger_error("CNV calling skipped. Only ".count($cov_files)." coverage files found in folder '$cov_folder'. At least {$cov_min} files are needed!", E_USER_WARNING);
-	exit(0);
+	trigger_error("CNV calling skipped. Only ".count($cov_files)." coverage files found in folder '$cov_folder'. At least {$cov_min} files are needed!", E_USER_ERROR);
 }
 
 //select coverage files of most similar samples
@@ -239,7 +242,6 @@ $mean_correlation = 0.0;
 	load_coverage_profile($cov, $rows_to_use, $cov1);
 	foreach($cov_files as $cov_file)
 	{
-
 		load_coverage_profile($cov_file, $rows_to_use, $cov2);
 
 		$corr = array();
@@ -277,8 +279,6 @@ file_put_contents($tmp, implode("\n", $cov_files));
 $cov_merged = $parser->tempFile(".cov");
 $parser->exec(get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
 
-$from = realpath($cov_merged);
-
 //collect off-target files for coverage files
 $use_off_target = false;
 if($tumor_only)
@@ -306,28 +306,16 @@ if($tumor_only)
 		}
 		$debug = array();
 		$cov_paths_off = create_file_with_paths($cov_folder_off, realpath($cov_off), $sample_ids, $debug);
-		$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple",true, true);
-				
-$from = realpath($merged_cov_off);
-
-/*
-$new_cov_files = array();
-//last time to use sample IDS
-foreach($sample_ids as $sid)
-{
-	$new_cov_files[] = $sample_id_to_path[$sid];
-	trigger_error("## => 1 ADDING NORMAL SAMPLE ID|{$sid}| PATH|{$sample_id_to_path[$sid]}|.\n", E_USER_WARNING); //DEBUG
-
-}
-$tmp = $parser->tempFile(".txt");
-file_put_contents($tmp, implode("\n", $new_cov_files));
-$cov_merged = $parser->tempFile(".cov");
-$parser->exec(get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
-*/
-
-#################################
-
-		$use_off_target = true;
+		$off_target_count = count($sample_ids);
+		if ($off_target_count < $cov_off_min)
+		{
+			trigger_error("ClinCNV is called without off-target coverage files! A minimum of {$cov_off_min} files is necessary, {$off_target_count} given. Running ClinCNV for tumor-only analysis WITH off-target coverages is highly recommended!", E_USER_WARNING);
+		}
+		else
+		{
+			$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple",true, true);
+			$use_off_target = true;
+		}
 	}
 }
 
