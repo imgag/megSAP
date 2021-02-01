@@ -12,7 +12,7 @@ $parser = new ToolBase("qbic_copy", "Copies QBIC data into the QBIC datamover fo
 $parser->addFlag("upload", "Enable real upload (otherwise a dry run is performed: dummy data is written to the temporary folder, but it is not copied to the datamover folder).");
 $parser->addString("project", "Restrict upload to a project.", true, "");
 $parser->addStringArray("samples", "Restrict upload to a list of processed sample.", true, "");
-$parser->addFlag("force_reupload", "Upload files even if already uploaded.", true, "");
+$parser->addFlag("force_reupload", "Upload files even if already uploaded.");
 $parser->addFlag("ignore_quality", "Upload all samples regardless of quality.");
 extract($parser->parse($argv));
 

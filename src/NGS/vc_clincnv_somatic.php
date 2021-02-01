@@ -27,7 +27,7 @@ $parser->addString("cov_folder_t", "Folder with all tumor coverage files (if dif
 $parser->addString("cov_pairs","ClinCNV file with tumor-normal pairs. Will be created from NGSD tumor-normal IDs by default.",true,"auto");
 $parser->addString("baf_folder","Folder containing files with B-Allele frequencies.",true);
 $parser->addInfile("system", "Processing system INI file (obligatory if NGSD is not available).", true);
-$parser->addFlag("reanalyse_cohort","Reanalyse whole cohort of the same processing system.",true,"auto");
+$parser->addFlag("reanalyse_cohort","Reanalyse whole cohort of the same processing system.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("guide_baseline","baseline region, format e.g. chr1:12-12532",true);
 extract($parser->parse($argv));

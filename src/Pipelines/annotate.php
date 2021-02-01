@@ -17,7 +17,7 @@ $parser->addInfile("system", "Processing system INI file (automatically determin
 $parser->addString("vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_var.vcf.gz).", true, "");
 $parser->addFlag("no_fc", "No format check (vcf/tsv).");
 $parser->addFlag("multi", "Enable multi-sample mode.");
-$parser->addFlag("somatic", "Enable somatic mode (no variant QC and no GSvar file).", true, "na");
+$parser->addFlag("somatic", "Enable somatic mode (no variant QC and no GSvar file).");
 $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 extract($parser->parse($argv));
