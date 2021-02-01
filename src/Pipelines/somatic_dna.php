@@ -31,7 +31,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 $parser->addString("cancer_type", "Tumor type, see CancerGenomeInterpreter.org for nomenclature (resolved from GENLAB if not set).", true);
 $parser->addInfile("system",  "Processing system file used for tumor DNA sample (resolved from NGSD via tumor BAM by default).", true);
 $parser->addInfile("n_system",  "Processing system file used for normal DNA sample (resolved from NGSD via normal BAM by default).", true);
-
+$parser->addFlag("skip_contamination_check", "Skips check of female tumor sample for male SRY DNA.");
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
 $parser->addFlag("include_germline", "Include germline variant annotation with CGI.");
@@ -247,13 +247,20 @@ if( db_is_enabled("NGSD") )
 	
 	if(!is_null($tinfo) && $tinfo["gender"] == "female")
 	{
-		$hg_build = ( $sys['build'] == "GRCh37" ? "hg19" : "hg38" );
-		$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build $hg_build -method sry", true);
-		list(,,$cov_sry) = explode("\t", $out[0][1]);
-
-		if(is_numeric($cov_sry) && (float)$cov_sry >= 30)
+		if($skip_contamination_check)
 		{
-			trigger_error("Detected contamination of female tumor sample {$t_id} with male genomic DNA on SRY. SRY coverage is at {$cov_sry}x.", E_USER_ERROR);
+			trigger_error("Skipping check of female tumor sample $t_bam for contamination with male genomic DNA.", E_USER_WARNING);
+		}
+		else
+		{
+			$hg_build = ( $sys['build'] == "GRCh37" ? "hg19" : "hg38" );
+			$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build $hg_build -method sry", true);
+			list(,,$cov_sry) = explode("\t", $out[0][1]);
+
+			if(is_numeric($cov_sry) && (float)$cov_sry >= 30)
+			{
+				trigger_error("Detected contamination of female tumor sample {$t_id} with male genomic DNA on SRY. SRY coverage is at {$cov_sry}x.", E_USER_ERROR);
+			}
 		}
 	}
 }
