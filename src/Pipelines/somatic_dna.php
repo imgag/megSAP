@@ -549,10 +549,10 @@ if(in_array("cn",$steps))
 		create_directory($baf_folder);
 		$baf_file = "{$baf_folder}/{$t_id}.tsv";
 		//create BAf file if not available
+		$error = False;
 		if(!file_exists($baf_file))
 		{
 			$t_gsvar = dirname($t_bam) ."/{$t_id}.GSvar";
-			$error = False;
 			create_baf_file($t_gsvar, $t_bam, $baf_file, $ref_genome, $error);
 		}
 
@@ -566,13 +566,13 @@ if(in_array("cn",$steps))
 			"-max_cnvs 200",
 			"-bed_off {$off_target_bed}",
 			"-cov_off {$t_cov_off_target}",
-			"-cov_folder_off {$ref_folder_n_off_target}",
-			"--log ".$parser->getLogFile()
+			"-cov_folder_off {$ref_folder_n_off_target}"
 		);
 		if(!$error)
 		{
 			$args[] = "-baf_folder {$baf_folder}";
 		}
+		$args[] = "--log ".$parser->getLogFile();
 		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 
 		// annotate CNV file

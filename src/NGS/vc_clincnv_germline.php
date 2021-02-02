@@ -31,7 +31,7 @@ $parser->addString("cov_off_min","Minimum number of off-target coverage files re
 extract($parser->parse($argv));
 
 //Creates file with paths to coverage files using ref folder and current sample cov path, if $sample_ids is set: skip all ids not contained
-function create_file_with_paths($ref_cov_folder,$cov_path, &$sample_ids, &$debug)
+function create_file_with_paths($ref_cov_folder,$cov_path, &$sample_ids)
 {
 	global $parser;
 	$new_sample_ids;
@@ -46,7 +46,7 @@ function create_file_with_paths($ref_cov_folder,$cov_path, &$sample_ids, &$debug
 
 		if(in_array($id, $sample_ids))
 		{
-			$new_sample_ids[] = $id; // DEBUG
+			$new_sample_ids[] = $id;
 			$paths_to_be_included[] = $ref_paths[$i];
 		}
 	}
@@ -73,7 +73,6 @@ function create_file_with_paths($ref_cov_folder,$cov_path, &$sample_ids, &$debug
 	file_put_contents($out_file,implode("\n",$paths_to_be_included) );
 
 	$sample_ids = $new_sample_ids;
-	$debug = $paths_to_be_included;
 	
 	return $out_file;
 }
@@ -208,7 +207,7 @@ $command = get_path("clincnv")."/clinCNV.R";
 
 //determine coverage files
 $cov_files = glob($cov_folder."/*.cov");
-$cov_files[] = $cov; //DEBUG undo
+$cov_files[] = $cov;
 
 $cov_files = array_unique(array_map("realpath", $cov_files));
 if (count($cov_files)<$cov_min)
@@ -294,18 +293,14 @@ if($tumor_only)
 			trigger_error("CNV calling skipped. Off-target Coverage files folder cov_folder_n_off '$cov_folder_off' does not exist!", E_USER_ERROR);
 		}
 
+		//create file with off-target coverages
 		$merged_cov_off = $parser->tempFile(".txt");
 		$sample_ids = array();
-		$sample_id_to_path = array();
 		foreach($cov_files as $cov_name)
 		{
 			$sample_ids[] = basename($cov_name, ".cov");
-			$x = basename($cov_name, ".cov"); //DEBUG
-			$sample_id_to_path[$x] = $cov_name;
-			$y = $sample_id_to_path[$x];
 		}
-		$debug = array();
-		$cov_paths_off = create_file_with_paths($cov_folder_off, realpath($cov_off), $sample_ids, $debug);
+		$cov_paths_off = create_file_with_paths($cov_folder_off, realpath($cov_off), $sample_ids);
 		$off_target_count = count($sample_ids);
 		if ($off_target_count < $cov_off_min)
 		{
@@ -337,6 +332,10 @@ if($tumor_only)
 	$args[] = "--minimumPurity 30";
 	$args[] = "--purityStep 5";
 	$args[] = "--scoreS 150";
+	$script_path = get_path('clincnv');
+	$command_elements = explode(' ', $script_path);
+	$script_path = end($command_elements);
+	$args[] = "--folderWithScript {$script_path}";
 	if($use_off_target)
 	{
 		$args[] = "--bedOfftarget $bed_off";
