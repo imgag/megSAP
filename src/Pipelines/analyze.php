@@ -15,15 +15,16 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
 $steps_all = array("ma", "vc", "cn", "sv", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, db=import into NGSD.", true, "ma,vc,cn,sv,db");
-$parser->addFlag("lofreq", "Perform low frequency variant detection (down to 5% AF).", true);
+$parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (freebayes 'min-alternate-fraction' parameter).", true, 0.1);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
-$parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
-$parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
-$parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.", true);
-$parser->addFlag("correction_n", "Use Ns for errors by barcode correction.", true);
+$parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.");
+$parser->addFlag("no_abra", "Skip realignment with ABRA.");
+$parser->addFlag("no_trim", "Skip adapter trimming with SeqPurge.");
+$parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.");
+$parser->addFlag("correction_n", "Use Ns for errors by barcode correction.");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
-$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard BWA-MEM.", true);
+$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard BWA-MEM.");
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
@@ -206,6 +207,7 @@ if (in_array("ma", $steps))
 	$args = array();
 	if($clip_overlap) $args[] = "-clip_overlap";
 	if($no_abra) $args[] = "-no_abra";
+	if($no_trim) $args[] = "-no_trim";
 	if($start_with_abra) $args[] = "-start_with_abra";
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
@@ -290,15 +292,7 @@ if (in_array("vc", $steps))
 			$args[] = "-target ".$sys['target_file'];
 			$args[] = "-target_extend 50";
 		}
-
-		if ($lofreq) //lofreq
-		{
-			$args[] = "-min_af 0.05";
-		}
-		else
-		{
-			$args[] = "-min_af 0.1";
-		}
+		$args[] = "-min_af ".$min_af;
 		
 		//Do not call standard pipeline if there is only mitochondiral chrMT in target region
 		$only_mito_in_target_region = false;
@@ -606,10 +600,10 @@ if (in_array("cn", $steps))
 		}
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode -out {$cnvfile}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2020-05.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-01.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
 
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_1.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_4.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);

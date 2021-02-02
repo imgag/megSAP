@@ -14,7 +14,7 @@ $parser->addInfile("in", "Input BAM file (with index).", false);
 $parser->addOutfile("out", "Output VCF file containing structural variants.", false);
 //optional
 $parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
-$parser->addFlag("exome", "If set, manta settings for exome/panel analysis are used (no depth filtering).", true);
+$parser->addFlag("exome", "If set, manta settings for exome/panel analysis are used (no depth filtering).");
 extract($parser->parse($argv));
 
 // path to data folder and reference genomes

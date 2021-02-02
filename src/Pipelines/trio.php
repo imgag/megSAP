@@ -148,7 +148,7 @@ $args_multisample = [
 	"-out_folder $out_folder",
 	"-system $system",
 	"-prefix trio",
-	"-threads $threads",
+	"-threads $threads"
 	];
 if ($annotation_only) $args_multisample[] = "-annotation_only";
 	
@@ -370,6 +370,9 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	$s_id_c = $info_c['s_id'];
 	$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$s_id_f},'parent-child',{$s_id_c})");
 	$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$s_id_m},'parent-child',{$s_id_c})");
+	
+	//add secondary analysis (if missing)
+	$parser->execTool("NGS/db_import_secondary_analysis.php", "-type 'trio' -gsvar {$gsvar}");
 }
 
 ?>

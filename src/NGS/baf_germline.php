@@ -15,7 +15,7 @@ $parser->addInfile("vcf", "Variant list with SNPs to use (in VCF/VCF.GZ format).
 $parser->addOutfile("out",  "Output IGV file.", false);
 //optional
 $parser->addInt("min_dp", "Minimum depth of SNP locations in BAM.", true, 20);
-$parser->addFlag("depth", "Add depth column(s) to 'out'.", true, 20);
+$parser->addFlag("depth", "Add depth column(s) to 'out'.");
 $parser->addInt("downsample", "Enable downsampling, i.e. only every n-th SNP is used to calculate BAFs.", true, 0);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));

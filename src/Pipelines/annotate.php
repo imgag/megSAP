@@ -17,7 +17,7 @@ $parser->addInfile("system", "Processing system INI file (automatically determin
 $parser->addString("vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_var.vcf.gz).", true, "");
 $parser->addFlag("no_fc", "No format check (vcf/tsv).");
 $parser->addFlag("multi", "Enable multi-sample mode.");
-$parser->addFlag("somatic", "Enable somatic mode (no variant QC and no GSvar file).", true, "na");
+$parser->addFlag("somatic", "Enable somatic mode (no variant QC and no GSvar file).");
 $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 extract($parser->parse($argv));
@@ -53,10 +53,6 @@ if ($sys['build']!="GRCh37")
 	trigger_error("Unknown genome build ".$sys['build']." cannot be annotated!", E_USER_ERROR);
 }
 
-
-
-
-
 //annotate VCF
 $args = [];
 $args[] = "-in ".$vcf_unzipped;
@@ -66,7 +62,6 @@ $args[] = "-threads ".$threads;
 $args[] = "-ps_name ".$out_name;
 if ($somatic) $args[] = "-somatic";
 $parser->execTool("NGS/an_vep.php", implode(" ", $args));
-
 
 //annotate COSMIC
 $cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export.vcf.gz";
@@ -95,7 +90,7 @@ if (!$somatic) //germline only
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
 	$parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $stafile", true);
 	
-	$args = array("-in $annfile", "-out $varfile", "-blacklist");
+	$args = array("-in $annfile", "-out $varfile");
 	if ($multi) $args[] = "-genotype_mode multi";
 	if ($updown) $args[] = "-updown";
 	if ($sys['type']=="WGS") $args[] = "-wgs";

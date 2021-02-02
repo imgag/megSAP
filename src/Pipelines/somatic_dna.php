@@ -31,7 +31,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 $parser->addString("cancer_type", "Tumor type, see CancerGenomeInterpreter.org for nomenclature (resolved from GENLAB if not set).", true);
 $parser->addInfile("system",  "Processing system file used for tumor DNA sample (resolved from NGSD via tumor BAM by default).", true);
 $parser->addInfile("n_system",  "Processing system file used for normal DNA sample (resolved from NGSD via normal BAM by default).", true);
-
+$parser->addFlag("skip_contamination_check", "Skips check of female tumor sample for male SRY DNA.");
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
 $parser->addFlag("include_germline", "Include germline variant annotation with CGI.");
@@ -252,13 +252,20 @@ if( db_is_enabled("NGSD") )
 	
 	if(!is_null($tinfo) && $tinfo["gender"] == "female")
 	{
-		$hg_build = ( $sys['build'] == "GRCh37" ? "hg19" : "hg38" );
-		$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build $hg_build -method sry", true);
-		list(,,$cov_sry) = explode("\t", $out[0][1]);
-
-		if(is_numeric($cov_sry) && (float)$cov_sry >= 20)
+		if($skip_contamination_check)
 		{
-			trigger_error("Detected contamination of female tumor sample {$t_id} with male genomic DNA on SRY. SRY coverage is at {$cov_sry}x.", E_USER_ERROR);
+			trigger_error("Skipping check of female tumor sample $t_bam for contamination with male genomic DNA.", E_USER_WARNING);
+		}
+		else
+		{
+			$hg_build = ( $sys['build'] == "GRCh37" ? "hg19" : "hg38" );
+			$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build $hg_build -method sry", true);
+			list(,,$cov_sry) = explode("\t", $out[0][1]);
+
+			if(is_numeric($cov_sry) && (float)$cov_sry >= 30)
+			{
+				trigger_error("Detected contamination of female tumor sample {$t_id} with male genomic DNA on SRY. SRY coverage is at {$cov_sry}x.", E_USER_ERROR);
+			}
 		}
 	}
 }
@@ -573,9 +580,9 @@ if(in_array("cn",$steps))
 		$data_folder = get_path("data_folder");
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2020-05.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-01.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_1.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_4.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
@@ -1172,7 +1179,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		if (!$single_sample)
 		{
 			// check sex using control sample
-			$parser->execTool("NGS/db_check_gender.php", "-in $n_bam -pid $n_id");
+			$parser->execTool("NGS/db_check_gender.php", "-in $n_bam -pid $n_id -sry_cov 30");
 
 			// import qcML files
 			$log_db = dirname($n_bam)."/{$n_id}_log4_db.log";
@@ -1213,6 +1220,9 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 				$parser->exec(get_path("ngs-bits") . "/NGSDAddVariantsSomatic", " -t_ps $t_id -n_ps $n_id -cnv $som_clincnv -cnv_force");
 			}
 		}
+		
+		//add secondary analysis (if missing)
+		$parser->execTool("NGS/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
 	}
 }
 ?>

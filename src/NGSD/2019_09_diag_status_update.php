@@ -1,13 +1,10 @@
 <?php
-/** 
-	@page 2019_09_diag_status_update
-*/
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("2019_09_diag_status_update", "NGSD change ");
+$parser = new ToolBase("2019_09_diag_status_update", "NGSD update for diag_status: Removes columns genes_causal, inheritance_mode and genes_incidental; stores the date in comments.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 

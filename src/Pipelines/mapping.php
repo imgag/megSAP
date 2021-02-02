@@ -2,7 +2,6 @@
 
 /**
 	@page mapping
-	@todo Add pipeline test for MIPs/HaloPlex HS (only a few exons)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -19,12 +18,13 @@ $parser->addString("out_name", "Output file base name (e.g. 'GS120001_01').", fa
 $parser->addInfileArray("in_index",  "Index reads FASTQ file(s).", true);
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'out_name' is a valid processed sample name).", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
-$parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
-$parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
-$parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.", true);
-$parser->addFlag("correction_n", "Use Ns for barcode correction.", true);
-$parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.", true);
-$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard bwa mem.", true);
+$parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.");
+$parser->addFlag("no_abra", "Skip realignment with ABRA.");
+$parser->addFlag("no_trim", "Skip adapter trimming with SeqPurge.");
+$parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.");
+$parser->addFlag("correction_n", "Use Ns for barcode correction.");
+$parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.");
+$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard bwa mem.");
 extract($parser->parse($argv));
 
 //check user for DRAGEN mapping
@@ -191,14 +191,23 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq",
 
 	$barcode_correction = true;
 }
-else
+else //normal analysis without UMIs
 {
 	if ($sys['umi_type']!=="n/a") trigger_error("Unknown UMI-type ".$sys['umi_type'].". No barcode correction.",E_USER_WARNING);
+
 	if (!$start_with_abra)
 	{
-		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 6), true);
+		if ($no_trim)
+		{
+			$parser->exec(get_path("ngs-bits")."ReadQC", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out $stafile1", true);
+			$parser->exec(get_path("ngs-bits")."FastqConcat", "-in ".implode(" ", $in_for)." -out $trimmed1", true);
+			$parser->exec(get_path("ngs-bits")."FastqConcat", "-in ".implode(" ", $in_rev)." -out $trimmed2", true);
+		}
+		else
+		{
+			$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 6), true);
+		}
 	}
-
 }
 
 //clean up MIPs - remove single reads and MIP arms, skip all reads without perfect match mip arm

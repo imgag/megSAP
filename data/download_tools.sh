@@ -7,7 +7,7 @@ folder=$root/tools/
 cd $folder
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2020_09 && git submodule update --recursive --init
+git checkout 2020_12 && git submodule update --recursive --init
 make build_3rdparty
 make build_tools_release
 
@@ -53,6 +53,12 @@ tar xjf bwa-0.7.17.tar.bz2
 rm bwa-0.7.17.tar.bz2
 cd bwa-0.7.17
 make
+
+#download bwa-mem2
+cd $folder
+wget https://github.com/bwa-mem2/bwa-mem2/releases/download/v2.1/bwa-mem2-2.1_x64-linux.tar.bz2
+tar xjf bwa-mem2-2.1_x64-linux.tar.bz2
+rm bwa-mem2-2.1_x64-linux.tar.bz2
 
 #download ClinCNV
 cd $folder
@@ -150,14 +156,15 @@ make install
 rm -R Python-3.6.9
 rm Python-3.6.9.tgz
 
-#download MMSplice
+#download Splicing tools
 cd $folder
-mmsplice=$folder/MMSplice
-mkdir -p $mmsplice
-cd $mmsplice
-$folder/Python3/bin/python3 -m venv mmsplice_env
-source $mmsplice/mmsplice_env/bin/activate
+spliceFolder=$folder/SplicingTools
+mkdir -p $spliceFolder
+cd $spliceFolder
+$folder/Python3/bin/python3 -m venv splice_env
+source $spliceFolder/splice_env/bin/activate
 pip install cyvcf2==0.20.5 cython==0.29.21
 pip install h5py==2.10.0
 pip install mmsplice==2.1.1
+pip install spliceai==1.3.1
 deactivate

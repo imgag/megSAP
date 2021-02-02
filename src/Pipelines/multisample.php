@@ -32,8 +32,8 @@ $parser->addString("out_folder", "Output folder name.", false);
 //optional
 $parser->addString("prefix", "Output file prefix.", true, "multi");
 $parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of the first file in 'bams' is a valid processed sample name).", true);
-$steps_all = array("vc", "cn");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, cn=copy-number analysis.", true, implode(",", $steps_all));
+$steps_all = array("vc", "cn", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, cn=copy-number analysis, db=database import.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 extract($parser->parse($argv));
@@ -41,11 +41,12 @@ extract($parser->parse($argv));
 //init
 $repository_basedir = repository_basedir();
 $data_folder = get_path("data_folder");
-$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_1.bed";
+$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_4.bed";
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
 $vcf_all = "{$out_folder}/all.vcf.gz";
 $vcf_all_mito = "{$out_folder}/all_mito.vcf.gz";
 $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
+$gsvar = "{$out_folder}/{$prefix}.GSvar";
 
 // create logfile in output folder if no filepath is provided:
 if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/multi_".date("YmdHis").".log");
@@ -687,12 +688,12 @@ if (in_array("cn", $steps))
 				"##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!",
 				"##DESCRIPTION=comment=Variant comments from the NGSD.",
 				"##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).",
-				"##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.",
+				"##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.",
 				"##FILTER=off-target=Variant marked as 'off-target'."
 				);
 			$content = array_merge($content, $desc_and_filter);
 			$content[] = "#chr	start	end	ref	obs	".implode("\t", array_values($names))."	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	dbscSNV	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info";
-			file_put_contents("{$out_folder}{$prefix}.GSvar", implode("\n", $content));
+			file_put_contents($gsvar, implode("\n", $content));
 		}
 	}
 
@@ -713,7 +714,7 @@ if (in_array("cn", $steps))
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -out {$cnv_multi}", true);
 		
 		//pathogenic ClinVar CNVs
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2020-05.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-01.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", true);
 		
 		//HGMD CNVs
 		if (file_exists($hgmd_file)) //optional because of license
@@ -726,11 +727,14 @@ if (in_array("cn", $steps))
 		{
 			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnv_multi} -in2 $omim_file -no_duplicates -url_decode -out {$cnv_multi}", true);
 		}
-
-		
 	}
-	
-	
+}
+
+//NGSD import
+if (in_array("db", $steps) && db_is_enabled("NGSD"))
+{
+	//add secondary analysis (if missing)
+	$parser->execTool("NGS/db_import_secondary_analysis.php", "-type 'multi sample' -gsvar {$gsvar}");
 }
 
 ?>

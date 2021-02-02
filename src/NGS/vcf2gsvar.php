@@ -1,10 +1,6 @@
 <?php 
 /** 
 	@page vcf2gsvar
-	
-	@todo replace blacklist genes by blacklist regions:
-			- /mnt/share/data/dbs/ABB/ABB_075.bed
-			- /mnt/share/data/blacklist_regions/blacklist.bed 
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -17,7 +13,6 @@ $parser->addOutfile("out", "Output file in GSvar format.", false);
 //optional
 $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
 $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
-$parser->addFlag("blacklist", "Annotate variants in blacklisted genes with 'gene_blacklist' in filter column.");
 $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
 extract($parser->parse($argv));
 
@@ -41,39 +36,6 @@ function skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $cli
 	if ($gnomad!="" && $gnomad>0.02) return true;
 	
 	return false; //non-exonic but rare
-}
-
-//determines if all the input genes are on the blacklist
-function all_genes_blacklisted($genes)
-{
-	//init blacklist on first call
-	static $blacklist = null;
-	if ($blacklist === null)
-	{
-		$file = file(repository_basedir()."/data/gene_lists/blacklist.tsv");
-		foreach($file as $line)
-		{
-			$line = trim($line);
-			if ($line=="" || $line[0]=="#") continue;
-			list($gene) = explode("\t", $line);
-			$blacklist[$gene] = true;
-		}
-	}
-  
-	if (count($genes)==0)
-	{
-		return false;
-	}
-	
-	foreach ($genes as $gene)
-	{
-		if (!isset($blacklist[$gene]))
-		{
-			return false;
-		}
-	}
-	
-	return true;
 }
 
 //get index of columnn in QSC header.
@@ -314,14 +276,16 @@ $column_desc = array(
 	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
 	array("MMSplice_DeltaLogitPSI", "MMsplice delta Logit PSI score: variant's effect on the exon inclusion - positive score shows higher exon inclusion, negative higher exclusion rate. A score greater than 2 or less than -2 can be considered strong."),
-	array("MMSplice_pathogenicity", "MMsplice pathogenicity score: probability of pathogenic effect of the variant on splicing")
-
+	array("MMSplice_pathogenicity", "MMsplice pathogenicity score: probability of pathogenic effect of the variant on splicing"),
+	array("SpliceAI", "SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes.")
 );
 
 // optional NGSD somatic header description if vcf contains NGSD somatic information
 $column_desc_ngsd_som = array(
 	array("NGSD_som_c", "Somatic variant count in the NGSD."),
-	array("NGSD_som_p", "Project names of project containing this somatic variant in the NGSD.")
+	array("NGSD_som_p", "Project names of project containing this somatic variant in the NGSD."),
+	array("NGSD_som_vicc_interpretation", "Somatic variant interpretation according VICC standard in the NGSD."),
+	array("NGSD_som_vicc_comment", "Somatic VICC interpretation comment in the NGSD.")
 );
 
 // optional NGSD header description if vcf contains NGSD information
@@ -360,7 +324,7 @@ if ($genotype_mode=="single")
 
 //write filter descriptions
 $filter_desc = array();
-if ($blacklist) $filter_desc[] = array("gene_blacklist", "The gene(s) are contained on the blacklist of unreliable genes.");
+$filter_desc[] = array("low_conf_region", "Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.");
 
 //parse input
 $c_written = 0;
@@ -1162,6 +1126,24 @@ while(!feof($handle))
 			{
 				$ngsd_som_projects = "";
 			}
+			
+			if (isset($info["NGSD_SOM_VICC"]))
+			{
+				$ngsd_som_vicc = trim($info["NGSD_SOM_VICC"]);
+			}
+			else
+			{
+				$ngsd_som_vicc = "";
+			}
+			
+			if (isset($info["NGSD_SOM_VICC_COMMENT"]))
+			{
+				$ngsd_som_vicc_comment = vcf_decode_url_string(trim($info["NGSD_SOM_VICC_COMMENT"]) );
+			}
+			else
+			{
+				$ngsd_som_vicc_comment = "";
+			}
 		}
 
 		//NGSD
@@ -1292,7 +1274,38 @@ while(!feof($handle))
 		}
 
 	}
-	
+
+	//SpliceAI
+	$spliceai = "";
+	if (isset($info["SpliceAI"]))
+	{
+		$splice_number = null;
+		$spliceai_info = trim($info["SpliceAI"]);
+		$spliceai_values = array();
+
+		$entries = explode(",", $spliceai_info);
+		foreach($entries as $entry)
+		{
+			$delta_scores = explode("|", $entry);
+			if(sizeof($delta_scores) == 10)
+			{
+				$tmp_score = max(floatval($delta_scores[2]), floatval($delta_scores[3]), floatval($delta_scores[4]), floatval($delta_scores[5]));
+				if(is_null($splice_number)) $splice_number = $tmp_score;
+				$splice_number = max($splice_number, $tmp_score);
+			}
+			else
+			{
+				trigger_error("Wrong SpliceAI annotation in line: ${line} in SpliceAI annotation: ${spliceai_info}! Delimiter for several genes must be ','.", E_USER_WARNING);
+			}
+		}
+
+		if(!is_null($splice_number))
+		{
+			$spliceai = $splice_number;
+		}
+
+	}
+
 	// CADD
 	$cadd_scores = array();
 	if (isset($info["CADD_SNV"]))
@@ -1372,11 +1385,6 @@ while(!feof($handle))
 		$coding_and_splicing_details = array_merge($coding_and_splicing_details, $coding_and_splicing_details_updown);
 	}
 	
-	$genes = array_unique($genes);
-	if ($blacklist && all_genes_blacklisted($genes))
-	{
-		$filter[] = "gene_blacklist";
-	}
 	$variant_details = implode(",", array_unique($variant_details));
 	$coding_and_splicing_details =  implode(",", $coding_and_splicing_details);
 	
@@ -1423,10 +1431,11 @@ while(!feof($handle))
 	
 	//write data
 	++$c_written;
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity");
+	$genes = array_unique($genes);
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity\t$spliceai");
 	if (!$skip_ngsd_som)
 	{
-		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects");
+		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");
 	}
 	if (!$skip_ngsd)
 	{
