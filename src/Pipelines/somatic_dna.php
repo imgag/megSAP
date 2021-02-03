@@ -51,23 +51,28 @@ extract($parser->parse($argv));
 ###################################### AUXILARY FUNCTIONS ######################################
 
 //Creates BAF file from "$gsvar" and "bam" file and writes content to "out_file"
-function create_baf_file($gsvar,$bam,$out_file, $ref_genome)
+function create_baf_file($gsvar,$bam,$out_file, $ref_genome, &$error = False)
 {
 	global $parser;
-	
-	if(!file_exists($gsvar) || !file_exists($bam)) return;
-	
+
+	if(!file_exists($gsvar) || !file_exists($bam)) 
+	{
+		trigger_error("Could not create BAF file {$out_file}, no GSvar or BAM file available.", E_USER_WARNING);
+		$error = True;
+		return;
+	}
 	//Abort if out_file exists to prevent interference with other jobs
 	if(file_exists($out_file)) return;
-	
+
 	$tmp_out = $parser->tempFile(".tsv");
 	exec2(get_path("ngs-bits")."/VariantAnnotateFrequency -in {$gsvar} -bam {$bam} -depth -out {$tmp_out} -ref {$ref_genome}", true);
-	
+
 	$in_handle  = fopen2($tmp_out,"r");
 	$out_handle = fopen2($out_file,"w");
-	
+
 	while(!feof($in_handle))
 	{
+
 		$line = trim(fgets($in_handle));
 		if(starts_with($line,"#")) continue;
 		if(empty($line)) continue;
@@ -409,6 +414,16 @@ if (in_array("vc", $steps))
 			$parser->execTool("NGS/baf_somatic.php", implode(" ", $baf_args));
 		}
 	}
+	else
+	{
+		//create b-allele frequency file
+		$params = array();
+		$params[] = "-vcf {$variants}";
+		$params[] = "-bam {$t_bam}";
+		$params[] = "-out {$ballele}";
+		$params[] = "-build ".$sys['build'];
+		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
+	}
 }
 
 //Viral sequences alignment
@@ -456,7 +471,6 @@ if (in_array("vi", $steps))
 }
 
 //CNV calling
-$som_cnv = $full_prefix . "_cnvs.tsv"; //CNVHunter output file
 $som_clincnv = $full_prefix . "_clincnv.tsv"; //ClinCNV output file
 if(in_array("cn",$steps))
 {
@@ -481,7 +495,7 @@ if(in_array("cn",$steps))
 	//folders with tumor reference coverage files (of same processing system)
 	$ref_folder_t = get_path("data_folder")."/coverage/".$sys['name_short']."-tumor";
 	$ref_folder_t_off_target = $ref_folder_t . "_off_target";
-	
+
 	//copy tumor sample coverage file to reference folder (has to be done before ClinCNV call to avoid analyzing the same sample twice)
 	if (db_is_enabled("NGSD") && is_valid_ref_tumor_sample_for_cnv_analysis($t_id))
 	{
@@ -508,37 +522,85 @@ if(in_array("cn",$steps))
 		}
 	}
 
-	if($single_sample) //use CNVHunter in case of single samples
-	{
-		trigger_error("Currently only tumor normal pairs are supported for ClinCNV calls. Using CNVHunter on tumor sample instead.", E_USER_WARNING);
-		$parser->execTool("NGS/vc_cnvhunter.php","-cov {$t_cov} -out {$som_cnv} -system {$system} -min_corr 0 -seg {$t_id} -n {$min_cov_files}");
+	if($single_sample) //use clincnv_germline with
+	{		
+
+		//get directory for normal and Offtarget coverages
+		$ref_folder_n = get_path("data_folder")."/coverage/".$sys['name_short'];
+		create_directory($ref_folder_n);
+
+		$ref_folder_n_off_target = $ref_folder_n . "_off_target";
+		create_directory($ref_folder_n_off_target);
+		
+		//create BED file with GC and gene annotations - if missing
+		$bed = $ref_folder_t."/roi_annotated.bed";
+		if (!file_exists($bed))
+		{
+			$ngsbits = get_path("ngs-bits");
+			$pipeline = [
+					["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".genome_fasta($sys['build'])],
+					["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
+				];
+			$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
+		}
+
+		//create BAF folder
+		$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
+		create_directory($baf_folder);
+		$baf_file = "{$baf_folder}/{$t_id}.tsv";
+		//create BAf file if not available
+		$error = False;
+		if(!file_exists($baf_file))
+		{
+			$t_gsvar = dirname($t_bam) ."/{$t_id}.GSvar";
+			create_baf_file($t_gsvar, $t_bam, $baf_file, $ref_genome, $error);
+		}
+
+		//perform CNV analysis		
+		$args = array(
+			"-cov {$t_cov}",
+			"-cov_folder {$ref_folder_n}",
+			"-bed {$bed}",
+			"-out {$som_clincnv}",
+			"-tumor_only",
+			"-max_cnvs 200",
+			"-bed_off {$off_target_bed}",
+			"-cov_off {$t_cov_off_target}",
+			"-cov_folder_off {$ref_folder_n_off_target}"
+		);
+		if(!$error)
+		{
+			$args[] = "-baf_folder {$baf_folder}";
+		}
+		$args[] = "--log ".$parser->getLogFile();
+		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 
 		// annotate CNV file
 		$repository_basedir = repository_basedir();
 		$data_folder = get_path("data_folder");
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$som_cnv}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode -out {$som_cnv}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-01.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_cnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-01.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
 
 		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_4.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$som_cnv}", true);
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
 		}
 		$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
 		if (file_exists($omim_file))
 		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$omim_file} -no_duplicates -url_decode -out {$som_cnv}", true);
+			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$omim_file} -no_duplicates -url_decode -out {$som_clincnv}", true);
 		}
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_cnv} -in2 {$repository_basedir}/data/gene_lists/genes.bed -no_duplicates -url_decode -out {$som_cnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$repository_basedir}/data/gene_lists/genes.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
 
 		//annotate additional gene info
-		$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$som_cnv} -out {$som_cnv}", true);
+		$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$som_clincnv} -out {$som_clincnv}", true);
 		// skip annotation if no connection to the NGSD is possible
 		if (db_is_enabled("NGSD"))
 		{
 			//annotate overlap with pathogenic CNVs
-			$parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$som_cnv} -out {$som_cnv}", true);
+			$parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$som_clincnv} -out {$som_clincnv}", true);
 		}
 	}
 	else //ClinCNV for differential sample
@@ -557,7 +619,7 @@ if(in_array("cn",$steps))
 			//create reference folder if it does not exist
 			$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
 			create_directory($ref_folder_n);
-			
+
 			//copy file
 			$ref_file_n = $ref_folder_n."/".$n_id.".cov";
 			if (!file_exists($ref_file_n)) //do not overwrite existing coverage files in ref folder
@@ -568,7 +630,7 @@ if(in_array("cn",$steps))
 			
 			$ref_folder_n_off_target = $ref_folder_n . "_off_target";
 			create_directory($ref_folder_n_off_target);
-			
+
 			$ref_file_n_off_target = "{$ref_folder_n_off_target}/{$n_id}.cov";
 			
 			if(!file_exists($ref_file_n_off_target))
@@ -1072,10 +1134,6 @@ if (in_array("an_rna", $steps))
 		if(file_exists($som_clincnv))
 		{
 			$parser->execTool("NGS/an_somatic_cnvs.php", " -cnv_in $som_clincnv -out $som_clincnv -rna_counts $rna_count -rna_id $rna_id -rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue));
-		}
-		elseif(file_exists($som_cnv))
-		{
-			trigger_error("RNA annotation not available for somatic CNVHunter files. Please run ClinCNV instead.", E_USER_WARNING);
 		}
 	}
 	
