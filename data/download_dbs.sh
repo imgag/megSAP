@@ -151,8 +151,15 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GR
 cd $dbs
 mkdir SpliceAI
 cd SpliceAI
-wget https://download.imgag.de/ahsturm1/spliceai_scores_2021_01_15.vcf.gz -O spliceai_scores.ngsd.13.12.20.vcf.gz
-tabix -p vcf spliceai_scores.ngsd.13.12.20.vcf.gz
+wget https://download.imgag.de/ahsturm1/spliceai_scores_2021_02_03.vcf.gz -O spliceai_scores_2021_02_03.vcf.gz
+tabix -p vcf spliceai_scores_2021_02_03.vcf.gz
+
+#download annotation file for MMSplice
+cd $dbs
+mkdir MMSplice
+cd MMSplice
+wget https://download.imgag.de/ahsturm1/mmsplice_scores_2021_02_03.vcf.gz -O mmsplice_scores_2021_02_03.vcf.gz
+tabix -p vcf mmsplice_scores_2021_02_03.vcf.gz
 
 #install OMIM (you might need a license, installation only possible after ngs-bits including NGSD is installed)
 #cd $dbs
