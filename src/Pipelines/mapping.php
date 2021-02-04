@@ -199,9 +199,7 @@ else //normal analysis without UMIs
 	{
 		if ($no_trim)
 		{
-			$parser->exec(get_path("ngs-bits")."ReadQC", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out $stafile1", true);
-			$parser->exec(get_path("ngs-bits")."FastqConcat", "-in ".implode(" ", $in_for)." -out $trimmed1", true);
-			$parser->exec(get_path("ngs-bits")."FastqConcat", "-in ".implode(" ", $in_rev)." -out $trimmed2", true);
+			$parser->exec(get_path("ngs-bits")."ReadQC", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -out $stafile1", true);
 		}
 		else
 		{
