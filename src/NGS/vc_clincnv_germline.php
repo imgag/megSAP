@@ -27,6 +27,7 @@ $parser->addInfile("cov_off","Off-target coverage file for normal sample",true);
 $parser->addString("cov_folder_off", "Folder with off-target normal coverage files (if different from [data_folder]/coverage/[system_short_name]_off_target/.", true, "auto");
 $parser->addString("baf_folder","Folder containing files with B-Allele frequencies.",true);
 $parser->addString("cov_off_min","Minimum number of off-target coverage files required for CNV analysis.",true, 10);
+$parser->addFlag("mosaic","Detect large mosaic regions in sample (WGS, sWGS");
 
 extract($parser->parse($argv));
 
@@ -239,6 +240,7 @@ $mean_correlation = 0.0;
 	$cov1 = null;
 	$cov2 = null;
 	load_coverage_profile($cov, $rows_to_use, $cov1);
+
 	foreach($cov_files as $cov_file)
 	{
 		load_coverage_profile($cov_file, $rows_to_use, $cov2);
@@ -250,7 +252,7 @@ $mean_correlation = 0.0;
 		}
 		$file2corr[$cov_file] = number_format(median($corr), 3);
 	}
-		
+
 	//sort by correlation
 	arsort($file2corr);
 	
@@ -276,6 +278,7 @@ $tmp = $parser->tempFile(".txt");
 sort($cov_files);
 file_put_contents($tmp, implode("\n", $cov_files));
 $cov_merged = $parser->tempFile(".cov");
+
 $parser->exec(get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
 
 //collect off-target files for coverage files
@@ -342,6 +345,13 @@ if($tumor_only)
 		$args[] = "--normalOfftarget $merged_cov_off";
 	}
 	if(is_dir($baf_folder)) $args[] = "--bafFolder {$baf_folder}";
+}
+else if($mosaic)
+{
+	$args[] = "--maxNumGermCNVs {$max_cnvs}";
+	$args[] = "--lengthG 20"; //lengthG actually gives the number of additional regions > subtract 1
+	$args[] = "--scoreG 300";
+	$args[] = "--mosaicism";
 }
 else
 {
