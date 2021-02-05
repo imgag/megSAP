@@ -13,31 +13,37 @@ make build_tools_release
 
 #download and build samtools
 cd $folder
-wget https://github.com/samtools/samtools/releases/download/1.10/samtools-1.10.tar.bz2
-tar xjf samtools-1.10.tar.bz2
-rm samtools-1.10.tar.bz2
-cd samtools-1.10
+wget https://github.com/samtools/samtools/releases/download/1.11/samtools-1.11.tar.bz2
+tar xjf samtools-1.11.tar.bz2
+rm samtools-1.11.tar.bz2
+cd samtools-1.11
 make
 
 #download and build freebayes
 cd $folder
-git clone https://github.com/ekg/freebayes.git
-cd freebayes
-git checkout v1.3.2 && git submodule update --recursive --init
-make
+git clone https://github.com/ekg/freebayes.git freebayes-1.3.3
+cd freebayes-1.3.3
+git checkout v1.3.3 && git submodule update --recursive --init
+meson build/ --buildtype release
+cd build
+ninja
+ninja test
 
 #download and build vcflib
 cd $folder
-git clone https://github.com/vcflib/vcflib.git
-cd vcflib
-git checkout v1.0.1 && git submodule update --recursive --init
-make
+git clone https://github.com/vcflib/vcflib.git vcflib-1.0.2
+cd vcflib-1.0.2
+git checkout v1.0.2 && git submodule update --recursive --init
+mkdir -p build && cd build
+cmake ..
+cmake --build .
+cmake --install .
 
 #download ABRA2
 cd $folder
-mkdir abra2-2.22
-cd abra2-2.22
-wget https://github.com/mozack/abra2/releases/download/v2.22/abra2-2.22.jar -O abra2.jar
+mkdir abra2-2.23
+cd abra2-2.23
+wget https://github.com/mozack/abra2/releases/download/v2.23/abra2-2.23.jar -O abra2.jar
 
 #download and build samblaster
 cd $folder
@@ -62,8 +68,8 @@ rm bwa-mem2-2.1_x64-linux.tar.bz2
 
 #download ClinCNV
 cd $folder
-git clone https://github.com/imgag/ClinCNV.git
-cd ClinCNV
+git clone https://github.com/imgag/ClinCNV.git ClinCNV-1.17.0
+cd ClinCNV-1.17.0
 git fetch && git fetch --tags
 git checkout 1.17.0
 cd ..
@@ -136,14 +142,9 @@ circos-0.69-9/bin/circos -modules
 
 #download ExpansionHunter
 cd $folder
-wget https://github.com/Illumina/ExpansionHunter/releases/download/v3.2.2/ExpansionHunter-v3.2.2-linux_x86_64.tar.gz
-tar xzf ExpansionHunter-v3.2.2-linux_x86_64.tar.gz
-rm ExpansionHunter-v3.2.2-linux_x86_64.tar.gz
-#update variant catalog with newer github version (commit 274903d (25 Oct 2019))
-wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc546aac98c85bbfe51701fd3b/variant_catalog/grch37/variant_catalog.json -O ExpansionHunter-v3.2.2-linux_x86_64/variant_catalog/grch37/variant_catalog.json
-wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc546aac98c85bbfe51701fd3b/variant_catalog/grch38/variant_catalog.json -O ExpansionHunter-v3.2.2-linux_x86_64/variant_catalog/grch38/variant_catalog.json
-wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc546aac98c85bbfe51701fd3b/variant_catalog/hg19/variant_catalog.json -O ExpansionHunter-v3.2.2-linux_x86_64/variant_catalog/hg19/variant_catalog.json
-wget https://raw.githubusercontent.com/Illumina/ExpansionHunter/274903d26a33cfbc546aac98c85bbfe51701fd3b/variant_catalog/hg38/variant_catalog.json -O ExpansionHunter-v3.2.2-linux_x86_64/variant_catalog/hg38/variant_catalog.json
+wget https://github.com/Illumina/ExpansionHunter/releases/download/v4.0.2/ExpansionHunter-v4.0.2-linux_x86_64.tar.gz
+tar xzf ExpansionHunter-v4.0.2-linux_x86_64.tar.gz
+rm ExpansionHunter-v4.0.2-linux_x86_64.tar.gz
 
 #download and build python3
 mkdir -p Python3
