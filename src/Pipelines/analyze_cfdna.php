@@ -194,7 +194,7 @@ if (in_array("ma", $steps))
 		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in {$lowcov_file} -clear -extend 25 -out {$lowcov_file}", true);
 	}
 
-	$parser->exec(get_path("ngs-bits")."MappingQC", "-roi {$roi_merged} -in {$bamfile} -out {$qc_map}");
+	$parser->exec(get_path("ngs-bits")."MappingQC", "-roi {$roi_merged} -in {$bamfile} -out {$qc_map} -ref ".genome_fasta($sys['build']));
 }
 
 //check sample similarity with referenced tumor

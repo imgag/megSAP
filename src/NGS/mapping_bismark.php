@@ -218,8 +218,9 @@ $parser->indexBam($out, $threads);
 //run mapping QC
 $qc_map = "{$out_folder}/{$name}_stats_map.qcML";
 $params = [
-	"-in", $out,
-	"-out", $qc_map
+	"-in ".$out,
+	"-out ".$qc_map,
+	"-ref ".genome_fasta($sys['build'])
 ];
 if ($sys['target_file'] === "" || $sys['type'] === "WGS")
 {

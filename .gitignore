@@ -11,7 +11,7 @@
 /test/data_amplicon/*.vcf.gz.tbi
 /test/data_amplicon/*.GSvar
 /test/data_amplicon/*_QCML.txt
-/test/data_amplicon/*_cnvs.tsv
+/test/data_amplicon/*_cnvs_clincnv.tsv
 /test/data_amplicon/*_lowcov.bed
 /test/data_amplicon/*.igv
 /test/data_amplicon/*.bedpe
