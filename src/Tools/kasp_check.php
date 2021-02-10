@@ -227,12 +227,12 @@ function sample_from_ngsd(&$db, $sample_name, $irp, $itp)
 	//2. try (DNA number)
 	if (count($res)==0 && !starts_with($sample_name, "FO"))
 	{
-		if (starts_with($sample_name, "DNA-"))
+		$matches = [];
+		preg_match("/[0-9]{6,}/", $sample_name, $matches);
+		if (count($matches)==1)
 		{
-			$sample_name = substr($sample_name, 4);
+			$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name='DX{$sample_name}' OR s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
 		}
-		$sample_name = substr($sample_name, 0, 6);
-		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name='DX{$sample_name}' OR s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
 	}
 	
 	//3. try (FO number)
