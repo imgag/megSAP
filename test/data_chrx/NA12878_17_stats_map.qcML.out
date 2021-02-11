@@ -6,10 +6,10 @@
   ]>
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
-    <metaDataParameter ID="md0001" name="creation software" value="MappingQC 2020_12-56-ga72a7c2f" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0001" name="creation software" value="MappingQC 2020_12-60-gca766153" cvRef="QC" accession="QC:1000002"/>
     <metaDataParameter ID="md0002" name="creation software parameters" value="-roi nxLRRK2_SNCA_2016_10_25.bed" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2021-02-09T13:17:36" cvRef="QC" accession="QC:1000004"/>
-    <metaDataParameter ID="md0004" name="source file" value="mapping_2Fas3P_indel_realign.bam" cvRef="QC" accession="QC:1000005"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2021-02-11T16:35:54" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0004" name="source file" value="mapping_ffYY8J_indel_realign.bam" cvRef="QC" accession="QC:1000005"/>
     <qualityParameter ID="qp0001" name="trimmed base percentage" description="Percentage of bases that were trimmed during to adapter or quality trimming." value="4.68" cvRef="QC" accession="QC:2000019"/>
     <qualityParameter ID="qp0002" name="clipped base percentage" description="Percentage of the bases that are soft-clipped or hand-clipped during mapping." value="0.20" cvRef="QC" accession="QC:2000052"/>
     <qualityParameter ID="qp0003" name="mapped read percentage" description="Percentage of reads that could be mapped to the reference genome." value="99.84" cvRef="QC" accession="QC:2000020"/>
@@ -27,7 +27,7 @@
     <qualityParameter ID="qp0015" name="target region 100x percentage" description="Percentage of the target region that is covered at least 100-fold." value="92.86" cvRef="QC" accession="QC:2000030"/>
     <qualityParameter ID="qp0016" name="target region 200x percentage" description="Percentage of the target region that is covered at least 200-fold." value="75.94" cvRef="QC" accession="QC:2000031"/>
     <qualityParameter ID="qp0017" name="target region 500x percentage" description="Percentage of the target region that is covered at least 500-fold." value="8.55" cvRef="QC" accession="QC:2000032"/>
-    <qualityParameter ID="qp0018" name="target region half depth percentage" description="Percentage of the target region that is covered at least with half of the target region average depth. This is a measure of coverage uniformity." value="85.19" cvRef="QC" accession="QC:2000059"/>
+    <qualityParameter ID="qp0018" name="target region half depth percentage" description="Percentage of the target region that is covered at least with half of the target region average depth. This is a measure of coverage uniformity." value="85.19" cvRef="QC" accession="QC:2000058"/>
     <qualityParameter ID="qp0019" name="AT dropout" description="Illumina-style AT dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[0..50]." value="6.95" cvRef="QC" accession="QC:2000059"/>
     <qualityParameter ID="qp0020" name="GC dropout" description="Illumina-style GC dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[50..100]." value="1.22" cvRef="QC" accession="QC:2000060"/>
     <qualityParameter ID="qp0024" name="SNV allele frequency deviation" description="Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)" value="n/a" cvRef="QC" accession="QC:2000051"/>

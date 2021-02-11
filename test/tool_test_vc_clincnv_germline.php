@@ -22,21 +22,6 @@ check_file($out_file1, data_folder().$name."_test1_out.tsv");
 check_file(substr($out_file1,0,-4).".seg", data_folder().$name."_test1_out1.seg");
 check_file(substr($out_file1,0,-4)."_cnvs.seg",data_folder().$name."_test1_out2.seg");
 
-//test germline 2 (old CnvHunter test)
-//prepare input data_folder
-$cov_folder = output_folder()."/vc_clincnv_germline_data2/";
-exec2("mkdir -p $cov_folder");
-exec2("rm -rf $cov_folder/*");
-exec2("tar -m -xzf ".data_folder()."{$name}_data2.tar.gz -C ".output_folder());
-$bed = $cov_folder."/ssHAEv5_2016_07_11_annotated.bed";
-//test2
-$out_file2 = output_folder().$name."_test2_out.tsv";
-$log_file2 = output_folder().$name."_test2_out.log";
-check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/GS140794_02.cov -cov_folder {$cov_folder} -cov_min 20 -max_cnvs 200 -bed {$bed} -out {$out_file2} --log {$log_file2}");
-check_file($out_file2, data_folder().$name."_test2_out.tsv");
-check_file(substr($out_file2,0,-4).".seg", data_folder().$name."_test2_out1.seg");
-check_file(substr($out_file2,0,-4)."_cnvs.seg",data_folder().$name."_test2_out2.seg");
-
 //test clincnv for somatic single sample (vc_clincnv_germline is used in this case)
 //prepare input data_folder
 $tmp_folder = output_folder()."/vc_clincnv_tumor_data/";
