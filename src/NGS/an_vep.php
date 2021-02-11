@@ -21,6 +21,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addFlag("all_transcripts", "Annotate all transcripts - if unset only GENCODE basic transcripts are annotated.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("somatic", "Also annotate the NGSD somatic counts.");
+$parser->addFlag("no_splice", "Skip splicing predictions (MMsplice, SpliceAI).");
 $parser->addFlag("test", "Use limited constant NGSD VCF file from test folder for annotation.");
 $parser->addInt("check_lines", "Number of VCF lines that will be validated in the output file. (If set to 0 all lines will be checked, if set to -1 the validation will be skipped.)", true, 1000);
 extract($parser->parse($argv));
@@ -55,13 +56,14 @@ function annotation_file_path($rel_path, $is_optional=false)
 
 function write_lowAF_variants($low_af_file_spliceai, $unscored_variants, $private_var_dict)
 {
+	$c_written = 0;
 	$low_af_file_spliceai_h = fopen2($low_af_file_spliceai, 'w');
 	$unscored_variants_h = fopen2($unscored_variants, 'r');
 	while(!feof($unscored_variants_h))
 	{
 		$line = fgets($unscored_variants_h);
 		//keep headers
-		if(!starts_with($line, "chr"))
+		if(starts_with($line, "#"))
 		{
 			fwrite($low_af_file_spliceai_h, $line);
 		}
@@ -75,11 +77,15 @@ function write_lowAF_variants($low_af_file_spliceai, $unscored_variants, $privat
 			if(in_array($needle, $private_var_dict))
 			{
 				fwrite($low_af_file_spliceai_h, $line);
+				++$c_written;
+				print $line."\n";
 			}
 		}
 	}
 	fclose($unscored_variants_h);
 	fclose($low_af_file_spliceai_h);
+	
+	return $c_written;
 }
 
 function get_private_variants($vcf_file)
@@ -161,8 +167,7 @@ function get_private_variants($vcf_file)
 			}
 			if($af<=0.01 && $gnomad_af<=0.01 && $gnomad_af_genome<=0.01)
 			{
-				$var_ids = array($vcf_line[0],$vcf_line[1],$vcf_line[3],$vcf_line[4]);
-				$private_var_dict[] = implode("", $var_ids);
+				$private_var_dict[] = implode("", array($vcf_line[0],$vcf_line[1],$vcf_line[3],$vcf_line[4]));
 			}	
 		}
 
@@ -202,7 +207,8 @@ function annotate_mmsplice_score($splicing_output, $private_var_dict, $threshold
 	exec2("grep '#CHROM' {$splicing_output} | cut -f1-8 -d'\t' >> {$mmsplice_unscored_variants}", true);
 	exec2("grep -v '#\|mmsplice' {$splicing_output} | cut -f1-5 -d'\t' | sed 's/$/\t.\t.\t./' >> {$mmsplice_unscored_variants}", false); //false in case grep can not find anything
 	$low_af_file_mmsplice = $parser->tempFile("_mmsplice_lowAF.vcf");
-	write_lowAF_variants($low_af_file_mmsplice, $mmsplice_unscored_variants, $private_var_dict);
+	$c_written = write_lowAF_variants($low_af_file_mmsplice, $mmsplice_unscored_variants, $private_var_dict);
+	$parser->log("Scoring {$c_written} variants with MMsplice");
 	list($private_variant_lines, $stderr)  = exec2("grep -v '#' $low_af_file_mmsplice", false);
 	$private_variant_count = count(array_filter($private_variant_lines));
 	$mmsplice_annotated = FALSE;
@@ -291,7 +297,9 @@ function annotate_spliceai_score($splicing_output, $private_var_dict, $threshold
 	exec2("grep -v '#\|SpliceAI' {$splicing_output} | cut -f1-5 -d'\t' | sed 's/$/\t.\t.\t./' >> {$spliceai_unscored_variants}", false); //SpAI annotation might be empty
 	//filter for regions of low AF
 	$low_af_file_spliceai = $parser->tempFile("_spliceai_lowAF.vcf");
-	write_lowAF_variants($low_af_file_spliceai, $spliceai_unscored_variants, $private_var_dict);
+	$c_written = write_lowAF_variants($low_af_file_spliceai, $spliceai_unscored_variants, $private_var_dict);
+	$parser->log("Scoring {$c_written} variants with SpliceAI");
+
 	//filter variants according to spai regions
 	$new_spliceai_annotation = $parser->tempFile("_newSpliceAi_annotations.vcf");
 	$spai_regions = $parser->tempFile("spai_scoring_regions.bed");
@@ -648,7 +656,10 @@ if (!$skip_ngsd)
 }
 
 //annotate MMSplice and SpliceAI predictions
-annotate_splice_predictions($vcf_annotate_output);
+if (!$no_splice)
+{
+	annotate_splice_predictions($vcf_annotate_output);
+}
 
 //mark variants in low-confidence regions
 $low_conf_bed = repository_basedir()."/data/misc/low_conf_regions.bed";
