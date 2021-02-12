@@ -1167,7 +1167,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			dirname($t_bam)."/{$t_id}_stats_map.qcML",
 			$somaticqc
 		], "file_exists"));
-		$parser->execTool("NGS/db_import_qc.php", "-id $t_id -files $qcmls -force -min_depth 0 --log $log_db");
+		$parser->execTool("NGS/db_import_qc.php", "-id $t_id -files $qcmls -force --log $log_db");
 
 		// check tumor/normal flag
 		if (!$t_info['is_tumor'])
@@ -1188,7 +1188,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 				dirname($n_bam)."/{$n_id}_stats_map.qcML",
 				dirname($n_bam)."/{$n_id}_stats_vc.qcML"
 			], "file_exists"));
-			$parser->execTool("NGS/db_import_qc.php", "-id $n_id -files $qcmls -force -min_depth 0 --log $log_db");
+			$parser->execTool("NGS/db_import_qc.php", "-id $n_id -files $qcmls -force --log $log_db");
 
 			// check tumor/normal flag
 			if ($n_info['is_tumor'])
