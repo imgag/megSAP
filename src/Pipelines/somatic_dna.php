@@ -731,6 +731,9 @@ if(in_array("cn",$steps))
 			}
 			
 			$parser->execTool("NGS/vc_clincnv_somatic.php",implode(" ",$args_clincnv));
+			
+			//Annotate cytoband and data from network of cancer genes
+			$parser->execTool("NGS/an_somatic_cnvs.php","-cnv_in $som_clincnv -out $som_clincnv -include_ncg -include_cytoband");
 		}
 		else
 		{
@@ -799,6 +802,9 @@ if (in_array("an", $steps))
 	$args = array("-in $tmp_vcf", "-out $variants_gsvar", "-t_col $t_id");
 	if (!$single_sample) $args[] = "-n_col $n_id";
 	$parser->execTool("NGS/vcf2gsvar_somatic.php", implode(" ", $args));
+	
+	//Annotate data from network of cancer genes
+	$parser->execTool("NGS/an_somatic_gsvar.php" , "-gsvar_in $variants_gsvar -out $variants_gsvar -include_ncg");
 }
 
 //QCI/CGI annotation
@@ -896,13 +902,13 @@ if (in_array("ci", $steps))
 	$cgi_snv_result_file = $full_prefix . "_cgi_mutation_analysis.tsv";
 	if(file_exists($cgi_snv_result_file) && file_exists($variants_gsvar))
 	{
-		$parser->execTool("NGS/an_somatic_gsvar.php","-gsvar_in $variants_gsvar -cgi_snv_in $cgi_snv_result_file -out $variants_gsvar -include_ncg");
+		$parser->execTool("NGS/an_somatic_gsvar.php","-gsvar_in $variants_gsvar -cgi_snv_in $cgi_snv_result_file -out $variants_gsvar");
 	}
 	//annotate CGI cnv genes to cnv input file (which was originally created by CNVHunter)
 	$cgi_cnv_result_file = $full_prefix . "_cgi_cnv_analysis.tsv";
 	if(file_exists($som_clincnv) && file_exists($cgi_cnv_result_file))
 	{
-		$parser->execTool("NGS/an_somatic_cnvs.php","-cnv_in $som_clincnv -cnv_in_cgi $cgi_cnv_result_file -out $som_clincnv -include_ncg -include_cytoband");
+		$parser->execTool("NGS/an_somatic_cnvs.php","-cnv_in $som_clincnv -cnv_in_cgi $cgi_cnv_result_file -out $som_clincnv");
 	}
 	
 	/*************************
