@@ -177,40 +177,47 @@ if(isset($cnv_in_cgi))
 
 if($include_ncg)
 {
-
-	$i_cgi_genes = $cnv_input->getColumnIndex("CGI_genes",false,false);
-	
-	if($i_cgi_genes === false) 
-	{
-		trigger_error("Cannot annotate file $cnv_in with TCG6.0 data because there is no column CGI_genes.",E_USER_WARNING);
-		exit(1);
-	}
-	
+	//remove old annotation
 	$cnv_input->removeColByName("ncg_oncogene");
 	$cnv_input->removeColByName("ncg_tsg");
 	
+	$handle = fopen(get_path("data_folder") . "/dbs/NCG6.0/NCG6.0_oncogene.tsv", "r");
+	$oncogenes =  array();
+	$tsgs = array();
+	while(!feof($handle))
+	{
+		$line = trim(fgets($handle));
+		if(empty($line)) continue;
+		if(starts_with($line, "entrez")) continue;
+		
+		list($entrezid,$gene, $cgc, $vogelstein, $oncogene, $tsg) = explode("\t", $line);
+		if($oncogene == "1") $oncogenes[] = $gene;
+		if($tsg == "1") $tsgs[] = $gene;
+	}
+	
+	$oncogenes = approve_gene_names($oncogenes);
+	$tsgs = approve_gene_names($tsgs);
+
 	$col_tsg = array();
 	$col_oncogene = array();
+	$i_genes = $cnv_input->getColumnIndex("genes",false,false);
 	
-	//Annotate per CGI gene
+	if($i_genes === false) 
+	{
+		trigger_error("Cannot annotate file $cnv_in with TCG6.0 data because there is no column 'genes'.",E_USER_WARNING);
+		exit(1);
+	}
+	
+	//Annotate per gene
 	for($row=0;$row<$cnv_input->rows();++$row)
 	{
-		$cgi_genes = explode(",",trim($cnv_input->get($row,$i_cgi_genes)));
+		$genes = explode(",",trim($cnv_input->get($row,$i_genes)));
 		
-		$tsg_statements = array();
-		$oncogene_statements = array();
-		
-		foreach($cgi_genes as $cgi_gene)
-		{
-			$statement = ncg_gene_statements($cgi_gene);
-			$tsg_statements[] = $statement["is_tsg"];
-			$oncogene_statements[] = $statement["is_oncogene"];
-		}
-		$col_oncogene[] = implode(",",$oncogene_statements);
-		$col_tsg[] = implode(",",$tsg_statements);
+		$col_oncogene[] = implode(",",array_intersect($genes, $oncogenes));
+		$col_tsg[] = implode(",", array_intersect($genes, $tsgs));
 	}
-	$cnv_input->addCol($col_oncogene,"ncg_oncogene","1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column CGI_genes.");
-	$cnv_input->addCol($col_tsg,"ncg_tsg","1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column CGI_genes.");
+	$cnv_input->addCol($col_oncogene,"ncg_oncogene","oncogenes from NCG6.0 that overlap given CNV.");
+	$cnv_input->addCol($col_tsg,"ncg_tsg","tumor suppressor genes from NCG6.0 that overlap given CNV.");
 }
 
 if($include_cytoband)
