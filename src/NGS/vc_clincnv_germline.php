@@ -349,8 +349,8 @@ if($tumor_only)
 else if($mosaic)
 {
 	$args[] = "--maxNumGermCNVs {$max_cnvs}";
-	$args[] = "--lengthG 20"; //lengthG actually gives the number of additional regions > subtract 1
-	$args[] = "--scoreG 300";
+	$args[] = "--lengthG 2"; //lengthG actually gives the number of additional regions > subtract 1
+	$args[] = "--scoreG 500";
 	$args[] = "--mosaicism";
 }
 else

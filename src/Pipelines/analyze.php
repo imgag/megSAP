@@ -64,6 +64,7 @@ function cnv_is_in_list($cnv, $list)
 	return false;	
 }
 
+//filter mosaic CNVs by already found CNVs
 function filterMosaicVariants($mosaic_out, $cnv_file)
 {
 	class cnv {
@@ -101,14 +102,12 @@ function filterMosaicVariants($mosaic_out, $cnv_file)
 					array_pop($real_cnvs);
 					$old_cnv->end = $entries[2];
 					$real_cnvs[] = $old_cnv;
-					//NEW
 				}
 				else
 				{				
 					$real_cnvs[] = $tmp_cnv;
 				}	
 				$previous_cnv_end = $tmp_cnv->end;
-
 			}
 		}
 	}
@@ -725,8 +724,9 @@ if (in_array("cn", $steps))
 				"-bed {$bed}",
 				"-out {$mosaic_out}",
 				"-cov_max 200",
-				"-max_cnvs 200",
-				"-skip_super_recall"
+				"-max_cnvs 10",
+				"-skip_super_recall",
+				"-mosaic"
 			);
 			$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 
