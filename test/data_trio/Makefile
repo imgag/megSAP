@@ -40,7 +40,7 @@ ra:
 	cp trio_cnvs_clincnv.tsv reanno/
 	cp trio_manta_var_structural.bedpe reanno/
 	# run reannotation
-	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder reanno -steps vc,cn -annotation_only
+	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder reanno -steps vc,cn,sv -annotation_only
 	# diff
 	diff trio_cnvs_clincnv.tsv reanno/trio_cnvs_clincnv.tsv
 	diff trio.GSvar reanno/trio.GSvar
