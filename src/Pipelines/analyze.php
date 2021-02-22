@@ -29,131 +29,6 @@ $parser->addFlag("annotation_only", "Performs only a reannotation of the already
 $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard BWA-MEM.");
 extract($parser->parse($argv));
 
-function cnv_is_in_list($cnv, $list)
-{
-	$ori_length = $cnv->end-$cnv->start;
-	$substr_length = $ori_length;
-	foreach($list as $region)
-	{
-		if($region->chr == $cnv->chr)
-		{
-			//left overlap
-			if($cnv->end > $region->start && $cnv->end <= $region->end && $cnv->start < $region->start)
-			{
-				$substr_length -= $cnv->end-$region->start;
-			}
-			//right overlap
-			else if($cnv->end > $region->end && $cnv->start < $region->end && $cnv->start >= $region->start)
-			{
-				$substr_length -= $region->end-$cnv->start;
-			}
-			//inside
-			else if($cnv->end <= $region->end && $cnv->start >= $region->start)
-			{
-				return true;
-			}
-			//outside
-			else if($cnv->start < $region->start && $cnv->end > $region->end)
-			{
-				$substr_length -= $region->end-$region->start;
-			}
-		}
-	}
-	//if at least 70% of the regions map, don t report it as mosaic CNV
-	if(0.3*$ori_length >= $substr_length) return true;
-	return false;	
-}
-
-//filter mosaic CNVs by already found CNVs
-function filterMosaicVariants($mosaic_out, $cnv_file)
-{
-	class cnv {
-		public $chr;
-		public $start;
-		public $end;
-	}
-	$mosaicism = false;
-
-	//get detected cnvs
-	$real_cnvs = array();
-	$cnv_h = fopen($cnv_file, "r");
-	$previous_cnv_end = 0;
-	while(!feof($cnv_h))
-	{
-		$line = trim(fgets($cnv_h));
-		if(starts_with($line, "#"))
-		{
-			continue;
-		}
-		else
-		{
-			$entries = explode("\t", $line);
-			if(sizeof($entries) >= 3)
-			{
-				
-				$tmp_cnv = new cnv();
-				$tmp_cnv->chr = $entries[0];
-				$tmp_cnv->start = $entries[1];
-				$tmp_cnv->end = $entries[2];
-
-				$old_cnv = end($real_cnvs);
-				if(!empty($old_cnv) && ($tmp_cnv->start == $old_cnv->end))
-				{
-					array_pop($real_cnvs);
-					$old_cnv->end = $entries[2];
-					$real_cnvs[] = $old_cnv;
-				}
-				else
-				{				
-					$real_cnvs[] = $tmp_cnv;
-				}	
-				$previous_cnv_end = $tmp_cnv->end;
-			}
-		}
-	}
-
-	//get possible mosaic cnvs
-	$mosaic_h = fopen($mosaic_out, "r");
-	$new_lines = array();
-	while(!feof($mosaic_h))
-	{
-		$line = fgets($mosaic_h);
-		if(starts_with(trim($line), "#"))
-		{
-			$new_lines[] = $line;
-		}
-		else
-		{
-			$entries = explode("\t", $line);
-			if(sizeof($entries) >= 3)
-			{
-				$m_cnv = new cnv();
-
-				$m_cnv->chr = $entries[0]; 
-				$m_cnv->start = $entries[1]; 
-				$m_cnv->end = $entries[2]; 
-
-				if(!cnv_is_in_list($m_cnv, $real_cnvs))
-				{
-					$new_lines[] = $line;
-					$mosaicism = true;
-				}
-			}
-		}
-	}
-	fclose($mosaic_h);
-	fclose($cnv_h);
-
-	$mosaic_h = fopen($mosaic_out, "w");
-	foreach($new_lines as $line)
-	{
-		fwrite($mosaic_h, $line);
-	}
-	fclose($mosaic_h);
-
-	return $mosaicism;
-}
-
 // create logfile in output folder if no filepath is provided:
 if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_".date("YmdHis").".log");
 
@@ -640,6 +515,7 @@ if (in_array("cn", $steps))
 			"-cov_folder {$cov_folder}",
 			"-bed {$bed}",
 			"-out {$cnv_out}",
+			"-threads {$threads}",
 			"--log ".$parser->getLogFile(),
 		);
 		if ($is_wgs)
@@ -660,6 +536,12 @@ if (in_array("cn", $steps))
 			$args[] = "-cov_max 200";
 			$args[] = "-max_cnvs 200";
 		}
+
+		if($is_wgs || $is_wes)
+		{
+			$args[] = "-mosaic";
+		}
+
 		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 		
 		//copy results to output folder
@@ -713,34 +595,6 @@ if (in_array("cn", $steps))
 			file_put_contents($varfile, implode("\n", $content));
 		}
 		
-		if(file_exists($cnvfile))
-		{
-			//run ClinCNV to detect large mosaic CNVs
-			$mosaic_out = $parser->tempFile("mosaic.tsv");
-			$mosaic_out2 = $parser->tempFile("mosaic.seg");
-			$args = array(
-				"-cov {$cov_file}",
-				"-cov_folder {$cov_folder}",
-				"-bed {$bed}",
-				"-out {$mosaic_out}",
-				"-cov_max 200",
-				"-max_cnvs 10",
-				"-skip_super_recall",
-				"-mosaic"
-			);
-			$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
-
-			//filter variants by already found ones
-			$mosaic_cnvs_found = filterMosaicVariants($mosaic_out, $cnv_out);
-			//copy results to output folder
-			if($mosaic_cnvs_found)
-			{
-				$mosaic = $folder."/".$name."_mosaic_cnvs.tsv";
-				$mosaic2 = $folder."/".$name."_mosaic_cnv.seg";
-				if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic);
-				if (file_exists($mosaic_out2)) $parser->moveFile($mosaic_out2, $mosaic2);	
-			}
-		}
 	}
 
 	// annotate CNV file

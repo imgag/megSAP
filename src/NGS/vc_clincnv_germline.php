@@ -27,9 +27,155 @@ $parser->addInfile("cov_off","Off-target coverage file for normal sample",true);
 $parser->addString("cov_folder_off", "Folder with off-target normal coverage files (if different from [data_folder]/coverage/[system_short_name]_off_target/.", true, "auto");
 $parser->addString("baf_folder","Folder containing files with B-Allele frequencies.",true);
 $parser->addString("cov_off_min","Minimum number of off-target coverage files required for CNV analysis.",true, 10);
-$parser->addFlag("mosaic","Detect large mosaic regions in sample (WGS, sWGS");
+$parser->addFlag("mosaic","Detect additionally large mosaic regions in sample (WGS, sWGS");
 
 extract($parser->parse($argv));
+
+function cnv_is_in_list($cnv, $list)
+{
+	$ori_length = $cnv->end-$cnv->start;
+	$substr_length = $ori_length;
+	foreach($list as $region)
+	{
+		if($region->chr == $cnv->chr)
+		{
+			//left overlap
+			if($cnv->end > $region->start && $cnv->end <= $region->end && $cnv->start < $region->start)
+			{
+				$substr_length -= $cnv->end-$region->start;
+			}
+			//right overlap
+			else if($cnv->end > $region->end && $cnv->start < $region->end && $cnv->start >= $region->start)
+			{
+				$substr_length -= $region->end-$cnv->start;
+			}
+			//inside
+			else if($cnv->end <= $region->end && $cnv->start >= $region->start)
+			{
+				return true;
+			}
+			//outside
+			else if($cnv->start < $region->start && $cnv->end > $region->end)
+			{
+				$substr_length -= $region->end-$region->start;
+			}
+		}
+	}
+	//if at least 70% of the regions map, don t report it as mosaic CNV
+	if(0.3*$ori_length >= $substr_length) return true;
+	return false;	
+}
+
+//filter mosaic CNVs by already found CNVs
+function filterMosaicVariants($mosaic_out, $cnv_file)
+{
+	class cnv {
+		public $chr;
+		public $start;
+		public $end;
+	}
+	$mosaicism = false;
+
+	//get detected cnvs
+	$real_cnvs = array();
+	$cnv_h = fopen($cnv_file, "r");
+	$previous_cnv_end = 0;
+	while(!feof($cnv_h))
+	{
+		$line = trim(fgets($cnv_h));
+		if(starts_with($line, "#"))
+		{
+			continue;
+		}
+		else
+		{
+			$entries = explode("\t", $line);
+			if(sizeof($entries) >= 3)
+			{
+				
+				$tmp_cnv = new cnv();
+				$tmp_cnv->chr = $entries[0];
+				$tmp_cnv->start = $entries[1];
+				$tmp_cnv->end = $entries[2];
+
+				$old_cnv = end($real_cnvs);
+				if(!empty($old_cnv) && ($tmp_cnv->start == $old_cnv->end))
+				{
+					array_pop($real_cnvs);
+					$old_cnv->end = $entries[2];
+					$real_cnvs[] = $old_cnv;
+				}
+				else
+				{				
+					$real_cnvs[] = $tmp_cnv;
+				}	
+				$previous_cnv_end = $tmp_cnv->end;
+			}
+		}
+	}
+
+	//get possible mosaic cnvs
+	$mosaic_h = fopen($mosaic_out, "r");
+	$new_lines = array();
+	while(!feof($mosaic_h))
+	{
+		$line = fgets($mosaic_h);
+		if(starts_with(trim($line), "#"))
+		{
+			$new_lines[] = $line;
+		}
+		else
+		{
+			$entries = explode("\t", $line);
+			if(sizeof($entries) >= 3)
+			{
+				$m_cnv = new cnv();
+
+				$m_cnv->chr = $entries[0]; 
+				$m_cnv->start = $entries[1]; 
+				$m_cnv->end = $entries[2]; 
+
+				if(!cnv_is_in_list($m_cnv, $real_cnvs))
+				{
+					$new_lines[] = $line;
+					$mosaicism = true;
+				}
+			}
+		}
+	}
+	fclose($mosaic_h);
+	fclose($cnv_h);
+
+	$mosaic_h = fopen($mosaic_out, "w");
+	foreach($new_lines as $line)
+	{
+		fwrite($mosaic_h, $line);
+	}
+	fclose($mosaic_h);
+
+	return $mosaicism;
+}
+
+function detect_mosaicism()
+{
+	global $parser;
+		//run ClinCNV to detect large mosaic CNVs
+		$mosaic_out = $parser->tempFile("mosaic.tsv");
+		$mosaic_out2 = $parser->tempFile("mosaic.seg");
+
+		$mosaicism = TRUE;
+		run_clincnv($mosaic_out, $mosaicism);
+		//filter variants by already found ones
+		$mosaic_cnvs_found = filterMosaicVariants($mosaic_out, $cnv_out);
+		//copy results to output folder
+		if($mosaic_cnvs_found)
+		{
+			$mosaic1 = $folder."/".$name."_mosaic_cnvs.tsv";
+			$mosaic2 = $folder."/".$name."_mosaic_cnv.seg";
+			if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic1);
+			if (file_exists($mosaic_out2)) $parser->moveFile($mosaic_out2, $mosaic2);	
+		}
+}
 
 //Creates file with paths to coverage files using ref folder and current sample cov path, if $sample_ids is set: skip all ids not contained
 function create_file_with_paths($ref_cov_folder,$cov_path, &$sample_ids)
@@ -201,6 +347,193 @@ function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messa
 	fclose($cnv_output);
 }
 
+function run_clincnv($out, $mosaic=FALSE)
+{
+	global $tumor_only;
+	global $use_off_target;
+	global $bed_off;
+	global $merged_cov_off;
+	global $baf_folder;
+	global $max_cnvs;
+	global $regions;
+	global $max_tries;
+	global $command;
+	global $parser;
+	global $mean_correlation;
+	global $ps_name;
+	global $skip_super_recall;
+	global $cov_merged;
+	global $bed;
+	global $threads;
+
+	$out_folder = $parser->tempFolder();
+
+	$args = [
+		"--normal {$cov_merged}",
+		"--bed {$bed}",
+		"--normalSample {$ps_name}",
+		"--out {$out_folder}",
+		"--numberOfThreads {$threads}",
+		"--par \"chrX:60001-2699520;chrX:154931044-155260560\"" //this is correct for hg19 only!
+		];
+
+	//analyzing a single tumor sample
+	if($tumor_only)
+	{
+		$args[] = "--onlyTumor";
+		$args[] = "--minimumPurity 30";
+		$args[] = "--purityStep 5";
+		$args[] = "--scoreS 150";
+		$script_path = get_path('clincnv');
+		$command_elements = explode(' ', $script_path);
+		$script_path = end($command_elements);
+		$args[] = "--folderWithScript {$script_path}";
+		if($use_off_target)
+		{
+			$args[] = "--bedOfftarget $bed_off";
+			$args[] = "--normalOfftarget $merged_cov_off";
+		}
+		if(is_dir($baf_folder)) $args[] = "--bafFolder {$baf_folder}";
+	}
+	else if($mosaic)
+	{
+		$args[] = "--maxNumGermCNVs 10";
+		$args[] = "--lengthG 2"; //lengthG actually gives the number of additional regions > subtract 1
+		$args[] = "--scoreG 500";
+		$args[] = "--mosaicism";
+	}
+	else
+	{
+		$args[] = "--maxNumGermCNVs {$max_cnvs}";
+		$args[] = "--lengthG ".($regions-1); //lengthG actually gives the number of additional regions > subtract 1
+		$args[] = "--scoreG 20";
+	}
+
+	//use_off_target is set for tumor_only with off target cov/bed files
+	if (!$skip_super_recall && !$use_off_target && !$mosaic)
+	{
+		$args[] = "--superRecall 3"; //superRecall will call down to one region and to log-likelihood 3
+	}
+
+	$parameters = implode(" ", $args);
+	$pid = getmypid();
+	$stdout_file = $parser->tempFile(".stdout", "megSAP_clincnv_pid{$pid}_");
+	$stderr_file = $parser->tempFile(".stderr", "megSAP_clincnv_pid{$pid}_");
+	$stdout = array();
+	$stderr = array();
+	$try_nr = 0;
+	$return = -1;
+	while($return!=0 && $try_nr < $max_tries)
+	{
+		++$try_nr;
+		
+		//log
+		$add_info = array();
+		$add_info[] = "version    = ".$parser->extractVersion($command);
+		$add_info[] = "parameters = $parameters";
+		$parser->log("Calling external tool '$command' ({$try_nr}. try)", $add_info);
+
+		$exec_start = microtime(true);
+		$proc = proc_open($command." ".$parameters, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
+		while(true)
+		{
+			sleep(5);
+			
+			//check that clusters could be allocated
+			$at_cluster_allocation = ends_with(trim(file_get_contents($stdout_file)), "\"START cluster allocation.\"");
+			if ($at_cluster_allocation)
+			{
+				$sec_passed = time() - filemtime($stdout_file);
+				if ($sec_passed>60)
+				{
+					$parser->log("Cluster allocation stuck in command '$command'. Stopping it and trying again...");
+					proc_terminate($proc);
+					$return = -999;
+					break;
+				}
+			}
+			
+			$status  = proc_get_status($proc);
+			if (!$status['running'])
+			{
+				$return = $status['exitcode'];
+				break;
+			}
+		}
+		
+		//log output
+		$stdout = explode("\n", rtrim(file_get_contents($stdout_file)));
+		$stderr = explode("\n", rtrim(file_get_contents($stderr_file)));
+		if (count($stdout)>0)
+		{
+			$parser->log("Stdout of '$command':", $stdout);
+		}
+		if (count($stderr)>0)
+		{
+			$parser->log("Stderr of '$command':", $stderr);
+		}
+	}
+
+	//log error
+	$parser->log("Execution time of '$command': ".time_readable(microtime(true) - $exec_start));
+	if ($return!=0)
+	{
+		$parser->toStderr($stdout);
+		$parser->toStderr($stderr);
+		trigger_error("Call of external tool '$command' returned error code '$return'.", E_USER_ERROR);
+	}
+
+	$clinCNV_result_folder = "normal";
+	if($tumor_only)
+	{
+		$clinCNV_result_folder="tumorOnly";
+	}
+
+	if(file_exists("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv"))
+	{
+		//sort and extract sample data from output folder
+		$parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv -out $out",true);
+		$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
+		$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
+
+		//add high-quality CNV count to header
+		$cnv_calls = file($out);
+		$hq_cnvs = 0;
+		$analysistype = 0;
+		$i = 0;
+		foreach($cnv_calls as $line)
+		{
+			if(starts_with($line, "##ANALYSISTYPE"))
+			{
+				$analysistype = $i;
+			}
+			$line = trim($line);
+			if ($line=="" || $line[0]=="#") continue;
+			
+			list($c, $s, $e, $tmp_cn, $ll) = explode("\t", $line);
+			if ($ll>=20)
+			{
+				++$hq_cnvs;
+			}	
+			$i++;
+		}
+		array_splice($cnv_calls, 3, 0, array("##high-quality cnvs: {$hq_cnvs}\n", "##mean correlation to reference samples: {$mean_correlation}\n"));
+		if($tumor_only)
+		{
+			array_splice($cnv_calls, $analysistype, 1, array("##ANALYSISTYPE=CLINCNV_TUMOR_ONLY\n"));
+		}
+
+		file_put_contents($out, $cnv_calls);
+		return true;
+	}
+	else
+	{
+		//ClinVAR did not generate CNV file
+		generate_empty_cnv_file($out, $command, $stdout, $ps_name,$stderr, $tumor_only);
+		return false;
+	}
+}
+
 //init
 $repository_basedir = repository_basedir();
 $ps_name = basename($cov,".cov");
@@ -317,170 +650,15 @@ if($tumor_only)
 	}
 }
 
-//execute ClinCNV (with workaround for hanging jobs)
-$out_folder = $parser->tempFolder();
-$args = [
-"--normal {$cov_merged}",
-"--bed {$bed}",
-"--normalSample {$ps_name}",
-"--out {$out_folder}",
-"--numberOfThreads {$threads}",
-"--par \"chrX:60001-2699520;chrX:154931044-155260560\"" //this is correct for hg19 only!
-];
+//call CNVs
+$cnvs_called=run_clincnv($out);
 
-//analyzing a single tumor sample
-if($tumor_only)
+//call mosaic CNVs
+if($mosaic && $cnvs_called && !$tumor_only)
 {
-	$args[] = "--onlyTumor";
-	$args[] = "--minimumPurity 30";
-	$args[] = "--purityStep 5";
-	$args[] = "--scoreS 150";
-	$script_path = get_path('clincnv');
-	$command_elements = explode(' ', $script_path);
-	$script_path = end($command_elements);
-	$args[] = "--folderWithScript {$script_path}";
-	if($use_off_target)
-	{
-		$args[] = "--bedOfftarget $bed_off";
-		$args[] = "--normalOfftarget $merged_cov_off";
-	}
-	if(is_dir($baf_folder)) $args[] = "--bafFolder {$baf_folder}";
-}
-else if($mosaic)
-{
-	$args[] = "--maxNumGermCNVs {$max_cnvs}";
-	$args[] = "--lengthG 2"; //lengthG actually gives the number of additional regions > subtract 1
-	$args[] = "--scoreG 500";
-	$args[] = "--mosaicism";
-}
-else
-{
-	$args[] = "--maxNumGermCNVs {$max_cnvs}";
-	$args[] = "--lengthG ".($regions-1); //lengthG actually gives the number of additional regions > subtract 1
-	$args[] = "--scoreG 20";
+	detect_mosaicism();
 }
 
-//use_off_target is set for tumor_only with off target cov/bed files
-if (!$skip_super_recall && !$use_off_target)
-{
-	$args[] = "--superRecall 3"; //superRecall will call down to one region and to log-likelihood 3
-}
-
-$parameters = implode(" ", $args);
-$pid = getmypid();
-$stdout_file = $parser->tempFile(".stdout", "megSAP_clincnv_pid{$pid}_");
-$stderr_file = $parser->tempFile(".stderr", "megSAP_clincnv_pid{$pid}_");
-$stdout = array();
-$stderr = array();
-$try_nr = 0;
-$return = -1;
-while($return!=0 && $try_nr < $max_tries)
-{
-	++$try_nr;
-	
-	//log
-	$add_info = array();
-	$add_info[] = "version    = ".$parser->extractVersion($command);
-	$add_info[] = "parameters = $parameters";
-	$parser->log("Calling external tool '$command' ({$try_nr}. try)", $add_info);
-
-	$exec_start = microtime(true);
-	$proc = proc_open($command." ".$parameters, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
-	while(true)
-	{
-		sleep(5);
-		
-		//check that clusters could be allocated
-		$at_cluster_allocation = ends_with(trim(file_get_contents($stdout_file)), "\"START cluster allocation.\"");
-		if ($at_cluster_allocation)
-		{
-			$sec_passed = time() - filemtime($stdout_file);
-			if ($sec_passed>60)
-			{
-				$parser->log("Cluster allocation stuck in command '$command'. Stopping it and trying again...");
-				proc_terminate($proc);
-				$return = -999;
-				break;
-			}
-		}
-		
-		$status  = proc_get_status($proc);
-		if (!$status['running'])
-		{
-			$return = $status['exitcode'];
-			break;
-		}
-	}
-	
-	//log output
-	$stdout = explode("\n", rtrim(file_get_contents($stdout_file)));
-	$stderr = explode("\n", rtrim(file_get_contents($stderr_file)));
-	if (count($stdout)>0)
-	{
-		$parser->log("Stdout of '$command':", $stdout);
-	}
-	if (count($stderr)>0)
-	{
-		$parser->log("Stderr of '$command':", $stderr);
-	}
-}
-
-//log error
-$parser->log("Execution time of '$command': ".time_readable(microtime(true) - $exec_start));
-if ($return!=0)
-{
-	$parser->toStderr($stdout);
-	$parser->toStderr($stderr);
-	trigger_error("Call of external tool '$command' returned error code '$return'.", E_USER_ERROR);
-}
-
-$clinCNV_result_folder = "normal";
-if($tumor_only)
-{
-	$clinCNV_result_folder="tumorOnly";
-}
-
-if(file_exists("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv"))
-{
-	//sort and extract sample data from output folder
-	$parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv -out $out",true);
-	$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
-	$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
-
-	//add high-quality CNV count to header
-	$cnv_calls = file($out);
-	$hq_cnvs = 0;
-	$analysistype = 0;
-	$i = 0;
-	foreach($cnv_calls as $line)
-	{
-		if(starts_with($line, "##ANALYSISTYPE"))
-		{
-			$analysistype = $i;
-		}
-		$line = trim($line);
-		if ($line=="" || $line[0]=="#") continue;
-		
-		list($c, $s, $e, $tmp_cn, $ll) = explode("\t", $line);
-		if ($ll>=20)
-		{
-			++$hq_cnvs;
-		}	
-		$i++;
-	}
-	array_splice($cnv_calls, 3, 0, array("##high-quality cnvs: {$hq_cnvs}\n", "##mean correlation to reference samples: {$mean_correlation}\n"));
-	if($tumor_only)
-	{
-		array_splice($cnv_calls, $analysistype, 1, array("##ANALYSISTYPE=CLINCNV_TUMOR_ONLY\n"));
-	}
-
-	file_put_contents($out, $cnv_calls);
-}
-else
-{
-	//ClinVAR did not generate CNV file
-	generate_empty_cnv_file($out, $command, $stdout, $ps_name,$stderr, $tumor_only);
-}
 
 ?>
 
