@@ -78,7 +78,6 @@ function write_lowAF_variants($low_af_file_spliceai, $unscored_variants, $privat
 			{
 				fwrite($low_af_file_spliceai_h, $line);
 				++$c_written;
-				print $line."\n";
 			}
 		}
 	}
