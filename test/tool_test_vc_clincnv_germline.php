@@ -21,8 +21,6 @@ check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX000018_02.
 check_file($out_file1, data_folder().$name."_test1_out.tsv");
 check_file(substr($out_file1,0,-4).".seg", data_folder().$name."_test1_out1.seg");
 check_file(substr($out_file1,0,-4)."_cnvs.seg",data_folder().$name."_test1_out2.seg");
-//mosaicism
-
 
 //test clincnv for somatic single sample (vc_clincnv_germline is used in this case)
 //prepare input data_folder
