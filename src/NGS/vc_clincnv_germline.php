@@ -168,7 +168,7 @@ function detect_mosaicism()
 	$polymorphic="{$repository_basedir}/data/misc/af_genomes_imgag.bed";
 	$combined_bed = $parser->tempFile(".bed");
 	$filter_regions_bed = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$polymorphic} $out -out {$combined_bed}", true);
+	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$polymorphic} {$out} -out {$combined_bed}", true);
 	$parser->exec(get_path("ngs-bits")."BedMerge", "-in {$combined_bed} -out {$filter_regions_bed}", true);
 
 	//store all those regions
