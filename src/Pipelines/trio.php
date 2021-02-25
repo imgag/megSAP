@@ -91,8 +91,8 @@ $parser->addInfile("c", "BAM file of child (index).", false, true);
 $parser->addString("out_folder", "Output folder name.", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of 'c' is a valid processed sample name).", true);
-$steps_all = array("vc", "cn", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, cn=copy-number analysis, cn=copy-number analysis, db=database import.", true, implode(",", $steps_all));
+$steps_all = array("vc", "cn", "sv", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, cn=copy-number analysis, cn=copy-number analysis, sv=structural variant calling, db=database import.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_check", "Skip gender check of parents and parent-child correlation check (otherwise done before variant calling)");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
@@ -112,6 +112,7 @@ $gsvar = "{$out_folder}/trio.GSvar";
 $vcf_all = "{$out_folder}/all.vcf.gz";
 $vcf_all_mito = "{$out_folder}/all_mito.vcf.gz";
 $cnv_multi = "{$out_folder}/trio_cnvs_clincnv.tsv";
+$bedpe_out = "{$out_folder}/trio_manta_var_structural.bedpe";
 
 //check steps
 $steps = explode(",", $steps);
@@ -137,6 +138,12 @@ if ($annotation_only)
 			trigger_error("CN file for reannotation is missing. Skipping 'cn' step!", E_USER_WARNING);
 			if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
 		}
+	}
+
+	if (in_array("sv", $steps) && !file_exists($bedpe_out))
+	{
+		trigger_error("BEDPE file for reannotation is missing. Skipping 'sv' step!", E_USER_WARNING);
+		if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 	}
 }
 
@@ -347,6 +354,12 @@ if (in_array("cn", $steps))
 			}
 		}
 	}
+}
+
+//sv calling
+if (in_array("sv", $steps))
+{
+	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps sv", true);
 }
 
 //everything worked > import/update sample data in NGSD
