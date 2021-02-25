@@ -23,11 +23,12 @@ if(!isset($pid)) $pid = basename($in);
 
 
 // prepare command
+$out_prefix = dirname($out)."/".basename($out, ".vcf");
 $expansion_hunter_binary = get_path("expansion_hunter");
 $args = [];
 $args[] = "--reads $in";
 $args[] = "--reference ".genome_fasta($build);
-$args[] = "--output-prefix ".dirname($out)."/".basename($out, ".vcf");
+$args[] = "--output-prefix {$out_prefix}";
 		
 //determine correct variant catalog for the current sample
 $variant_catalog = dirname(get_path("expansion_hunter"), 2)."/variant_catalog/".strtolower($build)."/variant_catalog.json";
@@ -79,4 +80,81 @@ foreach($vcf_file_content as $line)
 	}
 	
 }
+
+// use REViewer to create SVG for each repeat expansion
+
+// sort and index ExpansionHunter BAM
+$parser->sortBam($out_prefix."_realigned.bam", $out_prefix."_realigned.bam", 1);
+$parser->indexBam($out_prefix."_realigned.bam", 1);
+
+// create output folder
+$svg_folder = dirname($out)."/repeat_expansions/";
+if (!file_exists($svg_folder))
+{
+    mkdir($svg_folder);
+}
+else
+{
+	// delete previous SVGs
+	foreach (glob("{$svg_folder}*.svg") as $file) unlink($file);
+}
+
+// remove loci which are not covered by sufficient reads (no GT called or no flanking reads)
+$re_usable = array();
+foreach (file($out_prefix.".vcf") as $line) 
+{
+	// skip comment/header lines
+	if (starts_with($line, "#")) continue;
+
+	// split VCF line
+	$vcf_line = explode("\t", $line);
+
+	// extract locus
+	$info = explode(";", $vcf_line[7]);
+	$rep_id = "";
+	foreach ($info as $value) 
+	{
+		if (starts_with(trim($value), "REPID="))
+		{
+			$rep_id = trim(explode("=", $value)[1]);
+			break;
+		}
+	}
+	if ($rep_id == "") trigger_error("ERROR: VCF line without repeat id!", E_USER_ERROR);
+
+	// extract genotype
+	$format = explode(":", $vcf_line[8]);
+	$sample = explode(":", $vcf_line[9]);
+	
+	$re_usable[$rep_id] = ($sample[array_search("GT", $format, true)] != "./.") && ($sample[array_search("ADFL", $format, true)] != "0/0");
+}
+
+// extract RE names
+$loci = array();
+$variant_catalog_content = json_decode(file_get_contents($variant_catalog), true);
+foreach ($variant_catalog_content as $repeat) 
+{
+	if (isset($repeat["LocusId"]))
+	{
+		$locus = $repeat["LocusId"];
+		if (isset($re_usable[$locus]) && $re_usable[$locus]) 
+		{
+			$loci[] = $locus;
+		}
+	}
+}
+
+// create SVG for each RE
+$reviewer_binary = get_path("REViewer");
+$args = [];
+$args[] = "--reads {$out_prefix}_realigned.bam";
+$args[] = "--vcf {$out_prefix}.vcf";
+$args[] = "--reference ".genome_fasta($build);
+$args[] = "--catalog {$variant_catalog}";
+foreach ($loci as $locus) 
+{
+	$parser->exec($reviewer_binary, implode(" ", $args)." --output-prefix {$svg_folder}{$out_prefix}_{$locus} --locus {$locus}");
+}
+
+
 ?>

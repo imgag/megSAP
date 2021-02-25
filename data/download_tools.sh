@@ -169,3 +169,15 @@ pip install h5py==2.10.0
 pip install mmsplice==2.1.1
 pip install spliceai==1.3.1
 deactivate
+
+#download REViewer
+cd $folder
+git clone https://github.com/Illumina/REViewer.git REViewer-0.1.1
+cd REViewer-0.1.1
+git fetch && git fetch --tags
+git checkout v0.1.1
+mkdir build
+cd build
+cmake ..
+make
+cd ../..
