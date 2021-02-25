@@ -8,20 +8,20 @@ tools=$root/tools/
 dbs=$root/dbs/
 
 #Ignore this - used for local installation
-# tools=/mnt/share/opt/
+tools=/mnt/share/opt/
 # tools=/home/bioinf/
-# dbs=/mnt/share/data/dbs/
+dbs=/mnt/share/data/dbs/
 
-vep_install_dir=$tools/ensembl-vep-release-100.3/
+vep_install_dir=$tools/ensembl-vep-release-103.1/
 vep_cpan_dir=$vep_install_dir/cpan/
-vep_data_dir=$dbs/ensembl-vep-100/
+vep_data_dir=$dbs/ensembl-vep-103/
 
 # download ensembl-vep
 cd $tools
-wget https://github.com/Ensembl/ensembl-vep/archive/release/100.3.tar.gz
+wget https://github.com/Ensembl/ensembl-vep/archive/release/103.1.tar.gz
 mkdir $vep_install_dir
-tar -C $vep_install_dir --strip-components=1 -xzf 100.3.tar.gz
-rm 100.3.tar.gz
+tar -C $vep_install_dir --strip-components=1 -xzf 103.1.tar.gz
+rm 103.1.tar.gz
 
 #install dependencies
 mkdir -p $vep_cpan_dir
@@ -47,8 +47,8 @@ mkdir -p $vep_data_dir
 cd $vep_data_dir
 mkdir -p ftp
 cd ftp
-wget ftp://ftp.ensembl.org/pub/release-100/variation/indexed_vep_cache/homo_sapiens_vep_100_GRCh37.tar.gz
-wget ftp://ftp.ensembl.org/pub/release-100/variation/indexed_vep_cache/homo_sapiens_refseq_vep_100_GRCh37.tar.gz
+wget ftp://ftp.ensembl.org/pub/release-103/variation/indexed_vep_cache/homo_sapiens_vep_103_GRCh37.tar.gz
+wget ftp://ftp.ensembl.org/pub/release-103/variation/indexed_vep_cache/homo_sapiens_refseq_vep_103_GRCh37.tar.gz
 
 #install ensembl-vep
 PERL5LIB=$vep_install_dir/Bio/:$vep_cpan_dir/lib/perl5/:$PERL5LIB

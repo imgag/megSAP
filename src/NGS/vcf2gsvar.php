@@ -897,7 +897,7 @@ while(!feof($handle))
 				$domains = explode("&", $parts[$i_domains]);
 				foreach($domains as $entry)
 				{
-					if(starts_with($entry, "Pfam_domain:"))
+					if(starts_with($entry, "Pfam:"))
 					{
 						$domain = explode(":", $entry, 2)[1];
 					}
