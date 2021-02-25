@@ -75,10 +75,8 @@ function cnv_is_in_list($cnv, $list)
 //filter mosaic CNVs by already found CNVs
 function filterMosaicVariants($mosaic_out, $filter_regions)
 {
-	print("in filter A\n");
 
 	$mosaicism = false;
-	print("in filter\n");
 
 	//get possible mosaic cnvs
 	$mosaic_h = fopen($mosaic_out, "r");
@@ -88,7 +86,6 @@ function filterMosaicVariants($mosaic_out, $filter_regions)
 	while(!feof($mosaic_h))
 	{
 		$line = fgets($mosaic_h);
-		print("{$line}\n");
 
 		if(starts_with(trim($line), "#chr"))
         {
@@ -139,7 +136,6 @@ function filterMosaicVariants($mosaic_out, $filter_regions)
 		}
 	}
 	fclose($mosaic_h);
-	print("writin new one\n");
 
 	$mosaic_h = fopen($mosaic_out, "w");
 	foreach($new_lines as $line)
@@ -208,15 +204,13 @@ function detect_mosaicism()
         }
 	}
 	fclose($filter_h);
-	print("generated array\n");
 
 	$mosaic_cnvs_found = filterMosaicVariants($mosaic_out, $regions_filter);
-	print("filtered\n");
 
 	//copy results to output folder
 	if($mosaic_cnvs_found)
 	{
-		print("mosaic found\n");
+		print("MOSAIC_CNV_FOUND\n");
 
 		$sample_cnv_name = substr($out,0,-4);
 		$mosaic1 = $sample_cnv_name."_mosaic.tsv";
