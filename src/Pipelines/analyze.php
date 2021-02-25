@@ -16,6 +16,8 @@ $parser->addInfile("system",  "Processing system INI file (automatically determi
 $steps_all = array("ma", "vc", "cn", "sv", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, db=import into NGSD.", true, "ma,vc,cn,sv,db");
 $parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (freebayes 'min-alternate-fraction' parameter).", true, 0.1);
+$parser->addFloat("min_bq", "Minimum base quality used for variant calling (freebayes 'min-base-quality' parameter).", true, 15);
+$parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (freebayes 'min-mapping-quality' parameter).", true, 1);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.");
 $parser->addFlag("no_abra", "Skip realignment with ABRA.");
@@ -293,6 +295,8 @@ if (in_array("vc", $steps))
 			$args[] = "-target_extend 50";
 		}
 		$args[] = "-min_af ".$min_af;
+		$args[] = "-min_mq ".$min_mq;
+		$args[] = "-min_bq ".$min_bq;
 		
 		//Do not call standard pipeline if there is only mitochondiral chrMT in target region
 		$only_mito_in_target_region = false;
@@ -312,6 +316,8 @@ if (in_array("vc", $steps))
 			$args = array();
 			$args[] = "-no_ploidy";
 			$args[] = "-min_af 0.01";
+			$args[] = "-min_mq ".$min_mq;
+			$args[] = "-min_bq ".$min_bq;
 			$args[] = "-target $target_mito";
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
 			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile_mito -build ".$sys['build']." ".implode(" ", $args));
