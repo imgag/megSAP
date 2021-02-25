@@ -11,7 +11,7 @@ Sensitivity, positive predictive value (PPV) and genotyping accuracy were measur
 
 The WGS samples were processed with the Illumina TruSeq DNA PCR-Free kit.  
 The benchmarks were performed on GIAB high-confidence regions - **no depth cutoff was used**.
-[//]: # (dataset: NA12878_45, 95x average coverge)
+ <!--- dataset: NA12878_45, 95x average coverge --->
 
 <table>
   <tr>
@@ -52,7 +52,7 @@ The benchmarks were performed on GIAB high-confidence regions - **no depth cutof
 
 The WES samples were processed with the Agilent SureSelectXT Human All Exon V7 kit.  
 The benchmarks were performed on GIAB high-confidence regions - **no depth cutoff was used**.
-[//]: # (dataset: NA12878_58, 150x average coverge)
+ <!--- dataset: NA12878_58, 150x average coverge --->
 
 <table>
   <tr>
@@ -93,7 +93,7 @@ The benchmarks were performed on GIAB high-confidence regions - **no depth cutof
 
 The WES samples were processed with the Agilent SureSelectXT Human All Exon V7 kit.  
 The benchmarks were performed on GIAB high-confidence regions **with at least 20x coverage**.
-[//]: # (dataset: NA12878_58, 150x average coverge)
+ <!--- dataset: NA12878_58, 150x average coverge --->
 
 <table>
   <tr>
