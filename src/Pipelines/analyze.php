@@ -547,7 +547,14 @@ if (in_array("cn", $steps))
 		//copy results to output folder
 		if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
 		if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
-		
+		$mosaic = $folder."/".$name."_mosaic_cnvs.tsv";
+		$mosaic2 = $folder."/".$name."_mosaic_cnv.seg";
+		$sample_cnv_name = substr($cnv_out,0,-4);
+		$mosaic_out = $sample_cnv_name."_mosaic.tsv";
+		$mosaic_out2 = $sample_cnv_name."_mosaic.seg";
+		if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic);
+		if (file_exists($mosaic_out2)) $parser->moveFile($mosaic_out2, $mosaic2);	
+
 		//create dummy GSvar file for shallow WGS (needed to be able to open the sample in GSvar)
 		if ($is_wgs_shallow)
 		{

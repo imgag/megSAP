@@ -31,6 +31,12 @@ $parser->addFlag("mosaic","Detect additionally large mosaic regions in sample (W
 
 extract($parser->parse($argv));
 
+class cnv {
+	public $chr;
+	public $start;
+	public $end;
+} 
+
 function cnv_is_in_list($cnv, $list)
 {
 	$ori_length = $cnv->end-$cnv->start;
@@ -52,7 +58,7 @@ function cnv_is_in_list($cnv, $list)
 			//inside
 			else if($cnv->end <= $region->end && $cnv->start >= $region->start)
 			{
-				return true;
+				return 100;
 			}
 			//outside
 			else if($cnv->start < $region->start && $cnv->end > $region->end)
@@ -61,73 +67,57 @@ function cnv_is_in_list($cnv, $list)
 			}
 		}
 	}
-	//if at least 70% of the regions map, don t report it as mosaic CNV
-	if(0.3*$ori_length >= $substr_length) return true;
+	//if at least 50% of the regions map, don t report it as mosaic CNV
+	if($substr_length <= 0.5*$ori_length) return true;
 	return false;	
 }
 
 //filter mosaic CNVs by already found CNVs
-function filterMosaicVariants($mosaic_out, $cnv_file)
+function filterMosaicVariants($mosaic_out, $filter_regions)
 {
-	class cnv {
-		public $chr;
-		public $start;
-		public $end;
-	}
+	print("in filter A\n");
+
 	$mosaicism = false;
-
-	//get detected cnvs
-	$real_cnvs = array();
-	$cnv_h = fopen($cnv_file, "r");
-	$previous_cnv_end = 0;
-	while(!feof($cnv_h))
-	{
-		$line = trim(fgets($cnv_h));
-		if(starts_with($line, "#"))
-		{
-			continue;
-		}
-		else
-		{
-			$entries = explode("\t", $line);
-			if(sizeof($entries) >= 3)
-			{
-				
-				$tmp_cnv = new cnv();
-				$tmp_cnv->chr = $entries[0];
-				$tmp_cnv->start = $entries[1];
-				$tmp_cnv->end = $entries[2];
-
-				$old_cnv = end($real_cnvs);
-				if(!empty($old_cnv) && ($tmp_cnv->start == $old_cnv->end))
-				{
-					array_pop($real_cnvs);
-					$old_cnv->end = $entries[2];
-					$real_cnvs[] = $old_cnv;
-				}
-				else
-				{				
-					$real_cnvs[] = $tmp_cnv;
-				}	
-				$previous_cnv_end = $tmp_cnv->end;
-			}
-		}
-	}
+	print("in filter\n");
 
 	//get possible mosaic cnvs
 	$mosaic_h = fopen($mosaic_out, "r");
 	$new_lines = array();
+	$length_kb_idx = 0;
+    $cn_idx = 0;
 	while(!feof($mosaic_h))
 	{
 		$line = fgets($mosaic_h);
-		if(starts_with(trim($line), "#"))
+		print("{$line}\n");
+
+		if(starts_with(trim($line), "#chr"))
+        {
+            $count = 0;
+            $entries = explode("\t", $line);
+            foreach($entries as $col)
+            {
+                if(trim($col) == "length_KB")
+                {
+                    $length_kb_idx = $count;
+                }
+                else if(trim($col) == "CN_change")
+                {
+                    $cn_idx = $count;
+                }
+                
+                $count++;
+			}
+			
+			$new_lines[] = $line;
+        }
+		else if(starts_with(trim($line), "#"))
 		{
 			$new_lines[] = $line;
 		}
 		else
 		{
 			$entries = explode("\t", $line);
-			if(sizeof($entries) >= 3)
+			if(sizeof($entries) >= max(3, $cn_idx, $length_kb_idx))
 			{
 				$m_cnv = new cnv();
 
@@ -135,7 +125,12 @@ function filterMosaicVariants($mosaic_out, $cnv_file)
 				$m_cnv->start = $entries[1]; 
 				$m_cnv->end = $entries[2]; 
 
-				if(!cnv_is_in_list($m_cnv, $real_cnvs))
+				$mosaic_cn = $entries[$cn_idx];
+				$mosaic_cn = doubleval($mosaic_cn);
+				$mosaic_length_bases =  str_replace('.', '', $entries[$length_kb_idx]);
+				$mosaic_length_bases = intval($mosaic_length_bases);
+
+				if(!cnv_is_in_list($m_cnv, $filter_regions) && $mosaic_length_bases >= 500000 && 1<$mosaic_cn && $mosaic_cn<3)
 				{
 					$new_lines[] = $line;
 					$mosaicism = true;
@@ -144,7 +139,7 @@ function filterMosaicVariants($mosaic_out, $cnv_file)
 		}
 	}
 	fclose($mosaic_h);
-	fclose($cnv_h);
+	print("writin new one\n");
 
 	$mosaic_h = fopen($mosaic_out, "w");
 	foreach($new_lines as $line)
@@ -159,22 +154,76 @@ function filterMosaicVariants($mosaic_out, $cnv_file)
 function detect_mosaicism()
 {
 	global $parser;
-		//run ClinCNV to detect large mosaic CNVs
-		$mosaic_out = $parser->tempFile("mosaic.tsv");
-		$mosaic_out2 = $parser->tempFile("mosaic.seg");
+	global $out;
+	global $repository_basedir;
 
-		$mosaicism = TRUE;
-		run_clincnv($mosaic_out, $mosaicism);
-		//filter variants by already found ones
-		$mosaic_cnvs_found = filterMosaicVariants($mosaic_out, $cnv_out);
-		//copy results to output folder
-		if($mosaic_cnvs_found)
-		{
-			$mosaic1 = $folder."/".$name."_mosaic_cnvs.tsv";
-			$mosaic2 = $folder."/".$name."_mosaic_cnv.seg";
-			if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic1);
-			if (file_exists($mosaic_out2)) $parser->moveFile($mosaic_out2, $mosaic2);	
-		}
+	//run ClinCNV to detect large mosaic CNVs
+	$mosaic_out = $parser->tempFile("mosaic.tsv");
+	$mosaic_out2 = $parser->tempFile("mosaic.seg");
+
+	$mosaicism = TRUE;
+	run_clincnv($mosaic_out, $mosaicism);
+
+	//merge bed regions of polymorphism and CNVs
+	$polymorphic="{$repository_basedir}/data/misc/af_genomes_imgag.bed";
+	$combined_bed = $parser->tempFile(".bed");
+	$filter_regions_bed = $parser->tempFile(".bed");
+	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$polymorphic} $out -out {$combined_bed}", true);
+	$parser->exec(get_path("ngs-bits")."BedMerge", "-in {$combined_bed} -out {$filter_regions_bed}", true);
+
+	//store all those regions
+    $regions_filter = array();
+    $filter_h = fopen($filter_regions_bed, "r");
+    while(!feof($filter_h))
+    {
+        $line = trim(fgets($filter_h));
+
+        if(starts_with($line, "#"))
+        {
+            continue;
+        }
+        else
+        {
+            $entries = explode("\t", $line);
+            if(sizeof($entries) >= 3)
+            {
+                
+                $tmp_cnv = new cnv();
+                $tmp_cnv->chr = $entries[0];
+                $tmp_cnv->start = $entries[1];
+                $tmp_cnv->end = $entries[2];
+
+                $old_cnv = end($regions_filter);
+                if(!empty($old_cnv) && ($tmp_cnv->start <= $old_cnv->end) && $tmp_cnv->chr == $old_cnv->chr)
+                {
+                    array_pop($regions_filter);
+                    $old_cnv->end = $entries[2];
+                    $regions_filter[] = $old_cnv;
+                }
+                else
+                {				
+                    $regions_filter[] = $tmp_cnv;
+                }	
+            }
+        }
+	}
+	fclose($filter_h);
+	print("generated array\n");
+
+	$mosaic_cnvs_found = filterMosaicVariants($mosaic_out, $regions_filter);
+	print("filtered\n");
+
+	//copy results to output folder
+	if($mosaic_cnvs_found)
+	{
+		print("mosaic found\n");
+
+		$sample_cnv_name = substr($out,0,-4);
+		$mosaic1 = $sample_cnv_name."_mosaic.tsv";
+		$mosaic2 = $sample_cnv_name."_mosaic.seg";
+		if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic1);
+		if (file_exists($mosaic_out2)) $parser->moveFile($mosaic_out2, $mosaic2);	
+	}
 }
 
 //Creates file with paths to coverage files using ref folder and current sample cov path, if $sample_ids is set: skip all ids not contained
@@ -342,7 +391,7 @@ function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messa
 			}
 		}
 	}
-	fwrite($cnv_output, "#chr\tstart\tend\tCN_change\tloglikelihood\tno_of_regions\tlength_KB\tpotential_AF\tgenes\n");
+	fwrite($cnv_output, "#chr\tstart\tend\tCN_change\tloglikelihood\tno_of_regions\tlength_kb_idx\tpotential_AF\tgenes\n");
 
 	fclose($cnv_output);
 }
