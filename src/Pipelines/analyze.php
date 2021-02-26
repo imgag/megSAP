@@ -548,7 +548,7 @@ if (in_array("cn", $steps))
 		if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
 		if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
 		$mosaic = $folder."/".$name."_mosaic_cnvs.tsv";
-		$mosaic2 = $folder."/".$name."_mosaic_cnv.seg";
+		$mosaic2 = $folder."/".$name."_mosaic_cnvs.seg";
 		$sample_cnv_name = substr($cnv_out,0,-4);
 		$mosaic_out = $sample_cnv_name."_mosaic.tsv";
 		$mosaic_out2 = $sample_cnv_name."_mosaic.seg";

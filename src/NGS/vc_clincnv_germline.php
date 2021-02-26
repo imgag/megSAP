@@ -154,9 +154,9 @@ function detect_mosaicism()
 	global $repository_basedir;
 
 	//run ClinCNV to detect large mosaic CNVs
-	$mosaic_out = $parser->tempFile("mosaic.tsv");
-	$mosaic_out2 = $parser->tempFile("mosaic.seg");
-
+	$mosaic_out = $tmp_folder."/mosaic.tsv";
+	$mosaic_out2 = $tmp_folder."/mosaic.seg";
+	
 	$mosaicism = TRUE;
 	run_clincnv($mosaic_out, $mosaicism);
 
