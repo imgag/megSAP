@@ -144,7 +144,6 @@ function filterMosaicVariants($mosaic_out, $filter_regions)
 	}
 	fclose($mosaic_h);
 
-	return true; # DEBUG PRINT
 	return $mosaicism;
 }
 
@@ -157,7 +156,6 @@ function detect_mosaicism()
 	//run ClinCNV to detect large mosaic CNVs
 	$tmp_folder = $parser->tempFolder();
 	$mosaic_out = $tmp_folder."/mosaic.tsv";
-	$mosaic_out2 = $tmp_folder."/mosaic.seg";
 	
 	$mosaicism = TRUE;
 	run_clincnv($mosaic_out, $mosaicism);
@@ -212,13 +210,9 @@ function detect_mosaicism()
 	//copy results to output folder
 	if($mosaic_cnvs_found)
 	{
-		print("MOSAIC_CNV_FOUND\n");
-
 		$sample_cnv_name = substr($out,0,-4);
-		$mosaic1 = $sample_cnv_name."_mosaic.tsv";
-		$mosaic2 = $sample_cnv_name."_mosaic.seg";
-		if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic1);
-		if (file_exists($mosaic_out2)) $parser->moveFile($mosaic_out2, $mosaic2);	
+		$mosaic_file = $sample_cnv_name."_mosaic.tsv";
+		if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic_file);
 	}
 }
 
@@ -699,7 +693,6 @@ if($tumor_only)
 $cnvs_called=run_clincnv($out);
 
 //call mosaic CNVs
-$mosaic=true; # DEBUG PRINT
 if($mosaic && $cnvs_called && !$tumor_only)
 {
 	detect_mosaicism();
