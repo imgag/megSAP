@@ -153,7 +153,7 @@ $args[] = "--reference ".genome_fasta($build);
 $args[] = "--catalog {$variant_catalog}";
 foreach ($loci as $locus) 
 {
-	$parser->exec($reviewer_binary, implode(" ", $args)." --output-prefix {$svg_folder}{$out_prefix}_{$locus} --locus {$locus}");
+	$parser->exec($reviewer_binary, implode(" ", $args)." --output-prefix {$svg_folder}".basename($out, ".vcf")."_{$locus} --locus {$locus}");
 }
 
 
