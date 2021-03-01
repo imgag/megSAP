@@ -78,9 +78,8 @@ while(!feof($in))
 	$sig_conf = "";
 	$replace_msg = "";
 	$dis = "";
-	$sig_inc = "";
+	$sig_acc_inc = [];
 	$dis_inc = "";
-	$acc_inc = "";
 	foreach($infos as $info)
 	{
 		if (starts_with($info, "CLNSIG="))
@@ -97,7 +96,11 @@ while(!feof($in))
 		}
 		if (starts_with($info, "CLNSIGINCL="))
 		{
-			list($acc_inc, $sig_inc) = explode(":", substr_clear($info, 11), 2);
+			$parts2 = explode(",", substr_clear($info, 11));
+			foreach($parts2 as $part)
+			{
+				$sig_acc_inc[] = explode(":", $part.":");
+			}
 		}
 		if (starts_with($info, "CLNDNINCL="))
 		{
@@ -146,7 +149,7 @@ while(!feof($in))
 		$accs[] = $acc;
 		$diss[] = $dis;
 	}
-	if ($sig_inc!="")
+	foreach($sig_acc_inc as list($acc_inc, $sig_inc))
 	{
 		$sigs[] = $sig_inc;
 		$accs[] = $acc_inc;
@@ -167,7 +170,7 @@ while(!feof($in))
 	for($i=0; $i<count($sigs); ++$i)
 	{
 		$parts[2] = $accs[$i];	
-		$parts[7] = "DETAILS=".vcf_encode_url_string(strtolower($sigs[$i])."{$replace_msg} DISEASE=".iconv("utf-8", "ascii//TRANSLIT", $diss[$i]));		
+		$parts[7] = "DETAILS=".vcf_encode_url_string(strtolower($sigs[$i]).($i==0 ? $replace_msg : "")." DISEASE=".iconv("utf-8", "ascii//TRANSLIT", $diss[$i]));		
 		print implode("\t", $parts)."\n";
 	}
 }

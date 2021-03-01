@@ -61,7 +61,7 @@ function write($h_out, $var)
 			$all_wt = false;
 		}
 		// create output string
-		$format_values[] = $sample['GT'].":".$sample['DP'].":".(int)($sample['AO']);
+		$format_values[] = $sample['GT'].":".$sample['DP'].":".(int)($sample['AO']).":".(int)($sample['GQ']);
 	}
 
 	//skip wildtype variants
@@ -75,13 +75,13 @@ function write($h_out, $var)
 	fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "")."\t");
 
 	//write FORMAT/SAMPLE
-	fwrite($h_out, "GT:DP:AO\t".implode("\t", $format_values)."\n");
+	fwrite($h_out, "GT:DP:AO:GQ\t".implode("\t", $format_values)."\n");
 }
 
 
 //main loop
 $ids = array("RO","GTI","NS","SRF","NUMALT","DP","QR","SRR","SRP","PRO","EPPR","DPB","PQR","ROOR","MQMR","ODDS","AN","RPPR","PAIREDR");
-$var_last = array("","","","","","","","","GT:DP:AO","0/0:0:0");
+$var_last = array("","","","","","","","","GT:DP:AO:GQ","0/0:0:0:0");
 $h_in = fopen2("php://stdin", "r");
 $h_out = fopen2("php://stdout", "w");
 while(!feof($h_in))
@@ -162,12 +162,14 @@ while(!feof($h_in))
 			$ao_last = $sample_last['AO'];
 			if (contains($ao_last, ",")) list($ao_last) = explode(",", $ao_last);
 			$ao = min($dp, $ao + $ao_last);
+			$gq_last = $sample_last['GQ'];
+			$gq = max($sample['GQ'], $gq_last);
 
 			// determine genotype
-			$var_last[$i] = "$gt:$dp:$ao";
+			$var_last[$i] = "$gt:$dp:$ao:$gq";
 		} 
 		// change FORMAT column at last to prevent FORMAT/SAMPLE key<->value errors 
-		$var_last[8] = "GT:DP:AO";
+		$var_last[8] = "GT:DP:AO:GQ";
 	}
 	else
 	{

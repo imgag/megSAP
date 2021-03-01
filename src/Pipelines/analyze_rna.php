@@ -23,9 +23,11 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mappi
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
 $parser->addFlag("no_splicing", "Disable spliced read alignment.");
 $parser->addFlag("abra", "Enable indel realignment with ABRA.");
+$parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
+$parser->addInt("min_read_length", " Minimum read length after SeqPurge adapter trimming. Shorter reads are discarded.", true, 30);   
 
 extract($parser->parse($argv));
 
@@ -113,7 +115,8 @@ if (in_array("ma", $steps) || in_array("fu", $steps))
 			"-a2", $sys["adapter2_p7"],
 			"-qc", $qc_fastq,
 			"-threads", bound($threads, 1, 6),
-			"-qcut 0"
+			"-qcut 0",
+			"-min_len", $min_read_length
 			);
 		$parser->exec(get_path("ngs-bits")."SeqPurge", implode(" ", $seqpurge_params), true);
 	}
@@ -153,6 +156,7 @@ if (in_array("ma", $steps))
 
 	if ($paired) $args[] = "-in2 $fastq_trimmed2";
 	if ($no_splicing) $args[] = "-no_splicing";
+	if ($skip_dedup) $args[] = "-skip_dedup";
 	
 	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
 
@@ -185,8 +189,9 @@ if (in_array("ma", $steps))
 
 	//mapping QC
 	$mappingqc_params = array(
-		"-in", $final_bam,
-		"-out", $qc_map
+		"-in ".$final_bam,
+		"-out ".$qc_map,
+		"-ref ".genome_fasta($sys['build'])
 	);
 
 	$mappingqc_params[] = (isset($target_file) && $target_file != "") ? "-roi {$target_file}" : "-rna";
@@ -265,7 +270,7 @@ if (in_array("fu",$steps))
 	
 		//add samtools to path
 		putenv("PATH=" . implode(":", [
-			dirname(get_path("samtools")),
+			dirname(get_path("STAR-Fusion_samtools")),
 			dirname(get_path("STAR")),
 			getenv("PATH")
 		]));
@@ -335,7 +340,7 @@ if (in_array("fu",$steps))
 			{
 				$igv_tracks_arg = implode(" ", $igv_tracks);
 				$genome_rel = relative_path(dirname($igv_session_file), "{$prefix}_var_fusions.fa");
-				$parser->execTool("NGS/igv_session.php", "-genome {$genome_rel} -out {$igv_session_file} -in {$igv_tracks_arg} -relative");
+				$parser->execTool("NGS/igv_session.php", "-genome {$genome_rel} -out {$igv_session_file} -in {$igv_tracks_arg} -win_path");
 			}
 
 		}

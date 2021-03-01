@@ -278,6 +278,46 @@ else
     }
 }
 
+// parse SV file and extract high-quality translocations
+$sv_file = "$folder/${name}_manta_var_structural.bedpe";
+$sv_filter = repository_basedir() . "/data/misc/circos/sv_filter.ini";
+
+$sv_temp_file = $temp_folder."/sv.tsv";
+$n_bnds = 0;
+
+if (!file_exists($sv_file)) 
+{
+    trigger_error("WARNING: No SV file found!", E_USER_WARNING);
+
+    // create empty temp file
+    touch($sv_temp_file);
+}
+else
+{
+    // filter SV file
+    list($stdout, $stderr, $return_code) = $parser->exec(get_path("ngs-bits")."SvFilterAnnotations", "-in $sv_file -out $sv_temp_file -filters $sv_filter", true, false, true);
+
+    // abort if filter fails
+    if($return_code != 0)
+    {
+        trigger_error("WARNING: SV file filtering failed! Skipping SV break points in circos plot.", E_USER_WARNING);
+        // create empty temp file
+        touch($sv_temp_file);
+    }
+
+    // cleanup filtered SV file
+    $svs = file($sv_temp_file);
+    $sv_positions = array();
+    foreach ($svs as $sv_line) 
+    {
+        if (starts_with($sv_line, "#")) continue;
+        $pos = array_slice(explode("\t", $sv_line), 0, 6);
+        $sv_positions[] = implode("\t", $pos)."\n";
+        $n_bnds++;
+    }
+    file_put_contents($sv_temp_file, $sv_positions);
+}
+
 
 
 // create dummy file to add sample name to plot
@@ -298,6 +338,7 @@ $file_names["[CN_FILE]"] = $cn_temp_file;
 $file_names["[CNV_DUP_FILE]"] = $cnv_temp_file_dup;
 $file_names["[CNV_DEL_FILE]"] = $cnv_temp_file_del;
 $file_names["[ROH_FILE]"] = $roh_temp_file;
+$file_names["[SV_BND_FILE]"] = $sv_temp_file;
 $file_names["[SAMPLE_LABEL]"] = $sample_label;
 $file_names["[LABEL_FOLDER]"] = repository_basedir()."/data/misc/circos";
 $file_names["[HOUSEKEEPING_FILE]"] = $circos_housekeeping_file;
@@ -338,6 +379,8 @@ trigger_error("Remaining CN entries: \t$n_copy_numbers", E_USER_NOTICE);
 trigger_error("Remaining CNV entries: \t$n_cnvs", E_USER_NOTICE);
 trigger_error("Remaining ROH entries: \t$n_rohs", E_USER_NOTICE);
 trigger_error("Remaining BAF entries: \t$n_bafs", E_USER_NOTICE);
+trigger_error("Remaining BND entries: \t$n_bnds", E_USER_NOTICE);
+
 
 // create Circos plot
 $circos_bin = get_path("circos");

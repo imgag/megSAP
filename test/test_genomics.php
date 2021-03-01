@@ -137,6 +137,21 @@ check(get_ref_seq("GRCh37", "chr14", 57349540, 57349542), "ACT");
 check(get_ref_seq("GRCh37", "chr14", 57349543, 57349545), "ATC");
 check(get_ref_seq("GRCh37", "chr12", 12310000, 12310200), "AAGCCTATGAGAGAAAGCTGCTGGCTCTTGAACTATACCTTCTCTTTAGGTAACCTCATTCATTTTAAATACATCCTGGTAATCCCAAAATTTGTATCTTCAACCTCATGTCTCTTCTCCGATGATAGTCCATCATCTATGACACATAATCTAGAGGTCATCCTTGCTTCCTCCCTTTCTTTCCCACACAGAACTCATTAA");
 
+// test caching
+check(get_ref_seq("GRCh37", "chr14", 57349540, 57349542, 100), "ACT");
+check(get_ref_seq("GRCh37", "chr14", 57349543, 57349545, 100), "ATC");
+check(get_ref_seq("GRCh37", "chr12", 12310000, 12310200, 100), "AAGCCTATGAGAGAAAGCTGCTGGCTCTTGAACTATACCTTCTCTTTAGGTAACCTCATTCATTTTAAATACATCCTGGTAATCCCAAAATTTGTATCTTCAACCTCATGTCTCTTCTCCGATGATAGTCCATCATCTATGACACATAATCTAGAGGTCATCCTTGCTTCCTCCCTTTCTTTCCCACACAGAACTCATTAA");
+
+// test behavior at chr ends
+check(get_ref_seq("GRCh37", "chr1", 1, 10, 100), "NNNNNNNNNN");
+check(get_ref_seq("GRCh37", "chr1", 21, 30, 100), "NNNNNNNNNN");
+check(get_ref_seq("GRCh37", "chr1", 249250621, 249250621, 1000), "N");
+check(get_ref_seq("GRCh37", "chr1", 249250021, 249250021, 1000), "N");
+check(get_ref_seq("GRCh37", "chrX", 155260465, 155260465, 100000), "T");
+check(get_ref_seq("GRCh37", "chrX", 155260465, 155260465, 100000), "T");
+check(get_ref_seq("GRCh37", "chrX", 155260465, 155260465, 10), "T");
+check(get_ref_seq("GRCh37", "chrX", 155260465, 155260465, 0), "T");
+
 end_test();
 
 //##################################################################################
@@ -323,6 +338,13 @@ check(vcf_column_index("GS140127_01", array("#CHROM", "POS", "ID", "REF", "ALT",
 check(vcf_column_index("GS140550_01", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "GS140549", "GS140127", "GS140550")), 11);
 check(vcf_column_index("KLO0051", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "KLO0052_01", "KLO0051_01")), 10);
 check(vcf_column_index("KLO0051_01", array("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "KLO0052", "KLO0051")), 10);
+end_test();
+
+start_test("aa1_to_aa3");
+check( aa1_to_aa3("*") , "Ter" );
+check( aa1_to_aa3("F") , "Phe" );
+check( aa3_to_aa1("Ter") , "*" );
+check( aa3_to_aa1("Asp") , "D" );
 end_test();
 
 ?>

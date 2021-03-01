@@ -15,6 +15,8 @@ $parser->addInfile("tumor", "Expected tumor variants  (VCF.GZ).", false);
 $parser->addInfile("roi", "Target region for the validation (high-confidence region of reference samples intersected with high-depth region of experiment.", false);
 $parser->addInfileArray("calls", "Somatic variant call files (VCF.GZ).", false);
 $parser->addOutfile("vars_details", "Output TSV file for variant details.", false);
+$parser->addOutfile("af_details", "Output TSV file for AF-specific output.", false);
+$parser->addFlag("with_low_evs", "Ignores 'LowEVS' filter column entry");
 extract($parser->parse($argv));
 
 //returns if the variant is an InDels
@@ -39,6 +41,8 @@ function get_bases($filename)
 //load VCF
 function load_vcf($filename, $roi, $strelka)
 {
+	global $with_low_evs;
+	
 	$output = array();
 	list($lines) = exec2("tabix --regions {$roi} {$filename}");
 	foreach($lines as $line)
@@ -56,7 +60,13 @@ function load_vcf($filename, $roi, $strelka)
 		if ($strelka)
 		{
 			list($tumor_dp, $tumor_af) = is_indel($tag) ? vcf_strelka_indel($format, $sample_tumor) : vcf_strelka_snv($format, $sample_tumor, $alt);
-			$output[$tag] = $tumor_af;
+			
+			//clear filter column
+			$filter_replace = ["PASS"=>"", "freq-tum"=>"", ";"=>""];
+			if ($with_low_evs) $filter_replace ["LowEVS"] = "";
+			$filter = trim(strtr($filter, $filter_replace));
+			
+			$output[$tag] = array($tumor_af, $tumor_dp, $filter);
 		}
 		else
 		{
@@ -123,12 +133,21 @@ foreach($calls as $filename)
 		$tp = 0;
 		$fp = 0;
 		$fn = 0;
-		foreach($vars as $var => $af)
+		foreach($vars as $var => list($af, $dp, $filter))
 		{
 			if (!type_matches($type, $var)) continue;
 			if (isset($vars_somatic[$var]))
 			{
-				++$tp;
+				
+				//flag filtered out
+				if ($filter!="")
+				{
+					$af = "FILTERED";
+				}
+				else
+				{
+					++$tp;
+				}
 			}
 			else if(!isset($vars_germline[$var]))
 			{
@@ -185,7 +204,7 @@ foreach($stdout as $line)
 	$vars_all[] = "$chr:$pos $ref>$alt";
 }
 
-//write details
+//write variant details
 $output = [];
 $header = "#variant\ttype";
 foreach($details_all as $name => $tmp)
@@ -213,5 +232,113 @@ foreach($vars_all as $var)
 }
 
 file_put_contents($vars_details, implode("\n", $output));
+
+//determine empirical AF of each column/experiment 
+$headers = [];
+$afs = [];
+foreach($output as $line)
+{
+	if ($line[0]=="#") continue;
+
+	$parts = explode("\t", $line);
+	
+	list($var, $type) = $parts;
+	$is_indel = contains($var, "INDEL");
+	if (!$is_indel && $type=="SOMATIC (het)")
+	{
+		for($col=2; $col<count($parts); ++$col)
+		{
+			$value = $parts[$col];
+			if (is_numeric($value))
+			{
+				$afs[$col][] = $value;
+			}
+		}
+	}
+}
+foreach($afs as $col => $values)
+{
+	$afs[$col] = median($values);
+}
+
+//calculate performance for given AF cutoff
+$output_af = [];
+foreach($afs as $col => $af)
+{
+	$name = array_keys($details_all)[$col-2];
+	$output_af[] = "##tumor fraction {$name}: ".number_format(2.0*$af, 4);
+}
+$output_af[] = "#af\texpected\tTP\tFP\tFN\trecall/sensitivity\tprecision/ppv";
+foreach([0.05, 0.1, 0.2] as $min_af)
+{
+	foreach(["", "SNV", "INDEL"] as $curr_type)
+	{
+		$done = [];
+		$c_expected = 0;
+		$tp = 0;
+		$fp = 0;
+		$fn = 0;
+		foreach($output as $line)
+		{
+			if ($line[0]=="#") continue;
+			$parts = explode("\t", $line);
+			
+			list($var, $type) = $parts;
+			$is_indel = contains($var, "INDEL");
+			if ($curr_type=="" || ($curr_type=="SNV" && !$is_indel) || ($curr_type=="INDEL" && $is_indel))
+			{
+				//count each variant only once
+				if (isset($done[$var])) continue;
+				
+				//artefacts (FP)
+				if ($type=="ARTEFACT")
+				{
+					for($col=2; $col<count($parts); ++$col)
+					{
+						$value = $parts[$col];
+						if (is_numeric($value) && $value>=$min_af)
+						{
+							++$fp;
+						}
+					}
+					
+					$done[$var] = true;
+					
+					continue;
+				}
+				
+				++$c_expected;
+				
+				for($col=2; $col<count($parts); ++$col)
+				{
+					$af_expected = trim($afs[$col]);
+					if ($type=="SOMATIC (hom)") $af_expected *= 2.0;
+					
+					if ($af_expected>$min_af)
+					{
+						$value = $parts[$col];
+						if (!is_numeric($value)) //"MISSING", "FILTERED"
+						{
+							++$fn;
+						}
+						else
+						{
+							++$tp;
+						}
+						
+						$done[$var] = true;
+						
+						break;
+					}
+				}
+			}
+		}
+
+		$recall = number_format($tp/($tp+$fn),5);
+		$precision = number_format($tp/($tp+$fp),5);
+		$output_af[] = implode("\t", [ trim("{$min_af} {$curr_type}"), $c_expected, $tp, $fp, $fn, $recall, $precision ]);
+	}
+}
+file_put_contents($af_details, implode("\n", $output_af));
 
 ?>

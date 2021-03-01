@@ -56,7 +56,7 @@ $parser->exec($expansion_hunter_binary, implode(" ", $args));
 list($stdout, $stderr, $ec) = $parser->exec($expansion_hunter_binary, "-v");
 
 // parse STDERR
-list($date, $tool_version) = explode(",", $stderr[0]);
+list($date, $tool_version) = explode(",", $stdout[0]);
 $tool_version = strtr($tool_version, array("[Starting " => "", "]" => ""));
 
 // read VCF file into memory

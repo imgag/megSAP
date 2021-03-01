@@ -24,6 +24,13 @@ tar xzf v0.9.1.tar.gz
 rm v0.9.1.tar.gz
 cd igv-reports-0.9.1 && python3 setup.py build && cd ..
 
+#download samtools 1.7, this version is neccessary for STAR-fusion
+wget https://github.com/samtools/samtools/releases/download/1.7/samtools-1.7.tar.bz2
+tar xjf samtools-1.7.tar.bz2
+rm samtools-1.7.tar.bz2
+cd samtools-1.7
+make
+
 #download subread (featureCounts)
 wget http://downloads.sourceforge.net/project/subread/subread-2.0.0/subread-2.0.0-Linux-x86_64.tar.gz
 tar xzf subread-2.0.0-Linux-x86_64.tar.gz

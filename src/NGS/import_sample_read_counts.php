@@ -23,7 +23,6 @@ $db_conn = DB::getInstance($db);
 $query = "SELECT id FROM qc_terms WHERE qcml_id = 'QC:2000005'";
 $res = $db_conn->executeQuery($query);
 $qc_term_id = $res[0]["id"];
-print $qc_term_id."\n";
 
 $read_counts = array();
 

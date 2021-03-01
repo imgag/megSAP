@@ -2,7 +2,6 @@
 
 /**
 	@page mapping
-	@todo Add pipeline test for MIPs/HaloPlex HS (only a few exons)
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -19,12 +18,13 @@ $parser->addString("out_name", "Output file base name (e.g. 'GS120001_01').", fa
 $parser->addInfileArray("in_index",  "Index reads FASTQ file(s).", true);
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'out_name' is a valid processed sample name).", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
-$parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
-$parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
-$parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.", true);
-$parser->addFlag("correction_n", "Use Ns for barcode correction.", true);
-$parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.", true);
-$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard bwa mem.", true);
+$parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.");
+$parser->addFlag("no_abra", "Skip realignment with ABRA.");
+$parser->addFlag("no_trim", "Skip adapter trimming with SeqPurge.");
+$parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.");
+$parser->addFlag("correction_n", "Use Ns for barcode correction.");
+$parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.");
+$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard bwa mem.");
 extract($parser->parse($argv));
 
 //check user for DRAGEN mapping
@@ -191,14 +191,21 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq",
 
 	$barcode_correction = true;
 }
-else
+else //normal analysis without UMIs
 {
 	if ($sys['umi_type']!=="n/a") trigger_error("Unknown UMI-type ".$sys['umi_type'].". No barcode correction.",E_USER_WARNING);
+
 	if (!$start_with_abra)
 	{
-		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 6), true);
+		if ($no_trim)
+		{
+			$parser->exec(get_path("ngs-bits")."ReadQC", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -out $stafile1", true);
+		}
+		else
+		{
+			$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 6), true);
+		}
 	}
-
 }
 
 //clean up MIPs - remove single reads and MIP arms, skip all reads without perfect match mip arm
@@ -291,7 +298,8 @@ if (!$start_with_abra)
 
 		// submit GridEngine job to dragen queue
 		$dragen_queues = explode(",", get_path("queues_dragen"));
-		$sge_logfile = date("YmdHis")."_".exec2("hostname -f")[0]."_".getmypid();
+		list($server) = exec2("hostname -f");
+		$sge_logfile = date("YmdHis")."_".implode("_", $server)."_".getmypid();
 		$sge_args = array();
 		$sge_args[] = "-V";
 		$sge_args[] = "-b y"; // treat as binary
@@ -338,10 +346,18 @@ if (!$start_with_abra)
 
 
 		// parse sge stdout file to determine if mapping was successful:
+		if (!(file_exists(get_path("dragen_log")."/$sge_logfile.out") && (get_path("dragen_log")."/$sge_logfile.err")))
+		{
+			trigger_error("Cannot find log files of DRAGEN mapping SGE job at '".get_path("dragen_log")."/$sge_logfile.out'!", E_USER_ERROR);
+		}
 		$sge_stdout = file(get_path("dragen_log")."/$sge_logfile.out", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 		$sge_stderr = file(get_path("dragen_log")."/$sge_logfile.err", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
 		//copy DRAGEN log to current mapping log and delete it:
+		if (!file_exists($dragen_log_file))
+		{
+			trigger_error("Cannot find DRAGEN log file '$dragen_log_file'!", E_USER_ERROR);
+		}
 		$parser->log("DRAGEN mapping log: ", file($dragen_log_file));
 		unlink($dragen_log_file);
 
@@ -354,7 +370,7 @@ if (!$start_with_abra)
 			// write dragen log stdout and stderr to log:
 			$parser->log("sge stdout:", $sge_stdout);
 			$parser->log("sge stderr:", $sge_stderr);
-			trigger_error("SGE job $sge_id failed!\nExit status: {$exit_status}", E_USER_ERROR);
+			trigger_error("SGE job $sge_id failed!", E_USER_ERROR);
 		}
 
 
@@ -457,13 +473,15 @@ if($barcode_correction)
 
 	//barcode correction
 	$tmp_bam4 = $parser->tempFile("_dedup4.bam");
+	$tmp_bam4_sorted = $parser->tempFile("_dedup4_sorted.bam");
 	$args = "";
 	if($correction_n) $args .= "--n ";
 	$parser->exec("python  ".repository_basedir()."/src/NGS/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 ".$args,true);
-	$parser->indexBam($tmp_bam4, $threads);
+	$parser->sortBam($tmp_bam4, $tmp_bam4_sorted, $threads);
+	$parser->indexBam($tmp_bam4_sorted, $threads);
 	
 	$parser->deleteTempFile($bam_current);
-	$bam_current = $tmp_bam4;
+	$bam_current = $tmp_bam4_sorted;
 }
 
 //remove reads from HaloPlex data that are short
@@ -502,7 +520,7 @@ if($clip_overlap)
 
 //run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
-$params = array("-in $bam_current", "-out $stafile2");
+$params = array("-in $bam_current", "-out $stafile2", "-ref ".genome_fasta($sys['build']));
 if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
 {
 	$params[] = "-wgs";

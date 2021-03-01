@@ -59,6 +59,7 @@ $args[] = "--min-alternate-fraction $min_af";
 $args[] = "--min-mapping-quality $min_mq";
 $args[] = "--min-base-quality $min_bq";
 $args[] = "--min-alternate-count $min_ao";
+$args[] = "--genotype-qualities";
 $args[] = "-f $genome";
 $args[] = "-b ".implode(" ", $bam);
 
@@ -161,6 +162,7 @@ if (isset($target) && $threads > 1)
 						$add_info[] = nl_trim($line);
 					}
 				}
+				$job_aborted = false;
 				$stderr = trim(file_get_contents($stderr_file));
 				if ($stderr!="")
 				{
@@ -168,19 +170,24 @@ if (isset($target) && $threads > 1)
 					foreach(explode("\n", $stderr) as $line)
 					{
 						$add_info[] = nl_trim($line);
+						if (contains($line, "terminate called after throwing an instance of 'std::runtime_error'"))
+						{
+							$job_aborted = true;
+						}
 					}
 				}
-				$exit_code = file_get_contents($exitcode_file);
-				if($exit_code!=0)
+				$exit_code = trim(file_get_contents($exitcode_file));
+				$add_info[] = "EXIT CODE: ".$exit_code;
+				if(!is_numeric($exit_code) || $exit_code!=0)
 				{
-					$add_info[] = "EXIT CODE: ".$exit_code;
+					$job_aborted = true;
 				}
 				
 				//log output
 				$parser->log("Finshed processing chromosome {$chr} in ".time_readable(microtime(true)-$start_time), $add_info);
 				
 				//abort if failed
-				if ($exit_code!=0) trigger_error("Processing of chromosome $chr with freebayes failed: ".$stderr, E_USER_ERROR);
+				if ($job_aborted) trigger_error("Processing of chromosome $chr with freebayes failed: ".$stderr, E_USER_ERROR);
 				
 				unset($running[$chr]);
 			}
@@ -224,7 +231,7 @@ else
 	$pipeline[] = array(get_path("freebayes"), implode(" ", $args));
 }
 
-//filter variants according to variant quality>5 , alternate observations>=3
+//filter variants according to variant quality>5
 $pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5\"");
 
 //split complex variants to primitives

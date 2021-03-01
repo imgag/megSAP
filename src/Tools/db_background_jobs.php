@@ -1,5 +1,5 @@
 <?php
-/**
+/** 
 	@page db_background_jobs
 */
 
@@ -34,7 +34,7 @@ foreach($file as $line)
 while(count($commands)>0)
 {
 	print date("Y-m-d h:i:s")."\n";
-
+	
 	//determine slots
 	$slots_overall = 0;
 	$slots_used = 0;
@@ -46,7 +46,7 @@ while(count($commands)>0)
 			$line = preg_replace('/\s+/', ' ', $line);
 			$line = explode(" ", $line);
 			// skip queues which are in any error/warning state (additional column)
-			if ((count($line) > 5) && (trim($line[5]) != "")) continue;
+			if ((count($line) > 5) && (trim($line[5]) != "")) continue; 
 			list(, $used, $overall) = explode("/", $line[2]);
 			$slots_overall += $overall;
 			$slots_used += $used;
@@ -80,7 +80,7 @@ while(count($commands)>0)
 				$sge_err = "{$base}.err";
 				$command_sge = "qsub -V -pe smp {$slots_per_job} -b y -wd {$sge_folder} -m n -M ".get_path("queue_email")." -e {$sge_err} -o {$sge_out} -q ".implode(",", $queues)." -shell n";
 				list($stdout, $stderr) = exec2($command_sge." ".$command);
-
+				
 				$sge_id = explode(" ", $stdout[0])[2];
 				print "    SGE job id: {$sge_id}\n";
 				print "    SGE stdout: {$sge_out}\n";
@@ -90,7 +90,7 @@ while(count($commands)>0)
 		}
 		print "  Commands remaining: ".count($commands)."\n";
 	}
-
+	
 	sleep($sleep_secs);
 }
 

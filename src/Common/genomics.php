@@ -90,23 +90,86 @@ function rev_comp($input)
 }
 
 /**
-	@brief Returns a genomic reference sequence (1-based chromosomal coordinates).
+	@brief Returns a genomic reference sequence (1-based chromosomal coordinates).	
+
+	if $cache_size is greater than 0, the requested region is extended by the given number and cached for further function calls
+
 	@ingroup genomics
 */
-function get_ref_seq($build, $chr, $start, $end)
+function get_ref_seq($build, $chr, $start, $end, $cache_size=0)
 {
+	// init vars for cache:
+	static $cache_build = null;
+	static $cache_chr = null;
+	static $cache_start = null;
+	static $cache_end = null;
+	static $cache_sequence = null;
+
 	//fix chromosome for GHCh37
 	if ($chr=="chrM") $chr = "chrMT";
 
-	//get sequence
-	$output = array();
-	exec(get_path("samtools")." faidx ".genome_fasta($build)." $chr:{$start}-$end 2>&1", $output, $ret);
-	if ($ret!=0)
+	if ($cache_size > 0)
 	{
-		trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
-	}
+		if ($end < $start)
+		{
+			// report invalid chr position
+			trigger_error("Error: Invalid chromosomal range {$chr}:{$start}-{$end} given for get_ref_seq()!", E_USER_ERROR);
+		}
+		// check if interval is in cache
+		if ($build == $cache_build && $chr == $cache_chr && $start > $cache_start && $end < $cache_end)
+		{
+			// interval in cache -> return sequence from cache
+			return substr($cache_sequence, $start - $cache_start, $end - $start + 1);
+		}
+		else
+		{
+			// interval not in cache -> create new cache
+			$cache_build = $build;
+			$cache_chr = $chr;
+			$cache_start = max($start - $cache_size, 1);
+			$cache_end = $end + $cache_size;
 
-	return implode("", array_slice($output, 1));
+			// get sequence
+			$output = array();
+			exec(get_path("samtools")." faidx ".genome_fasta($build)." $chr:{$cache_start}-{$cache_end} 2>&1", $output, $ret);
+			if ($ret!=0)
+			{
+				trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
+			}
+			
+			// check if chr range exceeds chr end:
+			if (starts_with($output[0], "[faidx] Truncated sequence:"))
+			{
+				//skip warning
+				$cache_sequence = trim(implode("", array_slice($output, 2)));
+				// correct cached end position, if cache exceeds chr end
+				$cache_end = $cache_start + strlen($cache_sequence);
+			}
+			else
+			{
+				$cache_sequence = trim(implode("", array_slice($output, 1)));
+			}
+
+			// return requested interval
+			return substr($cache_sequence, $start - $cache_start, $end - $start + 1);
+		}
+	}
+	else
+	{
+		// run without caching
+
+		//get sequence
+		$output = array();
+		exec(get_path("samtools")." faidx ".genome_fasta($build)." $chr:{$start}-$end 2>&1", $output, $ret);
+		if ($ret!=0)
+		{
+			trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
+		}
+		
+		return implode("", array_slice($output, 1));
+	}
+	
+	
 }
 
 /**
@@ -352,81 +415,6 @@ function store_system(&$db_conn, $name_short, $filename)
 	$output[] = "build = \"".$res[0]['build']."\"";
 	$output[] = "";
 	file_put_contents($filename, implode("\n", $output));
-}
-
-/**
-	@brief Loads the qcML terms for NGS from the OBO file.
-	@ingroup helpers
-*/
-function load_qc_terms()
-{
-	//do nothing if already loaded
-	if (isset($GLOBALS["qcml"])) return;
-
-	//load terms
-	$terms = array();
-
-	$current = array();
-	$h = fopen2(repository_basedir()."/data/misc/qc-cv.obo", "r");
-	while(!feof($h))
-	{
-		$line = trim(fgets($h));
-		if ($line=="")
-		{
-			continue;
-		}
-		else if ($line=="[Term]")
-		{
-			if (isset($terms[$current['id']])) trigger_error("duplicate qcML term id {$current['id']}!", E_USER_ERROR);
-			$terms[$current['id']] = $current;
-			$current = array();
-		}
-		else if (starts_with($line, "id:"))
-		{
-			$current['id'] = trim(substr($line, 3));
-		}
-		else if (starts_with($line, "name:"))
-		{
-			$current['name'] = trim(substr($line, 5));
-		}
-		else if (starts_with($line, "def:"))
-		{
-			$parts = explode("\"", $line);
-			$current['def'] = trim($parts[1]);
-		}
-		else if (starts_with($line, "xref: value-type:xsd\:"))
-		{
-			$parts = explode(":", strtr($line, "\"", ":"));
-			$current['type'] = trim($parts[3]);
-		}
-		else if (starts_with($line, "comment:"))
-		{
-			//nothing to do here
-		}
-		else if(starts_with($line, "is_obsolete:"))
-		{
-			//nothing to do here
-		}
-	}
-	if (isset($terms[$current['id']])) trigger_error("duplicate qcML term id '{$current['id']}'!", E_USER_ERROR);
-	$terms[$current['id']] = $current;
-
-	//remove QC terms we do not need
-	foreach($terms as $id => $data)
-	{
-		//terms that are not in the NGS namespace
-		if (!starts_with($id, "QC:2"))
-		{
-			unset($terms[$id]);
-		}
-		//no type (parent terms needed to structure the ontology only)
-		if (!isset($data['type']))
-		{
-			unset($terms[$id]);
-		}
-	}
-	ksort($terms);
-	$GLOBALS["qcml"] = $terms;
 }
 
 /**
@@ -901,10 +889,10 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false, $inclu
 	//check that run and processed sample do not have bad quality
 	if ($res[0]['q1']=="bad") return false;
 	if ($res[0]['q2']=="bad") return false;
-
-	//check that project type is research/diagnostics
-	if (!($res[0]['type']=="research" || $res[0]['type']=="diagnostic" || ($res[0]['type']=="test" && $include_test_projects))) return false;
-
+	
+	//include test projects only if requested
+	if ($res[0]['type']=="test" && !$include_test_projects) return false;
+	
 	return true;
 }
 
@@ -1270,7 +1258,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	//get info from NGSD
 	$ps_name = trim($ps_name);
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
-	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.preserve_fastqs as preserve_fastqs, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.adapter1_p5 as sys_adapter1, sys.adapter2_p7 as sys_adapter2,s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2, sp.name as species, s.id as s_id, ps.quality as ps_quality ".
+	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.preserve_fastqs as preserve_fastqs, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.adapter1_p5 as sys_adapter1, sys.adapter2_p7 as sys_adapter2,s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2, sp.name as species, s.id as s_id, ps.quality as ps_quality, ps.processing_input, d.name as device_name ".
 									"FROM project p, sample s, processing_system as sys, processed_sample ps LEFT JOIN sequencing_run as r ON ps.sequencing_run_id=r.id LEFT JOIN device as d ON r.device_id=d.id, species sp ".
 									"WHERE ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND s.species_id=sp.id AND ps.process_id='".(int)$process_id."'");
 	if (count($res)!=1)
@@ -1312,20 +1300,18 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 
 	//additional info
 	$project_folder = get_path("project_folder");
-	//if (!ends_with($project_folder, "/")) $project_folder .= "/";
-	//$info['project_folder'] = $project_folder.$info['project_type']."/".$info['project_name']."/";
-  $project_type = $info['project_type'];
-  if (is_array($project_folder))
-  {
-    $project_folder = $project_folder[$project_type];
-  }
-  else
-  {
-    if (!ends_with($project_folder, "/")) $project_folder .= "/";
-    $project_folder = $project_folder.$project_type;
-  }
-  $info['project_folder'] = $project_folder."/".$info['project_name']."/";
-  $info['ps_name'] = $ps_name;
+	$project_type = $info['project_type'];
+	if (is_array($project_folder))
+	{
+		$project_folder = $project_folder[$project_type];
+	}
+	else
+	{
+		if (!ends_with($project_folder, "/")) $project_folder .= "/";
+		$project_folder = $project_folder.$project_type;
+	}
+	$info['project_folder'] = $project_folder."/".$info['project_name']."/";
+	$info['ps_name'] = $ps_name;
 	$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
 	$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
 
@@ -1622,9 +1608,10 @@ function report_config(&$db_conn, $name, $error_if_not_found=false)
 
 	$var_ids = $db_conn->getValues("SELECT id FROM report_configuration_variant WHERE report_configuration_id=".$rc_id);
 	$cnv_ids = $db_conn->getValues("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=".$rc_id);
-
-
-	return array($rc_id, count($var_ids)>0, count($cnv_ids)>0);
+	$sv_ids = $db_conn->getValues("SELECT id FROM report_configuration_sv WHERE report_configuration_id=".$rc_id);
+	
+	
+	return array($rc_id, count($var_ids)>0, count($cnv_ids)>0, count($sv_ids)>0);
 }
 
 function somatic_report_config(&$db_conn, $t_ps, $n_ps, $error_if_not_found=false)
@@ -1671,5 +1658,124 @@ function cytoBands($chr, $start, $end)
 
 	return $out;
 }
+
+//checks if any contig line is given, if not adds all contig lines from reference genome (only GRCh37 supported)
+function addMissingContigsToVcf($build, $vcf)
+{
+	$file = fopen($vcf, 'c+');
+	$new_file_lines = array();
+	if($file)
+	{
+		$new_file_lines = explode("\n", fread($file, filesize($vcf)));
+		fseek($file, 0);
+	}
+	else
+	{
+		trigger_error("Could not open file ".$vcf.": no new contig lines written.", E_USER_WARNING);
+	}
+
+	$contains_contig = false;
+	$line_below_reference_info = 0;
+	$count = 0;
+
+	$new_contigs = array();
+
+	while(!feof($file))
+	{
+		$count += 1;
+		$line = trim(fgets($file));
+
+		if(starts_with($line, "##reference"))
+		{
+			$line_below_reference_info = $count;
+		}
+		else if (starts_with($line, "##"))
+		{
+			if(starts_with($line, "##contig"))
+			{
+				$contains_contig = true;
+				break;
+			}
+		}
+		else
+		{
+			//write contigs in second line if no reference genome line is given
+			if($line_below_reference_info == 0)
+			{
+				$line_below_reference_info = 1;
+			}
+			break;
+		}
+	}
+	if(!$contains_contig)
+	{
+		if ($build!="GRCh37")
+		{
+			trigger_error("Unknown genome build ".$build." cannot be annotated!", E_USER_ERROR);
+		}
+		$build_path = genome_fasta($build);
+		list($chr_lines) = exec2("grep chr {$build_path}");
+		foreach($chr_lines as $line)
+		{
+			$chr = "";
+			$len = "";
+			$parts = explode(" ", $line);
+			if(sizeof($parts) >= 3)
+			{
+				//get chromosome
+				$chr = $parts[0];
+				$chr = ltrim($chr, '>');
+
+				//get length
+				preg_match('/.*:(\d+):.*$/', $parts[2], $matches);
+				if(sizeof($matches)>=2)
+				{
+					$len = $matches[1];
+				}
+				else
+				{
+					trigger_error("No length information for chromosome ".$chr." found in line(".$line.") for reference genome(".$build.")", E_USER_WARNING);
+				}
+
+				//add information to contig array
+				if($chr && $len)
+				{
+					$new_contigs[] = "##contig=<ID={$chr}, length={$len}>";
+				}
+			}
+			else
+			{
+				trigger_error("Contig information could not be parsed for line(".$line.") from reference genome(".$build.").", E_USER_WARNING);
+			}
+		}
+
+		if(empty($new_contigs))
+		{
+			trigger_error("No new contig lines were written for ".$vcf, E_USER_WARNING);
+		}
+		else
+		{
+			array_splice( $new_file_lines, $line_below_reference_info, 0, $new_contigs);  
+			file_put_contents($vcf, implode("\n", $new_file_lines));
+		}
+	}
+
+}
+
+
+$aa1_to_aa3 = array( 'A'=>"Ala", 'R'=>"Arg", 'N'=>"Asn", 'D'=>"Asp", 'C'=>"Cys", 'E'=>"Glu", 'Q'=>"Gln", 'G'=>"Gly", 'H'=>"His", 'I'=>"Ile", 'L'=>"Leu", 'K'=>"Lys", 'M'=>"Met", 'F'=>"Phe", 'P'=>"Pro", 'S'=>"Ser", 'T'=>"Thr", 'W'=>"Trp", 'Y'=>"Tyr", 'V'=>"Val", '*'=>"Ter");
+$aa3_to_aa1 = array_flip($aa1_to_aa3);
+
+//converts amino acid from three letter notation to 1 letter notation
+function aa3_to_aa1($three_letter_notation)
+{
+	return strtr($three_letter_notation, $GLOBALS["aa3_to_aa1"]);
+}
+
+function aa1_to_aa3($one_letter_notation)
+{
+	return strtr($one_letter_notation, $GLOBALS["aa1_to_aa3"]);
+}
+
 
 ?>

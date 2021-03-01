@@ -43,7 +43,18 @@ if(db_is_enabled("NGSD"))
 //mapping with bwa
 $pipeline = array();
 $bwa_params = "mem ".genome_fasta($build)." -M -R '@RG\\t".implode("\\t", $group_props)."' -t $threads";
-$pipeline[] = array(get_path("bwa"), "$bwa_params $in1 $in2");
+
+//select the correct binary
+$use_bwa1 = get_path("use_bwa1", true);
+if ($use_bwa1==true || $use_bwa1=="true") 
+{
+	$bwa_binary = get_path("bwa");
+}
+else
+{
+	$bwa_binary = get_path("bwa-mem2"); 
+}
+$pipeline[] = array($bwa_binary, "$bwa_params $in1 $in2");
 
 //duplicate removal with samblaster
 if ($dedup)

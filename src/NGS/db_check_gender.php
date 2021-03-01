@@ -10,6 +10,7 @@ $parser = new ToolBase("db_check_gender", "Checks the gender of a sample.");
 $parser->addInfile("in",  "Input file in BAM format.", false);
 $parser->addString("pid",  "Processed sample ID, e.g. GS120001_01, used to determine the sample gender from the NGSD.", false);
 $parser->addString("gender", "Gender of the input. If unset, gender is looked up in NGSD.", true);
+$parser->addInt("sry_cov", "Minimum SRY coverage to consider a sample as male.", true, "10");
 //optional
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
@@ -46,13 +47,17 @@ else
 		$method = "xy";
 		$args = "-min_male 0.012 -max_female 0.008";
 	}
+	else if ($info['sys_type']=="cfDNA (patient-specific)")
+	{
+		$method = "sry";
+	}
 	else //check if sry is included in target region
 	{
 		list($stdout, $stderr) = exec2("echo -e 'chrY\\t2655030\\t2655644' | ".get_path("ngs-bits")."BedIntersect -in2 ".$info["sys_target"], false); //works for GRCh37 only
 		if ($stdout[0] == "chrY\t2655030\t2655644") //SRY is in roi
 		{
 			$method = "sry";
-			$args = "-sry_cov 10";
+			$args = "-sry_cov $sry_cov";
 		}
 	}
 }

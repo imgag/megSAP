@@ -205,30 +205,6 @@ if ($build=="GRCh37")
 	}
 }
 
-######################### VEP GeneSplicer data #########################
-if ($build=="GRCh37")
-{
-	$annotation_folder = dirname(get_path("vep"))."/GeneSplicer/human/";
-	$local_annotation_folder = "{$local_data}/GeneSplicer/";
-	
-	print "\n";
-	print "### VEP GeneSplicer data ###\n";
-	print "from: {$annotation_folder}\n";
-	print "to  : {$local_annotation_folder}\n";
-	print "\n";
-		
-	print "rsync-ing GeneSplicer data...\n";
-	list($stdout, $stderr) = exec2("{$rsync} {$annotation_folder} {$local_annotation_folder}");
-	foreach(array_merge($stdout, $stderr) as $line)
-	{
-			$line = trim($line);
-			if ($line=="") continue;
-			
-			print "  {$line}\n";
-	}
-}
-
-
 ######################### VEP annotation databases #########################
 if ($build=="GRCh37")
 {
@@ -258,10 +234,10 @@ if ($build=="GRCh37")
 		print "rsync-ing annotation databases...\n";
 		
 		//determine databases to sync
-		$db_files = array("/dbs/CADD/CADD_SNVs_1.6.tsv.gz", "/dbs/CADD/CADD_InDels_1.6.tsv.gz", "/dbs/REVEL/revel_all_chromosomes.tsv.gz", "/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz", "/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz", "/dbs/gnomAD/gnomAD_genome_r2.1.1.vcf.gz", "/dbs/RepeatMasker/RepeatMasker.bed.gz", "/dbs/ClinVar/clinvar_20200506_converted.vcf.gz", "/dbs/phyloP/hg19.100way.phyloP100way.bw");
+		$db_files = array("/dbs/CADD/CADD_SNVs_1.6.vcf.gz", "/dbs/CADD/CADD_InDels_1.6.vcf.gz", "/dbs/REVEL/revel_all_chromosomes.tsv.gz", "/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz", "/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz", "/dbs/gnomAD/gnomAD_genome_r2.1.1.vcf.gz", "/dbs/RepeatMasker/RepeatMasker.bed.gz", "/dbs/ClinVar/clinvar_20210110_converted.vcf.gz", "/dbs/phyloP/hg19.100way.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2021_02_03.vcf.gz", "/dbs/MMSplice/mmsplice_scores_2021_02_03.vcf.gz");
 		$omim =  "/dbs/OMIM/omim.bed.gz";
 		if (file_exists($data_folder.$omim)) $db_files[] = $omim; //optional
-		$hgmd =  "/dbs/HGMD/HGMD_PRO_2020_1_fixed.vcf.gz";
+		$hgmd =  "/dbs/HGMD/HGMD_PRO_2020_4_fixed.vcf.gz";
 		if (file_exists($data_folder.$hgmd)) $db_files[] = $hgmd; //optional
 		
 		foreach($db_files as $db_file)

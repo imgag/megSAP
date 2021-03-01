@@ -205,7 +205,7 @@ else //somatic tumor-normal pairs
 		else
 		{
 			echo "normal $bam processing...\n";
-			if(!is_valid_ref_sample_for_cnv_analysis($sample, $include_test_projects)) continue;
+			if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only, $include_test_projects)) continue;
 			if(!file_exists("{$ref_n_dir}/{$sample}.cov"))
 			{
 				exec2($ngsbits."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out {$ref_n_dir}/{$sample}.cov",true);
