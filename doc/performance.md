@@ -163,4 +163,22 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 20
     <td>97.56%</td>
     <td>96.67%</td>
   </tr>
+  <tr>
+    <td>Minimum mapping quality of 20 for variant calling (-max_mq 20)</td>
+    <td>99.95%</td>
+    <td>99.63%</td>
+    <td>99.98%</td>
+    <td>96.55%</td>
+    <td>94.10%</td>
+    <td>96.21%</td>
+  </tr>
+  <tr>
+    <td>Minimum base quality of 20 for variant calling (-max_bq 20)</td>
+    <td>99.95%</td>
+    <td>99.65%</td>
+    <td>99.98%</td>
+    <td>96.60%</td>
+    <td>94.15%</td>
+    <td>96.22%</td>
+  </tr>
 </table>

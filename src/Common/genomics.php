@@ -406,7 +406,7 @@ function store_system(&$db_conn, $name_short, $filename)
 	$output = array();
 	$output[] = "name_short = \"".$name_short."\"";
 	$output[] = "name_manufacturer = \"".$res[0]['name_manufacturer']."\"";
-	$output[] = "target_file = \"".$res[0]['target_file']."\"";
+	$output[] = "target_file = \"".get_path("data_folder")."/enrichment/".$res[0]['target_file']."\"";
 	$output[] = "adapter1_p5 = \"".$res[0]['adapter1_p5']."\"";
 	$output[] = "adapter2_p7 = \"".$res[0]['adapter2_p7']."\"";
 	$output[] = "shotgun = ".$res[0]['shotgun'];
@@ -1273,6 +1273,10 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 		}
 	}
 	$info = $res[0];
+	
+	//prefix target region
+	$info['sys_target'] = get_path("data_folder")."/enrichment/".$info['sys_target'];
+	
 	
 	//normal sample name (tumor reference sample)
 	if($info['normal_id']!="")
