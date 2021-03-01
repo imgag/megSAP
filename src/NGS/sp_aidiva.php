@@ -31,7 +31,7 @@ $family_file = $family;
 $temp_hpo_file_path = "";
 
 $parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/split_vcf_in_indel_and_snp_set.py", "--in_file $vcf --snp_file $vcf_snp --indel_file $vcf_indel", true);
-$parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/convert_indels_to_snps_and_create_vcf.py", "--in_data $vcf_indel --out_data $vcf_indel_expanded --hg19_path $hg19_path", true);
+$parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/convert_indels_to_snps_and_create_vcf.py", "--in_data $vcf_indel --out_data $vcf_indel_expanded --ref_path $hg19_path", true);
 
 // annotate VCF
 $args = array("-in {$vcf_snp}", "-out ".$outdir."/".basename($vcf_snp, ".vcf")."_vep.vcf");
