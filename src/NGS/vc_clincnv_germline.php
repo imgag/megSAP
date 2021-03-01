@@ -205,15 +205,12 @@ function detect_mosaicism()
 	}
 	fclose($filter_h);
 
-	$mosaic_cnvs_found = filterMosaicVariants($mosaic_out, $regions_filter);
+	filterMosaicVariants($mosaic_out, $regions_filter);
 
 	//copy results to output folder
-	if($mosaic_cnvs_found)
-	{
-		$sample_cnv_name = substr($out,0,-4);
-		$mosaic_file = $sample_cnv_name."_mosaic.tsv";
-		if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic_file);
-	}
+	$sample_cnv_name = substr($out,0,-4);
+	$mosaic_file = $sample_cnv_name."_mosaic.tsv";
+	if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic_file);
 }
 
 //Creates file with paths to coverage files using ref folder and current sample cov path, if $sample_ids is set: skip all ids not contained
