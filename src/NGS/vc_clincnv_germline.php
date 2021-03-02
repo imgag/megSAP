@@ -189,7 +189,7 @@ function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messa
 		if(strpos($line, "{$ps_name} did not pass QC") == true)
 		{
 			preg_match('/^.*\"(.*)\".*$/', $line, $matches);
-			if(sizeof($mathces >= 2))
+			if(sizeof($matches >= 2))
 			{
 				fwrite($cnv_output, "##{$matches[1]}\n");
 			}
@@ -469,7 +469,7 @@ if(file_exists("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnv
 else
 {
 	//ClinVAR did not generate CNV file
-	generate_empty_cnv_file($out, $command, $stdout, $ps_name,$stderr, $tumor_only);
+	generate_empty_cnv_file($out, $command, $stdout, $ps_name, implode("; ",$stderr), $tumor_only);
 }
 
 ?>
