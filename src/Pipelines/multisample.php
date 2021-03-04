@@ -344,11 +344,14 @@ if (in_array("cn", $steps))
 			trigger_error("Input CNVs have different filetypes. Aborting CNV multisample call.",E_USER_WARNING);
 			$skip_cn = true;
 		}
-
-		if($cn_type == "cnvhunter")	$cnv_multi = "{$out_folder}/{$prefix}_cnvs.tsv";
-		else if($cn_type == "clincnv") $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
-		else trigger_error("Invalid CNV list type '{$cn_type}'!", E_USER_ERROR);
-
+		
+		if(!$skip_cn)
+		{
+			if($cn_type == "cnvhunter")	$cnv_multi = "{$out_folder}/{$prefix}_cnvs.tsv";
+			else if($cn_type == "clincnv") $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
+			else trigger_error("Invalid CNV list type '{$cn_type}'!", E_USER_ERROR);
+		}
+		
 		//(3.1a) merge ClinCNV
 		if(!$skip_cn && $cn_type == "clincnv")
 		{

@@ -20,7 +20,11 @@ cn:
 	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder . -steps cn
 
 sv:
-	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder . -steps sv	
+	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder . -steps sv
+	# remove gene annotation
+	cut -f1-24 trio_manta_var_structural.bedpe > trio_manta_var_structural_cut.bedpe
+	# create file from OMIM annotation and CNV overlap
+	cat trio_manta_var_structural.bedpe | egrep -v "^##"| rev | cut -f 1,2| rev > trio_manta_var_structural_cut2.bedpe	
 
 diff:
 	#variants
@@ -30,7 +34,8 @@ diff:
 	#UPDs
 	diff -b trio_upd.tsv.out trio_upd.tsv
 	#SVs
-	diff trio_manta_var_structural.bedpe trio_manta_var_structural.bedpe.out --ignore-matching-lines="^##"
+	diff trio_manta_var_structural_cut.bedpe trio_manta_var_structural_cut.bedpe.out --ignore-matching-lines="^##"
+	diff trio_manta_var_structural_cut2.bedpe trio_manta_var_structural_cut2.bedpe.out --ignore-matching-lines="^##"
 
 ra:
 	mkdir -p reanno
