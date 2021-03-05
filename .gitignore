@@ -47,6 +47,7 @@
 /test/data_trio/*_clincnv.tsv
 /test/data_trio/manta_evid/
 /test/data_trio/*_manta_var_structural.bedpe
+/test/data_trio/*.bedpe
 
 /test/data_multi/*.GSvar
 /test/data_multi/*.log
@@ -58,6 +59,7 @@
 /test/data_multi/*_clincnv.tsv
 /test/data_multi/manta_evid/
 /test/data_multi/*_manta_var_structural.bedpe
+/test/data_multi/*.bedpe
 
 /test/data_capa/*.GSvar
 /test/data_capa/*.log

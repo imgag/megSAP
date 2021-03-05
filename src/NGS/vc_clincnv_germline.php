@@ -372,7 +372,7 @@ function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messa
 		if(strpos($line, "{$ps_name} did not pass QC") == true)
 		{
 			preg_match('/^.*\"(.*)\".*$/', $line, $matches);
-			if(sizeof($mathces >= 2))
+			if(sizeof($matches >= 2))
 			{
 				fwrite($cnv_output, "##{$matches[1]}\n");
 			}
@@ -582,7 +582,7 @@ $cov_files[] = $cov;
 $cov_files = array_unique(array_map("realpath", $cov_files));
 if (count($cov_files)<$cov_min)
 {
-	generate_empty_cnv_file($out, $command, "", $ps_name, "Only ".count($cov_files)." coverage files found in folder '{$cov_folder}'", $tumor_only);
+	generate_empty_cnv_file($out, $command, [], $ps_name, "Only ".count($cov_files)." coverage files found in folder '{$cov_folder}'", $tumor_only);
 	trigger_error("CNV calling skipped. Only ".count($cov_files)." coverage files found in folder '$cov_folder'. At least {$cov_min} files are needed!", E_USER_ERROR);
 }
 
@@ -695,6 +695,4 @@ if($mosaic && $cnvs_called && !$tumor_only)
 	detect_mosaicism();
 }
 
-
 ?>
-
