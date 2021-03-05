@@ -274,7 +274,7 @@ $column_desc = array(
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
 	array("AIDIVA", "AIdiva pathogenicity prediction."),
 	array("AIDIVA_HPO", "AIdiva pathogenicity prediction adjusted with given HPO terms."),
-	array("AIDIVA_FILTER", "Flag that indicates if the variant passed all internal filters of AIdiva (0 or 1)."),
+	array("AIDIVA_INHERITANCE", "Inheritance how it is interpreted by AIdiva."),
 	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
 	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
@@ -681,7 +681,7 @@ while(!feof($handle))
 	$revel = array();
 	$aidiva = array();
 	$aidiva_hpo = array();
-	$aidiva_filter = array();
+	$aidiva_inheritance = array();
 	$dbsnp = array();
 	$cosmic = array();
 	$genes = array();
@@ -1103,7 +1103,7 @@ while(!feof($handle))
 	{
 		$aidiva[] = explode(",", trim($info["AIDIVA"]))[0];
 		$aidiva_hpo[] = explode(",", trim($info["AIDIVA"]))[1];
-		$aidiva_filter[] = explode(",", trim($info["AIDIVA"]))[3];
+		$aidiva_8inheritance[] = trim($info["AIDIVA_INHERITANCE"]);
 	}
 
 	//AFs
@@ -1419,7 +1419,7 @@ while(!feof($handle))
 	$revel = empty($revel) ? "" : collapse("REVEL", $revel, "max", 2);
 	$aidiva = empty($aidiva) ? "" : collapse("AIDIVA", $aidiva, "one", 4);
 	$aidiva_hpo = empty($aidiva_hpo) ? "" : collapse("AIDIVA_HPO", $aidiva_hpo, "one", 4);
-	$aidiva_filter = empty($aidiva_filter) ? "" : collapse("AIDIVA_FILTER", $aidiva_filter, "one");
+	$aidiva_inheritance = empty($aidiva_inheritance) ? "" : $aidiva_inheritance;
 	
 	//OMIM
 	$omim = collapse("OMIM", $omim, "one");
@@ -1449,7 +1449,7 @@ while(!feof($handle))
 	//write data
 	++$c_written;
 	$genes = array_unique($genes);
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity\t$spliceai");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$aidiva\t$aidiva_hpo\t$aidiva_inheritance\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity\t$spliceai");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");

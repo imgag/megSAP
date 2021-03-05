@@ -479,7 +479,7 @@ if (file_exists($warn_file))
 	}
 }
 
-// TODO: prefilter VCF to only pass coding variants to the AIdiva subroutine
+// prefilter VCF to only pass coding variants to the AIdiva subroutine
 $coding_filtered = $parser->tempFile("_coding.vcf");
 $parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/filter_vcf.py", "--in_file $vep_output --out_file $coding_filtered", true);
 
@@ -506,7 +506,7 @@ $args[] = "-config {$aidiva_config}";
 $args[] = "-threads {$threads}";
 $parser->execTool("NGS/sp_aidiva.php", implode(" ", $args));
 
-$aidiva_result_file = $temp_results."/"."aidiva"."_result_sorted.vcf.gz";
+$aidiva_result_file = $temp_results."/"."aidiva"."_result_filtered_sorted.vcf.gz";
 
 
 // custom annotation by VcfAnnotateFromVcf
@@ -516,7 +516,7 @@ $config_file_path = $parser->tempFile(".config");
 $config_file = fopen($config_file_path, 'w');
 
 // add AIdiva annotation
-fwrite($config_file, $aidiva_result_file."\t\tAIDIVA\t\ttrue\n");
+fwrite($config_file, $aidiva_result_file."\t\tAIDIVA,AIDIVA_INHERITANCE_COMMENT\t\ttrue\n");
 
 
 // add gnomAD annotation
