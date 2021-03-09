@@ -515,6 +515,7 @@ if (in_array("cn", $steps))
 			"-cov_folder {$cov_folder}",
 			"-bed {$bed}",
 			"-out {$cnv_out}",
+			"-threads {$threads}",
 			"--log ".$parser->getLogFile(),
 		);
 		if ($is_wgs)
@@ -535,12 +536,22 @@ if (in_array("cn", $steps))
 			$args[] = "-cov_max 200";
 			$args[] = "-max_cnvs 200";
 		}
+
+		if($is_wgs || $is_wes)
+		{
+			$args[] = "-mosaic";
+		}
+
 		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 		
 		//copy results to output folder
 		if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
 		if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
-		
+		$mosaic = $folder."/".$name."_mosaic_cnvs.tsv";
+		$sample_cnv_name = substr($cnv_out,0,-4);
+		$mosaic_out = $sample_cnv_name."_mosaic.tsv";
+		if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic);
+
 		//create dummy GSvar file for shallow WGS (needed to be able to open the sample in GSvar)
 		if ($is_wgs_shallow)
 		{
@@ -587,10 +598,7 @@ if (in_array("cn", $steps))
 			);
 			file_put_contents($varfile, implode("\n", $content));
 		}
-
-
-		// use created CNV file for annotation
-		$cnvfile_in = $cnvfile;
+		
 	}
 
 	// annotate CNV file
