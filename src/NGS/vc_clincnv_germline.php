@@ -609,7 +609,7 @@ $mean_correlation = 0.0;
 	$cov1 = null;
 	$cov2 = null;
 	load_coverage_profile($cov, $rows_to_use, $cov1);
-
+	//TODO use run date from NGSD to determine the the surrounding 400 (parameter) samples and compare only those
 	foreach($cov_files as $cov_file)
 	{
 		load_coverage_profile($cov_file, $rows_to_use, $cov2);
