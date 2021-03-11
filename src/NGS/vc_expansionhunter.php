@@ -126,7 +126,8 @@ foreach (file($out_prefix.".vcf") as $line)
 	$format = explode(":", $vcf_line[8]);
 	$sample = explode(":", $vcf_line[9]);
 	
-	$re_usable[$rep_id] = ($sample[array_search("GT", $format, true)] != "./.") && ($sample[array_search("ADFL", $format, true)] != "0/0");
+	$re_usable[$rep_id] = ($sample[array_search("GT", $format, true)] != "./.") && ($sample[array_search("ADFL", $format, true)] != "0/0") 
+							&& ($sample[array_search("GT", $format, true)] != ".") && ($sample[array_search("ADFL", $format, true)] != "0/0");
 }
 
 // extract RE names
@@ -153,7 +154,7 @@ $args[] = "--reference ".genome_fasta($build);
 $args[] = "--catalog {$variant_catalog}";
 foreach ($loci as $locus) 
 {
-	$parser->exec($reviewer_binary, implode(" ", $args)." --output-prefix {$svg_folder}".basename($out, ".vcf")."_{$locus} --locus {$locus}");
+	$parser->exec($reviewer_binary, implode(" ", $args)." --output-prefix {$svg_folder}".basename($out, ".vcf")."_{$locus} --locus {$locus}", true, false, true);
 }
 
 
