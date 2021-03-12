@@ -481,7 +481,7 @@ if (file_exists($warn_file))
 
 // prefilter VCF to only pass coding variants to the AIdiva subroutine
 $coding_filtered = $parser->tempFile("_coding.vcf");
-$parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/filter_vcf.py", "--in_file $vep_output --out_file $coding_filtered", true);
+$parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/filter_vcf.py", "--in_file $vep_output --out_file $coding_filtered --annotation_field CSQ", true); // change identifier of annotation field if not default ("CSQ") from VEP is used
 
 
 $family_file = ""; // handle sample as single sample
@@ -506,7 +506,7 @@ $args[] = "-config {$aidiva_config}";
 $args[] = "-threads {$threads}";
 $parser->execTool("NGS/sp_aidiva.php", implode(" ", $args));
 
-$aidiva_result_file = $temp_results."/"."aidiva"."_result_filtered_sorted.vcf.gz";
+$aidiva_result_file = $temp_results."/{$ps_name}_aidiva_result_filtered_sorted.vcf.gz";
 
 
 // custom annotation by VcfAnnotateFromVcf
