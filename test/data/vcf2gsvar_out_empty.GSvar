@@ -23,7 +23,7 @@
 ##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
 ##DESCRIPTION=AIDIVA=AIdiva pathogenicity prediction.
 ##DESCRIPTION=AIDIVA_HPO=AIdiva pathogenicity prediction adjusted with given HPO terms.
-##DESCRIPTION=AIDIVA_FILTER=Flag that indicates if the variant passed all internal filters of AIdiva (0 or 1).
+##DESCRIPTION=AIDIVA_INHERITANCE=Inheritance how it is interpreted by AIdiva.
 ##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).
 ##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).
 ##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
@@ -31,4 +31,4 @@
 ##DESCRIPTION=MMSplice_pathogenicity=MMsplice pathogenicity score: probability of pathogenic effect of the variant on splicing
 ##DESCRIPTION=SpliceAI=SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes.
 ##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.
-#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	coding_and_splicing_refseq	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	dbscSNV	COSMIC	MMSplice_DeltaLogitPSI	MMSplice_pathogenicity	SpliceAI
+#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	coding_and_splicing_refseq	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	AIDIVA	AIDIVA_HPO	AIDIVA_INHERITANCE	MaxEntScan	dbscSNV	COSMIC	MMSplice_DeltaLogitPSI	MMSplice_pathogenicity	SpliceAI

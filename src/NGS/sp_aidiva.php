@@ -98,10 +98,10 @@ if ($family_file != "")
 $args[] = "--config {$config}";
 $parser->exec("python3 ".get_path("aidiva")."aidiva/run_AIdiva.py", implode(" ", $args), true);
 
-$parser->exec(get_path("ngs-bits")."/VcfSort", "-in ".$outdir."/".$ps_name."_result_filtered.vcf"." -out ".$outdir."/"."${ps_name}_aidiva_result_filtered_sorted.vcf", true);
-$parser->exec(get_path("ngs-bits")."/VcfSort", "-in ".$outdir."/".$ps_name."_result.vcf"." -out ".$outdir."/"."${ps_name}_aidiva_result_sorted.vcf", true);
-$parser->exec("bgzip --force", $outdir."/"."${ps_name}_aidiva_result_filtered_sorted.vcf", true);
-$parser->exec("bgzip --force", $outdir."/"."${ps_name}_aidiva_result_sorted.vcf", true);
-$parser->exec("tabix", " -p vcf ".$outdir."/"."${ps_name}_aidiva_result_filtered_sorted.vcf.gz", true);
-$parser->exec("tabix", " -p vcf ".$outdir."/"."${ps_name}_aidiva_result_sorted.vcf.gz", true);
+$parser->exec(get_path("ngs-bits")."/VcfSort", "-in ".$outdir."/".$ps_name."_result_filtered.vcf"." -out ".$outdir."/"."{$ps_name}_aidiva_result_filtered_sorted.vcf", true);
+$parser->exec(get_path("ngs-bits")."/VcfSort", "-in ".$outdir."/".$ps_name."_result.vcf"." -out ".$outdir."/"."{$ps_name}_aidiva_result_sorted.vcf", true);
+$parser->exec("bgzip --force", $outdir."/"."{$ps_name}_aidiva_result_filtered_sorted.vcf", true);
+$parser->exec("bgzip --force", $outdir."/"."{$ps_name}_aidiva_result_sorted.vcf", true);
+$parser->exec("tabix", " -p vcf ".$outdir."/"."{$ps_name}_aidiva_result_filtered_sorted.vcf.gz", true);
+$parser->exec("tabix", " -p vcf ".$outdir."/"."{$ps_name}_aidiva_result_sorted.vcf.gz", true);
 ?>

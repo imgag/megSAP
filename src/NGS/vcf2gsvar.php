@@ -1103,7 +1103,12 @@ while(!feof($handle))
 	{
 		$aidiva[] = explode(",", trim($info["AIDIVA"]))[0];
 		$aidiva_hpo[] = explode(",", trim($info["AIDIVA"]))[1];
-		$aidiva_8inheritance[] = trim($info["AIDIVA_INHERITANCE"]);
+	}
+
+	//AIdiva inheritance
+	if (isset($info["AIDIVA_INHERITANCE_COMMENT"]))
+	{
+		$aidiva_inheritance[] = trim($info["AIDIVA_INHERITANCE_COMMENT"]);
 	}
 
 	//AFs
@@ -1419,7 +1424,7 @@ while(!feof($handle))
 	$revel = empty($revel) ? "" : collapse("REVEL", $revel, "max", 2);
 	$aidiva = empty($aidiva) ? "" : collapse("AIDIVA", $aidiva, "one", 4);
 	$aidiva_hpo = empty($aidiva_hpo) ? "" : collapse("AIDIVA_HPO", $aidiva_hpo, "one", 4);
-	$aidiva_inheritance = empty($aidiva_inheritance) ? "" : $aidiva_inheritance;
+	$aidiva_inheritance = empty($aidiva_inheritance) ? "" : collapse("AIDIVA_INHERITANCE_COMMENT", $aidiva_inheritance, "one");
 	
 	//OMIM
 	$omim = collapse("OMIM", $omim, "one");
