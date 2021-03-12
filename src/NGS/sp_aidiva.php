@@ -96,6 +96,7 @@ if ($family_file != "")
 	$args[] = "--family_file {$family_file}";
 }
 $args[] = "--config {$config}";
+$args[] = "--threads {$threads}";
 $parser->exec("python3 ".get_path("aidiva")."aidiva/run_AIdiva.py", implode(" ", $args), true);
 
 $parser->exec(get_path("ngs-bits")."/VcfSort", "-in ".$outdir."/".$ps_name."_result_filtered.vcf"." -out ".$outdir."/"."{$ps_name}_aidiva_result_filtered_sorted.vcf", true);

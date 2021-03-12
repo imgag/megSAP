@@ -701,7 +701,10 @@ if($check_lines >= 0)
 	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $out -lines $check_lines -ref ".genome_fasta($build), true);
 }
 
+<<<<<<< HEAD
 
 $parser->exec("bgzip", "$out", true);
 
+=======
+>>>>>>> c7f0dd1b19c8d42a673a7ffa7406478c88212e64
 ?>

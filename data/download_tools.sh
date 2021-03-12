@@ -82,6 +82,8 @@ cd AIdiva
 git fetch && git fetch --tags
 git checkout 0.6.5
 cd data
+mkdir prediction_models
+cd prediction_models
 wget -c https://download.imgag.de/ahboced1/AIdiva_pretrained_models/rf_inframeIndel_model.pkl
 wget -c https://download.imgag.de/ahboced1/AIdiva_pretrained_models/rf_snp_model.pkl
 cd ../../..
