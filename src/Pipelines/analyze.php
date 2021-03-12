@@ -537,7 +537,7 @@ if (in_array("cn", $steps))
 			$args[] = "-max_cnvs 200";
 		}
 
-		if($is_wgs || $is_wes)
+		if($is_wgs || $is_wes || $is_wgs_shallow)
 		{
 			$args[] = "-mosaic";
 		}
