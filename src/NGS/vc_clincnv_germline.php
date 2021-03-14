@@ -14,8 +14,9 @@ $parser->addInfile("bed", "BED file with annotations e.g. GC-content and gene na
 $parser->addOutFile("out", "Output file in TSV format.", false);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 //optional
-$parser->addInt("cov_min", "Minimum number of coverage files required for CNV analysis.", true, 20);
-$parser->addInt("cov_max", "Maximum number of coverage files used for CNV analysis, used to keep run-time and RAM requirement manageable (~200 for WES and ~100 for WGS).", true, 200);
+$parser->addInt("cov_min", "Minimum number of referece coverage files required for CNV analysis.", true, 10);
+$parser->addInt("cov_max", "Maximum number of referece coverage files used for CNV analysis. This parameter is needed to keep run-time and RAM requirement manageable (~200 for WES and ~100 for WGS).", true, 100); //TODO used 100 for WES as well?
+$parser->addInt("cov_compare_max", "Maximum number of coverage files to compare during similarity calculation. Only possible with NGSD support enabled.", true, 600);
 $parser->addInt("max_cnvs", "Number of expected CNVs (~200 for WES and ~2000 for WGS).", true, 2000);
 $parser->addInt("max_tries", "Maximum number of tries for calling ClinCNV (R parallelization sometimes breaks with no reason", true, 10);
 $parser->addInt("regions", "Number of subsequent regions that must show a signal for a call.", true, 2);
@@ -578,7 +579,6 @@ $command = get_path("clincnv")."/clinCNV.R";
 //determine coverage files
 $cov_files = glob($cov_folder."/*.cov");
 $cov_files[] = $cov;
-
 $cov_files = array_unique(array_map("realpath", $cov_files));
 if (count($cov_files)<$cov_min)
 {
@@ -586,13 +586,47 @@ if (count($cov_files)<$cov_min)
 	trigger_error("CNV calling skipped. Only ".count($cov_files)." coverage files found in folder '$cov_folder'. At least {$cov_min} files are needed!", E_USER_ERROR);
 }
 
+//if too many, select the samples processed roughly at the same time based on sequencing run date
+$restrict_cov_file_number = (count($cov_files)> $cov_compare_max) && db_is_enabled("NGSD");
+if ($restrict_cov_file_number)
+{
+	$parser->log("Restricting number of coverage files to $cov_compare_max (based on sequencing run date from NGSD)...");
+	
+	$db = DB::getInstance("NGSD", false);
+	$ps2date = [];
+	$res = $db->executeQuery("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as name, r.start_date as date FROM processed_sample as ps, sample as s, sequencing_run r WHERE ps.sample_id = s.id AND ps.sequencing_run_id=r.id");
+	foreach($res as $row)
+	{
+		$ps = trim($row['name']);
+		$date = trim($row['date']);
+		if ($date=="") continue;
+		
+		$ps2date[$ps] = $date;
+	}
+	
+	if (isset($ps2date[$ps_name]))
+	{
+		$ps_time = strtotime($ps2date[$ps_name]);
+		$cov2timediff = [];
+		foreach($cov_files as $cov_file)
+		{
+			$ps_cov = basename($cov_file, ".cov");
+			$ps_date = isset($ps2date[$ps_cov]) ? $ps2date[$ps_cov] : "2000-01-01";
+			$cov2timediff[$cov_file] = abs($ps_time - strtotime($ps_date));
+		}
+		asort($cov2timediff);
+		$cov_files = array_keys($cov2timediff);
+	}
+	else
+	{
+		$parser->log("Notice: Could not restrict the number of coverage files: NGSD does not contain sample '$ps_name'!");
+	}
+}
+
 //select coverage files of most similar samples
 $corr_start = microtime(true);
 $mean_correlation = 0.0;
-{
-	//sort coverage files
-	sort($cov_files);
-	
+{	
 	//create target region without polymorphic regions
 	$poly_merged = $parser->tempFile(".bed");
 	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$repository_basedir}/data/misc/af_genomes_imgag.bed {$repository_basedir}/data/misc/centromer_telomer_hg19.bed -out {$poly_merged}", true);
@@ -609,7 +643,6 @@ $mean_correlation = 0.0;
 	$cov1 = null;
 	$cov2 = null;
 	load_coverage_profile($cov, $rows_to_use, $cov1);
-	//TODO use run date from NGSD to determine the the surrounding 400 (parameter) samples and compare only those
 	foreach($cov_files as $cov_file)
 	{
 		load_coverage_profile($cov_file, $rows_to_use, $cov2);
@@ -620,12 +653,13 @@ $mean_correlation = 0.0;
 			$corr[] = number_format(correlation($profile1, $cov2[$chr]), 3);
 		}
 		$file2corr[$cov_file] = number_format(median($corr), 3);
+		
+		if ($restrict_cov_file_number && count($file2corr)>=$cov_compare_max) break;
 	}
+	$parser->log("Compared number of coverage files: ".count($file2corr));
 
-	//sort by correlation
+	//selects best n by correlation
 	arsort($file2corr);
-	
-	//selects best n
 	$file2corr = array_slice($file2corr, 0, $cov_max);
 	$add_info = array();
 	foreach ($file2corr as $f => $c)

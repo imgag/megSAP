@@ -520,16 +520,13 @@ if (in_array("cn", $steps))
 		);
 		if ($is_wgs)
 		{
-			$args[] = "-cov_max 100";
 			$args[] = "-max_cnvs 2000";
 		}
 		else if ($is_wgs_shallow)
 		{
-			$args[] = "-cov_max 100";
 			$args[] = "-max_cnvs 400";
 			$args[] = "-skip_super_recall";
 			$args[] = "-regions 3";
-			$args[] = "-cov_min 10";
 		}
 		else
 		{
