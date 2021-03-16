@@ -618,37 +618,43 @@ foreach($res as $row)
 		}
 		
 		//Upload somatic data in special format for MTB (Molecular Tumor Board)
-		if ($somatic_data_uploaded && file_exists("{$data_folder}/QBIC_files/"))
+		if ($somatic_data_uploaded)
 		{
-			$output[4] = "{$ps_name}-{$ps_name2} (MTB)";
 			
-			//determine files to zip
-			$files = glob("{$data_folder}/QBIC_files/*.tsv");
-			
-			//determine/create subfolder
-			$folder_name = "{$qbic_name}_{$ps_name}-{$ps_name2}-MTB";
-			$tmpfolder = $GLOBALS["datamover_tmp"]."/".$folder_name;
-			if (file_exists($tmpfolder)) exec2("rm -rf $tmpfolder");
-			mkdir($tmpfolder);
-			
-			//copy and rename files
-			foreach($files as $file)
+			$folder = "/mnt/share/to_qbic/somatic_data/{$ps_name}-{$ps_name2}/";
+			if (!file_exists($folder)) $folder = "{$data_folder}/QBIC_files/"; //TODO move all QBIC files from sample folders to the new folder and remove this fallback
+			if (file_exists($folder))
 			{
-				$outfile = basename($file);
-				$outfile =  $qbic_name.substr($outfile, 4);
-				$parser->copyFile($file, $tmpfolder."/".$outfile);
+				$output[4] = "{$ps_name}-{$ps_name2} (MTB)";
+				
+				//determine files to zip
+				$files = glob("{$data_folder}/QBIC_files/*.tsv");
+				
+				//determine/create subfolder
+				$folder_name = "{$qbic_name}_{$ps_name}-{$ps_name2}-MTB";
+				$tmpfolder = $GLOBALS["datamover_tmp"]."/".$folder_name;
+				if (file_exists($tmpfolder)) exec2("rm -rf $tmpfolder");
+				mkdir($tmpfolder);
+				
+				//copy and rename files
+				foreach($files as $file)
+				{
+					$outfile = basename($file);
+					$outfile =  $qbic_name.substr($outfile, 4);
+					$parser->copyFile($file, $tmpfolder."/".$outfile);
+				}
+				
+				//zip files
+				$zip = "{$tmpfolder}/{$qbic_name}_{$ps_name}-{$ps_name2}.zip";
+				exec2("cd {$tmpfolder} && zip {$zip} *.tsv");
+				
+				//upload data
+				if ($upload)
+				{
+					$parser->moveFile($zip, $GLOBALS["datamover_path"]."/".basename($zip));
+				}
+				printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(" ", $files));
 			}
-			
-			//zip files
-			$zip = "{$tmpfolder}/{$qbic_name}_{$ps_name}-{$ps_name2}.zip";
-			exec2("cd {$tmpfolder} && zip {$zip} *.tsv");
-			
-			//upload data
-			if ($upload)
-			{
-				$parser->moveFile($zip, $GLOBALS["datamover_path"]."/".basename($zip));
-			}
-			printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(" ", $files));
 		}
 	}
 }
