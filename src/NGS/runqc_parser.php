@@ -21,7 +21,7 @@ $run_dir = realpath($run_dir);
 function get_col_value($cols, $index)
 {
 	$value = $cols[$index];
-	if ($value=="nan") return NULL;
+	if (starts_with($value, "nan")) return NULL;
 	
 	$pos = strpos($value, " +/-");
 	if ($pos!==FALSE)
@@ -97,6 +97,7 @@ if (!file_exists($run_dir."/Fq"))
 			$read_metrics[$read_num]['lane_metrics'][$lane]['yield'] = get_col_value($cols, $indices['Yield']) * pow(1000, 3);
 			$read_metrics[$read_num]['lane_metrics'][$lane]['error_rate'] = get_col_value($cols, $indices['Error']);
 			$read_metrics[$read_num]['lane_metrics'][$lane]['q30'] = get_col_value($cols, $indices['%>=Q30']);
+			$read_metrics[$read_num]['lane_metrics'][$lane]['occupied'] = get_col_value($cols, $indices['% Occupied']);
 		}
 	}
 }
@@ -206,13 +207,14 @@ foreach($read_metrics as $read_num => $read_metric)
 	//insert lane metrics for that read
 	foreach($read_metric['lane_metrics'] as $lane_num => $lane_metric)
 	{
-		$hash = $db_connect->prepare("INSERT INTO runqc_lane (lane_num, cluster_density, cluster_density_pf, yield, error_rate, q30_perc, runqc_read_id) VALUES (:lane_num, :cl_dens, :cl_dens_pf, :yield, :error_rate, :q30_perc, :runqc_read_id);");
+		$hash = $db_connect->prepare("INSERT INTO runqc_lane (lane_num, cluster_density, cluster_density_pf, yield, error_rate, q30_perc, occupied_perc, runqc_read_id) VALUES (:lane_num, :cl_dens, :cl_dens_pf, :yield, :error_rate, :q30_perc, :occupied_perc, :runqc_read_id);");
 		$db_connect->bind($hash, "lane_num", $lane_num);
 		$db_connect->bind($hash, "cl_dens", $lane_metric['cluster_dens']);
 		$db_connect->bind($hash, "cl_dens_pf", $lane_metric['passed_filter']);
 		$db_connect->bind($hash, "yield", $lane_metric['yield']);
 		$db_connect->bind($hash, "error_rate", $lane_metric['error_rate']);
 		$db_connect->bind($hash, "q30_perc", $lane_metric['q30']);
+		$db_connect->bind($hash, "occupied_perc", $lane_metric['occupied']);
 		$db_connect->bind($hash, "runqc_read_id", $read_id);
 		$db_connect->execute($hash, true);
 	}
