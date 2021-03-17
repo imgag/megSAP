@@ -68,15 +68,3 @@ queues_high_mem = ""
 cgi_user = ""
 cgi_token = ""
 cgi_url = "https://www.cancergenomeinterpreter.org/api/v1"
-<<<<<<< HEAD
-
-
-[windows_directories]
-unix2windows_path["[path]"] = ""
-
-
-
-
-
-=======
->>>>>>> Fix paths to AIdiva
