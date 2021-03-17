@@ -61,9 +61,11 @@ $data_folder = get_path("data_folder");
 
 if ($build == "GRCh38")
 {
-	$genome_build_prefix = "hg38_"
-} else {
-	$genome_build_prefix = "hg19_"
+	$genome_build_prefix = "hg38_";
+} 
+else 
+{
+	$genome_build_prefix = "hg19_";
 }
 
 

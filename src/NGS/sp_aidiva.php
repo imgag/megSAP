@@ -13,6 +13,7 @@ $parser = new ToolBase("sp_aidiva", "Predict pathogenicity and prioritize varian
 $parser->addString("vcf", "Path to VCF file.", false);
 $parser->addString("outdir", "Path to output directory.", false);
 $parser->addString("genome_file", "Reference genome file.", false);
+$parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addString("config", "YAML file with the configuration for AIdiva.", false);
 $parser->addString("family", "File showing the family and who is affected.", true, "");
 $parser->addString("gene_blacklist", "File containing blacklisted genes.", true, "");
@@ -25,27 +26,29 @@ $vcf_indel = $outdir."/".$ps_name."_indel.vcf";
 $vcf_indel_expanded = $outdir."/".$ps_name."_indel_expanded.vcf";
 $vcf_snp = $outdir."/".$ps_name."_snp.vcf";
 
-$hg19_path = $genome_file;
 $feature_list = "SIFT,PolyPhen,REVEL,CADD_PHRED,ABB_SCORE,MAX_AF,segmentDuplication,EIGEN_PHRED,CONDEL,FATHMM_XF,MutationAssessor,phastCons46mammal,phastCons46primate,phastCons46vertebrate,phyloP46mammal,phyloP46primate,phyloP46vertebrate,oe_lof,homAF";
 $family_file = $family;
 $temp_hpo_file_path = "";
 
 $parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/split_vcf_in_indel_and_snp_set.py", "--in_file $vcf --snp_file $vcf_snp --indel_file $vcf_indel", true);
-$parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/convert_indels_to_snps_and_create_vcf.py", "--in_data $vcf_indel --out_data $vcf_indel_expanded --ref_path $hg19_path", true);
+$parser->exec("python3 ".get_path("aidiva")."aidiva/helper_modules/convert_indels_to_snps_and_create_vcf.py", "--in_data $vcf_indel --out_data $vcf_indel_expanded --ref_path $genome_file", true);
 
 // annotate VCF
 $args = array("-in {$vcf_snp}", "-out ".$outdir."/".basename($vcf_snp, ".vcf")."_vep.vcf");
 $args[] = "-threads {$threads}";
+$args[] = "-build {$build}";
 $parser->execTool("NGS/an_vep_aidiva.php", implode(" ", $args));
 
 $args = array("-in {$vcf_indel}", "-out ".$outdir."/".basename($vcf_indel, ".vcf")."_vep.vcf");
 $args[] = "-basic";
 $args[] = "-threads {$threads}";
+$args[] = "-build {$build}";
 $parser->execTool("NGS/an_vep_aidiva.php", implode(" ", $args));
 
 $args = array("-in {$vcf_indel_expanded}", "-out ".$outdir."/".basename($vcf_indel_expanded, ".vcf")."_vep.vcf");
 $args[] = "-expanded";
 $args[] = "-threads {$threads}";
+$args[] = "-build {$build}";
 $parser->execTool("NGS/an_vep_aidiva.php", implode(" ", $args));
 
 if ($ps_name != "")

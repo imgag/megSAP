@@ -502,6 +502,7 @@ if ($ps_name != "")
 	$args[] = "-ps_name {$ps_name}";
 }
 $args[] = "-genome_file {$ref_genome}";
+$args[] = "-build {$build}";
 $args[] = "-config {$aidiva_config}";
 $args[] = "-threads {$threads}";
 $parser->execTool("NGS/sp_aidiva.php", implode(" ", $args));
@@ -700,8 +701,5 @@ if($check_lines >= 0)
 {
 	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $out -lines $check_lines -ref ".genome_fasta($build), true);
 }
-
-
-$parser->exec("bgzip", "$out", true);
 
 ?>
