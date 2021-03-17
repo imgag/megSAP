@@ -59,6 +59,14 @@ $local_data = get_path("local_data");
 $vep_data_path = "{$local_data}/".basename(get_path("vep_data"))."/"; //the data is copied to the local data folder by 'data_setup' to speed up annotations (and prevent hanging annotation jobs)
 $data_folder = get_path("data_folder");
 
+if ($build == "GRCh38")
+{
+	$genome_build_prefix = "hg38_"
+} else {
+	$genome_build_prefix = "hg19_"
+}
+
+
 $args = array();
 $args[] = "-i $in --format vcf"; //input
 $args[] = "-o $vep_output --vcf --no_stats --force_overwrite"; //output
@@ -70,7 +78,7 @@ if (!$expanded)
 {
 	$args[] = "--max_af --failed 1"; //population frequencies
 	$fields[] = "MAX_AF";
-	$args[] = "--custom ".annotation_file_path("/dbs/UCSC/hg19_simpleRepeat.bed.gz").",simpleRepeat,bed,overlap,0";
+	$args[] = "--custom ".annotation_file_path("/dbs/UCSC/".$genome_build_prefix."simpleRepeat.bed.gz").",simpleRepeat,bed,overlap,0";
 	$fields[] = "simpleRepeat";
 	$args[] = "--custom ".annotation_file_path("/dbs/gnomAD/gnomAD_OE_sorted.bed.gz").",oe_lof,bed,overlap,0";
 	$fields[] = "oe_lof";
@@ -84,25 +92,25 @@ if(!$basic)
 	$fields[] = "PolyPhen";
 	$args[] = "--plugin CADD,".annotation_file_path("/dbs/CADD/CADD_SNVs_1.6.tsv.gz").",".annotation_file_path("/dbs/CADD/CADD_InDels_1.6.tsv.gz"); //CADD
 	$fields[] = "CADD_PHRED";
-	$args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_all_chromosomes.tsv.gz"); //REVEL
+	$args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_all_chromosomes.tsv.gz"); //REVEL TODO add prefix for grch38 and grch37
 	$fields[] = "REVEL";
-	$args[] = "--custom ".annotation_file_path("/dbs/UCSC/hg19_genomicSuperDups.bed.gz").",segmentDuplication,bed,overlap,0";
+	$args[] = "--custom ".annotation_file_path("/dbs/UCSC/".$genome_build_prefix."genomicSuperDups.bed.gz").",segmentDuplication,bed,overlap,0";
 	$fields[] = "segmentDuplication";
-	$args[] = "--custom ".annotation_file_path("/dbs/ABB/hg19_ABB-SCORE.bed.gz").",ABB_SCORE,bed,exact,0";
+	$args[] = "--custom ".annotation_file_path("/dbs/ABB/".$genome_build_prefix."ABB-SCORE.bed.gz").",ABB_SCORE,bed,exact,0";
 	$fields[] = "ABB_SCORE";
-	$args[] = "--custom ".annotation_file_path("/dbs/phastCons/hg19_phastCons46way_mammal.bw").",phastCons46mammal,bigwig"; //
+	$args[] = "--custom ".annotation_file_path("/dbs/phastCons/".$genome_build_prefix."phastCons46way_mammal.bw").",phastCons46mammal,bigwig"; //
 	$fields[] = "phastCons46mammal";
-	$args[] = "--custom ".annotation_file_path("/dbs/phastCons/hg19_phastCons46way_primate.bw").",phastCons46primate,bigwig"; //
+	$args[] = "--custom ".annotation_file_path("/dbs/phastCons/".$genome_build_prefix."phastCons46way_primate.bw").",phastCons46primate,bigwig"; //
 	$fields[] = "phastCons46primate";
-	$args[] = "--custom ".annotation_file_path("/dbs/phastCons/hg19_phastCons46way_vertebrate.bw").",phastCons46vertebrate,bigwig"; //
+	$args[] = "--custom ".annotation_file_path("/dbs/phastCons/".$genome_build_prefix."phastCons46way_vertebrate.bw").",phastCons46vertebrate,bigwig"; //
 	$fields[] = "phastCons46vertebrate";
-	$args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg19_phyloP46way_mammal.bw").",phyloP46mammal,bigwig"; //
+	$args[] = "--custom ".annotation_file_path("/dbs/phyloP/".$genome_build_prefix."phyloP46way_mammal.bw").",phyloP46mammal,bigwig"; //
 	$fields[] = "phyloP46mammal";
-	$args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg19_phyloP46way_primate.bw").",phyloP46primate,bigwig"; //
+	$args[] = "--custom ".annotation_file_path("/dbs/phyloP/".$genome_build_prefix."phyloP46way_primate.bw").",phyloP46primate,bigwig"; //
 	$fields[] = "phyloP46primate";
-	$args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg19_phyloP46way_vertebrate.bw").",phyloP46vertebrate,bigwig"; //
+	$args[] = "--custom ".annotation_file_path("/dbs/phyloP/".$genome_build_prefix."phyloP46way_vertebrate.bw").",phyloP46vertebrate,bigwig"; //
 	$fields[] = "phyloP46vertebrate";
-	//$args[] = "--plugin dbNSFP".annotation_file_path("/dbs/dbNSFP/4.1a_grch37.gz").",SIFT_score,SIFT4G_score,Polyphen2_HDIV_score,Polyphen2_HVAR_score,LRT_score,MutationTaster_score,MutationAssessor_score,FATHMM_score,PROVEAN_score,VEST4_score,MetaSVM_score,MetaLR_score,M-CAP_score,REVEL_score,MutPred_score,MVP_score,MPC_score,PrimateAI_score,DEOGEN2_score,BayesDel_addAF_score,BayesDel_noAF_score,ClinPred_score,LIST-S2_score,DANN_score,fathmm-MKL_coding_score,fathmm-XF_coding_score,Eigen-raw_coding,Eigen-phred_coding,GenoCanyon_score,GERP++_RS,phyloP100way_vertebrate,phyloP30way_mammalian,phyloP17way_primate,phastCons100way_vertebrate,phastCons30way_mammalian,phastCons17way_primate,SiPhy_29way_logOdds";
+	//$args[] = "--plugin dbNSFP".annotation_file_path("/dbs/dbNSFP/".$genome_build_prefix."dbnfsp_4.1a.gz").",SIFT_score,SIFT4G_score,Polyphen2_HDIV_score,Polyphen2_HVAR_score,LRT_score,MutationTaster_score,MutationAssessor_score,FATHMM_score,PROVEAN_score,VEST4_score,MetaSVM_score,MetaLR_score,M-CAP_score,REVEL_score,MutPred_score,MVP_score,MPC_score,PrimateAI_score,DEOGEN2_score,BayesDel_addAF_score,BayesDel_noAF_score,ClinPred_score,LIST-S2_score,DANN_score,fathmm-MKL_coding_score,fathmm-XF_coding_score,Eigen-raw_coding,Eigen-phred_coding,GenoCanyon_score,GERP++_RS,phyloP100way_vertebrate,phyloP30way_mammalian,phyloP17way_primate,phastCons100way_vertebrate,phastCons30way_mammalian,phastCons17way_primate,SiPhy_29way_logOdds";
 	//$fields[] = "SIFT_score";
 	//$fields[] = "SIFT4G_score";
 	//$fields[] = "Polyphen2_HDIV_score";
@@ -175,10 +183,10 @@ if (!$basic)
 	$config_file = fopen($config_file_path, 'w');
 
 	// add custom annotations
-	fwrite($config_file, annotation_file_path("/dbs/Condel/hg19_precomputed_Condel.vcf.gz")."\t\tCONDEL\t\ttrue\n");
-	fwrite($config_file, annotation_file_path("/dbs/Eigen/hg19_Eigen-phred_coding_chrom1-22.vcf.gz")."\t\tEIGEN_PHRED\t\ttrue\n");
-	fwrite($config_file, annotation_file_path("/dbs/fathmm-XF/hg19_fathmm_xf_coding.vcf.gz")."\t\tFATHMM_XF\t\ttrue\n");
-	fwrite($config_file, annotation_file_path("/dbs/MutationAssessor/hg19_precomputed_MutationAssessor.vcf.gz")."\t\tMutationAssessor\t\ttrue\n");
+	fwrite($config_file, annotation_file_path("/dbs/Condel/".$genome_build_prefix."precomputed_Condel.vcf.gz")."\t\tCONDEL\t\ttrue\n");
+	fwrite($config_file, annotation_file_path("/dbs/Eigen/".$genome_build_prefix."Eigen-phred_coding_chrom1-22.vcf.gz")."\t\tEIGEN_PHRED\t\ttrue\n");
+	fwrite($config_file, annotation_file_path("/dbs/fathmm-XF/".$genome_build_prefix."fathmm_xf_coding.vcf.gz")."\t\tFATHMM_XF\t\ttrue\n");
+	fwrite($config_file, annotation_file_path("/dbs/MutationAssessor/".$genome_build_prefix."precomputed_MutationAssessor.vcf.gz")."\t\tMutationAssessor\t\ttrue\n");
 
 	if (!$expanded)
 	{
