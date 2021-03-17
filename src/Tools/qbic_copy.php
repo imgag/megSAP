@@ -628,7 +628,7 @@ foreach($res as $row)
 				$output[4] = "{$ps_name}-{$ps_name2} (MTB)";
 				
 				//determine files to zip
-				$files = glob("{$data_folder}/QBIC_files/*.tsv");
+				$files = glob("{$folder}/*.tsv");
 				
 				//determine/create subfolder
 				$folder_name = "{$qbic_name}_{$ps_name}-{$ps_name2}-MTB";
