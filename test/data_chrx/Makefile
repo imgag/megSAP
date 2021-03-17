@@ -2,7 +2,7 @@
 all: clean link map vc cn sv diff ra
 
 clean:
-	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid
+	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_repeats_expansionhunter.json *_repeats_expansionhunter.vcf *_rohs.tsv
 
 link:
 	php ../link_test_data.php NA12878_17_GTAGAGGATATCCTCT_L001_R1_001.fastq.gz
