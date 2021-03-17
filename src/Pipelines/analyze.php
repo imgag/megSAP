@@ -530,10 +530,8 @@ if (in_array("cn", $steps))
 		}
 		else
 		{
-			$args[] = "-cov_max 200";
 			$args[] = "-max_cnvs 200";
 		}
-
 		if($is_wgs || $is_wes || $is_wgs_shallow)
 		{
 			$args[] = "-mosaic";
