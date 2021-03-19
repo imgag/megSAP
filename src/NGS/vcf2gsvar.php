@@ -339,12 +339,15 @@ $skip_ngsd_som = true; // true as long as no NGSD somatic header is found
 $skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC) header is found.
 $skip_cancerhotspots = true; //true as long as no CANCERHOTSPOTS header is found.
 
+//write date (of input file)
+fwrite($handle_out, "##CREATION_DATE=".date("Y-m-d", filemtime($in))."\n");
+
 while(!feof($handle))
 {
 	$line = nl_trim(fgets($handle));
 	if ($line=="" || trim($line)=="") continue;
 	
-	//write filter descriptions
+	//write header
 	if ($line[0]=="#") 
 	{
 		if (starts_with($line, "##FILTER=<ID="))

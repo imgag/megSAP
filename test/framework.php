@@ -128,6 +128,7 @@ function check($observed, $expected, $delta = null)
 ///Removes lines that contain any string from the @p ignore_strings array 
 function remove_lines_containing($filename, $ignore_strings)
 {
+	if (!is_array($ignore_strings)) $ignore_strings = [$ignore_strings];
 	//load input
 	$file = file($filename);
 	

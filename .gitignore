@@ -28,6 +28,7 @@
 /test/data_chrx/*_QCML.txt
 /test/data_chrx/*_cnvs_clincnv.tsv
 /test/data_chrx/*_cnvs_clincnv.seg
+/test/data_chrx/*_mosaic_cnvs.tsv
 /test/data_chrx/*_rohs.tsv
 /test/data_chrx/*_lowcov.bed
 /test/data_chrx/*.igv
