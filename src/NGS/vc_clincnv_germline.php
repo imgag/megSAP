@@ -593,33 +593,43 @@ if ($restrict_cov_file_number)
 	$parser->log("Restricting number of coverage files to $cov_compare_max (based on sequencing run date from NGSD)...");
 	
 	$db = DB::getInstance("NGSD", false);
-	$ps2date = [];
-	$res = $db->executeQuery("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as name, r.start_date as date FROM processed_sample as ps, sample as s, sequencing_run r WHERE ps.sample_id = s.id AND ps.sequencing_run_id=r.id");
-	foreach($res as $row)
+	$run_name = $db->getValue("SELECT r.name FROM sequencing_run r, processed_sample ps WHERE ps.sequencing_run_id=r.id AND ps.id=".get_processed_sample_id($db, $ps_name, false), "");
+	if ($run_name!="#00000")
 	{
-		$ps = trim($row['name']);
-		$date = trim($row['date']);
-		if ($date=="") continue;
-		
-		$ps2date[$ps] = $date;
-	}
-	
-	if (isset($ps2date[$ps_name]))
-	{
-		$ps_time = strtotime($ps2date[$ps_name]);
-		$cov2timediff = [];
-		foreach($cov_files as $cov_file)
+		$ps2date = [];
+		$res = $db->executeQuery("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as name, r.start_date as date FROM processed_sample as ps, sample as s, sequencing_run r WHERE ps.sample_id = s.id AND ps.sequencing_run_id=r.id");
+		foreach($res as $row)
 		{
-			$ps_cov = basename($cov_file, ".cov");
-			$ps_date = isset($ps2date[$ps_cov]) ? $ps2date[$ps_cov] : "2000-01-01";
-			$cov2timediff[$cov_file] = abs($ps_time - strtotime($ps_date));
+			$ps = trim($row['name']);
+			$date = trim($row['date']);
+			if ($date=="") continue;
+			
+			$ps2date[$ps] = $date;
 		}
-		asort($cov2timediff);
-		$cov_files = array_keys($cov2timediff);
+		
+		if (isset($ps2date[$ps_name]))
+		{
+			$ps_time = strtotime($ps2date[$ps_name]);
+			$cov2timediff = [];
+			foreach($cov_files as $cov_file)
+			{
+				$ps_cov = basename($cov_file, ".cov");
+				$ps_date = isset($ps2date[$ps_cov]) ? $ps2date[$ps_cov] : "2000-01-01";
+				$cov2timediff[$cov_file] = abs($ps_time - strtotime($ps_date));
+			}
+			asort($cov2timediff);
+			$cov_files = array_keys($cov2timediff);
+		}
+		else
+		{
+			$parser->log("Notice: Could not restrict the number of coverage files: NGSD does not contain sample '$ps_name'!");
+			$restrict_cov_file_number = false;
+		}
 	}
 	else
 	{
-		$parser->log("Notice: Could not restrict the number of coverage files: NGSD does not contain sample '$ps_name'!");
+			$parser->log("Notice: Could not restrict the number of coverage files: Sequencing run is dummy run '#00000'!");
+			$restrict_cov_file_number = false;
 	}
 }
 
