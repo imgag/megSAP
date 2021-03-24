@@ -124,6 +124,7 @@ $vcffile_annotated = $folder."/".$name."_var_annotated.vcf.gz";
 $varfile = $folder."/".$name.".GSvar";
 $rohfile = $folder."/".$name."_rohs.tsv";
 $baffile = $folder."/".$name."_bafs.igv";
+$ancestry_file = $folder."/".$name."_ancestry.tsv";
 $prsfile = $folder."/".$name."_prs.tsv";
 //copy-number calling
 $cnvfile = $folder."/".$name."_cnvs_clincnv.tsv";
@@ -375,6 +376,9 @@ if (in_array("vc", $steps))
 			$params[] = "-downsample 100";
 		}
 		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
+		
+		//determine ancestry
+		$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file}", true);
 	}
 
 	// annotation
@@ -389,7 +393,7 @@ if (in_array("vc", $steps))
 		$args = array();
 		$args[] = "-in $vcffile_annotated";
 		$args[] = "-out $rohfile";
-		$args[] = "-var_af_keys_vep AF,gnomAD_AF -var_af_keys gnomADg_AF"; //use 1000g, gnomAD exome, genomAD genome
+		$args[] = "-var_af_keys_vep AF,gnomAD_AF -var_af_keys gnomADg_AF"; //use 1000g, gnomAD exome, gnomAD genome
 		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 		$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".(file_exists($omim_file) ? $omim_file : "");
 		$parser->exec("{$ngsbits}RohHunter", implode(" ", $args), true);
@@ -636,7 +640,6 @@ if (in_array("cn", $steps))
 	{
 		trigger_error("CNV file {$cnvfile} does not exist, skipping CNV annotation!", E_USER_WARNING);
 	}
-	
 }
 
 //structural variants
@@ -703,7 +706,9 @@ if (in_array("sv", $steps) && !$annotation_only)
 //import to database
 if (in_array("db", $steps))
 {
-
+	//import ancestry
+	$parser->execTool("NGS/db_import_ancestry.php", "-id {$name} -in {$ancestry_file} -force");
+	
 	//import QC
 	$qc_files = array($qc_fastq, $qc_map);
 	if (file_exists($qc_vc)) $qc_files[] = $qc_vc; 

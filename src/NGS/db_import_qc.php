@@ -15,29 +15,9 @@ $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addFlag("force", "Overwrites already existing DB entries instead of throwing an error.");
 extract($parser->parse($argv));
 
-//check pid format
-if(!preg_match("/^([A-Za-z0-9]{4,})_(\d{2})$/", $id, $matches))
-{
-	trigger_error("'$id' is not a valid processing ID!", E_USER_ERROR);
-}
-$sample = $matches[1];
-$process_id = (int)$matches[2];
-
 //establish database connection
 $db = DB::getInstance($db);
-
-// check if this PID exists in the DB
-$hash = $db->prepare("SELECT s.id as sid, ps.id as psid FROM sample as s, processed_sample as ps WHERE s.id = ps.sample_id and s.name = :sample and ps.process_id = :process_id");
-$db->bind($hash, 'sample', $sample);
-$db->bind($hash, 'process_id', $process_id);
-$db->execute($hash, true); 
-$result = $db->fetch($hash); 
-$db->unsetStmt($hash);
-if(count($result) != 1)
-{
-	trigger_error("Processed sample '$id' not found in DB. Sample and Processed Sample entered to DB?", E_USER_ERROR);
-}
-$psid = $result[0]['psid'];
+$psid = get_processed_sample_id($db, $id);
 
 // check if QC parameters were already imported for this pid
 $count_old =  $db->getValue("SELECT count(id) FROM processed_sample_qc WHERE processed_sample_id='$psid'");
