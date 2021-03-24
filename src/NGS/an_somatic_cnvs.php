@@ -237,6 +237,7 @@ if($include_cytoband)
 
 if(isset($rna_counts))
 {
+	
 	//Resubstitute zeroes by spaces (opposite happens in somatic_dna.php)
 	$rna_ref_tissue = str_replace("0", " ", $rna_ref_tissue);
 	
@@ -250,48 +251,61 @@ if(isset($rna_counts))
 	$genes_of_interest = array();
 	for($row=0; $row<$cnv_input->rows(); ++$row)
 	{
-		$temp = approve_gene_names(explode(",",trim($cnv_input->get($row, $i_genes))));
-		foreach($temp as $gene) $genes_of_interest[] = $gene;
+		$temp = explode( ",",trim($cnv_input->get($row, $i_genes)) );
+		$genes_of_interest = array_merge($genes_of_interest, $temp);
 	}
+	$genes_of_interest = approve_gene_names(array_unique($genes_of_interest) );
+	
+	
+	//create map of approved gene symbols in RNA counts file
+	$approved_gene_map = array();
+	$temp_file = temp_file(".tsv", "approved_gene_symbols");
+	exec2("cut -f6 $rna_counts | sort | uniq | " . get_path("ngs-bits") . "/GenesToApproved | grep REPLACED > $temp_file", false);
+	$handle = fopen($temp_file, "r");
+	while(!feof($handle))
+	{
+		$line = trim(fgets($handle));
+		if(empty($line)) continue;
+		
+		list($new_symbol, $raw_string) = explode("\t", $line);
+		
+		//old gene symbol is contained as text in a sentence of the form "REPLACED: SYMBOL is a ..."
+		list($old_symbol) = explode(" ", str_replace("REPLACED: ", "", $raw_string));
+		$approved_gene_map[$old_symbol] = $new_symbol;
+	}
+	fclose($handle);
 	
 	//Create result array of genes and tpm that occur in RNA_counts and CNV file
-	$i_rna_genes = -1;
-	$i_rna_tpm = -1;
 	$results = array();
 	$handle = fopen($rna_counts, "r");
 	while(!feof($handle))
 	{
 		$line = fgets($handle);
 		
-		//Determine column indices
-		if(starts_with($line,"#gene_id"))
-		{
-			$parts = explode("\t",$line);
-			for($i=0; $i<count($parts); ++$i)
-			{
-				if($parts[$i] == "gene_name") $i_rna_genes = $i;
-				if($parts[$i] == "tpm") $i_rna_tpm = $i;
-			}
-		}
-		
 		if(starts_with($line,"#")) continue;
 		if(empty($line)) continue;
 		
+		//order of line: gene_id, raw count, cpm, fpkm, tpm, gene symbol
 		list(,,,,$tpm, $rna_gene) = explode("\t", $line);
+		$rna_gene = strtoupper($rna_gene);
+		
+		//replace outdated gene symbols
+		if(array_key_exists($rna_gene, $approved_gene_map)) 
+		{
+			$rna_gene = $approved_gene_map[$rna_gene];
+		}
 		
 		if(in_array($rna_gene, $genes_of_interest))
 		{
 			$results[$rna_gene] = $tpm;
 		}
 	}
-	fclose($handle);
 	
+	//annotate RNA reference counts
 	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_hpa.tsv";
 	$ref_results = array();
 	$handle = fopen($ref_file,"r");
-	
 	$entry_count = 0;
-	
 	while(!feof($handle))
 	{
 		$line = fgets($handle);
@@ -307,7 +321,6 @@ if(isset($rna_counts))
 		if(in_array($ref_gene, $genes_of_interest)) $ref_results[$ref_gene] = $tpm;
 	}
 	fclose($handle);
-
 	
 	if($entry_count == 0)
 	{
