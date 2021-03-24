@@ -160,6 +160,24 @@ if (!file_exists($out_folder))
 	}
 }
 
+// copy BAM files to local tmp 
+if (!$annotation_only && (in_array("vc", $steps) || in_array("sv", $steps)))
+{
+	$local_bams = array();
+	$tmp_bam_folder = $parser->tempFolder("bam_");
+	foreach($bams as $bam)
+	{
+		if (!file_exists($bam)) trigger_error("BAM file '$bam' not found in Sample folder! Cannot perform any calling steps!", E_USER_ERROR);
+		if (!file_exists($bam.".bai")) trigger_error("BAM index file for BAM '$bam' not found in Sample folder!", E_USER_ERROR);
+		$local_bam = $tmp_bam_folder."/".basename($bam);
+		$parser->copyFile($bam, $local_bam);
+		$parser->copyFile($bam.".bai", $local_bam.".bai");
+		$local_bams[] = $local_bam;
+	}
+}
+
+
+
 //(1) variant calling of all samples together (with very conservative parameters)
 $mito = enable_special_mito_vc($sys);
 if (in_array("vc", $steps))
@@ -167,7 +185,7 @@ if (in_array("vc", $steps))
 	if (!$annotation_only)
 	{
 		$args = array();
-		$args[] = "-bam ".implode(" ", $bams);
+		$args[] = "-bam ".implode(" ", $local_bams);
 		$args[] = "-out $vcf_all";
 		$args[] = "-target ".$sys['target_file'];
 		$args[] = "-min_mq 20";
@@ -185,7 +203,7 @@ if (in_array("vc", $steps))
 			file_put_contents($target_mito, "chrMT\t0\t16569");
 			
 			$args = array();
-			$args[] = "-bam ".implode(" ", $bams);
+			$args[] = "-bam ".implode(" ", $local_bams);
 			$args[] = "-out $vcf_all_mito";
 			$args[] = "-no_ploidy";
 			$args[] = "-min_af 0.01";
@@ -755,7 +773,7 @@ if (in_array("sv", $steps))
 
 
 		$manta_args = [
-			"-bam ".implode(" ", $bams),
+			"-bam ".implode(" ", $local_bams),
 			"-evid_dir ".$manta_evidence_dir,
 			"-out ".$sv_manta_file,
 			"-threads ".$threads,

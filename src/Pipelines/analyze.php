@@ -140,6 +140,11 @@ $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
 $qc_vc  = $folder."/".$name."_stats_vc.qcML";
 
+
+// folder for local BAM file
+$bam_folder = $parser->tempFolder("local_bam");
+$local_bamfile = $bam_folder."/".$name.".bam";
+
 // for annotation_only: check if all files are available
 if ($annotation_only)
 {
@@ -160,6 +165,20 @@ if ($annotation_only)
 		trigger_error("SV file for reannotation is missing. Skipping 'sv' step!", E_USER_WARNING);
 		if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 	} 
+}
+
+
+// copy BAM file to tmp for all calling steps
+if (!$annotation_only && !in_array("ma", $steps))
+{
+	if(in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
+	{
+		if (!file_exists($bamfile)) trigger_error("No BAM file found in Sample folder! Cannot perform any calling steps!", E_USER_ERROR);
+		if (!file_exists($bamfile.".bai")) trigger_error("No BAM index file found in Sample folder!", E_USER_ERROR);
+		// copy BAM file to local tmp
+		$parser->copyFile($bamfile, $local_bamfile);
+		$parser->copyFile($bamfile.".bai", $local_bamfile.".bai");
+	}
 }
 
 //mapping
@@ -214,12 +233,12 @@ if (in_array("ma", $steps))
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
 	if($use_dragen) $args[] = "-use_dragen";
-	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name ".implode(" ", $args)." -threads $threads");
+	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name -local_bam $local_bamfile ".implode(" ", $args)." -threads $threads");
 
 	//low-coverage report
 	if ($has_roi && !$is_wgs && !$is_wgs_shallow)
 	{	
-		$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", true);
+		$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $local_bamfile -out $lowcov_file -cutoff 20", true);
 		if (db_is_enabled("NGSD"))
 		{
 			$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
@@ -303,7 +322,7 @@ if (in_array("vc", $steps))
 		if ($has_roi) $only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT";
 		if(!$only_mito_in_target_region)
 		{
-			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." -threads $threads ".implode(" ", $args));
+			$parser->execTool("NGS/vc_freebayes.php", "-bam $local_bamfile -out $vcffile -build ".$sys['build']." -threads $threads ".implode(" ", $args));
 		}
 		
 		//perform special variant calling for mitochondria
@@ -320,7 +339,7 @@ if (in_array("vc", $steps))
 			$args[] = "-min_bq ".$min_bq;
 			$args[] = "-target $target_mito";
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
-			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile_mito -build ".$sys['build']." ".implode(" ", $args));
+			$parser->execTool("NGS/vc_freebayes.php", "-bam $local_bamfile -out $vcffile_mito -build ".$sys['build']." ".implode(" ", $args));
 		}
 		
 		if($only_mito_in_target_region) 
@@ -367,7 +386,7 @@ if (in_array("vc", $steps))
 		//create b-allele frequency file
 		$params = array();
 		$params[] = "-vcf {$vcffile}";
-		$params[] = "-bam {$bamfile}";
+		$params[] = "-bam {$local_bamfile}";
 		$params[] = "-out {$baffile}";
 		$params[] = "-build ".$sys['build'];
 		if ($is_wgs)
@@ -477,9 +496,6 @@ if (in_array("cn", $steps))
 			}
 		}
 
-
-		
-
 		//create coverage profile
 		$tmp_folder = $parser->tempFolder();
 		$cov_file = $cov_folder."/{$name}.cov";
@@ -488,7 +504,7 @@ if (in_array("cn", $steps))
 
 			$parser->log("Calculating coverage file for CN calling...");
 			$cov_tmp = $tmp_folder."/{$name}.cov";
-			$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -decimals 4 -bam {$bamfile} -in {$bed} -out {$cov_tmp}", true);
+			$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -decimals 4 -bam {$local_bamfile} -in {$bed} -out {$cov_tmp}", true);
 			
 			//copy coverage file to reference folder if valid
 			if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
@@ -651,7 +667,7 @@ if (in_array("sv", $steps))
 
 
 		$manta_args = [
-			"-bam ".$bamfile,
+			"-bam ".$local_bamfile,
 			"-evid_dir ".$manta_evidence_dir,
 			"-out ".$sv_manta_file,
 			"-threads ".$threads,
@@ -697,7 +713,7 @@ if (in_array("sv", $steps))
 if (in_array("sv", $steps) && !$annotation_only)
 {
 	//perform repeat expansion analysis (only for WGS/WES):
-	$parser->execTool("NGS/vc_expansionhunter.php", "-in $bamfile -out $expansion_hunter_file -build ".$sys['build']." -pid $name");
+	$parser->execTool("NGS/vc_expansionhunter.php", "-in $local_bamfile -out $expansion_hunter_file -build ".$sys['build']." -pid $name");
 }
 
 //import to database
@@ -710,7 +726,7 @@ if (in_array("db", $steps))
 	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force");
 	
 	//check gender
-	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name");	
+	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $local_bamfile -pid $name");	
 	//import variants
 	$args = ["-ps {$name}"];
 	$import = false;
