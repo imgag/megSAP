@@ -15,6 +15,7 @@
 /test/data_amplicon/*_lowcov.bed
 /test/data_amplicon/*.igv
 /test/data_amplicon/*.bedpe
+/test/data_amplicon/*_ancestry.tsv
 /test/data_amplicon/manta_evid/
 
 /test/data_chrx/*.fastq.gz
@@ -33,6 +34,7 @@
 /test/data_chrx/*_lowcov.bed
 /test/data_chrx/*.igv
 /test/data_chrx/*.bedpe
+/test/data_chrx/*_ancestry.tsv
 /test/data_chrx/manta_evid/
 /test/data_chrx/*_circos.png
 
