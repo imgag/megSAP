@@ -137,10 +137,10 @@
 ##INFO=<ID=gnomADg_Hemi,Number=A,Type=Integer,Description="Alternate allele count for male samples (from file gnomAD_genome_r2.1.1.vcf.gz)">
 ##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_20210110_converted.vcf.gz)">
 ##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_20210110_converted.vcf.gz)">
-##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category (from file HGMD_PRO_2020_4_fixed.vcf.gz)", https://portal.biobase-international.com/hgmd/pro/global.php#cats">
+##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category, https://portal.biobase-international.com/hgmd/pro/global.php#cats (from file HGMD_PRO_2020_4_fixed.vcf.gz)">
 ##INFO=<ID=HGMD_MUT,Number=1,Type=String,Description="HGMD mutant allele (from file HGMD_PRO_2020_4_fixed.vcf.gz)">
 ##INFO=<ID=HGMD_GENE,Number=1,Type=String,Description="Gene symbol (from file HGMD_PRO_2020_4_fixed.vcf.gz)">
-##INFO=<ID=HGMD_PHEN,Number=1,Type=String,Description="HGMD primary phenotype.  The ' (from file HGMD_PRO_2020_4_fixed.vcf.gz)",' (comma) in primary phenotype descriptions have been replaced with '%2C'.  Instructions to deal with such characters with special meaning are given in Section 1.2 of the VCFv4.3 specfication.">
+##INFO=<ID=HGMD_PHEN,Number=1,Type=String,Description="HGMD primary phenotype.  The ',' (comma) in primary phenotype descriptions have been replaced with '%2C'.  Instructions to deal with such characters with special meaning are given in Section 1.2 of the VCFv4.3 specfication. (from file HGMD_PRO_2020_4_fixed.vcf.gz)">
 ##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="ID column (from file HGMD_PRO_2020_4_fixed.vcf.gz)">
 ##INFO=<ID=CADD_SNV,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_SNVs_1.6.vcf.gz)">
 ##INFO=<ID=CADD_INDEL,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_InDels_1.6.vcf.gz)">
@@ -153,7 +153,7 @@
 ##INFO=<ID=NGSD_SOM_P,Number=.,Type=String,Description="Project names of project containing this somatic variant in the NGSD. (from file an_vep_NGSD_somatic.vcf.gz)">
 ##INFO=<ID=NGSD_SOM_VICC,Number=1,Type=String,Description="Somatic variant interpretation according VICC standard in the NGSD. (from file an_vep_NGSD_somatic.vcf.gz)">
 ##INFO=<ID=NGSD_SOM_VICC_COMMENT,Number=1,Type=String,Description="Somatic VICC interpretation comment in the NGSD. (from file an_vep_NGSD_somatic.vcf.gz)">
-##INFO=<ID=NGSD_GENE_INFO,Number=.,Type=String,Description="Annotation from /mnt/storage1/share/data//dbs/NGSD/NGSD_genes.bed delimited by ':'">
+##INFO=<ID=NGSD_GENE_INFO,Number=.,Type=String,Description="Annotation from /mnt/storage2/share/data//dbs/NGSD/NGSD_genes.bed delimited by ':'">
 ##FILTER=<ID=all-unknown,Description="Allele unknown">
 ##FILTER=<ID=depth-tum,Description="Sequencing depth in tumor is too low (< 20)">
 ##FILTER=<ID=LowDepth,Description="Tumor or normal sample read depth at this locus is below 2">
