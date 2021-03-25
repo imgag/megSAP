@@ -50,8 +50,7 @@ if (count($jobs)!=1)
 	print "##\n";
 	print "##============================ ERROR ============================\n";
 	print "##=    No datamover of the user bioinf is running! Execute:     =\n";
-	print "##=    > sudo su bioinf                                         =\n";
-	print "##=    > /mnt/share/to_qbic/datamover.sh start                  =\n";
+	print "##=    > sudo -u bioinf /mnt/share/to_qbic/datamover.sh start   =\n";
 	print "##===============================================================\n";
 	die(1);
 }
