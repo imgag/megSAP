@@ -439,7 +439,7 @@ if (in_array("vi", $steps))
 {
 	if(!file_exists($viral_genome) || !file_exists($viral_bed))
 	{
-		trigger_error("Could not find reference genome {$viral_genome}. Skipping step \"vi\".", E_USER_ERROR);
+		trigger_error("Could not find viral reference genome {$viral_genome} or target file {$viral_bed}. Skipping step \"vi\".", E_USER_WARNING);
 	}
 	else
 	{
@@ -461,12 +461,26 @@ if (in_array("vi", $steps))
 			$vc_viral_args[] = "-barcode_correction";
 		}
 		$parser->execTool("NGS/vc_viral_load.php", implode(" ", $vc_viral_args));
-		$igv_tracks = implode(" ", array_filter([
-			$viral_bam,
-			$viral_bam_raw,
-			$viral_bed],
-			"file_exists"));
-		$parser->execTool("NGS/igv_session.php", "-genome $viral_genome -out {$viral_igv} -in {$igv_tracks} -win_path");
+		
+		//create IGV session file for Windows
+		$session = [];
+		$session[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
+		$session[] = "<Session genome=\"W:\\share\\data\\genomes\\somatic_viral.fa\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" version=\"8\">";
+		$session[] = "  <Resources>";
+		$session[] = "    <Resource path=\"{$tumor_prefix}_viral.bam\" />";
+		if (file_exists($viral_bam_raw))
+		{
+			$session[] = "    <Resource path=\"{$tumor_prefix}_viral_before_dedup.bam\" />";
+		}
+		$session[] = "    <Resource path=\"W:\\share\\data\\enrichment\\somatic_viral.bed\" />";
+		$session[] = "  </Resources>";
+		$session[] = "  <HiddenAttributes>";
+		$session[] = "    <Attribute name=\"NAME\"/>";
+		$session[] = "    <Attribute name=\"DATA FILE\"/>";
+		$session[] = "    <Attribute name=\"DATA TYPE\"/>";
+		$session[] = "  </HiddenAttributes>";
+		$session[] = "</Session>";
+		file_put_contents($viral_igv, $session);
 	}
 }
 

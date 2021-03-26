@@ -329,21 +329,6 @@ if (in_array("fu",$steps))
 		{
 			$parser->moveFile($src, $dest);
 		}
-		if ($input_reads_available)
-		{
-			$igv_session_file = "{$prefix}_var_fusions.xml";
-			$igv_tracks = array_filter([
-					"{$prefix}_var_fusions.bam",
-					"{$prefix}_var_fusions.gtf"
-				], "file_exists");
-			if (count($igv_tracks) > 0)
-			{
-				$igv_tracks_arg = implode(" ", $igv_tracks);
-				$genome_rel = relative_path(dirname($igv_session_file), "{$prefix}_var_fusions.fa");
-				$parser->execTool("NGS/igv_session.php", "-genome {$genome_rel} -out {$igv_session_file} -in {$igv_tracks_arg} -win_path");
-			}
-
-		}
 	}
 	else
 	{

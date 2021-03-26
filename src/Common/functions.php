@@ -718,47 +718,6 @@ function sort_vcf_comments($comments_to_sort)
 
 	return $sorted;
 }
-
-function relative_path($start,$end)
-{
-	$s = explode("/", realpath($start));
-	$e = explode("/", realpath($end));
-	$r = array();
-	while(isset($s[0]) && isset($e[0]) && $s[0]==$e[0])	// remove common prefix
-	{
-		array_shift($s);
-		array_shift($e);
-	}
-	$r = array_fill(0,count($s),"..");
-	$r = array_merge($r,$e);
-	return implode("/",$r);
-}
-
-//translates unix path to windows path
-function unix2winpath($unix_path, $use_backslashes = false)
-{
-	$data = get_path("unix2windows_path");
-	if(!is_array($data) || count($data) == 0)
-	{
-		trigger_error("Cannot translate unix path \"{$unix_path}\" to windows path. No settings array \"unix2windows_path\" found in settings.ini.");
-	}
-	
-	$out = "";
-	foreach($data as $unix_prefix => $win_prefix)
-	{
-		if(strpos($unix_path, $unix_prefix) !== false)
-		{
-			$out = str_replace($unix_prefix, $win_prefix, $unix_path);
-		}
-	}
-	
-	if($use_backslashes)
-	{
-		$out = str_replace("/", "\\", $out);
-	}
-	
-	return ($out != "" ? $out : $unix_path);
-}
 	
 //adds a # in the first line of a file
 function addCommentCharInHeader($filename)
