@@ -427,14 +427,14 @@ if (in_array("vc", $steps))
 }
 
 //Viral sequences alignment
-$tumor_prefix = dirname($t_bam) . "/" . basename($t_bam, ".bam");
+$t_dir = dirname($t_bam) . "/";
 
-$viral         = $tumor_prefix . "_viral.tsv";					// viral sequences results
-$viral_bam     = $tumor_prefix . "_viral.bam";					// viral sequences alignment
-$viral_bam_raw = $tumor_prefix . "_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
+$viral         = "{$t_dir}/{$t_id}_viral.tsv";					// viral sequences results
+$viral_bam     = "{$t_dir}/{$t_id}_viral.bam";					// viral sequences alignment
+$viral_bam_raw = "{$t_dir}/{$t_id}_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
 $viral_bed     = get_path("data_folder") . "/enrichment/somatic_viral.bed"; //viral enrichment
 $viral_genome  = get_path("data_folder") . "/genomes/somatic_viral.fa"; //viral reference genome
-$viral_igv     = $tumor_prefix . "_viral.xml";					// IGV session
+$viral_igv     = "{$t_dir}/{$t_id}_viral.xml";					// IGV session
 if (in_array("vi", $steps))
 {
 	if(!file_exists($viral_genome) || !file_exists($viral_bed))
@@ -467,10 +467,10 @@ if (in_array("vi", $steps))
 		$session[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
 		$session[] = "<Session genome=\"W:\\share\\data\\genomes\\somatic_viral.fa\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" version=\"8\">";
 		$session[] = "  <Resources>";
-		$session[] = "    <Resource path=\"{$tumor_prefix}_viral.bam\" />";
+		$session[] = "    <Resource path=\"{$t_id}_viral.bam\" />";
 		if (file_exists($viral_bam_raw))
 		{
-			$session[] = "    <Resource path=\"{$tumor_prefix}_viral_before_dedup.bam\" />";
+			$session[] = "    <Resource path=\"{$t_id}_viral_before_dedup.bam\" />";
 		}
 		$session[] = "    <Resource path=\"W:\\share\\data\\enrichment\\somatic_viral.bed\" />";
 		$session[] = "  </Resources>";
@@ -480,7 +480,7 @@ if (in_array("vi", $steps))
 		$session[] = "    <Attribute name=\"DATA TYPE\"/>";
 		$session[] = "  </HiddenAttributes>";
 		$session[] = "</Session>";
-		file_put_contents($viral_igv, $session);
+		file_put_contents( $viral_igv, implode("\n",$session) );
 	}
 }
 
