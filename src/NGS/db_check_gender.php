@@ -37,14 +37,14 @@ if (!isset($gender))
 	//check gender from NGSD is set
 	if ($gender=='n/a')
 	{
-		$parser->log("Could not determine gender for processed sample '$pid' from DB '$db': gender not set in sample entry.");
+		$parser->log("Could not determine gender for processed sample '{$pid}': gender not specified in NGSD.");
 		exit(0);
 	}
 
 	//skip for cf-DNA
 	if ($sys_type=="cfDNA (patient-specific)")
 	{
-		$parser->log("Could not determine gender for processed sample '$pid' from DB '$db': gender not set in sample entry.");
+		$parser->log("Could not determine gender for processed sample '{$pid}' : gender not specified in NGSD.");
 		exit(0);
 	}
 
