@@ -731,7 +731,7 @@ if (in_array("db", $steps))
 	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force");
 	
 	//check gender
-	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $local_bamfile -pid $name");	
+	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name");	
 	//import variants
 	$args = ["-ps {$name}"];
 	$import = false;
