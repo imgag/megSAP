@@ -153,7 +153,6 @@
 ##INFO=<ID=NGSD_SOM_P,Number=.,Type=String,Description="Project names of project containing this somatic variant in the NGSD. (from file an_vep_NGSD_somatic.vcf.gz)">
 ##INFO=<ID=NGSD_SOM_VICC,Number=1,Type=String,Description="Somatic variant interpretation according VICC standard in the NGSD. (from file an_vep_NGSD_somatic.vcf.gz)">
 ##INFO=<ID=NGSD_SOM_VICC_COMMENT,Number=1,Type=String,Description="Somatic VICC interpretation comment in the NGSD. (from file an_vep_NGSD_somatic.vcf.gz)">
-##INFO=<ID=NGSD_GENE_INFO,Number=.,Type=String,Description="Annotation from /mnt/storage1/share/data//dbs/NGSD/NGSD_genes.bed delimited by ':'">
 ##FILTER=<ID=all-unknown,Description="Allele unknown">
 ##FILTER=<ID=depth-tum,Description="Sequencing depth in tumor is too low (< 20)">
 ##FILTER=<ID=LowDepth,Description="Tumor or normal sample read depth at this locus is below 2">
