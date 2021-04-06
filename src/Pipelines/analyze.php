@@ -723,7 +723,7 @@ if (in_array("sv", $steps) && !$annotation_only)
 if (in_array("db", $steps))
 {
 	//import ancestry
-	$parser->execTool("NGS/db_import_ancestry.php", "-id {$name} -in {$ancestry_file}");
+	if(file_exists($ancestry_file)) $parser->execTool("NGS/db_import_ancestry.php", "-id {$name} -in {$ancestry_file}");
 	
 	//import QC
 	$qc_files = array($qc_fastq, $qc_map);
