@@ -280,8 +280,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 	
 	//threads to use (equal to the number of SGE slots)
 	$threads = 4;
-	if ($type=="somatic") $threads = 4;
-	foreach($sample_infos as $sample_info) //use two instead of one slots for WGS	
+	foreach($sample_infos as $sample_info) //use mor slots for WGS
 	{
 		if ($sample_info['sys_type']=="WGS" || $sample_info['sys_type']=="WGS (shallow)") $threads = 6;
 	}

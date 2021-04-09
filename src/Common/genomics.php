@@ -406,7 +406,9 @@ function store_system(&$db_conn, $name_short, $filename)
 	$output = array();
 	$output[] = "name_short = \"".$name_short."\"";
 	$output[] = "name_manufacturer = \"".$res[0]['name_manufacturer']."\"";
-	$output[] = "target_file = \"".$res[0]['target_file']."\"";
+	$roi = trim($res[0]['target_file']);
+	if ($roi!="") $roi = get_path("data_folder")."/enrichment/".$roi;
+	$output[] = "target_file = \"".$roi."\"";
 	$output[] = "adapter1_p5 = \"".$res[0]['adapter1_p5']."\"";
 	$output[] = "adapter2_p7 = \"".$res[0]['adapter2_p7']."\"";
 	$output[] = "shotgun = ".$res[0]['shotgun'];
@@ -415,81 +417,6 @@ function store_system(&$db_conn, $name_short, $filename)
 	$output[] = "build = \"".$res[0]['build']."\"";
 	$output[] = "";
 	file_put_contents($filename, implode("\n", $output));
-}
-
-/**
-	@brief Loads the qcML terms for NGS from the OBO file.
-	@ingroup helpers
-*/
-function load_qc_terms()
-{
-	//do nothing if already loaded
-	if (isset($GLOBALS["qcml"])) return;
-	
-	//load terms
-	$terms = array();
-	
-	$current = array();
-	$h = fopen2(repository_basedir()."/data/misc/qc-cv.obo", "r");
-	while(!feof($h))
-	{
-		$line = trim(fgets($h));
-		if ($line=="")
-		{
-			continue;
-		}
-		else if ($line=="[Term]")
-		{
-			if (isset($terms[$current['id']])) trigger_error("duplicate qcML term id {$current['id']}!", E_USER_ERROR);
-			$terms[$current['id']] = $current;
-			$current = array();
-		}
-		else if (starts_with($line, "id:"))
-		{
-			$current['id'] = trim(substr($line, 3));
-		}
-		else if (starts_with($line, "name:"))
-		{
-			$current['name'] = trim(substr($line, 5));
-		}
-		else if (starts_with($line, "def:"))
-		{
-			$parts = explode("\"", $line);
-			$current['def'] = trim($parts[1]);
-		}
-		else if (starts_with($line, "xref: value-type:xsd\:"))
-		{
-			$parts = explode(":", strtr($line, "\"", ":"));
-			$current['type'] = trim($parts[3]);
-		}
-		else if (starts_with($line, "comment:"))
-		{
-			//nothing to do here
-		}
-		else if(starts_with($line, "is_obsolete:"))
-		{
-			//nothing to do here
-		}
-	}
-	if (isset($terms[$current['id']])) trigger_error("duplicate qcML term id '{$current['id']}'!", E_USER_ERROR);
-	$terms[$current['id']] = $current;
-	
-	//remove QC terms we do not need
-	foreach($terms as $id => $data)
-	{
-		//terms that are not in the NGS namespace
-		if (!starts_with($id, "QC:2"))
-		{
-			unset($terms[$id]);
-		}
-		//no type (parent terms needed to structure the ontology only)
-		if (!isset($data['type']))
-		{
-			unset($terms[$id]);
-		}
-	}
-	ksort($terms);
-	$GLOBALS["qcml"] = $terms;
 }
 
 /**
@@ -1333,7 +1260,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	//get info from NGSD
 	$ps_name = trim($ps_name);
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
-	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.preserve_fastqs as preserve_fastqs, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.adapter1_p5 as sys_adapter1, sys.adapter2_p7 as sys_adapter2,s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2, sp.name as species, s.id as s_id, ps.quality as ps_quality ".
+	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.preserve_fastqs as preserve_fastqs, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.adapter1_p5 as sys_adapter1, sys.adapter2_p7 as sys_adapter2,s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2, sp.name as species, s.id as s_id, ps.quality as ps_quality, ps.processing_input, d.name as device_name ".
 									"FROM project p, sample s, processing_system as sys, processed_sample ps LEFT JOIN sequencing_run as r ON ps.sequencing_run_id=r.id LEFT JOIN device as d ON r.device_id=d.id, species sp ".
 									"WHERE ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND s.species_id=sp.id AND ps.process_id='".(int)$process_id."'");
 	if (count($res)!=1)
@@ -1348,6 +1275,12 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 		}
 	}
 	$info = $res[0];
+	
+	//prefix target region
+	$roi = trim($info['sys_target']);
+	if ($roi!="") $roi = get_path("data_folder")."/enrichment/".$roi;
+	$info['sys_target'] = $roi;
+	
 	
 	//normal sample name (tumor reference sample)
 	if($info['normal_id']!="")

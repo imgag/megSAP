@@ -12,7 +12,7 @@ $parser = new ToolBase("qbic_copy", "Copies QBIC data into the QBIC datamover fo
 $parser->addFlag("upload", "Enable real upload (otherwise a dry run is performed: dummy data is written to the temporary folder, but it is not copied to the datamover folder).");
 $parser->addString("project", "Restrict upload to a project.", true, "");
 $parser->addStringArray("samples", "Restrict upload to a list of processed sample.", true, "");
-$parser->addFlag("force_reupload", "Upload files even if already uploaded.", true, "");
+$parser->addFlag("force_reupload", "Upload files even if already uploaded.");
 $parser->addFlag("ignore_quality", "Upload all samples regardless of quality.");
 extract($parser->parse($argv));
 
@@ -50,8 +50,7 @@ if (count($jobs)!=1)
 	print "##\n";
 	print "##============================ ERROR ============================\n";
 	print "##=    No datamover of the user bioinf is running! Execute:     =\n";
-	print "##=    > sudo su bioinf                                         =\n";
-	print "##=    > /mnt/share/to_qbic/datamover.sh start                  =\n";
+	print "##=    > sudo -u bioinf /mnt/share/to_qbic/datamover.sh start   =\n";
 	print "##===============================================================\n";
 	die(1);
 }
@@ -447,14 +446,15 @@ foreach($res as $row)
 		
 		//Special treatment for tumor-normal fastqs
 		$merged_fastq_files = array();
+		$tmp_data_folder = temp_folder();
 		if($tumor_normal_pair) //merge fastqs in case of normal-tumor pairs 
 		{
 			if($row['tumor'] == 1)
 			{
-				exec2("cat {$data_folder}*R1*.fastq.gz > {$data_folder}{$qbic_name}_tumor.1.fastq.gz");
-				$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor.1.fastq.gz";
-				exec2("cat {$data_folder}*R2*.fastq.gz > {$data_folder}{$qbic_name}_tumor.2.fastq.gz");
-				$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor.2.fastq.gz";
+				exec2(get_path("ngs-bits") . "/FastqConcat -in  {$data_folder}*R1*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_tumor.1.fastq.gz");
+				$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_tumor.1.fastq.gz";
+				exec2(get_path("ngs-bits") . "/FastqConcat -in {$data_folder}*R2*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_tumor.2.fastq.gz");
+				$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_tumor.2.fastq.gz";
 			}
 			//parse related normal file if found
 			$normal_id = $sample1["normal_id"];
@@ -462,19 +462,19 @@ foreach($res as $row)
 			if($normal_id != "" && $normal_sample['quality_sample'] != "bad" && $normal_sample['quality_processed_sample'] != "bad"
 				&& $normal_sample['quality_run'] != "bad")
 			{
-				$data_folder2 = $project_folder."/Sample_".$normal_sample['id_genetics']."/";
-				exec2("cat {$data_folder2}*R1*.fastq.gz > {$data_folder2}{$qbic_name}_normal.1.fastq.gz");
-				$merged_fastq_files[] = "{$data_folder2}{$qbic_name}_normal.1.fastq.gz";
-				exec2("cat {$data_folder2}*R2*.fastq.gz > {$data_folder2}{$qbic_name}_normal.2.fastq.gz");
-				$merged_fastq_files[] = "{$data_folder2}{$qbic_name}_normal.2.fastq.gz";
+				$normal_data_dir = $project_folder."/Sample_".$normal_sample['id_genetics']."/";
+				exec2(get_path("ngs-bits") . "/FastqConcat -in {$normal_data_dir}*R1*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_normal.1.fastq.gz");
+				$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_normal.1.fastq.gz";
+				exec2(get_path("ngs-bits") . "/FastqConcat -in {$normal_data_dir}*R2*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_normal.2.fastq.gz");
+				$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_normal.2.fastq.gz";
 			}
 		}
 		elseif($sample1["experiment_type"] == "rna_seq" && $sample1["tumor"] == 1)
 		{
-			exec2("cat {$data_folder}*R1*.fastq.gz > {$data_folder}{$qbic_name}_tumor_rna.1.fastq.gz");
-			$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor_rna.1.fastq.gz";
-			exec2("cat {$data_folder}*R2*.fastq.gz > {$data_folder}{$qbic_name}_tumor_rna.2.fastq.gz");
-			$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor_rna.2.fastq.gz";
+			exec2(get_path("ngs-bits") . "/FastqConcat -in  {$data_folder}*R1*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_tumor_rna.1.fastq.gz");
+			$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_tumor_rna.1.fastq.gz";
+			exec2(get_path("ngs-bits") . "/FastqConcat -in {$data_folder}*R2*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_tumor_rna.2.fastq.gz");
+			$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_tumor_rna.2.fastq.gz";
 		}
 		
 		
@@ -618,37 +618,43 @@ foreach($res as $row)
 		}
 		
 		//Upload somatic data in special format for MTB (Molecular Tumor Board)
-		if ($somatic_data_uploaded && file_exists("{$data_folder}/QBIC_files/"))
+		if ($somatic_data_uploaded)
 		{
-			$output[4] = "{$ps_name}-{$ps_name2} (MTB)";
 			
-			//determine files to zip
-			$files = glob("{$data_folder}/QBIC_files/*.tsv");
-			
-			//determine/create subfolder
-			$folder_name = "{$qbic_name}_{$ps_name}-{$ps_name2}-MTB";
-			$tmpfolder = $GLOBALS["datamover_tmp"]."/".$folder_name;
-			if (file_exists($tmpfolder)) exec2("rm -rf $tmpfolder");
-			mkdir($tmpfolder);
-			
-			//copy and rename files
-			foreach($files as $file)
+			$folder = "/mnt/share/to_qbic/somatic_data/{$ps_name}-{$ps_name2}/";
+			if (!file_exists($folder)) $folder = "{$data_folder}/QBIC_files/"; //TODO move all QBIC files from sample folders to the new folder and remove this fallback
+			if (file_exists($folder))
 			{
-				$outfile = basename($file);
-				$outfile =  $qbic_name.substr($outfile, 4);
-				$parser->copyFile($file, $tmpfolder."/".$outfile);
+				$output[4] = "{$ps_name}-{$ps_name2} (MTB)";
+				
+				//determine files to zip
+				$files = glob("{$folder}/*.tsv");
+				
+				//determine/create subfolder
+				$folder_name = "{$qbic_name}_{$ps_name}-{$ps_name2}-MTB";
+				$tmpfolder = $GLOBALS["datamover_tmp"]."/".$folder_name;
+				if (file_exists($tmpfolder)) exec2("rm -rf $tmpfolder");
+				mkdir($tmpfolder);
+				
+				//copy and rename files
+				foreach($files as $file)
+				{
+					$outfile = basename($file);
+					$outfile =  $qbic_name.substr($outfile, 4);
+					$parser->copyFile($file, $tmpfolder."/".$outfile);
+				}
+				
+				//zip files
+				$zip = "{$tmpfolder}/{$qbic_name}_{$ps_name}-{$ps_name2}.zip";
+				exec2("cd {$tmpfolder} && zip {$zip} *.tsv");
+				
+				//upload data
+				if ($upload)
+				{
+					$parser->moveFile($zip, $GLOBALS["datamover_path"]."/".basename($zip));
+				}
+				printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(" ", $files));
 			}
-			
-			//zip files
-			$zip = "{$tmpfolder}/{$qbic_name}_{$ps_name}-{$ps_name2}.zip";
-			exec2("cd {$tmpfolder} && zip {$zip} *.tsv");
-			
-			//upload data
-			if ($upload)
-			{
-				$parser->moveFile($zip, $GLOBALS["datamover_path"]."/".basename($zip));
-			}
-			printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(" ", $files));
 		}
 	}
 }

@@ -1,10 +1,6 @@
 <?php 
 /** 
 	@page vcf2gsvar
-	
-	@todo replace blacklist genes by blacklist regions:
-			- /mnt/share/data/dbs/ABB/ABB_075.bed
-			- /mnt/share/data/blacklist_regions/blacklist.bed 
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -17,7 +13,6 @@ $parser->addOutfile("out", "Output file in GSvar format.", false);
 //optional
 $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
 $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
-$parser->addFlag("blacklist", "Annotate variants in blacklisted genes with 'gene_blacklist' in filter column.");
 $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
 extract($parser->parse($argv));
 
@@ -41,39 +36,6 @@ function skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $cli
 	if ($gnomad!="" && $gnomad>0.02) return true;
 	
 	return false; //non-exonic but rare
-}
-
-//determines if all the input genes are on the blacklist
-function all_genes_blacklisted($genes)
-{
-	//init blacklist on first call
-	static $blacklist = null;
-	if ($blacklist === null)
-	{
-		$file = file(repository_basedir()."/data/gene_lists/blacklist.tsv");
-		foreach($file as $line)
-		{
-			$line = trim($line);
-			if ($line=="" || $line[0]=="#") continue;
-			list($gene) = explode("\t", $line);
-			$blacklist[$gene] = true;
-		}
-	}
-  
-	if (count($genes)==0)
-	{
-		return false;
-	}
-	
-	foreach ($genes as $gene)
-	{
-		if (!isset($blacklist[$gene]))
-		{
-			return false;
-		}
-	}
-	
-	return true;
 }
 
 //get index of columnn in QSC header.
@@ -362,7 +324,7 @@ if ($genotype_mode=="single")
 
 //write filter descriptions
 $filter_desc = array();
-if ($blacklist) $filter_desc[] = array("gene_blacklist", "The gene(s) are contained on the blacklist of unreliable genes.");
+$filter_desc[] = array("low_conf_region", "Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.");
 
 //parse input
 $c_written = 0;
@@ -377,12 +339,15 @@ $skip_ngsd_som = true; // true as long as no NGSD somatic header is found
 $skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC) header is found.
 $skip_cancerhotspots = true; //true as long as no CANCERHOTSPOTS header is found.
 
+//write date (of input file)
+fwrite($handle_out, "##CREATION_DATE=".date("Y-m-d", filemtime($in))."\n");
+
 while(!feof($handle))
 {
 	$line = nl_trim(fgets($handle));
 	if ($line=="" || trim($line)=="") continue;
 	
-	//write filter descriptions
+	//write header
 	if ($line[0]=="#") 
 	{
 		if (starts_with($line, "##FILTER=<ID="))
@@ -935,7 +900,7 @@ while(!feof($handle))
 				$domains = explode("&", $parts[$i_domains]);
 				foreach($domains as $entry)
 				{
-					if(starts_with($entry, "Pfam_domain:"))
+					if(starts_with($entry, "Pfam:"))
 					{
 						$domain = explode(":", $entry, 2)[1];
 					}
@@ -1328,6 +1293,7 @@ while(!feof($handle))
 			if(sizeof($delta_scores) == 10)
 			{
 				$tmp_score = max(floatval($delta_scores[2]), floatval($delta_scores[3]), floatval($delta_scores[4]), floatval($delta_scores[5]));
+				if(is_null($splice_number)) $splice_number = $tmp_score;
 				$splice_number = max($splice_number, $tmp_score);
 			}
 			else
@@ -1336,7 +1302,7 @@ while(!feof($handle))
 			}
 		}
 
-		if($splice_number)
+		if(!is_null($splice_number))
 		{
 			$spliceai = $splice_number;
 		}
@@ -1422,11 +1388,6 @@ while(!feof($handle))
 		$coding_and_splicing_details = array_merge($coding_and_splicing_details, $coding_and_splicing_details_updown);
 	}
 	
-	$genes = array_unique($genes);
-	if ($blacklist && all_genes_blacklisted($genes))
-	{
-		$filter[] = "gene_blacklist";
-	}
 	$variant_details = implode(",", array_unique($variant_details));
 	$coding_and_splicing_details =  implode(",", $coding_and_splicing_details);
 	
@@ -1473,6 +1434,7 @@ while(!feof($handle))
 	
 	//write data
 	++$c_written;
+	$genes = array_unique($genes);
 	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity\t$spliceai");
 	if (!$skip_ngsd_som)
 	{

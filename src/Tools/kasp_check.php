@@ -227,12 +227,13 @@ function sample_from_ngsd(&$db, $sample_name, $irp, $itp)
 	//2. try (DNA number)
 	if (count($res)==0 && !starts_with($sample_name, "FO"))
 	{
-		if (starts_with($sample_name, "DNA-"))
+		$matches = [];
+		preg_match("/[0-9]{6,}/", $sample_name, $matches);
+		if (count($matches)==1)
 		{
-			$sample_name = substr($sample_name, 4);
+			$dna_nr = "DX".$matches[0];
+			$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name='{$dna_nr}' OR s.name_external LIKE '%{$dna_nr}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
 		}
-		$sample_name = substr($sample_name, 0, 6);
-		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name='DX{$sample_name}' OR s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
 	}
 	
 	//3. try (FO number)
@@ -262,14 +263,21 @@ function sample_from_ngsd(&$db, $sample_name, $irp, $itp)
 }
 
 //imports the result into NGSD
-function import_ngsd(&$db, $bam, $rmp, $c_both, $c_match)
+function import_ngsd(&$db, $ps, $rmp, $c_both, $c_match)
 {
 	//determine processed sample id from BAM name
-	$ps_name = basename($bam,".bam");
-	$ps_id = get_processed_sample_id($db, $ps_name);
+	$ps_id = get_processed_sample_id($db, $ps);
 	
 	$db->executeStmt("DELETE FROM kasp_status WHERE processed_sample_id=:ps_id", array("ps_id"=>$ps_id));
 	$db->executeStmt("INSERT INTO kasp_status VALUES (:ps_id,:rmp,:c_both,:c_match)", array("ps_id"=>$ps_id, "rmp"=>$rmp, "c_both"=>$c_both, "c_match"=>$c_match));
+}
+
+//returns if a valid error probability exists in NGSD for the sample
+function kasp_exists(&$db, $ps)
+{
+	$ps_id = get_processed_sample_id($db, $ps);
+	$error_prob = $db->getValue("SELECT random_error_prob FROM kasp_status WHERE processed_sample_id={$ps_id}", -1);
+	return $error_prob>=0 && $error_prob<=1;
 }
 
 //parse command line arguments
@@ -283,6 +291,7 @@ $parser->addInt("mep", "Maximum error probabilty of of genotype matches.", true,
 $parser->addFlag("pmm", "Prints mismatches to the command line.");
 $parser->addFlag("irp", "Include research projects.");
 $parser->addFlag("itp", "Include test projects.");
+$parser->addFlag("missing_only", "Only perform KASP<>NGS check for samples that don't have a entry in NGSD yet.");
 extract($parser->parse($argv));
 
 if ($snps=="set1")
@@ -371,6 +380,13 @@ foreach($file as $line)
 					
 					$messages = array();
 					
+					//check if missing
+					if ($missing_only && kasp_exists($db, $ps))
+					{
+						print "  $ps - skipped because KASP is already in NGSD\n";
+						continue;
+					}
+					
 					//find genotype matches
 					$c_kasp = 0;
 					$c_both = 0;
@@ -427,7 +443,7 @@ foreach($file as $line)
 						if ($c_kasp>=10)
 						{
 							//NGSD import of results
-							import_ngsd($db, $bam, 999, $c_both, $c_match);
+							import_ngsd($db, $ps, 999, $c_both, $c_match);
 						}
 					}
 					else
@@ -441,7 +457,7 @@ foreach($file as $line)
 						$output[] = "$sample_name\t$rmp\t$c_kasp\t$c_both\t$c_match\t$bam\n";
 					
 						//NGSD import of results
-						import_ngsd($db, $bam, $rmp, $c_both, $c_match);
+						import_ngsd($db, $ps, $rmp, $c_both, $c_match);
 					}
 					print "\n";
 					foreach($messages as $message)

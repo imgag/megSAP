@@ -20,22 +20,22 @@ extract($parser->parse($argv));
 
 //check system
 $db = DB::getInstance("NGSD");
-$res = $db->executeQuery("SELECT * FROM processing_system WHERE name_short=:sys", array("sys"=>$name));
-if (count($res)!=1)
+$roi = trim($db->getValue("SELECT target_file FROM processing_system WHERE name_short='".$name."'", "<system not found>"));
+if ($roi=="<system not found>")
 {
 	trigger_error("Invalid processing system short name '$name'! Valid names are:\n".implode("\n", $db->getValues("SELECT name_short FROM processing_system ORDER BY name_short ASC")), E_USER_ERROR);	
 }
-$roi = trim($res[0]['target_file']);
 if ($roi=="")
 {
 	trigger_error("Processing system '$name' has no target region file annotated!", E_USER_ERROR);	
 }
+$roi = get_path("data_folder")."/enrichment/".$roi;
 
 //init
 $ref_folder = get_path("data_folder")."/coverage/$name".($tumor_only ? "-tumor" : "")."/";		
 
 //WGS/sWGS: fix ref folder and ROI
-$type = $res[0]['type'];
+$type = $db->getValue("SELECT type FROM processing_system WHERE name_short='".$name."'");
 if ($type=="WGS" || $type=="WGS (shallow)")
 {
 	$bin_size = get_path("cnv_bin_size_wgs");

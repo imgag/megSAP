@@ -19,6 +19,8 @@ The installation instructions can be found [here](doc/install_unix.md).
 
 ## Documentation
 
+Documentation about the tools and databases used in megSAP can be found [here](doc/update_overview.md).
+
 Documentation about the different analysis pipelines can be found here:
 
 * [DNA analysis (single sample)](doc/dna_single_sample.md)

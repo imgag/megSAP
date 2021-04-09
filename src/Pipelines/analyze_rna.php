@@ -23,6 +23,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mappi
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
 $parser->addFlag("no_splicing", "Disable spliced read alignment.");
 $parser->addFlag("abra", "Enable indel realignment with ABRA.");
+$parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
@@ -155,6 +156,7 @@ if (in_array("ma", $steps))
 
 	if ($paired) $args[] = "-in2 $fastq_trimmed2";
 	if ($no_splicing) $args[] = "-no_splicing";
+	if ($skip_dedup) $args[] = "-skip_dedup";
 	
 	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
 
@@ -187,8 +189,9 @@ if (in_array("ma", $steps))
 
 	//mapping QC
 	$mappingqc_params = array(
-		"-in", $final_bam,
-		"-out", $qc_map
+		"-in ".$final_bam,
+		"-out ".$qc_map,
+		"-ref ".genome_fasta($sys['build'])
 	);
 
 	$mappingqc_params[] = (isset($target_file) && $target_file != "") ? "-roi {$target_file}" : "-rna";
@@ -325,21 +328,6 @@ if (in_array("fu",$steps))
 		foreach ($output_files as $src => $dest)
 		{
 			$parser->moveFile($src, $dest);
-		}
-		if ($input_reads_available)
-		{
-			$igv_session_file = "{$prefix}_var_fusions.xml";
-			$igv_tracks = array_filter([
-					"{$prefix}_var_fusions.bam",
-					"{$prefix}_var_fusions.gtf"
-				], "file_exists");
-			if (count($igv_tracks) > 0)
-			{
-				$igv_tracks_arg = implode(" ", $igv_tracks);
-				$genome_rel = relative_path(dirname($igv_session_file), "{$prefix}_var_fusions.fa");
-				$parser->execTool("NGS/igv_session.php", "-genome {$genome_rel} -out {$igv_session_file} -in {$igv_tracks_arg} -win_path");
-			}
-
 		}
 	}
 	else

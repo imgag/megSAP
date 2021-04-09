@@ -60,9 +60,9 @@ print date("Y-m-d H:i:s")." creating tar file\n";
 $tmp_tar = $parser->tempFile(".tar");
 $parser->exec("tar", "cfW $tmp_tar $in/", true);
 
-//zip archive with medium compression (way faster than full compression and the contents are already compressed in most cases)
+//zip archive with low compression (way faster than full compression and the contents are already compressed in most cases)
 print date("Y-m-d H:i:s")." creating tar.gz file\n";
-$parser->exec("gzip", "-c -5 $tmp_tar > $zipfile", true);
+$parser->exec("gzip", "-c -1 $tmp_tar > $zipfile", true);
 
 //test zip archive integrity
 print date("Y-m-d H:i:s")." testing tar.gz file integrity\n";

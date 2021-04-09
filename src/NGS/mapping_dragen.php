@@ -79,6 +79,9 @@ if(db_is_enabled("NGSD"))
 // remove duplicates
 if ($dedup) $dragen_parameter[] = "--enable-duplicate-marking true";
 
+// reset dragen
+$parser->exec("dragen_reset", "");
+
 
 // run mapping
 print "dragen ".implode(" ", $dragen_parameter)."\n";

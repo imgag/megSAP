@@ -1,6 +1,6 @@
 
 all:
-	make clear link vc cn diff ra
+	make clear link vc cn sv diff ra
 	
 clear:
 	rm -rf *.bam *.bai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv trio_upd.tsv reanno
@@ -19,6 +19,13 @@ vc:
 cn:
 	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder . -steps cn
 
+sv:
+	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder . -steps sv
+	# remove gene annotation
+	cut -f1-24 trio_manta_var_structural.bedpe > trio_manta_var_structural_cut.bedpe
+	# create file from OMIM annotation and CNV overlap
+	cat trio_manta_var_structural.bedpe | egrep -v "^##"| rev | cut -f 1,2| rev > trio_manta_var_structural_cut2.bedpe	
+
 diff:
 	#variants
 	php ../compare_variants.php -in1 trio.GSvar.out -in2 trio.GSvar
@@ -26,6 +33,9 @@ diff:
 	diff trio_cnvs_clincnv.tsv trio_cnvs_clincnv.tsv.out
 	#UPDs
 	diff -b trio_upd.tsv.out trio_upd.tsv
+	#SVs
+	diff trio_manta_var_structural_cut.bedpe trio_manta_var_structural_cut.bedpe.out --ignore-matching-lines="^##"
+	diff trio_manta_var_structural_cut2.bedpe trio_manta_var_structural_cut2.bedpe.out --ignore-matching-lines="^##"
 
 ra:
 	mkdir -p reanno
@@ -33,11 +43,13 @@ ra:
 	cp all.vcf.gz reanno/
 	cp all_mito.vcf.gz reanno/
 	cp trio_cnvs_clincnv.tsv reanno/
+	cp trio_manta_var_structural.bedpe reanno/
 	# run reannotation
-	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder reanno -steps vc,cn -annotation_only
+	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder reanno -steps vc,cn,sv -annotation_only
 	# diff
 	diff trio_cnvs_clincnv.tsv reanno/trio_cnvs_clincnv.tsv
 	diff trio.GSvar reanno/trio.GSvar
+	diff trio_manta_var_structural.bedpe reanno/trio_manta_var_structural.bedpe
 
 ######################### AUXILARY TARGETS #########################
 

@@ -1,6 +1,6 @@
 ##fileformat=VCFv4.1
-##filedate=2020-06-25T11:54:47
-##source=Expansion Hunter v3.2.2
+##filedate=Starting ExpansionHunter v4.0.2
+##source=
 ##reference=/tmp/local_ngs_data//GRCh37.fa
 ##INFO=<ID=VARID,Number=1,Type=String,Description="Variant identifier as specified in the variant catalog">
 ##FILTER=<ID=LowDepth,Description="The overall locus depth is below 10x or number of reads spanning one or both breakends is below 5">
@@ -8,7 +8,7 @@
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##FORMAT=<ID=LC,Number=1,Type=Float,Description="Locus coverage">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_17
-chr2	191745599	.	G	.	.	LowDepth	END=191745646;REF=15;RL=47;RU=GGA;VARID=GLS;REPID=GLS	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
+chr2	191745598	.	C	.	.	LowDepth	END=191745646;REF=16;RL=48;RU=GCA;VARID=GLS;REPID=GLS	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
 chr3	63898360	.	G	.	.	LowDepth	END=63898390;REF=10;RL=30;RU=GCA;VARID=ATXN7;REPID=ATXN7	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
 chr3	63898390	.	A	.	.	LowDepth	END=63898402;REF=4;RL=12;RU=GCC;VARID=ATXN7_GCC;REPID=ATXN7_GCC	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
 chr3	128891419	.	A	.	.	LowDepth	END=128891499;REF=20;RL=80;RU=CAGG;VARID=CNBP;REPID=CNBP	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
@@ -30,6 +30,7 @@ chr12	50898784	.	T	.	.	LowDepth	END=50898805;REF=7;RL=21;RU=GGC;VARID=DIP2B;REPI
 chr12	112036753	.	G	.	.	LowDepth	END=112036822;REF=23;RL=69;RU=GCT;VARID=ATXN2;REPID=ATXN2	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
 chr13	70713485	.	A	.	.	LowDepth	END=70713515;REF=10;RL=30;RU=CTA;VARID=ATXN8OS_CTA;REPID=ATXN8OS_CTA	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
 chr13	70713515	.	A	.	.	LowDepth	END=70713560;REF=15;RL=45;RU=CTG;VARID=ATXN8OS;REPID=ATXN8OS	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
+chr14	23790681	.	G	.	.	LowDepth	END=23790699;REF=6;RL=18;RU=GCG;VARID=PABPN1;REPID=PABPN1	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
 chr14	92537353	.	C	.	.	LowDepth	END=92537386;REF=11;RL=33;RU=GCT;VARID=ATXN3;REPID=ATXN3	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
 chr15	23086366	.	C	.	.	LowDepth	END=23086390;REF=8;RL=24;RU=CGC;VARID=NIPA1;REPID=NIPA1	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
 chr16	87637893	.	C	.	.	LowDepth	END=87637935;REF=14;RL=42;RU=CTG;VARID=JPH3;REPID=JPH3	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000

@@ -15,15 +15,18 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
 $steps_all = array("ma", "vc", "cn", "sv", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, db=import into NGSD.", true, "ma,vc,cn,sv,db");
-$parser->addFlag("lofreq", "Perform low frequency variant detection (down to 5% AF).", true);
+$parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (freebayes 'min-alternate-fraction' parameter).", true, 0.1);
+$parser->addFloat("min_bq", "Minimum base quality used for variant calling (freebayes 'min-base-quality' parameter).", true, 15);
+$parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (freebayes 'min-mapping-quality' parameter).", true, 1);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
-$parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.", true);
-$parser->addFlag("no_abra", "Skip realignment with ABRA.", true);
-$parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.", true);
-$parser->addFlag("correction_n", "Use Ns for errors by barcode correction.", true);
+$parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.");
+$parser->addFlag("no_abra", "Skip realignment with ABRA.");
+$parser->addFlag("no_trim", "Skip adapter trimming with SeqPurge.");
+$parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.");
+$parser->addFlag("correction_n", "Use Ns for errors by barcode correction.");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
-$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard BWA-MEM.", true);
+$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard BWA-MEM.");
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
@@ -121,19 +124,13 @@ $vcffile_annotated = $folder."/".$name."_var_annotated.vcf.gz";
 $varfile = $folder."/".$name.".GSvar";
 $rohfile = $folder."/".$name."_rohs.tsv";
 $baffile = $folder."/".$name."_bafs.igv";
+$ancestry_file = $folder."/".$name."_ancestry.tsv";
 $prsfile = $folder."/".$name."_prs.tsv";
 //copy-number calling
-if ($is_wgs || $is_wgs_shallow || $is_wes) //Genome/Exome: ClinCNV
-{
+$cnvfile = $folder."/".$name."_cnvs_clincnv.tsv";
+$cnvfile2 = $folder."/".$name."_cnvs_clincnv.seg";
 
-	$cnvfile = $folder."/".$name."_cnvs_clincnv.tsv";
-	$cnvfile2 = $folder."/".$name."_cnvs_clincnv.seg";
-}
-else //Panel: CNVHunter
-{
-	$cnvfile = $folder."/".$name."_cnvs.tsv";
-	$cnvfile2 = $folder."/".$name."_cnvs.seg";
-}
+
 //structural variant calling
 $sv_manta_file = $folder ."/". $name . "_manta_var_structural.vcf.gz";
 $bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
@@ -143,6 +140,11 @@ $expansion_hunter_file = $folder."/".$name."_repeats_expansionhunter.vcf";
 $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
 $qc_vc  = $folder."/".$name."_stats_vc.qcML";
+
+
+// folder for local BAM file
+$bam_folder = $parser->tempFolder("local_bam");
+$local_bamfile = $bam_folder."/".$name.".bam";
 
 // for annotation_only: check if all files are available
 if ($annotation_only)
@@ -164,6 +166,20 @@ if ($annotation_only)
 		trigger_error("SV file for reannotation is missing. Skipping 'sv' step!", E_USER_WARNING);
 		if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 	} 
+}
+
+
+// copy BAM file to tmp for all calling steps
+if (!$annotation_only && !in_array("ma", $steps))
+{
+	if(in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
+	{
+		if (!file_exists($bamfile)) trigger_error("No BAM file found in Sample folder! Cannot perform any calling steps!", E_USER_ERROR);
+		if (!file_exists($bamfile.".bai")) trigger_error("No BAM index file found in Sample folder!", E_USER_ERROR);
+		// copy BAM file to local tmp
+		$parser->copyFile($bamfile, $local_bamfile);
+		$parser->copyFile($bamfile.".bai", $local_bamfile.".bai");
+	}
 }
 
 //mapping
@@ -213,16 +229,17 @@ if (in_array("ma", $steps))
 	$args = array();
 	if($clip_overlap) $args[] = "-clip_overlap";
 	if($no_abra) $args[] = "-no_abra";
+	if($no_trim) $args[] = "-no_trim";
 	if($start_with_abra) $args[] = "-start_with_abra";
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
 	if($use_dragen) $args[] = "-use_dragen";
-	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name ".implode(" ", $args)." -threads $threads");
+	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name -local_bam $local_bamfile ".implode(" ", $args)." -threads $threads");
 
 	//low-coverage report
 	if ($has_roi && !$is_wgs && !$is_wgs_shallow)
 	{	
-		$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20", true);
+		$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $local_bamfile -out $lowcov_file -cutoff 20", true);
 		if (db_is_enabled("NGSD"))
 		{
 			$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
@@ -297,22 +314,16 @@ if (in_array("vc", $steps))
 			$args[] = "-target ".$sys['target_file'];
 			$args[] = "-target_extend 50";
 		}
-
-		if ($lofreq) //lofreq
-		{
-			$args[] = "-min_af 0.05";
-		}
-		else
-		{
-			$args[] = "-min_af 0.1";
-		}
+		$args[] = "-min_af ".$min_af;
+		$args[] = "-min_mq ".$min_mq;
+		$args[] = "-min_bq ".$min_bq;
 		
 		//Do not call standard pipeline if there is only mitochondiral chrMT in target region
 		$only_mito_in_target_region = false;
 		if ($has_roi) $only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT";
 		if(!$only_mito_in_target_region)
 		{
-			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile -build ".$sys['build']." -threads $threads ".implode(" ", $args));
+			$parser->execTool("NGS/vc_freebayes.php", "-bam $local_bamfile -out $vcffile -build ".$sys['build']." -threads $threads ".implode(" ", $args));
 		}
 		
 		//perform special variant calling for mitochondria
@@ -325,9 +336,11 @@ if (in_array("vc", $steps))
 			$args = array();
 			$args[] = "-no_ploidy";
 			$args[] = "-min_af 0.01";
+			$args[] = "-min_mq ".$min_mq;
+			$args[] = "-min_bq ".$min_bq;
 			$args[] = "-target $target_mito";
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
-			$parser->execTool("NGS/vc_freebayes.php", "-bam $bamfile -out $vcffile_mito -build ".$sys['build']." ".implode(" ", $args));
+			$parser->execTool("NGS/vc_freebayes.php", "-bam $local_bamfile -out $vcffile_mito -build ".$sys['build']." ".implode(" ", $args));
 		}
 		
 		if($only_mito_in_target_region) 
@@ -374,7 +387,7 @@ if (in_array("vc", $steps))
 		//create b-allele frequency file
 		$params = array();
 		$params[] = "-vcf {$vcffile}";
-		$params[] = "-bam {$bamfile}";
+		$params[] = "-bam {$local_bamfile}";
 		$params[] = "-out {$baffile}";
 		$params[] = "-build ".$sys['build'];
 		if ($is_wgs)
@@ -382,6 +395,9 @@ if (in_array("vc", $steps))
 			$params[] = "-downsample 100";
 		}
 		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
+		
+		//determine ancestry
+		$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file}", true);
 	}
 
 	// annotation
@@ -396,7 +412,7 @@ if (in_array("vc", $steps))
 		$args = array();
 		$args[] = "-in $vcffile_annotated";
 		$args[] = "-out $rohfile";
-		$args[] = "-var_af_keys_vep AF,gnomAD_AF -var_af_keys gnomADg_AF"; //use 1000g, gnomAD exome, genomAD genome
+		$args[] = "-var_af_keys_vep AF,gnomAD_AF -var_af_keys gnomADg_AF"; //use 1000g, gnomAD exome, gnomAD genome
 		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 		$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".(file_exists($omim_file) ? $omim_file : "");
 		$parser->exec("{$ngsbits}RohHunter", implode(" ", $args), true);
@@ -432,202 +448,173 @@ if (in_array("cn", $steps))
 		}
 
 		$cov_folder = $ref_folder;
-		
-		if ($is_wes || $is_wgs || $is_wgs_shallow) //Genome/Exome: ClinCNV
+	
+		//Calling ClinCNV
+		//WGS: create folder for binned coverage data - if missing
+		if ($is_wgs || $is_wgs_shallow)
 		{
 
-			//WGS: create folder for binned coverage data - if missing
-			if ($is_wgs || $is_wgs_shallow)
+			$bin_size = get_path("cnv_bin_size_wgs");
+			if ($is_wgs_shallow) $bin_size = get_path("cnv_bin_size_shallow_wgs");
+			$bin_folder = "{$ref_folder}/bins{$bin_size}/";
+			if (!is_dir($bin_folder))
 			{
 
-				$bin_size = get_path("cnv_bin_size_wgs");
-				if ($is_wgs_shallow) $bin_size = get_path("cnv_bin_size_shallow_wgs");
-				$bin_folder = "{$ref_folder}/bins{$bin_size}/";
-				if (!is_dir($bin_folder))
+				mkdir($bin_folder);
+				if (!chmod($bin_folder, 0777))
 				{
-
-					mkdir($bin_folder);
-					if (!chmod($bin_folder, 0777))
-					{
-						trigger_error("Could not change privileges of folder '{$bin_folder}'!", E_USER_ERROR);
-					}
-				}
-				$cov_folder = $bin_folder;
-			}
-
-			
-			//create BED file with GC and gene annotations - if missing
-			if ($is_wgs || $is_wgs_shallow)
-			{
-
-				$bed = $ref_folder."/bins{$bin_size}.bed";
-				if (!file_exists($bed))
-				{
-					$pipeline = [
-							["{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size}"],
-							["{$ngsbits}BedAnnotateGC", "-ref ".genome_fasta($sys['build'])],
-							["{$ngsbits}BedAnnotateGenes", "-out {$bed}"]
-						];
-					$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
+					trigger_error("Could not change privileges of folder '{$bin_folder}'!", E_USER_ERROR);
 				}
 			}
+			$cov_folder = $bin_folder;
+		}
 
-			else
-			{
+		
+		//create BED file with GC and gene annotations - if missing
+		if ($is_wgs || $is_wgs_shallow)
+		{
 
-				$bed = $ref_folder."/roi_annotated.bed";
-				if (!file_exists($bed))
-				{
-					$pipeline = [
-							["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".genome_fasta($sys['build'])],
-							["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
-						];
-					$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
-				}
-			}
-
-
-			
-
-			//create coverage profile
-			$tmp_folder = $parser->tempFolder();
-			$cov_file = $cov_folder."/{$name}.cov";
-			if (!file_exists($cov_file))
+			$bed = $ref_folder."/bins{$bin_size}.bed";
+			if (!file_exists($bed))
 			{
-
-				$parser->log("Calculating coverage file for CN calling...");
-				$cov_tmp = $tmp_folder."/{$name}.cov";
-				$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -decimals 4 -bam {$bamfile} -in {$bed} -out {$cov_tmp}", true);
-				
-				//copy coverage file to reference folder if valid
-				if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
-				{
-					$parser->log("Moving coverage file to reference folder...");
-					$parser->moveFile($cov_tmp, $cov_file);
-				}
-				else
-				{
-					$cov_file = $cov_tmp;
-				}
-			}
-			else
-			{
-
-				$parser->log("Using previously calculated coverage file for CN calling: $cov_file");
-			}
-			
-			//perform CNV analysis
-			$cnv_out = $tmp_folder."/output.tsv";
-			$cnv_out2 = $tmp_folder."/output.seg";
-			$args = array(
-				"-cov {$cov_file}",
-				"-cov_folder {$cov_folder}",
-				"-bed {$bed}",
-				"-out {$cnv_out}",
-				"--log ".$parser->getLogFile(),
-			);
-			if ($is_wgs)
-			{
-				$args[] = "-cov_max 100";
-				$args[] = "-max_cnvs 2000";
-			}
-			else if ($is_wgs_shallow)
-			{
-				$args[] = "-cov_max 100";
-				$args[] = "-max_cnvs 400";
-				$args[] = "-skip_super_recall";
-				$args[] = "-regions 3";
-				$args[] = "-cov_min 10";
-			}
-			else
-			{
-				$args[] = "-cov_max 200";
-				$args[] = "-max_cnvs 200";
-			}
-			$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
-			
-			//copy results to output folder
-			if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
-			if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
-			
-			//create dummy GSvar file for shallow WGS (needed to be able to open the sample in GSvar)
-			if ($is_wgs_shallow)
-			{
-				$content = array(
-					"##ANALYSISTYPE=GERMLINE_SINGLESAMPLE",
-					"##SAMPLE=<ID={$name},Gender=n/a,ExternalSampleName=n/a,IsTumor=n/a,IsFFPE=n/a,DiseaseGroup=n/a,DiseaseStatus=affected>",
-					"##DESCRIPTION={$name}=Genotype of variant in sample.",
-					"##DESCRIPTION=filter=Annotations for filtering and ranking variants.",
-					"##DESCRIPTION=quality=Quality parameters - Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP).",
-					"##DESCRIPTION=gene=Affected gene list (comma-separated).",
-					"##DESCRIPTION=variant_type=Variant type.",
-					"##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).",
-					"##DESCRIPTION=regulatory=Regulatory consequence details.",
-					"##DESCRIPTION=OMIM=OMIM database annotation.",
-					"##DESCRIPTION=ClinVar=ClinVar database annotation.",
-					"##DESCRIPTION=HGMD=HGMD database annotation.",
-					"##DESCRIPTION=RepeatMasker=RepeatMasker annotation.",
-					"##DESCRIPTION=dbSNP=Identifier in dbSNP database.",
-					"##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.",
-					"##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.",
-					"##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).",
-					"##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.",
-					"##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.",
-					"##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.",
-					"##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.",
-					"##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.",
-					"##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.",
-					"##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.",
-					"##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).",
-					"##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).",
-					"##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.",
-					"##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.",
-					"##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.",
-					"##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group (Neoplasms).",
-					"##DESCRIPTION=classification=Classification from the NGSD.",
-					"##DESCRIPTION=classification_comment=Classification comment from the NGSD.",
-					"##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!",
-					"##DESCRIPTION=comment=Variant comments from the NGSD.",
-					"##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).",
-					"##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.",
-					"##FILTER=off-target=Variant marked as 'off-target'.",
-					"#chr	start	end	ref	obs	{$name}	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	dbscSNV	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info",
-				);
-				file_put_contents($varfile, implode("\n", $content));
+				$pipeline = [
+						["{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size}"],
+						["{$ngsbits}BedAnnotateGC", "-ref ".genome_fasta($sys['build'])],
+						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"]
+					];
+				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 			}
 		}
 
-		else //Panels: CnvHunter
+		else
 		{
 
-			//create coverage file
-			$tmp_folder = $parser->tempFolder();
-			$cov_file = $tmp_folder."/{$name}.cov";
-			$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -decimals 4 -bam $bamfile -in ".$sys['target_file']." -out $cov_file", true);
+			$bed = $ref_folder."/roi_annotated.bed";
+			if (!file_exists($bed))
+			{
+				$pipeline = [
+						["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".genome_fasta($sys['build'])],
+						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
+					];
+				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
+			}
+		}
 
-			//copy coverage file to reference folder (has to be done before CnvHunter call to avoid analyzing the same sample twice)
+		//create coverage profile
+		$tmp_folder = $parser->tempFolder();
+		$cov_file = $cov_folder."/{$name}.cov";
+		if (!file_exists($cov_file))
+		{
+
+			$parser->log("Calculating coverage file for CN calling...");
+			$cov_tmp = $tmp_folder."/{$name}.cov";
+			$parser->exec("{$ngsbits}BedCoverage", "-min_mapq 0 -decimals 4 -bam {$local_bamfile} -in {$bed} -out {$cov_tmp}", true);
+			
+			//copy coverage file to reference folder if valid
 			if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
 			{
-				$ref_file = $ref_folder.$name.".cov";
-				$parser->copyFile($cov_file, $ref_file);
-				$cov_file = $ref_file;
+				$parser->log("Moving coverage file to reference folder...");
+				$parser->moveFile($cov_tmp, $cov_file);
 			}
-			
-			//execute
-			$cnv_out = $tmp_folder."/output.tsv";
-			$cnv_out2 = $tmp_folder."/output.seg";
-			$parser->execTool("NGS/vc_cnvhunter.php", "-min_z 3.5 -cov $cov_file -system $system -out $cnv_out -seg $name -n 20");
+			else
+			{
+				$cov_file = $cov_tmp;
+			}
+		}
+		else
+		{
 
-			//copy results to output folder
-			if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
-			if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
+			$parser->log("Using previously calculated coverage file for CN calling: $cov_file");
+		}
+		
+		//perform CNV analysis
+		$cnv_out = $tmp_folder."/output.tsv";
+		$cnv_out2 = $tmp_folder."/output.seg";
+		$args = array(
+			"-cov {$cov_file}",
+			"-cov_folder {$cov_folder}",
+			"-bed {$bed}",
+			"-out {$cnv_out}",
+			"-threads {$threads}",
+			"--log ".$parser->getLogFile(),
+		);
+		if ($is_wgs)
+		{
+			$args[] = "-max_cnvs 2000";
+		}
+		else if ($is_wgs_shallow)
+		{
+			$args[] = "-max_cnvs 400";
+			$args[] = "-skip_super_recall";
+			$args[] = "-regions 3";
+		}
+		else
+		{
+			$args[] = "-max_cnvs 200";
+		}
+		if($is_wgs || $is_wes || $is_wgs_shallow)
+		{
+			$args[] = "-mosaic";
 		}
 
+		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
+		
+		//copy results to output folder
+		if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
+		if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
+		$mosaic = $folder."/".$name."_mosaic_cnvs.tsv";
+		$sample_cnv_name = substr($cnv_out,0,-4);
+		$mosaic_out = $sample_cnv_name."_mosaic.tsv";
+		if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic);
 
-		// use created CNV file for annotation
-		$cnvfile_in = $cnvfile;
+		//create dummy GSvar file for shallow WGS (needed to be able to open the sample in GSvar)
+		if ($is_wgs_shallow)
+		{
+			$content = array(
+				"##ANALYSISTYPE=GERMLINE_SINGLESAMPLE",
+				"##SAMPLE=<ID={$name},Gender=n/a,ExternalSampleName=n/a,IsTumor=n/a,IsFFPE=n/a,DiseaseGroup=n/a,DiseaseStatus=affected>",
+				"##DESCRIPTION={$name}=Genotype of variant in sample.",
+				"##DESCRIPTION=filter=Annotations for filtering and ranking variants.",
+				"##DESCRIPTION=quality=Quality parameters - Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP).",
+				"##DESCRIPTION=gene=Affected gene list (comma-separated).",
+				"##DESCRIPTION=variant_type=Variant type.",
+				"##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).",
+				"##DESCRIPTION=regulatory=Regulatory consequence details.",
+				"##DESCRIPTION=OMIM=OMIM database annotation.",
+				"##DESCRIPTION=ClinVar=ClinVar database annotation.",
+				"##DESCRIPTION=HGMD=HGMD database annotation.",
+				"##DESCRIPTION=RepeatMasker=RepeatMasker annotation.",
+				"##DESCRIPTION=dbSNP=Identifier in dbSNP database.",
+				"##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.",
+				"##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.",
+				"##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).",
+				"##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.",
+				"##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.",
+				"##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.",
+				"##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.",
+				"##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.",
+				"##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.",
+				"##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.",
+				"##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).",
+				"##DESCRIPTION=GeneSplicer=GeneSplicer splicing prediction (state/type/coordinates/confidence/score).",
+				"##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).",
+				"##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.",
+				"##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.",
+				"##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.",
+				"##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group (Neoplasms).",
+				"##DESCRIPTION=classification=Classification from the NGSD.",
+				"##DESCRIPTION=classification_comment=Classification comment from the NGSD.",
+				"##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!",
+				"##DESCRIPTION=comment=Variant comments from the NGSD.",
+				"##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).",
+				"##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.",
+				"##FILTER=off-target=Variant marked as 'off-target'.",
+				"#chr	start	end	ref	obs	{$name}	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info",
+			);
+			file_put_contents($varfile, implode("\n", $content));
+		}
+		
 	}
-
 
 	// annotate CNV file
 	if (file_exists($cnvfile))
@@ -638,6 +625,7 @@ if (in_array("cn", $steps))
 		{
 
 			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/af_genomes_imgag_GRCh37.bed -overlap -out {$cnvfile}", true);
+			
 		}
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnvfile}", true);
@@ -655,12 +643,6 @@ if (in_array("cn", $steps))
 			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$omim_file} -no_duplicates -url_decode -out {$cnvfile}", true);
 		}
 
-
-		if (!$is_wes && !$is_wgs && !$is_wgs_shallow) //Panels: CnvHunter
-		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/gene_lists/genes.bed -no_duplicates -url_decode -out {$cnvfile}", true);
-		}
-
 		//annotate additional gene info
 		$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$cnvfile} -out {$cnvfile}", true);
 		// skip annotation if no connection to the NGSD is possible
@@ -674,7 +656,6 @@ if (in_array("cn", $steps))
 	{
 		trigger_error("CNV file {$cnvfile} does not exist, skipping CNV annotation!", E_USER_WARNING);
 	}
-	
 }
 
 //structural variants
@@ -689,7 +670,7 @@ if (in_array("sv", $steps))
 
 
 		$manta_args = [
-			"-bam ".$bamfile,
+			"-bam ".$local_bamfile,
 			"-evid_dir ".$manta_evidence_dir,
 			"-out ".$sv_manta_file,
 			"-threads ".$threads,
@@ -735,13 +716,15 @@ if (in_array("sv", $steps))
 if (in_array("sv", $steps) && !$annotation_only)
 {
 	//perform repeat expansion analysis (only for WGS/WES):
-	$parser->execTool("NGS/vc_expansionhunter.php", "-in $bamfile -out $expansion_hunter_file -build ".$sys['build']." -pid $name");
+	$parser->execTool("NGS/vc_expansionhunter.php", "-in $local_bamfile -out $expansion_hunter_file -build ".$sys['build']." -pid $name");
 }
 
 //import to database
 if (in_array("db", $steps))
 {
-
+	//import ancestry
+	if(file_exists($ancestry_file)) $parser->execTool("NGS/db_import_ancestry.php", "-id {$name} -in {$ancestry_file}");
+	
 	//import QC
 	$qc_files = array($qc_fastq, $qc_map);
 	if (file_exists($qc_vc)) $qc_files[] = $qc_vc; 

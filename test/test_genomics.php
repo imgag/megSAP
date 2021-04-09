@@ -281,12 +281,6 @@ check(indel_for_vcf("GRCh37", "chr12",25368401,"-","AG"),array("chr12",25368401,
 end_test();
 
 //##################################################################################
-start_test("relative_path");
-check(relative_path(src_folder(), data_folder()),"../test/data");
-check(relative_path(data_folder(), src_folder()),"../../src");
-end_test();
-
-//##################################################################################
 start_test("vcf_strelka_snv");
 check(vcf_strelka_snv("AU:CU:DP:FDP:GU:SDP:SUBDP:TU","0,0:0,0:236:3:231,314:0:0:2,6","A"), array(236,0), 1e-3);
 check(vcf_strelka_snv("AU:CU:DP:FDP:GU:SDP:SUBDP:TU","0,0:0,0:236:3:231,314:0:0:2,6","C"), array(236,0), 1e-3);

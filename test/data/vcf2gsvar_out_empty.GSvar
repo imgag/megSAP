@@ -27,5 +27,5 @@
 ##DESCRIPTION=MMSplice_DeltaLogitPSI=MMsplice delta Logit PSI score: variant's effect on the exon inclusion - positive score shows higher exon inclusion, negative higher exclusion rate. A score greater than 2 or less than -2 can be considered strong.
 ##DESCRIPTION=MMSplice_pathogenicity=MMsplice pathogenicity score: probability of pathogenic effect of the variant on splicing
 ##DESCRIPTION=SpliceAI=SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes.
-##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.
+##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.
 #chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	coding_and_splicing_refseq	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	dbscSNV	COSMIC	MMSplice_DeltaLogitPSI	MMSplice_pathogenicity	SpliceAI

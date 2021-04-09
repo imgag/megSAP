@@ -177,40 +177,47 @@ if(isset($cnv_in_cgi))
 
 if($include_ncg)
 {
-
-	$i_cgi_genes = $cnv_input->getColumnIndex("CGI_genes",false,false);
-	
-	if($i_cgi_genes === false) 
-	{
-		trigger_error("Cannot annotate file $cnv_in with TCG6.0 data because there is no column CGI_genes.",E_USER_WARNING);
-		exit(1);
-	}
-	
+	//remove old annotation
 	$cnv_input->removeColByName("ncg_oncogene");
 	$cnv_input->removeColByName("ncg_tsg");
 	
+	$handle = fopen(get_path("data_folder") . "/dbs/NCG6.0/NCG6.0_oncogene.tsv", "r");
+	$oncogenes =  array();
+	$tsgs = array();
+	while(!feof($handle))
+	{
+		$line = trim(fgets($handle));
+		if(empty($line)) continue;
+		if(starts_with($line, "entrez")) continue;
+		
+		list($entrezid,$gene, $cgc, $vogelstein, $oncogene, $tsg) = explode("\t", $line);
+		if($oncogene == "1") $oncogenes[] = $gene;
+		if($tsg == "1") $tsgs[] = $gene;
+	}
+	
+	$oncogenes = approve_gene_names($oncogenes);
+	$tsgs = approve_gene_names($tsgs);
+
 	$col_tsg = array();
 	$col_oncogene = array();
+	$i_genes = $cnv_input->getColumnIndex("genes",false,false);
 	
-	//Annotate per CGI gene
+	if($i_genes === false) 
+	{
+		trigger_error("Cannot annotate file $cnv_in with TCG6.0 data because there is no column 'genes'.",E_USER_WARNING);
+		exit(1);
+	}
+	
+	//Annotate per gene
 	for($row=0;$row<$cnv_input->rows();++$row)
 	{
-		$cgi_genes = explode(",",trim($cnv_input->get($row,$i_cgi_genes)));
+		$genes = explode(",",trim($cnv_input->get($row,$i_genes)));
 		
-		$tsg_statements = array();
-		$oncogene_statements = array();
-		
-		foreach($cgi_genes as $cgi_gene)
-		{
-			$statement = ncg_gene_statements($cgi_gene);
-			$tsg_statements[] = $statement["is_tsg"];
-			$oncogene_statements[] = $statement["is_oncogene"];
-		}
-		$col_oncogene[] = implode(",",$oncogene_statements);
-		$col_tsg[] = implode(",",$tsg_statements);
+		$col_oncogene[] = implode(",",array_intersect($genes, $oncogenes));
+		$col_tsg[] = implode(",", array_intersect($genes, $tsgs));
 	}
-	$cnv_input->addCol($col_oncogene,"ncg_oncogene","1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column CGI_genes.");
-	$cnv_input->addCol($col_tsg,"ncg_tsg","1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column CGI_genes.");
+	$cnv_input->addCol($col_oncogene,"ncg_oncogene","oncogenes from NCG6.0 that overlap given CNV.");
+	$cnv_input->addCol($col_tsg,"ncg_tsg","tumor suppressor genes from NCG6.0 that overlap given CNV.");
 }
 
 if($include_cytoband)
@@ -230,6 +237,7 @@ if($include_cytoband)
 
 if(isset($rna_counts))
 {
+	
 	//Resubstitute zeroes by spaces (opposite happens in somatic_dna.php)
 	$rna_ref_tissue = str_replace("0", " ", $rna_ref_tissue);
 	
@@ -243,48 +251,61 @@ if(isset($rna_counts))
 	$genes_of_interest = array();
 	for($row=0; $row<$cnv_input->rows(); ++$row)
 	{
-		$temp = approve_gene_names(explode(",",trim($cnv_input->get($row, $i_genes))));
-		foreach($temp as $gene) $genes_of_interest[] = $gene;
+		$temp = explode( ",",trim($cnv_input->get($row, $i_genes)) );
+		$genes_of_interest = array_merge($genes_of_interest, $temp);
 	}
+	$genes_of_interest = approve_gene_names(array_unique($genes_of_interest) );
+	
+	
+	//create map of approved gene symbols in RNA counts file
+	$approved_gene_map = array();
+	$temp_file = temp_file(".tsv", "approved_gene_symbols");
+	exec2("cut -f6 $rna_counts | sort | uniq | " . get_path("ngs-bits") . "/GenesToApproved | grep REPLACED > $temp_file", false);
+	$handle = fopen($temp_file, "r");
+	while(!feof($handle))
+	{
+		$line = trim(fgets($handle));
+		if(empty($line)) continue;
+		
+		list($new_symbol, $raw_string) = explode("\t", $line);
+		
+		//old gene symbol is contained as text in a sentence of the form "REPLACED: SYMBOL is a ..."
+		list($old_symbol) = explode(" ", str_replace("REPLACED: ", "", $raw_string));
+		$approved_gene_map[$old_symbol] = $new_symbol;
+	}
+	fclose($handle);
 	
 	//Create result array of genes and tpm that occur in RNA_counts and CNV file
-	$i_rna_genes = -1;
-	$i_rna_tpm = -1;
 	$results = array();
 	$handle = fopen($rna_counts, "r");
 	while(!feof($handle))
 	{
 		$line = fgets($handle);
 		
-		//Determine column indices
-		if(starts_with($line,"#gene_id"))
-		{
-			$parts = explode("\t",$line);
-			for($i=0; $i<count($parts); ++$i)
-			{
-				if($parts[$i] == "gene_name") $i_rna_genes = $i;
-				if($parts[$i] == "tpm") $i_rna_tpm = $i;
-			}
-		}
-		
 		if(starts_with($line,"#")) continue;
 		if(empty($line)) continue;
 		
+		//order of line: gene_id, raw count, cpm, fpkm, tpm, gene symbol
 		list(,,,,$tpm, $rna_gene) = explode("\t", $line);
+		$rna_gene = strtoupper($rna_gene);
+		
+		//replace outdated gene symbols
+		if(array_key_exists($rna_gene, $approved_gene_map)) 
+		{
+			$rna_gene = $approved_gene_map[$rna_gene];
+		}
 		
 		if(in_array($rna_gene, $genes_of_interest))
 		{
 			$results[$rna_gene] = $tpm;
 		}
 	}
-	fclose($handle);
 	
+	//annotate RNA reference counts
 	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_hpa.tsv";
 	$ref_results = array();
 	$handle = fopen($ref_file,"r");
-	
 	$entry_count = 0;
-	
 	while(!feof($handle))
 	{
 		$line = fgets($handle);
@@ -300,7 +321,6 @@ if(isset($rna_counts))
 		if(in_array($ref_gene, $genes_of_interest)) $ref_results[$ref_gene] = $tpm;
 	}
 	fclose($handle);
-
 	
 	if($entry_count == 0)
 	{

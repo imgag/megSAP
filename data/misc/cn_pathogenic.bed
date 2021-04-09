@@ -1,3 +1,4 @@
+#track name="Known pathogenic CNVs"
 chr1	10001	12840259	1p36 microdeletion syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/18]
 chr1	145386506	145748067	1q21.1 susceptibility locus for Thrombocytopenia-Absent Radius (TAR) syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/64]
 chr1	146533376	147883376	1q21.1 recurrent microdeletion (susceptibility locus for neurodevelopmental disorders) [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/62]

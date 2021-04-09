@@ -128,6 +128,7 @@ function check($observed, $expected, $delta = null)
 ///Removes lines that contain any string from the @p ignore_strings array 
 function remove_lines_containing($filename, $ignore_strings)
 {
+	if (!is_array($ignore_strings)) $ignore_strings = [$ignore_strings];
 	//load input
 	$file = file($filename);
 	
@@ -357,10 +358,12 @@ function check_file($out_file, $reference_file, $compare_header_lines = false)
 /// Executes a command and checks that it does not return an error code
 function check_exec($command, $fail = TRUE)
 {
+	$start_time = microtime(true);
+
 	check_test_started();
 	
 	// execute command
-	if ($GLOBALS["debug"]) print "    Executing: $command\n";
+	if ($GLOBALS["debug"]) print "  Executing: $command\n";
 	exec($command." 2>&1", $output, $return);
 	
 	//check if output contains PHP warning
@@ -393,8 +396,16 @@ function check_exec($command, $fail = TRUE)
 	{
 		foreach($output as $line)
 		{
-			print "stdout> ".$line."\n";
+			$line = trim($line);
+			if ($line!="")
+			{
+				print "    output: ".$line."\n";
+			}
 		}
+	}
+	if ($GLOBALS["debug"])
+	{
+		print "    execution time: ".time_readable(microtime(true) - $start_time)."\n";
 	}
 	
 	return $output;

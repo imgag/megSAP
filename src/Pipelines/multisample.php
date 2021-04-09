@@ -32,8 +32,8 @@ $parser->addString("out_folder", "Output folder name.", false);
 //optional
 $parser->addString("prefix", "Output file prefix.", true, "multi");
 $parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of the first file in 'bams' is a valid processed sample name).", true);
-$steps_all = array("vc", "cn", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, cn=copy-number analysis, db=database import.", true, implode(",", $steps_all));
+$steps_all = array("vc", "cn", "sv", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, cn=copy-number analysis, sv=structural variant calling, db=database import.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 extract($parser->parse($argv));
@@ -41,12 +41,16 @@ extract($parser->parse($argv));
 //init
 $repository_basedir = repository_basedir();
 $data_folder = get_path("data_folder");
+$ngsbits = get_path("ngs-bits");
 $hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_4.bed";
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
 $vcf_all = "{$out_folder}/all.vcf.gz";
 $vcf_all_mito = "{$out_folder}/all_mito.vcf.gz";
 $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
 $gsvar = "{$out_folder}/{$prefix}.GSvar";
+$sv_manta_file = "{$out_folder}/{$prefix}_manta_var_structural.vcf.gz";
+$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
+
 
 // create logfile in output folder if no filepath is provided:
 if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/multi_".date("YmdHis").".log");
@@ -75,6 +79,12 @@ if ($annotation_only)
 			trigger_error("CN file for reannotation is missing. Skipping 'cn' step!", E_USER_WARNING);
 			if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
 		}
+	}
+
+	if (in_array("sv", $steps) && !file_exists($bedpe_out))
+	{
+		trigger_error("BEDPE file for reannotation is missing. Skipping 'sv' step!", E_USER_WARNING);
+		if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 	}
 }
 
@@ -150,6 +160,24 @@ if (!file_exists($out_folder))
 	}
 }
 
+// copy BAM files to local tmp 
+if (!$annotation_only && (in_array("vc", $steps) || in_array("sv", $steps)))
+{
+	$local_bams = array();
+	$tmp_bam_folder = $parser->tempFolder("bam_");
+	foreach($bams as $bam)
+	{
+		if (!file_exists($bam)) trigger_error("BAM file '$bam' not found in Sample folder! Cannot perform any calling steps!", E_USER_ERROR);
+		if (!file_exists($bam.".bai")) trigger_error("BAM index file for BAM '$bam' not found in Sample folder!", E_USER_ERROR);
+		$local_bam = $tmp_bam_folder."/".basename($bam);
+		$parser->copyFile($bam, $local_bam);
+		$parser->copyFile($bam.".bai", $local_bam.".bai");
+		$local_bams[] = $local_bam;
+	}
+}
+
+
+
 //(1) variant calling of all samples together (with very conservative parameters)
 $mito = enable_special_mito_vc($sys);
 if (in_array("vc", $steps))
@@ -157,7 +185,7 @@ if (in_array("vc", $steps))
 	if (!$annotation_only)
 	{
 		$args = array();
-		$args[] = "-bam ".implode(" ", $bams);
+		$args[] = "-bam ".implode(" ", $local_bams);
 		$args[] = "-out $vcf_all";
 		$args[] = "-target ".$sys['target_file'];
 		$args[] = "-min_mq 20";
@@ -175,7 +203,7 @@ if (in_array("vc", $steps))
 			file_put_contents($target_mito, "chrMT\t0\t16569");
 			
 			$args = array();
-			$args[] = "-bam ".implode(" ", $bams);
+			$args[] = "-bam ".implode(" ", $local_bams);
 			$args[] = "-out $vcf_all_mito";
 			$args[] = "-no_ploidy";
 			$args[] = "-min_af 0.01";
@@ -282,7 +310,7 @@ if (in_array("vc", $steps))
 
 	//Sort variant list (neccessary for tabix)
 	$vcf_sorted = $parser->tempFile("_unsorted.vcf");
-	$parser->exec(get_path("ngs-bits")."VcfStreamSort","-in $vcf -out $vcf_sorted",true);
+	$parser->exec("{$ngsbits}VcfStreamSort","-in $vcf -out $vcf_sorted",true);
 	//zip variant list
 	$vcf_zipped = "{$out_folder}{$prefix}_var.vcf.gz";
 	$parser->exec("bgzip", "-c $vcf_sorted > $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
@@ -317,7 +345,7 @@ if (in_array("cn", $steps))
 			}
 			else
 			{
-				trigger_error("Skipping CN analysis because sample CNV file is missing: $filename", E_USER_WARNING);
+				trigger_error("Skipping CN analysis because sample CNV file is missing: $filename_clincnv", E_USER_WARNING);
 				$skip_cn = true;
 				break;
 			}
@@ -334,11 +362,14 @@ if (in_array("cn", $steps))
 			trigger_error("Input CNVs have different filetypes. Aborting CNV multisample call.",E_USER_WARNING);
 			$skip_cn = true;
 		}
-
-		if($cn_type == "cnvhunter")	$cnv_multi = "{$out_folder}/{$prefix}_cnvs.tsv";
-		else if($cn_type == "clincnv") $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
-		else trigger_error("Invalid CNV list type '{$cn_type}'!", E_USER_ERROR);
-
+		
+		if(!$skip_cn)
+		{
+			if($cn_type == "cnvhunter")	$cnv_multi = "{$out_folder}/{$prefix}_cnvs.tsv";
+			else if($cn_type == "clincnv") $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
+			else trigger_error("Invalid CNV list type '{$cn_type}'!", E_USER_ERROR);
+		}
+		
 		//(3.1a) merge ClinCNV
 		if(!$skip_cn && $cn_type == "clincnv")
 		{
@@ -688,7 +719,7 @@ if (in_array("cn", $steps))
 				"##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!",
 				"##DESCRIPTION=comment=Variant comments from the NGSD.",
 				"##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).",
-				"##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.",
+				"##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.",
 				"##FILTER=off-target=Variant marked as 'off-target'."
 				);
 			$content = array_merge($content, $desc_and_filter);
@@ -702,31 +733,108 @@ if (in_array("cn", $steps))
 	if(!$skip_cn)
 	{
 		//copy-number polymorphisms
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/af_genomes_imgag_GRCh37.bed -overlap -out {$cnv_multi}", true);
+		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/af_genomes_imgag_GRCh38.bed -overlap -out {$cnv_multi}", true);
 		
 		//knowns pathogenic CNVs
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$cnv_multi}", true);
+		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$cnv_multi}", true);
 
 		//annotate additional gene info
-		$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$cnv_multi} -out {$cnv_multi} -add_simple_gene_names", true);
+		$parser->exec("{$ngsbits}CnvGeneAnnotation", "-in {$cnv_multi} -out {$cnv_multi} -add_simple_gene_names", true);
 		
 		//dosage sensitive disease genes
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", true);
+		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", true);
 		
 		//pathogenic ClinVar CNVs
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-01.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", true);
+		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-01.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", true);
 		
 		//HGMD CNVs
 		if (file_exists($hgmd_file)) //optional because of license
 		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnv_multi}", true);
+			$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnv_multi}", true);
 		}
 		
 		//OMIM
 		if (file_exists($omim_file)) //optional because of license
 		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnv_multi} -in2 $omim_file -no_duplicates -url_decode -out {$cnv_multi}", true);
+			$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 $omim_file -no_duplicates -url_decode -out {$cnv_multi}", true);
 		}
+	}
+}
+
+//sv calling
+if (in_array("sv", $steps))
+{
+	// skip SV calling if only annotation should be done	
+	if (!$annotation_only)
+	{
+		//SV calling with manta
+		$manta_evidence_dir = "{$out_folder}/manta_evid";
+		create_directory($manta_evidence_dir);
+
+
+		$manta_args = [
+			"-bam ".implode(" ", $local_bams),
+			"-evid_dir ".$manta_evidence_dir,
+			"-out ".$sv_manta_file,
+			"-threads ".$threads,
+			"-build ".$sys['build'],
+			"--log ".$parser->getLogFile()
+		];
+		if($sys['target_file']!="") $manta_args[] = "-target ".$sys['target_file'];
+		if(!$is_wgs) $manta_args[] = "-exome";
+		
+		$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
+
+		// Rename Manta evidence file
+		$evidence_bam_files = glob("$manta_evidence_dir/evidence_*.bam");
+		foreach($evidence_bam_files as $old_bam_filename)
+		{
+			$new_bam_filename = preg_replace(array("/evidence_[0-9]+\./", "/\.bam/"), array("", "_manta_evidence.bam" ), $old_bam_filename);
+			rename($old_bam_filename, $new_bam_filename);
+			rename($old_bam_filename.".bai", $new_bam_filename.".bai");
+		}
+		
+		//create BEDPE files
+		$parser->exec("{$ngsbits}VcfToBedpe", "-in $sv_manta_file -out $bedpe_out", true);
+
+		// correct filetype and add sample headers
+		$bedpe_table = Matrix::fromTSV($bedpe_out);
+		$bedpe_table->removeComment("#fileformat=BEDPE");
+		if ($prefix == "trio")
+		{
+			$bedpe_table->prependComment("#fileformat=BEDPE_GERMLINE_TRIO");
+		}
+		else
+		{
+			$bedpe_table->prependComment("#fileformat=BEDPE_GERMLINE_MULTI");
+		}
+		$bedpe_table->addComment("#PIPELINE=".repository_revision(true));
+		foreach($bams as $bam)
+		{
+			$bedpe_table->addComment(gsvar_sample_header($names[$bam], array("DiseaseStatus"=>$status[$bam]), "#"));
+		}
+		$bedpe_table->toTSV($bedpe_out);	
+	}
+
+	//add gene info annotation and NGSD counts
+	if (db_is_enabled("NGSD"))
+	{
+		$parser->exec("{$ngsbits}BedpeGeneAnnotation", "-in $bedpe_out -out $bedpe_out -add_simple_gene_names", true);
+		$parser->exec("{$ngsbits}NGSDAnnotateSV", "-in $bedpe_out -out $bedpe_out -ps $name", true);
+	}
+
+	//add optional OMIM annotation
+
+	$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; 
+	if(file_exists($omim_file))//OMIM annotation (optional because of license)
+	{
+		$parser->exec("{$ngsbits}BedpeAnnotateFromBed", "-in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM", true);
+	}
+
+	//add CNV overlap annotation
+	if (file_exists($cnv_multi))
+	{
+		$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnv_multi", true);
 	}
 }
 

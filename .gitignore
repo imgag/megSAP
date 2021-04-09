@@ -11,10 +11,11 @@
 /test/data_amplicon/*.vcf.gz.tbi
 /test/data_amplicon/*.GSvar
 /test/data_amplicon/*_QCML.txt
-/test/data_amplicon/*_cnvs.tsv
+/test/data_amplicon/*_cnvs_clincnv.tsv
 /test/data_amplicon/*_lowcov.bed
 /test/data_amplicon/*.igv
 /test/data_amplicon/*.bedpe
+/test/data_amplicon/*_ancestry.tsv
 /test/data_amplicon/manta_evid/
 
 /test/data_chrx/*.fastq.gz
@@ -28,10 +29,12 @@
 /test/data_chrx/*_QCML.txt
 /test/data_chrx/*_cnvs_clincnv.tsv
 /test/data_chrx/*_cnvs_clincnv.seg
+/test/data_chrx/*_mosaic_cnvs.tsv
 /test/data_chrx/*_rohs.tsv
 /test/data_chrx/*_lowcov.bed
 /test/data_chrx/*.igv
 /test/data_chrx/*.bedpe
+/test/data_chrx/*_ancestry.tsv
 /test/data_chrx/manta_evid/
 /test/data_chrx/*_circos.png
 
@@ -45,6 +48,9 @@
 /test/data_trio/*_special.tsv
 /test/data_trio/*_upd.tsv
 /test/data_trio/*_clincnv.tsv
+/test/data_trio/manta_evid/
+/test/data_trio/*_manta_var_structural.bedpe
+/test/data_trio/*.bedpe
 
 /test/data_multi/*.GSvar
 /test/data_multi/*.log
@@ -54,6 +60,9 @@
 /test/data_multi/*.vcf.gz
 /test/data_multi/*.vcf.gz.tbi
 /test/data_multi/*_clincnv.tsv
+/test/data_multi/manta_evid/
+/test/data_multi/*_manta_var_structural.bedpe
+/test/data_multi/*.bedpe
 
 /test/data_capa/*.GSvar
 /test/data_capa/*.log

@@ -8,13 +8,13 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("vc_clincnv_somatic", "Wrapper for CnvHunter tool.");
+$parser = new ToolBase("vc_clincnv_somatic", "Wrapper for ClinCNV for tumor-normal samples.");
 $parser->addString("t_id", "Processed sample id of tumor, e.g. 'GS123456_01'.", false);
 $parser->addInfile("t_cov","Coverage file for tumor sample",false);
 $parser->addInfile("n_cov","Coverage file for normal sample",false);
 $parser->addOutFile("out", "Output file.",false);
-//optional
 $parser->addInfile("bed","Bed file for target region.",false);
+//optional
 $parser->addInfile("bed_off","Off-target bed file.",true); //s_dna
 $parser->addInfile("t_cov_off","Off-target coverage file for tumor sample",true);
 $parser->addInfile("n_cov_off","Off-target coverage file for normal sample",true);
@@ -27,7 +27,7 @@ $parser->addString("cov_folder_t", "Folder with all tumor coverage files (if dif
 $parser->addString("cov_pairs","ClinCNV file with tumor-normal pairs. Will be created from NGSD tumor-normal IDs by default.",true,"auto");
 $parser->addString("baf_folder","Folder containing files with B-Allele frequencies.",true);
 $parser->addInfile("system", "Processing system INI file (obligatory if NGSD is not available).", true);
-$parser->addFlag("reanalyse_cohort","Reanalyse whole cohort of the same processing system.",true,"auto");
+$parser->addFlag("reanalyse_cohort","Reanalyse whole cohort of the same processing system.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("guide_baseline","baseline region, format e.g. chr1:12-12532",true);
 extract($parser->parse($argv));

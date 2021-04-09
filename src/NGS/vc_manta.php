@@ -19,7 +19,7 @@ $parser->addOutfile("smallIndels", "Output VCF file for candidate small indels (
 $parser->addString("evid_dir", "Output folder for BAM files containing evidence reads.",true);
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addInfile("target",  "Enrichment target BED file (used for flagging off-target variants).", true);
-$parser->addFlag("exome", "If set, manta settings for exome/panel analysis are used (no depth filtering).", true);
+$parser->addFlag("exome", "If set, manta settings for exome/panel analysis are used (no depth filtering).");
 $parser->addInt("threads", "Number of threads used.", true, 4);
 //debugging options
 $parser->addEnum("config_preset", "Use preset configuration.", true, array("default", "high_sensitivity"), "default");
