@@ -58,17 +58,17 @@ while(!feof($h))
 		continue;
 	}
 	
-	//check that that GRCh37 coordinates are available
+	//check that that GRCh38 coordinates are available
 	$assembly = $parts[$i_assembly];
 	$chr = null;
-	if ($assembly=="GRCh37")
+	if ($assembly=="GRCh38")
 	{
 		$chr = $parts[$i_chr];
 		$start = $parts[$i_start];
 		$end = $parts[$i_end];
 	}
 	$name = $parts[$i_name];
-	if (starts_with($name, "GRCh37"))
+	if (starts_with($name, "GRCh38"))
 	{
 		if (preg_match("/.*\((.*):([0-9]+)-([0-9]+)\).*/", $name, $matches))
 		{
@@ -79,7 +79,7 @@ while(!feof($h))
 	}
 	if (is_null($chr))
 	{
-		if ($debug) print "Skipped line (not GRCh37): $line\n"; 
+		if ($debug) print "Skipped line (not GRCh38): $line\n"; 
 		continue;
 	}
 	if ($start>=$end)

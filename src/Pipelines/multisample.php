@@ -711,7 +711,7 @@ if (in_array("cn", $steps))
 		$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$cnv_multi} -out {$cnv_multi} -add_simple_gene_names", true);
 		
 		//dosage sensitive disease genes
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -out {$cnv_multi}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", true);
 		
 		//pathogenic ClinVar CNVs
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-01.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", true);

@@ -17,7 +17,7 @@ $parser->addInfile("in",  "Input file in VCF format.", false);
 $parser->addOutfile("out", "Output file in VCF format.", false);
 //optional
 $parser->addString("ps_name", "Processed sample name (used to determine sample meta info from NGSD (e.g. disease group).", true, "");
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFlag("all_transcripts", "Annotate all transcripts - if unset only GENCODE basic transcripts are annotated.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("somatic", "Also annotate the NGSD somatic counts.");
@@ -231,7 +231,7 @@ $args[] = "--regulatory"; //regulatory features
 $fields[] = "BIOTYPE"; 
 $args[] = "--sift b --polyphen b"; //pathogenicity predictions
 $args[] = "--af --af_gnomad --failed 1"; //population frequencies
-$args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_all_chromosomes.tsv.gz"); //REVEL
+$args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_grch38_all_chromosomes.tsv.gz"); //REVEL
 $fields[] = "REVEL";
 $args[] = "--plugin FATHMM_MKL,".annotation_file_path("/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz"); //fathmm-MKL
 $fields[] = "FATHMM_MKL_C";
@@ -242,9 +242,9 @@ $fields[] = "MaxEntScan_alt";
 $args[] = "--plugin dbscSNV,".annotation_file_path("/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"); //dbscSNV
 $fields[] = "ada_score";
 $fields[] = "rf_score";;
-$args[] = "--custom ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker.bed.gz").",REPEATMASKER,bed,overlap,0"; //RepeatMasker
+$args[] = "--custom ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed.gz").",REPEATMASKER,bed,overlap,0"; //RepeatMasker
 $fields[] = "REPEATMASKER";
-$args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg19.100way.phyloP100way.bw").",PHYLOP,bigwig"; //phyloP
+$args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg38.100way.phyloP100way.bw").",PHYLOP,bigwig"; //phyloP
 $fields[] = "PHYLOP";
 
 $omim_file = annotation_file_path("/dbs/OMIM/omim.bed.gz", true); //OMIM annotation (optional because of license)
@@ -329,7 +329,7 @@ fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_r2.1.1.vcf.
 
 
 // add clinVar annotation
-fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20210110_converted.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
+fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20210110_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
 
 
 // add HGMD annotation
@@ -340,8 +340,8 @@ if(file_exists($hgmd_file))
 }
 
 //add CADD score annotation
-fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.6.vcf.gz")."\tCADD\tCADD=SNV\t\n");
-fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
+fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=SNV\t\n");
+fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
 
 // check if NGSD export file is available:
 $skip_ngsd = false;

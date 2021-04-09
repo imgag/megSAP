@@ -32,3 +32,10 @@ pfam_description:
 	wget -O - ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz | zcat | grep -e '^#=GF AC' -e '^#=GF DE' | tr -d '\n' | sed 's/#=GF AC   /\n/g' | sed 's/\.[0-9]\+#=GF DE   /\t/g' | sed '/^$$/d' | sed '1 i\#PFAM_ID\tDESCRIPTION' | tr '\n\n' '\n'> pfam_description.tsv
 	wget -O - ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.dead.gz | zcat | grep -e '^#=GF AC' -e '^#=GF FW' | tr -d '\n' | sed 's/#=GF AC   /\n/g' | sed 's/#=GF FW   /\t/g' | sed '/^$$/d' | sed '1 i\#OLD_PFAM_ID\tNEW_PFAM_ID' | tr '\n\n' '\n'> pfam_replacements.tsv
 	
+create_telomere_centromere_file_hg38:
+	# download Gap (filter: gap.type = 'telomere') and Centromeres table from https://genome.ucsc.edu/cgi-bin/hgTables
+	egrep -v "^#" telomere_hg38.tsv | cut -f2-4,8 > telomere_hg38.bed
+	egrep -v "^#" centromere_hg38.tsv | cut -f2-5 | BedExtend -n 500000 | BedMerge | BedShrink -n 500000 | awk 'BEGIN {OFS="\t"}; {print $$0, "centromere"}' > centromere_hg38.bed 
+	cat telomere_hg38.bed centromere_hg38.bed | BedSort -out centromer_telomer_hg38.bed
+	rm telomere_hg38.bed centromere_hg38.bed
+
