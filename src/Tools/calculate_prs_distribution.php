@@ -18,7 +18,7 @@ $write_sample_output = isset($out2) && ($out2 != "");
 $export_table = $parser->tempFile("_diag_wgs.tsv");
 $ngs_bits_path = get_path("ngs-bits");
 $pipeline = array();
-$pipeline[] = array($ngs_bits_path."NGSDExportSamples", "-no_bad_samples -no_tumor -no_ffpe -run_finished -no_bad_runs -add_path");
+$pipeline[] = array($ngs_bits_path."NGSDExportSamples", "-no_bad_samples -no_tumor -no_ffpe -run_finished -no_bad_runs -add_path SAMPLE_FOLDER");
 $pipeline[] = array($ngs_bits_path."TsvFilter", "-filter 'project_type is diagnostic'");
 $pipeline[] = array($ngs_bits_path."TsvFilter", "-filter 'system_type is WGS' -out $export_table");
 $parser->execPipeline($pipeline, "Export Samples");

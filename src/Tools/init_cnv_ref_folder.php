@@ -50,7 +50,7 @@ if ($type=="WGS" || $type=="WGS (shallow)")
 $ngsbits = get_path("ngs-bits");
 $sample_table_file = $parser->tempFile(".tsv");
 $pipeline= [
-	["{$ngsbits}NGSDExportSamples", "-system $name -add_path"],
+	["{$ngsbits}NGSDExportSamples", "-system $name -add_path SAMPLE_FOLDER"],
 	["{$ngsbits}TsvFilter", "-filter 'system_name_short is $name'"], //this is necessary because NGSDExportSamples performs fuzzy match
 	["{$ngsbits}TsvSlice", "-cols name,path -out $sample_table_file"],
 ];
