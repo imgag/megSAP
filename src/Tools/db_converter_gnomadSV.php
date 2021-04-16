@@ -64,6 +64,10 @@ while($line = fgets($handle))
 
 	// skip MCNVs 
 	if ($svtype == "MCNV") continue;
+	// skip CPXs 
+	if ($svtype == "CPX") continue;
+	// skip CTXs 
+	if ($svtype == "CTX") continue;
 
 	//get required infos
 	$is_chrx = ($chr1=="X") || ($chr2=="X");
