@@ -57,7 +57,7 @@ $normal_idx = false;
 while(!feof($handle))
 {
 	$line = nl_trim(fgets($handle));
-	if($line=="") coutinue;
+	if($line=="") continue;
 	
 	//variant caller
 	if(starts_with($line, "##source="))	
@@ -67,7 +67,23 @@ while(!feof($handle))
 		if(contains($line, "freebayes")) $var_caller = "freebayes";
 		if(contains($line, "strelka")) $var_caller = "strelka";
 		if(contains($line, "varscan2") ) $var_caller = "varscan2";
+		if(contains($line, "umivar2") ) $var_caller = "umivar2";
 		echo $line."\n";
+
+		//add umivar specific columns
+		if ($var_caller == "umivar2")
+		{
+			$gsvar->insertCol($index, $empty_col, "p-value", "Uncorrected p-value");
+			$i_p_value = $index++;
+			$gsvar->insertCol($index, $empty_col, "Alt counts", "");
+			$i_alt_counts = $index++;
+			$gsvar->insertCol($index, $empty_col, "Strand", "Alleles in strands: Alternative forward, Alternative reverse, Reference forward, Reference reverse");
+			$i_strand = $index++;
+			$gsvar->insertCol($index, $empty_col, "Sequence context", "Sequence +/- 5bp around the variant.");
+			$i_seq_context = $index++;
+			$gsvar->insertCol($index, $empty_col, "Homopolymer", "Indicates if variant is in a homopolymer region.");
+			$i_homopolymer = $index++;
+		}
 	}
 	
 	//header line
@@ -108,7 +124,7 @@ while(!feof($handle))
 	//variant type
 	$is_indel = strlen($ref) > 1 || strlen($alt) > 1;
 
-	//check the we annotate the right variant
+	//check that we annotate the right variant
 	$start = $pos;
 	$end = $start;
 	if($is_indel) //correct indels
@@ -166,6 +182,32 @@ while(!feof($handle))
 			$snp_q = "0";
 		}
 	}
+	else if ($var_caller == "umivar2")
+	{
+		// get p-value	
+		$p_value = false;
+		$i_parts = explode(";", $info);
+		foreach ($i_parts as $info_field) 
+		{
+			if (starts_with($info_field, "PValue="))
+			{
+				$p_value = number_format(substr($info_field, 7), 4);
+				break;
+			}	
+		}
+
+		//Convert quality p-value to phred score
+		if($p_value !== false)
+		{
+			$snp_q = -10 * log10($p_value);	//calculate phred score from pvalue
+			$snp_q = floor($snp_q);
+			if($snp_q > 255) $snp_q = 255;
+		}
+		else
+		{
+			$snp_q = "0";
+		}
+	}
 	
 	$gsvar->set($r, $i_quality, "QUAL={$snp_q}");
 
@@ -188,6 +230,20 @@ while(!feof($handle))
 	else if($var_caller == "varscan2")
 	{
 		list($tumor_dp, $tumor_af) = vcf_varscan2($format, $cols[$tumor_idx]);
+	}
+	else if($var_caller == "umivar2")
+	{
+		list($tumor_dp, $tumor_af, $p_value, $alt_count, $strand, $seq_context, $homopolymer) = vcf_umivar2($filter, $info, $format, $cols[$tumor_idx]);
+
+		// add umiVar2 specific values
+		if($var_caller == "umivar2")
+		{
+			$gsvar->set($r, $i_p_value, $p_value);
+			$gsvar->set($r, $i_alt_counts, $alt_count);
+			$gsvar->set($r, $i_strand, $strand);
+			$gsvar->set($r, $i_seq_context, $seq_context);
+			$gsvar->set($r, $i_homopolymer, $homopolymer);
+		}
 	}
 	
 	$gsvar->set($r, $i_tumor_dp, $tumor_dp);

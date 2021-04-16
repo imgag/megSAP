@@ -8,19 +8,21 @@ $parser->addInfile("bam", "Input BAM file, with deduplicated alignments and DP t
 $parser->addInfile("target", "Target region BED file.", false);
 $parser->addString("build", "Reference genome build.", false);
 $parser->addOutfile("vcf", "Variant call output as VCF file.", false);
-//$parser->addOutfile("tsv", "Variant call output as TSV file.", true);
-//$parser->addOutfile("mrd", "MRD probability output file.", true);
 $parser->addInfile("model", "Error model parameters.", true);
 
 extract($parser->parse($argv));
 
 $genome = genome_fasta($build);
+$vcf = realpath(dirname($vcf))."/".basename($vcf);
 
-$tempdir = $parser->tempFolder("cfdna_tmp");
+// debug
+$tempdir = realpath(dirname($vcf));
+print $tempdir."\n";
+
 $args = [
-    "--bam", $bam,
-    "--ref", $genome,
-    "--bed", $target,
+    "--tbam", realpath($bam),
+    "--ref", realpath($genome),
+    "--bed", realpath($target),
     "--out_file", $vcf,
     "--temp_dir", $tempdir
 ];
@@ -39,6 +41,12 @@ else
     }
 }
 
-$parser->exec(get_path("cfdna_caller"), implode(" ", $args));
+// call umiVar2 in virtual environment
+$umiVar2 = get_path("umiVar2");
+$python_bin = $umiVar2."/venv/bin/python";
+$parser->exec($python_bin, $umiVar2."/umiVar.py ".implode(" ", $args));
+
+// sort VCF file
+$parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf -out $vcf", true);
 
 ?>

@@ -16,8 +16,9 @@ $parser->addString("tumor_id", "Related tumor processed sample.", true, "");
 $parser->addString("tumor_bam", "BAM file of related tumor processed sample.", true, "");
 $parser->addString("roi_patient", "Patient-specific target BED file.", true, "");
 $parser->addFlag("skip_tumor", "Skip comparison with related tumor sample");
+$parser->addInt("base_extend", "Number of bases the target region is extended (default: 60)", true, 60);
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
-$steps_all = array("ma", "vc", "db");
+$steps_all = array("ma", "vc", "an", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, db=import into NGSD.", true, "ma,vc,db");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 extract($parser->parse($argv));
@@ -73,7 +74,7 @@ if ($tumor_id == "" && !$skip_tumor && isset($db))
 	foreach ($res as $row)
 	{
 		$sample_id_annotation = $row['sample1_id'] != $sample_id ? $row['sample1_id'] : $row['sample2_id'];
-		$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND (NOT ps.quality='bad') ORDER BY ps.process_id DESC", array("sid" => $sample_id_annotation));
+		$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND sys.type!='cfDNA (patient-specific)' AND (NOT ps.quality='bad') ORDER BY ps.process_id DESC", array("sid" => $sample_id_annotation));
 		$psamples = array_merge($psamples, array_column($res, 'psample'));
 	}
 	if (count($psamples) > 1)
@@ -124,12 +125,18 @@ $qc_map  = "{$folder}/{$name}_stats_map.qcML";
 if (in_array("ma", $steps) || in_array("vc", $steps))
 {
 	//recalculate MappingQC, based on base ROI + patient ROI
-	$roi_merged = $parser->tempFile("_merged.bed");
+	$roi_merged = "{$folder}/{$name}_roi.bed";
 	$pipeline = [];
 	$pipeline[] = [ "cat", "{$roi_base} {$roi_patient}" ];
 	$pipeline[] = [ get_path("ngs-bits")."BedSort", "" ];
 	$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$roi_merged}" ];
 	$parser->execPipeline($pipeline, "merge BED files");
+
+	$roi_extended = "{$folder}/{$name}_regions.bed";
+	$pipeline = [];
+	$pipeline[] = [ get_path("ngs-bits")."BedExtend", "-in {$roi_merged} -n {$base_extend}" ];
+	$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$roi_extended}" ];
+	$parser->execPipeline($pipeline, "extend BED files");
 }
 
 //create BED file containing only KASP variants (for tumor-sample check)
@@ -194,7 +201,7 @@ if (in_array("ma", $steps))
 		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in {$lowcov_file} -clear -extend 25 -out {$lowcov_file}", true);
 	}
 
-	$parser->exec(get_path("ngs-bits")."MappingQC", "-roi {$roi_merged} -in {$bamfile} -out {$qc_map} -ref ".genome_fasta($sys['build']));
+	$parser->exec(get_path("ngs-bits")."MappingQC", "-roi {$roi_extended} -in {$bamfile} -out {$qc_map} -ref ".genome_fasta($sys['build']));
 }
 
 //check sample similarity with referenced tumor
@@ -220,7 +227,7 @@ if (in_array("vc", $steps))
 {
 	$args = [
 		"-bam", $bamfile,
-		"-target", $roi_merged,
+		"-target", $roi_extended,
 		"-build", $sys['build'],
 		"-vcf", $vcffile,
 		"--log", $parser->getLogFile()
@@ -231,6 +238,35 @@ if (in_array("vc", $steps))
 		$args[] = "-model {$model}";
 	}
 	$parser->execTool("NGS/vc_cfdna.php", implode(" ", $args));
+
+	// mark off-target reads
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcffile -mark off-target -reg $roi_merged -out $vcffile", true);
+}
+
+//annotation
+if (in_array("an", $steps))
+{
+	// annotate VCF 
+	$vcffile_annotated = "$folder/${name}_var_annotated.vcf.gz";
+	$parser->execTool("Pipelines/annotate.php", "-out_name $name -out_folder $folder -vcf $vcffile -somatic -updown -threads $threads");
+
+	//add sample info to VCF header
+	$tmp_vcf = $parser->tempFile(".vcf");
+	$s = Matrix::fromTSV($vcffile_annotated);
+	$comments = $s->getComments();
+	$comments[] = gsvar_sample_header($name, array("IsTumor" => "yes"), "#", "");
+	$s->setComments(sort_vcf_comments($comments));
+	$s->toTSV($tmp_vcf);
+
+	// zip and index vcf file
+	$parser->exec("bgzip", "-c $tmp_vcf > $vcffile_annotated", true);
+	$parser->exec("tabix", "-f -p vcf $vcffile_annotated", true);
+
+	// convert vcf to GSvar
+	$gsvar_file = "$folder/${name}.GSvar";
+	$args = array("-in $tmp_vcf", "-out $gsvar_file", "-t_col $name");
+	$parser->execTool("NGS/vcf2gsvar_somatic.php", implode(" ", $args));
+	
 }
 
 //import to database
