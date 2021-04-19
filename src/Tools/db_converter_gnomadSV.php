@@ -32,12 +32,20 @@ while($line = fgets($handle))
 		$idx_maleac = array_search("MALE_AC", $header_columns);
 		$idx_par = array_search("PAR", $header_columns);
 
+		//sub-populations
+		$idx_afr_af = array_search("AFR_AF", $header_columns);
+		$idx_amr_af = array_search("AMR_AF", $header_columns);
+		$idx_eas_af = array_search("EAS_AF", $header_columns);
+		$idx_eur_af = array_search("EUR_AF", $header_columns);
+		$idx_oth_af = array_search("OTH_AF", $header_columns);
+
+
 
 		// print comment
 
 
 		// print header
-		print "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\tTYPE\tALGORITHMS\tAN\tAF\tHEMI\tHOM\n";
+		print "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\tTYPE\tALGORITHMS\tAN\tAF\tHEMI\tHOM\tAFR_AF\tAMR_AF\tEAS_AF\tEUR_AF\tOTH_AF\n";
 		$header_parsed = true;
 		continue;
 	}
@@ -50,9 +58,18 @@ while($line = fgets($handle))
 	$chr1 = $parts[$idx_chr1];
 	$start1 = $parts[$idx_start1];
 	$end1 = $parts[$idx_end1];
-	$chr2 = $parts[$idx_chr2];
-	$start2 = $parts[$idx_start2];
-	$end2 = $parts[$idx_end2];
+	if ($parts[$idx_chr2] == "NA")
+	{
+		$chr2 = ".";
+		$start2 = ".";
+		$end2 = ".";
+	}
+	else
+	{
+		$chr2 = $parts[$idx_chr2];
+		$start2 = $parts[$idx_start2];
+		$end2 = $parts[$idx_end2];
+	}
 	$svtype = $parts[$idx_svtype];
 	$algorithm = $parts[$idx_algorithm];
 
@@ -62,6 +79,14 @@ while($line = fgets($handle))
 	$maleac = $parts[$idx_maleac];
 	$par = $parts[$idx_par] == "True";
 
+	// get af for sub-populations
+	$afr_af = $parts[$idx_afr_af];
+	$amr_af = $parts[$idx_amr_af];
+	$eas_af = $parts[$idx_eas_af];
+	$eur_af = $parts[$idx_eur_af];
+	$oth_af = $parts[$idx_oth_af];
+
+	//TODO: evaluate types
 	// skip MCNVs 
 	if ($svtype == "MCNV") continue;
 	// skip CPXs 
@@ -84,7 +109,7 @@ while($line = fgets($handle))
 	$af = ($an<200 ? 0.0 : number_format($af, 5));
 	
 	// write to output
-	print "$chr1\t$start1\t$end1\t$chr2\t$start2\t$end2\t$svtype\t$algorithm\t$an\t$af\t$hemi\t$nhomalt\n";
+	print "$chr1\t$start1\t$end1\t$chr2\t$start2\t$end2\t$svtype\t$algorithm\t$an\t$af\t$hemi\t$nhomalt\t$afr_af\t$amr_af\t$eas_af\t$eur_af\t$oth_af\n";
 }
 fclose($handle);
 
