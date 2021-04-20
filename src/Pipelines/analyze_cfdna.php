@@ -19,7 +19,7 @@ $parser->addFlag("skip_tumor", "Skip comparison with related tumor sample");
 $parser->addInt("base_extend", "Number of bases the target region is extended (default: 60)", true, 60);
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
 $steps_all = array("ma", "vc", "an", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, db=import into NGSD.", true, "ma,vc,db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, an=annotation, db=import into NGSD.", true, "ma,vc,an,db");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 extract($parser->parse($argv));
 
@@ -33,6 +33,14 @@ foreach($steps as $step)
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 }
 
+//log server name
+list($server) = exec2("hostname -f");
+$user = exec('whoami');
+$parser->log("Executed on server: ".implode(" ", $server)." as {$user}");
+
+//set up local NGS data copy (to reduce network traffic and speed up analysis)
+$parser->execTool("Tools/data_setup.php", "-build {$sys['build']}");
+
 //TODO determine values
 //low coverage cutoff
 $lowcov_cutoff = 100;
@@ -43,6 +51,10 @@ $min_corr = 0.90;
 $sys = load_system($system, $name);
 //base target regions
 $roi_base = $sys['target_file'];
+
+// determine analysis type
+$is_patient_specific = $sys['type']=="cfDNA (patient-specific)";
+
 
 //database
 if (db_is_enabled("NGSD"))
@@ -57,58 +69,55 @@ if ($skip_tumor)
 	$tumor_id = "";
 }
 
-//resolve tumor id if not given
-if ($tumor_id == "" && !$skip_tumor && isset($db))
+if ($is_patient_specific)
 {
-	//related samples
-	list($sample_name, $ps_num) = explode("_", $name);
-	$res_samples = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", ["name" => $sample_name]);
-	if (count($res_samples) !== 1)
+	//resolve tumor id if not given
+	if ($tumor_id == "" && !$skip_tumor && isset($db))
 	{
-		trigger_error("Could not find sample for processed sample {$name}!", E_USER_WARNING);
-	}
-	$sample_id = $res_samples[0]['id'];
-	$res = $db->executeQuery("SELECT * FROM sample_relations WHERE relation='tumor-cfDNA' AND (sample1_id=:sid OR sample2_id=:sid)", array("sid" => $sample_id));
+		//related samples
+		list($sample_name, $ps_num) = explode("_", $name);
+		$res_samples = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", ["name" => $sample_name]);
+		if (count($res_samples) !== 1)
+		{
+			trigger_error("Could not find sample for processed sample {$name}!", E_USER_WARNING);
+		}
+		$sample_id = $res_samples[0]['id'];
+		$res = $db->executeQuery("SELECT * FROM sample_relations WHERE relation='tumor-cfDNA' AND (sample1_id=:sid OR sample2_id=:sid)", array("sid" => $sample_id));
 
-	$psamples = [];
-	foreach ($res as $row)
-	{
-		$sample_id_annotation = $row['sample1_id'] != $sample_id ? $row['sample1_id'] : $row['sample2_id'];
-		$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND sys.type!='cfDNA (patient-specific)' AND (NOT ps.quality='bad') ORDER BY ps.process_id DESC", array("sid" => $sample_id_annotation));
-		$psamples = array_merge($psamples, array_column($res, 'psample'));
-	}
-	if (count($psamples) > 1)
-	{
-		trigger_error("Found more than one referenced tumor, using first one: " . implode(" ", $psamples), E_USER_NOTICE);
-	}
-	elseif (count($psamples) === 0)
-	{
-		trigger_error("Could not find any related tumor processed sample!", E_USER_NOTICE);
+		$psamples = [];
+		foreach ($res as $row)
+		{
+			$sample_id_annotation = $row['sample1_id'] != $sample_id ? $row['sample1_id'] : $row['sample2_id'];
+			$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND sys.type!='cfDNA (patient-specific)' AND (NOT ps.quality='bad') ORDER BY ps.process_id DESC", array("sid" => $sample_id_annotation));
+			$psamples = array_merge($psamples, array_column($res, 'psample'));
+		}
+		if (count($psamples) > 1)
+		{
+			trigger_error("Found more than one referenced tumor, using first one: " . implode(" ", $psamples), E_USER_NOTICE);
+		}
+		elseif (count($psamples) === 0)
+		{
+			trigger_error("Could not find any related tumor processed sample!", E_USER_NOTICE);
+		}
+
+		$tumor_id = $psamples[0];
+		
+		if ($tumor_bam == "")
+		{
+			$psinfo_tumor = get_processed_sample_info($db, $tumor_id);
+			$tumor_bam = $psinfo_tumor['ps_bam'];
+		}
 	}
 
-	$tumor_id = $psamples[0];
-	
-	if ($tumor_bam == "")
+	//patient specific target regions
+	if (!$skip_tumor) $roi_patient = $roi_patient == "" ? get_path("data_folder")."/enrichment/patient-specific/{$sys['name_short']}/{$tumor_id}.bed" : $roi_patient;
+	if (!file_exists($roi_patient))
 	{
-		$psinfo_tumor = get_processed_sample_info($db, $tumor_id);
-		$tumor_bam = $psinfo_tumor['ps_bam'];
+		trigger_error("Patient-specific enrichment target BED file '{$roi_patient}' is missing!", E_USER_ERROR);
 	}
 }
 
-//patient specific target regions
-if (!$skip_tumor) $roi_patient = $roi_patient == "" ? get_path("data_folder")."/enrichment/patient-specific/{$sys['name_short']}/{$tumor_id}.bed" : $roi_patient;
-if (!file_exists($roi_patient))
-{
-	trigger_error("Patient-specific enrichment target BED file '{$roi_patient}' is missing!", E_USER_ERROR);
-}
 
-//log server name
-list($server) = exec2("hostname -f");
-$user = exec('whoami');
-$parser->log("Executed on server: ".implode(" ", $server)." as {$user}");
-
-//set up local NGS data copy (to reduce network traffic and speed up analysis)
-$parser->execTool("Tools/data_setup.php", "-build {$sys['build']}");
 
 //output file names:
 //mapping
@@ -121,45 +130,59 @@ $vcffile = "{$folder}/{$name}_var.vcf";
 $qc_fastq = "{$folder}/{$name}_stats_fastq.qcML";
 $qc_map  = "{$folder}/{$name}_stats_map.qcML";
 
-//create merged BED file for mapping or variant calling
-if (in_array("ma", $steps) || in_array("vc", $steps))
-{
-	//recalculate MappingQC, based on base ROI + patient ROI
-	$roi_merged = "{$folder}/{$name}_roi.bed";
-	$pipeline = [];
-	$pipeline[] = [ "cat", "{$roi_base} {$roi_patient}" ];
-	$pipeline[] = [ get_path("ngs-bits")."BedSort", "" ];
-	$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$roi_merged}" ];
-	$parser->execPipeline($pipeline, "merge BED files");
 
+if ($is_patient_specific)
+{
+	//create merged BED file for mapping or variant calling
+	if (in_array("ma", $steps) || in_array("vc", $steps))
+	{
+		//recalculate MappingQC, based on base ROI + patient ROI
+		$roi_merged = "{$folder}/{$name}_roi.bed";
+		$pipeline = [];
+		$pipeline[] = [ "cat", "{$roi_base} {$roi_patient}" ];
+		$pipeline[] = [ get_path("ngs-bits")."BedSort", "" ];
+		$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$roi_merged}" ];
+		$parser->execPipeline($pipeline, "merge BED files");
+
+		$roi_extended = "{$folder}/{$name}_regions.bed";
+		$pipeline = [];
+		$pipeline[] = [ get_path("ngs-bits")."BedExtend", "-in {$roi_merged} -n {$base_extend}" ];
+		$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$roi_extended}" ];
+		$parser->execPipeline($pipeline, "extend BED files");
+	}
+
+	//create BED file containing only KASP variants (for tumor-sample check)
+	$roi_kasp = $parser->tempFile("KASP.bed");
+	$kasp_regions = array();
+	$unfiltered_bed_content = explode("\n", file_get_contents($roi_patient));
+	foreach ($unfiltered_bed_content as $line) 
+	{
+		//skip empty and comment lines
+		if(trim($line) == "") continue;
+		if(starts_with($line, "#")) continue;
+		$split_line = explode("\t", $line);
+		// check if name column indicates sample identifier:
+		if ((count($split_line) > 3) && starts_with($split_line[3], "SNP_for_sample_identification:"))
+		{
+			$kasp_regions[] = $line;
+		}
+	}
+	if (count($kasp_regions) == 0) 
+	{
+		trigger_error("No SNPs for sample identification found in patient-specific BED file! Can't perform similarity check!", E_USER_WARNING);
+	}
+	file_put_contents($roi_kasp, implode("\n", $kasp_regions));
+}
+else
+{
 	$roi_extended = "{$folder}/{$name}_regions.bed";
 	$pipeline = [];
-	$pipeline[] = [ get_path("ngs-bits")."BedExtend", "-in {$roi_merged} -n {$base_extend}" ];
+	$pipeline[] = [ get_path("ngs-bits")."BedExtend", "-in {$roi_base} -n {$base_extend}" ];
 	$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$roi_extended}" ];
 	$parser->execPipeline($pipeline, "extend BED files");
 }
+	
 
-//create BED file containing only KASP variants (for tumor-sample check)
-$roi_kasp = $parser->tempFile("KASP.bed");
-$kasp_regions = array();
-$unfiltered_bed_content = explode("\n", file_get_contents($roi_patient));
-foreach ($unfiltered_bed_content as $line) 
-{
-	//skip empty and comment lines
-	if(trim($line) == "") continue;
-	if(starts_with($line, "#")) continue;
-	$split_line = explode("\t", $line);
-	// check if name column indicates sample identifier:
-	if ((count($split_line) > 3) && starts_with($split_line[3], "SNP_for_sample_identification:"))
-	{
-		$kasp_regions[] = $line;
-	}
-}
-if (count($kasp_regions) == 0) 
-{
-	trigger_error("No SNPs for sample identification found in patient-specific BED file! Can't perform similarity check!", E_USER_WARNING);
-}
-file_put_contents($roi_kasp, implode("\n", $kasp_regions));
 
 //mapping
 if (in_array("ma", $steps))
