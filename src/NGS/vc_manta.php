@@ -20,6 +20,7 @@ $parser->addString("evid_dir", "Output folder for BAM files containing evidence 
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 $parser->addInfile("target",  "Enrichment target BED file (used for flagging off-target variants).", true);
 $parser->addFlag("exome", "If set, manta settings for exome/panel analysis are used (no depth filtering).");
+$parser->addFlag("rna", "If set, manta settings for RNA fusion calling are used.");
 $parser->addInt("threads", "Number of threads used.", true, 4);
 //debugging options
 $parser->addEnum("config_preset", "Use preset configuration.", true, array("default", "high_sensitivity"), "default");
@@ -39,7 +40,7 @@ else if (isset($t_bam) && isset($bam) && count($bam) > 1)
 
 $mode_somatic = isset($t_bam) && isset($bam) && count($bam) == 1;
 $mode_tumor_only = isset($t_bam) && !isset($bam);
-$mode_germline = !isset($t_bam) && isset($bam);
+$mode_germline = !isset($t_bam) && isset($bam) && !isset($rna);
 
 //resolve configuration preset
 $config_default = get_path("manta")."/configManta.py.ini";
@@ -70,12 +71,16 @@ if ($mode_somatic || $mode_tumor_only)
 {
 	array_push($args, "--tumorBam", $t_bam);
 }
-if ($mode_somatic || $mode_germline)
+if ($mode_somatic || $mode_germline || $rna)
 {
 	array_push($args, "--normalBam", implode(" --normalBam ", $bam));
 }
 if (isset($regions)) {
 	array_push($args, "--region", implode(" --region ", $regions));
+}
+if ($rna)
+{
+	array_push($args, "--rna");
 }
 
 //run manta
@@ -94,6 +99,10 @@ else if ($mode_tumor_only)
 else if ($mode_germline)
 {
 	$outname = "diploid";
+}
+else if ($rna)
+{
+	$outname = "rna";
 }
 $sv = "{$manta_folder}/results/variants/{$outname}SV.vcf.gz";
 
