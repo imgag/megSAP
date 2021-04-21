@@ -83,9 +83,9 @@ if (in_array("cn", $steps) && !$has_roi)
 	trigger_error("Skipping step 'cn' - Copy number analysis is only supported for processing systems with target region BED file!", E_USER_NOTICE);
 	if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
 }
-if (in_array("sv", $steps) && !$is_wgs && !$is_wes)
+if (in_array("sv", $steps) && $is_wgs_shallow)
 {
-	trigger_error("Skipping step 'sv' - Structural variant calling is only supported for WGS and WES samples!", E_USER_NOTICE);
+	trigger_error("Skipping step 'sv' - Structural variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
 	if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 }
 
