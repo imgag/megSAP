@@ -38,15 +38,6 @@ list($server) = exec2("hostname -f");
 $user = exec('whoami');
 $parser->log("Executed on server: ".implode(" ", $server)." as {$user}");
 
-//set up local NGS data copy (to reduce network traffic and speed up analysis)
-$parser->execTool("Tools/data_setup.php", "-build {$sys['build']}");
-
-//TODO determine values
-//low coverage cutoff
-$lowcov_cutoff = 100;
-//minimum sample genotype correlation
-$min_corr = 0.90;
-
 //determine processing system
 $sys = load_system($system, $name);
 //base target regions
@@ -55,6 +46,14 @@ $roi_base = $sys['target_file'];
 // determine analysis type
 $is_patient_specific = $sys['type']=="cfDNA (patient-specific)";
 
+//set up local NGS data copy (to reduce network traffic and speed up analysis)
+$parser->execTool("Tools/data_setup.php", "-build {$sys['build']}");
+
+//TODO determine values
+//low coverage cutoff
+$lowcov_cutoff = 100;
+//minimum sample genotype correlation
+$min_corr = 0.90;
 
 //database
 if (db_is_enabled("NGSD"))

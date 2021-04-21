@@ -66,6 +66,7 @@ Next, we install all required tools
 	> ./download_tools_rna.sh #only needed for RNA analysis
 	> su
 	> R -f install_deps_clincnv.R
+	> R -f install_deps_umiVar2.R
 
 Next, we need to download and index the reference genome:
 	
