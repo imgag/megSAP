@@ -17,6 +17,7 @@ $parser->addString("out_name", "Output file base name (e.g. 'GS120001_01').", fa
 //optional
 $parser->addInfileArray("in_index",  "Index reads FASTQ file(s).", true);
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'out_name' is a valid processed sample name).", true);
+$parser->addOutfile("local_bam", "Path to local BAM file, which is kept for further analysis. (not created if empty)", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.");
 $parser->addFlag("no_abra", "Skip realignment with ABRA.");
@@ -100,7 +101,8 @@ if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT-UDI-UMI"]))
 		$use_dragen = false;
 		$trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
 		$trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
-	}	if ($in_index === false || empty($in_index))
+	}	
+	if ($in_index === false || empty($in_index))
 	{
 		trigger_error("Processing system ".$sys['name_short']." has UMI type ".$sys['umi_type'].", but no index files are specified => UMI-based de-duplication skipped!", E_USER_WARNING);
 		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads-2, 1, 6), true);
@@ -277,6 +279,7 @@ if($sys['type']=="Panel MIPs")
 
 // mapping
 $bam_current = $parser->tempFile("_mapping_bwa.bam");
+
 if (!$start_with_abra)
 {
 	// use DRAGEN or std bwa mem
@@ -535,8 +538,22 @@ if ($sys['build']!="GRCh37")
 }
 $parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
 
-//move BAM to final output location
-$parser->moveFile($bam_current, $out);
-$parser->moveFile($bam_current.".bai", $out.".bai");
+//copy BAM to final output location
+$parser->copyFile($bam_current, $out);
+$parser->copyFile($bam_current.".bai", $out.".bai");
+
+// check if copy was successful
+if (!file_exists($out) || filesize($bam_current) != filesize($out))
+{
+	trigger_error("Error during coping BAM file! File sizes don't match!", E_USER_ERROR);
+}
+
+// rename final tmp BAM to allow using it for further analysis
+if (!($local_bam === false || empty($local_bam)))
+{
+	$parser->moveFile($bam_current, $local_bam);
+	$parser->moveFile($bam_current.".bai", $local_bam.".bai");
+}
+
 
 ?>

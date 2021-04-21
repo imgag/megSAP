@@ -379,7 +379,7 @@ function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messa
 			}
 		}
 	}
-	fwrite($cnv_output, "#chr\tstart\tend\tCN_change\tloglikelihood\tno_of_regions\tlength_kb_idx\tpotential_AF\tgenes\n");
+	fwrite($cnv_output, "#chr\tstart\tend\tCN_change\tloglikelihood\tno_of_regions\tlength_KB\tpotential_AF\tgenes\n");
 
 	fclose($cnv_output);
 }

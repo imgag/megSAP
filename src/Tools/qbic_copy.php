@@ -50,8 +50,7 @@ if (count($jobs)!=1)
 	print "##\n";
 	print "##============================ ERROR ============================\n";
 	print "##=    No datamover of the user bioinf is running! Execute:     =\n";
-	print "##=    > sudo su bioinf                                         =\n";
-	print "##=    > /mnt/share/to_qbic/datamover.sh start                  =\n";
+	print "##=    > sudo -u bioinf /mnt/share/to_qbic/datamover.sh start   =\n";
 	print "##===============================================================\n";
 	die(1);
 }
@@ -447,14 +446,15 @@ foreach($res as $row)
 		
 		//Special treatment for tumor-normal fastqs
 		$merged_fastq_files = array();
+		$tmp_data_folder = temp_folder();
 		if($tumor_normal_pair) //merge fastqs in case of normal-tumor pairs 
 		{
 			if($row['tumor'] == 1)
 			{
-				exec2("cat {$data_folder}*R1*.fastq.gz > {$data_folder}{$qbic_name}_tumor.1.fastq.gz");
-				$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor.1.fastq.gz";
-				exec2("cat {$data_folder}*R2*.fastq.gz > {$data_folder}{$qbic_name}_tumor.2.fastq.gz");
-				$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor.2.fastq.gz";
+				exec2(get_path("ngs-bits") . "/FastqConcat -in  {$data_folder}*R1*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_tumor.1.fastq.gz");
+				$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_tumor.1.fastq.gz";
+				exec2(get_path("ngs-bits") . "/FastqConcat -in {$data_folder}*R2*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_tumor.2.fastq.gz");
+				$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_tumor.2.fastq.gz";
 			}
 			//parse related normal file if found
 			$normal_id = $sample1["normal_id"];
@@ -462,19 +462,19 @@ foreach($res as $row)
 			if($normal_id != "" && $normal_sample['quality_sample'] != "bad" && $normal_sample['quality_processed_sample'] != "bad"
 				&& $normal_sample['quality_run'] != "bad")
 			{
-				$data_folder2 = $project_folder."/Sample_".$normal_sample['id_genetics']."/";
-				exec2("cat {$data_folder2}*R1*.fastq.gz > {$data_folder2}{$qbic_name}_normal.1.fastq.gz");
-				$merged_fastq_files[] = "{$data_folder2}{$qbic_name}_normal.1.fastq.gz";
-				exec2("cat {$data_folder2}*R2*.fastq.gz > {$data_folder2}{$qbic_name}_normal.2.fastq.gz");
-				$merged_fastq_files[] = "{$data_folder2}{$qbic_name}_normal.2.fastq.gz";
+				$normal_data_dir = $project_folder."/Sample_".$normal_sample['id_genetics']."/";
+				exec2(get_path("ngs-bits") . "/FastqConcat -in {$normal_data_dir}*R1*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_normal.1.fastq.gz");
+				$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_normal.1.fastq.gz";
+				exec2(get_path("ngs-bits") . "/FastqConcat -in {$normal_data_dir}*R2*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_normal.2.fastq.gz");
+				$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_normal.2.fastq.gz";
 			}
 		}
 		elseif($sample1["experiment_type"] == "rna_seq" && $sample1["tumor"] == 1)
 		{
-			exec2("cat {$data_folder}*R1*.fastq.gz > {$data_folder}{$qbic_name}_tumor_rna.1.fastq.gz");
-			$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor_rna.1.fastq.gz";
-			exec2("cat {$data_folder}*R2*.fastq.gz > {$data_folder}{$qbic_name}_tumor_rna.2.fastq.gz");
-			$merged_fastq_files[] = "{$data_folder}{$qbic_name}_tumor_rna.2.fastq.gz";
+			exec2(get_path("ngs-bits") . "/FastqConcat -in  {$data_folder}*R1*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_tumor_rna.1.fastq.gz");
+			$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_tumor_rna.1.fastq.gz";
+			exec2(get_path("ngs-bits") . "/FastqConcat -in {$data_folder}*R2*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_tumor_rna.2.fastq.gz");
+			$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_tumor_rna.2.fastq.gz";
 		}
 		
 		
