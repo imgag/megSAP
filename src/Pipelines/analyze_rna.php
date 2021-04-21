@@ -24,6 +24,7 @@ $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 o
 $parser->addFlag("no_splicing", "Disable spliced read alignment.");
 $parser->addFlag("abra", "Enable indel realignment with ABRA.");
 $parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
+$parser->addString("fusion_caller", "Fusion callers to run, separated by comma.", true, "star-fusion,manta");
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
@@ -78,11 +79,13 @@ if ((count($in_for) == 0) && (count($in_rev) == 0))
 
 $paired = (count($in_rev) != 0);
 
+$fusion_caller = explode(",", $fusion_caller);
+
 //mapping and QC
 $final_bam = $prefix.".bam";
 $qc_fastq = $prefix."_stats_fastq.qcML";
 $qc_map = $prefix."_stats_map.qcML";
-if (in_array("ma", $steps) || in_array("fu", $steps))
+if (in_array("ma", $steps) || (in_array("fu", $steps) && in_array("star-fusion",$fusion_caller)))
 {
 	//check FASTQ quality encoding
 	$files = array_merge($in_for, $in_rev);
@@ -261,7 +264,7 @@ if (in_array("an", $steps))
 }
 
 //detect fusions
-if (in_array("fu",$steps))
+if (in_array("fu",$steps) && in_array("star-fusion",$fusion_caller))
 {
 	//path of STAR-Fusion index
 	$fusion_index = get_path("data_folder")."/genomes/STAR-Fusion/{$build}";
@@ -334,6 +337,22 @@ if (in_array("fu",$steps))
 	{
 		trigger_error("STAR-Fusion index not present. Skipping fusion detection step.", E_USER_WARNING);
 	}
+}
+
+$fusions_manta_vcf = "{$prefix}_var_fusions_manta.vcf.gz";
+$fusions_manta_bedpe = "{$prefix}_var_fusions_manta.bedpe";
+if (in_array("fu",$steps) && in_array("manta",$fusion_caller))
+{
+	$manta_args = [
+		"-out", $fusions_manta_vcf,
+		"-bam", $final_bam,
+		"-evid_dir", "{$out_folder}/manta_evid",
+		"-build", $build,
+		"-rna",
+		"-config_preset", "high_sensitivity"
+	];
+	$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
+	exec2(get_path("ngs-bits") . "VcfToBedpe -in {$fusions_manta_vcf} -out {$fusions_manta_bedpe}");
 }
 
 //import to database
