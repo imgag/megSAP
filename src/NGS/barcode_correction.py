@@ -241,8 +241,18 @@ def GET_FINAL_READ(reads, minBQ, STEP, SET_N):
             LOG_INFO = "\t".join(LOG_INFO) + "\n"
 
     else:
-        REF_LENGTH = [(k.reference_length, k.rlen, k.cigarstring) for k in reads]
-
+        REF_LENGTH = [];
+        #workaround for python 3 support 
+        for k in reads:
+            if k.reference_length is None:
+                tmp_reference_length = 0;
+            else:
+                tmp_reference_length = k.reference_length
+            if k.cigarstring is None:
+                tmp_cigar = ''
+            else:
+                tmp_cigar = k.cigarstring;
+            REF_LENGTH.append( (tmp_reference_length, k.rlen, tmp_cigar) )
         MAX_INFO = max(sorted(set(REF_LENGTH), reverse=True), key=REF_LENGTH.count)
 
         # Reference length
