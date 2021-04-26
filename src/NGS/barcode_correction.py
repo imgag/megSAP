@@ -284,6 +284,11 @@ def GET_FINAL_READ(reads, minBQ, STEP, SET_N):
                 # if ((MAX_REF_LENGTH != i.reference_length or MAX_READ_LENGTH != i.rlen) and (i.cigarstring == None or "I" in i.cigarstring or "D" in i.cigarstring)):
                 # print 'BULSHIT READ'
                 # print MAX_REF_LENGTH, len(i.get_reference_sequence()), i.rlen
+                try:
+                    LAST_READ
+                except NameError:
+                    LAST_READ = i
+
                 READNAME = i.qname
                 FLAG = i.flag
                 DICT_READS[READNAME] = i
@@ -400,7 +405,10 @@ def GET_FINAL_READ(reads, minBQ, STEP, SET_N):
         CONSENSUS_READ.qname = SORTED_READNAMES[0]
 
         # Mapping quality == mean of reads' mapq
-        CONSENSUS_READ.mapq = int(round(float(sum(MAPQ)) / len(MAPQ)))
+        if len(MAPQ) > 0:
+            CONSENSUS_READ.mapq = int(round(float(sum(MAPQ)) / len(MAPQ)))
+        else:
+            CONSENSUS_READ.mapq = 0
         CONSENSUS_READ.flag = DICT_FLAG[SORTED_READNAMES[0]]
 
         # Consensus seq per position
