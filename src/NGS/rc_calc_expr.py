@@ -47,6 +47,7 @@ def cohort(samples, counts, counts_out, prefix, cohort, stats):
     
     if counts:
         counts_tbl =  pd.read_csv(counts, sep="\t", index_col=0)
+        counts_tbl.drop([col for col in counts_tbl.columns if col.startswith(prefix)], axis=1, inplace=True)
         # calculate ratios per gene for sample
         expr = counts_tbl['tpm'].to_frame().join(df_stats)
         expr['log2tpm'] = np.log2(expr['tpm']+1)
@@ -61,7 +62,7 @@ def cohort(samples, counts, counts_out, prefix, cohort, stats):
         counts_annot = counts_tbl.join(expr, on="#gene_id", how="left")
 
         if counts_out:
-            counts_annot.to_csv(counts_out, sep='\t')
+            counts_annot.to_csv(counts_out, sep='\t', na_rep='n/a')
 
 @cli.command(help="Use summarized HPA expression data as reference.")
 @click.option('--counts', type=click.File('r'), help="Sample gene counts for which to calculate relative expression.")
@@ -82,6 +83,7 @@ def hpa(counts, counts_out, prefix, hpa, tissue):
     
     if counts:
         counts_tbl =  pd.read_csv(counts, sep="\t", index_col=0)
+        counts_tbl.drop([col for col in counts_tbl.columns if col.startswith(prefix)], axis=1, inplace=True)
         # calculate ratios per gene for sample
         expr = counts_tbl['tpm'].to_frame().join(d_tpm[['tissue_tpm','meanlog2']])
         expr['log2tpm'] = np.log2(expr['tpm']+1)
@@ -95,7 +97,7 @@ def hpa(counts, counts_out, prefix, hpa, tissue):
         counts_annot = counts_tbl.join(expr, on="#gene_id", how="left")
 
         if counts_out:
-            counts_annot.to_csv(counts_out, sep='\t')
+            counts_annot.to_csv(counts_out, sep='\t', na_rep='n/a')
 
 if __name__ == '__main__':
   cli()
