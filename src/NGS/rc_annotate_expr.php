@@ -169,7 +169,7 @@ if ($hpa_tissue !== "")
 		"--counts_out", $out,
 		"--hpa", get_path("data_folder") . "/dbs/gene_expression/rna_tissue_hpa.tsv",
 		"--prefix", "hpa_",
-		"--tissue", $hpa_tissue
+		"--tissue", "'{$hpa_tissue}'"
 	];
 	$parser->exec("python3 ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
 }
