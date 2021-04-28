@@ -44,7 +44,16 @@ $sys = load_system($system, $name);
 $roi_base = $sys['target_file'];
 
 // determine analysis type
-$is_patient_specific = $sys['type']=="cfDNA (patient-specific)";
+if ($sys['type']=="cfDNA (patient-specific)" || $sys['type']=="cfDNA")
+{
+	$is_patient_specific = $sys['type']=="cfDNA (patient-specific)";
+}
+else
+{
+	trigger_error("Unsupported system type '".$sys['type']."'! Pipeline only supports cfDNA samples", E_USER_ERROR);	
+}
+
+
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 $parser->execTool("Tools/data_setup.php", "-build {$sys['build']}");
@@ -108,6 +117,8 @@ if ($is_patient_specific)
 		}
 	}
 
+	// TODO: get target region from NGSD
+	
 	//patient specific target regions
 	if (!$skip_tumor) $roi_patient = $roi_patient == "" ? get_path("data_folder")."/enrichment/patient-specific/{$sys['name_short']}/{$tumor_id}.bed" : $roi_patient;
 	if (!file_exists($roi_patient))
@@ -270,7 +281,7 @@ if (in_array("an", $steps))
 {
 	// annotate VCF 
 	$vcffile_annotated = "$folder/${name}_var_annotated.vcf.gz";
-	$parser->execTool("Pipelines/annotate.php", "-out_name $name -out_folder $folder -vcf $vcffile -somatic -updown -threads $threads");
+	$parser->execTool("Pipelines/annotate.php", "-out_name $name -out_folder $folder -vcf $vcffile -somatic -updown -threads $threads -system $system");
 
 	//add sample info to VCF header
 	$tmp_vcf = $parser->tempFile(".vcf");

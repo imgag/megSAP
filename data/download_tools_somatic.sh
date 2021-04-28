@@ -2,7 +2,8 @@ set -e
 set -o pipefail
 set -o verbose
 
-folder=`pwd`/tools/
+root=`pwd`
+folder=$root/tools/
 cd $folder
 
 #download varscan2
@@ -32,3 +33,14 @@ pip3 install numpy==1.19.5
 pip3 install scipy==1.5.4
 pip3 install networkx==2.5
 deactivate
+# create custom R installation
+wget https://cran.r-project.org/src/base/R-4/R-4.0.5.tar.gz
+tar -xvzf R-4.0.5.tar.gz
+rm R-4.0.5.tar.gz
+cd R-4.0.5
+./configure --with-pcre1
+make
+make check
+# install required packages
+bin/R -f $root/install_deps_umiVar2.R
+cd ../..

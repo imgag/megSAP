@@ -1,7 +1,7 @@
 all: clean link map vc an diff
 
 clean:
-	rm -rf CFDNA_01*.fastq.gz CFDNA_01*.bam* CFDNA_01*.qcML CFDNA_01*.bed CFDNA_01*_var.vcf CFDNA_01*_var.tsv CFDNA_01*_var.mrd *.log *.GSvar
+	rm -rf CFDNA_01*.fastq.gz CFDNA_01*.bam* CFDNA_01*.qcML CFDNA_01*.bed CFDNA_01*_var.vcf CFDNA_01*_var.tsv CFDNA_01*_var.mrd *.log *.GSvar umiVar_tmp*
 
 link:
 	php ../link_test_data.php FO13609x01_01_L001_R1_001.fastq.gz CFDNA_01_L001_R1_001.fastq.gz

@@ -19,12 +19,17 @@ $vcf = realpath(dirname($vcf))."/".basename($vcf);
 $tempdir = realpath(dirname($vcf));
 print $tempdir."\n";
 
+// get umiVar2 and R path
+$umiVar2 = get_path("umiVar2");
+$r_binary = $umiVar2."/R-4.0.5/bin/Rscript";
+
 $args = [
     "--tbam", realpath($bam),
     "--ref", realpath($genome),
     "--bed", realpath($target),
     "--out_file", $vcf,
-    "--temp_dir", $tempdir
+    "--temp_dir", $tempdir,
+    "--custom_rscript_binary", $r_binary
 ];
 if (isset($model))
 {
