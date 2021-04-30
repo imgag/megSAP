@@ -395,9 +395,6 @@ if (in_array("vc", $steps))
 			$params[] = "-downsample 100";
 		}
 		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
-		
-		//determine ancestry
-		$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file}", true);
 	}
 
 	// annotation
@@ -425,6 +422,9 @@ if (in_array("vc", $steps))
 		$prs_scoring_files = glob($prs_folder."/*.vcf");
 		$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
 	}
+	
+	//determine ancestry
+	$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file}", true);
 }
 
 
