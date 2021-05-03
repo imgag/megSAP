@@ -352,7 +352,8 @@ if (in_array("fu",$steps) && in_array("manta",$fusion_caller))
 		"-config_preset", "high_sensitivity"
 	];
 	$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
-	exec2(get_path("ngs-bits") . "VcfToBedpe -in {$fusions_manta_vcf} -out {$fusions_manta_bedpe}");
+	$parser->exec(get_path("ngs-bits") . "VcfToBedpe", "-in {$fusions_manta_vcf} -out {$fusions_manta_bedpe}", true);
+	$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in {$fusions_manta_bedpe} -out {$fusions_manta_bedpe} -add_simple_gene_names", true);
 }
 
 //import to database
