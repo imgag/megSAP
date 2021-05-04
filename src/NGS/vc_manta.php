@@ -40,7 +40,7 @@ else if (isset($t_bam) && isset($bam) && count($bam) > 1)
 
 $mode_somatic = isset($t_bam) && isset($bam) && count($bam) == 1;
 $mode_tumor_only = isset($t_bam) && !isset($bam);
-$mode_germline = !isset($t_bam) && isset($bam) && !isset($rna);
+$mode_germline = !isset($t_bam) && isset($bam) && !$rna;
 
 //resolve configuration preset
 $config_default = get_path("manta")."/configManta.py.ini";
