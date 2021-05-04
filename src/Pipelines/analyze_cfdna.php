@@ -79,9 +79,11 @@ if ($skip_tumor)
 
 if ($is_patient_specific)
 {
-	//resolve tumor id if not given
-	if ($tumor_id == "" && !$skip_tumor && isset($db))
+	// get tumor id
+	if (!$skip_tumor && ($tumor_id == ""))
 	{
+		if (!isset($db)) trigger_error("NGSD connection is required to determine tumor id!", E_USER_ERROR);
+
 		//related samples
 		list($sample_name, $ps_num) = explode("_", $name);
 		$res_samples = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", ["name" => $sample_name]);
@@ -101,11 +103,11 @@ if ($is_patient_specific)
 		}
 		if (count($psamples) > 1)
 		{
-			trigger_error("Found more than one referenced tumor, using first one: " . implode(" ", $psamples), E_USER_NOTICE);
+			trigger_error("Found more than one referenced tumor, using first one: " . implode(" ", $psamples), E_USER_WARNING);
 		}
 		elseif (count($psamples) === 0)
 		{
-			trigger_error("Could not find any related tumor processed sample!", E_USER_NOTICE);
+			trigger_error("Could not find any related tumor processed sample!", E_USER_ERROR);
 		}
 
 		$tumor_id = $psamples[0];
@@ -117,17 +119,23 @@ if ($is_patient_specific)
 		}
 	}
 
-	// TODO: get target region from NGSD
-	
-	//patient specific target regions
-	if (!$skip_tumor) $roi_patient = $roi_patient == "" ? get_path("data_folder")."/enrichment/patient-specific/{$sys['name_short']}/{$tumor_id}.bed" : $roi_patient;
-	if (!file_exists($roi_patient))
+	if ($roi_patient == "")
 	{
-		trigger_error("Patient-specific enrichment target BED file '{$roi_patient}' is missing!", E_USER_ERROR);
+		// get patient-specific target region from NGSD
+		if (!isset($db)) trigger_error("NGSD connection is required to determine specific target region!", E_USER_ERROR);
+		if ($tumor_id == "") trigger_error("Valid tumor id is required to get patient specific target region!", E_USER_ERROR);
+
+		$tumor_ps_id = get_processed_sample_id($db, $tumor_id);
+		$sys_id = $db->getValue("SELECT id FROM processing_system WHERE name_short=".$sys["name_short"]);
+
+		$bed_content = $db->getValue("SELECT bed FROM cfdna_panel WHERE tumor_id=${tumor_ps_id} AND processing_system_id=${sys_id}");
+
+		//TODO: move to temp
+		$roi_patient = "{$folder}/{$name}_roi_patient.bed";
+		file_put_contents($roi_patient, $bed_content);
 	}
+	
 }
-
-
 
 //output file names:
 //mapping
