@@ -1,7 +1,7 @@
 all: clean prepare analyze_se diff_se analyze_pe diff_pe
 
 clean:
-	rm -rf *.log single_end paired_end
+	rm -rf *.log single_end paired_end paired_end_fusion
 
 prepare:
 	mkdir -p single_end

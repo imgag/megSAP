@@ -494,7 +494,7 @@ fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_r2.1.1.vcf.
 
 
 // add clinVar annotation
-fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20210110_converted.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
+fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20210424_converted.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
 
 
 // add HGMD annotation

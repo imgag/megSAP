@@ -594,7 +594,7 @@ if(in_array("cn",$steps))
 		$data_folder = get_path("data_folder");
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-01.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-04.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
 
 		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_4.bed"; //optional because of license
 		if (file_exists($hgmd_file))

@@ -49,12 +49,12 @@ tabix -p bed RepeatMasker.bed.gz
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2021/clinvar_20210110.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20210110_converted.vcf.gz
-tabix -p vcf clinvar_20210110_converted.vcf.gz
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2021/clinvar_20210424.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20210424_converted.vcf.gz
+tabix -p vcf clinvar_20210424_converted.vcf.gz
 #CNVs
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2021-01.txt.gz | gunzip > variant_summary_2021-01.txt
-cat variant_summary_2021-01.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2021-01.bed
-$ngsbits/BedSort -with_name -in clinvar_cnvs_2021-01.bed -out clinvar_cnvs_2021-01.bed
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2021-04.txt.gz | gunzip > variant_summary_2021-04.txt
+cat variant_summary_2021-04.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2021-04.bed
+$ngsbits/BedSort -with_name -in clinvar_cnvs_2021-04.bed -out clinvar_cnvs_2021-04.bed
 
 #Install HGNC - ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
 cd $dbs
