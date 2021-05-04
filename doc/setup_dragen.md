@@ -24,7 +24,23 @@ After the required software is installed, some parameters in the megSAP `setting
 
 * `dragen_data` - Temporary folder on the DRAGEN server in which the mapping is performed. This folder should be located on the fast SSD storage of the DRAGEN server (usually: `/staging/...`) and is created for each mapping and deleted after the mapped data has been moved to the tranfer folder.
 
-* `dragen_genomes` - Path to the genome reference hash tables. Should also be stored on the DRAGEN SSD storage.
+* `dragen_genomes` - Path to the genome reference hash tables. Should also be stored on the DRAGEN SSD storage and has to have the following structure: A folder for each reference containing the FASTA file and its index. Additionally this folder has to contain a subfolder named `dragen` which contains the actual hashtables. A example of the folder structure for `GRCh37`: 
+```
+├── GRCh37
+│   ├── dragen
+│   │   ├── hash_table.cfg
+│   │   ├── hash_table.cfg.bin
+│   │   ├── hash_table.cmp
+│   │   ├── hash_table_stats.txt
+│   │   ├── reference.bin
+│   │   ├── ref_index.bin
+│   │   ├── repeat_mask.bin
+│   │   ├── replay.json
+│   │   ├── streaming_log.csv
+│   │   └── str_table.bin
+│   ├── GRCh37.fa
+│   └── GRCh37.fa.fai
+```
 
 * `dragen_log` - Folder to store STDOUT and STDERR of the queued DRAGEN mapping jobs to determine if a finished job has ended successfully.
 

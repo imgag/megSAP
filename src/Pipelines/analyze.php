@@ -83,9 +83,9 @@ if (in_array("cn", $steps) && !$has_roi)
 	trigger_error("Skipping step 'cn' - Copy number analysis is only supported for processing systems with target region BED file!", E_USER_NOTICE);
 	if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
 }
-if (in_array("sv", $steps) && !$is_wgs && !$is_wes)
+if (in_array("sv", $steps) && $is_wgs_shallow)
 {
-	trigger_error("Skipping step 'sv' - Structural variant calling is only supported for WGS and WES samples!", E_USER_NOTICE);
+	trigger_error("Skipping step 'sv' - Structural variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
 	if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 }
 
@@ -395,9 +395,6 @@ if (in_array("vc", $steps))
 			$params[] = "-downsample 100";
 		}
 		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
-		
-		//determine ancestry
-		$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file}", true);
 	}
 
 	// annotation
@@ -425,6 +422,9 @@ if (in_array("vc", $steps))
 		$prs_scoring_files = glob($prs_folder."/*.vcf");
 		$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
 	}
+	
+	//determine ancestry
+	$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file}", true);
 }
 
 
