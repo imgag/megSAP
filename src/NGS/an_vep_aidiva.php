@@ -189,6 +189,7 @@ if (!$basic)
 	fwrite($config_file, annotation_file_path("/dbs/Eigen/".$genome_build_prefix."Eigen-phred_coding_chrom1-22.vcf.gz")."\t\tEIGEN_PHRED\t\ttrue\n");
 	fwrite($config_file, annotation_file_path("/dbs/fathmm-XF/".$genome_build_prefix."fathmm_xf_coding.vcf.gz")."\t\tFATHMM_XF\t\ttrue\n");
 	fwrite($config_file, annotation_file_path("/dbs/MutationAssessor/".$genome_build_prefix."precomputed_MutationAssessor.vcf.gz")."\t\tMutationAssessor\t\ttrue\n");
+	fwrite($config_file, annotation_file_path("/dbs/CAPICE/capice_v1_grch37_snvs.vcf.gz")."\t\tCAPICE\t\ttrue\n");
 
 	if (!$expanded)
 	{
