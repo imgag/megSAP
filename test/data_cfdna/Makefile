@@ -17,6 +17,6 @@ an:
 	php ../../src/Pipelines/analyze_cfdna.php -folder . -name CFDNA_01 -system system.ini -steps an -threads 1 -tumor_id TumorID -roi_patient roi_patient.bed
 
 diff:
-	php ../compare_qcml_xml.php CFDNA_01_stats_map.qcML.out CFDNA_01_stats_map.qcML 0.01
+	php ../compare_qcml_xml.php CFDNA_01_stats_map.qcML.out CFDNA_01_stats_map.qcML 0.02
 	diff --ignore-matching-lines '^##' CFDNA_01_var.vcf.out CFDNA_01_var.vcf
 	php ../compare_variants.php -in1 CFDNA_01.GSvar.out -in2 CFDNA_01.GSvar
