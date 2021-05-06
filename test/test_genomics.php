@@ -3,6 +3,17 @@
 include("framework.php");
 
 //##################################################################################
+start_test("genome_fasta");
+
+$genome_local = genome_fasta("GRCh37");
+check(file_exists($genome_local), true); //data from megSAP folder
+$genome_repo = genome_fasta("GRCh37", false);
+check(file_exists($genome_repo), true); //local copy of data
+check($genome_local!=$genome_repo, true);
+
+end_test();
+
+//##################################################################################
 start_test("vcfgeno2human");
 
 check(vcfgeno2human("0|0"), "wt");
@@ -151,6 +162,9 @@ check(get_ref_seq("GRCh37", "chrX", 155260465, 155260465, 100000), "T");
 check(get_ref_seq("GRCh37", "chrX", 155260465, 155260465, 100000), "T");
 check(get_ref_seq("GRCh37", "chrX", 155260465, 155260465, 10), "T");
 check(get_ref_seq("GRCh37", "chrX", 155260465, 155260465, 0), "T");
+
+// test on non-local genome file
+check(get_ref_seq("GRCh37", "chr14", 57349540, 57349542, 0, false), "ACT");
 
 end_test();
 

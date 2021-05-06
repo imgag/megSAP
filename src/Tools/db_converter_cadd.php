@@ -56,7 +56,7 @@ while(!feof($in_fp))
 		$pos -= 1;
 
 		// get previous base
-		$prev_base = get_ref_seq($build, $chr, $pos, $pos, 100000);
+		$prev_base = get_ref_seq($build, $chr, $pos, $pos, 100000, false);
 
 		// remove last base and add base in front:
 		$ref = $prev_base.substr($ref, 0, -1);
