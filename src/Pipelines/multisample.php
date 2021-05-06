@@ -42,7 +42,7 @@ extract($parser->parse($argv));
 $repository_basedir = repository_basedir();
 $data_folder = get_path("data_folder");
 $ngsbits = get_path("ngs-bits");
-$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2020_4.bed";
+$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2021_1.bed";
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
 $vcf_all = "{$out_folder}/all.vcf.gz";
 $vcf_all_mito = "{$out_folder}/all_mito.vcf.gz";
