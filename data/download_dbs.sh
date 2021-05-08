@@ -111,8 +111,8 @@ zcat CADD_InDels_1.6.tsv.gz | php $src/Tools/db_converter_cadd.php -in - -out - 
 tabix -f -p vcf CADD_InDels_1.6.vcf.gz
 zcat CADD_SNVs_1.6.tsv.gz | php $src/Tools/db_converter_cadd.php -in - -out - | $ngsbits/VcfStreamSort | bgzip > CADD_SNVs_1.6.vcf.gz
 tabix -f -p vcf CADD_SNVs_1.6.vcf.gz
-$ngsbits/VcfCheck -in CADD_InDels_1.6.vcf.gz -lines 0
-$ngsbits/VcfCheck -in CADD_SNVs_1.6.vcf.gz -lines 0
+$ngsbits/VcfCheck -in CADD_InDels_1.6.vcf.gz -lines 0 –ref $genome
+$ngsbits/VcfCheck -in CADD_SNVs_1.6.vcf.gz -lines 0 –ref $genome
 
 #Install fathmm-MKL for VEP - https://github.com/HAShihab/fathmm-MKL
 cd $dbs
