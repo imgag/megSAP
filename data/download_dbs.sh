@@ -125,8 +125,8 @@ tabix -p bed fathmm-MKL_Current.tab.gz
 cd $dbs
 mkdir REVEL
 cd REVEL
-wget https://rothsj06.u.hpc.mssm.edu/revel/revel_all_chromosomes.csv.zip
-unzip -p revel_all_chromosomes.csv.zip | tr ',' '\t' | sed '1s/.*/#&/' | bgzip > revel_all_chromosomes.tsv.gz
+wget https://rothsj06.u.hpc.mssm.edu/revel-v1.3_all_chromosomes.zip
+unzip -p revel-v1.3_all_chromosomes.zip | tr ',' '\t' | sed '1s/.*/#&/' | bgzip > revel_all_chromosomes.tsv.gz
 tabix -f -s 1 -b 2 -e 2 revel_all_chromosomes.tsv.gz
 
 #Install dbscSNV for VEP - https://academic.oup.com/nar/article/42/22/13534/2411339
