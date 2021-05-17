@@ -96,7 +96,7 @@ function rev_comp($input)
 
 	@ingroup genomics
 */
-function get_ref_seq($build, $chr, $start, $end, $cache_size=0)
+function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=true)
 {
 	// init vars for cache:
 	static $cache_build = null;
@@ -131,7 +131,7 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0)
 
 			// get sequence
 			$output = array();
-			exec(get_path("samtools")." faidx ".genome_fasta($build)." $chr:{$cache_start}-{$cache_end} 2>&1", $output, $ret);
+			exec(get_path("samtools")." faidx ".genome_fasta($build, $use_local_data)." $chr:{$cache_start}-{$cache_end} 2>&1", $output, $ret);
 			if ($ret!=0)
 			{
 				trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
@@ -1496,9 +1496,9 @@ function enable_special_mito_vc($sys)
 }
 
 //Returns the FASTA file of the genome
-function genome_fasta($build)
+function genome_fasta($build, $used_local_data=true)
 {
-	return get_path("local_data")."/".$build.".fa";
+	return ($used_local_data ? get_path("local_data") : get_path("data_folder")."/genomes")."/".$build.".fa";
 }
 
 //Returns whether a certain gene is an oncogene or tsg gene according NCG6.0, "na" otherwise

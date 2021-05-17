@@ -97,5 +97,8 @@ swap_settings:
 	mv settings.ini settings.ini.swap
 	mv settings_nightly.ini settings.ini
 	mv settings.ini.swap settings_nightly.ini
-	
+
+clean_ignored:
+	git clean -Xn | cut -f3 -d' ' | egrep -v "settings.ini|megSAP_tag.txt" | xargs rm
+
 dummy:

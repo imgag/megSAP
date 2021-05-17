@@ -66,7 +66,7 @@ foreach($samples as $ps)
 		//check VCF/GSvar
 		if (contains($steps, "vc"))
 		{
-			if (!isset($annotation_only))
+			if (!$annotation_only)
 			{
 				$vcf = substr($bam, 0, -4)."_var.vcf.gz";
 				if (!file_exists($vcf) || filemtime($vcf)<$before)
@@ -118,7 +118,7 @@ foreach($samples as $ps)
 	{
 		$args[] = "-threads $threads";
 	}
-	if (isset($annotation_only))
+	if ($annotation_only)
 	{
 		$args[] = "-annotation_only";
 	}

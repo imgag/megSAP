@@ -51,12 +51,12 @@ tabix -p bed RepeatMasker_GRCh38.bed.gz
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar_20210123.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20210123_converted_GRCh38.vcf.gz
-tabix -p vcf clinvar_20210123_converted_GRCh38.vcf.gz
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20210424.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20210424_converted_GRCh38.vcf.gz
+tabix -p vcf clinvar_20210424_converted_GRCh38.vcf.gz
 #CNVs
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2021-01.txt.gz | gunzip > variant_summary_2021-01.txt
-cat variant_summary_2021-01.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2021-01.bed
-$ngsbits/BedSort -with_name -in clinvar_cnvs_2021-01.bed -out clinvar_cnvs_2021-01.bed
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2021-04.txt.gz | gunzip > variant_summary_2021-04.txt
+cat variant_summary_2021-04.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2021-04.bed
+$ngsbits/BedSort -with_name -in clinvar_cnvs_2021-04.bed -out clinvar_cnvs_2021-04.bed
 
 #Install HGNC - ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
 cd $dbs
@@ -156,11 +156,19 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GR
 
 # TODO: Create GRCh38 version
 #download annotation file for SpliceAI
-cd $dbs
-mkdir SpliceAI
-cd SpliceAI
-wget https://download.imgag.de/ahsturm1/spliceai_scores_2021_01_15.vcf.gz -O spliceai_scores.ngsd.13.12.20.vcf.gz
-tabix -p vcf spliceai_scores.ngsd.13.12.20.vcf.gz
+# cd $dbs
+# mkdir SpliceAI
+# cd SpliceAI
+# wget https://download.imgag.de/ahsturm1/spliceai_scores_2021_02_03.vcf.gz -O spliceai_scores_2021_02_03.vcf.gz
+# tabix -p vcf spliceai_scores_2021_02_03.vcf.gz
+
+# TODO: Create GRCh38 version
+#download annotation file for MMSplice
+# cd $dbs
+# mkdir MMSplice
+# cd MMSplice
+# wget https://download.imgag.de/ahsturm1/mmsplice_scores_2021_02_03.vcf.gz -O mmsplice_scores_2021_02_03.vcf.gz
+# tabix -p vcf mmsplice_scores_2021_02_03.vcf.gz
 
 #install OMIM (you might need a license, installation only possible after ngs-bits including NGSD is installed)
 #cd $dbs
@@ -172,12 +180,12 @@ tabix -p vcf spliceai_scores.ngsd.13.12.20.vcf.gz
 #tabix -p bed omim.bed.gz
 
 #Install HGMD (you need a license)
-#manual download of files hgmd_pro_2020.4_hg19.vcf and hgmd_pro-2020.4.dump.gz from https://portal.biobase-international.com/cgi-bin/portal/login.cgi 
-#cat hgmd_pro_2020.4_hg19.vcf | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2020_4_fixed.vcf.gz
-#tabix -p vcf HGMD_PRO_2020_4_fixed.vcf.gz
+#manual download of files hgmd_pro_2021.1_hg19.vcf and hgmd_pro-2021.1.dump.gz from https://apps.ingenuity.com/ingsso/login
+#cat hgmd_pro_2021.1_hg19.vcf | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2021_1_fixed.vcf.gz
+#tabix -p vcf HGMD_PRO_2021_1_fixed.vcf.gz
 ##CNVs
-#zcat hgmd_pro-2020.4.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2020_4.bed
-#$ngsbits/BedSort -with_name -in HGMD_CNVS_2020_4.bed -out HGMD_CNVS_2020_4.bed
+#zcat hgmd_pro-2020.4.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2021_1.bed
+#$ngsbits/BedSort -with_name -in HGMD_CNVS_2021_1.bed -out HGMD_CNVS_2021_1.bed
 
 
 #Install COSMIC Cancer Mutation Census CMC  (you need a license, CMC tsv.gz file has to be downloaded manually from https://cancer.sanger.ac.uk/cmc/download)
