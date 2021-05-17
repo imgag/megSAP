@@ -10,7 +10,6 @@ $parser = new ToolBase("db_converter_cancerhotspots", "Converts the CADD flat fi
 $parser->addInfile("in",  "Input file in tsv-format, copied from cancerhotspots.org xls-file", false, false);
 $parser->addInfile("maf", "Input with cancerhotspots.org variants in maf-format.", false, false);
 $parser->addOutfile("out",  "Output file in vcf.gz-format with CADD scores. ('-' for STDOUT)", true, "-");
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
 
