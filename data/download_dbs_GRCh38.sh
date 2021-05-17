@@ -109,12 +109,12 @@ wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/gnomad.geno
 wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/gnomad.genomes.r3.0.indel.tsv.gz.tbi > CADD_InDels_1.6_GRCh38.tsv.gz.tbi
 wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz > CADD_SNVs_1.6_GRCh38.tsv.gz
 wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz.tbi > CADD_SNVs_1.6_GRCh38.tsv.gz.tbi
-zcat CADD_InDels_1.6_GRCh38.tsv.gz | php $src/Tools/db_converter_cadd.php -build GRCh38 -in - -out - | VcfStreamSort | bgzip > CADD_InDels_1.6_GRCh38.vcf.gz
+zcat CADD_InDels_1.6_GRCh38.tsv.gz | php $src/Tools/db_converter_cadd.php -build GRCh38 -in - -out - | $ngsbits/VcfStreamSort | bgzip > CADD_InDels_1.6_GRCh38.vcf.gz
 tabix -f -p vcf CADD_InDels_1.6_GRCh38.vcf.gz
-zcat CADD_SNVs_1.6_GRCh38.tsv.gz | php $src/Tools/db_converter_cadd.php -build GRCh38 -in - -out - | VcfStreamSort | bgzip > CADD_SNVs_1.6_GRCh38.vcf.gz
+zcat CADD_SNVs_1.6_GRCh38.tsv.gz | php $src/Tools/db_converter_cadd.php -build GRCh38 -in - -out - | $ngsbits/VcfStreamSort | bgzip > CADD_SNVs_1.6_GRCh38.vcf.gz
 tabix -f -p vcf CADD_SNVs_1.6_GRCh38.vcf.gz
-VcfCheck -in CADD_InDels_1.6_GRCh38.vcf.gz -lines 0
-VcfCheck -in CADD_SNVs_1.6_GRCh38.vcf.gz -lines 0
+$ngsbits/VcfCheck -in CADD_InDels_1.6_GRCh38.vcf.gz -lines 0 –ref $genome
+$ngsbits/VcfCheck -in CADD_SNVs_1.6_GRCh38.vcf.gz -lines 0 –ref $genome
 
 # TODO: Find GRCh38 version or create liftover
 #Install fathmm-MKL for VEP - https://github.com/HAShihab/fathmm-MKL
