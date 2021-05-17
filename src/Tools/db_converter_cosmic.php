@@ -12,11 +12,15 @@ $parser->addOutfile("out",  "Output file in vcf.gz-format with CMC data.", false
 $parser->addString("build", "The genome build to use.", true, "GRCh37");
 extract($parser->parse($argv));
 
-
+//check
 if($build != "GRCh37" && $build != "GRCh38")
 {
 	trigger_error("COSMIC only contains annotation coordinates for GRCh37 and GRCh38.", E_USER_ERROR);
 }
+
+//init
+$ngsbits = get_path("ngs-bits");
+$genome_fa = genome_fasta($build, false);
 
 
 // open input file
@@ -32,7 +36,7 @@ $out_fp = fopen2($temp_file, "w");
 fwrite($out_fp, "##fileformat=VCFv4.2\n");
 fwrite($out_fp, "##fileDate=".date("Ymd")."\n");
 fwrite($out_fp, "##source={$in}\n");
-fwrite($out_fp, "##reference=".genome_fasta($build)."\n");
+fwrite($out_fp, "##reference={$genome_fa}\n");
 
 
 //get indices (header/first line of input file)
@@ -105,16 +109,16 @@ fclose($out_fp);
 
 //Normalize file and sort 
 $temp_file2 = temp_file(".vcf", "cosmic_cmc_normalized");
-$parser->exec(get_path("ngs-bits") . "/VcfLeftNormalize", " -in $temp_file -out $temp_file2 -ref " . genome_fasta($build) );
+$parser->exec("{$ngsbits}/VcfLeftNormalize", " -in $temp_file -out $temp_file2 -ref {$genome_fa}");
 
 $temp_file3 = temp_file(".vcf", "cosmic_cmc_normalized_sorted");
-$parser->exec(get_path("ngs-bits") . "/VcfSort", " -in $temp_file2 -out $temp_file3");
+$parser->exec("{$ngsbits}/VcfSort", " -in $temp_file2 -out $temp_file3");
 
 //remove columns after INFO columns and compress
 $parser->execPipeline([["cut -f1-8","$temp_file3"], ["bgzip" , " -c > $out"]], "trim and compress");
 $parser->exec("tabix" , "-p vcf $out");
 
 //Check converted VCF file
-$parser->exec(get_path("ngs-bits") . "/VcfCheck", "-in $out -ref " .genome_fasta($build), true);
+$parser->exec("{$ngsbits}/VcfCheck", "-in $out -ref {$genome_fa}", true);
 
 ?>
