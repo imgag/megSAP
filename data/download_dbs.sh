@@ -171,8 +171,8 @@ tabix -p vcf mmsplice_scores_2021_02_03.vcf.gz
 #tabix -p bed omim.bed.gz
 
 #Install HGMD (you need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
-#manual download of files hgmd_pro_2021.1_hg19.vcf and hgmd_pro-2021.1.dump.gz from https://apps.ingenuity.com/ingsso/login
-#cat hgmd_pro_2021.1_hg19.vcf | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2021_1_fixed.vcf.gz
+#manual download of files hgmd_pro_2021.1_hg38.vcf and hgmd_pro-2021.1.dump.gz from https://apps.ingenuity.com/ingsso/login
+#cat hgmd_pro_2021.1_hg38.vcf | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2021_1_fixed.vcf.gz
 #tabix -p vcf HGMD_PRO_2021_1_fixed.vcf.gz
 ##CNVs
 #zcat hgmd_pro-2020.4.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2021_1.bed
