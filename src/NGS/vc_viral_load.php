@@ -131,7 +131,7 @@ while ($line = fgets($handle))
     $fields[] = sprintf("%.4f", $fields[5] / $avg_target_cov);
 
     // mismatches
-    $region = implode("\t", array_slice($fields, 0, 3));
+    $region = $fields[0] . ":" . ($fields[1]+1) . "-" .  $fields[2];
     list($stdout) = $parser->exec(get_path("ngs-bits")."VcfFilter", "-in {$viral_vcf} -reg '{$region}'", false);
     $variant_count = 0;
 	foreach($stdout as $line)
