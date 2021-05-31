@@ -95,22 +95,24 @@ if ($is_patient_specific)
 		$res = $db->executeQuery("SELECT * FROM sample_relations WHERE relation='tumor-cfDNA' AND (sample1_id=:sid OR sample2_id=:sid)", array("sid" => $sample_id));
 
 		$psamples = [];
+		$ps_ids = [];
 		foreach ($res as $row)
 		{
 			$sample_id_annotation = $row['sample1_id'] != $sample_id ? $row['sample1_id'] : $row['sample2_id'];
-			$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND sys.type!='cfDNA (patient-specific)' AND (NOT ps.quality='bad') ORDER BY ps.process_id DESC", array("sid" => $sample_id_annotation));
+			$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample, ps.id FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND sys.type!='cfDNA (patient-specific)' AND (NOT ps.quality='bad') ORDER BY ps.process_id ASC", array("sid" => $sample_id_annotation));
 			$psamples = array_merge($psamples, array_column($res, 'psample'));
 		}
 		if (count($psamples) > 1)
 		{
 			trigger_error("Found more than one referenced tumor, using first one: " . implode(" ", $psamples), E_USER_WARNING);
 		}
-		elseif (count($psamples) === 0)
+		if (count($psamples) === 0)
 		{
 			trigger_error("Could not find any related tumor processed sample!", E_USER_ERROR);
 		}
 
 		$tumor_id = $psamples[0];
+		trigger_error("Tumor id extracted from the NGSD: ${tumor_id}", E_USER_NOTICE);
 		
 		if ($tumor_bam == "")
 		{
@@ -126,9 +128,9 @@ if ($is_patient_specific)
 		if ($tumor_id == "") trigger_error("Valid tumor id is required to get patient specific target region!", E_USER_ERROR);
 
 		$tumor_ps_id = get_processed_sample_id($db, $tumor_id);
-		$sys_id = $db->getValue("SELECT id FROM processing_system WHERE name_short=".$sys["name_short"]);
+		$sys_id = $db->getValue("SELECT id FROM processing_system WHERE name_short='".$sys["name_short"]."'");
 
-		$bed_content = $db->getValue("SELECT bed FROM cfdna_panel WHERE tumor_id=${tumor_ps_id} AND processing_system_id=${sys_id}");
+		$bed_content = $db->getValue("SELECT bed FROM cfdna_panels WHERE tumor_id=${tumor_ps_id} AND processing_system_id=${sys_id}");
 
 		//TODO: move to temp
 		$roi_patient = "{$folder}/{$name}_roi_patient.bed";
