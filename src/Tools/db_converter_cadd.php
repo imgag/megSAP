@@ -24,7 +24,7 @@ $out_fp = fopen2($out, "w");
 fwrite($out_fp, "##fileformat=VCFv4.2\n");
 fwrite($out_fp, "##fileDate=".date("Ymd")."\n");
 fwrite($out_fp, "##source={$in}\n");
-fwrite($out_fp, "##reference=".genome_fasta($build)."\n");
+fwrite($out_fp, "##reference=".genome_fasta($build, false)."\n");
 fwrite($out_fp, "##INFO=<ID=CADD,Number=1,Type=Float,Description=\"CADD PHRED score of this variant.\">\n");
 fwrite($out_fp, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
 
@@ -56,7 +56,7 @@ while(!feof($in_fp))
 		$pos -= 1;
 
 		// get previous base
-		$prev_base = get_ref_seq($build, $chr, $pos, $pos, 100000);
+		$prev_base = get_ref_seq($build, $chr, $pos, $pos, 100000, false);
 
 		// remove last base and add base in front:
 		$ref = $prev_base.substr($ref, 0, -1);

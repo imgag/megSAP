@@ -184,7 +184,7 @@ function annotate_mmsplice_score($splicing_output, $private_var_dict, $threshold
 	global $parser;
 
 	//annotate MMSplice score for all precalculated NGSD variants + frequent GnomAD variants
-	$mmsplice_file =  annotation_file_path("/dbs/MMSplice/mmsplice_scores.ngsd.13.12.20.vcf.gz");
+	$mmsplice_file =  annotation_file_path("/dbs/MMSplice/mmsplice_scores_2021_02_03.vcf.gz");
 	$mmsplice_annotated_from_dbs = false;
 	if (file_exists($mmsplice_file))
 	{
@@ -274,7 +274,7 @@ function annotate_spliceai_score($splicing_output, $private_var_dict, $threshold
 	global $parser;
 
 	//annotate SpliceAI score for all precalculated NGSD variants + frequent GnomAD variants
-	$spliceai_file =  annotation_file_path("/dbs/SpliceAI/spliceai_scores.ngsd.13.12.20.vcf.gz");
+	$spliceai_file =  annotation_file_path("/dbs/SpliceAI/spliceai_scores_2021_02_03.vcf.gz");
 	$spliceai_annotated_from_dbs = false;
 	if (file_exists($spliceai_file))
 	{
@@ -498,7 +498,7 @@ fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20210424_convert
 
 
 // add HGMD annotation
-$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2020_4_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
+$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2021_1_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
 if(file_exists($hgmd_file))
 {
 	fwrite($config_file, $hgmd_file."\tHGMD\tCLASS,MUT,GENE,PHEN\tID\n");

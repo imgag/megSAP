@@ -62,7 +62,7 @@ while(!feof($handle))
 	}
 	
 	//only genes with coorinates on right chromosome
-	list($stdout, $stderr, $exit_code) = exec2("echo '{$gene_approved}' | {$ngsbits}GenesToBed -source ensembl -mode gene -fallback | egrep '{$chr_omim}\s' | {$ngsbits}BedExtend -n 20 | {$ngsbits}BedMerge", false);
+	list($stdout, $stderr, $exit_code) = exec2("echo '{$gene_approved}' | {$ngsbits}GenesToBed -source ensembl -mode gene -fallback | egrep '{$chr_omim}\s' | {$ngsbits}BedExtend -n 5000 | {$ngsbits}BedMerge", false);
 	if ($exit_code!=0 && trim(implode("", $stdout))=="")
 	{
 		$skipped["approved gene not convertable to genomic coordinates"][] = $mim_id."/".$gene_approved."/".$chr_omim;

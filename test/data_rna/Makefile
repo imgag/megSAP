@@ -1,7 +1,7 @@
 all: clean prepare analyze_se diff_se analyze_pe diff_pe
 
 clean:
-	rm -rf *.log single_end paired_end paired_end_fusion
+	rm -rf *.log single_end paired_end
 
 prepare:
 	mkdir -p single_end
@@ -13,10 +13,6 @@ prepare:
 	ln -s ../analyze_rna_in2.fastq.gz paired_end/PE_L002_R1_001.fastq.gz
 	ln -s ../analyze_rna_in3.fastq.gz paired_end/PE_L001_R2_001.fastq.gz
 	ln -s ../analyze_rna_in4.fastq.gz paired_end/PE_L002_R2_001.fastq.gz
-
-	mkdir -p paired_end_fusion
-	ln -s ../analyze_rna_in5.fastq.gz paired_end_fusion/FU_L001_R1_001.fastq.gz 
-	ln -s ../analyze_rna_in6.fastq.gz paired_end_fusion/FU_L001_R2_001.fastq.gz
 
 analyze_se:
 	php ../../src/Pipelines/analyze_rna.php \
@@ -38,4 +34,4 @@ analyze_pe:
 diff_pe:
 	diff analyze_rna_out_pe.tsv paired_end/PE_counts.tsv
 	diff analyze_rna_out_pe_fusion.tsv paired_end/PE_var_fusions.tsv
-	diff analyze_rna_out_pe_fusion_manta.bedpe paired_end/PE_var_fusions_manta.bedpe
+	diff --ignore-matching-lines="^##" analyze_rna_out_pe_fusion_manta.bedpe paired_end/PE_var_fusions_manta.bedpe
