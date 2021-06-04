@@ -136,7 +136,37 @@ if ($is_patient_specific)
 		$roi_patient = "{$folder}/{$name}_roi_patient.bed";
 		file_put_contents($roi_patient, $bed_content);
 	}
-	
+
+
+	// create BED file with monitoring/ID variants
+	$bed_content = file($roi_patient);
+	$monitoring_bed_content = array();
+	foreach ($bed_content as $bed_line) 
+	{
+		if ((trim($bed_line) == "") || (starts_with($bed_line, "#"))) continue;
+
+		$split_line = explode("\t", $bed_line);
+		$type = "";
+		if (starts_with($split_line[3], "patient_specific_somatic_variant"))
+		{
+			$type = "M";
+		}
+		elseif (starts_with($split_line[3], "SNP_for_sample_identification"))
+		{
+			$type = "ID";
+		}
+		else
+		{
+			// unknown type
+			continue;
+		}
+
+		$monitoring_bed_content[] = implode("\t", array($split_line[0], $split_line[1], $split_line[2], $type));
+	}
+
+	// write to temp file
+	$monitoring_bed_file = $parser->tempFile("_monitoring.bed");
+	file_put_contents($monitoring_bed_file, implode("\n", $monitoring_bed_content));
 }
 
 //output file names:
@@ -195,11 +225,17 @@ if ($is_patient_specific)
 }
 else
 {
+	$roi_merged = $roi_base;
 	$roi_extended = "{$folder}/{$name}_regions.bed";
 	$pipeline = [];
 	$pipeline[] = [ get_path("ngs-bits")."BedExtend", "-in {$roi_base} -n {$base_extend}" ];
 	$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$roi_extended}" ];
 	$parser->execPipeline($pipeline, "extend BED files");
+
+	if ($roi_patient != "")
+	{
+		trigger_error("Patient-specific BED file is only supported for personalized cfDNA. Ignoring BED file '${roi_patient}'.", E_USER_WARNING);
+	} 
 }
 	
 
@@ -238,7 +274,7 @@ if (in_array("ma", $steps))
 	$parser->execTool("Pipelines/mapping.php", implode(" ", $args));
 
 	//low-coverage report, based on patient specific positions
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in {$roi_patient} -bam {$bamfile} -out {$lowcov_file} -cutoff {$lowcov_cutoff}", true);
+	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ${roi_merged} -bam ${bamfile} -out ${lowcov_file} -cutoff ${lowcov_cutoff}", true);
 	if (db_is_enabled("NGSD"))
 	{
 		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in {$lowcov_file} -clear -extend 25 -out {$lowcov_file}", true);
@@ -247,23 +283,27 @@ if (in_array("ma", $steps))
 	$parser->exec(get_path("ngs-bits")."MappingQC", "-roi {$roi_extended} -in {$bamfile} -out {$qc_map} -ref ".genome_fasta($sys['build']));
 }
 
-//check sample similarity with referenced tumor
-if ($tumor_bam != "")
+//check sample similarity with referenced tumor (only patient-specific)
+if ($is_patient_specific)
 {
-	if (count($kasp_regions) > 0)
+	if ($tumor_bam != "")
 	{
-		$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -roi {$roi_kasp}", true);
-		$correlation = explode("\t", $output[0][1])[3];
-		if ($correlation < $min_corr)
+		if (count($kasp_regions) > 0)
 		{
-			trigger_error("The genotype correlation of cfDNA and tumor is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
+			$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -roi {$roi_kasp}", true);
+			$correlation = explode("\t", $output[0][1])[3];
+			if ($correlation < $min_corr)
+			{
+				trigger_error("The genotype correlation of cfDNA and tumor is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
+			}
 		}
 	}
+	else
+	{
+		trigger_error("No related tumor BAM file available, skipping sample similarity check!", E_USER_WARNING);
+	}
 }
-else
-{
-	trigger_error("No related tumor BAM file available, skipping sample similarity check!", E_USER_WARNING);
-}
+
 
 //variant calling
 if (in_array("vc", $steps))
@@ -272,7 +312,7 @@ if (in_array("vc", $steps))
 		"-bam", $bamfile,
 		"-target", $roi_extended,
 		"-build", $sys['build'],
-		"-vcf", $vcffile,
+		"-folder", $folder."/umiVar",
 		"--log", $parser->getLogFile()
 	];
 	$model = get_path("data_folder")."/dbs/cfdna_caller/{$sys['name_short']}.txt";
@@ -280,10 +320,33 @@ if (in_array("vc", $steps))
 	{
 		$args[] = "-model {$model}";
 	}
+
+	if ($is_patient_specific)
+	{
+		$args[] = "-monitoring_bed ${monitoring_bed_file}";
+	}
 	$parser->execTool("NGS/vc_cfdna.php", implode(" ", $args));
 
+	//copy vcf (all variants for monitoring / filtered for normal cfDNA)
+	if ($is_patient_specific)
+	{
+		$parser->copyFile("{$folder}/umiVar/{$name}.vcf", $vcffile);
+	}
+	else
+	{
+		$parser->copyFile("{$folder}/umiVar/{$name}_hq.vcf", $vcffile);
+	}
+	
 	// mark off-target reads
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcffile -mark off-target -reg $roi_merged -out $vcffile", true);
+	if ($is_patient_specific)
+	{
+		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcffile -mark off-target -reg ${roi_patient} -out $vcffile", true);
+	}
+	else
+	{
+		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcffile -mark off-target -reg ${roi_merged} -out $vcffile", true);
+	}
+	
 }
 
 //annotation

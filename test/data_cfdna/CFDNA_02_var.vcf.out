@@ -1,0 +1,37 @@
+##fileformat=VCFv4.1
+##fileDate=04/06/2021
+##source=umiVar2
+##reference=/tmp/local_ngs_data/GRCh37.fa
+##INFO=<ID=Variant_Dist,Number=1,Type=Integer,Description="Distance to the closest short variant">
+##INFO=<ID=Upstream,Number=.,Type=String,Description="Upstream sequence (5 nucleotides)">
+##INFO=<ID=Downstream,Number=.,Type=String,Description="Downstream sequence (5 nucleotides)">
+##INFO=<ID=PValue,Number=.,Type=String,Description="Uncorrected p-value">
+##INFO=<ID=Variant_dist,Number=1,Type=String,Description="no description available">
+##INFO=<ID=Vicinity,Number=1,Type=String,Description="no description available">
+##FILTER=<ID=PASS,Description="Passed filter">
+##FILTER=<ID=Low_COV,Description="Low coverage">
+##FILTER=<ID=Strand_imbalanced,Description="All alternative reads found in only one strand">
+##FILTER=<ID=Low_AC,Description="Less than defined minimum of alternative counts">
+##FILTER=<ID=Clustered_Variant,Description="Clustered variants">
+##FILTER=<ID=LC_Upstream,Description="Low complexity region (5bps) upstream. ≥ 80% of bases show the same nucleotide or tandem of ≥ 3 equal nucleotides in a row">
+##FILTER=<ID=LC_Downstream,Description="Low complexity region (5bps) downstream. ≥ 80% of bases show the same nucleotide  or tandem of ≥ 3 equal nucleotides in a row">
+##FILTER=<ID=Error,Description="Alternative counts inside the expected error rate distribution">
+##FILTER=<ID=Fisher_Strand,Description="Strand bias based on fisher test">
+##FILTER=<ID=Low_qual_pos,Description="Position enriched with too many low quality bases">
+##FILTER=<ID=Variant_contamination,Description="Reads supporting other alleles outside of the error rate distribution">
+##FILTER=<ID=FDR,Description="no description available">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=AC,Number=.,Type=Integer,Description="Allele read counts">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=AF,Number=1,Type=Float,Description="Alternative allele fraction">
+##FORMAT=<ID=Perror,Number=1,Type=Float,Description="Q-value to belong to the error rate distribution (beta binomial distribution) - After FDR correction">
+##FORMAT=<ID=Strand,Number=1,Type=String,Description="Alleles in strands: Alternative forward, Alternative reverse, Reference forward, Reference reverse">
+##FORMAT=<ID=FS,Number=1,Type=Float,Description="Fisher strand test (q-value)">
+##FORMAT=<ID=VCB,Number=1,Type=Integer,Description="Variant Count bias, number of other different alternative alleles found">
+##FORMAT=<ID=Pvcb,Number=1,Type=Float,Description="Q-value for other alternative alleles to belong to the error rate distribution (beta binomial distribution) - After FDR correction">
+##FORMAT=<ID=Alt_Count,Number=1,Type=String,Description="no description available">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	CFDNA_02
+chr1	115256530	.	G	T	.	PASS	Variant_dist=30;Vicinity=TTCTTGTCCAG;PValue=1.93e-04	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:44:4238:0.010382:1.23e-02:28-16-3034-1160:1.00e+00:0:1.00e+00
+chr1	115256536	.	C	T	.	FDR	Variant_dist=6;Vicinity=TCCAGCTGTAT;PValue=6.27e-03	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:43:4430:0.009707:1.59e-01:14-29-3215-1170:4.28e-06:2:1.00e+00
+chr1	115256569	.	C	A	.	FDR;off-target	Variant_dist=8;Vicinity=TTCACCATCTA;PValue=1.03e-02	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:15:4898:0.003062:1.00e+00:1-14-3691-1191:4.15e-06:1:1.00e+00
