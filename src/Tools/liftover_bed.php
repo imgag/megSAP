@@ -21,6 +21,8 @@ foreach(file($in) as $line)
 {
 	$line = nl_trim($line);
 	if ($line=="") continue;
+	if (starts_with($line, "browser ")) continue;
+	if (starts_with($line, "track ")) continue;
 	
 	//header
 	if ($line[0]=="#")
