@@ -34,4 +34,3 @@
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	CFDNA_02
 chr1	115256530	.	G	T	.	PASS	Variant_dist=30;Vicinity=TTCTTGTCCAG;PValue=1.93e-04	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:44:4238:0.010382:1.23e-02:28-16-3034-1160:1.00e+00:0:1.00e+00
 chr1	115256536	.	C	T	.	FDR	Variant_dist=6;Vicinity=TCCAGCTGTAT;PValue=6.27e-03	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:43:4430:0.009707:1.59e-01:14-29-3215-1170:4.28e-06:2:1.00e+00
-chr1	115256569	.	C	A	.	FDR;off-target	Variant_dist=8;Vicinity=TTCACCATCTA;PValue=1.03e-02	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:15:4898:0.003062:1.00e+00:1-14-3691-1191:4.15e-06:1:1.00e+00

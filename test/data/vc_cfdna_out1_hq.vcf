@@ -1,5 +1,5 @@
 ##fileformat=VCFv4.1
-##fileDate=04/06/2021
+##fileDate=07/06/2021
 ##source=umiVar2
 ##reference=/tmp/local_ngs_data/GRCh37.fa
 ##INFO=<ID=Variant_Dist,Number=1,Type=Integer,Description="Distance to the closest short variant">
@@ -37,4 +37,3 @@ chr5	136633335	.	C	A	.	FDR;Clustered_Variant	Variant_dist=1;Vicinity=AAATCCTCGAG
 chr5	136633338	.	G	A	.	Clustered_Variant	Variant_dist=4;Vicinity=TCCTCGAGGAA;PValue=0.00e+00	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:1094:5467:0.20011:0.00e+00:505-589-2215-2154:1.00e+00:4:1.00e+00
 chr7	150439500	.	C	T	.	PASS	Variant_dist=49;Vicinity=CAGGCCGATAC;PValue=0.00e+00	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	0/1:3238:6775:0.477934:0.00e+00:1600-1638-1848-1689:1.00e+00:0:1.00e+00
 chr11	47346145	.	G	A	.	PASS	Variant_dist=47;Vicinity=CGGCAGCACGA;PValue=0.00e+00	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	0/1:2255:4657:0.484217:0.00e+00:1164-1091-1230-1172:1.00e+00:0:1.00e+00
-chr11	47346159	.	G	C	.	FDR	Variant_dist=14;Vicinity=TCCCTGTCGTT;PValue=1.82e-04	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:5:4795:0.001043:2.29e-01:4-1-2437-2353:1.00e+00:0:1.00e+00
