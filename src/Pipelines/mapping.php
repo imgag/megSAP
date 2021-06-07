@@ -429,7 +429,7 @@ if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 		$args[] = "-threads ".$threads;
 		if ($sys['type']=="WGS") //for WGS use exome target region
 		{
-			$args[] = "-roi ".repository_basedir()."/data/gene_lists/gene_exons_GRCh38_pad20.bed";
+			$args[] = "-roi ".repository_basedir()."/data/gene_lists/gene_exons_pad20.bed";
 		}
 		else if ($sys['target_file']!="")
 		{
