@@ -20,11 +20,8 @@ if (count($in)==1)
 }
 
 //process input files
-$samples_to_process = 0;
+$samples_processed = 0;
 $db = DB::getInstance("NGSD");
-
-$bed_files_filtered = array();
-
 foreach($in as $bed)
 {
 	$bed = trim($bed);
@@ -63,73 +60,88 @@ foreach($in as $bed)
 		continue;
 	}
 	
-	// add to BED file list
-	$bed_files_filtered[] = $bed;
-	++$samples_to_process;
+	++$samples_processed;
+	
+	//process low-coverage file
+	print "processing: $base\n";
+	$file = file($bed);
+	foreach($file as $line)
+	{
+		$line = trim($line);
+		if ($line=="" || $line[0]=="#") continue;
+		list($chr, $start, $end) = explode("\t", $line);			
+		for($p=$start; $p<$end; ++$p)
+		{
+			if (!isset($low[$chr."_".$p]))
+			{
+				$low[$chr."_".$p] = 0;
+			}
+			$low[$chr."_".$p] += 1;
+		}
+	}
 }
 
 //calculate threshold
-$thres = number_format($samples_to_process * $percentile / 100.0, 2);
+$thres = number_format($samples_processed * $percentile / 100.0, 2);
 
-// get chr list
-$chromosomes = array('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT');
-
-// create empty file
-file_put_contents($out, array());
-foreach ($chromosomes as $ref_chr) 
+//write output BED file
+$output = [];
+foreach($low as $pos => $count)
 {
-	print "processing: $ref_chr\n";
-	$low = array();
-	foreach ($bed_files_filtered as $bed) 
+	if ($count>=$thres)
 	{
-		//process low-coverage file
-		print "\t |--$bed\n";
-		$file = file($bed);
-		foreach($file as $line)
-		{
-			$line = trim($line);
-			if ($line=="" || $line[0]=="#") continue;
-			list($chr, $start, $end) = explode("\t", $line);
-			
-			//skip every other chr
-			if ($chr != $ref_chr) continue;
-
-			for($p=$start; $p<$end; ++$p)
-			{
-				if (!isset($low[$chr."_".$p]))
-				{
-					$low[$chr."_".$p] = 0;
-				}
-				$low[$chr."_".$p] += 1;
-			}
-		}
+		list($chr, $pos) = explode("_", $pos);
+		$output[] = "$chr\t$pos\t".($pos+1)."\n";
 	}
-	//write output BED file
-	$output = array();
-	foreach($low as $pos => $count)
-	{
-		if ($count>=$thres)
-		{
-			list($chr, $pos) = explode("_", $pos);
-			$output[] = "$chr\t$pos\t".($pos+1)."\t$count\n";
-		}
-	}
-	file_put_contents($out, $output, FILE_APPEND);
-	//merge after each chr to keep the file small
-	$parser->exec(get_path("ngs-bits")."BedMerge", "-in $out -out $out", false);
 }
+file_put_contents($out, $output);
 
+//pre-merge BED file (otherwise it can be too large for BedMerge)
+$i_chr = "";
+$i_start = -1;
+$i_end = -1;
+$output = [];
+foreach(file($out) as $line)
+{
+	$line = trim($line);
+	if ($line=="") continue;
+	
+	list($chr, $start, $end) = explode("\t", $line);
+	if ($i_start==-1) //init interval
+	{
+		$i_chr = $chr;
+		$i_start = $start;
+		$i_end = $end;
+	}
+	else
+	{
+		if ($i_chr==$chr && $i_end==$start) //next base > extend interval
+		{
+			$i_end = $end;
+		}
+		else //end of interval > write output and init next interval
+		{
+			$output[] = "$i_chr\t$i_start\t$i_end\n";
+			
+			$i_chr = $chr;
+			$i_start = $start;
+			$i_end = $end;
+		}
+	}
+}
+$output[] = "$i_chr\t$i_start\t$i_end\n";
+file_put_contents($out, $output);
 
 
 //merge regions
 $parser->exec(get_path("ngs-bits")."BedMerge", "-in $out -out $out", false);
 
 //annotate with gene names
-$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $out -out $out", false);
+$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $out -clear -out $out", false);
 
 //output
 print "input files: ".count($in)."\n";
-print "threshold: {$thres} of {$samples_to_process} processed samples\n";
+print "threshold: {$thres} of {$samples_processed} processed samples\n";
 list($stdout, $stderr) = exec2(get_path("ngs-bits")."BedInfo -in $out | grep Bases");
 list(,$bases) = explode(":", $stdout[0]);
 print "low-coverage bases: ".number_format($bases, 0)."\n";
