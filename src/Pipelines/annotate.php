@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("annotate", "Annotate variants called on genome build GRCh37.");
+$parser = new ToolBase("annotate", "Annotate variants called on genome build GRCh38.");
 $parser->addString("out_name", "Processed sample ID (e.g. 'GS120001_01').", false);
 $parser->addString("out_folder", "Output folder.", false);
 //optional
@@ -48,7 +48,7 @@ $stafile = $out_folder."/".$out_name."_stats_vc.qcML";
 
 //get system
 $sys = load_system($system, $out_name);
-if ($sys['build']!="GRCh37")
+if ($sys['build']!="GRCh38")
 {
 	trigger_error("Unknown genome build ".$sys['build']." cannot be annotated!", E_USER_ERROR);
 }
