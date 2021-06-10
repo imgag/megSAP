@@ -13,7 +13,7 @@ $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 
 // optional
-$parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
+$parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh38");
 $parser->addFloat("cn_offset", "Copy number between 2-offset and 2+offset will not be plotted to reduce the runtime of the script. Filter is deactivated if offset is 0.", true, 0.3);
 $parser->addInt("cnv_min_ll", "Minimum loglikelyhood for CNVs to be shown in the plot.", true, 20);
 $parser->addInt("cnv_min_nor", "Minimum number of regions for CNVs to be shown in the plot.", true, 3);

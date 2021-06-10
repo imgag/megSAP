@@ -532,7 +532,7 @@ else
 {
 	$params[] = "-roi ".$sys['target_file'];
 }
-if ($sys['build']!="GRCh37")
+if ($sys['build']!="GRCh38")
 {
 	$params[] = "-no_cont";
 }

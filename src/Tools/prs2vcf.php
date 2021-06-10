@@ -9,7 +9,7 @@ $parser = new ToolBase("prs2vcf", "Convert a PRS file from https://www.pgscatalo
 $parser->addInfile("in", "Input TXT file with PGS info.", false);
 $parser->addOutfile("out",  "Output VCF file.", false);
 //optional 
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 //init

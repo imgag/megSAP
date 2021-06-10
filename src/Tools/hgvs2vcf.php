@@ -9,7 +9,7 @@ $parser = new ToolBase("hgvs2vcf", "Convert a list of genomic HGVS.g variants to
 $parser->addInfile("in", "Input TXT file (one variant per line).", false);
 $parser->addOutfile("out",  "Output VCF file.", false);
 //optional
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 //write header

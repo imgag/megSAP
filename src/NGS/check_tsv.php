@@ -13,7 +13,7 @@ $parser = new ToolBase("check_tsv", "Performs TSV file format check.");
 $parser->addInfile("in",  "Input file in TSV format.", false);
 //optional
 $parser->addInt("limit", "The number of variants to check for format-specific checks. '0' means all.", true, 1000);
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 //define format in the following format: column index, name, type

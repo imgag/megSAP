@@ -15,7 +15,7 @@ $parser->addEnum("mode",  "Import mode.", true, array("germline", "somatic"), "g
 $parser->addFloat("max_af", "Maximum allele frequency for import of germline variants.", true, 0.05);
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addFlag("force", "Overwrites already existing DB entries instead of throwing an error.");
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 //returns a human-readable variant representation, e.g. chr5:749999393 A>G

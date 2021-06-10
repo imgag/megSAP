@@ -8,7 +8,7 @@ $parser->addInfile("bam",  "Input file in BAM format. Space separated. Note: .ba
 $parser->addOutfile("out", "Output file in VCF.GZ format.", false);
 //optional
 $parser->addInfile("target",  "Enrichment target BED file.", true);
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.02);
 $parser->addInt("min_dp", "Minimum depth cutoff for variant calling.", true, 20);
 $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 30);

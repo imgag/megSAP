@@ -9,7 +9,7 @@ $parser = new ToolBase("converter_Hgvs2Genomic", "Convert HGSV coordinates to ge
 $parser->addString("refseq",  "Refseq transcript ID.", false);
 $parser->addString("hgvs",  "cDNA position in HGVS format.", false);
 //optional
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 list($chr,$start,$end,$ref,$obs) = convert_hgvs2genomic($build, $refseq, $hgvs);

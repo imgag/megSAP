@@ -22,7 +22,7 @@ $parser->addInt("variant_position", "Coding (start) position of variant.", false
 $parser->addOutfile("out", "Output table in TSV format.", false);
 //optional
 $parser->addInt("variant_length", "Variant length.", true, 1);
-$parser->addString("build", "Genome build to use.", true, "GRCh37");
+$parser->addString("build", "Genome build to use.", true, "GRCh38");
 $parser->addOutfile("primer3", "Keep primer3 result file.", true);
 $parser->addOutfile("bam", "Keep primer alignment BAM file.", true);
 $parser->addInt("n", "Number of primer pairs to generate.", true, 3);

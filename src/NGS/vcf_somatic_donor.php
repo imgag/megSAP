@@ -15,7 +15,7 @@ $parser->addInfile("in_somatic", "Input somatic variant file (VCF).", false);
 $parser->addInfileArray("in_donor", "Donor sample BAM file(s).", false);
 $parser->addOutfile("out_vcf", "Output somatic variant file (VCF).", false);
 //optional
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 $tmp_vaf_in = $in_somatic;

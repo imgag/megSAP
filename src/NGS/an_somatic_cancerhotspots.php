@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("an_somatic_cancerhotspots", "Variant annotation with somatc cancer hot spots from cancerhotspots.org.");
 $parser->addInfile("in",  "Input file in VCF format (VEP annotation mandatory).", false);
 $parser->addOutfile("out", "Output file in VCF format.", false);
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 //get index of columnn in QSC header.

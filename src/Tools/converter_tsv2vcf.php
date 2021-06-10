@@ -11,7 +11,7 @@ $parser->addOutfile("out",  "Output file in vcf-format.", false);
 // optional
 $parser->addStringArray("info",  "Column names that should be included into the INFO part of the vcf file [space separated].", true);
 $parser->addFlag("qci",  "Add allele counts '0,0'.");
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 // header

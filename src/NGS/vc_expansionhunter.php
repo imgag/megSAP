@@ -14,7 +14,7 @@ $parser = new ToolBase("vc_expansionhunter", "Call repeat expansions with Expans
 $parser->addInfile("in", "Input BAM file.", false);
 $parser->addOutfile("out", "Output VCF file.", false);
 //optional
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("pid", "Processed sample name (e.g. 'GS120001_01'). If unset BAM file name will be used", true);
 extract($parser->parse($argv));
 

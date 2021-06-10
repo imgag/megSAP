@@ -27,14 +27,14 @@ foreach($res as $row)
 	$obs = $row['obs'];
 	if ($ref=='-') //insertion
 	{
-		$base = get_ref_seq("GRCh37", $chr, $pos, $pos);
+		$base = get_ref_seq("GRCh38", $chr, $pos, $pos);
 		$ref = $base;
 		$obs = $base.$obs;
 	}
 	else if ($obs=='-') //deletion
 	{
 		$pos -= 1;
-		$base = get_ref_seq("GRCh37", $chr, $pos, $pos);
+		$base = get_ref_seq("GRCh38", $chr, $pos, $pos);
 		$obs = $base;
 		$ref = $base.$ref;
 	}
