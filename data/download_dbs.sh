@@ -116,14 +116,6 @@ tabix -f -p vcf CADD_SNVs_1.6_GRCh38.vcf.gz
 $ngsbits/VcfCheck -in CADD_InDels_1.6_GRCh38.vcf.gz -lines 0 –ref $genome
 $ngsbits/VcfCheck -in CADD_SNVs_1.6_GRCh38.vcf.gz -lines 0 –ref $genome
 
-# TODO: Find GRCh38 version or create liftover
-#Install fathmm-MKL for VEP - https://github.com/HAShihab/fathmm-MKL
-# cd $dbs
-# mkdir fathmm-MKL
-# cd fathmm-MKL
-# wget http://fathmm.biocompute.org.uk/database/fathmm-MKL_Current.tab.gz
-# tabix -p bed fathmm-MKL_Current.tab.gz
-
 #Install REVEL for VEP - https://sites.google.com/site/revelgenomics/downloads
 cd $dbs
 mkdir REVEL
@@ -139,12 +131,8 @@ cd dbscSNV
 wget ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbscSNV1.1.zip
 unzip dbscSNV1.1.zip
 head -n1 dbscSNV1.1.chr1 > h
-# cat dbscSNV1.1.chr* | grep -v ^chr | cat h - | bgzip -c > dbscSNV1.1_GRCh37.txt.gz
-# tabix -s 1 -b 2 -e 2 -c c dbscSNV1.1_GRCh37.txt.gz
 cat dbscSNV1.1.chr* | grep -v ^chr | sort -k5,5 -k6,6n | cat h - | awk '$5 != "."' | bgzip -c > dbscSNV1.1_GRCh38.txt.gz
 tabix -s 5 -b 6 -e 6 -c c dbscSNV1.1_GRCh38.txt.gz
-
-
 
 #GiaB NA12878 reference data
 cd $dbs
@@ -154,21 +142,19 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GR
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-10X-SOLID_CHROM1-X_v.3.3.2_highconf_PGandRTGphasetransfer.vcf.gz.tbi -O high_conf_variants_GRCh38.vcf.gz.tbi
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-10X-SOLID_CHROM1-X_v.3.3.2_highconf_nosomaticdel_noCENorHET7.bed -O high_conf_regions_GRCh38.bed
 
-# TODO: Create GRCh38 version
 #download annotation file for SpliceAI
-# cd $dbs
-# mkdir SpliceAI
-# cd SpliceAI
-# wget https://download.imgag.de/ahsturm1/spliceai_scores_2021_02_03.vcf.gz -O spliceai_scores_2021_02_03.vcf.gz
-# tabix -p vcf spliceai_scores_2021_02_03.vcf.gz
+cd $dbs
+mkdir SpliceAI
+cd SpliceAI
+wget https://download.imgag.de/ahsturm1/spliceai_scores_2021_02_03_GRCh38.vcf.gz -O spliceai_scores_2021_02_03_GRCh38.vcf.gz
+tabix -p vcf spliceai_scores_2021_02_03_GRCh38.vcf.gz
 
-# TODO: Create GRCh38 version
 #download annotation file for MMSplice
-# cd $dbs
-# mkdir MMSplice
-# cd MMSplice
-# wget https://download.imgag.de/ahsturm1/mmsplice_scores_2021_02_03.vcf.gz -O mmsplice_scores_2021_02_03.vcf.gz
-# tabix -p vcf mmsplice_scores_2021_02_03.vcf.gz
+cd $dbs
+mkdir MMSplice
+cd MMSplice
+wget https://download.imgag.de/ahsturm1/mmsplice_scores_2021_02_03_GRCh38.vcf.gz -O mmsplice_scores_2021_02_03_GRCh38.vcf.gz
+tabix -p vcf mmsplice_scores_2021_02_03_GRCh38.vcf.gz
 
 #install OMIM (you might need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
 #cd $dbs

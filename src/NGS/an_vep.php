@@ -184,7 +184,7 @@ function annotate_mmsplice_score($splicing_output, $private_var_dict, $threshold
 	global $parser;
 
 	//annotate MMSplice score for all precalculated NGSD variants + frequent GnomAD variants
-	$mmsplice_file =  annotation_file_path("/dbs/MMSplice/mmsplice_scores_2021_02_03.vcf.gz");
+	$mmsplice_file =  annotation_file_path("/dbs/MMSplice/mmsplice_scores_2021_02_03_GRCh38.vcf.gz");
 	$mmsplice_annotated_from_dbs = false;
 	if (file_exists($mmsplice_file))
 	{
@@ -274,7 +274,7 @@ function annotate_spliceai_score($splicing_output, $private_var_dict, $threshold
 	global $parser;
 
 	//annotate SpliceAI score for all precalculated NGSD variants + frequent GnomAD variants
-	$spliceai_file =  annotation_file_path("/dbs/SpliceAI/spliceai_scores_2021_02_03.vcf.gz");
+	$spliceai_file =  annotation_file_path("/dbs/SpliceAI/spliceai_scores_2021_02_03_GRCh38.vcf.gz");
 	$spliceai_annotated_from_dbs = false;
 	if (file_exists($spliceai_file))
 	{
@@ -398,18 +398,15 @@ $args[] = "--sift b --polyphen b"; //pathogenicity predictions
 $args[] = "--af --af_gnomad --failed 1"; //population frequencies
 $args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_grch38_all_chromosomes.tsv.gz"); //REVEL
 $fields[] = "REVEL";
-$args[] = "--plugin FATHMM_MKL,".annotation_file_path("/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz"); //fathmm-MKL
-$fields[] = "FATHMM_MKL_C";
-$fields[] = "FATHMM_MKL_NC";
 $args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
 $fields[] = "MaxEntScan_ref";
 $fields[] = "MaxEntScan_alt";
-$args[] = "--plugin dbscSNV,".annotation_file_path("/dbs/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"); //dbscSNV
+$args[] = "--plugin dbscSNV,".annotation_file_path("/dbs/dbscSNV/dbscSNV1.1_GRCh38.txt.gz"); //dbscSNV
 $fields[] = "ada_score";
 $fields[] = "rf_score";;
 $args[] = "--custom ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed.gz").",REPEATMASKER,bed,overlap,0"; //RepeatMasker
 $fields[] = "REPEATMASKER";
-$args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg38.100way.phyloP100way.bw").",PHYLOP,bigwig"; //phyloP
+$args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw").",PHYLOP,bigwig"; //phyloP
 $fields[] = "PHYLOP";
 
 $omim_file = annotation_file_path("/dbs/OMIM/omim.bed.gz", true); //OMIM annotation (optional because of license)
