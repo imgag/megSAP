@@ -3,6 +3,8 @@ help:
 
 ########################## error regions based on trios ##########################
 
+//TODO data folder and ngs-bits path as variable > GRCh38
+
 trios:
 	php trios.php > trios.tsv
 
@@ -30,7 +32,7 @@ twin_errors:
 ########################## gnomAD AC=0 and RF ##########################
 
 gnomad:
-	php gnomad.php /mnt/share/data/dbs/gnomAD/gnomAD_genome_r2.1.1.vcf.gz AC0,RF 2 gnomAD_filter.bed
+	php gnomad.php /mnt/share/data/dbs/gnomAD/gnomAD_genome_r2.1.1_GRCh38.vcf.gz AC0,RF 2 gnomAD_filter.bed
 	BedExtend -n 5 -in gnomAD_filter.bed | BedMerge | BedShrink -n 6 | BedExtend -n 1  > gnomAD_filter_moc5.bed
 	BedSubtract -in /mnt/share/data/enrichment/WGS_hg19.bed -in2 gnomAD_filter_moc5.bed -out gnomAD_filter_moc5_high_conf.bed
 

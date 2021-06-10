@@ -487,7 +487,7 @@ $config_file = fopen($config_file_path, 'w');
 
 
 // add gnomAD annotation
-fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_r2.1.1.vcf.gz")."\tgnomADg\tAF,Hom,Hemi\t\ttrue\n");
+fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_r2.1.1_GRCh38.vcf.gz")."\tgnomADg\tAF,Hom,Hemi\t\ttrue\n");
 
 
 // add clinVar annotation
