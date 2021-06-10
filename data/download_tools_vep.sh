@@ -8,9 +8,9 @@ tools=$root/tools/
 dbs=$root/dbs/
 
 #Ignore this - used for local installation
-# tools=/mnt/share/opt/
+tools=/mnt/storage2/GRCh38/share/opt/
 # tools=/home/bioinf/
-# dbs=/mnt/share/data/dbs/
+dbs=/mnt/storage2/GRCh38/share/data/dbs/
 
 vep_install_dir=$tools/ensembl-vep-release-103.1/
 vep_cpan_dir=$vep_install_dir/cpan/
@@ -47,13 +47,13 @@ mkdir -p $vep_data_dir
 cd $vep_data_dir
 mkdir -p ftp
 cd ftp
-wget ftp://ftp.ensembl.org/pub/release-103/variation/indexed_vep_cache/homo_sapiens_vep_103_GRCh37.tar.gz
-wget ftp://ftp.ensembl.org/pub/release-103/variation/indexed_vep_cache/homo_sapiens_refseq_vep_103_GRCh37.tar.gz
+wget ftp://ftp.ensembl.org/pub/release-103/variation/indexed_vep_cache/homo_sapiens_vep_103_GRCh38.tar.gz
+wget ftp://ftp.ensembl.org/pub/release-103/variation/indexed_vep_cache/homo_sapiens_refseq_vep_103_GRCh38.tar.gz
 
 #install ensembl-vep
 PERL5LIB=$vep_install_dir/Bio/:$vep_cpan_dir/lib/perl5/:$PERL5LIB
 cd $vep_install_dir
-perl INSTALL.pl --SPECIES homo_sapiens,homo_sapiens_refseq --ASSEMBLY GRCh37 --AUTO acp --PLUGINS REVEL,FATHMM_MKL,CADD,dbscSNV,MaxEntScan --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST
+perl INSTALL.pl --SPECIES homo_sapiens,homo_sapiens_refseq --ASSEMBLY GRCh38 --AUTO acp --PLUGINS REVEL,FATHMM_MKL,CADD,dbscSNV,MaxEntScan --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST --NO_HTSLIB
 cp $vep_data_dir/cache/Plugins/*.pm $vep_install_dir/modules/ #should not be necessary - probably a bug in the VEP installation script when using the CACHEDIR option (MS)
 
 # install MaxEntScan (for MaxEntScan plugin)
