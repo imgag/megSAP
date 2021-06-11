@@ -28,6 +28,8 @@ strelka2 = [path]/data/tools/strelka-2.9.9.centos6_x86_64/bin/
 varscan2 = java -jar [path]/data/tools/VarScan.v2.4.4/VarScan.v2.4.4.jar
 manta = [path]/data/tools/manta-1.6.0.centos6_x86_64/bin/
 mantis = [path]/data/tools/MANTIS-1.0.5/mantis.py
+mipgen = [path]/data/tools/MIPGEN/mipgen
+umiVar2 = [path]/data/tools/umiVar2/
 
 [tools-ngs-rna]
 STAR = [path]/data/tools/STAR-2.7.3a/bin/Linux_x86_64/STAR

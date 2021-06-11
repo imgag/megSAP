@@ -135,3 +135,8 @@
 /test/data_cfdna/*.tsv
 /test/data_cfdna/*.vcf
 /test/data_cfdna/*.log
+/test/data_cfdna/*.GSvar
+/test/data_cfdna/*.vcf.gz
+/test/data_cfdna/*.vcf.gz.tbi
+/test/data_cfdna/CFDNA_01
+/test/data_cfdna/CFDNA_02
