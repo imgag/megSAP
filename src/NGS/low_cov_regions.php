@@ -85,16 +85,53 @@ foreach($in as $bed)
 $thres = number_format($samples_processed * $percentile / 100.0, 2);
 
 //write output BED file
-$output = array();
+$output = [];
 foreach($low as $pos => $count)
 {
 	if ($count>=$thres)
 	{
 		list($chr, $pos) = explode("_", $pos);
-		$output[] = "$chr\t$pos\t".($pos+1)."\t$count\n";
+		$output[] = "$chr\t$pos\t".($pos+1)."\n";
 	}
 }
 file_put_contents($out, $output);
+
+//pre-merge BED file (otherwise it can be too large for BedMerge)
+$i_chr = "";
+$i_start = -1;
+$i_end = -1;
+$output = [];
+foreach(file($out) as $line)
+{
+	$line = trim($line);
+	if ($line=="") continue;
+	
+	list($chr, $start, $end) = explode("\t", $line);
+	if ($i_start==-1) //init interval
+	{
+		$i_chr = $chr;
+		$i_start = $start;
+		$i_end = $end;
+	}
+	else
+	{
+		if ($i_chr==$chr && $i_end==$start) //next base > extend interval
+		{
+			$i_end = $end;
+		}
+		else //end of interval > write output and init next interval
+		{
+			$output[] = "$i_chr\t$i_start\t$i_end\n";
+			
+			$i_chr = $chr;
+			$i_start = $start;
+			$i_end = $end;
+		}
+	}
+}
+$output[] = "$i_chr\t$i_start\t$i_end\n";
+file_put_contents($out, $output);
+
 
 //merge regions
 $parser->exec(get_path("ngs-bits")."BedMerge", "-in $out -out $out", false);

@@ -8,8 +8,8 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 $parser = new ToolBase("liftover_bed", "Lift-over from.");
 $parser->addInfile("in", "Input BED file.", false);
 $parser->addOutfile("out", "Input BED file.", false);
-$parser->addInt("max_size_dev", "Maximum size deviation.", true, 5);
-$parser->addInt("max_size_dev_perc", "Maximum size deviation in percent.", true, 2);
+$parser->addInt("max_size_inc", "Maximum size increase.", true, 10);
+$parser->addInt("max_size_inc_perc", "Maximum size increase in percent.", true, 2);
 extract($parser->parse($argv));
 
 $tmp_in = temp_file(".bed");
@@ -21,6 +21,8 @@ foreach(file($in) as $line)
 {
 	$line = nl_trim($line);
 	if ($line=="") continue;
+	if (starts_with($line, "browser ")) continue;
+	if (starts_with($line, "track ")) continue;
 	
 	//header
 	if ($line[0]=="#")
@@ -50,7 +52,7 @@ foreach(file($in) as $line)
 	$size_after = $end2-$start2;
 	$size_diff = abs($size_before-$size_after);
 	$size_diff_perc = 100.0 * $size_diff / $size_before;
-	if ($size_diff>$max_size_dev && $size_diff_perc>$max_size_dev_perc)
+	if ($size_after>$size_before && $size_diff>$max_size_inc && $size_diff_perc>$max_size_inc_perc)
 	{
 		print "Error - different size after mapping (from ".($end-$start)." to ".($end2-$start2)."): $line\n";
 		continue;
