@@ -406,8 +406,6 @@ while(!feof($handle))
 			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_phylop = index_of($cols, "PHYLOP", false);
 			$i_revel = index_of($cols, "REVEL", false);
-			$i_fathmm_c = index_of($cols, "FATHMM_MKL_C");
-			$i_fathmm_nc = index_of($cols, "FATHMM_MKL_NC");
 			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_existingvariation = index_of($cols, "Existing_variation");
 			$i_af_kg = index_of($cols, "AF");
@@ -783,10 +781,7 @@ while(!feof($handle))
 			}
 			$revel_score = trim($parts[$i_revel]);
 			if ($revel_score!="") $revel[] = $revel_score;
-			$fathmm_c = trim($parts[$i_fathmm_c]);
-			$fathmm_nc = trim($parts[$i_fathmm_nc]);
-			$fathmm[] = ($fathmm_c=="" && $fathmm_nc=="") ? "" : number_format($fathmm_c, 2).",".number_format($fathmm_nc, 2);
-			
+
 			//######################### transcript-specific information #########################
 			
 			//only transcripts
@@ -1060,7 +1055,9 @@ while(!feof($handle))
 	if (isset($info["gnomADg_AF"]))
 	{
 		$gnomad_value = trim($info["gnomADg_AF"]);
-		$af_gnomad_genome[] = $gnomad_value=="." ? "" : $gnomad_value;
+		
+		$af_gnomad_genome[] = max(explode("&", $gnomad_value)); //some variants are contained twice, e.g. chr1:13260152 C>A
+		//$af_gnomad_genome[] = $gnomad_value=="." ? "" : $gnomad_value; //TODO test if we can go back to this version when switching to gnomAD 3.1
 	}
 	if (isset($info["gnomADg_Hom"])) $hom_gnomad[] = trim($info["gnomADg_Hom"]);
 	if (isset($info["gnomADg_Hemi"])) $hemi_gnomad[] = trim($info["gnomADg_Hemi"]);

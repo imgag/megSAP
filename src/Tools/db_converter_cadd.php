@@ -41,7 +41,7 @@ while(!feof($in_fp))
 	$split_line = explode("\t", $line);
 	if (count($split_line) != 6)
 	{
-		trigger_error("Invalid number of columns (".count($split_line).")!", E_USER_ERROR);
+		trigger_error("Invalid number of columns (".count($split_line).") in line: $line", E_USER_ERROR);
 	}
 	$chr = "chr".chr_trim($split_line[0]);
 	$pos = (int) $split_line[1];

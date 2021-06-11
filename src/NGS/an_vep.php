@@ -184,7 +184,7 @@ function annotate_mmsplice_score($splicing_output, $private_var_dict, $threshold
 	global $parser;
 
 	//annotate MMSplice score for all precalculated NGSD variants + frequent GnomAD variants
-	$mmsplice_file =  annotation_file_path("/dbs/MMSplice/mmsplice_scores_2021_02_03_GRCh38.vcf.gz");
+	$mmsplice_file =  annotation_file_path("/dbs/MMSplice/mmsplice_scores_2021_06_11_GRCh38.vcf.gz");
 	$mmsplice_annotated_from_dbs = false;
 	if (file_exists($mmsplice_file))
 	{
@@ -274,7 +274,7 @@ function annotate_spliceai_score($splicing_output, $private_var_dict, $threshold
 	global $parser;
 
 	//annotate SpliceAI score for all precalculated NGSD variants + frequent GnomAD variants
-	$spliceai_file =  annotation_file_path("/dbs/SpliceAI/spliceai_scores_2021_02_03_GRCh38.vcf.gz");
+	$spliceai_file =  annotation_file_path("/dbs/SpliceAI/spliceai_scores_2021_06_11_GRCh38.vcf.gz");
 	$spliceai_annotated_from_dbs = false;
 	if (file_exists($spliceai_file))
 	{

@@ -234,7 +234,7 @@ if ($build=="GRCh38")
 		print "rsync-ing annotation databases...\n";
 		
 		//determine databases to sync
-		$db_files = array("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz", "/dbs/REVEL/revel_grch38_all_chromosomes.tsv.gz", "/dbs/dbscSNV/dbscSNV1.1_GRCh38.txt.gz", "/dbs/gnomAD/gnomAD_genome_r2.1.1_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed.gz", "/dbs/ClinVar/clinvar_20210424_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2021_02_03_GRCh38.vcf.gz", "/dbs/MMSplice/mmsplice_scores_2021_02_03_GRCh38.vcf.gz");
+		$db_files = array("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz", "/dbs/REVEL/revel_grch38_all_chromosomes.tsv.gz", "/dbs/dbscSNV/dbscSNV1.1_GRCh38.txt.gz", "/dbs/gnomAD/gnomAD_genome_r2.1.1_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed.gz", "/dbs/ClinVar/clinvar_20210424_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2021_06_11_GRCh38.vcf.gz", "/dbs/MMSplice/mmsplice_scores_2021_06_11_GRCh38.vcf.gz");
 		$omim =  "/dbs/OMIM/omim.bed.gz";
 		if (file_exists($data_folder.$omim)) $db_files[] = $omim; //optional
 		$hgmd =  "/dbs/HGMD/HGMD_PRO_2021_1_fixed.vcf.gz";
