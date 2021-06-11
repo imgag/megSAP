@@ -1,5 +1,4 @@
 ##fileformat=VCFv4.1
-##fileDate=07/06/2021
 ##source=umiVar2
 ##reference=/tmp/local_ngs_data/GRCh37.fa
 ##INFO=<ID=Variant_Dist,Number=1,Type=Integer,Description="Distance to the closest short variant">

@@ -14,8 +14,10 @@ $vcf = output_folder()."/${name}_in1.vcf";
 $vcf_hq = output_folder()."/${name}_in1_hq.vcf";
 $tsv_id = output_folder()."/${name}_in1_ID.tsv";
 $tsv_mon = output_folder()."/${name}_in1_monitoring.tsv";
-//print "php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in1.bam -target ".data_folder().$name."_in1_roi.bed -build GRCh37 -folder ".output_folder()." -monitoring_bed ".data_folder().$name."_in1_monitoring.bed --log ".output_folder().$name."_out1.log";
 check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in1.bam -target ".data_folder().$name."_in1_roi.bed -build GRCh37 -folder ".output_folder()." -monitoring_bed ".data_folder().$name."_in1_monitoring.bed");
+//remove file date
+exec2("sed -i '/^##fileDate/d' ".$vcf);
+exec2("sed -i '/^##fileDate/d' ".$vcf_hq);
 check_file($vcf, data_folder().$name."_out1.vcf");
 check_file($vcf_hq, data_folder().$name."_out1_hq.vcf");
 check_file($tsv_id, data_folder().$name."_out1_ID.tsv");
