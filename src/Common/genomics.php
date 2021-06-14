@@ -1785,5 +1785,95 @@ function aa1_to_aa3($one_letter_notation)
 	return strtr($one_letter_notation, $GLOBALS["aa1_to_aa3"]);
 }
 
+//determines genome build of a BAM file
+function get_genome_build($bamfile)
+{
+	list($stdout, $stderr, $exit) = exec2(get_path("samtools")." view -H $bamfile | egrep '^@PG' ");
+
+	if ((trim(implode("\n", $stderr)) != "" ) || ($exit != 0))
+	{
+		print "Exit code: $exit\n";
+		print "Stderr: \n".implode("\n", $stderr);
+		trigger_error("Error parsing header of BAM file '$bamfile'!", E_USER_ERROR);
+	} 
+
+	$builds = array();
+
+	foreach($stdout as $line)
+	{
+		$split_line = explode("\t", trim($line));
+		if ($split_line[0] == "@PG")
+		{
+			if (($split_line[1] == "ID:bwa") || ($split_line[1] == "ID:bwa-mem2"))
+			{
+				$build = "";
+				// parse genome build from bwa command line
+				foreach($split_line as $column)
+				{
+					if (starts_with($column, "CL:"))
+					{
+						$ref_file_path = explode(" ", $column)[2];
+						$build = basename($ref_file_path, ".fa");
+						break;
+					}
+				}
+				if ($build == "") 
+				{
+					trigger_error("Warning: Couldn't determine genome build for bwa-mem(2) mapping");
+				}
+				else
+				{
+					$builds[] = $build;
+				}
+			}
+			elseif ($split_line[1] == "ID: Hash Table Build")
+			{
+				$build = "";
+				// parse genome build from ABRA2 command line
+				foreach($split_line as $column)
+				{
+					if (starts_with($column, "CL:"))
+					{
+						$cl = explode(" ", $column);
+						$ref_file_path = "";
+						for ($i=0; $i < count($cl); $i++) 
+						{ 
+							if($cl[$i] == "--ht-reference")
+							{
+								$ref_file_path = $cl[$i + 1];
+								break;
+							}
+						}
+						if ($ref_file_path != "") 
+						{
+							$build = basename($ref_file_path, ".fa");
+							break;
+						}
+					}
+				}
+				if ($build == "") 
+				{
+					trigger_error("Warning: Couldn't determine genome build for bwa-mem(2) mapping");
+				}
+				else
+				{
+					$builds[] = $build;
+				}
+			}
+		}
+	}
+
+	if (count($builds) < 1) 
+	{
+		trigger_error("Could not determine genome build of BAM file '$bamfile'!", E_USER_WARNING);
+		return "";
+	}
+
+	$builds = array_unique($builds);
+
+	if (count($builds) > 1) trigger_error("BAM header contains inconsistent genome information!", E_USER_ERROR);
+
+	return $builds[0];
+}
 
 ?>

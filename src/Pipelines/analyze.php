@@ -30,6 +30,12 @@ $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead o
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
+$output_folder_exists = true;
+if (!file_exists($folder))
+{
+	$output_folder_exists = false;
+	exec2("mkdir -p $folder");
+}
 if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_".date("YmdHis").".log");
 
 //init
@@ -182,9 +188,38 @@ if (!$annotation_only && !in_array("ma", $steps))
 	}
 }
 
+// verify that genome build of BAM matches given genome build
+if (!in_array("ma", $steps) && (in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)))
+{
+	$bam_genome_build = get_genome_build($bamfile);
+	if ($bam_genome_build != "" && !starts_with($bam_genome_build, $sys['build']))
+	{
+		trigger_error("Genome build of BAM file ('${bam_genome_build}') does not match genome build of analysis ('".$sys['build']."')!", E_USER_ERROR);
+	}
+}
+
 //mapping
 if (in_array("ma", $steps))
 {
+	// BAM file path to convert to FastQ
+	$bamfile_to_convert = $bamfile;
+
+	// fallback for remapping GRCh37 samples to GRCh38
+	if (!$output_folder_exists && ($sys['build'] == "GRCh38"))
+	{
+		if (!db_is_enabled("NGSD")) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
+		$db = DB::getInstance("NGSD", false);
+		$info = get_processed_sample_info($db, $name, false);
+
+		// determine project folder of GRCh37 
+		$bamfile_to_convert = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/${name}.bam";
+
+		// check if bam file exists
+		if (!file_exists($bamfile_to_convert)) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
+
+		trigger_error("Output folder does not exists. Using BAM file from GRCh37 as input!", E_USER_NOTICE);	
+	}
+
 	//determine input FASTQ files
 	$in_for = $folder."/*_R1_00?.fastq.gz";
 	$in_rev = $folder."/*_R2_00?.fastq.gz";
@@ -202,7 +237,7 @@ if (in_array("ma", $steps))
 	{
 		if (count($files1)==0)
 		{
-			if(file_exists($bamfile))
+			if(file_exists($bamfile_to_convert))
 			{
 				trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files.", E_USER_NOTICE);
 
@@ -211,7 +246,7 @@ if (in_array("ma", $steps))
 				$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
 				$tmp1 = $parser->tempFile(".fastq.gz");
 				$tmp2 = $parser->tempFile(".fastq.gz");
-				$parser->exec("{$ngsbits}BamToFastq", "-in $bamfile -out1 $tmp1 -out2 $tmp2", true);
+				$parser->exec("{$ngsbits}BamToFastq", "-in $bamfile_to_convert -out1 $tmp1 -out2 $tmp2", true);
 				$parser->moveFile($tmp1, $in_fq_for);
 				$parser->moveFile($tmp2, $in_fq_rev);
 				
