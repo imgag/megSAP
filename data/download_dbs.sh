@@ -157,6 +157,12 @@ cd MMSplice
 wget https://download.imgag.de/ahsturm1/mmsplice_scores_2021_06_11_GRCh38.vcf.gz -O mmsplice_scores_2021_06_11_GRCh38.vcf.gz
 tabix -p vcf mmsplice_scores_2021_06_11_GRCh38.vcf.gz
 
+#download Ensembl gene information (for MMsplice)
+cd $dbs
+mkdir Ensembl
+cd Ensembl
+wget -O - http://ftp.ensembl.org/pub/release-104/gtf/homo_sapiens/Homo_sapiens.GRCh38.104.gtf.gz | gunzip > Homo_sapiens.GRCh38.104.gtf
+
 #install OMIM (you might need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
 #cd $dbs
 #mkdir OMIM
