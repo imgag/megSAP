@@ -226,7 +226,7 @@ function annotate_mmsplice_score($splicing_output, $private_var_dict, $threshold
 		$args[] = "--threads {$threads}"; //fasta reference file
 		putenv("PYTHONPATH");
 		$parser->exec("OMP_NUM_THREADS={$threads} {$splice_env}/splice_env/bin/python3 ".repository_basedir()."/src/Tools/vcf_mmsplice_predictions.py", implode(" ", $args), true);
-		$mmsplice_annotated = True;
+		$mmsplice_annotated = true;
 	}
 	else if($private_variant_count > 0)
 	{
@@ -404,18 +404,8 @@ $fields[] = "MaxEntScan_alt";
 $args[] = "--plugin dbscSNV,".annotation_file_path("/dbs/dbscSNV/dbscSNV1.1_GRCh38.txt.gz"); //dbscSNV
 $fields[] = "ada_score";
 $fields[] = "rf_score";;
-$args[] = "--custom ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed.gz").",REPEATMASKER,bed,overlap,0"; //RepeatMasker
-$fields[] = "REPEATMASKER";
 $args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw").",PHYLOP,bigwig"; //phyloP
 $fields[] = "PHYLOP";
-
-$omim_file = annotation_file_path("/dbs/OMIM/omim.bed.gz", true); //OMIM annotation (optional because of license)
-
-if(file_exists($omim_file))
-{
-	$args[] = "--custom {$omim_file},OMIM,bed,overlap,0";
-	$fields[] = "OMIM";
-}
 
 if (!$all_transcripts)
 {
@@ -424,9 +414,7 @@ if (!$all_transcripts)
 
 $args[] = "--fields ".implode(",", $fields);
 putenv("PERL5LIB={$vep_path}/Bio/:{$vep_path}/cpan/lib/perl5/:".getenv("PERL5LIB"));
-
 $parser->exec(get_path("vep"), implode(" ", $args), true);
-
 
 //print VEP warnings
 $warn_file = $vep_output."_warnings.txt";
@@ -458,8 +446,6 @@ $args[] = "--vcf_info_field CSQ_refseq"; //store annotation in custom info field
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
 $args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".genome_fasta($build); //paths to data
 $args[] = "--numbers --hgvs --domains"; //annotation options
-
-
 $args[] = "--fields ".implode(",", $fields);
 putenv("PERL5LIB={$vep_path}/Bio/:{$vep_path}/cpan/lib/perl5/:".getenv("PERL5LIB"));
 $parser->exec(get_path("vep"), implode(" ", $args), true);
@@ -487,7 +473,7 @@ $config_file = fopen($config_file_path, 'w');
 
 
 // add gnomAD annotation
-fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_r2.1.1_GRCh38.vcf.gz")."\tgnomADg\tAF,Hom,Hemi\t\ttrue\n");
+fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.1_GRCh38.vcf.gz")."\tgnomADg\tAF,Hom,Hemi\t\ttrue\n");
 
 
 // add clinVar annotation
@@ -648,6 +634,20 @@ if (!$skip_ngsd)
 	{
 		trigger_error("BED file for NGSD gene annotation not found at '".$gene_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
 	}
+}
+
+//annotate RepeatMasker
+$tmp = $parser->tempFile("_repeatmasker.vcf");
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")." -name REPEATMASKER -in $vcf_annotate_output -out $tmp", true);
+$parser->moveFile($tmp, $vcf_annotate_output);
+
+//annotate OMIM (optional because of license)
+$omim_file = annotation_file_path("/dbs/OMIM/omim.bed", true);
+if(file_exists($omim_file))
+{
+	$tmp = $parser->tempFile("_omim.vcf");
+	$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed {$omim_file} -name OMIM -in $vcf_annotate_output -out $tmp", true);
+	$parser->moveFile($tmp, $vcf_annotate_output);
 }
 
 //annotate MMSplice and SpliceAI predictions

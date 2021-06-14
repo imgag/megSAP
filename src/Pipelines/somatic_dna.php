@@ -58,7 +58,7 @@ function create_baf_file($gsvar,$bam,$out_file, $ref_genome, &$error = False)
 	if(!file_exists($gsvar) || !file_exists($bam)) 
 	{
 		trigger_error("Could not create BAF file {$out_file}, no GSvar or BAM file available.", E_USER_WARNING);
-		$error = True;
+		$error = true;
 		return;
 	}
 	//Abort if out_file exists to prevent interference with other jobs

@@ -44,7 +44,7 @@ while($line = fgets($handle))
 	$info = explode(";", $info);
 	
 	//get required infos
-	$is_chrx = $chr=="X";
+	$is_chrx = $chr=="chrX";
 	$nonpar = in_array("nonpar", $info);
 	$af = null;
 	$an = null;

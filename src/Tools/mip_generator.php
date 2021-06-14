@@ -21,7 +21,7 @@ $parser->addInt("max_capture_size", "Max. capture size.", true, 140);
 $parser->addFloat("min_svr", "Minimum SVR score.", true, 1.4);
 $parser->addFlag("no_svr", "Do not filter for svr score.");
 $parser->addInt("overlap", "MIP overlap size (start value).", true, 0);
-$parser->addString("snp_db", "Common variants database, which contains 'AF' info annoation.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.1.1_GRCh38.vcf.gz"); 
+$parser->addString("snp_db", "Common variants database, which contains 'AF' info annoation.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v3.1.1_GRCh38.vcf.gz"); 
 extract($parser->parse($argv));
 
 $temp_folder = $parser->tempFolder("MipGenerator_");

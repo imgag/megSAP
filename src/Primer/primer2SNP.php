@@ -43,7 +43,7 @@ function filter_by_af($line, $min_freq)
 $dbs = array(
 	"dbSNP" => get_path("data_folder")."/dbs/1000G/1000g_v5b.vcf.gz", //TODO
 	"ExAC" => get_path("data_folder")."/dbs/ExAC/ExAC_r0.3.1.vcf.gz", //TODO
-	"gnomAD" => get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.1.1_GRCh38.vcf.gz"
+	"gnomAD" => get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v3.1.1_GRCh38.vcf.gz"
 );
 $output = array();
 $file = file($in);

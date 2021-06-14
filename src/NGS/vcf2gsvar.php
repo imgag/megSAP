@@ -63,7 +63,7 @@ function translate($error_name, $value, $dict)
 }
 
 //collapse several values to a single value
-function collapse($error_name, $values, $mode, $decimal_places = null)
+function collapse(&$tag, $error_name, $values, $mode, $decimal_places = null)
 {
 	for($i=0; $i<count($values); ++$i)
 	{
@@ -72,7 +72,7 @@ function collapse($error_name, $values, $mode, $decimal_places = null)
 		{
 			if (!is_numeric($v))
 			{
-				trigger_error("Invalid numeric value '{$v}' in mode '{$mode}' while collapsing '{$error_name}'!", E_USER_ERROR);
+				trigger_error("Invalid numeric value '{$v}' in mode '{$mode}' while collapsing '{$error_name}' in variant '{$tag}'!", E_USER_ERROR);
 			}
 			$v = number_format($v, $decimal_places, ".", "");
 			if ($values[$i]>0 && $v==0)
@@ -88,7 +88,7 @@ function collapse($error_name, $values, $mode, $decimal_places = null)
 		$values = array_unique($values);
 		if (count($values)>1)
 		{
-			trigger_error("Several values '".implode("','", $values)."' in mode '{$mode}' while collapsing '{$error_name}'!", E_USER_ERROR);
+			trigger_error("Several values '".implode("','", $values)."' in mode '{$mode}' while collapsing '{$error_name}' in variant '{$tag}'!", E_USER_ERROR);
 		}
 		else if (count($values)==0)
 		{
@@ -106,7 +106,7 @@ function collapse($error_name, $values, $mode, $decimal_places = null)
 	}
 	else
 	{
-		trigger_error("Invalid mode '{$mode}' while collapsing '{$error_name}'!", E_USER_ERROR);
+		trigger_error("Invalid mode '{$mode}' while collapsing '{$error_name}' in variant '{$tag}'!", E_USER_ERROR);
 	}
 }
 
@@ -519,6 +519,7 @@ while(!feof($handle))
 	$cols = explode("\t", $line);
 	if (count($cols)<10) trigger_error("VCF file line contains less than 10 columns: '$line'", E_USER_ERROR);
 	list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = $cols;
+	$tag = "{$chr}:{$pos} {$ref}>{$alt}";
 	if ($filter=="" || $filter=="." || $filter=="PASS")
 	{
 		$filter = array();
@@ -1056,8 +1057,8 @@ while(!feof($handle))
 	{
 		$gnomad_value = trim($info["gnomADg_AF"]);
 		
-		$af_gnomad_genome[] = max(explode("&", $gnomad_value)); //some variants are contained twice, e.g. chr1:13260152 C>A
-		//$af_gnomad_genome[] = $gnomad_value=="." ? "" : $gnomad_value; //TODO test if we can go back to this version when switching to gnomAD 3.1
+		//TODO remove?! $af_gnomad_genome[] = max(explode("&", $gnomad_value)); //some variants are contained twice, e.g. chr1:13260152 C>A
+		$af_gnomad_genome[] = $gnomad_value=="." ? "" : $gnomad_value;
 	}
 	if (isset($info["gnomADg_Hom"])) $hom_gnomad[] = trim($info["gnomADg_Hom"]);
 	if (isset($info["gnomADg_Hemi"])) $hemi_gnomad[] = trim($info["gnomADg_Hemi"]);
@@ -1092,14 +1093,14 @@ while(!feof($handle))
 	}
 
 	//AFs
-	$dbsnp = implode(",", collapse("dbSNP", $dbsnp, "unique"));	
-	$kg = collapse("1000g", $af_kg, "one", 4);
-	$gnomad = collapse("gnomAD", $af_gnomad, "one", 4);
-	$gnomad_genome = collapse("gnomAD genome", $af_gnomad_genome, "one", 4);
+	$dbsnp = implode(",", collapse($tag, "dbSNP", $dbsnp, "unique"));	
+	$kg = collapse($tag, "1000g", $af_kg, "one", 4);
+	$gnomad = collapse($tag, "gnomAD", $af_gnomad, "one", 4);
+	$gnomad_genome = collapse($tag, "gnomAD genome", $af_gnomad_genome, "one", 4);
 	$gnomad = max($gnomad, $gnomad_genome);
-	$gnomad_hom_hemi = collapse("gnomAD Hom", $hom_gnomad, "one").",".collapse("gnomAD Hemi", $hemi_gnomad, "one");
+	$gnomad_hom_hemi = collapse($tag, "gnomAD Hom", $hom_gnomad, "one").",".collapse($tag, "gnomAD Hemi", $hemi_gnomad, "one");
 	if ($gnomad_hom_hemi==",") $gnomad_hom_hemi = "";
-	$gnomad_sub = collapse("gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse("gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse("gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse("gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse("gnomAD SAS", $af_gnomad_sas, "one", 4);
+	$gnomad_sub = collapse($tag, "gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse($tag, "gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse($tag, "gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse($tag, "gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse($tag, "gnomAD SAS", $af_gnomad_sas, "one", 4);
 	if (str_replace(",", "", $gnomad_sub)=="") $gnomad_sub = "";
 
 
@@ -1388,38 +1389,38 @@ while(!feof($handle))
 	$coding_and_splicing_details =  implode(",", $coding_and_splicing_details);
 	
 	//regulatory
-	$regulatory = implode(",", collapse("Regulatory", $regulatory, "unique"));
+	$regulatory = implode(",", collapse($tag, "Regulatory", $regulatory, "unique"));
 	
 	//RepeatMasker
-	$repeatmasker = collapse("RepeatMasker", $repeat, "one");
+	$repeatmasker = collapse($tag, "RepeatMasker", $repeat, "one");
 	
 	//effect predicions
-	$phylop = collapse("phyloP", $phylop, "one", 4);
+	$phylop = collapse($tag, "phyloP", $phylop, "one", 4);
 	$sift = implode(",", $sift);
 	if (trim(strtr($sift, ",", " "))=="") $sift = "";
 	$polyphen = implode(",", $polyphen);
 	if (trim(strtr($polyphen, ",", " "))=="") $polyphen = "";
-	$fathmm = collapse("fathmm-MKL", $fathmm, "one");
+	$fathmm = collapse($tag, "fathmm-MKL", $fathmm, "one");
 	
-	$revel = empty($revel) ? "" : collapse("REVEL", $revel, "max", 2);
+	$revel = empty($revel) ? "" : collapse($tag, "REVEL", $revel, "max", 2);
 	
 	//OMIM
-	$omim = collapse("OMIM", $omim, "one");
+	$omim = collapse($tag, "OMIM", $omim, "one");
 
 	//ClinVar
-	$clinvar = implode(" ", collapse("ClinVar", $clinvar, "unique"));
+	$clinvar = implode(" ", collapse($tag, "ClinVar", $clinvar, "unique"));
 	
 	//HGMD
-	$hgmd = collapse("HGMD", $hgmd, "one");
+	$hgmd = collapse($tag, "HGMD", $hgmd, "one");
 
 	//MaxEntScan
-	$maxentscan = implode(",", collapse("MaxEntScan", $maxentscan, "unique"));
+	$maxentscan = implode(",", collapse($tag, "MaxEntScan", $maxentscan, "unique"));
 		
 	//dbscSNV
-	$dbscsnv = empty($dbscsnv) ? "" : collapse("dbscSNV", $dbscsnv, "one");
+	$dbscsnv = empty($dbscsnv) ? "" : collapse($tag, "dbscSNV", $dbscsnv, "one");
 	
 	//COSMIC
-	$cosmic = implode(",", collapse("COSMIC", $cosmic, "unique"));
+	$cosmic = implode(",", collapse($tag, "COSMIC", $cosmic, "unique"));
 	
 	//skip common MODIFIER variants in WGS mode
 	if ($wgs && skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd, $ngsd_clas))
