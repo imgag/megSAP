@@ -215,7 +215,7 @@ function annotate_mmsplice_score($splicing_output, $private_var_dict, $threshold
 	{
 		//run MMSplice
 		$private_mms_annotation = $parser->tempFile("_private_mms_annotation.vcf");
-		$gtf = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
+		$gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.104.gtf";
 		$fasta = genome_fasta($build);
 		$splice_env = get_path("Splicing", true);
 		$args = array();
