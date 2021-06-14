@@ -1786,11 +1786,16 @@ function aa1_to_aa3($one_letter_notation)
 }
 
 //determines genome build of a BAM file
-function getGnomeBuild($bamfile)
+function get_genome_build($bamfile)
 {
-	list($stdout, $stderr, $exit) = exec2(get_path("samtools")." view -H | egrep '^@PG' ");
+	list($stdout, $stderr, $exit) = exec2(get_path("samtools")." view -H $bamfile | egrep '^@PG' ");
 
-	if ((count($stderr) > 0 ) || ($exit != 0)) trigger_error("Error parsing BAM header of '$bamfile'!", E_USER_ERROR);
+	if ((trim(implode("\n", $stderr)) != "" ) || ($exit != 0))
+	{
+		print "Exit code: $exit\n";
+		print "Stderr: \n".implode("\n", $stderr);
+		trigger_error("Error parsing header of BAM file '$bamfile'!", E_USER_ERROR);
+	} 
 
 	$builds = array();
 
@@ -1821,7 +1826,7 @@ function getGnomeBuild($bamfile)
 					$builds[] = $build;
 				}
 			}
-			elseif (starts_with($split_line[1], "ID:ABRA2"))
+			elseif ($split_line[1] == "ID: Hash Table Build")
 			{
 				$build = "";
 				// parse genome build from ABRA2 command line
@@ -1833,41 +1838,7 @@ function getGnomeBuild($bamfile)
 						$ref_file_path = "";
 						for ($i=0; $i < count($cl); $i++) 
 						{ 
-							if($cl[$i] == "--ref")
-							{
-								$ref_file_path = $cl[$i + 1];
-								break;
-							}
-						}
-						if ($ref_file_path != "") 
-						{
-							$build = basename($ref_file_path, ".fa");
-							break;
-						}
-					}
-				}
-				if ($build == "") 
-				{
-					trigger_error("Warning: Couldn't determine genome build for bwa-mem(2) mapping");
-				}
-				else
-				{
-					$builds[] = $build;
-				}
-			}
-			elseif (starts_with($split_line[1], "ID: Hash Table Build"))
-			{
-				$build = "";
-				// parse genome build from ABRA2 command line
-				foreach($split_line as $column)
-				{
-					if (starts_with($column, "CL:"))
-					{
-						$cl = explode(" ", $column);
-						$ref_file_path = "";
-						for ($i=0; $i < count($cl); $i++) 
-						{ 
-							if($cl[$i] == "--ht-refernce")
+							if($cl[$i] == "--ht-reference")
 							{
 								$ref_file_path = $cl[$i + 1];
 								break;
@@ -1892,7 +1863,11 @@ function getGnomeBuild($bamfile)
 		}
 	}
 
-	if (count($builds) < 1) trigger_error("No genome build found in BAM header!", E_USER_ERROR);
+	if (count($builds) < 1) 
+	{
+		trigger_error("Could not determine genome build of BAM file '$bamfile'!", E_USER_WARNING);
+		return "";
+	}
 
 	$builds = array_unique($builds);
 

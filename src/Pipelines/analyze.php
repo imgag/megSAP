@@ -188,6 +188,16 @@ if (!$annotation_only && !in_array("ma", $steps))
 	}
 }
 
+// verify that genome build of BAM matches given genome build
+if (!in_array("ma", $steps) && (in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)))
+{
+	$bam_genome_build = get_genome_build($bamfile);
+	if ($bam_genome_build != "" && !starts_with($bam_genome_build, $sys['build']))
+	{
+		trigger_error("Genome build of BAM file ('${bam_genome_build}') does not match genome build of analysis ('".$sys['build']."')!", E_USER_ERROR);
+	}
+}
+
 //mapping
 if (in_array("ma", $steps))
 {
