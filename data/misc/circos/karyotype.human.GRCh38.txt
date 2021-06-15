@@ -22,6 +22,3 @@ chr - chr21 21 0 46709983 chr21
 chr - chr22 22 0 50818468 chr22
 chr - chrX X 0 156040895 chrx
 chr - chrY Y 0 57227415 chry
-
-# TODO: add telomere and centromer
-
