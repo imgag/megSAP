@@ -52,6 +52,7 @@ mkdir ClinVar
 cd ClinVar
 wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20210424.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20210424_converted_GRCh38.vcf.gz
 tabix -p vcf clinvar_20210424_converted_GRCh38.vcf.gz
+#//TODO CNVs are not GRCh38, or?
 #CNVs
 wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2021-04.txt.gz | gunzip > variant_summary_2021-04.txt
 cat variant_summary_2021-04.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2021-04.bed
