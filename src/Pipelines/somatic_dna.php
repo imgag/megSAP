@@ -258,7 +258,7 @@ if( db_is_enabled("NGSD") )
 		}
 		else
 		{
-			$hg_build = ( $sys['build'] == "GRCh37" ? "hg19" : "hg38" );
+			$hg_build = ( $sys['build'] == "GRCh38" ? "hg38" : "hg19" );
 			$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build $hg_build -method sry", true);
 			list(,,$cov_sry) = explode("\t", $out[0][1]);
 

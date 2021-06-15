@@ -1472,7 +1472,7 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 function enable_special_mito_vc($sys)
 {
 	//only for GRCh37
-	if ($sys['build']!="GRCh37") return false;
+	if ($sys['build']!="GRCh38") return false;
 	
 	//only exome/genome
 	if ($sys['type']!="WES" && $sys['type']!="WGS") return false;
@@ -1644,7 +1644,7 @@ function somatic_report_config(&$db_conn, $t_ps, $n_ps, $error_if_not_found=fals
 //Returns cytobands of given genomic range as array
 function cytoBands($chr, $start, $end)
 {
-	$handle = fopen(repository_basedir()."/data/misc/cytoBand_hg19.txt", "r");
+	$handle = fopen(repository_basedir()."/data/misc/cytoBand.txt", "r");
 	
 	$out = array();
 	
@@ -1717,7 +1717,7 @@ function addMissingContigsToVcf($build, $vcf)
 	}
 	if(!$contains_contig)
 	{
-		if ($build!="GRCh37")
+		if ($build!="GRCh38")
 		{
 			trigger_error("Unknown genome build ".$build." cannot be annotated!", E_USER_ERROR);
 		}

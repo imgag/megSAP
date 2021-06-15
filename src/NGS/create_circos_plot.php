@@ -49,7 +49,7 @@ if (!file_exists($circos_housekeeping_file))
 }
 
 // get telomere file
-$telomere_file = repository_basedir() . "/data/misc/centromer_telomer_hg19.bed";
+$telomere_file = repository_basedir() . "/data/misc/centromer_telomer.bed";
 if (!file_exists($telomere_file)) 
 {
     trigger_error("No telomere file found at \"$telomere_file\"!", E_USER_ERROR);

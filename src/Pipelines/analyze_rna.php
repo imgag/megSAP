@@ -198,7 +198,7 @@ if (in_array("ma", $steps))
 	);
 
 	$mappingqc_params[] = (isset($target_file) && $target_file != "") ? "-roi {$target_file}" : "-rna";
-	if ($build!="GRCh37") $mappingqc_params[] = "-no_cont";
+	if ($build!="GRCh38") $mappingqc_params[] = "-no_cont";
 
 	$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $mappingqc_params), true);
 }

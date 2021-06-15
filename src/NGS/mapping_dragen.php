@@ -21,7 +21,7 @@ extract($parser->parse($argv));
 
 
 // check if valid reference genome is provided
-if (!in_array($build, array("GRCh38", "GRCh38", "GRCh38_alt", "hg19")))
+if (!in_array($build, array("GRCh38", "GRCh38", "GRCh38_alt", "hg38"))) //TODO Leon
 {
 	trigger_error("Invalid genome build '".$build."' given!", E_USER_ERROR);
 }

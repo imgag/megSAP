@@ -415,8 +415,6 @@ while(!feof($handle))
 			$i_af_gnomad_eas = index_of($cols, "gnomAD_EAS_AF");
 			$i_af_gnomad_nfe = index_of($cols, "gnomAD_NFE_AF");
 			$i_af_gnomad_sas = index_of($cols, "gnomAD_SAS_AF");
-			$i_repeat = index_of($cols, "REPEATMASKER");
-			$i_omim = index_of($cols, "OMIM", false);
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
 			$i_dbscsnv_ada = index_of($cols, "ada_score");
@@ -692,9 +690,7 @@ while(!feof($handle))
 	$af_gnomad_sas = array();
 	$hom_gnomad = array();
 	$hemi_gnomad = array();
-	$repeat = array();
 	$clinvar = array();
-	$omim = array();
 	$hgmd = array();
 	$maxentscan = array();
 	$dbscsnv = array();
@@ -742,17 +738,6 @@ while(!feof($handle))
 				{
 					$cosmic[] = $id;
 				}
-			}
-			
-			//RepeatMasker
-			$repeat[] = strtr(trim($parts[$i_repeat]), array("[s]"=>" "));
-			
-			//OMIM
-			if ($i_omim!==FALSE)
-			{
-				$text = trim(strtr(vcf_decode_url_string($parts[$i_omim]), array("[c]"=>",", "&"=>",", "_"=>" ")));
-				if ($text!="") $text .= ";";
-				$omim[] = $text;
 			}
 			
 			//MaxEntScan
@@ -1055,9 +1040,7 @@ while(!feof($handle))
 	// gnomAD_genome
 	if (isset($info["gnomADg_AF"]))
 	{
-		$gnomad_value = trim($info["gnomADg_AF"]);
-		
-		//TODO remove?! $af_gnomad_genome[] = max(explode("&", $gnomad_value)); //some variants are contained twice, e.g. chr1:13260152 C>A
+		$gnomad_value = trim($info["gnomADg_AF"]);		
 		$af_gnomad_genome[] = $gnomad_value=="." ? "" : $gnomad_value;
 	}
 	if (isset($info["gnomADg_Hom"])) $hom_gnomad[] = trim($info["gnomADg_Hom"]);
@@ -1220,7 +1203,7 @@ while(!feof($handle))
 			$ngsd_gene_info = "";
 		}
 	}
-
+	
 	//MMSplice
 	$mmsplice_deltaLogitPsi = "";
 	$mmsplice_pathogenicity = "";
@@ -1390,9 +1373,13 @@ while(!feof($handle))
 	
 	//regulatory
 	$regulatory = implode(",", collapse($tag, "Regulatory", $regulatory, "unique"));
-	
+
 	//RepeatMasker
-	$repeatmasker = collapse($tag, "RepeatMasker", $repeat, "one");
+	$repeatmasker = "";
+	if (isset($info["REPEATMASKER"]))
+	{
+		$repeatmasker = trim(vcf_decode_url_string($info["REPEATMASKER"]));
+	}
 	
 	//effect predicions
 	$phylop = collapse($tag, "phyloP", $phylop, "one", 4);
@@ -1405,7 +1392,11 @@ while(!feof($handle))
 	$revel = empty($revel) ? "" : collapse($tag, "REVEL", $revel, "max", 2);
 	
 	//OMIM
-	$omim = collapse($tag, "OMIM", $omim, "one");
+	$omim = "";
+	if (isset($info["OMIM"]))
+	{
+		$omim = trim(vcf_decode_url_string($info["OMIM"])); //TODO separator : between OMIM entries, but some entries contain : => make separator configurable in VcfAnnotateFromBed
+	}
 
 	//ClinVar
 	$clinvar = implode(" ", collapse($tag, "ClinVar", $clinvar, "unique"));

@@ -417,7 +417,7 @@ $start = 0;
 $end = 0;
 $arm = "";
 $chrom_arms = array();
-$cyto_bands = Matrix::fromTSV(repository_basedir()."/data/misc/cytoBand_hg19.txt");
+$cyto_bands = Matrix::fromTSV(repository_basedir()."/data/misc/cytoBand.txt");
 
 for($i=0;$i<$cyto_bands->rows();++$i)
 {

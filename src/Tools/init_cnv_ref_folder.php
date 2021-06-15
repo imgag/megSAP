@@ -15,7 +15,7 @@ $parser->addFlag("clear", "Remove existing coverage files.");
 $parser->addFlag("tumor_only", "Keep only tumor samples, normally tumor samples are removed.");
 $parser->addFlag("somatic","Create coverage files for tumor-normal samples, including off-target coverage files.");
 $parser->addFlag("include_test_projects","Includes also projects of type 'test'. By default, only 'diagnostic' and 'research' projects are included.");
-$parser->addString("build","reference genome",true,"GRCh37");
+$parser->addString("build","reference genome",true,"GRCh38");
 extract($parser->parse($argv));
 
 //check system

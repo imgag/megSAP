@@ -9,7 +9,7 @@ $parser = new ToolBase("db_converter_cosmic", "Converts COSMIC Cancer Mutation C
 // optional
 $parser->addInfile("in",  "Input file in TSV-format with COSMIC CMC scores. ('-' for STDIN)", false, false);
 $parser->addOutfile("out",  "Output file in vcf.gz-format with CMC data.", false, false);
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 //check
