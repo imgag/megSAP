@@ -622,7 +622,6 @@ foreach($res as $row)
 		{
 			
 			$folder = "/mnt/share/to_qbic/somatic_data/{$ps_name}-{$ps_name2}/";
-			if (!file_exists($folder)) $folder = "{$data_folder}/QBIC_files/"; //TODO move all QBIC files from sample folders to the new folder and remove this fallback
 			if (file_exists($folder))
 			{
 				$output[4] = "{$ps_name}-{$ps_name2} (MTB)";
