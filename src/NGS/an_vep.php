@@ -627,7 +627,7 @@ if (!$skip_ngsd)
 	if (file_exists($gene_file))
 	{
 		$tmp = $parser->tempFile(".vcf");
-		$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -in $vcf_annotate_output -out $tmp", true);
+		$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -sep '&' -in $vcf_annotate_output -out $tmp", true);
 		$parser->moveFile($tmp, $vcf_annotate_output);
 	}
 	else
@@ -638,7 +638,7 @@ if (!$skip_ngsd)
 
 //annotate RepeatMasker
 $tmp = $parser->tempFile("_repeatmasker.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")." -name REPEATMASKER -in $vcf_annotate_output -out $tmp", true);
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")." -name REPEATMASKER -sep '&' -in $vcf_annotate_output -out $tmp", true);
 $parser->moveFile($tmp, $vcf_annotate_output);
 
 //annotate OMIM (optional because of license)
@@ -646,7 +646,7 @@ $omim_file = annotation_file_path("/dbs/OMIM/omim.bed", true);
 if(file_exists($omim_file))
 {
 	$tmp = $parser->tempFile("_omim.vcf");
-	$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed {$omim_file} -name OMIM -in $vcf_annotate_output -out $tmp", true);
+	$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed {$omim_file} -name OMIM -sep '&' -in $vcf_annotate_output -out $tmp", true);
 	$parser->moveFile($tmp, $vcf_annotate_output);
 }
 

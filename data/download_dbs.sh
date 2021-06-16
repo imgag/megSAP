@@ -10,19 +10,18 @@ dbs=$root/dbs/
 ngsbits=$tools/ngs-bits/bin
 genome=$root/genomes/GRCh38.fa
 
-# TODO: Find GRCh38 version or create liftover
-# #Install CancerHotspots.org
-# cd $dbs
-# mkdir -p cancerhotspots
-# cd cancerhotspots
-# wget https://www.cancerhotspots.org/files/hotspots_v2.xls
-# wget http://download.cbioportal.org/cancerhotspots/cancerhotspots.v2.maf.gz
-# ssconvert -O 'separator="	" format=raw' -T Gnumeric_stf:stf_assistant -S hotspots_v2.xls hotspots.tsv
-# php $src/Tools/db_converter_cancerhotspots.php -in hotspots.tsv.0 -maf cancerhotspots.v2.maf.gz -out cancerhotspots_snv.tsv
-# rm hotspots_v2.xls
-# rm hotspots.tsv.0 
-# rm hotspots.tsv.1
-# rm cancerhotspots.v2.maf.gz
+#Install CancerHotspots.org
+cd $dbs
+mkdir -p cancerhotspots
+cd cancerhotspots
+wget https://www.cancerhotspots.org/files/hotspots_v2.xls
+wget http://download.cbioportal.org/cancerhotspots/cancerhotspots.v2.maf.gz
+ssconvert -O 'separator="	" format=raw' -T Gnumeric_stf:stf_assistant -S hotspots_v2.xls hotspots.tsv
+php $src/Tools/db_converter_cancerhotspots.php -in hotspots.tsv.0 -maf cancerhotspots.v2.maf.gz -out cancerhotspots_snv.tsv
+rm hotspots_v2.xls
+rm hotspots.tsv.0 
+rm hotspots.tsv.1
+rm cancerhotspots.v2.maf.gz
 
 #Install ClinGen dosage sensitivity - ftp://ftp.ncbi.nlm.nih.gov/pub/dbVar/clingen
 cd $dbs
@@ -32,12 +31,11 @@ wget ftp://ftp.clinicalgenome.org/ClinGen_gene_curation_list_GRCh38.tsv
 cat ClinGen_gene_curation_list_GRCh38.tsv | php $src/Tools/db_converter_clingen_dosage.php > dosage_sensitive_disease_genes_GRCh38.bed
 $ngsbits/BedSort -in dosage_sensitive_disease_genes_GRCh38.bed -out dosage_sensitive_disease_genes_GRCh38.bed
 
-# TODO: Find GRCh38 version or create liftover
-# #Install NCG6.0 - information about oncogenes and tumor suppressor genes
-# cd $dbs
-# mkdir NCG6.0
-# cd NCG6.0
-# curl --silent --request POST --url http://ncg.kcl.ac.uk/download.php --data "filename=NCG6_tsgoncogene.tsv&downloadtsgoncogene=Download" --output NCG6.0_oncogene.tsv
+#Install NCG6.0 - information about oncogenes and tumor suppressor genes
+cd $dbs
+mkdir NCG6.0
+cd NCG6.0
+curl --silent --request POST --url http://ncg.kcl.ac.uk/download.php --data "filename=NCG6_tsgoncogene.tsv&downloadtsgoncogene=Download" --output NCG6.0_oncogene.tsv
 
 #Install REPEATMASKER - http://www.repeatmasker.org/species/hg.html
 cd $dbs
