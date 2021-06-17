@@ -35,3 +35,6 @@ telomere_centromere:
 	cat telomere.bed centromere.bed | BedSort -out centromer_telomer.bed
 	rm telomere.bed centromere.bed
 
+circos_karyotype_files:
+	echo "These files where created manually by merging the chromosome regions and the centromer_telomer.bed (extended by 3 columns and replaced names by color)"
+
