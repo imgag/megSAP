@@ -9,6 +9,7 @@ $parser->addInfile("in", "Input gene counts table.", false);
 $parser->addOutfile("out", "Output gene counts table.", false);
 $parser->addString("cohort", "Specify to save expression values of cohort.", true, "");
 $parser->addString("stats", "Specify to save statistics of expression values of cohort.", true, "");
+$parser->addString("corr", "Specify to save sample--cohort correlation.", true, "");
 
 $parser->addFlag("somatic", "Enable somatic mode: find related samples by ICD10 code or HPO term id.");
 $parser->addString("hpa_tissue", "HPA reference tissue.", true, "");
@@ -158,6 +159,7 @@ $args = [
 ];
 if ($cohort !== "") $args[] = "--cohort {$cohort}";
 if ($stats !== "") $args[] = "--stats {$stats}";
+if ($corr !== "") $args[] = "--corr {$corr}";
 $parser->exec("python3 ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
 
 //annotate HPA information

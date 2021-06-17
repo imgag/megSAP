@@ -22,7 +22,8 @@ def cli():
 @click.option('--samples', type=click.File('r'), required=True, help="Sample table with sample ID and file names.")
 @click.option('--cohort', type=click.File('w'), help="Output file for gene-sample expression data.")
 @click.option('--stats', type=click.File('w'), help="Output file for per-gene statistics.")
-def cohort(samples, counts, counts_out, prefix, cohort, stats):
+@click.option('--corr', type=click.File('w'), help="Output file for sample--cohort correlation.")
+def cohort(samples, counts, counts_out, prefix, cohort, stats, corr):
     # read list of file names
     dat = pd.read_csv(samples, sep='\t', header=None, names=['psample', 'path'])
 
@@ -63,6 +64,10 @@ def cohort(samples, counts, counts_out, prefix, cohort, stats):
 
         if counts_out:
             counts_annot.to_csv(counts_out, sep='\t', na_rep='n/a')
+        
+        if corr:
+            value = expr[[f'{prefix}log2tpm', f'{prefix}meanlog2']].corr(method='spearman').iloc[0,1]
+            corr.write(f'{value}\n')
 
 @cli.command(help="Use summarized HPA expression data as reference.")
 @click.option('--counts', type=click.File('r'), help="Sample gene counts for which to calculate relative expression.")
