@@ -1196,7 +1196,7 @@ while(!feof($handle))
 
 		if (isset($info["NGSD_GENE_INFO"]))
 		{
-			$ngsd_gene_info = vcf_decode_url_string(str_replace(":", ", ", trim($info["NGSD_GENE_INFO"])));
+			$ngsd_gene_info = trim(str_replace("&", ", ", vcf_decode_url_string($info["NGSD_GENE_INFO"])));
 		}
 		else
 		{
@@ -1378,7 +1378,7 @@ while(!feof($handle))
 	$repeatmasker = "";
 	if (isset($info["REPEATMASKER"]))
 	{
-		$repeatmasker = trim(vcf_decode_url_string($info["REPEATMASKER"]));
+		$repeatmasker = trim(str_replace("&", ", ", vcf_decode_url_string($info["REPEATMASKER"])));
 	}
 	
 	//effect predicions
@@ -1395,7 +1395,7 @@ while(!feof($handle))
 	$omim = "";
 	if (isset($info["OMIM"]))
 	{
-		$omim = trim(vcf_decode_url_string($info["OMIM"])); //TODO separator : between OMIM entries, but some entries contain : => make separator configurable in VcfAnnotateFromBed
+		$omim = trim(strtr(vcf_decode_url_string($info["OMIM"])));
 	}
 
 	//ClinVar

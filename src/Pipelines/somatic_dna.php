@@ -822,7 +822,7 @@ if (in_array("an", $steps))
 }
 
 //QCI/CGI annotation
-//@TODO: implementation for translocation files
+//TODO: implementation for translocation files
 if (in_array("ci", $steps))
 {
 	/*********************************
