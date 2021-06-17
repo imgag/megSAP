@@ -18,6 +18,8 @@ $db = DB::getInstance("NGSD");
 $info1 = get_processed_sample_info($db,$ps);
 $info2 = get_processed_sample_info($db,$into);
 
+$ngsbits = get_path("ngs-bits");
+
 //check input folders
 $folder1 = $info1['ps_folder'];
 if (!is_dir($folder1))
@@ -40,11 +42,65 @@ if (!file_exists($backup_folder))
 	}
 }
 
-//move FASTQ files
-exec2("mv $folder1/*.fastq.gz $folder2/");
+//check if FASTQ files or BAM in target folder exist
+$target_fastq_files = glob($folder2."/*.fastq.gz");
+$target_bam_file = $folder2."/".$into.".bam";
+if (count($target_fastq_files) > 0)
+{
+	//FASTQ files found -> nothing to do
+}
+elseif (file_exists($target_bam_file)) 
+{
+	trigger_error("No FASTQ files found in Sample folder of '${into}'. Generating FASTQs from BAM.", E_USER_WARNING);
+	// recreate FASTQ files from BAM
+	$in_fq_for = $folder2."/${into}_BamToFastq_R1_001.fastq.gz";
+	$in_fq_rev = $folder2."/${into}_BamToFastq_R2_001.fastq.gz";
+	$tmp1 = $parser->tempFile(".fastq.gz");
+	$tmp2 = $parser->tempFile(".fastq.gz");
+	$parser->exec("{$ngsbits}BamToFastq", "-in ${target_bam_file} -out1 $tmp1 -out2 $tmp2", true);
+	$parser->moveFile($tmp1, $in_fq_for);
+	$parser->moveFile($tmp2, $in_fq_rev);
+}
+else
+{
+	trigger_error("Could not find any sequencing data (neither FASTQ nor BAM) in Sample folder of '$into'! Abort merging.", E_USER_ERROR);
+}
 
-//move sample folder to backup
-exec2("mv $folder1 $backup_folder/");
+//check if FASTQ files or BAM in source folder exist
+$source_fastq_files = glob($folder1."/*.fastq.gz");
+$source_bam_file = $folder1."/".$ps.".bam";
+if (count($source_fastq_files) > 0)
+{
+	//FASTQ files found -> move them to the target folder
+	exec2("mv $folder1/*.fastq.gz $folder2/");
+
+	// backup all other files in target folder
+	exec2("mv $folder1 $backup_folder/");
+
+}
+elseif (file_exists($source_bam_file)) 
+{
+	trigger_error("No FASTQ files found in Sample folder of '${ps}'. Generating FASTQs from BAM.", E_USER_WARNING);
+	// recreate FASTQ files from BAM
+	$in_fq_for = $folder2."/${ps}_BamToFastq_R1_001.fastq.gz";
+	$in_fq_rev = $folder2."/${ps}_BamToFastq_R2_001.fastq.gz";
+	$tmp1 = $parser->tempFile(".fastq.gz");
+	$tmp2 = $parser->tempFile(".fastq.gz");
+	$parser->exec("{$ngsbits}BamToFastq", "-in ${source_bam_file} -out1 $tmp1 -out2 $tmp2", true);
+	$parser->moveFile($tmp1, $in_fq_for);
+	$parser->moveFile($tmp2, $in_fq_rev);
+
+	//delete BAM
+	unlink($source_bam_file);	
+
+	// backup all other files in target folder
+	exec2("mv $folder1 $backup_folder/");
+}
+else
+{
+	trigger_error("Could not find any sequencing data (neither FASTQ nor BAM) in Sample folder of '$ps'! Abort merging.", E_USER_ERROR);
+}
+
 
 //NGSD: remove variants/qc for 'ps'
 $ps_id = $info1['ps_id'];
