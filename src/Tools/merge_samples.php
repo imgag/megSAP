@@ -73,10 +73,6 @@ if (count($source_fastq_files) > 0)
 {
 	//FASTQ files found -> move them to the target folder
 	exec2("mv $folder1/*.fastq.gz $folder2/");
-
-	// backup all other files in target folder
-	exec2("mv $folder1 $backup_folder/");
-
 }
 elseif (file_exists($source_bam_file)) 
 {
@@ -92,14 +88,14 @@ elseif (file_exists($source_bam_file))
 
 	//delete BAM
 	unlink($source_bam_file);	
-
-	// backup all other files in target folder
-	exec2("mv $folder1 $backup_folder/");
 }
 else
 {
 	trigger_error("Could not find any sequencing data (neither FASTQ nor BAM) in Sample folder of '$ps'! Abort merging.", E_USER_ERROR);
 }
+
+// backup all other files in target folder
+exec2("mv $folder1 $backup_folder/");
 
 
 //NGSD: remove variants/qc for 'ps'
