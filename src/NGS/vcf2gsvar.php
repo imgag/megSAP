@@ -1395,7 +1395,7 @@ while(!feof($handle))
 	$omim = "";
 	if (isset($info["OMIM"]))
 	{
-		$omim = trim(strtr(vcf_decode_url_string($info["OMIM"])));
+		$omim = trim(vcf_decode_url_string($info["OMIM"]));
 	}
 
 	//ClinVar
