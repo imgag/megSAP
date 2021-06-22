@@ -247,7 +247,7 @@ function sample_from_ngsd(&$db, $sample_name, $irp, $itp)
 	foreach($res as $row)
 	{
 		$sample = $row['name'];
-		list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} -run_finished -add_path SAMPLE_FOLDER | {$ngsbits}TsvSlice -cols 'name,project_type,path'");
+		list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} -no_bad_samples -run_finished -add_path SAMPLE_FOLDER | {$ngsbits}TsvSlice -cols 'name,project_type,path'");
 		foreach($stdout as $line)
 		{
 			$line = trim($line);
