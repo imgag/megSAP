@@ -48,6 +48,7 @@ if (!$skip_kmer && isset($roi))
 		$kmer_tmp = $parser->tempFile();
 		$parser->exec(str_replace("-jar", "-cp", get_path("abra2"))." abra.KmerSizeEvaluator", "$read_length $ref_genome $kmer_tmp $threads $roi", true);
 		$parser->moveFile($kmer_tmp, $kmer_file);
+		chmod($kmer_file, 0777);
 	}
 }
 
