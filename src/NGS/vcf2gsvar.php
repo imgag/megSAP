@@ -333,6 +333,7 @@ $hgnc_messages = array();
 $in_header = true;
 $handle = fopen2($in, "r");
 $handle_out = fopen2($out, "w");
+fwrite($handle_out, "##GENOME_BUILD=GRCh38\n");
 $skip_ngsd = true; // true as long as no NGSD header is found
 $skip_ngsd_som = true; // true as long as no NGSD somatic header is found
 $skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC) header is found.
