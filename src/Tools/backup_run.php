@@ -62,11 +62,11 @@ $parser->exec("tar", "cfW $tmp_tar --exclude '$in/Data/Intensities/L00?/C*' --ex
 
 //zip archive with low compression (way faster than full compression and the contents are already compressed in most cases)
 print date("Y-m-d H:i:s")." creating tar.gz file\n";
-$parser->exec("gzip", "-c -1 $tmp_tar > $zipfile", true);
+$parser->exec("pigz", "-p 8 -c -1 $tmp_tar > $zipfile", true);
 
 //test zip archive integrity
 print date("Y-m-d H:i:s")." testing tar.gz file integrity\n";
-$parser->exec("gzip", "-t $zipfile", true);
+$parser->exec("pigz", "-p 8 -t $zipfile", true);
 $parser->deleteTempFile($tmp_tar);
 
 //calculate MD5 checksum of zip archive
