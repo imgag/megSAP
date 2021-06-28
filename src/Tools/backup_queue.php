@@ -13,6 +13,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("backup_queue", "Queues the backup of a folder in SGE.");
 $parser->addInfile("in",  "Absolute path to input folder.", false);
 $parser->addEnum("mode",  "Mode.", false, array("run", "project"));
+$parser->addString("email", "Email used for notification when SGE job has finished.", false);
 extract($parser->parse($argv));
 
 //check that the correct user is executing the script
@@ -41,7 +42,7 @@ $sge_folder = get_path("data_folder")."/sge/archive/";
 $base = "{$sge_folder}".date("Ymdhis")."_".basename($in)."_{$user}";
 $sge_out = "{$base}.out";
 $sge_err = "{$base}.err";
-$command_sge = "qsub -V -pe smp 1 -b y -wd {$sge_folder} -m ea -M ".get_path("queue_email")." -e {$sge_err} -o {$sge_out} -q archive_srv018";
+$command_sge = "qsub -V -pe smp 1 -b y -wd {$sge_folder} -m ea -M {$email} -e {$sge_err} -o {$sge_out} -q archive_srv018";
 $command = "{$command_sge} php {$backup_script} -in {$in}";
 print "    SGE command: {$command}\n";
 
