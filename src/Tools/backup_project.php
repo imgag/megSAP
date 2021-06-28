@@ -24,6 +24,7 @@ if ($user!="archive-gs")
 }
 
 //strip slashes at the end of folder names
+$in = realpath($in);
 $in = rtrim($in, "/");
 $out_folder = rtrim($out_folder, "/");
 
@@ -58,7 +59,7 @@ if ($when!="now")
 //create verified tar archive (uncompressed because otherwise verification is not possible)
 print date("Y-m-d H:i:s")." creating tar file\n";
 $tmp_tar = $parser->tempFile(".tar");
-$parser->exec("tar", "cfW $tmp_tar $in/", true);
+$parser->exec("tar", "cfW $tmp_tar -C ".dirname($in)." ".basename($in), true);
 
 //zip archive with low compression (way faster than full compression and the contents are already compressed in most cases)
 print date("Y-m-d H:i:s")." creating tar.gz file\n";
