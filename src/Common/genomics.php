@@ -1852,5 +1852,104 @@ function aa1_to_aa3($one_letter_notation)
 	return strtr($one_letter_notation, $GLOBALS["aa1_to_aa3"]);
 }
 
+/**
+ * get_related_processed_samples
+ * 
+ * Find related processed samples.
+ *
+ * @param  mixed $db
+ * @param  string $ps_name
+ * @param  string $relation
+ * @param  string $systype
+ * @param  bool $exclude_bad
+ * @return array
+ */
+function get_related_processed_samples(&$db, $ps_name, $relation, $systype="", $exclude_bad=true)
+{
+	$ps_name = trim($ps_name);
+	list($sample_name, $process_id) = explode("_", $ps_name."_");
+
+	$res = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", ["name" => $sample_name]);
+	if (count($res) != 1)
+	{
+		trigger_error("Could not find sample '{$sample_name}'!", E_USER_ERROR);
+	}
+	$sample_id = $res[0]['id'];
+
+	//related samples
+	$res = $db->executeQuery("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation=:rel AND (sample1_id=:sid OR sample2_id=:sid)",
+								["rel" => $relation, "sid" => $sample_id]);
+	$related_samples_ids = array_diff(array_merge(array_column($res, "sample1_id"), array_column($res, "sample2_id")), [$sample_id]);
+	
+	
+	//collect processed samples
+	$query = <<<SQL
+SELECT
+	CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as ps_name,
+	ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality,
+	sys.id, sys.type
+FROM
+	processed_sample as ps
+LEFT JOIN merged_processed_samples mps ON mps.processed_sample_id = ps.id
+LEFT JOIN sample s ON s.id = ps.sample_id
+LEFT JOIN processing_system sys ON sys.id = ps.processing_system_id
+WHERE
+	mps.merged_into IS NULL AND
+	ps.sample_id=:sid
+SQL;
+
+	if ($systype === "")	$query .= " AND sys.type='{$systype}'";
+	if ($exclude_bad)		$query .= " AND ps.quality!='bad'";
+
+	$psamples = [];
+	foreach ($related_samples_ids as $rel_sample_id)
+	{
+
+		$res = $db->executeQuery($query, ["sid" => $rel_sample_id]);
+		$psamples += array_column($res, "ps_name");
+	}
+
+	return $psamples;
+}
+
+/**
+ * annotate_gsvar_by_gene
+ * 
+ * Annotate GSvar file based on 'gene' column.
+ *
+ * @param  string $gsvar_f input GSvar file
+ * @param  string $outfile_f output GSvar file
+ * @param  string $annotation_f annotation file
+ * @param  string $key column in annotation file to use as key
+ * @param  string $column column in annotation file to use as value
+ * @param  string $column_name output column name
+ * @param  string $column_description output column description
+ * @return void
+ */
+function annotate_gsvar_by_gene($gsvar_f, $outfile_f, $annotation_f, $key, $column, $column_name, $column_description)
+{
+	$gsvar = Matrix::fromTSV($gsvar_f);
+	$genes = $gsvar->getCol($gsvar->getColumnIndex("gene"));
+
+	$annotation = Matrix::fromTSV($annotation_f);
+	$values = array_combine($annotation->getCol($annotation->getColumnIndex($key)),
+							$annotation->getCol($annotation->getColumnIndex($column)));
+
+	$map_value = function(&$item, $key, &$values)
+	{
+		$annotated_genes = explode(',', $item);
+		$vals = [];
+		foreach ($annotated_genes as $g)
+		{
+			$vals[] = isset($values[$g]) ? number_format($values[$g], 4) : "n/a";
+		}
+
+		$item = implode(",", $vals);
+	};
+	array_walk($genes, $map_value, $values);
+	$gsvar->removeColByName($column_name);
+	$gsvar->addCol($genes, $column_name, $column_description);
+	$gsvar->toTSV($outfile_f);
+}
 
 ?>

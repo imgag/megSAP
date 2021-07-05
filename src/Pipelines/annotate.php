@@ -99,79 +99,46 @@ if (!$somatic) //germline only
 	if(db_is_enabled("NGSD"))
 	{
 		//annotate variant allele frequency and depth from related RNA sample, if available
-		//sample id from name
 		$db = DB::getInstance("NGSD");
-		list($sample_name, $ps_num) = explode("_", $out_name);
-		$res = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", array("name" => $sample_name));
-		if (count($res) >= 1)
+		$psamples_for_annotation = get_related_processed_samples($db, $out_name, "same sample", "RNA");
+		if (!empty($psamples_for_annotation))
 		{
-			$sample_id = $res[0]['id'];
+			//last entry
+			$psample = end($psamples_for_annotation);
+			$psample_info = get_processed_sample_info($db, $psample);
 
-			//related samples
-			$res = $db->executeQuery("SELECT * FROM sample_relations WHERE relation='same sample' AND (sample1_id=:sid OR sample2_id=:sid)", array("sid" => $sample_id));
-
-			//collect potential samples (sample IDs)
-			$psamples_for_annotation = [];
-			foreach ($res as $row)
+			//BAM file for variant depth and frequency
+			$bam_rna = $psample_info["ps_bam"];
+			if (file_exists($bam_rna))
 			{
-				$sample_id_annotation = $row['sample1_id'] != $sample_id ? $row['sample1_id'] : $row['sample2_id'];
-				$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND sys.type='RNA' AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND (NOT ps.quality='bad')", array("sid" => $sample_id_annotation));
-				$psamples_for_annotation = array_merge($psamples_for_annotation, array_column($res, 'psample'));
+				$parser->exec(get_path("ngs-bits")."VariantAnnotateASE", "-in {$varfile} -out {$varfile} -bam {$bam_rna}", true);
 			}
-			if (count($psamples_for_annotation) > 0)
+			else
 			{
-				//last entry
-				$psample = end($psamples_for_annotation);
-				$psample_info = get_processed_sample_info($db, $psample);
+				trigger_error("BAM file does not exist for RNA sample '{$psample}'!", E_USER_WARNING);
+			}
 
-				//BAM file for variant depth and frequency
-				$bam_rna = $psample_info["ps_bam"];
-				if (file_exists($bam_rna))
-				{
-					$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in {$varfile} -out {$varfile} -bam {$bam_rna} -depth -name rna", true);
-				}
-				else
-				{
-					trigger_error("BAM file does not exist for RNA sample '{$psample}'!", E_USER_WARNING);
-				}
+			//load per-gene splicing information
+			$splicing = $psample_info['ps_folder']."{$psample}_splicing.genes.tsv";
+			$splicing = "Sample_RX2103733_01/{$psample}_splicing_gene.tsv";
+			if (file_exists($splicing))
+			{
+				annotate_gsvar_by_gene($varfile, $varfile, $splicing, "symbol", "aberrant_frac", "aberrant_splicing", "Fraction of aberrant splicing reads in gene.");
+			}
+			else
+			{
+				trigger_error("Splicing file does not exist for RNA sample '{$psample}'!", E_USER_WARNING);
+			}
 
-				//load TPM values form counts file, as associative array gene name => TPM value
-				$expr = $psample_info['ps_folder']."{$psample}_counts.tsv";
-				if (file_exists($expr))
-				{
-					$expr_m = array_column(load_tsv($expr), 4, 5);
-					$gsvar = Matrix::fromTSV($varfile);
-					$genes = $gsvar->getCol($gsvar->getColumnIndex("gene"));
-	
-					// map function to map gene name to tpm value
-					function get_tpm(&$item, $key)
-					{
-						global $expr_m;
-						//use first gene in case multiple comma-separated genes are listed
-						$gene = explode(',', $item)[0];
-						
-						if (isset($expr_m[$gene]))
-						{
-							$item = number_format($expr_m[$gene], 2);
-						}
-						elseif ($item !== "")
-						{
-							trigger_error("No expression value found for gene: {$gene}", E_USER_NOTICE);
-							$item = "n/a";
-						}
-						else
-						{
-							$item = "n/a";
-						}
-					}
-					array_walk($genes, "get_tpm");
-					$gsvar->addCol($genes, "tpm", "Gene expression strength in transcripts-per-million.");
-					$gsvar->toTSV($varfile);
-				}
-				else
-				{
-					trigger_error("Count file does not exist for RNA sample '{$psample}'!", E_USER_WARNING);
-				}
+			//load TPM values form counts file, as associative array gene name => TPM value
+			$expr = $psample_info['ps_folder']."{$psample}_counts.tsv";
+			if (file_exists($expr))
+			{
+				annotate_gsvar_by_gene($varfile, $varfile, $expr, "gene_name", "tpm", "tpm", "Gene expression strength in transcripts-per-million.");
+			}
+			else
+			{
+				trigger_error("Count file does not exist for RNA sample '{$psample}'!", E_USER_WARNING);
 			}
 		}
 	}

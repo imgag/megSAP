@@ -37,6 +37,7 @@ if($out_folder=="default")
 {
 	$out_folder = $folder;
 }
+$ngsbits = get_path("ngs-bits");
 
 // create logfile in output folder if no filepath is provided:
 	if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/analyze_rna_".date("YmdHis").".log");
@@ -263,8 +264,13 @@ $expr = $prefix."_expr.tsv";
 $expr_cohort = $prefix."_expr.cohort.tsv";
 $expr_stats = $prefix."_expr.stats.tsv";
 $expr_corr = $prefix."_expr.corr.txt";
+$junctions = "{$prefix}_splicing.tsv";
+$splicing_annot = "{$prefix}_splicing_annot.tsv";
+$splicing_bed = "{$prefix}_splicing.bed";
+$splicing_gene = "{$prefix}_splicing_gene.tsv";
 if (in_array("an", $steps))
 {
+	//annotate gene-level read counts
 	$parser->execTool("NGS/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtfFile $gtfFile -annotationIds gene_name,gene_biotype");
 	//annotate exon-level read counts
 	$parser->execTool("NGS/rc_annotate.php", "-in $counts_exon_normalized -out $counts_exon_normalized -gtfFile $gtfFile -annotationIds gene_name,gene_biotype");
@@ -310,6 +316,11 @@ SQL;
 		}
 
 		$parser->execTool("NGS/rc_annotate_expr.php", implode(" ", $args));
+
+	//annotate splice junctions
+	if ($build === "GRCh37" && db_is_enabled("NGSD"))
+	{
+		$parser->exec("{$ngsbits}SplicingToBed", "-in {$junctions} -report {$splicing_annot} -gene_report {$splicing_gene} -bed {$splicing_bed}", true);
 	}
 }
 
