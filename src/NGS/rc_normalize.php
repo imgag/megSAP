@@ -58,7 +58,7 @@ if (in_array("cpm", $methods) || in_array("fpkm", $methods))
 // raw
 if (in_array("raw", $methods))
 {
-	$tbl_gene->addCol($count);
+	$tbl_gene->addCol($count, "raw");
 }
 
 // cpm
