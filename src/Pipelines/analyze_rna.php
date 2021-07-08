@@ -207,6 +207,7 @@ if (in_array("ma", $steps))
 $counts_raw = $prefix."_counts_raw.tsv";
 $counts_exon_raw = $prefix."_counts_exon_raw.tsv";
 $counts_normalized = $prefix."_counts.tsv";
+$counts_exon_normalized = $prefix."_counts_exon.tsv";
 $counts_qc = $prefix."_stats_rc.tsv";
 $repair_bam = $final_bam;
 if (in_array("rc", $steps))
@@ -246,7 +247,7 @@ if (in_array("rc", $steps))
 	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args_exon));
 
 	// read count normalization
-	$parser->execTool("NGS/rc_normalize.php", "-in $counts_raw -out $counts_normalized");
+	$parser->execTool("NGS/rc_normalize.php", "-in $counts_raw -out $counts_normalized -in_exon $counts_exon_raw -out_exon $counts_exon_normalized");
 
 	// re-run read counting without duplicate alignments
 	$counts_nodup = $prefix."_counts_nodup_raw.tsv";
@@ -261,6 +262,8 @@ if (in_array("rc", $steps))
 if (in_array("an", $steps))
 {
 	$parser->execTool("NGS/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtfFile $gtfFile -annotationIds gene_name,gene_biotype");
+	//annotate exon-level read counts
+	$parser->execTool("NGS/rc_annotate.php", "-in $counts_exon_normalized -out $counts_exon_normalized -gtfFile $gtfFile -annotationIds gene_name,gene_biotype");
 }
 
 //detect fusions
