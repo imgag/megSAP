@@ -27,7 +27,7 @@ $parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
 $parser->addString("fusion_caller", "Fusion callers to run, separated by comma.", true, "star-fusion,manta");
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
-$parser->addInt("threads", "The maximum number of threads to use.", true, 4);
+$parser->addInt("threads", "The maximum number of threads to use.", true, 5);
 $parser->addInt("min_read_length", " Minimum read length after SeqPurge adapter trimming. Shorter reads are discarded.", true, 30);   
 
 extract($parser->parse($argv));

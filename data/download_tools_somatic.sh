@@ -25,7 +25,7 @@ rm v1.0.5.tar.gz
 cd $folder
 git clone https://github.com/imgag/umiVar2.git umiVar2
 cd umiVar2
-# create virtual environment
+# create virtual environment for umiVar2
 python3 -m venv venv 
 source venv/bin/activate
 pip3 install pysam==0.16.0.1
@@ -33,14 +33,5 @@ pip3 install numpy==1.19.5
 pip3 install scipy==1.5.4
 pip3 install networkx==2.5
 deactivate
-# create custom R installation
-wget https://cran.r-project.org/src/base/R-4/R-4.0.5.tar.gz
-tar -xvzf R-4.0.5.tar.gz
-rm R-4.0.5.tar.gz
-cd R-4.0.5
-./configure --with-pcre1
-make
-make check
-# install required packages
-bin/R -f $root/install_deps_umiVar2.R
-cd ../..
+# install required R packages for umiVar2
+$folder/R-4.1.0/bin/R -f $root/install_deps_umiVar2.R

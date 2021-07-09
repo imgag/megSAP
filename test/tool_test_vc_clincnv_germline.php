@@ -15,12 +15,12 @@ $bed = $tmp_folder."/target_region.bed";
 $cov_folder = $tmp_folder."/coverage/";
 
 //test1
-$out_file1 = output_folder().$name."test1_out.tsv";
-$log_file1 = output_folder().$name."test1_out.log";
+$out_file1 = output_folder().$name."_test1_out.tsv";
+$log_file1 = output_folder().$name."_test1_out.log";
 check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX000018_02.cov -cov_folder {$cov_folder} -cov_min 20 -bed {$bed} -out {$out_file1} -mosaic --log {$log_file1}");
 check_file($out_file1, data_folder().$name."_test1_out.tsv");
-check_file(substr($out_file1,0,-4).".seg", data_folder().$name."_test1_out1.seg");
-check_file(substr($out_file1,0,-4)."_cnvs.seg",data_folder().$name."_test1_out2.seg");
+check_file(substr($out_file1,0,-4).".seg", data_folder().$name."_test1_out.seg");
+check_file(substr($out_file1,0,-4)."_cnvs.seg",data_folder().$name."_test1_out_cnvs.seg");
 check_file_exists(substr($out_file1,0,-4)."_mosaic.tsv");
 
 //test clincnv for somatic single sample (vc_clincnv_germline is used in this case)
@@ -43,12 +43,12 @@ $parser = new ToolBase("tool_test_vc_clincnv_germline", "Pipeline for Bed Annota
 $parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 $cov_folder = $tmp_folder."/cov-tumor";
 //test
-$out_file3 = output_folder().$name."_tumor_out.tsv";
-$log_file3 = output_folder().$name."_tumor_out.log";
+$out_file3 = output_folder().$name."_test2_out.tsv";
+$log_file3 = output_folder().$name."_test2_out.log";
 check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX000015_01.cov -cov_folder {$cov_folder} -cov_max 200 -max_cnvs 200 -bed {$bed} -bed_off {$bed_off} -cov_off {$cov_off} -out {$out_file3} --log {$log_file3} -tumor_only");
-check_file($out_file3, data_folder().$name."_tumor_out.tsv");
-check_file(substr($out_file3,0,-4).".seg", data_folder().$name."_tumor_out1.seg");
-check_file(substr($out_file3,0,-4)."_cnvs.seg",data_folder().$name."_tumor_out2.seg");
+check_file($out_file3, data_folder().$name."_test2_out.tsv");
+check_file(substr($out_file3,0,-4).".seg", data_folder().$name."_test2_out.seg");
+check_file(substr($out_file3,0,-4)."_cnvs.seg",data_folder().$name."_test2_out_cnvs.seg");
 
 end_test();
 
