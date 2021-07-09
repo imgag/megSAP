@@ -95,6 +95,7 @@ foreach (explode(",", $annotationIds) as $ann_id)
 {
 	$annotation_column = $ids;
 	array_walk($annotation_column, "map_id", $ann_id);
+	$counts->removeColByName($ann_id);
 	$counts->addCol($annotation_column, $ann_id);
 }
 

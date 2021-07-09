@@ -18,7 +18,7 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 //optional
 $parser->addInfile("system", "Processing system INI file (determined from NGSD via the 'name' by default).", true);
 $steps_all = array("ma", "rc", "an", "fu", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, rc=read counting, an=annotation, fu=fusion detection, db=import into NGSD", true, implode(",", $steps_all));
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, rc=read counting, an=annotation, fu=fusion detection, db=import into NGSD", true, "ma,rc,an,db");
 
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
 $parser->addFlag("no_splicing", "Disable spliced read alignment.");
@@ -207,6 +207,7 @@ if (in_array("ma", $steps))
 $counts_raw = $prefix."_counts_raw.tsv";
 $counts_exon_raw = $prefix."_counts_exon_raw.tsv";
 $counts_normalized = $prefix."_counts.tsv";
+$counts_exon_normalized = $prefix."_counts_exon.tsv";
 $counts_qc = $prefix."_stats_rc.tsv";
 $repair_bam = $final_bam;
 if (in_array("rc", $steps))
@@ -246,7 +247,7 @@ if (in_array("rc", $steps))
 	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args_exon));
 
 	// read count normalization
-	$parser->execTool("NGS/rc_normalize.php", "-in $counts_raw -out $counts_normalized");
+	$parser->execTool("NGS/rc_normalize.php", "-in $counts_raw -out $counts_normalized -in_exon $counts_exon_raw -out_exon $counts_exon_normalized");
 
 	// re-run read counting without duplicate alignments
 	$counts_nodup = $prefix."_counts_nodup_raw.tsv";
@@ -258,9 +259,58 @@ if (in_array("rc", $steps))
 }
 
 //annotate
+$expr = $prefix."_expr.tsv";
+$expr_cohort = $prefix."_expr.cohort.tsv";
+$expr_stats = $prefix."_expr.stats.tsv";
+$expr_corr = $prefix."_expr.corr.txt";
 if (in_array("an", $steps))
 {
 	$parser->execTool("NGS/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtfFile $gtfFile -annotationIds gene_name,gene_biotype");
+	//annotate exon-level read counts
+	$parser->execTool("NGS/rc_annotate.php", "-in $counts_exon_normalized -out $counts_exon_normalized -gtfFile $gtfFile -annotationIds gene_name,gene_biotype");
+	
+	//expression value based on cohort
+	if (db_is_enabled("NGSD"))
+	{
+		$db = DB::getInstance("NGSD");
+		$ps_info = get_processed_sample_info($db, $name);
+		$args = [
+			"-name {$name}",
+			"-in {$counts_normalized}",
+			"-out {$expr}",
+			"-cohort {$expr_cohort}",
+			"-stats {$expr_stats}",
+			"-corr {$expr_corr}"
+		];
+		//somatic: enable somatic mode, and use RNA reference tissue
+		if ($ps_info['is_tumor'])
+		{
+			//somatic case: find HPA reference tissue
+			list($s_name) = explode("_", $name);
+			$sql = <<<SQL
+				SELECT sdi.disease_info FROM sample s
+				LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id
+				LEFT JOIN sample_disease_info sdi ON sdi.sample_id=sr.sample1_id OR sdi.sample_id=sr.sample2_id
+				WHERE
+					s.name='{$s_name}' AND
+					sdi.type='RNA reference tissue' AND
+					(sr.relation="same sample" OR sr.relation IS NULL)
+SQL;
+	
+			$res = array_unique($db->getValues($sql));
+			if (count($res) == 1)
+			{
+				$rna_ref_tissue = $res[0];
+			}
+			else
+			{
+				trigger_error("Found multiple or no RNA reference tissue in NGSD. Aborting...", E_USER_ERROR);
+			}
+			$args += ["-somatic", "-hpa_tissue '{$rna_ref_tissue}'"];
+		}
+
+		$parser->execTool("NGS/rc_annotate_expr.php", implode(" ", $args));
+	}
 }
 
 //detect fusions
