@@ -279,48 +279,52 @@ if (in_array("an", $steps))
 	if (db_is_enabled("NGSD"))
 	{
 		$db = DB::getInstance("NGSD");
-		$ps_info = get_processed_sample_info($db, $name);
-		$args = [
-			"-name {$name}",
-			"-in {$counts_normalized}",
-			"-out {$expr}",
-			"-cohort {$expr_cohort}",
-			"-stats {$expr_stats}",
-			"-corr {$expr_corr}"
-		];
-		//somatic: enable somatic mode, and use RNA reference tissue
-		if ($ps_info['is_tumor'])
+		$ps_info = get_processed_sample_info($db, $name, false);
+		if (!is_null($ps_info))
 		{
-			//somatic case: find HPA reference tissue
-			list($s_name) = explode("_", $name);
-			$sql = <<<SQL
-				SELECT sdi.disease_info FROM sample s
-				LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id
-				LEFT JOIN sample_disease_info sdi ON sdi.sample_id=sr.sample1_id OR sdi.sample_id=sr.sample2_id
-				WHERE
-					s.name='{$s_name}' AND
-					sdi.type='RNA reference tissue' AND
-					(sr.relation="same sample" OR sr.relation IS NULL)
+			$args = [
+				"-name {$name}",
+				"-in {$counts_normalized}",
+				"-out {$expr}",
+				"-cohort {$expr_cohort}",
+				"-stats {$expr_stats}",
+				"-corr {$expr_corr}"
+			];
+			//somatic: enable somatic mode, and use RNA reference tissue
+			if ($ps_info['is_tumor'])
+			{
+				//somatic case: find HPA reference tissue
+				list($s_name) = explode("_", $name);
+				$sql = <<<SQL
+					SELECT sdi.disease_info FROM sample s
+					LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id
+					LEFT JOIN sample_disease_info sdi ON sdi.sample_id=sr.sample1_id OR sdi.sample_id=sr.sample2_id
+					WHERE
+						s.name='{$s_name}' AND
+						sdi.type='RNA reference tissue' AND
+						(sr.relation="same sample" OR sr.relation IS NULL)
 SQL;
+		
+				$res = array_unique($db->getValues($sql));
+				if (count($res) == 1)
+				{
+					$rna_ref_tissue = $res[0];
+				}
+				else
+				{
+					trigger_error("Found multiple or no RNA reference tissue in NGSD. Aborting...", E_USER_ERROR);
+				}
+				$args += ["-somatic", "-hpa_tissue '{$rna_ref_tissue}'"];
+			}
 	
-			$res = array_unique($db->getValues($sql));
-			if (count($res) == 1)
-			{
-				$rna_ref_tissue = $res[0];
-			}
-			else
-			{
-				trigger_error("Found multiple or no RNA reference tissue in NGSD. Aborting...", E_USER_ERROR);
-			}
-			$args += ["-somatic", "-hpa_tissue '{$rna_ref_tissue}'"];
+			$parser->execTool("NGS/rc_annotate_expr.php", implode(" ", $args));
 		}
 
-		$parser->execTool("NGS/rc_annotate_expr.php", implode(" ", $args));
-
-	//annotate splice junctions
-	if ($build === "GRCh37" && db_is_enabled("NGSD"))
-	{
-		$parser->exec("{$ngsbits}SplicingToBed", "-in {$junctions} -report {$splicing_annot} -gene_report {$splicing_gene} -bed {$splicing_bed}", true);
+		//annotate splice junctions
+		if ($build === "GRCh37" && db_is_enabled("NGSD"))
+		{
+			$parser->exec("{$ngsbits}SplicingToBed", "-in {$junctions} -report {$splicing_annot} -gene_report {$splicing_gene} -bed {$splicing_bed}", true);
+		}
 	}
 }
 
