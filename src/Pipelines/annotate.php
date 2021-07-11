@@ -131,10 +131,12 @@ if (!$somatic) //germline only
 			}
 
 			//load TPM values form counts file, as associative array gene name => TPM value
-			$expr = $psample_info['ps_folder']."{$psample}_counts.tsv";
+			$expr = $psample_info['ps_folder']."{$psample}_expr.tsv";
 			if (file_exists($expr))
 			{
 				annotate_gsvar_by_gene($varfile, $varfile, $expr, "gene_name", "tpm", "tpm", "Gene expression strength in transcripts-per-million.");
+				annotate_gsvar_by_gene($varfile, $varfile, $expr, "gene_name", "log2fc", "expr_log2fc", "Relative gene expression as log2 FC (log2 tpm).");
+				annotate_gsvar_by_gene($varfile, $varfile, $expr, "gene_name", "zscore", "expr_zscore", "Relative gene expression as z-score (log2 tpm)");
 			}
 			else
 			{

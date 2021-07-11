@@ -1941,7 +1941,7 @@ function annotate_gsvar_by_gene($gsvar_f, $outfile_f, $annotation_f, $key, $colu
 		$vals = [];
 		foreach ($annotated_genes as $g)
 		{
-			$vals[] = isset($values[$g]) ? number_format($values[$g], 4) : "n/a";
+			$vals[] = (isset($values[$g]) && $values[$g] != "n/a") ? number_format($values[$g], 4) : "n/a";
 		}
 
 		$item = implode(",", $vals);
