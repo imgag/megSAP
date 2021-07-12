@@ -421,10 +421,7 @@ function run_clincnv($out, $mosaic=FALSE)
 		$args[] = "--minimumPurity 30";
 		$args[] = "--purityStep 5";
 		$args[] = "--scoreS 150";
-		$script_path = get_path('clincnv');
-		$command_elements = explode(' ', $script_path);
-		$script_path = end($command_elements);
-		$args[] = "--folderWithScript {$script_path}";
+		$args[] = "--folderWithScript ".dirname(get_path("clincnv"));
 		if($use_off_target)
 		{
 			$args[] = "--bedOfftarget $bed_off";
@@ -574,7 +571,7 @@ function run_clincnv($out, $mosaic=FALSE)
 //init
 $repository_basedir = repository_basedir();
 $ps_name = basename($cov,".cov");
-$command = get_path("clincnv")."/clinCNV.R";
+$command = get_path("rscript")." --vanilla ".get_path("clincnv");
 
 //determine coverage files
 $cov_files = glob($cov_folder."/*.cov");
