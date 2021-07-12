@@ -258,7 +258,7 @@ if(!file_exists($cohort_folder))
 {
 	trigger_error("Directory for cohort output {$cohort_folder} does not exist.",E_USER_ERROR);
 }
-$call_cnvs_exec_path = get_path("clincnv")."/clinCNV.R";
+$command = get_path("rscript")." --vanilla ".get_path("clincnv");
 
 $args = [
 "--normal", $merged_cov_normal,
@@ -316,7 +316,7 @@ function chmod_recursive($folder)
 }
 chmod_recursive($cohort_folder);
 
-$parser->exec($call_cnvs_exec_path,implode(" ",$args),true);
+$parser->exec($command, implode(" ",$args), true);
 chmod_recursive($cohort_folder);
 
 //copy segmentation files to folder containing output file

@@ -16,10 +16,6 @@ extract($parser->parse($argv));
 $genome = genome_fasta($build);
 $tempdir = $parser->tempFolder("umiVar");
 
-// get umiVar2 and R path
-$umiVar2 = get_path("umiVar2");
-$r_binary = $umiVar2."/R-4.0.5/bin/Rscript";
-
 // remove previous analysis
 create_directory($folder);
 $folder = realpath($folder);
@@ -31,7 +27,7 @@ $args = [
     "--bed", realpath($target),
     "--out_folder", $folder,
     "--temp_dir", $tempdir,
-    "--custom_rscript_binary", $r_binary
+    "--custom_rscript_binary", get_path("rscript")
 ];
 if (isset($monitoring_bed))
 {
