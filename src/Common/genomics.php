@@ -1952,7 +1952,6 @@ function annotate_gsvar_by_gene($gsvar_f, $outfile_f, $annotation_f, $key, $colu
 	$gsvar->toTSV($outfile_f);
 }
 
-?>
 //determines genome build of a BAM file
 function get_genome_build($bamfile)
 {
