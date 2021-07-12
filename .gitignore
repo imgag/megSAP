@@ -129,9 +129,13 @@
 /test/data_cfdna/*.bam
 /test/data_cfdna/*.bai
 /test/data_cfdna/*.fastq.gz
-/test/data_cfdna/*.bed
 /test/data_cfdna/*.qcML
 /test/data_cfdna/*.mrd
 /test/data_cfdna/*.tsv
 /test/data_cfdna/*.vcf
 /test/data_cfdna/*.log
+/test/data_cfdna/*.GSvar
+/test/data_cfdna/*.vcf.gz
+/test/data_cfdna/*.vcf.gz.tbi
+/test/data_cfdna/CFDNA_01/
+/test/data_cfdna/CFDNA_02/

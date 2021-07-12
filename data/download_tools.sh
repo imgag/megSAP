@@ -66,14 +66,22 @@ wget https://github.com/bwa-mem2/bwa-mem2/releases/download/v2.1/bwa-mem2-2.1_x6
 tar xjf bwa-mem2-2.1_x64-linux.tar.bz2
 rm bwa-mem2-2.1_x64-linux.tar.bz2
 
+#download and build R (for ClinCnv and UmiVar2)
+cd $folder
+wget https://cran.r-project.org/src/base/R-4/R-4.1.0.tar.gz
+tar -xvzf R-4.1.0.tar.gz
+mv R-4.1.0 R-4.1.0-src
+cd R-4.1.0-src
+./configure --with-pcre1 --prefix $folder/R-4.1.0
+make all install
+cd ..
+rm -rf R-4.1.0.tar.gz R-4.1.0-src
+
 #download ClinCNV
 cd $folder
-git clone https://github.com/imgag/ClinCNV.git ClinCNV-1.17.0
-cd ClinCNV-1.17.0
-git fetch && git fetch --tags
-git checkout 1.17.0
-cd ..
-mv ClinCNV ClinCNV-1.17.0
+git clone https://github.com/imgag/ClinCNV.git ClinCNV-1.17.1
+# install required R packages for ClinCNV
+$folder/R-4.1.0/bin/R -f $root/install_deps_clincnv.R
 
 #download and build VEP
 cd $root
@@ -180,4 +188,3 @@ mkdir build
 cd build
 cmake ..
 make
-cd ../..

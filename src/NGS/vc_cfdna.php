@@ -7,23 +7,36 @@ $parser = new ToolBase("vc_cfdna", "cfDNA mutation caller.");
 $parser->addInfile("bam", "Input BAM file, with deduplicated alignments and DP tags.", false);
 $parser->addInfile("target", "Target region BED file.", false);
 $parser->addString("build", "Reference genome build.", false);
-$parser->addOutfile("vcf", "Variant call output as VCF file.", false);
-//$parser->addOutfile("tsv", "Variant call output as TSV file.", true);
-//$parser->addOutfile("mrd", "MRD probability output file.", true);
+$parser->addString("folder", "Analysis data folder with cfDNA variant calling.", false);
 $parser->addInfile("model", "Error model parameters.", true);
+$parser->addInfile("monitoring_bed", "BED file containing monitoring SNVs and sample identifier.", true);
 
 extract($parser->parse($argv));
 
 $genome = genome_fasta($build);
+$tempdir = $parser->tempFolder("umiVar");
 
-$tempdir = $parser->tempFolder("cfdna_tmp");
+// get umiVar2 and R path
+$umiVar2 = get_path("umiVar2");
+$r_binary = $umiVar2."/R-4.0.5/bin/Rscript";
+
+// remove previous analysis
+create_directory($folder);
+$folder = realpath($folder);
+$parser->exec("rm", "-rf $folder");
+
 $args = [
-    "--bam", $bam,
-    "--ref", $genome,
-    "--bed", $target,
-    "--out_file", $vcf,
-    "--temp_dir", $tempdir
+    "--tbam", realpath($bam),
+    "--ref", realpath($genome),
+    "--bed", realpath($target),
+    "--out_folder", $folder,
+    "--temp_dir", $tempdir,
+    "--custom_rscript_binary", $r_binary
 ];
+if (isset($monitoring_bed))
+{
+    $args[] = "--monitoring ${monitoring_bed}";
+}
 if (isset($model))
 {
     $args[] = "--param {$model}";
@@ -39,6 +52,22 @@ else
     }
 }
 
-$parser->exec(get_path("cfdna_caller"), implode(" ", $args));
+// call umiVar2 in virtual environment
+$umiVar2 = get_path("umiVar2");
+$python_bin = $umiVar2."/venv/bin/python";
+$parser->exec($python_bin, $umiVar2."/umiVar.py ".implode(" ", $args));
+
+// sort VCF file(s)
+$vcf = $folder."/".basename($bam, ".bam").".vcf";
+if (file_exists($vcf))
+{
+    $parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf -out $vcf", true);
+}
+$vcf_hq = $folder."/".basename($bam, ".bam")."_hq.vcf";
+if (file_exists($vcf_hq))
+{
+    $parser->exec(get_path("ngs-bits")."VcfSort","-in ${vcf_hq} -out ${vcf_hq}", true);
+}
+
 
 ?>

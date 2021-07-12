@@ -24,7 +24,30 @@ $lanes = explode(",", $lanes);
 $output = array();
 
 //execute query
-$res = $db->executeQuery("SELECT CONCAT(s.name, '_', LPAD(ps.process_id,2,'0')) as psname, (select sequence from mid where id = ps.mid1_i7) as mid1_i7, (select sequence from mid where id = ps.mid2_i5) as mid2_i5, ps.comment as pscomment,ps.lane as lane, s.comment as scomment, p.name as pname FROM processed_sample as ps, sample as s, genome as g, project as p, sequencing_run as sr, device as d, processing_system as sys WHERE ps.sample_id = s.id and ps.project_id = p.id and sys.id = ps.processing_system_id and sys.genome_id = g.id and sr.id = ps.sequencing_run_id AND sr.device_id = d.id and sr.name = :run ORDER BY psname", array("run" => $run));
+$res = $db->executeQuery(<<<SQL
+SELECT
+	CONCAT(s.name, '_', LPAD(ps.process_id,2,'0')) as psname,
+	(select sequence from mid where id = ps.mid1_i7) as mid1_i7,
+	(select sequence from mid where id = ps.mid2_i5) as mid2_i5,
+	(select name from mid where id = ps.mid1_i7) as mid1_i7_name,
+	(select name from mid where id = ps.mid2_i5) as mid2_i5_name,
+	ps.comment as pscomment,
+	ps.lane as lane,
+	s.comment as scomment,
+	p.name as pname
+FROM
+	processed_sample as ps,
+	sample as s,
+	project as p,
+	sequencing_run as sr
+WHERE
+	ps.sample_id = s.id and
+	ps.project_id = p.id and
+	sr.id = ps.sequencing_run_id and
+	sr.name = :run
+ORDER BY psname
+SQL
+, array("run" => $run));
 
 if(count($res)==0)
 {
@@ -60,7 +83,7 @@ foreach($res as $index => $row)
 //generate sample sheet
 $barcodes = array();
 $output[] = "[Data]";
-$output[] = "Lane,Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description";
+$output[] = "Lane,Sample_ID,Sample_Name,Sample_Project,index,index2,comment,index_name,index2_name";
 foreach($res as $row)
 {
 	$lanes_sample = explode(".", $row['lane']);
@@ -81,6 +104,7 @@ foreach($res as $row)
 		$name = $row["psname"];
 
 		$mids_i7 = [ $mid1 ];
+		$mids_i7_names = [ $row["mid1_i7_name"] ];
 		if (starts_with($row["pscomment"], "add_mids:"))
 		{
 			$add_mids = explode(".", substr($row["pscomment"], strpos($row["pscomment"], ":")+1));
@@ -95,14 +119,25 @@ foreach($res as $row)
 				else
 				{
 					$mids_i7[] = $res[0]["sequence"];
+					$mids_i7_names[] = $res[0]["name"];
 				}
 			}
 		}
 
-		foreach ($mids_i7 as $mid1)
+		foreach (array_combine($mids_i7_names, $mids_i7) as $mid1_name => $mid1)
 		{
 			$barcodes[$lane][] = array($mid1, $mid2, $name);
-			$output[] = $lane.",Sample_".$row["psname"].",".$name.",,,,".$mid1.",,".$mid2.",".$row["pname"].",".$row["pscomment"]." ".$row["scomment"];
+			$output[] = implode(',', [
+				$lane,
+				"Sample_{$name}",
+				$name,
+				$row["pname"],
+				$mid1,
+				$mid2,
+				trim(implode(" ", [ $row["pscomment"], $row["scomment"] ])),
+				$mid1_name,
+				$row["mid2_i5_name"]
+			]);
 		}
 	}
 }

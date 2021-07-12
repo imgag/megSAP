@@ -64,7 +64,15 @@ if ($sys["adapter1_p5"]=="" && $sys["adapter2_p7"]=="")
 $stafile1 = $basename."_stats_fastq.qcML";
 
 
-if ($use_dragen && $sys['type']!="Panel MIPs")
+$trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
+$trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
+// deactivate DRAGEN for sample type "Panel MIPs"
+if($sys['type']=="Panel MIPs") 
+{
+	trigger_error("Panel MIPs are not supported by the DRAGEN pipeline, using local mapping instead.", E_USER_WARNING);
+	$use_dragen = false;
+}
+if ($use_dragen)
 {
 	// get transfer folders for DRAGEN server from settings
 	$dragen_input_folder = get_path("dragen_in");
@@ -74,21 +82,9 @@ if ($use_dragen && $sys['type']!="Panel MIPs")
 	if (!file_exists($dragen_input_folder)) trigger_error("DRAGEN input folder \"".$dragen_input_folder."\" does not exist!", E_USER_ERROR);
 	if (!file_exists($dragen_output_folder)) trigger_error("DRAGEN input folder \"".$dragen_output_folder."\" does not exist!", E_USER_ERROR);
 
-	$trimmed1 = "$dragen_input_folder/{$out_name}_trimmed1.fastq.gz";
-	$trimmed2 = "$dragen_input_folder/{$out_name}_trimmed2.fastq.gz";
+	$trimmed1_dragen = "$dragen_input_folder/{$out_name}_trimmed1.fastq.gz";
+	$trimmed2_dragen = "$dragen_input_folder/{$out_name}_trimmed2.fastq.gz";
 }
-else
-{
-	// deactivate DRAGEN for this sample
-	if($sys['type']=="Panel MIPs") 
-	{
-		trigger_error("Panel MIPs are not supported by the DRAGEN pipeline, using local mapping instead.", E_USER_WARNING);
-		$use_dragen = false;
-	}
-	$trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
-	$trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
-}
-
 
 // barcode handling
 $barcode_correction = false;
@@ -99,8 +95,6 @@ if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT-UDI-UMI"]))
 	{
 		trigger_error("UMI handling is not supported by the DRAGEN pipeline, using local mapping instead.", E_USER_WARNING);
 		$use_dragen = false;
-		$trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
-		$trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
 	}	
 	if ($in_index === false || empty($in_index))
 	{
@@ -143,8 +137,6 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq",
 	{
 		trigger_error("UMI handling is not supported by the DRAGEN pipeline, using local mapping instead.", E_USER_WARNING);
 		$use_dragen = false;
-		$trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
-		$trimmed2 = $parser->tempFile("_trimmed2.fastq.gz");
 	}
 
 	//handle UMI protocols where the UMI is placed at the head of read 1 and/or read 2
@@ -207,6 +199,13 @@ else //normal analysis without UMIs
 		{
 			$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 6), true);
 		}
+		if ($use_dragen)
+		{
+			//move trimmed FastQs to DRAGEN input folder
+			$parser->moveFile($trimmed1, $trimmed1_dragen); 
+			$parser->moveFile($trimmed2, $trimmed2_dragen); 
+		}
+
 	}
 }
 
@@ -290,8 +289,8 @@ if (!$start_with_abra)
 
 		// create cmd for mapping_dragen.php
 		$args = array();
-		$args[] = "-in1 $trimmed1";
-		$args[] = "-in2 $trimmed2";
+		$args[] = "-in1 ${trimmed1_dragen}";
+		$args[] = "-in2 ${trimmed2_dragen}";
 		$args[] = "-out $dragen_output_bam";
 		$args[] = "-sample $out_name";
 		$args[] = "-build ".$sys['build'];
@@ -381,8 +380,8 @@ if (!$start_with_abra)
 		$bam_current = $dragen_output_bam;
 
 		// remove trimmed fastq files
-		unlink($trimmed1);
-		unlink($trimmed2);
+		unlink($trimmed1_dragen);
+		unlink($trimmed2_dragen);
 	}
 	else
 	{

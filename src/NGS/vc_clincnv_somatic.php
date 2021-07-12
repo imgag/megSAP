@@ -44,21 +44,6 @@ if(!isset($bed_off) || !isset($t_cov_off) || !isset($n_cov_off))
 	$use_off_target = false;
 }
 
-//extract tool path from ClinCNV command
-$tool_folder = "";
-$parts = explode(" ", get_path("clincnv"));
-foreach($parts as $part)
-{
-	if ($part!="" && file_exists($part))
-	{
-		$tool_folder = $part;
-	}
-}
-if ($tool_folder=="")
-{
-	trigger_error("Could not determine tool folder of ClinCNV!", E_USER_ERROR);
-}
-
 //creates file with all tumor-normal sample identifiers of the same processing system
 function get_somatic_pairs($cov_folder_tumor,$file_name)
 {
@@ -260,16 +245,9 @@ if($use_off_target)
  *******************/
 //Determine folder for cohort output, standard is in ClinCNV app directory.
 if($cohort_folder == "auto")
-{	
-	//create main cohorts folder
-	if(!file_exists("{$tool_folder}/cohorts"))
-	{
-		mkdir("{$tool_folder}/cohorts");
-		chmod("{$tool_folder}/cohorts", 0777);
-	}
-	
+{
 	//create system-specific cohorts folder
-	$cohort_folder = "{$tool_folder}/cohorts/".$sys['name_short']."/";
+	$cohort_folder = get_path("clincnv_cohorts") ."/".$sys['name_short']."/";
 	if(!file_exists($cohort_folder))
 	{
 		mkdir($cohort_folder);

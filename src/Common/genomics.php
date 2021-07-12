@@ -1129,6 +1129,73 @@ function vcf_strelka_indel($format_col, $sample_col)
 	return array($d,$f);
 }
 
+//Extracts depth and variant allele frequency for umivar2 output line.
+function vcf_umivar2($filter_col, $info_col, $format_col, $sample_col)
+{
+	$filter_data = explode(";", $filter_col);
+	$info_data = explode(";", $info_col);
+	$format_data = explode(":", $format_col);
+	$sample_data = explode(":", $sample_col);
+	if(count($format_data) != count($sample_data))
+	{
+		trigger_error("FORMAT column and sample column have different count of entries.", E_USER_ERROR);
+	}
+	
+	//parse filter column:
+	$homopolymer = "false";
+	foreach ($filter_data as $filter) 
+	{
+		if(trim($filter) == "Homopolymer") 
+		{
+			$homopolymer = "true";
+		}
+	}
+
+	//parse info column
+	$seq_context = NULL;
+	$p_value = NULL;
+	foreach ($info_data as $info) 
+	{
+		if(starts_with($info, "Vicinity="))
+		{
+			$seq_context = substr($info, 9);
+		}
+		else if(starts_with($info, "PValue="))
+		{
+			$p_value = number_format(substr($info, 7), 5);
+		}
+	}
+	if(is_null($seq_context))
+	{
+		trigger_error("Invalid umiVar2 format. Vicinity field is missing in INFO column!", E_USER_ERROR);
+	}
+	if(is_null($p_value))
+	{
+		trigger_error("Invalid umiVar2 format. P-value is missing in INFO column!", E_USER_ERROR);
+	}
+
+	//parse format cols
+	$i_alt_count = NULL; //index alt count
+	$i_dp = NULL; //index depth
+	$i_af = NULL; //index allele frequency
+	$i_strand = NULL; //index strand
+
+	for($i=0;$i<count($format_data);++$i)
+	{
+		if($format_data[$i] == "Alt_Count") $i_alt_count = $i;
+		if($format_data[$i] == "DP") $i_dp = $i;
+		if($format_data[$i] == "AF") $i_af = $i;
+		if($format_data[$i] == "Strand") $i_strand = $i;
+	}
+	
+	if(is_null($i_alt_count) || is_null($i_dp) || is_null($i_af) || is_null($i_strand))
+	{
+		trigger_error("Invalid umiVar2 format. Missing one of the fields 'Alt_Count', 'DP', 'AF' or 'Strand'", E_USER_ERROR);
+	}
+
+	return array($sample_data[$i_dp], number_format($sample_data[$i_af], 5), $p_value, $sample_data[$i_alt_count], $sample_data[$i_strand], $seq_context, $homopolymer);
+}
+
 //Calculates depth and variant allele frequency for varscan2 output line.
 function vcf_varscan2($format_col, $sample_col)
 {
@@ -1785,6 +1852,107 @@ function aa1_to_aa3($one_letter_notation)
 	return strtr($one_letter_notation, $GLOBALS["aa1_to_aa3"]);
 }
 
+/**
+ * get_related_processed_samples
+ * 
+ * Find related processed samples.
+ *
+ * @param  mixed $db
+ * @param  string $ps_name
+ * @param  string $relation
+ * @param  string $systype
+ * @param  bool $exclude_bad
+ * @return array
+ */
+function get_related_processed_samples(&$db, $ps_name, $relation, $systype="", $exclude_bad=true)
+{
+	$ps_name = trim($ps_name);
+	list($sample_name, $process_id) = explode("_", $ps_name."_");
+
+	$res = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", ["name" => $sample_name]);
+	if (count($res) != 1)
+	{
+		trigger_error("Could not find sample '{$sample_name}'!", E_USER_ERROR);
+	}
+	$sample_id = $res[0]['id'];
+
+	//related samples
+	$res = $db->executeQuery("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation=:rel AND (sample1_id=:sid OR sample2_id=:sid)",
+								["rel" => $relation, "sid" => $sample_id]);
+	$related_samples_ids = array_diff(array_merge(array_column($res, "sample1_id"), array_column($res, "sample2_id")), [$sample_id]);
+	
+	
+	//collect processed samples
+	$query = <<<SQL
+SELECT
+	CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as ps_name,
+	ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality,
+	sys.id, sys.type
+FROM
+	processed_sample as ps
+LEFT JOIN merged_processed_samples mps ON mps.processed_sample_id = ps.id
+LEFT JOIN sample s ON s.id = ps.sample_id
+LEFT JOIN processing_system sys ON sys.id = ps.processing_system_id
+WHERE
+	mps.merged_into IS NULL AND
+	ps.sample_id=:sid
+SQL;
+
+	if ($systype === "")	$query .= " AND sys.type='{$systype}'";
+	if ($exclude_bad)		$query .= " AND ps.quality!='bad'";
+
+	$psamples = [];
+	foreach ($related_samples_ids as $rel_sample_id)
+	{
+
+		$res = $db->executeQuery($query, ["sid" => $rel_sample_id]);
+		$psamples += array_column($res, "ps_name");
+	}
+
+	return $psamples;
+}
+
+/**
+ * annotate_gsvar_by_gene
+ * 
+ * Annotate GSvar file based on 'gene' column.
+ *
+ * @param  string $gsvar_f input GSvar file
+ * @param  string $outfile_f output GSvar file
+ * @param  string $annotation_f annotation file
+ * @param  string $key column in annotation file to use as key
+ * @param  string $column column in annotation file to use as value
+ * @param  string $column_name output column name
+ * @param  string $column_description output column description
+ * @return void
+ */
+function annotate_gsvar_by_gene($gsvar_f, $outfile_f, $annotation_f, $key, $column, $column_name, $column_description)
+{
+	$gsvar = Matrix::fromTSV($gsvar_f);
+	$genes = $gsvar->getCol($gsvar->getColumnIndex("gene"));
+
+	$annotation = Matrix::fromTSV($annotation_f);
+	$values = array_combine($annotation->getCol($annotation->getColumnIndex($key)),
+							$annotation->getCol($annotation->getColumnIndex($column)));
+
+	$map_value = function(&$item, $key, &$values)
+	{
+		$annotated_genes = explode(',', $item);
+		$vals = [];
+		foreach ($annotated_genes as $g)
+		{
+			$vals[] = (isset($values[$g]) && $values[$g] != "n/a") ? number_format($values[$g], 4) : "n/a";
+		}
+
+		$item = implode(",", $vals);
+	};
+	array_walk($genes, $map_value, $values);
+	$gsvar->removeColByName($column_name);
+	$gsvar->addCol($genes, $column_name, $column_description);
+	$gsvar->toTSV($outfile_f);
+}
+
+?>
 //determines genome build of a BAM file
 function get_genome_build($bamfile)
 {
