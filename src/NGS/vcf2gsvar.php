@@ -795,8 +795,10 @@ while(!feof($handle))
 				if ($i_hgnc_id!==false && $gene!="")
 				{
 					$hgnc_id = $parts[$i_hgnc_id];
+					$hgnc_id = trim(strtr($hgnc_id, array("HGNC:"=>"")));
 					if (isset($hgnc[$hgnc_id]))
 					{
+		
 						$hgnc_gene = $hgnc[$hgnc_id];
 						if ($gene!=$hgnc_gene)
 						{
