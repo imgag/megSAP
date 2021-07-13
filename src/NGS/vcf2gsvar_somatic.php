@@ -184,22 +184,22 @@ while(!feof($handle))
 	}
 	else if ($var_caller == "umivar2")
 	{
-		// get p-value	
+		// get p-value
 		$p_value = false;
-		$i_parts = explode(";", $info);
-		foreach ($i_parts as $info_field) 
+		$f_parts = explode(":", $format);
+		for($i=0; $i< count($f_parts); ++$i)
 		{
-			if (starts_with($info_field, "PValue="))
+			if($f_parts[$i] == "Pval")
 			{
-				$p_value = number_format(substr($info_field, 7), 4);
+				$i_p_value = $i;
 				break;
-			}	
+			}
 		}
 
 		//Convert quality p-value to phred score
 		if($p_value !== false)
 		{
-			$snp_q = -10 * log10($p_value);	//calculate phred score from pvalue
+			$snp_q = -10 * log10($parts[$i_p_value]);	//calculate phred score from pvalue
 			$snp_q = floor($snp_q);
 			if($snp_q > 255) $snp_q = 255;
 		}

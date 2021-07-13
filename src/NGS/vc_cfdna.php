@@ -9,16 +9,17 @@ $parser->addInfile("target", "Target region BED file.", false);
 $parser->addString("build", "Reference genome build.", false);
 $parser->addString("folder", "Analysis data folder with cfDNA variant calling.", false);
 $parser->addInfile("model", "Error model parameters.", true);
-$parser->addInfile("monitoring_bed", "BED file containing monitoring SNVs and sample identifier.", true);
+$parser->addInfile("monitoring_vcf", "VCF containing monitoring SNVs and sample identifier.", true);
 
 extract($parser->parse($argv));
 
 $genome = genome_fasta($build);
 $tempdir = $parser->tempFolder("umiVar");
+//debug
+$tempdir = $folder."_tmp";
 
 // get umiVar2 and R path
 $umiVar2 = get_path("umiVar2");
-$r_binary = $umiVar2."/R-4.0.5/bin/Rscript";
 
 // remove previous analysis
 create_directory($folder);
@@ -30,12 +31,11 @@ $args = [
     "--ref", realpath($genome),
     "--bed", realpath($target),
     "--out_folder", $folder,
-    "--temp_dir", $tempdir,
-    "--custom_rscript_binary", $r_binary
+    "--temp_dir", $tempdir
 ];
-if (isset($monitoring_bed))
+if (isset($monitoring_vcf))
 {
-    $args[] = "--monitoring ${monitoring_bed}";
+    $args[] = "--monitoring ${monitoring_vcf}";
 }
 if (isset($model))
 {

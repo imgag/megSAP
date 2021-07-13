@@ -14,7 +14,7 @@ map_p:
 	php ../../src/Pipelines/analyze_cfdna.php -folder CFDNA_01 -name CFDNA_01 -system CFDNA_01.ini -steps ma -tumor_id TumorID -roi_patient roi_patient.bed -threads 1
 
 vc_p:
-	php ../../src/Pipelines/analyze_cfdna.php -folder CFDNA_01 -name CFDNA_01 -system CFDNA_01.ini -steps vc -tumor_id TumorID -roi_patient roi_patient.bed -threads 1
+	php ../../src/Pipelines/analyze_cfdna.php -folder CFDNA_01 -name CFDNA_01 -system CFDNA_01.ini -steps vc -tumor_id TumorID -roi_patient roi_patient.bed -monitoring_vcf CFDNA_01_monitoring.vcf -threads 1
 
 diff_p:
 	php ../compare_qcml_xml.php CFDNA_01_stats_map.qcML.out CFDNA_01/CFDNA_01_stats_map.qcML 0.02

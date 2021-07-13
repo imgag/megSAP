@@ -15,6 +15,7 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 $parser->addString("tumor_id", "Related tumor processed sample.", true, "");
 $parser->addString("tumor_bam", "BAM file of related tumor processed sample.", true, "");
 $parser->addString("roi_patient", "Patient-specific target BED file.", true, "");
+$parser->addInfile("monitoring_vcf", "VCF containing patient-specific variants (and IDs).", true);
 $parser->addFlag("skip_tumor", "Skip comparison with related tumor sample");
 $parser->addInt("base_extend", "Number of bases the target region is extended (default: 60)", true, 60);
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
@@ -122,7 +123,7 @@ if (!$annotation_only && !$skip_tumor && ($tumor_id == "") && isset($db))
 	}
 }
 
-// generate bed files for calling (only required for VC)
+// generate bed files for calling (only required for mapping and VC)
 if (!$annotation_only && (in_array("ma", $steps) || in_array("vc", $steps)))
 {
 	if ($is_patient_specific)
@@ -141,38 +142,15 @@ if (!$annotation_only && (in_array("ma", $steps) || in_array("vc", $steps)))
 			//TODO: move to temp
 			$roi_patient = "{$folder}/{$name}_roi_patient.bed";
 			file_put_contents($roi_patient, $bed_content);
+
+			if ($monitoring_vcf == "")
+			{
+				$monitoring_vcf = "{$folder}/{$name}_cfdna_panel.vcf";
+				$vcf_content = $db->getValue("SELECT vcf FROM cfdna_panels WHERE tumor_id=${tumor_ps_id} AND processing_system_id=${sys_id}");
+				file_put_contents($monitoring_vcf, $vcf_content);
+			}
 		}
-
-
-		// create BED file with monitoring/ID variants
-		$bed_content = file($roi_patient);
-		$monitoring_bed_content = array();
-		foreach ($bed_content as $bed_line) 
-		{
-			if ((trim($bed_line) == "") || (starts_with($bed_line, "#"))) continue;
-
-			$split_line = explode("\t", $bed_line);
-			$type = "";
-			if (starts_with($split_line[3], "patient_specific_somatic_variant"))
-			{
-				$type = "M";
-			}
-			elseif (starts_with($split_line[3], "SNP_for_sample_identification"))
-			{
-				$type = "ID";
-			}
-			else
-			{
-				// unknown type
-				continue;
-			}
-
-			$monitoring_bed_content[] = implode("\t", array($split_line[0], $split_line[1], $split_line[2], $type));
-		}
-
-		// write to temp file
-		$monitoring_bed_file = $parser->tempFile("_monitoring.bed");
-		file_put_contents($monitoring_bed_file, implode("\n", $monitoring_bed_content));
+		
 	}
 
 	if ($is_patient_specific)
@@ -188,7 +166,7 @@ if (!$annotation_only && (in_array("ma", $steps) || in_array("vc", $steps)))
 			$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$roi_merged}" ];
 			$parser->execPipeline($pipeline, "merge BED files");
 
-			$roi_extended = "{$folder}/{$name}_regions.bed";
+			$roi_extended = $parser->tempFile("_extended.bed");
 			$pipeline = [];
 			$pipeline[] = [ get_path("ngs-bits")."BedExtend", "-in {$roi_merged} -n {$base_extend}" ];
 			$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$roi_extended}" ];
@@ -220,7 +198,7 @@ if (!$annotation_only && (in_array("ma", $steps) || in_array("vc", $steps)))
 	else
 	{
 		$roi_merged = $roi_base;
-		$roi_extended = "{$folder}/{$name}_regions.bed";
+		$roi_extended = $parser->tempFile("_extended.bed");
 		$pipeline = [];
 		$pipeline[] = [ get_path("ngs-bits")."BedExtend", "-in {$roi_base} -n {$base_extend}" ];
 		$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$roi_extended}" ];
@@ -337,19 +315,22 @@ if (in_array("vc", $steps))
 
 		if ($is_patient_specific)
 		{
-			$args[] = "-monitoring_bed ${monitoring_bed_file}";
+			$args[] = "-monitoring_vcf ${monitoring_vcf}";
 		}
 		$parser->execTool("NGS/vc_cfdna.php", implode(" ", $args));
 
-		//copy vcf (all variants for monitoring / filtered for normal cfDNA)
+		//copy vcf (monitoring variants for monitoring / filtered for normal cfDNA)
 		if ($is_patient_specific)
 		{
-			$parser->copyFile("{$folder}/umiVar/{$name}.vcf", $vcffile);
+			$parser->copyFile("{$folder}/umiVar/{$name}_monitoring.vcf", $vcffile);
 		}
 		else
 		{
 			$parser->copyFile("{$folder}/umiVar/{$name}_hq.vcf", $vcffile);
 		}
+
+		// sort VCF
+		$parser->exec(get_path("ngs-bits")."VcfSort", "-in $vcffile -out $vcffile");
 		
 		// mark off-target reads
 		if ($is_patient_specific)
@@ -360,6 +341,9 @@ if (in_array("vc", $steps))
 		{
 			$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcffile -mark off-target -reg ${roi_merged} -out $vcffile", true);
 		}
+
+		// validate VCF
+		$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $vcffile -lines 0 -ref ".genome_fasta($sys['build']), true);
 	}
 
 	// annotate VCF 
