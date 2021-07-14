@@ -15,11 +15,7 @@ extract($parser->parse($argv));
 
 $genome = genome_fasta($build);
 $tempdir = $parser->tempFolder("umiVar");
-//debug
-$tempdir = $folder."_tmp";
 
-// get umiVar2 and R path
-$umiVar2 = get_path("umiVar2");
 
 // remove previous analysis
 create_directory($folder);
@@ -31,8 +27,7 @@ $args = [
     "--ref", realpath($genome),
     "--bed", realpath($target),
     "--out_folder", $folder,
-    "--temp_dir", $tempdir
-];
+    "--temp_dir", $tempdir];
 if (isset($monitoring_vcf))
 {
     $args[] = "--monitoring ${monitoring_vcf}";

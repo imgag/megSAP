@@ -24,6 +24,7 @@ if ($user!="archive-gs")
 }
 
 //strip slashes at the end of folder names
+$in = realpath($in);
 $in = rtrim($in, "/");
 $out_folder = rtrim($out_folder, "/");
 
@@ -58,15 +59,15 @@ if ($when!="now")
 //create verified tar archive (uncompressed because otherwise verification is not possible)
 print date("Y-m-d H:i:s")." creating tar file\n";
 $tmp_tar = $parser->tempFile(".tar");
-$parser->exec("tar", "cfW $tmp_tar --exclude '$in/Data/Intensities/L00?/C*' --exclude '$in/Unaligned*' --exclude '$in/Thumbnail_Images' --exclude '$in/Images' $in/", true);
+$parser->exec("tar", "cfW $tmp_tar --exclude '$in/Data/Intensities/L00?/C*' --exclude '$in/Unaligned*' --exclude '$in/Thumbnail_Images' --exclude '$in/Images' -C ".dirname($in)." ".basename($in), true);
 
 //zip archive with low compression (way faster than full compression and the contents are already compressed in most cases)
 print date("Y-m-d H:i:s")." creating tar.gz file\n";
-$parser->exec("gzip", "-c -1 $tmp_tar > $zipfile", true);
+$parser->exec("pigz", "-p 8 -c -1 $tmp_tar > $zipfile", true);
 
 //test zip archive integrity
 print date("Y-m-d H:i:s")." testing tar.gz file integrity\n";
-$parser->exec("gzip", "-t $zipfile", true);
+$parser->exec("pigz", "-p 8 -t $zipfile", true);
 $parser->deleteTempFile($tmp_tar);
 
 //calculate MD5 checksum of zip archive
