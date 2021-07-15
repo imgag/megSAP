@@ -8,15 +8,14 @@ folder=`pwd`/tools/
 cd $folder
 
 #download STAR
-wget https://github.com/alexdobin/STAR/archive/2.7.3a.tar.gz
-tar xzf 2.7.3a.tar.gz
-rm 2.7.3a.tar.gz
+wget https://github.com/alexdobin/STAR/archive/refs/tags/2.7.9a.tar.gz
+tar xzf 2.7.9a.tar.gz
+rm 2.7.9a.tar.gz
 
 #download STAR-Fusion
-wget https://github.com/STAR-Fusion/STAR-Fusion/releases/download/v1.9.1/STAR-Fusion-v1.9.1.FULL.tar.gz
-tar xzf STAR-Fusion-v1.9.1.FULL.tar.gz
-rm STAR-Fusion-v1.9.1.FULL.tar.gz
-sed -i '1s/python/python3/' STAR-Fusion-v1.9.1/FusionInspector/FusionInspector
+wget https://github.com/STAR-Fusion/STAR-Fusion/releases/download/v1.10.0/STAR-Fusion-v1.10.0.FULL.tar.gz
+tar xzf STAR-Fusion-v1.10.0.FULL.tar.gz
+rm STAR-Fusion-v1.10.0.FULL.tar.gz
 
 #download igv-reports, neccessary for STAR-fusion
 wget https://github.com/igvteam/igv-reports/archive/v0.9.1.tar.gz
@@ -24,18 +23,11 @@ tar xzf v0.9.1.tar.gz
 rm v0.9.1.tar.gz
 cd igv-reports-0.9.1 && python3 setup.py build && cd ..
 
-#download samtools 1.7, this version is neccessary for STAR-fusion
-wget https://github.com/samtools/samtools/releases/download/1.7/samtools-1.7.tar.bz2
-tar xjf samtools-1.7.tar.bz2
-rm samtools-1.7.tar.bz2
-cd samtools-1.7
-make
-
 #download subread (featureCounts)
-wget http://downloads.sourceforge.net/project/subread/subread-2.0.0/subread-2.0.0-Linux-x86_64.tar.gz
-tar xzf subread-2.0.0-Linux-x86_64.tar.gz
-rm subread-2.0.0-Linux-x86_64.tar.gz
-mv subread-2.0.0-Linux-x86_64 subread-2.0.0
+wget http://downloads.sourceforge.net/project/subread/subread-2.0.2/subread-2.0.2-Linux-x86_64.tar.gz
+tar xzf subread-2.0.2-Linux-x86_64.tar.gz
+rm subread-2.0.2-Linux-x86_64.tar.gz
+mv subread-2.0.2-Linux-x86_64 subread-2.0.2
 
 #download skewer (single-end adapter trimming)
 git clone --depth 1 --branch 0.2.2 https://github.com/relipmoc/skewer.git skewer-0.2.2

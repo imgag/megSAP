@@ -338,7 +338,6 @@ if (in_array("fu",$steps) && in_array("star-fusion",$fusion_caller))
 	
 		//add samtools to path
 		putenv("PATH=" . implode(":", [
-			dirname(get_path("STAR-Fusion_samtools")),
 			dirname(get_path("STAR")),
 			getenv("PATH")
 		]));
