@@ -1872,7 +1872,8 @@ function get_related_processed_samples(&$db, $ps_name, $relation, $systype="", $
 	$res = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", ["name" => $sample_name]);
 	if (count($res) != 1)
 	{
-		trigger_error("Could not find sample '{$sample_name}'!", E_USER_ERROR);
+		trigger_error("Could not find sample '{$sample_name}' in NGSD > no related samples could be determined!", E_USER_WARNING);
+		return [];
 	}
 	$sample_id = $res[0]['id'];
 
