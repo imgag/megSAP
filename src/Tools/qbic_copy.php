@@ -141,7 +141,7 @@ function getSampleInfo($ps_id)
 	$names = getExternalNames($s_name, $s_name_ex);
 	$output['id_qbic'] = $names[0];
 	$output['processing_system'] = $ps_sys;
-	$output['tumor'] = $s_tumor ? "yes" : "no";
+	$output['is_tumor'] = $s_tumor ? 1 : 0;
 	$output['genome'] = $ps_genome;
 	$output['quality_sample'] = $s_qual;
 	$output['quality_processed_sample'] = $ps_qual;
@@ -265,6 +265,27 @@ function copyFiles($files, $to_folder, $upload)
 	}
 }
 
+function linkFastqs($folder, $out_folder, $basename)
+{
+	global $files;
+	
+	$i = 0;
+	foreach(glob("{$folder}*R1*.fastq.gz") as $fastq)
+	{
+		$out = "{$out_folder}/{$basename}_".str_pad(++$i, 3, "0", STR_PAD_LEFT).".1.fastq.gz";
+		exec2("ln -s {$fastq} {$out}");
+		$files[] = $out;
+	}
+	
+	$i = 0;
+	foreach(glob("{$folder}*R2*.fastq.gz") as $fastq)
+	{
+		$out = "{$out_folder}/{$basename}_".str_pad(++$i, 3, "0", STR_PAD_LEFT).".2.fastq.gz";
+		exec2("ln -s {$fastq} {$out}");
+		$files[] = $out;
+	}
+}
+				
 //prints a TSV output line
 function printTSV($output, $state, $state_comment)
 {	
@@ -321,7 +342,8 @@ else
 $res = $db->executeQuery("SELECT id, name, name_external, quality, tumor FROM sample WHERE ".implode(" || ", $conditions)." ORDER BY name");
 foreach($res as $row)
 {
-	list ($s_id, $s_name, $s_name_ex, $s_qual) = array_values($row);
+	list ($s_id, $s_name, $s_name_ex, $s_qual, $is_tumor) = array_values($row);
+	
 	//check if we have a QBIC name
 	$names = getExternalNames($s_name, $s_name_ex);
 	if (is_null($names)) continue;
@@ -398,41 +420,43 @@ foreach($res as $row)
 			continue;
 		}
 		
+		//init
+		$is_tumor_normal_pair = $is_tumor && !empty($info["normal_id"]);
+		$is_rna = $sample1["experiment_type"]=="rna_seq";
+		$is_longread = $info['device_type']=="SequelII";
+		$tmp_folder = $parser->tempFolder();	
+				
 		//determine files to transfer
 		$files = array();
 		$paths  = glob($data_folder.$s_name."*.*");
 		if(is_dir($data_folder."+original")) $paths = glob($data_folder."+original/".$ps_name."*.*");	//for backward compatibility
 		
 		//get FASTQ/VCF
-		$tumor_normal_pair = $info["is_tumor"] == 1 && !empty($info["normal_id"]);
-		$is_single_sample_dna = !$tumor_normal_pair && $sample1["experiment_type"] != "rna_seq";
 		$fastqs_present = false;
 		foreach($paths as $file)
 		{
-			if (!$tumor_normal_pair && ends_with($file, ".fastq.gz") &&
-					!($sample1["experiment_type"] == "rna_seq" && $sample1["tumor"] == 1))
+			if (ends_with($file, ".fastq.gz") && !$is_tumor_normal_pair && !($is_rna && $is_tumor))
 			{
 				$files[] = $file;
-				$fastqs_present= true;
+				$fastqs_present = true;
 			}
 			if (ends_with($file, "_var_annotated.vcf.gz")) $files[] = $file;
 		}
-
+		
 		// Special treatment for PacBio project (Currently works for unmapped CLR Reads)
-		if($info['device_type']=="SequelII")
+		if($is_longread)
 		{	
 			$files[] = "{$data_folder}{$ps_name}.bam";
 			$files[] = "{$data_folder}{$ps_name}.bam.pbi";
 			$files[] = "{$data_folder}{$ps_name}.subreadset.xml";
 		} 
-	
-		//generate FASTQs from BAM is not available
-		if ($is_single_sample_dna && !$fastqs_present && !$info['device_type']=="SequelII")
+		
+		//generate FASTQs from BAM if deleted from folder
+		if (!$fastqs_present && !$is_tumor_normal_pair && !$is_rna && !$is_longread)
 		{
 			$bam = "{$data_folder}/{$ps_name}.bam";
 			if (file_exists($bam))
 			{
-				$tmp_folder = $parser->tempFolder();	
 				$fq1 = $tmp_folder."/{$ps_name}_BamToFastq_R1_001.fastq.gz";
 				$fq2 = $tmp_folder."/{$ps_name}_BamToFastq_R2_001.fastq.gz";
 				if ($upload) //skip generating FASTQs in dry run
@@ -445,38 +469,25 @@ foreach($res as $row)
 		}
 		
 		//Special treatment for tumor-normal fastqs
-		$merged_fastq_files = array();
-		$tmp_data_folder = temp_folder();
-		if($tumor_normal_pair) //merge fastqs in case of normal-tumor pairs 
+		if($is_tumor_normal_pair) //merge fastqs in case of normal-tumor pairs 
 		{
-			if($row['tumor'] == 1)
+			if($is_tumor)
 			{
-				exec2(get_path("ngs-bits") . "/FastqConcat -in  {$data_folder}*R1*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_tumor.1.fastq.gz");
-				$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_tumor.1.fastq.gz";
-				exec2(get_path("ngs-bits") . "/FastqConcat -in {$data_folder}*R2*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_tumor.2.fastq.gz");
-				$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_tumor.2.fastq.gz";
+				linkFastqs($data_folder, $tmp_folder, "{$qbic_name}_tumor");
 			}
 			//parse related normal file if found
 			$normal_id = $sample1["normal_id"];
 			$normal_sample = getSampleInfo($normal_id);
-			if($normal_id != "" && $normal_sample['quality_sample'] != "bad" && $normal_sample['quality_processed_sample'] != "bad"
-				&& $normal_sample['quality_run'] != "bad")
+			if($normal_id != "" && $normal_sample['quality_sample'] != "bad" && $normal_sample['quality_processed_sample'] != "bad" && $normal_sample['quality_run'] != "bad")
 			{
 				$normal_data_dir = $project_folder."/Sample_".$normal_sample['id_genetics']."/";
-				exec2(get_path("ngs-bits") . "/FastqConcat -in {$normal_data_dir}*R1*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_normal.1.fastq.gz");
-				$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_normal.1.fastq.gz";
-				exec2(get_path("ngs-bits") . "/FastqConcat -in {$normal_data_dir}*R2*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_normal.2.fastq.gz");
-				$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_normal.2.fastq.gz";
+				linkFastqs($normal_data_dir, $tmp_folder, "{$qbic_name}_normal");
 			}
 		}
-		elseif($sample1["experiment_type"] == "rna_seq" && $sample1["tumor"] == 1)
+		else if($is_rna && $is_tumor)
 		{
-			exec2(get_path("ngs-bits") . "/FastqConcat -in  {$data_folder}*R1*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_tumor_rna.1.fastq.gz");
-			$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_tumor_rna.1.fastq.gz";
-			exec2(get_path("ngs-bits") . "/FastqConcat -in {$data_folder}*R2*.fastq.gz -out {$tmp_data_folder}/{$qbic_name}_tumor_rna.2.fastq.gz");
-			$merged_fastq_files[] = "{$tmp_data_folder}/{$qbic_name}_tumor_rna.2.fastq.gz";
+			linkFastqs($data_folder, $tmp_folder, "{$qbic_name}_tumor_rna");
 		}
-		
 		
 		//skip already uploaded
 		$skipped = false;
@@ -491,7 +502,7 @@ foreach($res as $row)
 		//skip if no files were found
 		if (!$skipped)
 		{
-			if (count($files)==0 && count($merged_fastq_files) == 0)
+			if (count($files)==0)
 			{
 				printTSV($output, "ERROR" ,"no files to transfer in data folder '$data_folder'");
 				$skipped = true;
@@ -508,11 +519,6 @@ foreach($res as $row)
 			
 			//copy files to folder
 			copyFiles($files, $tmpfolder, $upload);
-
-			foreach($merged_fastq_files as $file)
-			{
-				$parser->moveFile($file,$tmpfolder."/".basename($file));
-			}
 			
 			//store meta data file
 			storeMetaData($tmpfolder, $ps_name, array("type"=>$sample1["experiment_type"], "sample1"=>prepareForExport($sample1), "files"=>array_map("basename", $files)));
@@ -522,7 +528,6 @@ foreach($res as $row)
 			if ($upload)
 			{
 				$parser->moveFile($tmpfolder, $GLOBALS["datamover_path"]."/".$folder_name);
-				$files = array_merge($files, $merged_fastq_files);
 				markAsUploaded($sample1, null, $files);
 			}
 			printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(", ", $files));
