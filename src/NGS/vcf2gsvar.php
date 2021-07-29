@@ -536,6 +536,8 @@ while(!feof($handle))
 	$start = $pos;
 	$end = $pos;
 	$ref = strtoupper($ref);
+	if ($ref=='N') continue; //skip variants where reference is undefined
+	
 	$alt = strtoupper($alt);
 	if(strlen($ref)>1 || strlen($alt)>1) //correct indels
 	{
