@@ -78,6 +78,7 @@ $gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 //find FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");
 $in_rev = glob($folder."/*_R2_001.fastq.gz");
+$in_umi = glob($folder."/*_index_*.fastq.gz");
 
 //fallback for remapping GRCh37 samples to GRCh38 - copy FASTQs from GRCh37
 if ($build =="GRCh38" && count($in_for)==0 && count($in_rev) == 0)
@@ -109,6 +110,7 @@ $fusion_caller = explode(",", $fusion_caller);
 
 //mapping and QC
 $final_bam = $prefix.".bam";
+$before_dedup_bam = $prefix."_before_dedup.bam";
 $qc_fastq = $prefix."_stats_fastq.qcML";
 $qc_map = $prefix."_stats_map.qcML";
 if (in_array("ma", $steps) || (in_array("fu", $steps) && in_array("star-fusion",$fusion_caller)))
@@ -130,23 +132,53 @@ if (in_array("ma", $steps) || (in_array("fu", $steps) && in_array("star-fusion",
 		trigger_error("No forward and/or reverse adapter sequence given!\nForward: ".$sys["adapter1_p5"]."\nReverse: ".$sys["adapter2_p7"], E_USER_ERROR);
 	}
 
+	$umi = false;
 	//adapter trimming + QC (SeqPurge for paired-end, ReadQC+skewer for single-end)
 	if ($paired)
 	{
 		$fastq_trimmed1 = $parser->tempFile("_trimmed.fastq.gz");
 		$fastq_trimmed2 = $parser->tempFile("_trimmed.fastq.gz");
-		$seqpurge_params = array(
-			"-in1", implode(" ", $in_for),
-			"-in2", implode(" ", $in_rev),
-			"-out1 {$fastq_trimmed1}",
-			"-out2 {$fastq_trimmed2}",
+		$seqpurge_params = [
+			"-out1", $fastq_trimmed1,
+			"-out2", $fastq_trimmed2,
 			"-a1", $sys["adapter1_p5"],
 			"-a2", $sys["adapter2_p7"],
 			"-qc", $qc_fastq,
 			"-threads", bound($threads, 1, 6),
 			"-qcut 0",
 			"-min_len", $min_read_length
-			);
+		];
+
+		if (in_array($sys['umi_type'], ["IDT-UDI-UMI"]))
+		{
+			if (empty($in_umi))
+			{
+				trigger_error("No UMI read files found!", E_USER_WARNING);
+			}
+			else
+			{
+				$umi = true;
+				// add barcodes to header
+				$merged1_bc = $parser->tempFile("_bc1.fastq.gz");
+				$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
+				$parser->exec(get_path("ngs-bits")."FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $in_umi)." -out1 $merged1_bc -out2 $merged2_bc", true);
+				
+				$seqpurge_params = array_merge($seqpurge_params,
+					[
+						"-in1", $merged1_bc,
+						"-in2", $merged2_bc
+					]);
+			}
+		}
+		else
+		{
+			$seqpurge_params = array_merge($seqpurge_params,
+				[
+					"-in1", implode(" ", $in_for),
+					"-in2", implode(" ", $in_rev)
+				]);
+		}
+
 		$parser->exec(get_path("ngs-bits")."SeqPurge", implode(" ", $seqpurge_params), true);
 	}
 	else
@@ -176,7 +208,7 @@ if (in_array("ma", $steps))
 {
 	//mapping
 	$args = array(
-		"-out", $final_bam,
+		"-out", $umi ? $before_dedup_bam : $final_bam,
 		"-threads", $threads,
 		"-in1", $fastq_trimmed1,
 		"-genome", $genome,
@@ -185,7 +217,7 @@ if (in_array("ma", $steps))
 
 	if ($paired) $args[] = "-in2 $fastq_trimmed2";
 	if ($no_splicing) $args[] = "-no_splicing";
-	if ($skip_dedup) $args[] = "-skip_dedup";
+	if ($skip_dedup || $umi) $args[] = "-skip_dedup";
 	
 	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
 
@@ -201,7 +233,7 @@ if (in_array("ma", $steps))
 		$abra_out = $parser->tempFile("_abra_realigned.bam");
 		
 		$abra_params = array(
-			"-in", $final_bam,
+			"-in", $umi ? $before_dedup_bam : $final_bam,
 			"-out", $abra_out,
 			"-threads", $threads,
 			"-build", $build,
@@ -212,7 +244,18 @@ if (in_array("ma", $steps))
 		if (isset($target_file) && $target_file != "") $abra_params[] = "-roi {$target_file}";
 		
 		$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $abra_params));
-		$parser->moveFile($abra_out, $final_bam);
+		$parser->moveFile($abra_out, $umi ? $before_dedup_bam : $final_bam);
+		$parser->indexBam($umi ? $before_dedup_bam : $final_bam, $threads);
+	}
+
+	if ($umi)
+	{
+		//generate $final_bam from $before_dedup_bam
+
+		//barcode correction
+		$tmp_dedup = $parser->tempFile("_dedup.bam");
+		$parser->exec("python ".repository_basedir()."/src/NGS/barcode_correction.py", "--infile $before_dedup_bam --outfile $tmp_dedup", true);
+		$parser->sortBam($tmp_dedup, $final_bam, $threads);
 		$parser->indexBam($final_bam, $threads);
 	}
 
