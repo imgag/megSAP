@@ -26,9 +26,17 @@ foreach ($res[0] as $k => $v)
 }
 file_put_contents("{$in}/IMGAG_RunInfo.txt", implode("\n", $lines) . "\n");
 
-//TODO $dry_run
-//TODO handle password
-//$parser->exec("rsync", "-rvh {$in} bioinf@10.24.11.83:/mnt/novaseq");
-trigger_error("Not automated due to manual password entry. Please run the following command:\nrsync -rvh {$in} bioinf@10.24.11.83:/mnt/novaseq", E_USER_ERROR);
+$target = rtrim(get_path("mibi_target"), "/");
+$keyfile = get_path("mibi_key");
+$args = [
+    "--recursive",
+    "--verbose",
+    "--human-readable",
+    "--rsh 'ssh -i {$keyfile}'",
+    $dry_run ? "--dry-run" : "",
+    $in,
+    $target
+];
+$parser->exec("rsync", implode(" ", $args));
 
 ?>
