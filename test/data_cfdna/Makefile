@@ -11,10 +11,10 @@ link_p:
 	php ../link_test_data.php FO13609x01_01_L001_R2_001.fastq.gz CFDNA_01/CFDNA_01_L001_R2_001.fastq.gz
 
 map_p:
-	php ../../src/Pipelines/analyze_cfdna.php -folder CFDNA_01 -name CFDNA_01 -system CFDNA_01.ini -steps ma -tumor_id TumorID -roi_patient roi_patient.bed -threads 1
+	php ../../src/Pipelines/analyze_cfdna.php -folder CFDNA_01 -name CFDNA_01 -system CFDNA_01.ini -steps ma -skip_tumor -target roi_patient.bed -monitoring_vcf CFDNA_01_monitoring.vcf -threads 1
 
 vc_p:
-	php ../../src/Pipelines/analyze_cfdna.php -folder CFDNA_01 -name CFDNA_01 -system CFDNA_01.ini -steps vc -tumor_id TumorID -roi_patient roi_patient.bed -monitoring_vcf CFDNA_01_monitoring.vcf -threads 1
+	php ../../src/Pipelines/analyze_cfdna.php -folder CFDNA_01 -name CFDNA_01 -system CFDNA_01.ini -steps vc -skip_tumor -target roi_patient.bed -monitoring_vcf CFDNA_01_monitoring.vcf -threads 1
 
 diff_p:
 	php ../compare_qcml_xml.php CFDNA_01_stats_map.qcML.out CFDNA_01/CFDNA_01_stats_map.qcML 0.02
@@ -23,7 +23,7 @@ diff_p:
 
 ra_p:
 	mv CFDNA_01/CFDNA_01.GSvar CFDNA_01/CFDNA_01_beforeRA.GSvar
-	php ../../src/Pipelines/analyze_cfdna.php -folder CFDNA_01 -name CFDNA_01 -system CFDNA_01.ini -steps vc -tumor_id TumorID -roi_patient roi_patient.bed -threads 1 -annotation_only
+	php ../../src/Pipelines/analyze_cfdna.php -folder CFDNA_01 -name CFDNA_01 -system CFDNA_01.ini -steps vc -skip_tumor -target roi_patient.bed -monitoring_vcf CFDNA_01_monitoring.vcf -threads 1 -annotation_only
 	diff CFDNA_01/CFDNA_01.GSvar CFDNA_01/CFDNA_01_beforeRA.GSvar
 
 cfdna:  link_c map_c vc_c diff_c

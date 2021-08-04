@@ -34,10 +34,15 @@ $out_file5 = output_folder().$name."_out5.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in5.vcf -out $out_file5 -t_col GS150344_01 -db NGSD_TEST --log ".output_folder().$name."_out5.log");
 check_file($out_file5, data_folder().$name."_out5.GSvar");
 
-//input file contians VICC interpretation
+//input file contains VICC interpretation
 $out_file6 = output_folder().$name."_out6.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in6.vcf -out $out_file6 -t_col DX000001_01 -n_col DX000002_01 -db NGSD_TEST --log ".output_folder().$name."_out6.log");
 check_file($out_file6, data_folder().$name."_out6.GSvar");
+
+//umiVar2 (cfDNA)
+$out_file7 = output_folder().$name."_out7.GSvar";
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in7.vcf -out $out_file7 -t_col DXcf000001_01 -cfdna -db NGSD_TEST --log ".output_folder().$name."_out7.log");
+check_file($out_file7, data_folder().$name."_out7.GSvar");
 end_test();
 
 ?>

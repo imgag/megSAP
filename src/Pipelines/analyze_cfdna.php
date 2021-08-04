@@ -46,11 +46,12 @@ list($server) = exec2("hostname -f");
 $user = exec('whoami');
 $parser->log("Executed on server: ".implode(" ", $server)." as {$user}");
 
+//determine processing system
+$sys = load_system($system, $name);
+
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 $parser->execTool("Tools/data_setup.php", "-build {$sys['build']}");
 
-//determine processing system
-$sys = load_system($system, $name);
 
 // determine analysis type
 if ($sys['type']=="cfDNA (patient-specific)" || $sys['type']=="cfDNA")
@@ -85,7 +86,7 @@ if ($skip_tumor)
 if (isset($db))
 {
 	// get tumor id from NGSD
-	if (!$annotation_only && !$skip_tumor && ($tumor_id == ""))
+	if (!$skip_tumor && ($tumor_id == ""))
 	{
 		//related samples
 		list($sample_name, $ps_num) = explode("_", $name);
@@ -164,30 +165,6 @@ else
 	trigger_error("WARNING: No connection to the NGSD! All additional information that is stored in the database will be missing in the output!", E_USER_WARNING);
 }
 
-//check if all required files are available
-if (!$annotation_only && (in_array("ma", $steps) || in_array("vc", $steps)))
-{
-	if (!$skip_tumor)
-	{
-		if ($tumor_id == "") trigger_error("Required parameter 'tumor_id' missing! Can not perform analysis.", E_USER_ERROR);
-		if ($tumor_bam == "") trigger_error("Required parameter 'tumor_bam' missing! Can not perform analysis.", E_USER_ERROR);
-	}
-
-	if ($target == "") trigger_error("No target region defined! Can not perform analysis.", E_USER_ERROR);
-	if ($is_patient_specific && ($monitoring_vcf == "")) trigger_error("No monitoring VCF defined! Can not perform analysis.", E_USER_ERROR);
-}
-
-
-
-//extend target region for calling
-$target_extended = $parser->tempFile("_extended.bed");
-$pipeline = [];
-$pipeline[] = [ get_path("ngs-bits")."BedExtend", "-in {$target} -n {$base_extend}"];
-$pipeline[] = [ get_path("ngs-bits")."BedSort", ""];
-$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$target_extended}"];
-$parser->execPipeline($pipeline, "extend target region");
-
-
 //output file names:
 //mapping
 $bamfile = "{$folder}/{$name}.bam";
@@ -199,6 +176,40 @@ $vcffile = "{$folder}/{$name}_var.vcf";
 $qc_fastq = "{$folder}/{$name}_stats_fastq.qcML";
 $qc_map  = "{$folder}/{$name}_stats_map.qcML";
 
+//check if all required info are available
+if (!$annotation_only && (in_array("ma", $steps) || in_array("vc", $steps)))
+{
+	if ($is_patient_specific && !$skip_tumor)
+	{
+		if ($tumor_id == "") trigger_error("Required parameter 'tumor_id' missing! Can not perform analysis.", E_USER_ERROR);
+		if ($tumor_bam == "") trigger_error("Required parameter 'tumor_bam' missing! Can not perform analysis.", E_USER_ERROR);
+	}
+
+	if ($target == "") trigger_error("No target region defined! Can not perform analysis.", E_USER_ERROR);
+	if ($is_patient_specific && ($monitoring_vcf == "")) trigger_error("No monitoring VCF defined! Can not perform analysis.", E_USER_ERROR);
+}
+
+// for annotation_only: check if all files are available
+if ($annotation_only)
+{
+	if(in_array("vc", $steps) && !file_exists($vcffile))
+	{
+		trigger_error("VCF for reannotation is missing. Skipping 'vc' step!", E_USER_WARNING);
+		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
+	}  
+}
+
+
+//extend target region for calling
+if (!$annotation_only && (in_array("ma", $steps) || in_array("vc", $steps)))
+{
+	$target_extended = $parser->tempFile("_extended.bed");
+	$pipeline = [];
+	$pipeline[] = [ get_path("ngs-bits")."BedExtend", "-in {$target} -n {$base_extend}"];
+	$pipeline[] = [ get_path("ngs-bits")."BedSort", ""];
+	$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$target_extended}"];
+	$parser->execPipeline($pipeline, "extend target region");
+}
 
 // for annotation_only: check if all files are available
 if ($annotation_only)
@@ -250,23 +261,27 @@ if (in_array("ma", $steps))
 		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in ${lowcov_file} -clear -extend 25 -out ${lowcov_file}", true);
 	}
 
-	$parser->exec(get_path("ngs-bits")."MappingQC", "-roi $target -in $bamfile -out ${qc_map} -ref ".genome_fasta($sys['build']));
+	$parser->exec(get_path("ngs-bits")."MappingQC", "-roi ${target_extended} -in $bamfile -out ${qc_map} -ref ".genome_fasta($sys['build']));
 }
 
 //check sample similarity with referenced tumor
-if (!$annotation_only && !$skip_tumor && (in_array("ma", $steps) || in_array("vc", $steps)))
+if (!($annotation_only || $skip_tumor))
 {
-	$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -roi {$target_extended}", true);
-	$correlation = explode("\t", $output[0][1])[3];
-	if ($correlation < $min_corr)
+	if (($tumor_bam != "") && (in_array("ma", $steps) || in_array("vc", $steps)))
 	{
-		trigger_error("The genotype correlation of cfDNA and tumor is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
+		$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -roi {$target_extended}", true);
+		$correlation = explode("\t", $output[0][1])[3];
+		if ($correlation < $min_corr)
+		{
+			trigger_error("The genotype correlation of cfDNA and tumor is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
+		}
+	}
+	else
+	{
+		trigger_error("Skipping similarity check!", E_USER_WARNING);
 	}
 }
-else
-{
-	trigger_error("No related tumor BAM file available, skipping sample similarity check!", E_USER_WARNING);
-}
+
 
 //variant calling
 if (in_array("vc", $steps))
@@ -333,17 +348,18 @@ if (in_array("vc", $steps))
 
 	// convert vcf to GSvar
 	$gsvar_file = "$folder/${name}.GSvar";
-	$args = array("-in $tmp_vcf", "-out $gsvar_file", "-t_col $name");
+	$args = array("-in $tmp_vcf", "-out $gsvar_file", "-t_col $name", "-cfdna");
 	$parser->execTool("NGS/vcf2gsvar_somatic.php", implode(" ", $args));
 
-	if (!$skip_tumor)
+	if (!$skip_tumor && ($tumor_id != ""))
 	{
 		//add normal AF & counts
 		if (isset($db))
 		{
 			// get normal sample
 			$psinfo_tumor = get_processed_sample_info($db, $tumor_id);
-			$psinfo_normal = get_processed_sample_info($db, $info['normal_id']);
+			if ($psinfo_tumor['normal_name'] == "") trigger_error("Normal id not found!", E_USER_ERROR);
+			$psinfo_normal = get_processed_sample_info($db, $psinfo_tumor['normal_name']);
 
 			// annotate AF and depth
 			$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $gsvar_file -out $gsvar_file -depth -name normal -bam ".$psinfo_normal['ps_bam'], true);
