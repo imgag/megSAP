@@ -1153,47 +1153,39 @@ function vcf_umivar2($filter_col, $info_col, $format_col, $sample_col)
 
 	//parse info column
 	$seq_context = NULL;
-	$p_value = NULL;
 	foreach ($info_data as $info) 
 	{
 		if(starts_with($info, "Vicinity="))
 		{
 			$seq_context = substr($info, 9);
 		}
-		else if(starts_with($info, "PValue="))
-		{
-			$p_value = number_format(substr($info, 7), 5);
-		}
 	}
 	if(is_null($seq_context))
 	{
 		trigger_error("Invalid umiVar2 format. Vicinity field is missing in INFO column!", E_USER_ERROR);
 	}
-	if(is_null($p_value))
-	{
-		trigger_error("Invalid umiVar2 format. P-value is missing in INFO column!", E_USER_ERROR);
-	}
-
 	//parse format cols
 	$i_alt_count = NULL; //index alt count
 	$i_dp = NULL; //index depth
 	$i_af = NULL; //index allele frequency
 	$i_strand = NULL; //index strand
+	$i_p_value = NULL; //index P-value
 
 	for($i=0;$i<count($format_data);++$i)
 	{
-		if($format_data[$i] == "Alt_Count") $i_alt_count = $i;
+		if($format_data[$i] == "AC") $i_alt_count = $i;
 		if($format_data[$i] == "DP") $i_dp = $i;
 		if($format_data[$i] == "AF") $i_af = $i;
 		if($format_data[$i] == "Strand") $i_strand = $i;
+		if($format_data[$i] == "Pval") $i_p_value = $i;
 	}
 	
-	if(is_null($i_alt_count) || is_null($i_dp) || is_null($i_af) || is_null($i_strand))
+	if(is_null($i_alt_count) || is_null($i_dp) || is_null($i_af) || is_null($i_strand) || is_null($i_p_value))
 	{
-		trigger_error("Invalid umiVar2 format. Missing one of the fields 'Alt_Count', 'DP', 'AF' or 'Strand'", E_USER_ERROR);
+		trigger_error("Invalid umiVar2 format. Missing one of the fields 'AC', 'DP', 'AF', 'Strand' or 'Pval'", E_USER_ERROR);
 	}
 
-	return array($sample_data[$i_dp], number_format($sample_data[$i_af], 5), $p_value, $sample_data[$i_alt_count], $sample_data[$i_strand], $seq_context, $homopolymer);
+	return array($sample_data[$i_dp], number_format($sample_data[$i_af], 5), $sample_data[$i_p_value], $sample_data[$i_alt_count], $sample_data[$i_strand], $seq_context, $homopolymer);
 }
 
 //Calculates depth and variant allele frequency for varscan2 output line.
