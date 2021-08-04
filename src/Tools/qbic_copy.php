@@ -141,7 +141,7 @@ function getSampleInfo($ps_id)
 	$names = getExternalNames($s_name, $s_name_ex);
 	$output['id_qbic'] = $names[0];
 	$output['processing_system'] = $ps_sys;
-	$output['is_tumor'] = $s_tumor ? 1 : 0;
+	$output['tumor'] = $s_tumor ? "yes" : "no";
 	$output['genome'] = $ps_genome;
 	$output['quality_sample'] = $s_qual;
 	$output['quality_processed_sample'] = $ps_qual;
