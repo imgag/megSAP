@@ -37,13 +37,22 @@ The benchmarks were performed on GIAB high-confidence regions - **no depth cutof
     <td>98.34%</td>
   </tr>
   <tr>
-    <td>mapping with DRAGEN (-use_dragen)</td>
+    <td>mapping with DRAGEN (v3.5.7) (-use_dragen)</td>
     <td>99.96%</td>
     <td>99.74%</td>
     <td>99.98%</td>
     <td>97.71%</td>
     <td>99.52%</td>
     <td>98.36%</td>
+  </tr>
+  <tr>
+    <td>mapping with DRAGEN (v3.8.4) (-use_dragen)</td>
+    <td>99.97%</td>
+    <td>99.97%</td>
+    <td>99.99%</td>
+    <td>98.54%</td>
+    <td>99.50%</td>
+    <td>98.68%</td>
   </tr>
 </table>
 
@@ -52,7 +61,7 @@ The benchmarks were performed on GIAB high-confidence regions - **no depth cutof
 
 The WES samples were processed with the Agilent SureSelectXT Human All Exon V7 kit.  
 The benchmarks were performed on GIAB high-confidence regions - **no depth cutoff was used**.
- <!--- dataset: NA12878_58, 150x average coverge --->
+ <!--- dataset: NA12878_58, 150x average coverage --->
 
 <table>
   <tr>
@@ -78,13 +87,22 @@ The benchmarks were performed on GIAB high-confidence regions - **no depth cutof
     <td>96.50%</td>
   </tr>
   <tr>
-    <td>mapping with DRAGEN (-use_dragen)</td>
+    <td>mapping with DRAGEN (v3.5.7) (-use_dragen)</td>
     <td>99.61%</td>
     <td>99.59%</td>
     <td>99.97%</td>
     <td>93.23%</td>
     <td>94.96%</td>
     <td>96.45%</td>
+  </tr>
+  <tr>
+    <td>mapping with DRAGEN (v3.8.4) (-use_dragen)</td>
+    <td>99.61%</td>
+    <td>99.65%</td>
+    <td>99.97%</td>
+    <td>94.59%</td>
+    <td>93.84%</td>
+    <td>96.10%</td>
   </tr>
 </table>
 
