@@ -27,12 +27,19 @@ foreach ($res[0] as $k => $v)
 file_put_contents("{$in}/IMGAG_RunInfo.txt", implode("\n", $lines) . "\n");
 
 $target = rtrim(get_path("mibi_target"), "/");
+
+//copy key to ensure restrictive permissions required for SSH
 $keyfile = get_path("mibi_key");
+$key_temp = $parser->tempFile();
+touch($key_temp);
+chmod($key_temp, 0600);
+file_put_contents($key_temp, file_get_contents($keyfile));
+
 $args = [
     "--recursive",
     "--verbose",
     "--human-readable",
-    "--rsh 'ssh -i {$keyfile}'",
+    "--rsh 'ssh -i {$key_temp}'",
     $dry_run ? "--dry-run" : "",
     $in,
     $target
