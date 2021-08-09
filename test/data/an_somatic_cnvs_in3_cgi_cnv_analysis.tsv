@@ -1,6 +1,0 @@
-#sample	gene	cna	internal_id	cancer	gene_role	known_in_tumors	predicted_in_tumors	driver	driver_statement	predicted_match	known_match
-tcgi	EPHA6	AMP	0	CANCER	ambiguous				predicted passenger		
-tcgi	NR1I2	AMP	1	CANCER	ambiguous				predicted passenger		
-tcgi	GATA2	AMP	2	CANCER	Act				predicted passenger		
-tcgi	EPHB1	AMP	3	CANCER	ambiguous				predicted passenger		
-tcgi	ATR	AMP	4	CANCER	LoF				predicted passenger		

@@ -20,9 +20,9 @@ $parser->addInfile("n_bam", "Normal sample BAM file.", true);
 $parser->addInfile("t_rna_bam", "Tumor RNA sample BAM file.", true);
 $parser->addString("prefix", "Output file prefix.", true, "somatic");
 
-$steps_all = array("vc", "vi", "cn", "an", "ci", "msi", "an_rna", "db");
+$steps_all = array("vc", "vi", "cn", "an", "msi", "an_rna", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
-	"vc=variant calling, an=annotation, ci=CGI annotation,\n" .
+	"vc=variant calling, an=annotation,\n" .
 	"cn=copy-number analysis, msi=microsatellite analysis,\n".
 	"an_rna=annotate data from somatic RNA files,\n".
 	"vi=virus detection, db=database import",
@@ -34,7 +34,6 @@ $parser->addInfile("n_system",  "Processing system file used for normal DNA samp
 $parser->addFlag("skip_contamination_check", "Skips check of female tumor sample for male SRY DNA.");
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
-$parser->addFlag("include_germline", "Include germline variant annotation with CGI.");
 
 //default cut-offs
 $parser->addFloat("min_af", "Allele frequency detection limit (for tumor-only calling only).", true, 0.05);
@@ -113,46 +112,6 @@ function complement_baf_folder($t_n_id_file,$baf_folder,&$db_conn, $ref_genome)
 			create_baf_file($n_gsvar,$t_bam,"{$baf_folder}/{$tid}.tsv", $ref_genome);
 		}
 	}
-}
-
-//parse and copy single CGI results files
-function parse_cgi_single_result($from,$to)
-{
-	if(!file_exists($from)) return;
-	addCommentCharInHeader($from);
-	copy($from,$to);
-}
-
-function extract_and_move_cgi_results($zip_file,$dest_folder,$prefix = "CGI")
-{
-	global $parser;
-	
-	$tmp_cgi_results_folder = $parser->tempFolder();
-	exec2("unzip -n $zip_file -d $tmp_cgi_results_folder");
-	
-	parse_cgi_single_result("{$tmp_cgi_results_folder}/mutation_analysis.tsv","{$dest_folder}/{$prefix}_cgi_mutation_analysis.tsv");
-	parse_cgi_single_result("{$tmp_cgi_results_folder}/cna_analysis.tsv","{$dest_folder}/{$prefix}_cgi_cnv_analysis.tsv");
-	parse_cgi_single_result("{$tmp_cgi_results_folder}/fusion_analysis.txt","{$dest_folder}/{$prefix}_cgi_fusion_analysis.tsv");
-	parse_cgi_single_result("{$tmp_cgi_results_folder}/drug_prescription.tsv","{$dest_folder}/{$prefix}_cgi_drug_prescription.tsv");
-	parse_cgi_single_result("{$tmp_cgi_results_folder}/drug_prescription_bioactivities.tsv","{$dest_folder}/{$prefix}_cgi_drug_prescription_bioactivities.tsv");
-	parse_cgi_single_result("{$tmp_cgi_results_folder}/malformed_cnas.txt","{$dest_folder}/{$prefix}_cgi_malformed_cnas.txt");
-	parse_cgi_single_result("{$tmp_cgi_results_folder}/not_mapped_entries.txt","{$dest_folder}/{$prefix}_cgi_not_mapped_entries.txt");
-}
-
-//Check whether cancer acronym appears in acronym list
-function is_valid_cgi_acronym($name)
-{
-	$cancer_acronyms_list = file(repository_basedir()."/data/misc/cancer_types.tsv");
-	$valid_cgi_acronym = false;
-	foreach($cancer_acronyms_list as $line)
-	{
-		list($acronym,,,) = explode("\t",$line);
-		if($acronym == $name)
-		{
-			return true;
-		}
-	}
-	return false;
 }
 
 //check steps
@@ -819,213 +778,6 @@ if (in_array("an", $steps))
 	
 	//Annotate data from network of cancer genes
 	$parser->execTool("NGS/an_somatic_gsvar.php" , "-gsvar_in $variants_gsvar -out $variants_gsvar -include_ncg");
-}
-
-//QCI/CGI annotation
-//@TODO: implementation for translocation files
-if (in_array("ci", $steps))
-{
-	/*********************************
-	 * GET CGI CANCER_TYPE FROM NGSD *
-	 *********************************/
-	if(db_is_enabled("NGSD"))
-	{
-		$db_conn = DB::getInstance("NGSD");
-		$t_name = explode("_",$t_id)[0];
-		$sample_id = $db_conn->getValue("SELECT id FROM sample WHERE name = '{$t_name}'");
-		$disease_info = $db_conn->executeQuery("SELECT * FROM sample_disease_info WHERE sample_id = '{$sample_id}'","");
-		$cancer_type_from_ngsd = "";
-		foreach($disease_info as $res)
-		{
-			if(array_key_exists("type",$res) && $res["type"] == "CGI cancer type")
-			{
-				$cancer_type_from_ngsd = $res["disease_info"];
-				break;
-			}
-		}
-		
-		//Abort if no cancer type is set
-		if($cancer_type_from_ngsd == "" && !isset($cancer_type))
-		{
-			trigger_error("There is no CGI cancer type set in NGSD and no parameter \"-cancer_type\" given. Aborting CGI analysis.",E_USER_ERROR);
-		}
-		//Abort if cancer type from parameter and NGSD differ
-		if($cancer_type_from_ngsd != "" && isset($cancer_type) && $cancer_type_from_ngsd != $cancer_type)
-		{
-			trigger_error("Cancer type \"{$cancer_type_from_ngsd}\" in NGSD and -cancer_type \"{$cancer_type}\" differ.", E_USER_ERROR);
-		}
-		
-		//Insert CGI cancer_type into NGSD if not set
-		if($cancer_type_from_ngsd == "" && isset($cancer_type))
-		{
-			$time = get_timestamp(false);
-			$user = exec2("whoami")[0][0];
-			$user_id = $db_conn->getValue("SELECT id FROM user WHERE user_id = '{$user}' AND active='1'",-1);
-			
-			//If user is not in NGSD, we use the user "unknown"
-			if($user_id == -1) $user_id = $db_conn->getValue("SELECT id FROM user WHERE user_id='unknown'");
-			
-			if(is_valid_cgi_acronym($cancer_type))
-			{
-				$db_conn->executeStmt("INSERT INTO sample_disease_info (`sample_id`,`disease_info`,`type`,`user_id`,`date`) VALUES ('{$sample_id}','{$cancer_type}','CGI cancer type','{$user_id}','{$time}')");
-			}
-			else
-			{
-				trigger_error("Could not insert CGI cancer type \"{$cancer_type}\" to NGSD table \"sample_disease_info\" because \"{$cancer_type}\" was not recognized as a valid CGI acronym.",E_USER_WARNING);
-			}
-		}
-		
-		if($cancer_type_from_ngsd != "") $cancer_type = $cancer_type_from_ngsd;
-	}
-	if(!is_valid_cgi_acronym($cancer_type))
-	{
-		trigger_error("CGI cancer_type {$cancer_type} is invalid. Aborting CGI analysis.",E_USER_ERROR);
-	}
-	
-	/*************************
-	 * EXECUTE CGI_SEND_DATA *
-	 *************************/
-	$tmp_cgi_zipped_outfile = $parser->tempFile(".zip");
-	$parameters = [
-		"-out",$tmp_cgi_zipped_outfile,
-		"-cancertype", $cancer_type
-	];
-	if (file_exists($variants_annotated)) $parameters[] = "-mutations $variants_gsvar";
-	if (file_exists($som_clincnv)) $parameters[] = "-cnas $som_clincnv";
-	if ($single_sample) $parameters[] = "-single_sample";
-	//if we know genes in target region we set parameter for this file
-	$genes_in_target_region =  dirname($sys["target_file"]) . "/" .basename($sys["target_file"],".bed")."_genes.txt";
-	if(file_exists($genes_in_target_region)) $parameters[] = "-t_region $genes_in_target_region";
-	//execution will not stop pipeline if it fails but display several errors
-	$result_send_data = $parser->execTool("NGS/cgi_send_data.php", implode(" ",$parameters),false);
-	$error_code = $result_send_data[2];
-	if($error_code != 0)
-	{
-		trigger_error("step \"ci\" did not exit cleanly. Please check sample CGI files manually. cgi_send_data returned code ".$error_code,E_USER_WARNING);
-	}
-	
-	/******************************
-	 * UNZIP AND COPY CGI RESULTS *
-	 ******************************/
-	extract_and_move_cgi_results($tmp_cgi_zipped_outfile,$out_folder,$prefix);
-	
-	/*************************************************
-	 * ANNOTATE GSVAR AND CLINCNV FILE WITH CGI DATA *
-	 *************************************************/
-	//only try annotate SNVS to GSVar file if $som_vann (variant file) was uploaded to CGI
-	$cgi_snv_result_file = $full_prefix . "_cgi_mutation_analysis.tsv";
-	if(file_exists($cgi_snv_result_file) && file_exists($variants_gsvar))
-	{
-		$parser->execTool("NGS/an_somatic_gsvar.php","-gsvar_in $variants_gsvar -cgi_snv_in $cgi_snv_result_file -out $variants_gsvar");
-	}
-	//annotate CGI cnv genes to cnv input file (which was originally created by CNVHunter)
-	$cgi_cnv_result_file = $full_prefix . "_cgi_cnv_analysis.tsv";
-	if(file_exists($som_clincnv) && file_exists($cgi_cnv_result_file))
-	{
-		$parser->execTool("NGS/an_somatic_cnvs.php","-cnv_in $som_clincnv -cnv_in_cgi $cgi_cnv_result_file -out $som_clincnv");
-	}
-	
-	/*************************
-	 * GERMLINE CGI ANALYSIS *
-	 *************************/
-	$variants_germline = ( isset($n_bam)? dirname($n_bam)."/{$n_id}.GSvar" : "" );
-	if(file_exists($variants_germline) && $include_germline)
-	{
-		$germl_gsvar_content = file($variants_germline, FILE_IGNORE_NEW_LINES);
-		$tmp_new_file = array();
-		
-		//Create temporary GSvar file filtered for variants with < 3% AF in gnomAD for CGI annotation
-		$i_gnomad = -1;
-		$skip_germline_snvs = false;
-		foreach($germl_gsvar_content as $line)
-		{
-			if(starts_with($line, "#chr") )
-			{
-				$parts = explode("\t",$line);
-				for($i=0; $i<count($parts); ++$i)
-				{
-					if($parts[$i] == "gnomAD")
-					{
-						$i_gnomad = $i;
-						break;
-					}
-				}
-				$tmp_new_file[] = $line;
-				continue;
-			}
-			if(starts_with($line,"#"))
-			{
-				$tmp_new_file[]= $line;
-				continue;
-			}
-			
-			if($i_gnomad < -1)
-			{
-				trigger_error("Could not find column \"gnomAD\" for filtering germline variants for CGI annotation. Skipping germline SNV CGI annotation.", E_USER_WARNING);
-				$skip_germline_snvs = true;
-				break;
-			}
-			
-			$parts = explode("\t",$line);
-			
-			$af_gnomad = $parts[$i_gnomad];
-			if(!empty($af_gnomad) && floatval($af_gnomad) > 0.03) continue;
-			
-			$tmp_new_file[] = $line;
-		}
-		$filtered_germline_variants = $parser->tempFile(".GSvar");
-		file_put_contents($filtered_germline_variants, implode("\n",$tmp_new_file) );
-		
-		$tmp_cgi_zipped_outfile = $parser->tempFile();
-		
-		$params = [
-			"-out",$tmp_cgi_zipped_outfile,
-			"-cancertype","CANCER",
-			"-no_snv_limit"
-		];
-		
-		if(!$skip_germline_snvs) $params[] = "-mutations $filtered_germline_variants";
-
-		//Include germline CNVs if available
-		$germline_cnv_file = dirname($n_bam)."/{$n_id}_clincnv.tsv";
-		if(!file_exists($germline_cnv_file)) $germline_cnv_file = dirname($n_bam)."/{$n_id}_cnvs.tsv";
-		if(file_exists($germline_cnv_file))
-		{
-			$params[] = "-cnas $germline_cnv_file";
-			if(file_exists($genes_in_target_region)) $params[] = "-t_region $genes_in_target_region";
-		}
-		
-		$result_send_data = $parser->execTool("NGS/cgi_send_data.php",implode(" ",$params),false);
-		
-		//Error handling
-		$error_code = $result_send_data[2];
-		if($error_code != 0)
-		{
-			trigger_error("step \"ci\" for germline variants did not exit cleanly. Please check sample CGI files manually. cgi_send_data returned code ".$error_code,E_USER_WARNING);
-		}
-
-		//Move to germline Sample data
-		$out_folder_germline = dirname($n_bam);
-		extract_and_move_cgi_results($tmp_cgi_zipped_outfile,$out_folder_germline,$n_id);
-
-		//Annotate
-		$germline_gsvar_file = dirname($n_bam)."/{$n_id}.GSvar";
-		if(file_exists("{$out_folder_germline}/{$n_id}_cgi_mutation_analysis.tsv") && file_exists($germline_gsvar_file))
-		{
-			$parameters = " -gsvar_in $germline_gsvar_file -cgi_snv_in {$out_folder_germline}/{$n_id}_cgi_mutation_analysis.tsv -out $germline_gsvar_file";
-			$parser->execTool("NGS/an_somatic_gsvar.php",$parameters,false);
-		}
-		if(file_exists($germline_cnv_file) && file_exists("{$out_folder_germline}/{$n_id}_cgi_cnv_analysis.tsv"))
-		{
-			$parameters = "-cnv_in $germline_cnv_file -out $germline_cnv_file -cnv_in_cgi {$out_folder_germline}/{$n_id}_cgi_cnv_analysis.tsv";
-			$parser->execTool("NGS/cgi_annotate_cnvs.php",$parameters,false);
-		}
-		
-	}
-	elseif($include_germline)
-	{
-		print("Could not create CGI report for germline variants because germline variant file $variants_germline does not exist.\n");
-	}
 }
 
 //MSI calling

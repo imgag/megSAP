@@ -71,21 +71,15 @@ case2_somatic:
 		-t_bam Sample_GS110168_03/GS110168_03.bam -n_bam Sample_GS110169_03/GS110169_03.bam \
 		-out_folder out_case2 \
 		-prefix GS110168_03-GS110169_03 \
-		-steps vc,an,msi,an_rna,ci\
+		-steps vc,an,msi,an_rna\
 		-t_rna_bam Sample_RX000001_01/RX000001_01.bam \
 		-rna_ref_tissue gallbladder \
 		-system system_pair.ini -n_system system_pair.ini \
-		-cancer_type CANCER \
-		-include_germline \
 		--log out_case2/GS110168_03-GS110169_03.log
 case2_diff:
 	# variants
 	php ../compare_variants.php -in1 expected_case2/GS110168_03-GS110169_03.GSvar -in2 out_case2/GS110168_03-GS110169_03.GSvar
 	php ../compare_bed.php expected_case2/GS110168_03-GS110169_03_stat_lowcov.bed out_case2/GS110168_03-GS110169_03_stat_lowcov.bed
-	test -s out_case2/GS110168_03-GS110169_03_cgi_drug_prescription.tsv
-	test -s out_case2/GS110168_03-GS110169_03_cgi_drug_prescription_bioactivities.tsv
-	test -s out_case2/GS110168_03-GS110169_03_cgi_mutation_analysis.tsv
-	test -s Sample_GS110169_03/GS110169_03_cgi_mutation_analysis.tsv
 	# qcML files
 	php ../compare_qcml_xml.php expected_case2/GS110168_03-GS110169_03_stats_som.qcML out_case2/GS110168_03-GS110169_03_stats_som.qcML
 	# MSI file
