@@ -28,7 +28,6 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 	"vi=virus detection, db=database import",
 	true, "vc,cn,an,msi,vi,db");
 
-$parser->addString("cancer_type", "Tumor type, see CancerGenomeInterpreter.org for nomenclature (resolved from GENLAB if not set).", true);
 $parser->addInfile("system",  "Processing system file used for tumor DNA sample (resolved from NGSD via tumor BAM by default).", true);
 $parser->addInfile("n_system",  "Processing system file used for normal DNA sample (resolved from NGSD via normal BAM by default).", true);
 $parser->addFlag("skip_contamination_check", "Skips check of female tumor sample for male SRY DNA.");
