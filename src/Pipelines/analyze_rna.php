@@ -217,7 +217,7 @@ if (in_array("ma", $steps))
 
 	if ($paired) $args[] = "-in2 $fastq_trimmed2";
 	if ($no_splicing) $args[] = "-no_splicing";
-	if ($skip_dedup || $umi) $args[] = "-skip_dedup";
+	if ($skip_dedup) $args[] = "-skip_dedup";
 	
 	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
 
@@ -254,7 +254,7 @@ if (in_array("ma", $steps))
 
 		//barcode correction
 		$tmp_dedup = $parser->tempFile("_dedup.bam");
-		$parser->exec("python ".repository_basedir()."/src/NGS/barcode_correction.py", "--infile $before_dedup_bam --outfile $tmp_dedup", true);
+		$parser->exec("umi_tools", "dedup -I $before_dedup_bam -S $tmp_dedup --mapping-quality 3 --no-sort-output --umi-separator=':' --output-stats={$prefix}_umistats", true);
 		$parser->sortBam($tmp_dedup, $final_bam, $threads);
 		$parser->indexBam($final_bam, $threads);
 	}
