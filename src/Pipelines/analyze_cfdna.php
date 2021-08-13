@@ -32,7 +32,7 @@ if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_cfdna_".d
 //low coverage cutoff
 $lowcov_cutoff = 100;
 //minimum sample genotype correlation
-$min_corr = 0.90;
+$min_corr = 0.80;
 
 //check steps
 $steps = explode(",", $steps);
@@ -281,7 +281,6 @@ if (!($annotation_only || $skip_tumor))
 		trigger_error("Skipping similarity check!", E_USER_WARNING);
 	}
 }
-
 
 //variant calling
 if (in_array("vc", $steps))
