@@ -86,6 +86,9 @@ case2_diff:
 	numdiff expected_case2/GS110168_03-GS110169_03_msi.tsv out_case2/GS110168_03-GS110169_03_msi.tsv --absolute-tolerance 0.01
 	# bafs
 	numdiff expected_case2/GS110168_03-GS110169_03_bafs.igv out_case2/GS110168_03-GS110169_03_bafs.igv --absolute-tolerance 0.02
+	# cfDNA candidates
+	diff --ignore-matching-lines '^##' expected_case2/GS110168_03-GS110169_03_cfDNA_candidates_monitoring.vcf out_case2/GS110168_03-GS110169_03_cfDNA_candidates/monitoring.vcf
+	diff expected_case2/GS110168_03-GS110169_03_cfDNA_candidates_monitoring.tsv out_case2/GS110168_03-GS110169_03_cfDNA_candidates/monitoring.tsv
 
 #Test MANTA SV calls with positive fusion control
 case3: case3_somatic case3_diff

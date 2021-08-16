@@ -718,6 +718,7 @@ if(in_array("cn",$steps))
 $variants_annotated = $full_prefix . "_var_annotated.vcf.gz";	// annotated variants
 $variants_gsvar     = $full_prefix . ".GSvar";					// GSvar variants
 $somaticqc          = $full_prefix . "_stats_som.qcML";			// SomaticQC qcML
+$cfdna_folder       = $full_prefix . "_cfDNA_candidates";       // folder containing cfDNA monitoring variants 
 if (in_array("an", $steps))
 {
 	// annotate vcf (in temp folder)
@@ -777,6 +778,28 @@ if (in_array("an", $steps))
 	
 	//Annotate data from network of cancer genes
 	$parser->execTool("NGS/an_somatic_gsvar.php" , "-gsvar_in $variants_gsvar -out $variants_gsvar -include_ncg");
+
+	//Determine cfDNA monitoring candidates (only tumor-normal samples)
+	$umiVar2_path = get_path("umiVar2");
+	if (!$single_sample && file_exists($umiVar2_path."/select_monitoring_variants.py"))
+	{
+		//remove previous calls
+		if (file_exists($cfdna_folder)) exec2("rm -r $cfdna_folder"); 
+		//set parameters
+		$params = array();
+		$params[] = "-v ${tmp_vcf}";
+		$params[] = "-g ${variants_gsvar}";
+		$params[] = "-o ${cfdna_folder}";
+		$params[] = "-r ${ref_genome}";
+		// call variant selection in virtual environment
+		$python_bin = $umiVar2_path."/venv/bin/python";
+		$parser->exec($python_bin, $umiVar2_path."/select_monitoring_variants.py ".implode(" ", $params));
+	}
+	else
+	{
+		trigger_error("UmiVar2 cannot be found! Cannot preselect variants for cfDNA analysis!", E_USER_WARNING);
+	}
+
 }
 
 //MSI calling
