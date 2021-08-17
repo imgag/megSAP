@@ -30,6 +30,7 @@ $parser->addInfile("system", "Processing system INI file (obligatory if NGSD is 
 $parser->addFlag("reanalyse_cohort","Reanalyse whole cohort of the same processing system.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("guide_baseline","baseline region, format e.g. chr1:12-12532",true);
+$parser->addInt("max_ref_files", "maximum number of reference file pairs", true, 150);
 extract($parser->parse($argv));
 
 //init
@@ -189,7 +190,7 @@ if($cov_pairs == "auto")
 	get_somatic_pairs($cov_folder_t,$cov_pairs);
 }
 //check whether coverage files of somatic pairs exist in cohort folder
-$somatic_pairs = file($cov_pairs);
+$somatic_pairs = array_slice( file($cov_pairs) , -$max_ref_files); //only use most recent pairs
 foreach($somatic_pairs as $line)
 {
 	if(starts_with($line,"#")) continue;
