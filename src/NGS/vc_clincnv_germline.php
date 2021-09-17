@@ -411,7 +411,7 @@ function run_clincnv($out, $mosaic=FALSE)
 		"--normalSample {$ps_name}",
 		"--out {$out_folder}",
 		"--numberOfThreads {$threads}",
-		"--par \"chrX:60001-2699520;chrX:154931044-155260560\"" //this is correct for hg19 only!
+		"--par \"chrX:10001-2781479;chrX:155701383-156030895\"" //this is correct for hg38 only!
 		];
 
 	//analyzing a single tumor sample
