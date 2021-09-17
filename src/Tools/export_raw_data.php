@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("export_raw_data", "Exports RAW data.");
 $parser->addStringArray("samples", "Processed sample names (or file with one sample per line).", false);
 $parser->addString("out", "Output folder and ZIP file name.", false);
-$parser->addEnum("mode", "Export mode (FASTQ only, BAM only, whole analysis folder).", true, ["fastq", "bam", "folder"], "fastq");
+$parser->addEnum("mode", "Export mode (FASTQ only, BAM only, whole analysis folder).", true, ["fastq", "bam", "vcf", "folder"], "fastq");
 $parser->addFlag("internal", "Use internal webserver and do not use password for zip file.");
 extract($parser->parse($argv));
 
@@ -65,6 +65,14 @@ foreach($samples as $ps)
 			trigger_error("Sample '$ps': BAM file is missing!", E_USER_ERROR);
 		}
 	}
+	else if ($mode=="vcf")
+	{
+		$vcf = substr($info['ps_bam'],0, -4)."_var.vcf.gz";
+		if (!file_exists($vcf))
+		{
+			trigger_error("Sample '$ps': VCF file is missing!", E_USER_ERROR);
+		}
+	}
 	else
 	{
 		$bam = $info['ps_bam'];
@@ -101,6 +109,12 @@ foreach($samples as $ps)
 		print "  Copying BAM file ...\n";
 		$bam = $info['ps_bam'];
 		exec2("ln -s {$bam} {$out}/".basename($bam));
+	}
+	else if ($mode=="vcf")
+	{
+		print "  Copying VCF file ...\n";
+		$vcf = substr($info['ps_bam'],0, -4)."_var.vcf.gz";
+		exec2("ln -s {$vcf} {$out}/".basename($vcf));
 	}
 	else
 	{		
