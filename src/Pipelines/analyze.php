@@ -27,6 +27,7 @@ $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard BWA-MEM.");
+$parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
@@ -117,12 +118,15 @@ if (db_is_enabled("NGSD") && !$annotation_only)
 }
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
-$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
-
+if (!$no_sync)
+{
+	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
+}
 
 //output file names:
 //mapping
 $bamfile = $folder."/".$name.".bam";
+$local_bamfile = $parser->tempFolder("local_bam")."/".$name.".bam"; //local copy of BAM file to reduce IO over network
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 //variant calling
 $vcffile = $folder."/".$name."_var.vcf.gz";
@@ -147,11 +151,6 @@ $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
 $qc_vc  = $folder."/".$name."_stats_vc.qcML";
 
-
-// folder for local BAM file
-$bam_folder = $parser->tempFolder("local_bam");
-$local_bamfile = $bam_folder."/".$name.".bam";
-
 // for annotation_only: check if all files are available
 if ($annotation_only)
 {
@@ -172,30 +171,6 @@ if ($annotation_only)
 		trigger_error("SV file for reannotation is missing. Skipping 'sv' step!", E_USER_WARNING);
 		if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 	} 
-}
-
-
-// copy BAM file to tmp for all calling steps
-if (!$annotation_only && !in_array("ma", $steps))
-{
-	if(in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
-	{
-		if (!file_exists($bamfile)) trigger_error("No BAM file found in Sample folder! Cannot perform any calling steps!", E_USER_ERROR);
-		if (!file_exists($bamfile.".bai")) trigger_error("No BAM index file found in Sample folder!", E_USER_ERROR);
-		// copy BAM file to local tmp
-		$parser->copyFile($bamfile, $local_bamfile);
-		$parser->copyFile($bamfile.".bai", $local_bamfile.".bai");
-	}
-}
-
-// verify that genome build of BAM matches given genome build
-if (!in_array("ma", $steps) && (in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)))
-{
-	$bam_genome_build = get_genome_build($bamfile);
-	if ($bam_genome_build != "" && !starts_with($bam_genome_build, $sys['build']))
-	{
-		trigger_error("Genome build of BAM file ('${bam_genome_build}') does not match genome build of analysis ('".$sys['build']."')!", E_USER_ERROR);
-	}
 }
 
 //mapping
@@ -335,6 +310,24 @@ if (in_array("ma", $steps))
 			}
 		}
 	}
+}
+else
+{
+	//check BAM
+	if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
+	{
+		//check BAM exists
+		if (!file_exists($bamfile)) trigger_error("No BAM file found in sample folder! Cannot perform any calling steps!", E_USER_ERROR);
+		
+		// verify that genome build of BAM matches given genome build
+		$bam_genome_build = get_genome_build($bamfile);
+		if ($bam_genome_build != "" && !starts_with($bam_genome_build, $sys['build']))
+		{
+			trigger_error("Genome build of BAM file ('${bam_genome_build}') does not match genome build of analysis ('".$sys['build']."')!", E_USER_ERROR);
+		}
+	}
+	
+	$local_bamfile = $bamfile;
 }
 
 //variant calling
@@ -795,7 +788,7 @@ if (in_array("db", $steps))
 
 
 // Create Circos plot only if variant or copy-number calling was done
-if (in_array("vc", $steps) || in_array("cn", $steps))
+if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
 {
 	if ($is_wes || $is_wgs || $is_wgs_shallow)
 	{
