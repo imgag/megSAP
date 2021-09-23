@@ -119,8 +119,7 @@ if (!$somatic) //germline only
 			}
 
 			//load per-gene splicing information
-			$splicing = $psample_info['ps_folder']."{$psample}_splicing.genes.tsv";
-			$splicing = "Sample_RX2103733_01/{$psample}_splicing_gene.tsv";
+			$splicing = $psample_info['ps_folder']."{$psample}_splicing_gene.tsv";
 			if (file_exists($splicing))
 			{
 				annotate_gsvar_by_gene($varfile, $varfile, $splicing, "symbol", "aberrant_frac", "aberrant_splicing", "Fraction of aberrant splicing reads in gene.");

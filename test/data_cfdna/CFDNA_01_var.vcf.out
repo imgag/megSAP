@@ -1,5 +1,5 @@
 ##fileformat=VCFv4.1
-##fileDate=07/06/2021
+##fileDate=01/07/2021
 ##source=umiVar2
 ##reference=/tmp/local_ngs_data/GRCh37.fa
 ##INFO=<ID=Variant_Dist,Number=1,Type=Integer,Description="Distance to the closest short variant">
@@ -19,44 +19,21 @@
 ##FILTER=<ID=Fisher_Strand,Description="Strand bias based on fisher test">
 ##FILTER=<ID=Low_qual_pos,Description="Position enriched with too many low quality bases">
 ##FILTER=<ID=Variant_contamination,Description="Reads supporting other alleles outside of the error rate distribution">
-##FILTER=<ID=pvalue,Description="no description available">
 ##FILTER=<ID=FDR,Description="no description available">
-##FILTER=<ID=Low_AF,Description="no description available">
-##FILTER=<ID=Strand_Imbalanced,Description="no description available">
-##FILTER=<ID=Variant_Contamination,Description="no description available">
-##FILTER=<ID=Low_Complexity,Description="no description available">
-##FILTER=<ID=Low_Qual_Pos,Description="no description available">
 ##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
-##FORMAT=<ID=AC,Number=.,Type=Integer,Description="Allele read counts">
 ##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=AC,Number=.,Type=Integer,Description="Allele read counts">
 ##FORMAT=<ID=AF,Number=1,Type=Float,Description="Alternative allele fraction">
-##FORMAT=<ID=Perror,Number=1,Type=Float,Description="Q-value to belong to the error rate distribution (beta binomial distribution) - After FDR correction">
+##FORMAT=<ID=M_REF,Number=1,Type=Integer,Description="Multi-UMI reference-like read counts">
+##FORMAT=<ID=M_AC,Number=.,Type=Integer,Description="Multi-UMI alternative read counts">
+##FORMAT=<ID=M_AF,Number=1,Type=Float,Description="Multi-UMI alternative allele fraction">
+##FORMAT=<ID=Pval,Number=1,Type=Float,Description="P-value to belong to the error rate distribution (beta binomial distribution)">
+##FORMAT=<ID=FDR,Number=1,Type=Float,Description="Q-value to belong to the error rate distribution (beta binomial distribution) after Benjamini-Hochberg correction (FDR)">
 ##FORMAT=<ID=Strand,Number=1,Type=String,Description="Alleles in strands: Alternative forward, Alternative reverse, Reference forward, Reference reverse">
-##FORMAT=<ID=FS,Number=1,Type=Float,Description="Fisher strand test (q-value)">
-##FORMAT=<ID=VCB,Number=1,Type=Integer,Description="Variant Count bias, number of other different alternative alleles found">
-##FORMAT=<ID=Pvcb,Number=1,Type=Float,Description="Q-value for other alternative alleles to belong to the error rate distribution (beta binomial distribution) - After FDR correction">
-##FORMAT=<ID=Alt_Count,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=FS,Number=1,Type=Float,Description="Fisher strand bias test (q-value)">
+##FORMAT=<ID=OAAC,Number=1,Type=Integer,Description="Other Alternative Allele Coun">
+##FORMAT=<ID=MAL,Number=1,Type=Float,Description="Multi-allele likelihoo">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	CFDNA_01
-chr1	115256514	.	G	A	.	pvalue;FDR;Low_AF;Strand_Imbalanced;Low_AC;Variant_Contamination;off-target	Variant_dist=16;Vicinity=TCATGGCACTG;PValue=6.95e-01	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:1:3683:0.000272:1.00e+00:1-0-2585-1096:1.00e+00:1:1.00e+00
-chr1	115256530	.	G	T	.	PASS	Variant_dist=30;Vicinity=TTCTTGTCCAG;PValue=1.93e-04	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:44:4238:0.010382:1.23e-02:28-16-3034-1160:1.00e+00:0:1.00e+00
-chr1	115256536	.	C	T	.	FDR	Variant_dist=6;Vicinity=TCCAGCTGTAT;PValue=6.27e-03	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:43:4430:0.009707:1.59e-01:14-29-3215-1170:4.28e-06:2:1.00e+00
-chr1	115256547	.	A	T	.	pvalue;FDR;Low_AF;Strand_Imbalanced;Low_AC;off-target	Variant_dist=13;Vicinity=CCAGTATGTCC;PValue=3.46e-01	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:2:4636:0.000431:1.00e+00:0-2-3383-1251:1.00e+00:0:1.00e+00
-chr1	115256551	.	C	A	.	pvalue;FDR;Low_AF;Strand_Imbalanced;Low_AC;off-target	Variant_dist=9;Vicinity=TATGTCCAACA;PValue=9.15e-01	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:1:4903:0.000204:1.00e+00:0-1-3552-1350:1.00e+00:0:1.00e+00
-chr1	115256552	.	C	A	.	pvalue;FDR;Low_AF;Strand_Imbalanced;Low_AC;off-target	Variant_dist=8;Vicinity=ATGTCCAACAA;PValue=6.43e-01	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:3:4833:0.000621:1.00e+00:1-2-3545-1284:1.00e+00:1:1.00e+00
-chr1	115256554	.	A	C	.	pvalue;FDR;Low_AF;Strand_Imbalanced;Low_AC;Variant_Contamination;off-target	Variant_dist=6;Vicinity=GTCCAACAAAC;PValue=2.90e-01	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:2:4928:0.000406:1.00e+00:0-2-3600-1325:1.00e+00:1:1.00e+00
-chr1	115256555	.	C	A	.	pvalue;FDR;Low_AF;Strand_Imbalanced;Low_AC;off-target	Variant_dist=5;Vicinity=TCCAACAAACA;PValue=6.00e-01	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:4:4903:0.000816:1.00e+00:0-4-3606-1293:6.20e-01:0:1.00e+00
-chr1	115256560	.	A	T	.	Strand_Imbalanced;off-target	Variant_dist=17;Vicinity=CAAACAGGTTT;PValue=1.26e-03	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:9:4818:0.001868:5.32e-02:0-9-3620-1186:4.43e-04:3:5.53e-01
-chr1	115256562	.	G	T	.	pvalue;FDR;Strand_Imbalanced;Clustered_Variant;off-target	Variant_dist=2;Vicinity=AACAGGTTTCA;PValue=5.67e-01	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:5:4939:0.001012:1.00e+00:1-4-3689-1244:1.00e+00:1:1.00e+00
-chr1	115256567	.	A	C	.	pvalue;FDR;Low_AF;Strand_Imbalanced;Low_AC;off-target	Variant_dist=7;Vicinity=GTTTCACCATC;PValue=3.04e-01	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:2:5213:0.000384:1.00e+00:0-2-3852-1359:1.00e+00:0:1.00e+00
-chr1	115256569	.	C	A	.	FDR;Strand_Imbalanced;off-target	Variant_dist=8;Vicinity=TTCACCATCTA;PValue=1.03e-02	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:15:4898:0.003062:1.00e+00:1-14-3691-1191:4.15e-06:1:1.00e+00
-chr1	115256570	.	A	T	.	pvalue;FDR;Low_AF;Strand_Imbalanced;Low_AC;off-target	Variant_dist=7;Vicinity=TCACCATCTAT;PValue=3.87e-01	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:2:5193:0.000385:1.00e+00:0-2-3818-1373:1.00e+00:0:1.00e+00
-chr1	115256572	.	C	A	.	pvalue;FDR;Low_AF;Strand_Imbalanced;Low_AC;off-target	Variant_dist=5;Vicinity=ACCATCTATAA;PValue=7.29e-01	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:2:4983:0.000401:1.00e+00:0-2-3773-1208:1.00e+00:0:1.00e+00
-chr1	115256577	.	A	C	.	Strand_Imbalanced;off-target	Variant_dist=14;Vicinity=CTATAACCACT;PValue=2.62e-06	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:39:4720:0.008263:3.32e-04:0-39-3549-1132:1.92e-22:0:1.00e+00
-chr1	115256579	.	C	A	.	pvalue;FDR;Low_AF;Strand_Imbalanced;Low_AC;Clustered_Variant;off-target	Variant_dist=2;Vicinity=ATAACCACTTG;PValue=7.33e-01	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:2:5027:0.000398:1.00e+00:1-1-3565-1460:1.00e+00:0:1.00e+00
-chr1	115256584	.	G	T	.	FDR;Low_Complexity;Strand_Imbalanced;off-target	Variant_dist=7;Vicinity=CACTTGTTTTC;PValue=1.01e-02	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:30:4283:0.007004:2.13e-01:0-30-3021-1229:1.13e-14:3:1.00e+00
-chr1	115256589	.	C	G	.	pvalue;FDR;Low_Complexity;Low_AF;Strand_Imbalanced;Low_AC;Clustered_Variant;Variant_Contamination;off-target	Variant_dist=2;Vicinity=GTTTTCTGTAA;PValue=5.60e-01	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:1:4063:0.000246:1.00e+00:0-1-2915-1145:1.00e+00:2:1.00e+00
-chr1	115256591	.	G	T	.	Strand_Imbalanced;Clustered_Variant;off-target	Variant_dist=4;Vicinity=TTTCTGTAAGA;PValue=1.78e-03	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:27:3870:0.006977:5.66e-02:0-27-2717-1126:6.48e-13:0:1.00e+00
-chr1	115256594	.	A	C	.	pvalue;FDR;Strand_Imbalanced;Clustered_Variant;off-target	Variant_dist=1;Vicinity=CTGTAAGAATC;PValue=2.64e-01	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:7:3669:0.001908:1.00e+00:0-7-2593-1066:2.30e-02:3:1.00e+00
-chr1	115256595	.	G	C	.	Strand_Imbalanced;Clustered_Variant;Low_Qual_Pos;off-target	Variant_dist=4;Vicinity=TGTAAGAATCC;PValue=4.46e-05	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:6:3395:0.001767:2.46e-02:0-6-2448-905:4.99e-02:0:1.00e+00
-chr1	115256595	.	G	T	.	Strand_Imbalanced;Clustered_Variant;Low_Qual_Pos;off-target	Variant_dist=4;Vicinity=TGTAAGAATCC;PValue=4.46e-05	GT:Alt_Count:DP:AF:Perror:Strand:FS:VCB:Pvcb	./.:36:3395:0.010604:5.67e-03:0-36-2448-905:7.19e-19:0:1.00e+00
+chr1	115256530	.	G	T	.	PASS	Variant_dist=30;Vicinity=TTCTTGTCCAG	GT:DP:AC:AF:M_REF:M_AC:M_AF:Pval:FDR:Strand:FS:OAAC:MAL	./.:4238:44:0.010382:2491:22:0.008754:1.94e-04:1.23e-02:28-16-3034-1160:1.00e+00:0:1.00e+00
+chr1	115256536	.	C	T	.	FDR	Variant_dist=6;Vicinity=TCCAGCTGTAT	GT:DP:AC:AF:M_REF:M_AC:M_AF:Pval:FDR:Strand:FS:OAAC:MAL	./.:4430:43:0.009707:2537:29:0.011302:6.27e-03:1.59e-01:14-29-3215-1170:4.28e-06:2:1.00e+00

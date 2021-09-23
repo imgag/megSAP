@@ -314,7 +314,12 @@ function annotate_spliceai_score($splicing_output, $private_var_dict, $threshold
 	if($private_variant_count <= $threshold && $private_variant_count > 0)
 	{
 		$args = array();
-		$args[] = "-I {$low_af_file_spliceai}";
+		
+		$low_af_file_spliceai_gzipped =  $parser->tempFile("_newSpliceAi_annotations.vcf.gz");
+		$parser->exec("bgzip", "-c $low_af_file_spliceai > $low_af_file_spliceai_gzipped");
+		$parser->exec("tabix", "-f -p vcf $low_af_file_spliceai_gzipped");
+		
+		$args[] = "-I {$low_af_file_spliceai_gzipped}";
 		$args[] = "-O {$new_spliceai_annotation}";
 		$fasta = genome_fasta($build);
 		$args[] = "-R {$fasta}"; //output vcf

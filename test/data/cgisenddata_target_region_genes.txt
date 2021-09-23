@@ -1,4 +1,0 @@
-#this target region is fake
-MDM4
-EGFR
-BRAF

@@ -98,6 +98,10 @@ SQL;
 		foreach ($psamples as $psample)
 		{
 			$info = get_processed_sample_info($db_conn, $psample);
+
+			//skip bad quality samples
+			if ($info['ps_quality']=="bad") continue;
+
 			$counts_path = "{$info['ps_folder']}{$psample}_counts.tsv";
 			if (file_exists($counts_path))
 			{
@@ -124,6 +128,8 @@ WHERE
 	ps.processing_system_id=:psys_id
 	AND
 	ps.project_id=:project_id
+	AND
+	ps.quality!='bad'
 SQL;
 
 		$res = $db_conn->executeQuery($sql, ["psys_id"=>$processing_system_id, "project_id"=>$project_id]);

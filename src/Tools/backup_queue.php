@@ -12,7 +12,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 // parse command line arguments
 $parser = new ToolBase("backup_queue", "Queues the backup of a folder in SGE.");
 $parser->addInfile("in",  "Absolute path to input folder.", false);
-$parser->addEnum("mode",  "Mode.", false, array("run", "project"));
+$parser->addEnum("mode",  "Mode.", false, array("run", "project", "user"));
 $parser->addString("email", "Email used for notification when SGE job has finished.", false);
 extract($parser->parse($argv));
 

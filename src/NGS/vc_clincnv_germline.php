@@ -347,7 +347,7 @@ function load_coverage_profile($filename, &$rows_to_use, &$output)
 }
 
 //function to write an empty cnv file
-function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_message, $tumor_only)
+function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messages, $tumor_only)
 {
 	//ClinVAR did not generate CNV file
 	//generate file with basic header lines
@@ -365,7 +365,14 @@ function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messa
 	{
 		fwrite($cnv_output, "##ClinCNV version: v{$matches[1]}\n");
 	}
-	fwrite($cnv_output, "##CNV calling skipped: {$error_message}.\n");
+	if (!is_array($error_messages))
+	{
+		$error_messages = array($error_messages);
+	}
+	foreach($error_messages as $error_message)
+	{
+		fwrite($cnv_output, "##CNV calling skipped: {$error_message}.\n");
+	}
 	//search in CLinCNV stdout for lines indicating failed QC
 	foreach($stdout as $line)
 	{
@@ -563,7 +570,7 @@ function run_clincnv($out, $mosaic=FALSE)
 	else
 	{
 		//ClinVAR did not generate CNV file
-		generate_empty_cnv_file($out, $command, $stdout, $ps_name,$stderr, $tumor_only);
+		generate_empty_cnv_file($out, $command, $stdout, $ps_name, $stderr, $tumor_only);
 		return false;
 	}
 }

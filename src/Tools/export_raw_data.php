@@ -11,8 +11,8 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("export_raw_data", "Exports RAW data.");
 $parser->addStringArray("samples", "Processed sample names (or file with one sample per line).", false);
 $parser->addString("out", "Output folder and ZIP file name.", false);
-$parser->addEnum("mode", "Export mode (FASTQ only, BAM only, whole analysis folder).", true, ["fastq", "bam", "folder"], "fastq");
-$parser->addFlag("internal", "Use internal webserver and do not use password.");
+$parser->addEnum("mode", "Export mode (FASTQ only, BAM only, whole analysis folder).", true, ["fastq", "bam", "vcf", "folder"], "fastq");
+$parser->addFlag("internal", "Use internal webserver and do not use password for zip file.");
 extract($parser->parse($argv));
 
 //init
@@ -65,6 +65,14 @@ foreach($samples as $ps)
 			trigger_error("Sample '$ps': BAM file is missing!", E_USER_ERROR);
 		}
 	}
+	else if ($mode=="vcf")
+	{
+		$vcf = substr($info['ps_bam'],0, -4)."_var.vcf.gz";
+		if (!file_exists($vcf))
+		{
+			trigger_error("Sample '$ps': VCF file is missing!", E_USER_ERROR);
+		}
+	}
 	else
 	{
 		$bam = $info['ps_bam'];
@@ -102,6 +110,12 @@ foreach($samples as $ps)
 		$bam = $info['ps_bam'];
 		exec2("ln -s {$bam} {$out}/".basename($bam));
 	}
+	else if ($mode=="vcf")
+	{
+		print "  Copying VCF file ...\n";
+		$vcf = substr($info['ps_bam'],0, -4)."_var.vcf.gz";
+		exec2("ln -s {$vcf} {$out}/".basename($vcf));
+	}
 	else
 	{		
 		$bam = $info['ps_bam'];
@@ -122,38 +136,28 @@ foreach($samples as $ps)
 	}
 }
 
-//determine password
-$password = "";
-if(!$internal)
-{
-	$password = random_string(20);
-}
+//determine password and folder
+$share_url = $internal ? "http://srv018.img.med.uni-tuebingen.de:8080/DataShare/" : "https://download.imgag.de/DataShare/";
+list($stdout) = exec2("curl '{$share_url}/index.php?action=request&filename={$out}.zip'");
+$folder = trim($stdout[0]);
+$password = trim($stdout[1]);
  
 //zip
-print "Zipping output folder".($password=="" ? "" : " using the password '{$password}'")."...\n";
-exec2("zip -1 ".($password=="" ? "" : "--password {$password} ")."-r {$out}.zip $out");
+print "Zipping output folder".($internal ? "" : " using the password '{$password}'")."...\n";
+exec2("zip -1 ".($internal ? "" : "--password {$password} ")."-r {$out}.zip $out");
 
 //move
 print "You can move the file to the webserver using:\n";
-$user = exec('whoami');
 if($internal)
 {
-	print "  > mv {$out}.zip /mnt/users/bioinf/http_shareukt/{$user}/\n";
+	print "  > mv {$out}.zip /mnt/users/bioinf/http_shareukt/DataShare/data/{$folder}/\n";
 }
 else
 {
-	print "  > scp {$out}.zip {$user}@imgag.de:/var/www/html/download/{$user}/\n";
+	print "  > scp {$out}.zip imgag.de:/var/www/html/download/DataShare/data/{$folder}/\n";
 }
 
 print "The URL of the file is:\n";
-if($internal)
-{
-	print "  http://srv018.img.med.uni-tuebingen.de:8080/{$user}/{$out}.zip\n";
-}
-else
-{
-	print "  https://download.imgag.de/{$user}/{$out}.zip\n";
-}
-
+print "  {$share_url}/index.php?filename={$out}.zip\n";
 
 ?>
