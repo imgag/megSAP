@@ -110,7 +110,6 @@ function start_analysis($job_info, &$db_conn, $debug)
 	
 			$script = "analyze_rna.php";
 			$args = "-folder {$sample_folder} -name {$sample} --log {$sample_folder}analyze_rna_{$timestamp}.log";
-			if ($sample_infos[0]['is_tumor']) $args .= " -steps ma,rc,an,fu,db";
 		}
 		elseif ($sys_type=="cfDNA (patient-specific)" || $sys_type=="cfDNA")
 		{
@@ -282,9 +281,10 @@ function start_analysis($job_info, &$db_conn, $debug)
 	
 	//threads to use (equal to the number of SGE slots)
 	$threads = 4;
-	foreach($sample_infos as $sample_info) //use mor slots for WGS
+	foreach($sample_infos as $sample_info) //use more slots for WGS and RNA
 	{
 		if ($sample_info['sys_type']=="WGS" || $sample_info['sys_type']=="WGS (shallow)") $threads = 6;
+		if ($sample_info['sys_type']=="RNA") $threads = 5;
 	}
 	//handle number of threads when set in custom arguments
 	$parts = explode(' ', preg_replace('/\s+/', ' ', $job_info['args']));

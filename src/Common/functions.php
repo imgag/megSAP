@@ -757,7 +757,7 @@ function gzopen2($filename, $mode)
 }
 
 //functions to encode and decode VCF INFO values using URL encoding
-$vcf_encode_mapping = array("%" => "%25", "\t" => "%09", "\n" => "%0a", "\r" => "%0d", " " => "%20", "," => "%2C", ";" => "%3B", "=" => "%3D", "&" => "%26");
+$vcf_encode_mapping = array("%" => "%25", "\t" => "%09", "\n" => "%0A", "\r" => "%0D", " " => "%20", "," => "%2C", ";" => "%3B", "=" => "%3D", "&" => "%26");
 $vcf_decode_mapping = array_reverse(array_flip($vcf_encode_mapping));
 
 // encode string using URL encoding

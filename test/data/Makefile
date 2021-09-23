@@ -49,8 +49,5 @@ vc_varscan2:
 	samtools index vc_varscan2_tu.bam
 	rm varscan_temp_header.sam vc_varscan2_tu_temp.bam
 
-cgi_send_data:
-	cat /mnt/projects/diagnostic/SomaticAndTreatment/Somatic_DX200770_01-DX200448_01/DX200770_01-DX200448_01.GSvar | sed "s/DX200770_01/DX000000_01/g" | sed "s/DX200448_01/DX000000_01/g" > cgisenddata_in1.GSvar 
-
 an_somatic_cancerhotspots:
 	zcat /mnt/projects/diagnostic/SomaticAndTreatment/Somatic_DX205275_01-DX200281_01/DX205275_01-DX200281_01_var_annotated.vcf.gz | egrep "#|NRAS|BRAF|CDKN2A|TERT|JAK2" | sed "s/DX205275_01/DX000000_01/g" | sed "s/DX200281_01/DX000000_01/g" > an_somatic_cancerhotspots_in1.vcf

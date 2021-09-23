@@ -6,9 +6,8 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("an_somatic_cnvs", "Annotates additional somatic data to ClinCNV file (CGI / NCG6.0 / RNA counts).");
+$parser = new ToolBase("an_somatic_cnvs", "Annotates additional somatic data to ClinCNV file (NCG6.0 / RNA counts).");
 $parser->addInfile("cnv_in", "Input CNV file.", false);
-$parser->addInfile("cnv_in_cgi", "Input CNV CGI data",true);
 $parser->addFlag("include_ncg", "Annotate column with info from NCG6.0 whether a gene is TSG or oncogene");
 $parser->addFlag("include_cytoband", "Annotate column with cytoband names.");
 $parser->addInfile("rna_counts", "Annotate transcript counts from RNA counts file", true);
@@ -17,163 +16,12 @@ $parser->addString("rna_ref_tissue", "RNA tissue type for annotation of RNA refe
 $parser->addOutfile("out", "Output file name", false);
 extract($parser->parse($argv));
 
-if(!isset($cnv_in_cgi) && !$include_ncg && !isset($rna_counts) && !$include_cytoband)
+if(!$include_ncg && !isset($rna_counts) && !$include_cytoband)
 {
 	trigger_error("At least one input file with annotation data must be given.", E_USER_ERROR);
 }
 
 $cnv_input = Matrix::fromTSV($cnv_in);
-
-
-if(isset($cnv_in_cgi))
-{
-	$cnv_input = Matrix::fromTSV($cnv_in);
-	$cgi_input = Matrix::fromTSV($cnv_in_cgi);
-	
-	//data from CGI cnv file
-	$cgi_genes = $cgi_input->getCol($cgi_input->getColumnIndex("gene"));
-	$cgi_driver_statements = $cgi_input->getCol($cgi_input->getColumnIndex("driver_statement"));
-	$cgi_gene_roles = $cgi_input->getCol($cgi_input->getColumnIndex("gene_role"));
-	$cgi_alteration_types = $cgi_input->getCol($cgi_input->getColumnIndex("cna"));
-	//data from cnv file
-	$cnv_genes = $cnv_input->getCol($cnv_input->getColumnIndex("genes"));
-	//approved cnv genes
-	$approved_cnv_genes = array();
-	foreach($cnv_genes as $gene)
-	{
-		$temp_genes = approve_gene_names(explode(',',$gene));
-		$approved_cnv_genes[] = implode(',',$temp_genes);
-	}
-
-	$i_cn_cnvhunter = $cnv_input->getColumnIndex("region_copy_numbers",false,false); //CNVHunter
-	$i_cn_clincnv = $cnv_input->getColumnIndex("CN_change",false,false); //ClinCnv
-
-	if(($i_cn_cnvhunter == false && $i_cn_clincnv == false) || ($i_cn_cnvhunter !== false && $i_cn_clincnv !== false))
-	{
-		trigger_error("Unknown format of CNV file {$cnv_in}. Aborting...",E_USER_ERROR);
-	}
-
-	$is_cnvhunter = false;
-	if($i_cn_clincnv == false) $is_cnvhunter = true;
-
-	$cn = $cnv_input->getCol($i_cn_clincnv); //column with copy numbers
-	if($is_cnvhunter) $cn = $cnv_input->getCol($i_cn_cnvhunter); //CNVhunter file
-
-	//new columns for CNV input
-	$new_driver_statement = array();
-	$new_gene_role = array();
-	$new_genes = array();
-	for($i=0;$i<$cnv_input->rows();$i++)
-	{
-		$new_driver_statement[] = "";
-		$new_gene_role[] = "";
-		$new_genes[] = "";
-	}
-
-	for($i=0;$i<count($cgi_genes);$i++)
-	{
-		$cgi_gene = $cgi_genes[$i];
-		$cgi_driver_statement = $cgi_driver_statements[$i];
-		//In rare cases, CGI statement contains ",": must be removed because it is used as separator
-		$cgi_driver_statement = str_replace(",",";",$cgi_driver_statement);
-		
-		$cgi_gene_role = $cgi_gene_roles[$i];
-		$cgi_alteration_type = $cgi_alteration_types[$i];
-		
-		for($j=0;$j<count($cnv_genes);$j++)
-		{
-			$genes = explode(',',$cnv_genes[$j]);
-			
-			//calc Copy number alteration type (amp or del) (!per region!) in input cnv file		
-
-			$cnv_alteration_type = "";
-			
-			if($is_cnvhunter) //CNVHunter
-			{
-				$copy_numbers_region = explode(',',$cn[$j]);
-				$median_copy_number = median($copy_numbers_region);
-				if($median_copy_number>2.)
-				{
-					$cnv_alteration_type = "AMP";
-				} else {
-					$cnv_alteration_type = "DEL";
-				}
-			}
-			else //ClinCNV
-			{
-				if($cn[$j] > 2.) $cnv_alteration_type = "AMP";
-				elseif($cn[$j] < 2.) $cnv_alteration_type = "DEL";
-				else $cnv_alteration_type = "NA";
-			}
-			
-			foreach($genes as $cnv_gene)
-			{
-				if($cgi_gene == $cnv_gene)
-				{	
-					//alteration types must match
-					if($cgi_alteration_type != $cnv_alteration_type)
-					{
-						continue;
-					}
-					
-					if($new_genes[$j] == "")
-					{
-						$new_genes[$j] = $cgi_gene;
-						$new_driver_statement[$j] = $cgi_driver_statement;
-						$new_gene_role[$j] = $cgi_gene_role;
-					} else {
-						$new_genes[$j] = $new_genes[$j].','.$cgi_gene;
-						$new_driver_statement[$j] = $new_driver_statement[$j] .','. $cgi_driver_statement;
-						$new_gene_role[$j] = $new_gene_role[$j] . ',' . $cgi_gene_role;					
-					}
-				}
-			}
-			
-		}
-	}
-
-
-
-	//remove old CGI data
-
-	if($cnv_input->getColumnIndex("CGI_drug_assoc",false,false) !== false)
-	{
-		$cnv_input->removeCol($cnv_input->getColumnIndex("CGI_drug_assoc"));
-	}
-	if($cnv_input->getColumnIndex("CGI_evid_level",false,false) !== false)
-	{
-		$cnv_input->removeCol($cnv_input->getColumnIndex("CGI_evid_level"));
-	}
-	if($cnv_input->getColumnIndex("CGI_genes",false,false) !== false)
-	{
-		$cnv_input->removeCol($cnv_input->getColumnIndex("CGI_genes"));
-	}
-	if($cnv_input->getColumnIndex("CGI_driver_statement",false,false) !== false)
-	{
-		$cnv_input->removeCol($cnv_input->getColumnIndex("CGI_driver_statement"));
-	}
-	if($cnv_input->getColumnIndex("CGI_gene_role",false,false) !== false)
-	{
-		$cnv_input->removeCol($cnv_input->getColumnIndex("CGI_gene_role"));
-	}
-
-	//add CGI data
-	$cancertype = $cgi_input->get(0,$cgi_input->getColumnIndex("cancer"));
-
-	$comments = $cnv_input->getComments();
-	for($i=0;$i<count($comments);++$i)
-	{
-		if(strpos($comments[$i],"#CGI_CANCER_TYPE") !== false)
-		{
-			$cnv_input->removeComment($comments[$i]);
-		}
-	}
-	$cnv_input->addComment("#CGI_CANCER_TYPE={$cancertype}");
-
-	$cnv_input->addCol($new_genes,"CGI_genes","Genes which were included in CancerGenomeInterpreter.org analysis.");
-	$cnv_input->addCol($new_driver_statement,"CGI_driver_statement","Driver statement for cancer type $cancertype according CancerGenomeInterpreter.org");
-	$cnv_input->addCol($new_gene_role,"CGI_gene_role","Gene role for cancer type $cancertype according CancerGenomeInterpreter.org");
-}
 
 if($include_ncg)
 {

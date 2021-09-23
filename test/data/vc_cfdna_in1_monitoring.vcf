@@ -1,0 +1,7 @@
+##fileformat=VCFv4.3
+##fileDate=20210701
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	14155413	M	C	T	.	.	.
+chr5	136633354	M	A	T	.	.	.
+chr7	1150439500	ID	C	T	.	.	.
+chr11	47346159	M	G	C	.	.	.

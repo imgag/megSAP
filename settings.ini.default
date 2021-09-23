@@ -65,8 +65,3 @@ queues_default = ""
 queues_research = ""
 queues_high_priority = ""
 queues_high_mem = ""
-
-[cancer_genome_interpreter]
-cgi_user = ""
-cgi_token = "" 
-cgi_url = "https://www.cancergenomeinterpreter.org/api/v1"
