@@ -1891,7 +1891,7 @@ WHERE
 	ps.sample_id=:sid
 SQL;
 
-	if ($systype === "")	$query .= " AND sys.type='{$systype}'";
+	if ($systype !== "")	$query .= " AND sys.type='{$systype}'";
 	if ($exclude_bad)		$query .= " AND ps.quality!='bad'";
 
 	$psamples = [];
