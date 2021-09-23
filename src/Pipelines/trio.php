@@ -175,13 +175,13 @@ if (!$no_check && !$is_wgs_shallow && !$annotation_only)
 {
 	//check parent-child correlation
 	$min_corr = 0.45;
-	$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in $f $c -mode bam -max_snps 4000", true);
+	$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in $f $c -mode bam -max_snps 4000 -build ".ngsbits_build($sys['build']), true);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
 		trigger_error("The genotype correlation of father and child is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
 	}
-	$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in $m $c -mode bam -max_snps 4000", true);
+	$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in $m $c -mode bam -max_snps 4000 -build ".ngsbits_build($sys['build']), true);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
@@ -280,7 +280,7 @@ if (in_array("vc", $steps))
 	print "Medelian errors: ".number_format(100.0*$vars_mendelian_error/$vars_high_depth, 2)."% (of {$vars_high_depth} high-depth, autosomal variants)\n";
 	
 	//determine gender of child
-	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c", true);
+	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c -build ".ngsbits_build($sys['build']), true);
 	$gender_data = explode("\t", $stdout[1])[1];
 	if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 	print "Gender of child (from data): {$gender_data}\n";
@@ -330,7 +330,7 @@ if (in_array("cn", $steps))
 		if ($is_wgs_shallow)
 		{
 			//determine gender of child
-			list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method xy -in $c", true);
+			list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method xy -in $c -build ".ngsbits_build($sys['build']), true);
 			$gender_data = explode("\t", $stdout[1])[1];
 			if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 			print "Gender of child (from data): {$gender_data}\n";
@@ -340,7 +340,7 @@ if (in_array("cn", $steps))
 			//add Contamination data
 			if($lines = file($cnv_multi))
 			{
-				list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."TrioMaternalContamination", "-bam_m $m -bam_f $f -bam_c $c", true);
+				list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."TrioMaternalContamination", "-bam_m $m -bam_f $f -bam_c $c -build ".ngsbits_build($sys['build']), true);
 				$trio_info = "##TrioMaternalContamination ".implode(" | ", $stdout)."\n";
 				foreach($lines as $line_num => $line)
 				{

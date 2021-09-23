@@ -452,7 +452,7 @@ if (in_array("vc", $steps))
 	}
 	
 	//determine ancestry
-	$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file}", true);
+	$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file} -build ".ngsbits_build($sys['build']), true);
 }
 
 

@@ -280,7 +280,7 @@ if (in_array("ma", $steps))
 		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in {$lowcov_file} -clear -extend 25 -out {$lowcov_file}", true);
 	}
 
-	$parser->exec(get_path("ngs-bits")."MappingQC", "-roi {$roi_extended} -in {$bamfile} -out {$qc_map} -ref ".genome_fasta($sys['build']));
+	$parser->exec(get_path("ngs-bits")."MappingQC", "-roi {$roi_extended} -in {$bamfile} -out {$qc_map} -ref ".genome_fasta($sys['build'])." -build ".ngsbits_build($sys['build']));
 }
 
 //check sample similarity with referenced tumor (only patient-specific)
@@ -290,7 +290,7 @@ if ($is_patient_specific)
 	{
 		if (count($kasp_regions) > 0)
 		{
-			$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -roi {$roi_kasp}", true);
+			$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -roi {$roi_kasp} -build ".ngsbits_build($sys['build']), true);
 			$correlation = explode("\t", $output[0][1])[3];
 			if ($correlation < $min_corr)
 			{

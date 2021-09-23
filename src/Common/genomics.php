@@ -2043,4 +2043,15 @@ function get_genome_build($bamfile)
 	return $builds[0];
 }
 
+//converts a proessing system genome build string to a string compatible with ngs-bits
+function ngsbits_build($system_build)
+{
+	$system_build = strtolower($system_build);
+	
+	if ($system_build=="hg38") return "hg38";
+	if ($system_build=="grch38") return "hg38";
+	
+	return "hg19";
+}
+
 ?>

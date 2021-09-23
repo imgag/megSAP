@@ -195,7 +195,8 @@ if (in_array("ma", $steps))
 	$mappingqc_params = array(
 		"-in ".$final_bam,
 		"-out ".$qc_map,
-		"-ref ".genome_fasta($sys['build'])
+		"-ref ".genome_fasta($sys['build']),
+		"-build ".ngsbits_build($sys['build'])
 	);
 
 	$mappingqc_params[] = (isset($target_file) && $target_file != "") ? "-roi {$target_file}" : "-rna";

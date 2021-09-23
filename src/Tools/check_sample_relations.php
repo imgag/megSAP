@@ -1,6 +1,6 @@
 <?php
 /** 
-	@page db_import_sample_relations
+	@page check_sample_relations
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -75,14 +75,14 @@ foreach ($res as $row)
     }
 
     $args_similarity = [
-        "-in", $bam1, $bam2,
-        "-mode", "bam",
-        "-min_cov", 10
+		"-in {$bam1} {$bam2}",
+        "-mode bam",
+        "-min_cov 10",
+		"-build ".ngsbits_build($sys['build'])
     ];
     if (!empty($roi))
     {
-        $args_similarity[] = "-roi";
-        $args_similarity[] = $roi;
+        $args_similarity[] = "-roi {$roi}";
     }
     $output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", implode(" ", $args_similarity), true);
     $n_snps = explode("\t", $output[0][1])[2];

@@ -220,14 +220,14 @@ if (count($bams) > 1)
     else
     {
     	$args_similarity = [
-    		"-in", implode(" ", $bams),
-			"-mode", "bam",
-			"-max_snps", 4000
+    		"-in ".implode(" ", $bams),
+			"-mode bam",
+			"-max_snps 4000",
+			"-build ".ngsbits_build($sys['build'])
 		];
 		if (!empty($roi))
 		{
-			$args_similarity[] = "-roi";
-			$args_similarity[] = $roi;
+			$args_similarity[] = "-roi {$roi}";
 		}
         $output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", implode(" ", $args_similarity), true);
 
@@ -258,8 +258,7 @@ if( db_is_enabled("NGSD") )
 		}
 		else
 		{
-			$hg_build = ( $sys['build'] == "GRCh38" ? "hg38" : "hg19" );
-			$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build $hg_build -method sry", true);
+			$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build ".ngsbits_build($sys['build'])." -method sry", true);
 			list(,,$cov_sry) = explode("\t", $out[0][1]);
 
 			if(is_numeric($cov_sry) && (float)$cov_sry >= 30)
@@ -786,7 +785,8 @@ if (in_array("an", $steps))
 			"-blacklist", repository_basedir() ."/data/gene_lists/somatic_tmb_blacklist.bed", //Blacklisted genes that are not included in TMB calculation (e.g. HLA-A and HLA-B)
 			"-tsg_bed", repository_basedir() ."/data/gene_lists/somatic_tmb_tsg.bed", //TSG genes whose mutations are treated specially in TMB calculation
 			"-ref", $ref_genome,
-			"-out", $somaticqc
+			"-out", $somaticqc,
+			"-build", ngsbits_build($sys['build'])
 		];
 		if (!empty($links))
 		{
