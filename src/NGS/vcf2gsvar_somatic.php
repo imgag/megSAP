@@ -85,6 +85,15 @@ while(!feof($handle))
 			$i_p_value = $index++;
 			$gsvar->insertCol($index, $empty_col, "Alt counts", "");
 			$i_alt_counts = $index++;
+			
+			//add multi UMI columns
+			$gsvar->insertCol($index, $empty_col, "m_AF", "Multi-UMI alternative allele fraction");
+			$i_m_af = $index++;
+			$gsvar->insertCol($index, $empty_col, "m_REF", "Multi-UMI reference-like read counts");
+			$i_m_ref = $index++;
+			$gsvar->insertCol($index, $empty_col, "m_ALT", "Multi-UMI alternative read counts");
+			$i_m_alt = $index++;
+
 			$gsvar->insertCol($index, $empty_col, "Strand", "Alleles in strands: Alternative forward, Alternative reverse, Reference forward, Reference reverse");
 			$i_strand = $index++;
 			$gsvar->insertCol($index, $empty_col, "Sequence context", "Sequence +/- 5bp around the variant.");
@@ -241,13 +250,18 @@ while(!feof($handle))
 	}
 	else if($var_caller == "umivar2")
 	{
-		list($tumor_dp, $tumor_af, $p_value, $alt_count, $strand, $seq_context, $homopolymer) = vcf_umivar2($filter, $info, $format, $cols[$tumor_idx]);
+		list($tumor_dp, $tumor_af, $p_value, $alt_count, $strand, $seq_context, $homopolymer, $m_af, $m_ref, $m_alt) = vcf_umivar2($filter, $info, $format, $cols[$tumor_idx]);
 
 		// add umiVar2 specific values
 		if($var_caller == "umivar2")
 		{
 			$gsvar->set($r, $i_p_value, $p_value);
 			$gsvar->set($r, $i_alt_counts, $alt_count);
+			
+			$gsvar->set($r, $i_m_af, $m_af);
+			$gsvar->set($r, $i_m_ref, $m_ref);
+			$gsvar->set($r, $i_m_alt, $m_alt);
+
 			$gsvar->set($r, $i_strand, $strand);
 			$gsvar->set($r, $i_seq_context, $seq_context);
 			$gsvar->set($r, $i_homopolymer, $homopolymer);

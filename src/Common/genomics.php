@@ -1170,6 +1170,9 @@ function vcf_umivar2($filter_col, $info_col, $format_col, $sample_col)
 	$i_af = NULL; //index allele frequency
 	$i_strand = NULL; //index strand
 	$i_p_value = NULL; //index P-value
+	$i_m_af = NULL; //index multi UMI allele frequency
+	$i_m_ref_count = NULL; //index multi UMI ref count
+	$i_m_alt_count = NULL; //index multi UMI alt count
 
 	for($i=0;$i<count($format_data);++$i)
 	{
@@ -1178,6 +1181,10 @@ function vcf_umivar2($filter_col, $info_col, $format_col, $sample_col)
 		if($format_data[$i] == "AF") $i_af = $i;
 		if($format_data[$i] == "Strand") $i_strand = $i;
 		if($format_data[$i] == "Pval") $i_p_value = $i;
+
+		if($format_data[$i] == "M_AF") $i_m_af = $i;
+		if($format_data[$i] == "M_REF") $i_m_ref_count = $i;
+		if($format_data[$i] == "M_AC") $i_m_alt_count = $i;
 	}
 	
 	if(is_null($i_alt_count) || is_null($i_dp) || is_null($i_af) || is_null($i_strand) || is_null($i_p_value))
@@ -1185,7 +1192,13 @@ function vcf_umivar2($filter_col, $info_col, $format_col, $sample_col)
 		trigger_error("Invalid umiVar2 format. Missing one of the fields 'AC', 'DP', 'AF', 'Strand' or 'Pval'", E_USER_ERROR);
 	}
 
-	return array($sample_data[$i_dp], number_format($sample_data[$i_af], 5), $sample_data[$i_p_value], $sample_data[$i_alt_count], $sample_data[$i_strand], $seq_context, $homopolymer);
+	if(is_null($i_m_af) || is_null($i_m_ref_count) || is_null($i_m_alt_count))
+	{
+		trigger_error("Invalid umiVar2 format. Missing one of the fields 'M_AF', 'M_REF' or 'M_AC'", E_USER_ERROR);
+	}
+
+	return array($sample_data[$i_dp], number_format($sample_data[$i_af], 5), $sample_data[$i_p_value], $sample_data[$i_alt_count], $sample_data[$i_strand], $seq_context, 
+				$homopolymer, number_format($sample_data[$i_m_af], 5), $sample_data[$i_m_ref_count], $sample_data[$i_m_alt_count]);
 }
 
 //Calculates depth and variant allele frequency for varscan2 output line.
