@@ -192,7 +192,7 @@ if (in_array("ma", $steps))
 		// check if bam file exists
 		if (!file_exists($bamfile_to_convert)) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
 
-		trigger_error("Output folder does not exists. Using BAM file from GRCh37 as input!", E_USER_NOTICE);	
+		trigger_error("Output folder does not exists. Using BAM or Fastq files from GRCh37 as input!", E_USER_NOTICE);	
 	}
 
 	//determine input FASTQ files
@@ -203,6 +203,21 @@ if (in_array("ma", $steps))
 	//find FastQ input files
 	$files1 = glob($in_for);
 	$files2 = glob($in_rev);
+	
+	
+	//try ro resolve fastq from GRCh37 if thex do exist (e.g. for somatic samples)
+	$in_for_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R1_00?.fastq.gz";
+	$in_rev_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R2_00?.fastq.gz";
+	$fastq_files_grc37 = glob($in_for_grch37);
+	if(!$output_folder_exists && count($files1) == 0 && ($sys['build'] == "GRCh38") && count($fastq_files_grc37) > 0)
+	{
+		exec2("cp -f $in_for_grch37 $folder");
+		exec2("cp -f $in_rev_grch37 $folder");
+		$files1 = glob($in_for);
+		$files2 = glob($in_rev);
+	}
+	
+	
 	$files_index = glob($in_index);
 	if (count($files1)!=count($files2))
 	{
