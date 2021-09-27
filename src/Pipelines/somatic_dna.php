@@ -128,6 +128,7 @@ if (!file_exists($out_folder))
 {
 	exec2("mkdir -p $out_folder");
 }
+if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/somatic_dna_".date("YmdHis").".log");
 
 //output prefix
 $full_prefix = "{$out_folder}/{$prefix}";
