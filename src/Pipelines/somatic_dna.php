@@ -124,6 +124,10 @@ foreach($steps as $step)
 }
 
 ###################################### SCRIPT START ######################################
+if (!file_exists($out_folder))
+{
+	exec2("mkdir -p $out_folder");
+}
 
 //output prefix
 $full_prefix = "{$out_folder}/{$prefix}";
