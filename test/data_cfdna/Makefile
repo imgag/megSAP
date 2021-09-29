@@ -18,6 +18,7 @@ vc_p:
 
 diff_p:
 	php ../compare_qcml_xml.php CFDNA_01_stats_map.qcML.out CFDNA_01/CFDNA_01_stats_map.qcML 0.02
+	php ../compare_qcml_xml.php CFDNA_01_stats_fastq.qcML.out CFDNA_01/CFDNA_01_stats_fastq.qcML 0.02
 	diff --ignore-matching-lines '^##' CFDNA_01_var.vcf.out CFDNA_01/CFDNA_01_var.vcf
 	php ../compare_variants.php -in1 CFDNA_01.GSvar.out -in2 CFDNA_01/CFDNA_01.GSvar
 
@@ -41,6 +42,7 @@ vc_c:
 
 diff_c:
 	php ../compare_qcml_xml.php CFDNA_02_stats_map.qcML.out CFDNA_02/CFDNA_02_stats_map.qcML 0.02
+	php ../compare_qcml_xml.php CFDNA_02_stats_fastq.qcML.out CFDNA_02/CFDNA_02_stats_fastq.qcML 0.02
 	diff --ignore-matching-lines '^##' CFDNA_02_var.vcf.out CFDNA_02/CFDNA_02_var.vcf
 	php ../compare_variants.php -in1 CFDNA_02.GSvar.out -in2 CFDNA_02/CFDNA_02.GSvar
 

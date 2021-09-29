@@ -149,7 +149,7 @@ if ($build=="GRCh38")
 	else
 	{
 		// info.txt missing -> perform update
-		print "$info missing. Performing update!\n";
+		print "{$local_annotation_folder}/{$info} missing. Performing update!\n";
 		$update = true;
 	}
 
