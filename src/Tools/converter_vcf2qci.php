@@ -108,7 +108,7 @@ $file_qci->toTSV($vcf_qci);
 
 //align INDELs to the left
 $vcf_qci_aligned = $parser->tempFile("_qci_aligned.vcf");
-$parser->exec(get_path("ngs-bits")."VcfLeftNormalize"," -in $vcf_qci -out $vcf_qci_aligned -ref ".genome_fasta($build), true);
+$parser->exec(get_path("ngs-bits")."VcfLeftNormalize","-stream -in $vcf_qci -out $vcf_qci_aligned -ref ".genome_fasta($build), true);
 
 //sort variants
 $vcf_qci_sorted = $parser->tempFile("_qci_sorted.vcf");

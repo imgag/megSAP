@@ -136,7 +136,7 @@ $merged->toTSV($vcf_merged);
 
 //left-align
 $vcf_aligned = $parser->tempFile("_aligned.vcf");
-$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", " -in $vcf_merged -out $vcf_aligned -ref ".genome_fasta($build), true);
+$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-stream -in $vcf_merged -out $vcf_aligned -ref ".genome_fasta($build), true);
 
 //sort
 $vcf_sorted = $parser->tempFile("_sorted.vcf");

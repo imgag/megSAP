@@ -109,7 +109,7 @@ fclose($out_fp);
 
 //Normalize file and sort 
 $temp_file2 = temp_file(".vcf", "cosmic_cmc_normalized");
-$parser->exec("{$ngsbits}/VcfLeftNormalize", " -in $temp_file -out $temp_file2 -ref {$genome_fa}");
+$parser->exec("{$ngsbits}/VcfLeftNormalize", "-stream -in $temp_file -out $temp_file2 -ref {$genome_fa}");
 
 $temp_file3 = temp_file(".vcf", "cosmic_cmc_normalized_sorted");
 $parser->exec("{$ngsbits}/VcfSort", " -in $temp_file2 -out $temp_file3");

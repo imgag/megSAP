@@ -36,7 +36,7 @@ $tmp_snp_file = $parser->tempFile("varscan2_snps.vcf");
 $pipeline = array(
 	array("zcat", "{$pileup_file}"),
 	array(get_path("varscan2"), "mpileup2snp --min-var-freq $min_af --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
-	array(get_path("ngs-bits")."/VcfLeftNormalize", "-ref $genome -out $tmp_snp_file")
+	array(get_path("ngs-bits")."/VcfLeftNormalize", "-stream -ref $genome -out $tmp_snp_file")
 );
 
 $parser->execPipeline($pipeline, "Varscan2 SNPs");
@@ -46,7 +46,7 @@ $tmp_indel_file = $parser->tempFile("varscan2_indels.vcf");
 $pipeline = array(
 	array("zcat", "{$pileup_file}"),
 	array(get_path("varscan2"), "mpileup2indel --min-var-freq $min_af --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres"),
-	array(get_path("ngs-bits")."/VcfLeftNormalize", "-ref $genome"),
+	array(get_path("ngs-bits")."/VcfLeftNormalize", "-stream -ref $genome"),
 	array("egrep", "-v '##|#CHROM' > $tmp_indel_file") //filter out header lines (already included in calls for snps, will be merged in later step)
 );
 $parser->execPipeline($pipeline, "Varscan2 INDELs");

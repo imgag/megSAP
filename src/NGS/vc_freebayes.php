@@ -242,7 +242,7 @@ $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
 $pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
 
 //normalize all variants and align INDELs to the left
-$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-ref $genome");
+$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
 
 //sort variants by genomic position
 $pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
