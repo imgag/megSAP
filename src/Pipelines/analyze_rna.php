@@ -293,6 +293,9 @@ if (in_array("an", $steps))
 			//somatic: enable somatic mode, and use RNA reference tissue
 			if ($ps_info['is_tumor'])
 			{
+				$args += ["-somatic"];
+				
+				
 				//somatic case: find HPA reference tissue
 				list($s_name) = explode("_", $name);
 				$sql = <<<SQL
@@ -309,12 +312,8 @@ SQL;
 				if (count($res) == 1)
 				{
 					$rna_ref_tissue = $res[0];
+					$args += ["-hpa_tissue '{$rna_ref_tissue}'"];
 				}
-				else
-				{
-					trigger_error("Found multiple or no RNA reference tissue in NGSD. Aborting...", E_USER_ERROR);
-				}
-				$args += ["-somatic", "-hpa_tissue '{$rna_ref_tissue}'"];
 			}
 	
 			$parser->execTool("NGS/rc_annotate_expr.php", implode(" ", $args));
