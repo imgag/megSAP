@@ -51,10 +51,9 @@ function stats_line($name, $options, $date, $bases_hc, $query_total, $fp, $fn, $
 }
 
 //init
-$tmp_folder = "/tmp/validate_NA12878_happy/"; //TODO $parser->tempFolder("validate_NA12878_happy");
-$happy = "python /mnt/share/opt/hap.py-0.3.14/bin/hap.py"; //TODO 
+$tmp_folder = $parser->tempFolder("validate_NA12878_happy");
+$happy = get_path("happy");
 $ngsbits = get_path("ngs-bits");
-$vcflib = get_path("vcflib");
 $genome = genome_fasta($build);
 $giab_bed = get_path("data_folder")."/dbs/GIAB/{$ref_sample}/high_conf_regions.bed";
 if (!file_exists($giab_bed)) trigger_error("GiaB {$ref_sample} BED file missing: {$giab_bed}", E_USER_ERROR);
@@ -73,25 +72,9 @@ $pipeline[] = ["{$ngsbits}BedSort", ""];
 $pipeline[] = ["{$ngsbits}BedMerge", "-out $roi_hc"];
 $parser->execPipeline($pipeline, "high-conf ROI");
 $bases_hc = get_bases($roi_hc);
+print "##High-conf region: $roi_hc\n";
 print "##High-conf bases: $bases_hc (".number_format(100*$bases_hc/$bases, 2)."%)\n";
 print "##Notice: Reference variants in the above region are evaluated!\n";
-
-//extract normalized truth set
-/*
-$roi_hc_pad = $tmp_folder."/roi_hc_pad.bed";
-exec2("BedExtend -in {$roi_hc} -n 50 | BedMerge -out {$roi_hc_pad}");
-$truth_vcf = $tmp_folder."/truth_hc.vcf";
-$pipeline = [];
-$pipeline[] = array("zcat", $giab_vcfgz);
-$pipeline[] = array("{$ngsbits}VcfFilter", "-reg {$roi_hc_pad}");
-$pipeline[] = array("{$vcflib}vcfbreakmulti", "");
-$pipeline[] = array("{$ngsbits}VcfLeftNormalize", "-stream -ref {$genome}");
-$pipeline[] = array("{$ngsbits}VcfFilter", "-reg {$roi_hc}");
-$pipeline[] = array("{$ngsbits}VcfStreamSort", "-out {$truth_vcf}");
-$parser->execPipeline($pipeline, "variant extraction");
-print "##Truth variants :".get_variants($truth_vcf)."\n";
-print "##\n";
-*/
 
 //perform comparison
 list($stdout, $stderr) = $parser->exec($happy, "{$giab_vcfgz} {$vcf} -T {$roi_hc} -r {$genome} -o {$tmp_folder}/output", true);
