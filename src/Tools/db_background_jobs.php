@@ -12,14 +12,16 @@ $parser = new ToolBase("db_background_jobs", "Runs jobs in the SGE queue without
 $parser->addInfile("commands", "Input text file containing command per line.", false);
 $parser->addInt("slots_per_job", "Number of SGE slots to use per command", false);
 //optional
-$parser->addFloat("max_slots", "Maximum percentage of SGE slots to use.", true, 50.0);
+$parser->addFloat("max_slots", "Maximum percentage of SGE slots to use.", true, 80.0);
 $parser->addInt("sleep_secs", "Number of seconds to sleep between tries to start jobs.", true, 120);
-$parser->addString("queue_set", "Queue set from INI file to use", true, "queues_default");
+$parser->addString("queues", "Comma-separted list of SGE queues to use (is unset the default queues from the INI file are use).", true, "");
 extract($parser->parse($argv));
+
 
 //init
 $user = trim(exec('whoami'));
-$queues = explode(",", get_path($queue_set));
+if ($queues=="") $queues = get_path("queues_default");
+$queues = explode(",", $queues);
 
 //load commands
 $file = file($commands);
@@ -66,7 +68,10 @@ while(count($commands)>0)
 		while ($slots_free >= $slots_per_job)
 		{
 			++$id;
-			$command = array_shift($commands);
+			
+			$command = trim(array_shift($commands));
+			if ($command=="") break; // happens after last command
+			
 			print "  Starting command: {$command}\n";
 			if (contains($command, "megSAP/src/NGS/db_queue_analysis.php")) //queue via NGSD
 			{
@@ -91,6 +96,7 @@ while(count($commands)>0)
 		print "  Commands remaining: ".count($commands)."\n";
 	}
 	
+	if (count($commands)==0) break;
 	sleep($sleep_secs);
 }
 
