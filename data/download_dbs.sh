@@ -49,12 +49,12 @@ tabix -p bed RepeatMasker.bed.gz
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2021/clinvar_20210424.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20210424_converted.vcf.gz
-tabix -p vcf clinvar_20210424_converted.vcf.gz
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2021/clinvar_20211010.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20211010_converted.vcf.gz
+tabix -p vcf clinvar_20211010_converted.vcf.gz
 #CNVs
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2021-04.txt.gz | gunzip > variant_summary_2021-04.txt
-cat variant_summary_2021-04.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2021-04.bed
-$ngsbits/BedSort -with_name -in clinvar_cnvs_2021-04.bed -out clinvar_cnvs_2021-04.bed
+wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2021-10.txt.gz | gunzip > variant_summary_2021-10.txt
+cat variant_summary_2021-10.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2021-10.bed
+$ngsbits/BedSort -with_name -in clinvar_cnvs_2021-10.bed -out clinvar_cnvs_2021-10.bed
 
 #Install HGNC - ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
 cd $dbs
@@ -171,12 +171,12 @@ tabix -p vcf mmsplice_scores_2021_02_03.vcf.gz
 #tabix -p bed omim.bed.gz
 
 #Install HGMD (you need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
-#manual download of files hgmd_pro_2021.1_hg19.vcf and hgmd_pro-2021.1.dump.gz from https://apps.ingenuity.com/ingsso/login
-#cat hgmd_pro_2021.1_hg19.vcf | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2021_1_fixed.vcf.gz
-#tabix -p vcf HGMD_PRO_2021_1_fixed.vcf.gz
+#manual download of files hgmd_pro_2021.3_hg19.vcf and hgmd_pro-2021.3.dump.gz from https://apps.ingenuity.com/ingsso/login
+#cat hgmd_pro_2021.3_hg19.vcf | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2021_3_fixed.vcf.gz
+#tabix -p vcf HGMD_PRO_2021_3_fixed.vcf.gz
 ##CNVs
-#zcat hgmd_pro-2020.4.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2021_1.bed
-#$ngsbits/BedSort -with_name -in HGMD_CNVS_2021_1.bed -out HGMD_CNVS_2021_1.bed
+#zcat hgmd_pro-2021.3.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2021_3.bed
+#$ngsbits/BedSort -with_name -in HGMD_CNVS_2021_3.bed -out HGMD_CNVS_2021_3.bed
 
 
 #Install COSMIC Cancer Mutation Census CMC  (you need a license, CMC tsv.gz file has to be downloaded manually from https://cancer.sanger.ac.uk/cmc/download)

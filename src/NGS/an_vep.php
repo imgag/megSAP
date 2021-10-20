@@ -499,11 +499,11 @@ fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_r2.1.1.vcf.
 
 
 // add clinVar annotation
-fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20210424_converted.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
+fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20211010_converted.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
 
 
 // add HGMD annotation
-$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2021_1_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
+$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2021_3_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
 if(file_exists($hgmd_file))
 {
 	fwrite($config_file, $hgmd_file."\tHGMD\tCLASS,MUT,GENE,PHEN\tID\n");
