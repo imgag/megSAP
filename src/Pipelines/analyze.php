@@ -463,7 +463,10 @@ if (in_array("vc", $steps))
 	{
 		$prs_folder = repository_basedir()."/data/misc/prs/";
 		$prs_scoring_files = glob($prs_folder."/*_".$sys['build'].".vcf");
-		$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
+		if (count($prs_scoring_files) > 0)
+		{
+			$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
+		}
 	}
 	
 	//determine ancestry
