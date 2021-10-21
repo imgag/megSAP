@@ -190,7 +190,7 @@ if (in_array("ma", $steps))
 		$bamfile_to_convert = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/${name}.bam";
 
 		// check if bam file exists
-		if (!file_exists($bamfile_to_convert)) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
+		if (!file_exists($bamfile_to_convert)) trigger_error("BAM file of GRCh37 sample is missing!", E_USER_ERROR);
 
 		trigger_error("Output folder does not exists. Using BAM or Fastq files from GRCh37 as input!", E_USER_NOTICE);	
 	}
@@ -462,7 +462,7 @@ if (in_array("vc", $steps))
 	if ($is_wgs)
 	{
 		$prs_folder = repository_basedir()."/data/misc/prs/";
-		$prs_scoring_files = glob($prs_folder."/*.vcf");
+		$prs_scoring_files = glob($prs_folder."/*_".$sys['build'].".vcf");
 		$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
 	}
 	

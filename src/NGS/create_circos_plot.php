@@ -27,7 +27,7 @@ extract($parser->parse($argv));
 $cn_offset = abs($cn_offset);
 
 // get Cicos config and genome files 
-$karyotype_file = repository_basedir() . "/data/misc/circos/karyotype.human.{$build}.txt"; //TODO Leon: centromere/telomere info missing - take from data/misc/centromer_telomer.bed ?!
+$karyotype_file = repository_basedir() . "/data/misc/circos/karyotype.human.{$build}.txt"; 
 if (!file_exists($karyotype_file)) 
 {
     trigger_error("No karyotype file for build {$build} found!", E_USER_ERROR);
