@@ -418,8 +418,6 @@ while(!feof($handle))
 			$i_af_gnomad_sas = index_of($cols, "gnomAD_SAS_AF");
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
-			$i_dbscsnv_ada = index_of($cols, "ada_score");
-			$i_dbscsnv_rf = index_of($cols, "rf_score");
 		}
 
 		//get annotation indices in CSQ_refseq field
@@ -694,7 +692,6 @@ while(!feof($handle))
 	$clinvar = array();
 	$hgmd = array();
 	$maxentscan = array();
-	$dbscsnv = array();
 	$regulatory = array();
 	
 	//variant details (up/down-stream)
@@ -746,14 +743,6 @@ while(!feof($handle))
 			{
 				$result = number_format($parts[$i_maxes_ref], 2).">".number_format($parts[$i_maxes_alt], 2);
 				$maxentscan[] = $result;
-			}
-			
-			//dbscSNV
-			if ($parts[$i_dbscsnv_ada]!="" || $parts[$i_dbscsnv_rf]!="")
-			{
-				$ada = $parts[$i_dbscsnv_ada]=="" ? "" : number_format($parts[$i_dbscsnv_ada],3);
-				$rf = $parts[$i_dbscsnv_rf]=="" ? "" : number_format($parts[$i_dbscsnv_rf],3);
-				$dbscsnv[] = "{$ada}/{$rf}";
 			}
 			
 			//pathogenicity predictions (not transcript-specific)
@@ -1076,6 +1065,14 @@ while(!feof($handle))
 		//TODO: Possible to have more than one match per variant?
 		$text = $hgmd_id." [CLASS=".$hgmd_class." MUT=".$hgmd_mut." PHEN=".strtr($hgmd_phen, "_", " ")." GENE=".$hgmd_gene."]; ";
 		$hgmd[] = trim($text);
+	}
+
+
+	//dbscSNV
+	$dbscsnv = "";
+	if (isset($info["DBSCSNV_ADA"]) && isset($info["DBSCSNV_RF"]))
+	{
+		$dbscsnv = trim($info["DBSCSNV_ADA"])."/".trim($info["DBSCSNV_RF"]);
 	}
 
 	//AFs
@@ -1409,9 +1406,6 @@ while(!feof($handle))
 
 	//MaxEntScan
 	$maxentscan = implode(",", collapse($tag, "MaxEntScan", $maxentscan, "unique"));
-		
-	//dbscSNV
-	$dbscsnv = empty($dbscsnv) ? "" : collapse($tag, "dbscSNV", $dbscsnv, "one");
 	
 	//COSMIC
 	$cosmic = implode(",", collapse($tag, "COSMIC", $cosmic, "unique"));

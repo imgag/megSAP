@@ -137,7 +137,7 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 20
     <td>96.22%</td>
   </tr>
   <tr>
-    <td>In indel-realignment (-no_abra)</td>
+    <td>No indel-realignment (-no_abra)</td>
     <td>99.94%</td>
     <td>99.57%</td>
     <td>99.98%</td>

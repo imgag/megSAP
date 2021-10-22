@@ -57,7 +57,7 @@ while(!feof($handle))
 		continue;
 	}
 	
-	//only genes with coorinates on right chromosome
+	//only genes with coordinates on right chromosome
 	list($stdout, $stderr, $exit_code) = exec2("echo '{$gene_approved}' | {$ngsbits}GenesToBed -source ensembl -mode gene -fallback | egrep '{$chr_omim}\s' | {$ngsbits}BedExtend -n 5000 | {$ngsbits}BedMerge", false);
 	if ($exit_code!=0 && trim(implode("", $stdout))=="")
 	{

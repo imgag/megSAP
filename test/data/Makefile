@@ -3,7 +3,7 @@ help:
 	
 vcf2gsvar:
 	cp an_vep_out1.vcf vcf2gsvar_in1.vcf
-	cp an_vep_out2-3.vcf vcf2gsvar_in2.vcf
+	cp an_vep_out2.vcf vcf2gsvar_in2.vcf
 	cp an_vep_out_db2.vcf vcf2gsvar_in_db2.vcf
 	cp an_vep_out_empty.vcf vcf2gsvar_in_empty.vcf
 	cp an_vep_out_dragen.vcf vcf2gsvar_in_dragen.vcf

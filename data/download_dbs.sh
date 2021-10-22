@@ -130,9 +130,9 @@ mkdir dbscSNV
 cd dbscSNV
 wget ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbscSNV1.1.zip
 unzip dbscSNV1.1.zip
-head -n1 dbscSNV1.1.chr1 > h
-cat dbscSNV1.1.chr* | grep -v ^chr | sort -k5,5 -k6,6n | cat h - | awk '$5 != "."' | bgzip -c > dbscSNV1.1_GRCh38.txt.gz
-tabix -s 5 -b 6 -e 6 -c c dbscSNV1.1_GRCh38.txt.gz
+php $src/Tools/db_converter_dbscsnv.php -c_chr 4 -c_pos 5 -in dbscSNV1.1.chr* -out dbscSNV1.1_GRCh38.vcf
+bgzip dbscSNV1.1_GRCh38.vcf
+tabix -p vcf dbscSNV1.1_GRCh38.vcf.gz
 
 #GiaB NA12878 reference data
 cd $dbs

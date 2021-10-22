@@ -406,9 +406,6 @@ $fields[] = "REVEL";
 $args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
 $fields[] = "MaxEntScan_ref";
 $fields[] = "MaxEntScan_alt";
-$args[] = "--plugin dbscSNV,".annotation_file_path("/dbs/dbscSNV/dbscSNV1.1_GRCh38.txt.gz"); //dbscSNV
-$fields[] = "ada_score";
-$fields[] = "rf_score";;
 $args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw").",PHYLOP,bigwig"; //phyloP
 $fields[] = "PHYLOP";
 
@@ -494,6 +491,9 @@ if(file_exists($hgmd_file))
 //add CADD score annotation
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=SNV\t\n");
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
+
+//add dbscSNV scores annotation
+fwrite($config_file, annotation_file_path("/dbs/dbscSNV/dbscSNV1.1_GRCh38.txt.gz")."\tDBSCSNV\tADA,RF\t\n");
 
 // check if NGSD export file is available:
 $skip_ngsd = false;
