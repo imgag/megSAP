@@ -94,8 +94,6 @@
 ##MaxEntScan_alt=MaxEntScan alternate sequence score
 ##MaxEntScan_diff=MaxEntScan score difference
 ##MaxEntScan_ref=MaxEntScan reference sequence score
-##ada_score=dbscSNV ADA score
-##rf_score=dbscSNV RF score
 ##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">
 ##INFO=<ID=DP,Number=1,Type=Integer,Description="Total read depth at the locus">
 ##INFO=<ID=DPB,Number=1,Type=Float,Description="Total read depth per bp at the locus; bases in reads overlapping / bases in haplotype">
@@ -138,7 +136,7 @@
 ##INFO=<ID=PAIRED,Number=A,Type=Float,Description="Proportion of observed alternate alleles which are supported by properly paired read fragments">
 ##INFO=<ID=PAIREDR,Number=1,Type=Float,Description="Proportion of observed reference alleles which are supported by properly paired read fragments">
 ##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
-##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|DOMAINS|SIFT|PolyPhen|Existing_variation|AF|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_EAS_AF|gnomAD_NFE_AF|gnomAD_SAS_AF|BIOTYPE|REVEL|FATHMM_MKL_C|FATHMM_MKL_NC|MaxEntScan_ref|MaxEntScan_alt|ada_score|rf_score|REPEATMASKER|PHYLOP|OMIM">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|DOMAINS|SIFT|PolyPhen|Existing_variation|AF|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_EAS_AF|gnomAD_NFE_AF|gnomAD_SAS_AF|BIOTYPE|REVEL|FATHMM_MKL_C|FATHMM_MKL_NC|MaxEntScan_ref|MaxEntScan_alt|REPEATMASKER|PHYLOP|OMIM">
 ##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/RepeatMasker.bed.gz (overlap)">
 ##INFO=<ID=PHYLOP,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/hg19.100way.phyloP100way.bw (overlap)">
 ##INFO=<ID=OMIM,Number=.,Type=String,Description="/tmp/local_ngs_data//ensembl-vep-dbs/omim.bed.gz (overlap)">
@@ -155,6 +153,8 @@
 ##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="ID column (from file HGMD_PRO_2021_3_fixed.vcf.gz)">
 ##INFO=<ID=CADD_SNV,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_SNVs_1.6.vcf.gz)">
 ##INFO=<ID=CADD_INDEL,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_InDels_1.6.vcf.gz)">
+##INFO=<ID=DBSCSNV_ADA,Number=1,Type=Float,Description="dbscSNV ADA score. (from file dbscSNV1.1.vcf.gz)">
+##INFO=<ID=DBSCSNV_RF,Number=1,Type=Float,Description="dbscSNV RF score. (from file dbscSNV1.1.vcf.gz)">
 ##INFO=<ID=NGSD_COUNTS,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_HAF,Number=0,Type=Flag,Description="Indicates a allele frequency above a threshold of 0.05. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_CLAS,Number=1,Type=String,Description="Classification from the NGSD. (from file NGSD_germline.vcf.gz)">

@@ -422,8 +422,6 @@ while(!feof($handle))
 			$i_omim = index_of($cols, "OMIM", false);
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
-			$i_dbscsnv_ada = index_of($cols, "ada_score");
-			$i_dbscsnv_rf = index_of($cols, "rf_score");
 		}
 
 		//get annotation indices in CSQ_refseq field
@@ -701,7 +699,6 @@ while(!feof($handle))
 	$omim = array();
 	$hgmd = array();
 	$maxentscan = array();
-	$dbscsnv = array();
 	$regulatory = array();
 	
 	//variant details (up/down-stream)
@@ -764,14 +761,6 @@ while(!feof($handle))
 			{
 				$result = number_format($parts[$i_maxes_ref], 2).">".number_format($parts[$i_maxes_alt], 2);
 				$maxentscan[] = $result;
-			}
-			
-			//dbscSNV
-			if ($parts[$i_dbscsnv_ada]!="" || $parts[$i_dbscsnv_rf]!="")
-			{
-				$ada = $parts[$i_dbscsnv_ada]=="" ? "" : number_format($parts[$i_dbscsnv_ada],3);
-				$rf = $parts[$i_dbscsnv_rf]=="" ? "" : number_format($parts[$i_dbscsnv_rf],3);
-				$dbscsnv[] = "{$ada}/{$rf}";
 			}
 			
 			//pathogenicity predictions (not transcript-specific)
@@ -1097,6 +1086,14 @@ while(!feof($handle))
 		$hgmd[] = trim($text);
 	}
 
+
+	//dbscSNV
+	$dbscsnv = "";
+	if (isset($info["DBSCSNV_ADA"]) && isset($info["DBSCSNV_RF"]))
+	{
+		$dbscsnv = trim($info["DBSCSNV_ADA"])."/".trim($info["DBSCSNV_RF"]);
+	}
+
 	//AFs
 	$dbsnp = implode(",", collapse("dbSNP", $dbsnp, "unique"));	
 	$kg = collapse("1000g", $af_kg, "one", 4);
@@ -1420,9 +1417,6 @@ while(!feof($handle))
 
 	//MaxEntScan
 	$maxentscan = implode(",", collapse("MaxEntScan", $maxentscan, "unique"));
-		
-	//dbscSNV
-	$dbscsnv = empty($dbscsnv) ? "" : collapse("dbscSNV", $dbscsnv, "one");
 	
 	//COSMIC
 	$cosmic = implode(",", collapse("COSMIC", $cosmic, "unique"));

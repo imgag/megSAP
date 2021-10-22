@@ -1,3 +1,4 @@
+##FILTER=low_conf_region=Variant marked as 'low_conf_region'.
 ##DESCRIPTION=genotype=Genotype of variant in sample.
 ##DESCRIPTION=filter=Annotations for filtering and ranking variants.
 ##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP)
