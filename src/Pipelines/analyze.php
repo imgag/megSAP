@@ -179,8 +179,8 @@ if (in_array("ma", $steps))
 	// BAM file path to convert to FastQ
 	$bamfile_to_convert = $bamfile;
 
-	// fallback for remapping GRCh37 samples to GRCh38
-	if (!$output_folder_exists && ($sys['build'] == "GRCh38"))
+	//fallback for remapping GRCh37 samples to GRCh38 - use BAM to create FASTQs
+	if (!$output_folder_exists && $sys['build']=="GRCh38")
 	{
 		if (!db_is_enabled("NGSD")) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
 		$db = DB::getInstance("NGSD", false);
@@ -203,20 +203,25 @@ if (in_array("ma", $steps))
 	//find FastQ input files
 	$files1 = glob($in_for);
 	$files2 = glob($in_rev);
-	
-	
-	//try ro resolve fastq from GRCh37 if thex do exist (e.g. for somatic samples)
-	$in_for_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R1_00?.fastq.gz";
-	$in_rev_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R2_00?.fastq.gz";
-	$fastq_files_grc37 = glob($in_for_grch37);
-	if(!$output_folder_exists && count($files1) == 0 && ($sys['build'] == "GRCh38") && count($fastq_files_grc37) > 0)
+		
+	//fallback for remapping GRCh37 samples to GRCh38 - copy FASTQs of GRCh37
+	if ($sys['build']=="GRCh38" && count($files1)==0)
 	{
-		exec2("cp -f $in_for_grch37 $folder");
-		exec2("cp -f $in_rev_grch37 $folder");
-		$files1 = glob($in_for);
-		$files2 = glob($in_rev);
+		if (!db_is_enabled("NGSD")) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
+		$db = DB::getInstance("NGSD", false);
+		$info = get_processed_sample_info($db, $name, false);
+		
+		$in_for_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R1_00?.fastq.gz";
+		$in_rev_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R2_00?.fastq.gz";
+		$fastq_files_grc37 = glob($in_for_grch37);
+		if(count($fastq_files_grc37)>0)
+		{
+			exec2("cp -f $in_for_grch37 $folder");
+			exec2("cp -f $in_rev_grch37 $folder");
+			$files1 = glob($in_for);
+			$files2 = glob($in_rev);
+		}
 	}
-	
 	
 	$files_index = glob($in_index);
 	if (count($files1)!=count($files2))
@@ -674,10 +679,10 @@ if (in_array("cn", $steps))
 		}
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnvfile}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-04.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-10.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
 
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2021_1.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2021_3.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);

@@ -1072,7 +1072,13 @@ while(!feof($handle))
 	$dbscsnv = "";
 	if (isset($info["DBSCSNV_ADA"]) && isset($info["DBSCSNV_RF"]))
 	{
-		$dbscsnv = trim($info["DBSCSNV_ADA"])."/".trim($info["DBSCSNV_RF"]);
+		$ada = trim($info["DBSCSNV_ADA"]);
+		if ($ada==".") $ada="";
+		if (contains($ada, '&')) $ada = max(explode('&', $ada));
+		$rf = trim($info["DBSCSNV_RF"]);
+		if ($rf==".") $rf="";
+		if (contains($rf, '&')) $rf = max(explode('&', $rf));
+		$dbscsnv = $ada."/".$rf;
 	}
 
 	//AFs

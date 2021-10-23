@@ -64,7 +64,7 @@ gene_exons:
 
 patho:
 	zcat /mnt/share/data/dbs/NGSD/NGSD_germline.vcf.gz | egrep "^#|CLAS=4|CLAS=5" | grep -v chrY | grep -v chrMT > NGSD_patho.vcf
-	zcat /mnt/share/data/dbs/ClinVar/clinvar_20210424_converted.vcf.gz | egrep "^#|pathogenic" | grep -v conflicting_interpretations_of_pathogenicity | grep -v chrY | grep -v chrMT  > ClinVar_patho.vcf
+	zcat /mnt/share/data/dbs/ClinVar/clinvar_20211010_converted.vcf.gz | egrep "^#|pathogenic" | grep -v conflicting_interpretations_of_pathogenicity | grep -v chrY | grep -v chrMT  > ClinVar_patho.vcf
 	php ngsd_variants.php causal > NGSD_causal.vcf
 	php ngsd_variants.php artefact > NGSD_artefact.vcf
 

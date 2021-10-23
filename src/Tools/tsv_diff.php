@@ -21,8 +21,11 @@ if (is_dir($in2) && file_exists($in2."/".$in1))
 	$in2 = $in2."/".$in1;
 }
 
+$h_o = fopen($out, 'w');
+
 $c_match = 0;
 $c_mismatch = 0;
+$c_changes_by_col = [];
 $file1 = file($in1);
 $file2 = file($in2);
 for($i=0; $i<count($file1); ++$i)
@@ -39,14 +42,15 @@ for($i=0; $i<count($file1); ++$i)
 	//comment > print
 	if (starts_with($line1, "##") && starts_with($line2, "##"))
 	{
-		print $line1;
+		fputs($h_o, $line1);
 		continue;
 	}
 	
 	//header > print
 	if (starts_with($line1, "#") && starts_with($line2, "#"))
 	{
-		print $line1;
+		fputs($h_o, $line1);
+		$headers = explode("\t", nl_trim(substr($line1, 1)));
 		continue;
 	}
 
@@ -70,8 +74,8 @@ for($i=0; $i<count($file1); ++$i)
 				trigger_error("Column with index {$j} (keep_cols) is different in files (in line $i)!\n", E_USER_ERROR); 
 			}
 			
-			if ($j!=0) print "\t";
-			print $parts1[$j];
+			if ($j!=0) fputs($h_o, "\t");
+			fputs($h_o, $parts1[$j]);
 		}
 		
 		for ($j=$keep_cols; $j<count($parts1); ++$j)
@@ -82,10 +86,11 @@ for($i=0; $i<count($file1); ++$i)
 			if ($entry1!=$entry2)
 			{
 				$res = trim($parts1[$j])." >> ".trim($parts2[$j]); 
+				@$c_changes_by_col[$j] += 1;
 			}
-			print "\t$res";
+			fputs($h_o, "\t$res");
 		}
-		print "\n";
+		fputs($h_o, "\n");
 		++$c_mismatch;
 	}
 	else
@@ -93,7 +98,11 @@ for($i=0; $i<count($file1); ++$i)
 		++$c_match;
 	}
 }
-print "##matching lines: $c_match\n";
-print "##mismatching lines: $c_mismatch\n";
+print "matching lines: $c_match\n";
+print "mismatching lines: $c_mismatch\n";
+foreach($c_changes_by_col as $index => $count)
+{
+	print "changes in column '".$headers[$index]."': {$count}\n";
+}
 
 ?>
