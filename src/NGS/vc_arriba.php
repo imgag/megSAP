@@ -68,7 +68,7 @@ if (isset($out_pdf)) {
         "--cytobands={$arriba_ref}/cytobands_{$arriba_build}_v2.1.0.tsv",
         "--proteinDomains={$arriba_ref}/protein_domains_{$arriba_build}_v2.1.0.gff3"
     ];
-    $parser->exec(get_path("arriba") . "/draw_fusions.R", implode(" ", $plot_args));
+    $parser->exec(get_path("arriba") . "/conda_env/bin/Rscript " . get_path("arriba") . "/draw_fusions.R", implode(" ", $plot_args));
 }
 
 
