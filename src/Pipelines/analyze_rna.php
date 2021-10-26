@@ -419,6 +419,23 @@ if (in_array("fu",$steps) && in_array("manta",$fusion_caller))
 	$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in {$fusions_manta_bedpe} -out {$fusions_manta_bedpe} -add_simple_gene_names", true);
 }
 
+$fusions_arriba_tsv = "{$prefix}_fusions_arriba.tsv";
+$fusions_arriba_bam = "{$prefix}_fusions_arriba.bam";
+$fusions_arriba_discarded_tsv = "{$prefix}_fusions_arriba.discarded.tsv";
+$fusions_arriba_pdf = "{$prefix}_fusions_arriba.pdf";
+if (in_array("fu",$steps) && in_array("arriba",$fusion_caller))
+{
+	$arriba_args = [
+		"-bam", $final_bam,
+		"-out_fusions", $fusions_arriba_tsv,
+		"-out_discarded", $fusions_arriba_discarded_tsv,
+		"-out_bam", $fusions_arriba_bam,
+		"-out_pdf", $fusions_arriba_pdf,
+		"-build", $build
+	];
+	$parser->execTool("NGS/vc_arriba.php", implode(" ", $arriba_args));
+}
+
 //import to database
 if (in_array("db", $steps))
 {
