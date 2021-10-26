@@ -68,7 +68,7 @@ $cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export.vcf.gz";
 if(file_exists($cosmic_cmc) && $somatic)
 {
 	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
-	$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in $annfile -annotation_file $cosmic_cmc -info_ids COSMIC_CMC -out $temp_annfile" );
+	$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in {$annfile} -annotation_file {$cosmic_cmc} -info_ids COSMIC_CMC -out {$temp_annfile} -threads {$threads}");
 	$parser->moveFile($temp_annfile, $annfile);
 }
 
