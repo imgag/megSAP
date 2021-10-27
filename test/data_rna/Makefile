@@ -33,5 +33,4 @@ analyze_pe:
 
 diff_pe:
 	diff analyze_rna_out_pe.tsv paired_end/PE_counts.tsv
-	diff analyze_rna_out_pe_fusion.tsv paired_end/PE_var_fusions.tsv
-	diff --ignore-matching-lines="^##" analyze_rna_out_pe_fusion_manta.bedpe paired_end/PE_var_fusions_manta.bedpe
+	diff analyze_rna_out_pe_fusion.tsv paired_end/PE_fusions_arriba.tsv
