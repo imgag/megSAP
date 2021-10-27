@@ -85,7 +85,7 @@ if (isset($out_bam)) {
     $parser->exec(get_path("samtools"), "view -H {$bam} > {$bam_header}");
     $parser->execPipeline([
         [get_path("samtools"), "view -O SAM {$bam}"],
-        ["grep", "-F -f {$read_ids} > {$bam_records}"]
+        ["grep", "-F -f {$read_ids} > {$bam_records} || true"]
     ], "filter BAM");
     $parser->execPipeline([
         ["cat", "{$bam_header} ${bam_records}"],
