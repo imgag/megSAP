@@ -11,7 +11,7 @@ To map FastQ files megSAP can also use `bwa-mem2`. It is faster than the origina
 ## update from older megSAP version
 `bwa-mem2` requires additional index files for reference genome. If you update from an older megSAP version these index files have to be created either by (re-)run the reference download script:
 	
-	> data/download_GRCh37.sh
+	> data/download_GRCh38.sh
 
 Or run the genome index script:
 

@@ -91,7 +91,7 @@ $roi = $tmp;
 
 //contruct off-target region
 $not_roi = $parser->tempFile(".bed");
-$parser->exec(get_path("ngs-bits")."BedSubtract", "-in {$data_folder}/enrichment/WGS_hg19.bed -in2 {$roi} -out {$not_roi}", true);
+$parser->exec(get_path("ngs-bits")."BedSubtract", "-in {$data_folder}/enrichment/WGS_hg38.bed -in2 {$roi} -out {$not_roi}", true);
 
 //determin shortest MIP extension arm length
 $arm_len = 999;

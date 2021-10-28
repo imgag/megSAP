@@ -1,8 +1,8 @@
 
-all: clean link map vc cn sv diff ra
+all: clean link map vc cn sv diff reanno
 
 clean:
-	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_repeats_expansionhunter.json *_repeats_expansionhunter.vcf *_rohs.tsv
+	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_repeats_expansionhunter.json *_repeats_expansionhunter.vcf *_rohs.tsv *_ancestry.tsv
 
 link:
 	php ../link_test_data.php NA12878_17_GTAGAGGATATCCTCT_L001_R1_001.fastq.gz
@@ -37,7 +37,7 @@ diff:
 	diff NA12878_17_repeats_expansionhunter.vcf NA12878_17_repeats_expansionhunter.vcf.out  --ignore-matching-lines="^##"
 	test -f NA12878_17_circos.png
 
-ra:
+reanno:
 	cp NA12878_17.GSvar NA12878_17_old.GSvar
 	cp NA12878_17_cnvs_clincnv.tsv NA12878_17_old_cnvs_clincnv.tsv
 	cp NA12878_17_manta_var_structural.bedpe NA12878_17_old_manta_var_structural.bedpe
