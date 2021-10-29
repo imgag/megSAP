@@ -24,7 +24,7 @@ $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 o
 $parser->addFlag("no_splicing", "Disable spliced read alignment.");
 $parser->addFlag("abra", "Enable indel realignment with ABRA.");
 $parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
-$parser->addString("fusion_caller", "Fusion callers to run, separated by comma.", true, "star-fusion,manta");
+$parser->addString("fusion_caller", "Fusion callers to run, separated by comma.", true, "arriba");
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
@@ -417,6 +417,23 @@ if (in_array("fu",$steps) && in_array("manta",$fusion_caller))
 	$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
 	$parser->exec(get_path("ngs-bits") . "VcfToBedpe", "-in {$fusions_manta_vcf} -out {$fusions_manta_bedpe}", true);
 	$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in {$fusions_manta_bedpe} -out {$fusions_manta_bedpe} -add_simple_gene_names", true);
+}
+
+$fusions_arriba_tsv = "{$prefix}_fusions_arriba.tsv";
+$fusions_arriba_bam = "{$prefix}_fusions_arriba.bam";
+$fusions_arriba_discarded_tsv = "{$prefix}_fusions_arriba.discarded.tsv";
+$fusions_arriba_pdf = "{$prefix}_fusions_arriba.pdf";
+if (in_array("fu",$steps) && in_array("arriba",$fusion_caller))
+{
+	$arriba_args = [
+		"-bam", $final_bam,
+		"-out_fusions", $fusions_arriba_tsv,
+		"-out_discarded", $fusions_arriba_discarded_tsv,
+		"-out_bam", $fusions_arriba_bam,
+		"-out_pdf", $fusions_arriba_pdf,
+		"-build", $build
+	];
+	$parser->execTool("NGS/vc_arriba.php", implode(" ", $arriba_args));
 }
 
 //import to database
