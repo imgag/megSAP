@@ -14,7 +14,7 @@ $parser->addInfile("roi", "Target region to evaluate (BED format).", false);
 $parser->addOutfile("stats", "Append statistics to this file.", false);
 //optional
 $parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf' file base name is used.", true);
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("ref_sample", "Reference sample to use for validation.", true, "NA12878");
 extract($parser->parse($argv));
 

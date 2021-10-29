@@ -21,7 +21,7 @@ list($c, $s, $e) = preg_split("/[\s:-]+/", $reg);
 $s -= 1; //subtract one from start to create correct BED format
 $pipeline = [
 	["echo", "'$c\t$s\t$e'"],
-	[get_path("ngs-bits")."BedIntersect", "-in2 ".get_path("data_folder")."/dbs/UCSC/exons.bed -mode in2" ]
+	[get_path("ngs-bits")."BedIntersect", "-in2 ".get_path("GRCh37_data_folder")."/dbs/UCSC/exons.bed -mode in2" ]
 ];
 list($exons) = $parser->execPipeline($pipeline, "extrac matching exons");
 $hits = array();

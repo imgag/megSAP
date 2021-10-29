@@ -1250,7 +1250,7 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 //Returns if special variant calling for mitochondrial DNA should be performed
 function enable_special_mito_vc($sys)
 {
-	//only for GRCh37
+	//only for GRCh38
 	if ($sys['build']!="GRCh38") return false;
 	
 	//only exome/genome
@@ -1478,15 +1478,14 @@ function get_related_processed_samples(&$db, $ps_name, $relation, $systype="", $
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
 
 	$res = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", ["name" => $sample_name]);
-	if (count($res) != 1)
+	if (count($res)!=1)
 	{
-		trigger_error("Could not find sample '{$sample_name}'!", E_USER_ERROR);
+		return [];
 	}
 	$sample_id = $res[0]['id'];
 
 	//related samples
-	$res = $db->executeQuery("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation=:rel AND (sample1_id=:sid OR sample2_id=:sid)",
-								["rel" => $relation, "sid" => $sample_id]);
+	$res = $db->executeQuery("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation=:rel AND (sample1_id=:sid OR sample2_id=:sid)", ["rel" => $relation, "sid" => $sample_id]);
 	$related_samples_ids = array_diff(array_merge(array_column($res, "sample1_id"), array_column($res, "sample2_id")), [$sample_id]);
 	
 	

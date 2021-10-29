@@ -10,7 +10,7 @@ The processing system INI file described the wet-lab processing of the sample (a
 * `type` - Processing system type: `WGS`, `WES`, `Panel`, `Panel Haloplex`, `Panel MIPs` or `RNA`.
 * `shotgun` - `true` for randomly-fragmented reads,  `false` for amplicon-based reads.
 * `umi_type` - Unique molecular identifier type: `n/a`, `HaloPlex HS`, `SureSelect HS`, `ThruPLEX`, `Safe-SeqS` or `MIPs`.
-* `build` - Currently only `GRCh37` is supported.
+* `build` - Only `GRCh38` is supported.
 
 Notes for the [RNA analysis pipeline](rna_single_sample.md):
 

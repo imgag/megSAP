@@ -7,7 +7,7 @@ To calculate the PRS score of a WGS sample the pipeline needs specialized VCFs i
 ##fileDate=20200723
 ##pgs_id=PGS000004
 ##trait=Breast Cancer
-##build=GRCh37
+##build=GRCh38
 ##n_var=313
 ##pgp_id=PGP000002
 ##citation=Mavaddat N et al. Am J Hum Genet (2018). doi:10.1016/j.ajhg.2018.11.002

@@ -85,9 +85,9 @@ $dbs = array();
 $db_list = explode(",", $db_list);
 foreach($db_list as $db)
 {
-	if ($db=="dbSNP") $dbs[$db] = get_path("data_folder")."/dbs/1000G/1000g_v5b.vcf.gz";
-	else if ($db=="ESP6500") $dbs[$db] = get_path("data_folder")."/dbs/ESP6500/ESP6500SI_EA_SSA137.vcf.gz";
-	else if ($db=="ExAC") $dbs[$db] = get_path("data_folder")."/dbs/ExAC/ExAC_r0.3.1.vcf.gz";
+	if ($db=="dbSNP") $dbs[$db] = get_path("GRCh37_data_folder")."/dbs/1000G/1000g_v5b.vcf.gz";
+	else if ($db=="ESP6500") $dbs[$db] = get_path("GRCh37_data_folder")."/dbs/ESP6500/ESP6500SI_EA_SSA137.vcf.gz";
+	else if ($db=="ExAC") $dbs[$db] = get_path("GRCh37_data_folder")."/dbs/ExAC/ExAC_r0.3.1.vcf.gz";
 	else trigger_error("Unknown database '$db'!", E_USER_ERROR);
 }
 //print DB versions

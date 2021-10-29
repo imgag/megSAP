@@ -155,7 +155,7 @@ $temp_fasta=$parser->tempFile("","fasta");
 convert_region_list_to_bed($in,$temp_bed,$max_len*2);
 
 //convert bed file (location) to fasta (sequences)
-$parser->exec(get_path("ngs-bits")."BedToFasta", "-in ".$temp_bed." -out ".$temp_fasta,true);
+$parser->exec(get_path("ngs-bits")."BedToFasta", "-in ".$temp_bed." -out ".$temp_fasta." -ref ".get_path("GRCh37_data_folder")."/genomes/GRCh37.fa", true);
 
 //run primer3 and convert output
 $region_lines=file($in);

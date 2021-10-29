@@ -732,7 +732,7 @@ if (in_array("cn", $steps))
 	if(!$skip_cn)
 	{
 		//copy-number polymorphisms
-		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/af_genomes_imgag_GRCh38.bed -overlap -out {$cnv_multi}", true);
+		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnv_multi}", true);
 		
 		//knowns pathogenic CNVs
 		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$cnv_multi}", true);

@@ -151,8 +151,4 @@ if (!$somatic) //germline only
 	}
 }
 
-
-
-
-
 ?>

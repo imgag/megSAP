@@ -235,7 +235,7 @@ foreach ($ab1 as $ab1_file)
 	//blast FASTA
 	$blast_result_file=$parser->tempfile("blast_results.txt");
 	$index++;
-	$parser->exec("blastn", "-task blastn-short -db ".get_path("data_folder")."/dbs/blast/hg19 -query ".$fasta_from_ab1_file." -outfmt 7 -out ".$blast_result_file." -num_threads 8", true);
+	$parser->exec("blastn", "-task blastn-short -db ".get_path("GRCh37_data_folder")."/dbs/blast/hg19 -query ".$fasta_from_ab1_file." -outfmt 7 -out ".$blast_result_file." -num_threads 8", true);
 
 	//extract blast results, cut primer regions if available
 	if ($primer_positions) 

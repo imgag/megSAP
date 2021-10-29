@@ -1,5 +1,5 @@
 ;This configuration file sets paths to tools, databases, etc.
-;[path] is replaced by the base directory path of the SVN repository, i.e. it allows using relative paths.
+;[path] is replaced by the base directory path of the GIT repository, i.e. it allows using relative paths.
 ;
 ;If you use the download shell scripts in data/ to install tools, genomes and databases,
 ;only adapting the NGSD database credentials is necessary.
@@ -65,3 +65,8 @@ queues_default = ""
 queues_research = ""
 queues_high_priority = ""
 queues_high_mem = ""
+
+[GRCh37]
+GRCh37_project_folder = ""
+GRCh37_data_folder = ""
+

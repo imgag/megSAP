@@ -37,7 +37,7 @@ $reference = "/mnt/share/data/genomes/${build}_cDNA.fa";
 $primer3_config = get_path("primer3")."primer3_config/";
 
 //ensgene table (cDNA, CDS, exons)
-$fp_ensgene = get_path("data_folder")."/dbs/Ensembl/ensGene_GRCh37.tsv.gz";
+$fp_ensgene = get_path("GRCh37_data_folder")."/dbs/Ensembl/ensGene_GRCh37.tsv.gz";
 $ensgene_tsv = Matrix::fromTSV($fp_ensgene);
 $ensgene = array_column($ensgene_tsv->getData(), NULL, 1);
 
@@ -337,7 +337,7 @@ foreach (file($star_out) as $line)
 	$warnings = [];
 
 	//SNPs
-	$db_file = get_path("data_folder") . "/dbs/1000G/1000g_v5b.vcf.gz";
+	$db_file = get_path("GRCh37_data_folder") . "/dbs/1000G/1000g_v5b.vcf.gz";
 	$region_snp = str_replace("chr", "", implode(" ", $regions));
 	list($snps, ) = $parser->exec("tabix", "$db_file $region_snp", false);
 	if (count($snps) > 0)

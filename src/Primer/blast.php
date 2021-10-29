@@ -17,7 +17,7 @@ extract($parser->parse($argv));
 list($output) = $parser->exec("blastn", "-version", false);
 print "BLAST info: ".$output[0];
 
-$parser->exec("blastn", "-task blastn-short -db ".get_path("data_folder")."/dbs/blast/hg19 -query $in -outfmt 7 -out $out -num_threads 8", true);
+$parser->exec("blastn", "-task blastn-short -db ".get_path("GRCh37_data_folder")."/dbs/blast/hg19 -query $in -outfmt 7 -out $out -num_threads 8", true);
 
 
 ?>

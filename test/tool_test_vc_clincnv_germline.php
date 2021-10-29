@@ -33,7 +33,7 @@ $bed_in = $tmp_folder."/target_region.bed";
 $cov_folder = $tmp_folder."cov-tumor";
 $bed = $tmp_folder."/target_region_annotated.bed";
 $pipeline = [
-        ["{$ngsbits}BedAnnotateGC", "-in {$bed_in} -ref /mnt/share/data/genomes/GRCh37.fa"],
+        ["{$ngsbits}BedAnnotateGC", "-in {$bed_in} -ref ".get_path("data_folder")."/genomes/GRCh38.fa"],
         ["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
     ];
 //off target
