@@ -227,7 +227,15 @@ function add_missing_contigs($vcf)
 				}
 				else
 				{
-					trigger_error("No length information for chromosome ".$chr." found in line(".$line.") for reference genome(".$build.")", E_USER_WARNING);
+					// try to parse chr header in GRCH38 format
+					foreach ($parts as $part) 
+					{
+						if(starts_with($part, "LN:"))
+						{
+							$len = explode(":", $part)[1];
+						}
+					}
+					if (!isset($len)) trigger_error("No length information for chromosome ".$chr." found in line(".$line.") for reference genome(".$build.")", E_USER_WARNING);
 				}
 
 				//add information to contig array
