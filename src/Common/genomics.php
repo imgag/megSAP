@@ -1739,8 +1739,8 @@ function cytoBands($chr, $start, $end)
 	return $out;
 }
 
-//checks if any contig line is given, if not adds all contig lines from reference genome (only GRCh37 supported)
-function addMissingContigsToVcf($build, $vcf)
+//checks if any contig line is given, if not adds all contig lines from reference genome (using fasta index file)
+function add_missing_contigs_to_vcf($build, $vcf)
 {
 	$file = fopen($vcf, 'c+');
 	$new_file_lines = array();
@@ -1789,44 +1789,26 @@ function addMissingContigsToVcf($build, $vcf)
 	}
 	if(!$contains_contig)
 	{
-		if ($build!="GRCh37")
+		$fai_file_path = genome_fasta($build).".fai";
+		if (!file_exists($fai_file_path))
 		{
-			trigger_error("Unknown genome build ".$build." cannot be annotated!", E_USER_ERROR);
+			trigger_error("Fasta index file \"${fai_file_path}\" is missing!", E_USER_ERROR);
 		}
-		$build_path = genome_fasta($build);
-		list($chr_lines) = exec2("grep chr {$build_path}");
-		foreach($chr_lines as $line)
+		$fai_file_content = file($fai_file_path, FILE_IGNORE_NEW_LINES);
+		foreach ($fai_file_content as $line) 
 		{
-			$chr = "";
-			$len = "";
-			$parts = explode(" ", $line);
-			if(sizeof($parts) >= 3)
-			{
-				//get chromosome
-				$chr = $parts[0];
-				$chr = ltrim($chr, '>');
+			// skip empty lines
+			if (trim($line) == "") continue;
 
-				//get length
-				preg_match('/.*:(\d+):.*$/', $parts[2], $matches);
-				if(sizeof($matches)>=2)
-				{
-					$len = $matches[1];
-				}
-				else
-				{
-					trigger_error("No length information for chromosome ".$chr." found in line(".$line.") for reference genome(".$build.")", E_USER_WARNING);
-				}
-
-				//add information to contig array
-				if($chr && $len)
-				{
-					$new_contigs[] = "##contig=<ID={$chr}, length={$len}>";
-				}
-			}
-			else
+			// split table
+			$parts = explode("\t", $line);
+			if (count($parts) != 5)
 			{
-				trigger_error("Contig information could not be parsed for line(".$line.") from reference genome(".$build.").", E_USER_WARNING);
+				trigger_error("Error parsing Fasta index file!", E_USER_ERROR);
 			}
+			$chr = trim($parts[0]);
+			$len = intval($parts[1]);
+			$new_contigs[] = "##contig=<ID={$chr}, length={$len}>";
 		}
 
 		if(empty($new_contigs))
