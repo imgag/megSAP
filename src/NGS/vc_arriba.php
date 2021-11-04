@@ -59,14 +59,18 @@ $parser->exec(get_path("arriba") . "/arriba", implode(" ", $args));
 
 
 //generate plot in PDF format
+//limit to top ~10 fusions
+$top_fusions = $parser->tempFile("_top_fusions.txt");
+$parser->exec("head", "-n 11 {$out_fusions} > {$top_fusions}");
 if (isset($out_pdf)) {
     $plot_args = [
         "--annotation={$gtf}",
-        "--fusions={$out_fusions}",
+        "--fusions={$top_fusions}",
         "--output={$out_pdf}",
         "--alignments={$bam}",
         "--cytobands={$arriba_ref}/cytobands_{$arriba_build}_v2.1.0.tsv",
-        "--proteinDomains={$arriba_ref}/protein_domains_{$arriba_build}_v2.1.0.gff3"
+        "--proteinDomains={$arriba_ref}/protein_domains_{$arriba_build}_v2.1.0.gff3",
+        "--minConfidenceForCircosPlot=none"
     ];
     $parser->exec(get_path("arriba") . "/conda_env/bin/Rscript " . get_path("arriba") . "/draw_fusions.R", implode(" ", $plot_args));
 }
