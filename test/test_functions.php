@@ -349,8 +349,8 @@ start_test("add_missing_contigs_to_vcf");
 $input = data_folder()."/add_missing_contigs_to_vcf_in.vcf";
 $out_grch37_ref = data_folder()."/add_missing_contigs_to_vcf_out_grch37.vcf";
 $out_grch38_ref = data_folder()."/add_missing_contigs_to_vcf_out_grch38.vcf";
-$out_grch37 = "/tmp/add_missing_contigs_to_vcf_out_grch37.vcf";
-$out_grch38 = "/tmp/add_missing_contigs_to_vcf_out_grch38.vcf";
+$out_grch37 = output_folder()."/add_missing_contigs_to_vcf_out_grch37.vcf";
+$out_grch38 = output_folder()."/add_missing_contigs_to_vcf_out_grch38.vcf";
 
 //copy files
 copy($input, $out_grch37);

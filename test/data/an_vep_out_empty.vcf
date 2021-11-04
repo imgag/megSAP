@@ -25,7 +25,8 @@
 ##contig=<ID=chr21, length=48129895>
 ##contig=<ID=chr22, length=51304566>
 ##contig=<ID=chrX, length=155270560>
-##contig=<ID=chrY, length=59034049>
+##contig=<ID=chrY, length=59373566>
+##contig=<ID=chrMT, length=16569>
 ##contig=<ID=chrGL000207.1, length=4262>
 ##contig=<ID=chrGL000226.1, length=15008>
 ##contig=<ID=chrGL000229.1, length=19913>
@@ -85,6 +86,8 @@
 ##contig=<ID=chrGL000194.1, length=191469>
 ##contig=<ID=chrGL000225.1, length=211173>
 ##contig=<ID=chrGL000192.1, length=547496>
+##contig=<ID=chrNC_007605, length=171823>
+##contig=<ID=chrhs37d5, length=35477943>
 ##phasing=none
 ##commandline="/mnt/share/opt/freebayes20150204/bin/freebayes -b ./NA12878.bam -f /mnt/share/data/dbs//genomes/hg19.fa -t /tmp/vc_freebayes_U8iqnT.bed --min-alternate-fraction 0.15 --min-base-quality 30 --min-alternate-qsum 90"
 ##filter="QUAL > 5 & AO > 2"

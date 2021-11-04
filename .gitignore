@@ -100,6 +100,7 @@
 
 /test/data_out/tool_test_*
 /test/data_out/test_toolbase
+/test/data_out/test_functions
 
 /test/data_emed/Sample_GS160540_01/
 /test/data_emed/Sample_GS160539_01/
