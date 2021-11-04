@@ -76,20 +76,23 @@ if (isset($out_pdf)) {
 if (isset($out_bam)) {
     $fusions = Matrix::fromTSV($out_fusions);
     $reads_rows = $fusions->getCol($fusions->getColumnIndex("read_identifiers"));
-    $reads = explode(",", implode(",", $reads_rows));
-    $read_ids = $parser->tempFile("_readids.txt");
-    file_put_contents($read_ids, implode("\n", $reads));
-    $bam_header = $parser->tempFile("_header.txt");
-    $bam_records = $parser->tempFile("_records.sam");
+    $reads = explode(",", implode(",", $reads_rows), -1);
+    if (count($reads) !== 0)
+    {
+        $read_ids = $parser->tempFile("_readids.txt");
+        file_put_contents($read_ids, implode("\n", $reads));
+        $bam_header = $parser->tempFile("_header.txt");
+        $bam_records = $parser->tempFile("_records.sam");
 
-    $parser->exec(get_path("samtools"), "view -H {$bam} > {$bam_header}");
-    $parser->execPipeline([
-        [get_path("samtools"), "view -O SAM {$bam}"],
-        ["grep", "-F -f {$read_ids} > {$bam_records} || true"]
-    ], "filter BAM");
-    $parser->execPipeline([
-        ["cat", "{$bam_header} ${bam_records}"],
-        [get_path("samtools"), "view -o {$out_bam}"]
-    ], "write BAM");
-    $parser->indexBam($out_bam, 1);
+        $parser->exec(get_path("samtools"), "view -H {$bam} > {$bam_header}");
+        $parser->execPipeline([
+            [get_path("samtools"), "view -O SAM {$bam}"],
+            ["grep", "-F -f {$read_ids} > {$bam_records}"]
+        ], "filter BAM");
+        $parser->execPipeline([
+            ["cat", "{$bam_header} ${bam_records}"],
+            [get_path("samtools"), "view -o {$out_bam}"]
+        ], "write BAM");
+        $parser->indexBam($out_bam, 1);
+    }
 }
