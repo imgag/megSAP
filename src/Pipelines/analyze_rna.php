@@ -452,7 +452,8 @@ if (in_array("fu",$steps) && in_array("arriba",$fusion_caller))
 		"-out_discarded", $fusions_arriba_discarded_tsv,
 		"-out_bam", $fusions_arriba_bam,
 		"-out_pdf", $fusions_arriba_pdf,
-		"-build", $build
+		"-build", $build,
+		"--log", $parser->getLogFile()
 	];
 	$parser->execTool("NGS/vc_arriba.php", implode(" ", $arriba_args));
 }
