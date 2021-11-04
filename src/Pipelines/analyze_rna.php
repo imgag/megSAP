@@ -293,7 +293,7 @@ if (in_array("an", $steps))
 			//somatic: enable somatic mode, and use RNA reference tissue
 			if ($ps_info['is_tumor'])
 			{
-				$args += ["-somatic"];
+				$args[] = "-somatic";
 				
 				
 				//somatic case: find HPA reference tissue
@@ -312,7 +312,7 @@ SQL;
 				if (count($res) == 1)
 				{
 					$rna_ref_tissue = $res[0];
-					$args += ["-hpa_tissue '{$rna_ref_tissue}'"];
+					$args[] = "-hpa_tissue '{$rna_ref_tissue}'";
 				}
 			}
 	
