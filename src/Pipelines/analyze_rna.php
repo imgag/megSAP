@@ -342,7 +342,8 @@ if (in_array("plt", $steps))
 		$args_extra = [
 			"--genelist", $genelist,
 			"--title", "\"Gene Expression: {$shortname}\"",
-			"--plot", "{$prefix}_expr.{$shortname}.png"
+			"--plot", "{$prefix}_expr.{$shortname}.png",
+			"--reference"
 		];
 		$parser->exec("python3 ".repository_basedir()."/src/NGS/rc_plot_expr.py", implode(" ", array_merge($args, $args_extra)), true);
 	}

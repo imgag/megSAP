@@ -16,13 +16,16 @@ import matplotlib.pyplot as plt
 @click.option(
     "--annotation",
     type=click.File("r"),
-    help="Annotation table with gene IDs and gene symbols.",
+    help="Annotation table with gene IDs, gene symbols and reference expression.",
 )
 @click.option(
     "--sample", default=None, help="Sample name of highlighted sample (red cross)."
 )
 @click.option(
-    "--sample2", default=None, help="Sample name of highlighted sample (block square)."
+    "--reference/--no-reference",
+    default=False,
+    help="Show reference expression (black square).",
+    show_default=True,
 )
 @click.option(
     "--genelist",
@@ -45,13 +48,26 @@ import matplotlib.pyplot as plt
     help="Show individual data points.",
     show_default=True,
 )
-def plot(cohort, annotation, sample, sample2, genelist, log2, plot, title, jitter):
-    gene_id_names = pd.read_csv(annotation, sep="\t", index_col=0)
-    gene_id_names = gene_id_names[["gene_name"]]
+@click.option(
+    "--violin/--no-violin",
+    default=False,
+    help="Use violin plot instead boxplot.",
+    show_default=True,
+)
+def plot(
+    cohort, annotation, sample, reference, genelist, log2, plot, title, jitter, violin
+):
+    sample_expr = pd.read_csv(annotation, sep="\t", index_col=0)
+    gene_id_names = sample_expr[["gene_name"]]
 
     cohort = pd.read_csv(cohort, sep="\t", index_col=0)
 
     genes = [symbol.strip() for symbol in genelist.readlines()]
+
+    ref_expr = sample_expr[["gene_name", "hpa_tissue_tpm"]]
+    ref_expr = ref_expr[ref_expr["gene_name"].isin(genes)]
+    ref_expr = ref_expr.set_index("gene_name")
+    ref_expr = ref_expr.loc[genes]
 
     dat = cohort.merge(gene_id_names, left_index=True, right_index=True).reset_index(
         drop=True
@@ -63,14 +79,30 @@ def plot(cohort, annotation, sample, sample2, genelist, log2, plot, title, jitte
 
     if log2:
         dat_genecol = dat_genecol.apply(lambda x: np.log2(x + 1))
+        ref_expr = ref_expr.apply(lambda x: np.log2(x + 1))
         ylabel = "log2(TPM+1)"
     else:
         ylabel = "TPM"
 
     # plot boxplot
-    ax1 = dat_genecol.boxplot(grid=False, figsize=(7, 5))
-    ax1.set(title=title, ylabel=ylabel)
+
+    plt.figure(figsize=(7, 5))
+    fig, ax1 = plt.subplots()
+    if not violin:
+        dat_genecol.boxplot(grid=False, ax=ax1)
+    else:
+        ax1.violinplot(
+            dataset=dat_genecol.transpose(),
+            widths=0.8,
+            showmedians=True,
+            showextrema=False,
+        )
+        labels = dat_genecol.columns
+        ax1.set_xticks(np.arange(1, len(labels) + 1))
+        ax1.set_xticklabels(labels)
+
     ax1.set_xticklabels(ax1.get_xticklabels(), rotation=90)
+    ax1.set(title=title, ylabel=ylabel)
 
     # add highlighted sample
     if sample:
@@ -82,16 +114,16 @@ def plot(cohort, annotation, sample, sample2, genelist, log2, plot, title, jitte
                 color="red",
                 markersize=12,
             )
-    # add highlighted sample (sample2)
-    if sample2:
+    # add reference expression
+    if reference:
         for i in range(0, len(dat_genecol.columns)):
             ax1.plot(
                 i + 1,
-                dat_genecol.loc[sample2][i],
+                ref_expr.iloc[i],
                 marker="s",
                 color="black",
                 markerfacecolor="none",
-                markersize=10,
+                markersize=6,
             )
 
     # add all data points as jitter points
