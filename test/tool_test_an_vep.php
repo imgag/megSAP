@@ -62,6 +62,13 @@ remove_lines_containing($out_file1, array("##INFO=<ID=NGSD_GENE_INFO,"));
 sort_consequences($out_file1);
 check_file($out_file1, data_folder().$name."_out1.vcf", true);
 
+//gzipped input VCF
+$out_file2 = output_folder().$name."_out2.vcf";
+check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in2.vcf.gz -out $out_file2 --log ".output_folder().$name."_out2.log");
+remove_lines_containing($out_file2, array("##VEP=\"v"));
+remove_lines_containing($out_file2, array("##INFO=<ID=NGSD_GENE_INFO,"));
+check_file($out_file2, data_folder().$name."_out2.vcf", true);
+
 //empty input VCF
 $out_file_empty = output_folder().$name."_out_empty.vcf";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in_empty.vcf -out $out_file_empty --log ".output_folder().$name."_out_empty.log");
@@ -69,27 +76,13 @@ remove_lines_containing($out_file_empty, array("##VEP=\"v"));
 remove_lines_containing($out_file_empty, array("##INFO=<ID=NGSD_GENE_INFO,"));
 check_file($out_file_empty, data_folder().$name."_out_empty.vcf", true);
 
-//NA12878_38 head
-$out_file2 = output_folder().$name."_out2.vcf";
-check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in2.vcf -out $out_file2 --log ".output_folder().$name."_out2.log");
-remove_lines_containing($out_file2, array("##VEP=\"v"));
-remove_lines_containing($out_file2, array("##INFO=<ID=NGSD_GENE_INFO,"));
-check_file($out_file2, data_folder().$name."_out2.vcf", true);
-
-//NA12878_38 head zipped
+//variants to score with mmsplice (slow)
 $out_file3 = output_folder().$name."_out3.vcf";
-check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in3.vcf.gz -out $out_file3 --log ".output_folder().$name."_out3.log");
+check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in3.vcf -out $out_file3 --log ".output_folder().$name."_out3.log");
 remove_lines_containing($out_file3, array("##VEP=\"v"));
 remove_lines_containing($out_file3, array("##INFO=<ID=NGSD_GENE_INFO,"));
+sort_consequences($out_file3);
 check_file($out_file3, data_folder().$name."_out3.vcf", true);
-
-//zero variants to score with mmsplice
-$out_file4 = output_folder().$name."_out4.vcf";
-check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in4.vcf -out $out_file4 --log ".output_folder().$name."_out4.log");
-remove_lines_containing($out_file4, array("##VEP=\"v"));
-remove_lines_containing($out_file4, array("##INFO=<ID=NGSD_GENE_INFO,"));
-sort_consequences($out_file4);
-check_file($out_file4, data_folder().$name."_out4.vcf", true);
 
 //DRAGEN
 $out_file_dragen = output_folder().$name."_out_dragen.vcf";
@@ -109,13 +102,6 @@ if (db_is_enabled("NGSD"))
 	sort_consequences($out_file_db1);
 	check_file($out_file_db1, data_folder().$name."_out_db1.vcf", true);
 
-	//NA12878_38 head
-	$out_file_db2 = output_folder().$name."_out_db2.vcf";
-	check_exec("php ".src_folder()."/NGS/{$name}.php -test -ps_name NA12878_38 -in ".data_folder().$name."_in2.vcf -out $out_file_db2 --log ".output_folder().$name."_out_db2.log");
-	remove_lines_containing($out_file_db2, array("##VEP=\"v"));
-	remove_lines_containing($out_file_db2, array("##INFO=<ID=NGSD_GENE_INFO,"));
-	check_file($out_file_db2, data_folder().$name."_out_db2.vcf", true);
-		
 	//somatic
 	$out_file_som = output_folder().$name."_out_som.vcf";
 	check_exec("php ".src_folder()."/NGS/{$name}.php -test -somatic -in ".data_folder().$name."_in1.vcf -out $out_file_som --log ".output_folder().$name."_out_som.log");

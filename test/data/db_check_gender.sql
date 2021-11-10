@@ -9,6 +9,6 @@ INSERT INTO processing_system (name_short, name_manufacturer, shotgun, genome_id
 
 INSERT INTO sequencing_run (name, fcid, start_date, end_date, device_id, recipe) VALUES ('#002', 'FCID4711', '2013-02-04', '2013-02-04', 1, '76+6+76');
 
-INSERT INTO sample (name, sample_type, species_id, gender, tumor, ffpe, sender_id) VALUES ('GS120159', 'DNA', 1, 'male', '0', '0', 1);
+INSERT INTO sample (name, sample_type, species_id, gender, tumor, ffpe, sender_id) VALUES ('GS140127', 'DNA', 1, 'male', '0', '0', 1);
 
 INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, processing_system_id, project_id) VALUES (1,1,1,'1',1,1);

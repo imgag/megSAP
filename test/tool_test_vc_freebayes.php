@@ -2,7 +2,7 @@
 
 require_once("framework.php");
 
-//NOTE: Test data was generated from NA12878_13: all reads overlapping the variants on chromosomes 3,7,8,10 (see make target 'vc_freebayes')
+//NOTE: Test data was generated from NA12878_58: all reads overlapping the first 50 variants on chr22 (see make target 'vc_freebayes')
 
 $name = "vc_freebayes";
 start_test($name);
@@ -28,11 +28,10 @@ check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in
 check_file($out_file3, data_folder().$name."_out3.vcf.gz");
 
 
-########################## no target region ##########################
+########################## no target region,  AF>=10% ##########################
 
-//with AF>=20%
 $out_file4 = output_folder().$name."_out4.vcf.gz";
-check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in2.bam -out $out_file4 --log ".output_folder().$name."_out4.log -min_af 0.20");
+check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file4 --log ".output_folder().$name."_out4.log -min_af 0.10");
 check_file($out_file4, data_folder().$name."_out4.vcf.gz");
 
 

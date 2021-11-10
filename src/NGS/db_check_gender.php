@@ -11,6 +11,7 @@ $parser->addInfile("in",  "Input file in BAM format.", false);
 $parser->addString("pid",  "Processed sample ID, e.g. GS120001_01, used to determine the sample gender from the NGSD.", false);
 $parser->addString("gender", "Gender of the input. If unset, gender is looked up in NGSD.", true);
 $parser->addInt("sry_cov", "Minimum SRY coverage to consider a sample as male.", true, "10");
+$parser->addString("build", "Genome build of sample.", true, "GRCh38");
 //optional
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
@@ -26,7 +27,6 @@ $method = "hetx";
 $args = "";
 if (!isset($gender))
 {
-
 	//get sample info from DB
 	$db = DB::getInstance($db);
 	$info = get_processed_sample_info($db, $pid, true);
@@ -74,7 +74,7 @@ if (!isset($gender))
 }
 
 //determine gender from BAM
-list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-in {$in} -method {$method} {$args} -build ".ngsbits_build($sys['build']), true);
+list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-in {$in} -method {$method} {$args} -build ".ngsbits_build($build), true);
 $gender2 = explode("\t", $stdout[1])[1];
 if (starts_with($gender2, "unknown"))
 {

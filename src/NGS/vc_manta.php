@@ -108,7 +108,7 @@ $sv = "{$manta_folder}/results/variants/{$outname}SV.vcf.gz";
 
 // TODO: check if it works!
 // modify VCF (combine BND of INVs to one INV in VCF)
-$sv_inv = "{$manta_folder}/results/variants/{$outname}SV_inv.vcf.gz";
+$sv_inv = "{$manta_folder}/results/variants/{$outname}SV_inv.vcf";
 $parser->exec("python ".get_path('manta')."/../libexec/convertInversion.py", get_path("samtools")." ".genome_fasta($build)." {$sv} > {$sv_inv}");
 
 
