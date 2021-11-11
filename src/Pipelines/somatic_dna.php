@@ -909,7 +909,7 @@ if (in_array("an_rna", $steps))
 		$rna_counts_tmp = glob(dirname($rna_bam)."/*_counts.tsv");
 		if(count($rna_counts_tmp) != 1)
 		{
-			trigger_error("Could not find or found multiple RNA count files in sample folder dirname($rna_bam)", E_USER_ERROR);
+			trigger_error("Could not find or found multiple RNA count files in sample folder " . dirname($rna_bam), E_USER_ERROR);
 		}
 		
 		$rna_counts[$rna_id] = $rna_counts_tmp[0];

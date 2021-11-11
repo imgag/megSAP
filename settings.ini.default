@@ -39,6 +39,7 @@ STAR-Fusion_pythonpath = [path]/data/tools/igv-reports-0.9.1/build/lib
 STAR-Fusion_samtools = [path]/data/tools/samtools-1.7/samtools
 feature_counts = [path]/data/tools/subread-2.0.0/bin/featureCounts
 skewer = [path]/data/tools/skewer-0.2.2/skewer
+arriba =[path]/data/tools/arriba_v2.1.0
 
 [folders]
 local_data = /tmp/local_ngs_data/

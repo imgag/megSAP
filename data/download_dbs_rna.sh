@@ -29,7 +29,7 @@ wget -O - 'ftp://ftp.ensembl.org/pub/grch37/current/gtf/homo_sapiens/Homo_sapien
 #STAR: index genome
 cd $data_folder
 mkdir -p genomes/STAR/GRCh37
-$data_folder/tools/STAR-2.7.3a/bin/Linux_x86_64/STAR \
+$data_folder/tools/STAR-2.7.9a/bin/Linux_x86_64/STAR \
 --runThreadN 20 \
 --runMode genomeGenerate \
 --genomeDir genomes/STAR/GRCh37/ \

@@ -63,7 +63,7 @@ def cohort(samples, counts, counts_out, prefix, cohort, stats, corr):
             counts_annot.to_csv(counts_out, sep='\t', na_rep='n/a')
         
         if corr:
-            value = expr[['log2tpm', 'cohort_meanlog2']].corr(method='spearman').iloc[0,1]
+            value = expr[['log2tpm', 'cohort_meanlog2']].query('log2tpm>0 | cohort_meanlog2>0').corr(method='spearman').iloc[0,1]
             corr.write(f'{value}\n')
 
 @cli.command(help="Use summarized HPA expression data as reference.")
@@ -98,7 +98,7 @@ def hpa(counts, counts_out, prefix, hpa, tissue, corr):
             counts_annot.to_csv(counts_out, sep='\t', na_rep='n/a')
         
         if corr:
-            value = expr[['sample_log2tpm', 'tissue_log2tpm']].corr(method='spearman').iloc[0,1]
+            value = expr[['sample_log2tpm', 'tissue_log2tpm']].query('sample_log2tpm>0 | tissue_log2tpm>0').corr(method='spearman').iloc[0,1]
             corr.write(f'{value}\n')
 
 if __name__ == '__main__':

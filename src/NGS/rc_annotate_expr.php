@@ -185,6 +185,6 @@ if ($hpa_tissue !== "")
 		"--prefix", "hpa_",
 		"--tissue", "'{$hpa_tissue}'"
 	];
-	if ($corr !== "") $args[] = "--corr {$hpa_corr}";
+	if ($hpa_corr !== "") $args[] = "--corr {$hpa_corr}";
 	$parser->exec("python3 ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
 }

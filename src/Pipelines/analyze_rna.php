@@ -17,14 +17,14 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 
 //optional
 $parser->addInfile("system", "Processing system INI file (determined from NGSD via the 'name' by default).", true);
-$steps_all = array("ma", "rc", "an", "fu", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, rc=read counting, an=annotation, fu=fusion detection, db=import into NGSD", true, "ma,rc,an,fu,db");
+$steps_all = array("ma", "rc", "an", "fu", "db", "plt");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, rc=read counting, an=annotation, fu=fusion detection, db=import into NGSD", true, "ma,rc,an,fu,db,plt");
 
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
 $parser->addFlag("no_splicing", "Disable spliced read alignment.");
 $parser->addFlag("abra", "Enable indel realignment with ABRA.");
 $parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
-$parser->addString("fusion_caller", "Fusion callers to run, separated by comma.", true, "star-fusion,manta");
+$parser->addString("fusion_caller", "Fusion callers to run, separated by comma.", true, "arriba");
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
@@ -294,7 +294,7 @@ if (in_array("an", $steps))
 			//somatic: enable somatic mode, and use RNA reference tissue
 			if ($ps_info['is_tumor'])
 			{
-				$args += ["-somatic"];
+				$args[] = "-somatic";
 				
 				
 				//somatic case: find HPA reference tissue
@@ -313,7 +313,7 @@ SQL;
 				if (count($res) == 1)
 				{
 					$rna_ref_tissue = $res[0];
-					$args += ["-hpa_tissue '{$rna_ref_tissue}'"];
+					$args[] = "-hpa_tissue '{$rna_ref_tissue}'";
 				}
 			}
 	
@@ -325,6 +325,28 @@ SQL;
 		{
 			$parser->exec("{$ngsbits}SplicingToBed", "-in {$junctions} -report {$splicing_annot} -gene_report {$splicing_gene} -bed {$splicing_bed}", true);
 		}
+	}
+}
+
+//save gene expression plots
+if (in_array("plt", $steps))
+{
+	$args = [
+		"--cohort", $expr_cohort,
+		"--annotation", $expr,
+		"--sample", $name
+	];
+	$genelists = glob(get_path("data_folder") . "/pathway_genelists/*.txt");
+	foreach ($genelists as $genelist)
+	{
+		$shortname = basename($genelist, ".txt");
+		$args_extra = [
+			"--genelist", $genelist,
+			"--title", "\"Gene Expression: {$shortname}\"",
+			"--plot", "{$prefix}_expr.{$shortname}.png",
+			"--reference"
+		];
+		$parser->exec("python3 ".repository_basedir()."/src/NGS/rc_plot_expr.py", implode(" ", array_merge($args, $args_extra)), true);
 	}
 }
 
@@ -419,6 +441,24 @@ if (in_array("fu",$steps) && in_array("manta",$fusion_caller))
 	$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
 	$parser->exec(get_path("ngs-bits") . "VcfToBedpe", "-in {$fusions_manta_vcf} -out {$fusions_manta_bedpe}", true);
 	$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in {$fusions_manta_bedpe} -out {$fusions_manta_bedpe} -add_simple_gene_names", true);
+}
+
+$fusions_arriba_tsv = "{$prefix}_fusions_arriba.tsv";
+$fusions_arriba_bam = "{$prefix}_fusions_arriba.bam";
+$fusions_arriba_discarded_tsv = "{$prefix}_fusions_arriba.discarded.tsv";
+$fusions_arriba_pdf = "{$prefix}_fusions_arriba.pdf";
+if (in_array("fu",$steps) && in_array("arriba",$fusion_caller))
+{
+	$arriba_args = [
+		"-bam", $final_bam,
+		"-out_fusions", $fusions_arriba_tsv,
+		"-out_discarded", $fusions_arriba_discarded_tsv,
+		"-out_bam", $fusions_arriba_bam,
+		"-out_pdf", $fusions_arriba_pdf,
+		"-build", $build,
+		"--log", $parser->getLogFile()
+	];
+	$parser->execTool("NGS/vc_arriba.php", implode(" ", $arriba_args));
 }
 
 //import to database
