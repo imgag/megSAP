@@ -109,7 +109,7 @@ def plot(
         for i in range(0, len(dat_genecol.columns)):
             ax1.plot(
                 i + 1,
-                dat_genecol.loc[sample][i],
+                dat_genecol.loc[sample].iloc[i],
                 marker="x",
                 color="red",
                 markersize=12,
