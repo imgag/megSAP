@@ -374,7 +374,7 @@ function annotate_splice_predictions($splicing_output)
 
 	//store variants of low Af in dictionary
 	$private_var_dict = get_private_variants($splicing_output);
-	addMissingContigsToVcf($build, $splicing_output);
+	add_missing_contigs_to_vcf($build, $splicing_output);
 	annotate_mmsplice_score($splicing_output, $private_var_dict);
 	annotate_spliceai_score($splicing_output, $private_var_dict);
 }
