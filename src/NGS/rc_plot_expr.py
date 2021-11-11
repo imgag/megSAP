@@ -64,10 +64,12 @@ def plot(
 
     genes = [symbol.strip() for symbol in genelist.readlines()]
 
-    ref_expr = sample_expr[["gene_name", "hpa_tissue_tpm"]]
-    ref_expr = ref_expr[ref_expr["gene_name"].isin(genes)]
-    ref_expr = ref_expr.set_index("gene_name")
-    ref_expr = ref_expr.loc[genes]
+    reference = reference and ("hpa_tissue_tpm" in sample_expr.columns)
+    if reference:
+        ref_expr = sample_expr[["gene_name", "hpa_tissue_tpm"]]
+        ref_expr = ref_expr[ref_expr["gene_name"].isin(genes)]
+        ref_expr = ref_expr.set_index("gene_name")
+        ref_expr = ref_expr.loc[genes]
 
     dat = cohort.merge(gene_id_names, left_index=True, right_index=True).reset_index(
         drop=True
@@ -79,7 +81,8 @@ def plot(
 
     if log2:
         dat_genecol = dat_genecol.apply(lambda x: np.log2(x + 1))
-        ref_expr = ref_expr.apply(lambda x: np.log2(x + 1))
+        if reference:
+            ref_expr = ref_expr.apply(lambda x: np.log2(x + 1))
         ylabel = "log2(TPM+1)"
     else:
         ylabel = "TPM"
