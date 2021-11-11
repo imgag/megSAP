@@ -2,8 +2,6 @@
 
 require_once("framework.php");
 
-//NOTE: Test data was generated from NA12878_13: all reads overlapping the variants on chromosomes 3,7,8,10 (see make target 'vc_freebayes')
-
 $name = "vc_manta";
 start_test($name);
 
@@ -30,9 +28,6 @@ $out_file4 = output_folder().$name."_out4.vcf.gz";
 $manta_evidence_dir = output_folder()."/manta_evid_4";
 check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in4.bam -out $out_file4 -evid_dir $manta_evidence_dir -rna -threads 2 --log ".output_folder().$name."_out4.log");
 check_file($out_file4, data_folder().$name."_out4.vcf.gz");
-
-
-
 
 end_test();
 

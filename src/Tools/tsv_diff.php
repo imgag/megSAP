@@ -21,6 +21,7 @@ if (is_dir($in2) && file_exists($in2."/".$in1))
 	$in2 = $in2."/".$in1;
 }
 
+if ($out=="") $out = 'php://stdout';
 $h_o = fopen($out, 'w');
 
 $c_match = 0;
