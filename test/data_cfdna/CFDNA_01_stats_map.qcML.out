@@ -6,9 +6,9 @@
   ]>
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
-    <metaDataParameter ID="md0001" name="creation software" value="MappingQC 2021_06-97-g42ce8175" cvRef="QC" accession="QC:1000002"/>
-    <metaDataParameter ID="md0002" name="creation software parameters" value="-roi analyze_cfdna_KIIOa7_extended.bed -cfdna" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2021-09-24T11:08:44" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0001" name="creation software" value="MappingQC 2021_09-3-g2300d349" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0002" name="creation software parameters" value="-roi analyze_cfdna_DOeuf6_extended.bed -cfdna" cvRef="QC" accession="QC:1000003"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2021-11-11T10:58:43" cvRef="QC" accession="QC:1000004"/>
     <metaDataParameter ID="md0004" name="source file" value="CFDNA_01.bam" cvRef="QC" accession="QC:1000005"/>
     <qualityParameter ID="qp0001" name="trimmed base percentage" description="Percentage of bases that were trimmed during to adapter or quality trimming." value="0.31" cvRef="QC" accession="QC:2000019"/>
     <qualityParameter ID="qp0002" name="clipped base percentage" description="Percentage of the bases that are soft-clipped or hand-clipped during mapping." value="24.79" cvRef="QC" accession="QC:2000052"/>
