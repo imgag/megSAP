@@ -161,6 +161,10 @@ if(isset($rna_ref_tissue))
 	
 	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_hpa.tsv";
 	
+	if(!file_exists($ref_file))
+	{
+		trigger_error("Could not find $ref_file neccessary for annotation of reference RNA expression.", E_USER_ERROR);
+	}
 	$handle = fopen($ref_file, "r");
 	
 	$i_ref_gene = -1;
