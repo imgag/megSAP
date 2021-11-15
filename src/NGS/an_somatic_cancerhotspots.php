@@ -30,6 +30,10 @@ $i_vep_hgvsp = -1;
 $i_vep_feature = -1;
 
 $in_db = get_path("data_folder") . "/dbs/cancerhotspots/cancerhotspots_snv.tsv";
+if(!file_exists($in_db))
+{
+	trigger_error("Could not find cancerhotspots annotation file {$in_db}." , E_USER_ERROR);
+}
 
 $handle_in = fopen2($in, "r");
 $handle_out = fopen2($out, "w");
