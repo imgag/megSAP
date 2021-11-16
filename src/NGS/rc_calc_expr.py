@@ -59,7 +59,7 @@ def cohort(samples, counts, counts_out, prefix, cohort, stats, corr):
         # annotated count file
         if counts_out:
             counts_annot = counts_tbl.join(expr.drop('tpm', axis=1).rename(columns=lambda s: prefix + str(s)),
-                on="#gene_id", how="left")
+                how="left")
             counts_annot.to_csv(counts_out, sep='\t', na_rep='n/a')
         
         if corr:
@@ -94,7 +94,7 @@ def hpa(counts, counts_out, prefix, hpa, tissue, corr):
         # annotated count file
         if counts_out:
             counts_annot = counts_tbl.join(expr.drop('tpm', axis=1).rename(columns=lambda s: prefix + str(s)),
-                on="#gene_id", how="left")
+                how="left")
             counts_annot.to_csv(counts_out, sep='\t', na_rep='n/a')
         
         if corr:

@@ -13,3 +13,5 @@ remove_lines_containing($out, array("Program:featureCounts", "rc_featurecounts_i
 check_file($out, data_folder().$name."_out1.tsv", false);
 
 end_test();
+
+?>
