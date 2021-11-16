@@ -26,7 +26,7 @@ check_file($out_corr, data_folder().$name."_out_corr.txt");
 
 //test 2: annotate with cohort and HPA reference
 check_exec("php ".src_folder()."/NGS/".$name.".php -name Sample1 -in $in -in_files $in_files -out $out_hpa -cohort $out_cohort -stats $out_stats -corr $out_corr -hpa_corr $out_hpa_corr -hpa_ref $in_hpa -hpa_tissue colon");
-check_file($out, data_folder().$name."_out_hpa.tsv");
+check_file($out_hpa, data_folder().$name."_out_hpa.tsv");
 check_file($out_cohort, data_folder().$name."_out_cohort.tsv");
 check_file($out_stats, data_folder().$name."_out_stats.tsv");
 check_file($out_corr, data_folder().$name."_out_corr.txt");
