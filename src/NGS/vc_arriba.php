@@ -14,7 +14,7 @@ $parser->addOutfile("out_bam", "Output BAM file with fusion-supporting reads.", 
 
 $parser->addInfile("sv", "Optional structural variants from DNA sequencing, in VCF format.", true);
 
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 
 extract($parser->parse($argv));
 
@@ -34,7 +34,7 @@ $arriba_build = $arriba_str[$build];
 
 //reference files
 $genome = genome_fasta($build);
-$gtf = get_path("data_folder") . "/dbs/gene_annotations/GRCh37.gtf";
+$gtf = get_path("data_folder") . "/dbs/gene_annotations/{$build}.gtf";
 $arriba_ref = get_path("arriba") . "/database";
 
 
