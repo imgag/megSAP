@@ -433,6 +433,17 @@ function annotate_spliceai_score($splicing_output, $threshold = 1000)
 	}
 }
 
+//annotates SpliceAI/ MMSplice score for all variants inside NGSD and GnomAD + calculates scores for private variants if less than threshold
+function annotate_splice_predictions($splicing_output)
+{
+	global $build;
+
+	//store variants of low Af in dictionary
+	$private_var_dict = get_private_variants($splicing_output);
+	add_missing_contigs_to_vcf($build, $splicing_output);
+	annotate_mmsplice_score($splicing_output, $private_var_dict);
+	annotate_spliceai_score($splicing_output, $private_var_dict);
+}
 // generate temp file for vep output
 $vep_output = $parser->tempFile("_vep.vcf");
 

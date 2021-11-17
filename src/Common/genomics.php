@@ -1446,6 +1446,91 @@ function cytoBands($chr, $start, $end)
 	return $out;
 }
 
+//checks if any contig line is given, if not adds all contig lines from reference genome (using fasta index file)
+function add_missing_contigs_to_vcf($build, $vcf)
+{
+	$file = fopen($vcf, 'c+');
+	$new_file_lines = array();
+	if($file)
+	{
+		$new_file_lines = explode("\n", fread($file, filesize($vcf)));
+		fseek($file, 0);
+	}
+	else
+	{
+		trigger_error("Could not open file ".$vcf.": no new contig lines written.", E_USER_WARNING);
+	}
+
+	$contains_contig = false;
+	$line_below_reference_info = 0;
+	$count = 0;
+
+	$new_contigs = array();
+
+	while(!feof($file))
+	{
+		$count += 1;
+		$line = trim(fgets($file));
+
+		if(starts_with($line, "##reference"))
+		{
+			$line_below_reference_info = $count;
+		}
+		else if (starts_with($line, "##"))
+		{
+			if(starts_with($line, "##contig"))
+			{
+				$contains_contig = true;
+				break;
+			}
+		}
+		else
+		{
+			//write contigs in second line if no reference genome line is given
+			if($line_below_reference_info == 0)
+			{
+				$line_below_reference_info = 1;
+			}
+			break;
+		}
+	}
+	if(!$contains_contig)
+	{
+		$fai_file_path = genome_fasta($build).".fai";
+		if (!file_exists($fai_file_path))
+		{
+			trigger_error("Fasta index file \"${fai_file_path}\" is missing!", E_USER_ERROR);
+		}
+		$fai_file_content = file($fai_file_path, FILE_IGNORE_NEW_LINES);
+		foreach ($fai_file_content as $line) 
+		{
+			// skip empty lines
+			if (trim($line) == "") continue;
+
+			// split table
+			$parts = explode("\t", $line);
+			if (count($parts) != 5)
+			{
+				trigger_error("Error parsing Fasta index file!", E_USER_ERROR);
+			}
+			$chr = trim($parts[0]);
+			$len = intval($parts[1]);
+			$new_contigs[] = "##contig=<ID={$chr}, length={$len}>";
+		}
+
+		if(empty($new_contigs))
+		{
+			trigger_error("No new contig lines were written for ".$vcf, E_USER_WARNING);
+		}
+		else
+		{
+			array_splice( $new_file_lines, $line_below_reference_info, 0, $new_contigs);  
+			file_put_contents($vcf, implode("\n", $new_file_lines));
+		}
+	}
+
+}
+
 $aa1_to_aa3 = array( 'A'=>"Ala", 'R'=>"Arg", 'N'=>"Asn", 'D'=>"Asp", 'C'=>"Cys", 'E'=>"Glu", 'Q'=>"Gln", 'G'=>"Gly", 'H'=>"His", 'I'=>"Ile", 'L'=>"Leu", 'K'=>"Lys", 'M'=>"Met", 'F'=>"Phe", 'P'=>"Pro", 'S'=>"Ser", 'T'=>"Thr", 'W'=>"Trp", 'Y'=>"Tyr", 'V'=>"Val", '*'=>"Ter");
 $aa3_to_aa1 = array_flip($aa1_to_aa3);
 

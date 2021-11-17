@@ -26,6 +26,10 @@ extract($parser->parse($argv));
 
 $temp_folder = $parser->tempFolder("MipGenerator_");
 
+//check db file
+if (!file_exists($snp_db)) trigger_error("VCF given for parameter '-snp_db' ('${snp_db}') not found!", E_USER_ERROR);
+if (!file_exists($snp_db.".tbi")) trigger_error("VCF index file for parameter '-snp_db' is missing!", E_USER_ERROR);
+
 // 1. extract common SNPs
 $output = array();
 $bed = file($target);
@@ -33,10 +37,13 @@ foreach($bed as $reg)
 {
 	list($c, $s, $e) = explode("\t", $reg);
 	$e = trim($e);
-	$c = substr($c, 3);
+	//GRCh38 requires chr prefix: do not cut
+	//$c = substr($c, 3);
 	$s -= 1000;
 	$e += 1000;
+
 	list($snps,) = $parser->exec("tabix", "$snp_db $c:$s-$e", false); //no output logging, because Toolbase::extractVersion() does not return
+
 	foreach($snps as $snp)
 	{
 		list(, , , , $obs, , , $info) = explode("\t", $snp);
