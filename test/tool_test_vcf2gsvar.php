@@ -28,7 +28,7 @@ check_file($out_file_empty, data_folder().$name."_out_empty.GSvar", true);
 
 //genotype_mode=single, WGS mode
 $out_file1 = output_folder().$name."_out5.GSvar";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in3.vcf -updown -wgs -out $out_file1 --log ".output_folder().$name."_out1.log");
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -updown -wgs -out $out_file1 --log ".output_folder().$name."_out1.log");
 check_file($out_file1, data_folder().$name."_out5.GSvar");
 
 //genotype_mode=multi

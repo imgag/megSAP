@@ -22,10 +22,10 @@ an_vep:
 
 vcf2gsvar:
 	cp an_vep_out1.vcf vcf2gsvar_in1.vcf
-	cp an_vep_out2.vcf vcf2gsvar_in2.vcf
 	cp an_vep_out_db2.vcf vcf2gsvar_in_db2.vcf
 	cp an_vep_out_empty.vcf vcf2gsvar_in_empty.vcf
 	cp an_vep_out_dragen.vcf vcf2gsvar_in_dragen.vcf
+	zcat ../../test/data_multi/multi_var_annotated.vcf.gz > test/data/vcf2gsvar_in_multi.vcf
 
 #Creating input BAM files for somatic pipeline Manta SV positive control
 sv_somatic:
