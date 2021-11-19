@@ -15,7 +15,7 @@ foreach($file as $line)
 	$c_disc = 0;
 	$i_ps1 = -1;
 	$i_ps2 = -1;
-	$h = gzopen($path."/all.vcf.gz", "r");
+	$h = gzopen2($path."/all.vcf.gz", "r");
 	while(!gzeof($h))
 	{
 		$line =  trim(gzgets($h));

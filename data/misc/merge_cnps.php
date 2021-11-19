@@ -6,7 +6,7 @@ include("../../src/Common/all.php");
 function load($filename, &$chrs, &$breaks)
 {
 	$output = array();
-	$h = fopen($filename, "r");
+	$h = fopen2($filename, "r");
 	while(!feof($h))
 	{
 		$line = trim(fgets($h));

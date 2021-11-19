@@ -536,7 +536,7 @@ if (file_exists($warn_file))
 
 // create config file
 $config_file_path = $parser->tempFile(".config");
-$config_file = fopen($config_file_path, 'w');
+$config_file = fopen2($config_file_path, 'w');
 
 
 // add gnomAD annotation

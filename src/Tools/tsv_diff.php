@@ -22,7 +22,7 @@ if (is_dir($in2) && file_exists($in2."/".$in1))
 }
 
 if ($out=="") $out = 'php://stdout';
-$h_o = fopen($out, 'w');
+$h_o = fopen2($out, 'w');
 
 $c_match = 0;
 $c_mismatch = 0;

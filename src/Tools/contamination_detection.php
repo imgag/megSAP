@@ -34,7 +34,7 @@ function vcf_lines($filename)
 {
 	$lines = 0;
 	
-	$h = fopen($filename, 'r');
+	$h = fopen2($filename, 'r');
 	while(!feof($h))
 	{
 		$line = trim(fgets($h));
@@ -89,7 +89,7 @@ if (is_null($ann_vcf) || $ann_vcf=="")
 	$decomp_ps_vcf = $parser->tempFile("_decomp.vcf");
 	$parser->exec("zcat", "$ps_vcf > $decomp_ps_vcf");
 	$vars = array();
-	$fh = fopen($decomp_ps_vcf, "r");
+	$fh = fopen2($decomp_ps_vcf, "r");
 	$n_var = 0;
 	while(!feof($fh))
 	{
@@ -110,9 +110,9 @@ if (is_null($ann_vcf) || $ann_vcf=="")
 	// parse new vcf and remove all variants which are already found in first run
 	$decomp_vc_vcf = $parser->tempFile("_vc_decomp.vcf");
 	$parser->exec("zcat", "$vc_vcf > $decomp_vc_vcf");
-	$input_fh = fopen($decomp_vc_vcf, "r");
+	$input_fh = fopen2($decomp_vc_vcf, "r");
 	$unique_vcf = $parser->tempFile("_unique.vcf");
-	$output_fh = fopen($unique_vcf, "w");
+	$output_fh = fopen2($unique_vcf, "w");
 	$n_var = 0;
 	$n_new_var = 0;
 	while(!feof($input_fh))

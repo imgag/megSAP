@@ -16,7 +16,7 @@ extract($parser->parse($argv));
 
 //determine duplicates
 $duplicates = [];
-$h = fopen($in, "r");
+$h = fopen2($in, "r");
 $last_tag = "";
 while(!gzeof($h))
 {
@@ -37,8 +37,8 @@ fclose($h);
 print "Found ".count($duplicates)." duplicate variants.\n";
 
 //remove duplicates
-$ho = fopen($out, "w");
-$h = fopen($in, "r");
+$ho = fopen2($out, "w");
+$h = fopen2($in, "r");
 while(!gzeof($h))
 {
 	$line = fgets($h);

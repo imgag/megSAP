@@ -77,7 +77,7 @@ if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 	/*********************
 	 * TRANSCRIPT COUNTS *
 	 *********************/
-	$handle = fopen($rna_counts,"r");	
+	$handle = fopen2($rna_counts,"r");	
 	
 	$genes_of_interest = array();
 	$i_dna_gene =  $gsvar_input->getColumnIndex("gene");
@@ -165,7 +165,7 @@ if(isset($rna_ref_tissue))
 	{
 		trigger_error("Could not find $ref_file neccessary for annotation of reference RNA expression.", E_USER_ERROR);
 	}
-	$handle = fopen($ref_file, "r");
+	$handle = fopen2($ref_file, "r");
 	
 	$i_ref_gene = -1;
 	$i_ref_tpm = -1;

@@ -1321,7 +1321,7 @@ function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 	//generate bed file that contains edges of whole reference genome
 	$handle_in = fopen2("{$ref_genome_fasta}.fai","r");
 	$ref_bed = temp_file(".bed");
-	$handle_out = fopen($ref_bed,"w");
+	$handle_out = fopen2($ref_bed,"w");
 	while(!feof($handle_in))
 	{
 		$line = trim(fgets($handle_in));
@@ -1423,7 +1423,7 @@ function somatic_report_config(&$db_conn, $t_ps, $n_ps, $error_if_not_found=fals
 //Returns cytobands of given genomic range as array
 function cytoBands($chr, $start, $end)
 {
-	$handle = fopen(repository_basedir()."/data/misc/cytoBand.txt", "r");
+	$handle = fopen2(repository_basedir()."/data/misc/cytoBand.txt", "r");
 	
 	$out = array();
 	
@@ -1449,7 +1449,7 @@ function cytoBands($chr, $start, $end)
 //checks if any contig line is given, if not adds all contig lines from reference genome (using fasta index file)
 function add_missing_contigs_to_vcf($build, $vcf)
 {
-	$file = fopen($vcf, 'c+');
+	$file = fopen2($vcf, 'c+');
 	$new_file_lines = array();
 	if($file)
 	{

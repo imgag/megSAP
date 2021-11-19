@@ -64,7 +64,7 @@ $tool_version = strtr($tool_version, array("[Starting " => "", "]" => ""));
 $vcf_file_content = file($out);
 
 // write back to disk and insert additional comments
-$fh = fopen($out, 'w');
+$fh = fopen2($out, 'w');
 $header_written = false;
 foreach($vcf_file_content as $line)
 {

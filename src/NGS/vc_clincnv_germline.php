@@ -80,7 +80,7 @@ function filterMosaicVariants($mosaic_out, $filter_regions)
 	$mosaicism = false;
 
 	//get possible mosaic cnvs
-	$mosaic_h = fopen($mosaic_out, "r");
+	$mosaic_h = fopen2($mosaic_out, "r");
 	$new_lines = array();
 	$length_kb_idx = 0;
     $cn_idx = 0;
@@ -138,7 +138,7 @@ function filterMosaicVariants($mosaic_out, $filter_regions)
 	}
 	fclose($mosaic_h);
 
-	$mosaic_h = fopen($mosaic_out, "w");
+	$mosaic_h = fopen2($mosaic_out, "w");
 	foreach($new_lines as $line)
 	{
 		fwrite($mosaic_h, $line);
@@ -170,7 +170,7 @@ function detect_mosaicism()
 
 	//store all those regions
     $regions_filter = array();
-    $filter_h = fopen($filter_regions_bed, "r");
+    $filter_h = fopen2($filter_regions_bed, "r");
     while(!feof($filter_h))
     {
         $line = trim(fgets($filter_h));
@@ -351,7 +351,7 @@ function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messa
 {
 	//ClinVAR did not generate CNV file
 	//generate file with basic header lines
-	$cnv_output = fopen($out, "w");
+	$cnv_output = fopen2($out, "w");
 	if($tumor_only)
 	{
 		fwrite($cnv_output, "##ANALYSISTYPE=CLINCNV_TUMOR_ONLY\n");

@@ -9,7 +9,7 @@ $regs = [];
 foreach($vcfs as $vcf)
 {
 	print "processing $vcf...\n";
-	$h = gzopen($vcf, "r");
+	$h = gzopen2($vcf, "r");
 	while(!gzeof($h))
 	{
 		$line = trim(gzgets($h));

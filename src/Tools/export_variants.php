@@ -116,7 +116,7 @@ foreach($vcfs as $ps => $vcf)
 print "\n";
 print "writing ".count($variants)." distinct variants to VCF file...\n";
 $sample_name = basename($out, ".vcf");
-$h = fopen($out, "w");
+$h = fopen2($out, "w");
 fputs($h, "##fileformat=VCFv4.2\n");
 fputs($h, "##ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n");
 fputs($h, "##SAMPLE=<ID={$sample_name},Gender=n/a,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=affected>\n");
