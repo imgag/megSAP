@@ -296,24 +296,22 @@ extract($parser->parse($argv));
 
 if ($snps=="set1")
 {
-	trigger_error("'set1' not supported on GRCh38!", E_USER_ERROR);
-	$snps = array();
-//	$snps = array(
-//		"A" => array("rs6666954", "chr1", "78578177", "T", "C", true),
-//		"B" => array("rs4411641", "chr2", "147596973", "A", "G", false),
-//		"C" => array("rs11130795", "chr3", "60898434", "T", "C", false),
-//		"D" => array("rs6841061", "chr4", "185999543", "G", "A", false),
-//		"E" => array("rs37535", "chr5", "57617403", "G", "C", false),
-//		"F" => array("rs9388856", "chr6", "131148863", "A", "T", false),
-//		"G" => array("rs1393978", "chr8", "107236280", "G", "T", false),
-//		"H" => array("rs12682834", "chr9", "90062823", "A", "G", null), //null=skipped (this SNP produces quite a lot false calls)
-//		"I" => array("rs2583136", "chr11", "13102924", "G", "A", false),
-//		"J" => array("rs10748087", "chr12", "68195095", "C", "G", false),
-//		"K" => array("rs2988039", "chr13", "79766188", "A", "G", false),
-//		"L" => array("rs8045964", "chr16", "81816733", "C", "T", false),
-//		"M" => array("rs6074704", "chr20", "14167283", "A", "G", false),
-//		"N" => array("rs6512586", "chr20", "48301146", "G", "A", true),
-//	);
+	$snps = array(
+		"A" => array("rs6666954", "chr1", "78112493", "T", "C", true),
+		"B" => array("rs4411641", "chr2", "146839405", "A", "G", false),
+		"C" => array("rs11130795", "chr3", "60912762", "T", "C", false),
+		"D" => array("rs6841061", "chr4", "185078389", "G", "A", false),
+		"E" => array("rs37535", "chr5", "58321576", "G", "C", false),
+		"F" => array("rs9388856", "chr6", "130827723", "A", "T", false),
+		"G" => array("rs1393978", "chr8", "106224052", "G", "T", false),
+		"H" => array("rs12682834", "chr9", "87447908", "A", "G", null), //null=skipped (this SNP produces quite a lot false calls)
+		"I" => array("rs2583136", "chr11", "13081377", "G", "A", false),
+		"J" => array("rs10748087", "chr12", "67801315", "C", "G", false),
+		"K" => array("rs2988039", "chr13", "79192053", "A", "G", false),
+		"L" => array("rs8045964", "chr16", "81783128", "C", "T", false),
+		"M" => array("rs6074704", "chr20", "14186637", "A", "G", false),
+		"N" => array("rs6512586", "chr20", "49684609", "G", "A", true),
+	);
 }
 if ($snps=="set2")
 {

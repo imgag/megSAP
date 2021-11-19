@@ -7,16 +7,14 @@ start_test($name);
 
 if (db_is_enabled("NGSD"))
 {
-	//Deactivated in GRCh38
-	// TODO: reactivate or remove
-	// //test 1 - LightCycler - SNP set 1
-	// $in1 = data_folder().$name."_in1.txt";
-	// $out1 = output_folder().$name."_out1.tsv";
+	//test 1 - LightCycler - SNP set 1
+	$in1 = data_folder().$name."_in1.txt";
+	$out1 = output_folder().$name."_out1.tsv";
 
-	// $stdout = check_exec("php ".src_folder()."/Tools/".$name.".php -in $in1 -snps set1 -format LightCycler -out $out1");
-	// unlink(data_folder().$name."_in1_converted.tsv");
+	$stdout = check_exec("php ".src_folder()."/Tools/".$name.".php -in $in1 -snps set1 -format LightCycler -out $out1");
+	unlink(data_folder().$name."_in1_converted.tsv");
 
-	// check_file($out1, data_folder().$name."_out1.tsv");
+	check_file($out1, data_folder().$name."_out1.tsv");
 
 
 	//test 2 - LightCycler - SNP set 2

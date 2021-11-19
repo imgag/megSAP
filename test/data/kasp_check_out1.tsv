@@ -1,2 +1,2 @@
 #sample_name	random_match_prob	genos_kasp	genos_both	genos_match	bam
-FO-10122 TR-06-01	0.001953	12	9	9	/mnt/storage2/projects/diagnostic/DYT/Sample_GS150219_03/GS150219_03.bam
+FO-10122 TR-06-01	0.001953	12	9	9	/mnt/storage2/GRCh38/projects/diagnostic/DYT/Sample_GS150219_03/GS150219_03.bam
