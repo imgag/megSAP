@@ -48,7 +48,7 @@ an_somatic_gsvar_rna:
 	samtools index somatic_pipeline_tumor_rna.bam
 	rm temp_rna.bam temp_header_rna.sam
 vc_varscan2:
-	samtools view -h -L vc_varscan2.bed /mnt/projects/diagnostic/SomaticAndTreatment/Sample_DX174130_01/DX174130_01.bam | sed "s/DX174130_01/varscan2_tumor/g" |samtools view -bSh >  vc_varscan2_tu_temp.bam
+	samtools view -h -L vc_varscan2.bed /mnt/storage2/GRCh38/projects/diagnostic/SomaticAndTreatment/Sample_DX174130_01/DX174130_01.bam | sed "s/DX174130_01/varscan2_tumor/g" |samtools view -bSh >  vc_varscan2_tu_temp.bam
 	samtools view -H vc_varscan2_tu_temp.bam | sed "s/DX174130_01/varscan2_tumor/g" > varscan_temp_header.sam
 	samtools reheader varscan_temp_header.sam vc_varscan2_tu_temp.bam > vc_varscan2_tu.bam
 	samtools index vc_varscan2_tu.bam
