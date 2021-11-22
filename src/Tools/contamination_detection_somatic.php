@@ -38,7 +38,7 @@ if(!file_exists($gsvar_input))
 }
 
 
-$handle = fopen($gsvar_input,"r");
+$handle = fopen2($gsvar_input,"r");
 $i_gnomad = -1; //annotation index of gnomAD column
 
 $c_vars_filtered = 0; //variant count of variants that pass gnomAD filtering of input variant list

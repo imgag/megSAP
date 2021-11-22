@@ -80,7 +80,7 @@ function filterMosaicVariants($mosaic_out, $filter_regions)
 	$mosaicism = false;
 
 	//get possible mosaic cnvs
-	$mosaic_h = fopen($mosaic_out, "r");
+	$mosaic_h = fopen2($mosaic_out, "r");
 	$new_lines = array();
 	$length_kb_idx = 0;
     $cn_idx = 0;
@@ -138,7 +138,7 @@ function filterMosaicVariants($mosaic_out, $filter_regions)
 	}
 	fclose($mosaic_h);
 
-	$mosaic_h = fopen($mosaic_out, "w");
+	$mosaic_h = fopen2($mosaic_out, "w");
 	foreach($new_lines as $line)
 	{
 		fwrite($mosaic_h, $line);
@@ -170,7 +170,7 @@ function detect_mosaicism()
 
 	//store all those regions
     $regions_filter = array();
-    $filter_h = fopen($filter_regions_bed, "r");
+    $filter_h = fopen2($filter_regions_bed, "r");
     while(!feof($filter_h))
     {
         $line = trim(fgets($filter_h));
@@ -351,7 +351,7 @@ function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messa
 {
 	//ClinVAR did not generate CNV file
 	//generate file with basic header lines
-	$cnv_output = fopen($out, "w");
+	$cnv_output = fopen2($out, "w");
 	if($tumor_only)
 	{
 		fwrite($cnv_output, "##ANALYSISTYPE=CLINCNV_TUMOR_ONLY\n");
@@ -418,7 +418,7 @@ function run_clincnv($out, $mosaic=FALSE)
 		"--normalSample {$ps_name}",
 		"--out {$out_folder}",
 		"--numberOfThreads {$threads}",
-		"--par \"chrX:60001-2699520;chrX:154931044-155260560\"" //this is correct for hg19 only!
+		"--par \"chrX:10001-2781479;chrX:155701383-156030895\"" //this is correct for hg38 only!
 		];
 
 	//analyzing a single tumor sample
@@ -643,7 +643,7 @@ $mean_correlation = 0.0;
 {	
 	//create target region without polymorphic regions
 	$poly_merged = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$repository_basedir}/data/misc/af_genomes_imgag.bed {$repository_basedir}/data/misc/centromer_telomer_hg19.bed -out {$poly_merged}", true);
+	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$repository_basedir}/data/misc/af_genomes_imgag.bed {$repository_basedir}/data/misc/centromer_telomer.bed -out {$poly_merged}", true);
 	$roi_poly = $parser->tempFile(".bed");
 	$parser->exec(get_path("ngs-bits")."BedIntersect", "-in {$bed} -in2 {$poly_merged} -out {$roi_poly} -mode in", true);
 	$roi_nonpoly = $parser->tempFile(".bed");

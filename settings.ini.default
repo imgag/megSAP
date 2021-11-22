@@ -1,5 +1,5 @@
 ;This configuration file sets paths to tools, databases, etc.
-;[path] is replaced by the base directory path of the SVN repository, i.e. it allows using relative paths.
+;[path] is replaced by the base directory path of the GIT repository, i.e. it allows using relative paths.
 ;
 ;If you use the download shell scripts in data/ to install tools, genomes and databases,
 ;only adapting the NGSD database credentials is necessary.
@@ -33,10 +33,11 @@ mipgen = [path]/data/tools/MIPGEN/mipgen
 umiVar2 = [path]/data/tools/umiVar2/
 
 [tools-ngs-rna]
-STAR = [path]/data/tools/STAR-2.7.9a/bin/Linux_x86_64/STAR
-STAR-Fusion = [path]/data/tools/STAR-Fusion-v1.10.0/STAR-Fusion
+STAR = [path]/data/tools/STAR-2.7.3a/bin/Linux_x86_64/STAR
+STAR-Fusion = [path]/data/tools/STAR-Fusion-v1.9.1/STAR-Fusion
 STAR-Fusion_pythonpath = [path]/data/tools/igv-reports-0.9.1/build/lib
-feature_counts = [path]/data/tools/subread-2.0.2/bin/featureCounts
+STAR-Fusion_samtools = [path]/data/tools/samtools-1.7/samtools
+feature_counts = [path]/data/tools/subread-2.0.0/bin/featureCounts
 skewer = [path]/data/tools/skewer-0.2.2/skewer
 arriba =[path]/data/tools/arriba_v2.1.0
 
@@ -65,3 +66,8 @@ queues_default = ""
 queues_research = ""
 queues_high_priority = ""
 queues_high_mem = ""
+
+[GRCh37]
+GRCh37_project_folder = ""
+GRCh37_data_folder = ""
+

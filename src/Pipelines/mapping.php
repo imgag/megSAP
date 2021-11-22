@@ -525,7 +525,7 @@ if($clip_overlap)
 
 //run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
-$params = array("-in $bam_current", "-out $stafile2", "-ref ".genome_fasta($sys['build']));
+$params = array("-in $bam_current", "-out $stafile2", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
 if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
 {
 	$params[] = "-wgs";
@@ -534,7 +534,7 @@ else
 {
 	$params[] = "-roi ".$sys['target_file'];
 }
-if ($sys['build']!="GRCh37")
+if ($sys['build']!="GRCh38")
 {
 	$params[] = "-no_cont";
 }

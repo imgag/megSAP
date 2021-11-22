@@ -17,7 +17,7 @@ $parser->addOutfile("out",  "Output IGV file.", false);
 $parser->addInt("min_dp", "Minimum depth of SNP locations in BAM.", true, 20);
 $parser->addFlag("depth", "Add depth column(s) to 'out'.");
 $parser->addInt("downsample", "Enable downsampling, i.e. only every n-th SNP is used to calculate BAFs.", true, 0);
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 $ps_name = basename($bam, ".bam");

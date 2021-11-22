@@ -27,9 +27,16 @@ $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard BWA-MEM.");
+$parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
+$output_folder_exists = true;
+if (!file_exists($folder))
+{
+	$output_folder_exists = false;
+	exec2("mkdir -p $folder");
+}
 if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_".date("YmdHis").".log");
 
 //init
@@ -111,12 +118,15 @@ if (db_is_enabled("NGSD") && !$annotation_only)
 }
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
-$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
-
+if (!$no_sync)
+{
+	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
+}
 
 //output file names:
 //mapping
 $bamfile = $folder."/".$name.".bam";
+$local_bamfile = $parser->tempFolder("local_bam")."/".$name.".bam"; //local copy of BAM file to reduce IO over network
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 //variant calling
 $vcffile = $folder."/".$name."_var.vcf.gz";
@@ -141,11 +151,6 @@ $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
 $qc_vc  = $folder."/".$name."_stats_vc.qcML";
 
-
-// folder for local BAM file
-$bam_folder = $parser->tempFolder("local_bam");
-$local_bamfile = $bam_folder."/".$name.".bam";
-
 // for annotation_only: check if all files are available
 if ($annotation_only)
 {
@@ -168,23 +173,28 @@ if ($annotation_only)
 	} 
 }
 
-
-// copy BAM file to tmp for all calling steps
-if (!$annotation_only && !in_array("ma", $steps))
-{
-	if(in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
-	{
-		if (!file_exists($bamfile)) trigger_error("No BAM file found in Sample folder! Cannot perform any calling steps!", E_USER_ERROR);
-		if (!file_exists($bamfile.".bai")) trigger_error("No BAM index file found in Sample folder!", E_USER_ERROR);
-		// copy BAM file to local tmp
-		$parser->copyFile($bamfile, $local_bamfile);
-		$parser->copyFile($bamfile.".bai", $local_bamfile.".bai");
-	}
-}
-
 //mapping
 if (in_array("ma", $steps))
 {
+	// BAM file path to convert to FastQ
+	$bamfile_to_convert = $bamfile;
+
+	//fallback for remapping GRCh37 samples to GRCh38 - use BAM to create FASTQs
+	if (!$output_folder_exists && $sys['build']=="GRCh38")
+	{
+		if (!db_is_enabled("NGSD")) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
+		$db = DB::getInstance("NGSD", false);
+		$info = get_processed_sample_info($db, $name, false);
+
+		// determine project folder of GRCh37 
+		$bamfile_to_convert = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/${name}.bam";
+
+		// check if bam file exists
+		if (!file_exists($bamfile_to_convert)) trigger_error("BAM file of GRCh37 sample is missing!", E_USER_ERROR);
+
+		trigger_error("Output folder does not exists. Using BAM or Fastq files from GRCh37 as input!", E_USER_NOTICE);	
+	}
+
 	//determine input FASTQ files
 	$in_for = $folder."/*_R1_00?.fastq.gz";
 	$in_rev = $folder."/*_R2_00?.fastq.gz";
@@ -193,6 +203,26 @@ if (in_array("ma", $steps))
 	//find FastQ input files
 	$files1 = glob($in_for);
 	$files2 = glob($in_rev);
+		
+	//fallback for remapping GRCh37 samples to GRCh38 - copy FASTQs of GRCh37
+	if ($sys['build']=="GRCh38" && count($files1)==0)
+	{
+		if (!db_is_enabled("NGSD")) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
+		$db = DB::getInstance("NGSD", false);
+		$info = get_processed_sample_info($db, $name, false);
+		
+		$in_for_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R1_00?.fastq.gz";
+		$in_rev_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R2_00?.fastq.gz";
+		$fastq_files_grc37 = glob($in_for_grch37);
+		if(count($fastq_files_grc37)>0)
+		{
+			exec2("cp -f $in_for_grch37 $folder");
+			exec2("cp -f $in_rev_grch37 $folder");
+			$files1 = glob($in_for);
+			$files2 = glob($in_rev);
+		}
+	}
+	
 	$files_index = glob($in_index);
 	if (count($files1)!=count($files2))
 	{
@@ -202,7 +232,7 @@ if (in_array("ma", $steps))
 	{
 		if (count($files1)==0)
 		{
-			if(file_exists($bamfile))
+			if(file_exists($bamfile_to_convert))
 			{
 				trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files.", E_USER_NOTICE);
 
@@ -211,7 +241,7 @@ if (in_array("ma", $steps))
 				$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
 				$tmp1 = $parser->tempFile(".fastq.gz");
 				$tmp2 = $parser->tempFile(".fastq.gz");
-				$parser->exec("{$ngsbits}BamToFastq", "-in $bamfile -out1 $tmp1 -out2 $tmp2", true);
+				$parser->exec("{$ngsbits}BamToFastq", "-in $bamfile_to_convert -out1 $tmp1 -out2 $tmp2", true);
 				$parser->moveFile($tmp1, $in_fq_for);
 				$parser->moveFile($tmp2, $in_fq_rev);
 				
@@ -300,6 +330,24 @@ if (in_array("ma", $steps))
 			}
 		}
 	}
+}
+else
+{
+	//check BAM
+	if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
+	{
+		//check BAM exists
+		if (!file_exists($bamfile)) trigger_error("No BAM file found in sample folder! Cannot perform any calling steps!", E_USER_ERROR);
+		
+		// verify that genome build of BAM matches given genome build
+		$bam_genome_build = get_genome_build($bamfile);
+		if ($bam_genome_build != "" && !starts_with($bam_genome_build, $sys['build']))
+		{
+			trigger_error("Genome build of BAM file ('${bam_genome_build}') does not match genome build of analysis ('".$sys['build']."')!", E_USER_ERROR);
+		}
+	}
+	
+	$local_bamfile = $bamfile;
 }
 
 //variant calling
@@ -419,12 +467,15 @@ if (in_array("vc", $steps))
 	if ($is_wgs)
 	{
 		$prs_folder = repository_basedir()."/data/misc/prs/";
-		$prs_scoring_files = glob($prs_folder."/*.vcf");
-		$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
+		$prs_scoring_files = glob($prs_folder."/*_".$sys['build'].".vcf");
+		if (count($prs_scoring_files) > 0)
+		{
+			$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
+		}
 	}
 	
 	//determine ancestry
-	$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file}", true);
+	$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file} -build ".ngsbits_build($sys['build']), true);
 }
 
 
@@ -592,7 +643,6 @@ if (in_array("cn", $steps))
 				"##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.",
 				"##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.",
 				"##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.",
-				"##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.",
 				"##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.",
 				"##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.",
 				"##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).",
@@ -609,7 +659,7 @@ if (in_array("cn", $steps))
 				"##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).",
 				"##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.",
 				"##FILTER=off-target=Variant marked as 'off-target'.",
-				"#chr	start	end	ref	obs	{$name}	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info",
+				"#chr	start	end	ref	obs	{$name}	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info",
 			);
 			file_put_contents($varfile, implode("\n", $content));
 		}
@@ -628,7 +678,7 @@ if (in_array("cn", $steps))
 			
 		}
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode -out {$cnvfile}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnvfile}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-10.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
 
 
@@ -761,7 +811,7 @@ if (in_array("db", $steps))
 
 
 // Create Circos plot only if variant or copy-number calling was done
-if (in_array("vc", $steps) || in_array("cn", $steps))
+if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
 {
 	if ($is_wes || $is_wgs || $is_wgs_shallow)
 	{

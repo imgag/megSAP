@@ -12,7 +12,7 @@ $parser->addInt("threads","Maximum number of CPU threads to use",true,1);
 $parser->addOutfile("out","Path to the output file",true);
 $parser->addInfile("bed_file","Bed file that contains target region",true);
 //optional
-$parser->addString("build", "The reference genome build to use. ", true, "GRCh37");
+$parser->addString("build", "The reference genome build to use. ", true, "GRCh38");
 $parser->addFlag("keep_status_files","Keep MSI status files");
 $parser->addFlag("is_exome","Use standard parameters for MSI calling dedicated for exomes.");
 extract($parser->parse($argv));

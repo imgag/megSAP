@@ -13,7 +13,7 @@ $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 
 // optional
-$parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
+$parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh38");
 $parser->addFloat("cn_offset", "Copy number between 2-offset and 2+offset will not be plotted to reduce the runtime of the script. Filter is deactivated if offset is 0.", true, 0.3);
 $parser->addInt("cnv_min_ll", "Minimum loglikelyhood for CNVs to be shown in the plot.", true, 20);
 $parser->addInt("cnv_min_nor", "Minimum number of regions for CNVs to be shown in the plot.", true, 3);
@@ -27,17 +27,17 @@ extract($parser->parse($argv));
 $cn_offset = abs($cn_offset);
 
 // get Cicos config and genome files 
-$karyotype_file = repository_basedir() . "/data/misc/circos/karyotype.human.$build.txt";
+$karyotype_file = repository_basedir() . "/data/misc/circos/karyotype.human.{$build}.txt"; 
 if (!file_exists($karyotype_file)) 
 {
-    trigger_error("No karyotype file for build $build found!", E_USER_ERROR);
+    trigger_error("No karyotype file for build {$build} found!", E_USER_ERROR);
 }
 $circos_template_file = repository_basedir() . "/data/misc/circos/config_template.conf";
 if (!file_exists($circos_template_file)) 
 {
     trigger_error("No Circos template file found at \"$circos_template_file\"!", E_USER_ERROR);
 }
-$chr_file = repository_basedir() . "/data/misc/circos/chr_region.$build.txt";
+$chr_file = repository_basedir() . "/data/misc/circos/chr_region.{$build}.txt";
 if (!file_exists($chr_file)) 
 {
     trigger_error("No chr region file found at \"$chr_file\"!", E_USER_ERROR);
@@ -49,7 +49,7 @@ if (!file_exists($circos_housekeeping_file))
 }
 
 // get telomere file
-$telomere_file = repository_basedir() . "/data/misc/centromer_telomer_hg19.bed";
+$telomere_file = repository_basedir() . "/data/misc/centromer_telomer.bed";
 if (!file_exists($telomere_file)) 
 {
     trigger_error("No telomere file found at \"$telomere_file\"!", E_USER_ERROR);

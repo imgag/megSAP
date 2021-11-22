@@ -16,7 +16,7 @@ $tmp_in = temp_file(".bed");
 $tmp_unmapped = temp_file(".bed");
 $tmp_out = temp_file(".bed");
 
-$ho = fopen($out, "w");
+$ho = fopen2($out, "w");
 foreach(file($in) as $line)
 {
 	$line = nl_trim($line);

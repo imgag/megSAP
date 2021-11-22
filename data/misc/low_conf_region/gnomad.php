@@ -7,7 +7,7 @@ $min_hits = trim($argv[3]);
 $out = $argv[4];
 
 $regs = [];
-$h = gzopen($argv[1], "r");
+$h = gzopen2($argv[1], "r");
 while(!gzeof($h))
 {
 	$line = trim(gzgets($h));

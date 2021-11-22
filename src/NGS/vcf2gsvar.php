@@ -63,7 +63,7 @@ function translate($error_name, $value, $dict)
 }
 
 //collapse several values to a single value
-function collapse($error_name, $values, $mode, $decimal_places = null)
+function collapse(&$tag, $error_name, $values, $mode, $decimal_places = null)
 {
 	for($i=0; $i<count($values); ++$i)
 	{
@@ -72,7 +72,7 @@ function collapse($error_name, $values, $mode, $decimal_places = null)
 		{
 			if (!is_numeric($v))
 			{
-				trigger_error("Invalid numeric value '{$v}' in mode '{$mode}' while collapsing '{$error_name}'!", E_USER_ERROR);
+				trigger_error("Invalid numeric value '{$v}' in mode '{$mode}' while collapsing '{$error_name}' in variant '{$tag}'!", E_USER_ERROR);
 			}
 			$v = number_format($v, $decimal_places, ".", "");
 			if ($values[$i]>0 && $v==0)
@@ -88,7 +88,7 @@ function collapse($error_name, $values, $mode, $decimal_places = null)
 		$values = array_unique($values);
 		if (count($values)>1)
 		{
-			trigger_error("Several values '".implode("','", $values)."' in mode '{$mode}' while collapsing '{$error_name}'!", E_USER_ERROR);
+			trigger_error("Several values '".implode("','", $values)."' in mode '{$mode}' while collapsing '{$error_name}' in variant '{$tag}'!", E_USER_ERROR);
 		}
 		else if (count($values)==0)
 		{
@@ -106,7 +106,7 @@ function collapse($error_name, $values, $mode, $decimal_places = null)
 	}
 	else
 	{
-		trigger_error("Invalid mode '{$mode}' while collapsing '{$error_name}'!", E_USER_ERROR);
+		trigger_error("Invalid mode '{$mode}' while collapsing '{$error_name}' in variant '{$tag}'!", E_USER_ERROR);
 	}
 }
 
@@ -269,7 +269,6 @@ $column_desc = array(
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
 	array("Sift", "Sift effect prediction and score for each transcript: D=damaging, T=tolerated."),
 	array("PolyPhen", "PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign."),
-	array("fathmm-MKL", "fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
 	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
@@ -334,6 +333,7 @@ $hgnc_messages = array();
 $in_header = true;
 $handle = fopen2($in, "r");
 $handle_out = fopen2($out, "w");
+fwrite($handle_out, "##GENOME_BUILD=GRCh38\n");
 $skip_ngsd = true; // true as long as no NGSD header is found
 $skip_ngsd_som = true; // true as long as no NGSD somatic header is found
 $skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC) header is found.
@@ -407,8 +407,6 @@ while(!feof($handle))
 			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_phylop = index_of($cols, "PHYLOP", false);
 			$i_revel = index_of($cols, "REVEL", false);
-			$i_fathmm_c = index_of($cols, "FATHMM_MKL_C");
-			$i_fathmm_nc = index_of($cols, "FATHMM_MKL_NC");
 			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_existingvariation = index_of($cols, "Existing_variation");
 			$i_af_kg = index_of($cols, "AF");
@@ -418,8 +416,6 @@ while(!feof($handle))
 			$i_af_gnomad_eas = index_of($cols, "gnomAD_EAS_AF");
 			$i_af_gnomad_nfe = index_of($cols, "gnomAD_NFE_AF");
 			$i_af_gnomad_sas = index_of($cols, "gnomAD_SAS_AF");
-			$i_repeat = index_of($cols, "REPEATMASKER");
-			$i_omim = index_of($cols, "OMIM", false);
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
 		}
@@ -520,6 +516,7 @@ while(!feof($handle))
 	$cols = explode("\t", $line);
 	if (count($cols)<10) trigger_error("VCF file line contains less than 10 columns: '$line'", E_USER_ERROR);
 	list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = $cols;
+	$tag = "{$chr}:{$pos} {$ref}>{$alt}";
 	if ($filter=="" || $filter=="." || $filter=="PASS")
 	{
 		$filter = array();
@@ -534,8 +531,6 @@ while(!feof($handle))
 	$start = $pos;
 	$end = $pos;
 	$ref = strtoupper($ref);
-	if ($ref=='N') continue; //skip variants where reference is undefined
-	
 	$alt = strtoupper($alt);
 	if(strlen($ref)>1 || strlen($alt)>1) //correct indels
 	{
@@ -694,9 +689,7 @@ while(!feof($handle))
 	$af_gnomad_sas = array();
 	$hom_gnomad = array();
 	$hemi_gnomad = array();
-	$repeat = array();
 	$clinvar = array();
-	$omim = array();
 	$hgmd = array();
 	$maxentscan = array();
 	$regulatory = array();
@@ -745,17 +738,6 @@ while(!feof($handle))
 				}
 			}
 			
-			//RepeatMasker
-			$repeat[] = strtr(trim($parts[$i_repeat]), array("[s]"=>" "));
-			
-			//OMIM
-			if ($i_omim!==FALSE)
-			{
-				$text = trim(strtr(vcf_decode_url_string($parts[$i_omim]), array("[c]"=>",", "&"=>",", "_"=>" ")));
-				if ($text!="") $text .= ";";
-				$omim[] = $text;
-			}
-			
 			//MaxEntScan
 			if ($parts[$i_maxes_ref]!="")
 			{
@@ -775,10 +757,7 @@ while(!feof($handle))
 			}
 			$revel_score = trim($parts[$i_revel]);
 			if ($revel_score!="") $revel[] = $revel_score;
-			$fathmm_c = trim($parts[$i_fathmm_c]);
-			$fathmm_nc = trim($parts[$i_fathmm_nc]);
-			$fathmm[] = ($fathmm_c=="" && $fathmm_nc=="") ? "" : number_format($fathmm_c, 2).",".number_format($fathmm_nc, 2);
-			
+
 			//######################### transcript-specific information #########################
 			
 			//only transcripts
@@ -805,8 +784,10 @@ while(!feof($handle))
 				if ($i_hgnc_id!==false && $gene!="")
 				{
 					$hgnc_id = $parts[$i_hgnc_id];
+					$hgnc_id = trim(strtr($hgnc_id, array("HGNC:"=>"")));
 					if (isset($hgnc[$hgnc_id]))
 					{
+		
 						$hgnc_gene = $hgnc[$hgnc_id];
 						if ($gene!=$hgnc_gene)
 						{
@@ -1051,7 +1032,7 @@ while(!feof($handle))
 	// gnomAD_genome
 	if (isset($info["gnomADg_AF"]))
 	{
-		$gnomad_value = trim($info["gnomADg_AF"]);
+		$gnomad_value = trim($info["gnomADg_AF"]);		
 		$af_gnomad_genome[] = $gnomad_value=="." ? "" : $gnomad_value;
 	}
 	if (isset($info["gnomADg_Hom"])) $hom_gnomad[] = trim($info["gnomADg_Hom"]);
@@ -1091,18 +1072,24 @@ while(!feof($handle))
 	$dbscsnv = "";
 	if (isset($info["DBSCSNV_ADA"]) && isset($info["DBSCSNV_RF"]))
 	{
-		$dbscsnv = trim($info["DBSCSNV_ADA"])."/".trim($info["DBSCSNV_RF"]);
+		$ada = trim($info["DBSCSNV_ADA"]);
+		if ($ada==".") $ada="";
+		if (contains($ada, '&')) $ada = max(explode('&', $ada));
+		$rf = trim($info["DBSCSNV_RF"]);
+		if ($rf==".") $rf="";
+		if (contains($rf, '&')) $rf = max(explode('&', $rf));
+		$dbscsnv = $ada."/".$rf;
 	}
 
 	//AFs
-	$dbsnp = implode(",", collapse("dbSNP", $dbsnp, "unique"));	
-	$kg = collapse("1000g", $af_kg, "one", 4);
-	$gnomad = collapse("gnomAD", $af_gnomad, "one", 4);
-	$gnomad_genome = collapse("gnomAD genome", $af_gnomad_genome, "one", 4);
+	$dbsnp = implode(",", collapse($tag, "dbSNP", $dbsnp, "unique"));	
+	$kg = collapse($tag, "1000g", $af_kg, "one", 4);
+	$gnomad = collapse($tag, "gnomAD", $af_gnomad, "one", 4);
+	$gnomad_genome = collapse($tag, "gnomAD genome", $af_gnomad_genome, "one", 4);
 	$gnomad = max($gnomad, $gnomad_genome);
-	$gnomad_hom_hemi = collapse("gnomAD Hom", $hom_gnomad, "one").",".collapse("gnomAD Hemi", $hemi_gnomad, "one");
+	$gnomad_hom_hemi = collapse($tag, "gnomAD Hom", $hom_gnomad, "one").",".collapse($tag, "gnomAD Hemi", $hemi_gnomad, "one");
 	if ($gnomad_hom_hemi==",") $gnomad_hom_hemi = "";
-	$gnomad_sub = collapse("gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse("gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse("gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse("gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse("gnomAD SAS", $af_gnomad_sas, "one", 4);
+	$gnomad_sub = collapse($tag, "gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse($tag, "gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse($tag, "gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse($tag, "gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse($tag, "gnomAD SAS", $af_gnomad_sas, "one", 4);
 	if (str_replace(",", "", $gnomad_sub)=="") $gnomad_sub = "";
 
 
@@ -1215,14 +1202,14 @@ while(!feof($handle))
 
 		if (isset($info["NGSD_GENE_INFO"]))
 		{
-			$ngsd_gene_info = vcf_decode_url_string(str_replace(":", ", ", trim($info["NGSD_GENE_INFO"])));
+			$ngsd_gene_info = trim(str_replace("&", ", ", vcf_decode_url_string($info["NGSD_GENE_INFO"])));
 		}
 		else
 		{
 			$ngsd_gene_info = "";
 		}
 	}
-
+	
 	//MMSplice
 	$mmsplice_deltaLogitPsi = "";
 	$mmsplice_pathogenicity = "";
@@ -1391,35 +1378,43 @@ while(!feof($handle))
 	$coding_and_splicing_details =  implode(",", $coding_and_splicing_details);
 	
 	//regulatory
-	$regulatory = implode(",", collapse("Regulatory", $regulatory, "unique"));
-	
+	$regulatory = implode(",", collapse($tag, "Regulatory", $regulatory, "unique"));
+
 	//RepeatMasker
-	$repeatmasker = collapse("RepeatMasker", $repeat, "one");
+	$repeatmasker = "";
+	if (isset($info["REPEATMASKER"]))
+	{
+		$repeatmasker = trim(str_replace("&", ", ", vcf_decode_url_string($info["REPEATMASKER"])));
+	}
 	
 	//effect predicions
-	$phylop = collapse("phyloP", $phylop, "one", 4);
+	$phylop = collapse($tag, "phyloP", $phylop, "one", 4);
 	$sift = implode(",", $sift);
 	if (trim(strtr($sift, ",", " "))=="") $sift = "";
 	$polyphen = implode(",", $polyphen);
 	if (trim(strtr($polyphen, ",", " "))=="") $polyphen = "";
-	$fathmm = collapse("fathmm-MKL", $fathmm, "one");
+	$fathmm = collapse($tag, "fathmm-MKL", $fathmm, "one");
 	
-	$revel = empty($revel) ? "" : collapse("REVEL", $revel, "max", 2);
+	$revel = empty($revel) ? "" : collapse($tag, "REVEL", $revel, "max", 2);
 	
 	//OMIM
-	$omim = collapse("OMIM", $omim, "one");
+	$omim = "";
+	if (isset($info["OMIM"]))
+	{
+		$omim = trim(vcf_decode_url_string($info["OMIM"]));
+	}
 
 	//ClinVar
-	$clinvar = implode(" ", collapse("ClinVar", $clinvar, "unique"));
+	$clinvar = implode(" ", collapse($tag, "ClinVar", $clinvar, "unique"));
 	
 	//HGMD
-	$hgmd = collapse("HGMD", $hgmd, "one");
+	$hgmd = collapse($tag, "HGMD", $hgmd, "one");
 
 	//MaxEntScan
-	$maxentscan = implode(",", collapse("MaxEntScan", $maxentscan, "unique"));
+	$maxentscan = implode(",", collapse($tag, "MaxEntScan", $maxentscan, "unique"));
 	
 	//COSMIC
-	$cosmic = implode(",", collapse("COSMIC", $cosmic, "unique"));
+	$cosmic = implode(",", collapse($tag, "COSMIC", $cosmic, "unique"));
 	
 	//skip common MODIFIER variants in WGS mode
 	if ($wgs && skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd, $ngsd_clas))
@@ -1431,7 +1426,7 @@ while(!feof($handle))
 	//write data
 	++$c_written;
 	$genes = array_unique($genes);
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$fathmm\t$cadd\t$revel\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity\t$spliceai");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity\t$spliceai");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");

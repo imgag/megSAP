@@ -6,7 +6,6 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../src/Common/genomics.php")
 $name = "mapping_bwa";
 start_test($name);
 
-$in_target = data_folder().$name."_target.bed";
 $in1_file = data_folder().$name."_in1.fastq.gz";
 $in2_file = data_folder().$name."_in2.fastq.gz";
 

@@ -34,11 +34,7 @@ while(!feof($handle))
 	$mim_id = trim($parts[5]);
 	
 	//disorders not empty
-	$disorders = trim($parts[12]);
-	$disorders = trim(strtr($disorders, array("(1)"=>"", "(2)"=>"", "(3)"=>"", "(4)"=>"", "["=>"", "]"=>"", "{"=>"", "}"=>"", "?"=>"", ";"=>"|")));
-	$disorders = trim(strtr($disorders, array(" , "=>",", " ,"=>",", ", "=>",")));
-	$disorders = trim(strtr($disorders, array(" | "=>"/", " |"=>"/", "| "=>"/")));
-	$disorders = trim(strtr($disorders, array(" "=>"_")));
+	$disorders = trim(strtr($parts[12], array("["=>"", "]"=>"")));
 	if ($disorders=="") continue;
 	
 	//chromosome
@@ -75,7 +71,7 @@ while(!feof($handle))
 		$line = trim($line);
 		if ($line=="") continue;
 		list($chr, $start, $end) = explode("\t", trim($line));
-		print "$chr	$start	$end	{$mim_id}_[GENE%3D{$gene_approved}_PHENOS%3D{$disorders}]\n";
+		print "$chr	$start	$end	{$mim_id}_[GENE={$gene_approved}_PHENOS={$disorders}]\n";
 	}	
 }
 fclose($handle);

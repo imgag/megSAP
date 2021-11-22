@@ -85,7 +85,7 @@ while(!feof($handle))
 	$maf_gene_id = "";
 	$maf_transcript_id = "";
 	
-	$handle_maf = gzopen($maf, "r");
+	$handle_maf = gzopen2($maf, "r");
 	while(!feof($handle_maf))
 	{
 		$line_maf = trim(fgets($handle_maf));

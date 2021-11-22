@@ -14,8 +14,9 @@ $parser->addString("name", "Processing system short name.", false);
 $parser->addFlag("clear", "Remove existing coverage files.");
 $parser->addFlag("tumor_only", "Keep only tumor samples, normally tumor samples are removed.");
 $parser->addFlag("somatic","Create coverage files for tumor-normal samples, including off-target coverage files.");
+$parser->addInt("max_somatic_pairs","Maximum number of tumor coverage files to be calculated.", true, INF);
 $parser->addFlag("include_test_projects","Includes also projects of type 'test'. By default, only 'diagnostic' and 'research' projects are included.");
-$parser->addString("build","reference genome",true,"GRCh37");
+$parser->addString("build","reference genome",true,"GRCh38");
 extract($parser->parse($argv));
 
 //check system
@@ -124,6 +125,44 @@ if(!$somatic)
 }
 else //somatic tumor-normal pairs
 {
+	
+	//only use n=max_somatic_pairs tumor samples in case this parameter is set.
+	if($max_somatic_pairs !== INF && count($samples) > $max_somatic_pairs)
+	{
+		//get all tumor samples
+		$sample_table_file = $parser->tempFile(".tsv");
+		$pipeline= [
+			["{$ngsbits}NGSDExportSamples", "-system $name -add_path SAMPLE_FOLDER"],
+			["{$ngsbits}TsvFilter", "-filter 'system_name_short is $name'"], //this is necessary because NGSDExportSamples performs fuzzy match
+			["{$ngsbits}TsvFilter", "-filter 'is_tumor = 1'"], //this is necessary because NGSDExportSamples performs fuzzy match
+			["{$ngsbits}TsvSlice", "-cols name,path -out $sample_table_file"],
+		];
+		$parser->execPipeline($pipeline, "NGSD tumor sample extraction", true);
+		$t_samples = file($sample_table_file);
+		shuffle($t_samples); //calculate coverage files in random order
+		
+		$samples = array();
+		
+		for($i=0; $i<$max_somatic_pairs;++$i)
+		{
+			$line = $t_samples[$i];
+			
+			if( starts_with($line, "#") ) continue;
+			list($tid,$tpath) = explode("\t", trim($line));
+			
+			$tinfo = get_processed_sample_info($db, $tid);
+			
+			$nid = $tinfo["normal_name"];
+			if($nid == "") continue;
+			$ninfo = get_processed_sample_info($db, $nid);
+			$npath = $ninfo["ps_folder"];
+
+			$samples[] = trim($line);
+			$samples[] = "{$nid}\t{$npath}";
+		}
+	}
+	
+	
 	//normal coverage output files
 	$off_target_bed = get_path("data_folder")."/coverage/off_target_beds/{$name}.bed";
 	$ref_n_dir = get_path("data_folder")."/coverage/{$name}";

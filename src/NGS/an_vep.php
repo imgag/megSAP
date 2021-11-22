@@ -17,7 +17,7 @@ $parser->addInfile("in",  "Input file in VCF format.", false);
 $parser->addOutfile("out", "Output file in VCF format.", false);
 //optional
 $parser->addString("ps_name", "Processed sample name (used to determine sample meta info from NGSD (e.g. disease group).", true, "");
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFlag("all_transcripts", "Annotate all transcripts - if unset only GENCODE basic transcripts are annotated.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("somatic", "Also annotate the NGSD somatic counts.");
@@ -54,168 +54,256 @@ function annotation_file_path($rel_path, $is_optional=false)
 	return $copy;
 }
 
-function write_lowAF_variants($low_af_file_spliceai, $unscored_variants, $private_var_dict)
+function vcf_variant_count($vcf)
 {
-	$c_written = 0;
-	$low_af_file_spliceai_h = fopen2($low_af_file_spliceai, 'w');
-	$unscored_variants_h = fopen2($unscored_variants, 'r');
-	while(!feof($unscored_variants_h))
+	$count = 0;
+	$h = fopen2($vcf, 'r');
+	while(!feof($h))
 	{
-		$line = fgets($unscored_variants_h);
-		//keep headers
-		if(starts_with($line, "#"))
-		{
-			fwrite($low_af_file_spliceai_h, $line);
-		}
-		else
-		{
-			if(strlen(trim($line))==0) continue;
-			$fields = explode("\t", $line);
-			if(count($fields) < 5) continue;
-			$var_ids = array($fields[0],$fields[1],$fields[3],$fields[4]);
-			$needle = implode("", $var_ids);
-			if(in_array($needle, $private_var_dict))
-			{
-				fwrite($low_af_file_spliceai_h, $line);
-				++$c_written;
-			}
-		}
+		$line = trim(fgets($h));
+		if ($line=="" || $line[0]=='#') continue;
+		
+		++$count;
 	}
-	fclose($unscored_variants_h);
-	fclose($low_af_file_spliceai_h);
+	fclose($h);
 	
-	return $c_written;
+	return $count;
 }
 
-function get_private_variants($vcf_file)
+function write_lowAF_variants($vcf_in, $max_af, $anno_key, $vcf_out)
 {
-	$vcf_h = gzopen($vcf_file, "r");
-	$private_var_dict = array();
-
-	$gnomAD_AF_id;
-	$AF_id;
-	while(!gzeof($vcf_h))
+	//init
+	$csq_tg_idx = -1;
+	$csq_gnomad_idx = -1;
+	$c_written = 0;
+	
+	$h = fopen2($vcf_in, 'r');
+	$h_o = fopen2($vcf_out, 'w');
+	while(!feof($h))
 	{
-		$line = trim(gzgets($vcf_h));
+		$line = nl_trim(fgets($h));
+		if ($line=="") continue;
+		
+		//header
 		if(starts_with($line, "#"))
 		{
+			fwrite($h_o, $line."\n");
+			
+			//extract VEP entry indices
 			if(starts_with($line, '##INFO=<ID=CSQ,'))
 			{
                 preg_match('/.*Description=\"(.*)\".*/', $line, $match);
 				if(count($match) < 2) continue;
                 $entries = explode("|", $match[1]);
-                $count = 0;
-				foreach($entries as $entry)
+				for($i=0; $i<count($entries); ++$i)
 				{
-					if(trim($entry)=='AF')
+					$entry = trim($entries[$i]);
+					if($entry=='AF')
 					{
-                        $AF_id = $count;
+                        $csq_tg_idx = $i;
 					}
-					else if(trim($entry)=='gnomAD_AF')
+					else if($entry=='gnomAD_AF')
 					{
-						$gnomAD_AF_id = $count;
+						$csq_gnomad_idx = $i;
 					}
-					$count+=1;
 				}
-			}		
+			}	
+		}
+		else //content
+		{
+			$parts = explode("\t", $line);
+			if(count($parts) < 8) trigger_error("Invalid VCF content line in {$vcf_in}: Missing INFO column.", E_USER_ERROR);
+			
+			//skip already annotated variants
+			if (contains($line, $anno_key)) continue;
+			
+			//skip variant with too high AF
+			$af = 0.0;
+            $info = explode(';', $parts[7]);
+			foreach($info as $info_entry)
+			{
+				if(starts_with($info_entry, 'CSQ='))
+				{
+					$info_entry = explode('=', $info_entry, 2);
+					$csq_annotations = explode('|', $info_entry[1]);
+
+					//1000G AF
+					$value = $csq_annotations[$csq_tg_idx];
+					if (is_numeric($value))
+					{
+						$af = max($af, $value);
+					}
+					//genomAD AF (exome)
+					$value = $csq_annotations[$csq_gnomad_idx];
+					if (is_numeric($value))
+					{
+						$af = max($af, $value);
+					}
+				}
+				//gnomAD AF (genome)
+				else if(starts_with($info_entry, 'gnomADg_AF='))
+				{
+					$info_entry = explode('=', $info_entry, 2);
+					$value = $info_entry[1];
+					if (is_numeric($value))
+					{
+						$af = max($af, $value);
+					}
+				}
+			}
+			if($af>$max_af) continue;
+			
+			//write
+			fwrite($h_o, $line."\n");
+			++$c_written;
+		}
+	}
+	fclose($h);
+	fclose($h_o);
+	
+	return $c_written;
+}
+
+//checks if any contig line is given, if not adds all contig lines from reference genome
+function add_missing_contigs($vcf)
+{
+	global $parser;
+	global $build;
+	
+	//check if contig lines are contained
+	$contains_contig_lines = false;
+	$line_below_reference_info = -1;
+
+	$file = fopen2($vcf, 'r');
+	$line_nr = 0;
+	while(!feof($file))
+	{
+		++$line_nr;
+		$line = trim(fgets($file));
+
+		if(starts_with($line, "##reference"))
+		{
+			$line_below_reference_info = $line_nr;
+		}
+		else if (starts_with($line, "##"))
+		{
+			if(starts_with($line, "##contig"))
+			{
+				$contains_contig_lines = true;
+			}
+		}
+		else break;
+	}
+	fclose($file);
+		
+	//add contig lines if necessary
+	if($contains_contig_lines)
+	{
+		$parser->log("Contig lines are present > nothing to add!");
+	}
+	else
+	{
+		$parser->log("Contig lines are missing > adding them from genome FASTA!");
+		$new_contigs = array();
+		$new_file_lines = file($vcf);
+		$build_path = genome_fasta($build);
+		list($chr_lines) = exec2("grep chr {$build_path}");
+		foreach($chr_lines as $line)
+		{
+			$chr = "";
+			$len = "";
+			$parts = explode(" ", $line);
+			if(sizeof($parts) >= 3)
+			{
+				//get chromosome
+				$chr = $parts[0];
+				$chr = ltrim($chr, '>');
+
+				//get length
+				preg_match('/.*:(\d+):.*$/', $parts[2], $matches);
+				if(sizeof($matches)>=2)
+				{
+					$len = $matches[1];
+				}
+				else
+				{
+					// try to parse chr header in GRCH38 format
+					foreach ($parts as $part) 
+					{
+						if(starts_with($part, "LN:"))
+						{
+							$len = explode(":", $part)[1];
+						}
+					}
+					if (!isset($len)) trigger_error("No length information for chromosome ".$chr." found in line(".$line.") for reference genome(".$build.")", E_USER_WARNING);
+				}
+
+				//add information to contig array
+				if($chr && $len)
+				{
+					$new_contigs[] = "##contig=<ID={$chr}, length={$len}>";
+				}
+			}
+			else
+			{
+				trigger_error("Contig information could not be parsed for line(".$line.") from reference genome(".$build.").", E_USER_WARNING);
+			}
+		}
+
+		if(empty($new_contigs))
+		{
+			trigger_error("No new contig lines were written for ".$vcf, E_USER_WARNING);
 		}
 		else
 		{
-			$vcf_line = explode("\t", $line);
-			if(count($vcf_line) < 8)
+			//write contigs in second line if no reference genome line is given
+			if($line_below_reference_info==-1)
 			{
-				trigger_error("Wrong vcf file format of vcf file ".$vcf_in.": Missing INFO column.",E_USER_ERROR);
+				$line_below_reference_info = 1;
 			}
-			$info = $vcf_line[7];
-            $info = explode(';', $info);
-
-			$af = 0;
-            $gnomad_af = 0;
-            $gnomad_af_genome = 0;
-			foreach($info as $info_col)
-			{
-				#parse CSQ entry
-				if(starts_with($info_col, 'CSQ='))
-				{
-					$info_col=explode('=', $info_col);
-					$csq_annotations=explode('|', $info_col[1]);
-
-					#1000 Genomes AF
-					try
-					{
-						$af = floatval(($csq_annotations[$AF_id]));
-					}
-					catch(Exception $e){unset($e);}
-					#gnomAD exome AF
-					try
-					{
-						$gnomad_af = floatval(($csq_annotations[$gnomAD_AF_id]));
-					}
-					catch(Exception $e){unset($e);}
-				}
-				#gnomAD genome AF
-				else if(starts_with($info_col, 'gnomADg_AF='))
-				{
-					try
-					{
-						$info_col=explode('=', $info_col);
-						$gnomad_af_genome = floatval($info_col[1]);
-					}
-					catch(Exception $e){unset($e);}
-				}
-			}
-			if($af<=0.01 && $gnomad_af<=0.01 && $gnomad_af_genome<=0.01)
-			{
-				$private_var_dict[] = implode("", array($vcf_line[0],$vcf_line[1],$vcf_line[3],$vcf_line[4]));
-			}	
+			
+			array_splice($new_file_lines, $line_below_reference_info, 0, $new_contigs);  
+			file_put_contents($vcf, implode("\n", $new_file_lines));
 		}
-
 	}
-	gzclose($vcf_h);
-
-	return $private_var_dict;
 }
 
-function annotate_mmsplice_score($splicing_output, $private_var_dict, $threshold = 2000)
+function annotate_mmsplice_score($splicing_output, $threshold = 2000)
 {
 	global $build;
 	global $threads;
 	global $data_folder;
 	global $parser;
 
-	//annotate MMSplice score for all precalculated NGSD variants + frequent GnomAD variants
-	$mmsplice_file =  annotation_file_path("/dbs/MMSplice/mmsplice_scores_2021_02_03.vcf.gz");
+	//annotate precalculated MMSplice scores
+	$mmsplice_file =  annotation_file_path("/dbs/MMSplice/mmsplice_scores_2021_06_11_GRCh38.vcf.gz");
 	$mmsplice_annotated_from_dbs = false;
 	if (file_exists($mmsplice_file))
 	{
 		$tmp = $parser->tempFile("_mms_preannotation.vcf");
-		$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in $splicing_output -annotation_file $mmsplice_file -info_ids mmsplice -out $tmp" );
+		$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in {$splicing_output} -annotation_file {$mmsplice_file} -info_ids mmsplice -out {$tmp} -threads {$threads}");
 		$parser->moveFile($tmp, $splicing_output);
 		$mmsplice_annotated_from_dbs = true;
 	}
 	else
 	{
-		trigger_error("MMSplice file for annotation not found at '".$mmsplice_file."'. Private variants will be scored again with MMSplice.",E_USER_WARNING);
+		trigger_error("MMSplice file for annotation not found at '".$mmsplice_file."'.", E_USER_WARNING);
 	}
-
-	//run MMSplice on private variants
-	//get 'private' variants that are not annotated so far 
-	$mmsplice_unscored_variants = $parser->tempFile("_mmsplice_unscored_variants.vcf");
-	exec2("grep '##fileformat' {$splicing_output} >> {$mmsplice_unscored_variants}", true);
-	exec2("grep '##contig' {$splicing_output} >> {$mmsplice_unscored_variants}", true);
-	exec2("grep '#CHROM' {$splicing_output} | cut -f1-8 -d'\t' >> {$mmsplice_unscored_variants}", true);
-	exec2("grep -v '#\|mmsplice' {$splicing_output} | cut -f1-5 -d'\t' | sed 's/$/\t.\t.\t./' >> {$mmsplice_unscored_variants}", false); //false in case grep can not find anything
+	
+	//run MMSplice on relevant variants ('private' variants that are not annotated yet)
 	$low_af_file_mmsplice = $parser->tempFile("_mmsplice_lowAF.vcf");
-	$c_written = write_lowAF_variants($low_af_file_mmsplice, $mmsplice_unscored_variants, $private_var_dict);
-	$parser->log("Scoring {$c_written} variants with MMsplice");
-	list($private_variant_lines, $stderr)  = exec2("grep -v '#' $low_af_file_mmsplice", false);
-	$private_variant_count = count(array_filter($private_variant_lines));
-	$mmsplice_annotated = FALSE;
-	if($private_variant_count <= $threshold && $private_variant_count > 0)
+	$private_variant_count = write_lowAF_variants($splicing_output, 0.01, "mmsplice=", $low_af_file_mmsplice);
+	$parser->log("Scoring {$private_variant_count} variants with MMsplice");
+	
+	if($private_variant_count > $threshold)
+	{
+		trigger_error("MMSplice annotation of private variants will be skipped: {$private_variant_count} is too many (threshold is {$threshold})!", E_USER_WARNING);
+	}
+	else if($private_variant_count > 0)
 	{
 		//run MMSplice
 		$private_mms_annotation = $parser->tempFile("_private_mms_annotation.vcf");
-		$gtf = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
+		$gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.104.gtf";
 		$fasta = genome_fasta($build);
 		$splice_env = get_path("Splicing", true);
 		$args = array();
@@ -226,22 +314,13 @@ function annotate_mmsplice_score($splicing_output, $private_var_dict, $threshold
 		$args[] = "--threads {$threads}"; //fasta reference file
 		putenv("PYTHONPATH");
 		$parser->exec("OMP_NUM_THREADS={$threads} {$splice_env}/splice_env/bin/python3 ".repository_basedir()."/src/Tools/vcf_mmsplice_predictions.py", implode(" ", $args), true);
-		$mmsplice_annotated = True;
-	}
-	else if($private_variant_count > 0)
-	{
-		trigger_error("MMSplice annotation of private variants will be missing (More than ".$threshold." variants).", E_USER_WARNING);
-	}
+		$mmsplice_annotated = true;
 
-	//add private MMSplice score to splicing output
-	//get all not annotated variants
-	if($mmsplice_annotated)
-	{
+		//add private MMSplice score to splicing output
 		$mms_anno_file = $parser->tempFile("_mmsplicePrivate.vcf");
 		exec2("grep '#' {$private_mms_annotation} >> {$mms_anno_file}", true);
 		exec2("grep -v '#' {$private_mms_annotation} | grep 'mmsplice' >> {$mms_anno_file}", false);
-		list($private_variant_lines, $stderr)  = exec2("grep -v '#' $mms_anno_file", false);
-		$private_variant_count = count(array_filter($private_variant_lines));
+		$private_variant_count = vcf_variant_count($mms_anno_file);
 		if($private_variant_count > 0)
 		{
 			//cut old header line, since new annotation produces additional line
@@ -258,7 +337,7 @@ function annotate_mmsplice_score($splicing_output, $private_var_dict, $threshold
 			$parser->exec("bgzip", "-c $mms_anno_file > $new_annotations_zipped");
 			$parser->exec("tabix", "-f -p vcf $new_annotations_zipped");
 			$tmp = $parser->tempFile("_mmspliceTmp.vcf");
-			$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in $splicing_output -annotation_file $new_annotations_zipped -info_ids mmsplice -out $tmp" );
+			$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in {$splicing_output} -annotation_file {$new_annotations_zipped} -info_ids mmsplice -out {$tmp} -threads {$threads}");
 			$parser->moveFile($tmp, $splicing_output);
 			//replace the header line with the origional one, station the annotation file of MMSplice
 			if($mmsplice_annotated_from_dbs) exec2("sed -i 's/##INFO=<ID=mmsplice.*/{$mms_header}/g' {$splicing_output}");
@@ -266,52 +345,47 @@ function annotate_mmsplice_score($splicing_output, $private_var_dict, $threshold
 	}
 }
 
-function annotate_spliceai_score($splicing_output, $private_var_dict, $threshold = 1000)
+function annotate_spliceai_score($splicing_output, $threshold = 1000)
 {
 	global $build;
 	global $threads;
 	global $data_folder;
 	global $parser;
 
-	//annotate SpliceAI score for all precalculated NGSD variants + frequent GnomAD variants
-	$spliceai_file =  annotation_file_path("/dbs/SpliceAI/spliceai_scores_2021_02_03.vcf.gz");
+	//annotate precalculated SpliceAI scores
+	$spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2021_06_11_GRCh38.vcf.gz");
 	$spliceai_annotated_from_dbs = false;
 	if (file_exists($spliceai_file))
 	{
 		$tmp = $parser->tempFile("_spai_preannotation.vcf");
-		$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in $splicing_output -annotation_file $spliceai_file -info_ids SpliceAI -out $tmp" );
+		$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in {$splicing_output} -annotation_file {$spliceai_file} -info_ids SpliceAI -out {$tmp}  -threads {$threads}");
 		$parser->moveFile($tmp, $splicing_output);
 		$spliceai_annotated_from_dbs = true;
 	}
 	else
 	{
-		trigger_error("SpliceAI file for annotation not found at '".$spliceai_file."'. Private variants will be scored with SpliceAI if they do not exceed {$threshold} variants.",E_USER_WARNING);
+		trigger_error("SpliceAI file for annotation not found at '".$spliceai_file."'.", E_USER_WARNING);
 	}
 
-	//parse all lines that are not annotated with SpliceAI yet
-	$spliceai_unscored_variants = $parser->tempFile("_wo_spliceai.vcf");
-	exec2("grep '##fileformat' {$splicing_output} >> {$spliceai_unscored_variants}", true);
-	exec2("grep '##contig' {$splicing_output} >> {$spliceai_unscored_variants}", true);
-	exec2("grep '#CHROM' {$splicing_output} | cut -f1-8 -d'\t' >> {$spliceai_unscored_variants}", true);
-	exec2("grep -v '#\|SpliceAI' {$splicing_output} | cut -f1-5 -d'\t' | sed 's/$/\t.\t.\t./' >> {$spliceai_unscored_variants}", false); //SpAI annotation might be empty
-	//filter for regions of low AF
+	//run SpliceAI on relevant variants ('private' variants that are not annotated yet)
 	$low_af_file_spliceai = $parser->tempFile("_spliceai_lowAF.vcf");
-	$c_written = write_lowAF_variants($low_af_file_spliceai, $spliceai_unscored_variants, $private_var_dict);
-	$parser->log("Scoring {$c_written} variants with SpliceAI");
+	write_lowAF_variants($splicing_output, 0.01, "SpliceAI=", $low_af_file_spliceai);
 
-	//filter variants according to spai regions
-	$new_spliceai_annotation = $parser->tempFile("_newSpliceAi_annotations.vcf");
+	//filter variants according to SpliceAI regions
 	$spai_regions = $parser->tempFile("spai_scoring_regions.bed");
-	$spai_build = strtolower($build);
 	$splice_env = get_path("Splicing", true);
-	exec2("cut -f 2,4,5 -d'\t' {$splice_env}/splice_env/lib/python3.6/site-packages/spliceai/annotations/{$spai_build}.txt | sed 's/^/chr/' | sed '1d' > {$spai_regions}");
+	exec2("cut -f 2,4,5 -d'\t' {$splice_env}/splice_env/lib/python3.6/site-packages/spliceai/annotations/".strtolower($build).".txt | sed 's/^/chr/' | sed '1d' > {$spai_regions}");
 	$low_af_file_spliceai_filtered = $parser->tempFile("_private_spliceai.vcf");
-	$parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg ".$spai_regions." -in $low_af_file_spliceai -out $low_af_file_spliceai_filtered", true);
-	list($private_variant_lines, $stderr)  = exec2("grep -v '#' $low_af_file_spliceai_filtered", false); //SpAI annotation might be empty
-	$private_variant_count = count(array_filter($private_variant_lines));
+	$parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg {$spai_regions} -in {$low_af_file_spliceai} -out {$low_af_file_spliceai_filtered}", true);
+	$private_variant_count = vcf_variant_count($low_af_file_spliceai_filtered);
+	$parser->log("Scoring {$private_variant_count} variants with SpliceAI");
+	
 	//calculate new SpliceAI score for private variants if feasible
-	$spliceai_annotated = FALSE;
-	if($private_variant_count <= $threshold && $private_variant_count > 0)
+	if($private_variant_count > $threshold)
+	{
+		trigger_error("SpliceAI annotation of private variants will be skipped {$private_variant_count} is too many (threshold is {$threshold})!", E_USER_WARNING);
+	}
+	else if($private_variant_count > 0)
 	{
 		$args = array();
 		
@@ -319,6 +393,7 @@ function annotate_spliceai_score($splicing_output, $private_var_dict, $threshold
 		$parser->exec("bgzip", "-c $low_af_file_spliceai > $low_af_file_spliceai_gzipped");
 		$parser->exec("tabix", "-f -p vcf $low_af_file_spliceai_gzipped");
 		
+		$new_spliceai_annotation = $parser->tempFile("_newSpliceAi_annotations.vcf");
 		$args[] = "-I {$low_af_file_spliceai_gzipped}";
 		$args[] = "-O {$new_spliceai_annotation}";
 		$fasta = genome_fasta($build);
@@ -327,21 +402,12 @@ function annotate_spliceai_score($splicing_output, $private_var_dict, $threshold
 		$args[] = "-A {$lower_build}"; //gtf annotation file
 		putenv("PYTHONPATH");
 		$parser->exec("OMP_NUM_THREADS={$threads} {$splice_env}/splice_env/bin/python3 {$splice_env}/splice_env/lib/python3.6/site-packages/spliceai", implode(" ", $args), true);
-		$spliceai_annotated = TRUE;
-	}
-	else if($private_variant_count > 0)
-	{
-		trigger_error("SpliceAI annotation of private variants will be missing (More than ".$threshold." variants).", E_USER_WARNING);
-	}
-
-	//annotate file with all splice predictions with calculated SpAI score for private variants
-	if($spliceai_annotated)
-	{
+		
+		//annotate file with all splice predictions with calculated SpliceAI score for private variants
 		$spai_anno_file = $parser->tempFile("_spliceaiPrivate.vcf");
 		exec2("grep '#' {$new_spliceai_annotation} >> {$spai_anno_file}", true);
 		exec2("grep -v '#' {$new_spliceai_annotation} | grep 'SpliceAI' >> {$spai_anno_file}", false);
-		list($private_variant_lines, $stderr)  = exec2("grep -v '#' $spai_anno_file", false);
-		$private_variant_count = count(array_filter($private_variant_lines));
+		$private_variant_count = vcf_variant_count($spai_anno_file);
 		if($private_variant_count > 0)
 		{
 			//cut old header line, since new annotation produces additional line
@@ -349,7 +415,7 @@ function annotate_spliceai_score($splicing_output, $private_var_dict, $threshold
 			{
 				list($spai_header, $stderr)  = exec2("grep '##INFO=<ID=SpliceAI' {$splicing_output}");
 				$spai_header = $spai_header[0]; //if annotated from dbs, there must be one match
-				$spai_header = str_replace("\"", "\\\"", $spai_header); //SpAI header has doubles quotes which need to be escaped
+				$spai_header = str_replace("\"", "\\\"", $spai_header); //SpliceAI header has doubles quotes which need to be escaped
 				exec2("sed -i '/^##INFO=<ID=SpliceAI/d' ".$splicing_output);
 			}
 
@@ -358,7 +424,7 @@ function annotate_spliceai_score($splicing_output, $private_var_dict, $threshold
 			$parser->exec("bgzip", "-c $new_spliceai_annotation > $new_annotations_zipped");
 			$parser->exec("tabix", "-f -p vcf $new_annotations_zipped");
 			$tmp = $parser->tempFile("_final_annotation.vcf.gz");
-			$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in $splicing_output -annotation_file $new_annotations_zipped -info_ids SpliceAI -out $tmp" );
+			$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in {$splicing_output} -annotation_file {$new_annotations_zipped} -info_ids SpliceAI -out {$tmp}  -threads {$threads}");
 			$parser->moveFile($tmp, $splicing_output);
 
 			//replace the header line with the origional one, station the annotation file of SpliceAI
@@ -378,7 +444,6 @@ function annotate_splice_predictions($splicing_output)
 	annotate_mmsplice_score($splicing_output, $private_var_dict);
 	annotate_spliceai_score($splicing_output, $private_var_dict);
 }
-
 // generate temp file for vep output
 $vep_output = $parser->tempFile("_vep.vcf");
 
@@ -401,26 +466,13 @@ $args[] = "--regulatory"; //regulatory features
 $fields[] = "BIOTYPE"; 
 $args[] = "--sift b --polyphen b"; //pathogenicity predictions
 $args[] = "--af --af_gnomad --failed 1"; //population frequencies
-$args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_all_chromosomes.tsv.gz"); //REVEL
+$args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_grch38_all_chromosomes.tsv.gz"); //REVEL
 $fields[] = "REVEL";
-$args[] = "--plugin FATHMM_MKL,".annotation_file_path("/dbs/fathmm-MKL/fathmm-MKL_Current.tab.gz"); //fathmm-MKL
-$fields[] = "FATHMM_MKL_C";
-$fields[] = "FATHMM_MKL_NC";
 $args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
 $fields[] = "MaxEntScan_ref";
 $fields[] = "MaxEntScan_alt";
-$args[] = "--custom ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker.bed.gz").",REPEATMASKER,bed,overlap,0"; //RepeatMasker
-$fields[] = "REPEATMASKER";
-$args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg19.100way.phyloP100way.bw").",PHYLOP,bigwig"; //phyloP
+$args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw").",PHYLOP,bigwig"; //phyloP
 $fields[] = "PHYLOP";
-
-$omim_file = annotation_file_path("/dbs/OMIM/omim.bed.gz", true); //OMIM annotation (optional because of license)
-
-if(file_exists($omim_file))
-{
-	$args[] = "--custom {$omim_file},OMIM,bed,overlap,0";
-	$fields[] = "OMIM";
-}
 
 if (!$all_transcripts)
 {
@@ -429,9 +481,7 @@ if (!$all_transcripts)
 
 $args[] = "--fields ".implode(",", $fields);
 putenv("PERL5LIB={$vep_path}/Bio/:{$vep_path}/cpan/lib/perl5/:".getenv("PERL5LIB"));
-
 $parser->exec(get_path("vep"), implode(" ", $args), true);
-
 
 //print VEP warnings
 $warn_file = $vep_output."_warnings.txt";
@@ -463,8 +513,6 @@ $args[] = "--vcf_info_field CSQ_refseq"; //store annotation in custom info field
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
 $args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".genome_fasta($build); //paths to data
 $args[] = "--numbers --hgvs --domains"; //annotation options
-
-
 $args[] = "--fields ".implode(",", $fields);
 putenv("PERL5LIB={$vep_path}/Bio/:{$vep_path}/cpan/lib/perl5/:".getenv("PERL5LIB"));
 $parser->exec(get_path("vep"), implode(" ", $args), true);
@@ -488,16 +536,15 @@ if (file_exists($warn_file))
 
 // create config file
 $config_file_path = $parser->tempFile(".config");
-$config_file = fopen($config_file_path, 'w');
+$config_file = fopen2($config_file_path, 'w');
 
 
 // add gnomAD annotation
-fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_r2.1.1.vcf.gz")."\tgnomADg\tAF,Hom,Hemi\t\ttrue\n");
+fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.1_GRCh38.vcf.gz")."\tgnomADg\tAF,Hom,Hemi\t\ttrue\n");
 
 
 // add clinVar annotation
-fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20211010_converted.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
-
+fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20211010_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
 
 // add HGMD annotation
 $hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2021_3_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
@@ -507,11 +554,11 @@ if(file_exists($hgmd_file))
 }
 
 //add CADD score annotation
-fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.6.vcf.gz")."\tCADD\tCADD=SNV\t\n");
-fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
+fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=SNV\t\n");
+fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
 
 //add dbscSNV scores annotation
-fwrite($config_file, annotation_file_path("/dbs/dbscSNV/dbscSNV1.1.vcf.gz")."\tDBSCSNV\tADA,RF\t\n");
+fwrite($config_file, annotation_file_path("/dbs/dbscSNV/dbscSNV1.1_GRCh38.vcf.gz")."\tDBSCSNV\tADA,RF\t\n");
 
 // check if NGSD export file is available:
 $skip_ngsd = false;
@@ -628,7 +675,7 @@ fclose($config_file);
 
 // execute VcfAnnotateFromVcf
 $vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in $vep_output_refseq -out $vcf_annotate_output -threads $threads", true);
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vep_output_refseq} -out {$vcf_annotate_output} -threads {$threads}", true);
 
 if (!$skip_ngsd)
 {
@@ -650,7 +697,7 @@ if (!$skip_ngsd)
 	if (file_exists($gene_file))
 	{
 		$tmp = $parser->tempFile(".vcf");
-		$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -in $vcf_annotate_output -out $tmp", true);
+		$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", true);
 		$parser->moveFile($tmp, $vcf_annotate_output);
 	}
 	else
@@ -659,10 +706,35 @@ if (!$skip_ngsd)
 	}
 }
 
-//annotate MMSplice and SpliceAI predictions
+//annotate RepeatMasker
+$tmp = $parser->tempFile("_repeatmasker.vcf");
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")." -name REPEATMASKER -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", true);
+$parser->moveFile($tmp, $vcf_annotate_output);
+
+//annotate OMIM (optional because of license)
+$omim_file = annotation_file_path("/dbs/OMIM/omim.bed", true);
+if(file_exists($omim_file))
+{
+	$tmp = $parser->tempFile("_omim.vcf");
+	$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed {$omim_file} -name OMIM -sep '&' -in {$vcf_annotate_output} -out {$tmp}  -threads {$threads}", true);
+	$parser->moveFile($tmp, $vcf_annotate_output);
+}
+
+//perform splicing predictions
 if (!$no_splice)
 {
-	annotate_splice_predictions($vcf_annotate_output);
+	//add missing contig infos
+	$start_time = microtime(true);
+	add_missing_contigs($vcf_annotate_output);
+	$parser->log("Execution time of adding missing contigs: ".time_readable(microtime(true) - $start_time));
+	
+	//perform splicing annotations
+	$start_time = microtime(true);
+	annotate_mmsplice_score($vcf_annotate_output);
+	$parser->log("Execution time of MMsplice annotation: ".time_readable(microtime(true) - $start_time));
+	$start_time = microtime(true);
+	annotate_spliceai_score($vcf_annotate_output);
+	$parser->log("Execution time of SpliceAI annotation: ".time_readable(microtime(true) - $start_time));
 }
 
 //mark variants in low-confidence regions

@@ -14,14 +14,14 @@ $parser->addInfile("in1", "Input file in FASTQ format. Forward read.", false);
 $parser->addInfile("in2", "Input file in FASTQ format. Reverse read.", false);
 $parser->addOutfile("out", "Output file in BAM format (sorted).", false);
 //optional
-$parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
+$parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh38");
 $parser->addString("sample", "Sample name to use in BAM header. If unset the basename of the 'out' file is used.", true, "");
 $parser->addFlag("dedup", "Mark duplicates after alignment.");
 extract($parser->parse($argv));
 
 
 // check if valid reference genome is provided
-if (!in_array($build, array("GRCh37", "GRCh38", "hg19")))
+if (!in_array($build, array("GRCh38", "GRCh38_alt"))) 
 {
 	trigger_error("Invalid genome build '".$build."' given!", E_USER_ERROR);
 }
@@ -104,7 +104,6 @@ $parser->log("DRAGEN mapping metrics:", $mapping_metrics);
 $parser->log("Copy alignment back to /mnt/...");
 $parser->copyFile($working_dir.basename($out), $out);
 $parser->copyFile($working_dir.basename($out).".bai", $out.".bai");
-
 
 // delete working directory
 $parser->exec("rm", "-rf $working_dir");

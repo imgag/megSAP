@@ -13,7 +13,7 @@ $parser = new ToolBase("indel_realign_abra", "Perform indel realignment using AB
 $parser->addInfileArray("in",  "Input BAM file(s).", false);
 $parser->addOutfileArray("out",  "Output BAM file(s). Must be different from input BAM file(s). No index BAI files are created!", false);
 //optional
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addInt("threads", "Maximum number of threads used.", true, 1);
 $parser->addInfile("roi", "Target region for realignment.", true, "");
 $parser->addFloat("mer",  "ABRA2 minimum edge pruning ratio parameter. Default value is for germline - use 0.02 for somatic data.", true, 0.1);
@@ -48,6 +48,7 @@ if (!$skip_kmer && isset($roi))
 		$kmer_tmp = $parser->tempFile();
 		$parser->exec(str_replace("-jar", "-cp", get_path("abra2"))." abra.KmerSizeEvaluator", "$read_length $ref_genome $kmer_tmp $threads $roi", true);
 		$parser->moveFile($kmer_tmp, $kmer_file);
+		chmod($kmer_file, 0777);
 	}
 }
 

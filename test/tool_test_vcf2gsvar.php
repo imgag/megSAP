@@ -5,11 +5,6 @@ require_once("framework.php");
 $name = "vcf2gsvar";
 start_test($name);
 
-//legacy test
-$out_file1 = output_folder().$name."_out1_old.GSvar";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1_old.vcf -out $out_file1 --log ".output_folder().$name."_out1_old.log");
-check_file($out_file1, data_folder().$name."_out1_old.GSvar");
-
 //genotype_mode=single
 $out_file1 = output_folder().$name."_out1.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -out $out_file1 --log ".output_folder().$name."_out1.log");
@@ -20,17 +15,7 @@ $out_file2 = output_folder().$name."_out2.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -updown -out $out_file2 -genotype_mode skip --log ".output_folder().$name."_out2.log");
 check_file($out_file2, data_folder().$name."_out2.GSvar");
 
-//genotype_mode=single
-$out_file3 = output_folder().$name."_out3.GSvar";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -out $out_file3 --log ".output_folder().$name."_out3.log");
-check_file($out_file3, data_folder().$name."_out3.GSvar");
-
-//genotype_mode=single, RefSeq annotation
-$out_file4 = output_folder().$name."_out4.GSvar";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in2.vcf -out $out_file4 --log ".output_folder().$name."_out4.log");
-check_file($out_file4, data_folder().$name."_out4.GSvar");
-
-//genotype_mode=single, RefSeq annotation, NGSD group counts
+//genotype_mode=single, NGSD group counts
 $out_file_db = output_folder().$name."_out_db2.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in_db2.vcf -out $out_file_db --log ".output_folder().$name."_out_db2.log");
 check_file($out_file_db, data_folder().$name."_out_db2.GSvar");
@@ -43,7 +28,7 @@ check_file($out_file_empty, data_folder().$name."_out_empty.GSvar", true);
 
 //genotype_mode=single, WGS mode
 $out_file1 = output_folder().$name."_out5.GSvar";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in3.vcf -updown -wgs -out $out_file1 --log ".output_folder().$name."_out1.log");
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -updown -wgs -out $out_file1 --log ".output_folder().$name."_out1.log");
 check_file($out_file1, data_folder().$name."_out5.GSvar");
 
 //genotype_mode=multi

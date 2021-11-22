@@ -285,7 +285,7 @@ function check_tsv_file($out_file,$reference_file)
 }
 
 /// Performs an equality check on files. Optionally, header lines starting with '#' can be compared as well.
-function check_file($out_file, $reference_file, $compare_header_lines = false, $delta = null)
+function check_file($out_file, $reference_file, $compare_header_lines = false)
 {
 	check_test_started();
 	
@@ -325,14 +325,6 @@ function check_file($out_file, $reference_file, $compare_header_lines = false, $
 		file_put_contents($r, implode("\n", load_vcf_normalized($reference_file)));
 		
 		exec("diff -b $r $o > $logfile 2>&1", $output, $return);
-		$passed = ($return==0);
-	}
-	//numdiff
-	elseif (!is_null($delta))
-	{
-		if (!$compare_header_lines) trigger_error($_SERVER['SCRIPT_FILENAME'].": numdiff check will always compare header lines!", E_USER_ERROR);
-		$extras = "-a {$delta}";
-		exec("numdiff $extras $reference_file $out_file > $logfile 2>&1", $output, $return);
 		$passed = ($return==0);
 	}
 	//diff

@@ -88,7 +88,7 @@ find_missing_tests: dummy
 	php src/Tools/find_missing_tests.php
 	
 find_unused_tools: dummy
-	php src/Tools/find_unused_tools.php -ngsbits ../ngs-bits/ -megsap .
+	php src/Tools/find_unused_tools.php -ngsbits ../ngs-bits/ -megsap . > unused_tools.txt
 
 todos:
 	find . -name "*.php" | xargs grep -i "@todo" 

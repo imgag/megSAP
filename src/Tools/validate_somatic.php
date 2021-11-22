@@ -105,10 +105,13 @@ print "##ROI bases: {$roi_bases}\n";
 $vars_germline = load_vcf($normal, $roi, false);
 print "##Germline variants: ".count($vars_germline)."\n";
 
+// Why removing 'chr' prefix?
+// $tmp = $parser->tempFile(".bed");
+// exec2("cat {$roi} | tr -d 'chr' > {$tmp}"); 
+// $vars_somatic = load_vcf($tumor, $tmp, false);
+
 //load somatic variants
-$tmp = $parser->tempFile(".bed");
-exec2("cat {$roi} | tr -d 'chr' > {$tmp}");
-$vars_somatic = load_vcf($tumor, $tmp, false);
+$vars_somatic = load_vcf($tumor, $roi, false);
 print "##Tumor variants: ".count($vars_somatic)."\n";
 foreach($vars_germline as $var => $gt)
 {

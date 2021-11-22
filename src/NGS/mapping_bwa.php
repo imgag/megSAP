@@ -14,7 +14,7 @@ $parser->addInfile("in1",  "Input file in FASTQ format. Forward read.", false);
 $parser->addInfile("in2",  "Input file in FASTQ format. Reverse read.", false);
 $parser->addOutfile("out",  "Output file in BAM format (sorted).", false);
 //optional
-$parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh37");
+$parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh38");
 $parser->addString("sample", "Sample name to use in BAM header. If unset the basename of the 'out' file is used.", true, "");
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
 $parser->addFlag("dedup", "Mark duplicates after alignment.");

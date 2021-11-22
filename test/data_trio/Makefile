@@ -1,6 +1,6 @@
 
 all:
-	make clear link vc cn sv diff ra
+	make clear link vc cn sv diff reanno
 	
 clear:
 	rm -rf *.bam *.bai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv trio_upd.tsv reanno
@@ -37,7 +37,7 @@ diff:
 	diff trio_manta_var_structural_cut.bedpe trio_manta_var_structural_cut.bedpe.out --ignore-matching-lines="^##"
 	diff trio_manta_var_structural_cut2.bedpe trio_manta_var_structural_cut2.bedpe.out --ignore-matching-lines="^##"
 
-ra:
+reanno:
 	mkdir -p reanno
 	# copy files
 	cp all.vcf.gz reanno/

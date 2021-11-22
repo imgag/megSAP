@@ -28,7 +28,7 @@ foreach($vcfs as $vcf)
 }
 print "\n";
 
-list($stdout) = exec2("BedInfo -in /mnt/share/data/enrichment/WGS_hg19.bed");
+list($stdout) = exec2("BedInfo -in /mnt/share/data/enrichment/WGS_hg38.bed");
 $wgs_size = trim(explode(":", $stdout[1])[1]);
 
 

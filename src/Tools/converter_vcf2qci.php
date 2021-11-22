@@ -12,7 +12,7 @@ $parser->addString("n_id",  "Normal ID in VCF file.", false);
 $parser->addOutfile("out",  "Output file in VCF format.", false);
 // optional
 $parser->addFlag("pass", "Keep only variants that passed all filter criteria");
-$parser->addString("build", "Build used for vcf file generation.", true, "GRCh37");
+$parser->addString("build", "Build used for vcf file generation.", true, "GRCh38");
 extract($parser->parse($argv));
 
 $filec = Matrix::fromTSV($in);

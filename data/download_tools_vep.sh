@@ -8,20 +8,19 @@ tools=$root/tools/
 dbs=$root/dbs/
 
 #Ignore this - used for local installation
-# tools=/mnt/share/opt/
-# tools=/home/bioinf/
-# dbs=/mnt/share/data/dbs/
+# tools=/mnt/storage2/GRCh38/share/opt/
+# dbs=/mnt/storage2/GRCh38/share/data/dbs/
 
-vep_install_dir=$tools/ensembl-vep-release-103.1/
+vep_install_dir=$tools/ensembl-vep-release-104.3/
 vep_cpan_dir=$vep_install_dir/cpan/
-vep_data_dir=$dbs/ensembl-vep-103/
+vep_data_dir=$dbs/ensembl-vep-104/
 
 # download ensembl-vep
 cd $tools
-wget https://github.com/Ensembl/ensembl-vep/archive/release/103.1.tar.gz
+wget https://github.com/Ensembl/ensembl-vep/archive/release/104.3.tar.gz
 mkdir $vep_install_dir
-tar -C $vep_install_dir --strip-components=1 -xzf 103.1.tar.gz
-rm 103.1.tar.gz
+tar -C $vep_install_dir --strip-components=1 -xzf 104.3.tar.gz
+rm 104.3.tar.gz
 
 #install dependencies
 mkdir -p $vep_cpan_dir
@@ -47,13 +46,13 @@ mkdir -p $vep_data_dir
 cd $vep_data_dir
 mkdir -p ftp
 cd ftp
-wget ftp://ftp.ensembl.org/pub/release-103/variation/indexed_vep_cache/homo_sapiens_vep_103_GRCh37.tar.gz
-wget ftp://ftp.ensembl.org/pub/release-103/variation/indexed_vep_cache/homo_sapiens_refseq_vep_103_GRCh37.tar.gz
+wget ftp://ftp.ensembl.org/pub/release-104/variation/indexed_vep_cache/homo_sapiens_vep_104_GRCh38.tar.gz
+wget ftp://ftp.ensembl.org/pub/release-104/variation/indexed_vep_cache/homo_sapiens_refseq_vep_104_GRCh38.tar.gz
 
 #install ensembl-vep
 PERL5LIB=$vep_install_dir/Bio/:$vep_cpan_dir/lib/perl5/:$PERL5LIB
 cd $vep_install_dir
-perl INSTALL.pl --SPECIES homo_sapiens,homo_sapiens_refseq --ASSEMBLY GRCh37 --AUTO acp --PLUGINS REVEL,FATHMM_MKL,MaxEntScan --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST
+perl INSTALL.pl --SPECIES homo_sapiens,homo_sapiens_refseq --ASSEMBLY GRCh38 --AUTO acp --PLUGINS REVEL,CADD,dbscSNV,MaxEntScan --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST --NO_HTSLIB
 cp $vep_data_dir/cache/Plugins/*.pm $vep_install_dir/modules/ #should not be necessary - probably a bug in the VEP installation script when using the CACHEDIR option (MS)
 
 # install MaxEntScan (for MaxEntScan plugin)

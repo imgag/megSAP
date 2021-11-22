@@ -297,39 +297,39 @@ extract($parser->parse($argv));
 if ($snps=="set1")
 {
 	$snps = array(
-		"A" => array("rs6666954", "chr1", "78578177", "T", "C", true),
-		"B" => array("rs4411641", "chr2", "147596973", "A", "G", false),
-		"C" => array("rs11130795", "chr3", "60898434", "T", "C", false),
-		"D" => array("rs6841061", "chr4", "185999543", "G", "A", false),
-		"E" => array("rs37535", "chr5", "57617403", "G", "C", false),
-		"F" => array("rs9388856", "chr6", "131148863", "A", "T", false),
-		"G" => array("rs1393978", "chr8", "107236280", "G", "T", false),
-		"H" => array("rs12682834", "chr9", "90062823", "A", "G", null), //null=skipped (this SNP produces quite a lot false calls)
-		"I" => array("rs2583136", "chr11", "13102924", "G", "A", false),
-		"J" => array("rs10748087", "chr12", "68195095", "C", "G", false),
-		"K" => array("rs2988039", "chr13", "79766188", "A", "G", false),
-		"L" => array("rs8045964", "chr16", "81816733", "C", "T", false),
-		"M" => array("rs6074704", "chr20", "14167283", "A", "G", false),
-		"N" => array("rs6512586", "chr20", "48301146", "G", "A", true),
+		"A" => array("rs6666954", "chr1", "78112493", "T", "C", true),
+		"B" => array("rs4411641", "chr2", "146839405", "A", "G", false),
+		"C" => array("rs11130795", "chr3", "60912762", "T", "C", false),
+		"D" => array("rs6841061", "chr4", "185078389", "G", "A", false),
+		"E" => array("rs37535", "chr5", "58321576", "G", "C", false),
+		"F" => array("rs9388856", "chr6", "130827723", "A", "T", false),
+		"G" => array("rs1393978", "chr8", "106224052", "G", "T", false),
+		"H" => array("rs12682834", "chr9", "87447908", "A", "G", null), //null=skipped (this SNP produces quite a lot false calls)
+		"I" => array("rs2583136", "chr11", "13081377", "G", "A", false),
+		"J" => array("rs10748087", "chr12", "67801315", "C", "G", false),
+		"K" => array("rs2988039", "chr13", "79192053", "A", "G", false),
+		"L" => array("rs8045964", "chr16", "81783128", "C", "T", false),
+		"M" => array("rs6074704", "chr20", "14186637", "A", "G", false),
+		"N" => array("rs6512586", "chr20", "49684609", "G", "A", true),
 	);
 }
 if ($snps=="set2")
 {
 	$snps = array(
-		"A" => array("rs2275276", "chr1", "45973928", "G", "A", false),
-		"B" => array("rs2274064", "chr1", "183542387", "T", "C", false),
-		"C" => array("rs6788448", "chr3", "193209178", "T", "C", false),
-		"D" => array("rs1371932", "chr4", "68780399", "A", "G", false),
-		"E" => array("rs2046402", "chr4", "85762385", "T", "C", false),
-		"F" => array("rs2071303", "chr6", "26091336", "T", "C", false),
-		"G" => array("rs2229384", "chr6", "49425521", "C", "T", false),
-		"H" => array("rs7742431", "chr6", "79679577", "A", "G", false),
-		"I" => array("rs41288423", "chr6", "101166095", "G", "A", false),
-		"J" => array("rs10756457", "chr9", "13150531", "T", "C", false),
-		"K" => array("rs4290270", "chr12", "72416235", "A", "T", null), //null=skipped (this SNP produces very many false calls)
-		"L" => array("rs6313", "chr13", "47469940", "G", "A", false),
-		"M" => array("rs5351", "chr13", "78475313", "T", "C", false),
-		"N" => array("rs140679", "chr15", "27772676", "C", "T", false),
+		"A" => array("rs2275276", "chr1", "45508256", "G", "A", false),
+		"B" => array("rs2274064", "chr1", "183573252", "T", "C", false),
+		"C" => array("rs6788448", "chr3", "193491389", "T", "C", false),
+		"D" => array("rs1371932", "chr4", "67914681", "A", "G", false),
+		"E" => array("rs2046402", "chr4", "84841232", "T", "C", false),
+		"F" => array("rs2071303", "chr6", "26091108", "T", "C", false),
+		"G" => array("rs2229384", "chr6", "49457808", "C", "T", false),
+		"H" => array("rs7742431", "chr6", "78969860", "A", "G", false),
+		"I" => array("rs41288423", "chr6", "100718219", "G", "A", false),
+		"J" => array("rs10756457", "chr9", "13150532", "T", "C", false),
+		"K" => array("rs4290270", "chr12", "72022455", "A", "T", null), //null=skipped (this SNP produces very many false calls)
+		"L" => array("rs6313", "chr13", "46895805", "G", "A", false),
+		"M" => array("rs5351", "chr13", "77901178", "T", "C", false),
+		"N" => array("rs140679", "chr15", "27527530", "C", "T", false),
 	);
 }
 

@@ -16,7 +16,7 @@ $parser->addOutfile("out", "Raw count output TSV file.", false);
 //optional parameters
 $parser->addFlag("exon_level", "Perform exon-level read counting.");
 
-$parser->addString("gtf_file", "GTF file containing feature annotations used for read counting.", true, get_path("data_folder")."/dbs/gene_annotations/GRCh37.gtf");
+$parser->addString("gtf_file", "GTF file containing feature annotations used for read counting.", true, get_path("data_folder")."/dbs/gene_annotations/GRCh38.gtf");
 $parser->addString("feature_type", "Feature type used for mapping reads to features.", true, "exon");
 $parser->addString("gtf_attribute", "Attribute used as feature ID.", true, "gene_id");
 
@@ -67,7 +67,7 @@ $args = [
 
 if (!$single_end)
 {
-	$args[] = "-p -B --countReadPairs";
+	$args[] = "-p -B";
 }
 if ($overlap || $exon_level)
 {

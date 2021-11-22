@@ -6,9 +6,9 @@
   ]>
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
-    <metaDataParameter ID="md0001" name="creation software" value="SeqPurge 2021_03-55-ge90f1a2c" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0001" name="creation software" value="SeqPurge 2021_09-3-g2300d349" cvRef="QC" accession="QC:1000002"/>
     <metaDataParameter ID="md0002" name="creation software parameters" value="" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2021-06-04T12:42:53" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2021-11-11T13:20:47" cvRef="QC" accession="QC:1000004"/>
     <metaDataParameter ID="md0004" name="source file" value="CFDNA_02_L001_R1_001.fastq.gz" cvRef="QC" accession="QC:1000005"/>
     <metaDataParameter ID="md0005" name="source file" value="CFDNA_02_L001_R2_001.fastq.gz" cvRef="QC" accession="QC:1000005"/>
     <qualityParameter ID="qp0001" name="read count" description="Total number of reads (forward and reverse reads of paired-end sequencing count as two reads)." value="117270" cvRef="QC" accession="QC:2000005"/>

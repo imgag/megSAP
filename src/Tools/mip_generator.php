@@ -21,10 +21,14 @@ $parser->addInt("max_capture_size", "Max. capture size.", true, 140);
 $parser->addFloat("min_svr", "Minimum SVR score.", true, 1.4);
 $parser->addFlag("no_svr", "Do not filter for svr score.");
 $parser->addInt("overlap", "MIP overlap size (start value).", true, 0);
-$parser->addString("snp_db", "Common variants database, which contains 'AF' info annoation.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_r2.1.1.vcf.gz"); 
+$parser->addString("snp_db", "Common variants database, which contains 'AF' info annoation.", true, get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v3.1.1_GRCh38.vcf.gz"); 
 extract($parser->parse($argv));
 
 $temp_folder = $parser->tempFolder("MipGenerator_");
+
+//check db file
+if (!file_exists($snp_db)) trigger_error("VCF given for parameter '-snp_db' ('${snp_db}') not found!", E_USER_ERROR);
+if (!file_exists($snp_db.".tbi")) trigger_error("VCF index file for parameter '-snp_db' is missing!", E_USER_ERROR);
 
 // 1. extract common SNPs
 $output = array();
@@ -33,10 +37,13 @@ foreach($bed as $reg)
 {
 	list($c, $s, $e) = explode("\t", $reg);
 	$e = trim($e);
-	$c = substr($c, 3);
+	//GRCh38 requires chr prefix: do not cut
+	//$c = substr($c, 3);
 	$s -= 1000;
 	$e += 1000;
+
 	list($snps,) = $parser->exec("tabix", "$snp_db $c:$s-$e", false); //no output logging, because Toolbase::extractVersion() does not return
+
 	foreach($snps as $snp)
 	{
 		list(, , , , $obs, , , $info) = explode("\t", $snp);
@@ -87,7 +94,7 @@ $common_snps = "${common_snps}.gz";
 putenv("PATH=".dirname(get_path("samtools")).":".dirname(get_path("bwa")).":".getenv("PATH"));
 $args = "-regions_to_scan $target ";
 $args .= "-project_name $temp_folder/$project_name ";
-$args .= "-bwa_genome_index ".genome_fasta("GRCh37")." -bwa_threads 2 ";
+$args .= "-bwa_genome_index ".genome_fasta("GRCh38")." -bwa_threads 2 ";
 $args .= "-snp_file $common_snps ";
 $args .= "-starting_mip_overlap $overlap ";
 $args .= "-arm_length_sums 40,41,42 -tag_sizes 8,0 -score_method mixed ";

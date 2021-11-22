@@ -67,7 +67,7 @@ Next, we install all required tools
 
 Next, we need to download and index the reference genome:
 	
-	> ./download_GRCh37.sh
+	> ./download_GRCh38.sh
 
 
 Finally, we need to download and convert some open-source databases for annotations:

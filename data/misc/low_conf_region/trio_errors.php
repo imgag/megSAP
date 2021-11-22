@@ -22,7 +22,7 @@ foreach($file as $line)
 	$c_inh_error = 0;
 	$output = [];
 	$comments = [];
-	$h = fopen($gsvar, "r");
+	$h = fopen2($gsvar, "r");
 	while(!feof($h))
 	{
 		$line =  trim(fgets($h));

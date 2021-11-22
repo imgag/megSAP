@@ -4,28 +4,28 @@ chmod:
 	chmod -R 775 Unaligned
 
 import_runqc:
-	php /mnt/users/bioinf/megSAP/src/NGS/runqc_parser.php -name "#00001" -run_dir Unaligned/../ -force
+	php /mnt/storage2/GRCh38/users/bioinf/megSAP/src/NGS/runqc_parser.php -name "#00001" -run_dir Unaligned/../ -force
 
 import_read_counts:
-	php /mnt/users/bioinf/megSAP/src/NGS/import_sample_read_counts.php -stats Unaligned/Stats/Stats.json -db NGSD_TEST 
+	php /mnt/storage2/GRCh38/users/bioinf/megSAP/src/NGS/import_sample_read_counts.php -stats Unaligned/Stats/Stats.json -db NGSD_TEST 
 
 copy_Exome_Diagnostik_diagnostic:
-	mv Unaligned/Project_Exome_Diagnostik/Sample_DX180049_01/ /mnt/storage2/projects/diagnostic//Exome_Diagnostik/
-	mv Unaligned/Project_Exome_Diagnostik/Sample_DX180050_02/ /mnt/storage2/projects/diagnostic//Exome_Diagnostik/
+	mv Unaligned/Project_Exome_Diagnostik/Sample_DX180049_01/ /mnt/storage2/GRCh38/projects/diagnostic//Exome_Diagnostik/
+	mv Unaligned/Project_Exome_Diagnostik/Sample_DX180050_02/ /mnt/storage2/GRCh38/projects/diagnostic//Exome_Diagnostik/
 
 copy_IVac_research:
-	mkdir -p /mnt/storage1/projects/research//IVac/
-	chmod 775 /mnt/storage1/projects/research//IVac/
-	mv Unaligned/Project_IVac/Sample_FO180004_01/ /mnt/storage1/projects/research//IVac/
-	mv Unaligned/Project_IVac/Sample_FO180005_01/ /mnt/storage1/projects/research//IVac/
+	mkdir -p /mnt/storage2/GRCh38/projects/research//IVac/
+	chmod 775 /mnt/storage2/GRCh38/projects/research//IVac/
+	mv Unaligned/Project_IVac/Sample_FO180004_01/ /mnt/storage2/GRCh38/projects/research//IVac/
+	mv Unaligned/Project_IVac/Sample_FO180005_01/ /mnt/storage2/GRCh38/projects/research//IVac/
 
 queue_Exome_Diagnostik_diagnostic:
-	php /mnt/users/bioinf/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX180049_01
-	php /mnt/users/bioinf/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX180050_02
+	php /mnt/storage2/GRCh38/users/bioinf/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX180049_01
+	php /mnt/storage2/GRCh38/users/bioinf/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX180050_02
 
 qc_IVac:
-	php /mnt/users/bioinf/megSAP/src/NGS/qc_fastq.php -folder /mnt/storage1/projects/research//IVac/Sample_FO180004_01/ -import
-	php /mnt/users/bioinf/megSAP/src/NGS/qc_fastq.php -folder /mnt/storage1/projects/research//IVac/Sample_FO180005_01/ -import
+	php /mnt/storage2/GRCh38/users/bioinf/megSAP/src/NGS/qc_fastq.php -folder /mnt/storage2/GRCh38/projects/research//IVac/Sample_FO180004_01/ -import
+	php /mnt/storage2/GRCh38/users/bioinf/megSAP/src/NGS/qc_fastq.php -folder /mnt/storage2/GRCh38/projects/research//IVac/Sample_FO180005_01/ -import
 
 email_IVac:
 	php -r 'mail("no_valid@email2.de","Neue Daten fuer IVac", "Hallo GenLab import,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts IVac liegen vor:\n\nFO180004_01\nFO180005_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: medgen.bioinformatik@med.uni-tuebingen.de");'

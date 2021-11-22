@@ -29,7 +29,7 @@ if($include_ncg)
 	$cnv_input->removeColByName("ncg_oncogene");
 	$cnv_input->removeColByName("ncg_tsg");
 	
-	$handle = fopen(get_path("data_folder") . "/dbs/NCG6.0/NCG6.0_oncogene.tsv", "r");
+	$handle = fopen2(get_path("data_folder") . "/dbs/NCG6.0/NCG6.0_oncogene.tsv", "r");
 	$oncogenes =  array();
 	$tsgs = array();
 	while(!feof($handle))
@@ -109,7 +109,7 @@ if(isset($rna_counts))
 	$approved_gene_map = array();
 	$temp_file = temp_file(".tsv", "approved_gene_symbols");
 	exec2("cut -f6 $rna_counts | sort | uniq | " . get_path("ngs-bits") . "/GenesToApproved | grep REPLACED > $temp_file", false);
-	$handle = fopen($temp_file, "r");
+	$handle = fopen2($temp_file, "r");
 	while(!feof($handle))
 	{
 		$line = trim(fgets($handle));
@@ -125,7 +125,7 @@ if(isset($rna_counts))
 	
 	//Create result array of genes and tpm that occur in RNA_counts and CNV file
 	$results = array();
-	$handle = fopen($rna_counts, "r");
+	$handle = fopen2($rna_counts, "r");
 	while(!feof($handle))
 	{
 		$line = fgets($handle);
@@ -152,7 +152,7 @@ if(isset($rna_counts))
 	//annotate RNA reference counts
 	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_hpa.tsv";
 	$ref_results = array();
-	$handle = fopen($ref_file,"r");
+	$handle = fopen2($ref_file,"r");
 	$entry_count = 0;
 	while(!feof($handle))
 	{

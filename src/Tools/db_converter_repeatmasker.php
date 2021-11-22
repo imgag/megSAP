@@ -25,7 +25,7 @@ while (!feof($handle))
 	$line = trim(fgets($handle));
 	if ($line=="") continue;
 	
-	$line = preg_replace('/\s+/', ' ',$line);
+	$line = preg_replace('/\s+/', ' ', $line);
 	$parts = explode(" ", $line);
 	if($parts[0]=="SW" || $parts[0]=="score") continue;
 	
@@ -36,7 +36,7 @@ while (!feof($handle))
 	$class = $parts[10];
 	
 	//write
-	print "$chr\t$start\t$end\t{$repeat}%20($class)\n";
+	print "$chr\t$start\t$end\t{$repeat} ($class)\n";
 }
 
 fclose($handle);

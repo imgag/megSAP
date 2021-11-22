@@ -15,6 +15,7 @@ extract($parser->parse($argv));
 
 // write VCF header
 $tmp_file = temp_file(".vcf", "dbscsnv");
+print "Using tmp file: {$tmp_file}\n";
 $out_fp = fopen2($tmp_file, "w");
 fwrite($out_fp, "##fileformat=VCFv4.2\n");
 fwrite($out_fp, "##fileDate=".date("Ymd")."\n");
@@ -41,6 +42,7 @@ foreach($in as $filename)
 		
 		$chr = "chr".trim($parts[$c_chr]);
 		$pos = trim($parts[$c_pos]);
+		if ($pos==".") continue; //some positions could not be converted by lift-over
 		$ref = trim($parts[2]);
 		$alt = trim($parts[3]);
 		$ada_score = trim($parts[16]);

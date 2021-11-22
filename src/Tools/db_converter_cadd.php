@@ -9,7 +9,7 @@ $parser = new ToolBase("db_converter_cadd", "Converts the CADD flat files (tsv.g
 // optional
 $parser->addInfile("in",  "Input file in tsv-format with CADD scores. ('-' for STDIN)", false, false);
 $parser->addOutfile("out",  "Output file in vcf.gz-format with CADD scores. ('-' for STDOUT)", false, false);
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 // open input file
@@ -41,7 +41,7 @@ while(!feof($in_fp))
 	$split_line = explode("\t", $line);
 	if (count($split_line) != 6)
 	{
-		trigger_error("Invalid number of columns (".count($split_line).")!", E_USER_ERROR);
+		trigger_error("Invalid number of columns (".count($split_line).") in line: $line", E_USER_ERROR);
 	}
 	$chr = "chr".chr_trim($split_line[0]);
 	$pos = (int) $split_line[1];

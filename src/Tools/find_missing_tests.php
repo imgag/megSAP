@@ -9,7 +9,7 @@ $test = repository_basedir()."/test/";
 list($tests) = exec2("ls $test | grep tool_test_");
 $tests = array_map(function($value) { return substr($value, 10); }, $tests);
 
-//find tools under SVN control
+//find tools under GIT control
 $tools = array();
 $tools2path = array();
 list($tmp) = exec2("find {$src}NGS/ {$src}Tools/ {$src}Primer/ -name \"*.php\" -or -name \"*.py\"");
@@ -56,23 +56,15 @@ foreach($missing_tests as $test)
 	//count usage in php
 	$usage = array();
 	$hits = array();
-	exec("find {$src}NGS/ {$src}Tools/ {$src}Primer/ {$src}Pipelines/ -name \"*.php\" -or -name \"*.py\" | xargs grep $test", $hits);
+	exec("find {$src}NGS/ {$src}Tools/ {$src}Primer/ {$src}Pipelines/ -name '*.php' -or -name '*.py' | xargs grep $test", $hits);
 	if (count($hits)>0)
 	{
 		$usage[] = count($hits)."x in php";
 	}
 	
-	//count usage in DB
-	$hits = array();
-	exec("find /mnt/users/ahsturm1/SVN/DB/ -name \"*.php\" -or -name \"*.py\" | xargs grep $test", $hits);
-	if (count($hits)>0)
-	{
-		$usage[] = count($hits)."x in DB";
-	}
-	
 	//count usge in webservices
 	$hits = array();
-	exec("find /mnt/users/ahsturm1/SVN/webservices/ -name \"*.php\" -or -name \"*.py\" | xargs grep $test", $hits);
+	exec("find /mnt/users/bioinf/http/ -name '*.php' -or -name '*.py' | grep -v '/+old/' | grep -v '/tmp/' | xargs grep $test", $hits);
 	if (count($hits)>0)
 	{
 		$usage[] = count($hits)."x in webservices";

@@ -536,299 +536,6 @@ function updateNormalSample(&$db_conn, $ps_tumor, $ps_normal, $overwrite = false
 	return false;
 }
 
-//@TODO implement *-syntax for HGVS compliance (end of coding)
-function convert_hgvs2genomic($build, $transcript, $cdna, $error = true)
-{
-	//extract cDNA position and
-	$chr = null;
-	$start = null;
-	$offset1 = 0;
-	$end = null;
-	$offset2 = 0;
-	$strand = null;
-	$ref = null;
-	$obs = null;
-	$matches = array();	//for preg_match
-	$e = null;
-	if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?(?<ref>[ACGT])[\>\<](?<obs>[ACGT])$/i",$cdna,$matches)!=0)	//SNV
-	{
-		$result = convert_coding2genomic($transcript, $matches["start"], $matches["start"],$error);
-		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
-		else	$e = $result;
-		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
-		$offset2 = $offset1;
-		$ref = $matches["ref"];
-		$obs = $matches["obs"];			
-	}
-	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?del(?<ref>[CATG]+)?$/i",$cdna,$matches)!=0)	//Deletion
-	{
-		if(empty($matches["end"]))	$matches["end"] = $matches["start"];	//if no end position is given
-		
-		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
-		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
-		else	$e = $result;
-		
-		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
-		$offset2 = $offset1;
-		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
-		if(!empty($matches["ref"]))	$ref = $matches["ref"];
-		$obs = "-";
-	}
-	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?del(?<ref_count>\d+)?$/i",$cdna,$matches)!=0)	//Deletion, e.g. c.644-12del16
-	{
-		if(empty($matches["end"]))	$matches["end"] = $matches["start"];	//if no end position is given
-		
-		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
-		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
-		else	$e = $result;
-
-		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
-		$offset2 = $offset1;
-		if(!empty($matches["ref_count"]))	$offset2 += $matches["ref_count"]-1;	//if no end position is given		
-		$obs = "-";
-	}
-	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?ins(?<obs>[CATG]+)$/i",$cdna,$matches)!=0)	//Insertion
-	{
-		//skip end and offset2, since insertion is always next to start (both splicing and coding)
-		$result = convert_coding2genomic($transcript, $matches["start"], $matches["start"],$error);
-		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
-		else	$e = $result;
-
-		//offsets
-		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
-		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
-		if($strand=="+" && $offset1!=0 && $offset2!=0)	$offset1 = min($offset1, $offset2);
-		if($strand=="-" && $offset1!=0 && $offset2!=0)	$offset1 = max($offset1, $offset2);
-		$offset2 = $offset1;
-		if($strand=="-" && empty($offset1) && empty($offset2))	$end = --$start;	//change of insertion site required for "-"-strand variants.
-		
-		//alleles
-		$ref = "-";
-		$obs = $matches["obs"];
-	}
-	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?del(?<ref>[CATG]+)?ins(?<obs>[CATG]+)$/i",$cdna,$matches)!=0)	//combined InDel
-	{
-		if(empty($matches["end"]))	$matches["end"] = $matches["start"];	//if no end position is given
-
-		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
-		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
-		else	$e = $result;
-
-		
-		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
-		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
-		if(!empty($matches["ref"]))	$ref = $matches["ref"];
-		if(empty($ref))	$ref = get_ref_seq($build,$chr,$start,$end);
-		if($strand=="-")	$ref = rev_comp ($ref);
-		$obs = $matches["obs"];			
-	}
-	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?dup(?<obs>[CATG]+)?$/i",$cdna,$matches)!=0)	//Duplication
-	{
-		if(empty($matches["end"]))	$matches["end"] = $matches["start"];
-		
-		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
-		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
-		else	$e = $result;
-
-		if($strand == "+")	$end = --$start;
-		if($strand == "-")	$start = $end;
-		//if on - strand move insertion to the right
-		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
-		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
-		$ref = "-";
-		$obs = get_ref_seq($build,$chr,$start,$end);
-		if(!empty($matches["obs"]))	$obs = $matches["obs"];			
-		if(strlen($obs)==1)	$start=--$end;
-	}
-	else	//default (not identifiable)
-	{
-		if($error)	trigger_error("Could not identify HGVS for variant: $cdna.",E_USER_ERROR);
-		return "Could not identify variant HGVS for variant: $cdna.";
-	}
-
-	if(!is_null($e))
-	{
-		return $e;
-	}
-	
-	if($strand=="+")
-	{
-		$start += $offset1;
-		$end += $offset2;
-		if($obs=="-" && empty($ref))	$ref = get_ref_seq($build,$chr,$start,$end);
-		$ref = strtoupper($ref);
-		$obs = strtoupper($obs);
-	}
-	if($strand == "-")	
-	{
-		$start -= $offset2;
-		$end -= $offset1;
-		
-		//convert reference
-		if($obs=="-" && empty($ref))	$ref = strtoupper(get_ref_seq($build,$chr,$start,$end));
-		else if($ref!="-")	$ref = strtoupper(rev_comp($ref));
-		
-		//convert obs
-		if($obs!="-")	$obs = strtoupper(rev_comp($obs));
-	}
-
-	//check if reference is valid
-	$r = get_ref_seq($build,$chr,$start,$end);	//adopt for different builds
-	if(!empty($chr) && !empty($ref) && $ref!="-" && strtoupper($r)!=strtoupper($ref))
-	{
-		if($error)	trigger_error("Wrong reference sequence for HGVS '$transcript:$cdna': is '$ref', should be '".$r."' ($chr:$start-$end).",E_USER_ERROR);
-		return "Wrong reference sequence for HGVS '$transcript:$cdna': is '$ref', should be '".$r."' ($chr:$start-$end).";
-	}
-
-	//check
-	$l = $end - $start + 1;
-	$b = strlen($ref);
-	if($l!=$b)
-	{
-		if($error)	trigger_error("HGVS ref does not match lenght of variant '$transcript:$cdna': $chr:$start-$end, ref is '$ref', obs is '$obs'.",E_USER_ERROR);
-		return "HGVS ref does not match lenght of variant '$transcript:$cdna': $chr:$start-$end, ref is '$ref', obs is '$obs'.";
-	}
-	
-	return array($chr,$start,$end,$ref,$obs);
-}
-
-function convert_coding2genomic($transcript,$cdna_start,$cdna_end, $error = true)
-{
-	//identify transcript ID, currently only refseq allowed
-	if(!preg_match('/(?<id>NM_\d+)(\.\d+)?/',$transcript,$matches))
-	{
-		if($error)	trigger_error("Invalid coding transcript ID '$transcript' (currently only refseq supported).",E_USER_ERROR);
-		return "Invalid coding transcript ID '$transcript' (currently only refseq supported).";
-	}
-	$refseq_id = $matches["id"];
-
-	//get gene information, chromosome, strand
-	$exons = array();
-	$chr = null;
-	$strand = null;
-	$transcript_length = 0;
-	$known_gene = get_path("data_folder")."/dbs/UCSC/refGene.txt";
-	$handle = fopen2($known_gene, "r");
-	if($handle)
-	{
-		while(($buffer=fgets($handle)) !== FALSE)
-		{
-			$row = explode("\t", $buffer);
-			if($row[1]==$refseq_id)
-			{
-				$chr = $row[2];
-				$strand = $row[3];
-				$cdsStart = $row[6];
-				$cdsEnd = $row[7];
-				$exons_start = explode(",", $row[9]);
-				$exons_end = explode(",", $row[10]);
-				for($i=0;$i<count($exons_start);++$i)
-				{
-					if(empty($exons_start[$i]))	continue;
-					$exons[] = array('start'=>$exons_start[$i], 'end'=>$exons_end[$i]);
-					$transcript_length += ($exons_end[$i]-$exons_start[$i]);
-				}
-				break;
-			}
-		}
-		fclose($handle);
-	}
-	else
-	{
-		if($error)	trigger_error("Could not open file $known_gene.",E_USER_ERROR);
-		return  "Could not open file $known_gene.";
-	}
-	if(count($exons)==0)
-	{
-		if($error)	trigger_error("Could not find exons for $ucsc_id.",E_USER_ERROR);
-		return "Could not find exons for $ucsc_id.";
-	}
-		
-	//get genomic positions for coding cDNA position, all coordinates are 0-based (knownGene.txt)
-	$start = null;
-	$end = null;
-	$coding_start = false;
-	$coding_end = false;
-	$first_coding_exon = null;
-	$coding_length = 0;
-	$tmp_basepairs_start = $cdna_start;
-	$tmp_basepairs_end = $cdna_end;
-	if($strand == "+")
-	{
-		for($i=0;$i<count($exons);++$i)
-		{
-			//get coding length, adopt if translation start or end is within this exon
-			$tmp_start = $exons[$i]["start"];
-			$tmp_end = $exons[$i]["end"];
-			if($cdsStart>=$tmp_start && $cdsStart<$tmp_end)	//find translation start
-			{
-				$tmp_start = $cdsStart;
-				$coding_start = true;
-			}
-			if($cdsEnd>$tmp_start && $cdsEnd<=$tmp_end)	//find translation start
-			{
-				$tmp_end = $cdsEnd;
-				$coding_end = true;
-			}
-			$length = $tmp_end - $tmp_start;
-			
-			//subtract coding basepairs of this exon from given cDNA positions
-			if($coding_start)
-			{
-				$tmp_basepairs_start-=$length;
-				$tmp_basepairs_end-=$length;
-				$coding_length+=$length;
-			}
-
-			//identify cDNA start and end position (no more tmp_basepairs left)
-			if($tmp_basepairs_start<=0 && $start==null)	$start = $tmp_end + $tmp_basepairs_start;
-			if($tmp_basepairs_end<=0 && $end==null)	$end = $tmp_end + $tmp_basepairs_end;
-			if($start!=null && $end!=null)	break;	//no need to check additional exons since coding start and end were already found
-		}
-	}
-	else if($strand == "-")
-	{
-		$exons = array_reverse($exons);
-		for($i=0;$i<count($exons);++$i)
-		{
-			//get coding length, adopt if translation start or end is within this exon
-			$tmp_start = $exons[$i]["start"];
-			$tmp_end = $exons[$i]["end"];
-			if($cdsEnd>$exons[$i]["start"] && $cdsEnd<=$exons[$i]["end"])	//find translation start (= cdsEnd in reverse mode)
-			{
-				$tmp_end = $cdsEnd;
-				$coding_start = true;
-			}
-			if($cdsStart>=$exons[$i]["start"] && $cdsStart<$exons[$i]["end"])	//find translation end (= cdsStart in reverse mode)
-			{
-				$tmp_start = $cdsStart;
-				$coding_end = true;
-			}
-			$length = $tmp_end - $tmp_start;
-		
-			//subtract coding basepairs of this exon from given cDNA positions
-			if($coding_start)
-			{
-				$tmp_basepairs_start-=$length;
-				$tmp_basepairs_end-=$length;
-				$coding_length+=$length;
-			}
-			
-			//identify cDNA start and end position (no more tmp_basepairs left)
-			if($tmp_basepairs_start<=0 && $end==null)	$end = $tmp_start - $tmp_basepairs_start + 1;	//convert 0-based start to 1-based start, convert strand
-			if($tmp_basepairs_end<=0 && $start==null)	$start = $tmp_start - $tmp_basepairs_end + 1;	//convert 0-based start to 1-based start, convert strand
-			if($start!=null && $end!=null)	break;
-		}
-	}
-	if($start<$cdsStart || $end>=($cdsEnd+1))	//0-based the other way round...
-	{
-		if($error)	trigger_error("Given cDNA position is invalid (given cDNA start: $cdna_start, given cDNA end: $cdna_end; length of coding transcript: $coding_length bp).",E_USER_ERROR);
-		return "Given cDNA position is invalid (given cDNA start: $cdna_start, given cDNA end: $cdna_end; length of coding transcript: $coding_length bp).";
-	}
-
-	return array($chr,$start,$end,$strand);
-}
-
 function indel_for_vcf($build, $chr, $start, $ref, $obs)
 {
 	$ref = trim($ref,"-");
@@ -1543,8 +1250,8 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 //Returns if special variant calling for mitochondrial DNA should be performed
 function enable_special_mito_vc($sys)
 {
-	//only for GRCh37
-	if ($sys['build']!="GRCh37") return false;
+	//only for GRCh38
+	if ($sys['build']!="GRCh38") return false;
 	
 	//only exome/genome
 	if ($sys['type']!="WES" && $sys['type']!="WGS") return false;
@@ -1614,7 +1321,7 @@ function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 	//generate bed file that contains edges of whole reference genome
 	$handle_in = fopen2("{$ref_genome_fasta}.fai","r");
 	$ref_bed = temp_file(".bed");
-	$handle_out = fopen($ref_bed,"w");
+	$handle_out = fopen2($ref_bed,"w");
 	while(!feof($handle_in))
 	{
 		$line = trim(fgets($handle_in));
@@ -1716,7 +1423,7 @@ function somatic_report_config(&$db_conn, $t_ps, $n_ps, $error_if_not_found=fals
 //Returns cytobands of given genomic range as array
 function cytoBands($chr, $start, $end)
 {
-	$handle = fopen(repository_basedir()."/data/misc/cytoBand.txt", "r");
+	$handle = fopen2(repository_basedir()."/data/misc/cytoBand.txt", "r");
 	
 	$out = array();
 	
@@ -1742,7 +1449,7 @@ function cytoBands($chr, $start, $end)
 //checks if any contig line is given, if not adds all contig lines from reference genome (using fasta index file)
 function add_missing_contigs_to_vcf($build, $vcf)
 {
-	$file = fopen($vcf, 'c+');
+	$file = fopen2($vcf, 'c+');
 	$new_file_lines = array();
 	if($file)
 	{
@@ -1824,7 +1531,6 @@ function add_missing_contigs_to_vcf($build, $vcf)
 
 }
 
-
 $aa1_to_aa3 = array( 'A'=>"Ala", 'R'=>"Arg", 'N'=>"Asn", 'D'=>"Asp", 'C'=>"Cys", 'E'=>"Glu", 'Q'=>"Gln", 'G'=>"Gly", 'H'=>"His", 'I'=>"Ile", 'L'=>"Leu", 'K'=>"Lys", 'M'=>"Met", 'F'=>"Phe", 'P'=>"Pro", 'S'=>"Ser", 'T'=>"Thr", 'W'=>"Trp", 'Y'=>"Tyr", 'V'=>"Val", '*'=>"Ter");
 $aa3_to_aa1 = array_flip($aa1_to_aa3);
 
@@ -1857,16 +1563,14 @@ function get_related_processed_samples(&$db, $ps_name, $relation, $systype="", $
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
 
 	$res = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", ["name" => $sample_name]);
-	if (count($res) != 1)
+	if (count($res)!=1)
 	{
-		trigger_error("Could not find sample '{$sample_name}' in NGSD > no related samples could be determined!", E_USER_WARNING);
 		return [];
 	}
 	$sample_id = $res[0]['id'];
 
 	//related samples
-	$res = $db->executeQuery("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation=:rel AND (sample1_id=:sid OR sample2_id=:sid)",
-								["rel" => $relation, "sid" => $sample_id]);
+	$res = $db->executeQuery("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation=:rel AND (sample1_id=:sid OR sample2_id=:sid)", ["rel" => $relation, "sid" => $sample_id]);
 	$related_samples_ids = array_diff(array_merge(array_column($res, "sample1_id"), array_column($res, "sample2_id")), [$sample_id]);
 	
 	
@@ -1938,6 +1642,108 @@ function annotate_gsvar_by_gene($gsvar_f, $outfile_f, $annotation_f, $key, $colu
 	$gsvar->removeColByName($column_name);
 	$gsvar->addCol($genes, $column_name, $column_description);
 	$gsvar->toTSV($outfile_f);
+}
+
+//determines genome build of a BAM file
+function get_genome_build($bamfile)
+{
+	list($stdout, $stderr, $exit) = exec2(get_path("samtools")." view -H $bamfile | egrep '^@PG' ");
+
+	if ((trim(implode("\n", $stderr)) != "" ) || ($exit != 0))
+	{
+		print "Exit code: $exit\n";
+		print "Stderr: \n".implode("\n", $stderr);
+		trigger_error("Error parsing header of BAM file '$bamfile'!", E_USER_ERROR);
+	} 
+
+	$builds = array();
+
+	foreach($stdout as $line)
+	{
+		$split_line = explode("\t", trim($line));
+		if ($split_line[0] == "@PG")
+		{
+			if (($split_line[1] == "ID:bwa") || ($split_line[1] == "ID:bwa-mem2"))
+			{
+				$build = "";
+				// parse genome build from bwa command line
+				foreach($split_line as $column)
+				{
+					if (starts_with($column, "CL:"))
+					{
+						$ref_file_path = explode(" ", $column)[2];
+						$build = basename($ref_file_path, ".fa");
+						break;
+					}
+				}
+				if ($build == "") 
+				{
+					trigger_error("Warning: Couldn't determine genome build for bwa-mem(2) mapping");
+				}
+				else
+				{
+					$builds[] = $build;
+				}
+			}
+			elseif ($split_line[1] == "ID: Hash Table Build")
+			{
+				$build = "";
+				// parse genome build from ABRA2 command line
+				foreach($split_line as $column)
+				{
+					if (starts_with($column, "CL:"))
+					{
+						$cl = explode(" ", $column);
+						$ref_file_path = "";
+						for ($i=0; $i < count($cl); $i++) 
+						{ 
+							if($cl[$i] == "--ht-reference")
+							{
+								$ref_file_path = $cl[$i + 1];
+								break;
+							}
+						}
+						if ($ref_file_path != "") 
+						{
+							$build = basename($ref_file_path, ".fa");
+							break;
+						}
+					}
+				}
+				if ($build == "") 
+				{
+					trigger_error("Warning: Couldn't determine genome build for bwa-mem(2) mapping");
+				}
+				else
+				{
+					$builds[] = $build;
+				}
+			}
+		}
+	}
+
+	if (count($builds) < 1) 
+	{
+		trigger_error("Could not determine genome build of BAM file '$bamfile'!", E_USER_WARNING);
+		return "";
+	}
+
+	$builds = array_unique($builds);
+
+	if (count($builds) > 1) trigger_error("BAM header contains inconsistent genome information!", E_USER_ERROR);
+
+	return $builds[0];
+}
+
+//converts a proessing system genome build string to a string compatible with ngs-bits
+function ngsbits_build($system_build)
+{
+	$system_build = strtolower($system_build);
+	
+	if ($system_build=="hg38") return "hg38";
+	if ($system_build=="grch38") return "hg38";
+	
+	return "hg19";
 }
 
 ?>

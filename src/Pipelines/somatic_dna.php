@@ -56,7 +56,7 @@ function create_baf_file($gsvar,$bam,$out_file, $ref_genome, &$error = False)
 	if(!file_exists($gsvar) || !file_exists($bam)) 
 	{
 		trigger_error("Could not create BAF file {$out_file}, no GSvar or BAM file available.", E_USER_WARNING);
-		$error = True;
+		$error = true;
 		return;
 	}
 	//Abort if out_file exists to prevent interference with other jobs
@@ -124,6 +124,11 @@ foreach($steps as $step)
 }
 
 ###################################### SCRIPT START ######################################
+if (!file_exists($out_folder))
+{
+	exec2("mkdir -p $out_folder");
+}
+if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/somatic_dna_".date("YmdHis").".log");
 
 //output prefix
 $full_prefix = "{$out_folder}/{$prefix}";
@@ -178,14 +183,14 @@ if (count($bams) > 1)
     else
     {
     	$args_similarity = [
-    		"-in", implode(" ", $bams),
-			"-mode", "bam",
-			"-max_snps", 4000
+    		"-in ".implode(" ", $bams),
+			"-mode bam",
+			"-max_snps 4000",
+			"-build ".ngsbits_build($sys['build'])
 		];
 		if (!empty($roi))
 		{
-			$args_similarity[] = "-roi";
-			$args_similarity[] = $roi;
+			$args_similarity[] = "-roi {$roi}";
 		}
         $output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", implode(" ", $args_similarity), true);
 
@@ -216,8 +221,7 @@ if( db_is_enabled("NGSD") )
 		}
 		else
 		{
-			$hg_build = ( $sys['build'] == "GRCh37" ? "hg19" : "hg38" );
-			$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build $hg_build -method sry", true);
+			$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build ".ngsbits_build($sys['build'])." -method sry", true);
 			list(,,$cov_sry) = explode("\t", $out[0][1]);
 
 			if(is_numeric($cov_sry) && (float)$cov_sry >= 30)
@@ -551,7 +555,7 @@ if(in_array("cn",$steps))
 		$repository_basedir = repository_basedir();
 		$data_folder = get_path("data_folder");
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2021-10.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
 
 		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2021_3.bed"; //optional because of license
@@ -745,7 +749,8 @@ if (in_array("an", $steps))
 			"-blacklist", repository_basedir() ."/data/gene_lists/somatic_tmb_blacklist.bed", //Blacklisted genes that are not included in TMB calculation (e.g. HLA-A and HLA-B)
 			"-tsg_bed", repository_basedir() ."/data/gene_lists/somatic_tmb_tsg.bed", //TSG genes whose mutations are treated specially in TMB calculation
 			"-ref", $ref_genome,
-			"-out", $somaticqc
+			"-out", $somaticqc,
+			"-build", ngsbits_build($sys['build'])
 		];
 		if (!empty($links))
 		{

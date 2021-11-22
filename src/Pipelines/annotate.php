@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("annotate", "Annotate variants called on genome build GRCh37.");
+$parser = new ToolBase("annotate", "Annotate variants called on genome build GRCh38.");
 $parser->addString("out_name", "Processed sample ID (e.g. 'GS120001_01').", false);
 $parser->addString("out_folder", "Output folder.", false);
 //optional
@@ -48,7 +48,7 @@ $stafile = $out_folder."/".$out_name."_stats_vc.qcML";
 
 //get system
 $sys = load_system($system, $out_name);
-if ($sys['build']!="GRCh37")
+if ($sys['build']!="GRCh38")
 {
 	trigger_error("Unknown genome build ".$sys['build']." cannot be annotated!", E_USER_ERROR);
 }
@@ -68,7 +68,7 @@ $cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export.vcf.gz";
 if(file_exists($cosmic_cmc) && $somatic)
 {
 	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
-	$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in $annfile -annotation_file $cosmic_cmc -info_ids COSMIC_CMC -out $temp_annfile" );
+	$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in {$annfile} -annotation_file {$cosmic_cmc} -info_ids COSMIC_CMC -out {$temp_annfile} -threads {$threads}");
 	$parser->moveFile($temp_annfile, $annfile);
 }
 
@@ -150,9 +150,5 @@ if (!$somatic) //germline only
 		$parser->execTool("NGS/check_tsv.php", "-in $varfile -build ".$sys['build']);
 	}
 }
-
-
-
-
 
 ?>

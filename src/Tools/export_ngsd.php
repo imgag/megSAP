@@ -74,7 +74,7 @@ extract($parser->parse($argv));
 //init
 $db = DB::getInstance($db);
 if (file_exists($out)) unlink($out);
-$out_handle = fopen($out, "a");
+$out_handle = fopen2($out, "a");
 
 //remove all initial data from NGSD (not by TUNCATE in case someone applies the SQL import to a production database)
 fputs($out_handle, "DELETE FROM user WHERE user_id='admin' OR user_id='genlab_import' OR user_id='unknown';\n");

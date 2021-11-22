@@ -195,11 +195,12 @@ if (in_array("ma", $steps))
 	$mappingqc_params = array(
 		"-in ".$final_bam,
 		"-out ".$qc_map,
-		"-ref ".genome_fasta($sys['build'])
+		"-ref ".genome_fasta($sys['build']),
+		"-build ".ngsbits_build($sys['build'])
 	);
 
 	$mappingqc_params[] = (isset($target_file) && $target_file != "") ? "-roi {$target_file}" : "-rna";
-	if ($build!="GRCh37") $mappingqc_params[] = "-no_cont";
+	if ($build!="GRCh38") $mappingqc_params[] = "-no_cont";
 
 	$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $mappingqc_params), true);
 }
@@ -320,7 +321,7 @@ SQL;
 		}
 
 		//annotate splice junctions
-		if ($build === "GRCh37" && db_is_enabled("NGSD"))
+		if ($build === "GRCh38" && db_is_enabled("NGSD"))
 		{
 			$parser->exec("{$ngsbits}SplicingToBed", "-in {$junctions} -report {$splicing_annot} -gene_report {$splicing_gene} -bed {$splicing_bed}", true);
 		}
@@ -359,6 +360,7 @@ if (in_array("fu",$steps) && in_array("star-fusion",$fusion_caller))
 	
 		//add samtools to path
 		putenv("PATH=" . implode(":", [
+			dirname(get_path("STAR-Fusion_samtools")),
 			dirname(get_path("STAR")),
 			getenv("PATH")
 		]));

@@ -402,6 +402,9 @@ for($i=0;$i<$cyto_bands->rows();++$i)
 {
 	$row = $cyto_bands->getRow($i);
 	list($tmp_chr,$tmp_start,$tmp_end,$tmp_arm) = $row;
+	
+	if(empty($tmp_arm)) continue;
+	
 	++$tmp_start; // 0 to 1-base
 	$tmp_arm = $tmp_arm[0]; //p-arm or q-arm	
 	if(empty($chr))	list($chr,$start,$end,$arm) = array($tmp_chr,$tmp_start,$tmp_end,$tmp_arm);

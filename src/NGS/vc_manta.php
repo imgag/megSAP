@@ -17,7 +17,7 @@ $parser->addInfileArray("bam", "Normal BAM file(s). Only one normal BAM file all
 $parser->addInfile("t_bam", "Tumor BAM file, for somatic mode.", true, false);
 $parser->addOutfile("smallIndels", "Output VCF file for candidate small indels (gzipped and tabix indexed).", true);
 $parser->addString("evid_dir", "Output folder for BAM files containing evidence reads.",true);
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addInfile("target",  "Enrichment target BED file (used for flagging off-target variants).", true);
 $parser->addFlag("exome", "If set, manta settings for exome/panel analysis are used (no depth filtering).");
 $parser->addFlag("rna", "If set, manta settings for RNA fusion calling are used.");
@@ -108,7 +108,7 @@ $sv = "{$manta_folder}/results/variants/{$outname}SV.vcf.gz";
 
 // TODO: check if it works!
 // modify VCF (combine BND of INVs to one INV in VCF)
-$sv_inv = "{$manta_folder}/results/variants/{$outname}SV_inv.vcf.gz";
+$sv_inv = "{$manta_folder}/results/variants/{$outname}SV_inv.vcf";
 $parser->exec("python ".get_path('manta')."/../libexec/convertInversion.py", get_path("samtools")." ".genome_fasta($build)." {$sv} > {$sv_inv}");
 
 

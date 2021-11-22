@@ -16,7 +16,7 @@ $parser->addOutfile("out", "Output file in VCF.GZ format.", false);
 $parser->addInfile("target",  "Enrichment targets BED file.", true);
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
-$parser->addString("build", "The genome build to use.", true, "GRCh37");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 1);
 $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 15);
