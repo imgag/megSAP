@@ -56,3 +56,12 @@ vc_varscan2:
 
 an_somatic_cancerhotspots:
 	zcat /mnt/projects/diagnostic/SomaticAndTreatment/Somatic_DX205275_01-DX200281_01/DX205275_01-DX200281_01_var_annotated.vcf.gz | egrep "#|NRAS|BRAF|CDKN2A|TERT|JAK2" | sed "s/DX205275_01/DX000000_01/g" | sed "s/DX200281_01/DX000000_01/g" > an_somatic_cancerhotspots_in1.vcf
+	
+	
+vc_strelka:
+	#tumor
+	samtools view -hb  /mnt/storage2/GRCh38/projects/diagnostic/SomaticAndTreatment/Sample_DX170388_01/DX170388_01.bam chr12:48608347-54604173 > vc_strelka2_tu_in.bam 
+	samtools index vc_strelka2_tu_in.bam
+	#normal
+	samtools view -hb /mnt/storage2/GRCh38/projects/diagnostic/SomaticAndTreatment/Sample_DX170387_01/DX170387_01.bam chr12:48608347-54604173 > vc_strelka2_no_in.bam
+	samtools index vc_strelka2_no_in.bam
