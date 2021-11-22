@@ -1,5 +1,8 @@
 # *megSAP* - a Medical Genetics Sequence Analysis Pipeline
 
+| !!! NOTE: This is the GRCh38 version. If you want to use the old GRCh37 version, use the [branch](https://github.com/imgag/megSAP/tree/GRCh37)!!! |
+| --- |
+
 megSAP is a NGS data analysis pipeline for medical genetics, which is developed by the [Institute of Medical Genetics and Applied Genomics](http://www.uni-tuebingen.de/Klinische_Genetik/start.html) and several collaborators from academia and industry. Since December 2016 the project is publicly available on GitHub, however closed-source development started already in 2012.  
 
 The design goals of the project are:
@@ -36,46 +39,4 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 
 ## ChangeLog
-* 21.01.2020: Updated databases (HGMD, ClinVar, ...)
-* 17.12.2020: Switched to [bwa-mem2](https://github.com/bwa-mem2/bwa-mem2) for mapping. WARNING: requires to build a new index for the reference genome (see [bwa-mem2 page](doc/bwa-mem2.md)). 
-* 23.11.2020: Added support for monitoring tumor progression via cfDNA.
-* 20.11.2020: Added MMsplice splicing predictions.
-* 04.08.2020: Updated tools for megSAP to the newest version (freebayes, VEP, samtools,...)
-* 16.07.2020: Added support for mapping on Illumina Dragen
-* 16.07.2020: Added strand bias and allele balance to output VCF/GSvar files
-* 25.06.2020: Added repeat expansion calling with ExpansionHunter (for exomes and genomes)
-* 18.06.2020: Replaced freebayes by varscan2 in somatic tumor-only pipeline
-* 19.05.2020: Updated databases (Clinvar 20200506, CADD 1.6, HGNC)
-* 05.05.2020: Added Circos plots for exome/genome germline samples containing (CNVs, ROHs, BAFs)
-* 24.04.2020: Added NGSD annotation of SV calls, which allows effective filtering.
-* 03.03.2020: Implemented multi/trio CNV calling for shallow WGS
-* 04.12.2019: Updated all tools and databases to the latest version
-* 18.11.2019: Decoupled NGSD database and megSAP for annotations (data from NGSD is now exported to VCF/BED format and annotated just as any other data source)
-* 07.11.2019: Enabled SV calling for exomes/panels
-* 04.11.2019: Added option to automatically delete FASTQ files after mapping to save disk space (see settings.ini)
-* 31.11.2019: Added support for shallow WGS as replacement for arrays
-* 06.08.2019: Updated all tools and databases to the latest version
-* 05.08.2019: Finished refactoring and update of CNV calling and annotation 
-* 02.05.2019: Genome data and annotation databases (about 210GB) are now always copied to the local /tmp/ folder. See `local_data` in `settings.ini`.
-* 05.04.2019: Using ClinCNV for exomes and genomes now (CnvHunter is still used for panels)
-* 29.03.2019: Outdated gene names annotated by VEP are now corrected via the HGNC identifier if possible.
-* 26.02.2019: Using gnomAD o/e instead of ExAC pLI in NGSD.
-* 22.02.2019: Updated all tools and databases.
-* 10.12.2018: Added germline CNV calling for WGS using ClinCNV
-* 29.11.2018: WGS analysis now generates a single GSvar file with all relevant variants (Impact HIGH/MODERATE/LOW or AF<=2% in public databases)
-* 22.11.2018: Retrieving CGI cancer type from new NGSD entry (somatic pipeline)
-* 16.11.2018: Updated to freebayes 1.2.0 (parallelized to compensate for the increased runtime)
-* 07.11.2018: Updated VEP from version 93.2 to 94.5
-* 19.10.2018: Reverted to freebayes 1.1.0 because version 1.2.0 is too slow.
-* 10.10.2018: Updated all tools and databases to the latest releases.
-* 04.10.2018: Using Ensembl VEP for variant annotation now (was SnpEff)
-* 07.08.2018: Removed most annotation from the 'filter' column and moved the functionality to GSvar.
-* 20.07.2018: Updated ABRA2 version (attention: this changes indel positions - see ABRA2 2.06 changelog) 
-* 17.07.2018: Added '##PIPELINE' header line to GSvar files to keep track of the megSAP version the file was created with.
-* 11.07.2018: Added UPD detection for trios.
-* 22.04.2018: NGSD import of germline variants restricted to variants with AF<5% to improve performance.
-* 20.04.2018: NGSD now handles analysis job queuing and execution on SGE.
-* 13.03.2018: Refactoring of trio analysis: it is now based on multi-sample pipeline, produces a GSvar file with three sample columns, and calls off-target variants.
-* 18.01.2018: Added b-allele frequency files for visualization in IGV. 
-* 08.01.2018: Updated tools (BWA, samtools, snpEff) and databases (ClinVar, gnomAD, HGMD).
-* 15.12.2017: Added runs-of-homozygosity detection to the germline pipeline.
+* 22.11.2021 GRCh38 is now the default. The GRCh37 version is availailable through the respective branch now.
