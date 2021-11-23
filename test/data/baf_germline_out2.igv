@@ -1,4 +1,4 @@
 #track graphtype=points viewLimits=-0.2:1.2 maxHeightPixels=80:80:80
 Chromosome	Start	End	Feature	vc_strelka2_tu_in BAF
-chr12	49433355	49433356	.	0.0000
-chr12	49444544	49444545	.	0.2169
+chr12	49039572	49039573	.	0.0000
+chr12	49050761	49050762	.	0.2428
