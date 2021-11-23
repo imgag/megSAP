@@ -65,3 +65,5 @@ vc_strelka:
 	#normal
 	samtools view -hb /mnt/storage2/GRCh38/projects/diagnostic/SomaticAndTreatment/Sample_DX170387_01/DX170387_01.bam chr12:48608347-54604173 > vc_strelka2_no_in.bam
 	samtools index vc_strelka2_no_in.bam
+baf_somatic:
+	cp vc_strelka2_2_out.vcf.gz baf_somatic_sites.vcf.gz
