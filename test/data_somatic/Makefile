@@ -1,17 +1,16 @@
+SHELL=/bin/bash
 all: clear link case1 case2 case3
 
 clear:
-	rm -rf Sample_GS110168_03 Sample_GS110169_03 Sample_GS150344_01
+	rm -rf Sample_GS110168_03 Sample_GS110169_03 Sample_DX000001_01
 	rm -rf out_case1 out_case2 out_case3
 
 link:
-	mkdir -p Sample_GS110168_03 Sample_GS110169_03 Sample_GS150344_01 Sample_RX000001_01
+	mkdir -p Sample_GS110168_03 Sample_GS110169_03 Sample_DX000001_01 Sample_RX000001_01
 	mkdir -p out_case1 out_case2 out_case3
 	# input files for case 1
-	php ../link_test_data.php GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz Sample_GS150344_01/GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz
-	php ../link_test_data.php GS150344_01_GCTCGGTAextracted_L001_R2_001.fastq.gz Sample_GS150344_01/GS150344_01_GCTCGGTAextracted_L001_R2_001.fastq.gz
-	php ../link_test_data.php GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz Sample_GS150344_01/GS150344_01_GCTCGGTAextracted_L001_R1_001.fastq.gz
-	php ../link_test_data.php GS150344_01_GCTCGGTAextracted_L001_R2_001.fastq.gz Sample_GS150344_01/GS150344_01_GCTCGGTAextracted_L001_R2_001.fastq.gz
+	php ../link_test_data.php som_pipeline_test_case1_L001_R1_001.fastq.gz Sample_DX000001_01/DX000001_01_L001_R1_001.fastq.gz
+	php ../link_test_data.php som_pipeline_test_case1_L001_R2_001.fastq.gz Sample_DX000001_01/DX000001_01_L001_R2_001.fastq.gz
 	# input files for case 2
 	php ../link_test_data.php GS110168_chr21_L007_R1_001.fastq.gz Sample_GS110168_03/GS110168_03_chr21_L007_R1_001.fastq.gz
 	php ../link_test_data.php GS110168_chr21_L007_R2_001.fastq.gz Sample_GS110168_03/GS110168_03_chr21_L007_R2_001.fastq.gz
@@ -27,26 +26,24 @@ case1: case1_analyze case1_somatic case1_diff
 
 case1_analyze:
 	php ../../src/Pipelines/analyze.php \
-		-folder Sample_GS150344_01 \
-		-name GS150344_01 \
+		-folder Sample_DX000001_01 \
+		-name DX000001_01 \
 		-steps ma -somatic \
 		-threads 1 \
 		-system system_single.ini \
-		--log Sample_GS150344_01/analyze.log
+		--log Sample_DX000001_01/analyze.log
 
 case1_somatic:
 	php ../../src/Pipelines/somatic_dna.php \
-		-t_bam Sample_GS150344_01/GS150344_01.bam \
+		-t_bam Sample_DX000001_01/DX000001_01.bam \
 		-out_folder out_case1 \
-		-prefix GS150344_01 \
-		-steps vc,an,cn \
+		-prefix DX000001_01 \
+		-steps vc,an \
 		-system system_single.ini \
-		--log out_case1/GS150344.log
+		--log out_case1/DX000001_01.log
 case1_diff:
-	php ../compare_bed.php expected_case1/GS150344_01_stat_lowcov.bed out_case1/GS150344_01_stat_lowcov.bed
-	php ../compare_variants.php -in1 expected_case1/GS150344_01.GSvar -in2 out_case1/GS150344_01.GSvar
-	test -s out_case1/GS150344_01_clincnv.tsv
-	test -s out_case1/GS150344_01_bafs.igv
+	php ../compare_bed.php expected_case1/DX000001_01_stat_lowcov.bed out_case1/DX000001_01_stat_lowcov.bed
+	php ../compare_variants.php -in1 expected_case1/DX000001_01.GSvar -in2 out_case1/DX000001_01.GSvar
 
 # tumor-normal (strelka), testing without ClinCNV (GC content too low in input files reduced to one chr)
 case2: case2_analyze case2_somatic case2_diff
@@ -105,3 +102,9 @@ case3_diff:
 	# remove gene annotation if present
 	cut -f1-27 out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe > out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe
 	diff expected_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe --ignore-matching-lines="##cmdline" --ignore-matching-lines="##fileDate="
+	
+create_test_case1:
+	samtools view -bh /mnt/storage2/GRCh38/projects/diagnostic/SomaticAndTreatment/Sample_DX205723_01/DX205723_01.bam chr7:140723402-140929330 > test_case1_tmp.bam
+	BamToFastq -in test_case1_tmp.bam -out1 som_pipeline_test_case1_L001_R1_001.fastq.gz -out2 som_pipeline_test_case1_L001_R2_001.fastq.gz
+	rm test_case1_tmp.bam
+	BedIntersect -in2 /mnt/storage2/GRCh38/share/data/enrichment/ssSC_v5.bed  <<< "chr7	140723402	140929330" | BedSort | BedMerge > som_pipeline_test_case1_target.bed
