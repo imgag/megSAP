@@ -59,7 +59,7 @@ case2_analyze:
 	php ../../src/Pipelines/analyze.php \
 		-folder Sample_GS110169_03 \
 		-name GS110169_03 \
-		-steps ma,vc,cn -somatic \
+		-steps ma,vc -somatic \
 		-system system_pair.ini \
 		-threads 1 \
 		--log Sample_GS110169_03/analyze.log
