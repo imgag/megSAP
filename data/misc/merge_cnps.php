@@ -10,7 +10,7 @@ function load($filename, &$chrs, &$breaks)
 	while(!feof($h))
 	{
 		$line = trim(fgets($h));
-		if ($line=="" || starts_with($line, "Chromosome")) continue;
+		if ($line=="" || $line[0]=="#" || starts_with($line, "Chromosome")) continue;
 		
 		list($chr, $start, $end, $hist, $af) = explode("\t", $line);
 		
@@ -26,8 +26,7 @@ $chrs = array();
 $breaks = array();
 $f1 = load($argv[1], $chrs, $breaks);
 $f2 = load($argv[2], $chrs, $breaks);
-$source2 = basename($argv[2], ".igv");
-
+print "#track graphtype=heatmap viewLimits=0.0:1.0 color=0,0,255 altColor=255,255,255 midRange=0.001:0.02 midColor=204,204,255 windowingFunction=maximum\n";
 print "Chromosome	Start	End	CN histogram (0-10)	AF TruSeqPCRfree\n";
 
 //process
@@ -73,7 +72,6 @@ foreach($chrs as $chr)
 					{
 						$max_match = array($hist, $af, true);
 					}
-					//print "$start, $end - match ($start_f-$end_f) - $source2 $af\n";
 				}
 			}
 		}
