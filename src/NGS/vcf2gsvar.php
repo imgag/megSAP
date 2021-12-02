@@ -98,6 +98,7 @@ function collapse(&$tag, $error_name, $values, $mode, $decimal_places = null)
 	}
 	else if ($mode=="max")
 	{
+		if (count($values)==0) return "";
 		return max($values);
 	}
 	else if ($mode=="unique")
@@ -1032,8 +1033,30 @@ while(!feof($handle))
 	// gnomAD_genome
 	if (isset($info["gnomADg_AF"]))
 	{
-		$gnomad_value = trim($info["gnomADg_AF"]);		
-		$af_gnomad_genome[] = $gnomad_value=="." ? "" : $gnomad_value;
+		$gnomad_value = trim($info["gnomADg_AF"]);
+		if (strpos($gnomad_value, "&") !== false)
+		{
+			// special handling of the rare case that 2 gnomAD AF values exist for this variant
+			$gnomad_values = explode("&", $gnomad_value);
+			foreach($gnomad_values as $value)
+			{
+				if ($value != ".")
+				{
+					$af_gnomad_genome[] = $value;
+				}
+			}		
+		}
+		else
+		{
+			if ($gnomad_value != ".")
+			{
+				$af_gnomad_genome[] = $gnomad_value;
+			}
+			
+		}
+		
+		
+		
 	}
 	if (isset($info["gnomADg_Hom"])) $hom_gnomad[] = trim($info["gnomADg_Hom"]);
 	if (isset($info["gnomADg_Hemi"])) $hemi_gnomad[] = trim($info["gnomADg_Hemi"]);
@@ -1085,7 +1108,7 @@ while(!feof($handle))
 	$dbsnp = implode(",", collapse($tag, "dbSNP", $dbsnp, "unique"));	
 	$kg = collapse($tag, "1000g", $af_kg, "one", 4);
 	$gnomad = collapse($tag, "gnomAD", $af_gnomad, "one", 4);
-	$gnomad_genome = collapse($tag, "gnomAD genome", $af_gnomad_genome, "one", 4);
+	$gnomad_genome = collapse($tag, "gnomAD genome", $af_gnomad_genome, "max", 4);
 	$gnomad = max($gnomad, $gnomad_genome);
 	$gnomad_hom_hemi = collapse($tag, "gnomAD Hom", $hom_gnomad, "one").",".collapse($tag, "gnomAD Hemi", $hemi_gnomad, "one");
 	if ($gnomad_hom_hemi==",") $gnomad_hom_hemi = "";
