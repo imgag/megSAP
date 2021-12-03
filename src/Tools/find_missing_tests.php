@@ -7,42 +7,63 @@ $test = repository_basedir()."/test/";
 
 //find tests
 list($tests) = exec2("ls $test | grep tool_test_");
-$tests = array_map(function($value) { return substr($value, 10); }, $tests);
+$tests = array_map(function($value) { return substr($value, 10, -4); }, $tests);
 
-//find tools under GIT control
-$tools = array();
+//find tools under version control
 $tools2path = array();
 list($tmp) = exec2("find {$src}NGS/ {$src}Tools/ {$src}Primer/ -name \"*.php\" -or -name \"*.py\"");
 sort($tmp);
 foreach($tmp as $t)
 {
-	$tool = basename($t);
-	if (ends_with(".py", $tool)) $tool = substr($tool, 0, -3).".php";
-	$tools[] = $tool;
+	$tool = basename($t, ".php");
+	if (ends_with($tool, ".py")) $tool = substr($tool, 0, -3);
 	$tools2path[$tool] = substr($t, strlen($src));
 }
 
-//find missing tools
-$missing_tools = array_diff($tests, $tools);
+//(1) find missing tools
+$missing_tools = array_diff($tests, array_keys($tools2path));
 foreach($missing_tools as $tool)
 {
-	print "Missing tool: $tool\n";
+	print "Test but no tool: $tool\n";
 }
 
+//(2) find unused test data
+list($test_files) = exec2("ls test/data/");
+foreach($test_files as $test_file)
+{
+	$test_match = false;
+	foreach($tests as $test)
+	{
+		if (starts_with($test_file, $test))
+		{
+			$test_match = true;
+			break;
+		}
+	}
+	if (!$test_match)
+	{
+		list($matches) = exec2("grep {$test_file} test/*.php || true");
+		if (trim(implode("", $matches))=="")
+		{
+			print "Unused test file: test/data/{$test_file}\n";
+		}
+	}
+}
 
-//find missing tests
+//(3) find missing tests
 $excluded_patterns = array(
-				  "db_update_queue.php", //needs SGE
-				  "qbic_copy.php", //needs datamover
+				  "db_update_queue", //needs SGE
+				  "qbic_copy", //needs datamover
 				  
 				  "db_converter_.*", //converters to set up annotation databases
-				  "find_unused_tools.php", //utility
-				  "backup_run.php", //utility
-				  "check_bcl.php", //utility
-				  "find_missing_tests.php", //utility
-				  "find_wrong_adapters.php", //utility
+				  "find_unused_tools", //utility
+				  "backup_.*", //backup scripts
+				  "low_cov_regions", //utility for low-coverage statistics
+				  "check_bcl", //utility
+				  "find_missing_tests", //utility
+				  "find_wrong_adapters", //utility
 				  );
-$missing_tests = array_diff($tools, $tests);
+$missing_tests = array_diff(array_keys($tools2path), $tests);
 foreach($missing_tests as $test)
 {
 	//skip excluded tools
@@ -53,13 +74,13 @@ foreach($missing_tests as $test)
 	}
 	if ($skip) continue;
 	
-	//count usage in php
+	//count usage in megSAP
 	$usage = array();
 	$hits = array();
 	exec("find {$src}NGS/ {$src}Tools/ {$src}Primer/ {$src}Pipelines/ -name '*.php' -or -name '*.py' | xargs grep $test", $hits);
 	if (count($hits)>0)
 	{
-		$usage[] = count($hits)."x in php";
+		$usage[] = count($hits)."x in megSAP";
 	}
 	
 	//count usge in webservices

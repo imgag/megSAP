@@ -7,7 +7,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 // parse command line arguments
 $parser = new ToolBase("reannotate_unsolved_diagnostic_cases", "Re-annotation of unsolved diagnostic cases (not bad quality, WES/WGS).");
 $parser->addInt("sequenced_ago", "Maximum number of days the sample was sequenced ago.", true, 240); //~ 8 months
-$parser->addInt("annotated_ago", "Maximum number of days the sample was last annotated ago.", true, 42); //6 weeks
+$parser->addInt("annotated_ago", "Maximum number of days the sample was last annotated ago.", true, 35); //5 weeks
 extract($parser->parse($argv));
 
 //select diagnostic samples with good/medium quality that were sequenced in the defined time range
