@@ -31,10 +31,8 @@ $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to th
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
-$output_folder_exists = true;
 if (!file_exists($folder))
 {
-	$output_folder_exists = false;
 	exec2("mkdir -p $folder");
 }
 if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_".date("YmdHis").".log");
@@ -180,19 +178,34 @@ if (in_array("ma", $steps))
 	$bamfile_to_convert = $bamfile;
 
 	//fallback for remapping GRCh37 samples to GRCh38 - use BAM to create FASTQs
-	if (!$output_folder_exists && $sys['build']=="GRCh38")
+	if ($sys['build']=="GRCh38")
 	{
-		if (!db_is_enabled("NGSD")) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
-		$db = DB::getInstance("NGSD", false);
-		$info = get_processed_sample_info($db, $name, false);
+		//determine if HG38 folder contains read data
+		$read_data_present = false;
+		list($files) = exec2("ls {$folder}");
+		foreach($files as $file)
+		{
+			if (ends_with($file, ".bam") || ends_with($file, ".fastq.gz"))
+			{
+				$read_data_present = true;
+			}
+		}
+		
+		//no read data > try to generate it from HG19
+		if (!$read_data_present)
+		{
+			if (!db_is_enabled("NGSD")) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
+			$db = DB::getInstance("NGSD", false);
+			$info = get_processed_sample_info($db, $name, false);
 
-		// determine project folder of GRCh37 
-		$bamfile_to_convert = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/${name}.bam";
+			// determine project folder of GRCh37 
+			$bamfile_to_convert = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/${name}.bam";
 
-		// check if bam file exists
-		if (!file_exists($bamfile_to_convert)) trigger_error("BAM file of GRCh37 sample is missing!", E_USER_ERROR);
+			// check if bam file exists
+			if (!file_exists($bamfile_to_convert)) trigger_error("BAM file of GRCh37 sample is missing!", E_USER_ERROR);
 
-		trigger_error("Output folder does not exists. Using BAM or Fastq files from GRCh37 as input!", E_USER_NOTICE);	
+			trigger_error("No read data found in output folder. Using BAM/FASTQ files from GRCh37 as input!", E_USER_NOTICE);
+		}
 	}
 
 	//determine input FASTQ files
@@ -234,7 +247,7 @@ if (in_array("ma", $steps))
 		{
 			if(file_exists($bamfile_to_convert))
 			{
-				trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files.", E_USER_NOTICE);
+				trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files: $bamfile_to_convert", E_USER_NOTICE);
 
 				// extract reads from BAM file
 				$in_fq_for = $folder."/{$name}_BamToFastq_R1_001.fastq.gz";

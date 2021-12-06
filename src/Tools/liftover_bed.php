@@ -5,7 +5,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
-$parser = new ToolBase("liftover_bed", "Lift-over from.");
+$parser = new ToolBase("liftover_bed", "Lift-over ob BED file from GRCh37 to GRCh38.");
 $parser->addInfile("in", "Input BED file.", false);
 $parser->addOutfile("out", "Input BED file.", false);
 $parser->addInt("max_size_inc", "Maximum size increase.", true, 10);
@@ -54,7 +54,7 @@ foreach(file($in) as $line)
 	$size_diff_perc = 100.0 * $size_diff / $size_before;
 	if ($size_after>$size_before && $size_diff>$max_size_inc && $size_diff_perc>$max_size_inc_perc)
 	{
-		print "Error - different size after mapping (from ".($end-$start)." to ".($end2-$start2)."): $line\n";
+		print "Error - bigger size after mapping (from ".($end-$start)." to ".($end2-$start2)."): $line\n";
 		continue;
 	}
 	
