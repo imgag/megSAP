@@ -50,10 +50,10 @@ end_test();
 start_test("repository_revision");
 
 $rev = repository_revision();
-check(starts_with($rev, "0.2-"), true);
+check(starts_with($rev, "2021_12"), true);
 
 $rev = repository_revision(true);
-check(starts_with($rev, "megSAP 0.2-"), true);
+check(starts_with($rev, "megSAP 2021_12-"), true);
 
 end_test();
 
