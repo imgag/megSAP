@@ -334,6 +334,7 @@ function annotate_mmsplice_score($splicing_output, $threshold = 2000)
 			}
 			//annotate new private variants
 			$new_annotations_zipped = $parser->tempFile("_mmsplicePrivate_zipped.vcf.gz");
+			$parser->exec(get_path("ngs-bits")."VcfSort", "-in {$mms_anno_file} -out {$mms_anno_file}");
 			$parser->exec("bgzip", "-c $mms_anno_file > $new_annotations_zipped");
 			$parser->exec("tabix", "-f -p vcf $new_annotations_zipped");
 			$tmp = $parser->tempFile("_mmspliceTmp.vcf");
@@ -390,6 +391,7 @@ function annotate_spliceai_score($splicing_output, $threshold = 1000)
 		$args = array();
 		
 		$low_af_file_spliceai_gzipped =  $parser->tempFile("_newSpliceAi_annotations.vcf.gz");
+		$parser->exec(get_path("ngs-bits")."VcfSort", "-in {$low_af_file_spliceai} -out {$low_af_file_spliceai}");
 		$parser->exec("bgzip", "-c $low_af_file_spliceai > $low_af_file_spliceai_gzipped");
 		$parser->exec("tabix", "-f -p vcf $low_af_file_spliceai_gzipped");
 		
@@ -421,6 +423,7 @@ function annotate_spliceai_score($splicing_output, $threshold = 1000)
 
 			//annotate new private variants
 			$new_annotations_zipped = $parser->tempFile("_newSpliceAi_annotations.vcf.gz");
+			$parser->exec(get_path("ngs-bits")."VcfSort", "-in {$new_spliceai_annotation} -out {$new_spliceai_annotation}");
 			$parser->exec("bgzip", "-c $new_spliceai_annotation > $new_annotations_zipped");
 			$parser->exec("tabix", "-f -p vcf $new_annotations_zipped");
 			$tmp = $parser->tempFile("_final_annotation.vcf.gz");
@@ -433,17 +436,6 @@ function annotate_spliceai_score($splicing_output, $threshold = 1000)
 	}
 }
 
-//annotates SpliceAI/ MMSplice score for all variants inside NGSD and GnomAD + calculates scores for private variants if less than threshold
-function annotate_splice_predictions($splicing_output)
-{
-	global $build;
-
-	//store variants of low Af in dictionary
-	$private_var_dict = get_private_variants($splicing_output);
-	add_missing_contigs_to_vcf($build, $splicing_output);
-	annotate_mmsplice_score($splicing_output, $private_var_dict);
-	annotate_spliceai_score($splicing_output, $private_var_dict);
-}
 // generate temp file for vep output
 $vep_output = $parser->tempFile("_vep.vcf");
 
