@@ -67,13 +67,16 @@ if (!isset($in_files))
 		}
 
 		if (count($icd10) >= 2) trigger_error("More than one ICD10 code found!", E_USER_WARNING);
-		if (count($hpo) >= 2) trigger_error("More than one ICD10 code found!", E_USER_WARNING);
+		if (count($hpo) >= 2) trigger_error("More than one HPO term found!", E_USER_WARNING);
+
+		if (count($icd10) == 0) trigger_error("No ICD10 code found!", E_USER_ERROR);
+		if (count($hpo) == 0) trigger_error("No HPO term found!", E_USER_ERROR);
 
 		//find related samples, matching the following values:
-		trigger_error("processing system id: {$processing_system_id}", E_USER_NOTICE);
-		trigger_error("project id: {$project_id}", E_USER_NOTICE);
-		trigger_error("ICD10 code: {$icd10[0]}", E_USER_NOTICE);
-		trigger_error("HPO term id: {$hpo[0]}", E_USER_NOTICE);
+		// trigger_error("processing system id: {$processing_system_id}", E_USER_NOTICE);
+		// trigger_error("project id: {$project_id}", E_USER_NOTICE);
+		// trigger_error("ICD10 code: {$icd10[0]}", E_USER_NOTICE);
+		// trigger_error("HPO term id: {$hpo[0]}", E_USER_NOTICE);
 
 		$sql = <<<SQL
 SELECT DISTINCT ps.id, CONCAT(s.name, "_", LPAD(ps.process_id, 2, "0")) as psample
