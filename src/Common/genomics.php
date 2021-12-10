@@ -1644,95 +1644,145 @@ function annotate_gsvar_by_gene($gsvar_f, $outfile_f, $annotation_f, $key, $colu
 	$gsvar->toTSV($outfile_f);
 }
 
-//determines genome build of a BAM file
-function get_genome_build($bamfile)
+//checks that the genome build of a BAM, VCF (small variants or SVs) or TSV (CNVs) matches the expected build
+//It genome cannot be determined, a E_USER_WARNING is triggered. If it does not match, a E_USER_ERROR is triggered.
+function check_genome_build($filename, $build_expected)
 {
-	list($stdout, $stderr, $exit) = exec2(get_path("samtools")." view -H $bamfile | egrep '^@PG' ");
-
-	if ((trim(implode("\n", $stderr)) != "" ) || ($exit != 0))
-	{
-		print "Exit code: $exit\n";
-		print "Stderr: \n".implode("\n", $stderr);
-		trigger_error("Error parsing header of BAM file '$bamfile'!", E_USER_ERROR);
-	} 
-
 	$builds = array();
-
-	foreach($stdout as $line)
+	
+	//BAM file
+	if (ends_with($filename, ".bam"))
 	{
-		$split_line = explode("\t", trim($line));
-		if ($split_line[0] == "@PG")
+		list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $filename | egrep '^@PG' ");
+		if  ($exit_code==0)
 		{
-			if (($split_line[1] == "ID:bwa") || ($split_line[1] == "ID:bwa-mem2"))
+			foreach($stdout as $line)
 			{
-				$build = "";
-				// parse genome build from bwa command line
-				foreach($split_line as $column)
+				$split_line = explode("\t", trim($line));
+				if ($split_line[0] == "@PG")
 				{
-					if (starts_with($column, "CL:"))
+					if (($split_line[1] == "ID:bwa") || ($split_line[1] == "ID:bwa-mem2"))
 					{
-						$ref_file_path = explode(" ", $column)[2];
-						$build = basename($ref_file_path, ".fa");
-						break;
-					}
-				}
-				if ($build == "") 
-				{
-					trigger_error("Warning: Couldn't determine genome build for bwa-mem(2) mapping");
-				}
-				else
-				{
-					$builds[] = $build;
-				}
-			}
-			elseif ($split_line[1] == "ID: Hash Table Build")
-			{
-				$build = "";
-				// parse genome build from ABRA2 command line
-				foreach($split_line as $column)
-				{
-					if (starts_with($column, "CL:"))
-					{
-						$cl = explode(" ", $column);
-						$ref_file_path = "";
-						for ($i=0; $i < count($cl); $i++) 
-						{ 
-							if($cl[$i] == "--ht-reference")
+						$build = "";
+						// parse genome build from bwa command line
+						foreach($split_line as $column)
+						{
+							if (starts_with($column, "CL:"))
 							{
-								$ref_file_path = $cl[$i + 1];
+								$ref_file_path = explode(" ", $column)[2];
+								$build = basename($ref_file_path, ".fa");
 								break;
 							}
 						}
-						if ($ref_file_path != "") 
+						if ($build == "") 
 						{
-							$build = basename($ref_file_path, ".fa");
-							break;
+							trigger_error("Warning: Couldn't determine genome build for bwa-mem(2) mapping");
+						}
+						else
+						{
+							$builds[] = $build;
 						}
 					}
-				}
-				if ($build == "") 
-				{
-					trigger_error("Warning: Couldn't determine genome build for bwa-mem(2) mapping");
-				}
-				else
-				{
-					$builds[] = $build;
+					elseif ($split_line[1] == "ID: Hash Table Build")
+					{
+						$build = "";
+						// parse genome build from ABRA2 command line
+						foreach($split_line as $column)
+						{
+							if (starts_with($column, "CL:"))
+							{
+								$cl = explode(" ", $column);
+								$ref_file_path = "";
+								for ($i=0; $i < count($cl); $i++) 
+								{ 
+									if($cl[$i] == "--ht-reference")
+									{
+										$ref_file_path = $cl[$i + 1];
+										break;
+									}
+								}
+								if ($ref_file_path != "") 
+								{
+									$build = basename($ref_file_path, ".fa");
+									break;
+								}
+							}
+						}
+						if ($build == "") 
+						{
+							trigger_error("Warning: Couldn't determine genome build for bwa-mem(2) mapping");
+						}
+						else
+						{
+							$builds[] = $build;
+						}
+					}
 				}
 			}
 		}
 	}
-
+	
+	//small variants and unannotated structural variants (unannotated)
+	if (ends_with($filename, ".vcf.gz"))
+	{
+		list($stdout, $stderr, $exit_code) = exec2("zcat $filename | egrep '^##reference='");
+		if ($exit_code==0)
+		{
+			foreach($stdout as $line)
+			{
+				list(, $fasta) = explode("=", $line);
+				$builds[] = basename($fasta, ".fa");
+			}
+		}
+	}
+	
+	//GSvar
+	if (ends_with($filename, ".GSvar"))
+	{
+		list($stdout, $stderr, $exit_code) = exec2("egrep '^GENOME_BUILD=' $filename", false);
+		if ($exit_code==0)
+		{
+			foreach($stdout as $line)
+			{
+				list(, $fasta) = explode("=", $line);
+				$builds[] = basename($fasta, ".fa");
+			}
+		}
+	}
+	
+	//structural variants (annotated)
+	if (ends_with($filename, ".bedpe"))
+	{
+		list($stdout, $stderr, $exit_code) = exec2("cat $filename | egrep '^##reference='", false);
+		if ($exit_code==0)
+		{
+			foreach($stdout as $line)
+			{
+				list(, $fasta) = explode("=", $line);
+				$builds[] = basename($fasta, ".fa");
+			}
+		}
+	}
+	
+	//check that there is not more/less than one genome match
+	$builds = array_map('strtolower', $builds);
+	$builds = array_unique($builds);
 	if (count($builds) < 1) 
 	{
-		trigger_error("Could not determine genome build of BAM file '$bamfile'!", E_USER_WARNING);
-		return "";
+		trigger_error("File '$filename' does not contain genome build information!", E_USER_WARNING);
+		return;
 	}
-
-	$builds = array_unique($builds);
-
-	if (count($builds) > 1) trigger_error("BAM header contains inconsistent genome information!", E_USER_ERROR);
-
-	return $builds[0];
+	if (count($builds) > 1)
+	{
+		trigger_error("File '$filename' contains inconsistent genome build information!", E_USER_WARNING);
+		return;
+	}
+	$build_found = $builds[0];
+	$build_expected = strtolower($build_expected);
+	if (!starts_with($build_found, $build_expected))
+	{
+		trigger_error("Genome build of file '{$filename}' is '{$build_found}'. It does not match expected genome build '{$build_expected}'!", E_USER_ERROR);
+	}
 }
 
 //converts a proessing system genome build string to a string compatible with ngs-bits

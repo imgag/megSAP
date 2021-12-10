@@ -137,8 +137,6 @@ $prsfile = $folder."/".$name."_prs.tsv";
 //copy-number calling
 $cnvfile = $folder."/".$name."_cnvs_clincnv.tsv";
 $cnvfile2 = $folder."/".$name."_cnvs_clincnv.seg";
-
-
 //structural variant calling
 $sv_manta_file = $folder ."/". $name . "_manta_var_structural.vcf.gz";
 $bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
@@ -346,19 +344,8 @@ if (in_array("ma", $steps))
 }
 else
 {
-	//check BAM
-	if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
-	{
-		//check BAM exists
-		if (!file_exists($bamfile)) trigger_error("No BAM file found in sample folder! Cannot perform any calling steps!", E_USER_ERROR);
-		
-		// verify that genome build of BAM matches given genome build
-		$bam_genome_build = get_genome_build($bamfile);
-		if ($bam_genome_build != "" && !starts_with($bam_genome_build, $sys['build']))
-		{
-			trigger_error("Genome build of BAM file ('${bam_genome_build}') does not match genome build of analysis ('".$sys['build']."')!", E_USER_ERROR);
-		}
-	}
+	//check genome build of BAM
+	//check_genome_build($bamfile, $sys['build']);
 	
 	$local_bamfile = $bamfile;
 }
@@ -457,6 +444,10 @@ if (in_array("vc", $steps))
 		}
 		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
 	}
+	else
+	{
+		check_genome_build($vcffile, $sys['build']);
+	}
 
 	// annotation
 	$args = array("-out_name $name", "-out_folder {$folder}", "-system {$system}", "--log ".$parser->getLogFile());
@@ -490,7 +481,6 @@ if (in_array("vc", $steps))
 	//determine ancestry
 	$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file} -build ".ngsbits_build($sys['build']), true);
 }
-
 
 //copy-number analysis
 if (in_array("cn", $steps))
@@ -676,7 +666,6 @@ if (in_array("cn", $steps))
 			);
 			file_put_contents($varfile, implode("\n", $content));
 		}
-		
 	}
 
 	// annotate CNV file
@@ -752,6 +741,11 @@ if (in_array("sv", $steps))
 		//create BEDPE files
 		$parser->exec("{$ngsbits}VcfToBedpe", "-in $sv_manta_file -out $bedpe_out", true);
 	}
+	else
+	{
+		check_genome_build($sv_manta_file, $sys['build']);
+	}
+
 
 	//add gene info annotation and NGSD counts
 	if (db_is_enabled("NGSD"))
@@ -800,18 +794,28 @@ if (in_array("db", $steps))
 	$import = false;
 	if (file_exists($varfile) && !$is_wgs_shallow)
 	{
+		//check genome build
+		check_genome_build($varfile, $sys['build']);
+		
 		$args[] = "-var {$varfile}";
 		$args[] = "-var_force";
 		$import = true;
 	}
 	if (file_exists($cnvfile))
 	{
+		
+		//check genome build
+		//this is not possible for CNVs because the file does not contain any information about it
+		
 		$args[] = "-cnv {$cnvfile}";
 		$args[] = "-cnv_force";
 		$import = true;
 	}
 	if (file_exists($bedpe_out))
 	{
+		//check genome build
+		check_genome_build($bedpe_out, $sys['build']);
+		
 		$args[] = "-sv {$bedpe_out}";
 		$args[] = "-sv_force";
 		$import = true;
