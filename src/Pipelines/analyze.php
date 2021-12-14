@@ -345,7 +345,7 @@ if (in_array("ma", $steps))
 else
 {
 	//check genome build of BAM
-	//check_genome_build($bamfile, $sys['build']);
+	check_genome_build($bamfile, $sys['build']);
 	
 	$local_bamfile = $bamfile;
 }

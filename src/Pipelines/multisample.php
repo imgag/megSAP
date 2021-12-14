@@ -119,6 +119,7 @@ foreach($bams as $bam)
 	$tmp[$name] = true;
 }
 
+
 //check processing systems are supported
 foreach($bams as $bam)
 {
@@ -131,6 +132,13 @@ foreach($bams as $bam)
 
 
 $sys = load_system($system, $names[$bams[0]]);
+
+//check genome build of BAMs
+foreach($bams as $bam)
+{
+	check_genome_build($bam, $sys['build']);
+}
+
 
 //check steps
 $is_wgs = $sys['type']=="WGS";
