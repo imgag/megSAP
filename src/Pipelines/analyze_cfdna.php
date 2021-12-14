@@ -372,6 +372,9 @@ if (in_array("vc", $steps))
 	// skip VC if only annotation should be done
 	if (!$annotation_only)
 	{
+		// check if reference genome fits BAM file
+		check_genome_build($bamfile, $sys['build']);
+
 		$args = [
 			"-bam", $bamfile,
 			"-target", $target_extended,
@@ -432,6 +435,9 @@ if (in_array("vc", $steps))
 		}
 		$parser->exec(get_path("ngs-bits")."CfDnaQC", "-cfdna_panel {$target} -bam {$bamfile} -out {$qc_cfdna} -ref ".genome_fasta($sys['build'])." -build ".ngsbits_build($sys['build']));
 	}
+
+	// check if reference genome fits VCF file
+	if ($annotation_only) check_genome_build($vcffile, $sys['build']);
 
 	// annotate VCF 
 	$vcffile_annotated = "$folder/${name}_var_annotated.vcf.gz";
