@@ -14,10 +14,10 @@ copy_Exome_Diagnostik_diagnostic:
 	mv Unaligned/Project_Exome_Diagnostik/Sample_DX180050_02/ /mnt/storage2/GRCh38/projects/diagnostic//Exome_Diagnostik/
 
 copy_IVac_research:
-	mkdir -p /mnt/storage2/GRCh38/projects/research//IVac/
-	chmod 775 /mnt/storage2/GRCh38/projects/research//IVac/
-	mv Unaligned/Project_IVac/Sample_FO180004_01/ /mnt/storage2/GRCh38/projects/research//IVac/
-	mv Unaligned/Project_IVac/Sample_FO180005_01/ /mnt/storage2/GRCh38/projects/research//IVac/
+	mkdir -p /mnt/storage1/projects/research//IVac/
+	chmod 775 /mnt/storage1/projects/research//IVac/
+	mv Unaligned/Project_IVac/Sample_FO180004_01/ /mnt/storage1/projects/research//IVac/
+	mv Unaligned/Project_IVac/Sample_FO180005_01/ /mnt/storage1/projects/research//IVac/
 
 queue_Exome_Diagnostik_diagnostic:
 	php /mnt/storage2/GRCh38/users/bioinf/megSAP/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX180049_01

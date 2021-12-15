@@ -1744,8 +1744,22 @@ function check_genome_build($filename, $build_expected)
 		{
 			foreach($stdout as $line)
 			{
+				list(, $name) = explode("=", $line);
+				$builds[] = $name;
+			}
+		}
+	}
+	
+	//CNVs file
+	if (ends_with($filename, ".tsv"))
+	{
+		list($stdout, $stderr, $exit_code) = exec2("egrep '^GENOME_BUILD=' $filename", false);
+		if ($exit_code==0)
+		{
+			foreach($stdout as $line)
+			{
 				list(, $fasta) = explode("=", $line);
-				$builds[] = basename($fasta, ".fa");
+				$builds[] = $name;
 			}
 		}
 	}
@@ -1777,6 +1791,8 @@ function check_genome_build($filename, $build_expected)
 		trigger_error("File '$filename' contains inconsistent genome build information!", E_USER_WARNING);
 		return;
 	}
+	
+	//compare found and expected build
 	$build_found = $builds[0];
 	$build_expected = strtolower($build_expected);
 	if (!starts_with($build_found, $build_expected))

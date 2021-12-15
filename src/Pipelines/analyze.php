@@ -667,6 +667,10 @@ if (in_array("cn", $steps))
 			file_put_contents($varfile, implode("\n", $content));
 		}
 	}
+	else
+	{
+		check_genome_build($cnvfile, $sys['build']);
+	}
 
 	// annotate CNV file
 	if (file_exists($cnvfile))
