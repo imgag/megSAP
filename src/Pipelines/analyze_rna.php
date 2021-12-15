@@ -29,7 +29,6 @@ $parser->addString("fusion_caller", "Fusion callers to run, separated by comma."
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
 $parser->addInt("min_read_length", " Minimum read length after SeqPurge adapter trimming. Shorter reads are discarded.", true, 30);   
-$parser->addString("build", "Genome build to be used", true, "GRCh38");
 
 extract($parser->parse($argv));
 
@@ -38,12 +37,6 @@ if($out_folder=="default")
 {
 	$out_folder = $folder;
 }
-
-if (!file_exists($out_folder))
-{
-	exec2("mkdir -p $out_folder");
-}
-
 $ngsbits = get_path("ngs-bits");
 
 // create logfile in output folder if no filepath is provided:
@@ -67,6 +60,7 @@ $parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 //init
 $prefix = $out_folder."/".$name;
 $sys = load_system($system, $name);
+$build = $sys['build'];
 $target_file = $sys['target_file'];
 
 //determine genome from build
@@ -78,25 +72,6 @@ $gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 //find FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");
 $in_rev = glob($folder."/*_R2_001.fastq.gz");
-
-//fallback for remapping GRCh37 samples to GRCh38 - copy FASTQs from GRCh37
-if ($build =="GRCh38" && count($in_for)==0 && count($in_rev) == 0)
-{
-	if (!db_is_enabled("NGSD")) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
-	$db = DB::getInstance("NGSD", false);
-	$info = get_processed_sample_info($db, $name, false);
-	
-	$in_for_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R1_00?.fastq.gz";
-	$in_rev_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R2_00?.fastq.gz";
-	$fastq_files_grc37 = glob($in_for_grch37);
-	if(count($fastq_files_grc37)>0)
-	{
-		exec2("cp -f $in_for_grch37 $folder");
-		exec2("cp -f $in_rev_grch37 $folder");
-		$in_for = glob($folder."/*_R1_001.fastq.gz");
-		$in_rev = glob($folder."/*_R2_001.fastq.gz");
-	}
-}
 
 if ((count($in_for) == 0) && (count($in_rev) == 0))
 {
