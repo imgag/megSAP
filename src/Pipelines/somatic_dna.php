@@ -39,7 +39,7 @@ $parser->addFloat("min_af", "Allele frequency detection limit (for tumor-only ca
 $parser->addFloat("min_correlation", "Minimum correlation for tumor/normal pair.", true, 0.8);
 $parser->addFloat("min_depth_t", "Tumor sample coverage cut-off for low coverage statistics.", true, 100);
 $parser->addFloat("min_depth_n", "Normal sample coverage cut-off for low coverage statistics.", true, 100);
-$parser->addInt("min_cov_files", "Minimum number of required coverage files for CNV calling.", true, 20);
+$parser->addInt("min_cov_files", "Minimum number of required tumor-normal pairs for CNV calling.", true, 7);
 $parser->addString("cnv_baseline_pos","baseline region for ClinCNV, format e.g. chr1:12-12532",true);
 $parser->addString("rna_ref_tissue", "Reference data for RNA annotation", true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
@@ -680,8 +680,8 @@ if(in_array("cn",$steps))
 			create_baf_file($normal_gsvar,$t_bam,"{$baf_folder}/{$t_id}.tsv", $ref_genome);
 		}
 
-		//Skip CNV Calling if there are less than 7 tumor-normal coverage pairs
-		if(count(file($t_n_list_file)) > 7)
+		//Skip CNV Calling if there are less than specified tumor-normal coverage pairs
+		if(count(file($t_n_list_file)) > $min_cov_files)
 		{
 			/*******************
 			 * EXECUTE CLINCNV *
