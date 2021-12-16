@@ -228,7 +228,7 @@ else //somatic tumor-normal pairs
 		if($info['is_tumor'] == '1')
 		{
 			echo "tumor $bam processing...\n";
-			if(!is_valid_ref_tumor_sample_for_cnv_analysis($sample))  continue;
+			if(!is_valid_ref_tumor_sample_for_cnv_analysis($sample, false, $include_test_projects))  continue;
 			if(!file_exists("{$ref_t_dir}/{$sample}.cov"))
 			{
 				exec2($ngsbits."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out {$ref_t_dir}/{$sample}.cov",true);

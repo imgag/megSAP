@@ -605,7 +605,7 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false, $inclu
 	return true;
 }
 
-function is_valid_ref_tumor_sample_for_cnv_analysis($file, $discard_ffpe = false)
+function is_valid_ref_tumor_sample_for_cnv_analysis($file, $discard_ffpe = false, $include_test_projects = false)
 {
 	//check that sample is not NIST reference sample (it is a cell-line)
 	if (contains($file, "NA12878")) return false;
@@ -630,7 +630,7 @@ function is_valid_ref_tumor_sample_for_cnv_analysis($file, $discard_ffpe = false
 	if ($res[0]['q2']=="bad") return false;
 	
 	//check that project type is research/diagnostics
-	if ($res[0]['type']!="research" && $res[0]['type']!="diagnostic") return false;
+	if ($res[0]['type'] =="test" && !$include_test_projects) return false;
 	
 	//check that sample is tumor sample
 	if ($res[0]['tumor'] != "1") return false;
