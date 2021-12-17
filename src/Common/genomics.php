@@ -566,7 +566,7 @@ function indel_for_vcf($build, $chr, $start, $ref, $obs)
 	return array($chr,$start,$ref,$obs);
 }
 
-function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false, $include_test_projects = false)
+function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false, $include_test_projects = false, $include_ffpe = false)
 {
 	//check that sample is not NIST reference sample (it is a cell-line)
 	if (contains($file, "NA12878")) return false;
@@ -592,7 +592,7 @@ function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false, $inclu
 	else
 	{
 		if ($res[0]['tumor']=="1") return false;
-		if ($res[0]['ffpe']=="1") return false;
+		if ($res[0]['ffpe']=="1" && !$include_ffpe) return false;
 	}
 	
 	//check that run and processed sample do not have bad quality

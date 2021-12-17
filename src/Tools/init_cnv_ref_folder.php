@@ -16,6 +16,7 @@ $parser->addFlag("tumor_only", "Keep only tumor samples, normally tumor samples 
 $parser->addFlag("somatic","Create coverage files for tumor-normal samples, including off-target coverage files.");
 $parser->addInt("max_somatic_pairs","Maximum number of tumor coverage files to be calculated.", true, INF);
 $parser->addFlag("include_test_projects","Includes also projects of type 'test'. By default, only 'diagnostic' and 'research' projects are included.");
+$parser->addFlag("include_somatic_ffpe_normals", "Includes also normal samples which are flagged as FFP2 in NGSD");
 extract($parser->parse($argv));
 
 //get processing system data
@@ -260,7 +261,7 @@ else //somatic tumor-normal pairs
 		else
 		{
 			echo "normal $bam processing...\n";
-			if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only, $include_test_projects)) continue;
+			if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only, $include_test_projects, $include_somatic_ffpe_normals)) continue;
 			if(!file_exists("{$ref_n_dir}/{$sample}.cov"))
 			{
 				exec2($ngsbits."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out {$ref_n_dir}/{$sample}.cov",true);
