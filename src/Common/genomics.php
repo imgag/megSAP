@@ -1644,9 +1644,12 @@ function annotate_gsvar_by_gene($gsvar_f, $outfile_f, $annotation_f, $key, $colu
 	$gsvar->toTSV($outfile_f);
 }
 
-//checks that the genome build of a BAM, VCF (small variants or SVs) or TSV (CNVs) matches the expected build
-//It genome cannot be determined, a E_USER_WARNING is triggered. If it does not match, a E_USER_ERROR is triggered.
-function check_genome_build($filename, $build_expected)
+//checks that the genome build of a BAM, VCF (small variants or SVs) or TSV (CNVs) matches the expected build.
+//If genome cannot be determined, a E_USER_NOTICE is triggered and 0 is returned.
+//If the genome matches 1 is returned.
+//If the genome does not match a E_USER_ERROR is triggered.
+//If @throw_error is false, no error is triggered and 0 is returned. 
+function check_genome_build($filename, $build_expected, $throw_error = true)
 {
 	$builds = array();
 	
@@ -1674,11 +1677,7 @@ function check_genome_build($filename, $build_expected)
 								break;
 							}
 						}
-						if ($build == "") 
-						{
-							trigger_error("Warning: Couldn't determine genome build for bwa-mem(2) mapping");
-						}
-						else
+						if ($build!="") 
 						{
 							$builds[] = $build;
 						}
@@ -1708,11 +1707,7 @@ function check_genome_build($filename, $build_expected)
 								}
 							}
 						}
-						if ($build == "") 
-						{
-							trigger_error("Warning: Couldn't determine genome build for bwa-mem(2) mapping");
-						}
-						else
+						if ($build!="") 
 						{
 							$builds[] = $build;
 						}
@@ -1783,13 +1778,13 @@ function check_genome_build($filename, $build_expected)
 	$builds = array_unique($builds);
 	if (count($builds) < 1) 
 	{
-		trigger_error("File '$filename' does not contain genome build information!", E_USER_WARNING);
-		return;
+		trigger_error("File '$filename' does not contain genome build information!", E_USER_NOTICE);
+		return 0;
 	}
 	if (count($builds) > 1)
 	{
-		trigger_error("File '$filename' contains inconsistent genome build information!", E_USER_WARNING);
-		return;
+		trigger_error("File '$filename' contains inconsistent genome build information!", E_USER_NOTICE);
+		return 0;
 	}
 	
 	//compare found and expected build
@@ -1797,8 +1792,14 @@ function check_genome_build($filename, $build_expected)
 	$build_expected = strtolower($build_expected);
 	if (!starts_with($build_found, $build_expected))
 	{
-		trigger_error("Genome build of file '{$filename}' is '{$build_found}'. It does not match expected genome build '{$build_expected}'!", E_USER_ERROR);
+		if ($throw_error)
+		{
+			trigger_error("Genome build of file '{$filename}' is '{$build_found}'. It does not match expected genome build '{$build_expected}'!",  E_USER_ERROR);
+		}
+		return -1;
 	}
+	
+	return 1;
 }
 
 //converts a proessing system genome build string to a string compatible with ngs-bits

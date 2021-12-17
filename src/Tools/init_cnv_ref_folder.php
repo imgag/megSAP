@@ -16,27 +16,28 @@ $parser->addFlag("tumor_only", "Keep only tumor samples, normally tumor samples 
 $parser->addFlag("somatic","Create coverage files for tumor-normal samples, including off-target coverage files.");
 $parser->addInt("max_somatic_pairs","Maximum number of tumor coverage files to be calculated.", true, INF);
 $parser->addFlag("include_test_projects","Includes also projects of type 'test'. By default, only 'diagnostic' and 'research' projects are included.");
-$parser->addString("build","reference genome",true,"GRCh38");
 extract($parser->parse($argv));
 
-//check system
+//get processing system data
 $db = DB::getInstance("NGSD");
-$roi = trim($db->getValue("SELECT target_file FROM processing_system WHERE name_short='".$name."'", "<system not found>"));
-if ($roi=="<system not found>")
+$res = $db->executeQuery("SELECT * FROM processing_system WHERE name_short='".$name."'");
+if (count($res)==0)
 {
 	trigger_error("Invalid processing system short name '$name'! Valid names are:\n".implode("\n", $db->getValues("SELECT name_short FROM processing_system ORDER BY name_short ASC")), E_USER_ERROR);	
 }
-if ($roi=="")
+$sys = $res[0];
+if ($sys['target_file']=="")
 {
-	trigger_error("Processing system '$name' has no target region file annotated!", E_USER_ERROR);	
+	trigger_error("Processing system '$name' has no target region file!", E_USER_ERROR);	
 }
-$roi = get_path("data_folder")."/enrichment/".$roi;
+$roi = get_path("data_folder")."/enrichment/".$sys['target_file'];
+$build = $db->getValue("SELECT build FROM genome WHERE id='".$sys['genome_id']."'");
 
 //init
 $ref_folder = get_path("data_folder")."/coverage/$name".($tumor_only ? "-tumor" : "")."/";		
 
 //WGS/sWGS: fix ref folder and ROI
-$type = $db->getValue("SELECT type FROM processing_system WHERE name_short='".$name."'");
+$type = $sys['type'];
 if ($type=="WGS" || $type=="WGS (shallow)")
 {
 	$bin_size = get_path("cnv_bin_size_wgs");
@@ -82,7 +83,8 @@ if(!$somatic)
 
 	//check samples
 	$bams = array();
-	$valid = 0;
+	$c_valid = 0;
+	$c_bam = 0;
 	foreach($samples as $line)
 	{
 		$line = trim($line);
@@ -92,31 +94,40 @@ if(!$somatic)
 		
 		//check sample is valid
 		if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only, $include_test_projects)) continue;
-		++$valid;
+		++$c_valid;
 		
 		//check bam
 		$bam = "{$path}/{$sample}.bam";
 		if (file_exists($bam))
 		{
-			$bams[] = $bam;
+			++$c_bam;
+			
+			if (check_genome_build($bam, $build ,false)==1)
+			{
+				$bams[] = $bam;
+			}
 		}
 	}
 	print "Found ".count($samples)." samples for this processing system in NGSD.\n";
-	print "Found $valid samples that are valid reference samples.\n";
-	print "Found ".count($bams)." samples with BAM files.\n";
+	print "Found $c_valid samples that are valid reference samples.\n";
+	print "Found $c_bam samples with BAM file.\n";
+	print "Found ".count($bams)." samples with BAM file of matching genome build ($build).\n";
 	
 	//create new coverage files
-	foreach($bams as $bam)
+	for($i=0; $i<count($bams); ++$i)
 	{
+		$bam = $bams[$i];
 		$cov_file = "$ref_folder/".basename($bam, ".bam").".cov";
 		
 		//skip existing coverage files
 		if (file_exists($cov_file))
 		{
-			print "$bam skipped (coverage file already exists)\n";
+			print "$i) Skipped $bam - coverage file already exists\n";
 			continue;
 		}
 		
+		//process
+		print "$i) Processing $bam ...\n";
 		exec2($ngsbits."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out $cov_file");
 	}
 
