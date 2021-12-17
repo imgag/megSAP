@@ -55,6 +55,7 @@ $parser->execPipeline($pipeline, "Varscan2 INDELs");
 $tmp_merged_file = $parser->tempFile("varscan2_all_variants.vcf");
 $pipeline = array(
 	array("cat", "$tmp_snp_file $tmp_indel_file"),
+	array("sed", "'/^##source=.*/a ##reference={$genome}'"), //add header line with reference genome after "##source" header line
 	array("sed", "'s/Sample1/{$name}/' > $tmp_merged_file"), //replace sample1 by actual sample $name
 );
 $parser->execPipeline($pipeline, "merge");

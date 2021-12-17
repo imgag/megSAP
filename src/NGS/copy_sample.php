@@ -708,20 +708,6 @@ if (!$skip_queuing)
 }
 
 
-//target(s) 'qc_...'
-foreach ($project_to_fastqonly_samples as $target => $samples)
-{
-	$all_parts[] = "qc_{$target}";
-	
-	$output[] = "qc_{$target}:";
-	foreach (array_unique($samples) as $sample)
-	{
-		$sample_location = $sample_to_newlocation[$sample];
-		$output[] = "\tphp {$repo_folder}/src/NGS/qc_fastq.php -folder {$sample_location} -import";
-	}
-	$output[] = "";
-}
-
 //target(s) 'email_...'
 foreach ($project_to_fastqonly_samples as $target => $samples)
 {

@@ -39,7 +39,7 @@ $parser->addFloat("min_af", "Allele frequency detection limit (for tumor-only ca
 $parser->addFloat("min_correlation", "Minimum correlation for tumor/normal pair.", true, 0.8);
 $parser->addFloat("min_depth_t", "Tumor sample coverage cut-off for low coverage statistics.", true, 100);
 $parser->addFloat("min_depth_n", "Normal sample coverage cut-off for low coverage statistics.", true, 100);
-$parser->addInt("min_cov_files", "Minimum number of required coverage files for CNV calling.", true, 20);
+$parser->addInt("min_cov_files", "Minimum number of required tumor-normal pairs for CNV calling.", true, 7);
 $parser->addString("cnv_baseline_pos","baseline region for ClinCNV, format e.g. chr1:12-12532",true);
 $parser->addString("rna_ref_tissue", "Reference data for RNA annotation", true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
@@ -139,6 +139,9 @@ $sys = load_system($system, $t_id);
 $roi = $sys["target_file"];
 $ref_genome = genome_fasta($sys['build']);
 
+//check reference build
+check_genome_build($t_bam, $sys['build']);
+
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 
@@ -149,6 +152,8 @@ if (!$single_sample)
 	$n_id = basename($n_bam, ".bam");
 	$n_sys = load_system($n_system, $n_id);
 	$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
+	
+	check_genome_build($n_bam, $n_sys['build']);
 	
 	//Check whether both samples have same processing system
 	if($roi != $n_sys["target_file"])
@@ -675,8 +680,8 @@ if(in_array("cn",$steps))
 			create_baf_file($normal_gsvar,$t_bam,"{$baf_folder}/{$t_id}.tsv", $ref_genome);
 		}
 
-		//Skip CNV Calling if there are less than 7 tumor-normal coverage pairs
-		if(count(file($t_n_list_file)) > 7)
+		//Skip CNV Calling if there are less than specified tumor-normal coverage pairs
+		if(count(file($t_n_list_file)) > $min_cov_files)
 		{
 			/*******************
 			 * EXECUTE CLINCNV *
@@ -725,6 +730,8 @@ $somaticqc          = $full_prefix . "_stats_som.qcML";			// SomaticQC qcML
 $cfdna_folder       = $full_prefix . "_cfDNA_candidates";       // folder containing cfDNA monitoring variants 
 if (in_array("an", $steps))
 {
+	check_genome_build($variants, $sys['build']);
+	
 	// annotate vcf (in temp folder)
 	$tmp_folder1 = $parser->tempFolder();
 	$tmp_vcf = "{$tmp_folder1}/{$prefix}_var_annotated.vcf.gz";
@@ -918,6 +925,7 @@ if (in_array("an_rna", $steps))
 	//Annotate data from all detected RNA files
 	foreach($ps_rna_bams as $rna_id => $rna_bam)
 	{
+		check_genome_build($rna_bam, $sys['build']);
 		$rna_count = $rna_counts[$rna_id];
 		
 		//SNVs
@@ -1010,7 +1018,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			// import SNVS (not for WGS)
 			if (file_exists($variants_gsvar) && $sys['type'] !== "WGS")
 			{
-				
+				check_genome_build($variants_gsvar, $sys['build']);
 				$parser->exec(get_path("ngs-bits") . "/NGSDAddVariantsSomatic", " -t_ps $t_id -n_ps $n_id -var $variants_gsvar -var_force");
 			}
 			

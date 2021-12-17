@@ -387,6 +387,9 @@ if(isset($guide_baseline))
 	$cnvs->addComment("#guideBaseline: $guide_baseline");
 }
 
+//add genome build
+$cnvs->addComment("#GENOME_BUILD=GRCh38");
+
 
 /**********************
  * DETERMINE CNV TYPE *

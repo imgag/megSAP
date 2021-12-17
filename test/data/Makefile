@@ -29,8 +29,8 @@ vcf2gsvar:
 
 #Creating input BAM files for somatic pipeline Manta SV positive control
 sv_somatic:
-	samtools view -h /mnt/projects/diagnostic/SomaticAndTreatment/Sample_DX197143_01/DX197143_01.bam chr10:123238830-123240576 chr12:80078296-80080042 | sed "s/DX197143_01/manta_sv_tumor/g" | samtools view -bSh > temp_tumor.bam
-	samtools view -h /mnt/projects/diagnostic/SomaticAndTreatment/Sample_DX196743_01/DX196743_01.bam chr10:123238830-123240576 chr12:80078296-80080042 | sed "s/DX196743_01/manta_sv_normal/g" | samtools view -bSh > temp_normal.bam
+	samtools view -h /mnt/storage2/GRCh38/projects/diagnostic/SomaticAndTreatment/Sample_DX197143_01/DX197143_01.bam chr10:121479316-121481062 chr12:79684516-79686262 | sed "s/DX197143_01/manta_sv_tumor/g" | samtools view -bSh > temp_tumor.bam
+	samtools view -h /mnt/storage2/GRCh38/projects/diagnostic/SomaticAndTreatment/Sample_DX196743_01/DX196743_01.bam chr10:121479316-121481062 chr12:79684516-79686262 | sed "s/DX196743_01/manta_sv_normal/g" | samtools view -bSh > temp_normal.bam
 	samtools view -H temp_tumor.bam | sed "s/DX197143_01/manta_sv_tumor/g" > temp_header_tumor.sam
 	samtools view -H temp_normal.bam | sed "s/DX196743_01/manta_sv_normal/g" > temp_header_normal.sam
 	samtools reheader temp_header_tumor.sam  temp_tumor.bam > manta_sv_tumor.bam
@@ -41,8 +41,8 @@ sv_somatic:
 
 #Creating RNA test files for somatic pipeline test
 an_somatic_gsvar_rna:
-	cat /mnt/projects/diagnostic/SomaticAndTreatment/Sample_RX196019_01/RX196019_01_counts.tsv | egrep "#|TPTE|BAGE2|KRTAP13-2|CFAP298|AP000275.65|C21orf58" > somatic_pipeline_rna_counts.tsv
-	samtools view -h /mnt/projects/diagnostic/SomaticAndTreatment/Sample_RX196019_01/RX196019_01.bam chr21:10971403-10971503 chr21:11039344-11039444 chr21:31744189-31744289 chr21:33974044-33974144 chr21:47737800-47737900 | sed "s/RX196019_01/somatic_rna/g" | samtools view -bSh > temp_rna.bam
+	cat /mnt/storage2/GRCh38/projects/diagnostic/SomaticAndTreatment/Sample_RX196019_01/RX196019_01_counts.tsv | egrep "#|TPTE|BAGE2|KRTAP13-2|CFAP298|AP000275.65|C21orf58" > somatic_pipeline_rna_counts.tsv
+	samtools view -h /mnt/storage2/GRCh38/projects/diagnostic/SomaticAndTreatment/Sample_RX196019_01/RX196019_01.bam chr21:10473013-10473113 chr21:10540954-10541054 chr21:30371871-30371971 chr21:32601734-32601834 chr21:46317886-46317986 | sed "s/RX196019_01/somatic_rna/g" | samtools view -bSh > temp_rna.bam
 	samtools view -H temp_rna.bam | sed "s/RX196019_01/somatic_rna/g" > temp_header_rna.sam
 	samtools reheader temp_header_rna.sam temp_rna.bam > somatic_pipeline_tumor_rna.bam
 	samtools index somatic_pipeline_tumor_rna.bam

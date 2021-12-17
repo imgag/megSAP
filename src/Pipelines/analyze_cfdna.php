@@ -107,10 +107,34 @@ if (isset($db))
 		}
 		if (count($psamples) > 1)
 		{
-			//TODO: try to identify by available cfdna panel
-			trigger_error("Found more than one referenced tumor, using first one: " . implode(" ", $psamples), E_USER_WARNING);
+			trigger_error("Found more than one possible referenced tumor: " . implode(", ", $psamples), E_USER_WARNING);
+
+			//identify tumor sample by cfDNA panel
+			$sys_id = $db->getValue("SELECT id FROM processing_system WHERE name_short='".$sys["name_short"]."'");
+
+			$panel_counts = 0;
+			foreach ($psamples as $tsample) 
+			{
+				$tumor_ps_id = get_processed_sample_id($db, $tsample);
+				$res = $db->executeQuery("SELECT id FROM cfdna_panels WHERE vcf IS NOT NULL AND vcf <> '' AND processing_system_id=:sysid AND tumor_id=:tid", array("sysid" => $sys_id, "tid" => $tumor_ps_id));
+				$panel_counts = count($res);
+				if ($panel_counts > 0)
+				{
+					$tumor_id = $tsample;
+					trigger_error("Tumor id with cfDNA panel extracted from the NGSD: ${tumor_id}", E_USER_NOTICE);
+					break;
+				}	
+			}
+
+			// fallback if no cfDNA panel was found
+			if ($tumor_id == "")
+			{
+				$tumor_id = $psamples[0];
+				trigger_error("Found more than one referenced tumor, using first one: " . implode(" ", $psamples), E_USER_WARNING);
+			}
+			
 		}
-		if (count($psamples) === 0)
+		else if (count($psamples) === 0)
 		{
 			trigger_error("Could not find any related tumor processed sample!", E_USER_WARNING);
 		}
@@ -126,6 +150,53 @@ if (isset($db))
 	{
 		$psinfo_tumor = get_processed_sample_info($db, $tumor_id);
 		$tumor_bam = $psinfo_tumor['ps_bam'];
+	}
+
+
+	// get related cfDNA samples from NGSD
+	if (!$annotation_only && !$skip_tumor && ($tumor_id != ""))
+	{
+
+		list($tumor_name, ) = explode("_", $tumor_id);
+		$res_samples = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", ["name" => $tumor_name]);
+		if (count($res_samples) !== 1)
+		{
+			trigger_error("Could not find sample for selected tumor sample {$tumor_id}!", E_USER_WARNING);
+		}
+		$tumor_db_id = $res_samples[0]['id'];
+		$res = $db->executeQuery("SELECT * FROM sample_relations WHERE relation='tumor-cfDNA' AND sample1_id=:sid", array("sid" => $tumor_db_id));
+
+		$related_cfdna_samples = array();
+		foreach ($res as $row)
+		{
+			$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample, ps.id FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND (sys.type='cfDNA (patient-specific)' OR sys.type='cfDNA') ORDER BY ps.process_id ASC", array("sid" => $row['sample2_id']));
+			$related_cfdna_samples = array_merge($related_cfdna_samples, array_column($res, 'psample'));
+		}
+
+		// remove current sample from list of related samples
+		if (($key = array_search($name, $related_cfdna_samples)) !== false) 
+		{
+			unset($related_cfdna_samples[$key]);
+		}
+
+		trigger_error("Related cfDNA samples: ".implode(", ", $related_cfdna_samples), E_USER_NOTICE);
+
+		// get BAMs
+		$related_cfdna_bams = array();
+		foreach ($related_cfdna_samples as $sample) 
+		{
+			$bam = get_processed_sample_info($db, $sample)['ps_bam'];
+			if (file_exists($bam))
+			{
+				$related_cfdna_bams[$sample] = $bam;
+			}
+			else
+			{
+				trigger_error("BAM file for sample $sample not found!", E_USER_WARNING);
+			}
+			
+		}
+
 	}
 
 	// generate bed files for calling (only required for mapping and VC)
@@ -174,6 +245,7 @@ $vcffile = "{$folder}/{$name}_var.vcf";
 //db import
 $qc_fastq = "{$folder}/{$name}_stats_fastq.qcML";
 $qc_map  = "{$folder}/{$name}_stats_map.qcML";
+$qc_cfdna = "{$folder}/{$name}_stats_cfDNA.qcML";
 
 //check if all required info are available
 if (!$annotation_only && (in_array("ma", $steps) || in_array("vc", $steps)))
@@ -261,6 +333,7 @@ if (in_array("ma", $steps))
 	}
 
 	$parser->exec(get_path("ngs-bits")."MappingQC", "-cfdna -roi {$target_extended} -in {$bamfile} -out {$qc_map} -ref ".genome_fasta($sys['build'])." -build ".ngsbits_build($sys['build']));
+
 }
 
 //check sample similarity with referenced tumor
@@ -272,7 +345,19 @@ if (!($annotation_only || $skip_tumor))
 		$correlation = explode("\t", $output[0][1])[3];
 		if ($correlation < $min_corr)
 		{
-			trigger_error("The genotype correlation of cfDNA and tumor is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
+			trigger_error("The genotype correlation of cfDNA and tumor ({$tumor_id}) is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
+		}
+		else
+		{
+			trigger_error("The genotype correlation of cfDNA and tumor ({$tumor_id}) is {$correlation}.", E_USER_NOTICE);
+		}
+
+		// calculate similarity between related cfDNA samples
+		foreach ($related_cfdna_bams as $cfdna_sample => $cfdna_bam) 
+		{
+			$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$cfdna_bam} -mode bam -roi {$target_extended} -build ".ngsbits_build($sys['build']), true);
+			$correlation = explode("\t", $output[0][1])[3];
+			trigger_error("The genotype correlation of cfDNA and related sample ({$cfdna_sample}) is {$correlation}.", E_USER_NOTICE);
 		}
 	}
 	else
@@ -287,6 +372,9 @@ if (in_array("vc", $steps))
 	// skip VC if only annotation should be done
 	if (!$annotation_only)
 	{
+		// check if reference genome fits BAM file
+		check_genome_build($bamfile, $sys['build']);
+
 		$args = [
 			"-bam", $bamfile,
 			"-target", $target_extended,
@@ -326,7 +414,30 @@ if (in_array("vc", $steps))
 
 		// validate VCF
 		$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $vcffile -lines 0 -ref ".genome_fasta($sys['build']), true);
+
+
+		//run CfDnaQC
+		$args = [
+			"-bam", $bamfile,
+			"-cfdna_panel", $target_extended,
+			"-out", $qc_cfdna,
+			"-build", $sys['build'],
+			"-ref", genome_fasta($sys['build'])
+		];
+		if ($tumor_bam != "")
+		{
+			$args[] = "-tumor_bam ".$tumor_bam;
+		}
+
+		if (isset($related_cfdna_bams) && count($related_cfdna_bams) > 0)
+		{
+			$args[] = "-related_bams ".implode(" ", array_values($related_cfdna_bams));
+		}
+		$parser->exec(get_path("ngs-bits")."CfDnaQC", "-cfdna_panel {$target} -bam {$bamfile} -out {$qc_cfdna} -ref ".genome_fasta($sys['build'])." -build ".ngsbits_build($sys['build']));
 	}
+
+	// check if reference genome fits VCF file
+	if ($annotation_only) check_genome_build($vcffile, $sys['build']);
 
 	// annotate VCF 
 	$vcffile_annotated = "$folder/${name}_var_annotated.vcf.gz";

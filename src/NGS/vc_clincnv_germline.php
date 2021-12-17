@@ -360,6 +360,7 @@ function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messa
 	{
 		fwrite($cnv_output, "##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE\n");
 	}
+	fwrite($cnv_output, "##GENOME_BUILD=GRCh38\n");
 	preg_match('/^.*ClinCNV-([\d\.]*).*$/', $command, $matches);
 	if(sizeof($matches) >= 2)
 	{
@@ -537,7 +538,7 @@ function run_clincnv($out, $mosaic=FALSE)
 		$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
 		$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
 
-		//add high-quality CNV count to header
+		//add analysis type high-quality CNV count to header
 		$cnv_calls = file($out);
 		$hq_cnvs = 0;
 		$analysistype = 0;
@@ -558,7 +559,13 @@ function run_clincnv($out, $mosaic=FALSE)
 			}	
 			$i++;
 		}
-		array_splice($cnv_calls, 3, 0, array("##high-quality cnvs: {$hq_cnvs}\n", "##mean correlation to reference samples: {$mean_correlation}\n"));
+		$add_header_lines = [];
+		$add_header_lines[] = "##GENOME_BUILD=GRCh38\n";
+		$add_header_lines[] = "##high-quality cnvs: {$hq_cnvs}\n";
+		$add_header_lines[] = "##mean correlation to reference samples: {$mean_correlation}\n";
+		array_splice($cnv_calls, 3, 0, $add_header_lines);
+		
+		//replace type header for somatic
 		if($tumor_only)
 		{
 			array_splice($cnv_calls, $analysistype, 1, array("##ANALYSISTYPE=CLINCNV_TUMOR_ONLY\n"));
