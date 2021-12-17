@@ -229,7 +229,7 @@ if (in_array("ma", $steps))
 
 		//barcode correction
 		$tmp_dedup = $parser->tempFile("_dedup.bam");
-		$parser->exec("umi_tools", "dedup -I $before_dedup_bam -S $tmp_dedup --mapping-quality 3 --no-sort-output --umi-separator=':' --output-stats={$prefix}_umistats", true);
+		$parser->exec(get_path("umi_tools"), "dedup -I $before_dedup_bam -S $tmp_dedup --mapping-quality 3 --no-sort-output --umi-separator=':' --output-stats={$prefix}_umistats", true);
 		$parser->sortBam($tmp_dedup, $final_bam, $threads);
 		$parser->indexBam($final_bam, $threads);
 	}
