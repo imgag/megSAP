@@ -235,6 +235,11 @@ else //somatic tumor-normal pairs
 			print "Skipping $sample because $bam does not exist.\n";
 			continue;
 		}
+		if (check_genome_build($bam, $build ,false) != 1 )
+		{
+			print "Skipping $sample because $bam is aligned with reference build other than {$build}.\n";
+			continue;
+		}
 
 		if($info['is_tumor'] == '1')
 		{
