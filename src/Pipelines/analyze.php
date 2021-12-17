@@ -198,9 +198,11 @@ if (in_array("ma", $steps))
 
 			// determine project folder of GRCh37 
 			$bamfile_to_convert = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/${name}.bam";
-
+			// other possible file location (for research and test projects)
+			if(!file_exists($bamfile_to_convert)) $bamfile_to_convert = get_path("project_folder")[$info['project_type']]."/".$info['project_name']."/+hg19/Sample_${name}/${name}.bam";
+			
 			// check if bam file exists
-			if (!file_exists($bamfile_to_convert)) trigger_error("BAM file of GRCh37 sample is missing!", E_USER_ERROR);
+			if (!file_exists($bamfile_to_convert) && !file_exists($bamfile_to_convert2)) trigger_error("BAM file of GRCh37 sample is missing!", E_USER_ERROR);
 
 			trigger_error("No read data found in output folder. Using BAM/FASTQ files from GRCh37 as input!", E_USER_NOTICE);
 		}
@@ -222,10 +224,20 @@ if (in_array("ma", $steps))
 		$db = DB::getInstance("NGSD", false);
 		$info = get_processed_sample_info($db, $name, false);
 		
+		//fallback to grch37 project folder
 		$in_for_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R1_00?.fastq.gz";
 		$in_rev_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R2_00?.fastq.gz";
-		$fastq_files_grc37 = glob($in_for_grch37);
-		if(count($fastq_files_grc37)>0)
+		$fastq_files_grch37 = glob($in_for_grch37);
+		
+		//fallback to +hg19 subdirectory (in case of test and research projects)
+		if(count($fastq_files_grch37) == 0)
+		{
+			$in_for_grch37 = get_path("project_folder")[$info['project_type']]. "/".$info['project_name']."/+hg19/Sample_${name}/*_R1_00?.fastq.gz";
+			$in_rev_grch37 = get_path("project_folder")[$info['project_type']]. "/".$info['project_name']."/+hg19/Sample_${name}/*_R2_00?.fastq.gz";
+			$fastq_files_grch37 = glob($in_for_grch37);
+		}
+		
+		if(count($fastq_files_grch37)>0)
 		{
 			exec2("cp -f $in_for_grch37 $folder");
 			exec2("cp -f $in_rev_grch37 $folder");
