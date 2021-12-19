@@ -465,17 +465,30 @@ if(in_array("cn",$steps))
 	/***************************************************
 	 * GENERATE AND COPY COVERAGE FILES TO DATA FOLDER *
 	 ***************************************************/
+	 
+	//directory with reference coverage files
+	$ref_folder_t = get_path("data_folder")."/coverage/".$sys['name_short']."-tumor";
+
+	 
 	// coverage for tumor sample
 	$t_cov = "{$tmp_folder}/{$t_id}.cov";
-	$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov",true);
+	$ref_file_t = "{$ref_folder_t}/{$t_id}.cov";
+	
+	if(!file_exists($ref_file_t) )$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov",true);
+	else $t_cov = $ref_file_t;
+	
+	//directory with reference off-target coverage files
+	$ref_folder_t_off_target = $ref_folder_t . "_off_target";
 	
 	// coverage for tumor sample (off-target)
 	$t_cov_off_target = "{$tmp_folder}/{$t_id}_off_target.cov";
-	$parser->exec(get_path("ngs-bits")."BedCoverage","-min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target",true);
+	$ref_file_t_off_target = "{$ref_folder_t_off_target}/{$t_id}.cov";
+	
+	if( !file_exists($ref_file_t_off_target ) ) $parser->exec(get_path("ngs-bits")."BedCoverage","-min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target",true);
+	else $t_cov_off_target = $ref_file_t_off_target;
 	
 	//folders with tumor reference coverage files (of same processing system)
-	$ref_folder_t = get_path("data_folder")."/coverage/".$sys['name_short']."-tumor";
-	$ref_folder_t_off_target = $ref_folder_t . "_off_target";
+
 
 	//copy tumor sample coverage file to reference folder (has to be done before ClinCNV call to avoid analyzing the same sample twice)
 	if (db_is_enabled("NGSD") && is_valid_ref_tumor_sample_for_cnv_analysis($t_id))
@@ -484,8 +497,6 @@ if(in_array("cn",$steps))
 		create_directory($ref_folder_t);
 		
 		//copy file
-		$ref_file_t = "{$ref_folder_t}/{$t_id}.cov";
-		
 		if(!file_exists($ref_file_t)) //Do not overwrite existing reference files in cov folder
 		{
 			$parser->copyFile($t_cov, $ref_file_t); 
@@ -495,7 +506,6 @@ if(in_array("cn",$steps))
 		//create reference folder for tumor off target coverage files
 		create_directory($ref_folder_t_off_target);
 		
-		$ref_file_t_off_target = "{$ref_folder_t_off_target}/{$t_id}.cov";
 		if(!file_exists($ref_file_t_off_target))
 		{
 			$parser->copyFile($t_cov_off_target,$ref_file_t_off_target);
@@ -586,33 +596,42 @@ if(in_array("cn",$steps))
 	}
 	else //ClinCNV for differential sample
 	{
+		//reference directory for normal coverage files
+		$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
+		
 		// coverage for normal sample
+		$ref_file_n = $ref_folder_n."/".$n_id.".cov";
 		$n_cov = "{$tmp_folder}/{$n_id}.cov";
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -decimals 4 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov", true);
+		
+		if(!file_exists($ref_file_n)) $parser->exec(get_path("ngs-bits")."BedCoverage", "-min_mapq 0 -decimals 4 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov", true);
+		else $n_cov = $ref_file_n;
+		
+		//reference directory for off_target normal coverage files
+		$ref_folder_n_off_target = $ref_folder_n . "_off_target";
 		
 		// coverage for normal sample (off-target)
+		$ref_file_n_off_target = "{$ref_folder_n_off_target}/{$n_id}.cov";
 		$n_cov_off_target = "{$tmp_folder}/{$n_id}_off_target.cov";
-		$parser->exec(get_path("ngs-bits")."BedCoverage","-min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target",true);
 		
-		// copy normal sample coverage file to reference folder (only if valid).
+		if(!file_exists($ref_file_n_off_target) ) $parser->exec(get_path("ngs-bits")."BedCoverage","-min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target",true);
+		else $n_cov_off_target = $ref_file_n_off_target;
+		
+		// copy normal sample coverage file to reference folder (only if valid and not yet there).
 		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($n_id))
 		{
 			//create reference folder if it does not exist
-			$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
+			
 			create_directory($ref_folder_n);
 
 			//copy file
-			$ref_file_n = $ref_folder_n."/".$n_id.".cov";
 			if (!file_exists($ref_file_n)) //do not overwrite existing coverage files in ref folder
 			{
 				$parser->copyFile($n_cov, $ref_file_n);
 				$n_cov = $ref_file_n;
 			}
 			
-			$ref_folder_n_off_target = $ref_folder_n . "_off_target";
+			
 			create_directory($ref_folder_n_off_target);
-
-			$ref_file_n_off_target = "{$ref_folder_n_off_target}/{$n_id}.cov";
 			
 			if(!file_exists($ref_file_n_off_target))
 			{
