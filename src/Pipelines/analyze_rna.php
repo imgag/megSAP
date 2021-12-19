@@ -364,7 +364,7 @@ SQL;
 		}
 
 		//annotate splice junctions
-		if ($build === "GRCh38" && db_is_enabled("NGSD"))
+		if ($build === "GRCh38" && db_is_enabled("NGSD") && file_exists($junctions))
 		{
 			$parser->exec("{$ngsbits}SplicingToBed", "-in {$junctions} -report {$splicing_annot} -gene_report {$splicing_gene} -bed {$splicing_bed}", true);
 		}
