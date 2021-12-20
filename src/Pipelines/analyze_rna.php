@@ -24,7 +24,7 @@ $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 o
 $parser->addFlag("no_splicing", "Disable spliced read alignment.");
 $parser->addFlag("abra", "Enable indel realignment with ABRA.");
 $parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
-$parser->addString("fusion_caller", "Fusion callers to run, separated by comma.", true, "arriba");
+$parser->addString("fusion_caller", "Fusion callers to run, separated by comma.", true, "arriba,star-fusion");
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
