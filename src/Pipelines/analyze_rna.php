@@ -409,7 +409,7 @@ if (in_array("fu",$steps) && in_array("star-fusion",$fusion_caller))
 		]));
 
 		$fusion_tmp_folder = $parser->tempFolder();
-		$chimeric_file = "{$prefix}_chimeric.tsv";
+		$chimeric_file = $umi ? "{$prefix}_before_dedup_chimeric.tsv" : "{$prefix}_chimeric.tsv" ;
 		if (!file_exists($chimeric_file))
 		{
 			trigger_error("Could not open chimeric file '$chimeric_file' needed for STAR-Fusion. Please re-run mapping step.", E_USER_ERROR);
@@ -493,7 +493,7 @@ $fusions_arriba_pdf = "{$prefix}_fusions_arriba.pdf";
 if (in_array("fu",$steps) && in_array("arriba",$fusion_caller))
 {
 	$arriba_args = [
-		"-bam", $final_bam,
+		"-bam", $umi ? $before_dedup_bam : $final_bam,
 		"-out_fusions", $fusions_arriba_tsv,
 		"-out_discarded", $fusions_arriba_discarded_tsv,
 		"-out_bam", $fusions_arriba_bam,
