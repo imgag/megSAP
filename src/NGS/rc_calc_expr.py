@@ -2,6 +2,7 @@
 
 import pandas as pd
 import numpy as np
+from scipy.stats import norm
 import click
 
 def read_counts_tpm_megsap(fp, sample_id):
@@ -55,6 +56,7 @@ def cohort(samples, counts, counts_out, prefix, cohort, stats, corr):
         expr['log2tpm'] = np.log2(expr['tpm']+1)
         expr['log2fc'] = expr['log2tpm'] - expr['cohort_meanlog2']
         expr['zscore'] = (expr['log2tpm'] - expr['cohort_meanlog2'])/expr['cohort_sdlog2']
+        expr['pval'] = expr['zscore'].apply(lambda z: 2*norm.cdf(-abs(z)))
 
         # annotated count file
         if counts_out:
