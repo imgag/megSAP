@@ -128,7 +128,12 @@ if (in_array("ma", $steps) || (in_array("fu", $steps) && in_array("star-fusion",
 		{
 			if (empty($in_umi))
 			{
-				trigger_error("No UMI read files found!", E_USER_WARNING);
+				trigger_error("No UMI read files found! Processing fastqs without UMIs.", E_USER_WARNING);
+				$seqpurge_params = array_merge($seqpurge_params,
+				[
+					"-in1", implode(" ", $in_for),
+					"-in2", implode(" ", $in_rev)
+				]);
 			}
 			else
 			{
