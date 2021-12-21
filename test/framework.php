@@ -391,6 +391,17 @@ function check_exec($command, $fail = TRUE)
 		$line = $caller["line"];
 		print "  - $file:$line FAILED (see $logfile)\n";
 	}
+	else
+	{
+		$result = "PASSED";
+		++$GLOBALS["passed"];
+
+		$bt = debug_backtrace();
+		$caller = array_shift($bt);
+		$file = basename($caller["file"]);
+		$line = $caller["line"];
+		print "  - $file:$line $result\n";
+	}
 	
 	if ($GLOBALS["debug"])
 	{
