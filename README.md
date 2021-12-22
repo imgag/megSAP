@@ -39,4 +39,5 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 
 ## ChangeLog
+* 22.12.2021 Updated all databases except RNA-only databases
 * 22.11.2021 GRCh38 is now the default. The GRCh37 version is availailable through the respective branch now.

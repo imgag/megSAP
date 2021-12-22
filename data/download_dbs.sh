@@ -23,11 +23,11 @@ rm hotspots.tsv.0
 rm hotspots.tsv.1
 rm cancerhotspots.v2.maf.gz
 
-#Install ClinGen dosage sensitivity - ftp://ftp.ncbi.nlm.nih.gov/pub/dbVar/clingen
+#Install ClinGen dosage sensitivity - http://ftp.ncbi.nlm.nih.gov/pub/dbVar/clingen
 cd $dbs
 mkdir ClinGen
 cd ClinGen
-wget ftp://ftp.clinicalgenome.org/ClinGen_gene_curation_list_GRCh38.tsv
+wget http://ftp.clinicalgenome.org/ClinGen_gene_curation_list_GRCh38.tsv
 cat ClinGen_gene_curation_list_GRCh38.tsv | php $src/Tools/db_converter_clingen_dosage.php > dosage_sensitive_disease_genes_GRCh38.bed
 $ngsbits/BedSort -in dosage_sensitive_disease_genes_GRCh38.bed -out dosage_sensitive_disease_genes_GRCh38.bed
 
@@ -48,20 +48,19 @@ cat hg38.fa.out | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/BedSor
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20211010.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20211010_converted_GRCh38.vcf.gz
-tabix -p vcf clinvar_20211010_converted_GRCh38.vcf.gz
-#//TODO CNVs are not GRCh38, or?
+wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20211212.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20211212_converted_GRCh38.vcf.gz
+tabix -p vcf clinvar_20211212_converted_GRCh38.vcf.gz
 #CNVs
-wget -O - ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2021-10.txt.gz | gunzip > variant_summary_2021-10.txt
-cat variant_summary_2021-10.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2021-10.bed
-$ngsbits/BedSort -with_name -in clinvar_cnvs_2021-10.bed -out clinvar_cnvs_2021-10.bed
+wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2021-12.txt.gz | gunzip > variant_summary_2021-12.txt
+cat variant_summary_2021-12.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2021-12.bed
+$ngsbits/BedSort -with_name -in clinvar_cnvs_2021-12.bed -out clinvar_cnvs_2021-12.bed
 
-#Install HGNC - ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
+#Install HGNC - http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
 cd $dbs
 mkdir HGNC
 cd HGNC
-wget -O - ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/hgnc_complete_set.txt > hgnc_complete_set.tsv
-wget -O - ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/withdrawn.txt > hgnc_withdrawn.tsv
+wget -O - http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/hgnc_complete_set.txt > hgnc_complete_set.tsv
+wget -O - http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/withdrawn.txt > hgnc_withdrawn.tsv
 
 #Install gnomAD (genome data) - 
 cd $dbs
@@ -98,7 +97,7 @@ tabix -p vcf gnomAD_genome_v3.1.1_GRCh38.vcf.gz
 cd $dbs
 mkdir phyloP
 cd phyloP
-wget ftp://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.phyloP100way.bw
+wget http://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.phyloP100way.bw
 
 #Install CADD for VEP - http://cadd.gs.washington.edu/download
 cd $dbs
@@ -128,7 +127,7 @@ rm -f revel_tmp.tsv.gz h
 cd $dbs
 mkdir dbscSNV
 cd dbscSNV
-wget ftp://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbscSNV1.1.zip
+wget http://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbscSNV1.1.zip
 unzip dbscSNV1.1.zip
 php $src/Tools/db_converter_dbscsnv.php -c_chr 4 -c_pos 5 -in dbscSNV1.1.chr* -out dbscSNV1.1_GRCh38.vcf
 bgzip dbscSNV1.1_GRCh38.vcf
@@ -166,7 +165,7 @@ wget -O - http://ftp.ensembl.org/pub/release-104/gtf/homo_sapiens/Homo_sapiens.G
 #cd $dbs
 #mkdir OMIM
 #cd OMIM
-#manual download of ftp://ftp.omim.org/OMIM/genemap2.txt
+#manual download of http://ftp.omim.org/OMIM/genemap2.txt
 #php $src/Tools/db_converter_omim.php | $ngsbits/BedSort -with_name > omim.bed
 
 #Install HGMD (you need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
