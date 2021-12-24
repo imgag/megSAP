@@ -18,6 +18,8 @@
 |HGMD (SNVs and CNVs)   |pipeline                |12.2021 (2021.3)                |update GSvar IGV file                                                                               |https://apps.ingenuity.com/ingsso/login                                 |
 |Ensembl                |NGSDImportEnsembl       |12.2021 (GRCh38.105)            |                                                                                                    |https://ftp.ensembl.org/pub/release-105/gff3/homo_sapiens/              |
 |HPO                    |NGSDImportHPO           |12.2021 (latest - not versioned)|Bug: https://github.com/obophenotype/human-phenotype-ontology/issues/4916                           |https://hpo.jax.org/app/                                                |
+|GenCC                  |NGSDImportHPO           |12.2021 (latest - not versioned)|                                                                                                    |https://search.thegencc.org/download                                    |
+|DECIPER                |NGSDImportHPO           |12.2021 (22_12_2021)            |                                                                                                    |https://www.deciphergenomics.org/about/downloads/data                   |
 |ORPHA                  |NGSDImportORPHA         |12.2021 (latest - not versioned)|                                                                                                    |https://github.com/Orphanet/Orphadata.org/                              |
 
 
