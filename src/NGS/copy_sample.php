@@ -556,7 +556,7 @@ foreach($sample_data as $sample => $sample_infos)
 				//queue normal if on same run, with somatic specific options
 				if (!in_array($normal, $queued_normal_samples)  && array_key_exists($normal,$sample_data) && $sample_data[$normal]["run_name"] === $sample_infos["run_name"])
 				{
-					$steps = ($project_type=="diagnostic") ? "ma,vc,cn,db" : "ma,db";
+					$steps = "ma,vc,cn,db";
 					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal} -args '-steps $steps -somatic'";
 					$outputline .= "\n\t";
 					//track that normal sample is queued
