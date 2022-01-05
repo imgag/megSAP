@@ -150,6 +150,16 @@ function write_lowAF_variants($vcf_in, $max_af, $anno_key, $vcf_out)
 						$af = max($af, $value);
 					}
 				}
+				//gnomAD AF (mito)
+				else if(starts_with($info_entry, 'gnomADm_AF_hom='))
+				{
+					$info_entry = explode('=', $info_entry, 2);
+					$value = $info_entry[1];
+					if (is_numeric($value))
+					{
+						$af = max($af, $value);
+					}
+				}
 			}
 			if($af>$max_af) continue;
 			
@@ -533,7 +543,7 @@ $config_file = fopen2($config_file_path, 'w');
 
 // add gnomAD annotation
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.1_GRCh38.vcf.gz")."\tgnomADg\tAF,Hom,Hemi\t\ttrue\n");
-
+fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz")."\tgnomADm\tAF_hom\t\ttrue\n");
 
 // add clinVar annotation
 fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20211212_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");

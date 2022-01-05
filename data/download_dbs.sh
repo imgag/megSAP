@@ -92,6 +92,9 @@ wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/3.1.1/v
 wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/3.1.1/vcf/genomes/gnomad.genomes.v3.1.1.sites.chrY.vcf.bgz | gunzip | $ngsbits/VcfLeftNormalize -stream -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_v3.1.1_GRCh38.vcf
 bgzip gnomAD_genome_v3.1.1_GRCh38.vcf
 tabix -p vcf gnomAD_genome_v3.1.1_GRCh38.vcf.gz
+wget -O - https://gnomad-public-us-east-1.s3.amazonaws.com/release/3.1/vcf/genomes/gnomad.genomes.v3.1.sites.chrM.vcf.bgz | gunzip | $ngsbits/VcfLeftNormalize -stream -ref $genome | $ngsbits/VcfStreamSort >> gnomAD_genome_v3.1.mito_GRCh38.vcf
+bgzip gnomAD_genome_v3.1.mito_GRCh38.vcf
+tabix -p vcf gnomAD_genome_v3.1.mito_GRCh38.vcf.gz
 
 #Install phyloP for VEP - https://www.ensembl.org/info/docs/tools/vep/script/vep_example.html#gerp
 cd $dbs
