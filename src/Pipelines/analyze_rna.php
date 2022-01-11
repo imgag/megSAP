@@ -74,6 +74,69 @@ $in_for = glob($folder."/*_R1_001.fastq.gz");
 $in_rev = glob($folder."/*_R2_001.fastq.gz");
 $in_umi = glob($folder."/*_index_*.fastq.gz");
 
+//fallback for remapping GRCh37 samples to GRCh38 - use BAM to create FASTQs
+if ($sys['build']=="GRCh38")
+{
+	//determine if HG38 folder contains read data
+	$read_data_present = false;
+	list($files) = exec2("ls {$folder}");
+	foreach($files as $file)
+	{
+		if (ends_with($file, ".bam") || ends_with($file, ".fastq.gz"))
+		{
+			$read_data_present = true;
+		}
+	}
+	//no read data > try to generate it from HG19
+	if (!$read_data_present)
+	{
+		if (!db_is_enabled("NGSD")) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
+		$db = DB::getInstance("NGSD", false);
+		$info = get_processed_sample_info($db, $name, false);
+		
+		//check for fastq files in old hg19 directory
+		$fastqs_hg19 = glob(get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*.fastq.gz");
+		if(count($fastqs_hg19) == 0) $fastqs_hg19 = glob(get_path("project_folder")[$info['project_type']]."/".$info['project_name']."/+hg19/Sample_${name}/*.fastq.gz"); //research and test projects
+		
+		if(count($fastqs_hg19) > 0)
+		{
+			trigger_error("Found fastq files in sample directory for GRCh37. Copying fastq files to new GRCh38 folder!", E_USER_NOTICE);
+			foreach($fastqs_hg19 as $fastq_file)
+			{
+				exec2("cp $fastq_file $folder");
+			}
+			$in_for = glob($folder."/*_R1_001.fastq.gz");
+			$in_rev = glob($folder."/*_R2_001.fastq.gz");
+			$in_umi = glob($folder."/*_index_*.fastq.gz");
+		}
+		else //get Fastqs from GRCh37 BAM file
+		{
+			// determine project folder of GRCh37 
+			$bamfile_to_convert = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/${name}.bam";
+			// other possible file location (for research and test projects)
+			if(!file_exists($bamfile_to_convert)) $bamfile_to_convert = get_path("project_folder")[$info['project_type']]."/".$info['project_name']."/+hg19/Sample_${name}/${name}.bam";
+			
+			// check if bam file exists
+			if (!file_exists($bamfile_to_convert)) trigger_error("BAM file of GRCh37 sample is missing!", E_USER_ERROR);
+
+			trigger_error("No read data found in output folder. Using BAM file from GRCh37 as input!", E_USER_NOTICE);
+			
+			// extract reads from BAM file
+			$in_fq_for = $folder."/{$name}_BamToFastq_R1_001.fastq.gz";
+			$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
+			$tmp1 = $parser->tempFile(".fastq.gz");
+			$tmp2 = $parser->tempFile(".fastq.gz");
+			$parser->exec("{$ngsbits}BamToFastq", "-in $bamfile_to_convert -out1 $tmp1 -out2 $tmp2", true);
+			$parser->moveFile($tmp1, $in_fq_for);
+			$parser->moveFile($tmp2, $in_fq_rev);
+			
+			// use generated fastq files for mapping
+			$in_for = array($in_fq_for);
+			$in_rev = array($in_fq_rev);
+		}
+	}
+}
+
 if ((count($in_for) == 0) && (count($in_rev) == 0))
 {
 	trigger_error("No FASTQ files found!", E_USER_ERROR);
