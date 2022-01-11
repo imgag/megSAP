@@ -102,7 +102,7 @@ if (isset($db))
 		foreach ($res as $row)
 		{
 			$sample_id_annotation = $row['sample1_id'] != $sample_id ? $row['sample1_id'] : $row['sample2_id'];
-			$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample, ps.id FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND sys.type!='cfDNA (patient-specific)' AND (NOT ps.quality='bad') ORDER BY ps.process_id ASC", array("sid" => $sample_id_annotation));
+			$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample, ps.id FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND sys.type!='cfDNA (patient-specific)' ORDER BY ps.process_id ASC", array("sid" => $sample_id_annotation));
 			$psamples = array_merge($psamples, array_column($res, 'psample'));
 		}
 		if (count($psamples) > 1)
@@ -336,36 +336,6 @@ if (in_array("ma", $steps))
 
 }
 
-//check sample similarity with referenced tumor
-if (!($annotation_only || $skip_tumor))
-{
-	if (($tumor_bam != "") && (in_array("ma", $steps) || in_array("vc", $steps)))
-	{
-		$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -roi {$target_extended} -build ".ngsbits_build($sys['build']), true);
-		$correlation = explode("\t", $output[0][1])[3];
-		if ($correlation < $min_corr)
-		{
-			trigger_error("The genotype correlation of cfDNA and tumor ({$tumor_id}) is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
-		}
-		else
-		{
-			trigger_error("The genotype correlation of cfDNA and tumor ({$tumor_id}) is {$correlation}.", E_USER_NOTICE);
-		}
-
-		// calculate similarity between related cfDNA samples
-		foreach ($related_cfdna_bams as $cfdna_sample => $cfdna_bam) 
-		{
-			$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$cfdna_bam} -mode bam -roi {$target_extended} -build ".ngsbits_build($sys['build']), true);
-			$correlation = explode("\t", $output[0][1])[3];
-			trigger_error("The genotype correlation of cfDNA and related sample ({$cfdna_sample}) is {$correlation}.", E_USER_NOTICE);
-		}
-	}
-	else
-	{
-		trigger_error("Skipping similarity check!", E_USER_WARNING);
-	}
-}
-
 //variant calling
 if (in_array("vc", $steps))
 {
@@ -416,24 +386,33 @@ if (in_array("vc", $steps))
 		$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $vcffile -lines 0 -ref ".genome_fasta($sys['build']), true);
 
 
-		//run CfDnaQC
+		// cfDNA QC
 		$args = [
 			"-bam", $bamfile,
-			"-cfdna_panel", $target_extended,
+			"-cfdna_panel", $target,
 			"-out", $qc_cfdna,
-			"-build", $sys['build'],
+			"-build", ngsbits_build($sys['build']),
 			"-ref", genome_fasta($sys['build'])
 		];
+		// add tumor BAM
 		if ($tumor_bam != "")
 		{
 			$args[] = "-tumor_bam ".$tumor_bam;
 		}
-
+		// add related BAMs
 		if (isset($related_cfdna_bams) && count($related_cfdna_bams) > 0)
 		{
 			$args[] = "-related_bams ".implode(" ", array_values($related_cfdna_bams));
 		}
-		$parser->exec(get_path("ngs-bits")."CfDnaQC", "-cfdna_panel {$target} -bam {$bamfile} -out {$qc_cfdna} -ref ".genome_fasta($sys['build'])." -build ".ngsbits_build($sys['build']));
+		// add umiVar error rates
+		$error_rate_file = "{$folder}/umiVar/error_rates.txt";
+		if (file_exists($error_rate_file))
+		{
+			$args[] = "-error_rates ".$error_rate_file;
+		}
+
+		//run CfDnaQC
+		$parser->exec(get_path("ngs-bits")."CfDnaQC", implode(" ", $args));
 	}
 
 	// check if reference genome fits VCF file
@@ -481,13 +460,41 @@ if (in_array("vc", $steps))
 	
 }
 
+//check sample similarity with referenced tumor
+if (!($annotation_only || $skip_tumor))
+{
+	if (($tumor_bam != "") && (in_array("ma", $steps) || in_array("vc", $steps)))
+	{
+		$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -roi {$target_extended} -build ".ngsbits_build($sys['build']), true);
+		$correlation = explode("\t", $output[0][1])[3];
+		if ($correlation < $min_corr)
+		{
+			trigger_error("The genotype correlation of cfDNA and tumor ({$tumor_id}) is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
+		}
+		else
+		{
+			trigger_error("The genotype correlation of cfDNA and tumor ({$tumor_id}) is {$correlation}.", E_USER_NOTICE);
+		}
 
+		// calculate similarity between related cfDNA samples
+		foreach ($related_cfdna_bams as $cfdna_sample => $cfdna_bam) 
+		{
+			$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$cfdna_bam} -mode bam -roi {$target_extended} -build ".ngsbits_build($sys['build']), true);
+			$correlation = explode("\t", $output[0][1])[3];
+			trigger_error("The genotype correlation of cfDNA and related sample ({$cfdna_sample}) is {$correlation}.", E_USER_NOTICE);
+		}
+	}
+	else
+	{
+		trigger_error("Skipping similarity check!", E_USER_WARNING);
+	}
+}
 
 //import to database
 if (in_array("db", $steps))
 {
 	//import QC
-	$parser->execTool("NGS/db_import_qc.php", "-id {$name} -files {$qc_fastq} {$qc_map} -force --log ".$parser->getLogFile());
+	$parser->execTool("NGS/db_import_qc.php", "-id {$name} -files {$qc_fastq} {$qc_map} {$qc_cfdna} -force --log ".$parser->getLogFile());
 
 	//check gender
 	$parser->execTool("NGS/db_check_gender.php", "-in {$bamfile} -pid {$name} --log ".$parser->getLogFile());	
