@@ -10,7 +10,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("vc_manta", "Call somatic structural variants with manta. Creates an VCF file.");
+$parser = new ToolBase("vc_manta", "Call of germline/somatic structural variants with manta. Creates an VCF file.");
 $parser->addOutfile("out", "Output VCF file (gzipped and tabix indexed).", false);
 //optional
 $parser->addInfileArray("bam", "Normal BAM file(s). Only one normal BAM file allowed for somatic mode.", true, false);
@@ -75,7 +75,8 @@ if ($mode_somatic || $mode_germline || $rna)
 {
 	array_push($args, "--normalBam", implode(" --normalBam ", $bam));
 }
-if (isset($regions)) {
+if (isset($regions))
+{
 	array_push($args, "--region", implode(" --region ", $regions));
 }
 if ($rna)

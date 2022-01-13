@@ -1813,4 +1813,34 @@ function ngsbits_build($system_build)
 	return "hg19";
 }
 
+//returns an array of processed sample names that are currently being analyzed via the SGE queue
+function ps_running_in_sge()
+{
+	$output = [];
+	
+	list($job_ids) = exec2("qstat -u '*' | cut -f2 -d' '");
+	foreach($job_ids as $job_id)
+	{
+		$job_id = trim($job_id);
+		if (!is_numeric($job_id)) continue;
+		
+		list($args) = exec2("qstat -j {$job_id} | tr ',' '\n'");
+		foreach($args as $arg)
+		{
+			if (!contains($arg, "Sample_")) continue;
+			
+			$parts = explode("/", $arg);
+			foreach($parts as $part)
+			{
+				if (!contains($part, "Sample_")) continue;
+				
+				$ps = strtr($part, ["Sample_"=>""]);
+				$output[] = $ps;
+			}
+		}
+	}
+	
+	return $output;
+}
+
 ?>

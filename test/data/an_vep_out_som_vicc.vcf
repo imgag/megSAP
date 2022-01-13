@@ -139,8 +139,6 @@
 ##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="ID column (from file HGMD_PRO_2021_3_fixed.vcf.gz)">
 ##INFO=<ID=CADD_SNV,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_SNVs_1.6_GRCh38.vcf.gz)">
 ##INFO=<ID=CADD_INDEL,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_InDels_1.6_GRCh38.vcf.gz)">
-##INFO=<ID=DBSCSNV_ADA,Number=1,Type=Float,Description="dbscSNV ADA score. (from file dbscSNV1.1_GRCh38.vcf.gz)">
-##INFO=<ID=DBSCSNV_RF,Number=1,Type=Float,Description="dbscSNV RF score. (from file dbscSNV1.1_GRCh38.vcf.gz)">
 ##INFO=<ID=NGSD_COUNTS,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD. (from file an_vep_NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_HAF,Number=0,Type=Flag,Description="Indicates a allele frequency above a threshold of 0.05. (from file an_vep_NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_CLAS,Number=1,Type=String,Description="Classification from the NGSD. (from file an_vep_NGSD_germline.vcf.gz)">

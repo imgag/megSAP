@@ -21,7 +21,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFlag("all_transcripts", "Annotate all transcripts - if unset only GENCODE basic transcripts are annotated.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("somatic", "Also annotate the NGSD somatic counts.");
-$parser->addFlag("no_splice", "Skip splicing predictions (MMsplice, SpliceAI).");
+$parser->addFlag("no_splice", "Skip splicing predictions (SpliceAI).");
 $parser->addFlag("test", "Use limited constant NGSD VCF file from test folder for annotation.");
 $parser->addInt("check_lines", "Number of VCF lines that will be validated in the output file. (If set to 0 all lines will be checked, if set to -1 the validation will be skipped.)", true, 1000);
 extract($parser->parse($argv));
@@ -278,84 +278,6 @@ function add_missing_contigs($vcf)
 	}
 }
 
-function annotate_mmsplice_score($splicing_output, $threshold = 2000)
-{
-	global $build;
-	global $threads;
-	global $data_folder;
-	global $parser;
-
-	//annotate precalculated MMSplice scores
-	$mmsplice_file =  annotation_file_path("/dbs/MMSplice/mmsplice_scores_2021_06_11_GRCh38.vcf.gz");
-	$mmsplice_annotated_from_dbs = false;
-	if (file_exists($mmsplice_file))
-	{
-		$tmp = $parser->tempFile("_mms_preannotation.vcf");
-		$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in {$splicing_output} -annotation_file {$mmsplice_file} -info_ids mmsplice -out {$tmp} -threads {$threads}");
-		$parser->moveFile($tmp, $splicing_output);
-		$mmsplice_annotated_from_dbs = true;
-	}
-	else
-	{
-		trigger_error("MMSplice file for annotation not found at '".$mmsplice_file."'.", E_USER_WARNING);
-	}
-	
-	//run MMSplice on relevant variants ('private' variants that are not annotated yet)
-	$low_af_file_mmsplice = $parser->tempFile("_mmsplice_lowAF.vcf");
-	$private_variant_count = write_lowAF_variants($splicing_output, 0.01, "mmsplice=", $low_af_file_mmsplice);
-	$parser->log("Scoring {$private_variant_count} variants with MMsplice");
-	
-	if($private_variant_count > $threshold)
-	{
-		trigger_error("MMSplice annotation of private variants will be skipped: {$private_variant_count} is too many (threshold is {$threshold})!", E_USER_WARNING);
-	}
-	else if($private_variant_count > 0)
-	{
-		//run MMSplice
-		$private_mms_annotation = $parser->tempFile("_private_mms_annotation.vcf");
-		$gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.104.gtf";
-		$fasta = genome_fasta($build);
-		$splice_env = get_path("Splicing", true);
-		$args = array();
-		$args[] = "--vcf_in {$low_af_file_mmsplice}"; //input vcf
-		$args[] = "--vcf_out {$private_mms_annotation}"; //output vcf
-		$args[] = "--gtf {$gtf}"; //gtf annotation file
-		$args[] = "--fasta {$fasta}"; //fasta reference file
-		$args[] = "--threads {$threads}"; //fasta reference file
-		putenv("PYTHONPATH");
-		$parser->exec("OMP_NUM_THREADS={$threads} {$splice_env}/splice_env/bin/python3 ".repository_basedir()."/src/Tools/vcf_mmsplice_predictions.py", implode(" ", $args), true);
-		$mmsplice_annotated = true;
-
-		//add private MMSplice score to splicing output
-		$mms_anno_file = $parser->tempFile("_mmsplicePrivate.vcf");
-		exec2("grep '#' {$private_mms_annotation} >> {$mms_anno_file}", true);
-		exec2("grep -v '#' {$private_mms_annotation} | grep 'mmsplice' >> {$mms_anno_file}", false);
-		$private_variant_count = vcf_variant_count($mms_anno_file);
-		if($private_variant_count > 0)
-		{
-			//cut old header line, since new annotation produces additional line
-			if($mmsplice_annotated_from_dbs)
-			{
-				list($mms_header, $stderr)  = exec2("grep '##INFO=<ID=mmsplice' {$splicing_output}");
-				$mms_header = $mms_header[0]; //if grep produces no error there must be at least one match
-				$mms_header = str_replace("\"", "\\\"", $mms_header); //header has doubles quotes which need to be escaped
-				$mms_header = str_replace('\'', '\'\"\'\"\'', $mms_header); //header has doubles quotes which need to be escaped
-				exec2("sed -i '/^##INFO=<ID=mmsplice/d' ".$splicing_output);
-			}
-			//annotate new private variants
-			$new_annotations_zipped = $parser->tempFile("_mmsplicePrivate_zipped.vcf.gz");
-			$parser->exec(get_path("ngs-bits")."VcfSort", "-in {$mms_anno_file} -out {$mms_anno_file}");
-			$parser->exec("bgzip", "-c $mms_anno_file > $new_annotations_zipped");
-			$parser->exec("tabix", "-f -p vcf $new_annotations_zipped");
-			$tmp = $parser->tempFile("_mmspliceTmp.vcf");
-			$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in {$splicing_output} -annotation_file {$new_annotations_zipped} -info_ids mmsplice -out {$tmp} -threads {$threads}");
-			$parser->moveFile($tmp, $splicing_output);
-			//replace the header line with the origional one, station the annotation file of MMSplice
-			if($mmsplice_annotated_from_dbs) exec2("sed -i 's/##INFO=<ID=mmsplice.*/{$mms_header}/g' {$splicing_output}");
-		}
-	}
-}
-
 function annotate_spliceai_score($splicing_output, $threshold = 1000)
 {
 	global $build;
@@ -559,9 +481,6 @@ if(file_exists($hgmd_file))
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=SNV\t\n");
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
 
-//add dbscSNV scores annotation
-fwrite($config_file, annotation_file_path("/dbs/dbscSNV/dbscSNV1.1_GRCh38.vcf.gz")."\tDBSCSNV\tADA,RF\t\n");
-
 // check if NGSD export file is available:
 $skip_ngsd = false;
 $ngsd_file = $data_folder."/dbs/NGSD/NGSD_germline.vcf.gz";
@@ -731,9 +650,6 @@ if (!$no_splice)
 	$parser->log("Execution time of adding missing contigs: ".time_readable(microtime(true) - $start_time));
 	
 	//perform splicing annotations
-	$start_time = microtime(true);
-	annotate_mmsplice_score($vcf_annotate_output);
-	$parser->log("Execution time of MMsplice annotation: ".time_readable(microtime(true) - $start_time));
 	$start_time = microtime(true);
 	annotate_spliceai_score($vcf_annotate_output);
 	$parser->log("Execution time of SpliceAI annotation: ".time_readable(microtime(true) - $start_time));

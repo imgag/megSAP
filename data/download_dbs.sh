@@ -126,16 +126,6 @@ zgrep -h -v ^#chr revel_tmp.tsv.gz | $ngsbits/TsvFilter -numeric -v -filter '3 i
 tabix -f -s 1 -b 3 -e 3 revel_grch38_all_chromosomes.tsv.gz
 rm -f revel_tmp.tsv.gz h
 
-#Install dbscSNV for VEP - https://academic.oup.com/nar/article/42/22/13534/2411339
-cd $dbs
-mkdir dbscSNV
-cd dbscSNV
-wget http://dbnsfp:dbnsfp@dbnsfp.softgenetics.com/dbscSNV1.1.zip
-unzip dbscSNV1.1.zip
-php $src/Tools/db_converter_dbscsnv.php -c_chr 4 -c_pos 5 -in dbscSNV1.1.chr* -out dbscSNV1.1_GRCh38.vcf
-bgzip dbscSNV1.1_GRCh38.vcf
-tabix -p vcf dbscSNV1.1_GRCh38.vcf.gz
-
 #GiaB NA12878 reference data
 cd $dbs
 mkdir -p GIAB/NA12878
@@ -150,19 +140,6 @@ mkdir SpliceAI
 cd SpliceAI
 wget https://download.imgag.de/ahsturm1/spliceai_scores_2021_06_11_GRCh38.vcf.gz -O spliceai_scores_2021_06_11_GRCh38.vcf.gz
 tabix -p vcf spliceai_scores_2021_06_11_GRCh38.vcf.gz
-
-#download annotation file for MMSplice
-cd $dbs
-mkdir MMSplice
-cd MMSplice
-wget https://download.imgag.de/ahsturm1/mmsplice_scores_2021_06_11_GRCh38.vcf.gz -O mmsplice_scores_2021_06_11_GRCh38.vcf.gz
-tabix -p vcf mmsplice_scores_2021_06_11_GRCh38.vcf.gz
-
-#download Ensembl gene information (for MMsplice)
-cd $dbs
-mkdir Ensembl
-cd Ensembl
-wget -O - http://ftp.ensembl.org/pub/release-104/gtf/homo_sapiens/Homo_sapiens.GRCh38.104.gtf.gz | gunzip > Homo_sapiens.GRCh38.104.gtf
 
 #install OMIM (you might need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
 #cd $dbs

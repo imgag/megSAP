@@ -13,7 +13,6 @@
 |phyloP - for VEP       |pipeline                |12.2021 (05.2015)               |                                                                                                    |http://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/            |
 |CADD - for VEP         |pipeline                |12.2021 (1.6)                   |                                                                                                    |http://cadd.gs.washington.edu/download                                  |
 |REVEL - for VEP        |pipeline                |12.2021 (1.3)                   |                                                                                                    |https://sites.google.com/site/revelgenomics/downloads                   |
-|dbscSNV - for VEP      |pipeline                |12.2021 (1.1 from 04.2015)      |                                                                                                    |http://www.liulab.science/dbscsnv.html                                  |
 |OMIM                   |pipeline, NGSDImportHPO |12.2021 (latest - not versioned)|                                                                                                    |https://omim.org/downloads/                                             |
 |HGMD (SNVs and CNVs)   |pipeline                |12.2021 (2021.3)                |update GSvar IGV file                                                                               |https://apps.ingenuity.com/ingsso/login                                 |
 |Ensembl                |NGSDImportEnsembl       |12.2021 (GRCh38.105)            |                                                                                                    |https://ftp.ensembl.org/pub/release-105/gff3/homo_sapiens/              |
@@ -50,8 +49,7 @@
 |InterOp                |reading InterOp metric files (Illumina NextSeq 1k/2k)|01.2021 (1.0.25)  | -> 1.1.16 available                                                                 |                                                                        |
 |Circos                 |circos plot with CNVs,ROHS,etc                       |01.2021 (0.69-9)  |                                                                                     |http://circos.ca/software/download/                                     |
 |ExpansionHunter        |Repeat expansion calling                             |01.2021 (4.0.2)   |                                                                                     |https://github.com/Illumina/ExpansionHunter                             |
-|MMSplice               |Predict splicing variant effect                      |01.2021 (2.1.0)   |                                                                                     |https://github.com/gagneurlab/MMSplice_MTSplice                         |
-|SpliceAI               |Predict splicing variant effect                      |01.2021 (1.3.1)   |                                                                                     |https://github.com/gagneurlab/MMSplice_MTSplice                         |
+|SpliceAI               |Predict splicing variant effect                      |01.2021 (1.3.1)   |                                                                                     |https://github.com/Illumina/SpliceAI                                    |
 
 
 

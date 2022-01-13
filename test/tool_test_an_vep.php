@@ -76,7 +76,7 @@ remove_lines_containing($out_file_empty, array("##VEP=\"v"));
 remove_lines_containing($out_file_empty, array("##INFO=<ID=NGSD_GENE_INFO,"));
 check_file($out_file_empty, data_folder().$name."_out_empty.vcf", true);
 
-//variants to score with mmsplice (slow)
+//variants to score with splicing variants
 $out_file3 = output_folder().$name."_out3.vcf";
 check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in3.vcf -out $out_file3 --log ".output_folder().$name."_out3.log");
 remove_lines_containing($out_file3, array("##VEP=\"v"));

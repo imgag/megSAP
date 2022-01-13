@@ -273,10 +273,7 @@ $column_desc = array(
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
 	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
-	array("dbscSNV", "dbscSNV splicing prediction (ADA/RF score)."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
-	array("MMSplice_DeltaLogitPSI", "MMsplice delta Logit PSI score: variant's effect on the exon inclusion - positive score shows higher exon inclusion, negative higher exclusion rate. A score greater than 2 or less than -2 can be considered strong."),
-	array("MMSplice_pathogenicity", "MMsplice pathogenicity score: probability of pathogenic effect of the variant on splicing"),
 	array("SpliceAI", "SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes.")
 );
 
@@ -1090,20 +1087,6 @@ while(!feof($handle))
 		$hgmd[] = trim($text);
 	}
 
-
-	//dbscSNV
-	$dbscsnv = "";
-	if (isset($info["DBSCSNV_ADA"]) && isset($info["DBSCSNV_RF"]))
-	{
-		$ada = trim($info["DBSCSNV_ADA"]);
-		if ($ada==".") $ada="";
-		if (contains($ada, '&')) $ada = max(explode('&', $ada));
-		$rf = trim($info["DBSCSNV_RF"]);
-		if ($rf==".") $rf="";
-		if (contains($rf, '&')) $rf = max(explode('&', $rf));
-		$dbscsnv = $ada."/".$rf;
-	}
-
 	//AFs
 	$dbsnp = implode(",", collapse($tag, "dbSNP", $dbsnp, "unique"));	
 	$kg = collapse($tag, "1000g", $af_kg, "one", 4);
@@ -1233,60 +1216,6 @@ while(!feof($handle))
 		}
 	}
 	
-	//MMSplice
-	$mmsplice_deltaLogitPsi = "";
-	$mmsplice_pathogenicity = "";
-	if (isset($info["mmsplice"]))
-	{
-		$delta_logit_psi = null;
-		$pathogenicity = null;
-		$mmsplice = trim($info["mmsplice"]);
-		$mmsplice_values = array();
-
-		if(preg_match_all('/delta_logit_psi:(-?[0-9]+\.[0-9]+)/', $mmsplice, $delta_logit_psi_match))
-		{
-			if(count($delta_logit_psi_match[1]) > 1)
-			{
-				foreach($delta_logit_psi_match[1] as $delta_logit_psi_value)
-				{
-					if(abs($delta_logit_psi_value) > abs($delta_logit_psi))
-					{
-						$delta_logit_psi = $delta_logit_psi_value;
-					}
-				}
-			}
-			else if(count($delta_logit_psi_match[1]) == 1)
-			{
-				$delta_logit_psi = $delta_logit_psi_match[1][0];
-			}
-		}
-
-		if(preg_match_all('/pathogenicity:(-?[0-9]+\.[0-9]+)/', $mmsplice, $pathogenicity_match))
-		{
-			if(count($pathogenicity_match[1]) > 1)
-			{
-				foreach($pathogenicity_match[1] as $pathogenicity_value)
-				{
-					if(abs($pathogenicity_value) > abs($pathogenicity))
-					{
-						$pathogenicity = $pathogenicity_value;
-					}
-				}
-			}
-			else if(count($pathogenicity_match[1]) == 1)
-			{
-				$pathogenicity = $pathogenicity_match[1][0];
-			}
-		}
-
-		if($pathogenicity != null && $delta_logit_psi != null)
-		{
-			$mmsplice_deltaLogitPsi = $delta_logit_psi;
-			$mmsplice_pathogenicity = $pathogenicity;
-		}
-
-	}
-
 	//SpliceAI
 	$spliceai = "";
 	if (isset($info["SpliceAI"]))
@@ -1449,7 +1378,7 @@ while(!feof($handle))
 	//write data
 	++$c_written;
 	$genes = array_unique($genes);
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$maxentscan\t$dbscsnv\t$cosmic\t$mmsplice_deltaLogitPsi\t$mmsplice_pathogenicity\t$spliceai");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$maxentscan\t$cosmic\t$spliceai");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");

@@ -661,8 +661,6 @@ if (in_array("cn", $steps))
 				"##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.",
 				"##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.",
 				"##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).",
-				"##DESCRIPTION=GeneSplicer=GeneSplicer splicing prediction (state/type/coordinates/confidence/score).",
-				"##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).",
 				"##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.",
 				"##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.",
 				"##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.",
@@ -674,7 +672,7 @@ if (in_array("cn", $steps))
 				"##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).",
 				"##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.",
 				"##FILTER=off-target=Variant marked as 'off-target'.",
-				"#chr	start	end	ref	obs	{$name}	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info",
+				"#chr	start	end	ref	obs	{$name}	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	CADD	REVEL	MaxEntScan	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info",
 			);
 			file_put_contents($varfile, implode("\n", $content));
 		}
