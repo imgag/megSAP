@@ -40,6 +40,8 @@ foreach($steps as $step)
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 }
 
+//TODO: log parameters
+
 //log server name
 list($server) = exec2("hostname -f");
 $user = exec('whoami');

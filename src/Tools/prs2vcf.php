@@ -139,7 +139,7 @@ if (isset($pgs))
 else
 {
 	/*
-		use PGS file as input
+		use VCF file as input
 	*/
 
 	//parse header and check if all required meta data is available
@@ -213,7 +213,7 @@ if(!$skip_percentiles)
 {
 	//calculate PRS for all WGS samples of the NGSD and calculate distribution (percentiles)
 	$distribution_file = $parser->tempFile("_distribution.tsv");
-	$parser->execTool("Tools/calculate_prs_distribution.php", "-in $temp_file -out $distribution_file");
+	$parser->execTool("Tools/calculate_prs_distribution.php", "-in $input_vcf -out $distribution_file");
 
 	// parse distribution file
 	$distribution = Matrix::fromTSV($distribution_file);
@@ -262,7 +262,7 @@ if(!$skip_percentiles)
 		break;
 		}
 	}
-	if ($header_idx < 0) trigger_error("VCF header not found in VCF '$temp_file'!", E_USER_ERROR);
+	if ($header_idx < 0) trigger_error("VCF header not found in VCF '$input_vcf'!", E_USER_ERROR);
 	array_splice($vcf_content, $header_idx, 0, $dist_header);
 }
 // write annotated VCF to disk

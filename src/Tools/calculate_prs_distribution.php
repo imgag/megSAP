@@ -20,6 +20,8 @@ $ngs_bits_path = get_path("ngs-bits");
 $pipeline = array();
 $pipeline[] = array($ngs_bits_path."NGSDExportSamples", "-no_bad_samples -no_tumor -no_ffpe -run_finished -no_bad_runs -add_path SAMPLE_FOLDER");
 $pipeline[] = array($ngs_bits_path."TsvFilter", "-filter 'project_type is diagnostic'");
+//limit Samples to european ancestry
+$pipeline[] = array($ngs_bits_path."TsvFilter", "-filter 'ancestry is EUR'");
 $pipeline[] = array($ngs_bits_path."TsvFilter", "-filter 'system_type is WGS' -out $export_table");
 $parser->execPipeline($pipeline, "Export Samples");
 
@@ -32,10 +34,6 @@ $path_idx = $sample_sheet->getColumnIndex("path");
 $temp_out = $parser->tempFile("_prs.tsv");
 
 $results = array();
-foreach ($in as $vcf) 
-{
-	$results[basename($vcf, ".vcf")] = array();
-}
 
 // iterate over all samples and compute PRS
 for ($row_idx=0; $row_idx < $sample_sheet->rows(); $row_idx++) 
@@ -57,9 +55,11 @@ for ($row_idx=0; $row_idx < $sample_sheet->rows(); $row_idx++)
 
 	foreach($stdout as $line)
 	{
-		$split_line = explode(":\t", $line);
-		$results[trim($split_line[0])][$name] = trim($split_line[1]);
+		$pgs_id = trim(explode(":", $line)[0]);
+		$prs_score = explode("=", explode(" ", explode(":", $line)[1])[2])[1];
+		$results[$pgs_id][$name] = $prs_score;
 	}
+
 }
 
 // write results to file
