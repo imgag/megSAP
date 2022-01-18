@@ -1734,7 +1734,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	//GSvar
 	if (ends_with($filename, ".GSvar"))
 	{
-		list($stdout, $stderr, $exit_code) = exec2("egrep '^GENOME_BUILD=' $filename", false);
+		list($stdout, $stderr, $exit_code) = exec2("egrep '^##GENOME_BUILD=' $filename", false);
 		if ($exit_code==0)
 		{
 			foreach($stdout as $line)
@@ -1748,7 +1748,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	//CNVs file
 	if (ends_with($filename, ".tsv"))
 	{
-		list($stdout, $stderr, $exit_code) = exec2("egrep '^GENOME_BUILD=' $filename", false);
+		list($stdout, $stderr, $exit_code) = exec2("egrep '^##GENOME_BUILD=' $filename", false);
 		if ($exit_code==0)
 		{
 			foreach($stdout as $line)
