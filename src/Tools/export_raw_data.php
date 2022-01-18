@@ -138,7 +138,7 @@ foreach($samples as $ps)
 
 //determine password and folder
 $share_url = $internal ? "https://datashare.img.med.uni-tuebingen.de:8443/" : "https://download.imgag.de/DataShare/";
-list($stdout) = exec2("curl '{$share_url}/index.php?action=request&filename={$out}.zip'");
+list($stdout) = exec2("curl ".($internal ? " --noproxy '*' -k" : "")." '{$share_url}/index.php?action=request&filename={$out}.zip'");
 $folder = trim($stdout[0]);
 $password = trim($stdout[1]);
  
