@@ -1753,7 +1753,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 		{
 			foreach($stdout as $line)
 			{
-				list(, $fasta) = explode("=", $line);
+				list(, $name) = explode("=", $line);
 				$builds[] = $name;
 			}
 		}
