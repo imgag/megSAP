@@ -33,14 +33,28 @@ if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_cfdna_".d
 //low coverage cutoff
 $lowcov_cutoff = 100;
 
+//log parameters
+$parser->log("Parameter:");
+$parser->log("   folder          = {$folder}");
+$parser->log("   name            = {$name}");
+$parser->log("   tumor_id        = {$tumor_id}");
+$parser->log("   tumor_bam       = {$tumor_bam}");
+$parser->log("   target          = {$target}");
+$parser->log("   monitoring_vcf  = {$monitoring_vcf}");
+$parser->log("   skip_tumor      = {$skip_tumor}");
+$parser->log("   base_extend     = {$base_extend}");
+$parser->log("   system          = {$system}");
+$parser->log("   steps           = {$steps}");
+$parser->log("   annotation_only = {$annotation_only}");
+$parser->log("   threads         = {$threads}");
+$parser->log("   min_corr        = {$min_corr}");
+
 //check steps
 $steps = explode(",", $steps);
 foreach($steps as $step)
 {
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 }
-
-//TODO: log parameters
 
 //log server name
 list($server) = exec2("hostname -f");
@@ -495,8 +509,13 @@ if (!($annotation_only || $skip_tumor))
 //import to database
 if (in_array("db", $steps))
 {
+	$qc_files = array($qc_fastq, $qc_map);
+	if (file_exists($qc_cfdna))
+	{
+		$qc_files[] = $qc_cfdna;
+	}
 	//import QC
-	$parser->execTool("NGS/db_import_qc.php", "-id {$name} -files {$qc_fastq} {$qc_map} {$qc_cfdna} -force --log ".$parser->getLogFile());
+	$parser->execTool("NGS/db_import_qc.php", "-id {$name} -files ".implode(" ", $qc_files)." -force --log ".$parser->getLogFile());
 
 	//check gender
 	$parser->execTool("NGS/db_check_gender.php", "-in {$bamfile} -pid {$name} --log ".$parser->getLogFile());	
