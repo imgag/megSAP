@@ -306,19 +306,9 @@ if(is_dir($cohort_folder_somatic_sample)) exec2("rm -r {$cohort_folder_somatic_s
 $cohort_folder_normal_sample = "{$cohort_folder}/normal/{$n_id}/";
 if(is_dir($cohort_folder_normal_sample)) exec2("rm -r {$cohort_folder_normal_sample}");
 
-//execite ClinCNV and make sure all files in cohort folder have 777 permisssions
-function chmod_recursive($folder)
-{
-	list(, , $exit_code) = exec2("chmod -R 777 {$folder}", false);
-	if ($exit_code!=0)
-	{
-		trigger_error("Could not change permissions of all files in {$folder}!", E_USER_WARNING);
-	}
-}
-chmod_recursive($cohort_folder);
-
+//execute ClinCNV
 $parser->exec($command, implode(" ",$args), true);
-chmod_recursive($cohort_folder);
+
 
 //copy segmentation files to folder containing output file
 $cnvs_seg_file = "{$cohort_folder_somatic_sample}/{$t_id}-{$n_id}_cnvs.seg";
