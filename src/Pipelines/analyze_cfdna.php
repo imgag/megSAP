@@ -292,7 +292,14 @@ if (!$annotation_only && (in_array("ma", $steps) || in_array("vc", $steps)))
 {
 	$target_extended = $parser->tempFile("_extended.bed");
 	$pipeline = [];
-	$pipeline[] = [ get_path("ngs-bits")."BedExtend", "-in {$target} -n {$base_extend}"];
+	if ($base_extend > 0)
+	{
+		$pipeline[] = [ get_path("ngs-bits")."BedExtend", "-in {$target} -n {$base_extend}"];
+	}
+	else
+	{
+		$pipeline[] = [ "cat", $target];
+	}
 	$pipeline[] = [ get_path("ngs-bits")."BedSort", ""];
 	$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$target_extended}"];
 	$parser->execPipeline($pipeline, "extend target region");
