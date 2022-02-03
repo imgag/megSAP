@@ -403,7 +403,6 @@ while(!feof($handle))
 			$i_domains = index_of($cols, "DOMAINS");
 			$i_sift = index_of($cols, "SIFT");
 			$i_polyphen = index_of($cols, "PolyPhen");
-			$i_phylop = index_of($cols, "PHYLOP", false);
 			$i_revel = index_of($cols, "REVEL", false);
 			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_existingvariation = index_of($cols, "Existing_variation");
@@ -665,11 +664,28 @@ while(!feof($handle))
 	{
 		$quality[] = "AF=".$sample["AF"];
 	}
+	
+	$phylop = array();
+	if (isset($info["PHYLOP"])) 
+	{
+		$phylop[] = $info["PHYLOP"];
+	}
+
+	/*
+	//pathogenicity predictions (not transcript-specific)
+	$phylop_parts = explode("&", trim($parts[$i_phylop]));
+	if (count($phylop_parts)>1) //deletions are annotated for each base => use maximum q
+	{
+		$phylop[] = max($phylop_parts);
+	}
+	else
+	{			
+		$phylop[] = trim($parts[$i_phylop]);
+	}*/
 
 	//variant details
 	$sift = array();
 	$polyphen = array();
-	$phylop = array();
 	$fathmm = array();
 	$revel = array();
 	$dbsnp = array();
@@ -743,16 +759,6 @@ while(!feof($handle))
 				$maxentscan[] = $result;
 			}
 			
-			//pathogenicity predictions (not transcript-specific)
-			$phylop_parts = explode("&", trim($parts[$i_phylop]));
-			if (count($phylop_parts)>1) //deletions are annotated for each base => use maximum q
-			{
-				$phylop[] = max($phylop_parts);
-			}
-			else
-			{			
-				$phylop[] = trim($parts[$i_phylop]);
-			}
 			$revel_score = trim($parts[$i_revel]);
 			if ($revel_score!="") $revel[] = $revel_score;
 
