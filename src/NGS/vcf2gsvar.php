@@ -671,18 +671,6 @@ while(!feof($handle))
 		$phylop[] = $info["PHYLOP"];
 	}
 
-	/*
-	//pathogenicity predictions (not transcript-specific)
-	$phylop_parts = explode("&", trim($parts[$i_phylop]));
-	if (count($phylop_parts)>1) //deletions are annotated for each base => use maximum q
-	{
-		$phylop[] = max($phylop_parts);
-	}
-	else
-	{			
-		$phylop[] = trim($parts[$i_phylop]);
-	}*/
-
 	//variant details
 	$sift = array();
 	$polyphen = array();
