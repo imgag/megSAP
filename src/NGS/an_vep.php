@@ -456,7 +456,7 @@ if (file_exists($warn_file))
 
 // add phyloP annotation:
 $vcf_output_bigwig = $parser->tempFile("_bigwig.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBigWig", "-name PHYLOP -desc phyloP_annotation_by_vcfAnnotateFromBigWig  -mode max -in {$vep_output_refseq} -out {$vcf_output_bigwig} -bw ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." -threads {$threads}", true);
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBigWig", "-name PHYLOP -desc \"".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." (ngs-bits/VcfAnnotateFromBigWig - mode max)\" -mode max -in {$vep_output_refseq} -out {$vcf_output_bigwig} -bw ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." -threads {$threads}", true);
 
 
 // custom annotation by VcfAnnotateFromVcf
