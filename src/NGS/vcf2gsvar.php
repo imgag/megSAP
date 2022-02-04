@@ -674,7 +674,6 @@ while(!feof($handle))
 	//variant details
 	$sift = array();
 	$polyphen = array();
-	$fathmm = array();
 	$revel = array();
 	$dbsnp = array();
 	$cosmic = array();
@@ -1339,7 +1338,6 @@ while(!feof($handle))
 	if (trim(strtr($sift, ",", " "))=="") $sift = "";
 	$polyphen = implode(",", $polyphen);
 	if (trim(strtr($polyphen, ",", " "))=="") $polyphen = "";
-	$fathmm = collapse($tag, "fathmm-MKL", $fathmm, "one");
 	
 	$revel = empty($revel) ? "" : collapse($tag, "REVEL", $revel, "max", 2);
 	
