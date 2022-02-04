@@ -334,6 +334,10 @@ if (in_array("ma", $steps))
 	{
 		trigger_error("Found mismatching index read file count!", E_USER_ERROR);
 	}
+	if (empty($files1))
+	{
+		trigger_error("No FastQ files found in sample folder!", E_USER_ERROR);
+	}
 	
 	$args = [
 		"-in_for", implode(" ", $files1),

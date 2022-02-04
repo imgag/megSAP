@@ -286,6 +286,7 @@ if (!$start_with_abra)
 	{
 		$dragen_output_bam = "$dragen_output_folder/{$out_name}_dragen.bam";
 		$dragen_log_file = "$dragen_output_folder/{$out_name}_dragen.log";
+		$sge_update_interval = 900; // = 15min
 
 		// create cmd for mapping_dragen.php
 		$args = array();
@@ -326,11 +327,12 @@ if (!$start_with_abra)
 			trigger_error("SGE command failed:\n{$command_sge}\n{$command_pip}\nSTDOUT:\n".implode("\n", $stdout)."\nSTDERR:\n".implode("\n", $stderr), E_USER_ERROR);
 		}
 
+
 		// wait for job to finish
 		do 
 		{
-			// wait for one minute
-			sleep(60);
+			// wait for 15/5 minutes
+			sleep($sge_update_interval);
 
 			// check if job is still running
 			list($stdout) = exec2("qstat -u '*' | egrep '^\s+{$sge_id}\s+' 2>&1", false);
@@ -341,6 +343,12 @@ if (!$start_with_abra)
 			{
 				$state = explode(" ", preg_replace('/\s+/', ' ', $stdout[0]))[5];
 				trigger_error("SGE job $sge_id still queued/running (state: {$state}).", E_USER_NOTICE);
+
+				// reduce update interval as soon as the job is actual running on the Dragen
+				if ($state == "r")
+				{
+					$sge_update_interval = 300; // = 5min
+				}
 			}
 		} 
 		while (!$finished);
