@@ -395,8 +395,6 @@ $fields[] = "REVEL";
 $args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
 $fields[] = "MaxEntScan_ref";
 $fields[] = "MaxEntScan_alt";
-$args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw").",PHYLOP,bigwig"; //phyloP
-$fields[] = "PHYLOP";
 
 if (!$all_transcripts)
 {
@@ -423,7 +421,7 @@ if (file_exists($warn_file))
 
 // second VEP run to annotate RefSeq transcripts
 // generate temp file for vep output
-$vep_output_refseq = $parser->tempFile("_vep.vcf");
+$vep_output_refseq = $parser->tempFile("_vep_refseq.vcf");
 
 //annotate only fields we really need to prevent bloating the VCF file 
 $fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS");
@@ -454,6 +452,11 @@ if (file_exists($warn_file))
 		print $line."\n";
 	}
 }
+
+
+// add phyloP annotation:
+$vcf_output_bigwig = $parser->tempFile("_bigwig.vcf");
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBigWig", "-name PHYLOP -desc \"".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." (ngs-bits/VcfAnnotateFromBigWig - mode max)\" -mode max -in {$vep_output_refseq} -out {$vcf_output_bigwig} -bw ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." -threads {$threads}", true);
 
 
 // custom annotation by VcfAnnotateFromVcf
@@ -596,7 +599,7 @@ fclose($config_file);
 
 // execute VcfAnnotateFromVcf
 $vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vep_output_refseq} -out {$vcf_annotate_output} -threads {$threads}", true);
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vcf_output_bigwig} -out {$vcf_annotate_output} -threads {$threads}", true);
 
 if (!$skip_ngsd)
 {
