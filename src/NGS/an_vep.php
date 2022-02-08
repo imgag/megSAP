@@ -397,7 +397,8 @@ $fields[] = "MaxEntScan_ref";
 $fields[] = "MaxEntScan_alt";
 $args[] = "--custom ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw").",PHYLOP,bigwig"; //phyloP
 $fields[] = "PHYLOP";
-
+$args[] = "--pubmed"; //add publications
+$fields[] = "PUBMED";
 if (!$all_transcripts)
 {
 	$args[] = "--gencode_basic";
