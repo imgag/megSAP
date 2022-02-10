@@ -812,23 +812,30 @@ if (in_array("an", $steps))
 
 	//Determine cfDNA monitoring candidates (only tumor-normal samples)
 	$umiVar2_path = get_path("umiVar2");
-	if (!$single_sample && file_exists($umiVar2_path."/select_monitoring_variants.py"))
+	if (!$single_sample)
 	{
-		//remove previous calls
-		if (file_exists($cfdna_folder)) exec2("rm -r $cfdna_folder"); 
-		//set parameters
-		$params = array();
-		$params[] = "-v ${tmp_vcf}";
-		$params[] = "-g ${variants_gsvar}";
-		$params[] = "-o ${cfdna_folder}";
-		$params[] = "-r ${ref_genome}";
-		// call variant selection in virtual environment
-		$python_bin = $umiVar2_path."/venv/bin/python";
-		$parser->exec($python_bin, $umiVar2_path."/select_monitoring_variants.py ".implode(" ", $params));
+		if (file_exists($umiVar2_path."/select_monitoring_variants.py"))
+		{
+			//remove previous calls
+			if (file_exists($cfdna_folder)) exec2("rm -r $cfdna_folder"); 
+			//set parameters
+			$params = array();
+			$params[] = "-v ${tmp_vcf}";
+			$params[] = "-g ${variants_gsvar}";
+			$params[] = "-o ${cfdna_folder}";
+			$params[] = "-r ${ref_genome}";
+			// call variant selection in virtual environment
+			$python_bin = $umiVar2_path."/venv/bin/python";
+			$parser->exec($python_bin, $umiVar2_path."/select_monitoring_variants.py ".implode(" ", $params));
+		}
+		else
+		{
+			trigger_error("UmiVar2 cannot be found! Cannot preselect variants for cfDNA analysis!", E_USER_WARNING);
+		}
 	}
 	else
 	{
-		trigger_error("UmiVar2 cannot be found! Cannot preselect variants for cfDNA analysis!", E_USER_WARNING);
+		trigger_error("cfDNA candidate preselection only supported for tumor-normal samples.", E_USER_NOTICE);
 	}
 
 }
