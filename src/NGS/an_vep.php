@@ -395,7 +395,8 @@ $fields[] = "REVEL";
 $args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
 $fields[] = "MaxEntScan_ref";
 $fields[] = "MaxEntScan_alt";
-
+$args[] = "--pubmed"; //add publications
+$fields[] = "PUBMED";
 if (!$all_transcripts)
 {
 	$args[] = "--gencode_basic";
