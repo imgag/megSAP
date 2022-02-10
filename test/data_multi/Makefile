@@ -3,7 +3,7 @@ all:
 	make clear link vc cn sv diff reanno
 	
 clear:
-	rm -rf *.bam *.bai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv
+	rm -rf *.bam *.bai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv reanno
 
 link:
 	php ../link_test_data.php GS140127_01.bam

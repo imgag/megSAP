@@ -2656,7 +2656,7 @@
 ##INFO=<ID=NGSD_COM,Number=1,Type=String,Description="Variant comments from the NGSD. (from file an_vep_NGSD_germline.vcf.gz)">
 ##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="Annotation from /tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/RepeatMasker_GRCh38.bed delimited by '&'">
 ##INFO=<ID=OMIM,Number=.,Type=String,Description="Annotation from /tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/omim.bed delimited by '&'">
-##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3.1 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG); acceptor loss (AL); donor gain (DG); and donor loss (DL)(for all NGSD variants exported on 13.12.2020). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL (from file spliceai_scores_2021_06_11_GRCh38.vcf.gz)">
+##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3.1 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG); acceptor loss (AL); donor gain (DG); and donor loss (DL)(for all NGSD variants exported on 13.12.2020). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL (from file spliceai_scores_2022_02_09_GRCh38.vcf.gz)">
 ##FILTER=<ID=low_conf_region,Description="Variant marked as 'low_conf_region'.">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##FORMAT=<ID=GQ,Number=1,Type=Float,Description="Genotype Quality, the Phred-scaled marginal (or unconditional) probability of the called genotype">

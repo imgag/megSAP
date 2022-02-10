@@ -286,7 +286,7 @@ function annotate_spliceai_score($splicing_output, $threshold = 1000)
 	global $parser;
 
 	//annotate precalculated SpliceAI scores
-	$spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2021_06_11_GRCh38.vcf.gz");
+	$spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2022_02_09_GRCh38.vcf.gz");
 	$spliceai_annotated_from_dbs = false;
 	if (file_exists($spliceai_file))
 	{
