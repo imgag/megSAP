@@ -274,7 +274,8 @@ $column_desc = array(
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
 	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
-	array("SpliceAI", "SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes.")
+	array("SpliceAI", "SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes."),
+	array("PubMed", "PubMed ids to publications on the given variant.")
 );
 
 // optional NGSD somatic header description if vcf contains NGSD somatic information
@@ -415,6 +416,7 @@ while(!feof($handle))
 			$i_af_gnomad_sas = index_of($cols, "gnomAD_SAS_AF");
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
+			$i_pubmed = index_of($cols, "PUBMED"); 
 		}
 
 		//get annotation indices in CSQ_refseq field
@@ -694,6 +696,7 @@ while(!feof($handle))
 	$hgmd = array();
 	$maxentscan = array();
 	$regulatory = array();
+	$pubmed = array();
 	
 	//variant details (up/down-stream)
 	$variant_details_updown = array();
@@ -748,6 +751,9 @@ while(!feof($handle))
 			
 			$revel_score = trim($parts[$i_revel]);
 			if ($revel_score!="") $revel[] = $revel_score;
+
+			//PubMed ids
+			$pubmed = array_merge($pubmed, explode("&", $parts[$i_pubmed]));
 
 			//######################### transcript-specific information #########################
 			
@@ -1091,6 +1097,9 @@ while(!feof($handle))
 	$gnomad_sub = collapse($tag, "gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse($tag, "gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse($tag, "gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse($tag, "gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse($tag, "gnomAD SAS", $af_gnomad_sas, "one", 4);
 	if (str_replace(",", "", $gnomad_sub)=="") $gnomad_sub = "";
 
+	//PubMed
+	$pubmed = implode(",", collapse($tag, "PubMed", $pubmed, "unique"));	
+
 
 	if (!$skip_ngsd)
 	{
@@ -1370,7 +1379,7 @@ while(!feof($handle))
 	//write data
 	++$c_written;
 	$genes = array_unique($genes);
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$maxentscan\t$cosmic\t$spliceai");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");
