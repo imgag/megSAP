@@ -202,7 +202,7 @@ if (in_array("ma", $steps))
 			if(!file_exists($bamfile_to_convert)) $bamfile_to_convert = get_path("project_folder")[$info['project_type']]."/".$info['project_name']."/+hg19/Sample_${name}/${name}.bam";
 			
 			// check if bam file exists
-			if (!file_exists($bamfile_to_convert) && !file_exists($bamfile_to_convert2)) trigger_error("BAM file of GRCh37 sample is missing!", E_USER_ERROR);
+			if (!file_exists($bamfile_to_convert) && !file_exists($bamfile_to_convert)) trigger_error("BAM file of GRCh37 sample is missing!", E_USER_ERROR);
 
 			trigger_error("No read data found in output folder. Using BAM/FASTQ files from GRCh37 as input!", E_USER_NOTICE);
 		}
