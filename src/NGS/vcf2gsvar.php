@@ -114,6 +114,21 @@ function collapse(&$tag, $error_name, $values, $mode, $decimal_places = null)
 //write header line
 function write_header_line($handle, $column_desc, $filter_desc)
 {
+	//add optional header depending on annotation
+	global $skip_ngsd_som;
+	global $column_desc_ngsd_som;
+	if (!$skip_ngsd_som) $column_desc = array_merge($column_desc, $column_desc_ngsd_som);
+	global $skip_ngsd;
+	global $column_desc_ngsd;
+	if (!$skip_ngsd) $column_desc = array_merge($column_desc, $column_desc_ngsd);
+	global $skip_cosmic_cmc;
+	global $colum_desc_cosmic_cmc;
+	if (!$skip_cosmic_cmc) $column_desc = array_merge($column_desc, $colum_desc_cosmic_cmc);
+	global $skip_cancerhotspots;
+	global $column_desc_cancerhotspots;
+	if(!$skip_cancerhotspots) $column_desc = array_merge($column_desc, $column_desc_cancerhotspots);
+	
+	//write out header
 	foreach($column_desc as $entry)
 	{
 		fwrite($handle, "##DESCRIPTION=".$entry[0]."=".$entry[1]."\n");
@@ -485,28 +500,6 @@ while(!feof($handle))
 	//after last header line, write our header
 	else if ($in_header) 
 	{
-		if (!$skip_ngsd_som)
-		{
-			// append optional NGSD somatic header
-			$column_desc = array_merge($column_desc, $column_desc_ngsd_som);
-		}
-		if (!$skip_ngsd)
-		{
-			// append optional NGSD header
-			$column_desc = array_merge($column_desc, $column_desc_ngsd);
-		}
-		if (!$skip_cosmic_cmc)
-		{
-			//append optional COSMIC CMC header
-			$column_desc = array_merge($column_desc, $colum_desc_cosmic_cmc);
-		}
-		
-		if( !$skip_cancerhotspots )
-		{
-			//append optional cancerhotspots header
-			$column_desc = array_merge($column_desc, $column_desc_cancerhotspots);
-		}
-		
 		write_header_line($handle_out, $column_desc, $filter_desc);
 		$in_header = false;
 	}
