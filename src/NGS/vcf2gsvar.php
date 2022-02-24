@@ -790,13 +790,16 @@ while(!feof($handle))
 						@$hgnc_messages["ID '$hgnc_id' not valid or withdrawn for gene '$gene'"] += 1;
 					}
 				}
-				if (!$is_updown)
+				if ($gene!="")
 				{
-					$genes[] = $gene;
-				}
-				else
-				{
-					$genes_updown[] = $gene;
+					if (!$is_updown)
+					{
+						 $genes[] = $gene;
+					}
+					else
+					{
+						$genes_updown[] = $gene;
+					}
 				}
 				
 				//pathogenicity predictions (transcript-specific)
@@ -1019,34 +1022,29 @@ while(!feof($handle))
 		}
 	}
 
-	// gnomAD_genome
+	//gnomAD genome
 	if (isset($info["gnomADg_AF"]))
 	{
-		$gnomad_value = trim($info["gnomADg_AF"]);
-		if (strpos($gnomad_value, "&") !== false)
+		$gnomad_values = explode("&", $info["gnomADg_AF"]); // special handling of the rare case that several gnomAD AF values exist
+		foreach($gnomad_values as $value)
 		{
-			// special handling of the rare case that 2 gnomAD AF values exist for this variant
-			$gnomad_values = explode("&", $gnomad_value);
-			foreach($gnomad_values as $value)
-			{
-				if ($value != ".")
-				{
-					$af_gnomad_genome[] = $value;
-				}
-			}		
+			if ($value=="" || $value==".") continue;
+			$af_gnomad_genome[] = $value;
 		}
-		else
-		{
-			if ($gnomad_value != ".")
-			{
-				$af_gnomad_genome[] = $gnomad_value;
-			}
-			
-		}
-		
-		
-		
 	}
+	
+	//gnomAD mito
+	if (isset($info["gnomADm_AF_hom"]))
+	{
+		$gnomad_values = explode("&", $info["gnomADm_AF_hom"]); // special handling of the rare case that several gnomAD AF values exist
+		foreach($gnomad_values as $value)
+		{
+			if ($value=="" || $value==".") continue;
+			$af_gnomad_genome[] = $value;
+		}
+	}
+	
+	//genomAD hom/hemi
 	if (isset($info["gnomADg_Hom"])) $hom_gnomad[] = trim($info["gnomADg_Hom"]);
 	if (isset($info["gnomADg_Hemi"])) $hemi_gnomad[] = trim($info["gnomADg_Hemi"]);
 
