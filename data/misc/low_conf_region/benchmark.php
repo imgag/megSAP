@@ -1,6 +1,6 @@
 <?php
 
-include("/mnt/users/bioinf/megSAP/src/Common/all.php");
+include("/mnt/storage2/GRCh38/users/bioinf/megSAP/src/Common/all.php");
 
 //parse CLI arguments
 $vcfs = [];
@@ -50,7 +50,7 @@ foreach($regs as $reg)
 	{
 		list($vars) = exec2("egrep '^chr' {$vcf} | wc -l");
 		$vars = trim(implode("", $vars));
-		list($vars_filter) = exec2("VcfFilter -in {$vcf} -reg {$reg} | egrep '^chr' |wc -l");
+		list($vars_filter) = exec2("VcfFilter -in {$vcf} -reg {$reg} | egrep '^chr' |wc -l", false);
 		$vars_filter = trim(implode("", $vars_filter));
 		print "\t".number_format(100.0*$vars_filter/$vars, 2);
 	}

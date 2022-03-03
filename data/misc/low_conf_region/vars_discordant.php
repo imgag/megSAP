@@ -1,6 +1,6 @@
 <?php
 
-include("/mnt/users/bioinf/megSAP/src/Common/all.php");
+include("/mnt/storage2/GRCh38/users/bioinf/megSAP/src/Common/all.php");
 
 $file = file($argv[1]);
 foreach($file as $line)
@@ -53,7 +53,7 @@ foreach($file as $line)
 	gzclose($h);
 	print "  discordant: $c_disc/$c_vars (".number_format(100.0*$c_disc/$c_vars, 2)."%)\n";
 	
-	file_put_contents("{$ps1}_{$ps2}_disc.vcf", $out_disc);
+	file_put_contents("twins/{$ps1}_{$ps2}_disc.vcf", $out_disc);
 }
 
 ?>
