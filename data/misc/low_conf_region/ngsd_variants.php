@@ -1,6 +1,6 @@
 <?php
 
-include("/mnt/users/bioinf/megSAP/src/Common/all.php");
+include("/mnt/storage2/GRCh38/users/bioinf/megSAP/src/Common/all.php");
 
 $type = $argv[1];
 

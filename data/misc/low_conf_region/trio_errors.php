@@ -1,6 +1,6 @@
 <?php
 
-include("/mnt/users/bioinf/megSAP/src/Common/all.php");
+include("/mnt/storage2/GRCh38/users/bioinf/megSAP/src/Common/all.php");
 
 print "#gsvar\tsystem\tinh_errors\tinh_error_perc\tcomments\n";
 $db = DB::getInstance("NGSD");
