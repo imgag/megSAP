@@ -290,9 +290,8 @@ function annotate_spliceai_score($splicing_output, $threshold = 1000)
 	$spliceai_annotated_from_dbs = false;
 	if (file_exists($spliceai_file))
 	{
-		$debug = ($threads==4) ? "-debug" : ""; //TODO: remove debug mode for WES
 		$tmp = $parser->tempFile("_spai_preannotation.vcf");
-		$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in {$splicing_output} -annotation_file {$spliceai_file} -info_ids SpliceAI -out {$tmp}  -threads {$threads} {$debug}");
+		$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in {$splicing_output} -annotation_file {$spliceai_file} -info_ids SpliceAI -out {$tmp}  -threads {$threads}");
 		$parser->moveFile($tmp, $splicing_output);
 		$spliceai_annotated_from_dbs = true;
 	}
