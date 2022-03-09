@@ -610,7 +610,7 @@ foreach($sample_data as $sample => $sample_infos)
 				{
 					list($father, $mother) = $parents;
 					$command = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'trio' -samples {$sample} {$father} {$mother} -info child father mother";
-					if ($high_priority) $command .= " -high_priority";
+					if ($high_priority) $outputline .= " -high_priority";
 					$queue_trios[] = "\t".$command;
 				}
 			}
@@ -621,10 +621,9 @@ foreach($sample_data as $sample => $sample_infos)
 				import_genlab_disease_group($sample);
 			}
 		}
-		
-		if ($high_priority)
+		if ($high_priority || contains(implode(" ", $sample_infos['ps_comments']), "eilig"))
 		{
-			$args[] = "-high_priority";
+			$outputline .= " -high_priority";
 		}
 		
 		if(count($args)>0)

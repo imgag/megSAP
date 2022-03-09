@@ -16,6 +16,7 @@ $parser->addOutfile("stats", "Append statistics to this file.", false);
 //optional
 $parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf' file base name is used.", true);
 $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the given depth are evaluated.", true, 0);
+$parser->addInt("min_vq", "If set, only input variants with QUAL greater or equal to the given value are evaluated.", true, 0);
 $parser->addInt("max_indel", "Maximum indel size (larger indels are ignored).", true, 0);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("ref_sample", "Reference sample to use for validation.", true, "NA12878");
@@ -35,7 +36,7 @@ function get_bases($filename)
 }
 
 //returns the variants of a VCF file in the given ROI
-function get_variants($vcf_gz, $roi, $normalize, $max_indel)
+function get_variants($vcf_gz, $roi, $normalize, $max_indel, $min_vq = 0)
 {
 	global $parser;
 	global $ngsbits;
@@ -66,6 +67,9 @@ function get_variants($vcf_gz, $roi, $normalize, $max_indel)
 		//get variant infos
 		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = explode("\t", $line);
 		if (!starts_with($chr, "chr")) $chr = "chr".$chr;
+		
+		//filter by variant quality
+		if ($min_vq>0 && $qual<$min_vq) continue;
 		
 		//compile output
 		$var = array();
@@ -178,7 +182,7 @@ print "##\n";
 
 //get reference variants in ROI
 print "##Variant list      : $vcf\n";
-$found = get_variants($vcf, $roi_used, false, $max_indel);
+$found = get_variants($vcf, $roi_used, false, $max_indel, $min_vq);
 print "##Variants observed : ".count($found)."\n";
 $expected = get_variants($giab_vcfgz, $roi_used, true, $max_indel);
 print "##Variants expected : ".count($expected)."\n";

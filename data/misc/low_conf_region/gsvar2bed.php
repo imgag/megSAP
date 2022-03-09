@@ -1,6 +1,6 @@
 <?php
 
-include("/mnt/users/bioinf/megSAP/src/Common/all.php");
+include("/mnt/storage2/GRCh38/users/bioinf/megSAP/src/Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 

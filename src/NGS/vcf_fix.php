@@ -69,7 +69,7 @@ function write($h_out, $var)
 	if ($all_wt) return;
 	
 	//skip wildtype variants
-	if (strtoupper($var[3])=='N') return;
+	if (contains(strtoupper($var[3]),'N')) return;
 	
 	//write base info
 	fwrite($h_out, $var[0]."\t".$var[1]."\t".$var[2]."\t".$var[3]."\t".$var[4]."\t".number_format($var[5], 0, ".", "")."\t".$var[6]."\t");
