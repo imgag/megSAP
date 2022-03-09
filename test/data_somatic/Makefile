@@ -40,6 +40,8 @@ case1_somatic:
 		-prefix DX000001_01 \
 		-steps vc,an \
 		-system system_single.ini \
+		-min_depth_t 100 \
+		-min_depth_n 100 \
 		--log out_case1/DX000001_01.log
 case1_diff:
 	php ../compare_bed.php expected_case1/DX000001_01_stat_lowcov.bed out_case1/DX000001_01_stat_lowcov.bed
@@ -72,6 +74,8 @@ case2_somatic:
 		-t_rna_bam Sample_RX000001_01/RX000001_01.bam \
 		-rna_ref_tissue gallbladder \
 		-system system_pair.ini -n_system system_pair.ini \
+		-min_depth_t 100 \
+		-min_depth_n 100 \
 		--log out_case2/GS110168_03-GS110169_03.log
 case2_diff:
 	# variants
@@ -97,6 +101,8 @@ case3_somatic:
 		-steps vc\
 		-system system_pair_sv.ini -n_system system_pair_sv.ini \
 		-skip_correlation \
+		-min_depth_t 100 \
+		-min_depth_n 100 \
 		--log out_case3/tumor-normal.log
 case3_diff:
 	# remove gene annotation if present

@@ -287,6 +287,7 @@ if (in_array("ma", $steps))
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
 	if($use_dragen) $args[] = "-use_dragen";
+	if($somatic) $args[] = "-somatic_custom_map";
 	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name -local_bam $local_bamfile ".implode(" ", $args)." -threads $threads");
 
 	//low-coverage report
