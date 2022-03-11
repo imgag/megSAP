@@ -26,21 +26,6 @@ rm 104.3.tar.gz
 mkdir -p $vep_cpan_dir
 cpanm -l $vep_cpan_dir -L $vep_cpan_dir Set::IntervalTree URI::Escape DB_File Carp::Assert JSON::XS PerlIO::gzip DBI
 
-#install BigWig support (needed to annotate phyloP)
-cd $vep_install_dir
-export KENT_SRC=$vep_install_dir/kent-335_base/src
-export MACHTYPE=$(uname -m)
-export CFLAGS="-fPIC"
-wget https://github.com/ucscGenomeBrowser/kent/archive/v335_base.tar.gz
-tar xzf v335_base.tar.gz
-rm v335_base.tar.gz
-cd $KENT_SRC/lib
-echo 'CFLAGS="-fPIC"' > $KENT_SRC/inc/localEnvironment.mk
-make clean && make
-cd $KENT_SRC/jkOwnLib
-make clean && make
-cpanm -l $vep_cpan_dir -L $vep_cpan_dir Bio::DB::BigFile
-
 #download VEP cache data
 mkdir -p $vep_data_dir
 cd $vep_data_dir
