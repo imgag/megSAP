@@ -34,4 +34,7 @@ telomere_centromere:
 
 circos_karyotype_files:
 	echo "These files where created manually by merging the chromosome regions and the centromer_telomer.bed (extended by 3 columns and replaced names by color)"
-
+	
+create_custom_somatic_panel:
+	BedIntersect -in /mnt/storage2/GRCh38/share/data/enrichment/ssSC_v5.bed -in2 /mnt/storage2/GRCh38/share/data/enrichment/twistCustomExomeV2_2021_12_14.bed -mode in -out somatic_custom_panel.bed
+	BedAnnotateGenes -in somatic_custom_panel.bed | cut -f4 | sort | uniq > somatic_custom_panel_genes.txt

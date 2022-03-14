@@ -31,6 +31,9 @@ $parser->addFlag("reanalyse_cohort","Reanalyse whole cohort of the same processi
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("guide_baseline","baseline region, format e.g. chr1:12-12532",true);
 $parser->addInt("max_ref_files", "maximum number of reference file pairs", true, 150);
+$parser->addInt("lengthS", "ClinCNV lengthS parameter", true, 5);
+$parser->addInt("scoreS", "ClinCNV scoreS filter parameter", true, 100);
+$parser->addInt("filterStep", "ClinCNV filter strength.", true, 1);
 extract($parser->parse($argv));
 
 //init
@@ -268,8 +271,9 @@ $args = [
 "--pair", $cov_pairs,
 "--bed", $tmp_bed_annotated,
 "--colNum", "4",
-"--lengthS", "5",
-"--scoreS", "100",
+"--lengthS", $lengthS,
+"--scoreS", $scoreS,
+"--filterStep", $filterStep,
 "--numberOfThreads {$threads}"
 ];
 
@@ -369,6 +373,10 @@ $cnvs->removeCol($cnvs->getColumnIndex("median_loglikelihood"));
 $cnvs->removeCol($cnvs->getColumnIndex("major_CN_allele2"));
 $cnvs->removeCol($cnvs->getColumnIndex("minor_CN_allele2"));
 $cnvs->removeCol($cnvs->getColumnIndex("tumor_clonality2"));
+
+
+//Add CliNCNV command to file
+$cnvs->addComment("#COMMAND=" . $command . " " . implode(" ",$args));
 
 
 //Add baseline value as comment to output file
