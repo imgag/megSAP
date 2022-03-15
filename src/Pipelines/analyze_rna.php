@@ -73,6 +73,8 @@ $gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 $in_for = glob($folder."/*_R1_001.fastq.gz");
 $in_rev = glob($folder."/*_R2_001.fastq.gz");
 $in_umi = glob($folder."/*_index_*.fastq.gz");
+//set UMI flag
+$umi = in_array($sys['umi_type'], ["IDT-UDI-UMI"]) && !empty($in_umi);
 
 //fallback for remapping GRCh37 samples to GRCh38 - use BAM to create FASTQs
 if ($sys['build']=="GRCh38")
@@ -170,7 +172,6 @@ if (in_array("ma", $steps) || (in_array("fu", $steps) && in_array("star-fusion",
 		trigger_error("No forward and/or reverse adapter sequence given!\nForward: ".$sys["adapter1_p5"]."\nReverse: ".$sys["adapter2_p7"], E_USER_ERROR);
 	}
 
-	$umi = false;
 	//adapter trimming + QC (SeqPurge for paired-end, ReadQC+skewer for single-end)
 	if ($paired)
 	{
@@ -200,7 +201,6 @@ if (in_array("ma", $steps) || (in_array("fu", $steps) && in_array("star-fusion",
 			}
 			else
 			{
-				$umi = true;
 				// add barcodes to header
 				$merged1_bc = $parser->tempFile("_bc1.fastq.gz");
 				$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
