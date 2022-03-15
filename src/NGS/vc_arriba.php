@@ -40,7 +40,7 @@ $arriba_ref = get_path("arriba") . "/database";
 
 
 //run Arriba
-$arriba_ver = "v2.1.0";
+$arriba_ver = "v2.2.1";
 $args = [
     "-x", $bam,
     "-o", $out_fusions,
