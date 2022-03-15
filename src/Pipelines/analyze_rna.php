@@ -555,6 +555,7 @@ if (in_array("fu",$steps) && in_array("manta",$fusion_caller))
 }
 
 $fusions_arriba_tsv = "{$prefix}_fusions_arriba.tsv";
+$fusions_arriba_vcf = "{$prefix}_fusions_arriba.vcf";
 $fusions_arriba_bam = "{$prefix}_fusions_arriba.bam";
 $fusions_arriba_discarded_tsv = "{$prefix}_fusions_arriba.discarded.tsv";
 $fusions_arriba_pdf = "{$prefix}_fusions_arriba.pdf";
@@ -563,6 +564,7 @@ if (in_array("fu",$steps) && in_array("arriba",$fusion_caller))
 	$arriba_args = [
 		"-bam", $umi ? $before_dedup_bam : $final_bam,
 		"-out_fusions", $fusions_arriba_tsv,
+		"-out_vcf", $fusions_arriba_vcf,
 		"-out_discarded", $fusions_arriba_discarded_tsv,
 		"-out_bam", $fusions_arriba_bam,
 		"-out_pdf", $fusions_arriba_pdf,

@@ -8,6 +8,7 @@ $parser = new ToolBase("vc_arriba", "Run fusion detection with Arriba.");
 $parser->addInfile("bam", "Input BAM file.", false);
 
 $parser->addOutfile("out_fusions", "Fusion report in TSV format.", false);
+$parser->addOutfile("out_vcf", "Fusion report in VCF4.3 format.", false);
 $parser->addOutfile("out_discarded", "Discarded fusions in TSV format.", true);
 $parser->addOutfile("out_pdf", "Fusion report in PDF format.", true);
 $parser->addOutfile("out_bam", "Output BAM file with fusion-supporting reads.", true);
@@ -57,6 +58,16 @@ if (isset($sv)) $args[] = "-d {$sv}";
 if (isset($out_discarded)) $args[] = "-O {$out_discarded}";
 
 $parser->exec(get_path("arriba") . "/arriba", implode(" ", $args));
+
+
+if (isset($out_vcf)) {
+    $args = [
+        $genome,
+        $out_fusions,
+        $out_vcf
+    ];
+    $parser->exec(get_path("arriba") . "/scripts/convert_fusions_to_vcf.sh", implode(" ", $args));
+}
 
 
 //generate plot in PDF format
