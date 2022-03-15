@@ -25,6 +25,7 @@ $parser->addFlag("no_splicing", "Disable spliced read alignment.");
 $parser->addFlag("abra", "Enable indel realignment with ABRA.");
 $parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
 $parser->addString("fusion_caller", "Fusion callers to run, separated by comma.", true, "arriba,star-fusion");
+$parser->addFlag("filter_hb", "Filter input FASTQ for globin reads (highly abundant in blood mRNAseq).");
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
@@ -249,6 +250,38 @@ if (in_array("ma", $steps) || (in_array("fu", $steps) && in_array("star-fusion",
 }
 if (in_array("ma", $steps))
 {
+	if ($filter_hb)
+	{
+		if ($paired)
+		{
+			$kraken_tmpdir = $parser->tempFolder("kraken2_filter_hb");
+			$filtered = "{$kraken_tmpdir}/filtered#.fastq";
+			$filtered1 = "{$kraken_tmpdir}/filtered_1.fastq";
+			$filtered2 = "{$kraken_tmpdir}/filtered_2.fastq";
+			$kraken_args = [
+				"--db", get_path("data_folder")."/dbs/kraken2_filter_hb",
+				"--threads", $threads,
+				"--output", "-",
+				"--paired",
+				"--gzip-compressed",
+				"--unclassified-out", "{$kraken_tmpdir}/filtered#.fastq",
+				$fastq_trimmed1,
+				$fastq_trimmed2
+			];
+			$parser->exec(get_path("kraken2"), implode(" ", $kraken_args));
+			$parser->exec("gzip", "-1 {$filtered1}");
+			$parser->exec("gzip", "-1 {$filtered2}");
+			// $parser->exec("pigz", "-p {$threads} {$filtered1}");
+			// $parser->exec("pigz", "-p {$threads} {$filtered2}");
+
+			$fastq_trimmed1 = "{$filtered1}.gz";
+			$fastq_trimmed2 = "{$filtered2}.gz";
+		}
+		else
+		{
+			trigger_error("not implemented", E_USER_ERROR);
+		}
+	}
 	//mapping
 	$args = array(
 		"-out", $umi ? $before_dedup_bam : $final_bam,
