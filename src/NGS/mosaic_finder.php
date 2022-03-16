@@ -18,8 +18,10 @@ $parser->addOutfile("out", "Output VCF.gz file.", false);
 
 //optional
 $parser->addFloat("min_af", "Minimum allele-frequency", true, 0.01);
-$parser->addFloat("max_af", "Maximum allele-frequency", true, 1.0);
+$parser->addFloat("max_af", "Maximum allele-frequency", true, 0.2);
 $parser->addInt("min_obs", "Minimum observation per strand.", true, 2);
+$parser->addInt("extend", "Extend gene regions by 'extend' bases.", true, 20);
+$parser->addint("threads", "Number of threads used", true, 1);
 
 //debug parameters
 $parser->addFlag("debug", "Enable additional output for debugging.");
@@ -36,6 +38,7 @@ if ($debug)
 	echo $min_af."\n";
 	echo $max_af."\n";
 	echo $min_obs."\n";
+	echo $extend."\n";
 }
 
 if ($debug_folder != "")
@@ -58,24 +61,28 @@ if ($debug_folder != "")
 $parser->exec(get_path("ngs-bits")."/GenesToBed", "-in $genes -source ccds -mode exon -fallback -out $gene_regions", "Creating target region");
 if ($debug) print "Target regions: $gene_regions \n";
 
-
+$final_region = $gene_regions;
 //extend target region
-$bed_ext = temp_file("_extended.bed");
-if ($debug_folder != "")
+if ($extend > 0)
 {
-	$bed_ext = $debug_folder."/extended_regions.bed";
-}
-$parser->exec(get_path("ngs-bits")."/BedExtend", "-in $gene_regions -n 20 -out $bed_ext", "Extending target region"); 
-if ($debug) print "Regions extended: $bed_ext \n";
+	$bed_ext = temp_file("_extended.bed");
+	if ($debug_folder != "")
+	{
+		$bed_ext = $debug_folder."/extended_regions.bed";
+	}
+	$parser->exec(get_path("ngs-bits")."/BedExtend", "-in $gene_regions -n $extend -out $bed_ext", "Extending target region"); 
+	if ($debug) print "Regions extended: $bed_ext \n";
 
 
-$bed_merged = temp_file("_merged.bed");
-if ($debug_folder != "")
-{
-	$bed_merged = $debug_folder."/merged_regions.bed";
+	$bed_merged = temp_file("_merged.bed");
+	if ($debug_folder != "")
+	{
+		$bed_merged = $debug_folder."/merged_regions.bed";
+	}
+	$parser->exec(get_path("ngs-bits")."/BedMerge", "-in $bed_ext -out $bed_merged", "Merging target region"); 
+	if ($debug) print "Regions merged: $bed_merged \n";
+	$final_region = $bed_merged;
 }
-$parser->exec(get_path("ngs-bits")."/BedMerge", "-in $bed_ext -out $bed_merged", "Merging target region"); 
-if ($debug) print "Regions merged: $bed_merged \n";
 
 //load germline variants
 $vars_germline = array();
@@ -98,7 +105,7 @@ if ($debug_folder != "")
 {
 	$called_vcf = $debug_folder."/called_vars.vcf";
 }
-exec(get_path("freebayes")." -t $bed_merged -b $in -f /tmp/local_ngs_data//GRCh38.fa --pooled-continuous --min-alternate-fraction $min_af --min-mapping-quality 50 --min-base-quality 25 --min-alternate-qsum 90 > $called_vcf");
+exec(get_path("freebayes")." -t $final_region -b $in -f /tmp/local_ngs_data//GRCh38.fa --pooled-continuous --min-alternate-fraction $min_af --min-mapping-quality 50 --min-base-quality 25 --min-alternate-qsum 90 > $called_vcf");
 if ($debug) print "variant calls: $called_vcf\n";
 
 //filter variants
@@ -178,9 +185,9 @@ $parser->exec(get_path("ngs-bits")."/VcfLeftNormalize", "-in $vcf_filtered -out 
 if ($debug) print "variant calls - normalized: $vcf_norm \n";
 
 //annotate variants
-$parser->execTool("NGS/an_vep.php", "-in $vcf_norm -out $out -ps_name ".basename($in, ".bam")." -no_splice", "Annotating variants with VEP", "NGS");
+$parser->execTool("NGS/an_vep.php", "-threads $threads -in $vcf_norm -out $out -ps_name ".basename($in, ".bam")." -no_splice", "Annotating variants with VEP", "NGS");
 
-
+//TODO filter for allele-frequency <=(max_allel_freq), gnomAD_Af<=0.01, if possible for known artifacts that occur in more than X% (X=5?) of samples
 
 
 
