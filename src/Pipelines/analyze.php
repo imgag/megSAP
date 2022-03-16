@@ -287,6 +287,7 @@ if (in_array("ma", $steps))
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
 	if($use_dragen) $args[] = "-use_dragen";
+	if($somatic) $args[] = "-somatic_custom_map";
 	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name -local_bam $local_bamfile ".implode(" ", $args)." -threads $threads");
 
 	//low-coverage report
@@ -334,7 +335,7 @@ if (in_array("ma", $steps))
 				//BAM
 				$bamfile_size = filesize($bamfile);
 
-				if ($bamfile_size / $fastq_file_size > 0.4)
+				if ($bamfile_size / $fastq_file_size > 0.3)
 				{
 					// BAM exists and has a propper size: FASTQ files can be deleted
 					foreach($fastq_files as $fq_file)
@@ -344,7 +345,7 @@ if (in_array("ma", $steps))
 				}
 				else
 				{
-					trigger_error("BAM file smaller than 40% of FASTQ", E_USER_ERROR);
+					trigger_error("BAM file smaller than 30% of FASTQ", E_USER_ERROR);
 				}
 			}
 			else

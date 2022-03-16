@@ -26,6 +26,7 @@ $parser->addFlag("start_with_abra", "Skip all steps before indel realignment of 
 $parser->addFlag("correction_n", "Use Ns for barcode correction.");
 $parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.");
 $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard bwa mem.");
+$parser->addFlag("somatic_custom_map", "Calculate mapping QC metrics for somatic custom subpanel");
 extract($parser->parse($argv));
 
 //check user for DRAGEN mapping
@@ -546,6 +547,12 @@ if ($sys['build']!="GRCh38")
 {
 	$params[] = "-no_cont";
 }
+$somatic_custom_panel = get_path("data_folder") . "/enrichment/somatic_custom_panel.bed";
+if ($somatic_custom_map && file_exists($somatic_custom_panel))
+{
+	$params[] = "-somatic_custom_bed $somatic_custom_panel";
+}
+
 $parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
 
 //copy BAM to final output location
