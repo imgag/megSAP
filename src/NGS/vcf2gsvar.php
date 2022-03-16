@@ -281,6 +281,8 @@ $column_desc = array(
 	array("1000g", "Allele frequency in 1000 genomes project."),
 	array("gnomAD", "Allele frequency in gnomAD project."),
 	array("gnomAD_hom_hemi", "Homoyzgous counts and hemizygous counts of gnomAD project (genome data)."),
+	array("gnomAD_het", "Heterozygous counts of the gnomAD project (genome data)."),
+	array("gnomAD_wt", "Wildtype counts of the gnomAD project (genome data)."),
 	array("gnomAD_sub", "Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project."),
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
 	array("Sift", "Sift effect prediction and score for each transcript: D=damaging, T=tolerated."),
