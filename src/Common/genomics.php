@@ -1653,6 +1653,12 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 {
 	$builds = array();
 	
+	//check file exists
+	if (!file_exists($filename))
+	{
+		trigger_error("Cannot check genome build of file '{$filename}'. The file does not exist!",  E_USER_ERROR);
+	}
+	
 	//BAM file
 	if (ends_with($filename, ".bam"))
 	{

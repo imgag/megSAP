@@ -28,6 +28,7 @@ analyze_pe:
 	php ../../src/Pipelines/analyze_rna.php \
 			-folder paired_end -name PE \
 			-steps ma,rc,an,fu -system system.ini \
+			-fusion_caller arriba \
 			-library_type unstranded \
 			--log analyze_rna_out_pe.log
 

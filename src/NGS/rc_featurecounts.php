@@ -67,7 +67,7 @@ $args = [
 
 if (!$single_end)
 {
-	$args[] = "-p -B";
+	$args[] = "-p -B --countReadPairs";
 }
 if ($overlap || $exon_level)
 {

@@ -64,7 +64,7 @@ if (!isset($gender))
 	}
 	else if ($sys_roi!="") //check if sry is included in target region
 	{
-		list($stdout, $stderr) = exec2("echo -e 'chrY\\t 2786989\\t2787603' | ".get_path("ngs-bits")."BedIntersect -in2 ".$sys_roi, false); //works for GRCh38 only
+		list($stdout, $stderr) = exec2("echo -e 'chrY\\t2786989\\t2787603' | ".get_path("ngs-bits")."BedIntersect -in2 ".$sys_roi, false); //works for GRCh38 only
 		if ($stdout[0] == "chrY\t2786989\t2787603") //SRY is in roi
 		{
 			$method = "sry";
