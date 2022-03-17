@@ -766,17 +766,12 @@ if (in_array("sv", $steps))
 
 	//add NGSD counts from flat file
 	$ngsd_annotation_folder = get_path("data_folder")."/dbs/NGSD/";
-	$db_files = array("sv_deletion.bedpe.gz", "sv_duplication.bedpe.gz", "sv_insertion.bedpe.gz", "sv_inversion.bedpe.gz", "sv_translocation.bedpe.gz");
+	$ngsd_sv_files = array("sv_deletion.bedpe.gz", "sv_duplication.bedpe.gz", "sv_insertion.bedpe.gz", "sv_inversion.bedpe.gz", "sv_translocation.bedpe.gz");
 	$db_file_dates = array();
-
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	//TODO: remove
-	$ngsd_annotation_folder = "/mnt/storage1/users/ahschul1/2022_02_NGSDExportSV/export_test/NGSD_Makefile/";
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// check file existance
 	$all_files_available = file_exists($ngsd_annotation_folder."sv_breakpoint_density.igv");
-	foreach ($db_files as $filename) 
+	foreach ($ngsd_sv_files as $filename) 
 	{
 		if(!(file_exists($ngsd_annotation_folder.$filename) && file_exists($ngsd_annotation_folder.$filename.".tbi")))
 		{
@@ -787,7 +782,7 @@ if (in_array("sv", $steps))
 	if ($all_files_available)
 	{
 		// store flat file modification date to detect changes during annotation 
-		foreach ($db_files as $filename)
+		foreach ($ngsd_sv_files as $filename)
 		{
 			$db_file_dates[$filename] = filemtime($ngsd_annotation_folder.$filename);
 			if ($db_file_dates[$filename] == false)
@@ -801,7 +796,7 @@ if (in_array("sv", $steps))
 		$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
 
 		// check if files changed during annotation
-		foreach ($db_files as $filename)
+		foreach ($ngsd_sv_files as $filename)
 		{
 			if ($db_file_dates[$filename] != filemtime($ngsd_annotation_folder.$filename))
 			{
