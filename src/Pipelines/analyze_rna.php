@@ -328,30 +328,13 @@ if (in_array("ma", $steps))
 	{
 		//generate $final_bam from $before_dedup_bam
 
-		$awkscript_t = <<<EOT
-BEGIN {
-	OFS="\t"
-	FS="\t"
-}
-{
-	if(NF>=11) {
-		if(and($2,1024)) {
-			$2-=1024
-		}
-	}
-	print $0
-}
-EOT;
-		$awkscript_f = $parser->tempFile();
-		file_put_contents($awkscript_f, $awkscript_t);
-
 		//barcode correction
 		$pipeline = [];
 		//UMI-tools dedup
 		$pipeline[] = [get_path("umi_tools"), "dedup --stdin {$before_dedup_bam} --out-sam --log2stderr --paired --mapping-quality=3 --no-sort-output --umi-separator=':' --output-stats={$prefix}_umistats"];
 		//remove DUP flags
 		// TODO replace with samtools view --remove-flags, new samtools version required
-		$pipeline[] = ["awk", "-f {$awkscript_f}"];
+		$pipeline[] = [get_path("samtools"), "view --remove-flags DUP -u -b"];
 		//sort
 		$tmp_for_sorting = $parser->tempFile();
 		$pipeline[] = [get_path("samtools"), "sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$final_bam} -"];
