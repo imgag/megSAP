@@ -329,9 +329,18 @@ if (in_array("ma", $steps))
 		//generate $final_bam from $before_dedup_bam
 
 		//barcode correction
-		$tmp_dedup = $parser->tempFile("_dedup.bam");
-		$parser->exec(get_path("umi_tools"), "dedup -I $before_dedup_bam -S $tmp_dedup --mapping-quality 3 --no-sort-output --umi-separator=':' --output-stats={$prefix}_umistats", true);
-		$parser->sortBam($tmp_dedup, $final_bam, $threads);
+		$pipeline = [];
+		//UMI-tools dedup
+		$pipeline[] = [get_path("umi_tools"), "dedup --stdin {$before_dedup_bam} --out-sam --log2stderr --paired --mapping-quality=3 --no-sort-output --umi-separator=':' --output-stats={$prefix}_umistats"];
+		//remove DUP flags
+		// TODO replace with samtools view --remove-flags, new samtools version required
+		$pipeline[] = [get_path("samtools"), "view --remove-flags DUP -u -b"];
+		//sort
+		$tmp_for_sorting = $parser->tempFile();
+		$pipeline[] = [get_path("samtools"), "sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$final_bam} -"];
+		$parser->execPipeline($pipeline, "umi-tools dedup pipeline");
+
+		//index
 		$parser->indexBam($final_bam, $threads);
 	}
 
