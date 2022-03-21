@@ -23,8 +23,8 @@ while($line = fgets($handle))
 			}
 			else
 			{
-				//actual header line
 
+				//actual header line
 				// add INFO column header:
 				print "##INFO=<ID=AN,Number=1,Type=Integer,Description=\"Total number of alleles in samples\">\n";
 				print "##INFO=<ID=AF,Number=A,Type=Float,Description=\"Alternate allele frequency in samples\">\n";
@@ -89,7 +89,7 @@ while($line = fgets($handle))
 	
 	$info_new = array();
 	$info_new[] = "AN=".$an;
-	if ($is_chrx && $nonpar)
+	if ($is_chrx && $nonpar && ! $hemi)
 	{
 		$info_new[] = "Hemi=".$hemi; //($is_chrx && $nonpar ? $hemi : ".");
 	}
@@ -100,6 +100,7 @@ while($line = fgets($handle))
 	else
 	{
 		$info_new[] = "Hemi=.";
+	}
 	
 	$info_new[] = "Hom=".$hom;
 	$info_new[] = "Het=".($ac - 2*$hom);
