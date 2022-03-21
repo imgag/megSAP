@@ -15,10 +15,10 @@ end_test();
 
 //##################################################################################
 start_test("allele_count");
-check(allele_count(data_folder()."/allele_count_in.bam","chr1",31905889),array("C"=>0, "T"=>0, "A"=>263, "G"=>0, "*"=>106));
-check(allele_count(data_folder()."/allele_count_in.bam","chr5",142421388),array("C"=>504, "T"=>336, "A"=>1, "G"=>0, "*"=>0));
+check(allele_count(data_folder()."/allele_count_in.bam","chr1",31905889),array("C"=>0, "T"=>0, "A"=>263, "G"=>0, "*"=>110));
+check(allele_count(data_folder()."/allele_count_in.bam","chr5",142421388),array("C"=>501, "T"=>336, "A"=>1, "G"=>0, "*"=>0));
 check(allele_count(data_folder()."/allele_count_in.bam","chr13",110436093),array("C"=>0, "T"=>0, "A"=>319, "G"=>42, "*"=>1)); 
-check(allele_count(data_folder()."/allele_count_in.bam","chr19",1221301),array("C"=>192, "T"=>0, "A"=>0, "G"=>4, "*"=>2)); 
+check(allele_count(data_folder()."/allele_count_in.bam","chr19",1221301),array("C"=>192, "T"=>0, "A"=>0, "G"=>4, "*"=>3));
 end_test();
 //##################################################################################
 start_test("common_prefix");
