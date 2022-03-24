@@ -1,16 +1,14 @@
 ##fileformat=VCFv4.2
 ##fileDate=20211130
-##pgs_id=OCAC_36
-##trait=Ovarian cancer
-##build=GRCh37
-##n_var=36
-##pgp_id=undefined
-##citation=CanRisk (https://canrisk.atlassian.net/wiki/spaces/FAQS/pages/35979266/What+variants+are+used+in+the+PRS)
-##percentiles=-1.0090171,-0.91339328,-0.86296953,-0.82350808,-0.7963587,-0.76638666,-0.73872353,-0.72055208,-0.70221613,-0.682801,-0.66618908,-0.6475566,-0.62985444,-0.61508728,-0.60218465,-0.58670392,-0.57050134,-0.56055756,-0.54773251,-0.5362152,-0.52630813,-0.5161168,-0.50416601,-0.49459788,-0.4849775,-0.47446606,-0.46491294,-0.45720148,-0.45158046,-0.4414083,-0.43241461,-0.42508232,-0.4174155,-0.41024458,-0.40282185,-0.39257872,-0.38557258,-0.3779449,-0.36966446,-0.3630458,-0.35413934,-0.34618228,-0.33847403,-0.33165104,-0.32075955,-0.31408326,-0.30656766,-0.2981052,-0.29081348,-0.280784,-0.27135796,-0.26216228,-0.25266882,-0.24688598,-0.23759485,-0.23087176,-0.22219294,-0.21308894,-0.20417676,-0.1955996,-0.18856525,-0.18018794,-0.17112001,-0.16213952,-0.15145665,-0.14438026,-0.13402505,-0.12408952,-0.11482555,-0.1049184,-0.096030034,-0.088355044,-0.07952978,-0.069165794,-0.0598898,-0.049398764,-0.035057116,-0.023698924,-0.015575947,-0.0043422160000002,0.0050411762,0.016630408,0.029747038,0.041186884,0.056956895,0.066640336,0.0819862,0.098033232,0.11045944,0.1249033,0.14022856,0.15887636,0.17974406,0.2066977,0.23788305,0.27768012,0.3186058,0.38397404,0.48644969,1.19534
-##sample_count=3117
-##INFO=<ID=WEIGHT,Number=1,Type=Float,Description="PRS weight of this variant.">
-##INFO=<ID=POP_AF,Number=1,Type=Float,Description="Population allele frequency of this variant.">
 ##contig=<ID=chr1,length=249250621>
+##contig=<ID=chr2,length=243199373>
+##contig=<ID=chr3,length=198022430>
+##contig=<ID=chr4,length=191154276>
+##contig=<ID=chr5,length=180915260>
+##contig=<ID=chr6,length=171115067>
+##contig=<ID=chr7,length=159138663>
+##contig=<ID=chr8,length=146364022>
+##contig=<ID=chr9,length=141213431>
 ##contig=<ID=chr10,length=135534747>
 ##contig=<ID=chr11,length=135006516>
 ##contig=<ID=chr12,length=133851895>
@@ -21,81 +19,22 @@
 ##contig=<ID=chr17,length=81195210>
 ##contig=<ID=chr18,length=78077248>
 ##contig=<ID=chr19,length=59128983>
-##contig=<ID=chr2,length=243199373>
 ##contig=<ID=chr20,length=63025520>
 ##contig=<ID=chr21,length=48129895>
 ##contig=<ID=chr22,length=51304566>
-##contig=<ID=chr3,length=198022430>
-##contig=<ID=chr4,length=191154276>
-##contig=<ID=chr5,length=180915260>
-##contig=<ID=chr6,length=171115067>
-##contig=<ID=chr7,length=159138663>
-##contig=<ID=chr8,length=146364022>
-##contig=<ID=chr9,length=141213431>
-##contig=<ID=chrGL000191.1,length=106433>
-##contig=<ID=chrGL000192.1,length=547496>
-##contig=<ID=chrGL000193.1,length=189789>
-##contig=<ID=chrGL000194.1,length=191469>
-##contig=<ID=chrGL000195.1,length=182896>
-##contig=<ID=chrGL000196.1,length=38914>
-##contig=<ID=chrGL000197.1,length=37175>
-##contig=<ID=chrGL000198.1,length=90085>
-##contig=<ID=chrGL000199.1,length=169874>
-##contig=<ID=chrGL000200.1,length=187035>
-##contig=<ID=chrGL000201.1,length=36148>
-##contig=<ID=chrGL000202.1,length=40103>
-##contig=<ID=chrGL000203.1,length=37498>
-##contig=<ID=chrGL000204.1,length=81310>
-##contig=<ID=chrGL000205.1,length=174588>
-##contig=<ID=chrGL000206.1,length=41001>
-##contig=<ID=chrGL000207.1,length=4262>
-##contig=<ID=chrGL000208.1,length=92689>
-##contig=<ID=chrGL000209.1,length=159169>
-##contig=<ID=chrGL000210.1,length=27682>
-##contig=<ID=chrGL000211.1,length=166566>
-##contig=<ID=chrGL000212.1,length=186858>
-##contig=<ID=chrGL000213.1,length=164239>
-##contig=<ID=chrGL000214.1,length=137718>
-##contig=<ID=chrGL000215.1,length=172545>
-##contig=<ID=chrGL000216.1,length=172294>
-##contig=<ID=chrGL000217.1,length=172149>
-##contig=<ID=chrGL000218.1,length=161147>
-##contig=<ID=chrGL000219.1,length=179198>
-##contig=<ID=chrGL000220.1,length=161802>
-##contig=<ID=chrGL000221.1,length=155397>
-##contig=<ID=chrGL000222.1,length=186861>
-##contig=<ID=chrGL000223.1,length=180455>
-##contig=<ID=chrGL000224.1,length=179693>
-##contig=<ID=chrGL000225.1,length=211173>
-##contig=<ID=chrGL000226.1,length=15008>
-##contig=<ID=chrGL000227.1,length=128374>
-##contig=<ID=chrGL000228.1,length=129120>
-##contig=<ID=chrGL000229.1,length=19913>
-##contig=<ID=chrGL000230.1,length=43691>
-##contig=<ID=chrGL000231.1,length=27386>
-##contig=<ID=chrGL000232.1,length=40652>
-##contig=<ID=chrGL000233.1,length=45941>
-##contig=<ID=chrGL000234.1,length=40531>
-##contig=<ID=chrGL000235.1,length=34474>
-##contig=<ID=chrGL000236.1,length=41934>
-##contig=<ID=chrGL000237.1,length=45867>
-##contig=<ID=chrGL000238.1,length=39939>
-##contig=<ID=chrGL000239.1,length=33824>
-##contig=<ID=chrGL000240.1,length=41933>
-##contig=<ID=chrGL000241.1,length=42152>
-##contig=<ID=chrGL000242.1,length=43523>
-##contig=<ID=chrGL000243.1,length=43341>
-##contig=<ID=chrGL000244.1,length=39929>
-##contig=<ID=chrGL000245.1,length=36651>
-##contig=<ID=chrGL000246.1,length=38154>
-##contig=<ID=chrGL000247.1,length=36422>
-##contig=<ID=chrGL000248.1,length=39786>
-##contig=<ID=chrGL000249.1,length=38502>
-##contig=<ID=chrhs37d5,length=35477943>
 ##contig=<ID=chrMT,length=16569>
-##contig=<ID=chrNC_007605,length=171823>
 ##contig=<ID=chrX,length=155270560>
 ##contig=<ID=chrY,length=59373566>
+##INFO=<ID=WEIGHT,Number=1,Type=Float,Description="PRS weight of this variant.">
+##INFO=<ID=POP_AF,Number=1,Type=Float,Description="Population allele frequency of this variant.">
+##pgs_id=OCAC_36
+##trait=Ovarian cancer
+##build=GRCh37
+##n_var=36
+##pgp_id=undefined
+##citation=CanRisk (https://canrisk.atlassian.net/wiki/spaces/FAQS/pages/35979266/What+variants+are+used+in+the+PRS)
+##percentiles=-1.0090171,-0.91339328,-0.86296953,-0.82350808,-0.7963587,-0.76638666,-0.73872353,-0.72055208,-0.70221613,-0.682801,-0.66618908,-0.6475566,-0.62985444,-0.61508728,-0.60218465,-0.58670392,-0.57050134,-0.56055756,-0.54773251,-0.5362152,-0.52630813,-0.5161168,-0.50416601,-0.49459788,-0.4849775,-0.47446606,-0.46491294,-0.45720148,-0.45158046,-0.4414083,-0.43241461,-0.42508232,-0.4174155,-0.41024458,-0.40282185,-0.39257872,-0.38557258,-0.3779449,-0.36966446,-0.3630458,-0.35413934,-0.34618228,-0.33847403,-0.33165104,-0.32075955,-0.31408326,-0.30656766,-0.2981052,-0.29081348,-0.280784,-0.27135796,-0.26216228,-0.25266882,-0.24688598,-0.23759485,-0.23087176,-0.22219294,-0.21308894,-0.20417676,-0.1955996,-0.18856525,-0.18018794,-0.17112001,-0.16213952,-0.15145665,-0.14438026,-0.13402505,-0.12408952,-0.11482555,-0.1049184,-0.096030034,-0.088355044,-0.07952978,-0.069165794,-0.0598898,-0.049398764,-0.035057116,-0.023698924,-0.015575947,-0.0043422160000002,0.0050411762,0.016630408,0.029747038,0.041186884,0.056956895,0.066640336,0.0819862,0.098033232,0.11045944,0.1249033,0.14022856,0.15887636,0.17974406,0.2066977,0.23788305,0.27768012,0.3186058,0.38397404,0.48644969,1.19534
+##sample_count=3117
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 chr1	22468215	.	C	T	.	.	POP_AF=0.1541;WEIGHT=0.0808
 chr1	38082122	.	G	A	.	.	POP_AF=0.2609;WEIGHT=0.0835

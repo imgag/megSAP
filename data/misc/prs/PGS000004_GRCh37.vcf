@@ -1,13 +1,39 @@
 ##fileformat=VCFv4.2
 ##fileDate=20200723
+##contig=<ID=chr1,length=249250621>
+##contig=<ID=chr2,length=243199373>
+##contig=<ID=chr3,length=198022430>
+##contig=<ID=chr4,length=191154276>
+##contig=<ID=chr5,length=180915260>
+##contig=<ID=chr6,length=171115067>
+##contig=<ID=chr7,length=159138663>
+##contig=<ID=chr8,length=146364022>
+##contig=<ID=chr9,length=141213431>
+##contig=<ID=chr10,length=135534747>
+##contig=<ID=chr11,length=135006516>
+##contig=<ID=chr12,length=133851895>
+##contig=<ID=chr13,length=115169878>
+##contig=<ID=chr14,length=107349540>
+##contig=<ID=chr15,length=102531392>
+##contig=<ID=chr16,length=90354753>
+##contig=<ID=chr17,length=81195210>
+##contig=<ID=chr18,length=78077248>
+##contig=<ID=chr19,length=59128983>
+##contig=<ID=chr20,length=63025520>
+##contig=<ID=chr21,length=48129895>
+##contig=<ID=chr22,length=51304566>
+##contig=<ID=chrMT,length=16569>
+##contig=<ID=chrX,length=155270560>
+##contig=<ID=chrY,length=59373566>
+##INFO=<ID=WEIGHT,Number=1,Type=Float,Description="PRS weight of this variant.">
 ##pgs_id=PGS000004
 ##trait=Breast Cancer
 ##build=GRCh37
 ##n_var=313
 ##pgp_id=PGP000002
 ##citation=Mavaddat N et al. Am J Hum Genet (2018). doi:10.1016/j.ajhg.2018.11.002
-##sample_count=1344
 ##percentiles=-1.828376,-1.612056,-1.488528,-1.406704,-1.33842,-1.290412,-1.26394,-1.227196,-1.172056,-1.14544,-1.120268,-1.080032,-1.050964,-1.021992,-0.99304,-0.969012,-0.94458,-0.926812,-0.90178,-0.88492,-0.85774,-0.83456,-0.800272,-0.772256,-0.7546,-0.731196,-0.711268,-0.692456,-0.675564,-0.64806,-0.623032,-0.603408,-0.579364,-0.570588,-0.55054,-0.53764,-0.513092,-0.5016,-0.487164,-0.4722,-0.4538,-0.442096,-0.42224,-0.407672,-0.39796,-0.38064,-0.366784,-0.349372,-0.33698,-0.3193,-0.309044,-0.2942,-0.275632,-0.263428,-0.2502,-0.23164,-0.215824,-0.203108,-0.187692,-0.16742,-0.153784,-0.142956,-0.131688,-0.111924,-0.0962,-0.075492,-0.055728,-0.041168,-0.01806,0.00124,0.02036,0.043548,0.072092,0.084052,0.1064,0.121728,0.144424,0.160708,0.180448,0.19986,0.217928,0.231992,0.253128,0.283604,0.32814,0.354012,0.398212,0.43614,0.45694,0.4995,0.556948,0.589656,0.629948,0.722744,0.78202,0.880544,0.974044,1.052,1.246276,1.5364
+##sample_count=1344
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 chr1	100880328	.	A	T	.	.	WEIGHT=0.0373
 chr1	10566215	.	A	G	.	.	WEIGHT=-0.0586
