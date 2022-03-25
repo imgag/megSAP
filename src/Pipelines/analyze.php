@@ -38,10 +38,6 @@ if (!file_exists($folder))
 if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_".date("YmdHis").".log");
 
 //init
-if($folder=="default")
-{
-	$folder = $folder;
-}
 $ngsbits = get_path("ngs-bits");
 
 //determine processing system
@@ -762,12 +758,58 @@ if (in_array("sv", $steps))
 	}
 
 
-	//add gene info annotation and NGSD counts
+	//add gene info annotation
 	if (db_is_enabled("NGSD"))
 	{
 		$parser->exec("{$ngsbits}BedpeGeneAnnotation", "-in $bedpe_out -out $bedpe_out -add_simple_gene_names", true);
-		$parser->exec("{$ngsbits}NGSDAnnotateSV", "-in $bedpe_out -out $bedpe_out -ps $name", true);
 	}
+
+	//add NGSD counts from flat file
+	$ngsd_annotation_folder = get_path("data_folder")."/dbs/NGSD/";
+	$ngsd_sv_files = array("sv_deletion.bedpe.gz", "sv_duplication.bedpe.gz", "sv_insertion.bedpe.gz", "sv_inversion.bedpe.gz", "sv_translocation.bedpe.gz");
+	$db_file_dates = array();
+
+	// check file existance
+	$all_files_available = file_exists($ngsd_annotation_folder."sv_breakpoint_density.igv");
+	foreach ($ngsd_sv_files as $filename) 
+	{
+		if(!(file_exists($ngsd_annotation_folder.$filename) && file_exists($ngsd_annotation_folder.$filename.".tbi")))
+		{
+			$all_files_available = false;
+			break;
+		}
+	}
+	if ($all_files_available)
+	{
+		// store flat file modification date to detect changes during annotation 
+		foreach ($ngsd_sv_files as $filename)
+		{
+			$db_file_dates[$filename] = filemtime($ngsd_annotation_folder.$filename);
+			if ($db_file_dates[$filename] == false)
+			{
+				trigger_error("Cannot get modification date of '".$ngsd_annotation_folder.$filename."'!",E_USER_ERROR);
+			}
+		}
+		
+		//perform annotation
+		$parser->exec("{$ngsbits}BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", true);
+		$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
+
+		// check if files changed during annotation
+		foreach ($ngsd_sv_files as $filename)
+		{
+			if ($db_file_dates[$filename] != filemtime($ngsd_annotation_folder.$filename))
+			{
+				trigger_error("Annotation file '".$ngsd_annotation_folder.$filename."' has changed during annotation!",E_USER_ERROR);
+			}
+		}
+
+	}
+	else
+	{
+		trigger_error("Cannot annotate NGSD counts! At least one required file in '{$ngsd_annotation_folder}' is missing!", E_USER_WARNING);
+	}
+	
 
 	//add optional OMIM annotation
 
