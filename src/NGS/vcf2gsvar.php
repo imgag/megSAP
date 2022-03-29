@@ -17,7 +17,7 @@ $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are sk
 extract($parser->parse($argv));
 
 //skip common MODIFIER variants in WGS mode
-function skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd, $ngsd_clas)
+function skip_in_wgs_mode($chr, $coding_and_splicing_details, $gnomad, $clinvar, $hgmd, $ngsd_clas)
 {	
 	//don't skip mito variants
 	if ($chr=='chrMT') return false;
@@ -32,7 +32,6 @@ function skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $cli
 	if ($ngsd_clas=='4' || $ngsd_clas=='5') return false;
 	
 	//skip common variants >2%AF
-	if ($kg!="" && $kg>0.02) return true;
 	if ($gnomad!="" && $gnomad>0.02) return true;
 	
 	return false; //non-exonic but rare
@@ -278,12 +277,11 @@ $column_desc = array(
 	array("HGMD", "HGMD database annotation."),
 	array("RepeatMasker", "RepeatMasker annotation."),
 	array("dbSNP", "Identifier in dbSNP database."),
-	array("1000g", "Allele frequency in 1000 genomes project."),
 	array("gnomAD", "Allele frequency in gnomAD project."),
+	array("gnomAD_sub", "Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project."),
 	array("gnomAD_hom_hemi", "Homoyzgous counts and hemizygous counts of gnomAD project (genome data)."),
 	array("gnomAD_het", "Heterozygous counts of the gnomAD project (genome data)."),
 	array("gnomAD_wt", "Wildtype counts of the gnomAD project (genome data)."),
-	array("gnomAD_sub", "Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project."),
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
 	array("Sift", "Sift effect prediction and score for each transcript: D=damaging, T=tolerated."),
 	array("PolyPhen", "PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign."),
@@ -424,7 +422,6 @@ while(!feof($handle))
 			$i_revel = index_of($cols, "REVEL", false);
 			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_existingvariation = index_of($cols, "Existing_variation");
-			$i_af_kg = index_of($cols, "AF");
 			$i_af_gnomad = index_of($cols, "gnomAD_AF");
 			$i_af_gnomad_afr = index_of($cols, "gnomAD_AFR_AF");
 			$i_af_gnomad_amr = index_of($cols, "gnomAD_AMR_AF");
@@ -677,7 +674,6 @@ while(!feof($handle))
 	$genes = array();
 	$variant_details = array();
 	$coding_and_splicing_details = array();
-	$af_kg = array();
 	$af_gnomad = array();
 	$af_gnomad_genome = array();
 	$af_gnomad_afr = array();
@@ -687,6 +683,8 @@ while(!feof($handle))
 	$af_gnomad_sas = array();
 	$hom_gnomad = array();
 	$hemi_gnomad = array();
+	$wt_gnomad = array();
+	$het_gnomad = array();
 	$clinvar = array();
 	$hgmd = array();
 	$maxentscan = array();
@@ -715,7 +713,6 @@ while(!feof($handle))
 			//######################### general information (not transcript-specific) #########################
 			
 			//AFs
-			$af_kg[] = max(explode("&", trim($parts[$i_af_kg]))); //some variants are annotated with two values, e.g. chr7:130297119 GA>G
 			$af_gnomad[] = trim($parts[$i_af_gnomad]);
 			$af_gnomad_afr[] = trim($parts[$i_af_gnomad_afr]);
 			$af_gnomad_amr[] = trim($parts[$i_af_gnomad_amr]);
@@ -1049,6 +1046,9 @@ while(!feof($handle))
 	//genomAD hom/hemi
 	if (isset($info["gnomADg_Hom"])) $hom_gnomad[] = trim($info["gnomADg_Hom"]);
 	if (isset($info["gnomADg_Hemi"])) $hemi_gnomad[] = trim($info["gnomADg_Hemi"]);
+	if (isset($info["gnomADg_Het"])) $het_gnomad[] = trim($info["gnomADg_Het"]);
+	if (isset($info["gnomADg_Wt"])) $wt_gnomad[] = trim($info["gnomADg_Wt"]);
+	
 
 	//ClinVar
 	if (isset($info["CLINVAR_ID"]) && isset($info["CLINVAR_DETAILS"]))
@@ -1081,7 +1081,6 @@ while(!feof($handle))
 
 	//AFs
 	$dbsnp = implode(",", collapse($tag, "dbSNP", $dbsnp, "unique"));	
-	$kg = collapse($tag, "1000g", $af_kg, "one", 4);
 	$gnomad = collapse($tag, "gnomAD", $af_gnomad, "one", 4);
 	$gnomad_genome = collapse($tag, "gnomAD genome", $af_gnomad_genome, "max", 4);
 	$gnomad = max($gnomad, $gnomad_genome);
@@ -1089,6 +1088,8 @@ while(!feof($handle))
 	if ($gnomad_hom_hemi==",") $gnomad_hom_hemi = "";
 	$gnomad_sub = collapse($tag, "gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse($tag, "gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse($tag, "gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse($tag, "gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse($tag, "gnomAD SAS", $af_gnomad_sas, "one", 4);
 	if (str_replace(",", "", $gnomad_sub)=="") $gnomad_sub = "";
+	$gnomad_het = collapse($tag, "gnomAD Het", $het_gnomad, "one");
+	$gnomad_wt = collapse($tag, "gnomAD Wt", $wt_gnomad, "one");
 
 	//PubMed
 	$pubmed = implode(",", collapse($tag, "PubMed", $pubmed, "unique"));	
@@ -1137,7 +1138,7 @@ while(!feof($handle))
 		}
 
 		//NGSD
-		if (isset($info["NGSD_HAF"]) || $gnomad >= 0.05 || $kg >= 0.05)
+		if (isset($info["NGSD_HAF"]) || $gnomad >= 0.05)
 		{
 			$ngsd_hom = "n/a (AF>5%)";
 			$ngsd_het = "n/a (AF>5%)";
@@ -1363,7 +1364,7 @@ while(!feof($handle))
 	$cosmic = implode(",", collapse($tag, "COSMIC", $cosmic, "unique"));
 	
 	//skip common MODIFIER variants in WGS mode
-	if ($wgs && skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd, $ngsd_clas))
+	if ($wgs && skip_in_wgs_mode($chr, $coding_and_splicing_details, $gnomad, $clinvar, $hgmd, $ngsd_clas))
 	{
 		++$c_skipped_wgs;
 		continue;
@@ -1372,7 +1373,7 @@ while(!feof($handle))
 	//write data
 	++$c_written;
 	$genes = array_unique($genes);
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_hom_hemi\t$gnomad_sub\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");
