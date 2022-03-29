@@ -29,7 +29,6 @@ while($line = fgets($handle))
 				print "##INFO=<ID=AN,Number=1,Type=Integer,Description=\"Total number of alleles in samples\">\n";
 				print "##INFO=<ID=AF,Number=A,Type=Float,Description=\"Alternate allele frequency in samples\">\n";
 				print "##INFO=<ID=AC,Number=A,Type=Float,Description=\"Alternate allele count\">\n";
-				print "##INFO=<ID=AF,Number=A,Type=Float,Description=\"Alternate allele frequency in samples\">\n";
 				print "##INFO=<ID=Hom,Number=A,Type=Integer,Description=\"Count of homozygous individuals in samples\">\n";
 				print "##INFO=<ID=Hemi,Number=A,Type=Integer,Description=\"Alternate allele count for male samples\">\n";
 				print "##INFO=<ID=Het,Number=A,Type=Integer,Description=\"Count of heterozygous alleles in all samples.\">\n";
@@ -89,7 +88,7 @@ while($line = fgets($handle))
 	
 	$info_new = array();
 	$info_new[] = "AN=".$an;
-	if ($is_chrx && $nonpar && ! $hemi)
+	if ($is_chrx && $nonpar && ! is_null($hemi))
 	{
 		$info_new[] = "Hemi=".$hemi; //($is_chrx && $nonpar ? $hemi : ".");
 	}
