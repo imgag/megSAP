@@ -7,8 +7,8 @@ root=`pwd`
 src=$root/../src/
 tools=$root/tools/
 dbs=$root/dbs/
--ngsbits=$tools/ngs-bits/bin
--genome=$root/genomes/GRCh38.fa
+ngsbits=$tools/ngs-bits/bin
+genome=$root/genomes/GRCh38.fa
 
 #Install CancerHotspots.org
 cd $dbs
