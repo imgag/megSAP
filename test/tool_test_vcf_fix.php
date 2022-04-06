@@ -15,6 +15,11 @@ $out_file2 = output_folder().$name."_out2.vcf";
 check_exec("cat ".data_folder().$name."_in2.vcf | php ".src_folder()."/NGS/{$name}.php > $out_file2");
 check_file($out_file2, data_folder().$name."_out2.vcf");
 
+//keep wt calls:
+$out_file3 = output_folder().$name."_out3.vcf";
+check_exec("cat ".data_folder().$name."_in1.vcf | php ".src_folder()."/NGS/{$name}.php --keep_wt_calls  > $out_file3");
+check_file($out_file3, data_folder().$name."_out3.vcf");
+
 end_test();
 
 ?>
