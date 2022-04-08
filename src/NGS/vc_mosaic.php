@@ -1,7 +1,7 @@
 <?php
 
 /**
-  @page mosaic_finder
+  @page vc_mosaic
   
 */
 
@@ -10,7 +10,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("mosaic_finder", "Call mosaic mutations in bam file. Creates a VCF file.");
+$parser = new ToolBase("vc_mosaic", "Call mosaic mutations in bam file. Creates a VCF file.");
 $parser->addInfile("in", "Input BAM file.", false);
 $parser->addInfile("vcf", "VCF(.gz) with mutations called following the diploid model", false);
 $parser->addInfile("genes", "File with gene names in whose regions the mutations are searched for.", false);
@@ -19,13 +19,14 @@ $parser->addEnum("type", "Processing system type: WGS or WES", false, ["WES", "W
 
 //optional
 $parser->addInt("extend", "Extend gene regions by 'extend' bases.", true, 20);
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 //filter parameter:
 $parser->addFloat("max_af", "Maximum allele-frequency of a variant to be considered as a mosaic", true, 0.5);
 $parser->addInt("min_obs", "Minimum observation per strand. if not given is decided by the type parameter: WGS = 1; WES = 2", true, -1);
 $parser->addFloat("max_gnomad_af", "Maximum allowed allel frequency in gnomad", true, 0.01);
 //freebayes calling parameters:
-$parser->addFloat("min_af", "Minimum allele-frequency", true, 0.01);
-$parser->addInt("min_mq", "Minimum mapping quality (freebayes)", true, 55);
+$parser->addFloat("min_af", "Minimum allele-frequency (freebayes)", true, 0.01);
+$parser->addInt("min_mq", "Minimum mapping quality (freebayes)", true, 50);
 $parser->addInt("min_bq", "Minimum base quality (freebayes)", true, 25);
 $parser->addInt("min_qsum", "Minimum alternate quality sum (freebayes)", true, 90);
 
@@ -33,18 +34,10 @@ $parser->addInt("threads", "Number of threads in annotation step", true, 1);
 
 //debug parameters
 $parser->addFlag("debug", "Enable additional output for debugging.");
+$parser->addInfile("called_vcf", "A vcf that was already called for mosaics and only post-processing should be done.", true, "");
 extract($parser->parse($argv));
 
-// Validate input:
-if ($max_af <= 0)
-{
-	trigger_error("The maximum allel frequency cannot be smaller or equal to zero.", E_USER_ERROR);
-}
-
-if ($gnomad_af <= 0)
-{
-	trigger_error("The maximum allowed gnomad allel frequency cannot be smaller or equal to zero.", E_USER_ERROR);
-}
+$time_start = microtime(true);
 
 if ($min_obs == -1)
 {
@@ -62,6 +55,21 @@ if ($min_obs == -1)
 	}
 }
 
+// Validate input:
+if ($max_af <= 0)
+{
+	trigger_error("The maximum allel frequency cannot be smaller or equal to zero.", E_USER_ERROR);
+}
+
+if ($max_gnomad_af <= 0)
+{
+	trigger_error("The maximum allowed gnomad allel frequency cannot be smaller or equal to zero.", E_USER_ERROR);
+}
+
+if ($min_obs < 0)
+{
+	trigger_error("The minimum observations cannot be negative.", E_USER_ERROR);
+}
 
 /*
 Filters the base results and removes called variants that:
@@ -72,7 +80,7 @@ Filters the base results and removes called variants that:
 	- occure in low confidence regions.
 */
 
-function filter_vcf($vcf, $out, $sample_vcf, $max_af, $min_obs, $min_quality, $max_gnomad_af)
+function filter_vcf($vcf, $out, $sample_vcf, $max_af, $min_obs, $max_gnomad_af)
 {
 	$result = [];
 	
@@ -110,8 +118,13 @@ function filter_vcf($vcf, $out, $sample_vcf, $max_af, $min_obs, $min_quality, $m
 		{
 			continue;
 		}
-		
+
 		if ($saf < $min_obs || $sar < $min_obs)
+		{
+			continue;
+		}
+		
+		if (floatval($qual) < 0)
 		{
 			continue;
 		}
@@ -121,7 +134,7 @@ function filter_vcf($vcf, $out, $sample_vcf, $max_af, $min_obs, $min_quality, $m
 			continue;
 		}
 		
-		if (str_contains($filter, "low_conf_region"))
+		if (contains($filter, "low_conf_region"))
 		{
 			continue;
 		}
@@ -141,7 +154,8 @@ function parse_vcf_info($info, $format, $format_values)
 {
 	$saf = "";	// alt occurences on forward strand
 	$sar = "";	// alt occurences on reverse strand
-	$gnomad_af = "";
+	$gnomad_af = "0";
+	$dp = "";
 	
 	$info = explode(";", $info);
 	foreach($info as $i)
@@ -154,21 +168,64 @@ function parse_vcf_info($info, $format, $format_values)
 		{
 			$sar = substr($i, 4);
 		}
+		if(starts_with($i, "DP="))
+		{
+			$dp = substr($i, 3);
+		}
 		if(starts_with($i, "gnomADg_AF="))
 		{
 			$gnomad_af = substr($i, 11);
 		}
 	}
 	
-	$af = (floatval($sar) + floatval($saf)) / floatval($dp);
+	if ($saf == "" || $sar == "")
+	{
+		
+		var_dump($info);
+		trigger_error("Couldn't parse needed info values (at least one of SAR, SAF)", E_USER_ERROR);
+	}
+	
+	if ($dp == "")
+	{
+		//parse depth from the format values:
+		$dp_idx = -1;
+		$format_ids = explode(":", $format);
+		for($i=0; $i<count($format_ids); $i++)
+		{
+			$id = $format_ids[$i];
+			// echo "$i . ID: $id\n";
+			if ($id == "DP")
+			{
+				// echo ""
+				$dp_idx = $i;
+			}
+		}
+		if ($dp_idx == -1)
+		{
+			var_dump($format_ids);
+			trigger_error("No depth value found in info fields and not annotated in the format values in the vcf: format - $format .", E_USER_ERROR);
+		}
+		$dp = explode(":", $format_values)[$dp_idx];
+	}
+	
+	$saf = intval($saf);
+	$sar = intval($sar);
+	$dp = intval($dp);
+	$gnomad_af = floatval($gnomad_af);
+	
+	
+	$af = ($sar + $saf) / $dp;
+	
+
 	return [$saf, $sar, $af, $gnomad_af];
 }
 
 
+if ($called_vcf == "")
+{
+
 //**MAIN**//
-
-$time_start = microtime(true);
-
+if ($debug) print "starting main\n";
 //create target region
 $gene_regions = temp_file("_gene_regions.bed");
 $parser->exec(get_path("ngs-bits")."/GenesToBed", "-in $genes -source ccds -mode exon -fallback -out $gene_regions", "Creating target region");
@@ -189,17 +246,21 @@ if ($extend > 0)
 	$final_region = $bed_merged;
 }
 
+$freebayes_start = microtime(true);
 //call variants
 $called_vcf = temp_file(".vcf");
-exec(get_path("freebayes")." -t $final_region -b $in -f /tmp/local_ngs_data//GRCh38.fa --pooled-continuous --min-alternate-fraction $min_af --min-mapping-quality $min_mq --min-base-quality $min_bq --min-alternate-qsum $min_qsum > $out");
-if ($debug) print "variant calls: $called_vcf\n";
+exec(get_path("freebayes")." -t $final_region -b $in -f ".genome_fasta($build)." --pooled-continuous --min-alternate-fraction $min_af --min-mapping-quality $min_mq --min-base-quality $min_bq --min-alternate-qsum $min_qsum > $called_vcf");
 
+$freebayes_end = microtime(true);
+if ($debug) print "variant calling took ".($freebayes_end-$freebayes_start)."s: $called_vcf\n";
+}
 
 //**POST PROCESSING**//
 
+$post_processing_start = microtime(true);
 //split complex variants to primitives
 $tmp_split_vars = temp_file("_split_vars.vcf");
-exec("cat $vcf | ".get_path("vcflib")."vcfallelicprimitives -kg > $tmp_split_vars");
+exec("cat $called_vcf | ".get_path("vcflib")."vcfallelicprimitives -kg > $tmp_split_vars");
 if ($debug) print "Split complex variants: $tmp_split_vars\n";
 
 // split multi-allelic variants
@@ -209,29 +270,29 @@ if ($debug) print "Split multi-allelic variants: $tmp_break_multi\n";
 
 // normalize all variants and align INDELs to the left
 $tmp_left_norm = temp_file("_left_norm.vcf");
-exec(get_path("ngs_bits")."VcfLeftNormalize -in $tmp_break_multi -out $tmp_left_norm");
+exec(get_path("ngs-bits")."VcfLeftNormalize -in $tmp_break_multi -out $tmp_left_norm");
 if ($debug) print "Left normalized variants: $tmp_left_norm\n";
 
 // //annotate the vcf file
 $tmp_annotated = temp_file("_annotated.vcf");
-exec(get_path("ngs_bits")."VcfAnnotateFromVcf -in $tmp_left_norm -out $tmp_annotated -annotation_file /mnt/storage2/GRCh38/share/data/dbs/gnomAD/gnomAD_genome_v3.1.1_GRCh38.vcf.gz -info_ids AF -id_prefix gnomADg -threads $threads");
+exec(get_path("ngs-bits")."VcfAnnotateFromVcf -in $tmp_left_norm -out $tmp_annotated -annotation_file /mnt/storage2/GRCh38/share/data/dbs/gnomAD/gnomAD_genome_v3.1.1_GRCh38.vcf.gz -info_ids AF -id_prefix gnomADg -threads $threads");
 if ($debug) print "Annotated variants: $tmp_annotated\n";
 
-// filter: sar saf (min observations)
+// filter
 $tmp_filtered = temp_file("_filtered.vcf");
-filter_vcf($tmp_annotated, $tmp_filtered, $vcf, $max_af, $min_obs, $min_quality, $max_gnomad_af);
+filter_vcf($tmp_annotated, $tmp_filtered, $vcf, $max_af, $min_obs, $max_gnomad_af);
 if ($debug) print "Filtered variants: $tmp_filtered\n";
 
 //sort variants by genomic position
 $tmp_sorted_vcf = temp_file("_sorted.vcf");
-exec(get_path("ngs_bits")."VcfSort -in $tmp_filtered -out $tmp_sorted_vcf");
+exec(get_path("ngs-bits")."VcfSort -in $tmp_filtered -out $tmp_sorted_vcf");
 if ($debug) print "Sorted variants: $tmp_sorted_vcf\n";
 
 // fix error in VCF file and strip unneeded information
-exec("cat $tmp_sorted_vcf | php ".execTool("NGS/vcf_fix.php", "--keep_wt_calls > $out");
+exec("cat $tmp_sorted_vcf | php ".repository_basedir()."src/NGS/vcf_fix.php --keep_wt_calls > $out");
 
 $time_end = microtime(true);
-$time = $time_end - $time_start;
-if ($debug) print "Done - total time taken: $time s \n";
+if ($debug) print "Post processing done - time taken: ".($time_end-$post_processing_start)." s \n";
+if ($debug) print "Done - total time taken: ".($time_end - $time_start)." s \n";
 
 ?>
