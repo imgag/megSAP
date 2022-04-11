@@ -14,6 +14,9 @@ vc_freebayes:
 	BedIntersect -in tmp_roi_ext.bed -in2 tmp_vars.bed -mode in -out tmp_roi_overlap.bed
 	BedShrink -in tmp_roi_overlap.bed -n 50 -out vc_freebayes_in.bed
 	rm tmp*
+	
+vc_mosaic:
+	@cd ../ && php vc_mosaic_create_test_data.php
 
 an_vep:
 	zcat vc_freebayes_out1.vcf.gz > an_vep_in1.vcf

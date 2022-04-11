@@ -14,7 +14,7 @@ $parser = new ToolBase("vc_mosaic", "Call mosaic mutations in bam file. Creates 
 $parser->addInfile("in", "Input BAM file.", false);
 $parser->addInfile("vcf", "VCF(.gz) with mutations called following the diploid model", false);
 $parser->addInfile("genes", "File with gene names in whose regions the mutations are searched for.", false);
-$parser->addOutfile("out", "Output VCF.gz file.", false);
+$parser->addOutfile("out", "Output VCF file.", false);
 $parser->addEnum("type", "Processing system type: WGS or WES", false, ["WES", "WGS"]);
 
 //optional
@@ -120,11 +120,6 @@ function filter_vcf($vcf, $out, $sample_vcf, $max_af, $min_obs, $max_gnomad_af)
 		}
 
 		if ($saf < $min_obs || $sar < $min_obs)
-		{
-			continue;
-		}
-		
-		if (floatval($qual) < 0)
 		{
 			continue;
 		}
