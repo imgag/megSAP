@@ -1,0 +1,2 @@
+#BAM file	sample	ethnicity	gene	a1	a2	pval	qual	a1_reads	a2_reads	a1+a2
+hla_genotyper_in.bam	testSample_01	EUR	HLA-A	HLA-A*02:01	HLA-A*03:01	0.99	Pass	27	27	54

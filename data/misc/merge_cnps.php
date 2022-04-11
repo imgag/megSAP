@@ -22,6 +22,8 @@ function load($filename, &$chrs, &$breaks)
 	}
 	return $output;
 }
+
+
 $chrs = array();
 $breaks = array();
 $f1 = load($argv[1], $chrs, $breaks);
@@ -55,7 +57,8 @@ foreach($chrs as $chr)
 				{
 					if ($af>$max_af)
 					{
-						$max_match = array($hist, $af, false);
+						$max_match = array($hist, $af, "NGSD export");
+						$max_af = $af;
 					}
 					//print "$start, $end - match ($start_f-$end_f) - $af\n";
 				}
@@ -70,7 +73,7 @@ foreach($chrs as $chr)
 				{
 					if ($af>$max_af)
 					{
-						$max_match = array($hist, $af, true);
+						$max_match = array($hist, $af, "CNP detection");
 					}
 				}
 			}
@@ -80,7 +83,7 @@ foreach($chrs as $chr)
 		{
 			$hist = strtr(trim($max_match[0]), " ", ",");
 			$af = trim($max_match[1]);
-			print "{$chr}\t{$start}\t{$end}\t{$hist}".($max_match[2] ? " (CNPs)" : "")."\t{$af}\n";
+			print "{$chr}\t{$start}\t{$end}\t{$hist}".($max_match[2]=="CNP detection" ? " (CNPs)" : "")."\t".number_format($af, 2)."\n";
 		}
 	}
 }

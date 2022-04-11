@@ -25,6 +25,7 @@ $parser->addFlag("no_splicing", "Disable spliced read alignment.");
 $parser->addFlag("abra", "Enable indel realignment with ABRA.");
 $parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
 $parser->addString("fusion_caller", "Fusion callers to run, separated by comma.", true, "arriba,star-fusion");
+$parser->addFlag("filter_hb", "Filter input FASTQ for globin reads (highly abundant in blood mRNAseq).");
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
@@ -73,6 +74,8 @@ $gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 $in_for = glob($folder."/*_R1_001.fastq.gz");
 $in_rev = glob($folder."/*_R2_001.fastq.gz");
 $in_umi = glob($folder."/*_index_*.fastq.gz");
+//set UMI flag
+$umi = in_array($sys['umi_type'], ["IDT-UDI-UMI"]) && !empty($in_umi);
 
 //fallback for remapping GRCh37 samples to GRCh38 - use BAM to create FASTQs
 if ($sys['build']=="GRCh38")
@@ -170,7 +173,6 @@ if (in_array("ma", $steps) || (in_array("fu", $steps) && in_array("star-fusion",
 		trigger_error("No forward and/or reverse adapter sequence given!\nForward: ".$sys["adapter1_p5"]."\nReverse: ".$sys["adapter2_p7"], E_USER_ERROR);
 	}
 
-	$umi = false;
 	//adapter trimming + QC (SeqPurge for paired-end, ReadQC+skewer for single-end)
 	if ($paired)
 	{
@@ -200,7 +202,6 @@ if (in_array("ma", $steps) || (in_array("fu", $steps) && in_array("star-fusion",
 			}
 			else
 			{
-				$umi = true;
 				// add barcodes to header
 				$merged1_bc = $parser->tempFile("_bc1.fastq.gz");
 				$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
@@ -249,6 +250,38 @@ if (in_array("ma", $steps) || (in_array("fu", $steps) && in_array("star-fusion",
 }
 if (in_array("ma", $steps))
 {
+	if ($filter_hb)
+	{
+		if ($paired)
+		{
+			$kraken_tmpdir = $parser->tempFolder("kraken2_filter_hb");
+			$filtered = "{$kraken_tmpdir}/filtered#.fastq";
+			$filtered1 = "{$kraken_tmpdir}/filtered_1.fastq";
+			$filtered2 = "{$kraken_tmpdir}/filtered_2.fastq";
+			$kraken_args = [
+				"--db", get_path("data_folder")."/dbs/kraken2_filter_hb",
+				"--threads", $threads,
+				"--output", "-",
+				"--paired",
+				"--gzip-compressed",
+				"--unclassified-out", "{$kraken_tmpdir}/filtered#.fastq",
+				$fastq_trimmed1,
+				$fastq_trimmed2
+			];
+			$parser->exec(get_path("kraken2"), implode(" ", $kraken_args));
+			$parser->exec("gzip", "-1 {$filtered1}");
+			$parser->exec("gzip", "-1 {$filtered2}");
+			// $parser->exec("pigz", "-p {$threads} {$filtered1}");
+			// $parser->exec("pigz", "-p {$threads} {$filtered2}");
+
+			$fastq_trimmed1 = "{$filtered1}.gz";
+			$fastq_trimmed2 = "{$filtered2}.gz";
+		}
+		else
+		{
+			trigger_error("not implemented", E_USER_ERROR);
+		}
+	}
 	//mapping
 	$args = array(
 		"-out", $umi ? $before_dedup_bam : $final_bam,
@@ -296,9 +329,18 @@ if (in_array("ma", $steps))
 		//generate $final_bam from $before_dedup_bam
 
 		//barcode correction
-		$tmp_dedup = $parser->tempFile("_dedup.bam");
-		$parser->exec(get_path("umi_tools"), "dedup -I $before_dedup_bam -S $tmp_dedup --mapping-quality 3 --no-sort-output --umi-separator=':' --output-stats={$prefix}_umistats", true);
-		$parser->sortBam($tmp_dedup, $final_bam, $threads);
+		$pipeline = [];
+		//UMI-tools dedup
+		$pipeline[] = [get_path("umi_tools"), "dedup --stdin {$before_dedup_bam} --out-sam --log2stderr --paired --mapping-quality=3 --no-sort-output --umi-separator=':' --output-stats={$prefix}_umistats"];
+		//remove DUP flags
+		// TODO replace with samtools view --remove-flags, new samtools version required
+		$pipeline[] = [get_path("samtools"), "view --remove-flags DUP -u -b"];
+		//sort
+		$tmp_for_sorting = $parser->tempFile();
+		$pipeline[] = [get_path("samtools"), "sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$final_bam} -"];
+		$parser->execPipeline($pipeline, "umi-tools dedup pipeline");
+
+		//index
 		$parser->indexBam($final_bam, $threads);
 	}
 
@@ -376,7 +418,7 @@ $expr = $prefix."_expr.tsv";
 $expr_cohort = $prefix."_expr.cohort.tsv";
 $expr_stats = $prefix."_expr.stats.tsv";
 $expr_corr = $prefix."_expr.corr.txt";
-$junctions = "{$prefix}_splicing.tsv";
+$junctions = $umi ? "{$prefix}_before_dedup_splicing.tsv" : "{$prefix}_splicing.tsv";
 $splicing_annot = "{$prefix}_splicing_annot.tsv";
 $splicing_bed = "{$prefix}_splicing.bed";
 $splicing_gene = "{$prefix}_splicing_gene.tsv";
@@ -555,6 +597,7 @@ if (in_array("fu",$steps) && in_array("manta",$fusion_caller))
 }
 
 $fusions_arriba_tsv = "{$prefix}_fusions_arriba.tsv";
+$fusions_arriba_vcf = "{$prefix}_fusions_arriba.vcf";
 $fusions_arriba_bam = "{$prefix}_fusions_arriba.bam";
 $fusions_arriba_discarded_tsv = "{$prefix}_fusions_arriba.discarded.tsv";
 $fusions_arriba_pdf = "{$prefix}_fusions_arriba.pdf";
@@ -563,6 +606,7 @@ if (in_array("fu",$steps) && in_array("arriba",$fusion_caller))
 	$arriba_args = [
 		"-bam", $umi ? $before_dedup_bam : $final_bam,
 		"-out_fusions", $fusions_arriba_tsv,
+		"-out_vcf", $fusions_arriba_vcf,
 		"-out_discarded", $fusions_arriba_discarded_tsv,
 		"-out_bam", $fusions_arriba_bam,
 		"-out_pdf", $fusions_arriba_pdf,

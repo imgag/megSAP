@@ -69,3 +69,7 @@ vc_strelka:
 	samtools index vc_strelka2_no_in.bam
 baf_somatic:
 	cp vc_strelka2_2_out.vcf.gz baf_somatic_sites.vcf.gz
+
+hla_genotyper:
+	samtools view -hb /mnt/projects/external/dante/Sample_EX000024_02/EX000024_02.bam chr6:29910331-29910403 chr6:29910534-29910803 chr6:29911045-29911320 chr6:29911899-29912174 | samtools sort > hla_genotyper_in.bam
+	samtools index hla_genotyper_in.bam

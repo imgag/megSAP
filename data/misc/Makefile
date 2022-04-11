@@ -1,23 +1,31 @@
 help:
 	cat Makefile
 	
+########################################## CNPs genomes ##########################################
+
+af_genomes_imgag_cnp_detetion:
+	cp /mnt/users/ahsturm1/Sandbox/2022_03_25_clincnv_cnps/cn_polymorphisms_3500genomes_imgag.igv af_genomes_imgag_cnp_detetion.igv
+
+af_genomes_imgag_ngsd_export:
+	/mnt/share/opt/ngs-bits-current/NGSDExportCnvTrack -system TruSeqPCRfree -min_af 0.02 -min_dp 30 -max_cnvs 2000 -out af_genomes_imgag_ngsd_export.igv -stats af_genomes_imgag_ngsd_export.log
+	
+af_genomes_imgag:
+	php merge_cnps.php af_genomes_imgag_ngsd_export.igv af_genomes_imgag_cnp_detetion.igv > af_genomes_imgag.igv
+	cut -f1,2,3,5 af_genomes_imgag.igv | grep -v "Chromosome" > af_genomes_imgag.bed
+
+
+########################################## CNPs exomes ##########################################
+
+af_ssHAEv7_imgag:
+	/mnt/share/opt/ngs-bits-current/NGSDExportCnvTrack -system ssHAEv7 -min_af 0.02 -min_dp 80 -max_cnvs 200 -out af_ssHAEv7_imgag.igv -stats af_ssHAEv7_imgag.log
+	cut -f1,2,3,5 af_ssHAEv7_imgag.igv | grep -v "Chromosome" > af_ssHAEv7_imgag.bed
+
+
+########################################## misc ##########################################
+
 cytoBand:
 	wget -O - https://hgdownload.soe.ucsc.edu/goldenPath/hg38/database/cytoBand.txt.gz | gunzip > cytoBand.txt
 
-cnps_genomes_imgag:
-	cp /mnt/users/ahsturm1/Sandbox/ClinCNV/cnps_genomes/cnps_genomes_imgag.igv ./cnps_genomes_imgag.igv
-	cut -f1,2,3,5 cnps_genomes_imgag.igv | grep -v "Chromosome" > cnps_genomes_imgag.bed
-
-af_genomes_imgag:
-	/mnt/storage2/GRCh38/share/opt/ngs-bits-current/NGSDExportCnvTrack -system TruSeqPCRfree -min_af 0.02 -min_dp 30 -max_cnvs 2000 -caller_version 'v1.17.0' -out af_genomes_imgag.igv -stats af_genomes_imgag.log
-	php merge_cnps.php af_genomes_imgag.igv cnps_genomes_imgag.igv > tmp.igv
-	mv tmp.igv af_genomes_imgag.igv
-	cut -f1,2,3,5 af_genomes_imgag.igv | grep -v "Chromosome" > af_genomes_imgag.bed
-
-af_ssHAEv7_imgag:
-	/mnt/storage2/GRCh38/share/opt/ngs-bits-current/NGSDExportCnvTrack -system ssHAEv7 -min_af 0.02 -min_dp 80 -max_cnvs 200 -caller_version 'v1.17.0' -out af_ssHAEv7_imgag.igv -stats af_ssHAEv7_imgag.log
-	cut -f1,2,3,5 af_ssHAEv7_imgag.igv | grep -v "Chromosome" > af_ssHAEv7_imgag.bed
-	
 nobase_regions:
 	php extract_nobase.php GRCh38 > nobase_regions.bed
 
@@ -34,4 +42,3 @@ telomere_centromere:
 
 circos_karyotype_files:
 	echo "These files where created manually by merging the chromosome regions and the centromer_telomer.bed (extended by 3 columns and replaced names by color)"
-

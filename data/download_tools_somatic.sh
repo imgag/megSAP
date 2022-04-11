@@ -6,11 +6,17 @@ root=`pwd`
 folder=$root/tools/
 cd $folder
 
+#download hla-genotyper
+wget https://github.com/axelgschwind/hla-genotyper/archive/refs/tags/2022_04.tar.gz
+tar xzf 2022_04.tar.gz
+
 #download varscan2
+cd $folder
 mkdir VarScan.v2.4.4
 wget https://github.com/dkoboldt/varscan/raw/master/VarScan.v2.4.4.jar -O VarScan.v2.4.4/VarScan.v2.4.4.jar
 
 #download strelka2
+cd $folder
 wget https://github.com/Illumina/strelka/releases/download/v2.9.10/strelka-2.9.10.centos6_x86_64.tar.bz2
 tar xjf strelka-2.9.10.centos6_x86_64.tar.bz2
 rm strelka-2.9.10.centos6_x86_64.tar.bz2

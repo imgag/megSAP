@@ -8,6 +8,7 @@ $parser = new ToolBase("vc_arriba", "Run fusion detection with Arriba.");
 $parser->addInfile("bam", "Input BAM file.", false);
 
 $parser->addOutfile("out_fusions", "Fusion report in TSV format.", false);
+$parser->addOutfile("out_vcf", "Fusion report in VCF4.3 format.", false);
 $parser->addOutfile("out_discarded", "Discarded fusions in TSV format.", true);
 $parser->addOutfile("out_pdf", "Fusion report in PDF format.", true);
 $parser->addOutfile("out_bam", "Output BAM file with fusion-supporting reads.", true);
@@ -39,15 +40,16 @@ $arriba_ref = get_path("arriba") . "/database";
 
 
 //run Arriba
+$arriba_ver = "v2.2.1";
 $args = [
     "-x", $bam,
     "-o", $out_fusions,
     "-a", $genome,
     "-g", $gtf,
-    "-b", "{$arriba_ref}/blacklist_{$arriba_build}_v2.1.0.tsv.gz",
-    "-k", "{$arriba_ref}/known_fusions_{$arriba_build}_v2.1.0.tsv.gz",
-    "-t", "{$arriba_ref}/known_fusions_{$arriba_build}_v2.1.0.tsv.gz",
-    "-p", "{$arriba_ref}/protein_domains_{$arriba_build}_v2.1.0.gff3",
+    "-b", "{$arriba_ref}/blacklist_{$arriba_build}_{$arriba_ver}.tsv.gz",
+    "-k", "{$arriba_ref}/known_fusions_{$arriba_build}_{$arriba_ver}.tsv.gz",
+    "-t", "{$arriba_ref}/known_fusions_{$arriba_build}_{$arriba_ver}.tsv.gz",
+    "-p", "{$arriba_ref}/protein_domains_{$arriba_build}_{$arriba_ver}.gff3",
     "-X",
     "-f", "no_genomic_support,read_through,same_gene,intragenic_exonic"
 ];
@@ -56,6 +58,16 @@ if (isset($sv)) $args[] = "-d {$sv}";
 if (isset($out_discarded)) $args[] = "-O {$out_discarded}";
 
 $parser->exec(get_path("arriba") . "/arriba", implode(" ", $args));
+
+
+if (isset($out_vcf)) {
+    $args = [
+        $genome,
+        $out_fusions,
+        $out_vcf
+    ];
+    $parser->exec(get_path("arriba") . "/scripts/convert_fusions_to_vcf.sh", implode(" ", $args));
+}
 
 
 //generate plot in PDF format
@@ -68,8 +80,8 @@ if (isset($out_pdf)) {
         "--fusions={$top_fusions}",
         "--output={$out_pdf}",
         "--alignments={$bam}",
-        "--cytobands={$arriba_ref}/cytobands_{$arriba_build}_v2.1.0.tsv",
-        "--proteinDomains={$arriba_ref}/protein_domains_{$arriba_build}_v2.1.0.gff3",
+        "--cytobands={$arriba_ref}/cytobands_{$arriba_build}_{$arriba_ver}.tsv",
+        "--proteinDomains={$arriba_ref}/protein_domains_{$arriba_build}_{$arriba_ver}.gff3",
         "--minConfidenceForCircosPlot=none"
     ];
     $parser->exec(get_path("arriba") . "/conda_env/bin/Rscript " . get_path("arriba") . "/draw_fusions.R", implode(" ", $plot_args));
