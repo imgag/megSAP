@@ -1,15 +1,15 @@
 OMIM	CNV_OVERLAP
 602023 [GENE=CLCNKB PHENOS=Bartter syndrome, type 3, 607364 (3), Autosomal recessive; Bartter syndrome, type 4b, digenic, 613090 (3), Digenic recessive]	0
 602023 [GENE=CLCNKB PHENOS=Bartter syndrome, type 3, 607364 (3), Autosomal recessive; Bartter syndrome, type 4b, digenic, 613090 (3), Digenic recessive]	
-135940 [GENE=FLG PHENOS=Ichthyosis vulgaris, 146700 (3), Autosomal recessive, Autosomal dominant; {Dermatitis, atopic, susceptibility to, 2}, 605803 (3)]	0
-135940 [GENE=FLG PHENOS=Ichthyosis vulgaris, 146700 (3), Autosomal recessive, Autosomal dominant; {Dermatitis, atopic, susceptibility to, 2}, 605803 (3)]	0
-113811 [GENE=COL17A1 PHENOS=Epithelial recurrent erosion dystrophy, 122400 (3), Autosomal dominant; Epidermolysis bullosa, junctional, localisata variant, 226650 (3), Autosomal recessive; Epidermolysis bullosa, junctional, non-Herlitz type, 226650 (3), Autosomal recessive]	
+135940 [GENE=FLG PHENOS=Ichthyosis vulgaris, 146700 (3), Autosomal dominant, Autosomal recessive; {Dermatitis, atopic, susceptibility to, 2}, 605803 (3)]	0
+135940 [GENE=FLG PHENOS=Ichthyosis vulgaris, 146700 (3), Autosomal dominant, Autosomal recessive; {Dermatitis, atopic, susceptibility to, 2}, 605803 (3)]	0
+113811 [GENE=COL17A1 PHENOS=Epithelial recurrent erosion dystrophy, 122400 (3), Autosomal dominant; Epidermolysis bullosa, junctional 4, intermediate, 619787 (3)]	
 605518 [GENE=LPIN1 PHENOS=Myoglobinuria, acute recurrent, autosomal recessive, 268200 (3), Autosomal recessive]	0
 	
 600565 [GENE=NRXN1 PHENOS=Pitt-Hopkins-like syndrome 2, 614325 (3), Autosomal recessive; {Schizophrenia, susceptibility to, 17}, 614332 (3)]	
 182389 [GENE=SCN1A PHENOS=Developmental and epileptic encephalopathy 6B, non-Dravet, 619317 (3), Autosomal dominant; Migraine, familial hemiplegic, 3, 609634 (3), Autosomal dominant; Dravet syndrome, 607208 (3), Autosomal dominant; Febrile seizures, familial, 3A, 604403 (3), Autosomal dominant; Generalized epilepsy with febrile seizures plus, type 2, 604403 (3), Autosomal dominant]	0
 	0
-613984 [GENE=FANCD2 PHENOS=Fanconi anemia, complementation group D2, 227646 (3), Autosomal recessive];608537 [GENE=VHL PHENOS=Hemangioblastoma, cerebellar, somatic (3); Erythrocytosis, familial, 2, 263400 (3), Autosomal recessive; von Hippel-Lindau syndrome, 193300 (3), Autosomal dominant; Renal cell carcinoma, somatic, 144700 (3); Pheochromocytoma, 171300 (3), Autosomal dominant];605353 [GENE=GHRL PHENOS={Obesity, susceptibility to}, 601665 (3), Autosomal recessive, Multifactorial, Autosomal dominant];108733 [GENE=ATP2B2 PHENOS={Deafness, autosomal recessive 12, modifier of}, 601386 (3), Autosomal recessive];137165 [GENE=SLC6A1 PHENOS=Myoclonic-atonic epilepsy, 616421 (3), Autosomal dominant];608760 [GENE=ATG7 PHENOS=Spinocerebellar ataxia, autosomal recessive 31, 619422 (3), Autosomal recessive]	0
+613984 [GENE=FANCD2 PHENOS=Fanconi anemia, complementation group D2, 227646 (3), Autosomal recessive];608537 [GENE=VHL PHENOS=Hemangioblastoma, cerebellar, somatic (3); Erythrocytosis, familial, 2, 263400 (3), Autosomal recessive; von Hippel-Lindau syndrome, 193300 (3), Autosomal dominant; Renal cell carcinoma, somatic, 144700 (3); Pheochromocytoma, 171300 (3), Autosomal dominant];605353 [GENE=GHRL PHENOS={Obesity, susceptibility to}, 601665 (3), Autosomal dominant, Multifactorial, Autosomal recessive];108733 [GENE=ATP2B2 PHENOS=Deafness, autosomal dominant 82, 619804 (3), Autosomal dominant; {Deafness, autosomal recessive 12, modifier of}, 601386 (3), Autosomal recessive];137165 [GENE=SLC6A1 PHENOS=Myoclonic-atonic epilepsy, 616421 (3), Autosomal dominant];608760 [GENE=ATG7 PHENOS=Spinocerebellar ataxia, autosomal recessive 31, 619422 (3), Autosomal recessive]	0
 	0
 	
 	0
@@ -49,7 +49,7 @@ OMIM	CNV_OVERLAP
 	0
 	0
 	0
-102610 [GENE=ACTA1 PHENOS=?Myopathy, scapulohumeroperoneal, 616852 (3), Autosomal dominant; Nemaline myopathy 3, autosomal dominant or recessive, 161800 (3), Autosomal recessive, Autosomal dominant; Myopathy, actin, congenital, with excess of thin myofilaments, 161800 (3), Autosomal recessive, Autosomal dominant; Myopathy, actin, congenital, with cores, 161800 (3), Autosomal recessive, Autosomal dominant; Myopathy, congenital, with fiber-type disproportion 1, 255310 (3), Autosomal recessive, Autosomal dominant]	
+102610 [GENE=ACTA1 PHENOS=?Myopathy, scapulohumeroperoneal, 616852 (3), Autosomal dominant; Nemaline myopathy 3, autosomal dominant or recessive, 161800 (3), Autosomal dominant, Autosomal recessive; Myopathy, actin, congenital, with excess of thin myofilaments, 161800 (3), Autosomal dominant, Autosomal recessive; Myopathy, actin, congenital, with cores, 161800 (3), Autosomal dominant, Autosomal recessive; Myopathy, congenital, with fiber-type disproportion 1, 255310 (3), Autosomal dominant, Autosomal recessive]	
 174763 [GENE=POLG PHENOS=Mitochondrial recessive ataxia syndrome (includes SANDO and SCAE), 607459 (3), Autosomal recessive; Mitochondrial DNA depletion syndrome 4B (MNGIE type), 613662 (3), Autosomal recessive; Mitochondrial DNA depletion syndrome 4A (Alpers type), 203700 (3), Autosomal recessive; Progressive external ophthalmoplegia, autosomal dominant 1, 157640 (3), Autosomal dominant; Progressive external ophthalmoplegia, autosomal recessive 1, 258450 (3), Autosomal recessive]	0
 611254 [GENE=KIF7 PHENOS=Joubert syndrome 12, 200990 (3), Autosomal recessive; Acrocallosal syndrome, 200990 (3), Autosomal recessive; ?Hydrolethalus syndrome 2, 614120 (3), Autosomal recessive; ?Al-Gazali-Bakalinova syndrome, 607131 (3), Autosomal recessive]	0
 601615 [GENE=ABCA3 PHENOS=Surfactant metabolism dysfunction, pulmonary, 3, 610921 (3), Autosomal recessive]	0
