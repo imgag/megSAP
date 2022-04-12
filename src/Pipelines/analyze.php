@@ -860,7 +860,6 @@ if (in_array("db", $steps))
 	}
 	if (file_exists($cnvfile))
 	{
-		
 		//check genome build
 		//this is not possible for CNVs because the file does not contain any information about it
 		
