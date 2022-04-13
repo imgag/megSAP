@@ -3,7 +3,7 @@
 	@page vcf_fix
 	
 	flags:
-	--keep_wt_calls: doesn't remove variants with genotype '0/0'. 
+	--keep_wt_calls: doesn't remove variants with genotype '0/0'.  Allows missing 'GQ' in Format values without warning. 
 	
 	Fixes VCF file problems produced by Freebayes:
 	- Merges duplicate heterozygous variants into one homozygous variant
