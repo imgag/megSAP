@@ -277,7 +277,6 @@ foreach([0.05, 0.1, 0.2] as $min_af)
 	foreach(["", "SNV", "INDEL"] as $curr_type)
 	{
 		$done = [];
-		$c_expected = 0;
 		$tp = 0;
 		$fp = 0;
 		$fn = 0;
@@ -310,8 +309,6 @@ foreach([0.05, 0.1, 0.2] as $min_af)
 					continue;
 				}
 				
-				++$c_expected;
-				
 				for($col=2; $col<count($parts); ++$col)
 				{
 					$af_expected = trim($afs[$col]);
@@ -337,9 +334,9 @@ foreach([0.05, 0.1, 0.2] as $min_af)
 			}
 		}
 
-		$recall = number_format($tp/($tp+$fn),5);
-		$precision = number_format($tp/($tp+$fp),5);
-		$output_af[] = implode("\t", [ trim("{$min_af} {$curr_type}"), $c_expected, $tp, $fp, $fn, $recall, $precision ]);
+		$recall = ($tp+$fn==0) ? "n/a" : number_format($tp/($tp+$fn),5);
+		$precision = ($tp+$fp==0) ? "n/a" : number_format($tp/($tp+$fp),5);
+		$output_af[] = implode("\t", [ trim("{$min_af} {$curr_type}"), $tp+$fn, $tp, $fp, $fn, $recall, $precision ]);
 	}
 }
 file_put_contents($af_details, implode("\n", $output_af));
