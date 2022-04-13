@@ -277,6 +277,7 @@ $column_desc = array(
 	array("HGMD", "HGMD database annotation."),
 	array("RepeatMasker", "RepeatMasker annotation."),
 	array("dbSNP", "Identifier in dbSNP database."),
+	array("1000g", "Allele frequency in 1000 genomes project."),
 	array("gnomAD", "Allele frequency in gnomAD project."),
 	array("gnomAD_sub", "Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project."),
 	array("gnomAD_hom_hemi", "Homoyzgous counts and hemizygous counts of gnomAD project (genome data)."),
@@ -422,6 +423,7 @@ while(!feof($handle))
 			$i_revel = index_of($cols, "REVEL", false);
 			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_existingvariation = index_of($cols, "Existing_variation");
+			$i_af_kg = index_of($cols, "AF");
 			$i_af_gnomad = index_of($cols, "gnomAD_AF");
 			$i_af_gnomad_afr = index_of($cols, "gnomAD_AFR_AF");
 			$i_af_gnomad_amr = index_of($cols, "gnomAD_AMR_AF");
@@ -674,6 +676,7 @@ while(!feof($handle))
 	$genes = array();
 	$variant_details = array();
 	$coding_and_splicing_details = array();
+	$af_kg = array();
 	$af_gnomad = array();
 	$af_gnomad_genome = array();
 	$af_gnomad_afr = array();
@@ -713,6 +716,7 @@ while(!feof($handle))
 			//######################### general information (not transcript-specific) #########################
 			
 			//AFs
+			$af_kg[] = max(explode("&", trim($parts[$i_af_kg]))); //some variants are annotated with two values, e.g. chr7:130297119 GA>G
 			$af_gnomad[] = trim($parts[$i_af_gnomad]);
 			$af_gnomad_afr[] = trim($parts[$i_af_gnomad_afr]);
 			$af_gnomad_amr[] = trim($parts[$i_af_gnomad_amr]);
@@ -1081,6 +1085,7 @@ while(!feof($handle))
 
 	//AFs
 	$dbsnp = implode(",", collapse($tag, "dbSNP", $dbsnp, "unique"));	
+	$kg = collapse($tag, "1000g", $af_kg, "one", 4);
 	$gnomad = collapse($tag, "gnomAD", $af_gnomad, "one", 4);
 	$gnomad_genome = collapse($tag, "gnomAD genome", $af_gnomad_genome, "max", 4);
 	$gnomad = max($gnomad, $gnomad_genome);
@@ -1373,7 +1378,7 @@ while(!feof($handle))
 	//write data
 	++$c_written;
 	$genes = array_unique($genes);
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t".implode(",", $coding_and_splicing_details_refseq)."\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$kg\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");
