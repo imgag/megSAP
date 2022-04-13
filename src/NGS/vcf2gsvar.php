@@ -17,7 +17,7 @@ $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are sk
 extract($parser->parse($argv));
 
 //skip common MODIFIER variants in WGS mode
-function skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd, $ngsd_clas)
+function skip_in_wgs_mode($chr, $coding_and_splicing_details, $gnomad, $clinvar, $hgmd, $ngsd_clas)
 {	
 	//don't skip mito variants
 	if ($chr=='chrMT') return false;
@@ -32,7 +32,6 @@ function skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $cli
 	if ($ngsd_clas=='4' || $ngsd_clas=='5') return false;
 	
 	//skip common variants >2%AF
-	if ($kg!="" && $kg>0.02) return true;
 	if ($gnomad!="" && $gnomad>0.02) return true;
 	
 	return false; //non-exonic but rare
@@ -1135,7 +1134,7 @@ while(!feof($handle))
 		}
 
 		//NGSD
-		if (isset($info["NGSD_HAF"]) || $gnomad >= 0.05 || $kg >= 0.05)
+		if (isset($info["NGSD_HAF"]) || $gnomad >= 0.05)
 		{
 			$ngsd_hom = "n/a (AF>5%)";
 			$ngsd_het = "n/a (AF>5%)";
@@ -1361,7 +1360,7 @@ while(!feof($handle))
 	$cosmic = implode(",", collapse($tag, "COSMIC", $cosmic, "unique"));
 	
 	//skip common MODIFIER variants in WGS mode
-	if ($wgs && skip_in_wgs_mode($chr, $coding_and_splicing_details, $kg, $gnomad, $clinvar, $hgmd, $ngsd_clas))
+	if ($wgs && skip_in_wgs_mode($chr, $coding_and_splicing_details, $gnomad, $clinvar, $hgmd, $ngsd_clas))
 	{
 		++$c_skipped_wgs;
 		continue;
