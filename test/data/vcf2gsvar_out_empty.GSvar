@@ -13,6 +13,7 @@
 ##DESCRIPTION=HGMD=HGMD database annotation.
 ##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
 ##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.
 ##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.
 ##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.
 ##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).
@@ -36,4 +37,4 @@
 ##DESCRIPTION=comment=Variant comments from the NGSD.
 ##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).
 ##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.
-#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	coding_and_splicing_refseq	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	Sift	PolyPhen	CADD	REVEL	MaxEntScan	COSMIC	SpliceAI	PubMed	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info
+#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	coding_and_splicing_refseq	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	Sift	PolyPhen	CADD	REVEL	MaxEntScan	COSMIC	SpliceAI	PubMed	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info
