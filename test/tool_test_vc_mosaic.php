@@ -7,6 +7,12 @@ require_once("framework.php");
 $name = "vc_mosaic";
 start_test($name);
 
+//reference result file "vc_mosaic_out1.vcf" still contains a false positive along with the true positives.
+//Decided by wheather the muatations were called in the single sample calling of NA12878 ("/mnt/storage2/projects/test/WES_Onko_test/Sample_NA12878x2_29/NA12878x2_29.GSvar")
+
+//false positive:
+//chr17	78444641	.	G	T	0	.	MQM=60;SAP=3;ABP=0	GT:DP:AO:GQ	0/0:215:4:0
+
 //base test:
 $out_file1 = output_folder().$name."_out1.vcf";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.bam -vcf ".data_folder().$name."_in1.vcf -out $out_file1 -type WES -genes ".data_folder().$name."_in_genes.txt --log ".output_folder().$name."_out1.log");
