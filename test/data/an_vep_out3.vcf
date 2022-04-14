@@ -2640,13 +2640,13 @@
 ##INFO=<ID=gnomADg_Hom,Number=A,Type=Integer,Description="Count of homozygous individuals in samples (from file gnomAD_genome_v3.1.1_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADg_Hemi,Number=A,Type=Integer,Description="Alternate allele count for male samples (from file gnomAD_genome_v3.1.1_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADm_AF_hom,Number=1,Type=Float,Description="Allele frequency restricted to variants with a heteroplasmy level > (from file gnomAD_genome_v3.1.mito_GRCh38.vcf.gz)">
-##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_20211212_converted_GRCh38.vcf.gz)">
-##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_20211212_converted_GRCh38.vcf.gz)">
-##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category, https://portal.biobase-international.com/hgmd/pro/global.php#cats (from file HGMD_PRO_2021_3_fixed.vcf.gz)">
-##INFO=<ID=HGMD_MUT,Number=1,Type=String,Description="HGMD mutant allele (from file HGMD_PRO_2021_3_fixed.vcf.gz)">
-##INFO=<ID=HGMD_GENE,Number=1,Type=String,Description="Gene symbol (from file HGMD_PRO_2021_3_fixed.vcf.gz)">
-##INFO=<ID=HGMD_PHEN,Number=1,Type=String,Description="HGMD primary phenotype.  The ',' (comma) in primary phenotype descriptions have been replaced with '%2C'.  Instructions to deal with such characters with special meaning are given in Section 1.2 of the VCFv4.3 specfication. (from file HGMD_PRO_2021_3_fixed.vcf.gz)">
-##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="ID column (from file HGMD_PRO_2021_3_fixed.vcf.gz)">
+##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_20220328_converted_GRCh38.vcf.gz)">
+##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_20220328_converted_GRCh38.vcf.gz)">
+##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category, https://portal.biobase-international.com/hgmd/pro/global.php#cats (from file HGMD_PRO_2022_1_fixed.vcf.gz)">
+##INFO=<ID=HGMD_MUT,Number=1,Type=String,Description="HGMD mutant allele (from file HGMD_PRO_2022_1_fixed.vcf.gz)">
+##INFO=<ID=HGMD_GENE,Number=1,Type=String,Description="Gene symbol (from file HGMD_PRO_2022_1_fixed.vcf.gz)">
+##INFO=<ID=HGMD_PHEN,Number=1,Type=String,Description="HGMD primary phenotype.  The ',' (comma) in primary phenotype descriptions have been replaced with '%2C'.  Instructions to deal with such characters with special meaning are given in Section 1.2 of the VCFv4.3 specfication. (from file HGMD_PRO_2022_1_fixed.vcf.gz)">
+##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="ID column (from file HGMD_PRO_2022_1_fixed.vcf.gz)">
 ##INFO=<ID=CADD_SNV,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_SNVs_1.6_GRCh38.vcf.gz)">
 ##INFO=<ID=CADD_INDEL,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_InDels_1.6_GRCh38.vcf.gz)">
 ##INFO=<ID=NGSD_COUNTS,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD. (from file an_vep_NGSD_germline.vcf.gz)">

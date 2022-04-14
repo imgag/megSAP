@@ -9,6 +9,9 @@ function substr_clear($str, $start)
 
 function cons2value($cons)
 {
+	//in ClinVar 20220328 there are extra underscores...
+	$cons = trim($cons, "_");
+
 	if ($cons=="pathogenic") return 5;
 	if ($cons=="likely_pathogenic") return 4;
 	if ($cons=="uncertain_significance") return 3;
