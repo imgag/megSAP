@@ -1043,7 +1043,7 @@ while(!feof($handle))
 		}
 	}
 	
-	//genomAD hom/hemi
+	//gnomAD hom/hemi
 	if (isset($info["gnomADg_Hom"])) $hom_gnomad[] = trim($info["gnomADg_Hom"]);
 	if (isset($info["gnomADg_Hemi"])) $hemi_gnomad[] = trim($info["gnomADg_Hemi"]);
 

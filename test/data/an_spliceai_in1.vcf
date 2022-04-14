@@ -2,9 +2,31 @@
 ##fileDate=20211109
 ##source=freeBayes v1.3.3
 ##reference=/tmp/local_ngs_data_GRCh38//GRCh38.fa
-##phasing=none
-##commandline="/mnt/storage1/share/opt/freebayes-1.3.3/build/freebayes -t /tmp/megSAP_user_ahsturm1/vc_freebayes_7QlCJP_merged.bed --min-alternate-fraction 0.15 --min-mapping-quality 1 --min-base-quality 15 --min-alternate-count 3 --genotype-qualities -f /tmp/local_ngs_data_GRCh38//GRCh38.fa -b /mnt/storage1/users/ahsturm1/megSAP_GRCh38//test/data/vc_freebayes_in.bam"
-##filter="QUAL > 5"
+##contig=<ID=chr1,length=248956422>
+##contig=<ID=chr2,length=242193529>
+##contig=<ID=chr3,length=198295559>
+##contig=<ID=chr4,length=190214555>
+##contig=<ID=chr5,length=181538259>
+##contig=<ID=chr6,length=170805979>
+##contig=<ID=chr7,length=159345973>
+##contig=<ID=chr8,length=145138636>
+##contig=<ID=chr9,length=138394717>
+##contig=<ID=chr10,length=133797422>
+##contig=<ID=chr11,length=135086622>
+##contig=<ID=chr12,length=133275309>
+##contig=<ID=chr13,length=114364328>
+##contig=<ID=chr14,length=107043718>
+##contig=<ID=chr15,length=101991189>
+##contig=<ID=chr16,length=90338345>
+##contig=<ID=chr17,length=83257441>
+##contig=<ID=chr18,length=80373285>
+##contig=<ID=chr19,length=58617616>
+##contig=<ID=chr20,length=64444167>
+##contig=<ID=chr21,length=46709983>
+##contig=<ID=chr22,length=50818468>
+##contig=<ID=chrX,length=156040895>
+##contig=<ID=chrY,length=57227415>
+##contig=<ID=chrMT,length=16569>
 ##REVEL=Rare Exome Variant Ensemble Learner 
 ##MaxEntScan_alt=MaxEntScan alternate sequence score
 ##MaxEntScan_diff=MaxEntScan score difference
@@ -53,7 +75,6 @@
 ##INFO=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
 ##INFO=<ID=END,Number=1,Type=Integer,Description="Last position (inclusive) in gVCF output record.">
 ##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
-##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3.1 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG); acceptor loss (AL); donor gain (DG); and donor loss (DL)(for all NGSD variants exported on 13.12.2020). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL (from file spliceai_scores_2022_02_09_GRCh38.vcf.gz)">
 ##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|DOMAINS|SIFT|PolyPhen|Existing_variation|AF|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_EAS_AF|gnomAD_NFE_AF|gnomAD_SAS_AF|BIOTYPE|REVEL|MaxEntScan_ref|MaxEntScan_alt|PUBMED">
 ##INFO=<ID=CSQ_refseq,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|DOMAINS">
 ##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="/tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/hg38.phyloP100way.bw (ngs-bits/VcfAnnotateFromBigWig - mode max)">
@@ -77,6 +98,7 @@
 ##INFO=<ID=NGSD_COM,Number=1,Type=String,Description="Variant comments from the NGSD. (from file an_vep_NGSD_germline.vcf.gz)">
 ##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="Annotation from /tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/RepeatMasker_GRCh38.bed delimited by '&'">
 ##INFO=<ID=OMIM,Number=.,Type=String,Description="Annotation from /tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/omim.bed delimited by '&'">
+##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3.1 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG); acceptor loss (AL); donor gain (DG); and donor loss (DL)(for all NGSD variants exported on 13.12.2020). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL (from file spliceai_scores_2022_02_09_GRCh38.vcf.gz)">
 ##FILTER=<ID=low_conf_region,Description="Variant marked as 'low_conf_region'.">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##FORMAT=<ID=GQ,Number=1,Type=Float,Description="Genotype Quality, the Phred-scaled marginal (or unconditional) probability of the called genotype">
@@ -89,8 +111,6 @@
 ##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
 ##FORMAT=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_03
-chr1	179366128	.	T	TC	1259	.	MQM=60;SAP=7;ABP=3;CSQ=C|intron_variant|MODIFIER|AXDND1|HGNC:26564|ENST00000367618.8|Transcript||1/25|ENST00000367618.8:c.-107+128_-107+129insC|||||rs112230056||||||||protein_coding||||,C|intron_variant|MODIFIER|AXDND1|HGNC:26564|ENST00000617277.4|Transcript||1/24|ENST00000617277.4:c.-107+128_-107+129insC|||||rs112230056||||||||protein_coding||||,C|regulatory_region_variant|MODIFIER|||ENSR00000016466|RegulatoryFeature||||||||rs112230056||||||||promoter||||,C|TF_binding_site_variant|MODIFIER|||ENSM00524779683|MotifFeature||||||||rs112230056||||||||||||;CSQ_refseq=C|intron_variant|MODIFIER|AXDND1||NM_144696.6|Transcript||1/25|NM_144696.6:c.-107+128_-107+129insC||,C|splice_region_variant&intron_variant&non_coding_transcript_variant|LOW|AXDND1||NR_073544.2|Transcript||1/25|NR_073544.2:n.83+2_83+3insC||,C|intron_variant|MODIFIER|AXDND1||XM_011509165.1|Transcript||1/26|XM_011509165.1:c.-107+128_-107+129insC||,C|intron_variant|MODIFIER|AXDND1||XM_011509166.3|Transcript||1/26|XM_011509166.3:c.-107+117_-107+118insC||,C|splice_region_variant&intron_variant|LOW|AXDND1||XM_011509167.3|Transcript||1/26|XM_011509167.3:c.-107+2_-107+3insC||,C|intron_variant|MODIFIER|AXDND1||XM_011509168.1|Transcript||1/26|XM_011509168.1:c.-107+147_-107+148insC||,C|intron_variant|MODIFIER|AXDND1||XM_011509169.1|Transcript||1/25|XM_011509169.1:c.34+147_34+148insC||,C|intron_variant|MODIFIER|AXDND1||XM_011509170.1|Transcript||1/25|XM_011509170.1:c.-107+128_-107+129insC||,C|intron_variant|MODIFIER|AXDND1||XM_011509171.1|Transcript||1/25|XM_011509171.1:c.-30+128_-30+129insC||,C|intron_variant|MODIFIER|AXDND1||XM_011509174.1|Transcript||1/24|XM_011509174.1:c.-107+128_-107+129insC||,C|intron_variant|MODIFIER|AXDND1||XM_011509175.1|Transcript||1/23|XM_011509175.1:c.-107+128_-107+129insC||,C|intron_variant|MODIFIER|AXDND1||XM_011509176.1|Transcript||1/24|XM_011509176.1:c.-107+128_-107+129insC||,C|intron_variant|MODIFIER|AXDND1||XM_011509178.2|Transcript||1/20|XM_011509178.2:c.-107+128_-107+129insC||,C|intron_variant|MODIFIER|AXDND1||XM_011509180.1|Transcript||1/20|XM_011509180.1:c.-107+128_-107+129insC||,C|intron_variant|MODIFIER|AXDND1||XM_024453104.1|Transcript||1/25|XM_024453104.1:c.-30+117_-30+118insC||,C|upstream_gene_variant|MODIFIER|AXDND1||XM_024453107.1|Transcript|||||,C|intron_variant&non_coding_transcript_variant|MODIFIER|AXDND1||XR_002959336.1|Transcript||1/19|XR_002959336.1:n.260+128_260+129insC||,C|intron_variant&non_coding_transcript_variant|MODIFIER|AXDND1||XR_921741.1|Transcript||1/21|XR_921741.1:n.260+128_260+129insC||,C|intron_variant&non_coding_transcript_variant|MODIFIER|AXDND1||XR_921742.2|Transcript||1/21|XR_921742.2:n.260+128_260+129insC||;gnomADg_AF=0.00007;gnomADg_Hom=0;gnomADg_Hemi=.;CADD_INDEL=7.890;SpliceAI=TC|AXDND1|0.00|0.00|0.00|0.87|44|12|-43|-2;NGSD_GENE_INFO=AXDND1%20(inh%3DAR%20oe_syn%3D0.99%20oe_mis%3D1.04%20oe_lof%3D0.78)	GT:DP:AO:GQ	0/1:103:50:160
-chr1	179366129	.	A	G	1259	.	MQM=60;SAP=7;ABP=3;CSQ=G|intron_variant|MODIFIER|AXDND1|HGNC:26564|ENST00000367618.8|Transcript||1/25|ENST00000367618.8:c.-107+129A>G|||||rs56018642||||||||protein_coding||||,G|intron_variant|MODIFIER|AXDND1|HGNC:26564|ENST00000617277.4|Transcript||1/24|ENST00000617277.4:c.-107+129A>G|||||rs56018642||||||||protein_coding||||,G|regulatory_region_variant|MODIFIER|||ENSR00000016466|RegulatoryFeature||||||||rs56018642||||||||promoter||||,G|TF_binding_site_variant|MODIFIER|||ENSM00524779683|MotifFeature||||||||rs56018642||||||||||||;CSQ_refseq=G|intron_variant|MODIFIER|AXDND1||NM_144696.6|Transcript||1/25|NM_144696.6:c.-107+129A>G||,G|splice_region_variant&intron_variant&non_coding_transcript_variant|LOW|AXDND1||NR_073544.2|Transcript||1/25|NR_073544.2:n.83+3A>G||,G|intron_variant|MODIFIER|AXDND1||XM_011509165.1|Transcript||1/26|XM_011509165.1:c.-107+129A>G||,G|intron_variant|MODIFIER|AXDND1||XM_011509166.3|Transcript||1/26|XM_011509166.3:c.-107+118A>G||,G|splice_region_variant&intron_variant|LOW|AXDND1||XM_011509167.3|Transcript||1/26|XM_011509167.3:c.-107+3A>G||,G|intron_variant|MODIFIER|AXDND1||XM_011509168.1|Transcript||1/26|XM_011509168.1:c.-107+148A>G||,G|intron_variant|MODIFIER|AXDND1||XM_011509169.1|Transcript||1/25|XM_011509169.1:c.34+148A>G||,G|intron_variant|MODIFIER|AXDND1||XM_011509170.1|Transcript||1/25|XM_011509170.1:c.-107+129A>G||,G|intron_variant|MODIFIER|AXDND1||XM_011509171.1|Transcript||1/25|XM_011509171.1:c.-30+129A>G||,G|intron_variant|MODIFIER|AXDND1||XM_011509174.1|Transcript||1/24|XM_011509174.1:c.-107+129A>G||,G|intron_variant|MODIFIER|AXDND1||XM_011509175.1|Transcript||1/23|XM_011509175.1:c.-107+129A>G||,G|intron_variant|MODIFIER|AXDND1||XM_011509176.1|Transcript||1/24|XM_011509176.1:c.-107+129A>G||,G|intron_variant|MODIFIER|AXDND1||XM_011509178.2|Transcript||1/20|XM_011509178.2:c.-107+129A>G||,G|intron_variant|MODIFIER|AXDND1||XM_011509180.1|Transcript||1/20|XM_011509180.1:c.-107+129A>G||,G|intron_variant|MODIFIER|AXDND1||XM_024453104.1|Transcript||1/25|XM_024453104.1:c.-30+118A>G||,G|upstream_gene_variant|MODIFIER|AXDND1||XM_024453107.1|Transcript|||||,G|intron_variant&non_coding_transcript_variant|MODIFIER|AXDND1||XR_002959336.1|Transcript||1/19|XR_002959336.1:n.260+129A>G||,G|intron_variant&non_coding_transcript_variant|MODIFIER|AXDND1||XR_921741.1|Transcript||1/21|XR_921741.1:n.260+129A>G||,G|intron_variant&non_coding_transcript_variant|MODIFIER|AXDND1||XR_921742.2|Transcript||1/21|XR_921742.2:n.260+129A>G||;PHYLOP=0.463;CADD_SNV=11.96;SpliceAI=G|AXDND1|0.00|0.00|0.00|0.67|43|11|-44|-3;NGSD_GENE_INFO=AXDND1%20(inh%3DAR%20oe_syn%3D0.99%20oe_mis%3D1.04%20oe_lof%3D0.78)	GT:DP:AO:GQ	0/1:103:50:160
-chr22	10678964	.	A	G	199	low_conf_region	MQM=21;SAP=7;ABP=3;CSQ=G|regulatory_region_variant|MODIFIER|||ENSR00000300759|RegulatoryFeature||||||||rs1322557233||||||||CTCF_binding_site||||,G|regulatory_region_variant|MODIFIER|||ENSR00000665475|RegulatoryFeature||||||||rs1322557233||||||||open_chromatin_region||||,G|intergenic_variant|MODIFIER||||||||||||rs1322557233||||||||||||;CSQ_refseq=G|intergenic_variant|MODIFIER|||||||||;PHYLOP=1.766;gnomADg_AF=0.43284;gnomADg_Hom=3452;gnomADg_Hemi=.;CADD_SNV=7.264	GT:DP:AO:GQ	0/1:50:25:160
-chr22	10678984	.	G	T	167	low_conf_region	MQM=21;SAP=4;ABP=3;CSQ=T|regulatory_region_variant|MODIFIER|||ENSR00000300759|RegulatoryFeature||||||||rs1458164446||||||||CTCF_binding_site||||,T|regulatory_region_variant|MODIFIER|||ENSR00000665475|RegulatoryFeature||||||||rs1458164446||||||||open_chromatin_region||||,T|intergenic_variant|MODIFIER||||||||||||rs1458164446||||||||||||;CSQ_refseq=T|intergenic_variant|MODIFIER|||||||||;PHYLOP=4.561;gnomADg_AF=0.48113;gnomADg_Hom=4714;gnomADg_Hemi=.;CADD_SNV=8.767	GT:DP:AO:GQ	0/1:44:21:138
-chr22	10703585	.	G	A	1069	.	MQM=33;SAP=3;ABP=175;CSQ=A|intergenic_variant|MODIFIER||||||||||||rs1232560778||||||||||||;CSQ_refseq=A|intergenic_variant|MODIFIER|||||||||;PHYLOP=-1.795;gnomADg_AF=0.48223;gnomADg_Hom=153;gnomADg_Hemi=.;CADD_SNV=0.202	GT:DP:AO:GQ	0/1:361:96:160
+chr22	10678964	.	A	G	199	low_conf_region	MQM=21;SAP=7;ABP=3;PHYLOP=1.766;CADD_SNV=7.264	GT:DP:AO:GQ	0/1:50:25:160
+chr22	10678984	.	G	T	167	low_conf_region	MQM=21;SAP=4;ABP=3;PHYLOP=4.561;SpliceAI=T|RPL8|0.00|1.00|0.26|0.00|-40|1|-40|-23;CADD_SNV=8.767	GT:DP:AO:GQ	0/1:44:21:138
+chr22	12616347	.	C	T	473	.	MQM=49;SAP=7;ABP=8;CSQ=T|non_coding_transcript_exon_variant|MODIFIER|FRG1GP|HGNC:51766|ENST00000634617.1|Transcript|4/9||ENST00000634617.1:n.292C>T|||||rs879076129||||||||unprocessed_pseudogene||||;CSQ_refseq=T|intergenic_variant|MODIFIER|||||||||;PHYLOP=4.698;gnomADg_AF=0.49831;gnomADg_Hom=72;gnomADg_Hemi=.;CADD_SNV=15.15;NGSD_GENE_INFO=FRG1GP%20(inh%3Dn/a%20oe_syn%3Dn/a%20oe_mis%3Dn/a%20oe_lof%3Dn/a)	GT:DP:AO:GQ	0/1:35:22:146
