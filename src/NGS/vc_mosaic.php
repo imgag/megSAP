@@ -244,7 +244,8 @@ if ($extend > 0)
 $freebayes_start = microtime(true);
 //call variants
 $called_vcf = temp_file(".vcf");
-exec(get_path("freebayes")." -t $final_region -b $in -f ".genome_fasta($build)." --pooled-continuous --min-alternate-fraction $min_af --min-mapping-quality $min_mq --min-base-quality $min_bq --min-alternate-qsum $min_qsum > $called_vcf");
+// exec(get_path("freebayes")." -t $final_region -b $in -f ".genome_fasta($build)." --pooled-continuous --min-alternate-fraction $min_af --min-mapping-quality $min_mq --min-base-quality $min_bq --min-alternate-qsum $min_qsum > $called_vcf");
+$parser->exec("php ".repository_basedir()."src/NGS/vc_freebayes.php ", " -target $final_region -bam $in -out $called_vcf -build $build -no_ploidy -min_af $min_af -min_mq $min_mq -min_bq $min_bq -min_qsum $min_qsum -raw_output");
 
 $freebayes_end = microtime(true);
 if ($debug) print "variant calling took ".($freebayes_end-$freebayes_start)."s: $called_vcf\n";

@@ -73,11 +73,6 @@ function write($h_out, $var, $keep_wt_calls=false)
 		}
 		
 		// create output string
-		if ($keep_wt_calls && ! array_key_exists('GQ', $sample))
-		{
-			$sample['GQ'] = 0;
-		}
-
 		$format_values[] = $sample['GT'].":".$sample['DP'].":".(int)($sample['AO']).":".(int)($sample['GQ']);
 	}
 
