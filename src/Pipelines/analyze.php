@@ -124,7 +124,8 @@ $local_bamfile = $parser->tempFolder("local_bam")."/".$name.".bam"; //local copy
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 //variant calling
 $vcffile = $folder."/".$name."_var.vcf.gz";
-$vcffile_annotated = $folder."/".$name."_var_annotated.vcf.gz";	
+$vcffile_annotated = $folder."/".$name."_var_annotated.vcf.gz";
+$mosaic_file = $folder."/".$name."_mosaic.vcf.gz";
 $varfile = $folder."/".$name.".GSvar";
 $rohfile = $folder."/".$name."_rohs.tsv";
 $baffile = $folder."/".$name."_bafs.igv";
@@ -452,6 +453,29 @@ if (in_array("vc", $steps))
 			$params[] = "-downsample 100";
 		}
 		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
+		
+		//call mosaic variants on exon region:
+		if ($is_wgs || $is_wes)
+		{
+			$args = [];
+			$args[] = "-in {$local_bamfile}";
+			$args[] = "-vcf {$vcffile}";
+			$args[] = "-out {$mosaic_file}";
+			$args[] = "-target ".repository_basedir()."data/gene_lists/gene_exons.pad20.bed";
+			$args[] = "-threads $threads";
+			
+			if ($is_wes)
+			{
+				$args[] = "-type WES ";				
+			}
+			else
+			{
+				$args[] = "-type WGS";
+			}
+			$parser->execTool("NGS/vc_mosaic.php", implode(" ", $args));
+		}
+
+		
 	}
 	else
 	{
