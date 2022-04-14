@@ -35,6 +35,12 @@ check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in
 check_file($out_file4, data_folder().$name."_out4.vcf.gz");
 
 
+######################### raw output #####################
+
+$out_file5 = output_folder().$name."_out5.vcf";
+check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file5 -target ".data_folder().$name."_in.bed -raw_output --log ".output_folder().$name."_out1.log");
+check_file($out_file5, data_folder().$name."_out5.vcf");
+
 end_test();
 
 ?>
