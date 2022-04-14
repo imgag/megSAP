@@ -14,28 +14,34 @@ start_test($name);
 //chr17	78444641	.	G	T	0	.	MQM=60;SAP=3;ABP=0	GT:DP:AO:GQ	0/0:215:4:0
 
 //base test:
-$out_file1 = output_folder().$name."_out1.vcf";
+$out_file1 = output_folder().$name."_out1.vcf.gz";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.bam -vcf ".data_folder().$name."_in1.vcf -out $out_file1 -type WES -genes ".data_folder().$name."_in_genes.txt --log ".output_folder().$name."_out1.log");
 remove_lines_containing($out_file1, ["contig=", "fileDate=", "commandline="]);
-check_file($out_file1, data_folder().$name."_out1.vcf");
+check_file($out_file1, data_folder().$name."_out1.vcf.gz");
 
 //set min obs:
-$out_file2 = output_folder().$name."_out2.vcf";
+$out_file2 = output_folder().$name."_out2.vcf.gz";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.bam -vcf ".data_folder().$name."_in1.vcf -out $out_file2 -type WES -genes ".data_folder().$name."_in_genes.txt -min_obs 3 -extend 0 --log ".output_folder().$name."_out2.log");
 remove_lines_containing($out_file2, ["contig=", "fileDate=", "commandline="]);
-check_file($out_file2, data_folder().$name."_out2.vcf");
+check_file($out_file2, data_folder().$name."_out2.vcf.gz");
 
 //multithreaded: 2 threads (same result as base test)
-$out_file3 = output_folder().$name."_out3.vcf";
+$out_file3 = output_folder().$name."_out3.vcf.gz";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.bam -vcf ".data_folder().$name."_in1.vcf -out $out_file3 -type WES -genes ".data_folder().$name."_in_genes.txt -threads 2 --log ".output_folder().$name."_out1.log");
 remove_lines_containing($out_file3, ["contig=", "fileDate=", "commandline="]);
-check_file($out_file3, data_folder().$name."_out1.vcf");
+check_file($out_file3, data_folder().$name."_out1.vcf.gz");
 
 //multithreaded: 4 threads
-$out_file4 = output_folder().$name."_out4.vcf";
+$out_file4 = output_folder().$name."_out4.vcf.gz";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.bam -vcf ".data_folder().$name."_in1.vcf -out $out_file4 -type WES -genes ".data_folder().$name."_in_genes.txt -min_obs 3 -extend 0 -threads 4 --log ".output_folder().$name."_out2.log");
 remove_lines_containing($out_file4, ["contig=", "fileDate=", "commandline="]);
-check_file($out_file4, data_folder().$name."_out2.vcf");
+check_file($out_file4, data_folder().$name."_out2.vcf.gz");
+
+//region given:
+$out_file5 = output_folder().$name."_out5.vcf.gz";
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.bam -vcf ".data_folder().$name."_in1.vcf -out $out_file5 -type WES -target ".data_folder().$name."_in_genes_ext_merged.bed --log ".output_folder().$name."_out1.log");
+remove_lines_containing($out_file5, ["contig=", "fileDate=", "commandline="]);
+check_file($out_file5, data_folder().$name."_out1.vcf.gz");
 
 end_test();
 
