@@ -26,17 +26,14 @@ $percentage = 0.5;
 $limited_bam = "data/vc_mosaic_tmp_limited.bam";
 $input_bam = "data/vc_mosaic_in1.bam";
 exec("samtools view -b -L $bed_merged -@ $threads $bam > $input_bam");
-// exec("samtools index -b $input_bam");
-// exec("samtools view -b -s $percentage -@ $threads $limited_bam > $input_bam");
 exec("samtools index -b $input_bam");
 
 
 //limit base vcf:
-
 $filtered_vcf = "data/vc_mosaic_in1.vcf";
 exec("gunzip -c $vcf | $ngs_bits/VcfFilter -reg $bed_ext > $filtered_vcf");
 
 //delete tmp files:
-exec("rm $gene_regions $bed_ext $bed_merged")
+exec("rm $gene_regions $bed_ext")
 
 ?>
