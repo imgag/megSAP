@@ -461,8 +461,9 @@ if (in_array("vc", $steps))
 			$args[] = "-in {$local_bamfile}";
 			$args[] = "-vcf {$vcffile}";
 			$args[] = "-out {$mosaic_file}";
-			$args[] = "-target ".repository_basedir()."data/gene_lists/gene_exons.pad20.bed";
+			$args[] = "-target ".repository_basedir()."data/gene_lists/gene_exons_pad20.bed";
 			$args[] = "-threads $threads";
+			$args[] = "-build ".$sys['build'];
 			
 			if ($is_wes)
 			{
