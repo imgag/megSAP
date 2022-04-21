@@ -153,7 +153,7 @@ $config_file = fopen2($config_file_path, 'w');
 
 
 // add gnomAD annotation
-fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.1_GRCh38.vcf.gz")."\tgnomADg\tAF,Hom,Hemi\t\ttrue\n");
+fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt\t\ttrue\n");
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz")."\tgnomADm\tAF_hom\t\ttrue\n");
 
 // add clinVar annotation
