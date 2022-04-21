@@ -474,6 +474,27 @@ if (in_array("vc", $steps))
 				$args[] = "-type WGS";
 			}
 			$parser->execTool("NGS/vc_mosaic.php", implode(" ", $args));
+			
+			//unzip - add sample and pipeline headers -rezip:
+			$hr = gzopen2($mosaic_file, "r");
+			$unzpped_mosaic = $parser->tempFile("_unzipped.vcf");
+			$hw = fopen2($unzpped_mosaic, "w");
+			while(!gzeof($hr))
+			{
+				$line = trim(gzgets($hr));
+				if (strlen($line)==0) continue;
+				if ($line[0]=="#" && $line[1]!="#")
+				{
+					fwrite($hw, "##ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n");
+					fwrite($hw, "##PIPELINE=".repository_revision(true)."\n");
+					fwrite($hw, gsvar_sample_header($name, array("DiseaseStatus"=>"affected")));
+				}
+				fwrite($hw, $line."\n");
+			}
+			fclose($hr);
+			
+			$parser->exec("bgzip", "-c $unzpped_mosaic > $mosaic_file", false); //no output logging, because Toolbase::extractVersion() does not return
+			$parser->exec("tabix", "-f -p vcf $mosaic_file", false); //no output logging, because Toolbase::extractVersion() does not return
 		}
 
 		
