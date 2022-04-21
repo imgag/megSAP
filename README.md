@@ -40,7 +40,7 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 ## ChangeLog
 * 13.01.2021 Removed dbscSNV and MMsplice annotations since they are not used.
-* 05.01.2021 Added genomAD AF annotation of mitochondrial variants (#107).
+* 05.01.2021 Added gnomAD AF annotation of mitochondrial variants (#107).
 * 04.01.2021 Fixed missing CNV calls for chromosome ends (mainly chr17, chr18,  chr20 and chrX).
 * 22.12.2021 Updated all databases except RNA-only databases
 * 22.11.2021 GRCh38 is now the default. The GRCh37 version is availailable through the respective branch now.
