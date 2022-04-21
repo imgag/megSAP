@@ -28,7 +28,7 @@ check_file($out_file_empty, data_folder().$name."_out_empty.GSvar", true);
 
 //genotype_mode=single, WGS mode
 $out_file1 = output_folder().$name."_out5.GSvar";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -updown -wgs -out $out_file1 --log ".output_folder().$name."_out1.log");
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -updown -wgs -out $out_file1 --log ".output_folder().$name."_out5.log");
 check_file($out_file1, data_folder().$name."_out5.GSvar");
 
 //genotype_mode=multi
@@ -41,6 +41,11 @@ check_file($out_file_multi, data_folder().$name."_out_multi.GSvar", true);
 $out_file_dragen = output_folder().$name."_out_dragen.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in_dragen.vcf -out $out_file_dragen --log ".output_folder().$name."_out_dragen.log");
 check_file($out_file_dragen, data_folder().$name."_out_dragen.GSvar");
+
+//genotype_mode=single mosaic_mode
+$out_file3 = output_folder().$name."_out3.GSvar";
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in3.vcf -out $out_file3 -mosaic_mode --log ".output_folder().$name."_out3.log");
+check_file($out_file3, data_folder().$name."_out3.GSvar");
 
 end_test();
 
