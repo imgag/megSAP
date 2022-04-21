@@ -299,7 +299,7 @@ if ($debug) print "Sorted variants: $tmp_sorted_vcf\n";
 
 // fix error in VCF file and strip unneeded information
 $tmp_fixed_vcf = temp_file("_fixed.vcf");
-exec("cat $tmp_sorted_vcf | php ".repository_basedir()."src/NGS/vcf_fix.php --keep_wt_calls | bgzip > $out");
+exec("cat $tmp_sorted_vcf | php ".repository_basedir()."src/NGS/vcf_fix.php --mosaic_mode | bgzip > $out");
 
 $time_end = microtime(true);
 if ($debug) print "Post processing done - time taken: ".($time_end-$post_processing_start)." s \n";

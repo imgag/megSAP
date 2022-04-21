@@ -14,6 +14,7 @@ $parser->addOutfile("out", "Output file in GSvar format.", false);
 $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
 $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
+$parser->addFlag("mosaic_mode", "Alternate counts for forward and reverse strands are saved in quality column."); //TODO description
 extract($parser->parse($argv));
 
 //skip common MODIFIER variants in WGS mode
@@ -647,6 +648,16 @@ while(!feof($handle))
 	if (isset($info["ABP"])) 
 	{
 		$quality[] = "ABP=".intval($info["ABP"]);
+	}
+	
+	//kept in mosaic mode
+	if (isset($info["SAR"]) && $mosaic_mode)
+	{
+		$quality[] = "SAR=".intval($info["SAR"]);
+	}
+	if (isset($info["SAF"]) && $mosaic_mode)
+	{
+		$quality[] = "SAF=".intval($info["SAF"]);
 	}
 	
 	//for dragen VCFs

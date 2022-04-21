@@ -3,7 +3,9 @@
 	@page vcf_fix
 	
 	flags:
-	--keep_wt_calls: doesn't remove variants with genotype '0/0'.  Allows missing 'GQ' in Format values without warning. 
+	--mosaic_mode: 
+		- Doesn't remove variants with genotype '0/0' instead changes them to  het '0/1'.
+		- Keeps more annotations (SAR, SAF). 
 	
 	Fixes VCF file problems produced by Freebayes:
 	- Merges duplicate heterozygous variants into one homozygous variant
@@ -51,7 +53,7 @@ function sample_data($format, $sample)
 }
 
 //write variant
-function write($h_out, $var, $keep_wt_calls=false)
+function write($h_out, $var, $mosaic_mode=false)
 {
 	// create format value column for each sample
 	$format_values = array();
@@ -66,9 +68,15 @@ function write($h_out, $var, $keep_wt_calls=false)
 	for ($i=9; $i < count($var); $i++) 
 	{ 
 		$sample= sample_data($var[8], $var[$i]);
-		if($keep_wt_calls || $sample['GT']!="0/0")
+		if($sample['GT']!="0/0")
 		{
 			//non wt variant -> keep in file
+			$all_wt = false;
+		}
+		else if ($mosaic_mode)
+		{
+			// in mosaic mode keep wt variants, but change them into het variants.
+			$sample['GT'] = "0/1";
 			$all_wt = false;
 		}
 		
@@ -90,8 +98,20 @@ function write($h_out, $var, $keep_wt_calls=false)
 	
 	//write INFO
 	$info = info_data($var[7]);
-	fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "")."\t");
-
+	if ($mosaic_mode)
+	{
+		if ( ! isset($info['gnomADg_AF']))
+		{
+			$info['gnomADg_AF'] = 0;
+		}
+		
+		fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";SAR=".number_format($info['SAR'], 0, ".", "").";SAF=".number_format($info['SAF'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "")."\t");
+	}
+	else
+	{
+		fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "")."\t");
+	}
+	
 	//write FORMAT/SAMPLE
 	fwrite($h_out, "GT:DP:AO:GQ\t".implode("\t", $format_values)."\n");
 }
@@ -100,16 +120,16 @@ function write($h_out, $var, $keep_wt_calls=false)
 //main loop
 
 //CLI handling:
-$keep_wt_calls = false;
+$mosaic_mode = false;
 if ($argc != 1)
 {
-	if ($argv[1] == "--keep_wt_calls")
+	if ($argv[1] == "--mosaic_mode")
 	{
-		$keep_wt_calls = true;
+		$mosaic_mode = true;
 	}
 	else
 	{
-		fprintf(STDERR, "Unknown command line option(s) given '".$argv[1]."'.\nCurrently only the flag --keep_wt_calls is supported.");
+		fprintf(STDERR, "Unknown command line option(s) given '".$argv[1]."'.\nCurrently only the flag --mosaic_mode is supported.");
 		return 1;
 	}
 }
@@ -208,11 +228,11 @@ while(!feof($h_in))
 	}
 	else
 	{
-		write($h_out, $var_last, $keep_wt_calls);
+		write($h_out, $var_last, $mosaic_mode);
 		$var_last = $var;
 	}
 }
-write($h_out, $var_last, $keep_wt_calls);
+write($h_out, $var_last, $mosaic_mode);
 fclose($h_in);
 fclose($h_out);
 
