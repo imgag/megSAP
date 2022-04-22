@@ -92,6 +92,7 @@ function filter_vcf($vcf, $out, $sample_vcf, $max_af, $min_obs, $max_gnomad_af)
 	
 	$vars_germline = array();
 
+	//read base sample calls to filter them out
 	$h = gzopen($sample_vcf, "r");
 	while(!feof($h))
 	{
@@ -103,7 +104,7 @@ function filter_vcf($vcf, $out, $sample_vcf, $max_af, $min_obs, $max_gnomad_af)
 	}
 	fclose($h);
 	
-	
+	//filter mosaic calls:
 	foreach (file($vcf) as $line)
 	{
 		$line = trim($line);
@@ -258,34 +259,34 @@ else
 $freebayes_start = microtime(true);
 //call variants
 $called_vcf = temp_file(".vcf");
-$parser->exec("php ".repository_basedir()."src/NGS/vc_freebayes.php ", " -target $final_region -bam $in -out $called_vcf -build $build -no_ploidy -min_af $min_af -min_mq $min_mq -min_bq $min_bq -min_qsum $min_qsum -raw_output");
+$parser->exec("php ".repository_basedir()."src/NGS/vc_freebayes.php ", " -target $final_region -bam $in -out $called_vcf -build $build -no_ploidy -min_af $min_af -min_mq $min_mq -min_bq $min_bq -min_qsum $min_qsum -raw_output -threads $threads");
 
 $freebayes_end = microtime(true);
 if ($debug) print "variant calling took ".($freebayes_end-$freebayes_start)."s: $called_vcf\n";
 }
+
+$genome = genome_fasta($build);
 
 //**POST PROCESSING**//
 
 $post_processing_start = microtime(true);
 //split complex variants to primitives
 $tmp_split_vars = temp_file("_split_vars.vcf");
-exec("cat $called_vcf | ".get_path("vcflib")."vcfallelicprimitives -kg > $tmp_split_vars");
-if ($debug) print "Split complex variants: $tmp_split_vars\n";
 
+$pipeline = [];
+
+$pipeline[] = array("cat", "$called_vcf");
+// //split complex variants to primitives
+$pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
 // split multi-allelic variants
-$tmp_break_multi = temp_file("_break_multi.vcf");
-exec("cat $tmp_split_vars | ".get_path("vcflib")."vcfbreakmulti > $tmp_break_multi");
-if ($debug) print "Split multi-allelic variants: $tmp_break_multi\n";
-
+$pipeline[] = array(get_path("vcflib")."vcfbreakmulti");
 // normalize all variants and align INDELs to the left
-$tmp_left_norm = temp_file("_left_norm.vcf");
-exec(get_path("ngs-bits")."VcfLeftNormalize -in $tmp_break_multi -out $tmp_left_norm");
-if ($debug) print "Left normalized variants: $tmp_left_norm\n";
-
-// //annotate the vcf file
+$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
+// annotate the vcf file
 $tmp_annotated = temp_file("_annotated.vcf");
-exec(get_path("ngs-bits")."VcfAnnotateFromVcf -in $tmp_left_norm -out $tmp_annotated -annotation_file /mnt/storage2/GRCh38/share/data/dbs/gnomAD/gnomAD_genome_v3.1.1_GRCh38.vcf.gz -info_ids AF -id_prefix gnomADg -threads $threads");
-if ($debug) print "Annotated variants: $tmp_annotated\n";
+$pipeline[] = array(get_path("ngs-bits")."VcfAnnotateFromVcf ", " -out $tmp_annotated -annotation_file /mnt/storage2/GRCh38/share/data/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz -info_ids AF -id_prefix gnomADg -threads $threads");
+
+$parser->execPipeline($pipeline, "vc_mosaic post processing part 1");
 
 // filter
 $tmp_filtered = temp_file("_filtered.vcf");
@@ -294,7 +295,7 @@ if ($debug) print "Filtered variants: $tmp_filtered\n";
 
 //sort variants by genomic position
 $tmp_sorted_vcf = temp_file("_sorted.vcf");
-exec(get_path("ngs-bits")."VcfSort -in $tmp_filtered -out $tmp_sorted_vcf");
+$parser->exec(get_path("ngs-bits")."VcfSort", " -in $tmp_filtered -out $tmp_sorted_vcf");
 if ($debug) print "Sorted variants: $tmp_sorted_vcf\n";
 
 // fix error in VCF file and strip unneeded information
