@@ -44,7 +44,7 @@ if(isset($target))
 	}
 	
 	//add special target regions (regions with known pathogenic variants that are often captured by exome/panel, but not inside the target region)
-	if ($build=="GRCh38")
+	if ($build=="GRCh38" && $target_extend>0) //only if extended (otherwise it is also added for chrMT calling, etc.)
 	{
 		$parser->exec(get_path("ngs-bits")."BedAdd"," -in $target_extended ".repository_basedir()."/data/misc/special_regions.bed -out $target_extended ", true);
 	}
