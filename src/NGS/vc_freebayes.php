@@ -33,15 +33,22 @@ $genome = genome_fasta($build);
 //create basic variant calls
 $args = array();
 if(isset($target))
-{
+{	
+	//extend by 'n' bases
+	$target_extended = $parser->tempFile("_roi_extended.bed");
 	if ($target_extend>0)
 	{
-		$target_extended = $parser->tempFile("_extended.bed");
 		$parser->exec(get_path("ngs-bits")."BedExtend"," -in $target -n $target_extend -out $target_extended -fai {$genome}.fai", true);
 	}
 	else
 	{
-		$target_extended = $target;
+		$parser->copyFile($target, $target_extended);
+	}
+	
+	//add special target regions (regions with known pathogenic variants that are often captured by exome/panel, but not inside the target region)
+	if ($build=="GRCh38" && $target_extend>0) //only if extended (otherwise it is also added for chrMT calling, etc.)
+	{
+		$parser->exec(get_path("ngs-bits")."BedAdd"," -in $target_extended ".repository_basedir()."/data/misc/special_regions.bed -out $target_extended ", true);
 	}
 	
 	$target_merged = $parser->tempFile("_merged.bed");
