@@ -21,7 +21,6 @@ $parser->addInfile("target", "File with genome regions in which the mutations ar
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 //filter parameter:
 $parser->addFloat("max_af", "Maximum allele-frequency of a variant to be considered as a mosaic", true, 0.5);
-$parser->addInt("min_obs", "Minimum observation per strand. if not given is decided by the type parameter: WGS = 1; WES = 2", true, -1);
 $parser->addFloat("max_gnomad_af", "Maximum allowed population allele frequency in gnomAD", true, 0.01);
 
 //freebayes calling parameters:
