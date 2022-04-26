@@ -14,16 +14,13 @@ $parser = new ToolBase("vc_mosaic", "Call mosaic mutations in bam file. Creates 
 $parser->addInfile("in", "Input BAM file.", false);
 $parser->addInfile("vcf", "VCF(.gz) with mutations called following the diploid model", false);
 $parser->addOutfile("out", "Output VCF file.", false);
-$parser->addEnum("type", "Processing system type: WGS or WES", false, ["WES", "WGS"]);
+$parser->addInt("min_obs", "Minimum observation per strand. Recommended value for  WGS = 1 and WES = 2", false);
+$parser->addInfile("target", "File with genome regions in which the mutations are searched for. (will not use extend parameter)", false);
 
 //optional
-$parser->addInfile("genes", "File with gene names in whose exonic regions the mutations are searched for.", true, "");
-$parser->addInt("extend", "Extend gene regions by 'extend' bases.", true, 20);
-$parser->addInfile("target", "File with genome regions in which the mutations are searched for. (will not use extend parameter)", true, "");
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 //filter parameter:
 $parser->addFloat("max_af", "Maximum allele-frequency of a variant to be considered as a mosaic", true, 0.5);
-$parser->addInt("min_obs", "Minimum observation per strand. if not given is decided by the type parameter: WGS = 1; WES = 2", true, -1);
 $parser->addFloat("max_gnomad_af", "Maximum allowed allel frequency in gnomad", true, 0.01);
 //freebayes calling parameters:
 $parser->addFloat("min_af", "Minimum allele-frequency (freebayes)", true, 0.01);
@@ -35,15 +32,10 @@ $parser->addInt("threads", "Number of threads used.", true, 1);
 
 //debug parameters
 $parser->addFlag("debug", "Enable additional output for debugging.");
-$parser->addInfile("called_vcf", "A vcf that was already called for mosaics and only post-processing should be done.", true, "");
 extract($parser->parse($argv));
 
 $time_start = microtime(true);
 
-if (($genes == "" && $target == "") || ($genes != "" && $target != ""))
-{
-	trigger_error("vc_mosaic: Needs either gene parameter or target parameter to be set. Don't give both or neither.", E_USER_ERROR);
-}
 
 if ($min_obs == -1)
 {
@@ -223,47 +215,17 @@ function parse_vcf_info($info, $format, $format_values)
 }
 
 
-if ($called_vcf == "")
-{
-
 //**MAIN**//
 if ($debug) print "starting main\n";
 
-$final_region = "";
-if ($genes != "")
-{
-	//create target region
-	$gene_regions = temp_file("_gene_regions.bed");
-	$parser->exec(get_path("ngs-bits")."/GenesToBed", "-in $genes -source ccds -mode exon -fallback -out $gene_regions", "Creating target region");
-	if ($debug) print "Target regions: $gene_regions \n";
-
-	$final_region = $gene_regions;
-	//extend target region
-	if ($extend > 0)
-	{
-		$bed_ext = temp_file("_extended.bed");
-		$parser->exec(get_path("ngs-bits")."/BedExtend", "-in $gene_regions -n $extend -out $bed_ext", "Extending target region"); 
-		if ($debug) print "Regions extended: $bed_ext \n";
-
-
-		$bed_merged = temp_file("_merged.bed");
-		$parser->exec(get_path("ngs-bits")."/BedMerge", "-in $bed_ext -out $bed_merged", "Merging target region"); 
-		if ($debug) print "Regions merged: $bed_merged \n";
-		$final_region = $bed_merged;
-	}
-}
-else
-{
-	$final_region = $target;
-}
 $freebayes_start = microtime(true);
 //call variants
 $called_vcf = temp_file(".vcf");
-$parser->exec("php ".repository_basedir()."src/NGS/vc_freebayes.php ", " -target $final_region -bam $in -out $called_vcf -build $build -no_ploidy -min_af $min_af -min_mq $min_mq -min_bq $min_bq -min_qsum $min_qsum -raw_output -threads $threads");
+$parser->exec("php ".repository_basedir()."src/NGS/vc_freebayes.php ", " -target $target -bam $in -out $called_vcf -build $build -no_ploidy -min_af $min_af -min_mq $min_mq -min_bq $min_bq -min_qsum $min_qsum -raw_output -threads $threads");
 
 $freebayes_end = microtime(true);
 if ($debug) print "variant calling took ".($freebayes_end-$freebayes_start)."s: $called_vcf\n";
-}
+
 
 $genome = genome_fasta($build);
 
