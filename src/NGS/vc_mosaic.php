@@ -10,9 +10,9 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("vc_mosaic", "Call mosaic mutations in bam file. Creates a VCF.gz file.");
+$parser = new ToolBase("vc_mosaic", "Call mosaic variants in a BAM file. Creates a VCF.GZ file.");
 $parser->addInfile("in", "Input BAM file.", false);
-$parser->addInfile("vcf", "VCF(.gz) with mutations called following the diploid model", false);
+$parser->addInfile("vcf", "VCF(.GZ) with germline variants called using a diploid model (these are removed if found as putative mosaic variants).", false);
 $parser->addOutfile("out", "Output VCF file.", false);
 $parser->addEnum("type", "Processing system type: WGS or WES", false, ["WES", "WGS"]);
 
