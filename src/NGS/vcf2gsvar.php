@@ -651,6 +651,15 @@ while(!feof($handle))
 		$quality[] = "ABP=".intval($info["ABP"]);
 	}
 	
+	if (isset($info["SAR"]))
+	{
+		$quality[] = "SAR=".intval($info["SAR"]);
+	}
+	if (isset($info["SAF"]))
+	{
+		$quality[] = "SAF=".intval($info["SAF"]);
+	}
+	
 	//for dragen VCFs
 	if (isset($info["MQ"])) 
 	{

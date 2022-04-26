@@ -23,6 +23,8 @@ $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.
 $parser->addInt("min_ao", "Minimum alternative base observation count.", true, 3);
 $parser->addFlag("no_ploidy", "Use freebayes parameter -K, i.e. output all alleles which pass input filters, regardles of genotyping outcome or model.");
 $parser->addFlag("no_bias", "Use freebayes parameter -V, i.e. ignore strand bias and read end distance bias.");
+$parser->addInt("min_qsum", "Minimum quality sum used for variant calling.", true, 0);
+$parser->addFlag("raw_output", "return the raw output of freebayes with no post-processing.");
 extract($parser->parse($argv));
 
 //init
@@ -66,6 +68,7 @@ $args[] = "--min-alternate-fraction $min_af";
 $args[] = "--min-mapping-quality $min_mq";
 $args[] = "--min-base-quality $min_bq";
 $args[] = "--min-alternate-count $min_ao";
+$args[] = "--min-alternate-qsum $min_qsum";
 $args[] = "--genotype-qualities";
 $args[] = "-f $genome";
 $args[] = "-b ".implode(" ", $bam);
@@ -230,11 +233,24 @@ if (isset($target) && $threads > 1)
 	}
 	fclose($ho);
 	$parser->log("Combining VCFs took ".time_readable(microtime(true)-$combine_start));
-
+	
+	// if only raw output is requested copy combined_vcf to output and stop:
+	if ($raw_output)
+	{
+		exec("cp $vcf_combined $out");
+		return;
+	}
+	
 	$pipeline[] = array("cat", $vcf_combined);
 } 
 else 
 {
+	if ($raw_output)
+	{
+		exec(get_path("freebayes")." ".implode(" ", $args)." > $out");
+		return;
+	}
+	
 	$pipeline[] = array(get_path("freebayes"), implode(" ", $args));
 }
 

@@ -124,7 +124,8 @@ $local_bamfile = $parser->tempFolder("local_bam")."/".$name.".bam"; //local copy
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 //variant calling
 $vcffile = $folder."/".$name."_var.vcf.gz";
-$vcffile_annotated = $folder."/".$name."_var_annotated.vcf.gz";	
+$vcffile_annotated = $folder."/".$name."_var_annotated.vcf.gz";
+$mosaic_file = $folder."/".$name."_mosaic.vcf.gz";
 $varfile = $folder."/".$name.".GSvar";
 $rohfile = $folder."/".$name."_rohs.tsv";
 $baffile = $folder."/".$name."_bafs.igv";
@@ -452,6 +453,51 @@ if (in_array("vc", $steps))
 			$params[] = "-downsample 100";
 		}
 		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
+		
+		//call mosaic variants on exon region:
+		if ($is_wgs || $is_wes)
+		{
+			$args = [];
+			$args[] = "-in {$local_bamfile}";
+			$args[] = "-vcf {$vcffile}";
+			$args[] = "-out {$mosaic_file}";
+			$args[] = "-target ".repository_basedir()."data/gene_lists/gene_exons_pad20.bed";
+			$args[] = "-threads $threads";
+			$args[] = "-build ".$sys['build'];
+			
+			if ($is_wes)
+			{
+				$args[] = "-min_obs 2";				
+			}
+			else
+			{
+				$args[] = "-min_obs 1";
+			}
+			$parser->execTool("NGS/vc_mosaic.php", implode(" ", $args));
+			
+			//unzip - add sample and pipeline headers -rezip:
+			$hr = gzopen2($mosaic_file, "r");
+			$unzpped_mosaic = $parser->tempFile("_unzipped.vcf");
+			$hw = fopen2($unzpped_mosaic, "w");
+			while(!gzeof($hr))
+			{
+				$line = trim(gzgets($hr));
+				if (strlen($line)==0) continue;
+				if ($line[0]=="#" && $line[1]!="#")
+				{
+					fwrite($hw, "##ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n");
+					fwrite($hw, "##PIPELINE=".repository_revision(true)."\n");
+					fwrite($hw, gsvar_sample_header($name, array("DiseaseStatus"=>"affected")));
+				}
+				fwrite($hw, $line."\n");
+			}
+			fclose($hr);
+			
+			$parser->exec("bgzip", "-c $unzpped_mosaic > $mosaic_file", false); //no output logging, because Toolbase::extractVersion() does not return
+			$parser->exec("tabix", "-f -p vcf $mosaic_file", false); //no output logging, because Toolbase::extractVersion() does not return
+		}
+
+		
 	}
 	else
 	{

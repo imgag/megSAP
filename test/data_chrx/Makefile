@@ -36,6 +36,9 @@ diff:
 	diff NA12878_17_manta_var_structural_last_cols.bedpe.out NA12878_17_manta_var_structural_cut2.bedpe --ignore-matching-lines="^##"
 	diff NA12878_17_repeats_expansionhunter.vcf NA12878_17_repeats_expansionhunter.vcf.out  --ignore-matching-lines="^##"
 	test -f NA12878_17_circos.png
+	test -f NA12878_17_mosaic.vcf.gz
+	test -f NA12878_17_mosaic_annotated.vcf.gz
+	test -f NA12878_17_mosaic.GSvar
 
 reanno:
 	cp NA12878_17.GSvar NA12878_17_old.GSvar

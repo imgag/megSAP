@@ -2,6 +2,10 @@
 /** 
 	@page vcf_fix
 	
+	flags:
+	--mosaic_mode: 
+		- Doesn't remove variants with genotype '0/0' instead changes them to  het '0/1'.
+	
 	Fixes VCF file problems produced by Freebayes:
 	- Merges duplicate heterozygous variants into one homozygous variant
 	- Fixes 'AO' count for variants stemming from multi-allelic base variants (comma-separated list to single int)
@@ -48,11 +52,18 @@ function sample_data($format, $sample)
 }
 
 //write variant
-function write($h_out, $var)
+function write($h_out, $var, $mosaic_mode=false)
 {
 	// create format value column for each sample
 	$format_values = array();
 	$all_wt = true;
+	
+	// Don't write variants with empty base info
+	if ($var[0] == "" || $var[1] == "" || $var[2] == "" || $var[3] == "" || $var[4] == "")
+	{
+		return;
+	}
+	
 	for ($i=9; $i < count($var); $i++) 
 	{ 
 		$sample= sample_data($var[8], $var[$i]);
@@ -61,12 +72,22 @@ function write($h_out, $var)
 			//non wt variant -> keep in file
 			$all_wt = false;
 		}
+		else if ($mosaic_mode)
+		{
+			// in mosaic mode keep wt variants, but change them into het variants.
+			$sample['GT'] = "0/1";
+			$all_wt = false;
+		}
+		
 		// create output string
 		$format_values[] = $sample['GT'].":".$sample['DP'].":".(int)($sample['AO']).":".(int)($sample['GQ']);
 	}
 
 	//skip wildtype variants
-	if ($all_wt) return;
+	if ($all_wt) 
+	{
+		return;
+	}
 	
 	//skip wildtype variants
 	if (contains(strtoupper($var[3]),'N')) return;
@@ -76,14 +97,32 @@ function write($h_out, $var)
 	
 	//write INFO
 	$info = info_data($var[7]);
-	fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "")."\t");
-
+	
+	fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";SAR=".number_format($info['SAR'], 0, ".", "").";SAF=".number_format($info['SAF'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "")."\t");
+	
 	//write FORMAT/SAMPLE
 	fwrite($h_out, "GT:DP:AO:GQ\t".implode("\t", $format_values)."\n");
 }
 
 
 //main loop
+
+//CLI handling:
+$mosaic_mode = false;
+if ($argc != 1)
+{
+	if ($argv[1] == "--mosaic_mode")
+	{
+		$mosaic_mode = true;
+	}
+	else
+	{
+		fprintf(STDERR, "Unknown command line option(s) given '".$argv[1]."'.\nCurrently only the flag --mosaic_mode is supported.");
+		return 1;
+	}
+}
+
+
 $ids = array("RO","GTI","NS","SRF","NUMALT","DP","QR","SRR","SRP","PRO","EPPR","DPB","PQR","ROOR","MQMR","ODDS","AN","RPPR","PAIREDR");
 $var_last = array("","","","","","","","","GT:DP:AO:GQ","0/0:0:0:0");
 $h_in = fopen2("php://stdin", "r");
@@ -177,11 +216,11 @@ while(!feof($h_in))
 	}
 	else
 	{
-		write($h_out, $var_last);
+		write($h_out, $var_last, $mosaic_mode);
 		$var_last = $var;
 	}
 }
-write($h_out, $var_last);
+write($h_out, $var_last, $mosaic_mode);
 fclose($h_in);
 fclose($h_out);
 
