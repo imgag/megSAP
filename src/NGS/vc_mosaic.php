@@ -24,9 +24,9 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 //filter parameter:
 $parser->addFloat("max_af", "Maximum allele-frequency of a variant to be considered as a mosaic", true, 0.5);
 $parser->addInt("min_obs", "Minimum observation per strand. if not given is decided by the type parameter: WGS = 1; WES = 2", true, -1);
-$parser->addFloat("max_gnomad_af", "Maximum allowed allel frequency in gnomad", true, 0.01);
+$parser->addFloat("max_gnomad_af", "Maximum allowed population allele frequency in gnomAD", true, 0.01);
 //freebayes calling parameters:
-$parser->addFloat("min_af", "Minimum allele-frequency (freebayes)", true, 0.01);
+$parser->addFloat("min_af", "Minimum allele frequency (freebayes)", true, 0.01);
 $parser->addInt("min_mq", "Minimum mapping quality (freebayes)", true, 50);
 $parser->addInt("min_bq", "Minimum base quality (freebayes)", true, 25);
 $parser->addInt("min_qsum", "Minimum alternate quality sum (freebayes)", true, 90);
