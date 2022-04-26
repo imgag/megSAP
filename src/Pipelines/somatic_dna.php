@@ -289,6 +289,13 @@ $ballele       = $full_prefix . "_bafs.igv";					// B-allele frequencies
 
 if (in_array("vc", $steps))
 {
+	//get HLA types
+	$parser->execTool("NGS/hla_genotyper.php", "-bam $t_bam -name $t_id -out " . dirname($t_bam)."/{$t_id}_hla_genotyper.tsv");
+	if(!$single_sample)
+	{
+		$parser->execTool("NGS/hla_genotyper.php", "-bam $n_bam -name $n_id -out " . dirname($n_bam)."/{$n_id}_hla_genotyper.tsv");
+	}
+	
 	// structural variant calling
 	if (!$sys['shotgun'])
 	{
