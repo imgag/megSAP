@@ -44,7 +44,7 @@ check_file($out_file_dragen, data_folder().$name."_out_dragen.GSvar");
 
 //genotype_mode=single mosaic_mode
 $out_file3 = output_folder().$name."_out3.GSvar";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in3.vcf -out $out_file3 -mosaic_mode --log ".output_folder().$name."_out3.log");
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in3.vcf -out $out_file3 --log ".output_folder().$name."_out3.log");
 check_file($out_file3, data_folder().$name."_out3.GSvar");
 
 end_test();

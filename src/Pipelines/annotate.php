@@ -107,7 +107,6 @@ function annotate($parser, $vcffile, $out_name, $out_folder, $system, $no_fc, $m
 		if ($multi) $args[] = "-genotype_mode multi";
 		if ($updown) $args[] = "-updown";
 		if ($sys['type']=="WGS") $args[] = "-wgs";
-		if ($is_mosaic) $args[] = "-mosaic_mode";
 		$parser->execTool("NGS/vcf2gsvar.php", implode(" ", $args));
 		
 		if(db_is_enabled("NGSD"))

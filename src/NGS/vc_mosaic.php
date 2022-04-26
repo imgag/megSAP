@@ -279,7 +279,7 @@ $pipeline[] = array("cat", "$called_vcf");
 // //split complex variants to primitives
 $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
 // split multi-allelic variants
-$pipeline[] = array(get_path("vcflib")."vcfbreakmulti");
+$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
 // normalize all variants and align INDELs to the left
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
 // annotate the vcf file

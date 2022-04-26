@@ -5,7 +5,6 @@
 	flags:
 	--mosaic_mode: 
 		- Doesn't remove variants with genotype '0/0' instead changes them to  het '0/1'.
-		- Keeps more annotations (SAR, SAF). 
 	
 	Fixes VCF file problems produced by Freebayes:
 	- Merges duplicate heterozygous variants into one homozygous variant
@@ -98,19 +97,8 @@ function write($h_out, $var, $mosaic_mode=false)
 	
 	//write INFO
 	$info = info_data($var[7]);
-	if ($mosaic_mode)
-	{
-		if ( ! isset($info['gnomADg_AF']))
-		{
-			$info['gnomADg_AF'] = 0;
-		}
-		
-		fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";SAR=".number_format($info['SAR'], 0, ".", "").";SAF=".number_format($info['SAF'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "")."\t");
-	}
-	else
-	{
-		fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "")."\t");
-	}
+	
+	fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";SAR=".number_format($info['SAR'], 0, ".", "").";SAF=".number_format($info['SAF'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "")."\t");
 	
 	//write FORMAT/SAMPLE
 	fwrite($h_out, "GT:DP:AO:GQ\t".implode("\t", $format_values)."\n");
