@@ -467,11 +467,11 @@ if (in_array("vc", $steps))
 			
 			if ($is_wes)
 			{
-				$args[] = "-type WES ";				
+				$args[] = "-min_obs 2";				
 			}
 			else
 			{
-				$args[] = "-type WGS";
+				$args[] = "-min_obs 1";
 			}
 			$parser->execTool("NGS/vc_mosaic.php", implode(" ", $args));
 			
