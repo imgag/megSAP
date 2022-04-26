@@ -10,9 +10,9 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("vc_mosaic", "Call mosaic mutations in bam file. Creates a VCF.gz file.");
+$parser = new ToolBase("vc_mosaic", "Call mosaic variants in a BAM file. Creates a VCF.GZ file.");
 $parser->addInfile("in", "Input BAM file.", false);
-$parser->addInfile("vcf", "VCF(.gz) with mutations called following the diploid model", false);
+$parser->addInfile("vcf", "VCF(.GZ) with germline variants called using a diploid model (these are removed if found as putative mosaic variants).", false);
 $parser->addOutfile("out", "Output VCF file.", false);
 $parser->addInt("min_obs", "Minimum observation per strand. Recommended value for  WGS = 1 and WES = 2", false);
 $parser->addInfile("target", "File with genome regions in which the mutations are searched for. (will not use extend parameter)", false);
@@ -21,9 +21,11 @@ $parser->addInfile("target", "File with genome regions in which the mutations ar
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 //filter parameter:
 $parser->addFloat("max_af", "Maximum allele-frequency of a variant to be considered as a mosaic", true, 0.5);
-$parser->addFloat("max_gnomad_af", "Maximum allowed allel frequency in gnomad", true, 0.01);
+$parser->addInt("min_obs", "Minimum observation per strand. if not given is decided by the type parameter: WGS = 1; WES = 2", true, -1);
+$parser->addFloat("max_gnomad_af", "Maximum allowed population allele frequency in gnomAD", true, 0.01);
+
 //freebayes calling parameters:
-$parser->addFloat("min_af", "Minimum allele-frequency (freebayes)", true, 0.01);
+$parser->addFloat("min_af", "Minimum allele frequency (freebayes)", true, 0.01);
 $parser->addInt("min_mq", "Minimum mapping quality (freebayes)", true, 50);
 $parser->addInt("min_bq", "Minimum base quality (freebayes)", true, 25);
 $parser->addInt("min_qsum", "Minimum alternate quality sum (freebayes)", true, 90);

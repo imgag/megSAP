@@ -23,7 +23,7 @@ $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.
 $parser->addInt("min_ao", "Minimum alternative base observation count.", true, 3);
 $parser->addFlag("no_ploidy", "Use freebayes parameter -K, i.e. output all alleles which pass input filters, regardles of genotyping outcome or model.");
 $parser->addFlag("no_bias", "Use freebayes parameter -V, i.e. ignore strand bias and read end distance bias.");
-$parser->addInt("min_qsum", "Minimum quality sum used for variant calling", true, 0);
+$parser->addInt("min_qsum", "Minimum quality sum used for variant calling.", true, 0);
 $parser->addFlag("raw_output", "return the raw output of freebayes with no post-processing.");
 extract($parser->parse($argv));
 
