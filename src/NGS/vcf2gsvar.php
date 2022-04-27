@@ -420,7 +420,7 @@ while(!feof($handle))
 			$i_domains = index_of($cols, "DOMAINS");
 			$i_sift = index_of($cols, "SIFT");
 			$i_polyphen = index_of($cols, "PolyPhen");
-			$i_revel = index_of($cols, "REVEL", false);
+			$i_revel = index_of($cols, "REVEL");
 			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_existingvariation = index_of($cols, "Existing_variation");
 			$i_af_kg = index_of($cols, "AF");
@@ -432,7 +432,7 @@ while(!feof($handle))
 			$i_af_gnomad_sas = index_of($cols, "gnomAD_SAS_AF");
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
-			$i_pubmed = index_of($cols, "PUBMED"); 
+			$i_pubmed = index_of($cols, "PUBMED", false); 
 		}
 
 		//get annotation indices in CSQ_refseq field
@@ -758,8 +758,11 @@ while(!feof($handle))
 			if ($revel_score!="") $revel[] = $revel_score;
 
 			//PubMed ids
-			$pubmed = array_merge($pubmed, explode("&", $parts[$i_pubmed]));
-
+			if ($i_pubmed!==FALSE)
+			{
+				$pubmed = array_merge($pubmed, explode("&", $parts[$i_pubmed]));
+			}
+			
 			//######################### transcript-specific information #########################
 			
 			//only transcripts
