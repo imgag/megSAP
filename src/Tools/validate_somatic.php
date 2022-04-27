@@ -105,11 +105,6 @@ print "##ROI bases: {$roi_bases}\n";
 $vars_germline = load_vcf($normal, $roi, false);
 print "##Germline variants: ".count($vars_germline)."\n";
 
-// Why removing 'chr' prefix?
-// $tmp = $parser->tempFile(".bed");
-// exec2("cat {$roi} | tr -d 'chr' > {$tmp}"); 
-// $vars_somatic = load_vcf($tumor, $tmp, false);
-
 //load somatic variants
 $vars_somatic = load_vcf($tumor, $roi, false);
 print "##Tumor variants: ".count($vars_somatic)."\n";
@@ -272,7 +267,7 @@ foreach($afs as $col => $af)
 	$output_af[] = "##tumor fraction {$name}: ".number_format(2.0*$af, 4);
 }
 $output_af[] = "#af\texpected\tTP\tFP\tFN\trecall/sensitivity\tprecision/ppv";
-foreach([0.05, 0.1, 0.2] as $min_af)
+foreach([0.05, 0.075, 0.1, 0.125, 0.15, 0.2] as $min_af)
 {
 	foreach(["", "SNV", "INDEL"] as $curr_type)
 	{
