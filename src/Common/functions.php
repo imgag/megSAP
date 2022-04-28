@@ -258,13 +258,16 @@ function nl_trim($string)
 	@brief Returns a writable temporary file name.
 	@ingroup fileio
 */
-function temp_file($suffix = "", $prefix = "tmp")
+function temp_file($suffix = "", $prefix = "tmp", $directory = null)
 {
-	$user = trim(exec('whoami'));
-	$user_tmp_dir = sys_get_temp_dir()."/megSAP_user_{$user}/";
-	create_directory($user_tmp_dir);
+	if (is_null($directory))
+	{
+		$user = trim(exec('whoami'));
+		$directory = sys_get_temp_dir()."/megSAP_user_{$user}/";
+		create_directory($directory);
+	}
 	
-	$filename = tempnam($user_tmp_dir, $prefix);
+	$filename = tempnam($directory, $prefix);
 	if ($suffix!="")
 	{
 		unlink($filename);

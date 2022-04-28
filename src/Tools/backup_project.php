@@ -12,8 +12,10 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 // parse command line arguments
 $parser = new ToolBase("backup_project", "Creates a backup of a project folder.");
 $parser->addInfile("in",  "Input project folder.", false);
+//optional
 $parser->addString("when",  "Start time in format '20:15' or 'now'.", true, "now");
 $parser->addString("out_folder", "Output folder path.", true, "/mnt/raw_data_archive/projects/");
+$parser->addString("tmp_folder", "Temporary folder. If unset a user-specific folder in ".sys_get_temp_dir()." is used.", true, "");
 extract($parser->parse($argv));
 
 //check that the correct user is executing the script
@@ -21,6 +23,12 @@ $user = exec('whoami');
 if ($user!="archive-gs")
 {
 	trigger_error("Only user 'archive-gs' can execute this script - use 'sudo -u archive-gs php backup_project.php ...'!", E_USER_ERROR);
+}
+
+//check that tmp folder is writable for archive-gs
+if ($tmp_folder!="" && !is_writable2($tmp_folder."/test"))
+{
+	trigger_error("Temporary folder '{$tmp_folder}' not writable for 'archive-gs'!", E_USER_ERROR);
 }
 
 //strip slashes at the end of folder names
@@ -41,7 +49,7 @@ $logfile = "{$out_folder}/{$basename}.log";
 //set temporary logfile if unset
 if ($parser->getLogFile()==null)
 {
-	$log_file = $parser->tempFile(".log");
+	$log_file = $parser->tempFile(".log", null, $tmp_folder);
 	$parser->setLogFile($log_file);
 	print "Log file: $log_file\n";
 }
@@ -57,8 +65,9 @@ if ($when!="now")
 }
 
 //create verified tar archive (uncompressed because otherwise verification is not possible)
+$tmp_tar = $parser->tempFile(".tar", null, $tmp_folder);
+print "Temporary tar file: $tmp_tar\n";
 print date("Y-m-d H:i:s")." creating tar file\n";
-$tmp_tar = $parser->tempFile(".tar");
 $parser->exec("tar", "cfW $tmp_tar -C ".dirname($in)." ".basename($in), true);
 
 //zip archive with low compression (way faster than full compression and the contents are already compressed in most cases)

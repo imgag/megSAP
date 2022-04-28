@@ -895,13 +895,13 @@ class ToolBase
 		
 		@note The file is deleted in the destructor of this class.
 	*/
-	function tempFile($suffix = "", $prefix = null)
+	function tempFile($suffix = "", $prefix = null, $directory = null)
 	{
 		if (!isset($prefix))
 		{
 			$prefix = $this->name."_";
 		}
-		$file = temp_file($suffix, $prefix);
+		$file = temp_file($suffix, $prefix, $directory);
 		$this->temp_files[] = $file;
 		
 		return $file;
