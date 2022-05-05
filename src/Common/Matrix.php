@@ -306,7 +306,7 @@ class Matrix
 	}
 	
 	/// Appends a row.
-	function addRow($row)
+	function addRow($row, $filename = null)
 	{
 		// Set column count
 		if ($this->rows==0)
@@ -318,7 +318,7 @@ class Matrix
 		// Check column count
 		if (count($row) != $this->cols)
 		{
-			trigger_error("Internal error: Cannot add a row with differing column count (is '".count($row)."', should be '".$this->cols."').", E_USER_ERROR);
+			trigger_error("Internal error: Cannot add a row with differing column count (is '".count($row)."', should be '".$this->cols."')".(isset($filename) ? " in file {$filename}" : ""), E_USER_ERROR);
 		}
 
 		++$this->rows;
@@ -419,7 +419,7 @@ class Matrix
 	}
 	
 	/// Sets the header for a column.
-	function setHeaders($names)
+	function setHeaders($names, $filename = null)
 	{
 		if ($this->cols==0)
 		{
@@ -428,7 +428,7 @@ class Matrix
 		
 		if (count($names) != $this->cols)
 		{
-			trigger_error("Internal error: Cannot set headers with differing column count (is '".count($names)."', should be '".$this->cols."').", E_USER_ERROR);
+			trigger_error("Internal error: Cannot set headers with differing column count (is '".count($names)."', should be '".$this->cols."')".(isset($filename) ? " in file {$filename}" : ""), E_USER_ERROR);
 		}
 		
 		$this->headers = $names;
@@ -457,7 +457,7 @@ class Matrix
 			//skip empty lines (sometimes at the end of the file)
 			if ($line=="") continue;
 			
-			$output->addRow(explode($separator, $line));
+			$output->addRow(explode($separator, $line), $filename);
 		}
 		gzclose($handle);
 		
@@ -467,7 +467,7 @@ class Matrix
 			$parts = explode($separator, trim($comments[$i]));
 			if (count($parts)==$output->cols() || ($output->cols()==0 && $i==(count($comments)-1)))
 			{
-				$output->setHeaders($parts);
+				$output->setHeaders($parts, $filename);
 			}
 			else
 			{

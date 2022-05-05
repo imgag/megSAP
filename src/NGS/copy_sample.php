@@ -621,7 +621,7 @@ foreach($sample_data as $sample => $sample_infos)
 				import_genlab_disease_group($sample);
 			}
 		}
-		if ($high_priority || contains(implode(" ", $sample_infos['ps_comments']), "eilig"))
+		if ($high_priority || contains(strtolower(implode(" ", $sample_infos['ps_comments'])), "eilig"))
 		{
 			$outputline .= " -high_priority";
 		}
