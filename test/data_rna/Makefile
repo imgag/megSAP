@@ -23,6 +23,7 @@ analyze_se:
 
 diff_se:
 	diff analyze_rna_out_se.tsv single_end/SE_counts.tsv
+	php ../compare_qcml_xml.php analyze_rna_se_stats_RNA.qcML single_end/SE_stats_RNA.qcML
 
 analyze_pe:
 	php ../../src/Pipelines/analyze_rna.php \
@@ -34,4 +35,4 @@ analyze_pe:
 
 diff_pe:
 	diff analyze_rna_out_pe.tsv paired_end/PE_counts.tsv
-	diff analyze_rna_out_pe_fusion.tsv paired_end/PE_fusions_arriba.tsv
+	php ../compare_qcml_xml.php analyze_rna_pe_stats_RNA.qcML paired_end/PE_stats_RNA.qcML
