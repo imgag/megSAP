@@ -15,3 +15,8 @@ gene_exons:
 
 gene_exons_pad20:
 	BedExtend -n 20 -in gene_exons.bed | BedMerge -out gene_exons_pad20.bed
+
+housekeeping_genes_hg38:
+	# based on https://academic.oup.com/nar/article/49/D1/D947/5871367
+	wget -O - https://housekeeping.unicamp.br/Housekeeping_GenesHuman.csv | egrep -v "^Ensembl" | cut -d ";" -f2 | GenesToApproved | cut -f1 | sort | uniq > housekeeping_genes.txt
+	GenesToBed -source ensembl -mode exon -in housekeeping_genes.txt | BedSort | BedMerge -out housekeeping_genes_hg38.bed
