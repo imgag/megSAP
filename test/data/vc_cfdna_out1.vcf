@@ -25,6 +25,7 @@
 ##FILTER=<ID=Variant_Contamination,Description="no description available">
 ##FILTER=<ID=Low_Complexity,Description="no description available">
 ##FILTER=<ID=Homopolymer,Description="no description available">
+##FILTER=<ID=No_Coverage,Description="No read coverage for this monitoring/ID variant in BAM file.">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
 ##FORMAT=<ID=AC,Number=.,Type=Integer,Description="Allele read counts">

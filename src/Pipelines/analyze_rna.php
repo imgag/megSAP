@@ -616,13 +616,44 @@ if (in_array("fu",$steps) && in_array("arriba",$fusion_caller))
 	$parser->execTool("NGS/vc_arriba.php", implode(" ", $arriba_args));
 }
 
+// run RNA QC
+$qc_rna = "{$prefix}_stats_RNA.qcML";
+if (in_array("ma", $steps) || in_array("rc", $steps) || in_array("an", $steps))
+{
+	$args = [
+		"-bam", $umi ? $before_dedup_bam : $final_bam,
+		"-housekeeping_genes", repository_basedir()."/data/gene_lists/housekeeping_genes_".ngsbits_build($sys['build']).".bed",
+		"-out", $qc_rna,
+		"-ref", genome_fasta($sys['build'])
+	];
+
+	if (file_exists($counts_normalized))
+	{
+		$args[] = "-rna_counts ".$counts_normalized;
+	}
+	if (file_exists($splicing_gene))
+	{
+		$args[] = "-splicing ".$splicing_gene;
+	}
+	if (file_exists($expr))
+	{
+		$args[] = "-expression ".$expr;
+	}
+	
+	//run RnaQC
+	$parser->exec(get_path("ngs-bits")."RnaQC", implode(" ", $args));
+}
+
+
 //import to database
 if (in_array("db", $steps))
 {
 	$parser->execTool("NGS/db_check_gender.php", "-in $final_bam -pid $name --log ".$parser->getLogFile());
 
 	//import QC data
-	$parser->execTool("NGS/db_import_qc.php", "-id $name -files $qc_fastq $qc_map -force --log ".$parser->getLogFile());
+	$qc_file_list = array($qc_fastq, $qc_map);
+	if (file_exists($qc_rna)) $qc_file_list[] = $qc_rna;
+	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_file_list)." -force --log ".$parser->getLogFile());
 }
 
 ?>

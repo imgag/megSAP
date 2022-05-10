@@ -22,6 +22,13 @@ check_exec("php ".src_folder()."/NGS/db_import_qc.php -id GS120678_01 -files ".d
 $log4_file = output_folder().$name."_out4.log";
 check_exec("php ".src_folder()."/NGS/db_import_qc.php -id GS120678_01 -files ".data_db_folder()."GS120678_01*.qcML -db NGSD_TEST --log $log4_file -force");
 
+//import cfDNA QC file
+$log5_file = output_folder().$name."_out5.log";
+check_exec("php ".src_folder()."/NGS/db_import_qc.php -id DXcf120678_01 -files ".data_db_folder()."DXcf120678_01*.qcML -db NGSD_TEST --log $log5_file");
+
+//import RNA QC file
+$log6_file = output_folder().$name."_out6.log";
+check_exec("php ".src_folder()."/NGS/db_import_qc.php -id RX120678_01 -files ".data_db_folder()."RX120678_01*.qcML -db NGSD_TEST --log $log6_file");
 
 end_test();
 
