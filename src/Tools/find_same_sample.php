@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("find_same_sample", "Calculates the rare variant overlap for samples.");
 $parser->addString("sample", "Processed sample name.", false);
 $parser->addStringArray("test", "Processed sample names to samples to test.", false);
-$parser->addFloat("max_af", "Maximum AF of variants to use for comparison in ExAC, 1000g, gnomAD", true, 0.02);
+$parser->addFloat("max_af", "Maximum AF of variants to use for comparison in ExAC, gnomAD", true, 0.02);
 extract($parser->parse($argv));
 
 function load_rare_variants($sample, $max_af)
@@ -27,8 +27,6 @@ function load_rare_variants($sample, $max_af)
 	
 	$file = Matrix::fromTSV($gsvar_file);
 	$vars_rare = array();
-	$i_10g = $file->getColumnIndex("1000g", false, false);
-	if ($i_10g==-1) return "1000g column missing";
 	$i_exa = $file->getColumnIndex("ExAC", false, false);
 	if ($i_exa==-1) return "ExAC column missing";
 	$i_gno = $file->getColumnIndex("gnomAD", false, false);
@@ -40,7 +38,6 @@ function load_rare_variants($sample, $max_af)
 	{
 		$row = $file->getRow($i);
 		if (contains($row[$i_fil], "off-target")) continue;
-		if ($row[$i_10g]==0 || $row[$i_10g]>$max_af) continue;
 		if ($row[$i_exa]==0 || $row[$i_exa]>$max_af) continue;
 		if ($row[$i_gno]==0 || $row[$i_gno]>$max_af) continue;
 		

@@ -57,7 +57,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 $vep_output = $parser->tempFile("_vep.vcf");
 
 //annotate only fields we really need to prevent bloating the VCF file 
-$fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation", "AF", "gnomAD_AF", "gnomAD_AFR_AF", "gnomAD_AMR_AF", "gnomAD_EAS_AF", "gnomAD_NFE_AF", "gnomAD_SAS_AF");
+$fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation", "gnomAD_AF", "gnomAD_AFR_AF", "gnomAD_AMR_AF", "gnomAD_EAS_AF", "gnomAD_NFE_AF", "gnomAD_SAS_AF");
 
 $vep_path = dirname(get_path("vep"));
 $local_data = get_path("local_data");
@@ -74,7 +74,7 @@ $args[] = "--numbers --hgvs --domains --transcript_version"; //annotation option
 $args[] = "--regulatory"; //regulatory features
 $fields[] = "BIOTYPE"; 
 $args[] = "--sift b --polyphen b"; //pathogenicity predictions
-$args[] = "--af --af_gnomad --failed 1"; //population frequencies
+$args[] = "--af_gnomad --failed 1"; //population frequencies
 $args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_grch38_all_chromosomes.tsv.gz"); //REVEL
 $fields[] = "REVEL";
 $args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
