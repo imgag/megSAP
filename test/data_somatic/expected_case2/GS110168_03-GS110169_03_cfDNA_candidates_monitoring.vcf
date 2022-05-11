@@ -1,9 +1,9 @@
 ##fileformat=VCFv4.1
-##fileDate=20220510
+##fileDate=20220511
 ##source=strelka
 ##source_version=2.9.9
-##startTime=Tue May 10 14:51:06 2022
-##cmdline=/mnt/storage1/share/opt/strelka-2.9.9.centos6_x86_64/bin//configureStrelkaSomaticWorkflow.py --tumor /mnt/storage1/users/ahott1a1/megSap2/test/data_somatic/Sample_GS110168_03/GS110168_03.bam --normal /mnt/storage1/users/ahott1a1/megSap2/test/data_somatic/Sample_GS110169_03/GS110169_03.bam --referenceFasta /tmp/local_ngs_data_GRCh38//GRCh38.fa --runDir /tmp/megSAP_user_ahott1a1/vc_strelka2_y45yrN/strelkaAnalysis --config /mnt/storage1/share/opt/strelka-2.9.9.centos6_x86_64/bin//configureStrelkaSomaticWorkflow.py.ini --exome --indelCandidates out_case2/GS110168_03-GS110169_03_manta_var_smallIndels.vcf.gz
+##startTime=Wed May 11 08:33:16 2022
+##cmdline=/mnt/storage1/share/opt/strelka-2.9.9.centos6_x86_64/bin//configureStrelkaSomaticWorkflow.py --tumor /mnt/storage1/users/ahott1a1/megSap2/test/data_somatic/Sample_GS110168_03/GS110168_03.bam --normal /mnt/storage1/users/ahott1a1/megSap2/test/data_somatic/Sample_GS110169_03/GS110169_03.bam --referenceFasta /tmp/local_ngs_data_GRCh38//GRCh38.fa --runDir /tmp/megSAP_user_ahott1a1/vc_strelka2_vT6PRc/strelkaAnalysis --config /mnt/storage1/share/opt/strelka-2.9.9.centos6_x86_64/bin//configureStrelkaSomaticWorkflow.py.ini --exome --indelCandidates out_case2/GS110168_03-GS110169_03_manta_var_smallIndels.vcf.gz
 ##reference=file:///tmp/local_ngs_data_GRCh38/GRCh38.fa
 ##content=strelka somatic snv calls
 ##priorSomaticSnvRate=0.0001
@@ -13,7 +13,7 @@
 ##MaxEntScan_alt=MaxEntScan alternate sequence score
 ##MaxEntScan_diff=MaxEntScan score difference
 ##MaxEntScan_ref=MaxEntScan reference sequence score
-##VEP="v104" time="2022-05-10 14:51:55" cache="/tmp/local_ngs_data_GRCh38/ensembl-vep-104/homo_sapiens_refseq/104_GRCh38" ensembl-variation=104.6154f8b ensembl-funcgen=104.f1c7762 ensembl=104.1af1dce ensembl-io=104.1d3bb6e 1000genomes="phase3" COSMIC="92" ClinVar="20210102" ESP="V2-SSA137" HGMD-PUBLIC="20204" assembly="GRCh38.p13" dbSNP="154" gencode="GENCODE 38" genebuild="2014-07" gnomAD="r2.1.1" polyphen="2.2.2" refseq="2020-12-10 18:46:50 - GCF_000001405.39_GRCh38.p13_genomic.gff" regbuild="1.0" sift="sift5.2.2"
+##VEP="v104" time="2022-05-11 08:36:36" cache="/tmp/local_ngs_data_GRCh38/ensembl-vep-104/homo_sapiens_refseq/104_GRCh38" ensembl=104.1af1dce ensembl-funcgen=104.f1c7762 ensembl-variation=104.6154f8b ensembl-io=104.1d3bb6e 1000genomes="phase3" COSMIC="92" ClinVar="20210102" ESP="V2-SSA137" HGMD-PUBLIC="20204" assembly="GRCh38.p13" dbSNP="154" gencode="GENCODE 38" genebuild="2014-07" gnomAD="r2.1.1" polyphen="2.2.2" refseq="2020-12-10 18:46:50 - GCF_000001405.39_GRCh38.p13_genomic.gff" regbuild="1.0" sift="sift5.2.2"
 ##contig=<ID=chr1,length=248956422>
 ##contig=<ID=chr10,length=133797422>
 ##contig=<ID=chr11,length=135086622>
