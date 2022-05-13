@@ -621,16 +621,12 @@ $qc_rna = "{$prefix}_stats_RNA.qcML";
 if (in_array("ma", $steps) || in_array("rc", $steps) || in_array("an", $steps))
 {
 	$args = [
-		"-bam", $umi ? $before_dedup_bam : $final_bam,
+		"-bam", $final_bam,
 		"-housekeeping_genes", repository_basedir()."/data/gene_lists/housekeeping_genes_".ngsbits_build($sys['build']).".bed",
 		"-out", $qc_rna,
 		"-ref", genome_fasta($sys['build'])
 	];
 
-	if (file_exists($counts_normalized))
-	{
-		$args[] = "-rna_counts ".$counts_normalized;
-	}
 	if (file_exists($splicing_gene))
 	{
 		$args[] = "-splicing ".$splicing_gene;
@@ -654,6 +650,17 @@ if (in_array("db", $steps))
 	$qc_file_list = array($qc_fastq, $qc_map);
 	if (file_exists($qc_rna)) $qc_file_list[] = $qc_rna;
 	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_file_list)." -force --log ".$parser->getLogFile());
+
+	//import expression data
+	if (file_exists($expr))
+	{
+		$args = [
+			"-expression", $expr,
+			"-ps", $name,
+			"-force"
+		];
+		$parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", implode(" ", $args));
+	}
 }
 
 ?>
