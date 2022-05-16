@@ -627,10 +627,6 @@ if (in_array("ma", $steps) || in_array("rc", $steps) || in_array("an", $steps))
 		"-ref", genome_fasta($sys['build'])
 	];
 
-	if (file_exists($counts_normalized))
-	{
-		$args[] = "-rna_counts ".$counts_normalized;
-	}
 	if (file_exists($splicing_gene))
 	{
 		$args[] = "-splicing ".$splicing_gene;
