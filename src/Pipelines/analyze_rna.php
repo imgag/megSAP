@@ -73,12 +73,10 @@ $in_umi = glob($folder."/*_index_*.fastq.gz");
 //set UMI flag
 $umi = in_array($sys['umi_type'], ["IDT-UDI-UMI"]) && !empty($in_umi);
 
-if ((count($in_for) == 0) && (count($in_rev) == 0))
+if (empty($in_for) && empty($in_rev))
 {
 	trigger_error("No FASTQ files found!", E_USER_ERROR);
 }
-
-$paired = (count($in_rev) != 0);
 
 $filter_hb = false;
 if (db_is_enabled("NGSD"))
@@ -116,124 +114,93 @@ if (in_array("ma", $steps))
 		trigger_error("No forward and/or reverse adapter sequence given!\nForward: ".$sys["adapter1_p5"]."\nReverse: ".$sys["adapter2_p7"], E_USER_ERROR);
 	}
 
-	//adapter trimming + QC (SeqPurge for paired-end, ReadQC+skewer for single-end)
-	if ($paired)
-	{
-		$fastq_trimmed1 = $parser->tempFile("_trimmed.fastq.gz");
-		$fastq_trimmed2 = $parser->tempFile("_trimmed.fastq.gz");
-		$seqpurge_params = [
-			"-out1", $fastq_trimmed1,
-			"-out2", $fastq_trimmed2,
-			"-a1", $sys["adapter1_p5"],
-			"-a2", $sys["adapter2_p7"],
-			"-qc", $qc_fastq,
-			"-threads", bound($threads, 1, 6),
-			"-qcut 0"
-		];
+	//adapter trimming + QC
+	$fastq_trimmed1 = $parser->tempFile("_trimmed.fastq.gz");
+	$fastq_trimmed2 = $parser->tempFile("_trimmed.fastq.gz");
+	$seqpurge_params = [
+		"-out1", $fastq_trimmed1,
+		"-out2", $fastq_trimmed2,
+		"-a1", $sys["adapter1_p5"],
+		"-a2", $sys["adapter2_p7"],
+		"-qc", $qc_fastq,
+		"-threads", bound($threads, 1, 6),
+		"-qcut 0"
+	];
 
-		if (in_array($sys['umi_type'], ["IDT-UDI-UMI"]))
+	if (in_array($sys['umi_type'], ["IDT-UDI-UMI"]))
+	{
+		if (empty($in_umi))
 		{
-			if (empty($in_umi))
-			{
-				trigger_error("No UMI read files found! Processing fastqs without UMIs.", E_USER_WARNING);
-				$seqpurge_params = array_merge($seqpurge_params,
-				[
-					"-in1", implode(" ", $in_for),
-					"-in2", implode(" ", $in_rev)
-				]);
-			}
-			else
-			{
-				// add barcodes to header
-				$merged1_bc = $parser->tempFile("_bc1.fastq.gz");
-				$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
-				$parser->exec(get_path("ngs-bits")."FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $in_umi)." -out1 $merged1_bc -out2 $merged2_bc", true);
-				
-				$seqpurge_params = array_merge($seqpurge_params,
-					[
-						"-in1", $merged1_bc,
-						"-in2", $merged2_bc
-					]);
-			}
+			trigger_error("No UMI read files found! Processing fastqs without UMIs.", E_USER_WARNING);
+			$seqpurge_params = array_merge($seqpurge_params,
+			[
+				"-in1", implode(" ", $in_for),
+				"-in2", implode(" ", $in_rev)
+			]);
 		}
 		else
 		{
+			// add barcodes to header
+			$merged1_bc = $parser->tempFile("_bc1.fastq.gz");
+			$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
+			$parser->exec(get_path("ngs-bits")."FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $in_umi)." -out1 $merged1_bc -out2 $merged2_bc", true);
+			
 			$seqpurge_params = array_merge($seqpurge_params,
 				[
-					"-in1", implode(" ", $in_for),
-					"-in2", implode(" ", $in_rev)
+					"-in1", $merged1_bc,
+					"-in2", $merged2_bc
 				]);
 		}
-
-		$parser->exec(get_path("ngs-bits")."SeqPurge", implode(" ", $seqpurge_params), true);
 	}
 	else
 	{
-		$parser->exec(get_path("ngs-bits")."ReadQC", "-in1 ".implode(" ", $in_for)." -out $qc_fastq", true);
-
-		$fastq_trimmed_tmpdir = $parser->tempFolder();
-		$fastq_trimmed1 = "{$fastq_trimmed_tmpdir}/{$name}-trimmed.fastq.gz";
-		
-		$skewer_params = [
-			"-x", $sys["adapter1_p5"],
-			"--mode tail",
-			"--threads", bound($threads, 1, 6),
-			"--compress",
-			"--output", "{$fastq_trimmed_tmpdir}/{$name}",
-			"-"
-		];
-		
-		$pipeline = [
-			["zcat", implode(" ", $in_for)],
-			[get_path("skewer"), implode(" ", $skewer_params)]
-		];
-		$parser->execPipeline($pipeline, "skewer");
+		$seqpurge_params = array_merge($seqpurge_params,
+			[
+				"-in1", implode(" ", $in_for),
+				"-in2", implode(" ", $in_rev)
+			]);
 	}
+
+	$parser->exec(get_path("ngs-bits")."SeqPurge", implode(" ", $seqpurge_params), true);
+
 }
 if (in_array("ma", $steps))
 {
 	if ($filter_hb)
 	{
-		if ($paired)
-		{
-			$kraken_tmpdir = $parser->tempFolder("kraken2_filter_hb");
-			$filtered = "{$kraken_tmpdir}/filtered#.fastq";
-			$filtered1 = "{$kraken_tmpdir}/filtered_1.fastq";
-			$filtered2 = "{$kraken_tmpdir}/filtered_2.fastq";
-			$kraken_args = [
-				"--db", get_path("data_folder")."/dbs/kraken2_filter_hb",
-				"--threads", $threads,
-				"--output", "-",
-				"--paired",
-				"--gzip-compressed",
-				"--unclassified-out", "{$kraken_tmpdir}/filtered#.fastq",
-				$fastq_trimmed1,
-				$fastq_trimmed2
-			];
-			$parser->exec(get_path("kraken2"), implode(" ", $kraken_args));
-			$parser->exec("gzip", "-1 {$filtered1}");
-			$parser->exec("gzip", "-1 {$filtered2}");
-			// $parser->exec("pigz", "-p {$threads} {$filtered1}");
-			// $parser->exec("pigz", "-p {$threads} {$filtered2}");
+		$kraken_tmpdir = $parser->tempFolder("kraken2_filter_hb");
+		$filtered = "{$kraken_tmpdir}/filtered#.fastq";
+		$filtered1 = "{$kraken_tmpdir}/filtered_1.fastq";
+		$filtered2 = "{$kraken_tmpdir}/filtered_2.fastq";
+		$kraken_args = [
+			"--db", get_path("data_folder")."/dbs/kraken2_filter_hb",
+			"--threads", $threads,
+			"--output", "-",
+			"--paired",
+			"--gzip-compressed",
+			"--unclassified-out", "{$kraken_tmpdir}/filtered#.fastq",
+			$fastq_trimmed1,
+			$fastq_trimmed2
+		];
+		$parser->exec(get_path("kraken2"), implode(" ", $kraken_args));
+		$parser->exec("gzip", "-1 {$filtered1}");
+		$parser->exec("gzip", "-1 {$filtered2}");
+		// $parser->exec("pigz", "-p {$threads} {$filtered1}");
+		// $parser->exec("pigz", "-p {$threads} {$filtered2}");
 
-			$fastq_trimmed1 = "{$filtered1}.gz";
-			$fastq_trimmed2 = "{$filtered2}.gz";
-		}
-		else
-		{
-			trigger_error("not implemented", E_USER_ERROR);
-		}
+		$fastq_trimmed1 = "{$filtered1}.gz";
+		$fastq_trimmed2 = "{$filtered2}.gz";
 	}
 	//mapping
 	$args = array(
 		"-out", $umi ? $before_dedup_bam : $final_bam,
 		"-threads", $threads,
 		"-in1", $fastq_trimmed1,
+		"-in2", $fastq_trimmed2,
 		"-genome", $genome,
 		"--log", $parser->getLogFile()
 	);
 
-	if ($paired) $args[] = "-in2 $fastq_trimmed2";
 	if ($skip_dedup) $args[] = "-skip_dedup";
 	
 	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
@@ -281,13 +248,10 @@ $counts_qc = $prefix."_stats_rc.tsv";
 $repair_bam = $final_bam;
 if (in_array("rc", $steps))
 {
-	if ($paired)
-	{
-		$tmpdir = $parser->tempFolder();
-		$repair_bam = "{$tmpdir}/{$name}.bam";
-		$parser->exec(dirname(get_path("feature_counts")) . "/utilities/repair",
-			"-i {$final_bam} -o {$repair_bam} -T {$threads}", true);
-	}
+	$tmpdir = $parser->tempFolder();
+	$repair_bam = "{$tmpdir}/{$name}.bam";
+	$parser->exec(dirname(get_path("feature_counts")) . "/utilities/repair",
+		"-i {$final_bam} -o {$repair_bam} -T {$threads}", true);
 	
 	$args_common = array(
 		"-in", $repair_bam,
@@ -295,11 +259,6 @@ if (in_array("rc", $steps))
 		"-gtf_file", $gtfFile,
 		"-threads", $threads
 	);
-	
-	if (!$paired)
-	{
-		$args_common[] = "-single_end";
-	}
 
 	$args = array_merge($args_common, [
 		"-out", $counts_raw,
