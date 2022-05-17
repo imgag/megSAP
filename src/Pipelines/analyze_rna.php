@@ -21,7 +21,6 @@ $steps_all = array("ma", "rc", "an", "fu", "db", "plt");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, rc=read counting, an=annotation, fu=fusion detection, db=import into NGSD", true, "ma,rc,an,fu,db,plt");
 
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
-$parser->addFlag("abra", "Enable indel realignment with ABRA.");
 $parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
 $parser->addString("fusion_caller", "Fusion callers to run, separated by comma.", true, "arriba,star-fusion");
 $parser->addFlag("skip_filter_hb", "Do not automatically filter input FASTQ for globin reads for blood samples.");
@@ -306,33 +305,6 @@ if (in_array("ma", $steps))
 	if ($skip_dedup) $args[] = "-skip_dedup";
 	
 	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
-
-	//indel realignment
-	if ($abra)
-	{
-		$junction_file = "{$prefix}_splicing.tsv";
-		if (!file_exists($junction_file))
-		{
-			trigger_error("Could not open junction file '$junction_file' needed for indel realignment. Please re-run mapping step.", E_USER_ERROR);
-		}
-		
-		$abra_out = $parser->tempFile("_abra_realigned.bam");
-		
-		$abra_params = array(
-			"-in", $umi ? $before_dedup_bam : $final_bam,
-			"-out", $abra_out,
-			"-threads", $threads,
-			"-build", $build,
-			"-gtf", $gtfFile,
-			"-junctions", $junction_file
-		);
-		if (!$paired) $abra_params[] = "-se";
-		if (isset($target_file) && $target_file != "") $abra_params[] = "-roi {$target_file}";
-		
-		$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $abra_params));
-		$parser->moveFile($abra_out, $umi ? $before_dedup_bam : $final_bam);
-		$parser->indexBam($umi ? $before_dedup_bam : $final_bam, $threads);
-	}
 
 	if ($umi)
 	{
