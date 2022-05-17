@@ -23,7 +23,12 @@ $dragen_genome_path = get_path("dragen_genomes");
 
 //check if input files are readable and output file is writeable:
 if (!is_readable($in)) trigger_error("Input file '.$in.' is not readable!", E_USER_ERROR);
-if (!is_readable($in.".bai")) trigger_error("Input file '.$in.' has no index!", E_USER_ERROR);
+$bam_index_extension = ".bai";
+if (!is_readable($in.$bam_index_extension))
+{
+	$bam_index_extension = ".csi";
+	if (!is_readable($in.$bam_index_extension)) trigger_error("Input file '.$in.' has no index!", E_USER_ERROR);
+} 
 if (!is_writable2($out)) trigger_error("Output file '.$out.' is not writable!", E_USER_ERROR);
 
 // create temporary folder for analysis:
@@ -37,9 +42,9 @@ if (!mkdir($working_dir, 0700)) trigger_error("Could not create working director
 
 // copy BAM file to local storage
 $local_bam = $working_dir.basename($in);
-$local_bam_index = $working_dir.basename($in).".bai";
+$local_bam_index = $working_dir.basename($in).$bam_index_extension;
 $parser->copyFile($in, $local_bam);
-$parser->copyFile($in.".bai", $local_bam_index);
+$parser->copyFile($in.$bam_index_extension, $local_bam_index);
 
 // generate parameter list for dragen
 $dragen_parameter = array();
