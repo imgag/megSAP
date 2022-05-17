@@ -21,7 +21,6 @@ $steps_all = array("ma", "rc", "an", "fu", "db", "plt");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, rc=read counting, an=annotation, fu=fusion detection, db=import into NGSD", true, "ma,rc,an,fu,db,plt");
 
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
-$parser->addFlag("no_splicing", "Disable spliced read alignment.");
 $parser->addFlag("abra", "Enable indel realignment with ABRA.");
 $parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
 $parser->addString("fusion_caller", "Fusion callers to run, separated by comma.", true, "arriba,star-fusion");
@@ -304,7 +303,6 @@ if (in_array("ma", $steps))
 	);
 
 	if ($paired) $args[] = "-in2 $fastq_trimmed2";
-	if ($no_splicing) $args[] = "-no_splicing";
 	if ($skip_dedup) $args[] = "-skip_dedup";
 	
 	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
