@@ -27,7 +27,6 @@ $parser->addFlag("skip_filter_hb", "Do not automatically filter input FASTQ for 
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
-$parser->addInt("min_read_length", " Minimum read length after SeqPurge adapter trimming. Shorter reads are discarded.", true, 30);   
 
 extract($parser->parse($argv));
 
@@ -195,8 +194,7 @@ if (in_array("ma", $steps) || (in_array("fu", $steps) && in_array("star-fusion",
 			"-a2", $sys["adapter2_p7"],
 			"-qc", $qc_fastq,
 			"-threads", bound($threads, 1, 6),
-			"-qcut 0",
-			"-min_len", $min_read_length
+			"-qcut 0"
 		];
 
 		if (in_array($sys['umi_type'], ["IDT-UDI-UMI"]))
