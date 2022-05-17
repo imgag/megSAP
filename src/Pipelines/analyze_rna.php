@@ -22,7 +22,6 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mappi
 
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
 $parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
-$parser->addString("fusion_caller", "Fusion callers to run, separated by comma.", true, "arriba,star-fusion");
 $parser->addFlag("skip_filter_hb", "Do not automatically filter input FASTQ for globin reads for blood samples.");
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
@@ -81,8 +80,6 @@ if ((count($in_for) == 0) && (count($in_rev) == 0))
 
 $paired = (count($in_rev) != 0);
 
-$fusion_caller = explode(",", $fusion_caller);
-
 $filter_hb = false;
 if (db_is_enabled("NGSD"))
 {
@@ -100,7 +97,7 @@ $final_bam = $prefix.".bam";
 $before_dedup_bam = $prefix."_before_dedup.bam";
 $qc_fastq = $prefix."_stats_fastq.qcML";
 $qc_map = $prefix."_stats_map.qcML";
-if (in_array("ma", $steps) || (in_array("fu", $steps) && in_array("star-fusion",$fusion_caller)))
+if (in_array("ma", $steps))
 {
 	//check FASTQ quality encoding
 	$files = array_merge($in_for, $in_rev);
@@ -421,104 +418,12 @@ if (in_array("plt", $steps))
 }
 
 //detect fusions
-if (in_array("fu",$steps) && in_array("star-fusion",$fusion_caller))
-{
-	//path of STAR-Fusion index
-	$fusion_index = get_path("data_folder")."/genomes/STAR-Fusion/{$build}";
-	
-	if (is_dir($fusion_index)) {
-	
-		//add samtools to path
-		putenv("PATH=" . implode(":", [
-			dirname(get_path("STAR-Fusion_samtools")),
-			dirname(get_path("STAR")),
-			getenv("PATH")
-		]));
-
-		$fusion_tmp_folder = $parser->tempFolder();
-		$chimeric_file = $umi ? "{$prefix}_before_dedup_chimeric.tsv" : "{$prefix}_chimeric.tsv" ;
-		if (!file_exists($chimeric_file))
-		{
-			trigger_error("Could not open chimeric file '$chimeric_file' needed for STAR-Fusion. Please re-run mapping step.", E_USER_ERROR);
-		}
-
-		//remove header from chimeric file for STAR-Fusion
-		$chimeric_file_tmp = $parser->tempFile("_STAR_chimeric.tsv");
-		$chimeric_file_f = file($chimeric_file);
-		array_shift($chimeric_file_f);
-		file_put_contents($chimeric_file_tmp, $chimeric_file_f);
-
-		$starfusion_params = [
-			"--genome_lib_dir", $fusion_index,
-			"--chimeric_junction", $chimeric_file_tmp,
-			"--output_dir", $fusion_tmp_folder,
-			"--examine_coding_effect",
-			"--CPU", $threads,
-			"--min_FFPM", "0"
-		];
-
-		$input_reads_available = isset($fastq_trimmed1) &&
-			is_file($fastq_trimmed1) &&
-			(!$paired || (isset($fastq_trimmed2) && is_file($fastq_trimmed2)));
-		if ($input_reads_available)
-		{
-			$starfusion_params[] = "--FusionInspector inspect";
-			$starfusion_params[] = "--left_fq ". $fastq_trimmed1;
-			if ($paired)
-			{
-				$starfusion_params[] = "--right_fq " . $fastq_trimmed2;
-			}
-		}
-		//specify neccessary pythonpath
-		putenv("PYTHONPATH=" . get_path("STAR-Fusion_pythonpath"));
-		$parser->exec(get_path("STAR-Fusion"), implode(" ", $starfusion_params), true);
-
-		$output_files = [ "{$fusion_tmp_folder}/star-fusion.fusion_predictions.abridged.coding_effect.tsv" => "{$prefix}_var_fusions.tsv" ];
-		if ($input_reads_available)
-		{
-			$output_files = array_filter(array_merge([
-				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.consolidated.cSorted.bam" => "{$prefix}_var_fusions.bam",
-				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.consolidated.cSorted.bam.bai" => "{$prefix}_var_fusions.bam.bai",
-				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa" => "{$prefix}_var_fusions.fa",
-				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa.fai" => "{$prefix}_var_fusions.fa.fai",
-				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.gtf" => "{$prefix}_var_fusions.gtf",
-				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fusion_inspector_web.html" => "{$prefix}_fusions.html"
-			], $output_files), "file_exists", ARRAY_FILTER_USE_KEY);
-		}
-		foreach ($output_files as $src => $dest)
-		{
-			$parser->moveFile($src, $dest);
-		}
-	}
-	else
-	{
-		trigger_error("STAR-Fusion index not present. Skipping fusion detection step.", E_USER_WARNING);
-	}
-}
-
-$fusions_manta_vcf = "{$prefix}_var_fusions_manta.vcf.gz";
-$fusions_manta_bedpe = "{$prefix}_var_fusions_manta.bedpe";
-if (in_array("fu",$steps) && in_array("manta",$fusion_caller))
-{
-	$manta_args = [
-		"-out", $fusions_manta_vcf,
-		"-bam", $final_bam,
-		"-evid_dir", "{$out_folder}/manta_evid",
-		"-build", $build,
-		"-rna",
-		"-config_preset", "high_sensitivity"
-	];
-	$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
-	$parser->exec(get_path("ngs-bits") . "VcfToBedpe", "-in {$fusions_manta_vcf} -out {$fusions_manta_bedpe}", true);
-	$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in {$fusions_manta_bedpe} -out {$fusions_manta_bedpe} -add_simple_gene_names", true);
-}
-
 $fusions_arriba_tsv = "{$prefix}_fusions_arriba.tsv";
 $fusions_arriba_vcf = "{$prefix}_fusions_arriba.vcf";
 $fusions_arriba_bam = "{$prefix}_fusions_arriba.bam";
 $fusions_arriba_discarded_tsv = "{$prefix}_fusions_arriba.discarded.tsv";
 $fusions_arriba_pdf = "{$prefix}_fusions_arriba.pdf";
-if (in_array("fu",$steps) && in_array("arriba",$fusion_caller))
+if (in_array("fu",$steps))
 {
 	$arriba_args = [
 		"-bam", $umi ? $before_dedup_bam : $final_bam,
