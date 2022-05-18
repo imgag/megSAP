@@ -879,6 +879,29 @@ if (in_array("sv", $steps) && !$annotation_only)
 	$parser->execTool("NGS/vc_expansionhunter.php", "-in $local_bamfile -out $expansion_hunter_file -build ".$sys['build']." -pid $name");
 }
 
+// Create Circos plot only if variant or copy-number calling was done
+if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
+{
+	if ($is_wes || $is_wgs || $is_wgs_shallow)
+	{
+		if (file_exists($cnvfile))
+		{
+			if (file_exists($cnvfile2))
+			{
+				$parser->execTool("NGS/create_circos_plot.php", "-folder $folder -name $name -build ".$sys['build']);
+			}
+			else
+			{
+				trigger_error("CNV file $cnvfile2 missing. Cannot create Circos plot!", E_USER_WARNING);
+			}
+		}
+		else
+		{
+			trigger_error("CNV file $cnvfile missing. Cannot create Circos plot!", E_USER_WARNING);
+		}
+	}
+}
+
 //import to database
 if (in_array("db", $steps))
 {
@@ -925,30 +948,6 @@ if (in_array("db", $steps))
 	if ($import)
 	{
 		$parser->exec("{$ngsbits}NGSDAddVariantsGermline", implode(" ", $args), true);
-	}
-}
-
-
-// Create Circos plot only if variant or copy-number calling was done
-if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
-{
-	if ($is_wes || $is_wgs || $is_wgs_shallow)
-	{
-		if (file_exists($cnvfile))
-		{
-			if (file_exists($cnvfile2))
-			{
-				$parser->execTool("NGS/create_circos_plot.php", "-folder $folder -name $name -build ".$sys['build']);
-			}
-			else
-			{
-				trigger_error("CNV file $cnvfile2 missing. Cannot create Circos plot!", E_USER_WARNING);
-			}
-		}
-		else
-		{
-			trigger_error("CNV file $cnvfile missing. Cannot create Circos plot!", E_USER_WARNING);
-		}
 	}
 }
 

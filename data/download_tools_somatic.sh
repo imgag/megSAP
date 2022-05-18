@@ -7,8 +7,8 @@ folder=$root/tools/
 cd $folder
 
 #download hla-genotyper
-wget https://github.com/axelgschwind/hla-genotyper/archive/refs/tags/2022_04.tar.gz
-tar xzf 2022_04.tar.gz
+wget https://github.com/axelgschwind/hla-genotyper/archive/refs/tags/2022_05.tar.gz
+tar xzf 2022_05.tar.gz
 
 #download varscan2
 cd $folder

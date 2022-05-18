@@ -65,6 +65,7 @@ case2_analyze:
 		-system system_pair.ini \
 		-threads 1 \
 		--log Sample_GS110169_03/analyze.log
+
 case2_somatic:
 	php ../../src/Pipelines/somatic_dna.php \
 		-t_bam Sample_GS110168_03/GS110168_03.bam -n_bam Sample_GS110169_03/GS110169_03.bam \
@@ -77,6 +78,7 @@ case2_somatic:
 		-min_depth_t 100 \
 		-min_depth_n 100 \
 		--log out_case2/GS110168_03-GS110169_03.log
+
 case2_diff:
 	# variants
 	php ../compare_variants.php -in1 expected_case2/GS110168_03-GS110169_03.GSvar -in2 out_case2/GS110168_03-GS110169_03.GSvar
@@ -93,6 +95,7 @@ case2_diff:
 
 #Test MANTA SV calls with positive fusion control
 case3: case3_somatic case3_diff
+
 case3_somatic:
 	php ../../src/Pipelines/somatic_dna.php \
 		-t_bam ../data/manta_sv_tumor.bam -n_bam ../data/manta_sv_normal.bam \
@@ -104,6 +107,8 @@ case3_somatic:
 		-min_depth_t 100 \
 		-min_depth_n 100 \
 		--log out_case3/tumor-normal.log
+	rm ../data/manta_sv_normal_hla_genotyper.tsv ../data/manta_sv_tumor_hla_genotyper.tsv
+
 case3_diff:
 	# remove gene annotation if present
 	cut -f1-27 out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe > out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe
