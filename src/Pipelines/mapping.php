@@ -165,6 +165,10 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq",
 			$cut1 = 0;
 			$cut2 = 12;
 			break;
+		case "Twist":		//5bp each from R1, R2
+			$cut1 = 5;
+			$cut2 = 5;
+			break;
 	}
 
 	$trimmed1_bc = $parser->tempFile("_trimmed1_bc.fastq.gz");
