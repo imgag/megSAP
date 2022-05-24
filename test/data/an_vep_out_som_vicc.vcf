@@ -150,7 +150,7 @@
 ##INFO=<ID=NGSD_SOM_P,Number=.,Type=String,Description="Project names of project containing this somatic variant in the NGSD. (from file an_vep_NGSD_somatic.vcf.gz)">
 ##INFO=<ID=NGSD_SOM_VICC,Number=1,Type=String,Description="Somatic variant interpretation according VICC standard in the NGSD. (from file an_vep_NGSD_somatic.vcf.gz)">
 ##INFO=<ID=NGSD_SOM_VICC_COMMENT,Number=1,Type=String,Description="Somatic VICC interpretation comment in the NGSD. (from file an_vep_NGSD_somatic.vcf.gz)">
-##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3.1 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG); acceptor loss (AL); donor gain (DG); and donor loss (DL)(for all NGSD variants exported on 13.12.2020). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL (from file spliceai_scores_2022_02_09_GRCh38.vcf.gz)">
+##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3.1 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG); acceptor loss (AL); donor gain (DG); and donor loss (DL)(for all NGSD variants exported on 13.12.2020). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL (from file spliceai_scores_2022_05_24_GRCh38.vcf.gz)">
 ##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="Annotation from /tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/RepeatMasker_GRCh38.bed delimited by '&'">
 ##INFO=<ID=OMIM,Number=.,Type=String,Description="Annotation from /tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/omim.bed delimited by '&'">
 ##FILTER=<ID=all-unknown,Description="Allele unknown">
