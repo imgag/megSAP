@@ -681,6 +681,8 @@ if (in_array("cn", $steps))
 		{
 			$content = array(
 				"##ANALYSISTYPE=GERMLINE_SINGLESAMPLE",
+				"##PIPELINE=".repository_revision(true),
+				"##GENOME_BUILD=GRCh38",
 				"##SAMPLE=<ID={$name},Gender=n/a,ExternalSampleName=n/a,IsTumor=n/a,IsFFPE=n/a,DiseaseGroup=n/a,DiseaseStatus=affected>",
 				"##DESCRIPTION={$name}=Genotype of variant in sample.",
 				"##DESCRIPTION=filter=Annotations for filtering and ranking variants.",
