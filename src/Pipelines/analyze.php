@@ -44,6 +44,7 @@ $ngsbits = get_path("ngs-bits");
 $sys = load_system($system, $name);
 $is_wes = $sys['type']=="WES";
 $is_wgs = $sys['type']=="WGS";
+$is_panel = $sys['type']=="Panel";
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
 $has_roi = $sys['target_file']!="";
 
@@ -455,23 +456,30 @@ if (in_array("vc", $steps))
 		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
 		
 		//call mosaic variants on exon region:
-		if ($is_wgs || $is_wes)
+		if ($is_wgs || $is_wes || ($is_panel && $has_roi))
 		{
 			$args = [];
 			$args[] = "-in {$local_bamfile}";
 			$args[] = "-vcf {$vcffile}";
 			$args[] = "-out {$mosaic_file}";
-			$args[] = "-target ".repository_basedir()."data/gene_lists/gene_exons_pad20.bed";
-			$args[] = "-threads $threads";
-			$args[] = "-build ".$sys['build'];
-			
-			if ($is_wes)
+			if ($is_panel)
 			{
-				$args[] = "-min_obs 2";				
+				$args[] = "-target ".$sys['target_file'];
 			}
 			else
 			{
-				$args[] = "-min_obs 1";
+				$args[] = "-target ".repository_basedir()."data/gene_lists/gene_exons_pad20.bed";
+			}
+			$args[] = "-threads $threads";
+			$args[] = "-build ".$sys['build'];
+			
+			if ($is_wgs)
+			{
+				$args[] = "-min_obs 1";				
+			}
+			else
+			{
+				$args[] = "-min_obs 2";
 			}
 			$parser->execTool("NGS/vc_mosaic.php", implode(" ", $args));
 			
