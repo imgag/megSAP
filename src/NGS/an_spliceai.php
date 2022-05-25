@@ -40,7 +40,6 @@ function vcf_variant_count($vcf, $lines_containing=null)
 function filter_by_annotation($vcf_in, $vcf_out, $max_af)
 {
 	//init
-	$csq_tg_idx = -1;
 	$csq_gnomad_idx = -1;
 	$c_written = 0;
 	
@@ -65,11 +64,7 @@ function filter_by_annotation($vcf_in, $vcf_out, $max_af)
 				for($i=0; $i<count($entries); ++$i)
 				{
 					$entry = trim($entries[$i]);
-					if($entry=='AF')
-					{
-                        $csq_tg_idx = $i;
-					}
-					else if($entry=='gnomAD_AF')
+					if($entry=='gnomAD_AF')
 					{
 						$csq_gnomad_idx = $i;
 					}
@@ -104,12 +99,6 @@ function filter_by_annotation($vcf_in, $vcf_out, $max_af)
 					$info_entry = explode('=', $info_entry, 2);
 					$csq_annotations = explode('|', $info_entry[1]);
 
-					//1000G AF
-					$value = $csq_annotations[$csq_tg_idx];
-					if (is_numeric($value))
-					{
-						$af = max($af, $value);
-					}
 					//gnomAD AF (exome)
 					$value = $csq_annotations[$csq_gnomad_idx];
 					if (is_numeric($value))
