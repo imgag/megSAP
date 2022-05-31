@@ -12,6 +12,7 @@ $parser->addOutfile("out_vcf", "Fusion report in VCF4.3 format.", false);
 $parser->addOutfile("out_discarded", "Discarded fusions in TSV format.", true);
 $parser->addOutfile("out_pdf", "Fusion report in PDF format.", true);
 $parser->addOutfile("out_bam", "Output BAM file with fusion-supporting reads.", true);
+$parser->addOutfile("out_pic_dir", "Output directory which contains all fusion pictures as PNGs.", true);
 
 $parser->addInfile("sv", "Optional structural variants from DNA sequencing, in VCF format.", true);
 
@@ -85,7 +86,15 @@ if (isset($out_pdf)) {
         "--minConfidenceForCircosPlot=none"
     ];
     $parser->exec(get_path("arriba") . "/conda_env/bin/Rscript " . get_path("arriba") . "/draw_fusions.R", implode(" ", $plot_args));
+	
+	if (isset($out_pic_dir))
+	{
+		if(!file_exists($out_pic_dir)) mkdir($out_pic_dir);
+		$parser->exec("gs", "-sDEVICE=png16m -dTextAlphaBits=4 -r300 -o {$out_pic_dir}/%04d.png $out_pdf");
+	}
 }
+
+
 
 
 //extract fusion-supporting reads in extra BAM file

@@ -613,6 +613,7 @@ $fusions_arriba_vcf = "{$prefix}_fusions_arriba.vcf";
 $fusions_arriba_bam = "{$prefix}_fusions_arriba.bam";
 $fusions_arriba_discarded_tsv = "{$prefix}_fusions_arriba.discarded.tsv";
 $fusions_arriba_pdf = "{$prefix}_fusions_arriba.pdf";
+$fusions_arriba_pic_dir = "{$prefix}_fusions_arriba_pics";
 if (in_array("fu",$steps) && in_array("arriba",$fusion_caller))
 {
 	$arriba_args = [
@@ -622,6 +623,7 @@ if (in_array("fu",$steps) && in_array("arriba",$fusion_caller))
 		"-out_discarded", $fusions_arriba_discarded_tsv,
 		"-out_bam", $fusions_arriba_bam,
 		"-out_pdf", $fusions_arriba_pdf,
+		"-out_pic_dir", $fusions_arriba_pic_dir,
 		"-build", $build,
 		"--log", $parser->getLogFile()
 	];
