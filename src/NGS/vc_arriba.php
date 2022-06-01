@@ -101,7 +101,15 @@ if (isset($out_pdf)) {
 if (isset($out_bam)) {
     $fusions = Matrix::fromTSV($out_fusions);
     $reads_rows = $fusions->getCol($fusions->getColumnIndex("read_identifiers"));
-    $reads = explode(",", implode(",", $reads_rows), -1);
+    //fix read id concatenation, UMI reads use , in read id
+    if ((count($reads_rows) !== 0) && (str_contains($read_rows[0], ",,")))
+    {
+        $reads = explode("|", implode("|", str_replace(",,", ",|", $reads_rows)), -1);
+    }
+    else
+    {
+        $reads = explode(",", implode(",", $reads_rows), -1);
+    }
     if (count($reads) !== 0)
     {
         $read_ids = $parser->tempFile("_readids.txt");
