@@ -72,9 +72,9 @@ if (isset($out_vcf)) {
 
 
 //generate plot in PDF format
-//limit to top ~10 fusions
+//limit to top ~20 fusions
 $top_fusions = $parser->tempFile("_top_fusions.txt");
-$parser->exec("head", "-n 11 {$out_fusions} > {$top_fusions}");
+$parser->exec("head", "-n 21 {$out_fusions} > {$top_fusions}");
 if (isset($out_pdf)) {
     $plot_args = [
         "--annotation={$gtf}",
