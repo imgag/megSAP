@@ -12,6 +12,7 @@ $parser->addOutfile("out_vcf", "Fusion report in VCF4.3 format.", false);
 $parser->addOutfile("out_discarded", "Discarded fusions in TSV format.", true);
 $parser->addOutfile("out_pdf", "Fusion report in PDF format.", true);
 $parser->addOutfile("out_bam", "Output BAM file with fusion-supporting reads.", true);
+$parser->addString("out_pic_dir", "Output directory which contains all fusion pictures as PNGs.", true);
 
 $parser->addInfile("sv", "Optional structural variants from DNA sequencing, in VCF format.", true);
 
@@ -71,9 +72,9 @@ if (isset($out_vcf)) {
 
 
 //generate plot in PDF format
-//limit to top ~10 fusions
+//limit to top ~20 fusions
 $top_fusions = $parser->tempFile("_top_fusions.txt");
-$parser->exec("head", "-n 11 {$out_fusions} > {$top_fusions}");
+$parser->exec("head", "-n 21 {$out_fusions} > {$top_fusions}");
 if (isset($out_pdf)) {
     $plot_args = [
         "--annotation={$gtf}",
@@ -85,14 +86,30 @@ if (isset($out_pdf)) {
         "--minConfidenceForCircosPlot=none"
     ];
     $parser->exec(get_path("arriba") . "/conda_env/bin/Rscript " . get_path("arriba") . "/draw_fusions.R", implode(" ", $plot_args));
+	
+	if (isset($out_pic_dir))
+	{
+		if(!file_exists($out_pic_dir)) mkdir($out_pic_dir);
+		$parser->exec("gs", "-sDEVICE=png16m -dTextAlphaBits=4 -r300 -o {$out_pic_dir}/%04d.png $out_pdf");
+	}
 }
+
+
 
 
 //extract fusion-supporting reads in extra BAM file
 if (isset($out_bam)) {
     $fusions = Matrix::fromTSV($out_fusions);
     $reads_rows = $fusions->getCol($fusions->getColumnIndex("read_identifiers"));
-    $reads = explode(",", implode(",", $reads_rows), -1);
+    //fix read id concatenation, UMI reads use , in read id
+    if ((count($reads_rows) !== 0) && (str_contains($read_rows[0], ",,")))
+    {
+        $reads = explode("|", implode("|", str_replace(",,", ",|", $reads_rows)), -1);
+    }
+    else
+    {
+        $reads = explode(",", implode(",", $reads_rows), -1);
+    }
     if (count($reads) !== 0)
     {
         $read_ids = $parser->tempFile("_readids.txt");

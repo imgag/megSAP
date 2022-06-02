@@ -105,44 +105,9 @@ if (file_exists($warn_file))
 	}
 }
 
-// second VEP run to annotate RefSeq transcripts
-// generate temp file for vep output
-$vep_output_refseq = $parser->tempFile("_vep_refseq.vcf");
-
-//annotate only fields we really need to prevent bloating the VCF file 
-$fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS");
-
-$args = array();
-$args[] = "-i $vep_output --format vcf"; //input
-$args[] = "-o $vep_output_refseq --vcf --no_stats --force_overwrite"; //output
-$args[] = "--species homo_sapiens --assembly {$build}"; //species
-$args[] = "--refseq"; //use RefSeq annotation instead of ensemble
-$args[] = "--vcf_info_field CSQ_refseq"; //store annotation in custom info field to keep RefSeq and ensemble separate
-$args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
-$args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".genome_fasta($build); //paths to data
-$args[] = "--numbers --hgvs --domains"; //annotation options
-$args[] = "--fields ".implode(",", $fields);
-putenv("PERL5LIB={$vep_path}/Bio/:{$vep_path}/cpan/lib/perl5/:".getenv("PERL5LIB"));
-$parser->exec(get_path("vep"), implode(" ", $args), true);
-
-//print VEP warnings
-$warn_file = $vep_output_refseq."_warnings.txt";
-if (file_exists($warn_file))
-{
-	$file = file($warn_file);
-	foreach($file as $line)
-	{
-		$line = trim($line);
-		if ($line=="") continue;
-		
-		print $line."\n";
-	}
-}
-
-
 // add phyloP annotation:
 $vcf_output_bigwig = $parser->tempFile("_bigwig.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBigWig", "-name PHYLOP -desc \"".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." (ngs-bits/VcfAnnotateFromBigWig - mode max)\" -mode max -in {$vep_output_refseq} -out {$vcf_output_bigwig} -bw ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." -threads {$threads}", true);
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBigWig", "-name PHYLOP -desc \"".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." (ngs-bits/VcfAnnotateFromBigWig - mode max)\" -mode max -in {$vep_output} -out {$vcf_output_bigwig} -bw ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." -threads {$threads}", true);
 
 
 // custom annotation by VcfAnnotateFromVcf
@@ -171,7 +136,7 @@ fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
 
 //precalculated SpliceAI scores
-$spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2022_02_09_GRCh38.vcf.gz");
+$spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2022_05_24_GRCh38.vcf.gz");
 if (file_exists($spliceai_file))
 {
 	fwrite($config_file, $spliceai_file."\t\tSpliceAI\t\n");
