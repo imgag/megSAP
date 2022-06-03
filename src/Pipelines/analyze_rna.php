@@ -157,7 +157,7 @@ if (db_is_enabled("NGSD"))
 	if (!is_null($info))
 	{
 		$filter_hb = ($info["tissue"] == "Blood") && !$skip_filter_hb;
-		trigger_error("Sample type is blood, enabling HB read filter", E_USER_NOTICE);
+		if ($filter_hb) trigger_error("Sample type is blood, enabling HB read filter", E_USER_NOTICE);
 	}
 }
 
