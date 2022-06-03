@@ -102,7 +102,7 @@ if (isset($out_bam)) {
     $fusions = Matrix::fromTSV($out_fusions);
     $reads_rows = $fusions->getCol($fusions->getColumnIndex("read_identifiers"));
     //fix read id concatenation, UMI reads use , in read id
-    if ((count($reads_rows) !== 0) && (str_contains($read_rows[0], ",,")))
+    if ((count($reads_rows) !== 0) && (contains($read_rows[0], ",,")))
     {
         $reads = explode("|", implode("|", str_replace(",,", ",|", $reads_rows)), -1);
     }
