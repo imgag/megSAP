@@ -82,7 +82,7 @@ while($line = fgets($handle))
 		}
 		else if ($is_chrx && $nonpar && starts_with($entry, "AC_XY="))
 		{
-			$hemi = substr($entry, 8);
+			$hemi = substr($entry, 6);
 		}
 	}
 	
