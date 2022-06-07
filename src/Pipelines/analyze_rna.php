@@ -493,6 +493,30 @@ SQL;
 	}
 }
 
+// run RNA QC
+$qc_rna = "{$prefix}_stats_RNA.qcML";
+if (in_array("ma", $steps) || in_array("rc", $steps) || in_array("an", $steps))
+{
+	$args = [
+		"-bam", $final_bam,
+		"-housekeeping_genes", repository_basedir()."/data/gene_lists/housekeeping_genes_".ngsbits_build($sys['build']).".bed",
+		"-out", $qc_rna,
+		"-ref", genome_fasta($sys['build'])
+	];
+
+	if (file_exists($splicing_gene))
+	{
+		$args[] = "-splicing ".$splicing_gene;
+	}
+	if (file_exists($expr))
+	{
+		$args[] = "-expression ".$expr;
+	}
+	
+	//run RnaQC
+	$parser->exec(get_path("ngs-bits")."RnaQC", implode(" ", $args));
+}
+
 //save gene expression plots
 if (in_array("plt", $steps))
 {
@@ -552,34 +576,21 @@ if (in_array("fu",$steps) && in_array("star-fusion",$fusion_caller))
 			"--min_FFPM", "0"
 		];
 
-		$input_reads_available = isset($fastq_trimmed1) &&
-			is_file($fastq_trimmed1) &&
-			(!$paired || (isset($fastq_trimmed2) && is_file($fastq_trimmed2)));
-		if ($input_reads_available)
-		{
-			$starfusion_params[] = "--FusionInspector inspect";
-			$starfusion_params[] = "--left_fq ". $fastq_trimmed1;
-			if ($paired)
-			{
-				$starfusion_params[] = "--right_fq " . $fastq_trimmed2;
-			}
-		}
 		//specify neccessary pythonpath
 		putenv("PYTHONPATH=" . get_path("STAR-Fusion_pythonpath"));
 		$parser->exec(get_path("STAR-Fusion"), implode(" ", $starfusion_params), true);
 
 		$output_files = [ "{$fusion_tmp_folder}/star-fusion.fusion_predictions.abridged.coding_effect.tsv" => "{$prefix}_var_fusions.tsv" ];
-		if ($input_reads_available)
-		{
-			$output_files = array_filter(array_merge([
-				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.consolidated.cSorted.bam" => "{$prefix}_var_fusions.bam",
-				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.consolidated.cSorted.bam.bai" => "{$prefix}_var_fusions.bam.bai",
-				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa" => "{$prefix}_var_fusions.fa",
-				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa.fai" => "{$prefix}_var_fusions.fa.fai",
-				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.gtf" => "{$prefix}_var_fusions.gtf",
-				"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fusion_inspector_web.html" => "{$prefix}_fusions.html"
-			], $output_files), "file_exists", ARRAY_FILTER_USE_KEY);
-		}
+
+		$output_files = array_filter(array_merge([
+			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.consolidated.cSorted.bam" => "{$prefix}_var_fusions.bam",
+			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.consolidated.cSorted.bam.bai" => "{$prefix}_var_fusions.bam.bai",
+			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa" => "{$prefix}_var_fusions.fa",
+			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa.fai" => "{$prefix}_var_fusions.fa.fai",
+			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.gtf" => "{$prefix}_var_fusions.gtf",
+			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fusion_inspector_web.html" => "{$prefix}_fusions.html"
+		], $output_files), "file_exists", ARRAY_FILTER_USE_KEY);
+
 		foreach ($output_files as $src => $dest)
 		{
 			$parser->moveFile($src, $dest);
@@ -629,31 +640,6 @@ if (in_array("fu",$steps) && in_array("arriba",$fusion_caller))
 	];
 	$parser->execTool("NGS/vc_arriba.php", implode(" ", $arriba_args));
 }
-
-// run RNA QC
-$qc_rna = "{$prefix}_stats_RNA.qcML";
-if (in_array("ma", $steps) || in_array("rc", $steps) || in_array("an", $steps))
-{
-	$args = [
-		"-bam", $final_bam,
-		"-housekeeping_genes", repository_basedir()."/data/gene_lists/housekeeping_genes_".ngsbits_build($sys['build']).".bed",
-		"-out", $qc_rna,
-		"-ref", genome_fasta($sys['build'])
-	];
-
-	if (file_exists($splicing_gene))
-	{
-		$args[] = "-splicing ".$splicing_gene;
-	}
-	if (file_exists($expr))
-	{
-		$args[] = "-expression ".$expr;
-	}
-	
-	//run RnaQC
-	$parser->exec(get_path("ngs-bits")."RnaQC", implode(" ", $args));
-}
-
 
 //import to database
 if (in_array("db", $steps))
