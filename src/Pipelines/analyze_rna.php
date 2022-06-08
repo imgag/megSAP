@@ -579,22 +579,7 @@ if (in_array("fu",$steps) && in_array("star-fusion",$fusion_caller))
 		//specify neccessary pythonpath
 		putenv("PYTHONPATH=" . get_path("STAR-Fusion_pythonpath"));
 		$parser->exec(get_path("STAR-Fusion"), implode(" ", $starfusion_params), true);
-
-		$output_files = [ "{$fusion_tmp_folder}/star-fusion.fusion_predictions.abridged.coding_effect.tsv" => "{$prefix}_var_fusions.tsv" ];
-
-		$output_files = array_filter(array_merge([
-			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.consolidated.cSorted.bam" => "{$prefix}_var_fusions.bam",
-			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.consolidated.cSorted.bam.bai" => "{$prefix}_var_fusions.bam.bai",
-			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa" => "{$prefix}_var_fusions.fa",
-			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa.fai" => "{$prefix}_var_fusions.fa.fai",
-			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.gtf" => "{$prefix}_var_fusions.gtf",
-			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fusion_inspector_web.html" => "{$prefix}_fusions.html"
-		], $output_files), "file_exists", ARRAY_FILTER_USE_KEY);
-
-		foreach ($output_files as $src => $dest)
-		{
-			$parser->moveFile($src, $dest);
-		}
+		$parser->moveFile("{$fusion_tmp_folder}/star-fusion.fusion_predictions.abridged.coding_effect.tsv" , "{$prefix}_var_fusions.tsv");
 	}
 	else
 	{
