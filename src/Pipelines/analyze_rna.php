@@ -682,11 +682,11 @@ if (! $skip_dna_reannotation && db_is_enabled("NGSD") && (in_array("ma", $steps)
 				$normal_ps_id = $rps["normal_id"];
 				$normal_infos = $db->executeQuery("SELECT s.name, ps.process_id FROM processed_sample as ps, sample as s WHERE ps.id = '$normal_ps_id' and ps.sample_id = s.id")[0];
 				$normal_ps_name = $normal_infos["name"]."_0".$normal_infos["process_id"];
-				$parser->execTool("NGS/db_queue_analysis.php", "-type 'somatic' -samples $rps_name $normal_ps_name -info tumor normal -args '-steps an_rna'");
+				$parser->execTool("NGS/db_queue_analysis.php", "-user unknown -type 'somatic' -samples $rps_name $normal_ps_name -info tumor normal -args '-steps an_rna'");
 			}
 			else
 			{
-				$parser->execTool("NGS/db_queue_analysis.php", "-type 'single sample' -samples $rps_name -args '-steps vc -annotation_only'");
+				$parser->execTool("NGS/db_queue_analysis.php", "-user unknown -type 'single sample' -samples $rps_name -args '-steps vc -annotation_only'");
 			}
 			print "Starting reannotation for sample: $rps_name.\n";
 		}
