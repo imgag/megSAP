@@ -274,11 +274,11 @@ function import_sample_relations($ps)
 		// unsupported sample type;
 		return;
 	}
-	
+
 	$ps_id = get_processed_sample_id($db_conn, $ps);
 	$current_sample_id = $db_conn->getValue("SELECT sample_id FROM processed_sample WHERE id='$ps_id'");
 	$existing_relations = $db_conn->executeQuery("SELECT * FROM sample_relations WHERE sample1_id = '{$current_sample_id}' OR sample2_id = '{$current_sample_id}'");  
-	
+
 	foreach ($existing_relations as $rel)
 	{
 		if (($current_sample_data["sys_type"] == "Panel" && $rel["relation"] == "tumor-normal") || ($current_sample_data["sys_type"] == "RNA" && $rel["relation"] == "same sample"))
@@ -287,7 +287,7 @@ function import_sample_relations($ps)
 			return;
 		}
 	}
-	
+
 	// try both, processed sample id and sample id (inconsistent in Genlab)
 	$patient_id = $db_genlab->getValue("SELECT GenlabID FROM v_ngs_patient_ids WHERE LABORNUMMER='{$ps}'", "");
 	$current_sample_name = $ps;
@@ -310,7 +310,7 @@ function import_sample_relations($ps)
 		// no other samples of the same patient
 		return;
 	}
-	
+
 	$related_sample_data = [];
 
 	//get sample data for all related samples.
@@ -330,13 +330,13 @@ function import_sample_relations($ps)
 			}
 		}
 	}
-	
+
 	if (count($related_sample_data) == 0)
 	{
 		//non of the related samples found in NGSD
 		return;
 	}
-	
+
 	$related_sample = null;
 	
 	if ($current_sample_data["sys_type"] == "Panel")
@@ -724,7 +724,13 @@ foreach($sample_data as $sample => $sample_infos)
 
 	//skip normal samples which have an associated tumor sample on the same run
 	$is_normal_with_tumor = !$sample_is_tumor && isset($normal2tumor[$sample]);
-
+	
+	//always try to import sample relation
+	if (!is_null($db_genlab))
+	{
+		import_sample_relations($sample);
+	}
+	
 	//additional arguments for db_queue_analysis
 	$args = array();
 
@@ -809,7 +815,7 @@ foreach($sample_data as $sample => $sample_infos)
 				}
 			}
 			
-			//try to import disease_group and sample relations
+			//try to import disease_group
 			if (!is_null($db_genlab))
 			{
 				import_genlab_disease_group($sample);
