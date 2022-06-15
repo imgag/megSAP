@@ -29,7 +29,8 @@ $parser->addFlag("skip_filter_hb", "Do not automatically filter input FASTQ for 
 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
-$parser->addInt("min_read_length", " Minimum read length after SeqPurge adapter trimming. Shorter reads are discarded.", true, 30);   
+$parser->addInt("min_read_length", " Minimum read length after SeqPurge adapter trimming. Shorter reads are discarded.", true, 30);
+$parser->addFlag("skip_dna_reannotation", "Do not automatically start the reannotation of the related DNA sample.");
 
 extract($parser->parse($argv));
 
@@ -579,22 +580,7 @@ if (in_array("fu",$steps) && in_array("star-fusion",$fusion_caller))
 		//specify neccessary pythonpath
 		putenv("PYTHONPATH=" . get_path("STAR-Fusion_pythonpath"));
 		$parser->exec(get_path("STAR-Fusion"), implode(" ", $starfusion_params), true);
-
-		$output_files = [ "{$fusion_tmp_folder}/star-fusion.fusion_predictions.abridged.coding_effect.tsv" => "{$prefix}_var_fusions.tsv" ];
-
-		$output_files = array_filter(array_merge([
-			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.consolidated.cSorted.bam" => "{$prefix}_var_fusions.bam",
-			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.consolidated.cSorted.bam.bai" => "{$prefix}_var_fusions.bam.bai",
-			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa" => "{$prefix}_var_fusions.fa",
-			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fa.fai" => "{$prefix}_var_fusions.fa.fai",
-			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.gtf" => "{$prefix}_var_fusions.gtf",
-			"{$fusion_tmp_folder}/FusionInspector-inspect/finspector.fusion_inspector_web.html" => "{$prefix}_fusions.html"
-		], $output_files), "file_exists", ARRAY_FILTER_USE_KEY);
-
-		foreach ($output_files as $src => $dest)
-		{
-			$parser->moveFile($src, $dest);
-		}
+		$parser->moveFile("{$fusion_tmp_folder}/star-fusion.fusion_predictions.abridged.coding_effect.tsv" , "{$prefix}_var_fusions.tsv");
 	}
 	else
 	{
@@ -663,4 +649,47 @@ if (in_array("db", $steps))
 	}
 }
 
+
+if (! $skip_dna_reannotation && db_is_enabled("NGSD") && (in_array("ma", $steps) || in_array("rc", $steps) || in_array("an", $steps) || in_array("fu", $steps)))
+{
+	$db = DB::getInstance("NGSD", false);
+	$ps_info = get_processed_sample_info($db, $name);
+	$sample_id = $ps_info["s_id"];
+
+	$existing_relations = $db->executeQuery("SELECT * FROM sample_relations WHERE sample1_id = '{$sample_id}' OR sample2_id = '{$sample_id}'");
+	
+	foreach($existing_relations as $relation)
+	{
+		if ($relation["relation"] != "same sample") continue;
+		
+		$related_sample_id = $relation["sample1_id"];
+		if($relation["sample1_id"] == $sample_id)
+		{
+			$related_sample_id = $relation["sample2_id"];
+		}
+		$related_sample_info = $db->executeQuery("SELECT name, tumor FROM sample WHERE id = '$related_sample_id'")[0];
+		$related_sample_name = $related_sample_info["name"];
+		$is_tumor = $related_sample_info["tumor"] != "0";
+		$related_processed_samples = $db->executeQuery("SELECT * FROM processed_sample WHERE sample_id = '$related_sample_id'");
+		
+		foreach($related_processed_samples as $rps)
+		{
+			$rps_name = $related_sample_name."_0".$rps["process_id"];
+			
+			if ($is_tumor)
+			{
+				//search normal sample:
+				$normal_ps_id = $rps["normal_id"];
+				$normal_infos = $db->executeQuery("SELECT s.name, ps.process_id FROM processed_sample as ps, sample as s WHERE ps.id = '$normal_ps_id' and ps.sample_id = s.id")[0];
+				$normal_ps_name = $normal_infos["name"]."_0".$normal_infos["process_id"];
+				$parser->execTool("NGS/db_queue_analysis.php", "-user unknown -type 'somatic' -samples $rps_name $normal_ps_name -info tumor normal -args '-steps an_rna'");
+			}
+			else
+			{
+				$parser->execTool("NGS/db_queue_analysis.php", "-user unknown -type 'single sample' -samples $rps_name -args '-steps vc -annotation_only'");
+			}
+			print "Starting reannotation for sample: $rps_name.\n";
+		}
+	}
+}
 ?>

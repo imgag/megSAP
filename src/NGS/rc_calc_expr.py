@@ -54,8 +54,8 @@ def cohort(samples, counts, counts_out, prefix, cohort, stats, corr):
         # calculate ratios per gene for sample
         expr = counts_tbl[['tpm']].join(df_stats)
         expr['log2tpm'] = np.log2(expr['tpm']+1)
-        expr['log2fc'] = expr['log2tpm'] - expr['cohort_meanlog2']
-        expr['zscore'] = (expr['log2tpm'] - expr['cohort_meanlog2'])/expr['cohort_sdlog2']
+        expr["log2fc"] = np.log2(expr["tpm"] + 1) - np.log2(expr["cohort_mean"] + 1)
+        expr['zscore'] = (np.log2(expr["tpm"] + 1) - expr['cohort_meanlog2'])/expr['cohort_sdlog2']
         expr['pval'] = expr['zscore'].apply(lambda z: 2*norm.cdf(-abs(z)))
 
         # annotated count file
