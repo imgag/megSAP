@@ -23,7 +23,7 @@ $steps_all = array("ma", "vc", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, db=import into NGSD.", true, "ma,vc,db");
 $parser->addFlag("annotation_only", "Performs only a re-annotation of the already created variant calls.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
-$parser->addFloat("min_corr", "The minimum sample genotype correlation which is used fortumor-cfDNA comparison (default: 0.80)", true, 0.80);
+$parser->addFloat("min_corr", "The minimum sample genotype correlation which is used for tumor-cfDNA comparison (default: 0.80)", true, 0.80);
 extract($parser->parse($argv));
 
 //create logfile in output folder if no filepath is provided
