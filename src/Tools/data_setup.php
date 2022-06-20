@@ -254,12 +254,20 @@ if ($build=="GRCh38")
 				print "    {$line}\n";
 			}
 			
-			$source_index = $source.".tbi";
+			$index_format = ".tbi";
+			if (file_exists($source.".csi"))
+			{
+				$index_format = ".csi";
+			}
+
+			$source_index = $source.$index_format;
+
 			if (file_exists($source_index))
 			{
 				print "  rsync-ing database index {$source_index}\n";
 				
-				$target_index = $target.".tbi";
+				$target_index = $target.$index_format;
+
 				list($stdout, $stderr) = exec2("{$rsync} {$source_index} {$target_index}");
 				foreach(array_merge($stdout, $stderr) as $line)
 				{
