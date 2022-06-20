@@ -26,7 +26,7 @@ The tools used for variant calling and annotation are the same as for the [singl
 After the analysis, these files are created in the output folder:
 
 1. a multi-sample variant list `all.vcf.gz` in VCF format.
-2. a multi-sample variant list `multi.GSvar` in [GSvar format](./GSvar/gsvar_format.md).
+2. a multi-sample variant list `multi.GSvar` in [GSvar format](https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/gsvar_format.md).
 
 [back to the start page](../README.md)
 
@@ -57,7 +57,7 @@ The tools used for variant calling and annotation are the same as for the [singl
 After the analysis, these files are created in the output folder:
 
 1. a multi-sample variant list `all.vcf.gz` in VCF format.
-2. a multi-sample variant list `trio.GSvar` in [GSvar format](./GSvar/gsvar_format.md).
+2. a multi-sample variant list `trio.GSvar` in [GSvar format](https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/gsvar_format.md).
 
 [back to the start page](../README.md)
 
