@@ -1,6 +1,6 @@
 # megSAP - DNA analysis (multi-sample and trio)
 
-## multi-sample pipeline
+## Multi-sample pipeline
 
 ### Basics
 
@@ -16,6 +16,11 @@ The main parameters that you have to provide are:
 * `out_folder` -  Output folder.
 * `system` - The processing system configuration INI file (see next section).
 
+### Tools used in this analysis pipeline
+
+Mapping is not part of this pipline - it has to be perfomed beforehand using the single-sample pipeline.
+The tools used for variant calling and annotation are the same as for the [single-sample pipeline](dna_single_sample.md).
+
 ### Output
 
 After the analysis, these files are created in the output folder:
@@ -23,7 +28,9 @@ After the analysis, these files are created in the output folder:
 1. a multi-sample variant list `all.vcf.gz` in VCF format.
 2. a multi-sample variant list `multi.GSvar` in [GSvar format](https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/gsvar_format.md).
 
-## trio pipeline
+[back to the start page](../README.md)
+
+## Trio pipeline
 
 ### Basics
 
@@ -39,6 +46,11 @@ The main parameters that you have to provide are:
 * `c` - BAM file of child (index).
 * `out_folder` -  Output folder.
 * `system` - The processing system configuration INI file (see next section).
+
+### Tools used in this analysis pipeline
+
+Mapping is not part of this pipline - it has to be perfomed beforehand using the single-sample pipeline.
+The tools used for variant calling and annotation are the same as for the [single-sample pipeline](dna_single_sample.md).
 
 ### Output
 
