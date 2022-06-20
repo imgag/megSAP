@@ -22,20 +22,20 @@ The analysis pipeline assumes that that all data to analyze resides in a sample 
 
 In the example above, the configuration of the pipeline is done using the `hpHBOCv5.ini` file, which contains all necessary information (see [processing system INI file](processing_system_ini_file.md)).
 
-### Tools used in this analysis pipeline
+### Running an analysis with DRAGEN
 
 A short instruction how to setup the DRAGEN can be found [here](setup_dragen.md).
 To run an analysis with DRAGEN mapping you simply has to pass the parameter `-use_dragen` to the `analysis.php`: 
 
 	php megSAP/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5.ini -steps ma,vc -use_dragen
 
-### Documentation of tools used in the analysis pipeline
+### Tools used in this analysis pipeline
 
 The following tools are used for mapping and calling of small variants and annotation of small variants:
 
 | step                                           | tool                 | version              | comments                                         |
 |------------------------------------------------|----------------------|----------------------|--------------------------------------------------|
-| mapping - adapter trimming                     | SeqPurge             | ngs-bits 2022_04-141 |                                                  |
+| mapping - adapter and quality trimming         | SeqPurge             | ngs-bits 2022_04-141 |                                                  |
 | mapping - mapping and alignment                | bwa-mem2             | 2.1                  | Performed by Dragen if '-use_dragen' is enabled. |
 | mapping - duplicate marking                    | samblaster           | 0.1.26               | Performed by Dragen if '-use_dragen' is enabled. |
 | mapping - indel realignment                    | ABRA2                | 2.23                 |                                                  |
@@ -64,7 +64,7 @@ SV calling and annotation is performed using these tools:
 | annotation - breakpoint density from NGSD | BedpeAnnotateBreakpointDensity  | ngs-bits 2022_04-141 |                                                     |
 
 
-A complete list of all tools and databases used in megSAP and when they were last updated can be found [here](doc/update_overview.md).
+A complete list of all tools and databases used in megSAP and when they were last updated can be found [here](update_overview.md).
 
 ### Performance
 
@@ -76,7 +76,7 @@ After the analysis, these files are created in the output folder:
 
 1. mapped reads in BAM format  
 2. a variant list in VCF format
-3. a variant list in [GSvar format](https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/gsvar_format.md)
+3. a variant list in [GSvar format](./GSvar/gsvar_format.md)
 4. QC data in [qcML format](https://www.ncbi.nlm.nih.gov/pubmed/24760958), which can be opened with a web browser
 
 ### Test data

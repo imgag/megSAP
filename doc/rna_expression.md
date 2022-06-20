@@ -41,7 +41,7 @@ system INI file](processing_system_ini_file.md)).
 
 The tools used in this analysis pipline can are described [here](rna_expression_pipeline.md).
 
-A complete list of all tools and databases used in megSAP and when they were last updated can be found [here](doc/update_overview.md).
+A complete list of all tools and databases used in megSAP and when they were last updated can be found [here](update_overview.md).
 
 ### Output
 
