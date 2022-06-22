@@ -20,9 +20,6 @@ In addition, you may want to specify:
    mapping, read counting, annotation and fusion detection.
 * `system` - The [processing system INI file](processing_system_ini_file.md).
 
-[RNA-seq Expression Pipeline](rna_expression_pipeline.md) gives a detailed
-description of the pipeline. 
-
 ### Running an analysis
 
 If all data to analyze resides in a sample folder as produced by Illumina's
@@ -39,6 +36,12 @@ In the example above, the configuration of the pipeline is done using the
 `truseq.ini` file, which contains all necessary information (see [processing
 system INI file](processing_system_ini_file.md)).
 
+
+### Tools used in this analysis pipeline
+
+The tools used in this analysis pipline can are described [here](rna_expression_pipeline.md).
+
+A complete list of all tools and databases used in megSAP and when they were last updated can be found [here](update_overview.md).
 
 ### Output
 
