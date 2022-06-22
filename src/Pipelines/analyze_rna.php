@@ -657,7 +657,9 @@ if (! $skip_dna_reannotation && db_is_enabled("NGSD") && (in_array("ma", $steps)
 	$sample_id = $ps_info["s_id"];
 
 	$existing_relations = $db->executeQuery("SELECT * FROM sample_relations WHERE sample1_id = '{$sample_id}' OR sample2_id = '{$sample_id}'");
-	
+
+	$already_started = array();
+
 	foreach($existing_relations as $relation)
 	{
 		if ($relation["relation"] != "same sample") continue;
@@ -671,24 +673,37 @@ if (! $skip_dna_reannotation && db_is_enabled("NGSD") && (in_array("ma", $steps)
 		$related_sample_name = $related_sample_info["name"];
 		$is_tumor = $related_sample_info["tumor"] != "0";
 		$related_processed_samples = $db->executeQuery("SELECT * FROM processed_sample WHERE sample_id = '$related_sample_id'");
-		
+
 		foreach($related_processed_samples as $rps)
 		{
 			$rps_name = $related_sample_name."_0".$rps["process_id"];
-			
+			$rps_info = get_processed_sample_info($db, $rps_name);
+
+			if (! file_exists($rps_info["ps_folder"]) || in_array($rps, $already_started)) continue;
+
+			$output = array();
 			if ($is_tumor)
 			{
 				//search normal sample:
 				$normal_ps_id = $rps["normal_id"];
 				$normal_infos = $db->executeQuery("SELECT s.name, ps.process_id FROM processed_sample as ps, sample as s WHERE ps.id = '$normal_ps_id' and ps.sample_id = s.id")[0];
 				$normal_ps_name = $normal_infos["name"]."_0".$normal_infos["process_id"];
-				$parser->execTool("NGS/db_queue_analysis.php", "-user unknown -type 'somatic' -samples $rps_name $normal_ps_name -info tumor normal -args '-steps an_rna'");
+				$output = $parser->execTool("NGS/db_queue_analysis.php", "-user unknown -type 'somatic' -samples $rps_name $normal_ps_name -info tumor normal -args '-steps an_rna'", false);
 			}
 			else
 			{
-				$parser->execTool("NGS/db_queue_analysis.php", "-user unknown -type 'single sample' -samples $rps_name -args '-steps vc -annotation_only'");
+				$output = $parser->execTool("NGS/db_queue_analysis.php", "-user unknown -type 'single sample' -samples $rps_name -args '-steps vc -annotation_only'", false);
 			}
-			print "Starting reannotation for sample: $rps_name.\n";
+			
+			if (count($output[1])>0)
+			{
+				trigger_error("Error while queueing reannotation of DNA sample $rps_name: \n".implode("\n",$output[1])."With return value ".$output[2].".", E_USER_WARNING);
+			}
+			else
+			{
+				print "Starting reannotation for sample: $rps_name.\n";
+			}
+			$already_started[] = $rps;
 		}
 	}
 }
