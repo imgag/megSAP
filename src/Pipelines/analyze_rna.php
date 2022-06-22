@@ -70,6 +70,8 @@ $genome = get_path("data_folder")."/genomes/STAR/{$build}/";
 
 //determine gtf from build
 $gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
+//TODO remove:
+$gtfFile = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.105.gtf";
 
 //find FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");

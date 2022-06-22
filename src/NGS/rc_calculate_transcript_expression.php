@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("rc_calculate_transcript_expression", "Calculates transcript expression based on expression of exons.");
 $parser->addInfile("in", "Input normalized exon read counts file.", false, true);
 $parser->addOutfile("out", "Output file for normalized transcript read counts.", false);
-$parser->addFlag("only_genecode_basic", "Use only Gencode Basic transcripts");
+$parser->addFlag("only_gencode_basic", "Use only Gencode Basic transcripts");
 $parser->addFlag("only_ensembl_canonical", "Use only ensembl canonical transcripts");
 $parser->addFlag("only_mane_select", "Use only Mane Select transcripts");
 $parser->addFlag("only_mane_plus_clinical", "Use only Mane plus Clinical transcripts");
@@ -36,6 +36,7 @@ while (($line = fgets($fp)) !== false)
 	$split_line = explode("\t", $line);
 	$tmp = explode(":", $split_line[2]);
 	$pos = $tmp[0].":".$tmp[1];
+	if (!starts_with($pos, "chr")) $pos = "chr".$pos;
 	$raw = intval($split_line[3]);
 	$rpb = floatval($split_line[4]);
 	$srpb = floatval($split_line[5]);
@@ -53,20 +54,20 @@ $db = DB::getInstance($db);
 
 //limit transcript set
 $additional_conditions = array();
-if($only_genecode_basic) $additional_conditions[] = "is_genecode_basic=1";
+if($only_gencode_basic) $additional_conditions[] = "is_gencode_basic=1";
 if($only_ensembl_canonical) $additional_conditions[] = "is_ensembl_canonical=1";
 if($only_mane_select) $additional_conditions[] = "is_mane_select=1";
 if($only_mane_plus_clinical) $additional_conditions[] = "is_mane_plus_clinical=1";
 
 $additional_conditions_str = "";
-if(count($additional_conditions) > 0) $additional_conditions_str = "AND ".implode(" AND ", $additional_conditions)." ";
+if(count($additional_conditions) > 0) $additional_conditions_str = " WHERE ".implode(" AND ", $additional_conditions)." ORDER BY name";
 
 //prepare queries
-$query_transcript_info = "SELECT t.name, g.ensembl_id, g.symbol, t.biotype, t.chromosome FROM gene_transcript t INNER JOIN gene g ON g.id=t.gene_id WHERE t.id=:0 {$additional_conditions_str}ORDER BY t.name";
+$query_transcript_info = "SELECT t.name, g.ensembl_id, g.symbol, t.biotype, t.chromosome FROM gene_transcript t INNER JOIN gene g ON g.id=t.gene_id WHERE t.id=:0";
 $db->prepare($query_transcript_info);
 $query_exons = "SELECT `start`, `end` FROM gene_exon WHERE transcript_id=:0";
 $db->prepare($query_exons);
-$query_transcripts = "SELECT id FROM gene_transcript";
+$query_transcripts = "SELECT id FROM gene_transcript".$additional_conditions_str;
 $transcript_ids = $db->getValues($query_transcripts);
 
 
@@ -104,7 +105,7 @@ foreach ($transcript_ids as $id)
 	$all_exons_found = true;
 	foreach($res as $row)
 	{
-		$pos = $chr.":".$row["start"]."-".$row["end"];
+		$pos = "chr".$chr.":".$row["start"]."-".$row["end"];
 
 		$debug_exons[] = $ensg."\t".$pos;
 
@@ -176,7 +177,7 @@ print "Transcripts used:    \t{$used_transcripts}\n";
 print "Transcripts skipped: \t{$skipped_transcripts}\n";
 print "Transcripts skipped (CCDS): \t{$skipped_transcripts_ccds}\n";
 
-print "Skipped transcripts:\n".implode(", ", $failed_transcripts);
+#print "Skipped transcripts:\n".implode(", ", $failed_transcripts);
 
 file_put_contents("db_exons.tsv", implode("\n", $debug_exons));
 

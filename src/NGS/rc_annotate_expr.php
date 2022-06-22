@@ -177,6 +177,8 @@ if ($stats !== "") $args[] = "--stats {$stats}";
 if ($corr !== "") $args[] = "--corr {$corr}";
 $parser->exec("python3 ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
 
+//TODO: use ngs-bits tool
+
 //annotate HPA information
 if ($hpa_tissue !== "")
 {
