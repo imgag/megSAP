@@ -183,13 +183,13 @@ tabix -C -m 9 -p vcf spliceai_scores_2022_05_24_GRCh38.vcf.gz
 #$ngsbits/NGSDExportAnnotationData -variants NGSD_germline_unsorted.vcf -genes NGSD_genes.bed
 #$ngsbits/VcfStreamSort -in NGSD_germline_unsorted.vcf -out NGSD_germline.vcf
 #bgzip -c NGSD_germline.vcf > NGSD_germline.vcf.gz
-#tabix  -C -m 9 -p vcf NGSD_germline.vcf.gz
+#tabix -p vcf NGSD_germline.vcf.gz
 #rm NGSD_germline_unsorted.vcf
 #rm NGSD_germline.vcf
 #$ngsbits/NGSDExportAnnotationData -variants NGSD_somatic_unsorted.vcf -mode somatic
 #$ngsbits/VcfStreamSort -in NGSD_somatic_unsorted.vcf -out NGSD_somatic.vcf
 #bgzip -c NGSD_somatic.vcf > NGSD_somatic.vcf.gz
-#tabix  -C -m 9 -p vcf NGSD_somatic.vcf.gz
+#tabix -p vcf NGSD_somatic.vcf.gz
 #rm NGSD_somatic_unsorted.vcf
 #rm NGSD_somatic.vcf
 #cd ..
