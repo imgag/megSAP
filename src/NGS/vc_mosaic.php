@@ -247,7 +247,7 @@ $pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
 // annotate the vcf file
 $tmp_annotated = temp_file("_annotated.vcf");
-$pipeline[] = array(get_path("ngs-bits")."VcfAnnotateFromVcf ", " -out $tmp_annotated -annotation_file /mnt/storage2/GRCh38/share/data/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz -info_ids AF -id_prefix gnomADg -threads $threads");
+$pipeline[] = array(get_path("ngs-bits")."VcfAnnotateFromVcf ", " -out $tmp_annotated -source /mnt/storage2/GRCh38/share/data/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz -info_keys AF -prefix gnomADg -threads $threads");
 
 $parser->execPipeline($pipeline, "vc_mosaic post processing part 1");
 
