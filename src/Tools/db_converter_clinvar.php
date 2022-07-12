@@ -17,6 +17,8 @@ function cons2value($cons)
 	if ($cons=="uncertain_significance") return 3;
 	if ($cons=="likely_benign") return 2;
 	if ($cons=="benign") return 1;
+	if ($cons=="likely_risk_allele") return -1;
+	if ($cons=="uncertain_risk_allele") return -1;
 	trigger_error("Unknown consequence '$cons' in function 'cons2value'!", E_USER_ERROR);
 }
 
@@ -124,7 +126,9 @@ while(!feof($in))
 				$entry = trim($entry);
 				$entry = substr($entry, 0, -1);
 				list($cons, $count) = explode("(", $entry);
-				$cons_counts[cons2value($cons)] += $count;
+				$value = cons2value($cons);
+				if ($value==-1) continue; //skip risk variants, etc.
+				$cons_counts[$value] += $count;
 			}
 			
 			$counts = [];
