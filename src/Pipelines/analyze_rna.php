@@ -451,6 +451,7 @@ if (in_array("an", $steps))
 		$ps_info = get_processed_sample_info($db, $name, false);
 		if (!is_null($ps_info))
 		{
+			//TODO: replace with ngs-bits tool
 			$args = [
 				"-name {$name}",
 				"-in {$counts_normalized}",

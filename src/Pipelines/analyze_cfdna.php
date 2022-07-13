@@ -24,6 +24,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mappi
 $parser->addFlag("annotation_only", "Performs only a re-annotation of the already created variant calls.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFloat("min_corr", "The minimum sample genotype correlation which is used for tumor-cfDNA comparison (default: 0.80)", true, 0.80);
+$parser->addFlag("no_post_filter", "Use the unfiltered umiVar output to generate the GSvar file.");
 extract($parser->parse($argv));
 
 //create logfile in output folder if no filepath is provided
@@ -400,7 +401,15 @@ if (in_array("vc", $steps))
 		}
 		else
 		{
-			$parser->copyFile("{$folder}/umiVar/{$name}_hq.vcf", $vcffile);
+			if ($no_post_filter)
+			{
+				$parser->copyFile("{$folder}/umiVar/{$name}.vcf", $vcffile);
+			}
+			else
+			{
+				$parser->copyFile("{$folder}/umiVar/{$name}_hq.vcf", $vcffile);
+			}
+			
 		}
 
 		// sort VCF

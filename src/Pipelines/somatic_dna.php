@@ -962,6 +962,9 @@ if (in_array("an_rna", $steps))
 		$rna_counts[$rna_id] = $rna_counts_tmp[0];
 	}
 
+	//TODO:
+	//Calculate sample similarity between tumor and RNA
+
 	//Annotate data from all detected RNA files
 	foreach($ps_rna_bams as $rna_id => $rna_bam)
 	{
@@ -991,6 +994,7 @@ if (in_array("an_rna", $steps))
 		"-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue)//Replace spaces by 0 because it is diffcult to pass spaces via command line.
 	];
 	$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
+
 }
 
 //DB import
