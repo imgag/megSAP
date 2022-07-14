@@ -81,7 +81,7 @@ function annotate($parser, $vcffile, $out_name, $out_folder, $system, $no_fc, $m
 	if(file_exists($cosmic_cmc) && $somatic)
 	{
 		$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
-		$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in {$annfile} -annotation_file {$cosmic_cmc} -info_ids COSMIC_CMC -out {$temp_annfile} -threads {$threads}");
+		$parser->exec(get_path("ngs-bits") . "VcfAnnotateFromVcf", "-in {$annfile} -source {$cosmic_cmc} -info_keys COSMIC_CMC -out {$temp_annfile} -threads {$threads}");
 		$parser->moveFile($temp_annfile, $annfile);
 	}
 

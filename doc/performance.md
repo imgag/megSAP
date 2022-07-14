@@ -2,7 +2,7 @@
 
 ## megSAP single-sample pipline
 
-All performance benchmarks are performed on the GIAB reference sample NA12878.  
+All performance benchmarks are performed on the GIAB reference sample NA12878 using the [gold-standard variant list v3.3.2](https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv3.3.2/GRCh38/).  
 The analyses were performed with the [single sample pipeline](https://github.com/imgag/megSAP/blob/master/src/Pipelines/analyze.php) on the GRCh37 reference genome.
 
 Sensitivity, positive predictive value (PPV) and genotyping accuracy were measured using our [validation tool](https://github.com/imgag/megSAP/blob/master/src/Tools/validate_NA12878.php).
