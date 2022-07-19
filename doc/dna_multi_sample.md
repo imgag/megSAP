@@ -30,8 +30,6 @@ After the analysis, these files are created in the output folder:
 1. a multi-sample variant list `all.vcf.gz` in VCF format.
 2. a multi-sample variant list `multi.GSvar` in [GSvar format](https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/gsvar_format.md).
 
-[back to the start page](../README.md)
-
 ## Trio pipeline
 
 ### Basics
