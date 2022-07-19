@@ -168,9 +168,26 @@ foreach($barcodes as $lane => $data)
 			}
 			else if ($dist<=2)
 			{
-				trigger_error("Low barcode distiance ({$dist}) on lane {$lane}: {$name_i} ({$mid1_i},{$mid2_i}) / {$name_j} ({$mid1_j},{$mid2_j})", E_USER_WARNING);
+				trigger_error("Low barcode distance ({$dist}) on lane {$lane}: {$name_i} ({$mid1_i},{$mid2_i}) / {$name_j} ({$mid1_j},{$mid2_j})", E_USER_WARNING);
 			}
 		}
+	}
+}
+
+//check recipe and suggest basemask and make UMI warning
+$recipe = $db->getValue("SELECT recipe FROM sequencing_run WHERE name='" . $run . "'");
+$cycles = array_map("intval", array_map("trim", explode("+", $recipe)));
+if (count($cycles) === 4)
+{
+	list($cycles_R1, $cycles_I1, $cycles_I2, $cycles_R2) = $cycles;
+	if ($cycles_I1 > $cycles_I2)
+	{
+		$additional_cycles = $cycles_I1 - $cycles_I2;
+		print(
+			"Recipe: {$recipe}\n" .
+			"More cycles in index 1 than index 2! Please check for UMI in index 1 and use correct base mask.\n" .
+			"Suggestion for base mask: Y{$cycles_R1},I{$cycles_I2}Y{$additional_cycles},I{$cycles_I2},Y{$cycles_R2}\n"
+		);
 	}
 }
 

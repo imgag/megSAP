@@ -443,7 +443,7 @@ function import_sample_relations($ps)
 	}
 	else
 	{
-		$trigger_error("Unsupported system type ".$current_sample_data["sys_type"].". No sample relations annotated.", E_USER_WARNING);
+		trigger_error("Unsupported system type ".$current_sample_data["sys_type"].". No sample relations annotated.", E_USER_WARNING);
 	}
 }
 
