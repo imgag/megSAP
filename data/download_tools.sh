@@ -13,43 +13,10 @@ make build_tools_release
 
 #download and build samtools
 cd $folder
-wget https://github.com/samtools/samtools/releases/download/1.11/samtools-1.11.tar.bz2
-tar xjf samtools-1.11.tar.bz2
-rm samtools-1.11.tar.bz2
-cd samtools-1.11
-make
-
-#download and build freebayes
-cd $folder
-git clone https://github.com/ekg/freebayes.git freebayes-1.3.3
-cd freebayes-1.3.3
-git checkout v1.3.3 && git submodule update --recursive --init
-meson build/ --buildtype release
-cd build
-ninja
-ninja test
-
-#download and build vcflib
-cd $folder
-git clone https://github.com/vcflib/vcflib.git vcflib-1.0.2
-cd vcflib-1.0.2
-git checkout v1.0.2 && git submodule update --recursive --init
-mkdir -p build && cd build
-cmake ..
-cmake --build .
-cmake --install .
-
-#download ABRA2
-cd $folder
-mkdir abra2-2.23
-cd abra2-2.23
-wget https://github.com/mozack/abra2/releases/download/v2.23/abra2-2.23.jar -O abra2.jar
-
-#download and build samblaster
-cd $folder
-git clone https://github.com/GregoryFaust/samblaster.git
-cd samblaster
-git checkout v.0.1.26
+wget https://github.com/samtools/samtools/releases/download/1.15.1/samtools-1.15.1.tar.bz2
+tar xjf samtools-1.15.1.tar.bz2
+rm samtools-1.15.1.tar.bz2
+cd samtools-1.15.1
 make
 
 #download and build BWA
@@ -62,9 +29,40 @@ make
 
 #download bwa-mem2
 cd $folder
-wget https://github.com/bwa-mem2/bwa-mem2/releases/download/v2.1/bwa-mem2-2.1_x64-linux.tar.bz2
-tar xjf bwa-mem2-2.1_x64-linux.tar.bz2
-rm bwa-mem2-2.1_x64-linux.tar.bz2
+wget https://github.com/bwa-mem2/bwa-mem2/releases/download/v2.2.1/bwa-mem2-2.2.1_x64-linux.tar.bz2
+tar xjf bwa-mem2-2.2.1_x64-linux.tar.bz2
+rm bwa-mem2-2.2.1_x64-linux.tar.bz2
+
+
+#download ABRA2
+cd $folder
+mkdir abra2-2.23
+cd abra2-2.23
+wget https://github.com/mozack/abra2/releases/download/v2.23/abra2-2.23.jar -O abra2.jar
+
+#download freebayes
+cd $folder
+mkdir freebayes-1.3.6
+cd freebayes-1.3.6
+wget -O - https://github.com/freebayes/freebayes/releases/download/v1.3.6/freebayes-1.3.6-linux-amd64-static.gz | gunzip > freebayes
+chmod 755 freebayes
+
+#download and build vcflib
+cd $folder
+git clone https://github.com/vcflib/vcflib.git vcflib-1.0.3
+cd vcflib-1.0.3
+git checkout v1.0.3 && git submodule update --recursive --init
+mkdir -p build && cd build
+cmake ..
+cmake --build .
+cmake --install .
+
+#download and build samblaster
+cd $folder
+git clone https://github.com/GregoryFaust/samblaster.git
+cd samblaster
+git checkout v.0.1.26
+make
 
 #download and build R (for ClinCnv and UmiVar2)
 cd $folder
@@ -151,9 +149,9 @@ circos-0.69-9/bin/circos -modules
 
 #download ExpansionHunter
 cd $folder
-wget https://github.com/Illumina/ExpansionHunter/releases/download/v4.0.2/ExpansionHunter-v4.0.2-linux_x86_64.tar.gz
-tar xzf ExpansionHunter-v4.0.2-linux_x86_64.tar.gz
-rm ExpansionHunter-v4.0.2-linux_x86_64.tar.gz
+wget https://github.com/Illumina/ExpansionHunter/releases/download/v5.0.0/ExpansionHunter-v5.0.0-linux_x86_64.tar.gz
+tar xzf ExpansionHunter-v5.0.0-linux_x86_64.tar.gz
+rm ExpansionHunter-v5.0.0-linux_x86_64.tar.gz
 
 #download and build python3
 mkdir -p Python3
@@ -180,11 +178,7 @@ deactivate
 
 #download REViewer
 cd $folder
-git clone https://github.com/Illumina/REViewer.git REViewer-0.1.1
-cd REViewer-0.1.1
-git fetch && git fetch --tags
-git checkout v0.1.1
-mkdir build
-cd build
-cmake ..
-make
+mkdir REViewer-v0.2.7
+cd REViewer-v0.2.7
+wget -O - https://github.com/Illumina/REViewer/releases/download/v0.2.7/REViewer-v0.2.7-linux_x86_64.gz | gunzip > REViewer-v0.2.7
+chmod 755 REViewer-v0.2.7

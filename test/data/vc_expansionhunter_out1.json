@@ -2,7 +2,7 @@
   "LocusResults": {
     "AFF2": {
       "AlleleCount": 2,
-      "Coverage": 40.45945945945946,
+      "Coverage": 40.54054054054054,
       "FragmentLength": 386,
       "LocusId": "AFF2",
       "ReadLength": 150,
@@ -23,7 +23,7 @@
     },
     "AR": {
       "AlleleCount": 2,
-      "Coverage": 41.37547271745003,
+      "Coverage": 41.61696380334954,
       "FragmentLength": 383,
       "LocusId": "AR",
       "ReadLength": 149,
@@ -44,7 +44,7 @@
     },
     "ATN1": {
       "AlleleCount": 2,
-      "Coverage": 43.07343412526998,
+      "Coverage": 43.23326133909288,
       "FragmentLength": 387,
       "LocusId": "ATN1",
       "ReadLength": 148,
@@ -65,7 +65,7 @@
     },
     "ATXN1": {
       "AlleleCount": 2,
-      "Coverage": 54.97947055645597,
+      "Coverage": 55.14046461372231,
       "FragmentLength": 377,
       "LocusId": "ATXN1",
       "ReadLength": 149,
@@ -86,7 +86,7 @@
     },
     "ATXN10": {
       "AlleleCount": 2,
-      "Coverage": 48.486486486486484,
+      "Coverage": 48.64864864864865,
       "FragmentLength": 379,
       "LocusId": "ATXN10",
       "ReadLength": 150,
@@ -107,7 +107,7 @@
     },
     "ATXN2": {
       "AlleleCount": 2,
-      "Coverage": 44.35135135135135,
+      "Coverage": 45.08108108108108,
       "FragmentLength": 392,
       "LocusId": "ATXN2",
       "ReadLength": 150,
@@ -149,7 +149,7 @@
     },
     "ATXN7": {
       "AlleleCount": 2,
-      "Coverage": 41.61696380334954,
+      "Coverage": 41.93895191788223,
       "FragmentLength": 384,
       "LocusId": "ATXN7",
       "ReadLength": 149,
@@ -182,7 +182,7 @@
     },
     "ATXN8OS": {
       "AlleleCount": 2,
-      "Coverage": 46.62162162162162,
+      "Coverage": 46.7027027027027,
       "FragmentLength": 395,
       "LocusId": "ATXN8OS",
       "ReadLength": 150,
@@ -236,7 +236,7 @@
     },
     "CACNA1A": {
       "AlleleCount": 2,
-      "Coverage": 43.62938951917882,
+      "Coverage": 44.43435980551053,
       "FragmentLength": 399,
       "LocusId": "CACNA1A",
       "ReadLength": 149,
@@ -257,7 +257,7 @@
     },
     "CBL": {
       "AlleleCount": 2,
-      "Coverage": 42.972972972972975,
+      "Coverage": 43.37837837837838,
       "FragmentLength": 393,
       "LocusId": "CBL",
       "ReadLength": 150,
@@ -278,7 +278,7 @@
     },
     "CNBP": {
       "AlleleCount": 2,
-      "Coverage": 49.37837837837838,
+      "Coverage": 49.45945945945946,
       "FragmentLength": 378,
       "LocusId": "CNBP",
       "ReadLength": 150,
@@ -323,7 +323,7 @@
     },
     "CSTB": {
       "AlleleCount": 2,
-      "Coverage": 43.95137763371151,
+      "Coverage": 44.19286871961102,
       "FragmentLength": 396,
       "LocusId": "CSTB",
       "ReadLength": 149,
@@ -344,7 +344,7 @@
     },
     "DIP2B": {
       "AlleleCount": 2,
-      "Coverage": 52.62162162162163,
+      "Coverage": 52.86486486486486,
       "FragmentLength": 403,
       "LocusId": "DIP2B",
       "ReadLength": 150,
@@ -365,7 +365,7 @@
     },
     "DMPK": {
       "AlleleCount": 2,
-      "Coverage": 51.486486486486484,
+      "Coverage": 51.891891891891895,
       "FragmentLength": 401,
       "LocusId": "DMPK",
       "ReadLength": 150,
@@ -386,7 +386,7 @@
     },
     "FMR1": {
       "AlleleCount": 2,
-      "Coverage": 38.18918918918919,
+      "Coverage": 38.51351351351351,
       "FragmentLength": 391,
       "LocusId": "FMR1",
       "ReadLength": 150,
@@ -407,7 +407,7 @@
     },
     "FXN": {
       "AlleleCount": 2,
-      "Coverage": 52.54054054054053,
+      "Coverage": 52.945945945945944,
       "FragmentLength": 390,
       "LocusId": "FXN",
       "ReadLength": 150,
@@ -438,9 +438,28 @@
         }
       }
     },
+    "GIPC1": {
+      "AlleleCount": 2,
+      "Coverage": 0.0,
+      "FragmentLength": 0,
+      "LocusId": "GIPC1",
+      "ReadLength": 0,
+      "Variants": {
+        "GIPC1": {
+          "CountsOfFlankingReads": "()",
+          "CountsOfInrepeatReads": "()",
+          "CountsOfSpanningReads": "()",
+          "ReferenceRegion": "chr19:14496041-14496074",
+          "RepeatUnit": "CCG",
+          "VariantId": "GIPC1",
+          "VariantSubtype": "Repeat",
+          "VariantType": "Repeat"
+        }
+      }
+    },
     "GLS": {
       "AlleleCount": 2,
-      "Coverage": 44.513513513513516,
+      "Coverage": 44.67567567567568,
       "FragmentLength": 398,
       "LocusId": "GLS",
       "ReadLength": 150,
@@ -461,7 +480,7 @@
     },
     "HTT": {
       "AlleleCount": 2,
-      "Coverage": 47.10810810810811,
+      "Coverage": 47.59459459459459,
       "FragmentLength": 382,
       "LocusId": "HTT",
       "ReadLength": 150,
@@ -494,7 +513,7 @@
     },
     "JPH3": {
       "AlleleCount": 2,
-      "Coverage": 55.62162162162162,
+      "Coverage": 56.02702702702703,
       "FragmentLength": 398,
       "LocusId": "JPH3",
       "ReadLength": 150,
@@ -515,7 +534,7 @@
     },
     "NIPA1": {
       "AlleleCount": 2,
-      "Coverage": 44.35135135135135,
+      "Coverage": 44.5945945945946,
       "FragmentLength": 389,
       "LocusId": "NIPA1",
       "ReadLength": 150,
@@ -607,7 +626,7 @@
     },
     "PHOX2B": {
       "AlleleCount": 2,
-      "Coverage": 44.513513513513516,
+      "Coverage": 45.0,
       "FragmentLength": 381,
       "LocusId": "PHOX2B",
       "ReadLength": 150,
@@ -628,7 +647,7 @@
     },
     "PPP2R2B": {
       "AlleleCount": 2,
-      "Coverage": 43.70270270270271,
+      "Coverage": 44.27027027027027,
       "FragmentLength": 397,
       "LocusId": "PPP2R2B",
       "ReadLength": 150,
@@ -649,7 +668,7 @@
     },
     "RFC1": {
       "AlleleCount": 2,
-      "Coverage": 55.37837837837838,
+      "Coverage": 55.62162162162162,
       "FragmentLength": 391,
       "LocusId": "RFC1",
       "ReadLength": 150,
@@ -670,7 +689,7 @@
     },
     "TBP": {
       "AlleleCount": 2,
-      "Coverage": 44.027027027027025,
+      "Coverage": 44.27027027027027,
       "FragmentLength": 382,
       "LocusId": "TBP",
       "ReadLength": 150,
@@ -691,7 +710,7 @@
     },
     "TCF4": {
       "AlleleCount": 2,
-      "Coverage": 41.432432432432435,
+      "Coverage": 41.513513513513516,
       "FragmentLength": 373,
       "LocusId": "TCF4",
       "ReadLength": 150,
