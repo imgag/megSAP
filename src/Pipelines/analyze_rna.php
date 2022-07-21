@@ -71,7 +71,7 @@ $genome = get_path("data_folder")."/genomes/STAR/{$build}/";
 //determine gtf from build
 $gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 //TODO remove:
-$gtfFile = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.105.gtf";
+//$gtfFile = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.105.gtf";
 
 //find FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");
@@ -430,6 +430,7 @@ if (in_array("rc", $steps))
 
 //annotate
 $expr = $prefix."_expr.tsv";
+$expr_exon = $prefix."_expr_exon.tsv";
 $expr_cohort = $prefix."_expr.cohort.tsv";
 $expr_stats = $prefix."_expr.stats.tsv";
 $expr_corr = $prefix."_expr.corr.txt";
@@ -451,22 +452,19 @@ if (in_array("an", $steps))
 		$ps_info = get_processed_sample_info($db, $name, false);
 		if (!is_null($ps_info))
 		{
-			//TODO: replace with ngs-bits tool
-			$args = [
-				"-name {$name}",
-				"-in {$counts_normalized}",
-				"-out {$expr}",
-				"-cohort {$expr_cohort}",
-				"-stats {$expr_stats}",
-				"-corr {$expr_corr}"
-			];
-			//somatic: enable somatic mode, and use RNA reference tissue
+			$cohort_strategy = "RNA_COHORT_GERMLINE";
 			if ($ps_info['is_tumor'])
 			{
-				$args[] = "-somatic";
-				
-				
-				//somatic case: find HPA reference tissue
+				$cohort_strategy = "RNA_COHORT_SOMATIC";
+			}
+
+			$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr}", true);
+			$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode exons -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", true);
+
+			if ($ps_info['is_tumor'])
+			{
+				//annotate HPA reference:
+
 				list($s_name) = explode("_", $name);
 				$sql = <<<SQL
 					SELECT sdi.disease_info FROM sample s
@@ -479,14 +477,20 @@ if (in_array("an", $steps))
 SQL;
 		
 				$res = array_unique($db->getValues($sql));
-				if (count($res) == 1)
+				$rna_ref_tissue = "";
+				if (count($res) == 1) 
 				{
-					$rna_ref_tissue = $res[0];
-					$args[] = "-hpa_tissue '{$rna_ref_tissue}'";
+					$args = [
+						"hpa",
+						"--counts", $expr,
+						"--counts_out", $expr,
+						"--hpa", get_path("data_folder")."/dbs/gene_expression/rna_tissue_hpa.tsv",
+						"--prefix", "hpa_",
+						"--tissue", "'{$res[0]}'"
+					];
+					$parser->exec("python3 ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
 				}
 			}
-	
-			$parser->execTool("NGS/rc_annotate_expr.php", implode(" ", $args));
 		}
 
 		//annotate splice junctions
@@ -494,6 +498,7 @@ SQL;
 		{
 			$parser->exec("{$ngsbits}SplicingToBed", "-in {$junctions} -report {$splicing_annot} -gene_report {$splicing_gene} -bed {$splicing_bed}", true);
 		}
+
 	}
 }
 
@@ -641,15 +646,13 @@ if (in_array("db", $steps))
 	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_file_list)." -force --log ".$parser->getLogFile());
 
 	//import expression data
-	if (file_exists($expr))
-	{
-		$args = [
-			"-expression", $expr,
-			"-ps", $name,
-			"-force"
-		];
-		$parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", implode(" ", $args));
-	}
+	$args = [
+		"-ps", $name,
+		"-force"
+	];
+	if (file_exists($expr)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode genes -expression {$expr} ".implode(" ", $args));
+	if (file_exists($expr_exon)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode genes -expression {$expr_exon} ".implode(" ", $args));
+	
 }
 
 
