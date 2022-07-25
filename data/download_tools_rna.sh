@@ -18,10 +18,6 @@ tar xzf subread-2.0.3-Linux-x86_64.tar.gz
 rm subread-2.0.3-Linux-x86_64.tar.gz
 mv subread-2.0.3-Linux-x86_64 subread-2.0.3
 
-#download skewer (single-end adapter trimming)
-git clone --depth 1 --branch 0.2.2 https://github.com/relipmoc/skewer.git skewer-0.2.2
-cd skewer-0.2.2 && make && cd ..
-
 #download arriba
 wget https://github.com/suhrig/arriba/releases/download/v2.2.1/arriba_v2.2.1.tar.gz
 tar -xzf arriba_v2.2.1.tar.gz

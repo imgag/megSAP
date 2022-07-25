@@ -1,16 +1,11 @@
 # RNA-seq Expression Pipeline
 
-This document details all steps of the RNA-seq expression pipeline (script
-`analyze_rna.php`).
+This document details all steps of the RNA-seq expression pipeline for paired-end reads (script `analyze_rna.php`).
 
 ### Pre-processing
 
-Quality control and adapter removal is performed using
-[SeqPurge](https://github.com/imgag/ngs-bits) 
-([Sturm et al. 2016](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1069-7))
-for paired-end reads, and using [ReadQC](https://github.com/imgag/ngs-bits) and [skewer](https://github.com/relipmoc/skewer)
-([Jiang et al. 2014](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-182))
-for single-end reads.
+Quality control and adapter removal is performed using [SeqPurge](https://github.com/imgag/ngs-bits) 
+([Sturm et al. 2016](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1069-7)).
 
 No read trimming using base quality is performed, for further details see
 [Williams et al. 2016](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-0956-2).
