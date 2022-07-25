@@ -431,7 +431,6 @@ if (in_array("rc", $steps))
 //annotate
 $expr = $prefix."_expr.tsv";
 $expr_exon = $prefix."_expr_exon.tsv";
-$expr_cohort = $prefix."_expr.cohort.tsv";
 $expr_stats = $prefix."_expr.stats.tsv";
 $expr_corr = $prefix."_expr.corr.txt";
 $junctions = $umi ? "{$prefix}_before_dedup_splicing.tsv" : "{$prefix}_splicing.tsv";
@@ -453,12 +452,8 @@ if (in_array("an", $steps))
 		if (!is_null($ps_info))
 		{
 			$cohort_strategy = "RNA_COHORT_GERMLINE";
-			if ($ps_info['is_tumor'])
-			{
-				$cohort_strategy = "RNA_COHORT_SOMATIC";
-			}
-
-			$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr}", true);
+			if ($ps_info['is_tumor']) $cohort_strategy = "RNA_COHORT_SOMATIC";
+			$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr}", true);
 			$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode exons -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", true);
 
 			if ($ps_info['is_tumor'])
@@ -527,14 +522,30 @@ if (in_array("ma", $steps) || in_array("rc", $steps) || in_array("an", $steps))
 }
 
 //save gene expression plots
+$expr_cohort = $prefix."_expr.cohort.tsv";
 if (in_array("plt", $steps))
 {
+	$genelists = glob(get_path("data_folder") . "/pathway_genelists/*.txt");
+	$all_gene_file = $parser->tempFile(".txt", "genes_");
+	$parser->exec("cat", implode(" ", $genelists)." > {$all_gene_file}");
+	$cohort_strategy = "RNA_COHORT_GERMLINE";
+	$ps_info = get_processed_sample_info($db, $name);
+	if ($ps_info['is_tumor']) $cohort_strategy = "RNA_COHORT_SOMATIC";
+	$parser->exec(get_path("ngs-bits") . "NGSDExtractRNACohort", "-genes {$all_gene_file} -ps {$name} -cohort_strategy {$cohort_strategy} -out {$expr_cohort}", true);
+
+	//create cohort/expr file without comments
+	$tmp_cohort = $parser->tempFile(".tsv", "cohort_");
+	$parser->exec("egrep", " -v '^##' {$expr_cohort} > {$tmp_cohort}");
+	$tmp_expr = $parser->tempFile(".tsv", "expr_");
+	$parser->exec("egrep", " -v '^##' {$expr} > {$tmp_expr}");
+
+
 	$args = [
-		"--cohort", $expr_cohort,
-		"--annotation", $expr,
+		"--cohort", $tmp_cohort,
+		"--annotation", $tmp_expr,
 		"--sample", $name
 	];
-	$genelists = glob(get_path("data_folder") . "/pathway_genelists/*.txt");
+	
 	foreach ($genelists as $genelist)
 	{
 		$shortname = basename($genelist, ".txt");
