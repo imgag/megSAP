@@ -55,19 +55,18 @@
 
 ## Tools for somatic pipelines
 
-|tool somatic           |used for                                                 |last update/check   |notes  |url                                                                     |
-|-----------------------|---------------------------------------------------------|--------------------|-------|------------------------------------------------------------------------|
-|strelka2               |variant calling (tumor/normal)                           |01.2021 (2.9.10)    |       |https://github.com/Illumina/strelka                                     |
-|mantis                 |microsatelite instability (tumor/normal)                 |01.2021 (v1.0.5)    |       |https://github.com/OSU-SRLab/MANTIS/releases                            |
-|varscan2               |variant calling                                          |01.2021 (2.4.4)     |       |https://github.com/dkoboldt/varscan                                     |
+|tool somatic           |used for                                             |last update/check |notes                                                                                |url                                                                     |
+|-----------------------|-----------------------------------------------------|------------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+|strelka2               |variant calling (tumor/normal)                       |01.2021 (2.9.10)  |                                                                                     |https://github.com/Illumina/strelka                                     |
+|mantis                 |microsatelite instability (tumor/normal)             |01.2021 (v1.0.5)  |                                                                                     |https://github.com/OSU-SRLab/MANTIS/releases                            |
+|varscan2               |variant calling                                      |01.2021 (2.4.4)   |                                                                                     |https://github.com/dkoboldt/varscan                                     |
 
 
 ## Tools for RNA pipeline
 
-|tool RNA               |used for                   |last update/check               |notes                                                                                               |url                                                                            |
-|-----------------------|---------------------------|--------------------------------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-|STAR                   |mapping                    |08.2020 (2.7.3a)                |2.7.5a available                                                                                    |https://github.com/alexdobin/STAR                                              |
-|subread                |read counting              |08.2020 (2.0.0)                 |2.0.1 available                                                                                     |http://subread.sourceforge.net/                                                |
-|skewer                 |single-end adapter trimming|07.2020 (0.2.2)                 |                                                                                                    |https://github.com/relipmoc/skewer                                             |
-|STAR-Fusion            |fusion detection           |07.2020 (1.9.0)                 |                                                                                                    |https://github.com/STAR-Fusion/STAR-Fusion                                     |
-|samtools               |fusion detection           |10.2020 (1.7)                   |STAR-Fusion needs specific samtools version for certain RNA samples                                 |https://github.com/samtools/samtools/releases/download/1.7/samtools-1.7.tar.bz2|
+|tool RNA               |used for                                             |last update/check |notes                                                                                |url                                                                     |
+|-----------------------|-----------------------------------------------------|------------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+|STAR                   |mapping                                              |08.2020 (2.7.3a)  |2.7.5a available                                                                     |https://github.com/alexdobin/STAR                                       |
+|subread                |read counting                                        |08.2020 (2.0.0)   |2.0.1 available                                                                      |http://subread.sourceforge.net/                                         |
+|Arriba                 |fusion detection                                     |01.2022 (2.2.1)   |2.3.0 available                                                                      |https://github.com/suhrig/arriba                                        |
+|Kraken2                |???                                                  |07.2022 (2.1.2)   |                                                                                     |https://github.com/DerrickWood/kraken2                                  |
