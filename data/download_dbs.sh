@@ -48,12 +48,12 @@ cat hg38.fa.out | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/BedSor
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20220328.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20220328_converted_GRCh38.vcf.gz
-tabix -p vcf clinvar_20220328_converted_GRCh38.vcf.gz
+wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20220702.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20220702_converted_GRCh38.vcf.gz
+tabix -C -m 9 -p vcf clinvar_20220702_converted_GRCh38.vcf.gz
 #CNVs
 wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2022-04.txt.gz | gunzip > variant_summary_2022-04.txt
-cat variant_summary_20212-04.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2022-04.bed
-$ngsbits/BedSort -with_name -in clinvar_cnvs_2022-04.bed -out clinvar_cnvs_2022-04.bed
+cat variant_summary_20212-04.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2022-07.bed
+$ngsbits/BedSort -with_name -in clinvar_cnvs_2022-07.bed -out clinvar_cnvs_2022-07.bed
 
 #Install HGNC - http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
 cd $dbs
@@ -91,10 +91,10 @@ wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/3.1.2/v
 wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/3.1.2/vcf/genomes/gnomad.genomes.v3.1.2.sites.chrX.vcf.bgz | gunzip | $ngsbits/VcfLeftNormalize -stream -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_v3.1.2_GRCh38.vcf
 wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/3.1.2/vcf/genomes/gnomad.genomes.v3.1.2.sites.chrY.vcf.bgz | gunzip | $ngsbits/VcfLeftNormalize -stream -ref $genome | $ngsbits/VcfStreamSort | php $src/Tools/db_converter_gnomad.php >> gnomAD_genome_v3.1.2_GRCh38.vcf
 bgzip gnomAD_genome_v3.1.2_GRCh38.vcf
-tabix -p vcf gnomAD_genome_v3.1.2_GRCh38.vcf.gz
+tabix -C -m 9 -p vcf gnomAD_genome_v3.1.2_GRCh38.vcf.gz
 wget -O - https://gnomad-public-us-east-1.s3.amazonaws.com/release/3.1/vcf/genomes/gnomad.genomes.v3.1.sites.chrM.vcf.bgz | gunzip | $ngsbits/VcfLeftNormalize -stream -ref $genome | $ngsbits/VcfStreamSort >> gnomAD_genome_v3.1.mito_GRCh38.vcf
 bgzip gnomAD_genome_v3.1.mito_GRCh38.vcf
-tabix -p vcf gnomAD_genome_v3.1.mito_GRCh38.vcf.gz
+tabix -C -m 9 -p vcf gnomAD_genome_v3.1.mito_GRCh38.vcf.gz
 
 #Install phyloP for VEP - https://www.ensembl.org/info/docs/tools/vep/script/vep_example.html#gerp
 cd $dbs
@@ -109,9 +109,9 @@ cd CADD
 wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/gnomad.genomes.r3.0.indel.tsv.gz > CADD_InDels_1.6_GRCh38.tsv.gz
 wget -O - http://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz > CADD_SNVs_1.6_GRCh38.tsv.gz
 zcat CADD_InDels_1.6_GRCh38.tsv.gz | php $src/Tools/db_converter_cadd.php -build GRCh38 -in - -out - | $ngsbits/VcfStreamSort | bgzip > CADD_InDels_1.6_GRCh38.vcf.gz
-tabix -f -p vcf CADD_InDels_1.6_GRCh38.vcf.gz
+tabix -f -C -m 9 -p vcf CADD_InDels_1.6_GRCh38.vcf.gz
 zcat CADD_SNVs_1.6_GRCh38.tsv.gz | php $src/Tools/db_converter_cadd.php -build GRCh38 -in - -out - | $ngsbits/VcfStreamSort | bgzip > CADD_SNVs_1.6_GRCh38.vcf.gz
-tabix -f -p vcf CADD_SNVs_1.6_GRCh38.vcf.gz
+tabix -f -C -m 9 -p vcf CADD_SNVs_1.6_GRCh38.vcf.gz
 $ngsbits/VcfCheck -in CADD_InDels_1.6_GRCh38.vcf.gz -lines 0 –ref $genome
 $ngsbits/VcfCheck -in CADD_SNVs_1.6_GRCh38.vcf.gz -lines 0 –ref $genome
 
@@ -139,7 +139,7 @@ cd $dbs
 mkdir SpliceAI
 cd SpliceAI
 wget https://download.imgag.de/ahsturm1/spliceai_scores_2022_05_24_GRCh38.vcf.gz -O spliceai_scores_2022_05_24_GRCh38.vcf.gz
-tabix -p vcf spliceai_scores_2022_05_24_GRCh38.vcf.gz
+tabix -C -m 9 -p vcf spliceai_scores_2022_05_24_GRCh38.vcf.gz
 
 #install OMIM (you might need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
 #cd $dbs
@@ -149,12 +149,12 @@ tabix -p vcf spliceai_scores_2022_05_24_GRCh38.vcf.gz
 #php $src/Tools/db_converter_omim.php | $ngsbits/BedSort -with_name > omim.bed
 
 #Install HGMD (you need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
-#manual download of files HGMD_Pro_2022.1_hg38.vcf.gz and hgmd_pro-2022.1.dump.gz from https://apps.ingenuity.com/ingsso/login
-#zcat HGMD_Pro_2022.1_hg38.vcf.gz | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2022_1_fixed.vcf.gz
-#tabix -p vcf HGMD_PRO_2022_1_fixed.vcf.gz
+#manual download of files HGMD_Pro_2022.2_hg38.vcf.gz and hgmd_pro-2022.2.dump.gz from https://apps.ingenuity.com/ingsso/login
+#zcat HGMD_Pro_2022.2_hg38.vcf.gz | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2022_2_fixed.vcf.gz
+#tabix -p vcf HGMD_PRO_2022_2_fixed.vcf.gz
 ##CNVs
-#zcat hgmd_pro-2022.1.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2022_1.bed
-#$ngsbits/BedSort -with_name -in HGMD_CNVS_2022_1.bed -out HGMD_CNVS_2022_1.bed
+#zcat hgmd_pro-2022.2.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2022_2.bed
+#$ngsbits/BedSort -with_name -in HGMD_CNVS_2022_2.bed -out HGMD_CNVS_2022_2.bed
 
 
 #Install COSMIC Cancer Mutation Census CMC  (you need a license, CMC tsv.gz file has to be downloaded manually from https://cancer.sanger.ac.uk/cmc/download)

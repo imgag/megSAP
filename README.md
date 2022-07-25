@@ -22,13 +22,11 @@ The installation instructions can be found [here](doc/install_unix.md).
 
 ## Documentation
 
-Documentation about the tools and databases used in megSAP can be found [here](doc/update_overview.md).
-
 Documentation about the different analysis pipelines can be found here:
 
-* [DNA analysis (single sample)](doc/dna_single_sample.md)
-* [DNA analysis (multi-sample and trio)](doc/dna_multi_sample.md)
-* [DNA analysis (somatic tumor-normal pair / tumor only)](doc/dna_tumor-normal_pair.md)
+* [DNA germline analysis (single sample)](doc/dna_single_sample.md)
+* [DNA germline analysis (multi-sample and trio)](doc/dna_multi_sample.md)
+* [DNA somatic analysis (tumor-normal pair / tumor only)](doc/dna_tumor-normal_pair.md)
 * [RNA analysis (expression)](doc/rna_expression.md)
 
 

@@ -6,13 +6,13 @@
 
 [tools-ngs]
 ngs-bits = [path]/data/tools/ngs-bits/bin/
-samtools = [path]/data/tools/samtools-1.15/samtools
-freebayes = [path]/data/tools/freebayes-1.3.3/build/freebayes
-vcflib = [path]/data/tools/vcflib-1.0.2/build/
+samtools = [path]/data/tools/samtools-1.15.1/samtools
+freebayes = [path]/data/tools/freebayes-1.3.6/freebayes
+vcflib = [path]/data/tools/vcflib-1.0.3/build/
 abra2 = java -Xmx16g -jar [path]/data/tools/abra2-2.23/abra2.jar
 samblaster = [path]/data/tools/samblaster/samblaster
 bwa = [path]/data/tools/bwa-0.7.17/bwa
-bwa-mem2 = [path]/data/tools/bwa-mem2-2.1_x64-linux/bwa-mem2
+bwa-mem2 = [path]/data/tools/bwa-mem2-2.2.1_x64-linux/bwa-mem2
 vep = [path]/data/tools/ensembl-vep-release-103.1/vep
 vep_data = [path]/data/dbs/ensembl-vep-103/
 interop = [path]/data/tools/InterOp-1.1.21-Linux-GNU/bin/summary
@@ -20,9 +20,9 @@ rscript = [path]/R-4.1.0/bin/Rscript
 clincnv = [path]/data/tools/ClinCNV-1.17.1/clinCNV.R
 clincnv_cohorts = [path]/data/ClinCNV-cohorts/
 circos = [path]/data/tools/circos-0.69-9/bin/circos
-expansion_hunter = [path]/data/tools/ExpansionHunter-v4.0.2-linux_x86_64/bin/ExpansionHunter
+expansion_hunter = [path]/data/tools/ExpansionHunter-v5.0.0-linux_x86_64/bin/ExpansionHunter
 Splicing = [path]/data/tools/SplicingTools
-REViewer = [path]/data/tools/opt/REViewer-0.1.1/build/install/bin/REViewer
+REViewer = [path]/data/tools/REViewer-v0.2.7/REViewer-v0.2.7
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.9.centos6_x86_64/bin/

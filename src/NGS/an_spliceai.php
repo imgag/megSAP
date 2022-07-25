@@ -245,7 +245,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 		$tmp3 = $parser->tempFile("_input_header_fixed.vcf.gz");
 		$parser->exec("grep", "-v '##INFO=<ID=SpliceAI,' {$in} > {$tmp3}");
 	}
-	$parser->exec("{$ngsbits}/VcfAnnotateFromVcf", "-in {$tmp3} -annotation_file {$tmp2} -info_ids SpliceAI -out {$out} -threads {$threads}");
+	$parser->exec("{$ngsbits}/VcfAnnotateFromVcf", "-in {$tmp3} -source {$tmp2} -info_keys SpliceAI -out {$out} -threads {$threads}");
 	if ($header_old!="") //replace new by old header
 	{		
 		$header_old = str_replace("\"", "\\\"", $header_old); //SpliceAI header has doubles quotes which need to be escaped

@@ -43,7 +43,7 @@ function txt2geno_lightcycler($snps, $in_file, $out_file)
 		
 		//filter
 		if (!isset($snps[$position[0]])) continue;
-		if (!preg_match("/^[0-9]{6}/", $sample) && !preg_match("/^DNA-[0-9]{6}/", $sample) && !starts_with($sample, "FO"))
+		if (!preg_match("/^[0-9]{6,}/", $sample) && !preg_match("/^DNA-[0-9]{6,}/", $sample) && !starts_with($sample, "FO"))
 		{
 			$skipped[$sample] = true;
 			continue;
@@ -213,33 +213,36 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 
 
 //searches for sample in NGSD and returns processed sample meta data
-function sample_from_ngsd(&$db, $sample_name, $irp, $itp)
+function sample_from_ngsd(&$db, $dna_number, $irp, $itp)
 {
 	$output = array();
 	
 	$project_conditions = "(p.type='diagnostic'".($irp ? " OR p.type='research'" : "").($itp ? " OR p.type='test'" : "").")";
 	
 	//### get sample name ###
-	
-	//1. try (sample name)
-	$res = $db->executeQuery("SELECT s.name FROM sample s WHERE s.name='{$sample_name}' AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
-	
-	//2. try (DNA number)
-	if (count($res)==0 && !starts_with($sample_name, "FO"))
+
+	if (!starts_with($dna_number, "FO"))
 	{
-		$matches = [];
-		preg_match("/[0-9]{6,}/", $sample_name, $matches);
-		if (count($matches)==1)
+		//1. try (DNA prefix (new schema))
+		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE s.name LIKE 'DNA{$dna_number}%' AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
+		
+		//2. try (DX prefix and external name (old schema))
+		if (count($res)==0)
 		{
-			$dna_nr = "DX".$matches[0];
-			$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name='{$dna_nr}' OR s.name_external LIKE '%{$dna_nr}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
+			$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name LIKE 'DX{$dna_number}%' OR s.name_external LIKE '%{$dna_number}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
 		}
 	}
-	
-	//3. try (FO number)
-	if (count($res)==0)
+	else //search for FO number
 	{
-		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name_external LIKE '%{$sample_name}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
+		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name LIKE '{$dna_number}%' OR s.name_external LIKE '%{$dna_number}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
+		
+		
+		if (count($res)==0)
+		{
+			//2. try (without '-')
+			$dna_number = str_replace("-", "", $dna_number);
+			$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name LIKE 'DX{$dna_number}%' OR s.name_external LIKE '%{$dna_number}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
+		}
 	}
 	
 	//determine processed sample meta data
@@ -354,21 +357,43 @@ foreach($file as $line)
 	if ($line=="" || $line[0]=="#") continue;
 	
 	$genotypes = explode("\t", $line);
-	$sample_name = trim($genotypes[0]);
-	$genotypes = array_slice($genotypes, 1);
 	
+	//extract DNA number
+	preg_match("/[0-9]{6,}/", $genotypes[0], $matches);
+	if (count($matches) == 1)
+	{
+		$dna_number = $matches[0];
+		$genotypes = array_slice($genotypes, 1);
+	}
+	else
+	{
+		//check FO number
+		preg_match("/FO[-]{0,1}[0-9]{5}/", $genotypes[0], $matches);
+		if (count($matches) == 1)
+		{
+			$dna_number = $matches[0];
+			$genotypes = array_slice($genotypes, 1);
+		}
+		else
+		{
+			print "error - Invalid DNA number '".$genotypes[0]."' given!\n";
+			$output[] = "##Invalid DNA number '".$genotypes[0]."'\n";
+			continue;
+		}
+	}
+	 
 	//determine BAM file of sample
-	$res = sample_from_ngsd($db, $sample_name, $irp, $itp);
+	$res = sample_from_ngsd($db, $dna_number, $irp, $itp);
 	if (count($res)==0)
 	{
-		print "error - Could not find sample '$sample_name' in NGSD!\n";
-		$output[] = "##no NGSD entry for sample '$sample_name'\n";
+		print "error - Could not find sample '$dna_number' in NGSD!\n";
+		$output[] = "##no NGSD entry for sample '$dna_number'\n";
 	}
 	else
 	{
 		foreach($res as $sample => $ps_data)
 		{
-			print "$sample_name (NGSD: {$sample})\n";
+			print "$dna_number (NGSD: {$sample})\n";
 			
 			$bams_found = 0;
 			foreach($ps_data as list($ps, $folder))
@@ -454,7 +479,7 @@ foreach($file as $line)
 						{
 							$messages[] = "ERROR - random_match_probabilty too high";
 						}
-						$output[] = "$sample_name\t$rmp\t$c_kasp\t$c_both\t$c_match\t$bam\n";
+						$output[] = "$dna_number\t$rmp\t$c_kasp\t$c_both\t$c_match\t$bam\n";
 					
 						//NGSD import of results
 						import_ngsd($db, $ps, $rmp, $c_both, $c_match);
@@ -470,8 +495,8 @@ foreach($file as $line)
 			//error 
 			if($bams_found==0)
 			{
-				print "  error - Could not find any BAM file for sample '$sample_name'!\n";
-				$output[] = "##no BAM file for sample '$sample_name'\n";
+				print "  error - Could not find any BAM file for sample '$dna_number'!\n";
+				$output[] = "##no BAM file for sample '$dna_number'\n";
 			}
 		}
 	}

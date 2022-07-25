@@ -1,5 +1,5 @@
 ##fileformat=VCFv4.2
-##source=freeBayes v1.3.3
+##source=freeBayes v1.3.6
 ##reference=/tmp/local_ngs_data_GRCh38//GRCh38.fa
 ##phasing=none
 ##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">

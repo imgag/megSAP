@@ -748,10 +748,10 @@ if (in_array("cn", $steps))
 		}
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnvfile}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2022-04.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2022-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
 
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2022_1.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2022_2.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
@@ -886,7 +886,7 @@ if (in_array("sv", $steps))
 if (in_array("sv", $steps) && !$annotation_only)
 {
 	//perform repeat expansion analysis (only for WGS/WES):
-	$parser->execTool("NGS/vc_expansionhunter.php", "-in $local_bamfile -out $expansion_hunter_file -build ".$sys['build']." -pid $name");
+	$parser->execTool("NGS/vc_expansionhunter.php", "-in $local_bamfile -out $expansion_hunter_file -build ".$sys['build']." -pid $name -threads {$threads}");
 }
 
 // Create Circos plot only if variant or copy-number calling was done

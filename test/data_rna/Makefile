@@ -19,6 +19,7 @@ analyze_se:
 			-folder single_end -name SE \
 			-steps ma,rc,an -system system.ini \
 			-library_type unstranded \
+			-skip_dna_reannotation \
 			--log analyze_rna_out_se.log
 
 diff_se:
@@ -34,6 +35,7 @@ analyze_pe:
 			-steps ma,rc,an,fu -system system.ini \
 			-fusion_caller arriba \
 			-library_type unstranded \
+			-skip_dna_reannotation \
 			--log analyze_rna_out_pe.log
 
 diff_pe:

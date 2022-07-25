@@ -253,6 +253,200 @@ function import_genlab_disease_group($ps)
 	}
 }
 
+function import_sample_relations($ps)
+{
+	global $db_conn;
+	global $db_genlab;
+
+	//get processed sample info from NGSD
+	$current_sample_data = get_processed_sample_info($db_conn, $ps, false);
+	$current_sample = explode("_", $ps."_")[0];
+	
+	if($current_sample_data == null)
+	{
+		// Can't find current sample in NGSD;
+		return;
+	}
+	
+	// only search for relations for Panel and RNA samples for relations (tumor-normal and same_sample respectivly):
+	if ($current_sample_data["sys_type"] != "RNA" && $current_sample_data["sys_type"] != "Panel")
+	{
+		// unsupported sample type;
+		return;
+	}
+
+	$ps_id = get_processed_sample_id($db_conn, $ps);
+	$current_sample_id = $db_conn->getValue("SELECT sample_id FROM processed_sample WHERE id='$ps_id'");
+	$existing_relations = $db_conn->executeQuery("SELECT * FROM sample_relations WHERE sample1_id = '{$current_sample_id}' OR sample2_id = '{$current_sample_id}'");  
+
+	foreach ($existing_relations as $rel)
+	{
+		if (($current_sample_data["sys_type"] == "Panel" && $rel["relation"] == "tumor-normal") || ($current_sample_data["sys_type"] == "RNA" && $rel["relation"] == "same sample"))
+		{
+			//a relation already exists.
+			return;
+		}
+	}
+
+	// try both, processed sample id and sample id (inconsistent in Genlab)
+	$patient_id = $db_genlab->getValue("SELECT GenlabID FROM v_ngs_patient_ids WHERE LABORNUMMER='{$ps}'", "");
+	$current_sample_name = $ps;
+	if ($patient_id == "")
+	{
+		$patient_id = $db_genlab->getValue("SELECT GenlabID FROM v_ngs_patient_ids WHERE LABORNUMMER='{$current_sample}'", "");
+		$current_sample_name = $current_sample;
+	}
+	if ($patient_id == "")
+	{
+		// ps not found in genlab
+		return;
+	}
+
+	//search OTHER samples with the same patient
+	$samples_same_patient = $db_genlab->getValues("SELECT LABORNUMMER FROM v_ngs_patient_ids WHERE GenlabID = '{$patient_id}' and LABORNUMMER != '{$current_sample_name}' ORDER BY LABORNUMMER");
+	
+	if (count($samples_same_patient) == 0)
+	{
+		// no other samples of the same patient
+		return;
+	}
+
+	$related_sample_data = [];
+
+	//get sample data for all related samples.
+	foreach ($samples_same_patient as $s)
+	{
+		$s = strtoupper(explode("_", $s."_")[0]);
+		$ngsd_sample_info = $db_conn->executeQuery("SELECT s.id as sample_id, s.name as sample_name, ps.process_id as process_id, s.sample_type, s.quality, s.tumor, ps.quality as processed_quality, system.name_manufacturer as sys_name, system.type as sys_type, sr.name as run_name, sr.status as run_status FROM bioinf_ngsd.sample as s LEFT JOIN bioinf_ngsd.processed_sample as ps ON s.id = ps.sample_id LEFT JOIN bioinf_ngsd.processing_system as system ON ps.processing_system_id = system.id LEFT JOIN bioinf_ngsd.sequencing_run as sr on ps.sequencing_run_id = sr.id  WHERE s.name='$s' ORDER BY s.name");
+		if (count($ngsd_sample_info) == 0)
+		{
+			continue;
+		}
+		else
+		{
+			foreach($ngsd_sample_info as $related_sample_info)
+			{
+				$related_sample_data[$s."_0".$related_sample_info["process_id"]] = $related_sample_info;
+			}
+		}
+	}
+
+	if (count($related_sample_data) == 0)
+	{
+		//non of the related samples found in NGSD
+		return;
+	}
+
+	$related_sample = null;
+	
+	if ($current_sample_data["sys_type"] == "Panel")
+	{	
+		foreach($related_sample_data as $s => $data)
+		{
+			$system_type_ok = $data["sys_type"] == "Panel";
+			$quality_ok = $data["processed_quality"] != "bad";
+			$tumor_ok = $data["tumor"] != $current_sample_data["is_tumor"]; // search for the opposite of the current sample.
+			$is_DNA = $data["sample_type"] == "DNA";
+			$run_finished = $data["run_status"] != "n/a" && $data["run_status"] != "run_started" && $data["run_status"] != "run_aborted";
+			
+			$system_ok = $current_sample_data["sys_name"] == $data["sys_name"];
+			
+			if ($related_sample == null && $system_type_ok  && $quality_ok && $tumor_ok && $is_DNA && $run_finished)
+			{
+				$related_sample = $s;
+			}
+			else if ($system_type_ok  && $quality_ok && $tumor_ok && $is_DNA && $run_finished && $system_ok)
+			{
+				$related_sample = $s;
+			}
+		}
+		
+		if ($related_sample == null)
+		{
+			return;
+		}
+		
+		$related_id = $related_sample_data[$related_sample]["sample_id"];
+		$related_sample = explode("_", $related_sample."_")[0];
+		if ($current_sample_data["is_tumor"] == "1")
+		{
+			print "Importing Sample_relation for sample {$current_sample}: $current_sample tumor-normal $related_sample \n";
+			$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$current_sample_id},'tumor-normal',{$related_id})");
+			return [$current_sample, 'tumor-normal', $related_sample];
+		}
+		else
+		{
+			print "Importing Sample_relation for sample {$current_sample}: $related_sample tumor-normal $current_sample \n";
+			$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$related_id},'tumor-normal',{$current_sample_id})");
+			return [$related_sample, 'tumor-normal', $current_sample];
+		}		
+	}
+	else if ($current_sample_data["sys_type"] == "RNA")
+	{
+		//search genlab DnaRna table for a related sample
+		$genlab_related_samples = $db_genlab->getValues("SELECT LABORNUMMER FROM v_ngs_dnarna WHERE T_UNTERSUCHUNG_1_MATERIALINFO = '{$current_sample_data["name_external"]}' and LABORNUMMER != '{$current_sample_name}' ORDER BY LABORNUMMER");
+		if (count($genlab_related_samples) != 0)
+		{
+			$genlab_related_sample = null;
+			foreach($genlab_related_samples as $gs)
+			{
+				
+				$gs_data = $db_conn->executeQuery("SELECT s.id as sample_id, s.name as sample_name, ps.process_id as process_id, s.sample_type, s.quality, s.tumor, ps.quality as processed_quality, system.name_manufacturer as sys_name, system.type as sys_type FROM bioinf_ngsd.sample as s LEFT JOIN bioinf_ngsd.processed_sample as ps ON s.id = ps.sample_id LEFT JOIN bioinf_ngsd.processing_system as system ON ps.processing_system_id = system.id WHERE s.name='$gs' ORDER BY s.name");
+				if (count($gs_data) ==0 || $gs_data[0]["sample_type"] == "RNA")
+				{
+					continue;
+				}
+				
+				$genlab_related_sample = explode("_", $gs."_")[0];
+				
+			}
+
+			foreach ($related_sample_data as $s => $data)
+			{
+				if (explode("_", $s."_")[0] == $genlab_related_sample)
+				{
+					$related_id = $data["sample_id"];
+					
+					print "Importing sample relation for RNA sample {$current_sample}: $genlab_related_sample same sample $current_sample \n";
+					$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$related_id},'same sample',{$current_sample_id})");
+					return [$genlab_related_sample , 'same sample', $current_sample];
+				}
+			}
+		}
+		
+		//search the samples of the same patient for a fitting sample
+		foreach($related_sample_data as $s => $data)
+		{	
+			$system_type_ok = $data["sys_type"] == "Panel" || $data["sys_type"] == "WES" || $data["sys_type"] == "WGS";
+			$quality_ok = $data["processed_quality"] != "bad";
+			$is_DNA = $data["sample_type"] == "DNA";
+			$run_finished = $data["run_status"] != "n/a" && $data["run_status"] != "run_started" && $data["run_status"] != "run_aborted";
+
+			if ($system_type_ok  && $quality_ok && $is_DNA && $run_finished)
+			{
+				$related_sample = $s;
+			}
+		}
+		
+		if ($related_sample == null)
+		{
+			return;
+		}
+		
+		$related_id = $related_sample_data[$related_sample]["sample_id"];
+		$related_sample = explode("_", $related_sample."_")[0];
+		
+		print "Importing sample relation for RNA sample {$current_sample}: $related_sample same sample $current_sample \n";
+		$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$related_id},'same sample',{$current_sample_id})");
+		
+		return [$related_sample, 'same sample', $current_sample];
+	}
+	else
+	{
+		trigger_error("Unsupported system type ".$current_sample_data["sys_type"].". No sample relations annotated.", E_USER_WARNING);
+	}
+}
+
 //init
 if (!isset($out)) $out = "Makefile";
 $db_conn = DB::getInstance($db);
@@ -530,7 +724,13 @@ foreach($sample_data as $sample => $sample_infos)
 
 	//skip normal samples which have an associated tumor sample on the same run
 	$is_normal_with_tumor = !$sample_is_tumor && isset($normal2tumor[$sample]);
-
+	
+	//always try to import sample relation
+	if (!is_null($db_genlab))
+	{
+		import_sample_relations($sample);
+	}
+	
 	//additional arguments for db_queue_analysis
 	$args = array();
 
@@ -619,6 +819,7 @@ foreach($sample_data as $sample => $sample_infos)
 			if (!is_null($db_genlab))
 			{
 				import_genlab_disease_group($sample);
+				import_sample_relations($sample);
 			}
 		}
 		if ($high_priority || contains(strtolower(implode(" ", $sample_infos['ps_comments'])), "eilig"))
