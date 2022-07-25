@@ -40,7 +40,6 @@ annotated) read counts in tabular format_
 
 ### Fusion detection (step `fu`)
 
-[STAR-Fusion](https://github.com/STAR-Fusion/STAR-Fusion) can be used to process
-the STAR mapping output to identify fusion transcripts.
+[Arriba](https://github.com/suhrig/arriba) can be used to to identify fusion transcripts.
 
 _Output: candidate fusions in tabular format_
