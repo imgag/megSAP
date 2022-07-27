@@ -886,7 +886,7 @@ if (in_array("sv", $steps))
 if (in_array("sv", $steps) && !$annotation_only)
 {
 	//perform repeat expansion analysis (only for WGS/WES):
-	$parser->execTool("NGS/vc_expansionhunter.php", "-in $local_bamfile -out $expansion_hunter_file -build ".$sys['build']." -pid $name");
+	$parser->execTool("NGS/vc_expansionhunter.php", "-in $local_bamfile -out $expansion_hunter_file -build ".$sys['build']." -pid $name -threads {$threads}");
 }
 
 // Create Circos plot only if variant or copy-number calling was done

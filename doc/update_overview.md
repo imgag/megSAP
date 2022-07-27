@@ -1,6 +1,6 @@
 # Tool and database overview
 
-## Databases
+## Databases general
 
 |database               |used for                |last update/check               |notes                                                                                               |url                                                                     |
 |-----------------------|------------------------|--------------------------------|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
@@ -31,43 +31,42 @@
 |COSMIC CMC             |pipeline (somatic)      |01.2021                         |                                                                                                    |https://cancer.sanger.ac.uk/cmc                                         |
 
 
-## Tools
+## Tools general
 
 |tool                   |used for                                             |last update/check |notes                                                                                |url                                                                     |
 |-----------------------|-----------------------------------------------------|------------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-|ngs-bits               |misc                                                 |-                 |                                                                                     |                                                                        |
-|freebayes              |variant calling                                      |01.2021 (1.3.3)   |test GATK on twin de-novo data: /mnt/share/evaluations/2020_07_29_twin_denovo/       |https://github.com/ekg/freebayes                                        |
-|samtools               |BAM sorting                                          |01.2021 (1.11)    |                                                                                     |http://www.htslib.org/                                                  |
-|vcflib                 |VCF normalization                                    |01.2021 (1.0.2)   |                                                                                     |https://github.com/vcflib/vcflib                                        |
-|abra2                  |indel realignment                                    |01.2021 (2.23)    |                                                                                     |https://github.com/mozack/abra2                                         |
-|samblaster             |duplicate removal                                    |01.2021 (0.1.26)  |                                                                                     |https://github.com/GregoryFaust/samblaster                              |
-|bwa                    |mapping                                              |01.2021 (0.7.17)  |                                                                                     |https://github.com/lh3/bwa/                                             |
-|bwa2                   |mapping                                              |01.2021 (2.1)     |                                                                                     |https://github.com/bwa-mem2/bwa-mem2                                    |
-|ClinCNV                |CNV calling                                          |01.2021 (1.17.0)  |                                                                                     |https://github.com/imgag/ClinCNV                                        |
-|VEP                    |annotation                                           |05.2021 (104.3)   | -> 105.0 available (PrimateAI)                                                      |https://github.com/Ensembl/ensembl-vep/releases                         |
-|manta                  |structural variant calling (tumor/normal)            |01.2021 (1.6.0)   |                                                                                     |https://github.com/Illumina/manta                                       |
-|InterOp                |reading InterOp metric files (Illumina NextSeq 1k/2k)|01.2021 (1.0.25)  | -> 1.1.16 available                                                                 |                                                                        |
-|Circos                 |circos plot with CNVs,ROHS,etc                       |01.2021 (0.69-9)  |                                                                                     |http://circos.ca/software/download/                                     |
-|ExpansionHunter        |Repeat expansion calling                             |01.2021 (4.0.2)   |                                                                                     |https://github.com/Illumina/ExpansionHunter                             |
-|SpliceAI               |Predict splicing variant effect                      |01.2021 (1.3.1)   |                                                                                     |https://github.com/Illumina/SpliceAI                                    |
-
+|ngs-bits               |annotation, quality control, ...                     |-                 |                                                                                     |                                                                        |
+|samtools               |BAM sorting                                          |07.2022 (1.15.1)  |                                                                                     |http://www.htslib.org/                                                  |
+|bwa2                   |mapping (default)                                    |07.2022 (2.2.1)   |                                                                                     |https://github.com/bwa-mem2/bwa-mem2                                    |
+|bwa                    |mapping (if use_bwa1 is true in settings)            |07.2022 (0.7.17)  |                                                                                     |https://github.com/lh3/bwa/                                             |
+|samblaster             |duplicate removal                                    |07.2022 (0.1.26)  |                                                                                     |https://github.com/GregoryFaust/samblaster                              |
+|abra2                  |indel realignment                                    |07.2022 (2.23)    | update to 2.24 not possible because of https://github.com/mozack/abra2/issues/46    |https://github.com/mozack/abra2                                         |
+|freebayes              |variant calling                                      |07.2022 (1.3.6)   |                                                                                     |https://github.com/ekg/freebayes                                        |
+|vcflib                 |VCF normalization                                    |07.2022 (1.0.3)   |                                                                                     |https://github.com/vcflib/vcflib                                        |
+|VEP                    |annotation                                           |01.2021 (104.4)   | update to 107 when VcfAnnotateconsequences is used for consequence annotation       |https://github.com/Ensembl/ensembl-vep/releases                         |
+|SpliceAI               |Predict splicing variant effect                      |07.2022 (1.3.1)   |                                                                                     |https://github.com/Illumina/SpliceAI                                    |
+|ClinCNV                |CNV calling                                          |07.2022 (1.17.2)  |                                                                                     |https://github.com/imgag/ClinCNV                                        |
+|manta                  |structural variant calling                           |07.2022 (1.6.0)   |                                                                                     |https://github.com/Illumina/manta                                       |
+|ExpansionHunter        |Repeat expansion calling                             |07.2022 (5.0.0)   |                                                                                     |https://github.com/Illumina/ExpansionHunter                             |
+|REViewer               |Repeat expansion visualization                       |07.2022 (0.2.7)   |                                                                                     |https://github.com/Illumina/REViewer                                    |
+|Circos                 |circos plot with CNVs,ROHS,etc                       |07.2022 (0.69-9)  |                                                                                     |http://circos.ca/software/download/                                     |
+|InterOp                |reading InterOp metric files (Illumina NextSeq 1k/2k)|07.2022 (1.0.25)  | v1.1.25 available, but update is not necessary as the QC import works               |                                                                        |
 
 
 ## Tools for somatic pipelines
 
-|tool somatic           |used for                                                 |last update/check   |notes  |url                                                                     |
-|-----------------------|---------------------------------------------------------|--------------------|-------|------------------------------------------------------------------------|
-|strelka2               |variant calling (tumor/normal)                           |01.2021 (2.9.10)    |       |https://github.com/Illumina/strelka                                     |
-|mantis                 |microsatelite instability (tumor/normal)                 |01.2021 (v1.0.5)    |       |https://github.com/OSU-SRLab/MANTIS/releases                            |
-|varscan2               |variant calling                                          |01.2021 (2.4.4)     |       |https://github.com/dkoboldt/varscan                                     |
+|tool somatic           |used for                                             |last update/check |notes                                                                                |url                                                                     |
+|-----------------------|-----------------------------------------------------|------------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+|strelka2               |variant calling (tumor/normal)                       |01.2021 (2.9.10)  |                                                                                     |https://github.com/Illumina/strelka                                     |
+|mantis                 |microsatelite instability (tumor/normal)             |01.2021 (v1.0.5)  |                                                                                     |https://github.com/OSU-SRLab/MANTIS/releases                            |
+|varscan2               |variant calling                                      |01.2021 (2.4.4)   |                                                                                     |https://github.com/dkoboldt/varscan                                     |
 
 
 ## Tools for RNA pipeline
 
-|tool RNA               |used for                   |last update/check               |notes                                                                                               |url                                                                            |
-|-----------------------|---------------------------|--------------------------------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-|STAR                   |mapping                    |08.2020 (2.7.3a)                |2.7.5a available                                                                                    |https://github.com/alexdobin/STAR                                              |
-|subread                |read counting              |08.2020 (2.0.0)                 |2.0.1 available                                                                                     |http://subread.sourceforge.net/                                                |
-|skewer                 |single-end adapter trimming|07.2020 (0.2.2)                 |                                                                                                    |https://github.com/relipmoc/skewer                                             |
-|STAR-Fusion            |fusion detection           |07.2020 (1.9.0)                 |                                                                                                    |https://github.com/STAR-Fusion/STAR-Fusion                                     |
-|samtools               |fusion detection           |10.2020 (1.7)                   |STAR-Fusion needs specific samtools version for certain RNA samples                                 |https://github.com/samtools/samtools/releases/download/1.7/samtools-1.7.tar.bz2|
+|tool RNA               |used for                                             |last update/check |notes                                                                                |url                                                                     |
+|-----------------------|-----------------------------------------------------|------------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+|STAR                   |mapping                                              |08.2020 (2.7.3a)  |2.7.5a available                                                                     |https://github.com/alexdobin/STAR                                       |
+|subread                |read counting                                        |08.2020 (2.0.0)   |2.0.1 available                                                                      |http://subread.sourceforge.net/                                         |
+|Arriba                 |fusion detection                                     |01.2022 (2.2.1)   |2.3.0 available                                                                      |https://github.com/suhrig/arriba                                        |
+|Kraken2                |???                                                  |07.2022 (2.1.2)   |                                                                                     |https://github.com/DerrickWood/kraken2                                  |

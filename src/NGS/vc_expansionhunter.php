@@ -14,6 +14,7 @@ $parser = new ToolBase("vc_expansionhunter", "Call repeat expansions with Expans
 $parser->addInfile("in", "Input BAM file.", false);
 $parser->addOutfile("out", "Output VCF file.", false);
 //optional
+$parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("pid", "Processed sample name (e.g. 'GS120001_01'). If unset BAM file name will be used", true);
 extract($parser->parse($argv));
@@ -26,6 +27,7 @@ if(!isset($pid)) $pid = basename($in);
 $out_prefix = dirname($out)."/".basename($out, ".vcf");
 $expansion_hunter_binary = get_path("expansion_hunter");
 $args = [];
+$args[] = "--threads $threads";
 $args[] = "--reads $in";
 $args[] = "--reference ".genome_fasta($build);
 $args[] = "--output-prefix {$out_prefix}";
@@ -154,7 +156,12 @@ $args[] = "--reference ".genome_fasta($build);
 $args[] = "--catalog {$variant_catalog}";
 foreach ($loci as $locus) 
 {
-	$parser->exec($reviewer_binary, implode(" ", $args)." --output-prefix {$svg_folder}".basename($out, ".vcf")."_{$locus} --locus {$locus}", true, false, true);
+	$prefix = $svg_folder.basename($out, ".vcf");
+	$parser->exec($reviewer_binary, implode(" ", $args)." --output-prefix $prefix --locus $locus", true, false, true);
+	
+	//rename to keep the naming consistent with v0.1.1
+	$ok = rename($prefix.".".$locus.".svg", $prefix."_".$locus.".svg");
+	if (!$ok) trigger_error("Could not rename SVG for locus $locus!", E_USER_ERROR);
 }
 
 
