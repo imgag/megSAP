@@ -317,6 +317,30 @@ if (in_array("an", $steps))
 			$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr}", true);
 			$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode exons -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", true);
 
+			//remove duplicate exons from file
+			$exon_file = file($expr_exon, FILE_IGNORE_NEW_LINES);
+			$cache = array();
+			$output = array();
+			foreach($exon_file as $line)
+			{
+				if(starts_with($line, "#"))
+				{
+					$output[] = $line;
+				}
+				else
+				{
+					$exon = explode("\t", $line, 1)[0];
+					
+					if(in_array($exon, $cache)) continue;
+
+					$cache[] = $exon;
+					$output[] = $line;
+				}
+			}
+			file_put_contents($expr_exon, implode("\n", $output));
+
+			
+
 			if ($ps_info['is_tumor'])
 			{
 				//annotate HPA reference:
@@ -372,6 +396,7 @@ if (in_array("ma", $steps) || in_array("rc", $steps) || in_array("an", $steps))
 }
 
 //save gene expression plots
+$expr_cohort = $prefix."_expr.cohort.tsv";
 if (in_array("plt", $steps))
 {
 	$genelists = glob(get_path("data_folder") . "/pathway_genelists/*.txt");
