@@ -203,7 +203,7 @@ if (in_array("vc", $steps))
 		$args[] = "-target ".$sys['target_file'];
 		$args[] = "-min_mq 20";
 		$args[] = "-min_af 0.1";
-		$args[] = "-target_extend 50";
+		$args[] = "-target_extend 200";
 		$args[] = "-build ".$sys['build'];
 		$args[] = "-threads $threads";
 		$args[] = "--log ".$parser->getLogFile();
