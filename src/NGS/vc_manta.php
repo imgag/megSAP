@@ -112,10 +112,24 @@ $sv = "{$manta_folder}/results/variants/{$outname}SV.vcf.gz";
 $sv_inv = "{$manta_folder}/results/variants/{$outname}SV_inv.vcf";
 $parser->exec("python ".get_path('manta')."/../libexec/convertInversion.py", get_path("samtools")." ".genome_fasta($build)." {$sv} > {$sv_inv}");
 
+//remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
+$vcf_fixed = "{$temp_folder}/{$outname}SV_fixed.vcf";
+$h = fopen2($sv_inv, "r");
+$h2 = fopen2($vcf_fixed, "w");
+while(!feof($h))
+{
+	$line = fgets($h);
+	$parts = explode("\t", $line);
+	if (count($parts)>3 && $parts[3]=="") continue;
+	
+	fputs($h2, $line);
+}
+fclose($h);
+fclose($h2);
 
 //sort variants
 $vcf_sorted = "{$temp_folder}/{$outname}SV_sorted.vcf";
-$parser->exec(get_path("ngs-bits")."VcfSort","-in {$sv_inv} -out $vcf_sorted", true);
+$parser->exec(get_path("ngs-bits")."VcfSort","-in {$vcf_fixed} -out $vcf_sorted", true);
 
 // flag off-target variants
 if (isset($target))
