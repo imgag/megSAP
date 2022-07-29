@@ -371,7 +371,7 @@ if (in_array("vc", $steps))
 		if ($has_roi)
 		{
 			$args[] = "-target ".$sys['target_file'];
-			$args[] = "-target_extend 50";
+			$args[] = "-target_extend 200";
 		}
 		$args[] = "-min_af ".$min_af;
 		$args[] = "-min_mq ".$min_mq;

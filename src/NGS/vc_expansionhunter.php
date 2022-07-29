@@ -160,8 +160,12 @@ foreach ($loci as $locus)
 	$parser->exec($reviewer_binary, implode(" ", $args)." --output-prefix $prefix --locus $locus", true, false, true);
 	
 	//rename to keep the naming consistent with v0.1.1
-	$ok = rename($prefix.".".$locus.".svg", $prefix."_".$locus.".svg");
-	if (!$ok) trigger_error("Could not rename SVG for locus $locus!", E_USER_ERROR);
+	$source_file = $prefix.".".$locus.".svg";
+	if (file_exists($source_file))
+	{
+		$ok = rename($source_file, $prefix."_".$locus.".svg");
+		if (!$ok) trigger_error("Could not rename SVG for locus $locus!", E_USER_ERROR);
+	}
 }
 
 
