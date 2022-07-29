@@ -375,18 +375,24 @@ SQL;
 $qc_rna = "{$prefix}_stats_RNA.qcML";
 if (in_array("ma", $steps) || in_array("rc", $steps) || in_array("an", $steps))
 {
-	$args = [
-		"-bam", $final_bam,
-		"-housekeeping_genes", repository_basedir()."/data/gene_lists/housekeeping_genes_".ngsbits_build($sys['build']).".bed",
-		"-out", $qc_rna,
-		"-ref", genome_fasta($sys['build'])
-	];
+$args = [
+	"-bam", $final_bam,
+	"-out", $qc_rna,
+	"-ref", genome_fasta($sys['build'])
+];
+if (ngsbits_build($sys['build']) != "non_human")
+{
+	$args[] = 	"-housekeeping_genes ".repository_basedir()."/data/gene_lists/housekeeping_genes_".ngsbits_build($sys['build']).".bed";
+}
 
-	if (file_exists($splicing_gene))
-	{
-		$args[] = "-splicing ".$splicing_gene;
-	}
-
+if (file_exists($splicing_gene))
+{
+	$args[] = "-splicing ".$splicing_gene;
+}
+if (file_exists($expr))
+{
+	$args[] = "-expression ".$expr;
+}
 	//run RnaQC
 	$parser->exec(get_path("ngs-bits")."RnaQC", implode(" ", $args));
 }
