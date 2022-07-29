@@ -542,7 +542,10 @@ if (in_array("vc", $steps))
 	}
 	
 	//determine ancestry
-	$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file} -build ".ngsbits_build($sys['build']), true);
+	if (ngsbits_build($sys['build']) != "non_human")
+	{
+		$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file} -build ".ngsbits_build($sys['build']), true);
+	}
 }
 
 //copy-number analysis

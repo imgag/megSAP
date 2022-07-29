@@ -1811,12 +1811,27 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 //converts a proessing system genome build string to a string compatible with ngs-bits
 function ngsbits_build($system_build)
 {
-	$system_build = strtolower($system_build);
-	
-	if ($system_build=="hg38") return "hg38";
-	if ($system_build=="grch38") return "hg38";
-	
-	return "hg19";
+	$system_build = strtolower($system_build);	
+	if ($system_build=="hg38" || $system_build=="grch38")
+	{
+		return "hg38";
+	}
+	else if (starts_with($system_build, "hg38_") || starts_with($system_build, "grch38"))
+	{
+		return "hg38";
+	}
+	else if ($system_build=="hg19" || $system_build=="grch37")
+	{
+		return "hg19";
+	}
+	else if (starts_with($system_build, "hg19_") || starts_with($system_build, "grch37_"))
+	{
+		return "hg19";
+	}
+	else 
+	{
+		return "non_human";
+	}
 }
 
 //returns an array of processed sample names that are currently being analyzed via the SGE queue

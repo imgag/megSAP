@@ -361,10 +361,14 @@ if (in_array("ma", $steps) || in_array("rc", $steps) || in_array("an", $steps))
 {
 $args = [
 	"-bam", $final_bam,
-	"-housekeeping_genes", repository_basedir()."/data/gene_lists/housekeeping_genes_".ngsbits_build($sys['build']).".bed",
 	"-out", $qc_rna,
 	"-ref", genome_fasta($sys['build'])
 ];
+
+if (ngsbits_build($sys['build']) != "non_human")
+{
+	$args[] = 	"-housekeeping_genes ".repository_basedir()."/data/gene_lists/housekeeping_genes_".ngsbits_build($sys['build']).".bed";
+}
 
 if (file_exists($splicing_gene))
 {
