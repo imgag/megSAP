@@ -313,7 +313,37 @@ if (in_array("an", $steps))
 		if (!is_null($ps_info))
 		{
 			$cohort_strategy = "RNA_COHORT_GERMLINE";
-			if ($ps_info['is_tumor']) $cohort_strategy = "RNA_COHORT_SOMATIC";
+			if ($ps_info['is_tumor']) 
+			{
+				$cohort_strategy = "RNA_COHORT_SOMATIC";
+				//annotate HPA reference:
+
+				list($s_name) = explode("_", $name);
+				$sql = <<<SQL
+					SELECT sdi.disease_info FROM sample s
+					LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id
+					LEFT JOIN sample_disease_info sdi ON sdi.sample_id=sr.sample1_id OR sdi.sample_id=sr.sample2_id
+					WHERE
+						s.name='{$s_name}' AND
+						sdi.type='RNA reference tissue' AND
+						(sr.relation="same sample" OR sr.relation IS NULL)
+SQL;
+		
+				$res = array_unique($db->getValues($sql));
+				$rna_ref_tissue = "";
+				if (count($res) == 1) 
+				{
+					$args = [
+						"hpa",
+						"--counts", $counts_normalized,
+						"--counts_out", $counts_normalized,
+						"--hpa", get_path("data_folder")."/dbs/gene_expression/rna_tissue_hpa.tsv",
+						"--prefix", "hpa_",
+						"--tissue", "'{$res[0]}'"
+					];
+					$parser->exec("python3 ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
+				}
+			}
 			$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr}", true);
 			$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode exons -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", true);
 
@@ -338,39 +368,6 @@ if (in_array("an", $steps))
 				}
 			}
 			file_put_contents($expr_exon, implode("\n", $output));
-
-			
-
-			if ($ps_info['is_tumor'])
-			{
-				//annotate HPA reference:
-
-				list($s_name) = explode("_", $name);
-				$sql = <<<SQL
-					SELECT sdi.disease_info FROM sample s
-					LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id
-					LEFT JOIN sample_disease_info sdi ON sdi.sample_id=sr.sample1_id OR sdi.sample_id=sr.sample2_id
-					WHERE
-						s.name='{$s_name}' AND
-						sdi.type='RNA reference tissue' AND
-						(sr.relation="same sample" OR sr.relation IS NULL)
-SQL;
-		
-				$res = array_unique($db->getValues($sql));
-				$rna_ref_tissue = "";
-				if (count($res) == 1) 
-				{
-					$args = [
-						"hpa",
-						"--counts", $expr,
-						"--counts_out", $expr,
-						"--hpa", get_path("data_folder")."/dbs/gene_expression/rna_tissue_hpa.tsv",
-						"--prefix", "hpa_",
-						"--tissue", "'{$res[0]}'"
-					];
-					$parser->exec("python3 ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
-				}
-			}
 		}
 	}
 }
