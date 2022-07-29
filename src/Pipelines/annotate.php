@@ -165,22 +165,8 @@ function annotate($parser, $vcffile, $out_name, $out_folder, $system, $no_fc, $m
 					trigger_error("Splicing file does not exist for RNA sample '{$psample}'!", E_USER_WARNING);
 				}
 
-				//TODO replace with ngs-bits tool:
 				//add RNA annotation
 				$parser->exec(get_path("ngs-bits")."NGSDAnnotateGeneExpression", "-in {$varfile} -out {$varfile}_ann.GSvar -rna_ps {$psample}", true);
-
-				//load TPM values form counts file, as associative array gene name => TPM value
-				$expr = $psample_info['ps_folder']."{$psample}_expr.tsv";
-				if (file_exists($expr))
-				{
-					annotate_gsvar_by_gene($varfile, $varfile, $expr, "gene_name", "tpm", "tpm", "Gene expression strength in transcripts-per-million.");
-					annotate_gsvar_by_gene($varfile, $varfile, $expr, "gene_name", "log2fc", "expr_log2fc", "Relative gene expression as log2 FC (log2 tpm).");
-					annotate_gsvar_by_gene($varfile, $varfile, $expr, "gene_name", "zscore", "expr_zscore", "Relative gene expression as z-score (log2 tpm)");
-				}
-				else
-				{
-					trigger_error("Count file does not exist for RNA sample '{$psample}'!", E_USER_WARNING);
-				}
 
 			}
 		}

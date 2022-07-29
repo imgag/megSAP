@@ -962,9 +962,6 @@ if (in_array("an_rna", $steps))
 		$rna_counts[$rna_id] = $rna_counts_tmp[0];
 	}
 
-	//TODO:
-	//Calculate sample similarity between tumor and RNA
-
 	//Annotate data from all detected RNA files
 	foreach($ps_rna_bams as $rna_id => $rna_bam)
 	{
@@ -984,6 +981,27 @@ if (in_array("an_rna", $steps))
 		if(file_exists($som_clincnv))
 		{
 			$parser->execTool("NGS/an_somatic_cnvs.php", " -cnv_in $som_clincnv -out $som_clincnv -rna_counts $rna_count -rna_id $rna_id -rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue));
+		}
+
+		//Calculate sample similarity between tumor and RNA
+		$min_corr = 0.9;  // TODO: evaluate value
+		
+		if (file_exists($t_bam))
+		{
+			$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$rna_bam} {$t_bam} -mode bam -build ".ngsbits_build($sys['build']), true);
+			$correlation = explode("\t", $output[0][1])[3];
+			if ($correlation < $min_corr)
+			{
+				trigger_error("The genotype correlation of DNA and RNA ({$rna_id}) is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
+			}
+			else
+			{
+				trigger_error("The genotype correlation of DNA and RNA ({$rna_id}) is {$correlation}.", E_USER_NOTICE);
+			}
+		}
+		else
+		{
+			trigger_error("BAM file does not exist for tumor DNA sample '{$out_name}'!", E_USER_WARNING);
 		}
 	}
 	
