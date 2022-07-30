@@ -125,6 +125,29 @@ function annotate($parser, $vcffile, $out_name, $out_folder, $system, $no_fc, $m
 				if (file_exists($bam_rna))
 				{
 					$parser->exec(get_path("ngs-bits")."VariantAnnotateASE", "-in {$varfile} -out {$varfile} -bam {$bam_rna}", true);
+
+					//check sample similarity
+					$min_corr = 0.9;
+					$dna_sample_info = get_processed_sample_info($db, $out_name);
+					$dna_bam = $dna_sample_info["ps_bam"];
+
+					if (file_exists($dna_bam))
+					{
+						$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bam_rna} {$dna_bam} -mode bam -build ".ngsbits_build($sys['build']), true);
+						$correlation = explode("\t", $output[0][1])[3];
+						if ($correlation < $min_corr)
+						{
+							trigger_error("The genotype correlation of DNA and RNA ({$psample}) is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
+						}
+						else
+						{
+							trigger_error("The genotype correlation of DNA and RNA ({$psample}) is {$correlation}.", E_USER_NOTICE);
+						}
+					}
+					else
+					{
+						trigger_error("BAM file does not exist for DNA sample '{$out_name}'!", E_USER_WARNING);
+					}
 				}
 				else
 				{
@@ -142,18 +165,9 @@ function annotate($parser, $vcffile, $out_name, $out_folder, $system, $no_fc, $m
 					trigger_error("Splicing file does not exist for RNA sample '{$psample}'!", E_USER_WARNING);
 				}
 
-				//load TPM values form counts file, as associative array gene name => TPM value
-				$expr = $psample_info['ps_folder']."{$psample}_expr.tsv";
-				if (file_exists($expr))
-				{
-					annotate_gsvar_by_gene($varfile, $varfile, $expr, "gene_name", "tpm", "tpm", "Gene expression strength in transcripts-per-million.");
-					annotate_gsvar_by_gene($varfile, $varfile, $expr, "gene_name", "log2fc", "expr_log2fc", "Relative gene expression as log2 FC (log2 tpm).");
-					annotate_gsvar_by_gene($varfile, $varfile, $expr, "gene_name", "zscore", "expr_zscore", "Relative gene expression as z-score (log2 tpm)");
-				}
-				else
-				{
-					trigger_error("Count file does not exist for RNA sample '{$psample}'!", E_USER_WARNING);
-				}
+				//add RNA annotation
+				$parser->exec(get_path("ngs-bits")."NGSDAnnotateGeneExpression", "-in {$varfile} -out {$varfile}_ann.GSvar -rna_ps {$psample}", true);
+
 			}
 		}
 		

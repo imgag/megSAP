@@ -56,6 +56,8 @@ if ($exome) $dragen_parameter[] = "--sv-exome true";
 $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix ".basename($out, ".vcf.gz");
 
+// reset dragen
+$parser->exec("dragen_reset", "");
 
 // run SV calling
 print basename($in)."\n";
