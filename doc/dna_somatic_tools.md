@@ -9,7 +9,7 @@ The following tools are used for calling of small variants and annotation of sma
 | QC - low coverage statistics                   | BedLowCoverage           | ngs-bits latest      |                                                  |
 | QC - low coverage annotation                   | BedAnnotateGenes         | ngs-bits latest      |                                                  |
 | Variant calling - hla                          | HLA-genotyper            | 2022_05              | https://github.com/axelgschwind/hla-genotyper    |
-| Variant calling - SNVs and Indels              | Strelka2                 | 2.9.9                | (tumor-normal                                    |
+| Variant calling - SNVs and Indels              | Strelka2                 | 2.9.9                | (tumor-normal)                                   |
 | Variant calling - SNVs and Indels              | Varscan2                 | 2.4.4                | (tumor-only)                                     |
 | Variant calling - left-normalization of InDels | VcfLeftNormalize         | ngs-bits latest      |                                                  |
 | Annotation - b-allele frequency (t/n)          | VariantAnnotateFrequency | ngs-bits latest      |                                                  |
