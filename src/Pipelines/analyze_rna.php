@@ -342,9 +342,13 @@ SQL;
 					$parser->exec("python3 ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
 				}
 			}
-			$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr}", true);
-			$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode exons -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", true);
 
+			if ($build=="GRCh38")
+			{
+				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr}", true);
+				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode exons -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", true);
+			}
+			
 			//remove duplicate exons from file
 			$exon_file = file($expr_exon, FILE_IGNORE_NEW_LINES);
 			$cache = array();
@@ -472,9 +476,11 @@ if (in_array("db", $steps))
 		"-ps", $name,
 		"-force"
 	];
-	if (file_exists($expr)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode genes -expression {$expr} ".implode(" ", $args));
-	if (file_exists($expr_exon)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode exons -expression {$expr_exon} ".implode(" ", $args));
-	
+	if ($build=="GRCh38")
+	{
+		if (file_exists($expr)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode genes -expression {$expr} ".implode(" ", $args));
+		if (file_exists($expr_exon)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode exons -expression {$expr_exon} ".implode(" ", $args));
+	}	
 }
 
 
