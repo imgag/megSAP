@@ -26,7 +26,8 @@ Documentation about the different analysis pipelines can be found here:
 
 * [DNA germline analysis (single sample)](doc/dna_single_sample.md)
 * [DNA germline analysis (multi-sample and trio)](doc/dna_multi_sample.md)
-* [DNA somatic analysis (tumor-normal pair / tumor only)](doc/dna_tumor-normal_pair.md)
+* [DNA somatic analysis (tumor-normal pair)](doc/dna_tumor-normal_pair.md)
+* [DNA somatic analysis (tumor only)](doc/dna_tumor_only.md)
 * [RNA analysis (expression)](doc/rna_expression.md)
 
 
