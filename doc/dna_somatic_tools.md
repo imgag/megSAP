@@ -4,10 +4,6 @@ The following tools are used for calling of small variants and annotation of sma
 
 | step                                           | tool                     | version              | comments                                         |
 |------------------------------------------------|--------------------------|----------------------|--------------------------------------------------|
-| QC - sample correlation verification           | SampleSimilarity         | ngs-bits latest      | (tumor-normal)                                   |
-| QC - sample gender verification                | SampleGender             | ngs-bits latest      |                                                  |
-| QC - low coverage statistics                   | BedLowCoverage           | ngs-bits latest      |                                                  |
-| QC - low coverage annotation                   | BedAnnotateGenes         | ngs-bits latest      |                                                  |
 | Variant calling - hla                          | HLA-genotyper            | 2022_05              | https://github.com/axelgschwind/hla-genotyper    |
 | Variant calling - SNVs and Indels              | Strelka2                 | 2.9.9                | (tumor-normal)                                   |
 | Variant calling - SNVs and Indels              | Varscan2                 | 2.4.4                | (tumor-only)                                     |
