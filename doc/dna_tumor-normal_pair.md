@@ -1,9 +1,8 @@
-# megSAP - DNA analysis (tumor samples, tumor/normal pairs)
+# megSAP - DNA analysis (tumor/normal pairs)
 
 ## Analysis pipeline
 
-Somatic analysis of tumor/normal DNA sample pairs and of tumor-only DNA samples is
-performed with `somatic_dna.php`.
+Somatic analysis of tumor/normal DNA sample pairs is performed with `somatic_dna.php`.
 
 ### Mapping single samples
 
@@ -24,6 +23,55 @@ The main parameters that you have to provide are:
 Please have a look at the help:
 
     > php megSAP/src/Pipelines/somatic_dna.php --help
+
+### Tools used in this analysis pipeline
+
+The following tools are used for mapping and calling of small variants and annotation of small variants:
+
+| step                                           | tool                     | version              | comments                                         |
+|------------------------------------------------|--------------------------|----------------------|--------------------------------------------------|
+| QC - sample correlation verification           | SampleSimilarity         | ngs-bits latest      |                                                  |
+| QC - sample gender verification                | SampleGender             | ngs-bits latest      |                                                  |
+| QC - low coverage statistics                   | BedLowCoverage           | ngs-bits latest      |                                                  |
+| QC - low coverage annotation                   | BedAnnotateGenes         | ngs-bits latest      |                                                  |
+| Variant calling - hla                          | HLA-genotyper            | 2022_05              |   https://github.com/axelgschwind/hla-genotyper  |
+| Variant calling - SNVs and Indels              | Strelka2                 | 2.9.9                |                                                  |
+| Variant calling - b-allele frequency (t/n)     | VariantAnnotateFrequency | ngs-bits latest      |                                                  |
+| Variant calling - left-normalization of InDels | VcfLeftNormalize         | ngs-bits latest      |                                                  |
+| Annotation                                     | VEP                      | 104.3                |                                                  |
+
+CNV calling and annotation is performed using these tools:
+
+| step                                               | tool                 | version              | comments                                            |
+|----------------------------------------------------|----------------------|----------------------|-----------------------------------------------------|
+| CNV calling                                        | ClinCNV              | 1.17.2               |                                                     |
+| annotation - gene information                      | CnvGeneAnnotation    | ngs-bits latest      |                                                     |
+| annotation - overlapping pathogenic CNVs from NGSD | NGSDAnnotateCNV      | ngs-bits latest      |                                                     |
+
+SV calling and annotation is performed using these tools:
+
+| step                                      | tool                            | version              | comments                                            |
+|-------------------------------------------|---------------------------------|----------------------|-----------------------------------------------------|
+| SV calling                                | Manta                           | 1.6.0                |                                                     |
+| annotation - gene information             | BedpeGeneAnnotation             | ngs-bits latest      |                                                     |
+
+Determination of viral load is performed using these tools:
+
+| step                                           | tool                     | version              | comments                                            |
+|------------------------------------------------|--------------------------|----------------------|-----------------------------------------------------|
+| Filtering reads                                | samtools                 | 1.15.1               |                                                     |
+| Mapping                                        | bwa mem2                 | 2.2.1                |                                                     |
+| Variant calling                                | freebayes                | 1.3.6                |                                                     |
+| Statistics - Coverage                          | BedCoverage              | ngs-bits latest      |                                                     |
+| Statistics - BedReadCount                      | BedReadCount             | ngs-bits latest      |                                                     |
+| Annotation                                     | BedAnnotateFromBed       | ngs-bits latest      | Several data sources are annotated using this tool. |
+
+Determination of microsatellite instability (MSI) is performed using this tool:
+
+| step                                           | tool                     | version              | comments                                            |
+|------------------------------------------------|--------------------------|----------------------|-----------------------------------------------------|
+| Calling                                        | Mantis                   | 1.0.5                |                                                     |
+
 
 ## Output
 
@@ -51,22 +99,5 @@ If you have data from the [RNA pipeline](rna_expression.md), this data can be an
 **CGI annotation (`ci`):**
 This step will send the SNVs and CNVs from `somatic.GSvar` and `somatic_clincnv.tsv` to CancerGenomeInterpreter.org. The results will be downloaded into the out folder and annotated to both files. Provide a tumor type using the parameter `-cancer_type` for more accurate results, acronyms can be found on CancerGenomeInterpreter.org.
 
-
-## Somatic variant calling (tumor only)
-
-
-### Somatic variant calling (tumor only)
-
-Somatic variant calling is also possible without normal sample.  
-However this leads to a lot of false-positive somatic variant calls because artefacts cannot be removed efficiently.  
-To use the tumor-only pipeline, simply skip the `n_bam` parameter of `somatic_dna.php`.
-
-To remove false-positives, filtering on variant allele frequencies from public databases can be done.  
-This can be done interactively in GSvar or using `VariantFilterAnnotations` from `ngs-bits`.  
-For 1% AF filter specify this line in the filter definition:
-
-```
-Allele frequency    max_af=1
-```
 
 [back to the start page](../README.md)
