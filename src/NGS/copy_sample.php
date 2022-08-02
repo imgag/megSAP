@@ -15,6 +15,7 @@ $parser->addString("runinfo" ,"Illumina RunInfo.xml file. Necessary for checking
 $parser->addOutfile("out",  "Output Makefile. Default: 'Makefile'.", true);
 $parser->addFlag("high_priority", "Assign high priority to all queued samples.");
 $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
+$parser->addFlag("verbose", "Print all imported relations to stdout not only the summary statistic.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
@@ -253,7 +254,7 @@ function import_genlab_disease_group($ps)
 	}
 }
 
-function import_sample_relations($ps)
+function import_sample_relations($ps, $verbose)
 {
 	global $db_conn;
 	global $db_genlab;
@@ -283,7 +284,7 @@ function import_sample_relations($ps)
 	{
 		if (($current_sample_data["sys_type"] == "Panel" && $rel["relation"] == "tumor-normal") || ($current_sample_data["sys_type"] == "RNA" && $rel["relation"] == "same sample"))
 		{
-			//a relation already exists.
+			// a relation already exists.
 			return;
 		}
 	}
@@ -317,7 +318,7 @@ function import_sample_relations($ps)
 	foreach ($samples_same_patient as $s)
 	{
 		$s = strtoupper(explode("_", $s."_")[0]);
-		$ngsd_sample_info = $db_conn->executeQuery("SELECT s.id as sample_id, s.name as sample_name, ps.process_id as process_id, s.sample_type, s.quality, s.tumor, ps.quality as processed_quality, system.name_manufacturer as sys_name, system.type as sys_type, sr.name as run_name, sr.status as run_status FROM bioinf_ngsd.sample as s LEFT JOIN bioinf_ngsd.processed_sample as ps ON s.id = ps.sample_id LEFT JOIN bioinf_ngsd.processing_system as system ON ps.processing_system_id = system.id LEFT JOIN bioinf_ngsd.sequencing_run as sr on ps.sequencing_run_id = sr.id  WHERE s.name='$s' ORDER BY s.name");
+		$ngsd_sample_info = $db_conn->executeQuery("SELECT s.id as sample_id, ps.id as processed_sample_id, s.name as sample_name, ps.process_id as process_id, s.sample_type, s.quality, s.tumor, ps.quality as processed_quality, system.name_manufacturer as sys_name, system.type as sys_type, sr.name as run_name, sr.status as run_status FROM bioinf_ngsd.sample as s LEFT JOIN bioinf_ngsd.processed_sample as ps ON s.id = ps.sample_id LEFT JOIN bioinf_ngsd.processing_system as system ON ps.processing_system_id = system.id LEFT JOIN bioinf_ngsd.sequencing_run as sr on ps.sequencing_run_id = sr.id  WHERE s.name='$s' ORDER BY s.name");
 		if (count($ngsd_sample_info) == 0)
 		{
 			continue;
@@ -339,11 +340,11 @@ function import_sample_relations($ps)
 
 	$related_sample = null;
 	
-	if ($current_sample_data["sys_type"] == "Panel")
+	if ($current_sample_data["sys_type"] == "Panel" || $current_sample_data["sys_type"] == "WES")
 	{	
 		foreach($related_sample_data as $s => $data)
 		{
-			$system_type_ok = $data["sys_type"] == "Panel";
+			$system_type_ok = $data["sys_type"] == "Panel" || $data["sys_type"] == "WES";
 			$quality_ok = $data["processed_quality"] != "bad";
 			$tumor_ok = $data["tumor"] != $current_sample_data["is_tumor"]; // search for the opposite of the current sample.
 			$is_DNA = $data["sample_type"] == "DNA";
@@ -366,18 +367,29 @@ function import_sample_relations($ps)
 			return;
 		}
 		
+		$related_p_id = $related_sample_data[$related_sample]["processed_sample_id"];
 		$related_id = $related_sample_data[$related_sample]["sample_id"];
+		$related_p_sample = $related_sample;
 		$related_sample = explode("_", $related_sample."_")[0];
 		if ($current_sample_data["is_tumor"] == "1")
 		{
-			print "Importing Sample_relation for sample {$current_sample}: $current_sample tumor-normal $related_sample \n";
+			if ($verbose) echo "Importing Sample_relation for sample {$current_sample}: $current_sample tumor-normal $related_sample \n";
 			$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$current_sample_id},'tumor-normal',{$related_id})");
+			
+			//save normal ID in the tumor processed sample:
+			if ($current_sample_data["normal_id"] == "")
+			{
+				if ($verbose) echo "Saving related normal sample $related_p_sample in tumor sample as normal sample id.\n";
+				$db_conn->executeStmt("UPDATE `processed_sample` SET normal_id = $related_p_id WHERE id=$ps_id and normal_id is NULL"); // only update row if no normal id is entered.
+			}
+			
 			return [$current_sample, 'tumor-normal', $related_sample];
 		}
 		else
 		{
-			print "Importing Sample_relation for sample {$current_sample}: $related_sample tumor-normal $current_sample \n";
+			if ($verbose) echo "Importing Sample_relation for sample {$current_sample}: $related_sample tumor-normal $current_sample \n";
 			$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$related_id},'tumor-normal',{$current_sample_id})");
+			
 			return [$related_sample, 'tumor-normal', $current_sample];
 		}		
 	}
@@ -407,7 +419,7 @@ function import_sample_relations($ps)
 				{
 					$related_id = $data["sample_id"];
 					
-					print "Importing sample relation for RNA sample {$current_sample}: $genlab_related_sample same sample $current_sample \n";
+					if ($verbose) echo "Importing sample relation for RNA sample {$current_sample}: $genlab_related_sample same sample $current_sample \n";
 					$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$related_id},'same sample',{$current_sample_id})");
 					return [$genlab_related_sample , 'same sample', $current_sample];
 				}
@@ -436,7 +448,7 @@ function import_sample_relations($ps)
 		$related_id = $related_sample_data[$related_sample]["sample_id"];
 		$related_sample = explode("_", $related_sample."_")[0];
 		
-		print "Importing sample relation for RNA sample {$current_sample}: $related_sample same sample $current_sample \n";
+		if ($verbose) echo "Importing sample relation for RNA sample {$current_sample}: $related_sample same sample $current_sample \n";
 		$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$related_id},'same sample',{$current_sample_id})");
 		
 		return [$related_sample, 'same sample', $current_sample];
@@ -454,10 +466,71 @@ $db_genlab = GenLabDB::isEnabled() ? GenLabDB::getInstance() : null;
 
 if(!file_exists("Fq") && !check_number_of_lanes($runinfo,$samplesheet))
 {
-	trigger_error("***!!!WARNING!!!***\nCould not verify number of lanes used for Demultiplexing and actually used on Sequencer. Please check manually!",E_USER_WARNING);
+	trigger_error("***!!!WARNING!!!***\nCould not verify number of lanes used for Demultiplexing and actually used on Sequencer. Please check manually!", E_USER_WARNING);
 }
 
 //get sample data from samplesheet
+list($sample_data, $is_nextseq) = extract_sample_data($db_conn, $samplesheet);
+
+
+//import sample relations:
+$tn_samples = 0;
+$rna_samples = 0;
+
+$imported_tn_relations = 0;
+$imported_rna_relations = 0;
+
+$all_samples = array_keys($sample_data);
+foreach($sample_data as $sample => $sample_infos)
+{
+	$ps_info = get_processed_sample_info($db_conn, $sample, false);
+	$is_rna = $ps_info["sys_type"] == "RNA";
+	$is_tum_nrm = $ps_info["sys_type"] == "Panel" || $ps_info["sys_type"] == "WES";
+	
+	//Count total samples:
+	if ($is_rna)
+	{
+		$rna_samples++;
+	}
+	if ($is_tum_nrm)
+	{
+		$tn_samples++;
+	}
+	
+	if (!is_null($db_genlab))
+	{
+		$imported_rel = import_sample_relations($sample, $verbose);
+	}
+	
+	//no relation imported
+	if($imported_rel == null) continue;
+	
+	if($imported_rel[1] == "same sample")
+	{
+		$imported_rna_relations++;
+	}
+	else if ($imported_rel[1] == "tumor-normal")
+	{
+		foreach($all_samples as $ps)
+		{
+			$s = explode("_", $ps)[0];
+			if ($s == $imported_rel[0] || $s == $imported_rel[1])
+			{
+				$imported_tn_relations++;
+			}
+		}
+	}
+}
+
+//print import relations summary:
+
+echo "Imported sample relations:\n";
+echo "RNA   - imported ".$imported_rna_relations." 'same sample'  relations for ".$rna_samples." RNA samples.\n";
+echo "Tumor - imported ".$imported_tn_relations. " 'tumor-normal' relations for ".$tn_samples." Panel or WES samples.\n";
+
+
+
+//update sample data after importing sample relations
 list($sample_data, $is_nextseq) = extract_sample_data($db_conn, $samplesheet);
 
 //create Illumina-like folder for MGI data
@@ -725,12 +798,6 @@ foreach($sample_data as $sample => $sample_infos)
 	//skip normal samples which have an associated tumor sample on the same run
 	$is_normal_with_tumor = !$sample_is_tumor && isset($normal2tumor[$sample]);
 	
-	//always try to import sample relation
-	if (!is_null($db_genlab))
-	{
-		import_sample_relations($sample);
-	}
-	
 	//additional arguments for db_queue_analysis
 	$args = array();
 
@@ -819,7 +886,6 @@ foreach($sample_data as $sample => $sample_infos)
 			if (!is_null($db_genlab))
 			{
 				import_genlab_disease_group($sample);
-				import_sample_relations($sample);
 			}
 		}
 		if ($high_priority || contains(strtolower(implode(" ", $sample_infos['ps_comments'])), "eilig"))
