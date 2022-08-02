@@ -1,6 +1,6 @@
-### Tools used in the somatic analysis:
+## Tools used in the somatic analysis:
 
-The following tools are used for mapping and calling of small variants and annotation of small variants:
+The following tools are used for calling of small variants and annotation of small variants:
 
 | step                                           | tool                     | version              | comments                                         |
 |------------------------------------------------|--------------------------|----------------------|--------------------------------------------------|
@@ -9,10 +9,11 @@ The following tools are used for mapping and calling of small variants and annot
 | QC - low coverage statistics                   | BedLowCoverage           | ngs-bits latest      |                                                  |
 | QC - low coverage annotation                   | BedAnnotateGenes         | ngs-bits latest      |                                                  |
 | Variant calling - hla                          | HLA-genotyper            | 2022_05              | https://github.com/axelgschwind/hla-genotyper    |
-| Variant calling - SNVs and Indels              | Strelka2                 | 2.9.9                |                                                  |
-| Variant calling - b-allele frequency (t/n)     | VariantAnnotateFrequency | ngs-bits latest      |                                                  |
+| Variant calling - SNVs and Indels              | Strelka2                 | 2.9.9                | (tumor-normal                                    |
+| Variant calling - SNVs and Indels              | Varscan2                 | 2.4.4                | (tumor-only)                                     |
 | Variant calling - left-normalization of InDels | VcfLeftNormalize         | ngs-bits latest      |                                                  |
-| Annotation                                     | VEP                      | 104.3                |                                                  |
+| Annotation - b-allele frequency (t/n)          | VariantAnnotateFrequency | ngs-bits latest      |                                                  |
+| Annotation - general                           | VEP                      | 104.3                |                                                  |
 
 
 CNV calling and annotation is performed using these tools:
@@ -49,4 +50,9 @@ Microsatellite instability (MSI):
 | Calling                                        | Mantis                   | 1.0.5                |                                                     |
 
 
+[to tumor-only analysis page](dna_tumor_only.md)
+
+[to tumor-normal analysis page](dna_tumor-normal_pair.md)
+
+[back to the start page](../README.md)
 
