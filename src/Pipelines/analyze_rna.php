@@ -473,7 +473,7 @@ if (in_array("db", $steps))
 		"-force"
 	];
 	if (file_exists($expr)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode genes -expression {$expr} ".implode(" ", $args));
-	if (file_exists($expr_exon)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode genes -expression {$expr_exon} ".implode(" ", $args));
+	if (file_exists($expr_exon)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode exons -expression {$expr_exon} ".implode(" ", $args));
 	
 }
 
