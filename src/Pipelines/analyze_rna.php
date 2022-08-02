@@ -64,9 +64,8 @@ $target_file = $sys['target_file'];
 //determine genome from build
 $genome = get_path("data_folder")."/genomes/STAR/{$build}/";
 
-//TODO: change to current Ensembl file
 //determine gtf from build
-$gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
+$gtfFile = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.107.chr.gtf";
 
 //find FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");
@@ -336,7 +335,7 @@ SQL;
 						"hpa",
 						"--counts", $counts_normalized,
 						"--counts_out", $counts_normalized,
-						"--hpa", get_path("data_folder")."/dbs/gene_expression/rna_tissue_hpa.tsv",
+						"--hpa", get_path("data_folder")."/dbs/gene_expression/rna_tissue_hpa_v21.1.tsv",
 						"--prefix", "hpa_",
 						"--tissue", "'{$res[0]}'"
 					];
