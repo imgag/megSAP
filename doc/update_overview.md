@@ -29,7 +29,13 @@
 |CancerHotspots         |pipeline (somatic)      |01.2021                         |version is final and does not change                                                                |https://www.cancerhotspots.org                                          |
 |NCG6.0                 |pipeline (somatic)      |01.2021                         |version 7 available                                                                                 |http://ncg.kcl.ac.uk/                                                   |
 |COSMIC CMC             |pipeline (somatic)      |01.2021                         |                                                                                                    |https://cancer.sanger.ac.uk/cmc                                         |
+|Human Protein Atlas    |pipeline (somatic)      |08.2022 (v21.1)                 |                                                                                                    |https://www.proteinatlas.org/about/download                             |
 
+## Databases for RNA pipelines
+
+|database               |used for                |last update/check               |notes                                                                                               |url                                                                     |
+|-----------------------|------------------------|--------------------------------|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+|Ensembl GTF file       |pipeline (RNA)  	     |08.2022 (release 107)           |                                                                                                    |http://ftp.ensembl.org/pub/                                             |
 
 ## Tools general
 
@@ -67,8 +73,9 @@
 
 |tool RNA               |used for                                             |last update/check |notes                                                                                |url                                                                     |
 |-----------------------|-----------------------------------------------------|------------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-|STAR                   |mapping                                              |08.2020 (2.7.3a)  |2.7.5a available                                                                     |https://github.com/alexdobin/STAR                                       |
-|subread                |read counting                                        |08.2020 (2.0.0)   |2.0.1 available                                                                      |http://subread.sourceforge.net/                                         |
-|Arriba                 |fusion detection                                     |01.2022 (2.2.1)   |2.3.0 available                                                                      |https://github.com/suhrig/arriba                                        |
+|STAR                   |mapping                                              |08.2022 (2.7.10a) |                                                                                     |https://github.com/alexdobin/STAR                                       |
+|subread                |read counting                                        |08.2022 (2.0.3)   |                                                                                     |http://subread.sourceforge.net/                                         |
+|Arriba                 |fusion detection                                     |08.2022 (2.2.1)   |2.3.0 available                                                                      |https://github.com/suhrig/arriba                                        |
 |Kraken2                |???                                                  |07.2022 (2.1.2)   |                                                                                     |https://github.com/DerrickWood/kraken2                                  |
 |hla-genotyper          |HLA genotyping                                       |07.2022 (2022_05) |                                                                                     |https://github.com/axelgschwind/hla-genotyper                           |
+|umi_tools              |UMI extraction                                       |08.2022 (1.1.2)   |                                                                                     |https://github.com/CGATOxford/UMI-tools                                 |
