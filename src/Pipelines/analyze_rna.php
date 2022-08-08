@@ -64,9 +64,8 @@ $target_file = $sys['target_file'];
 //determine genome from build
 $genome = get_path("data_folder")."/genomes/STAR/{$build}/";
 
-//TODO: change to current Ensembl file
 //determine gtf from build
-$gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
+$gtfFile = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.107.chr.gtf";
 
 //find FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");
@@ -336,16 +335,20 @@ SQL;
 						"hpa",
 						"--counts", $counts_normalized,
 						"--counts_out", $counts_normalized,
-						"--hpa", get_path("data_folder")."/dbs/gene_expression/rna_tissue_hpa.tsv",
+						"--hpa", get_path("data_folder")."/dbs/gene_expression/rna_tissue_hpa_v21.1.tsv",
 						"--prefix", "hpa_",
 						"--tissue", "'{$res[0]}'"
 					];
 					$parser->exec("python3 ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
 				}
 			}
-			$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr}", true);
-			$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode exons -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", true);
 
+			if ($build=="GRCh38")
+			{
+				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr}", true);
+				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode exons -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", true);
+			}
+			
 			//remove duplicate exons from file
 			$exon_file = file($expr_exon, FILE_IGNORE_NEW_LINES);
 			$cache = array();
@@ -473,9 +476,11 @@ if (in_array("db", $steps))
 		"-ps", $name,
 		"-force"
 	];
-	if (file_exists($expr)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode genes -expression {$expr} ".implode(" ", $args));
-	if (file_exists($expr_exon)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode genes -expression {$expr_exon} ".implode(" ", $args));
-	
+	if ($build=="GRCh38")
+	{
+		if (file_exists($expr)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode genes -expression {$expr} ".implode(" ", $args));
+		if (file_exists($expr_exon)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode exons -expression {$expr_exon} ".implode(" ", $args));
+	}	
 }
 
 

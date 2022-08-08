@@ -74,6 +74,7 @@ case2_somatic:
 		-steps vc,an,msi,an_rna\
 		-t_rna_bam Sample_RX000001_01/RX000001_01.bam \
 		-rna_ref_tissue gallbladder \
+		-skip_correlation \
 		-system system_pair.ini -n_system system_pair.ini \
 		-min_depth_t 100 \
 		-min_depth_n 100 \

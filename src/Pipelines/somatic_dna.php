@@ -984,13 +984,18 @@ if (in_array("an_rna", $steps))
 		}
 
 		//Calculate sample similarity between tumor and RNA
+		if ($skip_correlation)
+		{
+			trigger_error("The correlation calculation between DNA and RNA ({$rna_id}) is skipped!");
+			continue;
+		}
 		$min_corr = 0.9;  // TODO: evaluate value
 		
 		if (file_exists($t_bam))
 		{
 			$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$rna_bam} {$t_bam} -mode bam -build ".ngsbits_build($sys['build']), true);
 			$correlation = explode("\t", $output[0][1])[3];
-			if ($correlation < $min_corr)
+			if ($correlation < $min_corr && ! $skip_correlation)
 			{
 				trigger_error("The genotype correlation of DNA and RNA ({$rna_id}) is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
 			}
@@ -1001,7 +1006,7 @@ if (in_array("an_rna", $steps))
 		}
 		else
 		{
-			trigger_error("BAM file does not exist for tumor DNA sample '{$out_name}'!", E_USER_WARNING);
+			trigger_error("BAM file does not exist for tumor DNA sample '{$t_bam}'!", E_USER_ERROR);
 		}
 	}
 	
