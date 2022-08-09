@@ -410,7 +410,7 @@ if (in_array("plt", $steps))
 	$cohort_strategy = "RNA_COHORT_GERMLINE";
 	$ps_info = get_processed_sample_info($db, $name);
 	if ($ps_info['is_tumor']) $cohort_strategy = "RNA_COHORT_SOMATIC";
-	$parser->exec(get_path("ngs-bits") . "NGSDExtractRNACohort", "-genes {$all_gene_file} -ps {$name} -cohort_strategy {$cohort_strategy} -out {$expr_cohort}", true);
+	$parser->exec(get_path("ngs-bits") . "NGSDExtractRNACohort", "-sample_expression {$expr} -genes {$all_gene_file} -ps {$name} -cohort_strategy {$cohort_strategy} -out {$expr_cohort}", true);
 
 	//create cohort/expr file without comments
 	$tmp_cohort = $parser->tempFile(".tsv", "cohort_");
