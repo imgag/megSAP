@@ -74,11 +74,11 @@ if ($use_dragen && ($user != get_path("dragen_user")))
 }
 
 //remove invalid steps
-if (in_array("vc", $steps) && $is_wgs_shallow)
-{
-	trigger_error("Skipping step 'vc' - Variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
-	if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
-}
+// if (in_array("vc", $steps) && $is_wgs_shallow)
+// {
+// 	trigger_error("Skipping step 'vc' - Variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
+// 	if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
+// }
 
 if (in_array("cn", $steps) && !$has_roi)
 {
@@ -379,7 +379,14 @@ if (in_array("vc", $steps))
 		
 		//Do not call standard pipeline if there is only mitochondiral chrMT in target region
 		$only_mito_in_target_region = false;
-		if ($has_roi) $only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT";
+		if ($has_roi) 
+		{
+			$only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT";
+		}
+		//activate mito-calling for sWGS
+		if ($is_wgs_shallow) $only_mito_in_target_region = true;
+
+		
 		if(!$only_mito_in_target_region)
 		{
 			$parser->execTool("NGS/vc_freebayes.php", "-bam $local_bamfile -out $vcffile -build ".$sys['build']." -threads $threads ".implode(" ", $args));
@@ -688,7 +695,7 @@ if (in_array("cn", $steps))
 		if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic);
 
 		//create dummy GSvar file for shallow WGS (needed to be able to open the sample in GSvar)
-		if ($is_wgs_shallow)
+		if ($is_wgs_shallow && !in_array("vc", $steps))
 		{
 			$content = array(
 				"##ANALYSISTYPE=GERMLINE_SINGLESAMPLE",

@@ -426,43 +426,36 @@ else
 //perform indel realignment
 if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 {
-	if($sys['type']=="WGS (shallow)")
+	$tmp_bam = $parser->tempFile("_indel_realign.bam");
+
+	$args = array();
+	$args[] = "-in $bam_current";
+	$args[] = "-out $tmp_bam";
+	$args[] = "-build ".$sys['build'];
+	$args[] = "-threads ".$threads;
+	if ($sys['type']=="WGS") //for WGS use exome target region
 	{
-		trigger_error("Skipping indel realignment - it is not needed for shallow WGS samples since no variant calling is performed!", E_USER_NOTICE);
+		$args[] = "-roi ".repository_basedir()."/data/gene_lists/gene_exons_pad20.bed";
+	}
+	else if ($sys['target_file']!="")
+	{
+		$args[] = "-roi ".$sys['target_file'];
+	}
+	$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $args));
+	$parser->indexBam($tmp_bam, $threads);
+
+
+	// delete local bam file or DRAGEN bam file
+	if ($use_dragen)
+	{
+		unlink($dragen_output_bam);
+		unlink($dragen_output_bam.".bai");
 	}
 	else
 	{
-		$tmp_bam = $parser->tempFile("_indel_realign.bam");
-
-		$args = array();
-		$args[] = "-in $bam_current";
-		$args[] = "-out $tmp_bam";
-		$args[] = "-build ".$sys['build'];
-		$args[] = "-threads ".$threads;
-		if ($sys['type']=="WGS") //for WGS use exome target region
-		{
-			$args[] = "-roi ".repository_basedir()."/data/gene_lists/gene_exons_pad20.bed";
-		}
-		else if ($sys['target_file']!="")
-		{
-			$args[] = "-roi ".$sys['target_file'];
-		}
-		$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $args));
-		$parser->indexBam($tmp_bam, $threads);
-
-
-		// delete local bam file or DRAGEN bam file
-		if ($use_dragen)
-		{
-			unlink($dragen_output_bam);
-			unlink($dragen_output_bam.".bai");
-		}
-		else
-		{
-			$parser->deleteTempFile($bam_current);
-		}
-		$bam_current = $tmp_bam;
+		$parser->deleteTempFile($bam_current);
 	}
+	$bam_current = $tmp_bam;
 }
 
 //UMIs - remove duplicates by molecular barcode
