@@ -129,7 +129,7 @@ if(!$somatic)
 		
 		//process
 		print "$i) Processing $bam ...\n";
-		exec2($ngsbits."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out $cov_file");
+		exec2($ngsbits."BedCoverage -clear -min_mapq 0 -decimals 4 -bam $bam -in $roi -out $cov_file");
 	}
 
 	//chmod
@@ -254,7 +254,7 @@ else //somatic tumor-normal pairs
 			//off-target
 			if(!file_exists("{$ref_off_t_dir}/{$sample}.cov"))
 			{
-				exec2($ngsbits."BedCoverage -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam -out {$ref_off_t_dir}/{$sample}.cov" ,true);
+				exec2($ngsbits."BedCoverage -clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam -out {$ref_off_t_dir}/{$sample}.cov" ,true);
 				++$t_off_count;
 			}
 		}
@@ -264,13 +264,13 @@ else //somatic tumor-normal pairs
 			if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only, $include_test_projects, $include_somatic_ffpe_normals)) continue;
 			if(!file_exists("{$ref_n_dir}/{$sample}.cov"))
 			{
-				exec2($ngsbits."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out {$ref_n_dir}/{$sample}.cov",true);
+				exec2($ngsbits."BedCoverage -clear -min_mapq 0 -decimals 4 -bam $bam -in $roi -out {$ref_n_dir}/{$sample}.cov",true);
 				++$n_count;
 			}
 			//off-target
 			if(!file_exists("{$ref_off_n_dir}/{$sample}.cov"))
 			{
-				exec2($ngsbits."BedCoverage -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam -out {$ref_off_n_dir}/{$sample}.cov" ,true);
+				exec2($ngsbits."BedCoverage -clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam -out {$ref_off_n_dir}/{$sample}.cov" ,true);
 				++$n_off_count;
 			}
 		}
