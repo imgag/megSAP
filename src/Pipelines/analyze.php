@@ -74,12 +74,6 @@ if ($use_dragen && ($user != get_path("dragen_user")))
 }
 
 //remove invalid steps
-// if (in_array("vc", $steps) && $is_wgs_shallow)
-// {
-// 	trigger_error("Skipping step 'vc' - Variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
-// 	if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
-// }
-
 if (in_array("cn", $steps) && !$has_roi)
 {
 	trigger_error("Skipping step 'cn' - Copy number analysis is only supported for processing systems with target region BED file!", E_USER_NOTICE);
