@@ -74,12 +74,6 @@ if ($use_dragen && ($user != get_path("dragen_user")))
 }
 
 //remove invalid steps
-if (in_array("vc", $steps) && $is_wgs_shallow)
-{
-	trigger_error("Skipping step 'vc' - Variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
-	if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
-}
-
 if (in_array("cn", $steps) && !$has_roi)
 {
 	trigger_error("Skipping step 'cn' - Copy number analysis is only supported for processing systems with target region BED file!", E_USER_NOTICE);
@@ -379,7 +373,14 @@ if (in_array("vc", $steps))
 		
 		//Do not call standard pipeline if there is only mitochondiral chrMT in target region
 		$only_mito_in_target_region = false;
-		if ($has_roi) $only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT";
+		if ($has_roi) 
+		{
+			$only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT";
+		}
+		//activate mito-calling for sWGS
+		if ($is_wgs_shallow) $only_mito_in_target_region = true;
+
+		
 		if(!$only_mito_in_target_region)
 		{
 			$parser->execTool("NGS/vc_freebayes.php", "-bam $local_bamfile -out $vcffile -build ".$sys['build']." -threads $threads ".implode(" ", $args));
@@ -686,52 +687,6 @@ if (in_array("cn", $steps))
 		$sample_cnv_name = substr($cnv_out,0,-4);
 		$mosaic_out = $sample_cnv_name."_mosaic.tsv";
 		if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic);
-
-		//create dummy GSvar file for shallow WGS (needed to be able to open the sample in GSvar)
-		if ($is_wgs_shallow)
-		{
-			$content = array(
-				"##ANALYSISTYPE=GERMLINE_SINGLESAMPLE",
-				"##PIPELINE=".repository_revision(true),
-				"##GENOME_BUILD=GRCh38",
-				"##SAMPLE=<ID={$name},Gender=n/a,ExternalSampleName=n/a,IsTumor=n/a,IsFFPE=n/a,DiseaseGroup=n/a,DiseaseStatus=affected>",
-				"##DESCRIPTION={$name}=Genotype of variant in sample.",
-				"##DESCRIPTION=filter=Annotations for filtering and ranking variants.",
-				"##DESCRIPTION=quality=Quality parameters - Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP).",
-				"##DESCRIPTION=gene=Affected gene list (comma-separated).",
-				"##DESCRIPTION=variant_type=Variant type.",
-				"##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).",
-				"##DESCRIPTION=regulatory=Regulatory consequence details.",
-				"##DESCRIPTION=OMIM=OMIM database annotation.",
-				"##DESCRIPTION=ClinVar=ClinVar database annotation.",
-				"##DESCRIPTION=HGMD=HGMD database annotation.",
-				"##DESCRIPTION=RepeatMasker=RepeatMasker annotation.",
-				"##DESCRIPTION=dbSNP=Identifier in dbSNP database.",
-				"##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.",
-				"##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.",
-				"##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).",
-				"##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.",
-				"##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.",
-				"##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.",
-				"##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.",
-				"##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.",
-				"##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.",
-				"##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).",
-				"##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.",
-				"##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.",
-				"##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.",
-				"##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group (Neoplasms).",
-				"##DESCRIPTION=classification=Classification from the NGSD.",
-				"##DESCRIPTION=classification_comment=Classification comment from the NGSD.",
-				"##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!",
-				"##DESCRIPTION=comment=Variant comments from the NGSD.",
-				"##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).",
-				"##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.",
-				"##FILTER=off-target=Variant marked as 'off-target'.",
-				"#chr	start	end	ref	obs	{$name}	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	CADD	REVEL	MaxEntScan	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info",
-			);
-			file_put_contents($varfile, implode("\n", $content));
-		}
 	}
 	else
 	{
