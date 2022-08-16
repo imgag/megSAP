@@ -2585,7 +2585,7 @@
 ##phasing=none
 ##commandline="/mnt/storage1/share/opt/freebayes-1.3.3/build/freebayes -t /tmp/megSAP_user_ahsturm1/vc_freebayes_7QlCJP_merged.bed --min-alternate-fraction 0.15 --min-mapping-quality 1 --min-base-quality 15 --min-alternate-count 3 --genotype-qualities -f /tmp/local_ngs_data_GRCh38//GRCh38.fa -b /mnt/storage1/users/ahsturm1/megSAP_GRCh38//test/data/vc_freebayes_in.bam"
 ##filter="QUAL > 5"
-##REVEL=Rare Exome Variant Ensemble Learner 
+##REVEL=Rare Exome Variant Ensemble Learner
 ##MaxEntScan_alt=MaxEntScan alternate sequence score
 ##MaxEntScan_diff=MaxEntScan score difference
 ##MaxEntScan_ref=MaxEntScan reference sequence score
