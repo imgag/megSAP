@@ -473,61 +473,63 @@ if(!file_exists("Fq") && !check_number_of_lanes($runinfo,$samplesheet))
 list($sample_data, $is_nextseq) = extract_sample_data($db_conn, $samplesheet);
 
 
-//import sample relations:
-$tn_samples = 0;
-$rna_samples = 0;
-
-$imported_tn_relations = 0;
-$imported_rna_relations = 0;
-
-$all_samples = array_keys($sample_data);
-foreach($sample_data as $sample => $sample_infos)
+if (!is_null($db_genlab))
 {
-	$ps_info = get_processed_sample_info($db_conn, $sample, false);
-	$is_rna = $ps_info["sys_type"] == "RNA";
-	$is_tum_nrm = $ps_info["sys_type"] == "Panel" || $ps_info["sys_type"] == "WES";
-	
-	//Count total samples:
-	if ($is_rna)
+	//import sample relations:
+	$tn_samples = 0;
+	$rna_samples = 0;
+
+	$imported_tn_relations = 0;
+	$imported_rna_relations = 0;
+
+	$all_samples = array_keys($sample_data);
+	foreach($sample_data as $sample => $sample_infos)
 	{
-		$rna_samples++;
-	}
-	if ($is_tum_nrm)
-	{
-		$tn_samples++;
-	}
-	
-	if (!is_null($db_genlab))
-	{
-		$imported_rel = import_sample_relations($sample, $verbose);
-	}
-	
-	//no relation imported
-	if($imported_rel == null) continue;
-	
-	if($imported_rel[1] == "same sample")
-	{
-		$imported_rna_relations++;
-	}
-	else if ($imported_rel[1] == "tumor-normal")
-	{
-		foreach($all_samples as $ps)
+		$ps_info = get_processed_sample_info($db_conn, $sample, false);
+		$is_rna = $ps_info["sys_type"] == "RNA";
+		$is_tum_nrm = $ps_info["sys_type"] == "Panel" || $ps_info["sys_type"] == "WES";
+		
+		//Count total samples:
+		if ($is_rna)
 		{
-			$s = explode("_", $ps)[0];
-			if ($s == $imported_rel[0] || $s == $imported_rel[1])
+			$rna_samples++;
+		}
+		if ($is_tum_nrm)
+		{
+			$tn_samples++;
+		}
+		
+		if (!is_null($db_genlab))
+		{
+			$imported_rel = import_sample_relations($sample, $verbose);
+		}
+		
+		//no relation imported
+		if($imported_rel == null) continue;
+		
+		if($imported_rel[1] == "same sample")
+		{
+			$imported_rna_relations++;
+		}
+		else if ($imported_rel[1] == "tumor-normal")
+		{
+			foreach($all_samples as $ps)
 			{
-				$imported_tn_relations++;
+				$s = explode("_", $ps)[0];
+				if ($s == $imported_rel[0] || $s == $imported_rel[1])
+				{
+					$imported_tn_relations++;
+				}
 			}
 		}
 	}
+
+	//print import relations summary:
+
+	echo "Imported sample relations:\n";
+	echo "RNA   - imported ".$imported_rna_relations." 'same sample'  relations for ".$rna_samples." RNA samples.\n";
+	echo "Tumor - imported ".$imported_tn_relations. " 'tumor-normal' relations for ".$tn_samples." Panel or WES samples.\n";
 }
-
-//print import relations summary:
-
-echo "Imported sample relations:\n";
-echo "RNA   - imported ".$imported_rna_relations." 'same sample'  relations for ".$rna_samples." RNA samples.\n";
-echo "Tumor - imported ".$imported_tn_relations. " 'tumor-normal' relations for ".$tn_samples." Panel or WES samples.\n";
-
 
 
 //update sample data after importing sample relations
