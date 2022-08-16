@@ -319,6 +319,20 @@ if(file_exists($omim_file))
 $low_conf_bed = repository_basedir()."/data/misc/low_conf_regions.bed";
 $parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_annotate_output -mark low_conf_region -inv -reg $low_conf_bed -out $out", true);
 
+//re-order VEP consequence annotations (order is random)
+$h = fopen2($out, "r");
+$tmp = $parser->tempFile("_fixed_vep_consequences.vcf");
+$h2 = fopen2($tmp, "w");
+while(!feof($h))
+{
+	$line = fgets($h);
+	$line = str_replace("splice_polypyrimidine_tract_variant&splice_region_variant", "splice_region_variant&splice_polypyrimidine_tract_variant", $line);
+	fputs($h2, $line);
+}
+fclose($h);
+fclose($h2);
+$parser->moveFile($tmp, $out);
+
 //validate created VCF file
 //check vcf file
 if($check_lines >= 0)

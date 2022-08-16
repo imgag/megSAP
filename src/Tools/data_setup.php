@@ -131,7 +131,7 @@ if ($build=="GRCh38")
 	
 	//remove outdated annotation data
 	$update = false;
-	$info = "/homo_sapiens/104_GRCh38/info.txt"; //ensembl-vep-104
+	$info = "/homo_sapiens/107_GRCh38/info.txt"; //ensembl-vep-107
 	if (file_exists("{$local_annotation_folder}/{$info}"))
 	{
 		exec("diff {$local_annotation_folder}/{$info} {$annotation_folder}/{$info}", $output, $code);
@@ -150,28 +150,6 @@ if ($build=="GRCh38")
 	{
 		// info.txt missing -> perform update
 		print "{$local_annotation_folder}/{$info} missing. Performing update!\n";
-		$update = true;
-	}
-
-	$info = "/homo_sapiens_refseq/104_GRCh38/info.txt"; //ensembl-vep-104
-	if (file_exists("{$local_annotation_folder}/{$info}"))
-	{
-		exec("diff {$local_annotation_folder}/{$info} {$annotation_folder}/{$info}", $output, $code);
-		if ($code==0)
-		{
-			print "Annotation infos in '$info' match.\n";
-		}
-		else
-		{
-			print "Annotation infos in '$info' differ. Deleting old data and performing update!\n";
-			exec2("rm -rf {$local_annotation_folder}/*");
-			$update = true;
-		}
-	}
-	else
-	{
-		// info.txt missing -> perform update
-		print "$info missing. Performing update!\n";
 		$update = true;
 	}
 	
