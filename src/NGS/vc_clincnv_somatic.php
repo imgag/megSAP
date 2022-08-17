@@ -311,8 +311,17 @@ $cohort_folder_normal_sample = "{$cohort_folder}/normal/{$n_id}/";
 if(is_dir($cohort_folder_normal_sample)) exec2("rm -r {$cohort_folder_normal_sample}");
 
 //execute ClinCNV
-$parser->exec($command, implode(" ",$args), true);
+list($stdout, $stderr) = $parser->exec($command, implode(" ",$args), true);
 
+//check if BAF file was used
+$baf_used = true;
+foreach($stdout as $line)
+{
+	if (contains($line, "BAF did not work well"))	
+	{
+		$baf_used = false;
+	}
+}
 
 //copy segmentation files to folder containing output file
 $cnvs_seg_file = "{$cohort_folder_somatic_sample}/{$t_id}-{$n_id}_cnvs.seg";
@@ -388,6 +397,11 @@ if(isset($guide_baseline))
 //add genome build
 $cnvs->addComment("#GENOME_BUILD=GRCh38");
 
+//add warning if BAF was not used
+if (!$baf_used)
+{
+	$cnvs->addComment("#WARNING: BAF file was not used, so LOHs cannot be detected!");
+}
 
 /**********************
  * DETERMINE CNV TYPE *
