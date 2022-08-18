@@ -59,6 +59,7 @@ if(isset($target))
 if ($no_ploidy)
 {
 	$args[] = "--pooled-continuous";
+	$args[] = "--allele-balance-priors-off";
 }
 if ($no_bias)
 {
