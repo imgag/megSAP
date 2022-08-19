@@ -167,78 +167,78 @@ if (in_array("ma", $steps))
 	}
 	if (in_array("ma", $steps))
 	{
-	if ($filter_hb)
-	{
-		$kraken_tmpdir = $parser->tempFolder("kraken2_filter_hb");
-		$filtered = "{$kraken_tmpdir}/filtered#.fastq";
-		$filtered1 = "{$kraken_tmpdir}/filtered_1.fastq";
-		$filtered2 = "{$kraken_tmpdir}/filtered_2.fastq";
-		$kraken_args = [
-			"--db", get_path("data_folder")."/dbs/kraken2_filter_hb",
-			"--threads", $threads,
-			"--output", "-",
-			"--paired",
-			"--gzip-compressed",
-			"--unclassified-out", "{$kraken_tmpdir}/filtered#.fastq",
-			$fastq_trimmed1,
-			$fastq_trimmed2
-		];
-		$parser->exec(get_path("kraken2"), implode(" ", $kraken_args));
-		$parser->exec("gzip", "-1 {$filtered1}");
-		$parser->exec("gzip", "-1 {$filtered2}");
-		// $parser->exec("pigz", "-p {$threads} {$filtered1}");
-		// $parser->exec("pigz", "-p {$threads} {$filtered2}");
+		if ($filter_hb)
+		{
+			$kraken_tmpdir = $parser->tempFolder("kraken2_filter_hb");
+			$filtered = "{$kraken_tmpdir}/filtered#.fastq";
+			$filtered1 = "{$kraken_tmpdir}/filtered_1.fastq";
+			$filtered2 = "{$kraken_tmpdir}/filtered_2.fastq";
+			$kraken_args = [
+				"--db", get_path("data_folder")."/dbs/kraken2_filter_hb",
+				"--threads", $threads,
+				"--output", "-",
+				"--paired",
+				"--gzip-compressed",
+				"--unclassified-out", "{$kraken_tmpdir}/filtered#.fastq",
+				$fastq_trimmed1,
+				$fastq_trimmed2
+			];
+			$parser->exec(get_path("kraken2"), implode(" ", $kraken_args));
+			$parser->exec("gzip", "-1 {$filtered1}");
+			$parser->exec("gzip", "-1 {$filtered2}");
+			// $parser->exec("pigz", "-p {$threads} {$filtered1}");
+			// $parser->exec("pigz", "-p {$threads} {$filtered2}");
 
-		$fastq_trimmed1 = "{$filtered1}.gz";
-		$fastq_trimmed2 = "{$filtered2}.gz";
+			$fastq_trimmed1 = "{$filtered1}.gz";
+			$fastq_trimmed2 = "{$filtered2}.gz";
+		}
+		//mapping
+		$args = array(
+			"-out", $umi ? $before_dedup_bam : $final_bam,
+			"-threads", $threads,
+			"-in1", $fastq_trimmed1,
+			"-in2", $fastq_trimmed2,
+			"-genome", $genome,
+			"--log", $parser->getLogFile()
+		);
+
+		if ($skip_dedup) $args[] = "-skip_dedup";
+
+		$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
+
+		if ($umi)
+		{
+			//generate $final_bam from $before_dedup_bam
+
+			//barcode correction
+			$pipeline = [];
+			//UMI-tools dedup
+			$pipeline[] = [get_path("umi_tools"), "dedup --stdin {$before_dedup_bam} --out-sam --log2stderr --paired --mapping-quality=3 --no-sort-output --umi-separator=':' --output-stats={$prefix}_umistats"];
+			//remove DUP flags
+			// TODO replace with samtools view --remove-flags, new samtools version required
+			$pipeline[] = [get_path("samtools"), "view --remove-flags DUP -u -b"];
+			//sort
+			$tmp_for_sorting = $parser->tempFile();
+			$pipeline[] = [get_path("samtools"), "sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$final_bam} -"];
+			$parser->execPipeline($pipeline, "umi-tools dedup pipeline");
+
+			//index
+			$parser->indexBam($final_bam, $threads);
+		}
+
+		//mapping QC
+		$mappingqc_params = array(
+			"-in ".$final_bam,
+			"-out ".$qc_map,
+			"-ref ".genome_fasta($sys['build']),
+			"-build ".ngsbits_build($sys['build'])
+		);
+
+		$mappingqc_params[] = (isset($target_file) && $target_file != "") ? "-roi {$target_file}" : "-rna";
+		if ($build!="GRCh38") $mappingqc_params[] = "-no_cont";
+
+		$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $mappingqc_params), true);
 	}
-	//mapping
-	$args = array(
-		"-out", $umi ? $before_dedup_bam : $final_bam,
-		"-threads", $threads,
-		"-in1", $fastq_trimmed1,
-		"-in2", $fastq_trimmed2,
-		"-genome", $genome,
-		"--log", $parser->getLogFile()
-	);
-
-	if ($skip_dedup) $args[] = "-skip_dedup";
-
-	$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
-
-	if ($umi)
-	{
-		//generate $final_bam from $before_dedup_bam
-
-		//barcode correction
-		$pipeline = [];
-		//UMI-tools dedup
-		$pipeline[] = [get_path("umi_tools"), "dedup --stdin {$before_dedup_bam} --out-sam --log2stderr --paired --mapping-quality=3 --no-sort-output --umi-separator=':' --output-stats={$prefix}_umistats"];
-		//remove DUP flags
-		// TODO replace with samtools view --remove-flags, new samtools version required
-		$pipeline[] = [get_path("samtools"), "view --remove-flags DUP -u -b"];
-		//sort
-		$tmp_for_sorting = $parser->tempFile();
-		$pipeline[] = [get_path("samtools"), "sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$final_bam} -"];
-		$parser->execPipeline($pipeline, "umi-tools dedup pipeline");
-
-		//index
-		$parser->indexBam($final_bam, $threads);
-	}
-
-	//mapping QC
-	$mappingqc_params = array(
-		"-in ".$final_bam,
-		"-out ".$qc_map,
-		"-ref ".genome_fasta($sys['build']),
-		"-build ".ngsbits_build($sys['build'])
-	);
-
-	$mappingqc_params[] = (isset($target_file) && $target_file != "") ? "-roi {$target_file}" : "-rna";
-	if ($build!="GRCh38") $mappingqc_params[] = "-no_cont";
-
-	$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $mappingqc_params), true);
-}
 
 //read counting
 $counts_raw = $prefix."_counts_raw.tsv";
@@ -310,43 +310,17 @@ if (in_array("an", $steps))
 		$ps_info = get_processed_sample_info($db, $name, false);
 		if (!is_null($ps_info))
 		{
-			$cohort_strategy = "RNA_COHORT_GERMLINE";
-			if ($ps_info['is_tumor']) 
-			{
-				$cohort_strategy = "RNA_COHORT_SOMATIC";
-				//annotate HPA reference:
-
-				list($s_name) = explode("_", $name);
-				$sql = <<<SQL
-					SELECT sdi.disease_info FROM sample s
-					LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id
-					LEFT JOIN sample_disease_info sdi ON sdi.sample_id=sr.sample1_id OR sdi.sample_id=sr.sample2_id
-					WHERE
-						s.name='{$s_name}' AND
-						sdi.type='RNA reference tissue' AND
-						(sr.relation="same sample" OR sr.relation IS NULL)
-SQL;
-		
-				$res = array_unique($db->getValues($sql));
-				$rna_ref_tissue = "";
-				if (count($res) == 1) 
-				{
-					$args = [
-						"hpa",
-						"--counts", $counts_normalized,
-						"--counts_out", $counts_normalized,
-						"--hpa", get_path("data_folder")."/dbs/gene_expression/rna_tissue_hpa_v21.1.tsv",
-						"--prefix", "hpa_",
-						"--tissue", "'{$res[0]}'"
-					];
-					$parser->exec("python3 ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
-				}
-			}
-
 			if ($build=="GRCh38")
 			{
-				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr}", true);
-				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode exons -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", true);
+				$cohort_strategy = "RNA_COHORT_GERMLINE";
+				$hpa_parameter = "";
+				if ($ps_info['is_tumor']) 
+				{
+					$cohort_strategy = "RNA_COHORT_SOMATIC";
+					$hpa_parameter = "-hpa_file ".get_path("data_folder")."/dbs/gene_expression/rna_tissue_hpa_v21.1.tsv";
+				}
+				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr} {$hpa_parameter}", true);
+				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode exons -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", true);
 			}
 			
 			//remove duplicate exons from file
@@ -363,13 +337,19 @@ SQL;
 				{
 					$exon = explode("\t", $line, 1)[0];
 					
-					if(in_array($exon, $cache)) continue;
+					if(isset($cache[$exon])) continue;
 
-					$cache[] = $exon;
+					$cache[$exon] = true;
 					$output[] = $line;
 				}
 			}
 			file_put_contents($expr_exon, implode("\n", $output));
+		}
+	
+		//annotate splice junctions
+		if ($build === "GRCh38" && file_exists($junctions))
+		{
+			$parser->exec("{$ngsbits}SplicingToBed", "-in {$junctions} -report {$splicing_annot} -gene_report {$splicing_gene} -bed {$splicing_bed}", true);
 		}
 	}
 }
@@ -410,7 +390,7 @@ if (in_array("plt", $steps))
 	$cohort_strategy = "RNA_COHORT_GERMLINE";
 	$ps_info = get_processed_sample_info($db, $name);
 	if ($ps_info['is_tumor']) $cohort_strategy = "RNA_COHORT_SOMATIC";
-	$parser->exec(get_path("ngs-bits") . "NGSDExtractRNACohort", "-sample_expression {$expr} -genes {$all_gene_file} -ps {$name} -cohort_strategy {$cohort_strategy} -out {$expr_cohort}", true);
+	$parser->exec(get_path("ngs-bits") . "NGSDExtractRNACohort", "-genes {$all_gene_file} -ps {$name} -sample_expression {$expr} -cohort_strategy {$cohort_strategy} -out {$expr_cohort}", true);
 
 	//create cohort/expr file without comments
 	$tmp_cohort = $parser->tempFile(".tsv", "cohort_");
