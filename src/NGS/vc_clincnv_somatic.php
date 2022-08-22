@@ -228,8 +228,8 @@ $merged_cov_tumor = $parser->tempFile(".txt");
 $cov_paths_n = create_file_with_paths($cov_folder_n,realpath($n_cov), $sample_nids);
 $cov_paths_t = create_file_with_paths($cov_folder_t,realpath($t_cov), $sample_tids);
 
-$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_n -out {$merged_cov_normal} -cols chr,start,end -simple",true);
-$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_t -out {$merged_cov_tumor} -cols chr,start,end -simple",true);
+$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_n -out {$merged_cov_normal} -cols chr,start,end ",true);
+$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_t -out {$merged_cov_tumor} -cols chr,start,end ",true);
 
 //off-targets
 if($use_off_target)
@@ -238,8 +238,8 @@ if($use_off_target)
 	$merged_cov_normal_off = $parser->tempFile(".txt");
 	$cov_paths_n_off = create_file_with_paths($cov_folder_n_off,realpath($n_cov_off), $sample_nids);
 	$cov_paths_t_off = create_file_with_paths($cov_folder_t_off,realpath($t_cov_off), $sample_tids);
-	$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_n_off -out {$merged_cov_normal_off} -cols chr,start,end -simple",true, $sample_nids);
-	$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_t_off -out {$merged_cov_tumor_off} -cols chr,start,end -simple",true, $sample_tids);
+	$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_n_off -out {$merged_cov_normal_off} -cols chr,start,end ",true, $sample_nids);
+	$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_t_off -out {$merged_cov_tumor_off} -cols chr,start,end ",true, $sample_tids);
 }
 
 
