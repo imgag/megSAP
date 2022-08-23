@@ -480,8 +480,15 @@ if(in_array("cn",$steps))
 	$t_cov = "{$tmp_folder}/{$t_id}.cov";
 	$ref_file_t = "{$ref_folder_t}/{$t_id}.cov";
 	
-	if(!file_exists($ref_file_t) )$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov",true);
-	else $t_cov = $ref_file_t;
+	if(!file_exists($ref_file_t) )
+	{
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov",true);
+		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov -out $t_cov",true);
+	}
+	else 
+	{
+		$t_cov = $ref_file_t;
+	}
 	
 	//directory with reference off-target coverage files
 	$ref_folder_t_off_target = $ref_folder_t . "_off_target";
@@ -490,8 +497,15 @@ if(in_array("cn",$steps))
 	$t_cov_off_target = "{$tmp_folder}/{$t_id}_off_target.cov";
 	$ref_file_t_off_target = "{$ref_folder_t_off_target}/{$t_id}.cov";
 	
-	if( !file_exists($ref_file_t_off_target ) ) $parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target",true);
-	else $t_cov_off_target = $ref_file_t_off_target;
+	if( !file_exists($ref_file_t_off_target ) )
+	{
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target",true);
+		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov_off_target -out $t_cov_off_target",true);
+	}
+	else 
+	{
+		$t_cov_off_target = $ref_file_t_off_target;
+	}
 	
 	//folders with tumor reference coverage files (of same processing system)
 
@@ -609,8 +623,15 @@ if(in_array("cn",$steps))
 		$ref_file_n = $ref_folder_n."/".$n_id.".cov";
 		$n_cov = "{$tmp_folder}/{$n_id}.cov";
 		
-		if(!file_exists($ref_file_n)) $parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov", true);
-		else $n_cov = $ref_file_n;
+		if(!file_exists($ref_file_n)) 
+		{
+			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov", true);
+			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov -out $n_cov",true);
+		}
+		else 
+		{
+			$n_cov = $ref_file_n;
+		}
 		
 		//reference directory for off_target normal coverage files
 		$ref_folder_n_off_target = $ref_folder_n . "_off_target";
@@ -619,8 +640,15 @@ if(in_array("cn",$steps))
 		$ref_file_n_off_target = "{$ref_folder_n_off_target}/{$n_id}.cov";
 		$n_cov_off_target = "{$tmp_folder}/{$n_id}_off_target.cov";
 		
-		if(!file_exists($ref_file_n_off_target) ) $parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target",true);
-		else $n_cov_off_target = $ref_file_n_off_target;
+		if(!file_exists($ref_file_n_off_target) )
+		{
+			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target",true);
+			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov_off_target -out $n_cov_off_target",true);
+		}
+		else 
+		{
+			$n_cov_off_target = $ref_file_n_off_target;
+		}
 		
 		// copy normal sample coverage file to reference folder (only if valid and not yet there).
 		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($n_id))
