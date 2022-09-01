@@ -619,7 +619,19 @@ $normal2tumor = array();
 $tumor2normal = array();
 foreach($sample_data as $sample => $sample_infos)
 {
-	$normal_name = $sample_infos['normal_name'];
+	$normal_name = "";
+	$related_samples = get_related_processed_samples($db_conn, $sample, "tumor-normal");
+	
+	foreach($related_samples as $ps_n)
+	{
+		//normal sample must be on same run
+		if( array_key_exists($ps_n, $sample_data) && $sample_infos["is_tumor"] == 1)
+		{
+			$normal_name = $ps_n;
+			break;
+		}
+	}
+
 	if ($normal_name!="")
 	{
 		$normal2tumor[$normal_name] = $sample;
@@ -629,6 +641,7 @@ foreach($sample_data as $sample => $sample_infos)
 	//get run name (the same for all samples)
 	$run_name = $sample_infos['run_name'];
 }
+
 $queued_normal_samples = [];
 
 //Check for former run which can be merged

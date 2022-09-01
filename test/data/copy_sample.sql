@@ -46,3 +46,7 @@ INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, pr
 (9,2,3,'1',1,1, NULL),
 (10,3,3,'1',1,1, NULL),
 (11,4,3,'1',1,1, NULL);
+
+INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES
+(8,'tumor-normal', 5),
+(6, 'tumor-normal', 5);
