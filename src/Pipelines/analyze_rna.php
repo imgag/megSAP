@@ -384,7 +384,7 @@ if (file_exists($expr))
 $expr_cohort = $prefix."_expr.cohort.tsv";
 if (in_array("plt", $steps))
 {
-	$genelists = glob(get_path("data_folder") . "/pathway_genelists/*.txt");
+	$genelists = glob(repository_basedir()."/data/misc/pathway_genelists/*.txt");
 	$all_gene_file = $parser->tempFile(".txt", "genes_");
 	$parser->exec("cat", implode(" ", $genelists)." > {$all_gene_file}");
 	$cohort_strategy = "RNA_COHORT_GERMLINE";
@@ -404,7 +404,7 @@ if (in_array("plt", $steps))
 		"--annotation", $tmp_expr,
 		"--sample", $name
 	];
-	$genelists = glob(get_path("data_folder") . "/pathway_genelists/*.txt");
+	$genelists = glob(repository_basedir()."/data/misc/pathway_genelists/*.txt");
 	foreach ($genelists as $genelist)
 	{
 		$shortname = basename($genelist, ".txt");

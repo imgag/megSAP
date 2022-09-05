@@ -28,11 +28,11 @@ foreach($in as $bed)
 	if ($bed=="") continue;
 	
 	//check quality
-	$base = basename($bed, "_lowcov.bed");
+	$base = basename($bed, ".bed");
 	$info = get_processed_sample_info($db, $base, false);
 	if(is_null($info))
 	{
-		print "skipping: $base (not found in NGDS)\n";
+		print "skipping: $base (not found in NGSD)\n";
 		continue;
 	}
 	if ($info['ps_quality']!="good")
