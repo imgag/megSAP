@@ -968,9 +968,7 @@ while(!feof($handle))
 		$hgmd_gene = trim($info["HGMD_GENE"]);
 		$hgmd_phen = trim($info["HGMD_PHEN"]);
 		
-		//TODO: Possible to have more than one match per variant?
-		$text = $hgmd_id." [CLASS=".$hgmd_class." MUT=".$hgmd_mut." PHEN=".strtr($hgmd_phen, "_", " ")." GENE=".$hgmd_gene."]; ";
-		$hgmd[] = trim($text);
+		$hgmd[] = trim($hgmd_id." [CLASS=".$hgmd_class." MUT=".$hgmd_mut." PHEN=".strtr($hgmd_phen, "_", " ")." GENE=".$hgmd_gene."];");
 	}
 
 	//AFs

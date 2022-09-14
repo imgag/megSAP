@@ -572,17 +572,29 @@ class ToolBase
 	{
 		if (!isset($this->log_file)) return;
 		
+		//skip excessive output of some tools
+		$skip_substrings = [
+							"[M::mem_pestat]", //BWA mem
+							"[M::process]", //BWA mem
+							"[M::mem_process_seqs]", //BWA mem
+							"PROCESS_REGION_MSECS", //ABRA2
+							"Processing chromosome chunk:", //ABRA2
+							"Clock time in Chromosome:", //ABRA2
+							"WARNING(freebayes): Could not find any mapped reads in target region", //freebayes
+							"Subroutine Bio::DB::IndexedBase::_strip_crnl redefined", //VEP
+							"No training configuration", //SpliceAI
+						   ];
+		
 		if ($this->log_file=="-") // to STDOUT
 		{
 			print $message."\n";
 			foreach($add_info as $line)
 			{
-				//skip excessive output
-				if (contains($line, "WARNING(freebayes): Could not find any mapped reads in target region")) continue; //freebayes
-				if (contains($line, "[M::mem_pestat]") || contains($line, "[M::process]") || contains($line, "[M::mem_process_seqs]")) continue; //BWA mem
-				if (contains($line, "PROCESS_REGION_MSECS") || contains($line, "Processing chromosome chunk:") || contains($line, "Clock time in Chromosome:")) continue; //ABRA2
-				if (contains($line, "No training configuration")) continue; //SpliceAI (prediction model does not include configuration for testing the model)
-
+				foreach($skip_substrings as $substring)
+				{
+					if (contains($line, $substring)) continue(2);
+				}
+				
 				print "  ".trim($line)."\n";
 			}
 		}
@@ -594,12 +606,11 @@ class ToolBase
 			$lines[] = $prefix."$message\n";
 			foreach($add_info as $line)
 			{
-				//skip excessive output
-				if (contains($line, "WARNING(freebayes): Could not find any mapped reads in target region")) continue; //freebayes
-				if (contains($line, "[M::mem_pestat]") || contains($line, "[M::process]") || contains($line, "[M::mem_process_seqs]")) continue; //BWA mem
-				if (contains($line, "PROCESS_REGION_MSECS") || contains($line, "Processing chromosome chunk:") || contains($line, "Clock time in Chromosome:")) continue; //ABRA2
-				if (contains($line, "No training configuration")) continue; //SpliceAI (prediction model does not include configuration for testing the model)
-
+				foreach($skip_substrings as $substring)
+				{
+					if (contains($line, $substring)) continue(2);
+				}
+				
 				$lines[] = $prefix."    ".strtr($line, array("\n" => "", "\c" => "", "\t" => "  "))."\n";
 			}
 			

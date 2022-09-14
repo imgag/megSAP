@@ -109,9 +109,9 @@ function annotate($parser, $vcffile, $out_name, $out_folder, $system, $no_fc, $m
 		if ($sys['type']=="WGS") $args[] = "-wgs";
 		$parser->execTool("NGS/vcf2gsvar.php", implode(" ", $args));
 		
+		//annotate variant allele frequency and depth from related RNA sample, if available
 		if(db_is_enabled("NGSD"))
 		{
-			//annotate variant allele frequency and depth from related RNA sample, if available
 			$db = DB::getInstance("NGSD");
 			$psamples_for_annotation = get_related_processed_samples($db, $out_name, "same sample", "RNA");
 			if (!empty($psamples_for_annotation))
@@ -135,7 +135,11 @@ function annotate($parser, $vcffile, $out_name, $out_folder, $system, $no_fc, $m
 					{
 						$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bam_rna} {$dna_bam} -mode bam -build ".ngsbits_build($sys['build']), true);
 						$correlation = explode("\t", $output[0][1])[3];
-						if ($correlation < $min_corr)
+						if ($correlation=="nan")
+						{
+							trigger_error("The genotype correlation of DNA and RNA ({$psample}) could not be determined!", E_USER_WARNING);
+						}
+						else if ($correlation < $min_corr)
 						{
 							trigger_error("The genotype correlation of DNA and RNA ({$psample}) is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
 						}

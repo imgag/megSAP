@@ -163,8 +163,7 @@ foreach ($loci as $locus)
 	$source_file = $prefix.".".$locus.".svg";
 	if (file_exists($source_file))
 	{
-		$ok = rename($source_file, $prefix."_".$locus.".svg");
-		if (!$ok) trigger_error("Could not rename SVG for locus $locus!", E_USER_ERROR);
+		$parser->moveFile($source_file, $prefix."_".$locus.".svg");
 	}
 }
 

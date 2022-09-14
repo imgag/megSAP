@@ -1017,7 +1017,7 @@ if (in_array("an_rna", $steps))
 			trigger_error("The correlation calculation between DNA and RNA ({$rna_id}) is skipped!");
 			continue;
 		}
-		$min_corr = 0.9;  // TODO: evaluate value
+		$min_corr = 0.9;  //TODO: evaluate value
 		
 		if (file_exists($t_bam))
 		{

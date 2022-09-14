@@ -25,14 +25,33 @@ $parser->addFlag("no_trim", "Skip adapter trimming with SeqPurge.");
 $parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.");
 $parser->addFlag("correction_n", "Use Ns for barcode correction.");
 $parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.");
-$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard bwa mem.");
+$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping, small variant and structural variant calling.");
 $parser->addFlag("somatic_custom_map", "Calculate mapping QC metrics for somatic custom subpanel");
 extract($parser->parse($argv));
 
-//check user for DRAGEN mapping
-if ($use_dragen && (exec('whoami') != get_path("dragen_user")))
+//checks in case DRAGEN should be used
+if ($use_dragen)
 {
-	trigger_error("Mapping has to be run as user '".get_path("dragen_user")."' if DRAGEN mapping should be used!", E_USER_ERROR);
+	if (exec('whoami') != get_path("dragen_user"))
+	{
+		trigger_error("Mapping has to be run as user '".get_path("dragen_user")."' if DRAGEN mapping should be used!", E_USER_ERROR);
+	}
+	if ($start_with_abra)
+	{
+		trigger_error("The flag 'start_with_abra' is not valid for the use of DRAGEN!", E_USER_ERROR);
+	}
+	
+	// check if transfer folders exists
+	$dragen_input_folder = get_path("dragen_in");
+	$dragen_output_folder = get_path("dragen_out");
+	if (!file_exists($dragen_input_folder))	
+	{
+		trigger_error("DRAGEN input folder \"".$dragen_input_folder."\" does not exist!", E_USER_ERROR);
+	}
+	if (!file_exists($dragen_output_folder))
+	{
+		trigger_error("DRAGEN input folder \"".$dragen_output_folder."\" does not exist!", E_USER_ERROR);
+	}
 }
 
 //extract processing system information from DB
@@ -72,19 +91,6 @@ if($sys['type']=="Panel MIPs")
 {
 	trigger_error("Panel MIPs are not supported by the DRAGEN pipeline, using local mapping instead.", E_USER_WARNING);
 	$use_dragen = false;
-}
-if ($use_dragen)
-{
-	// get transfer folders for DRAGEN server from settings
-	$dragen_input_folder = get_path("dragen_in");
-	$dragen_output_folder = get_path("dragen_out");
-
-	// check if transfer folders exists
-	if (!file_exists($dragen_input_folder)) trigger_error("DRAGEN input folder \"".$dragen_input_folder."\" does not exist!", E_USER_ERROR);
-	if (!file_exists($dragen_output_folder)) trigger_error("DRAGEN input folder \"".$dragen_output_folder."\" does not exist!", E_USER_ERROR);
-
-	$trimmed1_dragen = "$dragen_input_folder/{$out_name}_trimmed1.fastq.gz";
-	$trimmed2_dragen = "$dragen_input_folder/{$out_name}_trimmed2.fastq.gz";
 }
 
 // barcode handling
@@ -206,11 +212,12 @@ else //normal analysis without UMIs
 		}
 		if ($use_dragen)
 		{
-			//move trimmed FastQs to DRAGEN input folder
+			//move trimmed FASTQs to DRAGEN input folder
+			$trimmed1_dragen = "$dragen_input_folder/{$out_name}_trimmed1.fastq.gz";
+			$trimmed2_dragen = "$dragen_input_folder/{$out_name}_trimmed2.fastq.gz";
 			$parser->moveFile($trimmed1, $trimmed1_dragen); 
 			$parser->moveFile($trimmed2, $trimmed2_dragen); 
 		}
-
 	}
 }
 
@@ -282,25 +289,27 @@ if($sys['type']=="Panel MIPs")
 }
 
 // mapping
-$bam_current = $parser->tempFile("_mapping_bwa.bam");
-
 if (!$start_with_abra)
 {
 	// use DRAGEN or std bwa mem
 	if ($use_dragen)
 	{
 		$dragen_output_bam = "$dragen_output_folder/{$out_name}_dragen.bam";
+		$dragen_output_vcf = "$dragen_output_folder/{$out_name}_dragen.vcf.gz";
+		$dragen_output_sv = "$dragen_output_folder/{$out_name}_dragen_svs.vcf.gz";
 		$dragen_log_file = "$dragen_output_folder/{$out_name}_dragen.log";
-		$sge_update_interval = 900; // = 15min
+		$sge_update_interval = 300; //5min
 
 		// create cmd for mapping_dragen.php
 		$args = array();
-		$args[] = "-in1 ${trimmed1_dragen}";
-		$args[] = "-in2 ${trimmed2_dragen}";
-		$args[] = "-out $dragen_output_bam";
-		$args[] = "-sample $out_name";
+		$args[] = "-in1 ".$trimmed1_dragen;
+		$args[] = "-in2 ".$trimmed2_dragen;
+		$args[] = "-out ".$dragen_output_bam;
+		$args[] = "-out_vcf ".$dragen_output_vcf;
+		$args[] = "-out_sv ".$dragen_output_sv;
+		$args[] = "-sample ".$out_name;
 		$args[] = "-build ".$sys['build'];
-		$args[] = "--log $dragen_log_file";
+		$args[] = "--log ".$dragen_log_file;
 		if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
 		$cmd_mapping = "php ".realpath(repository_basedir())."/src/NGS/mapping_dragen.php ".implode(" ", $args);
 
@@ -322,9 +331,7 @@ if (!$start_with_abra)
 
 		// run qsub as user bioinf
 		list($stdout, $stderr) = $parser->exec("qsub", implode(" ", $sge_args)." ".$cmd_mapping);
-
 		$sge_id = explode(" ", $stdout[0])[2];
-
 
 		// check if submission was successful
 		if ($sge_id<=0) 
@@ -332,11 +339,10 @@ if (!$start_with_abra)
 			trigger_error("SGE command failed:\n{$command_sge}\n{$command_pip}\nSTDOUT:\n".implode("\n", $stdout)."\nSTDERR:\n".implode("\n", $stderr), E_USER_ERROR);
 		}
 
-
 		// wait for job to finish
 		do 
 		{
-			// wait for 15/5 minutes
+			// wait 5 minutes
 			sleep($sge_update_interval);
 
 			// check if job is still running
@@ -348,19 +354,13 @@ if (!$start_with_abra)
 			{
 				$state = explode(" ", preg_replace('/\s+/', ' ', $stdout[0]))[5];
 				trigger_error("SGE job $sge_id still queued/running (state: {$state}).", E_USER_NOTICE);
-
-				// reduce update interval as soon as the job is actual running on the Dragen
-				if ($state == "r")
-				{
-					$sge_update_interval = 300; // = 5min
-				}
 			}
 		} 
 		while (!$finished);
 		trigger_error("SGE job $sge_id finished.", E_USER_NOTICE);
 
 
-		// parse sge stdout file to determine if mapping was successful:
+		//parse SGE stdout file to determine if mapping was successful
 		if (!(file_exists(get_path("dragen_log")."/$sge_logfile.out") && (get_path("dragen_log")."/$sge_logfile.err")))
 		{
 			trigger_error("Cannot find log files of DRAGEN mapping SGE job at '".get_path("dragen_log")."/$sge_logfile.out'!", E_USER_ERROR);
@@ -368,7 +368,7 @@ if (!$start_with_abra)
 		$sge_stdout = file(get_path("dragen_log")."/$sge_logfile.out", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 		$sge_stderr = file(get_path("dragen_log")."/$sge_logfile.err", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
-		//copy DRAGEN log to current mapping log and delete it:
+		//copy DRAGEN log to current mapping log and delete it
 		if (!file_exists($dragen_log_file))
 		{
 			trigger_error("Cannot find DRAGEN log file '$dragen_log_file'!", E_USER_ERROR);
@@ -376,7 +376,7 @@ if (!$start_with_abra)
 		$parser->log("DRAGEN mapping log: ", file($dragen_log_file));
 		unlink($dragen_log_file);
 
-		if (end($sge_stdout) == "DRAGEN mapping successfully finished, exit code 0.")
+		if (end($sge_stdout)=="DRAGEN successfully finished!")
 		{
 			trigger_error("SGE job $sge_id successfully finished with exit status 0.", E_USER_NOTICE);
 		}
@@ -388,17 +388,29 @@ if (!$start_with_abra)
 			trigger_error("SGE job $sge_id failed!", E_USER_ERROR);
 		}
 
-
-		// use created bam as input for further post-processing
+		//use created bam as input for further post-processing
 		$bam_current = $dragen_output_bam;
 
-		// remove trimmed fastq files
+		//remove trimmed fastq files
 		unlink($trimmed1_dragen);
 		unlink($trimmed2_dragen);
+		
+		//copy small variant and structural variant calls from Dragen
+		$dragen_call_folder = $out_folder."/dragen_variant_calls/";
+		if (!file_exists($dragen_call_folder))
+		{
+			if (!mkdir($dragen_call_folder))
+			{
+				trigger_error("Could not create DRAGEN variant calls folder: ".$dragen_call_folder, E_USER_ERROR);
+			}
+		}
+		$parser->moveFile($dragen_output_vcf, $dragen_call_folder.basename($dragen_output_vcf));
+		$parser->moveFile($dragen_output_vcf.".tbi", $dragen_call_folder.basename($dragen_output_vcf).".tbi");
+		$parser->moveFile($dragen_output_sv, $dragen_call_folder.basename($dragen_output_sv));
+		$parser->moveFile($dragen_output_sv.".tbi", $dragen_call_folder.basename($dragen_output_sv).".tbi");
 	}
-	else
+	else //local mapping with bwa
 	{
-		// local mapping with bwa
 		$bam_current = $parser->tempFile("_mapping_bwa.bam");
 		$args = array();
 		$args[] = "-in1 $trimmed1";
@@ -413,7 +425,6 @@ if (!$start_with_abra)
 		// remove temporary FASTQs (they can be really large for WGS)
 		$parser->deleteTempFile($trimmed1);
 		$parser->deleteTempFile($trimmed2);
-
 	}
 }
 else
@@ -443,7 +454,6 @@ if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
 	}
 	$parser->execTool("NGS/indel_realign_abra.php", implode(" ", $args));
 	$parser->indexBam($tmp_bam, $threads);
-
 
 	// delete local bam file or DRAGEN bam file
 	if ($use_dragen)
@@ -487,7 +497,7 @@ if($barcode_correction)
 	// use the barcode correction of umiVar2
 	$umiVar2 = get_path("umiVar2");
 	$python_bin = $umiVar2."/venv/bin/python";
-	$parser->exec("${python_bin}  ${umiVar2}/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 ".$args,true);
+	$parser->exec("{$python_bin}  {$umiVar2}/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 ".$args,true);
 	$parser->sortBam($tmp_bam4, $tmp_bam4_sorted, $threads);
 	$parser->indexBam($tmp_bam4_sorted, $threads);
 	

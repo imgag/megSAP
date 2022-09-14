@@ -16,7 +16,7 @@ $parser->addInfile("system",  "Processing system INI file (automatically determi
 $steps_all = array("ma", "vc", "cn", "sv", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, db=import into NGSD.", true, "ma,vc,cn,sv,db");
 $parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (freebayes 'min-alternate-fraction' parameter).", true, 0.1);
-$parser->addFloat("min_bq", "Minimum base quality used for variant calling (freebayes 'min-base-quality' parameter).", true, 15); //TODO test 20
+$parser->addFloat("min_bq", "Minimum base quality used for variant calling (freebayes 'min-base-quality' parameter).", true, 15);
 $parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (freebayes 'min-mapping-quality' parameter).", true, 1);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.");
@@ -26,7 +26,7 @@ $parser->addFlag("start_with_abra", "Skip all steps before indel realignment of 
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
-$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping instead of standard BWA-MEM.");
+$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping, small variant and structural variant calling.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 extract($parser->parse($argv));
 
@@ -47,6 +47,8 @@ $is_wgs = $sys['type']=="WGS";
 $is_panel = $sys['type']=="Panel";
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
 $has_roi = $sys['target_file']!="";
+$build = $sys['build'];
+$genome = genome_fasta($build);
 
 //handle somatic flag
 if ($somatic)
@@ -67,10 +69,17 @@ list($server) = exec2("hostname -f");
 $user = exec('whoami');
 $parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 
-//check user for DRAGEN mapping
-if ($use_dragen && ($user != get_path("dragen_user")))
+//checks in case DRAGEN should be used
+if ($use_dragen)
 {
-	trigger_error("Analysis has to be run as user '".get_path("dragen_user")."' if DRAGEN mapping should be used!", E_USER_ERROR);
+	if ($user != get_path("dragen_user"))
+	{
+		trigger_error("Analysis has to be run as user '".get_path("dragen_user")."' for the use of DRAGEN!", E_USER_ERROR);
+	}
+	if (!in_array("ma", $steps)) 
+	{
+		trigger_error("Mapping has to be part of the analysis steps for the use of DRAGEN!", E_USER_ERROR);
+	}
 }
 
 //remove invalid steps
@@ -109,7 +118,7 @@ if (db_is_enabled("NGSD") && !$annotation_only)
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 if (!$no_sync)
 {
-	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
+	$parser->execTool("Tools/data_setup.php", "-build ".$build);
 }
 
 //output file names:
@@ -168,7 +177,7 @@ if (in_array("ma", $steps))
 	$bamfile_to_convert = $bamfile;
 
 	//fallback for remapping GRCh37 samples to GRCh38 - use BAM to create FASTQs
-	if ($sys['build']=="GRCh38")
+	if ($build=="GRCh38")
 	{
 		//determine if HG38 folder contains read data
 		$read_data_present = false;
@@ -210,7 +219,7 @@ if (in_array("ma", $steps))
 	$files2 = glob($in_rev);
 		
 	//fallback for remapping GRCh37 samples to GRCh38 - copy FASTQs of GRCh37
-	if ($sys['build']=="GRCh38" && count($files1)==0)
+	if ($build=="GRCh38" && count($files1)==0)
 	{
 		if (!db_is_enabled("NGSD")) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
 		$db = DB::getInstance("NGSD", false);
@@ -350,7 +359,7 @@ if (in_array("ma", $steps))
 else
 {
 	//check genome build of BAM
-	check_genome_build($bamfile, $sys['build']);
+	check_genome_build($bamfile, $build);
 	
 	$local_bamfile = $bamfile;
 }
@@ -360,17 +369,7 @@ if (in_array("vc", $steps))
 {
 	// skip VC if only annotation should be done
 	if (!$annotation_only)
-	{
-		$args = array();
-		if ($has_roi)
-		{
-			$args[] = "-target ".$sys['target_file'];
-			$args[] = "-target_extend 200";
-		}
-		$args[] = "-min_af ".$min_af;
-		$args[] = "-min_mq ".$min_mq;
-		$args[] = "-min_bq ".$min_bq;
-		
+	{		
 		//Do not call standard pipeline if there is only mitochondiral chrMT in target region
 		$only_mito_in_target_region = false;
 		if ($has_roi) 
@@ -380,27 +379,103 @@ if (in_array("vc", $steps))
 		//activate mito-calling for sWGS
 		if ($is_wgs_shallow) $only_mito_in_target_region = true;
 
-		
+		//perform main variant calling on autosomes/genosomes
 		if(!$only_mito_in_target_region)
 		{
-			$parser->execTool("NGS/vc_freebayes.php", "-bam $local_bamfile -out $vcffile -build ".$sys['build']." -threads $threads ".implode(" ", $args));
+			if ($use_dragen)
+			{
+				$pipeline = [];
+				$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
+				$pipeline[] = array("zcat", $dragen_output_vcf);
+				
+				//filter by target region (extended by 200) and quality 5
+				$target = $parser->tempFile("_roi_extended.bed");
+				$parser->exec($ngsbits."BedExtend"," -in ".$sys['target_file']." -n 200 -out $target -fai ".$genome.".fai", true);
+				$pipeline[] = array($ngsbits."VcfFilter", "-reg {$target} -qual 5");
+
+				//split multi-allelic variants
+				$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
+
+				//normalize all variants and align INDELs to the left
+				$pipeline[] = array($ngsbits."VcfLeftNormalize", "-stream -ref $genome");
+
+				//sort variants by genomic position
+				$pipeline[] = array($ngsbits."VcfStreamSort", "");
+
+				//zip
+				$pipeline[] = array("bgzip", "-c > $vcffile", false);
+
+				//execute pipeline
+				$parser->execPipeline($pipeline, "Dragen small variants post processing");
+
+				//mark off-target variants
+				$tmp = $parser->tempFile(".vcf");
+				$parser->exec($ngsbits."VariantFilterRegions", "-in $vcffile -mark off-target -reg ".$sys['target_file']." -out $tmp", true);
+				$parser->exec("bgzip", "-c $tmp > $vcffile", false);
+
+				//index output file
+				$parser->exec("tabix", "-p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
+			}
+			else
+			{
+				$args = array();
+				if ($has_roi)
+				{
+					$args[] = "-target ".$sys['target_file'];
+					$args[] = "-target_extend 200";
+				}
+				$args[] = "-min_af ".$min_af;
+				$args[] = "-min_mq ".$min_mq;
+				$args[] = "-min_bq ".$min_bq;
+				$parser->execTool("NGS/vc_freebayes.php", "-bam $local_bamfile -out $vcffile -build ".$build." -threads $threads ".implode(" ", $args));
+			}
 		}
 		
 		//perform special variant calling for mitochondria
 		$mito = enable_special_mito_vc($sys) || $only_mito_in_target_region;
 		if ($mito)
 		{
-			$target_mito = $parser->tempFile("_mito.bed");
-			file_put_contents($target_mito, "chrMT\t0\t16569");
-			
-			$args = array();
-			$args[] = "-no_ploidy";
-			$args[] = "-min_af 0.01";
-			$args[] = "-min_mq ".$min_mq;
-			$args[] = "-min_bq ".$min_bq;
-			$args[] = "-target $target_mito";
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
-			$parser->execTool("NGS/vc_freebayes.php", "-bam $local_bamfile -out $vcffile_mito -build ".$sys['build']." ".implode(" ", $args));
+			if ($use_dragen)
+			{
+				$pipeline = [];
+				$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
+				$pipeline[] = array("zcat", $dragen_output_vcf);
+				
+				//filter by target region and quality 5
+				$pipeline[] = array($ngsbits."VcfFilter", "-reg chrMT:1-16569 -qual 5");
+
+				//split multi-allelic variants
+				$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
+
+				//normalize all variants and align INDELs to the left
+				$pipeline[] = array($ngsbits."VcfLeftNormalize", "-stream -ref $genome");
+
+				//sort variants by genomic position
+				$pipeline[] = array($ngsbits."VcfStreamSort", "");
+
+				//zip
+				$pipeline[] = array("bgzip", "-c > $vcffile_mito", false);
+
+				//execute pipeline
+				$parser->execPipeline($pipeline, "Dragen small variants post processing (chrMT)");
+
+				//index output file
+				$parser->exec("tabix", "-p vcf $vcffile_mito", false); //no output logging, because Toolbase::extractVersion() does not return
+			}
+			else
+			{
+				$target_mito = $parser->tempFile("_mito.bed");
+				file_put_contents($target_mito, "chrMT\t0\t16569");
+				
+				$args = array();
+				$args[] = "-no_ploidy";
+				$args[] = "-min_af 0.01";
+				$args[] = "-min_mq ".$min_mq;
+				$args[] = "-min_bq ".$min_bq;
+				$args[] = "-target $target_mito";
+				$parser->execTool("NGS/vc_freebayes.php", "-bam $local_bamfile -out $vcffile_mito -build ".$build." ".implode(" ", $args));
+			}
 		}
 		
 		if($only_mito_in_target_region) 
@@ -449,15 +524,15 @@ if (in_array("vc", $steps))
 		$params[] = "-vcf {$vcffile}";
 		$params[] = "-bam {$local_bamfile}";
 		$params[] = "-out {$baffile}";
-		$params[] = "-build ".$sys['build'];
+		$params[] = "-build ".$build;
 		if ($is_wgs)
 		{
 			$params[] = "-downsample 100";
 		}
 		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
 		
-		//call mosaic variants on exon region:
-		if ($is_wgs || $is_wes || ($is_panel && $has_roi))
+		//call mosaic variants on exon region
+		if (ngsbits_build($build) != "non_human" && ($is_wgs || $is_wes || ($is_panel && $has_roi)))
 		{
 			$args = [];
 			$args[] = "-in {$local_bamfile}";
@@ -472,7 +547,7 @@ if (in_array("vc", $steps))
 				$args[] = "-target ".repository_basedir()."data/gene_lists/gene_exons_pad20.bed";
 			}
 			$args[] = "-threads $threads";
-			$args[] = "-build ".$sys['build'];
+			$args[] = "-build ".$build;
 			
 			if ($is_wgs)
 			{
@@ -505,12 +580,10 @@ if (in_array("vc", $steps))
 			$parser->exec("bgzip", "-c $unzpped_mosaic > $mosaic_file", false); //no output logging, because Toolbase::extractVersion() does not return
 			$parser->exec("tabix", "-f -p vcf $mosaic_file", false); //no output logging, because Toolbase::extractVersion() does not return
 		}
-
-		
 	}
 	else
 	{
-		check_genome_build($vcffile, $sys['build']);
+		check_genome_build($vcffile, $build);
 	}
 
 	// annotation
@@ -535,7 +608,7 @@ if (in_array("vc", $steps))
 	if ($is_wgs)
 	{
 		$prs_folder = repository_basedir()."/data/misc/prs/";
-		$prs_scoring_files = glob($prs_folder."/*_".$sys['build'].".vcf");
+		$prs_scoring_files = glob($prs_folder."/*_".$build.".vcf");
 		if (count($prs_scoring_files) > 0)
 		{
 			$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
@@ -543,16 +616,15 @@ if (in_array("vc", $steps))
 	}
 	
 	//determine ancestry
-	if (ngsbits_build($sys['build']) != "non_human")
+	if (ngsbits_build($build) != "non_human")
 	{
-		$parser->exec(get_path("ngs-bits")."SampleAncestry", "-in {$vcffile} -out {$ancestry_file} -build ".ngsbits_build($sys['build']), true);
+		$parser->exec($ngsbits."SampleAncestry", "-in {$vcffile} -out {$ancestry_file} -build ".ngsbits_build($build), true);
 	}
 }
 
 //copy-number analysis
 if (in_array("cn", $steps))
 {
-
 	// skip CN calling if only annotation should be done
 	if (!$annotation_only)
 	{
@@ -594,27 +666,24 @@ if (in_array("cn", $steps))
 		//create BED file with GC and gene annotations - if missing
 		if ($is_wgs || $is_wgs_shallow)
 		{
-
 			$bed = $ref_folder."/bins{$bin_size}.bed";
 			if (!file_exists($bed))
 			{
 				$pipeline = [
 						["{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size}"],
-						["{$ngsbits}BedAnnotateGC", "-ref ".genome_fasta($sys['build'])],
+						["{$ngsbits}BedAnnotateGC", "-ref ".$genome],
 						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"]
 					];
 				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 			}
 		}
-
 		else
 		{
-
 			$bed = $ref_folder."/roi_annotated.bed";
 			if (!file_exists($bed))
 			{
 				$pipeline = [
-						["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".genome_fasta($sys['build'])],
+						["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".$genome],
 						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
 					];
 				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
@@ -644,7 +713,6 @@ if (in_array("cn", $steps))
 		}
 		else
 		{
-
 			$parser->log("Using previously calculated coverage file for CN calling: $cov_file");
 		}
 		
@@ -690,7 +758,7 @@ if (in_array("cn", $steps))
 	}
 	else
 	{
-		check_genome_build($cnvfile, $sys['build']);
+		check_genome_build($cnvfile, $build);
 	}
 
 	// annotate CNV file
@@ -701,32 +769,32 @@ if (in_array("cn", $steps))
 		if ($is_wes || $is_wgs || $is_wgs_shallow) //Genome/Exome: ClinCNV
 		{
 
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnvfile}", true);
+			$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnvfile}", true);
 			
 		}
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnvfile}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2022-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
+		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
+		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnvfile}", true);
+		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2022-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
 
 
 		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2022_2.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
+			$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
 		}
 		$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
 		if (file_exists($omim_file))
 		{
-			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$omim_file} -no_duplicates -url_decode -out {$cnvfile}", true);
+			$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$omim_file} -no_duplicates -url_decode -out {$cnvfile}", true);
 		}
 
 		//annotate additional gene info
-		$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$cnvfile} -out {$cnvfile}", true);
+		$parser->exec($ngsbits."CnvGeneAnnotation", "-in {$cnvfile} -out {$cnvfile}", true);
 		// skip annotation if no connection to the NGSD is possible
 		if (db_is_enabled("NGSD"))
 		{
 			//annotate overlap with pathogenic CNVs
-			$parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$cnvfile} -out {$cnvfile}", true);
+			$parser->exec($ngsbits."NGSDAnnotateCNV", "-in {$cnvfile} -out {$cnvfile}", true);
 		}
 	}
 	else
@@ -741,34 +809,75 @@ if (in_array("sv", $steps))
 	// skip SV calling if only annotation should be done	
 	if (!$annotation_only)
 	{
-		//SV calling with manta
-		$manta_evidence_dir = "{$folder}/manta_evid";
-		create_directory($manta_evidence_dir);
+		if ($use_dragen)
+		{
+			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz";
+			
+			//combine BND of INVs to one INV in VCF
+			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
+			$parser->exec("python ".get_path('manta')."/../libexec/convertInversion.py", get_path("samtools")." {$genome} {$dragen_output_vcf} > {$vcf_inv_corrected}");
 
+			//remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
+			$vcf_fixed = $parser->tempFile("_sv_fixed.vcf");
+			$h = fopen2($vcf_inv_corrected, "r");
+			$h2 = fopen2($vcf_fixed, "w");
+			while(!feof($h))
+			{
+				$line = fgets($h);
+				$parts = explode("\t", $line);
+				if (count($parts)>3 && $parts[3]=="") continue;
+				
+				fputs($h2, $line);
+			}
+			fclose($h);
+			fclose($h2);
 
-		$manta_args = [
-			"-bam ".$local_bamfile,
-			"-evid_dir ".$manta_evidence_dir,
-			"-out ".$sv_manta_file,
-			"-threads ".$threads,
-			"-build ".$sys['build'],
-			"--log ".$parser->getLogFile()
-		];
-		if($has_roi) $manta_args[] = "-target ".$sys['target_file'];
-		if(!$is_wgs) $manta_args[] = "-exome";
+			//sort variants
+			$vcf_sorted = $parser->tempFile("_sv_sorted.vcf");
+			$parser->exec($ngsbits."VcfSort", "-in {$vcf_fixed} -out {$vcf_sorted}", true);
+						
+			//mark off-target variants
+			if($has_roi)
+			{
+				$vcf_marked = $parser->tempFile("_sv_marked.vcf");
+				$parser->exec($ngsbits."VariantFilterRegions", "-in {$vcf_sorted} -reg ".$sys['target_file']." -mark off-target -out {$vcf_marked}");
+				$vcf_sorted = $vcf_marked;
+			}
+	
+			//bgzip and index
+			$parser->exec("bgzip", "-c $vcf_marked > $sv_manta_file");
+			$parser->exec("tabix", "-p vcf $sv_manta_file", false); //no output logging, because Toolbase::extractVersion() does not return
+		}
+		else
+		{
+			//SV calling with manta
+			$manta_evidence_dir = "{$folder}/manta_evid";
+			create_directory($manta_evidence_dir);
+
+			$manta_args = [
+				"-bam ".$local_bamfile,
+				"-evid_dir ".$manta_evidence_dir,
+				"-out ".$sv_manta_file,
+				"-threads ".$threads,
+				"-build ".$build,
+				"--log ".$parser->getLogFile()
+			];
+			if($has_roi) $manta_args[] = "-target ".$sys['target_file'];
+			if(!$is_wgs) $manta_args[] = "-exome";
+			
+			$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
+
+			//rename Manta evidence file
+			$parser->moveFile("$manta_evidence_dir/evidence_0.$name.bam", "$manta_evidence_dir/{$name}_manta_evidence.bam");
+			$parser->moveFile("$manta_evidence_dir/evidence_0.$name.bam.bai", "$manta_evidence_dir/{$name}_manta_evidence.bam.bai");
+		}
 		
-		$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
-
-		// Rename Manta evidence file
-		rename("$manta_evidence_dir/evidence_0.$name.bam", "$manta_evidence_dir/{$name}_manta_evidence.bam");
-		rename("$manta_evidence_dir/evidence_0.$name.bam.bai", "$manta_evidence_dir/{$name}_manta_evidence.bam.bai");
-
 		//create BEDPE files
 		$parser->exec("{$ngsbits}VcfToBedpe", "-in $sv_manta_file -out $bedpe_out", true);
 	}
 	else
 	{
-		check_genome_build($sv_manta_file, $sys['build']);
+		check_genome_build($sv_manta_file, $build);
 	}
 
 
@@ -844,7 +953,7 @@ if (in_array("sv", $steps))
 if (in_array("sv", $steps) && !$annotation_only)
 {
 	//perform repeat expansion analysis (only for WGS/WES):
-	$parser->execTool("NGS/vc_expansionhunter.php", "-in $local_bamfile -out $expansion_hunter_file -build ".$sys['build']." -pid $name -threads {$threads}");
+	$parser->execTool("NGS/vc_expansionhunter.php", "-in $local_bamfile -out $expansion_hunter_file -build ".$build." -pid $name -threads {$threads}");
 }
 
 // Create Circos plot only if variant or copy-number calling was done
@@ -856,7 +965,7 @@ if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
 		{
 			if (file_exists($cnvfile2))
 			{
-				$parser->execTool("NGS/create_circos_plot.php", "-folder $folder -name $name -build ".$sys['build']);
+				$parser->execTool("NGS/create_circos_plot.php", "-folder $folder -name $name -build ".$build);
 			}
 			else
 			{
@@ -889,7 +998,7 @@ if (in_array("db", $steps))
 	if (file_exists($varfile) && !$is_wgs_shallow)
 	{
 		//check genome build
-		check_genome_build($varfile, $sys['build']);
+		check_genome_build($varfile, $build);
 		
 		$args[] = "-var {$varfile}";
 		$args[] = "-var_force";
@@ -907,7 +1016,7 @@ if (in_array("db", $steps))
 	if (file_exists($bedpe_out))
 	{
 		//check genome build
-		check_genome_build($bedpe_out, $sys['build']);
+		check_genome_build($bedpe_out, $build);
 		
 		$args[] = "-sv {$bedpe_out}";
 		$args[] = "-sv_force";

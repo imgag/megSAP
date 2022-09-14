@@ -186,8 +186,6 @@ if (in_array("ma", $steps))
 			$parser->exec(get_path("kraken2"), implode(" ", $kraken_args));
 			$parser->exec("gzip", "-1 {$filtered1}");
 			$parser->exec("gzip", "-1 {$filtered2}");
-			// $parser->exec("pigz", "-p {$threads} {$filtered1}");
-			// $parser->exec("pigz", "-p {$threads} {$filtered2}");
 
 			$fastq_trimmed1 = "{$filtered1}.gz";
 			$fastq_trimmed2 = "{$filtered2}.gz";
@@ -215,7 +213,6 @@ if (in_array("ma", $steps))
 			//UMI-tools dedup
 			$pipeline[] = [get_path("umi_tools"), "dedup --stdin {$before_dedup_bam} --out-sam --log2stderr --paired --mapping-quality=3 --no-sort-output --umi-separator=':' --output-stats={$prefix}_umistats"];
 			//remove DUP flags
-			// TODO replace with samtools view --remove-flags, new samtools version required
 			$pipeline[] = [get_path("samtools"), "view --remove-flags DUP -u -b"];
 			//sort
 			$tmp_for_sorting = $parser->tempFile();

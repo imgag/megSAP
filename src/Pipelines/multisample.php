@@ -801,8 +801,8 @@ if (in_array("sv", $steps))
 		foreach($evidence_bam_files as $old_bam_filename)
 		{
 			$new_bam_filename = preg_replace(array("/evidence_[0-9]+\./", "/\.bam/"), array("", "_manta_evidence.bam" ), $old_bam_filename);
-			rename($old_bam_filename, $new_bam_filename);
-			rename($old_bam_filename.".bai", $new_bam_filename.".bai");
+			$parser->moveFile($old_bam_filename, $new_bam_filename);
+			$parser->moveFile($old_bam_filename.".bai", $new_bam_filename.".bai");
 		}
 		
 		//create BEDPE files

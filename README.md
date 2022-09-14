@@ -38,8 +38,13 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 
 ## ChangeLog
-* 13.01.2021 Removed dbscSNV and MMsplice annotations since they are not used.
-* 05.01.2021 Added gnomAD AF annotation of mitochondrial variants (#107).
-* 04.01.2021 Fixed missing CNV calls for chromosome ends (mainly chr17, chr18,  chr20 and chrX).
-* 22.12.2021 Updated all databases except RNA-only databases
-* 22.11.2021 GRCh38 is now the default. The GRCh37 version is availailable through the respective branch now.
+
+Changes of master since last release:
+
+* germline DNA pipeline: Improved sensitivity of non-diploid variant calling (mitochondrial, mosaic).
+* germline DNA pipeline: Added calling of mitochondrial variants for shallow WGS analysis.
+* germline DNA pipeline: Added small variant and structural variant calling on Dragen when '-use_dragen' is enabled (see [details](https://github.com/imgag/megSAP/doc/interal/vc_with_dragen.md)).
+* updated tools: VEP (version 107), ngs-bits.
+* minor fixes and updates.
+
+For older changes see (releases)[https://github.com/imgag/megSAP/releases].

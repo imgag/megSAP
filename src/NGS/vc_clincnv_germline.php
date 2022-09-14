@@ -68,7 +68,7 @@ function cnv_is_in_list($cnv, $list)
 			}
 		}
 	}
-	//if at least 50% of the regions map, don t report it as mosaic CNV
+	//if at least 50% of the regions map, don't report it as mosaic CNV
 	if($substr_length <= 0.5*$ori_length) return true;
 	return false;	
 }
@@ -349,7 +349,7 @@ function load_coverage_profile($filename, &$rows_to_use, &$output)
 //function to write an empty cnv file
 function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messages, $tumor_only)
 {
-	//ClinVAR did not generate CNV file
+	//ClinCNV did not generate CNV file
 	//generate file with basic header lines
 	$cnv_output = fopen2($out, "w");
 	if($tumor_only)
@@ -531,56 +531,63 @@ function run_clincnv($out, $mosaic=FALSE)
 		$clinCNV_result_folder="tumorOnly";
 	}
 
-	if(file_exists("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv"))
+	if(!file_exists("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv"))
 	{
-		//sort and extract sample data from output folder
-		$parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv -out $out",true);
-		$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
-		$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
-
-		//add analysis type high-quality CNV count to header
-		$cnv_calls = file($out);
-		$hq_cnvs = 0;
-		$analysistype = 0;
-		$i = 0;
-		foreach($cnv_calls as $line)
-		{
-			if(starts_with($line, "##ANALYSISTYPE"))
-			{
-				$analysistype = $i;
-			}
-			$line = trim($line);
-			if ($line=="" || $line[0]=="#") continue;
-			
-			list($c, $s, $e, $tmp_cn, $ll) = explode("\t", $line);
-			if ($ll>=20)
-			{
-				++$hq_cnvs;
-			}	
-			$i++;
-		}
-		$add_header_lines = [];
-		$add_header_lines[] = "##GENOME_BUILD=GRCh38\n";
-		$add_header_lines[] = "##high-quality cnvs: {$hq_cnvs}\n";
-		$add_header_lines[] = "##mean correlation to reference samples: {$mean_correlation}\n";
-		array_splice($cnv_calls, 3, 0, $add_header_lines);
-		
-		//replace type header for somatic
-		if($tumor_only)
-		{
-			array_splice($cnv_calls, $analysistype, 1, array("##ANALYSISTYPE=CLINCNV_TUMOR_ONLY\n"));
-		}
-
-		file_put_contents($out, $cnv_calls);
-		return true;
-	}
-	else
-	{
-		//ClinVAR did not generate CNV file
+		//ClinCNV did not generate CNV file
 		generate_empty_cnv_file($out, $command, $stdout, $ps_name, $stderr, $tumor_only);
 		return false;
 	}
+	
+	//sort and extract sample data from output folder
+	$parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv -out $out",true);
+	$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
+	$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
+	
+	//post-processing of calls:
+	//- add analysis type, high-quality CNV count and mean correlation to reference samples to header
+	//- remove call with log-likelihood below 0 (they are artefacts: ClinCNV first does the calling and the a correction of log-likelihoods. In very noisy regions that log-likelihood can be below zero after the correction)
+	$cnv_calls = [];
+	$hq_cnvs = 0;
+	$analysistype = 0;
+	$i = 0;
+	$h = fopen2($out, "r");
+	while(!feof($h))
+	{
+		$line = trim(fgets($h));
+		if ($line=="") continue;
+		
+		if ($line[0]=="#") //header line
+		{
+			//replace type header for somatic
+			if($tumor_only && starts_with($line, "##ANALYSISTYPE"))
+			{
+				$line = "##ANALYSISTYPE=CLINCNV_TUMOR_ONLY";
+			}
+		}
+		else //content line
+		{
+			list($c, $s, $e, $cn, $ll) = explode("\t", $line);
+			
+			if ($ll>=20) ++$hq_cnvs;
+			
+			if ($ll<0) continue;
+		}
+		
+		$cnv_calls[] = $line."\n";
+	}
+	fclose($h);
+	
+	$add_header_lines = [];
+	$add_header_lines[] = "##GENOME_BUILD=GRCh38\n";
+	$add_header_lines[] = "##high-quality cnvs: {$hq_cnvs}\n";
+	$add_header_lines[] = "##mean correlation to reference samples: {$mean_correlation}\n";
+	array_splice($cnv_calls, 3, 0, $add_header_lines);
+
+	file_put_contents($out, $cnv_calls);
+	
+	return true;
 }
+
 
 //init
 $repository_basedir = repository_basedir();

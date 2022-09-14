@@ -91,4 +91,13 @@ $parser->copyFile($parser->getLogFile(), $logfile);
 print date("Y-m-d H:i:s")." done\n";
 print implode("", file($parser->getLogFile()));
 
+//flag project as archived if in NGSD
+$db = DB::getInstance("NGSD");
+$id = $db->getValue("SELECT id FROM project WHERE name='{$basename}'", -1);
+if ($id!=-1)
+{
+	$db->executeStmt("UPDATE project SET archived='1' WHERE name='{$basename}'");
+	print date("Y-m-d H:i:s")." flagged project as archived in NGSD!\n";
+}
+
 ?>
