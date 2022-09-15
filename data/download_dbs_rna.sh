@@ -34,3 +34,17 @@ $data_folder/tools/STAR-2.7.10a/bin/Linux_x86_64/STAR \
 --genomeDir genomes/STAR/GRCh38/ \
 --genomeFastaFiles genomes/GRCh38.fa \
 --sjdbGTFfile dbs/Ensembl/Homo_sapiens.GRCh38.107.chr.gtf
+
+# TODO: update when bug is fixed
+#download kraken2 database
+# - make sure the https-patch for kraken2 is applied 
+# - if you use a proxy: make sure the enviroment variable for an rsync proxy is set: export RSYNC_PROXY=[user]:[password]@[url]:[port]
+cd $data_folder
+mkdir -p dbs/kraken2_filter_hb
+tools/kraken2-2.1.2/bin/kraken2-build --download-taxonomy -db dbs/kraken2_filter_hb
+mkdir -p dbs/kraken2_filter_hb/library
+cd dbs/kraken2_filter_hb/library
+tar -xzf $data_folder/misc/kraken2_db.tar.gz 
+cd $data_folder
+tools/kraken2-2.1.2/bin/kraken2-build --build  --threads 5 --db dbs/kraken2_filter_hb
+tools/kraken2-2.1.2/bin/kraken2-inspect -db dbs/kraken2_filter_hb/

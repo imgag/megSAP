@@ -24,3 +24,15 @@ tar -xzf arriba_v2.2.1.tar.gz
 rm arriba_v2.2.1.tar.gz
 cd arriba_v2.2.1 && make && cd ..
 conda create -c conda-forge -c bioconda -p arriba_v2.2.1/conda_env arriba=2.2.1
+
+#download kraken2
+wget https://github.com/DerrickWood/kraken2/archive/refs/tags/v2.1.2.tar.gz
+tar -xzf v2.1.2.tar.gz
+cd kraken2-2.1.2
+# TODO: remove if fixed by author
+# replace ftp prefix with https (required to download taxonmy from NCBI)
+sed -i '46s/.*/  if \(! \(\$full_path =~ s#\^https:\/\/\$\{qm_server\}\$\{qm_server_path\}\/##\)\) \{/' scripts/rsync_from_ncbi.pl
+./install_kraken2.sh bin
+cd ..
+rm v2.1.2.tar.gz
+
