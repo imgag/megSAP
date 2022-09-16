@@ -2,8 +2,6 @@
 
 Small variant calling and structural variant calling with Dragen is enabled since 14.09.22.
 
-Benchmarks were performed in the folder: /mnt/users/ahsturm1/Sandbox/2022\_09\_07\_dragen_vc/
-
 ## Small variants comparison
 
 |WES (NA12878_58)                                                     |freebayes               |dragen v3.8.4           |dragen v4.0.3           |
@@ -98,3 +96,9 @@ Bechmarks on GIAB sample NA12878 based on the Agilent V7 exome target region:
 
 
 **Conclusion: Structural variant calls differ quite a bit. Dragen calls more variants, but is more conservative when not sure about the type (reports BND instead of DEL/DUP from Manta). It also reports small tandem duplications (< 1000 bases) as insertions!**
+
+##Internal documentation
+
+GutHub issue: https://github.com/imgag/megSAP/issues/132
+Benchmarks were performed in the folder: /mnt/users/ahsturm1/Sandbox/2022\_09\_07\_dragen\_vc/
+

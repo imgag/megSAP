@@ -182,3 +182,10 @@ mkdir REViewer-v0.2.7
 cd REViewer-v0.2.7
 wget -O - https://github.com/Illumina/REViewer/releases/download/v0.2.7/REViewer-v0.2.7-linux_x86_64.gz | gunzip > REViewer-v0.2.7
 chmod 755 REViewer-v0.2.7
+
+#download bedtools
+cd $folder
+mkdir bedtools-2.30.0
+cd bedtools-2.30.0
+wget https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools.static.binary
+chmod 755 bedtools.static.binary

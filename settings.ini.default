@@ -23,6 +23,7 @@ circos = [path]/data/tools/circos-0.69-9/bin/circos
 expansion_hunter = [path]/data/tools/ExpansionHunter-v5.0.0-linux_x86_64/bin/ExpansionHunter
 Splicing = [path]/data/tools/SplicingTools
 REViewer = [path]/data/tools/REViewer-v0.2.7/REViewer-v0.2.7
+bedtools = [path]/data/tools/bedtools-2.30.0/bedtools.static.binary
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.9.centos6_x86_64/bin/

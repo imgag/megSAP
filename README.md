@@ -41,9 +41,10 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 Changes of master since last release:
 
+* fixed false duplications in GRCh38 (see [details](https://github.com/imgag/megSAP/blob/master/doc/internal/grch38_false_duplications.md)).
 * germline DNA pipeline: Improved sensitivity of non-diploid variant calling (mitochondrial, mosaic).
 * germline DNA pipeline: Added calling of mitochondrial variants for shallow WGS analysis.
-* germline DNA pipeline: Added small variant and structural variant calling on Dragen when '-use_dragen' is enabled (see [details](https://github.com/imgag/megSAP/doc/interal/vc_with_dragen.md)).
+* germline DNA pipeline: Added small variant and structural variant calling on Dragen when '-use_dragen' is enabled (see [details](https://github.com/imgag/megSAP/blob/master/doc/internal/vc_with_dragen.md)).
 * updated tools: VEP (version 107), ngs-bits.
 * minor fixes and updates.
 
