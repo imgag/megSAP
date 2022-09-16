@@ -14,7 +14,13 @@ Mainly the regions also affected in CNV calling (see below) will contain changes
 
 ## Changes in CNV calling
 
-CNV calling in the following genomic regions is affected by the change:
+Only when reference samples for CNV calling already exists, which were analyzed with the uncorrected reference genome, there is a problem with CNVs.  
+In that case you will see these artefacts:
+
+* Masked regions will be shown with copy-number 0 after the change.
+* New uniquely mappable regions are shown with copy-number 4.
+
+This affects the following regions:
 
 |chr  |start    |end      |genes                                                       |OMIM genes and phenotypes                                                         |
 |-----|---------|---------|------------------------------------------------------------|----------------------------------------------------------------------------------|
@@ -42,10 +48,6 @@ CNV calling in the following genomic regions is affected by the change:
 |chr22|18885468 |18939468 |DGCR6, FAM230F, PRODH                                       |PRODH: Schizophrenia, Hyperprolinemia                                             |
 |chrX |37084895 |37098895 |                                                            |                                                                                  |
 
-**Note: When reference samples for CNV calling already exists, wich were analyzed with the uncorrected reference genome, you will see artefacts.**
-
-* Masked regions will be shown with copy-number 0 after the change.
-* New uniquely mappable regions are shown with copy-nuber 4.
 
 ## Internal documentation
 
