@@ -1,22 +1,18 @@
-# Variant calling with Dragen
+# Correction of false duplications in GRCh38
 
 About 1.3 MB of the GRCh38 reference was identified as falsely duplicated, including some medically relevant genes.  
 For details, see this paper: https://www.nature.com/articles/s41587-021-01158-1
 
-To fix, this the regions are masked in the reference genome by replacing the sequence with 'N'.
+To fix this the regions are masked in the reference genome by replacing the sequence with 'N'.
 
 ## Changes in small variant calling
 
 Several regions are uniquely mappable after the masking (MAPQ>0), but were not before (MAPQ=0).  
 In these region, there will be new variant calls.
 
-Mainly the regions in the table below are affected.
+Mainly the regions also affected in CNV calling (see below) will contain changes in small variants.
 
 ## Changes in CNV calling
-
-Masked regions will be shown with copy-number 0 after the change.
-New uniquely mappable regions are shown with copy-nuber 4.
-
 
 CNV calling in the following genomic regions is affected by the change:
 
@@ -46,7 +42,12 @@ CNV calling in the following genomic regions is affected by the change:
 |chr22|18885468 |18939468 |DGCR6, FAM230F, PRODH                                       |PRODH: Schizophrenia, Hyperprolinemia                                             |
 |chrX |37084895 |37098895 |                                                            |                                                                                  |
 
-##Internal documentation
+**Note: When reference samples for CNV calling already exists, wich were analyzed with the uncorrected reference genome, you will see artefacts.**
+
+* Masked regions will be shown with copy-number 0 after the change.
+* New uniquely mappable regions are shown with copy-nuber 4.
+
+## Internal documentation
 
 GitHub issue: https://github.com/imgag/megSAP/issues/147  
 Benchmarks were performed in the folder: /mnt/users/ahsturm1/Sandbox/2022\_09\_12\_grch38\_false\_duplications/
