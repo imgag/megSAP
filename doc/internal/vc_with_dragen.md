@@ -99,6 +99,6 @@ Bechmarks on GIAB sample NA12878 based on the Agilent V7 exome target region:
 
 ## Internal documentation
 
-GutHub issue: https://github.com/imgag/megSAP/issues/132
+GutHub issue: https://github.com/imgag/megSAP/issues/132  
 Benchmarks were performed in the folder: /mnt/users/ahsturm1/Sandbox/2022\_09\_07\_dragen\_vc/
 
