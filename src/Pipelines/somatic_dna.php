@@ -421,13 +421,14 @@ if (in_array("vi", $steps))
 		$t_bam_map_qc = dirname($t_bam) . "/" . basename($t_bam, ".bam") . "_stats_map.qcML";
 		$dedup_used = file_exists($t_bam_dedup);
 		$vc_viral_args = [
-			"-in", $dedup_used ? $t_bam_dedup : $t_bam,
-			"-viral_bam", $viral_bam,
-			"-viral_bam_raw", $viral_bam_raw,
-			"-viral_cov", $viral,
-			"-viral_chrs", "chrNC_007605",
-			"-build_viral", "somatic_viral",
-			"-in_qcml", $t_bam_map_qc
+			"-in ".($dedup_used ? $t_bam_dedup : $t_bam),
+			"-viral_bam ".$viral_bam,
+			"-viral_bam_raw ".$viral_bam_raw,
+			"-viral_cov ".$viral,
+			"-viral_chrs chrNC_007605",
+			"-build_viral somatic_viral",
+			"-in_qcml ".$t_bam_map_qc,
+			"-threads ".$threads
 		];
 		if ($dedup_used)
 		{
@@ -482,7 +483,7 @@ if(in_array("cn",$steps))
 	
 	if(!file_exists($ref_file_t) )
 	{
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov",true);
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov -threads {$threads}",true);
 		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov -out $t_cov",true);
 	}
 	else 
@@ -499,7 +500,7 @@ if(in_array("cn",$steps))
 	
 	if( !file_exists($ref_file_t_off_target ) )
 	{
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target",true);
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target -threads {$threads}",true);
 		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov_off_target -out $t_cov_off_target",true);
 	}
 	else 
@@ -625,7 +626,7 @@ if(in_array("cn",$steps))
 		
 		if(!file_exists($ref_file_n)) 
 		{
-			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov", true);
+			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov -threads {$threads}", true);
 			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov -out $n_cov",true);
 		}
 		else 
@@ -642,7 +643,7 @@ if(in_array("cn",$steps))
 		
 		if(!file_exists($ref_file_n_off_target) )
 		{
-			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target",true);
+			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target -threads {$threads}",true);
 			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov_off_target -out $n_cov_off_target",true);
 		}
 		else 

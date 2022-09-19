@@ -698,7 +698,7 @@ if (in_array("cn", $steps))
 
 			$parser->log("Calculating coverage file for CN calling...");
 			$cov_tmp = $tmp_folder."/{$name}.cov";
-			$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$local_bamfile} -in {$bed} -out {$cov_tmp}", true);
+			$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$local_bamfile} -in {$bed} -out {$cov_tmp} -threads {$threads}", true);
 			
 			//copy coverage file to reference folder if valid
 			if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))

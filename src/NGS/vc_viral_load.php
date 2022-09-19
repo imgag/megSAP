@@ -90,7 +90,7 @@ $parser->exec("gzip", "-cd {$viral_vcfgz} > {$viral_vcf}", true);
 
 //create output report file
 $viral_cov_tmp = $parser->tempFile("_viral_cov.bed");
-$parser->exec(get_path("ngs-bits")."/BedCoverage", "-out {$viral_cov_tmp} -min_mapq 30 -decimals 4 -in {$viral_enrichment} -bam {$viral_bam}", true);
+$parser->exec(get_path("ngs-bits")."/BedCoverage", "-out {$viral_cov_tmp} -min_mapq 30 -decimals 4 -in {$viral_enrichment} -bam {$viral_bam} -threads {$threads}", true);
 
 $viral_reads_tmp = $parser->tempFile("_viral_reads.bed");
 $parser->exec(get_path("ngs-bits")."/BedReadCount", "-out {$viral_reads_tmp} -min_mapq 30 -in {$viral_enrichment} -bam {$viral_bam}", true);
