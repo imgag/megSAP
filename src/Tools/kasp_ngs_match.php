@@ -1,6 +1,6 @@
 <?php
 /** 
-	@page kasp_check 
+	@page kasp_ngs_match 
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -9,7 +9,15 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //returns the genotype(s) for a sample at a certain position, or 'n/a' if the minimum depth was not reached.
 function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
-{	
+{
+	//check if cached
+	static $cache = [];
+	$key = $chr . ":" . $pos . " " . $ref;
+	if(isset($cache[$bam][$key]))
+	{
+		return $cache[$bam][$key];
+	}
+	
 	//get pileup
 	list($output) = exec2(get_path("samtools")." mpileup -aa -r $chr:$pos-$pos $bam");
 	list($chr2, $pos2, $ref2, , $bases) = explode("\t", $output[0]);;
@@ -31,15 +39,19 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 	$keys = array_keys($counts);
 	$c1 = $counts[$keys[0]];
 	$c2 = $counts[$keys[1]];
-	if ($c1+$c2<$min_depth) return "n/a";
+	if ($c1+$c2<$min_depth)
+	{
+		$cache[$bam][$key] = "n/a";
+		return "n/a";
+	}
 	
 	//determine genotype
 	$b1 = $keys[0];
 	$b2 = ($c2>3 && $c2/($c1+$c2)>0.1) ? $keys[1] : $keys[0];
 	
+	$cache[$bam][$key] = "$b1/$b2";
 	return "$b1/$b2";
 }
-
 
 //parse command line arguments
 $parser = new ToolBase("kasp_ngs_match", "Tries to find matches for a KASP result in NGS datasets.");
