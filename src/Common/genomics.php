@@ -1865,4 +1865,9 @@ function ps_running_in_sge()
 	return $output;
 }
 
+function bed_size($filename)
+{
+	list($stdout) = exec2("BedInfo -in $filename | grep -i bases");
+	return trim(explode(":", $stdout[0])[1]);
+}
 ?>

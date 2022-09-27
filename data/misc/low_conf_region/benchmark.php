@@ -1,6 +1,6 @@
 <?php
 
-include("/mnt/storage2/GRCh38/users/bioinf/megSAP/src/Common/all.php");
+include("../../../src/Common/all.php");
 
 //parse CLI arguments
 $vcfs = [];
@@ -28,23 +28,21 @@ foreach($vcfs as $vcf)
 }
 print "\n";
 
-list($stdout) = exec2("BedInfo -in /mnt/share/data/enrichment/WGS_hg38.bed");
-$wgs_size = trim(explode(":", $stdout[1])[1]);
-
-
-list($stdout) = exec2("BedInfo -in gene_exons.bed");
-$wes_size = trim(explode(":", $stdout[1])[1]);
+$wgs_size = bed_size("/mnt/storage2/GRCh38/share/data/enrichment/WGS_hg38.bed");
+$wes_size = bed_size("gene_exons.bed");
 
 //content
 foreach($regs as $reg)
 {
-	list($stdout) = exec2("BedInfo -in $reg");
-	$reg_size = trim(explode(":", $stdout[1])[1]);
-	print $reg."\t".number_format(($wgs_size - $reg_size)/1024/1024, 3);
+	print $reg;
+	
+	list($stdout) = exec2("BedIntersect -in $reg -in2 /mnt/storage2/GRCh38/share/data/enrichment/WGS_hg38.bed | BedInfo");
+	$weg_removed = trim(explode(":", $stdout[1])[1]);
+	print "\t".number_format($weg_removed/1000000, 3, '.', '');
 	
 	list($stdout) = exec2("BedIntersect -in $reg -in2 gene_exons.bed | BedInfo");
-	$wes_size2 = trim(explode(":", $stdout[1])[1]);
-	print "\t".number_format(($wes_size - $wes_size2)/1024/1024, 3);
+	$wes_removed = trim(explode(":", $stdout[1])[1]);
+	print "\t".number_format($wes_removed/1000000, 3);
 
 	foreach($vcfs as $vcf)
 	{
