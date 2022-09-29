@@ -48,4 +48,4 @@ Changes of master since last release:
 * updated tools: VEP (version 107), ngs-bits.
 * minor fixes and updates.
 
-For older changes see (releases)[https://github.com/imgag/megSAP/releases].
+For older changes see [releases](https://github.com/imgag/megSAP/releases).
