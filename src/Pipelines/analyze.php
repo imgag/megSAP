@@ -292,7 +292,7 @@ if (in_array("ma", $steps))
 	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name -local_bam $local_bamfile ".implode(" ", $args)." -threads $threads");
 
 	//low-coverage report
-	if ($has_roi && !$is_wgs && !$is_wgs_shallow)
+	if ($has_roi && !$is_wgs_shallow)
 	{	
 		$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $local_bamfile -out $lowcov_file -cutoff 20 -threads {$threads}", true);
 		if (db_is_enabled("NGSD"))
