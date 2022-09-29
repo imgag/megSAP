@@ -167,7 +167,7 @@ $bases_used = $bases_hc;
 if ($min_dp>0)
 {
 	$roi_low_dp = $parser->tempFile(".bed");
-	exec2("{$ngsbits}BedLowCoverage -bam {$bam} -in {$roi_hc} -cutoff {$min_dp} -out {$roi_low_dp}");
+	exec2("{$ngsbits}BedLowCoverage -bam {$bam} -in {$roi_hc} -cutoff {$min_dp} -out {$roi_low_dp} -threads 4");
 	$roi_high_dp = $parser->tempFile(".bed");
 	exec2("{$ngsbits}BedSubtract -in {$roi_hc} -in2 {$roi_low_dp} -out {$roi_high_dp}");
 	

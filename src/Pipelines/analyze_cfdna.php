@@ -354,7 +354,7 @@ if (in_array("ma", $steps))
 	$parser->execTool("Pipelines/mapping.php", implode(" ", $args));
 
 	//low-coverage report, based on patient specific positions
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ${target} -bam ${bamfile} -out ${lowcov_file} -cutoff ${lowcov_cutoff}", true);
+	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ${target} -bam ${bamfile} -out ${lowcov_file} -cutoff ${lowcov_cutoff} -threads {$threads}", true);
 	if (db_is_enabled("NGSD"))
 	{
 		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in ${lowcov_file} -clear -extend 25 -out ${lowcov_file}", true);

@@ -261,13 +261,13 @@ if( db_is_enabled("NGSD") && count($bams) > 1 )
 $low_cov = "{$full_prefix}_stat_lowcov.bed";					// low coverage BED file
 if ($sys['type'] !== "WGS" && !empty($roi) && !$skip_low_cov)
 {
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $t_bam -out $low_cov -cutoff $min_depth_t", true);
+	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $t_bam -out $low_cov -cutoff $min_depth_t -threads {$threads}", true);
 	//combined tumor and normal low coverage files
 	//normal coverage is calculated only for tumor target region
 	if(!$single_sample)
 	{
 		$low_cov_n = $parser->tempFile("_nlowcov.bed");
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $n_bam -out $low_cov_n -cutoff $min_depth_n", true);
+		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $n_bam -out $low_cov_n -cutoff $min_depth_n -threads {$threads}", true);
 		$parser->execPipeline([
 			[get_path("ngs-bits")."BedAdd", "-in $low_cov $low_cov_n"],
 			[get_path("ngs-bits")."BedMerge", "-out $low_cov"]

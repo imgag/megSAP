@@ -294,7 +294,7 @@ if (in_array("ma", $steps))
 	//low-coverage report
 	if ($has_roi && !$is_wgs && !$is_wgs_shallow)
 	{	
-		$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $local_bamfile -out $lowcov_file -cutoff 20", true);
+		$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $local_bamfile -out $lowcov_file -cutoff 20 -threads {$threads}", true);
 		if (db_is_enabled("NGSD"))
 		{
 			$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
