@@ -16,7 +16,8 @@ $parser->addOutfile("stats", "Append statistics to this file.", false);
 //optional
 $parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf' file base name is used.", true);
 $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the given depth are evaluated.", true, 0);
-$parser->addInt("min_vq", "If set, only input variants with QUAL greater or equal to the given value are evaluated.", true, 0);
+$parser->addInt("min_qual", "If set, only input variants with QUAL greater or equal to the given value are evaluated.", true, 0);
+$parser->addFloat("min_qd", "If set, only input variants with QUAL/DP greater or equal to the given value are evaluated.", true, 0);
 $parser->addInt("max_indel", "Maximum indel size (larger indels are ignored).", true, 0);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("ref_sample", "Reference sample to use for validation.", true, "NA12878");
@@ -36,7 +37,7 @@ function get_bases($filename)
 }
 
 //returns the variants of a VCF file in the given ROI
-function get_variants($vcf_gz, $roi, $normalize, $max_indel, $min_vq = 0)
+function get_variants($vcf_gz, $roi, $normalize, $max_indel, $min_qual = 0, $min_qd=0)
 {
 	global $parser;
 	global $ngsbits;
@@ -67,9 +68,6 @@ function get_variants($vcf_gz, $roi, $normalize, $max_indel, $min_vq = 0)
 		//get variant infos
 		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = explode("\t", $line);
 		if (!starts_with($chr, "chr")) $chr = "chr".$chr;
-		
-		//filter by variant quality
-		if ($min_vq>0 && $qual<$min_vq) continue;
 		
 		//compile output
 		$var = array();
@@ -108,6 +106,19 @@ function get_variants($vcf_gz, $roi, $normalize, $max_indel, $min_vq = 0)
 		else
 		{
 			$var["TYPE"] = "SNVS";
+		}
+		
+		//filter by QUAL
+		if ($min_qual>0 && $qual<$min_qual) continue;
+		
+		//filter by QUAL/DP
+		if ($min_qd>0)
+		{
+			if (!isset($var['DP']) || trim($var['DP'])=="" || !is_numeric($var['DP']))
+			{
+				trigger_error("Parameter 'min_qd' used, but DP is not valid for $chr:$pos $ref>$alt", E_USER_ERROR);
+			}
+			if ($qual/$var['DP']<$min_qd) continue;
 		}
 		
 		$tag = "{$chr}:{$pos} {$ref}>{$alt}";
@@ -182,7 +193,7 @@ print "##\n";
 
 //get reference variants in ROI
 print "##Variant list      : $vcf\n";
-$found = get_variants($vcf, $roi_used, false, $max_indel, $min_vq);
+$found = get_variants($vcf, $roi_used, false, $max_indel, $min_qual, $min_qd);
 print "##Variants observed : ".count($found)."\n";
 $expected = get_variants($giab_vcfgz, $roi_used, true, $max_indel);
 print "##Variants expected : ".count($expected)."\n";
@@ -319,6 +330,8 @@ if ($name=="") $name = basename($vcf, ".vcf.gz");
 $options = array();
 if ($min_dp>0) $options[] = "min_dp={$min_dp}";
 if ($max_indel>0) $options[] = "max_indel={$max_indel}";
+if ($min_qual>0) $options[] = "min_qual={$min_qual}";
+if ($min_qd>0) $options[] = "min_qd={$min_qd}";
 $options = implode(" ", $options);
 $date = strtr(date("Y-m-d H:i:s", filemtime($vcf)), "T", " ");
 $output = array();

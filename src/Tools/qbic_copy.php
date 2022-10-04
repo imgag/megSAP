@@ -625,7 +625,6 @@ foreach($res as $row)
 		//Upload somatic data in special format for MTB (Molecular Tumor Board)
 		if ($somatic_data_uploaded)
 		{
-			
 			$folder = "/mnt/share/to_qbic/somatic_data/{$ps_name}-{$ps_name2}/";
 			if (file_exists($folder))
 			{
