@@ -77,8 +77,7 @@ rm -rf R-4.1.0.tar.gz R-4.1.0-src
 
 #download ClinCNV
 cd $folder
-git clone https://github.com/imgag/ClinCNV.git ClinCNV-1.17.2
-mv ClinCNV-1.17.2/cytobandsHG38.txt ClinCNV-1.17.2/cytobands.txt
+git clone https://github.com/imgag/ClinCNV.git ClinCNV-1.18.0
 # install required R packages for ClinCNV
 $folder/R-4.1.0/bin/R -f $root/install_deps_clincnv.R
 

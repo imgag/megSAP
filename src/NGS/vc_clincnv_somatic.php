@@ -274,7 +274,9 @@ $args = [
 "--lengthS", $lengthS,
 "--scoreS", $scoreS,
 "--filterStep", $filterStep,
-"--numberOfThreads {$threads}"
+"--numberOfThreads {$threads}",
+"--hg38",
+"--noPlot"
 ];
 
 if($use_off_target)

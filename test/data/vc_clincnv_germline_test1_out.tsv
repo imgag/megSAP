@@ -1,12 +1,13 @@
 ##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE
-##ClinCNV version: v1.17.0
-##Analysis finished on: 2021-11-16 08:32:04
+##ClinCNV version: v1.17.2
+##Analysis finished on: 2022-10-05 15:14:18
+##GENOME_BUILD=GRCh38
 ##high-quality cnvs: 10
 ##mean correlation to reference samples: 0.987
 ##gender of sample: M
 ##number of iterations: 1
 ##quality used at final iteration: 20
-##was it outlier after clustering: FALSE
+##was it outlier after clustering:
 ##fraction of outliers: 0.058
 #chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	qvalue
 chr1	158537368	158537419	3	7	1	   0.051	0.350		0.22059
@@ -44,8 +45,8 @@ chr15	54239916	54239967	1	17	1	   0.051	0.500	UNC13C	0.50903
 chr16	89739452	89739578	3	5	1	   0.126	0.050	FANCA,ZNF276	0.01088
 chr18	51047021	53748491	3	710	13	2701.470	0.050	SMAD4	0.00000
 chr22	42126548	42130816	1	391	10	   4.268	0.050	CYP2D6,NDUFA6-DT	0.00000
-chrX	490381	1212659	1	683	7	 722.278	0.750	CRLF2	0.34035
-chrX	141431327	141431378	2	51	1	   0.051	0.050		0.00002
-chrY	23130254	23143107	2	337	4	  12.853	0.050	DAZ1	0.00004
-chrY	23152771	23155270	3	181	2	   2.499	0.050	DAZ1	0.00886
-chrY	23157544	23198825	2	950	21	  41.281	0.050	DAZ1	0.00000
+chrX	490381	1212659	1	683	7	 722.278	1.000	CRLF2	0.34035
+chrX	141431327	141431378	2	51	1	   0.051	0.067		0.00002
+chrY	23130254	23143107	2	337	4	  12.853	0.133	DAZ1	0.00004
+chrY	23152771	23155270	3	181	2	   2.499	0.067	DAZ1	0.00886
+chrY	23157544	23198825	2	950	21	  41.281	0.067	DAZ1	0.00000

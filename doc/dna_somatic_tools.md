@@ -16,7 +16,7 @@ CNV calling and annotation is performed using these tools:
 
 | step                                               | tool                 | version              | comments                                            |
 |----------------------------------------------------|----------------------|----------------------|-----------------------------------------------------|
-| CNV calling                                        | ClinCNV              | 1.17.2               |                                                     |
+| CNV calling                                        | ClinCNV              | 1.18.0               |                                                     |
 | annotation - general                               | BedAnnotateFromBed   | ngs-bits latest      | Several data sources are annotated using this tool. (tumor-only) |
 | annotation - gene information                      | CnvGeneAnnotation    | ngs-bits latest      |                                                     |
 | annotation - overlapping pathogenic CNVs from NGSD | NGSDAnnotateCNV      | ngs-bits latest      |                                                     |
