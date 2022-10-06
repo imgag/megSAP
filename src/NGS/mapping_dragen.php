@@ -82,6 +82,7 @@ $dragen_parameter[] = "-1 ".$local_fastq1;
 $dragen_parameter[] = "-2 ".$local_fastq2;
 $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix output";
+$dragen_parameter[] = "--enable-map-align-output=true";
 $dragen_parameter[] = "--enable-bam-indexing true";
 $dragen_parameter[] = "--RGID $sample";
 $dragen_parameter[] = "--RGSM $sample";
@@ -101,9 +102,11 @@ $dragen_parameter[] = "--enable-variant-caller true";
 $dragen_parameter[] = "--vc-min-read-qual 1";
 $dragen_parameter[] = "--vc-min-base-qual 15";
 //structural variant calling
-$dragen_parameter[] = "--enable-sv true";
-$dragen_parameter[] = "--sv-use-overlap-pair-evidence true";
-
+if (get_path("dragen_sv_calling"))
+{
+	$dragen_parameter[] = "--enable-sv true";
+	$dragen_parameter[] = "--sv-use-overlap-pair-evidence true";
+}
 $parser->log("DRAGEN parameters:", $dragen_parameter);
 
 //run
@@ -118,20 +121,22 @@ if ($debug)
 // ********************************* copy data back *********************************//
 
 //copy BAM/BAI to sample folder
-$parser->log("Copy BAM/BAI to output folder");
+$parser->log("Copying BAM/BAI to output folder");
 $parser->copyFile($working_dir."output.bam", $out);
 $parser->copyFile($working_dir."output.bam.bai", $out.".bai");
 
 // copy small variant calls to sample folder
-$parser->log("Copy BAM/BAI to output folder");
+$parser->log("Copying small variants to output folder");
 $parser->copyFile($working_dir."output.vcf.gz", $out_vcf);
 $parser->copyFile($working_dir."output.vcf.gz.tbi", $out_vcf.".tbi");
 
 // copy SV calls to sample folder
-$parser->log("Copy BAM/BAI to output folder");
-$parser->copyFile($working_dir."output.sv.vcf.gz", $out_sv);
-$parser->copyFile($working_dir."output.sv.vcf.gz.tbi", $out_sv.".tbi");
-
+if (get_path("dragen_sv_calling"))
+{
+	$parser->log("Copying SVs output folder");
+	$parser->copyFile($working_dir."output.sv.vcf.gz", $out_sv);
+	$parser->copyFile($working_dir."output.sv.vcf.gz.tbi", $out_sv.".tbi");
+}
 // ********************************* cleanup *********************************//
 
 //delete working directory

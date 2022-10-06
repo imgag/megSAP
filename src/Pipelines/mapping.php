@@ -406,8 +406,11 @@ if (!$start_with_abra)
 		}
 		$parser->moveFile($dragen_output_vcf, $dragen_call_folder.basename($dragen_output_vcf));
 		$parser->moveFile($dragen_output_vcf.".tbi", $dragen_call_folder.basename($dragen_output_vcf).".tbi");
-		$parser->moveFile($dragen_output_sv, $dragen_call_folder.basename($dragen_output_sv));
-		$parser->moveFile($dragen_output_sv.".tbi", $dragen_call_folder.basename($dragen_output_sv).".tbi");
+		if (get_path("dragen_sv_calling"))
+		{
+			$parser->moveFile($dragen_output_sv, $dragen_call_folder.basename($dragen_output_sv));
+			$parser->moveFile($dragen_output_sv.".tbi", $dragen_call_folder.basename($dragen_output_sv).".tbi");
+		}
 	}
 	else //local mapping with bwa
 	{

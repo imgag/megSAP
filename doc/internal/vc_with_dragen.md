@@ -1,6 +1,6 @@
 # Variant calling with Dragen
 
-Small variant calling and structural variant calling with Dragen is enabled since 14.09.22.
+Small variant calling and structural variant calling with Dragen is possible now.
 
 ## Small variants comparison
 
@@ -59,6 +59,8 @@ Bechmarks on GIAB sample NA12878 based on the Agilent V7 exome target region:
 
 
 ## Structural variants comparison
+
+Structural variant calling with Dragen is performed only if `dragen_sv_calling` is `true` in the settings.
 
 |WES (NA12878_58)                                                      |freebayes               |dragen v3.8.4           |dragen v4.0.3 |
 |----------------------------------------------------------------------|------------------------|------------------------|--------------|

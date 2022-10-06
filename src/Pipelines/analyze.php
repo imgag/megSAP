@@ -302,9 +302,8 @@ if (in_array("ma", $steps))
 	}
 
 	//delete fastq files after mapping
-	$delete_fastq_files = get_path("delete_fastq_files", true);
-	// remove files only if sample doesn't contain UMIs and the corresponding setting is set in the settings.ini
-	if (($sys['umi_type'] == "n/a") && ($delete_fastq_files==true || $delete_fastq_files=="true")) 
+	//remove files only if sample doesn't contain UMIs and the corresponding setting is set in the settings.ini
+	if ($sys['umi_type']=="n/a" && get_path("delete_fastq_files")) 
 	{
 		//check if project overwrites the settings
 		$preserve_fastqs = false;
@@ -809,7 +808,7 @@ if (in_array("sv", $steps))
 	// skip SV calling if only annotation should be done	
 	if (!$annotation_only)
 	{
-		if ($use_dragen)
+		if ($use_dragen && get_path("dragen_sv_calling"))
 		{
 			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz";
 			

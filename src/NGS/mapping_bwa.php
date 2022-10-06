@@ -45,8 +45,7 @@ $pipeline = array();
 $bwa_params = "mem ".genome_fasta($build)." -K 100000000 -Y -R '@RG\\t".implode("\\t", $group_props)."' -t $threads -v 2";
 
 //select the correct binary
-$use_bwa1 = get_path("use_bwa1", true);
-if ($use_bwa1==true || $use_bwa1=="true") 
+if (get_path("use_bwa1")) 
 {
 	$bwa_binary = get_path("bwa");
 }

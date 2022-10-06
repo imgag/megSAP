@@ -45,7 +45,9 @@ Changes of master since last release:
 * germline DNA pipeline: Improved sensitivity of non-diploid variant calling (mitochondrial, mosaic).
 * germline DNA pipeline: Added calling of mitochondrial variants for shallow WGS analysis.
 * germline DNA pipeline: Added small variant and structural variant calling on Dragen when '-use_dragen' is enabled (see [details](https://github.com/imgag/megSAP/blob/master/doc/internal/vc_with_dragen.md)).
-* updated tools: VEP (version 107), ngs-bits.
+* updated VEP to version 107.
+* updated ngs-bits to version 2022_10 (improved/added multithreading in several tools).
+* updates ClinCNV to version 1.18.0 (improved handling of PAR region).
 * minor fixes and updates.
 
 For older changes see [releases](https://github.com/imgag/megSAP/releases).

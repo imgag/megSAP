@@ -22,8 +22,7 @@ if ($mask)
 	$parser->moveFile($tmp, $in);
 }
 
-$use_bwa1 = get_path("use_bwa1", true);
-if ($use_bwa1==true || $use_bwa1=="true")
+if (get_path("use_bwa1"))
 {
 	exec2(get_path("bwa")." index -a bwtsw {$in}");
 }

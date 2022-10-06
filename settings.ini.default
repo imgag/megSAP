@@ -55,6 +55,21 @@ cnv_bin_size_wgs = 1000
 cnv_bin_size_shallow_wgs = 5000
 use_bwa1 = false
 
+[dragen]
+; DRAGEN user
+dragen_user = ""
+; transfer folder
+dragen_in = 
+dragen_out = 
+; working/genome directory on the DRAGEN server
+dragen_data = 
+dragen_genomes = 
+;sge settings
+dragen_log = 
+queues_dragen = 
+;enable SV calling on dragen
+dragen_sv_calling = false
+
 [mysql-databases]
 db_host['NGSD'] = "localhost"
 db_name['NGSD'] = "ngsd"
