@@ -22,14 +22,14 @@ function skip_in_wgs_mode($chr, $coding_and_splicing_details, $gnomad, $clinvar,
 	//don't skip mito variants
 	if ($chr=='chrMT') return false;
 	
-	//don't skip exonic variants
+	//don't skip exonic/splicing variants
 	if (contains($coding_and_splicing_details, ":LOW:") || contains($coding_and_splicing_details, ":MODERATE:") || contains($coding_and_splicing_details, ":HIGH:")) return false;
 	
-	//don't skip variants annotated to be (likely) pathognic
+	//don't skip variants annotated to be (likely) pathogenic
 	if (contains($hgmd, "CLASS=DM") || (contains($clinvar, "pathogenic") && !contains($clinvar, "conflicting"))) return false;	
 	
-	//don't skip variants of class 4/5 in NGSD
-	if ($ngsd_clas=='4' || $ngsd_clas=='5') return false;
+	//don't skip variants of class 4/5/M in NGSD
+	if ($ngsd_clas=='4' || $ngsd_clas=='5'|| $ngsd_clas=='M') return false;
 	
 	//skip common variants >2%AF
 	if ($gnomad!="" && $gnomad>0.02) return true;
