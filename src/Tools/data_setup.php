@@ -49,7 +49,7 @@ if (file_exists("{$local_data}/{$build}.fa.md5"))
 	else
 	{
 		print "MD5 checksums of genome '{$build}.fa.md5' differ. Deleting old data!\n";
-		exec2("rm -rf {$local_data}/{$build}.*");
+		exec2("rm -rf {$local_data}/{$build}.fa.*");
 	}
 }
 

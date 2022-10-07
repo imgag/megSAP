@@ -1,8 +1,5 @@
 # *megSAP* - a Medical Genetics Sequence Analysis Pipeline
 
-| !!! NOTE: This is the GRCh38 version. If you want to use the old GRCh37 version, use the [branch](https://github.com/imgag/megSAP/tree/GRCh37)!!! |
-| --- |
-
 megSAP is a NGS data analysis pipeline for medical genetics, which is developed by the [Institute of Medical Genetics and Applied Genomics](http://www.uni-tuebingen.de/Klinische_Genetik/start.html) and several collaborators from academia and industry. Since December 2016 the project is publicly available on GitHub, however closed-source development started already in 2012.  
 
 The design goals of the project are:
@@ -17,8 +14,11 @@ The design goals of the project are:
 If you are interested to join the effort, please contact [Marc Sturm](https://github.com/marc-sturm).
 
 ## Obtaining megSAP
+
 The installation of megSAP is quite time-consuming because many tools and big databases need to installed.  
 The installation instructions can be found [here](doc/install_unix.md).
+
+*Note: Only GRCh38 is supported. There is a [branch](https://github.com/imgag/megSAP/tree/GRCh37) for GRCh37, but is is not updated or maintained since December 2021 anymore.*
 
 ## Documentation
 
