@@ -867,6 +867,7 @@ if (in_array("an", $steps))
 			$params[] = "-g ${variants_gsvar}";
 			$params[] = "-o ${cfdna_folder}";
 			$params[] = "-r ${ref_genome}";
+			$params[] = "-i"; // ignore INDELS
 			// call variant selection in virtual environment
 			$python_bin = $umiVar2_path."/venv/bin/python";
 			$parser->exec($python_bin, $umiVar2_path."/select_monitoring_variants.py ".implode(" ", $params));
