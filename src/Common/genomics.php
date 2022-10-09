@@ -1021,7 +1021,7 @@ function vcfgeno2human($gt, $upper_case=false)
 	{
 		$geno = "het";
 	}
-	else if ($gt=="1|1")
+	else if ($gt=="1|1" || $gt=="1") //'1' is used by Dragen for hemizygous variants on chrX/chrY in males
 	{
 		$geno = "hom";
 	}
