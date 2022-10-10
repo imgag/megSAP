@@ -497,7 +497,7 @@ while(!feof($handle))
 		$filter = explode(";", $filter);
 	}
 
-	//parse data from VCF
+	//parse variant data from VCF
 	if(chr_check($chr, 22, false) === FALSE) continue; //skip bad chromosomes
 	$start = $pos;
 	$end = $pos;
@@ -507,6 +507,11 @@ while(!feof($handle))
 	{
 		list($start, $end, $ref, $alt) = correct_indel($start, $ref, $alt);
 	}
+	
+	//skip too long variants (unique constraint in NGSD fails otherwise)
+	if (strlen($ref)>500 || strlen($alt)>500) continue;
+	
+	//parse info from VCF
 	$info = explode(";", $info);
 	$tmp = array();
 	foreach($info as $entry)
