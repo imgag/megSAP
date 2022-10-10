@@ -128,7 +128,7 @@ foreach($samples as $ps)
 				exec2("ln -s {$fastq} {$out}/".basename($fastq));
 			}
 		}
-		else if ($ps=="DNA2207023A1_02" || $ps=="DX204154_02") //TODO remove
+		else
 		{
 			print "  Generating FASTQ files from BAM ...\n";
 			exec2("{$ngsbits}/BamToFastq -in {$bam} -out1 {$out}/{$ps}_R1_001.fastq.gz -out2 {$out}/{$ps}_R2_001.fastq.gz");
