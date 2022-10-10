@@ -266,7 +266,7 @@ $hgnc = load_hgnc_db();
 //write column descriptions
 $column_desc = array(
 	array("filter", "Annotations for filtering and ranking variants."),
-	array("quality", "Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP)"),
+	array("quality", "Quality parameters - variant quality (QUAL), depth (DP), quality divided by depth (QD), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP)"),
 	array("gene", "Affected gene list (comma-separated)."),
 	array("variant_type", "Variant type."),
 	array("coding_and_splicing", "Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain)."),
@@ -599,7 +599,22 @@ while(!feof($handle))
 	{
 		$quality[] = "DP=".$sample["DP"];
 	}
-	if (isset($sample["AO"]) && isset($sample["DP"]))
+	
+	//QD
+	if (isset($sample["DP"])) //freebayes
+	{
+		if (is_numeric($sample["DP"]))
+		{
+			$quality[] = "QD=".number_format($qual/$sample["DP"], 2);
+		}
+	}
+	if (isset($sample["QD"])) //Dragen
+	{
+		$quality[] = "QD=".$sample["QD"];
+	}
+	
+	//AF
+	if (isset($sample["AO"]) && isset($sample["DP"])) //freebayes
 	{
 		//comma-separated values in case of multi-sample data
 		$afs = array();
@@ -621,10 +636,22 @@ while(!feof($handle))
 			$quality[] = "AF=".implode(",", $afs);
 		}
 	}
-	if (isset($info["MQM"])) 
+	if (isset($sample["AF"])) //Dragen
+	{
+		$quality[] = "AF=".$sample["AF"];
+	}
+	
+	//MQM
+	if (isset($info["MQM"])) //freebayes
 	{
 		$quality[] = "MQM=".intval($info["MQM"]);
 	}
+	if (isset($info["MQ"])) //Dragen
+	{
+		$quality[] = "MQM=".intval($info["MQ"]);
+	}
+	
+	//other quality fields specific to freebayes
 	if (isset($info["SAP"])) 
 	{
 		$quality[] = "SAP=".intval($info["SAP"]);
@@ -633,7 +660,6 @@ while(!feof($handle))
 	{
 		$quality[] = "ABP=".intval($info["ABP"]);
 	}
-	
 	if (isset($info["SAR"]))
 	{
 		$quality[] = "SAR=".intval($info["SAR"]);
@@ -641,16 +667,6 @@ while(!feof($handle))
 	if (isset($info["SAF"]))
 	{
 		$quality[] = "SAF=".intval($info["SAF"]);
-	}
-	
-	//for dragen VCFs
-	if (isset($info["MQ"])) 
-	{
-		$quality[] = "MQM=".intval($info["MQ"]);
-	}
-	if (isset($sample["AF"]))
-	{
-		$quality[] = "AF=".$sample["AF"];
 	}
 	
 	$phylop = array();
