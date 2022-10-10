@@ -1021,7 +1021,7 @@ function vcfgeno2human($gt, $upper_case=false)
 	{
 		$geno = "het";
 	}
-	else if ($gt=="1|1")
+	else if ($gt=="1|1" || $gt=="1") //'1' is used by Dragen for hemizygous variants on chrX/chrY in males
 	{
 		$geno = "hom";
 	}
@@ -1733,7 +1733,16 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 			foreach($stdout as $line)
 			{
 				list(, $fasta) = explode("=", $line);
-				$builds[] = basename($fasta, ".fa");
+				if (ends_with($fasta, ".fa"))
+				{
+					$builds[] = basename($fasta, ".fa");
+				}
+				else if (ends_with($fasta, "reference.bin")) //special handling for Dragen (e.g. file://staging/genomes/GRCh38/dragen/reference.bin)
+				{
+					$fasta = strtr($fasta, ["//"=>"/"]);
+					$parts = explode("/", $fasta);
+					$builds[] = $parts[count($parts)-3];
+				}
 			}
 		}
 	}

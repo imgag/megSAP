@@ -408,9 +408,40 @@ if (in_array("vc", $steps))
 				$parser->execPipeline($pipeline, "Dragen small variants post processing");
 
 				//mark off-target variants
-				$tmp = $parser->tempFile(".vcf");
+				$tmp = $parser->tempFile("_offtarget.vcf");
 				$parser->exec($ngsbits."VariantFilterRegions", "-in $vcffile -mark off-target -reg ".$sys['target_file']." -out $tmp", true);
-				$parser->exec("bgzip", "-c $tmp > $vcffile", false);
+				
+				//remove variants with less than 3 alternative observations
+				$tmp2 = $parser->tempFile("_ad.vcf");
+				$hr = gzopen2($tmp, "r");
+				$hw = fopen2($tmp2, "w");
+				while(!gzeof($hr))
+				{
+					$line = trim(gzgets($hr));
+					if (strlen($line)==0) continue;
+					if ($line[0]=="#")
+					{
+						fwrite($hw, $line."\n");
+						continue;
+					}
+					
+					//filter by AO
+					$parts = explode("\t", $line); //chr, pos, id, ref, alt, qual, filter, info, format, sample
+					$format = explode(":", $parts[8]);
+					$sample = explode(":", $parts[9]);
+					$sample = array_combine($format, $sample);
+					if (isset($sample['DP']) && isset($sample['AF']))
+					{
+						if($sample['DP'] * $sample['AF']<2.9) continue; //not 3 because of rounding errors
+					}
+					
+					fwrite($hw, $line."\n");
+				}
+				fclose($hr);
+				fclose($hw);
+				
+				//bgzip
+				$parser->exec("bgzip", "-c $tmp2 > $vcffile", false);
 
 				//index output file
 				$parser->exec("tabix", "-p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
