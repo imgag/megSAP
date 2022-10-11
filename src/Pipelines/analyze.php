@@ -552,9 +552,8 @@ if (in_array("vc", $steps))
 		//create b-allele frequency file
 		$params = array();
 		$params[] = "-vcf {$vcffile}";
-		$params[] = "-bam {$local_bamfile}";
+		$params[] = "-name {$name}";
 		$params[] = "-out {$baffile}";
-		$params[] = "-build ".$build;
 		if ($is_wgs)
 		{
 			$params[] = "-downsample 100";

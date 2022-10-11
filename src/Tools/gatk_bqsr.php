@@ -4,7 +4,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-//QBSR docu
+//BQSR docu
 //https://gatk.broadinstitute.org/hc/en-us/articles/360035535912-Data-pre-processing-for-variant-discovery
 //https://gatk.broadinstitute.org/hc/en-us/articles/360035890531
 //https://gatk.broadinstitute.org/hc/en-us/articles/5358896138011-BaseRecalibrator
@@ -15,7 +15,6 @@ $parser = new ToolBase("gatk_bqsr", "Calculates GATK BQSR model and applies it."
 $parser->addInfile("in", "Input BAM file.", false);
 $parser->addOutfile("out",  "Output BAM file.", false);
 //optional
-$parser->addInt("threads",  "Number of threads to use.", true, 4);
 $parser->addString("build", "Reference genome build.", true, "GRCh38");
 extract($parser->parse($argv));
 
