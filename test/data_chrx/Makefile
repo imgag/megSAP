@@ -29,6 +29,7 @@ diff:
 	php ../compare_qcml_xml.php NA12878_17_stats_fastq.qcML.out NA12878_17_stats_fastq.qcML
 	php ../compare_qcml_xml.php NA12878_17_stats_map.qcML.out NA12878_17_stats_map.qcML 0.01
 	php ../compare_qcml_xml.php NA12878_17_stats_vc.qcML.out NA12878_17_stats_vc.qcML
+	php ../compare_qcml_xml.php NA12878_17_stats_other.qcML.out NA12878_17_stats_other.qcML
 	diff NA12878_17_cnvs_clincnv.tsv.out NA12878_17_cnvs_clincnv.tsv --ignore-matching-lines="#"
 	numdiff NA12878_17_cnvs_clincnv.seg.out NA12878_17_cnvs_clincnv.seg --absolute-tolerance 0.04
 	php ../compare_bed.php NA12878_17_nxLRRK2_SNCA_lowcov.bed.out NA12878_17_nxLRRK2_SNCA_lowcov.bed

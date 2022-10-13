@@ -24,6 +24,7 @@ diff:
 	php ../compare_qcml_xml.php NA12878_03_stats_fastq.qcML.out NA12878_03_stats_fastq.qcML
 	php ../compare_qcml_xml.php NA12878_03_stats_map.qcML.out NA12878_03_stats_map.qcML
 	php ../compare_qcml_xml.php NA12878_03_stats_vc.qcML.out NA12878_03_stats_vc.qcML
+	php ../compare_qcml_xml.php NA12878_03_stats_other.qcML.out NA12878_03_stats_other.qcML
 	diff NA12878_03_cnvs_clincnv.tsv.out NA12878_03_cnvs_clincnv.tsv --ignore-matching-lines="#"
 	php ../compare_bed.php NA12878_03_hpHBOCv5_lowcov.bed.out NA12878_03_hpHBOCv5_lowcov.bed
 
