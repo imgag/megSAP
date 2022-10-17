@@ -48,12 +48,12 @@ cat hg38.fa.out | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/BedSor
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20220702.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20220702_converted_GRCh38.vcf.gz
-tabix -C -m 9 -p vcf clinvar_20220702_converted_GRCh38.vcf.gz
+wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20220924.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20220924_converted_GRCh38.vcf.gz
+tabix -C -m 9 -p vcf clinvar_20220924_converted_GRCh38.vcf.gz
 #CNVs
-wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2022-04.txt.gz | gunzip > variant_summary_2022-04.txt
-cat variant_summary_20212-04.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2022-07.bed
-$ngsbits/BedSort -with_name -in clinvar_cnvs_2022-07.bed -out clinvar_cnvs_2022-07.bed
+wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2022-10.txt.gz | gunzip > variant_summary_2022-10.txt
+cat variant_summary_2022-10.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2022-10.bed
+$ngsbits/BedSort -with_name -in clinvar_cnvs_2022-10.bed -out clinvar_cnvs_2022-10.bed
 
 #Install HGNC - http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
 cd $dbs
@@ -149,12 +149,12 @@ tabix -C -m 9 -p vcf spliceai_scores_2022_05_24_GRCh38.vcf.gz
 #php $src/Tools/db_converter_omim.php | $ngsbits/BedSort -with_name > omim.bed
 
 #Install HGMD (you need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
-#manual download of files HGMD_Pro_2022.2_hg38.vcf.gz and hgmd_pro-2022.2.dump.gz from https://apps.ingenuity.com/ingsso/login
-#zcat HGMD_Pro_2022.2_hg38.vcf.gz | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2022_2_fixed.vcf.gz
-#tabix -p vcf HGMD_PRO_2022_2_fixed.vcf.gz
+#manual download of files HGMD_Pro_2022.3_hg38.vcf.gz and hgmd_pro-2022.3.dump.gz from https://apps.ingenuity.com/ingsso/login
+#zcat HGMD_Pro_2022.3_hg38.vcf.gz | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2022_3_fixed.vcf.gz
+#tabix -p vcf HGMD_PRO_2022_3_fixed.vcf.gz
 ##CNVs
-#zcat hgmd_pro-2022.2.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2022_2.bed
-#$ngsbits/BedSort -with_name -in HGMD_CNVS_2022_2.bed -out HGMD_CNVS_2022_2.bed
+#zcat hgmd_pro-2022.3.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2022_3.bed
+#$ngsbits/BedSort -with_name -in HGMD_CNVS_2022_3.bed -out HGMD_CNVS_2022_3.bed
 
 
 #Install COSMIC Cancer Mutation Census CMC  (you need a license, CMC tsv.gz file has to be downloaded manually from https://cancer.sanger.ac.uk/cmc/download)

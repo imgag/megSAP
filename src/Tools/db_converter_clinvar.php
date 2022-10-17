@@ -19,6 +19,7 @@ function cons2value($cons)
 	if ($cons=="benign") return 1;
 	if ($cons=="likely_risk_allele") return -1;
 	if ($cons=="uncertain_risk_allele") return -1;
+	if ($cons=="established_risk_allele") return -1;
 	trigger_error("Unknown consequence '$cons' in function 'cons2value'!", E_USER_ERROR);
 }
 

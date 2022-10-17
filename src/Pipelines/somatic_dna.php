@@ -371,7 +371,16 @@ if (in_array("vc", $steps))
 	}
 
 	//add somatic BAF file
-	if (!$single_sample)
+	if ($single_sample)
+	{
+		//create b-allele frequency file
+		$params = array();
+		$params[] = "-vcf {$variants}";
+		$params[] = "-name {$t_id}";
+		$params[] = "-out {$ballele}";
+		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
+	}
+	else
 	{
 		$variants_germline_vcf = dirname($n_bam)."/{$n_id}_var.vcf.gz";
 		if (file_exists($variants_germline_vcf))
@@ -386,16 +395,6 @@ if (in_array("vc", $steps))
 			
 			$parser->execTool("NGS/baf_somatic.php", implode(" ", $baf_args));
 		}
-	}
-	else
-	{
-		//create b-allele frequency file
-		$params = array();
-		$params[] = "-vcf {$variants}";
-		$params[] = "-bam {$t_bam}";
-		$params[] = "-out {$ballele}";
-		$params[] = "-build ".$sys['build'];
-		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
 	}
 }
 
@@ -592,9 +591,9 @@ if(in_array("cn",$steps))
 		$data_folder = get_path("data_folder");
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2022-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2022-10.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2022_2.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2022_3.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);

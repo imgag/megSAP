@@ -153,6 +153,7 @@ tar xzf ExpansionHunter-v5.0.0-linux_x86_64.tar.gz
 rm ExpansionHunter-v5.0.0-linux_x86_64.tar.gz
 
 #download and build python3
+cd $folder
 mkdir -p Python3
 wget https://www.python.org/ftp/python/3.6.9/Python-3.6.9.tgz
 tar -zxvf Python-3.6.9.tgz
@@ -160,6 +161,7 @@ cd Python-3.6.9
 ./configure --prefix=$folder/Python3
 make
 make install
+cd ..
 rm -R Python-3.6.9
 rm Python-3.6.9.tgz
 

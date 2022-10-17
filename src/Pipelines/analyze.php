@@ -147,6 +147,7 @@ $expansion_hunter_file = $folder."/".$name."_repeats_expansionhunter.vcf";
 $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
 $qc_vc  = $folder."/".$name."_stats_vc.qcML";
+$qc_other  = $folder."/".$name."_stats_other.qcML";
 
 // for annotation_only: check if all files are available
 if ($annotation_only)
@@ -552,9 +553,8 @@ if (in_array("vc", $steps))
 		//create b-allele frequency file
 		$params = array();
 		$params[] = "-vcf {$vcffile}";
-		$params[] = "-bam {$local_bamfile}";
+		$params[] = "-name {$name}";
 		$params[] = "-out {$baffile}";
-		$params[] = "-build ".$build;
 		if ($is_wgs)
 		{
 			$params[] = "-downsample 100";
@@ -804,10 +804,10 @@ if (in_array("cn", $steps))
 		}
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnvfile}", true);
-		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2022-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
+		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2022-10.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
 
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2022_2.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2022_3.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
@@ -986,7 +986,7 @@ if (in_array("sv", $steps) && !$annotation_only)
 	$parser->execTool("NGS/vc_expansionhunter.php", "-in $local_bamfile -out $expansion_hunter_file -build ".$build." -pid $name -threads {$threads}");
 }
 
-// Create Circos plot only if variant or copy-number calling was done
+// create Circos plot - if small variant, CNV or SV calling was done
 if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
 {
 	if ($is_wes || $is_wgs || $is_wgs_shallow)
@@ -1009,6 +1009,60 @@ if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
 	}
 }
 
+// collect other QC terms - if CNV or SV calling was done
+if ((in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
+{
+	$terms = [];
+	$sources = [];
+	
+	//CNVs
+	if (file_exists($cnvfile))
+	{
+		list($stdout) = exec2("egrep '^#' {$cnvfile}");
+		foreach($stdout as $line)
+		{
+			if (starts_with($line, "##high-quality cnvs:"))
+			{
+				$value = trim(explode(":", $line)[1]);
+				$terms[] = "QC:2000113\t{$value}";
+			}
+			if (starts_with($line, "##mean correlation to reference samples:"))
+			{
+				$value = trim(explode(":", $line)[1]);
+				$terms[] = "QC:2000114\t{$value}";
+			}
+			if (starts_with($line, "##number of iterations:"))
+			{
+				$value = trim(explode(":", $line)[1]);
+				$terms[] = "QC:2000115\t{$value}";
+			}
+		}
+		$sources[] = $cnvfile;
+	}
+
+	//SVs
+	if (file_exists($bedpe_out))
+	{
+		$sv_count = 0;
+		$h = fopen2($bedpe_out, 'r');
+		while(!feof($h))
+		{
+			$line = trim(fgets($h));
+			if ($line=="" || $line[0]=="#") continue;
+			++$sv_count;
+		}
+		fclose($h);
+		$terms[] = "QC:2000117\t{$sv_count}";
+		
+		$sources[] = $bedpe_out;
+	}
+	
+	//create qcML file
+	$tmp = $parser->tempFile("qc.tsv");
+	file_put_contents($tmp, implode("\n", $terms));
+	$parser->exec("{$ngsbits}TsvToQC", "-in $tmp -out $qc_other -sources ".implode(" ", $sources));
+}
+
 //import to database
 if (in_array("db", $steps))
 {
@@ -1018,6 +1072,7 @@ if (in_array("db", $steps))
 	//import QC
 	$qc_files = array($qc_fastq, $qc_map);
 	if (file_exists($qc_vc)) $qc_files[] = $qc_vc; 
+	if (file_exists($qc_other)) $qc_files[] = $qc_other; 
 	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force");
 	
 	//check gender
