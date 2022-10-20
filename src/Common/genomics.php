@@ -1737,7 +1737,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 				{
 					$builds[] = basename($fasta, ".fa");
 				}
-				else if (ends_with($fasta, "reference.bin")) //special handling for Dragen (e.g. file://staging/genomes/GRCh38/dragen/reference.bin)
+				else if (contains($fasta, "/dragen/")) //special handling for Dragen (e.g. file://staging/genomes/GRCh38/dragen/reference.bin)
 				{
 					$fasta = strtr($fasta, ["//"=>"/"]);
 					$parts = explode("/", $fasta);
@@ -1784,7 +1784,17 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 			foreach($stdout as $line)
 			{
 				list(, $fasta) = explode("=", $line);
-				$builds[] = basename($fasta, ".fa");
+				
+				if (ends_with($fasta, ".fa"))
+				{
+					$builds[] = basename($fasta, ".fa");
+				}
+				else if (contains($fasta, "/dragen/")) //special handling for Dragen (e.g. file:///staging/human/reference/GRCh38/dragen/)
+				{
+					$fasta = strtr($fasta, ["//"=>"/"]);
+					$parts = explode("/", $fasta);
+					$builds[] = $parts[count($parts)-3];
+				}
 			}
 		}
 	}

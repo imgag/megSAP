@@ -463,13 +463,6 @@ foreach($file as $line)
 					if ($c_both<=6)
 					{
 						$messages[] = "ERROR - too few common snps";
-						
-						//handle case where KASP was ok, but sample is not
-						if ($c_kasp>=10)
-						{
-							//NGSD import of results
-							import_ngsd($db, $ps, 999, $c_both, $c_match);
-						}
 					}
 					else
 					{
