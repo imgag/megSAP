@@ -69,17 +69,11 @@ if (!mkdir($working_dir, 0700))
 
 // ********************************* call dragen *********************************//
 
-//copy FASTQ files to local storage
-$local_fastq1 = $working_dir.basename($in1);
-$local_fastq2 = $working_dir.basename($in2);
-$parser->copyFile($in1, $local_fastq1);
-$parser->copyFile($in2, $local_fastq2);
-
 //parameters
 $dragen_parameter = [];
 $dragen_parameter[] = "-r ".$dragen_genome_path;
-$dragen_parameter[] = "-1 ".$local_fastq1;
-$dragen_parameter[] = "-2 ".$local_fastq2;
+$dragen_parameter[] = "-1 ".$in1;
+$dragen_parameter[] = "-2 ".$in2;
 $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix output";
 $dragen_parameter[] = "--enable-map-align-output=true";
