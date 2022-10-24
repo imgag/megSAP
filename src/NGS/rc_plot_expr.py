@@ -54,8 +54,14 @@ import matplotlib.pyplot as plt
     help="Use violin plot instead boxplot.",
     show_default=True,
 )
+@click.option(
+    "--outlier/--no-outlier",
+    default=False,
+    help="Show outliers of boxplot as black circles. Only has an effect if violin plot is not active.",
+    show_default=True,
+)
 def plot(
-    cohort, annotation, sample, reference, genelist, log2, plot, title, jitter, violin
+    cohort, annotation, sample, reference, genelist, log2, plot, title, jitter, violin, outlier
 ):
     sample_expr = pd.read_csv(annotation, sep="\t", index_col=0)
     gene_id_names = sample_expr[["gene_name"]]
@@ -92,7 +98,7 @@ def plot(
     plt.figure(figsize=(7, 5))
     fig, ax1 = plt.subplots()
     if not violin:
-        dat_genecol.boxplot(grid=False, ax=ax1)
+        dat_genecol.boxplot(grid=False, ax=ax1, showfliers=outlier)
     else:
         ax1.violinplot(
             dataset=dat_genecol.transpose(),
