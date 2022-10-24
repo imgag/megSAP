@@ -6,10 +6,11 @@
   ]>
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
-    <metaDataParameter ID="md0001" name="creation software" value="TsvToQC 2022_10-17-g684bb43b" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0001" name="creation software" value="TsvToQC 2022_10-47-gf2d791f6" cvRef="QC" accession="QC:1000002"/>
     <metaDataParameter ID="md0002" name="creation software parameters" value="" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2022-10-13T09:09:25" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2022-10-24T11:53:50" cvRef="QC" accession="QC:1000004"/>
     <metaDataParameter ID="md0004" name="source file" value="NA12878_03_cnvs_clincnv.tsv" cvRef="QC" accession="QC:1000005"/>
+    <qualityParameter ID="qp0001" name="CNV count" description="Number of high-quality CNVs called by ClinCNV. High-quality means that log-likelihood is bigger or equal to 20." value="0" cvRef="QC" accession="QC:2000113"/>
   </runQuality>
   <cvList>
     <cv uri="https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo" ID="QC" fullName="QC" version="0.1"/>
