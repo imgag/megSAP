@@ -955,12 +955,19 @@ elseif(isset($t_rna_bam))
 
 if(count($ps_rna_bams) < 1)
 {
-	trigger_error("Skipping step an_rna!\nCouldn't find tumor RNA bam file. For annotation step \"an_rna\" tumor RNA bam file must be specified (via paramter -t_rna_bam or determined via sample_relations).", E_USER_WARNING);
-	
-	// remove an_rna step
-	$key = array_search("an_rna", $steps);
-	if ($key !== false) {
-		unset($steps[$key]);
+	if (count($steps) > 1)
+	{
+		trigger_error("Skipping step an_rna!\nCouldn't find tumor RNA bam file. For annotation step \"an_rna\" tumor RNA bam file must be specified (via paramter -t_rna_bam or determined via sample_relations).", E_USER_WARNING);
+		
+		// remove an_rna step
+		$key = array_search("an_rna", $steps);
+		if ($key !== false) {
+			unset($steps[$key]);
+		}
+	}
+	else
+	{
+		trigger_error("Couldn't find tumor RNA bam file. For annotation step \"an_rna\" tumor RNA bam file must be specified (via paramter -t_rna_bam or determined via sample_relations).", E_USER_ERROR);
 	}
 }
 
