@@ -1018,14 +1018,16 @@ if ((in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
 	//CNVs
 	if (file_exists($cnvfile))
 	{
-		list($stdout) = exec2("egrep '^#' {$cnvfile}");
-		foreach($stdout as $line)
+		$cnv_count_hq = 0;
+		$cnv_count_hq_autosomes = 0;
+		$cnv_count_loss = 0;
+		$cnv_count_gain = 0;
+		$h = fopen2($cnvfile, 'r');
+		while(!feof($h))
 		{
-			if (starts_with($line, "##high-quality cnvs:"))
-			{
-				$value = trim(explode(":", $line)[1]);
-				$terms[] = "QC:2000113\t{$value}";
-			}
+			$line = trim(fgets($h));
+			if ($line=="") continue;
+			
 			if (starts_with($line, "##mean correlation to reference samples:"))
 			{
 				$value = trim(explode(":", $line)[1]);
@@ -1036,23 +1038,80 @@ if ((in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
 				$value = trim(explode(":", $line)[1]);
 				$terms[] = "QC:2000115\t{$value}";
 			}
+			
+			if ($line[0]!="#")
+			{
+				$parts = explode("\t", $line);
+				$ll = $parts[4];
+				if ($ll>=20)
+				{
+					++$cnv_count_hq;
+					
+					$chr = $parts[0];
+					if (is_numeric(strtr($chr, ["chr"=>""])))
+					{
+						++$cnv_count_hq_autosomes;
+						$cn = $parts[3];
+						if ($cn<2) ++$cnv_count_loss;
+						if ($cn>2) ++$cnv_count_gain;
+					}
+				}
+			}
 		}
+		fclose($h);
+		
+		//counts (all, loss, gain)
+		$terms[] = "QC:2000113\t{$cnv_count_hq}";
+		if ($cnv_count_hq_autosomes>0)
+		{
+			$terms[] = "QC:2000118\t".number_format(100.0*$cnv_count_loss/$cnv_count_hq_autosomes, 2);
+			$terms[] = "QC:2000119\t".number_format(100.0*$cnv_count_gain/$cnv_count_hq_autosomes, 2);
+		}
+		
 		$sources[] = $cnvfile;
 	}
 
 	//SVs
 	if (file_exists($bedpe_out))
 	{
-		$sv_count = 0;
+		$sv_count_pass = 0;
+		$sv_count_del = 0;
+		$sv_count_dup = 0;
+		$sv_count_ins = 0;
+		$sv_count_inv = 0;
+		$sv_count_bnd = 0;
 		$h = fopen2($bedpe_out, 'r');
 		while(!feof($h))
 		{
 			$line = trim(fgets($h));
 			if ($line=="" || $line[0]=="#") continue;
-			++$sv_count;
+			
+			
+			$parts = explode("\t", $line);
+			$filter = trim($parts[11]);
+			if ($filter=="PASS")
+			{
+				++$sv_count_pass;
+				$type = trim($parts[10]);
+				if ($type=="DEL") ++$sv_count_del;
+				if ($type=="DUP") ++$sv_count_dup;
+				if ($type=="INS") ++$sv_count_ins;
+				if ($type=="INV") ++$sv_count_inv;
+				if ($type=="BND") ++$sv_count_bnd;
+				
+			}
 		}
 		fclose($h);
-		$terms[] = "QC:2000117\t{$sv_count}";
+		
+		$terms[] = "QC:2000117\t{$sv_count_pass}";
+		if ($sv_count_pass>0)
+		{
+			$terms[] = "QC:2000120\t".number_format(100.0*$sv_count_del/$sv_count_pass, 2);
+			$terms[] = "QC:2000121\t".number_format(100.0*$sv_count_dup/$sv_count_pass, 2);
+			$terms[] = "QC:2000122\t".number_format(100.0*$sv_count_ins/$sv_count_pass, 2);
+			$terms[] = "QC:2000123\t".number_format(100.0*$sv_count_inv/$sv_count_pass, 2);
+			$terms[] = "QC:2000124\t".number_format(100.0*$sv_count_bnd/$sv_count_pass, 2);
+		}
 		
 		$sources[] = $bedpe_out;
 	}
