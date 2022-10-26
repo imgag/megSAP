@@ -402,6 +402,10 @@ if (in_array("plt", $steps))
 		"--sample", $name
 	];
 	$genelists = glob(repository_basedir()."/data/misc/pathway_genelists/*.txt");
+	
+	//remove old images
+	$parser->exec("rm ", "{$prefix}_expr.*.png");
+	
 	foreach ($genelists as $genelist)
 	{
 		$shortname = basename($genelist, ".txt");
