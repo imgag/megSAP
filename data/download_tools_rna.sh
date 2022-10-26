@@ -19,11 +19,11 @@ rm subread-2.0.3-Linux-x86_64.tar.gz
 mv subread-2.0.3-Linux-x86_64 subread-2.0.3
 
 #download arriba
-wget https://github.com/suhrig/arriba/releases/download/v2.2.1/arriba_v2.2.1.tar.gz
-tar -xzf arriba_v2.2.1.tar.gz
-rm arriba_v2.2.1.tar.gz
-cd arriba_v2.2.1 && make && cd ..
-conda create -c conda-forge -c bioconda -p arriba_v2.2.1/conda_env arriba=2.2.1
+wget https://github.com/suhrig/arriba/releases/download/v2.3.0/arriba_v2.3.0.tar.gz
+tar -xzf arriba_v2.3.0.tar.gz
+rm arriba_v2.3.0.tar.gz
+cd arriba_v2.3.0 && make && cd ..
+conda create -c conda-forge -c bioconda -p arriba_v2.3.0/conda_env arriba=2.3.0
 
 #download kraken2
 wget https://github.com/DerrickWood/kraken2/archive/refs/tags/v2.1.2.tar.gz

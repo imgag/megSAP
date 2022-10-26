@@ -38,7 +38,7 @@ hla_genotyper = [path]/data/tools/hla-genotyper-2022_05/genotyper.py
 STAR = [path]/data/tools/STAR-2.7.10a/bin/Linux_x86_64/STAR
 feature_counts = [path]/data/tools/subread-2.0.3/bin/featureCounts
 skewer = [path]/data/tools/skewer-0.2.2/skewer
-arriba = [path]/data/tools/arriba_v2.2.1
+arriba = [path]/data/tools/arriba_v2.3.0
 umi_tools = [path]/data/tools/umi_tools-1.1.2/bin/umi_tools
 kraken2 = [path]/data/tools/kraken2-2.1.2/bin/kraken2
 
