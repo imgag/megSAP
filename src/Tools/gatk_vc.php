@@ -17,7 +17,7 @@ $parser->addInfile("roi", "Input BED file with target region for calling.", fals
 $parser->addOutfile("out",  "Output VCF.GZ file (indexed).", false);
 //optional
 $parser->addFlag("pcrfree", "Do not use PRC model for InDels.");
-$parser->addFlag("gvcf", "Produce gVCF instead of normal VCF.");
+$parser->addFlag("gvcf", "Produce gVCF instead of normal VCF (also skips post-processing).");
 $parser->addString("build", "Reference genome build.", true, "GRCh38");
 extract($parser->parse($argv));
 
@@ -40,19 +40,22 @@ if ($gvcf)
 	$args[] = "-ERC GVCF";
 	$args[] = "-G AS_StandardAnnotation";
 }
-$tmp = $parser->tempFile(".vcf.gz");
+$tmp = $gvcf ? $out : $parser->tempFile(".vcf.gz");
 $parser->exec($gatk, "HaplotypeCaller -R {$ref} -I {$in} -O {$tmp} ".implode(" ", $args));
 
-//perform postprocessing
-$pipeline = [];
-$pipeline[] = array("zcat", $tmp);
-$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
-$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref {$ref}");
-$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
-$pipeline[] = array("bgzip", "-c > {$out}", false);
-$parser->execPipeline($pipeline, "freebayes post processing");
+if (!$gvcf)
+{
+	//perform postprocessing
+	$pipeline = [];
+	$pipeline[] = array("zcat", $tmp);
+	$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
+	$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref {$ref}");
+	$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
+	$pipeline[] = array("bgzip", "-c > {$out}", false);
+	$parser->execPipeline($pipeline, "post processing");
 
-//index VCF
-$parser->exec("tabix", "-p vcf {$out}", false);
+	//index VCF
+	$parser->exec("tabix", "-p vcf {$out}", false);
+}
 
 ?>
