@@ -919,55 +919,59 @@ elseif ($single_sample && in_array("msi",$steps))
 }
 
 
-list($t_name) = explode("_", $t_id);
-
-//Determine tumor rna sample from NGSD via sample_relations
-$ps_rna_bams = array();
-
-if( db_is_enabled("NGSD") && !isset($t_rna_bam) )
+if (in_array("an_rna", $steps))
 {
-	$db = DB::getInstance("NGSD");
-	$res = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", array("name" => $t_name));
-	$sample_id = $res[0]["id"];
-	
-	//get related RNA samples from NGSD
-	if (count($res) >= 1)
+	list($t_name) = explode("_", $t_id);
+
+	//Determine tumor rna sample from NGSD via sample_relations
+	$ps_rna_bams = array();
+
+	if( db_is_enabled("NGSD") && !isset($t_rna_bam) )
 	{
-		$res = $db->executeQuery("SELECT * FROM sample_relations WHERE relation='same sample' AND (sample1_id=:sid OR sample2_id=:sid)", array("sid" => $sample_id));
-		foreach($res as $row)
+		$db = DB::getInstance("NGSD");
+		$res = $db->executeQuery("SELECT id, name FROM sample WHERE name=:name", array("name" => $t_name));
+		$sample_id = $res[0]["id"];
+		
+		//get related RNA samples from NGSD
+		if (count($res) >= 1)
 		{
-			$sample_id_annotation = $row['sample1_id'] != $sample_id ? $row['sample1_id'] : $row['sample2_id'];
-			
-			$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND sys.type='RNA' AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND (NOT ps.quality='bad')", array("sid" => $sample_id_annotation));
-			
-			$rna_ids = array_column($res, 'psample');
-			foreach($rna_ids as $rna_id)
+			$res = $db->executeQuery("SELECT * FROM sample_relations WHERE relation='same sample' AND (sample1_id=:sid OR sample2_id=:sid)", array("sid" => $sample_id));
+			foreach($res as $row)
 			{
-				$ps_rna_bams[$rna_id] = get_processed_sample_info($db, $rna_id)["ps_bam"];
+				$sample_id_annotation = $row['sample1_id'] != $sample_id ? $row['sample1_id'] : $row['sample2_id'];
+				
+				$res = $db->executeQuery("SELECT ps.sample_id, ps.process_id, ps.processing_system_id, ps.quality, sys.id, sys.type, CONCAT(s.name, '_', LPAD(ps.process_id, 2, '0')) as psample FROM processed_sample as ps, processing_system as sys, sample as s WHERE ps.sample_id=:sid AND sys.type='RNA' AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND (NOT ps.quality='bad')", array("sid" => $sample_id_annotation));
+				
+				$rna_ids = array_column($res, 'psample');
+				foreach($rna_ids as $rna_id)
+				{
+					$ps_rna_bams[$rna_id] = get_processed_sample_info($db, $rna_id)["ps_bam"];
+				}
 			}
 		}
 	}
-}
-elseif(isset($t_rna_bam))
-{
-	$ps_rna_bams[basename($t_rna_bam)] = $t_rna_bam; 
-}
-
-if(count($ps_rna_bams) < 1)
-{
-	if (count($steps) > 1)
+	elseif(isset($t_rna_bam))
 	{
-		trigger_error("Skipping step an_rna!\nCouldn't find tumor RNA bam file. For annotation step \"an_rna\" tumor RNA bam file must be specified (via paramter -t_rna_bam or determined via sample_relations).", E_USER_WARNING);
-		
-		// remove an_rna step
-		$key = array_search("an_rna", $steps);
-		if ($key !== false) {
-			unset($steps[$key]);
-		}
+		$ps_rna_bams[basename($t_rna_bam)] = $t_rna_bam; 
 	}
-	else
+
+
+	if(count($ps_rna_bams) < 1)
 	{
-		trigger_error("Couldn't find tumor RNA bam file. For annotation step \"an_rna\" tumor RNA bam file must be specified (via paramter -t_rna_bam or determined via sample_relations).", E_USER_ERROR);
+		if (count($steps) > 1)
+		{
+			trigger_error("Skipping step an_rna!\nCouldn't find tumor RNA bam file. For annotation step \"an_rna\" tumor RNA bam file must be specified (via paramter -t_rna_bam or determined via sample_relations).", E_USER_WARNING);
+			
+			// remove an_rna step
+			$key = array_search("an_rna", $steps);
+			if ($key !== false) {
+				unset($steps[$key]);
+			}
+		}
+		else
+		{
+			trigger_error("Couldn't find tumor RNA bam file. For annotation step \"an_rna\" tumor RNA bam file must be specified (via paramter -t_rna_bam or determined via sample_relations).", E_USER_ERROR);
+		}
 	}
 }
 
