@@ -254,6 +254,15 @@ function import_genlab_disease_group($ps)
 	}
 }
 
+function is_sample_newer($sample1, $sample2)
+{
+	preg_match("!\d+!", $sample1, $matches1); //extract sample number
+	preg_match("!\d+!", $sample2, $matches2);
+	
+	return $matches1[0] > $matches2[0];
+	
+}
+
 function import_sample_relations($ps, $verbose)
 {
 	global $db_conn;
@@ -265,29 +274,19 @@ function import_sample_relations($ps, $verbose)
 	
 	if($current_sample_data == null)
 	{
-		// Can't find current sample in NGSD;
+		// echo "Can't find current sample in NGSD\n";
 		return;
 	}
 	
 	// only search for relations for Panel and RNA samples for relations (tumor-normal and same_sample respectivly):
-	if ($current_sample_data["sys_type"] != "RNA" && $current_sample_data["sys_type"] != "Panel")
+	if ($current_sample_data["sys_type"] != "RNA" && $current_sample_data["sys_type"] != "Panel" && $current_sample_data["sys_type"] != "WES")
 	{
-		// unsupported sample type;
+		// echo "unsupported sample type";
 		return;
 	}
 
 	$ps_id = get_processed_sample_id($db_conn, $ps);
 	$current_sample_id = $db_conn->getValue("SELECT sample_id FROM processed_sample WHERE id='$ps_id'");
-	$existing_relations = $db_conn->executeQuery("SELECT * FROM sample_relations WHERE sample1_id = '{$current_sample_id}' OR sample2_id = '{$current_sample_id}'");  
-
-	foreach ($existing_relations as $rel)
-	{
-		if (($current_sample_data["sys_type"] == "Panel" && $rel["relation"] == "tumor-normal") || ($current_sample_data["sys_type"] == "RNA" && $rel["relation"] == "same sample"))
-		{
-			// a relation already exists.
-			return;
-		}
-	}
 
 	// try both, processed sample id and sample id (inconsistent in Genlab)
 	$patient_id = $db_genlab->getValue("SELECT GenlabID FROM v_ngs_patient_ids WHERE LABORNUMMER='{$ps}'", "");
@@ -299,7 +298,7 @@ function import_sample_relations($ps, $verbose)
 	}
 	if ($patient_id == "")
 	{
-		// ps not found in genlab
+		// echo "ps not found in genlab\n";
 		return;
 	}
 
@@ -308,10 +307,10 @@ function import_sample_relations($ps, $verbose)
 	
 	if (count($samples_same_patient) == 0)
 	{
-		// no other samples of the same patient
+		// echo "no other samples of the same patient\n";
 		return;
 	}
-
+	
 	$related_sample_data = [];
 
 	//get sample data for all related samples.
@@ -356,7 +355,7 @@ function import_sample_relations($ps, $verbose)
 			{
 				$related_sample = $s;
 			}
-			else if ($system_type_ok  && $quality_ok && $tumor_ok && $is_DNA && $run_finished && $system_ok)
+			else if ($system_type_ok  && $quality_ok && $tumor_ok && $is_DNA && $run_finished && $system_ok && is_sample_newer($s, $related_sample))
 			{
 				$related_sample = $s;
 			}
@@ -364,6 +363,7 @@ function import_sample_relations($ps, $verbose)
 		
 		if ($related_sample == null)
 		{
+			// echo "No Candidates left\n";
 			return;
 		}
 		
@@ -408,7 +408,6 @@ function import_sample_relations($ps, $verbose)
 				{
 					continue;
 				}
-				
 				$genlab_related_sample = explode("_", $gs."_")[0];
 				
 			}
@@ -433,8 +432,8 @@ function import_sample_relations($ps, $verbose)
 			$quality_ok = $data["processed_quality"] != "bad";
 			$is_DNA = $data["sample_type"] == "DNA";
 			$run_finished = $data["run_status"] != "n/a" && $data["run_status"] != "run_started" && $data["run_status"] != "run_aborted";
-
-			if ($system_type_ok  && $quality_ok && $is_DNA && $run_finished)
+			
+			if ($system_type_ok  && $quality_ok && $is_DNA && $run_finished && ($related_sample == null || is_sample_newer($s, $related_sample)))
 			{
 				$related_sample = $s;
 			}
@@ -619,25 +618,13 @@ $normal2tumor = array();
 $tumor2normal = array();
 foreach($sample_data as $sample => $sample_infos)
 {
-	$normal_name = "";
-	$related_samples = get_related_processed_samples($db_conn, $sample, "tumor-normal");
-	
-	foreach($related_samples as $ps_n)
-	{
-		//normal sample must be on same run
-		if( array_key_exists($ps_n, $sample_data) && $sample_infos["is_tumor"] == 1)
-		{
-			$normal_name = $ps_n;
-			break;
-		}
-	}
-
+	$normal_name = $sample_infos['normal_name'];
 	if ($normal_name!="")
 	{
 		$normal2tumor[$normal_name] = $sample;
 		$tumor2normal[$sample] = $normal_name;
 	}
-	
+
 	//get run name (the same for all samples)
 	$run_name = $sample_infos['run_name'];
 }
