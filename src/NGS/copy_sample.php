@@ -317,7 +317,7 @@ function import_sample_relations($ps, $verbose)
 	foreach ($samples_same_patient as $s)
 	{
 		$s = strtoupper(explode("_", $s."_")[0]);
-		$ngsd_sample_info = $db_conn->executeQuery("SELECT s.id as sample_id, ps.id as processed_sample_id, s.name as sample_name, ps.process_id as process_id, s.sample_type, s.quality, s.tumor, ps.quality as processed_quality, system.name_manufacturer as sys_name, system.type as sys_type, sr.name as run_name, sr.status as run_status FROM bioinf_ngsd.sample as s LEFT JOIN bioinf_ngsd.processed_sample as ps ON s.id = ps.sample_id LEFT JOIN bioinf_ngsd.processing_system as system ON ps.processing_system_id = system.id LEFT JOIN bioinf_ngsd.sequencing_run as sr on ps.sequencing_run_id = sr.id  WHERE s.name='$s' ORDER BY s.name");
+		$ngsd_sample_info = $db_conn->executeQuery("SELECT s.id as sample_id, ps.id as processed_sample_id, s.name as sample_name, ps.process_id as process_id, s.sample_type, s.quality, s.tumor, ps.quality as processed_quality, system.name_manufacturer as sys_name, system.type as sys_type, sr.name as run_name, sr.status as run_status FROM sample as s LEFT JOIN processed_sample as ps ON s.id = ps.sample_id LEFT JOIN processing_system as system ON ps.processing_system_id = system.id LEFT JOIN sequencing_run as sr on ps.sequencing_run_id = sr.id  WHERE s.name='$s' ORDER BY s.name");
 		if (count($ngsd_sample_info) == 0)
 		{
 			continue;
@@ -350,7 +350,7 @@ function import_sample_relations($ps, $verbose)
 			$run_finished = $data["run_status"] != "n/a" && $data["run_status"] != "run_started" && $data["run_status"] != "run_aborted";
 			
 			$system_ok = $current_sample_data["sys_name"] == $data["sys_name"];
-			
+			echo "related_sample: $s \n";
 			if ($related_sample == null && $system_type_ok  && $quality_ok && $tumor_ok && $is_DNA && $run_finished)
 			{
 				$related_sample = $s;
@@ -403,7 +403,7 @@ function import_sample_relations($ps, $verbose)
 			foreach($genlab_related_samples as $gs)
 			{
 				
-				$gs_data = $db_conn->executeQuery("SELECT s.id as sample_id, s.name as sample_name, ps.process_id as process_id, s.sample_type, s.quality, s.tumor, ps.quality as processed_quality, system.name_manufacturer as sys_name, system.type as sys_type FROM bioinf_ngsd.sample as s LEFT JOIN bioinf_ngsd.processed_sample as ps ON s.id = ps.sample_id LEFT JOIN bioinf_ngsd.processing_system as system ON ps.processing_system_id = system.id WHERE s.name='$gs' ORDER BY s.name");
+				$gs_data = $db_conn->executeQuery("SELECT s.id as sample_id, s.name as sample_name, ps.process_id as process_id, s.sample_type, s.quality, s.tumor, ps.quality as processed_quality, system.name_manufacturer as sys_name, system.type as sys_type FROM sample as s LEFT JOIN processed_sample as ps ON s.id = ps.sample_id LEFT JOIN processing_system as system ON ps.processing_system_id = system.id WHERE s.name='$gs' ORDER BY s.name");
 				if (count($gs_data) ==0 || $gs_data[0]["sample_type"] == "RNA")
 				{
 					continue;
