@@ -65,7 +65,7 @@ $target_file = $sys['target_file'];
 $genome = get_path("data_folder")."/genomes/STAR/{$build}/";
 
 //determine gtf from build
-$gtfFile = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.107.chr.gtf";
+$gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 
 //find FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");
