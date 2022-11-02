@@ -404,7 +404,7 @@ if (in_array("plt", $steps))
 	$genelists = glob(repository_basedir()."/data/misc/pathway_genelists/*.txt");
 	
 	//remove old images
-	$parser->exec("rm ", "{$prefix}_expr.*.png");
+	$parser->exec("rm -f", "{$prefix}_expr.*.png");
 	
 	foreach ($genelists as $genelist)
 	{
