@@ -20,10 +20,10 @@ wget -O - https://www.proteinatlas.org/download/rna_tissue_hpa.tsv.zip | gunzip 
 
 #download Ensembl data
 cd $data_folder
-mkdir -p dbs/Ensembl
+mkdir -p dbs/gene_annotations
 wget -O - 'http://ftp.ensembl.org/pub/release-107/gtf/homo_sapiens/Homo_sapiens.GRCh38.107.gtf.gz' | \
   gzip -cd | \
-  awk '{ if ($1 !~ /^#/) { print "chr"$0 } else { print $0 } }' > dbs/Ensembl/Homo_sapiens.GRCh38.107.chr.gtf
+  awk '{ if ($1 !~ /^#/) { print "chr"$0 } else { print $0 } }' > dbs/gene_annotations/GRCh38.gtf
 
 #STAR: index genome
 cd $data_folder

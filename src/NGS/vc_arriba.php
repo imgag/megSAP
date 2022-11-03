@@ -13,9 +13,7 @@ $parser->addOutfile("out_discarded", "Discarded fusions in TSV format.", true);
 $parser->addOutfile("out_pdf", "Fusion report in PDF format.", true);
 $parser->addOutfile("out_bam", "Output BAM file with fusion-supporting reads.", true);
 $parser->addString("out_pic_dir", "Output directory which contains all fusion pictures as PNGs.", true);
-
 $parser->addInfile("sv", "Optional structural variants from DNA sequencing, in VCF format.", true);
-
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 
 extract($parser->parse($argv));

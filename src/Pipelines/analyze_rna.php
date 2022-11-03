@@ -10,20 +10,15 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
 $parser = new ToolBase("analyze_rna", "RNA mapping pipeline using STAR.");
-
-//mandatory
 $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
-
 //optional
 $parser->addInfile("system", "Processing system INI file (determined from NGSD via the 'name' by default).", true);
 $steps_all = array("ma", "rc", "an", "fu", "db", "plt");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, rc=read counting, an=annotation, fu=fusion detection, db=import into NGSD", true, "ma,rc,an,fu,db,plt");
-
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
 $parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
 $parser->addFlag("skip_filter_hb", "Do not automatically filter input FASTQ for globin reads for blood samples.");
-
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
 $parser->addFlag("skip_dna_reannotation", "Do not automatically start the reannotation of the related DNA sample.");
@@ -65,7 +60,7 @@ $target_file = $sys['target_file'];
 $genome = get_path("data_folder")."/genomes/STAR/{$build}/";
 
 //determine gtf from build
-$gtfFile = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.107.chr.gtf";
+$gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 
 //find FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");
