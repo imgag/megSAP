@@ -10,12 +10,10 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("rc_annotate", "Annotates a read count table with attributes from GTF file.");
 $parser->addInfile("in", "Input read count file in TSV format", false, true);
 $parser->addOutfile("out", "Output TSV file for annotated read counts. Can also be the same file as the input file.", false);
-
-$parser->addString("gtfFile", "GTF file containing feature annotations (for mapping identifiers).", true, get_path("data_folder")."dbs/Ensembl/Homo_sapiens.GRCh38.107.chr.gtf");
+$parser->addString("gtfFile", "GTF file containing feature annotations (for mapping identifiers).", false);
 $parser->addString("keyId", "Name of key identifier.", true, "gene_id");
 $parser->addString("annotationIds", "Annotation identifiers (comma separated) to use as annotation.", true, "gene_name,gene_biotype");
 $parser->addString("column_name", "Column name with values to join on.", true, "gene_id");
-
 $parser->addFlag("ignore_version_suffix", "Ignore the Ensembl version suffix when matching key values.");
 
 extract($parser->parse($argv));
