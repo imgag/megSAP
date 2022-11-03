@@ -231,7 +231,6 @@ if (isset($db))
 
 				if ($target == "")
 				{
-					//TODO: move to temp?
 					$target = "{$folder}/{$name}_target_region.bed";
 					$bed_content = $db->getValue("SELECT bed FROM cfdna_panels WHERE tumor_id=${tumor_ps_id} AND processing_system_id=${sys_id}");
 					file_put_contents($target, $bed_content);
