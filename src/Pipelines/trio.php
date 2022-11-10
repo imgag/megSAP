@@ -110,7 +110,6 @@ if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/trio_".date("
 //file names
 $gsvar = "{$out_folder}/trio.GSvar";
 $vcf_all = "{$out_folder}/all.vcf.gz";
-$vcf_all_mito = "{$out_folder}/all_mito.vcf.gz";
 $cnv_multi = "{$out_folder}/trio_cnvs_clincnv.tsv";
 $bedpe_out = "{$out_folder}/trio_manta_var_structural.bedpe";
 

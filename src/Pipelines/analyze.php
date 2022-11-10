@@ -500,18 +500,22 @@ if (in_array("vc", $steps))
 				file_put_contents($target_mito, "chrMT\t0\t16569");
 				
 				$args = array();
-				$args[] = "-no_ploidy";
+				$args[] = "-in ".$local_bamfile;
+				$args[] = "-out ".$vcffile_mito;
+				$args[] = "-build ".$build;
+				$args[] = "-target ".$target_mito;
 				$args[] = "-min_af 0.01";
-				$args[] = "-min_mq ".$min_mq;
-				$args[] = "-min_bq ".$min_bq;
-				$args[] = "-target $target_mito";
-				$parser->execTool("NGS/vc_freebayes.php", "-bam $local_bamfile -out $vcffile_mito -build ".$build." ".implode(" ", $args));
+				$args[] = "-max_af 1.00";
+				$args[] = "-max_gnomad_af 1.00";
+				$args[] = "-min_obs 2";
+				$args[] = "-min_mq 20";
+				$parser->execTool("NGS/vc_mosaic.php", implode(" ", $args));
 			}
-		}
 		
-		if($only_mito_in_target_region) 
-		{
-			$parser->copyFile($vcffile_mito, $vcffile);
+			if($only_mito_in_target_region) 
+			{
+				$parser->copyFile($vcffile_mito, $vcffile);
+			}
 		}
 		
 		//Add header to VCF file
@@ -566,7 +570,7 @@ if (in_array("vc", $steps))
 		{
 			$args = [];
 			$args[] = "-in {$local_bamfile}";
-			$args[] = "-vcf {$vcffile}";
+			$args[] = "-exclude {$vcffile}";
 			$args[] = "-out {$mosaic_file}";
 			if ($is_panel)
 			{

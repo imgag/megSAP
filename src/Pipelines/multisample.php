@@ -219,6 +219,7 @@ if (in_array("vc", $steps))
 			$args[] = "-bam ".implode(" ", $local_bams);
 			$args[] = "-out $vcf_all_mito";
 			$args[] = "-no_ploidy";
+			$args[] = "-no_bias";
 			$args[] = "-min_af 0.01";
 			$args[] = "-target $target_mito";
 			$args[] = "-build ".$sys['build'];
