@@ -88,7 +88,9 @@ if (!$all_transcripts)
 }
 
 $args[] = "--fields ".implode(",", $fields);
-putenv("PERL5LIB={$vep_path}/Bio/:{$vep_path}/cpan/lib/perl5/:".getenv("PERL5LIB"));
+
+$perl_cpan = get_path("perl_cpan");
+putenv("PERL5LIB={$vep_path}/Bio/:{$perl_cpan}/lib/perl5/:".getenv("PERL5LIB"));
 $parser->exec(get_path("vep"), implode(" ", $args), true);
 
 //print VEP warnings

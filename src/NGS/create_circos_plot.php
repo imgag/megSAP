@@ -383,8 +383,9 @@ trigger_error("Remaining BND entries: \t$n_bnds", E_USER_NOTICE);
 
 
 // create Circos plot
+$perl_cpan = get_path("perl_cpan");
+putenv("PERL5LIB=".$perl_cpan."/lib/perl5/:".getenv("PERL5LIB"));
 $circos_bin = get_path("circos");
-putenv("PERL5LIB=".dirname($circos_bin, 2)."/cpan/lib/perl5/:".getenv("PERL5LIB"));
 $parser->exec($circos_bin, "-nosvg -conf $circos_config_file", true);
 
 // copy PNG to sample folder
