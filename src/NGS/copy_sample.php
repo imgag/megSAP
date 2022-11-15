@@ -350,7 +350,7 @@ function import_sample_relations($ps, $verbose)
 			$run_finished = $data["run_status"] != "n/a" && $data["run_status"] != "run_started" && $data["run_status"] != "run_aborted";
 			
 			$system_ok = $current_sample_data["sys_name"] == $data["sys_name"];
-			echo "related_sample: $s \n";
+			// echo "related_sample: $s \n";
 			if ($related_sample == null && $system_type_ok  && $quality_ok && $tumor_ok && $is_DNA && $run_finished)
 			{
 				$related_sample = $s;

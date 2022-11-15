@@ -2,7 +2,7 @@ help:
 	@cat Makefile
 	
 create_somatic_tmb_tsg_bed:
-	awk -F "\t" '$$6==1 {print $$2}' ../dbs/NCG6.0/NCG6.0_oncogene.tsv | GenesToApproved | cut -f1 | sort | uniq | GenesToBed -source ensembl -mode exon | BedMerge -merge_names > somatic_tmb_tsg.bed
+	awk -F "\t" '$$6==1 {print $$2}' ../dbs/NCG7.0/NCG7.0_oncogene.tsv | GenesToApproved | cut -f1 | sort | uniq | GenesToBed -source ensembl -mode exon | BedMerge -merge_names > somatic_tmb_tsg.bed
 
 create_somatic_tmb_blacklist:
 	echo "HLA-A\nHLA-B" | GenesToBed -source ensembl -mode exon | BedMerge -merge_names > somatic_tmb_blacklist.bed

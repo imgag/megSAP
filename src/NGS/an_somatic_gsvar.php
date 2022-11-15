@@ -1,9 +1,9 @@
 <?php
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-$parser = new ToolBase("an_somatic_gsvar", "Annotates additional somatic data to GSvar file (NCG6.0 / RNA).");
+$parser = new ToolBase("an_somatic_gsvar", "Annotates additional somatic data to GSvar file (NCG7.0 / RNA).");
 $parser->addInfile("gsvar_in", "Input .gsvar-file with SNV data.", false);
-$parser->addFlag("include_ncg", "Annotate column with info from NCG6.0 whether a gene is TSG or oncogene");
+$parser->addFlag("include_ncg", "Annotate column with info from NCG7.0 whether a gene is TSG or oncogene");
 $parser->addString("rna_id", "ID of RNA sample if RNA data is annotated.", true);
 $parser->addInfile("rna_counts", "Input file that contains RNA transcript counts.", true);
 $parser->addInfile("rna_bam", "RNA-BAM file that is used to annotate and calculate variant depth and frequency in RNA sample.", true);
@@ -254,8 +254,8 @@ if($include_ncg)
 		$col_tsg[] = $ncg_tsg;
 	}
 	
-	$gsvar_input->addCol($col_oncogene,"ncg_oncogene","1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.");
-	$gsvar_input->addCol($col_tsg,"ncg_tsg","1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.");
+	$gsvar_input->addCol($col_oncogene,"ncg_oncogene","1:gene is oncogene according NCG7.0, 0:No oncogene according NCG7.0, na: no information available about gene in NCG7.0. Order is the same as in column gene.");
+	$gsvar_input->addCol($col_tsg,"ncg_tsg","1:gene is TSG according NCG7.0, 0:No TSG according NCG7.0, na: no information available about gene in NCG7.0. Order is the same as in column gene.");
 }
 
 

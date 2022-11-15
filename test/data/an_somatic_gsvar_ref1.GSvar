@@ -58,8 +58,8 @@
 ##DESCRIPTION=CGI_transcript=CancerGenomeInterpreter.org CGI Ensembl transcript ID
 ##DESCRIPTION=CGI_gene=Gene symbol returned by CancerGenomeInterpreter.org
 ##DESCRIPTION=CGI_consequence=Consequence of the mutation assessed by CancerGenomeInterpreter.org
-##DESCRIPTION=ncg_oncogene=1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
-##DESCRIPTION=ncg_tsg=1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
+##DESCRIPTION=ncg_oncogene=1:gene is oncogene according NCG7.0, 0:No oncogene according NCG7.0, na: no information available about gene in NCG7.0. Order is the same as in column gene.
+##DESCRIPTION=ncg_tsg=1:gene is TSG according NCG7.0, 0:No TSG according NCG7.0, na: no information available about gene in NCG7.0. Order is the same as in column gene.
 ##DESCRIPTION=an_somatic_gsvar_in1_rna_depth=Depth in RNA BAM file /mnt/storage1/users/ahott1a1/megSAP/test/data/an_somatic_gsvar_in1.bam
 ##DESCRIPTION=an_somatic_gsvar_in1_rna_af=Allele frequency in RNA BAM file /mnt/storage1/users/ahott1a1/megSAP/test/data/an_somatic_gsvar_in1.bam
 ##DESCRIPTION=an_somatic_gsvar_in1_rna_tpm=Transcript count as annotated per gene from /mnt/storage1/users/ahott1a1/megSAP/test/data/an_somatic_gsvar_in1_counts.tsv

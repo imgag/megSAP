@@ -1287,11 +1287,11 @@ function ncg_gene_statements($gene)
 	$result = array("is_oncogene" => "na", "is_tsg" => "na");
 	
 	//file with data about TSG / oncogene from NCG6.0
-	$ncg_file = get_path("data_folder") . "/dbs/NCG6.0/NCG6.0_oncogene.tsv";
+	$ncg_file = get_path("data_folder") . "/dbs/NCG7.0/NCG7.0_oncogene.tsv";
 	
 	if(!file_exists($ncg_file))
 	{
-		trigger_error("Could not find file with NCG6.0 data",E_USER_WARNING);
+		trigger_error("Could not find file with NCG7.0 data",E_USER_WARNING);
 		return $result;
 	}
 	
