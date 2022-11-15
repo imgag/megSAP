@@ -88,7 +88,9 @@ if (!$all_transcripts)
 }
 
 $args[] = "--fields ".implode(",", $fields);
-putenv("PERL5LIB={$vep_path}/Bio/:{$vep_path}/cpan/lib/perl5/:".getenv("PERL5LIB"));
+
+$perl_cpan = get_path("perl_cpan");
+putenv("PERL5LIB={$vep_path}/Bio/:{$perl_cpan}/lib/perl5/:".getenv("PERL5LIB"));
 $parser->exec(get_path("vep"), implode(" ", $args), true);
 
 //print VEP warnings
@@ -136,7 +138,7 @@ fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
 
 //precalculated SpliceAI scores
-$spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2022_05_24_GRCh38.vcf.gz");
+$spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2022_10_28_GRCh38.vcf.gz");
 if (file_exists($spliceai_file))
 {
 	fwrite($config_file, $spliceai_file."\t\tSpliceAI\t\n");

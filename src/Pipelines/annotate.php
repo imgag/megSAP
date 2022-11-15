@@ -127,7 +127,7 @@ function annotate($parser, $vcffile, $out_name, $out_folder, $system, $no_fc, $m
 					$parser->exec(get_path("ngs-bits")."VariantAnnotateASE", "-in {$varfile} -out {$varfile} -bam {$bam_rna}", true);
 
 					//check sample similarity
-					$min_corr = 0.9;
+					$min_corr = 0.85;
 					$dna_sample_info = get_processed_sample_info($db, $out_name);
 					$dna_bam = $dna_sample_info["ps_bam"];
 

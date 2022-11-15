@@ -12,8 +12,8 @@ dbs=$root/dbs/
 # dbs=/mnt/storage2/GRCh38/share/data/dbs/
 
 vep_install_dir=$tools/ensembl-vep-release-107.0/
-vep_cpan_dir=$vep_install_dir/cpan/
 vep_data_dir=$dbs/ensembl-vep-107/
+cpan_dir=$tools/perl_cpan/
 
 # download ensembl-vep
 cd $tools
@@ -23,8 +23,8 @@ tar -C $vep_install_dir --strip-components=1 -xzf 107.0.tar.gz
 rm 107.0.tar.gz
 
 #install dependencies
-mkdir -p $vep_cpan_dir
-cpanm -l $vep_cpan_dir -L $vep_cpan_dir Set::IntervalTree URI::Escape DB_File Carp::Assert JSON::XS PerlIO::gzip DBI
+mkdir -p $cpan_dir
+cpanm -l $cpan_dir -L $cpan_dir Set::IntervalTree URI::Escape DB_File Carp::Assert JSON::XS PerlIO::gzip DBI
 
 #download VEP cache data
 mkdir -p $vep_data_dir
@@ -34,7 +34,7 @@ cd ftp
 wget ftp://ftp.ensembl.org/pub/release-107/variation/indexed_vep_cache/homo_sapiens_vep_107_GRCh38.tar.gz
 
 #install ensembl-vep
-PERL5LIB=$vep_install_dir/Bio/:$vep_cpan_dir/lib/perl5/:$PERL5LIB
+PERL5LIB=$vep_install_dir/Bio/:$cpan_dir/lib/perl5/:$PERL5LIB
 cd $vep_install_dir
 perl INSTALL.pl --SPECIES homo_sapiens --ASSEMBLY GRCh38 --AUTO acp --PLUGINS REVEL,CADD,MaxEntScan --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST --NO_HTSLIB
 cp $vep_data_dir/cache/Plugins/*.pm $vep_install_dir/modules/ #should not be necessary - probably a bug in the VEP installation script when using the CACHEDIR option (MS)

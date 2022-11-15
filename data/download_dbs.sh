@@ -132,16 +132,16 @@ rm -f revel_tmp.tsv.gz h
 cd $dbs
 mkdir -p GIAB/NA12878
 cd GIAB/NA12878
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-10X-SOLID_CHROM1-X_v.3.3.2_highconf_PGandRTGphasetransfer.vcf.gz -O high_conf_variants_GRCh38.vcf.gz
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-10X-SOLID_CHROM1-X_v.3.3.2_highconf_PGandRTGphasetransfer.vcf.gz.tbi -O high_conf_variants_GRCh38.vcf.gz.tbi
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-10X-SOLID_CHROM1-X_v.3.3.2_highconf_nosomaticdel_noCENorHET7.bed -O high_conf_regions_GRCh38.bed
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz -O high_conf_variants_GRCh38.vcf.gz
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz.tbi -O high_conf_variants_GRCh38.vcf.gz.tbi
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.bed -O high_conf_regions_GRCh38.bed
 
 #download annotation file for SpliceAI
 cd $dbs
 mkdir SpliceAI
 cd SpliceAI
-wget https://download.imgag.de/public/splicing/spliceai_scores_2022_05_24_GRCh38.vcf.gz -O spliceai_scores_2022_05_24_GRCh38.vcf.gz
-tabix -C -m 9 -p vcf spliceai_scores_2022_05_24_GRCh38.vcf.gz
+wget https://download.imgag.de/public/splicing/spliceai_scores_2022_10_28_GRCh38.vcf.gz -O spliceai_scores_2022_10_28_GRCh38.vcf.gz
+tabix -C -m 9 -p vcf spliceai_scores_2022_10_28_GRCh38.vcf.gz
 
 #install OMIM (you might need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
 #cd $dbs

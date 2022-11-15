@@ -19,21 +19,14 @@ $parser->addFlag("exon_level", "Perform exon-level read counting.");
 $parser->addString("gtf_file", "GTF file containing feature annotations used for read counting.", true, get_path("data_folder")."/dbs/gene_annotations/GRCh38.gtf");
 $parser->addString("feature_type", "Feature type used for mapping reads to features.", true, "exon");
 $parser->addString("gtf_attribute", "Attribute used as feature ID.", true, "gene_id");
-
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
 $parser->addFlag("single_end", "Single-end data.");
-
 $parser->addInt("min_mapq", "Minimal mapping quality.", true, 3);
-
 $parser->addFlag("overlap", "Count reads multiple times if they overlap more than one feature.");
-
 $parser->addString("qc_file", "If specified, write expression/assignment QC file.", true, "");
 $parser->addFlag("qc_skip_strandedness", "Skip strandedness/library compatibility QC calculations.");
-
 $parser->addFlag("ignore_dup", "Do not count alignments flagged as duplicates.");
-
 $parser->addOutfile("out_report", "Output report file in BAM format.", true);
-
 $parser->addInt("threads", "Number of threads used for read counting", true, 4);
 extract($parser->parse($argv));
 

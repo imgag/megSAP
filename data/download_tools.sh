@@ -2,6 +2,7 @@
 
 root=`pwd`
 folder=$root/tools/
+cpan_dir=$folder/perl_cpan/
 
 #download and build ngs-bits
 cd $folder
@@ -107,43 +108,8 @@ tar xzf circos-0.69-9.tgz
 rm circos-0.69-9.tgz
 
 # install required Perl modules for Circos in a subfolder
-circos_cpan_dir=$folder/circos-0.69-9/cpan/
-mkdir -p $circos_cpan_dir
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Carp
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Clone
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Config::General
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Cwd
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Data::Dumper
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Digest::MD5
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir File::Basename
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir File::Spec::Functions
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir File::Temp
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir FindBin
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Font::TTF::Font
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir GD
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir GD::Polyline
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Getopt::Long
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir IO::File
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir List::MoreUtils
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir List::Util
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Math::Bezier
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Math::BigFloat
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Math::Round
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Math::VecStat
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Memoize
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir POSIX
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Params::Validate
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Pod::Usage
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Readonly
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Regexp::Common
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir SVG
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Set::IntSpan
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Statistics::Basic
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Storable
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Sys::Hostname
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Text::Balanced
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Text::Format
-cpanm -l $circos_cpan_dir -L $circos_cpan_dir Time::HiRes
+mkdir -p $cpan_dir
+cpanm -l $cpan_dir -L $cpan_dir Carp Clone Config::General Cwd Data::Dumper Digest::MD5 File::Basename File::Spec::Functions File::Temp FindBin Font::TTF::Font GD GD::Polyline Getopt::Long IO::File List::MoreUtils List::Util Math::Bezier Math::BigFloat Math::Round Math::VecStat Memoize POSIX Params::Validate Pod::Usage Readonly Regexp::Common SVG Set::IntSpan Statistics::Basic Storable Sys::Hostname Text::Balanced Text::Format Time::HiRes
 circos-0.69-9/bin/circos -modules
 
 #download ExpansionHunter

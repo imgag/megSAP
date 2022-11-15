@@ -15,6 +15,7 @@ bwa = [path]/data/tools/bwa-0.7.17/bwa
 bwa-mem2 = [path]/data/tools/bwa-mem2-2.2.1_x64-linux/bwa-mem2
 vep = [path]/data/tools/ensembl-vep-release-107.0/vep
 vep_data = [path]/data/dbs/ensembl-vep-107/
+perl_cpan = [path]/data/tools/perl_cpan/
 interop = [path]/data/tools/InterOp-1.1.21-Linux-GNU/bin/summary
 rscript = [path]/R-4.1.0/bin/Rscript
 clincnv = [path]/data/tools/ClinCNV-1.18.0/clinCNV.R
