@@ -97,7 +97,7 @@ while(!feof($handle_in))
 			
 			
 			$vep_gene = $vep_parts [$i_vep_symbol];
-			$vep_trans = $vep_parts [$i_vep_feature];
+			$vep_trans = explode(".", $vep_parts [$i_vep_feature].".")[0]; # remove transcript version if annotated
 			
 			//Parse VEP amino acid change
 			$vep_hgvsp_parts = explode(":", vcf_decode_url_string( $vep_parts [$i_vep_hgvsp] ) );
@@ -115,7 +115,6 @@ while(!feof($handle_in))
 			$vep_alterations[] = array("gene" => $vep_gene, "transcript" => $vep_trans, "aa_ref" => aa3_to_aa1($vep_aa_ref), "aa_pos" => $vep_aa_pos, "aa_alt" => aa3_to_aa1($vep_aa_alt) );
 		}
 	}
-	
 	
 	//query database file
 	$matches = array();
