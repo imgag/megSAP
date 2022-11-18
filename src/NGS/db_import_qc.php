@@ -89,7 +89,7 @@ foreach($files as $file)
 				}
 				break;
 			case "base64Binary": //skip plots
-				continue;
+				continue(2);
 				break;
 			default:
 				trigger_error("Internal error: Unknown QC term type '$type'!", E_USER_ERROR);

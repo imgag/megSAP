@@ -95,7 +95,7 @@ function annotate($parser, $vcffile, $out_name, $out_folder, $system, $no_fc, $m
 
 	//zip annotated VCF file
 	$parser->exec("bgzip", "-c $annfile > $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
-	$parser->exec("tabix", "-p vcf $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
+	$parser->exec("tabix", "-f -p vcf $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 
 	//convert to GSvar file
 	if (!$somatic) //germline only

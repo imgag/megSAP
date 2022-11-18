@@ -55,8 +55,11 @@ if(db_is_enabled("NGSD"))
 {
 	$db_conn = DB::getInstance("NGSD");
 	$psample_info = get_processed_sample_info($db_conn, $basename, false);
-	$group_props[] = "PM:".$psample_info['device_type'];
-	$group_props[] = "en:".$psample_info['sys_name'];
+	if ($psample_info!=NULL)
+	{
+		$group_props[] = "PM:".$psample_info['device_type'];
+		$group_props[] = "en:".$psample_info['sys_name'];
+	}
 }
 //add quotes
 $group_props = preg_filter('/^/', '"', $group_props);

@@ -1118,13 +1118,16 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 	{
 		$db_conn = DB::getInstance("NGSD", false);
 		$details = get_processed_sample_info($db_conn, $ps_name, false);
-		$parts['Gender'] = $details['gender'];
-		$parts['ExternalSampleName'] = strtr($details['name_external'], ",", ";");
-		$parts['IsTumor'] = $details['is_tumor'] ? "yes" : "no";
-		$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
-		$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
-		$parts['DiseaseGroup'] = strtr($details['disease_group'], ",", ";");
-		$parts['DiseaseStatus'] = $details['disease_status'];
+		if ($details!=NULL)
+		{
+			$parts['Gender'] = $details['gender'];
+			$parts['ExternalSampleName'] = strtr($details['name_external'], ",", ";");
+			$parts['IsTumor'] = $details['is_tumor'] ? "yes" : "no";
+			$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
+			$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
+			$parts['DiseaseGroup'] = strtr($details['disease_group'], ",", ";");
+			$parts['DiseaseStatus'] = $details['disease_status'];
+		}
 	}
 	
 	//apply overwrite settings

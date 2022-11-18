@@ -289,6 +289,6 @@ if ($target_extend>0)
 }
 
 //(4) index output file
-$parser->exec("tabix", "-p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
 
 ?>
