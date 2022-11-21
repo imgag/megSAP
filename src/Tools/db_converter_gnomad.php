@@ -6,17 +6,18 @@ $handle = fopen2("php://stdin", "r");
 while($line = fgets($handle))
 {
 	$line = trim($line);
-	if ($line=="") continue;
-	if($line[0]=="#")
+	if ($line=='') continue;
+
+	if($line[0]=='#')
 	{
-		if (in_array("-header", $argv))
+		if (in_array('-header', $argv))
 		{
-			if($line[1]=="#")
+			if($line[1]=='#')
 			{
 				//comment section
 
 				//skip INFO ID headers (not present in output file)
-				if (starts_with($line, "##INFO=<ID=")) continue;
+				if (starts_with($line, '##INFO=<ID=')) continue;
 
 				//print comment line
 				print $line."\n";
@@ -28,12 +29,16 @@ while($line = fgets($handle))
 				// add INFO column header:
 				print "##INFO=<ID=AN,Number=1,Type=Integer,Description=\"Total number of alleles in samples\">\n";
 				print "##INFO=<ID=AF,Number=A,Type=Float,Description=\"Alternate allele frequency in samples\">\n";
+				print "##INFO=<ID=AFR_AF,Number=A,Type=Float,Description=\"Alternate allele frequency in AFR samples\">\n";
+				print "##INFO=<ID=AMR_AF,Number=A,Type=Float,Description=\"Alternate allele frequency in AMR samples\">\n";
+				print "##INFO=<ID=EAS_AF,Number=A,Type=Float,Description=\"Alternate allele frequency in EAS samples\">\n";
+				print "##INFO=<ID=NFE_AF,Number=A,Type=Float,Description=\"Alternate allele frequency in NFE samples\">\n";
+				print "##INFO=<ID=SAS_AF,Number=A,Type=Float,Description=\"Alternate allele frequency in SAS samples\">\n";
 				print "##INFO=<ID=AC,Number=A,Type=Float,Description=\"Alternate allele count\">\n";
 				print "##INFO=<ID=Hom,Number=A,Type=Integer,Description=\"Count of homozygous individuals in samples\">\n";
 				print "##INFO=<ID=Hemi,Number=A,Type=Integer,Description=\"Alternate allele count for male samples\">\n";
 				print "##INFO=<ID=Het,Number=A,Type=Integer,Description=\"Count of heterozygous alleles in all samples.\">\n";
 				print "##INFO=<ID=Wt,Number=A,Type=Integer,Description=\"Count of wildtype alleles in all samples.\">\n";
-				
 				
 				//print header line
 				print $line."\n";
@@ -42,72 +47,100 @@ while($line = fgets($handle))
 		continue;
 	}
 	
-	$parts = explode("\t", $line);
-	list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info) = $parts;
-	$info = explode(";", $info);
-	
-	//get required infos
-	$is_chrx = $chr=="chrX";
-	$is_chry = $chr=="chrY";
-	
-	$nonpar = in_array("nonpar", $info);
+	list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info) = explode("\t", $line);
+		
+	//parse info entries
+	$nonpar = false;
 	$ac = null;
 	$af = null;
 	$an = null;
 	$hom = null;
-	$hemi = null;
-	$n_alt = null;
-	
-	foreach ($info as $entry)
+	$ac_xy = null;
+	$af_afr = null;
+	$af_amr = null;
+	$af_eas = null;
+	$af_nfe = null;
+	$af_sas = null;
+	foreach(explode(';', $info) as $entry)
 	{
-		if (starts_with($entry, "AC="))
+		$sep_idx = strpos($entry, '=');
+		if ($sep_idx===false)
 		{
-			$ac = substr($entry, 3);
+			if ($entry=='nonpar') $nonpar = true;
 		}
-		else if (starts_with($entry, "AF="))
+		else
 		{
-			$af = substr($entry, 3);
-		}
-		else if (starts_with($entry, "AN="))
-		{
-			$an = substr($entry, 3);
-		}
-		else if (starts_with($entry, "nhomalt="))
-		{
-			$hom = substr($entry, 8);
-		}
-		else if (starts_with($entry, "n_alt_alleles="))
-		{
-			$n_alt = substr($entry, 14);
-		}
-		else if ($is_chrx && $nonpar && starts_with($entry, "AC_XY="))
-		{
-			$hemi = substr($entry, 6);
+			$key = substr($entry, 0, $sep_idx);
+			if ($key=='AC')
+			{
+				$ac = substr($entry, $sep_idx+1);
+			}
+			else if ($key=='AF')
+			{
+				$af = substr($entry, $sep_idx+1);
+			}
+			else if ($key=='AN')
+			{
+				$an = substr($entry, $sep_idx+1);
+			}
+			else if ($key=='nhomalt')
+			{
+				$hom = substr($entry, $sep_idx+1);
+			}
+			else if ($key=='AC_XY')
+			{
+				$ac_xy = substr($entry, $sep_idx+1);
+			}
+			else if ($key=='AF_afr')
+			{
+				$af_afr = substr($entry, $sep_idx+1);
+			}
+			else if ($key=='AF_amr')
+			{
+				$af_amr = substr($entry, $sep_idx+1);
+			}
+			else if ($key=='AF_eas')
+			{
+				$af_eas = substr($entry, $sep_idx+1);
+			}
+			else if ($key=='AF_nfe')
+			{
+				$af_nfe = substr($entry, $sep_idx+1);
+			}
+			else if ($key=='AF_sas')
+			{
+				$af_sas = substr($entry, $sep_idx+1);
+			}
 		}
 	}
 	
 	$info_new = array();
-	$info_new[] = "AN=".$an;
-	if ($is_chrx && $nonpar && ! is_null($hemi))
+	$info_new[] = 'AN='.$an;
+	if ($chr=='chrX' && $nonpar && ! is_null($ac_xy))
 	{
-		$info_new[] = "Hemi=".$hemi; //($is_chrx && $nonpar ? $hemi : ".");
+		$info_new[] = 'Hemi='.$ac_xy;
 	}
-	else if ($is_chry)
+	else if ($chr=='chrY')
 	{
-		$info_new[] = "Hemi=".$ac; // full ac for chry variants as they are always hemizygote. 
+		$info_new[] = 'Hemi='.$ac; // full AC for chrY variants as they are always hemizygote
 	}
 	else
 	{
-		$info_new[] = "Hemi=.";
+		$info_new[] = 'Hemi=.';
 	}
 	
-	$info_new[] = "Hom=".$hom;
-	$info_new[] = "Het=".($ac - 2*$hom);
-	$info_new[] = "Wt=".($an-$ac);
-	$info_new[] = "AC=".$ac;
-	$info_new[] = "AF=".($an<200 ? '0.0' : number_format($af, 5));
+	$info_new[] = 'Hom='.$hom;
+	$info_new[] = 'Het='.($ac - 2*$hom);
+	$info_new[] = 'Wt='.($an-$ac);
+	$info_new[] = 'AC='.$ac;
+	$info_new[] = 'AF='.($an<1000 ? '0.0' : number_format($af, 5));
+	$info_new[] = 'AFR_AF='.($an<1000 ? '0.0' : number_format($af_afr, 5));
+	$info_new[] = 'AMR_AF='.($an<1000 ? '0.0' : number_format($af_amr, 5));
+	$info_new[] = 'EAS_AF='.($an<1000 ? '0.0' : number_format($af_eas, 5));
+	$info_new[] = 'NFE_AF='.($an<1000 ? '0.0' : number_format($af_nfe, 5));
+	$info_new[] = 'SAS_AF='.($an<1000 ? '0.0' : number_format($af_sas, 5));
 
-	print "$chr\t$pos\t$id\t$ref\t$alt\t$qual\t$filter\t".implode(";", $info_new)."\n";
+	print "$chr\t$pos\t$id\t$ref\t$alt\t$qual\t$filter\t".implode(';', $info_new)."\n";
 }
 fclose($handle);
 

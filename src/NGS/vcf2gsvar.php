@@ -419,14 +419,7 @@ while(!feof($handle))
 			$i_sift = index_of($cols, "SIFT");
 			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_revel = index_of($cols, "REVEL");
-			$i_polyphen = index_of($cols, "PolyPhen");
 			$i_existingvariation = index_of($cols, "Existing_variation");
-			$i_af_gnomad = index_of($cols, "gnomAD_AF");
-			$i_af_gnomad_afr = index_of($cols, "gnomAD_AFR_AF");
-			$i_af_gnomad_amr = index_of($cols, "gnomAD_AMR_AF");
-			$i_af_gnomad_eas = index_of($cols, "gnomAD_EAS_AF");
-			$i_af_gnomad_nfe = index_of($cols, "gnomAD_NFE_AF");
-			$i_af_gnomad_sas = index_of($cols, "gnomAD_SAS_AF");
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
 			$i_pubmed = index_of($cols, "PUBMED", false); 
@@ -717,14 +710,6 @@ while(!feof($handle))
 			
 			//######################### general information (not transcript-specific) #########################
 			
-			//AFs
-			$af_gnomad[] = trim($parts[$i_af_gnomad]);
-			$af_gnomad_afr[] = trim($parts[$i_af_gnomad_afr]);
-			$af_gnomad_amr[] = trim($parts[$i_af_gnomad_amr]);
-			$af_gnomad_eas[] = trim($parts[$i_af_gnomad_eas]);
-			$af_gnomad_nfe[] = trim($parts[$i_af_gnomad_nfe]);
-			$af_gnomad_sas[] = trim($parts[$i_af_gnomad_sas]);
-			
 			//dbSNP, COSMIC
 			$ids = explode("&", $parts[$i_existingvariation]);
 			foreach($ids as $id)
@@ -963,7 +948,13 @@ while(!feof($handle))
 	if (isset($info["gnomADg_Hemi"])) $hemi_gnomad[] = trim($info["gnomADg_Hemi"]);
 	if (isset($info["gnomADg_Het"])) $het_gnomad[] = trim($info["gnomADg_Het"]);
 	if (isset($info["gnomADg_Wt"])) $wt_gnomad[] = trim($info["gnomADg_Wt"]);
-	
+
+	//genomAD sub-populations
+	if (isset($info["gnomADg_AFR_AF"])) $af_gnomad_afr[] = trim($info["gnomADg_AFR_AF"]);
+	if (isset($info["gnomADg_AMR_AF"])) $af_gnomad_amr[] = trim($info["gnomADg_AMR_AF"]);
+	if (isset($info["gnomADg_EAS_AF"])) $af_gnomad_eas[] = trim($info["gnomADg_EAS_AF"]);
+	if (isset($info["gnomADg_NFE_AF"])) $af_gnomad_nfe[] = trim($info["gnomADg_NFE_AF"]);
+	if (isset($info["gnomADg_SAS_AF"])) $af_gnomad_sas[] = trim($info["gnomADg_SAS_AF"]);
 
 	//ClinVar
 	if (isset($info["CLINVAR_ID"]) && isset($info["CLINVAR_DETAILS"]))
@@ -978,7 +969,6 @@ while(!feof($handle))
 			}
 		}
 	}
-	
 
 	//HGMD
 	if (isset($info["HGMD_ID"]))
@@ -994,9 +984,7 @@ while(!feof($handle))
 
 	//AFs
 	$dbsnp = implode(",", collapse($tag, "dbSNP", $dbsnp, "unique"));	
-	$gnomad = collapse($tag, "gnomAD", $af_gnomad, "one", 4);
-	$gnomad_genome = collapse($tag, "gnomAD genome", $af_gnomad_genome, "max", 4);
-	$gnomad = max($gnomad, $gnomad_genome);
+	$gnomad = collapse($tag, "gnomAD genome", $af_gnomad_genome, "max", 4);
 	$gnomad_hom_hemi = collapse($tag, "gnomAD Hom", $hom_gnomad, "one").",".collapse($tag, "gnomAD Hemi", $hemi_gnomad, "one");
 	if ($gnomad_hom_hemi==",") $gnomad_hom_hemi = "";
 	$gnomad_sub = collapse($tag, "gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse($tag, "gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse($tag, "gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse($tag, "gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse($tag, "gnomAD SAS", $af_gnomad_sas, "one", 4);

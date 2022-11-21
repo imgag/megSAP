@@ -48,6 +48,7 @@ Changes of master since last release:
 * updated VEP to version 107.
 * updated ngs-bits to version 2022_10 (improved/added multithreading in several tools).
 * updates ClinCNV to version 1.18.0 (improved handling of PAR region).
+* gnomAD exome data from VEP is no longer used. Only gnomAD genome data is used now for variant with AC>=1000.
 * minor fixes and updates.
 
 For older changes see [releases](https://github.com/imgag/megSAP/releases).

@@ -632,7 +632,7 @@ if (in_array("vc", $steps))
 		$args = array();
 		$args[] = "-in $vcffile_annotated";
 		$args[] = "-out $rohfile";
-		$args[] = "-var_af_keys_vep gnomAD_AF -var_af_keys gnomADg_AF"; //use gnomAD exome, gnomAD genome
+		$args[] = "-var_af_keys gnomADg_AF";
 		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 		$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".(file_exists($omim_file) ? $omim_file : "");
 		$parser->exec("{$ngsbits}RohHunter", implode(" ", $args), true);

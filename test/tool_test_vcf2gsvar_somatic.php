@@ -8,7 +8,6 @@ start_test($name);
 //init
 check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
 
-
 //strelka (tumor-normal pair), vcf file has COSMIC CMC and CANCERHOTSPOTS annotation
 $out_file1 = output_folder().$name."_out1.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in1.vcf -out $out_file1 -t_col GS110168_03 -n_col GS110169_03 -db NGSD_TEST --log ".output_folder().$name."_out1.log");

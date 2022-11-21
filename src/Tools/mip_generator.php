@@ -28,7 +28,7 @@ $temp_folder = $parser->tempFolder("MipGenerator_");
 
 //check db file
 if (!file_exists($snp_db)) trigger_error("VCF given for parameter '-snp_db' ('${snp_db}') not found!", E_USER_ERROR);
-if (!file_exists($snp_db.".tbi")) trigger_error("VCF index file for parameter '-snp_db' is missing!", E_USER_ERROR);
+if (!file_exists($snp_db.".tbi") && !file_exists($snp_db.".csi")) trigger_error("VCF index file for parameter '-snp_db' is missing!", E_USER_ERROR);
 
 // 1. extract common SNPs
 $output = array();

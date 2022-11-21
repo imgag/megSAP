@@ -2633,9 +2633,14 @@
 ##INFO=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
 ##INFO=<ID=END,Number=1,Type=Integer,Description="Last position (inclusive) in gVCF output record.">
 ##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
-##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|DOMAINS|SIFT|PolyPhen|Existing_variation|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_EAS_AF|gnomAD_NFE_AF|gnomAD_SAS_AF|BIOTYPE|REVEL|MaxEntScan_ref|MaxEntScan_alt|PUBMED">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|DOMAINS|SIFT|PolyPhen|Existing_variation|BIOTYPE|REVEL|MaxEntScan_ref|MaxEntScan_alt|PUBMED">
 ##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="/tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/hg38.phyloP100way.bw (ngs-bits/VcfAnnotateFromBigWig - mode max)">
 ##INFO=<ID=gnomADg_AF,Number=A,Type=Float,Description="Alternate allele frequency in samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
+##INFO=<ID=gnomADg_AFR_AF,Number=A,Type=Float,Description="Alternate allele frequency in AFR samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
+##INFO=<ID=gnomADg_AMR_AF,Number=A,Type=Float,Description="Alternate allele frequency in AMR samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
+##INFO=<ID=gnomADg_EAS_AF,Number=A,Type=Float,Description="Alternate allele frequency in EAS samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
+##INFO=<ID=gnomADg_NFE_AF,Number=A,Type=Float,Description="Alternate allele frequency in NFE samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
+##INFO=<ID=gnomADg_SAS_AF,Number=A,Type=Float,Description="Alternate allele frequency in SAS samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADg_AC,Number=A,Type=Float,Description="Alternate allele count (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADg_Hom,Number=A,Type=Integer,Description="Count of homozygous individuals in samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADg_Hemi,Number=A,Type=Integer,Description="Alternate allele count for male samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">

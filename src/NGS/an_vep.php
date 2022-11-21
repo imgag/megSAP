@@ -57,7 +57,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 $vep_output = $parser->tempFile("_vep.vcf");
 
 //annotate only fields we really need to prevent bloating the VCF file 
-$fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation", "gnomAD_AF", "gnomAD_AFR_AF", "gnomAD_AMR_AF", "gnomAD_EAS_AF", "gnomAD_NFE_AF", "gnomAD_SAS_AF");
+$fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation");
 
 $vep_path = dirname(get_path("vep"));
 $local_data = get_path("local_data");
@@ -70,11 +70,10 @@ $args[] = "-o $vep_output --vcf --no_stats --force_overwrite"; //output
 $args[] = "--species homo_sapiens --assembly {$build}"; //species
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
 $args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".genome_fasta($build); //paths to data
-$args[] = "--numbers --hgvs --domains --transcript_version"; //annotation options
+$args[] = "--numbers --hgvs --transcript_version --domains --failed 1"; //annotation options
 $args[] = "--regulatory"; //regulatory features
 $fields[] = "BIOTYPE"; 
 $args[] = "--sift b --polyphen b"; //pathogenicity predictions
-$args[] = "--af_gnomad --failed 1"; //population frequencies
 $args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_grch38_all_chromosomes.tsv.gz"); //REVEL
 $fields[] = "REVEL";
 $args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
@@ -120,7 +119,7 @@ $config_file = fopen2($config_file_path, 'w');
 
 
 // add gnomAD annotation
-fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt\t\ttrue\n");
+fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF\t\ttrue\n");
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz")."\tgnomADm\tAF_hom\t\ttrue\n");
 
 // add clinVar annotation
