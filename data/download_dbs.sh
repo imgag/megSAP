@@ -170,12 +170,18 @@ tabix -C -m 9 -p vcf spliceai_scores_2022_10_28_GRCh38.vcf.gz
 #install NGSD
 #
 #The usage of the NGSD annotation is optional. 
-#To generate the required VCF and BED files follow the instructions at https://github.com/imgag/ngs-bits/blob/master/doc/install_ngsd.md#export-ngsd-annotation-data (Export NGSD annotation data)
+#To generate the required VCF, BEDPE and BED files follow the instructions at https://github.com/imgag/ngs-bits/blob/master/doc/install_ngsd.md#export-ngsd-annotation-data (Export NGSD annotation data)
 #The generated files have to be linked to "$data_folder/dbs/NGSD/" as symbolic links and have to be named as follows:
 #	- "NGSD_germline.vcf.gz" for the germline export 
 #	- "NGSD_somatic.vcf.gz" for the somatic export 
 #	- "NGSD_genes.bed" for the gene info
-#It is required the these files are symbolic links to avoid wrong annotations while performing a new export! (megSAP will check if these files are symlinks and fail if not)
+#	- "sv_deletion.bedpe.gz" for deletions
+#	- "sv_duplication.bedpe.gz" for duplications
+#	- "sv_insertion.bedpe.gz" for insertions
+#	- "sv_inversion.bedpe.gz" for inversions
+#	- "sv_translocation.bedpe.gz" for translocation
+#	- "sv_breakpoint_density.igv" for breakpoints
+#It is required the these files are symbolic links to avoid wrong annotations while performing a new export (megSAP will check if these files are symlinks and fail if not)
 #The actual files should be updated on regular bases (e.g. by using a cron job).
 #Example code (generates a date based subfolder and links the generated files to the main folder):
 #cd $dbs
@@ -206,3 +212,45 @@ tabix -C -m 9 -p vcf spliceai_scores_2022_10_28_GRCh38.vcf.gz
 #ln -s $curdate/NGSD_somatic.vcf.gz NGSD_somatic.vcf.gz
 #ln -s $curdate/NGSD_germline.vcf.gz.tbi NGSD_germline.vcf.gz.tbi
 #ln -s $curdate/NGSD_somatic.vcf.gz.tbi NGSD_somatic.vcf.gz.tbi
+#
+#bgzip -c $curdate/sv_deletion.bedpe > $curdate/sv_deletion.bedpe.gz
+#bgzip -c $curdate/sv_duplication.bedpe > $curdate/sv_duplication.bedpe.gz
+#bgzip -c $curdate/sv_insertion.bedpe > $curdate/sv_insertion.bedpe.gz
+#bgzip -c $curdate/sv_inversion.bedpe > $curdate/sv_inversion.bedpe.gz
+#$ngsbits/BedpeSort -in $curdate/sv_translocation.bedpe -out $curdate/sv_translocation.bedpe
+#bgzip -c $curdate/sv_translocation.bedpe > $curdate/sv_translocation.bedpe.gz
+#
+#tabix -0 -b 2 -e 5 $curdate/sv_deletion.bedpe.gz
+#tabix -0 -b 2 -e 5 $curdate/sv_duplication.bedpe.gz
+#tabix -0 -b 2 -e 3 $curdate/sv_insertion.bedpe.gz
+#tabix -0 -b 2 -e 5 $curdate/sv_inversion.bedpe.gz
+#tabix -0 -b 2 -e 3 $curdate/sv_translocation.bedpe.gz
+#
+#rm $curdate/sv_*.bedpe
+#
+#rm -f sv_deletion.bedpe.gz
+#rm -f sv_duplication.bedpe.gz
+#rm -f sv_insertion.bedpe.gz
+#rm -f sv_inversion.bedpe.gz
+#rm -f sv_translocation.bedpe.gz
+#rm -f sv_breakpoint_density.igv
+#
+#rm -f sv_deletion.bedpe.gz.tbi
+#rm -f sv_duplication.bedpe.gz.tbi
+#rm -f sv_insertion.bedpe.gz.tbi
+#rm -f sv_inversion.bedpe.gz.tbi
+#rm -f sv_translocation.bedpe.gz.tbi
+#
+#ln -s $curdate/sv_deletion.bedpe.gz sv_deletion.bedpe.gz
+#ln -s $curdate/sv_duplication.bedpe.gz sv_duplication.bedpe.gz
+#ln -s $curdate/sv_insertion.bedpe.gz sv_insertion.bedpe.gz
+#ln -s $curdate/sv_inversion.bedpe.gz sv_inversion.bedpe.gz
+#ln -s $curdate/sv_translocation.bedpe.gz sv_translocation.bedpe.gz
+#
+#ln -s $curdate/sv_deletion.bedpe.gz.tbi sv_deletion.bedpe.gz.tbi
+#ln -s $curdate/sv_duplication.bedpe.gz.tbi sv_duplication.bedpe.gz.tbi
+#ln -s $curdate/sv_insertion.bedpe.gz.tbi sv_insertion.bedpe.gz.tbi
+#ln -s $curdate/sv_inversion.bedpe.gz.tbi sv_inversion.bedpe.gz.tbi
+#ln -s $curdate/sv_translocation.bedpe.gz.tbi sv_translocation.bedpe.gz.tbi
+#
+#ln -s $curdate/sv_breakpoint_density.igv sv_breakpoint_density.igv
