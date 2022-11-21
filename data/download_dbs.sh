@@ -121,7 +121,7 @@ $ngsbits/VcfCheck -in CADD_SNVs_1.6_GRCh38.vcf.gz -lines 0 –ref $genome
 cd $dbs
 mkdir REVEL
 cd REVEL
-wget https://rothsj06.u.hpc.mssm.edu/revel-v1.3_all_chromosomes.zip
+wget https://zenodo.org/record/7072866/files/revel-v1.3_all_chromosomes.zip
 unzip -p revel-v1.3_all_chromosomes.zip | tr ',' '\t' | sed '1s/.*/#&/' | bgzip > revel_tmp.tsv.gz
 zcat revel_tmp.tsv.gz | head -n1 > h
 zgrep -h -v ^#chr revel_tmp.tsv.gz | $ngsbits/TsvFilter -numeric -v -filter '3 is .' | egrep -v '^#\s' | sort -k1,1 -k3,3n - | cat h - | cut -f1-8 | bgzip -c > revel_grch38_all_chromosomes.tsv.gz
