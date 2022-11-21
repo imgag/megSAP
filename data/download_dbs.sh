@@ -50,7 +50,7 @@ cat hg38.fa.out | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/BedSor
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20220924.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20220924_converted_GRCh38.vcf.gz
+wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2022/clinvar_20220924.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20220924_converted_GRCh38.vcf.gz
 tabix -C -m 9 -p vcf clinvar_20220924_converted_GRCh38.vcf.gz
 #CNVs
 wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2022-10.txt.gz | gunzip > variant_summary_2022-10.txt
@@ -114,8 +114,8 @@ zcat CADD_InDels_1.6_GRCh38.tsv.gz | php $src/Tools/db_converter_cadd.php -build
 tabix -f -C -m 9 -p vcf CADD_InDels_1.6_GRCh38.vcf.gz
 zcat CADD_SNVs_1.6_GRCh38.tsv.gz | php $src/Tools/db_converter_cadd.php -build GRCh38 -in - -out - | $ngsbits/VcfStreamSort | bgzip > CADD_SNVs_1.6_GRCh38.vcf.gz
 tabix -f -C -m 9 -p vcf CADD_SNVs_1.6_GRCh38.vcf.gz
-$ngsbits/VcfCheck -in CADD_InDels_1.6_GRCh38.vcf.gz -lines 0 –ref $genome
-$ngsbits/VcfCheck -in CADD_SNVs_1.6_GRCh38.vcf.gz -lines 0 –ref $genome
+$ngsbits/VcfCheck -in CADD_InDels_1.6_GRCh38.vcf.gz -lines 1000 -ref $genome
+$ngsbits/VcfCheck -in CADD_SNVs_1.6_GRCh38.vcf.gz -lines 1000 -ref $genome
 
 #Install REVEL for VEP - https://sites.google.com/site/revelgenomics/downloads
 cd $dbs
