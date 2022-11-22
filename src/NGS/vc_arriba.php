@@ -83,7 +83,7 @@ if (isset($out_pdf)) {
         "--proteinDomains={$arriba_ref}/protein_domains_{$arriba_build}_{$arriba_ver}.gff3",
         "--minConfidenceForCircosPlot=none"
     ];
-    $parser->exec(get_path("arriba") . "/conda_env/bin/Rscript " . get_path("arriba") . "/draw_fusions.R", implode(" ", $plot_args));
+    $parser->exec(get_path("rscript")." ". get_path("arriba") . "/draw_fusions.R", implode(" ", $plot_args));
 	
 	if (isset($out_pic_dir))
 	{

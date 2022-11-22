@@ -23,7 +23,8 @@ wget https://github.com/suhrig/arriba/releases/download/v2.3.0/arriba_v2.3.0.tar
 tar -xzf arriba_v2.3.0.tar.gz
 rm arriba_v2.3.0.tar.gz
 cd arriba_v2.3.0 && make && cd ..
-conda create -c conda-forge -c bioconda -p arriba_v2.3.0/conda_env arriba=2.3.0
+#install R dependencies:
+$folder/R-4.1.0/bin/R -f $folder/../install_deps_clincnv.R
 
 #download kraken2
 wget https://github.com/DerrickWood/kraken2/archive/refs/tags/v2.1.2.tar.gz
