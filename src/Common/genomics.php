@@ -1871,20 +1871,27 @@ function ps_running_in_sge()
 		list($args) = exec2("qstat -j {$job_id} | tr ',' '\n'");
 		foreach($args as $arg)
 		{
-			if (!contains($arg, "Sample_")) continue;
+			$arg = trim($arg);
 			
-			$parts = explode("/", $arg);
-			foreach($parts as $part)
+			if (contains($arg, "Sample_")) //sample folder
 			{
-				if (!contains($part, "Sample_")) continue;
-				
-				$ps = strtr($part, ["Sample_"=>""]);
-				$output[] = $ps;
+				$parts = explode("/", $arg);
+				foreach($parts as $part)
+				{
+					if (!contains($part, "Sample_")) continue;
+					
+					$ps = strtr($part, ["Sample_"=>""]);
+					$output[$ps] = true;
+				}
+			}
+			else if (preg_match("/_[0-9][0-9]*$/", $arg)) //processed sample name
+			{
+				$output[$arg] = true;
 			}
 		}
 	}
 	
-	return $output;
+	return array_keys($output);
 }
 
 function bed_size($filename)

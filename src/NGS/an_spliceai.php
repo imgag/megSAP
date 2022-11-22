@@ -40,7 +40,6 @@ function vcf_variant_count($vcf, $lines_containing=null)
 function filter_by_annotation($vcf_in, $vcf_out, $max_af)
 {
 	//init
-	$csq_gnomad_idx = -1;
 	$c_written = 0;
 	
 	$h = fopen2($vcf_in, 'r');
@@ -54,22 +53,6 @@ function filter_by_annotation($vcf_in, $vcf_out, $max_af)
 		if(starts_with($line, "#"))
 		{
 			fwrite($h_o, $line."\n");
-			
-			//extract VEP entry indices
-			if(starts_with($line, '##INFO=<ID=CSQ,'))
-			{
-                preg_match('/.*Description=\"(.*)\".*/', $line, $match);
-				if(count($match) < 2) continue;
-                $entries = explode("|", $match[1]);
-				for($i=0; $i<count($entries); ++$i)
-				{
-					$entry = trim($entries[$i]);
-					if($entry=='gnomAD_AF')
-					{
-						$csq_gnomad_idx = $i;
-					}
-				}
-			}	
 		}
 		else //content
 		{
@@ -94,20 +77,8 @@ function filter_by_annotation($vcf_in, $vcf_out, $max_af)
 			foreach($info as $info_entry)
 			{
 				$info_entry = trim($info_entry);
-				if(starts_with($info_entry, 'CSQ='))
-				{
-					$info_entry = explode('=', $info_entry, 2);
-					$csq_annotations = explode('|', $info_entry[1]);
-
-					//gnomAD AF (exome)
-					$value = $csq_annotations[$csq_gnomad_idx];
-					if (is_numeric($value))
-					{
-						$af = max($af, $value);
-					}
-				}
 				//gnomAD AF (genome)
-				else if(starts_with($info_entry, 'gnomADg_AF='))
+				if(starts_with($info_entry, 'gnomADg_AF='))
 				{
 					$info_entry = explode('=', $info_entry, 2);
 					$value = $info_entry[1];

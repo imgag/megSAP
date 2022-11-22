@@ -8,7 +8,7 @@ cpan_dir=$folder/perl_cpan/
 cd $folder
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2022_10 && git submodule update --recursive --init
+git checkout 2022_11 && git submodule update --recursive --init
 make build_3rdparty
 make build_tools_release
 

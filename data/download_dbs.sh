@@ -117,16 +117,17 @@ tabix -f -C -m 9 -p vcf CADD_SNVs_1.6_GRCh38.vcf.gz
 $ngsbits/VcfCheck -in CADD_InDels_1.6_GRCh38.vcf.gz -lines 1000 -ref $genome
 $ngsbits/VcfCheck -in CADD_SNVs_1.6_GRCh38.vcf.gz -lines 1000 -ref $genome
 
-#Install REVEL for VEP - https://sites.google.com/site/revelgenomics/downloads
+#download and convert REVEL - https://sites.google.com/site/revelgenomics/downloads
 cd $dbs
 mkdir REVEL
 cd REVEL
 wget https://zenodo.org/record/7072866/files/revel-v1.3_all_chromosomes.zip
-unzip -p revel-v1.3_all_chromosomes.zip | tr ',' '\t' | sed '1s/.*/#&/' | bgzip > revel_tmp.tsv.gz
-zcat revel_tmp.tsv.gz | head -n1 > h
-zgrep -h -v ^#chr revel_tmp.tsv.gz | $ngsbits/TsvFilter -numeric -v -filter '3 is .' | egrep -v '^#\s' | sort -k1,1 -k3,3n - | cat h - | cut -f1-8 | bgzip -c > revel_grch38_all_chromosomes.tsv.gz
-tabix -f -s 1 -b 3 -e 3 revel_grch38_all_chromosomes.tsv.gz
-rm -f revel_tmp.tsv.gz h
+unzip -p revel-v1.3_all_chromosomes.zip | php $src/Tools/db_converter_revel.php > tmp.vcf
+$ngsbits/VcfSort -in tmp.vcf -out REVEL_1.3.vcf
+rm tmp.vcf
+bgzip REVEL_1.3.vcf
+tabix -f -C -m 9 -p vcf REVEL_1.3.vcf.gz
+$ngsbits/VcfCheck -in REVEL_1.3.vcf.gz -lines 1000 -ref $genome
 
 #GiaB NA12878 reference data
 cd $dbs

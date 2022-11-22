@@ -74,8 +74,6 @@ $args[] = "--numbers --hgvs --transcript_version --domains --failed 1"; //annota
 $args[] = "--regulatory"; //regulatory features
 $fields[] = "BIOTYPE"; 
 $args[] = "--sift b --polyphen b"; //pathogenicity predictions
-$args[] = "--plugin REVEL,".annotation_file_path("/dbs/REVEL/revel_grch38_all_chromosomes.tsv.gz"); //REVEL
-$fields[] = "REVEL";
 $args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
 $fields[] = "MaxEntScan_ref";
 $fields[] = "MaxEntScan_alt";
@@ -135,6 +133,9 @@ if(file_exists($hgmd_file))
 //add CADD score annotation
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=SNV\t\n");
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
+
+//add REVEL score annotation
+fwrite($config_file, annotation_file_path("/dbs/REVEL/REVEL_1.3.vcf.gz")."\t\tREVEL\t\n");
 
 //precalculated SpliceAI scores
 $spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2022_10_28_GRCh38.vcf.gz");

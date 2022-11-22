@@ -418,7 +418,6 @@ while(!feof($handle))
 			$i_domains = index_of($cols, "DOMAINS");
 			$i_sift = index_of($cols, "SIFT");
 			$i_polyphen = index_of($cols, "PolyPhen");
-			$i_revel = index_of($cols, "REVEL");
 			$i_existingvariation = index_of($cols, "Existing_variation");
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
@@ -668,10 +667,15 @@ while(!feof($handle))
 		$phylop[] = $info["PHYLOP"];
 	}
 
+	$revel = array();
+	if (isset($info["REVEL"])) 
+	{
+		$revel[] = $info["REVEL"];
+	}
+	
 	//variant details
 	$sift = array();
 	$polyphen = array();
-	$revel = array();
 	$dbsnp = array();
 	$cosmic = array();
 	$genes = array();
@@ -730,9 +734,6 @@ while(!feof($handle))
 				$result = number_format($parts[$i_maxes_ref], 2).">".number_format($parts[$i_maxes_alt], 2);
 				$maxentscan[] = $result;
 			}
-			
-			$revel_score = trim($parts[$i_revel]);
-			if ($revel_score!="") $revel[] = $revel_score;
 
 			//PubMed ids
 			if ($i_pubmed!==FALSE)

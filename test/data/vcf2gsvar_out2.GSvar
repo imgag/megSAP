@@ -1,5 +1,5 @@
 ##GENOME_BUILD=GRCh38
-##CREATION_DATE=2022-11-21
+##CREATION_DATE=2022-11-22
 ##FILTER=low_conf_region=Variant marked as 'low_conf_region'.
 ##DESCRIPTION=filter=Annotations for filtering and ranking variants.
 ##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), quality divided by depth (QD), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP)
