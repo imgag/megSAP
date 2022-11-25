@@ -57,7 +57,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 $vep_output = $parser->tempFile("_vep.vcf");
 
 //annotate only fields we really need to prevent bloating the VCF file 
-$fields = array("Allele", "Consequence", "IMPACT", "SYMBOL", "HGNC_ID", "Feature", "Feature_type", "EXON", "INTRON", "HGVSc", "HGVSp", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation");
+$fields = array("Allele", "Consequence", "Feature", "Feature_type", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation");
 
 $vep_path = dirname(get_path("vep"));
 $local_data = get_path("local_data");
@@ -70,7 +70,7 @@ $args[] = "-o $vep_output --vcf --no_stats --force_overwrite"; //output
 $args[] = "--species homo_sapiens --assembly {$build}"; //species
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
 $args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".genome_fasta($build); //paths to data
-$args[] = "--numbers --hgvs --transcript_version --domains --failed 1"; //annotation options
+$args[] = "--transcript_version --domains --failed 1"; //annotation options
 $args[] = "--regulatory"; //regulatory features
 $fields[] = "BIOTYPE"; 
 $args[] = "--sift b --polyphen b"; //pathogenicity predictions
@@ -104,9 +104,14 @@ if (file_exists($warn_file))
 	}
 }
 
-// add phyloP annotation:
+//add consequence annotations
+$gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.107.gff3";
+$vcf_output_vac = $parser->tempFile("_bigwig.vcf");
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateConsequence", " -in {$vep_output} -out {$vcf_output_vac} -threads {$threads} -tag CSQ2 -gff {$gff}", true);
+
+//add phyloP annotation
 $vcf_output_bigwig = $parser->tempFile("_bigwig.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBigWig", "-name PHYLOP -desc \"".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." (ngs-bits/VcfAnnotateFromBigWig - mode max)\" -mode max -in {$vep_output} -out {$vcf_output_bigwig} -bw ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." -threads {$threads}", true);
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBigWig", "-name PHYLOP -desc \"".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." (ngs-bits/VcfAnnotateFromBigWig - mode max)\" -mode max -in {$vcf_output_vac} -out {$vcf_output_bigwig} -bw ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." -threads {$threads}", true);
 
 
 // custom annotation by VcfAnnotateFromVcf

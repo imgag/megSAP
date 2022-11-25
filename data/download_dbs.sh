@@ -10,6 +10,13 @@ dbs=$root/dbs/
 ngsbits=$tools/ngs-bits/bin
 genome=$root/genomes/GRCh38.fa
 
+#Download ensembl transcripts database
+cd $dbs
+mkdir -p Ensembl
+cd Ensembl
+wget https://ftp.ensembl.org/pub/release-107/gff3/homo_sapiens/Homo_sapiens.GRCh38.107.gff3.gz
+gunzip Homo_sapiens.GRCh38.107.gff3.gz
+
 #Install CancerHotspots.org
 cd $dbs
 mkdir -p cancerhotspots

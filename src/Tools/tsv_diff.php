@@ -62,6 +62,7 @@ for($i=0; $i<count($file1); ++$i)
 	}
 	
 	//header/content > compare
+	$matching = true;
 	if ($line1!=$line2)
 	{
 		$parts1 = explode("\t", $line1);
@@ -84,19 +85,45 @@ for($i=0; $i<count($file1); ++$i)
 			$res = "";
 			$entry1 = trim($parts1[$j]);
 			$entry2 = trim($parts2[$j]);
+			
+			//ignore order and whitespaces in some fields
 			if ($entry1!=$entry2)
 			{
-				$res = trim($parts1[$j])." >> ".trim($parts2[$j]); 
+				$col_name = $headers[$j];
+				if ($col_name=="gene" || $col_name=="variant_type" || $col_name=="coding_and_splicing" || $col_name=="Sift" || $col_name=="PolyPhen")
+				{
+					$entry1 = explode(",", $entry1);
+					$entry1 = array_map('trim', $entry1);
+					$entry1 = array_filter($entry1, function($str) { return $str!="";} );
+					sort($entry1);
+					$entry1 = implode(",", $entry1);
+					
+					$entry2 = explode(",", $entry2);
+					$entry2 = array_map('trim', $entry2);
+					$entry2 = array_filter($entry2, function($str) { return $str!="";} );
+					sort($entry2);
+					$entry2 = implode(",", $entry2);
+				}
+			}
+			
+			if ($entry1!=$entry2)
+			{
+				$res = $entry1." >> ".$entry2;
+				$matching = false;
 				@$c_changes_by_col[$j] += 1;
 			}
 			fputs($h_o, "\t$res");
 		}
 		fputs($h_o, "\n");
-		++$c_mismatch;
+	}
+	
+	if ($matching)
+	{
+		++$c_match;
 	}
 	else
 	{
-		++$c_match;
+		++$c_mismatch;
 	}
 }
 print "matching lines: $c_match\n";

@@ -93,6 +93,10 @@ find_unused_tools: dummy
 todos:
 	find . -name "*.php" | xargs grep -i "@todo" 
 
+find_php_warnings_in_tests:
+	find test/data_* -name "*.log" | xargs grep -i "PHP warning"
+	find test/data_* -name "*.log" | xargs grep -i "PHP notice"
+
 swap_settings:
 	mv settings.ini settings.ini.swap
 	mv settings_nightly.ini settings.ini

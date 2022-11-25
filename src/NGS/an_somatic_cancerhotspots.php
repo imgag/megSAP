@@ -15,12 +15,12 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 //get index of columnn in QSC header.
-function index_of($cols, $name, $error_if_missing = true)
+function index_of($cols, $name)
 {
 	$index = array_search($name, $cols);
-	if ($index===FALSE && $error_if_missing)
+	if ($index===FALSE)
 	{
-		trigger_error("Could not find column '$name' in VEP QSC annotation. Valid column names are: ".implode(", ", array_values($cols)), E_USER_ERROR);
+		trigger_error("Could not find column '$name' in QSC2 annotation. Valid column names are: ".implode(", ", array_values($cols)), E_USER_ERROR);
 	}
 	return $index;
 }
@@ -52,18 +52,12 @@ while(!feof($handle_in))
 	if(starts_with($line_in, "#"))
 	{
 		//get annotation indices in CSQ field
-		if (starts_with($line_in, "##INFO=<ID=CSQ,"))
+		if (starts_with($line_in, "##INFO=<ID=CSQ2,"))
 		{
 			$cols = explode("|", substr($line_in, 0, -2));
-			$cols[0] = "Allele";
 			$i_vep_symbol = index_of($cols, "SYMBOL");
 			$i_vep_hgvsp = index_of($cols, "HGVSp");
 			$i_vep_feature = index_of($cols, "Feature");
-			if($i_vep_symbol < 0 ||$i_vep_hgvsp < 0 || $i_vep_feature < 0)
-			{
-				trigger_error("Could not parse CSQ INFO header. Aborting Cancerhotspots annotation.", E_USER_ERROR);
-			}
-
 			
 			//write INFO field for CANCERHOTSPOTS just before INFO field of CSQ annotation
 			fwrite($handle_out,"##INFO=<ID=CANCERHOTSPOTS,Number=.,Type=String,Description=\"Cancerhotspots.org data. Format: GENE_SYMBOL|ENSEMBL_TRANSCRIPT|AA_POS|AA_REF|AA_ALT|TOTAL_COUNT|ALT_COUNT\">\n");
@@ -73,27 +67,24 @@ while(!feof($handle_in))
 		continue;
 	}
 	
-	
-	
 	//parse variants	
 	$parts = explode("\t", $line_in);
 	if(count($parts) <9)
 	{
 		trigger_error("Data line with less than 9 fields found: {$line_in}.", E_USER_ERROR);
 	}
-
 	
 	//Make list of amino acid changes predicted from VEP for this variant
 	$vep_alterations = array();
 	$info_parts = explode(";", $parts[7]);
 	foreach($info_parts as $info_part)
 	{
-		if(!starts_with($info_part, "CSQ=")) continue;
+		if(!starts_with($info_part, "CSQ2=")) continue;
 		
 		$csq_parts = explode(",", $info_part);
 		foreach($csq_parts as $csq_part)
 		{
-			$vep_parts = explode("|", str_replace("CSQ=","", $csq_part) );
+			$vep_parts = explode("|", str_replace("CSQ2=","", $csq_part) );
 			
 			
 			$vep_gene = $vep_parts [$i_vep_symbol];
