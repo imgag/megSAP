@@ -1,3 +1,4 @@
+biopython==1.76
 Click==7.0
 Cython==0.29.14
 intervaltree==3.0.2
