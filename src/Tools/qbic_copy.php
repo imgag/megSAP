@@ -139,7 +139,7 @@ function getSampleInfo($ps_id)
 	$output['ngsd_processedsample_id'] = $ps_id;
 	$output['id_genetics'] = $ps_name;
 	$names = getExternalNames($s_name, $s_name_ex);
-	$output['id_qbic'] = $names[0];
+	$output['id_qbic'] = is_null($names) ? "" : $names[0];
 	$output['processing_system'] = $ps_sys;
 	$output['tumor'] = $s_tumor ? "yes" : "no";
 	$output['genome'] = $ps_genome;
@@ -339,11 +339,10 @@ else
 	}
 }
 
-$res = $db->executeQuery("SELECT id, name, name_external, quality, tumor FROM sample WHERE ".implode(" || ", $conditions)." ORDER BY name");
+$res = $db->executeQuery("SELECT id, name, name_external, quality, tumor FROM sample WHERE ".implode(" OR ", $conditions)." ORDER BY name");
 foreach($res as $row)
 {
 	list ($s_id, $s_name, $s_name_ex, $s_qual, $is_tumor) = array_values($row);
-	
 	//check if we have a QBIC name
 	$names = getExternalNames($s_name, $s_name_ex);
 	if (is_null($names)) continue;
