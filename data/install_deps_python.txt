@@ -1,0 +1,11 @@
+Click==7.0
+Cython==0.29.14
+intervaltree==3.0.2
+matplotlib==3.1.2
+networkx==2.4
+numpy==1.17.4
+pandas==0.25.3
+pysam==0.15.4
+scipy==1.5.4
+setuptools==45.2.0
+statsmodels==0.11.1

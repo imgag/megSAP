@@ -12,6 +12,39 @@ git checkout 2022_11 && git submodule update --recursive --init
 make build_3rdparty
 make build_tools_release
 
+#download and build python2.7 (required by manta)
+cd $folder
+mkdir -p Python-2.7.18
+cd Python-2.7.18
+wget https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz
+tar -zxvf Python-2.7.18.tgz
+cd Python-2.7.18
+./configure --prefix=$folder/Python-2.7.18
+make
+make install
+cd ..
+rm -R Python-2.7.18
+rm Python-2.7.18.tgz
+cd ..
+
+#download and build python3
+cd $folder
+mkdir -p Python-3.6.9
+cd Python-3.6.9
+wget https://www.python.org/ftp/python/3.6.9/Python-3.6.9.tgz
+tar -zxvf Python-3.6.9.tgz
+cd Python-3.6.9
+./configure --prefix=$folder/Python-3.6.9
+make
+make install
+# install packages
+bin/pip3 install --upgrade pip #bugfix for pysam installation
+bin/pip3 install -r $root/install_deps_python.txt
+cd ..
+rm -R Python-3.6.9
+rm Python-3.6.9.tgz
+cd ..
+
 #download and build samtools
 cd $folder
 wget https://github.com/samtools/samtools/releases/download/1.15.1/samtools-1.15.1.tar.bz2
@@ -33,7 +66,6 @@ cd $folder
 wget https://github.com/bwa-mem2/bwa-mem2/releases/download/v2.2.1/bwa-mem2-2.2.1_x64-linux.tar.bz2
 tar xjf bwa-mem2-2.2.1_x64-linux.tar.bz2
 rm bwa-mem2-2.2.1_x64-linux.tar.bz2
-
 
 #download ABRA2
 cd $folder
@@ -118,25 +150,12 @@ wget https://github.com/Illumina/ExpansionHunter/releases/download/v5.0.0/Expans
 tar xzf ExpansionHunter-v5.0.0-linux_x86_64.tar.gz
 rm ExpansionHunter-v5.0.0-linux_x86_64.tar.gz
 
-#download and build python3
-cd $folder
-mkdir -p Python3
-wget https://www.python.org/ftp/python/3.6.9/Python-3.6.9.tgz
-tar -zxvf Python-3.6.9.tgz
-cd Python-3.6.9
-./configure --prefix=$folder/Python3
-make
-make install
-cd ..
-rm -R Python-3.6.9
-rm Python-3.6.9.tgz
-
 #download Splicing tools
 cd $folder
 spliceFolder=$folder/SplicingTools
 mkdir -p $spliceFolder
 cd $spliceFolder
-$folder/Python3/bin/python3 -m venv splice_env
+$folder/Python-3.6.9/bin/python3 -m venv splice_env
 source $spliceFolder/splice_env/bin/activate
 pip install cyvcf2==0.20.5 cython==0.29.21
 pip install h5py==2.10.0

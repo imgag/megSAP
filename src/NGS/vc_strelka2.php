@@ -29,6 +29,10 @@ extract($parser->parse($argv));
 //Run Strelka2
 //################################################################################################
 
+// update environment
+$python_bin = get_path("python27");
+putenv("PATH=".dirname($python_bin).":".getenv("PATH"));
+
 //check config file
 if (!is_file($config))
 {
@@ -70,8 +74,8 @@ if (isset($debug_region))
 }
 
 //run
-$parser->exec(get_path("strelka2")."/configureStrelkaSomaticWorkflow.py", implode(" ", $args), true);
-$parser->exec("$run_dir/runWorkflow.py", "-m local -j $threads -g 4", false);
+$parser->exec("{$python_bin} ".get_path("strelka2")."/configureStrelkaSomaticWorkflow.py", implode(" ", $args), true);
+$parser->exec("{$python_bin} $run_dir/runWorkflow.py", "-m local -j $threads -g 4", false);
 
 //################################################################################################
 //Split multi-allelic variants

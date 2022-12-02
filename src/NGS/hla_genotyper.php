@@ -43,7 +43,7 @@ $args = array(
 	"-g", implode(",", $genes),
 	"--{$type}"
 );
-$parser->exec("python3 ". get_path("hla_genotyper"), implode(" ", $args) . " $bam");
+$parser->exec(get_path("python3")." ". get_path("hla_genotyper"), implode(" ", $args) . " $bam");
 
 //Print output
 $res_prefix = "{$outdir}/hla.{$ethnicity}.{$name}.{$type}";
