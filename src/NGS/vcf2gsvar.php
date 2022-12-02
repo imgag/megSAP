@@ -38,12 +38,12 @@ function skip_in_wgs_mode($chr, $coding_and_splicing_details, $gnomad, $clinvar,
 }
 
 //get index of columnn in QSC header.
-function index_of($cols, $name, $error_if_missing = true)
+function index_of($cols, $name, $label)
 {
 	$index = array_search($name, $cols);
-	if ($index===FALSE && $error_if_missing)
+	if ($index===FALSE)
 	{
-		trigger_error("Could not find column '$name' in VEP QSC annotation. Valid column names are: ".implode(", ", array_values($cols)), E_USER_ERROR);
+		trigger_error("Could not find column '$name' in annotation field '{$label}'. Valid column names are: ".implode(", ", array_values($cols)), E_USER_ERROR);
 	}
 	return $index;
 }
@@ -399,31 +399,38 @@ while(!feof($handle))
 			fwrite($handle_out, trim($line)."\n");
 		}
 		
-		//get annotation indices in CSQ field
+		//get annotation indices in CSQ field from VEP
 		if (starts_with($line, "##INFO=<ID=CSQ,"))
 		{
 			$cols = explode("|", substr($line, 0, -2));
-			$cols[0] = "Allele";
-			$i_consequence = index_of($cols, "Consequence");
-			$i_impact = index_of($cols, "IMPACT");
-			$i_symbol = index_of($cols, "SYMBOL");
-			$i_hgnc_id = index_of($cols, "HGNC_ID", false);
-			$i_feature = index_of($cols, "Feature");
-			$i_featuretype = index_of($cols, "Feature_type");
-			$i_biotype = index_of($cols, "BIOTYPE");
-			$i_exon = index_of($cols, "EXON");
-			$i_intron = index_of($cols, "INTRON");
-			$i_hgvsc = index_of($cols, "HGVSc");
-			$i_hgvsp = index_of($cols, "HGVSp");
-			$i_domains = index_of($cols, "DOMAINS");
-			$i_sift = index_of($cols, "SIFT");
-			$i_polyphen = index_of($cols, "PolyPhen");
-			$i_existingvariation = index_of($cols, "Existing_variation");
-			$i_maxes_ref = index_of($cols, "MaxEntScan_ref");
-			$i_maxes_alt = index_of($cols, "MaxEntScan_alt");
-			$i_pubmed = index_of($cols, "PUBMED", false); 
+			$i_consequence = index_of($cols, "Consequence", "CSQ");
+			$i_feature = index_of($cols, "Feature", "CSQ");
+			$i_featuretype = index_of($cols, "Feature_type", "CSQ");
+			$i_biotype = index_of($cols, "BIOTYPE", "CSQ");
+			$i_domains = index_of($cols, "DOMAINS", "CSQ");
+			$i_sift = index_of($cols, "SIFT", "CSQ");
+			$i_polyphen = index_of($cols, "PolyPhen", "CSQ");
+			$i_existingvariation = index_of($cols, "Existing_variation", "CSQ");
+			$i_maxes_ref = index_of($cols, "MaxEntScan_ref", "CSQ");
+			$i_maxes_alt = index_of($cols, "MaxEntScan_alt", "CSQ");
+			$i_pubmed = index_of($cols, "PUBMED", "CSQ"); 
 		}
 
+		//get annotation indices in CSQ field from VcfAnnotateConsequence
+		if (starts_with($line, "##INFO=<ID=CSQ2,"))
+		{
+			$cols = explode("|", substr($line, 0, -2));
+			$i_vac_consequence = index_of($cols, "Consequence", "CSQ2");
+			$i_vac_impact = index_of($cols, "IMPACT", "CSQ2");
+			$i_vac_symbol = index_of($cols, "SYMBOL", "CSQ2");
+			$i_vac_hgnc_id = index_of($cols, "HGNC_ID", "CSQ2");
+			$i_vac_feature = index_of($cols, "Feature", "CSQ2");
+			$i_vac_exon = index_of($cols, "EXON", "CSQ2");
+			$i_vac_intron = index_of($cols, "INTRON", "CSQ2");
+			$i_vac_hgvsc = index_of($cols, "HGVSc", "CSQ2");
+			$i_vac_hgvsp = index_of($cols, "HGVSp", "CSQ2");		
+		}
+		
 		// detect NGSD header lines
 		if (starts_with($line, "##INFO=<ID=NGSD_"))
 		{
@@ -441,13 +448,12 @@ while(!feof($handle))
 		
 			//trim to " (from file "... and split by "|"
 			$cols = explode("|", substr($line, 0, strpos($line, " (from file")) );
-			$cols[0] = "GENE_NAME";
-			
-			$i_cosmic_cmc_gene_name = index_of($cols, "GENE_NAME");
-			$i_cosmic_cmc_mut_id = index_of($cols, "GENOMIC_MUTATION_ID");
-			$i_cosmic_cmc_disease = index_of($cols, "DISEASE");
-			$i_cosmic_cmc_dnds_disease = index_of($cols, "DNDS_DISEASE_QVAL");
-			$i_cosmic_cmc_mut_sign_tier = index_of($cols, "MUTATION_SIGNIFICANCE_TIER");
+			$cols[0] = "GENE_NAME";			
+			$i_cosmic_cmc_gene_name = index_of($cols, "GENE_NAME", "COSMIC_CMC");
+			$i_cosmic_cmc_mut_id = index_of($cols, "GENOMIC_MUTATION_ID", "COSMIC_CMC");
+			$i_cosmic_cmc_disease = index_of($cols, "DISEASE", "COSMIC_CMC");
+			$i_cosmic_cmc_dnds_disease = index_of($cols, "DNDS_DISEASE_QVAL", "COSMIC_CMC");
+			$i_cosmic_cmc_mut_sign_tier = index_of($cols, "MUTATION_SIGNIFICANCE_TIER", "COSMIC_CMC");
 		}
 		
 		//Cancerhotspots.org header line
@@ -455,15 +461,14 @@ while(!feof($handle))
 		{
 			$skip_cancerhotspots = false;
 			$cols = explode("|", substr($line, 0,-2) );
-			$cols[0] = "GENE_SYMBOL";
-			
-			$i_cancerhotspots_gene_symbol = index_of($cols, "GENE_SYMBOL");
-			$i_cancerhotspots_transcript_id = index_of($cols, "ENSEMBL_TRANSCRIPT");
-			$i_cancerhotspots_aa_pos = index_of($cols, "AA_POS");
-			$i_cancerhotspots_aa_ref = index_of($cols, "AA_REF");
-			$i_cancerhotspots_aa_alt = index_of($cols, "AA_ALT");
-			$i_cancerhotspots_total_count = index_of($cols, "TOTAL_COUNT");
-			$i_cancerhotspots_alt_count = index_of($cols, "ALT_COUNT");
+			$cols[0] = "GENE_SYMBOL";			
+			$i_cancerhotspots_gene_symbol = index_of($cols, "GENE_SYMBOL", "CANCERHOTSPOTS");
+			$i_cancerhotspots_transcript_id = index_of($cols, "ENSEMBL_TRANSCRIPT", "CANCERHOTSPOTS");
+			$i_cancerhotspots_aa_pos = index_of($cols, "AA_POS", "CANCERHOTSPOTS");
+			$i_cancerhotspots_aa_ref = index_of($cols, "AA_REF", "CANCERHOTSPOTS");
+			$i_cancerhotspots_aa_alt = index_of($cols, "AA_ALT", "CANCERHOTSPOTS");
+			$i_cancerhotspots_total_count = index_of($cols, "TOTAL_COUNT", "CANCERHOTSPOTS");
+			$i_cancerhotspots_alt_count = index_of($cols, "ALT_COUNT", "CANCERHOTSPOTS");
 		}
 		
 		continue;
@@ -703,12 +708,13 @@ while(!feof($handle))
 	$genes_updown = array();
 	$sift_updown = array();
 	$polyphen_updown = array();
-	$coding_and_splicing_details_updown = array();
+	$coding_and_splicing_details_updown = array(); 
 
-	if (isset($info["CSQ"]))
+	if (isset($info["CSQ"]) && isset($info["CSQ2"]))
 	{
-		$anns = explode(",", $info["CSQ"]);
-		foreach($anns as $entry)
+		//VEP - used for regulatory features, dbSNP, COSMIC, MaxEntScan, PubMed, Sift, PolyPhen, Domains
+		$vep = []; //transcript name without version > [domain, sift, polyphen]
+		foreach(explode(",", $info["CSQ"]) as $entry)
 		{			
 			$parts = explode("|", $entry);
 			
@@ -742,117 +748,11 @@ while(!feof($handle))
 			}
 			
 			//######################### transcript-specific information #########################
-			
-			//only transcripts
-			$feature_type = $parts[$i_featuretype];
-			if ($feature_type=="Transcript" || $feature_type=="")
+			$feature_type = trim($parts[$i_featuretype]);
+			if ($feature_type=="Transcript")
 			{
-				$transcript_id = $parts[$i_feature];
-				
-				//extract variant type
-				$variant_type = strtr($parts[$i_consequence], array("_variant"=>""));
-				$variant_type = strtr($variant_type, array("splice_acceptor&splice_region&intron"=>"splice_acceptor", "splice_donor&splice_region&intron"=>"splice_donor", "splice_acceptor&intron"=>"splice_acceptor", "splice_donor&intron"=>"splice_donor", "_prime_"=>"'"));
-				$is_updown = $variant_type=="upstream_gene" || $variant_type=="downstream_gene";
-				if (!$is_updown)
-				{
-					$variant_details[] = $variant_type;
-				}
-				else
-				{
-					$variant_details_updown[] = $variant_type;
-				}
-				
-				//determine gene name (update if neccessary)
-				$gene = trim($parts[$i_symbol]);
-				if ($i_hgnc_id!==false && $gene!="")
-				{
-					$hgnc_id = $parts[$i_hgnc_id];
-					$hgnc_id = trim(strtr($hgnc_id, array("HGNC:"=>"")));
-					if (isset($hgnc[$hgnc_id]))
-					{
-		
-						$hgnc_gene = $hgnc[$hgnc_id];
-						if ($gene!=$hgnc_gene)
-						{
-							//@$hgnc_messages["gene name '$gene' with ID '$hgnc_id' replaced by '$hgnc_gene'"] += 1;
-							$gene = $hgnc_gene;
-						}
-					}
-					else if ($hgnc_id!="")
-					{
-						@$hgnc_messages["ID '$hgnc_id' not valid or withdrawn for gene '$gene'"] += 1;
-					}
-				}
-				if ($gene!="")
-				{
-					if (!$is_updown)
-					{
-						 $genes[] = $gene;
-					}
-					else
-					{
-						$genes_updown[] = $gene;
-					}
-				}
-				
-				//pathogenicity predictions (transcript-specific)
-				list($sift_type, $sift_score) = explode("(", strtr($parts[$i_sift], ")", "(")."(");
-				if ($sift_type!="")
-				{
-					$sift_type = translate("Sift", $sift_type, array("deleterious"=>"D", "tolerated"=>"T", "tolerated_low_confidence"=>"T", "deleterious_low_confidence"=>"D"));
-					$sift_score = number_format($sift_score, 2);
-					$sift_entry = $sift_type."($sift_score)";
-				}
-				else
-				{
-					$sift_entry = " ";
-				}
-				if (!$is_updown)
-				{
-					$sift[] = $sift_entry;
-				}
-				else
-				{
-					$sift_updown[] = $sift_entry;
-				}
-				
-				list($pp_type, $pp_score) = explode("(", strtr($parts[$i_polyphen], ")", "(")."(");
-				if ($pp_type!="")
-				{
-					$pp_type = translate("PolyPhen", $pp_type, array("unknown"=>" ",  "probably_damaging"=>"D", "possibly_damaging"=>"P", "benign"=>"B"));
-					$pp_score = number_format($pp_score, 2);
-					if (!is_numeric($pp_score))
-					{
-						print "ERROR: ".$parts[$i_polyphen]." ".$pp_score."\n";
-					}
-					$polyphen_entry = $pp_type."($pp_score)";
-				}
-				else
-				{
-					$polyphen_entry = " ";
-				}
-				if (!$is_updown)
-				{
-					$polyphen[] = $polyphen_entry;
-				}
-				else
-				{
-					$polyphen_updown[] = $polyphen_entry;
-				}
-				
-				//exon
-				$exon = trim($parts[$i_exon]);
-				if ($exon!="") $exon = "exon".$exon;
-				$intron = trim($parts[$i_intron]);
-				if ($intron!="") $intron = "intron".$intron;
-				
-				//hgvs
-				$hgvs_c = trim($parts[$i_hgvsc]);
-				if ($hgvs_c!="") $hgvs_c = explode(":", $hgvs_c)[1];			
-				$hgvs_p = trim($parts[$i_hgvsp]);
-				if ($hgvs_p!="") $hgvs_p = explode(":", $hgvs_p)[1];
-				$hgvs_p = str_replace("%3D", "=", $hgvs_p);
-				
+				$transcript_id = trim($parts[$i_feature]);	
+
 				//domain
 				$domain = "";
 				$domains = explode("&", $parts[$i_domains]);
@@ -863,11 +763,12 @@ while(!feof($handle))
 						$domain = explode(":", $entry, 2)[1];
 					}
 				}
-
+				
 				// extend domain ID by description
-				$domain_description = "";
 				if ($domain != "")
 				{
+					$domain_description = "";
+					
 					// update Pfam ID 
 					if (array_key_exists($domain, $pfam_replacements))
 					{
@@ -897,15 +798,9 @@ while(!feof($handle))
 					$domain = "$domain [$domain_description]";
 				}
 				
-				$transcript_entry = "{$gene}:{$transcript_id}:".$parts[$i_consequence].":".$parts[$i_impact].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}:{$domain}";
-				if (!$is_updown)
-				{
-					$coding_and_splicing_details[] = $transcript_entry;
-				}
-				else
-				{
-					$coding_and_splicing_details_updown[] = $transcript_entry;
-				}
+				$transcript_id_no_ver = explode('.', $transcript_id)[0];
+				
+				$vep[$transcript_id_no_ver] = [ $domain, $parts[$i_sift], $parts[$i_polyphen] ];			
 			}
 			else if ($feature_type=="RegulatoryFeature")
 			{
@@ -915,11 +810,138 @@ while(!feof($handle))
 			{
 				$regulatory[] = $parts[$i_consequence];
 			}
-			else
+			else if ($feature_type!="") //feature type is empty for intergenic variants
 			{				
-				trigger_error("Unknown VEP feature type '{$feature_type}' for variant $chr:$pos!", E_USER_ERROR);
+				trigger_error("Unknown VEP feature type '{$feature_type}' for variant {$chr}:{$pos} {$ref}>{$alt}!", E_USER_ERROR);
 			}
 		}
+		
+		//VcfAnnotateConsequence
+		foreach(explode(",", $info["CSQ2"]) as $entry)
+		{			
+			$parts = explode("|", $entry);
+			
+			$transcript_id = trim($parts[$i_vac_feature]);
+			
+			$consequence = $parts[$i_vac_consequence];
+			$consequence = strtr($consequence, ["&NMD_transcript"=>"", "splice_donor_variant&intron_variant"=>"splice_donor_variant", "splice_acceptor_variant&intron_variant"=>"splice_acceptor_variant"]);
+			
+			//extract variant type
+			$variant_type = strtr($consequence, array("_variant"=>"", "_prime_"=>"'"));
+			$is_updown = $variant_type=="upstream_gene" || $variant_type=="downstream_gene";
+			if (!$is_updown)
+			{
+				$variant_details[] = $variant_type;
+			}
+			else
+			{
+				$variant_details_updown[] = $variant_type;
+			}
+			
+			//determine gene name (update if neccessary)
+			$gene = trim($parts[$i_vac_symbol]);
+			if ($gene!="")
+			{
+				$hgnc_id = $parts[$i_vac_hgnc_id];
+				$hgnc_id = trim(strtr($hgnc_id, array("HGNC:"=>"")));
+				if (isset($hgnc[$hgnc_id]))
+				{
+					$hgnc_gene = $hgnc[$hgnc_id];
+					if ($gene!=$hgnc_gene)
+					{
+						$gene = $hgnc_gene;
+					}
+				}
+				else if ($hgnc_id!="")
+				{
+					@$hgnc_messages["ID '$hgnc_id' not valid or withdrawn for gene '$gene'"] += 1;
+				}
+				
+				if (!$is_updown)
+				{
+					 $genes[] = $gene;
+				}
+				else
+				{
+					$genes_updown[] = $gene;
+				}
+			}
+			
+			//exon
+			$exon = trim($parts[$i_vac_exon]);
+			if ($exon!="") $exon = "exon".$exon;
+			$intron = trim($parts[$i_vac_intron]);
+			if ($intron!="") $intron = "intron".$intron;
+			
+			//hgvs
+			$hgvs_c = trim($parts[$i_vac_hgvsc]);
+			$hgvs_p = trim($parts[$i_vac_hgvsp]);
+			$hgvs_p = str_replace("%3D", "=", $hgvs_p);
+			
+			//domain, SIFT and Polyphen from VEP
+			$domain = "";
+			$transcript_id_no_ver = explode('.', $transcript_id)[0];
+			if (isset($vep[$transcript_id_no_ver]))
+			{
+				list($domain, $sift_raw, $polyphen_raw) = $vep[$transcript_id_no_ver];
+				
+				//SIFT
+				list($sift_type, $sift_score) = explode("(", strtr($sift_raw, ")", "(")."(");
+				if ($sift_type!="")
+				{
+					$sift_type = translate("Sift", $sift_type, array("deleterious"=>"D", "tolerated"=>"T", "tolerated_low_confidence"=>"T", "deleterious_low_confidence"=>"D"));
+					$sift_score = number_format($sift_score, 2);
+					$sift_entry = $sift_type."($sift_score)";
+				}
+				else
+				{
+					$sift_entry = " ";
+				}
+				if (!$is_updown)
+				{
+					$sift[] = $sift_entry;
+				}
+				else
+				{
+					$sift_updown[] = $sift_entry;
+				}
+				
+				//Polyphen
+				list($pp_type, $pp_score) = explode("(", strtr($polyphen_raw, ")", "(")."(");
+				if ($pp_type!="")
+				{
+					$pp_type = translate("PolyPhen", $pp_type, array("unknown"=>" ",  "probably_damaging"=>"D", "possibly_damaging"=>"P", "benign"=>"B"));
+					$pp_score = number_format($pp_score, 2);
+					if (!is_numeric($pp_score))
+					{
+						print "ERROR: ".$polyphen_raw." ".$pp_score."\n";
+					}
+					$polyphen_entry = $pp_type."($pp_score)";
+				}
+				else
+				{
+					$polyphen_entry = " ";
+				}
+				if (!$is_updown)
+				{
+					$polyphen[] = $polyphen_entry;
+				}
+				else
+				{
+					$polyphen_updown[] = $polyphen_entry;
+				}
+			}
+			//add transcript information
+			$transcript_entry = "{$gene}:{$transcript_id}:".$consequence.":".$parts[$i_vac_impact].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}:{$domain}";
+			if (!$is_updown)
+			{
+				$coding_and_splicing_details[] = $transcript_entry;
+			}
+			else
+			{
+				$coding_and_splicing_details_updown[] = $transcript_entry;
+			}
+		}	
 	}
 
 	//gnomAD genome
@@ -1126,7 +1148,7 @@ while(!feof($handle))
 		foreach($entries as $entry)
 		{
 			$delta_scores = explode("|", $entry);
-			if(sizeof($delta_scores) == 10)
+			if(count($delta_scores) == 10)
 			{
 				$tmp_score = max(floatval($delta_scores[2]), floatval($delta_scores[3]), floatval($delta_scores[4]), floatval($delta_scores[5]));
 				if(is_null($splice_number)) $splice_number = $tmp_score;
@@ -1169,7 +1191,6 @@ while(!feof($handle))
 	{
 		$cadd = $cadd_scores[0];
 	}
-	
 	
 	// COSMIC CMC
 	if ( !$skip_cosmic_cmc && isset($info["COSMIC_CMC"]) )

@@ -8,26 +8,32 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("vcf_merge", "Merges VCF files to one multi-sample VCF file.");
+$parser = new ToolBase("vcf_merge", "Merges single-sample VCF files to one multi-sample VCF file.");
 $parser->addInfileArray("in", "Input VCF.GZ files.", false);
 $parser->addOutfile("out", "Output VCF file.", false);
+$parser->addInfile("roi", "Target region filter", true);
 extract($parser->parse($argv));
 
-//create tmp folder
-$tmp_folder = $parser->tempFolder();
-print "Temporary folder for simlyfied VCFs: $tmp_folder\n";
+//init
+$ngsbits = get_path("ngs-bits");
 
-//create simplyfied files
-$simple =  array();
+//store variant sample associations
+$samples = [];
+$vars =  array();
 foreach($in as $filename)
 {
-	print "Simplyfying $filename...\n";
+	print "Processing $filename...\n";
+	flush();
 	if (!ends_with($filename, ".vcf.gz"))
 	{
 		trigger_error("Input file $filename does have '.vcf.gz' extension.", E_USER_ERROR);
 	}
-	$output = array();
-	list($file) = exec2("zcat $filename");
+	
+	$command = "zcat {$filename}";
+	if ($roi!="") $command .= " | {$ngsbits}/VcfFilter -reg {$roi}";
+
+	$sample_current = "";
+	list($file) = exec2($command);
 	foreach($file as $line)
 	{
 		$line = trim($line);
@@ -36,60 +42,61 @@ foreach($in as $filename)
 		//header
 		if($line[0]=="#")
 		{
-			$output[] = $line."\n";
+			if (starts_with($line, "##")) continue;
+			$sample_current = explode("\t", $line)[9];
+			$samples[] = $sample_current;
+			
 			continue;
 		}
 		
 		//content
-		list($chr, $pos, $id, $ref, $obs, $qual, $filter, $info, $format, $sample) = explode("\t", $line);
+		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = explode("\t", $line);
 		
-		//fix info (remove DP)
-		$info = explode(";", $info);
-		$info2 = array();
-		for($i=0; $i<count($info); ++$i)
-		{
-			if (starts_with($info[$i], "DP=")) continue;
-			$info2[] = $info[$i];
-		}
-		$info = implode(";", $info2);
+		//check format column is same
+		if ($format_exp=="") $format_exp = $format;
+		if (!starts_with($format, "GT:")) trigger_error("Format column of {$filename} is not valid: '{$format}'", E_USER_ERROR);
 		
-		//extract format info (GT)
-		$format = explode(":", $format);
-		$sample = explode(":", $sample);
-		$format2 = array();
-		$sample2 = array();
-		for($i=0; $i<count($format); ++$i)
-		{
-			if ($format[$i]=="GT")
-			{
-				$sample[$i] = strtr($sample[$i], array("."=>"0", "|"=>"/"));
-				$format2[] = $format[$i];
-				$sample2[] = $sample[$i];
-			}
-		}
-		$format = implode(":", $format2);
-		$sample = implode(":", $sample2);
-		$output[] = "$chr\t$pos\t$id\t$ref\t$obs\t$qual\t$filter\t$info\t$format\t$sample\n";
+		//store data
+		$tag = "{$chr}\t{$pos}\t{$ref}\t{$alt}";
+		$vars[$tag][$sample_current] = substr($sample, 0, 3);
 	}
-
-	//store output
-	$out_vcf = $tmp_folder."/".basename($filename, ".gz");
-	file_put_contents($out_vcf, $output);
-	
-	//bgzip + index
-	exec2("bgzip $out_vcf");
-	$out_vcfgz = $out_vcf.".gz";
-	exec2("tabix -p vcf $out_vcfgz");
-	$simple[] = $out_vcfgz;
 }
 
-
-//merge simplyfied files
-print "Merging...\n";
-putenv("PERL5LIB=/mnt/share/opt/vcftools-78add55-bin/share/perl/5.14.2/:".getenv("PERL5LIB"));
-exec2("/mnt/share/opt/vcftools-78add55-bin/bin/vcf-merge --ref-for-missing 0/0 ".implode(" ", $simple)." > $out");
-
-//cleanup
-exec2("rm -rf $tmp_folder");
+//write output
+$h = fopen2($out, 'w');
+fputs($h, "##fileformat=VCFv4.2\n");
+fputs($h, "##INFO=<ID=HOM,Number=1,Type=String,Description=\"Number of samples with homzygous variant.\">\n");
+fputs($h, "##INFO=<ID=HET,Number=1,Type=String,Description=\"Number of samples with heterozygous variant.\">\n");
+fputs($h, "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n");
+fputs($h, "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t".implode("\t", $samples)."\n");
+foreach($vars as $tag => $sample2geno)
+{
+	list($chr, $pos, $ref, $alt) = explode("\t", $tag);
+	
+	//count het/hom
+	$het = 0;
+	$hom = 0;
+	foreach($sample2geno as $sample => $geno)
+	{
+		$geno = strtr($geno, ["|"=>"/", "."=>"0"]);
+		if ($geno=="1/1") ++$hom;
+		else if ($geno=="1/0" || $geno=="0/1") ++$het;
+		else trigger_error("Genotype column of variant {$chr}:{$pos} {$ref}>{$alt} in {$filename} is not valid: '{$geno}'", E_USER_ERROR);
+	}
+	fputs($h, "{$chr}\t{$pos}\t.\t{$ref}\t{$alt}\t30\tPASS\tHET={$het};HOM={$hom}\tGT");
+	foreach($samples as $sample)
+	{
+		if(isset($sample2geno[$sample]))
+		{
+			fputs($h, "\t".$sample2geno[$sample]);
+		}
+		else
+		{
+			fputs($h, "\t0/0");
+		}
+	}
+	fputs($h, "\n");
+}
+fclose($h);
 
 ?>

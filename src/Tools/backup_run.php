@@ -98,7 +98,7 @@ if (db_is_enabled("NGSD"))
 	$query = "SELECT id FROM sequencing_run WHERE name = '{$run_id}'";
 	$res = $db->executeQuery($query);
 
-	if (sizeof($res) == 0)
+	if (count($res) == 0)
 	{
 		trigger_error("No run with name \"$run_id\" found in NGSD", E_USER_WARNING);
 	}

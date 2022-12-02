@@ -115,7 +115,7 @@ function filterMosaicVariants($mosaic_out, $filter_regions)
 		else
 		{
 			$entries = explode("\t", $line);
-			if(sizeof($entries) >= max(3, $cn_idx, $length_kb_idx))
+			if(count($entries) >= max(3, $cn_idx, $length_kb_idx))
 			{
 				$m_cnv = new cnv();
 
@@ -182,7 +182,7 @@ function detect_mosaicism()
         else
         {
             $entries = explode("\t", $line);
-            if(sizeof($entries) >= 3)
+            if(count($entries) >= 3)
             {
                 
                 $tmp_cnv = new cnv();
@@ -361,8 +361,7 @@ function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messa
 		fwrite($cnv_output, "##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE\n");
 	}
 	fwrite($cnv_output, "##GENOME_BUILD=GRCh38\n");
-	preg_match('/^.*ClinCNV-([\d\.]*).*$/', $command, $matches);
-	if(sizeof($matches) >= 2)
+	if(preg_match('/^.*ClinCNV-([\d\.]*).*$/', $command, $matches))
 	{
 		fwrite($cnv_output, "##ClinCNV version: v{$matches[1]}\n");
 	}
@@ -378,10 +377,9 @@ function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messa
 	foreach($stdout as $line)
 	{
 		//if QC for input sample failed, add it to header line
-		if(strpos($line, "{$ps_name} did not pass QC") == true)
+		if(contains($line, "{$ps_name} did not pass QC"))
 		{
-			preg_match('/^.*\"(.*)\".*$/', $line, $matches);
-			if(sizeof($matches >= 2))
+			if(preg_match('/^.*\"(.*)\".*$/', $line, $matches))
 			{
 				fwrite($cnv_output, "##{$matches[1]}\n");
 			}

@@ -60,7 +60,6 @@ if (file_exists($pid_file))
 {
 	$pid_old = trim(file_get_contents($pid_file));
 	$iter = 0;
-	print posix_getpgid($pid_old)."\t".posix_kill($pid,0)."\n";
 	while (posix_getpgid($pid_old)!==FALSE)
 	{
 		++$iter;
