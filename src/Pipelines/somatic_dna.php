@@ -286,14 +286,18 @@ $manta_sv      = $full_prefix . "_manta_var_structural.vcf.gz";		// structural v
 $manta_sv_bedpe= $full_prefix . "_manta_var_structural.bedpe"; 		// structural variants (bedpe)
 $variants      = $full_prefix . "_var.vcf.gz";					// variants
 $ballele       = $full_prefix . "_bafs.igv";					// B-allele frequencies
-
+$hla_file_tumor =  dirname($t_bam)."/{$t_id}_hla_genotyper.tsv";
+if (!$single_sample)
+{
+	$hla_file_normal =  dirname($n_bam)."/{$n_id}_hla_genotyper.tsv"; 
+}
 if (in_array("vc", $steps))
 {
 	//get HLA types
-	$parser->execTool("NGS/hla_genotyper.php", "-bam $t_bam -name $t_id -out " . dirname($t_bam)."/{$t_id}_hla_genotyper.tsv");
+	$parser->execTool("NGS/hla_genotyper.php", "-bam $t_bam -name $t_id -out ".$hla_file_tumor);
 	if(!$single_sample)
 	{
-		$parser->execTool("NGS/hla_genotyper.php", "-bam $n_bam -name $n_id -out " . dirname($n_bam)."/{$n_id}_hla_genotyper.tsv");
+		$parser->execTool("NGS/hla_genotyper.php", "-bam $n_bam -name $n_id -out " . $hla_file_normal);
 	}
 	
 	// structural variant calling
@@ -782,6 +786,13 @@ if(in_array("cn",$steps))
 			trigger_error("Not enough reference tumor-normal coverage files for processing system {$system} found. Skipping CNV calling.\n", E_USER_NOTICE);
 		}
 	}
+	
+	//calculate HRD based on clincnv.tsv file
+	if (file_exists($som_clincnv))
+	{
+		$parser->execTool("NGS/an_scarHRD.php" , "-cnvs {$som_clincnv} -tumor {$t_id} -normal {$n_id} -out_folder {$out_folder}");
+	}
+
 }
 
 //annotation
@@ -880,7 +891,6 @@ if (in_array("an", $steps))
 	{
 		trigger_error("cfDNA candidate preselection only supported for tumor-normal samples.", E_USER_NOTICE);
 	}
-
 }
 
 //MSI calling
@@ -1067,6 +1077,78 @@ if (in_array("an_rna", $steps))
 
 }
 
+//Collect QC terms if necessary
+$qc_other = $full_prefix."_stats_other.qcML";
+if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("cn", $steps))
+{
+	$terms = array();
+	$sources = array();
+	
+	// HRD score:
+	$hrd_file = $full_prefix."_HRDresults.txt";
+	if (file_exists($hrd_file))
+	{
+		foreach (file($hrd_file) as $line)
+		{
+			if (starts_with($line , '""')) continue;
+			list($sample, $loh, $tai, $lst, $hrd) = explode("\t", trim($line));
+			$terms[] = "QC:2000062\t{$loh}";
+			$terms[] = "QC:2000063\t{$tai}";
+			$terms[] = "QC:2000064\t{$lst}";
+			$terms[] = "QC:2000126\t{$hrd}";
+		}
+		$sources[] = $hrd_file;
+	}
+	
+	//virus:
+	if (file_exists($viral))
+	{
+		$detected_viruses = [];
+		foreach(file($viral) as $line)
+		{
+			if (starts_with($line, "#")) continue;
+			
+			list($chr, $start, $end, $v_name, $reads, $coverage, $coverage_rel, $mismatches, $ident) = explode("\t", $line);
+			$v_base_name = explode("_", $v_name)[0];
+			if (intval($reads) > 100 && ! in_array($v_base_name, $detected_viruses))
+			{
+				$detected_viruses[] = $v_base_name;
+			}
+		}
+		
+		$value = "None";
+		if (count($detected_viruses) > 0)
+		{
+			$value = implode(", ", $detected_viruses);
+		}
+		
+		$terms[] = "QC:2000130\t{$value}";
+		$sources[] = $viral;
+	}
+	
+	//HLA: TODO
+	// if (file_exists($hla_file_tumor))
+	// {
+		
+		// $sources[] = $hla_file_tumor;
+	// }
+	
+	// if (!$single_sample && file_exists($hla_file_normal))
+	// {
+		
+		// $sources[] = $hla_file_normal;
+	// }
+	
+	//create qcML file
+	if (count($sources) > 0) 
+	{
+		$tmp = $parser->tempFile("qc.tsv");
+		file_put_contents($tmp, implode("\n", $terms));
+		$parser->exec(get_path("ngs-bits")."TsvToQC", "-in $tmp -out $qc_other -sources ".implode(" ", $sources));
+	}
+}
+
+
 //DB import
 if (in_array("db", $steps) && db_is_enabled("NGSD"))
 {
@@ -1086,7 +1168,8 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		$qcmls = implode(" ", array_filter([
 			dirname($t_bam)."/{$t_id}_stats_fastq.qcML",
 			dirname($t_bam)."/{$t_id}_stats_map.qcML",
-			$somaticqc
+			$somaticqc,
+			$qc_other
 		], "file_exists"));
 		$parser->execTool("NGS/db_import_qc.php", "-id $t_id -files $qcmls -force --log $log_db");
 

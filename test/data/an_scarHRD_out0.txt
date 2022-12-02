@@ -1,0 +1,2 @@
+""	"HRD"	"Telomeric AI"	"LST"	"HRD-sum"
+"DNA220000_01-DNA220000_01"	0	0	0	0
