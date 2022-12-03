@@ -64,24 +64,35 @@ function translate($error_name, $value, $dict)
 //collapse several values to a single value
 function collapse(&$tag, $error_name, $values, $mode, $decimal_places = null)
 {
-	for($i=0; $i<count($values); ++$i)
+	//remove '' and '.'
+	print_r($values);
+	$values = array_map('trim', $values);
+	$tmp = [];
+	foreach($values as $v)
 	{
-		$v = trim($values[$i]);
-		if (!is_null($decimal_places) && $v!="")
+		if ($v=="" || $v==".") continue;
+		$tmp [] = $v;
+	}
+	$values = $tmp;
+	
+	//set decimal places
+	if (!is_null($decimal_places))
+	{
+		$tmp = [];
+		foreach($values as $v)
 		{
-			if (!is_numeric($v))
-			{
-				trigger_error("Invalid numeric value '{$v}' in mode '{$mode}' while collapsing '{$error_name}' in variant '{$tag}'!", E_USER_ERROR);
-			}
-			$v = number_format($v, $decimal_places, ".", "");
-			if ($values[$i]>0 && $v==0)
+			if (!is_numeric($v)) trigger_error("Invalid numeric value '{$v}' in mode '{$mode}' while collapsing '{$error_name}' in variant '{$tag}'!", E_USER_ERROR);
+			
+			$v_new = number_format($v, $decimal_places, ".", "");
+			if ($v>0 && $v_new==0)
 			{
 				$v = substr($v, 0, -1)."1";
 			}
+			$tmp [] = $v_new;
 		}
-		$values[$i] = $v;
+		$values = $tmp;
 	}
-
+	
 	if ($mode=="one")
 	{
 		$values = array_unique($values);
@@ -686,7 +697,6 @@ while(!feof($handle))
 	$genes = array();
 	$variant_details = array();
 	$coding_and_splicing_details = array();
-	$af_gnomad = array();
 	$af_gnomad_genome = array();
 	$af_gnomad_afr = array();
 	$af_gnomad_amr = array();
@@ -944,40 +954,22 @@ while(!feof($handle))
 		}	
 	}
 
-	//gnomAD genome
-	if (isset($info["gnomADg_AF"]))
-	{
-		$gnomad_values = explode("&", $info["gnomADg_AF"]); // special handling of the rare case that several gnomAD AF values exist
-		foreach($gnomad_values as $value)
-		{
-			if ($value=="" || $value==".") continue;
-			$af_gnomad_genome[] = $value;
-		}
-	}
-	
-	//gnomAD mito
-	if (isset($info["gnomADm_AF_hom"]))
-	{
-		$gnomad_values = explode("&", $info["gnomADm_AF_hom"]); // special handling of the rare case that several gnomAD AF values exist
-		foreach($gnomad_values as $value)
-		{
-			if ($value=="" || $value==".") continue;
-			$af_gnomad_genome[] = $value;
-		}
-	}
+	//gnomAD AF
+	if (isset($info["gnomADg_AF"])) $af_gnomad_genome = explode("&", $info["gnomADg_AF"]);
+	if (isset($info["gnomADm_AF_hom"])) $af_gnomad_genome = explode("&", $info["gnomADm_AF_hom"]);
 	
 	//gnomAD hom/hemi
-	if (isset($info["gnomADg_Hom"])) $hom_gnomad[] = trim($info["gnomADg_Hom"]);
-	if (isset($info["gnomADg_Hemi"])) $hemi_gnomad[] = trim($info["gnomADg_Hemi"]);
-	if (isset($info["gnomADg_Het"])) $het_gnomad[] = trim($info["gnomADg_Het"]);
-	if (isset($info["gnomADg_Wt"])) $wt_gnomad[] = trim($info["gnomADg_Wt"]);
+	if (isset($info["gnomADg_Hom"])) $hom_gnomad = explode("&", $info["gnomADg_Hom"]);
+	if (isset($info["gnomADg_Hemi"])) $hemi_gnomad = explode("&", $info["gnomADg_Hemi"]);
+	if (isset($info["gnomADg_Het"])) $het_gnomad = explode("&", $info["gnomADg_Het"]);
+	if (isset($info["gnomADg_Wt"])) $wt_gnomad = explode("&", $info["gnomADg_Wt"]);
 
 	//genomAD sub-populations
-	if (isset($info["gnomADg_AFR_AF"])) $af_gnomad_afr[] = trim($info["gnomADg_AFR_AF"]);
-	if (isset($info["gnomADg_AMR_AF"])) $af_gnomad_amr[] = trim($info["gnomADg_AMR_AF"]);
-	if (isset($info["gnomADg_EAS_AF"])) $af_gnomad_eas[] = trim($info["gnomADg_EAS_AF"]);
-	if (isset($info["gnomADg_NFE_AF"])) $af_gnomad_nfe[] = trim($info["gnomADg_NFE_AF"]);
-	if (isset($info["gnomADg_SAS_AF"])) $af_gnomad_sas[] = trim($info["gnomADg_SAS_AF"]);
+	if (isset($info["gnomADg_AFR_AF"])) $af_gnomad_afr = explode("&", $info["gnomADg_AFR_AF"]);
+	if (isset($info["gnomADg_AMR_AF"])) $af_gnomad_amr = explode("&", $info["gnomADg_AMR_AF"]);
+	if (isset($info["gnomADg_EAS_AF"])) $af_gnomad_eas = explode("&", $info["gnomADg_EAS_AF"]);
+	if (isset($info["gnomADg_NFE_AF"])) $af_gnomad_nfe = explode("&", $info["gnomADg_NFE_AF"]);
+	if (isset($info["gnomADg_SAS_AF"])) $af_gnomad_sas = explode("&", $info["gnomADg_SAS_AF"]);
 
 	//ClinVar
 	if (isset($info["CLINVAR_ID"]) && isset($info["CLINVAR_DETAILS"]))
@@ -1008,12 +1000,12 @@ while(!feof($handle))
 	//AFs
 	$dbsnp = implode(",", collapse($tag, "dbSNP", $dbsnp, "unique"));	
 	$gnomad = collapse($tag, "gnomAD genome", $af_gnomad_genome, "max", 4);
-	$gnomad_hom_hemi = collapse($tag, "gnomAD Hom", $hom_gnomad, "one").",".collapse($tag, "gnomAD Hemi", $hemi_gnomad, "one");
+	$gnomad_hom_hemi = collapse($tag, "gnomAD Hom", $hom_gnomad, "max").",".collapse($tag, "gnomAD Hemi", $hemi_gnomad, "max");
 	if ($gnomad_hom_hemi==",") $gnomad_hom_hemi = "";
-	$gnomad_sub = collapse($tag, "gnomAD AFR", $af_gnomad_afr, "one", 4).",".collapse($tag, "gnomAD AMR", $af_gnomad_amr, "one", 4).",".collapse($tag, "gnomAD EAS", $af_gnomad_eas, "one", 4).",".collapse($tag, "gnomAD NFE", $af_gnomad_nfe, "one", 4).",".collapse($tag, "gnomAD SAS", $af_gnomad_sas, "one", 4);
+	$gnomad_sub = collapse($tag, "gnomAD AFR", $af_gnomad_afr, "max", 4).",".collapse($tag, "gnomAD AMR", $af_gnomad_amr, "max", 4).",".collapse($tag, "gnomAD EAS", $af_gnomad_eas, "max", 4).",".collapse($tag, "gnomAD NFE", $af_gnomad_nfe, "max", 4).",".collapse($tag, "gnomAD SAS", $af_gnomad_sas, "max", 4);
 	if (str_replace(",", "", $gnomad_sub)=="") $gnomad_sub = "";
-	$gnomad_het = collapse($tag, "gnomAD Het", $het_gnomad, "one");
-	$gnomad_wt = collapse($tag, "gnomAD Wt", $wt_gnomad, "one");
+	$gnomad_het = collapse($tag, "gnomAD Het", $het_gnomad, "max");
+	$gnomad_wt = collapse($tag, "gnomAD Wt", $wt_gnomad, "max");
 
 	//PubMed
 	$pubmed = implode(",", collapse($tag, "PubMed", $pubmed, "unique"));	
