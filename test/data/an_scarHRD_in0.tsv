@@ -1,0 +1,13 @@
+##ANALYSISTYPE=CLINCNV_TUMOR_NORMAL_PAIR
+##ClinCNV version: v1.17.2
+##Analysis finished on: 2022-02-14 19:43:54
+##estimated fdr: 0.14545
+##gender of sample: M
+##ploidy: 1.9344
+##clonality by BAF (if != 1): 0;0.55;0.625;0.075
+##GENOME_BUILD=GRCh38
+##DESCRIPTION=cnv_type=Type of CNV: focal (< 25 % of chrom. arm, < 3 genes), cluster (focal, > 3 genes), (partial) p/q-arm, (partial) chromosome.
+##DESCRIPTION=ncg_oncogene=oncogenes from NCG6.0 that overlap given CNV.
+##DESCRIPTION=ncg_tsg=tumor suppressor genes from NCG6.0 that overlap given CNV.
+##DESCRIPTION=cytoband=Cytobands that are affected by CNV.
+#chr	start	end	sample	size	tumor_CN_change	state	major_CN_allele	minor_CN_allele	tumor_clonality	CN_change	loglikelihood	number_of_regions
