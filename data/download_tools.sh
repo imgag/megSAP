@@ -37,10 +37,10 @@ cd Python-3.6.9
 ./configure --prefix=$folder/Python-3.6.9
 make
 make install
+cd .. 
 # install packages
 bin/pip3 install --upgrade pip #bugfix for pysam installation
 bin/pip3 install -r $root/install_deps_python.txt
-cd ..
 rm -R Python-3.6.9
 rm Python-3.6.9.tgz
 cd ..
