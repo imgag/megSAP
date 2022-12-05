@@ -195,12 +195,11 @@ if (!$skip_ngsd)
 			if ($ps_name!="")
 			{
 				$details = get_processed_sample_info($db_conn, $ps_name, false);
-				$disease_group = $details['disease_group'];
 				$disease_group_column = "";
-				if ($disease_group != "")
+				if (!is_null($details) && $details['disease_group'] != "")
 				{
-					trigger_error("Sample '$ps_name' belongs to disease group $disease_group.", E_USER_NOTICE);
-					$disease_group_column_idx = array_search($disease_group, $disease_groups);
+					trigger_error("Sample '$ps_name' belongs to disease group '".$details['disease_group']."'.", E_USER_NOTICE);
+					$disease_group_column_idx = array_search($details['disease_group'], $disease_groups);
 					$disease_group_column = "GSC".sprintf('%02d', $disease_group_column_idx + 1);
 				}
 				else

@@ -408,89 +408,84 @@ if (!$baf_used)
 /**********************
  * DETERMINE CNV TYPE *
  **********************/
-$chr = "";
-$start = 0;
-$end = 0;
-$arm = "";
-$chrom_arms = array();
-$cyto_bands = Matrix::fromTSV(repository_basedir()."/data/misc/cytoBand.txt");
-
-for($i=0;$i<$cyto_bands->rows();++$i)
+ 
+//load chromosome arm data
+$chrom_arms = [];
+foreach(file(repository_basedir()."/data/misc/cytoBand.txt") as $line)
 {
-	$row = $cyto_bands->getRow($i);
-	list($tmp_chr,$tmp_start,$tmp_end,$tmp_arm) = $row;
+	list($chr, $start, $end, $arm) = explode("\t", $line);
 	
-	if(empty($tmp_arm)) continue;
+	if ($arm=="") continue;
+	$arm = $arm[0];
+	if ($arm!='p' && $arm!='q') continue;
 	
-	++$tmp_start; // 0 to 1-base
-	$tmp_arm = $tmp_arm[0]; //p-arm or q-arm	
-	if(empty($chr))	list($chr,$start,$end,$arm) = array($tmp_chr,$tmp_start,$tmp_end,$tmp_arm);
-	else if($chr!=$tmp_chr || $arm!=$tmp_arm)
+	++$start; // 0 to 1-base
+	
+	if (isset($chrom_arms[$chr][$arm]))
 	{
-		$chrom_arms[] = array($chr,$start,$end,$arm);
-		list($chr,$start,$end,$arm) = array($tmp_chr,$tmp_start,$tmp_end,$tmp_arm);
+		$start = min($start, $chrom_arms[$chr][$arm][0]);
+		$end = max($end, $chrom_arms[$chr][$arm][1]);
 	}
-	else
-	{
-		$end = $tmp_end;
-	}
+	$chrom_arms[$chr][$arm] = [$start, $end];
 }
-if(!empty($chr))	$chrom_arms[] = array($chr,$start,$end,$arm);
+
 $new_col = array();
 $idx_genes = $cnvs->getColumnIndex("genes");
 for($i=0;$i<$cnvs->rows();++$i)
 {
-	$row = $cnvs->getRow($i);
+	$parts = $cnvs->getRow($i);
+	list($chr, $start, $end) = $parts;
 	
-	$overlap = array();
-	for($j=0;$j<count($chrom_arms);++$j)
+	if (!isset($chrom_arms[$chr])) trigger_error("No chromosome arm data available for {$chr}!", E_USER_ERROR);
+	
+	//calculate overlap with p-arm
+	$p_arm = 0.0;
+	list($arm_start, $arm_end) = $chrom_arms[$chr]['p'];
+	$intersect = range_intersect($start, $end, $arm_start, $arm_end);
+	if ($intersect!==FALSE)
 	{
-		$r = $chrom_arms[$j];
-		if($row[0]!=$r[0])	continue;
-		
-		$intersect = range_intersect($row[1],$row[2],$r[1],$r[2]);
-		$size = $r[2]-$r[1];
-		
-		// overlap - arm, fraction
-		if(isset($overlap[$r[3]]))	trigger_error("This should not happen.",E_USER_ERROR);
-		$overlap[$r[3]] = ($intersect[1]-$intersect[0])/$size;
+		$p_arm = ($intersect[1]-$intersect[0])/($arm_end-$arm_start);
 	}
 	
-	if(count($overlap)>2 || count($overlap)<1)	trigger_error("This should not happen.",E_USER_ERROR);
+	//calculate overlap with q-arm
+	$q_arm = 0.0;
+	list($arm_start, $arm_end) = $chrom_arms[$chr]['q'];
+	$intersect = range_intersect($start, $end, $arm_start, $arm_end);
+	if ($intersect!==FALSE)
+	{
+		$q_arm = ($intersect[1]-$intersect[0])/($arm_end-$arm_start);
+	}
 	
-	$p_arm = $overlap["p"];
-	$q_arm = $overlap["q"];
-	$chr = ($p_arm+$q_arm)/2;
-	$acrocentric = false;
-	if(in_array($row[0],array("chr13","chr14","chr15","chr21","chr22")))	$acrocentric = true;
-	$tmp_type = "unknown";
+	//determine type
+	$acrocentric = in_array($chr, array("chr13","chr14","chr15","chr21","chr22"));
+	$type = "unknown";
 	if($p_arm<=0.25 && $q_arm<=0.25)
 	{
-		$tmp_type = "focal";
-		$count_genes = array_filter(explode(",",$row[$idx_genes]));
-		if(count($count_genes)==0)	$tmp_type = "no gene";
-		if(count($count_genes)>3)	$tmp_type = "cluster";
+		$type = "focal";
+		$count_genes = array_filter(explode(",", $parts[$idx_genes]));
+		if(count($count_genes)==0) $type = "no gene";
+		if(count($count_genes)>3) $type = "cluster";
 	}
 	else if($p_arm>0.25 && $q_arm<=0.25)
 	{
-		$tmp_type = "partial p-arm";
-		if($p_arm>0.75)	$tmp_type = "p-arm";
+		$type = "partial p-arm";
+		if($p_arm>0.75)	$type = "p-arm";
 	}
 	else if($q_arm>0.25 && $p_arm<=0.25)
 	{
-		$tmp_type = "partial q-arm";
-		if($q_arm>0.75)	$tmp_type = "q-arm";
-		if($q_arm>0.25 && $acrocentric)	$tmp_type = "partial chromosome";
-		if($q_arm>0.75 && $acrocentric)	$tmp_type = "chromosome";
+		$type = "partial q-arm";
+		if($q_arm>0.75)	$type = "q-arm";
+		if($q_arm>0.25 && $acrocentric) $type = "partial chromosome";
+		if($q_arm>0.75 && $acrocentric) $type = "chromosome";
 	}
 	else if($p_arm>0.25 && $q_arm>0.25)
 	{
-		$tmp_type = "partial chromosome";
-		if(($q_arm+$p_arm)/2>0.75) $tmp_type = "chromosome";
+		$type = "partial chromosome";
+		if(($q_arm+$p_arm)/2>0.75) $type = "chromosome";
 	}
-	$new_col[] = $tmp_type;
+	$new_col[] = $type;
 }
-$cnvs->addCol($new_col, "cnv_type","Type of CNV: focal (< 25 % of chrom. arm, < 3 genes), cluster (focal, > 3 genes), (partial) p/q-arm, (partial) chromosome.");
+$cnvs->addCol($new_col, "cnv_type", "Type of CNV: focal (< 25 % of chrom. arm, < 3 genes), cluster (focal, > 3 genes), (partial) p/q-arm, (partial) chromosome.");
 
 
 //store output tsv file

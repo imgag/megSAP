@@ -94,8 +94,8 @@ todos:
 	find . -name "*.php" | xargs grep -i "@todo" 
 
 find_php_warnings_in_tests:
-	find test/data_* -name "*.log" | xargs grep -i "PHP warning"
-	find test/data_* -name "*.log" | xargs grep -i "PHP notice"
+	find test/ -type f | xargs grep -i "PHP warning" || true
+	find test/ -type f | xargs grep -i "PHP notice" || true
 
 swap_settings:
 	mv settings.ini settings.ini.swap

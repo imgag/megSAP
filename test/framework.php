@@ -366,7 +366,7 @@ function check_exec($command, $fail = TRUE)
 	if ($GLOBALS["debug"]) print "  Executing: $command\n";
 	exec($command." 2>&1", $output, $return);
 	
-	//check if output contains PHP warning
+	//check if output contains warning from PHP
 	$warning = false;
 	foreach ($output as $line)
 	{
