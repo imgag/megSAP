@@ -685,7 +685,7 @@ while(!feof($handle))
 	$revel = array();
 	if (isset($info["REVEL"])) 
 	{
-		$revel[] = $info["REVEL"];
+		$revel = explode("&", $info["REVEL"]);
 	}
 	
 	//variant details
