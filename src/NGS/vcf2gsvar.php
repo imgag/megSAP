@@ -65,7 +65,6 @@ function translate($error_name, $value, $dict)
 function collapse(&$tag, $error_name, $values, $mode, $decimal_places = null)
 {
 	//remove '' and '.'
-	print_r($values);
 	$values = array_map('trim', $values);
 	$tmp = [];
 	foreach($values as $v)
