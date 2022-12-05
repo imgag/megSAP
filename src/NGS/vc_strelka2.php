@@ -29,6 +29,10 @@ extract($parser->parse($argv));
 //Run Strelka2
 //################################################################################################
 
+// update environment
+$python_bin = get_path("python27");
+putenv("PATH=".dirname($python_bin).":".getenv("PATH"));
+
 //check config file
 if (!is_file($config))
 {
@@ -70,8 +74,8 @@ if (isset($debug_region))
 }
 
 //run
-$parser->exec(get_path("strelka2")."/configureStrelkaSomaticWorkflow.py", implode(" ", $args), true);
-$parser->exec("$run_dir/runWorkflow.py", "-m local -j $threads -g 4", false);
+$parser->exec("{$python_bin} ".get_path("strelka2")."/configureStrelkaSomaticWorkflow.py", implode(" ", $args), true);
+$parser->exec("{$python_bin} $run_dir/runWorkflow.py", "-m local -j $threads -g 4", false);
 
 //################################################################################################
 //Split multi-allelic variants
@@ -278,13 +282,17 @@ for($i = 0; $i < $variants->rows(); ++$i)
 //Add variants 
 $vcf_filtered = $parser->tempFile("_filtered.vcf");
 $variants_filtered->toTSV($vcf_filtered);
-$final = $vcf_filtered;
+
+$vcf_invalid = $parser->tempFile("_filtered_invalid.vcf");
+$parser->exec(get_path("ngs-bits")."VcfFilter", "-remove_invalid -in $vcf_filtered -out $vcf_invalid", true);
+
+$final = $vcf_invalid;
 
 //flag off-target variants
 if (!empty($target))
 {
 	$vcf_offtarget = $parser->tempFile("_filtered.vcf");
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_filtered -mark off-target -reg $target -out $vcf_offtarget", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_invalid -mark off-target -reg $target -out $vcf_offtarget", true);
 	$final = $vcf_offtarget;
 }
 

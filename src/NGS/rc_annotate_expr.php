@@ -175,7 +175,7 @@ $args = [
 if ($cohort !== "") $args[] = "--cohort {$cohort}";
 if ($stats !== "") $args[] = "--stats {$stats}";
 if ($corr !== "") $args[] = "--corr {$corr}";
-$parser->exec("python3 ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
+$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
 
 //TODO: use ngs-bits tool
 
@@ -191,5 +191,5 @@ if ($hpa_tissue !== "")
 		"--tissue", "'{$hpa_tissue}'"
 	];
 	if ($hpa_corr !== "") $args[] = "--corr {$hpa_corr}";
-	$parser->exec("python3 ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
+	$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
 }

@@ -10,7 +10,7 @@ We are providing instructions for Ubuntu 18.04 and RHEL 8.3 here. However this s
 
 Ubuntu 18.04
 
-	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.2-cli php7.2-xml php7.2-mysql python-matplotlib python3-networkx python-numpy python-pysam python-statsmodels python-pandas python-setuptools python3-pysam python3-intervaltree python3-numpy python3-pandas python3-click tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev libcurl4-openssl-dev libhts-dev libtabixpp-dev libtabixpp0 meson ninja-build gnumeric numdiff
+	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.2-cli php7.2-xml php7.2-mysql tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev libcurl4-openssl-dev libhts-dev libtabixpp-dev libtabixpp0 meson ninja-build gnumeric numdiff
     
 RHEL 8.3
 

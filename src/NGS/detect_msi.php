@@ -25,7 +25,7 @@ if($is_exome) //use non-standard MANTIS-parameters for whole exomes recommended 
 	$parameters .=  " -mrq 20 -mlq 25 -mlc 20 -mrr 1";
 }
 
-$parser->exec(get_path("mantis"),$parameters,true,false);
+$parser->exec(get_path("python3"), get_path("mantis")." ".$parameters,true,false);
 
 //adds comment char "#" to certain lines of the MANTIS status file
 function parse_mantis_status_file($out_file_name)
