@@ -5,6 +5,8 @@
 ;only adapting the NGSD database credentials is necessary.
 
 [tools-ngs]
+python3 = [path]/data/tools/Python-3.6.9/bin/python3.6
+python27 = [path]/data/tools/Python-2.7.18/bin/python2.7
 ngs-bits = [path]/data/tools/ngs-bits/bin/
 samtools = [path]/data/tools/samtools-1.15.1/samtools
 freebayes = [path]/data/tools/freebayes-1.3.6/freebayes
@@ -24,7 +26,9 @@ circos = [path]/data/tools/circos-0.69-9/bin/circos
 expansion_hunter = [path]/data/tools/ExpansionHunter-v5.0.0-linux_x86_64/bin/ExpansionHunter
 Splicing = [path]/data/tools/SplicingTools
 REViewer = [path]/data/tools/REViewer-v0.2.7/REViewer-v0.2.7
+happy = [path]/data/tools/hap.py-0.3.14/bin/hap.py
 bedtools = [path]/data/tools/bedtools-2.30.0/bedtools.static.binary
+gatk = java -Xmx4G -jar /[path]/data/tools/gatk-4.2.6.1/gatk-package-4.2.6.1-local.jar
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.9.centos6_x86_64/bin/
@@ -38,10 +42,12 @@ hla_genotyper = [path]/data/tools/hla-genotyper-2022_05/genotyper.py
 [tools-ngs-rna]
 STAR = [path]/data/tools/STAR-2.7.10a/bin/Linux_x86_64/STAR
 feature_counts = [path]/data/tools/subread-2.0.3/bin/featureCounts
-skewer = [path]/data/tools/skewer-0.2.2/skewer
 arriba = [path]/data/tools/arriba_v2.3.0
 umi_tools = [path]/data/tools/umi_tools-1.1.2/bin/umi_tools
 kraken2 = [path]/data/tools/kraken2-2.1.2/bin/kraken2
+[tools-primer]
+tracetuner = [path]/data/tools/tracetuner_3.0.6beta/rel/Linux_64/ttuner
+primer3 = [path]/data/tools/opt/primer3-2.3.6/src/
 
 [folders]
 local_data = /tmp/local_ngs_data/

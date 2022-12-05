@@ -42,6 +42,10 @@ $mode_somatic = isset($t_bam) && isset($bam) && count($bam) == 1;
 $mode_tumor_only = isset($t_bam) && !isset($bam);
 $mode_germline = !isset($t_bam) && isset($bam) && !$rna;
 
+// update environment
+$python_bin = get_path("python27");
+putenv("PATH=".dirname($python_bin).":".getenv("PATH"));
+
 //resolve configuration preset
 $config_default = get_path("manta")."/configManta.py.ini";
 $config = $config_default;
@@ -85,8 +89,8 @@ if ($rna)
 }
 
 //run manta
-$parser->exec("python ".get_path('manta')."/configManta.py", implode(" ", $args), true);
-$parser->exec("python {$manta_folder}/runWorkflow.py", "--mode local --jobs {$threads} --memGb ".(2*$threads), false);
+$parser->exec("{$python_bin} ".get_path('manta')."/configManta.py", implode(" ", $args), true);
+$parser->exec("{$python_bin} {$manta_folder}/runWorkflow.py", "--mode local --jobs {$threads} --memGb ".(2*$threads), false);
 
 //copy files to output folder
 if ($mode_somatic)
@@ -109,7 +113,7 @@ $sv = "{$manta_folder}/results/variants/{$outname}SV.vcf.gz";
 
 //combine BND of INVs to one INV in VCF
 $sv_inv = "{$manta_folder}/results/variants/{$outname}SV_inv.vcf";
-$parser->exec("python ".get_path('manta')."/../libexec/convertInversion.py", get_path("samtools")." ".genome_fasta($build)." {$sv} > {$sv_inv}");
+$parser->exec("{$python_bin} ".get_path('manta')."/../libexec/convertInversion.py", get_path("samtools")." ".genome_fasta($build)." {$sv} > {$sv_inv}");
 
 //remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
 $vcf_fixed = "{$temp_folder}/{$outname}SV_fixed.vcf";

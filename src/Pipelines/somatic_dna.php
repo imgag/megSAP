@@ -893,7 +893,7 @@ if (in_array("msi", $steps) && !$single_sample)
 	if(!file_exists($reference_loci_file))
 	{
 		print("Could not find loci reference file $reference_loci_file. Trying to generate it.\n");
-		$parser->exec(get_path("mantis")."/tools/RepeatFinder","-i $ref_genome -o $reference_loci_file",false);
+		$parser->exec(get_path("python"), dirname(get_path("mantis"))."/tools/RepeatFinder","-i $ref_genome -o $reference_loci_file",false);
 	}
 
 	//file that contains MSI in target region -> is intersection of loci reference with target region

@@ -110,9 +110,9 @@ foreach($file as $line)
 	else //classification exists => update
 	{
 		$c_id = $c_data[0]['id'];
-		$c_comment = $c_data[0]['comment'];
+		$c_comment = $db->quote($comment."\n".$c_data[0]['comment']);
 		$c_class = $c_data[0]['class'];
-		$db->executeStmt("UPDATE variant_classification SET class='{$class}', comment='{$comment}\n{$c_comment}' WHERE id='{$c_id}'");
+		$db->executeStmt("UPDATE variant_classification SET class='{$class}', comment={$c_comment} WHERE id='{$c_id}'");
 		print "$chr:$start $ref>$obs\tUpdated classification to {$class} (was {$c_class}) \n";
 	}
 }
