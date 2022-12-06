@@ -290,6 +290,12 @@ function get_path($name, $throw_on_error=true)
 		trigger_error("Could not parse INI file '$ini_file'.",E_USER_ERROR);
 	}
 
+	//check key name
+	if (strpos($name, ".") !== false)
+	{
+		trigger_error("Key name '$name' contains '.' which is not supported!",E_USER_ERROR);
+	}
+
 	//get value (special handling for certain servers)
 	$server = implode("", exec2("hostname")[0]);
 	$name_server = $name.".".strtoupper(trim($server));

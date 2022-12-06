@@ -157,10 +157,16 @@ mkdir -p $spliceFolder
 cd $spliceFolder
 $folder/Python-3.6.9/bin/python3 -m venv splice_env
 source $spliceFolder/splice_env/bin/activate
-pip install cyvcf2==0.20.5 cython==0.29.21
+pip install --upgrade pip
+pip install numpy==1.17.4
+pip install pyfaidx==0.5.0
+pip install cyvcf2==0.20.5 
+pip install cython==0.29.21
 pip install h5py==2.10.0
 pip install spliceai==1.3.1
+pip install tensorflow==2.6.2
 deactivate
+cd ..
 
 #download REViewer
 cd $folder
