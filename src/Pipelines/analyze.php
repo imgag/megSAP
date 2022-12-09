@@ -129,7 +129,6 @@ $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 //variant calling
 $vcffile = $folder."/".$name."_var.vcf.gz";
 $vcffile_annotated = $folder."/".$name."_var_annotated.vcf.gz";
-$mosaic_file = $folder."/".$name."_mosaic.vcf.gz";
 $varfile = $folder."/".$name.".GSvar";
 $rohfile = $folder."/".$name."_rohs.tsv";
 $baffile = $folder."/".$name."_bafs.igv";
@@ -550,9 +549,31 @@ if (in_array("vc", $steps))
 		}
 		fclose($hw);
 		
+		//call mosaic variants on target region (WES or Panel) or exonic/splicing region (WGS)
+		if (ngsbits_build($build)!="non_human" && ($is_wgs || ($is_wes && $has_roi) || ($is_panel && $has_roi)))
+		{
+			$tmp = $parser->tempFile("_mosaic.vcf");
+			$args = [];
+			$args[] = "-in {$local_bamfile}";
+			$args[] = "-out {$tmp}";
+			$args[] = "-no_zip";
+			$args[] = "-target ".(($is_panel || $is_wes) ? $sys['target_file'] : repository_basedir()."data/gene_lists/gene_exons_pad20.bed");
+			$args[] = "-threads ".$threads;
+			$args[] = "-build ".$build;
+			$args[] = "-min_obs ".($is_wgs ?  "1" : "2");	
+			$parser->execTool("NGS/vc_mosaic.php", implode(" ", $args));
+			
+			//add to main variant list
+			$tmp2 = $parser->tempFile("_merged_mosaic.vcf");
+			$parser->exec("{$ngsbits}VcfAdd", "-in $vcf -in2 $tmp -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out $tmp2", true);
+			
+			//sort
+			$parser->exec("{$ngsbits}VcfSort", "-in $tmp2 -remove_unused_contigs -out $vcf", true);
+		}
+		
+		//zip and index
 		$parser->exec("bgzip", "-c $vcf > $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
 		$parser->exec("tabix", "-f -p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
-		
 		
 		//create b-allele frequency file
 		$params = array();
@@ -564,56 +585,6 @@ if (in_array("vc", $steps))
 			$params[] = "-downsample 100";
 		}
 		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
-		
-		//call mosaic variants on exon region
-		if (ngsbits_build($build) != "non_human" && ($is_wgs || $is_wes || ($is_panel && $has_roi)))
-		{
-			$args = [];
-			$args[] = "-in {$local_bamfile}";
-			$args[] = "-exclude {$vcffile}";
-			$args[] = "-out {$mosaic_file}";
-			if ($is_panel)
-			{
-				$args[] = "-target ".$sys['target_file'];
-			}
-			else
-			{
-				$args[] = "-target ".repository_basedir()."data/gene_lists/gene_exons_pad20.bed";
-			}
-			$args[] = "-threads $threads";
-			$args[] = "-build ".$build;
-			
-			if ($is_wgs)
-			{
-				$args[] = "-min_obs 1";				
-			}
-			else
-			{
-				$args[] = "-min_obs 2";
-			}
-			$parser->execTool("NGS/vc_mosaic.php", implode(" ", $args));
-			
-			//unzip - add sample and pipeline headers -rezip:
-			$hr = gzopen2($mosaic_file, "r");
-			$unzpped_mosaic = $parser->tempFile("_unzipped.vcf");
-			$hw = fopen2($unzpped_mosaic, "w");
-			while(!gzeof($hr))
-			{
-				$line = trim(gzgets($hr));
-				if (strlen($line)==0) continue;
-				if ($line[0]=="#" && $line[1]!="#")
-				{
-					fwrite($hw, "##ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n");
-					fwrite($hw, "##PIPELINE=".repository_revision(true)."\n");
-					fwrite($hw, gsvar_sample_header($name, array("DiseaseStatus"=>"affected")));
-				}
-				fwrite($hw, $line."\n");
-			}
-			fclose($hr);
-			
-			$parser->exec("bgzip", "-c $unzpped_mosaic > $mosaic_file", false); //no output logging, because Toolbase::extractVersion() does not return
-			$parser->exec("tabix", "-f -p vcf $mosaic_file", false); //no output logging, because Toolbase::extractVersion() does not return
-		}
 	}
 	else
 	{

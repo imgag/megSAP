@@ -16,7 +16,6 @@ $parser->addOutfile("out", "Output VCF file.", false);
 $parser->addInt("min_obs", "Minimum observation per strand. Recommended value for WGS = 1 and WES = 2", false);
 $parser->addInfile("target", "File with target region for variant calling.", false);
 //optional
-$parser->addInfile("exclude", "VCF(.GZ) with variants to remove from output (typically germline variants called using a diploid model).", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFloat("max_af", "Maximum allele-frequency of a variant to be considered as a mosaic", true, 0.5);
 $parser->addFloat("max_gnomad_af", "Maximum allowed population allele frequency in gnomAD", true, 0.01);
@@ -25,6 +24,7 @@ $parser->addInt("min_mq", "Minimum mapping quality (freebayes)", true, 50);
 $parser->addInt("min_bq", "Minimum base quality (freebayes)", true, 25);
 $parser->addInt("min_qsum", "Minimum alternate quality sum (freebayes)", true, 90);
 $parser->addInt("threads", "Number of threads used.", true, 1);
+$parser->addFlag("no_zip", "Do not gzip output VCF file.");
 extract($parser->parse($argv));
 
 //check parameters
@@ -44,35 +44,9 @@ if ($min_obs < 0)
 //init
 $genome = genome_fasta($build);
 
-
-/*
-Filters the base results and removes called variants that:
-	- already occur in the given .vcf file from the sample.
-	- have a higher allel frequency than max_af.
-	- occur on one strand less than min_obs.
-	- have a higher allel frequency in gnomAD than max_gnomad_af.
-	- occur in low confidence regions.
-*/
-
-function filter_vcf($vcf, $out, $exclude, $max_af, $min_obs, $max_gnomad_af)
+function filter_vcf($vcf, $out, $max_af, $min_obs, $max_gnomad_af)
 {
 	$result = [];
-	
-	//read variants to exclude (if set)
-	$vars_germline = array();
-	if (trim($exclude)!="")
-	{
-		$h = gzopen($exclude, "r");
-		while(!feof($h))
-		{
-			$line = trim(fgets($h));
-			if ($line=="" || $line[0]=="#") continue;
-			list($chr, $pos, $id, $ref, $alt, $qual, $filter, $all_info, $format, $format_values) = explode("\t", $line);	
-			$var = "$chr:$pos $ref>$alt";
-			$vars_germline[$var] = true;
-		}
-		fclose($h);
-	}
 	
 	//filter mosaic calls:
 	foreach (file($vcf) as $line)
@@ -85,10 +59,7 @@ function filter_vcf($vcf, $out, $exclude, $max_af, $min_obs, $max_gnomad_af)
 			continue;
 		}
 		
-
 		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $all_info, $format, $format_values) = explode("\t", $line);	
-		$var = "$chr:$pos $ref>$alt";
-
 		list($saf, $sar, $af, $gnomad_af) = parse_vcf_info($all_info, $format, $format_values);
 		
 		if ($af > $max_af)
@@ -102,16 +73,6 @@ function filter_vcf($vcf, $out, $exclude, $max_af, $min_obs, $max_gnomad_af)
 		}
 		
 		if ($gnomad_af > $max_gnomad_af)
-		{
-			continue;
-		}
-		
-		if (contains($filter, "low_conf_region"))
-		{
-			continue;
-		}
-		
-		if (array_key_exists($var, $vars_germline))
 		{
 			continue;
 		}
@@ -205,12 +166,12 @@ $pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
 $tmp_annotated = temp_file("_annotated.vcf");
 $gnomad_file = get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz";
-$pipeline[] = array(get_path("ngs-bits")."VcfAnnotateFromVcf ", "-out $tmp_annotated -source $gnomad_file -info_keys AF -prefix gnomADg -threads $threads");
+$pipeline[] = array(get_path("ngs-bits")."VcfAnnotateFromVcf", "-out $tmp_annotated -source $gnomad_file -info_keys AF -prefix gnomADg -threads $threads");
 $parser->execPipeline($pipeline, "vc_mosaic post processing");
 
 //filter
 $tmp_filtered = temp_file("_filtered.vcf");
-filter_vcf($tmp_annotated, $tmp_filtered, $exclude, $max_af, $min_obs, $max_gnomad_af);
+filter_vcf($tmp_annotated, $tmp_filtered, $max_af, $min_obs, $max_gnomad_af);
 
 //sort variants by genomic position
 $tmp_sorted_vcf = temp_file("_sorted.vcf");
@@ -218,6 +179,6 @@ $parser->exec(get_path("ngs-bits")."VcfSort", "-in $tmp_filtered -out $tmp_sorte
 
 // fix error in VCF file and strip unneeded information
 $tmp_fixed_vcf = temp_file("_fixed.vcf");
-exec("cat $tmp_sorted_vcf | php ".repository_basedir()."src/NGS/vcf_fix.php --mosaic_mode | bgzip > $out");
+exec("cat $tmp_sorted_vcf | php ".repository_basedir()."src/NGS/vcf_fix.php --mosaic_mode ".($no_zip ? "" : "| bgzip")." > $out");
 
 ?>
