@@ -67,6 +67,10 @@ if ($no_bias)
 }
 $args[] = "--min-alternate-fraction $min_af";
 $args[] = "--min-mapping-quality $min_mq";
+if ($min_mq==0) //the default genotyping model includes the mapping quality into the variant quality. This does not work for MQ=0, thus we use the old model
+{
+	$args[] = "--legacy-gls";
+}
 $args[] = "--min-base-quality $min_bq";
 $args[] = "--min-alternate-count $min_ao";
 $args[] = "--min-alternate-qsum $min_qsum";

@@ -17,7 +17,7 @@ $steps_all = array("ma", "vc", "cn", "sv", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, db=import into NGSD.", true, "ma,vc,cn,sv,db");
 $parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (freebayes 'min-alternate-fraction' parameter).", true, 0.1);
 $parser->addFloat("min_bq", "Minimum base quality used for variant calling (freebayes 'min-base-quality' parameter).", true, 15);
-$parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (freebayes 'min-mapping-quality' parameter).", true, 20);
+$parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (freebayes 'min-mapping-quality' parameter).", true, 1);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.");
 $parser->addFlag("no_abra", "Skip realignment with ABRA.");
@@ -553,29 +553,44 @@ if (in_array("vc", $steps))
 		}
 		fclose($hw);
 		
-		//call low mappability variants on target region (WES or Panel) or exonic/splicing region (WGS)
-		if (true)
+		//call low mappability variants
+		if ($is_wgs || ($is_wes && $has_roi) || ($is_panel && $has_roi))
 		{
-			$tmp_low_mappability = $parser->tempFile("_low_mappability.vcf.gz");
-			$args = array();
-			$args[] = "-bam ".$local_bamfile;
-			$args[] = "-out ".$tmp_low_mappability;
-			$args[] = "-build ".$build;
-			$args[] = "-threads ".$threads;
-			$args[] = "-target ".(($is_panel || $is_wes) ? $sys['target_file'] : repository_basedir()."data/gene_lists/gene_exons_pad20.bed");
-			$args[] = "-min_af ".$min_af;
-			$args[] = "-min_mq 0";
-			$args[] = "-min_bq ".$min_bq;
-			$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args));
-		
-			//unzip
-			$tmp_low_mappability2 = $parser->tempFile("_low_mappability.vcf");
-			$parser->exec("zcat", "$tmp_low_mappability > $tmp_low_mappability2", true);
+			//determine region
+			$mapq0_regions = repository_basedir()."data/misc/low_mappability_region/mapq_eq0.bed";
+			if ($is_wgs)
+			{
+				$roi_low_mappabilty = $mapq0_regions;
+			}
+			else
+			{
+				$roi_low_mappabilty = $parser->tempFile("_mapq0.bed");
+				$parser->exec("{$ngsbits}BedIntersect", "-in ".$sys['target_file']." -in2 $mapq0_regions -out $roi_low_mappabilty", true);
+			}
 			
-			//add to main variant list
-			$tmp2 = $parser->tempFile("_merged_low_mappability.vcf");
-			$parser->exec("{$ngsbits}VcfAdd", "-in $vcf -in2 $tmp_low_mappability2 -skip_duplicates -filter low_mappability -filter_desc Variants_in_reads_with_low_mapping_score. -out $tmp2", true);
-			$parser->moveFile($tmp2, $vcf);
+			if (bed_size($roi_low_mappabilty)>0)
+			{
+				$tmp_low_mappability = $parser->tempFile("_low_mappability.vcf.gz");
+				$args = array();
+				$args[] = "-bam ".$local_bamfile;
+				$args[] = "-out ".$tmp_low_mappability;
+				$args[] = "-build ".$build;
+				$args[] = "-threads ".$threads;
+				$args[] = "-target ".$roi_low_mappabilty;
+				$args[] = "-min_af ".$min_af;
+				$args[] = "-min_mq 0";
+				$args[] = "-min_bq ".$min_bq;
+				$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args));
+			
+				//unzip
+				$tmp_low_mappability2 = $parser->tempFile("_low_mappability.vcf");
+				$parser->exec("zcat", "$tmp_low_mappability > $tmp_low_mappability2", true);
+				
+				//add to main variant list
+				$tmp2 = $parser->tempFile("_merged_low_mappability.vcf");
+				$parser->exec("{$ngsbits}VcfAdd", "-in $vcf -in2 $tmp_low_mappability2 -skip_duplicates -filter low_mappability -filter_desc Variants_in_reads_with_low_mapping_score. -out $tmp2", true);
+				$parser->moveFile($tmp2, $vcf);
+			}
 		}
 			
 		//call mosaic variants on target region (WES or Panel) or exonic/splicing region (WGS)
