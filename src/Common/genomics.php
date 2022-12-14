@@ -1207,7 +1207,7 @@ function approve_gene_names($input_genes)
 	file_put_contents($non_approved_genes_file,$genes_as_string);
 	
 	//write stdout to $approved_genes -> each checked gene is one array element
-	list($approved_genes) = exec2(get_path("ngs-bits",true)."GenesToApproved -in $non_approved_genes_file");
+	list($approved_genes) = exec2(get_path("ngs-bits")."GenesToApproved -in $non_approved_genes_file");
 	
 	$output = array();
 	foreach($approved_genes as $gene)
@@ -1902,7 +1902,7 @@ function ps_running_in_sge()
 
 function bed_size($filename)
 {
-	list($stdout) = exec2("BedInfo -in $filename | grep -i bases");
+	list($stdout) = exec2(get_path("ngs-bits")."BedInfo -in $filename | grep -i bases");
 	return trim(explode(":", $stdout[0])[1]);
 }
 ?>
