@@ -280,7 +280,7 @@ if (in_array("ma", $steps))
 		}
 	}
 	
-	$args = array();
+	$args = [];
 	if($clip_overlap) $args[] = "-clip_overlap";
 	if($no_abra) $args[] = "-no_abra";
 	if($no_trim) $args[] = "-no_trim";
@@ -448,7 +448,7 @@ if (in_array("vc", $steps))
 			}
 			else
 			{
-				$args = array();
+				$args = [];
 				$args[] = "-bam ".$local_bamfile;
 				$args[] = "-out ".$vcffile;
 				$args[] = "-build ".$build;
@@ -502,7 +502,7 @@ if (in_array("vc", $steps))
 				$target_mito = $parser->tempFile("_mito.bed");
 				file_put_contents($target_mito, "chrMT\t0\t16569");
 				
-				$args = array();
+				$args = [];
 				$args[] = "-in ".$local_bamfile;
 				$args[] = "-out ".$vcffile_mito;
 				$args[] = "-build ".$build;
@@ -571,7 +571,7 @@ if (in_array("vc", $steps))
 			if (bed_size($roi_low_mappabilty)>0)
 			{
 				$tmp_low_mappability = $parser->tempFile("_low_mappability.vcf.gz");
-				$args = array();
+				$args = [];
 				$args[] = "-bam ".$local_bamfile;
 				$args[] = "-out ".$tmp_low_mappability;
 				$args[] = "-build ".$build;
@@ -636,16 +636,20 @@ if (in_array("vc", $steps))
 		check_genome_build($vcffile, $build);
 	}
 
-	// annotation
-	$args = array("-out_name $name", "-out_folder {$folder}", "-system {$system}", "--log ".$parser->getLogFile());
-	if ($is_wgs) $args[] = "-updown";
-	$args[] = "-threads {$threads}";
+	//annotation
+	$args = [];
+	$args[] = "-out_name ".$name;
+	$args[] = "-out_folder ".$folder;
+	$args[] = "-system ".$system;
+	$args[] = "--log ".$parser->getLogFile();
+	$args[] = "-updown";
+	$args[] = "-threads ".$threads;
 	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
 	
 	//ROH detection
 	if ($is_wes || $is_wgs)
 	{
-		$args = array();
+		$args = [];
 		$args[] = "-in $vcffile_annotated";
 		$args[] = "-out $rohfile";
 		$args[] = "-var_af_keys gnomADg_AF";
