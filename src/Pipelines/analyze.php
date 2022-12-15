@@ -642,7 +642,6 @@ if (in_array("vc", $steps))
 	$args[] = "-out_folder ".$folder;
 	$args[] = "-system ".$system;
 	$args[] = "--log ".$parser->getLogFile();
-	$args[] = "-updown";
 	$args[] = "-threads ".$threads;
 	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
 	

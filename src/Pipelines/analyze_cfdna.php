@@ -455,7 +455,7 @@ if (in_array("vc", $steps))
 
 	// annotate VCF 
 	$vcffile_annotated = "$folder/${name}_var_annotated.vcf.gz";
-	$parser->execTool("Pipelines/annotate.php", "-out_name $name -out_folder $folder -vcf $vcffile -somatic -updown -threads $threads -system $system");
+	$parser->execTool("Pipelines/annotate.php", "-out_name $name -out_folder $folder -vcf $vcffile -somatic -threads $threads -system $system");
 
 	//add sample info to VCF header
 	$tmp_vcf = $parser->tempFile(".vcf");
