@@ -238,7 +238,7 @@ if( db_is_enabled("NGSD") )
 }
 
 
-//Check samples are flagged correctly in NGSD
+// Check samples are flagged correctly in NGSD
 if( db_is_enabled("NGSD") && count($bams) > 1 )
 {
 	$db = DB::getInstance("NGSD");
@@ -399,6 +399,14 @@ if (in_array("vc", $steps))
 			
 			$parser->execTool("NGS/baf_somatic.php", implode(" ", $baf_args));
 		}
+	}
+	
+	if (file_exists($variants))
+	{
+		$snv_signatures_out = $out_folder."/snv_signatures/";
+		$tmp_variants = $parser->tempFile(".vcf", "snv_signatures_");
+		$parser->exec("bgzip","-c -d -@ {$threads} $variants > {$tmp_variants}", true);
+		$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/extract_signatures.py", "--in {$tmp_variants} --mode snv --outFolder {$snv_signatures_out} --reference GRCh38 --threads {$threads}", true);
 	}
 }
 
@@ -770,8 +778,10 @@ if(in_array("cn",$steps))
 	if (file_exists($som_clincnv))
 	{
 		$parser->execTool("NGS/an_scarHRD.php" , "-cnvs {$som_clincnv} -tumor {$t_id} -normal {$n_id} -out_folder {$out_folder}");
+		
+		$cnv_signatures_out = $out_folder."/cnv_signatures/";
+		$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/extract_signatures.py", "--in {$som_clincnv} --mode cnv --outFolder {$cnv_signatures_out} --reference GRCh38 --threads {$threads}", true);
 	}
-
 }
 
 //annotation
@@ -882,7 +892,7 @@ if (in_array("msi", $steps) && !$single_sample)
 	if(!file_exists($reference_loci_file))
 	{
 		print("Could not find loci reference file $reference_loci_file. Trying to generate it.\n");
-		$parser->exec(get_path("python"), dirname(get_path("mantis"))."/tools/RepeatFinder","-i $ref_genome -o $reference_loci_file",false);
+		$parser->exec(get_path("python27"), dirname(get_path("mantis"))."/tools/RepeatFinder","-i $ref_genome -o $reference_loci_file",false);
 	}
 
 	//file that contains MSI in target region -> is intersection of loci reference with target region

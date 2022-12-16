@@ -25,24 +25,27 @@ make install
 cd ..
 rm -R Python-2.7.18
 rm Python-2.7.18.tgz
+curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
+./bin/python2 get-pip.py
+./bin/pip2 install numpy==1.16.6
+./bin/pip2 install pysam==0.20.0
 cd ..
 
 #download and build python3
 cd $folder
-mkdir -p Python-3.6.9
-cd Python-3.6.9
-wget https://www.python.org/ftp/python/3.6.9/Python-3.6.9.tgz
-tar -zxvf Python-3.6.9.tgz
-cd Python-3.6.9
-./configure --prefix=$folder/Python-3.6.9
+mkdir -p Python-3.10.9
+cd Python-3.10.9
+wget https://www.python.org/ftp/python/3.10.9/Python-3.10.9.tgz
+tar -zxvf Python-3.10.9.tgz
+cd Python-3.10.9
+./configure --prefix=$folder/Python-3.10.9
 make
 make install
 cd .. 
 # install packages
-bin/pip3 install --upgrade pip #bugfix for pysam installation
 bin/pip3 install -r $root/install_deps_python.txt
-rm -R Python-3.6.9
-rm Python-3.6.9.tgz
+rm -R Python-3.10.9
+rm Python-3.10.9.tgz
 cd ..
 
 #download and build samtools
@@ -155,16 +158,11 @@ cd $folder
 spliceFolder=$folder/SplicingTools
 mkdir -p $spliceFolder
 cd $spliceFolder
-$folder/Python-3.6.9/bin/python3 -m venv splice_env
+$folder/Python-3.10.9/bin/python3 -m venv splice_env3_10
 source $spliceFolder/splice_env/bin/activate
 pip install --upgrade pip
-pip install numpy==1.17.4
-pip install pyfaidx==0.5.0
-pip install cyvcf2==0.20.5 
-pip install cython==0.29.21
-pip install h5py==2.10.0
 pip install spliceai==1.3.1
-pip install tensorflow==2.6.2
+pip install tensorflow==2.11.0
 deactivate
 cd ..
 
