@@ -332,7 +332,6 @@ if (in_array("vc", $steps))
 
 	//basic annotation
 	$parser->execTool("Pipelines/annotate.php", "-out_name {$prefix} -out_folder $out_folder -system $system -threads $threads -multi");
-
 }
 
 //(3) copy-number calling

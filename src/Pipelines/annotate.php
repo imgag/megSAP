@@ -19,7 +19,6 @@ $parser->addString("mosaic_vcf", "Path to (bgzipped) VCF file (if different from
 $parser->addFlag("no_fc", "No format check (vcf/tsv).");
 $parser->addFlag("multi", "Enable multi-sample mode.");
 $parser->addFlag("somatic", "Enable somatic mode (no variant QC and no GSvar file).");
-$parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 extract($parser->parse($argv));
 
@@ -42,25 +41,10 @@ else
 }
 
 //output file names
-$annfile ="";
-$annfile_zipped = "";	
-$varfile = "";
-$stafile = "";
-
-if ($is_mosaic)
-{
-	$annfile = $parser->tempFile("mosaic.vcf");
-	$annfile_zipped = $out_folder."/".$out_name."_mosaic_annotated.vcf.gz";
-	$varfile = $out_folder."/".$out_name."_mosaic.GSvar";
-	$stafile = $out_folder."/".$out_name."_mosaic_stats_vc.qcML";
-}
-else
-{
-	$annfile = $parser->tempFile(".vcf");
-	$annfile_zipped = $out_folder."/".$out_name."_var_annotated.vcf.gz";	
-	$varfile = $out_folder."/".$out_name.".GSvar";
-	$stafile = $out_folder."/".$out_name."_stats_vc.qcML";
-}
+$annfile = $parser->tempFile(".vcf");
+$annfile_zipped = $out_folder."/".$out_name."_var_annotated.vcf.gz";	
+$varfile = $out_folder."/".$out_name.".GSvar";
+$stafile = $out_folder."/".$out_name."_stats_vc.qcML";
 
 
 //get system
@@ -107,9 +91,11 @@ if (!$somatic) //germline only
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
 	$parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $stafile", true);
 	
-	$args = array("-in $annfile", "-out $varfile");
+	$args = [];
+	$args[] = "-in ".$annfile;
+	$args[] = "-out ".$varfile;
+	$args[] = "-updown";
 	if ($multi) $args[] = "-genotype_mode multi";
-	if ($updown) $args[] = "-updown";
 	if ($sys['type']=="WGS") $args[] = "-wgs";
 	$parser->execTool("NGS/vcf2gsvar.php", implode(" ", $args));
 	
