@@ -661,7 +661,7 @@ if (in_array("vc", $steps))
 		$prs_scoring_files = glob($prs_folder."/*_".$build.".vcf");
 		if (count($prs_scoring_files) > 0)
 		{
-			$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
+			$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -bam $bamfile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
 		}
 	}
 	
