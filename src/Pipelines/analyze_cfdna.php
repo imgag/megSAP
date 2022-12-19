@@ -516,7 +516,7 @@ if (in_array("vc", $steps))
 		ksort($related_cfdna_gsvars); //sort by sample name --> TODO: sort by sample id
 
 		// modify output file list so that only the GSvar file of the current sample is written
-		$related_cfdna_gsvars_output = array_fill(0, count($related_cfdna_gsvars_output), "");
+		$related_cfdna_gsvars_output = array_fill(0, count($related_cfdna_gsvars), "");
 		$sample_pos = array_search($name, array_keys($related_cfdna_gsvars));
 		$related_cfdna_gsvars_output[$sample_pos] = $gsvar_file;
 
