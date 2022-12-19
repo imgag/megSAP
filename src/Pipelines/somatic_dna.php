@@ -879,8 +879,7 @@ if (in_array("an", $steps))
 			$params[] = "-r ${ref_genome}";
 			$params[] = "-i"; // ignore INDELS
 			// call variant selection in virtual environment
-			$python_bin = $umiVar2_path."/venv/bin/python";
-			$parser->exec($python_bin, $umiVar2_path."/select_monitoring_variants.py ".implode(" ", $params));
+			$parser->exec(get_path("python3"), $umiVar2_path."/select_monitoring_variants.py ".implode(" ", $params));
 		}
 		else
 		{
