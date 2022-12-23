@@ -604,6 +604,7 @@ if (in_array("vc", $steps))
 			$args[] = "-target ".(($is_panel || $is_wes) ? $sys['target_file'] : repository_basedir()."data/gene_lists/gene_exons_pad20.bed");
 			$args[] = "-threads ".$threads;
 			$args[] = "-build ".$build;
+			$args[] = "-min_af 0.03";
 			$args[] = "-min_obs ".($is_wgs ?  "1" : "2");	
 			$parser->execTool("NGS/vc_mosaic.php", implode(" ", $args));
 			
