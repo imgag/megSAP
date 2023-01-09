@@ -1698,7 +1698,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 							$builds[] = $build;
 						}
 					}
-					elseif ($split_line[1] == "ID: Hash Table Build")
+					else if ($split_line[1] == "ID: Hash Table Build")
 					{
 						$build = "";
 						// parse genome build from ABRA2 command line
@@ -1708,7 +1708,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 							{
 								$cl = explode(" ", $column);
 								$ref_file_path = "";
-								for ($i=0; $i < count($cl); $i++) 
+								for ($i=0; $i < count($cl); ++$i) 
 								{ 
 									if($cl[$i] == "--ht-reference")
 									{
@@ -1720,6 +1720,34 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 								{
 									$build = basename($ref_file_path, ".fa");
 									break;
+								}
+							}
+						}
+						if ($build!="") 
+						{
+							$builds[] = $build;
+						}
+					}
+					else if ($split_line[1] == "ID:STAR")
+					{
+						$build = "";
+						// parse genome build from STAR command line
+						foreach($split_line as $column)
+						{
+							if (starts_with($column, "CL:"))
+							{
+								while(contains($column, "  ")) $column = strtr($column, ["  "=>" "]);
+								$cl = explode(" ", $column);
+								for ($i=0; $i < count($cl); ++$i) 
+								{ 
+									if($cl[$i] == "--genomeDir")
+									{
+										$path = trim($cl[$i + 1]);
+										if (!ends_with($path, "/")) $path .= "/";
+										$path_parts = explode("/", $path);
+										$build = $path_parts[count($path_parts)-2];
+										break;
+									}
 								}
 							}
 						}
