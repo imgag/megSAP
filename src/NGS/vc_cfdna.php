@@ -49,8 +49,7 @@ else
 
 // call umiVar2 in virtual environment
 $umiVar2 = get_path("umiVar2");
-$python_bin = $umiVar2."/venv/bin/python";
-$parser->exec($python_bin, $umiVar2."/umiVar.py ".implode(" ", $args));
+$parser->exec(get_path("python3"), $umiVar2."/umiVar.py ".implode(" ", $args));
 
 // sort VCF file(s)
 $vcf = $folder."/".basename($bam, ".bam").".vcf";

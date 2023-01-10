@@ -143,7 +143,7 @@ fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.
 fwrite($config_file, annotation_file_path("/dbs/REVEL/REVEL_1.3.vcf.gz")."\t\tREVEL\t\n");
 
 //precalculated SpliceAI scores
-$spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2022_10_28_GRCh38.vcf.gz");
+$spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2022_12_30_GRCh38.vcf.gz");
 if (file_exists($spliceai_file))
 {
 	fwrite($config_file, $spliceai_file."\t\tSpliceAI\t\n");

@@ -42,17 +42,17 @@ if (isset($pgs))
 		if(starts_with($line, "#"))
 		{
 			// parse comment part
-			if(starts_with($line, "# PGS ID"))
+			if(starts_with($line, "# PGS ID") || starts_with($line, "#pgs_id="))
 			{
 				$pgs_id = trim(explode("=", $line)[1]);
 				fwrite($out_h, "##pgs_id=$pgs_id\n");
 			}
-			else if(starts_with($line, "# Reported Trait"))
+			else if(starts_with($line, "# Reported Trait") || starts_with($line, "#trait_reported="))
 			{
 				$trait = trim(explode("=", $line)[1]);
 				fwrite($out_h, "##trait=$trait\n");
 			}
-			else if(starts_with($line, "# Original Genome Build"))
+			else if(starts_with($line, "# Original Genome Build") || starts_with($line, "#genome_build="))
 			{			
 				// check if provided build and build in PRS file match
 				$build_prs = trim(explode("=", $line)[1]);
@@ -62,17 +62,17 @@ if (isset($pgs))
 				}
 				fwrite($out_h, "##build=$build\n");
 			}
-			else if(starts_with($line, "# Number of Variants"))
+			else if(starts_with($line, "# Number of Variants") || starts_with($line, "#variants_number="))
 			{
 				$n_var = trim(explode("=", $line)[1]);
 				fwrite($out_h, "##n_var=$n_var\n");
 			}
-			else if(starts_with($line, "# PGP ID"))
+			else if(starts_with($line, "# PGP ID") || starts_with($line, "#pgp_id="))
 			{
 				$pgp_id = trim(explode("=", $line)[1]);
 				fwrite($out_h, "##pgp_id=$pgp_id\n");
 			}
-			else if(starts_with($line, "# Citation"))
+			else if(starts_with($line, "# Citation") || starts_with($line, "#citation="))
 			{
 				$citation = trim(explode("=", $line)[1]);
 				fwrite($out_h, "##citation=$citation\n");
@@ -89,12 +89,21 @@ if (isset($pgs))
 				$pos_idx = array_search("chr_position", $column_headers);
 				if($pos_idx === false) trigger_error("Mandatory column 'chr_position' is missing in input file!", E_USER_ERROR);
 				$ref_idx = array_search("reference_allele", $column_headers);
-				if($ref_idx === false) trigger_error("Mandatory column 'reference_allele' is missing in input file!", E_USER_ERROR);
+				if($ref_idx === false) 
+				{
+					$ref_idx = array_search("other_allele", $column_headers);
+					if($ref_idx === false) trigger_error("Mandatory column 'reference_allele' or 'other_allele' is missing in input file!", E_USER_ERROR);
+				}
 				$alt_idx = array_search("effect_allele", $column_headers);
 				if($alt_idx  === false) trigger_error("Mandatory column 'effect_allele' is missing in input file!", E_USER_ERROR);
 				$weight_idx = array_search("effect_weight", $column_headers);
 				if($weight_idx  === false) trigger_error("Mandatory column 'effect_weight' is missing in input file!", E_USER_ERROR);
+				$popaf_idx = array_search("allelefrequency_effect", $column_headers);
+				if($popaf_idx  === false) trigger_error("Mandatory column 'allelefrequency_effect' is missing in input file!", E_USER_ERROR);
 
+				//add info columns
+				fwrite($out_h, "##INFO=<ID=WEIGHT,Number=1,Type=Float,Description=\"PRS weight of this variant.\">\n");
+				fwrite($out_h, "##INFO=<ID=POP_AF,Number=1,Type=Float,Description=\"Population allele frequency of this variant.\">\n");
 				//write header line
 				fwrite($out_h, "#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO\n");
 				
@@ -110,6 +119,7 @@ if (isset($pgs))
 			$ref = $data_line[$ref_idx];
 			$alt = $data_line[$alt_idx];
 			$weight = $data_line[$weight_idx];
+			$popaf = $data_line[$popaf_idx];
 
 			// add "chr"-prefix
 			if (!starts_with(strtolower(trim($chr)), "chr"))
@@ -118,7 +128,7 @@ if (isset($pgs))
 			}
 
 			// write VCF line
-			fwrite($out_h, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tWEIGHT=$weight\n");
+			fwrite($out_h, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tPOP_AF={$popaf};WEIGHT=$weight\n");
 
 		}
 		

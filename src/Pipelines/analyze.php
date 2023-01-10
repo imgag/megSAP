@@ -604,6 +604,7 @@ if (in_array("vc", $steps))
 			$args[] = "-target ".(($is_panel || $is_wes) ? $sys['target_file'] : repository_basedir()."data/gene_lists/gene_exons_pad20.bed");
 			$args[] = "-threads ".$threads;
 			$args[] = "-build ".$build;
+			$args[] = "-min_af 0.03";
 			$args[] = "-min_obs ".($is_wgs ?  "1" : "2");	
 			$parser->execTool("NGS/vc_mosaic.php", implode(" ", $args));
 			
@@ -664,7 +665,7 @@ if (in_array("vc", $steps))
 		$prs_scoring_files = glob($prs_folder."/*_".$build.".vcf");
 		if (count($prs_scoring_files) > 0)
 		{
-			$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
+			$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -bam $bamfile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
 		}
 	}
 	

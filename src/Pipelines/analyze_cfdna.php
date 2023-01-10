@@ -99,6 +99,7 @@ if ($skip_tumor)
 	$tumor_id = "";
 }
 
+
 if (isset($db))
 {
 	// get tumor id from NGSD
@@ -171,7 +172,7 @@ if (isset($db))
 
 
 	// get related cfDNA samples from NGSD
-	if (!$annotation_only && !$skip_tumor && ($tumor_id != ""))
+	if (!$skip_tumor && ($tumor_id != ""))
 	{
 
 		list($tumor_name, ) = explode("_", $tumor_id);
@@ -196,13 +197,26 @@ if (isset($db))
 			unset($related_cfdna_samples[$key]);
 		}
 
-		trigger_error("Related cfDNA samples: ".implode(", ", $related_cfdna_samples), E_USER_NOTICE);
-
-		// get BAMs
+		// get BAMs and GSvar files (for post-filtering)
 		$related_cfdna_bams = array();
+		$related_cfdna_gsvars = array();
 		foreach ($related_cfdna_samples as $sample) 
 		{
-			$bam = get_processed_sample_info($db, $sample)['ps_bam'];
+			$sample_info = get_processed_sample_info($db, $sample);
+			
+			//GSvar files
+			$gsvar = $sample_info['ps_folder'].$sample_info['ps_name'].".GSvar";
+			if (file_exists($gsvar))
+			{
+				$related_cfdna_gsvars[$sample] = $gsvar;
+			}
+			else
+			{
+				trigger_error("GSvar file for sample $sample not found!", E_USER_WARNING);
+			}
+
+			//BAM files
+			$bam = $sample_info['ps_bam'];
 			if (file_exists($bam))
 			{
 				$related_cfdna_bams[$sample] = $bam;
@@ -211,8 +225,9 @@ if (isset($db))
 			{
 				trigger_error("BAM file for sample $sample not found!", E_USER_WARNING);
 			}
-			
 		}
+
+		trigger_error("Related cfDNA samples: ".implode(", ", $related_cfdna_samples), E_USER_NOTICE);
 
 	}
 
@@ -491,6 +506,59 @@ if (in_array("vc", $steps))
 		{
 			trigger_error("No NGSD connection! Can not annotate normal AF!", E_USER_WARNING);
 		}
+	}
+
+	// perform GSvar post-filtering
+	if ($is_patient_specific)
+	{
+		if (!isset($related_cfdna_gsvars)) $related_cfdna_gsvars = array();
+		$related_cfdna_gsvars[$name] = $gsvar_file;
+		ksort($related_cfdna_gsvars); //sort by sample name --> TODO: sort by sample id
+
+		// modify output file list so that only the GSvar file of the current sample is written
+		$related_cfdna_gsvars_output = array_fill(0, count($related_cfdna_gsvars), "");
+		$sample_pos = array_search($name, array_keys($related_cfdna_gsvars));
+		$related_cfdna_gsvars_output[$sample_pos] = $gsvar_file;
+
+		$temp_logfile = $parser->tempFile(".log");
+		$args = [
+			implode(",", $related_cfdna_gsvars),
+			implode(",", $related_cfdna_gsvars_output),
+			"--log_file ".$temp_logfile
+		];
+
+		//get tumor-normal GSvar
+		if ((isset($db)) && ($tumor_id != ""))
+		{
+			$tumor_gsvar_files_db = $db->getValues("SELECT `gsvar_file` FROM `secondary_analysis` WHERE `type` = 'somatic' AND `gsvar_file` LIKE '%{$tumor_id}%' ORDER BY `type` ASC ");
+			$tumor_gsvar_files = array();
+			foreach($tumor_gsvar_files_db as $tn_gsvar_file)
+			{
+				if (file_exists($tn_gsvar_file))
+				{
+					$tumor_gsvar_files[] = $tn_gsvar_file;
+				}
+				else
+				{
+					trigger_error("Tumor-normal GSvar file $tn_gsvar_file not found!", E_USER_WARNING);
+				}
+			}
+			
+			if (count($tumor_gsvar_files) > 0)
+			{
+				$args[] = "--tumor_samples ".implode(",", $tumor_gsvar_files);
+			}
+			else
+			{
+				trigger_error("No tumor-normal analysis for sample {$tumor_id} found!", E_USER_WARNING);
+			}
+		}
+
+		//post-filtering
+		print get_path("python3")." ".get_path("umiVar2")."/cfDNA_postfiltering.py ".implode(" ", $args);
+		$parser->exec(get_path("python3"), get_path("umiVar2")."/cfDNA_postfiltering.py ".implode(" ", $args));
+		$parser->log("post-filtering log: ", file($temp_logfile));
+
 	}
 	
 }
