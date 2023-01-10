@@ -4,13 +4,13 @@ Currently only Linux is supported!
 
 ## Dependencies
 
-We are providing instructions for Ubuntu 18.04 and RHEL 8.3 here. However this should be reasonably easy to port to any other Linux distribution.
+We are providing instructions for Ubuntu 20.04 and RHEL 8.3 here. However this should be reasonably easy to port to any other Linux distribution.
 
 ### Base dependencies
 
-Ubuntu 18.04
+Ubuntu 20.04
 
-	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.2-cli php7.2-xml php7.2-mysql tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev libcurl4-openssl-dev libhts-dev libtabixpp-dev libtabixpp0 meson ninja-build gnumeric numdiff
+	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.4-cli php7.4-xml php7.4-mysql tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev libcurl4-openssl-dev libhts-dev libtabixpp-dev libtabixpp0 meson ninja-build gnumeric numdiff libpcre2-dev libreadline-dev
     
 RHEL 8.3
 
@@ -30,7 +30,7 @@ RHEL 8.3
 
 Clone the latest release of megSAP:
 
-	> git clone -b 0.2 https://github.com/imgag/megSAP.git
+	> git clone -b 2022_08 https://github.com/imgag/megSAP.git
 
 Or, if you want to test the current development version:
 
