@@ -1,5 +1,5 @@
 ##ANALYSISTYPE=SOMATIC_PAIR
-##PIPELINE=megSAP 2022_08-116-g509262d3
+##PIPELINE=megSAP 2022_08-160-g90c4d043
 ##GENOME_BUILD=GRCh38
 ##CREATION_DATE=2022-02-10
 ##FILTER=all-unknown=Allele unknown
@@ -54,8 +54,8 @@
 ##DESCRIPTION=somatic_classification=Somatic classification from the NGSD.
 #chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	Sift	PolyPhen	CADD	REVEL	MaxEntScan	COSMIC	SpliceAI	PubMed	NGSD_som_c	NGSD_som_p	NGSD_som_vicc_interpretation	NGSD_som_vicc_comment	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	somatic_classification	somatic_classification_comment	validation	comment	gene_info
 chr9	21970976	21970979	CGTG	-	0.5695	1531	0.0000	846		QUAL=2237															-0.2320									1	SomaticAndTreatment	LIKELY_ONCOGENIC	test comment	0	0	0 / 0							CDKN2A-DT (inh=n/a oe_syn=0.99 oe_mis=0.75 oe_lof=n/a):CDKN2A (inh=AD oe_syn=1.09 oe_mis=1.28 oe_lof=0.20)
-chr11	64118936	64118936	A	C	0.4436	657	0.0000	183		QUAL=437										0.0001		0,			-1.5880			2.55						0				0	0	0 / 0							MACROD1 (inh=n/a oe_syn=1.24 oe_mis=0.82 oe_lof=0.19):FLRT1 (inh=n/a oe_syn=0.95 oe_mis=0.80 oe_lof=0.23)
-chr12	4370550	4370550	G	A	0.2260	981	0.0000	431		QUAL=440										0.0001		0,			-0.0050			0.13						0				0	0	0 / 0							FGF23 (inh=AR+AD oe_syn=0.78 oe_mis=0.91 oe_lof=0.50)
+chr11	64118936	64118936	A	C	0.4436	657	0.0000	183		QUAL=437										0.00006		0,			-1.5880			2.55						0				0	0	0 / 0							MACROD1 (inh=n/a oe_syn=1.24 oe_mis=0.82 oe_lof=0.19):FLRT1 (inh=n/a oe_syn=0.95 oe_mis=0.80 oe_lof=0.23)
+chr12	4370550	4370550	G	A	0.2260	981	0.0000	431		QUAL=440										0.00006		0,			-0.0050			0.13						0				0	0	0 / 0							FGF23 (inh=AR+AD oe_syn=0.78 oe_mis=0.91 oe_lof=0.50)
 chr12	25245350	25245350	C	A	0.4521	2054	0.0000	793		QUAL=1725						12583 [pathogenic DISEASE=Cerebral arteriovenous malformation,Acute myeloid leukemia,Nevus sebaceous,Juvenile myelomonocytic leukemia,Non-small cell lung cancer,Neoplasm of the thyroid gland,Neoplasm of the large intestine,Carcinoma of pancreas,Ovarian Neoplasms,not provided];	CM125165 [CLASS=R MUT=ALT PHEN="Colorectal cancer" GENE=KRAS];								7.8920			27.00						45	ARO-16,I18D033_ssSC,PATHO_Somatic,SomaticAndTreatment	LIKELY_ONCOGENIC	test likely oncogenic variant	0	0	0 / 0							KRAS (inh=AR+AD oe_syn=0.93 oe_mis=0.34 oe_lof=0.63)
 chr14	21428080	21428080	T	A	0.2404	2290	0.0000	864		QUAL=932															7.2180			26.90						1	SomaticAndTreatment	UNCERTAIN_SIGNIFICANCE	some random comment by ahmustm1	0	0	0 / 0							CHD8 (inh=AD oe_syn=0.94 oe_mis=0.56 oe_lof=0.04):RN7SL650P (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)
 chr15	87983579	87983579	A	C	0.3192	1249	0.0000	572		QUAL=815															0.8150			4.44						0				0	0	0 / 0							NTRK3 (inh=AD oe_syn=1.20 oe_mis=0.77 oe_lof=0.12)

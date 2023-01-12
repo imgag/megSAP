@@ -998,10 +998,10 @@ while(!feof($handle))
 
 	//AFs
 	$dbsnp = implode(",", collapse($tag, "dbSNP", $dbsnp, "unique"));	
-	$gnomad = collapse($tag, "gnomAD genome", $af_gnomad_genome, "max", 4);
+	$gnomad = collapse($tag, "gnomAD genome", $af_gnomad_genome, "max", 5);
 	$gnomad_hom_hemi = collapse($tag, "gnomAD Hom", $hom_gnomad, "max").",".collapse($tag, "gnomAD Hemi", $hemi_gnomad, "max");
 	if ($gnomad_hom_hemi==",") $gnomad_hom_hemi = "";
-	$gnomad_sub = collapse($tag, "gnomAD AFR", $af_gnomad_afr, "max", 4).",".collapse($tag, "gnomAD AMR", $af_gnomad_amr, "max", 4).",".collapse($tag, "gnomAD EAS", $af_gnomad_eas, "max", 4).",".collapse($tag, "gnomAD NFE", $af_gnomad_nfe, "max", 4).",".collapse($tag, "gnomAD SAS", $af_gnomad_sas, "max", 4);
+	$gnomad_sub = collapse($tag, "gnomAD AFR", $af_gnomad_afr, "max", 5).",".collapse($tag, "gnomAD AMR", $af_gnomad_amr, "max", 5).",".collapse($tag, "gnomAD EAS", $af_gnomad_eas, "max", 5).",".collapse($tag, "gnomAD NFE", $af_gnomad_nfe, "max", 5).",".collapse($tag, "gnomAD SAS", $af_gnomad_sas, "max", 5);
 	if (str_replace(",", "", $gnomad_sub)=="") $gnomad_sub = "";
 	$gnomad_het = collapse($tag, "gnomAD Het", $het_gnomad, "max");
 	$gnomad_wt = collapse($tag, "gnomAD Wt", $wt_gnomad, "max");
