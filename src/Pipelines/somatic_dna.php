@@ -33,6 +33,8 @@ $parser->addInfile("n_system",  "Processing system file used for normal DNA samp
 $parser->addFlag("skip_contamination_check", "Skips check of female tumor sample for male SRY DNA.");
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
+$parser->addFlag("skip_signatures", "Skip calculation of mutational signatures.");
+$parser->addFlag("skip_HRD", "Skip calculation HRD.");
 
 //default cut-offs
 $parser->addFloat("min_af", "Allele frequency detection limit (for tumor-only calling only).", true, 0.05);
@@ -777,10 +779,16 @@ if(in_array("cn",$steps))
 	//calculate HRD based on clincnv.tsv file
 	if (file_exists($som_clincnv))
 	{
-		$parser->execTool("NGS/an_scarHRD.php" , "-cnvs {$som_clincnv} -tumor {$t_id} -normal {$n_id} -out_folder {$out_folder}");
+		if (! $single_sample && ! $skip_HRD)
+		{
+			$parser->execTool("NGS/an_scarHRD.php" , "-cnvs {$som_clincnv} -tumor {$t_id} -normal {$n_id} -out_folder {$out_folder}");
+		}
 		
-		$cnv_signatures_out = $out_folder."/cnv_signatures/";
-		$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/extract_signatures.py", "--in {$som_clincnv} --mode cnv --outFolder {$cnv_signatures_out} --reference GRCh38 --threads {$threads}", true);
+		if(! $skip_signatures)
+		{
+			$cnv_signatures_out = $out_folder."/cnv_signatures/";
+			$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/extract_signatures.py", "--in {$som_clincnv} --mode cnv --outFolder {$cnv_signatures_out} --reference GRCh38 --threads {$threads}", true);
+		}
 	}
 }
 
