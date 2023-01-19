@@ -574,8 +574,11 @@ function indel_for_vcf($build, $chr, $start, $ref, $obs)
 
 function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false, $include_test_projects = false, $include_ffpe = false)
 {
-	//check that sample is not NIST reference sample (it is a cell-line)
+	//check that it is not a NIST reference sample (cell-lines and sequenced very often)
 	if (contains($file, "NA12878")) return false;
+	if (contains($file, "NA12891")) return false;
+	if (contains($file, "NA12892")) return false;
+	if (contains($file, "NA24385")) return false;
 
 	//no NGSD => error
 	if (!db_is_enabled("NGSD"))
