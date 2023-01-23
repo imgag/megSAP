@@ -477,7 +477,7 @@ foreach($res as $row)
 			//parse related normal file if found
 			$normal_id = $sample1["normal_id"];
 			$normal_sample = getSampleInfo($normal_id);
-			if($normal_id != "" && $normal_sample['quality_sample'] != "bad" && $normal_sample['quality_processed_sample'] != "bad" && $normal_sample['quality_run'] != "bad")
+			if($normal_id != "" && $normal_sample['quality_processed_sample'] != "bad" && $normal_sample['quality_run'] != "bad")
 			{
 				$normal_data_dir = $project_folder."/Sample_".$normal_sample['id_genetics']."/";
 				linkFastqs($normal_data_dir, $tmp_folder, "{$qbic_name}_normal");
@@ -543,11 +543,6 @@ foreach($res as $row)
 			$output[] = $sample2['quality_sample'].",".$sample2['quality_processed_sample'].",".$sample2['quality_run'];
 			
 			//check sample quality	
-			if ($sample2['quality_sample']=="bad" && !$ignore_quality)
-			{
-				printTSV($output, "SKIPPED" , "bad sample quality");
-				continue;
-			}
 			if ($sample2['quality_processed_sample']=="bad" && !$ignore_quality)
 			{ 
 				printTSV($output, "SKIPPED" , "bad processed sample quality");
