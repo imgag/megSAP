@@ -76,9 +76,9 @@ if ($use_dragen)
 	{
 		trigger_error("Analysis has to be run as user '".get_path("dragen_user")."' for the use of DRAGEN!", E_USER_ERROR);
 	}
-	if (!in_array("ma", $steps)) 
+	if (!in_array("ma", $steps) && !file_exists($folder."/dragen_variant_calls/{$name}_dragen.vcf.gz")) 
 	{
-		trigger_error("Mapping has to be part of the analysis steps for the use of DRAGEN!", E_USER_ERROR);
+		trigger_error("DRAGEN variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
 }
 
