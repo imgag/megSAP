@@ -14,7 +14,8 @@ $parser->addOutfile("out", "Output file in CSV format.", false);
 $parser->addString("lanes", "Comma-separated list of lane numbers to use.", true, "1,2,3,4,5,6,7,8");
 $parser->addInt("mid1_len", "Number of bases to use from MID 1.", true, -1);
 $parser->addInt("mid2_len", "Number of bases to use from MID 2.", true, -1);
-$parser->addFlag("mid2_no_rc", "Disables reverse-complement of MID 2.");
+$parser->addFlag("mid2_no_rc", "Disables reverse-complement of MID 2. (not for 'add_mids')");
+$parser->addFlag("mid1_rc", "Enables reverse-complement of MID 1. (not for 'add_mids')");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
@@ -73,11 +74,7 @@ foreach($res as $index => $row)
 		$res[$index][$key] = $value;
 	}
 	
-	//convert index 2 to reverse-complement
-	if (!$mid2_no_rc)
-	{
-		$res[$index]["mid2_i5"] = rev_comp($res[$index]["mid2_i5"]);
-	}
+
 }
 
 //generate sample sheet
@@ -92,6 +89,7 @@ foreach($res as $row)
 		if (!in_array($lane, $lanes)) continue;
 		
 		$mid1 = $row["mid1_i7"];
+
 		if ($mid1_len!=-1)
 		{
 			$mid1 = substr($mid1, 0, $mid1_len);
@@ -103,8 +101,42 @@ foreach($res as $row)
 		}
 		$name = $row["psname"];
 
-		$mids_i7 = [ $mid1 ];
-		$mids_i7_names = [ $row["mid1_i7_name"] ];
+		if (starts_with($row["pscomment"], "custom_mid:"))
+		{
+			if ((strlen($mid1) != 0) and (strlen($mid2) == 0))
+			{
+				trigger_error("Both a lodged Mid7 and a custom Mid7 are given in the NGSD. The custom mid is used to create the sample sheet", E_USER_WARNING);
+			}
+			if ((strlen($mid2) != 0) and (strlen($mid1) == 0))
+			{
+				trigger_error("Both a lodged Mid5 and a custom Mid7 are given in the NGSD. Both mids are used to create the sample sheet", E_USER_WARNING);
+			}
+			if ((strlen($mid2) != 0) and (strlen($mid1) != 0))
+			{
+				trigger_error("Both a lodged Mid5 and lodged Mid7 are given together with a custom Mid7 in the NGSD. No sample sheet is created", E_USER_ERROR);
+			}
+			
+			
+			$mid1 = trim(explode(":", $row["pscomment"])[1]);
+
+			
+		}
+
+		//convert index 2 to reverse-complement
+		if (!$mid2_no_rc)
+		{
+			$mid2 = rev_comp($mid2);
+		}
+
+		//convert index 1 to reverse-complement
+		if ($mid1_rc)
+		{
+			$mid1 = rev_comp($mid1);
+		}
+		
+		
+		$mids_i7_add = [ $mid1 ];
+		$mids_i7_names_add = [ $row["mid1_i7_name"] ];
 		if (starts_with($row["pscomment"], "add_mids:"))
 		{
 			$add_mids = explode(".", substr($row["pscomment"], strpos($row["pscomment"], ":")+1));
@@ -118,14 +150,16 @@ foreach($res as $row)
 				}
 				else
 				{
-					$mids_i7[] = $res[0]["sequence"];
-					$mids_i7_names[] = $res[0]["name"];
+					$mids_i7_add[] = $res[0]["sequence"];
+					$mids_i7_names_add[] = $res[0]["name"];
 				}
 			}
 		}
 
-		foreach (array_combine($mids_i7_names, $mids_i7) as $mid1_name => $mid1)
+		
+		foreach (array_combine($mids_i7_names_add, $mids_i7_add) as $mid1_name => $mid1)
 		{
+
 			$barcodes[$lane][] = array($mid1, $mid2, $name);
 			$output[] = implode(',', [
 				$lane,
@@ -142,6 +176,7 @@ foreach($res as $row)
 	}
 }
 
+
 //store sample sheet
 file_put_contents($out, implode("\n", $output));
 
@@ -152,8 +187,11 @@ foreach($barcodes as $lane => $data)
 	{
 		for($j=$i+1; $j<count($data); ++$j)
 		{
+
 			list($mid1_i, $mid2_i, $name_i) = $data[$i];
 			list($mid1_j, $mid2_j, $name_j) = $data[$j];
+
+
 			$dist1 = levenshtein($mid1_i, $mid1_j);
 			$dist2 = levenshtein($mid2_i, $mid2_j);
 			
