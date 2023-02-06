@@ -278,21 +278,33 @@ for($i = 0; $i < $variants->rows(); ++$i)
 		
 	}
 }
-
-//Add variants 
 $vcf_filtered = $parser->tempFile("_filtered.vcf");
 $variants_filtered->toTSV($vcf_filtered);
 
+//remove invalid variant
 $vcf_invalid = $parser->tempFile("_filtered_invalid.vcf");
 $parser->exec(get_path("ngs-bits")."VcfFilter", "-remove_invalid -in $vcf_filtered -out $vcf_invalid", true);
-
 $final = $vcf_invalid;
+
+//remove artefacts specific for processing system (blacklist)
+//artefacts are caused e.g. by hairpin sequences when using enzymatic digestion
+//how artefacts are determined is documented in /mnt/users/ahsturm1/Sandbox/2023_01_31_twist_indel_artefacts/
+if (!empty($target))
+{
+	$artefact_vcf = repository_basedir()."/data/misc/enzymatic_digestion_artefacts/".basename($target, ".bed").".vcf";
+	if (file_exists($artefact_vcf))
+	{
+		$vcf_no_artefacts = $parser->tempFile("_filtered_no_artefacts.vcf");
+		$parser->exec(get_path("ngs-bits")."VcfSubtract", "-in $vcf_invalid -in2 $artefact_vcf -out $vcf_no_artefacts");
+		$final = $vcf_no_artefacts;
+	}
+}
 
 //flag off-target variants
 if (!empty($target))
 {
 	$vcf_offtarget = $parser->tempFile("_filtered.vcf");
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_invalid -mark off-target -reg $target -out $vcf_offtarget", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $final -mark off-target -reg $target -out $vcf_offtarget", true);
 	$final = $vcf_offtarget;
 }
 
