@@ -98,7 +98,7 @@ $parser->exec(get_path("ngs-bits")."/BedReadCount", "-out {$viral_reads_tmp} -mi
 $viral_result_tmp = $parser->tempFile("_viral_result.bed");
 $pipeline = [];
 $pipeline[] = [ get_path("ngs-bits")."/BedAnnotateFromBed", "-in {$viral_enrichment} -no_duplicates -in2 {$viral_reads_tmp}" ];
-$pipeline[] = [ get_path("ngs-bits")."/BedAnnotateFromBed", "-in2 {$viral_cov_tmp} -no_duplicates -out {$viral_result_tmp}" ];
+$pipeline[] = [ get_path("ngs-bits")."/BedAnnotateFromBed", "-in2 {$viral_cov_tmp} -no_duplicates -col 5 -out {$viral_result_tmp}" ];
 $parser->execPipeline($pipeline, "result file");
 
 //extract average target coverage from provided qcML file
