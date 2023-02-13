@@ -288,7 +288,7 @@ $final = $vcf_invalid;
 
 //remove artefacts specific for processing system (blacklist)
 //artefacts are caused e.g. by hairpin sequences when using enzymatic digestion
-//how artefacts are determined is documented in /mnt/users/ahsturm1/Sandbox/2023_01_31_twist_indel_artefacts/
+//how artefacts are determined is documented in /mnt/storage3/users/ahsturm1/Sandbox/2023_01_31_twist_indel_artefacts/
 if (!empty($target))
 {
 	$artefact_vcf = repository_basedir()."/data/misc/enzymatic_digestion_artefacts/".basename($target, ".bed").".vcf";

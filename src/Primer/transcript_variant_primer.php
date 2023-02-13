@@ -240,8 +240,7 @@ for ($i = 0; $i < $n; ++ $i)
 	$blast_hits["$i"] = [ "left" => [] , "right" => [] ];
 }
 
-list($stdout, ) = $parser->exec("/mnt/users/ahmattj1/software/ncbi-blast-2.7.1+/bin/blastn",
-	"-task blastn-short -db /mnt/users/ahmattj1/GRCh37_cDNA_blast -query {$primers_fasta} -outfmt 6 -evalue 0.1", true);
+list($stdout, ) = $parser->exec("blastn", "-task blastn-short -db /mnt/storage3/users/ahmattj1/GRCh37_cDNA_blast -query {$primers_fasta} -outfmt 6 -evalue 0.1", true);
 foreach ($stdout as $line)
 {
 	$fields = array_combine([ "query", "subject", "identity", "aln_length", "mismatches", "gaps", "query_start", "query_end", "subject_start", "subject_end", "evalue", "bitscore"],

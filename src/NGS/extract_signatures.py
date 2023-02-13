@@ -29,7 +29,7 @@ def main(args):
 
 def calculate_cnv_signatures(args):
     with tempfile.TemporaryDirectory() as tmpdir:
-    # tmpdir = "/mnt/users/ahott1a1/tmp_data/megsap_test/"
+    # tmpdir = "/mnt/storage3/users/ahott1a1/tmp_data/megsap_test/"
     # if True:
     
         os.chdir(tmpdir)  # in cwd the result folder will be created so change to a temp folder
@@ -83,7 +83,7 @@ def copy_cnv_result_files(args, result_folder):
 
 def calculate_snv_signatures(args):
     with tempfile.TemporaryDirectory() as tmpdir:
-    # tmpdir = "/mnt/users/ahott1a1/tmp_data/megsap_test/"
+    # tmpdir = "/mnt/storage3/users/ahott1a1/tmp_data/megsap_test/"
     # if True:
         os.chdir(tmpdir)  # in cwd the result folder will be created so change to a temp folder
         print("tmp working dir: " +  tmpdir)
