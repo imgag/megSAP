@@ -35,14 +35,14 @@ The following tools are used for mapping and calling of small variants and annot
 
 | step                                           | tool                 | version              | comments                                         |
 |------------------------------------------------|----------------------|----------------------|--------------------------------------------------|
-| mapping - adapter and quality trimming         | SeqPurge             | ngs-bits 2022_10     |                                                  |
+| mapping - adapter and quality trimming         | SeqPurge             | ngs-bits 2023_02     |                                                  |
 | mapping - mapping and alignment                | bwa-mem2             | 2.2.1                | Performed by Dragen if '-use_dragen' is enabled. |
 | mapping - duplicate marking                    | samblaster           | 0.1.26               | Performed by Dragen if '-use_dragen' is enabled. |
 | mapping - indel realignment                    | ABRA2                | 2.23                 |                                                  |
 | variant calling - calling of SNVs and InDels   | freebayes            | 1.3.6                |                                                  |
 | variant calling - decompose complex variants   | vcfallelicprimitives | vcflib 1.0.3         |                                                  |
 | variant calling - break multi-allelic variants | vcfbreakmulti        | vcflib 1.0.3         |                                                  |
-| variant calling - left-normalization of InDels | VcfLeftNormalize     | ngs-bits 2022_10     |                                                  |
+| variant calling - left-normalization of InDels | VcfLeftNormalize     | ngs-bits 2023_02     |                                                  |
 | annotation                                     | VEP                  | 107.0                |                                                  |
 
 CNV calling and annotation is performed using these tools:
@@ -50,18 +50,18 @@ CNV calling and annotation is performed using these tools:
 | step                                               | tool                 | version              | comments                                            |
 |----------------------------------------------------|----------------------|----------------------|-----------------------------------------------------|
 | CNV calling                                        | ClinCNV              | 1.18.0               |                                                     |
-| annotation - general                               | BedAnnotateFromBed   | ngs-bits 2022_10     | Several data sources are annotated using this tool. |
-| annotation - gene information                      | CnvGeneAnnotation    | ngs-bits 2022_10     |                                                     |
-| annotation - overlapping pathogenic CNVs from NGSD | NGSDAnnotateCNV      | ngs-bits 2022_10     |                                                     |
+| annotation - general                               | BedAnnotateFromBed   | ngs-bits 2023_02     | Several data sources are annotated using this tool. |
+| annotation - gene information                      | CnvGeneAnnotation    | ngs-bits 2023_02     |                                                     |
+| annotation - overlapping pathogenic CNVs from NGSD | NGSDAnnotateCNV      | ngs-bits 2023_02     |                                                     |
 
 SV calling and annotation is performed using these tools:
 
 | step                                      | tool                            | version              | comments                                            |
 |-------------------------------------------|---------------------------------|----------------------|-----------------------------------------------------|
 | SV calling                                | Manta                           | 1.6.0                |                                                     |
-| annotation - gene information             | BedpeGeneAnnotation             | ngs-bits 2022_10     |                                                     |
-| annotation - matching SVs from NGSD       | BedpeAnnotateCounts             | ngs-bits 2022_10     |                                                     |
-| annotation - breakpoint density from NGSD | BedpeAnnotateBreakpointDensity  | ngs-bits 2022_10     |                                                     |
+| annotation - gene information             | BedpeGeneAnnotation             | ngs-bits 2023_02     |                                                     |
+| annotation - matching SVs from NGSD       | BedpeAnnotateCounts             | ngs-bits 2023_02     |                                                     |
+| annotation - breakpoint density from NGSD | BedpeAnnotateBreakpointDensity  | ngs-bits 2023_02     |                                                     |
 
 
 A complete list of all tools and databases used in megSAP and when they were last updated can be found [here](update_overview.md).
