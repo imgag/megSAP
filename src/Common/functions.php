@@ -233,6 +233,9 @@ function starts_with($string, $prefix)
 */
 function contains($haystack, $needle)
 {
+	if (gettype($haystack)!="string") $haystack = strval($haystack);
+	if (gettype($needle)!="string") $needle = strval($needle);
+	
 	return strpos($haystack,$needle)!== false;
 }
 
