@@ -179,3 +179,29 @@ mkdir bedtools-2.30.0
 cd bedtools-2.30.0
 wget https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools.static.binary
 chmod 755 bedtools.static.binary
+
+#download clair3
+cd $folder
+wget https://github.com/HKU-BAL/Clair3/archive/refs/tags/v0.1-r12.tar.gz
+tar xzf v0.1-r12.tar.gz
+rm v0.1-r12.tar.gz
+
+#download pypy3
+cd $folder
+wget https://downloads.python.org/pypy/pypy3.9-v7.3.11-linux64.tar.bz2
+tar xfvj pypy3.9-v7.3.11-linux64.tar.bz2
+rm pypy3.9-v7.3.11-linux64.tar.bz2
+
+#download parallel
+cd $folder
+wget https://mirror.dogado.de/gnu/parallel/parallel-20230222.tar.bz2
+tar xfvj parallel-20230222.tar.bz2
+cd parallel-20230222
+./configure --prefix=$folder/parallel-20230222
+make
+make install
+rm parallel-20230222.tar.bz2
+
+#download whatshap
+
+#download 
