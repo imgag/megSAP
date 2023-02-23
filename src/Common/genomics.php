@@ -1206,7 +1206,7 @@ function approve_gene_names($input_genes)
 		
 		$genes_as_string = $genes_as_string.$gene."\n";
 	}
-	$non_approved_genes_file = temp_file("txt", "approve_gene_names");
+	$non_approved_genes_file = temp_file(".txt", "approve_gene_names");
 	file_put_contents($non_approved_genes_file,$genes_as_string);
 	
 	//write stdout to $approved_genes -> each checked gene is one array element
@@ -1936,4 +1936,49 @@ function bed_size($filename)
 	list($stdout) = exec2(get_path("ngs-bits")."BedInfo -in $filename | grep -i bases");
 	return trim(explode(":", $stdout[0])[1]);
 }
+
+function phenotype_roi(&$db_conn, $ps_name)
+{		
+	$info = get_processed_sample_info($db_conn, $ps_name);
+	$s_id = $info['s_id'];
+	$hpos = $db_conn->getValues("SELECT disease_info FROM sample_disease_info WHERE sample_id='$s_id' AND `type`='HPO term id'");
+	
+	//store HPO term ids
+	$tmp_hpos = temp_file(".txt");
+	file_put_contents($tmp_hpos, $hpos);
+	
+	//convert HPO terms to gene symbols
+	$tmp_genes = temp_file(".tsv");
+	exec2("PhenotypesToGenes -in $tmp_hpos -ignore_invalid -ignore_non_phenotype | cut -f1 > $tmp_genes");
+	
+	//convert genes to roi
+	$output = [];
+	list($stdout) = exec2("GenesToBed -in $tmp_genes -source ensembl -mode gene -fallback | BedMerge");
+	foreach($stdout as $line)
+	{
+		$line = trim($line);
+		if ($line=="" || $line[0]=='#') continue;
+		
+		list($chr, $start, $end) = explode("\t", $line);
+		
+		$output[] = [$chr, $start, $end];
+	}
+	
+	return $output;
+}
+
+
+function phenotype_roi_overlaps(&$roi, $chr, $start, $end)
+{
+	foreach($roi as list($chr2, $start2, $end2))
+	{
+		if ($chr==$chr2 && range_overlap($start, $end, $start2, $end2))
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
+
 ?>
