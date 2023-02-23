@@ -27,6 +27,8 @@ cd $folder
 wget https://github.com/OSU-SRLab/MANTIS/archive/v1.0.5.tar.gz
 tar xzf v1.0.5.tar.gz
 rm v1.0.5.tar.gz
+cd MANTIS-1.0.5/tools/
+make
 
 #download umiVar2
 cd $folder
