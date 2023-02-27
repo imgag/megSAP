@@ -10,8 +10,8 @@ import_read_counts:
 	php /mnt/storage2/GRCh38/users/bioinf/megSAP/src/NGS/import_sample_read_counts.php -stats Unaligned/Stats/Stats.json -db NGSD_TEST 
 
 copy_Exome_Diagnostik_diagnostic:
-	mv Unaligned/Project_Exome_Diagnostik/Sample_DX180049_01/ /mnt/storage2/GRCh38/projects/diagnostic//Exome_Diagnostik/
-	mv Unaligned/Project_Exome_Diagnostik/Sample_DX180050_02/ /mnt/storage2/GRCh38/projects/diagnostic//Exome_Diagnostik/
+	mv Unaligned/Project_Exome_Diagnostik/Sample_DX180049_01/ /mnt/storage2/projects/diagnostic//Exome_Diagnostik/
+	mv Unaligned/Project_Exome_Diagnostik/Sample_DX180050_02/ /mnt/storage2/projects/diagnostic//Exome_Diagnostik/
 
 copy_IVac_research:
 	mkdir -p /mnt/storage1/projects/research//IVac/

@@ -322,7 +322,7 @@ if (in_array("ma", $steps))
 			$fastq_files = array_merge($files1, $files2);
 			//check if BAM and BAM index exists:
 			$bam_exists = file_exists($bamfile) && file_exists($bamfile.".bai"); 
-			if ($bam_exists && count($files1)>0 && count($files1)>0)
+			if ($bam_exists && count($fastq_files)>0)
 			{
 				//check file sizes:
 				//FASTQ

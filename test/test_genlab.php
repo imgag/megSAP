@@ -22,7 +22,7 @@ if (GenLabDB::isEnabled())
 	
 	//getValue
 	$res = $db->getValue("SELECT TOP 1 Labornummer_Index FROM v_ngs_duo ORDER BY Labornummer_Index");
-	check($res, "101112");
+	check($res, " Seq. sind feri");
 	
 	//getValues
 	$res = $db->getValues("SELECT TOP 5 Labornummer_Index FROM v_ngs_duo ORDER BY Labornummer_Index");
