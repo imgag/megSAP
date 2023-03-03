@@ -656,5 +656,7 @@ foreach($res as $row)
 	}
 }
 
+//write FINISHED message that is used by UploadQBIC webservice
+print "FINISHED!\n";
 
 ?>
