@@ -12,7 +12,7 @@ samtools = [path]/data/tools/samtools-1.15.1/samtools
 freebayes = [path]/data/tools/freebayes-1.3.6/freebayes
 vcflib = [path]/data/tools/vcflib-1.0.3/build/
 abra2 = java -Xmx16g -jar [path]/data/tools/abra2-2.23/abra2.jar
-samblaster = [path]/data/tools/samblaster/samblaster
+samblaster = [path]/data/tools/samblaster-0.1.26/samblaster
 bwa = [path]/data/tools/bwa-0.7.17/bwa
 bwa-mem2 = [path]/data/tools/bwa-mem2-2.2.1_x64-linux/bwa-mem2
 vep = [path]/data/tools/ensembl-vep-release-107.0/vep
@@ -31,7 +31,7 @@ bedtools = [path]/data/tools/bedtools-2.30.0/bedtools.static.binary
 gatk = java -Xmx4G -jar /[path]/data/tools/gatk-4.2.6.1/gatk-package-4.2.6.1-local.jar
 
 [tools-ngs-somatic]
-strelka2 = [path]/data/tools/strelka-2.9.9.centos6_x86_64/bin/
+strelka2 = [path]/data/tools/strelka-2.9.10.centos6_x86_64/bin/
 varscan2 = java -jar [path]/data/tools/VarScan.v2.4.4/VarScan.v2.4.4.jar
 manta = [path]/data/tools/manta-1.6.0.centos6_x86_64/bin/
 mantis = [path]/data/tools/MANTIS-1.0.5/mantis.py
@@ -45,6 +45,7 @@ feature_counts = [path]/data/tools/subread-2.0.3/bin/featureCounts
 arriba = [path]/data/tools/arriba_v2.3.0
 umi_tools = [path]/data/tools/umi_tools-1.1.2/bin/umi_tools
 kraken2 = [path]/data/tools/kraken2-2.1.2/bin/kraken2
+
 [tools-primer]
 tracetuner = [path]/data/tools/tracetuner_3.0.6beta/rel/Linux_64/ttuner
 primer3 = [path]/data/tools/opt/primer3-2.3.6/src/
