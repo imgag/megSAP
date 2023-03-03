@@ -1,8 +1,15 @@
 #!/bin/bash
+set -e
+set -o pipefail
+set -o verbose
 
 root=`pwd`
 folder=$root/tools/
 cpan_dir=$folder/perl_cpan/
+
+#Ignore this - used for local installation
+#folder=/mnt/storage2/megSAP/tools/
+#cpan_dir=/mnt/storage2/megSAP/tools/perl_cpan/
 
 #download and build ngs-bits
 cd $folder
@@ -95,8 +102,8 @@ cmake --install .
 
 #download and build samblaster
 cd $folder
-git clone https://github.com/GregoryFaust/samblaster.git
-cd samblaster
+git clone https://github.com/GregoryFaust/samblaster.git samblaster-0.1.26
+cd samblaster-0.1.26
 git checkout v.0.1.26
 make
 
@@ -114,6 +121,9 @@ rm -rf R-4.1.0.tar.gz R-4.1.0-src
 #download ClinCNV
 cd $folder
 git clone https://github.com/imgag/ClinCNV.git ClinCNV-1.18.0
+cd ClinCNV-1.18.0
+git checkout 1.18.0
+chmod -R 777 . #if the executing user has no write permission, the error 'cannot open file Rplots.pdf' occurs
 # install required R packages for ClinCNV
 $folder/R-4.1.0/bin/R -f $root/install_deps_clincnv.R
 
@@ -159,7 +169,7 @@ spliceFolder=$folder/SplicingTools
 mkdir -p $spliceFolder
 cd $spliceFolder
 $folder/Python-3.10.9/bin/python3 -m venv splice_env3_10
-source $spliceFolder/splice_env/bin/activate
+source $spliceFolder/splice_env3_10/bin/activate
 pip install --upgrade pip
 pip install spliceai==1.3.1
 pip install tensorflow==2.11.0
