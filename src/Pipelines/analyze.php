@@ -725,7 +725,7 @@ if (in_array("cn", $steps))
 			{
 				$pipeline = [
 						["{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size}"],
-						["{$ngsbits}BedAnnotateGC", "-ref ".$genome],
+						["{$ngsbits}BedAnnotateGC", "-clear -ref ".$genome],
 						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"]
 					];
 				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");

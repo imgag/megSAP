@@ -542,7 +542,7 @@ if(in_array("cn",$steps))
 		{
 			$ngsbits = get_path("ngs-bits");
 			$pipeline = [
-					["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".genome_fasta($sys['build'])],
+					["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -clear -ref ".genome_fasta($sys['build'])],
 					["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
 				];
 			$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
