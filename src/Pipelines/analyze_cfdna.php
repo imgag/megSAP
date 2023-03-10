@@ -496,11 +496,18 @@ if (in_array("vc", $steps))
 		{
 			// get normal sample
 			$psinfo_tumor = get_processed_sample_info($db, $tumor_id);
-			if ($psinfo_tumor['normal_name'] == "") trigger_error("Normal id not found!", E_USER_ERROR);
-			$psinfo_normal = get_processed_sample_info($db, $psinfo_tumor['normal_name']);
-
-			// annotate AF and depth
-			$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $gsvar_file -out $gsvar_file -depth -name normal -bam ".$psinfo_normal['ps_bam'], true);
+			if ($psinfo_tumor['normal_name'] == "") 
+			{
+				trigger_error("Normal id not found!", E_USER_WARNING);
+			}
+			else
+			{
+				$psinfo_normal = get_processed_sample_info($db, $psinfo_tumor['normal_name']);
+				// annotate AF and depth
+				$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $gsvar_file -out $gsvar_file -depth -name normal -bam ".$psinfo_normal['ps_bam'], true);
+			}
+			
+			
 		}
 		else
 		{
