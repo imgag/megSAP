@@ -152,7 +152,9 @@ if (!$somatic) //germline only
 			$splicing = $psample_info['ps_folder']."{$psample}_splicing_gene.tsv";
 			if (file_exists($splicing))
 			{
-				annotate_gsvar_by_gene($varfile, $varfile, $splicing, "symbol", "aberrant_frac", "aberrant_splicing", "Fraction of aberrant splicing reads in gene.");
+				$gsvar = Matrix::fromTSV($varfile);
+				annotate_gsvar_by_gene($gsvar, $splicing, "symbol", "aberrant_frac", "aberrant_splicing", "Fraction of aberrant splicing reads in gene.");
+				$gsvar->toTSV($varfile);
 			}
 			else
 			{

@@ -1622,7 +1622,7 @@ SQL;
  * 
  * Annotate GSvar file based on 'gene' column.
  *
- * @param  string $gsvar_f input GSvar file
+ * @param  object $gsvar reference to GSvar Matrix object
  * @param  string $outfile_f output GSvar file
  * @param  string $annotation_f annotation file
  * @param  string $key column in annotation file to use as key
@@ -1631,22 +1631,29 @@ SQL;
  * @param  string $column_description output column description
  * @return void
  */
-function annotate_gsvar_by_gene($gsvar_f, $outfile_f, $annotation_f, $key, $column, $column_name, $column_description)
+function annotate_gsvar_by_gene(&$gsvar, $annotation_f, $key, $column, $column_name, $column_description, $numeric=true)
 {
-	$gsvar = Matrix::fromTSV($gsvar_f);
 	$genes = $gsvar->getCol($gsvar->getColumnIndex("gene"));
 
 	$annotation = Matrix::fromTSV($annotation_f);
 	$values = array_combine($annotation->getCol($annotation->getColumnIndex($key)),
 							$annotation->getCol($annotation->getColumnIndex($column)));
 
-	$map_value = function(&$item, $key, &$values)
+	$map_value = function(&$item, $key, &$values) use ($numeric)
 	{
 		$annotated_genes = explode(',', $item);
 		$vals = [];
 		foreach ($annotated_genes as $g)
 		{
-			$vals[] = (isset($values[$g]) && $values[$g] != "n/a") ? number_format($values[$g], 4) : "n/a";
+			if ($numeric)
+			{
+				$vals[] = (isset($values[$g]) && $values[$g] != "n/a") ? number_format($values[$g], 4) : "n/a";
+			}
+			else
+			{
+				$vals[] = isset($values[$g]) ? $values[$g] : "na";
+			}
+			
 		}
 
 		$item = implode(",", $vals);
@@ -1654,7 +1661,6 @@ function annotate_gsvar_by_gene($gsvar_f, $outfile_f, $annotation_f, $key, $colu
 	array_walk($genes, $map_value, $values);
 	$gsvar->removeColByName($column_name);
 	$gsvar->addCol($genes, $column_name, $column_description);
-	$gsvar->toTSV($outfile_f);
 }
 
 //checks that the genome build of a BAM, VCF (small variants or SVs) or TSV (CNVs) matches the expected build.
