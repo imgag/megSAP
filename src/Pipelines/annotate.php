@@ -65,7 +65,7 @@ if ($somatic) $args[] = "-somatic";
 $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 
 //annotate COSMIC
-$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export.vcf.gz";
+$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v97.vcf.gz";
 if(file_exists($cosmic_cmc) && $somatic)
 {
 	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
