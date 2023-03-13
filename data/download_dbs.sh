@@ -38,12 +38,11 @@ wget http://ftp.clinicalgenome.org/ClinGen_gene_curation_list_GRCh38.tsv
 cat ClinGen_gene_curation_list_GRCh38.tsv | php $src/Tools/db_converter_clingen_dosage.php > dosage_sensitive_disease_genes_GRCh38.bed
 $ngsbits/BedSort -in dosage_sensitive_disease_genes_GRCh38.bed -out dosage_sensitive_disease_genes_GRCh38.bed
 
-#TODO automatic download of NCG7.0 doesn't work - no download link / unknown html - POST arguments
 #Install NCG7.0 - information about oncogenes and tumor suppressor genes
 # cd $dbs
 # mkdir NCG7.0
 # cd NCG7.0
-# curl --silent --request POST --url http://ncg.kcl.ac.uk/download.php --data "filename=NCG6_tsgoncogene.tsv&downloadtsgoncogene=Download" --output NCG6.0_oncogene.tsv
+curl 'http://ncg.kcl.ac.uk/download.php' --silent -X POST --data-raw 'downloadcancergenes=Download' | sed -e "1s/^/#/" > ncg.tsv
 
 
 #Install REPEATMASKER - http://www.repeatmasker.org/species/hg.html

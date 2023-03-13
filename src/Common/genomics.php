@@ -1293,41 +1293,6 @@ function genome_fasta($build, $used_local_data=true)
 	return ($used_local_data ? get_path("local_data") : get_path("data_folder")."/genomes")."/".$build.".fa";
 }
 
-//Returns whether a certain gene is an oncogene or tsg gene according NCG6.0, "na" otherwise
-function ncg_gene_statements($gene)
-{
-	$result = array("is_oncogene" => "na", "is_tsg" => "na");
-	
-	//file with data about TSG / oncogene from NCG6.0
-	$ncg_file = get_path("data_folder") . "/dbs/NCG7.0/NCG7.0_oncogene.tsv";
-	
-	if(!file_exists($ncg_file))
-	{
-		trigger_error("Could not find file with NCG7.0 data",E_USER_WARNING);
-		return $result;
-	}
-	
-	$handle = fopen2($ncg_file,"r");
-	while(!feof($handle))
-	{
-		$line = fgets($handle);
-		if(empty($line)) continue;
-		if(starts_with($line,"entrez")) continue; //Skip header line
-		
-		list($entrez,$ncg_gene,$cgc,$vogelstein,$is_oncogene,$is_tsg) = explode("\t",trim($line));
-		
-		if(trim($gene) == trim($ncg_gene))
-		{
-			$result["is_oncogene"] = $is_oncogene;
-			$result["is_tsg"] = $is_tsg;
-			break;
-		}
-	}
-	
-	fclose($handle);
-	return $result;
-}
-
 //Create Bed File that contains off target regions of a target region
 function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 {
@@ -1622,7 +1587,7 @@ SQL;
  * 
  * Annotate GSvar file based on 'gene' column.
  *
- * @param  string $gsvar_f input GSvar file
+ * @param  object $gsvar reference to GSvar Matrix object
  * @param  string $outfile_f output GSvar file
  * @param  string $annotation_f annotation file
  * @param  string $key column in annotation file to use as key
@@ -1631,22 +1596,29 @@ SQL;
  * @param  string $column_description output column description
  * @return void
  */
-function annotate_gsvar_by_gene($gsvar_f, $outfile_f, $annotation_f, $key, $column, $column_name, $column_description)
+function annotate_gsvar_by_gene(&$gsvar, $annotation_f, $key, $column, $column_name, $column_description, $numeric=true)
 {
-	$gsvar = Matrix::fromTSV($gsvar_f);
 	$genes = $gsvar->getCol($gsvar->getColumnIndex("gene"));
 
 	$annotation = Matrix::fromTSV($annotation_f);
 	$values = array_combine($annotation->getCol($annotation->getColumnIndex($key)),
 							$annotation->getCol($annotation->getColumnIndex($column)));
 
-	$map_value = function(&$item, $key, &$values)
+	$map_value = function(&$item, $key, &$values) use ($numeric)
 	{
 		$annotated_genes = explode(',', $item);
 		$vals = [];
 		foreach ($annotated_genes as $g)
 		{
-			$vals[] = (isset($values[$g]) && $values[$g] != "n/a") ? number_format($values[$g], 4) : "n/a";
+			if ($numeric)
+			{
+				$vals[] = (isset($values[$g]) && $values[$g] != "n/a") ? number_format($values[$g], 4) : "n/a";
+			}
+			else
+			{
+				$vals[] = isset($values[$g]) ? $values[$g] : "na";
+			}
+			
 		}
 
 		$item = implode(",", $vals);
@@ -1654,7 +1626,6 @@ function annotate_gsvar_by_gene($gsvar_f, $outfile_f, $annotation_f, $key, $colu
 	array_walk($genes, $map_value, $values);
 	$gsvar->removeColByName($column_name);
 	$gsvar->addCol($genes, $column_name, $column_description);
-	$gsvar->toTSV($outfile_f);
 }
 
 //checks that the genome build of a BAM, VCF (small variants or SVs) or TSV (CNVs) matches the expected build.
