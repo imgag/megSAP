@@ -11,3 +11,4 @@ pysam
 scipy
 statsmodels
 SigProfilerExtractor
+umi_tools==1.1.2
