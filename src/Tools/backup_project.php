@@ -14,7 +14,7 @@ $parser = new ToolBase("backup_project", "Creates a backup of a project folder."
 $parser->addInfile("in",  "Input project folder.", false);
 //optional
 $parser->addString("when",  "Start time in format '20:15' or 'now'.", true, "now");
-$parser->addString("out_folder", "Output folder path.", true, "/mnt/raw_data_archive/projects/");
+$parser->addString("out_folder", "Output folder path.", true, "/mnt/storage1/raw_data_archive/projects/");
 $parser->addString("tmp_folder", "Temporary folder. If unset a user-specific folder in ".sys_get_temp_dir()." is used.", true, "");
 extract($parser->parse($argv));
 
