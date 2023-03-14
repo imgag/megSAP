@@ -24,7 +24,7 @@ $tools = array_merge($tools, $tools2);
 
 //find hits
 $scripts_file = $parser->tempFile(".txt", "find_unused_tools");
-exec2("find {$megsap} /mnt/share/data/ /mnt/share/chips/ /mnt/share/doc/ /mnt/share/kasp/ /mnt/share/primer/ /mnt/storage3/users/ahsturm1/Sandbox/ /mnt/users/bioinf/http/ -name \"Makefile\" -or -name \"*.sh\" -or -name \"*.php\" -or -name \"*.py\"> {$scripts_file}");
+exec2("find {$megsap} /mnt/storage1/share/data/ /mnt/storage1/share/chips/ /mnt/storage1/share/doc/ /mnt/storage1/share/kasp/ /mnt/storage1/share/primer/ /mnt/storage3/users/ahsturm1/Sandbox/ /mnt/storage1/users/bioinf/http/ -name \"Makefile\" -or -name \"*.sh\" -or -name \"*.php\" -or -name \"*.py\"> {$scripts_file}");
 
 foreach($tools as $tool)
 {

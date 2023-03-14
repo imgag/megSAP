@@ -19,7 +19,7 @@ extract($parser->parse($argv));
 $nl = new Matrix();
 $nl->addComment("#fileformat=VCFv4.1");
 $nl->addComment("#fileDate=".date("Ymd"));
-$nl->addComment("#reference=/mnt/share/data/genomes/{$build}.fa");
+$nl->addComment("#reference=/mnt/storage2/megSAP/data/genomes/{$build}.fa");
 $nl->addComment("#INFO=<ID=variant_id,Number=1,Type=String,Description=\"ID of original variant.\">");
 $nl->addComment("#FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">");
 $nl->setHeaders(array("CHROM","POS","ID","REF","ALT","QUAL","FILTER","INFO","FORMAT","Sample"));

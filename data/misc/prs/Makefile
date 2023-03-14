@@ -6,7 +6,7 @@ help:
 
 OCAC36_liftover:
 	php ../../../src/Tools/vcf_annotate_coords.php -in OCAC_36_GRCh37.vcf -out OCAC_36_GRCh37_ann.vcf
-	CrossMap.py vcf /mnt/share/opt/liftOver/hg19ToHg38.over.chain.gz OCAC_36_GRCh37_ann.vcf /mnt/share/data/genomes/GRCh38.fa OCAC_36_GRCh38_lifted.vcf
+	CrossMap.py vcf /mnt/storage2/megSAP/tools/liftOver/hg19ToHg38.over.chain.gz OCAC_36_GRCh37_ann.vcf /mnt/storage2/megSAP/data/genomes/GRCh38.fa OCAC_36_GRCh38_lifted.vcf
 	VcfSort -in OCAC_36_GRCh38_lifted.vcf -out OCAC_36_GRCh38_lifted.vcf
 	@echo "WARNING: Check lifting manually and lift remaining by hand!"
 
@@ -23,7 +23,7 @@ PGS000004_to_vcf:
 
 PGS000004_liftover:
 	php ../../../src/Tools/vcf_annotate_coords.php -in PGS000004_GRCh37.vcf -out PGS000004_GRCh37_ann.vcf
-	CrossMap.py vcf /mnt/share/opt/liftOver/hg19ToHg38.over.chain.gz PGS000004_GRCh37_ann.vcf /mnt/share/data/genomes/GRCh38.fa PGS000004_GRCh38_lifted.vcf
+	CrossMap.py vcf /mnt/storage2/megSAP/tools/liftOver/hg19ToHg38.over.chain.gz PGS000004_GRCh37_ann.vcf /mnt/storage2/megSAP/data/genomes/GRCh38.fa PGS000004_GRCh38_lifted.vcf
 	VcfSort -in PGS000004_GRCh38_lifted.vcf -out PGS000004_GRCh38_lifted.vcf
 	@echo "WARNING: Check lifting manually and lift remaining by hand!"
 
