@@ -52,4 +52,4 @@ This affects the following regions:
 ## Internal documentation
 
 GitHub issue: https://github.com/imgag/megSAP/issues/147  
-Benchmarks were performed in the folder: /mnt/users/ahsturm1/Sandbox/2022\_09\_12\_grch38\_false\_duplications/
+Benchmarks were performed in the folder: /mnt/storage3/users/ahsturm1/Sandbox/2022\_09\_12\_grch38\_false\_duplications/

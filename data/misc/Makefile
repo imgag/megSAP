@@ -4,7 +4,7 @@ help:
 ########################################## CNPs genomes ##########################################
 
 af_genomes_imgag_cnp_detetion:
-	cp /mnt/users/ahsturm1/Sandbox/2022_03_25_clincnv_cnps/cn_polymorphisms_3500genomes_imgag.igv af_genomes_imgag_cnp_detetion.igv
+	cp /mnt/storage3/users/ahsturm1/Sandbox/2022_03_25_clincnv_cnps/cn_polymorphisms_3500genomes_imgag.igv af_genomes_imgag_cnp_detetion.igv
 
 af_genomes_imgag_ngsd_export:
 	/mnt/storage2/megSAP/tools/ngs-bits-current/NGSDExportCnvTrack -system TruSeqPCRfree -min_af 0.02 -min_dp 30 -max_cnvs 2000 -out af_genomes_imgag_ngsd_export.igv -stats af_genomes_imgag_ngsd_export.log

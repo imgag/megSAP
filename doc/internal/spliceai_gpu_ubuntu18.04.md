@@ -8,7 +8,7 @@ Install pyhton 3.6.9. Newer versions lead to a compile error in pyfaidx dependen
 	> mkdir -p Python3.6.9
 	> wget https://www.python.org/ftp/python/3.6.9/Python-3.6.9.tgz
 	> tar -zxvf Python-3.6.9.tgz
-	> cd Python-3.6.9 && ./configure --prefix=/mnt/users/ahsturm1/Sandbox/2021_12_01_update_splicing_scores/Python3.6.9
+	> cd Python-3.6.9 && ./configure --prefix=/mnt/storage3/users/ahsturm1/Sandbox/2021_12_01_update_splicing_scores/Python3.6.9
 	> cd Python-3.6.9 && make
 	> cd Python-3.6.9 && make install
 	> rm -R Python-3.6.9
