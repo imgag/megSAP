@@ -277,7 +277,8 @@ $args = [
 "--filterStep", $filterStep,
 "--numberOfThreads {$threads}",
 "--hg38",
-"--noPlot"
+"--noPlot",
+"--folderWithScript ".dirname(get_path("clincnv"))
 ];
 
 if($use_off_target)
