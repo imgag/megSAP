@@ -1,4 +1,3 @@
-PHP Warning:  file_put_contents(/tmp/megSAP_db_update_pid.txt): failed to open stream: Permission denied in /mnt/storage2/megSAP/pipeline/src/NGS/db_update_queue.php on line 443
 Updating status job 2 (single sample)
 	Job finished with status 'finished'
 Updating status job 5 (multi sample)

@@ -1,4 +1,3 @@
-PHP Warning:  file_put_contents(/tmp/megSAP_db_update_pid.txt): failed to open stream: Permission denied in /mnt/storage2/megSAP/pipeline/src/NGS/db_update_queue.php on line 443
 Starting job 2 (single sample)
 	SGE: qsub -V -pe smp 10 -b y -wd /mnt/storage2/projects/diagnostic//Exome_Diagnostik/ -m n -M medgen.bioinformatik@med.uni-tuebingen.de -e /mnt/storage2/megSAP/data//sge/megSAP_sge_job_2.err -o /mnt/storage2/megSAP/data//sge/megSAP_sge_job_2.out -q default_srv012,default_srv013,default_srv014,default_srv015,priority_srv012,priority_srv013,priority_srv014,priority_srv015,priority_srv020
 	PIP: php [megSAP]/src/Pipelines/analyze.php -threads  10 -folder /mnt/storage2/projects/diagnostic//Exome_Diagnostik/Sample_DX181109_01/ -name DX181109_01 --log /mnt/storage2/projects/diagnostic//Exome_Diagnostik/Sample_DX181109_01/analyze_20000101000000.log
