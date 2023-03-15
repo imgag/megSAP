@@ -124,6 +124,7 @@ if (!$no_sync)
 //output file names:
 //mapping
 $bamfile = $folder."/".$name.".bam";
+$cramfile = $folder."/".$name.".cram";
 $local_bamfile = $parser->tempFolder("local_bam")."/".$name.".bam"; //local copy of BAM file to reduce IO over network
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 //variant calling
@@ -173,111 +174,51 @@ if ($annotation_only)
 //mapping
 if (in_array("ma", $steps))
 {
-	// BAM file path to convert to FastQ
-	$bamfile_to_convert = $bamfile;
-
-	//fallback for remapping GRCh37 samples to GRCh38 - use BAM to create FASTQs
-	if ($build=="GRCh38")
-	{
-		//determine if HG38 folder contains read data
-		$read_data_present = false;
-		list($files) = exec2("ls {$folder}");
-		foreach($files as $file)
-		{
-			if (ends_with($file, ".bam") || ends_with($file, ".fastq.gz"))
-			{
-				$read_data_present = true;
-			}
-		}
-		
-		//no read data > try to generate it from HG19
-		if (!$read_data_present)
-		{
-			if (!db_is_enabled("NGSD")) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
-			$db = DB::getInstance("NGSD", false);
-			$info = get_processed_sample_info($db, $name, false);
-
-			// determine project folder of GRCh37 
-			$bamfile_to_convert = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/${name}.bam";
-			// other possible file location (for research and test projects)
-			if(!file_exists($bamfile_to_convert)) $bamfile_to_convert = get_path("project_folder")[$info['project_type']]."/".$info['project_name']."/+hg19/Sample_${name}/${name}.bam";
-			
-			// check if bam file exists
-			if (!file_exists($bamfile_to_convert) && !file_exists($bamfile_to_convert)) trigger_error("BAM file of GRCh37 sample is missing!", E_USER_ERROR);
-
-			trigger_error("No read data found in output folder. Using BAM/FASTQ files from GRCh37 as input!", E_USER_NOTICE);
-		}
-	}
-
-	//determine input FASTQ files
+	//find FASTQ input files
 	$in_for = $folder."/*_R1_00?.fastq.gz";
-	$in_rev = $folder."/*_R2_00?.fastq.gz";
-	$in_index = $folder."/*_index_*.fastq.gz";
-	
-	//find FastQ input files
 	$files1 = glob($in_for);
+	$in_rev = $folder."/*_R2_00?.fastq.gz";
 	$files2 = glob($in_rev);
-		
-	//fallback for remapping GRCh37 samples to GRCh38 - copy FASTQs of GRCh37
-	if ($build=="GRCh38" && count($files1)==0)
-	{
-		if (!db_is_enabled("NGSD")) trigger_error("NGSD access required to determine GRCh37 sample path!", E_USER_ERROR);
-		$db = DB::getInstance("NGSD", false);
-		$info = get_processed_sample_info($db, $name, false);
-		
-		//fallback to grch37 project folder
-		$in_for_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R1_00?.fastq.gz";
-		$in_rev_grch37 = get_path("GRCh37_project_folder").$info['project_type']."/".$info['project_name']."/Sample_${name}/*_R2_00?.fastq.gz";
-		$fastq_files_grch37 = glob($in_for_grch37);
-		
-		//fallback to +hg19 subdirectory (in case of test and research projects)
-		if(count($fastq_files_grch37) == 0)
-		{
-			$in_for_grch37 = get_path("project_folder")[$info['project_type']]. "/".$info['project_name']."/+hg19/Sample_${name}/*_R1_00?.fastq.gz";
-			$in_rev_grch37 = get_path("project_folder")[$info['project_type']]. "/".$info['project_name']."/+hg19/Sample_${name}/*_R2_00?.fastq.gz";
-			$fastq_files_grch37 = glob($in_for_grch37);
-		}
-		
-		if(count($fastq_files_grch37)>0)
-		{
-			exec2("cp -f $in_for_grch37 $folder");
-			exec2("cp -f $in_rev_grch37 $folder");
-			$files1 = glob($in_for);
-			$files2 = glob($in_rev);
-		}
-	}
-	
+	$in_index = $folder."/*_index_*.fastq.gz";
 	$files_index = glob($in_index);
+	
+	//check number of FASTQs for forward/reverse is equal
 	if (count($files1)!=count($files2))
 	{
 		trigger_error("Found mismatching forward and reverse read file count!\n Forward: $in_for\n Reverse: $in_rev.", E_USER_ERROR);
 	}
-	if (!$start_with_abra)
+	
+	//generate FASTQs from BAM/CRAM is missing
+	if (count($files1)==0 && !$start_with_abra)
 	{
-		if (count($files1)==0)
+		$source_file = "";
+		if(file_exists($bamfile))
 		{
-			if(file_exists($bamfile_to_convert))
-			{
-				trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files: $bamfile_to_convert", E_USER_NOTICE);
-
-				// extract reads from BAM file
-				$in_fq_for = $folder."/{$name}_BamToFastq_R1_001.fastq.gz";
-				$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
-				$tmp1 = $parser->tempFile(".fastq.gz");
-				$tmp2 = $parser->tempFile(".fastq.gz");
-				$parser->exec("{$ngsbits}BamToFastq", "-in $bamfile_to_convert -out1 $tmp1 -out2 $tmp2", true);
-				$parser->moveFile($tmp1, $in_fq_for);
-				$parser->moveFile($tmp2, $in_fq_rev);
-				
-				// use generated fastq files for mapping
-				$files1 = array($in_fq_for);
-				$files2 = array($in_fq_rev);
-			}
-			else
-			{
-				trigger_error("Found no read files found matching '$in_for' or '$in_rev'!", E_USER_ERROR);
-			}
+			$source_file = $bamfile;
 		}
+		else if (file_exists($cramfile))
+		{
+			$source_file = $cramfile;
+		}
+		if ($source_file=="")
+		{
+			trigger_error("Found no read files matching '$in_for' or '$in_rev' and no BAM ($bamfile) or CRAM file ($cramfile). Cannot perform mapping without raw data!", E_USER_ERROR);
+		}
+		
+		trigger_error("No FASTQ files found in sample folder. Generating FASTQs from {$source_file}!", E_USER_NOTICE);
+
+		// extract reads from BAM file
+		$in_fq_for = $folder."/{$name}_BamToFastq_R1_001.fastq.gz";
+		$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
+		$tmp1 = $parser->tempFile(".fastq.gz");
+		$tmp2 = $parser->tempFile(".fastq.gz");
+		$parser->exec("{$ngsbits}BamToFastq", "-in $source_file -ref $genome -out1 $tmp1 -out2 $tmp2", true);
+		$parser->moveFile($tmp1, $in_fq_for);
+		$parser->moveFile($tmp2, $in_fq_rev);
+		
+		// use generated fastq files for mapping
+		$files1 = array($in_fq_for);
+		$files2 = array($in_fq_rev);
 	}
 	
 	$args = [];
@@ -322,7 +263,7 @@ if (in_array("ma", $steps))
 			$fastq_files = array_merge($files1, $files2);
 			//check if BAM and BAM index exists:
 			$bam_exists = file_exists($bamfile) && file_exists($bamfile.".bai"); 
-			if ($bam_exists && count($files1)>0 && count($files1)>0)
+			if ($bam_exists && count($fastq_files)>0)
 			{
 				//check file sizes:
 				//FASTQ
@@ -725,7 +666,7 @@ if (in_array("cn", $steps))
 			{
 				$pipeline = [
 						["{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size}"],
-						["{$ngsbits}BedAnnotateGC", "-ref ".$genome],
+						["{$ngsbits}BedAnnotateGC", "-clear -ref ".$genome],
 						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"]
 					];
 				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");

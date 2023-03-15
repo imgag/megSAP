@@ -1,5 +1,5 @@
 ##fileformat=VCFv4.1
-##reference=/mnt/share/data/genomes/GRCh38.fa
+##reference=/mnt/storage2/megSAP/data/genomes/GRCh38.fa
 ##INFO=<ID=variant_id,Number=1,Type=String,Description="ID of original variant.">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Sample

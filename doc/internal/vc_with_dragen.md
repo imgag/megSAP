@@ -102,5 +102,5 @@ Structural variant calling with Dragen is performed only if `dragen_sv_calling` 
 ## Internal documentation
 
 GutHub issue: https://github.com/imgag/megSAP/issues/132  
-Benchmarks were performed in the folder: /mnt/users/ahsturm1/Sandbox/2022\_09\_07\_dragen\_vc/
+Benchmarks were performed in the folder: /mnt/storage3/users/ahsturm1/Sandbox/2022\_09\_07\_dragen\_vc/
 

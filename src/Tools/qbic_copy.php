@@ -50,17 +50,17 @@ if (count($jobs)!=1)
 	print "##\n";
 	print "##============================ ERROR ========================================\n";
 	print "##=    No datamover of the user bioinf is running! Execute:                 =\n";
-	print "##=    > sudo -u bioinf /mnt/share/to_qbic/datamover.sh start               =\n";
+	print "##=    > sudo -u bioinf /mnt/storage1/share/to_qbic/datamover.sh start               =\n";
 	print "##===========================================================================\n";
 	die(1);
 }
 
 //print documentation
-$GLOBALS["datamover_done"] = "/mnt/share/to_qbic/data/done.txt";
-$GLOBALS["datamover_path"] = "/mnt/share/to_qbic/data/to_qbic/";
-$GLOBALS["datamover_tmp"] = "/mnt/share/to_qbic/data/tmp/";
+$GLOBALS["datamover_done"] = "/mnt/storage1/share/to_qbic/data/done.txt";
+$GLOBALS["datamover_path"] = "/mnt/storage1/share/to_qbic/data/to_qbic/";
+$GLOBALS["datamover_tmp"] = "/mnt/storage1/share/to_qbic/data/tmp/";
 print "##Datamover folder : ".$GLOBALS["datamover_path"]."\n";
-print "##Datemover log    : /mnt/share/to_qbic/log/datamover_log.txt\n";
+print "##Datemover log    : /mnt/storage1/share/to_qbic/log/datamover_log.txt\n";
 print "##Done samples file: ".$GLOBALS["datamover_done"]."\n";
 print "##Temporary folder : ".$GLOBALS["datamover_tmp"]."\n";
 if (!$upload)
@@ -619,7 +619,7 @@ foreach($res as $row)
 		//Upload somatic data in special format for MTB (Molecular Tumor Board)
 		if ($somatic_data_uploaded)
 		{
-			$folder = "/mnt/share/to_qbic/somatic_data/{$ps_name}-{$ps_name2}/";
+			$folder = "/mnt/storage1/share/to_qbic/somatic_data/{$ps_name}-{$ps_name2}/";
 			if (file_exists($folder))
 			{
 				$output[4] = "{$ps_name}-{$ps_name2} (MTB)";
@@ -656,5 +656,7 @@ foreach($res as $row)
 	}
 }
 
+//write FINISHED message that is used by UploadQBIC webservice
+print "FINISHED!\n";
 
 ?>

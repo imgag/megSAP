@@ -65,7 +65,7 @@ if ($somatic) $args[] = "-somatic";
 $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 
 //annotate COSMIC
-$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export.vcf.gz";
+$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v97.vcf.gz";
 if(file_exists($cosmic_cmc) && $somatic)
 {
 	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
@@ -152,7 +152,9 @@ if (!$somatic) //germline only
 			$splicing = $psample_info['ps_folder']."{$psample}_splicing_gene.tsv";
 			if (file_exists($splicing))
 			{
-				annotate_gsvar_by_gene($varfile, $varfile, $splicing, "symbol", "aberrant_frac", "aberrant_splicing", "Fraction of aberrant splicing reads in gene.");
+				$gsvar = Matrix::fromTSV($varfile);
+				annotate_gsvar_by_gene($gsvar, $splicing, "symbol", "aberrant_frac", "aberrant_splicing", "Fraction of aberrant splicing reads in gene.");
+				$gsvar->toTSV($varfile);
 			}
 			else
 			{

@@ -430,7 +430,7 @@ function canceled_analysis($job_info, &$db_conn, $debug)
 }
 
 //abort if script is already running
-$pid_file = sys_get_temp_dir()."/megSAP_db_update_pid.txt";
+$pid_file = sys_get_temp_dir()."/megSAP_db_update_pid".($debug ? "_debug" : "").".txt";
 if (file_exists($pid_file))
 {
 	$pid_old = trim(file_get_contents($pid_file));

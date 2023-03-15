@@ -85,7 +85,7 @@ foreach($missing_tests as $test)
 	
 	//count usge in webservices
 	$hits = array();
-	exec("find /mnt/users/bioinf/http/ -name '*.php' -or -name '*.py' | grep -v '/+old/' | grep -v '/tmp/' | xargs grep $test", $hits);
+	exec("find /mnt/storage1/users/bioinf/http/ -name '*.php' -or -name '*.py' | grep -v '/+old/' | grep -v '/tmp/' | xargs grep $test", $hits);
 	if (count($hits)>0)
 	{
 		$usage[] = count($hits)."x in webservices";

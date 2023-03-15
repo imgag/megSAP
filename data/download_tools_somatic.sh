@@ -7,9 +7,14 @@ root=`pwd`
 folder=$root/tools/
 cd $folder
 
-#download hla-genotyper
+#Ignore this - used for local installation
+#folder=/mnt/storage2/megSAP/tools/
+
+# #download hla-genotyper
+cd $folder
 wget https://github.com/axelgschwind/hla-genotyper/archive/refs/tags/2022_05.tar.gz
 tar xzf 2022_05.tar.gz
+rm 2022_05.tar.gz
 
 #download varscan2
 cd $folder
@@ -34,15 +39,11 @@ make
 cd $folder
 git clone https://github.com/imgag/umiVar2.git umiVar2
 cd umiVar2
-# create virtual environment for umiVar2
-# (requires installed python version from download_tools.sh)
-# $folder/Python3/bin/python3 -m venv venv 
-# source venv/bin/activate
-# pip3 install pysam==0.16.0.1
-# pip3 install numpy==1.19.5
-# pip3 install scipy==1.5.4
-# pip3 install networkx==2.5
-# deactivate
-# install required R packages for umiVar2
-# (requires installed R version 4.1.0 from download_tools.sh)
 $folder/R-4.1.0/bin/R -f $root/install_deps_umiVar2.R
+
+#install scarHRD
+$folder/R-4.1.0/bin/R -f $root/install_deps_scarhrd.R
+
+#install genome for SigProfilerExtractor
+chmod -R 777 $folder/Python-3.10.9/lib/python3.10/site-packages/sigProfiler*
+$folder/Python-3.10.9/bin/python3 $root/../src/NGS/extract_signatures.py --installGenome --reference GRCh38 --in . --outFolder .

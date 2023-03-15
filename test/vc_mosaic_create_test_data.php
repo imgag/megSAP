@@ -1,11 +1,11 @@
 <?php
 
 // "Input"
-$ngs_bits = "/mnt/users/ahott1a1/ngs-bits/bin/";
+$ngs_bits = "/mnt/storage3/users/ahott1a1/ngs-bits/bin/";
 
 $bam = "/mnt/storage2/projects/test/WES_Onko_test/Sample_NA12877_NA12878x2_10perc/NA12877_NA12878x2_10perc.bam";
 $vcf = "/mnt/storage2/projects/test/WES_Onko_test/Sample_NA12877_14/NA12877_14_var.vcf.gz";
-$genes = "/mnt/users/ahott1a1/megSAP/test/data/vc_mosaic_in_genes.txt";
+$genes = "/mnt/storage3/users/ahott1a1/megSAP/test/data/vc_mosaic_in_genes.txt";
 
 
 //tmp files:

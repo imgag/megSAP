@@ -224,38 +224,9 @@ if(isset($rna_ref_tissue))
 
 if($include_ncg)
 {
-	//Remove potential old NCG annotation
-	$gsvar_input->removeColByName("ncg_oncogene");
-	$gsvar_input->removeColByName("ncg_tsg");
-	
-	$col_oncogene  = array();
-	$col_tsg  = array();
-	
-	for($row=0;$row<$gsvar_input->rows();++$row)
-	{
-		//Get gene names in GSvar file
-		$genes = explode(",",$gsvar_input->get($row,$gsvar_input->getColumnIndex("gene")));
-		
-		$ncg_oncogene = "";
-		$ncg_tsg = "";
-		
-		//Annotate NCG information per gene
-		foreach($genes as $gene)
-		{
-			$statements = ncg_gene_statements($gene);
-			
-			$ncg_oncogene .= $statements["is_oncogene"] .",";
-			$ncg_tsg .= $statements["is_tsg"] . ",";
-		}
-		$ncg_oncogene = substr($ncg_oncogene,0,-1);
-		$ncg_tsg = substr($ncg_tsg,0,-1);
-		
-		$col_oncogene[] = $ncg_oncogene;
-		$col_tsg[] = $ncg_tsg;
-	}
-	
-	$gsvar_input->addCol($col_oncogene,"ncg_oncogene","1:gene is oncogene according NCG7.0, 0:No oncogene according NCG7.0, na: no information available about gene in NCG7.0. Order is the same as in column gene.");
-	$gsvar_input->addCol($col_tsg,"ncg_tsg","1:gene is TSG according NCG7.0, 0:No TSG according NCG7.0, na: no information available about gene in NCG7.0. Order is the same as in column gene.");
+	$ncg_file = get_path("data_folder") . "/dbs/NCG7.0/NCG7.0_oncogene.tsv";
+	annotate_gsvar_by_gene($gsvar_input, $ncg_file, "symbol", "NCG_oncogene", "ncg_oncogene", "1:gene is oncogene according NCG7.0, 0:No oncogene according NCG7.0, na: no information available about gene in NCG7.0. Order is the same as in column gene.", false);
+	annotate_gsvar_by_gene($gsvar_input, $ncg_file, "symbol", "NCG_tsg", "ncg_tsg", "1:gene is TSG according NCG7.0, 0:No TSG according NCG7.0, na: no information available about gene in NCG7.0. Order is the same as in column gene.", false);	
 }
 
 

@@ -4,19 +4,19 @@ set -o pipefail
 set -o verbose
 
 root=`pwd`
-tools=$root/tools/
+folder=$root/tools/
 dbs=$root/dbs/
 
 #Ignore this - used for local installation
-# tools=/mnt/storage2/GRCh38/share/opt/
-# dbs=/mnt/storage2/GRCh38/share/data/dbs/
+#folder=/mnt/storage2/megSAP/tools/
+#dbs=/mnt/storage2/megSAP/data/dbs
 
-vep_install_dir=$tools/ensembl-vep-release-107.0/
+vep_install_dir=$folder/ensembl-vep-release-107.0/
 vep_data_dir=$dbs/ensembl-vep-107/
-cpan_dir=$tools/perl_cpan/
+cpan_dir=$folder/perl_cpan/
 
 # download ensembl-vep
-cd $tools
+cd $folder
 wget https://github.com/Ensembl/ensembl-vep/archive/release/107.0.tar.gz
 mkdir $vep_install_dir
 tar -C $vep_install_dir --strip-components=1 -xzf 107.0.tar.gz

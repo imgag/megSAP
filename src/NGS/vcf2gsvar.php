@@ -462,7 +462,7 @@ while(!feof($handle))
 			$i_cosmic_cmc_gene_name = index_of($cols, "GENE_NAME", "COSMIC_CMC");
 			$i_cosmic_cmc_mut_id = index_of($cols, "GENOMIC_MUTATION_ID", "COSMIC_CMC");
 			$i_cosmic_cmc_disease = index_of($cols, "DISEASE", "COSMIC_CMC");
-			$i_cosmic_cmc_dnds_disease = index_of($cols, "DNDS_DISEASE_QVAL", "COSMIC_CMC");
+			$i_cosmic_cmc_dnds_disease = index_of($cols, "DNDS_DISEASE_QVAL_SIG", "COSMIC_CMC");
 			$i_cosmic_cmc_mut_sign_tier = index_of($cols, "MUTATION_SIGNIFICANCE_TIER", "COSMIC_CMC");
 		}
 		

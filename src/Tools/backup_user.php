@@ -12,7 +12,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 // parse command line arguments
 $parser = new ToolBase("backup_user", "Creates a backup of a user folder.");
 $parser->addInfile("in",  "Input user folder.", false);
-$parser->addString("out_folder", "Output folder path.", true, "/mnt/raw_data_archive/users/");
+$parser->addString("out_folder", "Output folder path.", true, "/mnt/storage1/raw_data_archive/users/");
 extract($parser->parse($argv));
 
 //check that the correct user is executing the script

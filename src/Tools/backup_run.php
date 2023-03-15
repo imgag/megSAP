@@ -13,7 +13,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("backup_run", "Creates a backup of a run folder.");
 $parser->addInfile("in",  "Input run folder.", false);
 $parser->addString("when",  "Start time in format '20:15' or 'now'.", true, "now");
-$parser->addString("out_folder", "Output folder path.", true, "/mnt/raw_data_archive/runs/");
+$parser->addString("out_folder", "Output folder path.", true, "/mnt/storage1/raw_data_archive/runs/");
 $parser->addFlag("include_fast5", "Backup includes FAST5 folders");
 extract($parser->parse($argv));
 

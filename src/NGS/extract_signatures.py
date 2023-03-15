@@ -37,6 +37,10 @@ def calculate_cnv_signatures(args):
 
         tmpfile = cnv_prepare_clincnv(tmpdir, args.input)
         
+        if tmpfile == "":
+            print("Warning: No CNVs called! - Skipping CNV signature calculation.")
+            return
+        
         sig.sigProfilerExtractor("seg:FACETS", result_folder, tmpfile, reference_genome=args.ref,
                                  minimum_signatures=args.minSig, maximum_signatures=args.maxSig,
                                  nmf_replicates=args.nmfRep, cpu=args.threads, seeds=args.seeds)
@@ -52,9 +56,15 @@ def cnv_prepare_clincnv(tmpdir, cnvFile):
                 continue
 
             line = line.strip()
+            if len(line) == 0:
+                continue
+            print("line: '" + line + "'\n")
             parts = line.split("\t")
             new_line_parts = [parts[0], parts[1], parts[2], parts[5], parts[8], os.path.basename(cnvFile).replace("_clincnv.tsv", ""), "0"]
             lines.append("\t".join(new_line_parts))
+    
+    if len(lines) == 0:
+        return ""
 
     tmpfile = tmpdir + "/cnv_input.seg"
     with open(tmpfile, "w") as file:
@@ -164,7 +174,6 @@ def test_input(args):
     
 
 if __name__ == '__main__':
-    print("Starting working directory: " + os.getcwd())
     # Read parameters
     parser = argparse.ArgumentParser(description='Extracting genome mutational signatures from a vcf file.')
     parser.add_argument('--in', required=True, dest='input',

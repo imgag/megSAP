@@ -5,7 +5,7 @@ INSERT INTO device (type, name) VALUES ('GAIIx', 'test');
 
 INSERT INTO project (name, type, internal_coordinator_id) VALUES ('X-Chr','research', 1);
 
-INSERT INTO processing_system (name_short, name_manufacturer, shotgun, genome_id, type, target_file) VALUES ('ssHAEv6', 'SureSelect Human All Exon v6', '1', 1, 'Panel', '/mnt/share/data/enrichment/ssX_2016_09_09.bed');
+INSERT INTO processing_system (name_short, name_manufacturer, shotgun, genome_id, type, target_file) VALUES ('ssHAEv6', 'SureSelect Human All Exon v6', '1', 1, 'Panel', '/mnt/storage2/megSAP/data/enrichment/ssX_2022_03_11.bed');
 
 INSERT INTO sequencing_run (name, fcid, start_date, end_date, device_id, recipe) VALUES ('#002', 'FCID4711', '2013-02-04', '2013-02-04', 1, '76+6+76');
 

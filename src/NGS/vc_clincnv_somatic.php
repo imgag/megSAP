@@ -34,6 +34,7 @@ $parser->addInt("max_ref_files", "maximum number of reference file pairs", true,
 $parser->addInt("lengthS", "ClinCNV lengthS parameter", true, 5);
 $parser->addInt("scoreS", "ClinCNV scoreS filter parameter", true, 100);
 $parser->addInt("filterStep", "ClinCNV filter strength.", true, 1);
+$parser->addFlag("test","Test mode (skips annotation from NGSD with overlapping pathogenic CNVs).");
 extract($parser->parse($argv));
 
 //init
@@ -180,7 +181,7 @@ if($use_off_target && !is_dir($cov_folder_t_off))
 
 $tmp_bed_annotated = $parser->tempFile(".bed");
 
-$parser->exec(get_path("ngs-bits")."/"."BedAnnotateGC", " -in {$bed} -out {$tmp_bed_annotated} -ref ".genome_fasta($sys['build']),true);
+$parser->exec(get_path("ngs-bits")."/"."BedAnnotateGC", "-in {$bed} -clear -out {$tmp_bed_annotated} -ref ".genome_fasta($sys['build']),true);
 $parser->exec(get_path("ngs-bits")."/"."BedAnnotateGenes"," -in {$tmp_bed_annotated} -out {$tmp_bed_annotated}",true);
 
 
@@ -276,7 +277,8 @@ $args = [
 "--filterStep", $filterStep,
 "--numberOfThreads {$threads}",
 "--hg38",
-"--noPlot"
+"--noPlot",
+"--folderWithScript ".dirname(get_path("clincnv"))
 ];
 
 if($use_off_target)
@@ -493,7 +495,8 @@ $cnvs->toTSV($out);
 
 //annotate additional gene info
 $parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$out} -out {$out}", true);
+
 //annotate overlap with pathogenic CNVs
-if(db_is_enabled("NGSD")) $parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$out} -out {$out}", true);
+if(db_is_enabled("NGSD") && !$test) $parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$out} -out {$out}", true);
 
 ?>

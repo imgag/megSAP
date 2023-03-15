@@ -1,10 +1,13 @@
 #!/bin/bash
-
 set -e
 set -o pipefail
 set -o verbose
 
+root=`pwd`
 folder=`pwd`/tools/
+
+#Ignore this - used for local installation
+#folder=/mnt/storage2/megSAP/tools/
 
 #download STAR
 cd $folder
@@ -26,7 +29,7 @@ tar -xzf arriba_v2.3.0.tar.gz
 rm arriba_v2.3.0.tar.gz
 cd arriba_v2.3.0 && make && cd ..
 #install R dependencies:
-$folder/R-4.1.0/bin/R -f $folder/../install_deps_clincnv.R
+$folder/R-4.1.0/bin/R -f $root/install_deps_arriba.R
 
 #download kraken2
 cd $folder

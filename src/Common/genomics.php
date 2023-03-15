@@ -1048,9 +1048,9 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	//get info from NGSD
 	$ps_name = trim($ps_name);
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
-	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.preserve_fastqs as preserve_fastqs, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, s.tissue as tissue, s.comment as s_comments, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.adapter1_p5 as sys_adapter1, sys.adapter2_p7 as sys_adapter2,s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2, sp.name as species, s.id as s_id, ps.quality as ps_quality, ps.processing_input, d.name as device_name ".
-									"FROM project p, sample s, processing_system as sys, processed_sample ps LEFT JOIN sequencing_run as r ON ps.sequencing_run_id=r.id LEFT JOIN device as d ON r.device_id=d.id, species sp ".
-									"WHERE ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND s.species_id=sp.id AND ps.process_id='".(int)$process_id."'");
+	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.preserve_fastqs as preserve_fastqs, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, s.tissue as tissue, s.comment as s_comments, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.adapter1_p5 as sys_adapter1, sys.adapter2_p7 as sys_adapter2, g.build as sys_build, s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2, sp.name as species, s.id as s_id, ps.quality as ps_quality, ps.processing_input, d.name as device_name ".
+									"FROM project p, sample s, processing_system as sys, processed_sample ps LEFT JOIN sequencing_run as r ON ps.sequencing_run_id=r.id LEFT JOIN device as d ON r.device_id=d.id, species sp, genome g ".
+									"WHERE ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND sys.genome_id=g.id AND s.species_id=sp.id AND ps.process_id='".(int)$process_id."'");
 	if (count($res)!=1)
 	{
 		if ($error_if_not_found)
@@ -1291,41 +1291,6 @@ function enable_special_mito_vc($sys)
 function genome_fasta($build, $used_local_data=true)
 {
 	return ($used_local_data ? get_path("local_data") : get_path("data_folder")."/genomes")."/".$build.".fa";
-}
-
-//Returns whether a certain gene is an oncogene or tsg gene according NCG6.0, "na" otherwise
-function ncg_gene_statements($gene)
-{
-	$result = array("is_oncogene" => "na", "is_tsg" => "na");
-	
-	//file with data about TSG / oncogene from NCG6.0
-	$ncg_file = get_path("data_folder") . "/dbs/NCG7.0/NCG7.0_oncogene.tsv";
-	
-	if(!file_exists($ncg_file))
-	{
-		trigger_error("Could not find file with NCG7.0 data",E_USER_WARNING);
-		return $result;
-	}
-	
-	$handle = fopen2($ncg_file,"r");
-	while(!feof($handle))
-	{
-		$line = fgets($handle);
-		if(empty($line)) continue;
-		if(starts_with($line,"entrez")) continue; //Skip header line
-		
-		list($entrez,$ncg_gene,$cgc,$vogelstein,$is_oncogene,$is_tsg) = explode("\t",trim($line));
-		
-		if(trim($gene) == trim($ncg_gene))
-		{
-			$result["is_oncogene"] = $is_oncogene;
-			$result["is_tsg"] = $is_tsg;
-			break;
-		}
-	}
-	
-	fclose($handle);
-	return $result;
 }
 
 //Create Bed File that contains off target regions of a target region
@@ -1622,7 +1587,7 @@ SQL;
  * 
  * Annotate GSvar file based on 'gene' column.
  *
- * @param  string $gsvar_f input GSvar file
+ * @param  object $gsvar reference to GSvar Matrix object
  * @param  string $outfile_f output GSvar file
  * @param  string $annotation_f annotation file
  * @param  string $key column in annotation file to use as key
@@ -1631,22 +1596,29 @@ SQL;
  * @param  string $column_description output column description
  * @return void
  */
-function annotate_gsvar_by_gene($gsvar_f, $outfile_f, $annotation_f, $key, $column, $column_name, $column_description)
+function annotate_gsvar_by_gene(&$gsvar, $annotation_f, $key, $column, $column_name, $column_description, $numeric=true)
 {
-	$gsvar = Matrix::fromTSV($gsvar_f);
 	$genes = $gsvar->getCol($gsvar->getColumnIndex("gene"));
 
 	$annotation = Matrix::fromTSV($annotation_f);
 	$values = array_combine($annotation->getCol($annotation->getColumnIndex($key)),
 							$annotation->getCol($annotation->getColumnIndex($column)));
 
-	$map_value = function(&$item, $key, &$values)
+	$map_value = function(&$item, $key, &$values) use ($numeric)
 	{
 		$annotated_genes = explode(',', $item);
 		$vals = [];
 		foreach ($annotated_genes as $g)
 		{
-			$vals[] = (isset($values[$g]) && $values[$g] != "n/a") ? number_format($values[$g], 4) : "n/a";
+			if ($numeric)
+			{
+				$vals[] = (isset($values[$g]) && $values[$g] != "n/a") ? number_format($values[$g], 4) : "n/a";
+			}
+			else
+			{
+				$vals[] = isset($values[$g]) ? $values[$g] : "na";
+			}
+			
 		}
 
 		$item = implode(",", $vals);
@@ -1654,7 +1626,6 @@ function annotate_gsvar_by_gene($gsvar_f, $outfile_f, $annotation_f, $key, $colu
 	array_walk($genes, $map_value, $values);
 	$gsvar->removeColByName($column_name);
 	$gsvar->addCol($genes, $column_name, $column_description);
-	$gsvar->toTSV($outfile_f);
 }
 
 //checks that the genome build of a BAM, VCF (small variants or SVs) or TSV (CNVs) matches the expected build.

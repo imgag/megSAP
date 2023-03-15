@@ -419,7 +419,8 @@ function run_clincnv($out, $mosaic=FALSE)
 		"--numberOfThreads {$threads}",
 		"--par \"chrX:10001-2781479;chrX:155701383-156030895\"", //this is correct for hg38 only!
 		"--hg38",
-		"--noPlot"
+		"--noPlot",
+		"--folderWithScript ".dirname(get_path("clincnv"))
 		];
 
 	//analyzing a single tumor sample
@@ -429,7 +430,6 @@ function run_clincnv($out, $mosaic=FALSE)
 		$args[] = "--minimumPurity 30";
 		$args[] = "--purityStep 5";
 		$args[] = "--scoreS 150";
-		$args[] = "--folderWithScript ".dirname(get_path("clincnv"));
 		if($use_off_target)
 		{
 			$args[] = "--bedOfftarget $bed_off";

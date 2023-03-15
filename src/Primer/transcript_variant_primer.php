@@ -33,7 +33,7 @@ $parser->addInt("product_min", "Minimum product size.", true, 190);
 $parser->addInt("product_max", "Maximum product size.", true, 250);
 extract($parser->parse($argv));
 
-$reference = "/mnt/share/data/genomes/${build}_cDNA.fa";
+$reference = "/mnt/storage2/megSAP/data/genomes/${build}_cDNA.fa";
 $primer3_config = get_path("primer3")."primer3_config/";
 
 //ensgene table (cDNA, CDS, exons)
@@ -261,7 +261,7 @@ foreach ($stdout as $line)
 $star_out = $parser->tempFile(".sam");
 //$star_out = "test.sam";
 $STAR_tmp_folder = $parser->tempFolder();
-$genome_dir = "/mnt/share/data/genomes/STAR/{$build}";
+$genome_dir = "/mnt/storage2/megSAP/data/genomes/STAR/{$build}";
 $parser->exec(get_path("STAR"), "--genomeLoad LoadAndKeep --genomeDir {$genome_dir} --outFileNamePrefix {$STAR_tmp_folder}/ --readFilesIn {$primers_fasta} --outSAMtype SAM --outStd SAM > {$star_out}", true);
 //$parser->log("Primers SAM:", file($bam));
 

@@ -4,10 +4,10 @@ help:
 ########################################## CNPs genomes ##########################################
 
 af_genomes_imgag_cnp_detetion:
-	cp /mnt/users/ahsturm1/Sandbox/2022_03_25_clincnv_cnps/cn_polymorphisms_3500genomes_imgag.igv af_genomes_imgag_cnp_detetion.igv
+	cp /mnt/storage3/users/ahsturm1/Sandbox/2022_03_25_clincnv_cnps/cn_polymorphisms_3500genomes_imgag.igv af_genomes_imgag_cnp_detetion.igv
 
 af_genomes_imgag_ngsd_export:
-	/mnt/share/opt/ngs-bits-current/NGSDExportCnvTrack -system TruSeqPCRfree -min_af 0.02 -min_dp 30 -max_cnvs 2000 -out af_genomes_imgag_ngsd_export.igv -stats af_genomes_imgag_ngsd_export.log
+	/mnt/storage2/megSAP/tools/ngs-bits-current/NGSDExportCnvTrack -system TruSeqPCRfree -min_af 0.02 -min_dp 30 -max_cnvs 2000 -out af_genomes_imgag_ngsd_export.igv -stats af_genomes_imgag_ngsd_export.log
 	
 af_genomes_imgag:
 	php merge_cnps.php af_genomes_imgag_ngsd_export.igv af_genomes_imgag_cnp_detetion.igv > af_genomes_imgag.igv
@@ -17,7 +17,7 @@ af_genomes_imgag:
 ########################################## CNPs exomes ##########################################
 
 af_ssHAEv7_imgag:
-	/mnt/share/opt/ngs-bits-current/NGSDExportCnvTrack -system ssHAEv7 -min_af 0.02 -min_dp 80 -max_cnvs 200 -out af_ssHAEv7_imgag.igv -stats af_ssHAEv7_imgag.log
+	/mnt/storage2/megSAP/tools/ngs-bits-current/NGSDExportCnvTrack -system ssHAEv7 -min_af 0.02 -min_dp 80 -max_cnvs 200 -out af_ssHAEv7_imgag.igv -stats af_ssHAEv7_imgag.log
 	cut -f1,2,3,5 af_ssHAEv7_imgag.igv | grep -v "Chromosome" > af_ssHAEv7_imgag.bed
 
 
