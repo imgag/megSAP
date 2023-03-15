@@ -116,7 +116,7 @@ case3_diff:
 	diff expected_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe --ignore-matching-lines="##cmdline" --ignore-matching-lines="##fileDate="
 	
 create_test_case1:
-	samtools view -bh /mnt/storage2/GRCh38/projects/diagnostic/SomaticAndTreatment/Sample_DX205723_01/DX205723_01.bam chr7:140723402-140929330 > test_case1_tmp.bam
+	samtools view -bh /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX205723_01/DX205723_01.bam chr7:140723402-140929330 > test_case1_tmp.bam
 	BamToFastq -in test_case1_tmp.bam -out1 som_pipeline_test_case1_L001_R1_001.fastq.gz -out2 som_pipeline_test_case1_L001_R2_001.fastq.gz
 	rm test_case1_tmp.bam
-	BedIntersect -in2 /mnt/storage2/GRCh38/share/data/enrichment/ssSC_v5.bed  <<< "chr7	140723402	140929330" | BedSort | BedMerge > som_pipeline_test_case1_target.bed
+	BedIntersect -in2 /mnt/storage2/megSAP/data/enrichment/ssSC_v5.bed  <<< "chr7	140723402	140929330" | BedSort | BedMerge > som_pipeline_test_case1_target.bed
