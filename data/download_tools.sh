@@ -142,9 +142,9 @@ sed -i 's#referenceFasta = /illumina/development/Isis/Genomes/Homo_sapiens/UCSC/
 
 #download InterOp
 cd $folder
-wget https://github.com/Illumina/interop/releases/download/v1.0.25/InterOp-1.0.25-Linux-GNU-4.8.2.tar.gz
-tar xzf InterOp-1.0.25-Linux-GNU-4.8.2.tar.gz
-rm InterOp-1.0.25-Linux-GNU-4.8.2.tar.gz
+wget https://github.com/Illumina/interop/releases/download/v1.1.21/InterOp-1.1.21-Linux-GNU.tar.gz
+tar xzf InterOp-1.1.21-Linux-GNU.tar.gz
+rm InterOp-1.1.21-Linux-GNU.tar.gz
 
 #download Circos
 cd $folder
