@@ -192,6 +192,7 @@ if (in_array("ma", $steps))
 	if (count($files1)==0 && !$start_with_abra)
 	{
 		$source_file = "";
+		$cram_genome = $genome;
 		if(file_exists($bamfile))
 		{
 			$source_file = $bamfile;
@@ -199,6 +200,11 @@ if (in_array("ma", $steps))
 		else if (file_exists($cramfile))
 		{
 			$source_file = $cramfile;
+			if (check_genome_build($cramfile, "GRCh38", false)!=1) //if genome build is not GRCh38 the CRAM has to be from SolveRD > use 1000G reference genome with decoy sequences and without 'chr' 
+			{
+				$cram_genome = get_path("data_folder")."/genomes/GRCh37.nochr.fa.fai";
+				trigger_error("Reference genome of CRAM is not GRCh38. Using SolveRD hg19 reference genome to convert CRAM to FASTQ: {$cram_genome}!", E_USER_NOTICE);
+			}
 		}
 		if ($source_file=="")
 		{
@@ -212,7 +218,7 @@ if (in_array("ma", $steps))
 		$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
 		$tmp1 = $parser->tempFile(".fastq.gz");
 		$tmp2 = $parser->tempFile(".fastq.gz");
-		$parser->exec("{$ngsbits}BamToFastq", "-in $source_file -ref $genome -out1 $tmp1 -out2 $tmp2", true);
+		$parser->exec("{$ngsbits}BamToFastq", "-in $source_file -ref $cram_genome -out1 $tmp1 -out2 $tmp2", true);
 		$parser->moveFile($tmp1, $in_fq_for);
 		$parser->moveFile($tmp2, $in_fq_rev);
 		
