@@ -24,7 +24,7 @@ extract($parser->parse($argv));
 //init
 $gatk = get_path("gatk");
 $ref = genome_fasta($build);
-$known_sites = "/mnt/storage2/GRCh38/share/data/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz";
+$known_sites = "/mnt/storage2/megSAP/data/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz";
 
 //perform variant calling
 $args = [];

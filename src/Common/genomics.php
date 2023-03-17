@@ -1632,7 +1632,7 @@ function annotate_gsvar_by_gene(&$gsvar, $annotation_f, $key, $column, $column_n
 //If genome cannot be determined, a E_USER_NOTICE is triggered and 0 is returned.
 //If the genome matches 1 is returned.
 //If the genome does not match a E_USER_ERROR is triggered.
-//If @throw_error is false, no error is triggered and 0 is returned. 
+//If @throw_error is false, no error is triggered and -1 is returned. 
 function check_genome_build($filename, $build_expected, $throw_error = true)
 {
 	$builds = array();
@@ -1644,7 +1644,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	}
 	
 	//BAM file
-	if (ends_with($filename, ".bam"))
+	if (ends_with($filename, ".bam") || ends_with($filename, ".cram"))
 	{
 		list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $filename | egrep '^@PG' ");
 		if  ($exit_code==0)

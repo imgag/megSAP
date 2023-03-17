@@ -54,12 +54,12 @@ reanno:
 ######################### AUXILARY TARGETS #########################
 
 update_cnv_data:
-	php ../../src/Pipelines/analyze.php -steps cn -name GS140127_01 -folder /mnt/projects/diagnostic/KM/Sample_GS140127_01/
-	php ../../src/Pipelines/analyze.php -steps cn -name GS140549_01 -folder /mnt/projects/diagnostic/KM/Sample_GS140549_01/
-	php ../../src/Pipelines/analyze.php -steps cn -name GS140550_01 -folder /mnt/projects/diagnostic/KM/Sample_GS140550_01/
-	cp /mnt/projects/diagnostic/KM/Sample_GS140127_01/GS140127_01_cnvs_clincnv.tsv .
-	cp /mnt/projects/diagnostic/KM/Sample_GS140549_01/GS140549_01_cnvs_clincnv.tsv .
-	cp /mnt/projects/diagnostic/KM/Sample_GS140550_01/GS140550_01_cnvs_clincnv.tsv .
-	cp /mnt/projects/diagnostic/KM/Sample_GS140127_01/GS140127_01_cnvs_clincnv.tsv ../data_multi/
-	cp /mnt/projects/diagnostic/KM/Sample_GS140549_01/GS140549_01_cnvs_clincnv.tsv ../data_multi/
-	cp /mnt/projects/diagnostic/KM/Sample_GS140550_01/GS140550_01_cnvs_clincnv.tsv ../data_multi/
+	php ../../src/Pipelines/analyze.php -steps cn -name GS140127_01 -folder /mnt/storage2/projects/diagnostic/KM/Sample_GS140127_01/
+	php ../../src/Pipelines/analyze.php -steps cn -name GS140549_01 -folder /mnt/storage2/projects/diagnostic/KM/Sample_GS140549_01/
+	php ../../src/Pipelines/analyze.php -steps cn -name GS140550_01 -folder /mnt/storage2/projects/diagnostic/KM/Sample_GS140550_01/
+	cp /mnt/storage2/projects/diagnostic/KM/Sample_GS140127_01/GS140127_01_cnvs_clincnv.tsv .
+	cp /mnt/storage2/projects/diagnostic/KM/Sample_GS140549_01/GS140549_01_cnvs_clincnv.tsv .
+	cp /mnt/storage2/projects/diagnostic/KM/Sample_GS140550_01/GS140550_01_cnvs_clincnv.tsv .
+	cp /mnt/storage2/projects/diagnostic/KM/Sample_GS140127_01/GS140127_01_cnvs_clincnv.tsv ../data_multi/
+	cp /mnt/storage2/projects/diagnostic/KM/Sample_GS140549_01/GS140549_01_cnvs_clincnv.tsv ../data_multi/
+	cp /mnt/storage2/projects/diagnostic/KM/Sample_GS140550_01/GS140550_01_cnvs_clincnv.tsv ../data_multi/

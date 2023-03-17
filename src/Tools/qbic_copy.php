@@ -265,24 +265,44 @@ function copyFiles($files, $to_folder, $upload)
 	}
 }
 
-function linkFastqs($folder, $out_folder, $basename)
+function linkFastqs($ps_name, $data_folder, $tmp_folder, $basename)
 {
 	global $files;
+	global $parser;
+	global $upload;
 	
+	//create symlinks for FASTQs
 	$i = 0;
-	foreach(glob("{$folder}*R1*.fastq.gz") as $fastq)
+	foreach(glob("{$data_folder}*R1*.fastq.gz") as $fastq)
 	{
-		$out = "{$out_folder}/{$basename}_".str_pad(++$i, 3, "0", STR_PAD_LEFT).".1.fastq.gz";
+		$out = "{$tmp_folder}/{$basename}_".str_pad(++$i, 3, "0", STR_PAD_LEFT).".1.fastq.gz";
 		exec2("ln -s {$fastq} {$out}");
 		$files[] = $out;
 	}
 	
-	$i = 0;
-	foreach(glob("{$folder}*R2*.fastq.gz") as $fastq)
+	$j = 0;
+	foreach(glob("{$data_folder}*R2*.fastq.gz") as $fastq)
 	{
-		$out = "{$out_folder}/{$basename}_".str_pad(++$i, 3, "0", STR_PAD_LEFT).".2.fastq.gz";
+		$out = "{$tmp_folder}/{$basename}_".str_pad(++$j, 3, "0", STR_PAD_LEFT).".2.fastq.gz";
 		exec2("ln -s {$fastq} {$out}");
 		$files[] = $out;
+	}
+	
+	//create FASTQs from BAM if missing
+	if ($i==0 && $j==0)
+	{
+		$bam = "{$data_folder}/{$ps_name}.bam";
+		if (file_exists($bam))
+		{
+			$fq1 = "{$tmp_folder}/{$basename}_001.1.fastq.gz";
+			$fq2 = "{$tmp_folder}/{$basename}_001.2.fastq.gz";
+			if ($upload) //skip generating FASTQs in dry run
+			{
+				$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam} -out1 {$fq1} -out2 {$fq2}", true);
+			}
+			$files[] = $fq1;
+			$files[] = $fq2;
+		}
 	}
 }
 				
@@ -428,7 +448,6 @@ foreach($res as $row)
 		//determine files to transfer
 		$files = array();
 		$paths  = glob($data_folder.$s_name."*.*");
-		if(is_dir($data_folder."+original")) $paths = glob($data_folder."+original/".$ps_name."*.*");	//for backward compatibility
 		
 		//get FASTQ/VCF
 		$fastqs_present = false;
@@ -460,19 +479,19 @@ foreach($res as $row)
 				$fq2 = $tmp_folder."/{$ps_name}_BamToFastq_R2_001.fastq.gz";
 				if ($upload) //skip generating FASTQs in dry run
 				{
-					$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam} -out1 $fq1 -out2 $fq2", true);
+					$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam} -out1 {$fq1} -out2 {$fq2}", true);
 				}
 				$files[] = $fq1;
 				$files[] = $fq2;
 			}
 		}
 		
-		//Special treatment for tumor-normal fastqs
-		if($is_tumor_normal_pair) //merge fastqs in case of normal-tumor pairs 
+		//Special treatment for tumor-normal fastqs (they need special FASTQ names)
+		if($is_tumor_normal_pair)
 		{
 			if($is_tumor)
 			{
-				linkFastqs($data_folder, $tmp_folder, "{$qbic_name}_tumor");
+				linkFastqs($ps_name, $data_folder, $tmp_folder, "{$qbic_name}_tumor");
 			}
 			//parse related normal file if found
 			$normal_id = $sample1["normal_id"];
@@ -480,12 +499,12 @@ foreach($res as $row)
 			if($normal_id != "" && $normal_sample['quality_processed_sample'] != "bad" && $normal_sample['quality_run'] != "bad")
 			{
 				$normal_data_dir = $project_folder."/Sample_".$normal_sample['id_genetics']."/";
-				linkFastqs($normal_data_dir, $tmp_folder, "{$qbic_name}_normal");
+				linkFastqs($ps_name, $normal_data_dir, $tmp_folder, "{$qbic_name}_normal");
 			}
 		}
 		else if($is_rna && $is_tumor)
 		{
-			linkFastqs($data_folder, $tmp_folder, "{$qbic_name}_tumor_rna");
+			linkFastqs($ps_name, $data_folder, $tmp_folder, "{$qbic_name}_tumor_rna");
 		}
 		
 		//skip already uploaded
