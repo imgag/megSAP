@@ -47,6 +47,11 @@ else
     }
 }
 
+//set environment variables
+putenv("umiVar_python_binary=\"".get_path("python3")."\"");
+putenv("umiVar_R_binary=\"".get_path("rscript")."\"");
+putenv("umiVar_samtools_binary=\"".get_path("samtools")."\"");
+
 // call umiVar2 in virtual environment
 $umiVar2 = get_path("umiVar2");
 $parser->exec(get_path("python3"), $umiVar2."/umiVar.py ".implode(" ", $args));

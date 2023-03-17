@@ -499,6 +499,10 @@ if($barcode_correction)
 	if($correction_n) $args .= "--n ";
 	// use the barcode correction of umiVar2
 	$umiVar2 = get_path("umiVar2");
+	//set environment variables
+	putenv("umiVar_python_binary=\"".get_path("python3")."\"");
+	putenv("umiVar_R_binary=\"".get_path("rscript")."\"");
+	putenv("umiVar_samtools_binary=\"".get_path("samtools")."\"");
 	$parser->exec(get_path("python3")." {$umiVar2}/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 ".$args,true);
 	$parser->sortBam($tmp_bam4, $tmp_bam4_sorted, $threads);
 	$parser->indexBam($tmp_bam4_sorted, $threads);
