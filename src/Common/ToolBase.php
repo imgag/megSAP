@@ -583,6 +583,7 @@ class ToolBase
 							"WARNING(freebayes): Could not find any mapped reads in target region", //freebayes
 							"Subroutine Bio::DB::IndexedBase::_strip_crnl redefined", //VEP
 							"No training configuration", //SpliceAI
+							"ms/step", //SpliceAI
 						   ];
 		
 		if ($this->log_file=="-") // to STDOUT
