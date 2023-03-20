@@ -265,7 +265,7 @@ function copyFiles($files, $to_folder, $upload)
 	}
 }
 
-function linkFastqs($ps_name, $data_folder, $tmp_folder, $basename)
+function linkFastqs($ps_name, $data_folder, $tmp_folder, $basename, $bam = null)
 {
 	global $files;
 	global $parser;
@@ -289,20 +289,16 @@ function linkFastqs($ps_name, $data_folder, $tmp_folder, $basename)
 	}
 	
 	//create FASTQs from BAM if missing
-	if ($i==0 && $j==0)
+	if ($i==0 && $j==0  && !is_null($bam) && file_exists($bam))
 	{
-		$bam = "{$data_folder}/{$ps_name}.bam";
-		if (file_exists($bam))
+		$fq1 = "{$tmp_folder}/{$basename}_001.1.fastq.gz";
+		$fq2 = "{$tmp_folder}/{$basename}_001.2.fastq.gz";
+		if ($upload) //skip generating FASTQs in dry run
 		{
-			$fq1 = "{$tmp_folder}/{$basename}_001.1.fastq.gz";
-			$fq2 = "{$tmp_folder}/{$basename}_001.2.fastq.gz";
-			if ($upload) //skip generating FASTQs in dry run
-			{
-				$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam} -out1 {$fq1} -out2 {$fq2}", true);
-			}
-			$files[] = $fq1;
-			$files[] = $fq2;
+			$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam} -out1 {$fq1} -out2 {$fq2}", true);
 		}
+		$files[] = $fq1;
+		$files[] = $fq2;
 	}
 }
 				
@@ -491,7 +487,7 @@ foreach($res as $row)
 		{
 			if($is_tumor)
 			{
-				linkFastqs($ps_name, $data_folder, $tmp_folder, "{$qbic_name}_tumor");
+				linkFastqs($ps_name, $data_folder, $tmp_folder, "{$qbic_name}_tumor", $data_folder."/".$ps_name.".bam");
 			}
 			//parse related normal file if found
 			$normal_id = $sample1["normal_id"];
@@ -499,7 +495,7 @@ foreach($res as $row)
 			if($normal_id != "" && $normal_sample['quality_processed_sample'] != "bad" && $normal_sample['quality_run'] != "bad")
 			{
 				$normal_data_dir = $project_folder."/Sample_".$normal_sample['id_genetics']."/";
-				linkFastqs($ps_name, $normal_data_dir, $tmp_folder, "{$qbic_name}_normal");
+				linkFastqs($ps_name, $normal_data_dir, $tmp_folder, "{$qbic_name}_normal", $normal_data_dir."/".$normal_sample['id_genetics'].".bam");
 			}
 		}
 		else if($is_rna && $is_tumor)
