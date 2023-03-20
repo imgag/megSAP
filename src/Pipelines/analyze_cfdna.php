@@ -561,6 +561,11 @@ if (in_array("vc", $steps))
 			}
 		}
 
+		//set environment variables
+		putenv("umiVar_python_binary=\"".get_path("python3")."\"");
+		putenv("umiVar_R_binary=\"".get_path("rscript")."\"");
+		putenv("umiVar_samtools_binary=\"".get_path("samtools")."\"");
+
 		//post-filtering
 		print get_path("python3")." ".get_path("umiVar2")."/cfDNA_postfiltering.py ".implode(" ", $args);
 		$parser->exec(get_path("python3"), get_path("umiVar2")."/cfDNA_postfiltering.py ".implode(" ", $args));
