@@ -170,9 +170,9 @@ tabix -C -m 9 -p vcf spliceai_scores_2022_12_30_GRCh38.vcf.gz
 #cd $dbs
 #mkdir -p COSMIC
 #cd COSMIC
-##Login and download cmc_export.v92.tsv.gz from https://cancer.sanger.ac.uk/cmc/download to data/dbs/COSMIC. There is no download API for CMC file.
-#mv cmc_export.v92.tsv.gz cmc_export.v92.tar.gz #CMC file is incorrectly name as tsv.gz when downloaded from COSMIC
-#tar -xOzf cmc_export.v92.tar.gz cmc_export.tsv | php $src/Tools/db_converter_cosmic.php -build GRCh38 -in - -out cmc_export.vcf.gz
+##Login and download the "Cancer Mutation Census Data": CMC.tar file from https://cancer.sanger.ac.uk/cmc/download. Extract the file and move the cmc_export.tsv.gz to data/dbs/COSMIC. There is no download API for CMC file.
+#mv cmc_export.tsv.gz cmc_export.tar.gz #CMC file is incorrectly name as tsv.gz when downloaded from COSMIC
+#tar -xOzf cmc_export.tar.gz cmc_export.tsv | php $src/Tools/db_converter_cosmic.php -build GRCh38 -in - -out cmc_export.vcf.gz
 
 #install NGSD
 #
