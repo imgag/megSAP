@@ -257,6 +257,8 @@ function chr_list()
 /**
 	@brief Function to get central organized paths to tools.
 	
+	Special handling for name 'megSAP-Tests' returns repository test/data/+analysis folder.
+	
 	@param name name of variable in ini-file.
 	@return value of variable in ini-file (e.g. path).
 		
@@ -303,6 +305,12 @@ function get_path($name, $throw_on_error=true)
 	{
 		return $parsed_ini[$name_server];
 	}
+	
+	if (!isset($parsed_ini[$name]) && $name == "megSAP-Tests")
+	{
+		return $dir."/test/data/+analysis/";
+	}
+	
 	
 	//get value
 	if (!isset($parsed_ini[$name]) && $throw_on_error)
@@ -1098,15 +1106,24 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	//additional info
 	$project_folder = get_path("project_folder");
 	$project_type = $info['project_type'];
-	if (is_array($project_folder))
+	
+	if ($project_type == "megSAP-Tests")
 	{
-		$project_folder = $project_folder[$project_type];
+		$project_folder = get_path($project_type);
 	}
 	else
-	{
-		if (!ends_with($project_folder, "/")) $project_folder .= "/";
-		$project_folder = $project_folder.$project_type;
+	{	
+		if (is_array($project_folder))
+		{
+			$project_folder = $project_folder[$project_type];
+		}
+		else
+		{
+			if (!ends_with($project_folder, "/")) $project_folder .= "/";
+			$project_folder = $project_folder.$project_type;
+		}
 	}
+	
 	$info['project_folder'] = $project_folder."/".$info['project_name']."/";
 	$info['ps_name'] = $ps_name;
 	$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
