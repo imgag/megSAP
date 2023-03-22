@@ -257,6 +257,8 @@ function chr_list()
 /**
 	@brief Function to get central organized paths to tools.
 	
+	Special handling for name 'megSAP-Tests' returns repository test/data/+analysis folder.
+	
 	@param name name of variable in ini-file.
 	@return value of variable in ini-file (e.g. path).
 		
@@ -304,9 +306,15 @@ function get_path($name, $throw_on_error=true)
 		return $parsed_ini[$name_server];
 	}
 	
+	if (!isset($parsed_ini[$name]) && $name == "megSAP-Tests")
+	{
+		return $dir."/test/data/+analysis/";
+	}
+	
+	
 	//get value
 	if (!isset($parsed_ini[$name]) && $throw_on_error)
-	{
+	{	
 		trigger_error("Could not find key '$name' in settings file '$ini_file'!", E_USER_ERROR);
 	}
 	@$value = $parsed_ini[$name];
@@ -1048,9 +1056,11 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	//get info from NGSD
 	$ps_name = trim($ps_name);
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
+	
 	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.preserve_fastqs as preserve_fastqs, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, s.tissue as tissue, s.comment as s_comments, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.adapter1_p5 as sys_adapter1, sys.adapter2_p7 as sys_adapter2, g.build as sys_build, s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2, sp.name as species, s.id as s_id, ps.quality as ps_quality, ps.processing_input, d.name as device_name ".
 									"FROM project p, sample s, processing_system as sys, processed_sample ps LEFT JOIN sequencing_run as r ON ps.sequencing_run_id=r.id LEFT JOIN device as d ON r.device_id=d.id, species sp, genome g ".
 									"WHERE ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND sys.genome_id=g.id AND s.species_id=sp.id AND ps.process_id='".(int)$process_id."'");
+	
 	if (count($res)!=1)
 	{
 		if ($error_if_not_found)
@@ -1098,15 +1108,24 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	//additional info
 	$project_folder = get_path("project_folder");
 	$project_type = $info['project_type'];
-	if (is_array($project_folder))
+	
+	if ($project_type == "megSAP-Tests")
 	{
-		$project_folder = $project_folder[$project_type];
+		$project_folder = get_path($project_type);
 	}
 	else
-	{
-		if (!ends_with($project_folder, "/")) $project_folder .= "/";
-		$project_folder = $project_folder.$project_type;
+	{	
+		if (is_array($project_folder))
+		{
+			$project_folder = $project_folder[$project_type];
+		}
+		else
+		{
+			if (!ends_with($project_folder, "/")) $project_folder .= "/";
+			$project_folder = $project_folder.$project_type;
+		}
 	}
+	
 	$info['project_folder'] = $project_folder."/".$info['project_name']."/";
 	$info['ps_name'] = $ps_name;
 	$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
