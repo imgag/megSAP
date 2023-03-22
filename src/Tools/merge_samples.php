@@ -11,14 +11,18 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("merge_samples", "Merges a processed sample into another processed sample.");
 $parser->addString("ps", "Processed sample to merged into the second sample.", false);
 $parser->addString("into", "Processed sample into which the first sample is merged.", false);
+$parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
 //get processed sample infos
-$db = DB::getInstance("NGSD");
+$db = DB::getInstance($db);
 $info1 = get_processed_sample_info($db,$ps);
 $info2 = get_processed_sample_info($db,$into);
 
+$ps_id = $info1['ps_id'];
+
 $ngsbits = get_path("ngs-bits");
+
 
 //check input folders
 $folder1 = $info1['ps_folder'];
@@ -41,6 +45,38 @@ if (!file_exists($backup_folder))
 		trigger_error("Could not create backup folder '$backup_folder'!", E_USER_ERROR);
 	}
 }
+
+//make sure the "+merged_analysis" folder exists
+$backup_analysis = dirname($folder1)."/+merged_analysis";
+if (!file_exists($backup_analysis))
+{
+	if (!mkdir($backup_analysis))
+	{
+		trigger_error("Could not create backup folder '$backup_analysis'!", E_USER_ERROR);
+	}
+}
+
+//check if report config exists:
+
+if ($info1['is_tumor'] == "1")
+{
+	$report_configs = $db->getValues("SELECT id FROM somatic_report_configuration WHERE ps_tumor_id = $ps_id");
+	
+	if (count($report_configs) > 0)
+	{
+		trigger_error("Samples cannot be merged. $ps has a somatic report configuration.", E_USER_ERROR);
+	}
+}
+else
+{
+	$report_configs = $db->getValues("SELECT id FROM report_configuration WHERE processed_sample_id = $ps_id");
+	
+	if (count($report_configs) > 0)
+	{
+		trigger_error("Samples cannot be merged. $ps has a report configuration.", E_USER_ERROR);
+	}
+}
+
 
 //check if FASTQ files or BAM in target folder exist
 $target_fastq_files = glob($folder2."/*.fastq.gz");
@@ -98,9 +134,62 @@ else
 exec2("mv $folder1 $backup_folder/");
 
 
+// remove/backup analysis data:
+if ($info1['is_tumor'] == "1")
+{
+	// backup secondary analysis and remove from NGSD
+	$secondary_gsvar_files = $db->getValues("SELECT gsvar_file FROM secondary_analysis WHERE type = 'somatic' AND gsvar_file LIKE '%$ps%'");
+	
+	foreach($secondary_gsvar_files as $gsvar)
+	{
+		$analysis_folder = dirname($gsvar);
+		exec2("mv $analysis_folder/ $backup_analysis/");
+	}
+	
+	//delete secondary analysis
+	$db->executeStmt("DELETE FROM secondary_analysis WHERE type = 'somatic' AND gsvar_file LIKE '%$ps%'");
+	
+	//delete detected variants:
+	//SNVs:
+	$db->executeStmt("DELETE FROM detected_somatic_variant WHERE processed_sample_id_tumor='$ps_id'");
+	
+	//CNVs:
+	$callset_ids = $db->getValues("SELECT id FROM somatic_cnv_callset WHERE ps_tumor_id = $ps_id");
+	foreach ($callset_ids as $id)
+	{
+		$db->executeStmt("DELETE FROM somatic_cnv WHERE somatic_cnv_callset_id=$id");
+		$db->executeStmt("DELETE FROM somatic_cnv_callset WHERE id=$id");
+	}
+	
+}
+else
+{
+	//delete detected variants:
+	//SNVs:
+	$db->executeStmt("DELETE FROM detected_variant WHERE processed_sample_id='$ps_id'");
+	
+	//CNVs:
+	$callset_ids = $db->getValues("SELECT id FROM cnv_callset WHERE processed_sample_id = $ps_id");
+	foreach ($callset_ids as $id)
+	{
+		$db->executeStmt("DELETE FROM cnv WHERE cnv_callset_id=$id");
+		$db->executeStmt("DELETE FROM cnv_callset WHERE id=$id");
+	}
+	
+	//SVs:
+	$callset_ids = $db->getValues("SELECT id FROM sv_callset WHERE processed_sample_id = $ps_id");
+	foreach ($callset_ids as $id)
+	{
+		$db->executeStmt("DELETE FROM sv_deletion WHERE sv_callset_id=$id");
+		$db->executeStmt("DELETE FROM sv_duplication WHERE sv_callset_id=$id");
+		$db->executeStmt("DELETE FROM sv_insertion WHERE sv_callset_id=$id");
+		$db->executeStmt("DELETE FROM sv_inversion WHERE sv_callset_id=$id");
+		$db->executeStmt("DELETE FROM sv_translocation WHERE sv_callset_id=$id");
+		$db->executeStmt("DELETE FROM sv_callset WHERE id=$id");
+	}
+}
+
 //NGSD: remove variants/qc for 'ps'
-$ps_id = $info1['ps_id'];
-$db->executeStmt("DELETE FROM detected_variant WHERE processed_sample_id='$ps_id'");
 $db->executeStmt("DELETE FROM processed_sample_qc WHERE processed_sample_id='$ps_id'");
 
 //NGSD: mark samples as merged

@@ -36,9 +36,6 @@ cd $folder
 wget https://github.com/DerrickWood/kraken2/archive/refs/tags/v2.1.2.tar.gz
 tar -xzf v2.1.2.tar.gz
 cd kraken2-2.1.2
-# TODO: remove if fixed by author
-# replace ftp prefix with https (required to download taxonmy from NCBI)
-sed -i '46s/.*/  if \(! \(\$full_path =~ s#\^https:\/\/\$\{qm_server\}\$\{qm_server_path\}\/##\)\) \{/' scripts/rsync_from_ncbi.pl
 ./install_kraken2.sh bin
 cd ..
 rm v2.1.2.tar.gz

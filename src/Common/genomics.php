@@ -257,6 +257,8 @@ function chr_list()
 /**
 	@brief Function to get central organized paths to tools.
 	
+	Special handling for name 'megSAP-Tests' returns repository test/data/+analysis folder.
+	
 	@param name name of variable in ini-file.
 	@return value of variable in ini-file (e.g. path).
 		
@@ -303,6 +305,12 @@ function get_path($name, $throw_on_error=true)
 	{
 		return $parsed_ini[$name_server];
 	}
+	
+	if (!isset($parsed_ini[$name]) && $name == "megSAP-Tests")
+	{
+		return $dir."/test/data/+analysis/";
+	}
+	
 	
 	//get value
 	if (!isset($parsed_ini[$name]) && $throw_on_error)
@@ -1098,15 +1106,24 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	//additional info
 	$project_folder = get_path("project_folder");
 	$project_type = $info['project_type'];
-	if (is_array($project_folder))
+	
+	if ($project_type == "megSAP-Tests")
 	{
-		$project_folder = $project_folder[$project_type];
+		$project_folder = get_path($project_type);
 	}
 	else
-	{
-		if (!ends_with($project_folder, "/")) $project_folder .= "/";
-		$project_folder = $project_folder.$project_type;
+	{	
+		if (is_array($project_folder))
+		{
+			$project_folder = $project_folder[$project_type];
+		}
+		else
+		{
+			if (!ends_with($project_folder, "/")) $project_folder .= "/";
+			$project_folder = $project_folder.$project_type;
+		}
 	}
+	
 	$info['project_folder'] = $project_folder."/".$info['project_name']."/";
 	$info['ps_name'] = $ps_name;
 	$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
@@ -1632,7 +1649,7 @@ function annotate_gsvar_by_gene(&$gsvar, $annotation_f, $key, $column, $column_n
 //If genome cannot be determined, a E_USER_NOTICE is triggered and 0 is returned.
 //If the genome matches 1 is returned.
 //If the genome does not match a E_USER_ERROR is triggered.
-//If @throw_error is false, no error is triggered and 0 is returned. 
+//If @throw_error is false, no error is triggered and -1 is returned. 
 function check_genome_build($filename, $build_expected, $throw_error = true)
 {
 	$builds = array();
@@ -1644,7 +1661,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	}
 	
 	//BAM file
-	if (ends_with($filename, ".bam"))
+	if (ends_with($filename, ".bam") || ends_with($filename, ".cram"))
 	{
 		list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $filename | egrep '^@PG' ");
 		if  ($exit_code==0)

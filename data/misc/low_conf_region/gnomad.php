@@ -1,6 +1,6 @@
 <?php
 
-include("/mnt/storage2/GRCh38/users/bioinf/megSAP/src/Common/all.php");
+include("/mnt/storage2/megSAP/pipeline/src/Common/all.php");
 
 $filter_tags = explode(",", trim($argv[2]));
 $min_hits = trim($argv[3]);

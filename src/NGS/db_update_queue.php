@@ -480,4 +480,8 @@ foreach($result as $row)
 	$db_conn->executeStmt("DELETE FROM `analysis_job_sample` WHERE analysis_job_id=$job_id");
 	$db_conn->executeStmt("DELETE FROM `analysis_job` WHERE id=$job_id");
 }
+
+//remove PID file (other users might not be able to edit/delete it - see https://askubuntu.com/questions/1250974/user-root-cant-write-to-file-in-tmp-owned-by-someone-else-in-20-04-but-can-in/1251030#1251030 )
+exec2("rm -rf $pid_file");
+
 ?>

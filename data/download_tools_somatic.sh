@@ -39,6 +39,8 @@ make
 cd $folder
 git clone https://github.com/imgag/umiVar2.git umiVar2
 cd umiVar2
+git checkout 2023_03
+cd ..
 $folder/R-4.1.0/bin/R -f $root/install_deps_umiVar2.R
 
 #install scarHRD

@@ -28,7 +28,7 @@ foreach($vcfs as $vcf)
 }
 print "\n";
 
-$wgs_size = bed_size("/mnt/storage2/GRCh38/share/data/enrichment/WGS_hg38.bed");
+$wgs_size = bed_size("/mnt/storage2/megSAP/data/enrichment/WGS_hg38.bed");
 $wes_size = bed_size("gene_exons.bed");
 
 //content
@@ -36,7 +36,7 @@ foreach($regs as $reg)
 {
 	print $reg;
 	
-	list($stdout) = exec2("BedIntersect -in $reg -in2 /mnt/storage2/GRCh38/share/data/enrichment/WGS_hg38.bed | BedInfo");
+	list($stdout) = exec2("BedIntersect -in $reg -in2 /mnt/storage2/megSAP/data/enrichment/WGS_hg38.bed | BedInfo");
 	$weg_removed = trim(explode(":", $stdout[1])[1]);
 	print "\t".number_format($weg_removed/1000000, 3, '.', '');
 	
