@@ -10,13 +10,17 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 // parse command line arguments
 $parser = new ToolBase("vc_clair", "Variant calling with Clair3.");
 $parser->addInfile("bam",  "Input files in BAM format. Note: .bam.bai file is required!", false);
-$parser->addOutfile("out", "Output file in VCF.GZ format.", false);
+$parser->addString("folder", "Destination folder for output files.", false);
+$parser->addString("name", "Base file name, typically the processed name ID (e.g. 'GS120001_01').", false);
+$parser->addInfile("target",  "Enrichment targets BED file.", false);
+$parser->addInfile("model", "Model file used for calling.", false);
+
 //optional
-$parser->addFlag("enable_phasing", "Output phased variants using whatshap.");
-$parser->addInfile("target",  "Enrichment targets BED file.", true);
+// $parser->addFlag("enable_phasing", "Output phased variants using whatshap.");
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
+$parser->addFlag("skip_bam_tagging", "Skip longphase tagging of the BAM file.");
 // $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
 // $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 1);
 // $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 15);
@@ -27,22 +31,35 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 // $parser->addFlag("raw_output", "return the raw output of freebayes with no post-processing.");
 extract($parser->parse($argv));
 
+//TODO: check output folder
+
 //init
 $genome = genome_fasta($build);
-$out_folder = $parser->tempFolder("clair3");
 
-//TODO: implement model path
-$model_path = "TODO";
+//output files
+$clair_temp = "{$folder}/clair_temp";
+$phased_out = "{$folder}/{$name}_var.phased.vcf.gz"; //TODO: move to temp
+$tagged_bam = "{$folder}/{$name}.tagged";
+$out = "{$folder}/{$name}_var.vcf.gz";
 
 //create basic variant calls
 $args = array();
 $args[] = "--bam_fn={$bam}";
 $args[] = "--ref_fn={$genome}";
-$args[] = "--model_path={$model_path}";
+$args[] = "--model_path={$model}";
 $args[] = "--threads={$threads}";
 $args[] = "--platform=\"ont\"";
-$args[] = "--output={$out_folder}";
-if($enable_phasing) $args[] = "--enable_phasing";
+//TODO: move to temp
+$args[] = "--output={$clair_temp}";
+
+//define env parameter
+$args[] = "--sample_name={$name}";
+$args[] = "--samtools=".get_path("samtools");
+$args[] = "--python=".get_path("python3_clair3");
+$args[] = "--pypy=".get_path("pypy3");
+$args[] = "--parallel=".get_path("parallel");
+// $args[] = "--longphase=".get_path("longphase");
+$args[] = "--whatshap=".get_path("whatshap");
 
 //calculate target region
 if(isset($target))
@@ -71,14 +88,48 @@ if(isset($target))
 }
 
 //run Clair3
-$parser->exec(get_path("clair3")."/run_clair3.sh", implode(" ", $args));
+putenv("PYTHONPATH=".dirname(get_path("clair3")));
+$parser->exec(get_path("clair3"), implode(" ", $args));
+
+
+//run phasing by LongPhase
+$phased_tmp = $parser->tempFile(".vcf", "longphase");
+$clair_vcf = $clair_temp."/merge_output.vcf.gz";
+$args = array();
+$args[] = "phase";
+$args[] = "-s {$clair_vcf}";
+$args[] = "-b {$bam}";
+$args[] = "-r {$genome}";
+$args[] = "-t {$threads}";
+$args[] = "-o ".substr($phased_tmp, 0, -4);
+$args[] = "--ont";
+
+$parser->exec(get_path("longphase"), implode(" ", $args));
+//create compressed file
+$parser->exec("bgzip", "-c $phased_tmp > $phased_out", false);
+
+//add phasing to bam file 
+if (!$skip_bam_tagging)
+{
+	$args = array();
+	$args[] = "haplotag";
+	$args[] = "-s {$clair_vcf}";
+	$args[] = "-b {$bam}";
+	$args[] = "-r {$genome}";
+	$args[] = "-t {$threads}";
+	$args[] = "-o {$tagged_bam}";
+
+	$parser->exec(get_path("longphase"), implode(" ", $args));
+	$parser->indexBam($tagged_bam.".bam", $threads);
+	$parser->exec("tabix", "-f -p vcf $phased_out", false);
+}
 
 
 //post-processing 
 $pipeline = array();
 
-//TODO: stream vcf.gz
-$pipeline[] = array("zcat", "{$vcf_file}");
+//stream vcf.gz
+$pipeline[] = array("zcat", "{$phased_out}");
 
 //filter variants according to variant quality>5
 $pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5\"");
@@ -90,30 +141,42 @@ $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
 //split multi-allelic variants
 $pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
 
-//normalize all variants and align INDELs to the left
+// //normalize all variants and align INDELs to the left
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
 
-//sort variants by genomic position
-$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
+// //sort variants by genomic position
+$uncompressed_vcf = $parser->tempFile(".vcf");
+$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "-out $uncompressed_vcf");
 
 //fix error in VCF file and strip unneeded information
-$pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", "", false);
+// $pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", "", false);
 
-//zip
-$pipeline[] = array("bgzip", "-c > $out", false);
+//execute post-processing pipeline
+$parser->execPipeline($pipeline, "clair post processing");
 
-//(2) execute pipeline
-$parser->execPipeline($pipeline, "freebayes post processing");
 
-//(3) mark off-target variants
+//add name/pipeline info to VCF header
+$vcf = Matrix::fromTSV($uncompressed_vcf);
+$comments = $vcf->getComments();
+$comments[] = gsvar_sample_header($name, array(), "#", "");
+$comments[] = "#ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n";
+$comments[] = "#PIPELINE=".repository_revision(true)."\n";
+$vcf->setComments(sort_vcf_comments($comments));
+$vcf->toTSV($uncompressed_vcf);
+
+//mark off-target variants
 if ($target_extend>0)
 {
 	$tmp = $parser->tempFile(".vcf");
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $out -mark off-target -reg $target -out $tmp", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $uncompressed_vcf -mark off-target -reg $target -out $tmp", true);
 	$parser->exec("bgzip", "-c $tmp > $out", false);
 }
+else
+{
+	$parser->exec("bgzip", "-c $uncompressed_vcf > $out", false);
+}
 
-//(4) index output file
+//index output file
 $parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
 
 ?>

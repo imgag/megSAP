@@ -13,7 +13,6 @@ $parser = new ToolBase("mapping_minimap", "Maps nanopore reads to a reference ge
 $parser->addInfileArray("in",  "Input file(s) in FASTQ format.", false);
 $parser->addOutfile("out",  "Output file in BAM format (sorted).", false);
 //optional
-$parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh38");
 $parser->addString("sample", "Sample name to use in BAM header. If unset the basename of the 'out' file is used.", true, "");
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'sample' or 'out' is a valid processed sample name).", true);
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
@@ -24,7 +23,8 @@ extract($parser->parse($argv));
 
 //init vars
 if($sample == "") $sample = basename($out, ".bam");
-$basename = dir($out)."/".$sample;
+$basename = dirname($out)."/".$sample;
+print $basename;
 $bam_current = $parser->tempFile(".bam", $sample);
 
 //extract processing system information from DB
@@ -52,10 +52,10 @@ if(db_is_enabled("NGSD"))
 $pipeline = array();
 
 //debug
-print get_path("minimap2")." --MD -ax map-ont --eqx -t {$threads} -R '@RG\\t".implode("\\t", $group_props)."' ".genome_fasta($build)." ".implode(" ", $in);
+print get_path("minimap2")." --MD -ax map-ont --eqx -t {$threads} -R '@RG\\t".implode("\\t", $group_props)."' ".genome_fasta($sys['build'])." ".implode(" ", $in);
 
 //mapping with minimap2
-$pipeline[] = array(get_path("minimap2"), " --MD -ax map-ont --eqx -t {$threads} -R '@RG\\t".implode("\\t", $group_props)."' ".genome_fasta($build)." ".implode(" ", $in));
+$pipeline[] = array(get_path("minimap2"), " --MD -ax map-ont --eqx -t {$threads} -R '@RG\\t".implode("\\t", $group_props)."' ".genome_fasta($sys['build'])." ".implode(" ", $in));
 
 //convert sam to bam with samtools
 $tmp_unsorted = $parser->tempFile("_unsorted.bam");
@@ -67,6 +67,18 @@ $pipeline[] = array(get_path("samtools"), "sort -T $tmp_for_sorting -m 1G -@ ".m
 //execute 
 $parser->execPipeline($pipeline, "mapping");
 
+//create index
+$parser->indexBam($bam_current, $threads);
+
+//copy BAM to final output location
+$parser->copyFile($bam_current, $out);
+$parser->copyFile($bam_current.".bai", $out.".bai");
+
+// check if copy was successful
+if (!file_exists($out) || filesize($bam_current) != filesize($out))
+{
+	trigger_error("Error during coping BAM file! File sizes don't match!", E_USER_ERROR);
+}
 
 //run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
@@ -91,15 +103,6 @@ if ($somatic_custom_map && file_exists($somatic_custom_panel))
 
 $parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
 
-//copy BAM to final output location
-$parser->copyFile($bam_current, $out);
-$parser->copyFile($bam_current.".bai", $out.".bai");
-
-// check if copy was successful
-if (!file_exists($out) || filesize($bam_current) != filesize($out))
-{
-	trigger_error("Error during coping BAM file! File sizes don't match!", E_USER_ERROR);
-}
 
 
 ?>

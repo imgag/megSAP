@@ -190,17 +190,38 @@ cd bedtools-2.30.0
 wget https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools.static.binary
 chmod 755 bedtools.static.binary
 
+
+
+
+
 #download clair3
 cd $folder
-wget https://github.com/HKU-BAL/Clair3/archive/refs/tags/v0.1-r12.tar.gz
-tar xzf v0.1-r12.tar.gz
-rm v0.1-r12.tar.gz
+git clone https://github.com/HKU-BAL/Clair3.git Clair3-v1.0.0
+cd Clair3-v1.0.0
+git checkout "v1.0.0"
+#download models
+git clone https://github.com/nanoporetech/rerio.git
+$folder/Python-3.10.9/bin/python3 rerio/download_model.py --clair3
+mkdir -p models
+mv rerio/clair3_models/* models
+rm -rf rerio
+cd models 
+wget http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_sup_g5014.tar.gz
+tar xzf r941_prom_sup_g5014.tar.gz
+rm r941_prom_sup_g5014.tar.gz
+cd ..
+#create custom venv
+$folder/Python-3.10.9/bin/python3 -m venv clair3_env
+source clair3_env/bin/activate
+pip3 install -r $root/install_deps_python_clair3.txt
+deactivate
+cd ..
 
 #download pypy3
 cd $folder
-wget https://downloads.python.org/pypy/pypy3.9-v7.3.11-linux64.tar.bz2
-tar xfvj pypy3.9-v7.3.11-linux64.tar.bz2
-rm pypy3.9-v7.3.11-linux64.tar.bz2
+wget https://downloads.python.org/pypy/pypy3.6-v7.3.3-linux64.tar.bz2
+tar xfvj pypy3.6-v7.3.3-linux64.tar.bz2
+rm pypy3.6-v7.3.3-linux64.tar.bz2
 
 #download parallel
 cd $folder
@@ -210,8 +231,14 @@ cd parallel-20230222
 ./configure --prefix=$folder/parallel-20230222
 make
 make install
+cd ..
 rm parallel-20230222.tar.bz2
 
-#download whatshap
-
-#download 
+#download longphase
+cd $folder
+mkdir -p longphase_v1.4
+cd longphase_v1.4
+wget https://github.com/twolinin/longphase/releases/download/v1.4/longphase_linux-x64.tar.xz
+tar -xJf longphase_linux-x64.tar.xz
+rm longphase_linux-x64.tar.xz
+cd ..
