@@ -359,7 +359,10 @@ if (ngsbits_build($sys['build']) != "non_human")
 {
 	$args[] = 	"-housekeeping_genes ".repository_basedir()."/data/gene_lists/housekeeping_genes_".ngsbits_build($sys['build']).".bed";
 }
-
+if (isset($target_file) && $target_file != "") 
+{
+	$args[] = "-roi {$target_file}";
+}
 if (file_exists($splicing_gene))
 {
 	$args[] = "-splicing ".$splicing_gene;
