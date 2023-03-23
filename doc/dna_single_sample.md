@@ -43,7 +43,7 @@ The following tools are used for mapping and calling of small variants and annot
 | variant calling - decompose complex variants   | vcfallelicprimitives | vcflib 1.0.3         |                                                  |
 | variant calling - break multi-allelic variants | vcfbreakmulti        | vcflib 1.0.3         |                                                  |
 | variant calling - left-normalization of InDels | VcfLeftNormalize     | ngs-bits 2023_02     |                                                  |
-| annotation                                     | VEP                  | 107.0                |                                                  |
+| annotation                                     | VEP                  | 109.3                |                                                  |
 
 CNV calling and annotation is performed using these tools:
 
