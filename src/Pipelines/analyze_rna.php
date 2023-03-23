@@ -309,7 +309,7 @@ if (in_array("an", $steps))
 				if ($ps_info['is_tumor']) 
 				{
 					$cohort_strategy = "RNA_COHORT_SOMATIC";
-					$hpa_parameter = "-hpa_file ".get_path("data_folder")."/dbs/gene_expression/rna_tissue_hpa_v21.1.tsv";
+					$hpa_parameter = "-hpa_file ".get_path("data_folder")."/dbs/gene_expression/rna_tissue_hpa_v22.tsv";
 				}
 				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr} {$hpa_parameter}", true);
 				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode exons -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", true);

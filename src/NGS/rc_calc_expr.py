@@ -73,7 +73,7 @@ def cohort(samples, counts, counts_out, prefix, cohort, stats, corr):
 @click.option('--counts_out', type=click.File('w'), help="Output sample gene counts with relative expression calculated.")
 @click.option('--prefix', default="hpa_", help="Column name prefix for new columns.", show_default=True)
 @click.option('--hpa', type=click.File('r'), required=True,
-    default="/mnt/storage1/share/data/dbs/gene_expression/rna_tissue_hpa_v21.1.tsv",
+    default="/mnt/storage1/share/data/dbs/gene_expression/rna_tissue_hpa_v22.tsv",
     help="HPA tissue expression data.")
 @click.option('--tissue', required=True, help="HPA reference tissue")
 @click.option('--corr', type=click.File('w'), help="Output file for sample--cohort correlation.")

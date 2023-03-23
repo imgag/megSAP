@@ -159,7 +159,7 @@ if(isset($rna_ref_tissue))
 	}
 	
 	
-	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_hpa_v21.1.tsv";
+	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_hpa_v22.tsv";
 	
 	if(!file_exists($ref_file))
 	{
