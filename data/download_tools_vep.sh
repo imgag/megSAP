@@ -8,19 +8,19 @@ folder=$root/tools/
 dbs=$root/dbs/
 
 #Ignore this - used for local installation
-#folder=/mnt/storage2/megSAP/tools/
-#dbs=/mnt/storage2/megSAP/data/dbs
+folder=/mnt/storage2/megSAP/tools/
+dbs=/mnt/storage2/megSAP/data/dbs
 
-vep_install_dir=$folder/ensembl-vep-release-107.0/
-vep_data_dir=$dbs/ensembl-vep-107/
+vep_install_dir=$folder/ensembl-vep-release-109.3/
+vep_data_dir=$dbs/ensembl-vep-109/
 cpan_dir=$folder/perl_cpan/
 
 # download ensembl-vep
 cd $folder
-wget https://github.com/Ensembl/ensembl-vep/archive/release/107.0.tar.gz
+wget https://github.com/Ensembl/ensembl-vep/archive/release/109.3.tar.gz
 mkdir $vep_install_dir
-tar -C $vep_install_dir --strip-components=1 -xzf 107.0.tar.gz
-rm 107.0.tar.gz
+tar -C $vep_install_dir --strip-components=1 -xzf 109.3.tar.gz
+rm 109.3.tar.gz
 
 #install dependencies
 mkdir -p $cpan_dir
@@ -31,7 +31,7 @@ mkdir -p $vep_data_dir
 cd $vep_data_dir
 mkdir -p ftp
 cd ftp
-wget ftp://ftp.ensembl.org/pub/release-107/variation/indexed_vep_cache/homo_sapiens_vep_107_GRCh38.tar.gz
+wget ftp://ftp.ensembl.org/pub/release-109/variation/indexed_vep_cache/homo_sapiens_vep_109_GRCh38.tar.gz
 
 #install ensembl-vep
 PERL5LIB=$vep_install_dir/Bio/:$cpan_dir/lib/perl5/:$PERL5LIB
