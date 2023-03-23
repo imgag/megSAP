@@ -15,6 +15,7 @@ $parser->addString("runinfo" ,"Illumina RunInfo.xml file. Necessary for checking
 $parser->addOutfile("out",  "Output Makefile. Default: 'Makefile'.", true);
 $parser->addFlag("high_priority", "Assign high priority to all queued samples.");
 $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
+$parser->addFlag("no_rename_r3", "Do not rename R2/R3 FASTQ files to index/R2.");
 $parser->addFlag("verbose", "Print all imported relations to stdout not only the summary statistic.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
@@ -778,7 +779,7 @@ foreach($sample_data as $sample => $sample_infos)
 	{
 		$r3_count += contains($file, "_R3_");
 	}
-	if (count($fastqgz_files)>=3 && $r3_count==count($fastqgz_files)/3 ) //handling of molecular barcode in index read 2 (HaloPlex HS, Swift, ...)
+	if (count($fastqgz_files)>=3 && $r3_count==count($fastqgz_files)/3 && !$no_rename_r3) //handling of molecular barcode in index read 2 (HaloPlex HS, Swift, ...)
 	{
 		//create target folder
 		$target_to_copylines[$tag][] = "\tmkdir -p {$sample_folder}";
