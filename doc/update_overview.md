@@ -27,9 +27,9 @@
 |database               |used for                |last update/check               |notes                                                                                               |url                                                                     |
 |-----------------------|------------------------|--------------------------------|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
 |CancerHotspots         |pipeline (somatic)      |01.2021                         |version is final and does not change                                                                |https://www.cancerhotspots.org                                          |
-|NCG7.0                 |pipeline (somatic)      |11.2022                         |					                                                                                   |http://ncg.kcl.ac.uk/                                                   |
-|COSMIC CMC             |pipeline (somatic)      |01.2021                         |                                                                                                    |https://cancer.sanger.ac.uk/cmc                                         |
-|Human Protein Atlas    |pipeline (somatic)      |08.2022 (v21.1)                 |                                                                                                    |https://www.proteinatlas.org/about/download                             |
+|NCG7.0                 |pipeline (somatic)      |3.2023                         |					                                                                                   |http://ncg.kcl.ac.uk/                                                   |
+|COSMIC CMC             |pipeline (somatic)      |03.2023                         |                                                                                                    |https://cancer.sanger.ac.uk/cmc                                         |
+|Human Protein Atlas    |pipeline (somatic)      |03.2023 (v22)                 |                                                                                                    |https://www.proteinatlas.org/about/download                             |
 
 ## Databases for RNA pipelines
 
