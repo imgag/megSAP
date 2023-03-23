@@ -25,7 +25,8 @@ INSERT INTO project (name, type, internal_coordinator_id, analysis) VALUES
 ('merge_samples','megSAP-Tests', 2, 'variants');
 
 INSERT INTO processing_system (name_short, name_manufacturer, shotgun, genome_id, type) VALUES
-('ssHAEv6', 'SureSelect Human All Exon v6', '1', 1, 'WES');
+('ssHAEv6', 'SureSelect Human All Exon v6', '1', 2, 'WES'),
+('rna_sys', 'RNA processing system version great', '1', 2, 'RNA');
 
 INSERT INTO sequencing_run (name, fcid, start_date, end_date, device_id, recipe) VALUES
 ('#00001', 'FCID0001', '2022-11-11', '2022-11-11', 1, '100+8+100');
@@ -33,9 +34,9 @@ INSERT INTO sequencing_run (name, fcid, start_date, end_date, device_id, recipe)
 INSERT INTO sample (name, sample_type, species_id, gender, tumor, ffpe, sender_id, disease_group) VALUES 
 ('DNA220001', 'DNA', 1, 'male', '1', '1', 1, 'n/a'),
 ('DNA220002', 'DNA', 1, 'male', '0', '0', 1, 'n/a'),
-('DNA220003', 'DNA', 1, 'male', '1', '1', 1, 'n/a'),
+('RNA220003', 'RNA', 1, 'male', '1', '1', 1, 'n/a'),
 ('DNA220004', 'DNA', 1, 'male', '0', '0', 1, 'n/a'),
-('DNA220005', 'DNA', 1, 'male', '1', '1', 1, 'n/a'),
+('RNA220005', 'RNA', 1, 'male', '1', '1', 1, 'n/a'),
 ('DNA220006', 'DNA', 1, 'male', '0', '0', 1, 'n/a'),
 ('DNA220007', 'DNA', 1, 'male', '1', '1', 1, 'n/a'),
 ('DNA220008', 'DNA', 1, 'male', '0', '0', 1, 'n/a');
@@ -43,17 +44,17 @@ INSERT INTO sample (name, sample_type, species_id, gender, tumor, ffpe, sender_i
 INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, processing_system_id, project_id, normal_id) VALUES
 (1,1,1,'1',1,1, NULL),
 (2,1,1,'1',1,1, NULL),
-(3,1,1,'1',1,1, NULL),
+(3,1,1,'1',2,1, NULL),
 (4,1,1,'1',1,1, NULL),
-(5,1,1,'1',1,1, NULL),
+(5,1,1,'1',2,1, NULL),
 (6,1,1,'1',1,1, NULL),
 (7,1,1,'1',1,1, NULL),
 (8,1,1,'1',1,1, NULL),
 (1,2,1,'1',1,1, NULL),
 (2,2,1,'1',1,1, NULL),
-(3,2,1,'1',1,1, NULL),
+(3,2,1,'1',2,1, NULL),
 (4,2,1,'1',1,1, NULL),
-(5,2,1,'1',1,1, NULL),
+(5,2,1,'1',2,1, NULL),
 (6,2,1,'1',1,1, NULL),
 (7,2,1,'1',1,1, NULL),
 (8,2,1,'1',1,1, NULL);
@@ -92,6 +93,24 @@ INSERT INTO processed_sample_qc (processed_sample_id, qc_terms_id, value) VALUES
 (15, 2, "qc 2 value for ps_sample id 15"),
 (16, 2, "qc 2 value for ps_sample id 16");
 
+
+INSERT INTO expression (processed_sample_id, symbol, tpm, raw) VALUES
+(3, "BRCA1", 1, 35),
+(3, "BRCA2", 1, 40),
+(3, "SRY", 0, 0),
+(5, "BRCA1", 4, 40),
+(5, "BRCA2", 2, 20),
+(5, "SRY", 4, 60),
+(5, "SKI", 1, 5);
+
+INSERT INTO expression_exon (processed_sample_id, chr, start, end, rpb, srpb, raw) VALUES
+(3, "chr17", 43125271, 43125364, 0.2, 4, 28),
+(3, "chr17", 43124017, 43124115, 0.1, 2, 15),
+(3, "chr17", 43115726, 43115779, 0.22, 4.4, 25),
+(5, "chr17", 43125271, 43125364, 0.1, 1.4, 20),
+(5, "chr17", 43124017, 43124115, 0.3, 6, 30),
+(5, "chr17", 43115726, 43115779, 0.2, 4, 25),
+(5, "chr17", 43106456, 43106533, 0.1, 2, 17);
 
 INSERT INTO variant (chr, start, end, ref, obs) VALUES
 ("chr1" , 1, 2, "A", "T"),
