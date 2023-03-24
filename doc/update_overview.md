@@ -66,7 +66,7 @@
 |strelka2               |variant calling (tumor/normal)                       |07.2022 (2.9.10)  |                                                                                     |https://github.com/Illumina/strelka                                     |
 |mantis                 |microsatelite instability (tumor/normal)             |07.2022 (v1.0.5)  |                                                                                     |https://github.com/OSU-SRLab/MANTIS/releases                            |
 |varscan2               |variant calling                                      |07.2022 (2.4.4)   |                                                                                     |https://github.com/dkoboldt/varscan                                     |
-|umiVar2                |variant calling cfDNA                                |07.2022 (latest)  |                                                                                     |https://github.com/dkoboldt/varscan                                     |
+|umiVar2                |variant calling cfDNA                                |03.2023 (2023_03) |                                                                                     |https://github.com/imgag/umiVar2                                        |
 |hla-genotyper          |HLA genotyping                                       |07.2022 (2022_05) |                                                                                     |https://github.com/axelgschwind/hla-genotyper                           |
 
 
