@@ -40,9 +40,9 @@ umiVar2 = [path]/data/tools/umiVar2/
 hla_genotyper = [path]/data/tools/hla-genotyper-2022_05/genotyper.py
 
 [tools-ngs-rna]
-STAR = [path]/data/tools/STAR-2.7.10a/bin/Linux_x86_64/STAR
-feature_counts = [path]/data/tools/subread-2.0.3/bin/featureCounts
-arriba = [path]/data/tools/arriba_v2.3.0
+STAR = [path]/data/tools/STAR-2.7.10b/bin/Linux_x86_64/STAR
+feature_counts = [path]/data/tools/subread-2.0.4/bin/featureCounts
+arriba = [path]/data/tools/arriba_v2.4.0
 umi_tools = [path]/data/tools/umi_tools-1.1.2/bin/umi_tools
 kraken2 = [path]/data/tools/kraken2-2.1.2/bin/kraken2
 

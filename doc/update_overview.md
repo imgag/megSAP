@@ -35,7 +35,7 @@
 
 |database               |used for                |last update/check               |notes                                                                                               |url                                                                     |
 |-----------------------|------------------------|--------------------------------|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-|Ensembl GTF file       |pipeline (RNA)  	     |08.2022 (release 107)           |                                                                                                    |http://ftp.ensembl.org/pub/                                             |
+|Ensembl GTF file       |pipeline (RNA)          |03.2023 (GRCh38.109)            |                                                                                                    |https://ftp.ensembl.org/pub/release-109/gtf/homo_sapiens/               |
 
 ## Tools general
 
@@ -67,15 +67,15 @@
 |mantis                 |microsatelite instability (tumor/normal)             |07.2022 (v1.0.5)  |                                                                                     |https://github.com/OSU-SRLab/MANTIS/releases                            |
 |varscan2               |variant calling                                      |07.2022 (2.4.4)   |                                                                                     |https://github.com/dkoboldt/varscan                                     |
 |umiVar2                |variant calling cfDNA                                |07.2022 (latest)  |                                                                                     |https://github.com/dkoboldt/varscan                                     |
+|hla-genotyper          |HLA genotyping                                       |07.2022 (2022_05) |                                                                                     |https://github.com/axelgschwind/hla-genotyper                           |
 
 
 ## Tools for RNA pipeline
 
 |tool RNA               |used for                                             |last update/check |notes                                                                                |url                                                                     |
 |-----------------------|-----------------------------------------------------|------------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-|STAR                   |mapping                                              |08.2022 (2.7.10a) |                                                                                     |https://github.com/alexdobin/STAR                                       |
-|subread                |read counting                                        |08.2022 (2.0.3)   |                                                                                     |http://subread.sourceforge.net/                                         |
-|Arriba                 |fusion detection                                     |11.2022 (2.3.0)   |                                                                                     |https://github.com/suhrig/arriba                                        |
-|Kraken2                |fastq filtering (?)                                  |07.2022 (2.1.2)   |                                                                                     |https://github.com/DerrickWood/kraken2                                  |
-|hla-genotyper          |HLA genotyping                                       |07.2022 (2022_05) |                                                                                     |https://github.com/axelgschwind/hla-genotyper                           |
-|umi_tools              |UMI extraction                                       |08.2022 (1.1.2)   |                                                                                     |https://github.com/CGATOxford/UMI-tools                                 |
+|STAR                   |mapping                                              |03.2023 (2.7.10b) |                                                                                     |https://github.com/alexdobin/STAR                                       |
+|subread                |read counting                                        |03.2023 (2.0.4)   |                                                                                     |http://subread.sourceforge.net/                                         |
+|Arriba                 |fusion detection                                     |03.2023 (2.4.0)   |                                                                                     |https://github.com/suhrig/arriba                                        |
+|Kraken2                |fastq filtering                                      |03.2023 (2.1.2)   |                                                                                     |https://github.com/DerrickWood/kraken2                                  |
+|umi_tools              |UMI extraction                                       |03.2023 (1.1.4)   |                                                                                     |https://github.com/CGATOxford/UMI-tools                                 |
