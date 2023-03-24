@@ -56,7 +56,7 @@ cat hg38.fa.out | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/BedSor
 cd $dbs
 mkdir ClinVar
 cd ClinVar
-wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2022/clinvar_20230311.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20230311_converted_GRCh38.vcf.gz
+wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2023/clinvar_20230311.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20230311_converted_GRCh38.vcf.gz
 tabix -C -m 9 -p vcf clinvar_20230311_converted_GRCh38.vcf.gz
 #CNVs
 wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2023-03.txt.gz | gunzip > variant_summary_2023-03.txt
