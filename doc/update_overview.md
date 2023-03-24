@@ -27,8 +27,8 @@
 |database               |used for                |last update/check               |notes                                                                                               |url                                                                     |
 |-----------------------|------------------------|--------------------------------|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
 |CancerHotspots         |pipeline (somatic)      |01.2021                         |version is final and does not change                                                                |https://www.cancerhotspots.org                                          |
-|NCG7.0                 |pipeline (somatic)      |3.2023                          |					                                                                                   |http://ncg.kcl.ac.uk/                                                   |
-|COSMIC CMC             |pipeline (somatic)      |03.2023                         |                                                                                                    |https://cancer.sanger.ac.uk/cmc                                         |
+|NCG7.0                 |pipeline (somatic)      |03.2023 (v7.0)                  |					                                                                                   |http://ncg.kcl.ac.uk/                                                          |
+|COSMIC CMC             |pipeline (somatic)      |03.2023 (v97)                   |                                                                                                    |https://cancer.sanger.ac.uk/cmc                                         |
 |Human Protein Atlas    |pipeline (somatic)      |03.2023 (v22)                   |                                                                                                    |https://www.proteinatlas.org/about/download                             |
 
 ## Databases for RNA pipelines
