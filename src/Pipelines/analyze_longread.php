@@ -96,8 +96,8 @@ $prsfile = $folder."/".$name."_prs.tsv";
 $cnvfile = $folder."/".$name."_cnvs_clincnv.tsv";
 $cnvfile2 = $folder."/".$name."_cnvs_clincnv.seg";
 //structural variant calling
-$sv_manta_file = $folder ."/". $name . "_manta_var_structural.vcf.gz";
-$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
+$sv_vcf_file = $folder ."/". $name . "_var_structural_variant.vcf.gz";
+$bedpe_out = substr($sv_vcf_file,0,-6)."bedpe";
 //repeat expansions
 $expansion_hunter_file = $folder."/".$name."_repeats_expansionhunter.vcf";
 //db import
@@ -131,25 +131,28 @@ if ($annotation_only)
 //mapping
 if (in_array("ma", $steps))
 {
-	// BAM file path to convert to FastQ
-	$bamfile_to_convert = $bamfile;
-
 	//determine input FASTQ files
 	$fastq_regex = $folder."/*.fastq.gz";
 	$fastq_files = glob($fastq_regex);
 	
-
 	if (count($fastq_files)==0)
 	{
-		if(file_exists($bamfile_to_convert))
+		if(file_exists($bamfile))
 		{
-			trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files: $bamfile_to_convert", E_USER_NOTICE);
+			trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files: $bamfile", E_USER_NOTICE);
 
-			trigger_error("Implement BamToFastq for Longreads!", E_USER_ERROR);
+			// extract reads from BAM file
+			$fastq_file = $folder."/{$name}_BamToFastq_001.fastq.gz";
+			$tmp1 = $parser->tempFile(".fastq.gz");
+			$parser->exec("{$ngsbits}BamToFastq", "-mode single-end -in $bamfile -out1 $tmp1", true);
+			$parser->moveFile($tmp1, $fastq_file);
+			
+			// use generated fastq files for mapping
+			$fastq_files = array($fastq_file);
 		}
 		else
 		{
-			trigger_error("Found no read files found matching '$in_for' or '$in_rev'!", E_USER_ERROR);
+			trigger_error("Found no read files found matching '$fastq_regex'!", E_USER_ERROR);
 		}
 	}
 	
@@ -248,90 +251,90 @@ if (in_array("vc", $steps))
 // 	}
 // }
 
-// //structural variants
-// if (in_array("sv", $steps))
-// {
-// 	// skip SV calling if only annotation should be done	
-// 	if (!$annotation_only)
-// 	{
+//structural variants
+if (in_array("sv", $steps))
+{
+	// skip SV calling if only annotation should be done	
+	if (!$annotation_only)
+	{
+		//TODO: implement
 		
+		//create BEDPE files
+		$parser->exec("{$ngsbits}VcfToBedpe", "-in $sv_vcf_file -out $bedpe_out", true);
+	}
+	else
+	{
+		check_genome_build($sv_vcf_file, $build);
+	}
+
+
+	//add gene info annotation
+	if (db_is_enabled("NGSD"))
+	{
+		$parser->exec("{$ngsbits}BedpeGeneAnnotation", "-in $bedpe_out -out $bedpe_out -add_simple_gene_names", true);
+	}
+
+	//add NGSD counts from flat file
+	$ngsd_annotation_folder = get_path("data_folder")."/dbs/NGSD/";
+	$ngsd_sv_files = array("sv_deletion.bedpe.gz", "sv_duplication.bedpe.gz", "sv_insertion.bedpe.gz", "sv_inversion.bedpe.gz", "sv_translocation.bedpe.gz");
+	$db_file_dates = array();
+
+	// check file existance
+	$all_files_available = file_exists($ngsd_annotation_folder."sv_breakpoint_density.igv");
+	foreach ($ngsd_sv_files as $filename) 
+	{
+		if(!(file_exists($ngsd_annotation_folder.$filename) && file_exists($ngsd_annotation_folder.$filename.".tbi")))
+		{
+			$all_files_available = false;
+			break;
+		}
+	}
+	if ($all_files_available)
+	{
+		// store flat file modification date to detect changes during annotation 
+		foreach ($ngsd_sv_files as $filename)
+		{
+			$db_file_dates[$filename] = filemtime($ngsd_annotation_folder.$filename);
+			if ($db_file_dates[$filename] == false)
+			{
+				trigger_error("Cannot get modification date of '".$ngsd_annotation_folder.$filename."'!",E_USER_ERROR);
+			}
+		}
 		
-// 		//create BEDPE files
-// 		$parser->exec("{$ngsbits}VcfToBedpe", "-in $sv_manta_file -out $bedpe_out", true);
-// 	}
-// 	else
-// 	{
-// 		check_genome_build($sv_manta_file, $build);
-// 	}
+		//perform annotation
+		$parser->exec("{$ngsbits}BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", true);
+		$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
 
+		// check if files changed during annotation
+		foreach ($ngsd_sv_files as $filename)
+		{
+			if ($db_file_dates[$filename] != filemtime($ngsd_annotation_folder.$filename))
+			{
+				trigger_error("Annotation file '".$ngsd_annotation_folder.$filename."' has changed during annotation!",E_USER_ERROR);
+			}
+		}
 
-// 	//add gene info annotation
-// 	if (db_is_enabled("NGSD"))
-// 	{
-// 		$parser->exec("{$ngsbits}BedpeGeneAnnotation", "-in $bedpe_out -out $bedpe_out -add_simple_gene_names", true);
-// 	}
-
-// 	//add NGSD counts from flat file
-// 	$ngsd_annotation_folder = get_path("data_folder")."/dbs/NGSD/";
-// 	$ngsd_sv_files = array("sv_deletion.bedpe.gz", "sv_duplication.bedpe.gz", "sv_insertion.bedpe.gz", "sv_inversion.bedpe.gz", "sv_translocation.bedpe.gz");
-// 	$db_file_dates = array();
-
-// 	// check file existance
-// 	$all_files_available = file_exists($ngsd_annotation_folder."sv_breakpoint_density.igv");
-// 	foreach ($ngsd_sv_files as $filename) 
-// 	{
-// 		if(!(file_exists($ngsd_annotation_folder.$filename) && file_exists($ngsd_annotation_folder.$filename.".tbi")))
-// 		{
-// 			$all_files_available = false;
-// 			break;
-// 		}
-// 	}
-// 	if ($all_files_available)
-// 	{
-// 		// store flat file modification date to detect changes during annotation 
-// 		foreach ($ngsd_sv_files as $filename)
-// 		{
-// 			$db_file_dates[$filename] = filemtime($ngsd_annotation_folder.$filename);
-// 			if ($db_file_dates[$filename] == false)
-// 			{
-// 				trigger_error("Cannot get modification date of '".$ngsd_annotation_folder.$filename."'!",E_USER_ERROR);
-// 			}
-// 		}
-		
-// 		//perform annotation
-// 		$parser->exec("{$ngsbits}BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", true);
-// 		$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
-
-// 		// check if files changed during annotation
-// 		foreach ($ngsd_sv_files as $filename)
-// 		{
-// 			if ($db_file_dates[$filename] != filemtime($ngsd_annotation_folder.$filename))
-// 			{
-// 				trigger_error("Annotation file '".$ngsd_annotation_folder.$filename."' has changed during annotation!",E_USER_ERROR);
-// 			}
-// 		}
-
-// 	}
-// 	else
-// 	{
-// 		trigger_error("Cannot annotate NGSD counts! At least one required file in '{$ngsd_annotation_folder}' is missing!", E_USER_WARNING);
-// 	}
+	}
+	else
+	{
+		trigger_error("Cannot annotate NGSD counts! At least one required file in '{$ngsd_annotation_folder}' is missing!", E_USER_WARNING);
+	}
 	
 
-// 	//add optional OMIM annotation
+	//add optional OMIM annotation
 
-// 	$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; 
-// 	if(file_exists($omim_file))//OMIM annotation (optional because of license)
-// 	{
-// 		$parser->exec("{$ngsbits}BedpeAnnotateFromBed", "-in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM", true);
-// 	}
+	$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; 
+	if(file_exists($omim_file))//OMIM annotation (optional because of license)
+	{
+		$parser->exec("{$ngsbits}BedpeAnnotateFromBed", "-in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM", true);
+	}
 
-// 	//add CNV overlap annotation
-// 	if (file_exists($cnvfile))
-// 	{
-// 		$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnvfile", true);
-// 	}
-// }
+	//add CNV overlap annotation
+	if (file_exists($cnvfile))
+	{
+		$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnvfile", true);
+	}
+}
 
 // // create Circos plot - if small variant, CNV or SV calling was done
 // if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
