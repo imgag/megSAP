@@ -20,9 +20,18 @@ $info1 = get_processed_sample_info($db,$ps);
 $info2 = get_processed_sample_info($db,$into);
 
 $ps_id = $info1['ps_id'];
+$ps_type = "germline";
+
+if ($info1["sample_type"] == "DNA" && $info1["is_tumor"] == "1")
+{
+	$ps_type = "tumor";
+}
+elseif ($info1["sample_type"] == "RNA")
+{
+	$ps_type = "RNA";
+}
 
 $ngsbits = get_path("ngs-bits");
-
 
 //check input folders
 $folder1 = $info1['ps_folder'];
@@ -58,7 +67,7 @@ if (!file_exists($backup_analysis))
 
 //check if report config exists:
 
-if ($info1['is_tumor'] == "1")
+if ($ps_type == "tumor")
 {
 	$report_configs = $db->getValues("SELECT id FROM somatic_report_configuration WHERE ps_tumor_id = $ps_id");
 	
@@ -67,7 +76,7 @@ if ($info1['is_tumor'] == "1")
 		trigger_error("Samples cannot be merged. $ps has a somatic report configuration.", E_USER_ERROR);
 	}
 }
-else
+else if ($ps_type == "germline")
 {
 	$report_configs = $db->getValues("SELECT id FROM report_configuration WHERE processed_sample_id = $ps_id");
 	
@@ -135,7 +144,7 @@ exec2("mv $folder1 $backup_folder/");
 
 
 // remove/backup analysis data:
-if ($info1['is_tumor'] == "1")
+if ($ps_type == "tumor")
 {
 	// backup secondary analysis and remove from NGSD
 	$secondary_gsvar_files = $db->getValues("SELECT gsvar_file FROM secondary_analysis WHERE type = 'somatic' AND gsvar_file LIKE '%$ps%'");
@@ -160,9 +169,8 @@ if ($info1['is_tumor'] == "1")
 		$db->executeStmt("DELETE FROM somatic_cnv WHERE somatic_cnv_callset_id=$id");
 		$db->executeStmt("DELETE FROM somatic_cnv_callset WHERE id=$id");
 	}
-	
 }
-else
+elseif ($ps_type == "germline")
 {
 	//delete detected variants:
 	//SNVs:
@@ -187,6 +195,12 @@ else
 		$db->executeStmt("DELETE FROM sv_translocation WHERE sv_callset_id=$id");
 		$db->executeStmt("DELETE FROM sv_callset WHERE id=$id");
 	}
+}
+elseif ($ps_type == "RNA")
+{
+	//delete expression from db:
+	$db->executeStmt("DELETE FROM expression WHERE processed_sample_id='$ps_id'");
+	$db->executeStmt("DELETE FROM expression_exon WHERE processed_sample_id='$ps_id'");
 }
 
 //NGSD: remove variants/qc for 'ps'

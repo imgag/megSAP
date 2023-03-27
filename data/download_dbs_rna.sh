@@ -16,24 +16,24 @@ cd $data_folder
 mkdir -p dbs/gene_expression
 cd dbs/gene_expression
 #change version number on update
-wget -O - https://www.proteinatlas.org/download/rna_tissue_hpa.tsv.zip | gunzip > rna_tissue_hpa_v21.1.tsv
+wget -O - https://www.proteinatlas.org/download/rna_tissue_hpa.tsv.zip | gunzip > rna_tissue_hpa_v22.tsv
 
-#download Ensembl data
+#download Ensembl data in GTF format
 cd $data_folder
 mkdir -p dbs/gene_annotations
-wget -O - 'http://ftp.ensembl.org/pub/release-107/gtf/homo_sapiens/Homo_sapiens.GRCh38.107.gtf.gz' | \
+wget -O - 'https://ftp.ensembl.org/pub/release-109/gtf/homo_sapiens/Homo_sapiens.GRCh38.109.gtf.gz' | \
   gzip -cd | \
   awk '{ if ($1 !~ /^#/) { print "chr"$0 } else { print $0 } }' > dbs/gene_annotations/GRCh38.gtf
 
 #STAR: index genome
 cd $data_folder
 mkdir -p genomes/STAR/GRCh38
-$data_folder/tools/STAR-2.7.10a/bin/Linux_x86_64/STAR \
+$data_folder/tools/STAR-2.7.10b/bin/Linux_x86_64/STAR \
 --runThreadN 20 \
 --runMode genomeGenerate \
 --genomeDir genomes/STAR/GRCh38/ \
 --genomeFastaFiles genomes/GRCh38.fa \
---sjdbGTFfile dbs/Ensembl/Homo_sapiens.GRCh38.107.chr.gtf
+--sjdbGTFfile dbs/gene_annotations/GRCh38.gtf
 
 #build kraken2 database
 cd $data_folder

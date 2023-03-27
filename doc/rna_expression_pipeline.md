@@ -15,8 +15,7 @@ _Output: read QC data in qcML format_
 ### Mapping (step `ma`)
 
 Read alignments are computed by [STAR](https://github.com/alexdobin/STAR). On
-request, [abra2](https://github.com/mozack/abra2) is used to perform an indel
-realignment. [MappingQC](https://github.com/imgag/ngs-bits) is run on the final
+request. [MappingQC](https://github.com/imgag/ngs-bits) is run on the final
 BAM file for quality control and statistics.
 
 _Output: alignment in BAM format, alignment QC data in qcML format_

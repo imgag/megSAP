@@ -38,11 +38,11 @@ start_test($name);
 
 //init
 $db = DB::getInstance("NGSD_TEST");
-check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
-
 
 //merge fastq germline sample:
+check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
 clear_analysis_folder();
+
 create_folder("Sample_DNA220004_01", [data_folder()."merge_samples_in1_L001_R1_001.fastq.gz"=>"DNA220004_01_L001_R1_001.fastq.gz", data_folder()."merge_samples_in1_L001_R2_001.fastq.gz"=>"DNA220004_01_L001_R2_001.fastq.gz"], "dummy.txt");
 create_folder("Sample_DNA220004_02", [data_folder()."merge_samples_in2_L001_R1_001.fastq.gz"=>"DNA220004_02_L001_R1_001.fastq.gz", data_folder()."merge_samples_in2_L001_R2_001.fastq.gz"=>"DNA220004_02_L001_R2_001.fastq.gz"], "dummy2.txt");
 
@@ -80,8 +80,8 @@ check($db->getValue("SELECT COUNT(*) FROM merged_processed_samples WHERE process
 check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
 //add secondary analysis here as gsvar path is dependend on the repository directory:
 $db->executeStmt("INSERT INTO secondary_analysis (type, gsvar_file) VALUES ('somatic', '".data_folder()."/+analysis/merge_samples/Somatic_DNA220001_01-DNA220002_01/DNA220001_01-DNA220002_01.GSvar"."')");
-
 clear_analysis_folder();
+
 create_folder("Sample_DNA220001_01", [data_folder()."merge_samples_in1_L001_R1_001.fastq.gz"=>"DNA220001_01_L001_R1_001.fastq.gz", data_folder()."merge_samples_in1_L001_R2_001.fastq.gz"=>"DNA220001_01_L001_R2_001.fastq.gz"], "dummy.txt");
 create_folder("Sample_DNA220001_02", [data_folder()."merge_samples_in2_L001_R1_001.fastq.gz"=>"DNA220001_02_L001_R1_001.fastq.gz", data_folder()."merge_samples_in2_L001_R2_001.fastq.gz"=>"DNA220001_02_L001_R2_001.fastq.gz"]);
 create_folder("Somatic_DNA220001_01-DNA220002_01", [], "DNA220001_01-DNA220002_01.GSvar");
@@ -106,15 +106,17 @@ check($db->getValue("SELECT COUNT(*) FROM somatic_cnv_callset"), 2);
 check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id=1"), 0);
 check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id!=1"), 30);
 
+check($db->getValue("SELECT COUNT(*) FROM secondary_analysis"), 0);
+
 check($db->getValue("SELECT COUNT(*) FROM merged_processed_samples WHERE processed_sample_id = 1 AND merged_into = 9"), 1); //merge correctly added
 
 
-//TODO merge samples from bams: vc_strelka2_tu_in.bam  vc_strelka2_no_in.bam
-check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
 
 
 //merge bam germline samples:
+check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
 clear_analysis_folder();
+
 create_folder("Sample_DNA220004_01", [data_folder()."vc_strelka2_tu_in.bam"=>"DNA220004_01.bam"], "dummy.txt");
 create_folder("Sample_DNA220004_02", [data_folder()."vc_strelka2_no_in.bam"=>"DNA220004_02.bam"]);
 
@@ -144,6 +146,35 @@ check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sa
 check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id!=4"), 30);
 
 check($db->getValue("SELECT COUNT(*) FROM merged_processed_samples WHERE processed_sample_id = 4 AND merged_into = 12"), 1); //merge correctly added
+
+
+//merge tumor RNA samples:
+check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
+clear_analysis_folder();
+
+create_folder("Sample_RNA220003_01", [data_folder()."merge_samples_in1_L001_R1_001.fastq.gz"=>"RNA220003_01_L001_R1_001.fastq.gz", data_folder()."merge_samples_in1_L001_R2_001.fastq.gz"=>"RNA220003_01_L001_R2_001.fastq.gz"], "dummy.txt");
+create_folder("Sample_RNA220003_02", [data_folder()."merge_samples_in2_L001_R1_001.fastq.gz"=>"RNA220003_02_L001_R1_001.fastq.gz", data_folder()."merge_samples_in2_L001_R2_001.fastq.gz"=>"RNA220003_02_L001_R2_001.fastq.gz"], "dummy2.txt");
+
+check_exec("php ".src_folder()."/Tools/".$name.".php -db NGSD_TEST -ps RNA220003_01 -into RNA220003_02");
+
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_RNA220003_02/RNA220003_01_L001_R1_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_RNA220003_02/RNA220003_01_L001_R2_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_RNA220003_02/RNA220003_02_L001_R1_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_RNA220003_02/RNA220003_02_L001_R2_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_RNA220003_02/dummy2.txt");
+check_file_exists(data_folder()."/+analysis/merge_samples/+merged_samples/Sample_RNA220003_01/");
+check_file_exists(data_folder()."/+analysis/merge_samples/+merged_samples/Sample_RNA220003_01/dummy.txt");
+
+check($db->getValue("SELECT COUNT(*) FROM expression WHERE processed_sample_id=3"), 0);
+check($db->getValue("SELECT COUNT(*) FROM expression WHERE processed_sample_id!=3"), 4);
+
+check($db->getValue("SELECT COUNT(*) FROM expression_exon WHERE processed_sample_id=3"), 0);
+check($db->getValue("SELECT COUNT(*) FROM expression_exon WHERE processed_sample_id!=3"), 4);
+
+check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id=3"), 0);
+check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id!=3"), 30);
+
+check($db->getValue("SELECT COUNT(*) FROM merged_processed_samples WHERE processed_sample_id = 3 AND merged_into = 11"), 1); //merge correctly added
 
 
 // tumor sample: somatic report config exists -> has to fail

@@ -8,19 +8,19 @@
 python3 = [path]/data/tools/Python-3.6.9/bin/python3.6
 python27 = [path]/data/tools/Python-2.7.18/bin/python2.7
 ngs-bits = [path]/data/tools/ngs-bits/bin/
-samtools = [path]/data/tools/samtools-1.15.1/samtools
+samtools = [path]/data/tools/samtools-1.17/samtools
 freebayes = [path]/data/tools/freebayes-1.3.6/freebayes
 vcflib = [path]/data/tools/vcflib-1.0.3/build/
 abra2 = java -Xmx16g -jar [path]/data/tools/abra2-2.23/abra2.jar
 samblaster = [path]/data/tools/samblaster-0.1.26/samblaster
 bwa = [path]/data/tools/bwa-0.7.17/bwa
 bwa-mem2 = [path]/data/tools/bwa-mem2-2.2.1_x64-linux/bwa-mem2
-vep = [path]/data/tools/ensembl-vep-release-107.0/vep
-vep_data = [path]/data/dbs/ensembl-vep-107/
+vep = [path]/data/tools/ensembl-vep-release-109.3/vep
+vep_data = [path]/data/dbs/ensembl-vep-109/
 perl_cpan = [path]/data/tools/perl_cpan/
 interop = [path]/data/tools/InterOp-1.1.21-Linux-GNU/bin/summary
 rscript = [path]/R-4.1.0/bin/Rscript
-clincnv = [path]/data/tools/ClinCNV-1.18.0/clinCNV.R
+clincnv = [path]/data/tools/ClinCNV-1.18.3/clinCNV.R
 clincnv_cohorts = [path]/data/ClinCNV-cohorts/
 circos = [path]/data/tools/circos-0.69-9/bin/circos
 expansion_hunter = [path]/data/tools/ExpansionHunter-v5.0.0-linux_x86_64/bin/ExpansionHunter
@@ -40,9 +40,9 @@ umiVar2 = [path]/data/tools/umiVar2/
 hla_genotyper = [path]/data/tools/hla-genotyper-2022_05/genotyper.py
 
 [tools-ngs-rna]
-STAR = [path]/data/tools/STAR-2.7.10a/bin/Linux_x86_64/STAR
-feature_counts = [path]/data/tools/subread-2.0.3/bin/featureCounts
-arriba = [path]/data/tools/arriba_v2.3.0
+STAR = [path]/data/tools/STAR-2.7.10b/bin/Linux_x86_64/STAR
+feature_counts = [path]/data/tools/subread-2.0.4/bin/featureCounts
+arriba = [path]/data/tools/arriba_v2.4.0
 umi_tools = [path]/data/tools/umi_tools-1.1.2/bin/umi_tools
 kraken2 = [path]/data/tools/kraken2-2.1.2/bin/kraken2
 

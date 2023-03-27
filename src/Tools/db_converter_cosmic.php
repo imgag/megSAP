@@ -77,8 +77,9 @@ while(!feof($in_fp))
 	
 	//coordinates in format 1:124-214321
 	$coords = $parts[ $indices["Mutation genome position $build"] ];
-	list($chr, $start, $end) = preg_split("/[:-]/", $coords);
+	if ($coords == "") continue;
 	
+	list($chr, $start, $end) = preg_split("/[:-]/", $coords);
 	
 	if( empty($chr) || empty($start) || empty($end) ) continue; //Skip entries without genomic coordinates
 	

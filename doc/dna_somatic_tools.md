@@ -9,7 +9,7 @@ The following tools are used for calling of small variants and annotation of sma
 | Variant calling - SNVs and Indels              | Varscan2                 | 2.4.4                | (tumor-only)                                     |
 | Variant calling - left-normalization of InDels | VcfLeftNormalize         | ngs-bits latest      |                                                  |
 | Annotation - b-allele frequency (t/n)          | VariantAnnotateFrequency | ngs-bits latest      |                                                  |
-| Annotation - general                           | VEP                      | 107.0                |                                                  |
+| Annotation - general                           | VEP                      | 109.3                |                                                  |
 
 
 CNV calling and annotation is performed using these tools:

@@ -15,7 +15,7 @@ cpan_dir=$folder/perl_cpan/
 cd $folder
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2023_02 && git submodule update --recursive --init
+git checkout a669458103ccafe50384f1cd13d19532a3820ccc && git submodule update --recursive --init #a669458103ccafe50384f1cd13d19532a3820ccc is 2023_03 with a few fixes
 make build_3rdparty
 make build_tools_release
 
@@ -57,10 +57,10 @@ cd ..
 
 #download and build samtools
 cd $folder
-wget https://github.com/samtools/samtools/releases/download/1.15.1/samtools-1.15.1.tar.bz2
-tar xjf samtools-1.15.1.tar.bz2
-rm samtools-1.15.1.tar.bz2
-cd samtools-1.15.1
+wget https://github.com/samtools/samtools/releases/download/1.17/samtools-1.17.tar.bz2
+tar xjf samtools-1.17.tar.bz2
+rm samtools-1.17.tar.bz2
+cd samtools-1.17
 make
 
 #download and build BWA
@@ -120,9 +120,9 @@ rm -rf R-4.1.0.tar.gz R-4.1.0-src
 
 #download ClinCNV
 cd $folder
-git clone https://github.com/imgag/ClinCNV.git ClinCNV-1.18.0
-cd ClinCNV-1.18.0
-git checkout 1.18.0
+git clone https://github.com/imgag/ClinCNV.git ClinCNV-1.18.3
+cd ClinCNV-1.18.3
+git checkout 1.18.3
 chmod -R 777 . #if the executing user has no write permission, the error 'cannot open file Rplots.pdf' occurs
 # install required R packages for ClinCNV
 $folder/R-4.1.0/bin/R -f $root/install_deps_clincnv.R

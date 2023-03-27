@@ -2,15 +2,18 @@
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-function substr_clear($str, $start)
+function substr_clear($str, $start, $use_tab_as_sep=false)
 {
-	return trim(strtr(substr($str, $start), array("|"=>",")));
+	return trim(strtr(substr($str, $start), array("|"=> ($use_tab_as_sep ? "\t" : ","))));
 }
 
-function cons2value($cons)
+function cons2value($cons, $line)
 {
 	//in ClinVar 20220328 there are extra underscores...
 	$cons = trim($cons, "_");
+	
+	//remove consequence modifiers
+	$cons = strtr($cons, [",_low_penetrance"=>""]);
 
 	if ($cons=="pathogenic") return 5;
 	if ($cons=="likely_pathogenic") return 4;
@@ -20,7 +23,7 @@ function cons2value($cons)
 	if ($cons=="likely_risk_allele") return -1;
 	if ($cons=="uncertain_risk_allele") return -1;
 	if ($cons=="established_risk_allele") return -1;
-	trigger_error("Unknown consequence '$cons' in function 'cons2value'!", E_USER_ERROR);
+	trigger_error("Unknown consequence '$cons' in function 'cons2value' in line:\n$line", E_USER_ERROR);
 }
 
 function value2cons($value)
@@ -94,7 +97,7 @@ while(!feof($in))
 		}
 		if (starts_with($info, "CLNSIGCONF="))
 		{
-			$sig_conf = strtolower(substr_clear($info, 11));
+			$sig_conf = strtolower(substr_clear($info, 11, true));
 		}
 		if (starts_with($info, "CLNDN="))
 		{
@@ -121,13 +124,13 @@ while(!feof($in))
 		{
 			//calcualate the mean consequence
 			$cons_counts = array(1=>0, 2=>0, 3=>0, 4=>0, 5=>0);
-			$sig_conf = explode(",", $sig_conf);
+			$sig_conf = explode("\t", $sig_conf);
 			foreach($sig_conf as $entry)
 			{
 				$entry = trim($entry);
 				$entry = substr($entry, 0, -1);
 				list($cons, $count) = explode("(", $entry);
-				$value = cons2value($cons);
+				$value = cons2value($cons, $line);
 				if ($value==-1) continue; //skip risk variants, etc.
 				$cons_counts[$value] += $count;
 			}
