@@ -95,11 +95,6 @@ if ($sys['build']!="GRCh38")
 {
 	$params[] = "-no_cont";
 }
-$somatic_custom_panel = get_path("data_folder") . "/enrichment/somatic_VirtualPanel_v4.bed";
-if ($somatic_custom_map && file_exists($somatic_custom_panel))
-{
-	$params[] = "-somatic_custom_bed $somatic_custom_panel";
-}
 
 $parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
 

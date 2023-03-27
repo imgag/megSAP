@@ -1758,7 +1758,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 								while(contains($column, "  ")) $column = strtr($column, ["  "=>" "]);
 								$cl = explode(" ", $column);
 								//get second last element
-								$ref_file_path = array_slice($cl, -2, 1);
+								$ref_file_path = array_slice($cl, -2, 1)[0];
 								$build = basename($ref_file_path, ".fa");
 								break;
 							}
