@@ -18,8 +18,8 @@ rm 2022_05.tar.gz
 
 #download varscan2
 cd $folder
-mkdir VarScan.v2.4.4
-wget https://github.com/dkoboldt/varscan/raw/master/VarScan.v2.4.4.jar -O VarScan.v2.4.4/VarScan.v2.4.4.jar
+mkdir VarScan.v2.4.5
+wget https://github.com/dkoboldt/varscan/raw/master/VarScan.v2.4.5.jar -O VarScan.v2.4.5/VarScan.v2.4.5.jar
 
 #download strelka2
 cd $folder
