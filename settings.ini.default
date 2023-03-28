@@ -5,7 +5,7 @@
 ;only adapting the NGSD database credentials is necessary.
 
 [tools-ngs]
-python3 = [path]/data/tools/Python-3.6.9/bin/python3.6
+python3 = [path]/data/tools/Python-3.10.9/bin/python3.10
 python27 = [path]/data/tools/Python-2.7.18/bin/python2.7
 ngs-bits = [path]/data/tools/ngs-bits/bin/
 samtools = [path]/data/tools/samtools-1.17/samtools
@@ -32,7 +32,7 @@ gatk = java -Xmx4G -jar /[path]/data/tools/gatk-4.2.6.1/gatk-package-4.2.6.1-loc
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.10.centos6_x86_64/bin/
-varscan2 = java -jar [path]/data/tools/VarScan.v2.4.4/VarScan.v2.4.4.jar
+varscan2 = java -jar [path]/data/tools/VarScan.v2.4.5/VarScan.v2.4.5.jar
 manta = [path]/data/tools/manta-1.6.0.centos6_x86_64/bin/
 mantis = [path]/data/tools/MANTIS-1.0.5/mantis.py
 mipgen = [path]/data/tools/MIPGEN/mipgen
@@ -43,7 +43,7 @@ hla_genotyper = [path]/data/tools/hla-genotyper-2022_05/genotyper.py
 STAR = [path]/data/tools/STAR-2.7.10b/bin/Linux_x86_64/STAR
 feature_counts = [path]/data/tools/subread-2.0.4/bin/featureCounts
 arriba = [path]/data/tools/arriba_v2.4.0
-umi_tools = [path]/data/tools/umi_tools-1.1.2/bin/umi_tools
+umi_tools = [path]/data/tools/Python-3.10.9/bin/umi_tools
 kraken2 = [path]/data/tools/kraken2-2.1.2/bin/kraken2
 
 [tools-primer]
