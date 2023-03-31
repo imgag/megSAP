@@ -186,6 +186,20 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq",
 	$trimmed1 = $trimmed1_bc;
 	$trimmed2 = $trimmed2_bc;
 
+	//special handling of Twist UMIs: cut off first and last 2bp
+	if ($sys['umi_type'] == "Twist")
+	{
+		$trimmed1_bc = $parser->tempFile("_trimmed1_bc.fastq.gz");
+		$trimmed2_bc = $parser->tempFile("_trimmed2_bc.fastq.gz");
+		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed1 -out $trimmed1_bc -start 2", true);
+		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed2_bc -start 2", true);
+
+		$parser->deleteTempFile($trimmed1);
+		$parser->deleteTempFile($trimmed2);
+		$trimmed1 = $trimmed1_bc;
+		$trimmed2 = $trimmed2_bc;
+	}
+
 	if ($sys['umi_type'] === "QIAseq")
 	{
 		$trimmed2_trim = $parser->tempFile("_trimmed2_trim.fastq.gz");
