@@ -12,8 +12,10 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
 $parser = new ToolBase("backup_restore", "Restores a file from TSM .");
-$parser->addString("file",  "Backup log file or name of file to restore.", false);
+$parser->addString("file",  "Backup log file or name of tar.gz file to restore.", false);
+$parser->addEnum("mode",  "Restore mode which type of backup will be restored.", false, ["runs", "users", "projects"]);
 $parser->addString("out",  "Folder where the file will be restored to.", true, "/mnt/storage1/raw_data/_restored");
+
 extract($parser->parse($argv));
 
 
@@ -60,26 +62,45 @@ function restore($source, $to)
 	}
 }
 
+function checks()
+{
+
+	
+	
+	
+}
 
 # *** MAIN ***
-
 putenv("DSM_DIR=/opt/tsm-archive/config/");
 putenv("DSM_CONFIG=/opt/tsm-archive/config/dsm.opt");
 
+
+#check script permissions are 755:
+$scriptPath = get_included_files()[0];
+$permissions_readable = substr(sprintf('%o', fileperms($scriptPath)), -4);
+if ($permissions_readable != "0755") trigger_error("This script should have the permissions set to 755! Please have an admin correct the permissions before using it.", E_USER_ERROR);
+	
+#check if user is root
+$executingUser = posix_getpwuid(posix_geteuid())["name"];
+if ($executingUser != "root")
+{
+	trigger_error("This script can only be run as root (sudo).", E_USER_ERROR);
+}
+
+if(! is_dir($out)) trigger_error("Given out path '$out' does not exist or is not a directory.");
 
 $filename = basename($file, ".log");
 if (! ends_with(".tar.gz", $file)) $filename .= ".tar.gz";
 
 //check filename for forbidden symbols:
-$matched = preg_match_all('/[^A-Za-z0-9\_\.]/', $filename);
+$matched = preg_match_all('/[^A-Za-z0-9\_\.\-]/', $filename);
 if ($matched != 0)
 {
-	trigger_error("Filename \"{$filename}\" contains forbidden symbols only 'A-Z', 'a-z', '0-9', '_' and '.' are allowed.", E_USER_ERROR);
+	trigger_error("Filename \"{$filename}\" contains forbidden symbols only 'A-Z', 'a-z', '0-9', '_', '.' and "-" are allowed.", E_USER_ERROR);
 }
 
-
-$file = "/mnt/SRV018/raw_data_archive/runs/{$filename}";
-$to = "/mnt/storage1/raw_data/_restored/{$filename}";
+$file = "/mnt/SRV018/raw_data_archive/{$mode}/{$filename}";
+$to = "{$out}/{$filename}";
 
 if (file_exists($to)) trigger_error("The file $filename already exists in the outFolder!", E_USER_ERROR);
 if (file_exists("/mnt/storage1/raw_data_archive/runs/{$filename}")) trigger_error("The file still exists in the archiving folder: /mnt/storage1/raw_data_archive/runs/{$filename}", E_USER_ERROR);
@@ -91,6 +112,5 @@ query($file);
 $input = readline("Press ENTER, to start the restoration of the file. Press Strg+C to abort.");
 
 restore($file, $to);
-
 
 ?>
