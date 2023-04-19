@@ -18,7 +18,6 @@ $parser->addString("out",  "Folder where the file will be restored to.", true, "
 
 extract($parser->parse($argv));
 
-
 function query($file)
 {
 	echo "\n*** The archive contains the following versions (only the most recent one will be restored):\n";
@@ -62,18 +61,9 @@ function restore($source, $to)
 	}
 }
 
-function checks()
-{
-
-	
-	
-	
-}
-
 # *** MAIN ***
 putenv("DSM_DIR=/opt/tsm-archive/config/");
 putenv("DSM_CONFIG=/opt/tsm-archive/config/dsm.opt");
-
 
 #check script permissions are 755:
 $scriptPath = get_included_files()[0];
