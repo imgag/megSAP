@@ -18,6 +18,7 @@ $parser->addString("out",  "Folder where the file will be restored to.", true, "
 
 extract($parser->parse($argv));
 
+
 function query($file)
 {
 	echo "\n*** The archive contains the following versions (only the most recent one will be restored):\n";
@@ -45,7 +46,7 @@ function query($file)
 
 function restore($source, $to)
 {
-	exec("dsmc retrieve \"{$source}\"  \"{$to}\"", $output, $res);
+	passthru("dsmc retrieve \"{$source}\"  \"{$to}\"", $res);
 	
 	if ($res == 0)
 	{
@@ -60,6 +61,7 @@ function restore($source, $to)
 		trigger_error("Error restoring the file. Error code: $res.", E_USER_ERROR);
 	}
 }
+
 
 # *** MAIN ***
 putenv("DSM_DIR=/opt/tsm-archive/config/");
@@ -92,8 +94,15 @@ if ($matched != 0)
 $file = "/mnt/SRV018/raw_data_archive/{$mode}/{$filename}";
 $to = "{$out}/{$filename}";
 
+# checks:
+
+if (! is_dir($out)) trigger_error("The out folder '$out' does not exist!", E_USER_ERROR);
 if (file_exists($to)) trigger_error("The file $filename already exists in the outFolder!", E_USER_ERROR);
 if (file_exists("/mnt/storage1/raw_data_archive/runs/{$filename}")) trigger_error("The file still exists in the archiving folder: /mnt/storage1/raw_data_archive/runs/{$filename}", E_USER_ERROR);
+$permissions_readable = substr(sprintf('%o', fileperms($out)), -4);
+if ($permissions_readable != "0777") trigger_error("The out folder needs permissions set to 777 during the restore. Pleace set the accordingly and restart the script.", E_USER_ERROR);
+
+
 
 echo "Searching for $filename in archive.\n";
 
