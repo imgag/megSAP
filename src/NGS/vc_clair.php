@@ -158,9 +158,10 @@ $parser->execPipeline($pipeline, "clair post processing");
 //add name/pipeline info to VCF header
 $vcf = Matrix::fromTSV($uncompressed_vcf);
 $comments = $vcf->getComments();
-$comments[] = gsvar_sample_header($name, array(), "#", "");
+$comments[] = "#reference={$genome}\n";
 $comments[] = "#ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n";
 $comments[] = "#PIPELINE=".repository_revision(true)."\n";
+$comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"affected"), "#", "");
 $vcf->setComments(sort_vcf_comments($comments));
 $vcf->toTSV($uncompressed_vcf);
 

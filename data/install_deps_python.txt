@@ -12,3 +12,4 @@ scipy
 statsmodels
 SigProfilerExtractor
 umi_tools==1.1.4
+sniffles==2.0.7
