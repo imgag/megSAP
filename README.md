@@ -41,15 +41,6 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 Changes of master since last release:
 
-* fixed false duplications in GRCh38 (see [details](https://github.com/imgag/megSAP/blob/master/doc/internal/grch38_false_duplications.md)).
-* germline DNA pipeline: Improved sensitivity of non-diploid variant calling (mitochondrial, mosaic).
-* germline DNA pipeline: Added calling of mitochondrial variants for shallow WGS analysis.
-* germline DNA pipeline: Added small variant and structural variant calling on Dragen when '-use_dragen' is enabled (see [details](https://github.com/imgag/megSAP/blob/master/doc/internal/vc_with_dragen.md)).
-* updated VEP to version 107.
-* using VcfAnnotateConsequence as primary source for consequence annotations of small variants now instead of VEP.
-* updated ngs-bits to version 2022_11 (improved/added multithreading in several tools).
-* updates ClinCNV to version 1.18.0 (improved handling of PAR region).
-* gnomAD exome data from VEP is no longer used. Only gnomAD genome data is used now for variant with AC>=1000.
-* minor fixes and updates.
+* none so far
 
 For older changes see [releases](https://github.com/imgag/megSAP/releases).
