@@ -120,6 +120,6 @@ $parser->execPipeline([["cut -f1-8","$temp_file3"], ["bgzip" , " -c > $out"]], "
 $parser->exec("tabix" , "-p vcf $out");
 
 //Check converted VCF file
-$parser->exec("{$ngsbits}/VcfCheck", "-in $out -ref {$genome_fa}", true);
+$parser->exec("{$ngsbits}/VcfCheck", "-in $out -ref {$genome_fa} -lines 0", true);
 
 ?>

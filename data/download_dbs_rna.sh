@@ -16,7 +16,7 @@ cd $data_folder
 mkdir -p dbs/gene_expression
 cd dbs/gene_expression
 #change version number on update
-wget -O - https://www.proteinatlas.org/download/rna_tissue_hpa.tsv.zip | gunzip > rna_tissue_hpa_v22.tsv
+wget -O - https://www.proteinatlas.org/download/rna_tissue_consensus.tsv.zip | gunzip > rna_tissue_consensus_v22.tsv
 
 #download Ensembl data in GTF format
 cd $data_folder
