@@ -162,7 +162,7 @@ if (!$somatic) //germline only
 			}
 
 			//add RNA annotation
-			$parser->exec(get_path("ngs-bits")."NGSDAnnotateGeneExpression", "-in {$varfile} -out {$varfile}_ann.GSvar -rna_ps {$psample}", true);
+			$parser->exec(get_path("ngs-bits")."NGSDAnnotateGeneExpression", "-in {$varfile} -out {$varfile} -rna_ps {$psample}", true);
 
 		}
 	}
