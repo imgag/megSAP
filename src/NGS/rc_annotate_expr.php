@@ -15,7 +15,7 @@ $parser->addInfile("in_files", "Tab-separated file with sample name and correspo
 $parser->addFlag("somatic", "Enable somatic mode: find related samples by ICD10 code or HPO term id.");
 $parser->addString("hpa_tissue", "HPA reference tissue.", true, "");
 $parser->addString("hpa_corr", "Specify to save sample--reference tissue correlation.", true, "");
-$parser->addString("hpa_ref", "HPA reference expression file.", true, get_path("data_folder") . "/dbs/gene_expression/rna_tissue_hpa_v22.tsv");
+$parser->addString("hpa_ref", "HPA reference expression file.", true, get_path("data_folder") . "/dbs/gene_expression/rna_tissue_consensus_v22.tsv");
 $parser->addEnum("db", "Database to connect to.", true, db_names(), "NGSD");
 
 extract($parser->parse($argv));

@@ -288,6 +288,8 @@ $junctions = $umi ? "{$prefix}_before_dedup_splicing.tsv" : "{$prefix}_splicing.
 $splicing_annot = "{$prefix}_splicing_annot.tsv";
 $splicing_bed = "{$prefix}_splicing.bed";
 $splicing_gene = "{$prefix}_splicing_gene.tsv";
+
+$reference_tissues = array();
 if (in_array("an", $steps))
 {
 	//annotate gene-level read counts
@@ -308,8 +310,17 @@ if (in_array("an", $steps))
 				$hpa_parameter = "";
 				if ($ps_info['is_tumor']) 
 				{
+					$rna_id = get_processed_sample_id($db, $name);
+					$s_id = $db->getValue("SELECT sample_id FROM processed_sample where id=$rna_id");
+					$reference_tissues = $db->getValues("SELECT DISTINCT sdi.disease_info FROM sample s LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id LEFT JOIN sample_disease_info sdi ON sdi.sample_id=sr.sample1_id OR sdi.sample_id=sr.sample2_id WHERE s.id=$s_id AND sdi.type='RNA reference tissue' AND (sr.relation='same sample' OR sr.relation IS NULL)");
+
+					
 					$cohort_strategy = "RNA_COHORT_SOMATIC";
-					$hpa_parameter = "-hpa_file ".get_path("data_folder")."/dbs/gene_expression/rna_tissue_hpa_v22.tsv";
+					
+					if (count($reference_tissues) > 0)
+					{
+						$hpa_parameter = "-hpa_file ".get_path("data_folder")."/dbs/gene_expression/rna_tissue_consensus_v22.tsv";
+					}					
 				}
 				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr} {$hpa_parameter}", true);
 				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode exons -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", true);
@@ -463,7 +474,7 @@ if (in_array("db", $steps))
 }
 
 
-if (! $skip_dna_reannotation && db_is_enabled("NGSD") && (in_array("ma", $steps) || in_array("rc", $steps) || in_array("an", $steps) || in_array("fu", $steps)))
+if (! $skip_dna_reannotation && db_is_enabled("NGSD") && (in_array("ma", $steps) || in_array("rc", $steps) || in_array("an", $steps) || in_array("fu", $steps)) && count($reference_tissues) > 0)
 {
 	$db = DB::getInstance("NGSD", false);
 	$ps_info = get_processed_sample_info($db, $name);

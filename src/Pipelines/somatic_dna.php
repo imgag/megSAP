@@ -995,7 +995,9 @@ if (in_array("an_rna", $steps))
 	if(!isset($rna_ref_tissue) && db_is_enabled("NGSD"))
 	{
 		$db = DB::getInstance("NGSD");
-		$res = $db->getValues("SELECT di.disease_info FROM sample as s, sample_disease_info as di WHERE s.name = '{$t_name}' AND s.id = di.sample_id AND di.type = 'RNA reference tissue'");
+		$tumor_db_id = get_processed_sample_id($db, $t_id);
+		$s_id = $db->getValue("SELECT sample_id FROM processed_sample where id=$tumor_db_id");
+		$res = $db->getValues("SELECT DISTINCT sdi.disease_info FROM sample s LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id LEFT JOIN sample_disease_info sdi ON sdi.sample_id=sr.sample1_id OR sdi.sample_id=sr.sample2_id WHERE s.id=$s_id AND sdi.type='RNA reference tissue' AND (sr.relation='same sample' OR sr.relation IS NULL)");
 		if(count($res) == 1)
 		{
 			list($rna_ref_tissue) = $res;
@@ -1024,21 +1026,6 @@ if (in_array("an_rna", $steps))
 		check_genome_build($rna_bam, $sys['build']);
 		$rna_count = $rna_counts[$rna_id];
 		
-		//SNVs
-		$args = [
-		"-gsvar_in $variants_gsvar",
-		"-out $variants_gsvar",
-		"-rna_id $rna_id",
-		"-rna_counts $rna_count",
-		"-rna_bam $rna_bam"];
-		$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
-		
-		//CNVs
-		if(file_exists($som_clincnv))
-		{
-			$parser->execTool("NGS/an_somatic_cnvs.php", " -cnv_in $som_clincnv -out $som_clincnv -rna_counts $rna_count -rna_id $rna_id -rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue));
-		}
-
 		//Calculate sample similarity between tumor and RNA
 		if ($skip_correlation)
 		{
@@ -1063,6 +1050,21 @@ if (in_array("an_rna", $steps))
 		else
 		{
 			trigger_error("BAM file does not exist for tumor DNA sample '{$t_bam}'!", E_USER_ERROR);
+		}
+		
+		//SNVs
+		$args = [
+		"-gsvar_in $variants_gsvar",
+		"-out $variants_gsvar",
+		"-rna_id $rna_id",
+		"-rna_counts $rna_count",
+		"-rna_bam $rna_bam"];
+		$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
+		
+		//CNVs
+		if(file_exists($som_clincnv))
+		{
+			$parser->execTool("NGS/an_somatic_cnvs.php", " -cnv_in $som_clincnv -out $som_clincnv -rna_counts $rna_count -rna_id $rna_id -rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue));
 		}
 	}
 	

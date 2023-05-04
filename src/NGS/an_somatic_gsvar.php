@@ -159,7 +159,7 @@ if(isset($rna_ref_tissue))
 	}
 	
 	
-	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_hpa_v22.tsv";
+	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_consensus_v22.tsv";
 	
 	if(!file_exists($ref_file))
 	{
@@ -175,9 +175,10 @@ if(isset($rna_ref_tissue))
 	$header_parts = explode("\t", fgets($handle));
 	for($i=0; $i<count($header_parts); ++$i)
 	{
-		if($header_parts[$i] == "Gene name") $i_ref_gene = $i;
-		if($header_parts[$i] == "TPM") $i_ref_tpm = $i;
-		if($header_parts[$i] == "Tissue") $i_ref_tissue_type = $i;
+		$header = trim($header_parts[$i]);
+		if($header == "Gene name") $i_ref_gene = $i;
+		if($header == "nTPM") $i_ref_tpm = $i;
+		if($header == "Tissue") $i_ref_tissue_type = $i;
 	}
 
 	//ref_results contains contents of column with ref values to be annotated
