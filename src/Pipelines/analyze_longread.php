@@ -94,9 +94,9 @@ $var_file = $folder."/".$name.".GSvar";
 // $baffile = $folder."/".$name."_bafs.igv";
 $ancestry_file = $folder."/".$name."_ancestry.tsv";
 // $prsfile = $folder."/".$name."_prs.tsv";
-// //copy-number calling
-// $cnvfile = $folder."/".$name."_cnvs_clincnv.tsv";
-// $cnvfile2 = $folder."/".$name."_cnvs_clincnv.seg";
+//copy-number calling
+$cnvfile = $folder."/".$name."_cnvs_clincnv.tsv";
+$cnvfile2 = $folder."/".$name."_cnvs_clincnv.seg";
 //structural variant calling
 $sv_vcf_file = $folder ."/". $name . "_var_structural_variant.vcf.gz";
 $bedpe_file = substr($sv_vcf_file,0,-6)."bedpe";
@@ -205,29 +205,173 @@ if (in_array("vc", $steps))
 		
 }
 
-// //copy-number analysis
-// if (in_array("cn", $steps))
-// {
-// 	// skip CN calling if only annotation should be done
-// 	if (!$annotation_only)
-// 	{
-// 		//TODO: implement
-// 	}
-// 	else
-// 	{
-// 		check_genome_build($cnvfile, $build);
-// 	}
+//copy-number analysis
+if (in_array("cn", $steps))
+{
 
-// 	// annotate CNV file
-// 	if (file_exists($cnvfile))
-// 	{
-// 		//TODO: implement
-// 	}
-// 	else
-// 	{
-// 		trigger_error("CNV file {$cnvfile} does not exist, skipping CNV annotation!", E_USER_WARNING);
-// 	}
-// }
+	//create reference folder if it does not exist
+	$ref_folder = get_path("data_folder")."/coverage/".$sys['name_short']."/";
+	if (!is_dir($ref_folder))
+	{
+		mkdir($ref_folder);
+		if (!chmod($ref_folder, 0777))
+		{
+			trigger_error("Could not change privileges of folder '{$ref_folder}'!", E_USER_ERROR);
+		}
+	}
+
+	$cov_folder = $ref_folder;
+
+	//Calling ClinCNV
+	//WGS: create folder for binned coverage data - if missing
+	if ($is_wgs)
+	{
+
+		$bin_size = get_path("cnv_bin_size_wgs");
+		$bin_folder = "{$ref_folder}/bins{$bin_size}/";
+		if (!is_dir($bin_folder))
+		{
+
+			mkdir($bin_folder);
+			if (!chmod($bin_folder, 0777))
+			{
+				trigger_error("Could not change privileges of folder '{$bin_folder}'!", E_USER_ERROR);
+			}
+		}
+		$cov_folder = $bin_folder;
+	}
+
+	
+	//create BED file with GC and gene annotations - if missing
+	if ($is_wgs)
+	{
+		$bed = $ref_folder."/bins{$bin_size}.bed";
+		if (!file_exists($bed))
+		{
+			$pipeline = [
+					["{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size}"],
+					["{$ngsbits}BedAnnotateGC", "-clear -ref ".$genome],
+					["{$ngsbits}BedAnnotateGenes", "-out {$bed}"]
+				];
+			$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
+		}
+	}
+	else
+	{
+		$bed = $ref_folder."/roi_annotated.bed";
+		if (!file_exists($bed))
+		{
+			$pipeline = [
+					["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".$genome],
+					["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
+				];
+			$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
+		}
+	}
+
+	//create coverage profile
+	$tmp_folder = $parser->tempFolder();
+	$cov_file = $cov_folder."/{$name}.cov";
+	if (!file_exists($cov_file))
+	{
+
+		$parser->log("Calculating coverage file for CN calling...");
+		$cov_tmp = $tmp_folder."/{$name}.cov";
+		$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$local_bamfile} -in {$bed} -out {$cov_tmp} -threads {$threads}", true);
+		
+		//copy coverage file to reference folder if valid
+		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
+		{
+			$parser->log("Moving coverage file to reference folder...");
+			$parser->moveFile($cov_tmp, $cov_file);
+		}
+		else
+		{
+			$cov_file = $cov_tmp;
+		}
+	}
+	else
+	{
+		$parser->log("Using previously calculated coverage file for CN calling: $cov_file");
+	}
+	
+	//perform CNV analysis
+	$cnv_out = $tmp_folder."/output.tsv";
+	$cnv_out2 = $tmp_folder."/output.seg";
+	$args = array(
+		"-cov {$cov_file}",
+		"-cov_folder {$cov_folder}",
+		"-bed {$bed}",
+		"-out {$cnv_out}",
+		"-threads {$threads}",
+		"--log ".$parser->getLogFile(),
+	);
+	if ($is_wgs)
+	{
+		$args[] = "-max_cnvs 2000";
+	}
+	else
+	{
+		$args[] = "-max_cnvs 200";
+	}
+	if($is_wgs || $is_wes)
+	{
+		$args[] = "-mosaic";
+	}
+
+	$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
+	
+	//copy results to output folder
+	if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
+	if (file_exists($cnv_out2)) $parser->moveFile($cnv_out2, $cnvfile2);
+	$mosaic = $folder."/".$name."_mosaic_cnvs.tsv";
+	$sample_cnv_name = substr($cnv_out,0,-4);
+	$mosaic_out = $sample_cnv_name."_mosaic.tsv";
+	if (file_exists($mosaic_out)) $parser->moveFile($mosaic_out, $mosaic);
+
+
+	// // annotate CNV file
+	// if (file_exists($cnvfile))
+	// {
+	// 	$repository_basedir = repository_basedir();
+	// 	$data_folder = get_path("data_folder");
+	// 	if ($is_wes || $is_wgs || $is_wgs_shallow) //Genome/Exome: ClinCNV
+	// 	{
+
+	// 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnvfile}", true);
+			
+	// 	}
+	// 	$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
+	// 	$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnvfile}", true);
+	// 	$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-03.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
+
+
+	// 	$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2022_4.bed"; //optional because of license
+	// 	if (file_exists($hgmd_file))
+	// 	{
+	// 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
+	// 	}
+	// 	$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
+	// 	if (file_exists($omim_file))
+	// 	{
+	// 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$omim_file} -no_duplicates -url_decode -out {$cnvfile}", true);
+	// 	}
+
+	// 	//annotate additional gene info
+	// 	$parser->exec($ngsbits."CnvGeneAnnotation", "-in {$cnvfile} -out {$cnvfile}", true);
+	// 	// skip annotation if no connection to the NGSD is possible
+	// 	if (db_is_enabled("NGSD"))
+	// 	{
+	// 		//annotate overlap with pathogenic CNVs
+	// 		$parser->exec($ngsbits."NGSDAnnotateCNV", "-in {$cnvfile} -out {$cnvfile}", true);
+	// 	}
+	// }
+	// else
+	// {
+	// 	trigger_error("CNV file {$cnvfile} does not exist, skipping CNV annotation!", E_USER_WARNING);
+	// }
+}
+
 
 //structural variants
 if (in_array("sv", $steps))

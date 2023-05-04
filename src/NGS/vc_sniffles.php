@@ -30,7 +30,7 @@ $args[] = "--vcf ".$out;
 $args[] = "--threads ".$threads;
 $args[] = "--reference ".genome_fasta($build);
 $args[] = "--allow-overwrite";
-$args[] = "--output-rnames ".$name;
+// $args[] = "--output-rnames ".$name;
 if($somatic) $args[] = "--non-germline";
 
 $sniffles = get_path("sniffles");
