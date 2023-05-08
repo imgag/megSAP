@@ -37,6 +37,7 @@ $result = $db_connect->executeQuery("SELECT id, fcid FROM sequencing_run WHERE n
 if(count($result) != 1)	trigger_error("Sequencing run with the name $name not found in DB.", E_USER_ERROR);
 $seq_run_id = $result[0]['id'];
 $flowcell_id = $result[0]['fcid'];
+$flowcell_side = 'n/a';
 if(!contains($run_dir, $flowcell_id))
 {
 	trigger_error("Flowcell ID from NGSD ($flowcell_id) was not found in directory '$run_dir'.", E_USER_ERROR);
@@ -100,6 +101,10 @@ if (!file_exists($run_dir."/Fq"))
 			$read_metrics[$read_num]['lane_metrics'][$lane]['occupied'] = get_col_value($cols, $indices['% Occupied']);
 		}
 	}
+	
+	//parse flowcell side
+	$run_parameters_parsed = new SimpleXMLElement(file_get_contents($run_dir . "/RunParameters.xml"));
+	$flowcell_side = (string) $run_parameters_parsed->Side;
 }
 else
 {
@@ -219,4 +224,11 @@ foreach($read_metrics as $read_num => $read_metric)
 		$db_connect->execute($hash, true);
 	}
 }
+
+//import flowcell side
+$hash = $db_connect->prepare("UPDATE sequencing_run SET side=:side WHERE id=:seq_run_id");
+$db_connect->bind($hash, "side", $flowcell_side);
+$db_connect->bind($hash, "seq_run_id", $seq_run_id);
+$db_connect->execute($hash, true);
+
 ?>
