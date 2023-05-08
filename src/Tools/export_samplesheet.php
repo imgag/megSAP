@@ -94,7 +94,14 @@ foreach($res as $row)
 		{
 			$mid1 = substr($mid1, 0, $mid1_len);
 		}
+		
 		$mid2 = $row["mid2_i5"];
+		
+		//convert index 2 to reverse-complement
+		if (!$mid2_no_rc)
+		{
+			$mid2 = rev_comp($mid2);
+		}
 		if ($mid2_len!=-1)
 		{
 			$mid2 = substr($mid2, 0, $mid2_len);
@@ -120,12 +127,6 @@ foreach($res as $row)
 			$mid1 = trim(explode(":", $row["pscomment"])[1]);
 
 			
-		}
-
-		//convert index 2 to reverse-complement
-		if (!$mid2_no_rc)
-		{
-			$mid2 = rev_comp($mid2);
 		}
 
 		//convert index 1 to reverse-complement
