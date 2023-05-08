@@ -14,10 +14,9 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
 $steps_all = array("ma", "vc", "cn", "sv", "an", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, an=annotation, db=import into NGSD.", true, "ma,vc,cn,sv,db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, an=annotation, db=import into NGSD.", true, "ma,vc,cn,sv,an,db");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("skip_phasing", "Skip phasing of VCF and BAM files.");
-$parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 extract($parser->parse($argv));
 
@@ -53,7 +52,7 @@ $parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 
 
 
-if (db_is_enabled("NGSD") && !$annotation_only)
+if (db_is_enabled("NGSD"))
 {
 	$db = DB::getInstance("NGSD", false);
 	list($rc_id, $rc_vars_exist, $rc_cnvs_exist, $rc_svs_exist) = report_config($db, $name);
@@ -108,27 +107,6 @@ $qc_map  = $folder."/".$name."_stats_map.qcML";
 $qc_vc  = $folder."/".$name."_stats_vc.qcML";
 $qc_other  = $folder."/".$name."_stats_other.qcML";
 
-// for annotation_only: check if all files are available
-if ($annotation_only)
-{
-	if(in_array("vc", $steps) && !file_exists($vcf_file))
-	{
-		trigger_error("VCF for reannotation is missing. Skipping 'vc' step!", E_USER_WARNING);
-		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
-	} 
-
-	if(in_array("cn", $steps) && !file_exists($cnvfile))
-	{
-		trigger_error("CN file for reannotation is missing. Skipping 'cn' step!", E_USER_WARNING);
-		if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
-	} 
-
-	if(in_array("sv", $steps) && !file_exists($bedpe_file))
-	{
-		trigger_error("SV file for reannotation is missing. Skipping 'sv' step!", E_USER_WARNING);
-		if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
-	} 
-}
 
 //mapping
 if (in_array("ma", $steps))
