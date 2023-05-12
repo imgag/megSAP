@@ -83,58 +83,37 @@ $output[] = "[Data]";
 $output[] = "Lane,Sample_ID,Sample_Name,Sample_Project,index,index2,comment,index_name,index2_name";
 foreach($res as $row)
 {
+	$name = $row["psname"];
 	$lanes_sample = explode(".", $row['lane']);
 	foreach($lanes_sample as $lane)
 	{
 		if (!in_array($lane, $lanes)) continue;
 		
+		//MID1
 		$mid1 = $row["mid1_i7"];
-
 		if ($mid1_len!=-1)
 		{
 			$mid1 = substr($mid1, 0, $mid1_len);
 		}
+		//MID2
 		$mid2 = $row["mid2_i5"];
-		if ($mid2_len!=-1)
-		{
-			$mid2 = substr($mid2, 0, $mid2_len);
-		}
-		$name = $row["psname"];
-
-		if (starts_with($row["pscomment"], "custom_mid:"))
-		{
-			if ((strlen($mid1) != 0) and (strlen($mid2) == 0))
-			{
-				trigger_error("Both a lodged Mid7 and a custom Mid7 are given in the NGSD. The custom mid is used to create the sample sheet", E_USER_WARNING);
-			}
-			if ((strlen($mid2) != 0) and (strlen($mid1) == 0))
-			{
-				trigger_error("Both a lodged Mid5 and a custom Mid7 are given in the NGSD. Both mids are used to create the sample sheet", E_USER_WARNING);
-			}
-			if ((strlen($mid2) != 0) and (strlen($mid1) != 0))
-			{
-				trigger_error("Both a lodged Mid5 and lodged Mid7 are given together with a custom Mid7 in the NGSD. No sample sheet is created", E_USER_ERROR);
-			}
-			
-			
-			$mid1 = trim(explode(":", $row["pscomment"])[1]);
-
-			
-		}
 
 		//convert index 2 to reverse-complement
 		if (!$mid2_no_rc)
 		{
 			$mid2 = rev_comp($mid2);
 		}
-
-		//convert index 1 to reverse-complement
-		if ($mid1_rc)
+		//trim index 2
+		if ($mid2_len!=-1)
 		{
-			$mid1 = rev_comp($mid1);
+			$mid2 = substr($mid2, 0, $mid2_len);
 		}
-		
-		
+
+		//TODO improve custom_mid handling
+
+
+
+
 		$mids_i7_add = [ $mid1 ];
 		$mids_i7_names_add = [ $row["mid1_i7_name"] ];
 		if (starts_with($row["pscomment"], "add_mids:"))
@@ -202,7 +181,7 @@ foreach($barcodes as $lane => $data)
 			
 			if ($dist==0)
 			{
-				trigger_error("Barcode clash on lane {$lane}: {$name_i} ({$mid1_i},{$mid2_i}) / {$name_j} ({$mid1_j},{$mid2_j})", E_USER_ERROR);
+				trigger_error("Barcode clash on lane {$lane}: {$name_i} ({$mid1_i},{$mid2_i}) / {$name_j} ({$mid1_j},{$mid2_j})", E_USER_WARNING);
 			}
 			else if ($dist<=2)
 			{
