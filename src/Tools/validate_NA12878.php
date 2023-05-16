@@ -69,6 +69,10 @@ function get_variants($vcf_gz, $roi, $normalize, $max_indel, $min_qual = 0, $min
 		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = explode("\t", $line);
 		if (!starts_with($chr, "chr")) $chr = "chr".$chr;
 		
+		//skip mosaic and low mappabilty variants
+		if (contains($filter, "low_mappability")) continue;
+		if (contains($filter, "mosaic")) continue;
+		
 		//compile output
 		$var = array();
 		$var["QUAL"] = $qual;
@@ -319,11 +323,10 @@ function stats_line($name, $options, $date, $expected, $var_diff, $var_type=null
 	$tn = $bases_used - $c_expected - $fp;
 	$recall = number_format($tp/($tp+$fn),5);
 	$precision = number_format($tp/($tp+$fp),5);
-	$spec = number_format($tn/($tn+$fp),5);
 	$geno_acc = number_format(($tp-$gt_false)/$tp,5);
 	
 	if (!is_null($var_type)) $name .= " ".$var_type;
-	return implode("\t", array($name, $options, $date, $c_expected, $tp, $tn, $fp, $fn, $gt_false, $recall, $precision, $spec, $geno_acc));
+	return implode("\t", array($name, $options, $date, $c_expected, $tp, $tn, $fp, $fn, $gt_false, $recall, $precision, $geno_acc));
 }
 
 if ($name=="") $name = basename($vcf, ".vcf.gz");
@@ -335,7 +338,7 @@ if ($min_qd>0) $options[] = "min_qd={$min_qd}";
 $options = implode(" ", $options);
 $date = strtr(date("Y-m-d H:i:s", filemtime($vcf)), "T", " ");
 $output = array();
-$output[] = "#name\toptions\tdate\texpected variants\tTP\tTN\tFP\tFN\tgenotyping_errors\trecall/sensitivity\tprecision/ppv\tspecificity\tgenotyping_accuracy";
+$output[] = "#name\toptions\tdate\texpected variants\tTP\tTN\tFP\tFN\tgenotyping_errors\trecall/sensitivity\tprecision/ppv\tgenotyping_accuracy";
 if (file_exists($stats))
 {
 	foreach(file($stats) as $line)
