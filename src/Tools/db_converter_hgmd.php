@@ -18,7 +18,7 @@ while(!feof($in))
 		$line = explode("\t", $line);
 		if (contains($line[7], "MUT=REF")) continue;
 		
-		$line[7] = strtr($line[7], ["%3A"=>":", "%2C"=>""]);
+		$line[7] = strtr($line[7], ["%3A"=>":", "%2C"=>"", " "=>"_"]);
 		$line[7] = "ID=".$line[2].";".$line[7];
 		
 		$line = "chr".implode("\t", $line);
