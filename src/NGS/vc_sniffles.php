@@ -23,10 +23,11 @@ extract($parser->parse($argv));
 //TODO: add tandem repeat file
 
 if($name == "") $name = basename($bam, ".bam");
+$tmp_vcf = $parser->tempFile(".vcf", "sniffles");
 
 $args = array();
 $args[] = "--input ".$bam;
-$args[] = "--vcf ".$out;
+$args[] = "--vcf ".$tmp_vcf;
 $args[] = "--threads ".$threads;
 $args[] = "--reference ".genome_fasta($build);
 $args[] = "--allow-overwrite";
@@ -35,6 +36,20 @@ if($somatic) $args[] = "--non-germline";
 
 $sniffles = get_path("sniffles");
 
-$parser->exec(get_path("sniffles"), implode(" ", $args), true)
+$parser->exec(get_path("sniffles"), implode(" ", $args), true);
+
+//add name/pipeline info to VCF header
+$vcf = Matrix::fromTSV($tmp_vcf);
+$comments = $vcf->getComments();
+$comments[] = "#reference=".genome_fasta($build)."\n";
+$comments[] = "#PIPELINE=".repository_revision(true)."\n";
+$comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"affected"), "#", "");
+$vcf->setComments(sort_vcf_comments($comments));
+$vcf->toTSV($tmp_vcf);
+
+$parser->exec("bgzip", "-c $tmp_vcf > $out", false);
+
+//index output file
+$parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
 
 ?>
