@@ -174,10 +174,8 @@ if (in_array("vc", $steps))
 	{
 		trigger_error("Unsupported processing system '".$sys["shortname"]."' provided!", E_USER_ERROR);
 	}
-
 	
-	$parser->execTool("NGS/vc_clair.php", implode(" ", $args));
-		
+	$parser->execTool("NGS/vc_clair.php", implode(" ", $args));	
 }
 
 //copy-number analysis

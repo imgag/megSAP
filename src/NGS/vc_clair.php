@@ -90,46 +90,13 @@ if(isset($target))
 //run Clair3
 putenv("PYTHONPATH=".dirname(get_path("clair3")));
 $parser->exec(get_path("clair3"), implode(" ", $args));
-
-
-//run phasing by LongPhase
-$phased_tmp = $parser->tempFile(".vcf", "longphase");
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
-$args = array();
-$args[] = "phase";
-$args[] = "-s {$clair_vcf}";
-$args[] = "-b {$bam}";
-$args[] = "-r {$genome}";
-$args[] = "-t {$threads}";
-$args[] = "-o ".substr($phased_tmp, 0, -4);
-$args[] = "--ont";
-
-$parser->exec(get_path("longphase"), implode(" ", $args));
-//create compressed file
-$parser->exec("bgzip", "-c $phased_tmp > $phased_out", false);
-
-//add phasing to bam file 
-if (!$skip_bam_tagging)
-{
-	$args = array();
-	$args[] = "haplotag";
-	$args[] = "-s {$clair_vcf}";
-	$args[] = "-b {$bam}";
-	$args[] = "-r {$genome}";
-	$args[] = "-t {$threads}";
-	$args[] = "-o {$tagged_bam}";
-
-	$parser->exec(get_path("longphase"), implode(" ", $args));
-	$parser->indexBam($tagged_bam.".bam", $threads);
-	$parser->exec("tabix", "-f -p vcf $phased_out", false);
-}
-
 
 //post-processing 
 $pipeline = array();
 
 //stream vcf.gz
-$pipeline[] = array("zcat", "{$phased_out}");
+$pipeline[] = array("zcat", "{$clair_vcf}");
 
 //filter variants according to variant quality>5
 $pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5\"");
@@ -141,19 +108,18 @@ $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
 //split multi-allelic variants
 $pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
 
-// //normalize all variants and align INDELs to the left
+//normalize all variants and align INDELs to the left
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
 
-// //sort variants by genomic position
+//sort variants by genomic position
 $uncompressed_vcf = $parser->tempFile(".vcf");
-$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "-out $uncompressed_vcf");
+$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
 
 //fix error in VCF file and strip unneeded information
-// $pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", "", false);
+$pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", " > {$uncompressed_vcf}", false);
 
 //execute post-processing pipeline
 $parser->execPipeline($pipeline, "clair post processing");
-
 
 //add name/pipeline info to VCF header
 $vcf = Matrix::fromTSV($uncompressed_vcf);
