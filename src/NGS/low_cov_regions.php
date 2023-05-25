@@ -10,7 +10,6 @@ $parser->addOutfile("out", "Output BED file with low-coverage regions.", false);
 //optional
 $parser->addInt("percentile", "Percentile of samples with low coverage needed for output.", true, 40);
 $parser->addFlag("tumor", "Only process tumor samples, otherwise only non-tumor samples are process).");
-$parser->addFlag("only_females", "Only process female samples (otherwise gaps for chrX are over-estimated).");
 extract($parser->parse($argv));
 
 //load input file names
@@ -21,6 +20,8 @@ if (count($in)==1)
 
 //process input files
 $samples_processed = 0;
+$samples_processed_x = 0;
+$samples_processed_y = 0;
 $db = DB::getInstance("NGSD");
 foreach($in as $bed)
 {
@@ -53,14 +54,11 @@ foreach($in as $bed)
 		continue;
 	}
 	
-	//filter for female samples (otherwise results for chrX are wrong)
-	if ($only_females && $info['gender']!="female")
-	{
-		print "skipping: $base (not 'female' gender)\n";
-		continue;
-	}
-	
+	//count number of samples
+	$gender = $info['gender'];
 	++$samples_processed;
+	if ($gender=="female") ++$samples_processed_x;
+	if ($gender=="male") ++$samples_processed_y;
 	
 	//process low-coverage file
 	print "processing: $base\n";
@@ -69,7 +67,11 @@ foreach($in as $bed)
 	{
 		$line = trim($line);
 		if ($line=="" || $line[0]=="#") continue;
-		list($chr, $start, $end) = explode("\t", $line);			
+		list($chr, $start, $end) = explode("\t", $line);
+		
+		if ($chr=="chrX" && $gender!="female") continue;
+		if ($chr=="chrY" && $gender!="male") continue;
+		
 		for($p=$start; $p<$end; ++$p)
 		{
 			if (!isset($low[$chr."_".$p]))
@@ -79,18 +81,29 @@ foreach($in as $bed)
 			$low[$chr."_".$p] += 1;
 		}
 	}
+	if ($samples_processed>=100) break;
 }
 
 //calculate threshold
 $thres = number_format($samples_processed * $percentile / 100.0, 2);
+$thres_x = number_format($samples_processed_x * $percentile / 100.0, 2);
+$thres_y = number_format($samples_processed_y * $percentile / 100.0, 2);
 
 //write output BED file
 $output = [];
 foreach($low as $pos => $count)
 {
-	if ($count>=$thres)
+	list($chr, $pos) = explode("_", $pos);
+	if($chr=="chrX" && $count>=$thres_x)
 	{
-		list($chr, $pos) = explode("_", $pos);
+		$output[] = "$chr\t$pos\t".($pos+1)."\n";
+	}
+	else if($chr=="chrY" && $count>=$thres_y)
+	{
+		$output[] = "$chr\t$pos\t".($pos+1)."\n";
+	}
+	else if ($count>=$thres)
+	{
 		$output[] = "$chr\t$pos\t".($pos+1)."\n";
 	}
 }
@@ -142,6 +155,8 @@ $parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $out -clear -out $ou
 //output
 print "input files: ".count($in)."\n";
 print "threshold: {$thres} of {$samples_processed} processed samples\n";
+print "threshold chrX: {$thres_x} of {$samples_processed_x} processed females\n";
+print "threshold chrY: {$thres_y} of {$samples_processed_y} processed males\n";
 list($stdout, $stderr) = exec2(get_path("ngs-bits")."BedInfo -in $out | grep Bases");
 list(,$bases) = explode(":", $stdout[0]);
 print "low-coverage bases: ".number_format($bases, 0)."\n";
