@@ -81,7 +81,6 @@ foreach($in as $bed)
 			$low[$chr."_".$p] += 1;
 		}
 	}
-	if ($samples_processed>=100) break;
 }
 
 //calculate threshold
