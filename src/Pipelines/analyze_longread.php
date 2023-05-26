@@ -279,9 +279,8 @@ if (in_array("cn", $steps))
 if (in_array("sv", $steps))
 {
 	//run Sniffles
-	$parser->execTool("NGS/vc_sniffles.php", "-bam {$bam_file} -out {$sv_vcf_file} -threads {$threads} -build {$build}");
-		
-		
+	$parser->execTool("NGS/vc_sniffles.php", "-bam {$bam_file} -name {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build}");
+				
 }
 
 
@@ -316,7 +315,6 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 
 	$parser->exec(get_path("longphase"), implode(" ", $args));
 	$parser->indexBam($tagged_bam_file, $threads);
-	
 }
 
 
@@ -455,12 +453,11 @@ if (in_array("an", $steps))
 			$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_file -out $bedpe_file -cnv $cnvfile", true);
 		}
 	}
-
 }
 
 
 // create Circos plot - if small variant, CNV or SV calling was done
-if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)))
+if (in_array("an", $steps))
 {
 	if (file_exists($cnvfile))
 	{
