@@ -1050,6 +1050,11 @@ function vcfgeno2human($gt, $upper_case=false)
 	return $upper_case ? strtoupper($geno) : $geno;
 }
 
+function processed_sample_name(&$db_conn, $ps_id)
+{
+	return $db_conn->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id={$ps_id}");
+}
+
 //Returns information from the NGSD about a processed sample (as key-value pairs), or null/error if the sample is not found.
 function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true)
 {
@@ -1907,14 +1912,23 @@ function ngsbits_build($system_build)
 //returns an array of processed sample names that are currently being analyzed via the SGE queue
 function ps_running_in_sge()
 {
-	$output = [];
+	//extract job ids
+	$job_ids = [];
+	list($tmp) = exec2("qstat -u '*'");
+	foreach($tmp as $line)
+	{
+		$line = trim($line);
+		if ($line=="") continue;
+		$id = explode(" ", $line)[0];
+		if (is_numeric($id))
+		{
+			$job_ids[] = $id;
+		}
+	}
 	
-	list($job_ids) = exec2("qstat -u '*' | cut -f2 -d' '");
+	$output = [];
 	foreach($job_ids as $job_id)
 	{
-		$job_id = trim($job_id);
-		if (!is_numeric($job_id)) continue;
-		
 		list($args) = exec2("qstat -j {$job_id} | tr ',' '\n'");
 		foreach($args as $arg)
 		{

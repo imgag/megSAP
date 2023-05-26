@@ -216,11 +216,7 @@ else //normal analysis without UMIs
 
 	if (!$start_with_abra)
 	{
-		if ($no_trim)
-		{
-			$parser->exec(get_path("ngs-bits")."ReadQC", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -out $stafile1", true);
-		}
-		else
+		if (!$no_trim)
 		{
 			$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 12), true);
 		}
@@ -579,7 +575,10 @@ if ($somatic_custom_map && file_exists($somatic_custom_panel))
 {
 	$params[] = "-somatic_custom_bed $somatic_custom_panel";
 }
-
+if (!file_exists($stafile1))
+{
+	$params[] = "-read_qc $stafile1";
+}
 $parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
 
 //copy BAM to final output location
