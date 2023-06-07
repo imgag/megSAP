@@ -14,8 +14,7 @@ $parser->addOutfile("out", "Output file in CSV format.", false);
 $parser->addString("lanes", "Comma-separated list of lane numbers to use.", true, "1,2,3,4,5,6,7,8");
 $parser->addInt("mid1_len", "Number of bases to use from MID 1.", true, -1);
 $parser->addInt("mid2_len", "Number of bases to use from MID 2.", true, -1);
-$parser->addFlag("mid2_no_rc", "Disables reverse-complement of MID 2. (not for 'add_mids')");
-$parser->addFlag("mid1_rc", "Enables reverse-complement of MID 1. (not for 'add_mids')");
+$parser->addFlag("mid2_no_rc", "Disables reverse-complement of MID 2.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
@@ -89,33 +88,17 @@ foreach($res as $row)
 	{
 		if (!in_array($lane, $lanes)) continue;
 		
-		//MID1
 		$mid1 = $row["mid1_i7"];
-		if ($mid1_len!=-1)
-		{
-			$mid1 = substr($mid1, 0, $mid1_len);
-		}
-		//MID2
 		$mid2 = $row["mid2_i5"];
 
-		//convert index 2 to reverse-complement
-		if (!$mid2_no_rc)
-		{
-			$mid2 = rev_comp($mid2);
-		}
-		//trim index 2
-		if ($mid2_len!=-1)
-		{
-			$mid2 = substr($mid2, 0, $mid2_len);
-		}
-
-		//TODO improve custom_mid handling
+		//collect multiple MIDs per sample in case of add_mids or custom_mids
+		$mids1 = [];
+		$mids2 = [];
+		if (!empty($mid1)) $mids1 = [ $mid1 ];
+		if (!empty($mid2)) $mids2 = [ $mid2 ];
 
 
-
-
-		$mids_i7_add = [ $mid1 ];
-		$mids_i7_names_add = [ $row["mid1_i7_name"] ];
+		//in case of "add_mids", look up the given MID names and add the MID sequence to $mids1
 		if (starts_with($row["pscomment"], "add_mids:"))
 		{
 			$add_mids = explode(".", substr($row["pscomment"], strpos($row["pscomment"], ":")+1));
@@ -129,15 +112,57 @@ foreach($res as $row)
 				}
 				else
 				{
-					$mids_i7_add[] = $res[0]["sequence"];
-					$mids_i7_names_add[] = $res[0]["name"];
+					$mids1[] = $res[0]["sequence"];
+					$mids2[] = "";
 				}
 			}
 		}
 
-		
-		foreach (array_combine($mids_i7_names_add, $mids_i7_add) as $mid1_name => $mid1)
+		//in case of "custom_mid", add the given MID(s) or MID combination(s)
+		if (starts_with($row["pscomment"], "custom_mid:"))
 		{
+			$custom_mid = explode(".", substr($row["pscomment"], strpos($row["pscomment"], ":")+1));
+			foreach ($custom_mid as $mid)
+			{
+				$mid = trim($mid);
+				preg_match("/^(?<mid1>[AGTC]+)(\+(?<mid2>[AGTC]+))?$/", $mid, $matches);
+				if (array_key_exists("mid1", $matches) && array_key_exists("mid2", $matches))
+				{
+					$mids1[] = $matches["mid1"];
+					$mids2[] = $matches["mid2"];
+				}
+				elseif (array_key_exists("mid1", $matches))
+				{
+					$mids1[] = $matches["mid1"];
+					$mids2[] = "";
+				}
+				else
+				{
+					trigger_error("Invalid custom_mid value: '{$mid}'", E_USER_ERROR);
+				}
+			}
+		}
+
+		for ($i=0; $i<count($mids1); $i++)
+		{
+			$mid1 = $mids1[$i];
+			$mid2 = $mids2[$i];
+
+			//trim index 1
+			if ($mid1_len!=-1)
+			{
+				$mid1 = substr($mid1, 0, $mid1_len);
+			}
+			//convert index 2 to reverse-complement
+			if (!$mid2_no_rc)
+			{
+				$mid2 = rev_comp($mid2);
+			}
+			//trim index 2
+			if ($mid2_len!=-1)
+			{
+				$mid2 = substr($mid2, 0, $mid2_len);
+			}
 
 			$barcodes[$lane][] = array($mid1, $mid2, $name);
 			$output[] = implode(',', [
@@ -148,8 +173,8 @@ foreach($res as $row)
 				$mid1,
 				$mid2,
 				trim(implode(" ", [ $row["pscomment"], $row["scomment"] ])),
-				$mid1_name,
-				$row["mid2_i5_name"]
+				"",
+				""
 			]);
 		}
 	}
