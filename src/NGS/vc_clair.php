@@ -116,7 +116,7 @@ $uncompressed_vcf = $parser->tempFile(".vcf");
 $pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
 
 //fix error in VCF file and strip unneeded information
-$pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", " > {$uncompressed_vcf}", false);
+$pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", "--longread_mode > {$uncompressed_vcf}", false);
 
 //execute post-processing pipeline
 $parser->execPipeline($pipeline, "clair post processing");

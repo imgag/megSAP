@@ -6,6 +6,10 @@
 	--mosaic_mode: 
 		- Doesn't remove variants with genotype '0/0' instead changes them to  het '0/1'.
 	
+	--longread_mode:
+		- preserve phasing information
+		- keeps different INFO/FORMAT values
+	
 	Fixes VCF file problems produced by Freebayes:
 	- Merges duplicate heterozygous variants into one homozygous variant
 	- Fixes 'AO' count for variants stemming from multi-allelic base variants (comma-separated list to single int)
@@ -40,21 +44,26 @@ function info_data($info)
 }
 
 //convert FORMAT/SAMPLE data to associative array
-function sample_data($format, $sample)
+function sample_data($format, $sample, $longread_mode=false)
 {
 	$tmp = array_combine(explode(":", $format), explode(":", $sample));
 	
-	//normalize genotype string
-	$tmp['GT'] = strtr($tmp['GT'], array("."=>"0", "|"=>"/"));
-	if ($tmp['GT']=="1/0") $tmp['GT']="0/1";
+	if(!$longread_mode)
+	{
+		//normalize genotype string
+		$tmp['GT'] = strtr($tmp['GT'], array("."=>"0", "|"=>"/"));
+		if ($tmp['GT']=="1/0") $tmp['GT']="0/1";
+	}
 	
 	return $tmp;
 }
 
 //write variant
-function write($h_out, $var, $mosaic_mode=false)
+function write($h_out, $var, $mosaic_mode=false, $longread_mode=false)
 {
 	// create format value column for each sample
+	$format_header = "GT:DP:AO:GQ";
+	if ($longread_mode) $format_header = "GT:DP:AF:GQ";
 	$format_values = array();
 	$all_wt = true;
 	
@@ -66,7 +75,7 @@ function write($h_out, $var, $mosaic_mode=false)
 	
 	for ($i=9; $i < count($var); $i++) 
 	{ 
-		$sample= sample_data($var[8], $var[$i]);
+		$sample= sample_data($var[8], $var[$i], $longread_mode);
 		if($sample['GT']!="0/0")
 		{
 			//non wt variant -> keep in file
@@ -80,7 +89,15 @@ function write($h_out, $var, $mosaic_mode=false)
 		}
 		
 		// create output string
-		$format_values[] = $sample['GT'].":".$sample['DP'].":".(int)($sample['AO']).":".(int)($sample['GQ']);
+		if($longread_mode)
+		{
+			$format_values[] = $sample['GT'].":".$sample['DP'].":".(int)($sample['AF']).":".(int)($sample['GQ']);
+		}
+		else
+		{
+			$format_values[] = $sample['GT'].":".$sample['DP'].":".(int)($sample['AO']).":".(int)($sample['GQ']);
+		}
+		
 	}
 
 	//skip wildtype variants
@@ -97,11 +114,22 @@ function write($h_out, $var, $mosaic_mode=false)
 	
 	//write INFO
 	$info = info_data($var[7]);
-	
-	fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";SAR=".number_format($info['SAR'], 0, ".", "").";SAF=".number_format($info['SAF'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "")."\t");
+
+	if($longread_mode)
+	{
+		$info_output = array();
+		if(isset($info["F"])) $info_output[] = "F";
+		if(isset($info["P"])) $info_output[] = "P";
+		fwrite($h_out, implode(";", $info_output)."\t");
+	}
+	else
+	{
+		fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";SAR=".number_format($info['SAR'], 0, ".", "").";SAF=".number_format($info['SAF'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "")."\t");
+	}
 	
 	//write FORMAT/SAMPLE
-	fwrite($h_out, "GT:DP:AO:GQ\t".implode("\t", $format_values)."\n");
+	fwrite($h_out, $format_header."\t".implode("\t", $format_values)."\n");
+	
 }
 
 
@@ -109,22 +137,31 @@ function write($h_out, $var, $mosaic_mode=false)
 
 //CLI handling:
 $mosaic_mode = false;
+$longread_mode = false;
+$format_header = "GT:DP:AO:GQ";
 if ($argc != 1)
 {
 	if ($argv[1] == "--mosaic_mode")
 	{
 		$mosaic_mode = true;
+		fprintf(STDERR, "'--mosaic_mode' provided. \nRunning in mosaic mode.");
+	}
+	elseif ($argv[1] == "--longread_mode")
+	{
+		$longread_mode = true;
+		$format_header = "GT:DP:AF:GQ";
+		fprintf(STDERR, "'--longread_mode' provided. \nRunning in longread mode.");		
 	}
 	else
 	{
-		fprintf(STDERR, "Unknown command line option(s) given '".$argv[1]."'.\nCurrently only the flag --mosaic_mode is supported.");
+		fprintf(STDERR, "Unknown command line option(s) given '".$argv[1]."'.\nCurrently only the flags --mosaic_mode and --longread_mode are supported.");
 		return 1;
 	}
 }
 
 
 $ids = array("RO","GTI","NS","SRF","NUMALT","DP","QR","SRR","SRP","PRO","EPPR","DPB","PQR","ROOR","MQMR","ODDS","AN","RPPR","PAIREDR");
-$var_last = array("","","","","","","","","GT:DP:AO:GQ","0/0:0:0:0");
+$var_last = array("","","","","","","","",$format_header,"0/0:0:0:0");
 $h_in = fopen2("php://stdin", "r");
 $h_out = fopen2("php://stdout", "w");
 while(!feof($h_in))
@@ -153,6 +190,12 @@ while(!feof($h_in))
 	
 	//write content
 	$var = explode("\t", $line); //chr, pos, id, ref, alt, qual, filter, info, format, sample_1, ..., sample_n
+
+	//check for multisample
+	if($longread_mode && (count($var) > 10))
+	{
+		trigger_error("Longread multisamples are not supported by vcf_fix.php!", E_USER_ERROR);
+	}
 	
 	//same variant twice => merge
 	if ($var[0]==$var_last[0] && $var[1]==$var_last[1] && $var[3]==$var_last[3] && $var[4]==$var_last[4])
@@ -200,27 +243,46 @@ while(!feof($h_in))
 			}
 			
 			$dp = $sample['DP'];
-			$ao = $sample['AO'];
-			if (contains($ao, ",")) list($ao) = explode(",", $ao);
-			$ao_last = $sample_last['AO'];
-			if (contains($ao_last, ",")) list($ao_last) = explode(",", $ao_last);
-			$ao = min($dp, $ao + $ao_last);
+			if ($longread_mode)
+			{
+				$af = $sample['AF'];
+				if (contains($af, ",")) list($af) = explode(",", $af);
+				$af_last = $sample_last['AF'];
+				if (contains($af_last, ",")) list($af_last) = explode(",", $af_last);
+				$af = min($dp, $af + $af_last);
+			}
+			else
+			{
+				$ao = $sample['AO'];
+				if (contains($ao, ",")) list($ao) = explode(",", $ao);
+				$ao_last = $sample_last['AO'];
+				if (contains($ao_last, ",")) list($ao_last) = explode(",", $ao_last);
+				$ao = min($dp, $ao + $ao_last);
+			}
 			$gq_last = $sample_last['GQ'];
 			$gq = max($sample['GQ'], $gq_last);
 
 			// determine genotype
-			$var_last[$i] = "$gt:$dp:$ao:$gq";
+			if ($longread_mode)
+			{
+				$var_last[$i] = "$gt:$dp:$af:$gq";
+			}
+			else
+			{
+				$var_last[$i] = "$gt:$dp:$ao:$gq";
+			}
+			
 		} 
 		// change FORMAT column at last to prevent FORMAT/SAMPLE key<->value errors 
-		$var_last[8] = "GT:DP:AO:GQ";
+		$var_last[8] = $format_header;
 	}
 	else
 	{
-		write($h_out, $var_last, $mosaic_mode);
+		write($h_out, $var_last, $mosaic_mode, $longread_mode);
 		$var_last = $var;
 	}
 }
-write($h_out, $var_last, $mosaic_mode);
+write($h_out, $var_last, $mosaic_mode, $longread_mode);
 fclose($h_in);
 fclose($h_out);
 

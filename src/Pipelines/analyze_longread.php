@@ -289,6 +289,7 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 {
 	//run phasing by LongPhase on VCF files
 	$phased_tmp = $parser->tempFile(".vcf", "longphase");
+	$phased_sv_tmp = substr($phased_tmp,0,-4)."_SV.vcf";
 	$args = array();
 	$args[] = "phase";
 	$args[] = "-s {$vcf_file}";
@@ -300,9 +301,15 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	$args[] = "--ont";
 
 	$parser->exec(get_path("longphase"), implode(" ", $args));
+	
 	//create compressed file and index
 	$parser->exec("bgzip", "-c $phased_tmp > {$vcf_file}", false);
 	$parser->exec("tabix", "-f -p vcf $vcf_file", false);
+	if (file_exists($sv_vcf_file))
+	{
+		$parser->exec("bgzip", "-c $phased_sv_tmp > {$sv_vcf_file}", false);
+		$parser->exec("tabix", "-f -p vcf $sv_vcf_file", false);
+	}
 
 	//tag BAM file 
 	$args = array();
@@ -311,6 +318,7 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	$args[] = "-b {$bam_file}";
 	$args[] = "-r {$genome}";
 	$args[] = "-t {$threads}";
+	if (file_exists($sv_vcf_file)) $args[] = "--sv-file {$sv_vcf_file}";
 	$args[] = "-o ".substr($tagged_bam_file, 0, -4);
 
 	$parser->exec(get_path("longphase"), implode(" ", $args));
