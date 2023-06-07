@@ -200,7 +200,7 @@ if (in_array("ma", $steps))
 
 		$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
 
-		if ($umi)
+		if ($umi && !$skip_dedup)
 		{
 			//UMI-based duplicate flagging
 			$pipeline = [];
