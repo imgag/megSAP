@@ -10,7 +10,7 @@
 	- Merges duplicate heterozygous variants into one homozygous variant
 	- Fixes 'AO' count for variants stemming from multi-allelic base variants (comma-separated list to single int)
 	- Normalizes 'GT' to '0/1' or '1/1' (removes variants with genotype '0/0')
-	- Removed variants where REF contains 'N' 
+	- Removed variants with invalid REF characters ('N', ...) 
 	- Removes unused fields in INFO/FORMAT columns
 */
 
@@ -89,8 +89,11 @@ function write($h_out, $var, $mosaic_mode=false)
 		return;
 	}
 	
-	//skip wildtype variants
-	if (contains(strtoupper($var[3]),'N')) return;
+	//skip variants with invalid reference characters
+	if (!preg_match("/^[ACGT]+$/", $var[3]))
+	{
+		return;
+	}
 	
 	//write base info
 	fwrite($h_out, $var[0]."\t".$var[1]."\t".$var[2]."\t".$var[3]."\t".$var[4]."\t".number_format($var[5], 0, ".", "")."\t".$var[6]."\t");
