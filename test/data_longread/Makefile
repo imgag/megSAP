@@ -6,23 +6,18 @@ clean:
 
 link:
 	php ../link_test_data.php 23014LRa023L2_01_chr1_longread.fastq.gz
-	date
 
 map:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps ma -threads 1
-	date
-
+	
 vc:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps vc
-	date
 
 # cn:
 # 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps cn
-# 	date
 
 sv:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps sv
-	date
 
 an:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps an
@@ -30,7 +25,6 @@ an:
 	cut -f1-22 23014LRa023L2_01_var_structural_variant.bedpe > 23014LRa023L2_01_var_structural_variant_cut.bedpe
 	# create file from OMIM annotation and CNV overlap
 	# cat 23014LRa023L2_01_var_tructural_variant.bedpe | egrep -v "^##"| rev | cut -f 1,2| rev > 23014LRa023L2_01_var_structural_cut2.bedpe
-	date
 
 diff:
 	php ../compare_variants.php -in1 23014LRa023L2_01.GSvar.out -in2 23014LRa023L2_01.GSvar
