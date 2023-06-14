@@ -314,6 +314,7 @@ $column_desc_ngsd_som = array(
 $column_desc_ngsd = array(
 	array("NGSD_hom", "Homozygous variant count in NGSD."),
 	array("NGSD_het", "Heterozygous variant count in NGSD."),
+	array("NGSD_mosaic", "Mosaic variant count in NGSD."),
 	array("NGSD_group", "Homozygous / heterozygous variant count in NGSD with the same disease group."),
 	array("classification", "Classification from the NGSD."),
 	array("classification_comment", "Classification comment from the NGSD."),
@@ -1057,6 +1058,7 @@ while(!feof($handle))
 		{
 			$ngsd_hom = "n/a (AF>5%)";
 			$ngsd_het = "n/a (AF>5%)";
+			$ngsd_mosaic = "n/a (AF>5%)";
 			$ngsd_group = "n/a (AF>5%)";
 		}
 		elseif(isset($info["NGSD_COUNTS"]))
@@ -1064,6 +1066,7 @@ while(!feof($handle))
 			$ngsd_counts = explode(",", trim($info["NGSD_COUNTS"]));
 			$ngsd_hom = $ngsd_counts[0];
 			$ngsd_het = $ngsd_counts[1];
+			$ngsd_mosaic = (count($ngsd_counts)<3 ? "n/a" : $ngsd_counts[2]);
 			if (isset($info["NGSD_GROUP"]))
 			{
 				$ngsd_group_raw = explode(",", trim($info["NGSD_GROUP"]));
@@ -1078,6 +1081,7 @@ while(!feof($handle))
 		{
 			$ngsd_hom = "0";
 			$ngsd_het = "0";
+			$ngsd_mosaic = "0";
 			$ngsd_group = "0 / 0";
 		}
 
@@ -1294,7 +1298,7 @@ while(!feof($handle))
 	}
 	if (!$skip_ngsd)
 	{
-		fwrite($handle_out, "\t$ngsd_hom\t$ngsd_het\t$ngsd_group\t$ngsd_clas\t$ngsd_clas_com\t$ngsd_val\t$ngsd_com\t$ngsd_gene_info");
+		fwrite($handle_out, "\t$ngsd_hom\t$ngsd_het\t$ngsd_mosaic\t$ngsd_group\t$ngsd_clas\t$ngsd_clas_com\t$ngsd_val\t$ngsd_com\t$ngsd_gene_info");
 	}
 	
 	if ( !$skip_cosmic_cmc && isset($info["COSMIC_CMC"]) )
