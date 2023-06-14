@@ -485,7 +485,7 @@ if (in_array("an", $steps))
 }
 
 // collect other QC terms - if CNV or SV calling was done
-if ((in_array("cn", $steps) || in_array("sv", $steps)))
+if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("an", $steps)))
 {
 	$terms = [];
 	$sources = [];
@@ -591,10 +591,13 @@ if ((in_array("cn", $steps) || in_array("sv", $steps)))
 		$sources[] = $bedpe_file;
 	}
 	
-	//create qcML file
-	$tmp = $parser->tempFile("qc.tsv");
-	file_put_contents($tmp, implode("\n", $terms));
-	$parser->exec("{$ngsbits}TsvToQC", "-in $tmp -out $qc_other -sources ".implode(" ", $sources));
+	if(count($sources) > 0)
+	{
+		//create qcML file
+		$tmp = $parser->tempFile("qc.tsv");
+		file_put_contents($tmp, implode("\n", $terms));
+		$parser->exec("{$ngsbits}TsvToQC", "-in $tmp -out $qc_other -sources ".implode(" ", $sources));
+	}
 }
 
 //import to database

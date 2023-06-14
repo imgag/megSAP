@@ -31,14 +31,13 @@ bedtools = [path]/data/tools/bedtools-2.30.0/bedtools.static.binary
 gatk = java -Xmx4G -jar /[path]/data/tools/gatk-4.2.6.1/gatk-package-4.2.6.1-local.jar
 
 [tools-longread]
-minimap2 = [path]/data/tools/minimap2-2.24_x64-linux/minimap2.1
-clair3 = [path]/data/tools/Clair3-v1.0.0/run_clair3.sh
-clair3_models = [path]/data/tools/Clair3-v1.0.0/models
-python3_clair3 = [path]/data/tools/clair3_conda/bin/python
-longphase = [path]/data/tools/longphase_v1.4/longphase_linux-x64
-whatshap = [path]/data/tools/Clair3-v1.0.0/clair3_env/bin/whatshap
-pypy3 = [path]/data/tools/pypy3.6-v7.3.3-linux64/bin/pypy3
-parallel = [path]/data/tools/parallel-20230222/bin/parallel
+minimap2 = [path]/data/tools/minimap2-2.26_x64-linux/minimap2
+clair3 = [path]/data/tools/Clair3-v1.0.2/run_clair3.sh
+clair3_models = [path]/data/tools/Clair3-v1.0.2/models
+longphase = [path]/data/tools/longphase_v1.5/longphase_linux-x64
+whatshap = [path]/data/tools/Python-3.10.9/bin/whatshap
+pypy3 = [path]/data/tools/pypy3.9-v7.3.11-linux64/bin/pypy3
+parallel = [path]/data/tools/parallel-20230522/bin/parallel
 sniffles = [path]/data/tools/Python-3.10.9/bin/sniffles
 
 [tools-ngs-somatic]

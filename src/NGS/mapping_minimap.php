@@ -18,8 +18,6 @@ $parser->addInfile("system",  "Processing system INI file (automatically determi
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
 extract($parser->parse($argv));
 
-//TODO: FastQ ReadQC ?
-
 
 //init vars
 if($sample == "") $sample = basename($out, ".bam");

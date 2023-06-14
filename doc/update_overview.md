@@ -79,3 +79,15 @@
 |Arriba                 |fusion detection                                     |03.2023 (2.4.0)   |                                                                                     |https://github.com/suhrig/arriba                                        |
 |Kraken2                |fastq filtering                                      |03.2023 (2.1.2)   |                                                                                     |https://github.com/DerrickWood/kraken2                                  |
 |umi_tools              |UMI extraction                                       |03.2023 (1.1.4)   |                                                                                     |https://github.com/CGATOxford/UMI-tools                                 |
+
+## Tools for longread pipeline
+
+|tool longread          |used for                                             |last update/check |notes                                                                                |url                                                                     |
+|-----------------------|-----------------------------------------------------|------------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+|minimap2               |mapping                                              |06.2023 (2.26)    |                                                                                     |https://github.com/lh3/minimap2                                         |
+|clair3                 |small variant calling                                |06.2023 (1.0.2)   |                                                                                     |https://github.com/HKU-BAL/Clair3                                       |
+|whatshap               |phasing (helper tool for clair3)                     |06.2023 (1.7)     | installed via pip in megSAP python environment                                      |https://github.com/whatshap/whatshap                                    |
+|pypy3                  |alt. python implementation (helper tool for clair3)  |06.2023 (v7.3.11) |                                                                                     |https://www.pypy.org/                                                   |
+|parallel				|tool to execute in parallel (helper tool for clair3) |06.2023 (20230522)|                                                                                     |https://www.gnu.org/software/parallel/                                  |
+|longphase              |phasing                                              |06.2023 (v1.5)    |                                                                                     |https://github.com/twolinin/longphase                                   |
+|sniffles               |structural variant calling                           |06.2023 (v2.0.7)  | installed via pip in megSAP python environment                                      |https://github.com/fritzsedlazeck/Sniffles                              |

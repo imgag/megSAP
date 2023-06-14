@@ -55,7 +55,7 @@ $args[] = "--output={$clair_temp}";
 //define env parameter
 $args[] = "--sample_name={$name}";
 $args[] = "--samtools=".get_path("samtools");
-$args[] = "--python=".get_path("python3_clair3");
+$args[] = "--python=".get_path("python3");
 $args[] = "--pypy=".get_path("pypy3");
 $args[] = "--parallel=".get_path("parallel");
 // $args[] = "--longphase=".get_path("longphase");

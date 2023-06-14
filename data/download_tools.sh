@@ -6,6 +6,7 @@ set -o verbose
 root=`pwd`
 folder=$root/tools/
 cpan_dir=$folder/perl_cpan/
+python3_path=$folder/Python-3.10.9/
 
 #Ignore this - used for local installation
 #folder=/mnt/storage2/megSAP/tools/
@@ -40,8 +41,8 @@ cd ..
 
 #download and build python3
 cd $folder
-mkdir -p Python-3.10.9
-cd Python-3.10.9
+mkdir -p $python3_path
+cd $python3_path
 wget https://www.python.org/ftp/python/3.10.9/Python-3.10.9.tgz
 tar -zxvf Python-3.10.9.tgz
 cd Python-3.10.9
@@ -50,7 +51,7 @@ make
 make install
 cd .. 
 # install packages
-bin/pip3 install -r $root/install_deps_python.txt
+bin/pip3 install -r $root/install_deps_python.txt --no-warn-script-location
 rm -R Python-3.10.9
 rm Python-3.10.9.tgz
 cd ..
@@ -151,7 +152,6 @@ cd $folder
 wget http://circos.ca/distribution/circos-0.69-9.tgz
 tar xzf circos-0.69-9.tgz
 rm circos-0.69-9.tgz
-
 # install required Perl modules for Circos in a subfolder
 mkdir -p $cpan_dir
 cpanm -l $cpan_dir -L $cpan_dir Carp Clone Config::General Cwd Data::Dumper Digest::MD5 File::Basename File::Spec::Functions File::Temp FindBin Font::TTF::Font GD GD::Polyline Getopt::Long IO::File List::MoreUtils List::Util Math::Bezier Math::BigFloat Math::Round Math::VecStat Memoize POSIX Params::Validate Pod::Usage Readonly Regexp::Common SVG Set::IntSpan Statistics::Basic Storable Sys::Hostname Text::Balanced Text::Format Time::HiRes
@@ -190,18 +190,17 @@ cd bedtools-2.30.0
 wget https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools.static.binary
 chmod 755 bedtools.static.binary
 
-
-
-
+#download minimap
+curl -L https://github.com/lh3/minimap2/releases/download/v2.26/minimap2-2.26_x64-linux.tar.bz2 | tar -jxvf -
 
 #download clair3
 cd $folder
-git clone https://github.com/HKU-BAL/Clair3.git Clair3-v1.0.0
-cd Clair3-v1.0.0
-git checkout "v1.0.0"
+git clone https://github.com/HKU-BAL/Clair3.git Clair3-v1.0.2
+cd Clair3-v1.0.2
+git checkout "v1.0.2"
 #download models
 git clone https://github.com/nanoporetech/rerio.git
-$folder/Python-3.10.9/bin/python3 rerio/download_model.py --clair3
+$python3_path/bin/python3 rerio/download_model.py --clair3
 mkdir -p models
 mv rerio/clair3_models/* models
 rm -rf rerio
@@ -210,35 +209,47 @@ wget http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_sup_g5014.tar.gz
 tar xzf r941_prom_sup_g5014.tar.gz
 rm r941_prom_sup_g5014.tar.gz
 cd ..
-#create custom venv
-$folder/Python-3.10.9/bin/python3 -m venv clair3_env
-source clair3_env/bin/activate
-pip3 install -r $root/install_deps_python_clair3.txt
-deactivate
+#create temporary miniconda/clair env to build clair
+wget https://repo.anaconda.com/miniconda/Miniconda3-py310_23.3.1-0-Linux-x86_64.sh -O miniconda.sh
+bash miniconda.sh -b -p miniconda
+source miniconda/bin/activate
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+conda create -p anaconda_clair3 -c bioconda clair3 python=3.9.0 -y
+conda activate ./anaconda_clair3
+#build clair3
+make all
+#cleanup
+conda deactivate
+conda deactivate
+rm -rf anaconda_clair3/
+rm miniconda.sh
+rm -rf miniconda/
 cd ..
 
 #download pypy3
 cd $folder
-wget https://downloads.python.org/pypy/pypy3.6-v7.3.3-linux64.tar.bz2
-tar xfvj pypy3.6-v7.3.3-linux64.tar.bz2
-rm pypy3.6-v7.3.3-linux64.tar.bz2
+wget https://downloads.python.org/pypy/pypy3.9-v7.3.11-linux64.tar.bz2
+tar xfvj pypy3.9-v7.3.11-linux64.tar.bz2
+rm pypy3.9-v7.3.11-linux64.tar.bz2
 
 #download parallel
 cd $folder
-wget https://mirror.dogado.de/gnu/parallel/parallel-20230222.tar.bz2
-tar xfvj parallel-20230222.tar.bz2
-cd parallel-20230222
-./configure --prefix=$folder/parallel-20230222
+wget https://ftpmirror.gnu.org/parallel/parallel-20230522.tar.bz2
+tar xfvj parallel-20230522.tar.bz2
+cd parallel-20230522
+./configure --prefix=$folder/parallel-20230522
 make
 make install
 cd ..
-rm parallel-20230222.tar.bz2
+rm parallel-20230522.tar.bz2
 
 #download longphase
 cd $folder
-mkdir -p longphase_v1.4
-cd longphase_v1.4
-wget https://github.com/twolinin/longphase/releases/download/v1.4/longphase_linux-x64.tar.xz
+mkdir -p longphase_v1.5
+cd longphase_v1.5
+wget https://github.com/twolinin/longphase/releases/download/v1.5/longphase_linux-x64.tar.xz
 tar -xJf longphase_linux-x64.tar.xz
 rm longphase_linux-x64.tar.xz
 cd ..
