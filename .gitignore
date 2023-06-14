@@ -153,3 +153,5 @@
 /test/data_longread/*_ancestry.tsv
 /test/data_longread/clair_temp/
 /test/data_longread/*_circos.png
+/test/data_longread/merge_output.vcf
+
