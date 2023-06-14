@@ -17,7 +17,7 @@ $parser->addInfile("system", "Processing system INI file (determined from NGSD v
 $steps_all = array("ma", "rc", "an", "fu", "db", "plt");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, rc=read counting, an=annotation, fu=fusion detection, db=import into NGSD", true, "ma,rc,an,fu,db,plt");
 $parser->addEnum("library_type", "Specify the library type, i.e. the strand R1 originates from (dUTP libraries correspond to reverse).", true, array("unstranded", "reverse", "forward"), "reverse");
-$parser->addFlag("skip_dedup", "Skip alignment duplication marking.");
+$parser->addFlag("skip_dedup", "Skip alignment duplication marking (coordinate or UMI based).");
 $parser->addFlag("skip_filter_hb", "Do not automatically filter input FASTQ for globin reads for blood samples.");
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
@@ -186,8 +186,9 @@ if (in_array("ma", $steps))
 			$fastq_trimmed2 = "{$filtered2}.gz";
 		}
 		//mapping
+		$tmp_aligned = $parser->tempFile("aligned.bam");
 		$args = array(
-			"-out", $umi ? $before_dedup_bam : $final_bam,
+			"-out", $tmp_aligned,
 			"-threads", $threads,
 			"-in1", $fastq_trimmed1,
 			"-in2", $fastq_trimmed2,
@@ -199,23 +200,32 @@ if (in_array("ma", $steps))
 
 		$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
 
-		if ($umi)
+		if ($umi && !$skip_dedup)
 		{
-			//generate $final_bam from $before_dedup_bam
-
-			//barcode correction
+			//UMI-based duplicate flagging
 			$pipeline = [];
-			//UMI-tools dedup
-			$pipeline[] = [get_path("umi_tools"), "dedup --stdin {$before_dedup_bam} --out-sam --log2stderr --paired --mapping-quality=3 --no-sort-output --umi-separator=':' --output-stats={$prefix}_umistats"];
-			//remove DUP flags
-			$pipeline[] = [get_path("samtools"), "view --remove-flags DUP -u -b"];
-			//sort
-			$tmp_for_sorting = $parser->tempFile();
-			$pipeline[] = [get_path("samtools"), "sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$final_bam} -"];
+			//UMI-tools group alignments (coordinate sorted)
+			$pipeline[] = [get_path("umi_tools"), "group --stdin {$tmp_aligned} --output-bam --log2stderr --paired --no-sort-output --umi-separator=':' --compresslevel 0 --unmapped-reads use"];
+			$tmp_for_sorting1 = $parser->tempFile();
+			//sort by query name
+			$pipeline[] = [get_path("samtools"), "sort -n -T {$tmp_for_sorting1} -m 2G -@ {$threads}"];
+			//use fixmate to add mate scores
+			$pipeline[] = [get_path("samtools"), "fixmate -@ {$threads} -u -m - -"];
+			$tmp_for_sorting2 = $parser->tempFile();
+			//sort by coordinate
+			$pipeline[] = [get_path("samtools"), "sort -T {$tmp_for_sorting2} -m 2G -@ {$threads}"];
+			$tmp_for_markdup = $parser->tempFile();
+			//mark duplicates by UG tag (unique group from umi_tools group)
+			$pipeline[] = [get_path("samtools"), "markdup -T {$tmp_for_markdup} -c --barcode-tag UG -s -@ {$threads} - {$final_bam}"];
 			$parser->execPipeline($pipeline, "umi-tools dedup pipeline");
 
 			//index
 			$parser->indexBam($final_bam, $threads);
+		}
+		else
+		{
+			$parser->moveFile($tmp_aligned, $final_bam);
+			$parser->moveFile("{$tmp_aligned}.bai", "{$final_bam}.bai");
 		}
 
 		//mapping QC
@@ -253,11 +263,15 @@ if (in_array("rc", $steps))
 		"-threads", $threads
 	);
 
+	// for UMI libraries, ignore duplicates
+	if ($umi) $args_common[] = "-ignore_dup";
+
 	$args = array_merge($args_common, [
 		"-out", $counts_raw,
 		"-qc_file", $counts_qc
 	]);
 
+	// gene-level counting
 	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args));
 
 	// exon-level counting
@@ -269,14 +283,6 @@ if (in_array("rc", $steps))
 
 	// read count normalization
 	$parser->execTool("NGS/rc_normalize.php", "-in $counts_raw -out $counts_normalized -in_exon $counts_exon_raw -out_exon $counts_exon_normalized");
-
-	// re-run read counting without duplicate alignments
-	$counts_nodup = $prefix."_counts_nodup_raw.tsv";
-	$args_dup = array_merge($args_common, [
-		"-ignore_dup",
-		"-out", $counts_nodup
-	]);
-	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args_dup));
 }
 
 //annotate
