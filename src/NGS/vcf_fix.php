@@ -91,7 +91,7 @@ function write($h_out, $var, $mosaic_mode=false, $longread_mode=false)
 		// create output string
 		if($longread_mode)
 		{
-			$format_values[] = $sample['GT'].":".$sample['DP'].":".(int)($sample['AF']).":".(int)($sample['GQ']);
+			$format_values[] = $sample['GT'].":".$sample['DP'].":".number_format($sample['AF'], 3).":".(int)($sample['GQ']);
 		}
 		else
 		{
@@ -147,13 +147,11 @@ if ($argc != 1)
 	if ($argv[1] == "--mosaic_mode")
 	{
 		$mosaic_mode = true;
-		fprintf(STDERR, "'--mosaic_mode' provided. \nRunning in mosaic mode.");
 	}
 	elseif ($argv[1] == "--longread_mode")
 	{
 		$longread_mode = true;
-		$format_header = "GT:DP:AF:GQ";
-		fprintf(STDERR, "'--longread_mode' provided. \nRunning in longread mode.");		
+		$format_header = "GT:DP:AF:GQ";		
 	}
 	else
 	{

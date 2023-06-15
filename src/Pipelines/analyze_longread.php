@@ -13,7 +13,7 @@ $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
-$steps_all = array("ma", "vc", "cn", "sv", "an", "db");
+$steps_all = array("ma", "vc", "sv", "an", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, an=annotation, db=import into NGSD.", true, "ma,vc,cn,sv,an,db");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("skip_phasing", "Skip phasing of VCF and BAM files.");
@@ -178,9 +178,11 @@ if (in_array("vc", $steps))
 	$parser->execTool("NGS/vc_clair.php", implode(" ", $args));	
 }
 
+//TODO: validate settings
 //copy-number analysis
 if (in_array("cn", $steps))
 {
+	trigger_error("WARNING: Copy-number calling is still in development!", E_USER_WARNING);
 
 	//create reference folder if it does not exist
 	$ref_folder = get_path("data_folder")."/coverage/".$sys['name_short']."/";
