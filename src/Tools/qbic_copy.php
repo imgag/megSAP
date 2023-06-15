@@ -9,7 +9,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("qbic_copy", "Copies QBIC data into the QBIC datamover folder.");
-$parser->addFlag("upload", "Enable real upload (otherwise a dry run is performed: dummy data is written to the temporary folder, but it is not copied to the datamover folder).");
+$parser->addFlag("upload", "Enable real upload (otherwise a duy run is performed: dummy data is written to the temporary folder, but it is not copied to the datamover folder).");
 $parser->addString("project", "Restrict upload to a project.", true, "");
 $parser->addStringArray("samples", "Restrict upload to a list of processed sample.", true, "");
 $parser->addFlag("force_reupload", "Upload files even if already uploaded.");
@@ -40,19 +40,22 @@ if ($project!="")
 }
 
 //check that datamover is running
-print "##Checking that datamover is running...\n";
-print "##\n";
-list($jobs) = exec2("ps aux | grep datamover | grep bioinf");
-function contains_java($str) { return contains($str, "java"); };
-$jobs = array_filter($jobs, "contains_java");
-if (count($jobs)!=1)
+if ($upload)
 {
+	print "##Checking that datamover is running...\n";
 	print "##\n";
-	print "##============================ ERROR ========================================\n";
-	print "##=    No datamover of the user bioinf is running! Execute:                 =\n";
-	print "##=    > sudo -u bioinf /mnt/storage1/share/to_qbic/datamover.sh start               =\n";
-	print "##===========================================================================\n";
-	die(1);
+	list($jobs) = exec2("ps aux | grep datamover | grep bioinf");
+	function contains_java($str) { return contains($str, "java"); };
+	$jobs = array_filter($jobs, "contains_java");
+	if (count($jobs)!=1)
+	{
+		print "##\n";
+		print "##============================ ERROR ========================================\n";
+		print "##=    No datamover of the user bioinf is running! Execute:                 =\n";
+		print "##=    > sudo -u bioinf /mnt/storage1/share/to_qbic/datamover.sh start               =\n";
+		print "##===========================================================================\n";
+		die(1);
+	}
 }
 
 //print documentation
