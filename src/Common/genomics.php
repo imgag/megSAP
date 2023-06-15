@@ -1752,6 +1752,28 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 							$builds[] = $build;
 						}
 					}
+					else if ($split_line[1] == "ID:minimap2")
+					{
+						$build = "";
+						// parse genome build from minimap2 command line
+						foreach($split_line as $column)
+						{
+							if (starts_with($column, "CL:"))
+							{
+								while(contains($column, "  ")) $column = strtr($column, ["  "=>" "]);
+								$cl = explode(" ", $column);
+								//get second last element
+								$ref_file_path = array_slice($cl, -2, 1)[0];
+								$build = basename($ref_file_path, ".fa");
+								break;
+							}
+						}
+						if ($build!="") 
+						{
+							$builds[] = $build;
+						}
+					}	
+
 				}
 			}
 		}

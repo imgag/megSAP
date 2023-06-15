@@ -22,6 +22,7 @@ $parser->addInt("max_indel", "Maximum indel size (larger indels are ignored).", 
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("ref_sample", "Reference sample to use for validation.", true, "NA12878");
 $parser->addFlag("matches", "Do not only show variants that were missed (-), are novel (+) or with genotype mismatch (g), but also show matches (=) in output.");
+$parser->addFlag("skip_depth_calculation", "Do not calculate depth of missed variants to speed up calculation.");
 extract($parser->parse($argv));
 
 //returns the base count of a BED file
@@ -209,7 +210,15 @@ foreach($expected as $pos => $var)
 	if (!isset($found[$pos]))
 	{
 		$exp = array();
-		$exp["DP"] = get_depth($pos, $bam);
+		if($skip_depth_calculation)
+		{
+			$exp["DP"] = "N/A";
+		}
+		else
+		{
+			$exp["DP"] = get_depth($pos, $bam);
+		}
+		
 		
 		$var_diff[$pos] = array("-", $var, $exp);
 	}

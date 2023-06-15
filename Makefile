@@ -63,6 +63,9 @@ test_pipeline_r: dummy
 test_pipeline_c: dummy
 	@cd test/data_cfdna && make all
 
+test_pipeline_l: dummy
+	@cd test/data_longread && make all
+
 test_all: dummy
 	(cd test && find . -name "test_*.php" | sort | xargs -l1 php && echo "DONE") > f.log 2>&1 &
 	(cd test && find . -name "tool_test_*.php" | sort | xargs -l1 php && echo "DONE") > t.log 2>&1 &
@@ -73,6 +76,7 @@ test_all: dummy
 	make test_pipeline_m > p_m.log 2>&1 &
 	make test_pipeline_r > p_r.log 2>&1 &
 	make test_pipeline_c > p_c.log 2>&1 &
+	make test_pipeline_l > p_l.log 2>&1 &
 
 test_all_status:
 	@clear
