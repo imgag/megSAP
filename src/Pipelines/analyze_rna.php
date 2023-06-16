@@ -88,7 +88,8 @@ if (db_is_enabled("NGSD"))
 
 //mapping and QC
 $final_bam = $prefix.".bam";
-$before_dedup_bam = $prefix."_before_dedup.bam";
+$out_splicing = "{$prefix}_splicing.tsv";
+$out_chimeric = "{$prefix}_chimeric.tsv";
 $qc_fastq = $prefix."_stats_fastq.qcML";
 $qc_map = $prefix."_stats_map.qcML";
 if (in_array("ma", $steps))
@@ -193,6 +194,8 @@ if (in_array("ma", $steps))
 			"-in1", $fastq_trimmed1,
 			"-in2", $fastq_trimmed2,
 			"-genome", $genome,
+			"-out_splicing", $out_splicing,
+			"-out_chimeric", $out_chimeric,
 			"--log", $parser->getLogFile()
 		);
 
@@ -290,7 +293,7 @@ $expr = $prefix."_expr.tsv";
 $expr_exon = $prefix."_expr_exon.tsv";
 $expr_stats = $prefix."_expr.stats.tsv";
 $expr_corr = $prefix."_expr.corr.txt";
-$junctions = $umi ? "{$prefix}_before_dedup_splicing.tsv" : "{$prefix}_splicing.tsv";
+$junctions = "{$prefix}_splicing.tsv";
 $splicing_annot = "{$prefix}_splicing_annot.tsv";
 $splicing_bed = "{$prefix}_splicing.bed";
 $splicing_gene = "{$prefix}_splicing_gene.tsv";
@@ -444,7 +447,7 @@ $fusions_arriba_pic_dir = "{$prefix}_fusions_arriba_pics";
 if (in_array("fu",$steps))
 {
 	$arriba_args = [
-		"-bam", $umi ? $before_dedup_bam : $final_bam,
+		"-bam", $final_bam,
 		"-out_fusions", $fusions_arriba_tsv,
 		"-out_vcf", $fusions_arriba_vcf,
 		"-out_discarded", $fusions_arriba_discarded_tsv,
