@@ -1,7 +1,7 @@
 ##ANALYSISTYPE=SOMATIC_SINGLESAMPLE
-##PIPELINE=megSAP 2022_08-160-g90c4d043
+##PIPELINE=megSAP 2023_04-31-ge1884332
 ##GENOME_BUILD=GRCh38
-##CREATION_DATE=2022-02-10
+##CREATION_DATE=2023-04-17
 ##SAMPLE=<ID=GS150344_01,Gender=female,ExternalSampleName=151172,IsTumor=yes,IsFFPE=yes,DiseaseGroup=Neoplasms,DiseaseStatus=Affected>
 ##DESCRIPTION=filter=Annotations for filtering and ranking variants.
 ##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), quality divided by depth (QD), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP)
