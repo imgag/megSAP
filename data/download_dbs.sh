@@ -200,13 +200,12 @@ wget https://github.com/PacificBiosciences/pbsv/raw/master/annotations/human_GRC
 #curdate=`date +"%Y-%m-%d"`
 #mkdir $curdate
 #cd $curdate
-#$ngsbits/NGSDExportAnnotationData -variants NGSD_germline_unsorted.vcf -genes NGSD_genes.bed
+#$ngsbits/NGSDExportAnnotationData -germline NGSD_germline_unsorted.vcf -somatic NGSD_somatic_unsorted.vcf -genes NGSD_genes.bed
 #$ngsbits/VcfStreamSort -in NGSD_germline_unsorted.vcf -out NGSD_germline.vcf
 #bgzip -c NGSD_germline.vcf > NGSD_germline.vcf.gz
 #tabix -p vcf NGSD_germline.vcf.gz
 #rm NGSD_germline_unsorted.vcf
 #rm NGSD_germline.vcf
-#$ngsbits/NGSDExportAnnotationData -variants NGSD_somatic_unsorted.vcf -mode somatic
 #$ngsbits/VcfStreamSort -in NGSD_somatic_unsorted.vcf -out NGSD_somatic.vcf
 #bgzip -c NGSD_somatic.vcf > NGSD_somatic.vcf.gz
 #tabix -p vcf NGSD_somatic.vcf.gz
