@@ -74,9 +74,13 @@ $args[] = "--transcript_version --domains --failed 1"; //annotation options
 $args[] = "--regulatory"; //regulatory features
 $fields[] = "BIOTYPE"; 
 $args[] = "--sift b --polyphen b"; //pathogenicity predictions
-$args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/"; //MaxEntScan
+$args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/,SWA"; //MaxEntScan
 $fields[] = "MaxEntScan_ref";
 $fields[] = "MaxEntScan_alt";
+$fields[] = "MES-SWA_acceptor_alt";
+$fields[] = "MES-SWA_acceptor_ref";
+$fields[] = "MES-SWA_donor_alt";
+$fields[] = "MES-SWA_donor_ref";
 $args[] = "--pubmed"; //add publications
 $fields[] = "PUBMED";
 if (!$all_transcripts)

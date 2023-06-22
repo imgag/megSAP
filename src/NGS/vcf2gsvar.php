@@ -38,11 +38,12 @@ function skip_in_wgs_mode($chr, $coding_and_splicing_details, $gnomad, $clinvar,
 }
 
 //get index of columnn in QSC header.
-function index_of($cols, $name, $label)
+function index_of($cols, $name, $label, $optonal = true)
 {
 	$index = array_search($name, $cols);
 	if ($index===FALSE)
 	{
+		if ($optonal) return -1;
 		trigger_error("Could not find column '$name' in annotation field '{$label}'. Valid column names are: ".implode(", ", array_values($cols)), E_USER_ERROR);
 	}
 	return $index;
@@ -296,7 +297,7 @@ $column_desc = array(
 	array("PolyPhen", "PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
-	array("MaxEntScan", "MaxEntScan splicing prediction (reference bases score/alternate bases score)."),
+	array("MaxEntScan", "MaxEntScan reference score and alternate score for (1) native splice site, (2) acceptor gain and (3) donor gain. Comma-separated list if there are different predictions for several transcripts."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
 	array("SpliceAI", "SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes."),
 	array("PubMed", "PubMed ids to publications on the given variant.")
@@ -362,6 +363,7 @@ $skip_ngsd = true; // true as long as no NGSD header is found
 $skip_ngsd_som = true; // true as long as no NGSD somatic header is found
 $skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC) header is found.
 $skip_cancerhotspots = true; //true as long as no CANCERHOTSPOTS header is found.
+$missing_domains = [];
 
 //write date (of input file)
 fwrite($handle_out, "##CREATION_DATE=".date("Y-m-d", filemtime($in))."\n");
@@ -424,6 +426,10 @@ while(!feof($handle))
 			$i_existingvariation = index_of($cols, "Existing_variation", "CSQ");
 			$i_maxes_ref = index_of($cols, "MaxEntScan_ref", "CSQ");
 			$i_maxes_alt = index_of($cols, "MaxEntScan_alt", "CSQ");
+			$i_maxes_a_ref = index_of($cols, "MES-SWA_acceptor_ref", "CSQ", true);
+			$i_maxes_a_alt = index_of($cols, "MES-SWA_acceptor_alt", "CSQ", true);
+			$i_maxes_d_ref = index_of($cols, "MES-SWA_donor_ref", "CSQ", true);
+			$i_maxes_d_alt = index_of($cols, "MES-SWA_donor_alt", "CSQ", true);
 			$i_pubmed = index_of($cols, "PUBMED", "CSQ"); 
 		}
 
@@ -745,11 +751,15 @@ while(!feof($handle))
 			}
 			
 			//MaxEntScan
-			if ($parts[$i_maxes_ref]!="")
+			$score_pairs = [];
+			$score_pairs[] = $parts[$i_maxes_ref]!="" ? number_format($parts[$i_maxes_ref], 2).">".number_format($parts[$i_maxes_alt], 2) : "";
+			if ($i_maxes_a_ref!=-1) //also support old VCFs without MaxEntScan SWA parameter
 			{
-				$result = number_format($parts[$i_maxes_ref], 2).">".number_format($parts[$i_maxes_alt], 2);
-				$maxentscan[] = $result;
+				$score_pairs[] = $parts[$i_maxes_a_ref]!="" ? number_format($parts[$i_maxes_a_ref], 2).">".number_format($parts[$i_maxes_a_alt], 2) : "";
+				$score_pairs[] = $parts[$i_maxes_d_ref]!="" ? number_format($parts[$i_maxes_d_ref], 2).">".number_format($parts[$i_maxes_d_alt], 2) : "";
 			}
+			$mes = trim(implode("/", $score_pairs));
+			if ($mes!="" && $mes!="//") $maxentscan[] = $mes;
 
 			//PubMed ids
 			if ($i_pubmed!==FALSE)
@@ -801,7 +811,7 @@ while(!feof($handle))
 					// throw error if Pfam id is neither found in replacement data nor in description data
 					if ($domain_description == "")
 					{
-						trigger_error("No description found for '$domain'!", E_USER_WARNING);
+						$missing_domains[$domain] = true;
 					}
 
 					// combine decription and id
@@ -829,6 +839,9 @@ while(!feof($handle))
 		//VcfAnnotateConsequence
 		foreach(explode(",", $info["CSQ2"]) as $entry)
 		{			
+			$entry = trim($entry);
+			if ($entry=="") continue;
+			
 			$parts = explode("|", $entry);
 			
 			$transcript_id = trim($parts[$i_vac_feature]);
@@ -1336,6 +1349,11 @@ if ($in_header)
 
 fclose($handle);
 fclose($handle_out);
+
+if (count($missing_domains)>0)
+{
+	trigger_error("No description found for the folling domains: ".implode(", ", array_keys($missing_domains)), E_USER_WARNING);
+}
 
 //print debug output
 print "Variants written: {$c_written}\n";
