@@ -49,6 +49,13 @@ function index_of($cols, $name, $label, $optonal = true)
 	return $index;
 }
 
+//format MaxEntScan score
+function format_mes($score)
+{
+	if ($score<0) $score = 0;
+	return number_format($score, 1);
+}
+
 //translate value (and throw error if not valid)
 function translate($error_name, $value, $dict)
 {
@@ -752,11 +759,11 @@ while(!feof($handle))
 			
 			//MaxEntScan
 			$score_pairs = [];
-			$score_pairs[] = $parts[$i_maxes_ref]!="" ? number_format($parts[$i_maxes_ref], 2).">".number_format($parts[$i_maxes_alt], 2) : "";
+			$score_pairs[] = $parts[$i_maxes_ref]!="" ? format_mes($parts[$i_maxes_ref]).">".format_mes($parts[$i_maxes_alt]) : "";
 			if ($i_maxes_a_ref!=-1) //also support old VCFs without MaxEntScan SWA parameter
 			{
-				$score_pairs[] = $parts[$i_maxes_a_ref]!="" ? number_format($parts[$i_maxes_a_ref], 2).">".number_format($parts[$i_maxes_a_alt], 2) : "";
-				$score_pairs[] = $parts[$i_maxes_d_ref]!="" ? number_format($parts[$i_maxes_d_ref], 2).">".number_format($parts[$i_maxes_d_alt], 2) : "";
+				$score_pairs[] = $parts[$i_maxes_a_ref]!="" ? format_mes($parts[$i_maxes_a_ref]).">".format_mes($parts[$i_maxes_a_alt]) : "";
+				$score_pairs[] = $parts[$i_maxes_d_ref]!="" ? format_mes($parts[$i_maxes_d_ref]).">".format_mes($parts[$i_maxes_d_alt]) : "";
 			}
 			$mes = trim(implode("/", $score_pairs));
 			if ($mes!="" && $mes!="//") $maxentscan[] = $mes;
