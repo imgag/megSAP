@@ -93,15 +93,20 @@ INSERT INTO processed_sample_qc (processed_sample_id, qc_terms_id, value) VALUES
 (15, 2, "qc 2 value for ps_sample id 15"),
 (16, 2, "qc 2 value for ps_sample id 16");
 
+INSERT INTO expression_gene (id, symbol) VALUES
+(1, "BRCA1"),
+(2, "BRCA2"),
+(3, "SRY"),
+(4, "SKI");
 
-INSERT INTO expression (processed_sample_id, symbol, tpm, raw) VALUES
-(3, "BRCA1", 1, 35),
-(3, "BRCA2", 1, 40),
-(3, "SRY", 0, 0),
-(5, "BRCA1", 4, 40),
-(5, "BRCA2", 2, 20),
-(5, "SRY", 4, 60),
-(5, "SKI", 1, 5);
+INSERT INTO expression (processed_sample_id, symbol_id, tpm, raw) VALUES
+(3, 1, 1, 35),
+(3, 2, 1, 40),
+(3, 3, 0, 0),
+(5, 1, 4, 40),
+(5, 2, 2, 20),
+(5, 3, 4, 60),
+(5, 4, 1, 5);
 
 INSERT INTO expression_exon (processed_sample_id, chr, start, end, rpb, srpb, raw) VALUES
 (3, "chr17", 43125271, 43125364, 0.2, 4, 28),
