@@ -32,6 +32,9 @@ $parser->addInt("sj_overhang", "Minimum overhang for non-annotated splice juncti
 $parser->addInt("sjdb_overhang", "Minimum overhang for annotated splice junctions.", true, 1);
 $parser->addInt("Lmax", "Max length of read fraction for seed search", true, 50);
 
+$parser->addOutfile("out_splicing", "Output file for table of splicing junctions.", true);
+$parser->addOutfile("out_chimeric", "Output file for table of chimeric alignments.", true);
+
 extract($parser->parse($argv));
 
 $outdir = realpath(dirname($out))."/";
@@ -128,40 +131,44 @@ $parser->execPipeline($pipeline, "mapping");
 $parser->indexBam($out, $threads);
 
 //downstream analysis files
-$outfile_splicing= "{$prefix}_splicing.tsv";
-$splicing_header = array(
-	"#chr",
-	"start",
-	"end",
-	"strand",
-	"intron_motif",
-	"annotated",
-	"n_unique_reads",
-	"n_multi_reads",
-	"max_overhang"
-);
-file_put_contents($outfile_splicing, implode("\t", $splicing_header)."\n");
-file_put_contents($outfile_splicing, file_get_contents("{$STAR_tmp_folder}/SJ.out.tab"), FILE_APPEND);
+if ($out_splicing)
+{
+	$splicing_header = array(
+		"#chr",
+		"start",
+		"end",
+		"strand",
+		"intron_motif",
+		"annotated",
+		"n_unique_reads",
+		"n_multi_reads",
+		"max_overhang"
+	);
+	file_put_contents($out_splicing, implode("\t", $splicing_header)."\n");
+	file_put_contents($out_splicing, file_get_contents("{$STAR_tmp_folder}/SJ.out.tab"), FILE_APPEND);
+}
 
-$outfile_chimeric = "{$prefix}_chimeric.tsv";
-$chimeric_header = array(
-	"#donor_chr",
-	"donor_start",
-	"donor_strand",
-	"acceptor_chr",
-	"acceptor_start",
-	"acceptor_strand",
-	"junction_type",
-	"left_repeat_len",
-	"right_repeat_len",
-	"read_name",
-	"seg1_first_base",
-	"seg1_cigar",
-	"seg2_first_base",
-	"seg2_cigar"
-);
-file_put_contents($outfile_chimeric, implode("\t", $chimeric_header)."\n");
-file_put_contents($outfile_chimeric, file_get_contents("{$STAR_tmp_folder}/Chimeric.out.junction"), FILE_APPEND);
+if ($out_chimeric)
+{
+	$chimeric_header = array(
+		"#donor_chr",
+		"donor_start",
+		"donor_strand",
+		"acceptor_chr",
+		"acceptor_start",
+		"acceptor_strand",
+		"junction_type",
+		"left_repeat_len",
+		"right_repeat_len",
+		"read_name",
+		"seg1_first_base",
+		"seg1_cigar",
+		"seg2_first_base",
+		"seg2_cigar"
+	);
+	file_put_contents($out_chimeric, implode("\t", $chimeric_header)."\n");
+	file_put_contents($out_chimeric, file_get_contents("{$STAR_tmp_folder}/Chimeric.out.junction"), FILE_APPEND);
+}
 
 //write the final log file into the tool log
 $final_log = "{$STAR_tmp_folder}/Log.final.out";

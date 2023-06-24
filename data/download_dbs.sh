@@ -150,6 +150,12 @@ cd SpliceAI
 wget https://download.imgag.de/public/splicing/spliceai_scores_2022_12_30_GRCh38.vcf.gz -O spliceai_scores_2022_12_30_GRCh38.vcf.gz
 tabix -C -m 9 -p vcf spliceai_scores_2022_12_30_GRCh38.vcf.gz
 
+#download sniffles 
+cd $dbs
+mkdir -p TandemRepeats
+cd TandemRepeats
+wget https://github.com/PacificBiosciences/pbsv/raw/master/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
+
 #install OMIM (you might need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
 #cd $dbs
 #mkdir OMIM
@@ -194,13 +200,12 @@ tabix -C -m 9 -p vcf spliceai_scores_2022_12_30_GRCh38.vcf.gz
 #curdate=`date +"%Y-%m-%d"`
 #mkdir $curdate
 #cd $curdate
-#$ngsbits/NGSDExportAnnotationData -variants NGSD_germline_unsorted.vcf -genes NGSD_genes.bed
+#$ngsbits/NGSDExportAnnotationData -germline NGSD_germline_unsorted.vcf -somatic NGSD_somatic_unsorted.vcf -genes NGSD_genes.bed
 #$ngsbits/VcfStreamSort -in NGSD_germline_unsorted.vcf -out NGSD_germline.vcf
 #bgzip -c NGSD_germline.vcf > NGSD_germline.vcf.gz
 #tabix -p vcf NGSD_germline.vcf.gz
 #rm NGSD_germline_unsorted.vcf
 #rm NGSD_germline.vcf
-#$ngsbits/NGSDExportAnnotationData -variants NGSD_somatic_unsorted.vcf -mode somatic
 #$ngsbits/VcfStreamSort -in NGSD_somatic_unsorted.vcf -out NGSD_somatic.vcf
 #bgzip -c NGSD_somatic.vcf > NGSD_somatic.vcf.gz
 #tabix -p vcf NGSD_somatic.vcf.gz

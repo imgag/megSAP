@@ -22,12 +22,13 @@
 ##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.
 ##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.
 ##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
-##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).
+##DESCRIPTION=MaxEntScan=MaxEntScan reference score and alternate score for (1) native splice site, (2) acceptor gain and (3) donor gain. Comma-separated list if there are different predictions for several transcripts.
 ##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
 ##DESCRIPTION=SpliceAI=SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes.
 ##DESCRIPTION=PubMed=PubMed ids to publications on the given variant.
 ##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.
 ##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.
+##DESCRIPTION=NGSD_mosaic=Mosaic variant count in NGSD.
 ##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group.
 ##DESCRIPTION=classification=Classification from the NGSD.
 ##DESCRIPTION=classification_comment=Classification comment from the NGSD.
@@ -35,4 +36,4 @@
 ##DESCRIPTION=comment=Variant comments from the NGSD.
 ##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).
 ##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.
-#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	Sift	PolyPhen	CADD	REVEL	MaxEntScan	COSMIC	SpliceAI	PubMed	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info
+#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	Sift	PolyPhen	CADD	REVEL	MaxEntScan	COSMIC	SpliceAI	PubMed	NGSD_hom	NGSD_het	NGSD_mosaic	NGSD_group	classification	classification_comment	validation	comment	gene_info

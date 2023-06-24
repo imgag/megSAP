@@ -2585,6 +2585,14 @@
 ##phasing=none
 ##commandline="/mnt/storage1/share/opt/freebayes-1.3.3/build/freebayes -t /tmp/megSAP_user_ahsturm1/vc_freebayes_7QlCJP_merged.bed --min-alternate-fraction 0.15 --min-mapping-quality 1 --min-base-quality 15 --min-alternate-count 3 --genotype-qualities -f /tmp/local_ngs_data_GRCh38//GRCh38.fa -b /mnt/storage1/users/ahsturm1/megSAP_GRCh38//test/data/vc_freebayes_in.bam"
 ##filter="QUAL > 5"
+##MES-SWA_acceptor_alt=Highest splice acceptor alternate sequence score
+##MES-SWA_acceptor_diff=Difference between the acceptor reference comparison and alternate sequence scores
+##MES-SWA_acceptor_ref=Highest splice acceptor reference sequence score
+##MES-SWA_acceptor_ref_comp=Acceptor reference comparison sequence score
+##MES-SWA_donor_alt=Highest splice donor alternate sequence score
+##MES-SWA_donor_diff=Difference between the donor reference comparison and alternate sequence scores
+##MES-SWA_donor_ref=Highest splice donor reference sequence score
+##MES-SWA_donor_ref_comp=Donor reference comparison sequence score
 ##MaxEntScan_alt=MaxEntScan alternate sequence score
 ##MaxEntScan_diff=MaxEntScan score difference
 ##MaxEntScan_ref=MaxEntScan reference sequence score
@@ -2632,7 +2640,7 @@
 ##INFO=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
 ##INFO=<ID=END,Number=1,Type=Integer,Description="Last position (inclusive) in gVCF output record.">
 ##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
-##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|Feature|Feature_type|DOMAINS|SIFT|PolyPhen|Existing_variation|BIOTYPE|MaxEntScan_ref|MaxEntScan_alt|PUBMED">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|Feature|Feature_type|DOMAINS|SIFT|PolyPhen|Existing_variation|BIOTYPE|MaxEntScan_ref|MaxEntScan_alt|MES-SWA_acceptor_alt|MES-SWA_acceptor_ref|MES-SWA_donor_alt|MES-SWA_donor_ref|PUBMED">
 ##INFO=<ID=CSQ2,Number=.,Type=String,Description="Consequence annotations from VcfAnnotateConsequence. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp">
 ##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="/tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/hg38.phyloP100way.bw (ngs-bits/VcfAnnotateFromBigWig - mode max)">
 ##INFO=<ID=gnomADg_AF,Number=A,Type=Float,Description="Alternate allele frequency in samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
@@ -2658,7 +2666,7 @@
 ##INFO=<ID=CADD_INDEL,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_InDels_1.6_GRCh38.vcf.gz)">
 ##INFO=<ID=REVEL,Number=1,Type=Float,Description="Maximum REVEL score of all scored transcripts. (from file REVEL_1.3.vcf.gz)">
 ##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3.1 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG); acceptor loss (AL); donor gain (DG); and donor loss (DL)(for all NGSD variants exported on 13.12.2020). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL (from file spliceai_scores_2022_12_30_GRCh38.vcf.gz)">
-##INFO=<ID=NGSD_COUNTS,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD. (from file NGSD_germline.vcf.gz)">
+##INFO=<ID=NGSD_COUNTS,Number=3,Type=Integer,Description="Homozygous/Heterozygous/Mosaic variant counts in NGSD. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_HAF,Number=0,Type=Flag,Description="Indicates a allele frequency above a threshold of 0.05. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_CLAS,Number=1,Type=String,Description="Classification from the NGSD. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_CLAS_COM,Number=1,Type=String,Description="Classification comment from the NGSD. (from file NGSD_germline.vcf.gz)">

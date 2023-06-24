@@ -166,10 +166,13 @@ if ($is_wgs_shallow)
 $out_folder .= "/";
 if (!file_exists($out_folder))
 {
-	mkdir($out_folder);
+	if (!mkdir($out_folder))
+	{
+		trigger_error("Could not create output folder '{$out_folder}'!", E_USER_ERROR);
+	}
 	if (!chmod($out_folder, 0777))
 	{
-		trigger_error("Could not change privileges of folder '{$out_folder}'!", E_USER_ERROR);
+		trigger_error("Could not change privileges of output folder '{$out_folder}'!", E_USER_ERROR);
 	}
 }
 

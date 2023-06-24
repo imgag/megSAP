@@ -75,7 +75,7 @@ foreach($result as $row)
 //queue analysis
 $db_conn->beginTransaction();
 $db_conn->executeStmt("INSERT INTO `analysis_job`(`type`, `high_priority`, `args`) VALUES (:type, :prio, :args)", array("type"=>$type, "prio"=>($high_priority ? "1" : "0"), "args"=>$args));
-$job_id = $db_conn->lastInsertID();
+$job_id = $db_conn->lastInsertId();
 $db_conn->executeStmt("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES ({$job_id}, '".get_timestamp(false)."', $user_id, 'queued', '')");
 for($i=0; $i<count($ps_ids); ++$i)
 {
