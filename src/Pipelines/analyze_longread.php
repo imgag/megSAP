@@ -612,7 +612,7 @@ if (in_array("db", $steps))
 	$qc_files = array($qc_fastq, $qc_map);
 	if (file_exists($qc_vc)) $qc_files[] = $qc_vc; 
 	if (file_exists($qc_other)) $qc_files[] = $qc_other; 
-	$parser->execTool("NGS/db_import_qc.php", "-id $name -files ".implode(" ", $qc_files)." -force");
+	$parser->exec("{$ngsbits}/NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_files)." -force");
 	
 	//check gender
 	$parser->execTool("NGS/db_check_gender.php", "-in $bam_file -pid $name");	
