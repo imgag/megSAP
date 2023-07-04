@@ -28,6 +28,7 @@ $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. co
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping, small variant and structural variant calling.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
+$parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
@@ -591,6 +592,7 @@ if (in_array("vc", $steps))
 	$args[] = "-system ".$system;
 	$args[] = "--log ".$parser->getLogFile();
 	$args[] = "-threads ".$threads;
+	if($rna_sample != "") $args[] = "-rna_sample ".$rna_sample;
 	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
 	
 	//ROH detection

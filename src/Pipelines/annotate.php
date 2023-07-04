@@ -20,6 +20,7 @@ $parser->addFlag("no_fc", "No format check (vcf/tsv).");
 $parser->addFlag("multi", "Enable multi-sample mode.");
 $parser->addFlag("somatic", "Enable somatic mode (no variant QC and no GSvar file).");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
+$parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 extract($parser->parse($argv));
 
 //input file names
@@ -103,11 +104,22 @@ if (!$somatic) //germline only
 	if(db_is_enabled("NGSD"))
 	{
 		$db = DB::getInstance("NGSD");
-		$psamples_for_annotation = get_related_processed_samples($db, $out_name, "same sample", "RNA");
-		if (!empty($psamples_for_annotation))
+		$psample = "";
+		if($rna_sample == "")
 		{
-			//last entry
-			$psample = end($psamples_for_annotation);
+			$psamples_for_annotation = get_related_processed_samples($db, $out_name, "same sample", "RNA");
+			// if multiple RNA samples found: -> choose last one
+			if (!empty($psamples_for_annotation)) $psample = end($psamples_for_annotation);
+		}
+		else
+		{
+			$psample = $rna_sample;
+		}
+
+		if($psample != "")
+		{
+			trigger_error("Using RNA sample {$psample} for annotation.", E_USER_NOTICE);
+			
 			$psample_info = get_processed_sample_info($db, $psample);
 
 			//BAM file for variant depth and frequency
@@ -163,8 +175,8 @@ if (!$somatic) //germline only
 
 			//add RNA annotation
 			$parser->exec(get_path("ngs-bits")."NGSDAnnotateGeneExpression", "-in {$varfile} -out {$varfile} -rna_ps {$psample}", true);
-
 		}
+		
 	}
 	
 	//check output TSV file (not for somatic)

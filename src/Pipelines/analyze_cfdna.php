@@ -395,12 +395,12 @@ if (in_array("vc", $steps))
 			"--log", $parser->getLogFile()
 		];
 
-		//TODO: model still needed?
-		$model = get_path("data_folder")."/dbs/cfdna_caller/{$sys['name_short']}.txt";
-		if (file_exists($model))
-		{
-			$args[] = "-model {$model}";
-		}
+		// //TODO: model still needed?
+		// $model = get_path("data_folder")."/dbs/cfdna_caller/{$sys['name_short']}.txt";
+		// if (file_exists($model))
+		// {
+		// 	$args[] = "-model {$model}";
+		// }
 
 		if ($is_patient_specific)
 		{
