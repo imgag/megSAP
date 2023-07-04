@@ -16,7 +16,7 @@ python3_path=$folder/Python-3.10.9/
 cd $folder
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout a669458103ccafe50384f1cd13d19532a3820ccc && git submodule update --recursive --init #a669458103ccafe50384f1cd13d19532a3820ccc is 2023_03 with a few fixes
+git checkout 2023_06 && git submodule update --recursive --init
 make build_3rdparty
 make build_tools_release
 
