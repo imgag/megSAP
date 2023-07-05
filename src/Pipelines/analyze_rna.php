@@ -468,7 +468,7 @@ if (in_array("db", $steps))
 	//import QC data
 	$qc_file_list = array($qc_fastq, $qc_map);
 	if (file_exists($qc_rna)) $qc_file_list[] = $qc_rna;
-	$parser->exec("{$ngsbits}/NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_file_list)." -force --log ".$parser->getLogFile());
+	$parser->exec("{$ngsbits}/NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_file_list)." -force");
 
 	//import expression data
 	$args = [

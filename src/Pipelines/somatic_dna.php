@@ -1160,6 +1160,8 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	$t_info = get_processed_sample_info($db_conn, $t_id, false);
 	$n_info = get_processed_sample_info($db_conn, $n_id, false);
 	
+	$ngsbits = get_path("ngs-bits");
+	
 	if (is_null($t_info) || (!$single_sample && is_null($n_info)))
 	{
 		trigger_error("No database import since no valid processing ID (T: {$t_id}".($single_sample ? "" : " /N: {$n_id}").")", E_USER_WARNING);
