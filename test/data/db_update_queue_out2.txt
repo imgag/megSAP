@@ -14,3 +14,7 @@ Updating status job 9 (single sample)
 	Job finished with status 'finished'
 Updating status job 10 (trio)
 	Job finished with status 'finished'
+Updating status job 11 (single sample)
+	Job finished with status 'finished'
+Updating status job 12 (single sample)
+	Job finished with status 'finished'
