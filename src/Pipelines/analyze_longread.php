@@ -465,27 +465,6 @@ if (in_array("an", $steps))
 	}
 }
 
-
-// create Circos plot - if small variant, CNV or SV calling was done
-if (in_array("an", $steps))
-{
-	if (file_exists($cnvfile))
-	{
-		if (file_exists($cnvfile2))
-		{
-			$parser->execTool("NGS/create_circos_plot.php", "-folder $folder -name $name -build ".$build);
-		}
-		else
-		{
-			trigger_error("CNV file $cnvfile2 missing. Cannot create Circos plot!", E_USER_WARNING);
-		}
-	}
-	else
-	{
-		trigger_error("CNV file $cnvfile missing. Cannot create Circos plot!", E_USER_WARNING);
-	}
-}
-
 // collect other QC terms - if CNV or SV calling was done
 if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("an", $steps)))
 {
@@ -599,6 +578,26 @@ if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("an", $steps))
 		$tmp = $parser->tempFile("qc.tsv");
 		file_put_contents($tmp, implode("\n", $terms));
 		$parser->exec("{$ngsbits}TsvToQC", "-in $tmp -out $qc_other -sources ".implode(" ", $sources));
+	}
+}
+
+// create Circos plot - if small variant, CNV or SV calling was done
+if (in_array("an", $steps))
+{
+	if (file_exists($cnvfile))
+	{
+		if (file_exists($cnvfile2))
+		{
+			$parser->execTool("NGS/create_circos_plot.php", "-folder $folder -name $name -build ".$build);
+		}
+		else
+		{
+			trigger_error("CNV file $cnvfile2 missing. Cannot create Circos plot!", E_USER_WARNING);
+		}
+	}
+	else
+	{
+		trigger_error("CNV file $cnvfile missing. Cannot create Circos plot!", E_USER_WARNING);
 	}
 }
 
