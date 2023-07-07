@@ -90,10 +90,10 @@ $ancestry_file = $folder."/".$name."_ancestry.tsv";
 // $prsfile = $folder."/".$name."_prs.tsv";
 //copy-number calling
 $cnv_bin_size = get_path("cnv_bin_size_longread_wgs");
-$cnvfile = $folder."/".$name."_cnvs_clincnv_{$cnv_bin_size}.tsv";
-$cnvfile2 = $folder."/".$name."_cnvs_clincnv_{$cnv_bin_size}.seg";
+$cnvfile = $folder."/".$name."_cnvs_clincnv.tsv";
+$cnvfile2 = $folder."/".$name."_cnvs_clincnv.seg";
 //structural variant calling
-$sv_vcf_file = $folder ."/". $name . "_var_structural_variant.vcf.gz";
+$sv_vcf_file = $folder ."/". $name . "_var_structural_variants.vcf.gz";
 $bedpe_file = substr($sv_vcf_file,0,-6)."bedpe";
 //repeat expansions
 // $expansion_hunter_file = $folder."/".$name."_repeats_expansionhunter.vcf";
