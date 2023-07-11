@@ -22,9 +22,9 @@ sv:
 an:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps an
 	# remove gene annotation
-	cut -f1-22 23014LRa023L2_01_var_structural_variant.bedpe > 23014LRa023L2_01_var_structural_variant_cut.bedpe
+	cut -f1-22 23014LRa023L2_01_var_structural_variants.bedpe > 23014LRa023L2_01_var_structural_variants_cut.bedpe
 	# create file from OMIM annotation and CNV overlap
-	# cat 23014LRa023L2_01_var_tructural_variant.bedpe | egrep -v "^##"| rev | cut -f 1,2| rev > 23014LRa023L2_01_var_structural_cut2.bedpe
+	# cat 23014LRa023L2_01_var_structural_variants.bedpe | egrep -v "^##"| rev | cut -f 1,2| rev > 23014LRa023L2_01_var_structural_cut2.bedpe
 
 diff:
 	php ../compare_variants.php -in1 23014LRa023L2_01.GSvar.out -in2 23014LRa023L2_01.GSvar
@@ -35,6 +35,6 @@ diff:
 	# diff 23014LRa023L2_01_cnvs_clincnv.tsv.out 23014LRa023L2_01_cnvs_clincnv.tsv --ignore-matching-lines="#"
 	# numdiff 23014LRa023L2_01_cnvs_clincnv.seg.out 23014LRa023L2_01_cnvs_clincnv.seg --absolute-tolerance 0.04
 	# php ../compare_bed.php 23014LRa023L2_01_nxLRRK2_SNCA_lowcov.bed.out 23014LRa023L2_01_nxLRRK2_SNCA_lowcov.bed
-	diff 23014LRa023L2_01_var_structural_variant.bedpe.out 23014LRa023L2_01_var_structural_variant_cut.bedpe --ignore-matching-lines="^##"
+	diff 23014LRa023L2_01_var_structural_variants.bedpe.out 23014LRa023L2_01_var_structural_variant_cuts.bedpe --ignore-matching-lines="^##"
 	# diff 23014LRa023L2_01_var_structural_variant_last_cols.bedpe.out 23014LRa023L2_01_var_structural_variant_cut2.bedpe --ignore-matching-lines="^##"
 
