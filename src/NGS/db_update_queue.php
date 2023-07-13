@@ -116,7 +116,11 @@ function start_analysis($job_info, &$db_conn, $debug)
 			$script = "analyze_cfdna.php";
 			$args = "-folder {$sample_folder} -name {$sample} --log {$sample_folder}analyze_cfdna_{$timestamp}.log";
 		}
-		
+		elseif ($sys_type=="lrGS") //longread WGS
+		{
+			$script = "analyze_longread.php";
+			$args = "-folder {$sample_folder} -name {$sample} --log {$sample_folder}analyze_longread_{$timestamp}.log";	
+		}
 		else //DNA
 		{
 			$script = "analyze.php";

@@ -13,8 +13,8 @@ $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
-$steps_all = array("ma", "vc", "sv", "an", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, an=annotation, db=import into NGSD.", true, "ma,vc,cn,sv,an,db");
+$steps_all = array("ma", "vc", "cn", "sv", "an", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, an=annotation, db=import into NGSD.", true, "ma,vc,sv,an,db");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("skip_phasing", "Skip phasing of VCF and BAM files.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
@@ -79,8 +79,6 @@ if (!$no_sync)
 //output file names:
 //mapping
 $bam_file = $folder."/".$name.".bam";
-$tagged_bam_file = $folder."/".$name."_tagged.bam";
-// $local_bamfile = $parser->tempFolder("local_bam")."/".$name.".bam"; //local copy of BAM file to reduce IO over network
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 //variant calling
 $vcf_file = $folder."/".$name."_var.vcf.gz";
@@ -91,10 +89,11 @@ $var_file = $folder."/".$name.".GSvar";
 $ancestry_file = $folder."/".$name."_ancestry.tsv";
 // $prsfile = $folder."/".$name."_prs.tsv";
 //copy-number calling
+$cnv_bin_size = get_path("cnv_bin_size_longread_wgs");
 $cnvfile = $folder."/".$name."_cnvs_clincnv.tsv";
 $cnvfile2 = $folder."/".$name."_cnvs_clincnv.seg";
 //structural variant calling
-$sv_vcf_file = $folder ."/". $name . "_var_structural_variant.vcf.gz";
+$sv_vcf_file = $folder ."/". $name . "_var_structural_variants.vcf.gz";
 $bedpe_file = substr($sv_vcf_file,0,-6)."bedpe";
 //repeat expansions
 // $expansion_hunter_file = $folder."/".$name."_repeats_expansionhunter.vcf";
@@ -199,8 +198,7 @@ if (in_array("cn", $steps))
 
 	//Calling ClinCNV
 	//create folder for binned coverage data - if missing
-	$bin_size = get_path("cnv_bin_size_wgs");
-	$bin_folder = "{$ref_folder}/bins{$bin_size}/";
+	$bin_folder = "{$ref_folder}/bins{$cnv_bin_size}/";
 	if (!is_dir($bin_folder))
 	{
 		mkdir($bin_folder);
@@ -213,11 +211,11 @@ if (in_array("cn", $steps))
 
 	
 	//create BED file with GC and gene annotations - if missing
-	$bed = $ref_folder."/bins{$bin_size}.bed";
+	$bed = $ref_folder."/bins{$cnv_bin_size}.bed";
 	if (!file_exists($bed))
 	{
 		$pipeline = [
-				["{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$bin_size}"],
+				["{$ngsbits}BedChunk", "-in ".$sys['target_file']." -n {$cnv_bin_size}"],
 				["{$ngsbits}BedAnnotateGC", "-clear -ref ".$genome],
 				["{$ngsbits}BedAnnotateGenes", "-out {$bed}"]
 			];
@@ -315,6 +313,7 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 
 	//tag BAM file 
 	$args = array();
+	$tagged_bam_file = $parser->tempFile(".tagged.bam");
 	$args[] = "haplotag";
 	$args[] = "-s {$vcf_file}";
 	$args[] = "-b {$bam_file}";
@@ -325,6 +324,17 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 
 	$parser->exec(get_path("longphase"), implode(" ", $args));
 	$parser->indexBam($tagged_bam_file, $threads);
+
+	//replace current bam file
+
+	$parser->copyFile($tagged_bam_file, $bam_file);
+	$parser->copyFile($tagged_bam_file.".bai", $bam_file.".bai");
+
+	// check if copy was successful
+	if (!file_exists($bam_file) || filesize($tagged_bam_file) != filesize($bam_file))
+	{
+		trigger_error("Error during coping BAM file! File sizes don't match!", E_USER_ERROR);
+	}
 }
 
 

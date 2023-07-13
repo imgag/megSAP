@@ -1160,6 +1160,8 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	$t_info = get_processed_sample_info($db_conn, $t_id, false);
 	$n_info = get_processed_sample_info($db_conn, $n_id, false);
 	
+	$ngsbits = get_path("ngs-bits");
+	
 	if (is_null($t_info) || (!$single_sample && is_null($n_info)))
 	{
 		trigger_error("No database import since no valid processing ID (T: {$t_id}".($single_sample ? "" : " /N: {$n_id}").")", E_USER_WARNING);
@@ -1174,7 +1176,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			$somaticqc,
 			$qc_other
 		], "file_exists"));
-		$parser->exec("{$ngsbits}/NGSDImportSampleQC", "-ps $t_id -files $qcmls -force --log $log_db");
+		$parser->exec("{$ngsbits}/NGSDImportSampleQC", "-ps $t_id -files $qcmls -force");
 
 		// check tumor/normal flag
 		if (!$t_info['is_tumor'])
@@ -1195,7 +1197,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 				dirname($n_bam)."/{$n_id}_stats_map.qcML",
 				dirname($n_bam)."/{$n_id}_stats_vc.qcML"
 			], "file_exists"));
-			$parser->exec("{$ngsbits}/NGSDImportSampleQC", "-ps $n_id -files $qcmls -force --log $log_db");
+			$parser->exec("{$ngsbits}/NGSDImportSampleQC", "-ps $n_id -files $qcmls -force");
 
 			// check tumor/normal flag
 			if ($n_info['is_tumor'])
