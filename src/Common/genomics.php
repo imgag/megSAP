@@ -1598,7 +1598,7 @@ SQL;
 	{
 
 		$res = $db->executeQuery($query, ["sid" => $rel_sample_id]);
-		$psamples += array_column($res, "ps_name");
+		$psamples = array_merge($psamples, array_column($res, "ps_name"));
 	}
 
 	return $psamples;
