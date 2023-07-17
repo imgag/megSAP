@@ -9,9 +9,8 @@ start_test($name);
 
 //init
 check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
+exec("rm -rf Unaligned");
 mkdir("Unaligned");
-
-
 
 //test 1 - default project handling, projects with 'analyze=fastq'
 $out_file = output_folder().$name."_out1Makefile";
@@ -26,15 +25,11 @@ check_exec("php ".src_folder()."/NGS/{$name}.php -samplesheet {$file}_in2.csv -o
 check_file($out_file, data_folder()."{$name}_out2Makefile");
 
 //test 3 - Trio handling from GenLab
-if (GenLabDB::isEnabled())
-{
-	$out_file = output_folder().$name."_out3Makefile";
-	$runinfo = data_folder().$name."_in3_RunInfo.xml";
-	check_exec("php ".src_folder()."/NGS/{$name}.php -samplesheet {$file}_in3.csv -out {$out_file} -db NGSD_TEST -runinfo {$runinfo}");
-	check_file($out_file, data_folder()."{$name}_out3Makefile");
-}
+$out_file = output_folder().$name."_out3Makefile";
+$runinfo = data_folder().$name."_in3_RunInfo.xml";
+check_exec("php ".src_folder()."/NGS/{$name}.php -samplesheet {$file}_in3.csv -out {$out_file} -db NGSD_TEST -runinfo {$runinfo}");
+check_file($out_file, data_folder()."{$name}_out3Makefile");
 
-rmdir("Unaligned");
 end_test();
 
 ?>
