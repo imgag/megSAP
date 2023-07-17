@@ -161,11 +161,11 @@ if (in_array("vc", $steps))
 	$args[] = "--log ".$parser->getLogFile();
 
 	# determine model
-	if($sys["name_short"] == "SQK-LSK114")
+	if (($sys["name_short"] == "SQK-LSK114") || ($sys["name_short"] == "LR-ONT-SQK-LSK114"))
 	{
 		$args[] = "-model ".get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
 	}
-	else if($sys["name_short"] == "SQK-LSK109")
+	else if ($sys["name_short"] == "SQK-LSK109")
 	{
 		$args[] = "-model ".get_path("clair3_models")."/r941_prom_sup_g5014/";
 	}
