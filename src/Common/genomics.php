@@ -1109,24 +1109,18 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	$info['s_comments'] = array_map("trim", explode("\n", $info['s_comments']));
 	
 	//additional info
-	$project_folder = get_path("project_folder");
 	$project_type = $info['project_type'];
-	
 	if ($project_type == "megSAP-Tests")
 	{
 		$project_folder = get_path($project_type);
 	}
 	else
-	{	
-		if (is_array($project_folder))
-		{
-			$project_folder = $project_folder[$project_type];
-		}
-		else
-		{
-			if (!ends_with($project_folder, "/")) $project_folder .= "/";
-			$project_folder = $project_folder.$project_type;
-		}
+	{
+		$args = [];
+		$args[] = "-ps {$ps_name}";
+		if ($db_conn->name()=="NGSD_TEST") $args[] = "-test";
+		list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath ".implode(" ", $args));
+		$project_folder = dirname(trim(implode("", $stdout)), 2);
 	}
 	
 	$info['project_folder'] = $project_folder."/".$info['project_name']."/";
