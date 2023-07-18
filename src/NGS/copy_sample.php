@@ -182,7 +182,7 @@ function check_former_run(&$db_conn, $current_run)
 	return "";
 }
 
-//Returns father/mother of the sample, if present in GenLab
+//Returns father/mother of the sample
 function get_trio_parents($ps)
 {
 	global $db_conn;
