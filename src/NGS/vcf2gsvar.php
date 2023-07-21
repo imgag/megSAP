@@ -357,7 +357,7 @@ $column_desc_cancerhotspots = array(
 if ($genotype_mode=="single")
 {
 	// add phasing info for long-reads
-	if ($longread) array_unshift($column_desc, array("genotype_phased", "Phasing information of variant in sample."));
+	if ($longread) array_unshift($column_desc, array("genotype_phased", "Phasing information of variant in sample. Containing phased genotype and id of the phased block."));
 
 	array_unshift($column_desc, array("genotype", "Genotype of variant in sample."));	
 }
@@ -612,7 +612,7 @@ while(!feof($handle))
 			$phasing_info = "";
 			if (strpos($sample["GT"], "|") !== false) 
 			{
-				$phasing_info = $sample["GT"];
+				$phasing_info = $sample["GT"]." (".$sample["PS"].")";
 			}
 		}
 		$genotype = vcfgeno2human($sample["GT"]);
