@@ -1195,7 +1195,8 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			$qcmls = implode(" ", array_filter([
 				dirname($n_bam)."/{$n_id}_stats_fastq.qcML",
 				dirname($n_bam)."/{$n_id}_stats_map.qcML",
-				dirname($n_bam)."/{$n_id}_stats_vc.qcML"
+				dirname($n_bam)."/{$n_id}_stats_vc.qcML",
+				dirname($n_bam)."/{$n_id}_stats_other.qcML"
 			], "file_exists"));
 			$parser->exec("{$ngsbits}/NGSDImportSampleQC", "-ps $n_id -files $qcmls -force");
 
