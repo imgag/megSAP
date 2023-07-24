@@ -85,7 +85,7 @@ $dragen_parameter[] = "--RGDT ".date("c");
 if(db_is_enabled("NGSD"))
 {
 	$db_conn = DB::getInstance("NGSD");
-	$psample_info = get_processed_sample_info($db_conn, $sample, false);
+	$psample_info = get_processed_sample_info($db_conn, $sample, false, true);
 	$dragen_parameter[] = "--RGPL '".$psample_info['device_type']."'";
 	$dragen_parameter[] = "--RGLB '".$psample_info['sys_name']."'";
 }
