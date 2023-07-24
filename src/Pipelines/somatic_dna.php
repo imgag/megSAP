@@ -1169,7 +1169,6 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	else
 	{
 		// import qcML files
-		$log_db = dirname($t_bam)."/{$t_id}_log4_db.log";
 		$qcmls = implode(" ", array_filter([
 			dirname($t_bam)."/{$t_id}_stats_fastq.qcML",
 			dirname($t_bam)."/{$t_id}_stats_map.qcML",
@@ -1189,16 +1188,6 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		{
 			// check sex using control sample
 			$parser->execTool("NGS/db_check_gender.php", "-in $n_bam -pid $n_id -sry_cov 30");
-
-			// import qcML files
-			$log_db = dirname($n_bam)."/{$n_id}_log4_db.log";
-			$qcmls = implode(" ", array_filter([
-				dirname($n_bam)."/{$n_id}_stats_fastq.qcML",
-				dirname($n_bam)."/{$n_id}_stats_map.qcML",
-				dirname($n_bam)."/{$n_id}_stats_vc.qcML",
-				dirname($n_bam)."/{$n_id}_stats_other.qcML"
-			], "file_exists"));
-			$parser->exec("{$ngsbits}/NGSDImportSampleQC", "-ps $n_id -files $qcmls -force");
 
 			// check tumor/normal flag
 			if ($n_info['is_tumor'])
