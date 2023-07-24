@@ -16,7 +16,8 @@ INSERT INTO project (name, type, internal_coordinator_id, analysis) VALUES
 INSERT INTO processing_system (name_short, name_manufacturer, shotgun, genome_id, type) VALUES
 ('ssHAEv6', 'SureSelect Human All Exon v6', '1', 1, 'WES'),
 ('WGS', 'WGS kit', '1', 1, 'WGS'),
-('RNA', 'RNA kit', '1', 1, 'RNA');
+('RNA', 'RNA kit', '1', 1, 'RNA'),
+('SQK-119', 'SQK-119', '1', 1, 'lrGS');
 
 INSERT INTO sequencing_run (name, fcid, start_date, end_date, device_id, recipe) VALUES
 ('#00001', 'FCID4711', '2018-02-04', '2018-02-04', 1, '100+8+100');
@@ -38,7 +39,8 @@ INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, pr
 (6,1,1,'1',3,1, NULL), /* RNA */
 (2,2,1,'1',1,1, NULL), /* TRIO 2 */
 (3,2,1,'1',1,1, NULL), /* TRIO 2 */
-(4,2,1,'1',1,1, NULL); /* TRIO 2 */
+(4,2,1,'1',1,1, NULL), /* TRIO 2 */
+(5,3,1,'1',4,1, NULL); /* longread WGS */
 
 INSERT INTO analysis_job (type, `high_priority`, args, sge_id, sge_queue) VALUES
 ('single sample', 1, '-steps ma,vc', '999001', 'priority_srv018'),
@@ -50,7 +52,9 @@ INSERT INTO analysis_job (type, `high_priority`, args, sge_id, sge_queue) VALUES
 ('somatic',       0, '-include_germline', '', ''),
 ('single sample', 0, '', '', ''), /* WGS */
 ('single sample', 0, '', '', ''), /* RNA */
-('trio',          0, '', '', '');
+('trio',          0, '', '', ''), 
+('single sample', 1, '-threads 10 -steps ma,cn,an', '777777', 'default_srv020'), /* longread WGS */
+('single sample', 0, '', '', ''); /* longread WGS */
 
 INSERT INTO analysis_job_sample (analysis_job_id, processed_sample_id, info) VALUES 
 (1, 1, ''),
@@ -68,7 +72,9 @@ INSERT INTO analysis_job_sample (analysis_job_id, processed_sample_id, info) VAL
 (9, 6, ''),
 (10, 7, 'child'),
 (10, 8, 'father'),
-(10, 9, 'mother');
+(10, 9, 'mother'),
+(11, 10, ''),
+(12, 10, '');
 
 INSERT INTO analysis_job_history (analysis_job_id, time, user_id, status, output) VALUES 
 (1, '2017-01-01T00:00:00', 1, 'finished', ''),
@@ -83,4 +89,6 @@ INSERT INTO analysis_job_history (analysis_job_id, time, user_id, status, output
 (7, NOW(), 1, 'queued', ''),
 (8, NOW(), 1, 'queued', ''),
 (9, NOW(), 1, 'queued', ''),
-(10, NOW(), 1, 'queued', '');
+(10, NOW(), 1, 'queued', ''),
+(11, NOW(), 1, 'queued', ''),
+(12, NOW(), 1, 'queued', '');

@@ -98,6 +98,7 @@ if (!$somatic) //germline only
 	$args[] = "-updown";
 	if ($multi) $args[] = "-genotype_mode multi";
 	if ($sys['type']=="WGS") $args[] = "-wgs";
+	if ($sys['type']=="lrGS") $args[] = "-wgs -longread";
 	$parser->execTool("NGS/vcf2gsvar.php", implode(" ", $args));
 	
 	//annotate variant allele frequency and depth from related RNA sample, if available

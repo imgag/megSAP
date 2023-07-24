@@ -6,6 +6,7 @@ require_once("genomics.php");
 class DB
 {
 	protected static $instances = array();
+	protected $name = "";
 	protected $connection = null;
 	protected $prep_stmts = array();
 	protected $stmt_counter = 0;
@@ -20,7 +21,7 @@ class DB
 		$user = get_db($db, 'db_user');
 		$pass = get_db($db, 'db_pass');
 		
-		return new self($host, $name, $user, $pass);
+		return new self($host, $name, $user, $pass, $db);
 	}
 	
 	/**
@@ -41,7 +42,7 @@ class DB
 		return self::$instances[$db];
 	}
 	
-	protected function __construct($host, $name, $user, $pass)
+	protected function __construct($host, $name, $user, $pass, $ini_name)
 	{		
 		try 
 		{
@@ -49,6 +50,8 @@ class DB
 			$this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);	
 			$hash = $this->prepare("SET SESSION sql_mode = 'STRICT_TRANS_TABLES';");
 			$this->execute($hash);
+			
+			$this->name = $ini_name;
 		}
 		catch(PDOException $e)
 		{
@@ -58,6 +61,11 @@ class DB
 	
 	public function __destruct()
 	{
+	}
+	
+	function name()
+	{
+		return $this->name;
 	}
 	
 	///quotes special characters for use in a SQL query

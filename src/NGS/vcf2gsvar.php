@@ -14,6 +14,7 @@ $parser->addOutfile("out", "Output file in GSvar format.", false);
 $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
 $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
+$parser->addFlag("longread", "Add additional columns for long-read samples (e.g. pahsing information)");
 extract($parser->parse($argv));
 
 //skip common MODIFIER variants in WGS mode
@@ -278,8 +279,13 @@ function load_hgnc_db()
 	
 	return $output;
 }
-
 $hgnc = load_hgnc_db();
+
+//check for valid input parameters
+if ($longread && ($genotype_mode != "single"))
+{
+	trigger_error("Error: Long-read mode is only available for single samples!", E_USER_ERROR);
+}
 
 //write column descriptions
 $column_desc = array(
@@ -350,6 +356,9 @@ $column_desc_cancerhotspots = array(
 
 if ($genotype_mode=="single")
 {
+	// add phasing info for long-reads
+	if ($longread) array_unshift($column_desc, array("genotype_phased", "Phasing information of variant in sample. Containing phased genotype and id of the phased block."));
+
 	array_unshift($column_desc, array("genotype", "Genotype of variant in sample."));	
 }
 
@@ -595,6 +604,16 @@ while(!feof($handle))
 		if (!isset($sample["GT"])) 
 		{
 			trigger_error("VCF sample column does not contain GT value!", E_USER_ERROR);
+		}
+
+		// get phasing info for long-reads
+		if ($longread)
+		{
+			$phasing_info = "";
+			if (strpos($sample["GT"], "|") !== false) 
+			{
+				$phasing_info = $sample["GT"]." (".$sample["PS"].")";
+			}
 		}
 		$genotype = vcfgeno2human($sample["GT"]);
 		
@@ -1311,7 +1330,12 @@ while(!feof($handle))
 	//write data
 	++$c_written;
 	$genes = array_unique($genes);
-	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
+	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}");
+	if($longread)
+	{
+		fwrite($handle_out,"\t".$phasing_info);
+	}
+	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");

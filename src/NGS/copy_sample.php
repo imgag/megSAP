@@ -16,7 +16,6 @@ $parser->addOutfile("out",  "Output Makefile. Default: 'Makefile'.", true);
 $parser->addFlag("high_priority", "Assign high priority to all queued samples.");
 $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
 $parser->addFlag("no_rename_r3", "Do not rename R2/R3 FASTQ files to index/R2.");
-$parser->addFlag("verbose", "Print all imported relations to stdout not only the summary statistic.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
@@ -182,355 +181,50 @@ function check_former_run(&$db_conn, $current_run)
 	return "";
 }
 
-//Returns father/mother of the sample, if present in GenLab
+//Returns father/mother of the sample
 function get_trio_parents($ps)
 {
-	$father = get_parent($ps, 'Vater');
-	if (is_null($father)) return null;
-	
-	$mother = get_parent($ps, 'Mutter');
-	if (is_null($mother)) return null;
-	
-	return array($father, $mother);
-}
-
-//Returns father/mother of the sample, if present in GenLab
-function get_parent($ps, $relation)
-{
 	global $db_conn;
-	global $db_genlab;
 	
-	//try with processed sample name
-	$name = $db_genlab->getValue("SELECT DISTINCT Labornummer_Verwandter FROM v_ngs_duo WHERE Labornummer_Index='{$ps}' AND BEZIEHUNGSTEXT='{$relation}'", "");
+	$info = get_processed_sample_info($db_conn, $ps, false);
+	if (is_null($info)) return NULL;
+	$s_id = $info['s_id'];
+	$sys_id = $info['sys_id'];
 	
-	//try with sample name (not consistent in GenLab)
-	if ($name=="")
-	{
-		$sample = explode("_", $ps."_")[0];
-		$name = $db_genlab->getValue("SELECT DISTINCT Labornummer_Verwandter FROM v_ngs_duo WHERE Labornummer_Index='{$sample}' AND BEZIEHUNGSTEXT='{$relation}'", "");
-	}
+	//check if father/moder are definded
+	$s_id_mother = $db_conn->getValue("SELECT s.id FROM sample_relations sr, sample s WHERE s.id=sr.sample1_id AND sr.relation='parent-child' AND sample2_id='{$s_id}' AND s.gender='female'", "");
+	$s_id_father = $db_conn->getValue("SELECT s.id FROM sample_relations sr, sample s WHERE s.id=sr.sample1_id AND sr.relation='parent-child' AND sample2_id='{$s_id}' AND s.gender='male'", "");
+	if ($s_id_mother=="" || $s_id_father=="") return NULL;
 	
-	if ($name=="") return null;
+	//select latest processing of father/mother with same system
+	$ps_id_mother = $db_conn->getValue("SELECT id FROM processed_sample WHERE sample_id={$s_id_mother} AND processing_system_id={$sys_id} ORDER BY id DESC LIMIT 1", "");
+	$ps_id_father = $db_conn->getValue("SELECT id FROM processed_sample WHERE sample_id={$s_id_father} AND processing_system_id={$sys_id} ORDER BY id DESC LIMIT 1", "");
+	if ($ps_id_mother=="" || $ps_id_father=="") return NULL;
 	
-	//convert processed sample name to sample name (not consistent in GenLab)
-	if (contains($name, "_"))
-	{
-		$name = explode("_", $name."_");
-	}
-	
-	//search for processed sample with same processing system as index
-	$sys_id = $db_conn->getValue("SELECT processing_system_id FROM processed_sample WHERE id='".get_processed_sample_id($db_conn, $ps)."'");
-	$sample_id = $db_conn->getValue("SELECT id FROM sample WHERE name='{$name}'", -1);
-	$ps_ids = $db_conn->getValues("SELECT id FROM processed_sample WHERE processing_system_id='{$sys_id}' AND sample_id='{$sample_id}' AND quality!='bad'");
-	if (count($ps_ids)!=1) return null;
-	
-	return $db_conn->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id=".$ps_ids[0]);
-}
-
-function import_genlab_disease_group($ps)
-{
-	global $db_conn;
-	global $db_genlab;
-	
-	//get processed sample info from NGSD
-	$info = get_processed_sample_info($db_conn, $ps);
-	$sample = explode("_", $ps."_")[0];
-	if ($info['disease_group']!="n/a") return;
-	
-	//try with processed sample
-	$group = $db_genlab->getValue("SELECT krankheitsgruppe FROM v_krankheitsgruppe_pattyp WHERE labornummer='{$ps}'", "");
-	
-	//try with sample name (not consistent in GenLab)
-	if ($group=="")
-	{
-		$group = $db_genlab->getValue("SELECT krankheitsgruppe FROM v_krankheitsgruppe_pattyp WHERE labornummer='{$sample}'", "");
-	}
-	
-	//set in NGSD
-	$group = trim($group);		
-	if (in_array($group, $db_conn->getEnum("sample", "disease_group")))
-	{
-		print "Importing disease_group from GenLab to NGSD for sample {$sample}: {$group}\n";
-		$db_conn->executeStmt("UPDATE sample SET disease_group='{$group}' WHERE name='{$sample}'");
-	}
-}
-
-function is_sample_newer($sample1, $sample2)
-{
-	preg_match("!\d+!", $sample1, $matches1); //extract sample number
-	preg_match("!\d+!", $sample2, $matches2);
-	
-	return $matches1[0] > $matches2[0];
-	
-}
-
-function import_sample_relations($ps, $verbose)
-{
-	global $db_conn;
-	global $db_genlab;
-
-	//get processed sample info from NGSD
-	$current_sample_data = get_processed_sample_info($db_conn, $ps, false);
-	$current_sample = explode("_", $ps."_")[0];
-	
-	if($current_sample_data == null)
-	{
-		// echo "Can't find current sample in NGSD\n";
-		return;
-	}
-	
-	// only search for relations for Panel and RNA samples for relations (tumor-normal and same_sample respectivly):
-	if ($current_sample_data["sys_type"] != "RNA" && $current_sample_data["sys_type"] != "Panel" && $current_sample_data["sys_type"] != "WES")
-	{
-		// echo "unsupported sample type";
-		return;
-	}
-
-	$ps_id = get_processed_sample_id($db_conn, $ps);
-	$current_sample_id = $db_conn->getValue("SELECT sample_id FROM processed_sample WHERE id='$ps_id'");
-
-	// try both, processed sample id and sample id (inconsistent in Genlab)
-	$patient_id = $db_genlab->getValue("SELECT GenlabID FROM v_ngs_patient_ids WHERE LABORNUMMER='{$ps}'", "");
-	$current_sample_name = $ps;
-	if ($patient_id == "")
-	{
-		$patient_id = $db_genlab->getValue("SELECT GenlabID FROM v_ngs_patient_ids WHERE LABORNUMMER='{$current_sample}'", "");
-		$current_sample_name = $current_sample;
-	}
-	if ($patient_id == "")
-	{
-		// echo "ps not found in genlab\n";
-		return;
-	}
-
-	//search OTHER samples with the same patient
-	$samples_same_patient = $db_genlab->getValues("SELECT LABORNUMMER FROM v_ngs_patient_ids WHERE GenlabID = '{$patient_id}' and LABORNUMMER != '{$current_sample_name}' ORDER BY LABORNUMMER");
-	
-	if (count($samples_same_patient) == 0)
-	{
-		// echo "no other samples of the same patient\n";
-		return;
-	}
-	
-	$related_sample_data = [];
-
-	//get sample data for all related samples.
-	foreach ($samples_same_patient as $s)
-	{
-		$s = strtoupper(explode("_", $s."_")[0]);
-		$ngsd_sample_info = $db_conn->executeQuery("SELECT s.id as sample_id, ps.id as processed_sample_id, s.name as sample_name, ps.process_id as process_id, s.sample_type, s.quality, s.tumor, ps.quality as processed_quality, system.name_manufacturer as sys_name, system.type as sys_type, sr.name as run_name, sr.status as run_status FROM sample as s LEFT JOIN processed_sample as ps ON s.id = ps.sample_id LEFT JOIN processing_system as system ON ps.processing_system_id = system.id LEFT JOIN sequencing_run as sr on ps.sequencing_run_id = sr.id  WHERE s.name='$s' ORDER BY s.name");
-		if (count($ngsd_sample_info) == 0)
-		{
-			continue;
-		}
-		else
-		{
-			foreach($ngsd_sample_info as $related_sample_info)
-			{
-				$related_sample_data[$s."_0".$related_sample_info["process_id"]] = $related_sample_info;
-			}
-		}
-	}
-
-	if (count($related_sample_data) == 0)
-	{
-		//non of the related samples found in NGSD
-		return;
-	}
-
-	$related_sample = null;
-	
-	if ($current_sample_data["sys_type"] == "Panel" || $current_sample_data["sys_type"] == "WES")
-	{	
-		foreach($related_sample_data as $s => $data)
-		{
-			$system_type_ok = $data["sys_type"] == "Panel" || $data["sys_type"] == "WES";
-			$quality_ok = $data["processed_quality"] != "bad";
-			$tumor_ok = $data["tumor"] != $current_sample_data["is_tumor"]; // search for the opposite of the current sample.
-			$is_DNA = $data["sample_type"] == "DNA";
-			$run_finished = $data["run_status"] != "n/a" && $data["run_status"] != "run_started" && $data["run_status"] != "run_aborted";
-			
-			$system_ok = $current_sample_data["sys_name"] == $data["sys_name"];
-			// echo "related_sample: $s \n";
-			if ($related_sample == null && $system_type_ok  && $quality_ok && $tumor_ok && $is_DNA && $run_finished)
-			{
-				$related_sample = $s;
-			}
-			else if ($system_type_ok  && $quality_ok && $tumor_ok && $is_DNA && $run_finished && $system_ok && is_sample_newer($s, $related_sample))
-			{
-				$related_sample = $s;
-			}
-		}
-		
-		if ($related_sample == null)
-		{
-			// echo "No Candidates left\n";
-			return;
-		}
-		
-		$related_p_id = $related_sample_data[$related_sample]["processed_sample_id"];
-		$related_id = $related_sample_data[$related_sample]["sample_id"];
-		$related_p_sample = $related_sample;
-		$related_sample = explode("_", $related_sample."_")[0];
-		if ($current_sample_data["is_tumor"] == "1")
-		{
-			if ($verbose) echo "Importing Sample_relation for sample {$current_sample}: $current_sample tumor-normal $related_sample \n";
-			$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$current_sample_id},'tumor-normal',{$related_id})");
-			
-			//save normal ID in the tumor processed sample:
-			if ($current_sample_data["normal_id"] == "")
-			{
-				if ($verbose) echo "Saving related normal sample $related_p_sample in tumor sample as normal sample id.\n";
-				$db_conn->executeStmt("UPDATE `processed_sample` SET normal_id = $related_p_id WHERE id=$ps_id and normal_id is NULL"); // only update row if no normal id is entered.
-			}
-			
-			return [$current_sample, 'tumor-normal', $related_sample];
-		}
-		else
-		{
-			if ($verbose) echo "Importing Sample_relation for sample {$current_sample}: $related_sample tumor-normal $current_sample \n";
-			$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$related_id},'tumor-normal',{$current_sample_id})");
-			
-			return [$related_sample, 'tumor-normal', $current_sample];
-		}		
-	}
-	else if ($current_sample_data["sys_type"] == "RNA")
-	{
-		//search genlab DnaRna table for a related sample
-		$genlab_related_samples = $db_genlab->getValues("SELECT LABORNUMMER FROM v_ngs_dnarna WHERE T_UNTERSUCHUNG_1_MATERIALINFO = '{$current_sample_data["name_external"]}' and LABORNUMMER != '{$current_sample_name}' ORDER BY LABORNUMMER");
-		if (count($genlab_related_samples) != 0)
-		{
-			$genlab_related_sample = null;
-			foreach($genlab_related_samples as $gs)
-			{
-				
-				$gs_data = $db_conn->executeQuery("SELECT s.id as sample_id, s.name as sample_name, ps.process_id as process_id, s.sample_type, s.quality, s.tumor, ps.quality as processed_quality, system.name_manufacturer as sys_name, system.type as sys_type FROM sample as s LEFT JOIN processed_sample as ps ON s.id = ps.sample_id LEFT JOIN processing_system as system ON ps.processing_system_id = system.id WHERE s.name='$gs' ORDER BY s.name");
-				if (count($gs_data) ==0 || $gs_data[0]["sample_type"] == "RNA")
-				{
-					continue;
-				}
-				$genlab_related_sample = explode("_", $gs."_")[0];
-				
-			}
-
-			foreach ($related_sample_data as $s => $data)
-			{
-				if (explode("_", $s."_")[0] == $genlab_related_sample)
-				{
-					$related_id = $data["sample_id"];
-					
-					if ($verbose) echo "Importing sample relation for RNA sample {$current_sample}: $genlab_related_sample same sample $current_sample \n";
-					$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$related_id},'same sample',{$current_sample_id})");
-					return [$genlab_related_sample , 'same sample', $current_sample];
-				}
-			}
-		}
-		
-		//search the samples of the same patient for a fitting sample
-		foreach($related_sample_data as $s => $data)
-		{	
-			$system_type_ok = $data["sys_type"] == "Panel" || $data["sys_type"] == "WES" || $data["sys_type"] == "WGS";
-			$quality_ok = $data["processed_quality"] != "bad";
-			$is_DNA = $data["sample_type"] == "DNA";
-			$run_finished = $data["run_status"] != "n/a" && $data["run_status"] != "run_started" && $data["run_status"] != "run_aborted";
-			
-			if ($system_type_ok  && $quality_ok && $is_DNA && $run_finished && ($related_sample == null || is_sample_newer($s, $related_sample)))
-			{
-				$related_sample = $s;
-			}
-		}
-		
-		if ($related_sample == null)
-		{
-			return;
-		}
-		
-		$related_id = $related_sample_data[$related_sample]["sample_id"];
-		$related_sample = explode("_", $related_sample."_")[0];
-		
-		if ($verbose) echo "Importing sample relation for RNA sample {$current_sample}: $related_sample same sample $current_sample \n";
-		$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$related_id},'same sample',{$current_sample_id})");
-		
-		return [$related_sample, 'same sample', $current_sample];
-	}
-	else
-	{
-		trigger_error("Unsupported system type ".$current_sample_data["sys_type"].". No sample relations annotated.", E_USER_WARNING);
-	}
+	return array(processed_sample_name($db_conn, $ps_id_father), processed_sample_name($db_conn, $ps_id_mother));
 }
 
 //init
 if (!isset($out)) $out = "Makefile";
 $db_conn = DB::getInstance($db);
-$db_genlab = GenLabDB::isEnabled() ? GenLabDB::getInstance() : null;
+$ngsbits = get_path("ngs-bits");
+
+
 
 if(!file_exists("Fq") && !check_number_of_lanes($runinfo,$samplesheet))
 {
 	trigger_error("***!!!WARNING!!!***\nCould not verify number of lanes used for Demultiplexing and actually used on Sequencer. Please check manually!", E_USER_WARNING);
 }
 
-//get sample data from samplesheet
+//import data from Genlab
 list($sample_data, $is_nextseq) = extract_sample_data($db_conn, $samplesheet);
-
-
-if (!is_null($db_genlab))
+foreach($sample_data as $sample => $data)
 {
-	//import sample relations:
-	$tn_samples = 0;
-	$rna_samples = 0;
-
-	$imported_tn_relations = 0;
-	$imported_rna_relations = 0;
-
-	$all_samples = array_keys($sample_data);
-	foreach($sample_data as $sample => $sample_infos)
-	{
-		$ps_info = get_processed_sample_info($db_conn, $sample, false);
-		$is_rna = $ps_info["sys_type"] == "RNA";
-		$is_tum_nrm = $ps_info["sys_type"] == "Panel" || $ps_info["sys_type"] == "WES";
-		
-		//Count total samples:
-		if ($is_rna)
-		{
-			$rna_samples++;
-		}
-		if ($is_tum_nrm)
-		{
-			$tn_samples++;
-		}
-		
-		if (!is_null($db_genlab))
-		{
-			$imported_rel = import_sample_relations($sample, $verbose);
-		}
-		
-		//no relation imported
-		if($imported_rel == null) continue;
-		
-		if($imported_rel[1] == "same sample")
-		{
-			$imported_rna_relations++;
-		}
-		else if ($imported_rel[1] == "tumor-normal")
-		{
-			foreach($all_samples as $ps)
-			{
-				$s = explode("_", $ps)[0];
-				if ($s == $imported_rel[0] || $s == $imported_rel[1])
-				{
-					$imported_tn_relations++;
-				}
-			}
-		}
-	}
-
-	//print import relations summary:
-
-	echo "Imported sample relations:\n";
-	echo "RNA   - imported ".$imported_rna_relations." 'same sample'  relations for ".$rna_samples." RNA samples.\n";
-	echo "Tumor - imported ".$imported_tn_relations. " 'tumor-normal' relations for ".$tn_samples." Panel or WES samples.\n";
+	$args = [];
+	$args[] = "-ps {$sample}";
+	if ($db=="NGSD_TEST") $args[] = "-test";
+	$parser->exec("{$ngsbits}/NGSDImportGenlab", implode(" ", $args), true);
 }
-
 
 //update sample data after importing sample relations
 list($sample_data, $is_nextseq) = extract_sample_data($db_conn, $samplesheet);
@@ -873,22 +567,13 @@ foreach($sample_data as $sample => $sample_infos)
 			}
 			
 			//check if trio needs to be queued
-			if (!is_null($db_genlab))
+			$parents = get_trio_parents($sample);
+			if (!is_null($parents))
 			{
-				$parents = get_trio_parents($sample);
-				if (!is_null($parents))
-				{
-					list($father, $mother) = $parents;
-					$command = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'trio' -samples {$sample} {$father} {$mother} -info child father mother";
-					if ($high_priority) $outputline .= " -high_priority";
-					$queue_trios[] = "\t".$command;
-				}
-			}
-			
-			//try to import disease_group
-			if (!is_null($db_genlab))
-			{
-				import_genlab_disease_group($sample);
+				list($father, $mother) = $parents;
+				$command = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'trio' -samples {$sample} {$father} {$mother} -info child father mother";
+				if ($high_priority) $outputline .= " -high_priority";
+				$queue_trios[] = "\t".$command;
 			}
 		}
 		if ($high_priority || contains(strtolower(implode(" ", $sample_infos['ps_comments'])), "eilig"))

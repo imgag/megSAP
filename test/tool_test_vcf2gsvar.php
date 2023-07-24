@@ -47,6 +47,11 @@ $out_file3 = output_folder().$name."_out3.GSvar";
 check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in3.vcf -out $out_file3 --log ".output_folder().$name."_out3.log");
 check_file($out_file3, data_folder().$name."_out3.GSvar");
 
+//genotype_mode=single, long-read, WGS mode 
+$out_file1 = output_folder().$name."_out6.GSvar";
+check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in4.vcf -wgs -longread -out $out_file1 --log ".output_folder().$name."_out6.log");
+check_file($out_file1, data_folder().$name."_out6.GSvar");
+
 end_test();
 
 ?>

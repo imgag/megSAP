@@ -614,7 +614,7 @@ if (in_array("db", $steps))
 		$qc_files[] = $qc_cfdna;
 	}
 	//import QC
-	$parser->exec(get_path("ngs-bits")."/NGSDImportSampleQC", "-ps {$name} -files ".implode(" ", $qc_files)." -force --log ".$parser->getLogFile());
+	$parser->exec(get_path("ngs-bits")."/NGSDImportSampleQC", "-ps {$name} -files ".implode(" ", $qc_files)." -force");
 
 	//check gender
 	$parser->execTool("NGS/db_check_gender.php", "-in {$bamfile} -pid {$name} --log ".$parser->getLogFile());	
