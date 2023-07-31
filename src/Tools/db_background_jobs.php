@@ -8,9 +8,9 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("db_background_jobs", "Runs jobs in the SGE queue without interferring with the NGSD queuing system.");
-$parser->addInfile("commands", "Input text file containing command per line.", false);
-$parser->addInt("slots_per_job", "Number of SGE slots to use per command", false);
+$parser = new ToolBase("db_background_jobs", "Runs jobs in the the backgound in SGE whenever compute resources are free.");
+$parser->addInfile("commands", "Input text file containing one command per line.", false);
+$parser->addInt("slots_per_job", "Number of SGE slots (i.e. threads) to use per command.", false);
 //optional
 $parser->addFloat("max_slots", "Maximum percentage of SGE slots to use.", true, 80.0);
 $parser->addInt("sleep_secs", "Number of seconds to sleep between tries to start jobs.", true, 120);

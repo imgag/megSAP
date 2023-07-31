@@ -25,6 +25,9 @@ RHEL 8.3
 	> yum groupinstall "Development Tools" -y
 	> yum install zlib-devel bzip2-devel xz-devel ncurses-devel libcurl-devel cpan cpanminus gd-devel libdb-devel -y
 	> dnf install php-cli php-xml  php-mysqlnd R-core R-core-devel -y
+ 	
+  	# dependencies for ngs-bits:
+ 	> yum install qt5-qtcharts.x86_64 qt5-qtbase-odbc.x86_64 qt5-qtbase-mysql.x86_64 qt5-qtxmlpatterns.x86_64 libcurl-devel.x86_64 qt5-devel.x86_64
     
 ## Downloading
 
