@@ -306,8 +306,6 @@ if (db_is_enabled("NGSD_TEST"))
 	check(ends_with($sample_info['ps_folder'], "/merge_samples/Sample_DNA220002_01/"), true);
 	check(ends_with($sample_info['ps_bam'], "/merge_samples/Sample_DNA220002_01/DNA220002_01.bam"), true);
 
-	// print_r($sample_info);
-
 	$sample_info = get_processed_sample_info($db_conn, "DNA220002_01", true, true);
 	check($sample_info["sys_target"], "");
 	check($sample_info["ps_lanes"], array(1));
@@ -316,7 +314,6 @@ if (db_is_enabled("NGSD_TEST"))
 	check(isset($sample_info['ps_folder']), false);
 	check(isset($sample_info['ps_bam']), false);
 
-	// print_r($sample_info);
 }
 else
 {
