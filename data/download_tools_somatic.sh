@@ -44,6 +44,8 @@ cd ..
 $folder/R-4.1.0/bin/R -f $root/install_deps_umiVar2.R
 
 #install scarHRD
+cd $folder
+git clone https://github.com/imgag/scarHRD.git
 $folder/R-4.1.0/bin/R -f $root/install_deps_scarhrd.R
 
 #install genome for SigProfilerExtractor

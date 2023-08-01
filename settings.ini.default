@@ -48,6 +48,7 @@ mantis = [path]/data/tools/MANTIS-1.0.5/mantis.py
 mipgen = [path]/data/tools/MIPGEN/mipgen
 umiVar2 = [path]/data/tools/umiVar2/
 hla_genotyper = [path]/data/tools/hla-genotyper-2022_05/genotyper.py
+scarHRD = [path]/data/tools/scarHRD/R/cli_scarHRD.R
 
 [tools-ngs-rna]
 STAR = [path]/data/tools/STAR-2.7.10b/bin/Linux_x86_64/STAR

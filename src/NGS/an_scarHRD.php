@@ -1,7 +1,7 @@
 <?php
 
 
-require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+require_once("/mnt/storage2/users/ahott1a1/megSAP/src/Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
@@ -19,7 +19,8 @@ extract($parser->parse($argv));
 
 function prepare_clincnv($clincnv, $sample)
 {
-	$tmp = temp_file(".tsv", "scarhrd_in_");
+	// $tmp = temp_file(".tsv", "scarhrd_in_");
+	$tmp = "/mnt/storage2/users/ahott1a1/projects/+analysis/230725_test_scarHRD_fix/scarHRD_input.tsv";
 	$lines = array();
 	$lines[] = "SampleID\tChromosome\tStart_position\tEnd_position\ttotal_cn\tA_cn\tB_cn\tploidy";
 	
@@ -128,8 +129,9 @@ function run_scarHRD($parser, $cnvs, $count, $prefix, $out_folder)
 {
 	if ($count != 0)
 	{	
-		$cli_scarHRD = repository_basedir()."/src/NGS/cli_scarHRD.R";
-		$parser->exec(get_path("rscript"), " --vanilla {$cli_scarHRD} -s $cnvs -o $out_folder");
+		$cli_scarHRD = get_path("scarHRD");
+		$wd = dirname($cli_scarHRD);
+		$parser->exec(get_path("rscript"), "--vanilla {$cli_scarHRD} -s $cnvs -o $out_folder -w $wd");
 	}
 	else
 	{
