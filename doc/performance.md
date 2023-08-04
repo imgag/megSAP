@@ -9,7 +9,7 @@ Sensitivity, positive predictive value (PPV) and genotyping accuracy were measur
 
 ### Whole genome sequencing
 
-The WGS samples were processed with the Illumina TruSeq DNA PCR-Free kit.  
+The WGS samples were processed with the Illumina TruSeq DNA PCR-Free kit and sequenced on NovaSeq6000 using 151PE.  
 The benchmarks were performed on GIAB high-confidence regions **with at least 15x coverage**.
 
 <table>
@@ -27,29 +27,29 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
     <th>genotyping</th>
   </tr>
   <tr>
-    <td>NovaSeq6000, 151PE, megSAP default</td> <!--- dataset: NA12878_45 @ 40x --->
-    <td>99.62%</td>
-    <td>99.42%</td>
-    <td>99.93%</td>
-    <td>96.74%</td>
-    <td>99.38%</td>
-    <td>97.94%</td>
+    <td>megSAP default</td> <!--- dataset: NA12878_45 @ 40x --->
+ 	<td>99.63%</td>
+ 	<td>99.43%</td>
+ 	<td>99.93%</td>
+ 	<td>96.75%</td>
+ 	<td>99.38%</td>
+ 	<td>97.95%</td>
   </tr>
   <tr>
-    <td>NovaSeq6000, 151PE, megSAP DRAGEN v4.0.3 (-use_dragen)</td> <!--- dataset: NA12878_45 @ 40x --->
-	<td>99.74%</td>
-    <td>99.75%</td>
-    <td>99.97%</td>
-    <td>99.68%</td>
-    <td>99.66%</td>
-    <td>98.93%</td>
+    <td>megSAP DRAGEN v4.0.3 (-use_dragen)</td> <!--- dataset: NA12878_45 @ 40x --->
+ 	<td>99.75%</td>
+ 	<td>99.75%</td>
+ 	<td>99.98%</td>
+ 	<td>99.69%</td>
+ 	<td>99.66%</td>
+ 	<td>99.94%</td>
   </tr>
 </table>
 
 
 ### Exome sequencing
 
-The WES samples were processed with a custom exome kit based on a Twist enrichment (Core, RefSeq, Mito and custom content).  
+The WES NA12878 sample was processed with a custom exome kit based on a Twist enrichment (Core, RefSeq, Mito and custom content) and sequenced on NovaSeq6000 using 109PE.  
 The benchmarks were performed on GIAB high-confidence regions **with at least 15x coverage**.
 
 <table>
@@ -67,22 +67,22 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
     <th>genotyping</th>
   </tr>
   <tr>
-    <td>NovaSeq6000, 109PE, megSAP default</td> <!--- dataset: NA12878x2_82 @ 113x --->
-    <td>99.22%</td>
-    <td>98.30%</td>
-    <td>99.73%</td>
-    <td>96.82%</td>
-    <td>94.10%</td>
-    <td>96.23%</td>
+    <td>megSAP default</td> <!--- dataset: NA12878x2_82 @ 113x --->
+ 	<td>99.23%</td>
+ 	<td>98.30%</td>
+ 	<td>99.74%</td>
+ 	<td>96.85%</td>
+ 	<td>94.11%</td>
+ 	<td>96.23%</td>
   </tr>
   <tr>
-    <td>NovaSeq6000, 109PE, megSAP DRAGEN (v4.0.3) (-use_dragen)</td> <!--- dataset: NA12878x2_82 @ 113x --->
-    <td>99.21%</td>
-    <td>98.81%</td>
-    <td>99.82%</td>
-    <td>98.81%</td>
-    <td>97.26%</td>
-    <td>99.44%</td>
+    <td>megSAP DRAGEN (v4.0.3) (-use_dragen)</td> <!--- dataset: NA12878x2_82 @ 113x --->
+ 	<td>99.21%</td>
+ 	<td>98.82%</td>
+ 	<td>99.83%</td>
+ 	<td>98.81%</td>
+ 	<td>97.26%</td>
+ 	<td>99.45%</td>
   </tr>
 </table>
 
@@ -107,94 +107,94 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
     <th>genotyping</th>
   </tr>
   <tr>
-    <td>default parameters</td>
-    <td>99.22%</td>
-    <td>98.30%</td>
-    <td>99.73%</td>
-    <td>96.82%</td>
-    <td>94.10%</td>
-    <td>96.23%</td>
+    <td>default parameters (AF=0.1, MQ=20, BQ=20)</td> <!--- dataset: NA12878x2_82 @ 113x --->
+ 	<td>99.23%</td>
+ 	<td>98.30%</td>
+ 	<td>99.74%</td>
+ 	<td>96.85%</td>
+ 	<td>94.11%</td>
+ 	<td>96.23%</td>
   </tr>
   <tr>
-    <td>No indel-realignment (-no_abra)</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
+    <td>No indel-realignment (-no_abra)</td> <!--- dataset: NA12878x2_82 @ 113x --->
+ 	<td>99.23%</td>
+ 	<td>98.31%</td>
+ 	<td>99.74%</td>
+ 	<td>96.81%</td>
+ 	<td>93.81%</td>
+ 	<td>96.04%</td>
   </tr>
   <tr>
-    <td>5% AF cutoff for variant calling (-min_af 0.05)</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
+    <td>5% AF cutoff for variant calling (-min_af 0.05)</td> <!--- dataset: NA12878x2_82 @ 113x --->
+ 	<td>99.22%</td>
+ 	<td>98.33%</td>
+ 	<td>99.74%</td>
+ 	<td>97.13%</td>
+ 	<td>94.04%</td>
+ 	<td>96.38%</td>
   </tr>
   <tr>
-    <td>15% AF cutoff for variant calling (-min_af 0.15)</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
+    <td>15% AF cutoff for variant calling (-min_af 0.15)</td> <!--- dataset: NA12878x2_82 @ 113x --->
+ 	<td>99.23%</td>
+ 	<td>98.31%</td>
+ 	<td>99.72%</td>
+ 	<td>96.12%</td>
+ 	<td>95.60%</td>
+ 	<td>96.20%</td>
   </tr>
   <tr>
-    <td>20% AF cutoff for variant calling (-min_af 0.2)</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
+    <td>20% AF cutoff for variant calling (-min_af 0.2)</td> <!--- dataset: NA12878x2_82 @ 113x --->
+ 	<td>99.17%</td>
+ 	<td>98.68%</td>
+ 	<td>99.73%</td>
+ 	<td>94.62%</td>
+ 	<td>97.46%</td>
+ 	<td>96.24%</td>
   </tr>
   <tr>
-    <td>Minimum mapping quality of 1 for variant calling (-min_mq 1)</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
+    <td>Minimum MQ of 1 for variant calling (-min_mq 1)</td> <!--- dataset: NA12878x2_82 @ 113x --->
+ 	<td>99.24%</td>
+ 	<td>98.23%</td>
+ 	<td>99.73%</td>
+ 	<td>96.81%</td>
+ 	<td>94.19%</td>
+ 	<td>96.23%</td>
   </tr
   <tr>
-    <td>Minimum mapping quality of 40 for variant calling (-min_mq 40)</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
+    <td>Minimum MQ of 40 for variant calling (-min_mq 40)</td> <!--- dataset: NA12878x2_82 @ 113x --->
+ 	<td>98.85%</td>
+ 	<td>98.93%</td>
+ 	<td>99.83%</td>
+ 	<td>96.58%</td>
+ 	<td>94.38%</td>
+ 	<td>96.22%</td>
   </tr>
   <tr>
-    <td>Minimum mapping quality of 50 for variant calling (-min_mq 50)</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
+    <td>Minimum MQ of 50 for variant calling (-min_mq 50)</td> <!--- dataset: NA12878x2_82 @ 113x --->
+ 	<td>96.45%</td>
+ 	<td>99.36%</td>
+ 	<td>99.85%</td>
+ 	<td>95.21%</td>
+ 	<td>94.65%</td>
+ 	<td>96.17%</td>
   </tr>
   <tr>
-    <td>Minimum base quality of 1 for variant calling (-min_bq 1)</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
+    <td>Minimum BQ of 1 for variant calling (-min_bq 1)</td> <!--- dataset: NA12878x2_82 @ 113x --->
+ 	<td>99.21%</td>
+ 	<td>98.35%</td>
+ 	<td>99.74%</td>
+ 	<td>97.49%</td>
+ 	<td>93.77%</td>
+ 	<td>96.82%</td>
   </tr>
   <tr>
-    <td>Minimum base quality of 30 for variant calling (-min_bq 30)</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
-    <td>TODO</td>
+    <td>Minimum BQ of 30 for variant calling (-min_bq 30)</td> <!--- dataset: NA12878x2_82 @ 113x --->
+ 	<td>99.21%</td>
+ 	<td>98.38%</td>
+ 	<td>99.73%</td>
+ 	<td>94.94%</td>
+ 	<td>95.37%</td>
+ 	<td>95.15%</td>
   </tr>
 </table>
 
