@@ -125,7 +125,7 @@ foreach($res as $row)
 			foreach ($custom_mid as $mid)
 			{
 				$mid = trim($mid);
-				preg_match("/^(?<mid1>[AGTC]+)(\+(?<mid2>[AGTC]+))?/", $mid, $matches);
+				preg_match("/^(?<mid1>[AGTC]+)(\s*\+\s*(?<mid2>[AGTC]+))?/", $mid, $matches);
 				if (array_key_exists("mid1", $matches) && array_key_exists("mid2", $matches))
 				{
 					$mids1[] = $matches["mid1"];

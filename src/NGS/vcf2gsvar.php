@@ -873,7 +873,7 @@ while(!feof($handle))
 			$transcript_id = trim($parts[$i_vac_feature]);
 			
 			$consequence = $parts[$i_vac_consequence];
-			$consequence = strtr($consequence, ["&NMD_transcript"=>"", "splice_donor_variant&intron_variant"=>"splice_donor_variant", "splice_acceptor_variant&intron_variant"=>"splice_acceptor_variant"]);
+			$consequence = strtr($consequence, ["&NMD_transcript_variant"=>"", "splice_donor_variant&intron_variant"=>"splice_donor_variant", "splice_acceptor_variant&intron_variant"=>"splice_acceptor_variant"]);
 			
 			//extract variant type
 			$variant_type = strtr($consequence, array("_variant"=>"", "_prime_"=>"'"));
