@@ -250,12 +250,20 @@ if (isset($db))
 					$bed_content = $db->getValue("SELECT bed FROM cfdna_panels WHERE tumor_id=${tumor_ps_id} AND processing_system_id=${sys_id}");
 					file_put_contents($target, $bed_content);
 				}
+				else
+				{
+					copy($target, "{$folder}/{$name}_target_region.bed");
+				}
 				
 				if ($monitoring_vcf == "")
 				{
 					$monitoring_vcf = "{$folder}/{$name}_cfdna_panel.vcf";
 					$vcf_content = $db->getValue("SELECT vcf FROM cfdna_panels WHERE tumor_id=${tumor_ps_id} AND processing_system_id=${sys_id}");
 					file_put_contents($monitoring_vcf, $vcf_content);
+				}
+				else
+				{
+					copy($monitoring_vcf, "{$folder}/{$name}_cfdna_panel.vcf");
 				}
 			}
 		}
