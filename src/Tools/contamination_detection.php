@@ -16,7 +16,7 @@ $parser->addInfile("roi",  "Target region for variant calling. If unset, determi
 $parser->addInt("min_var_qual", "Minimum quality for variant calls.", true,  30);
 $parser->addInt("min_var_depth", "Minimum depth for variant calls.", true, 50);
 $parser->addInt("min_var_mapq", "Minimum mapping quality for variant calls.", true, 55);
-$parser->addFloat("max_af", "Maximum gnomAD/1000g allele frequency of variant used for comparison.", true, 0.02);
+$parser->addFloat("max_af", "Maximum gnomAD allele frequency of variant used for comparison.", true, 0.02);
 $parser->addFloat("max_ngsd", "Maximum occurences in NGSD of variants used for comparison.", true, 50);
 $parser->addFloat("min_hits", "Minimum number of variant hits for reporting a sample.", true, 3);
 $parser->addInfile("ann_vcf", "Annotated VCF with variants which should be used for comparison (by a previous run with 'gsvar_output' option).", true);
@@ -200,12 +200,12 @@ foreach($gsvar_filtered as $line)
 	//extract variant info
 	list($chr, $start, $end, $ref, $obs) = explode("\t", $line);
 	
-	$res = $db->executeQuery("SELECT id, 1000g, gnomad FROM variant WHERE chr='{$chr}' AND start='{$start}' AND end='{$end}' AND ref='{$ref}' AND obs='{$obs}'");
+	$res = $db->executeQuery("SELECT id, gnomad FROM variant WHERE chr='{$chr}' AND start='{$start}' AND end='{$end}' AND ref='{$ref}' AND obs='{$obs}'");
 	if (count($res)==0) continue;
 	++$c_vars_ngsd;
 	
 	$var_id = $res[0]['id'];
-	$af_1000g = $res[0]['1000g'];
+	// $af_1000g = $res[0]['1000g'];
 	$af_gnomad = $res[0]['gnomad'];
 	
 	//determine samples that contain the variant
@@ -215,7 +215,7 @@ foreach($gsvar_filtered as $line)
 		$ps_id = $row['processed_sample_id'];
 		$gt = $row['genotype'];
 		
-		$vars_refound[$ps_id][] = "{$chr}:{$start} {$ref}>{$obs} GT={$gt} gnomAD_af={$af_1000g} NGSD_count=".count($res2);
+		$vars_refound[$ps_id][] = "{$chr}:{$start} {$ref}>{$obs} GT={$gt} gnomAD_af={$af_gnomad} NGSD_count=".count($res2);
 	}
 }
 print "##{$c_vars_ngsd} variant found in NGSD.\n";

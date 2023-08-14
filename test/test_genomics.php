@@ -292,5 +292,34 @@ check_genome_build(data_folder()."/get_genome_build_dragenGRCh37.bam", "GRCh37")
 check_genome_build(data_folder()."/get_genome_build_dragenGRCh38.bam", "GRCh38");
 end_test();
 
+//##################################################################################
+start_test("get_processed_sample_info");
+if (db_is_enabled("NGSD_TEST"))
+{
+	$db_conn = DB::getInstance("NGSD_TEST");
+	check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/merge_samples.sql");
+	$sample_info = get_processed_sample_info($db_conn, "DNA220002_01", true, false);
+	check($sample_info["sys_target"], "");
+	check($sample_info["ps_lanes"], array(1));
+	check(ends_with($sample_info['project_folder'], "/merge_samples/"), true);
+	check($sample_info['ps_name'], "DNA220002_01");
+	check(ends_with($sample_info['ps_folder'], "/merge_samples/Sample_DNA220002_01/"), true);
+	check(ends_with($sample_info['ps_bam'], "/merge_samples/Sample_DNA220002_01/DNA220002_01.bam"), true);
+
+	$sample_info = get_processed_sample_info($db_conn, "DNA220002_01", true, true);
+	check($sample_info["sys_target"], "");
+	check($sample_info["ps_lanes"], array(1));
+	check(isset($sample_info['project_folder']), false);
+	check(isset($sample_info['ps_name']), false);
+	check(isset($sample_info['ps_folder']), false);
+	check(isset($sample_info['ps_bam']), false);
+
+}
+else
+{
+	print("No NGSD_TEST connection, skipping test!");
+}
+end_test();
+
 
 ?>

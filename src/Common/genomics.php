@@ -1056,7 +1056,7 @@ function processed_sample_name(&$db_conn, $ps_id)
 }
 
 //Returns information from the NGSD about a processed sample (as key-value pairs), or null/error if the sample is not found.
-function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true)
+function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true, $no_paths=false)
 {
 	//get info from NGSD
 	$ps_name = trim($ps_name);
@@ -1108,25 +1108,29 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	$info['ps_lanes'] = array_map("trim", explode(",", $info['ps_lanes']));
 	$info['s_comments'] = array_map("trim", explode("\n", $info['s_comments']));
 	
-	//additional info
-	$project_type = $info['project_type'];
-	if ($project_type == "megSAP-Tests")
+	if (!$no_paths)
 	{
-		$project_folder = get_path($project_type);
-	}
-	else
-	{
-		$args = [];
-		$args[] = "-ps {$ps_name}";
-		if ($db_conn->name()=="NGSD_TEST") $args[] = "-test";
-		list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath ".implode(" ", $args));
-		$project_folder = dirname(trim(implode("", $stdout)), 2);
+		//additional info (paths)
+		$project_type = $info['project_type'];
+		if ($project_type == "megSAP-Tests")
+		{
+			$project_folder = get_path($project_type);
+		}
+		else
+		{
+			$args = [];
+			$args[] = "-ps {$ps_name}";
+			if ($db_conn->name()=="NGSD_TEST") $args[] = "-test";
+			list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath ".implode(" ", $args));
+			$project_folder = dirname(trim(implode("", $stdout)), 2);
+		}
+		
+		$info['project_folder'] = $project_folder."/".$info['project_name']."/";
+		$info['ps_name'] = $ps_name;
+		$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
+		$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
 	}
 	
-	$info['project_folder'] = $project_folder."/".$info['project_name']."/";
-	$info['ps_name'] = $ps_name;
-	$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
-	$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
 	
 	ksort($info);
 	return $info;
