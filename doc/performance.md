@@ -46,6 +46,117 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
   </tr>
 </table>
 
+### Whole genome sequencing - non-default parameters
+
+The WGS samples were processed with the Illumina TruSeq DNA PCR-Free kit and sequenced on NovaSeq6000 using 151PE.  
+The benchmarks were performed on GIAB high-confidence regions **with at least 15x coverage**.
+
+<table>
+  <tr>
+    <th rowspan=2>Test</th>
+    <th colspan=3>SNV</th>
+    <th colspan=3>InDel</th>
+  </tr>
+  <tr>
+    <th>sensitivity</th>
+    <th>PPV</th>
+    <th>genotyping</th>
+    <th>sensitivity</th>
+    <th>PPV</th>
+    <th>genotyping</th>
+  </tr>
+	<tr>
+		<td>default parameters (indel realignment, AF=0.1, MQ=20, BQ=20)</td> <!--- dataset: NA12878_45 @ 40x --->
+		<td>99.70%</td>
+		<td>99.44%</td>
+		<td>99.94%</td>
+		<td>96.77%</td>
+		<td>99.38%</td>
+		<td>97.95%</td>
+	</tr>
+	<tr>
+		<td>NA12878_45_40x_noabra</td>
+		<td>99.70%</td>
+		<td>99.43%</td>
+		<td>99.94%</td>
+		<td>96.86%</td>
+		<td>99.37%</td>
+		<td>97.98%</td>
+	</tr>
+	<tr>
+		<td>NA12878_45_40x_af005</td>
+		<td>99.70%</td>
+		<td>99.44%</td>
+		<td>99.95%</td>
+		<td>96.83%</td>
+		<td>99.37%</td>
+		<td>97.97%</td>
+	</tr>
+	<tr>
+		<td>NA12878_45_40x_af015</td>
+		<td>99.70%</td>
+		<td>99.43%</td>
+		<td>99.94%</td>
+		<td>96.18%</td>
+		<td>99.41%</td>
+		<td>97.96%</td>
+	</tr>
+	<tr>
+		<td>NA12878_45_40x_af020</td>
+		<td>99.69%</td>
+		<td>99.49%</td>
+		<td>99.95%</td>
+		<td>94.20%</td>
+		<td>99.49%</td>
+		<td>98.01%</td>
+	</tr>
+	<tr>
+		<td>NA12878_45_40x_mq01</td>
+		<td>99.71%</td>
+		<td>99.42%</td>
+		<td>99.94%</td>
+		<td>96.74%</td>
+		<td>99.39%</td>
+		<td>97.95%</td>
+	</tr>
+	<tr>
+		<td>NA12878_45_40x_mq40</td>
+		<td>99.57%</td>
+		<td>99.57%</td>
+		<td>99.95%</td>
+		<td>96.73%</td>
+		<td>99.42%</td>
+		<td>97.96%</td>
+	</tr>
+	<tr>
+		<td>NA12878_45_40x_mq50</td>
+		<td>98.04%</td>
+		<td>99.68%</td>
+		<td>99.95%</td>
+		<td>96.18%</td>
+		<td>99.45%</td>
+		<td>97.96%</td>
+	</tr>
+	<tr>
+		<td>NA12878_45_40x_bq10</td>
+		<td>99.70%</td>
+		<td>99.48%</td>
+		<td>99.95%</td>
+		<td>97.80%</td>
+		<td>99.40%</td>
+		<td>98.46%</td>
+	</tr>
+	<tr>
+		<td>NA12878_45_40x_bq30</td>
+		<td>99.69%</td>
+		<td>99.47%</td>
+		<td>99.94%</td>
+		<td>96.05%</td>
+		<td>99.41%</td>
+		<td>97.74%</td>
+	</tr>
+</table>
+
 
 ### Exome sequencing
 
@@ -107,7 +218,7 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
     <th>genotyping</th>
   </tr>
   <tr>
-    <td>default parameters (AF=0.1, MQ=20, BQ=20)</td> <!--- dataset: NA12878x2_82 @ 113x --->
+    <td>default parameters (indel realignment, AF=0.1, MQ=20, BQ=20)</td> <!--- dataset: NA12878x2_82 @ 113x --->
  	<td>99.23%</td>
  	<td>98.30%</td>
  	<td>99.74%</td>
@@ -179,7 +290,7 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
  	<td>96.17%</td>
   </tr>
   <tr>
-    <td>Minimum BQ of 1 for variant calling (-min_bq 1)</td> <!--- dataset: NA12878x2_82 @ 113x --->
+    <td>Minimum BQ of 10 for variant calling (-min_bq 10)</td> <!--- dataset: NA12878x2_82 @ 113x --->
  	<td>99.21%</td>
  	<td>98.35%</td>
  	<td>99.74%</td>
