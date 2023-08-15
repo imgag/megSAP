@@ -1,5 +1,4 @@
-scacl<?php
-
+<?php
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
