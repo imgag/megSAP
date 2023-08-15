@@ -16,7 +16,7 @@ $parser->addInfile("system",  "Processing system INI file (automatically determi
 $steps_all = array("ma", "vc", "cn", "sv", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, db=import into NGSD.", true, "ma,vc,cn,sv,db");
 $parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (freebayes 'min-alternate-fraction' parameter).", true, 0.1);
-$parser->addFloat("min_bq", "Minimum base quality used for variant calling (freebayes 'min-base-quality' parameter).", true, 20);
+$parser->addFloat("min_bq", "Minimum base quality used for variant calling (freebayes 'min-base-quality' parameter).", true, 10);
 $parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (freebayes 'min-mapping-quality' parameter).", true, 20);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.");
