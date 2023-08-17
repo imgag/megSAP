@@ -3,7 +3,8 @@
 About 1.3 MB of the GRCh38 reference was identified as falsely duplicated, including some medically relevant genes.  
 For details, see this paper: https://www.nature.com/articles/s41587-021-01158-1
 
-To fix this the regions are masked in the reference genome by replacing the sequence with 'N'.
+To fix this the regions are masked in the reference genome by replacing the sequence with 'N'.  
+The regions are specified [here](https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_GRC_exclusions.bed).
 
 ## Changes in small variant calling
 
@@ -47,6 +48,14 @@ This affects the following regions:
 |chr21|44095983 |44252983 |DNMT3L, DNMT3L-AS1, GATD3, ICOSLG, LINC01678, PWP2, TRAPPC10|                                                                                  |
 |chr22|18885468 |18939468 |DGCR6, FAM230F, PRODH                                       |PRODH: Schizophrenia, Hyperprolinemia                                             |
 |chrX |37084895 |37098895 |                                                            |                                                                                  |
+
+## Checking which genome version
+
+To check if your genome is correctly masked, use this command:  
+
+	> samtools faidx [genome] chr21:5010000-5166246
+
+If the output consists of 'N' only, the genome is correctly masked.
 
 
 ## Internal documentation
