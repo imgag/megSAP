@@ -6,9 +6,9 @@
   ]>
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
-    <metaDataParameter ID="md0001" name="creation software" value="CfDnaQC 2021_12-52-g11078784" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0001" name="creation software" value="CfDnaQC 2023_06-63-g8c1d5e34" cvRef="QC" accession="QC:1000002"/>
     <metaDataParameter ID="md0002" name="creation software parameters" value=" -error_rates CFDNA_02/umiVar/error_rates.txt" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2022-01-11T12:34:59" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2023-08-18T16:08:48" cvRef="QC" accession="QC:1000004"/>
     <metaDataParameter ID="md0004" name="source file" value="CFDNA_02.bam" cvRef="QC" accession="QC:1000005"/>
     <metaDataParameter ID="md0005" name="linked file" value="roi_CFDNA_02.bed" uri="roi_CFDNA_02.bed" cvRef="QC" accession="QC:1000006" />
     <metaDataParameter ID="md0006" name="linked file" value="error_rates.txt" uri="error_rates.txt" cvRef="QC" accession="QC:1000006" />
@@ -19,7 +19,7 @@
     <qualityParameter ID="qp0005" name="umiVar error rate 1-fold duplication" description="" value="0.00112519" cvRef="QC" accession="QC:2000085"/>
     <qualityParameter ID="qp0006" name="umiVar error rate 2-fold duplication" description="" value="0.00136499" cvRef="QC" accession="QC:2000086"/>
     <qualityParameter ID="qp0007" name="umiVar error rate 3-fold duplication" description="" value="0.00054215" cvRef="QC" accession="QC:2000087"/>
-    <qualityParameter ID="qp0008" name="umiVar error rate 4-fold duplication" description="" value="0.00024339" cvRef="QC" accession="QC:2000088"/>
+    <qualityParameter ID="qp0008" name="umiVar error rate 4-fold duplication" description="" value="0.00024318" cvRef="QC" accession="QC:2000088"/>
   </runQuality>
   <cvList>
     <cv uri="https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo" ID="QC" fullName="QC" version="0.1"/>

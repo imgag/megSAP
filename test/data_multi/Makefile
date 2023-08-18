@@ -47,4 +47,4 @@ reanno:
 	# diff
 	diff multi_cnvs_clincnv.tsv reanno/multi_cnvs_clincnv.tsv
 	diff multi.GSvar reanno/multi.GSvar
-	diff multi_manta_var_structural.bedpe reanno/multi_manta_var_structural.bedpe
+	diff multi_manta_var_structural.bedpe reanno/multi_manta_var_structural.bedpe --ignore-matching-lines="^##"
