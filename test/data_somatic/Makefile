@@ -113,7 +113,7 @@ case3_somatic:
 case3_diff:
 	# remove gene annotation if present
 	cut -f1-27 out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe > out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe
-	diff expected_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe --ignore-matching-lines="##cmdline" --ignore-matching-lines="##fileDate="
+	diff expected_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe --ignore-matching-lines="##cmdline" --ignore-matching-lines="##"
 	
 create_test_case1:
 	samtools view -bh /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX205723_01/DX205723_01.bam chr7:140723402-140929330 > test_case1_tmp.bam

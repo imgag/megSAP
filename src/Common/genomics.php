@@ -1308,9 +1308,24 @@ function enable_special_mito_vc($sys)
 }
 
 //Returns the FASTA file of the genome
-function genome_fasta($build, $used_local_data=true)
+function genome_fasta($build, $use_local_data=true, $use_local_ramdrive=true)
 {
-	return ($used_local_data ? get_path("local_data") : get_path("data_folder")."/genomes")."/".$build.".fa";
+	//use genome FASTA of the local maching
+	if ($use_local_data)
+	{
+		//prefer ram drive
+		if($use_local_ramdrive)
+		{
+			$ramdrive_fasta = "/mnt/genome_ramdrive/".$build.".fa";
+			if (file_exists($ramdrive_fasta)) return $ramdrive_fasta;
+		}
+		
+		//use local copy in tmp
+		return get_path("local_data")."/".$build.".fa";
+	}
+	
+	//use the genome FASTA from the megSAP installation
+	return get_path("data_folder")."/genomes/".$build.".fa";
 }
 
 //Create Bed File that contains off target regions of a target region

@@ -1,6 +1,5 @@
 ##fileformat=VCFv4.1
 ##source=ExpansionHunter v5.0.0
-##reference=/tmp/local_ngs_data_GRCh38//GRCh38.fa
 ##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant">
 ##INFO=<ID=REF,Number=1,Type=Integer,Description="Reference copy number">
 ##INFO=<ID=REPID,Number=1,Type=String,Description="Repeat identifier as specified in the variant catalog">
