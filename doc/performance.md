@@ -215,11 +215,11 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
 	<tr>
 		<td>default parameters (indel realignment, AF=0.1, MQ=20, BQ=10)</td> <!--- dataset: NA12878x2_80 @ 113x --->
 		<td>99.21%</td>
-		<td>98.33%</td>
+		<td>98.35%</td>
 		<td>99.74%</td>
 		<td>97.49%</td>
-		<td>93.52%</td>
-		<td>96.49%</td>
+		<td>93.77%</td>
+		<td>96.82%</td>
 	</tr>
 	<tr>
 		<td>No indel-realignment (-no_abra)</td> <!--- dataset: NA12878x2_80 @ 113x --->
