@@ -306,6 +306,7 @@ if (!$start_with_abra)
 	{
 		$dragen_output_bam = "$dragen_output_folder/{$out_name}_dragen.bam";
 		$dragen_output_vcf = "$dragen_output_folder/{$out_name}_dragen.vcf.gz";
+		$dragen_output_gvcf = "$dragen_output_folder/{$out_name}_dragen.gvcf.gz";
 		$dragen_output_sv = "$dragen_output_folder/{$out_name}_dragen_svs.vcf.gz";
 		$dragen_log_file = "$dragen_output_folder/{$out_name}_dragen.log";
 		$sge_update_interval = 300; //5min
@@ -316,6 +317,7 @@ if (!$start_with_abra)
 		$args[] = "-in2 ".$trimmed2_dragen;
 		$args[] = "-out ".$dragen_output_bam;
 		$args[] = "-out_vcf ".$dragen_output_vcf;
+		$args[] = "-out_gvcf ".$dragen_output_gvcf;
 		$args[] = "-out_sv ".$dragen_output_sv;
 		$args[] = "-sample ".$out_name;
 		$args[] = "-build ".$sys['build'];
@@ -416,6 +418,8 @@ if (!$start_with_abra)
 		}
 		$parser->moveFile($dragen_output_vcf, $dragen_call_folder.basename($dragen_output_vcf));
 		$parser->moveFile($dragen_output_vcf.".tbi", $dragen_call_folder.basename($dragen_output_vcf).".tbi");
+		$parser->moveFile($dragen_output_gvcf, $dragen_call_folder.basename($dragen_output_gvcf));
+		$parser->moveFile($dragen_output_gvcf.".tbi", $dragen_call_folder.basename($dragen_output_gvcf).".tbi");
 		if (get_path("dragen_sv_calling"))
 		{
 			$parser->moveFile($dragen_output_sv, $dragen_call_folder.basename($dragen_output_sv));

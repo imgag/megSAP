@@ -6,13 +6,21 @@
 
 - create new project on BaseSpace
 - upload *.fa file
-- open `DRAGEN Reference Builder` in Apps (use version matching the Dragen version on the sequencer)
+- open `Reference Builder (Instruments) v1.1.0` in Apps 
 - select the created project as output
-- choose uploaded Fasta file as input
-- leave `Liftover Validation` checked and `Mask BED File` at `Autodetect`
-- activate the includes for RNA, CNV and HLA (do not include RNA in 4.2.4)
+- select the correct Sequencer (`NovaSeq X Series`)
+- enter name. This has to be exactly the name the genome should be called! It cannot be changed afterwards.
+- enter organization and species
+- give a link/description for the source of the *.fa file
+- leave `Mask BED File` at `AutoDetect` and `SAM Liftover File`at `None`
+(- GTF Annotation and Methylation was left empty/unchecked)
 - run application 
+(the job crashes sometimes, simply retry it several times)
 
+
+## Uploading enrichment files (BED) to the sequencer
+
+- In the upload dialog set the file type to `BedFile`(not `bed`), otherwise it will not be found in the sample sheet 
 
 ## Errors in the documentation from Illumina (SampleSheet_v2)
 [illumnia documentation](https://support-docs.illumina.com/SHARE/SampleSheetv2/Content/SHARE/SampleSheetv2/Settings_fNV_mX.htm)

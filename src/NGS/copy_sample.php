@@ -9,9 +9,8 @@ $repo_folder = "/mnt/storage2/megSAP/pipeline"; //fixed absolute path to make th
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("copy_sample", "Creates a Makefile to copy de-multiplexed sample data to projects and queue data analysis.");
-$parser->addString("samplesheet",  "Input samplesheet that was used to create the data folder.", true, "SampleSheet_bcl2fastq.csv");
+$parser->addString("samplesheet",  "Input samplesheet that was used to create the data folder. (Has to be located in the run folder.)", true, "SampleSheet_bcl2fastq.csv");
 $parser->addString("folder",  "Input data folder.", true, "Unaligned");
-$parser->addString("runinfo" ,"Illumina RunInfo.xml file. Necessary for checking metadata in NGSD",true, "RunInfo.xml");
 $parser->addOutfile("out",  "Output Makefile. Default: 'Makefile'.", true);
 $parser->addFlag("high_priority", "Assign high priority to all queued samples.");
 $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
@@ -22,41 +21,21 @@ extract($parser->parse($argv));
 //extract samples names and sequencer type from sample sheet
 function extract_sample_data(&$db_conn, $filename)
 {
-	//determine type
 	$file = file($filename);
-	if (trim($file[0])=="[Data]")//NxtSeq run
-	{
-		$is_nextseq = true;
-		array_shift($file);//skip [Data]
-		array_shift($file);//skip header
-	}
-	else
-	{
-		$is_nextseq = false;
-		array_shift($file);//skip header
-	}
-	
+	array_shift($file);//skip header
+
 	//extract sample data
 	$sample_data = array();
 	foreach($file as $line)
 	{
 		if (trim($line)=="") continue;
 		
-		if ($is_nextseq)
-		{
-			list(, $name_with_prefix) = explode(",", $line);
-			$sample = substr($name_with_prefix, 7); //remove "Sample_"
-		}
-		else
-		{
-			list(, , $sample) = explode(",", $line);
-		}
+		list(, , $sample) = explode(",", $line);
 		$sample = trim($sample);
 		
 		$sample_data[$sample] = get_processed_sample_info($db_conn, $sample);
 	}
-	
-	return array($sample_data, $is_nextseq);
+	return $sample_data;
 }
 
 function create_mail_command(&$db_conn, $project_name, $samples)
@@ -144,17 +123,17 @@ function check_number_of_lanes($run_info_xml_file, $sample_sheet)
 }
 
 //Checks whether there is former run containing more than 50% same sample names of current run
-function check_former_run(&$db_conn, $current_run)
+function check_former_run(&$db_conn, $run_name)
 {
-	$res = $db_conn->getValues("SELECT id FROM sequencing_run WHERE name='{$current_run}'");
+	$res = $db_conn->getValues("SELECT id FROM sequencing_run WHERE name='{$run_name}'");
 	if(count($res) != 1)
 	{
-		trigger_error("Could not find info for run '{$current_run}'.\nNo check for former run to be merged...", E_USER_WARNING);
+		trigger_error("Could not find info for run '{$run_name}'.\nNo check for former run to be merged...", E_USER_WARNING);
 		return "";
 	}
 	$current_id = $res[0];
 	
-	$current_samples = get_processed_samples_from_run($db_conn, $current_run);
+	$current_samples = get_processed_samples_from_run($db_conn, $run_name);
 	for($i=0; $i<count($current_samples); ++$i)
 	{
 		$current_samples[$i] = explode("_",$current_samples[$i])[0];
@@ -204,11 +183,58 @@ function get_trio_parents($ps)
 	return array(processed_sample_name($db_conn, $ps_id_father), processed_sample_name($db_conn, $ps_id_mother));
 }
 
+//check if run is created by NovaSeq X (Plus)
+function is_novaseq_x_run(&$db_conn, $run_name)
+{
+	$device_id = $db_conn->getValue("SELECT device_id FROM sequencing_run WHERE `name`='{$run_name}'");
+	$device_type = $db_conn->getValue("SELECT type FROM device WHERE `id`='{$device_id}'");
+	if(($device_type == "NovaSeqXPlus") || ($device_type == "NovaSeqX")) return true;
+	return false;
+}
+
+//extract samples names and sequencer type from sample sheet
+function get_sample_data_from_db(&$db_conn, $run_name)
+{
+	$samples = get_processed_samples_from_run($db_conn, $run_name);
+	$sample_data = array();
+	foreach ($samples as $sample)
+	{
+		$sample_data[$sample] = get_processed_sample_info($db_conn, $sample);
+	}
+	return $sample_data;
+}
+
 //init
 if (!isset($out)) $out = "Makefile";
 $db_conn = DB::getInstance($db);
 $ngsbits = get_path("ngs-bits");
 
+//fallback for NovaSeq X default SampleSheet name
+if (($samplesheet == "SampleSheet_bcl2fastq.csv") && !file_exists($samplesheet)) $samplesheet = "SampleSheet.csv";
+//check SampleSheet
+if(!file_exists($samplesheet)) trigger_error("ERROR: Provided SampleSheet '{$samplesheet}' not found!", E_USER_ERROR);
+
+//get file names
+$run_folder = dirname(realpath($samplesheet));
+$runinfo = $run_folder."/RunInfo.xml";
+
+
+//get run id and check FlowCell id
+$run_folder_parts = explode("_", basename($run_folder));
+$run_name = $run_folder_parts[count($run_folder_parts) - 1];
+if((strlen($run_name) != 5) || ((int) $run_name > 9999) || ((int)$run_name < 0)) trigger_error("ERROR: invalid run folder suffix '{$run_name}' provided!", E_USER_ERROR);
+//add '#' prefix
+$run_name = "#".$run_name;
+
+//get flowcell id
+if(!file_exists($runinfo)) trigger_error("ERROR: Run info file '{$runinfo}' not found!", E_USER_ERROR);
+$xml = simplexml_load_file($runinfo);
+if(empty($xml->Run->Flowcell)) trigger_error("ERROR: Run info file doesn't contain flowcell id!", E_USER_ERROR);
+$flowcell_id = $xml->Run->Flowcell;
+
+//check flowcell id
+$flowcell_id_ngsd = $db_conn->getValue("SELECT fcid FROM sequencing_run WHERE `name`='{$run_name}'");
+if($flowcell_id != $flowcell_id_ngsd) trigger_error("ERROR: FlowCell id from run info doesn't match FlowCell id in NGSD! (Run info: {$flowcell_id} <-> NGSD: {$flowcell_id_ngsd})", E_USER_ERROR);
 
 
 if(!file_exists("Fq") && !check_number_of_lanes($runinfo,$samplesheet))
@@ -216,8 +242,22 @@ if(!file_exists("Fq") && !check_number_of_lanes($runinfo,$samplesheet))
 	trigger_error("***!!!WARNING!!!***\nCould not verify number of lanes used for Demultiplexing and actually used on Sequencer. Please check manually!", E_USER_WARNING);
 }
 
+
+//change default data folder for NovaSeqX 
+$is_novaseq_x = is_novaseq_x_run($db_conn, $run_name);
+trigger_error("NovaSeqX run detected!", E_USER_NOTICE);
+if($is_novaseq_x && ($folder=="Unaligned")) $folder="Analysis";
+
+//check that data folder exists
+if (!file_exists($folder)) trigger_error("Data folder '$folder' does not exist!", E_USER_ERROR);
+
+
+//get sample data
+if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
+else $sample_data = extract_sample_data($db_conn, $samplesheet);
+
+
 //import data from Genlab
-list($sample_data, $is_nextseq) = extract_sample_data($db_conn, $samplesheet);
 foreach($sample_data as $sample => $data)
 {
 	$args = [];
@@ -225,88 +265,9 @@ foreach($sample_data as $sample => $data)
 	if ($db=="NGSD_TEST") $args[] = "-test";
 	$parser->exec("{$ngsbits}/NGSDImportGenlab", implode(" ", $args), true);
 }
-
 //update sample data after importing sample relations
-list($sample_data, $is_nextseq) = extract_sample_data($db_conn, $samplesheet);
-
-//create Illumina-like folder for MGI data
-if (file_exists("Fq"))
-{
-	print "Detected that this is an MGI run folder!\n";
-	if (file_exists($folder))
-	{
-		print "Data folder '$folder' exists => skipping creation of Illumina-like folder at '$folder'.\n";
-	}
-	else
-	{
-		print "Creating Illumina-like folder at '$folder'...\n";
-		$copied_fastqs = [];
-		foreach($sample_data as $sample => $data)
-		{
-			$sample_folder = "{$folder}/".$data['project_name']."/Sample_{$sample}/";
-			print "$sample ($sample_folder)\n";
-			
-			//create sample folder
-			exec2("mkdir -p $sample_folder");
-			
-			//determine data for the next step
-			$fcid = $data["run_fcid"];
-			$lanes = $data["ps_lanes"];
-			$mids = array($data["ps_mid1"]);
-			$reads = array("1");
-			if (count(explode("+", $data['run_recipe']))>2) $reads[] = "2";
-			foreach($data['ps_comments'] as $comment_line)
-			{
-				if (starts_with($comment_line, "add_mids:"))
-				{
-					$add_mids = explode(",", substr($comment_line, strpos($comment_line, ":")+1));
-					foreach($add_mids as $mid)
-					{
-						$mids[] = trim($mid);
-					}
-				}
-			}
-			for ($i=0; $i<count($mids); ++$i)
-			{
-				$mids[$i] = trim(strtr($mids[$i], array("MGI"=>"")));
-			}
-			
-			//copy FASTQs
-			foreach($lanes as $lane)
-			{
-				foreach($mids as $mid)
-				{
-					foreach($reads as $read)
-					{
-						$from = "Fq/L0{$lane}/{$fcid}_L0{$lane}_{$mid}_{$read}.fq.gz";
-						$to = "{$sample_folder}/{$sample}_L00{$lane}_MID{$mid}_R{$read}_001.fastq.gz";
-						print "  Copying $from (".filesize_mb($from)." MB)\n";
-						$parser->exec("cp", "-l {$from} {$to}", true);
-						$copied_fastqs[] = $from;
-					}
-				}
-			}
-		}
-		
-		//check for large FASTQs that were not copied
-		list($big_fastqs) = exec2("find Fq -name '*.fq.gz' -size +50M | sort");
-		$unprocessed_fastqs = array_diff($big_fastqs, $copied_fastqs);
-		if (count($unprocessed_fastqs)>0)
-		{
-			print "Unprocessed FASTQ files larger than 50MB:\n";
-			foreach($unprocessed_fastqs as $fastq)
-			{
-				print "  $fastq (".filesize_mb($fastq)." MB)\n";
-			}
-		}
-	}
-}
-
-//check that data folder exists
-if (!file_exists($folder))
-{
-	trigger_error("Data folder '$folder' does not exist!", E_USER_ERROR);
-}
+if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
+else $sample_data = extract_sample_data($db_conn, $samplesheet);
 
 //extract tumor-normal pair infos
 $normal2tumor = array();
@@ -319,55 +280,38 @@ foreach($sample_data as $sample => $sample_infos)
 		$normal2tumor[$normal_name] = $sample;
 		$tumor2normal[$sample] = $normal_name;
 	}
-
-	//get run name (the same for all samples)
-	$run_name = $sample_infos['run_name'];
+	//check run name (the same for all samples)
+	if($run_name != $sample_infos['run_name']) trigger_error("ERROR: Sequencing run doesn't match sample info ('".$sample_infos['run_name']."')");
 }
-
 $queued_normal_samples = [];
 
-//Check for former run which can be merged
-$path_parts = explode("/", realpath($folder));
-$current_run = "";
-//Determine current run name from path
-foreach($path_parts as $part)
-{
-	if(strpos($part, "_") !== false) 
-	{
-		$dir_parts = explode("_", $part);
-		if(count($dir_parts) == 5) //dir nomenclature according illumina + "_run number"
-		{
-			$current_run = "#" . $dir_parts[count($dir_parts)-1]; //last part is run number
-			break;
-		}
-	}
-}
 
+//TODO: adapt for NovaSeqX
 //Check for former run that contains more than 50% same samples and offer merging to user
-$former_run = "";
+$former_run_name = "";
 $merge_files = array(); //contains merge commands, commands are inserted before queue
 $use_dragen = false; //parameter to enable DRAGEN mapping
 $skip_queuing = false; //parameter to skip queuing if run is first genome run
 
-if($current_run != "")
+if($run_name != "")
 {
-	$former_run =  check_former_run($db_conn, $current_run);
-	if($former_run != "")
+	$former_run_name =  check_former_run($db_conn, $run_name);
+	if($former_run_name != "")
 	{
-		echo "Former run '{$former_run}' detected. Merge (y/n)?\n";
+		echo "Former run '{$former_run_name}' detected. Merge (y/n)?\n";
 		$answer = trim(fgets(STDIN));
 		
 		if($answer == "y")
 		{
 			$old_samples = array();
-			foreach(get_processed_samples_from_run($db_conn, $former_run) as $ps)
+			foreach(get_processed_samples_from_run($db_conn, $former_run_name) as $ps)
 			{
 				$key = explode("_", $ps)[0];
 				$old_samples[$key] = $ps;
 			}
 			$current_samples = array();
 			
-			foreach(get_processed_samples_from_run($db_conn, $current_run) as $ps)
+			foreach(get_processed_samples_from_run($db_conn, $run_name) as $ps)
 			{
 				$key = explode("_", $ps)[0];
 				$current_samples[$key] = $ps;
@@ -402,7 +346,7 @@ if($current_run != "")
 	else
 	{
 		// check if run is first genome run
-		$processed_samples = get_processed_samples_from_run($db_conn, $current_run);
+		$processed_samples = get_processed_samples_from_run($db_conn, $run_name);
 		$n_samples = count($processed_samples);
 		$n_genomes = 0;
 		foreach($processed_samples as $ps)
@@ -424,6 +368,15 @@ else
 	trigger_error("Could not determine current run name. Skipping check for former run that could be merged into current run.", E_USER_WARNING);
 }
 
+//get analysis folder
+if ($is_novaseq_x)
+{
+	$analyses = array_filter(glob($folder."/[0-9]"), 'is_dir');
+	if(count($analyses) == 0) trigger_error("ERROR: No analysis found!", E_USER_ERROR);
+	if(count($analyses) > 1) trigger_error("ERROR: Multiple analyses found!", E_USER_ERROR);
+	$analysis_id = $analyses[0];
+}
+
 //parse input
 $target_to_copylines = array();
 $target_to_queuelines = array();
@@ -440,11 +393,23 @@ foreach($sample_data as $sample => $sample_infos)
 	$sample_is_tumor = $sample_infos['is_tumor'];
 	$sys_type = $sample_infos['sys_type'];
 	$sys_target = $sample_infos['sys_target'];
+	$fastq_folder = $analysis_id."/Data/BCLConvert/fastq";
 
 	//calculate current location of sample
-	if ($is_nextseq)
+	if ($is_novaseq_x)
 	{
-		$old_location = "{$folder}/".$project_name;
+		$old_location = $analysis_id."/Data";
+		if($sys_type == "WGS")
+		{
+			$old_location .= "/DragenGermline";
+			$fastq_folder = $old_location."/fastq";
+		}
+		else if($sys_type == "WES")
+		{
+			$old_location .= "/DragenEnrichment";
+			$fastq_folder = $old_location."/fastq";
+		}
+		else trigger_error("ERROR: Invalid processing system type '{$sys_type}' for NovaSeq X analysis!");
 	}
 	else
 	{
@@ -489,7 +454,75 @@ foreach($sample_data as $sample => $sample_infos)
 	}
 	else
 	{
-		$target_to_copylines[$tag][] = "\tmv ".($overwrite ? "-f " : "")."$old_location/Sample_{$sample}/ {$project_folder}";
+		if($is_novaseq_x)
+		{
+			//check if all files are present
+			$tmp = glob("$old_location/{$sample}/*_seq");
+			if(count($tmp) == 0) trigger_error("ERROR: Source sample folder '$old_location/{$sample}/*_seq' not found!", E_USER_ERROR);
+			if(count($tmp) > 1) trigger_error("ERROR: Multiple folders in '$old_location/{$sample}/'!", E_USER_ERROR);
+			$source_folder = $tmp[0];
+
+			$source_bam_file = "{$source_folder}/{$sample}.bam";
+			if(!file_exists($source_bam_file)) trigger_error("ERROR: BAM file '{$source_bam_file}' is missing!", E_USER_ERROR);
+			if(!file_exists($source_bam_file.".bai")) trigger_error("ERROR: BAM index file '{$source_bam_file}.bai' is missing!", E_USER_ERROR);
+			$source_vcf_file = "{$source_folder}/{$sample}.hard-filtered.vcf.gz";
+			if(!file_exists($source_vcf_file)) trigger_error("ERROR: VCF file '{$source_vcf_file}' is missing!", E_USER_ERROR);
+			if(!file_exists($source_vcf_file.".tbi")) trigger_error("ERROR: VCF index file '{$source_vcf_file}.tbi' is missing!", E_USER_ERROR);
+			$source_gvcf_file = "{$source_folder}/{$sample}.hard-filtered.gvcf.gz";
+			if(!file_exists($source_gvcf_file)) trigger_error("ERROR: gVCF file '{$source_gvcf_file}' is missing!", E_USER_ERROR);
+			if(!file_exists($source_gvcf_file.".tbi")) trigger_error("ERROR: gVCF index file '{$source_gvcf_file}.tbi' is missing!", E_USER_ERROR);
+			$source_sv_vcf_file = "{$source_folder}/{$sample}.sv.vcf.gz";
+			if(!file_exists($source_sv_vcf_file)) trigger_error("ERROR: SV VCF file '{$source_sv_vcf_file}' is missing!", E_USER_ERROR);
+			if(!file_exists($source_sv_vcf_file.".tbi")) trigger_error("ERROR: SV VCF index file '{$source_sv_vcf_file}.tbi' is missing!", E_USER_ERROR);
+
+			//get FastQs
+			$fastq_files = glob($fastq_folder."/{$sample}*_L00[0-9]_R[12]_00[0-9].fastq.gz");
+			//check count
+			if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 2) 
+			{
+				trigger_error("ERROR: Number of FastQ files doesn't match number of lanes in run info! (expected: ".(count(explode(",", $sample_infos["lane"])) * 2).", found: ".count($fastq_files).")");
+			}
+
+			// TODO: change to mv
+			$move_cmd = "cp ".($overwrite ? "-f " : "");
+
+			//TODO: remove
+			//tmp folder for copy test
+			$project_folder = "/mnt/storage2/users/ahschul1/projects/2023_07_NovaSeqXPlus/+data/copy_sample/03178/";
+
+			
+			//create folder
+			$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
+			$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
+			//move BAM
+			$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_bam_file} {$project_folder}Sample_{$sample}/";
+			$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_bam_file}.bai {$project_folder}Sample_{$sample}/";
+			if(!$sample_is_tumor)
+			{
+				//move (g)VCFs
+				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_vcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.vcf.gz";
+				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_vcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.vcf.gz.tbi";
+				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_gvcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.gvcf.gz";
+				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_gvcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.gvcf.gz.tbi";
+				//move SV VCFs
+				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_sv_vcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_svs.vcf.gz";
+				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_sv_vcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_svs.vcf.gz.tbi";
+			}
+			
+
+			if(($sample_infos["preserve_fastqs"] == 1) || ($project_analysis=="fastq"))
+			{
+				foreach ($fastq_files as $fastq_file) 
+				{
+					$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
+				}
+			}
+		}
+		else
+		{
+			$target_to_copylines[$tag][] = "\tmv ".($overwrite ? "-f " : "")."$old_location/Sample_{$sample}/ {$project_folder}";
+		}
+		
 	}
 
 	//skip normal samples which have an associated tumor sample on the same run
@@ -511,18 +544,31 @@ foreach($sample_data as $sample => $sample_infos)
 		{
 			//queue tumor, with somatic specific options
 			//add variant calling for diagnostic normal samples
-			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample} -args '-steps ma,db -somatic'";
-			$outputline .= "\n\t";
-
+			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample}";
+			if($is_novaseq_x)
+			{
+				$outputline .= "-args '-steps db -somatic'\n\t";
+			} 
+			else 
+			{
+				$outputline .= "-args '-steps ma,db -somatic'\n\t";
+			}
 			if (isset($tumor2normal[$sample]))
 			{
 				$normal = $tumor2normal[$sample];
 				//queue normal if on same run, with somatic specific options
 				if (!in_array($normal, $queued_normal_samples)  && array_key_exists($normal,$sample_data) && $sample_data[$normal]["run_name"] === $sample_infos["run_name"])
 				{
-					$steps = "ma,vc,cn,db";
-					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal} -args '-steps $steps -somatic'";
-					$outputline .= "\n\t";
+					$steps = ($is_novaseq_x ? "vc,cn,db" : "ma,vc,cn,db");
+					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal} ";
+					if($is_novaseq_x)
+					{
+						$outputline .= "-args '-steps vc,cn,db -use_dragen -somatic'\n\t";
+					}
+					else
+					{
+						$outputline .= "-args '-steps ma,vc,cn,db  -somatic'\n\t";
+					}
 					//track that normal sample is queued
 					$queued_normal_samples[] = $normal;
 				}
@@ -547,23 +593,30 @@ foreach($sample_data as $sample => $sample_infos)
 		}
 		else
 		{
+			//TODO: check if sample will be merged => redo (mapping & ) VC
 			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample}";
 
 			// add DRAGEN parameter
 			if ($use_dragen)
 			{
 				$processed_sample_info = get_processed_sample_info($db_conn,$sample);
-				if ($processed_sample_info['sys_type'] == "WGS") $outputline .= " -args '-use_dragen'";
+				if ($processed_sample_info['sys_type'] == "WGS") $outputline .= " -args '-use_dragen -no_abra'";
 			}
 
 			//determine analysis steps from project
 			if ($project_analysis=="mapping")
 			{
-				$args[] = "-steps ma,db";
+				$args[] = ($is_novaseq_x ? "-steps db" : "-steps ma,db");
 			}
 			if ($project_analysis=="variants")
 			{
 				//no steps parameter > use all default steps
+				if($is_novaseq_x)
+				{
+					$args[] = "-steps vc,cn,sv,db";
+					$args[] = "-use_dragen";
+				}
+
 			}
 			
 			//check if trio needs to be queued
@@ -593,10 +646,6 @@ foreach($sample_data as $sample => $sample_infos)
 		$project_to_fastqonly_samples[$project_name][] = $sample;
 	}
 }
-
-
-
-
 
 //create Makefile
 $output = array();
