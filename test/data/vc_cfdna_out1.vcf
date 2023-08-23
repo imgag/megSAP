@@ -1,6 +1,5 @@
 ##fileformat=VCFv4.1
 ##source=umiVar2
-##reference=/tmp/local_ngs_data_GRCh38/GRCh38.fa
 ##INFO=<ID=Variant_Dist,Number=1,Type=Integer,Description="Distance to the closest short variant">
 ##INFO=<ID=Upstream,Number=.,Type=String,Description="Upstream sequence (5 nucleotides)">
 ##INFO=<ID=Downstream,Number=.,Type=String,Description="Downstream sequence (5 nucleotides)">

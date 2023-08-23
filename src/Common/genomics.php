@@ -1136,6 +1136,17 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	return $info;
 }
 
+//Returns the value of the given QC term. Throws an error if the QC term is unknown, the sample is not found or the QC value is not found.
+function get_processed_sample_qc(&$db, $ps, $qc_name_or_accession)
+{
+	//determine QC term ID
+	$term_id = $db->getValue("SELECT id FROM qc_terms WHERE name LIKE '{$qc_name_or_accession}' OR qcml_id LIKE '{$qc_name_or_accession}'");
+	
+	$ps_id = get_processed_sample_id($db, $ps);
+	
+	return $db->getValue("SELECT value FROM processed_sample_qc WHERE processed_sample_id='{$ps_id}' AND qc_terms_id={$term_id}");
+}
+
 //Converts NGSD sample meta data to a GSvar file header (using $override_map to allow replace NGSD info)
 function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = "\n")
 {
@@ -1308,9 +1319,24 @@ function enable_special_mito_vc($sys)
 }
 
 //Returns the FASTA file of the genome
-function genome_fasta($build, $used_local_data=true)
+function genome_fasta($build, $use_local_data=true, $use_local_ramdrive=true)
 {
-	return ($used_local_data ? get_path("local_data") : get_path("data_folder")."/genomes")."/".$build.".fa";
+	//use genome FASTA of the local maching
+	if ($use_local_data)
+	{
+		//prefer ram drive
+		if($use_local_ramdrive)
+		{
+			$ramdrive_fasta = "/mnt/genome_ramdrive/".$build.".fa";
+			if (file_exists($ramdrive_fasta)) return $ramdrive_fasta;
+		}
+		
+		//use local copy in tmp
+		return get_path("local_data")."/".$build.".fa";
+	}
+	
+	//use the genome FASTA from the megSAP installation
+	return get_path("data_folder")."/genomes/".$build.".fa";
 }
 
 //Create Bed File that contains off target regions of a target region
