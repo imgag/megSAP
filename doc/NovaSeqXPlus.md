@@ -12,10 +12,11 @@
 - enter name. This has to be exactly the name the genome should be called! It cannot be changed afterwards.
 - enter organization and species
 - give a link/description for the source of the *.fa file
-- leave `Mask BED File` at `AutoDetect` and `SAM Liftover File`at `None`
+(- set `Mask BED File` to `hg38` (worked once for me))
+- leave `SAM Liftover File`at `None`
 (- GTF Annotation and Methylation was left empty/unchecked)
 - run application 
-(the job crashes sometimes, simply retry it several times)
+(the job crashes since 2 weeks, simply retry it several times)
 
 
 ## Uploading enrichment files (BED) to the sequencer

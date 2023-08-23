@@ -11,6 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("copy_sample", "Creates a Makefile to copy de-multiplexed sample data to projects and queue data analysis.");
 $parser->addString("samplesheet",  "Input samplesheet that was used to create the data folder. (Has to be located in the run folder.)", true, "SampleSheet_bcl2fastq.csv");
 $parser->addString("folder",  "Input data folder.", true, "Unaligned");
+$parser->addString("runinfo" ,"Illumina RunInfo.xml file. Necessary for checking metadata in NGSD",true, "RunInfo.xml");
 $parser->addOutfile("out",  "Output Makefile. Default: 'Makefile'.", true);
 $parser->addFlag("high_priority", "Assign high priority to all queued samples.");
 $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
@@ -22,6 +23,7 @@ extract($parser->parse($argv));
 function extract_sample_data(&$db_conn, $filename)
 {
 	$file = file($filename);
+	if(starts_with($file[0], "[Data]")) array_shift($file); //NovaSeq 6000: skip "[Data]"
 	array_shift($file);//skip header
 
 	//extract sample data
@@ -216,8 +218,6 @@ if(!file_exists($samplesheet)) trigger_error("ERROR: Provided SampleSheet '{$sam
 
 //get file names
 $run_folder = dirname(realpath($samplesheet));
-$runinfo = $run_folder."/RunInfo.xml";
-
 
 //get run id and check FlowCell id
 $run_folder_parts = explode("_", basename($run_folder));
@@ -236,21 +236,22 @@ $flowcell_id = $xml->Run->Flowcell;
 $flowcell_id_ngsd = $db_conn->getValue("SELECT fcid FROM sequencing_run WHERE `name`='{$run_name}'");
 if($flowcell_id != $flowcell_id_ngsd) trigger_error("ERROR: FlowCell id from run info doesn't match FlowCell id in NGSD! (Run info: {$flowcell_id} <-> NGSD: {$flowcell_id_ngsd})", E_USER_ERROR);
 
+//change default data folder for NovaSeqX 
+$is_novaseq_x = is_novaseq_x_run($db_conn, $run_name);
+
+if($is_novaseq_x && ($folder=="Unaligned")) 
+{
+	trigger_error("NovaSeqX run detected!", E_USER_NOTICE);
+	$folder="Analysis";
+}
+
+//check that data folder exists
+if (!file_exists($folder)) trigger_error("Data folder '$folder' does not exist!", E_USER_ERROR);
 
 if(!file_exists("Fq") && !check_number_of_lanes($runinfo,$samplesheet))
 {
 	trigger_error("***!!!WARNING!!!***\nCould not verify number of lanes used for Demultiplexing and actually used on Sequencer. Please check manually!", E_USER_WARNING);
 }
-
-
-//change default data folder for NovaSeqX 
-$is_novaseq_x = is_novaseq_x_run($db_conn, $run_name);
-trigger_error("NovaSeqX run detected!", E_USER_NOTICE);
-if($is_novaseq_x && ($folder=="Unaligned")) $folder="Analysis";
-
-//check that data folder exists
-if (!file_exists($folder)) trigger_error("Data folder '$folder' does not exist!", E_USER_ERROR);
-
 
 //get sample data
 if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
@@ -286,7 +287,7 @@ foreach($sample_data as $sample => $sample_infos)
 $queued_normal_samples = [];
 
 
-//TODO: adapt for NovaSeqX
+
 //Check for former run that contains more than 50% same samples and offer merging to user
 $former_run_name = "";
 $merge_files = array(); //contains merge commands, commands are inserted before queue
@@ -298,8 +299,13 @@ if($run_name != "")
 	$former_run_name =  check_former_run($db_conn, $run_name);
 	if($former_run_name != "")
 	{
-		echo "Former run '{$former_run_name}' detected. Merge (y/n)?\n";
-		$answer = trim(fgets(STDIN));
+		//skip user interaction on test runs:
+		$answer = "n";
+		if($db != "NGSD_TEST")
+		{
+			echo "Former run '{$former_run_name}' detected. Merge (y/n)?\n";
+			$answer = trim(fgets(STDIN));
+		}
 		
 		if($answer == "y")
 		{
@@ -393,7 +399,7 @@ foreach($sample_data as $sample => $sample_infos)
 	$sample_is_tumor = $sample_infos['is_tumor'];
 	$sys_type = $sample_infos['sys_type'];
 	$sys_target = $sample_infos['sys_target'];
-	$fastq_folder = $analysis_id."/Data/BCLConvert/fastq";
+	if($is_novaseq_x) $fastq_folder = $analysis_id."/Data/BCLConvert/fastq";
 
 	//calculate current location of sample
 	if ($is_novaseq_x)
@@ -413,7 +419,7 @@ foreach($sample_data as $sample => $sample_infos)
 	}
 	else
 	{
-		$old_location = "{$folder}/Project_".$project_name;
+		$old_location = "{$folder}/{$project_name}";
 	}
 	
 	//determine project 
@@ -480,7 +486,7 @@ foreach($sample_data as $sample => $sample_infos)
 			//check count
 			if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 2) 
 			{
-				trigger_error("ERROR: Number of FastQ files doesn't match number of lanes in run info! (expected: ".(count(explode(",", $sample_infos["lane"])) * 2).", found: ".count($fastq_files).")");
+				trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found: ".count($fastq_files).")", E_USER_ERROR);
 			}
 
 			// TODO: change to mv
@@ -547,11 +553,11 @@ foreach($sample_data as $sample => $sample_infos)
 			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample}";
 			if($is_novaseq_x)
 			{
-				$outputline .= "-args '-steps db -somatic'\n\t";
+				$outputline .= " -args '-steps db -somatic'\n\t";
 			} 
 			else 
 			{
-				$outputline .= "-args '-steps ma,db -somatic'\n\t";
+				$outputline .= " -args '-steps ma,db -somatic'\n\t";
 			}
 			if (isset($tumor2normal[$sample]))
 			{
@@ -560,14 +566,14 @@ foreach($sample_data as $sample => $sample_infos)
 				if (!in_array($normal, $queued_normal_samples)  && array_key_exists($normal,$sample_data) && $sample_data[$normal]["run_name"] === $sample_infos["run_name"])
 				{
 					$steps = ($is_novaseq_x ? "vc,cn,db" : "ma,vc,cn,db");
-					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal} ";
+					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal}";
 					if($is_novaseq_x)
 					{
-						$outputline .= "-args '-steps vc,cn,db -use_dragen -somatic'\n\t";
+						$outputline .= " -args '-steps vc,cn,db -use_dragen -somatic'\n\t";
 					}
 					else
 					{
-						$outputline .= "-args '-steps ma,vc,cn,db  -somatic'\n\t";
+						$outputline .= " -args '-steps ma,vc,cn,db -somatic'\n\t";
 					}
 					//track that normal sample is queued
 					$queued_normal_samples[] = $normal;

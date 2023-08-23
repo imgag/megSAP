@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <RunInfo xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Version="4">
   <Run Id="190228_NB501582_0169_AH5LG5BDXX" Number="169">
-    <Flowcell>H5LG5BDXX</Flowcell>
+    <Flowcell>FCID4713</Flowcell>
     <Instrument>NB501582</Instrument>
     <Date>190228</Date>
     <Reads>

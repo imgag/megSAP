@@ -6,7 +6,8 @@ INSERT INTO sender (name) VALUES
 ('Peppa Pig');
 
 INSERT INTO device (type, name) VALUES
-('GAIIx', 'test');
+('GAIIx', 'test'),
+('NovaSeqXPlus', 'big_iPod');
 
 INSERT INTO project (name, type, internal_coordinator_id, analysis) VALUES
 ('Exome_Diagnostik','diagnostic', 2, 'variants'),
@@ -14,12 +15,14 @@ INSERT INTO project (name, type, internal_coordinator_id, analysis) VALUES
 ('SomaticAndTreatment','diagnostic', 2, 'variants');
 
 INSERT INTO processing_system (name_short, name_manufacturer, shotgun, genome_id, type) VALUES
-('ssHAEv6', 'SureSelect Human All Exon v6', '1', 1, 'WES');
+('ssHAEv6', 'SureSelect Human All Exon v6', '1', 1, 'WES'),
+('TruSeqPCRfree', 'TruSeq DNA PCR-Free', '1', 1, 'WGS');
 
 INSERT INTO sequencing_run (name, fcid, start_date, end_date, device_id, recipe) VALUES
 ('#00001', 'FCID4711', '2018-02-04', '2018-02-04', 1, '100+8+100'),
 ('#00002', 'FCID4712', '2018-02-05', '2018-02-05', 1, '100+8+100'),
-('#01489', 'FCID4713', '2012-06-27', '2020-06-29', 1, '100+8+100');
+('#01489', 'FCID4713', '2012-06-27', '2020-06-29', 1, '100+8+100'),
+('#00123', 'FCID0001', '2023-08-23', '2023-08-23', 2, '151+10+10+151');
 
 INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, disease_group) VALUES 
 (1, 'DX180049', 'DNA', 1, 'male', '0', '0', 1, 'n/a'),
@@ -45,7 +48,11 @@ INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, pr
 (8,1,1,'1',1,3, 5),
 (9,2,3,'1',1,1, NULL),
 (10,3,3,'1',1,1, NULL),
-(11,4,3,'1',1,1, NULL);
+(11,4,3,'1',1,1, NULL),
+
+(1,5,4,'1,2,3,4',2,1, NULL),
+(5,5,4,'5',1,3, NULL),
+(6,5,4,'7',1,3, 5);
 
 INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES
 (8,'tumor-normal', 5),
