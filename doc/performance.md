@@ -308,7 +308,7 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
 The analyses were performed with the [long-read single sample pipeline](https://github.com/imgag/megSAP/blob/master/src/Pipelines/analyze_longread.php) on the GRCh38 reference genome.
 
 The lrGS samples were processed with the Oxford Nanopore Tech. Ligation Sequencing Kit V14 (SQK-LSK114).  
-The benchmarks were performed on GIAB high-confidence regions **with at least 3x coverage**.
+The benchmarks were performed on GIAB high-confidence regions **with at least 15x coverage**.
  <!--- dataset: 23014LRa023L2_01, 60x average coverge --->
 
 <table>
@@ -327,20 +327,20 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 3x
 	</tr>
 	<tr>
 		<td>default parameters</td>
-		<td>99.92%</td>
-		<td>99.78%</td>
-		<td>99.94%</td>
-		<td>78.38%</td>
-		<td>95.67%</td>
-		<td>99.11%</td>
+		<td>99.89%</td>
+		<td>99.70%</td>
+		<td>99.93%</td>
+		<td>76.29%</td>
+		<td>95.01%</td>
+		<td>99.31%</td>
 	</tr>
 	<tr>
 		<td>validation only on coding region</td>
-		<td>99.96%</td>
-		<td>99.81%</td>
-		<td>99.97%</td>
-		<td>93.22%</td>
-		<td>97.56%</td>
-		<td>99.77%</td>
+		<td>99.91%</td>
+		<td>99.61%</td>
+		<td>99.99%</td>
+		<td>93.94%</td>
+		<td>96.69%</td>
+		<td>100.00%</td>
 	</tr>
 </table>
