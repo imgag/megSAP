@@ -23,6 +23,14 @@
 
 - In the upload dialog set the file type to `BedFile`(not `bed`), otherwise it will not be found in the sample sheet 
 
+
+## Re-analyse samples
+
+- go to completed runs
+- select the run and click on requeue secondary analysis
+- upload SampleSheet
+ 
+
 ## Errors in the documentation from Illumina (SampleSheet_v2)
 [illumnia documentation](https://support-docs.illumina.com/SHARE/SampleSheetv2/Content/SHARE/SampleSheetv2/Settings_fNV_mX.htm)
 
