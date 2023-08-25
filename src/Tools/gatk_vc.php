@@ -19,18 +19,19 @@ $parser->addOutfile("out",  "Output VCF.GZ file (indexed).", false);
 $parser->addFlag("pcrfree", "Do not use PRC model for InDels.");
 $parser->addFlag("gvcf", "Produce gVCF instead of normal VCF (also skips post-processing).");
 $parser->addString("build", "Reference genome build.", true, "GRCh38");
+$parser->addInt("threads", "Threads to use.", true, 4);
 extract($parser->parse($argv));
 
 //init
 $gatk = get_path("gatk");
 $ref = genome_fasta($build);
-$known_sites = "/mnt/storage2/megSAP/data/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz";
 
 //perform variant calling
 $args = [];
 $args[] = "-L ".$roi;
 $args[] = "-G StandardAnnotation";
 $args[] = "-G StandardHCAnnotation";
+$args[] = "--native-pair-hmm-threads ".$threads;
 if ($pcrfree)
 {
 	$args[] = "--pcr-indel-model NONE";	
@@ -40,6 +41,7 @@ if ($gvcf)
 	$args[] = "-ERC GVCF";
 	$args[] = "-G AS_StandardAnnotation";
 }
+
 $tmp = $gvcf ? $out : $parser->tempFile(".vcf.gz");
 $parser->exec($gatk, "HaplotypeCaller -R {$ref} -I {$in} -O {$tmp} ".implode(" ", $args));
 
