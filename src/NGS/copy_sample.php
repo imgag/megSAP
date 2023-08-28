@@ -217,6 +217,7 @@ if(!file_exists("Fq") && !check_number_of_lanes($runinfo,$samplesheet))
 }
 
 //import data from Genlab
+print "Importing information from GenLab...\n";
 list($sample_data, $is_nextseq) = extract_sample_data($db_conn, $samplesheet);
 foreach($sample_data as $sample => $data)
 {
