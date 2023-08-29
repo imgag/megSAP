@@ -82,6 +82,7 @@ $dragen_parameter[] = "--RGID $sample";
 $dragen_parameter[] = "--RGSM $sample";
 $dragen_parameter[] = "--RGCN medical_genetics_tuebingen";
 $dragen_parameter[] = "--RGDT ".date("c");
+$dragen_parameter[] = "--vc-ml-enable-recalibration=false"; //disabled because it leads to a sensitivity drop for Twist Exome V2 SNVs of 0.5% (see /mnt/storage2/users/ahsturm1/scripts/2023_08_01_megSAP_performance/)
 if(db_is_enabled("NGSD"))
 {
 	$db_conn = DB::getInstance("NGSD");
