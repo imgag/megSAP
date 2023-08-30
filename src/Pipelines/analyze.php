@@ -303,12 +303,19 @@ if (in_array("ma", $steps))
 		}
 	}
 }
-else
-{
+else if (file_exists($bamfile))
+{	
 	//check genome build of BAM
 	check_genome_build($bamfile, $build);
 	
 	$local_bamfile = $bamfile;
+}
+else if (file_exists($cramfile))
+{
+	check_genome_build($cramfile, $build);
+	
+	//convert CRAM to BAM
+	$parser->execTool("Tools/cram_to_bam.php", "-cram {$cramfile} -bam {$local_bamfile} -threads {$threads} -build {$build}");
 }
 
 //variant calling
@@ -584,7 +591,7 @@ if (in_array("vc", $steps))
 	{
 		check_genome_build($vcffile, $build);
 	}
-
+/*
 	//annotation
 	$args = [];
 	$args[] = "-out_name ".$name;
@@ -594,7 +601,7 @@ if (in_array("vc", $steps))
 	$args[] = "-threads ".$threads;
 	if($rna_sample != "") $args[] = "-rna_sample ".$rna_sample;
 	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
-	
+*/
 	//ROH detection
 	if ($is_wes || $is_wgs)
 	{
