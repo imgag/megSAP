@@ -44,6 +44,15 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
 		<td>99.66%</td>
 		<td>99.94%</td>
 	</tr>
+	<tr>
+		<td>megSAP DRAGEN v4.2.4 without DRAGEN-ML (-use_dragen)</td> <!--- dataset: NA12878_45 @ 40x --->
+		<td>99.76%</td>
+		<td>99.80%</td>
+		<td>99.98%</td>
+		<td>99.69%</td>
+		<td>99.69%</td>
+		<td>99.93%</td>
+	</tr>
 </table>
 
 ### Whole genome sequencing - non-default parameters
@@ -190,6 +199,15 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
 		<td>97.17%</td>
 		<td>99.45%</td>
 	<tr>
+	<tr>
+		<td>megSAP DRAGEN v4.2.4 without DRAGEN-ML (-use_dragen)</td> <!--- dataset: NA12878_45 @ 40x --->
+		<td>99.22%</td>
+		<td>99.00%</td>
+		<td>99.83%</td>
+		<td>98.81%</td>
+		<td>97.31%</td>
+		<td>99.45%</td>
+	</tr>
 </table>
 
 
