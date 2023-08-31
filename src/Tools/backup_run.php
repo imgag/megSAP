@@ -14,7 +14,7 @@ $parser = new ToolBase("backup_run", "Creates a backup of a run folder.");
 $parser->addInfile("in",  "Input run folder.", false);
 $parser->addString("when",  "Start time in format '20:15' or 'now'.", true, "now");
 $parser->addString("out_folder", "Output folder path.", true, "/mnt/storage1/raw_data_archive/runs/");
-$parser->addFlag("include_fast5", "Backup includes FAST5 folders");
+$parser->addFlag("include_raw_signal", "Backup includes non-basecalled POD5 or FAST5 data.");
 extract($parser->parse($argv));
 
 //check that the correct user is executing the script
@@ -60,14 +60,15 @@ if ($when!="now")
 //create verified tar archive (uncompressed because otherwise verification is not possible)
 print date("Y-m-d H:i:s")." creating tar file\n";
 $tmp_tar = $parser->tempFile(".tar");
-if ($include_fast5)
+if ($include_raw_signal)
 {
-	$parser->exec("tar", "cfW $tmp_tar --exclude '$in/Data/Intensities/L00?/C*' --exclude '$in/Unaligned*' --exclude '$in/Thumbnail_Images' --exclude '$in/Images' -C ".dirname($in)." ".basename($in), true);
+	$exclude_raw = "";
 }
 else
 {
-	$parser->exec("tar", "cfW $tmp_tar --exclude '*.fast5' --exclude '$in/Data/Intensities/L00?/C*' --exclude '$in/Unaligned*' --exclude '$in/Thumbnail_Images' --exclude '$in/Images' -C ".dirname($in)." ".basename($in), true);
+	$exclude_raw = "--exclude '*.fast5' --exclude '*.pod5'";
 }
+$parser->exec("tar", "cfW $tmp_tar $exclude_raw --exclude '$in/Data/Intensities/L00?/C*' --exclude '$in/Unaligned*' --exclude '$in/Thumbnail_Images' --exclude '$in/Images' -C ".dirname($in)." ".basename($in), true);
 
 //zip archive with low compression (way faster than full compression and the contents are already compressed in most cases)
 print date("Y-m-d H:i:s")." creating tar.gz file\n";
