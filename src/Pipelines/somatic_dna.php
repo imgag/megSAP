@@ -136,13 +136,14 @@ if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/somatic_dna_"
 $full_prefix = "{$out_folder}/{$prefix}";
 
 //IDs, system and target region
-$t_id = basename($t_bam, ".bam");
+$t_id = basename2($t_bam);
 $sys = load_system($system, $t_id);
 $roi = $sys["target_file"];
 $ref_genome = genome_fasta($sys['build']);
 
-//check reference build
+//make sure it is a BAM (MANTIS does not work on CRAM)
 check_genome_build($t_bam, $sys['build']);
+$t_bam = convert_to_bam_if_cram($t_bam, $parser, $sys['build'], $threads);
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
@@ -151,11 +152,13 @@ $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 $single_sample = !isset($n_bam);
 if (!$single_sample)
 {
-	$n_id = basename($n_bam, ".bam");
+	$n_id = basename2($n_bam);
 	$n_sys = load_system($n_system, $n_id);
 	$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
 	
+	//make sure it is a BAM (MANTIS does not work on CRAM)
 	check_genome_build($n_bam, $n_sys['build']);
+	$n_bam = convert_to_bam_if_cram($n_bam, $parser, $sys['build'], $threads);
 	
 	//Check whether both samples have same processing system
 	if($roi != $n_sys["target_file"])
@@ -263,13 +266,13 @@ if( db_is_enabled("NGSD") && count($bams) > 1 )
 $low_cov = "{$full_prefix}_stat_lowcov.bed";					// low coverage BED file
 if ($sys['type'] !== "WGS" && !empty($roi) && !$skip_low_cov)
 {
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $t_bam -out $low_cov -cutoff $min_depth_t -threads {$threads}", true);
+	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $t_bam -out $low_cov -cutoff $min_depth_t -threads {$threads} -ref {$ref_genome}", true);
 	//combined tumor and normal low coverage files
 	//normal coverage is calculated only for tumor target region
 	if(!$single_sample)
 	{
 		$low_cov_n = $parser->tempFile("_nlowcov.bed");
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $n_bam -out $low_cov_n -cutoff $min_depth_n -threads {$threads}", true);
+		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $n_bam -out $low_cov_n -cutoff $min_depth_n -threads {$threads} -ref {$ref_genome}", true);
 		$parser->execPipeline([
 			[get_path("ngs-bits")."BedAdd", "-in $low_cov $low_cov_n"],
 			[get_path("ngs-bits")."BedMerge", "-out $low_cov"]
@@ -429,8 +432,8 @@ if (in_array("vi", $steps))
 	else
 	{
 		//detection of viral sequences
-		$t_bam_dedup = dirname($t_bam) . "/" . basename($t_bam, ".bam") . "_before_dedup.bam";
-		$t_bam_map_qc = dirname($t_bam) . "/" . basename($t_bam, ".bam") . "_stats_map.qcML";
+		$t_bam_dedup = dirname($t_bam)."/{$t_id}_before_dedup.bam";
+		$t_bam_map_qc = dirname($t_bam)."/{$t_id}_stats_map.qcML";
 		$dedup_used = file_exists($t_bam_dedup);
 		$vc_viral_args = [
 			"-in ".($dedup_used ? $t_bam_dedup : $t_bam),
@@ -475,7 +478,7 @@ if(in_array("cn",$steps))
 	
 	if(!file_exists($ref_file_t) )
 	{
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov -threads {$threads}",true);
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov -threads {$threads} -ref {$ref_genome}",true);
 		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov -out $t_cov",true);
 	}
 	else 
@@ -492,7 +495,7 @@ if(in_array("cn",$steps))
 	
 	if( !file_exists($ref_file_t_off_target ) )
 	{
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target -threads {$threads}",true);
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
 		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov_off_target -out $t_cov_off_target",true);
 	}
 	else 
@@ -618,7 +621,7 @@ if(in_array("cn",$steps))
 		
 		if(!file_exists($ref_file_n)) 
 		{
-			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov -threads {$threads}", true);
+			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov -threads {$threads} -ref {$ref_genome}", true);
 			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov -out $n_cov",true);
 		}
 		else 
@@ -635,7 +638,7 @@ if(in_array("cn",$steps))
 		
 		if(!file_exists($ref_file_n_off_target) )
 		{
-			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target -threads {$threads}",true);
+			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
 			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov_off_target -out $n_cov_off_target",true);
 		}
 		else 

@@ -3,8 +3,8 @@
 /megSAP_tag.txt
 
 /test/data_amplicon/*.fastq.gz
-/test/data_amplicon/*.bam
-/test/data_amplicon/*.bam.bai
+/test/data_amplicon/*.cram
+/test/data_amplicon/*.cram.crai
 /test/data_amplicon/*.log
 /test/data_amplicon/*.qcML
 /test/data_amplicon/*.vcf.gz
@@ -21,6 +21,8 @@
 /test/data_chrx/*.fastq.gz
 /test/data_chrx/*.bam
 /test/data_chrx/*.bam.bai
+/test/data_chrx/*.cram
+/test/data_chrx/*.cram.crai
 /test/data_chrx/*.log
 /test/data_chrx/*.qcML
 /test/data_chrx/*.vcf.gz

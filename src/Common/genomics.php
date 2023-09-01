@@ -2029,4 +2029,28 @@ function phenotype_roi_overlaps(&$roi, $chr, $start, $end)
 	return false;
 }
 
+//Returns the base file name without path and extension. Used e.g. to extract the base name independent of BAM/CRAM format.
+function basename2($filename)
+{
+	$filename = basename($filename);
+	
+	//not file extension => return full name
+	$sep_idx = strrpos($filename, '.');
+	if ($sep_idx===FALSE) return $filename;
+	
+	return substr($filename, 0, $sep_idx);
+}
+
+//If the given file is a CRAM, a temporary BAM is created and the path to it is returned. Otherwise returns the given filename.
+function convert_to_bam_if_cram($filename, $parser, $build, $threads)
+{
+	if (ends_with(strtolower($filename), ".cram"))
+	{
+		$bam = $parser->tempFolder()."/".substr(basename($filename), 0, -5).".bam";
+		$parser->execTool("Tools/cram_to_bam.php", "-cram $filename -bam $bam -build $build -threads $threads");
+		return $bam;
+	}
+	
+	return $filename;
+}
 ?>

@@ -115,7 +115,7 @@ $names = array();
 $tmp = array();
 foreach($bams as $bam)
 {
-	$name = basename($bam, ".bam");
+	$name = basename2($bam);
 	if (isset($tmp[$name]))
 	{
 		trigger_error("Sample file name '$name' occurs twice in input file list. Each sample must be uniquely indentifyable by name!", E_USER_ERROR);
@@ -395,7 +395,7 @@ if (in_array("cn", $steps))
 			$cnv_data = array();
 			foreach($bams as $bam)
 			{
-				$ps_name = basename($bam, ".bam");
+				$ps_name = basename2($bam);
 				
 				//parse CNV file
 				$data = array();
