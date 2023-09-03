@@ -51,7 +51,7 @@ extract($parser->parse($argv));
 ###################################### AUXILARY FUNCTIONS ######################################
 
 //Creates BAF file from "$gsvar" and "bam" file and writes content to "out_file"
-function create_baf_file($gsvar,$bam,$out_file, $ref_genome, &$error = False)
+function create_baf_file($gsvar, $bam, $out_file, $ref_genome, &$error = false)
 {
 	global $parser;
 
@@ -137,6 +137,7 @@ $full_prefix = "{$out_folder}/{$prefix}";
 
 //IDs, system and target region
 $t_id = basename2($t_bam);
+$t_basename = dirname($t_bam)."/".$t_id;
 $sys = load_system($system, $t_id);
 $roi = $sys["target_file"];
 $ref_genome = genome_fasta($sys['build']);
@@ -153,6 +154,7 @@ $single_sample = !isset($n_bam);
 if (!$single_sample)
 {
 	$n_id = basename2($n_bam);
+	$n_basename = dirname($n_bam)."/".$n_id;
 	$n_sys = load_system($n_system, $n_id);
 	$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
 	
@@ -291,10 +293,10 @@ $manta_sv      = $full_prefix . "_manta_var_structural.vcf.gz";		// structural v
 $manta_sv_bedpe= $full_prefix . "_manta_var_structural.bedpe"; 		// structural variants (bedpe)
 $variants      = $full_prefix . "_var.vcf.gz";					// variants
 $ballele       = $full_prefix . "_bafs.igv";					// B-allele frequencies
-$hla_file_tumor =  dirname($t_bam)."/{$t_id}_hla_genotyper.tsv";
+$hla_file_tumor = "{$t_basename}_hla_genotyper.tsv";
 if (!$single_sample)
 {
-	$hla_file_normal =  dirname($n_bam)."/{$n_id}_hla_genotyper.tsv"; 
+	$hla_file_normal = "{$n_basename}_hla_genotyper.tsv"; 
 }
 if (in_array("vc", $steps))
 {
@@ -391,7 +393,7 @@ if (in_array("vc", $steps))
 	}
 	else
 	{
-		$variants_germline_vcf = dirname($n_bam)."/{$n_id}_var.vcf.gz";
+		$variants_germline_vcf = "{$n_basename}_var.vcf.gz";
 		if (file_exists($variants_germline_vcf))
 		{
 			$baf_args = [
@@ -403,6 +405,10 @@ if (in_array("vc", $steps))
 			];
 			
 			$parser->execTool("NGS/baf_somatic.php", implode(" ", $baf_args));
+		}
+		else
+		{
+			trigger_error("Cannot create BAF file as normal VCF missing: {$variants_germline_vcf}", E_USER_NOTICE);
 		}
 	}
 	
@@ -416,11 +422,9 @@ if (in_array("vc", $steps))
 }
 
 //Viral sequences alignment
-$t_dir = dirname($t_bam) . "/";
-
-$viral         = "{$t_dir}/{$t_id}_viral.tsv";					// viral sequences results
-$viral_bam     = "{$t_dir}/{$t_id}_viral.bam";					// viral sequences alignment
-$viral_bam_raw = "{$t_dir}/{$t_id}_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
+$viral         = "{$t_basename}_viral.tsv";					// viral sequences results
+$viral_bam     = "{$t_basename}_viral.bam";					// viral sequences alignment
+$viral_bam_raw = "{$t_basename}_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
 $viral_bed     = get_path("data_folder") . "/enrichment/somatic_viral.bed"; //viral enrichment
 $viral_genome  = get_path("data_folder") . "/genomes/somatic_viral.fa"; //viral reference genome
 if (in_array("vi", $steps))
@@ -432,8 +436,8 @@ if (in_array("vi", $steps))
 	else
 	{
 		//detection of viral sequences
-		$t_bam_dedup = dirname($t_bam)."/{$t_id}_before_dedup.bam";
-		$t_bam_map_qc = dirname($t_bam)."/{$t_id}_stats_map.qcML";
+		$t_bam_dedup = "{$t_basename}_before_dedup.bam";
+		$t_bam_map_qc = "{$t_basename}_stats_map.qcML";
 		$dedup_used = file_exists($t_bam_dedup);
 		$vc_viral_args = [
 			"-in ".($dedup_used ? $t_bam_dedup : $t_bam),
@@ -559,7 +563,7 @@ if(in_array("cn",$steps))
 		$error = False;
 		if(!file_exists($baf_file))
 		{
-			$t_gsvar = dirname($t_bam) ."/{$t_id}.GSvar";
+			$t_gsvar = "{$t_basename}.GSvar";
 			create_baf_file($t_gsvar, $t_bam, $baf_file, $ref_genome, $error);
 		}
 
@@ -724,7 +728,7 @@ if(in_array("cn",$steps))
 		}
 		else
 		{
-			$normal_gsvar = dirname($n_bam) ."/{$n_id}.GSvar";
+			$normal_gsvar = "{$n_basename}.GSvar";
 			create_baf_file($normal_gsvar,$n_bam,"{$baf_folder}/{$n_id}.tsv", $ref_genome);
 			create_baf_file($normal_gsvar,$t_bam,"{$baf_folder}/{$t_id}.tsv", $ref_genome);
 		}
@@ -813,10 +817,10 @@ if (in_array("an", $steps))
 	if (!$single_sample)
 	{
 		$links = array_filter([
-			dirname($t_bam)."/{$t_id}_stats_fastq.qcML",
-			dirname($t_bam)."/{$t_id}_stats_map.qcML",
-			dirname($n_bam)."/{$n_id}_stats_fastq.qcML",
-			dirname($n_bam)."/{$n_id}_stats_map.qcML"
+			"{$t_basename}_stats_fastq.qcML",
+			"{$t_basename}_stats_map.qcML",
+			"{$n_basename}_stats_fastq.qcML",
+			"{$n_basename}_stats_map.qcML"
 		], "file_exists");
 
 		$args_somaticqc = [
@@ -1173,8 +1177,8 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	{
 		// import qcML files
 		$qcmls = implode(" ", array_filter([
-			dirname($t_bam)."/{$t_id}_stats_fastq.qcML",
-			dirname($t_bam)."/{$t_id}_stats_map.qcML",
+			"{$t_basename}_stats_fastq.qcML",
+			"{$t_basename}_stats_map.qcML",
 			$somaticqc,
 			$qc_other
 		], "file_exists"));

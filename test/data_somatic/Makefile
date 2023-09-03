@@ -67,6 +67,7 @@ case2_analyze:
 		--log Sample_GS110169_03/analyze.log
 
 case2_somatic:
+	rm -rf out_case2/GS110168_03-GS110169_03.log
 	php ../../src/Pipelines/somatic_dna.php \
 		-t_bam Sample_GS110168_03/GS110168_03.cram -n_bam Sample_GS110169_03/GS110169_03.cram \
 		-out_folder out_case2 \
@@ -99,7 +100,7 @@ case3: case3_somatic case3_diff
 
 case3_somatic:
 	php ../../src/Pipelines/somatic_dna.php \
-		-t_bam ../data/manta_sv_tumor.cram -n_bam ../data/manta_sv_normal.bam \
+		-t_bam ../data/manta_sv_tumor.bam -n_bam ../data/manta_sv_normal.bam \
 		-out_folder out_case3 \
 		-prefix manta_sv_tumor-manta_sv_normal \
 		-steps vc\
