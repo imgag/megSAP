@@ -49,7 +49,7 @@ This affects the following regions:
 |chr22|18885468 |18939468 |DGCR6, FAM230F, PRODH                                       |PRODH: Schizophrenia, Hyperprolinemia                                             |
 |chrX |37084895 |37098895 |                                                            |                                                                                  |
 
-## Checking which genome version
+## Checking the genome version
 
 To check if your genome is correctly masked, use this command:  
 
@@ -57,6 +57,11 @@ To check if your genome is correctly masked, use this command:
 
 If the output consists of 'N' only, the genome is correctly masked.
 
+To check if a genome/exome BAM/CRAM file was created with masked reference genome, use this command:  
+
+	> samtools view [bam/cram] chr21:5966593-6161371
+
+If the output is empty, a masked reference genome was used.
 
 ## Internal documentation
 
