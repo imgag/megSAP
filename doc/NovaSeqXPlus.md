@@ -9,14 +9,26 @@
 - open `Reference Builder (Instruments) v1.1.0` in Apps 
 - select the created project as output
 - select the correct Sequencer (`NovaSeq X Series`)
-- enter name. This has to be exactly the name the genome should be called! It cannot be changed afterwards.
+- enter name. This cannot be `GRCh38`, but can be renamed (see below)
 - enter organization and species
 - give a link/description for the source of the *.fa file
-(- set `Mask BED File` to `hg38` (worked once for me))
+- set `Mask BED File` to `hg38`
 - leave `SAM Liftover File`at `None`
 (- GTF Annotation and Methylation was left empty/unchecked)
-- run application 
-(the job crashes since 2 weeks, simply retry it several times)
+- run application
+## rename custom genome
+- download created from BaseSpace
+- extract `tar.gz` file:
+```
+tar -xvf $OLD_NAME.tar.gz
+```
+- rename in the `genome.json` file the entries `Name` and `DisplayName`
+- create new `tar.gz` file:
+- extract `tar.gz` file:
+```
+tar -czf $NEW_NAME.tar.gz DRAGEN genome.fa genome.json
+```
+(- upload this file to the sequencer)
 
 
 ## Uploading enrichment files (BED) to the sequencer
@@ -30,7 +42,6 @@
 - select the run and click on requeue secondary analysis
 - upload SampleSheet
  
-
 ## Errors in the documentation from Illumina (SampleSheet_v2)
 [illumnia documentation](https://support-docs.illumina.com/SHARE/SampleSheetv2/Content/SHARE/SampleSheetv2/Settings_fNV_mX.htm)
 

@@ -253,3 +253,9 @@ wget https://github.com/twolinin/longphase/releases/download/v1.5/longphase_linu
 tar -xJf longphase_linux-x64.tar.xz
 rm longphase_linux-x64.tar.xz
 cd ..
+
+#download illuminia ORA decompression tool
+cd $folder
+wget https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
+tar xzf orad.2.6.1.tar.gz
+rm orad.2.6.1.tar.gz

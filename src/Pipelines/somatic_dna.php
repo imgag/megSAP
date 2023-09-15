@@ -403,7 +403,7 @@ if (in_array("vc", $steps))
 		}
 	}
 	
-	if (file_exists($variants))
+	if (file_exists($variants) && !$skip_signatures)
 	{
 		$snv_signatures_out = $out_folder."/snv_signatures/";
 		$tmp_variants = $parser->tempFile(".vcf", "snv_signatures_");

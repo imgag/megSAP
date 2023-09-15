@@ -14,9 +14,11 @@ INSERT INTO project (name, type, internal_coordinator_id, analysis) VALUES
 ('IVac','research', 2, 'fastq'),
 ('SomaticAndTreatment','diagnostic', 2, 'variants');
 
-INSERT INTO processing_system (name_short, name_manufacturer, shotgun, genome_id, type) VALUES
-('ssHAEv6', 'SureSelect Human All Exon v6', '1', 1, 'WES'),
-('TruSeqPCRfree', 'TruSeq DNA PCR-Free', '1', 1, 'WGS');
+INSERT INTO processing_system (name_short, name_manufacturer, shotgun, genome_id, type, umi_type) VALUES
+('ssHAEv6', 'SureSelect Human All Exon v6', '1', 1, 'WES', 'n/a'),
+('TruSeqPCRfree', 'TruSeq DNA PCR-Free', '1', 1, 'WGS', 'n/a'),
+('TwistCustomExomeV2', 'Twist Custom Exome V2 IMGAG', '1', 1, 'WES', 'n/a'),
+('nebRNAU2_mrna_UMI', 'NEBNext Ultra II Directional RNA mRNA UMI', '1', 1, 'RNA', 'IDT-UDI-UMI');
 
 INSERT INTO sequencing_run (name, fcid, start_date, end_date, device_id, recipe) VALUES
 ('#00001', 'FCID4711', '2018-02-04', '2018-02-04', 1, '100+8+100'),
@@ -35,7 +37,8 @@ INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, send
 (8, 'DX181280', 'DNA', 1, 'male', '1', '1', 1, 'n/a'),
 (9, 'DX203663', 'DNA', 1, 'male', '0', '0', 1, 'n/a'),
 (10, 'DX203664', 'DNA', 1, 'female', '0', '0', 1, 'n/a'),
-(11, 'DX203665', 'DNA', 1, 'male', '0', '0', 1, 'Diseases of the respiratory system');
+(11, 'DX203665', 'DNA', 1, 'male', '0', '0', 1, 'Diseases of the respiratory system'),
+(12, 'RX123456', 'RNA', 1, 'male', '0', '0', 1, 'n/a');
 
 INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, processing_system_id, project_id, normal_id) VALUES
 (1,1,1,'1',1,1, NULL),
@@ -49,7 +52,7 @@ INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, pr
 (9,2,3,'1',1,1, NULL),
 (10,3,3,'1',1,1, NULL),
 (11,4,3,'1',1,1, NULL),
-
+(12,3,4,'6,8',4,3, NULL),
 (1,5,4,'1,2,3,4',2,1, NULL),
 (5,5,4,'5',1,3, NULL),
 (6,5,4,'7',1,3, 5);

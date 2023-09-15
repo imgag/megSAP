@@ -17,6 +17,7 @@ $parser->addFlag("high_priority", "Assign high priority to all queued samples.")
 $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
 $parser->addFlag("no_rename_r3", "Do not rename R2/R3 FASTQ files to index/R2.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
+$parser->addInt("threads_ora", "Number of threads used to decompress ORA files during the copy (default: 4)", true, 4);
 extract($parser->parse($argv));
 
 //extract samples names and sequencer type from sample sheet
@@ -259,6 +260,8 @@ else $sample_data = extract_sample_data($db_conn, $samplesheet);
 
 
 //import data from Genlab
+print "Importing information from GenLab...\n";
+
 foreach($sample_data as $sample => $data)
 {
 	$args = [];
@@ -266,6 +269,8 @@ foreach($sample_data as $sample => $data)
 	if ($db=="NGSD_TEST") $args[] = "-test";
 	$parser->exec("{$ngsbits}/NGSDImportGenlab", implode(" ", $args), true);
 }
+
+
 //update sample data after importing sample relations
 if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
 else $sample_data = extract_sample_data($db_conn, $samplesheet);
@@ -397,23 +402,57 @@ foreach($sample_data as $sample => $sample_infos)
 	$project_analysis = $sample_infos['project_analysis'];
 	$sample_folder = $sample_infos['ps_folder'];
 	$sample_is_tumor = $sample_infos['is_tumor'];
+	$sys = $sample_infos['sys_name_short'];
 	$sys_type = $sample_infos['sys_type'];
 	$sys_target = $sample_infos['sys_target'];
-	if($is_novaseq_x) $fastq_folder = $analysis_id."/Data/BCLConvert/fastq";
 
 	//calculate current location of sample
 	if ($is_novaseq_x)
 	{
+		$processing_system_ini = $parser->tempFile(".ini", $sys);
+		store_system($db_conn, $sys, $processing_system_ini);
+		$processing_system_info = parse_ini_file($processing_system_ini);
+		$umi_type = $processing_system_info['umi_type'];
+		$fastq_folder = $analysis_id."/Data/BCLConvert/fastq";
+
 		$old_location = $analysis_id."/Data";
 		if($sys_type == "WGS")
 		{
 			$old_location .= "/DragenGermline";
-			$fastq_folder = $old_location."/fastq";
+			//check for ORA folder:
+			if (file_exists($old_location."/ora_fastq"))
+			{
+				$fastq_folder = $old_location."/ora_fastq";
+			}
+			else
+			{
+				$fastq_folder = $old_location."/fastq";
+			}
+			
 		}
 		else if($sys_type == "WES")
 		{
 			$old_location .= "/DragenEnrichment";
-			$fastq_folder = $old_location."/fastq";
+			if (file_exists($old_location."/ora_fastq"))
+			{
+				$fastq_folder = $old_location."/ora_fastq";
+			}
+			else
+			{
+				$fastq_folder = $old_location."/fastq";
+			}
+		}
+		else if($sys_type == "RNA")
+		{
+			$old_location .= "/BCLConvert";
+			if (file_exists($old_location."/ora_fastq"))
+			{
+				$fastq_folder = $old_location."/ora_fastq";
+			}
+			else
+			{
+				$fastq_folder = $old_location."/fastq";
+			}
 		}
 		else trigger_error("ERROR: Invalid processing system type '{$sys_type}' for NovaSeq X analysis!");
 	}
@@ -438,51 +477,101 @@ foreach($sample_data as $sample => $sample_infos)
 	}
 	
 	//build copy line
-	$fastqgz_files = glob($old_location."/Sample_{$sample}/*.fastq.gz");
-	$r3_count = 0;
-	foreach($fastqgz_files as $file)
+	if($is_novaseq_x)
 	{
-		$r3_count += contains($file, "_R3_");
-	}
-	if (count($fastqgz_files)>=3 && $r3_count==count($fastqgz_files)/3 && !$no_rename_r3) //handling of molecular barcode in index read 2 (HaloPlex HS, Swift, ...)
-	{
-		//create target folder
-		$target_to_copylines[$tag][] = "\tmkdir -p {$sample_folder}";
-		$target_to_copylines[$tag][] = "\tchmod 775 {$sample_folder}";
-			
-		//copy fastq.gz files and change names
-		foreach($fastqgz_files as $file) 
+		//TODO: add support for RNA UMI samples (only copy fastqs)
+		if($sys_type == "RNA")
 		{
-			$old_name = basename($file);
-			$new_name = strtr($old_name, array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
-			$target_to_copylines[$tag][] = "\tmv ".($overwrite ? "-f " : "")."$old_location/Sample_{$sample}/$old_name {$sample_folder}/$new_name";				
-		}
-	}
-	else
-	{
-		if($is_novaseq_x)
-		{
-			//check if all files are present
-			$tmp = glob("$old_location/{$sample}/*_seq");
-			if(count($tmp) == 0) trigger_error("ERROR: Source sample folder '$old_location/{$sample}/*_seq' not found!", E_USER_ERROR);
-			if(count($tmp) > 1) trigger_error("ERROR: Multiple folders in '$old_location/{$sample}/'!", E_USER_ERROR);
-			$source_folder = $tmp[0];
+			//only copy FastQ files
+			//get FastQs
+			$fastq_files = glob($fastq_folder."/{$sample}*_L00[0-9]_R[123]_00[0-9].fastq.{gz,ora}", GLOB_BRACE);
+			if($umi_type == "n/a")
+			{
+				//no index files: simply copy/convert FastQs
+				
+				//check count
+				if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 2) 
+				{
+					trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found: ".count($fastq_files).")", E_USER_ERROR);
+				}
 
-			$source_bam_file = "{$source_folder}/{$sample}.bam";
-			if(!file_exists($source_bam_file)) trigger_error("ERROR: BAM file '{$source_bam_file}' is missing!", E_USER_ERROR);
-			if(!file_exists($source_bam_file.".bai")) trigger_error("ERROR: BAM index file '{$source_bam_file}.bai' is missing!", E_USER_ERROR);
-			$source_vcf_file = "{$source_folder}/{$sample}.hard-filtered.vcf.gz";
-			if(!file_exists($source_vcf_file)) trigger_error("ERROR: VCF file '{$source_vcf_file}' is missing!", E_USER_ERROR);
-			if(!file_exists($source_vcf_file.".tbi")) trigger_error("ERROR: VCF index file '{$source_vcf_file}.tbi' is missing!", E_USER_ERROR);
-			$source_gvcf_file = "{$source_folder}/{$sample}.hard-filtered.gvcf.gz";
-			if(!file_exists($source_gvcf_file)) trigger_error("ERROR: gVCF file '{$source_gvcf_file}' is missing!", E_USER_ERROR);
-			if(!file_exists($source_gvcf_file.".tbi")) trigger_error("ERROR: gVCF index file '{$source_gvcf_file}.tbi' is missing!", E_USER_ERROR);
-			$source_sv_vcf_file = "{$source_folder}/{$sample}.sv.vcf.gz";
-			if(!file_exists($source_sv_vcf_file)) trigger_error("ERROR: SV VCF file '{$source_sv_vcf_file}' is missing!", E_USER_ERROR);
-			if(!file_exists($source_sv_vcf_file.".tbi")) trigger_error("ERROR: SV VCF index file '{$source_sv_vcf_file}.tbi' is missing!", E_USER_ERROR);
+				//copy files
+				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
+				foreach ($fastq_files as $fastq_file) 
+				{
+					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
+					{
+						//convert to fastq.gz
+						$target_to_copylines[$tag][] = "\t".get_path("orad")." --ora-reference ".dirname(get_path("orad"))."/oradata/".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}";
+					}
+					else
+					{
+						$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
+					}	
+				}
+
+			}
+			else if($umi_type == "IDT-UDI-UMI")
+			{
+				//index files: rename R2 FastQ file to index and R3 FastQ file in R2
+				
+				//check count
+				if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 3) 
+				{
+					trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 3).", found: ".count($fastq_files).")", E_USER_ERROR);
+				}
+
+				//copy files
+				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
+				foreach ($fastq_files as $fastq_file) 
+				{
+					$new_file_name = strtr(basename($fastq_file), array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
+					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
+					{
+						//convert to fastq.gz
+						$target_to_copylines[$tag][] = "\t".get_path("orad")." --ora-reference ".dirname(get_path("orad"))."/oradata/".($overwrite ? " -f" : "")." -t {$threads_ora} -o {$project_folder}/Sample_{$sample}/{$new_file_name} {$fastq_file}";
+					}
+					else
+					{
+						$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
+					}	
+				}
+			}
+			else
+			{
+				trigger_error("ERROR: Currently unsupported UMI type '{$umi_type}' provided!", E_USER_ERROR);
+			}
+		}
+		else if(($sys_type == "WGS") || ($sys_type == "WES"))
+		{
+			//WES/WGS sample ==> use full analysis (ma,vc,sv)
+
+			//ignore analysis of WGS samples for now since the WGS samples will be mapped by the DRAGEN server
+			if($sys_type != "WGS")
+			{
+				//check if all files are present
+				$tmp = glob("$old_location/{$sample}/*_seq");
+				if(count($tmp) == 0) trigger_error("ERROR: Source sample folder '$old_location/{$sample}/*_seq' not found!", E_USER_ERROR);
+				if(count($tmp) > 1) trigger_error("ERROR: Multiple folders in '$old_location/{$sample}/'!", E_USER_ERROR);
+				$source_folder = $tmp[0];
+
+				$source_bam_file = "{$source_folder}/{$sample}.bam";
+				if(!file_exists($source_bam_file)) trigger_error("ERROR: BAM file '{$source_bam_file}' is missing!", E_USER_ERROR);
+				if(!file_exists($source_bam_file.".bai")) trigger_error("ERROR: BAM index file '{$source_bam_file}.bai' is missing!", E_USER_ERROR);
+				$source_vcf_file = "{$source_folder}/{$sample}.hard-filtered.vcf.gz";
+				if(!file_exists($source_vcf_file)) trigger_error("ERROR: VCF file '{$source_vcf_file}' is missing!", E_USER_ERROR);
+				if(!file_exists($source_vcf_file.".tbi")) trigger_error("ERROR: VCF index file '{$source_vcf_file}.tbi' is missing!", E_USER_ERROR);
+				$source_gvcf_file = "{$source_folder}/{$sample}.hard-filtered.gvcf.gz";
+				if(!file_exists($source_gvcf_file)) trigger_error("ERROR: gVCF file '{$source_gvcf_file}' is missing!", E_USER_ERROR);
+				if(!file_exists($source_gvcf_file.".tbi")) trigger_error("ERROR: gVCF index file '{$source_gvcf_file}.tbi' is missing!", E_USER_ERROR);
+				$source_sv_vcf_file = "{$source_folder}/{$sample}.sv.vcf.gz";
+				if(!file_exists($source_sv_vcf_file)) trigger_error("ERROR: SV VCF file '{$source_sv_vcf_file}' is missing!", E_USER_ERROR);
+				if(!file_exists($source_sv_vcf_file.".tbi")) trigger_error("ERROR: SV VCF index file '{$source_sv_vcf_file}.tbi' is missing!", E_USER_ERROR);
+			}
+			
 
 			//get FastQs
-			$fastq_files = glob($fastq_folder."/{$sample}*_L00[0-9]_R[12]_00[0-9].fastq.gz");
+			$fastq_files = glob($fastq_folder."/{$sample}*_L00[0-9]_R[12]_00[0-9].fastq.{gz,ora}", GLOB_BRACE);
 			//check count
 			if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 2) 
 			{
@@ -494,41 +583,78 @@ foreach($sample_data as $sample => $sample_infos)
 
 			//TODO: remove
 			//tmp folder for copy test
-			$project_folder = "/mnt/storage2/users/ahschul1/projects/2023_07_NovaSeqXPlus/+data/copy_sample/03178/";
+			//$project_folder = "/mnt/storage2/users/ahschul1/projects/2023_07_NovaSeqXPlus/+data/copy_sample/03178_ora_convert/";
 
 			
 			//create folder
 			$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
-			$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
-			//move BAM
-			$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_bam_file} {$project_folder}Sample_{$sample}/";
-			$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_bam_file}.bai {$project_folder}Sample_{$sample}/";
-			if(!$sample_is_tumor)
+			//ignore analysis of WGS samples for now since the WGS samples will be mapped by the DRAGEN server
+			if($sys_type != "WGS")
 			{
-				//move (g)VCFs
-				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_vcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.vcf.gz";
-				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_vcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.vcf.gz.tbi";
-				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_gvcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.gvcf.gz";
-				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_gvcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.gvcf.gz.tbi";
-				//move SV VCFs
-				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_sv_vcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_svs.vcf.gz";
-				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_sv_vcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_svs.vcf.gz.tbi";
+				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
+				//move BAM
+				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_bam_file} {$project_folder}Sample_{$sample}/";
+				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_bam_file}.bai {$project_folder}Sample_{$sample}/";
+				if(!$sample_is_tumor)
+				{
+					//move (g)VCFs
+					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_vcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.vcf.gz";
+					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_vcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.vcf.gz.tbi";
+					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_gvcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.gvcf.gz";
+					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_gvcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.gvcf.gz.tbi";
+					//move SV VCFs
+					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_sv_vcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_svs.vcf.gz";
+					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_sv_vcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_svs.vcf.gz.tbi";
+				}
 			}
-			
 
-			if(($sample_infos["preserve_fastqs"] == 1) || ($project_analysis=="fastq"))
+			if(($sample_infos["preserve_fastqs"] == 1) || ($project_analysis=="fastq") || ($sys_type == "WGS"))
 			{
 				foreach ($fastq_files as $fastq_file) 
 				{
-					$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
+					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
+					{
+						//convert to fastq.gz
+						$target_to_copylines[$tag][] = "\t".get_path("orad")." --ora-reference ".dirname(get_path("orad"))."/oradata/".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}";
+					}
+					else
+					{
+						$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
+					}	
 				}
 			}
 		}
 		else
 		{
-			$target_to_copylines[$tag][] = "\tmv ".($overwrite ? "-f " : "")."$old_location/Sample_{$sample}/ {$project_folder}";
+			trigger_error("ERROR: Analysis other than WES, WGS or RNA are currently not supported on NovaSeq X!", E_USER_ERROR);
 		}
-		
+	}
+	else
+	{
+		$fastqgz_files = glob($old_location."/Sample_{$sample}/*.fastq.gz");
+		$r3_count = 0;
+		foreach($fastqgz_files as $file)
+		{
+			$r3_count += contains($file, "_R3_");
+		}
+		if (count($fastqgz_files)>=3 && $r3_count==count($fastqgz_files)/3 && !$no_rename_r3) //handling of molecular barcode in index read 2 (HaloPlex HS, Swift, ...)
+		{
+			//create target folder
+			$target_to_copylines[$tag][] = "\tmkdir -p {$sample_folder}";
+			$target_to_copylines[$tag][] = "\tchmod 775 {$sample_folder}";
+				
+			//copy fastq.gz files and change names
+			foreach($fastqgz_files as $file) 
+			{
+				$old_name = basename($file);
+				$new_name = strtr($old_name, array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
+				$target_to_copylines[$tag][] = "\tmv ".($overwrite ? "-f " : "")."$old_location/Sample_{$sample}/$old_name {$sample_folder}/$new_name";				
+			}
+		}
+		else
+		{
+			$target_to_copylines[$tag][] = "\tmv ".($overwrite ? "-f " : "")."$old_location/Sample_{$sample}/ {$project_folder}";		
+		}
 	}
 
 	//skip normal samples which have an associated tumor sample on the same run
@@ -617,11 +743,14 @@ foreach($sample_data as $sample => $sample_infos)
 			if ($project_analysis=="variants")
 			{
 				//no steps parameter > use all default steps
-				if($is_novaseq_x)
+				if($is_novaseq_x && ($sys_type != "RNA"))
 				{
-					$args[] = "-steps vc,cn,sv,db";
+					//do mapping for WGS samples
+					if ($sys_type == "WGS") $args[] = "-steps ma,vc,cn,sv,db";
+					else $args[] = "-steps vc,cn,sv,db";
 					$args[] = "-use_dragen";
 				}
+
 
 			}
 			
