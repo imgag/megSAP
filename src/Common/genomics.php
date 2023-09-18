@@ -1136,7 +1136,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	return $info;
 }
 
-//Returns the value of the given QC term. Throws an error if the QC term is unknown, the sample is not found or the QC value is not found.
+//Returns the value of the given QC term. Throws an error if the QC term is unknown or the sample is not found. Returns a empty string if the QC entry is not in NGSD.
 function get_processed_sample_qc(&$db, $ps, $qc_name_or_accession)
 {
 	//determine QC term ID
@@ -1144,7 +1144,7 @@ function get_processed_sample_qc(&$db, $ps, $qc_name_or_accession)
 	
 	$ps_id = get_processed_sample_id($db, $ps);
 	
-	return $db->getValue("SELECT value FROM processed_sample_qc WHERE processed_sample_id='{$ps_id}' AND qc_terms_id={$term_id}");
+	return $db->getValue("SELECT value FROM processed_sample_qc WHERE processed_sample_id='{$ps_id}' AND qc_terms_id={$term_id}", "");
 }
 
 //Converts NGSD sample meta data to a GSvar file header (using $override_map to allow replace NGSD info)
