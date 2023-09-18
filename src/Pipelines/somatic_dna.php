@@ -169,7 +169,7 @@ if (!$single_sample)
 	}
 }
 
-//Disable steps "vc" and "cnv" if somatic report config exists in NGSD
+//Abort if calling is requested and somatic report config exists in NGSD
 if (!$single_sample && db_is_enabled("NGSD"))
 {
 	$db = DB::getInstance("NGSD", false);

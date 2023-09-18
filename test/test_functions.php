@@ -361,4 +361,21 @@ check_file($out_grch38, $out_grch38_ref, true);
 
 end_test();
 
+//##################################################################################
+start_test("resolve_symlink");
+
+//create symlink
+$folder = realpath(data_folder());
+check_exec("rm -rf {$folder}/symlink_file.txt {$folder}/real_file.txt"); //cleanup of previous tests
+check_exec("touch {$folder}/real_file.txt");
+check_exec("ln -s {$folder}/real_file.txt {$folder}/symlink_file.txt");
+
+//perform checks
+check(resolve_symlink("{$folder}/missing_file.txt"), "{$folder}/missing_file.txt");
+check(resolve_symlink("{$folder}/real_file.txt"), "{$folder}/real_file.txt");
+check(resolve_symlink("{$folder}/symlink_file.txt"), "{$folder}/real_file.txt");
+check_exec("rm -rf {$folder}/symlink_file.txt {$folder}/real_file.txt"); //cleanup of previous tests
+  
+end_test();
+
 ?>
