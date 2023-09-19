@@ -3,24 +3,24 @@ all:
 	make clear link vc cn sv diff reanno
 	
 clear:
-	rm -rf *.bam *.bai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv trio_upd.tsv reanno
+	rm -rf *.cram *.crai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv trio_upd.tsv reanno
 
 link:
-	php ../link_test_data.php GS140127_01.bam
-	php ../link_test_data.php GS140127_01.bam.bai
-	php ../link_test_data.php GS140549_01.bam
-	php ../link_test_data.php GS140549_01.bam.bai
-	php ../link_test_data.php GS140550_01.bam
-	php ../link_test_data.php GS140550_01.bam.bai
+	php ../link_test_data.php GS140127_01.cram
+	php ../link_test_data.php GS140127_01.cram.crai
+	php ../link_test_data.php GS140549_01.cram
+	php ../link_test_data.php GS140549_01.cram.crai
+	php ../link_test_data.php GS140550_01.cram
+	php ../link_test_data.php GS140550_01.cram.crai
 
 vc:
-	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder . -steps vc
+	php ../../src/Pipelines/trio.php -c GS140127_01.cram -m GS140549_01.cram -f GS140550_01.cram -system system.ini -out_folder . -steps vc
 
 cn:
-	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder . -steps cn
+	php ../../src/Pipelines/trio.php -c GS140127_01.cram -m GS140549_01.cram -f GS140550_01.cram -system system.ini -out_folder . -steps cn
 
 sv:
-	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder . -steps sv
+	php ../../src/Pipelines/trio.php -c GS140127_01.cram -m GS140549_01.cram -f GS140550_01.cram -system system.ini -out_folder . -steps sv
 	# remove gene annotation
 	cut -f1-24 trio_manta_var_structural.bedpe > trio_manta_var_structural_cut.bedpe
 	# create file from OMIM annotation and CNV overlap
@@ -45,7 +45,7 @@ reanno:
 	cp trio_cnvs_clincnv.tsv reanno/
 	cp trio_manta_var_structural.bedpe reanno/
 	# run reannotation
-	php ../../src/Pipelines/trio.php -c GS140127_01.bam -m GS140549_01.bam -f GS140550_01.bam -system system.ini -out_folder reanno -steps vc,cn,sv -annotation_only
+	php ../../src/Pipelines/trio.php -c GS140127_01.cram -m GS140549_01.cram -f GS140550_01.cram -system system.ini -out_folder reanno -steps vc,cn,sv -annotation_only
 	# diff
 	diff trio_cnvs_clincnv.tsv reanno/trio_cnvs_clincnv.tsv
 	diff trio.GSvar reanno/trio.GSvar

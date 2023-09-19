@@ -2042,11 +2042,12 @@ function basename2($filename)
 }
 
 //If the given file is a CRAM, a temporary BAM is created and the path to it is returned. Otherwise returns the given filename.
-function convert_to_bam_if_cram($filename, $parser, $build, $threads)
+function convert_to_bam_if_cram($filename, $parser, $build, $threads, $tmp_folder="")
 {
 	if (ends_with(strtolower($filename), ".cram"))
 	{
-		$bam = $parser->tempFolder()."/".substr(basename($filename), 0, -5).".bam";
+		if ($tmp_folder=="") $tmp_folder = $parser->tempFolder();
+		$bam = "{$tmp_folder}/".substr(basename($filename), 0, -5).".bam";
 		$parser->execTool("Tools/cram_to_bam.php", "-cram $filename -bam $bam -build $build -threads $threads");
 		return $bam;
 	}

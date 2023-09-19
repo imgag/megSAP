@@ -176,23 +176,34 @@ if (!file_exists($out_folder))
 	}
 }
 
-// copy BAM files to local tmp 
+//copy BAM files to local tmp for variant calling
 if (!$annotation_only && (in_array("vc", $steps) || in_array("sv", $steps)))
 {
+	$tmp_bam_folder = $parser->tempFolder("local_copy_of_bams_");
 	$local_bams = array();
-	$tmp_bam_folder = $parser->tempFolder("bam_");
 	foreach($bams as $bam)
 	{
-		if (!file_exists($bam)) trigger_error("BAM file '$bam' not found in Sample folder! Cannot perform any calling steps!", E_USER_ERROR);
-		if (!file_exists($bam.".bai")) trigger_error("BAM index file for BAM '$bam' not found in Sample folder!", E_USER_ERROR);
-		$local_bam = $tmp_bam_folder."/".basename($bam);
-		$parser->copyFile($bam, $local_bam);
-		$parser->copyFile($bam.".bai", $local_bam.".bai");
-		$local_bams[] = $local_bam;
+		//convert to BAM if CRAM
+		$bam = convert_to_bam_if_cram($bam, $parser, $sys['build'], $threads, $tmp_bam_folder);
+		
+		//check BAM/BAI exist
+		if (!file_exists($bam)) trigger_error("BAM file '{$bam}' does not exist!", E_USER_ERROR);
+		if (!file_exists($bam.".bai")) trigger_error("BAM index file '{$bam}.bai' does not exist!", E_USER_ERROR);
+		
+		//create local copy if not already local file
+		if (starts_with($bam, $tmp_bam_folder))
+		{
+			$local_bams[] = $bam;
+		}
+		else
+		{
+			$local_bam = $tmp_bam_folder."/".basename($bam);
+			$parser->copyFile($bam, $local_bam);
+			$parser->copyFile($bam.".bai", $local_bam.".bai");
+			$local_bams[] = $local_bam;
+		}
 	}
 }
-
-
 
 //(1) variant calling of all samples together (with very conservative parameters)
 $mito = enable_special_mito_vc($sys);
@@ -347,7 +358,7 @@ if (in_array("cn", $steps))
 		$cn_types = array();
 		foreach($bams as $bam)
 		{
-			$base = substr($bam, 0, -4);
+			$base = dirname($bam)."/".basename2($bam);
 			$filename_cnvhunter = $base."_cnvs.tsv";
 			$filename_clincnv = $base."_cnvs_clincnv.tsv";
 			
@@ -399,7 +410,7 @@ if (in_array("cn", $steps))
 				
 				//parse CNV file
 				$data = array();
-				$file = file(substr($bam, 0, -4)."_cnvs_clincnv.tsv");
+				$file = file(dirname($bam)."/{$ps_name}_cnvs_clincnv.tsv");
 				foreach($file as $line)
 				{
 					$line = nl_trim($line);
@@ -543,7 +554,7 @@ if (in_array("cn", $steps))
 				//parse CNV file
 				$cnv_num = 0;
 				$data = array();
-				$file = file(substr($bam, 0, -4)."_cnvs.tsv");
+				$file = file(dirname($bam)."/".basename2($bam)."_cnvs.tsv");
 				foreach($file as $line)
 				{
 					$line = nl_trim($line);

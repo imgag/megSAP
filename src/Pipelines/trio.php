@@ -309,7 +309,7 @@ if (in_array("cn", $steps))
 				"-m {$sample_m}",
 				"-out {$out_folder}/trio_upd.tsv",
 				];
-			$base = substr($c, 0, -4);
+			$base = dirname($c)."/".basename2($c);
 			if (file_exists("{$base}_cnvs.tsv"))
 			{
 				$args_upd[] = "-exclude {$base}_cnvs.tsv";
