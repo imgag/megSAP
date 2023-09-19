@@ -1,6 +1,6 @@
 
 all:
-	make clear link vc cn sv diff reanno
+	make clear link call diff reanno
 	
 clear:
 	rm -rf *.cram *.crai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv reanno
@@ -13,14 +13,8 @@ link:
 	php ../link_test_data.php GS140550_01.cram
 	php ../link_test_data.php GS140550_01.cram.crai
 
-vc:
-	php ../../src/Pipelines/multisample.php -bams GS140127_01.cram GS140549_01.cram GS140550_01.cram -status affected control control -system system.ini -out_folder . -steps vc
-
-cn:
-	php ../../src/Pipelines/multisample.php -bams GS140127_01.cram GS140549_01.cram GS140550_01.cram -status affected control control -system system.ini -out_folder . -steps cn
-
-sv:
-	php ../../src/Pipelines/multisample.php -bams GS140127_01.cram GS140549_01.cram GS140550_01.cram -status affected control control -system system.ini -out_folder . -steps sv
+call:
+	php ../../src/Pipelines/multisample.php -bams GS140127_01.cram GS140549_01.cram GS140550_01.cram -status affected control control -system system.ini -out_folder . -steps vc,cn,sv
 	# remove gene annotation
 	cut -f1-24 multi_manta_var_structural.bedpe > multi_manta_var_structural_cut.bedpe
 	# create file from OMIM annotation and CNV overlap
