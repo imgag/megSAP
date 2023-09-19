@@ -3,7 +3,7 @@ all:
 	make clear link call diff reanno
 	
 clear:
-	rm -rf *.cram *.crai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv trio_upd.tsv reanno
+	rm -rf *.cram *.crai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv  trio_upd.tsv *.bedpe manta_evid/ reanno
 
 link:
 	php ../link_test_data.php GS140127_01.cram

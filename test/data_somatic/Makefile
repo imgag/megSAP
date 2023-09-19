@@ -2,7 +2,7 @@ SHELL=/bin/bash
 all: clear link case1 case2 case3
 
 clear:
-	rm -rf Sample_GS110168_03 Sample_GS110169_03 Sample_DX000001_01
+	rm -rf Sample_GS110168_03 Sample_GS110169_03 Sample_DX000001_01 Sample_RX000001_01
 	rm -rf out_case1 out_case2 out_case3
 
 link:
