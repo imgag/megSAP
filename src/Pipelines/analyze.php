@@ -73,7 +73,7 @@ $parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 //checks in case DRAGEN should be used
 if ($use_dragen)
 {
-	if ($user != get_path("dragen_user"))
+	if (in_array("ma", $steps) && $user != get_path("dragen_user"))
 	{
 		trigger_error("Analysis has to be run as user '".get_path("dragen_user")."' for the use of DRAGEN!", E_USER_ERROR);
 	}
@@ -128,6 +128,7 @@ $bamfile = $folder."/".$name.".bam";
 $cramfile = $folder."/".$name.".cram";
 $local_bamfile = $parser->tempFolder("local_bam")."/".$name.".bam"; //local copy of BAM file to reduce IO over network
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
+$somatic_custom_panel = get_path("data_folder") . "/enrichment/somatic_VirtualPanel_v4.bed";
 //variant calling
 $vcffile = $folder."/".$name."_var.vcf.gz";
 $vcffile_annotated = $folder."/".$name."_var_annotated.vcf.gz";
@@ -309,6 +310,37 @@ else
 	check_genome_build($bamfile, $build);
 	
 	$local_bamfile = $bamfile;
+
+	if($use_dragen)
+	{
+		// Do ReadQC/MappingQC for already mapped/called samples from the NovaSeq X (only if files do not exist)
+		if(!file_exists($qc_map))
+		{
+			//run mapping QC
+			$params = array("-in $bamfile", "-out {$qc_map}", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
+			if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
+			{
+				$params[] = "-wgs";
+			}
+			else
+			{
+				$params[] = "-roi ".$sys['target_file'];
+			}
+			if ($sys['build']!="GRCh38")
+			{
+				$params[] = "-no_cont";
+			}
+			if ($somatic && file_exists($somatic_custom_panel))
+			{
+				$params[] = "-somatic_custom_bed $somatic_custom_panel";
+			}
+			if (!file_exists($qc_fastq))
+			{
+				$params[] = "-read_qc $qc_fastq";
+			}
+			$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
+		}	
+	}
 }
 
 //variant calling

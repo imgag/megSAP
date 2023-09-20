@@ -17,7 +17,10 @@ mkdir(output_folder()."190228_NB501582_0169_AH5LG5BDXX_01489/Unaligned");
 exec("cp ".data_folder().$name."_in1.csv ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_00001/");
 exec("cp ".data_folder().$name."_in2.csv ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_00001/");
 exec("cp ".data_folder().$name."_in3.csv ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_01489/");
+exec("cp ".data_folder().$name."_in_runparameters1.xml ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_00001/RunParameters.xml");
+exec("cp ".data_folder().$name."_in_runparameters1.xml ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_01489/RunParameters.xml");
 exec("unzip ".data_folder().$name."_in4.zip -d ".output_folder());
+exec("cp ".data_folder().$name."_in_runparameters2.xml ".output_folder()."20230823_LH00240_0003_AFCID0001_00123/RunParameters.xml");
 
 //test 1 - default project handling, projects with 'analyze=fastq'
 $out_file = output_folder().$name."_out1Makefile";

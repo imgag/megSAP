@@ -1736,7 +1736,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 										break;
 									}
 								}
-								if ($ref_file_path != "") 
+								if (($ref_file_path != "") && basename($ref_file_path, ".fa") != "genome") //special case NovaSeq X: always uses genome.fa as genome file
 								{
 									$build = basename($ref_file_path, ".fa");
 									break;
@@ -1796,7 +1796,37 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 						{
 							$builds[] = $build;
 						}
-					}	
+					}
+					else if	($split_line[1] == "ID: DRAGEN SW build")
+					{
+						//NovaSeq X: Genome has to be stripped from the command line
+						$build = "";
+						// parse genome build from bwa command line
+						foreach($split_line as $column)
+						{
+							if (starts_with($column, "CL:"))
+							{
+								$cl = explode(" ", $column);
+								for ($i=0; $i < count($cl); ++$i) 
+								{
+									if($cl[$i] == "--ref-dir")
+									{
+										$ref_file_path = $cl[$i + 1];
+										break;
+									}
+								}
+								if (starts_with($ref_file_path, "/usr/local/illumina/install/genomes/"))
+								{
+									$build = trim(explode("/", $ref_file_path)[6]);
+									break;
+								}
+							}
+						}
+						if ($build!="") 
+						{
+							$builds[] = $build;
+						}
+					}
 
 				}
 			}
@@ -2027,6 +2057,24 @@ function phenotype_roi_overlaps(&$roi, $chr, $start, $end)
 	}
 	
 	return false;
+}
+
+//check if run is created by NovaSeq X (Plus)
+// function is_novaseq_x_run(&$db_conn, $run_name)
+// {
+// 	$device_id = $db_conn->getValue("SELECT device_id FROM sequencing_run WHERE `name`='{$run_name}'");
+// 	$device_type = $db_conn->getValue("SELECT type FROM device WHERE `id`='{$device_id}'");
+// 	if(($device_type == "NovaSeqXPlus") || ($device_type == "NovaSeqX")) return true;
+// 	return false;
+// }
+function is_novaseq_x_run($run_parameters_xml)
+{
+	$xml = simplexml_load_file($run_parameters_xml);
+	if(empty($xml->InstrumentType)) return false; //No entry => e.g. NovaSeq 6000
+	$instrument_type = $xml->InstrumentType;
+	if(($instrument_type == "NovaSeqXPlus") || ($instrument_type == "NovaSeqX")) return true;
+	//else
+	return false; //unknown Sequencer
 }
 
 ?>
