@@ -21,8 +21,8 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 
-$name_t = basename($bam_t, ".bam");
-$name_n = basename($bam_n, ".bam");
+$name_t = basename2($bam_t);
+$name_n = basename2($bam_n);
 
 //extract SNP list
 $snps_filtered = $parser->tempFile("snps.tsv");

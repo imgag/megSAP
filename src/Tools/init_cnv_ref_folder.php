@@ -119,7 +119,7 @@ if(!$somatic)
 	for($i=0; $i<count($bams); ++$i)
 	{
 		$bam = $bams[$i];
-		$cov_file = "$ref_folder/".basename($bam, ".bam").".cov";
+		$cov_file = "$ref_folder/".basename2($bam).".cov";
 		
 		//skip existing coverage files
 		if (file_exists($cov_file))

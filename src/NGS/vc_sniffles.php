@@ -22,7 +22,7 @@ extract($parser->parse($argv));
 
 //TODO: add tandem repeat file
 
-if($name == "") $name = basename($bam, ".bam");
+if($name == "") $name = basename2($bam);
 $tmp_vcf = $parser->tempFile(".vcf", "sniffles");
 
 $args = array();

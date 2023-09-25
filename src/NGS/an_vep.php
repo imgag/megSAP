@@ -159,29 +159,13 @@ else
 }
 
 // check if NGSD export file is available:
-$skip_ngsd = false;
-$ngsd_file = $data_folder."/dbs/NGSD/NGSD_germline.vcf.gz";
-$ngsd_som_file = $data_folder."/dbs/NGSD/NGSD_somatic.vcf.gz";
+$ngsd_file = $test ? repository_basedir()."/test/data/an_vep_NGSD_germline.vcf.gz" : resolve_symlink($data_folder."/dbs/NGSD/NGSD_germline.vcf.gz");
 if (!file_exists($ngsd_file))
 {
 	trigger_error("VCF file for NGSD germline annotation not found at '".$ngsd_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
-	$skip_ngsd = true;
 }
-if ($somatic && !file_exists($ngsd_som_file))
+else
 {
-	trigger_error("VCF file for NGSD somatic annotation not found at '".$ngsd_som_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
-	$skip_ngsd = true;
-}
-
-if (!$skip_ngsd)
-{
-	// add NGSD annotation
-	if ($test)
-	{
-		$ngsd_som_file = repository_basedir()."/test/data/an_vep_NGSD_somatic.vcf.gz";
-		$ngsd_file = repository_basedir()."/test/data/an_vep_NGSD_germline.vcf.gz";
-	}
-	
 	// get disease group column name
 	$disease_group_column = "";
 	if (db_is_enabled("NGSD"))
@@ -221,51 +205,29 @@ if (!$skip_ngsd)
 	{
 		trigger_error("NGSD count annotation for disease group will be missing in output file (NGSD is disabled).", E_USER_WARNING);
 	}
-	
+
 	$ngsd_columns = ["COUNTS"];
 	if ($disease_group_column != "")
 	{
 		$ngsd_columns[] = $disease_group_column."=GROUP";
 	}
 	array_push($ngsd_columns, "HAF", "CLAS", "CLAS_COM", "COM");
+	fwrite($config_file, $ngsd_file."\tNGSD\t".implode(",", $ngsd_columns)."\t\n");
+}
 
-	if (file_exists($ngsd_file))
+//add somatic variant information from NGSD
+if ($somatic)
+{
+	$ngsd_som_file = $test ? repository_basedir()."/test/data/an_vep_NGSD_somatic.vcf.gz" : resolve_symlink($data_folder."/dbs/NGSD/NGSD_somatic.vcf.gz");
+	if (!file_exists($ngsd_som_file))
 	{
-		fwrite($config_file, $ngsd_file."\tNGSD\t".implode(",", $ngsd_columns)."\t\n");
+		trigger_error("VCF file for NGSD somatic annotation not found at '".$ngsd_som_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
 	}
 	else
 	{
-		trigger_error("VCF file for NGSD germline annotation not found at '".$ngsd_file."'!",E_USER_ERROR);
-	}
-	
-
-	if ($somatic)
-	{
-		if (file_exists($ngsd_som_file))
-		{
-			fwrite($config_file, $ngsd_som_file."\tNGSD\tSOM_C,SOM_P,SOM_VICC,SOM_VICC_COMMENT\t\n");
-		}
-		else
-		{
-			trigger_error("VCF file for NGSD somatic annotation not found at '".$ngsd_som_file."'!",E_USER_ERROR);
-		}
-
-		// store file date of NGSD files to detect file changes during annotation
-		$ngsd_som_file_mtime = filemtime($ngsd_som_file);
-		if ($ngsd_som_file_mtime == false)
-		{
-			trigger_error("Cannot get modification date of '".$ngsd_som_file."'!",E_USER_ERROR);
-		}
-	}
-	
-	// store file date of NGSD files to detect file changes during annotation
-	$ngsd_file_mtime = filemtime($ngsd_file);
-	if ($ngsd_file_mtime == false)
-	{
-		trigger_error("Cannot get modification date of '".$ngsd_file."'!",E_USER_ERROR);
+		fwrite($config_file, $ngsd_som_file."\tNGSD\tSOM_C,SOM_P,SOM_VICC,SOM_VICC_COMMENT\t\n");
 	}
 }
-
 
 // close config file
 fclose($config_file);
@@ -274,33 +236,17 @@ fclose($config_file);
 $vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vcf_output_bigwig} -out {$vcf_annotate_output} -threads {$threads}", true);
 
-if (!$skip_ngsd)
+// annotate gene info from NGSD
+$gene_file = resolve_symlink($data_folder."/dbs/NGSD/NGSD_genes.bed");
+if (file_exists($gene_file))
 {
-	// check if files have changed during annotation:
-	if (!($ngsd_file_mtime == filemtime($ngsd_file)))
-	{
-		trigger_error("Annotation file '".$ngsd_file."' has changed during annotation!",E_USER_ERROR);
-	}
-	if ($somatic)
-	{
-		if (!($ngsd_som_file_mtime == filemtime($ngsd_som_file)))
-		{
-			trigger_error("Annotation file '".$ngsd_som_file."' has changed during annotation!",E_USER_ERROR);
-		}
-	}
-	
-	// annotate genes
-	$gene_file = $data_folder."/dbs/NGSD/NGSD_genes.bed";
-	if (file_exists($gene_file))
-	{
-		$tmp = $parser->tempFile(".vcf");
-		$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", true);
-		$parser->moveFile($tmp, $vcf_annotate_output);
-	}
-	else
-	{
-		trigger_error("BED file for NGSD gene annotation not found at '".$gene_file."'. NGSD annotation will be missing in output file.",E_USER_WARNING);
-	}
+	$tmp = $parser->tempFile(".vcf");
+	$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", true);
+	$parser->moveFile($tmp, $vcf_annotate_output);
+}
+else
+{
+	trigger_error("BED file for NGSD gene annotation not found at '".$gene_file."'. NGSD annotation will be missing in output file.", E_USER_WARNING);
 }
 
 //perform splicing predictions of private variants using SpliceAI (very slow)

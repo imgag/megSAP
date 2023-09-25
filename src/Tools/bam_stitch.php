@@ -26,10 +26,10 @@ $regs_file = $parser->tempFile(".bed");
 file_put_contents($regs_file, implode("\n", $regs));
 
 //extract sample names to correct readgroup info in SAM header
-$ps_name1 = basename($in1, ".bam");
+$ps_name1 = basename2($in1);
 list($s_name1) = explode("_", $ps_name1."_");
-$ps_name2 = basename($in2, ".bam");
-$ps_name3 = basename($out, ".bam");
+$ps_name2 = basename2($in2);
+$ps_name3 = basename2($out);
 
 //extract data from 'in1'
 print "Extracting data from 'in1'.\n";

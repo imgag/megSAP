@@ -40,7 +40,7 @@ if ($debug)
 }
 
 //if no sample name is given use output name
-if ($sample=="") $sample = basename($out, ".bam");
+if ($sample=="") $sample = basename2($out);
 
 //check if valid reference genome is provided
 $dragen_genome_path = get_path("dragen_genomes")."/".$build."/dragen/";

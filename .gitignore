@@ -3,8 +3,8 @@
 /megSAP_tag.txt
 
 /test/data_amplicon/*.fastq.gz
-/test/data_amplicon/*.bam
-/test/data_amplicon/*.bam.bai
+/test/data_amplicon/*.cram
+/test/data_amplicon/*.cram.crai
 /test/data_amplicon/*.log
 /test/data_amplicon/*.qcML
 /test/data_amplicon/*.vcf.gz
@@ -21,6 +21,8 @@
 /test/data_chrx/*.fastq.gz
 /test/data_chrx/*.bam
 /test/data_chrx/*.bam.bai
+/test/data_chrx/*.cram
+/test/data_chrx/*.cram.crai
 /test/data_chrx/*.log
 /test/data_chrx/*.qcML
 /test/data_chrx/*.vcf.gz
@@ -41,8 +43,8 @@
 /test/data_trio/*.GSvar
 /test/data_trio/*.log
 /test/data_trio/*.qcML
-/test/data_trio/*.bam
-/test/data_trio/*.bam.bai
+/test/data_trio/*.cram
+/test/data_trio/*.cram.crai
 /test/data_trio/*.vcf.gz
 /test/data_trio/*.vcf.gz.tbi
 /test/data_trio/*_special.tsv
@@ -55,8 +57,8 @@
 /test/data_multi/*.GSvar
 /test/data_multi/*.log
 /test/data_multi/*.qcML
-/test/data_multi/*.bam
-/test/data_multi/*.bam.bai
+/test/data_multi/*.cram
+/test/data_multi/*.cram.crai
 /test/data_multi/*.vcf.gz
 /test/data_multi/*.vcf.gz.tbi
 /test/data_multi/*_clincnv.tsv

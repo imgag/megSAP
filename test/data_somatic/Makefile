@@ -2,7 +2,7 @@ SHELL=/bin/bash
 all: clear link case1 case2 case3
 
 clear:
-	rm -rf Sample_GS110168_03 Sample_GS110169_03 Sample_DX000001_01
+	rm -rf Sample_GS110168_03 Sample_GS110169_03 Sample_DX000001_01 Sample_RX000001_01
 	rm -rf out_case1 out_case2 out_case3
 
 link:
@@ -35,7 +35,7 @@ case1_analyze:
 
 case1_somatic:
 	php ../../src/Pipelines/somatic_dna.php \
-		-t_bam Sample_DX000001_01/DX000001_01.bam \
+		-t_bam Sample_DX000001_01/DX000001_01.cram \
 		-out_folder out_case1 \
 		-prefix DX000001_01 \
 		-steps vc,an \
@@ -67,8 +67,9 @@ case2_analyze:
 		--log Sample_GS110169_03/analyze.log
 
 case2_somatic:
+	rm -rf out_case2/GS110168_03-GS110169_03.log
 	php ../../src/Pipelines/somatic_dna.php \
-		-t_bam Sample_GS110168_03/GS110168_03.bam -n_bam Sample_GS110169_03/GS110169_03.bam \
+		-t_bam Sample_GS110168_03/GS110168_03.cram -n_bam Sample_GS110169_03/GS110169_03.cram \
 		-out_folder out_case2 \
 		-prefix GS110168_03-GS110169_03 \
 		-steps vc,an,msi,an_rna\

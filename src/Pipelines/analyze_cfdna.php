@@ -363,20 +363,21 @@ if (in_array("ma", $steps))
 	}
 	
 	$args = [
-		"-in_for", implode(" ", $files1),
-		"-in_rev", implode(" ", $files2),
+		"-in_for ".implode(" ", $files1),
+		"-in_rev ".implode(" ", $files2),
 		"-clip_overlap",
-		"-system", $system,
-		"-out_folder", $folder,
-		"-out_name", $name,
-		"-threads", $threads,
-		"--log", $parser->getLogFile()
+		"-system " .$system,
+		"-out_folder ".$folder,
+		"-out_name ".$name,
+		"-threads ".$threads,
+		"--log ".$parser->getLogFile(),
+		"-bam_output" //TODO Leon: CRAM does not work in pipeline test - error message is "[E::process_one_read] CIGAR and query sequence are of different length"
 	];
 	if (!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
 	$parser->execTool("Pipelines/mapping.php", implode(" ", $args));
 
 	//low-coverage report, based on patient specific positions
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ${target} -bam ${bamfile} -out ${lowcov_file} -cutoff ${lowcov_cutoff} -threads {$threads}", true);
+	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ${target} -bam ${bamfile} -out ${lowcov_file} -cutoff ${lowcov_cutoff} -threads {$threads} -ref ".genome_fasta($sys['build']), true);
 	if (db_is_enabled("NGSD"))
 	{
 		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in ${lowcov_file} -clear -extend 25 -out ${lowcov_file}", true);
