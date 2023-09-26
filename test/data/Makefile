@@ -18,11 +18,6 @@ vc_freebayes:
 vc_mosaic:
 	@cd ../ && php vc_mosaic_create_test_data.php
 
-an_vep:
-	zcat vc_freebayes_out1.vcf.gz > an_vep_in1.vcf
-	cp vc_freebayes_out1.vcf.gz an_vep_in2.vcf.gz
-	zcat vc_freebayes_out1.vcf.gz | egrep "^#" > an_vep_in_empty.vcf
-
 vcf2gsvar:
 	cp an_vep_out1.vcf vcf2gsvar_in1.vcf
 	cp an_vep_out_empty.vcf vcf2gsvar_in_empty.vcf

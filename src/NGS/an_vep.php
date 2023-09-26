@@ -74,13 +74,6 @@ $args[] = "--transcript_version --domains --failed 1"; //annotation options
 $args[] = "--regulatory"; //regulatory features
 $fields[] = "BIOTYPE"; 
 $args[] = "--sift b --polyphen b"; //pathogenicity predictions
-$args[] = "--plugin MaxEntScan,{$vep_path}/MaxEntScan/,SWA"; //MaxEntScan
-$fields[] = "MaxEntScan_ref";
-$fields[] = "MaxEntScan_alt";
-$fields[] = "MES-SWA_acceptor_alt";
-$fields[] = "MES-SWA_acceptor_ref";
-$fields[] = "MES-SWA_donor_alt";
-$fields[] = "MES-SWA_donor_ref";
 $args[] = "--pubmed"; //add publications
 $fields[] = "PUBMED";
 if (!$all_transcripts)
@@ -117,6 +110,9 @@ $parser->exec(get_path("ngs-bits")."/VcfAnnotateConsequence", " -in {$vep_output
 $vcf_output_bigwig = $parser->tempFile("_bigwig.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBigWig", "-name PHYLOP -desc \"".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." (ngs-bits/VcfAnnotateFromBigWig - mode max)\" -mode max -in {$vcf_output_vac} -out {$vcf_output_bigwig} -bw ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." -threads {$threads}", true);
 
+//add MaxEntScan annotation
+$vcf_output_mes = $parser->tempFile("_mes.vcf");
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateMaxEntScan", "-gff {$gff} -in {$vcf_output_bigwig} -out {$vcf_output_mes} -ref ".genome_fasta($build)." -swa -threads {$threads} -min_score 0.0 -decimals 1", true);
 
 // custom annotation by VcfAnnotateFromVcf
 
@@ -234,7 +230,7 @@ fclose($config_file);
 
 // execute VcfAnnotateFromVcf
 $vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vcf_output_bigwig} -out {$vcf_annotate_output} -threads {$threads}", true);
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vcf_output_mes} -out {$vcf_annotate_output} -threads {$threads}", true);
 
 // annotate gene info from NGSD
 $gene_file = resolve_symlink($data_folder."/dbs/NGSD/NGSD_genes.bed");
