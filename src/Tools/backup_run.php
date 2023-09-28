@@ -35,7 +35,8 @@ $out_folder = rtrim($out_folder, "/");
 
 //determine output file names
 $basename = basename($in);
-if (!preg_match("/^([0-9]{2})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1]))
+if ((!preg_match("/^([0-9]{2})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1])) 
+&& (!preg_match("/^([0-9]{4})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1])))
 {
 	$basename = date("ymd")."_".$basename;
 	print "Notice: Folder name does not start with date. Prefixing date: $basename\n";
@@ -78,7 +79,7 @@ if ($include_raw_signal)
 }
 else
 {
-	$exclude_raw = "--exclude '*.fast5' --exclude '*.pod5'";
+	$exclude_raw = "--exclude='*.fast5' --exclude='*.pod5'";
 }
 //decide what to backup depending on run type
 $run_parameters_xml = $in."/RunParameters.xml";
@@ -87,18 +88,17 @@ $is_novaseq_x = is_novaseq_x_run($run_parameters_xml);
 if($is_novaseq_x)
 {
 	trigger_error("NOTICE: NovaSeq X run detected!", E_USER_NOTICE);
-	$analyses = array_filter(glob($in."/Analysis/*"), 'is_dir');
+	$analyses = array_filter(glob($in."/Analysis/[0-9]"), 'is_dir');
 	if(count($analyses) == 0) trigger_error("ERROR: No analysis found! Please make sure the secondary analysis was performed successfully (at least the demultiplexing).", E_USER_ERROR);
 	if(count($analyses) > 1) trigger_error("ERROR: Multiple analysis folders found! Please remove all duplicated secondary analysis, but make sure all necessary fastq files are present in the remaining folder!", E_USER_ERROR);
 	//NovaSeq X run => backup fastq/ora files
-	$parser->exec("tar", "cfW {$tmp_tar} {$exclude_raw} --exclude='{$basename}/Data' --exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images' {$exclude_raw} --exclude='*.bam' --exclude='*.bai' -C ".dirname($in)." {$basename}", true);
+	$parser->exec("tar", "cfW {$tmp_tar} {$exclude_raw} --exclude='{$basename}/Data' --exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images' --exclude='*.bam' --exclude='*.bam.bai' --exclude='*.cram' --exclude='*.cram.crai' -C ".dirname($in)." {$basename}", true);
 }
 else
 {
 	trigger_error("NOTICE: Normal run detected!", E_USER_NOTICE);
 	//normal run => backup BCL files
-	//TODO: Should the C?.? folders be excluded?
-	$parser->exec("tar", "cfW {$tmp_tar} {$exclude_raw} --exclude '{$basename}/Data/Intensities/L00?/C*' --exclude '{$basename}/Unaligned*' --exclude '{$basename}/Thumbnail_Images' --exclude '{$basename}/Images' -C ".dirname($in)." {$basename}", true);
+	$parser->exec("tar", "cfW {$tmp_tar} {$exclude_raw} --exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images' -C ".dirname($in)." {$basename}", true);
 }
 
 

@@ -77,9 +77,13 @@ if ($use_dragen)
 	{
 		trigger_error("Analysis has to be run as user '".get_path("dragen_user")."' for the use of DRAGEN!", E_USER_ERROR);
 	}
-	if (!in_array("ma", $steps) && !file_exists($folder."/dragen_variant_calls/{$name}_dragen.vcf.gz")) 
+	if (!in_array("ma", $steps) && (!file_exists($folder."/dragen_variant_calls/{$name}_dragen.vcf.gz") && in_array("vc", $steps))) 
 	{
-		trigger_error("DRAGEN variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
+		trigger_error("DRAGEN small variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
+	}
+	if (!in_array("ma", $steps) && (!file_exists($folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz") && in_array("sv", $steps))) 
+	{
+		trigger_error("DRAGEN structural variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
 }
 
@@ -340,6 +344,20 @@ else
 			}
 			$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
 		}	
+
+		if(!file_exists($lowcov_file))
+		{
+			//low-coverage report
+			if ($has_roi && !$is_wgs_shallow)
+			{	
+				$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20 -threads {$threads}", true);
+				if (db_is_enabled("NGSD"))
+				{
+					$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
+				}
+			}
+		}
+		
 	}
 }
 

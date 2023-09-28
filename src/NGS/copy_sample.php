@@ -479,7 +479,7 @@ foreach($sample_data as $sample => $sample_infos)
 			//only copy FastQ files
 			//get FastQs
 			$fastq_files = glob($fastq_folder."/{$sample}*_L00[0-9]_R[123]_00[0-9].fastq.{gz,ora}", GLOB_BRACE);
-			if($umi_type == "n/a")
+			if($umi_type == "n/a" || $umi_type == "IDT-UDI-UMI")
 			{
 				//no index files: simply copy/convert FastQs
 				
@@ -505,32 +505,32 @@ foreach($sample_data as $sample => $sample_infos)
 				}
 
 			}
-			else if($umi_type == "IDT-UDI-UMI")
-			{
-				//index files: rename R2 FastQ file to index and R3 FastQ file in R2
+			// else if($umi_type == "IDT-UDI-UMI")
+			// {
+			// 	//index files: rename R2 FastQ file to index and R3 FastQ file in R2
 				
-				//check count
-				if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 3) 
-				{
-					trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 3).", found: ".count($fastq_files).")", E_USER_ERROR);
-				}
+			// 	//check count
+			// 	if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 3) 
+			// 	{
+			// 		trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 3).", found: ".count($fastq_files).")", E_USER_ERROR);
+			// 	}
 
-				//copy files
-				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
-				foreach ($fastq_files as $fastq_file) 
-				{
-					$new_file_name = strtr(basename($fastq_file), array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
-					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
-					{
-						//convert to fastq.gz
-						$target_to_copylines[$tag][] = "\t".get_path("orad")." --ora-reference ".dirname(get_path("orad"))."/oradata/".($overwrite ? " -f" : "")." -t {$threads_ora} -o {$project_folder}/Sample_{$sample}/{$new_file_name} {$fastq_file}";
-					}
-					else
-					{
-						$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
-					}	
-				}
-			}
+			// 	//copy files
+			// 	$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
+			// 	foreach ($fastq_files as $fastq_file) 
+			// 	{
+			// 		$new_file_name = strtr(basename($fastq_file), array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
+			// 		if(ends_with(strtolower($fastq_file), ".fastq.ora"))
+			// 		{
+			// 			//convert to fastq.gz
+			// 			$target_to_copylines[$tag][] = "\t".get_path("orad")." --ora-reference ".dirname(get_path("orad"))."/oradata/".($overwrite ? " -f" : "")." -t {$threads_ora} -o {$project_folder}/Sample_{$sample}/{$new_file_name} {$fastq_file}";
+			// 		}
+			// 		else
+			// 		{
+			// 			$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
+			// 		}	
+			// 	}
+			// }
 			else
 			{
 				trigger_error("ERROR: Currently unsupported UMI type '{$umi_type}' provided!", E_USER_ERROR);
@@ -549,9 +549,26 @@ foreach($sample_data as $sample => $sample_infos)
 				if(count($tmp) > 1) trigger_error("ERROR: Multiple folders in '$old_location/{$sample}/'!", E_USER_ERROR);
 				$source_folder = $tmp[0];
 
-				$source_bam_file = "{$source_folder}/{$sample}.bam";
-				if(!file_exists($source_bam_file)) trigger_error("ERROR: BAM file '{$source_bam_file}' is missing!", E_USER_ERROR);
-				if(!file_exists($source_bam_file.".bai")) trigger_error("ERROR: BAM index file '{$source_bam_file}.bai' is missing!", E_USER_ERROR);
+				$source_mapping_file = "{$source_folder}/{$sample}.bam";
+				if(!file_exists($source_mapping_file))
+				{
+					//No BAM file -> check for CRAM
+					$source_mapping_file = "{$source_folder}/{$sample}.cram";
+					if(!file_exists($source_mapping_file))
+					{
+						//No mapping file found
+						trigger_error("ERROR: BAM/CRAM file '{$source_mapping_file}/.bam' is missing!", E_USER_ERROR);
+					}
+					//else: CRAM file was found -> check index
+					if(!file_exists($source_mapping_file.".crai")) trigger_error("ERROR: CRAM index file '{$source_mapping_file}.crai' is missing!", E_USER_ERROR);
+					
+				}
+				else
+				{
+					//BAM file was created -> check index
+					if(!file_exists($source_mapping_file.".bai")) trigger_error("ERROR: BAM index file '{$source_mapping_file}.bai' is missing!", E_USER_ERROR);
+				} 
+				
 				$source_vcf_file = "{$source_folder}/{$sample}.hard-filtered.vcf.gz";
 				if(!file_exists($source_vcf_file)) trigger_error("ERROR: VCF file '{$source_vcf_file}' is missing!", E_USER_ERROR);
 				if(!file_exists($source_vcf_file.".tbi")) trigger_error("ERROR: VCF index file '{$source_vcf_file}.tbi' is missing!", E_USER_ERROR);
@@ -587,8 +604,16 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
 				//move BAM
-				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_bam_file} {$project_folder}Sample_{$sample}/";
-				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_bam_file}.bai {$project_folder}Sample_{$sample}/";
+				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_mapping_file} {$project_folder}Sample_{$sample}/";
+				if (file_exists($source_mapping_file.".bai"))
+				{
+					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_mapping_file}.bai {$project_folder}Sample_{$sample}/";
+				}
+				else
+				{
+					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_mapping_file}.crai {$project_folder}Sample_{$sample}/";
+				}
+				
 				if(!$sample_is_tumor)
 				{
 					//move (g)VCFs
@@ -793,7 +818,14 @@ $output[] = "";
 
 //target 'import_read_counts'
 $output[] = "import_read_counts:";
-$output[] = "\tphp {$repo_folder}/src/NGS/import_sample_read_counts.php -stats $folder/Stats/Stats.json -db $db ";
+if ($is_novaseq_x)
+{
+	$output[] = "\tphp {$repo_folder}/src/NGS/import_sample_read_counts.php -csv_mode -stats ${analysis_id}/Data/Demux/Demultiplex_Stats.csv -db $db ";
+}
+else
+{
+	$output[] = "\tphp {$repo_folder}/src/NGS/import_sample_read_counts.php -stats $folder/Stats/Stats.json -db $db ";
+}
 $output[] = "";
 
 //target(s) 'copy_...'

@@ -45,6 +45,16 @@ $out_file = output_folder().$name."_out4Makefile";
 check_exec("cd ".output_folder()."20230823_LH00240_0003_AFCID0001_00123/ && php ".src_folder()."/NGS/{$name}.php -out {$out_file} -db NGSD_TEST");
 check_file($out_file, data_folder()."{$name}_out4Makefile");
 
+//test 5 - NovaSeq X with analysis (CRAM)
+$out_file = output_folder().$name."_out5Makefile";
+// remove BAMs
+exec("rm ".output_folder()."20230823_LH00240_0003_AFCID0001_00123/Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.bam");
+exec("rm ".output_folder()."20230823_LH00240_0003_AFCID0001_00123/Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.bam.bai");
+exec("rm ".output_folder()."20230823_LH00240_0003_AFCID0001_00123/Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.bam");
+exec("rm ".output_folder()."20230823_LH00240_0003_AFCID0001_00123/Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.bam.bai");
+check_exec("cd ".output_folder()."20230823_LH00240_0003_AFCID0001_00123/ && php ".src_folder()."/NGS/{$name}.php -out {$out_file} -db NGSD_TEST");
+check_file($out_file, data_folder()."{$name}_out5Makefile");
+
 end_test();
 
 ?>

@@ -54,6 +54,8 @@ check_file("{$ref_folder}DX180049_05.hard-filtered.vcf.gz", "{$restored_folder}D
 check_file("{$ref_folder}DX180049_05.sv.vcf.gz", "{$restored_folder}DX180049_05.sv.vcf.gz");
 check(file_exists("{$restored_folder}DX180049_05.bam"), false);
 check(file_exists("{$restored_folder}DX180049_05.bam.bai"), false);
+check(file_exists("{$restored_folder}DX180049_05.cram"), false);
+check(file_exists("{$restored_folder}DX180049_05.cram.crai"), false);
 $restored_folder = output_folder()."restore/230823_LH00240_0003_AFCID0001_00123/Data/Intensities/BaseCalls/L001/";
 check(file_exists("{$restored_folder}s_1_1101.filter"), false);
 check(file_exists("{$restored_folder}s_1_1102.filter"), false);
@@ -74,11 +76,10 @@ $ref_folder = output_folder()."230823_LH00240_0003_AFCID0001_00123/Data/Intensit
 $restored_folder = output_folder()."restore/230823_LH00240_0003_AFCID0001_00123/Data/Intensities/BaseCalls/L001/";
 check_file("{$restored_folder}s_1_1101.filter", "{$ref_folder}s_1_1101.filter");
 check_file("{$restored_folder}s_1_1102.filter", "{$ref_folder}s_1_1102.filter");
-//TODO: Should the C?.? folders be excluded?
-// check(file_exists("{$restored_folder}C1.1/L001_1.cbcl"), false);
-// check(file_exists("{$restored_folder}C1.1/L001_2.cbcl"), false);
-// check(file_exists("{$restored_folder}C2.1/L001_1.cbcl"), false);
-// check(file_exists("{$restored_folder}C2.1/L001_2.cbcl"), false);
+check_file("{$restored_folder}C1.1/L001_1.cbcl", "{$ref_folder}C1.1/L001_1.cbcl");
+check_file("{$restored_folder}C1.1/L001_2.cbcl", "{$ref_folder}C1.1/L001_2.cbcl");
+check_file("{$restored_folder}C2.1/L001_1.cbcl", "{$ref_folder}C2.1/L001_1.cbcl");
+check_file("{$restored_folder}C2.1/L001_2.cbcl", "{$ref_folder}C2.1/L001_2.cbcl");
 $ref_folder = output_folder()."230823_LH00240_0003_AFCID0001_00123/Images/";
 $restored_folder = output_folder()."restore/230823_LH00240_0003_AFCID0001_00123/Images/";
 check(file_exists("{$restored_folder}pic1.png"), false);
