@@ -757,7 +757,7 @@ foreach($sample_data as $sample => $sample_infos)
 			//determine analysis steps from project
 			if ($project_analysis=="mapping")
 			{
-				$args[] = ($is_novaseq_x ? "-steps db" : "-steps ma,db");
+				$args[] = ($is_novaseq_x ? "-steps db -use_dragen" : "-steps ma,db");
 			}
 			if ($project_analysis=="variants")
 			{

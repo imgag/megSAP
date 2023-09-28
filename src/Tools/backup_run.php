@@ -35,14 +35,22 @@ $out_folder = rtrim($out_folder, "/");
 
 //determine output file names
 $basename = basename($in);
-if ((!preg_match("/^([0-9]{2})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1])) 
-&& (!preg_match("/^([0-9]{4})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1])))
+if (!preg_match("/^([0-9]{2})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1])) 
 {
-	$basename = date("ymd")."_".$basename;
-	print "Notice: Folder name does not start with date. Prefixing date: $basename\n";
+	if (preg_match("/^([0-9]{4})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1]))
+	{
+		$archive_basename = substr($basename, 2);
+		print "Notice: Folder name does start with 4-digit year. Cutting year to 2 digits. Resulting folder name: $basename\n";
+	}
+	else
+	{
+		$archive_basename = date("ymd")."_".$basename;
+		print "Notice: Folder name does not start with date. Prefixing date: $basename\n";
+	}
 }
-$zipfile = "{$out_folder}/{$basename}.tar.gz";
-$logfile = "{$out_folder}/{$basename}.log";
+
+$zipfile = "{$out_folder}/{$archive_basename}.tar.gz";
+$logfile = "{$out_folder}/{$archive_basename}.log";
 
 //set temporary logfile if unset
 if ($parser->getLogFile()==null)
