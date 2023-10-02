@@ -1128,7 +1128,16 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 		$info['project_folder'] = $project_folder."/".$info['project_name']."/";
 		$info['ps_name'] = $ps_name;
 		$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
-		$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
+		
+		if (is_file($info['ps_folder']."{$ps_name}.cram"))
+		{
+			$info['ps_bam'] = $info['ps_folder']."{$ps_name}.cram";
+		}
+		else
+		{
+			$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
+		}
+
 	}
 	
 	
