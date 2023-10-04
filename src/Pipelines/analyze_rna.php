@@ -22,6 +22,7 @@ $parser->addFlag("skip_filter_hb", "Do not automatically filter input FASTQ for 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
 $parser->addFlag("skip_dna_reannotation", "Do not automatically start the reannotation of the related DNA sample.");
+$parser->addFlag("force_umi", "Perform UMI based duplicate marking even if folder does not contain separate UMI FastQ (UMI have to be already merged into R1/R2 FastQs)");
 
 extract($parser->parse($argv));
 
@@ -128,7 +129,15 @@ if (in_array("ma", $steps))
 	{
 		if (empty($in_umi))
 		{
-			trigger_error("No UMI read files found! Processing fastqs without UMIs.", E_USER_WARNING);
+			if ($force_umi)
+			{
+				$umi = true;
+				trigger_error("UMIs annotated to the FastQ header will be used.", E_USER_NOTICE);
+			}
+			else
+			{
+				trigger_error("No UMI read files found! Processing fastqs without UMIs.", E_USER_WARNING);
+			}
 			$seqpurge_params = array_merge($seqpurge_params,
 			[
 				"-in1", implode(" ", $in_for),

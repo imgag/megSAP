@@ -22,22 +22,17 @@ extract($parser->parse($argv));
 // use BAM file name as fallback if no processed sample name is provided
 if(!isset($pid)) $pid = basename($in);
 
-
-// prepare command
+//init
 $out_prefix = dirname($out)."/".basename($out, ".vcf");
 $expansion_hunter_binary = get_path("expansion_hunter");
+$variant_catalog = repository_basedir()."/data/repeat_expansions/ExpansionHunter_variant_catalog_grch38.json";
+
+// prepare command
 $args = [];
 $args[] = "--threads $threads";
 $args[] = "--reads $in";
 $args[] = "--reference ".genome_fasta($build);
 $args[] = "--output-prefix {$out_prefix}";
-		
-//determine correct variant catalog for the current sample
-$variant_catalog = dirname(get_path("expansion_hunter"), 2)."/variant_catalog/".strtolower($build)."/variant_catalog.json";
-if (!file_exists($variant_catalog))
-{
-	trigger_error("No varaint catalog for given genome build '$build' found in '".dirname(get_path("expansion_hunter"), 2)."/variant_catalog/"."'!", E_USER_ERROR);
-}
 $args[] = "--variant-catalog $variant_catalog";
 		
 // add gender info

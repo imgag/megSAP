@@ -58,7 +58,6 @@ def cnv_prepare_clincnv(tmpdir, cnvFile):
             line = line.strip()
             if len(line) == 0:
                 continue
-            print("line: '" + line + "'\n")
             parts = line.split("\t")
             new_line_parts = [parts[0], parts[1], parts[2], parts[5], parts[8], os.path.basename(cnvFile).replace("_clincnv.tsv", ""), "0"]
             lines.append("\t".join(new_line_parts))

@@ -24,7 +24,7 @@ extract($parser->parse($argv));
 if(file_exists($out)) unlink($out);
 
 //set read group information
-if ($sample=="") $sample = basename($out, ".bam");
+if ($sample=="") $sample = basename2($out);
 $group_props = array();
 $group_props[] = "ID:{$sample}";
 $group_props[] = "SM:{$sample}";

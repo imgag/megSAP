@@ -1136,7 +1136,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	return $info;
 }
 
-//Returns the value of the given QC term. Throws an error if the QC term is unknown, the sample is not found or the QC value is not found.
+//Returns the value of the given QC term. Throws an error if the QC term is unknown or the sample is not found. Returns a empty string if the QC entry is not in NGSD.
 function get_processed_sample_qc(&$db, $ps, $qc_name_or_accession)
 {
 	//determine QC term ID
@@ -1144,7 +1144,7 @@ function get_processed_sample_qc(&$db, $ps, $qc_name_or_accession)
 	
 	$ps_id = get_processed_sample_id($db, $ps);
 	
-	return $db->getValue("SELECT value FROM processed_sample_qc WHERE processed_sample_id='{$ps_id}' AND qc_terms_id={$term_id}");
+	return $db->getValue("SELECT value FROM processed_sample_qc WHERE processed_sample_id='{$ps_id}' AND qc_terms_id={$term_id}", "");
 }
 
 //Converts NGSD sample meta data to a GSvar file header (using $override_map to allow replace NGSD info)
@@ -2059,6 +2059,31 @@ function phenotype_roi_overlaps(&$roi, $chr, $start, $end)
 	return false;
 }
 
+//Returns the base file name without path and extension. Used e.g. to extract the base name independent of BAM/CRAM format.
+function basename2($filename)
+{
+	$filename = basename($filename);
+	
+	//not file extension => return full name
+	$sep_idx = strrpos($filename, '.');
+	if ($sep_idx===FALSE) return $filename;
+	
+	return substr($filename, 0, $sep_idx);
+}
+
+//If the given file is a CRAM, a temporary BAM is created and the path to it is returned. Otherwise returns the given filename.
+function convert_to_bam_if_cram($filename, $parser, $build, $threads, $tmp_folder="")
+{
+	if (ends_with(strtolower($filename), ".cram"))
+	{
+		if ($tmp_folder=="") $tmp_folder = $parser->tempFolder();
+		$bam = "{$tmp_folder}/".substr(basename($filename), 0, -5).".bam";
+		$parser->execTool("Tools/cram_to_bam.php", "-cram $filename -bam $bam -build $build -threads $threads");
+		return $bam;
+	}
+	
+	return $filename;
+}
 //check if run is created by NovaSeq X (Plus)
 // function is_novaseq_x_run(&$db_conn, $run_name)
 // {
@@ -2076,5 +2101,4 @@ function is_novaseq_x_run($run_parameters_xml)
 	//else
 	return false; //unknown Sequencer
 }
-
 ?>

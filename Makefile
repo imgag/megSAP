@@ -88,6 +88,20 @@ test_all_status:
 	@echo "### ERRORS ###"
 	@egrep -a -i "ERROR|FAILED" *.log | grep -v "Medelian errors:" || :
 
+test_clear:
+	@cd test/data_amplicon && make clean
+	@cd test/data_chrx && make clean
+	@cd test/data_somatic && make clear
+	@cd test/data_trio && make clear
+	@cd test/data_multi && make clear
+	@cd test/data_rna && make clean
+	@cd test/data_cfdna && make clean
+	@cd test/data_longread && make clean
+	
+
+test_clear_check:
+	git status --ignored | grep "test/data_" | grep -v data_out
+
 find_missing_tests: dummy
 	php src/Tools/find_missing_tests.php
 	

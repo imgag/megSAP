@@ -15,17 +15,6 @@ extract($parser->parse($argv));
 $samtools = get_path("samtools");
 $genome = genome_fasta($build);
 
-//check that CRAM is mapped on genome with false duplication masked (the region is in the center of the biggest false duplication, so no read should be mapped there if the genome is correctly masked)
-if ($build=="GRCh38")
-{
-	list($stdout) = exec2("{$samtools} view -T {$genome} {$cram} chr21:5966593-6161371 | wc -l");
-	$mapped_read_count = trim(implode("", $stdout));
-	if ($mapped_read_count>0)
-	{
-		trigger_error("CRAM file '$cram' cannot be converted to BAM - it was produced with GRCh38 where false duplication are not masked!", E_USER_ERROR);
-	}
-}
-
 //convert CRAM to BAM
 exec2("{$samtools} view -@ {$threads} -b -T {$genome} -o {$bam} {$cram}");
 

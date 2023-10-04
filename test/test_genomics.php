@@ -322,5 +322,15 @@ else
 }
 end_test();
 
+//##################################################################################
+start_test("basename2");
+
+check(basename2("/some/path/filename1.bam")  , "filename1");
+check(basename2("/some/path/filename2.BAM")  , "filename2");
+check(basename2("/some/path/filename3.CRAM") , "filename3");
+check(basename2("/some/path/filename4.cram") , "filename4");
+check(basename2("/some/path/filename5")      , "filename5");
+
+end_test();
 
 ?>
