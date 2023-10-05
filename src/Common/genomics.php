@@ -1076,6 +1076,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 		}
 	}
 	$info = $res[0];
+	$info['ps_name'] = $ps_name;
 	
 	//prefix target region
 	$roi = trim($info['sys_target']);
@@ -1108,29 +1109,34 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	$info['ps_lanes'] = array_map("trim", explode(",", $info['ps_lanes']));
 	$info['s_comments'] = array_map("trim", explode("\n", $info['s_comments']));
 	
+	//add paths if requested (quite slow)
 	if (!$no_paths)
 	{
-		//additional info (paths)
-		$project_type = $info['project_type'];
-		if ($project_type == "megSAP-Tests")
+		if ($info['project_type'] == "megSAP-Tests") //special handling for tests
 		{
-			$project_folder = get_path($project_type);
+			$info['project_folder'] = get_path($info['project_type'])."/".$info['project_name']."/";
+			$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
+			$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
 		}
 		else
 		{
+			//get BAM path via ngs-bits SamplePath tool (handles override paths for project/processed sample and BAM/CRAM)
 			$args = [];
 			$args[] = "-ps {$ps_name}";
+			$args[] = "-type BAM";
 			if ($db_conn->name()=="NGSD_TEST") $args[] = "-test";
 			list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath ".implode(" ", $args));
-			$project_folder = dirname(trim(implode("", $stdout)), 2);
+			
+			$ps_bam_or_cram = trim(implode("", $stdout));
+			$project_folder = dirname($ps_bam_or_cram, 2);
+			if(!ends_with($project_folder, '/')) $project_folder .= '/';
+			$info['project_folder'] = $project_folder;
+			$ps_folder = dirname($ps_bam_or_cram);
+			if(!ends_with($ps_folder, '/')) $ps_folder .= '/';
+			$info['ps_folder'] = $ps_folder;
+			$info['ps_bam'] = $ps_bam_or_cram;
 		}
-		
-		$info['project_folder'] = $project_folder."/".$info['project_name']."/";
-		$info['ps_name'] = $ps_name;
-		$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
-		$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
 	}
-	
 	
 	ksort($info);
 	return $info;

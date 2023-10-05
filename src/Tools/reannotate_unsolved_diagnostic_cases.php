@@ -37,7 +37,7 @@ $anno_timestamp = $anno_date->getTimestamp();
 for ($i=0; $i<count($result); ++$i)
 {
 	$ps = $result[$i]["id"];
-	$info = get_processed_sample_info($db, $ps, true);
+	$info = get_processed_sample_info($db, $ps);
 	print ($i+1)."/".count($result)." {$ps} (".$info['project_name'].") ";
 	
 	//skip when folder missing
