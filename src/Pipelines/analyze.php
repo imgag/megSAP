@@ -72,10 +72,11 @@ $parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 //checks in case DRAGEN should be used
 if ($use_dragen)
 {
-	if (in_array("ma", $steps) && $user != get_path("dragen_user"))
-	{
-		trigger_error("Analysis has to be run as user '".get_path("dragen_user")."' for the use of DRAGEN!", E_USER_ERROR);
-	}
+	//TODO: remove when tested
+	// if (in_array("ma", $steps) && $user != get_path("dragen_user"))
+	// {
+	// 	trigger_error("Analysis has to be run as user '".get_path("dragen_user")."' for the use of DRAGEN!", E_USER_ERROR);
+	// }
 	if (!in_array("ma", $steps) && (!file_exists($folder."/dragen_variant_calls/{$name}_dragen.vcf.gz") && in_array("vc", $steps))) 
 	{
 		trigger_error("DRAGEN small variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);

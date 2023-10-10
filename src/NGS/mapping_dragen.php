@@ -63,7 +63,7 @@ if (file_exists($working_dir))
 {
 	$parser->exec("rm", "-rf $working_dir");
 }
-if (!mkdir($working_dir, 0700))
+if (!mkdir($working_dir, 0777))
 {
 	trigger_error("Could not create working directory '".$working_dir."'!", E_USER_ERROR);
 }

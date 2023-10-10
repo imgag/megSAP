@@ -32,10 +32,11 @@ extract($parser->parse($argv));
 //checks in case DRAGEN should be used
 if ($use_dragen)
 {
-	if (exec('whoami') != get_path("dragen_user"))
-	{
-		trigger_error("Mapping has to be run as user '".get_path("dragen_user")."' if DRAGEN mapping should be used!", E_USER_ERROR);
-	}
+	//TODO: remove
+	// if (exec('whoami') != get_path("dragen_user"))
+	// {
+	// 	trigger_error("Mapping has to be run as user '".get_path("dragen_user")."' if DRAGEN mapping should be used!", E_USER_ERROR);
+	// }
 	
 	// check if transfer folders exists
 	$dragen_input_folder = get_path("dragen_in");
