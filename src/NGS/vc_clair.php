@@ -49,6 +49,7 @@ $args[] = "--ref_fn={$genome}";
 $args[] = "--model_path={$model}";
 $args[] = "--threads={$threads}";
 $args[] = "--platform=\"ont\"";
+$args[] = "--keep_iupac_bases";
 //TODO: move to temp
 $args[] = "--output={$clair_temp}";
 
