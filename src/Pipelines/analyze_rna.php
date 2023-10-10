@@ -22,7 +22,6 @@ $parser->addFlag("skip_filter_hb", "Do not automatically filter input FASTQ for 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
 $parser->addFlag("skip_dna_reannotation", "Do not automatically start the reannotation of the related DNA sample.");
-$parser->addFlag("force_umi", "Perform UMI based duplicate marking even if folder does not contain separate UMI FastQ (UMI have to be already merged into R1/R2 FastQs)");
 
 extract($parser->parse($argv));
 
@@ -129,15 +128,20 @@ if (in_array("ma", $steps))
 	{
 		if (empty($in_umi))
 		{
-			if ($force_umi)
+			// check if UMIs are present in FastQ header
+			list($stdout, $stderr, $return_code) = $parser->exec(get_path("ngs-bits")."FastqCheckUMI", "-in ".$in_for[0]);
+
+			trigger_error("FastqCheckUMI output:\t".implode("\n", $stdout), E_USER_NOTICE);
+			if(starts_with($stdout[0], "UMI: true"))
 			{
 				$umi = true;
 				trigger_error("UMIs annotated to the FastQ header will be used.", E_USER_NOTICE);
 			}
 			else
 			{
-				trigger_error("No UMI read files found! Processing fastqs without UMIs.", E_USER_WARNING);
+				trigger_error("No UMI read files found! Aborting analysis.", E_USER_ERROR);
 			}
+
 			$seqpurge_params = array_merge($seqpurge_params,
 			[
 				"-in1", implode(" ", $in_for),
@@ -166,6 +170,16 @@ if (in_array("ma", $steps))
 				"-in2", implode(" ", $in_rev)
 			]);
 	}
+
+
+
+	//_______________________________________________________________________________________________
+	//TODO: remove
+	trigger_error("Pipeline successfully executed till SeqPurge", E_USER_NOTICE);
+	exit();
+	//_______________________________________________________________________________________________
+
+
 
 	$parser->exec(get_path("ngs-bits")."SeqPurge", implode(" ", $seqpurge_params), true);
 
