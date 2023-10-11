@@ -120,7 +120,6 @@ if ($debug)
 
 // ********************************* copy data back *********************************//
 
-//TODO: check path after gVCF creation
 //copy BAM/BAI to sample folder
 $parser->log("Copying BAM/BAI to output folder");
 $parser->copyFile($working_dir."output.bam", $out);

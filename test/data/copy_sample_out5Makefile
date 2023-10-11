@@ -7,7 +7,7 @@ import_runqc:
 	php /mnt/storage2/megSAP/pipeline/src/NGS/runqc_parser.php -name "#00123" -run_dir Analysis/../ -force
 
 import_read_counts:
-	php /mnt/storage2/megSAP/pipeline/src/NGS/import_sample_read_counts.php -stats Analysis/Stats/Stats.json -db NGSD_TEST 
+	php /mnt/storage2/megSAP/pipeline/src/NGS/import_sample_read_counts.php -csv_mode -stats Analysis/3/Data/Demux/Demultiplex_Stats.csv -db NGSD_TEST 
 
 copy_SomaticAndTreatment_diagnostic:
 	mkdir -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_RX123456_03
@@ -17,18 +17,18 @@ copy_SomaticAndTreatment_diagnostic:
 	cp Analysis/3/Data/BCLConvert/fastq/RX123456_03_S5_L008_R2_001.fastq.gz /mnt/storage2/projects/diagnostic/SomaticAndTreatment//Sample_RX123456_03/
 	mkdir -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05
 	mkdir -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls
-	cp  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.cram /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/
-	cp  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.cram.crai /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/
-	cp  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.vcf.gz /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.vcf.gz
-	cp  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.vcf.gz.tbi /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.vcf.gz.tbi
-	cp  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.gvcf.gz /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.gvcf.gz
-	cp  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.gvcf.gz.tbi /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.gvcf.gz.tbi
-	cp  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.sv.vcf.gz /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen_svs.vcf.gz
-	cp  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.sv.vcf.gz.tbi /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen_svs.vcf.gz.tbi
+	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.cram /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/
+	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.cram.crai /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/
+	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.vcf.gz /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.vcf.gz
+	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.vcf.gz.tbi /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.vcf.gz.tbi
+	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.gvcf.gz /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.gvcf.gz
+	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.gvcf.gz.tbi /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.gvcf.gz.tbi
+	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.sv.vcf.gz /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen_svs.vcf.gz
+	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.sv.vcf.gz.tbi /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen_svs.vcf.gz.tbi
 	mkdir -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05
 	mkdir -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/dragen_variant_calls
-	cp  Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.cram /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/
-	cp  Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.cram.crai /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/
+	mv  Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.cram /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/
+	mv  Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.cram.crai /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/
 
 copy_Exome_Diagnostik_diagnostic:
 	mkdir -p /mnt/storage2/projects/diagnostic/Exome_Diagnostik/Sample_DX180049_05

@@ -173,14 +173,6 @@ if (in_array("ma", $steps))
 
 
 
-	//_______________________________________________________________________________________________
-	//TODO: remove
-	trigger_error("Pipeline successfully executed till SeqPurge", E_USER_NOTICE);
-	exit();
-	//_______________________________________________________________________________________________
-
-
-
 	$parser->exec(get_path("ngs-bits")."SeqPurge", implode(" ", $seqpurge_params), true);
 
 	}
