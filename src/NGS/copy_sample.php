@@ -473,7 +473,6 @@ foreach($sample_data as $sample => $sample_infos)
 	//build copy line
 	if($is_novaseq_x)
 	{
-		//TODO: add support for RNA UMI samples (only copy fastqs)
 		if($sys_type == "RNA")
 		{
 			//only copy FastQ files
@@ -505,32 +504,6 @@ foreach($sample_data as $sample => $sample_infos)
 				}
 
 			}
-			// else if($umi_type == "IDT-UDI-UMI")
-			// {
-			// 	//index files: rename R2 FastQ file to index and R3 FastQ file in R2
-				
-			// 	//check count
-			// 	if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 3) 
-			// 	{
-			// 		trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 3).", found: ".count($fastq_files).")", E_USER_ERROR);
-			// 	}
-
-			// 	//copy files
-			// 	$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
-			// 	foreach ($fastq_files as $fastq_file) 
-			// 	{
-			// 		$new_file_name = strtr(basename($fastq_file), array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
-			// 		if(ends_with(strtolower($fastq_file), ".fastq.ora"))
-			// 		{
-			// 			//convert to fastq.gz
-			// 			$target_to_copylines[$tag][] = "\t".get_path("orad")." --ora-reference ".dirname(get_path("orad"))."/oradata/".($overwrite ? " -f" : "")." -t {$threads_ora} -o {$project_folder}/Sample_{$sample}/{$new_file_name} {$fastq_file}";
-			// 		}
-			// 		else
-			// 		{
-			// 			$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
-			// 		}	
-			// 	}
-			// }
 			else
 			{
 				trigger_error("ERROR: Currently unsupported UMI type '{$umi_type}' provided!", E_USER_ERROR);
@@ -589,13 +562,7 @@ foreach($sample_data as $sample => $sample_infos)
 				trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found: ".count($fastq_files).")", E_USER_ERROR);
 			}
 
-			// TODO: change to mv
-			$move_cmd = "cp ".($overwrite ? "-f " : "");
-
-			//TODO: remove
-			//tmp folder for copy test
-			//$project_folder = "/mnt/storage2/users/ahschul1/projects/2023_07_NovaSeqXPlus/+data/copy_sample/03178_ora_convert2/";
-
+			$move_cmd = "mv ".($overwrite ? "-f " : "");
 			
 			//create folder
 			$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
