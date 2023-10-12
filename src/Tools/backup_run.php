@@ -35,6 +35,7 @@ $out_folder = rtrim($out_folder, "/");
 
 //determine output file names
 $basename = basename($in);
+$archive_basename = $basename;
 if (!preg_match("/^([0-9]{2})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1])) 
 {
 	if (preg_match("/^([0-9]{4})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1]))
