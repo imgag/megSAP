@@ -135,14 +135,6 @@ bgzip REVEL_1.3.vcf
 tabix -f -C -m 9 -p vcf REVEL_1.3.vcf.gz
 $ngsbits/VcfCheck -in REVEL_1.3.vcf.gz -lines 1000 -ref $genome
 
-#GiaB NA12878 reference data
-cd $dbs
-mkdir -p GIAB/NA12878
-cd GIAB/NA12878
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz -O high_conf_variants_GRCh38.vcf.gz
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz.tbi -O high_conf_variants_GRCh38.vcf.gz.tbi
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.bed -O high_conf_regions_GRCh38.bed
-
 #download annotation file for SpliceAI
 cd $dbs
 mkdir SpliceAI

@@ -182,7 +182,9 @@ function txt2geno_steponeplus($snps, $in_file, $out_file)
 function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 {	
 	//get pileup
-	list($output) = exec2(get_path("samtools")." mpileup -aa -r $chr:$pos-$pos $bam");
+	//print get_path("samtools")." mpileup -aa -f ".genome_fasta("GRCh38")." -r $chr:$pos-$pos $bam\n";
+	list($output) = exec2(get_path("samtools")." mpileup -aa -f ".genome_fasta("GRCh38")." -r $chr:$pos-$pos $bam");
+	//print_r($output);
 	list($chr2, $pos2, $ref2, , $bases) = explode("\t", $output[0]);;
 	
 	//count bases
@@ -191,6 +193,7 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 	for($i=0; $i<strlen($bases); ++$i)
 	{
 		$char = $bases[$i];
+		if ($char=="." || $char==",") $char = $ref;
 		if (isset($counts[$char]))
 		{
 			++$counts[$char];
@@ -399,6 +402,10 @@ foreach($file as $line)
 			foreach($ps_data as list($ps, $folder))
 			{
 				$bam = realpath("$folder/{$ps}.bam");
+				if (!file_exists($bam)) //fallback to CRAM
+				{
+					$bam = realpath("$folder/{$ps}.cram");
+				}
 				if (file_exists($bam))
 				{
 					++$bams_found;
@@ -425,7 +432,6 @@ foreach($file as $line)
 						//print "  SNP: ".$snp[1].":".$snp[2]." ".$snp[3].">".$snp[4]."\n";
 						//print "  KASP: $g\n";
 						$g2 = ngs_geno($bam, $snp[1], $snp[2], $snp[3], $min_depth);
-
 						if ($g2=="n/a") continue;
 						++$c_both;
 						//print "  NGS: $g2\n";
