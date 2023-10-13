@@ -46,32 +46,33 @@ Thus we need to download and install it manually:
 
 Code and installation instructions can be found here:  
 https://github.com/skoblov-lab/spliceai-reforged
-
+Installation was done using conda.
 
 
 # Benchmarks
 
+Benchmark of 1000 variants:
+
 <table border=1>
-  <tr><th>server</th><th># variants</th><th># threads</th><th>time</th></tr>
-  <tr><td>SRV018 - no GPU</td><td>100</td><td>10</td><td>4:16</td></tr>
-  <tr><td>SRV018 - no GPU</td><td>100</td><td>5</td><td>5:14</td></tr>
-  <tr><td>SRV018 - no GPU</td><td>100</td><td>1</td><td>13:50</td></tr>
-  <tr><td>SRV019 - 2x Tesla V100</td><td>100</td><td>10</td><td>1:56</td></tr>
-  <tr><td>SRV019 - 2x Tesla V100</td><td>100</td><td>5</td><td>1:18</td></tr>
-  <tr><td>SRV019 - 2x Tesla V100</td><td>100</td><td>1</td><td>1:16</td></tr>
-  <tr><td>SRV019 - 2x Tesla V100</td><td>1000</td><td>10</td><td>4:35</td></tr>
-  <tr><td>SRV019 - 2x Tesla V100</td><td>1000</td><td>5</td><td>4:28</td></tr>
-  <tr><td>SRV019 - 2x Tesla V100</td><td>1000</td><td>1</td><td>4:09</td></tr>
-  <tr><td>SRV019 - 2x Tesla V100 + genome on ramdisk</td><td>1000</td><td>10</td><td>4:26</td></tr>
-  <tr><td>SRV019 - 2x Tesla V100 + genome on ramdisk</td><td>1000</td><td>5</td><td>3:52</td></tr>
-  <tr><td>SRV019 - 2x Tesla V100 + genome on ramdisk</td><td>1000</td><td>1</td><td>4:09</td></tr>
-  <tr><td>SRV019 - 2x Tesla V100</td><td>10000</td><td>10</td><td>29:05</td></tr>
-  <tr><td>SRV019 - 2x Tesla V100</td><td>10000</td><td>5</td><td>29:01</td></tr>
-  <tr><td>SRV019 - 2x Tesla V100</td><td>10000</td><td>1</td><td>24:26</td></tr>
-  <tr><td>SRV019 - SpliceAI reforged via conda + genome on ramdisk</td><td>1000</td><td>10</td><td>10:41</td></tr>
-  <tr><td>SRV019 - SpliceAI reforged via conda + genome on ramdisk</td><td>1000</td><td>5</td><td>10:18</td></tr>
-  <tr><td>SRV019 - SpliceAI reforged via conda + genome on ramdisk</td><td>1000</td><td>1</td><td>9:48</td></tr>
-  <tr><td>SRV019 - SpliceAI via conda + genome on ramdisk</td><td>1000</td><td>10</td><td></td></tr>
-  <tr><td>SRV019 - SpliceAI via conda + genome on ramdisk</td><td>1000</td><td>5</td><td></td></tr>
-  <tr><td>SRV019 - SpliceAI via conda + genome on ramdisk</td><td>1000</td><td>1</td><td></td></tr>
+  <tr><th>server</th><th># threads</th><th>time</th></tr>
+  <tr><td>SRV011 - no GPU</td><td>1</td><td>24:19</td></tr>
+  <tr><td>SRV011 - no GPU</td><td>5</td><td>25:11</td></tr>
+  <tr><td>SRV011 - no GPU</td><td>10</td><td>25:30</td></tr>
+  <tr><td>SRV019 - 2x Tesla V100</td><td>1</td><td>4:09</td></tr>
+  <tr><td>SRV019 - 2x Tesla V100</td><td>5</td><td>4:28</td></tr>
+  <tr><td>SRV019 - 2x Tesla V100</td><td>10</td><td>4:35</td></tr>
+  <tr><td>SRV019 - 2x Tesla V100 - SpliceAI reforged</td><td>1</td><td>9:48</td></tr>
+  <tr><td>SRV019 - 2x Tesla V100 - SpliceAI reforged</td><td>5</td><td>10:18</td></tr>
+  <tr><td>SRV019 - 2x Tesla V100 - SpliceAI reforged</td><td>10</td><td>10:41</td></tr>
 </table>
+
+# Conclusion
+
+Here the conclusions from the benchmarks:
+
+- The GPU version is about 5 times faster than the CPU version.
+- SpliceAI reforged was not faster than the normal GPU version of SpliceAI.
+- Neither the CPU version nor the GPU version of SpliceAI scale with the number of threads > start several instances of SpliceAI if you want to parallelize.
+- Putting the genome on a ramdisk was also tested and gave no imporovements.
+
+
