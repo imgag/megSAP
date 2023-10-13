@@ -2091,13 +2091,6 @@ function convert_to_bam_if_cram($filename, $parser, $build, $threads, $tmp_folde
 	return $filename;
 }
 //check if run is created by NovaSeq X (Plus)
-// function is_novaseq_x_run(&$db_conn, $run_name)
-// {
-// 	$device_id = $db_conn->getValue("SELECT device_id FROM sequencing_run WHERE `name`='{$run_name}'");
-// 	$device_type = $db_conn->getValue("SELECT type FROM device WHERE `id`='{$device_id}'");
-// 	if(($device_type == "NovaSeqXPlus") || ($device_type == "NovaSeqX")) return true;
-// 	return false;
-// }
 function is_novaseq_x_run($run_parameters_xml)
 {
 	$xml = simplexml_load_file($run_parameters_xml);

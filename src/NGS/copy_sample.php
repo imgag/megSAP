@@ -17,7 +17,7 @@ $parser->addFlag("high_priority", "Assign high priority to all queued samples.")
 $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
 $parser->addFlag("no_rename_r3", "Do not rename R2/R3 FASTQ files to index/R2.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
-$parser->addInt("threads_ora", "Number of threads used to decompress ORA files during the copy (default: 4)", true, 4);
+$parser->addInt("threads_ora", "Number of threads used to decompress ORA files during the copy.", true, 4);
 extract($parser->parse($argv));
 
 //extract samples names and sequencer type from sample sheet
