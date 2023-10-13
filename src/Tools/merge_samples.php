@@ -204,7 +204,8 @@ elseif ($ps_type == "RNA")
 }
 
 //NGSD: remove variants/qc for 'ps'
-$db->executeStmt("DELETE FROM processed_sample_qc WHERE processed_sample_id='$ps_id'");
+$read_count_id = $db->getValue("SELECT id FROM qc_terms WHERE qcml_id='QC:2000005'");
+$db->executeStmt("DELETE FROM processed_sample_qc WHERE processed_sample_id='$ps_id' AND qc_terms_id!='$read_count_id'");
 
 //NGSD: mark samples as merged
 $db->executeStmt("INSERT INTO `merged_processed_samples` (`processed_sample_id`, `merged_into`) VALUES ({$ps_id},".$info2['ps_id'].")");
