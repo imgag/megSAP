@@ -72,13 +72,13 @@ $parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 //checks in case DRAGEN should be used
 if ($use_dragen)
 {
-	if ($user != get_path("dragen_user"))
+	if (!in_array("ma", $steps) && (!file_exists($folder."/dragen_variant_calls/{$name}_dragen.vcf.gz") && in_array("vc", $steps))) 
 	{
-		trigger_error("Analysis has to be run as user '".get_path("dragen_user")."' for the use of DRAGEN!", E_USER_ERROR);
+		trigger_error("DRAGEN small variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
-	if (!in_array("ma", $steps) && !file_exists($folder."/dragen_variant_calls/{$name}_dragen.vcf.gz")) 
+	if (!in_array("ma", $steps) && (!file_exists($folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz") && in_array("sv", $steps))) 
 	{
-		trigger_error("DRAGEN variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
+		trigger_error("DRAGEN structural variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
 }
 
@@ -127,6 +127,7 @@ $bamfile = $folder."/".$name.".bam";
 $cramfile = $folder."/".$name.".cram";
 $used_bam_or_cram = ""; //BAM/CRAM file used for calling etc. This is a local tmp file if mapping was done and a file in the output folder if no mapping was done
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
+$somatic_custom_panel = get_path("data_folder") . "/enrichment/somatic_VirtualPanel_v4.bed";
 //variant calling
 $vcffile = $folder."/".$name."_var.vcf.gz";
 $vcffile_annotated = $folder."/".$name."_var_annotated.vcf.gz";
@@ -320,6 +321,51 @@ else if (file_exists($bamfile))
 	check_genome_build($bamfile, $build);
 	
 	$used_bam_or_cram = $bamfile;
+
+	if($use_dragen)
+	{
+		// Do ReadQC/MappingQC for already mapped/called samples from the NovaSeq X (only if files do not exist)
+		if(!file_exists($qc_map))
+		{
+			//run mapping QC
+			$params = array("-in $bamfile", "-out {$qc_map}", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
+			if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
+			{
+				$params[] = "-wgs";
+			}
+			else
+			{
+				$params[] = "-roi ".$sys['target_file'];
+			}
+			if ($sys['build']!="GRCh38")
+			{
+				$params[] = "-no_cont";
+			}
+			if ($somatic && file_exists($somatic_custom_panel))
+			{
+				$params[] = "-somatic_custom_bed $somatic_custom_panel";
+			}
+			if (!file_exists($qc_fastq))
+			{
+				$params[] = "-read_qc $qc_fastq";
+			}
+			$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
+		}	
+
+		if(!file_exists($lowcov_file))
+		{
+			//low-coverage report
+			if ($has_roi && !$is_wgs_shallow)
+			{	
+				$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20 -threads {$threads}", true);
+				if (db_is_enabled("NGSD"))
+				{
+					$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
+				}
+			}
+		}
+		
+	}
 }
 else if (file_exists($cramfile))
 {

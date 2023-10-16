@@ -148,6 +148,7 @@ mkdir -p TandemRepeats
 cd TandemRepeats
 wget https://github.com/PacificBiosciences/pbsv/raw/master/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
 
+
 #install OMIM (you might need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
 #cd $dbs
 #mkdir OMIM

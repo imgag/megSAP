@@ -32,11 +32,6 @@ extract($parser->parse($argv));
 //checks in case DRAGEN should be used
 if ($use_dragen)
 {
-	if (exec('whoami') != get_path("dragen_user"))
-	{
-		trigger_error("Mapping has to be run as user '".get_path("dragen_user")."' if DRAGEN mapping should be used!", E_USER_ERROR);
-	}
-	
 	// check if transfer folders exists
 	$dragen_input_folder = get_path("dragen_in");
 	$dragen_output_folder = get_path("dragen_out");
@@ -297,7 +292,6 @@ if ($use_dragen)
 	$dragen_output_sv = "$dragen_output_folder/{$out_name}_dragen_svs.vcf.gz";
 	$dragen_log_file = "$dragen_output_folder/{$out_name}_dragen.log";
 	$sge_update_interval = 300; //5min
-
 	// create cmd for mapping_dragen.php
 	$args = array();
 	$args[] = "-in1 ".$trimmed1_dragen;
@@ -311,7 +305,6 @@ if ($use_dragen)
 	$args[] = "--log ".$dragen_log_file;
 	if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
 	$cmd_mapping = "php ".realpath(repository_basedir())."/src/NGS/mapping_dragen.php ".implode(" ", $args);
-
 	// submit GridEngine job to dragen queue
 	$dragen_queues = explode(",", get_path("queues_dragen"));
 	list($server) = exec2("hostname -f");

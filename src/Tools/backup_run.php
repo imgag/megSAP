@@ -15,14 +15,18 @@ $parser->addInfile("in",  "Input run folder.", false);
 $parser->addString("when",  "Start time in format '20:15' or 'now'.", true, "now");
 $parser->addString("out_folder", "Output folder path.", true, "/mnt/storage1/raw_data_archive/runs/");
 $parser->addFlag("include_raw_signal", "Backup includes non-basecalled POD5 or FAST5 data.");
+$parser->addFlag("test", "Perform a backup in test-mode. No data will be moved on the TSM backup.");
 extract($parser->parse($argv));
 
 //check that the correct user is executing the script
 $user = exec('whoami');
-if ($user!="archive-gs")
+if ($user!="archive-gs" && !$test) //no check in test-mode
 {
 	trigger_error("Only user 'archive-gs' can execute this script - use 'sudo -u archive-gs php backup_run.php ...'!", E_USER_ERROR);
 }
+
+//do not allow default backup location as output for test-mode
+if ($test && ($out_folder == "/mnt/storage1/raw_data_archive/runs/")) trigger_error("ERROR: Do not backup to default output path in test-mode!", E_USER_ERROR);
 
 //strip slashes at the end of folder names
 $in = realpath($in);
@@ -31,13 +35,23 @@ $out_folder = rtrim($out_folder, "/");
 
 //determine output file names
 $basename = basename($in);
-if (!preg_match("/^([0-9]{2})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1]))
+$archive_basename = $basename;
+if (!preg_match("/^([0-9]{2})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1])) 
 {
-	$basename = date("ymd")."_".$basename;
-	print "Notice: Folder name does not start with date. Prefixing date: $basename\n";
+	if (preg_match("/^([0-9]{4})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1]))
+	{
+		$archive_basename = substr($basename, 2);
+		print "Notice: Folder name does start with 4-digit year. Cutting year to 2 digits. Resulting folder name: $basename\n";
+	}
+	else
+	{
+		$archive_basename = date("ymd")."_".$basename;
+		print "Notice: Folder name does not start with date. Prefixing date: $basename\n";
+	}
 }
-$zipfile = "{$out_folder}/{$basename}.tar.gz";
-$logfile = "{$out_folder}/{$basename}.log";
+
+$zipfile = "{$out_folder}/{$archive_basename}.tar.gz";
+$logfile = "{$out_folder}/{$archive_basename}.log";
 
 //set temporary logfile if unset
 if ($parser->getLogFile()==null)
@@ -57,6 +71,14 @@ if ($when!="now")
 	sleep($sleep);
 }
 
+// get run id
+$split_filename = explode("_", $in);
+$run_id = "#".strtr(end($split_filename), array('/' => ''));
+if(!preg_match("/^#[0-9]{5}$/", $run_id))
+{
+	trigger_error("ERROR: Run folder doesn't end with a valid run id!", E_USER_ERROR);
+}
+
 //create verified tar archive (uncompressed because otherwise verification is not possible)
 print date("Y-m-d H:i:s")." creating tar file\n";
 $tmp_tar = $parser->tempFile(".tar");
@@ -66,9 +88,28 @@ if ($include_raw_signal)
 }
 else
 {
-	$exclude_raw = "--exclude '*.fast5' --exclude '*.pod5'";
+	$exclude_raw = "--exclude='*.fast5' --exclude='*.pod5'";
 }
-$parser->exec("tar", "cfW $tmp_tar $exclude_raw --exclude '$in/Data/Intensities/L00?/C*' --exclude '$in/Unaligned*' --exclude '$in/Thumbnail_Images' --exclude '$in/Images' -C ".dirname($in)." ".basename($in), true);
+//decide what to backup depending on run type
+$run_parameters_xml = $in."/RunParameters.xml";
+if(!file_exists($run_parameters_xml)) trigger_error("ERROR: Required RunParameters.xml file is missing in the run folder!", E_USER_ERROR);
+$is_novaseq_x = is_novaseq_x_run($run_parameters_xml);
+if($is_novaseq_x)
+{
+	trigger_error("NOTICE: NovaSeq X run detected!", E_USER_NOTICE);
+	$analyses = array_filter(glob($in."/Analysis/[0-9]"), 'is_dir');
+	if(count($analyses) == 0) trigger_error("ERROR: No analysis found! Please make sure the secondary analysis was performed successfully (at least the demultiplexing).", E_USER_ERROR);
+	if(count($analyses) > 1) trigger_error("ERROR: Multiple analysis folders found! Please remove all duplicated secondary analysis, but make sure all necessary fastq files are present in the remaining folder!", E_USER_ERROR);
+	//NovaSeq X run => backup fastq/ora files
+	$parser->exec("tar", "cfW {$tmp_tar} {$exclude_raw} --exclude='{$basename}/Data' --exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images' --exclude='*.bam' --exclude='*.bam.bai' --exclude='*.cram' --exclude='*.cram.crai' -C ".dirname($in)." {$basename}", true);
+}
+else
+{
+	trigger_error("NOTICE: Normal run detected!", E_USER_NOTICE);
+	//normal run => backup BCL files
+	$parser->exec("tar", "cfW {$tmp_tar} {$exclude_raw} --exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images' -C ".dirname($in)." {$basename}", true);
+}
+
 
 //zip archive with low compression (way faster than full compression and the contents are already compressed in most cases)
 print date("Y-m-d H:i:s")." creating tar.gz file\n";
@@ -88,14 +129,11 @@ list($md5) = explode(" ", $stdout[0]);
 $parser->copyFile($parser->getLogFile(), $logfile);
 
 // update NGSD run information
-if (db_is_enabled("NGSD"))
+$db_name = ($test)?"NGSD_TEST":"NGSD";
+if (db_is_enabled($db_name))
 {
-	// get run id
-	$split_filename = explode("_", $in);
-	$run_id = "#".strtr(end($split_filename), array('/' => ''));
-
 	// get run entry from NGSD
-	$db = DB::getInstance("NGSD");
+	$db = DB::getInstance($db_name);
 	$query = "SELECT id FROM sequencing_run WHERE name = '{$run_id}'";
 	$res = $db->executeQuery($query);
 

@@ -40,23 +40,22 @@ INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, send
 (11, 'DX203665', 'DNA', 1, 'male', '0', '0', 1, 'Diseases of the respiratory system'),
 (12, 'RX123456', 'RNA', 1, 'male', '0', '0', 1, 'n/a');
 
-INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, processing_system_id, project_id, normal_id) VALUES
-(1,1,1,'1',1,1, NULL),
-(2,2,1,'1',1,1, NULL),
-(3,1,1,'1',1,2, NULL),
-(4,1,1,'1',1,2, NULL),
-(5,1,1,'1',1,3, NULL),
-(6,1,1,'1',1,3, 5),
-(7,1,1,'1',1,3, NULL),
-(8,1,1,'1',1,3, 5),
-(9,2,3,'1',1,1, NULL),
-(10,3,3,'1',1,1, NULL),
-(11,4,3,'1',1,1, NULL),
-(12,3,4,'6,8',4,3, NULL),
-(1,5,4,'1,2,3,4',2,1, NULL),
-(5,5,4,'5',1,3, NULL),
-(6,5,4,'7',1,3, 5);
+INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, processing_system_id, project_id, normal_id) VALUES
+(1001,1,1,1,'1',1,1, NULL),
+(2002,2,2,1,'1',1,1, NULL),
+(3001,3,1,1,'1',1,2, NULL),
+(4001,4,1,1,'1',1,2, NULL),
+(5001,5,1,1,'1',1,3, NULL),
+(6001,6,1,1,'1',1,3, 5001),
+(7001,7,1,1,'1',1,3, NULL),
+(8001,8,1,1,'1',1,3, 5001),
+(9002,9,2,3,'1',1,1, NULL),
+(10003,10,3,3,'1',1,1, NULL),
+(11004,11,4,3,'1',1,1, NULL),
+(12003,12,3,4,'6,8',4,3, NULL),
+(1005,1,5,4,'1,2,3,4',2,1, NULL),
+(5005,5,5,4,'5',1,3, NULL),
+(6005,6,5,4,'7',1,3, 5001);
 
-INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES
-(8,'tumor-normal', 5),
-(6, 'tumor-normal', 5);
+INSERT INTO `qc_terms`(`id`, `qcml_id`, `name`, `description`, `type`, `obsolete`) VALUES
+(5, 'QC:2000005', 'read counts', 'Number of reads.', 'int', 0);
