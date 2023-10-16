@@ -515,3 +515,52 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
 		<td>100.00%</td>
 	</tr>
 </table>
+
+
+## CMRG benchmarks
+
+For WGS, we also performed the [CMRG benchmark](https://www.nature.com/articles/s41587-021-01158-1).  
+For WES, the benchmark was not performed as there are only 60 InDels contained in the coding/splicing region.
+
+<table>
+	<tr>
+		<th rowspan=2>Test</th>
+		<th colspan=3>SNV</th>
+		<th colspan=3>InDel</th>
+	</tr>
+	<tr>
+		<th>sensitivity</th>
+		<th>PPV</th>
+		<th>genotyping</th>
+		<th>sensitivity</th>
+		<th>PPV</th>
+		<th>genotyping</th>
+	</tr>
+	<tr>
+		<td>short-read WGS</td>
+		<td>98.54%</td>
+		<td>96.58%</td>
+		<td>99.37%</td>
+		<td>89.89%</td>
+		<td>93.48%</td>
+		<td>95.93%</td>
+	</tr>
+	<tr>
+		<td>short-read WGS - DRAGEN v4.2.4 without DRAGEN-ML</td>
+		<td>97.91%</td>
+		<td>99.35%</td>
+		<td>99.70%</td>
+		<td>95.01%</td>
+		<td>92.76%</td>
+		<td>99.33%</td>
+	</tr>
+	<tr>
+		<td>long-read WGS</td>
+		<td>98.94%</td>
+		<td>95.32%</td>
+		<td>99.74%</td>
+		<td>64.66%</td>
+		<td>83.99%</td>
+		<td>98.87%</td>
+	</tr>
+</table>
