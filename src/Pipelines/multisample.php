@@ -764,7 +764,7 @@ if (in_array("cn", $steps))
 		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$cnv_multi}", true);
 
 		//annotate additional gene info
-		$parser->exec("{$ngsbits}CnvGeneAnnotation", "-in {$cnv_multi} -out {$cnv_multi} -add_simple_gene_names", true);
+		$parser->exec("{$ngsbits}CnvGeneAnnotation", "-in {$cnv_multi} -add_simple_gene_names -out {$cnv_multi}", true);
 		
 		//dosage sensitive disease genes
 		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", true);
