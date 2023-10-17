@@ -855,7 +855,7 @@ if (in_array("cn", $steps))
 		}
 
 		//annotate additional gene info
-		$parser->exec($ngsbits."CnvGeneAnnotation", "-in {$cnvfile} -out {$cnvfile}", true);
+		$parser->exec($ngsbits."CnvGeneAnnotation", "-in {$cnvfile} -add_simple_gene_names -out {$cnvfile}", true);
 		// skip annotation if no connection to the NGSD is possible
 		if (db_is_enabled("NGSD"))
 		{
