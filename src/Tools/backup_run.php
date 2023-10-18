@@ -41,12 +41,12 @@ if (!preg_match("/^([0-9]{2})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !c
 	if (preg_match("/^([0-9]{4})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1]))
 	{
 		$archive_basename = substr($basename, 2);
-		print "Notice: Folder name does start with 4-digit year. Cutting year to 2 digits. Resulting folder name: $basename\n";
+		print "Notice: Folder name does start with 4-digit year. Cutting year to 2 digits. Resulting archive name: $archive_basename\n";
 	}
 	else
 	{
 		$archive_basename = date("ymd")."_".$basename;
-		print "Notice: Folder name does not start with date. Prefixing date: $basename\n";
+		print "Notice: Folder name does not start with date. Prefixing date: $archive_basename\n";
 	}
 }
 

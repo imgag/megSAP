@@ -4,7 +4,7 @@
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
-$repo_folder = "/mnt/storage2/megSAP/pipeline"; //fixed absolute path to make the tests work for all users
+
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
@@ -17,7 +17,8 @@ $parser->addFlag("high_priority", "Assign high priority to all queued samples.")
 $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
 $parser->addFlag("no_rename_r3", "Do not rename R2/R3 FASTQ files to index/R2.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
-$parser->addInt("threads_ora", "Number of threads used to decompress ORA files during the copy.", true, 4);
+$parser->addInt("threads_ora", "Number of threads used to decompress ORA files during the copy.", true, 8);
+$parser->addFlag("test", "Run in test mode, e.g. set the pipeline path to a fixed value.");
 extract($parser->parse($argv));
 
 //extract samples names and sequencer type from sample sheet
@@ -202,6 +203,10 @@ function get_sample_data_from_db(&$db_conn, $run_name)
 if (!isset($out)) $out = "Makefile";
 $db_conn = DB::getInstance($db);
 $ngsbits = get_path("ngs-bits");
+if($test) $repo_folder = "/mnt/storage2/megSAP/pipeline"; //fixed absolute path to make the tests work for all users
+else $repo_folder = repository_basedir(); //use repositories tool in production
+
+
 
 //fallback for NovaSeq X default SampleSheet name
 if (($samplesheet == "SampleSheet_bcl2fastq.csv") && !file_exists($samplesheet)) $samplesheet = "SampleSheet.csv";
