@@ -346,7 +346,7 @@ if ($min_qd>0) $options[] = "min_qd={$min_qd}";
 $options = implode(" ", $options);
 $date = strtr(date("Y-m-d H:i:s", filemtime($vcf)), "T", " ");
 $output = array();
-$output[] = "#name\toptions\tdate\taverage_depth\texpected_snvs\texpected_indels\tsnv_sensitivity\tsnv_ppv\tsnv_genotyping_accuracy\tindel_sensitivity\tindel_ppv\tindel_genotyping_accuracy";
+$output[] = "#name\toptions\tdate\taverage_depth\texpected_snvs\texpected_indels\tsnv_sensitivity\tsnv_ppv\tsnv_genotyping_accuracy\tindel_sensitivity\tindel_ppv\tindel_genotyping_accuracy\tall_sensitivity\tall_ppv\tall_genotyping_accuracy";
 if (file_exists($stats))
 {
 	foreach(file($stats) as $line)
@@ -369,6 +369,7 @@ if (file_exists($qcml))
 }
 list($snv_exp, $snv_sens, $snv_ppv, $snv_geno) = stats("SNVS", $expected, $var_diff);
 list($indel_exp, $indel_sens, $indel_ppv, $indel_geno) = stats("INDELS", $expected, $var_diff);
-$output[] = implode("\t", [$name, $options, $date, $avg_depth, $snv_exp, $indel_exp, $snv_sens, $snv_ppv, $snv_geno, $indel_sens, $indel_ppv, $indel_geno])."\n";
+list($all_exp, $all_sens, $all_ppv, $all_geno) = stats(null, $expected, $var_diff);
+$output[] = implode("\t", [$name, $options, $date, $avg_depth, $snv_exp, $indel_exp, $snv_sens, $snv_ppv, $snv_geno, $indel_sens, $indel_ppv, $indel_geno, $all_sens, $all_ppv, $all_geno])."\n";
 file_put_contents($stats, implode("\n", $output)."\n");
 ?>
