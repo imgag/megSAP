@@ -48,9 +48,9 @@ check_file("{$ref_folder}DX181278_05_S5_L007_R1_001.fastq.gz", "{$restored_folde
 check_file("{$ref_folder}DX181278_05_S5_L007_R2_001.fastq.gz", "{$restored_folder}DX181278_05_S5_L007_R2_001.fastq.gz");
 $ref_folder = output_folder()."20230823_LH00240_0003_AFCID0001_00123/Analysis/3/Data/DragenGermline/DX180049_05/germline_seq/";
 $restored_folder = output_folder()."restore/20230823_LH00240_0003_AFCID0001_00123/Analysis/3/Data/DragenGermline/DX180049_05/germline_seq/";
-check_file("{$ref_folder}DX180049_05.hard-filtered.gvcf.gz", "{$restored_folder}DX180049_05.hard-filtered.gvcf.gz");
-check_file("{$ref_folder}DX180049_05.hard-filtered.vcf.gz", "{$restored_folder}DX180049_05.hard-filtered.vcf.gz");
-check_file("{$ref_folder}DX180049_05.sv.vcf.gz", "{$restored_folder}DX180049_05.sv.vcf.gz");
+check(file_exists("{$restored_folder}DX180049_05.hard-filtered.gvcf.gz"), false);
+check(file_exists("{$restored_folder}DX180049_05.hard-filtered.vcf.gz"), false);
+check(file_exists("{$restored_folder}DX180049_05.sv.vcf.gz"), false);
 check(file_exists("{$restored_folder}DX180049_05.bam"), false);
 check(file_exists("{$restored_folder}DX180049_05.bam.bai"), false);
 check(file_exists("{$restored_folder}DX180049_05.cram"), false);
