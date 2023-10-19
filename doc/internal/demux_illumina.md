@@ -53,32 +53,34 @@
 		> rm -rf [run]
 
 # Demultiplexing of NovaSeqXPlus
+1. Make sure the DRAGEN analysis on the NovaSeq X is completed and all files are copied to the storage.  
+	A `CopyComplete.txt`file is created in `Analysis/[1-9]` when it is done.
 
-1. Check basic run statistics with Illumina Sequence Analysis Viewer
+2. Check basic run statistics with Illumina Sequence Analysis Viewer
 
     Error-rate < 1%  
     Cluster density  
     Check whether number of lanes is set correctly in NGSD  
     ...  
 
-2. Set the run quality in the NGSD 
+3. Set the run quality in the NGSD 
 
 	Use comment field to describe problems.
 
-3. Demultiplexing
+4. Demultiplexing
 
 	Demultiplexing is done on the instrument already. There is nothing to do for us.
 	
-4. Copy ORA/BAM to the project folders and analyze them using:
+5. Copy ORA/BAM to the project folders and analyze them using:
 
 		> php /mnt/storage2/megSAP/pipeline/src/NGS/copy_sample.php
 		> ionice -c 3 make all
 
-5. Backup run using backup tool:
+6. Backup run using backup tool:
 
 		> sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/Tools/backup_queue.php -mode run -in [run] -email [email]
 
-6. Delete the run raw data (when all samples are analyzed and passed QC):
+7. Delete the run raw data (when all samples are analyzed and passed QC):
 
 		> rm -rf [run]
 
