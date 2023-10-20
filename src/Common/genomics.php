@@ -1327,6 +1327,13 @@ function enable_special_mito_vc($sys)
 //Returns the FASTA file of the genome
 function genome_fasta($build, $use_local_data=true, $use_local_ramdrive=true)
 {
+	//allow overriding genome fasta
+	$genome_fasta_override = trim(get_path("genome_fasta_override", false));
+	if  ($genome_fasta_override!="")
+	{
+		return $genome_fasta_override;
+	}
+	
 	//use genome FASTA of the local maching
 	if ($use_local_data)
 	{
