@@ -720,10 +720,10 @@ foreach($sample_data as $sample => $sample_infos)
 			$outputline = "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$sample}";
 
 			// add DRAGEN parameter
-			if ($use_dragen)
+			if ($use_dragen && !$is_novaseq_x)
 			{
 				$processed_sample_info = get_processed_sample_info($db_conn,$sample);
-				if ($processed_sample_info['sys_type'] == "WGS") $outputline .= " -args '-use_dragen -no_abra'";
+				if ($processed_sample_info['sys_type'] == "WGS") $args[] = "-use_dragen -no_abra";
 			}
 
 			//determine analysis steps from project
@@ -740,6 +740,7 @@ foreach($sample_data as $sample => $sample_infos)
 					if ($sys_type == "WGS") $args[] = "-steps ma,vc,cn,sv,db";
 					else $args[] = "-steps vc,cn,sv,db";
 					$args[] = "-use_dragen";
+					$args[] = "-no_abra";
 				}
 
 
