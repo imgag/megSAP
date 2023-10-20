@@ -823,6 +823,99 @@ class ToolBase
 		//return results
 		return array($stdout, $stderr);
 	}
+
+	/**
+	 	@brief Executes a command inside a given Singularity container and returns an array with STDOUT, STDERR and exit code.
+	 */
+	function execSingularity($container, $container_version, $bind_paths, $command, $parameters, $log_output=true, $abort_on_error=true, $warn_on_error=true)
+	{
+		if (is_array($command) || is_array($parameters))
+		{
+			print_r($command);
+			print_r($parameters);
+			die;
+		}
+		//prevent execution of pipes - exit code is not handled correctly with pipes!
+		$command_and_parameters = $command." ".$parameters;
+		if(contains($command_and_parameters, "|"))
+		{
+			trigger_error("Error in 'execSingularity' method call: Command must not contain pipe symbol '|'! \n$command_and_parameters", E_USER_ERROR);
+		}
+
+		//get container
+		$container_path = get_path("container_folder")."/{$container}_{$container_version}.sif";
+		if(!file_exists($container_path)) trigger_error("Singularity container '{$container_path}' not found!", E_USER_ERROR);
+
+		//check bind paths
+		foreach($bind_paths as $path)
+		{
+			//remove optional path option
+			$path = explode(":", $path)[0];
+			if(!file_exists($path))
+			{
+				trigger_error("Bind path '{$path}' not exists!", E_USER_ERROR);
+			}
+		}
+		
+		//log call
+		if($log_output)
+		{
+			$add_info = array();
+			$add_info[] = "singularity version = ".$this->extractVersion("singularity");
+			foreach($bind_paths as $bind_path)
+			{
+				$add_info[] = "bind path           = ".$bind_path;
+			}
+			$add_info[] = "container           = ".$container;
+			$add_info[] = "container version   = ".$container_version;
+			$add_info[] = "container path      = ".$container_path;
+			$add_info[] = "tool version        = ".$this->extractVersion($command);
+			$add_info[] = "parameters          = $parameters";
+			$this->log("Calling external tool '$command' in container '".basename2($container_path)."'", $add_info);
+		}
+
+		//compose Singularity command
+		$singularity_command = "singularity exec -B ".implode(",", $bind_path)." {$container_path} {$command_and_parameters}";
+		
+		$pid = getmypid();
+		//execute call - pipe stdout/stderr to file
+		$stdout_file = $this->tempFile(".stdout", "megSAP_exec_pid{$pid}_");
+		$stderr_file = $this->tempFile(".stderr", "megSAP_exec_pid{$pid}_");
+		$exec_start = microtime(true);
+		$proc = proc_open($singularity_command, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
+		if ($proc===false) trigger_error("Could not start process with ToolBase::execSingularity function!\nContainer: {$container_path}\nCommand: {$command}\nParameters: {$parameters}", E_USER_ERROR);
+		
+		//get stdout, stderr and exit code
+		$return = proc_close($proc);
+		$stdout = explode("\n", rtrim(file_get_contents($stdout_file)));
+		$stderr = explode("\n", rtrim(file_get_contents($stderr_file)));
+		$this->deleteTempFile($stdout_file);
+		$this->deleteTempFile($stderr_file);
+			
+		//log relevant information
+		if (($log_output || $return!=0) && count($stdout)>0)
+		{
+			$this->log("Stdout of '$command':", $stdout);
+		}
+		if (($log_output || $return!=0) && count($stderr)>0)
+		{
+			$this->log("Stderr of '$command':", $stderr);
+		}
+		if ($log_output)
+		{
+			$this->log("Execution time of '$command': ".time_readable(microtime(true) - $exec_start));
+		}
+		
+		//abort/warn if failed
+		if ($return!=0 && ($abort_on_error || $warn_on_error))
+		{
+			$this->toStderr($stdout);
+			$this->toStderr($stderr);
+			trigger_error("Call of external tool '$command' returned error code '$return'.", $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
+		}
+		
+		return array($stdout, $stderr, $return);
+	}
 	
 	/// Returns the version of this tool
 	function version()

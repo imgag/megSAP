@@ -29,6 +29,7 @@ REViewer = [path]/data/tools/REViewer-v0.2.7/REViewer-v0.2.7
 happy = [path]/data/tools/hap.py-0.3.14/bin/hap.py
 bedtools = [path]/data/tools/bedtools-2.30.0/bedtools.static.binary
 gatk = java -Xmx4G -jar /[path]/data/tools/gatk-4.2.6.1/gatk-package-4.2.6.1-local.jar
+orad = [path]/data/tools/orad_2_6_1/orad
 
 [tools-longread]
 minimap2 = [path]/data/tools/minimap2-2.26_x64-linux/minimap2
@@ -60,6 +61,9 @@ kraken2 = [path]/data/tools/kraken2-2.1.2/bin/kraken2
 [tools-primer]
 tracetuner = [path]/data/tools/tracetuner_3.0.6beta/rel/Linux_64/ttuner
 primer3 = [path]/data/tools/opt/primer3-2.3.6/src/
+[singularity-container]
+container_folder = [path]/data/tools/singularity_container/
+container_clair3-trio = v0.7
 
 [folders]
 local_data = /tmp/local_ngs_data/
