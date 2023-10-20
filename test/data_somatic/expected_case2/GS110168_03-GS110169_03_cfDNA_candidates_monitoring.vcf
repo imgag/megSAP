@@ -1,16 +1,16 @@
 ##fileformat=VCFv4.1
-##fileDate=20230926
+##fileDate=20231020
 ##source=strelka
 ##source_version=2.9.10
-##startTime=Tue Sep 26 10:39:39 2023
-##cmdline=/mnt/storage2/megSAP/tools/strelka-2.9.10.centos6_x86_64/bin//configureStrelkaSomaticWorkflow.py --tumor /tmp/megSAP_user_ahsturm1/somatic_dna_5bmIsB/GS110168_03.bam --normal /tmp/megSAP_user_ahsturm1/somatic_dna_G2VdnR/GS110169_03.bam --referenceFasta /mnt/genome_ramdrive/GRCh38.fa --runDir /tmp/megSAP_user_ahsturm1/vc_strelka2_1Qp9m0/strelkaAnalysis --config /mnt/storage2/megSAP/tools/strelka-2.9.10.centos6_x86_64/bin//configureStrelkaSomaticWorkflow.py.ini --exome --indelCandidates out_case2/GS110168_03-GS110169_03_manta_var_smallIndels.vcf.gz
-##reference=file:///mnt/genome_ramdrive/GRCh38.fa
+##startTime=Fri Oct 20 08:31:57 2023
+##cmdline=/mnt/storage2/megSAP/tools/strelka-2.9.10.centos6_x86_64/bin//configureStrelkaSomaticWorkflow.py --tumor /tmp/megSAP_user_ahsturm1/somatic_dna_sKWSY7/GS110168_03.bam --normal /tmp/megSAP_user_ahsturm1/somatic_dna_5iQJkB/GS110169_03.bam --referenceFasta /tmp/local_ngs_data_GRCh38//GRCh38.fa --runDir /tmp/megSAP_user_ahsturm1/vc_strelka2_q8ytWN/strelkaAnalysis --config /mnt/storage2/megSAP/tools/strelka-2.9.10.centos6_x86_64/bin//configureStrelkaSomaticWorkflow.py.ini --exome --indelCandidates out_case2/GS110168_03-GS110169_03_manta_var_smallIndels.vcf.gz
+##reference=file:///tmp/local_ngs_data_GRCh38/GRCh38.fa
 ##content=strelka somatic snv calls
 ##priorSomaticSnvRate=0.0001
 ##content=strelka somatic indel calls
 ##priorSomaticIndelRate=1e-06
-##VEP="v109" time="2023-09-26 10:41:57" cache="/tmp/local_ngs_data_GRCh38/ensembl-vep-109/homo_sapiens/109_GRCh38" ensembl-io=109.4946a86 ensembl-funcgen=109.cba2db8 ensembl-variation=109.18a12b6 ensembl=109.10baaec 1000genomes="phase3" COSMIC="96" ClinVar="202209" HGMD-PUBLIC="20204" assembly="GRCh38.p13" dbSNP="154" gencode="GENCODE 43" genebuild="2014-07" gnomADe="r2.1.1" gnomADg="v3.1.2" polyphen="2.2.3" regbuild="1.0" sift="6.2.1"
-##VEP-command-line='vep --assembly GRCh38 --cache --database 0 --dir_cache [PATH]/ --domains --failed --fasta [PATH]/GRCh38.fa --fields Allele,Consequence,Feature,Feature_type,DOMAINS,SIFT,PolyPhen,Existing_variation,BIOTYPE,PUBMED --force_overwrite --fork 4 --format vcf --gencode_basic --input_file [PATH]/annotate_9OaNfb_unzipped.vcf --no_stats --offline --output_file [PATH]/an_vep_7HWmSK_vep.vcf --polyphen b --pubmed --regulatory --sift b --transcript_version --vcf'
+##VEP="v109" time="2023-10-20 08:40:58" cache="/tmp/local_ngs_data_GRCh38/ensembl-vep-109/homo_sapiens/109_GRCh38" ensembl=109.10baaec ensembl-variation=109.18a12b6 ensembl-funcgen=109.cba2db8 ensembl-io=109.4946a86 1000genomes="phase3" COSMIC="96" ClinVar="202209" HGMD-PUBLIC="20204" assembly="GRCh38.p13" dbSNP="154" gencode="GENCODE 43" genebuild="2014-07" gnomADe="r2.1.1" gnomADg="v3.1.2" polyphen="2.2.3" regbuild="1.0" sift="6.2.1"
+##VEP-command-line='vep --assembly GRCh38 --cache --database 0 --dir_cache [PATH]/ --domains --failed --fasta [PATH]/GRCh38.fa --fields Allele,Consequence,Feature,Feature_type,DOMAINS,SIFT,PolyPhen,Existing_variation,BIOTYPE,PUBMED --force_overwrite --fork 4 --format vcf --gencode_basic --input_file [PATH]/annotate_EQVRZw_unzipped.vcf --no_stats --offline --output_file [PATH]/an_vep_43oWwX_vep.vcf --polyphen b --pubmed --regulatory --sift b --transcript_version --vcf'
 ##contig=<ID=chr1,length=248956422>
 ##contig=<ID=chr10,length=133797422>
 ##contig=<ID=chr11,length=135086622>
@@ -2591,6 +2591,7 @@
 ##contig=<ID=chrX,length=156040895>
 ##contig=<ID=chrY,length=57227415>
 ##contig=<ID=chrY_KI270740v1_random,length=37240>
+##INFO=<ID=ALPHAMISSENSE,Number=1,Type=Float,Description="AlphaMissense score from AlphaMissense_hg38.tsv.gz (from file AlphaMissense_hg38.vcf.gz)">
 ##INFO=<ID=CADD_INDEL,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_InDels_1.6_GRCh38.vcf.gz)">
 ##INFO=<ID=CADD_SNV,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_SNVs_1.6_GRCh38.vcf.gz)">
 ##INFO=<ID=CANCERHOTSPOTS,Number=.,Type=String,Description="Cancerhotspots.org data. Format: GENE_SYMBOL|ENSEMBL_TRANSCRIPT|AA_POS|AA_REF|AA_ALT|TOTAL_COUNT|ALT_COUNT">
@@ -2627,7 +2628,7 @@
 ##INFO=<ID=NGSD_CLAS_COM,Number=1,Type=String,Description="Classification comment from the NGSD. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_COM,Number=1,Type=String,Description="Variant comments from the NGSD. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_COUNTS,Number=3,Type=Integer,Description="Homozygous/Heterozygous/Mosaic variant counts in NGSD. (from file NGSD_germline.vcf.gz)">
-##INFO=<ID=NGSD_GENE_INFO,Number=.,Type=String,Description="Annotation from /mnt/storage2/megSAP/data/dbs/NGSD/2023-09-22/NGSD_genes.bed delimited by '&'">
+##INFO=<ID=NGSD_GENE_INFO,Number=.,Type=String,Description="Annotation from NGSD_genes.bed delimited by '&'">
 ##INFO=<ID=NGSD_GROUP,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for neoplasms. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_HAF,Number=0,Type=Flag,Description="Indicates a allele frequency above a threshold of 0.05. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_SOM_C,Number=1,Type=Integer,Description="Somatic variant count in the NGSD. (from file NGSD_somatic.vcf.gz)">
@@ -2635,9 +2636,9 @@
 ##INFO=<ID=NGSD_SOM_VICC,Number=1,Type=String,Description="Somatic variant interpretation according VICC standard in the NGSD. (from file NGSD_somatic.vcf.gz)">
 ##INFO=<ID=NGSD_SOM_VICC_COMMENT,Number=1,Type=String,Description="Somatic VICC interpretation comment in the NGSD. (from file NGSD_somatic.vcf.gz)">
 ##INFO=<ID=NT,Number=1,Type=String,Description="Genotype of the normal in all data tiers, as used to classify somatic variants. One of {ref,het,hom,conflict}.">
-##INFO=<ID=OMIM,Number=.,Type=String,Description="Annotation from /tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/omim.bed delimited by '&'">
+##INFO=<ID=OMIM,Number=.,Type=String,Description="Annotation from omim.bed delimited by '&'">
 ##INFO=<ID=OVERLAP,Number=0,Type=Flag,Description="Somatic indel possibly overlaps a second indel.">
-##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="/tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/hg38.phyloP100way.bw (ngs-bits/VcfAnnotateFromBigWig - mode max)">
+##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="Annotation from hg38.phyloP100way.bw (mode max)">
 ##INFO=<ID=PNOISE,Number=1,Type=Float,Description="Fraction of panel containing non-reference noise at this site">
 ##INFO=<ID=PNOISE2,Number=1,Type=Float,Description="Fraction of panel containing more than one non-reference noise obs at this site">
 ##INFO=<ID=QSI,Number=1,Type=Integer,Description="Quality score for any somatic variant, ie. for the ALT haplotype to be present at a significantly different frequency in the tumor and normal">
@@ -2646,7 +2647,7 @@
 ##INFO=<ID=QSS_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant and NT">
 ##INFO=<ID=RC,Number=1,Type=Integer,Description="Number of times RU repeats in the reference allele">
 ##INFO=<ID=ReadPosRankSum,Number=1,Type=Float,Description="Z-score from Wilcoxon rank sum test of Alt Vs. Ref read-position in the tumor">
-##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="Annotation from /tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/RepeatMasker_GRCh38.bed delimited by '&'">
+##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="Annotation from RepeatMasker_GRCh38.bed delimited by '&'">
 ##INFO=<ID=REVEL,Number=1,Type=Float,Description="Maximum REVEL score of all scored transcripts. (from file REVEL_1.3.vcf.gz)">
 ##INFO=<ID=RU,Number=1,Type=String,Description="Smallest repeating sequence unit in inserted or deleted sequence">
 ##INFO=<ID=SGT,Number=1,Type=String,Description="Most likely somatic genotype excluding normal noise states">
@@ -2688,4 +2689,4 @@
 ##SAMPLE=<ID=GS110168_03,Gender=n/a,ExternalSampleName=SL-ALL-1; Pat7;QA007004DQ,IsTumor=yes,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=Affected>
 ##SAMPLE=<ID=GS110169_03,Gender=n/a,ExternalSampleName=SL-FB-1; Pat7;QA007011D9,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=Affected>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	GS110169_03	GS110168_03
-chr21	30371921	.	C	A	0	PASS	DP=225;MQ=56.78;MQ0=14;NT=ref;QSS=216;QSS_NT=3070;ReadPosRankSum=1.38;SGT=CC->AC;SNVSB=0.00;SomaticEVS=11.81;TQSS=1;TQSS_NT=1;SOMATIC;CSQ=A|missense_variant|ENST00000399889.4|Transcript|PANTHER:PTHR19051&PANTHER:PTHR19051:SF24&Pfam:PF05287&AFDB-ENSP_mappings:AF-Q52LG2-F1.A|tolerated(0.07)|benign(0.311)|COSV105936570|protein_coding|,A|downstream_gene_variant|ENST00000581194.1|Transcript||||COSV105936570|miRNA|;CSQ2=A|missense_variant|MODERATE|KRTAP13-2|HGNC:18923|ENST00000399889.4|Transcript|1/1||c.293G>T|p.Gly98Val,A|downstream_gene_variant|MODIFIER|MIR4327|HGNC:38355|ENST00000581194.1|Transcript||||;PHYLOP=0.45;MES_SWA=0.0&0.0&-6.3&6.4&9.0&6.4&ENST00000399889;CADD_SNV=9.659;REVEL=0.138;SpliceAI=A|KRTAP13-2|0.38|0.02|0.01|0.01|-9|23|2|0;NGSD_GENE_INFO=KRTAP13-2%20(inh%3Dn/a%20oe_syn%3D1.28%20oe_mis%3D1.23%20oe_lof%3D1.71)&MIR4327%20(inh%3Dn/a%20oe_syn%3Dn/a%20oe_mis%3Dn/a%20oe_lof%3Dn/a);COSMIC_CMC=KRTAP13-2|ENST00000399889.2|||https://cancer.sanger.ac.uk/cosmic/mutation/overview?id%3D47221917|COSM10028470|c.293G>T|p.G98V|98|98|1|G|V|Substitution|Substitution%20-%20Missense|SO:0001583|COSV105936570|41907|2|||||||||2.29|0.015|D||Other;MonitoringScore=3.736	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	104:0:0:0:0,0:104,115:0,0:0,0	106:0:0:0:46,48:60,62:0,0:0,0
+chr21	30371921	.	C	A	0	PASS	DP=225;MQ=56.78;MQ0=14;NT=ref;QSS=216;QSS_NT=3070;ReadPosRankSum=1.38;SGT=CC->AC;SNVSB=0.00;SomaticEVS=11.81;TQSS=1;TQSS_NT=1;SOMATIC;CSQ=A|missense_variant|ENST00000399889.4|Transcript|PANTHER:PTHR19051&PANTHER:PTHR19051:SF24&Pfam:PF05287&AFDB-ENSP_mappings:AF-Q52LG2-F1.A|tolerated(0.07)|benign(0.311)|COSV105936570|protein_coding|,A|downstream_gene_variant|ENST00000581194.1|Transcript||||COSV105936570|miRNA|;CSQ2=A|missense_variant|MODERATE|KRTAP13-2|HGNC:18923|ENST00000399889.4|Transcript|1/1||c.293G>T|p.Gly98Val,A|downstream_gene_variant|MODIFIER|MIR4327|HGNC:38355|ENST00000581194.1|Transcript||||;PHYLOP=0.45;MES_SWA=0.0&0.0&-6.3&6.4&9.0&6.4&ENST00000399889;CADD_SNV=9.659;REVEL=0.138;ALPHAMISSENSE=0.15;SpliceAI=A|KRTAP13-2|0.38|0.02|0.01|0.01|-9|23|2|0;NGSD_GENE_INFO=KRTAP13-2%20(inh%3Dn/a%20oe_syn%3D1.28%20oe_mis%3D1.23%20oe_lof%3D1.71)&MIR4327%20(inh%3Dn/a%20oe_syn%3Dn/a%20oe_mis%3Dn/a%20oe_lof%3Dn/a);COSMIC_CMC=KRTAP13-2|ENST00000399889.2|||https://cancer.sanger.ac.uk/cosmic/mutation/overview?id%3D47221917|COSM10028470|c.293G>T|p.G98V|98|98|1|G|V|Substitution|Substitution%20-%20Missense|SO:0001583|COSV105936570|41907|2|||||||||2.29|0.015|D||Other;MonitoringScore=3.736	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	104:0:0:0:0,0:104,115:0,0:0,0	106:0:0:0:46,48:60,62:0,0:0,0

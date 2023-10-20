@@ -303,6 +303,7 @@ $column_desc = array(
 	array("PolyPhen", "PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
+	array("AlphaMissense", "AlphaMissense pathogenicity score. Deleterious threshold > 0.564."),
 	array("MaxEntScan", "MaxEntScan reference score and alternate score for (1) native splice site, (2) acceptor gain and (3) donor gain. Comma-separated list if there are different predictions for several transcripts."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
 	array("SpliceAI", "SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes."),
@@ -706,6 +707,12 @@ while(!feof($handle))
 	if (isset($info["REVEL"])) 
 	{
 		$revel = explode("&", $info["REVEL"]);
+	}
+	
+	$alphamissense = [];
+	if (isset($info["ALPHAMISSENSE"])) 
+	{
+		$alphamissense[] = trim($info["ALPHAMISSENSE"]);
 	}
 	
 	//variant details
@@ -1323,8 +1330,8 @@ while(!feof($handle))
 	if (trim(strtr($sift, ",", " "))=="") $sift = "";
 	$polyphen = implode(",", $polyphen);
 	if (trim(strtr($polyphen, ",", " "))=="") $polyphen = "";
-	
 	$revel = empty($revel) ? "" : collapse($tag, "REVEL", $revel, "max", 2);
+	$alphamissense = empty($alphamissense) ? "" : collapse($tag, "AlphaMissense", $alphamissense, "max", 2);
 	
 	//OMIM
 	$omim = "";
@@ -1360,7 +1367,7 @@ while(!feof($handle))
 	{
 		fwrite($handle_out,"\t".$phasing_info);
 	}
-	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
+	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$alphamissense\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");
