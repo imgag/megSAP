@@ -14,6 +14,7 @@ $parser->addInfileArray("in",  "Input file(s) in FASTQ format.", false);
 $parser->addOutfile("out",  "Output file in BAM format (sorted).", false);
 //optional
 $parser->addString("sample", "Sample name to use in BAM header. If unset the basename of the 'out' file is used.", true, "");
+$parser->addString("in_bam", "Input BAM with modified bases information (MM ML tags).", true, "");
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'sample' or 'out' is a valid processed sample name).", true);
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
 extract($parser->parse($argv));
@@ -54,6 +55,21 @@ print get_path("minimap2")." --MD -ax map-ont --eqx -t {$threads} -R '@RG\\t".im
 
 //mapping with minimap2
 $pipeline[] = array(get_path("minimap2"), " --MD -ax map-ont --eqx -t {$threads} -R '@RG\\t".implode("\\t", $group_props)."' ".genome_fasta($sys['build'])." ".implode(" ", $in));
+
+//add tags from unmapped modified bases BAM
+if ($in_bam !== "")
+{
+	//TODO check same order of $in and $in_bam
+	print("cmp <(".get_path("samtools")." view {$in_bam} | cut -f1 | uniq | head -n 100) <(zcat ".implode(" ", $in)." | grep '^@' | sed 's/^@//' | head -n 100)");
+	$order_check = exec2("cmp <(".get_path("samtools")." view {$in_bam} | cut -f1 | uniq | head -n 100) <(zcat ".implode(" ", $in)." | grep '^@' | sed 's/^@//' | head -n 100)", false);
+	if ($order_check[2] !== 0)
+	{
+		trigger_error("Read IDs do not have the same order in FASTQ and input BAM files! {$order_check[2]}", E_USER_ERROR);
+	}
+
+	//TODO replace fgbio ZipperBams with a different tool
+	$pipeline[] = array("/mnt/storage2/users/ahadmaj1/.snakemake-conda/56f717cad63f6f01dc29688088922398_/bin/fgbio", "--compression 0 ZipperBams --unmapped {$in_bam} --ref ".genome_fasta($sys['build']));
+}
 
 //convert sam to bam with samtools
 $tmp_unsorted = $parser->tempFile("_unsorted.bam");
