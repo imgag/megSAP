@@ -90,7 +90,7 @@ for($i=0; $i<count($file1); ++$i)
 			if ($entry1!=$entry2)
 			{
 				$col_name = $headers[$j];
-				if ($col_name=="gene" || $col_name=="variant_type" || $col_name=="coding_and_splicing" || $col_name=="Sift" || $col_name=="PolyPhen")
+				if ($col_name=="gene" || $col_name=="variant_type" || $col_name=="coding_and_splicing")
 				{
 					$entry1 = explode(",", $entry1);
 					$entry1 = array_map('trim', $entry1);

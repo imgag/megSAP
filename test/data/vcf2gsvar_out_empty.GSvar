@@ -18,8 +18,6 @@
 ##DESCRIPTION=gnomAD_het=Heterozygous counts of the gnomAD project (genome data).
 ##DESCRIPTION=gnomAD_wt=Wildtype counts of the gnomAD project (genome data).
 ##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
-##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.
-##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.
 ##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.
 ##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
 ##DESCRIPTION=AlphaMissense=AlphaMissense pathogenicity score. Deleterious threshold > 0.564.
@@ -37,4 +35,4 @@
 ##DESCRIPTION=comment=Variant comments from the NGSD.
 ##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).
 ##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.
-#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	Sift	PolyPhen	CADD	REVEL	AlphaMissense	MaxEntScan	COSMIC	SpliceAI	PubMed	NGSD_hom	NGSD_het	NGSD_mosaic	NGSD_group	classification	classification_comment	validation	comment	gene_info
+#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	CADD	REVEL	AlphaMissense	MaxEntScan	COSMIC	SpliceAI	PubMed	NGSD_hom	NGSD_het	NGSD_mosaic	NGSD_group	classification	classification_comment	validation	comment	gene_info
