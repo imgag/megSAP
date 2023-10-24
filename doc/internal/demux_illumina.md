@@ -20,8 +20,9 @@
 		> cd /mnt/storage3/raw_data/[instrument]/[run]/
 		> php /mnt/storage2/megSAP/pipeline/src/Tools/export_samplesheet.php -out SampleSheet_bcl2fastq.csv -run [ngsd_run_name]
 		
-	Note: The index (==barcode) should be given even if only one sample is on a lane (to avoid contamination).
-	Note: If index 2 sequences are reverse-complement (e.g in NovaSeq6000 or MiSeq dual-indexing) of the sequences given in the sample sheet, re-export using the '-mid2_no_rc' flag.
+	Note: The index (==barcode) should be given even if only one sample is on a lane (to avoid contamination).  
+	Note: If index 2 sequences are reverse-complement (e.g in NovaSeq6000 or MiSeq dual-indexing) of the sequences given in the sample sheet, re-export using the '-mid2_no_rc' flag.  
+	Note: Restrict the MID lenghs using the parameters '-mid1_len' and '-mid2_len'
 	
 	Then we execute the actual demultiplexing based on the sample sheet:
 	
