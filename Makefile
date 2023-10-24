@@ -109,7 +109,7 @@ find_unused_tools: dummy
 	php src/Tools/find_unused_tools.php -ngsbits ../ngs-bits/ -megsap . > unused_tools.txt
 
 todos:
-	find . -name "*.php" | xargs grep -i "@todo" 
+	find . -name "*.php" | xargs grep -i "//todo" 
 
 find_php_warnings_in_tests:
 	find test/ -type f | xargs grep -i "PHP warning" || true

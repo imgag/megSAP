@@ -1,10 +1,6 @@
 <?php 
 /** 
 	@page an_vep
-	
-	@todo test Mastermind plugin: https://github.com/Ensembl/VEP_plugins/blob/release/98/Mastermind.pm
-	@todo test FunMotifs plugin: https://github.com/Ensembl/VEP_plugins/blob/release/98/FunMotifs.pm
-	@todo test parameters: --gene_phenotype --ccds --biotype --canonical
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -57,7 +53,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 $vep_output = $parser->tempFile("_vep.vcf");
 
 //annotate only fields we really need to prevent bloating the VCF file 
-$fields = array("Allele", "Consequence", "Feature", "Feature_type", "DOMAINS", "SIFT", "PolyPhen", "Existing_variation");
+$fields = array("Allele", "Consequence", "Feature", "Feature_type", "DOMAINS", "Existing_variation");
 
 $vep_path = dirname(get_path("vep"));
 $local_data = get_path("local_data");
@@ -72,8 +68,7 @@ $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time wh
 $args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".genome_fasta($build); //paths to data
 $args[] = "--transcript_version --domains --failed 1"; //annotation options
 $args[] = "--regulatory"; //regulatory features
-$fields[] = "BIOTYPE"; 
-$args[] = "--sift b --polyphen b"; //pathogenicity predictions
+$fields[] = "BIOTYPE";
 $args[] = "--pubmed"; //add publications
 $fields[] = "PUBMED";
 if (!$all_transcripts)

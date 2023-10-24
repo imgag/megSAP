@@ -2629,7 +2629,7 @@
 ##INFO=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
 ##INFO=<ID=END,Number=1,Type=Integer,Description="Last position (inclusive) in gVCF output record.">
 ##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
-##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|Feature|Feature_type|DOMAINS|SIFT|PolyPhen|Existing_variation|BIOTYPE|PUBMED">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|Feature|Feature_type|DOMAINS|Existing_variation|BIOTYPE|PUBMED">
 ##INFO=<ID=CSQ2,Number=.,Type=String,Description="Consequence annotations from VcfAnnotateConsequence. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp">
 ##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="Annotation from hg38.phyloP100way.bw (mode max)">
 ##INFO=<ID=MES,Number=1,Type=String,Description="The MaxEntScan scores. FORMAT: A | separated list of maxentscan_ref&maxentscan_alt&transcript_name items.">
