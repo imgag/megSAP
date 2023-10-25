@@ -2097,6 +2097,7 @@ function convert_to_bam_if_cram($filename, $parser, $build, $threads, $tmp_folde
 	
 	return $filename;
 }
+
 //check if run is created by NovaSeq X (Plus)
 function is_novaseq_x_run($run_parameters_xml)
 {
@@ -2106,5 +2107,36 @@ function is_novaseq_x_run($run_parameters_xml)
 	if(($instrument_type == "NovaSeqXPlus") || ($instrument_type == "NovaSeqX")) return true;
 	//else
 	return false; //unknown Sequencer
+}
+
+//check if BAM file contains methylation data (only check the first $n_rows)
+function contains_methylation($bam_file, $n_rows=100)
+{
+	//get header
+	list($stdout) = exec2(get_path("samtools")."view {$bam_file} | head -n {$n_rows}");
+
+	$n_mm = 0;
+	$n_ml = 0;
+	foreach ($stdout as $row) 
+	{
+		$columns = explode("\t", $row);
+		foreach ($columns as $cell) 
+		{
+			if(starts_with($cell, "MM:")) $n_mm++;
+			elseif(starts_with($cell, "ML:")) $n_ml++;
+		}
+	}
+
+	//sanity checks
+	if($n_mm != $n_ml) trigger_error("Number of ML tags and MM tags is not equal!\nMM:\t{$n_mm}\nML:\t{$n_ml}", E_USER_ERROR);
+
+	// no methylation
+	if($n_mm == 0) return false;
+	
+	// methylation
+	if($n_mm == $n_rows) return true;
+
+	//else: something is wrong
+	trigger_error("Ambiguous tag counts. Please check BAM file!\nMM:\t{$n_mm}/{$n_rows}\nML:\t{$n_ml}/{$n_rows}", E_USER_ERROR);
 }
 ?>

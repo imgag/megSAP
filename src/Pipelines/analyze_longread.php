@@ -78,6 +78,7 @@ if (!$no_sync)
 
 //output file names:
 //mapping
+$unmapped_bam = $folder."/".$name.".mod.unmapped.bam";
 $bam_file = $folder."/".$name.".bam";
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 //variant calling
@@ -88,6 +89,7 @@ $rohfile = $folder."/".$name."_rohs.tsv";
 $baffile = $folder."/".$name."_bafs.igv";
 $ancestry_file = $folder."/".$name."_ancestry.tsv";
 $prsfile = $folder."/".$name."_prs.tsv";
+$vcf_modcall = $folder."/".$name."_var_modcall.vcf";
 //copy-number calling
 $cnv_bin_size = get_path("cnv_bin_size_longread_wgs");
 $cnv_file = $folder."/".$name."_cnvs_clincnv.tsv";
@@ -110,34 +112,41 @@ if (in_array("ma", $steps))
 	//determine input FASTQ files
 	$fastq_regex = $folder."/*.fastq.gz";
 	$fastq_files = glob($fastq_regex);
-	
-	if (count($fastq_files)==0)
-	{
-		if(file_exists($bam_file))
-		{
-			trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files: $bam_file", E_USER_NOTICE);
 
-			// extract reads from BAM file
-			$fastq_file = $folder."/{$name}_BamToFastq_001.fastq.gz";
-			$tmp1 = $parser->tempFile(".fastq.gz");
-			$parser->exec("{$ngsbits}BamToFastq", "-mode single-end -in $bam_file -out1 $tmp1", true);
-			$parser->moveFile($tmp1, $fastq_file);
-			
-			// use generated fastq files for mapping
-			$fastq_files = array($fastq_file);
-		}
-		else
-		{
-			trigger_error("Found no read files found matching '$fastq_regex'!", E_USER_ERROR);
-		}
+	$args = array();
+	$args[] = "-out {$bam_file}";
+	$args[] = "-sample {$name}";
+	$args[] = "-threads {$threads}";
+	$args[] = "-system {$system}";
+	//1st priority: use unmapped BAM:
+	if (file_exists($unmapped_bam))
+	{
+		trigger_error("Unmapped BAM ('{$unmapped_bam}') found. Using this as input for mapping.", E_USER_NOTICE);
+		$args[] = "-in_bam {$unmapped_bam}";
+
+	} 
+	//2nd priority: use FastQ files:
+	else if (count($fastq_files) > 0)
+	{
+		trigger_error("FastQ file(s) found. Using this as input for mapping:\n".implode("\n", $fastq_files), E_USER_NOTICE);
+		$args[] = "-in_fastq ".implode(" ", $fastq_files);
+	}
+	//3rd priority: remap BAM
+	else if (file_exists($bam_file))
+	{
+		trigger_error("Mapped BAM ('{$bam_file}') found. Using this as input for mapping.", E_USER_NOTICE);
+		$args[] = "-in_bam {$bam_file}";
+	}
+	else
+	{
+		trigger_error("Found no read files found matching '$fastq_regex' or any matching BAM file ('{$unmapped_bam}'/'{$bam_file}')!", E_USER_ERROR);
 	}
 
-	// run ReadQC
-	$parser->exec("{$ngsbits}ReadQC", "-long_read -in1 ".implode(" ", $fastq_files)." -out {$qc_fastq}", true);
-	
 	// run mapping
-	$parser->execTool("NGS/mapping_minimap.php", "-in ".implode(" ", $fastq_files)." -out {$bam_file} -sample {$name} -threads {$threads} -system {$system}");
+	$parser->execTool("NGS/mapping_minimap.php", implode(" ", $args));
 
+
+	//TODO: remove FastQs/unmapped BAM after mapping
 }
 else
 {
@@ -288,6 +297,23 @@ if (in_array("sv", $steps))
 //phasing
 if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 {
+	//check for methylation
+	$contains_methylation = contains_methylation($bam_file);
+
+	//create modcall file
+	if($contains_methylation)
+	{
+		$args = array();
+		$args[] = "modcall";
+		$args[] = "-b {$bam_file}";
+		$args[] = "-r {$genome}";
+		$args[] = "-t {$threads}";
+		$args[] = "-o {$vcf_modcall}";
+		$parser->exec(get_path("longphase"), implode(" ", $args));
+	}
+
+
+
 	//run phasing by LongPhase on VCF files
 	$phased_tmp = $parser->tempFile(".vcf", "longphase");
 	$phased_sv_tmp = substr($phased_tmp,0,-4)."_SV.vcf";
@@ -298,8 +324,10 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	$args[] = "-r {$genome}";
 	$args[] = "-t {$threads}";
 	$args[] = "-o ".substr($phased_tmp, 0, -4);
-	if (file_exists($sv_vcf_file)) $args[] = "--sv-file {$sv_vcf_file}";
 	$args[] = "--ont";
+	if (file_exists($sv_vcf_file)) $args[] = "--sv-file {$sv_vcf_file}";
+	if ($contains_methylation) $args[] = "--mod-file {$vcf_modcall}";
+	
 
 	$parser->exec(get_path("longphase"), implode(" ", $args));
 	
@@ -326,8 +354,9 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	$parser->exec(get_path("longphase"), implode(" ", $args));
 	$parser->indexBam($tagged_bam_file, $threads);
 
-	//replace current bam file
+	//TODO: compare tagged BAM with input BAM
 
+	//replace current bam file
 	$parser->copyFile($tagged_bam_file, $bam_file);
 	$parser->copyFile($tagged_bam_file.".bai", $bam_file.".bai");
 
@@ -372,7 +401,7 @@ if (in_array("an", $steps))
 		$prs_scoring_files = glob($prs_folder."/*_".$build.".vcf");
 		if (count($prs_scoring_files) > 0)
 		{
-			$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -bam $used_bam_or_cram -out $prsfile -prs ".implode(" ", $prs_scoring_files)." -ref $genome", true);
+			$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcf_file -bam $used_bam_or_cram -out $prsfile -prs ".implode(" ", $prs_scoring_files)." -ref $genome", true);
 		}
 
 		//determine ancestry

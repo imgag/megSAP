@@ -108,7 +108,7 @@ if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/trio_".date("
 
 //file names
 $gsvar = "{$out_folder}/trio.GSvar";
-$vcf_vcf = "{$out_folder}/all.vcf.gz";
+$vcf_file_phased = "{$out_folder}/all.vcf.gz";
 $cnv_file = "{$out_folder}/trio_cnvs_clincnv.tsv";
 $sv_vcf_file = "{$out_folder}/trio_var_structural_variants.vcf.gz";
 $bedpe_out = "{$out_folder}/trio_var_structural_variants.bedpe";
@@ -158,7 +158,7 @@ if (!$no_check)
 //variant calling (and annotation)
 if (in_array("vc", $steps))
 {
-	//variant calling with multi-sample pipeline
+	//variant calling with clair3-trio
 	$args = array();
 	$args[] = "-bam_c $c";
 	$args[] = "-bam_f $f";
@@ -218,7 +218,32 @@ if (in_array("sv", $steps))
 	$parser->execTool("NGS/vc_sniffles.php", "-bam  $c $f $m -out {$sv_vcf_file} -threads {$threads} -build {$build}");
 }
 
-//TODO: phasing? (WhatsHap)
+//phasing (WhatsHap)
+if (in_array("vc", $steps))
+{
+	//create Ped file
+	$ped_file = $parser->tempFile(".ped");
+	$fh = fopen2($ped_file, "w");
+	fwrite($fh, "#family\tindividual_id\tpaternal_id\tmaternal_id\tsex\tphenotype\n");
+	fwrite($fh, "FAM_01\t{$sample_c}\t{$sample_f}\t{$sample_m}\t0\t1\n");
+	fclose($fh);
+
+	//run whatshap
+	$vcf_file_phased = $parser->tempFile("_phased.vcf");
+	$args = array();
+	$args[] = "phase";
+	$args[] = "--ped {$ped_file}";
+	$args[] = "--reference=".genome_fasta($build);
+	$args[] = "-o {$vcf_file_phased}";
+	$args[] = "{$vcf_file}";
+	$args[] = "$c $f $m";
+	$parser->exec(get_path("whatshap"), implode(" ", $args));
+
+	//create compressed file and index and replace original VCF
+	$parser->exec("bgzip", "-c {$vcf_file_phased} > {$vcf_file}", false);
+	$parser->exec("tabix", "-f -p vcf $vcf_file", false);
+}
+
 
 //TODO: annotation
 if (in_array("an", $steps))
