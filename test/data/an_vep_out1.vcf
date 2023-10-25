@@ -2657,7 +2657,7 @@
 ##INFO=<ID=CADD_INDEL,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_InDels_1.6_GRCh38.vcf.gz)">
 ##INFO=<ID=REVEL,Number=1,Type=Float,Description="Maximum REVEL score of all scored transcripts. (from file REVEL_1.3.vcf.gz)">
 ##INFO=<ID=ALPHAMISSENSE,Number=1,Type=Float,Description="AlphaMissense score from AlphaMissense_hg38.tsv.gz (from file AlphaMissense_hg38.vcf.gz)">
-##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3.1 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG); acceptor loss (AL); donor gain (DG); and donor loss (DL)(for all NGSD variants exported on 13.12.2020). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL (from file spliceai_scores_2022_12_30_GRCh38.vcf.gz)">
+##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG), acceptor loss (AL), donor gain (DG), and donor loss (DL). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL (from file spliceai_scores.masked.snv.hg38.vcf.gz) (from file spliceai_scores_2023_10_24_GRCh38.vcf.gz)">
 ##INFO=<ID=NGSD_COUNTS,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD. (from file an_vep_NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_HAF,Number=0,Type=Flag,Description="Indicates a allele frequency above a threshold of 0.05. (from file an_vep_NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_CLAS,Number=1,Type=String,Description="Classification from the NGSD. (from file an_vep_NGSD_germline.vcf.gz)">
