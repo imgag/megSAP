@@ -105,65 +105,52 @@ $qc_map  = $folder."/".$name."_stats_map.qcML";
 $qc_vc  = $folder."/".$name."_stats_vc.qcML";
 $qc_other  = $folder."/".$name."_stats_other.qcML";
 
+$name_sample_ps = explode("_", $name, 2);
+$sample_name = $name_sample_ps[0];
 
 //mapping
 if (in_array("ma", $steps))
 {
-	//determine input FASTQ files
-	$fastq_regex = "{$folder}/{$name}*.fastq.gz";
-	$fastq_files = glob($fastq_regex);
-	if ((count($fastq_files) === 0) && !file_exists($unmapped_mod_bam) && !file_exists($bam_file))
-	{
-		trigger_error("Found no read files found matching '{$fastq_regex}' and no unmapped or mapped BAM file available!", E_USER_ERROR);
-	}
-	elseif (count($fastq_files) === 0)
-	{
-		if (file_exists($unmapped_mod_bam))
-		{
-			trigger_error("No FASTQ files found in folder. Using modified bases unmapped BAM file to generate FASTQ files: {$unmapped_mod_bam}", E_USER_NOTICE);
+	//determine input FASTQ and BAM files
+	$unmapped_bam_files = glob("{$folder}/{$sample_name}_??.mod.unmapped.bam");
+	$bam_files = glob("{$folder}/{$sample_name}_??.bam");
+	$fastq_files = glob("{$folder}/{$sample_name}_??.fastq.gz");
 
-			// extract reads from BAM file
-			$bam_in = $unmapped_mod_bam;
-			$fastq_file = $folder."/{$name}.fastq.gz";
-		}
-		elseif (file_exists($bam_file))
-		{
-			trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files: {$bam_file}", E_USER_NOTICE);
-			$bam_in = $bam_file;
-			$fastq_file = $folder."/{$name}_BamToFastq_001.fastq.gz";
-		}
+	// preference:
+	// 1. mod unmapped bam
+	// 2. regular bam
+	// 3. fastq
 
-		// extract reads from BAM file
-		$tmp1 = $parser->tempFile(".fastq.gz");
-		$parser->exec(get_path("samtools"), "fastq -0 {$tmp1} {$bam_in}", true);
-		//BamToFastq changes the order of alignments/reads
-		// $parser->exec("{$ngsbits}BamToFastq", "-mode single-end -in {$bam_in} -out1 {$tmp1}", true);
-		$parser->moveFile($tmp1, $fastq_file);
-		
-		// use generated fastq files for mapping
-		$fastq_files = array($fastq_file);
+	if ((count($unmapped_bam_files) === 0) && (count($bam_files) === 0) && (count($fastq_files) === 0))
+	{
+		trigger_error("Found no input read files in BAM or FASTQ format!", E_USER_ERROR);
 	}
 	
-
 	// run ReadQC
-	$parser->exec("{$ngsbits}ReadQC", "-long_read -in1 ".implode(" ", $fastq_files)." -out {$qc_fastq}", true);
+	// TODO not possible with BAM input, defer it to alignment
+	// $parser->exec("{$ngsbits}ReadQC", "-long_read -in1 ".implode(" ", $fastq_files)." -out {$qc_fastq}", true);
 	
 	// run mapping
-	// starting from unmapped mod BAM and corresponding FASTQ
-	if (file_exists($unmapped_mod_bam) && file_exists($folder."/{$name}.fastq.gz"))
+	$mapping_minimap_options = [
+		"-out {$bam_file}",
+		"-sample {$name}",
+		"-threads {$threads}",
+		"-system {$system}",
+	];
+	if (count($unmapped_bam_files) > 0)
 	{
-		$parser->execTool("NGS/mapping_minimap.php", "-in ".$folder."/{$name}.fastq.gz"." -in_bam {$unmapped_mod_bam} -out {$bam_file} -sample {$name} -threads {$threads} -system {$system}");
+		$parser->execTool("NGS/mapping_minimap.php", "-in_bam ".$folder."/{$name}.fastq.gz"." -in_bam {$unmapped_mod_bam} -out {$bam_file} -sample {$name} -threads {$threads} -system {$system}");
 	}
-	// starting from mapped BAM and corresponding FASTQ
-	elseif (file_exists($bam_file) && file_exists($folder."/{$name}_BamToFastq_001.fastq.gz"))
+	elseif (count($bam_files) > 0)
 	{
-		$parser->execTool("NGS/mapping_minimap.php", "-in ".$folder."/{$name}_BamToFastq_001.fastq.gz"." -in_bam {$bam_file} -out {$bam_file} -sample {$name} -threads {$threads} -system {$system}");
+		$mapping_minimap_options[] = "-in_bam" . implode(" ", $bam_files);
 	}
-	// starting from FASTQ only
 	else
 	{
-		$parser->execTool("NGS/mapping_minimap.php", "-in ".implode(" ", $fastq_files)." -out {$bam_file} -sample {$name} -threads {$threads} -system {$system}");
+		$mapping_minimap_options[] = "-in_fastq" . implode(" ", $fastq_files);
 	}
+	
+	$parser->execTool("NGS/mapping_minimap.php", implode(" ", $mapping_minimap_options));
 
 }
 else

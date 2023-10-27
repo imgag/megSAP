@@ -10,27 +10,30 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
 $parser = new ToolBase("mapping_minimap", "Maps nanopore reads to a reference genome using minimap2.");
-$parser->addInfileArray("in",  "Input file(s) in FASTQ format.", false);
 $parser->addOutfile("out",  "Output file in BAM format (sorted).", false);
 //optional
 $parser->addString("sample", "Sample name to use in BAM header. If unset the basename of the 'out' file is used.", true, "");
-$parser->addString("in_bam", "Input BAM with modified bases information (MM ML tags).", true, "");
+$parser->addInfileArray("in_fastq",  "Input file(s) in FASTQ format.", true);
+$parser->addInfileArray("in_bam", "Input BAM file(s), with modified bases information (MM ML tags).", true);
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'sample' or 'out' is a valid processed sample name).", true);
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
 extract($parser->parse($argv));
 
+if ((is_null($in_fastq) && is_null($in_bam)) || (count($in_fastq) > 0 && count($in_bam) > 0))
+{
+	trigger_error("Please specify either 'in_fastq' or 'in_bam'!", E_USER_ERROR);
+}
 
 //init vars
 if($sample == "") $sample = basename2($out);
 $basename = dirname($out)."/".$sample;
-print $basename;
 $bam_current = $parser->tempFile(".bam", $sample);
 
 //extract processing system information from DB
 $sys = load_system($system, $sample);
 
 //set read group information
-$group_props = array();
+$group_props = [];
 $group_props[] = "ID:{$sample}";
 $group_props[] = "SM:{$sample}";
 $group_props[] = "LB:{$sample}";
@@ -48,35 +51,51 @@ if(db_is_enabled("NGSD"))
 	}
 }
 
-$pipeline = array();
+// alignment pipeline:
+// BAM input available:
+// samtools cat <input bams> | samtools fastq | minimap | zipperbams | samtools sort
+// FASTQ input:
+// zcat <input fastqs>                        | minimap              | samtools sort
 
-//debug
-print get_path("minimap2")." --MD -ax map-ont --eqx -t {$threads} -R '@RG\\t".implode("\\t", $group_props)."' ".genome_fasta($sys['build'])." ".implode(" ", $in);
+$bam_input = count($in_bam) > 0;
 
-//mapping with minimap2
-$pipeline[] = array(get_path("minimap2"), " --MD -ax map-ont --eqx -t {$threads} -R '@RG\\t".implode("\\t", $group_props)."' ".genome_fasta($sys['build'])." ".implode(" ", $in));
+$minimap_options = [
+	"-a",
+	"--MD",
+	"-x map-ont",
+	"--eqx",
+	"-t {$threads}",
+	"-R '@RG\t" . implode("\\t", $group_props) . "'",
+	genome_fasta($sys['build'])
+];
 
-//add tags from unmapped modified bases BAM
-if ($in_bam !== "")
+$pipeline = [];
+
+//start from BAM input if available
+if ($bam_input)
 {
-	//TODO check same order of $in and $in_bam
-	print("cmp <(".get_path("samtools")." view {$in_bam} | cut -f1 | uniq | head -n 100) <(zcat ".implode(" ", $in)." | grep '^@' | sed 's/^@//' | head -n 100)");
-	$order_check = exec2("cmp <(".get_path("samtools")." view {$in_bam} | cut -f1 | uniq | head -n 100) <(zcat ".implode(" ", $in)." | grep '^@' | sed 's/^@//' | head -n 100)", false);
-	if ($order_check[2] !== 0)
-	{
-		trigger_error("Read IDs do not have the same order in FASTQ and input BAM files! {$order_check[2]}", E_USER_ERROR);
-	}
-
-	//TODO replace fgbio ZipperBams with a different tool
-	$pipeline[] = array("/mnt/storage2/users/ahadmaj1/.snakemake-conda/56f717cad63f6f01dc29688088922398_/bin/fgbio", "--compression 0 ZipperBams --unmapped {$in_bam} --ref ".genome_fasta($sys['build']));
+	$pipeline[] = [get_path("samtools"), "cat " . implode(" ", $in_bam)];
+	$pipeline[] = [get_path("samtools"), "fastq -0 - -"];
+}
+else
+{
+	$pipeline[] = ["zcat", implode(" ", $in_fastq)];
 }
 
-//convert sam to bam with samtools
-$tmp_unsorted = $parser->tempFile("_unsorted.bam");
+//mapping with minimap2
+$pipeline[] = [get_path("minimap2"), implode(" ", $minimap_options)];
+
+//add tags from unmapped modified bases BAM
+if ($bam_input)
+{
+	//TODO replace fgbio ZipperBams with a different tool
+	//TODO fgbio ZipperBams does not support multiple BAM files, use concatenated version
+	$pipeline[] = ["/mnt/storage2/users/ahadmaj1/.snakemake-conda/56f717cad63f6f01dc29688088922398_/bin/fgbio", "--compression 0 ZipperBams --unmapped {$in_bam[0]} --ref ".genome_fasta($sys['build'])];
+}
 
 //sort BAM by coordinates
 $tmp_for_sorting = $parser->tempFile();
-$pipeline[] = array(get_path("samtools"), "sort -T $tmp_for_sorting -m 1G -@ ".min($threads, 4)." -o $bam_current -", true);
+$pipeline[] = [get_path("samtools"), "sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$bam_current} -", true];
 
 //execute 
 $parser->execPipeline($pipeline, "mapping");
@@ -95,15 +114,15 @@ if (!file_exists($out) || filesize($bam_current) != filesize($out))
 }
 
 //run mapping QC
-$stafile2 = $basename."_stats_map.qcML";
-$params = array("-in $bam_current", "-out $stafile2", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
-if ($sys['target_file']=="" || $sys['type']=="lrGS")
+$qcml = $basename."_stats_map.qcML";
+$params = ["-in $bam_current", "-out $qcml", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build'])];
+if ($sys["target_file"]=="" || $sys["type"]=="lrGS")
 {
 	$params[] = "-wgs";
 }
 else
 {
-	$params[] = "-roi ".$sys['target_file'];
+	$params[] = "-roi ".$sys["target_file"];
 }
 if ($sys['build']!="GRCh38")
 {
@@ -111,7 +130,5 @@ if ($sys['build']!="GRCh38")
 }
 
 $parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
-
-
 
 ?>
