@@ -85,6 +85,14 @@
 
 		> rm -rf [run]
 
+## Troubleshooting: manual copy of runs
+1. ssh into NovaSeq X
+2. copy run (meta) data:
+```bash
+rsync -v -r --progress /usr/local/illumina/mnt/runs/[run] /mnt/storage3/[target]
+rsync -v -r --progress /usr/local/illumina/runs/[run] /mnt/storage3/[target]
+```  
+
 # APPENDIX: How to install bcl2fastq2
 
 1. Download and unzip the RPM file.
