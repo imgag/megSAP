@@ -14,8 +14,8 @@ $parser->addInfile("bed", "BED file with annotations e.g. GC-content and gene na
 $parser->addOutFile("out", "Output file in TSV format.", false);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 //optional
-$parser->addInt("cov_min", "Minimum number of referece coverage files required for CNV analysis.", true, 10);
-$parser->addInt("cov_max", "Maximum number of referece coverage files used for CNV analysis. This parameter is needed to keep run-time and RAM requirement manageable.", true, 150);
+$parser->addInt("cov_min", "Minimum number of reference coverage files required for CNV analysis.", true, 10);
+$parser->addInt("cov_max", "Maximum number of reference coverage files used for CNV analysis. This parameter is needed to keep run-time and RAM requirement manageable.", true, 150);
 $parser->addInt("cov_compare_max", "Maximum number of coverage files to compare during similarity calculation. Only possible with NGSD support enabled.", true, 600);
 $parser->addInt("max_cnvs", "Number of expected CNVs (~200 for WES and ~2000 for WGS).", true, 2000);
 $parser->addInt("max_tries", "Maximum number of tries for calling ClinCNV (R parallelization sometimes breaks with no reason", true, 10);
