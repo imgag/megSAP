@@ -2629,9 +2629,9 @@
 ##INFO=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
 ##INFO=<ID=END,Number=1,Type=Integer,Description="Last position (inclusive) in gVCF output record.">
 ##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
-##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|Feature|Feature_type|DOMAINS|SIFT|PolyPhen|Existing_variation|BIOTYPE|PUBMED">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|Feature|Feature_type|DOMAINS|Existing_variation|BIOTYPE|PUBMED">
 ##INFO=<ID=CSQ2,Number=.,Type=String,Description="Consequence annotations from VcfAnnotateConsequence. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp">
-##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="/tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/hg38.phyloP100way.bw (ngs-bits/VcfAnnotateFromBigWig - mode max)">
+##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="Annotation from hg38.phyloP100way.bw (mode max)">
 ##INFO=<ID=MES,Number=1,Type=String,Description="The MaxEntScan scores. FORMAT: A | separated list of maxentscan_ref&maxentscan_alt&transcript_name items.">
 ##INFO=<ID=MES_SWA,Number=1,Type=String,Description="The MaxEntScan SWA scores. FORMAT: A | separated list of maxentscan_ref_donor&maxentscan_alt_donor&maxentscan_donor_comp&maxentscan_ref_acceptor&maxentscan_alt_acceptor&maxentscan_acceptor_comp&transcript_name items.">
 ##INFO=<ID=gnomADg_AF,Number=A,Type=Float,Description="Alternate allele frequency in samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
@@ -2656,14 +2656,15 @@
 ##INFO=<ID=CADD_SNV,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_SNVs_1.6_GRCh38.vcf.gz)">
 ##INFO=<ID=CADD_INDEL,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_InDels_1.6_GRCh38.vcf.gz)">
 ##INFO=<ID=REVEL,Number=1,Type=Float,Description="Maximum REVEL score of all scored transcripts. (from file REVEL_1.3.vcf.gz)">
+##INFO=<ID=ALPHAMISSENSE,Number=1,Type=Float,Description="AlphaMissense score from AlphaMissense_hg38.tsv.gz (from file AlphaMissense_hg38.vcf.gz)">
 ##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3.1 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG); acceptor loss (AL); donor gain (DG); and donor loss (DL)(for all NGSD variants exported on 13.12.2020). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL (from file spliceai_scores_2022_12_30_GRCh38.vcf.gz)">
 ##INFO=<ID=NGSD_COUNTS,Number=3,Type=Integer,Description="Homozygous/Heterozygous/Mosaic variant counts in NGSD. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_HAF,Number=0,Type=Flag,Description="Indicates a allele frequency above a threshold of 0.05. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_CLAS,Number=1,Type=String,Description="Classification from the NGSD. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_CLAS_COM,Number=1,Type=String,Description="Classification comment from the NGSD. (from file NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_COM,Number=1,Type=String,Description="Variant comments from the NGSD. (from file NGSD_germline.vcf.gz)">
-##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="Annotation from /tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/RepeatMasker_GRCh38.bed delimited by '&'">
-##INFO=<ID=OMIM,Number=.,Type=String,Description="Annotation from /tmp/local_ngs_data_GRCh38//ensembl-vep-dbs/omim.bed delimited by '&'">
+##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="Annotation from RepeatMasker_GRCh38.bed delimited by '&'">
+##INFO=<ID=OMIM,Number=.,Type=String,Description="Annotation from omim.bed delimited by '&'">
 ##FILTER=<ID=low_conf_region,Description="Variant marked as 'low_conf_region'.">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##FORMAT=<ID=GQ,Number=1,Type=Float,Description="Genotype Quality, the Phred-scaled marginal (or unconditional) probability of the called genotype">
