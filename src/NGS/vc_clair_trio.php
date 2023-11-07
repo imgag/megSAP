@@ -29,7 +29,7 @@ $genome = genome_fasta($build);
 
 //output files
 $clair_temp = "{$folder}/clair_temp";
-$out = "{$folder}/{$name}_var.vcf.gz";
+$out = "{$folder}/trio_var.vcf.gz";
 
 //calculate target region
 if(isset($target))
@@ -45,16 +45,16 @@ if(isset($target))
 		$parser->copyFile($target, $target_extended);
 	}
 	
-	//add special target regions (regions with known pathogenic variants that are often captured by exome/panel, but not inside the target region)
-	if ($build=="GRCh38" && $target_extend>0) //only if extended (otherwise it is also added for chrMT calling, etc.)
-	{
-		$parser->exec(get_path("ngs-bits")."BedAdd"," -in $target_extended ".repository_basedir()."/data/misc/special_regions.bed -out $target_extended ", true);
-	}
+	// //add special target regions (regions with known pathogenic variants that are often captured by exome/panel, but not inside the target region)
+	// if ($build=="GRCh38" && $target_extend>0) //only if extended (otherwise it is also added for chrMT calling, etc.)
+	// {
+	// 	$parser->exec(get_path("ngs-bits")."BedAdd"," -in $target_extended ".repository_basedir()."/data/misc/special_regions.bed -out $target_extended ", true);
+	// }
 	
-	$target_merged = $parser->tempFile("_merged.bed");
-	$parser->exec(get_path("ngs-bits")."BedMerge"," -in $target_extended -out $target_merged", true);
+	// $target_merged = $parser->tempFile("_merged.bed");
+	// $parser->exec(get_path("ngs-bits")."BedMerge"," -in $target_extended -out $target_merged", true);
 	
-	$args[] = "--bed_fn={$target_merged}";
+	// $args[] = "--bed_fn={$target_merged}";
 }
 
 //prepare container
@@ -62,15 +62,16 @@ if(isset($target))
 //bind all required paths to the container
 $bind_paths = array();
 //input dirs (read-only)
-$bind_paths[] = dirname($bam_c).":ro";
-$bind_paths[] = dirname($bam_f).":ro";
-$bind_paths[] = dirname($bam_m).":ro";
-$bind_paths[] = dirname($target_extended).":ro";
-$bind_paths[] = dirname($genome).":ro";
-$bind_paths[] = $model.":ro";
-$bind_paths[] = $trio_model.":ro";
+$bind_paths[] = dirname($bam_c).":".dirname($bam_c).":ro";
+$bind_paths[] = dirname($bam_f).":".dirname($bam_f).":ro";
+$bind_paths[] = dirname($bam_m).":".dirname($bam_m).":ro";
+$bind_paths[] = dirname($target_extended).":".dirname($target_extended).":ro";
+$bind_paths[] = dirname($genome).":".dirname($genome).":ro";
+$bind_paths[] = $model.":".$model.":ro";
+$bind_paths[] = $trio_model.":".$trio_model.":ro";
 //output folder (read-write)
-$bind_paths[] = $clair_temp.":rw";
+$bind_paths[] = $clair_temp.":".$clair_temp.":rw";
+$parser->exec("mkdir", "-p {$clair_temp}");
 
 //set parameters for clair
 $args = array();
@@ -124,9 +125,11 @@ $parser->execPipeline($pipeline, "clair post processing");
 $vcf = Matrix::fromTSV($uncompressed_vcf);
 $comments = $vcf->getComments();
 $comments[] = "#reference={$genome}\n";
-$comments[] = "#ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n";
+$comments[] = "#ANALYSISTYPE=GERMLINE_TRIO\n";
 $comments[] = "#PIPELINE=".repository_revision(true)."\n";
-$comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"affected"), "#", "");
+$comments[] = gsvar_sample_header(basename2($bam_c), array("DiseaseStatus"=>"affected"), "#", "");
+$comments[] = gsvar_sample_header(basename2($bam_f), array("DiseaseStatus"=>"unaffected"), "#", "");
+$comments[] = gsvar_sample_header(basename2($bam_m), array("DiseaseStatus"=>"unaffected"), "#", "");
 $vcf->setComments(sort_vcf_comments($comments));
 $vcf->toTSV($uncompressed_vcf);
 

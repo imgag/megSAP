@@ -88,7 +88,7 @@ $var_file = $folder."/".$name.".GSvar";
 $rohfile = $folder."/".$name."_rohs.tsv";
 $baffile = $folder."/".$name."_bafs.igv";
 $ancestry_file = $folder."/".$name."_ancestry.tsv";
-$prsfile = $folder."/".$name."_prs.tsv";
+$prs_file = $folder."/".$name."_prs.tsv";
 $vcf_modcall = $folder."/".$name."_var_modcall.vcf";
 //copy-number calling
 $cnv_bin_size = get_path("cnv_bin_size_longread_wgs");
@@ -284,8 +284,8 @@ if (in_array("cn", $steps))
 
 }
 
-
-//structural variants
+//TODO: reactivate (disabled for testing phasing)
+// structural variants
 if (in_array("sv", $steps))
 {
 	//run Sniffles
@@ -303,16 +303,18 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	//create modcall file
 	if($contains_methylation)
 	{
+		//delete prev modcall file
+		if(file_exists($vcf_modcall)) $parser->exec("rm", $vcf_modcall);
 		$args = array();
 		$args[] = "modcall";
 		$args[] = "-b {$bam_file}";
 		$args[] = "-r {$genome}";
 		$args[] = "-t {$threads}";
-		$args[] = "-o {$vcf_modcall}";
+		$args[] = "-o ".substr($vcf_modcall, 0, -4);
 		$parser->exec(get_path("longphase"), implode(" ", $args));
+
+		trigger_error("Methylation annotation detected. Using intermediate modcall step.", E_USER_NOTICE);
 	}
-
-
 
 	//run phasing by LongPhase on VCF files
 	$phased_tmp = $parser->tempFile(".vcf", "longphase");
@@ -401,7 +403,7 @@ if (in_array("an", $steps))
 		$prs_scoring_files = glob($prs_folder."/*_".$build.".vcf");
 		if (count($prs_scoring_files) > 0)
 		{
-			$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcf_file -bam $used_bam_or_cram -out $prsfile -prs ".implode(" ", $prs_scoring_files)." -ref $genome", true);
+			$parser->exec("{$ngsbits}VcfCalculatePRS", "-in {$vcf_file} -bam {$bam_file} -out $prs_file -prs ".implode(" ", $prs_scoring_files)." -ref $genome", true);
 		}
 
 		//determine ancestry
@@ -519,7 +521,16 @@ if (in_array("an", $steps))
 		{
 			$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_file -out $bedpe_file -cnv $cnv_file", true);
 		}
+
+		//TODO:
+		//write genotype in own column
+		$parser->exec("{$ngsbits}BedpeExtractGenotype", "-in $bedpe_file -out $bedpe_file -include_unphased", true);
+
+		//extract columns
+		$parser->exec("{$ngsbits}BedpeExtractInfoFields", "-in $bedpe_file -out $bedpe_file -info_fields SUPPORT,COVERAGE,AF", true);
 	}
+
+	//TODO: Repeat-expansion using straglr
 }
 
 // collect other QC terms - if CNV or SV calling was done

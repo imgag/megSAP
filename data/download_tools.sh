@@ -49,7 +49,6 @@ cd Python-3.10.9
 ./configure --prefix=$folder/Python-3.10.9
 make
 make install
-cd .. 
 # install packages
 bin/pip3 install -r $root/install_deps_python.txt --no-warn-script-location
 rm -R Python-3.10.9
@@ -259,3 +258,23 @@ cd $folder
 wget https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
 tar xzf orad.2.6.1.tar.gz
 rm orad.2.6.1.tar.gz
+
+#download straglr
+cd $folder
+wget https://github.com/bcgsc/straglr/releases/download/v1.4.1/straglr-1.4.1.tar.gz
+tar xzf straglr-1.4.1.tar.gz
+rm straglr-1.4.1.tar.gz
+
+#download Tandem Repeats Finder
+cd $folder
+mkdir -p TRF_4.09
+cd TRF_4.09
+wget https://github.com/Benson-Genomics-Lab/TRF/releases/download/v4.09.1/trf409.linux64
+cd ..
+
+#download Blastn
+cd $folder
+wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.15.0+-x64-linux.tar.gz
+tar xzf ncbi-blast-2.15.0+-x64-linux.tar.gz
+rm ncbi-blast-2.15.0+-x64-linux.tar.gz
+

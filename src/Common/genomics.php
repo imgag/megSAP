@@ -2112,8 +2112,11 @@ function is_novaseq_x_run($run_parameters_xml)
 //check if BAM file contains methylation data (only check the first $n_rows)
 function contains_methylation($bam_file, $n_rows=100)
 {
-	//get header
-	list($stdout) = exec2(get_path("samtools")."view {$bam_file} | head -n {$n_rows}");
+	if (!file_exists($bam_file)) trigger_error("BAM file '{$bam_file}'", E_USER_ERROR);
+	// ignore errors occuring of unknown reason (broken pipe)
+	list($stdout) = exec2(get_path("samtools")." view {$bam_file} | head -n {$n_rows}", false);
+	//additional testing since we cannot rely on samtools error reporting
+	if (count($stdout) != $n_rows) trigger_error("Couldn't extract the first {$n_rows} rows of the BAM file!", E_USER_ERROR);
 
 	$n_mm = 0;
 	$n_ml = 0;

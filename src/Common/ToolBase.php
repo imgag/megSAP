@@ -875,7 +875,10 @@ class ToolBase
 		}
 
 		//compose Singularity command
-		$singularity_command = "singularity exec -B ".implode(",", $bind_path)." {$container_path} {$command_and_parameters}";
+		$singularity_command = "singularity exec -B ".implode(",", $bind_paths)." {$container_path} {$command_and_parameters}";
+
+		//TODO: remove 
+		$this->log("DEBUG: Singularity command:\t", array($singularity_command));
 		
 		$pid = getmypid();
 		//execute call - pipe stdout/stderr to file

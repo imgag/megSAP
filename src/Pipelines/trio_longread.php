@@ -117,6 +117,7 @@ $bedpe_out = "{$out_folder}/trio_var_structural_variants.bedpe";
 $sys = load_system($system, $sample_c); //required in case the the system is unset
 $sys_f = load_system($system, $sample_f);
 $sys_m = load_system($system, $sample_m);
+$build = $sys['build'];
 // check for long read data
 if($sys['type'] != "lrGS") trigger_error("Index case has to be long-read data!", E_USER_ERROR);
 if(($sys_f['type'] != "lrGS") || ($sys_m['type'] != "lrGS")) trigger_error("Parents have to be long-read data!", E_USER_ERROR);
@@ -129,21 +130,23 @@ foreach($steps as $step)
 }
 
 
-if ($annotation_only) $args_multisample[] = "-annotation_only";
-	
-
 //pre-analysis checks
 if (!$no_check)
 {
 	//check parent-child correlation
 	$min_corr = 0.45;
-	$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in $f $c -mode bam -max_snps 4000 -build ".ngsbits_build($sys['build']), true);
+	//TODO: validate for Longreads
+	$min_cov = 15; 
+	$c_gsvar = substr($c, 0, -4).".GSvar";
+	$f_gsvar = substr($f, 0, -4).".GSvar";
+	$m_gsvar = substr($m, 0, -4).".GSvar";
+	$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$f_gsvar} {$c_gsvar} -mode gsvar -min_cov {$min_cov} -max_snps 4000 -build ".ngsbits_build($build), true);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
 		trigger_error("The genotype correlation of father and child is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
 	}
-	$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in $m $c -mode bam -max_snps 4000 -build ".ngsbits_build($sys['build']), true);
+	$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$m_gsvar} {$c_gsvar} -mode gsvar -max_snps 4000 -build ".ngsbits_build($build), true);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
@@ -169,7 +172,22 @@ if (in_array("vc", $steps))
 	$args[] = "-threads ".$threads;
 	$args[] = "-build ".$build;
 	$args[] = "--log ".$parser->getLogFile();
-	$parser->execTool("Pipelines/clair_trio.php", implode(" ", $args), true); 
+	# determine model
+	if (($sys["name_short"] == "SQK-LSK114") || ($sys["name_short"] == "LR-ONT-SQK-LSK114"))
+	{
+		$args[] = "-model ".get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
+		$args[] = "-trio_model ".get_path("clair3_models")."/c3t_hg002_dna_r1041_e82_400bps_sup/";
+	}
+	else if ($sys["name_short"] == "SQK-LSK109")
+	{
+		$args[] = "-model ".get_path("clair3_models")."/r941_prom_sup_g5014/";
+		$args[] = "-trio_model ".get_path("clair3_models")."/c3t_hg002_r941_prom_sup_g5014/";
+	}
+	else
+	{
+		trigger_error("Unsupported processing system '".$sys["shortname"]."' provided!", E_USER_ERROR);
+	}
+	$parser->execTool("NGS/vc_clair_trio.php", implode(" ", $args), true); 
 
 }
 
@@ -335,7 +353,7 @@ if (in_array("an", $steps))
 			print "Medelian errors: ".number_format(100.0*$vars_mendelian_error/$vars_high_depth, 2)."% (of {$vars_high_depth} high-depth, autosomal variants)\n";
 			
 			//determine gender of child
-			list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c -build ".ngsbits_build($sys['build']), true);
+			list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c -build ".ngsbits_build($build), true);
 			$gender_data = explode("\t", $stdout[1])[1];
 			if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 			print "Gender of child (from data): {$gender_data}\n";
@@ -344,7 +362,7 @@ if (in_array("an", $steps))
 			fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data);
 			
 			//double check modified output file
-			$parser->execTool("NGS/check_tsv.php", "-in $gsvar -build ".$sys['build']);
+			$parser->execTool("NGS/check_tsv.php", "-in $gsvar -build {$build}");
 		}
 		else
 		{
