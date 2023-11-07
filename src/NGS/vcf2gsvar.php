@@ -50,13 +50,6 @@ function index_of($cols, $name, $label, $optonal = true)
 	return $index;
 }
 
-//format MaxEntScan score
-function format_mes($score)
-{
-	if ($score<0) $score = 0;
-	return number_format($score, 1);
-}
-
 //translate value (and throw error if not valid)
 function translate($error_name, $value, $dict)
 {
@@ -306,10 +299,9 @@ $column_desc = array(
 	array("gnomAD_het", "Heterozygous counts of the gnomAD project (genome data)."),
 	array("gnomAD_wt", "Wildtype counts of the gnomAD project (genome data)."),
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
-	array("Sift", "Sift effect prediction and score for each transcript: D=damaging, T=tolerated."),
-	array("PolyPhen", "PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
+	array("AlphaMissense", "AlphaMissense pathogenicity score. Deleterious threshold > 0.564."),
 	array("MaxEntScan", "MaxEntScan reference score and alternate score for (1) native splice site, (2) acceptor gain and (3) donor gain. Comma-separated list if there are different predictions for several transcripts."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
 	array("SpliceAI", "SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes."),
@@ -437,15 +429,7 @@ while(!feof($handle))
 			$i_featuretype = index_of($cols, "Feature_type", "CSQ");
 			$i_biotype = index_of($cols, "BIOTYPE", "CSQ");
 			$i_domains = index_of($cols, "DOMAINS", "CSQ");
-			$i_sift = index_of($cols, "SIFT", "CSQ");
-			$i_polyphen = index_of($cols, "PolyPhen", "CSQ");
 			$i_existingvariation = index_of($cols, "Existing_variation", "CSQ");
-			$i_maxes_ref = index_of($cols, "MaxEntScan_ref", "CSQ");
-			$i_maxes_alt = index_of($cols, "MaxEntScan_alt", "CSQ");
-			$i_maxes_a_ref = index_of($cols, "MES-SWA_acceptor_ref", "CSQ", true);
-			$i_maxes_a_alt = index_of($cols, "MES-SWA_acceptor_alt", "CSQ", true);
-			$i_maxes_d_ref = index_of($cols, "MES-SWA_donor_ref", "CSQ", true);
-			$i_maxes_d_alt = index_of($cols, "MES-SWA_donor_alt", "CSQ", true);
 			$i_pubmed = index_of($cols, "PUBMED", "CSQ"); 
 		}
 
@@ -721,9 +705,13 @@ while(!feof($handle))
 		$revel = explode("&", $info["REVEL"]);
 	}
 	
+	$alphamissense = [];
+	if (isset($info["ALPHAMISSENSE"])) 
+	{
+		$alphamissense = explode("&", $info["ALPHAMISSENSE"]);
+	}
+	
 	//variant details
-	$sift = array();
-	$polyphen = array();
 	$dbsnp = array();
 	$cosmic = array();
 	$genes = array();
@@ -748,14 +736,12 @@ while(!feof($handle))
 	//variant details (up/down-stream)
 	$variant_details_updown = array();
 	$genes_updown = array();
-	$sift_updown = array();
-	$polyphen_updown = array();
 	$coding_and_splicing_details_updown = array(); 
 
 	if (isset($info["CSQ"]) && isset($info["CSQ2"]))
 	{
-		//VEP - used for regulatory features, dbSNP, COSMIC, MaxEntScan, PubMed, Sift, PolyPhen, Domains
-		$vep = []; //transcript name without version > [domain, sift, polyphen]
+		//VEP - used for regulatory features, PubMed, Domains
+		$vep = []; //transcript name without version > domain
 		foreach(explode(",", $info["CSQ"]) as $entry)
 		{			
 			$parts = explode("|", $entry);
@@ -776,17 +762,6 @@ while(!feof($handle))
 				}
 			}
 			
-			//MaxEntScan
-			$score_pairs = [];
-			$score_pairs[] = $parts[$i_maxes_ref]!="" ? format_mes($parts[$i_maxes_ref]).">".format_mes($parts[$i_maxes_alt]) : "";
-			if ($i_maxes_a_ref!=-1) //also support old VCFs without MaxEntScan SWA parameter
-			{
-				$score_pairs[] = $parts[$i_maxes_a_ref]!="" ? format_mes($parts[$i_maxes_a_ref]).">".format_mes($parts[$i_maxes_a_alt]) : "";
-				$score_pairs[] = $parts[$i_maxes_d_ref]!="" ? format_mes($parts[$i_maxes_d_ref]).">".format_mes($parts[$i_maxes_d_alt]) : "";
-			}
-			$mes = trim(implode("/", $score_pairs));
-			if ($mes!="" && $mes!="//") $maxentscan[] = $mes;
-
 			//PubMed ids
 			if ($i_pubmed!==FALSE)
 			{
@@ -846,7 +821,7 @@ while(!feof($handle))
 				
 				$transcript_id_no_ver = explode('.', $transcript_id)[0];
 				
-				$vep[$transcript_id_no_ver] = [ $domain, $parts[$i_sift], $parts[$i_polyphen] ];			
+				$vep[$transcript_id_no_ver] = $domain;			
 			}
 			else if ($feature_type=="RegulatoryFeature")
 			{
@@ -927,58 +902,12 @@ while(!feof($handle))
 			$hgvs_p = trim($parts[$i_vac_hgvsp]);
 			$hgvs_p = str_replace("%3D", "=", $hgvs_p);
 			
-			//domain, SIFT and Polyphen from VEP
+			//domain from VEP
 			$domain = "";
 			$transcript_id_no_ver = explode('.', $transcript_id)[0];
 			if (isset($vep[$transcript_id_no_ver]))
 			{
-				list($domain, $sift_raw, $polyphen_raw) = $vep[$transcript_id_no_ver];
-				
-				//SIFT
-				list($sift_type, $sift_score) = explode("(", strtr($sift_raw, ")", "(")."(");
-				if ($sift_type!="")
-				{
-					$sift_type = translate("Sift", $sift_type, array("deleterious"=>"D", "tolerated"=>"T", "tolerated_low_confidence"=>"T", "deleterious_low_confidence"=>"D"));
-					$sift_score = number_format($sift_score, 2);
-					$sift_entry = $sift_type."($sift_score)";
-				}
-				else
-				{
-					$sift_entry = " ";
-				}
-				if (!$is_updown)
-				{
-					$sift[] = $sift_entry;
-				}
-				else
-				{
-					$sift_updown[] = $sift_entry;
-				}
-				
-				//Polyphen
-				list($pp_type, $pp_score) = explode("(", strtr($polyphen_raw, ")", "(")."(");
-				if ($pp_type!="")
-				{
-					$pp_type = translate("PolyPhen", $pp_type, array("unknown"=>" ",  "probably_damaging"=>"D", "possibly_damaging"=>"P", "benign"=>"B"));
-					$pp_score = number_format($pp_score, 2);
-					if (!is_numeric($pp_score))
-					{
-						print "ERROR: ".$polyphen_raw." ".$pp_score."\n";
-					}
-					$polyphen_entry = $pp_type."($pp_score)";
-				}
-				else
-				{
-					$polyphen_entry = " ";
-				}
-				if (!$is_updown)
-				{
-					$polyphen[] = $polyphen_entry;
-				}
-				else
-				{
-					$polyphen_updown[] = $polyphen_entry;
-				}
+				list($domain) = $vep[$transcript_id_no_ver];
 			}
 			//add transcript information
 			$transcript_entry = "{$gene}:{$transcript_id}:".$consequence.":".$parts[$i_vac_impact].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}:{$domain}";
@@ -991,6 +920,55 @@ while(!feof($handle))
 				$coding_and_splicing_details_updown[] = $transcript_entry;
 			}
 		}	
+	}
+		
+	//MaxEntScan
+	$mes_by_trans = [];
+	if (isset($info["MES"])) //parse MES scores for native splice site
+	{
+		foreach(explode("|", $info["MES"]) as $mes_entry)
+		{
+			$parts = explode("&", trim($mes_entry));
+			if (count($parts)!=3) continue;
+			
+			list($mes_ref, $mes_alt, $mes_trans) = $parts;
+			$mes_by_trans[$mes_trans] = [$mes_ref, $mes_alt, "", "", "", ""];
+		}
+	}
+	if (isset($info["MES_SWA"])) //parse MES scores generated by SWA
+	{
+		foreach(explode("|", $info["MES_SWA"]) as $mes_entry)
+		{
+			$parts = explode("&", trim($mes_entry));
+			if (count($parts)!=7) continue;
+			
+			list($d_mes_ref, $d_mes_alt, $d_mes_comp, $a_mes_ref, $a_mes_alt, $a_mes_comp, $mes_trans) = $parts;
+			
+			$mes_ref = "";
+			$mes_alt = "";
+			if (isset($mes_by_trans[$mes_trans]))
+			{
+				list($mes_ref, $mes_alt) = $mes_by_trans[$mes_trans];
+			}
+			$mes_by_trans[$mes_trans] = [$mes_ref, $mes_alt, $a_mes_ref, $a_mes_alt, $d_mes_ref, $d_mes_alt];
+		}
+	}
+	foreach($mes_by_trans as $mes_trans => list($mes_ref, $mes_alt, $a_mes_ref, $a_mes_alt, $d_mes_ref, $d_mes_alt))
+	{
+		$parts = ["", "", ""];
+		if($mes_ref!="" && $mes_alt!="")
+		{
+			$parts[0] = $mes_ref.">".$mes_alt;
+		}
+		if($a_mes_ref!="" && $a_mes_alt!="")
+		{
+			$parts[1] = $a_mes_ref.">".$a_mes_alt;
+		}
+		if($d_mes_ref!="" && $d_mes_alt!="")
+		{
+			$parts[2] = $d_mes_ref.">".$d_mes_alt;
+		}
+		$maxentscan[] = implode("/", $parts);
 	}
 
 	//gnomAD AF
@@ -1274,8 +1252,6 @@ while(!feof($handle))
 	{
 		$variant_details = array_merge($variant_details, $variant_details_updown);
 		$genes = array_merge($genes, $genes_updown);
-		$sift = array_merge($sift, $sift_updown);
-		$polyphen = array_merge($polyphen, $polyphen_updown);
 		$coding_and_splicing_details = array_merge($coding_and_splicing_details, $coding_and_splicing_details_updown);
 	}
 	
@@ -1294,12 +1270,8 @@ while(!feof($handle))
 	
 	//effect predicions
 	$phylop = collapse($tag, "phyloP", $phylop, "one", 4);
-	$sift = implode(",", $sift);
-	if (trim(strtr($sift, ",", " "))=="") $sift = "";
-	$polyphen = implode(",", $polyphen);
-	if (trim(strtr($polyphen, ",", " "))=="") $polyphen = "";
-	
 	$revel = empty($revel) ? "" : collapse($tag, "REVEL", $revel, "max", 2);
+	$alphamissense = empty($alphamissense) ? "" : collapse($tag, "AlphaMissense", $alphamissense, "max", 2);
 	
 	//OMIM
 	$omim = "";
@@ -1335,7 +1307,7 @@ while(!feof($handle))
 	{
 		fwrite($handle_out,"\t".$phasing_info);
 	}
-	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
+	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$cadd\t$revel\t$alphamissense\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");

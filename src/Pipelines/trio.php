@@ -100,9 +100,9 @@ $parser->addFlag("annotation_only", "Performs only a reannotation of the already
 extract($parser->parse($argv));
 
 //init
-$sample_c = basename($c, ".bam");
-$sample_f = basename($f, ".bam");
-$sample_m = basename($m, ".bam");
+$sample_c = basename2($c);
+$sample_f = basename2($f);
+$sample_m = basename2($m);
 
 // create logfile in output folder if no filepath is provided:
 if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/trio_".date("YmdHis").".log");
@@ -147,7 +147,7 @@ if ($annotation_only)
 }
 
 //prepare multi-sample paramters
-$sys = load_system($system, basename($c, ".bam")); //required in case the the system is unset
+$sys = load_system($system, $sample_c); //required in case the the system is unset
 $args_multisample = [
 	"-bams $c $f $m",
 	"-status affected control control",
@@ -309,7 +309,7 @@ if (in_array("cn", $steps))
 				"-m {$sample_m}",
 				"-out {$out_folder}/trio_upd.tsv",
 				];
-			$base = substr($c, 0, -4);
+			$base = dirname($c)."/".basename2($c);
 			if (file_exists("{$base}_cnvs.tsv"))
 			{
 				$args_upd[] = "-exclude {$base}_cnvs.tsv";

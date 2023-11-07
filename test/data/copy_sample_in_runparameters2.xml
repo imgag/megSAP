@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunParameters xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Side>A</Side>
+  <Application>control-software</Application>
+  <SystemSuiteVersion>1.1.0.18335</SystemSuiteVersion>
+  <OutputFolder>storage:/storage/raw_data/SEQ/20230101_LH12345_0169_AH5LG5BDXX</OutputFolder>
+  <CloudUploadMode>None</CloudUploadMode>
+  <RunSetupMode>LocalOrchestrated</RunSetupMode>
+  <SecondaryAnalysisMode>LocalAnalysis</SecondaryAnalysisMode>
+  <InstrumentType>NovaSeqXPlus</InstrumentType>
+  <InstrumentSerialNumber>LH12345</InstrumentSerialNumber>
+  <RunId>20230101_LH12345_0169_AH5LG5BDXX</RunId>
+  <RunCounter>3</RunCounter>
+  <RecipeName>10B Sequencing</RecipeName>
+  <RecipeVersion>10B-01.01.00</RecipeVersion>
+  <ExperimentName>01489</ExperimentName>
+  <FlowCellName>NovaSeqXSeries B3</FlowCellName>
+  <FlowCellType>NovaSeqXSeriesB3</FlowCellType>
+  <ScanSpeedMmPerSec>1.2345678</ScanSpeedMmPerSec>
+  <ConsumableInfo>
+    <ConsumableInfo>
+      <SerialNumber>00000000</SerialNumber>
+      <LotNumber>00000000</LotNumber>
+      <PartNumber>00000000</PartNumber>
+      <ExpirationDate>2025-01-01T00:00:00+01:00</ExpirationDate>
+      <Type>FlowCell</Type>
+      <Mode>10B</Mode>
+    </ConsumableInfo>
+    <ConsumableInfo>
+      <SerialNumber>LC0000000-LC3</SerialNumber>
+      <LotNumber>00000000</LotNumber>
+      <PartNumber>00000000</PartNumber>
+      <ExpirationDate>2025-01-01T00:00:00+01:00</ExpirationDate>
+      <Type>Reagent</Type>
+      <Mode>10B</Mode>
+    </ConsumableInfo>
+    <ConsumableInfo>
+      <SerialNumber>LC0000000000-1</SerialNumber>
+      <LotNumber>00000000</LotNumber>
+      <PartNumber>00000000</PartNumber>
+      <ExpirationDate>2025-01-01T00:00:00+01:00</ExpirationDate>
+      <Type>Buffer</Type>
+      <Mode>10B</Mode>
+    </ConsumableInfo>
+    <ConsumableInfo>
+      <SerialNumber>LC0000000-LC1</SerialNumber>
+      <LotNumber>00000000</LotNumber>
+      <PartNumber>00000000</PartNumber>
+      <ExpirationDate>2025-01-01T00:00:00+01:00</ExpirationDate>
+      <Type>SampleTube</Type>
+      <Mode>10B</Mode>
+    </ConsumableInfo>
+    <ConsumableInfo>
+      <SerialNumber>LC0000000-LC1</SerialNumber>
+      <LotNumber>00000000</LotNumber>
+      <PartNumber>00000000</PartNumber>
+      <ExpirationDate>2025-01-01T00:00:00+01:00</ExpirationDate>
+      <Type>Lyo</Type>
+      <Mode>10B</Mode>
+    </ConsumableInfo>
+  </ConsumableInfo>
+  <PlannedReads>
+    <Read ReadName="Read1" Cycles="151" />
+    <Read ReadName="Index1" Cycles="10" />
+    <Read ReadName="Index2" Cycles="10" />
+    <Read ReadName="Read2" Cycles="151" />
+  </PlannedReads>
+  <SecondaryAnalysisInfo>
+    <SecondaryAnalysisInfo>
+      <SecondaryAnalysisPlatformVersion>4.1.7</SecondaryAnalysisPlatformVersion>
+      <SecondaryAnalysisWorkflow>
+        <string>DRAGEN BCL Convert</string>
+      </SecondaryAnalysisWorkflow>
+    </SecondaryAnalysisInfo>
+  </SecondaryAnalysisInfo>
+</RunParameters>

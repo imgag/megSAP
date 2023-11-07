@@ -115,7 +115,7 @@ $names = array();
 $tmp = array();
 foreach($bams as $bam)
 {
-	$name = basename($bam, ".bam");
+	$name = basename2($bam);
 	if (isset($tmp[$name]))
 	{
 		trigger_error("Sample file name '$name' occurs twice in input file list. Each sample must be uniquely indentifyable by name!", E_USER_ERROR);
@@ -176,23 +176,34 @@ if (!file_exists($out_folder))
 	}
 }
 
-// copy BAM files to local tmp 
+//copy BAM files to local tmp for variant calling
 if (!$annotation_only && (in_array("vc", $steps) || in_array("sv", $steps)))
 {
+	$tmp_bam_folder = $parser->tempFolder("local_copy_of_bams_");
 	$local_bams = array();
-	$tmp_bam_folder = $parser->tempFolder("bam_");
 	foreach($bams as $bam)
 	{
-		if (!file_exists($bam)) trigger_error("BAM file '$bam' not found in Sample folder! Cannot perform any calling steps!", E_USER_ERROR);
-		if (!file_exists($bam.".bai")) trigger_error("BAM index file for BAM '$bam' not found in Sample folder!", E_USER_ERROR);
-		$local_bam = $tmp_bam_folder."/".basename($bam);
-		$parser->copyFile($bam, $local_bam);
-		$parser->copyFile($bam.".bai", $local_bam.".bai");
-		$local_bams[] = $local_bam;
+		//convert to BAM if CRAM
+		$bam = convert_to_bam_if_cram($bam, $parser, $sys['build'], $threads, $tmp_bam_folder);
+		
+		//check BAM/BAI exist
+		if (!file_exists($bam)) trigger_error("BAM file '{$bam}' does not exist!", E_USER_ERROR);
+		if (!file_exists($bam.".bai")) trigger_error("BAM index file '{$bam}.bai' does not exist!", E_USER_ERROR);
+		
+		//create local copy if not already local file
+		if (starts_with($bam, $tmp_bam_folder))
+		{
+			$local_bams[] = $bam;
+		}
+		else
+		{
+			$local_bam = $tmp_bam_folder."/".basename($bam);
+			$parser->copyFile($bam, $local_bam);
+			$parser->copyFile($bam.".bai", $local_bam.".bai");
+			$local_bams[] = $local_bam;
+		}
 	}
 }
-
-
 
 //(1) variant calling of all samples together (with very conservative parameters)
 $mito = enable_special_mito_vc($sys);
@@ -347,7 +358,7 @@ if (in_array("cn", $steps))
 		$cn_types = array();
 		foreach($bams as $bam)
 		{
-			$base = substr($bam, 0, -4);
+			$base = dirname($bam)."/".basename2($bam);
 			$filename_cnvhunter = $base."_cnvs.tsv";
 			$filename_clincnv = $base."_cnvs_clincnv.tsv";
 			
@@ -395,11 +406,11 @@ if (in_array("cn", $steps))
 			$cnv_data = array();
 			foreach($bams as $bam)
 			{
-				$ps_name = basename($bam, ".bam");
+				$ps_name = basename2($bam);
 				
 				//parse CNV file
 				$data = array();
-				$file = file(substr($bam, 0, -4)."_cnvs_clincnv.tsv");
+				$file = file(dirname($bam)."/{$ps_name}_cnvs_clincnv.tsv");
 				foreach($file as $line)
 				{
 					$line = nl_trim($line);
@@ -543,7 +554,7 @@ if (in_array("cn", $steps))
 				//parse CNV file
 				$cnv_num = 0;
 				$data = array();
-				$file = file(substr($bam, 0, -4)."_cnvs.tsv");
+				$file = file(dirname($bam)."/".basename2($bam)."_cnvs.tsv");
 				foreach($file as $line)
 				{
 					$line = nl_trim($line);
@@ -719,10 +730,9 @@ if (in_array("cn", $steps))
 				"##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).",
 				"##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.",
 				"##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.",
-				"##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.",
-				"##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.",
 				"##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.",
 				"##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.",
+				"##DESCRIPTION=AlphaMissense=AlphaMissense pathogenicity prediction score. Deleterious threshold > 0.564.",
 				"##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).",
 				"##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.",
 				"##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.",
@@ -737,7 +747,7 @@ if (in_array("cn", $steps))
 				"##FILTER=off-target=Variant marked as 'off-target'."
 				);
 			$content = array_merge($content, $desc_and_filter);
-			$content[] = "#chr	start	end	ref	obs	".implode("\t", array_values($names))."	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	CADD	REVEL	MaxEntScan	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info";
+			$content[] = "#chr	start	end	ref	obs	".implode("\t", array_values($names))."	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	CADD	REVEL	MaxEntScan	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info";
 			file_put_contents($gsvar, implode("\n", $content));
 		}
 	}
@@ -753,7 +763,7 @@ if (in_array("cn", $steps))
 		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$cnv_multi}", true);
 
 		//annotate additional gene info
-		$parser->exec("{$ngsbits}CnvGeneAnnotation", "-in {$cnv_multi} -out {$cnv_multi} -add_simple_gene_names", true);
+		$parser->exec("{$ngsbits}CnvGeneAnnotation", "-in {$cnv_multi} -add_simple_gene_names -out {$cnv_multi}", true);
 		
 		//dosage sensitive disease genes
 		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", true);

@@ -2,7 +2,7 @@
 all: clean link map vc cn diff reanno
 
 clean:
-	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid *_ancestry.tsv *_bafs.igv
+	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid *_ancestry.tsv *_bafs.igv
 	
 link:
 	php ../link_test_data.php NA12878_02_AACGTGAT_L001_R1_001.fastq.gz

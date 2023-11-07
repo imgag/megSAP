@@ -13,10 +13,10 @@
     <metaDataParameter ID="md0005" name="linked file" value="roi_patient.bed" uri="roi_patient.bed" cvRef="QC" accession="QC:1000006" />
     <metaDataParameter ID="md0006" name="linked file" value="error_rates.txt" uri="error_rates.txt" cvRef="QC" accession="QC:1000006" />
     <qualityParameter ID="qp0001" name="monitoring variant read depth" description="" value="4392.00" cvRef="QC" accession="QC:2000077"/>
-    <qualityParameter ID="qp0002" name="ID variant read depth" description="" value="0.00" cvRef="QC" accession="QC:2000078"/>
-    <qualityParameter ID="qp0003" name="monitoring variant count" description="" value="2" cvRef="QC" accession="QC:2000079"/>
-    <qualityParameter ID="qp0004" name="250x coverage monitoring variant percentage" description="" value="100.00" cvRef="QC" accession="QC:2000080"/>
-    <qualityParameter ID="qp0005" name="ID variant count" description="" value="1" cvRef="QC" accession="QC:2000081"/>
+    <qualityParameter ID="qp0002" name="monitoring variant count" description="" value="2" cvRef="QC" accession="QC:2000079"/>
+    <qualityParameter ID="qp0003" name="250x coverage monitoring variant percentage" description="" value="100.00" cvRef="QC" accession="QC:2000080"/>
+    <qualityParameter ID="qp0004" name="ID variant count" description="" value="1" cvRef="QC" accession="QC:2000081"/>
+    <qualityParameter ID="qp0005" name="ID variant read depth" description="" value="0.00" cvRef="QC" accession="QC:2000078"/>
     <qualityParameter ID="qp0006" name="250x coverage ID variant percentage" description="" value="0.00" cvRef="QC" accession="QC:2000082"/>
     <qualityParameter ID="qp0007" name="umiVar error rate 1-fold duplication" description="" value="0.00112519" cvRef="QC" accession="QC:2000085"/>
     <qualityParameter ID="qp0008" name="umiVar error rate 2-fold duplication" description="" value="0.00136499" cvRef="QC" accession="QC:2000086"/>

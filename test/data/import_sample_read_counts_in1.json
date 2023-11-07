@@ -1,0 +1,637 @@
+{
+	"Flowcell" : "FCID4711",
+	"RunNumber" : 1,
+	"RunId" : "230922_FCID4711_0001_BFCID4711",
+	"ReadInfosForLanes" : [
+	 {
+	  "LaneNumber" : 1,
+	  "ReadInfos" : [
+	   {
+		"Number" : 1,
+		"NumCycles" : 100,
+		"IsIndexedRead" : false
+	   },
+	   {
+		"Number" : 1,
+		"NumCycles" : 8,
+		"IsIndexedRead" : true
+	   },
+	   {
+		"Number" : 2,
+		"NumCycles" : 8,
+		"IsIndexedRead" : true
+	   },
+	   {
+		"Number" : 2,
+		"NumCycles" : 100,
+		"IsIndexedRead" : false
+	   }
+	  ]
+	 },
+	 {
+	  "LaneNumber" : 2,
+	  "ReadInfos" : [
+	   {
+		"Number" : 1,
+		"NumCycles" : 100,
+		"IsIndexedRead" : false
+	   },
+	   {
+		"Number" : 1,
+		"NumCycles" : 8,
+		"IsIndexedRead" : true
+	   },
+	   {
+		"Number" : 2,
+		"NumCycles" : 8,
+		"IsIndexedRead" : true
+	   },
+	   {
+		"Number" : 2,
+		"NumCycles" : 100,
+		"IsIndexedRead" : false
+	   }
+	  ]
+	 },
+	 {
+	  "LaneNumber" : 3,
+	  "ReadInfos" : [
+	   {
+		"Number" : 1,
+		"NumCycles" : 100,
+		"IsIndexedRead" : false
+	   },
+	   {
+		"Number" : 1,
+		"NumCycles" : 8,
+		"IsIndexedRead" : true
+	   },
+	   {
+		"Number" : 2,
+		"NumCycles" : 8,
+		"IsIndexedRead" : true
+	   },
+	   {
+		"Number" : 2,
+		"NumCycles" : 100,
+		"IsIndexedRead" : false
+	   }
+	  ]
+	 },
+	 {
+	  "LaneNumber" : 4,
+	  "ReadInfos" : [
+	   {
+		"Number" : 1,
+		"NumCycles" : 100,
+		"IsIndexedRead" : false
+	   },
+	   {
+		"Number" : 1,
+		"NumCycles" : 8,
+		"IsIndexedRead" : true
+	   },
+	   {
+		"Number" : 2,
+		"NumCycles" : 8,
+		"IsIndexedRead" : true
+	   },
+	   {
+		"Number" : 2,
+		"NumCycles" : 100,
+		"IsIndexedRead" : false
+	   }
+	  ]
+	 }
+	],
+	"ConversionResults" : [
+	 {
+	  "LaneNumber" : 1,
+	  "TotalClustersRaw" : 3154287144,
+	  "TotalClustersPF" : 2326584225,
+	  "Yield" : 792956432102,
+	  "DemuxResults" : [
+	   {
+		"SampleId" : "Sample_DX180049_01",
+		"SampleName" : "DX180049_01",
+		"IndexMetrics" : [
+		 {
+		  "IndexSequence" : "ATATCTCG+ACTAAGAT",
+		  "MismatchCounts" : {
+		   "0" : 27743917,
+		   "1" : 2873419
+		  }
+		 }
+		],
+		"NumberReads" : 14906013,
+		"Yield" : 9736312848,
+		"ReadMetrics" : [
+		 {
+		  "ReadNumber" : 1,
+		  "Yield" : 4868156424,
+		  "YieldQ30" : 4272248029,
+		  "QualityScoreSum" : 169427972010,
+		  "TrimmedBases" : 0
+		 },
+		 {
+		  "ReadNumber" : 2,
+		  "Yield" : 4868156424,
+		  "YieldQ30" : 4154669719,
+		  "QualityScoreSum" : 167030072809,
+		  "TrimmedBases" : 0
+		 }
+		]
+	   },
+	   {
+		"SampleId" : "Sample_DX180049_05",
+		"SampleName" : "DX180049_05",
+		"IndexMetrics" : [
+		 {
+		  "IndexSequence" : "CTCACCAA+TTGCCTAG",
+		  "MismatchCounts" : {
+		   "0" : 44566765,
+		   "1" : 3347156
+		  }
+		 }
+		],
+		"NumberReads" : 17971101,
+		"Yield" : 15236626878,
+		"ReadMetrics" : [
+		 {
+		  "ReadNumber" : 1,
+		  "Yield" : 7618313439,
+		  "YieldQ30" : 6690588614,
+		  "QualityScoreSum" : 265250205226,
+		  "TrimmedBases" : 0
+		 },
+		 {
+		  "ReadNumber" : 2,
+		  "Yield" : 7618313439,
+		  "YieldQ30" : 6483784079,
+		  "QualityScoreSum" : 261108151852,
+		  "TrimmedBases" : 0
+		 }
+		]
+	   },
+	   {
+		"SampleId" : "Sample_DX180050_02",
+		"SampleName" : "DX180050_02",
+		"IndexMetrics" : [
+		 {
+		  "IndexSequence" : "CGCTATGT+GTGTCGGA",
+		  "MismatchCounts" : {
+		   "0" : 42832406,
+		   "1" : 2761442
+		  }
+		 }
+		],
+		"NumberReads" : 15096202,
+		"Yield" : 14498843664,
+		"ReadMetrics" : [
+		 {
+		  "ReadNumber" : 1,
+		  "Yield" : 7249421832,
+		  "YieldQ30" : 6372032475,
+		  "QualityScoreSum" : 252508269593,
+		  "TrimmedBases" : 0
+		 },
+		 {
+		  "ReadNumber" : 2,
+		  "Yield" : 7249421832,
+		  "YieldQ30" : 6158923662,
+		  "QualityScoreSum" : 248170514630,
+		  "TrimmedBases" : 0
+		 }
+		]
+	   },
+	   {
+		"SampleId" : "Sample_DX181278_05",
+		"SampleName" : "DX181278_05",
+		"IndexMetrics" : [
+		 {
+		  "IndexSequence" : "GTATGTTC+TTCCTGTT",
+		  "MismatchCounts" : {
+		   "0" : 50878114,
+		   "1" : 3318740
+		  }
+		 }
+		],
+		"NumberReads" : 16199212,
+		"Yield" : 17234599572,
+		"ReadMetrics" : [
+		 {
+		  "ReadNumber" : 1,
+		  "Yield" : 8617299786,
+		  "YieldQ30" : 7578834405,
+		  "QualityScoreSum" : 300233195479,
+		  "TrimmedBases" : 0
+		 },
+		 {
+		  "ReadNumber" : 2,
+		  "Yield" : 8617299786,
+		  "YieldQ30" : 7443210603,
+		  "QualityScoreSum" : 297449748728,
+		  "TrimmedBases" : 0
+		 }
+		]
+	   }
+		]
+	  },
+	  {
+		"LaneNumber" : 2,
+		"TotalClustersRaw" : 3154287144,
+		"TotalClustersPF" : 2326584225,
+		"Yield" : 792956432102,
+		"DemuxResults" : [
+		 {
+		  "SampleId" : "Sample_DX180049_01",
+		  "SampleName" : "DX180049_01",
+		  "IndexMetrics" : [
+		   {
+			"IndexSequence" : "ATATCTCG+ACTAAGAT",
+			"MismatchCounts" : {
+			 "0" : 27743917,
+			 "1" : 2873419
+			}
+		   }
+		  ],
+		  "NumberReads" : 14906013,
+		  "Yield" : 9736312848,
+		  "ReadMetrics" : [
+		   {
+			"ReadNumber" : 1,
+			"Yield" : 4868156424,
+			"YieldQ30" : 4272248029,
+			"QualityScoreSum" : 169427972010,
+			"TrimmedBases" : 0
+		   },
+		   {
+			"ReadNumber" : 2,
+			"Yield" : 4868156424,
+			"YieldQ30" : 4154669719,
+			"QualityScoreSum" : 167030072809,
+			"TrimmedBases" : 0
+		   }
+		  ]
+		 },
+		 {
+		  "SampleId" : "Sample_DX180049_05",
+		  "SampleName" : "DX180049_05",
+		  "IndexMetrics" : [
+		   {
+			"IndexSequence" : "CTCACCAA+TTGCCTAG",
+			"MismatchCounts" : {
+			 "0" : 44566765,
+			 "1" : 3347156
+			}
+		   }
+		  ],
+		  "NumberReads" : 17971101,
+		  "Yield" : 15236626878,
+		  "ReadMetrics" : [
+		   {
+			"ReadNumber" : 1,
+			"Yield" : 7618313439,
+			"YieldQ30" : 6690588614,
+			"QualityScoreSum" : 265250205226,
+			"TrimmedBases" : 0
+		   },
+		   {
+			"ReadNumber" : 2,
+			"Yield" : 7618313439,
+			"YieldQ30" : 6483784079,
+			"QualityScoreSum" : 261108151852,
+			"TrimmedBases" : 0
+		   }
+		  ]
+		 },
+		 {
+		  "SampleId" : "Sample_DX180050_02",
+		  "SampleName" : "DX180050_02",
+		  "IndexMetrics" : [
+		   {
+			"IndexSequence" : "CGCTATGT+GTGTCGGA",
+			"MismatchCounts" : {
+			 "0" : 42832406,
+			 "1" : 2761442
+			}
+		   }
+		  ],
+		  "NumberReads" : 15096202,
+		  "Yield" : 14498843664,
+		  "ReadMetrics" : [
+		   {
+			"ReadNumber" : 1,
+			"Yield" : 7249421832,
+			"YieldQ30" : 6372032475,
+			"QualityScoreSum" : 252508269593,
+			"TrimmedBases" : 0
+		   },
+		   {
+			"ReadNumber" : 2,
+			"Yield" : 7249421832,
+			"YieldQ30" : 6158923662,
+			"QualityScoreSum" : 248170514630,
+			"TrimmedBases" : 0
+		   }
+		  ]
+		 },
+		 {
+		  "SampleId" : "Sample_DX181278_05",
+		  "SampleName" : "DX181278_05",
+		  "IndexMetrics" : [
+		   {
+			"IndexSequence" : "GTATGTTC+TTCCTGTT",
+			"MismatchCounts" : {
+			 "0" : 50878114,
+			 "1" : 3318740
+			}
+		   }
+		  ],
+		  "NumberReads" : 16199212,
+		  "Yield" : 17234599572,
+		  "ReadMetrics" : [
+		   {
+			"ReadNumber" : 1,
+			"Yield" : 8617299786,
+			"YieldQ30" : 7578834405,
+			"QualityScoreSum" : 300233195479,
+			"TrimmedBases" : 0
+		   },
+		   {
+			"ReadNumber" : 2,
+			"Yield" : 8617299786,
+			"YieldQ30" : 7443210603,
+			"QualityScoreSum" : 297449748728,
+			"TrimmedBases" : 0
+		   }
+		  ]
+		 }
+		  ]
+		},
+		{
+		"LaneNumber" : 3,
+		"TotalClustersRaw" : 3154287144,
+		"TotalClustersPF" : 2326584225,
+		"Yield" : 792956432102,
+		"DemuxResults" : [
+			{
+			"SampleId" : "Sample_DX180049_01",
+			"SampleName" : "DX180049_01",
+			"IndexMetrics" : [
+			{
+			"IndexSequence" : "ATATCTCG+ACTAAGAT",
+			"MismatchCounts" : {
+				"0" : 27743917,
+				"1" : 2873419
+			}
+			}
+			],
+			"NumberReads" : 14906013,
+			"Yield" : 9736312848,
+			"ReadMetrics" : [
+			{
+			"ReadNumber" : 1,
+			"Yield" : 4868156424,
+			"YieldQ30" : 4272248029,
+			"QualityScoreSum" : 169427972010,
+			"TrimmedBases" : 0
+			},
+			{
+			"ReadNumber" : 2,
+			"Yield" : 4868156424,
+			"YieldQ30" : 4154669719,
+			"QualityScoreSum" : 167030072809,
+			"TrimmedBases" : 0
+			}
+			]
+			},
+			{
+			"SampleId" : "Sample_DX180049_05",
+			"SampleName" : "DX180049_05",
+			"IndexMetrics" : [
+			{
+			"IndexSequence" : "CTCACCAA+TTGCCTAG",
+			"MismatchCounts" : {
+				"0" : 44566765,
+				"1" : 3347156
+			}
+			}
+			],
+			"NumberReads" : 17971101,
+			"Yield" : 15236626878,
+			"ReadMetrics" : [
+			{
+			"ReadNumber" : 1,
+			"Yield" : 7618313439,
+			"YieldQ30" : 6690588614,
+			"QualityScoreSum" : 265250205226,
+			"TrimmedBases" : 0
+			},
+			{
+			"ReadNumber" : 2,
+			"Yield" : 7618313439,
+			"YieldQ30" : 6483784079,
+			"QualityScoreSum" : 261108151852,
+			"TrimmedBases" : 0
+			}
+			]
+			},
+			{
+			"SampleId" : "Sample_DX180050_02",
+			"SampleName" : "DX180050_02",
+			"IndexMetrics" : [
+			{
+			"IndexSequence" : "CGCTATGT+GTGTCGGA",
+			"MismatchCounts" : {
+				"0" : 42832406,
+				"1" : 2761442
+			}
+			}
+			],
+			"NumberReads" : 15096202,
+			"Yield" : 14498843664,
+			"ReadMetrics" : [
+			{
+			"ReadNumber" : 1,
+			"Yield" : 7249421832,
+			"YieldQ30" : 6372032475,
+			"QualityScoreSum" : 252508269593,
+			"TrimmedBases" : 0
+			},
+			{
+			"ReadNumber" : 2,
+			"Yield" : 7249421832,
+			"YieldQ30" : 6158923662,
+			"QualityScoreSum" : 248170514630,
+			"TrimmedBases" : 0
+			}
+			]
+			},
+			{
+			"SampleId" : "Sample_DX181278_05",
+			"SampleName" : "DX181278_05",
+			"IndexMetrics" : [
+			{
+			"IndexSequence" : "GTATGTTC+TTCCTGTT",
+			"MismatchCounts" : {
+				"0" : 50878114,
+				"1" : 3318740
+			}
+			}
+			],
+			"NumberReads" : 16199212,
+			"Yield" : 17234599572,
+			"ReadMetrics" : [
+			{
+			"ReadNumber" : 1,
+			"Yield" : 8617299786,
+			"YieldQ30" : 7578834405,
+			"QualityScoreSum" : 300233195479,
+			"TrimmedBases" : 0
+			},
+			{
+			"ReadNumber" : 2,
+			"Yield" : 8617299786,
+			"YieldQ30" : 7443210603,
+			"QualityScoreSum" : 297449748728,
+			"TrimmedBases" : 0
+			}
+			]
+			}
+			]
+		},
+		{
+		"LaneNumber" : 4,
+		"TotalClustersRaw" : 3154287144,
+		"TotalClustersPF" : 2326584225,
+		"Yield" : 792956432102,
+		"DemuxResults" : [
+			{
+			"SampleId" : "Sample_DX180049_01",
+			"SampleName" : "DX180049_01",
+			"IndexMetrics" : [
+			{
+			"IndexSequence" : "ATATCTCG+ACTAAGAT",
+			"MismatchCounts" : {
+				"0" : 27743917,
+				"1" : 2873419
+			}
+			}
+			],
+			"NumberReads" : 14906013,
+			"Yield" : 9736312848,
+			"ReadMetrics" : [
+			{
+			"ReadNumber" : 1,
+			"Yield" : 4868156424,
+			"YieldQ30" : 4272248029,
+			"QualityScoreSum" : 169427972010,
+			"TrimmedBases" : 0
+			},
+			{
+			"ReadNumber" : 2,
+			"Yield" : 4868156424,
+			"YieldQ30" : 4154669719,
+			"QualityScoreSum" : 167030072809,
+			"TrimmedBases" : 0
+			}
+			]
+			},
+			{
+			"SampleId" : "Sample_DX180049_05",
+			"SampleName" : "DX180049_05",
+			"IndexMetrics" : [
+			{
+			"IndexSequence" : "CTCACCAA+TTGCCTAG",
+			"MismatchCounts" : {
+				"0" : 44566765,
+				"1" : 3347156
+			}
+			}
+			],
+			"NumberReads" : 17971101,
+			"Yield" : 15236626878,
+			"ReadMetrics" : [
+			{
+			"ReadNumber" : 1,
+			"Yield" : 7618313439,
+			"YieldQ30" : 6690588614,
+			"QualityScoreSum" : 265250205226,
+			"TrimmedBases" : 0
+			},
+			{
+			"ReadNumber" : 2,
+			"Yield" : 7618313439,
+			"YieldQ30" : 6483784079,
+			"QualityScoreSum" : 261108151852,
+			"TrimmedBases" : 0
+			}
+			]
+			},
+			{
+			"SampleId" : "Sample_DX180050_02",
+			"SampleName" : "DX180050_02",
+			"IndexMetrics" : [
+			{
+			"IndexSequence" : "CGCTATGT+GTGTCGGA",
+			"MismatchCounts" : {
+				"0" : 42832406,
+				"1" : 2761442
+			}
+			}
+			],
+			"NumberReads" : 15096202,
+			"Yield" : 14498843664,
+			"ReadMetrics" : [
+			{
+			"ReadNumber" : 1,
+			"Yield" : 7249421832,
+			"YieldQ30" : 6372032475,
+			"QualityScoreSum" : 252508269593,
+			"TrimmedBases" : 0
+			},
+			{
+			"ReadNumber" : 2,
+			"Yield" : 7249421832,
+			"YieldQ30" : 6158923662,
+			"QualityScoreSum" : 248170514630,
+			"TrimmedBases" : 0
+			}
+			]
+			},
+			{
+			"SampleId" : "Sample_DX181278_05",
+			"SampleName" : "DX181278_05",
+			"IndexMetrics" : [
+			{
+			"IndexSequence" : "GTATGTTC+TTCCTGTT",
+			"MismatchCounts" : {
+				"0" : 50878114,
+				"1" : 3318740
+			}
+			}
+			],
+			"NumberReads" : 16199212,
+			"Yield" : 17234599572,
+			"ReadMetrics" : [
+			{
+			"ReadNumber" : 1,
+			"Yield" : 8617299786,
+			"YieldQ30" : 7578834405,
+			"QualityScoreSum" : 300233195479,
+			"TrimmedBases" : 0
+			},
+			{
+			"ReadNumber" : 2,
+			"Yield" : 8617299786,
+			"YieldQ30" : 7443210603,
+			"QualityScoreSum" : 297449748728,
+			"TrimmedBases" : 0
+			}
+			]
+			}
+			]
+		}
+	]
+}

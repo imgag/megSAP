@@ -128,7 +128,20 @@ if (in_array("ma", $steps))
 	{
 		if (empty($in_umi))
 		{
-			trigger_error("No UMI read files found! Processing fastqs without UMIs.", E_USER_WARNING);
+			// check if UMIs are present in FastQ header
+			list($stdout, $stderr, $return_code) = $parser->exec(get_path("ngs-bits")."FastqCheckUMI", "-in ".$in_for[0]);
+
+			trigger_error("FastqCheckUMI output:\t".implode("\n", $stdout), E_USER_NOTICE);
+			if(starts_with($stdout[0], "UMI: true"))
+			{
+				$umi = true;
+				trigger_error("UMIs annotated to the FastQ header will be used.", E_USER_NOTICE);
+			}
+			else
+			{
+				trigger_error("No UMI read files found! Aborting analysis.", E_USER_ERROR);
+			}
+
 			$seqpurge_params = array_merge($seqpurge_params,
 			[
 				"-in1", implode(" ", $in_for),
@@ -157,6 +170,8 @@ if (in_array("ma", $steps))
 				"-in2", implode(" ", $in_rev)
 			]);
 	}
+
+
 
 	$parser->exec(get_path("ngs-bits")."SeqPurge", implode(" ", $seqpurge_params), true);
 

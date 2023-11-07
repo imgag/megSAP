@@ -14,7 +14,7 @@ $parser = new ToolBase("backup_queue", "Queues the backup of a folder in SGE.");
 $parser->addInfile("in",  "Absolute path to input folder.", false);
 $parser->addEnum("mode",  "Mode.", false, array("run", "project", "user"));
 $parser->addString("email", "Email used for notification when SGE job has finished (NGSD login also works).", false);
-$parser->addFlag("include_fast5", "Backup includes FAST5 folders");
+$parser->addFlag("include_raw_signal", "Backup includes non-basecalled POD5 or FAST5 data.");
 extract($parser->parse($argv));
 
 //check that the correct user is executing the script
@@ -52,9 +52,9 @@ $sge_out = "{$base}.out";
 $sge_err = "{$base}.err";
 $command_sge = "qsub -V -pe smp 1 -b y -wd {$sge_folder} -m ea -M {$email} -e {$sge_err} -o {$sge_out} -q archive_srv018";
 $command = "{$command_sge} php {$backup_script} -in {$in}";
-if ($include_fast5) 
+if ($include_raw_signal)
 {
-	$command = "{$command} -include_fast5";
+	$command = "{$command} -include_raw_signal";
 }
 
 print "    SGE command: {$command}\n";

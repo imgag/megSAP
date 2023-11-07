@@ -14,6 +14,7 @@ $parser->addInfile("in1", "Input file in FASTQ format. Forward read.", false);
 $parser->addInfile("in2", "Input file in FASTQ format. Reverse read.", false);
 $parser->addOutfile("out", "Output BAM file (indexed).", false);
 $parser->addOutfile("out_vcf", "Output VCF.GZ file for small variants (indexed).", false);
+$parser->addOutfile("out_gvcf", "Output gVCF.GZ file for small variants (indexed).", false);
 $parser->addOutfile("out_sv", "Output VCF.GZ file for structural variants (indexed).", false);
 //optional
 $parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh38");
@@ -40,7 +41,7 @@ if ($debug)
 }
 
 //if no sample name is given use output name
-if ($sample=="") $sample = basename($out, ".bam");
+if ($sample=="") $sample = basename2($out);
 
 //check if valid reference genome is provided
 $dragen_genome_path = get_path("dragen_genomes")."/".$build."/dragen/";
@@ -62,7 +63,7 @@ if (file_exists($working_dir))
 {
 	$parser->exec("rm", "-rf $working_dir");
 }
-if (!mkdir($working_dir, 0700))
+if (!mkdir($working_dir, 0777))
 {
 	trigger_error("Could not create working directory '".$working_dir."'!", E_USER_ERROR);
 }
@@ -82,6 +83,8 @@ $dragen_parameter[] = "--RGID $sample";
 $dragen_parameter[] = "--RGSM $sample";
 $dragen_parameter[] = "--RGCN medical_genetics_tuebingen";
 $dragen_parameter[] = "--RGDT ".date("c");
+$dragen_parameter[] = "--vc-ml-enable-recalibration=false"; //disabled because it leads to a sensitivity drop for Twist Exome V2 SNVs of 0.5% (see /mnt/storage2/users/ahsturm1/scripts/2023_08_01_megSAP_performance/)
+$dragen_parameter[] = "--enable-rh=false"; //disabled RH special caller because this leads to variants with EVENTTYPE=GENE_CONVERSION that have no DP and AF entry and sometimes are duplicated (same variant twice in the VCF).
 if(db_is_enabled("NGSD"))
 {
 	$db_conn = DB::getInstance("NGSD");
@@ -95,6 +98,9 @@ if ($dedup) $dragen_parameter[] = "--enable-duplicate-marking true";
 $dragen_parameter[] = "--enable-variant-caller true";
 $dragen_parameter[] = "--vc-min-read-qual 1";
 $dragen_parameter[] = "--vc-min-base-qual 15";
+//add gVCFs
+$dragen_parameter[] = "--vc-emit-ref-confidence GVCF";
+$dragen_parameter[] = "--vc-enable-vcf-output true";
 //structural variant calling
 if (get_path("dragen_sv_calling"))
 {
@@ -121,8 +127,10 @@ $parser->copyFile($working_dir."output.bam.bai", $out.".bai");
 
 // copy small variant calls to sample folder
 $parser->log("Copying small variants to output folder");
-$parser->copyFile($working_dir."output.vcf.gz", $out_vcf);
-$parser->copyFile($working_dir."output.vcf.gz.tbi", $out_vcf.".tbi");
+$parser->copyFile($working_dir."output.hard-filtered.vcf.gz", $out_vcf);
+$parser->copyFile($working_dir."output.hard-filtered.vcf.gz.tbi", $out_vcf.".tbi");
+$parser->copyFile($working_dir."output.hard-filtered.gvcf.gz", $out_gvcf);
+$parser->copyFile($working_dir."output.hard-filtered.gvcf.gz.tbi", $out_gvcf.".tbi");
 
 // copy SV calls to sample folder
 if (get_path("dragen_sv_calling"))

@@ -289,6 +289,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 	{
 		if ($sample_info['sys_type']=="WGS" || $sample_info['sys_type']=="WGS (shallow)") $threads = 6;
 		if ($sample_info['sys_type']=="RNA") $threads = 5;
+		if ($sample_info['sys_type']=="lrGS") $threads = 8;
 	}
 	//handle number of threads when set in custom arguments
 	$parts = explode(' ', preg_replace('/\s+/', ' ', $job_info['args']));

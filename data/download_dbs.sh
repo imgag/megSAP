@@ -104,13 +104,13 @@ wget -O - https://gnomad-public-us-east-1.s3.amazonaws.com/release/3.1/vcf/genom
 bgzip gnomAD_genome_v3.1.mito_GRCh38.vcf
 tabix -C -m 9 -p vcf gnomAD_genome_v3.1.mito_GRCh38.vcf.gz
 
-#Install phyloP for VEP - https://www.ensembl.org/info/docs/tools/vep/script/vep_example.html#gerp
+#Install phyloP
 cd $dbs
 mkdir phyloP
 cd phyloP
 wget http://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.phyloP100way.bw
 
-#Install CADD for VEP - http://cadd.gs.washington.edu/download
+#Install CADD
 cd $dbs
 mkdir CADD
 cd CADD
@@ -135,26 +135,26 @@ bgzip REVEL_1.3.vcf
 tabix -f -C -m 9 -p vcf REVEL_1.3.vcf.gz
 $ngsbits/VcfCheck -in REVEL_1.3.vcf.gz -lines 1000 -ref $genome
 
-#GiaB NA12878 reference data
-cd $dbs
-mkdir -p GIAB/NA12878
-cd GIAB/NA12878
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz -O high_conf_variants_GRCh38.vcf.gz
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz.tbi -O high_conf_variants_GRCh38.vcf.gz.tbi
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.bed -O high_conf_regions_GRCh38.bed
+#download and convert AlphaMissense - Attention: for non-commercial use only!
+wget https://console.cloud.google.com/storage/browser/_details/dm_alphamissense/AlphaMissense_hg38.tsv.gz
+php $src/Tools/db_converter_alphamissense.php AlphaMissense_hg38.tsv.gz > AlphaMissense_hg38.vcf
+$ngsbits/VcfSort -in AlphaMissense_hg38.vcf -out AlphaMissense_hg38.vcf
+bgzip AlphaMissense_hg38.vcf
+tabix -p vcf AlphaMissense_hg38.vcf.gz
 
 #download annotation file for SpliceAI
 cd $dbs
 mkdir SpliceAI
 cd SpliceAI
-wget https://download.imgag.de/public/splicing/spliceai_scores_2022_12_30_GRCh38.vcf.gz -O spliceai_scores_2022_12_30_GRCh38.vcf.gz
-tabix -C -m 9 -p vcf spliceai_scores_2022_12_30_GRCh38.vcf.gz
+wget https://download.imgag.de/public/splicing/spliceai_scores_2023_10_24_GRCh38.vcf.gz -O spliceai_scores_2023_10_24_GRCh38.vcf.gz
+tabix -C -m 9 -p vcf spliceai_scores_2023_10_24_GRCh38.vcf.gz
 
 #download sniffles 
 cd $dbs
 mkdir -p TandemRepeats
 cd TandemRepeats
 wget https://github.com/PacificBiosciences/pbsv/raw/master/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
+
 
 #install OMIM (you might need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
 #cd $dbs

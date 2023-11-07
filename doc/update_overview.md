@@ -8,7 +8,7 @@
 |RepeatMasker           |pipeline                |03.2023 (140131)                |                                                                                                    |http://www.repeatmasker.org/species/hg.html                             |
 |ClinVar (SNVs and CNVs)|pipeline, NGSDImportHPO |07.2023 (20230710)              |update GSvar IGV file                                                                               |https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2023/   |
 |HGNC                   |pipeline, NGSDImportHGNC|03.2023 (latest - not versioned)|                                                                                                    |https://ftp.ebi.ac.uk/pub/databases/genenames/                          |
-|gnomAD (genome)        |pipeline                |03.2023 (3.1.2)                 |                                                                                                    |http://gnomad.broadinstitute.org/downloads                              |
+|gnomAD (genome)        |pipeline                |03.2023 (3.1.2)                 |verion 4.1 available                                                                                |http://gnomad.broadinstitute.org/downloads                              |
 |gnomAD (constraints)   |NGSDImportGeneInfo      |03.2023 (2.1.1)                 |                                                                                                    |http://gnomad.broadinstitute.org/downloads                              |
 |phyloP - for VEP       |pipeline                |03.2023 (05.2015)               |                                                                                                    |http://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/            |
 |CADD - for VEP         |pipeline                |03.2023 (1.6)                   |                                                                                                    |http://cadd.gs.washington.edu/download                                  |
@@ -27,7 +27,7 @@
 |database               |used for                |last update/check               |notes                                                                                               |url                                                                     |
 |-----------------------|------------------------|--------------------------------|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
 |CancerHotspots         |pipeline (somatic)      |01.2021                         |version is final and does not change                                                                |https://www.cancerhotspots.org                                          |
-|NCG7.0                 |pipeline (somatic)      |03.2023 (v7.0)                  |					                                                                                   |http://ncg.kcl.ac.uk/                                                          |
+|NCG7.0                 |pipeline (somatic)      |03.2023 (v7.0)                  |					                                                                                   |http://ncg.kcl.ac.uk/                                                   |
 |COSMIC CMC             |pipeline (somatic)      |03.2023 (v97)                   |                                                                                                    |https://cancer.sanger.ac.uk/cmc                                         |
 |Human Protein Atlas    |pipeline (somatic)      |03.2023 (v22)                   |                                                                                                    |https://www.proteinatlas.org/about/download                             |
 
@@ -56,7 +56,7 @@
 |ExpansionHunter        |Repeat expansion calling                             |03.2023 (5.0.0)   |                                                                                     |https://github.com/Illumina/ExpansionHunter                             |
 |REViewer               |Repeat expansion visualization                       |03.2023 (0.2.7)   |                                                                                     |https://github.com/Illumina/REViewer                                    |
 |Circos                 |circos plot with CNVs,ROHS,etc                       |03.2023 (0.69-9)  |                                                                                     |http://circos.ca/software/download/                                     |
-|InterOp                |reading InterOp metric files (Illumina NextSeq 1k/2k)|03.2023 (1.0.25)  | v1.1.25 available, but update is not necessary as the QC import works               |                                                                        |
+|InterOp                |reading InterOp metric files (Illumina NextSeq 1k/2k)|08.2023 (1.2.4)   | update required for NovaSeq X                                                       |https://github.com/Illumina/interop                                     |
 
 
 ## Tools for somatic pipelines

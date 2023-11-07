@@ -20,7 +20,7 @@ extract($parser->parse($argv));
 
 
 //init vars
-if($sample == "") $sample = basename($out, ".bam");
+if($sample == "") $sample = basename2($out);
 $basename = dirname($out)."/".$sample;
 print $basename;
 $bam_current = $parser->tempFile(".bam", $sample);

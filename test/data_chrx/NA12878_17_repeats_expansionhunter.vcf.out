@@ -1,7 +1,7 @@
 ##fileformat=VCFv4.1
-##filedate=2022-07-21T20:52:05
+##filedate=2023-09-29T09:57:55
 ##source=ExpansionHunter v5.0.0
-##reference=/tmp/local_ngs_data_GRCh38//GRCh38.fa
+##reference=/mnt/genome_ramdrive/GRCh38.fa
 ##INFO=<ID=VARID,Number=1,Type=String,Description="Variant identifier as specified in the variant catalog">
 ##FILTER=<ID=LowDepth,Description="The overall locus depth is below 10x or number of reads spanning one or both breakends is below 5">
 ##FILTER=<ID=PASS,Description="All filters passed">
@@ -31,6 +31,7 @@ chr12	50505001	.	T	.	.	LowDepth	END=50505022;REF=7;RL=21;RU=GGC;VARID=DIP2B;REPI
 chr12	111598949	.	G	.	.	LowDepth	END=111599018;REF=23;RL=69;RU=GCT;VARID=ATXN2;REPID=ATXN2	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
 chr13	70139353	.	A	.	.	LowDepth	END=70139383;REF=10;RL=30;RU=CTA;VARID=ATXN8OS_CTA;REPID=ATXN8OS_CTA	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
 chr13	70139383	.	A	.	.	LowDepth	END=70139428;REF=15;RL=45;RU=CTG;VARID=ATXN8OS;REPID=ATXN8OS	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
+chr13	102161576	.	A	.	.	LowDepth	END=102161726;REF=50;RL=150;RU=GAA;VARID=FGF14;REPID=FGF14	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
 chr14	23321472	.	G	.	.	LowDepth	END=23321490;REF=6;RL=18;RU=GCG;VARID=PABPN1;REPID=PABPN1	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
 chr14	92071009	.	C	.	.	LowDepth	END=92071042;REF=11;RL=33;RU=GCT;VARID=ATXN3;REPID=ATXN3	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000
 chr15	22786677	.	A	.	.	LowDepth	END=22786701;REF=8;RL=24;RU=GCG;VARID=NIPA1;REPID=NIPA1	GT:SO:REPCN:REPCI:ADSP:ADFL:ADIR:LC	./.:./.:./.:./.:./.:./.:.:0.000000

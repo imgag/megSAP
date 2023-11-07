@@ -24,7 +24,7 @@ extract($parser->parse($argv));
 if(file_exists($out)) unlink($out);
 
 //set read group information
-if ($sample=="") $sample = basename($out, ".bam");
+if ($sample=="") $sample = basename2($out);
 $group_props = array();
 $group_props[] = "ID:{$sample}";
 $group_props[] = "SM:{$sample}";
@@ -45,7 +45,7 @@ if(db_is_enabled("NGSD"))
 
 //mapping with bwa
 $pipeline = array();
-$bwa_params = "mem ".genome_fasta($build)." -K 100000000 -Y -R '@RG\\t".implode("\\t", $group_props)."' -t $threads -v 2";
+$bwa_params = "mem ".genome_fasta($build, true, false)." -K 100000000 -Y -R '@RG\\t".implode("\\t", $group_props)."' -t $threads -v 2";
 
 //select the correct binary
 if (get_path("use_bwa1")) 

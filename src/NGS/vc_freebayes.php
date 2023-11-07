@@ -19,7 +19,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 20);
-$parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 20);
+$parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 10);
 $parser->addInt("min_ao", "Minimum alternative base observation count.", true, 3);
 $parser->addFlag("no_ploidy", "Use freebayes parameter -K, i.e. output all alleles which pass input filters, regardles of genotyping outcome or model.");
 $parser->addFlag("no_bias", "Use freebayes parameter -V, i.e. ignore strand bias and read end distance bias.");
@@ -260,7 +260,7 @@ else
 }
 
 //filter variants according to variant quality>5
-$pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5\"");
+$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -remove_invalid");
 
 //split complex variants to primitives
 //this step has to be performed before vcfbreakmulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276

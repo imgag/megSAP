@@ -780,4 +780,16 @@ function vcf_decode_url_string($encoded_string)
 	$additional_mapping = array("\t" => " ", "\n" => " ", "\r" => " ");
 	return strtr(strtr($encoded_string, $GLOBALS['vcf_decode_mapping']), $additional_mapping);
 }
+
+//returns the real file name of a symlink to a file, or the given file name if it is not a symlink.
+function resolve_symlink($filename)
+{
+	//no file > return input
+	if (!is_file($filename)) return $filename;
+	
+	//no link > return input
+	if (!is_link($filename)) return $filename;
+	
+	return realpath($filename);
+}
 ?>

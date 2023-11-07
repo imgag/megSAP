@@ -1085,8 +1085,8 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	//get info from NGSD
 	$ps_name = trim($ps_name);
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
-	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.preserve_fastqs as preserve_fastqs, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.sample_type as sample_type, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, s.tissue as tissue, s.comment as s_comments, sys.id as sys_id, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.adapter1_p5 as sys_adapter1, sys.adapter2_p7 as sys_adapter2, g.build as sys_build, s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2, sp.id as species_id, sp.name as species, s.id as s_id, ps.quality as ps_quality, ps.processing_input, d.name as device_name ".
-									"FROM project p, sample s, processing_system as sys, processed_sample ps LEFT JOIN sequencing_run as r ON ps.sequencing_run_id=r.id LEFT JOIN device as d ON r.device_id=d.id, species sp, genome g ".
+	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.preserve_fastqs as preserve_fastqs, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.sample_type as sample_type, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, s.tissue as tissue, s.comment as s_comments, sys.id as sys_id, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.adapter1_p5 as sys_adapter1, sys.adapter2_p7 as sys_adapter2, g.build as sys_build, s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2, sp.id as species_id, sp.name as species, s.id as s_id, ps.quality as ps_quality, ps.processing_input, d.name as device_name, psa.population as ancestry ".
+									"FROM project p, sample s, processing_system as sys, processed_sample ps LEFT JOIN sequencing_run as r ON ps.sequencing_run_id=r.id LEFT JOIN device as d ON r.device_id=d.id LEFT JOIN processed_sample_ancestry as psa ON ps.id=psa.processed_sample_id, species sp, genome g ".
 									"WHERE ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND sys.genome_id=g.id AND s.species_id=sp.id AND ps.process_id='".(int)$process_id."'");
 	if (count($res)!=1)
 	{
@@ -1100,6 +1100,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 		}
 	}
 	$info = $res[0];
+	$info['ps_name'] = $ps_name;
 	
 	//prefix target region
 	$roi = trim($info['sys_target']);
@@ -1132,32 +1133,48 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	$info['ps_lanes'] = array_map("trim", explode(",", $info['ps_lanes']));
 	$info['s_comments'] = array_map("trim", explode("\n", $info['s_comments']));
 	
+	//add paths if requested (quite slow)
 	if (!$no_paths)
 	{
-		//additional info (paths)
-		$project_type = $info['project_type'];
-		if ($project_type == "megSAP-Tests")
+		if ($info['project_type'] == "megSAP-Tests") //special handling for tests
 		{
-			$project_folder = get_path($project_type);
+			$info['project_folder'] = get_path($info['project_type'])."/".$info['project_name']."/";
+			$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
+			$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
 		}
 		else
 		{
+			//get BAM path via ngs-bits SamplePath tool (handles override paths for project/processed sample and BAM/CRAM)
 			$args = [];
 			$args[] = "-ps {$ps_name}";
+			$args[] = "-type BAM";
 			if ($db_conn->name()=="NGSD_TEST") $args[] = "-test";
 			list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath ".implode(" ", $args));
-			$project_folder = dirname(trim(implode("", $stdout)), 2);
+			
+			$ps_bam_or_cram = trim(implode("", $stdout));
+			$project_folder = dirname($ps_bam_or_cram, 2);
+			if(!ends_with($project_folder, '/')) $project_folder .= '/';
+			$info['project_folder'] = $project_folder;
+			$ps_folder = dirname($ps_bam_or_cram);
+			if(!ends_with($ps_folder, '/')) $ps_folder .= '/';
+			$info['ps_folder'] = $ps_folder;
+			$info['ps_bam'] = $ps_bam_or_cram;
 		}
-		
-		$info['project_folder'] = $project_folder."/".$info['project_name']."/";
-		$info['ps_name'] = $ps_name;
-		$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
-		$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
 	}
-	
 	
 	ksort($info);
 	return $info;
+}
+
+//Returns the value of the given QC term. Throws an error if the QC term is unknown or the sample is not found. Returns a empty string if the QC entry is not in NGSD.
+function get_processed_sample_qc(&$db, $ps, $qc_name_or_accession)
+{
+	//determine QC term ID
+	$term_id = $db->getValue("SELECT id FROM qc_terms WHERE name LIKE '{$qc_name_or_accession}' OR qcml_id LIKE '{$qc_name_or_accession}'");
+	
+	$ps_id = get_processed_sample_id($db, $ps);
+	
+	return $db->getValue("SELECT value FROM processed_sample_qc WHERE processed_sample_id='{$ps_id}' AND qc_terms_id={$term_id}", "");
 }
 
 //Converts NGSD sample meta data to a GSvar file header (using $override_map to allow replace NGSD info)
@@ -1332,9 +1349,31 @@ function enable_special_mito_vc($sys)
 }
 
 //Returns the FASTA file of the genome
-function genome_fasta($build, $used_local_data=true)
+function genome_fasta($build, $use_local_data=true, $use_local_ramdrive=true)
 {
-	return ($used_local_data ? get_path("local_data") : get_path("data_folder")."/genomes")."/".$build.".fa";
+	//allow overriding genome fasta
+	$genome_fasta_override = trim(get_path("genome_fasta_override", false));
+	if  ($genome_fasta_override!="")
+	{
+		return $genome_fasta_override;
+	}
+	
+	//use genome FASTA of the local maching
+	if ($use_local_data)
+	{
+		//prefer ram drive
+		if($use_local_ramdrive)
+		{
+			$ramdrive_fasta = "/mnt/genome_ramdrive/".$build.".fa";
+			if (file_exists($ramdrive_fasta)) return $ramdrive_fasta;
+		}
+		
+		//use local copy in tmp
+		return get_path("local_data")."/".$build.".fa";
+	}
+	
+	//use the genome FASTA from the megSAP installation
+	return get_path("data_folder")."/genomes/".$build.".fa";
 }
 
 //Create Bed File that contains off target regions of a target region
@@ -1734,7 +1773,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 										break;
 									}
 								}
-								if ($ref_file_path != "") 
+								if (($ref_file_path != "") && basename($ref_file_path, ".fa") != "genome") //special case NovaSeq X: always uses genome.fa as genome file
 								{
 									$build = basename($ref_file_path, ".fa");
 									break;
@@ -1794,7 +1833,37 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 						{
 							$builds[] = $build;
 						}
-					}	
+					}
+					else if	($split_line[1] == "ID: DRAGEN SW build")
+					{
+						//NovaSeq X: Genome has to be stripped from the command line
+						$build = "";
+						// parse genome build from bwa command line
+						foreach($split_line as $column)
+						{
+							if (starts_with($column, "CL:"))
+							{
+								$cl = explode(" ", $column);
+								for ($i=0; $i < count($cl); ++$i) 
+								{
+									if($cl[$i] == "--ref-dir")
+									{
+										$ref_file_path = $cl[$i + 1];
+										break;
+									}
+								}
+								if (starts_with($ref_file_path, "/usr/local/illumina/install/genomes/"))
+								{
+									$build = trim(explode("/", $ref_file_path)[6]);
+									break;
+								}
+							}
+						}
+						if ($build!="") 
+						{
+							$builds[] = $build;
+						}
+					}
 
 				}
 			}
@@ -2027,4 +2096,39 @@ function phenotype_roi_overlaps(&$roi, $chr, $start, $end)
 	return false;
 }
 
+//Returns the base file name without path and extension. Used e.g. to extract the base name independent of BAM/CRAM format.
+function basename2($filename)
+{
+	$filename = basename($filename);
+	
+	//not file extension => return full name
+	$sep_idx = strrpos($filename, '.');
+	if ($sep_idx===FALSE) return $filename;
+	
+	return substr($filename, 0, $sep_idx);
+}
+
+//If the given file is a CRAM, a temporary BAM is created and the path to it is returned. Otherwise returns the given filename.
+function convert_to_bam_if_cram($filename, $parser, $build, $threads, $tmp_folder="")
+{
+	if (ends_with(strtolower($filename), ".cram"))
+	{
+		if ($tmp_folder=="") $tmp_folder = $parser->tempFolder();
+		$bam = "{$tmp_folder}/".substr(basename($filename), 0, -5).".bam";
+		$parser->execTool("Tools/cram_to_bam.php", "-cram $filename -bam $bam -build $build -threads $threads");
+		return $bam;
+	}
+	
+	return $filename;
+}
+//check if run is created by NovaSeq X (Plus)
+function is_novaseq_x_run($run_parameters_xml)
+{
+	$xml = simplexml_load_file($run_parameters_xml);
+	if(empty($xml->InstrumentType)) return false; //No entry => e.g. NovaSeq 6000
+	$instrument_type = $xml->InstrumentType;
+	if(($instrument_type == "NovaSeqXPlus") || ($instrument_type == "NovaSeqX")) return true;
+	//else
+	return false; //unknown Sequencer
+}
 ?>

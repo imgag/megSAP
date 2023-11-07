@@ -29,7 +29,7 @@ if (!isset($gender))
 {
 	//get sample info from DB
 	$db = DB::getInstance($db);
-	$info = get_processed_sample_info($db, $pid, true);
+	$info = get_processed_sample_info($db, $pid);
 	$gender = $info['gender'];
 	$sys_type = $info['sys_type'];
 	$sys_roi = trim($info["sys_target"]);

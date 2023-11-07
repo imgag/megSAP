@@ -52,7 +52,7 @@ extract($parser->parse($argv));
 ###################################### AUXILARY FUNCTIONS ######################################
 
 //Creates BAF file from "$gsvar" and "bam" file and writes content to "out_file"
-function create_baf_file($gsvar,$bam,$out_file, $ref_genome, &$error = False)
+function create_baf_file($gsvar, $bam, $out_file, $ref_genome, &$error = false)
 {
 	global $parser;
 
@@ -159,13 +159,15 @@ if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/somatic_dna_"
 $full_prefix = "{$out_folder}/{$prefix}";
 
 //IDs, system and target region
-$t_id = basename($t_bam, ".bam");
+$t_id = basename2($t_bam);
+$t_basename = dirname($t_bam)."/".$t_id;
 $sys = load_system($system, $t_id);
 $roi = $sys["target_file"];
 $ref_genome = genome_fasta($sys['build']);
 
-//check reference build
+//make sure it is a BAM (MANTIS does not work on CRAM)
 check_genome_build($t_bam, $sys['build']);
+$t_bam = convert_to_bam_if_cram($t_bam, $parser, $sys['build'], $threads);
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
@@ -174,11 +176,14 @@ $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 $single_sample = !isset($n_bam);
 if (!$single_sample)
 {
-	$n_id = basename($n_bam, ".bam");
+	$n_id = basename2($n_bam);
+	$n_basename = dirname($n_bam)."/".$n_id;
 	$n_sys = load_system($n_system, $n_id);
 	$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
 	
+	//make sure it is a BAM (MANTIS does not work on CRAM)
 	check_genome_build($n_bam, $n_sys['build']);
+	$n_bam = convert_to_bam_if_cram($n_bam, $parser, $sys['build'], $threads);
 	
 	//Check whether both samples have same processing system
 	if($roi != $n_sys["target_file"])
@@ -187,20 +192,20 @@ if (!$single_sample)
 	}
 }
 
-//Disable steps "vc" and "cnv" if somatic report config exists in NGSD
-// if (!$single_sample && db_is_enabled("NGSD"))
-// {
-	// $db = DB::getInstance("NGSD", false);
-	// list($config_id, $config_vars_exist, $config_cnvs_exist) = somatic_report_config($db, $t_id, $n_id);
-	// if (in_array("vc", $steps) && $config_vars_exist)
-	// {
-		// trigger_error("Somatic report configuration with SNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
-	// }
-	// if (in_array("cn", $steps) && $config_cnvs_exist)
-	// {
-		// trigger_error("Somatic report configuration with CNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'cn'.", E_USER_ERROR);
-	// }
-// }
+//Abort if calling is requested and somatic report config exists in NGSD
+if (!$single_sample && db_is_enabled("NGSD"))
+{
+	$db = DB::getInstance("NGSD", false);
+	list($config_id, $config_vars_exist, $config_cnvs_exist) = somatic_report_config($db, $t_id, $n_id);
+	if (in_array("vc", $steps) && $config_vars_exist)
+	{
+		trigger_error("Somatic report configuration with SNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
+	}
+	if (in_array("cn", $steps) && $config_cnvs_exist)
+	{
+		trigger_error("Somatic report configuration with CNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'cn'.", E_USER_ERROR);
+	}
+}
 
 //sample similarity check
 $bams = array_filter([$t_bam, $n_bam]);
@@ -262,37 +267,36 @@ if( db_is_enabled("NGSD") )
 	}
 }
 
-
 // Check samples are flagged correctly in NGSD
-// if( db_is_enabled("NGSD") && count($bams) > 1 )
-// {
-	// $db = DB::getInstance("NGSD");
+if( db_is_enabled("NGSD") && count($bams) > 1 )
+{
+	$db = DB::getInstance("NGSD");
 	
-	// $tinfo = get_processed_sample_info($db, $t_id, false);
+	$tinfo = get_processed_sample_info($db, $t_id, false);
 
-	// if(!is_null($tinfo) && $tinfo["is_tumor"] != 1)
-	// {
-		// trigger_error("Please check tumor processed sample {$t_id} in NGSD. The sample is not flagged as tumor tissue.", E_USER_ERROR);
-	// }
+	if(!is_null($tinfo) && $tinfo["is_tumor"] != 1)
+	{
+		trigger_error("Please check tumor processed sample {$t_id} in NGSD. The sample is not flagged as tumor tissue.", E_USER_ERROR);
+	}
 	
-	// $ninfo = get_processed_sample_info($db, $n_id, false);
-	// if(!is_null($ninfo) && $ninfo["is_tumor"] != 0)
-	// {
-		// trigger_error("Please check normal processed sample {$n_id} in NGSD. The sample is flagged as tumor tissue.", E_USER_ERROR);
-	// }
-// }
+	$ninfo = get_processed_sample_info($db, $n_id, false);
+	if(!is_null($ninfo) && $ninfo["is_tumor"] != 0)
+	{
+		trigger_error("Please check normal processed sample {$n_id} in NGSD. The sample is flagged as tumor tissue.", E_USER_ERROR);
+	}
+}
 
 //low coverage statistics
 $low_cov = "{$full_prefix}_stat_lowcov.bed";					// low coverage BED file
 if ($sys['type'] !== "WGS" && !empty($roi) && !$skip_low_cov)
 {
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $t_bam -out $low_cov -cutoff $min_depth_t -threads {$threads}", true);
+	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $t_bam -out $low_cov -cutoff $min_depth_t -threads {$threads} -ref {$ref_genome}", true);
 	//combined tumor and normal low coverage files
 	//normal coverage is calculated only for tumor target region
 	if(!$single_sample)
 	{
 		$low_cov_n = $parser->tempFile("_nlowcov.bed");
-		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $n_bam -out $low_cov_n -cutoff $min_depth_n -threads {$threads}", true);
+		$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in $roi -bam $n_bam -out $low_cov_n -cutoff $min_depth_n -threads {$threads} -ref {$ref_genome}", true);
 		$parser->execPipeline([
 			[get_path("ngs-bits")."BedAdd", "-in $low_cov $low_cov_n"],
 			[get_path("ngs-bits")."BedMerge", "-out $low_cov"]
@@ -311,10 +315,10 @@ $manta_sv      = $full_prefix . "_manta_var_structural.vcf.gz";		// structural v
 $manta_sv_bedpe= $full_prefix . "_manta_var_structural.bedpe"; 		// structural variants (bedpe)
 $variants      = $full_prefix . "_var.vcf.gz";					// variants
 $ballele       = $full_prefix . "_bafs.igv";					// B-allele frequencies
-$hla_file_tumor =  dirname($t_bam)."/{$t_id}_hla_genotyper.tsv";
+$hla_file_tumor = "{$t_basename}_hla_genotyper.tsv";
 if (!$single_sample)
 {
-	$hla_file_normal =  dirname($n_bam)."/{$n_id}_hla_genotyper.tsv"; 
+	$hla_file_normal = "{$n_basename}_hla_genotyper.tsv"; 
 }
 if (in_array("vc", $steps))
 {
@@ -555,7 +559,7 @@ if (in_array("vc", $steps))
 	}
 	else
 	{
-		$variants_germline_vcf = dirname($n_bam)."/{$n_id}_var.vcf.gz";
+		$variants_germline_vcf = "{$n_basename}_var.vcf.gz";
 		if (file_exists($variants_germline_vcf))
 		{
 			$baf_args = [
@@ -568,9 +572,13 @@ if (in_array("vc", $steps))
 			
 			$parser->execTool("NGS/baf_somatic.php", implode(" ", $baf_args));
 		}
+		else
+		{
+			trigger_error("Cannot create BAF file as normal VCF missing: {$variants_germline_vcf}", E_USER_NOTICE);
+		}
 	}
 	
-	if (file_exists($variants))
+	if (file_exists($variants) && !$skip_signatures && !$single_sample)
 	{
 		$snv_signatures_out = $out_folder."/snv_signatures/";
 		$tmp_variants = $parser->tempFile(".vcf", "snv_signatures_");
@@ -580,11 +588,9 @@ if (in_array("vc", $steps))
 }
 
 //Viral sequences alignment
-$t_dir = dirname($t_bam) . "/";
-
-$viral         = "{$t_dir}/{$t_id}_viral.tsv";					// viral sequences results
-$viral_bam     = "{$t_dir}/{$t_id}_viral.bam";					// viral sequences alignment
-$viral_bam_raw = "{$t_dir}/{$t_id}_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
+$viral         = "{$t_basename}_viral.tsv";					// viral sequences results
+$viral_bam     = "{$t_basename}_viral.bam";					// viral sequences alignment
+$viral_bam_raw = "{$t_basename}_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
 $viral_bed     = get_path("data_folder") . "/enrichment/somatic_viral.bed"; //viral enrichment
 $viral_genome  = get_path("data_folder") . "/genomes/somatic_viral.fa"; //viral reference genome
 if (in_array("vi", $steps))
@@ -596,8 +602,8 @@ if (in_array("vi", $steps))
 	else
 	{
 		//detection of viral sequences
-		$t_bam_dedup = dirname($t_bam) . "/" . basename($t_bam, ".bam") . "_before_dedup.bam";
-		$t_bam_map_qc = dirname($t_bam) . "/" . basename($t_bam, ".bam") . "_stats_map.qcML";
+		$t_bam_dedup = "{$t_basename}_before_dedup.bam";
+		$t_bam_map_qc = "{$t_basename}_stats_map.qcML";
 		$dedup_used = file_exists($t_bam_dedup);
 		$vc_viral_args = [
 			"-in ".($dedup_used ? $t_bam_dedup : $t_bam),
@@ -642,7 +648,7 @@ if(in_array("cn",$steps))
 	
 	if(!file_exists($ref_file_t) )
 	{
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov -threads {$threads}",true);
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov -threads {$threads} -ref {$ref_genome}",true);
 		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov -out $t_cov",true);
 	}
 	else 
@@ -659,7 +665,7 @@ if(in_array("cn",$steps))
 	
 	if( !file_exists($ref_file_t_off_target ) )
 	{
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target -threads {$threads}",true);
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
 		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov_off_target -out $t_cov_off_target",true);
 	}
 	else 
@@ -723,7 +729,7 @@ if(in_array("cn",$steps))
 		$error = False;
 		if(!file_exists($baf_file))
 		{
-			$t_gsvar = dirname($t_bam) ."/{$t_id}.GSvar";
+			$t_gsvar = "{$t_basename}.GSvar";
 			create_baf_file($t_gsvar, $t_bam, $baf_file, $ref_genome, $error);
 		}
 
@@ -766,7 +772,7 @@ if(in_array("cn",$steps))
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$repository_basedir}/data/gene_lists/genes.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
 
 		//annotate additional gene info
-		$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$som_clincnv} -out {$som_clincnv}", true);
+		$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$som_clincnv}  -add_simple_gene_names -out {$som_clincnv}", true);
 		// skip annotation if no connection to the NGSD is possible
 		if (db_is_enabled("NGSD"))
 		{
@@ -785,7 +791,7 @@ if(in_array("cn",$steps))
 		
 		if(!file_exists($ref_file_n)) 
 		{
-			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov -threads {$threads}", true);
+			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov -threads {$threads} -ref {$ref_genome}", true);
 			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov -out $n_cov",true);
 		}
 		else 
@@ -802,7 +808,7 @@ if(in_array("cn",$steps))
 		
 		if(!file_exists($ref_file_n_off_target) )
 		{
-			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target -threads {$threads}",true);
+			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
 			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov_off_target -out $n_cov_off_target",true);
 		}
 		else 
@@ -888,7 +894,7 @@ if(in_array("cn",$steps))
 		}
 		else
 		{
-			$normal_gsvar = dirname($n_bam) ."/{$n_id}.GSvar";
+			$normal_gsvar = "{$n_basename}.GSvar";
 			create_baf_file($normal_gsvar,$n_bam,"{$baf_folder}/{$n_id}.tsv", $ref_genome);
 			create_baf_file($normal_gsvar,$t_bam,"{$baf_folder}/{$t_id}.tsv", $ref_genome);
 		}
@@ -946,12 +952,12 @@ if(in_array("cn",$steps))
 	//calculate HRD based on clincnv.tsv file
 	if (file_exists($som_clincnv))
 	{
-		if (! $single_sample && ! $skip_HRD)
+		if (!$single_sample && !$skip_HRD)
 		{
 			$parser->execTool("NGS/an_scarHRD.php" , "-cnvs {$som_clincnv} -tumor {$t_id} -normal {$n_id} -out_folder {$out_folder}");
 		}
 		
-		if(! $skip_signatures)
+		if(!$single_sample && !$skip_signatures)
 		{
 			$cnv_signatures_out = $out_folder."/cnv_signatures/";
 			$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/extract_signatures.py", "--in {$som_clincnv} --mode cnv --outFolder {$cnv_signatures_out} --reference GRCh38 --threads {$threads}", true);
@@ -977,10 +983,10 @@ if (in_array("an", $steps))
 	if (!$single_sample)
 	{
 		$links = array_filter([
-			dirname($t_bam)."/{$t_id}_stats_fastq.qcML",
-			dirname($t_bam)."/{$t_id}_stats_map.qcML",
-			dirname($n_bam)."/{$n_id}_stats_fastq.qcML",
-			dirname($n_bam)."/{$n_id}_stats_map.qcML"
+			"{$t_basename}_stats_fastq.qcML",
+			"{$t_basename}_stats_map.qcML",
+			"{$n_basename}_stats_fastq.qcML",
+			"{$n_basename}_stats_map.qcML"
 		], "file_exists");
 
 		$args_somaticqc = [
@@ -1337,8 +1343,8 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	{
 		// import qcML files
 		$qcmls = implode(" ", array_filter([
-			dirname($t_bam)."/{$t_id}_stats_fastq.qcML",
-			dirname($t_bam)."/{$t_id}_stats_map.qcML",
+			"{$t_basename}_stats_fastq.qcML",
+			"{$t_basename}_stats_map.qcML",
 			$somaticqc,
 			$qc_other
 		], "file_exists"));

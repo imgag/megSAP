@@ -108,7 +108,7 @@ print "##Matching variants based on dbSNP: {$matches_dbsnp} (".number_format($ma
 $text_cols = ["regulatory", "OMIM", "ClinVar", "HGMD", "RepeatMasker", "COSMIC", "MaxEntScan"]; //check text present/absent
 $num_cols = ["1000g", "gnomAD", "phyloP", "CADD", "REVEL", "SpliceAI"]; //numeric comparison
 $num_cols_sep = ["gnomAD_hom_hemi"=>",", "gnomAD_sub"=>","]; //numeric comparison (several values possible, max is taken)
-$special_cols = ["quality"=>"depth", "coding_and_splicing"=>"impact", "Sift"=>"only 'D' consequence", "PolyPhen"=>"only 'D' consequence", "NA12878_58"=>"genotype"]; //special handling
+$special_cols = ["quality"=>"depth", "coding_and_splicing"=>"impact", "NA12878_58"=>"genotype"]; //special handling
 
 //init comparison result
 print "#col\told\tnew_matching\tnew_matching_perc\tsimilarity\tcomment\n";
@@ -245,22 +245,6 @@ foreach($special_cols as $col => $com)
 			$values[] = $num;
 			$values2[] = $num2;
 		
-		}
-		else if ($col=="Sift")
-		{
-			if (contains($value, "D"))
-			{
-				$count_pos[$col] += 1;
-				$count_match[$col] += contains($value2, "D");
-			}
-		}
-		else if ($col=="PolyPhen")
-		{
-			if (contains($value, "D"))
-			{
-				$count_pos[$col] += 1;
-				$count_match[$col] += contains($value2, "D");
-			}
 		}
 		else if ($col=="NA12878_58")
 		{

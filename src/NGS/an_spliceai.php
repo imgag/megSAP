@@ -192,6 +192,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	$args[] = "-O {$tmp1}";
 	$args[] = "-R ".genome_fasta($build);
 	$args[] = "-A ".strtolower($build);
+	$args[] = "-M 1"; //enable masked scores
 	putenv("PYTHONPATH");
 	$parser->exec("OMP_NUM_THREADS={$threads} {$splice_env}/bin/python3 {$splice_env}/lib/python3.10/site-packages/spliceai", implode(" ", $args), true);
 	

@@ -19,7 +19,8 @@ NOT NULL AFTER aliases;
 
 INSERT INTO qc_terms (qcml_id, name, description, type, obsolete) VALUES
 ("QC00001", "test_qc_1", "test qc value for merged sample 1", "string", 0),
-("QC00002", "test_qc_2", "test qc value for merged sample 2", "string", 0);
+("QC00002", "test_qc_2", "test qc value for merged sample 2", "string", 0),
+("QC:2000005", "read count", "Total number of reads (one cluster in a paired-end...", "int", 0);
 
 INSERT INTO project (name, type, internal_coordinator_id, analysis) VALUES
 ('merge_samples','megSAP-Tests', 2, 'variants');

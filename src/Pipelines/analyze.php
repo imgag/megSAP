@@ -16,13 +16,12 @@ $parser->addInfile("system",  "Processing system INI file (automatically determi
 $steps_all = array("ma", "vc", "cn", "sv", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, db=import into NGSD.", true, "ma,vc,cn,sv,db");
 $parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (freebayes 'min-alternate-fraction' parameter).", true, 0.1);
-$parser->addFloat("min_bq", "Minimum base quality used for variant calling (freebayes 'min-base-quality' parameter).", true, 20);
+$parser->addFloat("min_bq", "Minimum base quality used for variant calling (freebayes 'min-base-quality' parameter).", true, 10);
 $parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (freebayes 'min-mapping-quality' parameter).", true, 20);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.");
 $parser->addFlag("no_abra", "Skip realignment with ABRA.");
 $parser->addFlag("no_trim", "Skip adapter trimming with SeqPurge.");
-$parser->addFlag("start_with_abra", "Skip all steps before indel realignment of BAM file.");
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
@@ -73,13 +72,13 @@ $parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 //checks in case DRAGEN should be used
 if ($use_dragen)
 {
-	if ($user != get_path("dragen_user"))
+	if (!in_array("ma", $steps) && (!file_exists($folder."/dragen_variant_calls/{$name}_dragen.vcf.gz") && in_array("vc", $steps))) 
 	{
-		trigger_error("Analysis has to be run as user '".get_path("dragen_user")."' for the use of DRAGEN!", E_USER_ERROR);
+		trigger_error("DRAGEN small variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
-	if (!in_array("ma", $steps) && !file_exists($folder."/dragen_variant_calls/{$name}_dragen.vcf.gz")) 
+	if (!in_array("ma", $steps) && (!file_exists($folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz") && in_array("sv", $steps))) 
 	{
-		trigger_error("DRAGEN variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
+		trigger_error("DRAGEN structural variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
 }
 
@@ -126,8 +125,9 @@ if (!$no_sync)
 //mapping
 $bamfile = $folder."/".$name.".bam";
 $cramfile = $folder."/".$name.".cram";
-$local_bamfile = $parser->tempFolder("local_bam")."/".$name.".bam"; //local copy of BAM file to reduce IO over network
+$used_bam_or_cram = ""; //BAM/CRAM file used for calling etc. This is a local tmp file if mapping was done and a file in the output folder if no mapping was done
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
+$somatic_custom_panel = get_path("data_folder") . "/enrichment/somatic_VirtualPanel_v4.bed";
 //variant calling
 $vcffile = $folder."/".$name."_var.vcf.gz";
 $vcffile_annotated = $folder."/".$name."_var_annotated.vcf.gz";
@@ -190,7 +190,7 @@ if (in_array("ma", $steps))
 	}
 	
 	//generate FASTQs from BAM/CRAM is missing
-	if (count($files1)==0 && !$start_with_abra)
+	if (count($files1)==0)
 	{
 		$source_file = "";
 		$cram_genome = $genome;
@@ -232,25 +232,24 @@ if (in_array("ma", $steps))
 	if($clip_overlap) $args[] = "-clip_overlap";
 	if($no_abra) $args[] = "-no_abra";
 	if($no_trim) $args[] = "-no_trim";
-	if($start_with_abra) $args[] = "-start_with_abra";
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
 	if($use_dragen) $args[] = "-use_dragen";
 	if($somatic) $args[] = "-somatic_custom_map";
-	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name -local_bam $local_bamfile ".implode(" ", $args)." -threads $threads");
-
+	$used_bam_or_cram = $parser->tempFolder("local_bam")."/".$name.".bam"; //local copy of BAM file to reduce IO over network when mapping is done 
+	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name -local_bam $used_bam_or_cram ".implode(" ", $args)." -threads $threads");
+	
 	//low-coverage report
 	if ($has_roi && !$is_wgs_shallow)
 	{	
-		$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $local_bamfile -out $lowcov_file -cutoff 20 -threads {$threads}", true);
+		$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", true);
 		if (db_is_enabled("NGSD"))
 		{
 			$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
 		}
 	}
 
-	//delete fastq files after mapping
-	//remove files only if sample doesn't contain UMIs and the corresponding setting is set in the settings.ini
+	//delete fastq files after mapping - remove files only if sample doesn't contain UMIs and the corresponding setting is set in the settings.ini
 	if ($sys['umi_type']=="n/a" && get_path("delete_fastq_files")) 
 	{
 		//check if project overwrites the settings
@@ -268,47 +267,111 @@ if (in_array("ma", $steps))
 		if(!$preserve_fastqs)
 		{
 			$fastq_files = array_merge($files1, $files2);
-			//check if BAM and BAM index exists:
-			$bam_exists = file_exists($bamfile) && file_exists($bamfile.".bai"); 
-			if ($bam_exists && count($fastq_files)>0)
+			if(count($fastq_files)>0)
 			{
-				//check file sizes:
-				//FASTQ
+				//determine FASTQ size
 				$fastq_file_size = 0;
 				foreach($fastq_files as $fq_file)
 				{
 					$fastq_file_size += filesize($fq_file);
 				}
-
-				//BAM
-				$bamfile_size = filesize($bamfile);
-
-				if ($bamfile_size / $fastq_file_size > 0.3)
+			
+				//check if BAM/CRAM exist and have a appropriete size
+				$bam_exists = file_exists($bamfile) && file_exists($bamfile.".bai"); 
+				$cram_exists = file_exists($cramfile) && file_exists($cramfile.".crai"); 
+				if ($bam_exists)
 				{
-					// BAM exists and has a propper size: FASTQ files can be deleted
-					foreach($fastq_files as $fq_file)
+					if (filesize($bamfile) > 0.3 * $fastq_file_size)
 					{
-						unlink($fq_file);
+						foreach($fastq_files as $fq_file)
+						{
+							unlink($fq_file);
+						}
+					}
+					else
+					{
+						trigger_error("Cannot delete FASTQ files - BAM file smaller than 30% of FASTQ.", E_USER_ERROR);
+					}
+				}
+				else if ($cram_exists)
+				{
+					if (filesize($cramfile) > 0.1 * $fastq_file_size)
+					{
+						foreach($fastq_files as $fq_file)
+						{
+							unlink($fq_file);
+						}
+					}
+					else
+					{
+						trigger_error("Cannot delete FASTQ files - CRAM file smaller than 10% of FASTQ.", E_USER_ERROR);
 					}
 				}
 				else
 				{
-					trigger_error("BAM file smaller than 30% of FASTQ", E_USER_ERROR);
+					trigger_error("Cannot delete FASTQ files - no BAM/CRAM file found!", E_USER_ERROR);
 				}
-			}
-			else
-			{
-				trigger_error("No BAM/BAI file found!", E_USER_ERROR);
 			}
 		}
 	}
 }
-else
-{
+else if (file_exists($bamfile))
+{	
 	//check genome build of BAM
 	check_genome_build($bamfile, $build);
 	
-	$local_bamfile = $bamfile;
+	$used_bam_or_cram = $bamfile;
+
+	if($use_dragen)
+	{
+		// Do ReadQC/MappingQC for already mapped/called samples from the NovaSeq X (only if files do not exist)
+		if(!file_exists($qc_map))
+		{
+			//run mapping QC
+			$params = array("-in $bamfile", "-out {$qc_map}", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
+			if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
+			{
+				$params[] = "-wgs";
+			}
+			else
+			{
+				$params[] = "-roi ".$sys['target_file'];
+			}
+			if ($sys['build']!="GRCh38")
+			{
+				$params[] = "-no_cont";
+			}
+			if ($somatic && file_exists($somatic_custom_panel))
+			{
+				$params[] = "-somatic_custom_bed $somatic_custom_panel";
+			}
+			if (!file_exists($qc_fastq))
+			{
+				$params[] = "-read_qc $qc_fastq";
+			}
+			$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
+		}	
+
+		if(!file_exists($lowcov_file))
+		{
+			//low-coverage report
+			if ($has_roi && !$is_wgs_shallow)
+			{	
+				$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20 -threads {$threads}", true);
+				if (db_is_enabled("NGSD"))
+				{
+					$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
+				}
+			}
+		}
+		
+	}
+}
+else if (file_exists($cramfile))
+{
+	check_genome_build($cramfile, $build);
+	
+	$used_bam_or_cram = $cramfile;
 }
 
 //variant calling
@@ -397,7 +460,7 @@ if (in_array("vc", $steps))
 			else
 			{
 				$args = [];
-				$args[] = "-bam ".$local_bamfile;
+				$args[] = "-bam ".$used_bam_or_cram;
 				$args[] = "-out ".$vcffile;
 				$args[] = "-build ".$build;
 				$args[] = "-threads ".$threads;
@@ -451,7 +514,7 @@ if (in_array("vc", $steps))
 				file_put_contents($target_mito, "chrMT\t0\t16569");
 				
 				$args = [];
-				$args[] = "-in ".$local_bamfile;
+				$args[] = "-in ".$used_bam_or_cram;
 				$args[] = "-out ".$vcffile_mito;
 				$args[] = "-build ".$build;
 				$args[] = "-target ".$target_mito;
@@ -520,7 +583,7 @@ if (in_array("vc", $steps))
 			{
 				$tmp_low_mappability = $parser->tempFile("_low_mappability.vcf.gz");
 				$args = [];
-				$args[] = "-bam ".$local_bamfile;
+				$args[] = "-bam ".$used_bam_or_cram;
 				$args[] = "-out ".$tmp_low_mappability;
 				$args[] = "-build ".$build;
 				$args[] = "-threads ".$threads;
@@ -546,7 +609,7 @@ if (in_array("vc", $steps))
 		{
 			$tmp_mosaic = $parser->tempFile("_mosaic.vcf");
 			$args = [];
-			$args[] = "-in {$local_bamfile}";
+			$args[] = "-in {$used_bam_or_cram}";
 			$args[] = "-out {$tmp_mosaic}";
 			$args[] = "-no_zip";
 			$args[] = "-target ".(($is_panel || $is_wes) ? $sys['target_file'] : repository_basedir()."data/gene_lists/gene_exons_pad20.bed");
@@ -594,7 +657,7 @@ if (in_array("vc", $steps))
 	$args[] = "-threads ".$threads;
 	if($rna_sample != "") $args[] = "-rna_sample ".$rna_sample;
 	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
-	
+
 	//ROH detection
 	if ($is_wes || $is_wgs)
 	{
@@ -614,7 +677,7 @@ if (in_array("vc", $steps))
 		$prs_scoring_files = glob($prs_folder."/*_".$build.".vcf");
 		if (count($prs_scoring_files) > 0)
 		{
-			$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -bam $bamfile -out $prsfile -prs ".implode(" ", $prs_scoring_files), true);
+			$parser->exec("{$ngsbits}VcfCalculatePRS", "-in $vcffile -bam $used_bam_or_cram -out $prsfile -prs ".implode(" ", $prs_scoring_files)." -ref $genome", true);
 		}
 	}
 	
@@ -701,7 +764,7 @@ if (in_array("cn", $steps))
 
 			$parser->log("Calculating coverage file for CN calling...");
 			$cov_tmp = $tmp_folder."/{$name}.cov";
-			$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$local_bamfile} -in {$bed} -out {$cov_tmp} -threads {$threads}", true);
+			$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$used_bam_or_cram} -in {$bed} -out {$cov_tmp} -threads {$threads} -ref {$genome}", true);
 			
 			//copy coverage file to reference folder if valid
 			if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
@@ -792,7 +855,7 @@ if (in_array("cn", $steps))
 		}
 
 		//annotate additional gene info
-		$parser->exec($ngsbits."CnvGeneAnnotation", "-in {$cnvfile} -out {$cnvfile}", true);
+		$parser->exec($ngsbits."CnvGeneAnnotation", "-in {$cnvfile} -add_simple_gene_names -out {$cnvfile}", true);
 		// skip annotation if no connection to the NGSD is possible
 		if (db_is_enabled("NGSD"))
 		{
@@ -858,7 +921,7 @@ if (in_array("sv", $steps))
 			create_directory($manta_evidence_dir);
 
 			$manta_args = [
-				"-bam ".$local_bamfile,
+				"-bam ".$used_bam_or_cram,
 				"-evid_dir ".$manta_evidence_dir,
 				"-out ".$sv_manta_file,
 				"-threads ".$threads,
@@ -956,7 +1019,7 @@ if (in_array("sv", $steps))
 if (in_array("sv", $steps) && !$annotation_only)
 {
 	//perform repeat expansion analysis (only for WGS/WES):
-	$parser->execTool("NGS/vc_expansionhunter.php", "-in $local_bamfile -out $expansion_hunter_file -build ".$build." -pid $name -threads {$threads}");
+	$parser->execTool("NGS/vc_expansionhunter.php", "-in $used_bam_or_cram -out $expansion_hunter_file -build ".$build." -pid $name -threads {$threads}");
 }
 
 // create Circos plot - if small variant, CNV or SV calling was done
@@ -1108,7 +1171,7 @@ if (in_array("db", $steps))
 	$parser->exec("{$ngsbits}/NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_files)." -force");
 	
 	//check gender
-	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $bamfile -pid $name");	
+	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
 	//import variants
 	$args = ["-ps {$name}"];
 	$import = false;

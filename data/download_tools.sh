@@ -16,7 +16,7 @@ python3_path=$folder/Python-3.10.9/
 cd $folder
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2023_06 && git submodule update --recursive --init
+git checkout 2023_09 && git submodule update --recursive --init
 make build_3rdparty
 make build_tools_release
 
@@ -143,9 +143,9 @@ sed -i 's#referenceFasta = /illumina/development/Isis/Genomes/Homo_sapiens/UCSC/
 
 #download InterOp
 cd $folder
-wget https://github.com/Illumina/interop/releases/download/v1.1.21/InterOp-1.1.21-Linux-GNU.tar.gz
-tar xzf InterOp-1.1.21-Linux-GNU.tar.gz
-rm InterOp-1.1.21-Linux-GNU.tar.gz
+wget https://github.com/Illumina/interop/releases/download/v1.2.4/interop-1.2.4-Linux-GNU.tar.gz
+tar xzf interop-1.2.4-Linux-GNU.tar.gz
+rm interop-1.2.4-Linux-GNU.tar.gz
 
 #download Circos
 cd $folder
@@ -253,3 +253,9 @@ wget https://github.com/twolinin/longphase/releases/download/v1.5/longphase_linu
 tar -xJf longphase_linux-x64.tar.xz
 rm longphase_linux-x64.tar.xz
 cd ..
+
+#download illuminia ORA decompression tool
+cd $folder
+wget https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
+tar xzf orad.2.6.1.tar.gz
+rm orad.2.6.1.tar.gz

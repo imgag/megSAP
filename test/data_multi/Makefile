@@ -1,26 +1,20 @@
 
 all:
-	make clear link vc cn sv diff reanno
+	make clear link call diff reanno
 	
 clear:
-	rm -rf *.bam *.bai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv reanno
+	rm -rf *.cram *.crai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML multi_cnvs_clincnv.tsv *.bedpe manta_evid/ reanno 
 
 link:
-	php ../link_test_data.php GS140127_01.bam
-	php ../link_test_data.php GS140127_01.bam.bai
-	php ../link_test_data.php GS140549_01.bam
-	php ../link_test_data.php GS140549_01.bam.bai
-	php ../link_test_data.php GS140550_01.bam
-	php ../link_test_data.php GS140550_01.bam.bai
+	php ../link_test_data.php GS140127_01.cram
+	php ../link_test_data.php GS140127_01.cram.crai
+	php ../link_test_data.php GS140549_01.cram
+	php ../link_test_data.php GS140549_01.cram.crai
+	php ../link_test_data.php GS140550_01.cram
+	php ../link_test_data.php GS140550_01.cram.crai
 
-vc:
-	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . -steps vc
-
-cn:
-	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . -steps cn
-
-sv:
-	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder . -steps sv
+call:
+	php ../../src/Pipelines/multisample.php -bams GS140127_01.cram GS140549_01.cram GS140550_01.cram -status affected control control -system system.ini -out_folder . -steps vc,cn,sv
 	# remove gene annotation
 	cut -f1-24 multi_manta_var_structural.bedpe > multi_manta_var_structural_cut.bedpe
 	# create file from OMIM annotation and CNV overlap
@@ -43,8 +37,8 @@ reanno:
 	cp multi_cnvs_clincnv.tsv reanno/
 	cp multi_manta_var_structural.bedpe reanno/
 	# run reannotation
-	php ../../src/Pipelines/multisample.php -bams GS140127_01.bam GS140549_01.bam GS140550_01.bam -status affected control control -system system.ini -out_folder reanno -steps vc,cn,sv -annotation_only
+	php ../../src/Pipelines/multisample.php -bams GS140127_01.cram GS140549_01.cram GS140550_01.cram -status affected control control -system system.ini -out_folder reanno -steps vc,cn,sv -annotation_only
 	# diff
 	diff multi_cnvs_clincnv.tsv reanno/multi_cnvs_clincnv.tsv
 	diff multi.GSvar reanno/multi.GSvar
-	diff multi_manta_var_structural.bedpe reanno/multi_manta_var_structural.bedpe
+	diff multi_manta_var_structural.bedpe reanno/multi_manta_var_structural.bedpe --ignore-matching-lines="^##"

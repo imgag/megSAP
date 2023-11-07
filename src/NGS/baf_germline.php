@@ -44,6 +44,9 @@ while (!feof($handle))
 	// skip indels and multi-allelic sites
 	if (strlen($ref) > 1 || strlen($alt) > 1) continue;
 	
+	// skip ggene conversion events (Dragen)
+	if (contains($info, 'EVENTTYPE=GENE_CONVERSION')) continue;
+	
 	++$snps_passed;
 	
 	// skip same positions

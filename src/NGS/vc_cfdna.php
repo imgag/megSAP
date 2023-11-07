@@ -57,12 +57,12 @@ $umiVar2 = get_path("umiVar2");
 $parser->exec(get_path("python3"), $umiVar2."/umiVar.py ".implode(" ", $args));
 
 // sort VCF file(s)
-$vcf = $folder."/".basename($bam, ".bam").".vcf";
+$vcf = $folder."/".basename2($bam).".vcf";
 if (file_exists($vcf))
 {
     $parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf -out $vcf", true);
 }
-$vcf_hq = $folder."/".basename($bam, ".bam")."_hq.vcf";
+$vcf_hq = $folder."/".basename2($bam)."_hq.vcf";
 if (file_exists($vcf_hq))
 {
     $parser->exec(get_path("ngs-bits")."VcfSort","-in ${vcf_hq} -out ${vcf_hq}", true);

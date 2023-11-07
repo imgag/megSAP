@@ -41,6 +41,9 @@ tracker](https://github.com/imgag/megSAP/issues).
 
 Changes of master since last release:
 
-* none so far
+* added AlphaMissense
+* switched from BAM to CRAM
+* MaxEntScan: added acceptor/donor gain predictions (based on own implementation of MaxEntScan)
+* Improved DRAGEN support (MappingQC now does ReadQC, gVCF, ...)
 
 For older changes see [releases](https://github.com/imgag/megSAP/releases).

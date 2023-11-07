@@ -290,6 +290,7 @@ check_genome_build(data_folder()."/get_genome_build_bwamem2GRCh37.bam", "GRCh37"
 check_genome_build(data_folder()."/get_genome_build_bwamem2GRCh38.bam", "GRCh38");
 check_genome_build(data_folder()."/get_genome_build_dragenGRCh37.bam", "GRCh37");
 check_genome_build(data_folder()."/get_genome_build_dragenGRCh38.bam", "GRCh38");
+check_genome_build(data_folder()."/get_genome_build_NovaSeqXGRCh38.bam", "GRCh38");
 end_test();
 
 //##################################################################################
@@ -298,7 +299,7 @@ if (db_is_enabled("NGSD_TEST"))
 {
 	$db_conn = DB::getInstance("NGSD_TEST");
 	check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/merge_samples.sql");
-	$sample_info = get_processed_sample_info($db_conn, "DNA220002_01", true, false);
+	$sample_info = get_processed_sample_info($db_conn, "DNA220002_01");
 	check($sample_info["sys_target"], "");
 	check($sample_info["ps_lanes"], array(1));
 	check(ends_with($sample_info['project_folder'], "/merge_samples/"), true);
@@ -310,10 +311,8 @@ if (db_is_enabled("NGSD_TEST"))
 	check($sample_info["sys_target"], "");
 	check($sample_info["ps_lanes"], array(1));
 	check(isset($sample_info['project_folder']), false);
-	check(isset($sample_info['ps_name']), false);
 	check(isset($sample_info['ps_folder']), false);
 	check(isset($sample_info['ps_bam']), false);
-
 }
 else
 {
@@ -321,5 +320,15 @@ else
 }
 end_test();
 
+//##################################################################################
+start_test("basename2");
+
+check(basename2("/some/path/filename1.bam")  , "filename1");
+check(basename2("/some/path/filename2.BAM")  , "filename2");
+check(basename2("/some/path/filename3.CRAM") , "filename3");
+check(basename2("/some/path/filename4.cram") , "filename4");
+check(basename2("/some/path/filename5")      , "filename5");
+
+end_test();
 
 ?>

@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<RunParameters xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Surface>Both</Surface>
+  <ReadType>PairedEnd</ReadType>
+  <Side>A</Side>
+  <Read1NumberOfCycles>105</Read1NumberOfCycles>
+  <Read2NumberOfCycles>105</Read2NumberOfCycles>
+  <IndexRead1NumberOfCycles>19</IndexRead1NumberOfCycles>
+  <IndexRead2NumberOfCycles>8</IndexRead2NumberOfCycles>
+  <PlannedRead1Cycles>105</PlannedRead1Cycles>
+  <PlannedRead2Cycles>105</PlannedRead2Cycles>
+  <PlannedIndex1ReadCycles>19</PlannedIndex1ReadCycles>
+  <PlannedIndex2ReadCycles>8</PlannedIndex2ReadCycles>
+  <RunNumber>792</RunNumber>
+  <RtaVersion>v3.4.4</RtaVersion>
+  <RecipeVersion>1.8.0</RecipeVersion>
+  <ExperimentName>00001</ExperimentName>
+  <RfidsInfo>
+    <FlowCellSerialBarcode>H5LG5BDXX</FlowCellSerialBarcode>
+    <FlowCellPartNumber>000000000</FlowCellPartNumber>
+    <FlowCellLotNumber>00000000</FlowCellLotNumber>
+    <FlowCellExpirationdate>01/01/2023 12:34:56</FlowCellExpirationdate>
+    <FlowCellStartDate>01/01/2023 12:34:56</FlowCellStartDate>
+    <FlowCellNumberOfReuseRemaining>1</FlowCellNumberOfReuseRemaining>
+    <FlowCellSupportedModes>S2;LTWashOnly</FlowCellSupportedModes>
+    <FlowCellMode>S2</FlowCellMode>
+    <FlowCellConsumableVersion>1</FlowCellConsumableVersion>
+    <FlowCellRssi>2</FlowCellRssi>
+    <LibraryTubeSerialBarcode>NV0000000-LIB</LibraryTubeSerialBarcode>
+    <LibraryTubeSupportedModes>Universal</LibraryTubeSupportedModes>
+    <LibraryTubePartNumber>20005221</LibraryTubePartNumber>
+    <LibraryTubeLotNumber>1000015530</LibraryTubeLotNumber>
+    <LibraryTubeExpirationdate>12/31/2169 00:00:00</LibraryTubeExpirationdate>
+    <LibraryTubeStartDate>09/15/2023 10:50:00</LibraryTubeStartDate>
+    <LibraryTubeRssi>4</LibraryTubeRssi>
+    <SbsSerialBarcode>NV4918471-RGSBS</SbsSerialBarcode>
+    <SbsSupportedModes>S2;S1;SP</SbsSupportedModes>
+    <SbsPartNumber>20031053</SbsPartNumber>
+    <SbsLotNumber>20769179</SbsLotNumber>
+    <SbsExpirationdate>01/01/2023 12:34:56</SbsExpirationdate>
+    <SbsStartDate>01/01/2023 12:34:56</SbsStartDate>
+    <SbsCycleKit>238</SbsCycleKit>
+    <SbsNumberOfCyclesRemaining>1</SbsNumberOfCyclesRemaining>
+    <SbsNumberOfCyclesSupported>238</SbsNumberOfCyclesSupported>
+    <SbsConsumableVersion>3</SbsConsumableVersion>
+    <SbsRssi>5</SbsRssi>
+    <ClusterSerialBarcode>NV0000000-RGCPE</ClusterSerialBarcode>
+    <ClusterSupportedModes>S2</ClusterSupportedModes>
+    <ClusterPartNumber>00000000</ClusterPartNumber>
+    <ClusterLotNumber>00000000</ClusterLotNumber>
+    <ClusterExpirationdate>01/01/2023 12:34:56</ClusterExpirationdate>
+    <ClusterStartDate>01/01/2023 12:34:56</ClusterStartDate>
+    <ClusterCycleKit>338</ClusterCycleKit>
+    <ClusterNumberOfCyclesRemaining>101</ClusterNumberOfCyclesRemaining>
+    <ClusterRssi>6</ClusterRssi>
+    <BufferSerialBarcode>NV0000000-BUFFR</BufferSerialBarcode>
+    <BufferSupportedModes>S2;S1;SP</BufferSupportedModes>
+    <BufferPartNumber>00000000</BufferPartNumber>
+    <BufferLotNumber>0000000</BufferLotNumber>
+    <BufferExpirationdate>01/01/2023 12:34:56</BufferExpirationdate>
+    <BufferNumberOfCyclesRemaining>85</BufferNumberOfCyclesRemaining>
+    <BufferStartDate>01/01/2023 12:34:56</BufferStartDate>
+    <BufferRssi>4</BufferRssi>
+  </RfidsInfo>
+  <RecipeFilePath>C:\Some\PATH\Recipe</RecipeFilePath>
+  <SamplesheetFile />
+  <UsedLimsSetup>false</UsedLimsSetup>
+  <CeLinuxRunFolder>/ilmn/some/path/</CeLinuxRunFolder>
+  <RtaRawRunFolder>/ilmn/some/path</RtaRawRunFolder>
+  <CeMountRunFolder>C:\Some\PATH\</CeMountRunFolder>
+  <OutputRunFolder>C:\Some\PATH\</OutputRunFolder>
+  <OutputRootFolder>C:\Some\PATH\</OutputRootFolder>
+  <SbcRunFolder>C:\Some\PATH\</SbcRunFolder>
+  <PreRunFolder>C:\Some\PATH\</PreRunFolder>
+  <RunStartDate>230915</RunStartDate>
+  <RunId>230101_A12345_0003_AH5LG5BDXX</RunId>
+  <UseBaseSpace>false</UseBaseSpace>
+  <UseBaseSpaceMonitoringAndStorage>false</UseBaseSpaceMonitoringAndStorage>
+  <Autocenter>true</Autocenter>
+  <BiDirectionalScanning>true</BiDirectionalScanning>
+  <UseCustomRecipe>false</UseCustomRecipe>
+  <UseCustomRead1Primer>false</UseCustomRead1Primer>
+  <UseCustomRead2Primer>false</UseCustomRead2Primer>
+  <UseCustomIndexRead1Primer>false</UseCustomIndexRead1Primer>
+  <IsRehyb>false</IsRehyb>
+  <InstrumentName>A12345</InstrumentName>
+  <PlatformType>HighThroughput</PlatformType>
+  <Application>NovaSeq Control Software</Application>
+  <ApplicationVersion>1.8.1</ApplicationVersion>
+  <Build>59</Build>
+  <FirmwareVersions>
+    <FirmwareVersion>
+      <Board>Fluidics Board</Board>
+      <Version>novaseq_flu@NovaSeq_1.26.10</Version>
+    </FirmwareVersion>
+    <FirmwareVersion>
+      <Board>Left Buffer Interface Board</Board>
+      <Version>novaseq_bim@NovaSeq_1.26.10</Version>
+    </FirmwareVersion>
+    <FirmwareVersion>
+      <Board>Right Buffer Interface Board</Board>
+      <Version>novaseq_bim@NovaSeq_1.26.10</Version>
+    </FirmwareVersion>
+    <FirmwareVersion>
+      <Board>Chassis Module Board</Board>
+      <Version>novaseq_chm@NovaSeq_1.26.10</Version>
+    </FirmwareVersion>
+    <FirmwareVersion>
+      <Board>Camera Interface Board</Board>
+      <Version>novaseq_cib_2@NovaSeq_1.26.10</Version>
+    </FirmwareVersion>
+    <FirmwareVersion>
+      <Board>Focus Interface Board</Board>
+      <Version>novaseq_fib_2@NovaSeq_1.26.10</Version>
+    </FirmwareVersion>
+    <FirmwareVersion>
+      <Board>Flow Cell Holder Board</Board>
+      <Version>novaseq_fch_2@NovaSeq_1.26.10</Version>
+    </FirmwareVersion>
+    <FirmwareVersion>
+      <Board>System Thermal Board</Board>
+      <Version>novaseq_syst@NovaSeq_1.26.10</Version>
+    </FirmwareVersion>
+    <FirmwareVersion>
+      <Board>Left Reagent Chiller Board</Board>
+      <Version>novaseq_rca@NovaSeq_1.26.10</Version>
+    </FirmwareVersion>
+    <FirmwareVersion>
+      <Board>Right Reagent Chiller Board</Board>
+      <Version>novaseq_rca@NovaSeq_1.26.10</Version>
+    </FirmwareVersion>
+  </FirmwareVersions>
+  <SendIlluminaHealthData>false</SendIlluminaHealthData>
+  <UcsRunId>1234567890ABCDEF</UcsRunId>
+  <UcsVersion>2.7.3.4836</UcsVersion>
+  <RunSetupMode>Manual</RunSetupMode>
+  <WorkflowType>NovaSeqStandard</WorkflowType>
+</RunParameters>

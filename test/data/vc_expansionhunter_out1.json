@@ -384,6 +384,25 @@
         }
       }
     },
+    "FGF14": {
+      "AlleleCount": 2,
+      "Coverage": 0.0,
+      "FragmentLength": 0,
+      "LocusId": "FGF14",
+      "ReadLength": 0,
+      "Variants": {
+        "FGF14": {
+          "CountsOfFlankingReads": "()",
+          "CountsOfInrepeatReads": "()",
+          "CountsOfSpanningReads": "()",
+          "ReferenceRegion": "chr13:102161576-102161726",
+          "RepeatUnit": "GAA",
+          "VariantId": "FGF14",
+          "VariantSubtype": "RareRepeat",
+          "VariantType": "Repeat"
+        }
+      }
+    },
     "FMR1": {
       "AlleleCount": 2,
       "Coverage": 38.51351351351351,

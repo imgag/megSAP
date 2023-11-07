@@ -250,12 +250,20 @@ if (isset($db))
 					$bed_content = $db->getValue("SELECT bed FROM cfdna_panels WHERE tumor_id=${tumor_ps_id} AND processing_system_id=${sys_id}");
 					file_put_contents($target, $bed_content);
 				}
+				else
+				{
+					copy($target, "{$folder}/{$name}_target_region.bed");
+				}
 				
 				if ($monitoring_vcf == "")
 				{
 					$monitoring_vcf = "{$folder}/{$name}_cfdna_panel.vcf";
 					$vcf_content = $db->getValue("SELECT vcf FROM cfdna_panels WHERE tumor_id=${tumor_ps_id} AND processing_system_id=${sys_id}");
 					file_put_contents($monitoring_vcf, $vcf_content);
+				}
+				else
+				{
+					copy($monitoring_vcf, "{$folder}/{$name}_cfdna_panel.vcf");
 				}
 			}
 		}
@@ -355,20 +363,21 @@ if (in_array("ma", $steps))
 	}
 	
 	$args = [
-		"-in_for", implode(" ", $files1),
-		"-in_rev", implode(" ", $files2),
+		"-in_for ".implode(" ", $files1),
+		"-in_rev ".implode(" ", $files2),
 		"-clip_overlap",
-		"-system", $system,
-		"-out_folder", $folder,
-		"-out_name", $name,
-		"-threads", $threads,
-		"--log", $parser->getLogFile()
+		"-system " .$system,
+		"-out_folder ".$folder,
+		"-out_name ".$name,
+		"-threads ".$threads,
+		"--log ".$parser->getLogFile(),
+		"-bam_output" //TODO Leon: CRAM does not work in pipeline test - error message is "[E::process_one_read] CIGAR and query sequence are of different length"
 	];
 	if (!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
 	$parser->execTool("Pipelines/mapping.php", implode(" ", $args));
 
 	//low-coverage report, based on patient specific positions
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ${target} -bam ${bamfile} -out ${lowcov_file} -cutoff ${lowcov_cutoff} -threads {$threads}", true);
+	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ${target} -bam ${bamfile} -out ${lowcov_file} -cutoff ${lowcov_cutoff} -threads {$threads} -ref ".genome_fasta($sys['build']), true);
 	if (db_is_enabled("NGSD"))
 	{
 		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in ${lowcov_file} -clear -extend 25 -out ${lowcov_file}", true);

@@ -183,7 +183,7 @@ $bases_used = $bases_hc;
 if ($min_dp>0)
 {
 	$roi_low_dp = $parser->tempFile(".bed");
-	exec2("{$ngsbits}BedLowCoverage -bam {$bam} -in {$roi_hc} -cutoff {$min_dp} -out {$roi_low_dp} -threads 4");
+	exec2("{$ngsbits}BedLowCoverage -bam {$bam} -in {$roi_hc} -cutoff {$min_dp} -out {$roi_low_dp} -threads 4 -ref {$genome}");
 	$roi_high_dp = $parser->tempFile(".bed");
 	exec2("{$ngsbits}BedSubtract -in {$roi_hc} -in2 {$roi_low_dp} -out {$roi_high_dp}");
 	
@@ -283,7 +283,7 @@ print "\n";
 
 
 //print statistics
-function stats_line($name, $options, $date, $expected, $var_diff, $var_type=null)
+function stats($var_type, $expected, $var_diff)
 {
 	global $bases_used;
 	
@@ -330,12 +330,11 @@ function stats_line($name, $options, $date, $expected, $var_diff, $var_type=null
 		
 	$tp = $c_expected - $fn;
 	$tn = $bases_used - $c_expected - $fp;
-	$recall = number_format($tp/($tp+$fn),5);
-	$precision = number_format($tp/($tp+$fp),5);
-	$geno_acc = number_format(($tp-$gt_false)/$tp,5);
+	$recall = number_format($tp/($tp+$fn),4);
+	$precision = number_format($tp/($tp+$fp),4);
+	$geno_acc = number_format(($tp-$gt_false)/$tp,4);
 	
-	if (!is_null($var_type)) $name .= " ".$var_type;
-	return implode("\t", array($name, $options, $date, $c_expected, $tp, $tn, $fp, $fn, $gt_false, $recall, $precision, $geno_acc));
+	return [$c_expected, $recall, $precision, $geno_acc];
 }
 
 if ($name=="") $name = basename($vcf, ".vcf.gz");
@@ -347,7 +346,7 @@ if ($min_qd>0) $options[] = "min_qd={$min_qd}";
 $options = implode(" ", $options);
 $date = strtr(date("Y-m-d H:i:s", filemtime($vcf)), "T", " ");
 $output = array();
-$output[] = "#name\toptions\tdate\texpected variants\tTP\tTN\tFP\tFN\tgenotyping_errors\trecall/sensitivity\tprecision/ppv\tgenotyping_accuracy";
+$output[] = "#name\toptions\tdate\taverage_depth\texpected_snvs\texpected_indels\tsnv_sensitivity\tsnv_ppv\tsnv_genotyping_accuracy\tindel_sensitivity\tindel_ppv\tindel_genotyping_accuracy\tall_sensitivity\tall_ppv\tall_genotyping_accuracy";
 if (file_exists($stats))
 {
 	foreach(file($stats) as $line)
@@ -357,9 +356,20 @@ if (file_exists($stats))
 		$output[] = $line;
 	}
 }
-$output[] = stats_line($name, $options, $date, $expected, $var_diff);
-$output[] = stats_line($name, $options, $date, $expected, $var_diff, "SNVS");
-$output[] = stats_line($name, $options, $date, $expected, $var_diff, "INDELS");
+$avg_depth = "n/a";
+$qcml = substr($bam, 0, -4)."_stats_map.qcML";
+if (file_exists($qcml))
+{
+	list($stdout) = exec2("grep 'QC:2000025' $qcml"); //Average sequencing depth in target region
+	foreach(explode(" ", $stdout[0]) as $part)
+	{
+		if (!contains($part, "value")) continue;
+		$avg_depth = explode("\"", $part)[1];
+	}
+}
+list($snv_exp, $snv_sens, $snv_ppv, $snv_geno) = stats("SNVS", $expected, $var_diff);
+list($indel_exp, $indel_sens, $indel_ppv, $indel_geno) = stats("INDELS", $expected, $var_diff);
+list($all_exp, $all_sens, $all_ppv, $all_geno) = stats(null, $expected, $var_diff);
+$output[] = implode("\t", [$name, $options, $date, $avg_depth, $snv_exp, $indel_exp, $snv_sens, $snv_ppv, $snv_geno, $indel_sens, $indel_ppv, $indel_geno, $all_sens, $all_ppv, $all_geno])."\n";
 file_put_contents($stats, implode("\n", $output)."\n");
-
 ?>

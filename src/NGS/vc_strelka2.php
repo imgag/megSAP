@@ -157,8 +157,8 @@ $variants_filtered = new Matrix();
 $colnames = $variants->getHeaders();
 $colidx_tumor = array_search("TUMOR", $colnames);
 $colidx_normal = array_search("NORMAL", $colnames);
-$colnames[$colidx_tumor] = basename($t_bam, ".bam");
-$colnames[$colidx_normal] = basename($n_bam, ".bam");
+$colnames[$colidx_tumor] = basename2($t_bam);
+$colnames[$colidx_normal] = basename2($n_bam);
 
 //quality cutoffs
 $min_td = 20;

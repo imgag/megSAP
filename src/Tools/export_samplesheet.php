@@ -63,8 +63,6 @@ foreach($res as $index => $row)
 	{
 		//merge whitespaces
 		$value = preg_replace('/\s+/',' ', $value);
-		//replace comma by dot
-		$value = strtr($value, ",", ".");
 		//special characters
 		$value = str_ireplace(array("\"","ö","ä","ß","ü","µ"),array("","oe","ae","ss","ue","u"), $value);
 		//trim
@@ -83,7 +81,7 @@ $output[] = "Lane,Sample_ID,Sample_Name,Sample_Project,index,index2,comment,inde
 foreach($res as $row)
 {
 	$name = $row["psname"];
-	$lanes_sample = explode(".", $row['lane']);
+	$lanes_sample = explode(",", $row['lane']);
 	foreach($lanes_sample as $lane)
 	{
 		if (!in_array($lane, $lanes)) continue;
@@ -101,7 +99,7 @@ foreach($res as $row)
 		//in case of "add_mids", look up the given MID names and add the MID sequence to $mids1
 		if (starts_with($row["pscomment"], "add_mids:"))
 		{
-			$add_mids = explode(".", substr($row["pscomment"], strpos($row["pscomment"], ":")+1));
+			$add_mids = explode(",", substr($row["pscomment"], strpos($row["pscomment"], ":")+1));
 			foreach ($add_mids as $mid)
 			{
 				$mid_trimmed = trim($mid);
@@ -121,7 +119,7 @@ foreach($res as $row)
 		//in case of "custom_mid", add the given MID(s) or MID combination(s)
 		if (starts_with($row["pscomment"], "custom_mid:"))
 		{
-			$custom_mid = explode(".", substr($row["pscomment"], strpos($row["pscomment"], ":")+1));
+			$custom_mid = explode(",", substr($row["pscomment"], strpos($row["pscomment"], ":")+1));
 			foreach ($custom_mid as $mid)
 			{
 				$mid = trim($mid);
@@ -172,7 +170,7 @@ foreach($res as $row)
 				$row["pname"],
 				$mid1,
 				$mid2,
-				trim(implode(" ", [ $row["pscomment"], $row["scomment"] ])),
+				strtr(trim(implode(" ", [ $row["pscomment"], $row["scomment"] ])), ",", "."),
 				"",
 				""
 			]);
