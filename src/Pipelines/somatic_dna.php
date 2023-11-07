@@ -35,6 +35,7 @@ $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
 $parser->addFlag("skip_signatures", "Skip calculation of mutational signatures.");
 $parser->addFlag("skip_HRD", "Skip calculation HRD.");
+$parser->addFlag("use_dragen", "Use Illumina dragen for somatic variant calling.");
 
 //default cut-offs
 $parser->addFloat("min_af", "Allele frequency detection limit (for tumor-only calling only).", true, 0.05);
@@ -125,6 +126,28 @@ foreach($steps as $step)
 	}
 }
 
+
+//check dragen requirements
+if (in_array("vc", $steps)  && $use_dragen)
+{
+	if (exec('whoami') != get_path("dragen_user"))
+	{
+		trigger_error("Variant calling has to be run as user '".get_path("dragen_user")."' if DRAGEN mapping should be used!", E_USER_ERROR);
+	}
+	
+	$dragen_input_folder = get_path("dragen_in");
+	$dragen_output_folder = get_path("dragen_out");
+	if (!file_exists($dragen_input_folder))	
+	{
+		trigger_error("DRAGEN input folder \"".$dragen_input_folder."\" does not exist!", E_USER_ERROR);
+	}
+	if (!file_exists($dragen_output_folder))
+	{
+		trigger_error("DRAGEN input folder \"".$dragen_output_folder."\" does not exist!", E_USER_ERROR);
+	}
+}
+
+
 ###################################### SCRIPT START ######################################
 if (!file_exists($out_folder))
 {
@@ -165,19 +188,19 @@ if (!$single_sample)
 }
 
 //Disable steps "vc" and "cnv" if somatic report config exists in NGSD
-if (!$single_sample && db_is_enabled("NGSD"))
-{
-	$db = DB::getInstance("NGSD", false);
-	list($config_id, $config_vars_exist, $config_cnvs_exist) = somatic_report_config($db, $t_id, $n_id);
-	if (in_array("vc", $steps) && $config_vars_exist)
-	{
-		trigger_error("Somatic report configuration with SNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
-	}
-	if (in_array("cn", $steps) && $config_cnvs_exist)
-	{
-		trigger_error("Somatic report configuration with CNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'cn'.", E_USER_ERROR);
-	}
-}
+// if (!$single_sample && db_is_enabled("NGSD"))
+// {
+	// $db = DB::getInstance("NGSD", false);
+	// list($config_id, $config_vars_exist, $config_cnvs_exist) = somatic_report_config($db, $t_id, $n_id);
+	// if (in_array("vc", $steps) && $config_vars_exist)
+	// {
+		// trigger_error("Somatic report configuration with SNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
+	// }
+	// if (in_array("cn", $steps) && $config_cnvs_exist)
+	// {
+		// trigger_error("Somatic report configuration with CNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'cn'.", E_USER_ERROR);
+	// }
+// }
 
 //sample similarity check
 $bams = array_filter([$t_bam, $n_bam]);
@@ -241,23 +264,23 @@ if( db_is_enabled("NGSD") )
 
 
 // Check samples are flagged correctly in NGSD
-if( db_is_enabled("NGSD") && count($bams) > 1 )
-{
-	$db = DB::getInstance("NGSD");
+// if( db_is_enabled("NGSD") && count($bams) > 1 )
+// {
+	// $db = DB::getInstance("NGSD");
 	
-	$tinfo = get_processed_sample_info($db, $t_id, false);
+	// $tinfo = get_processed_sample_info($db, $t_id, false);
 
-	if(!is_null($tinfo) && $tinfo["is_tumor"] != 1)
-	{
-		trigger_error("Please check tumor processed sample {$t_id} in NGSD. The sample is not flagged as tumor tissue.", E_USER_ERROR);
-	}
+	// if(!is_null($tinfo) && $tinfo["is_tumor"] != 1)
+	// {
+		// trigger_error("Please check tumor processed sample {$t_id} in NGSD. The sample is not flagged as tumor tissue.", E_USER_ERROR);
+	// }
 	
-	$ninfo = get_processed_sample_info($db, $n_id, false);
-	if(!is_null($ninfo) && $ninfo["is_tumor"] != 0)
-	{
-		trigger_error("Please check normal processed sample {$n_id} in NGSD. The sample is flagged as tumor tissue.", E_USER_ERROR);
-	}
-}
+	// $ninfo = get_processed_sample_info($db, $n_id, false);
+	// if(!is_null($ninfo) && $ninfo["is_tumor"] != 0)
+	// {
+		// trigger_error("Please check normal processed sample {$n_id} in NGSD. The sample is flagged as tumor tissue.", E_USER_ERROR);
+	// }
+// }
 
 //low coverage statistics
 $low_cov = "{$full_prefix}_stat_lowcov.bed";					// low coverage BED file
@@ -283,7 +306,7 @@ if ($sys['type'] !== "WGS" && !empty($roi) && !$skip_low_cov)
 }
 
 //variant calling
-$manta_indels  = $full_prefix . "_manta_var_smallIndels.vcf.gz";		// small indels from manta
+$manta_indels  = $full_prefix . "_manta_var_smallIndels.vcf.gz";	// small indels from manta
 $manta_sv      = $full_prefix . "_manta_var_structural.vcf.gz";		// structural variants (vcf)
 $manta_sv_bedpe= $full_prefix . "_manta_var_structural.bedpe"; 		// structural variants (bedpe)
 $variants      = $full_prefix . "_var.vcf.gz";					// variants
@@ -302,37 +325,135 @@ if (in_array("vc", $steps))
 		$parser->execTool("NGS/hla_genotyper.php", "-bam $n_bam -name $n_id -out " . $hla_file_normal);
 	}
 	
-	// structural variant calling
-	if (!$sys['shotgun'])
+	if ($use_dragen)
 	{
-		trigger_error("Structural variant calling deactivated for amplicon samples.", E_USER_NOTICE);
-	}
-	else if ($sys['umi_type'] === "ThruPLEX")
-	{
-		trigger_error("Structural variant calling deactivated for ThruPLEX samples.", E_USER_NOTICE);
-	}
-	else
-	{
-		$args_manta = [
-			"-t_bam {$t_bam}",
-			"-out {$manta_sv}",
-			"-build ".$sys['build'],
-			"-smallIndels {$manta_indels}",
-			"-threads {$threads}"
-		];
-		if (!$single_sample)
+		//DRAGEN OUTFILES
+		$dragen_output_vcf = "$dragen_output_folder/{$prefix}_dragen.vcf.gz";
+		$dragen_output_svs = "$dragen_output_folder/{$prefix}_dragen_svs.vcf.gz";
+		$dragen_log_file = "$dragen_output_folder/{$prefix}_dragen.log";
+		$sge_logfile = date("YmdHis")."_".implode("_", $server)."_".getmypid();
+		$sge_update_interval = 120; //2min
+		
+		
+		// create cmd for vc_dragen_somatic.php
+		$args = array();
+		$args[] = "-t_bam ".$t_bam;
+		$args[] = "-out ".$dragen_output_vcf;
+		$args[] = "-out_sv ".$dragen_output_svs;
+		$args[] = "-build GRCh38";
+		$args[] = "--log ".$dragen_log_file;
+		
+		if (! $single_sample)
 		{
-			$args_manta[] = "-bam $n_bam";
+			$args[] = "-n_bam ".$n_bam;
 		}
-		if ($sys['type'] !== "WGS") //use exome flag for non targeted / exome samples (i.e. non WGS samples)
+		
+		if ($sys['type'] != "WGS")
 		{
-			$args_manta[] = "-exome";
+			$args[] = "-is_targeted";
 		}
-		if (!empty($roi))
+		
+		$cmd = "php ".realpath(repository_basedir())."/src/NGS/vc_dragen_somatic.php ".implode(" ", $args);
+		
+		// submit GridEngine job to dragen queue
+		$dragen_queues = explode(",", get_path("queues_dragen"));
+		list($server) = exec2("hostname -f");
+		$sge_args = array();
+		$sge_args[] = "-V";
+		$sge_args[] = "-b y"; // treat as binary
+		$sge_args[] = "-wd $dragen_output_folder";
+		$sge_args[] = "-m n"; // switch off messages
+		$sge_args[] = "-M ".get_path("queue_email");
+		$sge_args[] = "-e ".get_path("dragen_log")."/$sge_logfile.err"; // stderr
+		$sge_args[] = "-o ".get_path("dragen_log")."/$sge_logfile.out"; // stdout
+		$sge_args[] = "-q ".implode(",", $dragen_queues); // define queue
+		// log sge command
+		$parser->log("SGE command:\tqsub ".implode(" ", $sge_args)." ".$cmd);
+		$command_sge = "qsub ".implode(" ", $sge_args)." ".$cmd;
+
+		// run qsub as user bioinf
+		list($stdout, $stderr) = $parser->exec("qsub", implode(" ", $sge_args)." ".$cmd);
+		$sge_id = explode(" ", $stdout[0])[2];
+
+		// check if submission was successful
+		if ($sge_id<=0) 
 		{
-			$args_manta[] = "-target {$roi}";
+			trigger_error("SGE command failed:\n{$command_sge}\nSTDOUT:\n".implode("\n", $stdout)."\nSTDERR:\n".implode("\n", $stderr), E_USER_ERROR);
 		}
-		$parser->execTool("NGS/vc_manta.php", implode(" ", $args_manta));
+
+		// wait for job to finish
+		do 
+		{
+			// wait
+			sleep($sge_update_interval);
+
+			// check if job is still running
+			list($stdout) = exec2("qstat -u '*' | egrep '^\s+{$sge_id}\s+' 2>&1", false);
+			$finished = trim(implode("", $stdout))=="";
+
+			// log running state
+			if (!$finished)
+			{
+				$state = explode(" ", preg_replace('/\s+/', ' ', $stdout[0]))[5];
+				trigger_error("SGE job $sge_id still queued/running (state: {$state}).", E_USER_NOTICE);
+			}
+		}
+		while (!$finished);
+		
+		trigger_error("SGE job $sge_id finished.", E_USER_NOTICE);
+		
+		//parse SGE stdout file to determine if mapping was successful
+		if (!(file_exists(get_path("dragen_log")."/$sge_logfile.out") && (get_path("dragen_log")."/$sge_logfile.err")))
+		{
+			trigger_error("Cannot find log files of DRAGEN mapping SGE job at '".get_path("dragen_log")."/$sge_logfile.out'!", E_USER_ERROR);
+		}
+		$sge_stdout = file(get_path("dragen_log")."/$sge_logfile.out", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+		$sge_stderr = file(get_path("dragen_log")."/$sge_logfile.err", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+		//copy DRAGEN log to current mapping log and delete it
+		if (!file_exists($dragen_log_file))
+		{
+			trigger_error("Cannot find DRAGEN log file '$dragen_log_file'!", E_USER_ERROR);
+		}
+		$parser->log("DRAGEN somatic calling log: ", file($dragen_log_file));
+		unlink($dragen_log_file);
+
+		if (end($sge_stdout)=="DRAGEN successfully finished!")
+		{
+			trigger_error("SGE job $sge_id successfully finished with exit status 0.", E_USER_NOTICE);
+		}
+		else
+		{
+			// write dragen log stdout and stderr to log:
+			$parser->log("sge stdout:", $sge_stdout);
+			$parser->log("sge stderr:", $sge_stderr);
+			trigger_error("SGE job $sge_id failed!", E_USER_ERROR);
+		}
+		
+		//copy small variant calls from Dragen
+		$dragen_call_folder = $out_folder."/dragen_variant_calls/";
+		if (!file_exists($dragen_call_folder))
+		{
+			if (!mkdir($dragen_call_folder))
+			{
+				trigger_error("Could not create DRAGEN variant calls folder: ".$dragen_call_folder, E_USER_ERROR);
+			}
+		}
+		//copy vcf
+		$parser->moveFile($dragen_output_vcf, $dragen_call_folder.basename($dragen_output_vcf));
+		$parser->moveFile($dragen_output_vcf.".tbi", $dragen_call_folder.basename($dragen_output_vcf).".tbi");
+		
+		//copy dragen vcf
+		$parser->copyFile($dragen_call_folder.basename($dragen_output_vcf), $variants);
+		$parser->copyFile($dragen_call_folder.basename($dragen_output_vcf).".tbi", $variants.".tbi");
+		
+		//copy svs
+		$parser->moveFile($dragen_output_svs, $dragen_call_folder.basename($dragen_output_svs));
+		$parser->moveFile($dragen_output_svs.".tbi", $dragen_call_folder.basename($dragen_output_svs).".tbi");
+		
+		#copy sv_vcf into sample folder as manta calls
+		$parser->copyFile($dragen_call_folder.basename($dragen_output_svs), $manta_sv);
+		$parser->copyFile($dragen_call_folder.basename($dragen_output_svs).".tbi", $manta_sv.".tbi");
 		
 		exec2(get_path("ngs-bits") . "VcfToBedpe -in $manta_sv -out $manta_sv_bedpe");
 		if(!$single_sample)
@@ -344,36 +465,82 @@ if (in_array("vc", $steps))
 		{
 			$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", true );
 		}
+		
 	}
-
-	// variant calling
-	if ($single_sample)	// variant calling using varscan2
+	else //NO dragen calling
 	{
-		$parser->execTool("NGS/vc_varscan2.php", "-bam $t_bam -out $variants -build " .$sys['build']. " -target ". $roi. " -name $t_id -min_af $min_af");
-		$parser->exec("tabix", "-f -p vcf $variants", true);
-	}
-	else
-	{
-		$args_strelka = [
-			"-t_bam {$t_bam}",
-			"-n_bam {$n_bam}",
-			"-out {$variants}",
-			"-build ".$sys['build'],
-			"-threads {$threads}"
-		];
-		if (!empty($roi))
+		// structural variant calling
+		if (!$sys['shotgun'])
 		{
-			$args_strelka[] = "-target {$roi}";
+			trigger_error("Structural variant calling deactivated for amplicon samples.", E_USER_NOTICE);
 		}
-		if ($sys['type'] === "WGS")
+		else if ($sys['umi_type'] === "ThruPLEX")
 		{
-			$args_strelka[] = "-wgs";
+			trigger_error("Structural variant calling deactivated for ThruPLEX samples.", E_USER_NOTICE);
 		}
-		if (is_file($manta_indels))
+		else
 		{
-			$args_strelka[] = "-smallIndels {$manta_indels}";
+			$args_manta = [
+				"-t_bam {$t_bam}",
+				"-out {$manta_sv}",
+				"-build ".$sys['build'],
+				"-smallIndels {$manta_indels}",
+				"-threads {$threads}"
+			];
+			if (!$single_sample)
+			{
+				$args_manta[] = "-bam $n_bam";
+			}
+			if ($sys['type'] !== "WGS") //use exome flag for non targeted / exome samples (i.e. non WGS samples)
+			{
+				$args_manta[] = "-exome";
+			}
+			if (!empty($roi))
+			{
+				$args_manta[] = "-target {$roi}";
+			}
+			$parser->execTool("NGS/vc_manta.php", implode(" ", $args_manta));
+			
+			exec2(get_path("ngs-bits") . "VcfToBedpe -in $manta_sv -out $manta_sv_bedpe");
+			if(!$single_sample)
+			{
+				$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
+			}
+			
+			if( db_is_enabled("NGSD") )
+			{
+				$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", true );
+			}
 		}
-		$parser->execTool("NGS/vc_strelka2.php", implode(" ", $args_strelka));
+		
+		if ($single_sample)
+		{
+			$parser->execTool("NGS/vc_varscan2.php", "-bam $t_bam -out $variants -build " .$sys['build']. " -target ". $roi. " -name $t_id -min_af $min_af");
+			$parser->exec("tabix", "-f -p vcf $variants", true);
+		}
+		else
+		{
+			$args_strelka = [
+				"-t_bam {$t_bam}",
+				"-n_bam {$n_bam}",
+				"-out {$variants}",
+				"-build ".$sys['build'],
+				"-threads {$threads}"
+			];
+			if (!empty($roi))
+			{
+				$args_strelka[] = "-target {$roi}";
+			}
+			if ($sys['type'] === "WGS")
+			{
+				$args_strelka[] = "-wgs";
+			}
+			if (is_file($manta_indels))
+			{
+				$args_strelka[] = "-smallIndels {$manta_indels}";
+			}
+			$parser->execTool("NGS/vc_strelka2.php", implode(" ", $args_strelka));
+		}
 	}
 
 	//add somatic BAF file

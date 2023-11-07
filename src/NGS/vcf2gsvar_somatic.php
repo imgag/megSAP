@@ -76,6 +76,7 @@ while(!feof($handle))
 		if(contains($line, "strelka")) $var_caller = "strelka";
 		if(contains($line, "varscan2") ) $var_caller = "varscan2";
 		if(contains($line, "umivar2") ) $var_caller = "umivar2";
+		if(contains($line, "dragen") ) $var_caller = "dragen";
 		echo $line."\n";
 
 		//add umivar specific columns
@@ -225,6 +226,24 @@ while(!feof($handle))
 			$snp_q = "0";
 		}
 	}
+	else if ($var_caller == "dragen")
+	{
+		//get index of somatic quality
+		$f_parts = explode(":", $format);
+		$i_sq_value = array_search("SQ", $f_parts);
+		
+		$parts = explode(":", $cols[$tumor_idx]);
+	
+		if($i_sq_value !== false)
+		{
+			$snp_q = $parts[$i_sq_value];
+		}
+		else
+		{
+			$snp_q = "0";
+		}
+		
+	}
 	
 	$gsvar->set($r, $i_quality, "QUAL={$snp_q}");
 
@@ -243,6 +262,10 @@ while(!feof($handle))
 		{
 			list($tumor_dp, $tumor_af) = vcf_strelka_snv($format, $cols[$tumor_idx], $alt);
 		}
+	}
+	else if ($var_caller == "dragen")
+	{
+		list($tumor_dp, $tumor_af) = vcf_dragen_var($format, $cols[$tumor_idx]);
 	}
 	else if($var_caller == "varscan2")
 	{
@@ -288,6 +311,10 @@ while(!feof($handle))
 			{
 				list($normal_dp, $normal_af) = vcf_strelka_snv($format, $cols[$normal_idx], $alt);
 			}
+		}
+		else if ($var_caller == "dragen")
+		{
+			list($normal_dp, $normal_af) = vcf_dragen_var($format, $cols[$normal_idx]);
 		}
 		$gsvar->set($r, $i_normal_dp, $normal_dp);
 		$gsvar->set($r, $i_normal_af, number_format($normal_af, 4));

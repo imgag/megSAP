@@ -848,7 +848,7 @@ function vcf_strelka_indel($format_col, $sample_col)
 
 	//tir and tar contain strong supporting reads, tor (not considered here) contains weak supportin reads like breakpoints
 	//only strong supporting reads are used for calculation of allele fraction
-	$f = ($tir+$tar)==0 ? 0.0 : $tir/($tir+$tar);
+	$f = ($tir+$tar)==0 ? 0.0 : $tir/($d);
 	
 	return array($d,$f);
 }
@@ -1004,6 +1004,30 @@ function vcf_freebayes($format_col, $sample_col)
 	$f = null;
 	if($d1>0)	$f = number_format($d2/$d1, 4);
 	return array($d1,$f);
+}
+
+function vcf_dragen_var($format_col, $sample_col)
+{
+	$g = explode(":",$format_col);
+	$index_DP = NULL;
+	$index_AF = NULL;
+	for($i=0;$i<count($g);++$i)
+	{
+		if($g[$i]=="DP")	$index_DP = $i;
+		if($g[$i]=="AF")	$index_AF = $i;
+	}
+
+	if(is_null($index_DP) || is_null($index_AF)) trigger_error("Invalid dragon vcf format; either field DP or AF not available.", E_USER_ERROR);	
+	
+	$s = explode(":",$sample_col);	
+	
+	if(!is_numeric($s[$index_AF]))	trigger_error("Invalid allele frequenzy (".$format_col." ".$sample_col.").", E_USER_ERROR);	// currently no multiallelic variants supported
+	if(!is_numeric($s[$index_DP]))	trigger_error("Could not identify numeric depth (".$format_col." ".$sample_col.").", E_USER_ERROR);
+
+	$dp = $s[$index_DP];
+	$af = $s[$index_AF];
+	
+	return array($dp,$af);
 }
 
 function vcf_iontorrent($format_col, $sample_col, $idx_al)
