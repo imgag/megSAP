@@ -117,18 +117,141 @@ if ($debug)
 	$parser->log("working_dir content:", $stdout);
 }
 
-// ********************************* copy data back *********************************//
+// ********************************* add filters and copy data back *********************************//
 
-/*add '##source' header to vcf file*/
-// $added_source_vcf = $parser->tempFile("dragen_with_source.vcf");
-// $pipeline = array(
-	// array("zcat", $working_dir."output.vcf.gz"),
-	// array("sed", "'/^##reference=.*/i ##source=Dragen_somatic_calling' > $added_source_vcf"), //add header line with reference genome after "##source" header line
-// );
-// $parser->execPipeline($pipeline, "add_source");
+$vcf = $parser->tempFile("_unpacked.vcf");
+$parser->exec("bgzip", "-d -c "$working_dir."output.vcf.gz > $vcf", true);
 
-$parser->copyFile($working_dir."output.vcf.gz", $out);
-$parser->copyFile($working_dir."output.vcf.gz.tbi", $out.".tbi");
+//left-align
+$vcf_aligned = $parser->tempFile("_aligned.vcf");
+$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-stream -in $vcf -out $vcf_aligned -ref ".genome_fasta("GRCh38"), true);
+
+//sort
+$vcf_sorted = $parser->tempFile("_sorted.vcf");
+$parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf_aligned -out $vcf_sorted", true);
+
+
+//################################################################################################
+//Filter variants
+//################################################################################################
+
+$variants = Matrix::fromTSV($vcf_sorted);
+$variants_filtered = new Matrix();
+
+//get indicies
+$colnames = $variants->getHeaders();
+$colidx_tumor = array_search($tumor_name, $colnames);
+$colidx_normal = array_search($normal_name, $colnames);
+
+//quality cutoffs (taken from Strelka)
+$min_td = 20;
+$min_taf = 0.05;
+$min_tsupp = 3;
+$min_nd = 20;
+$max_naf_rel = 1/6;
+
+//set comments and column names
+$filter_format = '#FILTER=<ID=%s,Description="%s">';
+$comments = [
+	sprintf($filter_format, "all-unknown", "Allele unknown"),
+	sprintf($filter_format, "special-chromosome", "Special chromosome"),
+	sprintf($filter_format, "depth-tum", "Sequencing depth in tumor is too low (< {$min_td})"),
+	sprintf($filter_format, "freq-tum", "Allele frequency in tumor < {$min_taf}"),
+	sprintf($filter_format, "depth-nor", "Sequencing depth in normal is too low (< {$min_nd})"),
+	sprintf($filter_format, "freq-nor", "Allele frequency in normal > ".number_format($max_naf_rel, 2)." * allele frequency in tumor"),
+	sprintf($filter_format, "lt-3-reads", "Less than {$min_tsupp} supporting tumor reads")
+	];
+
+$variants_filtered->setComments(array_merge($variants->getComments(), $comments));
+$variants_filtered->setHeaders($colnames);
+
+$count_passing = 0;
+for($i = 0; $i < $variants->rows(); ++$i)
+{
+	$row = $variants->getRow($i);
+
+	$ref = $row[3];
+	$alt = $row[4];
+	$format = $row[8];
+	$tumor = $row[$colidx_tumor];
+	$normal = $row[$colidx_normal];
+
+	$filters = [];
+
+	$filter = array_diff(explode(";", $row[6]), ["."]);
+
+	if (!preg_match("/^[acgtACGT]*$/", $alt))
+	{
+		$filter[] = "all-unknown";
+	}
+	if (chr_check($row[0], 22, false) === FALSE)
+	{
+		$filter[] = "special-chromosome";
+	}
+	$calls = [];
+
+	list($td, $tf) = vcf_dragen_var($format, $tumor, $alt);
+	list($nd, $nf) = vcf_dragen_var($format, $normal, $alt);
+	$calls[] = [ $alt, $td, $tf, $nd, $nf, $filter ];
+
+	foreach ($calls as $call)
+	{
+		$variant = $row;
+		list($alt, $td, $tf, $nd, $nf, $filter) = $call;
+		$variant[4] = $alt;
+
+		if ($td * $tf < $min_tsupp) $filter[] = "lt-3-reads";
+		if ($td < $min_td) $filter[] = "depth-tum";
+		if ($nd < $min_nd) $filter[] = "depth-nor";
+		if ($tf < $min_taf) $filter[] = "freq-tum";
+		if ($nf > $max_naf_rel * $tf) $filter[] = "freq-nor";
+
+		if (empty($filter))
+		{
+			$filter[] = "PASS";
+			$count_passing++;
+		}
+	}
+	
+	$variant[6] = implode(";", $filter);
+	$variants_filtered->addRow($variant);
+}
+$vcf_filtered = $parser->tempFile("_filtered.vcf");
+$variants_filtered->toTSV($vcf_filtered);
+
+//remove invalid variant
+$vcf_invalid = $parser->tempFile("_filtered_invalid.vcf");
+$parser->exec(get_path("ngs-bits")."VcfFilter", "-remove_invalid -in $vcf_filtered -out $vcf_invalid", true);
+$final = $vcf_invalid;
+
+//flag off-target variants
+if (!empty($target))
+{
+	$vcf_offtarget = $parser->tempFile("_filtered.vcf");
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $final -mark off-target -reg $target -out $vcf_offtarget", true);
+	$final = $vcf_offtarget;
+}
+
+//remove artefacts specific for processing system (blacklist)
+//artefacts are caused e.g. by hairpin sequences when using enzymatic digestion
+//how artefacts are determined is documented in /mnt/storage3/users/ahsturm1/Sandbox/2023_01_31_twist_indel_artefacts/
+if (!empty($target))
+{
+	$artefact_vcf = repository_basedir()."/data/misc/enzymatic_digestion_artefacts/".basename($target, ".bed").".vcf";
+	if (file_exists($artefact_vcf))
+	{
+		$vcf_with_artefacts = dirname($out)."/".basename($out, ".vcf.gz")."_with_enzymatic_artefacts.vcf.gz";
+		$parser->exec("bgzip", "-c $final > $vcf_with_artefacts", true);
+		$vcf_no_artefacts = $parser->tempFile("_filtered_no_artefacts.vcf");
+		$parser->exec(get_path("ngs-bits")."VcfSubstract", "-in $final -in2 $artefact_vcf -out $vcf_no_artefacts");
+		$final = $vcf_no_artefacts;
+	}
+}
+
+
+//zip and index output file
+$parser->exec("bgzip", "-c $final > $out", true);
+$parser->exec("tabix", "-p vcf $out", true);
 
 if ($out_sv != "")
 {
