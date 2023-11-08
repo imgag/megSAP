@@ -89,8 +89,8 @@
 1. ssh into NovaSeq X
 2. copy run (meta) data:
 ```bash
-rsync -v -r --progress /usr/local/illumina/mnt/runs/[run] /mnt/storage3/[target]
-rsync -v -r --progress /usr/local/illumina/runs/[run] /mnt/storage3/[target]
+rsync -v -r --progress /usr/local/illumina/mnt/runs/[run] /mnt/storage3/raw_data/LUNA/ # data      (no '/' at the end of [run])
+rsync -v -r --progress /usr/local/illumina/runs/[run] /mnt/storage3/raw_data/LUNA/     # meta data (no '/' at the end of [run])
 ```  
 
 # APPENDIX: How to install bcl2fastq2
