@@ -329,6 +329,51 @@ if (in_array("vc", $steps))
 		$parser->execTool("NGS/hla_genotyper.php", "-bam $n_bam -name $n_id -out " . $hla_file_normal);
 	}
 	
+	// SV CALLING:
+	// structural variant calling
+	if (!$sys['shotgun'])
+	{
+		trigger_error("Structural variant calling deactivated for amplicon samples.", E_USER_NOTICE);
+	}
+	else if ($sys['umi_type'] === "ThruPLEX")
+	{
+		trigger_error("Structural variant calling deactivated for ThruPLEX samples.", E_USER_NOTICE);
+	}
+	else
+	{
+		$args_manta = [
+			"-t_bam {$t_bam}",
+			"-out {$manta_sv}",
+			"-build ".$sys['build'],
+			"-smallIndels {$manta_indels}",
+			"-threads {$threads}"
+		];
+		if (!$single_sample)
+		{
+			$args_manta[] = "-bam $n_bam";
+		}
+		if ($sys['type'] !== "WGS") //use exome flag for non targeted / exome samples (i.e. non WGS samples)
+		{
+			$args_manta[] = "-exome";
+		}
+		if (!empty($roi))
+		{
+			$args_manta[] = "-target {$roi}";
+		}
+		$parser->execTool("NGS/vc_manta.php", implode(" ", $args_manta));
+		
+		exec2(get_path("ngs-bits") . "VcfToBedpe -in $manta_sv -out $manta_sv_bedpe");
+		if(!$single_sample)
+		{
+			$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
+		}
+		
+		if( db_is_enabled("NGSD") )
+		{
+			$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", true );
+		}
+	}
+	
 	if ($use_dragen)
 	{
 		//DRAGEN OUTFILES
@@ -343,7 +388,7 @@ if (in_array("vc", $steps))
 		$args = array();
 		$args[] = "-t_bam ".$t_bam;
 		$args[] = "-out ".$dragen_output_vcf;
-		$args[] = "-out_sv ".$dragen_output_svs;
+		// $args[] = "-out_sv ".$dragen_output_svs;
 		$args[] = "-build GRCh38";
 		$args[] = "--log ".$dragen_log_file;
 		
@@ -473,50 +518,6 @@ if (in_array("vc", $steps))
 	}
 	else //NO dragen calling
 	{
-		// structural variant calling
-		if (!$sys['shotgun'])
-		{
-			trigger_error("Structural variant calling deactivated for amplicon samples.", E_USER_NOTICE);
-		}
-		else if ($sys['umi_type'] === "ThruPLEX")
-		{
-			trigger_error("Structural variant calling deactivated for ThruPLEX samples.", E_USER_NOTICE);
-		}
-		else
-		{
-			$args_manta = [
-				"-t_bam {$t_bam}",
-				"-out {$manta_sv}",
-				"-build ".$sys['build'],
-				"-smallIndels {$manta_indels}",
-				"-threads {$threads}"
-			];
-			if (!$single_sample)
-			{
-				$args_manta[] = "-bam $n_bam";
-			}
-			if ($sys['type'] !== "WGS") //use exome flag for non targeted / exome samples (i.e. non WGS samples)
-			{
-				$args_manta[] = "-exome";
-			}
-			if (!empty($roi))
-			{
-				$args_manta[] = "-target {$roi}";
-			}
-			$parser->execTool("NGS/vc_manta.php", implode(" ", $args_manta));
-			
-			exec2(get_path("ngs-bits") . "VcfToBedpe -in $manta_sv -out $manta_sv_bedpe");
-			if(!$single_sample)
-			{
-				$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
-			}
-			
-			if( db_is_enabled("NGSD") )
-			{
-				$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", true );
-			}
-		}
-		
 		if ($single_sample)
 		{
 			$parser->execTool("NGS/vc_varscan2.php", "-bam $t_bam -out $variants -build " .$sys['build']. " -target ". $roi. " -name $t_id -min_af $min_af");
