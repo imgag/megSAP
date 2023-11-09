@@ -120,7 +120,7 @@ if ($debug)
 // ********************************* add filters and copy data back *********************************//
 
 $vcf = $parser->tempFile("_unpacked.vcf");
-$parser->exec("bgzip", "-d -c "$working_dir."output.vcf.gz > $vcf", true);
+$parser->exec("bgzip", "-d -c ".$working_dir."output.vcf.gz > $vcf", true);
 
 //left-align
 $vcf_aligned = $parser->tempFile("_aligned.vcf");
