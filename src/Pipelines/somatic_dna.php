@@ -145,6 +145,11 @@ if (in_array("vc", $steps)  && $use_dragen)
 	{
 		trigger_error("DRAGEN input folder \"".$dragen_output_folder."\" does not exist!", E_USER_ERROR);
 	}
+	
+	if (!isset($n_bam))
+	{
+		trigger_error("Dragon analysis currently not supported for single sample analysis!", E_USER_ERROR);
+	}
 }
 
 
@@ -374,7 +379,7 @@ if (in_array("vc", $steps))
 		}
 	}
 	
-	if ($use_dragen)
+	if ($use_dragen && ! $single_sample)
 	{
 		//DRAGEN OUTFILES
 		$dragen_output_vcf = "$dragen_output_folder/{$prefix}_dragen.vcf.gz";
@@ -492,27 +497,34 @@ if (in_array("vc", $steps))
 		$parser->moveFile($dragen_output_vcf, $dragen_call_folder.basename($dragen_output_vcf));
 		$parser->moveFile($dragen_output_vcf.".tbi", $dragen_call_folder.basename($dragen_output_vcf).".tbi");
 		
-		//copy dragen vcf
-		$parser->copyFile($dragen_call_folder.basename($dragen_output_vcf), $variants);
-		$parser->copyFile($dragen_call_folder.basename($dragen_output_vcf).".tbi", $variants.".tbi");
+		//filter dragen vcf
+		$args = array();
+		$args[] = "-in ".$dragen_call_folder.basename($dragen_output_vcf);
+		$args[] = "-tumor_name {$t_id}";
+		$args[] = "-normal_name {$n_id}";
+		$args[] = "-out {$variants}";
+		$parser->execTool("NGS/an_filter_dragen_somatic.php", implode(" ", $args));
 		
-		//copy svs
-		$parser->moveFile($dragen_output_svs, $dragen_call_folder.basename($dragen_output_svs));
-		$parser->moveFile($dragen_output_svs.".tbi", $dragen_call_folder.basename($dragen_output_svs).".tbi");
 		
-		#copy sv_vcf into sample folder as manta calls
-		$parser->copyFile($dragen_call_folder.basename($dragen_output_svs), $manta_sv);
-		$parser->copyFile($dragen_call_folder.basename($dragen_output_svs).".tbi", $manta_sv.".tbi");
-		
-		exec2(get_path("ngs-bits") . "VcfToBedpe -in $manta_sv -out $manta_sv_bedpe");
-		if(!$single_sample)
+		if (is_file($dragen_output_svs))
 		{
-			$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
-		}
-		
-		if( db_is_enabled("NGSD") )
-		{
-			$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", true );
+			//copy svs
+			$parser->moveFile($dragen_output_svs, $dragen_call_folder.basename($dragen_output_svs));
+			$parser->moveFile($dragen_output_svs.".tbi", $dragen_call_folder.basename($dragen_output_svs).".tbi");
+				
+			$parser->copyFile($dragen_call_folder.basename($dragen_output_svs), $manta_sv);
+			$parser->copyFile($dragen_call_folder.basename($dragen_output_svs).".tbi", $manta_sv.".tbi");
+				
+			exec2(get_path("ngs-bits") . "VcfToBedpe -in $manta_sv -out $manta_sv_bedpe");
+			if(!$single_sample)
+			{
+				$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
+			}
+			
+			if( db_is_enabled("NGSD") )
+			{
+				$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", true );
+			}
 		}
 		
 	}
