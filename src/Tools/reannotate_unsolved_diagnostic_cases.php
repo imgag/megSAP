@@ -47,8 +47,8 @@ for ($i=0; $i<count($result); ++$i)
 		continue;
 	}
 	
-	//skip when BAM missing
-	$gsvar = substr($info['ps_bam'],0, -4).".GSvar";
+	//skip when GSvar missing
+	$gsvar = $info['ps_folder']."/".$ps.".GSvar";
 	if (!file_exists($gsvar))
 	{
 		print "Skipped: GSvar file missing!\n";
