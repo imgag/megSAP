@@ -848,7 +848,7 @@ function vcf_strelka_indel($format_col, $sample_col)
 
 	//tir and tar contain strong supporting reads, tor (not considered here) contains weak supportin reads like breakpoints
 	//only strong supporting reads are used for calculation of allele fraction
-	$f = ($tir+$tar)==0 ? 0.0 : $tir/($d);
+	$f = ($tir+$tar)==0 ? 0.0 : $tir/($tir+$tar);
 	
 	return array($d,$f);
 }

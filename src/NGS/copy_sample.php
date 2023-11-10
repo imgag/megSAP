@@ -266,7 +266,7 @@ foreach($sample_data as $sample => $data)
 	$args = [];
 	$args[] = "-ps {$sample}";
 	if ($db=="NGSD_TEST") $args[] = "-test";
-	// $parser->exec("{$ngsbits}/NGSDImportGenlab", implode(" ", $args), true);
+	$parser->exec("{$ngsbits}/NGSDImportGenlab", implode(" ", $args), true);
 }
 
 

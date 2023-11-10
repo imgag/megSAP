@@ -334,7 +334,6 @@ if (in_array("vc", $steps))
 		$parser->execTool("NGS/hla_genotyper.php", "-bam $n_bam -name $n_id -out " . $hla_file_normal);
 	}
 	
-	// SV CALLING:
 	// structural variant calling
 	if (!$sys['shotgun'])
 	{
