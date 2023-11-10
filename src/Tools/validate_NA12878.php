@@ -38,7 +38,7 @@ function get_bases($filename)
 }
 
 //returns the variants of a VCF file in the given ROI
-function get_variants($vcf_gz, $roi, $normalize, $max_indel, $min_qual = 0, $min_qd=0)
+function get_variants($vcf_gz, $roi, $max_indel, $min_qual = 0, $min_qd=0)
 {
 	global $parser;
 	global $ngsbits;
@@ -50,11 +50,6 @@ function get_variants($vcf_gz, $roi, $normalize, $max_indel, $min_qual = 0, $min
 	$pipeline = [];
 	$pipeline[] = array("zcat", $vcf_gz);
 	$pipeline[] = array("{$ngsbits}VcfFilter", "-reg {$roi}");
-	if ($normalize)
-	{
-		$pipeline[] = array("{$vcflib}vcfbreakmulti", "");
-		$pipeline[] = array("{$ngsbits}VcfLeftNormalize", "-stream -ref $genome");
-	}
 	$pipeline[] = array("{$ngsbits}VcfStreamSort", "-out {$tmp}");
 	$parser->execPipeline($pipeline, "variant extraction");
 	
@@ -198,9 +193,9 @@ print "##\n";
 
 //get reference variants in ROI
 print "##Variant list      : $vcf\n";
-$found = get_variants($vcf, $roi_used, false, $max_indel, $min_qual, $min_qd);
+$found = get_variants($vcf, $roi_used, $max_indel, $min_qual, $min_qd);
 print "##Variants observed : ".count($found)."\n";
-$expected = get_variants($giab_vcfgz, $roi_used, true, $max_indel);
+$expected = get_variants($giab_vcfgz, $roi_used, $max_indel);
 print "##Variants expected : ".count($expected)."\n";
 
 //find missing reference variants and variants with genotype mismatch
