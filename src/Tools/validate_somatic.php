@@ -18,6 +18,7 @@ $parser->addOutfile("vars_details", "Output TSV file for variant details.", fals
 $parser->addOutfile("af_details", "Output TSV file for AF-specific output.", false);
 $parser->addEnum("caller", "The caller used to create the vcf files given in '-calls'", false, ["strelka2", "dragen"]);
 $parser->addFlag("with_low_evs", "Ignores 'LowEVS' filter column entry for strelka2 callings");
+$parser->addFlag("ignore_filters", "Ignores filter column entries.");
 extract($parser->parse($argv));
 
 //returns if the variant is an InDels
@@ -43,6 +44,7 @@ function get_bases($filename)
 function load_vcf($filename, $roi, $caller)
 {
 	global $with_low_evs;
+	global $ignore_filters;
 	
 	$output = array();
 	list($lines) = exec2("tabix --regions {$roi} {$filename}");
@@ -67,6 +69,8 @@ function load_vcf($filename, $roi, $caller)
 			if ($with_low_evs) $filter_replace ["LowEVS"] = "";
 			$filter = trim(strtr($filter, $filter_replace));
 			
+			if ($ignore_filters) $filter = "";
+			
 			$output[$tag] = array($tumor_af, $tumor_dp, $filter);
 		}
 		else if ($caller == "dragen")
@@ -76,6 +80,7 @@ function load_vcf($filename, $roi, $caller)
 			//clear filter column
 			$filter_replace = ["PASS"=>"", "."=>"", "freq-tum"=>"", ";"=>""];
 			$filter = trim(strtr($filter, $filter_replace));
+			if ($ignore_filters) $filter = "";
 			
 			$output[$tag] = array($tumor_af, $tumor_dp, $filter);
 		}
