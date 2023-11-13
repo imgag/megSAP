@@ -93,7 +93,7 @@ $dragen_parameter[] = "--vc-min-base-qual 15";
 $dragen_parameter[] = "--vc-callability-tumor-thresh 15"; # default 15 - minimum coverage in bam to try variant calling at that position
 $dragen_parameter[] = "--vc-callability-normal-thresh 5"; # default 5
 $dragen_parameter[] = "--vc-enable-unequal-ntd-errors false"; # disables model to correct FFPE errors.. TODO get to work with model
-$dragen_parameter[] = "--vc-combine-phased-variants-distance 1"; # Merge variants if they are directly adjecent on the same strand (2 SNVs -> 1 MNP)
+#$dragen_parameter[] = "--vc-combine-phased-variants-distance 1"; # Merge variants if they are directly adjecent on the same strand (2 SNVs -> 1 MNP)
 
 //SV calling:
 if ($out_sv != "")
