@@ -34,7 +34,8 @@ After the analysis, these files are created in the output folder:
 
 ### Basics
 
-Trio DNA analysis is performed using the `trio.php` script.  
+Trio DNA analysis is a special case of the multi-sample analysis for an **affected child and healthy** parents.  
+It is performed using the `trio.php` script.  
 Please have a look at the help using:
 
 	> php megSAP/src/Pipelines/trio.php --help

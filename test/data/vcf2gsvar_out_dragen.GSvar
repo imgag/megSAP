@@ -1,5 +1,6 @@
 ##GENOME_BUILD=GRCh38
-##CREATION_DATE=2023-10-24
+##CALLING_DATE=2018-11-08
+##SOURCE=DRAGEN 3.0.2
 ##FILTER=DRAGENHardQUAL=Set if true:QUAL < 10.4139
 ##FILTER=low_conf_region=Variant marked as 'low_conf_region'.
 ##DESCRIPTION=genotype=Genotype of variant in sample.
@@ -16,9 +17,9 @@
 ##DESCRIPTION=dbSNP=Identifier in dbSNP database.
 ##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.
 ##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.
-##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).
-##DESCRIPTION=gnomAD_het=Heterozygous counts of the gnomAD project (genome data).
-##DESCRIPTION=gnomAD_wt=Wildtype counts of the gnomAD project (genome data).
+##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous/hemizygous case count of gnomAD project (genome data).
+##DESCRIPTION=gnomAD_het=Heterozygous allele count of the gnomAD project (genome data).
+##DESCRIPTION=gnomAD_wt=Wildtype allele count of the gnomAD project (genome data).
 ##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
 ##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.
 ##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
