@@ -15,6 +15,7 @@ $parser->addInt("slots_per_job", "Number of SGE slots to use per command", false
 $parser->addFloat("max_slots", "Maximum percentage of SGE slots to use.", true, 80.0);
 $parser->addInt("sleep_secs", "Number of seconds to sleep between tries to start jobs.", true, 120);
 $parser->addString("queues", "Comma-separted list of SGE queues to use (is unset the default queues from the INI file are use).", true, "");
+$parser->addString("log_path", "Patht to log files).", false);
 extract($parser->parse($argv));
 
 
@@ -80,10 +81,13 @@ while(count($commands)>0)
 			else //submit to SGE directly
 			{
 				$sge_folder = get_path("data_folder")."/sge/background_jobs/";
-				$base = "{$sge_folder}".date("Ymdhis")."_".str_pad($id, 3, '0', STR_PAD_LEFT)."_{$user}";
+				//$base = "{$sge_folder}".date("Ymdhis")."_".str_pad($id, 3, '0', STR_PAD_LEFT)."_{$user}";
+				$base = "{$log_path}".date("Ymdhis")."_".str_pad($id, 3, '0', STR_PAD_LEFT)."_{$user}";
 				$sge_out = "{$base}.out";
 				$sge_err = "{$base}.err";
-				$command_sge = "qsub -V -pe smp {$slots_per_job} -b y -wd {$sge_folder} -m n -M ".get_path("queue_email")." -e {$sge_err} -o {$sge_out} -q ".implode(",", $queues)." -shell n";
+				//$command_sge = "qsub -V -pe smp {$slots_per_job} -b y -wd {$sge_folder} -m n -M ".get_path("queue_email")." -e {$sge_err} -o {$sge_out} -q ".implode(",", $queues)." -shell n";
+				$command_sge = "qsub -V -pe smp {$slots_per_job} -b y -wd {$log_path} -m n -M ".get_path("queue_email")." -e {$sge_err} -o {$sge_out} -q ".implode(",", $queues)." -shell n";
+
 				list($stdout, $stderr) = exec2($command_sge." ".$command);
 				
 				$sge_id = explode(" ", $stdout[0])[2];
