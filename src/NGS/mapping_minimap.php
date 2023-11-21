@@ -70,10 +70,10 @@ if(db_is_enabled("NGSD"))
 $pipeline = array();
 
 //debug
-print get_path("minimap2")." --MD -ax map-ont --eqx -t {$threads} -R '@RG\\t".implode("\\t", $group_props)."' ".genome_fasta($sys['build'])." ".implode(" ", $in);
+print get_path("minimap2")." --MD -Yax map-ont --eqx -t {$threads} -R '@RG\\t".implode("\\t", $group_props)."' ".genome_fasta($sys['build'])." ".implode(" ", $in);
 
 //mapping with minimap2
-$pipeline[] = array(get_path("minimap2"), " --MD -ax map-ont --eqx -t {$threads} -R '@RG\\t".implode("\\t", $group_props)."' ".genome_fasta($sys['build'])." ".implode(" ", $in));
+$pipeline[] = array(get_path("minimap2"), " --MD -Yax map-ont --eqx -t {$threads} -R '@RG\\t".implode("\\t", $group_props)."' ".genome_fasta($sys['build'])." ".implode(" ", $in));
 
 //annotate methylation
 if($bam_modus)
@@ -93,19 +93,22 @@ $parser->indexBam($bam_current, $threads);
 
 //TODO: test
 //check readcounts
-if($bam_modus)
-{
-	list($input_readcount) = $parser->exec(get_path("samtools"), "view -c -@ {$threads} {$in_bam}");
-	$input_readcount = (int) $input_readcount;
-}
-else
-{
-	list($input_readcount) = $parser->exec("zcat", implode(" ", $in_fastq)." | wc -l");
-	$input_readcount = ((int) $input_readcount)/4;
-}
-list($output_readcount) = $parser->exec(get_path("samtools"), "view -c -@ {$threads} {$bam_current}");
-$output_readcount = (int) $output_readcount;
-if($input_readcount != $output_readcount) trigger_error("Read count of input and output differs! \n Input:\t{$input_readcount}\nOutput:\t{$output_readcount}", E_USER_ERROR);
+// if($bam_modus)
+// {
+// 	list($input_readcount) = $parser->exec(get_path("samtools"), "view -F 256 -c -@ {$threads} {$in_bam}");
+// 	$input_readcount = (int) $input_readcount;
+// }
+// else
+// {
+// 	$pipeline = array();
+// 	$pipeline[] = array("zcat", implode(" ", $in_fastq));
+// 	$pipeline[] = array("wc", "-l");
+// 	list($stdout, $stderr) = $parser->execPipeline($pipeline, "FastQ read counts", true);
+// 	$input_readcount = ((int) $stdout[0])/4;
+// }
+// list($stdout, $stderr) = $parser->exec(get_path("samtools"), "view -F 256 -c -@ {$threads} {$bam_current}");
+// $output_readcount = (int) $stdout[0];
+// if($input_readcount != $output_readcount) trigger_error("Read count of input and output differs! \n Input:\t{$input_readcount}\nOutput:\t{$output_readcount}", E_USER_ERROR);
 
 
 //copy BAM to final output location
@@ -121,7 +124,7 @@ if (!file_exists($out) || filesize($bam_current) != filesize($out))
 //run read/mapping QC
 $read_qc_file = $basename."_stats_fastq.qcML";
 $mapping_qc_file = $basename."_stats_map.qcML";
-$params = array("-in $bam_current", "-out {$mapping_qc_file}", "-read_qc {$read_qc_file}", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
+$params = array("-in $bam_current", "-long_read", "-out {$mapping_qc_file}", "-read_qc {$read_qc_file}", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
 if ($sys['target_file']=="" || $sys['type']=="lrGS")
 {
 	$params[] = "-wgs";

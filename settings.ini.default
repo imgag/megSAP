@@ -40,6 +40,9 @@ whatshap = [path]/data/tools/Python-3.10.9/bin/whatshap
 pypy3 = [path]/data/tools/pypy3.9-v7.3.11-linux64/bin/pypy3
 parallel = [path]/data/tools/parallel-20230522/bin/parallel
 sniffles = [path]/data/tools/Python-3.10.9/bin/sniffles
+straglr = [path]/data/tools/straglr-1.4.1/straglr.py
+trf = [path]/data/tools/TRF_4.09/trf409.linux64
+blastn = [path]/data/tools/ncbi-blast-2.15.0+/bin/blastn
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.10.centos6_x86_64/bin/
@@ -61,6 +64,7 @@ kraken2 = [path]/data/tools/kraken2-2.1.2/bin/kraken2
 [tools-primer]
 tracetuner = [path]/data/tools/tracetuner_3.0.6beta/rel/Linux_64/ttuner
 primer3 = [path]/data/tools/opt/primer3-2.3.6/src/
+
 [singularity-container]
 container_folder = [path]/data/tools/singularity_container/
 container_clair3-trio = v0.7

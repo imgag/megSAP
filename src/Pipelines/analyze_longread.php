@@ -98,7 +98,7 @@ $cnv_file2 = $folder."/".$name."_cnvs_clincnv.seg";
 $sv_vcf_file = $folder ."/". $name . "_var_structural_variants.vcf.gz";
 $bedpe_file = substr($sv_vcf_file,0,-6)."bedpe";
 //repeat expansions
-// $expansion_hunter_file = $folder."/".$name."_repeats_expansionhunter.vcf";
+$straglr_file = $folder."/".$name."_repeats.bed";
 //db import
 $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
@@ -527,10 +527,12 @@ if (in_array("an", $steps))
 		$parser->exec("{$ngsbits}BedpeExtractGenotype", "-in $bedpe_file -out $bedpe_file -include_unphased", true);
 
 		//extract columns
-		$parser->exec("{$ngsbits}BedpeExtractInfoFields", "-in $bedpe_file -out $bedpe_file -info_fields SUPPORT,COVERAGE,AF", true);
+		$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_file -out $bedpe_file -info_fields SUPPORT,COVERAGE,AF", true);
 	}
 
-	//TODO: Repeat-expansion using straglr
+	//Repeat-expansion calling using straglr
+	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
+	$parser->execTool("NGS/vc_straglr.php", "-in {$bam_file} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
 }
 
 // collect other QC terms - if CNV or SV calling was done

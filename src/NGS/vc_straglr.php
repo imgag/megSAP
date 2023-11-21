@@ -23,7 +23,7 @@ extract($parser->parse($argv));
 if(!isset($pid)) $pid = basename($in);
 
 //init
-$out_prefix = dirname($out)."/".basename($out, ".vcf");
+$out_prefix = dirname($out)."/".basename($out, ".bed");
 $straglr = get_path("straglr");
 
 
@@ -36,12 +36,37 @@ $args[] = "$in";
 $args[] = genome_fasta($build);
 $args[] = $out_prefix;
 		
-
+// prepare PATH
+putenv("PATH=".getenv("PATH").PATH_SEPARATOR.dirname(get_path("trf")).PATH_SEPARATOR.dirname(get_path("blastn")));
+print "\n........\n".getenv("PATH")."\n........\n";
 // run straglr
 $parser->exec(get_path("python3"), implode(" ", $args));
 
+// annotate repeat names
+//read and index catalog
+$loci_content = file($loci, FILE_IGNORE_NEW_LINES + FILE_SKIP_EMPTY_LINES);
+$catalog = array();
+foreach ($loci_content as $line) 
+{
+  if (starts_with($line, "#")) continue;
+  list($chr, $start, $end, $motive, $repeat_id, $associated_disorder, $ref_size, $normal_range, $pathogenic_range) = explode("\t", $line);
+  $catalog["{$chr}:{$start}-{$end}"] = array($repeat_id, $associated_disorder, $ref_size, $normal_range, $pathogenic_range);
+}
+//annotate catalog to output file
+$bed_content_in = file($out, FILE_IGNORE_NEW_LINES + FILE_SKIP_EMPTY_LINES);
+$bed_content_out = array();
+foreach ($bed_content_in as $line) 
+{
+  if (starts_with($line, "##")) $bed_content_out[] = $line;
+  elseif (starts_with($line, "#")) $bed_content_out[] = $line."\trepeat_id";
+  else 
+  {
+    list($chr, $start, $end, $motive) = explode("\t", $line);
+    $bed_content_out[] = $line."\t".implode("\t", $catalog["{$chr}:{$start}-{$end}"]);
+  }
+}
+file_put_contents($out, implode("\n", $bed_content_out));
 
-//TODO: Post-processing
 
-
+//TODO: further post-processing?
 ?>

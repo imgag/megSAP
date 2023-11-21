@@ -38,6 +38,7 @@ $args[] = "--model_path={$model}";
 $args[] = "--threads={$threads}";
 $args[] = "--platform=\"ont\"";
 $args[] = "--keep_iupac_bases";
+$args[] = "--gvcf";
 //TODO: move to temp
 $args[] = "--output={$clair_temp}";
 

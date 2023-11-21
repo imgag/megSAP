@@ -50,7 +50,7 @@ cd Python-3.10.9
 make
 make install
 # install packages
-bin/pip3 install -r $root/install_deps_python.txt --no-warn-script-location
+bin/python3.10 -m pip install -r $root/install_deps_python.txt --no-warn-script-location
 rm -R Python-3.10.9
 rm Python-3.10.9.tgz
 cd ..
@@ -262,7 +262,8 @@ rm orad.2.6.1.tar.gz
 #download straglr
 cd $folder
 wget https://github.com/bcgsc/straglr/releases/download/v1.4.1/straglr-1.4.1.tar.gz
-tar xzf straglr-1.4.1.tar.gz
+tar xzf straglr-1.4.1.tar.gz 
+mv straglr straglr-1.4.1
 rm straglr-1.4.1.tar.gz
 
 #download Tandem Repeats Finder
@@ -270,6 +271,8 @@ cd $folder
 mkdir -p TRF_4.09
 cd TRF_4.09
 wget https://github.com/Benson-Genomics-Lab/TRF/releases/download/v4.09.1/trf409.linux64
+chmod +x trf409.linux64
+ln -s trf409.linux64 trf
 cd ..
 
 #download Blastn
