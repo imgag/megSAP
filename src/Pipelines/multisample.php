@@ -36,6 +36,7 @@ $steps_all = array("vc", "cn", "sv", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, cn=copy-number analysis, sv=structural variant calling, db=database import.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
+$parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 extract($parser->parse($argv));
 
 //init
@@ -160,6 +161,12 @@ if ($is_wgs_shallow)
 		trigger_error("Skipping step 'an' - Annotation is not supported for shallow WGS samples!", E_USER_NOTICE);
 		if (($key = array_search("an", $steps)) !== false) unset($steps[$key]);
 	}
+}
+
+//set up local NGS data copy (to reduce network traffic and speed up analysis)
+if (!$no_sync)
+{
+	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 }
 
 //create output folder if missing

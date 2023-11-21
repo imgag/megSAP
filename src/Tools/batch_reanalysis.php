@@ -63,19 +63,21 @@ foreach($samples as $ps)
 			}
 		}
 		
+		$base = dirname($bam)."/".basename2($bam);
+		
 		//check VCF/GSvar
 		if (contains($steps, "vc"))
 		{
 			if (!$annotation_only)
 			{
-				$vcf = substr($bam, 0, -4)."_var.vcf.gz";
+				$vcf = $base."_var.vcf.gz";
 				if (!file_exists($vcf) || filemtime($vcf)<$before)
 				{
 					$skip = false;
 				}
 			}
 			
-			$gsvar = substr($bam, 0, -4).".GSvar";
+			$gsvar = $base.".GSvar";
 			if (!file_exists($gsvar) || filemtime($gsvar)<$before)
 			{
 				$skip = false;
@@ -85,7 +87,7 @@ foreach($samples as $ps)
 		//check CNVs
 		if (contains($steps, "cn"))
 		{
-			$cnvs = substr($bam, 0, -4)."_cnvs_clincnv.tsv";
+			$cnvs = $base."_cnvs_clincnv.tsv";
 			if (!file_exists($cnvs) || filemtime($cnvs)<$before)
 			{
 				$skip = false;
@@ -95,7 +97,7 @@ foreach($samples as $ps)
 		//check SVs
 		if (contains($steps, "sv"))
 		{
-			$svs = substr($bam, 0, -4)."_manta_var_structural.bedpe";
+			$svs = $base."_manta_var_structural.bedpe";
 			if (!file_exists($svs) || filemtime($svs)<$before)
 			{
 				$skip = false;

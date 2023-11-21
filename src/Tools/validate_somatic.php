@@ -7,16 +7,18 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-
 //parse command line arguments
 $parser = new ToolBase("validate_somatic", "Validates the somatic variant calling performance.");
 $parser->addInfile("normal", "Expected germline variants (VCF.GZ).", false);
 $parser->addInfile("tumor", "Expected tumor variants  (VCF.GZ).", false);
 $parser->addInfile("roi", "Target region for the validation (high-confidence region of reference samples intersected with high-depth region of experiment.", false);
-$parser->addInfileArray("calls", "Somatic variant call files (VCF.GZ).", false);
+$parser->addInfileArray("calls", "Somatic variant call files (VCF.GZ). Sorted in order of ascending tumor content", false);
+$parser->addString("tum_content", "Tumor content in the samples used for the calls given as comma seperated string '5,10,20,40'. If not given tum_content will be approximated from variant af. This may underestimate actual content", true);
 $parser->addOutfile("vars_details", "Output TSV file for variant details.", false);
 $parser->addOutfile("af_details", "Output TSV file for AF-specific output.", false);
-$parser->addFlag("with_low_evs", "Ignores 'LowEVS' filter column entry");
+$parser->addEnum("caller", "The caller used to create the vcf files given in '-calls'", false, ["strelka2", "dragen"]);
+$parser->addFlag("with_low_evs", "Ignores 'LowEVS' filter column entry for strelka2 callings");
+$parser->addFlag("ignore_filters", "Ignores filter column entries.");
 extract($parser->parse($argv));
 
 //returns if the variant is an InDels
@@ -38,10 +40,11 @@ function get_bases($filename)
 	return trim($parts[1]);
 }
 
-//load VCF
-function load_vcf($filename, $roi, $strelka)
+//load VCF variants. 'Caller' argument can modify information loaded for different callers (af and depth) and the reference files (genotype)
+function load_vcf($filename, $roi, $caller)
 {
 	global $with_low_evs;
+	global $ignore_filters;
 	
 	$output = array();
 	list($lines) = exec2("tabix --regions {$roi} {$filename}");
@@ -51,13 +54,13 @@ function load_vcf($filename, $roi, $strelka)
 		if ($line=="") continue;
 		
 		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample_normal, $sample_tumor) = explode("\t", $line."\t");
-		
 		//fix chr
 		if (!starts_with($chr, "chr")) $chr = "chr".$chr;
 		
 		//fix gt/af
 		$tag = "$chr:$pos $ref>$alt";
-		if ($strelka)
+		
+		if ($caller == "strelka2")
 		{
 			list($tumor_dp, $tumor_af) = is_indel($tag) ? vcf_strelka_indel($format, $sample_tumor) : vcf_strelka_snv($format, $sample_tumor, $alt);
 			
@@ -66,10 +69,24 @@ function load_vcf($filename, $roi, $strelka)
 			if ($with_low_evs) $filter_replace ["LowEVS"] = "";
 			$filter = trim(strtr($filter, $filter_replace));
 			
+			if ($ignore_filters) $filter = "";
+			
 			$output[$tag] = array($tumor_af, $tumor_dp, $filter);
 		}
-		else
+		else if ($caller == "dragen")
 		{
+			list($tumor_dp, $tumor_af) = vcf_dragen_var($format, $sample_tumor);
+			
+			//clear filter column
+			$filter_replace = ["PASS"=>"", "."=>"", "freq-tum"=>"", ";"=>""];
+			$filter = trim(strtr($filter, $filter_replace));
+			if ($ignore_filters) $filter = "";
+			
+			$output[$tag] = array($tumor_af, $tumor_dp, $filter);
+		}
+		else if ($caller == "ref")
+		{
+			
 			$gt = strtr(explode(":", $sample_normal)[0], "/", "|");
 			if ($gt=="1") $gt = "hom";
 			else if ($gt=="1|1") $gt = "hom";
@@ -80,6 +97,10 @@ function load_vcf($filename, $roi, $strelka)
 			else  trigger_error("Unhandled genotype '{$gt}' in file '{$filename}'!", E_USER_ERROR);
 			
 			$output[$tag] = $gt;
+		}
+		else
+		{
+			trigger_error("Unknown 'caller' given in load_vcf(): $caller", E_USER_ERROR);
 		}
 	}
 	return $output;
@@ -94,23 +115,69 @@ function type_matches($type, $tag)
 	return true;
 }
 
+//create a sorted list with all unique variants in the given lists
+function create_unique_variants_list($parser, $ngsbits, $details_all)
+{
+	$vars_all = [];
+	$vcf = [];
+	$vcf[] = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
+	foreach($details_all as $name => $file_vars)
+	{
+		foreach($file_vars as $var => $result)
+		{
+			list($chr, $pos, $ref, $alt) = explode(" ", strtr($var, "-:>", "   "));
+			$vcf[] = $chr."\t".$pos."\t.\t".$ref."\t".$alt."\t100\tPASS\t";
+		}
+	}
+	$tmp = $parser->tempFile(".vcf");
+	file_put_contents($tmp, implode("\n", $vcf));
+	$tmp2 = $parser->tempFile(".vcf");
+	list($stdout) = exec2("{$ngsbits}VcfSort -in $tmp -out $tmp2 && sort --uniq $tmp2", true);
+	foreach($stdout as $line)
+	{
+		$line = trim($line);
+		if ($line=="" || $line[0]=="#") continue;
+		list($chr, $pos, $id, $ref, $alt) = explode("\t", $line);
+		$vars_all[] = "$chr:$pos $ref>$alt";
+	}
+	
+	return $vars_all;
+}
+
+
+
+//***** MAIN SCRIPT *****\\
+
 //init
 $ngsbits = get_path("ngs-bits");
+
+//verify given tumor content and parse expected heterogenic allele frequency
+if ($tum_content != "")
+{
+	$parts = explode(",", $tum_content);
+	if (count($parts) != count($calls)) trigger_error("There needs to be one tumor content per given calling file. ", E_USER_ERROR);
+	
+	$afs = [];
+	foreach ($parts as $content)
+	{
+		$afs[] = (floatval($content) / 100) / 2; // base on expected AF of heterogenic variants
+	}
+}
 
 //determine target region size
 $roi_bases = get_bases($roi);
 print "##ROI bases: {$roi_bases}\n";
 
 //load germline variants
-$vars_germline = load_vcf($normal, $roi, false);
+$vars_germline = load_vcf($normal, $roi, "ref");
 print "##Germline variants: ".count($vars_germline)."\n";
 
-//load somatic variants
-$vars_somatic = load_vcf($tumor, $roi, false);
+//load expected somatic variants
+$vars_somatic = load_vcf($tumor, $roi, "ref");
 print "##Tumor variants: ".count($vars_somatic)."\n";
 foreach($vars_germline as $var => $gt)
 {
-	if (isset($vars_somatic[$var]))
+	if (array_key_exists($var, $vars_somatic))
 	{
 		unset($vars_somatic[$var]);
 	}
@@ -118,12 +185,12 @@ foreach($vars_germline as $var => $gt)
 print "##Tumor variants after removing overlap with germline: ".count($vars_somatic)."\n";
 
 //benchmark
-$details_all = [];
+$details_all = []; //format: array($filename -> array($var -> [var_AF/"Missed"/"filtered"]))
 print "#name\texpected\tTP\tTN\tFP\tFN\trecall/sensitivity\tprecision/ppv\tspecificity\n";
 foreach($calls as $filename)
 {
 	$name = basename($filename, "_var.vcf.gz");
-	$vars = load_vcf($filename, $roi, true);
+	$vars = load_vcf($filename, $roi, $caller);
 	foreach(["", "SNVs", "InDels"] as $type)
 	{
 		$details = [];
@@ -178,92 +245,78 @@ foreach($calls as $filename)
 	}
 }
 
-//create sorted variant list
-$vars_all = [];
-$vcf = [];
-$vcf[] = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
-foreach($details_all as $name => $tmp)
-{
-	foreach($tmp as $var => $result)
-	{
-		list($chr, $pos, $ref, $alt) = explode(" ", strtr($var, "-:>", "   "));
-		$vcf[] = $chr."\t".$pos."\t.\t".$ref."\t".$alt."\t100\tPASS\t";
-	}
-}
-$tmp = $parser->tempFile(".vcf");
-file_put_contents($tmp, implode("\n", $vcf));
-$tmp2 = $parser->tempFile(".vcf");
-list($stdout) = exec2("{$ngsbits}VcfSort -in $tmp -out $tmp2 && sort --uniq $tmp2", true);
-foreach($stdout as $line)
-{
-	$line = trim($line);
-	if ($line=="" || $line[0]=="#") continue;
-	list($chr, $pos, $id, $ref, $alt) = explode("\t", $line);
-	$vars_all[] = "$chr:$pos $ref>$alt";
-}
 
-//write variant details
-$output = [];
+//create sorted variant list
+$vars_all = create_unique_variants_list($parser, $ngsbits, $details_all);
+
+//write header 
+$var_detail_lines = [];
 $header = "#variant\ttype";
 foreach($details_all as $name => $tmp)
 {
 	$header .= "\t$name";
 }
-$output[] = $header;
+$var_detail_lines[] = $header;
+
+//write variant details
 foreach($vars_all as $var)
 {
 	if (isset($vars_germline[$var])) continue;
 	$type = "ARTEFACT";
 	if (isset($vars_somatic[$var])) $type = "SOMATIC (".$vars_somatic[$var].")";
 	$line = "{$var}".(is_indel($var) ? " (INDEL)" : "")."\t{$type}";
-	foreach($details_all as $name => $tmp)
+	foreach($details_all as $name => $var_list)
 	{
 		$value = "";
-		if (isset($tmp[$var]))
+		if (isset($var_list[$var]))
 		{
-			$value = $tmp[$var];
+			$value = $var_list[$var];
 			if (is_numeric($value)) $value = number_format($value, 5);
 		}
 		$line .= "\t$value";
 	}
-	$output[] = $line;
+	$var_detail_lines[] = $line;
 }
+file_put_contents($vars_details, implode("\n", $var_detail_lines));
 
-file_put_contents($vars_details, implode("\n", $output));
 
-//determine empirical AF of each column/experiment 
-$headers = [];
-$afs = [];
-foreach($output as $line)
+if ($tum_content == "")
 {
-	if ($line[0]=="#") continue;
-
-	$parts = explode("\t", $line);
-	
-	list($var, $type) = $parts;
-	$is_indel = contains($var, "INDEL");
-	if (!$is_indel && $type=="SOMATIC (het)")
+	$afs = array();
+	//determine empirical AF of each column/experiment 
+	foreach($var_detail_lines as $line)
 	{
-		for($col=2; $col<count($parts); ++$col)
+		if ($line[0]=="#") continue;
+
+		$parts = explode("\t", $line);
+		
+		list($var, $type) = $parts;
+		$is_indel = contains($var, "INDEL");
+		if (!$is_indel && $type=="SOMATIC (het)")
 		{
-			$value = $parts[$col];
-			if (is_numeric($value))
+			for($col=2; $col<count($parts); ++$col)
 			{
-				$afs[$col][] = $value;
+				$value = $parts[$col];
+				if (is_numeric($value))
+				{
+					$afs[$col][] = $value;
+				}
 			}
 		}
 	}
+	foreach($afs as $col => $values)
+	{
+		$afs[$col] = median($values);
+	}
 }
-foreach($afs as $col => $values)
-{
-	$afs[$col] = median($values);
-}
+
 
 //calculate performance for given AF cutoff
 $output_af = [];
-foreach($afs as $col => $af)
+foreach($afs as $i => $af)
 {
-	$name = array_keys($details_all)[$col-2];
+	
+	$name = array_keys($details_all)[$i];
 	$output_af[] = "##tumor fraction {$name}: ".number_format(2.0*$af, 4);
 }
 $output_af[] = "#af\texpected\tTP\tFP\tFN\trecall/sensitivity\tprecision/ppv";
@@ -275,7 +328,7 @@ foreach([0.05, 0.075, 0.1, 0.125, 0.15, 0.2] as $min_af)
 		$tp = 0;
 		$fp = 0;
 		$fn = 0;
-		foreach($output as $line)
+		foreach($var_detail_lines as $line)
 		{
 			if ($line[0]=="#") continue;
 			$parts = explode("\t", $line);
@@ -306,10 +359,10 @@ foreach([0.05, 0.075, 0.1, 0.125, 0.15, 0.2] as $min_af)
 				
 				for($col=2; $col<count($parts); ++$col)
 				{
-					$af_expected = trim($afs[$col]);
+					$af_expected = $afs[$col-2];
 					if ($type=="SOMATIC (hom)") $af_expected *= 2.0;
 					
-					if ($af_expected>$min_af)
+					if ($af_expected>=$min_af)
 					{
 						$value = $parts[$col];
 						if (!is_numeric($value)) //"MISSING", "FILTERED"

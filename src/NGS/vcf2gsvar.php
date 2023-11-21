@@ -295,9 +295,9 @@ $column_desc = array(
 	array("dbSNP", "Identifier in dbSNP database."),
 	array("gnomAD", "Allele frequency in gnomAD project."),
 	array("gnomAD_sub", "Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project."),
-	array("gnomAD_hom_hemi", "Homoyzgous counts and hemizygous counts of gnomAD project (genome data)."),
-	array("gnomAD_het", "Heterozygous counts of the gnomAD project (genome data)."),
-	array("gnomAD_wt", "Wildtype counts of the gnomAD project (genome data)."),
+	array("gnomAD_hom_hemi", "Homoyzgous/hemizygous case count of gnomAD project (genome data)."),
+	array("gnomAD_het", "Heterozygous allele count of the gnomAD project (genome data)."),
+	array("gnomAD_wt", "Wildtype allele count of the gnomAD project (genome data)."),
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
@@ -376,6 +376,8 @@ $missing_domains = [];
 //write date (of input file)
 fwrite($handle_out, "##CREATION_DATE=".date("Y-m-d", filemtime($in))."\n");
 
+$clair_info = ["", ""];
+
 while(!feof($handle))
 {
 	$line = nl_trim(fgets($handle));
@@ -384,12 +386,80 @@ while(!feof($handle))
 	//write header
 	if ($line[0]=="#") 
 	{
+		//variant calling date
+		if (starts_with($line, "##fileDate="))
+		{
+			$date = trim(substr($line, 11));
+			$date = substr_replace($date, "-", 6, 0);
+			$date = substr_replace($date, "-", 4, 0);
+			
+			fwrite($handle_out, "##CALLING_DATE={$date}\n");
+		}
+		if (starts_with($line, "##DRAGENCommandLine=<ID=dragen,"))
+		{
+			$date = "";
+			$parts = explode(",", $line);
+			foreach($parts as $entry)
+			{
+				if (starts_with($entry, "Date="))
+				{
+					list(, $tmp) = explode('"', $entry);
+					$tmp = explode(" ", strtr($tmp, ":", " "));
+					$tmp = $tmp[1]." ".$tmp[2]." ".$tmp[7];
+					$date = date("Y-m-d", strtotime($tmp));
+				}
+			}
+			if ($date!="")
+			{
+				fwrite($handle_out, "##CALLING_DATE={$date}\n");
+			}
+		}
+		
+		//variant caller
+		if (starts_with($line, "##source=freeBayes"))
+		{
+			fwrite($handle_out, "##SOURCE=freebayes ".trim(substr($line, 18))."\n");
+		}
+		if (starts_with($line, "##DRAGENCommandLine=<ID=dragen,"))
+		{
+			$dragen_ver = "";
+			$parts = explode(",", strtr($line, "\"", ","));
+			foreach($parts as $part)
+			{
+				$part = trim($part);
+				if (starts_with($part, "SW:"))
+				{
+					$parts2 = explode(".", $part);
+					$dragen_ver = implode(".", array_slice($parts2, -3));
+				}
+			}		
+			fwrite($handle_out, "##SOURCE=DRAGEN {$dragen_ver}\n");
+		}
+		if (starts_with($line, "##source=Clair3"))
+		{
+			$clair_info[0] = "Clair3";
+			if ($clair_info[0]!="" && $clair_info[1]!="") //write out clair info when complete - no matter which header is first
+			{
+				fwrite($handle_out, "##SOURCE=".$clair_info[0]." ".$clair_info[1]."\n");
+			}
+		}
+		if (starts_with($line, "##clair3_version="))
+		{
+			$clair_info[1] = trim(substr($line, 17));
+			if ($clair_info[0]!="" && $clair_info[1]!="") //write out clair info when complete - no matter which header is first
+			{
+				fwrite($handle_out, "##SOURCE=".$clair_info[0]." ".$clair_info[1]."\n");
+			}
+		}
+		
+		//filters
 		if (starts_with($line, "##FILTER=<ID="))
 		{
 			$parts = explode(",Description=\"", substr(trim($line), 13, -2));
 			fwrite($handle_out, "##FILTER=".$parts[0]."=".$parts[1]."\n");
 		}
 		
+		//samples
 		if (starts_with($line, "##SAMPLE="))
 		{
 			$line = trim($line);
@@ -410,11 +480,13 @@ while(!feof($handle))
 			}
 		}
 		
+		//analysis type
 		if (starts_with($line, "##ANALYSISTYPE="))
 		{
 			fwrite($handle_out, trim($line)."\n");
 		}
 		
+		//pipeline
 		if (starts_with($line, "##PIPELINE="))
 		{
 			fwrite($handle_out, trim($line)."\n");

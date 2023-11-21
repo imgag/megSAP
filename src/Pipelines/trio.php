@@ -96,6 +96,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=varia
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_check", "Skip gender check of parents and parent-child correlation check (otherwise done before variant calling)");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
+$parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 
 extract($parser->parse($argv));
 
@@ -167,6 +168,12 @@ if ($is_wgs_shallow)
 		trigger_error("Skipping step 'vc' - Variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
 		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
 	}
+}
+
+//set up local NGS data copy (to reduce network traffic and speed up analysis)
+if (!$no_sync)
+{
+	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 }
 
 //pre-analysis checks

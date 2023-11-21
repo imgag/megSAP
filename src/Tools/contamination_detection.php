@@ -66,9 +66,7 @@ if ($roi=="")
 
 //get required files
 $ps_bam = $info['ps_bam'];
-if (ends_with($ps_bam, ".bam")) $ps_vcf = substr($info['ps_bam'], 0, -4)."_var.vcf.gz";
-else $ps_vcf = substr($info['ps_bam'], 0, -5)."_var.vcf.gz";
-
+$ps_vcf = $info['ps_folder']."/".$ps."_var.vcf.gz";
 
 //perform additional VC and filtering if no precalculated file is provided
 if (is_null($ann_vcf) || $ann_vcf=="")

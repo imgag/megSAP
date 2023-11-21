@@ -1,6 +1,7 @@
 ##fileformat=VCFv4.2
 ##source=Clair3
 ##clair3_version=1.0.0
+##fileDate=20231103
 ##filter="QUAL > 5"
 ##longphaseVersion=1.4
 ##commandline="phase -s /mnt/storage1/projects/research/23014I_1145_ONTpilot_TNAMSE/Sample_23014LRa023L2_01/clair_temp/merge_output.vcf.gz -b /mnt/storage1/projects/research/23014I_1145_ONTpilot_TNAMSE/Sample_23014LRa023L2_01/23014LRa023L2_01.bam -r /tmp/local_ngs_data_GRCh38//GRCh38.fa -t 10 -o /tmp/584156.1.default_srv014/megSAP_user_ahschul1/longphaseRycQdY --ont "
