@@ -18,6 +18,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mappi
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("skip_phasing", "Skip phasing of VCF and BAM files.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
+$parser->addFlag("skip_wgs_check", "Skip the similarity check with a related short-read WGS sample.");
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
@@ -624,7 +625,53 @@ if (in_array("db", $steps))
 	$parser->exec("{$ngsbits}/NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_files)." -force");
 	
 	//check gender
-	$parser->execTool("NGS/db_check_gender.php", "-in $bam_file -pid $name");	
+	$parser->execTool("NGS/db_check_gender.php", "-in $bam_file -pid $name");
+	
+
+	if (!$skip_wgs_check)
+	{
+		//check similarity to (sr) WGS sample
+		list($stdout, $stderr, $exit_code) = $parser->exec("{$ngsbits}/NGSDSameSample", "-ps $name -system_type WGS");
+		//parse stdout
+		$same_samples = array();
+		foreach ($stdout as $line) 
+		{
+			if (starts_with($line, "#")) continue;
+			if (trim($line) == "") continue;
+			$same_samples[] = trim(explode("\t", $line)[0]);
+		}
+		if (count($same_samples) < 1)
+		{
+			trigger_error("No related WGS sample found for {$name}. Cannot perform similarity check!", E_USER_WARNING);
+		} 
+		else
+		{
+			//check same-sample correlation for each WGS sample
+			$min_corr = 0.85;
+
+			foreach ($same_samples as $processed_sample) 
+			{
+				$ps_gsvar = trim($parser->exec(get_path("ngs-bits")."SamplePath", "-ps {$processed_sample} -type GSVAR", true)[0][0]);
+				if (!file_exists($ps_gsvar))
+				{
+					trigger_error("GSvar file {$ps_gsvar} not found! Skipping sample similarity check", E_USER_WARNING);
+					continue;
+				}
+				$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$var_file} {$ps_gsvar} -mode gsvar -max_snps 4000 -build ".ngsbits_build($sys['build']), true);
+				$correlation = explode("\t", $output[0][1])[3];
+				if ($correlation<$min_corr)
+				{
+					trigger_error("The genotype correlation of {$name} and {$processed_sample} is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
+				}
+				else
+				{
+					trigger_error("The genotype correlation of {$name} and {$processed_sample} is {$correlation}.", E_USER_NOTICE);
+				}
+			}
+		}
+	}
+	
+
 	//import variants
 	$args = ["-ps {$name}"];
 	$import = false;
