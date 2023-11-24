@@ -569,6 +569,12 @@ else
 {
 	$out_cram = $basename.".cram";
 	$parser->execTool("Tools/bam_to_cram.php", "-bam {$bam_current} -cram {$out_cram} -build {$build} -threads {$threads}");
+	
+	//in case we re-map an old analysis with BAM output, we need to delete the BAM file
+	$bam = $basename.".bam";
+	if (file_exists($bam)) unlink($bam);
+	$bai = $basename.".bam.bai";
+	if (file_exists($bai)) unlink($bai);
 }
 
 // rename tmp BAM to allow using it for variant calling etc

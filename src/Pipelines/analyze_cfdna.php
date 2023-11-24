@@ -24,6 +24,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mappi
 $parser->addFlag("annotation_only", "Performs only a re-annotation of the already created variant calls.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFloat("min_corr", "The minimum sample genotype correlation which is used for tumor-cfDNA comparison (default: 0.80)", true, 0.80);
+$parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_post_filter", "Use the unfiltered umiVar output to generate the GSvar file.");
 extract($parser->parse($argv));
 
@@ -66,8 +67,10 @@ $parser->log("Executed on server: ".implode(" ", $server)." as {$user}");
 $sys = load_system($system, $name);
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
-$parser->execTool("Tools/data_setup.php", "-build {$sys['build']}");
-
+if (!$no_sync)
+{
+	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
+}
 
 // determine analysis type
 if ($sys['type']=="cfDNA (patient-specific)" || $sys['type']=="cfDNA")

@@ -35,8 +35,8 @@ $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
 $parser->addFlag("skip_signatures", "Skip calculation of mutational signatures.");
 $parser->addFlag("skip_HRD", "Skip calculation HRD.");
+$parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("use_dragen", "Use Illumina dragen for somatic variant calling.");
-
 //default cut-offs
 $parser->addFloat("min_af", "Allele frequency detection limit (for tumor-only calling only).", true, 0.05);
 $parser->addFloat("min_correlation", "Minimum correlation for tumor/normal pair.", true, 0.8);
@@ -175,7 +175,10 @@ check_genome_build($t_bam, $sys['build']);
 $t_bam = convert_to_bam_if_cram($t_bam, $parser, $sys['build'], $threads);
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
-$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
+if (!$no_sync)
+{
+	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
+}
 
 //normal sample data (if not single sample analysis)
 $single_sample = !isset($n_bam);
