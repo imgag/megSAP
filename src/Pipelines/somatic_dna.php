@@ -385,12 +385,28 @@ if (in_array("vc", $steps))
 		$dragen_output_svs = "$dragen_output_folder/{$prefix}_dragen_svs.vcf.gz";
 		$dragen_log_file = "$dragen_output_folder/{$prefix}_dragen.log";
 		$sge_logfile = date("YmdHis")."_".implode("_", $server)."_".getmypid();
-		$sge_update_interval = 120; //2min
+		$sge_update_interval = 300; //5min
 		
+		
+		$t_bam_dragen = $t_bam;
+		$n_bam_dragen = $n_bam;
+		if (contains($t_bam, "/tmp/"))
+		{
+			#running based on a local bam file -> copy it to be reachable form dragen:
+			$t_bam_dragen = $dragen_input_folder.basename($t_bam);
+			$parser->copyFile($t_bam, $t_bam_dragen);
+		}
+		
+		if (contains($n_bam, "/tmp/"))
+		{
+			#running based on a local bam file -> copy it to be reachable form dragen:
+			$n_bam_dragen = $dragen_input_folder.basename($n_bam);
+			$parser->copyFile($n_bam, $n_bam_dragen);
+		}
 		
 		// create cmd for vc_dragen_somatic.php
 		$args = array();
-		$args[] = "-t_bam ".$t_bam;
+		$args[] = "-t_bam ".$t_bam_dragen;
 		$args[] = "-out ".$dragen_output_vcf;
 		// $args[] = "-out_sv ".$dragen_output_svs;
 		$args[] = "-build GRCh38";
@@ -398,7 +414,7 @@ if (in_array("vc", $steps))
 		
 		if (! $single_sample)
 		{
-			$args[] = "-n_bam ".$n_bam;
+			$args[] = "-n_bam ".$n_bam_dragen;
 		}
 		
 		if ($sys['type'] != "WGS")
@@ -524,6 +540,18 @@ if (in_array("vc", $steps))
 			{
 				$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", true );
 			}
+		}
+		
+		#remove copied files if exist:
+		if (contains($t_bam_dragen, $dragen_input_folder))
+		{
+			#if file was copied into the dragen input folder delete it now.
+			unlink($t_bam_dragen);
+		}
+		if (contains($n_bam_dragen, $dragen_input_folder))
+		{
+			#if file was copied into the dragen input folder delete it now.
+			unlink($n_bam_dragen);
 		}
 		
 	}
