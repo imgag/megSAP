@@ -136,8 +136,8 @@
 ##INFO=<ID=gnomADg_Het,Number=A,Type=Integer,Description="Count of heterozygous alleles in all samples. (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADg_Wt,Number=A,Type=Integer,Description="Count of wildtype alleles in all samples. (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADm_AF_hom,Number=1,Type=Float,Description="Allele frequency restricted to variants with a heteroplasmy level > (from file gnomAD_genome_v3.1.mito_GRCh38.vcf.gz)">
-##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_20230710_converted_GRCh38.vcf.gz)">
-##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_20230710_converted_GRCh38.vcf.gz)">
+##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_20231121_converted_GRCh38.vcf.gz)">
+##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_20231121_converted_GRCh38.vcf.gz)">
 ##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category, https://my.qiagendigitalinsights.com/bbp/view/hgmd/pro/global.php#cats (from file HGMD_PRO_2023_2_fixed.vcf.gz)">
 ##INFO=<ID=HGMD_MUT,Number=1,Type=String,Description="HGMD mutant allele (from file HGMD_PRO_2023_2_fixed.vcf.gz)">
 ##INFO=<ID=HGMD_GENE,Number=1,Type=String,Description="Gene symbol (from file HGMD_PRO_2023_2_fixed.vcf.gz)">
