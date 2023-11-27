@@ -1821,12 +1821,20 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 						{
 							if (starts_with($column, "CL:"))
 							{
-								while(contains($column, "  ")) $column = strtr($column, ["  "=>" "]);
+								while (contains($column, "  ")) $column = strtr($column, ["  "=>" "]);
 								$cl = explode(" ", $column);
-								//get second last element
-								$ref_file_path = array_slice($cl, -2, 1)[0];
-								$build = basename($ref_file_path, ".fa");
-								break;
+								//use the first entry that ends with '.fa' when iteration through the parameter list in reverse order (normally second-to-last)
+								$idx = count($cl);
+								while ($idx)
+								{
+									$parameter = $cl[--$idx];
+									if (ends_with($parameter, ".fa"))
+									{
+										$build = basename($parameter, ".fa");
+										break;
+									} 
+								}
+								if ($build!="") break;								
 							}
 						}
 						if ($build!="") 
