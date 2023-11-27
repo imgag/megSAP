@@ -749,7 +749,7 @@ if (in_array("cn", $steps))
 			if (!file_exists($bed))
 			{
 				$pipeline = [
-						["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".$genome],
+						["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -clear -ref ".$genome],
 						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
 					];
 				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
