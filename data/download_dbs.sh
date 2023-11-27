@@ -54,14 +54,14 @@ cat hg38.fa.out | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/BedSor
 
 #Install ClinVar - https://www.ncbi.nlm.nih.gov/clinvar/
 cd $dbs
-mkdir ClinVar
+mkdir ClinVar 
 cd ClinVar
-wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2023/clinvar_20230710.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20230710_converted_GRCh38.vcf.gz
-tabix -C -m 9 -p vcf clinvar_20230710_converted_GRCh38.vcf.gz
+wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2023/clinvar_20231121.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | $ngsbits/VcfStreamSort | bgzip > clinvar_20231121_converted_GRCh38.vcf.gz
+tabix -C -m 9 -p vcf clinvar_20231121_converted_GRCh38.vcf.gz
 #CNVs
-wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2023-07.txt.gz | gunzip > variant_summary_2023-07.txt
-cat variant_summary_2023-07.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2023-07.bed
-$ngsbits/BedSort -with_name -in clinvar_cnvs_2023-07.bed -out clinvar_cnvs_2023-07.bed
+wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2023-11.txt.gz | gunzip > variant_summary_2023-11.txt
+cat variant_summary_2023-11.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2023-11.bed
+$ngsbits/BedSort -with_name -in clinvar_cnvs_2023-11.bed -out clinvar_cnvs_2023-11.bed
 
 #Install HGNC - http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
 cd $dbs
@@ -170,7 +170,6 @@ wget https://github.com/PacificBiosciences/pbsv/raw/master/annotations/human_GRC
 ##CNVs
 #zcat hgmd_pro-2023.2.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2023_2.bed
 #$ngsbits/BedSort -with_name -in HGMD_CNVS_2023_2.bed -out HGMD_CNVS_2023_2.bed
-
 
 #Install COSMIC Cancer Mutation Census CMC  (you need a license, CMC tsv.gz file has to be downloaded manually from https://cancer.sanger.ac.uk/cmc/download)
 #cd $dbs
