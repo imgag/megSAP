@@ -80,6 +80,7 @@ if (!$no_sync)
 //output file names:
 //mapping
 $bam_file = $folder."/".$name.".bam";
+$unmapped_bam_file = $folder."/".$name.".mod.unmapped.bam";
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 //variant calling
 $vcf_file = $folder."/".$name."_var.vcf.gz";
@@ -114,14 +115,23 @@ if (in_array("ma", $steps))
 	
 	if (count($fastq_files)==0)
 	{
-		if(file_exists($bam_file))
+		if(file_exists($unmapped_bam_file) || file_exists($bam_file))
 		{
-			trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files: $bam_file", E_USER_NOTICE);
-
+			if(file_exists($unmapped_bam_file))
+			{
+				trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files: {$unmapped_bam_file}", E_USER_NOTICE);
+				$bam_input = $unmapped_bam_file;
+			}
+			else
+			{
+				trigger_error("No FASTQ files found in folder. Using BAM file to generate FASTQ files: {$bam_file}", E_USER_NOTICE);
+				$bam_input = $bam_file;
+			}
+			
 			// extract reads from BAM file
 			$fastq_file = $folder."/{$name}_BamToFastq_001.fastq.gz";
 			$tmp1 = $parser->tempFile(".fastq.gz");
-			$parser->exec("{$ngsbits}BamToFastq", "-mode single-end -in $bam_file -out1 $tmp1", true);
+			$parser->exec("{$ngsbits}BamToFastq", "-mode single-end -in {$bam_input} -out1 $tmp1", true);
 			$parser->moveFile($tmp1, $fastq_file);
 			
 			// use generated fastq files for mapping
@@ -373,7 +383,7 @@ if (in_array("an", $steps))
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnvfile}", true);
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnvfile}", true);
-		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-11.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
+		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
 
 
 		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_2.bed"; //optional because of license
