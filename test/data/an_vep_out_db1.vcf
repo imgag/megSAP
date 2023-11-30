@@ -2648,11 +2648,11 @@
 ##INFO=<ID=gnomADm_AF_hom,Number=1,Type=Float,Description="Allele frequency restricted to variants with a heteroplasmy level > (from file gnomAD_genome_v3.1.mito_GRCh38.vcf.gz)">
 ##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_20231121_converted_GRCh38.vcf.gz)">
 ##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_20231121_converted_GRCh38.vcf.gz)">
-##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category, https://my.qiagendigitalinsights.com/bbp/view/hgmd/pro/global.php#cats (from file HGMD_PRO_2023_2_fixed.vcf.gz)">
-##INFO=<ID=HGMD_MUT,Number=1,Type=String,Description="HGMD mutant allele (from file HGMD_PRO_2023_2_fixed.vcf.gz)">
-##INFO=<ID=HGMD_GENE,Number=1,Type=String,Description="Gene symbol (from file HGMD_PRO_2023_2_fixed.vcf.gz)">
-##INFO=<ID=HGMD_PHEN,Number=1,Type=String,Description="HGMD primary phenotype.  The ',' (comma) in primary phenotype descriptions have been replaced with '%2C'.  Instructions to deal with such characters with special meaning are given in Section 1.2 of the VCFv4.3 specfication. (from file HGMD_PRO_2023_2_fixed.vcf.gz)">
-##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="ID column (from file HGMD_PRO_2023_2_fixed.vcf.gz)">
+##INFO=<ID=HGMD_CLASS,Number=1,Type=String,Description="Mutation Category, https://my.qiagendigitalinsights.com/bbp/view/hgmd/pro/global.php#cats (from file HGMD_PRO_2023_3_fixed.vcf.gz)">
+##INFO=<ID=HGMD_MUT,Number=1,Type=String,Description="HGMD mutant allele (from file HGMD_PRO_2023_3_fixed.vcf.gz)">
+##INFO=<ID=HGMD_GENE,Number=1,Type=String,Description="Gene symbol (from file HGMD_PRO_2023_3_fixed.vcf.gz)">
+##INFO=<ID=HGMD_PHEN,Number=1,Type=String,Description="HGMD primary phenotype.  The ',' (comma) in primary phenotype descriptions have been replaced with '%2C'.  Instructions to deal with such characters with special meaning are given in Section 1.2 of the VCFv4.3 specfication. (from file HGMD_PRO_2023_3_fixed.vcf.gz)">
+##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="ID column (from file HGMD_PRO_2023_3_fixed.vcf.gz)">
 ##INFO=<ID=CADD_SNV,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_SNVs_1.6_GRCh38.vcf.gz)">
 ##INFO=<ID=CADD_INDEL,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_InDels_1.6_GRCh38.vcf.gz)">
 ##INFO=<ID=REVEL,Number=1,Type=Float,Description="Maximum REVEL score of all scored transcripts. (from file REVEL_1.3.vcf.gz)">

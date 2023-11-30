@@ -164,12 +164,12 @@ wget https://github.com/PacificBiosciences/pbsv/raw/master/annotations/human_GRC
 #php $src/Tools/db_converter_omim.php | $ngsbits/BedSort -with_name > omim.bed
 
 #Install HGMD (you need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
-#manual download of files HGMD_Pro_2023.2_hg38.vcf.gz and hgmd_pro-2023.2.dump.gz from https://apps.ingenuity.com/ingsso/login
-#zcat HGMD_Pro_2023.2_hg38.vcf.gz | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2023_2_fixed.vcf.gz
-#tabix -p vcf HGMD_PRO_2023_2_fixed.vcf.gz
+#manual download of files HGMD_Pro_2023.3_hg38.vcf.gz  and hgmd_pro-2023.2.dump.gz from https://apps.ingenuity.com/ingsso/login
+#zcat HGMD_Pro_2023.3_hg38.vcf.gz | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2023_3_fixed.vcf.gz
+#tabix -p vcf HGMD_PRO_2023_3_fixed.vcf.gz
 ##CNVs
-#zcat hgmd_pro-2023.2.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2023_2.bed
-#$ngsbits/BedSort -with_name -in HGMD_CNVS_2023_2.bed -out HGMD_CNVS_2023_2.bed
+#zcat hgmd_pro-2023.3.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2023_3.bed
+#$ngsbits/BedSort -with_name -in HGMD_CNVS_2023_3.bed -out HGMD_CNVS_2023_3.bed
 
 #Install COSMIC Cancer Mutation Census CMC  (you need a license, CMC tsv.gz file has to be downloaded manually from https://cancer.sanger.ac.uk/cmc/download)
 #cd $dbs
