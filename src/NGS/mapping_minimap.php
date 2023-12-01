@@ -16,10 +16,12 @@ $parser->addString("sample", "Sample name to use in BAM header. If unset the bas
 $parser->addInfileArray("in_fastq",  "Input file(s) in FASTQ format.", true);
 $parser->addInfileArray("in_bam", "Input BAM file(s), with modified bases information (MM ML tags).", true);
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'sample' or 'out' is a valid processed sample name).", true);
+$parser->addString("qc_fastq", "Output qcML file with read statistics.", true, "");
+$parser->addString("qc_map", "Output qcML file with mapping statistics.", true, "");
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
 extract($parser->parse($argv));
 
-if ((is_null($in_fastq) && is_null($in_bam)) || (count($in_fastq) > 0 && count($in_bam) > 0))
+if ((is_null($in_fastq) && is_null($in_bam)) || (!is_null($in_fastq) && (count($in_fastq) > 0) && !is_null($in_bam) && (count($in_bam) > 0)))
 {
 	trigger_error("Please specify either 'in_fastq' or 'in_bam'!", E_USER_ERROR);
 }
@@ -57,7 +59,7 @@ if(db_is_enabled("NGSD"))
 // FASTQ input:
 // zcat <input fastqs>                        | minimap              | samtools sort
 
-$bam_input = count($in_bam) > 0;
+$bam_input = !is_null($in_bam) && (count($in_bam) > 0);
 
 $minimap_options = [
 	"-a",
@@ -65,17 +67,19 @@ $minimap_options = [
 	"-x map-ont",
 	"--eqx",
 	"-t {$threads}",
-	"-R '@RG\t" . implode("\\t", $group_props) . "'",
+	"-R '@RG\\t" . implode("\\t", $group_props) . "'",
 	genome_fasta($sys['build'])
 ];
 
 $pipeline = [];
 
 //start from BAM input if available
+$tmp_fastq = $parser->tempFile(".fastq.gz");
 if ($bam_input)
 {
-	$pipeline[] = [get_path("samtools"), "cat " . implode(" ", $in_bam)];
-	$pipeline[] = [get_path("samtools"), "fastq -0 - -"];
+	$pipeline[] = [get_path("samtools"), "cat --no-PG -o - " . implode(" ", $in_bam)];
+	$pipeline[] = [get_path("samtools"), "fastq -o /dev/null"];
+	// $pipeline[] = ["tee", ">(gzip -1 -c > {$tmp_fastq})"];
 }
 else
 {
@@ -114,21 +118,46 @@ if (!file_exists($out) || filesize($bam_current) != filesize($out))
 }
 
 //run mapping QC
-$qcml = $basename."_stats_map.qcML";
-$params = ["-in $bam_current", "-out $qcml", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build'])];
-if ($sys["target_file"]=="" || $sys["type"]=="lrGS")
+if ($qc_map !== "")
 {
-	$params[] = "-wgs";
-}
-else
-{
-	$params[] = "-roi ".$sys["target_file"];
-}
-if ($sys['build']!="GRCh38")
-{
-	$params[] = "-no_cont";
+	$params = [
+		"-in $bam_current",
+		"-out $qcml_map",
+		"-read_qc $qcml_reads",
+		"-ref ".genome_fasta($sys["build"]),
+		"-build ".ngsbits_build($sys["build"])
+	];
+	if ($sys["target_file"]=="" || $sys["type"]=="lrGS")
+	{
+		$params[] = "-wgs";
+	}
+	else
+	{
+		$params[] = "-roi ".$sys["target_file"];
+	}
+	if ($sys['build']!="GRCh38")
+	{
+		$params[] = "-no_cont";
+	}
+
+	$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
 }
 
-$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
-
+//run read QC
+if ($qc_map !== "")
+{
+	$params_readqc = [
+		"-long_read",
+		"-out {$qc_map}"
+	];
+	if ($bam_input)
+	{
+		$params_readqc[] = "-in1 {$tmp_fastq}";
+	}
+	else
+	{
+		$params_readqc[] = "-in1 " . implode(" ", $in_fastq);
+	}
+	$parser->exec(get_path("ngs-bits")."ReadQC", implode(" ", $params_readqc), true);
+}
 ?>

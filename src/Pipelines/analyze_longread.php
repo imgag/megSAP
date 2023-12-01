@@ -76,8 +76,6 @@ if (!$no_sync)
 	$parser->execTool("Tools/data_setup.php", "-build ".$build);
 }
 
-//input file names:
-$unmapped_mod_bam = $folder."/".$name.".mod.unmapped.bam";
 //output file names:
 //mapping
 $bam_file = $folder."/".$name.".bam";
@@ -126,28 +124,26 @@ if (in_array("ma", $steps))
 		trigger_error("Found no input read files in BAM or FASTQ format!", E_USER_ERROR);
 	}
 	
-	// run ReadQC
-	// TODO not possible with BAM input, defer it to alignment
-	// $parser->exec("{$ngsbits}ReadQC", "-long_read -in1 ".implode(" ", $fastq_files)." -out {$qc_fastq}", true);
-	
 	// run mapping
 	$mapping_minimap_options = [
 		"-out {$bam_file}",
 		"-sample {$name}",
 		"-threads {$threads}",
 		"-system {$system}",
+		"-qc_fastq {$qc_fastq}",
+		"-qc_map {$qc_map}"
 	];
 	if (count($unmapped_bam_files) > 0)
 	{
-		$parser->execTool("NGS/mapping_minimap.php", "-in_bam ".$folder."/{$name}.fastq.gz"." -in_bam {$unmapped_mod_bam} -out {$bam_file} -sample {$name} -threads {$threads} -system {$system}");
+		$mapping_minimap_options[] = "-in_bam " . implode(" ", $unmapped_bam_files);
 	}
 	elseif (count($bam_files) > 0)
 	{
-		$mapping_minimap_options[] = "-in_bam" . implode(" ", $bam_files);
+		$mapping_minimap_options[] = "-in_bam " . implode(" ", $bam_files);
 	}
 	else
 	{
-		$mapping_minimap_options[] = "-in_fastq" . implode(" ", $fastq_files);
+		$mapping_minimap_options[] = "-in_fastq " . implode(" ", $fastq_files);
 	}
 	
 	$parser->execTool("NGS/mapping_minimap.php", implode(" ", $mapping_minimap_options));
