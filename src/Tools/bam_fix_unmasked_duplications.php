@@ -73,7 +73,7 @@ print "  took ".time_readable(microtime(true)-$time_start)."\n";
 //merge sorted BAMs
 $time_start = microtime(true);
 print "merging BAMs\n";
-exec2("{$samtools} merge --write-index -@ {$threads} -f -h {$in} --reference {$ref} -o {$out} {$bam_mapped} {$bam_other}");
+exec2("{$samtools} merge --write-index -@ {$threads} -f -h {$bam_mapped} --reference {$ref} -o {$out} {$bam_mapped} {$bam_other}");
 print "  took ".time_readable(microtime(true)-$time_start)."\n";
 
 ?>
