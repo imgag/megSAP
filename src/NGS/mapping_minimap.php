@@ -51,7 +51,7 @@ $pipeline = array();
 
 
 //mapping with minimap2
-$pipeline[] = array(get_path("minimap2"), "-Y --MD -ax map-ont --eqx -t {$threads} -R '@RG\\t".implode("\\t", $group_props)."' ".genome_fasta($sys['build'])." ".implode(" ", $in));
+$pipeline[] = array(get_path("minimap2"), "--MD -ax map-ont --eqx -t {$threads} -R '@RG\\t".implode("\\t", $group_props)."' ".genome_fasta($sys['build'])." ".implode(" ", $in));
 
 //convert sam to bam with samtools
 $tmp_unsorted = $parser->tempFile("_unsorted.bam");
