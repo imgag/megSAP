@@ -101,7 +101,7 @@ if($is_novaseq_x)
 	if(count($analyses) == 0) trigger_error("ERROR: No analysis found! Please make sure the secondary analysis was performed successfully (at least the demultiplexing).", E_USER_ERROR);
 	if(count($analyses) > 1) trigger_error("ERROR: Multiple analysis folders found! Please remove all duplicated secondary analysis, but make sure all necessary fastq files are present in the remaining folder!", E_USER_ERROR);
 	//NovaSeq X run => backup fastq/ora files
-	$parser->exec("tar", "cfW {$tmp_tar} {$exclude_raw} --exclude='{$basename}/Data' --exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images'"
+	$parser->exec("tar", "cfW {$tmp_tar} --exclude='{$basename}/Data' --exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images'"
 	." --exclude='*.bam' --exclude='*.bam.bai' --exclude='*.cram' --exclude='*.cram.crai'  --exclude='*.vcf.gz'  --exclude='*.gvcf.gz' -C ".dirname($in)." {$basename}", true);
 }
 else
