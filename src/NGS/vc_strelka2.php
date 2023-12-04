@@ -138,9 +138,13 @@ for ($i=0; $i < $strelka_indels->rows(); ++$i)
 $vcf_merged = $parser->tempFile("_merged.vcf");
 $merged->toTSV($vcf_merged);
 
+//remove invalid variant
+$vcf_invalid = $parser->tempFile("_filtered_invalid.vcf");
+$parser->exec(get_path("ngs-bits")."VcfFilter", "-remove_invalid -in $vcf_merged -out $vcf_invalid", true);
+
 //left-align
 $vcf_aligned = $parser->tempFile("_aligned.vcf");
-$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-stream -in $vcf_merged -out $vcf_aligned -ref ".genome_fasta($build), true);
+$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-stream -in $vcf_invalid -out $vcf_aligned -ref ".genome_fasta($build), true);
 
 //sort
 $vcf_sorted = $parser->tempFile("_sorted.vcf");
@@ -278,13 +282,9 @@ for($i = 0; $i < $variants->rows(); ++$i)
 		
 	}
 }
-$vcf_filtered = $parser->tempFile("_filtered.vcf");
-$variants_filtered->toTSV($vcf_filtered);
+$final = $parser->tempFile("_filtered.vcf");
+$variants_filtered->toTSV($final);
 
-//remove invalid variant
-$vcf_invalid = $parser->tempFile("_filtered_invalid.vcf");
-$parser->exec(get_path("ngs-bits")."VcfFilter", "-remove_invalid -in $vcf_filtered -out $vcf_invalid", true);
-$final = $vcf_invalid;
 
 //flag off-target variants
 if (!empty($target))

@@ -67,7 +67,7 @@ foreach($samples as $ps)
 	}
 	else if ($mode=="vcf")
 	{
-		$vcf = substr($info['ps_bam'],0, -4)."_var.vcf.gz";
+		$vcf = $info['ps_folder']."/".$ps."_var.vcf.gz";
 		if (!file_exists($vcf))
 		{
 			trigger_error("Sample '$ps': VCF file is missing!", E_USER_ERROR);
@@ -113,7 +113,7 @@ foreach($samples as $ps)
 	else if ($mode=="vcf")
 	{
 		print "  Copying VCF file ...\n";
-		$vcf = substr($info['ps_bam'],0, -4)."_var.vcf.gz";
+		$vcf = $info['ps_folder']."/".$ps."_var.vcf.gz";
 		exec2("ln -s {$vcf} {$out}/".basename($vcf));
 	}
 	else

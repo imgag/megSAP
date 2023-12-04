@@ -93,7 +93,7 @@ if(db_is_enabled("NGSD"))
 	$dragen_parameter[] = "--RGLB '".$psample_info['sys_name']."'";
 }
 if ($dedup) $dragen_parameter[] = "--enable-duplicate-marking true";
-//TODO test with indel realignment on Dragen instead of ABRA2 (--enable-indel-realigner). Wait until Hannover has a newer Dragen version that can run Dragen software v4.0.3
+
 //small variant calling
 $dragen_parameter[] = "--enable-variant-caller true";
 $dragen_parameter[] = "--vc-min-read-qual 1";

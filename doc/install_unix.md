@@ -33,7 +33,7 @@ RHEL 8.3
 
 Clone the latest release of megSAP:
 
-	> git clone -b 2023_04 https://github.com/imgag/megSAP.git
+	> git clone -b 2023_11 https://github.com/imgag/megSAP.git
 
 Or, if you want to test the current development version:
 

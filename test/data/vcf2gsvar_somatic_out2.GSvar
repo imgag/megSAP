@@ -1,5 +1,5 @@
 ##ANALYSISTYPE=SOMATIC_SINGLESAMPLE
-##PIPELINE=megSAP 2023_04-157-ga03adac7
+##PIPELINE=megSAP 2023_04-163-g852d0cef
 ##GENOME_BUILD=GRCh38
 ##CREATION_DATE=2023-04-17
 ##SAMPLE=<ID=GS150344_01,Gender=female,ExternalSampleName=151172,IsTumor=yes,IsFFPE=yes,DiseaseGroup=Neoplasms,DiseaseStatus=Affected>
@@ -20,8 +20,6 @@
 ##DESCRIPTION=gnomAD_het=Heterozygous counts of the gnomAD project (genome data).
 ##DESCRIPTION=gnomAD_wt=Wildtype counts of the gnomAD project (genome data).
 ##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
-##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.
-##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.
 ##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.
 ##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
 ##DESCRIPTION=AlphaMissense=AlphaMissense pathogenicity score. Deleterious threshold > 0.564.
@@ -34,9 +32,9 @@
 ##DESCRIPTION=tumor_dp=Tumor Depth (Sample GS150344_01).
 ##DESCRIPTION=somatic_classification_comment=Somatic classification comment from the NGSD.
 ##DESCRIPTION=somatic_classification=Somatic classification from the NGSD.
-#chr	start	end	ref	obs	tumor_af	tumor_dp	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	Sift	PolyPhen	CADD	REVEL	AlphaMissense	MaxEntScan	COSMIC	SpliceAI	PubMed	somatic_classification_comment	somatic_classification
-chr13	32337751	32337751	A	G	0.9933	149		QUAL=4875															0.2330			0.34							I am an deleterious variant class	activating
-chr13	32338918	32338918	A	G	1.0000	169		QUAL=5583															0.0760			0.03								
-chr13	32340868	32340868	G	C	1.0000	102		QUAL=3321															-0.8640			0.45								
-chr13	32355250	32355250	T	C	1.0000	123		QUAL=4062															2.4910			0.86								
-chr17	43074519	43074519	G	T	0.4902	102		QUAL=1291															1.2230			5.76							I am an unknown somatic variant classification	n/a
+#chr	start	end	ref	obs	tumor_af	tumor_dp	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	CADD	REVEL	AlphaMissense	MaxEntScan	COSMIC	SpliceAI	PubMed	somatic_classification_comment	somatic_classification
+chr13	32337751	32337751	A	G	0.9933	149		QUAL=4875															0.2330	0.34							I am an deleterious variant class	activating
+chr13	32338918	32338918	A	G	1.0000	169		QUAL=5583															0.0760	0.03								
+chr13	32340868	32340868	G	C	1.0000	102		QUAL=3321															-0.8640	0.45								
+chr13	32355250	32355250	T	C	1.0000	123		QUAL=4062															2.4910	0.86								
+chr17	43074519	43074519	G	T	0.4902	102		QUAL=1291															1.2230	5.76							I am an unknown somatic variant classification	n/a

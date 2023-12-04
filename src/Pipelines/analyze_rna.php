@@ -22,6 +22,7 @@ $parser->addFlag("skip_filter_hb", "Do not automatically filter input FASTQ for 
 $parser->addString("out_folder", "Folder where analysis results should be stored. Default is same as in '-folder' (e.g. Sample_xyz/).", true, "default");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
 $parser->addFlag("skip_dna_reannotation", "Do not automatically start the reannotation of the related DNA sample.");
+$parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 
 extract($parser->parse($argv));
 
@@ -61,6 +62,12 @@ $genome = get_path("data_folder")."/genomes/STAR/{$build}/";
 
 //determine gtf from build
 $gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
+
+//set up local NGS data copy (to reduce network traffic and speed up analysis)
+if (!$no_sync)
+{
+	$parser->execTool("Tools/data_setup.php", "-build ".$build);
+}
 
 //find FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");
@@ -214,7 +221,8 @@ if (in_array("ma", $steps))
 			"--log", $parser->getLogFile()
 		);
 
-		if ($skip_dedup) $args[] = "-skip_dedup";
+		//skip duplicate marking if requested, or for UMIs (will be handled later)
+		if ($skip_dedup || $umi) $args[] = "-skip_dedup";
 
 		$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
 

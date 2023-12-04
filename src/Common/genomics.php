@@ -1006,6 +1006,30 @@ function vcf_freebayes($format_col, $sample_col)
 	return array($d1,$f);
 }
 
+function vcf_dragen_var($format_col, $sample_col)
+{
+	$g = explode(":",$format_col);
+	$index_DP = NULL;
+	$index_AF = NULL;
+	for($i=0;$i<count($g);++$i)
+	{
+		if($g[$i]=="DP")	$index_DP = $i;
+		if($g[$i]=="AF")	$index_AF = $i;
+	}
+
+	if(is_null($index_DP) || is_null($index_AF)) trigger_error("Invalid dragon vcf format; either field DP or AF not available.", E_USER_ERROR);	
+	
+	$s = explode(":",$sample_col);	
+	
+	if(!is_numeric($s[$index_AF]))	trigger_error("Invalid allele frequenzy (".$format_col." ".$sample_col.").", E_USER_ERROR);	// currently no multiallelic variants supported
+	if(!is_numeric($s[$index_DP]))	trigger_error("Could not identify numeric depth (".$format_col." ".$sample_col.").", E_USER_ERROR);
+
+	$dp = $s[$index_DP];
+	$af = $s[$index_AF];
+	
+	return array($dp,$af);
+}
+
 function vcf_iontorrent($format_col, $sample_col, $idx_al)
 {
 	$g = explode(":",$format_col);
@@ -1797,12 +1821,20 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 						{
 							if (starts_with($column, "CL:"))
 							{
-								while(contains($column, "  ")) $column = strtr($column, ["  "=>" "]);
+								while (contains($column, "  ")) $column = strtr($column, ["  "=>" "]);
 								$cl = explode(" ", $column);
-								//get second last element
-								$ref_file_path = array_slice($cl, -2, 1)[0];
-								$build = basename($ref_file_path, ".fa");
-								break;
+								//use the first entry that ends with '.fa' when iteration through the parameter list in reverse order (normally second-to-last)
+								$idx = count($cl);
+								while ($idx)
+								{
+									$parameter = $cl[--$idx];
+									if (ends_with($parameter, ".fa"))
+									{
+										$build = basename($parameter, ".fa");
+										break;
+									} 
+								}
+								if ($build!="") break;								
 							}
 						}
 						if ($build!="") 

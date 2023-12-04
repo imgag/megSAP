@@ -2,8 +2,6 @@
 
 /** 
 	@page mip_generator
-	@todo move calculation folder to temp and copy only files that are necessary
-	@todo step 3: further filtering of MIPs, check if target region is covered sufficiently and update low-coverage statistics
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

@@ -23,7 +23,6 @@ check_file(substr($out_file1,0,-4).".seg", data_folder().$name."_test1_out.seg")
 check_file(substr($out_file1,0,-4)."_cnvs.seg",data_folder().$name."_test1_out_cnvs.seg");
 check_file_exists(substr($out_file1,0,-4)."_mosaic.tsv");
 
-//TODO: update if tool_test_clincnv_somatic is lifted!
 //test clincnv for somatic single sample (vc_clincnv_germline is used in this case)
 //prepare input data_folder
 $tmp_folder = output_folder()."/vc_clincnv_tumor_data/";

@@ -36,13 +36,14 @@ $steps_all = array("vc", "cn", "sv", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, cn=copy-number analysis, sv=structural variant calling, db=database import.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
+$parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 extract($parser->parse($argv));
 
 //init
 $repository_basedir = repository_basedir();
 $data_folder = get_path("data_folder");
 $ngsbits = get_path("ngs-bits");
-$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_2.bed";
+$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_3.bed";
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
 $vcf_all = "{$out_folder}/all.vcf.gz";
 $vcf_all_mito = "{$out_folder}/all_mito.vcf.gz";
@@ -160,6 +161,12 @@ if ($is_wgs_shallow)
 		trigger_error("Skipping step 'an' - Annotation is not supported for shallow WGS samples!", E_USER_NOTICE);
 		if (($key = array_search("an", $steps)) !== false) unset($steps[$key]);
 	}
+}
+
+//set up local NGS data copy (to reduce network traffic and speed up analysis)
+if (!$no_sync)
+{
+	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 }
 
 //create output folder if missing
@@ -730,10 +737,9 @@ if (in_array("cn", $steps))
 				"##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).",
 				"##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.",
 				"##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.",
-				"##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.",
-				"##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.",
 				"##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.",
 				"##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.",
+				"##DESCRIPTION=AlphaMissense=AlphaMissense pathogenicity prediction score. Deleterious threshold > 0.564.",
 				"##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).",
 				"##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.",
 				"##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.",
@@ -748,7 +754,7 @@ if (in_array("cn", $steps))
 				"##FILTER=off-target=Variant marked as 'off-target'."
 				);
 			$content = array_merge($content, $desc_and_filter);
-			$content[] = "#chr	start	end	ref	obs	".implode("\t", array_values($names))."	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	CADD	REVEL	MaxEntScan	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info";
+			$content[] = "#chr	start	end	ref	obs	".implode("\t", array_values($names))."	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	CADD	REVEL	MaxEntScan	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info";
 			file_put_contents($gsvar, implode("\n", $content));
 		}
 	}
@@ -770,7 +776,7 @@ if (in_array("cn", $steps))
 		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", true);
 		
 		//pathogenic ClinVar CNVs
-		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-07.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", true);
+		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-11.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", true);
 		
 		//HGMD CNVs
 		if (file_exists($hgmd_file)) //optional because of license

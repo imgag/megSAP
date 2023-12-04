@@ -2,12 +2,6 @@
 
 /**
  * @page transcript_variant_primer
- *
- * @todo tests in general
- * @todo check number of generated primers from primer3 output
- * @todo check calculated (spliced) positions
- * @todo bed output, https://genome.ucsc.edu/FAQ/FAQformat.html#format1
- * @todo blast? ~/ahmattj1/software/ncbi-blast-2.7.1+/bin/blastn -task blastn-short -db ~/ahmattj1/GRCh37_cDNA_blast -query test.fa -outfmt 6 -evalue 0.01
  */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

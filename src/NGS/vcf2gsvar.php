@@ -295,12 +295,10 @@ $column_desc = array(
 	array("dbSNP", "Identifier in dbSNP database."),
 	array("gnomAD", "Allele frequency in gnomAD project."),
 	array("gnomAD_sub", "Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project."),
-	array("gnomAD_hom_hemi", "Homoyzgous counts and hemizygous counts of gnomAD project (genome data)."),
-	array("gnomAD_het", "Heterozygous counts of the gnomAD project (genome data)."),
-	array("gnomAD_wt", "Wildtype counts of the gnomAD project (genome data)."),
+	array("gnomAD_hom_hemi", "Homoyzgous/hemizygous case count of gnomAD project (genome data)."),
+	array("gnomAD_het", "Heterozygous allele count of the gnomAD project (genome data)."),
+	array("gnomAD_wt", "Wildtype allele count of the gnomAD project (genome data)."),
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
-	array("Sift", "Sift effect prediction and score for each transcript: D=damaging, T=tolerated."),
-	array("PolyPhen", "PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
 	array("AlphaMissense", "AlphaMissense pathogenicity score. Deleterious threshold > 0.564."),
@@ -378,6 +376,8 @@ $missing_domains = [];
 //write date (of input file)
 fwrite($handle_out, "##CREATION_DATE=".date("Y-m-d", filemtime($in))."\n");
 
+$clair_info = ["", ""];
+
 while(!feof($handle))
 {
 	$line = nl_trim(fgets($handle));
@@ -386,12 +386,80 @@ while(!feof($handle))
 	//write header
 	if ($line[0]=="#") 
 	{
+		//variant calling date
+		if (starts_with($line, "##fileDate="))
+		{
+			$date = trim(substr($line, 11));
+			$date = substr_replace($date, "-", 6, 0);
+			$date = substr_replace($date, "-", 4, 0);
+			
+			fwrite($handle_out, "##CALLING_DATE={$date}\n");
+		}
+		if (starts_with($line, "##DRAGENCommandLine=<ID=dragen,"))
+		{
+			$date = "";
+			$parts = explode(",", $line);
+			foreach($parts as $entry)
+			{
+				if (starts_with($entry, "Date="))
+				{
+					list(, $tmp) = explode('"', $entry);
+					$tmp = explode(" ", strtr($tmp, ":", " "));
+					$tmp = $tmp[1]." ".$tmp[2]." ".$tmp[7];
+					$date = date("Y-m-d", strtotime($tmp));
+				}
+			}
+			if ($date!="")
+			{
+				fwrite($handle_out, "##CALLING_DATE={$date}\n");
+			}
+		}
+		
+		//variant caller
+		if (starts_with($line, "##source=freeBayes"))
+		{
+			fwrite($handle_out, "##SOURCE=freebayes ".trim(substr($line, 18))."\n");
+		}
+		if (starts_with($line, "##DRAGENCommandLine=<ID=dragen,"))
+		{
+			$dragen_ver = "";
+			$parts = explode(",", strtr($line, "\"", ","));
+			foreach($parts as $part)
+			{
+				$part = trim($part);
+				if (starts_with($part, "SW:"))
+				{
+					$parts2 = explode(".", $part);
+					$dragen_ver = implode(".", array_slice($parts2, -3));
+				}
+			}		
+			fwrite($handle_out, "##SOURCE=DRAGEN {$dragen_ver}\n");
+		}
+		if (starts_with($line, "##source=Clair3"))
+		{
+			$clair_info[0] = "Clair3";
+			if ($clair_info[0]!="" && $clair_info[1]!="") //write out clair info when complete - no matter which header is first
+			{
+				fwrite($handle_out, "##SOURCE=".$clair_info[0]." ".$clair_info[1]."\n");
+			}
+		}
+		if (starts_with($line, "##clair3_version="))
+		{
+			$clair_info[1] = trim(substr($line, 17));
+			if ($clair_info[0]!="" && $clair_info[1]!="") //write out clair info when complete - no matter which header is first
+			{
+				fwrite($handle_out, "##SOURCE=".$clair_info[0]." ".$clair_info[1]."\n");
+			}
+		}
+		
+		//filters
 		if (starts_with($line, "##FILTER=<ID="))
 		{
 			$parts = explode(",Description=\"", substr(trim($line), 13, -2));
 			fwrite($handle_out, "##FILTER=".$parts[0]."=".$parts[1]."\n");
 		}
 		
+		//samples
 		if (starts_with($line, "##SAMPLE="))
 		{
 			$line = trim($line);
@@ -412,11 +480,13 @@ while(!feof($handle))
 			}
 		}
 		
+		//analysis type
 		if (starts_with($line, "##ANALYSISTYPE="))
 		{
 			fwrite($handle_out, trim($line)."\n");
 		}
 		
+		//pipeline
 		if (starts_with($line, "##PIPELINE="))
 		{
 			fwrite($handle_out, trim($line)."\n");
@@ -431,8 +501,6 @@ while(!feof($handle))
 			$i_featuretype = index_of($cols, "Feature_type", "CSQ");
 			$i_biotype = index_of($cols, "BIOTYPE", "CSQ");
 			$i_domains = index_of($cols, "DOMAINS", "CSQ");
-			$i_sift = index_of($cols, "SIFT", "CSQ");
-			$i_polyphen = index_of($cols, "PolyPhen", "CSQ");
 			$i_existingvariation = index_of($cols, "Existing_variation", "CSQ");
 			$i_pubmed = index_of($cols, "PUBMED", "CSQ"); 
 		}
@@ -712,12 +780,10 @@ while(!feof($handle))
 	$alphamissense = [];
 	if (isset($info["ALPHAMISSENSE"])) 
 	{
-		$alphamissense[] = trim($info["ALPHAMISSENSE"]);
+		$alphamissense = explode("&", $info["ALPHAMISSENSE"]);
 	}
 	
 	//variant details
-	$sift = array();
-	$polyphen = array();
 	$dbsnp = array();
 	$cosmic = array();
 	$genes = array();
@@ -742,14 +808,12 @@ while(!feof($handle))
 	//variant details (up/down-stream)
 	$variant_details_updown = array();
 	$genes_updown = array();
-	$sift_updown = array();
-	$polyphen_updown = array();
 	$coding_and_splicing_details_updown = array(); 
 
 	if (isset($info["CSQ"]) && isset($info["CSQ2"]))
 	{
-		//VEP - used for regulatory features, dbSNP, COSMIC, PubMed, Sift, PolyPhen, Domains
-		$vep = []; //transcript name without version > [domain, sift, polyphen]
+		//VEP - used for regulatory features, PubMed, Domains
+		$vep = []; //transcript name without version > domain
 		foreach(explode(",", $info["CSQ"]) as $entry)
 		{			
 			$parts = explode("|", $entry);
@@ -829,7 +893,7 @@ while(!feof($handle))
 				
 				$transcript_id_no_ver = explode('.', $transcript_id)[0];
 				
-				$vep[$transcript_id_no_ver] = [ $domain, $parts[$i_sift], $parts[$i_polyphen] ];			
+				$vep[$transcript_id_no_ver] = $domain;			
 			}
 			else if ($feature_type=="RegulatoryFeature")
 			{
@@ -910,58 +974,12 @@ while(!feof($handle))
 			$hgvs_p = trim($parts[$i_vac_hgvsp]);
 			$hgvs_p = str_replace("%3D", "=", $hgvs_p);
 			
-			//domain, SIFT and Polyphen from VEP
+			//domain from VEP
 			$domain = "";
 			$transcript_id_no_ver = explode('.', $transcript_id)[0];
 			if (isset($vep[$transcript_id_no_ver]))
 			{
-				list($domain, $sift_raw, $polyphen_raw) = $vep[$transcript_id_no_ver];
-				
-				//SIFT
-				list($sift_type, $sift_score) = explode("(", strtr($sift_raw, ")", "(")."(");
-				if ($sift_type!="")
-				{
-					$sift_type = translate("Sift", $sift_type, array("deleterious"=>"D", "tolerated"=>"T", "tolerated_low_confidence"=>"T", "deleterious_low_confidence"=>"D"));
-					$sift_score = number_format($sift_score, 2);
-					$sift_entry = $sift_type."($sift_score)";
-				}
-				else
-				{
-					$sift_entry = " ";
-				}
-				if (!$is_updown)
-				{
-					$sift[] = $sift_entry;
-				}
-				else
-				{
-					$sift_updown[] = $sift_entry;
-				}
-				
-				//Polyphen
-				list($pp_type, $pp_score) = explode("(", strtr($polyphen_raw, ")", "(")."(");
-				if ($pp_type!="")
-				{
-					$pp_type = translate("PolyPhen", $pp_type, array("unknown"=>" ",  "probably_damaging"=>"D", "possibly_damaging"=>"P", "benign"=>"B"));
-					$pp_score = number_format($pp_score, 2);
-					if (!is_numeric($pp_score))
-					{
-						print "ERROR: ".$polyphen_raw." ".$pp_score."\n";
-					}
-					$polyphen_entry = $pp_type."($pp_score)";
-				}
-				else
-				{
-					$polyphen_entry = " ";
-				}
-				if (!$is_updown)
-				{
-					$polyphen[] = $polyphen_entry;
-				}
-				else
-				{
-					$polyphen_updown[] = $polyphen_entry;
-				}
+				list($domain) = $vep[$transcript_id_no_ver];
 			}
 			//add transcript information
 			$transcript_entry = "{$gene}:{$transcript_id}:".$consequence.":".$parts[$i_vac_impact].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}:{$domain}";
@@ -1306,8 +1324,6 @@ while(!feof($handle))
 	{
 		$variant_details = array_merge($variant_details, $variant_details_updown);
 		$genes = array_merge($genes, $genes_updown);
-		$sift = array_merge($sift, $sift_updown);
-		$polyphen = array_merge($polyphen, $polyphen_updown);
 		$coding_and_splicing_details = array_merge($coding_and_splicing_details, $coding_and_splicing_details_updown);
 	}
 	
@@ -1326,10 +1342,6 @@ while(!feof($handle))
 	
 	//effect predicions
 	$phylop = collapse($tag, "phyloP", $phylop, "one", 4);
-	$sift = implode(",", $sift);
-	if (trim(strtr($sift, ",", " "))=="") $sift = "";
-	$polyphen = implode(",", $polyphen);
-	if (trim(strtr($polyphen, ",", " "))=="") $polyphen = "";
 	$revel = empty($revel) ? "" : collapse($tag, "REVEL", $revel, "max", 2);
 	$alphamissense = empty($alphamissense) ? "" : collapse($tag, "AlphaMissense", $alphamissense, "max", 2);
 	
@@ -1367,7 +1379,7 @@ while(!feof($handle))
 	{
 		fwrite($handle_out,"\t".$phasing_info);
 	}
-	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$sift\t$polyphen\t$cadd\t$revel\t$alphamissense\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
+	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$cadd\t$revel\t$alphamissense\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");

@@ -126,6 +126,7 @@ $parser->execPipeline($pipeline, "clair post processing");
 $vcf = Matrix::fromTSV($uncompressed_vcf);
 $comments = $vcf->getComments();
 $comments[] = "#reference={$genome}\n";
+$comments[] = "#fileDate=".date("Ymd")."\n";
 $comments[] = "#ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n";
 $comments[] = "#PIPELINE=".repository_revision(true)."\n";
 $comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"affected"), "#", "");

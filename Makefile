@@ -67,7 +67,7 @@ test_pipeline_l: dummy
 	@cd test/data_longread && make all
 
 test_all: dummy
-	(cd test && find . -name "test_*.php" | sort | xargs -l1 php && echo "DONE") > f.log 2>&1 &
+	(cd test && find . -name "test_*.php" | sort | xargs -l1 php && echo "DONE") > f.log 2>&1
 	(cd test && find . -name "tool_test_*.php" | sort | xargs -l1 php && echo "DONE") > t.log 2>&1 &
 	make test_pipeline_a > p_a.log 2>&1 &
 	make test_pipeline_x > p_x.log 2>&1 &
@@ -109,7 +109,7 @@ find_unused_tools: dummy
 	php src/Tools/find_unused_tools.php -ngsbits ../ngs-bits/ -megsap . > unused_tools.txt
 
 todos:
-	find . -name "*.php" | xargs grep -i "@todo" 
+	find . -name "*.php" | xargs grep -i "//todo" 
 
 find_php_warnings_in_tests:
 	find test/ -type f | xargs grep -i "PHP warning" || true

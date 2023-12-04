@@ -54,14 +54,14 @@ cat hg38.fa.out | php $src/Tools/db_converter_repeatmasker.php | $ngsbits/BedSor
 
 #Install ClinVar - https://www.ncbi.nlm.nih.gov/clinvar/
 cd $dbs
-mkdir ClinVar
+mkdir ClinVar 
 cd ClinVar
-wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2023/clinvar_20230710.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | bgzip > clinvar_20230710_converted_GRCh38.vcf.gz
-tabix -C -m 9 -p vcf clinvar_20230710_converted_GRCh38.vcf.gz
+wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2023/clinvar_20231121.vcf.gz | gunzip | php $src/Tools/db_converter_clinvar.php | $ngsbits/VcfStreamSort | bgzip > clinvar_20231121_converted_GRCh38.vcf.gz
+tabix -C -m 9 -p vcf clinvar_20231121_converted_GRCh38.vcf.gz
 #CNVs
-wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2023-07.txt.gz | gunzip > variant_summary_2023-07.txt
-cat variant_summary_2023-07.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2023-07.bed
-$ngsbits/BedSort -with_name -in clinvar_cnvs_2023-07.bed -out clinvar_cnvs_2023-07.bed
+wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2023-11.txt.gz | gunzip > variant_summary_2023-11.txt
+cat variant_summary_2023-11.txt | php $src/Tools/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2023-11.bed
+$ngsbits/BedSort -with_name -in clinvar_cnvs_2023-11.bed -out clinvar_cnvs_2023-11.bed
 
 #Install HGNC - http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
 cd $dbs
@@ -104,13 +104,13 @@ wget -O - https://gnomad-public-us-east-1.s3.amazonaws.com/release/3.1/vcf/genom
 bgzip gnomAD_genome_v3.1.mito_GRCh38.vcf
 tabix -C -m 9 -p vcf gnomAD_genome_v3.1.mito_GRCh38.vcf.gz
 
-#Install phyloP for VEP - https://www.ensembl.org/info/docs/tools/vep/script/vep_example.html#gerp
+#Install phyloP
 cd $dbs
 mkdir phyloP
 cd phyloP
 wget http://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.phyloP100way.bw
 
-#Install CADD for VEP - http://cadd.gs.washington.edu/download
+#Install CADD
 cd $dbs
 mkdir CADD
 cd CADD
@@ -135,7 +135,7 @@ bgzip REVEL_1.3.vcf
 tabix -f -C -m 9 -p vcf REVEL_1.3.vcf.gz
 $ngsbits/VcfCheck -in REVEL_1.3.vcf.gz -lines 1000 -ref $genome
 
-#download and convert AlphaMissense - https://console.cloud.google.com/storage/browser/dm_alphamissense;tab=objects?prefix=&forceOnObjectsSortingFiltering=false
+#download and convert AlphaMissense - Attention: for non-commercial use only!
 wget https://console.cloud.google.com/storage/browser/_details/dm_alphamissense/AlphaMissense_hg38.tsv.gz
 php $src/Tools/db_converter_alphamissense.php AlphaMissense_hg38.tsv.gz > AlphaMissense_hg38.vcf
 $ngsbits/VcfSort -in AlphaMissense_hg38.vcf -out AlphaMissense_hg38.vcf
@@ -146,8 +146,8 @@ tabix -p vcf AlphaMissense_hg38.vcf.gz
 cd $dbs
 mkdir SpliceAI
 cd SpliceAI
-wget https://download.imgag.de/public/splicing/spliceai_scores_2022_12_30_GRCh38.vcf.gz -O spliceai_scores_2022_12_30_GRCh38.vcf.gz
-tabix -C -m 9 -p vcf spliceai_scores_2022_12_30_GRCh38.vcf.gz
+wget https://download.imgag.de/public/splicing/spliceai_scores_2023_10_24_GRCh38.vcf.gz -O spliceai_scores_2023_10_24_GRCh38.vcf.gz
+tabix -C -m 9 -p vcf spliceai_scores_2023_10_24_GRCh38.vcf.gz
 
 #download sniffles 
 cd $dbs
@@ -164,13 +164,12 @@ wget https://github.com/PacificBiosciences/pbsv/raw/master/annotations/human_GRC
 #php $src/Tools/db_converter_omim.php | $ngsbits/BedSort -with_name > omim.bed
 
 #Install HGMD (you need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
-#manual download of files HGMD_Pro_2023.2_hg38.vcf.gz and hgmd_pro-2023.2.dump.gz from https://apps.ingenuity.com/ingsso/login
-#zcat HGMD_Pro_2023.2_hg38.vcf.gz | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2023_2_fixed.vcf.gz
-#tabix -p vcf HGMD_PRO_2023_2_fixed.vcf.gz
+#manual download of files HGMD_Pro_2023.3_hg38.vcf.gz  and hgmd_pro-2023.2.dump.gz from https://apps.ingenuity.com/ingsso/login
+#zcat HGMD_Pro_2023.3_hg38.vcf.gz | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2023_3_fixed.vcf.gz
+#tabix -p vcf HGMD_PRO_2023_3_fixed.vcf.gz
 ##CNVs
-#zcat hgmd_pro-2023.2.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2023_2.bed
-#$ngsbits/BedSort -with_name -in HGMD_CNVS_2023_2.bed -out HGMD_CNVS_2023_2.bed
-
+#zcat hgmd_pro-2023.3.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2023_3.bed
+#$ngsbits/BedSort -with_name -in HGMD_CNVS_2023_3.bed -out HGMD_CNVS_2023_3.bed
 
 #Install COSMIC Cancer Mutation Census CMC  (you need a license, CMC tsv.gz file has to be downloaded manually from https://cancer.sanger.ac.uk/cmc/download)
 #cd $dbs
