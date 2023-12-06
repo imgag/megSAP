@@ -16,19 +16,10 @@ $parser->addInfile("target",  "Enrichment targets BED file.", false);
 $parser->addInfile("model", "Model file used for calling.", false);
 
 //optional
-// $parser->addFlag("enable_phasing", "Output phased variants using whatshap.");
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFlag("skip_bam_tagging", "Skip longphase tagging of the BAM file.");
-// $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
-// $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 1);
-// $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 15);
-// $parser->addInt("min_ao", "Minimum alternative base observation count.", true, 3);
-// $parser->addFlag("no_ploidy", "Use freebayes parameter -K, i.e. output all alleles which pass input filters, regardles of genotyping outcome or model.");
-// $parser->addFlag("no_bias", "Use freebayes parameter -V, i.e. ignore strand bias and read end distance bias.");
-// $parser->addInt("min_qsum", "Minimum quality sum used for variant calling.", true, 0);
-// $parser->addFlag("raw_output", "return the raw output of freebayes with no post-processing.");
 extract($parser->parse($argv));
 
 //TODO: check output folder
@@ -38,8 +29,6 @@ $genome = genome_fasta($build);
 
 //output files
 $clair_temp = "{$folder}/clair_temp";
-$phased_out = "{$folder}/{$name}_var.phased.vcf.gz"; //TODO: move to temp
-$tagged_bam = "{$folder}/{$name}.tagged";
 $out = "{$folder}/{$name}_var.vcf.gz";
 
 //create basic variant calls
@@ -59,7 +48,6 @@ $args[] = "--samtools=".get_path("samtools");
 $args[] = "--python=".get_path("python3");
 $args[] = "--pypy=".get_path("pypy3");
 $args[] = "--parallel=".get_path("parallel");
-// $args[] = "--longphase=".get_path("longphase");
 $args[] = "--whatshap=".get_path("whatshap");
 
 //calculate target region
