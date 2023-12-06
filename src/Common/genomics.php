@@ -2139,4 +2139,15 @@ function is_novaseq_x_run($run_parameters_xml)
 	//else
 	return false; //unknown Sequencer
 }
+
+//checks if the genome used to map the BAM/CRAM file had masked false duplications
+function genome_masked($bam)
+{
+	list($stdout) = exec2("samtools view {$bam} chr21:5966593-6161371 | wc -l", false);
+	
+	$read_count = trim(implode("", $stdout));
+	
+	return $read_count==0;
+}
+
 ?>
