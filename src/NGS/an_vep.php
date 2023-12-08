@@ -18,7 +18,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("somatic", "Also annotate the NGSD somatic counts.");
 $parser->addFlag("no_splice", "Skip splicing predictions of private variants (this can be very slow).");
 $parser->addFlag("test", "Use limited constant NGSD VCF file from test folder for annotation.");
-$parser->addInt("check_lines", "Number of VCF lines that will be validated in the output file. (If set to 0 all lines will be checked, if set to -1 the validation will be skipped.)", true, 1000);
+$parser->addInt("check_lines", "Number of VCF lines that will be validated in the output file. (If set to 0 all lines will be checked, if set to -1 the validation will be skipped.)", true, 10000);
 extract($parser->parse($argv));
 
 //get local/global data file path - depending on what is available
