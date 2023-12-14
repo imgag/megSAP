@@ -30,6 +30,9 @@ if ((is_null($in_fastq) && is_null($in_bam)) || (!is_null($in_fastq) && (count($
 if($sample == "") $sample = basename2($out);
 $basename = dirname($out)."/".$sample;
 $bam_current = $parser->tempFile(".bam", $sample);
+$qcml_reads = $basename."_stats_fastq.qcML";
+$qcml_map = $basename."_stats_map.qcML";
+
 
 //extract processing system information from DB
 $sys = load_system($system, $sample);
@@ -55,9 +58,9 @@ if(db_is_enabled("NGSD"))
 
 // alignment pipeline:
 // BAM input available:
-// samtools cat <input bams> | samtools fastq | minimap | zipperbams | samtools sort
+// samtools cat <input bams> | samtools fastq | minimap | samtools sort
 // FASTQ input:
-// zcat <input fastqs>                        | minimap              | samtools sort
+// zcat <input fastqs>                        | minimap | samtools sort
 
 $bam_input = !is_null($in_bam) && (count($in_bam) > 0);
 
@@ -70,6 +73,8 @@ $minimap_options = [
 	"-R '@RG\\t" . implode("\\t", $group_props) . "'",
 	genome_fasta($sys['build'])
 ];
+//include methylation
+if ($bam_input) $minimap_options[] = "-y";
 
 $pipeline = [];
 
@@ -77,30 +82,31 @@ $pipeline = [];
 $tmp_fastq = $parser->tempFile(".fastq.gz");
 if ($bam_input)
 {
+	//bam mode: convert bam with samtools fastq
+	$met_tag = "";
+	foreach ($in_bam as $file) 
+	{
+		//add methylation tag to output
+		if (contains_methylation($file))
+		{
+			$met_tag = " -TMM,ML ";
+			break;
+		} 
+	} 
 	$pipeline[] = [get_path("samtools"), "cat --no-PG -o - " . implode(" ", $in_bam)];
-	$pipeline[] = [get_path("samtools"), "fastq -o /dev/null"];
-	// $pipeline[] = ["tee", ">(gzip -1 -c > {$tmp_fastq})"];
+	$pipeline[] = [get_path("samtools"), "fastq -o /dev/null ".$met_tag];
+	//perform mapping from STDIN
+	$pipeline[] = [get_path("minimap2"), implode(" ", $minimap_options)." - "];
 }
-else
+else //fastq_mode
 {
-	$pipeline[] = ["zcat", implode(" ", $in_fastq)];
-}
-
-//mapping with minimap2
-$pipeline[] = [get_path("minimap2"), implode(" ", $minimap_options)];
-
-//add tags from unmapped modified bases BAM
-if ($bam_input)
-{
-	//TODO replace fgbio ZipperBams with a different tool
-	//TODO fgbio ZipperBams does not support multiple BAM files, use concatenated version
-	$pipeline[] = ["/mnt/storage2/users/ahadmaj1/.snakemake-conda/56f717cad63f6f01dc29688088922398_/bin/fgbio", "--compression 0 ZipperBams --unmapped {$in_bam[0]} --ref ".genome_fasta($sys['build'])];
+	//FastQ mapping
+	$pipeline[] = [get_path("minimap2"), implode(" ", $minimap_options)." ".implode(" ", $in_fastq)];
 }
 
 //sort BAM by coordinates
 $tmp_for_sorting = $parser->tempFile();
 $pipeline[] = [get_path("samtools"), "sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$bam_current} -", true];
-
 //execute 
 $parser->execPipeline($pipeline, "mapping");
 
@@ -125,16 +131,10 @@ if ($qc_map !== "")
 		"-out $qcml_map",
 		"-read_qc $qcml_reads",
 		"-ref ".genome_fasta($sys["build"]),
-		"-build ".ngsbits_build($sys["build"])
+		"-build ".ngsbits_build($sys["build"]),
+		"-wgs",
+		"-long_read"
 	];
-	if ($sys["target_file"]=="" || $sys["type"]=="lrGS")
-	{
-		$params[] = "-wgs";
-	}
-	else
-	{
-		$params[] = "-roi ".$sys["target_file"];
-	}
 	if ($sys['build']!="GRCh38")
 	{
 		$params[] = "-no_cont";
@@ -143,21 +143,4 @@ if ($qc_map !== "")
 	$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
 }
 
-//run read QC
-if ($qc_map !== "")
-{
-	$params_readqc = [
-		"-long_read",
-		"-out {$qc_map}"
-	];
-	if ($bam_input)
-	{
-		$params_readqc[] = "-in1 {$tmp_fastq}";
-	}
-	else
-	{
-		$params_readqc[] = "-in1 " . implode(" ", $in_fastq);
-	}
-	$parser->exec(get_path("ngs-bits")."ReadQC", implode(" ", $params_readqc), true);
-}
 ?>
