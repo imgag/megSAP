@@ -6,11 +6,13 @@ set -o verbose
 root=`pwd`
 folder=$root/tools/
 cpan_dir=$folder/perl_cpan/
-python3_path=$folder/Python-3.10.9/
 
 #Ignore this - used for local installation
 #folder=/mnt/storage2/megSAP/tools/
 #cpan_dir=/mnt/storage2/megSAP/tools/perl_cpan/
+
+
+python3_path=$folder/Python-3.10.9/
 
 #download and build ngs-bits
 cd $folder
@@ -58,15 +60,15 @@ cd ..
 
 #download and build samtools
 cd $folder
-wget https://github.com/samtools/samtools/releases/download/1.17/samtools-1.17.tar.bz2
-tar xjf samtools-1.17.tar.bz2
-rm samtools-1.17.tar.bz2
-cd samtools-1.17
+wget https://github.com/samtools/samtools/releases/download/1.19/samtools-1.19.tar.bz2
+tar xjf samtools-1.19.tar.bz2
+rm samtools-1.19.tar.bz2
+cd samtools-1.19
 make
 
 #download and build BWA
 cd $folder
-wget http://downloads.sourceforge.net/project/bio-bwa/bwa-0.7.17.tar.bz2
+wget https://sourceforge.net/projects/bio-bwa/files/bwa-0.7.17.tar.bz2
 tar xjf bwa-0.7.17.tar.bz2
 rm bwa-0.7.17.tar.bz2
 cd bwa-0.7.17
@@ -100,6 +102,16 @@ mkdir -p build && cd build
 cmake ..
 cmake --build .
 cmake --install .
+
+#download and build vcflib
+#cd $folder
+#git clone https://github.com/vcflib/vcflib.git vcflib-1.0.9
+#cd vcflib-1.0.9
+#git checkout v1.0.9 && git submodule update --recursive --init
+#mkdir -p build && cd build
+#cmake -DPYTHON_EXECUTABLE:FILEPATH=$python3_path/bin/python3 -DZIG=OFF ..
+#cmake --build .
+#cmake -DCMAKE_INSTALL_MANDIR=$folder/vcflib-1.0.9 --install . --prefix $folder/vcflib-1.0.9
 
 #download and build samblaster
 cd $folder
@@ -185,10 +197,18 @@ chmod 755 REViewer-v0.2.7
 
 #download bedtools
 cd $folder
-mkdir bedtools-2.30.0
-cd bedtools-2.30.0
-wget https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools.static.binary
-chmod 755 bedtools.static.binary
+mkdir bedtools-2.31.0
+cd bedtools-2.31.0
+wget https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtools.static
+chmod 755 bedtools.static
+
+#download illuminia ORA decompression tool
+cd $folder
+wget https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
+tar xzf orad.2.6.1.tar.gz
+rm orad.2.6.1.tar.gz
+
+################################### long-read tools ###################################
 
 #download minimap
 curl -L https://github.com/lh3/minimap2/releases/download/v2.26/minimap2-2.26_x64-linux.tar.bz2 | tar -jxvf -
@@ -253,9 +273,3 @@ wget https://github.com/twolinin/longphase/releases/download/v1.5/longphase_linu
 tar -xJf longphase_linux-x64.tar.xz
 rm longphase_linux-x64.tar.xz
 cd ..
-
-#download illuminia ORA decompression tool
-cd $folder
-wget https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
-tar xzf orad.2.6.1.tar.gz
-rm orad.2.6.1.tar.gz
