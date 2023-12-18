@@ -2141,6 +2141,15 @@ function is_novaseq_x_run($run_parameters_xml)
 	return false; //unknown Sequencer
 }
 
+//checks if the genome used to map the BAM/CRAM file had masked false duplications
+function genome_masked($bam)
+{
+	list($stdout) = exec2("samtools view {$bam} chr21:6110084-6124379 | wc -l", false);
+	
+	$read_count = trim(implode("", $stdout));
+	
+	return $read_count==0;
+}
 //check if BAM file contains methylation data (only check the first $n_rows)
 function contains_methylation($bam_file, $n_rows=100)
 {
@@ -2173,5 +2182,4 @@ function contains_methylation($bam_file, $n_rows=100)
 
 	//else: something is wrong
 	trigger_error("Ambiguous tag counts. Please check BAM file!\nMM:\t{$n_mm}/{$n_rows}\nML:\t{$n_ml}/{$n_rows}", E_USER_ERROR);
-}
-?>
+}?>

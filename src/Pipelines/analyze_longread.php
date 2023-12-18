@@ -80,6 +80,7 @@ if (!$no_sync)
 //output file names:
 //mapping
 $bam_file = $folder."/".$name.".bam";
+$unmapped_bam_file = $folder."/".$name.".mod.unmapped.bam";
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 //variant calling
 $vcf_file = $folder."/".$name."_var.vcf.gz";
@@ -137,8 +138,7 @@ if (in_array("ma", $steps))
 	];
 	if (count($unmapped_bam_files) > 0)
 	{
-		$mapping_minimap_options[] = "-in_bam " . implode(" ", $unmapped_bam_files);
-	}
+$mapping_minimap_options[] = "-in_bam " . implode(" ", $unmapped_bam_files);	}
 	elseif (count($bam_files) > 0)
 	{
 		$mapping_minimap_options[] = "-in_bam " . implode(" ", $bam_files);
@@ -425,7 +425,6 @@ if (in_array("an", $steps))
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnv_file}", true);
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnv_file}", true);
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", true);
-
 
 		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_3.bed"; //optional because of license
 		if (file_exists($hgmd_file))
