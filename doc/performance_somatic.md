@@ -11,7 +11,7 @@ Sensitivity and positive predictive value (PPV) were measured using our [somatic
 
 The WES samples were processed with a custom exome kit based on a Twist enrichment (Core, RefSeq, Mito and custom content) and sequenced on NovaSeq X Plus using 151PE.
 The normal samples had a depth of 110x while the mixed 'tumor' samples had a depth of 220x.
-The benchmarks were performed on GIAB high-confidence regions with at least 60x coverage.
+The benchmarks were performed on GIAB / PlatinumGenomes high-confidence regions with at least 60x coverage.
 
 #### Strelka2 calling
 
@@ -23,7 +23,7 @@ The benchmarks were performed on GIAB high-confidence regions with at least 60x 
 		<th rowspan=2>Test - BWA-MEM2 + Dragen calling</th>
 		<th colspan=2>SNVs</th>
 		<th colspan=2>InDels</th>
-    <th colspan=2>SNVs+InDels</th>
+    		<th colspan=2>SNVs+InDels</th>
 	</tr>
 	<tr>
 		<th>sensitivity</th>
@@ -39,7 +39,7 @@ The benchmarks were performed on GIAB high-confidence regions with at least 60x 
 		<td>98.61%</td>
 		<td>60.39%</td>
 		<td>95.44%</td>
-    <td>92.26%</td>
+    		<td>92.26%</td>
 		<td>98.51%</td>
 	</tr>
 	<tr>
@@ -48,7 +48,7 @@ The benchmarks were performed on GIAB high-confidence regions with at least 60x 
 		<td>99.66%</td>
 		<td>75.19%</td>
 		<td>98.24%</td>
-    <td>97.23%</td>
+    		<td>97.23%</td>
 		<td>99.61%</td>
 	</tr>
 	<tr>
@@ -57,7 +57,7 @@ The benchmarks were performed on GIAB high-confidence regions with at least 60x 
 		<td>99.99%</td>
 		<td>88.27%</td>
 		<td>99.78%</td>
-    <td>98.58%</td>
+    		<td>98.58%</td>
 		<td>99.98%</td>
 	</tr>
 </table>
@@ -67,7 +67,7 @@ The benchmarks were performed on GIAB high-confidence regions with at least 60x 
 		<th rowspan=2>Test - Dragen mapping + Dragen calling</th>
 		<th colspan=2>SNVs</th>
 		<th colspan=2>InDels</th>
-    <th colspan=2>SNVs+InDels</th>
+    		<th colspan=2>SNVs+InDels</th>
 	</tr>
 	<tr>
 		<th>sensitivity</th>
