@@ -14,8 +14,8 @@ genome=$root/genomes/GRCh38.fa
 cd $dbs
 mkdir -p Ensembl
 cd Ensembl
-wget https://ftp.ensembl.org/pub/release-109/gff3/homo_sapiens/Homo_sapiens.GRCh38.109.gff3.gz
-gunzip Homo_sapiens.GRCh38.109.gff3.gz
+wget https://ftp.ensembl.org/pub/release-110/gff3/homo_sapiens/Homo_sapiens.GRCh38.110.gff3.gz
+gunzip Homo_sapiens.GRCh38.110.gff3.gz
 
 #Install CancerHotspots.org
 cd $dbs

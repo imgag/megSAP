@@ -97,7 +97,7 @@ if (file_exists($warn_file))
 }
 
 //add consequence annotations
-$gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.109.gff3";
+$gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.110.gff3";
 $vcf_output_vac = $parser->tempFile("_bigwig.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfAnnotateConsequence", " -in {$vep_output} -out {$vcf_output_vac} -threads {$threads} -tag CSQ2 -gff {$gff}", true);
 
