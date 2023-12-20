@@ -14,8 +14,94 @@ The normal samples had a depth of 110x while the mixed 'tumor' samples had a dep
 The benchmarks were performed on GIAB / PlatinumGenomes high-confidence regions with at least 60x coverage.
 
 #### Strelka2 calling
+<table>
+	<tr>
+		<th rowspan=2>Test - BWA-MEM2 + Strelka2 calling</th>
+		<th colspan=2>SNVs</th>
+		<th colspan=2>InDels</th>
+    		<th colspan=2>SNVs+InDels</th>
+	</tr>
+	<tr>
+		<th>sensitivity</th>
+		<th>PPV</th>
+		<th>sensitivity</th>
+		<th>PPV</th>
+    <th>sensitivity</th>
+		<th>PPV</th>
+	</tr>
+	<tr>
+		<td>Variants >= 5% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
+		<td>90.37%</td>
+		<td>99.21%</td>
+		<td>45.58%</td>
+		<td>89.10%</td>
+    		<td>88.32%</td>
+		<td>98.95%</td>
+	</tr>
+	<tr>
+		<td>Variants >= 10% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
+		<td>96.82%</td>
+		<td>99.79%</td>
+		<td>69.42%</td>
+		<td>97.83%</td>
+    		<td>95.57%</td>
+		<td>99.73%</td>
+	</tr>
+	<tr>
+		<td>Variants >= 20% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
+		<td>98.55%</td>
+		<td>99.98%</td>
+		<td>77.12%</td>
+		<td>99.50%</td>
+    		<td>97.57%</td>
+		<td>99.96%</td>
+	</tr>
+</table>
 
-//TODO
+<table>
+	<tr>
+		<th rowspan=2>Test - Dragen mapping + Strelka2 calling</th>
+		<th colspan=2>SNVs</th>
+		<th colspan=2>InDels</th>
+    		<th colspan=2>SNVs+InDels</th>
+	</tr>
+	<tr>
+		<th>sensitivity</th>
+		<th>PPV</th>
+		<th>sensitivity</th>
+		<th>PPV</th>
+    <th>sensitivity</th>
+		<th>PPV</th>
+	</tr>
+	<tr>
+		<td>Variants >= 5% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
+		<td>90.12%</td>
+		<td>99.49%</td>
+		<td>45.77%</td>
+		<td>90.15%</td>
+    <td>88.09%</td>
+		<td>99.25%</td>
+	</tr>
+	<tr>
+		<td>Variants >= 10% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
+		<td>96.61%</td>
+		<td>99.84%</td>
+		<td>69.42%</td>
+		<td>97.57%</td>
+    <td>95.37%</td>
+		<td>99.76%</td>
+	</tr>
+	<tr>
+		<td>Variants >= 20% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
+		<td>98.34%</td>
+		<td>99.98%</td>
+		<td>76.92%</td>
+		<td>99.50%</td>
+    <td>97.36%</td>
+		<td>99.96%</td>
+	</tr>
+</table>
+
 
 #### Dragen calling
 <table>
@@ -104,4 +190,5 @@ The benchmarks were performed on GIAB / PlatinumGenomes high-confidence regions 
     <td>98.72%</td>
 		<td>99.96%</td>
 	</tr>
-</table>
+</table> 
+
