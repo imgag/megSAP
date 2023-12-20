@@ -192,3 +192,7 @@ The benchmarks were performed on GIAB / PlatinumGenomes high-confidence regions 
 	</tr>
 </table> 
 
+### Conclusion
+
+While the mapping has only a small influence on the sensitivity and precision. The dragen calling improves the sensitivity especially for variants with low allel frequency.
+The sensitivity for InDel variants with Dragen calling improves over Strelka2 by over 10% and for SNVs by ~2%.   
