@@ -1228,7 +1228,7 @@ while(!feof($handle))
 		$spliceai_info = trim($info["SpliceAI"]);
 		$spliceai_values = array();
 
-		$entries = explode(",", $spliceai_info);
+		$entries = explode(",", strtr($spliceai_info, "&", ",")); //both & and , are used as separator, depending on the sources of the SpliceAI annotation (pre-calcualted or calculated on the fly) 
 		foreach($entries as $entry)
 		{
 			$delta_scores = explode("|", $entry);

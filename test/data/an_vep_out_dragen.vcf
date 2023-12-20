@@ -135,7 +135,7 @@
 ##INFO=<ID=NGSD_CLAS,Number=1,Type=String,Description="Classification from the NGSD. (from file an_vep_NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_CLAS_COM,Number=1,Type=String,Description="Classification comment from the NGSD. (from file an_vep_NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_COM,Number=1,Type=String,Description="Variant comments from the NGSD. (from file an_vep_NGSD_germline.vcf.gz)">
-##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG), acceptor loss (AL), donor gain (DG), and donor loss (DL). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL (from file spliceai_scores.masked.snv.hg38.vcf.gz) (from file spliceai_scores_2023_10_24_GRCh38.vcf.gz)">
+##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG), acceptor loss (AL), donor gain (DG), and donor loss (DL). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL (from file spliceai_scores.masked.snv.hg38.vcf.gz) (from file spliceai_scores_2023_12_20_GRCh38.vcf.gz)">
 ##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="Annotation from RepeatMasker_GRCh38.bed delimited by '&'">
 ##INFO=<ID=OMIM,Number=.,Type=String,Description="Annotation from omim.bed delimited by '&'">
 ##FILTER=<ID=DRAGENHardQUAL,Description="Set if true:QUAL < 10.4139">
