@@ -203,7 +203,7 @@ if (in_array("ma", $steps))
 			$source_file = $cramfile;
 			if (check_genome_build($cramfile, "GRCh38", false)!=1) //if genome build is not GRCh38 the CRAM has to be from SolveRD > use 1000G reference genome with decoy sequences and without 'chr' 
 			{
-				$cram_genome = get_path("data_folder")."/genomes/GRCh37.nochr.fa.fai";
+				$cram_genome = get_path("data_folder")."/genomes/GRCh37.nochr.fa";
 				trigger_error("Reference genome of CRAM is not GRCh38. Using SolveRD hg19 reference genome to convert CRAM to FASTQ: {$cram_genome}!", E_USER_NOTICE);
 			}
 		}
