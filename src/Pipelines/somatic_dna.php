@@ -228,7 +228,6 @@ if (count($bams) > 1)
     	$args_similarity = [
     		"-in ".implode(" ", $bams),
 			"-mode bam",
-			"-max_snps 4000",
 			"-build ".ngsbits_build($sys['build'])
 		];
 		if (!empty($roi))
