@@ -18,7 +18,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("somatic", "Also annotate the NGSD somatic counts.");
 $parser->addFlag("no_splice", "Skip splicing predictions of private variants (this can be very slow).");
 $parser->addFlag("test", "Use limited constant NGSD VCF file from test folder for annotation.");
-$parser->addInt("check_lines", "Number of VCF lines that will be validated in the output file. (If set to 0 all lines will be checked, if set to -1 the validation will be skipped.)", true, 10000);
+$parser->addInt("check_lines", "Number of VCF lines that will be validated in the output file. (If set to 0 all lines will be checked, if set to -1 the validation will be skipped.)", true, 5000);
 extract($parser->parse($argv));
 
 //get local/global data file path - depending on what is available
@@ -97,7 +97,7 @@ if (file_exists($warn_file))
 }
 
 //add consequence annotations
-$gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.109.gff3";
+$gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.110.gff3";
 $vcf_output_vac = $parser->tempFile("_bigwig.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfAnnotateConsequence", " -in {$vep_output} -out {$vcf_output_vac} -threads {$threads} -tag CSQ2 -gff {$gff}", true);
 
@@ -141,7 +141,7 @@ fwrite($config_file, annotation_file_path("/dbs/REVEL/REVEL_1.3.vcf.gz")."\t\tRE
 fwrite($config_file, annotation_file_path("/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz")."\t\tALPHAMISSENSE\t\n");
 
 //precalculated SpliceAI scores
-$spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2023_10_24_GRCh38.vcf.gz");
+$spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2023_12_20_GRCh38.vcf.gz");
 if (file_exists($spliceai_file))
 {
 	fwrite($config_file, $spliceai_file."\t\tSpliceAI\t\n");

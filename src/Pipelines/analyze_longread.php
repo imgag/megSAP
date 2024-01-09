@@ -718,7 +718,7 @@ if (in_array("db", $steps))
 					trigger_error("GSvar file {$ps_gsvar} not found! Skipping sample similarity check", E_USER_WARNING);
 					continue;
 				}
-				$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$var_file} {$ps_gsvar} -mode gsvar -max_snps 4000 -build ".ngsbits_build($sys['build']), true);
+				$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$var_file} {$ps_gsvar} -mode gsvar -build ".ngsbits_build($sys['build']), true);
 				$correlation = explode("\t", $output[0][1])[3];
 				if ($correlation<$min_corr)
 				{

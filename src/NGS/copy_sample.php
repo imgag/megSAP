@@ -570,11 +570,11 @@ foreach($sample_data as $sample => $sample_infos)
 			$move_cmd = "mv ".($overwrite ? "-f " : "");
 			
 			//create folder
-			$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
+			$target_to_copylines[$tag][] = "\tmkdir -m 775 -p {$project_folder}Sample_{$sample}";
 			//ignore analysis of WGS samples for now since the WGS samples will be mapped by the DRAGEN server
 			if($sys_type != "WGS")
 			{
-				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
+				$target_to_copylines[$tag][] = "\tmkdir -m 775 -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
 				//move BAM
 				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_mapping_file} {$project_folder}Sample_{$sample}/";
 				if (file_exists($source_mapping_file.".bai"))
@@ -614,6 +614,9 @@ foreach($sample_data as $sample => $sample_infos)
 					}	
 				}
 			}
+
+			//set correct permissions for all created/copied files
+			$target_to_copylines[$tag][] = "\tchmod -R 775 {$project_folder}Sample_{$sample}";
 		}
 		else
 		{

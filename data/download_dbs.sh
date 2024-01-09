@@ -14,8 +14,8 @@ genome=$root/genomes/GRCh38.fa
 cd $dbs
 mkdir -p Ensembl
 cd Ensembl
-wget https://ftp.ensembl.org/pub/release-109/gff3/homo_sapiens/Homo_sapiens.GRCh38.109.gff3.gz
-gunzip Homo_sapiens.GRCh38.109.gff3.gz
+wget https://ftp.ensembl.org/pub/release-110/gff3/homo_sapiens/Homo_sapiens.GRCh38.110.gff3.gz
+gunzip Homo_sapiens.GRCh38.110.gff3.gz
 
 #Install CancerHotspots.org
 cd $dbs
@@ -146,8 +146,8 @@ tabix -p vcf AlphaMissense_hg38.vcf.gz
 cd $dbs
 mkdir SpliceAI
 cd SpliceAI
-wget https://download.imgag.de/public/splicing/spliceai_scores_2023_10_24_GRCh38.vcf.gz -O spliceai_scores_2023_10_24_GRCh38.vcf.gz
-tabix -C -m 9 -p vcf spliceai_scores_2023_10_24_GRCh38.vcf.gz
+wget https://download.imgag.de/public/splicing/spliceai_scores_2023_12_20_GRCh38.vcf.gz -O spliceai_scores_2023_12_20_GRCh38.vcf.gz
+tabix -C -m 9 -p vcf spliceai_scores_2023_12_20_GRCh38.vcf.gz
 
 #download sniffles 
 cd $dbs
