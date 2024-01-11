@@ -275,10 +275,10 @@ function load_hgnc_db()
 $hgnc = load_hgnc_db();
 
 //check for valid input parameters
-if ($longread && ($genotype_mode != "single"))
-{
-	trigger_error("Error: Long-read mode is only available for single samples!", E_USER_ERROR);
-}
+// if ($longread && ($genotype_mode != "single"))
+// {
+// 	trigger_error("Error: Long-read mode is only available for single samples!", E_USER_ERROR);
+// }
 
 //write column descriptions
 $column_desc = array(
@@ -372,6 +372,7 @@ $skip_ngsd_som = true; // true as long as no NGSD somatic header is found
 $skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC) header is found.
 $skip_cancerhotspots = true; //true as long as no CANCERHOTSPOTS header is found.
 $missing_domains = [];
+$multisample_vcf = false; //determines if the input VCF is a standard multi-sample VCF or single-sample VCF/megSAP multi-sample VCF (no extra columns for each sample)
 
 //write date (of input file)
 fwrite($handle_out, "##CREATION_DATE=".date("Y-m-d", filemtime($in))."\n");
@@ -476,7 +477,19 @@ while(!feof($handle))
 			else if ($genotype_mode=="multi")
 			{
 				$multi_cols[] = $name;
-				array_splice($column_desc, count($multi_cols)-1, 0, array(array($name, "genotype of sample $name")));
+				if ($longread)
+				{
+					// add 2 columns per sample (genotype + phasing info)
+					array_splice($column_desc, (2*count($multi_cols))-2, 0, array(array($name, "genotype of sample $name")));
+					array_splice($column_desc, (2*count($multi_cols))-1, 0, array(array($name."_phased", "phasing information of sample $name")));
+
+					// //TODO: remove
+					var_dump($column_desc);
+				}
+				else
+				{
+					array_splice($column_desc, count($multi_cols)-1, 0, array(array($name, "genotype of sample $name")));
+				}	
 			}
 		}
 		
@@ -560,6 +573,25 @@ while(!feof($handle))
 			$i_cancerhotspots_alt_count = index_of($cols, "ALT_COUNT", "CANCERHOTSPOTS");
 		}
 		
+		//check VCF header
+		if (starts_with($line, "#CHROM\t"))
+		{
+			if ($genotype_mode=="multi")
+			{
+				//determine multi-sample format according to VCF header
+				$cols = explode("\t", trim($line, " \n\r\0\x0B"));
+				$n_cols = count($cols);
+				$multisample_vcf = ($n_cols > 10);
+				if ($multisample_vcf && ($n_cols-9 != count($multi_cols))) 
+				{
+					trigger_error("VCF column count doesn't match sample count in header!", E_USER_ERROR);
+				}
+				//verify that VCF header entries match sample entries in the comment section
+				$vcf_sample_names =  array_slice($cols, 9);
+				if ($vcf_sample_names != $multi_cols) trigger_error("VCF header entries doesn't match sample entries in the comment section!", E_USER_ERROR);
+
+			}
+		}
 		continue;
 	}
 	//after last header line, write our header
@@ -568,11 +600,23 @@ while(!feof($handle))
 		write_header_line($handle_out, $column_desc, $filter_desc);
 		$in_header = false;
 	}
+
+	//TODO: remove
+	// trigger_error("Debug: stop here!", E_USER_ERROR);
 	
 	//write content lines
 	$cols = explode("\t", $line);
 	if (count($cols)<10) trigger_error("VCF file line contains less than 10 columns: '$line'", E_USER_ERROR);
-	list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = $cols;
+	if ($multisample_vcf)
+	{
+		//each sample has its own FORMAT column
+		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format) = $cols;
+		$sample_format_values = array_slice($cols, 9, count($multi_cols));
+	}
+	else
+	{
+		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = $cols;
+	}
 	$tag = "{$chr}:{$pos} {$ref}>{$alt}";
 	if ($filter=="" || $filter=="." || $filter=="PASS")
 	{
@@ -613,47 +657,84 @@ while(!feof($handle))
 		}
 	}
 	$info = $tmp;
-
-	$sample = array_combine(explode(":", $format), explode(":", $sample));
 	
 	//convert genotype information to TSV format
+	if(!$multisample_vcf) $sample = array_combine(explode(":", $format), explode(":", $sample));
 	if ($genotype_mode=="multi")
 	{
-		if (!isset($sample["MULTI"])) 
+		if($multisample_vcf)
 		{
-			trigger_error("VCF sample column does not contain MULTI value!", E_USER_ERROR);
+			$sample = array();
+			//extract format info and arrange format values based on key
+			foreach ($sample_format_values as $format_values) 
+			{
+				$tmp = array_combine(explode(":", $format), explode(":", $format_values));
+				foreach ($tmp as $key => $value) 
+				{
+					$sample[$key][] = $value;	
+				}
+			}
+			//determine human-readable genotype
+			$genotypes = array();
+			for ($i=0; $i < count($sample["GT"]); $i++) 
+			{ 
+				$gt = vcfgeno2human($sample["GT"][$i]);
+				if ($sample["DP"][$i]<3) $gt = "n/a";
+				$genotypes[] = $gt;
+				if ($longread)
+				{
+					$phasing_info = "";
+					if (strpos($sample["GT"][$i], "|") !== false) 
+					{
+						$phasing_info = $sample["GT"][$i]." (".$sample["PS"][$i].")";
+					}
+				}
+				$genotypes[] = $phasing_info;
+			}
+
+			//combine certain values
+			$genotype = "\t".implode("\t", $genotypes);
+			$sample["DP"] = implode(",", $sample["DP"]);
+			$sample["AF"] = implode(",", $sample["AF"]);
 		}
-		
-		//extract GT/DP/AO info
-		$tmp = array();
-		$tmp2 = array();
-		$tmp3 = array();
-		$parts = explode(",", $sample["MULTI"]);
-		foreach($parts as $part)
+		else
 		{
-			list($name, $gt, $dp, $ao) = explode("=", strtr($part, "|", "=")."=");
-			$tmp[$name] = $gt;
-			$tmp2[$name] = $dp;
-			$tmp3[$name] = $ao;
+			if (!isset($sample["MULTI"])) 
+			{
+				trigger_error("VCF sample column does not contain MULTI value!", E_USER_ERROR);
+			}
+			
+			//extract GT/DP/AO info
+			$tmp = array();
+			$tmp2 = array();
+			$tmp3 = array();
+			$parts = explode(",", $sample["MULTI"]);
+			foreach($parts as $part)
+			{
+				list($name, $gt, $dp, $ao) = explode("=", strtr($part, "|", "=")."=");
+				$tmp[$name] = $gt;
+				$tmp2[$name] = $dp;
+				$tmp3[$name] = $ao;
+			}
+			
+			//recombine GT/DP/AO in the correct order
+			$genotypes = array();
+			$depths = array();
+			$aos = array();
+			foreach($multi_cols as $col)
+			{
+				$gt = $tmp[$col];
+				$dp = $tmp2[$col];
+				$ao = $tmp3[$col];
+				if ($dp<3) $gt = "n/a";
+				$genotypes[] = $gt;
+				$depths[] = $dp;
+				$aos[] = $ao;
+			}
+			$genotype = "\t".implode("\t", $genotypes);
+			$sample["DP"] = implode(",", $depths);
+			$sample["AO"] = implode(",", $aos);
 		}
-		
-		//recombine GT/DP/AO in the correct order
-		$genotypes = array();
-		$depths = array();
-		$aos = array();
-		foreach($multi_cols as $col)
-		{
-			$gt = $tmp[$col];
-			$dp = $tmp2[$col];
-			$ao = $tmp3[$col];
-			if ($dp<3) $gt = "n/a";
-			$genotypes[] = $gt;
-			$depths[] = $dp;
-			$aos[] = $ao;
-		}
-		$genotype = "\t".implode("\t", $genotypes);
-		$sample["DP"] = implode(",", $depths);
-		$sample["AO"] = implode(",", $aos);
 	}
 	else if ($genotype_mode=="single")
 	{
@@ -1375,7 +1456,7 @@ while(!feof($handle))
 	++$c_written;
 	$genes = array_unique($genes);
 	fwrite($handle_out, "$chr\t$start\t$end\t$ref\t{$alt}{$genotype}");
-	if($longread)
+	if($longread && ($genotype_mode != "multi")) //for multi-sample the phasing info is added before
 	{
 		fwrite($handle_out,"\t".$phasing_info);
 	}

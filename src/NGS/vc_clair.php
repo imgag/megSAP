@@ -29,6 +29,7 @@ $genome = genome_fasta($build);
 //output files
 $clair_temp = "{$folder}/clair_temp";
 $out = "{$folder}/{$name}_var.vcf.gz";
+$out_gvcf = "{$folder}/{$name}_var.gvcf.gz";
 
 //create basic variant calls
 $args = array();
@@ -81,6 +82,7 @@ if(isset($target))
 putenv("PYTHONPATH=".dirname(get_path("clair3")));
 $parser->exec(get_path("clair3"), implode(" ", $args));
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
+$clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
 
 //post-processing 
 $pipeline = array();
@@ -136,5 +138,15 @@ else
 
 //index output file
 $parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
+
+
+//create/copy gvcf:
+$pipeline = array();
+$pipeline[] = array("zcat", $clair_gvcf);
+$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-remove_invalid");
+$pipeline[] = array("bgzip", "-c > {$out_gvcf}");
+$parser->execPipeline($pipeline, "gVCF post processing");
+
+$parser->exec("tabix", "-f -p vcf {$out_gvcf}", false); //no output logging, because Toolbase::extractVersion() does not return
 
 ?>

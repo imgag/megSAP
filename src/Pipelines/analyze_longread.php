@@ -122,20 +122,20 @@ if (in_array("ma", $steps))
 	if (file_exists($unmapped_bam))
 	{
 		trigger_error("Unmapped BAM ('{$unmapped_bam}') found. Using this as input for mapping.", E_USER_NOTICE);
-		$args[] = "-in_bam {$unmapped_bam}";
+		$args[] = "-in {$unmapped_bam}";
 
 	} 
 	//2nd priority: use FastQ files:
 	else if (count($fastq_files) > 0)
 	{
 		trigger_error("FastQ file(s) found. Using this as input for mapping:\n".implode("\n", $fastq_files), E_USER_NOTICE);
-		$args[] = "-in_fastq ".implode(" ", $fastq_files);
+		$args[] = "-in ".implode(" ", $fastq_files);
 	}
 	//3rd priority: remap BAM
 	else if (file_exists($bam_file))
 	{
 		trigger_error("Mapped BAM ('{$bam_file}') found. Using this as input for mapping.", E_USER_NOTICE);
-		$args[] = "-in_bam {$bam_file}";
+		$args[] = "-in {$bam_file}";
 	}
 	else
 	{
@@ -143,7 +143,7 @@ if (in_array("ma", $steps))
 	}
 
 	// run mapping
-	$parser->execTool("NGS/mapping_minimap.php", implode(" ", $args));
+	$parser->execTool("NGS/mapping_minimap_test.php", implode(" ", $args));
 
 
 	//TODO: remove FastQs/unmapped BAM after mapping
@@ -295,7 +295,7 @@ if (in_array("sv", $steps))
 
 
 //phasing
-if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
+if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps) || in_array("ma", $steps)))
 {
 	//check for methylation
 	$contains_methylation = contains_methylation($bam_file);
@@ -522,7 +522,6 @@ if (in_array("an", $steps))
 			$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_file -out $bedpe_file -cnv $cnv_file", true);
 		}
 
-		//TODO:
 		//write genotype in own column
 		$parser->exec("{$ngsbits}BedpeExtractGenotype", "-in $bedpe_file -out $bedpe_file -include_unphased", true);
 

@@ -39,7 +39,7 @@ curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
 ./bin/pip2 install pysam==0.20.0
 cd ..
 
-#download and build python3
+#download and build plain python3
 cd $folder
 mkdir -p $python3_path
 cd $python3_path
@@ -49,11 +49,15 @@ cd Python-3.10.9
 ./configure --prefix=$folder/Python-3.10.9
 make
 make install
-# install packages
-bin/python3.10 -m pip install -r $root/install_deps_python.txt --no-warn-script-location
-rm -R Python-3.10.9
-rm Python-3.10.9.tgz
+
+# create common python venv for megSAP
+cd $folder
+$folder/Python-3.10.9/bin/python3 -m venv Python-3.10.9_megSAP
+source $folder/Python-3.10.9_megSAP/bin/activate
+pip install -r $root/install_deps_python.txt --require-virtualenv
+deactivate
 cd ..
+
 
 #download and build samtools
 cd $folder
@@ -244,11 +248,21 @@ make install
 cd ..
 rm parallel-20230522.tar.bz2
 
+#TODO: remove when 1.5.2 is tested
 #download longphase
 cd $folder
 mkdir -p longphase_v1.5.1
 cd longphase_v1.5.1
 wget https://github.com/twolinin/longphase/releases/download/v1.5.1/longphase_linux-x64.tar.xz
+tar -xJf longphase_linux-x64.tar.xz
+rm longphase_linux-x64.tar.xz
+cd ..
+
+#download longphase
+cd $folder
+mkdir -p longphase_v1.5.2
+cd longphase_v1.5.2
+wget https://github.com/twolinin/longphase/releases/download/v1.5.2/longphase_linux-x64.tar.xz
 tar -xJf longphase_linux-x64.tar.xz
 rm longphase_linux-x64.tar.xz
 cd ..

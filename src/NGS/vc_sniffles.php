@@ -54,7 +54,7 @@ else
 
 	//create single sample snf files
 	$snfs = array();
-	foreach($bam as $single_bam)
+	foreach($bam as $single_sample_bam)
 	{
 		$tmp_snf = $parser->tempFile(".snf", "sniffles");
 		$args = array();
