@@ -383,6 +383,7 @@ if (in_array("vc", $steps))
 	
 	if ($use_dragen && ! $single_sample)
 	{
+		list($server) = exec2("hostname -f");
 		//DRAGEN OUTFILES
 		$dragen_output_vcf = "$dragen_output_folder/{$prefix}_dragen.vcf.gz";
 		$dragen_output_svs = "$dragen_output_folder/{$prefix}_dragen_svs.vcf.gz";
@@ -429,7 +430,6 @@ if (in_array("vc", $steps))
 		
 		// submit GridEngine job to dragen queue
 		$dragen_queues = explode(",", get_path("queues_dragen"));
-		list($server) = exec2("hostname -f");
 		$sge_args = array();
 		$sge_args[] = "-V";
 		$sge_args[] = "-b y"; // treat as binary
