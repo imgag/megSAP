@@ -221,7 +221,8 @@ if (in_array("ma", $steps))
 			"--log", $parser->getLogFile()
 		);
 
-		if ($skip_dedup) $args[] = "-skip_dedup";
+		//skip duplicate marking if requested, or for UMIs (will be handled later)
+		if ($skip_dedup || $umi) $args[] = "-skip_dedup";
 
 		$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
 

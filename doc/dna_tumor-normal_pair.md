@@ -28,6 +28,10 @@ Please have a look at the help:
 
 The tools used in this analysis can be found here: [Somatic tools](dna_somatic_tools.md).
 
+### Performance
+
+Performance benchmarks of the the megSAP pipeline can be found [here](performance_somatic.md).
+
 ## Output
 
 The main output files are listed below.

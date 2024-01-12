@@ -216,7 +216,7 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 
 
 //searches for sample in NGSD and returns processed sample meta data
-function sample_from_ngsd(&$db, $dna_number, $irp, $itp)
+function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 {
 	$output = array();
 	
@@ -253,7 +253,7 @@ function sample_from_ngsd(&$db, $dna_number, $irp, $itp)
 	foreach($res as $row)
 	{
 		$sample = $row['name'];
-		list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} -no_bad_samples -run_finished -add_path SAMPLE_FOLDER | {$ngsbits}TsvSlice -cols 'name,project_type,path'");
+		list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER | {$ngsbits}TsvSlice -cols 'name,project_type,path'");
 		foreach($stdout as $line)
 		{
 			$line = trim($line);
@@ -297,6 +297,7 @@ $parser->addInt("mep", "Maximum error probabilty of of genotype matches.", true,
 $parser->addFlag("pmm", "Prints mismatches to the command line.");
 $parser->addFlag("irp", "Include research projects.");
 $parser->addFlag("itp", "Include test projects.");
+$parser->addFlag("ibad", "Include bad processed samples.");
 $parser->addFlag("missing_only", "Only perform KASP<>NGS check for samples that don't have a entry in NGSD yet.");
 extract($parser->parse($argv));
 
@@ -386,7 +387,7 @@ foreach($file as $line)
 	}
 	 
 	//determine BAM file of sample
-	$res = sample_from_ngsd($db, $dna_number, $irp, $itp);
+	$res = sample_from_ngsd($db, $dna_number, $irp, $itp, $ibad);
 	if (count($res)==0)
 	{
 		print "error - Could not find sample '$dna_number' in NGSD!\n";

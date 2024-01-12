@@ -82,18 +82,18 @@ if(!preg_match("/^#[0-9]{5}$/", $run_id))
 //create verified tar archive (uncompressed because otherwise verification is not possible)
 print date("Y-m-d H:i:s")." creating tar file\n";
 $tmp_tar = $parser->tempFile(".tar");
-if ($include_raw_signal)
+
+//decide what to backup depending on run type
+$run_parameters_xml = $in."/RunParameters.xml";
+if(!file_exists($run_parameters_xml))
 {
-	$exclude_raw = "";
+	trigger_error("ERROR: Required RunParameters.xml file is missing in the run folder!", E_USER_WARNING);
+	$is_novaseq_x = false;
 }
 else
 {
-	$exclude_raw = "--exclude='*.fast5' --exclude='*.pod5'";
+	$is_novaseq_x = is_novaseq_x_run($run_parameters_xml);
 }
-//decide what to backup depending on run type
-$run_parameters_xml = $in."/RunParameters.xml";
-if(!file_exists($run_parameters_xml)) trigger_error("ERROR: Required RunParameters.xml file is missing in the run folder!", E_USER_ERROR);
-$is_novaseq_x = is_novaseq_x_run($run_parameters_xml);
 if($is_novaseq_x)
 {
 	trigger_error("NOTICE: NovaSeq X run detected!", E_USER_NOTICE);
@@ -101,12 +101,20 @@ if($is_novaseq_x)
 	if(count($analyses) == 0) trigger_error("ERROR: No analysis found! Please make sure the secondary analysis was performed successfully (at least the demultiplexing).", E_USER_ERROR);
 	if(count($analyses) > 1) trigger_error("ERROR: Multiple analysis folders found! Please remove all duplicated secondary analysis, but make sure all necessary fastq files are present in the remaining folder!", E_USER_ERROR);
 	//NovaSeq X run => backup fastq/ora files
-	$parser->exec("tar", "cfW {$tmp_tar} {$exclude_raw} --exclude='{$basename}/Data' --exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images'"
+	$parser->exec("tar", "cfW {$tmp_tar} --exclude='{$basename}/Data' --exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images'"
 	." --exclude='*.bam' --exclude='*.bam.bai' --exclude='*.cram' --exclude='*.cram.crai'  --exclude='*.vcf.gz'  --exclude='*.gvcf.gz' -C ".dirname($in)." {$basename}", true);
 }
 else
 {
 	trigger_error("NOTICE: Normal run detected!", E_USER_NOTICE);
+	if ($include_raw_signal)
+	{
+		$exclude_raw = "";
+	}
+	else
+	{
+		$exclude_raw = "--exclude='*.fast5' --exclude='*.pod5'";
+	}
 	//normal run => backup BCL files
 	$parser->exec("tar", "cfW {$tmp_tar} {$exclude_raw} --exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images' -C ".dirname($in)." {$basename}", true);
 }
