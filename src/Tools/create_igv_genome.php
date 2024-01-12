@@ -72,7 +72,7 @@ $refseq_track["indexURL"] = basename($url_list["Refseq Genes index"]);
 
 $data["tracks"] = array($ensembl_track, $refseq_track);
 
-file_put_contents($output_folder."/".$id.".json", json_encode($data));
+file_put_contents($output_folder."/".$id.".json", json_encode($data, JSON_PRETTY_PRINT));
 
 
 ?>
