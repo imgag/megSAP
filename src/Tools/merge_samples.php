@@ -11,10 +11,35 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("merge_samples", "Merges a processed sample into another processed sample.");
 $parser->addString("ps", "Processed sample to merged into the second sample.", false);
 $parser->addString("into", "Processed sample into which the first sample is merged.", false);
+$parser->addString("sys", "System of the two samples to be merged. If not given will be loaded from the NGSD.", true, "");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
+function getSampleGenome($sample, $sys)
+{
+	$sys = load_system($sys, $sample); //param filename = "" to load from the NGSD
+	$build = $sys['build'];
+	return genome_fasta($build);
+}
+
+function removeIndexFastqs(&$fastq_list)
+{
+	for ($i = count($fastq_list)-1; $i >= 0; $i--)
+	{
+		if (contains($fastq_list[$i], "_index_"))
+		{
+			unset($fastq_list[$i]);
+		}
+	}
+}
+
 //get processed sample infos
+$sample_path_db_addon = "";
+if ($db == "NGSD_TEST")
+{
+	$sample_path_db_addon = " -test";
+}
+
 $db = DB::getInstance($db);
 $info1 = get_processed_sample_info($db,$ps);
 $info2 = get_processed_sample_info($db,$into);
@@ -89,54 +114,71 @@ else if ($ps_type == "germline")
 
 //check if FASTQ files or BAM in target folder exist
 $target_fastq_files = glob($folder2."/*.fastq.gz");
-$target_bam_file = $folder2."/".$into.".bam";
+removeIndexFastqs($target_fastq_files);
+
+list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps {$into} -type BAM".$sample_path_db_addon);
+$target_bam_or_cram = trim(implode("", $stdout));
+
 if (count($target_fastq_files) > 0)
 {
 	//FASTQ files found -> nothing to do
 }
-elseif (file_exists($target_bam_file)) 
+elseif (file_exists($target_bam_or_cram)) 
 {
-	trigger_error("No FASTQ files found in Sample folder of '${into}'. Generating FASTQs from BAM.", E_USER_WARNING);
+	$genome = getSampleGenome($into, $sys);
+	
+	trigger_error("No FASTQ files found in Sample folder of '${into}'. Generating FASTQs from BAM/CRAM.", E_USER_WARNING);
 	// recreate FASTQ files from BAM
 	$in_fq_for = $folder2."/${into}_BamToFastq_R1_001.fastq.gz";
 	$in_fq_rev = $folder2."/${into}_BamToFastq_R2_001.fastq.gz";
 	$tmp1 = $parser->tempFile(".fastq.gz");
 	$tmp2 = $parser->tempFile(".fastq.gz");
-	$parser->exec("{$ngsbits}BamToFastq", "-in ${target_bam_file} -out1 $tmp1 -out2 $tmp2", true);
+	$parser->exec("{$ngsbits}BamToFastq", "-in ${target_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", true);
 	$parser->moveFile($tmp1, $in_fq_for);
 	$parser->moveFile($tmp2, $in_fq_rev);
 }
 else
 {
-	trigger_error("Could not find any sequencing data (neither FASTQ nor BAM) in Sample folder of '$into'! Abort merging.", E_USER_ERROR);
+	trigger_error("Could not find any sequencing data (neither FASTQ, BAM nor CRAM) in Sample folder of '$into': $target_bam_or_cram! Abort merging.", E_USER_ERROR);
 }
 
 //check if FASTQ files or BAM in source folder exist
 $source_fastq_files = glob($folder1."/*.fastq.gz");
-$source_bam_file = $folder1."/".$ps.".bam";
+//remove index 
+removeIndexFastqs($source_fastq_files);
+
+list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps {$ps} -type BAM".$sample_path_db_addon);
+$source_bam_or_cram = trim(implode("", $stdout));
 if (count($source_fastq_files) > 0)
 {
 	//FASTQ files found -> move them to the target folder
 	exec2("mv $folder1/*.fastq.gz $folder2/");
 }
-elseif (file_exists($source_bam_file)) 
+elseif (file_exists($source_bam_or_cram)) 
 {
-	trigger_error("No FASTQ files found in Sample folder of '${ps}'. Generating FASTQs from BAM.", E_USER_WARNING);
+	$genome = getSampleGenome($ps, $sys);
+	
+	trigger_error("No FASTQ files found in Sample folder of '${ps}'. Generating FASTQs from BAM/CRAM.", E_USER_WARNING);
 	// recreate FASTQ files from BAM
 	$in_fq_for = $folder2."/${ps}_BamToFastq_R1_001.fastq.gz";
 	$in_fq_rev = $folder2."/${ps}_BamToFastq_R2_001.fastq.gz";
 	$tmp1 = $parser->tempFile(".fastq.gz");
 	$tmp2 = $parser->tempFile(".fastq.gz");
-	$parser->exec("{$ngsbits}BamToFastq", "-in ${source_bam_file} -out1 $tmp1 -out2 $tmp2", true);
+	$parser->exec("{$ngsbits}BamToFastq", "-in ${source_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", true);
 	$parser->moveFile($tmp1, $in_fq_for);
 	$parser->moveFile($tmp2, $in_fq_rev);
+	
+	if (count(glob($folder1."/*.fastq.gz")) > 0)
+	{
+		exec2("mv $folder1/*.fastq.gz $folder2/"); // also move all other existing fastq files ( e.g. index files) to the new folder
+	}
 
 	//delete BAM
-	unlink($source_bam_file);	
+	unlink($source_bam_or_cram);	
 }
 else
 {
-	trigger_error("Could not find any sequencing data (neither FASTQ nor BAM) in Sample folder of '$ps'! Abort merging.", E_USER_ERROR);
+	trigger_error("Could not find any sequencing data (neither FASTQ, BAM nor CRAM) in Sample folder of '$ps': $target_bam_or_cram! Abort merging.", E_USER_ERROR);
 }
 
 // backup all other files in target folder

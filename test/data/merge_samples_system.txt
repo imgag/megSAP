@@ -1,0 +1,9 @@
+name_short = mergeSampleSys
+name_manufacturer = merge samples test system
+target_file = no_given_path_for_target
+adapter1_p5 = AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+adapter2_p7 = AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+type = WES
+shotgun = true
+umi_type = n/a
+build = GRCh38
