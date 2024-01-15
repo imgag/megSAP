@@ -10,13 +10,21 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //parse command line arguments
 $parser = new ToolBase("data_setup", "Creates a local copy of the reference genome and annotation data. They are heavily used during data analysis and should not be accessed via the network.");
 $parser->addString("build", "Genome build.", false);
+$parser->addFlag("check", "Check annotation files.");
 extract($parser->parse($argv));
-
 
 //init
 $data_folder = get_path("data_folder");
 $local_data = get_path("local_data");
 $rsync = "rsync --size-only --recursive --no-perms --no-acls --omit-dir-times --no-group --no-owner --chmod=ugo=rwX --copy-links";
+$ngsbits = get_path("ngs-bits");
+
+//determine DB files
+$db_files = array("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz", "/dbs/REVEL/REVEL_1.3.vcf.gz", "/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed", "/dbs/ClinVar/clinvar_20231121_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2023_12_20_GRCh38.vcf.gz");
+$omim =  "/dbs/OMIM/omim.bed";
+if (file_exists($data_folder.$omim)) $db_files[] = $omim; //optional
+$hgmd =  "/dbs/HGMD/HGMD_PRO_2023_3_fixed.vcf.gz";
+if (file_exists($data_folder.$hgmd)) $db_files[] = $hgmd; //optional
 
 ######################### reference genome #########################
 $genome_folder = "{$data_folder}/genomes/";
@@ -132,7 +140,7 @@ if ($build=="GRCh38")
 	
 	//remove outdated annotation data
 	$update = false;
-	$info = "/homo_sapiens/109_GRCh38/info.txt"; //ensembl-vep-109
+	$info = "/homo_sapiens/110_GRCh38/info.txt"; //ensembl-vep-110
 	if (file_exists("{$local_annotation_folder}/{$info}"))
 	{
 		exec("diff {$local_annotation_folder}/{$info} {$annotation_folder}/{$info}", $output, $code);
@@ -212,12 +220,6 @@ if ($build=="GRCh38")
 		print "rsync-ing annotation databases...\n";
 		
 		//determine databases to sync
-		$db_files = array("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz", "/dbs/REVEL/REVEL_1.3.vcf.gz", "/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed", "/dbs/ClinVar/clinvar_20230710_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2023_10_24_GRCh38.vcf.gz");
-		$omim =  "/dbs/OMIM/omim.bed";
-		if (file_exists($data_folder.$omim)) $db_files[] = $omim; //optional
-		$hgmd =  "/dbs/HGMD/HGMD_PRO_2023_2_fixed.vcf.gz";
-		if (file_exists($data_folder.$hgmd)) $db_files[] = $hgmd; //optional
-		
 		foreach($db_files as $db_file)
 		{
 			$source = $data_folder.$db_file;
@@ -255,6 +257,43 @@ if ($build=="GRCh38")
 					print "    {$line}\n";
 				}
 			}
+		}
+	}
+}
+
+
+######################### check DB files #########################
+if ($build=="GRCh38" && $check)
+{
+	print "\n";
+	print "### checking annotation databases ###\n";
+	
+	//determine databases to sync
+	foreach($db_files as $db_file)
+	{
+		$filename = realpath($data_folder.$db_file);
+		$basename = basename($filename);
+		if (ends_with($filename, ".vcf.gz"))
+		{
+			$log = "./".$basename."_check.txt";
+			print "Checking: $basename ($log)\n";
+			exec2($ngsbits."/VcfCheck -in $filename -lines 5000000 > $log 2>&1", false);
+			
+			$errors = 0;
+			$warnings = 0;
+			$h = fopen($log, 'r');
+			while(!feof($h))
+			{
+				$line = fgets($h);
+				if (starts_with($line, "ERROR:")) ++$errors;
+				if (starts_with($line, "WARNING:")) ++$warnings;
+			}
+			if ($errors>0) print "  Errors: $errors\n";
+			if ($warnings>0) print "  Warnings: $warnings\n";
+		}
+		else
+		{
+			print "Skipped: $basename\n";
 		}
 	}
 }

@@ -228,7 +228,6 @@ if (count($bams) > 1)
     	$args_similarity = [
     		"-in ".implode(" ", $bams),
 			"-mode bam",
-			"-max_snps 4000",
 			"-build ".ngsbits_build($sys['build'])
 		];
 		if (!empty($roi))
@@ -383,17 +382,34 @@ if (in_array("vc", $steps))
 	
 	if ($use_dragen && ! $single_sample)
 	{
+		list($server) = exec2("hostname -f");
 		//DRAGEN OUTFILES
 		$dragen_output_vcf = "$dragen_output_folder/{$prefix}_dragen.vcf.gz";
 		$dragen_output_svs = "$dragen_output_folder/{$prefix}_dragen_svs.vcf.gz";
 		$dragen_log_file = "$dragen_output_folder/{$prefix}_dragen.log";
 		$sge_logfile = date("YmdHis")."_".implode("_", $server)."_".getmypid();
-		$sge_update_interval = 120; //2min
+		$sge_update_interval = 300; //5min
 		
+		
+		$t_bam_dragen = $t_bam;
+		$n_bam_dragen = $n_bam;
+		if (contains($t_bam, "/tmp/"))
+		{
+			#running based on a local bam file -> copy it to be reachable form dragen:
+			$t_bam_dragen = $dragen_input_folder.basename($t_bam);
+			$parser->copyFile($t_bam, $t_bam_dragen);
+		}
+		
+		if (contains($n_bam, "/tmp/"))
+		{
+			#running based on a local bam file -> copy it to be reachable form dragen:
+			$n_bam_dragen = $dragen_input_folder.basename($n_bam);
+			$parser->copyFile($n_bam, $n_bam_dragen);
+		}
 		
 		// create cmd for vc_dragen_somatic.php
 		$args = array();
-		$args[] = "-t_bam ".$t_bam;
+		$args[] = "-t_bam ".$t_bam_dragen;
 		$args[] = "-out ".$dragen_output_vcf;
 		// $args[] = "-out_sv ".$dragen_output_svs;
 		$args[] = "-build GRCh38";
@@ -401,7 +417,7 @@ if (in_array("vc", $steps))
 		
 		if (! $single_sample)
 		{
-			$args[] = "-n_bam ".$n_bam;
+			$args[] = "-n_bam ".$n_bam_dragen;
 		}
 		
 		if ($sys['type'] != "WGS")
@@ -413,7 +429,6 @@ if (in_array("vc", $steps))
 		
 		// submit GridEngine job to dragen queue
 		$dragen_queues = explode(",", get_path("queues_dragen"));
-		list($server) = exec2("hostname -f");
 		$sge_args = array();
 		$sge_args[] = "-V";
 		$sge_args[] = "-b y"; // treat as binary
@@ -527,6 +542,18 @@ if (in_array("vc", $steps))
 			{
 				$parser->exec(get_path("ngs-bits") . "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", true );
 			}
+		}
+		
+		#remove copied files if exist:
+		if (contains($t_bam_dragen, $dragen_input_folder))
+		{
+			#if file was copied into the dragen input folder delete it now.
+			unlink($t_bam_dragen);
+		}
+		if (contains($n_bam_dragen, $dragen_input_folder))
+		{
+			#if file was copied into the dragen input folder delete it now.
+			unlink($n_bam_dragen);
 		}
 		
 	}
@@ -772,9 +799,9 @@ if(in_array("cn",$steps))
 		$data_folder = get_path("data_folder");
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-11.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_2.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_3.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);

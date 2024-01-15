@@ -127,6 +127,9 @@ foreach($steps as $step)
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 }
 
+//init
+$ngsbits = get_path("ngs-bits");
+
 //file names
 $gsvar = "{$out_folder}/{$prefix}.GSvar";
 $vcf_file = "{$out_folder}/{$prefix}_var.vcf.gz";
@@ -349,8 +352,8 @@ if (in_array("an", $steps))
 				}
 				
 				//perform annotation
-				$parser->exec("{$ngsbits}BedpeAnnotateCounts", "-in $bedpe_file -out $bedpe_file -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", true);
-				$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_file} -out {$bedpe_file} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
+				$parser->exec("{$ngsbits}BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", true);
+				$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
 	
 				// check if files changed during annotation
 				foreach ($ngsd_sv_files as $filename)
@@ -371,20 +374,21 @@ if (in_array("an", $steps))
 			$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; 
 			if(file_exists($omim_file))//OMIM annotation (optional because of license)
 			{
-				$parser->exec("{$ngsbits}BedpeAnnotateFromBed", "-in $bedpe_file -out $bedpe_file -bed $omim_file -url_decode -replace_underscore -col_name OMIM", true);
+				$parser->exec("{$ngsbits}BedpeAnnotateFromBed", "-in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM", true);
 			}
 	
 			//add CNV overlap annotation
 			if (file_exists($cnv_file))
 			{
-				$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_file -out $bedpe_file -cnv $cnv_file", true);
+				$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnv_file", true);
 			}
 
+			//TODO: adapt for multisample?
 			//write genotype in own column
-			$parser->exec("{$ngsbits}BedpeExtractGenotype", "-in $bedpe_file -out $bedpe_file -include_unphased", true);
+			// $parser->exec("{$ngsbits}BedpeExtractGenotype", "-in $bedpe_out -out $bedpe_out -include_unphased", true);
 
 			//extract columns
-			$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_file -out $bedpe_file -info_fields SUPPORT,COVERAGE,AF", true);
+			$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_out -out $bedpe_out -info_fields SUPPORT,COVERAGE,AF", true);
 		}
 
 }

@@ -564,3 +564,52 @@ For WES, the benchmark was not performed as there are only 60 InDels contained i
 		<td>98.87%</td>
 	</tr>
 </table>
+
+## Structural variant comparison
+
+source sample: `HG002` (pre-release truth set)
+caller: `Manta` (short-read), `Sniffles 2` (long-read)
+validation tool: `hap_eval`
+
+<table>
+<thead>
+<tr>
+<th>Sample</th>
+<th>processing system</th>
+<th>coverage</th>
+<th>sensitivity</th>
+<th>PPV</th>
+<th>precision</th>
+<th>F1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>long-read WGS (R10)</td>
+<td>SQK-LSK114</td>
+<td>51x</td>
+<td>91.81%</td>
+<td>96.27%</td>
+<td>92.24%</td>
+<td>92.03%</td>
+</tr>
+<tr>
+<td>long-read WGS (R9)</td>
+<td>SQK-LSK109</td>
+<td>21x</td>
+<td>89.84%</td>
+<td>96.32%</td>
+<td>90.93%</td>
+<td>90.38%</td>
+</tr>
+<tr>
+<td>short-read WGS</td>
+<td>TruSeqPCRfree</td>
+<td>43x</td>
+<td>32.84%</td>
+<td>96.96%</td>
+<td>84.40%</td>
+<td>47.28%</td>
+</tr>
+</tbody>
+</table>

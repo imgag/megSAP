@@ -203,7 +203,7 @@ if (in_array("ma", $steps))
 			$source_file = $cramfile;
 			if (check_genome_build($cramfile, "GRCh38", false)!=1) //if genome build is not GRCh38 the CRAM has to be from SolveRD > use 1000G reference genome with decoy sequences and without 'chr' 
 			{
-				$cram_genome = get_path("data_folder")."/genomes/GRCh37.nochr.fa.fai";
+				$cram_genome = get_path("data_folder")."/genomes/GRCh37.nochr.fa";
 				trigger_error("Reference genome of CRAM is not GRCh38. Using SolveRD hg19 reference genome to convert CRAM to FASTQ: {$cram_genome}!", E_USER_NOTICE);
 			}
 		}
@@ -749,7 +749,7 @@ if (in_array("cn", $steps))
 			if (!file_exists($bed))
 			{
 				$pipeline = [
-						["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -ref ".$genome],
+						["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -clear -ref ".$genome],
 						["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
 					];
 				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
@@ -840,10 +840,10 @@ if (in_array("cn", $steps))
 		}
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", true);
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnvfile}", true);
-		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
+		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-11.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
 
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_2.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_3.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnvfile} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnvfile}", true);
@@ -881,7 +881,7 @@ if (in_array("sv", $steps))
 			
 			//combine BND of INVs to one INV in VCF
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
-			$parser->exec("python ".get_path('manta')."/../libexec/convertInversion.py", get_path("samtools")." {$genome} {$dragen_output_vcf} > {$vcf_inv_corrected}");
+			$parser->exec(get_path("python27")." ".get_path('manta')."/../libexec/convertInversion.py", get_path("samtools")." {$genome} {$dragen_output_vcf} > {$vcf_inv_corrected}");
 
 			//remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
 			$vcf_fixed = $parser->tempFile("_sv_fixed.vcf");

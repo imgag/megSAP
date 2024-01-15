@@ -56,30 +56,38 @@ while(!feof($in))
 	if ($line=="" || $line[0]=="#") continue;
 	
 	$parts = explode("\t", $line);
+	list($chr, $pos, $acc, $ref, $alt) = $parts;
+	$chr = "chr".$chr;
 	
 	//skip special chromosomes
-	if (chr_check($parts[0], 22, false)===FALSE)
+	if (chr_check($chr, 22, false)===FALSE)
 	{
 		if ($debug) print "SKIPPED CHR: $line\n";
 		continue;
 	}
 	
-	//skip MUT=REF variants
-	if ($parts[4]==".")
+	//skip ALT=REF variants
+	if ($alt==".")
 	{
 		if ($debug) print "SKIPPED MUT=REF: $line\n";
 		continue;
 	}
 	
 	//skip invalid alternative alleles
-	if (!preg_match("/^[NACGT]+$/", $parts[4]))
+	if (!preg_match("/^[NACGT]+$/", $alt))
 	{
 		if ($debug) print "SKIPPED invalid alternative allele: $line\n";
 		continue;
 	}
 	
-	//extract accession
-	$acc = $parts[2];
+	//prepend padding base for complex variants
+	if ((strlen($ref)>1 || strlen($alt)>1) && strlen($ref)!=strlen($alt) && $ref[0]!=$alt[0])
+	{
+		$pos -= 1;
+		$base = get_ref_seq("GRCh38", $chr, $pos, $pos);
+		$ref = $base.$ref;
+		$alt = $base.$alt;
+	}
 	
 	//extract clinical significance and disease name (both for single variant and variant combinations, e.g. comp-het)
 	$infos = explode(";", $parts[7]);
@@ -175,14 +183,10 @@ while(!feof($in))
 	}
 
 	//output
-	$parts[0] = "chr".$parts[0];
-	$parts[5] = ".";
-	$parts[6] = ".";		
 	for($i=0; $i<count($sigs); ++$i)
 	{
-		$parts[2] = $accs[$i];	
-		$parts[7] = "DETAILS=".vcf_encode_url_string(strtolower($sigs[$i]).($i==0 ? $replace_msg : "")." DISEASE=".iconv("utf-8", "ascii//TRANSLIT", $diss[$i]));		
-		print implode("\t", $parts)."\n";
+		$info = "DETAILS=".vcf_encode_url_string(strtolower($sigs[$i]).($i==0 ? $replace_msg : "")." DISEASE=".iconv("utf-8", "ascii//TRANSLIT", $diss[$i]));		
+		print implode("\t", [$chr, $pos, $accs[$i], $ref, $alt, ".", ".", $info])."\n";
 	}
 }
 

@@ -6,17 +6,18 @@ set -o verbose
 root=`pwd`
 folder=$root/tools/
 cpan_dir=$folder/perl_cpan/
-python3_path=$folder/Python-3.10.9/
 
 #Ignore this - used for local installation
 #folder=/mnt/storage2/megSAP/tools/
 #cpan_dir=/mnt/storage2/megSAP/tools/perl_cpan/
 
+python3_path=$folder/Python-3.10.9/
+
 #download and build ngs-bits
 cd $folder
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2023_09 && git submodule update --recursive --init
+git checkout 2023_11 && git submodule update --recursive --init
 make build_3rdparty
 make build_tools_release
 
@@ -61,15 +62,15 @@ cd ..
 
 #download and build samtools
 cd $folder
-wget https://github.com/samtools/samtools/releases/download/1.17/samtools-1.17.tar.bz2
-tar xjf samtools-1.17.tar.bz2
-rm samtools-1.17.tar.bz2
-cd samtools-1.17
+wget https://github.com/samtools/samtools/releases/download/1.19/samtools-1.19.tar.bz2
+tar xjf samtools-1.19.tar.bz2
+rm samtools-1.19.tar.bz2
+cd samtools-1.19
 make
 
 #download and build BWA
 cd $folder
-wget http://downloads.sourceforge.net/project/bio-bwa/bwa-0.7.17.tar.bz2
+wget https://sourceforge.net/projects/bio-bwa/files/bwa-0.7.17.tar.bz2
 tar xjf bwa-0.7.17.tar.bz2
 rm bwa-0.7.17.tar.bz2
 cd bwa-0.7.17
@@ -103,6 +104,16 @@ mkdir -p build && cd build
 cmake ..
 cmake --build .
 cmake --install .
+
+#download and build vcflib
+#cd $folder
+#git clone https://github.com/vcflib/vcflib.git vcflib-1.0.9
+#cd vcflib-1.0.9
+#git checkout v1.0.9 && git submodule update --recursive --init
+#mkdir -p build && cd build
+#cmake -DPYTHON_EXECUTABLE:FILEPATH=$python3_path/bin/python3 -DZIG=OFF ..
+#cmake --build .
+#cmake -DCMAKE_INSTALL_MANDIR=$folder/vcflib-1.0.9 --install . --prefix $folder/vcflib-1.0.9
 
 #download and build samblaster
 cd $folder
@@ -188,75 +199,11 @@ chmod 755 REViewer-v0.2.7
 
 #download bedtools
 cd $folder
-mkdir bedtools-2.30.0
-cd bedtools-2.30.0
-wget https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools.static.binary
-chmod 755 bedtools.static.binary
+mkdir bedtools-2.31.0
+cd bedtools-2.31.0
+wget https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtools.static
+chmod 755 bedtools.static
 
-#download minimap
-curl -L https://github.com/lh3/minimap2/releases/download/v2.26/minimap2-2.26_x64-linux.tar.bz2 | tar -jxvf -
-
-#download clair3
-cd $folder
-git clone https://github.com/HKU-BAL/Clair3.git Clair3-v1.0.2
-cd Clair3-v1.0.2
-git checkout "v1.0.2"
-#download models
-git clone https://github.com/nanoporetech/rerio.git
-$python3_path/bin/python3 rerio/download_model.py --clair3
-mkdir -p models
-mv rerio/clair3_models/* models
-rm -rf rerio
-cd models 
-wget http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_sup_g5014.tar.gz
-tar xzf r941_prom_sup_g5014.tar.gz
-rm r941_prom_sup_g5014.tar.gz
-cd ..
-#create temporary miniconda/clair env to build clair
-wget https://repo.anaconda.com/miniconda/Miniconda3-py310_23.3.1-0-Linux-x86_64.sh -O miniconda.sh
-bash miniconda.sh -b -p miniconda
-source miniconda/bin/activate
-conda config --add channels defaults
-conda config --add channels bioconda
-conda config --add channels conda-forge
-conda create -p anaconda_clair3 -c bioconda clair3 python=3.9.0 -y
-conda activate ./anaconda_clair3
-#build clair3
-make all
-#cleanup
-conda deactivate
-conda deactivate
-rm -rf anaconda_clair3/
-rm miniconda.sh
-rm -rf miniconda/
-cd ..
-
-#download pypy3
-cd $folder
-wget https://downloads.python.org/pypy/pypy3.9-v7.3.11-linux64.tar.bz2
-tar xfvj pypy3.9-v7.3.11-linux64.tar.bz2
-rm pypy3.9-v7.3.11-linux64.tar.bz2
-
-#download parallel
-cd $folder
-wget https://ftpmirror.gnu.org/parallel/parallel-20230522.tar.bz2
-tar xfvj parallel-20230522.tar.bz2
-cd parallel-20230522
-./configure --prefix=$folder/parallel-20230522
-make
-make install
-cd ..
-rm parallel-20230522.tar.bz2
-
-#TODO: remove when 1.5.2 is tested
-#download longphase
-cd $folder
-mkdir -p longphase_v1.5.1
-cd longphase_v1.5.1
-wget https://github.com/twolinin/longphase/releases/download/v1.5.1/longphase_linux-x64.tar.xz
-tar -xJf longphase_linux-x64.tar.xz
-rm longphase_linux-x64.tar.xz
-cd ..
 
 #download longphase
 cd $folder

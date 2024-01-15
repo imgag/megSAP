@@ -128,8 +128,8 @@ function write($h_out, $var, $mosaic_mode=false, $longread_mode=false)
 		$info_output = array();
 		if(isset($info["F"])) $info_output[] = "F";
 		if(isset($info["P"])) $info_output[] = "P";
-		if(count($info_output) == 0) $info_output[] = ".";
-		fwrite($h_out, implode(";", $info_output)."\t");
+		// write '.' if INFO column is empty
+		if(count($info_output) == 0) $info_output[] = ".";		fwrite($h_out, implode(";", $info_output)."\t");
 	}
 	else
 	{

@@ -1,5 +1,6 @@
 ##fileformat=VCFv4.2
-##INFO=<ID=ALPHAMISSENSE,Number=1,Type=Float,Description="AlphaMissense score from AlphaMissense_hg38.tsv.gz">
+##INFO=<ID=ALPHAMISSENSE,Number=.,Type=String,Description="AlphaMissense score from AlphaMissense_hg38.tsv.gz">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 <?php 
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

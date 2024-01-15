@@ -19,6 +19,7 @@ $parser->addInfile("model", "Model file used for calling.", false);
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
+
 extract($parser->parse($argv));
 
 //TODO: check output folder
@@ -49,7 +50,6 @@ $args[] = "--samtools=".get_path("samtools");
 $args[] = "--python=".get_path("python3");
 $args[] = "--pypy=".get_path("pypy3");
 $args[] = "--parallel=".get_path("parallel");
-// $args[] = "--longphase=".get_path("longphase");
 $args[] = "--whatshap=".get_path("whatshap");
 
 //calculate target region
