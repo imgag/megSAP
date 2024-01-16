@@ -36,7 +36,6 @@ foreach($status as $stat)
 
 //split VCF for each chromosome and run in parallel
 $temp_folder = $parser->tempFolder("merge_gvcf_pid_".getmypid()."_");
-mkdir($temp_folder);
 
 //get chr regions
 $chr_regions = array();
@@ -81,7 +80,6 @@ $parser->execParallel($jobs_index_gvcf, $threads);
 $jobs_combine_gvcf = array();
 //temp folder for output
 $temp_folder_out = $parser->tempFolder("merge_gvcf_pid_".getmypid()."_out_");
-mkdir($temp_folder_out);
 
 foreach($chr_regions as list($chr, $length))
 {
@@ -159,7 +157,7 @@ $parser->exec("tabix", "-f -p vcf {$tmp_vcf}", false); //no output logging, beca
 //post-processing 
 $pipeline = array();
 //stream vcf.gz
-$pipeline[] = array("zcat", "{$out}_tmp.vcf.gz");
+$pipeline[] = array("zcat", $tmp_vcf);
 
 //filter variants according to variant quality>5
 $pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5");

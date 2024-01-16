@@ -90,7 +90,7 @@ $parser->exec("tabix", "-f -p vcf $annfile_zipped", false); //no output logging,
 if (!$somatic) //germline only
 {
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
-	if (!$multi) $parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $stafile".(($sys['type']=="lrGS")?" -long_read":""), true);
+	if (!$multi) $parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $statfile".(($sys['type']=="lrGS")?" -long_read":""), true);
 	
 	$args = [];
 	$args[] = "-in ".$annfile;

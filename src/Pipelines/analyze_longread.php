@@ -295,9 +295,8 @@ if (in_array("sv", $steps))
 				
 }
 
-
 //phasing
-if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps) || in_array("ma", $steps)))
+if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 {
 	//check for methylation
 	$contains_methylation = contains_methylation($bam_file);
