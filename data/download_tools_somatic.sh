@@ -49,5 +49,5 @@ git clone https://github.com/imgag/scarHRD.git
 $folder/R-4.1.0/bin/R -f $root/install_deps_scarhrd.R
 
 #install genome for SigProfilerExtractor
-chmod -R 777 $folder/Python-3.10.9/lib/python3.10/site-packages/sigProfiler*
-$folder/Python-3.10.9/bin/python3 $root/../src/NGS/extract_signatures.py --installGenome --reference GRCh38 --in . --outFolder .
+chmod -R 777 $folder/Python-3.10.9_megSAP/lib/python3.10/site-packages/SigProfiler*
+$folder/Python-3.10.9_megSAP/bin/python3 $root/../src/NGS/extract_signatures.py --installGenome --reference GRCh38 --in . --outFolder .

@@ -1228,15 +1228,23 @@ while(!feof($handle))
 		$spliceai_info = trim($info["SpliceAI"]);
 		$spliceai_values = array();
 
-		$entries = explode(",", strtr($spliceai_info, "&", ",")); //both & and , are used as separator, depending on the sources of the SpliceAI annotation (pre-calcualted or calculated on the fly) 
+		$entries = explode(",", strtr($spliceai_info, "&", ",")); //both & and , are used as separator, depending on the sources of the SpliceAI annotation (pre-calcualted or calculated on the fly)
 		foreach($entries as $entry)
 		{
 			$delta_scores = explode("|", $entry);
 			if(count($delta_scores) == 10)
 			{
-				$tmp_score = max(floatval($delta_scores[2]), floatval($delta_scores[3]), floatval($delta_scores[4]), floatval($delta_scores[5]));
-				if(is_null($splice_number)) $splice_number = $tmp_score;
-				$splice_number = max($splice_number, $tmp_score);
+				//if SpliceAI cannot predict a variant, it writes a dot into each field, e.g.  'CTTT|PALB2|.|.|.|.|.|.|.|.' for chr16:23630468 CCCTAAAGAAGAAAA>CTTT. We have to handle that, otherwise 0 is written, which is not correct.
+				$tmp_scores = [];
+				if ($delta_scores[2]!=".") $tmp_scores[] = floatval($delta_scores[2]);
+				if ($delta_scores[3]!=".") $tmp_scores[] = floatval($delta_scores[3]);
+				if ($delta_scores[4]!=".") $tmp_scores[] = floatval($delta_scores[4]);
+				if ($delta_scores[5]!=".") $tmp_scores[] = floatval($delta_scores[5]);
+				if (count($tmp_scores)>0)
+				{
+					if(is_null($splice_number)) $splice_number = 0.0;
+					$splice_number = max($splice_number, max($tmp_scores));
+				}
 			}
 			else
 			{
@@ -1248,7 +1256,6 @@ while(!feof($handle))
 		{
 			$spliceai = $splice_number;
 		}
-
 	}
 
 	// CADD
