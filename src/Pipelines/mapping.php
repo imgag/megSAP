@@ -290,6 +290,8 @@ if ($use_dragen)
 	$dragen_output_vcf = "$dragen_output_folder/{$out_name}_dragen.vcf.gz";
 	$dragen_output_gvcf = "$dragen_output_folder/{$out_name}_dragen.gvcf.gz";
 	$dragen_output_sv = "$dragen_output_folder/{$out_name}_dragen_svs.vcf.gz";
+	$dragen_output_cnv = "$dragen_output_folder/{$out_name}_dragen_cnvs.vcf.gz";
+	$dragen_output_cnv_raw = "$dragen_output_folder/{$out_name}_dragen_cnvs.bw";
 	$dragen_log_file = "$dragen_output_folder/{$out_name}_dragen.log";
 	$sge_update_interval = 300; //5min
 	// create cmd for mapping_dragen.php
@@ -300,10 +302,13 @@ if ($use_dragen)
 	$args[] = "-out_vcf ".$dragen_output_vcf;
 	$args[] = "-out_gvcf ".$dragen_output_gvcf;
 	$args[] = "-out_sv ".$dragen_output_sv;
+	$args[] = "-out_cnv ".$dragen_output_cnv;
+	$args[] = "-out_cnv_raw ".$dragen_output_cnv_raw;
 	$args[] = "-sample ".$out_name;
 	$args[] = "-build ".$build;
 	$args[] = "--log ".$dragen_log_file;
 	if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
+	if ($sys['type']=="WGS") $args[] = "-enable_cnv";
 	$cmd_mapping = "php ".realpath(repository_basedir())."/src/NGS/mapping_dragen.php ".implode(" ", $args);
 	// submit GridEngine job to dragen queue
 	$dragen_queues = explode(",", get_path("queues_dragen"));
