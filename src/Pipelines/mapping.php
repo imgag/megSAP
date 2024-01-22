@@ -410,6 +410,11 @@ if ($use_dragen)
 		$parser->moveFile($dragen_output_sv, $dragen_call_folder.basename($dragen_output_sv));
 		$parser->moveFile($dragen_output_sv.".tbi", $dragen_call_folder.basename($dragen_output_sv).".tbi");
 	}
+	if ($sys['type']=="WGS")
+	{
+		$parser->moveFile($dragen_output_cnv, $dragen_call_folder.basename($dragen_output_cnv));
+		$parser->moveFile($dragen_output_cnv_raw.".tbi", $dragen_call_folder.basename($dragen_output_cnv_raw));
+	}
 }
 else //local mapping with bwa
 {
