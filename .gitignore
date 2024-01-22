@@ -156,4 +156,7 @@
 /test/data_longread/clair_temp/
 /test/data_longread/*_circos.png
 /test/data_longread/merge_output.vcf
+/test/data_longread/*_prs.tsv
+/test/data_longread/*_repeats.tsv
+/test/data_longread/*_repeats.bed
 
