@@ -190,12 +190,9 @@ if (in_array("vc", $steps))
 	$parser->execTool("NGS/vc_clair.php", implode(" ", $args));	
 }
 
-//TODO: validate settings
 //copy-number analysis
 if (in_array("cn", $steps))
 {
-	trigger_error("WARNING: Copy-number calling is still in development!", E_USER_WARNING);
-
 	//create reference folder if it does not exist
 	$ref_folder = get_path("data_folder")."/coverage/".$sys['name_short']."/";
 	if (!is_dir($ref_folder))
@@ -534,7 +531,9 @@ if (in_array("an", $steps))
 
 	//Repeat-expansion calling using straglr
 	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
-	$parser->execTool("NGS/vc_straglr.php", "-in {$bam_file} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
+	
+	//TODO: fix python import error
+	//$parser->execTool("NGS/vc_straglr.php", "-in {$bam_file} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
 }
 
 // collect other QC terms - if CNV or SV calling was done

@@ -16,10 +16,13 @@ $parser->addOutfile("out", "Output BAM file (indexed).", false);
 $parser->addOutfile("out_vcf", "Output VCF.GZ file for small variants (indexed).", false);
 $parser->addOutfile("out_gvcf", "Output gVCF.GZ file for small variants (indexed).", false);
 $parser->addOutfile("out_sv", "Output VCF.GZ file for structural variants (indexed).", false);
+$parser->addOutfile("out_cnv", "Output VCF.GZ file for copy-number variants (indexed).", false);
+$parser->addOutfile("out_cnv_raw", "Output BW file for copy-nubmer raw data.", false);
 //optional
 $parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh38");
 $parser->addString("sample", "Sample name to use in BAM header. If unset the basename of the 'out' file is used.", true, "");
 $parser->addFlag("dedup", "Mark duplicates after alignment.");
+$parser->addFlag("enable_cnv", "Enable CNV calling with self-normalization (WGS only).");
 $parser->addFlag("debug", "Add debug output to the log file.");
 extract($parser->parse($argv));
 
@@ -85,6 +88,12 @@ $dragen_parameter[] = "--RGCN medical_genetics_tuebingen";
 $dragen_parameter[] = "--RGDT ".date("c");
 $dragen_parameter[] = "--vc-ml-enable-recalibration=false"; //disabled because it leads to a sensitivity drop for Twist Exome V2 SNVs of 0.5% (see /mnt/storage2/users/ahsturm1/scripts/2023_08_01_megSAP_performance/)
 $dragen_parameter[] = "--enable-rh=false"; //disabled RH special caller because this leads to variants with EVENTTYPE=GENE_CONVERSION that have no DP and AF entry and sometimes are duplicated (same variant twice in the VCF).
+if ($enable_cnv)
+{
+	$dragen_parameter[] = "--enable-cnv true";
+	$dragen_parameter[] = "--cnv-enable-self-normalization true";
+	$dragen_parameter[] = "--cnv-interval-width 1000";
+}
 if(db_is_enabled("NGSD"))
 {
 	$db_conn = DB::getInstance("NGSD");
@@ -135,10 +144,20 @@ $parser->copyFile($working_dir."output.hard-filtered.gvcf.gz.tbi", $out_gvcf.".t
 // copy SV calls to sample folder
 if (get_path("dragen_sv_calling"))
 {
-	$parser->log("Copying SVs output folder");
+	$parser->log("Copying SVs to output folder");
 	$parser->copyFile($working_dir."output.sv.vcf.gz", $out_sv);
 	$parser->copyFile($working_dir."output.sv.vcf.gz.tbi", $out_sv.".tbi");
 }
+
+// copy CNV calls
+if ($enable_cnv)
+{
+	$parser->log("Copying CNVs to output folder");
+	$parser->copyFile($working_dir."output.cnv.vcf.gz", $out_cnv);
+	$parser->copyFile($working_dir."output.cnv.vcf.gz.tbi", $out_cnv.".tbi");
+	$parser->copyFile($working_dir."output.target.counts.diploid.bw", $out_cnv_raw);
+}
+
 // ********************************* cleanup *********************************//
 
 //delete working directory
