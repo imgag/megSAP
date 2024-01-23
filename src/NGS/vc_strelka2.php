@@ -29,6 +29,8 @@ extract($parser->parse($argv));
 //Run Strelka2
 //################################################################################################
 
+$genome = genome_fasta($build);
+
 // update environment
 $python_bin = get_path("python27");
 putenv("PATH=".dirname($python_bin).":".getenv("PATH"));
@@ -55,7 +57,7 @@ $somatic_indels = "$run_dir/results/variants/somatic.indels.vcf.gz";
 $args = [
 	"--tumor ".realpath($t_bam),
 	"--normal ".realpath($n_bam),
-	"--referenceFasta ".genome_fasta($build),
+	"--referenceFasta ".$genome,
 	"--runDir ".$run_dir,
 	"--config ". $config
 ];
@@ -140,11 +142,11 @@ $merged->toTSV($vcf_merged);
 
 //remove invalid variant
 $vcf_invalid = $parser->tempFile("_filtered_invalid.vcf");
-$parser->exec(get_path("ngs-bits")."VcfFilter", "-remove_invalid -in $vcf_merged -out $vcf_invalid", true);
+$parser->exec(get_path("ngs-bits")."VcfFilter", "-remove_invalid -in $vcf_merged -out $vcf_invalid -ref $genome", true);
 
 //left-align
 $vcf_aligned = $parser->tempFile("_aligned.vcf");
-$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-stream -in $vcf_invalid -out $vcf_aligned -ref ".genome_fasta($build), true);
+$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-stream -in $vcf_invalid -out $vcf_aligned -ref $genome", true);
 
 //sort
 $vcf_sorted = $parser->tempFile("_sorted.vcf");
