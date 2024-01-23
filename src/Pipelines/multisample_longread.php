@@ -8,81 +8,6 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-function determine_index($name, $parts)
-{
-	$index = array_search($name, $parts);
-	
-	if ($index===FALSE || $index==-1)
-	{
-		trigger_error("Could not determine index of column '$name' in header line: ".implode(" ", $parts), E_USER_ERROR);
-	}
-	
-	return $index;
-}
-
-function fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data)
-{
-	global $parser;
-	
-	$h = fopen2($gsvar, "r");
-	$tmp = $parser->tempFile(".GSvar");
-	$h2 = fopen2($tmp, "w");
-	while(!feof($h))
-	{
-		$line = nl_trim(fgets($h));
-		if ($line=="") continue;
-		
-		//compare child gender from data with gender from header
-		if (starts_with($line, "##SAMPLE=<ID={$sample_c},"))
-		{
-			//determine gender from header
-			$gender_header = "n/a";
-			$parts = explode(",", substr($line, 10, -1));
-			foreach($parts as $part)
-			{
-				if (starts_with($part, "Gender="))
-				{
-					list(, $gender_header) = explode("=", $part);
-				}
-			}
-			print "Gender of child (from header): {$gender_header}\n";
-			
-			//deviating => error
-			if ($gender_data!=$gender_header && $gender_header!="n/a" && $gender_header!="" && $gender_data!="n/a")
-			{
-				trigger_error("Gender of child from sample header '{$gender_header}' deviates from gender from data '{$gender_data}'", E_USER_ERROR);
-			}
-				
-			//replace gender in header by gender from data
-			if ($gender_data!=$gender_header)
-			{
-				$line = strtr($line, array("Gender={$gender_header}"=>"Gender={$gender_data}"));
-			}
-		}
-		
-		//add gender of father/mother if missing (i.e. when NGSD is not enabled)
-		if (starts_with($line, "##SAMPLE=<ID={$sample_f},") && !contains($line, "Gender="))
-		{
-			$line = substr($line, 0, -1).",Gender=male>";
-		}
-		if (starts_with($line, "##SAMPLE=<ID={$sample_m},") && !contains($line, "Gender="))
-		{
-			$line = substr($line, 0, -1).",Gender=female>";
-		}
-		
-		//update analysis type
-		if (starts_with($line, "##ANALYSISTYPE="))
-		{
-			$line = "##ANALYSISTYPE=GERMLINE_TRIO";
-		}
-		
-		fwrite($h2, "$line\n");
-	}
-	fclose($h2);
-	fclose($h);
-	$parser->moveFile($tmp, $gsvar);
-}
-
 //parse command line arguments
 $parser = new ToolBase("multisample_longread", "Multisample analysis pipeline of Nanopore long-read data.");
 $parser->addInfileArray("bams", "Input BAM files.", false);
@@ -217,7 +142,7 @@ if (in_array("vc", $steps))
 	}
 	else
 	{
-		$args[] = "-analysis_type GERMLINE_MULTI";
+		$args[] = "-analysis_type GERMLINE_MULTISAMPLE";
 	}
 	
 	$parser->execTool("NGS/merge_gvcf.php", implode(" ", $args));
@@ -267,7 +192,7 @@ if (in_array("an", $steps))
 		if (file_exists($vcf_file))
 		{
 			//basic annotation
-			$parser->execTool("Pipelines/annotate.php", "-out_name trio -out_folder $out_folder -system $system -threads $threads -multi");
+			$parser->execTool("Pipelines/annotate.php", "-out_name $prefix -out_folder $out_folder -system $system -threads $threads -multi");
 		}
 		else
 		{
@@ -317,6 +242,13 @@ if (in_array("an", $steps))
 	
 			//create BEDPE files
 			$parser->exec("{$ngsbits}VcfToBedpe", "-in {$sv_vcf_file} -out {$bedpe_out}", true);
+
+			// correct filetype
+			$bedpe_table = Matrix::fromTSV($bedpe_out);
+			$bedpe_table->removeComment("#fileformat=BEDPE");
+			if ($prefix == "trio") $bedpe_table->prependComment("#fileformat=BEDPE_GERMLINE_TRIO");
+			else $bedpe_table->prependComment("#fileformat=BEDPE_GERMLINE_MULTI");
+			$bedpe_table->toTSV($bedpe_out);
 	
 			//add gene info annotation
 			if (db_is_enabled("NGSD"))
@@ -383,12 +315,11 @@ if (in_array("an", $steps))
 				$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnv_file", true);
 			}
 
-			//TODO: adapt for multisample?
 			//write genotype in own column
-			// $parser->exec("{$ngsbits}BedpeExtractGenotype", "-in $bedpe_out -out $bedpe_out -include_unphased", true);
+			$parser->exec("{$ngsbits}BedpeExtractGenotype", "-in $bedpe_out -out $bedpe_out -include_unphased", true);
 
 			//extract columns
-			$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_out -out $bedpe_out -info_fields SUPPORT,COVERAGE,AF", true);
+			$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_out -out $bedpe_out -info_fields SUPPORT,COVERAGE", true);
 		}
 
 }

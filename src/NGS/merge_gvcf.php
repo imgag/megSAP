@@ -14,7 +14,7 @@ $parser->addStringArray("status", "List of affected status of the input samples 
 $parser->addOutfile("out", "Output VCF files containing calls of the merged gVCFs.", false);
 
 //optional
-$parser->addEnum("analysis_type", "Type of multisample analysis.", true, array("GERMLINE_MULTI", "GERMLINE_TRIO"), "GERMLINE_MULTI");
+$parser->addEnum("analysis_type", "Type of multisample analysis.", true, array("GERMLINE_MULTISAMPLE", "GERMLINE_TRIO"), "GERMLINE_MULTISAMPLE");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
