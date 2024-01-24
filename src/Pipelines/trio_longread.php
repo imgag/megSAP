@@ -96,7 +96,6 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=varia
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_check", "Skip gender check of parents and parent-child correlation check (otherwise done before variant calling)");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
-
 extract($parser->parse($argv));
 
 //init
@@ -106,6 +105,11 @@ $sample_m = basename2($m);
 
 // create logfile in output folder if no filepath is provided:
 if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/trio_".date("YmdHis").".log");
+
+//log server name
+list($server) = exec2("hostname -f");
+$user = exec('whoami');
+$parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 
 //file names
 $gsvar = "{$out_folder}/trio.GSvar";
@@ -179,7 +183,7 @@ $args_multisample[] = "-out_folder {$out_folder}";
 $args_multisample[] = "-prefix trio";
 $args_multisample[] = "-system $system";
 $args_multisample[] = "-threads $threads";
-if ($no_sync) $args_multisample[] = "-no_sync";
+$args_multisample[] = "-no_sync"; //already done if needed
 $args_multisample[] = "-ped {$ped_file}";
 
 
@@ -227,7 +231,7 @@ if (in_array("sv", $steps))
 	$parser->execTool("Pipelines/multisample_longread.php", implode(" ", $args_multisample)." -steps sv", true); 
 }
 
-//TODO: annotation
+//annotation
 if (in_array("an", $steps))
 {
 	//annotation with multi-sample pipeline

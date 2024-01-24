@@ -1,2 +1,0 @@
-#2024-01-15_13:12:36 /mnt/storage2/megSAP/tools/straglr-1.4.1/straglr.py --loci /mnt/storage2/users/ahschul1/git/megSAP//data/repeat_expansions/straglr_variant_catalog_grch38.bed --nprocs 2 ./23014LRa023L2_01.bam /tmp/local_ngs_data_GRCh38//GRCh38.fa ./23014LRa023L2_01_repeats
-#chrom	start	end	target_repeat	locus	coverage	genotype	read_name	actual_repeat	copy_number	size	read_start	strand	allele	read_status
