@@ -38,12 +38,12 @@ wget http://ftp.clinicalgenome.org/ClinGen_gene_curation_list_GRCh38.tsv
 cat ClinGen_gene_curation_list_GRCh38.tsv | php $src/Tools/db_converter_clingen_dosage.php > dosage_sensitive_disease_genes_GRCh38.bed
 $ngsbits/BedSort -in dosage_sensitive_disease_genes_GRCh38.bed -out dosage_sensitive_disease_genes_GRCh38.bed
 
-#Install NCG7.0 - information about oncogenes and tumor suppressor genes
-# cd $dbs
-# mkdir NCG7.0
-# cd NCG7.0
-curl 'http://ncg.kcl.ac.uk/download.php' --silent -X POST --data-raw 'downloadcancergenes=Download' | sed -e "1s/^/#/" > ncg.tsv
-
+#Install NCG7.1 - information about oncogenes and tumor suppressor genes
+cd $dbs
+mkdir NCG7.1
+cd NCG7.1
+curl 'http://network-cancer-genes.org/download.php' --silent -X POST --data-raw 'downloadcancergenes=Download' | sed -e "1s/^/#/" > ncg.tsv
+php $src/Tools/db_converter_ncg.php -in ncg.tsv -prefix NCG7.1 -outfolder "."
 
 #Install REPEATMASKER - http://www.repeatmasker.org/species/hg.html
 cd $dbs
