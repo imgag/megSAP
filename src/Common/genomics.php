@@ -2129,6 +2129,7 @@ function convert_to_bam_if_cram($filename, $parser, $build, $threads, $tmp_folde
 	
 	return $filename;
 }
+
 //check if run is created by NovaSeq X (Plus)
 function is_novaseq_x_run($run_parameters_xml)
 {
@@ -2143,11 +2144,42 @@ function is_novaseq_x_run($run_parameters_xml)
 //checks if the genome used to map the BAM/CRAM file had masked false duplications
 function genome_masked($bam)
 {
-	list($stdout) = exec2("samtools view {$bam} chr21:6110084-6124379 | wc -l", false);
+	list($stdout) = exec2(get_path("samtools")." view {$bam} chr21:6110084-6124379 | wc -l", false);
 	
 	$read_count = trim(implode("", $stdout));
 	
 	return $read_count==0;
 }
+//check if BAM file contains methylation data (only check the first $n_rows)
+function contains_methylation($bam_file, $n_rows=100)
+{
+	if (!file_exists($bam_file)) trigger_error("BAM file '{$bam_file}'", E_USER_ERROR);
+	// ignore errors occuring of unknown reason (broken pipe)
+	list($stdout) = exec2(get_path("samtools")." view {$bam_file} | head -n {$n_rows}", false);
+	//additional testing since we cannot rely on samtools error reporting
+	if (count($stdout) != $n_rows) trigger_error("Couldn't extract the first {$n_rows} rows of the BAM file!", E_USER_ERROR);
 
-?>
+	$n_mm = 0;
+	$n_ml = 0;
+	foreach ($stdout as $row) 
+	{
+		$columns = explode("\t", $row);
+		foreach ($columns as $cell) 
+		{
+			if(starts_with($cell, "MM:")) $n_mm++;
+			elseif(starts_with($cell, "ML:")) $n_ml++;
+		}
+	}
+
+	//sanity checks
+	if($n_mm != $n_ml) trigger_error("Number of ML tags and MM tags is not equal!\nMM:\t{$n_mm}\nML:\t{$n_ml}", E_USER_ERROR);
+
+	// no methylation
+	if($n_mm == 0) return false;
+	
+	// methylation
+	if($n_mm == $n_rows) return true;
+
+	//else: something is wrong
+	trigger_error("Ambiguous tag counts. Please check BAM file!\nMM:\t{$n_mm}/{$n_rows}\nML:\t{$n_ml}/{$n_rows}", E_USER_ERROR);
+}?>

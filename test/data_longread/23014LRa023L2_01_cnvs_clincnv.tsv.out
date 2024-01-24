@@ -1,0 +1,46 @@
+##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE
+##GENOME_BUILD=GRCh38
+##ClinCNV version: v1.18.3
+##CNV calling skipped: Loading required package: iterators.
+##CNV calling skipped: Loading required package: parallel.
+##CNV calling skipped: Package 'mclust' version 6.0.0.
+##CNV calling skipped: Type 'citation("mclust")' for citing this R package in publications..
+##CNV calling skipped: Loading required package: R.oo.
+##CNV calling skipped: Loading required package: R.methodsS3.
+##CNV calling skipped: R.methodsS3 v1.8.2 (2022-06-13 22:00:14 UTC) successfully loaded. See ?R.methodsS3 for help..
+##CNV calling skipped: R.oo v1.25.0 (2022-06-12 02:20:02 UTC) successfully loaded. See ?R.oo for help..
+##CNV calling skipped: .
+##CNV calling skipped: Attaching package: ‘R.oo’.
+##CNV calling skipped: .
+##CNV calling skipped: The following object is masked from ‘package:R.methodsS3’:.
+##CNV calling skipped: .
+##CNV calling skipped:     throw.
+##CNV calling skipped: .
+##CNV calling skipped: The following objects are masked from ‘package:methods’:.
+##CNV calling skipped: .
+##CNV calling skipped:     getClasses, getMethods.
+##CNV calling skipped: .
+##CNV calling skipped: The following objects are masked from ‘package:base’:.
+##CNV calling skipped: .
+##CNV calling skipped:     attach, detach, load, save.
+##CNV calling skipped: .
+##CNV calling skipped: R.utils v2.12.2 (2022-11-11 22:00:03 UTC) successfully loaded. See ?R.utils for help..
+##CNV calling skipped: .
+##CNV calling skipped: Attaching package: ‘R.utils’.
+##CNV calling skipped: .
+##CNV calling skipped: The following object is masked from ‘package:utils’:.
+##CNV calling skipped: .
+##CNV calling skipped:     timestamp.
+##CNV calling skipped: .
+##CNV calling skipped: The following objects are masked from ‘package:base’:.
+##CNV calling skipped: .
+##CNV calling skipped:     cat, commandArgs, getOption, isOpen, nullfile, parse, warnings.
+##CNV calling skipped: .
+##CNV calling skipped: .
+##CNV calling skipped: Attaching package: ‘dbscan’.
+##CNV calling skipped: .
+##CNV calling skipped: The following object is masked from ‘package:stats’:.
+##CNV calling skipped: .
+##CNV calling skipped:     as.dendrogram.
+##Germline samples 23014LRa023L2_01 did not pass QC due to high level of noise
+#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	overlap af_genomes_imgag	cn_pathogenic	dosage_sensitive_disease_genes_GRCh38	clinvar_cnvs	hgmd_cnvs	omim	gene_info	ngsd_pathogenic_cnvs
