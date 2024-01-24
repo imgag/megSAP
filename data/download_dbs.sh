@@ -136,7 +136,7 @@ tabix -f -C -m 9 -p vcf REVEL_1.3.vcf.gz
 $ngsbits/VcfCheck -in REVEL_1.3.vcf.gz -lines 1000 -ref $genome
 
 #download and convert AlphaMissense - Attention: for non-commercial use only!
-wget https://console.cloud.google.com/storage/browser/_details/dm_alphamissense/AlphaMissense_hg38.tsv.gz
+wget https://storage.googleapis.com/dm_alphamissense/AlphaMissense_hg38.tsv.gz
 php $src/Tools/db_converter_alphamissense.php AlphaMissense_hg38.tsv.gz > AlphaMissense_hg38.vcf
 $ngsbits/VcfSort -in AlphaMissense_hg38.vcf -out AlphaMissense_hg38.vcf
 bgzip AlphaMissense_hg38.vcf
