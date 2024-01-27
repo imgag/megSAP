@@ -21,35 +21,42 @@
 		> php /mnt/storage2/megSAP/pipeline/src/Tools/export_samplesheet.php -out SampleSheet_bcl2fastq.csv -run [ngsd_run_name]
 		
 	Note: The index (==barcode) should be given even if only one sample is on a lane (to avoid contamination).  
-	Note: If index 2 sequences are reverse-complement (e.g in NovaSeq6000 or MiSeq dual-indexing) of the sequences given in the sample sheet, re-export using the '-mid2_no_rc' flag.  
-	Note: Restrict the MID lenghs using the parameters '-mid1_len' and '-mid2_len'
+	Note: If index 2 sequences are reverse-complement (e.g in NovaSeq6000 or MiSeq dual-indexing) of the sequences given in the sample sheet, re-export using the '-mid2_no_rc' flag. 
+	Note: Restrict the MID lenghs using the parameters '-mid1_len' and '-mid2_len'.      
+	Note: If there are some samples with only MID_1 and no MID_2. Start demultiplexing without them and check in the unclaimed MIDs what sequence is their MID_2. Stop the demux and enter this found MID_2 into the sample sheet to demultiplex all samples together.
 	
 	Then we execute the actual demultiplexing based on the sample sheet:
 	
 		> ionice -c 3 /mnt/storage1/share/opt/bcl2fastq2_2.19.1/bcl2fastq -o Unaligned -p 10 --sample-sheet SampleSheet_bcl2fastq.csv --barcode-mismatches 1 --use-bases-mask Y159,I8,I8,Y159 >demux.log 2>&1
 		> tail demux.log
-		
+	
+ 	The demultiplexing of a run with samples that contain UMI sequences (e.g. RNA samples) needs a modification of the given base-mask as well as additional arguments to make sure  the UMI reads are not filtered as to short:
+
+  		> ionice -c 3 /mnt/storage1/share/opt/bcl2fastq2_2.19.1/bcl2fastq -o Unaligned -p 10 --sample-sheet SampleSheet_bcl2fastq.csv --barcode-mismatches 1 --use-bases-mask Y105,I8Y11,I8,Y105 --mask-short-adapter-reads 0 --minimum-trimmed-read-length=8  > demux.log 2>&1
+   		> tail demux.log
+ 
 	Note: The tail command must return "Processing completed with 0 errors and 0/1 warnings."  
 	Note: The parameters '--barcode-mismatches' and '--use-bases-mask' have to be adapted for each run.  
 	Note: The parameters '--tiles s_[n]' can be used to demultiplex one/several lanes only.  
 	Note: To keep index cycles/short reads specified in the basemask argument, use '--minimum-trimmed-read-length=8 --mask-short-adapter-reads=8' to prevent obtaining NNNNNNNN-reads only.  
 	Note: To use index as a read, write Y instead of I in the base mask argument. Those reads will be called as separate fastq files.  
-	Note: If a sample has no second index, try AGATCTCGGT. For unknown bases 9/10 of first index read try AT. 
+	Note: If a sample has no second index, try AGATCTCGGT. For unknown bases 9/10 of first index read try AT.
+
 	
-4. Check that for all samples there is data and that no sample was missing in the sample sheet:
+5. Check that for all samples there is data and that no sample was missing in the sample sheet:
 
 		> du -sh Unaligned/*/* Unaligned/Undetermined* | egrep -v "Reports|Stats"
 
-5. Copy the FASTQ files to the project folders and queue the analysis using:
+6. Copy the FASTQ files to the project folders and queue the analysis using:
 
 		> php /mnt/storage2/megSAP/pipeline/src/NGS/copy_sample.php
 		> ionice -c 3 make all
 
-6. Backup run using backup tool:
+7. Backup run using backup tool:
 
 		> sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/Tools/backup_queue.php -mode run -in [run] -email [email]
 
-7. Delete the run raw data (when all samples are analyzed with passed QC):
+8. Delete the run raw data (when all samples are analyzed with passed QC):
 
 		> rm -rf [run]
 

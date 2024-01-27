@@ -11,7 +11,10 @@ $parser->addInfile("in",  "VCF.GZ file generated from somatic Dragen calling", f
 $parser->addString("tumor_name",  "Tumor name", false);
 $parser->addString("normal_name",  "Normal name", false);
 $parser->addOutfile("out",  "VCF.GZ file with filters added in the filter column", false);
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
+
+$genome = genome_fasta($build);
 
 
 $vcf = $parser->tempFile("_unpacked.vcf");
@@ -19,7 +22,7 @@ $parser->exec("bgzip", "-d -c $in > $vcf", true);
 
 //left-align
 $vcf_aligned = $parser->tempFile("_aligned.vcf");
-$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-stream -in $vcf -out $vcf_aligned -ref ".genome_fasta("GRCh38"), true);
+$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-stream -in $vcf -out $vcf_aligned -ref $genome", true);
 
 //sort
 $vcf_sorted = $parser->tempFile("_sorted.vcf");
@@ -116,8 +119,13 @@ $variants_filtered->toTSV($vcf_filtered);
 
 //remove invalid variant
 $vcf_invalid = $parser->tempFile("_filtered_invalid.vcf");
-$parser->exec(get_path("ngs-bits")."VcfFilter", "-remove_invalid -in $vcf_filtered -out $vcf_invalid", true);
-$final = $vcf_invalid;
+$parser->exec(get_path("ngs-bits")."VcfFilter", "-remove_invalid -ref $genome -in $vcf_filtered -out $vcf_invalid", true);
+
+//left-align
+$vcf_aligned = $parser->tempFile("_aligned.vcf");
+$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-stream -in $vcf_invalid -out $vcf_aligned -ref $genome", true);
+$final = $vcf_aligned;
+
 
 //flag off-target variants
 if (!empty($target))
@@ -142,7 +150,6 @@ if (!empty($target))
 		$final = $vcf_no_artefacts;
 	}
 }
-
 
 //zip and index output file
 $parser->exec("bgzip", "-c $final > $out", true);

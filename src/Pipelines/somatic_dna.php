@@ -412,7 +412,7 @@ if (in_array("vc", $steps))
 		$args[] = "-t_bam ".$t_bam_dragen;
 		$args[] = "-out ".$dragen_output_vcf;
 		// $args[] = "-out_sv ".$dragen_output_svs;
-		$args[] = "-build GRCh38";
+		$args[] = "-build ".$sys['build'];
 		$args[] = "--log ".$dragen_log_file;
 		
 		if (! $single_sample)
@@ -520,6 +520,7 @@ if (in_array("vc", $steps))
 		$args[] = "-tumor_name {$t_id}";
 		$args[] = "-normal_name {$n_id}";
 		$args[] = "-out {$variants}";
+		$args[] = "-build ".$sys['build'];
 		$parser->execTool("NGS/an_filter_dragen_somatic.php", implode(" ", $args));
 		
 		
