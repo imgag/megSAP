@@ -1046,7 +1046,7 @@ if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
 }
 
 // collect other QC terms
-if (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps))
+if ((in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
 {
 	$terms = [];
 	$sources = [];
