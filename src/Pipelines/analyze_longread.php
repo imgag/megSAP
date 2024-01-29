@@ -79,7 +79,6 @@ if (!$no_sync)
 
 //output file names:
 //mapping
-$unmapped_bam = $folder."/".$name.".mod.unmapped.bam";
 $bam_file = $folder."/".$name.".bam";
 $unmapped_bam_file = $folder."/".$name.".mod.unmapped.bam";
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
@@ -107,48 +106,51 @@ $qc_map  = $folder."/".$name."_stats_map.qcML";
 $qc_vc  = $folder."/".$name."_stats_vc.qcML";
 $qc_other  = $folder."/".$name."_stats_other.qcML";
 
+$name_sample_ps = explode("_", $name, 2);
+$sample_name = $name_sample_ps[0];
 
 //mapping
 if (in_array("ma", $steps))
 {
-	//determine input FASTQ files
-	$fastq_regex = $folder."/*.fastq.gz";
-	$fastq_files = glob($fastq_regex);
+	//determine input FASTQ and BAM files
+	$unmapped_bam_files = glob("{$folder}/{$sample_name}_??.mod.unmapped.bam");
+	$bam_files = glob("{$folder}/{$sample_name}_??.bam");
+	$fastq_files = glob("{$folder}/{$sample_name}_??*.fastq.gz");
 
-	$args = array();
-	$args[] = "-out {$bam_file}";
-	$args[] = "-sample {$name}";
-	$args[] = "-threads {$threads}";
-	$args[] = "-system {$system}";
-	//1st priority: use unmapped BAM:
-	if (file_exists($unmapped_bam))
-	{
-		trigger_error("Unmapped BAM ('{$unmapped_bam}') found. Using this as input for mapping.", E_USER_NOTICE);
-		$args[] = "-in {$unmapped_bam}";
-	} 
-	//2nd priority: use FastQ files:
-	else if (count($fastq_files) > 0)
-	{
-		trigger_error("FastQ file(s) found. Using this as input for mapping:\n".implode("\n", $fastq_files), E_USER_NOTICE);
-		$args[] = "-in ".implode(" ", $fastq_files);
+	// preference:
+	// 1. mod unmapped bam
+	// 2. regular bam
+	// 3. fastq
 
+	if ((count($unmapped_bam_files) === 0) && (count($bam_files) === 0) && (count($fastq_files) === 0))
+	{
+		trigger_error("Found no input read files in BAM or FASTQ format!", E_USER_ERROR);
 	}
-	//3rd priority: remap BAM
-	else if (file_exists($bam_file))
+	
+	// run mapping
+	$mapping_minimap_options = [
+		"-out {$bam_file}",
+		"-sample {$name}",
+		"-threads {$threads}",
+		"-system {$system}",
+		"-qc_fastq {$qc_fastq}",
+		"-qc_map {$qc_map}"
+	];
+	if (count($unmapped_bam_files) > 0)
 	{
-		trigger_error("Mapped BAM ('{$bam_file}') found. Using this as input for mapping.", E_USER_NOTICE);
-		$args[] = "-in {$bam_file}";
+		$mapping_minimap_options[] = "-in_bam " . implode(" ", $unmapped_bam_files);	
+	}
+	elseif (count($bam_files) > 0)
+	{
+		$mapping_minimap_options[] = "-in_bam " . implode(" ", $bam_files);
 	}
 	else
 	{
-		trigger_error("Found no read files found matching '$fastq_regex' or any matching BAM file ('{$unmapped_bam}'/'{$bam_file}')!", E_USER_ERROR);
+		$mapping_minimap_options[] = "-in_fastq " . implode(" ", $fastq_files);
 	}
+	
+	$parser->execTool("NGS/mapping_minimap.php", implode(" ", $mapping_minimap_options));
 
-	// run mapping
-	$parser->execTool("NGS/mapping_minimap_test.php", implode(" ", $args));
-
-
-	//TODO: remove FastQs/unmapped BAM after mapping
 }
 else
 {
@@ -189,12 +191,9 @@ if (in_array("vc", $steps))
 	$parser->execTool("NGS/vc_clair.php", implode(" ", $args));	
 }
 
-//TODO: validate settings
 //copy-number analysis
 if (in_array("cn", $steps))
 {
-	trigger_error("WARNING: Copy-number calling is still in development!", E_USER_WARNING);
-
 	//create reference folder if it does not exist
 	$ref_folder = get_path("data_folder")."/coverage/".$sys['name_short']."/";
 	if (!is_dir($ref_folder))
@@ -286,14 +285,15 @@ if (in_array("cn", $steps))
 
 }
 
-//TODO: reactivate (disabled for testing phasing)
-// structural variants
+
+//structural variants
 if (in_array("sv", $steps))
 {
 	//run Sniffles
-	$parser->execTool("NGS/vc_sniffles.php", "-bam {$bam_file} -name {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build}");
+	$parser->execTool("NGS/vc_sniffles.php", "-bam {$bam_file} -sample_ids {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build}");
 				
 }
+
 
 //phasing
 if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
@@ -424,7 +424,6 @@ if (in_array("an", $steps))
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnv_file}", true);
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", true);
 
-
 		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_3.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
@@ -532,7 +531,9 @@ if (in_array("an", $steps))
 
 	//Repeat-expansion calling using straglr
 	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
-	$parser->execTool("NGS/vc_straglr.php", "-in {$bam_file} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
+	
+	//TODO: fix python import error
+	//$parser->execTool("NGS/vc_straglr.php", "-in {$bam_file} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
 }
 
 // collect other QC terms - if CNV or SV calling was done
@@ -684,7 +685,7 @@ if (in_array("db", $steps))
 	$parser->exec("{$ngsbits}/NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_files)." -force");
 	
 	//check gender
-	$parser->execTool("NGS/db_check_gender.php", "-in $bam_file -pid $name");
+	$parser->execTool("NGS/db_check_gender.php", "-in $bam_file -pid $name");	
 	
 
 	if (!$skip_wgs_check)

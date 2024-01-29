@@ -46,7 +46,7 @@ After the required software is installed, some parameters in the megSAP `setting
 ```
 To create the hash table run the following command:
 ```
-dragen --build-hash-table true --ht-reference /staging/genomes/GRCh38/GRCh38.fa --output-dir /staging/genomes/GRCh38/dragen/ --ht-suppress-mask yes --ht-suppress-decoys yes
+dragen --build-hash-table true --ht-reference /staging/genomes/GRCh38/GRCh38.fa --output-dir /staging/genomes/GRCh38/dragen/ --ht-suppress-mask yes --ht-suppress-decoys yes --enable-cnv true
 ```
 
 * `dragen_log` - Folder to store STDOUT and STDERR of the queued DRAGEN mapping jobs to determine if a finished job has ended successfully.

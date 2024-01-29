@@ -35,9 +35,10 @@ diff:
 	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_map.qcML.out 23014LRa023L2_01_stats_map.qcML 0.01
 	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_vc.qcML.out 23014LRa023L2_01_stats_vc.qcML
 	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_other.qcML.out 23014LRa023L2_01_stats_other.qcML
-	# diff 23014LRa023L2_01_cnvs_clincnv.tsv.out 23014LRa023L2_01_cnvs_clincnv.tsv --ignore-matching-lines="#"
+	diff 23014LRa023L2_01_cnvs_clincnv.tsv.out 23014LRa023L2_01_cnvs_clincnv.tsv --ignore-matching-lines="#"
 	# numdiff 23014LRa023L2_01_cnvs_clincnv.seg.out 23014LRa023L2_01_cnvs_clincnv.seg --absolute-tolerance 0.04
 	# php ../compare_bed.php 23014LRa023L2_01_nxLRRK2_SNCA_lowcov.bed.out 23014LRa023L2_01_nxLRRK2_SNCA_lowcov.bed
 	diff 23014LRa023L2_01_var_structural_variants.bedpe.out 23014LRa023L2_01_var_structural_variants_cut.bedpe --ignore-matching-lines="^##"
 	# diff 23014LRa023L2_01_var_structural_variants_last_cols.bedpe.out 23014LRa023L2_01_var_structural_variants_cut2.bedpe --ignore-matching-lines="^##"
+	diff 23014LRa023L2_01_prs.tsv.out 23014LRa023L2_01_prs.tsv
 

@@ -582,13 +582,16 @@ while(!feof($handle))
 				$cols = explode("\t", trim($line, " \n\r\0\x0B"));
 				$n_cols = count($cols);
 				$multisample_vcf = ($n_cols > 10);
-				if ($multisample_vcf && ($n_cols-9 != count($multi_cols))) 
+				if ($multisample_vcf)
 				{
-					trigger_error("VCF column count doesn't match sample count in header!", E_USER_ERROR);
+					if($n_cols-9 != count($multi_cols))
+					{
+						trigger_error("VCF column count doesn't match sample count in header!", E_USER_ERROR);
+					}
+					//verify that VCF header entries match sample entries in the comment section
+					$vcf_sample_names =  array_slice($cols, 9);
+					if ($vcf_sample_names != $multi_cols) trigger_error("VCF header entries doesn't match sample entries in the comment section!", E_USER_ERROR);
 				}
-				//verify that VCF header entries match sample entries in the comment section
-				$vcf_sample_names =  array_slice($cols, 9);
-				if ($vcf_sample_names != $multi_cols) trigger_error("VCF header entries doesn't match sample entries in the comment section!", E_USER_ERROR);
 
 			}
 		}
@@ -1309,15 +1312,23 @@ while(!feof($handle))
 		$spliceai_info = trim($info["SpliceAI"]);
 		$spliceai_values = array();
 
-		$entries = explode(",", strtr($spliceai_info, "&", ",")); //both & and , are used as separator, depending on the sources of the SpliceAI annotation (pre-calcualted or calculated on the fly) 
+		$entries = explode(",", strtr($spliceai_info, "&", ",")); //both & and , are used as separator, depending on the sources of the SpliceAI annotation (pre-calcualted or calculated on the fly)
 		foreach($entries as $entry)
 		{
 			$delta_scores = explode("|", $entry);
 			if(count($delta_scores) == 10)
 			{
-				$tmp_score = max(floatval($delta_scores[2]), floatval($delta_scores[3]), floatval($delta_scores[4]), floatval($delta_scores[5]));
-				if(is_null($splice_number)) $splice_number = $tmp_score;
-				$splice_number = max($splice_number, $tmp_score);
+				//if SpliceAI cannot predict a variant, it writes a dot into each field, e.g.  'CTTT|PALB2|.|.|.|.|.|.|.|.' for chr16:23630468 CCCTAAAGAAGAAAA>CTTT. We have to handle that, otherwise 0 is written, which is not correct.
+				$tmp_scores = [];
+				if ($delta_scores[2]!=".") $tmp_scores[] = floatval($delta_scores[2]);
+				if ($delta_scores[3]!=".") $tmp_scores[] = floatval($delta_scores[3]);
+				if ($delta_scores[4]!=".") $tmp_scores[] = floatval($delta_scores[4]);
+				if ($delta_scores[5]!=".") $tmp_scores[] = floatval($delta_scores[5]);
+				if (count($tmp_scores)>0)
+				{
+					if(is_null($splice_number)) $splice_number = 0.0;
+					$splice_number = max($splice_number, max($tmp_scores));
+				}
 			}
 			else
 			{
@@ -1329,7 +1340,6 @@ while(!feof($handle))
 		{
 			$spliceai = $splice_number;
 		}
-
 	}
 
 	// CADD

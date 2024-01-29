@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("create_igv_genome", "Creates a genome with Ensembl gene annotation for IGV (GRCh38 only).");
 $parser->addString("output_folder", "Target to store JSON file and all required data", false);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
-$parser->addString("name", "Name used for the genome. ", true, "Human (hg38) masked/Ensembl JSON");
+$parser->addString("name", "Name used for the genome. ", true, "Human (hg38) masked/Ensembl");
 $parser->addString("id", "ID used for the genome. ", true, "hg38_ensembl_masked");
 extract($parser->parse($argv));
 
@@ -47,6 +47,16 @@ $parser->exec($ngsbits."NGSDExportGff", "-out {$gff_temp}");
 $parser->exec("sort", "-k1,1V -k4,4n -k5,5rn -k3,3r {$gff_temp} > {$gff_temp2}");
 $gff_file = "NGSDEnsemblGeneExport.gff.gz";
 $parser->exec("bgzip", "-c {$gff_temp2} > {$output_folder}/{$gff_file}");
+$parser->exec("tabix", "-p gff {$output_folder}/{$gff_file}");
+
+//export gene track for searching
+$bed_file = "NGSDEnsemblGeneExport.bed.gz";
+$pipeline = array();
+$pipeline[] = array($ngsbits."NGSDExportGenes", "");
+$pipeline[] = array("cut", "-f1");
+$pipeline[] = array($ngsbits."GenesToBed", "-source ensembl -mode gene -fallback");
+$pipeline[] = array("bgzip", "-c > {$output_folder}/{$bed_file}");
+$parser->execPipeline($pipeline, "create gene BED track");
 
 
 //create JSON
@@ -57,12 +67,19 @@ $data["fastaURL"] = $build.".fa";
 $data["indexURL"] = $build.".fa.fai";
 $data["cytobandURL"] = basename($url_list["cytoband"]);
 $data["aliasURL"] = basename($url_list["alias"]);
-$data["chromosomeOrder"] = array("chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY", "chrM");
+$data["chromosomeOrder"] = array("chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY", "chrMT");
 
 $ensembl_track = array();
 $ensembl_track["name"] = "Ensembl Genes";
 $ensembl_track["format"] = "gff3";
 $ensembl_track["url"] = $gff_file;
+$ensembl_track["indexURL"] = $gff_file.".tbi";
+
+$ensembl_bed_track = array();
+$ensembl_bed_track["name"] = "Ensembl Genes";
+$ensembl_bed_track["format"] = "bed";
+$ensembl_bed_track["url"] = $bed_file;
+$ensembl_bed_track["hidden"] =  "true";
 
 $refseq_track = array();
 $refseq_track["name"] = "Refseq Genes";
@@ -70,7 +87,7 @@ $refseq_track["format"] = "refgene";
 $refseq_track["url"] = basename($url_list["Refseq Genes"]);
 $refseq_track["indexURL"] = basename($url_list["Refseq Genes index"]);
 
-$data["tracks"] = array($ensembl_track, $refseq_track);
+$data["tracks"] = array($ensembl_track, $ensembl_bed_track, $refseq_track);
 
 file_put_contents($output_folder."/".$id.".json", json_encode($data, JSON_PRETTY_PRINT));
 

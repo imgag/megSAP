@@ -6,18 +6,18 @@
   ]>
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
-    <metaDataParameter ID="md0001" name="creation software" value="TsvToQC 2023_11-75-ga910ede1" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0001" name="creation software" value="TsvToQC 2023_11-87-g06dc56ad" cvRef="QC" accession="QC:1000002"/>
     <metaDataParameter ID="md0002" name="creation software parameters" value="" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2024-01-15T13:12:36" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2024-01-24T12:16:53" cvRef="QC" accession="QC:1000004"/>
     <metaDataParameter ID="md0004" name="source file" value="23014LRa023L2_01_cnvs_clincnv.tsv" cvRef="QC" accession="QC:1000005"/>
     <metaDataParameter ID="md0005" name="source file" value="23014LRa023L2_01_var_structural_variants.bedpe" cvRef="QC" accession="QC:1000005"/>
     <qualityParameter ID="qp0001" name="CNV count" description="Number of high-quality CNVs called by ClinCNV. High-quality means that log-likelihood is bigger or equal to 20." value="0" cvRef="QC" accession="QC:2000113"/>
-    <qualityParameter ID="qp0002" name="SV count" description="Number of structural variants called that PASS filters." value="27" cvRef="QC" accession="QC:2000117"/>
-    <qualityParameter ID="qp0003" name="percentage deletions" description="Percentage of structural variants that PASS filters and are deletions." value="18.52" cvRef="QC" accession="QC:2000120"/>
+    <qualityParameter ID="qp0002" name="SV count" description="Number of structural variants called that PASS filters." value="15" cvRef="QC" accession="QC:2000117"/>
+    <qualityParameter ID="qp0003" name="percentage deletions" description="Percentage of structural variants that PASS filters and are deletions." value="33.33" cvRef="QC" accession="QC:2000120"/>
     <qualityParameter ID="qp0004" name="percentage duplications" description="Percentage of structural variants that PASS filters and are duplications." value="0.00" cvRef="QC" accession="QC:2000121"/>
-    <qualityParameter ID="qp0005" name="percentage insertions" description="Percentage of structural variants that PASS filters and are insertions." value="37.04" cvRef="QC" accession="QC:2000122"/>
+    <qualityParameter ID="qp0005" name="percentage insertions" description="Percentage of structural variants that PASS filters and are insertions." value="66.67" cvRef="QC" accession="QC:2000122"/>
     <qualityParameter ID="qp0006" name="percentage inversions" description="Percentage of structural variants that PASS filters and are inversions." value="0.00" cvRef="QC" accession="QC:2000123"/>
-    <qualityParameter ID="qp0007" name="percentage breakends" description="Percentage of structural variants that PASS filters and are breakends." value="44.44" cvRef="QC" accession="QC:2000124"/>
+    <qualityParameter ID="qp0007" name="percentage breakends" description="Percentage of structural variants that PASS filters and are breakends." value="0.00" cvRef="QC" accession="QC:2000124"/>
   </runQuality>
   <cvList>
     <cv uri="https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo" ID="QC" fullName="QC" version="0.1"/>
@@ -90,3 +90,4 @@
       </xsl:template>
   </xsl:stylesheet>
 </qcML>
+
