@@ -2144,7 +2144,7 @@ function is_novaseq_x_run($run_parameters_xml)
 //checks if the genome used to map the BAM/CRAM file had masked false duplications
 function genome_masked($bam)
 {
-	list($stdout) = exec2("samtools view {$bam} chr21:6110084-6124379 | wc -l", false);
+	list($stdout) = exec2(get_path("samtools")." view {$bam} chr21:6110084-6124379 | wc -l", false);
 	
 	$read_count = trim(implode("", $stdout));
 	
