@@ -759,9 +759,8 @@ if (in_array("cn", $steps))
 		//create coverage profile
 		$tmp_folder = $parser->tempFolder();
 		$cov_file = $cov_folder."/{$name}.cov";
-		if (!file_exists($cov_file))
+		if (!file_exists($cov_file) || filemtime($cov_file)<filemtime($used_bam_or_cram))
 		{
-
 			$parser->log("Calculating coverage file for CN calling...");
 			$cov_tmp = $tmp_folder."/{$name}.cov";
 			$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$used_bam_or_cram} -in {$bed} -out {$cov_tmp} -threads {$threads} -ref {$genome}", true);
@@ -1046,7 +1045,7 @@ if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
 }
 
 // collect other QC terms
-if (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps))
+if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps)) && ! $somatic)
 {
 	$terms = [];
 	$sources = [];
