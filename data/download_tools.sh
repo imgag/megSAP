@@ -204,41 +204,10 @@ cd bedtools-2.31.0
 wget https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtools.static
 chmod 755 bedtools.static
 
-
-#download longphase
-cd $folder
-mkdir -p longphase_v1.5.2
-cd longphase_v1.5.2
-wget https://github.com/twolinin/longphase/releases/download/v1.5.2/longphase_linux-x64.tar.xz
-tar -xJf longphase_linux-x64.tar.xz
-rm longphase_linux-x64.tar.xz
-cd ..
-
 #download illuminia ORA decompression tool
 cd $folder
 wget https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
 tar xzf orad.2.6.1.tar.gz
 rm orad.2.6.1.tar.gz
 
-#download straglr
-cd $folder
-wget https://github.com/bcgsc/straglr/releases/download/v1.4.1/straglr-1.4.1.tar.gz
-tar xzf straglr-1.4.1.tar.gz 
-mv straglr straglr-1.4.1
-rm straglr-1.4.1.tar.gz
-
-#download Tandem Repeats Finder
-cd $folder
-mkdir -p TRF_4.09
-cd TRF_4.09
-wget https://github.com/Benson-Genomics-Lab/TRF/releases/download/v4.09.1/trf409.linux64
-chmod +x trf409.linux64
-ln -s trf409.linux64 trf
-cd ..
-
-#download Blastn
-cd $folder
-wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.15.0+-x64-linux.tar.gz
-tar xzf ncbi-blast-2.15.0+-x64-linux.tar.gz
-rm ncbi-blast-2.15.0+-x64-linux.tar.gz
 
