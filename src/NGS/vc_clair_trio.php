@@ -1,6 +1,6 @@
 <?php 
 /** 
-	@page vc_clair
+	@page vc_clair_trio
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -8,49 +8,28 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("vc_clair", "Variant calling with Clair3.");
-$parser->addInfile("bam",  "Input files in BAM format. Note: .bam.bai file is required!", false);
+$parser = new ToolBase("vc_clair_trio", "Trio variant calling with Clair3-Trio.");
+$parser->addInfile("bam_c", "BAM file of child (index).", false, true);
+$parser->addInfile("bam_f", "BAM file of father.", false, true);
+$parser->addInfile("bam_m", "BAM file of mother.", false, true);
+
 $parser->addString("folder", "Destination folder for output files.", false);
-$parser->addString("name", "Base file name, typically the processed name ID (e.g. 'GS120001_01').", false);
 $parser->addInfile("target",  "Enrichment targets BED file.", false);
 $parser->addInfile("model", "Model file used for calling.", false);
+$parser->addInfile("trio_model", "Trio model file used for calling.", false);
 
 //optional
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
-
 extract($parser->parse($argv));
-
-//TODO: check output folder
 
 //init
 $genome = genome_fasta($build);
 
 //output files
 $clair_temp = "{$folder}/clair_temp";
-$out = "{$folder}/{$name}_var.vcf.gz";
-$out_gvcf = "{$folder}/{$name}_var.gvcf.gz";
-
-//create basic variant calls
-$args = array();
-$args[] = "--bam_fn={$bam}";
-$args[] = "--ref_fn={$genome}";
-$args[] = "--model_path={$model}";
-$args[] = "--threads={$threads}";
-$args[] = "--platform=\"ont\"";
-$args[] = "--keep_iupac_bases";
-$args[] = "--gvcf";
-//TODO: move to temp
-$args[] = "--output={$clair_temp}";
-
-//define env parameter
-$args[] = "--sample_name={$name}";
-$args[] = "--samtools=".get_path("samtools");
-$args[] = "--python=".get_path("python3");
-$args[] = "--pypy=".get_path("pypy3");
-$args[] = "--parallel=".get_path("parallel");
-$args[] = "--whatshap=".get_path("whatshap");
+$out = "{$folder}/trio_var.vcf.gz";
 
 //calculate target region
 if(isset($target))
@@ -66,27 +45,56 @@ if(isset($target))
 		$parser->copyFile($target, $target_extended);
 	}
 	
-	//add special target regions (regions with known pathogenic variants that are often captured by exome/panel, but not inside the target region)
-	if ($build=="GRCh38" && $target_extend>0) //only if extended (otherwise it is also added for chrMT calling, etc.)
-	{
-		$parser->exec(get_path("ngs-bits")."BedAdd"," -in $target_extended ".repository_basedir()."/data/misc/special_regions.bed -out $target_extended ", true);
-	}
+	// //add special target regions (regions with known pathogenic variants that are often captured by exome/panel, but not inside the target region)
+	// if ($build=="GRCh38" && $target_extend>0) //only if extended (otherwise it is also added for chrMT calling, etc.)
+	// {
+	// 	$parser->exec(get_path("ngs-bits")."BedAdd"," -in $target_extended ".repository_basedir()."/data/misc/special_regions.bed -out $target_extended ", true);
+	// }
 	
-	$target_merged = $parser->tempFile("_merged.bed");
-	$parser->exec(get_path("ngs-bits")."BedMerge"," -in $target_extended -out $target_merged", true);
+	// $target_merged = $parser->tempFile("_merged.bed");
+	// $parser->exec(get_path("ngs-bits")."BedMerge"," -in $target_extended -out $target_merged", true);
 	
-	$args[] = "--bed_fn={$target_merged}";
+	// $args[] = "--bed_fn={$target_merged}";
 }
 
-//run Clair3
-putenv("PYTHONPATH=".dirname(get_path("clair3")));
-$parser->exec(get_path("clair3"), implode(" ", $args));
+//prepare container
+
+//bind all required paths to the container
+$bind_paths = array();
+//input dirs (read-only)
+$bind_paths[] = dirname($bam_c).":".dirname($bam_c).":ro";
+$bind_paths[] = dirname($bam_f).":".dirname($bam_f).":ro";
+$bind_paths[] = dirname($bam_m).":".dirname($bam_m).":ro";
+$bind_paths[] = dirname($target_extended).":".dirname($target_extended).":ro";
+$bind_paths[] = dirname($genome).":".dirname($genome).":ro";
+$bind_paths[] = $model.":".$model.":ro";
+$bind_paths[] = $trio_model.":".$trio_model.":ro";
+//output folder (read-write)
+$bind_paths[] = $clair_temp.":".$clair_temp.":rw";
+$parser->exec("mkdir", "-p {$clair_temp}");
+
+//set parameters for clair
+$args = array();
+$args[] = "--bam_fn_c={$bam_c}";
+$args[] = "--bam_fn_p1={$bam_f}";
+$args[] = "--bam_fn_p2={$bam_m}";
+$args[] = "--ref_fn={$genome}";
+$args[] = "--model_path_clair3={$model}";
+$args[] = "--model_path_clair3_trio={$trio_model}";
+$args[] = "--threads={$threads}";
+$args[] = "--output={$clair_temp}";
+//TODO: test
+$args[] = "--gvcf";
+
+
+//run in container
+$parser->execSingularity("clair3-trio", get_path("container_clair3-trio"), $bind_paths, "/opt/bin/run_clair3_trio.sh", implode(" ", $args));
+
+//TODO: check naming
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
-$clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
 
 //post-processing 
 $pipeline = array();
-
 //stream vcf.gz
 $pipeline[] = array("zcat", "{$clair_vcf}");
 
@@ -117,10 +125,11 @@ $parser->execPipeline($pipeline, "clair post processing");
 $vcf = Matrix::fromTSV($uncompressed_vcf);
 $comments = $vcf->getComments();
 $comments[] = "#reference={$genome}\n";
-$comments[] = "#fileDate=".date("Ymd")."\n";
-$comments[] = "#ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n";
+$comments[] = "#ANALYSISTYPE=GERMLINE_TRIO\n";
 $comments[] = "#PIPELINE=".repository_revision(true)."\n";
-$comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"affected"), "#", "");
+$comments[] = gsvar_sample_header(basename2($bam_c), array("DiseaseStatus"=>"affected"), "#", "");
+$comments[] = gsvar_sample_header(basename2($bam_f), array("DiseaseStatus"=>"unaffected"), "#", "");
+$comments[] = gsvar_sample_header(basename2($bam_m), array("DiseaseStatus"=>"unaffected"), "#", "");
 $vcf->setComments(sort_vcf_comments($comments));
 $vcf->toTSV($uncompressed_vcf);
 
@@ -138,15 +147,5 @@ else
 
 //index output file
 $parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
-
-
-//create/copy gvcf:
-$pipeline = array();
-$pipeline[] = array("zcat", $clair_gvcf);
-$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-remove_invalid");
-$pipeline[] = array("bgzip", "-c > {$out_gvcf}");
-$parser->execPipeline($pipeline, "gVCF post processing");
-
-$parser->exec("tabix", "-f -p vcf {$out_gvcf}", false); //no output logging, because Toolbase::extractVersion() does not return
 
 ?>

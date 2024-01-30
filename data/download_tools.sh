@@ -59,6 +59,7 @@ pip install -r $root/install_deps_python.txt --require-virtualenv
 deactivate
 cd ..
 
+
 #download and build samtools
 cd $folder
 wget https://github.com/samtools/samtools/releases/download/1.19/samtools-1.19.tar.bz2
@@ -208,3 +209,5 @@ cd $folder
 wget https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
 tar xzf orad.2.6.1.tar.gz
 rm orad.2.6.1.tar.gz
+
+

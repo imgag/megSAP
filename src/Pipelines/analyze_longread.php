@@ -138,7 +138,8 @@ if (in_array("ma", $steps))
 	];
 	if (count($unmapped_bam_files) > 0)
 	{
-$mapping_minimap_options[] = "-in_bam " . implode(" ", $unmapped_bam_files);	}
+		$mapping_minimap_options[] = "-in_bam " . implode(" ", $unmapped_bam_files);	
+	}
 	elseif (count($bam_files) > 0)
 	{
 		$mapping_minimap_options[] = "-in_bam " . implode(" ", $bam_files);
@@ -289,7 +290,7 @@ if (in_array("cn", $steps))
 if (in_array("sv", $steps))
 {
 	//run Sniffles
-	$parser->execTool("NGS/vc_sniffles.php", "-bam {$bam_file} -name {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build}");
+	$parser->execTool("NGS/vc_sniffles.php", "-bam {$bam_file} -sample_ids {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build}");
 				
 }
 
@@ -521,7 +522,6 @@ if (in_array("an", $steps))
 			$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_file -out $bedpe_file -cnv $cnv_file", true);
 		}
 
-		//TODO:
 		//write genotype in own column
 		$parser->exec("{$ngsbits}BedpeExtractGenotype", "-in $bedpe_file -out $bedpe_file -include_unphased", true);
 

@@ -823,6 +823,206 @@ class ToolBase
 		//return results
 		return array($stdout, $stderr);
 	}
+
+	/**
+	 	@brief Executes a command inside a given Singularity container and returns an array with STDOUT, STDERR and exit code.
+	 */
+	function execSingularity($container, $container_version, $bind_paths, $command, $parameters, $log_output=true, $abort_on_error=true, $warn_on_error=true)
+	{
+		if (is_array($command) || is_array($parameters))
+		{
+			print_r($command);
+			print_r($parameters);
+			die;
+		}
+		//prevent execution of pipes - exit code is not handled correctly with pipes!
+		$command_and_parameters = $command." ".$parameters;
+		if(contains($command_and_parameters, "|"))
+		{
+			trigger_error("Error in 'execSingularity' method call: Command must not contain pipe symbol '|'! \n$command_and_parameters", E_USER_ERROR);
+		}
+
+		//get container
+		$container_path = get_path("container_folder")."/{$container}_{$container_version}.sif";
+		if(!file_exists($container_path)) trigger_error("Singularity container '{$container_path}' not found!", E_USER_ERROR);
+
+		//check bind paths
+		foreach($bind_paths as $path)
+		{
+			//remove optional path option
+			$path = explode(":", $path)[0];
+			if(!file_exists($path))
+			{
+				trigger_error("Bind path '{$path}' not exists!", E_USER_ERROR);
+			}
+		}
+		
+		//log call
+		if($log_output)
+		{
+			$add_info = array();
+			$add_info[] = "singularity version = ".$this->extractVersion("singularity");
+			foreach($bind_paths as $bind_path)
+			{
+				$add_info[] = "bind path           = ".$bind_path;
+			}
+			$add_info[] = "container           = ".$container;
+			$add_info[] = "container version   = ".$container_version;
+			$add_info[] = "container path      = ".$container_path;
+			$add_info[] = "tool version        = ".$this->extractVersion($command);
+			$add_info[] = "parameters          = $parameters";
+			$this->log("Calling external tool '$command' in container '".basename2($container_path)."'", $add_info);
+		}
+
+		//compose Singularity command
+		$singularity_command = "singularity exec -B ".implode(",", $bind_paths)." {$container_path} {$command_and_parameters}";
+
+		//TODO: remove 
+		$this->log("DEBUG: Singularity command:\t", array($singularity_command));
+		
+		$pid = getmypid();
+		//execute call - pipe stdout/stderr to file
+		$stdout_file = $this->tempFile(".stdout", "megSAP_exec_pid{$pid}_");
+		$stderr_file = $this->tempFile(".stderr", "megSAP_exec_pid{$pid}_");
+		$exec_start = microtime(true);
+		$proc = proc_open($singularity_command, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
+		if ($proc===false) trigger_error("Could not start process with ToolBase::execSingularity function!\nContainer: {$container_path}\nCommand: {$command}\nParameters: {$parameters}", E_USER_ERROR);
+		
+		//get stdout, stderr and exit code
+		$return = proc_close($proc);
+		$stdout = explode("\n", rtrim(file_get_contents($stdout_file)));
+		$stderr = explode("\n", rtrim(file_get_contents($stderr_file)));
+		$this->deleteTempFile($stdout_file);
+		$this->deleteTempFile($stderr_file);
+			
+		//log relevant information
+		if (($log_output || $return!=0) && count($stdout)>0)
+		{
+			$this->log("Stdout of '$command':", $stdout);
+		}
+		if (($log_output || $return!=0) && count($stderr)>0)
+		{
+			$this->log("Stderr of '$command':", $stderr);
+		}
+		if ($log_output)
+		{
+			$this->log("Execution time of '$command': ".time_readable(microtime(true) - $exec_start));
+		}
+		
+		//abort/warn if failed
+		if ($return!=0 && ($abort_on_error || $warn_on_error))
+		{
+			$this->toStderr($stdout);
+			$this->toStderr($stderr);
+			trigger_error("Call of external tool '$command' returned error code '$return'.", $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
+		}
+		
+		return array($stdout, $stderr, $return);
+	}
+
+	/**
+	 	@brief Executes a list of commands in parallel
+	*/
+	function execParallel($command_list, $threads, $log_output=true, $abort_on_error=true, $log_stdout=true)
+	{
+		
+		$running = array();
+		$processing_start = microtime(true);
+		//temp dir for stdout and stderr
+		$tmp_dir = $this->tempFolder("stdout_stderr");
+		while (true) 
+		{
+			//wait a second
+			sleep(1);
+			
+			//all chromosomes have been processed > exit
+			if (count($command_list)==0 && count($running)==0) break;
+			
+			//start new sub-processed while there are threads unused
+			while(count($running)<$threads && count($command_list)>0)
+			{
+				list($name, $command) = array_shift($command_list);
+				list($command, $parameters) = explode(" ", $command, 2);
+				//create files for stdout, stderr and exitcode
+				$job_id = $name."_".random_string(8);
+				$stderr_file = "{$tmp_dir}/{$job_id}.stderr";
+				$exitcode_file = "{$tmp_dir}/{$job_id}.exitcode";
+				if ($log_stdout)
+				{
+					$stdout_file = "{$tmp_dir}/{$job_id}.stdout";
+					$parameters .= " > {$stdout_file}";
+				}
+				else
+				{
+					$stdout_file = null;
+				}
+								
+				$parameters .= " 2> {$stderr_file}";
+				
+				// run in background
+				$output = array();
+				exec('('.$command.' '.$parameters.' & PID=$!; echo $PID) && (wait $PID; echo $? > '.$exitcode_file.')', $output);
+				$pid = trim(implode("", $output));
+
+				//log start
+				$add_info = array();
+				$add_info[] = "version    = ".$this->extractVersion($command);
+				$add_info[] = "parameters = {$parameters}";
+				$add_info[] = "pid = {$pid}";
+				if($log_output) $this->log("Executing command in background '{$command}'", $add_info);
+				
+				$running[$job_id] = array($pid, $stdout_file, $stderr_file, $exitcode_file, microtime(true));
+			}
+
+			//check which started processes are still runnning
+			$cmds_running = array_keys($running);
+			foreach($cmds_running as $job_id)
+			{
+				list($pid, $stdout_file, $stderr_file, $exitcode_file, $start_time) = $running[$job_id];
+				if(!file_exists("/proc/{$pid}"))
+				{
+					//prepare additional infos for logging
+					$add_info = array();
+					if($log_stdout)
+					{
+						$stdout = trim(file_get_contents($stdout_file));
+						if ($stdout!="")
+						{
+							$add_info[] = "STDOUT:";
+							foreach(explode("\n", $stdout) as $line)
+							{
+								$add_info[] = nl_trim($line);
+							}
+						}
+					}
+					$job_aborted = false;
+					$stderr = trim(file_get_contents($stderr_file));
+					if ($stderr!="")
+					{
+						$add_info[] = "STDERR:";
+						foreach(explode("\n", $stderr) as $line)
+						{
+							$add_info[] = nl_trim($line);
+						}
+					}
+					$exit_code = trim(file_get_contents($exitcode_file));
+					$add_info[] = "EXIT CODE: ".$exit_code;
+					if(!is_numeric($exit_code) || $exit_code!=0)
+					{
+						$job_aborted = true;
+					}
+					
+					//log output
+					if($log_output) $this->log("Finshed processing job {$job_id} in ".time_readable(microtime(true)-$start_time), $add_info);
+					
+					//abort if failed
+					if ($job_aborted) trigger_error("Processing of job {$job_id} failed: ".$stderr, (($abort_on_error)?E_USER_ERROR:E_USER_WARNING));
+					
+					unset($running[$job_id]);
+				}
+			}
+		}
+	}
 	
 	/// Returns the version of this tool
 	function version()

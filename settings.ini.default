@@ -29,6 +29,7 @@ REViewer = [path]/data/tools/REViewer-v0.2.7/REViewer-v0.2.7
 happy = [path]/data/tools/hap.py-0.3.14/bin/hap.py
 bedtools = [path]/data/tools/bedtools-2.30.0/bedtools.static.binary
 gatk = java -Xmx4G -jar /[path]/data/tools/gatk-4.2.6.1/gatk-package-4.2.6.1-local.jar
+orad = [path]/data/tools/orad_2_6_1/orad
 
 [tools-longread]
 minimap2 = [path]/data/tools/minimap2-2.26_x64-linux/minimap2
@@ -39,6 +40,9 @@ whatshap = [path]/data/tools/Python-3.10.9/bin/whatshap
 pypy3 = [path]/data/tools/pypy3.9-v7.3.11-linux64/bin/pypy3
 parallel = [path]/data/tools/parallel-20230522/bin/parallel
 sniffles = [path]/data/tools/Python-3.10.9/bin/sniffles
+straglr = [path]/data/tools/straglr-1.4.1/straglr.py
+trf = [path]/data/tools/TRF_4.09/trf409.linux64
+blastn = [path]/data/tools/ncbi-blast-2.15.0+/bin/blastn
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.10.centos6_x86_64/bin/
@@ -60,6 +64,10 @@ kraken2 = [path]/data/tools/kraken2-2.1.2/bin/kraken2
 [tools-primer]
 tracetuner = [path]/data/tools/tracetuner_3.0.6beta/rel/Linux_64/ttuner
 primer3 = [path]/data/tools/opt/primer3-2.3.6/src/
+
+[singularity-container]
+container_folder = [path]/data/tools/singularity_container/
+container_clair3-trio = v0.7
 
 [folders]
 local_data = /tmp/local_ngs_data/

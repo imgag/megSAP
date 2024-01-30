@@ -174,6 +174,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 		}
 		
 		$script = "trio.php";
+		if ($c_info["sample_type"] == "lrGS") $script = "trio_longread.php";
 		$args = "-c ".$c_info["ps_bam"]." -f ".$f_info["ps_bam"]." -m ".$m_info["ps_bam"]." -out_folder {$out_folder} --log {$out_folder}trio.log";
 	}
 	else if ($type=="multi sample")
@@ -201,6 +202,7 @@ function start_analysis($job_info, &$db_conn, $debug)
 		
 		//determine command and arguments
 		$script = "multisample.php";
+		if ($job_info['samples'][0]["sample_type"] == "lrGS") $script = "multisample_longread.php";
 		$args = "-bams ".implode(" ", $bams)." -status ".implode(" ", $status)." -out_folder {$out_folder} --log {$out_folder}multi.log";
 	}
 	else if ($type=="somatic")
