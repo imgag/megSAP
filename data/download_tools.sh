@@ -47,7 +47,7 @@ cd $python3_path
 wget https://www.python.org/ftp/python/3.10.9/Python-3.10.9.tgz
 tar -zxvf Python-3.10.9.tgz
 cd Python-3.10.9
-./configure --prefix=$folder/Python-3.10.9
+./configure --prefix=$folder/Python-3.10.9 --enable-loadable-sqlite-extensions
 make
 make install
 
