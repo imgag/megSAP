@@ -9,7 +9,7 @@ $parser->addInfileArray("in", "Low-coverage BED files for several samples OR one
 $parser->addOutfile("out", "Output BED file with low-coverage regions.", false);
 //optional
 $parser->addInt("percentile", "Percentile of samples with low coverage needed for output.", true, 40);
-$parser->addFlag("tumor", "Only process tumor samples, otherwise only non-tumor samples are process).");
+$parser->addFlag("tumor", "If set, only tumor samples are processed. Otherwise only non-tumor samples are processed.");
 extract($parser->parse($argv));
 
 //load input file names

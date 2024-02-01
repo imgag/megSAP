@@ -72,7 +72,7 @@ while(count($commands)>0)
 {
 	print date("Y-m-d h:i:s")."\n";
 	
-	//determine slots
+	//determine slots per queue
 	$slots_overall = 0;
 	$slots_used = 0;
 	foreach($queues as $queue)
@@ -85,8 +85,11 @@ while(count($commands)>0)
 			// skip queues which are in any error/warning state (additional column)
 			if ((count($line) > 5) && (trim($line[5]) != "")) continue; 
 			list(, $used, $overall) = explode("/", $line[2]);
+			$free = $overall - $used;
+			// if not enough slots are available for a jobs, count all slots of the queue as used
+			if ($free<$slots_per_job) $free = 0;
 			$slots_overall += $overall;
-			$slots_used += $used;
+			$slots_used += $overall - $free;
 		}
 	}
 
