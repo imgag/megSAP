@@ -72,11 +72,11 @@ $parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 //checks in case DRAGEN should be used
 if ($use_dragen)
 {
-	if (!in_array("ma", $steps) && (!file_exists($folder."/dragen_variant_calls/{$name}_dragen.vcf.gz") && in_array("vc", $steps))) 
+	if (!in_array("ma", $steps) && in_array("vc", $steps) && !file_exists($folder."/dragen_variant_calls/{$name}_dragen.vcf.gz")) 
 	{
 		trigger_error("DRAGEN small variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
-	if (!in_array("ma", $steps) && (!file_exists($folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz") && in_array("sv", $steps))) 
+	if (!in_array("ma", $steps) && in_array("sv", $steps) && get_path("dragen_sv_calling") && !file_exists($folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz")) 
 	{
 		trigger_error("DRAGEN structural variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
