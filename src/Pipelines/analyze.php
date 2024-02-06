@@ -1152,9 +1152,12 @@ if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps))
 	}
 	
 	//create qcML file
-	$tmp = $parser->tempFile("qc.tsv");
-	file_put_contents($tmp, implode("\n", $terms));
-	$parser->exec("{$ngsbits}TsvToQC", "-in $tmp -out $qc_other -sources ".implode(" ", $sources));
+	if (count($sources)>0)
+	{
+		$tmp = $parser->tempFile("qc.tsv");
+		file_put_contents($tmp, implode("\n", $terms));
+		$parser->exec("{$ngsbits}TsvToQC", "-in $tmp -out $qc_other -sources ".implode(" ", $sources));
+	}
 }
 
 //import to database
