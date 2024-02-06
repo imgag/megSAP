@@ -304,7 +304,7 @@ $column_desc = array(
 	array("AlphaMissense", "AlphaMissense pathogenicity score. Deleterious threshold > 0.564."),
 	array("MaxEntScan", "MaxEntScan reference score and alternate score for (1) native splice site, (2) acceptor gain and (3) donor gain. Comma-separated list if there are different predictions for several transcripts."),
 	array("COSMIC", "COSMIC somatic variant database anntotation."),
-	array("SpliceAI", "SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes."),
+	array("SpliceAI", "SpliceAI prediction. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG), acceptor loss (AL), donor gain (DG), and donor loss (DL). Format: GENE|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL."),
 	array("PubMed", "PubMed ids to publications on the given variant.")
 );
 
@@ -1308,7 +1308,7 @@ while(!feof($handle))
 	$spliceai = "";
 	if (isset($info["SpliceAI"]))
 	{
-		$splice_number = null;
+		$tmp = [];
 		$spliceai_info = trim($info["SpliceAI"]);
 		$spliceai_values = array();
 
@@ -1318,27 +1318,19 @@ while(!feof($handle))
 			$delta_scores = explode("|", $entry);
 			if(count($delta_scores) == 10)
 			{
-				//if SpliceAI cannot predict a variant, it writes a dot into each field, e.g.  'CTTT|PALB2|.|.|.|.|.|.|.|.' for chr16:23630468 CCCTAAAGAAGAAAA>CTTT. We have to handle that, otherwise 0 is written, which is not correct.
-				$tmp_scores = [];
-				if ($delta_scores[2]!=".") $tmp_scores[] = floatval($delta_scores[2]);
-				if ($delta_scores[3]!=".") $tmp_scores[] = floatval($delta_scores[3]);
-				if ($delta_scores[4]!=".") $tmp_scores[] = floatval($delta_scores[4]);
-				if ($delta_scores[5]!=".") $tmp_scores[] = floatval($delta_scores[5]);
-				if (count($tmp_scores)>0)
-				{
-					if(is_null($splice_number)) $splice_number = 0.0;
-					$splice_number = max($splice_number, max($tmp_scores));
-				}
+				$tmp[] = implode("|", array_slice($delta_scores, 1));
 			}
 			else
 			{
 				trigger_error("Wrong SpliceAI annotation in line: ${line} in SpliceAI annotation: ${spliceai_info}! Delimiter for several genes must be ','.", E_USER_WARNING);
 			}
 		}
+		$tmp = array_unique($tmp);
+		sort($tmp);
 
-		if(!is_null($splice_number))
+		if(count($tmp)>0)
 		{
-			$spliceai = $splice_number;
+			$spliceai = implode(",", $tmp);
 		}
 	}
 
