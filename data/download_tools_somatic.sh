@@ -18,8 +18,8 @@ rm 2022_05.tar.gz
 
 #download varscan2
 cd $folder
-mkdir VarScan.v2.4.5
-wget https://github.com/dkoboldt/varscan/raw/master/VarScan.v2.4.5.jar -O VarScan.v2.4.5/VarScan.v2.4.5.jar
+mkdir VarScan.v2.4.6
+wget https://github.com/dkoboldt/varscan/raw/master/VarScan.v2.4.6.jar -O VarScan.v2.4.6/VarScan.v2.4.6.jar
 
 #download strelka2
 cd $folder
@@ -47,7 +47,3 @@ $folder/R-4.1.0/bin/R -f $root/install_deps_umiVar2.R
 cd $folder
 git clone https://github.com/imgag/scarHRD.git
 $folder/R-4.1.0/bin/R -f $root/install_deps_scarhrd.R
-
-#install genome for SigProfilerExtractor
-chmod -R 777 $folder/Python-3.10.9_megSAP/lib/python3.10/site-packages/SigProfiler*
-$folder/Python-3.10.9_megSAP/bin/python3 $root/../src/NGS/extract_signatures.py --installGenome --reference GRCh38 --in . --outFolder .

@@ -3,7 +3,7 @@ intervaltree
 matplotlib
 pandas
 statsmodels
-SigProfilerExtractor
+SigProfilerExtractor==1.1.23
 umi_tools==1.1.4
 absl-py==1.4.0
 aiohttp==3.8.4

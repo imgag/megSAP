@@ -351,7 +351,7 @@ if (in_array("an", $steps))
 					
 					if (count($reference_tissues) > 0)
 					{
-						$hpa_parameter = "-hpa_file ".get_path("data_folder")."/dbs/gene_expression/rna_tissue_consensus_v22.tsv";
+						$hpa_parameter = "-hpa_file ".get_path("data_folder")."/dbs/gene_expression/rna_tissue_consensus_v23.tsv";
 					}					
 				}
 				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr} {$hpa_parameter}", true);

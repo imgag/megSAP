@@ -150,7 +150,7 @@ if(isset($rna_counts))
 	}
 	
 	//annotate RNA reference counts
-	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_consensus_v22.tsv";
+	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_consensus_v23.tsv";
 	$ref_results = array();
 	$handle = fopen2($ref_file,"r");
 	$entry_count = 0;
