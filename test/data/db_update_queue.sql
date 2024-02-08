@@ -40,7 +40,8 @@ INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, pr
 (2,2,1,'1',1,1, NULL), /* TRIO 2 */
 (3,2,1,'1',1,1, NULL), /* TRIO 2 */
 (4,2,1,'1',1,1, NULL), /* TRIO 2 */
-(5,3,1,'1',4,1, NULL); /* longread WGS */
+(5,3,1,'1',4,1, NULL), /* longread WGS */
+(4,3,1,'1',4,1, NULL); /* longread multi*/
 
 INSERT INTO analysis_job (type, `high_priority`, args, sge_id, sge_queue) VALUES
 ('single sample', 1, '-steps ma,vc', '999001', 'priority_srv018'),
@@ -54,7 +55,8 @@ INSERT INTO analysis_job (type, `high_priority`, args, sge_id, sge_queue) VALUES
 ('single sample', 0, '', '', ''), /* RNA */
 ('trio',          0, '', '', ''), 
 ('single sample', 1, '-threads 10 -steps ma,cn,an', '777777', 'default_srv020'), /* longread WGS */
-('single sample', 0, '', '', ''); /* longread WGS */
+('single sample', 0, '', '', ''), /* longread WGS */
+('multi sample', 1, '', '', ''); /* longread multi */
 
 INSERT INTO analysis_job_sample (analysis_job_id, processed_sample_id, info) VALUES 
 (1, 1, ''),
@@ -74,7 +76,9 @@ INSERT INTO analysis_job_sample (analysis_job_id, processed_sample_id, info) VAL
 (10, 8, 'father'),
 (10, 9, 'mother'),
 (11, 10, ''),
-(12, 10, '');
+(12, 10, ''),
+(13, 10, 'affected'),
+(13, 11, 'control');
 
 INSERT INTO analysis_job_history (analysis_job_id, time, user_id, status, output) VALUES 
 (1, '2017-01-01T00:00:00', 1, 'finished', ''),
@@ -91,4 +95,5 @@ INSERT INTO analysis_job_history (analysis_job_id, time, user_id, status, output
 (9, NOW(), 1, 'queued', ''),
 (10, NOW(), 1, 'queued', ''),
 (11, NOW(), 1, 'queued', ''),
-(12, NOW(), 1, 'queued', '');
+(12, NOW(), 1, 'queued', ''),
+(13, NOW(), 1, 'queued', '');

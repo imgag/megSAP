@@ -15,6 +15,7 @@ $parser->addString("run_dir",  "Input data folder.", false);
 $parser->addFlag("prefer_bam", "Prefer BAM over FASTQ, if available.");
 $parser->addFlag("fastq", "Copy FASTQ files.");
 $parser->addFlag("bam", "Copy BAM files (unaligned or aligned).");
+$parser->addFlag("ignore_aligned", "Treat aligned BAM files as unaligned.");
 
 $parser->addString("single_fastq",  "Create single FASTQ file, without sample lookup and database checks.", true, "");
 
@@ -139,7 +140,7 @@ if (($bam_available && $prefer_bam) || $bam)
 	trigger_error("Copy and merge BAM files.", E_USER_NOTICE);
 
 	
-	if ($aligned)
+	if ($aligned && !$ignore_aligned)
 	{
 		$out_bam = "{$out_dir}{$sample}.bam";
 	}
@@ -160,7 +161,7 @@ if (($bam_available && $prefer_bam) || $bam)
 	$pipeline = [];
 	$pipeline[] = ["find", "{$bam_paths_glob} -name '*.bam' -type f"];
 
-	if ($aligned)
+	if ($aligned && !$ignore_aligned)
 	{
 		$tmp_for_sorting = $parser->tempFile();
 		//merge presorted files

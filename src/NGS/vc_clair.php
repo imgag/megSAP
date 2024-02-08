@@ -19,7 +19,7 @@ $parser->addInfile("model", "Model file used for calling.", false);
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
-$parser->addFlag("skip_bam_tagging", "Skip longphase tagging of the BAM file.");
+
 extract($parser->parse($argv));
 
 //TODO: check output folder
@@ -30,6 +30,7 @@ $genome = genome_fasta($build);
 //output files
 $clair_temp = "{$folder}/clair_temp";
 $out = "{$folder}/{$name}_var.vcf.gz";
+$out_gvcf = "{$folder}/{$name}_var.gvcf.gz";
 
 //create basic variant calls
 $args = array();
@@ -39,6 +40,7 @@ $args[] = "--model_path={$model}";
 $args[] = "--threads={$threads}";
 $args[] = "--platform=\"ont\"";
 $args[] = "--keep_iupac_bases";
+$args[] = "--gvcf";
 //TODO: move to temp
 $args[] = "--output={$clair_temp}";
 
@@ -80,6 +82,7 @@ if(isset($target))
 putenv("PYTHONPATH=".dirname(get_path("clair3")));
 $parser->exec(get_path("clair3"), implode(" ", $args));
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
+$clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
 
 //post-processing 
 $pipeline = array();
@@ -88,7 +91,7 @@ $pipeline = array();
 $pipeline[] = array("zcat", "{$clair_vcf}");
 
 //filter variants according to variant quality>5
-$pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5\"");
+$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -remove_invalid");
 
 //split complex variants to primitives
 //this step has to be performed before vcfbreakmulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
@@ -135,5 +138,15 @@ else
 
 //index output file
 $parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
+
+
+//create/copy gvcf:
+$pipeline = array();
+$pipeline[] = array("zcat", $clair_gvcf);
+$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-remove_invalid");
+$pipeline[] = array("bgzip", "-c > {$out_gvcf}");
+$parser->execPipeline($pipeline, "gVCF post processing");
+
+$parser->exec("tabix", "-f -p vcf {$out_gvcf}", false); //no output logging, because Toolbase::extractVersion() does not return
 
 ?>

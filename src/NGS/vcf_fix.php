@@ -76,9 +76,9 @@ function write($h_out, $var, $mosaic_mode=false, $longread_mode=false)
 	for ($i=9; $i < count($var); $i++) 
 	{ 
 		$sample= sample_data($var[8], $var[$i], $longread_mode);
-		if($sample['GT']!="0/0")
+		if($sample['GT']!="0/0" && $sample['GT']!=".|.")
 		{
-			//non wt variant -> keep in file
+			//non wt/non-call variant -> keep in file
 			$all_wt = false;
 		}
 		else if ($mosaic_mode)
@@ -91,7 +91,12 @@ function write($h_out, $var, $mosaic_mode=false, $longread_mode=false)
 		// create output string
 		if($longread_mode)
 		{
-			$format_values[] = $sample['GT'].":".$sample['DP'].":".number_format($sample['AF'], 3).":".(int)($sample['GQ']);
+			//set defaults: (some indels only contain GT column)
+			if (!isset($sample['DP'])) $sample['DP'] = ".";
+			if (!isset($sample['AF'])) $sample['AF'] = ".";
+			if (!isset($sample['GQ'])) $sample['GQ'] = ".";
+
+			$format_values[] = $sample['GT'].":".$sample['DP'].":".(($sample['AF'] == ".") ? "." :number_format($sample['AF'], 3)).":".(int)($sample['GQ']);
 		}
 		else
 		{
@@ -124,8 +129,7 @@ function write($h_out, $var, $mosaic_mode=false, $longread_mode=false)
 		if(isset($info["F"])) $info_output[] = "F";
 		if(isset($info["P"])) $info_output[] = "P";
 		// write '.' if INFO column is empty
-		if(count($info_output) == 0) $info_output[] = ".";
-		fwrite($h_out, implode(";", $info_output)."\t");
+		if(count($info_output) == 0) $info_output[] = ".";		fwrite($h_out, implode(";", $info_output)."\t");
 	}
 	else
 	{
@@ -134,7 +138,6 @@ function write($h_out, $var, $mosaic_mode=false, $longread_mode=false)
 	
 	//write FORMAT/SAMPLE
 	fwrite($h_out, $format_header."\t".implode("\t", $format_values)."\n");
-	
 }
 
 
@@ -195,10 +198,10 @@ while(!feof($h_in))
 	$var = explode("\t", $line); //chr, pos, id, ref, alt, qual, filter, info, format, sample_1, ..., sample_n
 
 	//check for multisample
-	if($longread_mode && (count($var) > 10))
-	{
-		trigger_error("Longread multisamples are not supported by vcf_fix.php!", E_USER_ERROR);
-	}
+	// if($longread_mode && (count($var) > 10))
+	// {
+	// 	trigger_error("Longread multisamples are not supported by vcf_fix.php!", E_USER_ERROR);
+	// }
 	
 	//same variant twice => merge
 	if ($var[0]==$var_last[0] && $var[1]==$var_last[1] && $var[3]==$var_last[3] && $var[4]==$var_last[4])

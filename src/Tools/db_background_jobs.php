@@ -56,6 +56,7 @@ $queues = explode(",", $queues);
 
 //determine job ID cache file
 $job_id_cache_file = sys_get_temp_dir()."/db_background_jobs_{$user}_".strtr(realpath($commands), ["/"=>"_"]).".txt";
+print "Job ID cache file: $job_id_cache_file\n";
 
 //load commands
 $file = file($commands);
@@ -71,7 +72,7 @@ while(count($commands)>0)
 {
 	print date("Y-m-d h:i:s")."\n";
 	
-	//determine slots
+	//determine slots per queue
 	$slots_overall = 0;
 	$slots_used = 0;
 	foreach($queues as $queue)
@@ -84,8 +85,11 @@ while(count($commands)>0)
 			// skip queues which are in any error/warning state (additional column)
 			if ((count($line) > 5) && (trim($line[5]) != "")) continue; 
 			list(, $used, $overall) = explode("/", $line[2]);
+			$free = $overall - $used;
+			// if not enough slots are available for a jobs, count all slots of the queue as used
+			if ($free<$slots_per_job) $free = 0;
 			$slots_overall += $overall;
-			$slots_used += $used;
+			$slots_used += $overall - $free;
 		}
 	}
 
@@ -112,26 +116,24 @@ while(count($commands)>0)
 			if ($command=="") break; // happens after last command
 			
 			print "  Starting command: {$command}\n";
-			if (contains($command, "megSAP/src/NGS/db_queue_analysis.php")) //queue via NGSD
-			{
-				exec2($command);
-			}
-			else //submit to SGE directly
-			{
-				$sge_folder = get_path("data_folder")."/sge/background_jobs/";
-				$base = "{$sge_folder}".date("Ymdhis")."_".str_pad($id, 3, '0', STR_PAD_LEFT)."_{$user}";
-				$sge_out = "{$base}.out";
-				$sge_err = "{$base}.err";
-				$command_sge = "qsub -V -pe smp {$slots_per_job} -b y -wd {$sge_folder} -m n -M ".get_path("queue_email")." -e {$sge_err} -o {$sge_out} -q ".implode(",", $queues)." -shell n";
-				list($stdout, $stderr) = exec2($command_sge." ".$command);
-				
-				$sge_id = explode(" ", $stdout[0])[2];
-				print "    SGE job id: {$sge_id}\n";
-				print "    SGE stdout: {$sge_out}\n";
-				print "    SGE stderr: {$sge_err}\n";
-				
-				file_put_contents($job_id_cache_file, "{$sge_id}\t{$sge_out}\t{$sge_err}\n", FILE_APPEND);
-			}
+			
+			if (contains($command, "db_queue_analysis.php")) trigger_error("Command must not contain 'db_queue_analysis.php'!", E_USER_ERROR);
+			if (contains($command, "qsub ")) trigger_error("Command must not contain 'qsub '!", E_USER_ERROR);
+			
+			$sge_folder = get_path("data_folder")."/sge/background_jobs/";
+			$base = "{$sge_folder}".date("Ymdhis")."_".str_pad($id, 3, '0', STR_PAD_LEFT)."_{$user}";
+			$sge_out = "{$base}.out";
+			$sge_err = "{$base}.err";
+			$command_sge = "qsub -V -pe smp {$slots_per_job} -b y -wd {$sge_folder} -m n -M ".get_path("queue_email")." -e {$sge_err} -o {$sge_out} -q ".implode(",", $queues)." -shell n";
+			list($stdout, $stderr) = exec2($command_sge." ".$command);
+			
+			$sge_id = explode(" ", $stdout[0])[2];
+			print "    SGE job id: {$sge_id}\n";
+			print "    SGE stdout: {$sge_out}\n";
+			print "    SGE stderr: {$sge_err}\n";
+			
+			file_put_contents($job_id_cache_file, "{$sge_id}\t{$sge_out}\t{$sge_err}\n", FILE_APPEND);
+
 			++$running_jobs;
 			$slots_free -= $slots_per_job;
 		}

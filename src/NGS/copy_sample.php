@@ -144,7 +144,7 @@ function check_former_run(&$db_conn, $run_name)
 	}
 	
 	//Check former 50 runs
-	$res = $db_conn->executeQuery($query = "SELECT id,name FROM sequencing_run WHERE id < $current_id AND id > $current_id - 50");
+	$res = $db_conn->executeQuery($query = "SELECT id,name FROM sequencing_run WHERE quality != 'bad' AND id < $current_id AND id > $current_id - 50");
 	foreach($res as $res2)
 	{
 		$other_ps = get_processed_samples_from_run($db_conn, $res2["name"]);
@@ -174,7 +174,7 @@ function get_trio_parents($ps)
 	$s_id = $info['s_id'];
 	$sys_id = $info['sys_id'];
 	
-	//check if father/moder are definded
+	//check if father/mother are defined
 	$s_id_mother = $db_conn->getValue("SELECT s.id FROM sample_relations sr, sample s WHERE s.id=sr.sample1_id AND sr.relation='parent-child' AND sample2_id='{$s_id}' AND s.gender='female'", "");
 	$s_id_father = $db_conn->getValue("SELECT s.id FROM sample_relations sr, sample s WHERE s.id=sr.sample1_id AND sr.relation='parent-child' AND sample2_id='{$s_id}' AND s.gender='male'", "");
 	if ($s_id_mother=="" || $s_id_father=="") return NULL;
