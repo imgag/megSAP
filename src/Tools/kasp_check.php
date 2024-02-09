@@ -253,14 +253,15 @@ function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 	foreach($res as $row)
 	{
 		$sample = $row['name'];
-		list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER | {$ngsbits}TsvSlice -cols 'name,project_type,path'");
+		list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER | {$ngsbits}TsvSlice -cols 'name,project_type,project_name,path'");
 		foreach($stdout as $line)
 		{
 			$line = trim($line);
 			if ($line=="" || $line[0]=="#") continue;
-			list($ps, $project_type, $path) = explode("\t", $line);
+			list($ps, $project_type, $project_name, $path) = explode("\t", $line);
 			if ($project_type=="research" && !$irp) continue;
 			if ($project_type=="test" && !$itp) continue;
+			if ($project_name=="RPGR-Ex15") continue;
 			$output[$sample][] = array($ps, $path);
 		}
 	}
@@ -387,17 +388,18 @@ foreach($file as $line)
 	}
 	 
 	//determine BAM file of sample
+	print "KASP: $dna_number\n";
 	$res = sample_from_ngsd($db, $dna_number, $irp, $itp, $ibad);
 	if (count($res)==0)
 	{
-		print "error - Could not find sample '$dna_number' in NGSD!\n";
+		print "  error - Could not find any processed samples of the DNA number '$dna_number' in NGSD!\n";
 		$output[] = "##no NGSD entry for sample '$dna_number'\n";
 	}
 	else
 	{
 		foreach($res as $sample => $ps_data)
 		{
-			print "$dna_number (NGSD: {$sample})\n";
+			print "  NGSD sample: {$sample}\n";
 			
 			$bams_found = 0;
 			foreach($ps_data as list($ps, $folder))
@@ -466,10 +468,10 @@ foreach($file as $line)
 					}
 
 					//determine overall match
-					print "  $bam kasp:$c_kasp both:$c_both match:$c_match";
+					print "    ".basename2($bam)." kasp:$c_kasp both:$c_both match:$c_match";
 					if ($c_both<=6)
 					{
-						$messages[] = "ERROR - too few common snps";
+						$messages[] = "ERROR - too few common SNPs";
 					}
 					else
 					{
@@ -487,7 +489,7 @@ foreach($file as $line)
 					print "\n";
 					foreach($messages as $message)
 					{
-						print "    $message\n";
+						print "      $message\n";
 					}
 				}
 			}
