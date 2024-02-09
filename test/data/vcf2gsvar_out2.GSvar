@@ -24,7 +24,7 @@
 ##DESCRIPTION=AlphaMissense=AlphaMissense pathogenicity score. Deleterious threshold > 0.564.
 ##DESCRIPTION=MaxEntScan=MaxEntScan reference score and alternate score for (1) native splice site, (2) acceptor gain and (3) donor gain. Comma-separated list if there are different predictions for several transcripts.
 ##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
-##DESCRIPTION=SpliceAI=SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes.
+##DESCRIPTION=SpliceAI=SpliceAI prediction. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG), acceptor loss (AL), donor gain (DG), and donor loss (DL). Format: GENE|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL.
 ##DESCRIPTION=PubMed=PubMed ids to publications on the given variant.
 ##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.
 ##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.

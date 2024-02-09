@@ -38,12 +38,12 @@ wget http://ftp.clinicalgenome.org/ClinGen_gene_curation_list_GRCh38.tsv
 cat ClinGen_gene_curation_list_GRCh38.tsv | php $src/Tools/db_converter_clingen_dosage.php > dosage_sensitive_disease_genes_GRCh38.bed
 $ngsbits/BedSort -in dosage_sensitive_disease_genes_GRCh38.bed -out dosage_sensitive_disease_genes_GRCh38.bed
 
-#Install NCG7.0 - information about oncogenes and tumor suppressor genes
-# cd $dbs
-# mkdir NCG7.0
-# cd NCG7.0
-curl 'http://ncg.kcl.ac.uk/download.php' --silent -X POST --data-raw 'downloadcancergenes=Download' | sed -e "1s/^/#/" > ncg.tsv
-
+#Install NCG7.1 - information about oncogenes and tumor suppressor genes
+cd $dbs
+mkdir NCG7.1
+cd NCG7.1
+curl 'http://network-cancer-genes.org/download.php' --silent -X POST --data-raw 'downloadcancergenes=Download' | sed -e "1s/^/#/" > ncg.tsv
+php $src/Tools/db_converter_ncg.php -in ncg.tsv -prefix NCG7.1 -outfolder "."
 
 #Install REPEATMASKER - http://www.repeatmasker.org/species/hg.html
 cd $dbs
@@ -171,13 +171,14 @@ wget https://github.com/PacificBiosciences/pbsv/raw/master/annotations/human_GRC
 #zcat hgmd_pro-2023.3.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2023_3.bed
 #$ngsbits/BedSort -with_name -in HGMD_CNVS_2023_3.bed -out HGMD_CNVS_2023_3.bed
 
-#Install COSMIC Cancer Mutation Census CMC  (you need a license, CMC tsv.gz file has to be downloaded manually from https://cancer.sanger.ac.uk/cmc/download)
+#Install COSMIC Cancer Mutation Census CMC  (you need a license, the files have to be downloaded manually from https://apps.ingenuity.com/ingsso/login)
+#the necessary files are: CancerMutationCensus_AllData_Tsv_v98_GRCh38.tar, Cosmic_GenomeScreensMutant_Vcf_v98_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v98_GRCh38.tar, Cosmic_NonCodingVariants_Vcf_v98_GRCh38.tar
+# unpack the files to get the necessary vcf.gz files: 
 #cd $dbs
 #mkdir -p COSMIC
 #cd COSMIC
 ##Login and download the "Cancer Mutation Census Data": CMC.tar file from https://cancer.sanger.ac.uk/cmc/download. Extract the file and move the cmc_export.tsv.gz to data/dbs/COSMIC. There is no download API for CMC file.
-#gunzip -c cmc_export.tsv.gz | php $src/Tools/db_converter_cosmic.php -build GRCh38 -in - -out cmc_export.vcf.gz
-
+#gunzip -c CancerMutationCensus_AllData_v98_GRCh38.tsv.gz | php db_converter_cosmic.php -in_cmc cmc_export.tsv -in_genome_vcf Cosmic_GenomeScreensMutant_v98_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v98_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v98_GRCh38.vcf.gz -out cmc_export_v98.vcf.gz
 #install NGSD
 #
 #The usage of the NGSD annotation is optional. 

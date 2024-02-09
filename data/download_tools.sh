@@ -53,11 +53,15 @@ make install
 
 # create common python venv for megSAP
 cd $folder
-$folder/Python-3.10.9/bin/python3 -m venv Python-3.10.9_megSAP
-source $folder/Python-3.10.9_megSAP/bin/activate
+$folder/Python-3.10.9/bin/python3 -m venv Python-3.10.9_8.2.24
+source $folder/Python-3.10.9_8.2.24/bin/activate
 pip install -r $root/install_deps_python.txt --require-virtualenv
 deactivate
 cd ..
+
+#Python: install genome for SigProfilerExtractor - for somatic pipeline
+chmod -R 777 $folder/Python-3.10.9_8.2.24/lib/python3.10/site-packages/SigProfiler*
+$folder/Python-3.10.9_8.2.24/bin/python3 $root/../src/NGS/extract_signatures.py --installGenome --reference GRCh38 --in . --outFolder .
 
 
 #download and build samtools
