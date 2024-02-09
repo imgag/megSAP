@@ -97,6 +97,7 @@ while(!feof($in))
 	$dis = "";
 	$sig_acc_inc = [];
 	$dis_inc = "";
+	$genes = [];
 	foreach($infos as $info)
 	{
 		if (starts_with($info, "CLNSIG="))
@@ -122,6 +123,15 @@ while(!feof($in))
 		if (starts_with($info, "CLNDNINCL="))
 		{
 			$dis_inc = substr_clear($info, 10);
+		}
+		if (starts_with($info, "GENEINFO="))
+		{
+			$tmp = explode("|",substr_clear($info, 9));
+			foreach($tmp as $entry)
+			{
+				$gene = trim(explode(":", $entry)[0]);
+				if (!in_array($gene, $genes)) $genes[] = $gene;
+			}
 		}
 	}
 	
@@ -185,7 +195,7 @@ while(!feof($in))
 	//output
 	for($i=0; $i<count($sigs); ++$i)
 	{
-		$info = "DETAILS=".vcf_encode_url_string(strtolower($sigs[$i]).($i==0 ? $replace_msg : "")." DISEASE=".iconv("utf-8", "ascii//TRANSLIT", $diss[$i]));		
+		$info = "DETAILS=".vcf_encode_url_string(strtolower($sigs[$i]).($i==0 ? $replace_msg : "")." DISEASE=".iconv("utf-8", "ascii//TRANSLIT", $diss[$i])." GENE=".implode(",", $genes));
 		print implode("\t", [$chr, $pos, $accs[$i], $ref, $alt, ".", ".", $info])."\n";
 	}
 }

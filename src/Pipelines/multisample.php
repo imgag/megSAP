@@ -601,7 +601,7 @@ if (in_array("cn", $steps))
 	$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", true);
 	
 	//pathogenic ClinVar CNVs
-	$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-11.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", true);
+	$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-02.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", true);
 	
 	//HGMD CNVs
 	if (file_exists($hgmd_file)) //optional because of license
