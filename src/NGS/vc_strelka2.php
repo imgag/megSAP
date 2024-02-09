@@ -243,7 +243,7 @@ for($i = 0; $i < $variants->rows(); ++$i)
 		if ($td < $min_td) $filter[] = "depth-tum";
 		if ($nd < $min_nd) $filter[] = "depth-nor";
 		if ($tf < $min_taf) $filter[] = "freq-tum";
-		if ($nf > $max_naf_rel * $tf) $filter[] = "freq-nor";
+		if ($nf > $max_naf_rel * $tf && $nd >= 2) $filter[] = "freq-nor";
 
 		if (empty($filter))
 		{
