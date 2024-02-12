@@ -1,16 +1,20 @@
 
-from SigProfilerMatrixGenerator import install as genInstall
-from SigProfilerExtractor import sigpro as sig
 
 import argparse
 import sys
 import os
 import tempfile
 import shutil
+
 from distutils.dir_util import copy_tree
 from distutils.file_util import copy_file
 
-NUMEXPR_MAX_THREADS=8
+# set max threads to be used to remove warning 
+os.environ["NUMEXPR_MAX_THREADS"] = "10"
+
+from SigProfilerMatrixGenerator import install as genInstall
+from SigProfilerExtractor import sigpro as sig
+
 
 def main(args):
     
