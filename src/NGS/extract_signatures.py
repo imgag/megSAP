@@ -10,6 +10,7 @@ import shutil
 from distutils.dir_util import copy_tree
 from distutils.file_util import copy_file
 
+NUMEXPR_MAX_THREADS=8
 
 def main(args):
     
