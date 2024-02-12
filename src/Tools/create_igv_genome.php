@@ -81,13 +81,13 @@ $data["chromosomeOrder"] = array("chr1", "chr2", "chr3", "chr4", "chr5", "chr6",
 $data["tracks"] = array();
 
 $ensembl_mane_track = array();
-$ensembl_mane_track["name"] = "Ensembl Genes (MANE + Clinical)";
+$ensembl_mane_track["name"] = "Ensembl Genes (MANE)";
 $ensembl_mane_track["format"] = "refgene";
 $ensembl_mane_track["url"] = $mane_transcripts;
 $data["tracks"][] = $ensembl_mane_track;
 
 $ensembl_track = array();
-$ensembl_track["name"] = "Ensembl Genes (all transcripts)";
+$ensembl_track["name"] = "Ensembl Genes (all)";
 $ensembl_track["format"] = "refgene";
 $ensembl_track["url"] = $all_transcripts;
 $data["tracks"][] = $ensembl_track;
