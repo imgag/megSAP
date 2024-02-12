@@ -27,9 +27,9 @@
 |database               |used for                |last update/check               |notes                                                                                               |url                                                                     |
 |-----------------------|------------------------|--------------------------------|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
 |CancerHotspots         |pipeline (somatic)      |01.2021                         |version is final and does not change                                                                |https://www.cancerhotspots.org                                          |
-|NCG7.0                 |pipeline (somatic)      |03.2023 (v7.0)                  |					                                                                                   |http://ncg.kcl.ac.uk/                                                   |
-|COSMIC CMC             |pipeline (somatic)      |03.2023 (v97)                   |                                                                                                    |https://cancer.sanger.ac.uk/cmc                                         |
-|Human Protein Atlas    |pipeline (somatic)      |03.2023 (v22)                   |                                                                                                    |https://www.proteinatlas.org/about/download                             |
+|NCG7.1                 |pipeline (somatic)      |01.2024 (v7.1)                  |					                                                                                   |http://ncg.kcl.ac.uk/                                                   |
+|COSMIC CMC             |pipeline (somatic)      |01.2024 (v98)                   |                                                                                                    |https://cancer.sanger.ac.uk/cmc                                         |
+|Human Protein Atlas    |pipeline (somatic)      |01.2024 (v23)                   |                                                                                                    |https://www.proteinatlas.org/about/download                             |
 
 ## Databases for RNA pipelines
 
@@ -64,11 +64,12 @@
 
 |tool somatic           |used for                                             |last update/check |notes                                                                                |url                                                                     |
 |-----------------------|-----------------------------------------------------|------------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-|strelka2               |variant calling (tumor/normal)                       |03.2023 (2.9.10)  |                                                                                     |https://github.com/Illumina/strelka                                     |
-|mantis                 |microsatelite instability (tumor/normal)             |03.2023 (v1.0.5)  |                                                                                     |https://github.com/OSU-SRLab/MANTIS/releases                            |
-|varscan2               |variant calling                                      |03.2023 (2.4.5)   |                                                                                     |https://github.com/dkoboldt/varscan                                     |
-|umiVar2                |variant calling cfDNA                                |03.2023 (2023_03) |                                                                                     |https://github.com/imgag/umiVar2                                        |
-|hla-genotyper          |HLA genotyping                                       |03.2023 (2022_05) |                                                                                     |https://github.com/axelgschwind/hla-genotyper                           |
+|strelka2               |variant calling (tumor/normal)                       |01.2024 (2.9.10)  |                                                                                     |https://github.com/Illumina/strelka                                     |
+|mantis                 |microsatelite instability (tumor/normal)             |01.2024 (v1.0.5)  |                                                                                     |https://github.com/OSU-SRLab/MANTIS/releases                            |
+|varscan2               |variant calling                                      |01.2024 (2.4.6)   |                                                                                     |https://github.com/dkoboldt/varscan                                     |
+|umiVar2                |variant calling cfDNA                                |01.2024 (2023_11) |                                                                                     |https://github.com/imgag/umiVar2                                        |
+|hla-genotyper          |HLA genotyping                                       |01.2024 (2022_05) |                                                                                     |https://github.com/axelgschwind/hla-genotyper                           |
+|SigProfilerExtractor   |mutational signatures                                |01.2024 (1.1.23)  |                                                                                     |https://github.com/AlexandrovLab/SigProfilerExtractor                   |
 
 
 ## Tools for RNA pipeline
