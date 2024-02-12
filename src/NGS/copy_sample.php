@@ -393,6 +393,8 @@ $target_to_queuelines = array();
 $queue_trios = array();
 $project_to_fastqonly_samples = array();
 $sample_to_newlocation = array();
+$use_drage_somatic = null;
+
 foreach($sample_data as $sample => $sample_infos)
 {
 	$project_name = $sample_infos['project_name'];
@@ -658,7 +660,7 @@ foreach($sample_data as $sample => $sample_infos)
 	$args = array();
 
 	if($project_analysis!="fastq" && !$is_normal_with_tumor) //if more than FASTQ creation should be done for samples's project
-	{					
+	{	
 		//build target lines for analysis using Sungrid Engine's queues if first sample of project on this run
 		if (!array_key_exists($tag, $target_to_queuelines))
 		{
@@ -704,7 +706,22 @@ foreach($sample_data as $sample => $sample_infos)
 				//queue somatic analysis: only if normal sample is included in this run or its folder exists
 				if(in_array($normal,$queued_normal_samples) || is_dir($n_dir))
 				{
-					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal";
+					if ($use_drage_somatic === null)
+					{
+						echo "Somatic anylsis about to be started. Use dragen for somatic analysis on this run (y/n)?\n";
+						$answer = trim(fgets(STDIN));
+						
+						$use_drage_somatic = ($answer == "y");
+					}
+					
+					if ($use_drage_somatic)
+					{
+						$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal -args 'use_dragen'";
+					}
+					else
+					{
+						$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal";
+					}
 				}
 				else
 				{
