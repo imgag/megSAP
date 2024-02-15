@@ -22,10 +22,10 @@
 	```bash
 	php /mnt/storage2/megSAP/pipeline/src/Tools/export_samplesheet.php -out SampleSheet_bcl2fastq.csv -run [ngsd_run_name]
 	```	
-	Note: The index (==barcode) should be given even if only one sample is on a lane (to avoid contamination).  
-	Note: If index 2 sequences are reverse-complement (e.g in NovaSeq6000 or MiSeq dual-indexing) of the sequences given in the sample sheet, re-export using the '-mid2_no_rc' flag. 
-	Note: Restrict the MID lenghs using the parameters '-mid1_len' and '-mid2_len'.      
-	Note: If there are some samples with only MID_1 and no MID_2. Start demultiplexing without them and check in the unclaimed MIDs what sequence is their MID_2. Stop the demux and enter this found MID_2 into the sample sheet to demultiplex all samples together.
+	*Note*: The index (==barcode) should be given even if only one sample is on a lane (to avoid contamination).  
+	*Note*: If index 2 sequences are reverse-complement (e.g in NovaSeq6000 or MiSeq dual-indexing) of the sequences given in the sample sheet, re-export using the '-mid2_no_rc' flag.  
+	*Note*: Restrict the MID lenghs using the parameters '-mid1_len' and '-mid2_len'.      
+	*Note*: If there are some samples with only MID_1 and no MID_2. Start demultiplexing without them and check in the unclaimed MIDs what sequence is their MID_2. Stop the demux and enter this found MID_2 into the sample sheet to demultiplex all samples together.
 	
 	Then we execute the actual demultiplexing based on the sample sheet:
 	```bash
@@ -42,13 +42,13 @@
 	tail demux.log
 	```
  
-	Note: The tail command must return "Processing completed with 0 errors and 0/1 warnings."
-	Note: If the UMI lengths of the samples differ or you want to demultiplex different lengths etc. you have to provide the correct recipe using `--use-bases-mask`   
-	Note: If you have a low barcode distance (Warning of `export_samplesheet.php`) set the parameter `--barcode-mismatches` to `0`   
-	Note: The parameters '--tiles s_[n]' can be used to demultiplex one/several lanes only.  
-	Note: To keep index cycles/short reads specified in the basemask argument, use '--minimum-trimmed-read-length=8 --mask-short-adapter-reads=8' to prevent obtaining NNNNNNNN-reads only.  
-	Note: To use index as a read, write Y instead of I in the base mask argument. Those reads will be called as separate fastq files.  
-	Note: If a sample has no second index, try AGATCTCGGT. For unknown bases 9/10 of first index read try AT.
+	*Note*: The tail command must return "Processing completed with 0 errors and 0/1 warnings."  
+	*Note*: If the MID lengths of the samples differ or you want to demultiplex different lengths etc. you have to provide the correct recipe using `--use-bases-mask`   
+	*Note*: If you have a low barcode distance (Warning of `export_samplesheet.php`) set the parameter `--barcode-mismatches` to `0`   
+	*Note*: The parameters '--tiles s_[n]' can be used to demultiplex one/several lanes only.  
+	*Note*: To keep index cycles/short reads specified in the basemask argument, use '--minimum-trimmed-read-length=8 --mask-short-adapter-reads=8' to prevent obtaining NNNNNNNN-reads only.  
+	*Note*: To use index as a read, write Y instead of I in the base mask argument. Those reads will be called as separate fastq files.  
+	*Note*: If a sample has no second index, try AGATCTCGGT. For unknown bases 9/10 of first index read try AT.
 
 	
 4. Check that for all samples there is data and that no sample was missing in the sample sheet:
