@@ -716,7 +716,7 @@ foreach($sample_data as $sample => $sample_infos)
 					
 					if ($use_drage_somatic)
 					{
-						$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal -args 'use_dragen'";
+						$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal -args '-use_dragen'";
 					}
 					else
 					{
