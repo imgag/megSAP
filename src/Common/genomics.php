@@ -2150,6 +2150,7 @@ function genome_masked($bam)
 	
 	return $read_count==0;
 }
+
 //check if BAM file contains methylation data (only check the first $n_rows)
 function contains_methylation($bam_file, $n_rows=100)
 {
@@ -2182,4 +2183,84 @@ function contains_methylation($bam_file, $n_rows=100)
 
 	//else: something is wrong
 	trigger_error("Ambiguous tag counts. Please check BAM file!\nMM:\t{$n_mm}/{$n_rows}\nML:\t{$n_ml}/{$n_rows}", E_USER_ERROR);
-}?>
+}
+
+//extracts base-calling description from BAM header
+function get_read_group_description($bam_file)
+{
+	$rg_description = array();
+	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $bam_file | egrep '^@RG' ");
+	if  ($exit_code==0)
+	{
+		foreach($stdout as $line)
+		{
+			$split_line = explode("\t", trim($line));
+			if ($split_line[0] == "@RG")
+			{
+				foreach($split_line as $column)
+				{
+					if (starts_with($column, "DS")) $rg_description[] = $column;
+				}
+			}
+		}
+	}
+	else
+	{
+		trigger_error("ERROR: Extraction of ReadGroup description failed! \n\tExit code: {$exit_code} \n\t".implode("\n\t", $stderr), E_USER_ERROR);
+	}
+
+	if (count($rg_description) < 1) trigger_error("WARNING: No ReadGroup description found!", E_USER_WARNING);
+
+	return $rg_description;
+}
+
+//returns the model which was used for base-calling
+function get_basecall_model($bam_file)
+{
+	$basecall_model = array();
+	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $bam_file | egrep '^@RG' ");
+	if  ($exit_code==0)
+	{
+		foreach($stdout as $line)
+		{
+			$split_line = explode("\t", trim($line));
+			if ($split_line[0] == "@RG")
+			{
+				foreach($split_line as $column)
+				{
+					if (starts_with($column, "DS"))
+					{
+						$entries = explode(" ", $column);
+						foreach($entries as $entry)
+						{
+							if (starts_with($entry, "basecall_model=")) $basecall_model[] = trim(explode("=", $entry)[1]);
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		trigger_error("ERROR: Extraction of basecall model failed! \n\tExit code: {$exit_code} \n\t".implode("\n\t", $stderr), E_USER_ERROR);
+	}
+
+	//remove duplicates
+	$basecall_model = array_unique($basecall_model);
+
+	if (count($basecall_model) < 1)
+	{
+		trigger_error("WARNING: No basecall model found!", E_USER_WARNING);
+		return "";
+	}
+	elseif  (count($basecall_model) > 1)
+	{
+		trigger_error("WARNING: Multiple different basecall model entries found! Using the first one ('".$basecall_model[0]."').", E_USER_WARNING);
+	}
+	return $basecall_model[0];
+
+}
+
+?>
+
+

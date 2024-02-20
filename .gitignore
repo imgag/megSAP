@@ -173,6 +173,7 @@
 /test/data_trio_longread/*.gvcf.gz.tbi
 /test/data_trio_longread/*.GSvar
 /test/data_trio_longread/*_cnvs_clincnv.tsv
+/test/data_trio_longread/*_cnvs_clincnv_cut.tsv
 /test/data_trio_longread/*_cnvs_clincnv.seg
 /test/data_trio_longread/*_mosaic_cnvs.tsv
 /test/data_trio_longread/*_rohs.tsv
@@ -192,6 +193,7 @@
 /test/data_multi_longread/*.gvcf.gz.tbi
 /test/data_multi_longread/*.GSvar
 /test/data_multi_longread/*_cnvs_clincnv.tsv
+/test/data_multi_longread/*_cnvs_clincnv_cut.tsv
 /test/data_multi_longread/*_cnvs_clincnv.seg
 /test/data_multi_longread/*_mosaic_cnvs.tsv
 /test/data_multi_longread/*_rohs.tsv

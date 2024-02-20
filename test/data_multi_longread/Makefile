@@ -31,10 +31,12 @@ an:
 	cut -f1-23 test_multi_var_structural_variants.bedpe > test_multi_var_structural_variants_cut.bedpe
 	# create file from OMIM annotation and CNV overlap
 	cat test_multi_var_structural_variants.bedpe | egrep -v "^##"| rev | cut -f 1-3,5| rev > test_multi_var_structural_variants_cut2.bedpe
+	# remove CNV NGSD annotation
+	cut -f1-18 test_multi_cnvs_clincnv.tsv > test_multi_cnvs_clincnv_cut.tsv
 
 diff:
 	php ../compare_variants.php -in1 test_multi.GSvar.out -in2 test_multi.GSvar
-	diff test_multi_cnvs_clincnv.tsv.out test_multi_cnvs_clincnv.tsv --ignore-matching-lines="#"
+	diff test_multi_cnvs_clincnv.tsv.out test_multi_cnvs_clincnv_cut.tsv --ignore-matching-lines="#"
 	diff test_multi_var_structural_variants.bedpe.out test_multi_var_structural_variants_cut.bedpe --ignore-matching-lines="^##"
 	diff test_multi_var_structural_variants.bedpe.out2 test_multi_var_structural_variants_cut2.bedpe --ignore-matching-lines="^##"
 
