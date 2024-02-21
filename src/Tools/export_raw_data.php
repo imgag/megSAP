@@ -150,7 +150,7 @@ exec2("zip -1 ".($internal ? "" : "--password {$password} ")."-r {$out}.zip $out
 print "You can move the file to the webserver using:\n";
 if($internal)
 {
-	print "  > mv {$out}.zip /mnt/storage1/users/bioinf/http_shareukt/DataShare/data/{$folder}/\n";
+	print "  > mv {$out}.zip mnt/storage1/share/http_shareukt/DataShare/data/{$folder}/\n";
 }
 else
 {
