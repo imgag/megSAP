@@ -12,7 +12,7 @@ $parser = new ToolBase("db_background_jobs", "Runs jobs in the the backgound in 
 $parser->addInfile("commands", "Input text file containing one command per line.", false);
 $parser->addInt("slots_per_job", "Number of SGE slots (i.e. threads) to use per command.", false);
 //optional
-$parser->addInt("time_limit", "Time limit for the job, e.g. 1:00:00 for one hour.", true, "");
+$parser->addString("time_limit", "Time limit for the job, e.g. 1:00:00 for one hour.", true, "");
 $parser->addFloat("max_slots", "Maximum percentage of SGE slots to use.", true, 80.0);
 $parser->addInt("max_jobs", "Maximum number of jobs to start in parallel.", true, 1000000);
 $parser->addInt("sleep_secs", "Number of seconds to sleep between tries to start jobs.", true, 120);
