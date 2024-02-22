@@ -135,6 +135,14 @@ if ($qc_map !== "")
 		"-wgs",
 		"-long_read"
 	];
+	if ($sys['target_file'] !== "")
+	{
+		$params[] = "-roi ".$sys['target_file'];
+	}
+	else
+	{
+		$params[] = "-wgs";
+	}
 	if ($sys['build']!="GRCh38")
 	{
 		$params[] = "-no_cont";
