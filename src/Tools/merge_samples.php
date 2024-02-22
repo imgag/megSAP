@@ -125,17 +125,27 @@ if (count($target_fastq_files) > 0)
 }
 elseif (file_exists($target_bam_or_cram)) 
 {
-	$genome = getSampleGenome($into, $sys);
-	
-	trigger_error("No FASTQ files found in Sample folder of '${into}'. Generating FASTQs from BAM/CRAM.", E_USER_WARNING);
-	// recreate FASTQ files from BAM
-	$in_fq_for = $folder2."/${into}_BamToFastq_R1_001.fastq.gz";
-	$in_fq_rev = $folder2."/${into}_BamToFastq_R2_001.fastq.gz";
-	$tmp1 = $parser->tempFile(".fastq.gz");
-	$tmp2 = $parser->tempFile(".fastq.gz");
-	$parser->exec("{$ngsbits}BamToFastq", "-in ${target_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", true);
-	$parser->moveFile($tmp1, $in_fq_for);
-	$parser->moveFile($tmp2, $in_fq_rev);
+	$target_bam_or_cram_methylation = contains_methylation($target_bam_or_cram);
+	if ($target_bam_or_cram_methylation)
+	{
+		// unmapped BAM instead of FASTQ
+		$mod_unmapped_bam = "{$folder2}/{$into}.mod.unmapped.bam";
+		$parser->moveFile($target_bam_or_cram, $mod_unmapped_bam);
+	}
+	else
+	{
+		$genome = getSampleGenome($into, $sys);
+
+		trigger_error("No FASTQ files found in Sample folder of '${into}'. Generating FASTQs from BAM/CRAM.", E_USER_WARNING);
+		// recreate FASTQ files from BAM
+		$in_fq_for = $folder2."/${into}_BamToFastq_R1_001.fastq.gz";
+		$in_fq_rev = $folder2."/${into}_BamToFastq_R2_001.fastq.gz";
+		$tmp1 = $parser->tempFile(".fastq.gz");
+		$tmp2 = $parser->tempFile(".fastq.gz");
+		$parser->exec("{$ngsbits}BamToFastq", "-in ${target_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", true);
+		$parser->moveFile($tmp1, $in_fq_for);
+		$parser->moveFile($tmp2, $in_fq_rev);
+	}
 }
 else
 {
@@ -146,6 +156,7 @@ else
 $source_fastq_files = glob($folder1."/*.fastq.gz");
 //remove index 
 removeIndexFastqs($source_fastq_files);
+$source_mod_unmapped_bam_files = glob($folder1."/*.mod.unmapped.bam");
 
 list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps {$ps} -type BAM".$sample_path_db_addon);
 $source_bam_or_cram = trim(implode("", $stdout));
@@ -154,27 +165,41 @@ if (count($source_fastq_files) > 0)
 	//FASTQ files found -> move them to the target folder
 	exec2("mv $folder1/*.fastq.gz $folder2/");
 }
+elseif (count($source_mod_unmapped_bam_files) > 0)
+{
+	// mod.unmapped.bam files found, move to target folder
+	exec2("mv {$folder1}/*.mod.unmapped.bam {$folder2}/");
+}
 elseif (file_exists($source_bam_or_cram)) 
 {
-	$genome = getSampleGenome($ps, $sys);
-	
-	trigger_error("No FASTQ files found in Sample folder of '${ps}'. Generating FASTQs from BAM/CRAM.", E_USER_WARNING);
-	// recreate FASTQ files from BAM
-	$in_fq_for = $folder2."/${ps}_BamToFastq_R1_001.fastq.gz";
-	$in_fq_rev = $folder2."/${ps}_BamToFastq_R2_001.fastq.gz";
-	$tmp1 = $parser->tempFile(".fastq.gz");
-	$tmp2 = $parser->tempFile(".fastq.gz");
-	$parser->exec("{$ngsbits}BamToFastq", "-in ${source_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", true);
-	$parser->moveFile($tmp1, $in_fq_for);
-	$parser->moveFile($tmp2, $in_fq_rev);
-	
-	if (count(glob($folder1."/*.fastq.gz")) > 0)
+	if (contains_methylation($source_bam_or_cram) || $target_bam_or_cram_methylation)
 	{
-		exec2("mv $folder1/*.fastq.gz $folder2/"); // also move all other existing fastq files ( e.g. index files) to the new folder
+		// unmapped BAM instead of FASTQ
+		$mod_unmapped_bam = "{$folder2}/{$ps}.mod.unmapped.bam";
+		$parser->moveFile($source_bam_or_cram, $mod_unmapped_bam);
 	}
+	else
+	{
+		$genome = getSampleGenome($ps, $sys);
 
-	//delete BAM
-	unlink($source_bam_or_cram);	
+		trigger_error("No FASTQ files found in Sample folder of '${ps}'. Generating FASTQs from BAM/CRAM.", E_USER_WARNING);
+		// recreate FASTQ files from BAM
+		$in_fq_for = $folder2."/${ps}_BamToFastq_R1_001.fastq.gz";
+		$in_fq_rev = $folder2."/${ps}_BamToFastq_R2_001.fastq.gz";
+		$tmp1 = $parser->tempFile(".fastq.gz");
+		$tmp2 = $parser->tempFile(".fastq.gz");
+		$parser->exec("{$ngsbits}BamToFastq", "-in ${source_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", true);
+		$parser->moveFile($tmp1, $in_fq_for);
+		$parser->moveFile($tmp2, $in_fq_rev);
+
+		if (count(glob($folder1."/*.fastq.gz")) > 0)
+		{
+			exec2("mv $folder1/*.fastq.gz $folder2/"); // also move all other existing fastq files ( e.g. index files) to the new folder
+		}
+
+		//delete BAM
+		unlink($source_bam_or_cram);
+	}
 }
 else
 {
