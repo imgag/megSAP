@@ -420,3 +420,5 @@ class DB
 		trigger_error(implode("\n", $messages)."\n", E_USER_ERROR);	
 	}
 }
+
+?>

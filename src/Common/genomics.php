@@ -2262,5 +2262,3 @@ function get_basecall_model($bam_file)
 }
 
 ?>
-
-
