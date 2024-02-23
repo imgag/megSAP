@@ -92,9 +92,16 @@ if ($bam_input)
 			$met_tag = " -TMM,ML ";
 			break;
 		} 
-	} 
-	$pipeline[] = [get_path("samtools"), "cat --no-PG -o - " . implode(" ", $in_bam)];
-	$pipeline[] = [get_path("samtools"), "fastq -o /dev/null ".$met_tag];
+	}
+	// make separate calls of samtools fastq in a subshell
+	// samtools cat <aligned.bam> <unaligned.bam> creates invalid BAMs due to different headers
+	$fastq_cmds = [];
+	foreach ($in_bam as $file)
+	{
+		$fastq_cmds[] = get_path("samtools") . " fastq -o /dev/null {$met_tag} {$file}";
+	}
+	$fastq_cmds_str = implode("; ", $fastq_cmds);
+	$pipeline[]=  ["", "({$fastq_cmds_str})"];
 	//perform mapping from STDIN
 	$pipeline[] = [get_path("minimap2"), implode(" ", $minimap_options)." - "];
 }
