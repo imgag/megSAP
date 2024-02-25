@@ -139,16 +139,16 @@ if ($qc_map !== "")
 		"-read_qc $qcml_reads",
 		"-ref ".genome_fasta($sys["build"]),
 		"-build ".ngsbits_build($sys["build"]),
-		"-wgs",
 		"-long_read"
 	];
-	if ($sys['target_file'] !== "")
+
+	if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
 	{
-		$params[] = "-roi ".$sys['target_file'];
+		$params[] = "-wgs";
 	}
 	else
 	{
-		$params[] = "-wgs";
+		$params[] = "-roi ".$sys['target_file'];
 	}
 	if ($sys['build']!="GRCh38")
 	{
