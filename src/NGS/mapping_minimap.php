@@ -161,7 +161,7 @@ if ($qc_map !== "")
 		"-long_read"
 	];
 
-	if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)" || $sys['type']=="lrGS")
+	if ($sys['target_file']=="" || $sys['type']=="lrGS")
 	{
 		$params[] = "-wgs";
 	}
