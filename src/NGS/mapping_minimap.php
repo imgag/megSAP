@@ -56,6 +56,7 @@ if(db_is_enabled("NGSD"))
 	}
 }
 
+
 // alignment pipeline:
 // BAM input available:
 // samtools cat <input bams> | samtools fastq | minimap | samtools sort
@@ -63,6 +64,25 @@ if(db_is_enabled("NGSD"))
 // zcat <input fastqs>                        | minimap | samtools sort
 
 $bam_input = !is_null($in_bam) && (count($in_bam) > 0);
+
+if ($bam_input)
+{
+	//get read group description (base calling) from input bams
+	$rg_description = array();
+	foreach ($in_bam as $bam_file) 
+	{
+		$tmp = get_read_group_description($bam_file);
+		$rg_description = array_merge($rg_description, $tmp);	
+	}
+	//remove duplicates
+	$rg_description = array_unique($rg_description);
+
+	//add to '@RG' entry
+	foreach ($rg_description as $description) 
+	{
+		$group_props[] = $description;
+	}
+}
 
 $minimap_options = [
 	"-a",
@@ -92,7 +112,7 @@ if ($bam_input)
 			$met_tag = " -TMM,ML ";
 			break;
 		} 
-	}
+	} 
 	// make separate calls of samtools fastq in a subshell
 	// samtools cat <aligned.bam> <unaligned.bam> creates invalid BAMs due to different headers
 	$fastq_cmds = [];
@@ -101,8 +121,7 @@ if ($bam_input)
 		$fastq_cmds[] = get_path("samtools") . " fastq -o /dev/null {$met_tag} {$file}";
 	}
 	$fastq_cmds_str = implode("; ", $fastq_cmds);
-	$pipeline[]=  ["", "({$fastq_cmds_str})"];
-	//perform mapping from STDIN
+	$pipeline[]=  ["", "({$fastq_cmds_str})"];	//perform mapping from STDIN
 	$pipeline[] = [get_path("minimap2"), implode(" ", $minimap_options)." - "];
 }
 else //fastq_mode
@@ -142,7 +161,7 @@ if ($qc_map !== "")
 		"-long_read"
 	];
 
-	if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
+	if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)" || $sys['type']=="lrGS")
 	{
 		$params[] = "-wgs";
 	}
