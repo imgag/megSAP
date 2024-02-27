@@ -37,9 +37,9 @@ make
 
 #download umiVar2
 cd $folder
-git clone https://github.com/imgag/umiVar2.git umiVar2_2023_11
-cd umiVar2_2023_11
-git checkout 2023_11
+git clone https://github.com/imgag/umiVar2.git umiVar2_2024_02
+cd umiVar2_2024_02
+git checkout 2024_02
 cd ..
 $folder/R-4.1.0/bin/R -f $root/install_deps_umiVar2.R
 

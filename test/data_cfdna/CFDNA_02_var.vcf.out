@@ -1,7 +1,7 @@
 ##fileformat=VCFv4.1
-##fileDate=04/06/2021
+##fileDate=27/02/2024
 ##source=umiVar2
-##reference=/tmp/local_ngs_data/GRCh37.fa
+##reference=/tmp/local_ngs_data_GRCh38/GRCh38.fa
 ##INFO=<ID=Variant_Dist,Number=1,Type=Integer,Description="Distance to the closest short variant">
 ##INFO=<ID=Upstream,Number=.,Type=String,Description="Upstream sequence (5 nucleotides)">
 ##INFO=<ID=Downstream,Number=.,Type=String,Description="Downstream sequence (5 nucleotides)">
@@ -19,6 +19,7 @@
 ##FILTER=<ID=Fisher_Strand,Description="Strand bias based on fisher test">
 ##FILTER=<ID=Low_qual_pos,Description="Position enriched with too many low quality bases">
 ##FILTER=<ID=Variant_contamination,Description="Reads supporting other alleles outside of the error rate distribution">
+##FILTER=<ID=No_Coverage,Description="No read coverage for this monitoring/ID variant in BAM file.">
 ##FILTER=<ID=FDR,Description="no description available">
 ##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
@@ -34,9 +35,6 @@
 ##FORMAT=<ID=FS,Number=1,Type=Float,Description="Fisher strand bias test (q-value)">
 ##FORMAT=<ID=OAAC,Number=1,Type=Integer,Description="Other Alternative Allele Coun">
 ##FORMAT=<ID=MAL,Number=1,Type=Float,Description="Multi-allele likelihoo">
-##INFO=<ID=strand_changed,Number=0,Type=Flag,Description="Indicates if strand has changed.">
-##INFO=<ID=reference_changed,Number=0,Type=Flag,Description="Indicates if reference sequence has changed.">
-##INFO=<ID=comment,Number=1,Type=String,Description="Comment for manual lifted/modified variants.">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	CFDNA_02
-chr1	114713909	.	G	T	.	PASS	Variant_dist=30;Vicinity=TTCTTGTCCAG	GT:DP:AC:AF:M_REF:M_AC:M_AF:Pval:FDR:Strand:FS:OAAC:MAL	./.:4238:44:0.010382:2491:22:0.008754:1.93e-04:1.23e-02:28-16-3034-1160:1.00e+00:0:1.00e+00
-chr1	114713915	.	C	T	.	FDR	Variant_dist=6;Vicinity=TCCAGCTGTAT	GT:DP:AC:AF:M_REF:M_AC:M_AF:Pval:FDR:Strand:FS:OAAC:MAL	./.:4430:43:0.009707:2537:29:0.011302:6.27e-03:1.59e-01:14-29-3215-1170:4.28e-06:2:1.00e+00
+chr1	114713909	.	G	T	.	PASS	Variant_dist=30;Vicinity=TTCTTGTCCAG	GT:DP:AC:AF:M_REF:M_AC:M_AF:Pval:FDR:Strand:FS:OAAC:MAL	./.:3446:36:0.010447:1882:17:0.008952:1.56e-04:9.93e-03:25-11-2616-794:1.00e+00:0:1.00e+00
+chr1	114713915	.	C	T	.	FDR	Variant_dist=6;Vicinity=TCCAGCTGTAT	GT:DP:AC:AF:M_REF:M_AC:M_AF:Pval:FDR:Strand:FS:OAAC:MAL	./.:3633:32:0.008808:1934:18:0.009221:5.55e-03:1.18e-01:11-21-2795-804:2.98e-05:2:1.00e+00

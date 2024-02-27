@@ -120,7 +120,7 @@ if (!$no_sync)
 	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 }
 
-//variant calling (and annotation)
+//variant calling (and phasing)
 if (in_array("vc", $steps))
 {
 	// merge GVCFs
@@ -155,7 +155,7 @@ if (in_array("vc", $steps))
 	$args[] = "--reference=".genome_fasta($sys['build']);
 	$args[] = "-o {$vcf_file_phased}";
 	$args[] = "{$vcf_file}";
-	$args[] = implode(" ", $gvcfs);
+	$args[] = implode(" ", $bams);
 	$parser->exec(get_path("whatshap"), implode(" ", $args));
 
 	//create compressed file and index and replace original VCF
