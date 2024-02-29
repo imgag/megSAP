@@ -323,17 +323,20 @@ if ($use_dragen)
 	$sge_args[] = "-e ".get_path("dragen_log")."/$sge_logfile.err"; // stderr
 	$sge_args[] = "-o ".get_path("dragen_log")."/$sge_logfile.out"; // stdout
 	$sge_args[] = "-q ".implode(",", $dragen_queues); // define queue
+	$sge_args[] = "-N megSAP_DRAGEN_{$out_name}"; // set name
+	$qsub_command_args = implode(" ", $sge_args)." ".$cmd_mapping;
+	
 	// log sge command
-	$parser->log("SGE command:\tqsub ".implode(" ", $sge_args)." ".$cmd_mapping);
+	$parser->log("SGE command:\tqsub {$qsub_command_args}");
 
 	// run qsub as user bioinf
-	list($stdout, $stderr) = $parser->exec("qsub", implode(" ", $sge_args)." ".$cmd_mapping);
+	list($stdout, $stderr) = $parser->exec("qsub", $qsub_command_args);
 	$sge_id = explode(" ", $stdout[0])[2];
 
 	// check if submission was successful
 	if ($sge_id<=0) 
 	{
-		trigger_error("SGE command failed:\n{$command_sge}\n{$command_pip}\nSTDOUT:\n".implode("\n", $stdout)."\nSTDERR:\n".implode("\n", $stderr), E_USER_ERROR);
+		trigger_error("SGE command failed:\nqsub {$qsub_command_args}\n{$command_pip}\nSTDOUT:\n".implode("\n", $stdout)."\nSTDERR:\n".implode("\n", $stderr), E_USER_ERROR);
 	}
 
 	// wait for job to finish
