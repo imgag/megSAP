@@ -26,6 +26,10 @@ extract($parser->parse($argv));
 
 //absolute path
 $run_dir = realpath($run_dir);
+if (!file_exists($run_dir))
+{
+	trigger_error("Run directory '{$run_dir}' does not exists!", E_USER_ERROR);
+}
 
 //find subdirectory in run directory
 $subdirs = array_values(array_diff(scandir($run_dir), array("..", ".")));
