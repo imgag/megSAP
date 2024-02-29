@@ -16,6 +16,7 @@ $parser->addFlag("prefer_bam", "Prefer BAM over FASTQ, if available.");
 $parser->addFlag("fastq", "Copy FASTQ files.");
 $parser->addFlag("bam", "Copy BAM files (unaligned or aligned).");
 $parser->addFlag("ignore_aligned", "Treat aligned BAM files as unaligned.");
+$parser->addFlag("queue_sample", "Queue analysis of the sample.");
 
 $parser->addString("single_fastq",  "Create single FASTQ file, without sample lookup and database checks.", true, "");
 
@@ -189,6 +190,11 @@ if ($fastq || ($prefer_bam && !$bam_available))
 
 	exec2("find {$fastq_paths_glob} -name '*.fastq.gz' -type f -exec cat  {} + > {$out_fastq}");
 	trigger_error("FASTQ saved in {$out_fastq}.", E_USER_NOTICE);
+}
+
+if ($queue_sample)
+{
+	$parser->execTool("NGS/db_queue_analysis.php", "-samples {$sample} -type 'single sample'");
 }
 
 ?>
