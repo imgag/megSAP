@@ -79,8 +79,9 @@
 	```
 
 # Demultiplexing of NovaSeqXPlus
-1. Make sure the DRAGEN analysis on the NovaSeq X is completed and all files are copied to the storage.  
-	A `CopyComplete.txt`file is created in `Analysis/[1-9]` when it is done.
+1. Make sure the DRAGEN analysis on the NovaSeq X is completed and all files are copied to the storage.   
+	A `CopyComplete.txt`file is created in the run folder when the copy is done.    
+	A `CopyComplete.txt`file is created in `Analysis/[1-9]` when the DRAGEN analysis is done.   
 
 2. Check basic run statistics with Illumina Sequence Analysis Viewer
 
