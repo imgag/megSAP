@@ -95,3 +95,11 @@ cd $folder
 wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.15.0+-x64-linux.tar.gz
 tar xzf ncbi-blast-2.15.0+-x64-linux.tar.gz
 rm ncbi-blast-2.15.0+-x64-linux.tar.gz
+
+#download modkit
+cd $folder
+wget https://github.com/nanoporetech/modkit/releases/download/v0.2.5-rc2/modkit_v0.2.5-rc2_centos7_x86_64.tar.gz
+tar xzf modkit_v0.2.5-rc2_centos7_x86_64.tar.gz
+mv dist modkit_v0.2.5-rc2
+chmod +x modkit_v0.2.5-rc2/modkit
+rm modkit_v0.2.5-rc2_centos7_x86_64.tar.gz
