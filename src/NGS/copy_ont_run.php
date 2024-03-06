@@ -109,20 +109,28 @@ foreach ($subdirs as $subdir)
 
 //check random BAM file to find out which information is present
 $bam_files = glob("{$bam_paths_glob}/*.bam");
-$bam_random_file = $bam_files[array_rand($bam_files, 1)];
+if (count($bam_files) !== 0)
+{
+	$bam_random_file = $bam_files[array_rand($bam_files, 1)];
 
-$ret = $parser->exec(get_path("samtools"), "view --count --exclude-flags 0x900 {$bam_random_file}");
-$num_records = intval($ret[0][0]);
-$ret = $parser->exec(get_path("samtools"), "view --count --tag ML {$bam_random_file}");
-$num_base_mods = intval($ret[0][0]);
-$ret = $parser->exec(get_path("samtools"), "view --count --require-flags 0x4 {$bam_random_file}");
-$num_unaligned = intval($ret[0][0]);
+	$ret = $parser->exec(get_path("samtools"), "view --count --exclude-flags 0x900 {$bam_random_file}");
+	$num_records = intval($ret[0][0]);
+	$ret = $parser->exec(get_path("samtools"), "view --count --tag ML {$bam_random_file}");
+	$num_base_mods = intval($ret[0][0]);
+	$ret = $parser->exec(get_path("samtools"), "view --count --require-flags 0x4 {$bam_random_file}");
+	$num_unaligned = intval($ret[0][0]);
 
-$modified_bases = $num_records == $num_base_mods;
-$aligned = $num_unaligned < $num_records;
+	$modified_bases = $num_records == $num_base_mods;
+	$aligned = $num_unaligned < $num_records;
 
-if ($aligned) trigger_error("Aligned BAM files available.", E_USER_NOTICE);
-if ($modified_bases) trigger_error("Modified bases BAM files available.", E_USER_NOTICE);
+	if ($aligned) trigger_error("Aligned BAM files available.", E_USER_NOTICE);
+	if ($modified_bases) trigger_error("Modified bases BAM files available.", E_USER_NOTICE);
+}
+else
+{
+	$aligned = false;
+	$modified_bases = false;
+}
 
 //find sample entered in database
 $result = $db_con->executeQuery("SELECT processed_sample.id FROM processed_sample, sequencing_run WHERE sequencing_run.name = '{$run_name}' AND processed_sample.sequencing_run_id=sequencing_run.id");
