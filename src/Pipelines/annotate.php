@@ -46,6 +46,7 @@ $annfile = $parser->tempFile(".vcf");
 $annfile_zipped = $out_folder."/".$out_name."_var_annotated.vcf.gz";	
 $varfile = $out_folder."/".$out_name.".GSvar";
 $statfile = $out_folder."/".$out_name."_stats_vc.qcML";
+$phasing_track = $out_folder."/".$out_name."_phasing_track.bed"; //(only for longreads)
 
 
 //get system
@@ -90,7 +91,7 @@ $parser->exec("tabix", "-f -p vcf $annfile_zipped", false); //no output logging,
 if (!$somatic) //germline only
 {
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
-	if (!$multi) $parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $statfile".(($sys['type']=="lrGS")?" -long_read":""), true);
+	if (!$multi) $parser->exec(get_path("ngs-bits")."VariantQC", "-in $annfile -out $statfile".(($sys['type']=="lrGS")?" -long_read -phasing_bed {$phasing_track}": ""), true);
 	
 	$args = [];
 	$args[] = "-in ".$annfile;

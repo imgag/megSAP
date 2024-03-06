@@ -333,4 +333,13 @@ check(basename2("/some/path/filename5")      , "filename5");
 
 end_test();
 
+//##################################################################################
+start_test("get_basecall_model");
+
+check(get_basecall_model(data_folder()."/get_basecall_model_dorado352.bam"), "dna_r10.4.1_e8.2_400bps_hac@v3.5.2");
+check(get_basecall_model(data_folder()."/get_basecall_model_dorado420.bam"), "dna_r10.4.1_e8.2_400bps_hac@v4.2.0");
+check(get_basecall_model(data_folder()."/get_basecall_model_no_model.bam"), "");
+
+end_test();
+
 ?>

@@ -82,6 +82,9 @@ if (!$no_sync)
 $bam_file = $folder."/".$name.".bam";
 $unmapped_bam_file = $folder."/".$name.".mod.unmapped.bam";
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
+//methylation 
+$modkit_track = $folder."/".$name."_modkit_track.bed";
+$modkit_summary = $folder."/".$name."_modkit_summary.txt";
 //variant calling
 $vcf_file = $folder."/".$name."_var.vcf.gz";
 $vcf_file_annotated = $folder."/".$name."_var_annotated.vcf.gz";
@@ -150,6 +153,18 @@ if (in_array("ma", $steps))
 	}
 	
 	$parser->execTool("NGS/mapping_minimap.php", implode(" ", $mapping_minimap_options));
+
+	// create methylation track
+	if (contains_methylation($bam_file))
+	{
+		$args = array();
+		$args[] = "-bam ".$bam_file;
+		$args[] = "-bed ".$modkit_track;
+		$args[] = "-summary ".$modkit_summary;
+		$args[] = "-threads ".$threads;
+		$args[] = "-build ".$build;
+		$parser->execTool("NGS/vc_modkit.php", implode(" ", $args));
+	}
 
 }
 else
@@ -285,7 +300,6 @@ if (in_array("cn", $steps))
 
 }
 
-
 //structural variants
 if (in_array("sv", $steps))
 {
@@ -293,7 +307,6 @@ if (in_array("sv", $steps))
 	$parser->execTool("NGS/vc_sniffles.php", "-bam {$bam_file} -sample_ids {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build}");
 				
 }
-
 
 //phasing
 if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
@@ -328,6 +341,7 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	$args[] = "-t {$threads}";
 	$args[] = "-o ".substr($phased_tmp, 0, -4);
 	$args[] = "--ont";
+	$args[] = "--indels";
 	if (file_exists($sv_vcf_file)) $args[] = "--sv-file {$sv_vcf_file}";
 	if ($contains_methylation) $args[] = "--mod-file {$vcf_modcall}";
 	
@@ -369,7 +383,6 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 		trigger_error("Error during coping BAM file! File sizes don't match!", E_USER_ERROR);
 	}
 }
-
 
 // annotation
 if (in_array("an", $steps))
@@ -492,7 +505,16 @@ if (in_array("an", $steps))
 			
 			//perform annotation
 			$parser->exec("{$ngsbits}BedpeAnnotateCounts", "-in $bedpe_file -out $bedpe_file -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", true);
-			$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_file} -out {$bedpe_file} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
+			$sys_specific_density_file = $ngsd_annotation_folder."sv_breakpoint_density_".$sys["name_short"].".igv";
+			if (file_exists($sys_specific_density_file))
+			{
+				$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_file} -out {$bedpe_file} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv -density_sys {$sys_specific_density_file}", true);
+			}
+			else
+			{
+				$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_file} -out {$bedpe_file} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
+			}
+			
 
 			// check if files changed during annotation
 			foreach ($ngsd_sv_files as $filename)
@@ -526,7 +548,7 @@ if (in_array("an", $steps))
 		$parser->exec("{$ngsbits}BedpeExtractGenotype", "-in $bedpe_file -out $bedpe_file -include_unphased", true);
 
 		//extract columns
-		$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_file -out $bedpe_file -info_fields SUPPORT,COVERAGE,AF", true);
+		$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_file -out $bedpe_file -info_fields SVLEN,SUPPORT,COVERAGE,AF", true);
 	}
 
 	//Repeat-expansion calling using straglr
