@@ -47,6 +47,8 @@ $min_taf = 0.05;
 $min_tsupp = 3;
 $min_nd = 20;
 $max_naf_rel = 1/6;
+$min_call_sq = 5;
+$min_filter_sq = 17.5;
 
 //set comments and column names
 $filter_format = '#FILTER=<ID=%s,Description="%s">';
@@ -57,7 +59,8 @@ $comments = [
 	sprintf($filter_format, "freq-tum", "Allele frequency in tumor < {$min_taf}"),
 	sprintf($filter_format, "depth-nor", "Sequencing depth in normal is too low (< {$min_nd})"),
 	sprintf($filter_format, "freq-nor", "Allele frequency in normal > ".number_format($max_naf_rel, 2)." * allele frequency in tumor"),
-	sprintf($filter_format, "lt-3-reads", "Less than {$min_tsupp} supporting tumor reads")
+	sprintf($filter_format, "lt-3-reads", "Less than {$min_tsupp} supporting tumor reads"),
+	sprintf($filter_format, "weak-evidence", "Somatic Quality lower than {$min_filter_sq}")
 	];
 
 $variants_filtered->setComments(array_merge($variants->getComments(), $comments));
@@ -87,6 +90,24 @@ for($i = 0; $i < $variants->rows(); ++$i)
 		$filter[] = "special-chromosome";
 	}
 	$calls = [];
+	
+	//Somatic quality
+	$f_parts = explode(":", $format);
+	$i_sq_value = array_search("SQ", $f_parts);
+	
+	$parts = explode(":", $tumor);
+	if($i_sq_value !== false)
+	{
+		$snp_q = floatval($parts[$i_sq_value]);
+	}
+	else
+	{
+		$snp_q = 0;
+	}
+	
+	if ($snp_q < $min_call_sq) continue;
+	
+	if ($snp_q < $min_filter_sq) $filter[] = "weak-evidence";
 
 	list($td, $tf) = vcf_dragen_var($format, $tumor, $alt);
 	list($nd, $nf) = vcf_dragen_var($format, $normal, $alt);
