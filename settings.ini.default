@@ -5,20 +5,20 @@
 ;only adapting the NGSD database credentials is necessary.
 
 [tools-ngs]
-python3 = [path]/data/tools/Python-3.10.9/bin/python3.10
+python3 = [path]/data/tools/Python-3.10.9_8.2.24/bin/python3.10
 python27 = [path]/data/tools/Python-2.7.18/bin/python2.7
 ngs-bits = [path]/data/tools/ngs-bits/bin/
-samtools = [path]/data/tools/samtools-1.17/samtools
+samtools = [path]/data/tools/samtools-1.19/samtools
 freebayes = [path]/data/tools/freebayes-1.3.6/freebayes
 vcflib = [path]/data/tools/vcflib-1.0.3/build/
 abra2 = java -Xmx16g -jar [path]/data/tools/abra2-2.23/abra2.jar
 samblaster = [path]/data/tools/samblaster-0.1.26/samblaster
 bwa = [path]/data/tools/bwa-0.7.17/bwa
 bwa-mem2 = [path]/data/tools/bwa-mem2-2.2.1_x64-linux/bwa-mem2
-vep = [path]/data/tools/ensembl-vep-release-109.3/vep
-vep_data = [path]/data/dbs/ensembl-vep-109/
+vep = [path]/data/tools//ensembl-vep-release-110.1/vep
+vep_data = [path]/data/dbs/ensembl-vep-110/
 perl_cpan = [path]/data/tools/perl_cpan/
-interop = [path]/data/tools/InterOp-1.1.21-Linux-GNU/bin/summary
+interop = [path]/data/tools/interop-1.2.4-Linux-GNU/bin/summary
 rscript = [path]/R-4.1.0/bin/Rscript
 clincnv = [path]/data/tools/ClinCNV-1.18.3/clinCNV.R
 clincnv_cohorts = [path]/data/ClinCNV-cohorts/
@@ -27,30 +27,30 @@ expansion_hunter = [path]/data/tools/ExpansionHunter-v5.0.0-linux_x86_64/bin/Exp
 splice_env = [path]/data/tools/SplicingTools/splice_env3_10/
 REViewer = [path]/data/tools/REViewer-v0.2.7/REViewer-v0.2.7
 happy = [path]/data/tools/hap.py-0.3.14/bin/hap.py
-bedtools = [path]/data/tools/bedtools-2.30.0/bedtools.static.binary
+bedtools = [path]/data/tools/bedtools-2.31.0/bedtools.static
 gatk = java -Xmx4G -jar /[path]/data/tools/gatk-4.2.6.1/gatk-package-4.2.6.1-local.jar
 orad = [path]/data/tools/orad_2_6_1/orad
 
 [tools-longread]
 minimap2 = [path]/data/tools/minimap2-2.26_x64-linux/minimap2
-clair3 = [path]/data/tools/Clair3-v1.0.2/run_clair3.sh
-clair3_models = [path]/data/tools/Clair3-v1.0.2/models
-longphase = [path]/data/tools/longphase_v1.5/longphase_linux-x64
-whatshap = [path]/data/tools/Python-3.10.9/bin/whatshap
-pypy3 = [path]/data/tools/pypy3.9-v7.3.11-linux64/bin/pypy3
+clair3 = [path]/data/tools/Clair3-v1.0.5/run_clair3.sh
+clair3_models = [path]/data/tools/Clair3-v1.0.5/models
+longphase = [path]/data/tools/longphase_v1.6/longphase_linux-x64
+whatshap = [path]/data/tools/Python-3.10.9_8.2.24/bin/whatshap
+pypy3 = [path]/data/tools/pypy3.9-v7.3.14-linux64/bin/pypy3
 parallel = [path]/data/tools/parallel-20230522/bin/parallel
-sniffles = [path]/data/tools/Python-3.10.9/bin/sniffles
+sniffles = [path]/data/tools/Python-3.10.9_8.2.24/bin/sniffles
 straglr = [path]/data/tools/straglr-1.4.1/straglr.py
 trf = [path]/data/tools/TRF_4.09/trf409.linux64
 blastn = [path]/data/tools/ncbi-blast-2.15.0+/bin/blastn
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.10.centos6_x86_64/bin/
-varscan2 = java -jar [path]/data/tools/VarScan.v2.4.5/VarScan.v2.4.5.jar
+varscan2 = java -jar [path]/data/tools/VarScan.v2.4.6/VarScan.v2.4.6.jar
 manta = [path]/data/tools/manta-1.6.0.centos6_x86_64/bin/
 mantis = [path]/data/tools/MANTIS-1.0.5/mantis.py
 mipgen = [path]/data/tools/MIPGEN/mipgen
-umiVar2 = [path]/data/tools/umiVar2/
+umiVar2 = [path]/data/tools/umiVar2_2024_02/
 hla_genotyper = [path]/data/tools/hla-genotyper-2022_05/genotyper.py
 scarHRD = [path]/data/tools/scarHRD/R/cli_scarHRD.R
 
@@ -58,7 +58,7 @@ scarHRD = [path]/data/tools/scarHRD/R/cli_scarHRD.R
 STAR = [path]/data/tools/STAR-2.7.10b/bin/Linux_x86_64/STAR
 feature_counts = [path]/data/tools/subread-2.0.4/bin/featureCounts
 arriba = [path]/data/tools/arriba_v2.4.0
-umi_tools = [path]/data/tools/Python-3.10.9/bin/umi_tools
+umi_tools = [path]/data/tools/Python-3.10.9_8.2.24/bin/umi_tools
 kraken2 = [path]/data/tools/kraken2-2.1.2/bin/kraken2
 
 [tools-primer]
