@@ -178,6 +178,48 @@ else
 //variant calling
 if (in_array("vc", $steps))
 {
+	//determine basecall model
+	$basecall_model = get_basecall_model($bam_file);
+	$basecall_model_path = "";
+
+	if ($basecall_model == "")
+	{
+		//if no entry in BAM header -> use default model
+		if (($sys["name_short"] == "SQK-LSK114") || ($sys["name_short"] == "LR-ONT-SQK-LSK114"))
+		{
+			$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
+		}
+		else if ($sys["name_short"] == "SQK-LSK109")
+		{
+			$basecall_model_path = get_path("clair3_models")."/r941_prom_hac_g360+g422/";
+		}
+		else
+		{
+			trigger_error("Unsupported processing system '".$sys["shortname"]."' provided!", E_USER_ERROR);
+		}
+
+		trigger_error("No basecall info found in BAM file. Using default model at '{$basecall_model_path}'.", E_USER_NOTICE);
+	}
+	//special handling of old models
+	else if ($basecall_model == "dna_r10.4.1_e8.2_400bps_hac@v3.5.2")
+	{
+		$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
+
+		trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (special case).", E_USER_NOTICE);
+	} 
+	//all new models can be directly derived
+	else 
+	{
+		$reformated_model_str = strtr($basecall_model, array("dna_" => "", "." => "", "@" => "_"));
+		$basecall_model_path = get_path("clair3_models")."/".$reformated_model_str."/";
+
+		trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (automatically derived).", E_USER_NOTICE);
+	}
+
+	//check if selected model is available
+	if (!file_exists($basecall_model_path)) trigger_error("Basecall model at '{$basecall_model_path}' not found!", E_USER_ERROR);
+
+	//prepare clair command
 	$args = [];
 	$args[] = "-bam ".$bam_file;
 	$args[] = "-folder ".$folder;
@@ -187,21 +229,7 @@ if (in_array("vc", $steps))
 	$args[] = "-threads ".$threads;
 	$args[] = "-build ".$build;
 	$args[] = "--log ".$parser->getLogFile();
-
-	//TODO: write function to determine correct model
-	# determine model
-	if (($sys["name_short"] == "SQK-LSK114") || ($sys["name_short"] == "LR-ONT-SQK-LSK114"))
-	{
-		$args[] = "-model ".get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
-	}
-	else if ($sys["name_short"] == "SQK-LSK109")
-	{
-		$args[] = "-model ".get_path("clair3_models")."/r941_prom_sup_g5014/";
-	}
-	else
-	{
-		trigger_error("Unsupported processing system '".$sys["shortname"]."' provided!", E_USER_ERROR);
-	}
+	$args[] = "-model ".$basecall_model_path;
 	
 	$parser->execTool("NGS/vc_clair.php", implode(" ", $args));	
 }

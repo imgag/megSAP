@@ -124,6 +124,10 @@ else
 print date("Y-m-d H:i:s")." creating tar.gz file\n";
 $parser->exec("pigz", "-p 8 -c -1 $tmp_tar > $zipfile", true);
 
+//log file size
+print date("Y-m-d H:i:s")." get compressed file size\n";
+$parser->exec("du", "-h $zipfile", true);
+
 //test zip archive integrity
 print date("Y-m-d H:i:s")." testing tar.gz file integrity\n";
 $parser->exec("pigz", "-p 8 -t $zipfile", true);

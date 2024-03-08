@@ -35,8 +35,8 @@ an:
 	php ../../src/Pipelines/trio_longread.php -c 21073LRa015_01.bam -f 21073LRa013_01.bam -m 21073LRa014_01.bam -out_folder . -no_check -system system.ini -steps an 
 	# remove gene annotation
 	cut -f1-24 trio_var_structural_variants.bedpe > trio_var_structural_variants_cut.bedpe
-	# create file from OMIM annotation and CNV overlap
-	cat trio_var_structural_variants.bedpe | egrep -v "^##"| rev | cut -f 1-3,5| rev > trio_var_structural_variants_cut2.bedpe
+	# create file from the constant last columns
+	cat trio_var_structural_variants.bedpe | egrep -v "^##"| rev | cut -f 1-8| rev > trio_var_structural_variants_cut2.bedpe
 	# remove CNV NGSD annotation
 	cut -f1-18 trio_cnvs_clincnv.tsv > trio_cnvs_clincnv_cut.tsv
 

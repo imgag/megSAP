@@ -288,11 +288,11 @@ if (in_array("an", $steps))
 				$sys_specific_density_file = $ngsd_annotation_folder."sv_breakpoint_density_".$sys["name_short"].".igv";
 				if (file_exists($sys_specific_density_file))
 				{
-					$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_file} -out {$bedpe_file} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv -density_sys {$sys_specific_density_file}", true);
+					$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv -density_sys {$sys_specific_density_file}", true);
 				}
 				else
 				{
-					$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_file} -out {$bedpe_file} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
+					$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
 				}
 
 				// check if files changed during annotation
