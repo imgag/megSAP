@@ -1174,6 +1174,7 @@ if (in_array("db", $steps))
 	
 	//check gender
 	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
+	
 	//import variants
 	$args = ["-ps {$name}"];
 	$import = false;

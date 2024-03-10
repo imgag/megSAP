@@ -473,31 +473,30 @@ function gender($genotypes, $het, $male, $female)
  */
 function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 {
-	//split name
-	$name = trim($name);
-	$parts = explode("_", $name."_99");
-	list($sname, $id) = $parts;
-	$id = ltrim($id, "0");
+	static $cache = [];
 	
-	//query NGSD
-	try 
+	//not in cache > add it
+	if (!isset($cache[$name]))
 	{
+		//split name
+		$name = trim($name);
+		$parts = explode("_", $name."_99");
+		list($sname, $id) = $parts;
+		$id = ltrim($id, "0");
+		
+		//query NGSD
 		$res = $db_conn->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name=:name AND ps.process_id=:id", array('name' => $sname, "id"=>$id));
-	}
-	catch(PDOException $e)
-	{
-		if ($error_if_not_found) throw $e;
-		return -1;
-	}
-	
-	//processed sample not found
-	if (count($res)!=1)
-	{
-		if ($error_if_not_found) trigger_error("Could not find processed sample with name '$name' in NGSD!", E_USER_ERROR);
-		return -1;
+		
+		if (count($res)<1)
+		{
+			if ($error_if_not_found) trigger_error("Could not find processed sample with name '$name' in NGSD!", E_USER_ERROR);
+			return -1;
+		}
+		
+		$cache[$name] = $res[0]['id'];
 	}
 	
-	return $res[0]['id'];
+	return $cache[$name];
 }
 
 ///returns array with processed sample names in the form DX******_** from run name
