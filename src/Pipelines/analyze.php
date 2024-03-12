@@ -1045,7 +1045,7 @@ if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
 }
 
 // collect other QC terms
-if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps)) && ! $somatic)
+if (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps))
 {
 	$terms = [];
 	$sources = [];
