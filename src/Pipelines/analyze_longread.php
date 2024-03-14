@@ -83,7 +83,7 @@ $bam_file = $folder."/".$name.".bam";
 $unmapped_bam_file = $folder."/".$name.".mod.unmapped.bam";
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 //methylation 
-$modkit_track = $folder."/".$name."_modkit_track.bed";
+$modkit_track = $folder."/".$name."_modkit_track.bed.gz";
 $modkit_summary = $folder."/".$name."_modkit_summary.txt";
 //variant calling
 $vcf_file = $folder."/".$name."_var.vcf.gz";

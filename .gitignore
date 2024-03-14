@@ -161,6 +161,8 @@
 /test/data_longread/*_prs.tsv
 /test/data_longread/*_repeats.tsv
 /test/data_longread/*_repeats.bed
+/test/data_longread/*.bed.gz
+/test/data_longread/*.bed.gz.tbi
 
 /test/data_trio_longread/*.fastq.gz
 /test/data_trio_longread/*.bam

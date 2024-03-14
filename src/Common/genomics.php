@@ -2249,12 +2249,12 @@ function get_basecall_model($bam_file)
 
 	if (count($basecall_model) < 1)
 	{
-		trigger_error("WARNING: No basecall model found!", E_USER_WARNING);
+		trigger_error("No basecall model found!", E_USER_WARNING);
 		return "";
 	}
 	elseif  (count($basecall_model) > 1)
 	{
-		trigger_error("WARNING: Multiple different basecall model entries found! Using the first one ('".$basecall_model[0]."').", E_USER_WARNING);
+		trigger_error("Multiple different basecall model entries found! Using the first one ('".$basecall_model[0]."').", E_USER_WARNING);
 	}
 	return $basecall_model[0];
 
