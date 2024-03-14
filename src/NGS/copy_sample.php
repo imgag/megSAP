@@ -443,7 +443,7 @@ foreach($sample_data as $sample => $sample_infos)
 				$fastq_folder = $old_location."/fastq";
 			}
 		}
-		else if($sys_type == "RNA")
+		else if(($sys_type == "RNA") || ($sys_type == "Panel"))
 		{
 			$old_location .= "/BCLConvert";
 			if (file_exists($old_location."/ora_fastq"))
@@ -480,7 +480,7 @@ foreach($sample_data as $sample => $sample_infos)
 	//build copy line
 	if($is_novaseq_x)
 	{
-		if($sys_type == "RNA")
+		if(($sys_type == "RNA") || ($sys_type == "Panel"))
 		{
 			//only copy FastQ files
 			//get FastQs
