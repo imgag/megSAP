@@ -130,11 +130,6 @@ foreach($steps as $step)
 //check dragen requirements
 if (in_array("vc", $steps)  && $use_dragen)
 {
-	if (exec('whoami') != get_path("dragen_user"))
-	{
-		trigger_error("Variant calling has to be run as user '".get_path("dragen_user")."' if DRAGEN mapping should be used!", E_USER_ERROR);
-	}
-	
 	$dragen_input_folder = get_path("dragen_in");
 	$dragen_output_folder = get_path("dragen_out");
 	if (!file_exists($dragen_input_folder))	
@@ -196,7 +191,26 @@ if (!$single_sample)
 	//Check whether both samples have same processing system
 	if($roi != $n_sys["target_file"])
 	{
-		trigger_error("Tumor sample $t_id and normal sample $n_id have different target regions. Aborting...",E_USER_ERROR);
+		#test that tumor target is a subset of normal target
+		exec(get_path("ngs-bits")."BedSubtract -in ".$roi." -in2 ".$n_sys["target_file"], $output, $return_var);
+		
+		foreach ($output as $line)
+		{
+			if ($line == "" || starts_with($line, "#")) continue;
+			
+			trigger_error("Tumor sample $t_id  target region is different from, and not a subset of, the normal sample $n_id target region.",E_USER_ERROR);
+		}
+		
+		trigger_error("Tumor sample $t_id and normal sample $n_id have different target regions.",E_USER_WARNING);
+		
+		
+		if (in_array("cn", $steps))
+		{
+			trigger_error("CNVs cannot be calculated with two different target regions. Removing 'cn' step!",E_USER_WARNING);
+			
+			$key = array_search("cn", $steps);
+			unset($steps[$key]);
+		}
 	}
 }
 
