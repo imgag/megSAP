@@ -11,6 +11,7 @@ python3_path=$folder/Python-3.10.9/
 #folder=/mnt/storage2/megSAP/tools/
 
 #download minimap
+cd $folder
 curl -L https://github.com/lh3/minimap2/releases/download/v2.26/minimap2-2.26_x64-linux.tar.bz2 | tar -jxvf -
 
 #download clair3

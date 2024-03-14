@@ -1053,7 +1053,7 @@ if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
 }
 
 // collect other QC terms
-if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps)) && ! $somatic)
+if (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps))
 {
 	$terms = [];
 	$sources = [];
@@ -1182,6 +1182,7 @@ if (in_array("db", $steps))
 	
 	//check gender
 	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
+	
 	//import variants
 	$args = ["-ps {$name}"];
 	$import = false;

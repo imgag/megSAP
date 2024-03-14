@@ -691,11 +691,11 @@ foreach($sample_data as $sample => $sample_infos)
 					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal}";
 					if($is_novaseq_x)
 					{
-						$outputline .= " -args '-steps vc,cn,db -use_dragen -somatic'\n\t";
+						$outputline .= " -args '-use_dragen -somatic'\n\t";
 					}
 					else
 					{
-						$outputline .= " -args '-steps ma,vc,cn,db -somatic'\n\t";
+						$outputline .= " -args '-somatic'\n\t";
 					}
 					//track that normal sample is queued
 					$queued_normal_samples[] = $normal;
