@@ -16,6 +16,7 @@ $parser->addOutfile("out",  "Output Makefile. Default: 'Makefile'.", true);
 $parser->addFlag("high_priority", "Assign high priority to all queued samples.");
 $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
 $parser->addFlag("no_rename_r3", "Do not rename R2/R3 FASTQ files to index/R2.");
+$parser->addFlag("ignore_nsx_analysis", "Ignore NovaSeqX Analysis results.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addInt("threads_ora", "Number of threads used to decompress ORA files during the copy.", true, 8);
 $parser->addFlag("test", "Run in test mode, e.g. set the pipeline path to a fixed value.");
@@ -236,7 +237,7 @@ if($flowcell_id != $flowcell_id_ngsd) trigger_error("ERROR: FlowCell id from run
 //get instrument type
 $run_parameters_xml = $run_folder."/RunParameters.xml";
 if(!file_exists($run_parameters_xml)) trigger_error("ERROR: Required RunParameters.xml file is missing in the run folder!", E_USER_ERROR);
-$is_novaseq_x = is_novaseq_x_run($run_parameters_xml);
+$is_novaseq_x = is_novaseq_x_run($run_parameters_xml) && !$ignore_nsx_analysis;
 
 //change default data folder for NovaSeqX 
 if($is_novaseq_x && ($folder=="Unaligned")) 
@@ -443,7 +444,7 @@ foreach($sample_data as $sample => $sample_infos)
 				$fastq_folder = $old_location."/fastq";
 			}
 		}
-		else if($sys_type == "RNA")
+		else if(($sys_type == "RNA") || ($sys_type == "Panel"))
 		{
 			$old_location .= "/BCLConvert";
 			if (file_exists($old_location."/ora_fastq"))
@@ -480,7 +481,7 @@ foreach($sample_data as $sample => $sample_infos)
 	//build copy line
 	if($is_novaseq_x)
 	{
-		if($sys_type == "RNA")
+		if(($sys_type == "RNA") || ($sys_type == "Panel"))
 		{
 			//only copy FastQ files
 			//get FastQs
