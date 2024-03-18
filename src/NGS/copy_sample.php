@@ -707,6 +707,8 @@ foreach($sample_data as $sample => $sample_infos)
 				//queue somatic analysis: only if normal sample is included in this run or its folder exists
 				if(in_array($normal,$queued_normal_samples) || is_dir($n_dir))
 				{
+					if ($test) $use_drage_somatic = false; // set fixed for tests
+					
 					if ($use_drage_somatic === null)
 					{
 						echo "Somatic anylsis about to be started. Use dragen for somatic analysis on this run (y/n)?\n";
