@@ -394,7 +394,15 @@ $target_to_queuelines = array();
 $queue_trios = array();
 $project_to_fastqonly_samples = array();
 $sample_to_newlocation = array();
-$use_drage_somatic = null;
+
+if ((get_path("dragen_user", false) != "") && (get_path("queues_dragen", false) != "") && !$test)
+{
+	$use_dragen_somatic = null;
+}
+else
+{
+	$use_dragen_somatic = false;
+}
 
 foreach($sample_data as $sample => $sample_infos)
 {
@@ -707,17 +715,15 @@ foreach($sample_data as $sample => $sample_infos)
 				//queue somatic analysis: only if normal sample is included in this run or its folder exists
 				if(in_array($normal,$queued_normal_samples) || is_dir($n_dir))
 				{
-					if ($test) $use_drage_somatic = false; // set fixed for tests
-					
-					if ($use_drage_somatic === null)
+					if ($use_dragen_somatic === null)
 					{
 						echo "Somatic anylsis about to be started. Use dragen for somatic analysis on this run (y/n)?\n";
 						$answer = trim(fgets(STDIN));
 						
-						$use_drage_somatic = ($answer == "y");
+						$use_dragen_somatic = ($answer == "y");
 					}
 					
-					if ($use_drage_somatic)
+					if ($use_dragen_somatic)
 					{
 						$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal -args '-use_dragen'";
 					}
