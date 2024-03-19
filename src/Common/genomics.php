@@ -2227,9 +2227,9 @@ function get_basecall_model($bam_file)
 			{
 				foreach($split_line as $column)
 				{
-					if (starts_with($column, "DS"))
+					if (starts_with($column, "DS:"))
 					{
-						$entries = explode(" ", $column);
+						$entries = explode(" ", substr($column, 3));
 						foreach($entries as $entry)
 						{
 							if (starts_with($entry, "basecall_model=")) $basecall_model[] = trim(explode("=", $entry)[1]);
