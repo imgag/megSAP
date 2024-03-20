@@ -32,24 +32,24 @@ foreach($project_types as $type)
 {
 	$folder = $project_folders[$type];
 	
+	//change permissions (before user and group to make sure the files that are currently being written are still writable)
+	$time_start = microtime(true);
+	print "Changing permissions of '{$folder}' to '{$permissions}'...\n";
+	exec2("chmod -R {$permissions} {$folder}");
+	print "  took ".time_readable(microtime(true)-$time_start)."\n";
+		
+	//change group (everyone should have this group)
+	$time_start = microtime(true);
+	print "Changing group of '{$folder}' to '{$group}'...\n";
+	exec2("chgrp -R {$group} {$folder}");
+	print "  took ".time_readable(microtime(true)-$time_start)."\n";
 	
-	//change group (first - everyone should have this group)
+	//change user
 	$time_start = microtime(true);
 	print "Changing owner of '{$folder}' to '{$owner}'...\n";
 	exec2("chown -R {$owner} {$folder}");
 	print "  took ".time_readable(microtime(true)-$time_start)."\n";
 	
-	//change permissins (before user to make sure the files that are currently written are still writable)
-	$time_start = microtime(true);
-	print "Changing permissions of '{$folder}' to '{$permissions}'...\n";
-	exec2("chmod -R {$permissions} {$folder}");
-	print "  took ".time_readable(microtime(true)-$time_start)."\n";
-	
-	//change user
-	$time_start = microtime(true);
-	print "Changing group of '{$folder}' to '{$group}'...\n";
-	exec2("chgrp -R {$group} {$folder}");
-	print "  took ".time_readable(microtime(true)-$time_start)."\n";
 }
 
 ?>
