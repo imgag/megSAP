@@ -30,7 +30,7 @@ an:
 	# remove gene annotation
 	cut -f1-23 test_multi_var_structural_variants.bedpe > test_multi_var_structural_variants_cut.bedpe
 	# create file from OMIM annotation and CNV overlap
-	cat test_multi_var_structural_variants.bedpe | egrep -v "^##"| rev | cut -f 1-3,5| rev > test_multi_var_structural_variants_cut2.bedpe
+	cat test_multi_var_structural_variants.bedpe | egrep -v "^##"| rev | cut -f 1-7| rev > test_multi_var_structural_variants_cut2.bedpe
 	# remove CNV NGSD annotation
 	cut -f1-18 test_multi_cnvs_clincnv.tsv > test_multi_cnvs_clincnv_cut.tsv
 
