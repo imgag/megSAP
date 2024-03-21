@@ -318,14 +318,7 @@ if (in_array("ma", $steps))
 else if (file_exists($bamfile) || file_exists($cramfile))
 {	
 	//set BAM/CRAM to use
-	if (file_exists($bamfile))
-	{
-		$used_bam_or_cram = $bamfile;
-	}
-	else
-	{
-		$used_bam_or_cram = $cramfile;
-	}
+	$used_bam_or_cram = file_exists($bamfile) ? $bamfile : $cramfile;
 	
 	//check genome build of BAM
 	check_genome_build($used_bam_or_cram, $build);
@@ -808,7 +801,18 @@ if (in_array("cn", $steps))
 		{
 			$args[] = "-mosaic";
 		}
-
+		
+		if(db_is_enabled("NGSD"))
+		{
+			$db = DB::getInstance("NGSD", false);
+			$ps_id = get_processed_sample_id($db, $name, false);
+			if ($ps_id!=-1)
+			{
+				$gender = $db->getValue("SELECT s.gender FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.id={$ps_id}");
+				$args[] = "-gender {$gender}";
+			}
+		}
+		
 		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 		
 		//copy results to output folder

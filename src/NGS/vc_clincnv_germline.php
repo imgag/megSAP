@@ -21,7 +21,9 @@ $parser->addInt("max_cnvs", "Number of expected CNVs (~200 for WES and ~2000 for
 $parser->addInt("max_tries", "Maximum number of tries for calling ClinCNV (R parallelization sometimes breaks with no reason", true, 10);
 $parser->addInt("regions", "Number of subsequent regions that must show a signal for a call.", true, 2);
 $parser->addFlag("skip_super_recall", "Skip super-recall (down to one region and log-likelihood 3).");
-$parser->addFlag("mosaic","Detect additionally large mosaic regions (for WES, WGS and shallow WGS");
+$parser->addFlag("mosaic", "Detect additionally large mosaic regions (for WES, WGS and shallow WGS");
+$parser->addEnum("gender", "Force gender used by ClinCNV", true, ['male', 'female', 'n/a'], 'n/a');
+
 //tumor only flags (use for somatic with no normal sample)
 $parser->addFlag("tumor_only", "Analyze tumor sample without a paired normal sample.");
 $parser->addInfile("bed_off","Off-target bed file.",true); //s_dna
@@ -408,6 +410,7 @@ function run_clincnv($out, $mosaic=FALSE)
 	global $cov_merged;
 	global $bed;
 	global $threads;
+	global $gender;
 
 	$out_folder = $parser->tempFolder();
 
@@ -422,6 +425,9 @@ function run_clincnv($out, $mosaic=FALSE)
 		"--noPlot",
 		"--folderWithScript ".dirname(get_path("clincnv"))
 		];
+		
+	if ($gender=="male") $args[] = "--sex M";
+	if ($gender=="female") $args[] = "--sex F";
 
 	//analyzing a single tumor sample
 	if($tumor_only)
@@ -449,6 +455,7 @@ function run_clincnv($out, $mosaic=FALSE)
 		$args[] = "--maxNumGermCNVs {$max_cnvs}";
 		$args[] = "--lengthG ".($regions-1); //lengthG actually gives the number of additional regions > subtract 1
 		$args[] = "--scoreG 20";
+		
 	}
 
 	//use_off_target is set for tumor_only with off target cov/bed files
