@@ -315,63 +315,61 @@ if (in_array("ma", $steps))
 		}
 	}
 }
-else if (file_exists($bamfile))
+else if (file_exists($bamfile) || file_exists($cramfile))
 {	
-	//check genome build of BAM
-	check_genome_build($bamfile, $build);
-	
-	$used_bam_or_cram = $bamfile;
-
-	if($use_dragen)
+	//set BAM/CRAM to use
+	if (file_exists($bamfile))
 	{
-		// Do ReadQC/MappingQC for already mapped/called samples from the NovaSeq X (only if files do not exist)
-		if(!file_exists($qc_map))
-		{
-			//run mapping QC
-			$params = array("-in $bamfile", "-out {$qc_map}", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
-			if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
-			{
-				$params[] = "-wgs";
-			}
-			else
-			{
-				$params[] = "-roi ".$sys['target_file'];
-			}
-			if ($sys['build']!="GRCh38")
-			{
-				$params[] = "-no_cont";
-			}
-			if ($somatic && file_exists($somatic_custom_panel))
-			{
-				$params[] = "-somatic_custom_bed $somatic_custom_panel";
-			}
-			if (!file_exists($qc_fastq))
-			{
-				$params[] = "-read_qc $qc_fastq";
-			}
-			$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
-		}	
+		$used_bam_or_cram = $bamfile;
+	}
+	else
+	{
+		$used_bam_or_cram = $cramfile;
+	}
+	
+	//check genome build of BAM
+	check_genome_build($used_bam_or_cram, $build);
 
-		if(!file_exists($lowcov_file))
+	//QC for already mapped/called samples from the NovaSeq X
+	if($use_dragen && !file_exists($qc_map))
+	{
+		//QC
+		$params = array("-in $used_bam_or_cram", "-out {$qc_map}", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
+		if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
 		{
-			//low-coverage report
-			if ($has_roi && !$is_wgs_shallow)
-			{	
-				$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20 -threads {$threads}", true);
-				if (db_is_enabled("NGSD"))
-				{
-					$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
-				}
+			$params[] = "-wgs";
+		}
+		else
+		{
+			$params[] = "-roi ".$sys['target_file'];
+		}
+		if ($sys['build']!="GRCh38")
+		{
+			$params[] = "-no_cont";
+		}
+		if ($somatic && file_exists($somatic_custom_panel))
+		{
+			$params[] = "-somatic_custom_bed $somatic_custom_panel";
+		}
+		if (!file_exists($qc_fastq))
+		{
+			$params[] = "-read_qc $qc_fastq";
+		}
+		$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
+	}	
+	
+	//low-coverage regions for already mapped/called samples from the NovaSeq X
+	if($use_dragen && !file_exists($lowcov_file))
+	{
+		if ($has_roi && !$is_wgs_shallow)
+		{	
+			$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads}", true);
+			if (db_is_enabled("NGSD"))
+			{
+				$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
 			}
 		}
-		
 	}
-}
-else if (file_exists($cramfile))
-{
-	check_genome_build($cramfile, $build);
-	
-	$used_bam_or_cram = $cramfile;
 }
 
 //variant calling
