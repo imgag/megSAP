@@ -35,26 +35,40 @@ foreach($status as $stat)
 }
 
 //split VCF for each chromosome and run in parallel
-$temp_folder = $parser->tempFolder("merge_gvcf_pid_".getmypid()."_");
+$temp_folder = $parser->tempFolder("merge_gvcf_pid_".getmypid()."_split_");
 
-//get chr regions
+//get chr regions and sample order
 $chr_regions = array();
-//read header from first file
-$gvcf_fh = gzopen2($gvcfs[0], "r");
+$sample_order = array();
+$first_file = true;
 
-while(!gzeof($gvcf_fh))
+foreach($gvcfs as $gvcf)
 {
-	$line = trim(gzgets($gvcf_fh));
-	//stop when reaching variant area
-	if ($line[0]!="#") break;
-	//parse contig lines
-	if (starts_with($line, "##contig="))
+	//read header from each file
+	$gvcf_fh = gzopen2($gvcf, "r");
+
+	while(!gzeof($gvcf_fh))
 	{
-		$chr = trim(explode(",", explode("ID=", $line, 2)[1], 2)[0]);
-		$length = (int) explode(">", explode("length=", $line, 2)[1], 2)[0];
-		$chr_regions[] = array($chr, $length);
+		$line = trim(gzgets($gvcf_fh));
+		//stop when reaching variant area
+		if ($line[0]!="#") break;
+		//parse contig lines (only done for the first file)
+		if ($first_file && starts_with($line, "##contig="))
+		{
+			$chr = trim(explode(",", explode("ID=", $line, 2)[1], 2)[0]);
+			$length = (int) explode(">", explode("length=", $line, 2)[1], 2)[0];
+			$chr_regions[] = array($chr, $length);
+		}
+		//extract sample name
+		if (starts_with($line, "#CHROM"))
+		{
+			$sample_name = explode("\t", $line);
+			$sample_order[] = trim(end($sample_name));
+		}
 	}
+	$first_file = false;
 }
+
 
 //create jobs to split up input gVCFs
 $gvcf_file_prefix = array();
@@ -62,7 +76,7 @@ $jobs_split_gvcf = array();
 $jobs_index_gvcf =array();
 foreach($gvcfs as $gvcf)
 {
-	$gvcf_file_prefix[$gvcf] = random_string(8);
+	$gvcf_file_prefix[$gvcf] = random_string(8)."_".basename($gvcf);
 	foreach($chr_regions as list($chr, $length))
 	{
 		$tmp_gvcf_file_name = $temp_folder."/".$gvcf_file_prefix[$gvcf]."_".$chr.".gvcf.gz";
@@ -92,8 +106,7 @@ foreach($chr_regions as list($chr, $length))
 	$args[] = "--seconds-between-progress-updates 3600"; //only update progress once every hour to keep log-file smaller
 	foreach ($gvcfs as $gvcf) 
 	{
-		$tmp_gvcf_file_name = $temp_folder."/".$gvcf_file_prefix[$gvcf]."_".$chr.".gvcf.gz";
-		$args[] = "--variant {$tmp_gvcf_file_name}";
+		$args[] = "--variant ".$temp_folder."/".$gvcf_file_prefix[$gvcf]."_".$chr.".gvcf.gz";
 	}
 
 	//special handling of chrY: takes much longer so start with it
@@ -108,7 +121,7 @@ foreach($chr_regions as list($chr, $length))
 	
 }
 
-// run variant calling for every chromosome separately
+// run genotype calling for every chromosome separately
 $parser->execParallel($jobs_combine_gvcf, $threads);
 
 //GenotypeGVCFs
@@ -139,10 +152,12 @@ foreach($chr_regions as list($chr, $length))
 	$chr_multisample_gvcfs[] = "{$temp_folder_out}/{$chr}.gvcf.gz";
 	$chr_multisample_vcfs[] = "{$temp_folder_out}/{$chr}.vcf.gz";
 }
+
+
 //merge gVCFs
 $pipeline = array();
 $pipeline[] = array(get_path("ngs-bits")."VcfMerge", "-in ".implode(" ", $chr_multisample_gvcfs));
-$pipeline[] = array("bgzip", "-@ {$threads} -c > {$gvcf_out}");
+$pipeline[] = array(get_path("bcftools"), "view --threads {$threads} -l 9 -O z -o {$gvcf_out} -s ".implode(",", $sample_order));
 $parser->execPipeline($pipeline, "Merge gVCF");
 $parser->exec("tabix", "-f -p vcf {$gvcf_out}", false); //no output logging, because Toolbase::extractVersion() does not return
 
@@ -150,9 +165,8 @@ $parser->exec("tabix", "-f -p vcf {$gvcf_out}", false); //no output logging, bec
 $tmp_vcf = $parser->tempFile(".vcf.gz");
 $pipeline = array();
 $pipeline[] = array(get_path("ngs-bits")."VcfMerge", "-in ".implode(" ", $chr_multisample_vcfs));
-$pipeline[] = array("bgzip", "-@ {$threads} -c > {$tmp_vcf}");
+$pipeline[] = array(get_path("bcftools"), "view --threads {$threads} -l 0 -O z -o {$tmp_vcf} -s ".implode(",", $sample_order));
 $parser->execPipeline($pipeline, "Merge VCF");
-$parser->exec("tabix", "-f -p vcf {$tmp_vcf}", false); //no output logging, because Toolbase::extractVersion() does not return
 
 //post-processing 
 $pipeline = array();
