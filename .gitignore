@@ -166,6 +166,8 @@
 /test/data_longread/*_phasing_track.bed
 /test/data_longread/*_modkit_summary.txt
 /test/data_longread/*_var_modcall.vcf
+/test/data_longread/*_prs.tsv
+
 
 /test/data_trio_longread/*.fastq.gz
 /test/data_trio_longread/*.bam
