@@ -187,6 +187,7 @@
 /test/data_trio_longread/*.bedpe
 /test/data_trio_longread/trio_upd.tsv
 /test/data_trio_longread/*_phasing_track.bed
+/test/data_trio_longread/*.csi
 
 /test/data_multi_longread/*.fastq.gz
 /test/data_multi_longread/*.bam
@@ -207,4 +208,5 @@
 /test/data_multi_longread/*.igv
 /test/data_multi_longread/*.bedpe
 /test/data_multi_longread/*_ancestry.tsv
+/test/data_multi_longread/*.csi
 
