@@ -80,7 +80,8 @@ if (!$no_sync)
 //output file names:
 //mapping
 $bam_file = $folder."/".$name.".bam";
-$unmapped_bam_file = $folder."/".$name.".mod.unmapped.bam";
+$cram_file = $folder."/".$name.".bam";
+// $unmapped_bam_file = $folder."/".$name.".mod.unmapped.bam";
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 //methylation 
 $modkit_track = $folder."/".$name."_modkit_track.bed.gz";
@@ -165,6 +166,76 @@ if (in_array("ma", $steps))
 		$args[] = "-build ".$build;
 		$parser->execTool("NGS/vc_modkit.php", implode(" ", $args));
 	}
+
+	if (get_path("delete_fastq_files"))
+	{
+		//check if project overwrites the settings
+		$preserve_fastqs = false;
+		if (db_is_enabled("NGSD"))
+		{
+			$db = DB::getInstance("NGSD", false);
+			$info = get_processed_sample_info($db, $name, false);
+			if (!is_null($info))
+			{
+				$preserve_fastqs = $info['preserve_fastqs'];
+			}
+		}
+
+		if(!$preserve_fastqs)
+		{
+			if (count($unmapped_bam_files) > 0)
+			{
+				// check file size of bams
+				$unmapped_bam_file_size = 0;
+				foreach ($unmapped_bam_files as $unmapped_bam_file) 
+				{
+					$unmapped_bam_file_size += filesize($unmapped_bam_file);
+				}
+				if (filesize($bamfile) > $unmapped_bam_file)
+				{
+					// remove unmapped BAM(s)
+					foreach ($unmapped_bam_files as $unmapped_bam_file) 
+					{
+						unlink($unmapped_bam_file);
+					}
+				}
+				else
+				{
+					trigger_error("Cannot delete unmapped BAM file(s) - mapped BAM file is smaller than unmapped BAM.", E_USER_ERROR);
+				}
+			}
+			elseif (count($fastq_files) > 0)
+			{
+				// check file size of fastqs
+				$fastq_file_size = 0;
+				foreach ($fastq_files as $fastq_file) 
+				{
+					$fastq_file_size += filesize($fastq_file);
+				}
+				if (filesize($bamfile) > 0.3 * $fastq_file_size)
+				{
+					// remove fastqs
+					foreach($fastq_files as $fq_file)
+					{
+						unlink($fq_file);
+					}
+				}
+				else
+				{
+					trigger_error("Cannot delete FASTQ files - BAM file smaller than 30% of FASTQ.", E_USER_ERROR);
+				}
+				
+			}
+
+			
+
+		
+		}
+
+
+	}
+
+
 
 }
 else

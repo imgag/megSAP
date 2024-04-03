@@ -95,7 +95,10 @@ function write($h_out, $var, $mosaic_mode=false, $longread_mode=false)
 			if (!isset($sample['DP'])) $sample['DP'] = ".";
 			if (!isset($sample['AF'])) $sample['AF'] = ".";
 			if (!isset($sample['GQ'])) $sample['GQ'] = ".";
-
+			
+			//TODO: remove
+			trigger_error("AF value: ".$sample['AF'], E_USER_NOTICE);
+			
 			$format_values[] = $sample['GT'].":".$sample['DP'].":".(($sample['AF'] == ".") ? "." :number_format($sample['AF'], 3)).":".(int)($sample['GQ']);
 		}
 		else

@@ -603,9 +603,6 @@ while(!feof($handle))
 		write_header_line($handle_out, $column_desc, $filter_desc);
 		$in_header = false;
 	}
-
-	//TODO: remove
-	// trigger_error("Debug: stop here!", E_USER_ERROR);
 	
 	//write content lines
 	$cols = explode("\t", $line);
