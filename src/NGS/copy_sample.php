@@ -452,7 +452,7 @@ foreach($sample_data as $sample => $sample_infos)
 				$fastq_folder = $old_location."/fastq";
 			}
 		}
-		else if(($sys_type == "RNA") || ($sys_type == "Panel"))
+		else if(($sys_type == "RNA") || ($sys_type == "Panel") || ($sys_type == "cfDNA (patient-specific)") || ($sys_type == "cfDNA"))
 		{
 			$old_location .= "/BCLConvert";
 			if (file_exists($old_location."/ora_fastq"))
@@ -489,12 +489,12 @@ foreach($sample_data as $sample => $sample_infos)
 	//build copy line
 	if($is_novaseq_x)
 	{
-		if(($sys_type == "RNA") || ($sys_type == "Panel"))
+		if(($sys_type == "RNA") || ($sys_type == "Panel") || ($sys_type == "cfDNA (patient-specific)") || ($sys_type == "cfDNA"))
 		{
 			//only copy FastQ files
 			//get FastQs
 			$fastq_files = glob($fastq_folder."/{$sample}*_L00[0-9]_R[123]_00[0-9].fastq.{gz,ora}", GLOB_BRACE);
-			if($umi_type == "n/a" || $umi_type == "IDT-UDI-UMI")
+			if($umi_type == "n/a" || $umi_type == "IDT-UDI-UMI" || $umi_type == "IDT-xGen-Prism" || $umi_type == "Twist")
 			{
 				//no index files: simply copy/convert FastQs
 				
@@ -631,7 +631,7 @@ foreach($sample_data as $sample => $sample_infos)
 		}
 		else
 		{
-			trigger_error("ERROR: Analysis other than WES, WGS or RNA are currently not supported on NovaSeq X!", E_USER_ERROR);
+			trigger_error("ERROR: Analysis other than WES, WGS, cfDNA, Panel or RNA are currently not supported on NovaSeq X!", E_USER_ERROR);
 		}
 	}
 	else
@@ -758,12 +758,12 @@ foreach($sample_data as $sample => $sample_infos)
 			//determine analysis steps from project
 			if ($project_analysis=="mapping")
 			{
-				$args[] = ($is_novaseq_x ? "-steps db -use_dragen" : "-steps ma,db");
+				$args[] = (($is_novaseq_x && ($sys_type != "RNA") && ($sys_type != "cfDNA (patient-specific)") && ($sys_type != "cfDNA")) ? "-steps db -use_dragen" : "-steps ma,db");
 			}
 			if ($project_analysis=="variants")
 			{
 				//no steps parameter > use all default steps
-				if($is_novaseq_x && ($sys_type != "RNA"))
+				if($is_novaseq_x && ($sys_type != "RNA") && ($sys_type != "cfDNA (patient-specific)") && ($sys_type != "cfDNA")) // do  complete analysis for RNA/cfDNA samples 
 				{
 					//do mapping for WGS samples
 					if ($sys_type == "WGS") $args[] = "-steps ma,vc,cn,sv,db";

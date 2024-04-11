@@ -82,6 +82,9 @@ if (!$no_sync)
 $bam_file = $folder."/".$name.".bam";
 $unmapped_bam_file = $folder."/".$name.".mod.unmapped.bam";
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
+//methylation 
+$modkit_track = $folder."/".$name."_modkit_track.bed.gz";
+$modkit_summary = $folder."/".$name."_modkit_summary.txt";
 //variant calling
 $vcf_file = $folder."/".$name."_var.vcf.gz";
 $vcf_file_annotated = $folder."/".$name."_var_annotated.vcf.gz";
@@ -151,6 +154,18 @@ if (in_array("ma", $steps))
 	
 	$parser->execTool("NGS/mapping_minimap.php", implode(" ", $mapping_minimap_options));
 
+	// create methylation track
+	if (contains_methylation($bam_file))
+	{
+		$args = array();
+		$args[] = "-bam ".$bam_file;
+		$args[] = "-bed ".$modkit_track;
+		$args[] = "-summary ".$modkit_summary;
+		$args[] = "-threads ".$threads;
+		$args[] = "-build ".$build;
+		$parser->execTool("NGS/vc_modkit.php", implode(" ", $args));
+	}
+
 }
 else
 {
@@ -163,6 +178,54 @@ else
 //variant calling
 if (in_array("vc", $steps))
 {
+	//determine basecall model
+	$basecall_model = get_basecall_model($bam_file);
+	$basecall_model_path = "";
+
+	if ($basecall_model == "")
+	{
+		//if no entry in BAM header -> use default model
+		if (($sys["name_short"] == "SQK-LSK114") || ($sys["name_short"] == "LR-ONT-SQK-LSK114"))
+		{
+			$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
+		}
+		else if ($sys["name_short"] == "SQK-LSK109")
+		{
+			$basecall_model_path = get_path("clair3_models")."/r941_prom_hac_g360+g422/";
+		}
+		else
+		{
+			trigger_error("Unsupported processing system '".$sys["shortname"]."' provided!", E_USER_ERROR);
+		}
+
+		trigger_error("No basecall info found in BAM file. Using default model at '{$basecall_model_path}'.", E_USER_NOTICE);
+	}
+	//special handling of old models
+	else if ($basecall_model == "dna_r10.4.1_e8.2_400bps_hac@v3.5.2")
+	{
+		$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
+
+		trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (special case).", E_USER_NOTICE);
+	} 
+	else if ($basecall_model == "'dna_r9.4.1_e8_hac@v3.3")
+	{
+		$basecall_model_path = get_path("clair3_models")."/r941_prom_hac_g360+g422/";
+
+		trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (special case).", E_USER_NOTICE);
+	} 
+	//all new models can be directly derived
+	else 
+	{
+		$reformated_model_str = strtr($basecall_model, array("dna_" => "", "." => "", "@" => "_"));
+		$basecall_model_path = get_path("clair3_models")."/".$reformated_model_str."/";
+
+		trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (automatically derived).", E_USER_NOTICE);
+	}
+
+	//check if selected model is available
+	if (!file_exists($basecall_model_path)) trigger_error("Basecall model at '{$basecall_model_path}' not found!", E_USER_ERROR);
+
+	//prepare clair command
 	$args = [];
 	$args[] = "-bam ".$bam_file;
 	$args[] = "-folder ".$folder;
@@ -172,21 +235,7 @@ if (in_array("vc", $steps))
 	$args[] = "-threads ".$threads;
 	$args[] = "-build ".$build;
 	$args[] = "--log ".$parser->getLogFile();
-
-	//TODO: write function to determine correct model
-	# determine model
-	if (($sys["name_short"] == "SQK-LSK114") || ($sys["name_short"] == "LR-ONT-SQK-LSK114"))
-	{
-		$args[] = "-model ".get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
-	}
-	else if ($sys["name_short"] == "SQK-LSK109")
-	{
-		$args[] = "-model ".get_path("clair3_models")."/r941_prom_sup_g5014/";
-	}
-	else
-	{
-		trigger_error("Unsupported processing system '".$sys["shortname"]."' provided!", E_USER_ERROR);
-	}
+	$args[] = "-model ".$basecall_model_path;
 	
 	$parser->execTool("NGS/vc_clair.php", implode(" ", $args));	
 }
@@ -285,7 +334,6 @@ if (in_array("cn", $steps))
 
 }
 
-
 //structural variants
 if (in_array("sv", $steps))
 {
@@ -293,7 +341,6 @@ if (in_array("sv", $steps))
 	$parser->execTool("NGS/vc_sniffles.php", "-bam {$bam_file} -sample_ids {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build}");
 				
 }
-
 
 //phasing
 if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
@@ -328,6 +375,7 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	$args[] = "-t {$threads}";
 	$args[] = "-o ".substr($phased_tmp, 0, -4);
 	$args[] = "--ont";
+	$args[] = "--indels";
 	if (file_exists($sv_vcf_file)) $args[] = "--sv-file {$sv_vcf_file}";
 	if ($contains_methylation) $args[] = "--mod-file {$vcf_modcall}";
 	
@@ -369,7 +417,6 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 		trigger_error("Error during coping BAM file! File sizes don't match!", E_USER_ERROR);
 	}
 }
-
 
 // annotation
 if (in_array("an", $steps))
@@ -492,7 +539,16 @@ if (in_array("an", $steps))
 			
 			//perform annotation
 			$parser->exec("{$ngsbits}BedpeAnnotateCounts", "-in $bedpe_file -out $bedpe_file -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", true);
-			$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_file} -out {$bedpe_file} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
+			$sys_specific_density_file = $ngsd_annotation_folder."sv_breakpoint_density_".$sys["name_short"].".igv";
+			if (file_exists($sys_specific_density_file))
+			{
+				$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_file} -out {$bedpe_file} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv -density_sys {$sys_specific_density_file}", true);
+			}
+			else
+			{
+				$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_file} -out {$bedpe_file} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
+			}
+			
 
 			// check if files changed during annotation
 			foreach ($ngsd_sv_files as $filename)
@@ -526,7 +582,7 @@ if (in_array("an", $steps))
 		$parser->exec("{$ngsbits}BedpeExtractGenotype", "-in $bedpe_file -out $bedpe_file -include_unphased", true);
 
 		//extract columns
-		$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_file -out $bedpe_file -info_fields SUPPORT,COVERAGE,AF", true);
+		$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_file -out $bedpe_file -info_fields SVLEN,SUPPORT,COVERAGE,AF", true);
 	}
 
 	//Repeat-expansion calling using straglr

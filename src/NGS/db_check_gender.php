@@ -62,6 +62,11 @@ if (!isset($gender))
 		$method = "xy";
 		$args = "-min_male 0.012 -max_female 0.008";
 	}
+	else if ($sys_type=="lrGS")
+	{
+		$method = "hetx";
+		$args = "-include_single_end_reads";
+	}
 	else if ($sys_roi!="") //check if sry is included in target region
 	{
 		list($stdout, $stderr) = exec2("echo -e 'chrY\\t2786989\\t2787603' | ".get_path("ngs-bits")."BedIntersect -in2 ".$sys_roi, false); //works for GRCh38 only

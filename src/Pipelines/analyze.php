@@ -315,63 +315,54 @@ if (in_array("ma", $steps))
 		}
 	}
 }
-else if (file_exists($bamfile))
+else if (file_exists($bamfile) || file_exists($cramfile))
 {	
-	//check genome build of BAM
-	check_genome_build($bamfile, $build);
+	//set BAM/CRAM to use
+	$used_bam_or_cram = file_exists($bamfile) ? $bamfile : $cramfile;
 	
-	$used_bam_or_cram = $bamfile;
+	//check genome build of BAM
+	check_genome_build($used_bam_or_cram, $build);
 
-	if($use_dragen)
+	//QC for already mapped/called samples from the NovaSeq X
+	if($use_dragen && !file_exists($qc_map))
 	{
-		// Do ReadQC/MappingQC for already mapped/called samples from the NovaSeq X (only if files do not exist)
-		if(!file_exists($qc_map))
+		//QC
+		$params = array("-in $used_bam_or_cram", "-out {$qc_map}", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
+		if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
 		{
-			//run mapping QC
-			$params = array("-in $bamfile", "-out {$qc_map}", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
-			if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
-			{
-				$params[] = "-wgs";
-			}
-			else
-			{
-				$params[] = "-roi ".$sys['target_file'];
-			}
-			if ($sys['build']!="GRCh38")
-			{
-				$params[] = "-no_cont";
-			}
-			if ($somatic && file_exists($somatic_custom_panel))
-			{
-				$params[] = "-somatic_custom_bed $somatic_custom_panel";
-			}
-			if (!file_exists($qc_fastq))
-			{
-				$params[] = "-read_qc $qc_fastq";
-			}
-			$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
-		}	
-
-		if(!file_exists($lowcov_file))
+			$params[] = "-wgs";
+		}
+		else
 		{
-			//low-coverage report
-			if ($has_roi && !$is_wgs_shallow)
-			{	
-				$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $bamfile -out $lowcov_file -cutoff 20 -threads {$threads}", true);
-				if (db_is_enabled("NGSD"))
-				{
-					$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
-				}
+			$params[] = "-roi ".$sys['target_file'];
+		}
+		if ($sys['build']!="GRCh38")
+		{
+			$params[] = "-no_cont";
+		}
+		if ($somatic && file_exists($somatic_custom_panel))
+		{
+			$params[] = "-somatic_custom_bed $somatic_custom_panel";
+		}
+		if (!file_exists($qc_fastq))
+		{
+			$params[] = "-read_qc $qc_fastq";
+		}
+		$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
+	}	
+	
+	//low-coverage regions for already mapped/called samples from the NovaSeq X
+	if($use_dragen && !file_exists($lowcov_file))
+	{
+		if ($has_roi && !$is_wgs_shallow)
+		{	
+			$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads}", true);
+			if (db_is_enabled("NGSD"))
+			{
+				$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
 			}
 		}
-		
 	}
-}
-else if (file_exists($cramfile))
-{
-	check_genome_build($cramfile, $build);
-	
-	$used_bam_or_cram = $cramfile;
 }
 
 //variant calling
@@ -810,7 +801,18 @@ if (in_array("cn", $steps))
 		{
 			$args[] = "-mosaic";
 		}
-
+		
+		if(db_is_enabled("NGSD"))
+		{
+			$db = DB::getInstance("NGSD", false);
+			$ps_id = get_processed_sample_id($db, $name, false);
+			if ($ps_id!=-1)
+			{
+				$gender = $db->getValue("SELECT s.gender FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.id={$ps_id}");
+				$args[] = "-gender {$gender}";
+			}
+		}
+		
 		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
 		
 		//copy results to output folder
@@ -981,8 +983,16 @@ if (in_array("sv", $steps))
 		
 		//perform annotation
 		$parser->exec("{$ngsbits}BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", true);
-		$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
-
+		$sys_specific_density_file = $ngsd_annotation_folder."sv_breakpoint_density_".$sys["name_short"].".igv";
+		if (file_exists($sys_specific_density_file))
+		{
+			$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv -density_sys {$sys_specific_density_file}", true);
+		}
+		else
+		{
+			$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
+		}
+		
 		// check if files changed during annotation
 		foreach ($ngsd_sv_files as $filename)
 		{

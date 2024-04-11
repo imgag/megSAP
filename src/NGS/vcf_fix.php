@@ -196,12 +196,6 @@ while(!feof($h_in))
 	
 	//write content
 	$var = explode("\t", $line); //chr, pos, id, ref, alt, qual, filter, info, format, sample_1, ..., sample_n
-
-	//check for multisample
-	// if($longread_mode && (count($var) > 10))
-	// {
-	// 	trigger_error("Longread multisamples are not supported by vcf_fix.php!", E_USER_ERROR);
-	// }
 	
 	//same variant twice => merge
 	if ($var[0]==$var_last[0] && $var[1]==$var_last[1] && $var[3]==$var_last[3] && $var[4]==$var_last[4])

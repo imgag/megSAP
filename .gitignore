@@ -161,6 +161,13 @@
 /test/data_longread/*_prs.tsv
 /test/data_longread/*_repeats.tsv
 /test/data_longread/*_repeats.bed
+/test/data_longread/*.bed.gz
+/test/data_longread/*.bed.gz.tbi
+/test/data_longread/*_phasing_track.bed
+/test/data_longread/*_modkit_summary.txt
+/test/data_longread/*_var_modcall.vcf
+/test/data_longread/*_prs.tsv
+
 
 /test/data_trio_longread/*.fastq.gz
 /test/data_trio_longread/*.bam
@@ -181,6 +188,8 @@
 /test/data_trio_longread/*.igv
 /test/data_trio_longread/*.bedpe
 /test/data_trio_longread/trio_upd.tsv
+/test/data_trio_longread/*_phasing_track.bed
+/test/data_trio_longread/*.csi
 
 /test/data_multi_longread/*.fastq.gz
 /test/data_multi_longread/*.bam
@@ -201,4 +210,5 @@
 /test/data_multi_longread/*.igv
 /test/data_multi_longread/*.bedpe
 /test/data_multi_longread/*_ancestry.tsv
+/test/data_multi_longread/*.csi
 

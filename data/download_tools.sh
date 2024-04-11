@@ -72,6 +72,14 @@ rm samtools-1.19.tar.bz2
 cd samtools-1.19
 make
 
+#download and build bcftools
+cd $folder
+wget https://github.com/samtools/bcftools/releases/download/1.19/bcftools-1.19.tar.bz2
+tar xjf bcftools-1.19.tar.bz2
+rm bcftools-1.19.tar.bz2
+cd bcftools-1.19
+make
+
 #download and build BWA
 cd $folder
 wget https://sourceforge.net/projects/bio-bwa/files/bwa-0.7.17.tar.bz2

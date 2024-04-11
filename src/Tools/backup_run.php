@@ -13,7 +13,8 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("backup_run", "Creates a backup of a run folder.");
 $parser->addInfile("in",  "Input run folder.", false);
 $parser->addString("when",  "Start time in format '20:15' or 'now'.", true, "now");
-$parser->addString("out_folder", "Output folder path.", true, "/mnt/storage1/raw_data_archive/runs/");
+$parser->addString("out_folder", "Output folder.", true, "/mnt/storage1/raw_data_archive/runs/");
+$parser->addString("sav_folder", "Output folder for SAV data.", true, "/mnt/storage3/raw_data/_sav_archive/");
 $parser->addFlag("include_raw_signal", "Backup includes non-basecalled POD5 or FAST5 data.");
 $parser->addFlag("test", "Perform a backup in test-mode. No data will be moved on the TSM backup.");
 extract($parser->parse($argv));
@@ -32,9 +33,19 @@ if ($test && ($out_folder == "/mnt/storage1/raw_data_archive/runs/")) trigger_er
 $in = realpath($in);
 $in = rtrim($in, "/");
 $out_folder = rtrim($out_folder, "/");
+$sav_folder = rtrim($sav_folder, "/");
+
+//copy SAV data
+$basename = basename($in);
+if (file_exists("{$in}/InterOp/"))
+{
+	$sav_out = "{$sav_folder}/{$basename}/";
+	print "Copying SAV data to: {$sav_out}\n";
+	$parser->exec("mkdir", "-p {$sav_out}", true);
+	$parser->exec("cp", "-R {$in}/InterOp/ {$in}/*.xml {$sav_out}", true);
+}
 
 //determine output file names
-$basename = basename($in);
 $archive_basename = $basename;
 if (!preg_match("/^([0-9]{2})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1])) 
 {
@@ -123,6 +134,10 @@ else
 //zip archive with low compression (way faster than full compression and the contents are already compressed in most cases)
 print date("Y-m-d H:i:s")." creating tar.gz file\n";
 $parser->exec("pigz", "-p 8 -c -1 $tmp_tar > $zipfile", true);
+
+//log file size
+print date("Y-m-d H:i:s")." get compressed file size\n";
+$parser->exec("du", "-h $zipfile", true);
 
 //test zip archive integrity
 print date("Y-m-d H:i:s")." testing tar.gz file integrity\n";
