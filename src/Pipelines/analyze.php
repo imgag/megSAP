@@ -13,8 +13,8 @@ $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
-$steps_all = array("ma", "vc", "cn", "sv", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, db=import into NGSD.", true, "ma,vc,cn,sv,db");
+$steps_all = array("ma", "vc", "cn", "sv", "re", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, db=import into NGSD.", true, "ma,vc,cn,sv,re,db");
 $parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (freebayes 'min-alternate-fraction' parameter).", true, 0.1);
 $parser->addFloat("min_bq", "Minimum base quality used for variant calling (freebayes 'min-base-quality' parameter).", true, 10);
 $parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (freebayes 'min-mapping-quality' parameter).", true, 20);
@@ -1025,7 +1025,7 @@ if (in_array("sv", $steps))
 }
 
 //repeat expansions
-if (in_array("sv", $steps) && !$annotation_only)
+if (in_array("re", $steps))
 {
 	//perform repeat expansion analysis (only for WGS/WES):
 	$parser->execTool("NGS/vc_expansionhunter.php", "-in $used_bam_or_cram -out $expansion_hunter_file -build ".$build." -pid $name -threads {$threads}");
