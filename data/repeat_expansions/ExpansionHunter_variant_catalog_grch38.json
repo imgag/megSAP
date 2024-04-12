@@ -915,10 +915,10 @@
     },
     {
         "LocusId": "DAB1",
-        "LocusStructure": "(AAAAT)*",
+        "LocusStructure": "(RAAAT)*",
         "VariantType": "RareRepeat",
         "ReferenceRegion": "chr1:57367043-57367118",
-        "RepeatUnit": "AAAAT",
+        "RepeatUnit": "RAAAT",
         "Gene": "DAB1",
         "GeneRegion": "intron",
         "GeneId": "ENSG00000173406",
@@ -1068,10 +1068,10 @@
     },
     {
         "LocusId": "EIF4A3",
-        "LocusStructure": "(CCTCGCTGTGCCGCTGCCGA)*",
+        "LocusStructure": "(CCTCGCTGYGCCGCTGCCGA)*",
         "VariantType": "RareRepeat",
-        "ReferenceRegion": "chr17:80147059-80147139",
-        "RepeatUnit": "CCTCGCTGTGCCGCTGCCGA",
+        "ReferenceRegion": "chr17:80147003-80147139",
+        "RepeatUnit": "CCTCGCTGYGCCGCTGCCGA",
         "Gene": "EIF4A3",
         "GeneRegion": "5'-UTR",
         "GeneId": "ENSG00000141543",
@@ -1085,7 +1085,7 @@
                 "PathogenicMin": 14
             }
         ],
-        "MainReferenceRegion": "chr17:80147059-80147139"
+        "MainReferenceRegion": "chr17:80147003-80147139"
     },
     {
         "LocusId": "FGF14",
@@ -1773,10 +1773,10 @@
     },
     {
         "LocusId": "MARCHF6",
-        "LocusStructure": "(ATTTT)*",
+        "LocusStructure": "(ATTTY)*",
         "VariantType": "RareRepeat",
         "ReferenceRegion": "chr5:10356346-10356411",
-        "RepeatUnit": "ATTTT",
+        "RepeatUnit": "ATTTY",
         "Gene": "MARCHF6",
         "GeneRegion": "intron",
         "GeneId": "ENSG00000145495",
@@ -1960,9 +1960,9 @@
     },
     {
         "LocusId": "PABPN1",
-        "LocusStructure": "(GCG)*",
-        "ReferenceRegion": "chr14:23321472-23321490",
-        "RepeatUnit": "GCG",
+        "LocusStructure": "(GCN)*",
+        "ReferenceRegion": "chr14:23321472-23321502",
+        "RepeatUnit": "GCN",
         "VariantType": "RareRepeat",
         "Gene": "PABPN1",
         "GeneRegion": "coding: polyalanine",
@@ -1993,7 +1993,7 @@
             "chrX:150983240-150983612",
             "chrX:19990766-19991128"
         ],
-        "MainReferenceRegion": "chr14:23321472-23321490"
+        "MainReferenceRegion": "chr14:23321472-23321502"
     },
     {
         "LocusId": "PHOX2B",
@@ -2159,10 +2159,10 @@
     },
     {
         "LocusId": "RAPGEF2",
-        "LocusStructure": "(TTTTA)*",
+        "LocusStructure": "(TTTYA)*",
         "VariantType": "RareRepeat",
         "ReferenceRegion": "chr4:159342526-159342616",
-        "RepeatUnit": "TTTTA",
+        "RepeatUnit": "TTTYA",
         "Gene": "RAPGEF2",
         "GeneRegion": "intron",
         "GeneId": "ENSG00000109756",
@@ -2345,10 +2345,10 @@
     },
     {
         "LocusId": "SAMD12",
-        "LocusStructure": "(AAAAT)*",
+        "LocusStructure": "(TRAAA)*",
         "VariantType": "RareRepeat",
         "ReferenceRegion": "chr8:118366812-118366918",
-        "RepeatUnit": "AAAAT",
+        "RepeatUnit": "TRAAA",
         "Gene": "SAMD12",
         "GeneRegion": "intron",
         "GeneId": "ENSG00000177570",
@@ -2453,10 +2453,10 @@
     },
     {
         "LocusId": "STARD7",
-        "LocusStructure": "(AAAAT)*",
+        "LocusStructure": "(RAAAT)*",
         "VariantType": "RareRepeat",
         "ReferenceRegion": "chr2:96197066-96197121",
-        "RepeatUnit": "AAAAT",
+        "RepeatUnit": "RAAAT",
         "Gene": "STARD7",
         "GeneRegion": "intron",
         "GeneId": "ENSG00000084090",
@@ -2708,10 +2708,10 @@
     },
     {
         "LocusId": "TNRC6A",
-        "LocusStructure": "(TTTTA)*",
+        "LocusStructure": "(TTTYA)*",
         "VariantType": "RareRepeat",
         "ReferenceRegion": "chr16:24613439-24613529",
-        "RepeatUnit": "TTTTA",
+        "RepeatUnit": "TTTYA",
         "Gene": "TNRC6A",
         "GeneRegion": "intron",
         "GeneId": "ENSG00000090905",
@@ -2811,10 +2811,10 @@
     },
     {
         "LocusId": "YEATS2",
-        "LocusStructure": "(TTTTA)*",
+        "LocusStructure": "(TTTYA)*",
         "VariantType": "RareRepeat",
         "ReferenceRegion": "chr3:183712187-183712222",
-        "RepeatUnit": "TTTTA",
+        "RepeatUnit": "TTTYA",
         "Gene": "YEATS2",
         "GeneRegion": "intron",
         "GeneId": "ENSG00000163872",
