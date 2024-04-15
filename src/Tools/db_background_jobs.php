@@ -66,6 +66,7 @@ foreach($file as $line)
 {
 	$line = trim($line);
 	if ($line=="")  continue;
+	if ($line[0]=="#")  continue;
 	$commands[] = $line;
 }
 
