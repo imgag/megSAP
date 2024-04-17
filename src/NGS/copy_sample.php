@@ -511,7 +511,7 @@ foreach($sample_data as $sample => $sample_infos)
 					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
 					{
 						//convert to fastq.gz
-						$target_to_copylines[$tag][] = "\t".get_path("orad")." --ora-reference ".dirname(get_path("orad"))."/oradata/".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}";
+						$target_to_copylines[$tag][] = "\t".get_path("orad")." --ora-reference ".dirname(get_path("orad"))."/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}";
 					}
 					else
 					{
