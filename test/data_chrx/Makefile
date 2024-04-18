@@ -1,5 +1,5 @@
 
-all: clean link map vc cn sv diff reanno
+all: clean link map vc cn sv re diff reanno
 
 clean:
 	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_repeats_expansionhunter.json *_repeats_expansionhunter.vcf *_rohs.tsv *_ancestry.tsv
@@ -23,6 +23,9 @@ sv:
 	cut -f1-22 NA12878_17_manta_var_structural.bedpe > NA12878_17_manta_var_structural_cut.bedpe
 	# create file from OMIM annotation and CNV overlap
 	cat NA12878_17_manta_var_structural.bedpe | egrep -v "^##"| rev | cut -f 1,2| rev > NA12878_17_manta_var_structural_cut2.bedpe
+
+re:
+	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps re
 
 diff:
 	php ../compare_variants.php -in1 NA12878_17.GSvar.out -in2 NA12878_17.GSvar
