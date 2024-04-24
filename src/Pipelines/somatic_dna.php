@@ -1106,6 +1106,7 @@ if (in_array("an", $steps))
 			$params[] = "-g ${variants_gsvar}";
 			$params[] = "-o ${cfdna_folder}";
 			$params[] = "-r ${ref_genome}";
+			$params[] = "-n 65"; // select 50 candidate variants
 			$params[] = "-i"; // ignore INDELS
 			// call variant selection in virtual environment
 			//set environment variables
