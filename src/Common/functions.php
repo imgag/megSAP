@@ -41,6 +41,15 @@ function bound($v, $min, $max)
 }
 
 /**
+	@brief Removes the newline character(s) from the end of a string
+	@ingroup helpers
+*/
+function nl_trim($string)
+{
+	return rtrim($string, "\n\r");
+}
+
+/**
 	@brief Executes a command and returns stdout output, stderr output and exit code.
 	If @p abort_on_error is 'true' and the exit code not '0', execution of the script is aborted.
 	@ingroup helpers
@@ -65,7 +74,7 @@ function exec2($command, $abort_on_error = true)
 	}
 	
 	//return output
-	return array(explode("\n", rtrim($stdout)), explode("\n", rtrim($stderr)), $exit);
+	return array(explode("\n", nl_trim($stdout)), explode("\n", nl_trim($stderr)), $exit);
 }
 
 /**
@@ -246,15 +255,6 @@ function contains($haystack, $needle)
 function ends_with($string, $suffix)
 {
 	return substr($string, -strlen($suffix)) == $suffix;
-}
-
-/**
-	@brief Removes the newline character(s) from the end of a string
-	@ingroup helpers
-*/
-function nl_trim($string)
-{
-	return rtrim($string, "\n\r");
 }
 
 /**
