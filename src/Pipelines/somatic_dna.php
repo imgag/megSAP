@@ -1313,7 +1313,7 @@ if (in_array("an_rna", $steps))
 
 //Collect QC terms if necessary
 $qc_other = $full_prefix."_stats_other.qcML";
-if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("cn", $steps))
+if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("cn", $steps) || in_array("db", $steps))
 {
 	$terms = array();
 	$sources = array();
