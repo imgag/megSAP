@@ -253,16 +253,16 @@ function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 	foreach($res as $row)
 	{
 		$sample = $row['name'];
-		list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER | {$ngsbits}TsvSlice -cols 'name,project_type,project_name,path'");
+		list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER | {$ngsbits}TsvSlice -cols 'name,project_type,project_name,path,quality'");
 		foreach($stdout as $line)
 		{
 			$line = trim($line);
 			if ($line=="" || $line[0]=="#") continue;
-			list($ps, $project_type, $project_name, $path) = explode("\t", $line);
+			list($ps, $project_type, $project_name, $path, $quality) = explode("\t", $line);
 			if ($project_type=="research" && !$irp) continue;
 			if ($project_type=="test" && !$itp) continue;
 			if ($project_name=="RPGR-Ex15") continue;
-			$output[$sample][] = array($ps, $path);
+			$output[$sample][] = array($ps, $path, $quality);
 		}
 	}
 	
@@ -362,7 +362,7 @@ foreach($file as $line)
 	if ($line=="" || $line[0]=="#") continue;
 	
 	$genotypes = explode("\t", $line);
-	
+	$name = trim($genotypes[0]);
 	//extract DNA number
 	preg_match("/[0-9]{6,}/", $genotypes[0], $matches);
 	if (count($matches) == 1)
@@ -388,7 +388,7 @@ foreach($file as $line)
 	}
 	 
 	//determine BAM file of sample
-	print "KASP: $dna_number\n";
+	print "KASP: {$name} (sample search: $dna_number)\n";
 	$res = sample_from_ngsd($db, $dna_number, $irp, $itp, $ibad);
 	if (count($res)==0)
 	{
@@ -402,7 +402,7 @@ foreach($file as $line)
 			print "  NGSD sample: {$sample}\n";
 			
 			$bams_found = 0;
-			foreach($ps_data as list($ps, $folder))
+			foreach($ps_data as list($ps, $folder, $quality))
 			{
 				$bam = realpath("$folder/{$ps}.bam");
 				if (!file_exists($bam)) //fallback to CRAM
@@ -468,7 +468,7 @@ foreach($file as $line)
 					}
 
 					//determine overall match
-					print "    ".basename2($bam)." kasp:$c_kasp both:$c_both match:$c_match";
+					print "    ".basename2($bam)." ".($quality=="bad" ? "(bad)" : "")." kasp:$c_kasp both:$c_both match:$c_match";
 					if ($c_both<=6)
 					{
 						$messages[] = "ERROR - too few common SNPs";

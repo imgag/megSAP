@@ -683,6 +683,10 @@ foreach($res as $row)
 				{
 					$parser->moveFile($zip, $GLOBALS["datamover_path"]."/".basename($zip));
 				}
+				
+				//remove temp folder again after upload.
+				if (file_exists($tmpfolder)) exec2("rm -rf $tmpfolder");
+				
 				printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(" ", $files));
 			}
 		}
