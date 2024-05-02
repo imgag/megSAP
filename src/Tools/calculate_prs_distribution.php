@@ -9,10 +9,20 @@ $parser = new ToolBase("calculate_prs_distribution", "Calculates the PRS distrib
 $parser->addInfileArray("in", "List of PRS VCFs", false);
 $parser->addOutfile("out",  "Output TSV file containing the percentiles for each PRS.", false);
 $parser->addOutfile("out2",  "Optional TSV file containing the scores for each Sample.", true, "");
+$parser->addString("exclude_disease_group", "Name of a disease group which should be excluded from calculation", true, "");
 extract($parser->parse($argv));
+
+
+
 
 // init
 $write_sample_output = isset($out2) && ($out2 != "");
+
+//check excluded disease group
+$valid_disease_groups = array("n/a", "Neoplasms", "Diseases of the blood or blood-forming organs", "Diseases of the immune system", "Endocrine, nutritional or metabolic diseases", "Mental, behavioural or neurodevelopmental disorders", 
+							"Sleep-wake disorders", "Diseases of the nervous system", "Diseases of the visual system", "Diseases of the ear or mastoid process", "Diseases of the circulatory system", "Diseases of the respiratory system", 
+							"Diseases of the digestive system", "Diseases of the skin", "Diseases of the musculoskeletal system or connective tissue", "Diseases of the genitourinary system", "Developmental anomalies", "Other diseases");
+if ($exclude_disease_group != "" && !in_array($exclude_disease_group, $valid_disease_groups)) trigger_error("Invalid disease group '".$exclude_disease_group."' given!", E_USER_ERROR);
 
 // get all diagnostic WGS samples
 $export_table = $parser->tempFile("_diag_wgs.tsv");
@@ -20,6 +30,8 @@ $ngs_bits_path = get_path("ngs-bits");
 $pipeline = array();
 $pipeline[] = array($ngs_bits_path."NGSDExportSamples", "-no_bad_samples -no_tumor -no_ffpe -run_finished -no_bad_runs -add_path SAMPLE_FOLDER");
 $pipeline[] = array($ngs_bits_path."TsvFilter", "-filter 'project_type is diagnostic'");
+//exclude specific disease group
+if ($exclude_disease_group != "") $pipeline[] = array($ngs_bits_path."TsvFilter", "-v -filter 'disease_group is {$exclude_disease_group}'");
 //limit Samples to european ancestry
 $pipeline[] = array($ngs_bits_path."TsvFilter", "-filter 'ancestry is EUR'");
 $pipeline[] = array($ngs_bits_path."TsvFilter", "-filter 'system_type is WGS' -out $export_table");
