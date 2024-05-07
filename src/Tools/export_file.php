@@ -22,6 +22,7 @@ if (!file_exists($file))
 //determine password and folder
 $share_url = $internal ? "https://datashare.img.med.uni-tuebingen.de/" : "https://download.imgag.de/DataShare/";
 list($stdout) = exec2("curl --noproxy '*' ".($internal ? " -k" : "")." '{$share_url}/index.php?action=request&filename={$file}'");
+if (contains(implode(" ", $stdout), "ERROR:")) trigger_error(implode(" ", $stdout), E_USER_ERROR);
 $folder = trim($stdout[0]);
 $password = trim($stdout[1]);
  
@@ -29,7 +30,7 @@ $password = trim($stdout[1]);
 print "You can move the file to the webserver using:\n";
 if($internal)
 {
-	print "  > mv {$file} mnt/storage1/share/http_shareukt/DataShare/data/{$folder}/\n";
+	print "  > mv {$file} /mnt/storage1/share/http_shareukt/DataShare/data/{$folder}/\n";
 }
 else
 {
