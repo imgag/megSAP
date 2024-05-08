@@ -96,6 +96,7 @@ $pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -remove_invalid")
 //this step has to be performed before vcfbreakmulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
 $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
 
+//TODO: check ngs-bits VcfBreakMulti to fix problems with Format AF column
 //split multi-allelic variants
 $pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
 
