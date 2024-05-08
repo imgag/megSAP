@@ -139,6 +139,8 @@
 /test/data_longread/*.fastq.gz
 /test/data_longread/*.bam
 /test/data_longread/*.bam.bai
+/test/data_longread/*.cram
+/test/data_longread/*.cram.crai
 /test/data_longread/*.log
 /test/data_longread/*.qcML
 /test/data_longread/*.vcf.gz

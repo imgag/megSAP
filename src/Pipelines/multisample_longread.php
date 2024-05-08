@@ -10,7 +10,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("multisample_longread", "Multisample analysis pipeline of Nanopore long-read data.");
-$parser->addInfileArray("bams", "Input BAM files.", false);
+$parser->addInfileArray("bams", "Input BAM/CRAM files.", false);
 $parser->addStringArray("status", "List of affected status of the input samples (BAMs) - can be 'affected' or 'control'.", false);
 $parser->addString("out_folder", "Output folder name.", false);
 //optional

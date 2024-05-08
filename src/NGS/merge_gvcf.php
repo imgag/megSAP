@@ -50,6 +50,8 @@ foreach($gvcfs as $gvcf)
 	while(!gzeof($gvcf_fh))
 	{
 		$line = trim(gzgets($gvcf_fh));
+		//skip empty lines
+		if (trim($line) == "") continue;
 		//stop when reaching variant area
 		if ($line[0]!="#") break;
 		//parse contig lines (only done for the first file)

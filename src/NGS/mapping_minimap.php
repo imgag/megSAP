@@ -18,6 +18,8 @@ $parser->addInfileArray("in_bam", "Input BAM file(s), with modified bases inform
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'sample' or 'out' is a valid processed sample name).", true);
 $parser->addString("qc_fastq", "Output qcML file with read statistics.", true, "");
 $parser->addString("qc_map", "Output qcML file with mapping statistics.", true, "");
+$parser->addOutfile("local_bam", "Filename the local BAM file is written to. It can be used to speed up variant calling etc. Not created if unset.", true);
+$parser->addFlag("bam_output", "Output is BAM instead of CRAM.");
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
 extract($parser->parse($argv));
 
@@ -139,16 +141,6 @@ $parser->execPipeline($pipeline, "mapping");
 //create index
 $parser->indexBam($bam_current, $threads);
 
-//copy BAM to final output location
-$parser->copyFile($bam_current, $out);
-$parser->copyFile($bam_current.".bai", $out.".bai");
-
-// check if copy was successful
-if (!file_exists($out) || filesize($bam_current) != filesize($out))
-{
-	trigger_error("Error during coping BAM file! File sizes don't match!", E_USER_ERROR);
-}
-
 //run mapping QC
 if ($qc_map !== "")
 {
@@ -176,5 +168,38 @@ if ($qc_map !== "")
 
 	$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
 }
+
+//create CRAM/BAM in output folder
+if ($bam_output)
+{
+	//copy BAM to final output location
+	$parser->copyFile($bam_current, $out);
+	$parser->copyFile($bam_current.".bai", $out.".bai");
+
+	// check if copy was successful
+	if (!file_exists($out) || filesize($bam_current) != filesize($out))
+	{
+		trigger_error("Error during coping BAM file! File sizes don't match!", E_USER_ERROR);
+	}
+}
+else
+{
+	$out_cram = $basename.".cram";
+	$parser->execTool("Tools/bam_to_cram.php", "-bam {$bam_current} -cram {$out} -build ".$sys['build']." -threads {$threads}");
+	
+	//in case we re-map an old analysis with BAM output, we need to delete the BAM file
+	$bam = basename2($out).".bam";
+	if (file_exists($bam)) unlink($bam);
+	$bai = basename2($out).".bam.bai";
+	if (file_exists($bai)) unlink($bai);
+}
+
+// rename tmp BAM to allow using it for variant calling etc
+if (!empty($local_bam))
+{
+	$parser->moveFile($bam_current, $local_bam);
+	$parser->moveFile($bam_current.".bai", $local_bam.".bai");
+}
+
 
 ?>

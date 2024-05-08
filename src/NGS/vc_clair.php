@@ -28,7 +28,7 @@ extract($parser->parse($argv));
 $genome = genome_fasta($build);
 
 //output files
-$clair_temp = "{$folder}/clair_temp";
+$clair_temp = $parser->tempFolder("vc_clair");
 $out = "{$folder}/{$name}_var.vcf.gz";
 $out_gvcf = "{$folder}/{$name}_var.gvcf.gz";
 
@@ -41,7 +41,6 @@ $args[] = "--threads={$threads}";
 $args[] = "--platform=\"ont\"";
 $args[] = "--keep_iupac_bases";
 $args[] = "--gvcf";
-//TODO: move to temp
 $args[] = "--output={$clair_temp}";
 
 //define env parameter
