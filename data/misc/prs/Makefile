@@ -16,10 +16,13 @@ OCAC36_calculate_percentiles:
 ################################### PGS000004 (breast cancer) ###################################
 
 PGS000004_download:
-	wget -O - http://ftp.ebi.ac.uk/pub/databases/spot/pgs/scores/PGS000004/ScoringFiles/PGS000004.txt.gz | zcat > PGS000004.txt
+	# wget -O - http://ftp.ebi.ac.uk/pub/databases/spot/pgs/scores/PGS000004/ScoringFiles/PGS000004.txt.gz | zcat > PGS000004.txt
+	wget -O - https://ftp.ebi.ac.uk/pub/databases/spot/pgs/scores/PGS000004/ScoringFiles/Harmonized/PGS000004_hmPOS_GRCh38.txt.gz | zcat > PGS000004_hm.txt
+	# replace wrongly lifted variant:
+	sed "s/1	145604302	CT	C	-0.0399	0.3515	liftover		1	145830809/1	145830798	CA	C	-0.0399	0.3515	liftover		1	145830809/g" PGS000004_hm.txt > PGS000004_hm_fixed.txt
 
 PGS000004_to_vcf:
-	php ../../../src/Tools/prs2vcf.php -pgs PGS000004.txt -out PGS000004_GRCh37.vcf -build GRCh37 -skip_percentiles
+	php ../../../src/Tools/prs2vcf.php -pgs PGS000004_hm_fixed.txt -out PGS000004_GRCh38.vcf -build GRCh38 -skip_percentiles
 
 PGS000004_liftover:
 	php ../../../src/Tools/vcf_annotate_coords.php -in PGS000004_GRCh37.vcf -out PGS000004_GRCh37_ann.vcf

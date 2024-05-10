@@ -330,7 +330,7 @@ if (isset($pgs))
 		$diff = abs($gnomad_af-$pop_af);
 		$info_values[] = "AF_DIFF=".$diff;
 
-		if ($diff > 0.1) trigger_error("The given population AF of the PRS variant ".$columns[0].":".$columns[1]." ".$columns[3].">".$columns[4]." differs more than 0.1 ({$diff}) to the gnomAD AF!", E_USER_WARNING);
+		if ($diff > 0.1) trigger_error("The given population AF of the PRS variant ".$columns[0].":".$columns[1]." ".$columns[3].">".$columns[4]." differs more than 0.1 ({$diff}) from the gnomAD AF!", E_USER_WARNING);
 
 		$columns[7] = implode(";", $info_values);
 		$vcf_out_content[] = implode("\t", $columns)."\n";

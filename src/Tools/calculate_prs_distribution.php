@@ -65,8 +65,12 @@ for ($row_idx=0; $row_idx < $sample_sheet->rows(); $row_idx++)
 	$sample_bam = "$source_path/{$name}.bam";
 	if (!file_exists($sample_bam)) 
 	{
-		print "\tmissing BAM, skipping sample!\n";
-		continue;
+		$sample_bam = "$source_path/{$name}.cram";
+		if (!file_exists($sample_bam)) 
+		{
+			print "\tmissing BAM/CRAM, skipping sample!\n";
+			continue;
+		}
 	}
 
 	list($stdout, $stderr, $exitcode) = $parser->exec($ngs_bits_path."VcfCalculatePRS", "-in $sample_vcf -bam $sample_bam -out $temp_out -prs ".implode(" ", $in));
