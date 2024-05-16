@@ -1063,8 +1063,9 @@ while(!feof($handle))
 			$transcript_id_no_ver = explode('.', $transcript_id)[0];
 			if (isset($vep[$transcript_id_no_ver]))
 			{
-				list($domain) = $vep[$transcript_id_no_ver];
+				$domain = $vep[$transcript_id_no_ver];
 			}
+
 			//add transcript information
 			$transcript_entry = "{$gene}:{$transcript_id}:".$consequence.":".$parts[$i_vac_impact].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}:{$domain}";
 			if (!$is_updown)
