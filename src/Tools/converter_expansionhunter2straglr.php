@@ -13,6 +13,8 @@ extract($parser->parse($argv));
 function extract_motive($string)
 {
 	$motive = explode(")", explode("(", $string)[1])[0];
+	//replace ambiguous bases with '*'
+	$motive = strtr($motive, array("N"=>"*",  "R"=>"*", "Y"=>"*"));
 	return $motive;
 }
 
@@ -20,7 +22,7 @@ function get_bed_coordinates($string)
 {
 	list($chr, $start, $end) = explode("\t", strtr($string, array(":"=>"\t", "-"=>"\t")));
 	if (!starts_with($chr, "chr")) $chr = "chr".$chr;
-	$start = ((int) $start) - 1; // -1 because BED is 0-based
+	$start = ((int) $start);
 	$end = (int) $end;
 	return array($chr, $start, $end);
 }
@@ -28,7 +30,7 @@ function get_bed_coordinates($string)
 $json_file_content = json_decode(file_get_contents($in),true);
 
 $output = array();
-$output[] = "#chr\tstart\tend\trepeat_motive\trepeat_id\trepeat_type";
+$output[] = "#chr\tstart\tend\trepeat_motive\trepeat_id\trepeat_type\tref_size";
 
 foreach ($json_file_content as $repeat)
 {
@@ -45,6 +47,7 @@ foreach ($json_file_content as $repeat)
 			$line[] = extract_motive($repeat_motives[$i]);
 			$line[] = $repeat["VariantId"][$i];
 			$line[] = $repeat["VariantType"][$i];
+			$line[] = ((int) $line[2] - (int) $line[1]) / strlen(trim($line[3])); //add ref size
 			$i++;
 			$output[] = implode("\t", $line);
 		}
@@ -56,11 +59,15 @@ foreach ($json_file_content as $repeat)
 		$line[] = extract_motive($repeat["LocusStructure"]);
 		$line[] = $repeat["LocusId"];
 		$line[] = $repeat["VariantType"];
+		$line[] = ((int) $line[2] - (int) $line[1]) / strlen(trim($line[3])); //add ref size
 		$output[] = implode("\t", $line);	
 	}
 	
 }
 
 file_put_contents($out, implode("\n", $output));
+
+//sort output file
+$parser->exec(get_path("ngs-bits")."BedSort", "-in {$out} -out {$out}");
 
 ?>

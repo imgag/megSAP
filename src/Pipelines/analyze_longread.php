@@ -13,8 +13,8 @@ $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
-$steps_all = array("ma", "vc", "cn", "sv", "an", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, an=annotation, db=import into NGSD.", true, "ma,vc,sv,an,db");
+$steps_all = array("ma", "vc", "cn", "sv", "re", "an", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, re=repeat expansions calling, an=annotation, db=import into NGSD.", true, "ma,vc,sv,re,an,db");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("skip_phasing", "Skip phasing of VCF and BAM files.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
@@ -418,6 +418,17 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	}
 }
 
+// repeat expansion
+if (in_array("re", $steps))
+{
+	//Repeat-expansion calling using straglr
+	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
+	//TODO: remove
+	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_converted.bed";
+
+	$parser->execTool("NGS/vc_straglr.php", "-in {$bam_file} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
+}
+
 // annotation
 if (in_array("an", $steps))
 {
@@ -585,11 +596,6 @@ if (in_array("an", $steps))
 		$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_file -out $bedpe_file -info_fields SVLEN,SUPPORT,COVERAGE,AF", true);
 	}
 
-	//Repeat-expansion calling using straglr
-	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
-	
-	//TODO: fix python import error
-	$parser->execTool("NGS/vc_straglr.php", "-in {$bam_file} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
 }
 
 // collect other QC terms - if CNV or SV calling was done
