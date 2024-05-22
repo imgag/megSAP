@@ -423,9 +423,6 @@ if (in_array("re", $steps))
 {
 	//Repeat-expansion calling using straglr
 	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
-	//TODO: remove
-	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_converted.bed";
-
 	$parser->execTool("NGS/vc_straglr.php", "-in {$bam_file} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
 }
 

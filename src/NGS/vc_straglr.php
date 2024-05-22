@@ -25,7 +25,10 @@ if(!isset($pid)) $pid = basename2($in);
 
 //init
 $out_prefix = dirname($out)."/".basename2($out);
+$out_bed = $out_prefix.".bed";
 $out_vcf = $out_prefix.".vcf";
+$out_tsv = $out_prefix.".tsv";
+$plot_folder = dirname($out)."/repeat_expansions";
 $straglr = get_path("straglr");
 
 //get gender
@@ -68,7 +71,7 @@ foreach ($loci_content as $line)
     $catalog["{$chr}:{$start}-{$end}"] = array($repeat_id, $repeat_type, $ref_size);
 }
 //annotate catalog to output file
-$bed_content_in = file($out, FILE_IGNORE_NEW_LINES + FILE_SKIP_EMPTY_LINES);
+$bed_content_in = file($out_bed, FILE_IGNORE_NEW_LINES + FILE_SKIP_EMPTY_LINES);
 $bed_content_out = array();
 foreach ($bed_content_in as $line) 
 {
@@ -80,11 +83,18 @@ foreach ($bed_content_in as $line)
         $bed_content_out[] = $line."\t".implode("\t", $catalog["{$chr}:{$start}-{$end}"]);
     }
 }
-file_put_contents($out, implode("\n", $bed_content_out));
+file_put_contents($out_bed, implode("\n", $bed_content_out));
 
 //sort output files
-$parser->exec(get_path("ngs-bits")."BedSort", "-in {$out} -out {$out}");
+$parser->exec(get_path("ngs-bits")."BedSort", "-in {$out_bed} -out {$out_bed}");
 $parser->exec(get_path("ngs-bits")."VcfSort", "-in {$out_vcf} -out {$out_vcf}");
+
+//create plots:
+if (file_exists($plot_folder)) $parser->exec("rm", "-r {$plot_folder}"); //delete previous plots
+mkdir($plot_folder);
+$parser->exec(get_path("python3"), get_path("straglrOn")." {$out_bed} {$out_tsv} {$loci} -o {$plot_folder} --hist --alleles --bam {$in} --genome ".genome_fasta($build));
+
+
 
 
 
