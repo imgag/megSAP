@@ -139,18 +139,19 @@ foreach($samples as $ps)
 //determine password and folder
 $share_url = $internal ? "https://datashare.img.med.uni-tuebingen.de/" : "https://download.imgag.de/DataShare/";
 list($stdout) = exec2("curl --noproxy '*' ".($internal ? " -k" : "")." '{$share_url}/index.php?action=request&filename={$out}.zip'");
+if (contains(implode(" ", $stdout), "ERROR:")) trigger_error(implode(" ", $stdout), E_USER_ERROR);
 $folder = trim($stdout[0]);
 $password = trim($stdout[1]);
  
 //zip
-print "Zipping output folder".($internal ? "" : " using the password '{$password}'")."...\n";
-exec2("zip -1 ".($internal ? "" : "--password {$password} ")."-r {$out}.zip $out");
+print "Zipping output folder using the password '{$password}'...\n";
+exec2("zip -1 --password {$password} -r {$out}.zip $out");
 
 //move
 print "You can move the file to the webserver using:\n";
 if($internal)
 {
-	print "  > mv {$out}.zip mnt/storage1/share/http_shareukt/DataShare/data/{$folder}/\n";
+	print "  > mv {$out}.zip /mnt/storage1/share/http_shareukt/DataShare/data/{$folder}/\n";
 }
 else
 {

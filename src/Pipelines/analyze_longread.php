@@ -354,7 +354,7 @@ if (in_array("vc", $steps))
 
 		trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (special case).", E_USER_NOTICE);
 	} 
-	else if ($basecall_model == "'dna_r9.4.1_e8_hac@v3.3")
+	else if ($basecall_model == "dna_r9.4.1_e8_hac@v3.3")
 	{
 		$basecall_model_path = get_path("clair3_models")."/r941_prom_hac_g360+g422/";
 

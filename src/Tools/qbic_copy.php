@@ -268,7 +268,7 @@ function copyFiles($files, $to_folder, $upload)
 	}
 }
 
-function linkFastqs($ps_name, $data_folder, $tmp_folder, $basename, $bam = null)
+function linkFastqs($data_folder, $tmp_folder, $basename, $genome, $bam_or_cram = null)
 {
 	global $files;
 	global $parser;
@@ -290,15 +290,15 @@ function linkFastqs($ps_name, $data_folder, $tmp_folder, $basename, $bam = null)
 		exec2("ln -s {$fastq} {$out}");
 		$files[] = $out;
 	}
-	
+
 	//create FASTQs from BAM if missing
-	if ($i==0 && $j==0  && !is_null($bam) && file_exists($bam))
+	if ($i==0 && $j==0  && !is_null($bam_or_cram) && file_exists($bam_or_cram))
 	{
 		$fq1 = "{$tmp_folder}/{$basename}_001.1.fastq.gz";
 		$fq2 = "{$tmp_folder}/{$basename}_001.2.fastq.gz";
 		if ($upload) //skip generating FASTQs in dry run
 		{
-			$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam} -out1 {$fq1} -out2 {$fq2}", true);
+			$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam_or_cram} -out1 {$fq1} -out2 {$fq2} -ref {$genome}", true);
 		}
 		$files[] = $fq1;
 		$files[] = $fq2;
@@ -443,7 +443,15 @@ foreach($res as $row)
 		$is_rna = $sample1["experiment_type"]=="rna_seq";
 		$is_longread = $info['device_type']=="SequelII";
 		$tmp_folder = $parser->tempFolder();	
-				
+		
+		#get bam or cram file from sample and the reference file for the sample
+		list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps {$ps_name} -type BAM");
+		$bam_or_cram = trim(implode("", $stdout));
+		
+		$sys = load_system($sys, $ps_name); //param filename = "" to load from the NGSD
+		$build = $sys['build'];
+		$genome = genome_fasta($build);
+		
 		//determine files to transfer
 		$files = array();
 		$paths  = glob($data_folder.$s_name."*.*");
@@ -471,14 +479,13 @@ foreach($res as $row)
 		//generate FASTQs from BAM if deleted from folder
 		if (!$fastqs_present && !$is_tumor_normal_pair && !$is_rna && !$is_longread)
 		{
-			$bam = "{$data_folder}/{$ps_name}.bam";
-			if (file_exists($bam))
+			if (file_exists($bam_or_cram))
 			{
 				$fq1 = $tmp_folder."/{$ps_name}_BamToFastq_R1_001.fastq.gz";
 				$fq2 = $tmp_folder."/{$ps_name}_BamToFastq_R2_001.fastq.gz";
 				if ($upload) //skip generating FASTQs in dry run
 				{
-					$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam} -out1 {$fq1} -out2 {$fq2}", true);
+					$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam_or_cram} -out1 {$fq1} -out2 {$fq2} -ref {$genome}", true);
 				}
 				$files[] = $fq1;
 				$files[] = $fq2;
@@ -490,7 +497,7 @@ foreach($res as $row)
 		{
 			if($is_tumor)
 			{
-				linkFastqs($ps_name, $data_folder, $tmp_folder, "{$qbic_name}_tumor", $data_folder."/".$ps_name.".bam");
+				linkFastqs($data_folder, $tmp_folder, "{$qbic_name}_tumor", $genome, $bam_or_cram);
 			}
 			//parse related normal file if found
 			$normal_id = $sample1["normal_id"];
@@ -498,12 +505,20 @@ foreach($res as $row)
 			if($normal_id != "" && $normal_sample['quality_processed_sample'] != "bad" && $normal_sample['quality_run'] != "bad")
 			{
 				$normal_data_dir = $project_folder."/Sample_".$normal_sample['id_genetics']."/";
-				linkFastqs($ps_name, $normal_data_dir, $tmp_folder, "{$qbic_name}_normal", $normal_data_dir."/".$normal_sample['id_genetics'].".bam");
+				
+				list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps ".$normal_sample['id_genetics']." -type BAM");
+				$normal_bam_or_cram = trim(implode("", $stdout));
+				
+				$sys_n = load_system($sys_n, $normal_sample['id_genetics']); //param filename = "" to load from the NGSD
+				$build_n = $sys_n['build'];
+				$genome_normal = genome_fasta($build_n);
+				
+				linkFastqs($normal_data_dir, $tmp_folder, "{$qbic_name}_normal", $genome_normal, $normal_bam_or_cram, );
 			}
 		}
 		else if($is_rna && $is_tumor)
 		{
-			linkFastqs($ps_name, $data_folder, $tmp_folder, "{$qbic_name}_tumor_rna");
+			linkFastqs($data_folder, $tmp_folder, "{$qbic_name}_tumor_rna", $genome, $bam_or_cram);
 		}
 		
 		//skip already uploaded
@@ -668,6 +683,10 @@ foreach($res as $row)
 				{
 					$parser->moveFile($zip, $GLOBALS["datamover_path"]."/".basename($zip));
 				}
+				
+				//remove temp folder again after upload.
+				if (file_exists($tmpfolder)) exec2("rm -rf $tmpfolder");
+				
 				printTSV($output, $upload ? "UPLOADED" : "TO_UPLOAD" , implode(" ", $files));
 			}
 		}

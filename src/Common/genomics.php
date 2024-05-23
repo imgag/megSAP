@@ -480,9 +480,18 @@ function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 	{
 		//split name
 		$name = trim($name);
-		$parts = explode("_", $name."_99");
-		list($sname, $id) = $parts;
-		$id = ltrim($id, "0");
+		$sep_idx = strrpos($name, "_");
+		if ($sep_idx==false)
+		{
+			$sname = $name;
+			$id = "99";
+		}
+		else
+		{
+			$sname = substr($name, 0, $sep_idx);
+			$id = substr($name, $sep_idx+1);
+			$id = ltrim($id, "0");
+		}
 		
 		//query NGSD
 		$res = $db_conn->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name=:name AND ps.process_id=:id", array('name' => $sname, "id"=>$id));

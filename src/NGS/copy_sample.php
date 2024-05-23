@@ -511,7 +511,7 @@ foreach($sample_data as $sample => $sample_infos)
 					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
 					{
 						//convert to fastq.gz
-						$target_to_copylines[$tag][] = "\t".get_path("orad")." --ora-reference ".dirname(get_path("orad"))."/oradata/".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}";
+						$target_to_copylines[$tag][] = "\t".get_path("orad")." --ora-reference ".dirname(get_path("orad"))."/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}";
 					}
 					else
 					{
@@ -766,13 +766,11 @@ foreach($sample_data as $sample => $sample_infos)
 				if($is_novaseq_x && ($sys_type != "RNA") && ($sys_type != "cfDNA (patient-specific)") && ($sys_type != "cfDNA")) // do  complete analysis for RNA/cfDNA samples 
 				{
 					//do mapping for WGS samples
-					if ($sys_type == "WGS") $args[] = "-steps ma,vc,cn,sv,db";
-					else $args[] = "-steps vc,cn,sv,db";
+					if ($sys_type == "WGS") $args[] = "-steps ma,vc,cn,sv,re,db";
+					else $args[] = "-steps vc,cn,sv,re,db";
 					$args[] = "-use_dragen";
 					$args[] = "-no_abra";
 				}
-
-
 			}
 			
 			//check if trio needs to be queued

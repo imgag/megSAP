@@ -1106,6 +1106,7 @@ if (in_array("an", $steps))
 			$params[] = "-g ${variants_gsvar}";
 			$params[] = "-o ${cfdna_folder}";
 			$params[] = "-r ${ref_genome}";
+			$params[] = "-n 65"; // select 50 candidate variants
 			$params[] = "-i"; // ignore INDELS
 			// call variant selection in virtual environment
 			//set environment variables
@@ -1312,7 +1313,7 @@ if (in_array("an_rna", $steps))
 
 //Collect QC terms if necessary
 $qc_other = $full_prefix."_stats_other.qcML";
-if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("cn", $steps))
+if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("cn", $steps) || in_array("db", $steps))
 {
 	$terms = array();
 	$sources = array();

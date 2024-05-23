@@ -66,7 +66,8 @@ foreach($file as $line)
 {
 	$line = trim($line);
 	if ($line=="")  continue;
-	$commands[] = $line;
+	//ignore comment line
+	if ($line[0] == "#") continue;	$commands[] = $line;
 }
 
 while(count($commands)>0)

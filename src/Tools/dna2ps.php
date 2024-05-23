@@ -19,14 +19,15 @@ foreach(file($in) as $line)
 	
 	if ($line[0]=="#")
 	{
-		if (!starts_with($line, "##"))
-		{
-			print $line."\tprocessed_samples\n";
-		}
+		if (starts_with($line, "##")) continue;
+		print $line."\tdna_nr\tprocessed_samples\n";
+
+		continue;
 	}
 	
 	list($dna_nr) = explode("\t", $line, 2);
-	$dna_nr = strtr($dna_nr, ["DNA-"=>"", "A1"=>"", "B1"=>"", "A2"=>"", "B2"=>"", "A3"=>"", "B3"=>""]);
+	$dna_nr = strtr($dna_nr, ["DNA-"=>"", "DNA"=>"", "DX"=>""]);
+	$dna_nr = strtr($dna_nr, ["A1"=>"", "B1"=>"", "A2"=>"", "B2"=>"", "A3"=>"", "B3"=>""]);
 	$dna_nr = trim($dna_nr);
 	
 	$tables = [];
@@ -51,7 +52,7 @@ foreach(file($in) as $line)
 	}
 	
 	$ps_ids = $db->getValues("SELECT CONCAT(s.name, '_0', ps.process_id) FROM ".implode(", ", $tables)." WHERE ".implode(" AND ", $conditions)." ORDER BY ps.id ASC");
-	print $line."\t".implode(", ", $ps_ids)."\n";
+	print $line."\t".$dna_nr."\t".implode(", ", $ps_ids)."\n";
 
 }
 
