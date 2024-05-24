@@ -95,7 +95,6 @@ rsa==4.9
 scikit-learn==1.3.2
 scipy==1.10.1
 seaborn==0.13.0
-setuptools==68.0.0
 SigProfilerExtractor==1.1.23
 six==1.16.0
 sniffles==2.2
@@ -120,7 +119,6 @@ urllib3==1.26.14
 wcwidth==0.2.5
 Werkzeug==2.2.3
 whatshap==2.1
-wheel==0.41.2
 wrapt==1.15.0
 xopen==1.7.0
 yarl==1.8.2
