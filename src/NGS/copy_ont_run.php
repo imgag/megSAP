@@ -133,7 +133,7 @@ else
 }
 
 //find sample entered in database
-$result = $db_con->executeQuery("SELECT processed_sample.id FROM processed_sample, sequencing_run WHERE sequencing_run.name = '{$run_name}' AND processed_sample.sequencing_run_id=sequencing_run.id");
+$result = $db_con->executeQuery("SELECT processed_sample.id, processed_sample.sequencing_run_id FROM processed_sample, sequencing_run WHERE sequencing_run.name = '{$run_name}' AND processed_sample.sequencing_run_id=sequencing_run.id");
 if (count($result) !== 1)
 {
 	trigger_error("None or multiple samples entered for flowcell (not supported).", E_USER_ERROR);
@@ -207,6 +207,9 @@ if ($fastq || ($prefer_bam && !$bam_available))
 if ($queue_sample)
 {
 	$parser->execTool("NGS/db_queue_analysis.php", "-samples {$sample} -type 'single sample'");
+
+	// update sequencing run analysis status
+	$db_con->executeStmt("UPDATE sequencing_run SET sequencing_run.status='analysis_started' WHERE sequencing_run.name = '{$run_name}' AND sequencing_run.status IN ('run_started', 'run_finished')");
 }
 
 ?>
