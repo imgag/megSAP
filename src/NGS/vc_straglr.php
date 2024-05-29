@@ -60,15 +60,30 @@ print "\n........\n".getenv("PATH")."\n........\n";
 // run straglr
 $parser->exec(get_path("python3"), implode(" ", $args));
 
-// annotate repeat names
+//get pathogenic ranges from NGSD
+$min_pathogenic = array();
+if (db_is_enabled("NGSD"))
+{
+	$db = DB::getInstance("NGSD", false);
+	$result = $db->executeQuery("SELECT region, repeat_unit, min_pathogenic FROM `repeat_expansion`");
+	foreach($result as $row)
+	{
+		if (!is_null($row["min_pathogenic"]) && $row["min_pathogenic"] != "")
+    {
+      $min_pathogenic[$row["region"]."_".$row["repeat_unit"]] = (int) $row["min_pathogenic"];
+    }
+	}
+}
+
+// annotate repeat names/ref motif
 //read and index catalog
 $loci_content = file($loci, FILE_IGNORE_NEW_LINES + FILE_SKIP_EMPTY_LINES);
 $catalog = array();
 foreach ($loci_content as $line) 
 {
     if (starts_with($line, "#")) continue;
-    list($chr, $start, $end, $motive, $repeat_id, $repeat_type, $ref_size) = explode("\t", $line);
-    $catalog["{$chr}:{$start}-{$end}"] = array($repeat_id, $repeat_type, $ref_size);
+    list($chr, $start, $end, $motif, $repeat_id, $repeat_type, $ref_size, $ref_motif) = explode("\t", $line);
+    $catalog["{$chr}:{$start}-{$end}"] = array($repeat_id, $repeat_type, $ref_size, $ref_motif);
 }
 //annotate catalog to output file
 $bed_content_in = file($out_bed, FILE_IGNORE_NEW_LINES + FILE_SKIP_EMPTY_LINES);
@@ -76,18 +91,65 @@ $bed_content_out = array();
 foreach ($bed_content_in as $line) 
 {
     if (starts_with($line, "##")) $bed_content_out[] = $line;
-    elseif (starts_with($line, "#")) $bed_content_out[] = $line."\trepeat_id\trepeat_type\tref_size";
+    elseif (starts_with($line, "#")) $bed_content_out[] = $line."\trepeat_id\trepeat_type\tref_size\tref_motif\tmin_pathogenic";
     else 
     {
-        list($chr, $start, $end, $motive, $repeat_id) = explode("\t", $line);
-        $bed_content_out[] = $line."\t".implode("\t", $catalog["{$chr}:{$start}-{$end}"]);
+        list($chr, $start, $end, $motif, $repeat_id) = explode("\t", $line);
+        $annotation = $catalog["{$chr}:{$start}-{$end}"];
+        $ref_motif = $annotation[3];
+        if (isset($min_pathogenic["{$chr}:{$start}-{$end}_{$ref_motif}"]))
+        {
+          $annotation[] = $min_pathogenic["{$chr}:{$start}-{$end}_{$ref_motif}"];
+        }
+        else 
+        {
+          $annotation[] = "";
+        }
+        $bed_content_out[] = $line."\t".implode("\t", $annotation);
     }
 }
 file_put_contents($out_bed, implode("\n", $bed_content_out));
 
+//annotate reference motif to VCF
+$vcf_content_in = file($out_vcf, FILE_IGNORE_NEW_LINES + FILE_SKIP_EMPTY_LINES);
+$vcf_content_out = array();
+foreach ($vcf_content_in as $line) 
+{
+    if (starts_with($line, "##")) $vcf_content_out[] = $line;
+    elseif (starts_with($line, "#")) 
+    {
+      $vcf_content_out[] = "##INFO=<ID=REF_MOTIF,Number=.,Type=String,Description=\"Reference motif\">";
+      $vcf_content_out[] = $line;
+    }
+    else 
+    {
+        $columns = explode("\t", $line);
+        $chr = $columns[0];
+        $start = $columns[1];
+        $info =  explode(";", $columns[7]);
+        foreach ($info as $kv_pair)
+        {
+          if (starts_with($kv_pair, "END=")) 
+          {
+            $end = explode("=", $kv_pair)[1];
+            break;
+          }
+        }
+        if (!isset($end)) trigger_error("No end position found in line '{$line}'!", E_USER_ERROR);
+        $info[] = "REF_MOTIF=".$catalog["{$chr}:{$start}-{$end}"][3];
+        $columns[7] = implode(";", $info);
+        $vcf_content_out[] = implode("\t", $columns);
+
+    }
+}
+file_put_contents($out_vcf, implode("\n", $vcf_content_out));
+
+
+
 //sort output files
 $parser->exec(get_path("ngs-bits")."BedSort", "-in {$out_bed} -out {$out_bed}");
 $parser->exec(get_path("ngs-bits")."VcfSort", "-in {$out_vcf} -out {$out_vcf}");
+
 
 //create plots:
 if (file_exists($plot_folder)) $parser->exec("rm", "-r {$plot_folder}"); //delete previous plots
