@@ -18,7 +18,7 @@ check_file($out_file_bed, data_folder().$name."_out1.bed");
 foreach(array("FXN", "ATXN3", "DMPK") as $re)
 {
     check_file($out_file_svg_prefix.$re.".fa", data_folder().$name."_out1_".$re.".fa");
-    check_file($out_file_svg_prefix.$re."_hist.png", data_folder().$name."_out1_".$re."_hist.png");    
+    check_file($out_file_svg_prefix.$re."_hist.svg", data_folder().$name."_out1_".$re."_hist.svg");    
 }
 
 end_test();
