@@ -82,6 +82,42 @@ if( $somatic && file_exists(get_path("data_folder")."/dbs/cancerhotspots/cancerh
 	$parser->moveFile($temp_annfile, $annfile);
 }
 
+//annotate lrGS with short-read WGS sample
+if (($sys['type']=="lrGS") && !$multi && !$somatic)
+{
+	list($stdout, $stderr, $exit_code) = $parser->exec("{$ngsbits}/NGSDSameSample", "-ps $name -system_type WGS");
+	//parse stdout
+	$same_samples = array();
+	foreach ($stdout as $line) 
+	{
+		if (starts_with($line, "#")) continue;
+		if (trim($line) == "") continue;
+		$same_samples[] = trim(explode("\t", $line)[0]);
+	}
+	if (count($same_samples) < 1)
+	{
+		trigger_error("No related short-read WGS sample found for {$name}. Skipping overlap annotation.", E_USER_NOTICE);
+	} 
+	else
+	{
+		if (count($same_samples) > 1) trigger_error("Multiple related short-read WGS sample found for {$name}. Using first one (".$same_samples[0].").", E_USER_NOTICE);
+		else trigger_error("Using short-read WGS sample ".$same_samples[0]." for annotation.", E_USER_NOTICE);
+		// get VCF
+		list($stdout, $stderr, $exit_code) = $parser->exec(get_path("ngs-bits")."SamplePath", "-ps {$processed_sample} -type VCF", true);
+		$sr_vcf = trim($stdout[0]);
+		if (!file_exists($sr_vcf)) trigger_error("Short-read VCF '{$sr_vcf}' not found! Skipping annotation.", E_USER_WARNING);
+		else
+		{
+			// annotate variants
+			$temp_config = $parser->tempFile("config.tsv");
+			file_put_contents($temp_config, "{$sr_vcf}\t\t\t\t\t1\tIN_SHORTREAD_SAMPLE\n");
+			$temp_annfile = $parser->tempFile("shortread_ann.vcf");
+			$parser->exec(get_path("ngs-bits")."VcfAnnotateFromVcf", "-in {$annfile}  -out {$temp_annfile}", true);
+			$parser->moveFile($temp_annfile, $annfile);
+		}
+	}
+}
+
 
 //zip annotated VCF file
 $parser->exec("bgzip", "-c $annfile > $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
