@@ -114,6 +114,7 @@ else if ($ps_type == "germline")
 
 //check if FASTQ files or BAM in target folder exist
 $target_fastq_files = glob($folder2."/*.fastq.gz");
+$target_mod_unmapped_bam_files = glob($folder2."/*.mod.unmapped.bam");
 removeIndexFastqs($target_fastq_files);
 
 list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps {$into} -type BAM".$sample_path_db_addon);
@@ -122,6 +123,10 @@ $target_bam_or_cram = trim(implode("", $stdout));
 if (count($target_fastq_files) > 0)
 {
 	//FASTQ files found -> nothing to do
+}
+elseif (count($target_mod_unmapped_bam_files) > 0)
+{
+	//unmapped.bam files found -> nothing to do
 }
 elseif (file_exists($target_bam_or_cram)) 
 {
