@@ -127,7 +127,7 @@ $bamfile = $folder."/".$name.".bam";
 $cramfile = $folder."/".$name.".cram";
 $used_bam_or_cram = ""; //BAM/CRAM file used for calling etc. This is a local tmp file if mapping was done and a file in the output folder if no mapping was done
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
-$somatic_custom_panel = get_path("data_folder") . "/enrichment/somatic_VirtualPanel_v4.bed";
+$somatic_custom_panel = get_path("data_folder") . "/enrichment/somatic_VirtualPanel_v5.bed";
 //variant calling
 $vcffile = $folder."/".$name."_var.vcf.gz";
 $vcffile_annotated = $folder."/".$name."_var_annotated.vcf.gz";
@@ -324,7 +324,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 	check_genome_build($used_bam_or_cram, $build);
 
 	//QC for already mapped/called samples from the NovaSeq X
-	if($use_dragen && !file_exists($qc_map))
+	if(!file_exists($qc_map))
 	{
 		//QC
 		$params = array("-in $used_bam_or_cram", "-out {$qc_map}", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
@@ -352,7 +352,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 	}	
 	
 	//low-coverage regions for already mapped/called samples from the NovaSeq X
-	if($use_dragen && !file_exists($lowcov_file))
+	if(!file_exists($lowcov_file))
 	{
 		if ($has_roi && !$is_wgs_shallow)
 		{	
