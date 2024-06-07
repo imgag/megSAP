@@ -1215,6 +1215,12 @@ if (in_array("db", $steps))
 		$args[] = "-sv_force";
 		$import = true;
 	}
+	if (file_exists($expansion_hunter_file))
+	{
+		$args[] = "-re {$expansion_hunter_file}";
+		$args[] = "-re_force";
+		$import = true;
+	}
 	if ($import)
 	{
 		$parser->exec("{$ngsbits}NGSDAddVariantsGermline", implode(" ", $args), true);
