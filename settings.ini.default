@@ -41,9 +41,11 @@ whatshap = [path]/data/tools/Python-3.10.9_8.2.24/bin/whatshap
 pypy3 = [path]/data/tools/pypy3.9-v7.3.14-linux64/bin/pypy3
 parallel = [path]/data/tools/parallel-20230522/bin/parallel
 sniffles = [path]/data/tools/Python-3.10.9_8.2.24/bin/sniffles
-straglr = [path]/data/tools/straglr-1.4.1/straglr.py
+straglr = [path]/data/tools/straglr-1.5.0/straglr.py
 trf = [path]/data/tools/TRF_4.09/trf409.linux64
 blastn = [path]/data/tools/ncbi-blast-2.15.0+/bin/blastn
+modkit = [path]/data/tools/modkit_v0.2.5-rc2/modkit
+straglrOn = [path]/data/tools/StraglrOn_v0.2/src/straglron.py
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.10.centos6_x86_64/bin/
