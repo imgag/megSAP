@@ -378,6 +378,7 @@ $skip_ngsd = true; // true as long as no NGSD header is found
 $skip_ngsd_som = true; // true as long as no NGSD somatic header is found
 $skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC) header is found.
 $skip_cancerhotspots = true; //true as long as no CANCERHOTSPOTS header is found.
+$skip_short_read_overlap_annotation = true; //true as long as no IN_SHORT_READ header is found.
 $missing_domains = [];
 $multisample_vcf = false; //determines if the input VCF is a standard multi-sample VCF or single-sample VCF/megSAP multi-sample VCF (no extra columns for each sample)
 
