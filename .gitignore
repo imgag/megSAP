@@ -139,6 +139,8 @@
 /test/data_longread/*.fastq.gz
 /test/data_longread/*.bam
 /test/data_longread/*.bam.bai
+/test/data_longread/*.cram
+/test/data_longread/*.cram.crai
 /test/data_longread/*.log
 /test/data_longread/*.qcML
 /test/data_longread/*.vcf.gz
@@ -158,8 +160,9 @@
 /test/data_longread/*_circos.png
 /test/data_longread/merge_output.vcf
 /test/data_longread/*_repeats.tsv
+/test/data_longread/*_repeats.vcf
+/test/data_longread/repeat_expansions
 /test/data_longread/*_prs.tsv
-/test/data_longread/*_repeats.tsv
 /test/data_longread/*_repeats.bed
 /test/data_longread/*.bed.gz
 /test/data_longread/*.bed.gz.tbi
