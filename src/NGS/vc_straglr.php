@@ -12,7 +12,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 // parse command line arguments
 $parser = new ToolBase("vc_straglr", "Call repeat expansions with straglr. Creates an BED file.");
 $parser->addInfile("in", "Input BAM file.", false);
-$parser->addOutfile("out", "Output BED file.", false);
+$parser->addOutfile("out", "Output VCF file.", false);
 $parser->addInfile("loci", "BED file containing repeat loci.", false);
 //optional
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);

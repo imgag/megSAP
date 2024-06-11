@@ -350,7 +350,7 @@ $column_desc_cancerhotspots = array(
 
 //optional IN_SHORTREAD_SAMPLE
 $column_desc_short_read_overlap_annotation = array(
-	array("in short-read", "Variant was also found in corresponding short-read WGS sample.")
+	array("in_short-read", "Variant was also found in corresponding short-read WGS sample.")
 );
 
 if ($genotype_mode=="single")
@@ -1510,6 +1510,8 @@ while(!feof($handle))
 	{
 		fwrite( $handle_out, str_repeat("\t", count($column_desc_cancerhotspots) ) );
 	}
+
+	if (!$skip_short_read_overlap_annotation) fwrite($handle_out, "\t".$in_short_read_sample);
 
 	fwrite($handle_out, "\n");
 }

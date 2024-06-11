@@ -85,7 +85,7 @@ if( $somatic && file_exists(get_path("data_folder")."/dbs/cancerhotspots/cancerh
 //annotate lrGS with short-read WGS sample
 if (($sys['type']=="lrGS") && !$multi && !$somatic)
 {
-	list($stdout, $stderr, $exit_code) = $parser->exec("{$ngsbits}/NGSDSameSample", "-ps $name -system_type WGS");
+	list($stdout, $stderr, $exit_code) = $parser->exec(get_path("ngs-bits")."NGSDSameSample", "-ps {$out_name} -system_type WGS");
 	//parse stdout
 	$same_samples = array();
 	foreach ($stdout as $line) 
@@ -96,14 +96,14 @@ if (($sys['type']=="lrGS") && !$multi && !$somatic)
 	}
 	if (count($same_samples) < 1)
 	{
-		trigger_error("No related short-read WGS sample found for {$name}. Skipping overlap annotation.", E_USER_NOTICE);
+		trigger_error("No related short-read WGS sample found for {$out_name}. Skipping overlap annotation.", E_USER_NOTICE);
 	} 
 	else
 	{
-		if (count($same_samples) > 1) trigger_error("Multiple related short-read WGS sample found for {$name}. Using first one (".$same_samples[0].").", E_USER_NOTICE);
+		if (count($same_samples) > 1) trigger_error("Multiple related short-read WGS sample found for {$out_name}. Using first one (".$same_samples[0].").", E_USER_NOTICE);
 		else trigger_error("Using short-read WGS sample ".$same_samples[0]." for annotation.", E_USER_NOTICE);
 		// get VCF
-		list($stdout, $stderr, $exit_code) = $parser->exec(get_path("ngs-bits")."SamplePath", "-ps {$processed_sample} -type VCF", true);
+		list($stdout, $stderr, $exit_code) = $parser->exec(get_path("ngs-bits")."SamplePath", "-ps ".$same_samples[0]." -type VCF", true);
 		$sr_vcf = trim($stdout[0]);
 		if (!file_exists($sr_vcf)) trigger_error("Short-read VCF '{$sr_vcf}' not found! Skipping annotation.", E_USER_WARNING);
 		else
@@ -112,7 +112,7 @@ if (($sys['type']=="lrGS") && !$multi && !$somatic)
 			$temp_config = $parser->tempFile("config.tsv");
 			file_put_contents($temp_config, "{$sr_vcf}\t\t\t\t\t1\tIN_SHORTREAD_SAMPLE\n");
 			$temp_annfile = $parser->tempFile("shortread_ann.vcf");
-			$parser->exec(get_path("ngs-bits")."VcfAnnotateFromVcf", "-in {$annfile}  -out {$temp_annfile}", true);
+			$parser->exec(get_path("ngs-bits")."VcfAnnotateFromVcf", "-in {$annfile}  -out {$temp_annfile} -config_file {$temp_config}", true);
 			$parser->moveFile($temp_annfile, $annfile);
 		}
 	}

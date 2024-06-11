@@ -102,7 +102,7 @@ $cnv_file2 = $folder."/".$name."_cnvs_clincnv.seg";
 $sv_vcf_file = $folder ."/". $name . "_var_structural_variants.vcf.gz";
 $bedpe_file = substr($sv_vcf_file,0,-6)."bedpe";
 //repeat expansions
-$straglr_file = $folder."/".$name."_repeats.bed";
+$straglr_file = $folder."/".$name."_repeats.vcf";
 //db import
 $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
@@ -819,6 +819,15 @@ if (in_array("db", $steps))
 		
 		$args[] = "-sv {$bedpe_file}";
 		$args[] = "-sv_force";
+		$import = true;
+	}
+	if (file_exists($straglr_file))
+	{
+		//check genome build
+		check_genome_build($straglr_file, $build);
+		
+		$args[] = "-re {$straglr_file}";
+		$args[] = "-re_force";
 		$import = true;
 	}
 	if ($import)
