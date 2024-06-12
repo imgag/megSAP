@@ -85,6 +85,7 @@ extra BAM file in `bam_pass` directory.
 
 ```bash
 /mnt/storage2/megSAP/tools/dorado-0.6.0-linux-x64/bin/dorado \
+    basecaller \
     hac,5mCG_5hmCG \
     <run directory>/<flow cell directory>/pod5_skip \
     --min-qsore 9 \
