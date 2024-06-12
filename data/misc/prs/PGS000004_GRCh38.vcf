@@ -1,5 +1,5 @@
 ##fileformat=VCFv4.2
-##fileDate=20240503
+##fileDate=20240605
 ##pgs_id=PGS000004
 ##trait=Breast cancer
 ##n_var=313
@@ -9,6 +9,7 @@
 ##INFO=<ID=WEIGHT,Number=1,Type=Float,Description="PRS weight of this variant.">
 ##INFO=<ID=POP_AF,Number=1,Type=Float,Description="Population allele frequency of this variant.">
 ##INFO=<ID=OTHER_ALLELE,Number=1,Type=String,Description="The other allele(s) at the loci. Note: this does not necessarily need to correspond to the reference allele.">
+##INFO=<ID=REF_IS_EFFECT_ALLELE,Number=0,Type=Flag,Description="Set if reference base is effect allele">
 ##INFO=<ID=gnomADg_AF,Number=A,Type=Float,Description="Alternate allele frequency in samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADg_AFR_AF,Number=A,Type=Float,Description="Alternate allele frequency in AFR samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADg_AMR_AF,Number=A,Type=Float,Description="Alternate allele frequency in AMR samples (from file gnomAD_genome_v3.1.2_GRCh38.vcf.gz)">
@@ -202,7 +203,7 @@ chr9	108087244	.	G	T	.	.	POP_AF=0.5977;WEIGHT=0.0153;gnomADg_AC=111031;gnomADg_A
 chr9	108123199	.	C	T	.	.	POP_AF=0.6222;WEIGHT=0.0877;gnomADg_AC=93223;gnomADg_AF=0.61329;gnomADg_Hom=29244;gnomADg_Hemi=.;gnomADg_Het=34735;gnomADg_Wt=58781;gnomADg_AFR_AF=0.50382;gnomADg_AMR_AF=0.64379;gnomADg_EAS_AF=0.92777;gnomADg_NFE_AF=0.62372;gnomADg_SAS_AF=0.84017;AF_DIFF=0.0015200000000001
 chr9	116551207	.	A	G	.	.	POP_AF=0.4087;WEIGHT=-0.0462;gnomADg_AC=48306;gnomADg_AF=0.31790;gnomADg_Hom=8377;gnomADg_Hemi=.;gnomADg_Het=31552;gnomADg_Wt=103646;gnomADg_AFR_AF=0.17111;gnomADg_AMR_AF=0.32075;gnomADg_EAS_AF=0.29151;gnomADg_NFE_AF=0.40273;gnomADg_SAS_AF=0.26120;AF_DIFF=0.00597
 chr9	126662440	.	A	G	.	.	POP_AF=0.4577;WEIGHT=-0.0382;gnomADg_AC=71042;gnomADg_AF=0.46770;gnomADg_Hom=16742;gnomADg_Hemi=.;gnomADg_Het=37558;gnomADg_Wt=80854;gnomADg_AFR_AF=0.48989;gnomADg_AMR_AF=0.45284;gnomADg_EAS_AF=0.56889;gnomADg_NFE_AF=0.45541;gnomADg_SAS_AF=0.49088;AF_DIFF=0.00229
-chr9	133271182	.	T	.	.	.	POP_AF=0.2727;WEIGHT=0.04;OTHER_ALLELE=C;AF_DIFF=0.2727
+chr9	133271182	.	T	C	.	.	POP_AF=0.2727;WEIGHT=0.04;REF_IS_EFFECT_ALLELE;gnomADg_AC=115420;gnomADg_AF=0.77040;gnomADg_Hom=44718;gnomADg_Hemi=.;gnomADg_Het=25984;gnomADg_Wt=34398;gnomADg_AFR_AF=0.83381;gnomADg_AMR_AF=0.80791;gnomADg_EAS_AF=0.79871;gnomADg_NFE_AF=0.73837;gnomADg_SAS_AF=0.81803;AF_DIFF=0.46567
 chr10	5752689	.	A	G	.	.	POP_AF=0.2137;WEIGHT=0.047;gnomADg_AC=26867;gnomADg_AF=0.17660;gnomADg_Hom=2688;gnomADg_Hemi=.;gnomADg_Het=21491;gnomADg_Wt=125269;gnomADg_AFR_AF=0.07955;gnomADg_AMR_AF=0.23439;gnomADg_EAS_AF=0.17467;gnomADg_NFE_AF=0.21978;gnomADg_SAS_AF=0.12433;AF_DIFF=0.00608
 chr10	13850298	.	G	A	.	.	POP_AF=0.4376;WEIGHT=0.0371;gnomADg_AC=74326;gnomADg_AF=0.49048;gnomADg_Hom=18247;gnomADg_Hemi=.;gnomADg_Het=37832;gnomADg_Wt=77212;gnomADg_AFR_AF=0.53656;gnomADg_AMR_AF=0.47820;gnomADg_EAS_AF=0.61227;gnomADg_NFE_AF=0.45034;gnomADg_SAS_AF=0.53410;AF_DIFF=0.01274
 chr10	21744013	.	A	G	.	.	POP_AF=0.7085;WEIGHT=-0.058;gnomADg_AC=99652;gnomADg_AF=0.65567;gnomADg_Hom=33765;gnomADg_Hemi=.;gnomADg_Het=32122;gnomADg_Wt=52332;gnomADg_AFR_AF=0.49247;gnomADg_AMR_AF=0.64527;gnomADg_EAS_AF=0.95037;gnomADg_NFE_AF=0.71317;gnomADg_SAS_AF=0.79252;AF_DIFF=0.00467

@@ -17,7 +17,7 @@ $parser->addFlag("add_tsv", "Add an additional tsv output");
 extract($parser->parse($argv));
 
 //init
-$genome_fasta = genome_fasta($build);
+$genome_fasta = genome_fasta($build, ($build=="GRCh38"), ($build=="GRCh38")); //local data works only for GRCh38
 
 if (!(isset($pgs) xor isset($vcf)))
 {
@@ -140,6 +140,7 @@ if (isset($pgs))
 				fwrite($out_h, "##INFO=<ID=WEIGHT,Number=1,Type=Float,Description=\"PRS weight of this variant.\">\n");
 				fwrite($out_h, "##INFO=<ID=POP_AF,Number=1,Type=Float,Description=\"Population allele frequency of this variant.\">\n");
 				fwrite($out_h, "##INFO=<ID=OTHER_ALLELE,Number=1,Type=String,Description=\"The other allele(s) at the loci. Note: this does not necessarily need to correspond to the reference allele.\">\n");
+				fwrite($out_h, "##INFO=<ID=REF_IS_EFFECT_ALLELE,Number=0,Type=Flag,Description=\"Set if reference base is effect allele\">\n");
 				//write header line
 				fwrite($out_h, "#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO\n");
 				
@@ -159,8 +160,7 @@ if (isset($pgs))
 			$pos = $data_line[$pos_idx];
 			$rsid = ($rsid_idx === false)?".":$data_line[$rsid_idx];
 			$other = $data_line[$other_idx];
-			$ref = get_ref_seq($build, $chr, $pos, intval($pos) + (strlen($other)-1));
-			// print $build." ".$chr." ".$pos." - ".(intval($pos) + (strlen($other)-1))." --> $ref\n";
+			$ref = get_ref_seq($build, $chr, $pos, intval($pos) + (strlen($other)-1), 0, ($build=="GRCh38"));
 			$alt = $data_line[$effect_idx];
 
 			//fix insertions:
@@ -169,15 +169,19 @@ if (isset($pgs))
 				//replace first base with ref
 				$alt = $ref[0].substr($alt, 1);
 			}
-			if ($alt == $ref) $alt = ".";
+			$info_annotation = "";
+			//wt variants
+			if ($alt == $ref) 
+			{
+				$alt = $other; // use other as alt
+				$info_annotation = ";REF_IS_EFFECT_ALLELE";
+			}
 			$weight = $data_line[$weight_idx];
 			$popaf = $data_line[$popaf_idx];
 
-	
-
 			// write VCF line
-			if ($other == $ref) fwrite($out_h, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tPOP_AF={$popaf};WEIGHT={$weight}\n");
-			else fwrite($out_h, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tPOP_AF={$popaf};WEIGHT={$weight};OTHER_ALLELE={$other}\n");
+			if ($other == $ref) fwrite($out_h, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tPOP_AF={$popaf};WEIGHT={$weight}{$info_annotation}\n");
+			else fwrite($out_h, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tPOP_AF={$popaf};WEIGHT={$weight};OTHER_ALLELE={$other}{$info_annotation}\n");
 
 		}
 		
@@ -185,12 +189,12 @@ if (isset($pgs))
 	fclose($out_h);
 
 	//check if all required header items are parsed:
-	if(!isset($pgs_id)) trigger_error("PGS ID missing in PRS file!");
-	if(!isset($trait)) trigger_error("Reported Trait missing in PRS file!");
-	if(!isset($build_prs)) trigger_error("Original Genome Build missing in PRS file!");
-	if(!isset($n_var)) trigger_error("Number of Variants missing in PRS file!");
-	if(!isset($pgp_id)) trigger_error("PGP ID missing in PRS file!");
-	if(!isset($citation)) trigger_error("Citation missing in PRS file!");
+	if(!isset($pgs_id)) trigger_error("PGS ID missing in PRS file!", E_USER_WARNING);
+	if(!isset($trait)) trigger_error("Reported Trait missing in PRS file!", E_USER_WARNING);
+	if(!isset($build_prs)) trigger_error("Original Genome Build missing in PRS file!", E_USER_WARNING);
+	if(!isset($n_var)) trigger_error("Number of Variants missing in PRS file!", E_USER_WARNING);
+	if(!isset($pgp_id)) trigger_error("PGP ID missing in PRS file!", E_USER_WARNING);
+	if(!isset($citation)) trigger_error("Citation missing in PRS file!", E_USER_WARNING);
 
 	// set input file for left normalization
 	$input_vcf = $temp_file;
@@ -264,11 +268,12 @@ else
 
 
 //left-align VCF file
+$annotate_gnomad_af = (isset($pgs) && ($build=="GRCh38"));
 $normalize_out = $parser->tempFile("_leftNormalized.vcf");
 $pipeline = array();
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome_fasta -in $input_vcf");
-$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", ((isset($pgs))?"":"-out {$normalize_out}"));
-if (isset($pgs))
+$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", (($annotate_gnomad_af)?"":"-out {$normalize_out}"));
+if ($annotate_gnomad_af)
 {
 	//gnomAD annotation
 	$args_gnomad = array();
@@ -281,7 +286,7 @@ if (isset($pgs))
 } 
 $parser->execPipeline($pipeline, "VCF normalize and sort");
 
-if (isset($pgs))
+if ($annotate_gnomad_af)
 {
 	//calculate diff between gnomad AF (EUR) and POP_AF
 	$vcf_content = file($normalize_out);
