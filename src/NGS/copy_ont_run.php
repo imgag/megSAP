@@ -42,18 +42,22 @@ foreach ($subdirs as &$subdir)
 	$subdir = "{$run_dir}/{$subdir}";
 }
 
-//check available data
-function check_data_available($path, $suffix)
+//check for pod5_skip subdirectory (partially basecalled flow cell)
+foreach ($subdirs as $subdir)
 {
-	return file_exists($path) && is_dir($path) && (count(glob("{$path}/*{$suffix}")) > 0);
+	if (is_dir("{$subdir}/pod5_skip"))
+	{
+		trigger_error("'pod5_skip' directory present in '{$subdir}', some data has not been basecalled!", E_USER_ERROR);
+	}
 }
-function check_data_available2($path, $subdir_name, $suffix)
+
+//check available data
+function check_data_available($path, $subdir_name, $suffix)
 {
 	return file_exists($path) && is_dir($path) && (count(glob("{$path}/*/{$subdir_name}/*{$suffix}")) > 0);
 }
 
-// $fastq_path = "{$prefix}/fastq_pass";
-$fastq_available = check_data_available2($run_dir, "fastq_pass", ".fastq.gz");
+$fastq_available = check_data_available($run_dir, "fastq_pass", ".fastq.gz");
 if (!$fastq_available && ($fastq || $single_fastq))
 {
 	trigger_error("No FASTQ files available!", E_USER_ERROR);
@@ -75,7 +79,7 @@ if ($single_fastq !== "")
 	exit();
 }
 
-$bam_available = check_data_available2($run_dir, "bam_pass", ".bam");
+$bam_available = check_data_available($run_dir, "bam_pass", ".bam");
 if (!$bam_available && $bam)
 {
 	trigger_error("No BAM files available!", E_USER_ERROR);
