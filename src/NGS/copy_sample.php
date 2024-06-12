@@ -17,6 +17,7 @@ $parser->addFlag("high_priority", "Assign high priority to all queued samples.")
 $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
 $parser->addFlag("no_rename_r3", "Do not rename R2/R3 FASTQ files to index/R2.");
 $parser->addFlag("ignore_nsx_analysis", "Ignore NovaSeqX Analysis results.");
+$parser->addFlag("no_genlab", "Do not query GENLAB for metadata.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addInt("threads_ora", "Number of threads used to decompress ORA files during the copy.", true, 8);
 $parser->addFlag("test", "Run in test mode, e.g. set the pipeline path to a fixed value.");
@@ -260,14 +261,17 @@ else $sample_data = extract_sample_data($db_conn, $samplesheet);
 
 
 //import data from Genlab
-print "Importing information from GenLab...\n";
-
-foreach($sample_data as $sample => $data)
+if (! $no_genlab)
 {
-	$args = [];
-	$args[] = "-ps {$sample}";
-	if ($db=="NGSD_TEST") $args[] = "-test";
-	$parser->exec("{$ngsbits}/NGSDImportGenlab", implode(" ", $args), true);
+	print "Importing information from GenLab...\n";
+
+	foreach($sample_data as $sample => $data)
+	{
+		$args = [];
+		$args[] = "-ps {$sample}";
+		if ($db=="NGSD_TEST") $args[] = "-test";
+		$parser->exec("{$ngsbits}/NGSDImportGenlab", implode(" ", $args), true);
+	}
 }
 
 
