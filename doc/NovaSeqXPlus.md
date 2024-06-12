@@ -36,7 +36,8 @@ tar -czf $NEW_NAME.tar.gz DRAGEN genome.fa genome.json
 
 ## Uploading enrichment files (BED) to the sequencer
 
-- In the upload dialog set the file type to `BedFile`(not `bed`), otherwise it will not be found in the sample sheet 
+- In the upload dialog set the file type to `BedFile`(not `bed`), otherwise it will not be found in the sample sheet
+- If you want to use padding during analysis you have to add it to this file since you cannot define it in the Dargen analysis on the device
 
 
 ## Re-analyse samples
