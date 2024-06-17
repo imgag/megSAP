@@ -77,10 +77,10 @@ cd ..
 
 #download straglr
 cd $folder
-wget https://github.com/bcgsc/straglr/releases/download/v1.4.1/straglr-1.4.1.tar.gz
-tar xzf straglr-1.4.1.tar.gz 
-mv straglr straglr-1.4.1
-rm straglr-1.4.1.tar.gz
+wget https://github.com/bcgsc/straglr/releases/download/v1.5.0/straglr-1.5.0.tar.gz
+tar xzf straglr-1.5.0.tar.gz 
+mv straglr straglr-1.5.0
+rm straglr-1.5.0.tar.gz
 
 #download Tandem Repeats Finder
 cd $folder
