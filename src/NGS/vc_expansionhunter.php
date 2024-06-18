@@ -164,6 +164,10 @@ if (!$no_images)
 		{
 			$parser->moveFile($source_file, $prefix."_".$locus.".svg");
 		}
+		else
+		{
+			trigger_error("SVG file for RE locus {$locus} not found: {$source_file}", E_USER_NOTICE);
+		}
 	}
 }
 
