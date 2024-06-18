@@ -11,7 +11,7 @@ OCAC36_liftover:
 	@echo "WARNING: Check lifting manually and lift remaining by hand!"
 
 OCAC36_calculate_percentiles:
-	php ../../../src/Tools/prs2vcf.php -vcf OCAC_36_GRCh38_fixed.vcf -out OCAC_36_GRCh38.vcf -build GRCh38
+	php ../../../src/Tools/prs2vcf.php -vcf OCAC_36_v1_fixed.vcf -out OCAC_36_GRCh38.vcf -build GRCh38 -exclude_disease_group Neoplasms -processing_system TruSeqPCRfree
 
 ################################### PGS000004 (breast cancer) ###################################
 
@@ -25,7 +25,7 @@ PGS000004_to_vcf:
 	@echo "WARNING: Check lifting manually and lift remaining by hand!"
 
 PGS000004_calculate_percentiles_GRCh38:
-	php ../../../src/Tools/prs2vcf.php -vcf PGS000004_GRCh38_fixed.vcf -out PGS000004_GRCh38.vcf -build GRCh38
+	php ../../../src/Tools/prs2vcf.php -vcf PGS000004_v2_fixed.vcf -out PGS000004_GRCh38.vcf -build GRCh38 -exclude_disease_group Neoplasms -processing_system TruSeqPCRfree
 
 ################################### BRIDGES_306 (breast cancer) ###################################
 BRIDGES_306_download:
@@ -64,4 +64,4 @@ BRIDGES_306_liftover:
 	@echo "WARNING: Check lifting manually and lift remaining by hand!"
 
 BRIDGES_306_calculate_percentiles_GRCh38:
-	php ../../../src/Tools/prs2vcf.php -vcf BRIDGES_306_GRCh38_fixed.vcf -out BRIDGES_306_GRCh38.vcf -build GRCh38
+	php ../../../src/Tools/prs2vcf.php -vcf BRIDGES_306_v2_fixed.vcf -out BRIDGES_306_GRCh38.vcf -build GRCh38 -exclude_disease_group Neoplasms -processing_system TruSeqPCRfree

@@ -13,6 +13,7 @@ $parser->addInfile("vcf", "Input VCF file with PGS info.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFlag("skip_percentiles", "Skip percentile computation");
 $parser->addString("exclude_disease_group", "Name of a disease group which should be excluded for percentile calculation", true, "");
+$parser->addString("processing_system", "Processing system short name to which the percentile calculation should be limited to.", true, "");
 $parser->addFlag("add_tsv", "Add an additional tsv output");
 extract($parser->parse($argv));
 
@@ -351,7 +352,7 @@ if(!$skip_percentiles)
 {
 	//calculate PRS for all WGS samples of the NGSD and calculate distribution (percentiles)
 	$distribution_file = $parser->tempFile("_distribution.tsv");
-	$parser->execTool("Tools/calculate_prs_distribution.php", "-in $input_vcf -out $distribution_file".(($exclude_disease_group == "")?"":"-exclude_disease_group ".$exclude_disease_group));
+	$parser->execTool("Tools/calculate_prs_distribution.php", "-in $input_vcf -out $distribution_file".(($exclude_disease_group == "")?"":" -exclude_disease_group ".$exclude_disease_group).(($processing_system == "")?"":" -processing_system ".$processing_system));
 
 	// parse distribution file
 	$distribution = Matrix::fromTSV($distribution_file);

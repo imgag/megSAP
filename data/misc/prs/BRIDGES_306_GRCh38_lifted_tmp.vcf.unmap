@@ -1,6 +1,0 @@
-##fileformat=VCFv4.2
-##INFO=<ID=WEIGHT,Number=1,Type=Float,Description="PRS weight of this variant.">
-##INFO=<ID=POP_AF,Number=1,Type=Float,Description="Population allele frequency of this variant.">
-##INFO=<ID=OTHER_ALLELE,Number=1,Type=String,Description="The other allele(s) at the loci. Note: this does not necessarily need to correspond to the reference allele.">
-##INFO=<ID=hg19_var,Number=1,Type=String,Description="Variant info (position and nucleotide change) of variant">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
