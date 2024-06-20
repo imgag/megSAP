@@ -160,7 +160,7 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 
 		//get sequence
 		$output = array();
-		exec(get_path("samtools")." faidx ".genome_fasta($build)." $chr:{$start}-$end 2>&1", $output, $ret);
+		exec(get_path("samtools")." faidx ".genome_fasta($build, $use_local_data)." $chr:{$start}-$end 2>&1", $output, $ret);
 		if ($ret!=0)
 		{
 			trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
