@@ -61,7 +61,9 @@ clear_analysis_folder();
 create_folder("Sample_DNA220004_01", [data_folder()."merge_samples_in1_L001_R1_001.fastq.gz"=>"DNA220004_01_L001_R1_001.fastq.gz", data_folder()."merge_samples_in1_L001_R2_001.fastq.gz"=>"DNA220004_01_L001_R2_001.fastq.gz"], "dummy.txt");
 create_folder("Sample_DNA220004_02", [data_folder()."merge_samples_in2_L001_R1_001.fastq.gz"=>"DNA220004_02_L001_R1_001.fastq.gz", data_folder()."merge_samples_in2_L001_R2_001.fastq.gz"=>"DNA220004_02_L001_R2_001.fastq.gz"], "dummy2.txt");
 
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=4"), 1); // should be 1 before merging
 check_exec("php ".src_folder()."/Tools/".$name.".php -db NGSD_TEST -ps DNA220004_01 -into DNA220004_02");
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=4"), 0); // should be 0 after merging
 
 check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_01_L001_R1_001.fastq.gz");
 check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_01_L001_R2_001.fastq.gz");
@@ -101,7 +103,9 @@ create_folder("Sample_DNA220001_01", [data_folder()."merge_samples_in1_L001_R1_0
 create_folder("Sample_DNA220001_02", [data_folder()."merge_samples_in2_L001_R1_001.fastq.gz"=>"DNA220001_02_L001_R1_001.fastq.gz", data_folder()."merge_samples_in2_L001_R2_001.fastq.gz"=>"DNA220001_02_L001_R2_001.fastq.gz"]);
 create_folder("Somatic_DNA220001_01-DNA220002_01", [], "DNA220001_01-DNA220002_01.GSvar");
 
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=1"), 1); // should be 1 before merging
 check_exec("php ".src_folder()."/Tools/".$name.".php -db NGSD_TEST -ps DNA220001_01 -into DNA220001_02");
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=1"), 0); // should be 0 after merging
 
 check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220001_02/DNA220001_01_L001_R1_001.fastq.gz");
 check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220001_02/DNA220001_01_L001_R2_001.fastq.gz");
@@ -132,6 +136,7 @@ clear_analysis_folder();
 
 create_folder("Sample_DNA220004_01", [data_folder()."vc_strelka2_tu_in.bam"=>"DNA220004_01.bam"], "dummy.txt");
 create_folder("Sample_DNA220004_02", [data_folder()."vc_strelka2_no_in.bam"=>"DNA220004_02.bam"]);
+
 check_exec("php ".src_folder()."/Tools/".$name.".php -db NGSD_TEST -ps DNA220004_01 -into DNA220004_02 -sys ".data_folder()."merge_samples_system.txt");
 
 check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_01_BamToFastq_R1_001.fastq.gz");
@@ -167,7 +172,9 @@ clear_analysis_folder();
 create_folder("Sample_RNA220003_01", [data_folder()."merge_samples_in1_L001_R1_001.fastq.gz"=>"RNA220003_01_L001_R1_001.fastq.gz", data_folder()."merge_samples_in1_L001_R2_001.fastq.gz"=>"RNA220003_01_L001_R2_001.fastq.gz", data_folder()."merge_samples_in1_L001_index_001.fastq.gz"=>"RNA220003_01_L001_index_001.fastq.gz"], "dummy.txt");
 create_folder("Sample_RNA220003_02", [data_folder()."merge_samples_in2_L001_R1_001.fastq.gz"=>"RNA220003_02_L001_R1_001.fastq.gz", data_folder()."merge_samples_in2_L001_R2_001.fastq.gz"=>"RNA220003_02_L001_R2_001.fastq.gz", data_folder()."merge_samples_in2_L001_index_001.fastq.gz"=>"RNA220003_02_L001_index_001.fastq.gz"], "dummy2.txt");
 
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=3"), 1); // should be 1 before merging
 check_exec("php ".src_folder()."/Tools/".$name.".php -db NGSD_TEST -ps RNA220003_01 -into RNA220003_02");
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=3"), 0); // should be 0 after merging
 
 check_file_exists(data_folder()."/+analysis/merge_samples/Sample_RNA220003_02/RNA220003_01_L001_R1_001.fastq.gz");
 check_file_exists(data_folder()."/+analysis/merge_samples/Sample_RNA220003_02/RNA220003_01_L001_R2_001.fastq.gz");
@@ -195,21 +202,28 @@ clear_analysis_folder();
 create_folder("Sample_DNA220007_01", [data_folder()."vc_strelka2_tu_in.bam"=>"DNA220007_01_L001_R1_001.fastq.gz", data_folder()."merge_samples_in1_L001_R2_001.fastq.gz"=>"DNA220007_01_L001_R2_001.fastq.gz"]);
 create_folder("Sample_DNA220007_02", [data_folder()."vc_strelka2_tu_in.bam"=>"DNA220007_02_L001_R1_001.fastq.gz", data_folder()."merge_samples_in2_L001_R2_001.fastq.gz"=>"DNA220007_02_L001_R2_001.fastq.gz"]);
 
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=7"), 1); // should be 1 before merging
 check_exec("php ".src_folder()."/Tools/".$name.".php -db NGSD_TEST -ps DNA220007_01 -into DNA220007_02", false); // should fail because of somatic report config!
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=7"), 1); // should still be 1 because merging failed
 
 // normal sample: somatic report config exists -> is ok keep secondary analysis
 clear_analysis_folder();
 create_folder("Sample_DNA220008_01", [data_folder()."merge_samples_in1_L001_R1_001.fastq.gz"=>"DNA220008_01_L001_R1_001.fastq.gz", data_folder()."merge_samples_in1_L001_R2_001.fastq.gz"=>"DNA220008_01_L001_R2_001.fastq.gz"]);
 create_folder("Sample_DNA220008_02", [data_folder()."merge_samples_in2_L001_R1_001.fastq.gz"=>"DNA220008_02_L001_R1_001.fastq.gz", data_folder()."merge_samples_in2_L001_R2_001.fastq.gz"=>"DNA220008_02_L001_R2_001.fastq.gz"]);
 
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=8"), 1); // should be 1 before merging
 check_exec("php ".src_folder()."/Tools/".$name.".php -db NGSD_TEST -ps DNA220008_01 -into DNA220008_02");
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=8"), 0); // should be 0 after merging
+
 
 // germline sample: germline report config exists -> has to fail
 clear_analysis_folder();
 create_folder("Sample_DNA220006_01", [data_folder()."merge_samples_in1_L001_R1_001.fastq.gz"=>"DNA220006_01_L001_R1_001.fastq.gz", data_folder()."merge_samples_in1_L001_R2_001.fastq.gz"=>"DNA220006_01_L001_R2_001.fastq.gz"]);
 create_folder("Sample_DNA220006_02", [data_folder()."merge_samples_in2_L001_R1_001.fastq.gz"=>"DNA220006_02_L001_R1_001.fastq.gz", data_folder()."merge_samples_in2_L001_R2_001.fastq.gz"=>"DNA220006_02_L001_R2_001.fastq.gz"]);
 
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=6"), 1); // should be 1 before merging
 check_exec("php ".src_folder()."/Tools/".$name.".php -db NGSD_TEST -ps DNA220006_01 -into DNA220006_02", false); // should fail because of report config!
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=6"), 1); // should still be 1 because merging failed
 
 //merge cram germline samples: (existing index fastq files should be copied but cram files should still be turend into fastqs (index fastqs from demultiplexing with rna samples))
 reset_test_db($db, $name);
@@ -217,7 +231,9 @@ clear_analysis_folder();
 
 create_folder("Sample_DNA220004_01", [data_folder()."merge_samples.cram"=>"DNA220004_01.cram", data_folder()."merge_samples_in1_L001_R1_001.fastq.gz"=>"DNA220004_01_L001_index_001.fastq.gz"], "dummy.txt");
 create_folder("Sample_DNA220004_02", [data_folder()."merge_samples.cram"=>"DNA220004_02.cram", data_folder()."merge_samples_in1_L001_R1_001.fastq.gz"=>"DNA220004_02_L001_index_001.fastq.gz"]);
+
 check_exec("php ".src_folder()."/Tools/".$name.".php -db NGSD_TEST -ps DNA220004_01 -into DNA220004_02 -sys ".data_folder()."merge_samples_system.txt");
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=4"), 0); // should be 0 after
 
 check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_01_BamToFastq_R1_001.fastq.gz");
 check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_01_BamToFastq_R2_001.fastq.gz");
@@ -249,7 +265,6 @@ check($db->getValue("SELECT COUNT(*) FROM merged_processed_samples WHERE process
 
 //clean up rest up copied data
 clear_analysis_folder();
-// */
 end_test();
 
 

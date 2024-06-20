@@ -60,6 +60,13 @@ INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, pr
 (7,2,1,'1',1,1, NULL),
 (8,2,1,'1',1,1, NULL);
 
+UPDATE processed_sample SET scheduled_for_resequencing=1 WHERE id=1;
+UPDATE processed_sample SET scheduled_for_resequencing=1 WHERE id=3;
+UPDATE processed_sample SET scheduled_for_resequencing=1 WHERE id=4;
+UPDATE processed_sample SET scheduled_for_resequencing=1 WHERE id=6;
+UPDATE processed_sample SET scheduled_for_resequencing=1 WHERE id=7;
+UPDATE processed_sample SET scheduled_for_resequencing=1 WHERE id=8;
+
 INSERT INTO processed_sample_qc (processed_sample_id, qc_terms_id, value) VALUES
 (1, 1, "qc 1 value for ps_sample id 1"),
 (2, 1, "qc 1 value for ps_sample id 2"),
