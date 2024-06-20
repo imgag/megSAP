@@ -13,20 +13,6 @@ OCAC36_liftover:
 OCAC36_calculate_percentiles:
 	php ../../../src/Tools/prs2vcf.php -vcf OCAC_36_v1_fixed.vcf -out OCAC_36_GRCh38.vcf -build GRCh38 -exclude_disease_group Neoplasms -processing_system TruSeqPCRfree
 
-################################### PGS000004 (breast cancer) ###################################
-
-PGS000004_download:
-	wget -O - https://ftp.ebi.ac.uk/pub/databases/spot/pgs/scores/PGS000004/ScoringFiles/Harmonized/PGS000004_hmPOS_GRCh38.txt.gz | zcat > PGS000004_hm.txt
-	@echo "Notice: Replace wrongly lifted variant chr1:145830798 CA>C:"
-	sed "s/1	145604302	CT	C	-0.0399	0.3515	liftover		1	145830809/1	145830798	CA	C	-0.0399	0.3515	liftover		1	145830809/g" PGS000004_hm.txt > PGS000004_hm_fixed.txt
-
-PGS000004_to_vcf:
-	php ../../../src/Tools/prs2vcf.php -pgs PGS000004_hm_fixed.txt -out PGS000004_GRCh38_lifted.vcf -build GRCh38 -skip_percentiles
-	@echo "WARNING: Check lifting manually and lift remaining by hand!"
-
-PGS000004_calculate_percentiles_GRCh38:
-	php ../../../src/Tools/prs2vcf.php -vcf PGS000004_v2_fixed.vcf -out PGS000004_GRCh38.vcf -build GRCh38 -exclude_disease_group Neoplasms -processing_system TruSeqPCRfree
-
 ################################### BRIDGES_306 (breast cancer) ###################################
 BRIDGES_306_download:
 	# create header information:
