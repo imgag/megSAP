@@ -1451,6 +1451,11 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			{
 				$parser->exec(get_path("ngs-bits") . "/NGSDAddVariantsSomatic", " -t_ps $t_id -n_ps $n_id -cnv $som_clincnv -cnv_force");
 			}
+			
+			if(file_exists($manta_sv_bedpe) && $sys['type'] !== "WGS")
+			{
+				$parser->exec(get_path("ngs-bits") . "/NGSDAddVariantsSomatic", " -t_ps $t_id -n_ps $n_id -sv $manta_sv_bedpe -sv_force");
+			}
 		}
 		
 		//add secondary analysis (if missing)
