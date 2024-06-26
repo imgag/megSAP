@@ -554,7 +554,7 @@ foreach($sample_data as $sample => $sample_infos)
 				}
 
 				//copy files
-				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
+				$target_to_copylines[$tag][] = "\tmkdir -m 777 -p {$project_folder}Sample_{$sample}";
 				foreach ($fastq_files as $fastq_file) 
 				{
 					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
@@ -565,7 +565,9 @@ foreach($sample_data as $sample => $sample_infos)
 					else
 					{
 						$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
-					}	
+					}
+					// make sure all files are accessible by bioinf
+					$target_to_copylines[$tag][] = "\tchmod 777 {$project_folder}Sample_{$sample}/*.fastq.gz";	
 				}
 
 			}
@@ -636,11 +638,11 @@ foreach($sample_data as $sample => $sample_infos)
 			$move_cmd = "mv ".($overwrite ? "-f " : "");
 			
 			//create folder
-			$target_to_copylines[$tag][] = "\tmkdir -m 775 -p {$project_folder}Sample_{$sample}";
+			$target_to_copylines[$tag][] = "\tmkdir -m 777 -p {$project_folder}Sample_{$sample}";
 			//ignore analysis of WGS samples for 2-run WGS samples
 			if(!$merge_sample && ($sys_type != "WGS" || $wgs_use_dragen_data))
 			{
-				$target_to_copylines[$tag][] = "\tmkdir -m 775 -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
+				$target_to_copylines[$tag][] = "\tmkdir -m 777 -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
 				//copy logs
 				$target_to_copylines[$tag][] = "\tcp -r {$log_folder} {$project_folder}Sample_{$sample}/dragen_variant_calls/";
 				$target_to_copylines[$tag][] = "\tcp {$report_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/logs";
@@ -681,7 +683,9 @@ foreach($sample_data as $sample => $sample_infos)
 					else
 					{
 						$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
-					}	
+					}
+					// make sure all files are accessible by bioinf
+					$target_to_copylines[$tag][] = "\tchmod 777 {$project_folder}Sample_{$sample}/*.fastq.gz";	
 				}
 			}
 
@@ -691,8 +695,7 @@ foreach($sample_data as $sample => $sample_infos)
 			trigger_error("ERROR: Analysis other than WES, WGS, cfDNA, Panel or RNA are currently not supported on NovaSeq X!", E_USER_ERROR);
 		}
 
-		// make sure all files are accessible by bioinf
-		$target_to_copylines[$tag][] = "\tchmod -R 777 {$project_folder}Sample_{$sample}";
+		
 	}
 	else
 	{
@@ -818,12 +821,12 @@ foreach($sample_data as $sample => $sample_infos)
 			//determine analysis steps from project
 			if ($project_analysis=="mapping")
 			{
-				$args[] = (($is_novaseq_x && ($sys_type != "RNA") && ($sys_type != "cfDNA (patient-specific)") && ($sys_type != "cfDNA") && ($sys_type != "WGS (shallow)") && !$merge_sample) ? "-steps db -use_dragen" : "-steps ma,db");
+				$args[] = (($is_novaseq_x && ($sys_type != "RNA") && ($sys_type != "cfDNA (patient-specific)") && ($sys_type != "cfDNA") && ($sys_type != "WGS (shallow)") && ($sys_type != "Panel") && !$merge_sample) ? "-steps db -use_dragen" : "-steps ma,db");
 			}
 			if ($project_analysis=="variants")
 			{
 				//no steps parameter > use all default steps
-				if($is_novaseq_x && ($sys_type != "RNA") && ($sys_type != "cfDNA (patient-specific)") && ($sys_type != "cfDNA") && ($sys_type != "WGS (shallow)")) // do  complete analysis for RNA/cfDNA samples 
+				if($is_novaseq_x && ($sys_type != "RNA") && ($sys_type != "cfDNA (patient-specific)") && ($sys_type != "cfDNA") && ($sys_type != "WGS (shallow)") && ($sys_type != "Panel")) // do  complete analysis for RNA/cfDNA samples 
 				{
 					//do mapping for WGS samples
 					if (($sys_type == "WGS" && !$wgs_use_dragen_data) || $merge_sample) $args[] = "-steps ma,vc,cn,sv,re,db";
