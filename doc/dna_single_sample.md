@@ -35,7 +35,7 @@ The following tools are used for mapping and calling of small variants and annot
 
 | step                                           | tool                 | version              | comments                                         |
 |------------------------------------------------|----------------------|----------------------|--------------------------------------------------|
-| mapping - adapter and quality trimming         | SeqPurge             | ngs-bits 2023_03     |                                                  |
+| mapping - adapter and quality trimming         | SeqPurge             | ngs-bits 2024_06     |                                                  |
 | mapping - mapping and alignment                | bwa-mem2             | 2.2.1                | Performed by Dragen if '-use_dragen' is enabled. |
 | mapping - duplicate marking                    | samblaster           | 0.1.26               | Performed by Dragen if '-use_dragen' is enabled. |
 | mapping - indel realignment                    | ABRA2                | 2.23                 |                                                  |

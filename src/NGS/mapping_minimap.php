@@ -85,6 +85,7 @@ if ($bam_input)
 }
 
 $minimap_options = [
+	// "-Y", //TODO: validate
 	"-a",
 	"--MD",
 	"-x map-ont",

@@ -238,6 +238,14 @@ if (in_array("vc", $steps))
 	$args[] = "-model ".$basecall_model_path;
 	
 	$parser->execTool("NGS/vc_clair.php", implode(" ", $args));	
+
+	//create b-allele frequency file
+	$params = array();
+	$params[] = "-vcf {$vcf_file}";
+	$params[] = "-name {$name}";
+	$params[] = "-out {$baffile}";
+	$params[] = "-downsample 100";
+	$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
 }
 
 //copy-number analysis

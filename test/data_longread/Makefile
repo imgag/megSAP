@@ -42,6 +42,7 @@ diff:
 	# diff 23014LRa023L2_01_var_structural_variants_last_cols.bedpe.out 23014LRa023L2_01_var_structural_variants_cut2.bedpe --ignore-matching-lines="^##"
 	diff 23014LRa023L2_01_prs.tsv.out 23014LRa023L2_01_prs.tsv
 	diff 23014LRa023L2_01_phasing_track.bed.out 23014LRa023L2_01_phasing_track.bed
+	diff 23014LRa023L2_01_bafs.igv.out 23014LRa023L2_01_bafs.igv
 
 # 2nd test with BAM input
 
@@ -60,3 +61,4 @@ diff2:
 	diff 23014LRa023L2_02_var_structural_variants.bedpe.out 23014LRa023L2_02_var_structural_variants_cut.bedpe --ignore-matching-lines="^##"
 	diff 23014LRa023L2_02_prs.tsv.out 23014LRa023L2_02_prs.tsv
 	diff 23014LRa023L2_02_phasing_track.bed.out 23014LRa023L2_02_phasing_track.bed
+	diff 23014LRa023L2_02_bafs.igv.out 23014LRa023L2_02_bafs.igv

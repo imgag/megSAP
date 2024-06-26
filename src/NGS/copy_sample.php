@@ -302,6 +302,7 @@ $former_run_name = "";
 $merge_files = array(); //contains merge commands, commands are inserted before queue
 $use_dragen = false; //parameter to enable DRAGEN mapping
 $skip_queuing = false; //parameter to skip queuing if run is first genome run
+$wgs_use_dragen_data = false; //parameter to use created Dragen data for analysis
 
 if($run_name != "")
 {
@@ -374,8 +375,25 @@ if($run_name != "")
 		{
 			// ask if queuing should be skipped
 			echo "The current run seems to be the first of a genome run. Should the queuing of the samples be skipped? (y/n)?\n";
-			if(trim(fgets(STDIN)) == "y") $skip_queuing = true;
+			if(trim(fgets(STDIN)) == "y")
+			{
+				$skip_queuing = true;
+			} 
+			else
+			{
+				if ($is_novaseq_x)
+				{
+					echo "The genomes are already analyzed on the device. Should this data be used for the analysis? (y/n)?\n";
+					if(trim(fgets(STDIN)) == "y") $wgs_use_dragen_data = true;
+				}
+			}
 		}
+		elseif (($n_genomes > 0) && $is_novaseq_x)
+		{
+			echo "There are genomes on this run which are already analyzed on the device. Should this data be used for the analysis? (y/n)?\n";
+			if(trim(fgets(STDIN)) == "y") $wgs_use_dragen_data = true;
+		}
+
 	}
 }
 else
@@ -408,6 +426,16 @@ else
 	$use_dragen_somatic = false;
 }
 
+//get all processed samples which are scheduled for resequencing:
+$samples_to_resequence = array();
+$result = $db_conn->executeQuery("SELECT id, sample_id, processing_system_id FROM processed_sample ps WHERE scheduled_for_resequencing=1");
+foreach($result as $row)
+{
+	$samples_to_resequence[$row["sample_id"]."_".$row["processing_system_id"]] = $row["id"];
+}
+$merge_notice = array("The following samples are scheduled for merging:");
+
+
 foreach($sample_data as $sample => $sample_infos)
 {
 	$project_name = $sample_infos['project_name'];
@@ -419,6 +447,23 @@ foreach($sample_data as $sample => $sample_infos)
 	$sys = $sample_infos['sys_name_short'];
 	$sys_type = $sample_infos['sys_type'];
 	$sys_target = $sample_infos['sys_target'];
+
+	//check if sample should be merged
+	$merge_sample = false;
+	if (count($samples_to_resequence) > 0)
+	{
+		$key = $sample_infos["s_id"]."_".$sample_infos["sys_id"];
+		if (isset($samples_to_resequence[$key]))
+		{
+			//merge sample
+			$merge_sample = true;
+			$source_ps_name = processed_sample_name($db_conn, $samples_to_resequence[$key]);
+			//create function name for first sample
+			if (count($merge_files) == 0) $merge_files[] = "merge:";
+			$merge_files[] = "\tphp {$repo_folder}/src/Tools/merge_samples.php -ps {$source_ps_name} -into {$sample}";
+			$merge_notice[] = "\t{$source_ps_name} => {$sample}";
+		}
+	}
 
 	//calculate current location of sample
 	if ($is_novaseq_x)
@@ -456,7 +501,7 @@ foreach($sample_data as $sample => $sample_infos)
 				$fastq_folder = $old_location."/fastq";
 			}
 		}
-		else if(($sys_type == "RNA") || ($sys_type == "Panel") || ($sys_type == "cfDNA (patient-specific)") || ($sys_type == "cfDNA"))
+		else if(($sys_type == "RNA") || ($sys_type == "Panel") || ($sys_type == "cfDNA (patient-specific)") || ($sys_type == "cfDNA") || ($sys_type == "WGS (shallow)"))
 		{
 			$old_location .= "/BCLConvert";
 			if (file_exists($old_location."/ora_fastq"))
@@ -468,7 +513,7 @@ foreach($sample_data as $sample => $sample_infos)
 				$fastq_folder = $old_location."/fastq";
 			}
 		}
-		else trigger_error("ERROR: Invalid processing system type '{$sys_type}' for NovaSeq X analysis!");
+		else trigger_error("ERROR: Invalid processing system type '{$sys_type}' for NovaSeq X analysis!", E_USER_ERROR);
 	}
 	else
 	{
@@ -493,7 +538,7 @@ foreach($sample_data as $sample => $sample_infos)
 	//build copy line
 	if($is_novaseq_x)
 	{
-		if(($sys_type == "RNA") || ($sys_type == "Panel") || ($sys_type == "cfDNA (patient-specific)") || ($sys_type == "cfDNA"))
+		if(($sys_type == "RNA") || ($sys_type == "Panel") || ($sys_type == "cfDNA (patient-specific)") || ($sys_type == "cfDNA") || ($sys_type == "WGS (shallow)"))
 		{
 			//only copy FastQ files
 			//get FastQs
@@ -509,7 +554,7 @@ foreach($sample_data as $sample => $sample_infos)
 				}
 
 				//copy files
-				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
+				$target_to_copylines[$tag][] = "\tmkdir -m 777 -p {$project_folder}Sample_{$sample}";
 				foreach ($fastq_files as $fastq_file) 
 				{
 					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
@@ -520,7 +565,9 @@ foreach($sample_data as $sample => $sample_infos)
 					else
 					{
 						$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
-					}	
+					}
+					// make sure all files are accessible by bioinf
+					$target_to_copylines[$tag][] = "\tchmod 777 {$project_folder}Sample_{$sample}/*.fastq.gz";	
 				}
 
 			}
@@ -533,14 +580,20 @@ foreach($sample_data as $sample => $sample_infos)
 		{
 			//WES/WGS sample ==> use full analysis (ma,vc,sv)
 
-			//ignore analysis of WGS samples for now since the WGS samples will be mapped by the DRAGEN server
-			if($sys_type != "WGS")
+			//if not manually set, ignore analysis of WGS samples since the WGS samples will be mapped by the DRAGEN server
+			if($sys_type != "WGS" || $wgs_use_dragen_data)
 			{
 				//check if all files are present
 				$tmp = glob("$old_location/{$sample}/*_seq");
 				if(count($tmp) == 0) trigger_error("ERROR: Source sample folder '$old_location/{$sample}/*_seq' not found!", E_USER_ERROR);
 				if(count($tmp) > 1) trigger_error("ERROR: Multiple folders in '$old_location/{$sample}/'!", E_USER_ERROR);
 				$source_folder = $tmp[0];
+
+				//logs & report
+				$log_folder = "$old_location/{$sample}/logs";
+				if(!file_exists($log_folder)) trigger_error("ERROR: Sample log folder '$log_folder' not found!", E_USER_ERROR);
+				$report_file = $source_folder."/report.html";
+				if(!file_exists($report_file)) trigger_error("ERROR: Report HTML file '{$report_file}' not found!", E_USER_ERROR);
 
 				$source_mapping_file = "{$source_folder}/{$sample}.bam";
 				if(!file_exists($source_mapping_file))
@@ -585,11 +638,15 @@ foreach($sample_data as $sample => $sample_infos)
 			$move_cmd = "mv ".($overwrite ? "-f " : "");
 			
 			//create folder
-			$target_to_copylines[$tag][] = "\tmkdir -m 775 -p {$project_folder}Sample_{$sample}";
-			//ignore analysis of WGS samples for now since the WGS samples will be mapped by the DRAGEN server
-			if($sys_type != "WGS")
+			$target_to_copylines[$tag][] = "\tmkdir -m 777 -p {$project_folder}Sample_{$sample}";
+			//ignore analysis of WGS samples for 2-run WGS samples
+			if(!$merge_sample && ($sys_type != "WGS" || $wgs_use_dragen_data))
 			{
-				$target_to_copylines[$tag][] = "\tmkdir -m 775 -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
+				$target_to_copylines[$tag][] = "\tmkdir -m 777 -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
+				//copy logs
+				$target_to_copylines[$tag][] = "\tcp -r {$log_folder} {$project_folder}Sample_{$sample}/dragen_variant_calls/";
+				$target_to_copylines[$tag][] = "\tcp {$report_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/logs";
+
 				//move BAM
 				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_mapping_file} {$project_folder}Sample_{$sample}/";
 				if (file_exists($source_mapping_file.".bai"))
@@ -614,7 +671,7 @@ foreach($sample_data as $sample => $sample_infos)
 				}
 			}
 
-			if(($sample_infos["preserve_fastqs"] == 1) || ($project_analysis=="fastq") || ($sys_type == "WGS"))
+			if(($sample_infos["preserve_fastqs"] == 1) || ($project_analysis=="fastq") || ($sys_type == "WGS" && !$wgs_use_dragen_data) || $merge_sample)
 			{
 				foreach ($fastq_files as $fastq_file) 
 				{
@@ -626,17 +683,19 @@ foreach($sample_data as $sample => $sample_infos)
 					else
 					{
 						$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
-					}	
+					}
+					// make sure all files are accessible by bioinf
+					$target_to_copylines[$tag][] = "\tchmod 777 {$project_folder}Sample_{$sample}/*.fastq.gz";	
 				}
 			}
 
-			//set correct permissions for all created/copied files
-			$target_to_copylines[$tag][] = "\tchmod -R 775 {$project_folder}Sample_{$sample}";
 		}
 		else
 		{
 			trigger_error("ERROR: Analysis other than WES, WGS, cfDNA, Panel or RNA are currently not supported on NovaSeq X!", E_USER_ERROR);
 		}
+
+		
 	}
 	else
 	{
@@ -704,11 +763,11 @@ foreach($sample_data as $sample => $sample_infos)
 					$outputline .= "php {$repo_folder}/src/NGS/db_queue_analysis.php -type 'single sample' -samples {$normal}";
 					if($is_novaseq_x)
 					{
-						$outputline .= " -args '-use_dragen -somatic'\n\t";
+						$outputline .= " -args '-steps {$steps} -use_dragen -somatic'\n\t";
 					}
 					else
 					{
-						$outputline .= " -args '-somatic'\n\t";
+						$outputline .= " -args '-steps {$steps} -somatic'\n\t";
 					}
 					//track that normal sample is queued
 					$queued_normal_samples[] = $normal;
@@ -762,15 +821,15 @@ foreach($sample_data as $sample => $sample_infos)
 			//determine analysis steps from project
 			if ($project_analysis=="mapping")
 			{
-				$args[] = (($is_novaseq_x && ($sys_type != "RNA") && ($sys_type != "cfDNA (patient-specific)") && ($sys_type != "cfDNA")) ? "-steps db -use_dragen" : "-steps ma,db");
+				$args[] = (($is_novaseq_x && ($sys_type != "RNA") && ($sys_type != "cfDNA (patient-specific)") && ($sys_type != "cfDNA") && ($sys_type != "WGS (shallow)") && ($sys_type != "Panel") && !$merge_sample) ? "-steps db -use_dragen" : "-steps ma,db");
 			}
 			if ($project_analysis=="variants")
 			{
 				//no steps parameter > use all default steps
-				if($is_novaseq_x && ($sys_type != "RNA") && ($sys_type != "cfDNA (patient-specific)") && ($sys_type != "cfDNA")) // do  complete analysis for RNA/cfDNA samples 
+				if($is_novaseq_x && ($sys_type != "RNA") && ($sys_type != "cfDNA (patient-specific)") && ($sys_type != "cfDNA") && ($sys_type != "WGS (shallow)") && ($sys_type != "Panel")) // do  complete analysis for RNA/cfDNA samples 
 				{
 					//do mapping for WGS samples
-					if ($sys_type == "WGS") $args[] = "-steps ma,vc,cn,sv,re,db";
+					if (($sys_type == "WGS" && !$wgs_use_dragen_data) || $merge_sample) $args[] = "-steps ma,vc,cn,sv,re,db";
 					else $args[] = "-steps vc,cn,sv,re,db";
 					$args[] = "-use_dragen";
 					$args[] = "-no_abra";
@@ -807,13 +866,16 @@ foreach($sample_data as $sample => $sample_infos)
 
 //create Makefile
 $output = array();
-$output[] = "all: chmod import_runqc import_read_counts ";
+$output[] = "all: ".(($is_novaseq_x)?"":"chmod ")."import_runqc import_read_counts ";
 $output[] = "";
 
-//target 'chmod'
-$output[] = "chmod:";
-$output[] = "\tchmod -R 775 {$folder}";
-$output[] = "";
+if (!$is_novaseq_x) //not required for NovaSeqX run
+{
+	//target 'chmod'
+	$output[] = "chmod:";
+	$output[] = "\tchmod -R 775 {$folder}";
+	$output[] = "";
+}
 
 //target 'import_runqc'
 $output[] = "import_runqc:";
@@ -848,6 +910,9 @@ if(count($merge_files) > 0)
 	$all_parts[] = "merge";
 	$output = array_merge($output, $merge_files);
 	$output[] = "";
+
+	//report merged samples
+	print(implode("\n", $merge_notice));
 }
 	
 //target(s) 'queue_...'
