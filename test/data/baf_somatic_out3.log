@@ -1,0 +1,38 @@
+2024-06-27T12:27:15.7947	TWQ0	START baf_somatic (version: 2023_11-48-gf68a8977)
+2024-06-27T12:27:15.7977	TWQ0	Debug: false
+2024-06-27T12:27:15.8010	TWQ0	Parameter: min_dp     = 20
+2024-06-27T12:27:15.8025	TWQ0	Parameter: downsample = 3
+2024-06-27T12:27:15.8037	TWQ0	Parameter: depth      = 1
+2024-06-27T12:27:15.8048	TWQ0	Parameter: build      = GRCh38
+2024-06-27T12:27:15.8062	TWQ0	Parameter: bam_t      = /mnt/storage2/users/ahott1a1/megSAP//test/data/vc_strelka2_tu_in.bam
+2024-06-27T12:27:15.8073	TWQ0	Parameter: bam_n      = /mnt/storage2/users/ahott1a1/megSAP//test/data/vc_strelka2_no_in.bam
+2024-06-27T12:27:15.8085	TWQ0	Parameter: vcf        = /mnt/storage2/users/ahott1a1/megSAP//test/data//baf_somatic_sites.vcf.gz
+2024-06-27T12:27:15.8097	TWQ0	Parameter: out        = /mnt/storage2/users/ahott1a1/megSAP//test/data_out/tool_test_baf_somatic/baf_somatic_out3.igv
+2024-06-27T12:27:15.8152	TWQ0	3 SNPs found in VCF.
+2024-06-27T12:27:15.8165	TWQ0	1 SNPs used for BAF calculation.
+2024-06-27T12:27:15.8443	TWQ0	Calling external tool '/mnt/storage2/users/ahott1a1/ngs-bits/bin//VariantAnnotateFrequency'
+2024-06-27T12:27:15.8443	TWQ0	    version    = 2023_11-132-g87eceb58
+2024-06-27T12:27:15.8443	TWQ0	    parameters = -in /tmp/megSAP_user_ahott1a1/baf_somatic_514K6Csnps.tsv -bam /mnt/storage2/users/ahott1a1/megSAP//test/data/vc_strelka2_tu_in.bam -out /tmp/megSAP_user_ahott1a1/baf_somatic_qxlzQD.tsv -depth -name sample1 -ref /tmp/local_ngs_data_GRCh38//GRCh38.fa
+2024-06-27T12:27:15.9197	TWQ0	Stdout of '/mnt/storage2/users/ahott1a1/ngs-bits/bin//VariantAnnotateFrequency':
+2024-06-27T12:27:15.9197	TWQ0	    
+2024-06-27T12:27:15.9220	TWQ0	Stderr of '/mnt/storage2/users/ahott1a1/ngs-bits/bin//VariantAnnotateFrequency':
+2024-06-27T12:27:15.9220	TWQ0	    
+2024-06-27T12:27:15.9233	TWQ0	Execution time of '/mnt/storage2/users/ahott1a1/ngs-bits/bin//VariantAnnotateFrequency': 0.0732s
+2024-06-27T12:27:15.9485	TWQ0	Calling external tool '/mnt/storage2/users/ahott1a1/ngs-bits/bin//VariantAnnotateFrequency'
+2024-06-27T12:27:15.9485	TWQ0	    version    = 2023_11-132-g87eceb58
+2024-06-27T12:27:15.9485	TWQ0	    parameters = -in /tmp/megSAP_user_ahott1a1/baf_somatic_qxlzQD.tsv -bam /mnt/storage2/users/ahott1a1/megSAP//test/data/vc_strelka2_no_in.bam -out /tmp/megSAP_user_ahott1a1/baf_somatic_Ox5eLE.tsv -depth -name sample2 -ref /tmp/local_ngs_data_GRCh38//GRCh38.fa
+2024-06-27T12:27:16.0303	TWQ0	Stdout of '/mnt/storage2/users/ahott1a1/ngs-bits/bin//VariantAnnotateFrequency':
+2024-06-27T12:27:16.0303	TWQ0	    
+2024-06-27T12:27:16.0330	TWQ0	Stderr of '/mnt/storage2/users/ahott1a1/ngs-bits/bin//VariantAnnotateFrequency':
+2024-06-27T12:27:16.0330	TWQ0	    
+2024-06-27T12:27:16.0342	TWQ0	Execution time of '/mnt/storage2/users/ahott1a1/ngs-bits/bin//VariantAnnotateFrequency': 0.0807s
+2024-06-27T12:27:16.0390	TWQ0	Calling external tool 'uniq'
+2024-06-27T12:27:16.0390	TWQ0	    version    = 8.30
+2024-06-27T12:27:16.0390	TWQ0	    parameters = /tmp/megSAP_user_ahott1a1/baf_somatic_liteBE.vcf /mnt/storage2/users/ahott1a1/megSAP//test/data_out/tool_test_baf_somatic/baf_somatic_out3.igv
+2024-06-27T12:27:16.0486	TWQ0	Stdout of 'uniq':
+2024-06-27T12:27:16.0486	TWQ0	    
+2024-06-27T12:27:16.0504	TWQ0	Stderr of 'uniq':
+2024-06-27T12:27:16.0504	TWQ0	    
+2024-06-27T12:27:16.0522	TWQ0	Execution time of 'uniq': 0.0083s
+2024-06-27T12:27:16.0537	TWQ0	END baf_somatic
+2024-06-27T12:27:16.0551	TWQ0	Execution time of 'baf_somatic': 0.2644s
