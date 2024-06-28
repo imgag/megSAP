@@ -385,6 +385,7 @@ if (in_array("vc", $steps))
 		{
 			if ($use_dragen)
 			{
+				if (!in_array("ma", $steps)) trigger_error("'-use_dragen' with no mapping step provided. Using old DRAGEN VCF for small variant calling.", E_USER_NOTICE);
 				$pipeline = [];
 				$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
 				$pipeline[] = array("zcat", $dragen_output_vcf);
@@ -876,9 +877,10 @@ if (in_array("sv", $steps))
 	// skip SV calling if only annotation should be done	
 	if (!$annotation_only)
 	{
-		if ($use_dragen && get_path("dragen_sv_calling"))
+		$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz";
+		if ($use_dragen && (get_path("dragen_sv_calling") || (!in_array("ma", $steps) && file_exists($dragen_output_vcf))))
 		{
-			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz";
+			if (!in_array("ma", $steps)) trigger_error("'-use_dragen' with no mapping step provided. Using old DRAGEN VCF for SV calling.", E_USER_NOTICE);
 			
 			//combine BND of INVs to one INV in VCF
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
