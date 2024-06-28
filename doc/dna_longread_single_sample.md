@@ -11,14 +11,14 @@ The main parameters that you have to provide are:
 
 * `folder` - The sample folder, which contains the the FASTQ files as produced by bcl2fastq2.
 * `name` - The sample name, which must be a prefix of the FASTQ files.
-* `steps` -  Analysis steps to perform. Please use `ma,vc` to perform mapping and variant calling (with annotation).
+* `steps` -  Analysis steps to perform. Please use `ma,vc,sv,re,an,db` to perform mapping, variant calling (SNV/InDels, CNVs, SVs and REs), annotation and database import.
 * `system` - The [processing system INI file](processing_system_ini_file.md).
 
 ### Running an analysis
 
 The analysis pipeline assumes that that all data to analyze (FastQ files) resides in a sample folder. If that is the case, the whole analysis is performed with one command, for example like this:
 
-	php megSAP/src/Pipelines/analyze_longread.php -folder Sample_NA12878_01 -name NA12878_01 -system SQK-114.ini -steps ma,vc,cn,an
+	php megSAP/src/Pipelines/analyze_longread.php -folder Sample_NA12878_01 -name NA12878_01 -system SQK-114.ini -steps ma,vc,cn,sv,re,an
 
 In the example above, the configuration of the pipeline is done using the `SQK-114.ini` file, which contains all necessary information (see [processing system INI file](processing_system_ini_file.md)).
 
@@ -31,6 +31,7 @@ The following tools are used for mapping and calling of small variants and annot
 | step                                           | tool                 | comments  |
 |------------------------------------------------|----------------------|-----------|
 | mapping                                        | minimap2             |           |
+| mapping - extract methylation info             | modkit               |           |
 | variant calling - calling of SNVs and InDels   | clair3               |           |
 | variant calling - decompose complex variants   | vcfallelicprimitives |           |
 | variant calling - break multi-allelic variants | vcfbreakmulti        |           |
@@ -54,6 +55,12 @@ SV calling and annotation is performed using these tools:
 | annotation - gene information             | BedpeGeneAnnotation             |            |
 | annotation - matching SVs from NGSD       | BedpeAnnotateCounts             |            |
 | annotation - breakpoint density from NGSD | BedpeAnnotateBreakpointDensity  |            |
+
+RE calling using these tools:
+
+| step                                      | tool                            | comments                                            |
+|-------------------------------------------|---------------------------------|-----------------------------------------------------|
+| RE calling                                | Straglr                         |                                                     |
 
 Phasing is performed using these tools:
 
