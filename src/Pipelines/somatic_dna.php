@@ -614,6 +614,12 @@ if (in_array("vc", $steps))
 		$params[] = "-vcf {$variants}";
 		$params[] = "-name {$t_id}";
 		$params[] = "-out {$ballele}";
+		
+		if ($sys['type'] === "WGS")
+		{
+			$baf_args[] = "-downsample 100";
+		}
+		
 		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
 	}
 	else
@@ -628,6 +634,11 @@ if (in_array("vc", $steps))
 				"-out {$ballele}",
 				"-build ".$sys['build']
 			];
+			
+			if ($sys['type'] === "WGS")
+			{
+				$baf_args[] = "-downsample 100";
+			}
 			
 			$parser->execTool("NGS/baf_somatic.php", implode(" ", $baf_args));
 		}
