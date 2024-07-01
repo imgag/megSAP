@@ -24,7 +24,8 @@ INSERT INTO sequencing_run (name, fcid, start_date, end_date, device_id, recipe)
 ('#00001', 'FCID4711', '2018-02-04', '2018-02-04', 1, '100+8+100'),
 ('#00002', 'FCID4712', '2018-02-05', '2018-02-05', 1, '100+8+100'),
 ('#01489', 'FCID4713', '2012-06-27', '2020-06-29', 1, '100+8+100'),
-('#00123', 'FCID0001', '2023-08-23', '2023-08-23', 2, '151+10+10+151');
+('#00123', 'FCID0001', '2023-08-23', '2023-08-23', 2, '151+10+10+151'),
+('#00000', 'old_run', '2014-02-05', '2014-02-05', 1, '100+8+100');
 
 INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, disease_group) VALUES 
 (1, 'DX180049', 'DNA', 1, 'male', '0', '0', 1, 'n/a'),
@@ -55,7 +56,10 @@ INSERT INTO processed_sample (sample_id, process_id, sequencing_run_id, lane, pr
 (12,3,4,'6,8',4,3, NULL),
 (1,5,4,'1,2,3,4',2,1, NULL),
 (5,5,4,'5',1,3, NULL),
-(6,5,4,'7',1,3, 5);
+(6,5,4,'7',1,3, 5),
+(1,4,5,'1,2,3,4',2,1, NULL); 
+
+UPDATE processed_sample SET scheduled_for_resequencing=1 WHERE id=16;
 
 INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES
 (8,'tumor-normal', 5),

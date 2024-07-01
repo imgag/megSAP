@@ -114,6 +114,8 @@ else if ($ps_type == "germline")
 
 //check if FASTQ files or BAM in target folder exist
 $target_fastq_files = glob($folder2."/*.fastq.gz");
+$target_mod_unmapped_bam_files = glob($folder2."/*.mod.unmapped.bam");
+$target_bam_or_cram_methylation = false; //init to false to prevent 'Undefined variable'
 removeIndexFastqs($target_fastq_files);
 
 list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps {$into} -type BAM".$sample_path_db_addon);
@@ -122,6 +124,10 @@ $target_bam_or_cram = trim(implode("", $stdout));
 if (count($target_fastq_files) > 0)
 {
 	//FASTQ files found -> nothing to do
+}
+elseif (count($target_mod_unmapped_bam_files) > 0)
+{
+	//unmapped.bam files found -> nothing to do
 }
 elseif (file_exists($target_bam_or_cram)) 
 {
@@ -276,5 +282,9 @@ $db->executeStmt("DELETE FROM processed_sample_qc WHERE processed_sample_id='$ps
 
 //NGSD: mark samples as merged
 $db->executeStmt("INSERT INTO `merged_processed_samples` (`processed_sample_id`, `merged_into`) VALUES ({$ps_id},".$info2['ps_id'].")");
+
+//NGSD: remove resequencing flag for merged sample
+$db->executeStmt("UPDATE processed_sample SET scheduled_for_resequencing=0 WHERE id=:ps_id", array("ps_id"=>$ps_id));
+
 
 ?>

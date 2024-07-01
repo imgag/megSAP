@@ -13,8 +13,8 @@ $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
-$steps_all = array("ma", "vc", "cn", "sv", "an", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, an=annotation, db=import into NGSD.", true, "ma,vc,sv,an,db");
+$steps_all = array("ma", "vc", "cn", "sv", "re", "an", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, re=repeat expansions calling, an=annotation, db=import into NGSD.", true, "ma,vc,sv,re,an,db");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("skip_phasing", "Skip phasing of VCF and BAM files.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
@@ -105,7 +105,7 @@ $cnv_file2 = $folder."/".$name."_cnvs_clincnv.seg";
 $sv_vcf_file = $folder ."/". $name . "_var_structural_variants.vcf.gz";
 $bedpe_file = substr($sv_vcf_file,0,-6)."bedpe";
 //repeat expansions
-$straglr_file = $folder."/".$name."_repeats.bed";
+$straglr_file = $folder."/".$name."_repeats.vcf";
 //db import
 $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
@@ -395,8 +395,7 @@ if (in_array("vc", $steps))
 	$params[] = "-name {$name}";
 	$params[] = "-out {$baf_file}";
 	$params[] = "-downsample 100";
-	$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
-}
+	$parser->execTool("NGS/baf_germline.php", implode(" ", $params));}
 
 //copy-number analysis
 if (in_array("cn", $steps))
@@ -613,6 +612,14 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	}
 }
 
+// repeat expansion
+if (in_array("re", $steps))
+{
+	//Repeat-expansion calling using straglr
+	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
+	$parser->execTool("NGS/vc_straglr.php", "-in {$bam_file} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
+}
+
 // annotation
 if (in_array("an", $steps))
 {
@@ -780,10 +787,6 @@ if (in_array("an", $steps))
 		$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_file -out $bedpe_file -info_fields SVLEN,SUPPORT,COVERAGE,AF", true);
 	}
 
-	//Repeat-expansion calling using straglr
-	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
-	
-	$parser->execTool("NGS/vc_straglr.php", "-in {$used_bam_or_cram} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
 }
 
 // collect other QC terms - if CNV or SV calling was done
@@ -1010,6 +1013,15 @@ if (in_array("db", $steps))
 		
 		$args[] = "-sv {$bedpe_file}";
 		$args[] = "-sv_force";
+		$import = true;
+	}
+	if (file_exists($straglr_file))
+	{
+		//check genome build
+		check_genome_build($straglr_file, $build);
+		
+		$args[] = "-re {$straglr_file}";
+		$args[] = "-re_force";
 		$import = true;
 	}
 	if ($import)

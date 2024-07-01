@@ -6,9 +6,9 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("an_somatic_cnvs", "Annotates additional somatic data to ClinCNV file (NCG6.0 / RNA counts).");
+$parser = new ToolBase("an_somatic_cnvs", "Annotates additional somatic data to ClinCNV file (NCG7.1 / RNA counts).");
 $parser->addInfile("cnv_in", "Input CNV file.", false);
-$parser->addFlag("include_ncg", "Annotate column with info from NCG6.0 whether a gene is TSG or oncogene");
+$parser->addFlag("include_ncg", "Annotate column with info from NCG7.1 whether a gene is TSG or oncogene");
 $parser->addFlag("include_cytoband", "Annotate column with cytoband names.");
 $parser->addInfile("rna_counts", "Annotate transcript counts from RNA counts file", true);
 $parser->addString("rna_id", "Processed sample ID of RNA to be annotated.", true);
@@ -29,7 +29,7 @@ if($include_ncg)
 	$cnv_input->removeColByName("ncg_oncogene");
 	$cnv_input->removeColByName("ncg_tsg");
 	
-	$handle = fopen2(get_path("data_folder") . "/dbs/NCG6.0/NCG6.0_oncogene.tsv", "r");
+	$handle = fopen2(get_path("data_folder") . "/dbs/NCG7.1/NCG7.1_oncogene.tsv", "r");
 	$oncogenes =  array();
 	$tsgs = array();
 	while(!feof($handle))
@@ -52,7 +52,7 @@ if($include_ncg)
 	
 	if($i_genes === false) 
 	{
-		trigger_error("Cannot annotate file $cnv_in with TCG6.0 data because there is no column 'genes'.",E_USER_WARNING);
+		trigger_error("Cannot annotate file $cnv_in with NCG7.1 data because there is no column 'genes'.",E_USER_WARNING);
 		exit(1);
 	}
 	
@@ -64,8 +64,8 @@ if($include_ncg)
 		$col_oncogene[] = implode(",",array_intersect($genes, $oncogenes));
 		$col_tsg[] = implode(",", array_intersect($genes, $tsgs));
 	}
-	$cnv_input->addCol($col_oncogene,"ncg_oncogene","oncogenes from NCG6.0 that overlap given CNV.");
-	$cnv_input->addCol($col_tsg,"ncg_tsg","tumor suppressor genes from NCG6.0 that overlap given CNV.");
+	$cnv_input->addCol($col_oncogene,"ncg_oncogene","oncogenes from NCG7.1 that overlap given CNV.");
+	$cnv_input->addCol($col_tsg,"ncg_tsg","tumor suppressor genes from NCG7.1 that overlap given CNV.");
 }
 
 if($include_cytoband)

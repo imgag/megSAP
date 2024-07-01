@@ -16,6 +16,7 @@ $parser->addInfile("vcf", "Variant list with SNPs to use (in VCF/VCF.GZ format).
 $parser->addOutfile("out",  "Output IGV file.", false);
 //optional
 $parser->addInt("min_dp", "Minimum depth of SNP locations in BAMs.", true, 20);
+$parser->addInt("downsample", "Enable downsampling, i.e. only every n-th SNP is used to calculate BAFs.", true, 0);
 $parser->addFlag("depth", "Add depth column(s) to 'out'.");
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
@@ -32,6 +33,7 @@ $handle_out = fopen2($snps_filtered, "w");
 fwrite($handle_out, "#chr\tstart\tend\tref\tobs\n");
 
 $snps_passed = 0;
+$snps_used = 0;
 while (!feof($handle))
 {
 	$line = nl_trim(fgets($handle));
@@ -58,11 +60,15 @@ while (!feof($handle))
 	
 	++$snps_passed;
 	
+	if ($downsample>0 && $snps_passed%$downsample != 0) continue;
+	++$snps_used;
+	
 	fwrite($handle_out, implode("\t", [ $chr, $pos, $pos, strtoupper($ref), strtoupper($alt) ])."\n");
 }
 gzclose($handle);
 fclose($handle_out);
-print "{$snps_passed} SNPs found in VCF.\n";
+$parser->log("{$snps_passed} SNPs found in VCF.");
+$parser->log("{$snps_used} SNPs used for BAF calculation.");
 
 //annotate B-allele frequencies from BAM
 $annotated_variants = $parser->tempFile(".tsv");

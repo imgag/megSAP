@@ -138,6 +138,9 @@ function write_header_line($handle, $column_desc, $filter_desc)
 	global $skip_cancerhotspots;
 	global $column_desc_cancerhotspots;
 	if(!$skip_cancerhotspots) $column_desc = array_merge($column_desc, $column_desc_cancerhotspots);
+	global $skip_short_read_overlap_annotation;
+	global $column_desc_short_read_overlap_annotation;
+	if(!$skip_short_read_overlap_annotation) $column_desc = array_merge($column_desc, $column_desc_short_read_overlap_annotation);
 	
 	//write out header
 	foreach($column_desc as $entry)
@@ -345,6 +348,10 @@ $column_desc_cancerhotspots = array(
 	array("CANCERHOTSPOTS_ALT_COUNT", "Count of specific amino acid alteration at same position in cancerhotspots.org.")
 );
 
+//optional IN_SHORTREAD_SAMPLE
+$column_desc_short_read_overlap_annotation = array(
+	array("in_short-read", "Variant was also found in corresponding short-read WGS sample.")
+);
 
 if ($genotype_mode=="single")
 {
@@ -371,6 +378,7 @@ $skip_ngsd = true; // true as long as no NGSD header is found
 $skip_ngsd_som = true; // true as long as no NGSD somatic header is found
 $skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC) header is found.
 $skip_cancerhotspots = true; //true as long as no CANCERHOTSPOTS header is found.
+$skip_short_read_overlap_annotation = true; //true as long as no IN_SHORT_READ header is found.
 $missing_domains = [];
 $multisample_vcf = false; //determines if the input VCF is a standard multi-sample VCF or single-sample VCF/megSAP multi-sample VCF (no extra columns for each sample)
 
@@ -571,6 +579,15 @@ while(!feof($handle))
 			$i_cancerhotspots_aa_alt = index_of($cols, "AA_ALT", "CANCERHOTSPOTS");
 			$i_cancerhotspots_total_count = index_of($cols, "TOTAL_COUNT", "CANCERHOTSPOTS");
 			$i_cancerhotspots_alt_count = index_of($cols, "ALT_COUNT", "CANCERHOTSPOTS");
+		}
+
+		//Annotation of short-read variants overlap
+		if (starts_with($line, "##INFO=<ID=IN_SHORTREAD_SAMPLE"))
+		{
+			$skip_short_read_overlap_annotation = false;
+			//extract process sample name 
+			$sr_vcf_file_name = basename2(explode("'", $line)[1]);
+			$sr_ps_name = explode("_", $sr_vcf_file_name)[0]."_".explode("_", $sr_vcf_file_name)[1];
 		}
 		
 		//check VCF header
@@ -1451,6 +1468,13 @@ while(!feof($handle))
 		++$c_skipped_wgs;
 		continue;
 	}
+
+	//sr overlap annotation
+	if (!$skip_short_read_overlap_annotation)
+	{
+		$in_short_read_sample = "";
+		if (isset($info["IN_SHORTREAD_SAMPLE"])) $in_short_read_sample = "1";
+	}
 	
 	//write data
 	++$c_written;
@@ -1487,6 +1511,8 @@ while(!feof($handle))
 	{
 		fwrite( $handle_out, str_repeat("\t", count($column_desc_cancerhotspots) ) );
 	}
+
+	if (!$skip_short_read_overlap_annotation) fwrite($handle_out, "\t".$in_short_read_sample);
 
 	fwrite($handle_out, "\n");
 }

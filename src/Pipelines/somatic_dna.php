@@ -614,6 +614,12 @@ if (in_array("vc", $steps))
 		$params[] = "-vcf {$variants}";
 		$params[] = "-name {$t_id}";
 		$params[] = "-out {$ballele}";
+		
+		if ($sys['type'] === "WGS")
+		{
+			$baf_args[] = "-downsample 100";
+		}
+		
 		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
 	}
 	else
@@ -628,6 +634,11 @@ if (in_array("vc", $steps))
 				"-out {$ballele}",
 				"-build ".$sys['build']
 			];
+			
+			if ($sys['type'] === "WGS")
+			{
+				$baf_args[] = "-downsample 100";
+			}
 			
 			$parser->execTool("NGS/baf_somatic.php", implode(" ", $baf_args));
 		}
@@ -1450,6 +1461,11 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			if(file_exists($som_clincnv) && $sys['type'] !== "WGS")
 			{
 				$parser->exec(get_path("ngs-bits") . "/NGSDAddVariantsSomatic", " -t_ps $t_id -n_ps $n_id -cnv $som_clincnv -cnv_force");
+			}
+			
+			if(file_exists($manta_sv_bedpe) && $sys['type'] !== "WGS")
+			{
+				$parser->exec(get_path("ngs-bits") . "/NGSDAddVariantsSomatic", " -t_ps $t_id -n_ps $n_id -sv $manta_sv_bedpe -sv_force");
 			}
 		}
 		
