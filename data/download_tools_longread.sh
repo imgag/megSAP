@@ -72,9 +72,9 @@ rm parallel-20230522.tar.bz2
 
 #download longphase
 cd $folder
-mkdir -p longphase_v1.6
-cd longphase_v1.6
-wget https://github.com/twolinin/longphase/releases/download/v1.6/longphase_linux-x64.tar.xz
+mkdir -p longphase_v1.7.3
+cd longphase_v1.7.3
+wget https://github.com/twolinin/longphase/releases/download/v1.7.3/longphase_linux-x64.tar.xz
 tar -xJf longphase_linux-x64.tar.xz
 rm longphase_linux-x64.tar.xz
 cd ..

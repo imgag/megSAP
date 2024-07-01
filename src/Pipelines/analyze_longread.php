@@ -125,7 +125,7 @@ if (in_array("ma", $steps))
 
 	// preference:
 	// 1. mod unmapped bam
-	// 2. regular bam
+	// 2. regular bam/cram
 	// 3. fastq
 
 	if ((count($unmapped_bam_files) === 0) && (count($old_bam_files) === 0) && (count($fastq_files) === 0))
@@ -317,6 +317,9 @@ else
 {
 	//set BAM/CRAM to use
 	$used_bam_or_cram = file_exists($bam_file) ? $bam_file : $cram_file;
+	$bam_output = file_exists($bam_file);
+
+	if(!file_exists($used_bam_or_cram)) trigger_error("BAM/CRAM file not found!", E_USER_ERROR);
 	
 	//check genome build of BAM
 	check_genome_build($used_bam_or_cram, $build);
@@ -536,6 +539,11 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	
 
 	$parser->exec(get_path("longphase"), implode(" ", $args));
+
+	//TODO: remove
+	//keep old files
+	$parser->copyFile($vcf_file, $vcf_file."_unphased.vcf.gz");
+	if (file_exists($sv_vcf_file)) $parser->copyFile($sv_vcf_file, $sv_vcf_file."_unphased.vcf.gz");
 	
 	//create compressed file and index
 	$parser->exec("bgzip", "-c $phased_tmp > {$vcf_file}", false);
@@ -548,47 +556,35 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 
 	//tag BAM file 
 	$args = array();
-	//TODO: reactivate if haplotag supports cram output
-	// if (file_exists($cram_file))
-	// {
-	// 	$tagged_bam_file = $parser->tempFile(".tagged.cram");
-	// }
-	// else //use BAM
-	// {
-	// 	$tagged_bam_file = $parser->tempFile(".tagged.bam");
-	// }
-	$tagged_bam_file = $parser->tempFile(".tagged.bam");
-	
 	$args[] = "haplotag";
 	$args[] = "-s {$vcf_file}";
 	$args[] = "-b {$used_bam_or_cram}";
 	$args[] = "-r {$genome}";
 	$args[] = "-t {$threads}";
 	if (file_exists($sv_vcf_file)) $args[] = "--sv-file {$sv_vcf_file}";
+	if ($bam_output) 
+	{
+		//use BAM
+		$tagged_bam_file = $parser->tempFile(".tagged.bam"); 
+	}
+	else
+	{	
+		//use CRAM
+		$tagged_bam_file = $parser->tempFile(".tagged.cram");
+		$args[] = "--cram";
+	}	
 	$args[] = "-o ".dirname($tagged_bam_file)."/".basename2($tagged_bam_file);
 
+	//run longphase and index
 	$parser->exec(get_path("longphase"), implode(" ", $args));
 	$parser->indexBam($tagged_bam_file, $threads);
 
-	//TODO: compare tagged BAM with input BAM
+	//use tagged bam in /tmp for further analysis
+	$used_bam_or_cram = $tagged_bam_file;
 
-	//replace current bam file
-	
-	if (file_exists($cram_file))
+	if ($bam_output)
 	{
-		//use tagged bam for further analysis
-		$used_bam_or_cram = $tagged_bam_file;
-		// convert tagged bam and replace cram file
-		$parser->execTool("Tools/bam_to_cram.php", "-bam {$tagged_bam_file} -cram {$cram_file} -build ".$sys['build']." -threads {$threads}");
-
-		// check if copy was successful
-		if (!file_exists($cram_file) || filesize($tagged_bam_file) > 3*filesize($cram_file))
-		{
-			trigger_error("Error during coping CRAM file! File sizes don't match!", E_USER_ERROR);
-		}
-	}
-	else //use BAM
-	{
+		//use BAM
 		$parser->copyFile($tagged_bam_file, $bam_file);
 		$parser->copyFile($tagged_bam_file.".bai", $bam_file.".bai");
 
@@ -598,9 +594,23 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 			trigger_error("Error during coping BAM file! File sizes don't match!", E_USER_ERROR);
 		}
 	}
-	
+	else
+	{
+		//TODO: remove
+		//keep old files
+		$parser->copyFile($cram_file, $cram_file."_unphased.cram");
+		$parser->copyFile($cram_file.".crai", $cram_file."_unphased.cram.crai");
 
+		//use CRAM
+		$parser->copyFile($tagged_bam_file, $cram_file);
+		$parser->copyFile($tagged_bam_file.".crai", $cram_file.".crai");
 
+		// check if copy was successful
+		if (!file_exists($cram_file) || filesize($tagged_bam_file) != filesize($cram_file))
+		{
+			trigger_error("Error during coping CRAM file! File sizes don't match!", E_USER_ERROR);
+		}
+	}
 }
 
 // annotation
