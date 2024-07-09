@@ -24,6 +24,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mappi
 $parser->addFlag("annotation_only", "Performs only a re-annotation of the already created variant calls.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFloat("min_corr", "The minimum sample genotype correlation which is used for tumor-cfDNA comparison (default: 0.80)", true, 0.80);
+$parser->addInt("min_mapq", "The minimum mapping quality for reads to be considered.", true, 0);
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_post_filter", "Use the unfiltered umiVar output to generate the GSvar file.");
 extract($parser->parse($argv));
@@ -289,6 +290,12 @@ $qc_fastq = "{$folder}/{$name}_stats_fastq.qcML";
 $qc_map  = "{$folder}/{$name}_stats_map.qcML";
 $qc_cfdna = "{$folder}/{$name}_stats_cfDNA.qcML";
 
+//alternative mrd calculation
+$bg_mrd = "{$folder}/umiVar/{$name}_bg.mrd";
+$bg_mrd_unfiltered = "{$folder}/umiVar/{$name}_bg_unfiltered.mrd";
+$bg_monitoring = "{$folder}/umiVar/{$name}_monitoring_counts.tsv";
+$bg_monitoring_unfiltered = "{$folder}/umiVar/{$name}_monitoring_counts_unfiltered.tsv";
+
 //check if all required info are available
 if (!$annotation_only && (in_array("ma", $steps) || in_array("vc", $steps)))
 {
@@ -376,6 +383,7 @@ if (in_array("ma", $steps))
 		"--log ".$parser->getLogFile(),
 		"-bam_output" //TODO Leon: CRAM does not work in pipeline test - error message is "[E::process_one_read] CIGAR and query sequence are of different length"
 	];
+	if ($min_mapq > 0 ) $args[] = "-min_mapq $min_mapq";
 	if (!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
 	$parser->execTool("Pipelines/mapping.php", implode(" ", $args));
 
@@ -583,6 +591,30 @@ if (in_array("vc", $steps))
 		$parser->exec(get_path("python3"), get_path("umiVar2")."/cfDNA_postfiltering.py ".implode(" ", $args));
 		$parser->log("post-filtering log: ", file($temp_logfile));
 
+	}
+
+	// calculate alternative MRD & monitoring counts
+	if ($is_patient_specific)
+	{
+		$mrd_calc_command = get_path("python3")." ".get_path("umiVar2")."/calculateMRD.py";
+		//filtered output
+		$args = array();
+		$args[] = $folder."/umiVar";
+		$args[] = $monitoring_vcf;
+		$args[] = $bg_mrd;
+		$args[] = $bg_monitoring;
+		$parser->exec($mrd_calc_command, implode(" ", $args));
+
+		//unfiltered output
+		$args = array();
+		$args[] = $folder."/umiVar";
+		$args[] = $monitoring_vcf;
+		$args[] = $bg_mrd_unfiltered;
+		$args[] = $bg_monitoring_unfiltered;
+		$args[] = "--max_af 1.5";
+		$args[] = "--keep_gonosomes";
+		$args[] = "--keep_indels";
+		$parser->exec($mrd_calc_command, implode(" ", $args));
 	}
 	
 }
