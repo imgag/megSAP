@@ -120,7 +120,7 @@ print "  took ".time_readable(microtime(true)-$time_start)."\n";
 $time_start = microtime(true);
 $remapped_region = $out_folder."/remapped_regions.bed";
 print "get region of remapped reads\n";
-$parser->exec("{$ngsbits}/BedHighCoverage", "-bam {$bam_mapped} -out {$remapped_region} -wgs -cutoff 1 -threads {$threads}");
+$parser->exec("{$ngsbits}/BedHighCoverage", "-bam {$bam_mapped} -out {$remapped_region} -cutoff 1 -threads {$threads}");
 print "  took ".time_readable(microtime(true)-$time_start)."\n";
 
 $merged_bam = $debug ? $out_folder."/merged.bam" : $parser->tempFile("_mapped.bam");

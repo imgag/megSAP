@@ -41,11 +41,20 @@ foreach(file($in) as $line)
 	$conditions[] = "(s.name_external LIKE 'DNA{$dna_nr}%' OR s.name_external LIKE 'DX{$dna_nr}%' OR s.name_external LIKE 'DNA-{$dna_nr}%' OR s.name_external LIKE 'DX-{$dna_nr}%')";
 	if ($system!="")
 	{
-		$sys_id = $db->getValue("SELECT id FROM `processing_system` WHERE name_short='{$system}'");
+		$sys_id = $db->getValue("SELECT id FROM `processing_system` WHERE name_short='{$system}'", -1);
+		if ($sys_id==-1)
+		{
+			trigger_error("Invalid processing system short name '{$system}'.\nValid names are: ".implode(", ",  $db->getValues("SELECT name_short FROM processing_system ORDER BY name_short ASC")), E_USER_ERROR);
+		}
 		$conditions[] = "ps.processing_system_id='$sys_id'";
 	}
 	if ($project_type!="")
 	{
+		$valid = $db->getEnum("project", "type");
+		if (!in_array($project_type, $valid))
+		{
+			trigger_error("Invalid project type '{$project_type}'.\nValid types are: ".implode(", ", $valid), E_USER_ERROR);
+		}
 		$tables[] = "project p";
 		$conditions[] = "ps.project_id=p.id";
 		$conditions[] = "p.type='{$project_type}'";

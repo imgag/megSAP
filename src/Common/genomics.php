@@ -2269,4 +2269,33 @@ function get_basecall_model($bam_file)
 
 }
 
+//returns the project path, or NULL if the project does not exist in NGSD
+function get_project_folder(&$db, $project_name)
+{
+	//get project id
+	$project_name = trim($project_name);
+	$project_id = $db->getValue("SELECT id FROM project WHERE name LIKE '$project_name'", -1);
+	if ($project_id==-1) return NULL;
+	
+	//folder override
+	$folder_override = $db->getValue("SELECT folder_override FROM project WHERE id='{$project_id}'");
+	$folder_override = trim($folder_override);
+	if ($folder_override!="")
+	{
+		$output = $folder_override;
+	}
+	else //fallback to default path
+	{
+		$type = $db->getValue("SELECT type FROM project WHERE id='{$project_id}'");
+		$output = get_path('project_folder')[$type];
+		if (!ends_with($output, "/")) $output .= "/";
+		$output .= $project_name;
+	}
+	
+	//output
+	$output = strtr($output, ["//"=>"/"]);
+	if (!ends_with($output, "/")) $output .= "/";
+	return $output;
+}
+
 ?>

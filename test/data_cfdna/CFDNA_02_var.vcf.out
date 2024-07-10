@@ -1,5 +1,5 @@
 ##fileformat=VCFv4.1
-##fileDate=27/02/2024
+##fileDate=08/07/2024
 ##source=umiVar2
 ##reference=/tmp/local_ngs_data_GRCh38/GRCh38.fa
 ##INFO=<ID=Variant_Dist,Number=1,Type=Integer,Description="Distance to the closest short variant">
@@ -36,5 +36,5 @@
 ##FORMAT=<ID=OAAC,Number=1,Type=Integer,Description="Other Alternative Allele Coun">
 ##FORMAT=<ID=MAL,Number=1,Type=Float,Description="Multi-allele likelihoo">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	CFDNA_02
-chr1	114713909	.	G	T	.	PASS	Variant_dist=30;Vicinity=TTCTTGTCCAG	GT:DP:AC:AF:M_REF:M_AC:M_AF:Pval:FDR:Strand:FS:OAAC:MAL	./.:3446:36:0.010447:1882:17:0.008952:1.56e-04:9.93e-03:25-11-2616-794:1.00e+00:0:1.00e+00
-chr1	114713915	.	C	T	.	FDR	Variant_dist=6;Vicinity=TCCAGCTGTAT	GT:DP:AC:AF:M_REF:M_AC:M_AF:Pval:FDR:Strand:FS:OAAC:MAL	./.:3633:32:0.008808:1934:18:0.009221:5.55e-03:1.18e-01:11-21-2795-804:2.98e-05:2:1.00e+00
+chr1	114713909	.	G	T	.	PASS	Variant_dist=30;Vicinity=TTCTTGTCCAG	GT:DP:AC:AF:M_REF:M_AC:M_AF:Pval:FDR:Strand:FS:OAAC:MAL	./.:3165:34:0.010742:1876:17:0.00898:1.57e-04:9.96e-03:25-9-2443-688:1.00e+00:0:1.00e+00
+chr1	114713915	.	C	T	.	FDR	Variant_dist=6;Vicinity=TCCAGCTGTAT	GT:DP:AC:AF:M_REF:M_AC:M_AF:Pval:FDR:Strand:FS:OAAC:MAL	./.:3342:27:0.008079:1933:18:0.009226:5.96e-03:1.26e-01:10-17-2613-700:4.41e-04:2:1.00e+00
