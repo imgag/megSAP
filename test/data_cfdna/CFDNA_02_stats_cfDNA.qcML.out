@@ -6,20 +6,20 @@
   ]>
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
-    <metaDataParameter ID="md0001" name="creation software" value="CfDnaQC 2024_02-2-g676f0ad1" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0001" name="creation software" value="CfDnaQC 2024_06-6-gc555e12f" cvRef="QC" accession="QC:1000002"/>
     <metaDataParameter ID="md0002" name="creation software parameters" value=" -error_rates CFDNA_02/umiVar/error_rates.txt" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2024-02-26T14:57:07" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2024-07-08T08:17:18" cvRef="QC" accession="QC:1000004"/>
     <metaDataParameter ID="md0004" name="source file" value="CFDNA_02.bam" cvRef="QC" accession="QC:1000005"/>
     <metaDataParameter ID="md0005" name="linked file" value="roi_CFDNA_02.bed" uri="roi_CFDNA_02.bed" cvRef="QC" accession="QC:1000006" />
     <metaDataParameter ID="md0006" name="linked file" value="error_rates.txt" uri="error_rates.txt" cvRef="QC" accession="QC:1000006" />
-    <qualityParameter ID="qp0001" name="monitoring variant read depth" description="" value="27086.00" cvRef="QC" accession="QC:2000077"/>
+    <qualityParameter ID="qp0001" name="monitoring variant read depth" description="" value="24063.00" cvRef="QC" accession="QC:2000077"/>
     <qualityParameter ID="qp0002" name="monitoring variant count" description="" value="1" cvRef="QC" accession="QC:2000079"/>
     <qualityParameter ID="qp0003" name="250x coverage monitoring variant percentage" description="" value="100.00" cvRef="QC" accession="QC:2000080"/>
     <qualityParameter ID="qp0004" name="ID variant count" description="" value="0" cvRef="QC" accession="QC:2000081"/>
-    <qualityParameter ID="qp0005" name="umiVar error rate 1-fold duplication" description="" value="0.00112434" cvRef="QC" accession="QC:2000085"/>
-    <qualityParameter ID="qp0006" name="umiVar error rate 2-fold duplication" description="" value="0.00159568" cvRef="QC" accession="QC:2000086"/>
-    <qualityParameter ID="qp0007" name="umiVar error rate 3-fold duplication" description="" value="0.00061359" cvRef="QC" accession="QC:2000087"/>
-    <qualityParameter ID="qp0008" name="umiVar error rate 4-fold duplication" description="" value="0.00019014" cvRef="QC" accession="QC:2000088"/>
+    <qualityParameter ID="qp0005" name="umiVar error rate 1-fold duplication" description="" value="0.00102266" cvRef="QC" accession="QC:2000085"/>
+    <qualityParameter ID="qp0006" name="umiVar error rate 2-fold duplication" description="" value="0.00157946" cvRef="QC" accession="QC:2000086"/>
+    <qualityParameter ID="qp0007" name="umiVar error rate 3-fold duplication" description="" value="0.00050870" cvRef="QC" accession="QC:2000087"/>
+    <qualityParameter ID="qp0008" name="umiVar error rate 4-fold duplication" description="" value="0.00021178" cvRef="QC" accession="QC:2000088"/>
   </runQuality>
   <cvList>
     <cv uri="https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo" ID="QC" fullName="QC" version="0.1"/>

@@ -21,6 +21,7 @@ $parser->addString("qc_map", "Output qcML file with mapping statistics.", true, 
 $parser->addOutfile("local_bam", "Filename the local BAM file is written to. It can be used to speed up variant calling etc. Not created if unset.", true);
 $parser->addFlag("bam_output", "Output is BAM instead of CRAM.");
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
+$parser->addFlag("softclip_supplements", "Use soft clipping for supplementary alignments.");
 extract($parser->parse($argv));
 
 if ((is_null($in_fastq) && is_null($in_bam)) || (!is_null($in_fastq) && (count($in_fastq) > 0) && !is_null($in_bam) && (count($in_bam) > 0)))
@@ -87,7 +88,6 @@ if ($bam_input)
 }
 
 $minimap_options = [
-	// "-Y", //TODO: validate
 	"-a",
 	"--MD",
 	"-x map-ont",
@@ -98,6 +98,9 @@ $minimap_options = [
 ];
 //include methylation
 if ($bam_input) $minimap_options[] = "-y";
+
+//soft-clip supplement alignments
+if ($softclip_supplements) $minimap_options[] = "-Y";
 
 $pipeline = [];
 

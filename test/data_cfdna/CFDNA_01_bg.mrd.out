@@ -1,0 +1,5 @@
+#MRD_log10	MRD_pval	SUM_DP	SUM_ALT	Mean_AF	Stddev_AF	Median_AF	duplication	error_rate	BG_REF	BG_other	monitoring_count_pre_filter	monitoring_count_post_filter	monitoring_count_post_filter_with_counts	proportion_Z_statistic	minimal_detectable_af
+-20.000	0.00000	6444	61	0.00947	0.00133	0.00950	1-fold	0.00052268	392207	205	2	2	2	4.40835	0.00108628
+-20.000	0.00000	3809	35	0.00919	0.00012	0.00919	2-fold	0.00031983	234500	75	2	2	2	5.58868	0.00078761
+-20.000	0.00000	3195	30	0.00939	0.00177	0.00938	3-fold	0.00009190	195865	18	2	2	2	10.93006	0.00031299
+-20.000	0.00000	2897	29	0.01001	0.00230	0.00999	4-fold	0.00005099	176506	9	2	2	2	15.71781	0.00034518

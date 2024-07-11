@@ -27,6 +27,7 @@ $parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.")
 $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping, small variant and structural variant calling.");
 $parser->addFlag("bam_output", "Output is BAM instead of CRAM.");
 $parser->addFlag("somatic_custom_map", "Calculate mapping QC metrics for somatic custom subpanel");
+$parser->addInt("min_mapq", "The minimum mapping quality for reads to be considered for barcode correction (cfDNA only).", true, 0);
 extract($parser->parse($argv));
 
 //checks in case DRAGEN should be used
@@ -492,18 +493,37 @@ if($barcode_correction)
 		$bam_current = $tmp_bam_filtered_sorted;
 	}
 
+	// filter BAM file by minMQ
+	if($min_mapq > 0)
+	{
+		$tmp_bam_filtered = $parser->tempFile("_filtered.bam");
+		$parser->exec(get_path("ngs-bits")."BamFilter", "-minMQ 20 -in $bam_current -out $tmp_bam_filtered", true);
+
+		$tmp_bam_filtered_sorted = $parser->tempFile("_filtered_sorted.bam");
+		$parser->sortBam($tmp_bam_filtered, $tmp_bam_filtered_sorted, $threads);
+		$parser->indexBam($tmp_bam_filtered_sorted, $threads);
+		
+		$parser->deleteTempFile($bam_current);
+		$bam_current = $tmp_bam_filtered_sorted;
+	}
+
 	//barcode correction
 	$tmp_bam4 = $parser->tempFile("_dedup4.bam");
 	$tmp_bam4_sorted = $parser->tempFile("_dedup4_sorted.bam");
-	$args = "";
-	if($correction_n) $args .= "--n ";
+	$args = array();
+	if($correction_n) $args[] = "--n ";
+	
+	// allow UMI barcode errors for IDT/Twist
+	if($sys['umi_type'] == "Twist") $args[] = "--barcode_error 2";
+	elseif($sys['umi_type'] == "IDT-xGen-Prism") $args[] = "--barcode_error 3";
+	
 	// use the barcode correction of umiVar2
 	$umiVar2 = get_path("umiVar2");
 	//set environment variables
 	putenv("umiVar_python_binary=\"".get_path("python3")."\"");
 	putenv("umiVar_R_binary=\"".get_path("rscript")."\"");
 	putenv("umiVar_samtools_binary=\"".get_path("samtools")."\"");
-	$parser->exec(get_path("python3")." {$umiVar2}/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 ".$args,true);
+	$parser->exec(get_path("python3")." {$umiVar2}/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 ".implode(" ", $args),true);
 	$parser->sortBam($tmp_bam4, $tmp_bam4_sorted, $threads);
 	$parser->indexBam($tmp_bam4_sorted, $threads);
 	
