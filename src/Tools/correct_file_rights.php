@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("correct_file_rights", "Corrects file owner and permissions.");
 $parser->addString("types", "Comma-separated list of project types.", false);
 $parser->addString("owner", "File owner.", true, "bioinf");
-$parser->addString("group", "File group.", true, "domänen-benutzer");
+$parser->addString("group", "File group.", true, "f_ad_bi_l_medgen_access_storages");
 $parser->addString("permissions", "File permissions.", true, "775");
 extract($parser->parse($argv));
 

@@ -51,7 +51,7 @@ function restore($source, $to)
 	if ($res == 0)
 	{
 		echo "Setting permissions for file...\n";
-		exec("chgrp \"domänen-benutzer\" {$to}");
+		exec("chgrp \"f_ad_bi_l_medgen_access_storages\" {$to}");
 		exec("chmod 664 {$to}");
 		echo "File was successfully restored!\n";
 		echo "{$to}\n";
