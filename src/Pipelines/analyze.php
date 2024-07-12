@@ -393,7 +393,7 @@ if (in_array("vc", $steps))
 				//filter by target region (extended by 200) and quality 5
 				$target = $parser->tempFile("_roi_extended.bed");
 				$parser->exec($ngsbits."BedExtend"," -in ".$sys['target_file']." -n 200 -out $target -fai ".$genome.".fai", true);
-				$pipeline[] = array($ngsbits."VcfFilter", "-reg {$target} -qual 5");
+				$pipeline[] = array($ngsbits."VcfFilter", "-reg {$target} -qual 5 -filter_clear");
 
 				//split multi-allelic variants
 				$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
@@ -480,7 +480,7 @@ if (in_array("vc", $steps))
 				$pipeline[] = array("zcat", $dragen_output_vcf);
 				
 				//filter by target region and quality 5
-				$pipeline[] = array($ngsbits."VcfFilter", "-reg chrMT:1-16569 -qual 5");
+				$pipeline[] = array($ngsbits."VcfFilter", "-reg chrMT:1-16569 -qual 5 -filter_clear");
 
 				//split multi-allelic variants
 				$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
