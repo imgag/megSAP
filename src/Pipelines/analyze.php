@@ -1024,6 +1024,29 @@ if (in_array("sv", $steps))
 	{
 		$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnvfile", true);
 	}
+
+	//update sample entry 
+	if (db_is_enabled("NGSD"))
+	{
+		$bedpe_content = Matrix::fromTSV($bedpe_out);
+		$old_comments = $bedpe_content->getComments();
+		$new_comments = array();
+		foreach ($old_comments as $line) 
+		{
+			if(starts_with($line, "#SAMPLE="))
+			{
+				//replace SAMPLE line with updated entry from NGSD
+				$new_comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "#", "\n"); 
+			}
+			else
+			{
+				//keep old line
+				$new_comments[] = $line;
+			}
+		}
+		$bedpe_content->setComments($new_comments);
+		$bedpe_content->toTSV(($bedpe_out));
+	}
 }
 
 //repeat expansions

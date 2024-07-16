@@ -3,7 +3,7 @@
 ##SOURCE=freebayes v1.2.0
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##PIPELINE=megSAP 0.1-1150-g9c8dd4c
-##SAMPLE=<ID=NA12878_38,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
+##SAMPLE=<ID=NA12878_38,Gender=female,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=Affected>
 ##FILTER=off-target=Variant marked as 'off-target'.
 ##FILTER=low_conf_region=Variant marked as 'low_conf_region'.
 ##DESCRIPTION=NA12878_38=Genotype of variant in sample.

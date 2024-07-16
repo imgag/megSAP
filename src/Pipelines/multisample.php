@@ -352,6 +352,15 @@ if (in_array("vc", $steps))
 
 	//basic annotation
 	$parser->execTool("Pipelines/annotate.php", "-out_name {$prefix} -out_folder $out_folder -system $system -threads $threads -multi");
+
+	//update sample entry 
+	$status_map = array();
+	foreach ($status as $bam => $disease_status) 
+	{
+		$status_map[basename2($bam)] = $disease_status;
+	}
+	update_gsvar_sample_header($gsvar, $status_map);
+
 }
 
 //(3) copy-number calling
@@ -744,6 +753,14 @@ if (in_array("sv", $steps))
 	{
 		$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnv_multi", true);
 	}
+
+	//update sample entry 
+	$status_map = array();
+	foreach ($status as $bam => $disease_status) 
+	{
+		$status_map[basename2($bam)] = $disease_status;
+	}
+	update_gsvar_sample_header($bedpe_out, $status_map);
 }
 
 //NGSD import

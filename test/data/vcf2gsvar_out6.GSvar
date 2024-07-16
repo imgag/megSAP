@@ -3,7 +3,7 @@
 ##CALLING_DATE=2023-11-03
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##PIPELINE=megSAP 2022_08-251-g8de5b488
-##SAMPLE=<ID=23014LRa023L2_01,Gender=n/a,ExternalSampleName=DNA-2300790 A/GLAB NA12878,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=affected>
+##SAMPLE=<ID=23014LRa023L2_01,Gender=female,ExternalSampleName=DNA-2300790 A/GLAB NA12878,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=Affected>
 ##FILTER=LowQual=Low quality variant
 ##FILTER=PASS=All filters passed
 ##FILTER=RefCall=Reference call

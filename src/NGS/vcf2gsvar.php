@@ -472,10 +472,12 @@ while(!feof($handle))
 		if (starts_with($line, "##SAMPLE="))
 		{
 			$line = trim($line);
-			fwrite($handle_out, $line."\n");
 			list($name) = explode(",", substr($line, 13, -1));
+
 			if ($genotype_mode=="single")
 			{
+				// replace sample header with NGSD enry:
+				if (db_is_enabled("NGSD")) $line = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "##", "");
 				if ($column_desc[0][0]!="genotype")
 				{
 					trigger_error("Several sample header lines in 'single' mode!", E_USER_ERROR);
@@ -490,15 +492,13 @@ while(!feof($handle))
 					// add 2 columns per sample (genotype + phasing info)
 					array_splice($column_desc, (2*count($multi_cols))-2, 0, array(array($name, "genotype of sample $name")));
 					array_splice($column_desc, (2*count($multi_cols))-1, 0, array(array($name."_phased", "phasing information of sample $name")));
-
-					// //TODO: remove
-					var_dump($column_desc);
 				}
 				else
 				{
 					array_splice($column_desc, count($multi_cols)-1, 0, array(array($name, "genotype of sample $name")));
 				}	
 			}
+			fwrite($handle_out, $line."\n");
 		}
 		
 		//analysis type
