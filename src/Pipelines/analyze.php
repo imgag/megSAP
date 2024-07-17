@@ -76,7 +76,7 @@ if ($use_dragen)
 	{
 		trigger_error("DRAGEN small variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
-	if (!in_array("ma", $steps) && in_array("sv", $steps) && get_path("dragen_sv_calling") && !file_exists($folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz")) 
+	if (!in_array("ma", $steps) && in_array("sv", $steps) && get_path("use_dragen_sv_calling") && !file_exists($folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz")) 
 	{
 		trigger_error("DRAGEN structural variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
@@ -878,10 +878,11 @@ if (in_array("sv", $steps))
 	if (!$annotation_only)
 	{
 		$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz";
-		if ($use_dragen && (get_path("dragen_sv_calling") || (!in_array("ma", $steps) && file_exists($dragen_output_vcf))))
+		if ($use_dragen && get_path("use_dragen_sv_calling"))
 		{
+			if (!file_exists($dragen_output_vcf)) trigger_error("Dragen SV calling file not found!", E_USER_ERROR);
 			if (!in_array("ma", $steps)) trigger_error("'-use_dragen' with no mapping step provided. Using old DRAGEN VCF for SV calling.", E_USER_NOTICE);
-			
+					
 			//combine BND of INVs to one INV in VCF
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
 			$parser->exec(get_path("python27")." ".get_path('manta')."/../libexec/convertInversion.py", get_path("samtools")." {$genome} {$dragen_output_vcf} > {$vcf_inv_corrected}");

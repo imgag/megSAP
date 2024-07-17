@@ -111,11 +111,8 @@ $dragen_parameter[] = "--vc-min-base-qual 15";
 $dragen_parameter[] = "--vc-emit-ref-confidence GVCF";
 $dragen_parameter[] = "--vc-enable-vcf-output true";
 //structural variant calling
-if (get_path("dragen_sv_calling"))
-{
-	$dragen_parameter[] = "--enable-sv true";
-	$dragen_parameter[] = "--sv-use-overlap-pair-evidence true";
-}
+$dragen_parameter[] = "--enable-sv true";
+$dragen_parameter[] = "--sv-use-overlap-pair-evidence true";
 $parser->log("DRAGEN parameters:", $dragen_parameter);
 
 //run
@@ -142,12 +139,9 @@ $parser->copyFile($working_dir."output.hard-filtered.gvcf.gz", $out_gvcf);
 $parser->copyFile($working_dir."output.hard-filtered.gvcf.gz.tbi", $out_gvcf.".tbi");
 
 // copy SV calls to sample folder
-if (get_path("dragen_sv_calling"))
-{
-	$parser->log("Copying SVs to output folder");
-	$parser->copyFile($working_dir."output.sv.vcf.gz", $out_sv);
-	$parser->copyFile($working_dir."output.sv.vcf.gz.tbi", $out_sv.".tbi");
-}
+$parser->log("Copying SVs to output folder");
+$parser->copyFile($working_dir."output.sv.vcf.gz", $out_sv);
+$parser->copyFile($working_dir."output.sv.vcf.gz.tbi", $out_sv.".tbi");
 
 // copy CNV calls
 if ($enable_cnv)

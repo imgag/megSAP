@@ -409,11 +409,8 @@ if ($use_dragen)
 	$parser->moveFile($dragen_output_vcf.".tbi", $dragen_call_folder.basename($dragen_output_vcf).".tbi");
 	$parser->moveFile($dragen_output_gvcf, $dragen_call_folder.basename($dragen_output_gvcf));
 	$parser->moveFile($dragen_output_gvcf.".tbi", $dragen_call_folder.basename($dragen_output_gvcf).".tbi");
-	if (get_path("dragen_sv_calling"))
-	{
-		$parser->moveFile($dragen_output_sv, $dragen_call_folder.basename($dragen_output_sv));
-		$parser->moveFile($dragen_output_sv.".tbi", $dragen_call_folder.basename($dragen_output_sv).".tbi");
-	}
+	$parser->moveFile($dragen_output_sv, $dragen_call_folder.basename($dragen_output_sv));
+	$parser->moveFile($dragen_output_sv.".tbi", $dragen_call_folder.basename($dragen_output_sv).".tbi");
 	if ($sys['type']=="WGS")
 	{
 		$parser->moveFile($dragen_output_cnv, $dragen_call_folder.basename($dragen_output_cnv));
