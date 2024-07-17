@@ -175,6 +175,8 @@
 /test/data_trio_longread/*.fastq.gz
 /test/data_trio_longread/*.bam
 /test/data_trio_longread/*.bam.bai
+/test/data_trio_longread/*.cram
+/test/data_trio_longread/*.cram.crai
 /test/data_trio_longread/*.log
 /test/data_trio_longread/*.qcML
 /test/data_trio_longread/*.vcf.gz
@@ -197,6 +199,8 @@
 /test/data_multi_longread/*.fastq.gz
 /test/data_multi_longread/*.bam
 /test/data_multi_longread/*.bam.bai
+/test/data_multi_longread/*.cram
+/test/data_multi_longread/*.cram.crai
 /test/data_multi_longread/*.log
 /test/data_multi_longread/*.qcML
 /test/data_multi_longread/*.vcf.gz

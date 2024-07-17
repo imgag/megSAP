@@ -150,7 +150,8 @@ if (in_array("ma", $steps))
 	else
 	{
 		$mapping_minimap_options[] = "-out {$cram_file}";
-		$local_bam = $parser->tempFile(".bam");
+		//create separate tmp folder with correct BamFile name to prevent problems with tools which uses this name as sample name:
+		$local_bam = $parser->tempFolder("local_bam")."/".$name.".bam"; 
 		$mapping_minimap_options[] = "-local_bam {$local_bam}";
 		$used_bam_or_cram = $local_bam;
 	}
@@ -266,7 +267,7 @@ if (in_array("ma", $steps))
 						trigger_error("Unmapped BAM file size (".$unmapped_bam_file."): ".$file_size, E_USER_NOTICE);
 						$unmapped_bam_file_size += $file_size;
 					}
-					if ($mapped_cram_file_size  > ($unmapped_bam_file / 3))
+					if ($mapped_cram_file_size  > ($unmapped_bam_file_size / 3))
 					{
 						// remove unmapped BAM(s)
 						foreach ($unmapped_bam_files as $unmapped_bam_file) 
@@ -442,7 +443,7 @@ if (in_array("cn", $steps))
 	//create coverage profile
 	$tmp_folder = $parser->tempFolder();
 	$cov_file = $cov_folder."/{$name}.cov";
-	if (!file_exists($cov_file))
+	if (!file_exists($cov_file) || filemtime($cov_file)<filemtime($used_bam_or_cram))
 	{
 
 		$parser->log("Calculating coverage file for CN calling...");
@@ -617,7 +618,7 @@ if (in_array("re", $steps))
 {
 	//Repeat-expansion calling using straglr
 	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
-	$parser->execTool("NGS/vc_straglr.php", "-in {$bam_file} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
+	$parser->execTool("NGS/vc_straglr.php", "-in {$used_bam_or_cram} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
 }
 
 // annotation
