@@ -2298,4 +2298,48 @@ function get_project_folder(&$db, $project_name)
 	return $output;
 }
 
+//updates the GSvar SAMPLE entry with NGSD info (inplace)
+function update_gsvar_sample_header($file_name, $status_map)
+{
+	if (!db_is_enabled("NGSD"))
+	{
+		trigger_error("Access to NGSD needed to update GSvar SAMPLE header! Nothing will be done.", E_USER_WARNING);
+		return;
+	}
+
+	$file_content = Matrix::fromTSV($file_name);
+	$old_comments = $file_content->getComments();
+	$new_comments = array();
+	foreach ($old_comments as $line) 
+	{
+		if(starts_with($line, "#SAMPLE="))
+		{
+			$found = false;
+			foreach ($status_map as $sample_name => $disease_status) 
+			{
+				if(strpos($line, "ID=".$sample_name) !== false)
+				{
+					//replace SAMPLE line with updated entry from NGSD
+					$new_comments[] = gsvar_sample_header($sample_name, array("DiseaseStatus"=>$disease_status), "#", "\n"); 
+					$found = true;
+					break;
+				}
+			}
+			if (!$found)
+			{
+				trigger_error("No sample info found for sample line '{$line}'! Keeping old line.", E_USER_WARNING);
+				//keep old line
+				$new_comments[] = $line;
+			} 
+		}
+		else
+		{
+			//keep old line
+			$new_comments[] = $line;
+		}
+	}
+	$file_content->setComments($new_comments);
+	$file_content->toTSV(($file_name));
+}
+
 ?>

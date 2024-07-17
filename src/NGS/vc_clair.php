@@ -120,7 +120,7 @@ $comments[] = "#reference={$genome}\n";
 $comments[] = "#fileDate=".date("Ymd")."\n";
 $comments[] = "#ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n";
 $comments[] = "#PIPELINE=".repository_revision(true)."\n";
-$comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"affected"), "#", "");
+$comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "#", "");
 $vcf->setComments(sort_vcf_comments($comments));
 $vcf->toTSV($uncompressed_vcf);
 
