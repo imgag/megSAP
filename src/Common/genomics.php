@@ -2269,4 +2269,77 @@ function get_basecall_model($bam_file)
 
 }
 
+//returns the project path, or NULL if the project does not exist in NGSD
+function get_project_folder(&$db, $project_name)
+{
+	//get project id
+	$project_name = trim($project_name);
+	$project_id = $db->getValue("SELECT id FROM project WHERE name LIKE '$project_name'", -1);
+	if ($project_id==-1) return NULL;
+	
+	//folder override
+	$folder_override = $db->getValue("SELECT folder_override FROM project WHERE id='{$project_id}'");
+	$folder_override = trim($folder_override);
+	if ($folder_override!="")
+	{
+		$output = $folder_override;
+	}
+	else //fallback to default path
+	{
+		$type = $db->getValue("SELECT type FROM project WHERE id='{$project_id}'");
+		$output = get_path('project_folder')[$type];
+		if (!ends_with($output, "/")) $output .= "/";
+		$output .= $project_name;
+	}
+	
+	//output
+	$output = strtr($output, ["//"=>"/"]);
+	if (!ends_with($output, "/")) $output .= "/";
+	return $output;
+}
+
+//updates the GSvar SAMPLE entry with NGSD info (inplace)
+function update_gsvar_sample_header($file_name, $status_map)
+{
+	if (!db_is_enabled("NGSD"))
+	{
+		trigger_error("Access to NGSD needed to update GSvar SAMPLE header! Nothing will be done.", E_USER_WARNING);
+		return;
+	}
+
+	$file_content = Matrix::fromTSV($file_name);
+	$old_comments = $file_content->getComments();
+	$new_comments = array();
+	foreach ($old_comments as $line) 
+	{
+		if(starts_with($line, "#SAMPLE="))
+		{
+			$found = false;
+			foreach ($status_map as $sample_name => $disease_status) 
+			{
+				if(strpos($line, "ID=".$sample_name) !== false)
+				{
+					//replace SAMPLE line with updated entry from NGSD
+					$new_comments[] = gsvar_sample_header($sample_name, array("DiseaseStatus"=>$disease_status), "#", "\n"); 
+					$found = true;
+					break;
+				}
+			}
+			if (!$found)
+			{
+				trigger_error("No sample info found for sample line '{$line}'! Keeping old line.", E_USER_WARNING);
+				//keep old line
+				$new_comments[] = $line;
+			} 
+		}
+		else
+		{
+			//keep old line
+			$new_comments[] = $line;
+		}
+	}
+	$file_content->setComments($new_comments);
+	$file_content->toTSV(($file_name));
+}
+
 ?>

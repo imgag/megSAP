@@ -96,8 +96,13 @@
 
 4. Demultiplexing
 
-	Demultiplexing is done on the instrument already. There is nothing to do for us.
+	Demultiplexing is done on the instrument already. We only have to check the output for additional MIDs:
 	
+	```bash
+	python /mnt/storage2/megSAP/pipeline/src/Tools/extract_demux_stats.py
+	```
+	Check the output files `DemuxStats.html` and `DemuxStats.png` for additional MIDs.
+
 5. Copy ORA/BAM to the project folders and analyze them using:
 	```bash
 	php /mnt/storage2/megSAP/pipeline/src/NGS/copy_sample.php

@@ -76,7 +76,7 @@ if ($use_dragen)
 	{
 		trigger_error("DRAGEN small variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
-	if (!in_array("ma", $steps) && in_array("sv", $steps) && get_path("dragen_sv_calling") && !file_exists($folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz")) 
+	if (!in_array("ma", $steps) && in_array("sv", $steps) && get_path("use_dragen_sv_calling") && !file_exists($folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz")) 
 	{
 		trigger_error("DRAGEN structural variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
@@ -385,6 +385,7 @@ if (in_array("vc", $steps))
 		{
 			if ($use_dragen)
 			{
+				if (!in_array("ma", $steps)) trigger_error("'-use_dragen' with no mapping step provided. Using old DRAGEN VCF for small variant calling.", E_USER_NOTICE);
 				$pipeline = [];
 				$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
 				$pipeline[] = array("zcat", $dragen_output_vcf);
@@ -392,7 +393,7 @@ if (in_array("vc", $steps))
 				//filter by target region (extended by 200) and quality 5
 				$target = $parser->tempFile("_roi_extended.bed");
 				$parser->exec($ngsbits."BedExtend"," -in ".$sys['target_file']." -n 200 -out $target -fai ".$genome.".fai", true);
-				$pipeline[] = array($ngsbits."VcfFilter", "-reg {$target} -qual 5");
+				$pipeline[] = array($ngsbits."VcfFilter", "-reg {$target} -qual 5 -filter_clear");
 
 				//split multi-allelic variants
 				$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
@@ -479,7 +480,7 @@ if (in_array("vc", $steps))
 				$pipeline[] = array("zcat", $dragen_output_vcf);
 				
 				//filter by target region and quality 5
-				$pipeline[] = array($ngsbits."VcfFilter", "-reg chrMT:1-16569 -qual 5");
+				$pipeline[] = array($ngsbits."VcfFilter", "-reg chrMT:1-16569 -qual 5 -filter_clear");
 
 				//split multi-allelic variants
 				$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
@@ -876,10 +877,12 @@ if (in_array("sv", $steps))
 	// skip SV calling if only annotation should be done	
 	if (!$annotation_only)
 	{
-		if ($use_dragen && get_path("dragen_sv_calling"))
+		$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz";
+		if ($use_dragen && get_path("use_dragen_sv_calling"))
 		{
-			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz";
-			
+			if (!file_exists($dragen_output_vcf)) trigger_error("Dragen SV calling file not found!", E_USER_ERROR);
+			if (!in_array("ma", $steps)) trigger_error("'-use_dragen' with no mapping step provided. Using old DRAGEN VCF for SV calling.", E_USER_NOTICE);
+					
 			//combine BND of INVs to one INV in VCF
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
 			$parser->exec(get_path("python27")." ".get_path('manta')."/../libexec/convertInversion.py", get_path("samtools")." {$genome} {$dragen_output_vcf} > {$vcf_inv_corrected}");
@@ -1021,6 +1024,29 @@ if (in_array("sv", $steps))
 	if (file_exists($cnvfile))
 	{
 		$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnvfile", true);
+	}
+
+	//update sample entry 
+	if (db_is_enabled("NGSD"))
+	{
+		$bedpe_content = Matrix::fromTSV($bedpe_out);
+		$old_comments = $bedpe_content->getComments();
+		$new_comments = array();
+		foreach ($old_comments as $line) 
+		{
+			if(starts_with($line, "#SAMPLE="))
+			{
+				//replace SAMPLE line with updated entry from NGSD
+				$new_comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "#", "\n"); 
+			}
+			else
+			{
+				//keep old line
+				$new_comments[] = $line;
+			}
+		}
+		$bedpe_content->setComments($new_comments);
+		$bedpe_content->toTSV(($bedpe_out));
 	}
 }
 

@@ -188,147 +188,159 @@ if (in_array("sv", $steps))
 //annotation
 if (in_array("an", $steps))
 {
-		//annotate small variant VCF file
-		if (file_exists($vcf_file))
-		{
-			//basic annotation
-			$parser->execTool("Pipelines/annotate.php", "-out_name $prefix -out_folder $out_folder -system $system -threads $threads -multi");
-		}
-		else
-		{
-			trigger_error("Small variant file {$vcf_file} does not exist, skipping small variant annotation!", E_USER_WARNING);
-		}
-	
-		// annotate CNV file
-		if (file_exists($cnv_file))
-		{
-			$repository_basedir = repository_basedir();
-			$data_folder = get_path("data_folder");
-			$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnv_file}", true);
-			$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnv_file}", true);
-			$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnv_file}", true);
-			$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", true);
-	
-	
-			$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_2.bed"; //optional because of license
-			if (file_exists($hgmd_file))
-			{
-				$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnv_file}", true);
-			}
-			$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
-			if (file_exists($omim_file))
-			{
-				$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$omim_file} -no_duplicates -url_decode -out {$cnv_file}", true);
-			}
-	
-			//annotate additional gene info
-			$parser->exec($ngsbits."CnvGeneAnnotation", "-in {$cnv_file} -add_simple_gene_names -out {$cnv_file}", true);
-			// skip annotation if no connection to the NGSD is possible
-			if (db_is_enabled("NGSD"))
-			{
-				//annotate overlap with pathogenic CNVs
-				$parser->exec($ngsbits."NGSDAnnotateCNV", "-in {$cnv_file} -out {$cnv_file}", true);
-			}
-		}
-		else
-		{
-			trigger_error("CNV file {$cnv_file} does not exist, skipping CNV annotation!", E_USER_WARNING);
-		}
-	
-		//annotate SV VCF file
-		if (file_exists($sv_vcf_file))
-		{
-			check_genome_build($sv_vcf_file, $sys['build']);
-	
-			//create BEDPE files
-			$parser->exec("{$ngsbits}VcfToBedpe", "-in {$sv_vcf_file} -out {$bedpe_out}", true);
+	$status_map = array();
+	foreach ($status as $bam => $disease_status) 
+	{
+		$status_map[basename2($bam)] = $disease_status;
+	}
 
-			// correct filetype
-			$bedpe_table = Matrix::fromTSV($bedpe_out);
-			$bedpe_table->removeComment("#fileformat=BEDPE");
-			if ($prefix == "trio") $bedpe_table->prependComment("#fileformat=BEDPE_GERMLINE_TRIO");
-			else $bedpe_table->prependComment("#fileformat=BEDPE_GERMLINE_MULTI");
-			$bedpe_table->toTSV($bedpe_out);
-	
-			//add gene info annotation
-			if (db_is_enabled("NGSD"))
-			{
-				$parser->exec("{$ngsbits}BedpeGeneAnnotation", "-in {$bedpe_out} -out {$bedpe_out} -add_simple_gene_names", true);
-			}
-	
-			//add NGSD counts from flat file
-			$ngsd_annotation_folder = get_path("data_folder")."/dbs/NGSD/";
-			$ngsd_sv_files = array("sv_deletion.bedpe.gz", "sv_duplication.bedpe.gz", "sv_insertion.bedpe.gz", "sv_inversion.bedpe.gz", "sv_translocation.bedpe.gz");
-			$db_file_dates = array();
-	
-			// check file existance
-			$all_files_available = file_exists($ngsd_annotation_folder."sv_breakpoint_density.igv");
-			foreach ($ngsd_sv_files as $filename) 
-			{
-				if(!(file_exists($ngsd_annotation_folder.$filename) && file_exists($ngsd_annotation_folder.$filename.".tbi")))
-				{
-					$all_files_available = false;
-					break;
-				}
-			}
-			if ($all_files_available)
-			{
-				// store flat file modification date to detect changes during annotation 
-				foreach ($ngsd_sv_files as $filename)
-				{
-					$db_file_dates[$filename] = filemtime($ngsd_annotation_folder.$filename);
-					if ($db_file_dates[$filename] == false)
-					{
-						trigger_error("Cannot get modification date of '".$ngsd_annotation_folder.$filename."'!",E_USER_ERROR);
-					}
-				}
-				
-				//perform annotation
-				$parser->exec("{$ngsbits}BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", true);
-				$sys_specific_density_file = $ngsd_annotation_folder."sv_breakpoint_density_".$sys["name_short"].".igv";
-				if (file_exists($sys_specific_density_file))
-				{
-					$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv -density_sys {$sys_specific_density_file}", true);
-				}
-				else
-				{
-					$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
-				}
+	//annotate small variant VCF file
+	if (file_exists($vcf_file))
+	{
+		//basic annotation
+		$parser->execTool("Pipelines/annotate.php", "-out_name $prefix -out_folder $out_folder -system $system -threads $threads -multi");
 
-				// check if files changed during annotation
-				foreach ($ngsd_sv_files as $filename)
+		//update sample entry 
+		update_gsvar_sample_header($gsvar, $status_map);
+	}
+	else
+	{
+		trigger_error("Small variant file {$vcf_file} does not exist, skipping small variant annotation!", E_USER_WARNING);
+	}
+
+	// annotate CNV file
+	if (file_exists($cnv_file))
+	{
+		$repository_basedir = repository_basedir();
+		$data_folder = get_path("data_folder");
+		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnv_file}", true);
+		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnv_file}", true);
+		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnv_file}", true);
+		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", true);
+
+
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_2.bed"; //optional because of license
+		if (file_exists($hgmd_file))
+		{
+			$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnv_file}", true);
+		}
+		$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
+		if (file_exists($omim_file))
+		{
+			$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$omim_file} -no_duplicates -url_decode -out {$cnv_file}", true);
+		}
+
+		//annotate additional gene info
+		$parser->exec($ngsbits."CnvGeneAnnotation", "-in {$cnv_file} -add_simple_gene_names -out {$cnv_file}", true);
+		// skip annotation if no connection to the NGSD is possible
+		if (db_is_enabled("NGSD"))
+		{
+			//annotate overlap with pathogenic CNVs
+			$parser->exec($ngsbits."NGSDAnnotateCNV", "-in {$cnv_file} -out {$cnv_file}", true);
+		}
+	}
+	else
+	{
+		trigger_error("CNV file {$cnv_file} does not exist, skipping CNV annotation!", E_USER_WARNING);
+	}
+
+	//annotate SV VCF file
+	if (file_exists($sv_vcf_file))
+	{
+		check_genome_build($sv_vcf_file, $sys['build']);
+
+		//create BEDPE files
+		$parser->exec("{$ngsbits}VcfToBedpe", "-in {$sv_vcf_file} -out {$bedpe_out}", true);
+
+		// correct filetype
+		$bedpe_table = Matrix::fromTSV($bedpe_out);
+		$bedpe_table->removeComment("#fileformat=BEDPE");
+		if ($prefix == "trio") $bedpe_table->prependComment("#fileformat=BEDPE_GERMLINE_TRIO");
+		else $bedpe_table->prependComment("#fileformat=BEDPE_GERMLINE_MULTI");
+		$bedpe_table->toTSV($bedpe_out);
+
+		//add gene info annotation
+		if (db_is_enabled("NGSD"))
+		{
+			$parser->exec("{$ngsbits}BedpeGeneAnnotation", "-in {$bedpe_out} -out {$bedpe_out} -add_simple_gene_names", true);
+		}
+
+		//add NGSD counts from flat file
+		$ngsd_annotation_folder = get_path("data_folder")."/dbs/NGSD/";
+		$ngsd_sv_files = array("sv_deletion.bedpe.gz", "sv_duplication.bedpe.gz", "sv_insertion.bedpe.gz", "sv_inversion.bedpe.gz", "sv_translocation.bedpe.gz");
+		$db_file_dates = array();
+
+		// check file existance
+		$all_files_available = file_exists($ngsd_annotation_folder."sv_breakpoint_density.igv");
+		foreach ($ngsd_sv_files as $filename) 
+		{
+			if(!(file_exists($ngsd_annotation_folder.$filename) && file_exists($ngsd_annotation_folder.$filename.".tbi")))
+			{
+				$all_files_available = false;
+				break;
+			}
+		}
+		if ($all_files_available)
+		{
+			// store flat file modification date to detect changes during annotation 
+			foreach ($ngsd_sv_files as $filename)
+			{
+				$db_file_dates[$filename] = filemtime($ngsd_annotation_folder.$filename);
+				if ($db_file_dates[$filename] == false)
 				{
-					if ($db_file_dates[$filename] != filemtime($ngsd_annotation_folder.$filename))
-					{
-						trigger_error("Annotation file '".$ngsd_annotation_folder.$filename."' has changed during annotation!",E_USER_ERROR);
-					}
+					trigger_error("Cannot get modification date of '".$ngsd_annotation_folder.$filename."'!",E_USER_ERROR);
 				}
-	
+			}
+			
+			//perform annotation
+			$parser->exec("{$ngsbits}BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", true);
+			$sys_specific_density_file = $ngsd_annotation_folder."sv_breakpoint_density_".$sys["name_short"].".igv";
+			if (file_exists($sys_specific_density_file))
+			{
+				$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv -density_sys {$sys_specific_density_file}", true);
 			}
 			else
 			{
-				trigger_error("Cannot annotate NGSD counts! At least one required file in '{$ngsd_annotation_folder}' is missing!", E_USER_WARNING);
-			}
-			
-			//add optional OMIM annotation
-			$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; 
-			if(file_exists($omim_file))//OMIM annotation (optional because of license)
-			{
-				$parser->exec("{$ngsbits}BedpeAnnotateFromBed", "-in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM", true);
-			}
-	
-			//add CNV overlap annotation
-			if (file_exists($cnv_file))
-			{
-				$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnv_file", true);
+				$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
 			}
 
-			//write genotype in own column
-			$parser->exec("{$ngsbits}BedpeExtractGenotype", "-in $bedpe_out -out $bedpe_out -include_unphased", true);
+			// check if files changed during annotation
+			foreach ($ngsd_sv_files as $filename)
+			{
+				if ($db_file_dates[$filename] != filemtime($ngsd_annotation_folder.$filename))
+				{
+					trigger_error("Annotation file '".$ngsd_annotation_folder.$filename."' has changed during annotation!",E_USER_ERROR);
+				}
+			}
 
-			//extract columns
-			$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_out -out $bedpe_out -info_fields SVLEN,SUPPORT,COVERAGE", true);
 		}
+		else
+		{
+			trigger_error("Cannot annotate NGSD counts! At least one required file in '{$ngsd_annotation_folder}' is missing!", E_USER_WARNING);
+		}
+		
+		//add optional OMIM annotation
+		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; 
+		if(file_exists($omim_file))//OMIM annotation (optional because of license)
+		{
+			$parser->exec("{$ngsbits}BedpeAnnotateFromBed", "-in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM", true);
+		}
+
+		//add CNV overlap annotation
+		if (file_exists($cnv_file))
+		{
+			$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnv_file", true);
+		}
+
+		//write genotype in own column
+		$parser->exec("{$ngsbits}BedpeExtractGenotype", "-in $bedpe_out -out $bedpe_out -include_unphased", true);
+
+		//extract columns
+		$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_out -out $bedpe_out -info_fields SVLEN,SUPPORT,COVERAGE", true);
+
+		//update sample entry 
+		update_gsvar_sample_header($bedpe_out, $status_map);
+	}
 
 }
 

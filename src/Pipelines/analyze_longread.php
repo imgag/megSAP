@@ -599,6 +599,9 @@ if (in_array("an", $steps))
 
 		//extract columns
 		$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_file -out $bedpe_file -info_fields SVLEN,SUPPORT,COVERAGE,AF", true);
+
+		//update sample entry 
+		update_gsvar_sample_header($bedpe_file, array($name=>"Affected"));		
 	}
 
 }

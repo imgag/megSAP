@@ -18,53 +18,59 @@ The main parameters that you have to provide are:
 
 The analysis pipeline assumes that that all data to analyze resides in a sample folder as produced by Illumina's [bcl2fastq](http://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html) tool. If that is the case, the whole analysis is performed with one command, for example like this:
 
-	php megSAP/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5.ini -steps ma,vc
+	php megSAP/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system twist_exome.ini -steps ma,vc
 
-In the example above, the configuration of the pipeline is done using the `hpHBOCv5.ini` file, which contains all necessary information (see [processing system INI file](processing_system_ini_file.md)).
+In the example above, the configuration of the pipeline is done using the `twist_exome.ini` file, which contains all necessary information (see [processing system INI file](processing_system_ini_file.md)).
 
 ### Running an analysis with DRAGEN
 
 A short instruction how to setup the DRAGEN can be found [here](setup_dragen.md).
 To run an analysis with DRAGEN mapping you simply has to pass the parameter `-use_dragen` to the `analysis.php`: 
 
-	php megSAP/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5.ini -steps ma,vc -use_dragen
+	php megSAP/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system twist_exome.ini -steps ma,vc -use_dragen
 
 ### Tools used in this analysis pipeline
 
 The following tools are used for mapping and calling of small variants and annotation of small variants:
 
-| step                                           | tool                 | version              | comments                                         |
-|------------------------------------------------|----------------------|----------------------|--------------------------------------------------|
-| mapping - adapter and quality trimming         | SeqPurge             | ngs-bits 2024_06     |                                                  |
-| mapping - mapping and alignment                | bwa-mem2             | 2.2.1                | Performed by Dragen if '-use_dragen' is enabled. |
-| mapping - duplicate marking                    | samblaster           | 0.1.26               | Performed by Dragen if '-use_dragen' is enabled. |
-| mapping - indel realignment                    | ABRA2                | 2.23                 |                                                  |
-| variant calling - calling of SNVs and InDels   | freebayes            | 1.3.6                |                                                  |
-| variant calling - decompose complex variants   | vcfallelicprimitives | vcflib 1.0.3         |                                                  |
-| variant calling - break multi-allelic variants | vcfbreakmulti        | vcflib 1.0.3         |                                                  |
-| variant calling - left-normalization of InDels | VcfLeftNormalize     | ngs-bits 2023_03     |                                                  |
-| annotation                                     | VEP                  | 109.3                |                                                  |
+| step                                           | tool                 | comments                                         |
+|------------------------------------------------|----------------------|--------------------------------------------------|
+| mapping - adapter and quality trimming         | SeqPurge             |                                                  |
+| mapping - mapping and alignment                | bwa-mem2             | Performed by Dragen if '-use_dragen' is used.    |
+| mapping - duplicate marking                    | samblaster           | Performed by Dragen if '-use_dragen' is used.    |
+| mapping - indel realignment                    | ABRA2                |                                                  |
+| variant calling - calling of SNVs and InDels   | freebayes            |                                                  |
+| variant calling - decompose complex variants   | vcfallelicprimitives | Performed by Dragen if '-use_dragen' is used.    |
+| variant calling - break multi-allelic variants | vcfbreakmulti        |                                                  |
+| variant calling - left-normalization of InDels | VcfLeftNormalize     |                                                  |
+| annotation                                     | VEP                  |                                                  |
 
 CNV calling and annotation is performed using these tools:
 
-| step                                               | tool                 | version              | comments                                            |
-|----------------------------------------------------|----------------------|----------------------|-----------------------------------------------------|
-| CNV calling                                        | ClinCNV              | 1.18.3               |                                                     |
-| annotation - general                               | BedAnnotateFromBed   | ngs-bits 2023_03     | Several data sources are annotated using this tool. |
-| annotation - gene information                      | CnvGeneAnnotation    | ngs-bits 2023_03     |                                                     |
-| annotation - overlapping pathogenic CNVs from NGSD | NGSDAnnotateCNV      | ngs-bits 2023_03     |                                                     |
+| step                                               | tool                 | comments                                            |
+|----------------------------------------------------|----------------------|-----------------------------------------------------|
+| CNV calling                                        | ClinCNV              |                                                     |
+| annotation - general                               | BedAnnotateFromBed   | Several data sources are annotated using this tool. |
+| annotation - gene information                      | CnvGeneAnnotation    |                                                     |
+| annotation - overlapping pathogenic CNVs from NGSD | NGSDAnnotateCNV      |                                                     |
 
 SV calling and annotation is performed using these tools:
 
-| step                                      | tool                            | version              | comments                                            |
-|-------------------------------------------|---------------------------------|----------------------|-----------------------------------------------------|
-| SV calling                                | Manta                           | 1.6.0                |                                                     |
-| annotation - gene information             | BedpeGeneAnnotation             | ngs-bits 2023_03     |                                                     |
-| annotation - matching SVs from NGSD       | BedpeAnnotateCounts             | ngs-bits 2023_03     |                                                     |
-| annotation - breakpoint density from NGSD | BedpeAnnotateBreakpointDensity  | ngs-bits 2023_03     |                                                     |
+| step                                      | tool                            | comments                                                                                                  |
+|-------------------------------------------|---------------------------------|-----------------------------------------------------------------------------------------------------------|
+| SV calling                                | Manta                           | Performed by Dragen if '-use_dragen' is used and 'dragen_sv_calling' is enabled in the 'settings.ini'.    |
+| annotation - gene information             | BedpeGeneAnnotation             |                                                                                                           |
+| annotation - matching SVs from NGSD       | BedpeAnnotateCounts             |                                                                                                           |
+| annotation - breakpoint density from NGSD | BedpeAnnotateBreakpointDensity  |                                                                                                           |
+
+RE calling using these tools:
+
+| step                                      | tool                            | comments                                            |
+|-------------------------------------------|---------------------------------|-----------------------------------------------------|
+| RE calling                                | ExpansionHunter                 |                                                     |
 
 
-A complete list of all tools and databases used in megSAP and when they were last updated can be found [here](update_overview.md).
+A complete list of all tools and databases used in megSAP including version and when they were last updated can be found [here](update_overview.md).
 
 ### Performance
 

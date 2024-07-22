@@ -59,7 +59,7 @@ numpy==1.24.4
 oauthlib==3.2.2
 opt-einsum==3.3.0
 packaging==23.1
-pandas==2.0.3
+pandas>=1.2.4
 parso==0.8.3
 pathos==0.3.1
 pexpect==4.8.0
@@ -99,7 +99,7 @@ SigProfilerExtractor==1.1.23
 six==1.16.0
 sniffles==2.2
 stack-data==0.6.3
-statsmodels
+statsmodels==0.13.5
 tables==3.7.0
 tensorboard-data-server==0.6.1
 tensorboard-plugin-wit==1.8.1
