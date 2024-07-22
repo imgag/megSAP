@@ -15,8 +15,8 @@ $parser->addOutfile("out_bam", "Output BAM file with fusion-supporting reads.", 
 $parser->addString("out_pic_dir", "Output directory which contains all fusion pictures as PNGs.", true);
 $parser->addInfile("sv", "Optional structural variants from DNA sequencing, in VCF format.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
-
 extract($parser->parse($argv));
+
 
 if (!in_array($build, ["GRCh37", "GRCh38"]))
 {
@@ -56,7 +56,45 @@ $args = [
 if (isset($sv)) $args[] = "-d {$sv}";
 if (isset($out_discarded)) $args[] = "-O {$out_discarded}";
 
-$parser->exec(get_path("arriba") . "/arriba", implode(" ", $args));
+
+echo "starting arriba!";
+//In rare cases throws segmentation fault while writing discarded_fusion file. 
+//Allow that crash while catching others. Writing the discarded file is the last thing it does before freeing resources and finishing -> Check it startet writing the discarded file to be safe the regular output file is complete.
+exec(get_path("arriba")."/arriba ". implode(" ", $args)." 2>&1", $output, $exit_code);
+
+echo "finished arriba!\n";
+
+$parser->log("arriba stdout + stderr:");
+foreach($output as $line)
+{
+	$parser->log($line);
+}
+
+If ($exit_code != 0)
+{
+	$startet_dsicarded = false;
+	foreach($output as $line)
+	{
+		if (contains($line, "Writing discarded fusions to file"))
+		{
+			$startet_discarded = true;
+			break;
+		}
+	}
+	
+	if ($startet_discarded)
+	{
+		trigger_error("Arriba exit code was not 0, but the output fusions are complete. The discarded fusions are probably not complete and will be removed.", E_USER_NOTICE);
+		if (file_exists($out_discarded))
+		{
+			exec2("rm $out_discarded");
+		}
+	}
+	else
+	{
+		trigger_error("Arriba exit code was not 0 and the fusions file is probably not done / complete.", E_USER_ERROR);
+	}
+}
 
 
 if (isset($out_vcf)) {
