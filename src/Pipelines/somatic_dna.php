@@ -1375,7 +1375,7 @@ if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("msi", $steps) 
 		}
 		
 		$terms[] = "QC:2000141\t{$percent}";
-		$sources[] = $viral;
+		$sources[] = $msi_o_file;
 		
 	}
 	
