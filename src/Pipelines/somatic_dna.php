@@ -165,15 +165,15 @@ $sys = load_system($system, $t_id);
 $roi = $sys["target_file"];
 $ref_genome = genome_fasta($sys['build']);
 
-//make sure it is a BAM (MANTIS does not work on CRAM)
-check_genome_build($t_bam, $sys['build']);
-$t_bam = convert_to_bam_if_cram($t_bam, $parser, $sys['build'], $threads);
-
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 if (!$no_sync)
 {
 	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 }
+
+//make sure it is a BAM (MSIsensor does not work on CRAM)
+check_genome_build($t_bam, $sys['build']);
+$t_bam = convert_to_bam_if_cram($t_bam, $parser, $sys['build'], $threads);
 
 //normal sample data (if not single sample analysis)
 $single_sample = !isset($n_bam);
@@ -184,7 +184,7 @@ if (!$single_sample)
 	$n_sys = load_system($n_system, $n_id);
 	$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
 	
-	//make sure it is a BAM (MANTIS does not work on CRAM)
+	//make sure it is a BAM (MSIsensor does not work on CRAM)
 	check_genome_build($n_bam, $n_sys['build']);
 	$n_bam = convert_to_bam_if_cram($n_bam, $parser, $sys['build'], $threads);
 	
@@ -399,6 +399,7 @@ if (in_array("vc", $steps))
 		list($server) = exec2("hostname -f");
 		//DRAGEN OUTFILES
 		$dragen_output_vcf = "$dragen_output_folder/{$prefix}_dragen.vcf.gz";
+		$dragen_output_msi = "$dragen_output_folder/{$prefix}_dragen_msi.json";
 		$dragen_output_svs = "$dragen_output_folder/{$prefix}_dragen_svs.vcf.gz";
 		$dragen_log_file = "$dragen_output_folder/{$prefix}_dragen.log";
 		$sge_logfile = date("YmdHis")."_".implode("_", $server)."_".getmypid();
@@ -529,6 +530,11 @@ if (in_array("vc", $steps))
 		//copy vcf
 		$parser->moveFile($dragen_output_vcf, $dragen_call_folder.basename($dragen_output_vcf));
 		$parser->moveFile($dragen_output_vcf.".tbi", $dragen_call_folder.basename($dragen_output_vcf).".tbi");
+		
+		if (file_exists($dragen_output_msi))
+		{
+			$parser->moveFile($dragen_output_msi, $dragen_call_folder.basename($dragen_output_msi));
+		}
 		
 		//filter dragen vcf
 		$args = array();
@@ -1141,29 +1147,16 @@ if (in_array("an", $steps))
 $msi_o_file = $full_prefix . "_msi.tsv";						//MSI
 if (in_array("msi", $steps) && !$single_sample)
 {
-	//check whether file with loci exists in output folder
-	//if not: intersect with loci file of reference
-	$reference_loci_file = get_path("data_folder") . "/dbs/MANTIS/".$n_sys['build']."_msi_loci.bed";
-	if(!file_exists($reference_loci_file))
+	//file that contains MSI in target
+	$msi_ref = get_path("data_folder") . "/dbs/msisensor-pro/msisensor_references_".$n_sys['build'].".list";
+	
+	if(!file_exists($msi_ref))
 	{
-		print("Could not find loci reference file $reference_loci_file. Trying to generate it.\n");
-		$parser->exec(get_path("python3"), dirname(get_path("mantis"))."/tools/RepeatFinder","-i $ref_genome -o $reference_loci_file",false);
+		print("Could not find loci reference file $msi_ref. Trying to generate it.\n");
+		$parser->exec(get_path("msisensor")," scan -d $ref_genome -o $msi_ref", false);
 	}
 
-	//file that contains MSI in target region -> is intersection of loci reference with target region
-	$target_bed_file = $n_sys['target_file'];
-	$target_loci_file = $full_prefix . "_msi_loci_target.bed";
-	
-	//target loci file is intersection of reference loci with target region
-	if(!file_exists($target_loci_file))
-	{
-		$parameters = "-in ".$reference_loci_file." -in2 ".$target_bed_file ." -mode in -out ".$target_loci_file;
-		$parser->exec(get_path("ngs-bits")."BedIntersect",$parameters,false);
-	}
-
-	$parameters = "-n_bam $n_bam -t_bam $t_bam -threads $threads -bed_file $target_loci_file -out " .$msi_o_file. " -build ".$n_sys['build'];
-	
-	if($sys['type'] == "WES") $parameters .= " -is_exome";
+	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -threads $threads -out " .$msi_o_file. " -build ".$n_sys['build'];
 	
 	$parser->execTool("NGS/detect_msi.php",$parameters);
 }
@@ -1324,7 +1317,7 @@ if (in_array("an_rna", $steps))
 
 //Collect QC terms if necessary
 $qc_other = $full_prefix."_stats_other.qcML";
-if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("cn", $steps) || in_array("db", $steps))
+if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("msi", $steps) || in_array("cn", $steps) || in_array("db", $steps))
 {
 	$terms = array();
 	$sources = array();
@@ -1369,6 +1362,21 @@ if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("cn", $steps) |
 		
 		$terms[] = "QC:2000130\t{$value}";
 		$sources[] = $viral;
+	}
+	
+	//MSI-status
+	if (file_exists($msi_o_file))
+	{
+		foreach(file($msi_o_file) as $line)
+		{
+			if (trim($line) == "" || $line[0] == "#") continue;
+			
+			list($total, $somatic, $percent) = explode("\t", $line);
+		}
+		
+		$terms[] = "QC:2000141\t{$percent}";
+		$sources[] = $viral;
+		
 	}
 	
 	//HLA: TODO
