@@ -182,9 +182,8 @@ if (in_array("ma", $steps))
 		$parser->execTool("NGS/vc_modkit.php", implode(" ", $args));
 	}
 
-
 	//low-coverage report
-	$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $bam_file -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", true);
+	$parser->exec("{$ngsbits}BedLowCoverage", "-in ".$sys['target_file']." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", true);
 	if (db_is_enabled("NGSD"))
 	{
 		$parser->exec("{$ngsbits}BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", true);
