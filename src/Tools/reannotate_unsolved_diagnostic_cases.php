@@ -12,7 +12,7 @@ extract($parser->parse($argv));
 
 //select diagnostic samples with good/medium quality that were sequenced in the defined time range
 $db = DB::getInstance("NGSD");
-$query = "SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as id, ds.outcome ".
+$query = "SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as id, ds.outcome, sys.type ".
 			 "FROM sample s, project p, sequencing_run r, processing_system sys, processed_sample ps LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id ".
 			 "WHERE sys.id=ps.processing_system_id AND ps.sample_id=s.id AND s.disease_status!='Unaffected' AND ps.project_id=p.id AND (sys.type='WGS' OR sys.type='WES' OR sys.type='lrGS') AND p.type='diagnostic' AND s.tumor='0' AND ps.sequencing_run_id=r.id AND ps.quality!='bad' AND r.start_date>SUBDATE(NOW(), INTERVAL $sequenced_ago DAY) AND r.end_date<NOW() AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
 $result = $db->executeQuery($query);
@@ -62,9 +62,13 @@ for ($i=0; $i<count($result); ++$i)
 		continue;
 	}
 	
+	//define pipeline arguments based on system type
+	$sys_type = $result[$i]["type"];
+	$args = ($sys_type=="lrGS") ? "-steps an" : "-steps vc,cn,sv -annotation_only";
+	
 	//queue
 	print "Queuing...\n";
-	list($stdout, $stderr, $return) = $parser->execTool("NGS/db_queue_analysis.php", "-type 'single sample' -samples $ps -args '-steps vc,cn,sv -annotation_only'", false);
+	list($stdout, $stderr, $return) = $parser->execTool("NGS/db_queue_analysis.php", "-type 'single sample' -samples $ps -args '{$args}'", false);
 	if ($return!=0)
 	{
 		print "  Error occurred:\n";

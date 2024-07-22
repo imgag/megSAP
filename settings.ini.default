@@ -41,7 +41,7 @@ whatshap = [path]/data/tools/Python-3.10.9_8.2.24/bin/whatshap
 pypy3 = [path]/data/tools/pypy3.9-v7.3.14-linux64/bin/pypy3
 parallel = [path]/data/tools/parallel-20230522/bin/parallel
 sniffles = [path]/data/tools/Python-3.10.9_8.2.24/bin/sniffles
-straglr = [path]/data/tools/straglr-1.5.0/straglr.py
+straglr = [path]/data/tools/straglr-1.5.1/straglr.py
 trf = [path]/data/tools/TRF_4.09/trf409.linux64
 blastn = [path]/data/tools/ncbi-blast-2.15.0+/bin/blastn
 modkit = [path]/data/tools/modkit_v0.2.5-rc2/modkit
@@ -85,6 +85,7 @@ cnv_bin_size_wgs = 1000
 cnv_bin_size_shallow_wgs = 5000
 cnv_bin_size_longread_wgs = 10000
 use_bwa1 = false
+file_access_group = 
 
 [dragen]
 ; DRAGEN user

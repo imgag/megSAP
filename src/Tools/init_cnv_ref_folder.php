@@ -16,7 +16,7 @@ $parser->addFlag("tumor_only", "Keep only tumor samples, normally tumor samples 
 $parser->addFlag("somatic","Create coverage files for tumor-normal samples, including off-target coverage files.");
 $parser->addInt("max_somatic_pairs","Maximum number of tumor coverage files to be calculated.", true, INF);
 $parser->addFlag("include_test_projects","Includes also projects of type 'test'. By default, only 'diagnostic' and 'research' projects are included.");
-$parser->addFlag("include_somatic_ffpe_normals", "Includes also normal samples which are flagged as FFP2 in NGSD");
+$parser->addFlag("include_ffpe", "Includes also normal samples which are flagged as FFPE, but not as tumor.");
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 extract($parser->parse($argv));
 
@@ -95,11 +95,12 @@ if(!$somatic)
 		list($sample, $path) = explode("\t", $line);
 		
 		//check sample is valid
-		if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only, $include_test_projects)) continue;
+		if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only, $include_test_projects, $include_ffpe)) continue;
 		++$c_valid;
 		
 		//check bam
 		$bam = "{$path}/{$sample}.bam";
+		$cram = "{$path}/{$sample}.cram";
 		if (file_exists($bam))
 		{
 			++$c_bam;
@@ -109,11 +110,20 @@ if(!$somatic)
 				$bams[] = $bam;
 			}
 		}
+		else if (file_exists($cram))
+		{
+			++$c_bam;
+			
+			if (check_genome_build($cram, $build ,false)==1)
+			{
+				$bams[] = $cram;
+			}
+		}
 	}
 	print "Found ".count($samples)." samples for this processing system in NGSD.\n";
 	print "Found $c_valid samples that are valid reference samples.\n";
-	print "Found $c_bam samples with BAM file.\n";
-	print "Found ".count($bams)." samples with BAM file of matching genome build ($build).\n";
+	print "Found $c_bam samples with BAM/CRAM file.\n";
+	print "Found ".count($bams)." samples with BAM/CRAM file of matching genome build ($build).\n";
 	
 	//create new coverage files
 	for($i=0; $i<count($bams); ++$i)
@@ -262,7 +272,7 @@ else //somatic tumor-normal pairs
 		else
 		{
 			echo "normal $bam processing...\n";
-			if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only, $include_test_projects, $include_somatic_ffpe_normals)) continue;
+			if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only, $include_test_projects, $include_ffpe)) continue;
 			if(!file_exists("{$ref_n_dir}/{$sample}.cov"))
 			{
 				exec2($ngsbits."BedCoverage -clear -min_mapq 0 -decimals 4 -bam $bam -in $roi -out {$ref_n_dir}/{$sample}.cov -threads {$threads}",true);

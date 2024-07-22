@@ -52,7 +52,6 @@ foreach($test_files as $test_file)
 
 //(3) find missing tests
 $excluded_patterns = array(
-				  "db_update_queue", //needs SGE
 				  "qbic_copy", //needs datamover
 				  
 				  "db_converter_.*", //converters to set up annotation databases

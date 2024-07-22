@@ -24,6 +24,9 @@ $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addInt("threads", "Number of threads to use for file merging and compression.", true, 4);
 extract($parser->parse($argv));
 
+$file_acccess_group = get_path("file_access_group", false);
+if ($file_acccess_group == "") trigger_error("File access group not set in the settings.ini. File group will not be set!", E_USER_WARNING);
+
 //absolute path
 $run_dir = realpath($run_dir);
 if (!file_exists($run_dir))
@@ -47,7 +50,13 @@ foreach ($subdirs as $subdir)
 {
 	if (is_dir("{$subdir}/pod5_skip"))
 	{
-		trigger_error("'pod5_skip' directory present in '{$subdir}', some data has not been basecalled!", E_USER_ERROR);
+		list($stdout, $stderr, $exit_code) = $parser->exec("du", "-b --summarize {$subdir}/pod5_skip");
+		$folder_size = intval(explode("\t", $stdout[0])[0]);
+		if ($folder_size > 1024*1024) // > 1MB
+		{
+			trigger_error("'pod5_skip' directory present in '{$subdir}', some data has not been basecalled!", E_USER_ERROR);
+		}
+		
 	}
 }
 
@@ -207,6 +216,10 @@ if ($fastq || ($prefer_bam && !$bam_available))
 	exec2("find {$fastq_paths_glob} -name '*.fastq.gz' -type f -exec cat  {} + > {$out_fastq}");
 	trigger_error("FASTQ saved in {$out_fastq}.", E_USER_NOTICE);
 }
+
+//apply file access permissions 
+$parser->exec("chmod", "-R 775 {$out_dir}");
+if ($file_acccess_group != "") $parser->exec("chgrp", "-R {$file_acccess_group} {$out_dir}");
 
 if ($queue_sample)
 {
