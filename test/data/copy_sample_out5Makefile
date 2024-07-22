@@ -7,14 +7,15 @@ import_read_counts:
 	php /mnt/storage2/megSAP/pipeline/src/NGS/import_sample_read_counts.php -csv_mode -stats Analysis/3/Data/Demux/Demultiplex_Stats.csv -db NGSD_TEST 
 
 copy_SomaticAndTreatment_diagnostic:
-	mkdir -m 777 -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_RX123456_03
+	mkdir -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_RX123456_03
 	cp Analysis/3/Data/BCLConvert/fastq/RX123456_03_S5_L006_R1_001.fastq.gz /mnt/storage2/projects/diagnostic/SomaticAndTreatment//Sample_RX123456_03/
-	chmod 777 /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_RX123456_03/*.fastq.gz
 	cp Analysis/3/Data/BCLConvert/fastq/RX123456_03_S5_L006_R2_001.fastq.gz /mnt/storage2/projects/diagnostic/SomaticAndTreatment//Sample_RX123456_03/
 	cp Analysis/3/Data/BCLConvert/fastq/RX123456_03_S5_L008_R1_001.fastq.gz /mnt/storage2/projects/diagnostic/SomaticAndTreatment//Sample_RX123456_03/
 	cp Analysis/3/Data/BCLConvert/fastq/RX123456_03_S5_L008_R2_001.fastq.gz /mnt/storage2/projects/diagnostic/SomaticAndTreatment//Sample_RX123456_03/
-	mkdir -m 777 -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05
-	mkdir -m 777 -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls
+	chmod -R 775 /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_RX123456_03
+	chgrp -R f_ad_bi_l_medgen_access_storages /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_RX123456_03
+	mkdir -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05
+	mkdir -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls
 	cp -r Analysis/3/Data/DragenEnrichment/DX181277_05/logs /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/
 	cp Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/report.html /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/logs
 	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.cram /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/
@@ -25,17 +26,20 @@ copy_SomaticAndTreatment_diagnostic:
 	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.gvcf.gz.tbi /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.gvcf.gz.tbi
 	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.sv.vcf.gz /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen_svs.vcf.gz
 	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.sv.vcf.gz.tbi /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen_svs.vcf.gz.tbi
-	mkdir -m 777 -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05
-	mkdir -m 777 -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/dragen_variant_calls
+	chmod -R 775 /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05
+	chgrp -R f_ad_bi_l_medgen_access_storages /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05
+	mkdir -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05
+	mkdir -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/dragen_variant_calls
 	cp -r Analysis/3/Data/DragenEnrichment/DX181278_05/logs /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/dragen_variant_calls/
 	cp Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/report.html /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/dragen_variant_calls/logs
 	mv  Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.cram /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/
 	mv  Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.cram.crai /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/
+	chmod -R 775 /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05
+	chgrp -R f_ad_bi_l_medgen_access_storages /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05
 
 copy_Exome_Diagnostik_diagnostic:
-	mkdir -m 777 -p /mnt/storage2/projects/diagnostic/Exome_Diagnostik/Sample_DX180049_05
+	mkdir -p /mnt/storage2/projects/diagnostic/Exome_Diagnostik/Sample_DX180049_05
 	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L001_R1_001.fastq.gz /mnt/storage2/projects/diagnostic/Exome_Diagnostik//Sample_DX180049_05/
-	chmod 777 /mnt/storage2/projects/diagnostic/Exome_Diagnostik/Sample_DX180049_05/*.fastq.gz
 	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L001_R2_001.fastq.gz /mnt/storage2/projects/diagnostic/Exome_Diagnostik//Sample_DX180049_05/
 	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L002_R1_001.fastq.gz /mnt/storage2/projects/diagnostic/Exome_Diagnostik//Sample_DX180049_05/
 	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L002_R2_001.fastq.gz /mnt/storage2/projects/diagnostic/Exome_Diagnostik//Sample_DX180049_05/
@@ -43,6 +47,8 @@ copy_Exome_Diagnostik_diagnostic:
 	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L003_R2_001.fastq.gz /mnt/storage2/projects/diagnostic/Exome_Diagnostik//Sample_DX180049_05/
 	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L004_R1_001.fastq.gz /mnt/storage2/projects/diagnostic/Exome_Diagnostik//Sample_DX180049_05/
 	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L004_R2_001.fastq.gz /mnt/storage2/projects/diagnostic/Exome_Diagnostik//Sample_DX180049_05/
+	chmod -R 775 /mnt/storage2/projects/diagnostic/Exome_Diagnostik/Sample_DX180049_05
+	chgrp -R f_ad_bi_l_medgen_access_storages /mnt/storage2/projects/diagnostic/Exome_Diagnostik/Sample_DX180049_05
 
 merge:
 	php /mnt/storage2/megSAP/pipeline/src/Tools/merge_samples.php -ps DX180049_04 -into DX180049_05

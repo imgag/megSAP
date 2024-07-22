@@ -208,6 +208,9 @@ $ngsbits = get_path("ngs-bits");
 if($test) $repo_folder = "/mnt/storage2/megSAP/pipeline"; //fixed absolute path to make the tests work for all users
 else $repo_folder = repository_basedir(); //use repositories tool in production
 
+$file_acccess_group = get_path("file_access_group", false);
+if ($file_acccess_group == "") trigger_error("File access group not set in the settings.ini. File group will not be set!", E_USER_WARNING);
+
 
 
 //fallback for NovaSeq X default SampleSheet name
@@ -554,7 +557,7 @@ foreach($sample_data as $sample => $sample_infos)
 				}
 
 				//copy files
-				$target_to_copylines[$tag][] = "\tmkdir -m 777 -p {$project_folder}Sample_{$sample}";
+				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
 				foreach ($fastq_files as $fastq_file) 
 				{
 					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
@@ -565,9 +568,7 @@ foreach($sample_data as $sample => $sample_infos)
 					else
 					{
 						$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
-					}
-					// make sure all files are accessible by bioinf
-					$target_to_copylines[$tag][] = "\tchmod 777 {$project_folder}Sample_{$sample}/*.fastq.gz";	
+					}	
 				}
 
 			}
@@ -638,11 +639,11 @@ foreach($sample_data as $sample => $sample_infos)
 			$move_cmd = "mv ".($overwrite ? "-f " : "");
 			
 			//create folder
-			$target_to_copylines[$tag][] = "\tmkdir -m 777 -p {$project_folder}Sample_{$sample}";
+			$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
 			//ignore analysis of WGS samples for 2-run WGS samples
 			if(!$merge_sample && ($sys_type != "WGS" || $wgs_use_dragen_data))
 			{
-				$target_to_copylines[$tag][] = "\tmkdir -m 777 -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
+				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
 				//copy logs
 				$target_to_copylines[$tag][] = "\tcp -r {$log_folder} {$project_folder}Sample_{$sample}/dragen_variant_calls/";
 				$target_to_copylines[$tag][] = "\tcp {$report_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/logs";
@@ -684,8 +685,8 @@ foreach($sample_data as $sample => $sample_infos)
 					{
 						$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
 					}
-					// make sure all files are accessible by bioinf
-					$target_to_copylines[$tag][] = "\tchmod 777 {$project_folder}Sample_{$sample}/*.fastq.gz";	
+					// // make sure all files are accessible by bioinf
+					// $target_to_copylines[$tag][] = "\tchmod 777 {$project_folder}Sample_{$sample}/*.fastq.gz";	
 				}
 			}
 
@@ -694,7 +695,6 @@ foreach($sample_data as $sample => $sample_infos)
 		{
 			trigger_error("ERROR: Analysis other than WES, WGS, cfDNA, Panel or RNA are currently not supported on NovaSeq X!", E_USER_ERROR);
 		}
-
 		
 	}
 	else
@@ -724,6 +724,10 @@ foreach($sample_data as $sample => $sample_infos)
 			$target_to_copylines[$tag][] = "\tmv ".($overwrite ? "-f " : "")."$old_location/Sample_{$sample}/ {$project_folder}";		
 		}
 	}
+
+	// make sure all files are accessible by bioinf
+	$target_to_copylines[$tag][] = "\tchmod -R 775 {$project_folder}Sample_{$sample}";
+	if ($file_acccess_group != "") $target_to_copylines[$tag][] = "\tchgrp -R {$file_acccess_group} {$project_folder}Sample_{$sample}";
 
 	//skip normal samples which have an associated tumor sample on the same run
 	$is_normal_with_tumor = !$sample_is_tumor && isset($normal2tumor[$sample]);
