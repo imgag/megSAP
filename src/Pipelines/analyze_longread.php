@@ -221,7 +221,9 @@ if (in_array("ma", $steps))
 						// remove unmapped BAM(s)
 						foreach ($unmapped_bam_files as $unmapped_bam_file) 
 						{
-							unlink($unmapped_bam_file);
+							//TODO: remove
+							trigger_error("Source File would be removed!", E_USER_NOTICE);
+							// unlink($unmapped_bam_file);
 						}
 					}
 					else
@@ -244,7 +246,9 @@ if (in_array("ma", $steps))
 						// remove fastqs
 						foreach($fastq_files as $fastq_file)
 						{
-							unlink($fastq_file);
+							//TODO: remove
+							trigger_error("Source File would be removed!", E_USER_NOTICE);
+							// unlink($fastq_file);
 						}
 					}
 					else
@@ -272,7 +276,9 @@ if (in_array("ma", $steps))
 						// remove unmapped BAM(s)
 						foreach ($unmapped_bam_files as $unmapped_bam_file) 
 						{
-							unlink($unmapped_bam_file);
+							//TODO: remove
+							trigger_error("Source File would be removed!", E_USER_NOTICE);
+							// unlink($unmapped_bam_file);
 						}
 					}
 					else
@@ -295,7 +301,9 @@ if (in_array("ma", $steps))
 						// remove fastqs
 						foreach($fastq_files as $fastq_file)
 						{
-							unlink($fastq_file);
+							//TODO: remove
+							trigger_error("Source File would be removed!", E_USER_NOTICE);
+							// unlink($fastq_file);
 						}
 					}
 					else
@@ -540,10 +548,6 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 
 	$parser->exec(get_path("longphase"), implode(" ", $args));
 
-	//TODO: remove
-	//keep old files
-	$parser->copyFile($vcf_file, $vcf_file."_unphased.vcf.gz");
-	if (file_exists($sv_vcf_file)) $parser->copyFile($sv_vcf_file, $sv_vcf_file."_unphased.vcf.gz");
 	
 	//create compressed file and index
 	$parser->exec("bgzip", "-c $phased_tmp > {$vcf_file}", false);
@@ -596,11 +600,6 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	}
 	else
 	{
-		//TODO: remove
-		//keep old files
-		$parser->copyFile($cram_file, $cram_file."_unphased.cram");
-		$parser->copyFile($cram_file.".crai", $cram_file."_unphased.cram.crai");
-
 		//use CRAM
 		$parser->copyFile($tagged_bam_file, $cram_file);
 		$parser->copyFile($tagged_bam_file.".crai", $cram_file.".crai");
