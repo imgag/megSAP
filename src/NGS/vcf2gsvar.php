@@ -277,12 +277,6 @@ function load_hgnc_db()
 }
 $hgnc = load_hgnc_db();
 
-//check for valid input parameters
-// if ($longread && ($genotype_mode != "single"))
-// {
-// 	trigger_error("Error: Long-read mode is only available for single samples!", E_USER_ERROR);
-// }
-
 //write column descriptions
 $column_desc = array(
 	array("filter", "Annotations for filtering and ranking variants."),
@@ -381,6 +375,7 @@ $skip_cancerhotspots = true; //true as long as no CANCERHOTSPOTS header is found
 $skip_short_read_overlap_annotation = true; //true as long as no IN_SHORT_READ header is found.
 $missing_domains = [];
 $multisample_vcf = false; //determines if the input VCF is a standard multi-sample VCF or single-sample VCF/megSAP multi-sample VCF (no extra columns for each sample)
+$annotate_refseq_consequences = false;
 
 //write date (of input file)
 fwrite($handle_out, "##CREATION_DATE=".date("Y-m-d", filemtime($in))."\n");
@@ -526,7 +521,7 @@ while(!feof($handle))
 			$i_pubmed = index_of($cols, "PUBMED", "CSQ"); 
 		}
 
-		//get annotation indices in CSQ field from VcfAnnotateConsequence
+		//get annotation indices in CSQ field from VcfAnnotateConsequence (also used for CSQ_REFSEQ)
 		if (starts_with($line, "##INFO=<ID=CSQ2,"))
 		{
 			$cols = explode("|", substr($line, 0, -2));
@@ -539,6 +534,12 @@ while(!feof($handle))
 			$i_vac_intron = index_of($cols, "INTRON", "CSQ2");
 			$i_vac_hgvsc = index_of($cols, "HGVSc", "CSQ2");
 			$i_vac_hgvsp = index_of($cols, "HGVSp", "CSQ2");		
+		}
+		//determine if RefSeq annotation is present
+		if (starts_with($line, "##INFO=<ID=CSQ_REFSEQ,"))
+		{
+			$annotate_refseq_consequences = true;
+			$column_desc[] = ["coding_and_splicing_refseq", "Variant consequence based on RefSeq transcripts (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p)."];
 		}
 		
 		// detect NGSD header lines
@@ -887,6 +888,7 @@ while(!feof($handle))
 	$genes = array();
 	$variant_details = array();
 	$coding_and_splicing_details = array();
+	$coding_and_splicing_refseq = array();
 	$af_gnomad_genome = array();
 	$af_gnomad_afr = array();
 	$af_gnomad_amr = array();
@@ -903,11 +905,10 @@ while(!feof($handle))
 	$regulatory = array();
 	$pubmed = array();
 	
-	//variant details (up/down-stream)
+	//variant details based on Ensembl (up/down-stream)
 	$variant_details_updown = array();
 	$genes_updown = array();
 	$coding_and_splicing_details_updown = array(); 
-
 	if (isset($info["CSQ"]) && isset($info["CSQ2"]))
 	{
 		//VEP - used for regulatory features, PubMed, Domains
@@ -1007,7 +1008,7 @@ while(!feof($handle))
 			}
 		}
 		
-		//VcfAnnotateConsequence
+		//VcfAnnotateConsequence (Ensembl)
 		foreach(explode(",", $info["CSQ2"]) as $entry)
 		{			
 			$entry = trim($entry);
@@ -1092,7 +1093,54 @@ while(!feof($handle))
 			}
 		}	
 	}
-		
+
+	if (isset($info["CSQ_REFSEQ"]))
+	{
+		//VcfAnnotateConsequence (RefSeq)
+		foreach(explode(",", $info["CSQ_REFSEQ"]) as $entry)
+		{
+			$entry = trim($entry);
+			if ($entry=="") continue;
+			
+			$parts = explode("|", $entry);
+			
+			$transcript_id = trim($parts[$i_vac_feature]);
+			
+			$consequence = $parts[$i_vac_consequence];
+			$consequence = strtr($consequence, ["&NMD_transcript_variant"=>"", "splice_donor_variant&intron_variant"=>"splice_donor_variant", "splice_acceptor_variant&intron_variant"=>"splice_acceptor_variant"]);
+			
+			//determine gene name (update if neccessary)
+			$gene = trim($parts[$i_vac_symbol]);
+			if ($gene!="")
+			{
+				$hgnc_id = $parts[$i_vac_hgnc_id];
+				$hgnc_id = trim(strtr($hgnc_id, array("HGNC:"=>"")));
+				if (isset($hgnc[$hgnc_id]))
+				{
+					$hgnc_gene = $hgnc[$hgnc_id];
+					if ($gene!=$hgnc_gene)
+					{
+						$gene = $hgnc_gene;
+					}
+				}
+			}
+			
+			//exon
+			$exon = trim($parts[$i_vac_exon]);
+			if ($exon!="") $exon = "exon".$exon;
+			$intron = trim($parts[$i_vac_intron]);
+			if ($intron!="") $intron = "intron".$intron;
+			
+			//hgvs
+			$hgvs_c = trim($parts[$i_vac_hgvsc]);
+			$hgvs_p = trim($parts[$i_vac_hgvsp]);
+			$hgvs_p = str_replace("%3D", "=", $hgvs_p);
+			
+			//add transcript information
+			$coding_and_splicing_refseq[] = "{$gene}:{$transcript_id}:".$consequence.":".$parts[$i_vac_impact].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}";
+		}	
+	}
+			
 	//MaxEntScan
 	$mes_by_trans = [];
 	if (isset($info["MES"])) //parse MES scores for native splice site
@@ -1485,6 +1533,10 @@ while(!feof($handle))
 		fwrite($handle_out,"\t".$phasing_info);
 	}
 	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$cadd\t$revel\t$alphamissense\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
+	if ($annotate_refseq_consequences)
+	{
+		fwrite($handle_out, "\t".implode(",", $coding_and_splicing_refseq));
+	}
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");

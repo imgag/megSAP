@@ -29,9 +29,9 @@ check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name
 remove_lines_containing($out_file3, array("##VEP=\"v", "##VEP-command-line='", "##INFO=<ID=NGSD_GENE_INFO,"));
 check_file($out_file3, data_folder().$name."_out3.vcf", true);
 
-//DRAGEN
+//DRAGEN and RefSeq
 $out_file_dragen = output_folder().$name."_out_dragen.vcf";
-check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in_dragen.vcf -out $out_file_dragen --log ".output_folder().$name."_out_dragen.log");
+check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in_dragen.vcf -out $out_file_dragen --log ".output_folder().$name."_out_dragen.log -annotate_refseq_consequences");
 remove_lines_containing($out_file_dragen, array("##VEP=\"v", "##VEP-command-line='", "##INFO=<ID=NGSD_GENE_INFO,"));
 check_file($out_file_dragen, data_folder().$name."_out_dragen.vcf", true);
 

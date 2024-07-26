@@ -7,7 +7,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("an_vep", "Variant annotation with Ensembl VEP.");
+$parser = new ToolBase("an_vep", "Variant annotation with own annotation tools and Ensembl VEP.");
 $parser->addInfile("in",  "Input file in VCF format.", false);
 $parser->addOutfile("out", "Output file in VCF format.", false);
 //optional
@@ -17,6 +17,7 @@ $parser->addFlag("all_transcripts", "Annotate all transcripts - if unset only GE
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("somatic", "Also annotate the NGSD somatic counts.");
 $parser->addFlag("no_splice", "Skip splicing predictions of private variants (this can be very slow).");
+$parser->addFlag("annotate_refseq_consequences", "Annotate RefSeq consequences in addition to Ensembl consequences.");
 $parser->addFlag("test", "Use limited constant NGSD VCF file from test folder for annotation.");
 $parser->addInt("check_lines", "Number of VCF lines that will be validated in the output file. (If set to 0 all lines will be checked, if set to -1 the validation will be skipped.)", true, 5000);
 extract($parser->parse($argv));
@@ -96,18 +97,27 @@ if (file_exists($warn_file))
 	}
 }
 
-//add consequence annotations
+//add consequences (Ensembl)
 $gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gff3";
-$vcf_output_vac = $parser->tempFile("_bigwig.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateConsequence", " -in {$vep_output} -out {$vcf_output_vac} -threads {$threads} -tag CSQ2 -gff {$gff}", true);
+$vcf_output_consequence = $parser->tempFile("_consequence.vcf");
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateConsequence", " -in {$vep_output} -out {$vcf_output_consequence} -threads {$threads} -tag CSQ2 -gff {$gff}", true);
+
+//add consequences (RefSeq)
+if($annotate_refseq_consequences)
+{
+	$gff2 = get_path("data_folder")."/dbs/RefSeq/Homo_sapiens.GRCh38.p14.gff3";
+	$vcf_output_refseq = $parser->tempFile("_refseq.vcf");
+	$parser->exec(get_path("ngs-bits")."/VcfAnnotateConsequence", " -in {$vcf_output_consequence} -out {$vcf_output_refseq} -threads {$threads} -tag CSQ_REFSEQ -gff {$gff2} -source refseq", true);
+	$vcf_output_consequence = $vcf_output_refseq;
+}
 
 //add phyloP annotation
-$vcf_output_bigwig = $parser->tempFile("_bigwig.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBigWig", "-name PHYLOP -mode max -in {$vcf_output_vac} -out {$vcf_output_bigwig} -bw ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." -threads {$threads}", true);
+$vcf_output_phylop = $parser->tempFile("_phylop.vcf");
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBigWig", "-name PHYLOP -mode max -in {$vcf_output_consequence} -out {$vcf_output_phylop} -bw ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." -threads {$threads}", true);
 
 //add MaxEntScan annotation
 $vcf_output_mes = $parser->tempFile("_mes.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateMaxEntScan", "-gff {$gff} -in {$vcf_output_bigwig} -out {$vcf_output_mes} -ref ".genome_fasta($build)." -swa -threads {$threads} -min_score 0.0 -decimals 1", true);
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateMaxEntScan", "-gff {$gff} -in {$vcf_output_phylop} -out {$vcf_output_mes} -ref ".genome_fasta($build)." -swa -threads {$threads} -min_score 0.0 -decimals 1", true);
 
 // custom annotation by VcfAnnotateFromVcf
 

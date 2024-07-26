@@ -86,6 +86,7 @@ cnv_bin_size_shallow_wgs = 5000
 cnv_bin_size_longread_wgs = 10000
 use_bwa1 = false
 file_access_group = 
+annotate_refseq_consequences = false
 
 [dragen]
 ; DRAGEN user

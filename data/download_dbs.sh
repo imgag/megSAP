@@ -17,6 +17,13 @@ cd Ensembl
 wget https://ftp.ensembl.org/pub/release-110/gff3/homo_sapiens/Homo_sapiens.GRCh38.110.gff3.gz
 gunzip Homo_sapiens.GRCh38.110.gff3.gz
 
+#Download RefSeq transcripts database
+cd $dbs
+mkdir -p RefSeq
+cd RefSeq
+wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GCF_000001405.40_GRCh38.p14_genomic.gff.gz
+zcat GCF_000001405.40_GRCh38.p14_genomic.gff.gz > Homo_sapiens.GRCh38.p14.gff3
+
 #Install CancerHotspots.org
 cd $dbs
 mkdir -p cancerhotspots
