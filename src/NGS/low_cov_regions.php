@@ -74,11 +74,9 @@ foreach($in as $bed)
 		
 		for($p=$start; $p<$end; ++$p)
 		{
-			if (!isset($low[$chr."_".$p]))
-			{
-				$low[$chr."_".$p] = 0;
-			}
-			$low[$chr."_".$p] += 1;
+			if (!isset($low[$chr])) $low[$chr] = [];
+			if (!isset($low[$chr][$p])) $low[$chr][$p] = 0;
+			$low[$chr][$p] += 1;
 		}
 	}
 }
@@ -90,20 +88,22 @@ $thres_y = number_format($samples_processed_y * $percentile / 100.0, 2);
 
 //write output BED file
 $output = [];
-foreach($low as $pos => $count)
+foreach($low as $chr => $pos_data)
 {
-	list($chr, $pos) = explode("_", $pos);
-	if($chr=="chrX" && $count>=$thres_x)
+	foreach($pos_data as $pos => $count)
 	{
-		$output[] = "$chr\t$pos\t".($pos+1)."\n";
-	}
-	else if($chr=="chrY" && $count>=$thres_y)
-	{
-		$output[] = "$chr\t$pos\t".($pos+1)."\n";
-	}
-	else if ($count>=$thres)
-	{
-		$output[] = "$chr\t$pos\t".($pos+1)."\n";
+		if($chr=="chrX" && $count>=$thres_x)
+		{
+			$output[] = "$chr\t$pos\t".($pos+1)."\n";
+		}
+		else if($chr=="chrY" && $count>=$thres_y)
+		{
+			$output[] = "$chr\t$pos\t".($pos+1)."\n";
+		}
+		else if ($count>=$thres)
+		{
+			$output[] = "$chr\t$pos\t".($pos+1)."\n";
+		}
 	}
 }
 file_put_contents($out, $output);
