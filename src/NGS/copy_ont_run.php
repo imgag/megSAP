@@ -161,6 +161,13 @@ if (!file_exists($out_dir))
 	mkdir($out_dir, 0777, true);
 }
 
+//perform GenLab import before analysis
+trigger_error("Importing information from GenLab...", E_USER_NOTICE);
+$args = [];
+$args[] = "-ps {$sample}";
+if ($db=="NGSD_TEST") $args[] = "-test";
+$parser->exec(get_path("ngs-bits")."/NGSDImportGenlab", implode(" ", $args), true);
+
 if (($bam_available && $prefer_bam) || $bam)
 {
 	trigger_error("Copy and merge BAM files.", E_USER_NOTICE);
