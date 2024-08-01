@@ -215,3 +215,4 @@
 /test/data_multi_longread/*_ancestry.tsv
 /test/data_multi_longread/*.csi
 
+/.idea
