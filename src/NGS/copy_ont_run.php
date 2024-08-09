@@ -156,17 +156,26 @@ $sample_info = get_processed_sample_info($db_con, $sample);
 
 $out_dir = $sample_info["ps_folder"];
 
+// copy to run folder during test:
+if ($db=="NGSD_TEST") 
+{
+	$out_dir = $run_dir."/TEST_Sample_".$sample."/";
+}
+
 if (!file_exists($out_dir))
 {
 	mkdir($out_dir, 0777, true);
 }
 
-//perform GenLab import before analysis
-trigger_error("Importing information from GenLab...", E_USER_NOTICE);
-$args = [];
-$args[] = "-ps {$sample}";
-if ($db=="NGSD_TEST") $args[] = "-test";
-$parser->exec(get_path("ngs-bits")."/NGSDImportGenlab", implode(" ", $args), true);
+//perform GenLab import before analysis (skip on test run)
+if ($db!="NGSD_TEST")
+{
+	trigger_error("Importing information from GenLab...", E_USER_NOTICE);
+	$args = [];
+	$args[] = "-ps {$sample}";
+	$parser->exec(get_path("ngs-bits")."/NGSDImportGenlab", implode(" ", $args), true);
+}
+
 
 if (($bam_available && $prefer_bam) || $bam)
 {
@@ -230,7 +239,7 @@ if ($file_acccess_group != "") $parser->exec("chgrp", "-R {$file_acccess_group} 
 
 if ($queue_sample)
 {
-	$parser->execTool("NGS/db_queue_analysis.php", "-samples {$sample} -type 'single sample'");
+	$parser->execTool("NGS/db_queue_analysis.php", "-samples {$sample} -type 'single sample' -db {$db}".(($db=="NGSD_TEST")?" -user unknown":""));
 
 	// update sequencing run analysis status
 	$db_con->executeStmt("UPDATE sequencing_run SET sequencing_run.status='analysis_started' WHERE sequencing_run.name = '{$run_name}' AND sequencing_run.status IN ('run_started', 'run_finished')");
