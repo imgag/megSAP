@@ -67,6 +67,7 @@ kraken2 = [path]/data/tools/kraken2-2.1.2/bin/kraken2
 [tools-primer]
 tracetuner = [path]/data/tools/tracetuner_3.0.6beta/rel/Linux_64/ttuner
 primer3 = [path]/data/tools/opt/primer3-2.3.6/src/
+GRCh37_data_folder = ""
 
 [singularity-container]
 container_folder = [path]/data/tools/singularity_container/
@@ -79,18 +80,15 @@ test_data_folder = [path]/data/test_data/
 project_folder = 
 
 [general]
-copy_vep_dbs_to_local_data = false
+copy_dbs_to_local_data = false
 delete_fastq_files = false
 cnv_bin_size_wgs = 1000
 cnv_bin_size_shallow_wgs = 5000
 cnv_bin_size_longread_wgs = 10000
 use_bwa1 = false
-file_access_group = 
 annotate_refseq_consequences = false
 
 [dragen]
-; DRAGEN user
-dragen_user = ""
 ; transfer folder
 dragen_in = 
 dragen_out = 
@@ -110,13 +108,7 @@ db_user['NGSD'] = "ngsduser"
 db_pass['NGSD'] = ""
 
 [grid_engine]
-queue_email = ""
 queues_default = ""
 queues_research = ""
 queues_high_priority = ""
 queues_high_mem = ""
-
-[GRCh37]
-GRCh37_project_folder = ""
-GRCh37_data_folder = ""
-

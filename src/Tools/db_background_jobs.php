@@ -126,7 +126,7 @@ while(count($commands)>0)
 			$base = "{$sge_folder}".date("Ymdhis")."_".str_pad($id, 3, '0', STR_PAD_LEFT)."_{$user}";
 			$sge_out = "{$base}.out";
 			$sge_err = "{$base}.err";
-			$command_sge = "qsub -V -pe smp {$slots_per_job} -b y -wd {$sge_folder} -m n -M ".get_path("queue_email")." -e {$sge_err} -o {$sge_out} -q ".implode(",", $queues)." -shell n";
+			$command_sge = "qsub -V -pe smp {$slots_per_job} -b y -wd {$sge_folder} -m n -e {$sge_err} -o {$sge_out} -q ".implode(",", $queues)." -shell n";
 			if (trim($time_limit)!="") $command_sge .= " -l h_rt={$time_limit}";
 			list($stdout, $stderr) = exec2($command_sge." ".$command);
 			

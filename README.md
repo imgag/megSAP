@@ -36,14 +36,17 @@ Documentation about the different **ONT long-read pipelines** can be found here:
 
 ## Support
 
-Please report any issues or questions to the [megSAP issue 
-tracker](https://github.com/imgag/megSAP/issues).
-
+Please report any issues or questions to the [megSAP issue tracker](https://github.com/imgag/megSAP/issues).
 
 ## ChangeLog
 
 Major changes of master since last release:
 
-* none so far
+* updated tools and databases
+* added support for Nova Seq X Plus
+* updated long-read pipeline
+* improved PRS calculation (imputed variants, etc)
+* added optional RefSeq annotation (see [settings documentation](doc/settings.md#section-general)).
+* added optional custom annotations in GSvar/VCF from VCFs (see [settings documentation](doc/settings.md#section-general)).
 
 For older changes see [releases](https://github.com/imgag/megSAP/releases).

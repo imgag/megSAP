@@ -50,7 +50,7 @@ This section contains general settings:
 * `cnv_bin_size_longread_wgs` - Bin size used for CNV analysis of long-read WGS samples.
 * `use_bwa1` - Flag (true/false) that indicates if BWA mem should be used for mapping instead of BWA mem 2 (BWA mem 2 is faster, but needs more RAM).
 * `annotate_refseq_consequences` - Flag (true/false) that indicates if variant consequences based on RefSeq transcripts should be annotated in addition to variant consequences based on Ensembl transcripts.
-* `custom_colums` - To add custom annotations to the VCF/GSvar file, provide the annotation using the dictionary syntax of PHP, e.g. `custom_colums['custom_column'] = "/mnt/data/dbs/NGSD/NGSD_germline.vcf.gz;COUNTS;NGSD counts"`. The value consists of a colon-speparated list of VCF file, column name (prefixed with `CUSTOM_` in the VCF) and column description. 
+* `custom_colums` - Used to add custom annotations to the output VCF/GSvar file. Each entry consists of a colon-speparated list of VCF file, INFO field name in the source VCF (prefixed with `CUSTOM_` in the annotated VCF) and column description. Provide the annotation using the dictionary syntax of PHP, e.g. `custom_colums['NGSD_counts'] = "/mnt/data/dbs/NGSD/NGSD_germline.vcf.gz;COUNTS;NGSD counts"`.
 
 ## Section 'dragen'
 

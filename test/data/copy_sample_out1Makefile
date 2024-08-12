@@ -32,4 +32,4 @@ queue_Exome_Diagnostik_diagnostic:
 	php /mnt/storage2/megSAP/pipeline/src/NGS/db_queue_analysis.php -type 'single sample' -samples DX180050_02
 
 email_IVac:
-	php -r 'mail("no_valid@email2.de","Neue Daten fuer IVac", "Hallo GenLab import,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts IVac liegen vor:\n\nFO180004_01\nFO180005_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: medgen.bioinformatik@med.uni-tuebingen.de");'
+	php -r 'mail("no_valid@email2.de","Neue Daten fuer IVac", "Hallo GenLab import,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts IVac liegen vor:\n\nFO180004_01\nFO180005_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: no-reply@med.uni-tuebingen.de");'

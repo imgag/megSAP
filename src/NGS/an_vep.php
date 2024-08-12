@@ -20,6 +20,7 @@ $parser->addFlag("no_splice", "Skip splicing predictions of private variants (th
 $parser->addFlag("annotate_refseq_consequences", "Annotate RefSeq consequences in addition to Ensembl consequences.");
 $parser->addFlag("test", "Use limited constant NGSD VCF file from test folder for annotation.");
 $parser->addInt("check_lines", "Number of VCF lines that will be validated in the output file. (If set to 0 all lines will be checked, if set to -1 the validation will be skipped.)", true, 5000);
+$parser->addString("custom", "Settings key name for custom column definitions.", true, "");
 extract($parser->parse($argv));
 
 //get local/global data file path - depending on what is available
@@ -119,12 +120,23 @@ $parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBigWig", "-name PHYLOP -mode
 $vcf_output_mes = $parser->tempFile("_mes.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfAnnotateMaxEntScan", "-gff {$gff} -in {$vcf_output_phylop} -out {$vcf_output_mes} -ref ".genome_fasta($build)." -swa -threads {$threads} -min_score 0.0 -decimals 1", true);
 
-// custom annotation by VcfAnnotateFromVcf
-
 // create config file
 $config_file_path = $parser->tempFile(".config");
 $config_file = fopen2($config_file_path, 'w');
 
+//custom annotation using VcfAnnotateFromVcf
+if ($custom!="")
+{
+	$custom_colums = get_path($custom, false);
+	if (is_array($custom_colums))
+	{
+		foreach($custom_colums as $key => $tmp)
+		{
+			list($vcf, $col, $desc) = explode(";", $tmp, 3);
+			fwrite($config_file, "{$vcf}\tCUSTOM\t{$col}\t\n");
+		}
+	}
+}
 
 // add gnomAD annotation
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF\t\ttrue\n");
