@@ -25,6 +25,7 @@ $tumor_only = empty($n_col) || $n_col == "na";
 $tmp = $parser->tempFile(".GSvar");
 $args = array("-in $in", "-out $tmp", "-genotype_mode skip");
 if ($updown) $args[] = "-updown";
+$args[] = "-custom custom_colums";
 $parser->execTool("NGS/vcf2gsvar.php", implode(" ", $args));
 $gsvar = Matrix::fromTSV($tmp);
 

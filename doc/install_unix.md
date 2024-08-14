@@ -82,6 +82,14 @@ Finally, we need to download and convert some open-source databases for annotati
 
 **Note:** The use of the optional NGSD annotation requires an export of the variants to VCF files. These files should be updated on a regular basis. For example code take a look at the NGSD section in the download script.
 
+
+## Settings
+
+Changing the settings is not absolutely necessary as most entries have defaults set.  
+If you want to change the settings, copy `settings.ini.default` to `settings.ini` and adapt the settings to your needs.  
+
+Settings entries are described [here](settings.md)
+
 ## Execution
 
 Now the pipelines with all required tools and data are installed. They can be found within the `src/Pipelines` folder. Go to the [documentation](../README.md) for further details.

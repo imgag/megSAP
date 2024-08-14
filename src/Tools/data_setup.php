@@ -195,7 +195,7 @@ if ($build=="GRCh38")
 ######################### VEP annotation databases #########################
 if ($build=="GRCh38")
 {
-	if (get_path("copy_vep_dbs_to_local_data"))
+	if (get_path("copy_dbs_to_local_data"))
 	{
 		$local_annotation_folder = "{$local_data}/ensembl-vep-dbs/";
 

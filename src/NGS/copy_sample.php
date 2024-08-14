@@ -63,7 +63,7 @@ function create_mail_command(&$db_conn, $project_name, $samples)
 	$mail_text[] = "Viele Gruesse";
 	$mail_text[] = "";
 	$mail_text[] = "  die Bioinformatik";
-	return "php -r 'mail(\"$email\",\"Neue Daten fuer $project_name\", \"".implode("\\n",$mail_text)."\",\"Reply-To: ".get_path("queue_email")."\");'";
+	return "php -r 'mail(\"$email\",\"Neue Daten fuer $project_name\", \"".implode("\\n",$mail_text)."\",\"Reply-To: no-reply@med.uni-tuebingen.de\");'";
 }
 
 //get file size in MB
@@ -348,7 +348,7 @@ if($run_name != "")
 			}
 
 			// check if DRAGEN can be used
-			if ((get_path("dragen_user", false) != "") && (get_path("queues_dragen", false) != ""))
+			if (get_path("queues_dragen", false)!="")
 			{
 				// ask if DRAGEN should be used
 				echo "Should the genome samples on this run mapped with DRAGEN mapping? (y/n)?\n";
@@ -420,7 +420,7 @@ $queue_trios = array();
 $project_to_fastqonly_samples = array();
 $sample_to_newlocation = array();
 
-if ((get_path("dragen_user", false) != "") && (get_path("queues_dragen", false) != "") && !$test)
+if (get_path("queues_dragen", false)!="" && !$test)
 {
 	$use_dragen_somatic = null;
 }
