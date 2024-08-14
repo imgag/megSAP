@@ -28,8 +28,8 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 	"vi=virus detection, db=database import",
 	true, "vc,cn,an,msi,vi,an_rna,db");
 
-$parser->addInfile("system",  "Processing system file used for tumor DNA sample (resolved from NGSD via tumor BAM by default).", true);
-$parser->addInfile("n_system",  "Processing system file used for normal DNA sample (resolved from NGSD via normal BAM by default).", true);
+$parser->addInfile("system", "Processing system file used for tumor DNA sample (resolved from NGSD via tumor BAM by default).", true);
+$parser->addInfile("n_system", "Processing system file used for normal DNA sample (resolved from NGSD via normal BAM by default).", true);
 $parser->addFlag("skip_contamination_check", "Skips check of female tumor sample for male SRY DNA.");
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
@@ -43,7 +43,8 @@ $parser->addFloat("min_correlation", "Minimum correlation for tumor/normal pair.
 $parser->addFloat("min_depth_t", "Tumor sample coverage cut-off for low coverage statistics.", true, 60);
 $parser->addFloat("min_depth_n", "Normal sample coverage cut-off for low coverage statistics.", true, 60);
 $parser->addInt("min_cov_files", "Minimum number of required tumor-normal pairs for CNV calling.", true, 7);
-$parser->addString("cnv_baseline_pos","baseline region for ClinCNV, format e.g. chr1:12-12532",true);
+$parser->addString("cnv_baseline_pos", "baseline region for ClinCNV, format e.g. chr1:12-12532",true);
+$parser->addFloat("cnv_wgs_purity_step", "ClinCNV step size while checking purity of clones",true);
 $parser->addString("rna_ref_tissue", "Reference data for RNA annotation", true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 extract($parser->parse($argv));
@@ -188,6 +189,14 @@ if (!$single_sample)
 	check_genome_build($n_bam, $n_sys['build']);
 	$n_bam = convert_to_bam_if_cram($n_bam, $parser, $sys['build'], $threads);
 	
+	if ($sys["name_short"] != $n_sys["name_short"] && in_array("cn", $steps))
+	{
+		trigger_error("Tumor and normal sample were sequenced with different processing systems - CNVs cannot be calculated. Removing 'cn' step!",E_USER_WARNING);
+		
+		$key = array_search("cn", $steps);
+		unset($steps[$key]);
+	}
+	
 	//Check whether both samples have same processing system
 	if($roi != $n_sys["target_file"])
 	{
@@ -202,32 +211,25 @@ if (!$single_sample)
 		}
 		
 		trigger_error("Tumor sample $t_id and normal sample $n_id have different target regions.",E_USER_WARNING);
-		
-		
-		if (in_array("cn", $steps))
-		{
-			trigger_error("CNVs cannot be calculated with two different target regions. Removing 'cn' step!",E_USER_WARNING);
-			
-			$key = array_search("cn", $steps);
-			unset($steps[$key]);
-		}
 	}
+	
+	
 }
 
 //Abort if calling is requested and somatic report config exists in NGSD
-if (!$single_sample && db_is_enabled("NGSD"))
-{
-	$db = DB::getInstance("NGSD", false);
-	list($config_id, $config_vars_exist, $config_cnvs_exist) = somatic_report_config($db, $t_id, $n_id);
-	if (in_array("vc", $steps) && $config_vars_exist)
-	{
-		trigger_error("Somatic report configuration with SNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
-	}
-	if (in_array("cn", $steps) && $config_cnvs_exist)
-	{
-		trigger_error("Somatic report configuration with CNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'cn'.", E_USER_ERROR);
-	}
-}
+// if (!$single_sample && db_is_enabled("NGSD"))
+// {
+	// $db = DB::getInstance("NGSD", false);
+	// list($config_id, $config_vars_exist, $config_cnvs_exist) = somatic_report_config($db, $t_id, $n_id);
+	// if (in_array("vc", $steps) && $config_vars_exist)
+	// {
+		// trigger_error("Somatic report configuration with SNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
+	// }
+	// if (in_array("cn", $steps) && $config_cnvs_exist)
+	// {
+		// trigger_error("Somatic report configuration with CNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'cn'.", E_USER_ERROR);
+	// }
+// }
 
 //sample similarity check
 $bams = array_filter([$t_bam, $n_bam]);
@@ -435,7 +437,7 @@ if (in_array("vc", $steps))
 			$args[] = "-n_bam ".$n_bam_dragen;
 		}
 		
-		if ($sys['type'] != "WGS")
+		if ($sys['type'] != "WGS" && $sys['type'] != "WGS (shallow)")
 		{
 			$args[] = "-is_targeted";
 		}
@@ -700,44 +702,97 @@ if (in_array("vi", $steps))
 }
 
 //CNV calling
+
 $som_clincnv = $full_prefix . "_clincnv.tsv"; //ClinCNV output file
 if(in_array("cn",$steps))
 {
+	//for differential analysis it is necessary that both tumor and normal sample have the same processing system.
+	if (!$single_sample && $sys["name_short"] != $n_sys["name_short"])
+	{
+		trigger_error("Tumor and normal sample were sequenced with different processing systems - CNVs cannot be calculated!",E_USER_ERROR);
+	}
+	
 	// copy number variant calling
 	$tmp_folder = $parser->tempFolder();
+	//directory with reference coverage files and directory with reference off-target coverage files
+	$ref_folder_t = get_path("data_folder")."/coverage/".$sys['name_short']."-tumor";
+	$ref_folder_t_off_target = $ref_folder_t . "_off_target";
+	
+	$ref_folder_n = get_path("data_folder")."/coverage/".$sys['name_short']; //same as $n_sys['name_short"] if available
+	$ref_folder_n_off_target = $ref_folder_n . "_off_target";
+	
+	create_directory($ref_folder_t);
+	create_directory($ref_folder_t_off_target);
+	create_directory($ref_folder_n);
+	create_directory($ref_folder_n_off_target);
 	
 	//Generate file with off-target region
 	$off_target_bed = get_path("data_folder")."/coverage/off_target_beds/".$sys['name_short'].".bed";
-	if(!file_exists($off_target_bed))	create_off_target_bed_file($off_target_bed,$sys['target_file'], $ref_genome);
+	if(!file_exists($off_target_bed)) create_off_target_bed_file($off_target_bed,$sys['target_file'], $ref_genome);
+	
+	$target_bed = "";
+	
+	//get correct coverage files, target bed and off-target bed based on system type:
+	if ($sys["type"] != "WGS" && $sys['type'] != "WGS (shallow)")
+	{
+		$target_bed = $ref_folder_t."/roi_annotated.bed";
+		if (!file_exists($bed))
+		{
+			$ngsbits = get_path("ngs-bits");
+			$pipeline = [
+					["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -clear -ref ".genome_fasta($sys['build'])],
+					["{$ngsbits}BedAnnotateGenes", "-out {$target_bed}"],
+				];
+			$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
+		}
+	}
+	else // WGS sample
+	{
+		$bin_size = get_path("cnv_bin_size_wgs");
+		
+		//target bed
+		$target_bed = $ref_folder_t."/bins{$bin_size}.bed"; // is outside of bins folder
+		if (!file_exists($target_bed))
+		{
+			$pipeline = [
+					[get_path("ngs-bits")."BedChunk", "-in ".$sys['target_file']." -n {$bin_size}"],
+					[get_path("ngs-bits")."BedAnnotateGC", "-clear -ref ".genome_fasta($sys['build'])],
+					[get_path("ngs-bits")."BedAnnotateGenes", "-out {$target_bed}"]
+				];
+			$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
+		}
+		
+		//coverage files:
+		
+		$bin_folder_t = "{$ref_folder_t}/bins{$bin_size}/";
+		$bin_folder_n = "{$ref_folder_n}/bins{$bin_size}/";
+		create_directory($bin_folder_t);
+		create_directory($bin_folder_n);
+		$ref_folder_t = $bin_folder_t;
+		$ref_folder_n = $bin_folder_n;
+		
+		
+	}
+	
 	
 	/***************************************************
 	 * GENERATE AND COPY COVERAGE FILES TO DATA FOLDER *
 	 ***************************************************/
-	 
-	//directory with reference coverage files
-	$ref_folder_t = get_path("data_folder")."/coverage/".$sys['name_short']."-tumor";
-
-	 
-	// coverage for tumor sample
+	// coverage for tumor sample + off-target files
 	$t_cov = "{$tmp_folder}/{$t_id}.cov";
+	$t_cov_off_target = "{$tmp_folder}/{$t_id}_off_target.cov";
 	$ref_file_t = "{$ref_folder_t}/{$t_id}.cov";
+	$ref_file_t_off_target = "{$ref_folder_t_off_target}/{$t_id}.cov";
 	
 	if(!file_exists($ref_file_t) )
 	{
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $roi -out $t_cov -threads {$threads} -ref {$ref_genome}",true);
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $target_bed -out $t_cov -threads {$threads} -ref {$ref_genome}",true);
 		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov -out $t_cov",true);
 	}
 	else 
 	{
 		$t_cov = $ref_file_t;
 	}
-	
-	//directory with reference off-target coverage files
-	$ref_folder_t_off_target = $ref_folder_t . "_off_target";
-	
-	// coverage for tumor sample (off-target)
-	$t_cov_off_target = "{$tmp_folder}/{$t_id}_off_target.cov";
-	$ref_file_t_off_target = "{$ref_folder_t_off_target}/{$t_id}.cov";
 	
 	if( !file_exists($ref_file_t_off_target ) )
 	{
@@ -749,15 +804,9 @@ if(in_array("cn",$steps))
 		$t_cov_off_target = $ref_file_t_off_target;
 	}
 	
-	//folders with tumor reference coverage files (of same processing system)
-
-
 	//copy tumor sample coverage file to reference folder (has to be done before ClinCNV call to avoid analyzing the same sample twice)
 	if (db_is_enabled("NGSD") && is_valid_ref_tumor_sample_for_cnv_analysis($t_id))
 	{
-		//create reference folder if it does not exist
-		create_directory($ref_folder_t);
-		
 		//copy file
 		if(!file_exists($ref_file_t)) //Do not overwrite existing reference files in cov folder
 		{
@@ -765,38 +814,61 @@ if(in_array("cn",$steps))
 			$t_cov = $ref_file_t;
 		}
 		
-		//create reference folder for tumor off target coverage files
-		create_directory($ref_folder_t_off_target);
-		
 		if(!file_exists($ref_file_t_off_target))
 		{
 			$parser->copyFile($t_cov_off_target,$ref_file_t_off_target);
 			$t_cov_off_target = $ref_file_t_off_target;
 		}
 	}
-
-	if($single_sample) //use clincnv_germline with
-	{		
-
-		//get directory for normal and Offtarget coverages
-		$ref_folder_n = get_path("data_folder")."/coverage/".$sys['name_short'];
-		create_directory($ref_folder_n);
-
-		$ref_folder_n_off_target = $ref_folder_n . "_off_target";
-		create_directory($ref_folder_n_off_target);
+	
+	if (!$single_sample)
+	{
+		// coverage for normal sample + off-target
+		$n_cov = "{$tmp_folder}/{$n_id}.cov";
+		$n_cov_off_target = "{$tmp_folder}/{$n_id}_off_target.cov";
+		$ref_file_n = $ref_folder_n."/".$n_id.".cov";
+		$ref_file_n_off_target = "{$ref_folder_n_off_target}/{$n_id}.cov";
 		
-		//create BED file with GC and gene annotations - if missing
-		$bed = $ref_folder_t."/roi_annotated.bed";
-		if (!file_exists($bed))
+		if(!file_exists($ref_file_n)) 
 		{
-			$ngsbits = get_path("ngs-bits");
-			$pipeline = [
-					["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -clear -ref ".genome_fasta($sys['build'])],
-					["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
-				];
-			$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
+			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in $target_bed -out $n_cov -threads {$threads} -ref {$ref_genome}", true);
+			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov -out $n_cov",true);
 		}
+		else 
+		{
+			$n_cov = $ref_file_n;
+		}
+		
+		if(!file_exists($ref_file_n_off_target) )
+		{
+			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
+			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov_off_target -out $n_cov_off_target",true);
+		}
+		else 
+		{
+			$n_cov_off_target = $ref_file_n_off_target;
+		}
+		
+		// copy normal sample coverage file to reference folder (only if valid and not yet there).
+		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($n_id))
+		{
+			//copy file
+			if (!file_exists($ref_file_n)) //do not overwrite existing coverage files in ref folder
+			{
+				$parser->copyFile($n_cov, $ref_file_n);
+				$n_cov = $ref_file_n;
+			}
+			
+			if(!file_exists($ref_file_n_off_target))
+			{
+				$parser->copyFile($n_cov_off_target, $ref_file_n_off_target);
+				$n_cov_off_target = $ref_file_n_off_target;
+			}
+		}
+	}
 
+	if($single_sample) //use clincnv_germline
+	{		
 		//create BAF folder
 		$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
 		create_directory($baf_folder);
@@ -813,14 +885,19 @@ if(in_array("cn",$steps))
 		$args = array(
 			"-cov {$t_cov}",
 			"-cov_folder {$ref_folder_n}",
-			"-bed {$bed}",
+			"-bed {$target_bed}",
 			"-out {$som_clincnv}",
 			"-tumor_only",
 			"-max_cnvs 200",
-			"-bed_off {$off_target_bed}",
-			"-cov_off {$t_cov_off_target}",
-			"-cov_folder_off {$ref_folder_n_off_target}"
 		);
+		
+		if ($sys["type"] != "WGS" && $sys["type"] != "WGS (shallow)")
+		{
+			$args[] = "-bed_off {$off_target_bed}";
+			$args[] = "-cov_off {$t_cov_off_target}";
+			$args[] = "-cov_folder_off {$ref_folder_n_off_target}";
+		}
+		
 		if(!$error)
 		{
 			$args[] = "-baf_folder {$baf_folder}";
@@ -858,78 +935,12 @@ if(in_array("cn",$steps))
 	}
 	else //ClinCNV for differential sample
 	{
-		//reference directory for normal coverage files
-		$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
-		
-		// coverage for normal sample
-		$ref_file_n = $ref_folder_n."/".$n_id.".cov";
-		$n_cov = "{$tmp_folder}/{$n_id}.cov";
-		
-		if(!file_exists($ref_file_n)) 
-		{
-			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in ".$n_sys['target_file']." -out $n_cov -threads {$threads} -ref {$ref_genome}", true);
-			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov -out $n_cov",true);
-		}
-		else 
-		{
-			$n_cov = $ref_file_n;
-		}
-		
-		//reference directory for off_target normal coverage files
-		$ref_folder_n_off_target = $ref_folder_n . "_off_target";
-		
-		// coverage for normal sample (off-target)
-		$ref_file_n_off_target = "{$ref_folder_n_off_target}/{$n_id}.cov";
-		$n_cov_off_target = "{$tmp_folder}/{$n_id}_off_target.cov";
-		
-		if(!file_exists($ref_file_n_off_target) )
-		{
-			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
-			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov_off_target -out $n_cov_off_target",true);
-		}
-		else 
-		{
-			$n_cov_off_target = $ref_file_n_off_target;
-		}
-		
-		// copy normal sample coverage file to reference folder (only if valid and not yet there).
-		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($n_id))
-		{
-			//create reference folder if it does not exist
-			
-			create_directory($ref_folder_n);
-
-			//copy file
-			if (!file_exists($ref_file_n)) //do not overwrite existing coverage files in ref folder
-			{
-				$parser->copyFile($n_cov, $ref_file_n);
-				$n_cov = $ref_file_n;
-			}
-			
-			
-			create_directory($ref_folder_n_off_target);
-			
-			if(!file_exists($ref_file_n_off_target))
-			{
-				$parser->copyFile($n_cov_off_target,$ref_file_n_off_target);
-				$n_cov_off_target = $ref_file_n_off_target;
-			}
-		}
-		
 		//append tumor-normal IDs to list with tumor normal IDs (stored in same folder as tumor coverage files)
 		$t_n_list_file = $ref_folder_t . "/" . "list_tid-nid.csv";
-
-		// create folder
-		if (!file_exists($ref_folder_t))
-		{
-			mkdir($ref_folder_t);
-			// check if successfull
-			if (!file_exists($ref_folder_t)) trigger_error("Couldn't create folder '$ref_folder_t'!", E_USER_ERROR);
-		}
-		
+	
 		if (!file_exists($t_n_list_file))
 		{
-			$header = "##THIS FILE CONTAINS TUMOR AND NORMAL IDS OF PROCESSING SYSTEM ".$n_sys['name_short']."\n";
+			$header = "##THIS FILE CONTAINS TUMOR AND NORMAL IDS OF PROCESSING SYSTEM ".$sys['name_short']."\n";
 			$header .= "#tumor_id,normal_id\n";
 			file_put_contents($t_n_list_file,$header);
 		}
@@ -992,15 +1003,19 @@ if(in_array("cn",$steps))
 			"-out", $som_clincnv,
 			"-cov_pairs",$t_n_list_file,
 			"-system", $system,
-			"-bed", $sys['target_file'],
-			"-t_cov_off", $t_cov_off_target,
-			"-n_cov_off", $n_cov_off_target,
-			"-bed_off", $off_target_bed,
+			"-bed", $target_bed,
 			"-baf_folder", $baf_folder,
 			"-cohort_folder", $cohort_folder,
 			"-threads {$threads}"
 			];
 			
+			if ($sys["type"] != "WGS" && $sys["type"] != "WGS (shallow)")
+			{
+				$args_clincnv[] = "-bed_off {$off_target_bed}";
+				$args_clincnv[] = "-cov_off {$t_cov_off_target}";
+				$args_clincnv[] = "-cov_folder_off {$ref_folder_n_off_target}";
+			}
+
 			if($sys['type'] == "WES")
 			{
 				$args_clincnv[] = "-lengthS 9";
@@ -1008,10 +1023,14 @@ if(in_array("cn",$steps))
 				$args_clincnv[] = "-filterStep 2";
 			}
 			
-			
 			if(isset($cnv_baseline_pos))
 			{
 				$args_clincnv[] = "-guide_baseline $cnv_baseline_pos";
+			}
+			
+			if(isset($cnv_wgs_purity_step))
+			{
+				$args_clincnv[] = "-purityStep $cnv_wgs_purity_step";
 			}
 			
 			$parser->execTool("NGS/vc_clincnv_somatic.php",implode(" ",$args_clincnv));
