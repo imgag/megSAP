@@ -175,6 +175,22 @@ foreach($res as $row)
 				""
 			]);
 		}
+
+		if ((count($mids1) === 0) && (count($mids2) === 0))
+		{
+			trigger_error("Sample without MIDs on lane {$lane}, all reads will be assigned to this sample!", E_USER_WARNING);
+			$output[] = implode(',', [
+				$lane,
+				"Sample_{$name}",
+				$name,
+				$row["pname"],
+				"",
+				"",
+				strtr(trim(implode(" ", [ $row["pscomment"], $row["scomment"] ])), ",", "."),
+				"",
+				""
+			]);
+		}
 	}
 }
 

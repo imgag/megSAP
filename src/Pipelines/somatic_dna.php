@@ -451,7 +451,6 @@ if (in_array("vc", $steps))
 		$sge_args[] = "-b y"; // treat as binary
 		$sge_args[] = "-wd $dragen_output_folder";
 		$sge_args[] = "-m n"; // switch off messages
-		$sge_args[] = "-M ".get_path("queue_email");
 		$sge_args[] = "-e ".get_path("dragen_log")."/$sge_logfile.err"; // stderr
 		$sge_args[] = "-o ".get_path("dragen_log")."/$sge_logfile.out"; // stdout
 		$sge_args[] = "-q ".implode(",", $dragen_queues); // define queue
@@ -1167,12 +1166,26 @@ $msi_o_file = $full_prefix . "_msi.tsv";						//MSI
 if (in_array("msi", $steps) && !$single_sample)
 {
 	//file that contains MSI in target
-	$msi_ref = get_path("data_folder") . "/dbs/msisensor-pro/msisensor_references_".$n_sys['build'].".list";
+	$msi_ref = get_path("data_folder") . "/dbs/msisensor-pro/msisensor_references_".$n_sys['build'].".site";
 	
-	if(!file_exists($msi_ref))
+	if(!file_exists($msi_ref)) // create msi-ref file:
 	{
 		print("Could not find loci reference file $msi_ref. Trying to generate it.\n");
 		$parser->exec(get_path("msisensor")," scan -d $ref_genome -o $msi_ref", false);
+
+		//remove sites with more than 100 repeat_times as that crashes dragen MSI:
+		$out_lines = [];
+		foreach(file($msi_ref) as $line)
+		{
+			#$chr, $pos, $repeat_unit_len, $repeat_unit_bin, $repeat_times, ...
+			$parts = explode("\t", $line);
+
+			if ($parts[0] != "chromosome" && !chr_check($parts[0], 22, false)) continue;
+			if (is_numeric($parts[4]) && floatval($parts[4]) > 100) continue;
+			$out_lines[] = $line;
+		}
+
+		file_put_contents($msi_ref, implode("", $out_lines));
 	}
 
 	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -threads $threads -out " .$msi_o_file. " -build ".$n_sys['build'];

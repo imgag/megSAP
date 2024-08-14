@@ -14,7 +14,7 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
 $steps_all = array("ma", "vc", "cn", "sv", "re", "an", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, re=repeat expansions calling, an=annotation, db=import into NGSD.", true, "ma,vc,sv,re,an,db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, re=repeat expansions calling, an=annotation, db=import into NGSD.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("skip_phasing", "Skip phasing of VCF and BAM files.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
