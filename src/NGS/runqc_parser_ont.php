@@ -7,7 +7,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("runqc_parser_ont", "Parses and imports ONTrun QC metrics into the NGSD.");
+$parser = new ToolBase("runqc_parser_ont", "Parses and imports ONT run QC metrics into the NGSD.");
 $parser->addString("name", "Name of the run.", false);
 $parser->addString("run_dir", "Run directory.", false);
 $parser->addFlag("force", "Overwrites already existing DB entries instead of throwing an error.");

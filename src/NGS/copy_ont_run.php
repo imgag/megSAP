@@ -145,6 +145,9 @@ else
 	$modified_bases = false;
 }
 
+//import run QC
+$parser->execTool("NGS/runqc_parser_ont.php", "-name '{$run_name}' -run_dir {$run_dir} -db {$db} -force");
+
 //find sample entered in database
 $result = $db_con->executeQuery("SELECT processed_sample.id, processed_sample.sequencing_run_id FROM processed_sample, sequencing_run WHERE sequencing_run.name = '{$run_name}' AND processed_sample.sequencing_run_id=sequencing_run.id");
 if (count($result) !== 1)
