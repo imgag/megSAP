@@ -21,6 +21,7 @@ $parser->addFlag("multi", "Enable multi-sample mode.");
 $parser->addFlag("somatic", "Enable somatic mode (no variant QC and no GSvar file).");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
+$parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated (this can be very slow).");
 extract($parser->parse($argv));
 
 //input file names
@@ -67,6 +68,7 @@ if ($somatic) $args[] = "-somatic";
 if ($somatic) $args[] = "-somatic";
 if (get_path("annotate_refseq_consequences", false)) $args[] = "-annotate_refseq_consequences";
 $args[] = "-custom custom_colums";
+if ($no_splice) $args[] = "-no_splice";
 $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 
 //annotate COSMIC
