@@ -136,15 +136,8 @@ if (in_array("vc", $steps))
 	$args[] = "-status ".implode(" ", $status);
 	$args[] = "-out {$vcf_file}";
 	$args[] = "-threads {$threads}";
-	if ($prefix == "trio")
-	{
-		$args[] = "-analysis_type GERMLINE_TRIO";
-	}
-	else
-	{
-		$args[] = "-analysis_type GERMLINE_MULTISAMPLE";
-	}
-	
+	$args[] = "-analysis_type ".($prefix=="trio" ? "GERMLINE_TRIO" : "GERMLINE_MULTISAMPLE");
+	$args[] = "-mode longread";
 	$parser->execTool("NGS/merge_gvcf.php", implode(" ", $args));
 
 	//phasing (WhatsHap)

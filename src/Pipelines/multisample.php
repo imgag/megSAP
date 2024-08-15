@@ -19,7 +19,16 @@ function extract_info($format, $data)
 	$data = array_combine($format, $data);
 	$depth = array_sum(explode(",", $data['DP'])); 
 	$genotype = vcfgeno2human($data['GT']);
-	$ao = array_sum(explode(",", $data['AO']));
+	if (isset($data['AO'])) //freebayes: AO
+	{
+		$ao = array_sum(explode(",", $data['AO']));
+	}
+	else //Dragen: AF converted to AO
+	{
+		$af = $data['AF'];
+		if ($af=="." || $af=="") $af = 0.0;
+		$ao = round($depth * $af);
+	}
 	return array($genotype, $depth, $ao);
 }
 
@@ -182,52 +191,83 @@ if (!file_exists($out_folder))
 	}
 }
 
-//copy BAM files to local tmp for variant calling
-if (!$annotation_only && (in_array("vc", $steps) || in_array("sv", $steps)))
+
+//check if Dragen gVCFs exist
+$gvcfs = [];
+foreach($bams as $bam)
 {
-	$tmp_bam_folder = $parser->tempFolder("local_copy_of_bams_");
-	$local_bams = array();
-	foreach($bams as $bam)
+	$folder = dirname($bam);
+	$ps = basename2($bam);
+	$gvcf = "{$folder}/dragen_variant_calls/{$ps}_dragen.gvcf.gz";
+	if (file_exists($gvcf)) $gvcfs[] = $gvcf;
+}
+$dragen_gvcfs_exist = count($gvcfs)==count($bams);
+
+
+//copy BAM files to local tmp for variant calling
+if (!$annotation_only)
+{
+	if ((in_array("vc", $steps) && !$dragen_gvcfs_exist) || in_array("sv", $steps))
 	{
-		//convert to BAM if CRAM
-		$bam = convert_to_bam_if_cram($bam, $parser, $sys['build'], $threads, $tmp_bam_folder);
-		
-		//check BAM/BAI exist
-		if (!file_exists($bam)) trigger_error("BAM file '{$bam}' does not exist!", E_USER_ERROR);
-		if (!file_exists($bam.".bai")) trigger_error("BAM index file '{$bam}.bai' does not exist!", E_USER_ERROR);
-		
-		//create local copy if not already local file
-		if (starts_with($bam, $tmp_bam_folder))
+		$tmp_bam_folder = $parser->tempFolder("local_copy_of_bams_");
+		$local_bams = array();
+		foreach($bams as $bam)
 		{
-			$local_bams[] = $bam;
-		}
-		else
-		{
-			$local_bam = $tmp_bam_folder."/".basename($bam);
-			$parser->copyFile($bam, $local_bam);
-			$parser->copyFile($bam.".bai", $local_bam.".bai");
-			$local_bams[] = $local_bam;
+			//convert to BAM if CRAM
+			$bam = convert_to_bam_if_cram($bam, $parser, $sys['build'], $threads, $tmp_bam_folder);
+			
+			//check BAM/BAI exist
+			if (!file_exists($bam)) trigger_error("BAM file '{$bam}' does not exist!", E_USER_ERROR);
+			if (!file_exists($bam.".bai")) trigger_error("BAM index file '{$bam}.bai' does not exist!", E_USER_ERROR);
+			
+			//create local copy if not already local file
+			if (starts_with($bam, $tmp_bam_folder))
+			{
+				$local_bams[] = $bam;
+			}
+			else
+			{
+				$local_bam = $tmp_bam_folder."/".basename($bam);
+				$parser->copyFile($bam, $local_bam);
+				$parser->copyFile($bam.".bai", $local_bam.".bai");
+				$local_bams[] = $local_bam;
+			}
 		}
 	}
 }
 
-//(1) variant calling of all samples together (with very conservative parameters)
+//(1) variant calling of all samples together
 $mito = enable_special_mito_vc($sys);
 if (in_array("vc", $steps))
 {
 	if (!$annotation_only)
-	{
-		$args = array();
-		$args[] = "-bam ".implode(" ", $local_bams);
-		$args[] = "-out $vcf_all";
-		$args[] = "-target ".$sys['target_file'];
-		$args[] = "-min_mq 20";
-		$args[] = "-min_af 0.1";
-		$args[] = "-target_extend 200";
-		$args[] = "-build ".$sys['build'];
-		$args[] = "-threads $threads";
-		$args[] = "--log ".$parser->getLogFile();
-		$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);	
+	{		
+		//main variant calling for autosomes and gonosomes
+		if ($dragen_gvcfs_exist) //gVCFs exist > merge them
+		{
+			$args = array();
+			$args[] = "-gvcfs ".implode(" ", $gvcfs);
+			$args[] = "-status ".implode(" ", $status);
+			$args[] = "-out {$vcf_all}";
+			$args[] = "-threads {$threads}";
+			$args[] = "-analysis_type ".($prefix=="trio" ? "GERMLINE_TRIO" : "GERMLINE_MULTISAMPLE");
+			$args[] = "-mode dragen";
+			$parser->execTool("NGS/merge_gvcf.php", implode(" ", $args));
+		}
+		else //no gVCFs > fallback to VC calling with freebayes (with very conservative parameters)
+		{
+			$args = array();
+			$args[] = "-bam ".implode(" ", $local_bams);
+			$args[] = "-out $vcf_all";
+			$args[] = "-target ".$sys['target_file'];
+			$args[] = "-min_mq 20";
+			$args[] = "-min_af 0.1";
+			$args[] = "-target_extend 200";
+			$args[] = "-build ".$sys['build'];
+			$args[] = "-threads $threads";
+			$args[] = "--log ".$parser->getLogFile();
+			$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);
+		}
 
 		//variant calling for mito with special parameters
 		if ($mito)
@@ -236,7 +276,7 @@ if (in_array("vc", $steps))
 			file_put_contents($target_mito, "chrMT\t0\t16569");
 			
 			$args = array();
-			$args[] = "-bam ".implode(" ", $local_bams);
+			$args[] = "-bam ".implode(" ", $bams);
 			$args[] = "-out $vcf_all_mito";
 			$args[] = "-no_ploidy";
 			$args[] = "-no_bias";
@@ -247,6 +287,7 @@ if (in_array("vc", $steps))
 			$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);
 		}
 	}
+	
 	//(2) annotation
 	//Convert VCF to single-sample format
 	$indices = array();
@@ -345,6 +386,7 @@ if (in_array("vc", $steps))
 	//Sort variant list (neccessary for tabix)
 	$vcf_sorted = $parser->tempFile("_unsorted.vcf");
 	$parser->exec("{$ngsbits}VcfStreamSort","-in $vcf -out $vcf_sorted",true);
+	
 	//zip variant list
 	$vcf_zipped = "{$out_folder}{$prefix}_var.vcf.gz";
 	$parser->exec("bgzip", "-c $vcf_sorted > $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return

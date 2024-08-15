@@ -1,6 +1,6 @@
 <?php 
 /** 
-	@page merge_gvcf_mt
+	@page merge_gvcf
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -11,6 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("merge_gvcf", "Merge multiple gVCF files using GATK CombineGVCFs");
 $parser->addInfileArray("gvcfs", "List of gVCF files which should be merged (bgzipped and sorted).", false);
 $parser->addStringArray("status", "List of affected status of the input samples (gVCFs) - can be 'affected' or 'control'.", false);
+$parser->addEnum("mode", "Mode.", false, ["longread", "dragen"]);
 $parser->addOutfile("out", "Output VCF files containing calls of the merged gVCFs.", false);
 
 //optional
@@ -24,6 +25,8 @@ $genome = genome_fasta($build, true, false);
 $gvcf_out = substr($out, 0, -6)."gvcf.gz";
 if (count($gvcfs) < 2) trigger_error("At least two gVCF files have to be provided!", E_USER_ERROR);
 if (count($gvcfs) != count($status)) trigger_error("List of gVCF files and statuses has to be the same.", E_USER_ERROR);
+$temp_folder = $parser->tempFolder("merge_gvcf_pid_".getmypid()."_split_");
+
 //check input status
 foreach($status as $stat)
 {
@@ -34,14 +37,10 @@ foreach($status as $stat)
 	}
 }
 
-//split VCF for each chromosome and run in parallel
-$temp_folder = $parser->tempFolder("merge_gvcf_pid_".getmypid()."_split_");
-
 //get chr regions and sample order
 $chr_regions = array();
 $sample_order = array();
 $first_file = true;
-
 foreach($gvcfs as $gvcf)
 {
 	//read header from each file
@@ -57,7 +56,15 @@ foreach($gvcfs as $gvcf)
 		{
 			$chr = trim(explode(",", explode("ID=", $line, 2)[1], 2)[0]);
 			$length = (int) explode(">", explode("length=", $line, 2)[1], 2)[0];
-			$chr_regions[] = array($chr, $length);
+			$skip_chr = false;
+			if ($mode=="dragen")
+			{
+				if (starts_with($chr, "chrUn")) $skip_chr = true;
+				if (ends_with($chr, "_random")) $skip_chr = true;
+				if ($chr=="chrMT" || $chr=="chrEBV") $skip_chr = true;
+			}
+				
+			if (!$skip_chr) $chr_regions[] = array($chr, $length);
 		}
 		//extract sample name
 		if (starts_with($line, "#CHROM"))
@@ -195,7 +202,12 @@ $pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
 //fix error in VCF file and strip unneeded information
 $uncompressed_vcf = $parser->tempFile(".vcf");
 
-$pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", "--longread_mode > {$uncompressed_vcf}", false);
+$args = [];
+if ($mode=="longread") $args[] = "--longread_mode";
+if ($mode=="dragen") $args[] = "--dragen_mode";
+$args[] = "> {$uncompressed_vcf}";
+
+$pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", implode(" ", $args), false);
 
 //execute post-processing pipeline
 $parser->execPipeline($pipeline, "merge_gvcf post processing");

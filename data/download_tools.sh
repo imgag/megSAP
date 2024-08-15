@@ -217,6 +217,11 @@ cd bedtools-2.31.0
 wget https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtools.static
 chmod 755 bedtools.static
 
+#download GATK
+cd $folder
+wget https://github.com/broadinstitute/gatk/releases/download/4.6.0.0/gatk-4.6.0.0.zip
+unzip gatk-4.6.0.0.zip
+
 #download illuminia ORA decompression tool
 cd $folder
 wget https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
