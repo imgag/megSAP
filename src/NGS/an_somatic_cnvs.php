@@ -52,8 +52,7 @@ if($include_ncg)
 	
 	if($i_genes === false) 
 	{
-		trigger_error("Cannot annotate file $cnv_in with NCG7.1 data because there is no column 'genes'.",E_USER_WARNING);
-		exit(1);
+		trigger_error("Cannot annotate file $cnv_in with NCG7.1 data because there is no column 'genes'.",E_USER_ERROR);
 	}
 	
 	//Annotate per gene
