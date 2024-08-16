@@ -16,6 +16,7 @@ $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 ba
 $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
 $parser->addFlag("longread", "Add additional columns for long-read samples (e.g. pahsing information)");
 $parser->addString("custom", "Settings key name for custom column definitions.", true, "");
+$parser->addFlag("test", "Run in test mode. Skips replacing sample headers with NGSD information.");
 extract($parser->parse($argv));
 
 $custom_colums = [];
@@ -489,7 +490,7 @@ while(!feof($handle))
 			if ($genotype_mode=="single")
 			{
 				// replace sample header with NGSD enry:
-				if (db_is_enabled("NGSD")) $line = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "##", "");
+				if (db_is_enabled("NGSD") && !$test) $line = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "##", "");
 				if ($column_desc[0][0]!="genotype")
 				{
 					trigger_error("Several sample header lines in 'single' mode!", E_USER_ERROR);
