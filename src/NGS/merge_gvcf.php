@@ -201,12 +201,10 @@ $pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
 
 //fix error in VCF file and strip unneeded information
 $uncompressed_vcf = $parser->tempFile(".vcf");
-
 $args = [];
 if ($mode=="longread") $args[] = "--longread_mode";
 if ($mode=="dragen") $args[] = "--dragen_mode";
 $args[] = "> {$uncompressed_vcf}";
-
 $pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", implode(" ", $args), false);
 
 //execute post-processing pipeline

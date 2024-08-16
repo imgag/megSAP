@@ -18,6 +18,7 @@ $parser->addInfile("loci", "BED file containing repeat loci.", false);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addString("pid", "Processed sample name (e.g. 'GS120001_01'). If unset BAM file name will be used.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
+$parser->addFlag("test", "Run in test mode. Skips annotatation of NGSD information.");
 extract($parser->parse($argv));
 
 // use BAM file name as fallback if no processed sample name is provided
@@ -33,7 +34,7 @@ $straglr = get_path("straglr");
 
 //get gender
 $gender = "n/a";
-if (db_is_enabled("NGSD"))
+if (db_is_enabled("NGSD") && !$test)
 {
 	$db = DB::getInstance("NGSD", false);
 	$info = get_processed_sample_info($db, $pid, false);
@@ -62,16 +63,16 @@ $parser->exec(get_path("python3"), implode(" ", $args));
 
 //get pathogenic ranges from NGSD
 $min_pathogenic = array();
-if (db_is_enabled("NGSD"))
+if (db_is_enabled("NGSD") && !$test)
 {
 	$db = DB::getInstance("NGSD", false);
 	$result = $db->executeQuery("SELECT region, repeat_unit, min_pathogenic FROM `repeat_expansion`");
 	foreach($result as $row)
 	{
 		if (!is_null($row["min_pathogenic"]) && $row["min_pathogenic"] != "")
-    {
-      $min_pathogenic[$row["region"]."_".$row["repeat_unit"]] = (int) $row["min_pathogenic"];
-    }
+		{
+			$min_pathogenic[$row["region"]."_".$row["repeat_unit"]] = (int) $row["min_pathogenic"];
+		}
 	}
 }
 
