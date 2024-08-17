@@ -67,26 +67,26 @@ $folder/Python-3.10.9_22.05.24/bin/python3 $root/../src/NGS/extract_signatures.p
 
 #download and build samtools
 cd $folder
-wget https://github.com/samtools/samtools/releases/download/1.19/samtools-1.19.tar.bz2
-tar xjf samtools-1.19.tar.bz2
-rm samtools-1.19.tar.bz2
-cd samtools-1.19
+wget https://github.com/samtools/samtools/releases/download/1.20/samtools-1.20.tar.bz2
+tar xjf samtools-1.20.tar.bz2
+rm samtools-1.20.tar.bz2
+cd samtools-1.20
 make
 
 #download and build bcftools
 cd $folder
-wget https://github.com/samtools/bcftools/releases/download/1.19/bcftools-1.19.tar.bz2
-tar xjf bcftools-1.19.tar.bz2
-rm bcftools-1.19.tar.bz2
-cd bcftools-1.19
+wget https://github.com/samtools/bcftools/releases/download/1.20/bcftools-1.20.tar.bz2
+tar xjf bcftools-1.20.tar.bz2
+rm bcftools-1.20.tar.bz2
+cd bcftools-1.20
 make
 
 #download and build BWA
 cd $folder
-wget https://sourceforge.net/projects/bio-bwa/files/bwa-0.7.17.tar.bz2
-tar xjf bwa-0.7.17.tar.bz2
-rm bwa-0.7.17.tar.bz2
-cd bwa-0.7.17
+wget https://github.com/lh3/bwa/archive/refs/tags/v0.7.18.tar.gz
+tar xzf v0.7.18.tar.gz
+rm v0.7.18.tar.gz
+cd bwa-0.7.18
 make
 
 #download bwa-mem2
@@ -117,16 +117,6 @@ mkdir -p build && cd build
 cmake ..
 cmake --build .
 cmake --install .
-
-#download and build vcflib
-#cd $folder
-#git clone https://github.com/vcflib/vcflib.git vcflib-1.0.9
-#cd vcflib-1.0.9
-#git checkout v1.0.9 && git submodule update --recursive --init
-#mkdir -p build && cd build
-#cmake -DPYTHON_EXECUTABLE:FILEPATH=$python3_path/bin/python3 -DZIG=OFF ..
-#cmake --build .
-#cmake -DCMAKE_INSTALL_MANDIR=$folder/vcflib-1.0.9 --install . --prefix $folder/vcflib-1.0.9
 
 #download and build samblaster
 cd $folder
