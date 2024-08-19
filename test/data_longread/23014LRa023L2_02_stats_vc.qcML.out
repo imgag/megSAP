@@ -6,12 +6,12 @@
   ]>
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
-    <metaDataParameter ID="md0001" name="creation software" value="VariantQC 2024_06-55-g4035a352" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0001" name="creation software" value="VariantQC 2024_07-13-g166c5285" cvRef="QC" accession="QC:1000002"/>
     <metaDataParameter ID="md0002" name="creation software parameters" value="" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2024-07-23T13:08:06" cvRef="QC" accession="QC:1000004"/>
-    <metaDataParameter ID="md0004" name="source file" value="annotate_1dgHih.vcf" cvRef="QC" accession="QC:1000005"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2024-08-16T16:12:44" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0004" name="source file" value="annotate_2Tz9ys.vcf" cvRef="QC" accession="QC:1000005"/>
     <qualityParameter ID="qp0001" name="variant count" description="Total number of variants in the target region." value="1606" cvRef="QC" accession="QC:2000013"/>
-    <qualityParameter ID="qp0002" name="known variants percentage" description="Percentage of variants that are known polymorphisms in the dbSNP database." value="98.94" cvRef="QC" accession="QC:2000014"/>
+    <qualityParameter ID="qp0002" name="known variants percentage" description="Percentage of variants that are known polymorphisms in the dbSNP database." value="99.25" cvRef="QC" accession="QC:2000014"/>
     <qualityParameter ID="qp0003" name="high-impact variants percentage" description="Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants." value="0.00" cvRef="QC" accession="QC:2000015"/>
     <qualityParameter ID="qp0004" name="homozygous variants percentage" description="Percentage of variants that are called as homozygous." value="38.73" cvRef="QC" accession="QC:2000016"/>
     <qualityParameter ID="qp0005" name="indel variants percentage" description="Percentage of variants that are insertions/deletions." value="11.33" cvRef="QC" accession="QC:2000017"/>

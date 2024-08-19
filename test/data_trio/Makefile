@@ -14,7 +14,7 @@ link:
 	php ../link_test_data.php GS140550_01.cram.crai
 
 call:
-	php ../../src/Pipelines/trio.php -c GS140127_01.cram -m GS140549_01.cram -f GS140550_01.cram -system system.ini -out_folder . -steps vc,cn,sv
+	php ../../src/Pipelines/trio.php -c GS140127_01.cram -m GS140549_01.cram -f GS140550_01.cram -system system.ini -out_folder . -steps vc,cn,sv -no_check
 	# remove gene annotation
 	cut -f1-24 trio_manta_var_structural.bedpe > trio_manta_var_structural_cut.bedpe
 	# create file from OMIM annotation and CNV overlap
