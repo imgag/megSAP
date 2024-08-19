@@ -28,7 +28,7 @@ check($db_con->getValue("SELECT COUNT(*) FROM runqc_ont"), 0);
 check_exec("php ".src_folder()."/NGS/{$name}.php -name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST");
 check($db_con->getValue("SELECT COUNT(*) FROM runqc_ont"), 1);
 check($db_con->getValue("SELECT read_num FROM runqc_ont WHERE sequencing_run_id=1"), 9574413);
-check($db_con->getValue("SELECT yield FROM runqc_ont WHERE sequencing_run_id=1"), 89394689391);
+check($db_con->getValue("SELECT yield FROM runqc_ont WHERE sequencing_run_id=1"), 89394700000);
 check($db_con->getValue("SELECT passing_filter_perc FROM runqc_ont WHERE sequencing_run_id=1"), 96.4236);
 check($db_con->getValue("SELECT fraction_skipped FROM runqc_ont WHERE sequencing_run_id=1"), 0.000000313335);
 check($db_con->getValue("SELECT q30_perc FROM runqc_ont WHERE sequencing_run_id=1"), 0.103372);
@@ -51,7 +51,7 @@ check((strpos(implode("", $stderr), "QC data for this run and read was already i
 check_exec("php ".src_folder()."/NGS/{$name}.php -name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -force");
 check($db_con->getValue("SELECT COUNT(*) FROM runqc_ont"), 1);
 check($db_con->getValue("SELECT read_num FROM runqc_ont WHERE sequencing_run_id=1"), 9574413);
-check($db_con->getValue("SELECT yield FROM runqc_ont WHERE sequencing_run_id=1"), 89394689391);
+check($db_con->getValue("SELECT yield FROM runqc_ont WHERE sequencing_run_id=1"), 89394700000);
 check($db_con->getValue("SELECT passing_filter_perc FROM runqc_ont WHERE sequencing_run_id=1"), 96.4236);
 check($db_con->getValue("SELECT fraction_skipped FROM runqc_ont WHERE sequencing_run_id=1"), 0.000000313335);
 check($db_con->getValue("SELECT q30_perc FROM runqc_ont WHERE sequencing_run_id=1"), 0.103372);

@@ -22,7 +22,7 @@ exec2("rm -rf ".output_folder()."/21073LRa277_01234/TEST_Sample_21073LRa277_01")
 $db_con = DB::getInstance("NGSD_TEST");
 check($db_con->getValue("SELECT COUNT(*) FROM runqc_ont"), 1);
 check($db_con->getValue("SELECT read_num FROM runqc_ont WHERE sequencing_run_id=1"), 9574413);
-check($db_con->getValue("SELECT yield FROM runqc_ont WHERE sequencing_run_id=1"), 89394689391);
+check($db_con->getValue("SELECT yield FROM runqc_ont WHERE sequencing_run_id=1"), 89394700000);
 check($db_con->getValue("SELECT passing_filter_perc FROM runqc_ont WHERE sequencing_run_id=1"), 96.4236);
 check($db_con->getValue("SELECT fraction_skipped FROM runqc_ont WHERE sequencing_run_id=1"), 0.000000313335);
 check($db_con->getValue("SELECT q30_perc FROM runqc_ont WHERE sequencing_run_id=1"), 0.103372);

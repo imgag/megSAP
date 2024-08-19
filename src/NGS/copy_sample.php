@@ -922,7 +922,7 @@ if(count($merge_files) > 0)
 	$output[] = "";
 
 	//report merged samples
-	print(implode("\n", $merge_notice));
+	print(implode("\n", $merge_notice)."\n");
 }
 	
 //target(s) 'queue_...'

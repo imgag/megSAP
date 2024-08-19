@@ -291,6 +291,8 @@ if(file_exists($omim_file))
 $low_conf_bed = repository_basedir()."/data/misc/low_conf_regions.bed";
 $parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_annotate_output -mark low_conf_region -inv -reg $low_conf_bed -out $out", true);
 
+//TODO: add low_mappability annotation
+
 //re-order VEP consequence annotations (order is random)
 $h = fopen2($out, "r");
 $tmp = $parser->tempFile("_fixed_vep_consequences.vcf");
