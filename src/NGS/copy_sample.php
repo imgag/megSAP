@@ -648,6 +648,12 @@ foreach($sample_data as $sample => $sample_infos)
 				$target_to_copylines[$tag][] = "\tcp -r {$log_folder} {$project_folder}Sample_{$sample}/dragen_variant_calls/";
 				$target_to_copylines[$tag][] = "\tcp {$report_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/logs";
 
+				//touch all indices (to prevent warnings)
+				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.bai";
+				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.crai";
+				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.tbi";
+				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.csi";
+
 				//move BAM
 				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_mapping_file} {$project_folder}Sample_{$sample}/";
 				if (file_exists($source_mapping_file.".bai"))
@@ -916,7 +922,7 @@ if(count($merge_files) > 0)
 	$output[] = "";
 
 	//report merged samples
-	print(implode("\n", $merge_notice));
+	print(implode("\n", $merge_notice)."\n");
 }
 	
 //target(s) 'queue_...'
