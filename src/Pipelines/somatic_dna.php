@@ -217,19 +217,19 @@ if (!$single_sample)
 }
 
 //Abort if calling is requested and somatic report config exists in NGSD
-// if (!$single_sample && db_is_enabled("NGSD"))
-// {
-	// $db = DB::getInstance("NGSD", false);
-	// list($config_id, $config_vars_exist, $config_cnvs_exist) = somatic_report_config($db, $t_id, $n_id);
-	// if (in_array("vc", $steps) && $config_vars_exist)
-	// {
-		// trigger_error("Somatic report configuration with SNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
-	// }
-	// if (in_array("cn", $steps) && $config_cnvs_exist)
-	// {
-		// trigger_error("Somatic report configuration with CNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'cn'.", E_USER_ERROR);
-	// }
-// }
+if (!$single_sample && db_is_enabled("NGSD"))
+{
+	$db = DB::getInstance("NGSD", false);
+	list($config_id, $config_vars_exist, $config_cnvs_exist) = somatic_report_config($db, $t_id, $n_id);
+	if (in_array("vc", $steps) && $config_vars_exist)
+	{
+		trigger_error("Somatic report configuration with SNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
+	}
+	if (in_array("cn", $steps) && $config_cnvs_exist)
+	{
+		trigger_error("Somatic report configuration with CNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'cn'.", E_USER_ERROR);
+	}
+}
 
 //sample similarity check
 $bams = array_filter([$t_bam, $n_bam]);
@@ -894,7 +894,7 @@ if(in_array("cn",$steps))
 		{
 			$args[] = "-bed_off {$off_target_bed}";
 			$args[] = "-cov_off {$t_cov_off_target}";
-			$args[] = "-cov_folder_off {$ref_folder_n_off_target}";
+			$args[] = "-cov_folder_off {$ref_folder_t_off_target}";
 		}
 		
 		if(!$error)
@@ -1010,9 +1010,11 @@ if(in_array("cn",$steps))
 			
 			if ($sys["type"] != "WGS" && $sys["type"] != "WGS (shallow)")
 			{
-				$args_clincnv[] = "-bed_off {$off_target_bed}";
-				$args_clincnv[] = "-cov_off {$t_cov_off_target}";
-				$args_clincnv[] = "-cov_folder_off {$ref_folder_n_off_target}";
+				$args[] = "-bed_off {$off_target_bed}";
+				$args[] = "-t_cov_off {$t_cov_off_target}";
+				$args[] = "-n_cov_off {$n_cov_off_target}";
+				$args[] = "-cov_folder_t_off {$ref_folder_t_off_target}";
+				$args[] = "-cov_folder_n_off {$ref_folder_n_off_target}";
 			}
 
 			if($sys['type'] == "WES")
