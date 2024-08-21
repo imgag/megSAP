@@ -70,7 +70,7 @@ platformdirs==4.0.0
 pooch==1.7.0
 prompt-toolkit==3.0.40
 protobuf==3.19.4
-psutil==5.9.0
+psutil==5.9.4   
 ptyprocess==0.7.0
 pure-eval==0.2.2
 pyasn1-modules==0.2.7
@@ -97,7 +97,7 @@ scipy==1.10.1
 seaborn==0.13.0
 SigProfilerExtractor==1.1.23
 six==1.16.0
-sniffles==2.2
+sniffles==2.4
 stack-data==0.6.3
 statsmodels==0.13.5
 tables==3.7.0
@@ -118,7 +118,7 @@ umi_tools==1.1.4
 urllib3==1.26.14
 wcwidth==0.2.5
 Werkzeug==2.2.3
-whatshap==2.1
+whatshap==2.3
 wrapt==1.15.0
 xopen==1.7.0
 yarl==1.8.2
