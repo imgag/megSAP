@@ -1423,7 +1423,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	$db_conn = DB::getInstance("NGSD");
 	
 	$t_info = get_processed_sample_info($db_conn, $t_id, false);
-	$n_info = get_processed_sample_info($db_conn, $n_id, false);
+	$n_info = $single_sample ? null : get_processed_sample_info($db_conn, $n_id, false);
 	
 	$ngsbits = get_path("ngs-bits");
 	

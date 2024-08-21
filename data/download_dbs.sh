@@ -14,8 +14,8 @@ genome=$root/genomes/GRCh38.fa
 cd $dbs
 mkdir -p Ensembl
 cd Ensembl
-wget https://ftp.ensembl.org/pub/release-110/gff3/homo_sapiens/Homo_sapiens.GRCh38.110.gff3.gz
-gunzip Homo_sapiens.GRCh38.110.gff3.gz
+wget https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz
+gunzip Homo_sapiens.GRCh38.112.gff3.gz
 
 #Download RefSeq transcripts database
 cd $dbs
@@ -182,13 +182,12 @@ wget https://github.com/PacificBiosciences/pbsv/raw/master/annotations/human_GRC
 #$ngsbits/BedSort -with_name -in HGMD_CNVS_2023_3.bed -out HGMD_CNVS_2023_3.bed
 
 #Install COSMIC Cancer Mutation Census CMC  (you need a license, the files have to be downloaded manually from https://apps.ingenuity.com/ingsso/login)
-#the necessary files are: CancerMutationCensus_AllData_Tsv_v98_GRCh38.tar, Cosmic_GenomeScreensMutant_Vcf_v98_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v98_GRCh38.tar, Cosmic_NonCodingVariants_Vcf_v98_GRCh38.tar
+#the necessary files are: CancerMutationCensus_AllData_Tsv_v99_GRCh38.tar, Cosmic_GenomeScreensMutant_Vcf_v99_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v99_GRCh38.tar, Cosmic_NonCodingVariants_Vcf_v99_GRCh38.tar
 # unpack the files to get the necessary vcf.gz files: 
 #cd $dbs
 #mkdir -p COSMIC
 #cd COSMIC
-##Login and download the "Cancer Mutation Census Data": CMC.tar file from https://cancer.sanger.ac.uk/cmc/download. Extract the file and move the cmc_export.tsv.gz to data/dbs/COSMIC. There is no download API for CMC file.
-#gunzip -c CancerMutationCensus_AllData_v98_GRCh38.tsv.gz | php db_converter_cosmic.php -in_cmc cmc_export.tsv -in_genome_vcf Cosmic_GenomeScreensMutant_v98_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v98_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v98_GRCh38.vcf.gz -out cmc_export_v98.vcf.gz
+#gunzip -c CancerMutationCensus_AllData_v99_GRCh38.tsv.gz | php db_converter_cosmic.php -in_cmc - -in_genome_vcf Cosmic_GenomeScreensMutant_v99_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v99_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v99_GRCh38.vcf.gz -out cmc_export_v99.vcf.gz
 #install NGSD
 #
 #The usage of the NGSD annotation is optional. 

@@ -26,16 +26,16 @@
 
 |database               |used for                |last update/check               |notes                                                                                                                           |url                                                                     |
 |-----------------------|------------------------|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-|CancerHotspots         |pipeline (somatic)      |01.2024                         |version is final and does not change                                                                                            |https://www.cancerhotspots.org                                          |
-|NCG7.1                 |pipeline (somatic)      |01.2024 (v7.1)                  |					                                                                                                               |http://ncg.kcl.ac.uk/                                                   |
-|COSMIC CMC             |pipeline (somatic)      |01.2024 (v98)                   |                                                                                                                                |https://cancer.sanger.ac.uk/cmc                                         |
-|Human Protein Atlas    |pipeline (somatic)      |01.2024 (v23)                   |                                                                                                                                |https://www.proteinatlas.org/about/download                             |
+|CancerHotspots         |pipeline (somatic)      |08.2024                         |version is final and does not change                                                                                            |https://www.cancerhotspots.org                                          |
+|NCG7.1                 |pipeline (somatic)      |08.2024 (v7.1)                  |					                                                                                                               |http://ncg.kcl.ac.uk/                                                   |
+|COSMIC CMC             |pipeline (somatic)      |08.2024 (v99)                   |                                                                                                                                |https://cancer.sanger.ac.uk/cmc                                         |
+|Human Protein Atlas    |pipeline (somatic)      |08.2024 (v23)                   |                                                                                                                                |https://www.proteinatlas.org/about/download                             |
 
 ## Databases for RNA pipelines
 
 |database               |used for                |last update/check               |notes                                                                                                                           |url                                                                     |
 |-----------------------|------------------------|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-|Ensembl GTF file       |pipeline (RNA)          |03.2023 (GRCh38.109)            |                                                                                                                                |https://ftp.ensembl.org/pub/release-109/gtf/homo_sapiens/               |
+|Ensembl GTF file       |pipeline (RNA)          |08.2024 (GRCh38.112)            |                                                                                                                                |https://ftp.ensembl.org/pub/release-112/gtf/homo_sapiens/               |
 
 ## Tools general
 
@@ -78,11 +78,11 @@
 
 |tool RNA               |used for                                             |last update/check |notes                                                                                                            |url                                                                     |
 |-----------------------|-----------------------------------------------------|------------------|-----------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-|STAR                   |mapping                                              |03.2023 (2.7.10b) |                                                                                                                 |https://github.com/alexdobin/STAR                                       |
-|subread                |read counting                                        |03.2023 (2.0.4)   |                                                                                                                 |https://subread.sourceforge.net/                                        |
-|Arriba                 |fusion detection                                     |03.2023 (2.4.0)   |                                                                                                                 |https://github.com/suhrig/arriba                                        |
-|Kraken2                |fastq filtering                                      |03.2023 (2.1.2)   |                                                                                                                 |https://github.com/DerrickWood/kraken2                                  |
-|umi_tools              |UMI extraction                                       |03.2023 (1.1.4)   |                                                                                                                 |https://github.com/CGATOxford/UMI-tools                                 |
+|STAR                   |mapping                                              |08.2024 (2.7.11b) |                                                                                                                 |https://github.com/alexdobin/STAR                                       |
+|subread                |read counting                                        |08.2024 (2.0.6)   |                                                                                                                 |https://subread.sourceforge.net/                                        |
+|Arriba                 |fusion detection                                     |08.2024 (2.4.0)   |                                                                                                                 |https://github.com/suhrig/arriba                                        |
+|Kraken2                |fastq filtering                                      |08.2024 (2.1.3)   |                                                                                                                 |https://github.com/DerrickWood/kraken2                                  |
+|umi_tools              |UMI extraction                                       |08.2024 (1.1.5)   |                                                                                                                 |https://github.com/CGATOxford/UMI-tools                                 |
 
 ## Tools for longread pipeline
 

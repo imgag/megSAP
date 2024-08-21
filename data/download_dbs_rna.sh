@@ -21,7 +21,7 @@ wget -O - https://www.proteinatlas.org/download/rna_tissue_consensus.tsv.zip | g
 #download Ensembl data in GTF format
 cd $data_folder
 mkdir -p dbs/gene_annotations
-wget -O - 'https://ftp.ensembl.org/pub/release-109/gtf/homo_sapiens/Homo_sapiens.GRCh38.109.gtf.gz' | \
+wget -O - 'https://ftp.ensembl.org/pub/release-112/gtf/homo_sapiens/Homo_sapiens.GRCh38.112.gtf.gz' | \
   gzip -cd | \
   awk '{ if ($1 !~ /^#/) { print "chr"$0 } else { print $0 } }' > dbs/gene_annotations/GRCh38.gtf
 
