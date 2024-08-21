@@ -21,7 +21,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 //init
-$genome = genome_fasta($build, true, false);
+$genome = genome_fasta($build);
 $gvcf_out = substr($out, 0, -6)."gvcf.gz";
 if (count($gvcfs) < 2) trigger_error("At least two gVCF files have to be provided!", E_USER_ERROR);
 if (count($gvcfs) != count($status)) trigger_error("List of gVCF files and statuses has to be the same.", E_USER_ERROR);

@@ -1414,7 +1414,7 @@ function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 function allele_count($bam, $chr, $pos)
 {
 	//get pileup
-	list($output) = exec2(get_path("samtools")." mpileup -aa -r $chr:$pos-$pos $bam");
+	list($output) = exec2(get_path("samtools")." mpileup -aa -r $chr:$pos-$pos $bam"); //TODO Alexander: reference genome?
 	list($chr2, $pos2, $ref2,, $bases) = explode("\t", $output[0]);
 	
 	//count bases
@@ -2150,9 +2150,10 @@ function is_novaseq_x_run($run_parameters_xml)
 }
 
 //checks if the genome used to map the BAM/CRAM file had masked false duplications
-function genome_masked($bam)
+function genome_masked($bam, $build)
 {
-	list($stdout) = exec2(get_path("samtools")." view {$bam} chr21:6110084-6124379 | wc -l", false);
+	$genome = genome_fasta($build);
+	list($stdout) = exec2(get_path("samtools")." view -T {$genome} {$bam} chr21:6110084-6124379 | wc -l", false);
 	
 	$read_count = trim(implode("", $stdout));
 	
@@ -2164,7 +2165,7 @@ function contains_methylation($bam_file, $n_rows=100)
 {
 	if (!file_exists($bam_file)) trigger_error("BAM file '{$bam_file}'", E_USER_ERROR);
 	// ignore errors occuring of unknown reason (broken pipe)
-	list($stdout) = exec2(get_path("samtools")." view {$bam_file} | head -n {$n_rows}", false);
+	list($stdout) = exec2(get_path("samtools")." view {$bam_file} | head -n {$n_rows}", false); //TODO Leon: reference genome?
 	//additional testing since we cannot rely on samtools error reporting
 	if (count($stdout) != $n_rows) trigger_error("Couldn't extract the first {$n_rows} rows of the BAM file!", E_USER_ERROR);
 

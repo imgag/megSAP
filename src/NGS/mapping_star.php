@@ -114,7 +114,6 @@ $star = $long_reads ? get_path("STAR")."long" : get_path("STAR");
 //mapping with STAR
 $pipeline = array();
 $pipeline[] = array($star, implode(" ", $arguments));
-
 $pipeline[] = array(get_path("samtools"), "view -h");
 
 //duplicate flagging with samblaster
