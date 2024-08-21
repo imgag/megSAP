@@ -209,10 +209,10 @@ if (in_array("an", $steps))
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnv_file}", true);
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnv_file}", true);
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnv_file}", true);
-		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", true);
+		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", true);
 
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_2.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2024_2.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnv_file}", true);

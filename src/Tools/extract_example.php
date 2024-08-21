@@ -16,6 +16,7 @@ extract($parser->parse($argv));
 
 //init
 $samtools = get_path("samtools");
+$genome = genome_fasta("GRCh38");
 
 //make sure output folder exists
 $folder = $out."/";
@@ -29,7 +30,7 @@ file_put_contents($roi, strtr($reg, array(":"=>"\t", "-"=>"\t")));
 
 //extract reads from BAM
 $out_bam = "{$folder}/{$out}.bam";
-exec2("{$samtools} view -h -L {$roi} -M {$in} | {$samtools} view -Sb > {$out_bam}");
+exec2("{$samtools} view -T {$genome} -h -L {$roi} -M {$in} | {$samtools} view -T {$genome} -Sb > {$out_bam}");
 $parser->indexBam($out_bam, 4);
 
 //write IGV session file

@@ -139,22 +139,22 @@ if ($custom!="")
 }
 
 // add gnomAD annotation
-fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF\t\ttrue\n");
+fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF\t\ttrue\n");
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz")."\tgnomADm\tAF_hom\t\ttrue\n");
 
 // add clinVar annotation
-fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20240127_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
+fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20240805_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
 
 // add HGMD annotation
-$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2023_3_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
+$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2024_2_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
 if(file_exists($hgmd_file))
 {
 	fwrite($config_file, $hgmd_file."\tHGMD\tCLASS,MUT,GENE,PHEN\tID\n");
 }
 
 //add CADD score annotation
-fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=SNV\t\n");
-fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
+fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz")."\tCADD\tCADD=SNV\t\n");
+fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
 
 //add REVEL score annotation
 fwrite($config_file, annotation_file_path("/dbs/REVEL/REVEL_1.3.vcf.gz")."\t\tREVEL\t\n");

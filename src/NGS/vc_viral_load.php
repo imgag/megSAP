@@ -34,15 +34,16 @@ $parser->execTool("Tools/data_setup.php", "-build {$build_viral}");
 $viral_enrichment = get_path("data_folder") . "/enrichment/{$build_viral}.bed";
 
 //extract unaligned reads
+$genome = genome_fasta("GRCh38");
 $filtered_bam1 = $parser->tempFile("_filtered1.bam");
-$parser->exec(get_path("samtools"), "view -u -U {$filtered_bam1} -F 12 {$in} > /dev/null", true);
+$parser->exec(get_path("samtools"), "view -T {$genome} -u -U {$filtered_bam1} -F 12 {$in} > /dev/null", true);
 
 //extract alignments from viral chromosomes/regions, i.e. chrNC_007605
 if (count($viral_chrs) > 0)
 {
     $filtered_bam2 = $parser->tempFile("_filtered2.bam");
     $viral_regions = implode(" ", $viral_chrs);
-    $parser->exec(get_path("samtools"), "view -u -o {$filtered_bam2} {$in} {$viral_regions}", true);
+    $parser->exec(get_path("samtools"), "view -T {$genome} -u -o {$filtered_bam2} {$in} {$viral_regions}", true);
     
     $filtered_bam = $parser->tempFile("_filtered.bam");
     $parser->exec(get_path("samtools"), "merge -u {$filtered_bam} {$filtered_bam1} {$filtered_bam2}", true);
