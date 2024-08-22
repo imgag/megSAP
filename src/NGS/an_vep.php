@@ -289,12 +289,28 @@ if(file_exists($omim_file))
 
 //mark variants in low-confidence regions
 $low_conf_bed = repository_basedir()."/data/misc/low_conf_regions.bed";
-$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_annotate_output -mark low_conf_region -inv -reg $low_conf_bed -out $out", true);
+$tmp_low_conf_ann = $parser->tempFile("_low_conf_ann.vcf");
+$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_annotate_output -mark low_conf_region -inv -reg $low_conf_bed -out {$tmp_low_conf_ann}", true);
 
-//TODO: add low_mappability annotation
+//add low_mappability annotation
+if (!$test && db_is_enabled("NGSD"))
+{
+	$db_conn = DB::getInstance("NGSD", false);
+	$ps_info = get_processed_sample_info($db_conn, $ps_name, false);
+	if (isset($ps_info) && $ps_info["sys_type"] == "lrGS")
+	{
+		$tmp_sr_low_mappability = $parser->tempFile("_sr_low_mappability.vcf");
+		$mapq0_regions = repository_basedir()."data/misc/low_mappability_region/mapq_eq0.bed";
+		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$tmp_low_conf_ann} -mark sr_low_mappability -inv -reg {$mapq0_regions} -out {$tmp_sr_low_mappability}", true);
+
+		//replace input file 
+		$parser->moveFile($tmp_sr_low_mappability,$tmp_low_conf_ann);
+	}
+}
+
 
 //re-order VEP consequence annotations (order is random)
-$h = fopen2($out, "r");
+$h = fopen2($tmp_low_conf_ann, "r");
 $tmp = $parser->tempFile("_fixed_vep_consequences.vcf");
 $h2 = fopen2($tmp, "w");
 while(!feof($h))
