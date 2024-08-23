@@ -560,15 +560,14 @@ if (in_array("vc", $steps))
 		if ($is_wgs || ($is_wes && $has_roi) || ($is_panel && $has_roi))
 		{
 			//determine region
-			$mapq0_regions = repository_basedir()."data/misc/low_mappability_region/mapq_eq0.bed";
 			if ($is_wgs)
 			{
-				$roi_low_mappabilty = $mapq0_regions;
+				$roi_low_mappabilty = repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed";
 			}
 			else
 			{
 				$roi_low_mappabilty = $parser->tempFile("_mapq0.bed");
-				$parser->exec("{$ngsbits}BedIntersect", "-in ".$sys['target_file']." -in2 $mapq0_regions -out $roi_low_mappabilty", true);
+				$parser->exec("{$ngsbits}BedIntersect", "-in ".$sys['target_file']." -in2 ".repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed -out $roi_low_mappabilty", true);
 			}
 			
 			if (bed_size($roi_low_mappabilty)>0)
