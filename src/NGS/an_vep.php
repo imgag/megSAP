@@ -300,7 +300,7 @@ if (!$test && db_is_enabled("NGSD"))
 	if (isset($ps_info) && $ps_info["sys_type"] == "lrGS")
 	{
 		$tmp_sr_low_mappability = $parser->tempFile("_sr_low_mappability.vcf");
-		$mapq0_regions = repository_basedir()."data/misc/low_mappability_region/mapq_eq0.bed";
+		$mapq0_regions = repository_basedir()."data/misc/low_mappability_region/wgs_mapq_eq0.bed";
 		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$tmp_low_conf_ann} -mark sr_low_mappability -inv -reg {$mapq0_regions} -out {$tmp_sr_low_mappability}", true);
 
 		//replace input file 

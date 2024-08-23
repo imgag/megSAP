@@ -52,7 +52,7 @@ foreach ($subdirs as $subdir)
 	{
 		list($stdout, $stderr, $exit_code) = $parser->exec("du", "-b --summarize {$subdir}/pod5_skip");
 		$folder_size = intval(explode("\t", $stdout[0])[0]);
-		if ($folder_size > 1024*1024) // > 1MB
+		if ($folder_size > 5*1024*1024) // > 5MB
 		{
 			trigger_error("'pod5_skip' directory present in '{$subdir}', some data has not been basecalled!", E_USER_ERROR);
 		}
