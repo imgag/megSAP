@@ -8,7 +8,7 @@
 | target region read depth | > 30x          | > 25x           | < 25x           |
 | 20x coverage             | > 95%          | > 85%           | < 85%           |
 | SNV deviation            | < 5            |                 |                 |
-| N50                      | > 10kb         |  > 5kb          | <5kb            |
+| N50                      | > 10kb         |  < 10kb         |                 |
 
 
 ### WGS
