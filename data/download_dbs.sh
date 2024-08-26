@@ -156,8 +156,8 @@ tabix -p vcf AlphaMissense_hg38.vcf.gz
 cd $dbs
 mkdir SpliceAI
 cd SpliceAI
-wget https://download.imgag.de/public/splicing/spliceai_scores_2023_12_20_GRCh38.vcf.gz -O spliceai_scores_2023_12_20_GRCh38.vcf.gz
-tabix -C -m 9 -p vcf spliceai_scores_2023_12_20_GRCh38.vcf.gz
+wget https://download.imgag.de/public/splicing/spliceai_scores_2024_08_26_GRCh38.vcf.gz -O spliceai_scores_2024_08_26_GRCh38.vcf.gz
+tabix -C -m 9 -p vcf spliceai_scores_2024_08_26_GRCh38.vcf.gz
 
 #download sniffles 
 cd $dbs
