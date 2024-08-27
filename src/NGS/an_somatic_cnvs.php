@@ -83,14 +83,10 @@ if($include_cytoband)
 }
 
 if(isset($rna_counts))
-{
-	
-	//Resubstitute zeroes by spaces (opposite happens in somatic_dna.php)
-	$rna_ref_tissue = str_replace("0", " ", $rna_ref_tissue);
-	
-	if(!isset($rna_id) || !isset($rna_ref_tissue))
+{	
+	if(!isset($rna_id))
 	{
-		trigger_error("Both parameters \"-rna_ref_tissue\" and \"-rna_id\" have to be specified for the annotation of RNA data.", E_USER_ERROR);
+		trigger_error("The parameter \"-rna_id\" has to be specified for the annotation of RNA data.", E_USER_ERROR);
 	}
 	
 	//Make list of genes that occur in CNV file
@@ -148,30 +144,36 @@ if(isset($rna_counts))
 		}
 	}
 	
-	//annotate RNA reference counts
-	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_consensus_v23.tsv";
 	$ref_results = array();
-	$handle = fopen2($ref_file,"r");
-	$entry_count = 0;
-	while(!feof($handle))
+	if (isset($rna_ref_tissue))
 	{
-		$line = fgets($handle);
-		if(starts_with($line, "Gene\t")) continue;
-		if(empty($line)) continue;
-
-		list(,$ref_gene,$tissue,$tpm) = explode("\t", trim($line));
-		
-		if($tissue != trim($rna_ref_tissue)) continue;
-		
-		++$entry_count;
-		
-		if(in_array($ref_gene, $genes_of_interest)) $ref_results[$ref_gene] = $tpm;
-	}
-	fclose($handle);
+		//Resubstitute zeroes by spaces (opposite happens in somatic_dna.php)
+		$rna_ref_tissue = str_replace("0", " ", $rna_ref_tissue);
 	
-	if($entry_count == 0)
-	{
-		trigger_error("Could not find any reference value for tissue type \"{$rna_ref_tissue}\".", E_USER_ERROR);
+		//annotate RNA reference counts
+		$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_consensus_v23.tsv";
+		$handle = fopen2($ref_file,"r");
+		$entry_count = 0;
+		while(!feof($handle))
+		{
+			$line = fgets($handle);
+			if(starts_with($line, "Gene\t")) continue;
+			if(empty($line)) continue;
+
+			list(,$ref_gene,$tissue,$tpm) = explode("\t", trim($line));
+			
+			if($tissue != trim($rna_ref_tissue)) continue;
+			
+			++$entry_count;
+			
+			if(in_array($ref_gene, $genes_of_interest)) $ref_results[$ref_gene] = $tpm;
+		}
+		fclose($handle);
+		
+		if($entry_count == 0)
+		{
+			trigger_error("Could not find any reference value for tissue type \"{$rna_ref_tissue}\".", E_USER_ERROR);
+		}
 	}
 	
 	//Parse results to out file
@@ -197,7 +199,7 @@ if(isset($rna_counts))
 			}
 			
 			
-			if(array_key_exists($dna_gene,$ref_results))
+			if(array_key_exists($dna_gene, $ref_results))
 			{
 				$new_entry_ref[] = "{$dna_gene}=". sprintf( "%.2f",round($ref_results[$dna_gene], 2) );
 			}
@@ -209,22 +211,24 @@ if(isset($rna_counts))
 		$new_col[] = implode(",", $new_entry);
 		$new_col_ref[] = implode(",", $new_entry_ref);
 	}
-	
 
 	//remove outdated annotation columns/comments
 	$cnv_input->removeComment("RNA_PROCESSED_SAMPLE_ID", true);
 	$cnv_input->removeColByName("rna_tpm");
 	$cnv_input->removeColByName("rna_ref_tpm");
-
-	//Add annotation data
+	
 	$cnv_input->removeComment("RNA_REF_TPM_TISSUE=", true);
-	$cnv_input->addComment("#RNA_REF_TPM_TISSUE={$rna_ref_tissue}");
+	$cnv_input->removeColByName("rna_ref_tpm", true);
 	
 	$cnv_input->removeColByName("{$rna_id}_rna_tpm");
 	$cnv_input->addCol($new_col, "{$rna_id}_rna_tpm", "RNA TPM counts per gene from file {$rna_counts}.");
 	
-	$cnv_input->removeColByName("rna_ref_tpm", true);
-	$cnv_input->addCol($new_col_ref, "rna_ref_tpm", "RNA reference data in transcripts per million for tissue {$rna_ref_tissue} from proteinatlas.org.");
+	if (isset($rna_ref_tissue))
+	{
+		//Add annotation data
+		$cnv_input->addComment("#RNA_REF_TPM_TISSUE={$rna_ref_tissue}");
+		$cnv_input->addCol($new_col_ref, "rna_ref_tpm", "RNA reference data in transcripts per million for tissue {$rna_ref_tissue} from proteinatlas.org.");
+	}
 }
 
 $cnv_input->toTSV($out);
