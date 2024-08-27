@@ -33,10 +33,9 @@
 
 ## Databases for RNA pipelines
 
-|database                 |used for                |last update/check               |notes                                                                                                                           |url                                                                     |
-|-------------------------|------------------------|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-|Ensembl GTF file         |pipeline (RNA)          |08.2024 (GRCh38.112)            |                                                                                                                                |https://ftp.ensembl.org/pub/release-112/gtf/homo_sapiens/               |
-|Ensembl gene annotations |pipeline (RNA)          |08.2024 (based on vep v112)     |remake STAR index if changed                                                                                                    |https://ftp.ensembl.org/pub/release-112/gtf/homo_sapiens/               |
+|database                 |used for                |last update/check                   |notes                                                                                                                           |url                                                                     |
+|-------------------------|------------------------|------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+|Ensembl GTF file         |pipeline (RNA)          |08.2024 (kept on ensembl v109 gtf)  |Keep at V109 as the NGSD import is based on these transcripts - if updated also remake STAR index                               |https://ftp.ensembl.org/pub/release-109/gtf/homo_sapiens/               |
 
 
 ## Tools general
