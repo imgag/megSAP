@@ -767,19 +767,20 @@ if (in_array("db", $steps))
 
 	if (!$skip_wgs_check)
 	{
-		//check similarity to (sr) WGS sample
-		list($stdout, $stderr, $exit_code) = $parser->exec("{$ngsbits}/NGSDSameSample", "-ps $name -system_type WGS");
+		//check similarity to (sr) WGS/WES sample
+		list($stdout, $stderr, $exit_code) = $parser->exec("{$ngsbits}/NGSDSameSample", "-ps $name -system_type WGS,WES");
 		//parse stdout
 		$same_samples = array();
 		foreach ($stdout as $line) 
 		{
 			if (starts_with($line, "#")) continue;
 			if (trim($line) == "") continue;
-			$same_samples[] = trim(explode("\t", $line)[0]);
+			$parts = explode("\t", $line);
+			$same_samples[] = trim($parts[0]);
 		}
 		if (count($same_samples) < 1)
 		{
-			trigger_error("No related WGS sample found for {$name}. Cannot perform similarity check!", E_USER_WARNING);
+			trigger_error("No related WGS/WES sample found for {$name}. Cannot perform similarity check!", E_USER_WARNING);
 		} 
 		else
 		{

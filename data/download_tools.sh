@@ -64,7 +64,6 @@ cd ..
 chmod -R 777 $folder/Python-3.10.9_2024.08.21/lib/python3.10/site-packages/SigProfiler*
 $folder/Python-3.10.9_2024.08.21/bin/python3 $root/../src/NGS/extract_signatures.py --installGenome --reference GRCh38 --in . --outFolder .
 
-
 #download and build samtools
 cd $folder
 wget https://github.com/samtools/samtools/releases/download/1.20/samtools-1.20.tar.bz2
