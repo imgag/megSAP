@@ -6,7 +6,7 @@ Somatic analysis of tumor/normal DNA sample pairs is performed with `somatic_dna
 
 ### Mapping single samples
 
-The somatic pipeline requires requires tumor and normal sample BAM files.  
+The somatic pipeline requires tumor and normal sample BAM files.  
 Thus, they need to be mapped first using the `analysis.php` with the parameter `-steps ma -somatic`.  
 For more information, see the documentation at [single sample DNA analysis](dna_single_sample.md).
 

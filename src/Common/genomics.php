@@ -1273,7 +1273,7 @@ function approve_gene_names($input_genes)
 			$gene =  "NOT_AVAILABLE";
 		}
 		
-		$genes_as_string = $genes_as_string.$gene."\n";
+		$genes_as_string .= $gene."\n";
 	}
 	$non_approved_genes_file = temp_file(".txt", "approve_gene_names");
 	file_put_contents($non_approved_genes_file,$genes_as_string);
@@ -1444,7 +1444,7 @@ function allele_count($bam, $chr, $pos)
 
 			$indel_size = intval($indel_size_as_string);
 			
-			$counts["*"] = $counts["*"] + 1;
+			$counts["*"] += 1;
 			$i += $indel_size - 1; //skip bases that belong to the descroption of the indel, -1 is neccessary due to for loop
 		}
 	}
