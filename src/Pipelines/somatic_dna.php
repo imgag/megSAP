@@ -1326,7 +1326,7 @@ if (in_array("an_rna", $steps))
 				"-cnv_in $som_clincnv" ,
 				"-out $som_clincnv",
 				"-rna_counts $rna_count"
-			]
+			];
 			
 			if (isset($rna_ref_tissue)) $args[] = "-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue);
 			

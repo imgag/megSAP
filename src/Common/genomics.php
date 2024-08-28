@@ -1413,8 +1413,14 @@ function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 //returns the allele counts for a sample at a certain position as an associative array, reference skips and start/ends of read segments are ignored
 function allele_count($bam, $chr, $pos)
 {
+	if (ends_with($bam, ".cram"))
+	{
+		trigger_error("This function uses a samtools call without a reference. If you're using CRAM files check first if samtools downloads the reference chromosomes implicitly.", E_USER_ERROR);
+		//output of "samtools mpileup" also changes with reference if you add a reference you need to make the function compatible with the new output.
+	}
+	
 	//get pileup
-	list($output) = exec2(get_path("samtools")." mpileup -aa -r $chr:$pos-$pos $bam"); //TODO Alexander: reference genome?
+	list($output) = exec2(get_path("samtools")." mpileup -aa -r $chr:$pos-$pos $bam");
 	list($chr2, $pos2, $ref2,, $bases) = explode("\t", $output[0]);
 	
 	//count bases
