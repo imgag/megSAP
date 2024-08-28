@@ -1106,7 +1106,7 @@ if (in_array("an", $steps))
 	$parser->execTool("NGS/vcf2gsvar_somatic.php", implode(" ", $args));
 	
 	//Annotate data from network of cancer genes
-	$parser->execTool("NGS/an_somatic_gsvar.php" , "-gsvar_in $variants_gsvar -out $variants_gsvar -include_ncg");
+	$parser->execTool("NGS/an_somatic_gsvar.php" , "-gsvar_in $variants_gsvar -out $variants_gsvar -include_ncg -build ".$t_sys['build']);
 
 	//Determine cfDNA monitoring candidates (only tumor-normal samples)
 	$umiVar2_path = get_path("umiVar2");
@@ -1254,7 +1254,14 @@ if (in_array("an_rna", $steps))
 		}
 		else
 		{
-			trigger_error("Found multiple or no RNA reference tissue in NGSD. Aborting...", E_USER_ERROR);
+			if (count($res) > 1)
+			{
+				trigger_error("Found multiple RNA reference tissue in NGSD. Aborting...", E_USER_ERROR);
+			}
+			else
+			{
+				trigger_error("Found no RNA reference tissue in NGSD. Skipping reference tissue annotation...", E_USER_WARNING);
+			}
 		}
 	}
 	
@@ -1308,13 +1315,22 @@ if (in_array("an_rna", $steps))
 		"-out $variants_gsvar",
 		"-rna_id $rna_id",
 		"-rna_counts $rna_count",
-		"-rna_bam $rna_bam"];
+		"-rna_bam $rna_bam",
+		"-build ".$t_sys['build']];
 		$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
 		
 		//CNVs
 		if(file_exists($som_clincnv))
 		{
-			$parser->execTool("NGS/an_somatic_cnvs.php", " -cnv_in $som_clincnv -out $som_clincnv -rna_counts $rna_count -rna_id $rna_id -rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue));
+			$args = [
+				"-cnv_in $som_clincnv" ,
+				"-out $som_clincnv",
+				"-rna_counts $rna_count"
+			]
+			
+			if (isset($rna_ref_tissue)) $args[] = "-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue);
+			
+			$parser->execTool("NGS/an_somatic_cnvs.php",  implode(" ", $args));
 		}
 	}
 	
@@ -1322,8 +1338,11 @@ if (in_array("an_rna", $steps))
 	$args = [
 		"-gsvar_in $variants_gsvar",
 		"-out $variants_gsvar",
-		"-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue)//Replace spaces by 0 because it is diffcult to pass spaces via command line.
+		"-build ".$t_sys['build']
 	];
+	
+	if (isset($rna_ref_tissue)) $args[] = "-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue); //Replace spaces by 0 because it is diffcult to pass spaces via command line.
+	
 	$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
 
 }
