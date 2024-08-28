@@ -49,4 +49,9 @@ Major changes of master since last release:
 * added optional RefSeq annotation (see [settings documentation](doc/settings.md#section-general)).
 * added optional custom annotations in GSvar/VCF from VCFs (see [settings documentation](doc/settings.md#section-general)).
 
+## Citing
+
+There is no paper for megSAP yet.  
+Please cite the GitHub repository for now.
+
 For older changes see [releases](https://github.com/imgag/megSAP/releases).
