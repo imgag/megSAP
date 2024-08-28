@@ -1106,7 +1106,7 @@ if (in_array("an", $steps))
 	$parser->execTool("NGS/vcf2gsvar_somatic.php", implode(" ", $args));
 	
 	//Annotate data from network of cancer genes
-	$parser->execTool("NGS/an_somatic_gsvar.php" , "-gsvar_in $variants_gsvar -out $variants_gsvar -include_ncg -build ".$t_sys['build']);
+	$parser->execTool("NGS/an_somatic_gsvar.php" , "-gsvar_in $variants_gsvar -out $variants_gsvar -include_ncg");
 
 	//Determine cfDNA monitoring candidates (only tumor-normal samples)
 	$umiVar2_path = get_path("umiVar2");
@@ -1315,8 +1315,8 @@ if (in_array("an_rna", $steps))
 		"-out $variants_gsvar",
 		"-rna_id $rna_id",
 		"-rna_counts $rna_count",
-		"-rna_bam $rna_bam",
-		"-build ".$t_sys['build']];
+		"-rna_bam $rna_bam"
+		];
 		$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
 		
 		//CNVs
@@ -1338,7 +1338,6 @@ if (in_array("an_rna", $steps))
 	$args = [
 		"-gsvar_in $variants_gsvar",
 		"-out $variants_gsvar",
-		"-build ".$t_sys['build']
 	];
 	
 	if (isset($rna_ref_tissue)) $args[] = "-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue); //Replace spaces by 0 because it is diffcult to pass spaces via command line.
