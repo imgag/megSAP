@@ -1,4 +1,4 @@
-# megSAP - DNA analysis (single sample)
+# megSAP - DNA long-read analysis (single sample)
 
 ### Basics
 
