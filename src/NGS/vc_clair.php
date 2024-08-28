@@ -84,6 +84,8 @@ $parser->exec(get_path("clair3"), implode(" ", $args));
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
 $clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
 
+/* $parser->execSingularity(); */
+
 //post-processing 
 $pipeline = array();
 

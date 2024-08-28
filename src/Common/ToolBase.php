@@ -842,9 +842,9 @@ class ToolBase
 			trigger_error("Error in 'execSingularity' method call: Command must not contain pipe symbol '|'! \n$command_and_parameters", E_USER_ERROR);
 		}
 
-		//get container
+		//get container TODO revert repository_basedir to get_path("container_folder") after discussing
 		$container_path = get_path("container_folder")."/{$container}_{$container_version}.sif";
-		if(!file_exists($container_path)) trigger_error("Singularity container '{$container_path}' not found!", E_USER_ERROR);
+				if(!file_exists($container_path)) trigger_error("Singularity container '{$container_path}' not found!", E_USER_ERROR);
 
 		//check bind paths
 		foreach($bind_paths as $path)
@@ -875,7 +875,7 @@ class ToolBase
 		}
 
 		//compose Singularity command
-		$singularity_command = "singularity exec -B ".implode(",", $bind_paths)." {$container_path} {$command_and_parameters}";
+		$singularity_command = "apptainer exec -B ".implode(",", $bind_paths)." {$container_path} {$command_and_parameters}";
 
 		//TODO: remove 
 		$this->log("DEBUG: Singularity command:\t", array($singularity_command));
