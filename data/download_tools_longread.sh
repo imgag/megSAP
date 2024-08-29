@@ -29,6 +29,9 @@ cd models
 wget http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_sup_g5014.tar.gz
 tar xzf r941_prom_sup_g5014.tar.gz
 rm r941_prom_sup_g5014.tar.gz
+wget http://www.bio8.cs.hku.hk/clair3/clair3_models/r1041_e82_400bps_sup_v420.tar.gz
+tar xzf r1041_e82_400bps_sup_v420.tar.gz
+rm r1041_e82_400bps_sup_v420.tar.gz
 cd ..
 #create temporary miniconda/clair env to build clair
 wget https://repo.anaconda.com/miniconda/Miniconda3-py310_23.3.1-0-Linux-x86_64.sh -O miniconda.sh
