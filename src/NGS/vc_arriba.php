@@ -155,12 +155,12 @@ if (isset($out_bam)) {
 
         $parser->exec(get_path("samtools"), "view -H {$bam} > {$bam_header}");
         $parser->execPipeline([
-            [get_path("samtools"), "view -O SAM {$bam}"],
+            [get_path("samtools"), "view -T {$genome} -O SAM {$bam}"],
             ["grep", "-F -f {$read_ids} > {$bam_records}"]
         ], "filter BAM");
         $parser->execPipeline([
             ["cat", "{$bam_header} ${bam_records}"],
-            [get_path("samtools"), "view -o {$out_bam}"]
+            [get_path("samtools"), "view -T {$genome} -o {$out_bam}"]
         ], "write BAM");
         $parser->indexBam($out_bam, 1);
     }

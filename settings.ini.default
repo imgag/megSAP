@@ -5,7 +5,7 @@
 ;only adapting the NGSD database credentials is necessary.
 
 [tools-ngs]
-python3 = [path]/data/tools/Python-3.10.9_8.2.24/bin/python3.10
+python3 = [path]/data/tools/Python-3.10.9_19.08.24/bin/python3.10
 python27 = [path]/data/tools/Python-2.7.18/bin/python2.7
 ngs-bits = [path]/data/tools/ngs-bits/bin/
 samtools = [path]/data/tools/samtools-1.20/samtools
@@ -33,19 +33,19 @@ gatk = java -Xmx4G -jar /[path]/data/tools/gatk-4.6.0.0/gatk-package-4.6.0.0-loc
 orad = [path]/data/tools/orad_2_6_1/orad
 
 [tools-longread]
-minimap2 = [path]/data/tools/minimap2-2.26_x64-linux/minimap2
-clair3 = [path]/data/tools/Clair3-v1.0.5/run_clair3.sh
-clair3_models = [path]/data/tools/Clair3-v1.0.5/models
-longphase = [path]/data/tools/longphase_v1.6/longphase_linux-x64
-whatshap = [path]/data/tools/Python-3.10.9_8.2.24/bin/whatshap
-pypy3 = [path]/data/tools/pypy3.9-v7.3.14-linux64/bin/pypy3
-parallel = [path]/data/tools/parallel-20230522/bin/parallel
-sniffles = [path]/data/tools/Python-3.10.9_8.2.24/bin/sniffles
+minimap2 = [path]/data/tools/minimap2-2.28_x64-linux/minimap2
+clair3 = [path]/data/tools/Clair3-v1.0.10/run_clair3.sh
+clair3_models = [path]/data/tools/Clair3-v1.0.10/models
+longphase = [path]/data/tools/longphase_v1.7.3/longphase_linux-x64
+whatshap = [path]/data/tools/Python-3.10.9_19.08.24/bin/whatshap
+pypy3 = [path]/data/tools/pypy3.9-v7.3.16-linux64/bin/pypy3
+parallel = [path]/data/tools/parallel-20240722/bin/parallel
+sniffles = [path]/data/tools/Python-3.10.9_19.08.24/bin/sniffles
 straglr = [path]/data/tools/straglr-1.5.1/straglr.py
 trf = [path]/data/tools/TRF_4.09/trf409.linux64
-blastn = [path]/data/tools/ncbi-blast-2.15.0+/bin/blastn
-modkit = [path]/data/tools/modkit_v0.2.5-rc2/modkit
-straglrOn = [path]/data/tools/StraglrOn_v0.2/src/straglron.py
+blastn = [path]/data/tools/ncbi-blast-2.16.0+/bin/blastn
+modkit = [path]/data/tools/modkit_v0.3.2/modkit
+straglrOn = [path]/data/tools/StraglrOn_v0.2.2/src/straglron.py
 
 [tools-ngs-somatic]
 strelka2 = [path]/data/tools/strelka-2.9.10.centos6_x86_64/bin/

@@ -4,7 +4,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
 $parser = new ToolBase("vc_varscan2", "Variant calling with VarScan2.");
-$parser->addInfile("bam",  "Input file in BAM format. Space separated. Note: .bam.bai file is required!", false);
+$parser->addInfile("bam",  "Input file in BAM format.", false);
 $parser->addOutfile("out", "Output file in VCF.GZ format.", false);
 //optional
 $parser->addInfile("target",  "Enrichment target BED file.", true);

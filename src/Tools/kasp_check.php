@@ -311,7 +311,6 @@ if ($user_id==-1)
 {
 	trigger_error("User '$user' not found in NGSD!", E_USER_ERROR);
 }
-print "$user $user_id\n";
 
 if ($snps=="set1")
 {

@@ -58,7 +58,7 @@ check($db_con->getValue("SELECT COUNT(*) FROM analysis_job_history"), 1);
 check($db_con->getValue("SELECT COUNT(*) FROM analysis_job_sample"), 1);
 
 //test 5: skipped basecalling -> fail
-exec2("dd if=/dev/zero of=".output_folder()."/21073LRa277_01234/20000101_1200_3D_PAW01234_abcdef12/pod5_skip/trash.pod5  bs=2M  count=1"); //create data in pod5_skip folder
+exec2("dd if=/dev/zero of=".output_folder()."/21073LRa277_01234/20000101_1200_3D_PAW01234_abcdef12/pod5_skip/trash.pod5  bs=8M  count=1"); //create data in pod5_skip folder
 list($stdout, $stderr, $exit_code) = exec2("php ".src_folder()."/NGS/{$name}.php -run_name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -threads 4 -bam --log -", FALSE); //should fail
 check(($exit_code == 0), FALSE); // check exit code
 check((strpos(implode("", $stderr), "'pod5_skip' directory present in ") != FALSE), TRUE); //check error message

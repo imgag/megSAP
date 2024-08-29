@@ -52,7 +52,7 @@ foreach ($subdirs as $subdir)
 	{
 		list($stdout, $stderr, $exit_code) = $parser->exec("du", "-b --summarize {$subdir}/pod5_skip");
 		$folder_size = intval(explode("\t", $stdout[0])[0]);
-		if ($folder_size > 1024*1024) // > 1MB
+		if ($folder_size > 5*1024*1024) // > 5MB
 		{
 			trigger_error("'pod5_skip' directory present in '{$subdir}', some data has not been basecalled!", E_USER_ERROR);
 		}
@@ -126,11 +126,11 @@ if (count($bam_files) !== 0)
 {
 	$bam_random_file = $bam_files[array_rand($bam_files, 1)];
 
-	$ret = $parser->exec(get_path("samtools"), "view --count --exclude-flags 0x900 {$bam_random_file}");
+	$ret = $parser->exec(get_path("samtools"), "view --count --exclude-flags 0x900 {$bam_random_file}"); //TODO Leon: reference genome?
 	$num_records = intval($ret[0][0]);
-	$ret = $parser->exec(get_path("samtools"), "view --count --tag ML {$bam_random_file}");
+	$ret = $parser->exec(get_path("samtools"), "view --count --tag ML {$bam_random_file}"); //TODO Leon: reference genome?
 	$num_base_mods = intval($ret[0][0]);
-	$ret = $parser->exec(get_path("samtools"), "view --count --require-flags 0x4 {$bam_random_file}");
+	$ret = $parser->exec(get_path("samtools"), "view --count --require-flags 0x4 {$bam_random_file}"); //TODO Leon: reference genome?
 	$num_unaligned = intval($ret[0][0]);
 
 	$modified_bases = $num_records == $num_base_mods;
@@ -210,14 +210,14 @@ if (($bam_available && $prefer_bam) || $bam)
 	{
 		$tmp_for_sorting = $parser->tempFile();
 		//merge presorted files
-		$pipeline[] = [get_path("samtools"), "merge --threads {$threads} -b - -o {$out_bam}"];
+		$pipeline[] = [get_path("samtools"), "merge --threads {$threads} -b - -o {$out_bam}"]; //TODO Leon: reference genome?
 		$parser->execPipeline($pipeline, "merge aligned BAM files");
 		$parser->indexBam($out_bam, $threads);
 
 	}
 	else
 	{
-		$pipeline[] = [get_path("samtools"), "cat --threads {$threads} -o {$out_bam} -b -"];
+		$pipeline[] = [get_path("samtools"), "cat --threads {$threads} -o {$out_bam} -b -"]; //TODO Leon: reference genome?
 		$parser->execPipeline($pipeline, "merge unaligned BAM files");
 	}
 }

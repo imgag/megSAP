@@ -6,7 +6,7 @@ Somatic analysis of tumor-only DNA samples is performed with `somatic_dna.php`.
 
 ### Mapping tumor sample
 
-The somatic pipeline requires requires the tumor sample BAM file.  
+The somatic pipeline requires the tumor sample BAM file.  
 Thus, the tumor sample needs to be mapped first using the `analysis.php` with the parameter `-steps ma -somatic`.  
 For more information, see the documentation at [single sample DNA analysis](dna_single_sample.md).
 

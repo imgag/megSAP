@@ -22,11 +22,19 @@ $cnv_ref_2 = data_folder()."/an_somatic_cnvs_ref2_cnvs.tsv";
 check_exec("php ".src_folder()."/NGS/an_somatic_cnvs.php -cnv_in $cnv_input_2 -rna_counts $rna_counts -out $cnv_output_2 -rna_id RX01_01 -rna_ref_tissue colon");
 check_file($cnv_output_2,$cnv_ref_2,false);
 
-//5th case: annotate cytobands
-$cnv_input_3 = $cnv_input_2;
+//annotate RNA data no reference tissue
+$cnv_input_3 = $cnv_input_2; 
+$rna_counts = data_folder()."/an_somatic_cnvs_rna_counts.tsv";
 $cnv_output_3 = output_folder()."/an_somatic_cnvs_out3_cnvs.tsv";
 $cnv_ref_3 = data_folder()."/an_somatic_cnvs_ref3_cnvs.tsv";
-check_exec("php ".src_folder()."/NGS/an_somatic_cnvs.php -cnv_in $cnv_input_3 -out $cnv_output_3 -include_cytoband");
+check_exec("php ".src_folder()."/NGS/an_somatic_cnvs.php -cnv_in $cnv_input_3 -rna_counts $rna_counts -out $cnv_output_3 -rna_id RX01_01");
 check_file($cnv_output_3,$cnv_ref_3,false);
+
+//5th case: annotate cytobands
+$cnv_input_4 = $cnv_input_2;
+$cnv_output_4 = output_folder()."/an_somatic_cnvs_out4_cnvs.tsv";
+$cnv_ref_4 = data_folder()."/an_somatic_cnvs_ref4_cnvs.tsv";
+check_exec("php ".src_folder()."/NGS/an_somatic_cnvs.php -cnv_in $cnv_input_4 -out $cnv_output_4 -include_cytoband");
+check_file($cnv_output_4,$cnv_ref_4,false);
 end_test();
 ?>

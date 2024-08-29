@@ -909,9 +909,9 @@ if(in_array("cn",$steps))
 		$data_folder = get_path("data_folder");
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
 		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$som_clincnv}", true);
-		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-02.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
+		$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_3.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2024_2.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->exec(get_path("ngs-bits")."BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$som_clincnv}", true);
@@ -1275,7 +1275,14 @@ if (in_array("an_rna", $steps))
 		}
 		else
 		{
-			trigger_error("Found multiple or no RNA reference tissue in NGSD. Aborting...", E_USER_ERROR);
+			if (count($res) > 1)
+			{
+				trigger_error("Found multiple RNA reference tissue in NGSD. Aborting...", E_USER_ERROR);
+			}
+			else
+			{
+				trigger_error("Found no RNA reference tissue in NGSD. Skipping reference tissue annotation...", E_USER_WARNING);
+			}
 		}
 	}
 	
@@ -1329,13 +1336,22 @@ if (in_array("an_rna", $steps))
 		"-out $variants_gsvar",
 		"-rna_id $rna_id",
 		"-rna_counts $rna_count",
-		"-rna_bam $rna_bam"];
+		"-rna_bam $rna_bam"
+		];
 		$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
 		
 		//CNVs
 		if(file_exists($som_clincnv))
 		{
-			$parser->execTool("NGS/an_somatic_cnvs.php", " -cnv_in $som_clincnv -out $som_clincnv -rna_counts $rna_count -rna_id $rna_id -rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue));
+			$args = [
+				"-cnv_in $som_clincnv" ,
+				"-out $som_clincnv",
+				"-rna_counts $rna_count"
+			];
+			
+			if (isset($rna_ref_tissue)) $args[] = "-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue);
+			
+			$parser->execTool("NGS/an_somatic_cnvs.php",  implode(" ", $args));
 		}
 	}
 	
@@ -1343,8 +1359,10 @@ if (in_array("an_rna", $steps))
 	$args = [
 		"-gsvar_in $variants_gsvar",
 		"-out $variants_gsvar",
-		"-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue)//Replace spaces by 0 because it is diffcult to pass spaces via command line.
 	];
+	
+	if (isset($rna_ref_tissue)) $args[] = "-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue); //Replace spaces by 0 because it is diffcult to pass spaces via command line.
+	
 	$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
 
 }
@@ -1444,7 +1462,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	$db_conn = DB::getInstance("NGSD");
 	
 	$t_info = get_processed_sample_info($db_conn, $t_id, false);
-	$n_info = get_processed_sample_info($db_conn, $n_id, false);
+	$n_info = $single_sample ? null : get_processed_sample_info($db_conn, $n_id, false);
 	
 	$ngsbits = get_path("ngs-bits");
 	

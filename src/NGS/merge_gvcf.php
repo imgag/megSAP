@@ -21,7 +21,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 //init
-$genome = genome_fasta($build, true, false);
+$genome = genome_fasta($build);
 $gvcf_out = substr($out, 0, -6)."gvcf.gz";
 if (count($gvcfs) < 2) trigger_error("At least two gVCF files have to be provided!", E_USER_ERROR);
 if (count($gvcfs) != count($status)) trigger_error("List of gVCF files and statuses has to be the same.", E_USER_ERROR);
@@ -160,13 +160,15 @@ foreach($chr_regions as list($chr, $length))
 	$chr_multisample_vcfs[] = "{$temp_folder_out}/{$chr}.vcf.gz";
 }
 
-
 //merge gVCFs
-$pipeline = array();
-$pipeline[] = array(get_path("ngs-bits")."VcfMerge", "-in ".implode(" ", $chr_multisample_gvcfs));
-$pipeline[] = array(get_path("bcftools"), "view --threads {$threads} -l 9 -O z -o {$gvcf_out} -s ".implode(",", $sample_order));
-$parser->execPipeline($pipeline, "Merge gVCF");
-$parser->exec("tabix", "-f -p vcf {$gvcf_out}", false); //no output logging, because Toolbase::extractVersion() does not return
+if ($mode=="longread")
+{
+	$pipeline = array();
+	$pipeline[] = array(get_path("ngs-bits")."VcfMerge", "-in ".implode(" ", $chr_multisample_gvcfs));
+	$pipeline[] = array(get_path("bcftools"), "view --threads {$threads} -l 9 -O z -o {$gvcf_out} -s ".implode(",", $sample_order));
+	$parser->execPipeline($pipeline, "Merge gVCF");
+	$parser->exec("tabix", "-f -p vcf {$gvcf_out}", false); //no output logging, because Toolbase::extractVersion() does not return
+}
 
 //merge VCFs
 $tmp_vcf = $parser->tempFile(".vcf.gz");
@@ -211,20 +213,22 @@ $pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", implode(
 $parser->execPipeline($pipeline, "merge_gvcf post processing");
 
 //add name/pipeline info to VCF header
-$vcf = Matrix::fromTSV($uncompressed_vcf);
-$comments = $vcf->getComments();
-$comments[] = "#reference={$genome}\n";
-$comments[] = "#ANALYSISTYPE={$analysis_type}\n";
-$comments[] = "#PIPELINE=".repository_revision(true)."\n";
-//get sample names
-$samples = array_slice($vcf->getHeaders(), -count($gvcfs));
-for ($i=0; $i < count($gvcfs); $i++) 
-{ 
-	$comments[] = gsvar_sample_header($samples[$i], array("DiseaseStatus"=>$status[$i]), "#", "");
+if ($mode=="longread")
+{
+	$vcf = Matrix::fromTSV($uncompressed_vcf);
+	$comments = $vcf->getComments();
+	$comments[] = "#reference={$genome}\n";
+	$comments[] = "#ANALYSISTYPE={$analysis_type}\n";
+	$comments[] = "#PIPELINE=".repository_revision(true)."\n";
+	//get sample names
+	$samples = array_slice($vcf->getHeaders(), -count($gvcfs));
+	for ($i=0; $i < count($gvcfs); $i++) 
+	{ 
+		$comments[] = gsvar_sample_header($samples[$i], array("DiseaseStatus"=>$status[$i]), "#", "");
+	}
+	$vcf->setComments(sort_vcf_comments($comments));
+	$vcf->toTSV($uncompressed_vcf);
 }
-$vcf->setComments(sort_vcf_comments($comments));
-$vcf->toTSV($uncompressed_vcf);
-
 
 //create zip + idx
 $parser->exec("bgzip", "-@ {$threads} -c $uncompressed_vcf > $out", false);

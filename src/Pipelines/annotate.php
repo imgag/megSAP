@@ -72,7 +72,7 @@ if ($no_splice) $args[] = "-no_splice";
 $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 
 //annotate COSMIC
-$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v98.vcf.gz";
+$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v99.vcf.gz";
 if(file_exists($cosmic_cmc) && $somatic)
 {
 	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
@@ -133,6 +133,12 @@ if (($sys['type']=="lrGS") && !$multi && !$somatic && db_is_enabled("NGSD"))
 	
 }
 
+//mark variants in low-mappabilty regions
+if ($multi)
+{
+	$roi_low_mappabilty = repository_basedir()."data/misc/low_mappability_region/wgs_mapq_eq0.bed";
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $annfile -mark low_mappability -inv -reg $roi_low_mappabilty -out $annfile", true);
+}
 
 //zip annotated VCF file
 $parser->exec("bgzip", "-c $annfile > $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return

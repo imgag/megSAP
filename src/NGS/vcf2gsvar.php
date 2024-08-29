@@ -996,7 +996,7 @@ while(!feof($handle))
 					// append description
 					if (array_key_exists($domain, $pfam_description))
 					{
-						$domain_description = $domain_description.$pfam_description[$domain];
+						$domain_description .= $pfam_description[$domain];
 					}
 
 					// throw error if Pfam id is neither found in replacement data nor in description data
