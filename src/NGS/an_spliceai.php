@@ -169,7 +169,6 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	global $build;
 	global $threads;
 	$ngsbits = get_path("ngs-bits");
-	$splice_env = get_path("splice_env", true);
 	
 	//check if SpliceAI INFO header is already present in the input VCF
 	$header_old = "";
@@ -194,9 +193,19 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	$args[] = "-A ".strtolower($build);
 	$args[] = "-M 1"; //enable masked scores
 	$args[] = "-D 50";
-	putenv("PYTHONPATH");
-	$parser->exec("OMP_NUM_THREADS={$threads} {$splice_env}/bin/python3 {$splice_env}/lib/python3.10/site-packages/spliceai", implode(" ", $args), true);
-	
+	/* putenv("PYTHONPATH"); */
+
+	//set bind paths for container execution
+	$bind_path = array();
+	$bind_path[] = dirname(realpath(genome_fasta($build)));
+	$bind_path[] = dirname($vcf_filtered);
+
+	//run spliceai container
+	$spliceai_command = "/spliceai/splice_env/bin/spliceai";
+	$spliceai_parameters = implode(" ", $args);
+	$spliceai_version = get_path("container_spliceai");
+	$parser->execSingularity("spliceai", $spliceai_version, $bind_path, $spliceai_command, $spliceai_parameters, $threads);
+
 	//no variants scored => copy input to output
 	$var_count = vcf_variant_count($tmp1, "SpliceAI=");
 	if($var_count==0)
@@ -239,9 +248,26 @@ if($var_count==0)
 }
 
 //filter for variants in SpliceAI transcript regions
+$tmp_fields = $parser->tempFile("spliceai_tmp_fields.txt");
+$tmp_prefixed = $parser->tempFile("spliceai_tmp_prefixed.txt");
 $spliceai_regions = $parser->tempFile("spliceai_scoring_regions.bed");
-$splice_env = get_path("splice_env", true);
-exec2("cut -f 2,4,5 -d'\t' {$splice_env}/lib/python3.10/site-packages/spliceai/annotations/".strtolower($build).".txt | sed 's/^/chr/' | sed '1d' > {$spliceai_regions}");
+
+$bind_path = array();
+$bind_path[] = dirname($tmp_fields);
+$spliceai_version = get_path("container_spliceai");
+
+$spliceai_command = "cut";
+$spliceai_parameters = "-f 2,4,5 -d'\t' /spliceai/splice_env/lib/python3.6/site-packages/spliceai/annotations/".strtolower($build).".txt > {$tmp_fields}";
+$parser->execSingularity("spliceai", $spliceai_version, $bind_path, $spliceai_command, $spliceai_parameters);
+
+$spliceai_command = "sed";
+$spliceai_parameters = "'s/^/chr/' {$tmp_fields} > {$tmp_prefixed}";
+$parser->execSingularity("spliceai", $spliceai_version, $bind_path, $spliceai_command, $spliceai_parameters);
+
+$spliceai_command = "sed";
+$spliceai_parameters = "'1d' {$tmp_prefixed} > {$spliceai_regions}";
+$parser->execSingularity("spliceai", $spliceai_version, $bind_path, $spliceai_command, $spliceai_parameters);
+
 $tmp2 = $parser->tempFile("_spliceai_filtered_regions.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg {$spliceai_regions} -in {$tmp1} -out {$tmp2}", true);
 $var_count = vcf_variant_count($tmp2);

@@ -11,6 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("vc_pepper_marging", "Variant calling with PepperMargin and DeepVariant.");
 $parser->addInfile("bam",  "Input files in BAM format. Note: .bam.bai file is required!", false);
 $parser->addOutfile("out", "Output file in VCF.GZ format.", false);
+$parser->addString("model", "Model used for calling.", false);
 //optional
 $parser->addFlag("enable_phasing", "Output phased variants using whatshap.");
 $parser->addInfile("target",  "Enrichment targets BED file.", true);
@@ -34,14 +35,13 @@ extract($parser->parse($argv));
 $genome = genome_fasta($build);
 $out_folder = $parser->tempFolder("clair3");
 
-//TODO: implement model path
-$model_path = "TODO";
+$model_path = get_path("clair3_models");
 
 //create basic variant calls
 $args = array();
 $args[] = "--bam_fn={$bam}";
 $args[] = "--ref_fn={$genome}";
-$args[] = "--model_path={$model_path}";
+$args[] = "--model_path={$model}";
 $args[] = "--threads={$threads}";
 $args[] = "--platform=\"ont\"";
 $args[] = "--output={$out_folder}";
@@ -73,9 +73,17 @@ if(isset($target))
 	$args[] = "--bed_fn={$target_merged}";
 }
 
-//run Clair3
-$parser->exec(get_path("clair3")."/run_clair3.sh", implode(" ", $args));
+//set bind path for clair3 container
+$bind_path = array();
+$bind_path[] = dirname(realpath($bam));
+$bind_path[] = dirname(realpath($genome));
+$bind_path[] = $model_path;
 
+//run Clair3 container
+$vc_clair_command = "/opt/bin/run_clair3.sh";
+$vc_clair_parameters = implode(" ", $args);
+$clair_version = get_path("container_clair3");
+$parser->execSingularity("clair3", $clair_version, $bind_path, $vc_clair_command, $vc_clair_parameters);
 
 //post-processing 
 $pipeline = array();

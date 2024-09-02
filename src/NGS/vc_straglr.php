@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
 $parser = new ToolBase("vc_straglr", "Call repeat expansions with straglr. Creates an BED file.");
-$parser->addInfile("in", "Input BAM file.", false);
+$parser->addInfile("in", "Input BAM file. Note: .bam.bai file is required!", false);
 $parser->addOutfile("out", "Output VCF file.", false);
 $parser->addInfile("loci", "BED file containing repeat loci.", false);
 //optional
@@ -24,12 +24,13 @@ extract($parser->parse($argv));
 if(!isset($pid)) $pid = basename2($in);
 
 //init
-$out_prefix = dirname($out)."/".basename2($out);
+$out_folder = dirname($out);
+$out_prefix = $out_folder."/".basename2($out);
 $out_bed = $out_prefix.".bed";
 $out_vcf = $out_prefix.".vcf";
 $out_tsv = $out_prefix.".tsv";
-$plot_folder = dirname($out)."/repeat_expansions";
-$straglr = get_path("straglr");
+$plot_folder = $out_folder."/repeat_expansions";
+$genome = genome_fasta($build);
 
 //get gender
 $gender = "n/a";
@@ -45,20 +46,27 @@ if (db_is_enabled("NGSD"))
 
 // prepare command
 $args = [];
-$args[] = $straglr;
+$args[] = "$in";
+$args[] = $genome;
+$args[] = $out_prefix;
 $args[] = "--loci {$loci}";
 $args[] = "--nprocs $threads";
 $args[] = "--sample {$pid}";
-$args[] = "$in";
-$args[] = genome_fasta($build);
-$args[] = $out_prefix;
+
 if ($gender != "n/a") $args[] = "--sex ".$gender[0];
-		
-// prepare PATH
-putenv("PATH=".getenv("PATH").PATH_SEPARATOR.dirname(get_path("trf")).PATH_SEPARATOR.dirname(get_path("blastn")));
-print "\n........\n".getenv("PATH")."\n........\n";
-// run straglr
-$parser->exec(get_path("python3"), implode(" ", $args));
+
+//set bind paths for straglr container
+$bind_path = array();
+$bind_path[] = dirname(realpath($in));
+$bind_path[] = $out_folder;
+$bind_path[] = dirname(realpath($genome));
+$bind_path[] = dirname(realpath($loci));
+
+// run straglr container
+$vc_straglr_command = "python /opt/conda/envs/straglr/bin/straglr.py";
+$vc_straglr_parameters = implode(" ", $args);
+$straglr_version = get_path("container_straglr");
+$parser->execSingularity("straglr", $straglr_version, $bind_path, $vc_straglr_command, $vc_straglr_parameters);
 
 //get pathogenic ranges from NGSD
 $min_pathogenic = array();

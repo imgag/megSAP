@@ -100,6 +100,8 @@ if ($bam_input) $minimap_options[] = "-y";
 //soft-clip supplement alignments
 if ($softclip_supplements) $minimap_options[] = "-Y";
 
+$samtools_version = get_path("container_samtools");
+$minimap2_version = get_path("container_minimap2");
 $pipeline = [];
 
 //start from BAM input if available
@@ -122,21 +124,26 @@ if ($bam_input)
 	$fastq_cmds = [];
 	foreach ($in_bam as $file)
 	{
-		$fastq_cmds[] = get_path("samtools") . " fastq -o /dev/null {$met_tag} {$file}";
+		$fastq_cmds[] = "apptainer exec -B ".dirname(realpath($file))." ".get_path("container_folder")."/samtools_{$samtools_version}.sif samtools fastq -o /dev/null {$met_tag} {$file}";
 	}
 	$fastq_cmds_str = implode("; ", $fastq_cmds);
 	$pipeline[]=  ["", "({$fastq_cmds_str})"];	//perform mapping from STDIN
-	$pipeline[] = [get_path("minimap2"), implode(" ", $minimap_options)." - "];
+	$pipeline[] = ["", "apptainer exec -B ".dirname(realpath(genome_fasta($sys['build'])))." ".get_path("container_folder")."/minimap2_{$minimap2_version}.sif minimap2 ".implode(" ", $minimap_options)." - "];
 }
 else //fastq_mode
-{
+{	
+	foreach ($in_fastq as $file)
+	{
+		$input_dir = dirname(realpath($file));
+		break;
+	}
 	//FastQ mapping
-	$pipeline[] = [get_path("minimap2"), implode(" ", $minimap_options)." ".implode(" ", $in_fastq)];
+	$pipeline[] = ["", "apptainer exec -B ".dirname(realpath(genome_fasta($sys['build']))).",{$input_dir} ".get_path("container_folder")."/minimap2_{$minimap2_version}.sif minimap2 ".implode(" ", $minimap_options)." ".implode(" ", $in_fastq)];
 }
 
 //sort BAM by coordinates
 $tmp_for_sorting = $parser->tempFile();
-$pipeline[] = [get_path("samtools"), "sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$bam_current} -", true];
+$pipeline[] = ["", "apptainer exec ".get_path("container_folder")."/samtools_{$samtools_version}.sif samtools sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$bam_current} -", true];
 //execute 
 $parser->execPipeline($pipeline, "mapping");
 

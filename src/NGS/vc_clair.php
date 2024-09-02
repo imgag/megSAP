@@ -13,7 +13,7 @@ $parser->addInfile("bam",  "Input files in BAM format. Note: .bam.bai file is re
 $parser->addString("folder", "Destination folder for output files.", false);
 $parser->addString("name", "Base file name, typically the processed name ID (e.g. 'GS120001_01').", false);
 $parser->addInfile("target",  "Enrichment targets BED file.", false);
-$parser->addInfile("model", "Model file used for calling.", false);
+$parser->addString("model", "Model used for calling.", false);
 
 //optional
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
@@ -26,31 +26,34 @@ extract($parser->parse($argv));
 
 //init
 $genome = genome_fasta($build);
+$genome_path = dirname(realpath($genome));
 
 //output files
 $clair_temp = "{$folder}/clair_temp";
 $out = "{$folder}/{$name}_var.vcf.gz";
 $out_gvcf = "{$folder}/{$name}_var.gvcf.gz";
+$model_path = get_path("clair3_models");
 
 //create basic variant calls
 $args = array();
 $args[] = "--bam_fn={$bam}";
-$args[] = "--ref_fn={$genome}";
-$args[] = "--model_path={$model}";
+$args[] = "--ref_fn={$genome_path}/{$build}.fa";
 $args[] = "--threads={$threads}";
 $args[] = "--platform=\"ont\"";
+$args[] = "--model_path={$model}";
+$args[] = "--output={$clair_temp}";
 $args[] = "--keep_iupac_bases";
 $args[] = "--gvcf";
-//TODO: move to temp
-$args[] = "--output={$clair_temp}";
-
-//define env parameter
 $args[] = "--sample_name={$name}";
-$args[] = "--samtools=".get_path("samtools");
-$args[] = "--python=".get_path("python3");
-$args[] = "--pypy=".get_path("pypy3");
-$args[] = "--parallel=".get_path("parallel");
-$args[] = "--whatshap=".get_path("whatshap");
+
+//TODO: move to temp
+
+//set bind paths for clair3 container
+$bind_path = array();
+$bind_path[] = dirname(realpath($bam));
+$bind_path[] = $folder;
+$bind_path[] = $genome_path;
+$bind_path[] = $model_path;
 
 //calculate target region
 if(isset($target))
@@ -78,13 +81,14 @@ if(isset($target))
 	$args[] = "--bed_fn={$target_merged}";
 }
 
-//run Clair3
-putenv("PYTHONPATH=".dirname(get_path("clair3")));
-$parser->exec(get_path("clair3"), implode(" ", $args));
+//run Clair3 container
+$vc_clair_command = "/opt/bin/run_clair3.sh";
+$vc_clair_parameters = implode(" ", $args);
+$clair_version = get_path("container_clair3");
+
+$parser->execSingularity("clair3", $clair_version, $bind_path, $vc_clair_command, $vc_clair_parameters);
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
 $clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
-
-/* $parser->execSingularity(); */
 
 //post-processing 
 $pipeline = array();

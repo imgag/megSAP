@@ -61,7 +61,16 @@ else if(count($bam) == 1)
     $args[] = "--sample-id ".$name;
     if($somatic) $args[] = "--non-germline";
 
-    $parser->exec(get_path("sniffles"), implode(" ", $args), true);
+	//set bind path for sniffles container
+	$bind_path = array();
+	$bind_path[] = dirname(realpath($single_sample_bam));
+	$bind_path[] = dirname(realpath(genome_fasta($build)));
+
+	//execute sniffles container
+	$sniffles_command = "sniffles";
+	$sniffles_parameters = implode(" ", $args);
+	$sniffles_version = get_path("container_sniffles");
+	$parser->execSingularity("sniffles", $sniffles_version, $bind_path, $sniffles_command, $sniffles_parameters);
 
 }
 else
@@ -85,7 +94,16 @@ else
     	$args[] = "--allow-overwrite";
 		$args[] = "--sample-id ".$name;
 
-		$parser->exec(get_path("sniffles"), implode(" ", $args), true);
+		//set bind path for sniffles container
+		$bind_path = array();
+		$bind_path[] = dirname(realpath($single_sample_bam));
+		$bind_path[] = dirname(realpath(genome_fasta($build)));
+
+		//execute sniffles container
+		$sniffles_command = "sniffles";
+		$sniffles_parameters = implode(" ", $args);
+		$sniffles_version = get_path("container_sniffles");
+		$parser->execSingularity("sniffles", $sniffles_version, $bind_path, $sniffles_command, $sniffles_parameters);
 
 		$snfs[] = $tmp_snf;
 	}
@@ -101,8 +119,14 @@ else
 	$args[] = "--reference ".genome_fasta($build);
 	$args[] = "--allow-overwrite";
 
-    $parser->exec(get_path("sniffles"), implode(" ", $args), true);
+	$bind_path = array();
+	$bind_path[] = dirname(realpath(genome_fasta($build)));
 
+	//execute sniffles container
+	$sniffles_command = "sniffles";
+	$sniffles_parameters = implode(" ", $args);
+	$sniffles_version = get_path("container_sniffles");
+	$parser->execSingularity("sniffles", $sniffles_version, $bind_path, $sniffles_command, $sniffles_parameters);
 }
 
 //add name/pipeline info to VCF header

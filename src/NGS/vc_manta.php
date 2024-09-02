@@ -28,6 +28,10 @@ $parser->addStringArray("regions", "Limit analysis to specified regions (for deb
 $parser->addString("temp", "Temporary folder for manta analysis (for debugging).", true, "auto");
 extract($parser->parse($argv));
 
+//init
+$genome = genome_fasta($build);
+$bind_path = array();
+
 // determine mode (somatic, tumor-only, germline)
 if (!isset($t_bam) && !isset($bam))
 {
@@ -42,26 +46,18 @@ $mode_somatic = isset($t_bam) && isset($bam) && count($bam) == 1;
 $mode_tumor_only = isset($t_bam) && !isset($bam);
 $mode_germline = !isset($t_bam) && isset($bam) && !$rna;
 
-// update environment
-$python_bin = get_path("python27");
-putenv("PATH=".dirname($python_bin).":".getenv("PATH"));
-
 //resolve configuration preset
-$config_default = get_path("manta")."/configManta.py.ini";
-$config = $config_default;
+$config = "/opt/manta/bin/configManta.py.ini";
 if ($config_preset === "high_sensitivity")
 {
-	$config = $parser->tempFile();
-	//change minEdgeObservations and minCandidateSpanningCount parameters to 2
-	$parser->exec("sed", "'s/^minEdgeObservations.\\+$/minEdgeObservations = 2/; s/^minCandidateSpanningCount.\\+/minCandidateSpanningCount = 2/' {$config_default} > {$config}", false);
-	$parser->log("Manta config file:", file($config));
+	$config = "/opt/manta/bin/configManta_high_sensitivity.py.ini";
 }
 
 $temp_folder = $temp === "auto" ? $parser->tempFolder() : $temp;
 $manta_folder = "{$temp_folder}/mantaAnalysis";
 
 $args = [
-	"--referenceFasta ".genome_fasta($build),
+	"--referenceFasta ".$genome,
 	"--runDir ".$manta_folder,
 	"--config ".$config,
 	"--outputContig",
@@ -74,10 +70,16 @@ if ($exome)
 if ($mode_somatic || $mode_tumor_only)
 {
 	array_push($args, "--tumorBam", $t_bam);
+	$bind_path[] = dirname(realpath($t_bam));
 }
 if ($mode_somatic || $mode_germline || $rna)
 {
 	array_push($args, "--normalBam", implode(" --normalBam ", $bam));
+	foreach ($bam as $file)
+	{
+		$bind_path[] = dirname(realpath($file));
+		break;
+	}
 }
 if (isset($regions))
 {
@@ -88,9 +90,19 @@ if ($rna)
 	array_push($args, "--rna");
 }
 
-//run manta
-$parser->exec("{$python_bin} ".get_path('manta')."/configManta.py", implode(" ", $args), true);
-$parser->exec("{$python_bin} {$manta_folder}/runWorkflow.py", "--mode local --jobs {$threads} --memGb ".(2*$threads), false);
+//set bind paths for manta container
+$bind_path[] = $temp_folder;
+$bind_path[] = dirname(realpath($genome));
+
+//run manta container
+$vc_manta_command = "python2 /opt/manta/bin/configManta.py";
+$vc_manta_parameters = implode(" ", $args);
+$manta_version = get_path("container_manta");
+$parser->execSingularity("manta", $manta_version, $bind_path, $vc_manta_command, $vc_manta_parameters, true);
+
+$vc_manta_command = "python2 {$manta_folder}/runWorkflow.py";
+$vc_manta_parameters = "--mode local --jobs {$threads} --memGb ".(2*$threads);
+$parser->execSingularity("manta", $manta_version, $bind_path, $vc_manta_command, $vc_manta_parameters, false);
 
 //copy files to output folder
 if ($mode_somatic)
@@ -113,7 +125,13 @@ $sv = "{$manta_folder}/results/variants/{$outname}SV.vcf.gz";
 
 //combine BND of INVs to one INV in VCF
 $sv_inv = "{$manta_folder}/results/variants/{$outname}SV_inv.vcf";
-$parser->exec("{$python_bin} ".get_path('manta')."/../libexec/convertInversion.py", get_path("samtools")." ".genome_fasta($build)." {$sv} > {$sv_inv}");
+
+$bind_path_convertInversion = array();
+$bind_path_convertInversion[] = $manta_folder;
+$bind_path_convertInversion[] = get_path("samtools");
+$vc_manta_command = "python2 /opt/manta/libexec/convertInversion.py";
+$vc_manta_parameters = get_path("samtools")." ".$genome." {$sv} > {$sv_inv}";
+$parser->execSingularity("manta", $manta_version, $bind_path_convertInversion, $vc_manta_command, $vc_manta_parameters);
 
 //remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
 $vcf_fixed = "{$temp_folder}/{$outname}SV_fixed.vcf";

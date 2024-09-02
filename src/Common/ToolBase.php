@@ -825,9 +825,9 @@ class ToolBase
 	}
 
 	/**
-	 	@brief Executes a command inside a given Singularity container and returns an array with STDOUT, STDERR and exit code.
+	 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 	 */
-	function execSingularity($container, $container_version, $bind_paths, $command, $parameters, $log_output=true, $abort_on_error=true, $warn_on_error=true)
+	function execSingularity($container, $container_version, $bind_paths, $command, $parameters, $threads=1, $log_output=true, $abort_on_error=true, $warn_on_error=true)
 	{
 		if (is_array($command) || is_array($parameters))
 		{
@@ -844,7 +844,7 @@ class ToolBase
 
 		//get container TODO revert repository_basedir to get_path("container_folder") after discussing
 		$container_path = get_path("container_folder")."/{$container}_{$container_version}.sif";
-				if(!file_exists($container_path)) trigger_error("Singularity container '{$container_path}' not found!", E_USER_ERROR);
+				if(!file_exists($container_path)) trigger_error("Apptainer container '{$container_path}' not found!", E_USER_ERROR);
 
 		//check bind paths
 		foreach($bind_paths as $path)
@@ -857,12 +857,18 @@ class ToolBase
 			}
 		}
 		
+		//remove workdir path, since it is mounted automatically and apptainer can't handle "."
+		$filtered_bind_paths = array_filter($bind_paths, function($value) {
+			return $value !== ".";
+		});
+		$filtered_bind_paths = array_values($filtered_bind_paths);
+		
 		//log call
 		if($log_output)
 		{
 			$add_info = array();
-			$add_info[] = "singularity version = ".$this->extractVersion("singularity");
-			foreach($bind_paths as $bind_path)
+			$add_info[] = "apptainer version = ".$this->extractVersion("apptainer");
+			foreach($filtered_bind_paths as $bind_path)
 			{
 				$add_info[] = "bind path           = ".$bind_path;
 			}
@@ -871,11 +877,17 @@ class ToolBase
 			$add_info[] = "container path      = ".$container_path;
 			$add_info[] = "tool version        = ".$this->extractVersion($command);
 			$add_info[] = "parameters          = $parameters";
+			$add_info[] = "threads   = ".$threads;
 			$this->log("Calling external tool '$command' in container '".basename2($container_path)."'", $add_info);
 		}
 
 		//compose Singularity command
-		$singularity_command = "apptainer exec -B ".implode(",", $bind_paths)." {$container_path} {$command_and_parameters}";
+		$thread_command = "";
+		if($threads!=1)
+		{
+			$thread_command = "OMP_NUM_THREADS={$threads} ";
+		}
+		$singularity_command = $thread_command."apptainer exec -B ".implode(",", $filtered_bind_paths)." {$container_path} {$command_and_parameters}";
 
 		//TODO: remove 
 		$this->log("DEBUG: Singularity command:\t", array($singularity_command));
