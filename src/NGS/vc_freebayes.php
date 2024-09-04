@@ -32,6 +32,8 @@ $genome = genome_fasta($build);
 
 //create basic variant calls
 $args = array();
+$in_files = array();
+$out_files = array();
 if(isset($target))
 {	
 	//extend by 'n' bases
@@ -77,6 +79,9 @@ $args[] = "--min-alternate-qsum $min_qsum";
 $args[] = "--genotype-qualities";
 $args[] = "-f $genome";
 $args[] = "-b ".implode(" ", $bam);
+$in_files[] = $genome;
+$in_files = array_merge($in_files, $bam);
+$out_files[] = $out;
 
 // run freebayes
 $pipeline = array();
@@ -143,7 +148,7 @@ if (isset($target) && $threads > 1)
 			$parameters = implode(" ", $args_chr);
 			
 			//start in background
-			$command = get_path("freebayes");			
+			$command = "apptainer exec -B ".dirname(realpath($genome))." ".get_path("container_folder")."/freebayes_".get_path("container_freebayes").".sif freebayes";			
 			$output = array();
 			$exitcode_file = "{$tmp_dir}/{$chr}.exitcode";
 			exec('('.$command.' '.$parameters.' & PID=$!; echo $PID) && (wait $PID; echo $? > '.$exitcode_file.')', $output);
@@ -151,7 +156,7 @@ if (isset($target) && $threads > 1)
 			
 			//log start
 			$add_info = array();
-			$add_info[] = "version    = ".$parser->extractVersion($command);
+			$add_info[] = "version    = ".get_path("container_freebayes");
 			$add_info[] = "parameters = {$parameters}";
 			$add_info[] = "pid = {$pid}";
 			$parser->log("Executing command in background '{$command}'", $add_info);
@@ -252,11 +257,11 @@ else
 {
 	if ($raw_output)
 	{
-		exec(get_path("freebayes")." ".implode(" ", $args)." > $out");
+		$parser->execSingularity("freebayes", get_path("container_freebayes"),"freebayes" ,implode(" ", $args)." > $out", $in_files, $out_files);
 		return;
 	}
 	
-	$pipeline[] = array(get_path("freebayes"), implode(" ", $args));
+	$pipeline[] = array("", "apptainer exec -B ".dirname(realpath($genome))." ".get_path("container_folder")."/freebayes_".get_path("container_freebayes").".sif freebayes ".implode(" ", $args));
 }
 
 //filter variants according to variant quality>5

@@ -132,13 +132,14 @@ if ($bam_input)
 }
 else //fastq_mode
 {	
+	$in_dirs = array();
 	foreach ($in_fastq as $file)
 	{
 		$input_dir = dirname(realpath($file));
-		break;
+		if(!in_array($input_dir, $in_dirs)) $in_dirs[] = $input_dir;
 	}
 	//FastQ mapping
-	$pipeline[] = ["", "apptainer exec -B ".dirname(realpath(genome_fasta($sys['build']))).",{$input_dir} ".get_path("container_folder")."/minimap2_{$minimap2_version}.sif minimap2 ".implode(" ", $minimap_options)." ".implode(" ", $in_fastq)];
+	$pipeline[] = ["", "apptainer exec -B ".dirname(realpath(genome_fasta($sys['build']))).",".implode(",", $in_dirs)." ".get_path("container_folder")."/minimap2_{$minimap2_version}.sif minimap2 ".implode(" ", $minimap_options)." ".implode(" ", $in_fastq)];
 }
 
 //sort BAM by coordinates
@@ -163,6 +164,11 @@ if (!file_exists($out) || filesize($bam_current) != filesize($out))
 //run mapping QC
 if ($qc_map !== "")
 {
+	$in_files = array();
+	$in_files[] = genome_fasta($sys["build"]);
+	$out_files = array();
+	$out_files[] = $qcml_map;
+	$out_files[] = $qcml_reads;
 	$params = [
 		"-in $bam_current",
 		"-out $qcml_map",
@@ -179,13 +185,14 @@ if ($qc_map !== "")
 	else
 	{
 		$params[] = "-roi ".$sys['target_file'];
+		$in_files[] = $sys['target_file'];
 	}
 	if ($sys['build']!="GRCh38")
 	{
 		$params[] = "-no_cont";
 	}
 
-	$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "MappingQC", implode(" ", $params), $in_files, $out_files);
 }
 
 ?>

@@ -62,15 +62,13 @@ else if(count($bam) == 1)
     if($somatic) $args[] = "--non-germline";
 
 	//set bind path for sniffles container
-	$bind_path = array();
-	$bind_path[] = dirname(realpath($single_sample_bam));
-	$bind_path[] = dirname(realpath(genome_fasta($build)));
+	$in_files = array();
+	$out_files = array();
+	$in_files[] = $single_sample_bam;
+	$in_files[] = genome_fasta($build);
 
 	//execute sniffles container
-	$sniffles_command = "sniffles";
-	$sniffles_parameters = implode(" ", $args);
-	$sniffles_version = get_path("container_sniffles");
-	$parser->execSingularity("sniffles", $sniffles_version, $bind_path, $sniffles_command, $sniffles_parameters);
+	$parser->execSingularity("sniffles", get_path("container_sniffles"), "sniffles", implode(" ", $args), $in_files, $out_files);
 
 }
 else
@@ -95,15 +93,12 @@ else
 		$args[] = "--sample-id ".$name;
 
 		//set bind path for sniffles container
-		$bind_path = array();
-		$bind_path[] = dirname(realpath($single_sample_bam));
-		$bind_path[] = dirname(realpath(genome_fasta($build)));
+		$in_files = array();
+		$in_files[] = $single_sample_bam;
+		$in_files[] = genome_fasta($build);
 
 		//execute sniffles container
-		$sniffles_command = "sniffles";
-		$sniffles_parameters = implode(" ", $args);
-		$sniffles_version = get_path("container_sniffles");
-		$parser->execSingularity("sniffles", $sniffles_version, $bind_path, $sniffles_command, $sniffles_parameters);
+		$parser->execSingularity("sniffles", get_path("container_sniffles"), "sniffles", implode(" ", $args), $in_files);
 
 		$snfs[] = $tmp_snf;
 	}
@@ -119,14 +114,11 @@ else
 	$args[] = "--reference ".genome_fasta($build);
 	$args[] = "--allow-overwrite";
 
-	$bind_path = array();
-	$bind_path[] = dirname(realpath(genome_fasta($build)));
+	$in_files = array();
+	$in_files[] = genome_fasta($build);
 
 	//execute sniffles container
-	$sniffles_command = "sniffles";
-	$sniffles_parameters = implode(" ", $args);
-	$sniffles_version = get_path("container_sniffles");
-	$parser->execSingularity("sniffles", $sniffles_version, $bind_path, $sniffles_command, $sniffles_parameters);
+	$parser->execSingularity("sniffles", get_path("container_sniffles"), "sniffles", implode(" ", $args), $in_files);
 }
 
 //add name/pipeline info to VCF header

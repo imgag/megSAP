@@ -65,7 +65,7 @@ $parser->execTool("NGS/mapping_bwa.php", "-in1 {$filtered_r1} -in2 {$filtered_r2
 if ($barcode_correction)
 {
     $viral_tmp2 = $parser->tempFile("_viral_tmp.bam");
-    $parser->exec(get_path("python3")." ".get_path("umiVar2")."/barcode_correction.py", "--infile $viral_tmp1 --outfile $viral_tmp2", true);
+    $parser->execSingularity("umiVar", get_path("container_umivar"), "python /opt/umiVar2/umiVar2_2024_07/barcode_correction.py", "--infile $viral_tmp1 --outfile $viral_tmp2");
     $parser->indexBam($viral_tmp2, $threads);
     
     $parser->moveFile($viral_tmp1, $viral_bam_raw);

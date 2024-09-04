@@ -26,7 +26,6 @@ extract($parser->parse($argv));
 
 //init
 $genome = genome_fasta($build);
-$genome_path = dirname(realpath($genome));
 
 //output files
 $clair_temp = "{$folder}/clair_temp";
@@ -37,7 +36,7 @@ $model_path = get_path("clair3_models");
 //create basic variant calls
 $args = array();
 $args[] = "--bam_fn={$bam}";
-$args[] = "--ref_fn={$genome_path}/{$build}.fa";
+$args[] = "--ref_fn=$genome";
 $args[] = "--threads={$threads}";
 $args[] = "--platform=\"ont\"";
 $args[] = "--model_path={$model}";
@@ -49,11 +48,13 @@ $args[] = "--sample_name={$name}";
 //TODO: move to temp
 
 //set bind paths for clair3 container
-$bind_path = array();
-$bind_path[] = dirname(realpath($bam));
-$bind_path[] = $folder;
-$bind_path[] = $genome_path;
-$bind_path[] = $model_path;
+$in_files = array();
+$out_files = array();
+
+$in_files = array_merge($in_files, $bam);
+$out_files[] = $folder;
+$in_files[] = $genome;
+$in_files[] = $model_path;
 
 //calculate target region
 if(isset($target))
@@ -82,11 +83,7 @@ if(isset($target))
 }
 
 //run Clair3 container
-$vc_clair_command = "/opt/bin/run_clair3.sh";
-$vc_clair_parameters = implode(" ", $args);
-$clair_version = get_path("container_clair3");
-
-$parser->execSingularity("clair3", $clair_version, $bind_path, $vc_clair_command, $vc_clair_parameters);
+$parser->execSingularity("clair3", get_path("container_clair3"), "/opt/bin/run_clair3.sh", implode(" ", $args), $in_files, $out_files);
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
 $clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
 

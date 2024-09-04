@@ -827,7 +827,7 @@ class ToolBase
 	/**
 	 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 	 */
-	function execSingularity($container, $container_version, $bind_paths, $command, $parameters, $threads=1, $log_output=true, $abort_on_error=true, $warn_on_error=true)
+	function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $log_output=true, $abort_on_error=true, $warn_on_error=true)
 	{
 		if (is_array($command) || is_array($parameters))
 		{
@@ -842,9 +842,42 @@ class ToolBase
 			trigger_error("Error in 'execSingularity' method call: Command must not contain pipe symbol '|'! \n$command_and_parameters", E_USER_ERROR);
 		}
 
-		//get container TODO revert repository_basedir to get_path("container_folder") after discussing
+		//get container
 		$container_path = get_path("container_folder")."/{$container}_{$container_version}.sif";
-				if(!file_exists($container_path)) trigger_error("Apptainer container '{$container_path}' not found!", E_USER_ERROR);
+		if(!file_exists($container_path)) trigger_error("Apptainer container '{$container_path}' not found!", E_USER_ERROR);
+		
+		//determine bind paths from input and output files
+		$bind_paths = array();
+		$cwd = realpath(getcwd());
+		foreach($in_files as $file)
+		{
+			if (is_dir($file)) 
+			{
+				$filepath = realpath($file);
+			} 
+			else 
+			{
+				$filepath = dirname(realpath($file));
+			}
+
+			if($filepath === "." || $filepath === $cwd || strpos($filepath, $cwd . DIRECTORY_SEPARATOR) === 0) continue;
+			if(!in_array($filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
+		}
+
+		foreach($out_files as $file)
+		{
+			if (is_dir($file)) 
+			{
+				$filepath = dirname($file . DIRECTORY_SEPARATOR . 'dummy.txt');
+			} 
+			else 
+			{
+				$filepath = dirname($file);
+			}
+
+			if($filepath === "." || $filepath === $cwd || strpos($filepath, $cwd . DIRECTORY_SEPARATOR) === 0) continue;
+			if(!in_array($filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
+		}
 
 		//check bind paths
 		foreach($bind_paths as $path)
@@ -857,18 +890,20 @@ class ToolBase
 			}
 		}
 		
-		//remove workdir path, since it is mounted automatically and apptainer can't handle "."
-		$filtered_bind_paths = array_filter($bind_paths, function($value) {
-			return $value !== ".";
-		});
-		$filtered_bind_paths = array_values($filtered_bind_paths);
-		
 		//log call
 		if($log_output)
 		{
 			$add_info = array();
 			$add_info[] = "apptainer version = ".$this->extractVersion("apptainer");
-			foreach($filtered_bind_paths as $bind_path)
+			foreach($in_files as $in_file)
+			{
+				$add_info[] = "input file          = ".$in_file;
+			}
+			foreach($out_files as $out_file)
+			{
+				$add_info[] = "output file         = ".$out_file;
+			}
+			foreach($bind_paths as $bind_path)
 			{
 				$add_info[] = "bind path           = ".$bind_path;
 			}
@@ -887,7 +922,11 @@ class ToolBase
 		{
 			$thread_command = "OMP_NUM_THREADS={$threads} ";
 		}
-		$singularity_command = $thread_command."apptainer exec -B ".implode(",", $filtered_bind_paths)." {$container_path} {$command_and_parameters}";
+
+		//check if bind_paths is empty
+		$bind_paths_command = "";
+		if(!empty($bind_paths))$bind_paths_command = " -B ".implode(",", $bind_paths); 
+		$singularity_command = $thread_command."apptainer exec{$bind_paths_command} {$container_path} {$command_and_parameters}";
 
 		//TODO: remove 
 		$this->log("DEBUG: Singularity command:\t", array($singularity_command));

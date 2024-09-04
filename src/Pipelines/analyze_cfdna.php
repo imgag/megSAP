@@ -546,6 +546,10 @@ if (in_array("vc", $steps))
 		$related_cfdna_gsvars_output = array_fill(0, count($related_cfdna_gsvars), "");
 		$sample_pos = array_search($name, array_keys($related_cfdna_gsvars));
 		$related_cfdna_gsvars_output[$sample_pos] = $gsvar_file;
+		
+		// initialize input and output file list for umivar container execution
+		$in_files = array();
+		$in_files[] = $gsvar_file;
 
 		$temp_logfile = $parser->tempFile(".log");
 		$args = [
@@ -553,7 +557,7 @@ if (in_array("vc", $steps))
 			implode(",", $related_cfdna_gsvars_output),
 			"--log_file ".$temp_logfile
 		];
-
+		
 		//get tumor-normal GSvar
 		if ((isset($db)) && ($tumor_id != ""))
 		{
@@ -574,6 +578,7 @@ if (in_array("vc", $steps))
 			if (count($tumor_gsvar_files) > 0)
 			{
 				$args[] = "--tumor_samples ".implode(",", $tumor_gsvar_files);
+				$in_files = array_merge($in_files, $tumor_gsvar_files);
 			}
 			else
 			{
@@ -581,14 +586,9 @@ if (in_array("vc", $steps))
 			}
 		}
 
-		//set environment variables
-		putenv("umiVar_python_binary=\"".get_path("python3")."\"");
-		putenv("umiVar_R_binary=\"".get_path("rscript")."\"");
-		putenv("umiVar_samtools_binary=\"".get_path("samtools")."\"");
-
 		//post-filtering
-		print get_path("python3")." ".get_path("umiVar2")."/cfDNA_postfiltering.py ".implode(" ", $args);
-		$parser->exec(get_path("python3"), get_path("umiVar2")."/cfDNA_postfiltering.py ".implode(" ", $args));
+		/* print get_path("python3")." ".get_path("umiVar2")."/cfDNA_postfiltering.py ".implode(" ", $args); */
+		$parser->execSingularity("umiVar", get_path("container_umivar"), "python /opt/umiVar2/umiVar2_2024_07/cfDNA_postfiltering.py", implode(" ", $args), $in_files);
 		$parser->log("post-filtering log: ", file($temp_logfile));
 
 	}
@@ -596,14 +596,17 @@ if (in_array("vc", $steps))
 	// calculate alternative MRD & monitoring counts
 	if ($is_patient_specific)
 	{
-		$mrd_calc_command = get_path("python3")." ".get_path("umiVar2")."/calculateMRD.py";
+
 		//filtered output
+		$in_files = array();
+		$in_files[] = $folder;
+		$in_files[] = $monitoring_vcf;
 		$args = array();
 		$args[] = $folder."/umiVar";
 		$args[] = $monitoring_vcf;
 		$args[] = $bg_mrd;
 		$args[] = $bg_monitoring;
-		$parser->exec($mrd_calc_command, implode(" ", $args));
+		$parser->execSingularity("umiVar", get_path("container_umivar"), "python /opt/umiVar2/umiVar2_2024_07/calculateMRD.py", implode(" ", $args), $in_files);
 
 		//unfiltered output
 		$args = array();
@@ -614,7 +617,7 @@ if (in_array("vc", $steps))
 		$args[] = "--max_af 1.5";
 		$args[] = "--keep_gonosomes";
 		$args[] = "--keep_indels";
-		$parser->exec($mrd_calc_command, implode(" ", $args));
+		$parser->execSingularity("umiVar", get_path("container_umivar"), "python /opt/umiVar2/umiVar2_2024_07/calculateMRD.py", implode(" ", $args), $in_files);
 	}
 	
 }

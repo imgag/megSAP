@@ -374,7 +374,16 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 		$args[] = "-r {$genome}";
 		$args[] = "-t {$threads}";
 		$args[] = "-o ".substr($vcf_modcall, 0, -4);
-		$parser->exec(get_path("longphase"), implode(" ", $args));
+		
+		$in_files = array();
+		$out_files = array();
+
+		$in_files[] = $bam_file;
+		$in_files[] = $genome;
+		$out_files[] = $vcf_modcall;
+
+		$longphase_parameters = implode(" ", $args);
+		$parser->execSingularity("longphase", get_path("container_longphase"), "longphase", $longphase_parameters, $in_files, $out_files);
 
 		trigger_error("Methylation annotation detected. Using intermediate modcall step.", E_USER_NOTICE);
 	}
@@ -382,6 +391,14 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	//run phasing by LongPhase on VCF files
 	$phased_tmp = $parser->tempFile(".vcf", "longphase");
 	$phased_sv_tmp = substr($phased_tmp,0,-4)."_SV.vcf";
+
+	$in_files = array();
+	$out_files = array();
+
+	$in_files[] = $vcf_file;
+	$in_files[] = $bam_file;
+	$in_files[] = $genome;
+
 	$args = array();
 	$args[] = "phase";
 	$args[] = "-s {$vcf_file}";
@@ -391,11 +408,21 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	$args[] = "-o ".substr($phased_tmp, 0, -4);
 	$args[] = "--ont";
 	$args[] = "--indels";
-	if (file_exists($sv_vcf_file)) $args[] = "--sv-file {$sv_vcf_file}";
-	if ($contains_methylation) $args[] = "--mod-file {$vcf_modcall}";
+	if (file_exists($sv_vcf_file))
+	{
+		$args[] = "--sv-file {$sv_vcf_file}";
+		$in_files[] = $sv_vcf_file;
+	} 
+	if ($contains_methylation) 
+	{
+		$args[] = "--mod-file {$vcf_modcall}";
+		$out_files[] = $vcf_modcall;
+	} 
+	
 	
 
-	$parser->exec(get_path("longphase"), implode(" ", $args));
+	$longphase_parameters = implode(" ", $args);
+	$parser->execSingularity("longphase", get_path("container_longphase"), "longphase", $longphase_parameters, $in_files, $out_files);
 	
 	//create compressed file and index
 	$parser->exec("bgzip", "-c $phased_tmp > {$vcf_file}", false);
@@ -407,6 +434,14 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	}
 
 	//tag BAM file 
+
+	$in_files = array();
+	$out_files = array();
+
+	$in_files[] = $vcf_file;
+	$in_files[] = $bam_file;
+	$in_files[] = $genome;
+
 	$args = array();
 	$tagged_bam_file = $parser->tempFile(".tagged.bam");
 	$args[] = "haplotag";
@@ -414,10 +449,16 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	$args[] = "-b {$bam_file}";
 	$args[] = "-r {$genome}";
 	$args[] = "-t {$threads}";
-	if (file_exists($sv_vcf_file)) $args[] = "--sv-file {$sv_vcf_file}";
+	if (file_exists($sv_vcf_file))
+	{
+		$args[] = "--sv-file {$sv_vcf_file}";
+		$in_files[] = $sv_vcf_file;
+	} 
 	$args[] = "-o ".substr($tagged_bam_file, 0, -4);
 
-	$parser->exec(get_path("longphase"), implode(" ", $args));
+	$longphase_parameters = implode(" ", $args);
+	$parser->execSingularity("longphase", get_path("container_longphase"), "longphase", $longphase_parameters, $in_files, $out_files);
+	
 	$parser->indexBam($tagged_bam_file, $threads);
 
 	//TODO: compare tagged BAM with input BAM

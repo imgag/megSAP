@@ -1110,32 +1110,33 @@ if (in_array("an", $steps))
 	$parser->execTool("NGS/an_somatic_gsvar.php" , "-gsvar_in $variants_gsvar -out $variants_gsvar -include_ncg");
 
 	//Determine cfDNA monitoring candidates (only tumor-normal samples)
-	$umiVar2_path = get_path("umiVar2");
 	if (!$single_sample)
 	{
-		if (file_exists($umiVar2_path."/select_monitoring_variants.py"))
-		{
-			//remove previous calls
-			if (file_exists($cfdna_folder)) exec2("rm -r $cfdna_folder"); 
-			//set parameters
-			$params = array();
-			$params[] = "-v ${tmp_vcf}";
-			$params[] = "-g ${variants_gsvar}";
-			$params[] = "-o ${cfdna_folder}";
-			$params[] = "-r ${ref_genome}";
-			$params[] = "-n 65"; // select 50 candidate variants
-			$params[] = "-i"; // ignore INDELS
-			// call variant selection in virtual environment
-			//set environment variables
-			putenv("umiVar_python_binary=\"".get_path("python3")."\"");
-			putenv("umiVar_R_binary=\"".get_path("rscript")."\"");
-			putenv("umiVar_samtools_binary=\"".get_path("samtools")."\"");
-			$parser->exec(get_path("python3"), $umiVar2_path."/select_monitoring_variants.py ".implode(" ", $params));
-		}
+/* 		if (file_exists($umiVar2_path."/select_monitoring_variants.py"))
+		{ */
+		//remove previous calls
+		if (file_exists($cfdna_folder)) exec2("rm -r $cfdna_folder"); 
+		//set parameters
+		$in_files = array();
+		$in_files = array_merge($in_files, $variants_gsvar);
+		$in_files[] = $ref_genome;
+		$out_files = array();
+		$out_files[] = $cfdna_folder;
+
+		$params = array();
+		$params[] = "-v ${tmp_vcf}";
+		$params[] = "-g ${variants_gsvar}";
+		$params[] = "-o ${cfdna_folder}";
+		$params[] = "-r ${ref_genome}";
+		$params[] = "-n 65"; // select 50 candidate variants
+		$params[] = "-i"; // ignore INDELS
+		// call variant selection in umiVar container
+		$parser->execSingularity("umiVar", get_path("container_umivar"), "python /opt/umiVar2/umiVar2_2024_07/select_monitoring_variants.py", implode(" ", $params), $in_files, $out_files);
+/* 		}
 		else
 		{
 			trigger_error("UmiVar2 cannot be found! Cannot preselect variants for cfDNA analysis!", E_USER_WARNING);
-		}
+		} */
 	}
 	else
 	{

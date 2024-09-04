@@ -60,17 +60,19 @@ if(isset($target))
 //prepare container
 
 //bind all required paths to the container
-$bind_paths = array();
+$in_files = array();
+$out_files = array();
+
 //input dirs (read-only)
-$bind_paths[] = dirname($bam_c).":".dirname($bam_c).":ro";
-$bind_paths[] = dirname($bam_f).":".dirname($bam_f).":ro";
-$bind_paths[] = dirname($bam_m).":".dirname($bam_m).":ro";
-$bind_paths[] = dirname($target_extended).":".dirname($target_extended).":ro";
-$bind_paths[] = dirname($genome).":".dirname($genome).":ro";
-$bind_paths[] = $model.":".$model.":ro";
-$bind_paths[] = $trio_model.":".$trio_model.":ro";
+$in_files[] = $bam_c;
+$in_files[] = $bam_f;
+$in_files[] = $bam_m;
+$in_files[] = $target_extended;
+$in_files[] = $genome;
+$in_files[] = $model;
+$in_files[] = $trio_model;
 //output folder (read-write)
-$bind_paths[] = $clair_temp.":".$clair_temp.":rw";
+$out_files[] = $clair_temp;
 $parser->exec("mkdir", "-p {$clair_temp}");
 
 //set parameters for clair
@@ -88,7 +90,7 @@ $args[] = "--gvcf";
 
 
 //run in container
-$parser->execSingularity("clair3-trio", get_path("container_clair3-trio"), $bind_paths, "/opt/bin/run_clair3_trio.sh", implode(" ", $args));
+$parser->execSingularity("clair3-trio", get_path("container_clair3-trio"), "/opt/bin/run_clair3_trio.sh", implode(" ", $args), $in_files, $out_files);
 
 //TODO: check naming
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";

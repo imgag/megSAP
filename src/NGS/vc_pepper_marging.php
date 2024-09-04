@@ -74,16 +74,14 @@ if(isset($target))
 }
 
 //set bind path for clair3 container
-$bind_path = array();
-$bind_path[] = dirname(realpath($bam));
-$bind_path[] = dirname(realpath($genome));
-$bind_path[] = $model_path;
+$in_files = array();
+$out_files = array();
+$in_files[] = $bam;
+$in_files[] = $genome;
+$in_files[] = $model_path;
 
 //run Clair3 container
-$vc_clair_command = "/opt/bin/run_clair3.sh";
-$vc_clair_parameters = implode(" ", $args);
-$clair_version = get_path("container_clair3");
-$parser->execSingularity("clair3", $clair_version, $bind_path, $vc_clair_command, $vc_clair_parameters);
+$parser->execSingularity("clair3", get_path("container_clair3"), "/opt/bin/run_clair3.sh", implode(" ", $args), $in_files, $out_files);
 
 //post-processing 
 $pipeline = array();

@@ -30,7 +30,8 @@ extract($parser->parse($argv));
 
 //init
 $genome = genome_fasta($build);
-$bind_path = array();
+$in_files = array();
+$out_files = array();
 
 // determine mode (somatic, tumor-only, germline)
 if (!isset($t_bam) && !isset($bam))
@@ -70,16 +71,12 @@ if ($exome)
 if ($mode_somatic || $mode_tumor_only)
 {
 	array_push($args, "--tumorBam", $t_bam);
-	$bind_path[] = dirname(realpath($t_bam));
+	$in_files[] = $t_bam;
 }
 if ($mode_somatic || $mode_germline || $rna)
 {
 	array_push($args, "--normalBam", implode(" --normalBam ", $bam));
-	foreach ($bam as $file)
-	{
-		$bind_path[] = dirname(realpath($file));
-		break;
-	}
+	$in_files = array_merge($in_files, $bam);
 }
 if (isset($regions))
 {
@@ -91,18 +88,16 @@ if ($rna)
 }
 
 //set bind paths for manta container
-$bind_path[] = $temp_folder;
-$bind_path[] = dirname(realpath($genome));
+$out_files[] = $temp_folder;
+$in_files[] = $genome;
 
 //run manta container
 $vc_manta_command = "python2 /opt/manta/bin/configManta.py";
-$vc_manta_parameters = implode(" ", $args);
-$manta_version = get_path("container_manta");
-$parser->execSingularity("manta", $manta_version, $bind_path, $vc_manta_command, $vc_manta_parameters, true);
+$parser->execSingularity("manta", get_path("container_manta"), $vc_manta_command, implode(" ", $args), $in_files, $out_files, true);
 
 $vc_manta_command = "python2 {$manta_folder}/runWorkflow.py";
 $vc_manta_parameters = "--mode local --jobs {$threads} --memGb ".(2*$threads);
-$parser->execSingularity("manta", $manta_version, $bind_path, $vc_manta_command, $vc_manta_parameters, false);
+$parser->execSingularity("manta", get_path("container_manta"), $vc_manta_command, $vc_manta_parameters, $in_files, $out_files, false);
 
 //copy files to output folder
 if ($mode_somatic)
@@ -126,12 +121,15 @@ $sv = "{$manta_folder}/results/variants/{$outname}SV.vcf.gz";
 //combine BND of INVs to one INV in VCF
 $sv_inv = "{$manta_folder}/results/variants/{$outname}SV_inv.vcf";
 
-$bind_path_convertInversion = array();
-$bind_path_convertInversion[] = $manta_folder;
-$bind_path_convertInversion[] = get_path("samtools");
+
+$in_files = array();
+$out_files = array();
+$in_files[] = get_path("samtools");
+$out_files[] = $manta_folder;
+
 $vc_manta_command = "python2 /opt/manta/libexec/convertInversion.py";
 $vc_manta_parameters = get_path("samtools")." ".$genome." {$sv} > {$sv_inv}";
-$parser->execSingularity("manta", $manta_version, $bind_path_convertInversion, $vc_manta_command, $vc_manta_parameters);
+$parser->execSingularity("manta", get_path("container_manta"), $vc_manta_command, $vc_manta_parameters, $in_files, $out_files);
 
 //remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
 $vcf_fixed = "{$temp_folder}/{$outname}SV_fixed.vcf";

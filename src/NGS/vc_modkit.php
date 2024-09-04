@@ -34,14 +34,12 @@ $args[] = "--log-filepath ".$log_file;
 $args[] = "--threads ".$threads;
 
 //set bind paths for modkit
-$bind_path = array();
-$bind_path[] = dirname(realpath($bam));
-$bind_path[] = dirname(realpath($genome));
+$in_files = array();
+$out_files = array();
+$in_files[] = $bam;
+$in_files[] = $genome;
 
-$modkit_command = "modkit";
-$modkit_parameters = implode(" ", $args);
-$modkit_version = get_path("container_modkit");
-$parser->execSingularity("modkit", $modkit_version, $bind_path, $modkit_command, $modkit_parameters);
+$parser->execSingularity("modkit", get_path("container_modkit"), "modkit", implode(" ", $args), $in_files, $out_files);
 
 //copy logfile 
 $parser->log("modkit pileup log file", file($log_file));
@@ -61,10 +59,9 @@ if (isset($summary))
 	$args[] = "--log-filepath ".$log_file2;
 	$args[] = " > ".$summary;
 
-	$modkit_parameters = implode(" ", $args);
-	$bind_path[] = dirname(($summary));
+	$out_files[] = $summary;
 
-	$parser->execSingularity("modkit", $modkit_version, $bind_path, $modkit_command, $modkit_parameters);
+	$parser->execSingularity("modkit", get_path("container_modkit"), "modkit", implode(" ", $args), $in_files, $out_files);
 	//copy logfile 
 	$parser->log("modkit summary log file", file($log_file2));
 }

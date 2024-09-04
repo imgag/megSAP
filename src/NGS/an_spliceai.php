@@ -196,15 +196,14 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	/* putenv("PYTHONPATH"); */
 
 	//set bind paths for container execution
-	$bind_path = array();
-	$bind_path[] = dirname(realpath(genome_fasta($build)));
-	$bind_path[] = dirname($vcf_filtered);
+	$in_files = array();
+	$out_files = array();
+
+	$in_files[] = genome_fasta($build);
+	$in_files[] = $vcf_filtered;
 
 	//run spliceai container
-	$spliceai_command = "/spliceai/splice_env/bin/spliceai";
-	$spliceai_parameters = implode(" ", $args);
-	$spliceai_version = get_path("container_spliceai");
-	$parser->execSingularity("spliceai", $spliceai_version, $bind_path, $spliceai_command, $spliceai_parameters, $threads);
+	$parser->execSingularity("spliceai", get_path("container_spliceai"), "/spliceai/splice_env/bin/spliceai", implode(" ", $args), $in_files, $out_files, $threads);
 
 	//no variants scored => copy input to output
 	$var_count = vcf_variant_count($tmp1, "SpliceAI=");
@@ -252,21 +251,16 @@ $tmp_fields = $parser->tempFile("spliceai_tmp_fields.txt");
 $tmp_prefixed = $parser->tempFile("spliceai_tmp_prefixed.txt");
 $spliceai_regions = $parser->tempFile("spliceai_scoring_regions.bed");
 
-$bind_path = array();
-$bind_path[] = dirname($tmp_fields);
 $spliceai_version = get_path("container_spliceai");
 
-$spliceai_command = "cut";
 $spliceai_parameters = "-f 2,4,5 -d'\t' /spliceai/splice_env/lib/python3.6/site-packages/spliceai/annotations/".strtolower($build).".txt > {$tmp_fields}";
-$parser->execSingularity("spliceai", $spliceai_version, $bind_path, $spliceai_command, $spliceai_parameters);
+$parser->execSingularity("spliceai", $spliceai_version, "cut", $spliceai_parameters, );
 
-$spliceai_command = "sed";
 $spliceai_parameters = "'s/^/chr/' {$tmp_fields} > {$tmp_prefixed}";
-$parser->execSingularity("spliceai", $spliceai_version, $bind_path, $spliceai_command, $spliceai_parameters);
+$parser->execSingularity("spliceai", $spliceai_version, "sed", $spliceai_parameters);
 
-$spliceai_command = "sed";
 $spliceai_parameters = "'1d' {$tmp_prefixed} > {$spliceai_regions}";
-$parser->execSingularity("spliceai", $spliceai_version, $bind_path, $spliceai_command, $spliceai_parameters);
+$parser->execSingularity("spliceai", $spliceai_version, "sed", $spliceai_parameters);
 
 $tmp2 = $parser->tempFile("_spliceai_filtered_regions.vcf");
 $parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg {$spliceai_regions} -in {$tmp1} -out {$tmp2}", true);

@@ -157,24 +157,15 @@ if (in_array("vc", $steps))
 	$args[] = "{$vcf_file}";
 	$args[] = implode(" ", $bams);
 
-	//get bams directory
-	foreach($bams as $bam)
-	{
-		$bams_dir = dirname(realpath($bam));
-		break;
-	}
+	$in_files = array();
+	$out_files = array();
 
-	$bind_path = array();
-	$bind_path[] = dirname(realpath($ped));
-	$bind_path[] = dirname(realpath(genome_fasta($sys['build'])));
-	$bind_path[] = dirname(realpath($vcf_file));
-	$bind_path[] = $bams_dir;
+	$in_files[] = $ped;
+	$in_files[] = genome_fasta($sys['build']);
+	$out_files[] = $vcf_file;
+	$in_files = array_merge($out_files, $bams);
 
-	$whatshap_command = "whatshap";
-	$whatshap_parameters = implode(" ", $args);
-	$whatshap_version = get_path("container_whatshap");
-
-	$parser->execSingularity("whatshap", $whatshap_version, $bind_path, $whatshap_command, $whatshap_parameters);
+	$parser->execSingularity("whatshap", get_path("container_whatshap"), "whatshap", implode(" ", $args), $in_files, $out_files);
 
 	//create compressed file and index and replace original VCF
 	$parser->exec("bgzip", "-c {$vcf_file_phased} > {$vcf_file}", false);

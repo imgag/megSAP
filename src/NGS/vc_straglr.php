@@ -56,17 +56,15 @@ $args[] = "--sample {$pid}";
 if ($gender != "n/a") $args[] = "--sex ".$gender[0];
 
 //set bind paths for straglr container
-$bind_path = array();
-$bind_path[] = dirname(realpath($in));
-$bind_path[] = $out_folder;
-$bind_path[] = dirname(realpath($genome));
-$bind_path[] = dirname(realpath($loci));
+$in_files = array();
+$out_files = array();
+$in_files[] = $in;
+$in_files[] = $genome;
+$in_files[] = $loci;
+$out_files[] = $out_folder;
 
 // run straglr container
-$vc_straglr_command = "python /opt/conda/envs/straglr/bin/straglr.py";
-$vc_straglr_parameters = implode(" ", $args);
-$straglr_version = get_path("container_straglr");
-$parser->execSingularity("straglr", $straglr_version, $bind_path, $vc_straglr_command, $vc_straglr_parameters);
+$parser->execSingularity("straglr", get_path("container_straglr"), "python /opt/conda/envs/straglr/bin/straglr.py", implode(" ", $args), $in_files, $out_files);
 
 //get pathogenic ranges from NGSD
 $min_pathogenic = array();

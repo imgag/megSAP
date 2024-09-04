@@ -31,12 +31,13 @@ extract($parser->parse($argv));
 
 //init
 $genome = genome_fasta($build);
-$bind_path = array();
+$in_files = array();
+$out_files = array();
 
 //resolve configuration preset
 if (!$config === "/opt/strelka2/bin/configureStrelkaSomaticWorkflow.py.ini")
 {
-	$bind_path[] = dirname(realpath($config));
+	$in_files[] = $config;
 }
 
 //resolve run dir
@@ -58,7 +59,7 @@ if (!$wgs)
 if (isset($smallIndels))
 {
 	$args[] = "--indelCandidates {$smallIndels}";
-	$bind_path[] = dirname(realpath($smallIndels));
+	$in_files[] = $smallIndels;
 }
 
 if (isset($debug_region))
@@ -67,20 +68,15 @@ if (isset($debug_region))
 }
 
 //set bind paths for strelka2 container
-$bind_path[] = $temp_folder;
-$bind_path[] = dirname(realpath($genome));
-$bind_path[] = dirname(realpath($t_bam));
-$bind_path[] = dirname(realpath($n_bam));
+$in_files[] = $genome;
+$in_files[] = $t_bam;
+$in_files[] = $n_bam;
+$out_files[] = $temp_folder;
 
 //run strelka2 container
-$vc_strelka2_command = "python2 /opt/strelka2/bin/configureStrelkaSomaticWorkflow.py";
-$vc_strelka2_parameters = implode(" ", $args);
-$strelka2_version = get_path("container_strelka2");
-$parser->execSingularity("strelka2", $strelka2_version, $bind_path, $vc_strelka2_command, $vc_strelka2_parameters, true);
+$parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 /opt/strelka2/bin/configureStrelkaSomaticWorkflow.py", implode(" ", $args), $in_files, $out_files, true);
 
-$vc_strelka2_command = "python2 {$run_dir}/runWorkflow.py";
-$vc_strelka2_parameters = "-m local -j $threads -g 4";
-$parser->execSingularity("strelka2", $strelka2_version, $bind_path, $vc_strelka2_command, $vc_strelka2_parameters, false);
+$parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 {$run_dir}/runWorkflow.py", "-m local -j $threads -g 4", $in_files, $out_files, false);
 
 //################################################################################################
 //Split multi-allelic variants

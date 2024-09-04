@@ -28,10 +28,10 @@ if (get_path("use_bwa1"))
 }
 else
 {
-	exec2(get_path("bwa-mem2")." index {$in}");
+	$parser->execSingularity("bwa-mem2", get_path("container_bwa-mem2"), "/opt/bwa-mem2-2.2.1_x64-linux/bwa-mem2", " index {$in}", $in_files = [$in]);
 }
 
-exec2(get_path("samtools")." faidx {$in}");
+$parser->execSingularity("samtools", get_path("container_samtools"), "samtools", " faidx {$in}", $in_files = [$in]);
 exec2("md5sum -b {$in} > {$in}.md5");
 
 ?>
