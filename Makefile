@@ -124,7 +124,7 @@ todos:
 	find . -name "*.php" | xargs grep -i "//todo" 
 
 find_php_warnings_in_tests:
-	find test/ -type f -name "*.log" | xargs egrep -i "PHP (warning|notice)" || true
+	find test/ -type f -and -name "*.log" -or -type f -and -name "*_output" | xargs egrep -i "PHP (warning|notice)" || true
 
 swap_settings:
 	mv settings.ini settings.ini.swap
