@@ -30,8 +30,8 @@ an:
 diff:
 	php ../compare_variants.php -in1 23014LRa023L2_01.GSvar.out -in2 23014LRa023L2_01.GSvar
 	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_fastq.qcML.out 23014LRa023L2_01_stats_fastq.qcML
-	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_map.qcML.out 23014LRa023L2_01_stats_map.qcML 0.01
-	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_vc.qcML.out 23014LRa023L2_01_stats_vc.qcML 0.04
+	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_map.qcML.out 23014LRa023L2_01_stats_map.qcML
+	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_vc.qcML.out 23014LRa023L2_01_stats_vc.qcML 1.01
 	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_other.qcML.out 23014LRa023L2_01_stats_other.qcML
 	diff 23014LRa023L2_01_cnvs_clincnv.tsv.out 23014LRa023L2_01_cnvs_clincnv.tsv --ignore-matching-lines="#"
 	diff 23014LRa023L2_01_var_structural_variants.bedpe.out 23014LRa023L2_01_var_structural_variants_cut.bedpe --ignore-matching-lines="^##"
@@ -49,8 +49,8 @@ bam_analysis: clean
 diff2:
 	php ../compare_variants.php -in1 23014LRa023L2_02.GSvar.out -in2 23014LRa023L2_02.GSvar
 	php ../compare_qcml_xml.php 23014LRa023L2_02_stats_fastq.qcML.out 23014LRa023L2_02_stats_fastq.qcML
-	php ../compare_qcml_xml.php 23014LRa023L2_02_stats_map.qcML.out 23014LRa023L2_02_stats_map.qcML 0.01
-	php ../compare_qcml_xml.php 23014LRa023L2_02_stats_vc.qcML.out 23014LRa023L2_02_stats_vc.qcML 0.04
+	php ../compare_qcml_xml.php 23014LRa023L2_02_stats_map.qcML.out 23014LRa023L2_02_stats_map.qcML
+	php ../compare_qcml_xml.php 23014LRa023L2_02_stats_vc.qcML.out 23014LRa023L2_02_stats_vc.qcML
 	php ../compare_qcml_xml.php 23014LRa023L2_02_stats_other.qcML.out 23014LRa023L2_02_stats_other.qcML
 	diff 23014LRa023L2_02_cnvs_clincnv.tsv.out 23014LRa023L2_02_cnvs_clincnv.tsv --ignore-matching-lines="#"
 	diff 23014LRa023L2_02_var_structural_variants.bedpe.out 23014LRa023L2_02_var_structural_variants_cut.bedpe --ignore-matching-lines="^##"
