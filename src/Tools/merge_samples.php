@@ -131,7 +131,7 @@ elseif (count($target_mod_unmapped_bam_files) > 0)
 }
 elseif (file_exists($target_bam_or_cram)) 
 {
-	$target_bam_or_cram_methylation = contains_methylation($target_bam_or_cram);
+	$target_bam_or_cram_methylation = contains_methylation($target_bam_or_cram, 100, $build);
 	if ($target_bam_or_cram_methylation)
 	{
 		// unmapped BAM instead of FASTQ
@@ -178,7 +178,7 @@ elseif (count($source_mod_unmapped_bam_files) > 0)
 }
 elseif (file_exists($source_bam_or_cram)) 
 {
-	if (contains_methylation($source_bam_or_cram) || $target_bam_or_cram_methylation)
+	if (contains_methylation($source_bam_or_cram, 100, $build) || $target_bam_or_cram_methylation)
 	{
 		// unmapped BAM instead of FASTQ
 		$mod_unmapped_bam = "{$folder2}/{$ps}.mod.unmapped.bam";

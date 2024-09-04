@@ -2168,11 +2168,12 @@ function genome_masked($bam, $build)
 }
 
 //check if BAM file contains methylation data (only check the first $n_rows)
-function contains_methylation($bam_file, $n_rows=100)
+function contains_methylation($bam_file, $n_rows=100, $build="GRCh38")
 {
 	if (!file_exists($bam_file)) trigger_error("BAM file '{$bam_file}'", E_USER_ERROR);
+	$genome = genome_fasta($build);
 	// ignore errors occuring of unknown reason (broken pipe)
-	list($stdout) = exec2(get_path("samtools")." view {$bam_file} | head -n {$n_rows}", false); //TODO Leon: reference genome?
+	list($stdout) = exec2(get_path("samtools")." view -T {$genome} {$bam_file} | head -n {$n_rows}", false);
 	//additional testing since we cannot rely on samtools error reporting
 	if (count($stdout) != $n_rows) trigger_error("Couldn't extract the first {$n_rows} rows of the BAM file!", E_USER_ERROR);
 

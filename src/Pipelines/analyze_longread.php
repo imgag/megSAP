@@ -153,7 +153,7 @@ if (in_array("ma", $steps))
 	$parser->execTool("NGS/mapping_minimap.php", implode(" ", $mapping_minimap_options));
 
 	// create methylation track
-	if (contains_methylation($bam_file))
+	if (contains_methylation($bam_file, 100, $build))
 	{
 		$args = array();
 		$args[] = "-bam ".$bam_file;
