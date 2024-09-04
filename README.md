@@ -38,6 +38,11 @@ Documentation about the different **ONT long-read pipelines** can be found here:
 
 Please report any issues or questions to the [megSAP issue tracker](https://github.com/imgag/megSAP/issues).
 
+## Citing
+
+There is no paper for megSAP yet.  
+Please cite the GitHub repository for now.
+
 ## ChangeLog
 
 Major changes of master since last release:
@@ -48,10 +53,5 @@ Major changes of master since last release:
 * improved PRS calculation (imputed variants, etc)
 * added optional RefSeq annotation (see [settings documentation](doc/settings.md#section-general)).
 * added optional custom annotations in GSvar/VCF from VCFs (see [settings documentation](doc/settings.md#section-general)).
-
-## Citing
-
-There is no paper for megSAP yet.  
-Please cite the GitHub repository for now.
 
 For older changes see [releases](https://github.com/imgag/megSAP/releases).
