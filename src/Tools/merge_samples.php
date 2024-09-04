@@ -13,6 +13,7 @@ $parser->addString("ps", "Processed sample to merged into the second sample.", f
 $parser->addString("into", "Processed sample into which the first sample is merged.", false);
 $parser->addString("sys", "System of the two samples to be merged. If not given will be loaded from the NGSD.", true, "");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 function getSampleGenome($sample, $sys)
