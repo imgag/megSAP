@@ -51,7 +51,7 @@ $bind_paths[] = dirname(realpath(genome_fasta($build, true, false)));
 
 //mapping with bwa
 $pipeline = array();
-$bwa_params = "mem ".genome_fasta($build, true, false)." -K 100000000 -Y -R '@RG\\t".implode("\\t", $group_props)."' -t $threads -v 2";
+$bwa_params = "mem ".genome_fasta($build)." -K 100000000 -Y -R '@RG\\t".implode("\\t", $group_props)."' -t $threads -v 2";
 
 //select the correct binary
 if (get_path("use_bwa1")) 

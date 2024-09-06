@@ -63,7 +63,7 @@ function create_mail_command(&$db_conn, $project_name, $samples)
 	$mail_text[] = "Viele Gruesse";
 	$mail_text[] = "";
 	$mail_text[] = "  die Bioinformatik";
-	return "php -r 'mail(\"$email\",\"Neue Daten fuer $project_name\", \"".implode("\\n",$mail_text)."\",\"Reply-To: ".get_path("queue_email")."\");'";
+	return "php -r 'mail(\"$email\",\"Neue Daten fuer $project_name\", \"".implode("\\n",$mail_text)."\",\"Reply-To: no-reply@med.uni-tuebingen.de\");'";
 }
 
 //get file size in MB
@@ -348,7 +348,7 @@ if($run_name != "")
 			}
 
 			// check if DRAGEN can be used
-			if ((get_path("dragen_user", false) != "") && (get_path("queues_dragen", false) != ""))
+			if (get_path("queues_dragen", false)!="")
 			{
 				// ask if DRAGEN should be used
 				echo "Should the genome samples on this run mapped with DRAGEN mapping? (y/n)?\n";
@@ -420,7 +420,7 @@ $queue_trios = array();
 $project_to_fastqonly_samples = array();
 $sample_to_newlocation = array();
 
-if ((get_path("dragen_user", false) != "") && (get_path("queues_dragen", false) != "") && !$test)
+if (get_path("queues_dragen", false)!="" && !$test)
 {
 	$use_dragen_somatic = null;
 }
@@ -647,6 +647,12 @@ foreach($sample_data as $sample => $sample_infos)
 				//copy logs
 				$target_to_copylines[$tag][] = "\tcp -r {$log_folder} {$project_folder}Sample_{$sample}/dragen_variant_calls/";
 				$target_to_copylines[$tag][] = "\tcp {$report_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/logs";
+
+				//touch all indices (to prevent warnings)
+				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.bai";
+				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.crai";
+				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.tbi";
+				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.csi";
 
 				//move BAM
 				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_mapping_file} {$project_folder}Sample_{$sample}/";
@@ -916,7 +922,7 @@ if(count($merge_files) > 0)
 	$output[] = "";
 
 	//report merged samples
-	print(implode("\n", $merge_notice));
+	print(implode("\n", $merge_notice)."\n");
 }
 	
 //target(s) 'queue_...'

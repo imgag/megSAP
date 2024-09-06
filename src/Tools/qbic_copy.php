@@ -448,7 +448,8 @@ foreach($res as $row)
 		list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps {$ps_name} -type BAM");
 		$bam_or_cram = trim(implode("", $stdout));
 		
-		$sys = load_system($sys, $ps_name); //param filename = "" to load from the NGSD
+		$sys_filename_ignore = "";
+		$sys = load_system($sys_filename_ignore, $ps_name); //param filename = "" to load from the NGSD
 		$build = $sys['build'];
 		$genome = genome_fasta($build);
 		

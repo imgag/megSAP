@@ -11,16 +11,16 @@ folder=`pwd`/tools/
 
 #download STAR
 cd $folder
-wget https://github.com/alexdobin/STAR/archive/2.7.10b.tar.gz
-tar xzf 2.7.10b.tar.gz
-rm 2.7.10b.tar.gz
+wget https://github.com/alexdobin/STAR/archive/2.7.11b.tar.gz
+tar xzf 2.7.11b.tar.gz
+rm 2.7.11b.tar.gz
 
 #download subread (featureCounts)
 cd $folder
-wget https://downloads.sourceforge.net/project/subread/subread-2.0.4/subread-2.0.4-Linux-x86_64.tar.gz
-tar xzf subread-2.0.4-Linux-x86_64.tar.gz
-rm subread-2.0.4-Linux-x86_64.tar.gz
-mv subread-2.0.4-Linux-x86_64 subread-2.0.4
+wget https://downloads.sourceforge.net/project/subread/subread-2.0.6/subread-2.0.6-Linux-x86_64.tar.gz
+tar xzf subread-2.0.6-Linux-x86_64.tar.gz
+rm subread-2.0.6-Linux-x86_64.tar.gz
+mv subread-2.0.6-Linux-x86_64 subread-2.0.6
 
 #download arriba
 cd $folder
@@ -33,10 +33,10 @@ $folder/R-4.1.0/bin/R -f $root/install_deps_arriba.R
 
 #download kraken2
 cd $folder
-wget https://github.com/DerrickWood/kraken2/archive/refs/tags/v2.1.2.tar.gz
-tar -xzf v2.1.2.tar.gz
-cd kraken2-2.1.2
+wget https://github.com/DerrickWood/kraken2/archive/refs/tags/v2.1.3.tar.gz
+tar -xzf v2.1.3.tar.gz
+cd kraken2-2.1.3
 ./install_kraken2.sh bin
 cd ..
-rm v2.1.2.tar.gz
+rm v2.1.3.tar.gz
 

@@ -320,7 +320,6 @@ if ($use_dragen)
 	$sge_args[] = "-b y"; // treat as binary
 	$sge_args[] = "-wd $dragen_output_folder";
 	$sge_args[] = "-m n"; // switch off messages
-	$sge_args[] = "-M ".get_path("queue_email");
 	$sge_args[] = "-e ".get_path("dragen_log")."/$sge_logfile.err"; // stderr
 	$sge_args[] = "-o ".get_path("dragen_log")."/$sge_logfile.out"; // stdout
 	$sge_args[] = "-q ".implode(",", $dragen_queues); // define queue

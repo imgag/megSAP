@@ -21,6 +21,7 @@ $parser->addFlag("multi", "Enable multi-sample mode.");
 $parser->addFlag("somatic", "Enable somatic mode (no variant QC and no GSvar file).");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
+$parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated (this can be very slow).");
 extract($parser->parse($argv));
 
 //input file names
@@ -66,10 +67,12 @@ $args[] = "-ps_name ".$out_name;
 if ($somatic) $args[] = "-somatic";
 if ($somatic) $args[] = "-somatic";
 if (get_path("annotate_refseq_consequences", false)) $args[] = "-annotate_refseq_consequences";
+$args[] = "-custom custom_colums";
+if ($no_splice) $args[] = "-no_splice";
 $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 
 //annotate COSMIC
-$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v98.vcf.gz";
+$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v99.vcf.gz";
 if(file_exists($cosmic_cmc) && $somatic)
 {
 	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
@@ -130,6 +133,12 @@ if (($sys['type']=="lrGS") && !$multi && !$somatic && db_is_enabled("NGSD"))
 	
 }
 
+//mark variants in low-mappabilty regions
+if ($multi)
+{
+	$roi_low_mappabilty = repository_basedir()."data/misc/low_mappability_region/wgs_mapq_eq0.bed";
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $annfile -mark low_mappability -inv -reg $roi_low_mappabilty -out $annfile", true);
+}
 
 //zip annotated VCF file
 $parser->exec("bgzip", "-c $annfile > $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
@@ -148,6 +157,7 @@ if (!$somatic) //germline only
 	if ($multi) $args[] = "-genotype_mode multi";
 	if ($sys['type']=="WGS") $args[] = "-wgs";
 	if ($sys['type']=="lrGS") $args[] = "-wgs -longread";
+	$args[] = "-custom custom_colums";
 	$parser->execTool("NGS/vcf2gsvar.php", implode(" ", $args));
 	
 	//annotate variant allele frequency and depth from related RNA sample, if available

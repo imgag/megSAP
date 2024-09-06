@@ -165,7 +165,7 @@ $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
 $pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
 $tmp_annotated = temp_file("_annotated.vcf");
-$gnomad_file = get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz";
+$gnomad_file = get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz";
 $pipeline[] = array(get_path("ngs-bits")."VcfAnnotateFromVcf", "-out $tmp_annotated -source $gnomad_file -info_keys AF -prefix gnomADg -threads $threads");
 $parser->execPipeline($pipeline, "vc_mosaic post processing");
 

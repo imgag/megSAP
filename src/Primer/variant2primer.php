@@ -32,10 +32,10 @@ function convert_region_list_to_bed($region_list_file,$out_file,$size)
 	foreach($region_lines as $region_line)
 	{
 		
-		list($chr,$start,$end)= preg_split("/[\s,\t,:,-]+/",trim($region_line));//split by space,tab,"-" and ":"
-		$reg_length=$end-$start;
-		$end=$end+ceil(($size-$reg_length)/2);
-		$start=$start-floor(($size-$reg_length)/2);
+		list($chr, $start, $end)= preg_split("/[\s,\t,:,-]+/",trim($region_line));//split by space,tab,"-" and ":"
+		$reg_length = $end-$start;
+		$end += ceil(($size-$reg_length)/2);
+		$start -= floor(($size-$reg_length)/2);
 		file_put_contents($out_file,implode("\t",array($chr,$start,$end))."\n", FILE_APPEND);
 	}
 	

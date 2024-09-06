@@ -15,7 +15,16 @@ $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single
 $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
 $parser->addFlag("longread", "Add additional columns for long-read samples (e.g. pahsing information)");
+$parser->addString("custom", "Settings key name for custom column definitions.", true, "");
+$parser->addFlag("test", "Run in test mode. Skips replacing sample headers with NGSD information.");
 extract($parser->parse($argv));
+
+$custom_colums = [];
+if ($custom!="")
+{
+	$tmp = get_path($custom, false);
+	if (is_array($tmp)) $custom_colums = $tmp;
+}
 
 //skip common MODIFIER variants in WGS mode
 function skip_in_wgs_mode($chr, $coding_and_splicing_details, $gnomad, $clinvar, $hgmd, $ngsd_clas)
@@ -141,6 +150,8 @@ function write_header_line($handle, $column_desc, $filter_desc)
 	global $skip_short_read_overlap_annotation;
 	global $column_desc_short_read_overlap_annotation;
 	if(!$skip_short_read_overlap_annotation) $column_desc = array_merge($column_desc, $column_desc_short_read_overlap_annotation);
+	global $column_desc_custom;
+	$column_desc = array_merge($column_desc, $column_desc_custom);
 	
 	//write out header
 	foreach($column_desc as $entry)
@@ -347,6 +358,13 @@ $column_desc_short_read_overlap_annotation = array(
 	array("in_short-read", "Variant was also found in corresponding short-read WGS sample.")
 );
 
+$column_desc_custom = [];
+foreach($custom_colums as $key => $tmp)
+{
+	list($vcf, $col, $desc) = explode(";", $tmp, 3);
+	$column_desc_custom[] = [$key, $desc];
+}
+
 if ($genotype_mode=="single")
 {
 	// add phasing info for long-reads
@@ -472,7 +490,7 @@ while(!feof($handle))
 			if ($genotype_mode=="single")
 			{
 				// replace sample header with NGSD enry:
-				if (db_is_enabled("NGSD")) $line = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "##", "");
+				if (db_is_enabled("NGSD") && !$test) $line = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "##", "");
 				if ($column_desc[0][0]!="genotype")
 				{
 					trigger_error("Several sample header lines in 'single' mode!", E_USER_ERROR);
@@ -904,6 +922,7 @@ while(!feof($handle))
 	$maxentscan = array();
 	$regulatory = array();
 	$pubmed = array();
+	$custom_column_data = [];
 	
 	//variant details based on Ensembl (up/down-stream)
 	$variant_details_updown = array();
@@ -977,7 +996,7 @@ while(!feof($handle))
 					// append description
 					if (array_key_exists($domain, $pfam_description))
 					{
-						$domain_description = $domain_description.$pfam_description[$domain];
+						$domain_description .= $pfam_description[$domain];
 					}
 
 					// throw error if Pfam id is neither found in replacement data nor in description data
@@ -1510,6 +1529,13 @@ while(!feof($handle))
 	//COSMIC
 	$cosmic = implode(",", collapse($tag, "COSMIC", $cosmic, "unique"));
 	
+	//custom columns
+	foreach($custom_colums as $key => $tmp)
+	{
+		list($vcf, $col, $desc) = explode(";", $tmp, 3);
+		$custom_column_data[$key] = isset($info["CUSTOM_".$col]) ? $info["CUSTOM_".$col] : "";
+	}
+	
 	//skip common MODIFIER variants in WGS mode
 	if ($wgs && skip_in_wgs_mode($chr, $coding_and_splicing_details, $gnomad, $clinvar, $hgmd, $ngsd_clas))
 	{
@@ -1564,7 +1590,15 @@ while(!feof($handle))
 		fwrite( $handle_out, str_repeat("\t", count($column_desc_cancerhotspots) ) );
 	}
 
-	if (!$skip_short_read_overlap_annotation) fwrite($handle_out, "\t".$in_short_read_sample);
+	if (!$skip_short_read_overlap_annotation)
+	{
+		fwrite($handle_out, "\t".$in_short_read_sample);
+	}
+	
+	foreach($custom_colums as $key => $tmp)
+	{
+		fwrite($handle_out, "\t".$custom_column_data[$key]);
+	}
 
 	fwrite($handle_out, "\n");
 }

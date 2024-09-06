@@ -15,7 +15,6 @@ check_file($out_file1, data_folder().$name."_out1.vcf.gz");
 ########################## tumor-only ########################
 $out_file2 = output_folder().$name."_out2.vcf.gz";
 $manta_evidence_dir = output_folder()."/manta_evid_2";
-print "\nphp ".src_folder()."/NGS/{$name}.php -t_bam ".data_folder()."vc_strelka2_tu_in.bam -out $out_file2 -evid_dir $manta_evidence_dir -threads 2 --log ".output_folder().$name."_out2.log\n";
 check_exec("php ".src_folder()."/NGS/{$name}.php -t_bam ".data_folder()."vc_strelka2_tu_in.bam -out $out_file2 -evid_dir $manta_evidence_dir -threads 2 --log ".output_folder().$name."_out2.log");
 check_file($out_file2, data_folder().$name."_out2.vcf.gz");
 

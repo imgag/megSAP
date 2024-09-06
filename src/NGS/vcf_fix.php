@@ -3,12 +3,9 @@
 	@page vcf_fix
 	
 	flags:
-	--mosaic_mode: 
-		- Doesn't remove variants with genotype '0/0' instead changes them to  het '0/1'.
-	
-	--longread_mode:
-		- preserve phasing information
-		- keeps different INFO/FORMAT values
+	--mosaic_mode: Doesn't remove variants with genotype '0/0' instead changes them to  het '0/1'
+	--longread_mode: preserve phasing information; keeps GT:DP:AF:GQ instead of GT:DP:AO:GQ
+	--dragen_mode: keeps GT:DP:AF:GQ instead of GT:DP:AO:GQ
 	
 	Fixes VCF file problems produced by Freebayes:
 	- Merges duplicate heterozygous variants into one homozygous variant
@@ -44,8 +41,10 @@ function info_data($info)
 }
 
 //convert FORMAT/SAMPLE data to associative array
-function sample_data($format, $sample, $longread_mode=false)
+function sample_data($format, $sample)
 {
+	global $longread_mode;
+	
 	$tmp = array_combine(explode(":", $format), explode(":", $sample));
 	
 	if(!$longread_mode)
@@ -59,11 +58,13 @@ function sample_data($format, $sample, $longread_mode=false)
 }
 
 //write variant
-function write($h_out, $var, $mosaic_mode=false, $longread_mode=false)
+function write($h_out, $var)
 {
-	// create format value column for each sample
-	$format_header = "GT:DP:AO:GQ";
-	if ($longread_mode) $format_header = "GT:DP:AF:GQ";
+	global $mosaic_mode;
+	global $longread_mode;
+	global $dragen_mode;
+	global $format_header;
+	
 	$format_values = array();
 	$all_wt = true;
 	
@@ -75,7 +76,7 @@ function write($h_out, $var, $mosaic_mode=false, $longread_mode=false)
 	
 	for ($i=9; $i < count($var); $i++) 
 	{ 
-		$sample= sample_data($var[8], $var[$i], $longread_mode);
+		$sample= sample_data($var[8], $var[$i]);
 		if($sample['GT']!="0/0" && $sample['GT']!=".|.")
 		{
 			//non wt/non-call variant -> keep in file
@@ -89,14 +90,28 @@ function write($h_out, $var, $mosaic_mode=false, $longread_mode=false)
 		}
 		
 		// create output string
-		if($longread_mode)
+		if($longread_mode || $dragen_mode)
 		{
 			//set defaults: (some indels only contain GT column)
 			if (!isset($sample['DP'])) $sample['DP'] = ".";
-			if (!isset($sample['AF'])) $sample['AF'] = ".";
+			if (isset($sample['AF']) && $sample['AF']!=".")
+			{
+				//workaroud for bug in vcfbreakmulti - should not be needed anymore when we use VcfBreakMulti from ngs-bits
+				if (!is_numeric($sample['AF']))
+				{
+					$tmp = explode(",", $sample['AF']);
+					$tmp = array_diff($tmp, ["."]);
+					$sample['AF'] = count($tmp)>0 ? mean($tmp) : "0.0";
+				}
+				$sample['AF'] = number_format($sample['AF'], 3);
+			}
+			else
+			{
+				$sample['AF'] = ".";
+			}
 			if (!isset($sample['GQ'])) $sample['GQ'] = ".";
 
-			$format_values[] = $sample['GT'].":".$sample['DP'].":".(($sample['AF'] == ".") ? "." :number_format($sample['AF'], 3)).":".(int)($sample['GQ']);
+			$format_values[] = $sample['GT'].":".$sample['DP'].":".$sample['AF'].":".(int)($sample['GQ']);
 		}
 		else
 		{
@@ -123,13 +138,14 @@ function write($h_out, $var, $mosaic_mode=false, $longread_mode=false)
 	//write INFO
 	$info = info_data($var[7]);
 
-	if($longread_mode)
+	if($longread_mode || $dragen_mode)
 	{
 		$info_output = array();
 		if(isset($info["F"])) $info_output[] = "F";
 		if(isset($info["P"])) $info_output[] = "P";
 		// write '.' if INFO column is empty
-		if(count($info_output) == 0) $info_output[] = ".";		fwrite($h_out, implode(";", $info_output)."\t");
+		if(count($info_output) == 0) $info_output[] = ".";
+		fwrite($h_out, implode(";", $info_output)."\t");
 	}
 	else
 	{
@@ -140,31 +156,25 @@ function write($h_out, $var, $mosaic_mode=false, $longread_mode=false)
 	fwrite($h_out, $format_header."\t".implode("\t", $format_values)."\n");
 }
 
-
-//main loop
-
 //CLI handling:
 $mosaic_mode = false;
 $longread_mode = false;
-$format_header = "GT:DP:AO:GQ";
-if ($argc != 1)
+$dragen_mode = false;
+if ($argc==2)
 {
-	if ($argv[1] == "--mosaic_mode")
-	{
-		$mosaic_mode = true;
-	}
-	elseif ($argv[1] == "--longread_mode")
-	{
-		$longread_mode = true;
-		$format_header = "GT:DP:AF:GQ";		
-	}
-	else
-	{
-		fprintf(STDERR, "Unknown command line option(s) given '".$argv[1]."'.\nCurrently only the flags --mosaic_mode and --longread_mode are supported.");
-		return 1;
-	}
+	if ($argv[1] == "--mosaic_mode") $mosaic_mode = true;
+	else if ($argv[1] == "--longread_mode") $longread_mode = true;	
+	else if ($argv[1] == "--dragen_mode") $dragen_mode = true;
+	else trigger_error("Unknown command line option given: ".$argv[1], E_USER_ERROR);
+}
+else if ($argc>2)
+{
+	trigger_error("More than one command-line options given. This is not supported!", E_USER_ERROR);
 }
 
+//main loop
+$format_header = "GT:DP:AO:GQ";
+if ($longread_mode || $dragen_mode) $format_header = "GT:DP:AF:GQ";	
 
 $ids = array("RO","GTI","NS","SRF","NUMALT","DP","QR","SRR","SRP","PRO","EPPR","DPB","PQR","ROOR","MQMR","ODDS","AN","RPPR","PAIREDR");
 $var_last = array("","","","","","","","",$format_header,"0/0:0:0:0");
@@ -243,7 +253,7 @@ while(!feof($h_in))
 			}
 			
 			$dp = $sample['DP'];
-			if ($longread_mode)
+			if ($longread_mode || $dragen_mode)
 			{
 				$af = $sample['AF'];
 				if (contains($af, ",")) list($af) = explode(",", $af);
@@ -263,7 +273,7 @@ while(!feof($h_in))
 			$gq = max($sample['GQ'], $gq_last);
 
 			// determine genotype
-			if ($longread_mode)
+			if ($longread_mode || $dragen_mode)
 			{
 				$var_last[$i] = "$gt:$dp:$af:$gq";
 			}
@@ -278,11 +288,11 @@ while(!feof($h_in))
 	}
 	else
 	{
-		write($h_out, $var_last, $mosaic_mode, $longread_mode);
+		write($h_out, $var_last);
 		$var_last = $var;
 	}
 }
-write($h_out, $var_last, $mosaic_mode, $longread_mode);
+write($h_out, $var_last);
 fclose($h_in);
 fclose($h_out);
 

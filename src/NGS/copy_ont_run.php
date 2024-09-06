@@ -22,6 +22,7 @@ $parser->addString("single_fastq",  "Create single FASTQ file, without sample lo
 
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addInt("threads", "Number of threads to use for file merging and compression.", true, 4);
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 $file_acccess_group = get_path("file_access_group", false);
@@ -33,6 +34,9 @@ if (!file_exists($run_dir))
 {
 	trigger_error("Run directory '{$run_dir}' does not exists!", E_USER_ERROR);
 }
+
+//set ulimit
+exec2("ulimit -n 10000");
 
 //find subdirectory in run directory
 $subdirs = array_values(array_diff(scandir($run_dir), array("..", ".")));
@@ -52,7 +56,7 @@ foreach ($subdirs as $subdir)
 	{
 		list($stdout, $stderr, $exit_code) = $parser->exec("du", "-b --summarize {$subdir}/pod5_skip");
 		$folder_size = intval(explode("\t", $stdout[0])[0]);
-		if ($folder_size > 1024*1024) // > 1MB
+		if ($folder_size > 5*1024*1024) // > 5MB
 		{
 			trigger_error("'pod5_skip' directory present in '{$subdir}', some data has not been basecalled!", E_USER_ERROR);
 		}
@@ -145,6 +149,9 @@ else
 	$modified_bases = false;
 }
 
+//import run QC
+$parser->execTool("NGS/runqc_parser_ont.php", "-name '{$run_name}' -run_dir {$run_dir} -db {$db} -force");
+
 //find sample entered in database
 $result = $db_con->executeQuery("SELECT processed_sample.id, processed_sample.sequencing_run_id FROM processed_sample, sequencing_run WHERE sequencing_run.name = '{$run_name}' AND processed_sample.sequencing_run_id=sequencing_run.id");
 if (count($result) !== 1)
@@ -156,14 +163,32 @@ $sample_info = get_processed_sample_info($db_con, $sample);
 
 $out_dir = $sample_info["ps_folder"];
 
+// copy to run folder during test:
+if ($db=="NGSD_TEST") 
+{
+	$out_dir = $run_dir."/TEST_Sample_".$sample."/";
+}
+
 if (!file_exists($out_dir))
 {
 	mkdir($out_dir, 0777, true);
 }
 
+//perform GenLab import before analysis (skip on test run)
+if ($db!="NGSD_TEST")
+{
+	trigger_error("Importing information from GenLab...", E_USER_NOTICE);
+	$args = [];
+	$args[] = "-ps {$sample}";
+	$parser->exec(get_path("ngs-bits")."/NGSDImportGenlab", implode(" ", $args), true);
+}
+
+
 if (($bam_available && $prefer_bam) || $bam)
 {
 	trigger_error("Copy and merge BAM files.", E_USER_NOTICE);
+
+	$genome = genome_fasta($build);
 
 	
 	if ($aligned && !$ignore_aligned)
@@ -191,14 +216,14 @@ if (($bam_available && $prefer_bam) || $bam)
 	{
 		$tmp_for_sorting = $parser->tempFile();
 		//merge presorted files
-		$pipeline[] = [get_path("samtools"), "merge --threads {$threads} -b - -o {$out_bam}"];
+		$pipeline[] = [get_path("samtools"), "merge --reference {$genome} --threads {$threads} -b - -o {$out_bam}"]; 
 		$parser->execPipeline($pipeline, "merge aligned BAM files");
 		$parser->indexBam($out_bam, $threads);
 
 	}
 	else
 	{
-		$pipeline[] = [get_path("samtools"), "cat --threads {$threads} -o {$out_bam} -b -"];
+		$pipeline[] = [get_path("samtools"), "cat --threads {$threads} -o {$out_bam} -b -"]; //no reference required
 		$parser->execPipeline($pipeline, "merge unaligned BAM files");
 	}
 }
@@ -223,7 +248,7 @@ if ($file_acccess_group != "") $parser->exec("chgrp", "-R {$file_acccess_group} 
 
 if ($queue_sample)
 {
-	$parser->execTool("NGS/db_queue_analysis.php", "-samples {$sample} -type 'single sample'");
+	$parser->execTool("NGS/db_queue_analysis.php", "-samples {$sample} -type 'single sample' -db {$db}".(($db=="NGSD_TEST")?" -user unknown":""));
 
 	// update sequencing run analysis status
 	$db_con->executeStmt("UPDATE sequencing_run SET sequencing_run.status='analysis_started' WHERE sequencing_run.name = '{$run_name}' AND sequencing_run.status IN ('run_started', 'run_finished')");

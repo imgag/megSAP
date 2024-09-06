@@ -192,7 +192,7 @@ function check_column_exists($filename,$col_names)
 	{
 		if(!in_array($col_name,$headers))
 		{
-			$report_errors = $report_errors . "Column ".$col_name." does not exist in file ".$filename.".\n";
+			$report_errors .= "Column ".$col_name." does not exist in file ".$filename.".\n";
 			$passed = false;
 		}
 	}
@@ -244,7 +244,7 @@ function check_tsv_file($out_file,$reference_file)
 	// check number of columns 
 	if(count($out_headers) !== count($ref_headers))
 	{
-		$report_errors = $report_errors."Number of columns is different in $out_file and $reference_file.\n";
+		$report_errors .= "Number of columns is different in $out_file and $reference_file.\n";
 		$passed = false;
 	}
 	
@@ -252,14 +252,14 @@ function check_tsv_file($out_file,$reference_file)
 	{
 		if($out->getColumnIndex($ref_col_name,false,false) === false) // check whether columns with certain name exist in both files
 		{
-			$report_errors = $report_errors . "Column $ref_col_name exists in $reference_file but not in $out_file \n";
+			$report_errors .= "Column $ref_col_name exists in $reference_file but not in $out_file \n";
 			$passed = false;
 		}
 		else // check whether content of column matches
 		{
 			if($out->getCol($out->getColumnIndex($ref_col_name)) != $ref->getCol($ref->getColumnIndex($ref_col_name)))
 			{
-				$report_errors = $report_errors . "Content of columns with name $ref_col_name does not match in $reference_file and $out_file \n";
+				$report_errors .= "Content of columns with name $ref_col_name does not match in $reference_file and $out_file \n";
 				$passed = false;
 			}
 		}

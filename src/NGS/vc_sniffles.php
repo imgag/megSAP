@@ -17,6 +17,7 @@ $parser->addOutfile("out", "Output VCF file (gzipped and tabix indexed).", false
 $parser->addStringArray("sample_ids", "Optional sample id(s)/name(s) for VCF output.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFlag("somatic", "Use somatic mode for SV calling (only single sample).");
+$parser->addInfile("target",  "Optional target region to limit SV calls to certain areas", true, true);
 $parser->addInt("threads", "Number of threads used.", true, 4);
 extract($parser->parse($argv));
 
@@ -60,6 +61,7 @@ else if(count($bam) == 1)
     $args[] = "--allow-overwrite";
     $args[] = "--sample-id ".$name;
     if($somatic) $args[] = "--non-germline";
+	if(isset($target)) $args[] = "--regions ".$target;
 
 	//set bind path for sniffles container
 	$in_files = array();
@@ -91,6 +93,7 @@ else
     	$args[] = "--reference ".genome_fasta($build);
     	$args[] = "--allow-overwrite";
 		$args[] = "--sample-id ".$name;
+		if(isset($target)) $args[] = "--regions ".$target;
 
 		//set bind path for sniffles container
 		$in_files = array();
@@ -113,6 +116,7 @@ else
 	$args[] = "--threads ".$threads;
 	$args[] = "--reference ".genome_fasta($build);
 	$args[] = "--allow-overwrite";
+	if(isset($target)) $args[] = "--regions ".$target;
 
 	$in_files = array();
 	$in_files[] = genome_fasta($build);

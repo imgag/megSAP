@@ -10,7 +10,7 @@ We are providing instructions for Ubuntu 20.04 and RHEL 8.3 here. However this s
 
 Ubuntu 20.04
 
-	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.4-cli php7.4-xml php7.4-mysql tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev libcurl4-openssl-dev libhts-dev libtabixpp-dev libtabixpp0 meson ninja-build gnumeric numdiff libpcre2-dev libreadline-dev libffi-dev libharfbuzz-dev libfribidi-dev libgit2-dev pybind11-dev libsqlite3-dev
+	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.4-cli php7.4-xml php7.4-mysql tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev libcurl4-openssl-dev libhts-dev libtabixpp-dev libtabixpp0 meson ninja-build gnumeric numdiff libpcre2-dev libreadline-dev libffi-dev libharfbuzz-dev libfribidi-dev libgit2-dev pybind11-dev libsqlite3-dev openjdk-17-jdk openjdk-17-jre
     
 RHEL 8.3
 
@@ -81,6 +81,14 @@ Finally, we need to download and convert some open-source databases for annotati
 **Note:** OMIM and HGMD are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
 
 **Note:** The use of the optional NGSD annotation requires an export of the variants to VCF files. These files should be updated on a regular basis. For example code take a look at the NGSD section in the download script.
+
+
+## Settings
+
+Changing the settings is not absolutely necessary as most entries have defaults set.  
+If you want to change the settings, copy `settings.ini.default` to `settings.ini` and adapt the settings to your needs.  
+
+Settings entries are described [here](settings.md)
 
 ## Execution
 

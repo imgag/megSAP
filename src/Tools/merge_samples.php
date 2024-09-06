@@ -13,6 +13,7 @@ $parser->addString("ps", "Processed sample to merged into the second sample.", f
 $parser->addString("into", "Processed sample into which the first sample is merged.", false);
 $parser->addString("sys", "System of the two samples to be merged. If not given will be loaded from the NGSD.", true, "");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 function getSampleGenome($sample, $sys)
@@ -131,7 +132,7 @@ elseif (count($target_mod_unmapped_bam_files) > 0)
 }
 elseif (file_exists($target_bam_or_cram)) 
 {
-	$target_bam_or_cram_methylation = contains_methylation($target_bam_or_cram);
+	$target_bam_or_cram_methylation = contains_methylation($target_bam_or_cram, 100, $build);
 	if ($target_bam_or_cram_methylation)
 	{
 		// unmapped BAM instead of FASTQ
@@ -178,7 +179,7 @@ elseif (count($source_mod_unmapped_bam_files) > 0)
 }
 elseif (file_exists($source_bam_or_cram)) 
 {
-	if (contains_methylation($source_bam_or_cram) || $target_bam_or_cram_methylation)
+	if (contains_methylation($source_bam_or_cram, 100, $build) || $target_bam_or_cram_methylation)
 	{
 		// unmapped BAM instead of FASTQ
 		$mod_unmapped_bam = "{$folder2}/{$ps}.mod.unmapped.bam";
