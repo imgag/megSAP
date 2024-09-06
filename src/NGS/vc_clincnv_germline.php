@@ -167,8 +167,8 @@ function detect_mosaicism()
 	$polymorphic="{$repository_basedir}/data/misc/af_genomes_imgag.bed";
 	$combined_bed = $parser->tempFile(".bed");
 	$filter_regions_bed = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$polymorphic} {$out} -out {$combined_bed}", true);
-	$parser->exec(get_path("ngs-bits")."BedMerge", "-in {$combined_bed} -out {$filter_regions_bed}", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAdd", "-in {$polymorphic} {$out} -out {$combined_bed}", [$polymorphic, $out]);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-in {$combined_bed} -out {$filter_regions_bed}");
 
 	//store all those regions
     $regions_filter = array();
@@ -349,7 +349,7 @@ function load_coverage_profile($filename, &$rows_to_use, &$output)
 }
 
 //function to write an empty cnv file
-function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messages, $tumor_only)
+function generate_empty_cnv_file($out, $tool_version, $stdout, $ps_name, $error_messages, $tumor_only)
 {
 	//ClinCNV did not generate CNV file
 	//generate file with basic header lines
@@ -363,10 +363,9 @@ function generate_empty_cnv_file($out, $command, $stdout, $ps_name, $error_messa
 		fwrite($cnv_output, "##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE\n");
 	}
 	fwrite($cnv_output, "##GENOME_BUILD=GRCh38\n");
-	if(preg_match('/^.*ClinCNV-([\d\.]*).*$/', $command, $matches))
-	{
-		fwrite($cnv_output, "##ClinCNV version: v{$matches[1]}\n");
-	}
+
+	fwrite($cnv_output, "##ClinCNV version: {$tool_version}\n");
+
 	if (!is_array($error_messages))
 	{
 		$error_messages = array($error_messages);
@@ -403,6 +402,7 @@ function run_clincnv($out, $mosaic=FALSE)
 	global $regions;
 	global $max_tries;
 	global $command;
+	global $tool_version;
 	global $parser;
 	global $mean_correlation;
 	global $ps_name;
@@ -414,6 +414,7 @@ function run_clincnv($out, $mosaic=FALSE)
 
 	$out_folder = $parser->tempFolder();
 
+	$bind_paths = array();
 	$args = [
 		"--normal {$cov_merged}",
 		"--bed {$bed}",
@@ -423,9 +424,10 @@ function run_clincnv($out, $mosaic=FALSE)
 		"--par \"chrX:10001-2781479;chrX:155701383-156030895\"", //this is correct for hg38 only!
 		"--hg38",
 		"--noPlot",
-		"--folderWithScript ".dirname(get_path("clincnv"))
+/* 		"--folderWithScript ".dirname(get_path("clincnv")) */
 		];
-		
+	
+	$bind_paths[] = dirname(realpath($bed));
 	if ($gender=="male") $args[] = "--sex M";
 	if ($gender=="female") $args[] = "--sex F";
 
@@ -439,9 +441,14 @@ function run_clincnv($out, $mosaic=FALSE)
 		if($use_off_target)
 		{
 			$args[] = "--bedOfftarget $bed_off";
+			$bind_paths[] = dirname(realpath($bed_off));
 			$args[] = "--normalOfftarget $merged_cov_off";
 		}
-		if(is_dir($baf_folder)) $args[] = "--bafFolder {$baf_folder}";
+		if(is_dir($baf_folder))
+		{
+			$args[] = "--bafFolder {$baf_folder}";
+			$bind_paths[] = realpath($baf_folder);
+		} 
 	}
 	else if($mosaic)
 	{
@@ -478,12 +485,13 @@ function run_clincnv($out, $mosaic=FALSE)
 		
 		//log
 		$add_info = array();
-		$add_info[] = "version    = ".$parser->extractVersion($command);
+		$add_info[] = "version    = {$tool_version}";
 		$add_info[] = "parameters = $parameters";
-		$parser->log("Calling external tool '$command' ({$try_nr}. try)", $add_info);
+		$parser->log("Calling external containerized tool ".get_path("container_folder")."ClinCNV_{$tool_version} with command: '$command' ({$try_nr}. try)", $add_info);
 
 		$exec_start = microtime(true);
-		$proc = proc_open($command." ".$parameters, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
+		/* $proc = proc_open($command." ".$parameters, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes); */
+		$proc = proc_open("apptainer exec -B ".implode(",", $bind_paths)." ".get_path("container_folder")."ClinCNV_{$tool_version} {$command} {$parameters}", array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
 		while(true)
 		{
 			sleep(5);
@@ -529,7 +537,7 @@ function run_clincnv($out, $mosaic=FALSE)
 	{
 		$parser->toStderr($stdout);
 		$parser->toStderr($stderr);
-		trigger_error("Call of external tool '$command' returned error code '$return'.", E_USER_ERROR);
+		trigger_error("Call of external containerized tool ".get_path("container_folder")."ClinCNV_{$tool_version} '$command' returned error code '$return'.", E_USER_ERROR);
 	}
 
 	$clinCNV_result_folder = "normal";
@@ -541,12 +549,12 @@ function run_clincnv($out, $mosaic=FALSE)
 	if(!file_exists("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv"))
 	{
 		//ClinCNV did not generate CNV file
-		generate_empty_cnv_file($out, $command, $stdout, $ps_name, $stderr, $tumor_only);
+		generate_empty_cnv_file($out, $tool_version, $stdout, $ps_name, $stderr, $tumor_only);
 		return false;
 	}
 	
 	//sort and extract sample data from output folder
-	$parser->exec(get_path("ngs-bits")."/BedSort","-in {$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv -out $out",true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-in {$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv -out $out", [$out_folder], [$out]);
 	$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
 	$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
 	
@@ -599,7 +607,10 @@ function run_clincnv($out, $mosaic=FALSE)
 //init
 $repository_basedir = repository_basedir();
 $ps_name = basename($cov,".cov");
-$command = get_path("rscript")." --vanilla ".get_path("clincnv");
+/* $command = get_path("rscript")." --vanilla ".get_path("clincnv"); */
+$command = "Rscript --vanilla /opt/ClinCNV/clinCNV.R";
+
+$tool_version = get_path("container_ClinCNV");
 
 //determine coverage files
 $cov_files = glob($cov_folder."/*.cov");
@@ -607,7 +618,7 @@ $cov_files[] = $cov;
 $cov_files = array_unique(array_map("realpath", $cov_files));
 if (count($cov_files)<$cov_min)
 {
-	generate_empty_cnv_file($out, $command, [], $ps_name, "Only ".count($cov_files)." coverage files found in folder '{$cov_folder}'", $tumor_only);
+	generate_empty_cnv_file($out, $tool_version, [], $ps_name, "Only ".count($cov_files)." coverage files found in folder '{$cov_folder}'", $tumor_only);
 	trigger_error("CNV calling skipped. Only ".count($cov_files)." coverage files found in folder '$cov_folder'. At least {$cov_min} files are needed!", E_USER_ERROR);
 }
 
@@ -664,11 +675,11 @@ $mean_correlation = 0.0;
 {	
 	//create target region without polymorphic regions
 	$poly_merged = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$repository_basedir}/data/misc/af_genomes_imgag.bed {$repository_basedir}/data/misc/centromer_telomer.bed -out {$poly_merged}", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAdd",  "-in {$repository_basedir}/data/misc/af_genomes_imgag.bed {$repository_basedir}/data/misc/centromer_telomer.bed -out {$poly_merged}",["{$repository_basedir}/data/misc/af_genomes_imgag.bed", "{$repository_basedir}/data/misc/centromer_telomer.bed"]);
 	$roi_poly = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedIntersect", "-in {$bed} -in2 {$poly_merged} -out {$roi_poly} -mode in", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedIntersect", "-in {$bed} -in2 {$poly_merged} -out {$roi_poly} -mode in", [$bed]);
 	$roi_nonpoly = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedSubtract", "-in {$bed} -in2 {$roi_poly} -out {$roi_nonpoly}", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSubtract", "-in {$bed} -in2 {$roi_poly} -out {$roi_nonpoly}", [$bed]);
 	
 	//determine which rows of coverage profiles to use
 	$rows_to_use = determine_rows_to_use($cov, $roi_nonpoly);
@@ -717,7 +728,7 @@ sort($cov_files);
 file_put_contents($tmp, implode("\n", $cov_files));
 $cov_merged = $parser->tempFile(".cov");
 
-$parser->exec(get_path("ngs-bits")."TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}", true);
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}");
 
 //collect off-target files for coverage files
 $use_off_target = false;
@@ -749,7 +760,7 @@ if($tumor_only)
 		}
 		else
 		{
-			$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple",true, true);
+			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvMerge", "-in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple", [$cov_paths_off]);
 			$use_off_target = true;
 		}
 	}

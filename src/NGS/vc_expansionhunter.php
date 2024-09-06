@@ -26,18 +26,23 @@ if(!isset($pid)) $pid = basename($in);
 
 //init
 $out_prefix = dirname($out)."/".basename($out, ".vcf");
-$expansion_hunter_binary = get_path("expansion_hunter");
 
 
 //### perform RE calling ###
 
 // prepare command
+$in_files = array();
+$out_files = array();
 $args = [];
 $args[] = "--threads $threads";
 $args[] = "--reads $in";
+$in_files[] = $in;
 $args[] = "--reference ".genome_fasta($build);
+$in_files[] = genome_fasta($build);
 $args[] = "--output-prefix {$out_prefix}";
+$out_files[] = $out_prefix;
 $args[] = "--variant-catalog $variant_catalog";
+$in_files[] = $variant_catalog;
 		
 // add gender info
 if (db_is_enabled("NGSD"))
@@ -49,17 +54,11 @@ if (db_is_enabled("NGSD"))
 		if ($info['gender'] != 'n/a') $args[] = "--sex ".$info['gender'];
 	}
 }
+// add ExpansionHunter version string to VCF
+$tool_version = get_path("container_expansion_hunter");
 
 // run Expansion Hunter
-$parser->exec($expansion_hunter_binary, implode(" ", $args));
-
-
-// add ExpansionHunter version string to VCF
-list($stdout, $stderr, $ec) = $parser->exec($expansion_hunter_binary, "-v");
-
-// parse STDERR
-list($date, $tool_version) = explode(",", $stdout[0]);
-$tool_version = strtr($tool_version, array("[Starting " => "", "]" => ""));
+$parser->execSingularity("expansion_hunter", $tool_version, "ExpansionHunter", implode(" ", $args), $in_files, $out_files);
 
 // read VCF file into memory
 $vcf_file_content = file($out);
@@ -74,8 +73,7 @@ foreach($vcf_file_content as $line)
 	if (!$header_written && starts_with($line, "##"))
 	{
 		// add file/call info to file
-		fwrite($fh, "##filedate=$date\n");
-		fwrite($fh, "##source={$tool_version}\n");
+		fwrite($fh, "##source=ExpansionHunter {$tool_version}\n");
 		fwrite($fh, "##reference=".genome_fasta($build)."\n");
 		$header_written = true;
 	}
