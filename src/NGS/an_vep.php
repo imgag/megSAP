@@ -127,10 +127,10 @@ $config_file = fopen2($config_file_path, 'w');
 //custom annotation using VcfAnnotateFromVcf
 if ($custom!="")
 {
-	$custom_colums = get_path($custom, false);
-	if (is_array($custom_colums))
+	$custom_columns = get_path($custom, false);
+	if (is_array($custom_columns))
 	{
-		foreach($custom_colums as $key => $tmp)
+		foreach($custom_columns as $key => $tmp)
 		{
 			list($vcf, $col, $desc) = explode(";", $tmp, 3);
 			fwrite($config_file, "{$vcf}\tCUSTOM\t{$col}\t\n");
