@@ -783,41 +783,22 @@ if(in_array("cn",$steps))
 	$ref_file_t = "{$ref_folder_t}/{$t_id}.cov";
 	$ref_file_t_off_target = "{$ref_folder_t_off_target}/{$t_id}.cov";
 	
-	if(!file_exists($ref_file_t) )
-	{
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $target_bed -out $t_cov -threads {$threads} -ref {$ref_genome}",true);
-		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov -out $t_cov",true);
-	}
-	else 
-	{
-		$t_cov = $ref_file_t;
-	}
-	
-	if( !file_exists($ref_file_t_off_target ) )
-	{
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
-		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov_off_target -out $t_cov_off_target",true);
-	}
-	else 
-	{
-		$t_cov_off_target = $ref_file_t_off_target;
-	}
+	$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $target_bed -out $t_cov -threads {$threads} -ref {$ref_genome}",true);
+	$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov -out $t_cov",true);
+
+	$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
+	$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov_off_target -out $t_cov_off_target",true);
+
 	
 	//copy tumor sample coverage file to reference folder (has to be done before ClinCNV call to avoid analyzing the same sample twice)
 	if (db_is_enabled("NGSD") && is_valid_ref_tumor_sample_for_cnv_analysis($t_id))
 	{
-		//copy file
-		if(!file_exists($ref_file_t)) //Do not overwrite existing reference files in cov folder
-		{
-			$parser->copyFile($t_cov, $ref_file_t); 
-			$t_cov = $ref_file_t;
-		}
-		
-		if(!file_exists($ref_file_t_off_target))
-		{
-			$parser->copyFile($t_cov_off_target,$ref_file_t_off_target);
-			$t_cov_off_target = $ref_file_t_off_target;
-		}
+		$parser->log("Moving tumor sample coverage file to reference folder...");
+		$parser->copyFile($t_cov, $ref_file_t); 
+		$t_cov = $ref_file_t;
+
+		$parser->copyFile($t_cov_off_target,$ref_file_t_off_target);
+		$t_cov_off_target = $ref_file_t_off_target;
 	}
 	
 	if (!$single_sample)
@@ -828,41 +809,24 @@ if(in_array("cn",$steps))
 		$ref_file_n = $ref_folder_n."/".$n_id.".cov";
 		$ref_file_n_off_target = "{$ref_folder_n_off_target}/{$n_id}.cov";
 		
-		if(!file_exists($ref_file_n)) 
-		{
-			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in $target_bed -out $n_cov -threads {$threads} -ref {$ref_genome}", true);
-			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov -out $n_cov",true);
-		}
-		else 
-		{
-			$n_cov = $ref_file_n;
-		}
 		
-		if(!file_exists($ref_file_n_off_target) )
-		{
-			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
-			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov_off_target -out $n_cov_off_target",true);
-		}
-		else 
-		{
-			$n_cov_off_target = $ref_file_n_off_target;
-		}
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in $target_bed -out $n_cov -threads {$threads} -ref {$ref_genome}", true);
+		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov -out $n_cov",true);
+		
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
+		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov_off_target -out $n_cov_off_target",true);
+	
 		
 		// copy normal sample coverage file to reference folder (only if valid and not yet there).
 		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($n_id))
 		{
-			//copy file
-			if (!file_exists($ref_file_n)) //do not overwrite existing coverage files in ref folder
-			{
-				$parser->copyFile($n_cov, $ref_file_n);
-				$n_cov = $ref_file_n;
-			}
-			
-			if(!file_exists($ref_file_n_off_target))
-			{
-				$parser->copyFile($n_cov_off_target, $ref_file_n_off_target);
-				$n_cov_off_target = $ref_file_n_off_target;
-			}
+			$parser->log("Moving normal sample coverage file to reference folder...");
+			$parser->copyFile($n_cov, $ref_file_n);
+			$n_cov = $ref_file_n;
+
+			$parser->copyFile($n_cov_off_target, $ref_file_n_off_target);
+			$n_cov_off_target = $ref_file_n_off_target;
+
 		}
 	}
 
