@@ -220,10 +220,14 @@ if (!$single_sample)
 if (!$single_sample && db_is_enabled("NGSD"))
 {
 	$db = DB::getInstance("NGSD", false);
-	list($config_id, $config_vars_exist, $config_cnvs_exist) = somatic_report_config($db, $t_id, $n_id);
+	list($config_id, $config_vars_exist, $config_cnvs_exist, $config_svs_exists) = somatic_report_config($db, $t_id, $n_id);
 	if (in_array("vc", $steps) && $config_vars_exist)
 	{
 		trigger_error("Somatic report configuration with SNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
+	}
+	if (in_array("vc", $steps) && $config_svs_exists)
+	{
+		trigger_error("Somatic report configuration with SVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
 	}
 	if (in_array("cn", $steps) && $config_cnvs_exist)
 	{
