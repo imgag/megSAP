@@ -254,7 +254,7 @@ $spliceai_regions = $parser->tempFile("spliceai_scoring_regions.bed");
 $spliceai_version = get_path("container_spliceai");
 
 $spliceai_parameters = "-f 2,4,5 -d'\t' /spliceai/splice_env/lib/python3.6/site-packages/spliceai/annotations/".strtolower($build).".txt > {$tmp_fields}";
-$parser->execSingularity("spliceai", $spliceai_version, "cut", $spliceai_parameters, );
+$parser->execSingularity("spliceai", $spliceai_version, "cut", $spliceai_parameters);
 
 $spliceai_parameters = "'s/^/chr/' {$tmp_fields} > {$tmp_prefixed}";
 $parser->execSingularity("spliceai", $spliceai_version, "sed", $spliceai_parameters);

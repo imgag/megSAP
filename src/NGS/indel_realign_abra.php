@@ -46,7 +46,7 @@ if (!$skip_kmer && isset($roi))
 	{
 		$read_length = 100;
 		$kmer_tmp = $parser->tempFile();
-		$parser->exec(str_replace("-jar", "-cp", get_path("abra2"))." abra.KmerSizeEvaluator", "$read_length $ref_genome $kmer_tmp $threads $roi", true);
+		$parser->execSingularity("abra2", get_path("container_abra2"), "java -Xmx16G -cp /opt/abra2-2.23/abra2.jar abra.KmerSizeEvaluator", "$read_length $ref_genome $kmer_tmp $threads $roi", [$ref_genome, $roi]);
 		$parser->moveFile($kmer_tmp, $kmer_file);
 		chmod($kmer_file, 0777);
 	}
@@ -54,17 +54,23 @@ if (!$skip_kmer && isset($roi))
 
 //indel realignment with ABRA
 $params = array();
+$in_files = array();
+$out_files = array();
 $params[] = "--in ".implode(",", $in);
+$in_files = array_merge($in_files, $in);
 $params[] = "--out ".implode(",", $out);
+$out_files = array_merge($out_files, $out);
 //manta fix
 $params[] = "--no-edge-ci";
 if (!$skip_kmer && isset($roi))
 {
 	$params[] = "--target-kmers ".$kmer_file;
+	$in_files[] = $kmer_file;
 }
 $params[] = "--threads ".$threads;
 $params[] = "--tmpdir ".$parser->tempFolder("abra");
 $params[] = "--ref {$ref_genome}";
+$in_files[] = $ref_genome;
 $params[] = "--mer ".$mer;
 $params[] = "--mad ".$mad;
 if ($se) {
@@ -72,10 +78,12 @@ if ($se) {
 }
 if (isset($gtf)) {
 	$params[] = "--gtf ".$gtf;
+	$in_files[] = $gtf;
 }
 if (isset($junctions)) {
 	$params[] = "--junctions ".$junctions;
+	$in_files[] = $junctions;
 }
-$parser->exec(get_path("abra2"), implode(" ", $params), true);
+$parser->execSingularity("abra2", get_path("container_abra2"), "java -Xmx16G -jar /opt/abra2-2.23/abra2.jar", implode(" ", $params), $in_files, $out_files);
 
 ?>

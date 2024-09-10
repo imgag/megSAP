@@ -87,14 +87,14 @@ $somatic_indels = "$run_dir/results/variants/somatic.indels.vcf.gz";
 $split_snvs = "$run_dir/results/variants/somatic.snvs.split.vcf.gz";
 $pipeline = [
 		["zcat", $somatic_snvs],
-		[get_path("vcflib")."vcfbreakmulti", "> $split_snvs"]
+		[$parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true, true, true, true), "> $split_snvs"]
 	];
 $parser->execPipeline($pipeline, "splitting SNVs");
 
 $split_indels = "$run_dir/results/variants/somatic.indels.split.vcf.gz";
 $pipeline = [
 		["zcat", $somatic_indels],
-		[get_path("vcflib")."vcfbreakmulti", "> $split_indels"]
+		[$parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true, true, true, true), "> $split_indels"]
 	];
 $parser->execPipeline($pipeline, "splitting InDels");
 

@@ -23,10 +23,16 @@ $parser->addInt("threads", "Threads to use (attention: scaling is poor).", true,
 extract($parser->parse($argv));
 
 //init
-$gatk = get_path("gatk");
+/* $gatk = get_path("gatk"); */
 $ref = genome_fasta($build);
 
 //perform variant calling
+$in_files = array();
+$in_files = [
+	$roi,
+	$in,
+	$ref
+];
 $args = [];
 $args[] = "-L ".$roi;
 $args[] = "-G StandardAnnotation";
@@ -43,16 +49,20 @@ if ($gvcf)
 }
 
 $tmp = $gvcf ? $out : $parser->tempFile(".vcf.gz");
-$parser->exec($gatk, "HaplotypeCaller -R {$ref} -I {$in} -O {$tmp} ".implode(" ", $args));
+$parser->execSingularity("gatk", get_path("container_gatk"), "gatk", "HaplotypeCaller -R {$ref} -I {$in} -O {$tmp} ".implode(" ", $args), $in_files);
+/* $parser->exec($gatk, "HaplotypeCaller -R {$ref} -I {$in} -O {$tmp} ".implode(" ", $args)); */
 
 if (!$gvcf)
 {
 	//perform postprocessing
 	$pipeline = [];
 	$pipeline[] = array("zcat", $tmp);
-	$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
-	$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref {$ref}");
-	$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
+	
+	$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true, true, true, true)];
+	$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfLeftNormalize", "-stream -ref {$ref}", [$ref], [], 1, true, true, true, true)];
+	/* $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref {$ref}"); */
+	$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfStreamSort", "", [], [], 1, true, true, true, true)];
+	/* $pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", ""); */
 	$pipeline[] = array("bgzip", "-c > {$out}", false);
 	$parser->execPipeline($pipeline, "post processing");
 

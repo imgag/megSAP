@@ -161,8 +161,8 @@ $parser->exec("php ".repository_basedir()."src/NGS/vc_freebayes.php ", " -target
 //normalization and annotation
 $pipeline = [];
 $pipeline[] = array("cat", "$called_vcf");
-$pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
-$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
+$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfallelicprimitives", "-kg", [], [], 1, true, true, true, true)];
+$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true, true, true, true)];
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
 $tmp_annotated = temp_file("_annotated.vcf");
 $gnomad_file = get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz";

@@ -826,7 +826,7 @@ class ToolBase
 	/**
 	 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 	 */
-	function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $log_output=true, $abort_on_error=true, $warn_on_error=true)
+	function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $log_output=true, $abort_on_error=true, $warn_on_error=true, $command_only=false)
 	{
 		if (is_array($command) || is_array($parameters))
 		{
@@ -878,6 +878,12 @@ class ToolBase
 			if(!in_array($filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
 		}
 
+		//if ngs-bits container is executed the settings.ini is mounted into the container during execution
+		if($container === "ngs-bits")
+		{
+			$bind_paths[] = get_path("container_folder")."/ngs-bits_settings.ini:/opt/ngs-bits/bin/settings.ini";
+		}
+
 		//check bind paths
 		foreach($bind_paths as $path)
 		{
@@ -888,7 +894,25 @@ class ToolBase
 				trigger_error("Bind path '{$path}' not exists!", E_USER_ERROR);
 			}
 		}
+
+		//compose Singularity command
+		$thread_command = "";
+		if($threads!=1)
+		{
+			$thread_command = "OMP_NUM_THREADS={$threads} ";
+		}
+
+		//check if bind_paths is empty
+		$bind_paths_command = "";
+		if(!empty($bind_paths))$bind_paths_command = " -B ".implode(",", $bind_paths); 
+		$singularity_command = $thread_command."apptainer exec{$bind_paths_command} {$container_path} {$command_and_parameters}";
 		
+		//if command only option is true, only the apptainer command is being return, without execution
+		if($command_only) 
+		{
+			$this->log("DEBUG: Singularity command:\t", array($singularity_command));
+			return $singularity_command;
+		}
 		//log call
 		if($log_output)
 		{
@@ -914,18 +938,6 @@ class ToolBase
 			$add_info[] = "threads   = ".$threads;
 			$this->log("Calling external tool '$command' in container '".basename2($container_path)."'", $add_info);
 		}
-
-		//compose Singularity command
-		$thread_command = "";
-		if($threads!=1)
-		{
-			$thread_command = "OMP_NUM_THREADS={$threads} ";
-		}
-
-		//check if bind_paths is empty
-		$bind_paths_command = "";
-		if(!empty($bind_paths))$bind_paths_command = " -B ".implode(",", $bind_paths); 
-		$singularity_command = $thread_command."apptainer exec{$bind_paths_command} {$container_path} {$command_and_parameters}";
 
 		//TODO: remove 
 		$this->log("DEBUG: Singularity command:\t", array($singularity_command));

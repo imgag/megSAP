@@ -491,7 +491,7 @@ function run_clincnv($out, $mosaic=FALSE)
 
 		$exec_start = microtime(true);
 		/* $proc = proc_open($command." ".$parameters, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes); */
-		$proc = proc_open("apptainer exec -B ".implode(",", $bind_paths)." ".get_path("container_folder")."ClinCNV_{$tool_version} {$command} {$parameters}", array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
+		$proc = proc_open("apptainer exec -B ".implode(",", $bind_paths)." ".get_path("container_folder")."ClinCNV_{$tool_version}.sif {$command} {$parameters}", array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
 		while(true)
 		{
 			sleep(5);

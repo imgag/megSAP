@@ -124,27 +124,32 @@ if ($bam_input)
 	$fastq_cmds = [];
 	foreach ($in_bam as $file)
 	{
-		$fastq_cmds[] = "apptainer exec -B ".dirname(realpath($file))." ".get_path("container_folder")."/samtools_{$samtools_version}.sif samtools fastq -o /dev/null {$met_tag} {$file}";
+		$command = $parser->execSingularity("samtools", $samtools_version, "samtools", "fastq -o /dev/null {$met_tag} {$file}", [$file], [], 1, true, true, true, true);
+		$fastq_cmds[] = $command;
 	}
 	$fastq_cmds_str = implode("; ", $fastq_cmds);
-	$pipeline[]=  ["", "({$fastq_cmds_str})"];	//perform mapping from STDIN
-	$pipeline[] = ["", "apptainer exec -B ".dirname(realpath(genome_fasta($sys['build'])))." ".get_path("container_folder")."/minimap2_{$minimap2_version}.sif minimap2 ".implode(" ", $minimap_options)." - "];
+	$pipeline[] =  ["", "({$fastq_cmds_str})"];	//perform mapping from STDIN
+	$command = $parser->execSingularity("minimap2", $minimap2_version, "minimap2", implode(" ", $minimap_options)." - ", [genome_fasta($sys['build'])], [], 1, true, true, true, true);
+	$pipeline[] = ["", $command];
+	/* $pipeline[] = ["", "apptainer exec -B ".dirname(realpath(genome_fasta($sys['build'])))." ".get_path("container_folder")."/minimap2_{$minimap2_version}.sif minimap2 ".implode(" ", $minimap_options)." - "]; */
 }
 else //fastq_mode
 {	
-	$in_dirs = array();
-	foreach ($in_fastq as $file)
-	{
-		$input_dir = dirname(realpath($file));
-		if(!in_array($input_dir, $in_dirs)) $in_dirs[] = $input_dir;
-	}
+	$in_files = array();
+	$in_files = array_merge($in_files, $in_fastq);
+	$in_files[] = genome_fasta($sys['build']);
+
 	//FastQ mapping
-	$pipeline[] = ["", "apptainer exec -B ".dirname(realpath(genome_fasta($sys['build']))).",".implode(",", $in_dirs)." ".get_path("container_folder")."/minimap2_{$minimap2_version}.sif minimap2 ".implode(" ", $minimap_options)." ".implode(" ", $in_fastq)];
+	$command = $parser->execSingularity("minimap2", $minimap2_version, "minimap2", implode(" ", $minimap_options)." ".implode(" ", $in_fastq), $in_files, [], 1, true, true, true, true);
+	$pipeline[] = ["", $command];
+	/* $pipeline[] = ["", "apptainer exec -B ".dirname(realpath(genome_fasta($sys['build']))).",".implode(",", $in_dirs)." ".get_path("container_folder")."/minimap2_{$minimap2_version}.sif minimap2 ".implode(" ", $minimap_options)." ".implode(" ", $in_fastq)]; */
 }
 
 //sort BAM by coordinates
 $tmp_for_sorting = $parser->tempFile();
-$pipeline[] = ["", "apptainer exec ".get_path("container_folder")."/samtools_{$samtools_version}.sif samtools sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$bam_current} -", true];
+$command = $parser->execSingularity("samtools", $samtools_version, "samtools", "sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$bam_current} -", [], [], 1, true, true, true, true);
+$pipeline[] = ["", $command];
+/* $pipeline[] = ["", "apptainer exec ".get_path("container_folder")."/samtools_{$samtools_version}.sif samtools sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$bam_current} -", true]; */
 //execute 
 $parser->execPipeline($pipeline, "mapping");
 
