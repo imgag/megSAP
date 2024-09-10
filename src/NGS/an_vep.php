@@ -61,13 +61,14 @@ $vep_path = dirname(get_path("vep"));
 $local_data = get_path("local_data");
 $vep_data_path = "{$local_data}/".basename(get_path("vep_data"))."/"; //the data is copied to the local data folder by 'data_setup' to speed up annotations (and prevent hanging annotation jobs)
 $data_folder = get_path("data_folder");
+$genome = genome_fasta($build);
 
 $args = array();
 $args[] = "-i $in --format vcf"; //input
 $args[] = "-o $vep_output --vcf --no_stats --force_overwrite"; //output
 $args[] = "--species homo_sapiens --assembly {$build}"; //species
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
-$args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta ".genome_fasta($build); //paths to data
+$args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta {$genome}"; //paths to data
 $args[] = "--transcript_version --domains --failed 1"; //annotation options
 $args[] = "--regulatory"; //regulatory features
 $fields[] = "BIOTYPE";
@@ -101,14 +102,14 @@ if (file_exists($warn_file))
 //add consequences (Ensembl)
 $gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gff3";
 $vcf_output_consequence = $parser->tempFile("_consequence.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateConsequence", " -in {$vep_output} -out {$vcf_output_consequence} -threads {$threads} -tag CSQ2 -gff {$gff}", true);
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateConsequence", " -in {$vep_output} -out {$vcf_output_consequence} -threads {$threads} -tag CSQ2 -gff {$gff} -ref {$genome}", true);
 
 //add consequences (RefSeq)
 if($annotate_refseq_consequences)
 {
 	$gff2 = get_path("data_folder")."/dbs/RefSeq/Homo_sapiens.GRCh38.p14.gff3";
 	$vcf_output_refseq = $parser->tempFile("_refseq.vcf");
-	$parser->exec(get_path("ngs-bits")."/VcfAnnotateConsequence", " -in {$vcf_output_consequence} -out {$vcf_output_refseq} -threads {$threads} -tag CSQ_REFSEQ -gff {$gff2} -source refseq", true);
+	$parser->exec(get_path("ngs-bits")."/VcfAnnotateConsequence", " -in {$vcf_output_consequence} -out {$vcf_output_refseq} -threads {$threads} -tag CSQ_REFSEQ -gff {$gff2} -source refseq -ref {$genome}", true);
 	$vcf_output_consequence = $vcf_output_refseq;
 }
 
@@ -118,7 +119,7 @@ $parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBigWig", "-name PHYLOP -mode
 
 //add MaxEntScan annotation
 $vcf_output_mes = $parser->tempFile("_mes.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateMaxEntScan", "-gff {$gff} -in {$vcf_output_phylop} -out {$vcf_output_mes} -ref ".genome_fasta($build)." -swa -threads {$threads} -min_score 0.0 -decimals 1", true);
+$parser->exec(get_path("ngs-bits")."/VcfAnnotateMaxEntScan", "-gff {$gff} -in {$vcf_output_phylop} -out {$vcf_output_mes} -ref {$genome} -swa -threads {$threads} -min_score 0.0 -decimals 1", true);
 
 // create config file
 $config_file_path = $parser->tempFile(".config");
@@ -327,7 +328,7 @@ $parser->moveFile($tmp, $out);
 //check vcf file
 if($check_lines >= 0)
 {
-	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $out -lines $check_lines -ref ".genome_fasta($build), true);
+	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $out -lines $check_lines -ref {$genome}", true);
 }
 
 ?>

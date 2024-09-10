@@ -149,6 +149,7 @@ if ($annotation_only)
 
 //prepare multi-sample paramters
 $sys = load_system($system, $sample_c); //required in case the the system is unset
+$genome = genome_fasta($sys['build']);
 $args_multisample = [
 	"-bams $c $f $m",
 	"-status affected control control",
@@ -286,7 +287,7 @@ if (in_array("vc", $steps))
 	print "Medelian errors: ".number_format(100.0*$vars_mendelian_error/$vars_high_depth, 2)."% (of {$vars_high_depth} high-depth, autosomal variants)\n";
 	
 	//determine gender of child
-	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c -build ".ngsbits_build($sys['build']), true);
+	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c -build ".ngsbits_build($sys['build'])." -ref {$genome}", true);
 	$gender_data = explode("\t", $stdout[1])[1];
 	if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 	print "Gender of child (from data): {$gender_data}\n";
@@ -336,7 +337,7 @@ if (in_array("cn", $steps))
 		if ($is_wgs_shallow)
 		{
 			//determine gender of child
-			list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method xy -in $c -build ".ngsbits_build($sys['build']), true);
+			list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method xy -in $c -build ".ngsbits_build($sys['build'])." -ref {$genome}", true);
 			$gender_data = explode("\t", $stdout[1])[1];
 			if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 			print "Gender of child (from data): {$gender_data}\n";

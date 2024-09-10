@@ -279,7 +279,7 @@ if( db_is_enabled("NGSD") )
 		}
 		else
 		{
-			$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build ".ngsbits_build($sys['build'])." -method sry", true);
+			$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build ".ngsbits_build($sys['build'])." -method sry -ref {$ref_genome}", true);
 			list(,,$cov_sry) = explode("\t", $out[0][1]);
 
 			if(is_numeric($cov_sry) && (float)$cov_sry >= 30)
@@ -739,7 +739,7 @@ if(in_array("cn",$steps))
 		{
 			$ngsbits = get_path("ngs-bits");
 			$pipeline = [
-					["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -clear -ref ".genome_fasta($sys['build'])],
+					["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -clear -ref {$ref_genome}"],
 					["{$ngsbits}BedAnnotateGenes", "-out {$target_bed}"],
 				];
 			$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
@@ -755,7 +755,7 @@ if(in_array("cn",$steps))
 		{
 			$pipeline = [
 					[get_path("ngs-bits")."BedChunk", "-in ".$sys['target_file']." -n {$bin_size}"],
-					[get_path("ngs-bits")."BedAnnotateGC", "-clear -ref ".genome_fasta($sys['build'])],
+					[get_path("ngs-bits")."BedAnnotateGC", "-clear -ref {$ref_genome}"],
 					[get_path("ngs-bits")."BedAnnotateGenes", "-out {$target_bed}"]
 				];
 			$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
