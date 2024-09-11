@@ -117,7 +117,11 @@ $pipeline[] = array($star, implode(" ", $arguments));
 $pipeline[] = array(get_path("samtools"), "view -h");
 
 //duplicate flagging with samblaster
-if (!$skip_dedup) $pipeline[] = array(get_path("samblaster"), isset($in2) ? "" : "--ignoreUnmated");
+if (!$skip_dedup)
+{
+	$parameters = isset($in2) ? "" : "--ignoreUnmated";
+	$pipeline[] = ["", $parser->execSingularity("samblaster", get_path("container_samblaster"), "samblaster", $parameters, [], [], 1, true, true, true, true)];
+} 
 
 //sort BAM by coordinates
 $tmp_for_sorting = $parser->tempFile();

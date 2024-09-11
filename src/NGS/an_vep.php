@@ -127,36 +127,47 @@ $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotat
 $config_file_path = $parser->tempFile(".config");
 $config_file = fopen2($config_file_path, 'w');
 
+// input files for VcfAnnotateFromVcf
+$in_files = array();
 
 // add gnomAD annotation
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF\t\ttrue\n");
+$in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz");
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz")."\tgnomADm\tAF_hom\t\ttrue\n");
+$in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz");
 
 // add clinVar annotation
 fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20240127_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
+$in_files[] = annotation_file_path("/dbs/ClinVar/clinvar_20240127_converted_GRCh38.vcf.gz");
 
 // add HGMD annotation
 $hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2023_3_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
 if(file_exists($hgmd_file))
 {
 	fwrite($config_file, $hgmd_file."\tHGMD\tCLASS,MUT,GENE,PHEN\tID\n");
+	$in_files[] = $hgmd_file;
 }
 
 //add CADD score annotation
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=SNV\t\n");
+$in_files[] = annotation_file_path("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz");
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
+$in_files[] = annotation_file_path("/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz");
 
 //add REVEL score annotation
 fwrite($config_file, annotation_file_path("/dbs/REVEL/REVEL_1.3.vcf.gz")."\t\tREVEL\t\n");
+$in_files[] = annotation_file_path("/dbs/REVEL/REVEL_1.3.vcf.gz");
 
 //add AlphaMissense score annotation
 fwrite($config_file, annotation_file_path("/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz")."\t\tALPHAMISSENSE\t\n");
+$in_files[] = annotation_file_path("/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz");
 
 //precalculated SpliceAI scores
 $spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2023_12_20_GRCh38.vcf.gz");
 if (file_exists($spliceai_file))
 {
 	fwrite($config_file, $spliceai_file."\t\tSpliceAI\t\n");
+	$in_files[] = $spliceai_file;
 }
 else
 {
@@ -219,6 +230,7 @@ else
 	}
 	array_push($ngsd_columns, "HAF", "CLAS", "CLAS_COM", "COM");
 	fwrite($config_file, $ngsd_file."\tNGSD\t".implode(",", $ngsd_columns)."\t\n");
+	$in_files[] = $ngsd_file;
 }
 
 //add somatic variant information from NGSD
@@ -232,6 +244,7 @@ if ($somatic)
 	else
 	{
 		fwrite($config_file, $ngsd_som_file."\tNGSD\tSOM_C,SOM_P,SOM_VICC,SOM_VICC_COMMENT\t\n");
+		$in_files[] = $ngsd_som_file;
 	}
 }
 
@@ -240,7 +253,7 @@ fclose($config_file);
 
 // execute VcfAnnotateFromVcf
 $vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vcf_output_mes} -out {$vcf_annotate_output} -threads {$threads}");
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vcf_output_mes} -out {$vcf_annotate_output} -threads {$threads}", $in_files);
 
 // annotate gene info from NGSD
 $gene_file = resolve_symlink($data_folder."/dbs/NGSD/NGSD_genes.bed");

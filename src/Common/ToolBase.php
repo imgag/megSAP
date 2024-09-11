@@ -826,7 +826,7 @@ class ToolBase
 	/**
 	 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 	 */
-	function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $log_output=true, $abort_on_error=true, $warn_on_error=true, $command_only=false)
+	function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $log_output=true, $abort_on_error=true, $warn_on_error=true, $command_only=false, $instance_name="")
 	{
 		if (is_array($command) || is_array($parameters))
 		{
@@ -900,6 +900,12 @@ class ToolBase
 		if($threads!=1)
 		{
 			$thread_command = "OMP_NUM_THREADS={$threads} ";
+		}
+
+		//set instance if instance parameter is given
+		if($instance_name) 
+		{
+			$container_path = " instance://$instance_name";
 		}
 
 		//check if bind_paths is empty

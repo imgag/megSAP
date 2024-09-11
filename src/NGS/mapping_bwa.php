@@ -66,7 +66,7 @@ else
 //duplicate removal with samblaster
 if ($dedup)
 {
-	$pipeline[] = array(get_path("samblaster"), "");
+	$pipeline[] = ["", $parser->execSingularity("samblaster", get_path("container_samblaster"), "samblaster", "", [], [], 1, true, true, true, true)];
 }
 
 //convert sam to bam with samtools
