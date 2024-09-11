@@ -48,11 +48,11 @@ remove_lines_containing($out_file_dragen, "#CREATION_DATE=");
 check_file($out_file_dragen, data_folder().$name."_out_dragen.GSvar", true);
 
 //genotype_mode=single, DRAGEN + custom colunns
-$custom_colums_test = get_path("custom_colums_test");
-if (is_array($custom_colums_test))
+$custom_columns_test = get_path("custom_columns_test");
+if (is_array($custom_columns_test))
 {
 	$out_file_dragen2 = output_folder().$name."_out_dragen2.GSvar";
-	check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in_dragen2.vcf -out $out_file_dragen2 --log ".output_folder().$name."_out_dragen2.log -custom custom_colums_test -test");
+	check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in_dragen2.vcf -out $out_file_dragen2 --log ".output_folder().$name."_out_dragen2.log -custom custom_columns_test -test");
 	remove_lines_containing($out_file_dragen2, "#CREATION_DATE=");
 	check_file($out_file_dragen2, data_folder().$name."_out_dragen2.GSvar", true);
 }

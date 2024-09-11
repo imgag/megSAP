@@ -67,7 +67,7 @@ $args[] = "-ps_name ".$out_name;
 if ($somatic) $args[] = "-somatic";
 if ($somatic) $args[] = "-somatic";
 if (get_path("annotate_refseq_consequences", false)) $args[] = "-annotate_refseq_consequences";
-$args[] = "-custom custom_colums";
+$args[] = "-custom custom_columns";
 if ($no_splice) $args[] = "-no_splice";
 $parser->execTool("NGS/an_vep.php", implode(" ", $args));
 
@@ -157,7 +157,7 @@ if (!$somatic) //germline only
 	if ($multi) $args[] = "-genotype_mode multi";
 	if ($sys['type']=="WGS") $args[] = "-wgs";
 	if ($sys['type']=="lrGS") $args[] = "-wgs -longread";
-	$args[] = "-custom custom_colums";
+	$args[] = "-custom custom_columns";
 	$parser->execTool("NGS/vcf2gsvar.php", implode(" ", $args));
 	
 	//annotate variant allele frequency and depth from related RNA sample, if available

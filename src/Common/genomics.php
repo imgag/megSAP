@@ -692,7 +692,7 @@ function load_vcf_normalized($filename)
 		else
 		{
 			$parts = explode("\t", $line);
-			if (count($parts)<10) trigger_error("VCF file $filename has line with less than 10 colums: $line", E_USER_ERROR);
+			if (count($parts)<10) trigger_error("VCF file $filename has line with less than 10 columns: $line", E_USER_ERROR);
 			list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format) = $parts;
 			
 			
