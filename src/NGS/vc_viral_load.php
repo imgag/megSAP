@@ -133,7 +133,7 @@ while ($line = fgets($handle))
 
     // mismatches
     $region = $fields[0] . ":" . ($fields[1]+1) . "-" .  $fields[2];
-    list($stdout) = $parser->exec(get_path("ngs-bits")."VcfFilter", "-in {$viral_vcf} -reg '{$region}'", false);
+    list($stdout) = $parser->exec(get_path("ngs-bits")."VcfFilter", "-in {$viral_vcf} -reg '{$region}' -ref $genome", false);
     $variant_count = 0;
 	foreach($stdout as $line)
 	{

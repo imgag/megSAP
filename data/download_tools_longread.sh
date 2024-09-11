@@ -82,10 +82,14 @@ cd ..
 cd $folder
 wget https://github.com/bcgsc/straglr/releases/download/v1.5.1/straglr-1.5.1.tar.gz
 tar xzf straglr-1.5.1.tar.gz 
-mv straglr straglr-1.5.1
 rm straglr-1.5.1.tar.gz
 
-#TODO: StraglrOn
+#download StraglrOn
+cd $folder
+git clone https://github.com/imgag/StraglrOn.git StraglrOn_v0.2.2
+cd StraglrOn_v0.2.2
+git checkout "v0.2.2"
+cd ..
 
 #download Tandem Repeats Finder
 cd $folder

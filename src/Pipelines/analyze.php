@@ -393,7 +393,7 @@ if (in_array("vc", $steps))
 				//filter by target region (extended by 200) and quality 5
 				$target = $parser->tempFile("_roi_extended.bed");
 				$parser->exec($ngsbits."BedExtend"," -in ".$sys['target_file']." -n 200 -out $target -fai ".$genome.".fai", true);
-				$pipeline[] = array($ngsbits."VcfFilter", "-reg {$target} -qual 5 -filter_clear");
+				$pipeline[] = array($ngsbits."VcfFilter", "-reg {$target} -qual 5 -filter_clear -ref $genome");
 
 				//split multi-allelic variants
 				$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true, true, true, true)];
@@ -480,7 +480,7 @@ if (in_array("vc", $steps))
 				$pipeline[] = array("zcat", $dragen_output_vcf);
 				
 				//filter by target region and quality 5
-				$pipeline[] = array($ngsbits."VcfFilter", "-reg chrMT:1-16569 -qual 5 -filter_clear");
+				$pipeline[] = array($ngsbits."VcfFilter", "-reg chrMT:1-16569 -qual 5 -filter_clear -ref $genome");
 
 				//split multi-allelic variants
 				$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true, true, true, true)];
@@ -750,26 +750,18 @@ if (in_array("cn", $steps))
 		//create coverage profile
 		$tmp_folder = $parser->tempFolder();
 		$cov_file = $cov_folder."/{$name}.cov";
-		if (!file_exists($cov_file) || filemtime($cov_file)<filemtime($used_bam_or_cram))
+		$cov_tmp = $tmp_folder."/{$name}.cov";
+		$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$used_bam_or_cram} -in {$bed} -out {$cov_tmp} -threads {$threads} -ref {$genome}", true);
+		
+		//copy coverage file to reference folder if valid
+		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
 		{
-			$parser->log("Calculating coverage file for CN calling...");
-			$cov_tmp = $tmp_folder."/{$name}.cov";
-			$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$used_bam_or_cram} -in {$bed} -out {$cov_tmp} -threads {$threads} -ref {$genome}", true);
-			
-			//copy coverage file to reference folder if valid
-			if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
-			{
-				$parser->log("Moving coverage file to reference folder...");
-				$parser->moveFile($cov_tmp, $cov_file);
-			}
-			else
-			{
-				$cov_file = $cov_tmp;
-			}
+			$parser->log("Moving coverage file to reference folder...");
+			$parser->moveFile($cov_tmp, $cov_file);
 		}
 		else
 		{
-			$parser->log("Using previously calculated coverage file for CN calling: $cov_file");
+			$cov_file = $cov_tmp;
 		}
 		
 		//perform CNV analysis

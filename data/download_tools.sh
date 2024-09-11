@@ -115,7 +115,6 @@ git checkout v1.0.3 && git submodule update --recursive --init
 mkdir -p build && cd build
 cmake ..
 cmake --build .
-cmake --install .
 
 #download and build samblaster
 cd $folder
@@ -165,7 +164,7 @@ rm interop-1.2.4-Linux-GNU.tar.gz
 
 #download Circos
 cd $folder
-wget http://circos.ca/distribution/circos-0.69-9.tgz
+wget --no-check-certificate https://circos.ca/distribution/circos-0.69-9.tgz
 tar xzf circos-0.69-9.tgz
 rm circos-0.69-9.tgz
 # install required Perl modules for Circos in a subfolder
@@ -210,6 +209,7 @@ chmod 755 bedtools.static
 cd $folder
 wget https://github.com/broadinstitute/gatk/releases/download/4.6.0.0/gatk-4.6.0.0.zip
 unzip gatk-4.6.0.0.zip
+rm -rf gatk-4.6.0.0.zip
 
 #download illuminia ORA decompression tool
 cd $folder

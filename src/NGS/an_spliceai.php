@@ -263,7 +263,7 @@ $spliceai_parameters = "'1d' {$tmp_prefixed} > {$spliceai_regions}";
 $parser->execSingularity("spliceai", $spliceai_version, "sed", $spliceai_parameters);
 
 $tmp2 = $parser->tempFile("_spliceai_filtered_regions.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg {$spliceai_regions} -in {$tmp1} -out {$tmp2}", true);
+$parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg {$spliceai_regions} -in {$tmp1} -out {$tmp2} -ref ".genome_fasta($build), true);
 $var_count = vcf_variant_count($tmp2);
 $parser->log("Variants after SpliceAI transcript regions filter: {$var_count}");
 

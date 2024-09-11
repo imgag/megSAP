@@ -36,11 +36,11 @@ remove_lines_containing($out_file_dragen, array("##VEP=\"v", "##VEP-command-line
 check_file($out_file_dragen, data_folder().$name."_out_dragen.vcf", true);
 
 //DRAGEN and custom annotations
-$custom_colums_test = get_path("custom_colums_test");
-if (is_array($custom_colums_test))
+$custom_columns_test = get_path("custom_columns_test");
+if (is_array($custom_columns_test))
 {
 	$out_file_dragen2 = output_folder().$name."_out_dragen2.vcf";
-	check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in_dragen.vcf -out $out_file_dragen2 --log ".output_folder().$name."_out_dragen2.log -custom custom_colums_test");
+	check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in_dragen.vcf -out $out_file_dragen2 --log ".output_folder().$name."_out_dragen2.log -custom custom_columns_test");
 	remove_lines_containing($out_file_dragen2, array("##VEP=\"v", "##VEP-command-line='", "##INFO=<ID=NGSD_GENE_INFO,"));
 	check_file($out_file_dragen2, data_folder().$name."_out_dragen2.vcf", true);
 }

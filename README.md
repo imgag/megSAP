@@ -47,11 +47,6 @@ Please cite the GitHub repository for now.
 
 Major changes of master since last release:
 
-* updated tools and databases
-* added support for Nova Seq X Plus
-* updated long-read pipeline
-* improved PRS calculation (imputed variants, etc)
-* added optional RefSeq annotation (see [settings documentation](doc/settings.md#section-general)).
-* added optional custom annotations in GSvar/VCF from VCFs (see [settings documentation](doc/settings.md#section-general)).
+* none so far
 
 For older changes see [releases](https://github.com/imgag/megSAP/releases).

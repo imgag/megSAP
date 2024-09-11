@@ -42,10 +42,3 @@ telomere_centromere:
 
 circos_karyotype_files:
 	echo "These files where created manually by merging the chromosome regions and the centromer_telomer.bed (extended by 3 columns and replaced names by color)"
-
-hemoglobin_transcripts:
-	wget -O - 'https://ftp.ensembl.org/pub/release-109/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz' | \
-		zcat | \
-		awk -v RS=">" -v FS="\n" '$$1 ~ / gene_symbol:(HBA1|HBA2|HBB) / { print ">"$$1; {for (i=2; i<=NF; i++) printf("%s", $$i)}; printf("\n") }' | \
-		sed '/^>/s/ /|kraken:taxid|9606 /' \
-		> human_hemoglobin_tx.fa
