@@ -72,14 +72,6 @@ rm samtools-1.20.tar.bz2
 cd samtools-1.20
 make
 
-#download and build bcftools
-cd $folder
-wget https://github.com/samtools/bcftools/releases/download/1.20/bcftools-1.20.tar.bz2
-tar xjf bcftools-1.20.tar.bz2
-rm bcftools-1.20.tar.bz2
-cd bcftools-1.20
-make
-
 #download and build BWA
 cd $folder
 wget https://github.com/lh3/bwa/archive/refs/tags/v0.7.18.tar.gz
