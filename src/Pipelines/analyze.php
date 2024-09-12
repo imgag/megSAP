@@ -1211,7 +1211,6 @@ if (in_array("db", $steps))
 		check_genome_build($varfile, $build);
 		
 		$args[] = "-var {$varfile}";
-		$args[] = "-var_force";
 		$import = true;
 	}
 	if (file_exists($cnvfile))
@@ -1220,7 +1219,6 @@ if (in_array("db", $steps))
 		//this is not possible for CNVs because the file does not contain any information about it
 		
 		$args[] = "-cnv {$cnvfile}";
-		$args[] = "-cnv_force";
 		$import = true;
 	}
 	if (file_exists($bedpe_out))
@@ -1229,17 +1227,16 @@ if (in_array("db", $steps))
 		check_genome_build($bedpe_out, $build);
 		
 		$args[] = "-sv {$bedpe_out}";
-		$args[] = "-sv_force";
 		$import = true;
 	}
 	if (file_exists($expansion_hunter_file))
 	{
 		$args[] = "-re {$expansion_hunter_file}";
-		$args[] = "-re_force";
 		$import = true;
 	}
 	if ($import)
 	{
+		$args[] = "-force";
 		$parser->exec("{$ngsbits}NGSDAddVariantsGermline", implode(" ", $args), true);
 	}
 }
