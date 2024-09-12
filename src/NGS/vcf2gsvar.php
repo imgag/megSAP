@@ -1507,7 +1507,7 @@ while(!feof($handle))
 	
 	//effect predicions
 	$phylop = collapse($tag, "phyloP", $phylop, "one", 4);
-	$revel = empty($revel) ? "" : collapse($tag, "REVEL", $revel, "max", 2);
+	$revel = empty($revel) ? "" : collapse($tag, "REVEL", $revel, "max", 3);
 	$alphamissense = empty($alphamissense) ? "" : collapse($tag, "AlphaMissense", $alphamissense, "max", 2);
 	
 	//OMIM
