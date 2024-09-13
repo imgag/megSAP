@@ -50,6 +50,6 @@ Alternatively you can cite a specific release of megSAP:
 
 Major changes of master since last release:
 
-* none so far
+* germline DNA: improved speed (C++ tool) and IO (gzipped coverage profiles) of CNV reference cohort selection.
 
 For older changes see [releases](https://github.com/imgag/megSAP/releases).
