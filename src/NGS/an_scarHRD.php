@@ -64,8 +64,7 @@ function generate_filtered_cnvs($tumor, $clincnvs, $db)
 
 	if (count($db_cnv_result) == 0)
 	{
-		//return if no report config exists // TODO test for actual report config if just no cnvs were marked?
-		return "";
+		return $clincnvs;
 	}
 	
 	$cnv_exclude_key = array();

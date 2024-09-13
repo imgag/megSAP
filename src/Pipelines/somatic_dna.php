@@ -735,7 +735,7 @@ if(in_array("cn",$steps))
 	if ($sys["type"] != "WGS" && $sys['type'] != "WGS (shallow)")
 	{
 		$target_bed = $ref_folder_t."/roi_annotated.bed";
-		if (!file_exists($bed))
+		if (!file_exists($target_bed))
 		{
 			$ngsbits = get_path("ngs-bits");
 			$pipeline = [
