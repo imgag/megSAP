@@ -27,7 +27,7 @@ cytoBand:
 	wget -O - https://hgdownload.soe.ucsc.edu/goldenPath/hg38/database/cytoBand.txt.gz | gunzip > cytoBand.txt
 
 nobase_regions:
-	php extract_nobase.php GRCh38 > nobase_regions.bed
+	php extract_nobase.php GRCh38
 
 pfam_description:
 	wget -O - ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz | zcat | grep -e '^#=GF AC' -e '^#=GF DE' | tr -d '\n' | sed 's/#=GF AC   /\n/g' | sed 's/\.[0-9]\+#=GF DE   /\t/g' | sed '/^$$/d' | sed '1 i\#PFAM_ID\tDESCRIPTION' | tr '\n\n' '\n'> pfam_description.tsv
