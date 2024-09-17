@@ -28,7 +28,6 @@ expansion_hunter = [path]/data/tools/ExpansionHunter-v5.0.0-linux_x86_64/bin/Exp
 splice_env = [path]/data/tools/SplicingTools/splice_env3_10/
 REViewer = [path]/data/tools/REViewer-v0.2.7/REViewer-v0.2.7
 happy = [path]/data/tools/hap.py-0.3.14/bin/hap.py
-bedtools = [path]/data/tools/bedtools-2.31.0/bedtools.static
 gatk = java -Xmx4G -jar /[path]/data/tools/gatk-4.6.0.0/gatk-package-4.6.0.0-local.jar
 orad = [path]/data/tools/orad_2_6_1/orad
 
