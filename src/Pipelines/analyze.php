@@ -749,9 +749,11 @@ if (in_array("cn", $steps))
 
 		//create coverage profile
 		$tmp_folder = $parser->tempFolder();
-		$cov_file = $cov_folder."/{$name}.cov";
-		$cov_tmp = $tmp_folder."/{$name}.cov";
-		$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$used_bam_or_cram} -in {$bed} -out {$cov_tmp} -threads {$threads} -ref {$genome}", true);
+		$cov_file = $cov_folder."/{$name}.cov.gz";
+		$cov_tmp_unzipped = $tmp_folder."/{$name}.cov";
+		$cov_tmp = $cov_tmp_unzipped.".gz";
+		$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$used_bam_or_cram} -in {$bed} -out {$cov_tmp_unzipped} -threads {$threads} -ref {$genome}", true);
+		$parser->exec("gzip", "-9 {$cov_tmp_unzipped}");
 		
 		//copy coverage file to reference folder if valid
 		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))

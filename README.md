@@ -40,7 +40,6 @@ Please report any issues or questions to the [megSAP issue tracker](https://gith
 
 ## Citing
 
-There is no paper for megSAP yet.  
 You can cite megSAP in general using the the DOI [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13744182.svg)](https://doi.org/10.5281/zenodo.13744182).  
 Alternatively you can cite a specific release of megSAP:
 
@@ -50,6 +49,6 @@ Alternatively you can cite a specific release of megSAP:
 
 Major changes of master since last release:
 
-* none so far
+* germline DNA: improved speed (C++ tool) and IO (gzipped coverage profiles) of CNV reference cohort selection.
 
 For older changes see [releases](https://github.com/imgag/megSAP/releases).
