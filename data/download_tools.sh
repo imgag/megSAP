@@ -190,13 +190,6 @@ cd REViewer-v0.2.7
 wget -O - https://github.com/Illumina/REViewer/releases/download/v0.2.7/REViewer-v0.2.7-linux_x86_64.gz | gunzip > REViewer-v0.2.7
 chmod 755 REViewer-v0.2.7
 
-#download bedtools
-cd $folder
-mkdir bedtools-2.31.0
-cd bedtools-2.31.0
-wget https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtools.static
-chmod 755 bedtools.static
-
 #download GATK
 cd $folder
 wget https://github.com/broadinstitute/gatk/releases/download/4.6.0.0/gatk-4.6.0.0.zip

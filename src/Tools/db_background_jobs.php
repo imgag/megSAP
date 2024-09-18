@@ -74,14 +74,29 @@ while(count($commands)>0)
 {
 	print date("Y-m-d h:i:s")."\n";
 	
+	
+	list($stdout, $stderr, $exit_code) = exec2("qstat -u '*' -f", false);
+	$retry = 0;
+	while ($exit_code!=0 && $retry<5)
+	{
+		++$retry;
+		print "  Getting qstat data failed - starting retry {$retry} in 30 seconds\n";
+		sleep(30);
+		list($stdout, $stderr, $exit_code) = exec2("qstat -u '*' -f", false);
+	}
+	if ($exit_code!=0)
+	{
+		trigger_error("Getting qstat data failed - even after {$retry} retries", E_USER_ERROR);
+	}
+	
 	//determine slots per queue
 	$slots_overall = 0;
 	$slots_used = 0;
 	foreach($queues as $queue)
 	{
-		list($stdout) = exec2("qstat -u '*' -f | grep {$queue}");
 		foreach($stdout as $line)
 		{
+			if (!contains($line, $queue)) continue;
 			$line = preg_replace('/\s+/', ' ', $line);
 			$line = explode(" ", $line);
 			// skip queues which are in any error/warning state (additional column)
