@@ -72,14 +72,6 @@ rm samtools-1.20.tar.bz2
 cd samtools-1.20
 make
 
-#download and build bcftools
-cd $folder
-wget https://github.com/samtools/bcftools/releases/download/1.20/bcftools-1.20.tar.bz2
-tar xjf bcftools-1.20.tar.bz2
-rm bcftools-1.20.tar.bz2
-cd bcftools-1.20
-make
-
 #download and build BWA
 cd $folder
 wget https://github.com/lh3/bwa/archive/refs/tags/v0.7.18.tar.gz
@@ -197,13 +189,6 @@ mkdir REViewer-v0.2.7
 cd REViewer-v0.2.7
 wget -O - https://github.com/Illumina/REViewer/releases/download/v0.2.7/REViewer-v0.2.7-linux_x86_64.gz | gunzip > REViewer-v0.2.7
 chmod 755 REViewer-v0.2.7
-
-#download bedtools
-cd $folder
-mkdir bedtools-2.31.0
-cd bedtools-2.31.0
-wget https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtools.static
-chmod 755 bedtools.static
 
 #download GATK
 cd $folder

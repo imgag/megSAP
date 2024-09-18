@@ -165,16 +165,18 @@ if ($mode=="longread")
 {
 	$pipeline = array();
 	$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfMerge", "-in ".implode(" ", $chr_multisample_gvcfs), [], [], 1, true)];
-	$pipeline[] = array(get_path("bcftools"), "view --threads {$threads} -l 9 -O z -o {$gvcf_out} -s ".implode(",", $sample_order));
+	$pipeline[] = array(get_path("ngs-bits")."VcfExtractSamples", "-samples ".implode(",", $sample_order));
+	$pipeline[] = array("bgzip", "-c > {$gvcf_out}", false);
 	$parser->execPipeline($pipeline, "Merge gVCF");
-	$parser->exec("tabix", "-f -p vcf {$gvcf_out}", false); //no output logging, because Toolbase::extractVersion() does not return
+	$parser->exec("tabix", "-f -p vcf {$gvcf_out}");
 }
 
 //merge VCFs
 $tmp_vcf = $parser->tempFile(".vcf.gz");
 $pipeline = array();
 $pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfMerge", "-in ".implode(" ", $chr_multisample_vcfs), [], [], 1, true)];
-$pipeline[] = array(get_path("bcftools"), "view --threads {$threads} -l 0 -O z -o {$tmp_vcf} -s ".implode(",", $sample_order));
+$pipeline[] = array(get_path("ngs-bits")."VcfExtractSamples", "-samples ".implode(",", $sample_order));
+$pipeline[] = array("bgzip", "-c > {$tmp_vcf}", false);
 $parser->execPipeline($pipeline, "Merge VCF");
 
 //post-processing 

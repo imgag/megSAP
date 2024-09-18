@@ -298,4 +298,14 @@ if ($build=="GRCh38" && $check)
 	}
 }
 
+// Remove PID file if it is still ours
+$current_pidfile_pid = trim(file_get_contents($pid_file));
+if ($current_pidfile_pid==getmypid())
+{
+	unlink($pid_file);
+}
+else
+{
+	print "PID file was overwritten by another process ($current_pidfile_pid). Not removing it.\n";
+}
 ?>

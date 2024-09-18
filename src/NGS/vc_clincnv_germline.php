@@ -263,91 +263,6 @@ function create_file_with_paths($ref_cov_folder,$cov_path, &$sample_ids)
 	return $out_file;
 }
 
-function determine_rows_to_use($cov, $roi_nonpoly)
-{	
-	//determine non-polymorphic regions
-	$nonpoly_regs = array();
-	$file = file($roi_nonpoly);
-	for($i=0; $i<count($file); ++$i)
-	{
-		$line = trim($file[$i]);
-		if ($line=="" || $line[0]=="#") continue;
-		
-		list($chr, $start, $end) = explode("\t", $line);
-		
-		$nonpoly_regs["$chr:$start-$end"] = true;
-	}
-	
-	//build bit array that determines which indices to use
-	$output = array();	
-	$file = file($cov);
-	for($i=0; $i<count($file); ++$i)
-	{
-		$line = trim($file[$i]);
-		
-		//skip: empty/comment line
-		if ($line=="" || $line[0]=="#")
-		{
-			$output[] = false;
-			continue;
-		}
-		
-		list($chr, $start, $end, $cov_avg) = explode("\t", $line);
-		
-		//skip: reference sample has no coverage
-		if ($cov_avg==0.0) 
-		{
-			$output[] = false;
-			continue;
-		}
-		
-		//skip: polymorphic regions
-		if (!isset($nonpoly_regs["$chr:$start-$end"]))
-		{
-			$output[] = false;
-			continue;
-		}
-		
-		//skip: all chromosomes but autosomes
-		if (starts_with($chr, "chr")) $chr = substr($chr, 3);
-		if (!is_numeric($chr))
-		{
-			$output[] = false;
-			continue;
-		}
-				
-		$output[] = true;
-	}
-	
-	$output[] = false; //last emtpy line
-	
-	return $output;
-}
-
-//function to load coverage profiles
-function load_coverage_profile($filename, &$rows_to_use, &$output)
-{
-	$output = array();
-
-	$i = -1;
-	$h = fopen2($filename, "r");
-	while(!feof($h))
-	{
-		$line = fgets($h);
-		
-		++$i;
-		if ($rows_to_use[$i]==false) continue;
-		
-		$line = trim($line);
-		if ($line=="" || $line[0]=="#") continue;
-		$parts = explode("\t", $line);
-		if (count($parts)<4) trigger_error("Invalid coverage file line in file {$filename}:\n{$line}", E_USER_ERROR);
-		
-		list($chr, $start, $end, $avg_cov) = $parts;
-		$output[$chr][] = $avg_cov;
-	}
-}
-
 //function to write an empty cnv file
 function generate_empty_cnv_file($out, $tool_version, $stdout, $ps_name, $error_messages, $tumor_only)
 {
@@ -490,7 +405,7 @@ function run_clincnv($out, $mosaic=FALSE)
 		$parser->log("Calling external containerized tool ".get_path("container_folder")."ClinCNV_{$tool_version} with command: '$command' ({$try_nr}. try)", $add_info);
 
 		$exec_start = microtime(true);
-		/* $proc = proc_open($command." ".$parameters, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes); */
+		/* $proc = proc_open($command." ".$parameters, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes); TODO remove */
 		$proc = proc_open("apptainer exec -B ".implode(",", $bind_paths)." ".get_path("container_folder")."ClinCNV_{$tool_version}.sif {$command} {$parameters}", array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
 		while(true)
 		{
@@ -606,14 +521,16 @@ function run_clincnv($out, $mosaic=FALSE)
 
 //init
 $repository_basedir = repository_basedir();
-$ps_name = basename($cov,".cov");
-/* $command = get_path("rscript")." --vanilla ".get_path("clincnv"); */
+$ps_name = basename2($cov);
+if (ends_with($ps_name, ".cov")) $ps_name = substr($ps_name, 0, -4);
+/* $command = get_path("rscript")." --vanilla ".get_path("clincnv"); TODO remove*/
 $command = "Rscript --vanilla /opt/ClinCNV/clinCNV.R";
 
 $tool_version = get_path("container_ClinCNV");
 
 //determine coverage files
 $cov_files = glob($cov_folder."/*.cov");
+$cov_files = array_merge($cov_files, glob($cov_folder."/*.cov.gz"));
 $cov_files[] = $cov;
 $cov_files = array_unique(array_map("realpath", $cov_files));
 if (count($cov_files)<$cov_min)
@@ -623,8 +540,7 @@ if (count($cov_files)<$cov_min)
 }
 
 //if too many, select the samples processed roughly at the same time based on sequencing run date
-$restrict_cov_file_number = (count($cov_files)> $cov_compare_max) && db_is_enabled("NGSD");
-if ($restrict_cov_file_number)
+if (count($cov_files)>$cov_compare_max && db_is_enabled("NGSD"))
 {
 	$parser->log("Restricting number of coverage files to $cov_compare_max (based on sequencing run date from NGSD)...");
 	
@@ -655,80 +571,34 @@ if ($restrict_cov_file_number)
 			}
 			asort($cov2timediff);
 			$cov_files = array_keys($cov2timediff);
+			if (count($cov_files)>$cov_compare_max) $cov_files = array_slice($cov_files, 0, $cov_compare_max);
 		}
 		else
 		{
 			$parser->log("Notice: Could not restrict the number of coverage files: NGSD does not contain sample '$ps_name'!");
-			$restrict_cov_file_number = false;
 		}
 	}
 	else
 	{
-			$parser->log("Notice: Could not restrict the number of coverage files: Sequencing run is dummy run '#00000'!");
-			$restrict_cov_file_number = false;
+		$parser->log("Notice: Could not restrict the number of coverage files: Sequencing run is dummy run '#00000'!");
 	}
 }
 
 //select coverage files of most similar samples
-$corr_start = microtime(true);
-$mean_correlation = 0.0;
-{	
-	//create target region without polymorphic regions
-	$poly_merged = $parser->tempFile(".bed");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAdd",  "-in {$repository_basedir}/data/misc/af_genomes_imgag.bed {$repository_basedir}/data/misc/centromer_telomer.bed -out {$poly_merged}",["{$repository_basedir}/data/misc/af_genomes_imgag.bed", "{$repository_basedir}/data/misc/centromer_telomer.bed"]);
-	$roi_poly = $parser->tempFile(".bed");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedIntersect", "-in {$bed} -in2 {$poly_merged} -out {$roi_poly} -mode in", [$bed]);
-	$roi_nonpoly = $parser->tempFile(".bed");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSubtract", "-in {$bed} -in2 {$roi_poly} -out {$roi_nonpoly}", [$bed]);
-	
-	//determine which rows of coverage profiles to use
-	$rows_to_use = determine_rows_to_use($cov, $roi_nonpoly);
-	
-	//determine correlation of each sample/cov file
-	$file2corr = array();
-	$cov1 = null;
-	$cov2 = null;
-	load_coverage_profile($cov, $rows_to_use, $cov1);
-	foreach($cov_files as $cov_file)
-	{
-		load_coverage_profile($cov_file, $rows_to_use, $cov2);
-
-		$corr = array();
-		foreach($cov1 as $chr => $profile1)
-		{
-			$corr[] = number_format(correlation($profile1, $cov2[$chr]), 3);
-		}
-		$file2corr[$cov_file] = number_format(median($corr), 3);
-		
-		if ($restrict_cov_file_number && count($file2corr)>=$cov_compare_max) break;
-	}
-	$parser->log("Compared number of coverage files: ".count($file2corr));
-
-	//selects best n by correlation
-	arsort($file2corr);
-	$file2corr = array_slice($file2corr, 0, $cov_max);
-	$add_info = array();
-	foreach ($file2corr as $f => $c)
-	{
-		$mean_correlation += $c;
-		$add_info[] = "$f ($c)";
-	}
-	$mean_correlation = number_format($mean_correlation/count($file2corr), 3);
-	
-	$parser->log("Mean correlation to reference samples is {$mean_correlation}");
-	$parser->log("Selected the following files as reference samples (correlation):", $add_info);
-	
-	$cov_files = array_keys($file2corr);
-}
-$parser->log("Execution time of determining reference samples: ".time_readable(microtime(true) - $corr_start));
-
-//merge coverage files to one file
-$tmp = $parser->tempFile(".txt");
-sort($cov_files);
-file_put_contents($tmp, implode("\n", $cov_files));
 $cov_merged = $parser->tempFile(".cov");
+$args = [];
+$args[] = "-exclude {$repository_basedir}/data/misc/af_genomes_imgag.bed {$repository_basedir}/data/misc/centromer_telomer.bed {$repository_basedir}/data/misc/nobase_regions.bed ";
+$args[] = "-in $cov";
+$args[] = "-in_ref ".implode(" ", $cov_files);
+$args[] = "-out {$cov_merged}";
+list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."/CnvReferenceCohort" , implode(" ", $args));
+foreach($stdout as $line)
+{
+	if (starts_with($line, "Mean correlation to reference samples is:"))	{
+		$mean_correlation = number_format(trim(explode(":", $line)[1]), 3);
+	}
+}
 
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvMerge", "-in $tmp -cols chr,start,end -simple -out {$cov_merged}");
 
 //collect off-target files for coverage files
 $use_off_target = false;
