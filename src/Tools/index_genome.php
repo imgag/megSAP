@@ -18,7 +18,7 @@ if ($mask)
 	$exclusion_bed = $parser->tempFile("_exclusion.bed");
 	exec2("wget -O {$exclusion_bed} https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_GRC_exclusions.bed");
 	$tmp = $parser->tempFile("_masked.fa");
-	exec2(get_path("bedtools")." maskfasta -fi {$in} -bed {$exclusion_bed} -fullHeader -fo {$tmp}");
+	$parser->execSingularity("bedtools", get_path("container_bedtools"), "bedtools.static", "maskfasta -fi {$in} -bed {$exclusion_bed} -fullHeader -fo {$tmp}", [$in]);
 	$parser->moveFile($tmp, $in);
 }
 

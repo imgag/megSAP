@@ -98,10 +98,10 @@ $pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -remove_invalid -
 
 //split complex variants to primitives
 //this step has to be performed before vcfbreakmulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
-$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfallelicprimitives", "-kg", [], [], 1, true, true, true, true)];
+$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfallelicprimitives", "-kg", [], [], 1, true)];
 
 //split multi-allelic variants
-$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true, true, true, true)];
+$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true)];
 
 //normalize all variants and align INDELs to the left
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");

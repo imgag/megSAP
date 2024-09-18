@@ -168,7 +168,6 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	global $parser;
 	global $build;
 	global $threads;
-	$ngsbits = get_path("ngs-bits");
 	
 	//check if SpliceAI INFO header is already present in the input VCF
 	$header_old = "";
@@ -215,7 +214,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	
 	//sort, zip and index scored variants to make them usable with VcfAnnotateFromVcf
 	$tmp2 = $parser->tempFile("_spliceai_new_annotations.vcf.gz");
-	$parser->exec("{$ngsbits}/VcfSort", "-in {$tmp1} -out {$tmp1}");
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in {$tmp1} -out {$tmp1}");
 	$parser->exec("bgzip", "-c $tmp1 > $tmp2");
 	$parser->exec("tabix", "-f -p vcf $tmp2");
 	
@@ -226,7 +225,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 		$tmp3 = $parser->tempFile("_input_header_fixed.vcf.gz");
 		$parser->exec("grep", "-v '##INFO=<ID=SpliceAI,' {$in} > {$tmp3}");
 	}
-	$parser->exec("{$ngsbits}/VcfAnnotateFromVcf", "-in {$tmp3} -source {$tmp2} -info_keys SpliceAI -out {$out} -threads {$threads}");
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateFromVcf", "-in {$tmp3} -source {$tmp2} -info_keys SpliceAI -out {$out} -threads {$threads}", [$tmp3], [$out]);
 	if ($header_old!="") //replace new by old header
 	{		
 		$header_old = str_replace("\"", "\\\"", $header_old); //SpliceAI header has doubles quotes which need to be escaped
@@ -263,7 +262,7 @@ $spliceai_parameters = "'1d' {$tmp_prefixed} > {$spliceai_regions}";
 $parser->execSingularity("spliceai", $spliceai_version, "sed", $spliceai_parameters);
 
 $tmp2 = $parser->tempFile("_spliceai_filtered_regions.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg {$spliceai_regions} -in {$tmp1} -out {$tmp2} -ref ".genome_fasta($build), true);
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfFilter", "-reg {$spliceai_regions} -in {$tmp1} -out {$tmp2} -ref ".genome_fasta($build), [genome_fasta($build)]);
 $var_count = vcf_variant_count($tmp2);
 $parser->log("Variants after SpliceAI transcript regions filter: {$var_count}");
 

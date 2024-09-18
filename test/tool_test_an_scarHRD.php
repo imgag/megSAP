@@ -6,6 +6,7 @@ $name = "an_scarHRD";
 start_test($name);
 
 //init
+/* check_exec($parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDInit", "-test -add ".data_folder()."/{$name}.sql", [data_folder()])); */
 check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
 
 //empty

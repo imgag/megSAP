@@ -826,7 +826,7 @@ class ToolBase
 	/**
 	 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 	 */
-	function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $log_output=true, $abort_on_error=true, $warn_on_error=true, $command_only=false, $instance_name="")
+	function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true, $instance_name="")
 	{
 		if (is_array($command) || is_array($parameters))
 		{
@@ -865,14 +865,14 @@ class ToolBase
 
 		foreach($out_files as $file)
 		{
-			if (is_dir($file)) 
+/* 			if (is_dir($file)) 
 			{
 				$filepath = dirname($file . DIRECTORY_SEPARATOR . 'dummy.txt');
 			} 
 			else 
-			{
-				$filepath = dirname($file);
-			}
+			{ */
+			$filepath = realpath(dirname($file));
+/* 			} */
 
 			if($filepath === "." || $filepath === $cwd || strpos($filepath, $cwd . DIRECTORY_SEPARATOR) === 0) continue;
 			if(!in_array($filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
@@ -905,7 +905,7 @@ class ToolBase
 		//set instance if instance parameter is given
 		if($instance_name) 
 		{
-			$container_path = " instance://$instance_name";
+			$container_path = "instance://$instance_name";
 		}
 
 		//check if bind_paths is empty

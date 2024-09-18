@@ -1102,10 +1102,10 @@ if (in_array("an", $steps))
 		if (file_exists($cfdna_folder)) exec2("rm -r $cfdna_folder"); 
 		//set parameters
 		$in_files = array();
-		$in_files = array_merge($in_files, $variants_gsvar);
+		$in_files[] = $variants_gsvar;
 		$in_files[] = $ref_genome;
 		$out_files = array();
-		$out_files[] = $cfdna_folder;
+		$out_files[] = $out_folder;
 
 		$params = array();
 		$params[] = "-v ${tmp_vcf}";
@@ -1138,7 +1138,8 @@ if (in_array("msi", $steps) && !$single_sample)
 	if(!file_exists($msi_ref)) // create msi-ref file:
 	{
 		print("Could not find loci reference file $msi_ref. Trying to generate it.\n");
-		$parser->exec(get_path("msisensor")," scan -d $ref_genome -o $msi_ref", false);
+		$parser->execSingularity("msisensor-pro", get_path("container_msisensor-pro"), "msisensor-pro", "scan -d $ref_genome -o $msi_ref", [$ref_genome], [$msi_ref], 1, false, false);
+		/* $parser->exec(get_path("msisensor")," scan -d $ref_genome -o $msi_ref", false); TODO remove */
 
 		//remove sites with more than 100 repeat_times as that crashes dragen MSI:
 		$out_lines = [];

@@ -93,11 +93,11 @@ $in_files[] = $genome;
 
 //run manta container
 $vc_manta_command = "python2 /opt/manta/bin/configManta.py";
-$parser->execSingularity("manta", get_path("container_manta"), $vc_manta_command, implode(" ", $args), $in_files, $out_files, true);
+$parser->execSingularity("manta", get_path("container_manta"), $vc_manta_command, implode(" ", $args), $in_files, $out_files);
 
 $vc_manta_command = "python2 {$manta_folder}/runWorkflow.py";
 $vc_manta_parameters = "--mode local --jobs {$threads} --memGb ".(2*$threads);
-$parser->execSingularity("manta", get_path("container_manta"), $vc_manta_command, $vc_manta_parameters, $in_files, $out_files, false);
+$parser->execSingularity("manta", get_path("container_manta"), $vc_manta_command, $vc_manta_parameters, $in_files, $out_files, 1, false, false);
 
 //copy files to output folder
 if ($mode_somatic)
@@ -148,13 +148,14 @@ fclose($h2);
 
 //sort variants
 $vcf_sorted = "{$temp_folder}/{$outname}SV_sorted.vcf";
-$parser->exec(get_path("ngs-bits")."VcfSort","-in {$vcf_fixed} -out $vcf_sorted", true);
+
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in {$vcf_fixed} -out $vcf_sorted");
 
 // flag off-target variants
 if (isset($target))
 {
 	$vcf_filtered = "{$temp_folder}/{$outname}SV_filtered.vcf";
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_sorted -mark off-target -reg $target -out $vcf_filtered", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantFilterRegions", "-in $vcf_sorted -mark off-target -reg $target -out $vcf_filtered", [$target]);
 }
 else
 {

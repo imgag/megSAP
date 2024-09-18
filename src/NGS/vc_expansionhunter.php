@@ -145,7 +145,6 @@ if (!$no_images)
 	}
 
 	// create SVG for each RE
-	$reviewer_binary = get_path("REViewer");
 	$args = [];
 	$args[] = "--reads {$out_prefix}_realigned.bam";
 	$args[] = "--vcf {$out_prefix}.vcf";
@@ -154,7 +153,7 @@ if (!$no_images)
 	foreach ($loci as $locus) 
 	{
 		$prefix = $svg_folder.basename($out, ".vcf");
-		$parser->exec($reviewer_binary, implode(" ", $args)." --output-prefix $prefix --locus $locus", true, false, true);
+		$parser->execSingularity("REViewer", get_path("container_REViewer"), "REViewer-v0.2.7", implode(" ", $args)." --output-prefix $prefix --locus $locus", [genome_fasta($build), $variant_catalog], [$prefix], 1, false, true, false);
 		
 		//rename to keep the naming consistent with v0.1.1
 		$source_file = $prefix.".".$locus.".svg";

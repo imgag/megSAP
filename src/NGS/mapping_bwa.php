@@ -43,11 +43,8 @@ if(db_is_enabled("NGSD"))
 	}
 }
 
-//set bind paths for bwa-mem2 container
-$bind_paths = array();
-$bind_paths[] = dirname(realpath($in1));
-$bind_paths[] = dirname(realpath($in2));
-$bind_paths[] = dirname(realpath(genome_fasta($build, true, false)));
+//set input files for bwa-mem2 container
+$in_files = [$in1, $in2, genome_fasta($build, true, false)];
 
 //mapping with bwa
 $pipeline = array();
@@ -60,18 +57,18 @@ if (get_path("use_bwa1"))
 }
 else
 {
-	$pipeline[] = array("","apptainer exec -B ".implode(",", $bind_paths)." ".get_path("container_folder")."/bwa-mem2_".get_path("container_bwa-mem2").".sif /opt/bwa-mem2-2.2.1_x64-linux/bwa-mem2 $bwa_params $in1 $in2");
+	$pipeline[] = ["", $parser->execSingularity("bwa-mem2", get_path("container_bwa-mem2"), "bwa-mem2", "$bwa_params $in1 $in2", $in_files, [], 1, true)];
 }
 
 //duplicate removal with samblaster
 if ($dedup)
 {
-	$pipeline[] = ["", $parser->execSingularity("samblaster", get_path("container_samblaster"), "samblaster", "", [], [], 1, true, true, true, true)];
+	$pipeline[] = ["", $parser->execSingularity("samblaster", get_path("container_samblaster"), "samblaster", "", [], [], 1, true)];
 }
 
 //convert sam to bam with samtools
 $tmp_unsorted = $parser->tempFile("_unsorted.bam");
-$pipeline[] = array("", "apptainer exec ".get_path("container_folder")."/samtools_".get_path("container_samtools").".sif samtools view -Sb - > $tmp_unsorted");
+$pipeline[] = ["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools", "view -Sb - > $tmp_unsorted", [], [], 1, true)];
 
 //execute (BWA -> samblaster -> BAM conversion)
 $parser->execPipeline($pipeline, "mapping");

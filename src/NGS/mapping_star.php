@@ -120,7 +120,7 @@ $pipeline[] = array(get_path("samtools"), "view -h");
 if (!$skip_dedup)
 {
 	$parameters = isset($in2) ? "" : "--ignoreUnmated";
-	$pipeline[] = ["", $parser->execSingularity("samblaster", get_path("container_samblaster"), "samblaster", $parameters, [], [], 1, true, true, true, true)];
+	$pipeline[] = ["", $parser->execSingularity("samblaster", get_path("container_samblaster"), "samblaster", $parameters, [], [], 1, true)];
 } 
 
 //sort BAM by coordinates

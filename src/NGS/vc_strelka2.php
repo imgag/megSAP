@@ -74,9 +74,9 @@ $in_files[] = $n_bam;
 $out_files[] = $temp_folder;
 
 //run strelka2 container
-$parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 /opt/strelka2/bin/configureStrelkaSomaticWorkflow.py", implode(" ", $args), $in_files, $out_files, true);
+$parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 /opt/strelka2/bin/configureStrelkaSomaticWorkflow.py", implode(" ", $args), $in_files, $out_files);
 
-$parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 {$run_dir}/runWorkflow.py", "-m local -j $threads -g 4", $in_files, $out_files, false);
+$parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 {$run_dir}/runWorkflow.py", "-m local -j $threads -g 4", $in_files, $out_files, 1, true, false);
 
 //################################################################################################
 //Split multi-allelic variants
@@ -87,14 +87,14 @@ $somatic_indels = "$run_dir/results/variants/somatic.indels.vcf.gz";
 $split_snvs = "$run_dir/results/variants/somatic.snvs.split.vcf.gz";
 $pipeline = [
 		["zcat", $somatic_snvs],
-		[$parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true, true, true, true), "> $split_snvs"]
+		[$parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true), "> $split_snvs"]
 	];
 $parser->execPipeline($pipeline, "splitting SNVs");
 
 $split_indels = "$run_dir/results/variants/somatic.indels.split.vcf.gz";
 $pipeline = [
 		["zcat", $somatic_indels],
-		[$parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true, true, true, true), "> $split_indels"]
+		[$parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true), "> $split_indels"]
 	];
 $parser->execPipeline($pipeline, "splitting InDels");
 

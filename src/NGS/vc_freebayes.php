@@ -31,8 +31,8 @@ extract($parser->parse($argv));
 $genome = genome_fasta($build);
 
 //start ngs-bits container instance
-$ngs_bits_instance = "ngs-bits_instance";
-$parser->exec("apptainer", "instance start ".get_path("container_folder")."/ngs-bits_".get_path("container_ngs-bits").".sif $ngs_bits_instance");
+/* $ngs_bits_instance = "ngs-bits_instance";
+$parser->exec("apptainer", "instance start ".get_path("container_folder")."/ngs-bits_".get_path("container_ngs-bits").".sif $ngs_bits_instance"); */
 
 //create basic variant calls
 $args = array();
@@ -44,7 +44,7 @@ if(isset($target))
 	$target_extended = $parser->tempFile("_roi_extended.bed");
 	if ($target_extend>0)
 	{
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedExtend", "-in $target -n $target_extend -out $target_extended -fai {$genome}.fai", [$target, $genome], [], 1, true, true, true, false, $ngs_bits_instance);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedExtend", "-in $target -n $target_extend -out $target_extended -fai {$genome}.fai", [$target, $genome]);
 	}
 	else
 	{
@@ -54,11 +54,11 @@ if(isset($target))
 	//add special target regions (regions with known pathogenic variants that are often captured by exome/panel, but not inside the target region)
 	if ($build=="GRCh38" && $target_extend>0) //only if extended (otherwise it is also added for chrMT calling, etc.)
 	{
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAdd", "-in $target_extended ".repository_basedir()."/data/misc/special_regions.bed -out $target_extended ", [repository_basedir()."/data/misc/special_regions.bed"], [], 1, true, true, true, false, $ngs_bits_instance);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAdd", "-in $target_extended ".repository_basedir()."data/misc/special_regions.bed -out $target_extended ", [repository_basedir()."data/misc/special_regions.bed"]);
 	}
 	
 	$target_merged = $parser->tempFile("_merged.bed");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-in $target_extended -out $target_merged", [], [], 1, true, true, true, false, $ngs_bits_instance);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-in $target_extended -out $target_merged");
 	
 	$args[] = "-t $target_merged";
 }
@@ -152,7 +152,7 @@ if (isset($target) && $threads > 1)
 			$parameters = implode(" ", $args_chr);
 			
 			//start in background
-			$command = $parser->execSingularity("freebayes", get_path("container_freebayes"), "freebayes", $parameters, [$genome], [], 1, true, true, true, true);		
+			$command = $parser->execSingularity("freebayes", get_path("container_freebayes"), "freebayes", $parameters, [$genome], [], 1, true);		
 			$output = array();
 			$exitcode_file = "{$tmp_dir}/{$chr}.exitcode";
 			exec('('.$command.' & PID=$!; echo $PID) && (wait $PID; echo $? > '.$exitcode_file.')', $output);
@@ -252,7 +252,7 @@ if (isset($target) && $threads > 1)
 	if ($raw_output)
 	{
 		exec("cp $vcf_combined $out");
-		$parser->exec("apptainer", "instance stop $ngs_bits_instance");
+		/* $parser->exec("apptainer", "instance stop $ngs_bits_instance"); */
 		return;
 	}
 	
@@ -263,28 +263,28 @@ else
 	if ($raw_output)
 	{
 		$parser->execSingularity("freebayes", get_path("container_freebayes"),"freebayes" ,implode(" ", $args)." > $out", $in_files, $out_files);
-		$parser->exec("apptainer", "instance stop $ngs_bits_instance");
+		/* $parser->exec("apptainer", "instance stop $ngs_bits_instance"); */
 		return;
 	}
 	
-	$pipeline[] = ["", $parser->execSingularity("freebayes", get_path("container_freebayes"), "freebayes", implode(" ", $args), [$genome], [], 1, true, true, true, true)];
+	$pipeline[] = ["", $parser->execSingularity("freebayes", get_path("container_freebayes"), "freebayes", implode(" ", $args), [$genome], [], 1, true)];
 }
 
 //filter variants according to variant quality>5
-$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfFilter", "-qual 5 -remove_invalid -ref $genome", [$genome], [], 1, true, true, true, true, $ngs_bits_instance)];
+$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfFilter", "-qual 5 -remove_invalid -ref $genome", [$genome], [], 1, true)];
 
 //split complex variants to primitives
 //this step has to be performed before vcfbreakmulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
-$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfallelicprimitives", "-kg", [], [], 1, true, true, true, true)];
+$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfallelicprimitives", "-kg", [], [], 1, true)];
 
 //split multi-allelic variants
-$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true, true, true, true)];
+$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true)];
 
 //normalize all variants and align INDELs to the left
-$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], 1, true, true, true, true, $ngs_bits_instance)];
+$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], 1, true)];
 
 //sort variants by genomic position
-$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfStreamSort", "", [], [], 1, true, true, true, true, $ngs_bits_instance)];
+$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfStreamSort", "", [], [], 1, true)];
 
 //fix error in VCF file and strip unneeded information
 $pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", "", false);
@@ -299,14 +299,14 @@ $parser->execPipeline($pipeline, "freebayes post processing");
 if ($target_extend>0)
 {
 	$tmp = $parser->tempFile(".vcf");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantFilterRegions", "-in $out -mark off-target -reg $target -out $tmp", [$out, $target], [], 1, true, true, true, false, $ngs_bits_instance);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantFilterRegions", "-in $out -mark off-target -reg $target -out $tmp", [$out, $target]);
 	$parser->exec("bgzip", "-c $tmp > $out", false);
 }
 
 //(4) index output file
 $parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
 
-//stop container instances
-$parser->exec("apptainer", "instance stop $ngs_bits_instance");
+/* //stop container instances
+$parser->exec("apptainer", "instance stop $ngs_bits_instance"); */
 
 ?>

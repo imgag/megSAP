@@ -20,6 +20,7 @@ $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not pr
 $parser->addFlag("annotate_refseq_consequences", "Annotate RefSeq consequences in addition to Ensembl consequences.");
 $parser->addFlag("test", "Use limited constant NGSD VCF file from test folder for annotation.");
 $parser->addInt("check_lines", "Number of VCF lines that will be validated in the output file. (If set to 0 all lines will be checked, if set to -1 the validation will be skipped.)", true, 5000);
+$parser->addString("custom", "Settings key name for custom column definitions.", true, "");
 extract($parser->parse($argv));
 
 //get local/global data file path - depending on what is available
@@ -65,7 +66,7 @@ $args = array();
 $in_files = array();
 $in_files[] = $in;
 $in_files[] = $vep_data_path;
-$in_files[] = $genome
+$in_files[] = $genome;
 $args[] = "-i $in --format vcf"; //input
 $args[] = "-o $vep_output --vcf --no_stats --force_overwrite"; //output
 $args[] = "--species homo_sapiens --assembly {$build}"; //species
@@ -82,7 +83,6 @@ if (!$all_transcripts)
 }
 
 $args[] = "--fields ".implode(",", $fields);
-
 
 $parser->execSingularity("vep", get_path("container_vep"), "vep", implode(" ", $args), $in_files);
 
@@ -127,13 +127,26 @@ $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotat
 $config_file_path = $parser->tempFile(".config");
 $config_file = fopen2($config_file_path, 'w');
 
+//custom annotation using VcfAnnotateFromVcf
+if ($custom!="")
+{
+	$custom_columns = get_path($custom, false);
+	if (is_array($custom_columns))
+	{
+		foreach($custom_columns as $key => $tmp)
+		{
+			list($vcf, $col, $desc) = explode(";", $tmp, 3);
+			fwrite($config_file, "{$vcf}\tCUSTOM\t{$col}\t\n");
+		}
+	}
+}
 
 // input files for VcfAnnotateFromVcf
 $in_files = array();
 
 // add gnomAD annotation
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF\t\ttrue\n");
-$in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz";
+$in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz");
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz")."\tgnomADm\tAF_hom\t\ttrue\n");
 $in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz");
 
@@ -150,7 +163,7 @@ if(file_exists($hgmd_file))
 }
 
 //add CADD score annotation
-$in_files[] = annotation_file_path("/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz";
+$in_files[] = annotation_file_path("/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz");
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
 $in_files[] = annotation_file_path("/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz");
 
@@ -292,7 +305,24 @@ if(file_exists($omim_file))
 
 //mark variants in low-confidence regions
 $low_conf_bed = repository_basedir()."/data/misc/low_conf_regions.bed";
+$tmp_low_conf_ann = $parser->tempFile("_low_conf_ann.vcf");
 $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantFilterRegions", "-in $vcf_annotate_output -mark low_conf_region -inv -reg $low_conf_bed -out $tmp_low_conf_ann", $in_files=[$low_conf_bed]);
+
+//add low_mappability annotation
+if (!$test && db_is_enabled("NGSD"))
+{
+	$db_conn = DB::getInstance("NGSD", false);
+	$ps_info = get_processed_sample_info($db_conn, $ps_name, false);
+	if (isset($ps_info) && $ps_info["sys_type"] == "lrGS")
+	{
+		$tmp_sr_low_mappability = $parser->tempFile("_sr_low_mappability.vcf");
+		$mapq0_regions = repository_basedir()."data/misc/low_mappability_region/wgs_mapq_eq0.bed";
+		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$tmp_low_conf_ann} -mark sr_low_mappability -inv -reg {$mapq0_regions} -out {$tmp_sr_low_mappability}", true);
+
+		//replace input file 
+		$parser->moveFile($tmp_sr_low_mappability,$tmp_low_conf_ann);
+	}
+}
 
 //re-order VEP consequence annotations (order is random)
 $h = fopen2($tmp_low_conf_ann, "r");
