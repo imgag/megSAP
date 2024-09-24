@@ -1343,6 +1343,50 @@ if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("msi", $steps) 
 	$terms = array();
 	$sources = array();
 	
+	//CNVs:
+	if (file_exists($som_clincnv))
+	{
+		$cnv_count_hq = 0;
+		$cnv_count_hq_autosomes = 0;
+		$cnv_count_loss = 0;
+		$cnv_count_gain = 0;
+		$h = fopen2($som_clincnv, 'r');
+		while(!feof($h))
+		{
+			$line = trim(fgets($h));
+			if ($line=="") continue;
+			
+			if ($line[0]!="#")
+			{
+				$parts = explode("\t", $line);
+				$ll = $parts[11];
+				if ($ll>=20) // TODO find somatic specific cut-off
+				{
+					++$cnv_count_hq;
+					
+					$chr = $parts[0];
+					if (is_numeric(strtr($chr, ["chr"=>""])))
+					{
+						++$cnv_count_hq_autosomes;
+						$cn = $parts[5];
+						if ($cn<2) ++$cnv_count_loss;
+						if ($cn>2) ++$cnv_count_gain;
+					}
+				}
+			}
+		}
+		fclose($h);
+		
+		//counts (all, loss, gain)
+		$terms[] = "QC:2000044\t{$cnv_count_hq}"; // somatic CNVs count
+		if ($cnv_count_hq_autosomes>0)
+		{
+			$terms[] = "QC:2000118\t".number_format(100.0*$cnv_count_loss/$cnv_count_hq_autosomes, 2); // percentage losses
+			$terms[] = "QC:2000119\t".number_format(100.0*$cnv_count_gain/$cnv_count_hq_autosomes, 2); // percentage gains
+		}
+		$sources[] = $cnvfile;
+	}
+	
 	// HRD score:
 	$hrd_file = $full_prefix."_HRDresults.txt";
 	if (file_exists($hrd_file))
