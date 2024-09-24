@@ -220,10 +220,14 @@ if (!$single_sample)
 if (!$single_sample && db_is_enabled("NGSD"))
 {
 	$db = DB::getInstance("NGSD", false);
-	list($config_id, $config_vars_exist, $config_cnvs_exist) = somatic_report_config($db, $t_id, $n_id);
+	list($config_id, $config_vars_exist, $config_cnvs_exist, $config_svs_exists) = somatic_report_config($db, $t_id, $n_id);
 	if (in_array("vc", $steps) && $config_vars_exist)
 	{
 		trigger_error("Somatic report configuration with SNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
+	}
+	if (in_array("vc", $steps) && $config_svs_exists)
+	{
+		trigger_error("Somatic report configuration with SVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
 	}
 	if (in_array("cn", $steps) && $config_cnvs_exist)
 	{
@@ -1338,6 +1342,50 @@ if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("msi", $steps) 
 {
 	$terms = array();
 	$sources = array();
+	
+	//CNVs:
+	if (file_exists($som_clincnv))
+	{
+		$cnv_count_hq = 0;
+		$cnv_count_hq_autosomes = 0;
+		$cnv_count_loss = 0;
+		$cnv_count_gain = 0;
+		$h = fopen2($som_clincnv, 'r');
+		while(!feof($h))
+		{
+			$line = trim(fgets($h));
+			if ($line=="") continue;
+			
+			if ($line[0]!="#")
+			{
+				$parts = explode("\t", $line);
+				$ll = $parts[11];
+				if ($ll>=20) // TODO find somatic specific cut-off
+				{
+					++$cnv_count_hq;
+					
+					$chr = $parts[0];
+					if (is_numeric(strtr($chr, ["chr"=>""])))
+					{
+						++$cnv_count_hq_autosomes;
+						$cn = $parts[5];
+						if ($cn<2) ++$cnv_count_loss;
+						if ($cn>2) ++$cnv_count_gain;
+					}
+				}
+			}
+		}
+		fclose($h);
+		
+		//counts (all, loss, gain)
+		$terms[] = "QC:2000044\t{$cnv_count_hq}"; // somatic CNVs count
+		if ($cnv_count_hq_autosomes>0)
+		{
+			$terms[] = "QC:2000118\t".number_format(100.0*$cnv_count_loss/$cnv_count_hq_autosomes, 2); // percentage losses
+			$terms[] = "QC:2000119\t".number_format(100.0*$cnv_count_gain/$cnv_count_hq_autosomes, 2); // percentage gains
+		}
+		$sources[] = $cnvfile;
+	}
 	
 	// HRD score:
 	$hrd_file = $full_prefix."_HRDresults.txt";
