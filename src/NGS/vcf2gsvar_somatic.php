@@ -334,8 +334,7 @@ if(db_is_enabled($db))
 	{
 		list($chr,$start,$end,$ref,$obs) = $gsvar->getRow($i);
 		
-		$variant_id = $db->getValue("SELECT id FROM variant WHERE chr='{$chr}' AND start='{$start}' AND end='{$end}' AND ref='{$ref}' AND obs='{$obs}'", -1);
-		
+		$variant_id = get_variant_id($db, $chr, $start, $end, $ref, $obs);
 		if($variant_id != -1)
 		{
 			$res = $db->executeQuery("SELECT id, class, comment FROM somatic_variant_classification WHERE variant_id = $variant_id");

@@ -157,7 +157,7 @@ function add_contigs_if_missing($vcf)
 		$new_contigs[] = "##contig=<ID={$chr},length={$len}>\n";
 	}
 	
-	//add contiig lines to VCF
+	//add contig lines to VCF
 	$lines = file($vcf);
 	array_splice($lines, $line_below_reference_info, 0, $new_contigs);  
 	file_put_contents($vcf, implode("", $lines));

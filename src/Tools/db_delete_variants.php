@@ -48,8 +48,8 @@ foreach($file as $line)
 		list($start, $end, $ref, $obs) = correct_indel($start, $ref, $obs);
 	}
 	
-	//get variant ID
-	$v_id = $db->getValue("SELECT id FROM variant WHERE chr='{$chr}' AND start='{$start}' AND end='{$end}' AND ref='{$ref}' AND obs='{$obs}'", -1);
+	//get variant ID	
+	$v_id = get_variant_id($db, $chr, $start, $end, $ref, $obs);
 	if ($v_id==-1)
 	{
 		print "$tag skipped: not in NGSD!\n";

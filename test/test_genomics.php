@@ -215,10 +215,11 @@ if (db_is_enabled("NGSD"))
 end_test();
 
 //##################################################################################
-start_test("indel_for_vcf");
-check(indel_for_vcf("GRCh38", "chr12",25368401,"TC","AG"),array("chr12",25368401,"TC","AG"));
-check(indel_for_vcf("GRCh38", "chr12",25368401,"TC","-"),array("chr12",25368400,"TTC","T"));
-check(indel_for_vcf("GRCh38", "chr12",25368401,"-","AG"),array("chr12",25368401,"G","GAG"));
+start_test("gsvar_to_vcf");
+check(gsvar_to_vcf("GRCh38", "chr12",25368401,"T","A"),array("chr12",25368401,"T","A"));
+check(gsvar_to_vcf("GRCh38", "chr12",25368401,"TC","AG"),array("chr12",25368401,"TC","AG"));
+check(gsvar_to_vcf("GRCh38", "chr12",25368401,"TC","-"),array("chr12",25368400,"TTC","T"));
+check(gsvar_to_vcf("GRCh38", "chr12",25368401,"-","AG"),array("chr12",25368401,"G","GAG"));
 end_test();
 
 //##################################################################################
