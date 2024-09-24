@@ -4,7 +4,7 @@
 
 To benchmark the small variant calling on different hg38 flavours, we performed tests with the sample NA24385/H002 processed with the Illumina WGS kit `TruSeq DNA PCR-Free`.  
 
-The tests were performed with the the megSAP pipeline version 2023_11 - either with the default pipelein (BWA-mem2, freebayes 1.3.3) or with Dragen (version 4.2.4).  
+The tests were performed with the the megSAP pipeline version 2023_11 - either with the default pipeline (BWA-mem2, freebayes 1.3.3) or with Dragen (version 4.2.4).  
 
 These are the results on the default GiaB benchmark dataset: 
 <table border=1>

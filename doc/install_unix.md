@@ -73,6 +73,11 @@ Next, we need to download and index the reference genome:
 	> ./download_GRCh38.sh
 
 
+Now we need to sync the GRCh38 to the local data (only on first installation of the pipeline)
+
+	> php ../src/Tools/data_setup.php -build GRCh38
+
+
 Finally, we need to download and convert some open-source databases for annotations:
 
 	> ./download_dbs.sh

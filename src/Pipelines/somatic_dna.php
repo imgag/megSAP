@@ -739,7 +739,7 @@ if(in_array("cn",$steps))
 	if ($sys["type"] != "WGS" && $sys['type'] != "WGS (shallow)")
 	{
 		$target_bed = $ref_folder_t."/roi_annotated.bed";
-		if (!file_exists($bed))
+		if (!file_exists($target_bed))
 		{
 			$ngsbits = get_path("ngs-bits");
 			$pipeline = [
@@ -1314,7 +1314,8 @@ if (in_array("an_rna", $steps))
 			$args = [
 				"-cnv_in $som_clincnv" ,
 				"-out $som_clincnv",
-				"-rna_counts $rna_count"
+				"-rna_counts $rna_count",
+				"-rna_id $rna_id"
 			];
 			
 			if (isset($rna_ref_tissue)) $args[] = "-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue);

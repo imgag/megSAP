@@ -19,7 +19,7 @@ check_file($out_file2, data_folder().$name."_out2.vcf", true);
 
 //empty input VCF
 $out_file_empty = output_folder().$name."_out_empty.vcf";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder().$name."_in_empty.vcf -out $out_file_empty --log ".output_folder().$name."_out_empty.log");
+check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in_empty.vcf -out $out_file_empty --log ".output_folder().$name."_out_empty.log");
 remove_lines_containing($out_file_empty, array("##VEP=\"v", "##VEP-command-line='", "##INFO=<ID=NGSD_GENE_INFO,"));
 check_file($out_file_empty, data_folder().$name."_out_empty.vcf", true);
 
