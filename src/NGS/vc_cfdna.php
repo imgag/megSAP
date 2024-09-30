@@ -44,7 +44,7 @@ if (isset($model))
 else
 {
     //check that target BED file has sufficient bases for error modeling
-    $ret = $parser->exec(get_path("ngs-bits")."BedInfo", "-in {$target}");
+    $ret = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedInfo", "-in {$target}", [$target]);
     $n_bases = intval(explode(":", $ret[0][1])[1]);
     if ($n_bases < 1000)
     {
@@ -64,12 +64,12 @@ $parser->execSingularity("umiVar", get_path("container_umivar"), "python /opt/um
 $vcf = $folder."/".basename2($bam).".vcf";
 if (file_exists($vcf))
 {
-    $parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf -out $vcf", true);
+    $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in $vcf -out $vcf", [$vcf]);
 }
 $vcf_hq = $folder."/".basename2($bam)."_hq.vcf";
 if (file_exists($vcf_hq))
 {
-    $parser->exec(get_path("ngs-bits")."VcfSort","-in {$vcf_hq} -out {$vcf_hq}", true);
+    $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in {$vcf_hq} -out {$vcf_hq}", [$vcf_hq]);
 }
 
 

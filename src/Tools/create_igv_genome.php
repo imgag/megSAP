@@ -39,13 +39,12 @@ foreach ($url_list as $track_name => $url)
 
 
 //export gene track
-$ngsbits = get_path("ngs-bits");
 print "Export Ensembl gene track from NGSD ...\n";
 $all_transcripts_tmp = $parser->tempFile(".txt");
 $mane_transcripts_tmp = $parser->tempFile(".txt");
 $all_transcripts = "EnsemblGeneTrack.txt.gz";
 $mane_transcripts = "EnsemblGeneTrack_Mane+Clinical.txt.gz";
-$parser->exec($ngsbits."NGSDExportIgvGeneTrack", "-out {$all_transcripts_tmp} -out_mane {$mane_transcripts_tmp}");
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDExportIgvGeneTrack", "-out {$all_transcripts_tmp} -out_mane {$mane_transcripts_tmp}");
 $parser->exec("bgzip", "-c {$all_transcripts_tmp} > {$output_folder}/{$all_transcripts}");
 $parser->exec("bgzip", "-c {$mane_transcripts_tmp} > {$output_folder}/{$mane_transcripts}");
 

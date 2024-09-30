@@ -154,14 +154,14 @@ file_put_contents($out_vcf, implode("\n", $vcf_content_out));
 
 
 //sort output files
-$parser->exec(get_path("ngs-bits")."BedSort", "-in {$out_bed} -out {$out_bed}");
-$parser->exec(get_path("ngs-bits")."VcfSort", "-in {$out_vcf} -out {$out_vcf}");
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-in {$out_bed} -out {$out_bed}", [$out_bed]);
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in {$out_vcf} -out {$out_vcf}", [$out_vcf]);
 
 
 //create plots:
 if (file_exists($plot_folder)) $parser->exec("rm", "-r {$plot_folder}"); //delete previous plots
 mkdir($plot_folder);
-$parser->exec(get_path("python3"), get_path("straglrOn")." {$out_bed} {$out_tsv} {$loci} -o {$plot_folder} --hist --alleles --bam {$in} --genome ".genome_fasta($build));
+$parser->execSingularity("straglrOn", get_path("container_straglrOn"), "straglron.py", "{$out_bed} {$out_tsv} {$loci} -o {$plot_folder} --hist --alleles --bam {$in} --genome ".genome_fasta($build), [$out_folder, $loci, genome_fasta($build)]);
 
 
 

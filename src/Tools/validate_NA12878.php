@@ -29,9 +29,8 @@ extract($parser->parse($argv));
 function get_bases($filename)
 {
 	global $parser;
-	global $ngsbits;
 	
-	list($stdout) = $parser->exec("{$ngsbits}BedInfo", "-in $filename", true);
+	list($stdout) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedInfo", "-in $filename", [$filename]);
 	$hits = array_containing($stdout, "Bases ");
 	$parts = explode(":", $hits[0]);
 	return trim($parts[1]);
@@ -41,16 +40,14 @@ function get_bases($filename)
 function get_variants($vcf_gz, $roi, $max_indel, $min_qual = 0, $min_qd=0)
 {
 	global $parser;
-	global $ngsbits;
-	global $vcflib;
 	global $genome;
 	
 	//get variants
 	$tmp = $parser->tempFile(".vcf");
 	$pipeline = [];
 	$pipeline[] = array("zcat", $vcf_gz);
-	$pipeline[] = array("{$ngsbits}VcfFilter", "-reg {$roi}");
-	$pipeline[] = array("{$ngsbits}VcfStreamSort", "-out {$tmp}");
+	$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfFilter", "-reg {$roi} -ref $genome", [$roi, $genome], [], 1, true));
+	$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfStreamSort", "-out {$tmp}", [], [], 1, true));
 	$parser->execPipeline($pipeline, "variant extraction");
 	
 	//put together output
@@ -136,7 +133,7 @@ function get_depth($pos, $bam)
 
 	list($chr, $start) = explode(" ", strtr($pos, ":", " "));
 	
-	list($stdout) = $parser->exec(get_path("samtools"), "depth -Q 1 -q 15 -r $chr:$start-$start $bam", true);
+	list($stdout) = $parser->execSingularity("samtools", get_path("container_samtools"), "samtools depth", "-Q 1 -q 15 -r $chr:$start-$start $bam", [$bam]);
 	$depth = trim(implode("", $stdout));
 	if ($depth=="") return 0;
 	
@@ -152,8 +149,7 @@ function get_prop($var, $name, $digits = null)
 }
 
 //init
-$ngsbits = get_path("ngs-bits");
-$vcflib = get_path("vcflib");
+/* $vcflib = get_path("vcflib"); TODO remove*/
 $genome = genome_fasta($build);
 $giab_bed = get_path("data_folder")."/dbs/GIAB/{$ref_sample}/high_conf_regions.bed";
 if (!file_exists($giab_bed)) trigger_error("GiaB {$ref_sample} BED file missing: {$giab_bed}", E_USER_ERROR);
@@ -167,9 +163,9 @@ print "##Bases             : $bases\n";
 //sort and merge $roi_hc after intersect - MH
 $roi_hc = $parser->tempFile(".bed");
 $pipeline = [];
-$pipeline[] = ["{$ngsbits}BedIntersect", "-in $roi -in2 {$giab_bed}"];
-$pipeline[] = ["{$ngsbits}BedSort", ""];
-$pipeline[] = ["{$ngsbits}BedMerge", "-out $roi_hc"];
+$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedIntersect", "-in $roi -in2 {$giab_bed}", [$roi, $giab_bed], [], 1, true));
+$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "", [], [], 1, true));
+$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-out $roi_hc", [], [], 1, true));
 $parser->execPipeline($pipeline, "high-conf ROI");
 $bases_hc = get_bases($roi_hc);
 print "##High-conf bases   : $bases_hc (".number_format(100*$bases_hc/$bases, 2)."%)\n";
@@ -178,9 +174,9 @@ $bases_used = $bases_hc;
 if ($min_dp>0)
 {
 	$roi_low_dp = $parser->tempFile(".bed");
-	exec2("{$ngsbits}BedLowCoverage -bam {$bam} -in {$roi_hc} -cutoff {$min_dp} -out {$roi_low_dp} -threads 4 -ref {$genome}");
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedLowCoverage", "-bam {$bam} -in {$roi_hc} -cutoff {$min_dp} -out {$roi_low_dp} -threads 4 -ref {$genome}", [$bam, $genome]);
 	$roi_high_dp = $parser->tempFile(".bed");
-	exec2("{$ngsbits}BedSubtract -in {$roi_hc} -in2 {$roi_low_dp} -out {$roi_high_dp}");
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSubtract", "-in {$roi_hc} -in2 {$roi_low_dp} -out {$roi_high_dp}");
 	
 	$bases_high_dp = get_bases($roi_high_dp);
 	print "##High-depth bases  : $bases_high_dp (".number_format(100*$bases_high_dp/$bases, 2)."%)\n";

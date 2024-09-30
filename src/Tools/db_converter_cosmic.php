@@ -115,7 +115,6 @@ function write_variants_from_file(&$vars_id_anno, &$out_fp, $cosmic_vcf)
 
 
 //init
-$ngsbits = get_path("ngs-bits");
 $genome_fa = genome_fasta($build, false);
 
 
@@ -156,16 +155,16 @@ if(count($vars_id_anno) > 0)
 
 //Normalize file and sort 
 $temp_file2 = temp_file(".vcf", "cosmic_cmc_normalized");
-$parser->exec("{$ngsbits}/VcfLeftNormalize", "-stream -in $temp_file -out $temp_file2 -ref {$genome_fa}");
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfLeftNormalize", "-stream -in $temp_file -out $temp_file2 -ref {$genome_fa}", [$genome_fa]);
 
 $temp_file3 = temp_file(".vcf", "cosmic_cmc_normalized_sorted");
-$parser->exec("{$ngsbits}/VcfSort", " -in $temp_file2 -out $temp_file3");
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in $temp_file2 -out $temp_file3");
 
 //remove columns after INFO columns and compress
 $parser->execPipeline([["cut -f1-8","$temp_file3"], ["bgzip" , " -c > $out"]], "trim and compress");
 $parser->exec("tabix" , "-p vcf $out");
 
 //Check converted VCF file
-$parser->exec("{$ngsbits}/VcfCheck", "-in $out -ref {$genome_fa} -lines 0", true);
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfCheck", "-in $out -ref {$genome_fa} -lines 0", [$out, $genome_fa]);
 
 ?>

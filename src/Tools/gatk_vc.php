@@ -60,9 +60,7 @@ if (!$gvcf)
 	
 	$pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true)];
 	$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfLeftNormalize", "-stream -ref {$ref}", [$ref], [], 1, true)];
-	/* $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref {$ref}"); */
 	$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfStreamSort", "", [], [], 1, true)];
-	/* $pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", ""); */
 	$pipeline[] = array("bgzip", "-c > {$out}", false);
 	$parser->execPipeline($pipeline, "post processing");
 

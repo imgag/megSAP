@@ -37,7 +37,6 @@ $parser->exec("apptainer", "instance start ".get_path("container_folder")."/ngs-
 //create basic variant calls
 $args = array();
 $in_files = array();
-$out_files = array();
 if(isset($target))
 {	
 	//extend by 'n' bases
@@ -85,7 +84,6 @@ $args[] = "-f $genome";
 $args[] = "-b ".implode(" ", $bam);
 $in_files[] = $genome;
 $in_files = array_merge($in_files, $bam);
-$out_files[] = $out;
 
 // run freebayes
 $pipeline = array();
@@ -152,7 +150,7 @@ if (isset($target) && $threads > 1)
 			$parameters = implode(" ", $args_chr);
 			
 			//start in background
-			$command = $parser->execSingularity("freebayes", get_path("container_freebayes"), "freebayes", $parameters, [$genome], [], 1, true);		
+			$command = $parser->execSingularity("freebayes", get_path("container_freebayes"), "freebayes", $parameters, $in_files, [], 1, true);		
 			$output = array();
 			$exitcode_file = "{$tmp_dir}/{$chr}.exitcode";
 			exec('('.$command.' & PID=$!; echo $PID) && (wait $PID; echo $? > '.$exitcode_file.')', $output);
@@ -262,12 +260,12 @@ else
 {
 	if ($raw_output)
 	{
-		$parser->execSingularity("freebayes", get_path("container_freebayes"),"freebayes" ,implode(" ", $args)." > $out", $in_files, $out_files);
+		$parser->execSingularity("freebayes", get_path("container_freebayes"),"freebayes" ,implode(" ", $args)." > $out", $in_files, [$out]);
 		/* $parser->exec("apptainer", "instance stop $ngs_bits_instance"); */
 		return;
 	}
 	
-	$pipeline[] = ["", $parser->execSingularity("freebayes", get_path("container_freebayes"), "freebayes", implode(" ", $args), [$genome], [], 1, true)];
+	$pipeline[] = ["", $parser->execSingularity("freebayes", get_path("container_freebayes"), "freebayes", implode(" ", $args), $in_files, [], 1, true)];
 }
 
 //filter variants according to variant quality>5

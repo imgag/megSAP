@@ -19,7 +19,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFlag("wgs", "Treat input as WGS samples.");
 $parser->addString("config", "Config file for strelka.", true, "/opt/strelka2/bin/configureStrelkaSomaticWorkflow.py.ini");
 $parser->addFlag("keep_lq", "Keep variants flagged as low quality by Strelka2.");
-$parser->addString("temp", "Temporary folder for manta analysis (for debugging).", true, "auto");
+$parser->addString("analysis_dir", "Keep analysis files in this directory.", true);
 $parser->addString("debug_region", "Debug option to limit analysis to one region.", true);
 $parser->addInt("threads", "Number of threads to use.", true, 4);
 //extract arguments
@@ -32,17 +32,26 @@ extract($parser->parse($argv));
 //init
 $genome = genome_fasta($build);
 $in_files = array();
-$out_files = array();
 
 //resolve configuration preset
-if (!$config === "/opt/strelka2/bin/configureStrelkaSomaticWorkflow.py.ini")
+if ($config != "/opt/strelka2/bin/configureStrelkaSomaticWorkflow.py.ini")
 {
 	$in_files[] = $config;
 }
 
 //resolve run dir
-$temp_folder = $temp === "auto" ? $parser->tempFolder() : $temp;
-$run_dir = "{$temp_folder}/strelkaAnalysis";
+if (isset($analysis_dir))
+{
+	$run_dir = $analysis_dir;
+	$in_files[] = $run_dir;
+}
+else
+{
+	$run_dir = $parser->tempFolder() . "/strelkaAnalysis";
+}
+
+$somatic_snvs = "$run_dir/results/variants/somatic.snvs.vcf.gz";
+$somatic_indels = "$run_dir/results/variants/somatic.indels.vcf.gz";
 
 //arguments
 $args = [
@@ -71,19 +80,16 @@ if (isset($debug_region))
 $in_files[] = $genome;
 $in_files[] = $t_bam;
 $in_files[] = $n_bam;
-$out_files[] = $temp_folder;
 
 //run strelka2 container
-$parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 /opt/strelka2/bin/configureStrelkaSomaticWorkflow.py", implode(" ", $args), $in_files, $out_files);
+$parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 /opt/strelka2/bin/configureStrelkaSomaticWorkflow.py", implode(" ", $args), $in_files);
 
-$parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 {$run_dir}/runWorkflow.py", "-m local -j $threads -g 4", $in_files, $out_files, 1, true, false);
+$parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 {$run_dir}/runWorkflow.py", "-m local -j $threads -g 4", $in_files, [], 1, false, false);
 
 //################################################################################################
 //Split multi-allelic variants
 //################################################################################################
 
-$somatic_snvs = "$run_dir/results/variants/somatic.snvs.vcf.gz";
-$somatic_indels = "$run_dir/results/variants/somatic.indels.vcf.gz";
 $split_snvs = "$run_dir/results/variants/somatic.snvs.split.vcf.gz";
 $pipeline = [
 		["zcat", $somatic_snvs],
@@ -143,15 +149,15 @@ $merged->toTSV($vcf_merged);
 
 //remove invalid variant
 $vcf_invalid = $parser->tempFile("_filtered_invalid.vcf");
-$parser->exec(get_path("ngs-bits")."VcfFilter", "-remove_invalid -in $vcf_merged -out $vcf_invalid -ref $genome", true);
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfFilter", "-remove_invalid -in $vcf_merged -out $vcf_invalid -ref $genome", [$genome]);
 
 //left-align
 $vcf_aligned = $parser->tempFile("_aligned.vcf");
-$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-stream -in $vcf_invalid -out $vcf_aligned -ref $genome", true);
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfLeftNormalize", "-stream -in $vcf_invalid -out $vcf_aligned -ref $genome", [$genome]);
 
 //sort
 $vcf_sorted = $parser->tempFile("_sorted.vcf");
-$parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf_aligned -out $vcf_sorted", true);
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in $vcf_aligned -out $vcf_sorted");
 
 //################################################################################################
 //Filter variants
@@ -293,7 +299,7 @@ $variants_filtered->toTSV($final);
 if (!empty($target))
 {
 	$vcf_offtarget = $parser->tempFile("_filtered.vcf");
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $final -mark off-target -reg $target -out $vcf_offtarget", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantFilterRegions", "-in $final -mark off-target -reg $target -out $vcf_offtarget", [$target]);
 	$final = $vcf_offtarget;
 }
 
@@ -308,7 +314,7 @@ if (!empty($target))
 		$vcf_with_artefacts = dirname($out)."/".basename($out, ".vcf.gz")."_with_enzymatic_artefacts.vcf.gz";
 		$parser->exec("bgzip", "-c $final > $vcf_with_artefacts", true);
 		$vcf_no_artefacts = $parser->tempFile("_filtered_no_artefacts.vcf");
-		$parser->exec(get_path("ngs-bits")."VcfSubstract", "-in $final -in2 $artefact_vcf -out $vcf_no_artefacts");
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSubstract", "-in $final -in2 $artefact_vcf -out $vcf_no_artefacts", [$artefact_vcf]);
 		$final = $vcf_no_artefacts;
 	}
 }

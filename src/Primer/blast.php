@@ -14,10 +14,10 @@ $parser->addInfile("in",  "Input FASTA file.", false);
 $parser->addOutfile("out",  "Output BLAST result file.", false);
 extract($parser->parse($argv));
 
-list($output) = $parser->exec("blastn", "-version", false);
+list($output) = $parser->execSingularity("blastn", get_path("container_blastn"), "blastn", "-version", [], [], 1, false, false);
 print "BLAST info: ".$output[0];
 
-$parser->exec("blastn", "-task blastn-short -db ".get_path("GRCh37_data_folder")."/dbs/blast/hg19 -query $in -outfmt 7 -out $out -num_threads 8", true);
+$parser->execSingularity("blastn", get_path("container_blastn"), "blastn", "-task blastn-short -db ".get_path("GRCh37_data_folder")."/dbs/blast/hg19 -query $in -outfmt 7 -out $out -num_threads 8", [get_path("GRCh37_data_folder")."/dbs/blast/", $in], [$out]);
 
 
 ?>

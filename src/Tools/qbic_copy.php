@@ -298,7 +298,7 @@ function linkFastqs($data_folder, $tmp_folder, $basename, $genome, $bam_or_cram 
 		$fq2 = "{$tmp_folder}/{$basename}_001.2.fastq.gz";
 		if ($upload) //skip generating FASTQs in dry run
 		{
-			$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam_or_cram} -out1 {$fq1} -out2 {$fq2} -ref {$genome}", true);
+			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BamToFastq", "-in {$bam_or_cram} -out1 {$fq1} -out2 {$fq2} -ref {$genome}", [$bam_or_cram, $genome], [$fq1, $fq2]);
 		}
 		$files[] = $fq1;
 		$files[] = $fq2;
@@ -445,7 +445,7 @@ foreach($res as $row)
 		$tmp_folder = $parser->tempFolder();	
 		
 		#get bam or cram file from sample and the reference file for the sample
-		list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps {$ps_name} -type BAM");
+		list ($stdout, $stderr) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SamplePath", "-ps {$ps_name} -type BAM");
 		$bam_or_cram = trim(implode("", $stdout));
 		
 		$sys_filename_ignore = "";
@@ -486,7 +486,7 @@ foreach($res as $row)
 				$fq2 = $tmp_folder."/{$ps_name}_BamToFastq_R2_001.fastq.gz";
 				if ($upload) //skip generating FASTQs in dry run
 				{
-					$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam_or_cram} -out1 {$fq1} -out2 {$fq2} -ref {$genome}", true);
+					$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BamToFastq", "-in {$bam_or_cram} -out1 {$fq1} -out2 {$fq2} -ref {$genome}", [$bam_or_cram, $genome]);
 				}
 				$files[] = $fq1;
 				$files[] = $fq2;
@@ -507,7 +507,7 @@ foreach($res as $row)
 			{
 				$normal_data_dir = $project_folder."/Sample_".$normal_sample['id_genetics']."/";
 				
-				list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps ".$normal_sample['id_genetics']." -type BAM");
+				list ($stdout, $stderr) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SamplePath", "-ps ".$normal_sample['id_genetics']." -type BAM");
 				$normal_bam_or_cram = trim(implode("", $stdout));
 				
 				$sys_n = load_system($sys_n, $normal_sample['id_genetics']); //param filename = "" to load from the NGSD

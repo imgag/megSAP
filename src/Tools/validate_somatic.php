@@ -32,9 +32,8 @@ function is_indel($tag)
 function get_bases($filename)
 {
 	global $parser;
-	global $ngsbits;
 	
-	list($stdout) = $parser->exec("{$ngsbits}BedInfo", "-in $filename", true);
+	list($stdout) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedInfo", "-in $filename", [$filename]);
 	$hits = array_containing($stdout, "Bases ");
 	$parts = explode(":", $hits[0]);
 	return trim($parts[1]);
@@ -116,7 +115,7 @@ function type_matches($type, $tag)
 }
 
 //create a sorted list with all unique variants in the given lists
-function create_unique_variants_list($parser, $ngsbits, $details_all)
+function create_unique_variants_list($parser, $details_all)
 {
 	$vars_all = [];
 	$vcf = [];
@@ -132,7 +131,7 @@ function create_unique_variants_list($parser, $ngsbits, $details_all)
 	$tmp = $parser->tempFile(".vcf");
 	file_put_contents($tmp, implode("\n", $vcf));
 	$tmp2 = $parser->tempFile(".vcf");
-	list($stdout) = exec2("{$ngsbits}VcfSort -in $tmp -out $tmp2 && sort --uniq $tmp2", true);
+	list($stdout) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in $tmp -out $tmp2 && sort --uniq $tmp2");
 	foreach($stdout as $line)
 	{
 		$line = trim($line);
@@ -147,9 +146,6 @@ function create_unique_variants_list($parser, $ngsbits, $details_all)
 
 
 //***** MAIN SCRIPT *****\\
-
-//init
-$ngsbits = get_path("ngs-bits");
 
 //verify given tumor content and parse expected heterogenic allele frequency
 if ($tum_content != "")
@@ -247,7 +243,7 @@ foreach($calls as $filename)
 
 
 //create sorted variant list
-$vars_all = create_unique_variants_list($parser, $ngsbits, $details_all);
+$vars_all = create_unique_variants_list($parser, $details_all);
 
 //write header 
 $var_detail_lines = [];

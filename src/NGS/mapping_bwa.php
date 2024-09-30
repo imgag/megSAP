@@ -44,16 +44,18 @@ if(db_is_enabled("NGSD"))
 }
 
 //set input files for bwa-mem2 container
-$in_files = [$in1, $in2, genome_fasta($build, true, false)];
+$genome = genome_fasta($build);
+
+$in_files = [$in1, $in2, $genome];
 
 //mapping with bwa
 $pipeline = array();
-$bwa_params = "mem ".genome_fasta($build)." -K 100000000 -Y -R '@RG\\t".implode("\\t", $group_props)."' -t $threads -v 2";
+$bwa_params = "mem $genome -K 100000000 -Y -R '@RG\\t".implode("\\t", $group_props)."' -t $threads -v 2";
 
 //select the correct binary
 if (get_path("use_bwa1")) 
 {
-	$pipeline[] = array(get_path("bwa"), "$bwa_params $in1 $in2");
+	$pipeline[] = array("", $parser->execSingularity("bwa", get_path("container_bwa"), "bwa", "$bwa_params $in1 $in2", $in_files, [], 1, true));
 }
 else
 {

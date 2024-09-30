@@ -76,9 +76,9 @@ file_put_contents($outfolder.$prefix."_oncogene.tsv", $header."\n".implode("\n",
 
 //generate tsg BED file
 $pipeline = array();
-$pipeline[] = array(get_path("ngs-bits")."GenesToBed", "-source ensembl -mode exon -in $tsg_file");
-$pipeline[] = array(get_path("ngs-bits")."BedSort", "-uniq");
-$pipeline[] = array(get_path("ngs-bits")."BedMerge", "-merge_names -out ".$outfolder."somatic_tmb_tsg.bed");
+$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "GenesToBed", "-source ensembl -mode exon -in $tsg_file", [$tsg_file], [], 1, true));
+$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-uniq", [], [], 1, true));
+$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-merge_names -out ".$outfolder."somatic_tmb_tsg.bed", [], [$outfolder], 1, true));
 $parser->execPipeline($pipeline, "Generate tsg bed file.");
 
 

@@ -17,7 +17,6 @@ extract($parser->parse($argv));
 $data_folder = get_path("data_folder");
 $local_data = get_path("local_data");
 $rsync = "rsync --size-only --recursive --no-perms --no-acls --omit-dir-times --no-group --no-owner --chmod=ugo=rwX --copy-links";
-$ngsbits = get_path("ngs-bits");
 
 //determine DB files
 $db_files = array("/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz", "/dbs/REVEL/REVEL_1.3.vcf.gz", "/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed", "/dbs/ClinVar/clinvar_20240805_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz");
@@ -267,6 +266,7 @@ if ($build=="GRCh38" && $check)
 {
 	print "\n";
 	print "### checking annotation databases ###\n";
+	$genome = genome_fasta($build);
 	
 	//determine databases to sync
 	foreach($db_files as $db_file)
@@ -277,7 +277,7 @@ if ($build=="GRCh38" && $check)
 		{
 			$log = "./".$basename."_check.txt";
 			print "Checking: $basename ($log)\n";
-			exec2($ngsbits."/VcfCheck -in $filename -lines 5000000 > $log 2>&1", false);
+			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfCheck", "-in $filename -lines 5000000 -ref $genome > $log 2>&1", [$filename, $genome], [$log], 1, false, true, false);
 			
 			$errors = 0;
 			$warnings = 0;

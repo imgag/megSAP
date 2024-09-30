@@ -90,7 +90,10 @@ $arguments = array(
 	"--limitOutSJcollapsed 2000000",
 	"--outSAMattrRGline", implode(" ", $group_props)
 );
-	
+
+$in_files = isset($in2) ? [$in1, $in2] : [$in1];
+$in_files[] = $genome;
+
 if ($unstranded_xs) $arguments[] = "--outSAMstrandField intronMotif";
 if (!$uncompressed) $arguments[] = "--readFilesCommand zcat";
 if ($all_junctions) $arguments[] = "--outSJfilterDistToOtherSJmin 0 0 0 0 --outSJfilterOverhangMin 1 1 1 1 --outSJfilterCountUniqueMin 1 1 1 1 --outSJfilterCountTotalMin 1 1 1 1";
@@ -109,12 +112,12 @@ else
 }
 
 //STAR or STARlong program
-$star = $long_reads ? get_path("STAR")."long" : get_path("STAR");
+$star_command = $long_reads ? "STARlong" : "STAR";
 
 //mapping with STAR
 $pipeline = array();
-$pipeline[] = array($star, implode(" ", $arguments));
-$pipeline[] = array(get_path("samtools"), "view -h");
+$pipeline[] = array("", $parser->execSingularity("STAR", get_path("container_STAR"), $star_command, implode(" ", $arguments), $in_files, [], 1, true));
+$pipeline[] = array("", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools", "view -h", [], [], 1, true));
 
 //duplicate flagging with samblaster
 if (!$skip_dedup)
@@ -125,7 +128,7 @@ if (!$skip_dedup)
 
 //sort BAM by coordinates
 $tmp_for_sorting = $parser->tempFile();
-$pipeline[] = array(get_path("samtools"), "sort -T $tmp_for_sorting -m 1G -@ ".min($threads, 4)." -o $out -", true);
+$pipeline[] = array("", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools", "sort -T $tmp_for_sorting -m 1G -@ ".min($threads, 4)." -o $out -", [], [$out], 1, true), true);
 
 //execute (STAR -> samblaster -> samtools SAM to BAM -> samtools sort)
 $parser->execPipeline($pipeline, "mapping");

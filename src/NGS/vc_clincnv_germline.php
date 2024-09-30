@@ -339,7 +339,6 @@ function run_clincnv($out, $mosaic=FALSE)
 		"--par \"chrX:10001-2781479;chrX:155701383-156030895\"", //this is correct for hg38 only!
 		"--hg38",
 		"--noPlot",
-/* 		"--folderWithScript ".dirname(get_path("clincnv")) */
 		];
 	
 	$bind_paths[] = dirname(realpath($bed));
@@ -405,7 +404,6 @@ function run_clincnv($out, $mosaic=FALSE)
 		$parser->log("Calling external containerized tool ".get_path("container_folder")."ClinCNV_{$tool_version} with command: '$command' ({$try_nr}. try)", $add_info);
 
 		$exec_start = microtime(true);
-		/* $proc = proc_open($command." ".$parameters, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes); TODO remove */
 		$proc = proc_open("apptainer exec -B ".implode(",", $bind_paths)." ".get_path("container_folder")."ClinCNV_{$tool_version}.sif {$command} {$parameters}", array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
 		while(true)
 		{
@@ -523,7 +521,6 @@ function run_clincnv($out, $mosaic=FALSE)
 $repository_basedir = repository_basedir();
 $ps_name = basename2($cov);
 if (ends_with($ps_name, ".cov")) $ps_name = substr($ps_name, 0, -4);
-/* $command = get_path("rscript")." --vanilla ".get_path("clincnv"); TODO remove*/
 $command = "Rscript --vanilla /opt/ClinCNV/clinCNV.R";
 
 $tool_version = get_path("container_ClinCNV");
@@ -591,7 +588,13 @@ $args[] = "-exclude {$repository_basedir}/data/misc/af_genomes_imgag.bed {$repos
 $args[] = "-in $cov";
 $args[] = "-in_ref ".implode(" ", $cov_files);
 $args[] = "-out {$cov_merged}";
-list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."/CnvReferenceCohort" , implode(" ", $args));
+
+$in_files = [];
+$in_files[] = "{$repository_basedir}/data/misc";
+$in_files[] = $cov;
+$in_files[] = $cov_folder;
+
+list($stdout, $stderr) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "CnvReferenceCohort", implode(" ", $args), $in_files);
 foreach($stdout as $line)
 {
 	if (starts_with($line, "Mean correlation to reference samples is:"))	{

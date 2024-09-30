@@ -68,8 +68,8 @@ foreach($result as $row)
 					$gene = trim($gene);
 					if ($gene=="") continue;
 					
-					
-					list($tmp2) = exec2("echo '$gene' | ".get_path("ngs-bits")."GenesToApproved");
+					$ngsbits_command = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "GenesToApproved", "", [], [], 1, true);
+					list($tmp2) = exec2("echo '$gene' | $ngsbits_command");
 					if (contains($tmp2[0], "ERROR:")) continue;
 					list($gene_approved) = explode("\t", $tmp2[0]);
 					

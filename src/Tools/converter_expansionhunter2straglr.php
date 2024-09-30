@@ -70,6 +70,6 @@ foreach ($json_file_content as $repeat)
 file_put_contents($out, implode("\n", $output));
 
 //sort output file
-$parser->exec(get_path("ngs-bits")."BedSort", "-in {$out} -out {$out}");
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-in {$out} -out {$out}", [], [$out]);
 
 ?>

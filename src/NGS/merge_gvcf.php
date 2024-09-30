@@ -165,7 +165,7 @@ if ($mode=="longread")
 {
 	$pipeline = array();
 	$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfMerge", "-in ".implode(" ", $chr_multisample_gvcfs), [], [], 1, true)];
-	$pipeline[] = array(get_path("ngs-bits")."VcfExtractSamples", "-samples ".implode(",", $sample_order));
+	$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfExtractSamples", "-samples ".implode(",", $sample_order), [], [], 1, true)];
 	$pipeline[] = array("bgzip", "-c > {$gvcf_out}", false);
 	$parser->execPipeline($pipeline, "Merge gVCF");
 	$parser->exec("tabix", "-f -p vcf {$gvcf_out}");
@@ -175,7 +175,7 @@ if ($mode=="longread")
 $tmp_vcf = $parser->tempFile(".vcf.gz");
 $pipeline = array();
 $pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfMerge", "-in ".implode(" ", $chr_multisample_vcfs), [], [], 1, true)];
-$pipeline[] = array(get_path("ngs-bits")."VcfExtractSamples", "-samples ".implode(",", $sample_order));
+$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfExtractSamples", "-samples ".implode(",", $sample_order), [], [], 1, true)];
 $pipeline[] = array("bgzip", "-c > {$tmp_vcf}", false);
 $parser->execPipeline($pipeline, "Merge VCF");
 

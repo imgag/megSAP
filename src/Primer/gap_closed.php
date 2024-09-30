@@ -192,7 +192,7 @@ foreach($output as $line)
 print "TraceTuner info: ".$version."\n";
 
 //print Blast information
-$output = $parser->exec("blastn", "-version", false);
+$output = $parser->execSingularity("blastn", get_path("container_blastn"), "blastn", "-version", [], [], 1, false, false);
 print "BLAST info: ".$output[0][0]."\n";
 
 $blast_chrom_to_regions=array();
@@ -235,7 +235,7 @@ foreach ($ab1 as $ab1_file)
 	//blast FASTA
 	$blast_result_file=$parser->tempfile("blast_results.txt");
 	$index++;
-	$parser->exec("blastn", "-task blastn-short -db ".get_path("GRCh37_data_folder")."/dbs/blast/hg19 -query ".$fasta_from_ab1_file." -outfmt 7 -out ".$blast_result_file." -num_threads 8", true);
+	$parser->execSingularity("blastn", get_path("container_blastn"), "blastn", "-task blastn-short -db ".get_path("GRCh37_data_folder")."/dbs/blast/hg19 -query ".$fasta_from_ab1_file." -outfmt 7 -out ".$blast_result_file." -num_threads 8", [get_path("GRCh37_data_folder")."/dbs/blast/"]);
 
 	//extract blast results, cut primer regions if available
 	if ($primer_positions) 

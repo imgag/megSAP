@@ -31,7 +31,6 @@ if($out_folder=="default")
 {
 	$out_folder = $folder;
 }
-$ngsbits = get_path("ngs-bits");
 
 // create logfile in output folder if no filepath is provided:
 if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/analyze_rna_".date("YmdHis").".log");
@@ -105,7 +104,7 @@ if (in_array("ma", $steps))
 	$files = array_merge($in_for, $in_rev);
 	foreach ($files as $file)
 	{
-		list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."FastqFormat", "-in {$file}", true);
+		list($stdout, $stderr) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "FastqFormat", "-in {$file}", [$file]);
 		if (!contains($stdout[2], "Sanger"))
 		{
 			trigger_error("Input file '{$file}' is not in Sanger/Illumina 1.8 format!", E_USER_ERROR);
@@ -136,7 +135,7 @@ if (in_array("ma", $steps))
 		if (empty($in_umi))
 		{
 			// check if UMIs are present in FastQ header
-			list($stdout, $stderr, $return_code) = $parser->exec(get_path("ngs-bits")."FastqCheckUMI", "-in ".$in_for[0]);
+			list($stdout, $stderr, $return_code) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "FastqCheckUMI", "-in ".$in_for[0], [$in_for[0]]);
 
 			trigger_error("FastqCheckUMI output:\t".implode("\n", $stdout), E_USER_NOTICE);
 			if(starts_with($stdout[0], "UMI: true"))
@@ -160,7 +159,7 @@ if (in_array("ma", $steps))
 			// add barcodes to header
 			$merged1_bc = $parser->tempFile("_bc1.fastq.gz");
 			$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
-			$parser->exec(get_path("ngs-bits")."FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $in_umi)." -out1 $merged1_bc -out2 $merged2_bc", true);
+			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $in_umi)." -out1 $merged1_bc -out2 $merged2_bc", [$folder]);
 			
 			$seqpurge_params = array_merge($seqpurge_params,
 				[
@@ -179,8 +178,7 @@ if (in_array("ma", $steps))
 	}
 
 
-
-	$parser->exec(get_path("ngs-bits")."SeqPurge", implode(" ", $seqpurge_params), true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SeqPurge", implode(" ", $seqpurge_params), [$folder], [$out_folder]);
 
 	}
 	if (in_array("ma", $steps))
@@ -201,7 +199,7 @@ if (in_array("ma", $steps))
 				$fastq_trimmed1,
 				$fastq_trimmed2
 			];
-			$parser->exec(get_path("kraken2"), implode(" ", $kraken_args));
+			$parser->execSingularity("kraken2", get_path("container_kraken2"), "kraken2", implode(" ", $kraken_args), [get_path("data_folder")."/dbs/kraken2_filter_hb"]);
 			$parser->exec("gzip", "-1 {$filtered1}");
 			$parser->exec("gzip", "-1 {$filtered2}");
 
@@ -231,18 +229,18 @@ if (in_array("ma", $steps))
 			//UMI-based duplicate flagging
 			$pipeline = [];
 			//UMI-tools group alignments (coordinate sorted)
-			$pipeline[] = [get_path("umi_tools"), "group --stdin {$tmp_aligned} --output-bam --log2stderr --paired --no-sort-output --umi-separator=':' --compresslevel 0 --unmapped-reads use"];
+			$pipeline[] = ["", $parser->execSingularity("umi_tools", get_path("container_umi_tools"), "umi_tools group", "--stdin {$tmp_aligned} --output-bam --log2stderr --paired --no-sort-output --umi-separator=':' --compresslevel 0 --unmapped-reads use", [], [], 1, true)];
 			$tmp_for_sorting1 = $parser->tempFile();
 			//sort by query name
-			$pipeline[] = [get_path("samtools"), "sort -n -T {$tmp_for_sorting1} -m 2G -@ {$threads}"];
+			$pipeline[] = ["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools sort", "-n -T {$tmp_for_sorting1} -m 2G -@ {$threads}", [], [], 1, true)];
 			//use fixmate to add mate scores
-			$pipeline[] = [get_path("samtools"), "fixmate -@ {$threads} -u -m - -"];
+			$pipeline[] = ["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools fixmate", "-@ {$threads} -u -m - -", [], [], 1, true)];
 			$tmp_for_sorting2 = $parser->tempFile();
 			//sort by coordinate
-			$pipeline[] = [get_path("samtools"), "sort -T {$tmp_for_sorting2} -m 2G -@ {$threads}"];
+			$pipeline[] = ["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools sort", "-T {$tmp_for_sorting2} -m 2G -@ {$threads}", [], [], 1, true)];
 			$tmp_for_markdup = $parser->tempFile();
 			//mark duplicates by UG tag (unique group from umi_tools group)
-			$pipeline[] = [get_path("samtools"), "markdup -T {$tmp_for_markdup} -c --barcode-tag UG -s -@ {$threads} - {$final_bam}"];
+			$pipeline[] = ["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools markdup", "-T {$tmp_for_markdup} -c --barcode-tag UG -s -@ {$threads} - {$final_bam}", [], [$out_folder], 1, true)];
 			$parser->execPipeline($pipeline, "umi-tools dedup pipeline");
 
 			//index
@@ -255,17 +253,30 @@ if (in_array("ma", $steps))
 		}
 
 		//mapping QC
+		$in_files = array();
 		$mappingqc_params = array(
 			"-in ".$final_bam,
 			"-out ".$qc_map,
 			"-ref ".genome_fasta($sys['build']),
 			"-build ".ngsbits_build($sys['build'])
 		);
+		$in_files[] = $out_folder;
+		$in_files[] = genome_fasta($sys['build']);
 
-		$mappingqc_params[] = (isset($target_file) && $target_file != "") ? "-roi {$target_file}" : "-rna";
+		if (isset($target_file) && $target_file != "")
+		{
+			$mappingqc_params[] = "-roi {$target_file}";
+			$in_files[] = $target_file;
+
+		}
+		else
+		{
+			$mappingqc_params[] = "-rna";
+		}
+
 		if ($build!="GRCh38") $mappingqc_params[] = "-no_cont";
 
-		$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $mappingqc_params), true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "MappingQC", implode(" ", $mappingqc_params), $in_files);
 	}
 
 //read counting
@@ -279,8 +290,7 @@ if (in_array("rc", $steps))
 {
 	$tmpdir = $parser->tempFolder();
 	$repair_bam = "{$tmpdir}/{$name}.bam";
-	$parser->exec(dirname(get_path("feature_counts")) . "/utilities/repair",
-		"-i {$final_bam} -o {$repair_bam} -T {$threads}", true);
+	$parser->execSingularity("subread", get_path("container_subread"), "repair", "-i {$final_bam} -o {$repair_bam} -T {$threads}", [$out_folder]);
 
 	$args_common = array(
 		"-in", $repair_bam,
@@ -332,6 +342,7 @@ if (in_array("an", $steps))
 	//expression value based on cohort
 	if (db_is_enabled("NGSD"))
 	{
+		$in_files = array();
 		$db = DB::getInstance("NGSD");
 		$ps_info = get_processed_sample_info($db, $name, false);
 		if (!is_null($ps_info))
@@ -352,10 +363,12 @@ if (in_array("an", $steps))
 					if (count($reference_tissues) > 0)
 					{
 						$hpa_parameter = "-hpa_file ".get_path("data_folder")."/dbs/gene_expression/rna_tissue_consensus_v23.tsv";
+						$in_files[] = get_path("data_folder")."/dbs/gene_expression/rna_tissue_consensus_v23.tsv";
 					}					
 				}
-				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode genes -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr} {$hpa_parameter}", true);
-				$parser->exec(get_path("ngs-bits") . "NGSDAnnotateRNA", "-mode exons -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", true);
+				$in_files[] = $out_folder;
+				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDAnnotateRNA", "-mode genes -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr} {$hpa_parameter}", $in_files);
+				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDAnnotateRNA", "-mode exons -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", [$out_folder]);
 			}
 			
 			//remove duplicate exons from file
@@ -384,7 +397,7 @@ if (in_array("an", $steps))
 		//annotate splice junctions
 		if ($build === "GRCh38" && file_exists($junctions))
 		{
-			$parser->exec("{$ngsbits}SplicingToBed", "-in {$junctions} -report {$splicing_annot} -gene_report {$splicing_gene} -bed {$splicing_bed}", true);
+			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SplicingToBed", "-in {$junctions} -report {$splicing_annot} -gene_report {$splicing_gene} -bed {$splicing_bed}", [$out_folder]);
 		}
 	}
 }
@@ -393,29 +406,34 @@ if (in_array("an", $steps))
 $qc_rna = "{$prefix}_stats_RNA.qcML";
 if (in_array("ma", $steps) || in_array("rc", $steps) || in_array("an", $steps))
 {
-$args = [
-	"-bam", $final_bam,
-	"-out", $qc_rna,
-	"-ref", genome_fasta($sys['build'])
-];
-if (ngsbits_build($sys['build']) != "non_human")
-{
-	$args[] = 	"-housekeeping_genes ".repository_basedir()."/data/gene_lists/housekeeping_genes_".ngsbits_build($sys['build']).".bed";
-}
-if (isset($target_file) && $target_file != "") 
-{
-	$args[] = "-roi {$target_file}";
-}
-if (file_exists($splicing_gene))
-{
-	$args[] = "-splicing ".$splicing_gene;
-}
-if (file_exists($expr))
-{
-	$args[] = "-expression ".$expr;
-}
-	//run RnaQC
-	$parser->exec(get_path("ngs-bits")."RnaQC", implode(" ", $args));
+	$in_files = array();
+	$args = [
+		"-bam", $final_bam,
+		"-out", $qc_rna,
+		"-ref", genome_fasta($sys['build'])
+	];
+	$in_files[] = $out_folder;
+	$in_files[] = genome_fasta($sys['build']);
+	if (ngsbits_build($sys['build']) != "non_human")
+	{
+		$args[] = 	"-housekeeping_genes ".repository_basedir()."/data/gene_lists/housekeeping_genes_".ngsbits_build($sys['build']).".bed";
+		$in_files[] = repository_basedir()."/data/gene_lists/housekeeping_genes_".ngsbits_build($sys['build']).".bed";
+	}
+	if (isset($target_file) && $target_file != "") 
+	{
+		$args[] = "-roi {$target_file}";
+		$in_files[] = $target_file;
+	}
+	if (file_exists($splicing_gene))
+	{
+		$args[] = "-splicing ".$splicing_gene;
+	}
+	if (file_exists($expr))
+	{
+		$args[] = "-expression ".$expr;
+	}
+		//run RnaQC
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "RnaQC", implode(" ", $args), $in_files);
 }
 
 //save gene expression plots
@@ -428,7 +446,7 @@ if (in_array("plt", $steps))
 	$cohort_strategy = "RNA_COHORT_GERMLINE";
 	$ps_info = get_processed_sample_info($db, $name);
 	if ($ps_info['is_tumor']) $cohort_strategy = "RNA_COHORT_SOMATIC";
-	$parser->exec(get_path("ngs-bits") . "NGSDExtractRNACohort", "-genes {$all_gene_file} -ps {$name} -sample_expression {$expr} -cohort_strategy {$cohort_strategy} -out {$expr_cohort}", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDExtractRNACohort", "-genes {$all_gene_file} -ps {$name} -sample_expression {$expr} -cohort_strategy {$cohort_strategy} -out {$expr_cohort}", [$out_folder]);
 
 	//create cohort/expr file without comments
 	$tmp_cohort = $parser->tempFile(".tsv", "cohort_");
@@ -491,7 +509,7 @@ if (in_array("db", $steps))
 	//import QC data
 	$qc_file_list = array($qc_fastq, $qc_map);
 	if (file_exists($qc_rna)) $qc_file_list[] = $qc_rna;
-	$parser->exec("{$ngsbits}/NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_file_list)." -force");
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_file_list)." -force", [$out_folder]);
 
 	//import expression data
 	$args = [
@@ -500,8 +518,8 @@ if (in_array("db", $steps))
 	];
 	if ($build=="GRCh38")
 	{
-		if (file_exists($expr)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode genes -expression {$expr} ".implode(" ", $args));
-		if (file_exists($expr_exon)) $parser->exec(get_path("ngs-bits")."NGSDImportExpressionData", "-mode exons -expression {$expr_exon} ".implode(" ", $args));
+		if (file_exists($expr)) $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDImportExpressionData", "-mode genes -expression {$expr} ".implode(" ", $args), [$out_folder]);
+		if (file_exists($expr_exon)) $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDImportExpressionData", "-mode exons -expression {$expr_exon} ".implode(" ", $args), [$out_folder]);
 	}	
 }
 

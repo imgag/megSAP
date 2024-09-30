@@ -49,7 +49,6 @@ function vcf_lines($filename)
 
 //init
 $db = DB::getInstance("NGSD");
-$ngsbits = get_path("ngs-bits");
 $info = get_processed_sample_info($db, $ps);
 
 //roi
@@ -168,7 +167,7 @@ print "##{$n_new_var} variant found that are not in the germline VCF.\n";
 
 //filter VCF for variant quality
 $filtered_vcf = $parser->tempFile("_filtered.vcf");
-$parser->exec("{$ngsbits}VcfFilter", "-qual $min_var_qual -sample 'DP >= $min_var_depth' -info 'MQM >= $min_var_mapq' -in $ann_vcf -out $filtered_vcf");
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfFilter", "-qual $min_var_qual -sample 'DP >= $min_var_depth' -info 'MQM >= $min_var_mapq' -in $ann_vcf -out $filtered_vcf -ref ".genome_fasta("GRCh38"), [$ann_vcf, genome_fasta("GRCh38")]);
 
 //convert to GSvar
 $gsvar = $parser->tempFile(".GSvar");
@@ -185,7 +184,7 @@ $filters = [
 $filter_file = $parser->tempFile("_filters.txt");
 file_put_contents($filter_file, implode("\n", $filters));
 
-$parser->exec("{$ngsbits}VariantFilterAnnotations", "-filters {$filter_file} -in {$gsvar} -out {$gsvar_output}");
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantFilterAnnotations", "-filters {$filter_file} -in {$gsvar} -out {$gsvar_output}", [], [$gsvar_output]);
 print "##".vcf_lines($gsvar_output)." variant remain after frequency filter (AF={$max_af}, NGSD={$max_ngsd})\n";
 
 //find variants in NGSD

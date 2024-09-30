@@ -36,19 +36,28 @@ $ps_name3 = basename2($out);
 //extract data from 'in1'
 print "Extracting data from 'in1'.\n";
 $roi_sub = $parser->tempFile(".bed");
-exec2(get_path("ngs-bits")."BedSubtract -in {$roi} -in2 {$regs_file} -out {$roi_sub}");
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSubtract", "-in {$roi} -in2 {$regs_file} -out {$roi_sub}", [$roi]);
+
+$sam_in1 = $parser->tempFile(".sam");
+$parser->execSingularity("samtools", get_path("container_samtools"), "samtools view", "-T {$genome} -h -L {$roi_sub} -M {$in1} -o {$sam_in1}", [$genome, $in1]);
+$sam_in1_name3 = $parser->tempFile("_in1_name3.sam");
+exec2("sed \"s/{$ps_name1}/{$ps_name3}/g\" {$sam_in1} | sed \"s/{$s_name1}/{$ps_name3}/g\" > {$sam_in1_name3}");
 $bam_in1 = $parser->tempFile(".bam");
-exec2(get_path("samtools")." view -T {$genome} -h -L {$roi_sub} -M {$in1} | sed \"s/{$ps_name1}/{$ps_name3}/g\" | sed \"s/{$s_name1}/{$ps_name3}/g\" | ".get_path("samtools")." view -T {$genome} -Sb > {$bam_in1}");
+$parser->execSingularity("samtools", get_path("container_samtools"), "samtools view", "-T {$genome} -Sb -o {$bam_in1} {$sam_in1_name3}", [$genome]);
 
 //extract data from 'in2'
 print "Extracting data from 'in2'.\n";
+$sam_in2 = $parser->tempFile(".sam");
+$parser->execSingularity("samtools", get_path("container_samtools"), "samtools view", "-T {$genome} -h -L {$regs_file} -M {$in2} -o {$sam_in2}", [$genome, $in2]);
+$sam_in2_name3 = $parser->tempFile("_in1_name3.sam");
+exec2("sed \"s/{$ps_name2}/{$ps_name3}/g\" {$sam_in2} > {$sam_in2_name3}");
 $bam_in2 = $parser->tempFile(".bam");
-exec2(get_path("samtools")." view -T {$genome} -h -L {$regs_file} -M  {$in2} | sed \"s/{$ps_name2}/{$ps_name3}/g\" | ".get_path("samtools")." view -T {$genome} -Sb > {$bam_in2}");
+$parser->execSingularity("samtools", get_path("container_samtools"), "samtools view", "-T {$genome} -Sb -o {$bam_in2} {$sam_in2_name3}", [$genome]);
 
 //merge bam files
 print "Merging data.\n";
 $bam_merge = $parser->tempFile(".bam");
-exec2(get_path("samtools")." merge -f {$bam_merge} {$bam_in1} {$bam_in2}");
+$parser->execSingularity("samtools", get_path("container_samtools"), "samtools merge", "-f {$bam_merge} {$bam_in1} {$bam_in2}");
 
 //sort and index output
 print "Sorting and indexing 'out'.\n";

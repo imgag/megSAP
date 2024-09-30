@@ -295,7 +295,7 @@ if (!file_exists($sv_file))
 else
 {
     // filter SV file
-    list($stdout, $stderr, $return_code) = $parser->exec(get_path("ngs-bits")."SvFilterAnnotations", "-in $sv_file -out $sv_temp_file -filters $sv_filter", true, false, true);
+    list($stdout, $stderr, $return_code) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SvFilterAnnotations", "-in $sv_file -out $sv_temp_file -filters $sv_filter", [$sv_file, $sv_filter], [], 1, false, true, false, true);
 
     // abort if filter fails
     if($return_code != 0)

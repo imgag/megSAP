@@ -204,7 +204,6 @@ function get_sample_data_from_db(&$db_conn, $run_name)
 //init
 if (!isset($out)) $out = "Makefile";
 $db_conn = DB::getInstance($db);
-$ngsbits = get_path("ngs-bits");
 if($test) $repo_folder = "/mnt/storage2/megSAP/pipeline"; //fixed absolute path to make the tests work for all users
 else $repo_folder = repository_basedir(); //use repositories tool in production
 
@@ -273,7 +272,7 @@ if (! $no_genlab)
 		$args = [];
 		$args[] = "-ps {$sample}";
 		if ($db=="NGSD_TEST") $args[] = "-test";
-		$parser->exec("{$ngsbits}/NGSDImportGenlab", implode(" ", $args), true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDImportGenlab", implode(" ", $args));
 	}
 }
 

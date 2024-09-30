@@ -110,7 +110,7 @@ $junctions = implode(" ", $junctions_arr);
 
 //get transcript (cDNA) sequence
 $pipeline = [
-	[get_path("samtools"), "faidx $reference $transcript_id"],
+	["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools", "faidx $reference $transcript_id", [$reference], [], 1, true)],
 	["tail", "-n+2"],
 	["tr", "-d '\n'"]
 ];
@@ -234,7 +234,7 @@ for ($i = 0; $i < $n; ++ $i)
 	$blast_hits["$i"] = [ "left" => [] , "right" => [] ];
 }
 
-list($stdout, ) = $parser->exec("blastn", "-task blastn-short -db /mnt/storage3/users/ahmattj1/GRCh37_cDNA_blast -query {$primers_fasta} -outfmt 6 -evalue 0.1", true);
+list($stdout, ) = $parser->execSingularity("blastn", get_path("container_blastn"), "blastn", "-task blastn-short -db /mnt/storage3/users/ahmattj1/GRCh37_cDNA_blast -query {$primers_fasta} -outfmt 6 -evalue 0.1", ["/mnt/storage3/users/ahmattj1/"]);
 foreach ($stdout as $line)
 {
 	$fields = array_combine([ "query", "subject", "identity", "aln_length", "mismatches", "gaps", "query_start", "query_end", "subject_start", "subject_end", "evalue", "bitscore"],
@@ -256,7 +256,8 @@ $star_out = $parser->tempFile(".sam");
 //$star_out = "test.sam";
 $STAR_tmp_folder = $parser->tempFolder();
 $genome_dir = "/mnt/storage2/megSAP/data/genomes/STAR/{$build}";
-$parser->exec(get_path("STAR"), "--genomeLoad LoadAndKeep --genomeDir {$genome_dir} --outFileNamePrefix {$STAR_tmp_folder}/ --readFilesIn {$primers_fasta} --outSAMtype SAM --outStd SAM > {$star_out}", true);
+$parser->execSingularity("STAR", get_path("container_STAR"), "STAR", "--genomeLoad LoadAndKeep --genomeDir {$genome_dir} --outFileNamePrefix {$STAR_tmp_folder}/ --readFilesIn {$primers_fasta} --outSAMtype SAM --outStd SAM > {$star_out}", [$genome_dir]);
+/* $parser->exec(get_path("STAR"), "--genomeLoad LoadAndKeep --genomeDir {$genome_dir} --outFileNamePrefix {$STAR_tmp_folder}/ --readFilesIn {$primers_fasta} --outSAMtype SAM --outStd SAM > {$star_out}", true); */
 //$parser->log("Primers SAM:", file($bam));
 
 //create output BAM if requested

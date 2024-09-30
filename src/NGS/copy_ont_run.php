@@ -130,11 +130,11 @@ if (count($bam_files) !== 0)
 {
 	$bam_random_file = $bam_files[array_rand($bam_files, 1)];
 
-	$ret = $parser->exec(get_path("samtools"), "view --count --exclude-flags 0x900 {$bam_random_file}");
+	$ret = $parser->execSingularity("samtools", get_path("container_samtools"), "samtools view", "--count --exclude-flags 0x900 {$bam_random_file}", [$run_dir]);
 	$num_records = intval($ret[0][0]);
-	$ret = $parser->exec(get_path("samtools"), "view --count --tag ML {$bam_random_file}");
+	$ret = $parser->execSingularity("samtools", get_path("container_samtools"), "samtools view", "--count --tag ML {$bam_random_file}", [$run_dir]);
 	$num_base_mods = intval($ret[0][0]);
-	$ret = $parser->exec(get_path("samtools"), "view --count --require-flags 0x4 {$bam_random_file}");
+	$ret = $parser->execSingularity("samtools", get_path("container_samtools"), "samtools view", "--count --require-flags 0x4 {$bam_random_file}", [$run_dir]);
 	$num_unaligned = intval($ret[0][0]);
 
 	$modified_bases = $num_records == $num_base_mods;
@@ -180,7 +180,7 @@ if ($db!="NGSD_TEST")
 	trigger_error("Importing information from GenLab...", E_USER_NOTICE);
 	$args = [];
 	$args[] = "-ps {$sample}";
-	$parser->exec(get_path("ngs-bits")."/NGSDImportGenlab", implode(" ", $args), true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDImportGenlab", implode(" ", $args));
 }
 
 
@@ -216,14 +216,14 @@ if (($bam_available && $prefer_bam) || $bam)
 	{
 		$tmp_for_sorting = $parser->tempFile();
 		//merge presorted files
-		$pipeline[] = [get_path("samtools"), "merge --reference {$genome} --threads {$threads} -b - -o {$out_bam}"]; 
+		$pipeline[] = ["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools merge", "--reference {$genome} --threads {$threads} -b - -o {$out_bam}", [], [$out_dir], 1, true)];
 		$parser->execPipeline($pipeline, "merge aligned BAM files");
 		$parser->indexBam($out_bam, $threads);
 
 	}
 	else
 	{
-		$pipeline[] = [get_path("samtools"), "cat --threads {$threads} -o {$out_bam} -b -"]; //no reference required
+		$pipeline[] = ["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [], [$out_dir], 1, true)]; //no reference required
 		$parser->execPipeline($pipeline, "merge unaligned BAM files");
 	}
 }

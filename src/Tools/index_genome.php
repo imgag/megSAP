@@ -24,7 +24,7 @@ if ($mask)
 
 if (get_path("use_bwa1"))
 {
-	exec2(get_path("bwa")." index -a bwtsw {$in}");
+	$parser->execSingularity("bwa", get_path("container_bwa"), "index", "-a bwtsw {$in}", [$in]);
 }
 else
 {

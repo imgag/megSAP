@@ -51,7 +51,6 @@ extract($parser->parse($argv));
 //init
 $repository_basedir = repository_basedir();
 $data_folder = get_path("data_folder");
-$ngsbits = get_path("ngs-bits");
 $hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2024_2.bed";
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
 $vcf_all = "{$out_folder}/all.vcf.gz";
@@ -385,7 +384,7 @@ if (in_array("vc", $steps))
 
 	//Sort variant list (neccessary for tabix)
 	$vcf_sorted = $parser->tempFile("_unsorted.vcf");
-	$parser->exec("{$ngsbits}VcfStreamSort","-in $vcf -out $vcf_sorted",true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfStreamSort", "-in $vcf -out $vcf_sorted");
 	
 	//zip variant list
 	$vcf_zipped = "{$out_folder}{$prefix}_var.vcf.gz";
@@ -640,30 +639,30 @@ if (in_array("cn", $steps))
 	
 	//(3.2) annotate merged file
 	//copy-number polymorphisms
-	$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnv_multi}", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnv_multi}", [$out_folder, "{$repository_basedir}/data/misc/af_genomes_imgag.bed"]);
 	
 	//knowns pathogenic CNVs
-	$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$cnv_multi}", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$cnv_multi}", [$out_folder, "{$repository_basedir}/data/misc/cn_pathogenic.bed"]);
 
 	//annotate additional gene info
-	$parser->exec("{$ngsbits}CnvGeneAnnotation", "-in {$cnv_multi} -add_simple_gene_names -out {$cnv_multi}", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "CnvGeneAnnotation", "-in {$cnv_multi} -add_simple_gene_names -out {$cnv_multi}", [$out_folder]);
 	
 	//dosage sensitive disease genes
-	$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
 	
 	//pathogenic ClinVar CNVs
-	$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed"]);
 	
 	//HGMD CNVs
 	if (file_exists($hgmd_file)) //optional because of license
 	{
-		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnv_multi}", true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnv_multi}", [$out_folder, $hgmd_file]);
 	}
 	
 	//OMIM
 	if (file_exists($omim_file)) //optional because of license
 	{
-		$parser->exec("{$ngsbits}BedAnnotateFromBed", "-in {$cnv_multi} -in2 $omim_file -no_duplicates -url_decode -out {$cnv_multi}", true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateFromBed", "-in {$cnv_multi} -in2 $omim_file -no_duplicates -url_decode -out {$cnv_multi}", [$out_folder, $omim_file]);
 	}
 }
 
@@ -701,7 +700,7 @@ if (in_array("sv", $steps))
 		}
 		
 		//create BEDPE files
-		$parser->exec("{$ngsbits}VcfToBedpe", "-in $sv_manta_file -out $bedpe_out", true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfToBedpe", "-in $sv_manta_file -out $bedpe_out", [$out_folder]);
 
 		// correct filetype and add sample headers
 		$bedpe_table = Matrix::fromTSV($bedpe_out);
@@ -725,7 +724,7 @@ if (in_array("sv", $steps))
 	//add gene info annotation and NGSD counts
 	if (db_is_enabled("NGSD"))
 	{
-		$parser->exec("{$ngsbits}BedpeGeneAnnotation", "-in $bedpe_out -out $bedpe_out -add_simple_gene_names", true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeGeneAnnotation", "-in $bedpe_out -out $bedpe_out -add_simple_gene_names", [$out_folder]);
 	}
 
 	//add NGSD counts from flat file
@@ -756,15 +755,15 @@ if (in_array("sv", $steps))
 		}
 		
 		//perform annotation
-		$parser->exec("{$ngsbits}BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", [$out_folder, $ngsd_annotation_folder]);
 		$sys_specific_density_file = $ngsd_annotation_folder."sv_breakpoint_density_".$sys["name_short"].".igv";
 		if (file_exists($sys_specific_density_file))
 		{
-			$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv -density_sys {$sys_specific_density_file}", true);
+			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv -density_sys {$sys_specific_density_file}", [$out_folder, $ngsd_annotation_folder]);
 		}
 		else
 		{
-			$parser->exec("{$ngsbits}BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", true);
+			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeAnnotateBreakpointDensity", "-in {$bedpe_out} -out {$bedpe_out} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", [$out_folder, $ngsd_annotation_folder]);
 		}
 
 		// check if files changed during annotation
@@ -787,13 +786,13 @@ if (in_array("sv", $steps))
 	$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; 
 	if(file_exists($omim_file))//OMIM annotation (optional because of license)
 	{
-		$parser->exec("{$ngsbits}BedpeAnnotateFromBed", "-in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM", true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeAnnotateFromBed", "-in $bedpe_out -out $bedpe_out -bed $omim_file -url_decode -replace_underscore -col_name OMIM", [$out_folder, $omim_file]);
 	}
 
 	//add CNV overlap annotation
 	if (file_exists($cnv_multi))
 	{
-		$parser->exec("{$ngsbits}BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnv_multi", true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeAnnotateCnvOverlap", "-in $bedpe_out -out $bedpe_out -cnv $cnv_multi", [$out_folder]);
 	}
 
 	//update sample entry 

@@ -19,7 +19,6 @@ extract($parser->parse($argv));
 
 // init
 $write_sample_output = isset($out2) && ($out2 != "");
-$ngs_bits_path = get_path("ngs-bits");
 
 //check excluded disease group
 $valid_disease_groups = array("n/a", "Neoplasms", "Diseases of the blood or blood-forming organs", "Diseases of the immune system", "Endocrine, nutritional or metabolic diseases", "Mental, behavioural or neurodevelopmental disorders", 
@@ -44,13 +43,13 @@ if ($custom_sample_table == "")
 	$args[] = "-add_path SAMPLE_FOLDER";
 	if ($processing_system != "") $args[] = "-system {$processing_system}";
 	$args[] = "-out {$export_table}";
-	$parser->exec($ngs_bits_path."NGSDExportSamples", implode(" ", $args));
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDExportSamples", implode(" ", $args));
 	//exclude specific disease group
 
 	if ($exclude_disease_group != "") 
 	{
 		$tmp_table = $parser->tempFile("_diag_wgs.tsv");
-		$pipeline[] = $parser->exec($ngs_bits_path."TsvFilter", "-v -filter 'disease_group is {$exclude_disease_group}' -in {$export_table} -out {$tmp_table}");
+		$pipeline[] = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvFilter", "-v -filter 'disease_group is {$exclude_disease_group}' -in {$export_table} -out {$tmp_table}");
 		$export_table = $tmp_table;
 	}
 	
@@ -96,8 +95,11 @@ for ($row_idx=0; $row_idx < $sample_sheet->rows(); $row_idx++)
 			continue;
 		}
 	}
-
-	list($stdout, $stderr, $exitcode) = $parser->exec($ngs_bits_path."VcfCalculatePRS", "-in $sample_vcf -bam $sample_bam -out $temp_out -prs ".implode(" ", $in));
+	$in_files = array();
+	$in_files[] = $sample_vcf;
+	$in_files[] = $sample_bam;
+	$in_files = array_merge($in_files, $in);
+	list($stdout, $stderr, $exitcode) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfCalculatePRS", "-in $sample_vcf -bam $sample_bam -out $temp_out -prs ".implode(" ", $in), $in_files);
 
 	foreach($stdout as $line)
 	{

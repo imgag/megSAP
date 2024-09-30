@@ -124,11 +124,11 @@ $sv_inv = "{$manta_folder}/results/variants/{$outname}SV_inv.vcf";
 
 $in_files = array();
 $out_files = array();
-$in_files[] = get_path("samtools");
+$in_files[] = $genome;
 $out_files[] = $manta_folder;
 
 $vc_manta_command = "python2 /opt/manta/libexec/convertInversion.py";
-$vc_manta_parameters = get_path("samtools")." ".$genome." {$sv} > {$sv_inv}";
+$vc_manta_parameters = "/usr/bin/samtools ".$genome." {$sv} > {$sv_inv}";
 $parser->execSingularity("manta", get_path("container_manta"), $vc_manta_command, $vc_manta_parameters, $in_files, $out_files);
 
 //remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid

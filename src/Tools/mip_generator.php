@@ -147,13 +147,13 @@ for($i=0;$i<$cov->rows();++$i)
 // 4. missing regions
 $p_miss = $out_folder."/".$project_name."_target_missing.bed";
 $c_miss = 0;
-$parser->exec(get_path("ngs-bits")."/BedSubtract","-in $target -in2 $p_cov -out $p_miss", true);
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSubtract", "-in $target -in2 $p_cov -out $p_miss", [$target, $p_cov], [$p_miss]);
 $miss = Matrix::fromTSV($p_miss);
 for($i=0;$i<$miss->rows();++$i)
 {
 	$c_miss += $miss->getRow($i)[2]-$miss->getRow($i)[1];
 }
-$parser->exec(get_path("ngs-bits")."/BedAnnotateGenes","-in $p_miss -out $p_miss", true);
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateGenes", "-in $p_miss -out $p_miss", [], [$p_miss]);
 
 $parser->log("Pre-Filter used for MIPs: ".($no_svr?"none ":"Minimum 'svr=$min_svr', ").". Used mode '$mode'");
 $parser->log("Total number of MIPs:\t".($mips_new->rows()).".");

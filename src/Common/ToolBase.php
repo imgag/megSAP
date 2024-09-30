@@ -859,22 +859,15 @@ class ToolBase
 				$filepath = dirname(realpath($file));
 			}
 
-			if($filepath === "." || $filepath === $cwd || strpos($filepath, $cwd . DIRECTORY_SEPARATOR) === 0) continue;
+			if($filepath === "." || $filepath === "" || $filepath === $cwd || strpos($filepath, $cwd . DIRECTORY_SEPARATOR) === 0) continue;
 			if(!in_array($filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
 		}
 
 		foreach($out_files as $file)
 		{
-/* 			if (is_dir($file)) 
-			{
-				$filepath = dirname($file . DIRECTORY_SEPARATOR . 'dummy.txt');
-			} 
-			else 
-			{ */
 			$filepath = realpath(dirname($file));
-/* 			} */
 
-			if($filepath === "." || $filepath === $cwd || strpos($filepath, $cwd . DIRECTORY_SEPARATOR) === 0) continue;
+			if($filepath === "." || $filepath === "" || $filepath === $cwd || strpos($filepath, $cwd . DIRECTORY_SEPARATOR) === 0) continue;
 			if(!in_array($filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
 		}
 
@@ -885,14 +878,20 @@ class ToolBase
 		}
 
 		//check bind paths
-		foreach($bind_paths as $path)
+		$bind_paths_command = "";
+		if(!empty($bind_paths))
 		{
-			//remove optional path option
-			$path = explode(":", $path)[0];
-			if(!file_exists($path))
+			foreach($bind_paths as $path)
 			{
-				trigger_error("Bind path '{$path}' not exists!", E_USER_ERROR);
+				//remove optional path option
+				$path = explode(":", $path)[0];
+				if(!file_exists($path))
+				{
+					trigger_error("Bind path '{$path}' not exists!", E_USER_ERROR);
+				}
 			}
+
+			$bind_paths_command = " -B ".implode(",", $bind_paths);
 		}
 
 		//compose Singularity command
@@ -908,9 +907,6 @@ class ToolBase
 			$container_path = "instance://$instance_name";
 		}
 
-		//check if bind_paths is empty
-		$bind_paths_command = "";
-		if(!empty($bind_paths))$bind_paths_command = " -B ".implode(",", $bind_paths); 
 		$singularity_command = $thread_command."apptainer exec{$bind_paths_command} {$container_path} {$command_and_parameters}";
 		
 		//if command only option is true, only the apptainer command is being return, without execution
@@ -1318,13 +1314,13 @@ class ToolBase
 	{	
 		$threads -= 1; //number of additional threads, that's why -1
 		$tmp_for_sorting = $this->tempFile();
-		$this->exec(get_path("samtools")." sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G -o $out $in", true);
+		$this->execSingularity("samtools", get_path("container_samtools"), "samtools sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G -o $out $in", [$in], [$out]);
 	}
 	
 	///Index BAM file
 	function indexBam($bam, $threads)
 	{
-		$this->exec(get_path("samtools")." index", "-@ {$threads} $bam", true);
+		$this->execSingularity("samtools", get_path("container_samtools"), "samtools index", "-@ {$threads} $bam", [$bam]);
 	}
 	
 	///Move file with error checks

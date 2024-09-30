@@ -163,6 +163,7 @@ if(file_exists($hgmd_file))
 }
 
 //add CADD score annotation
+fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz")."\tCADD\tCADD=SNV\t\n");
 $in_files[] = annotation_file_path("/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz");
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
 $in_files[] = annotation_file_path("/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz");
@@ -317,7 +318,7 @@ if (!$test && db_is_enabled("NGSD"))
 	{
 		$tmp_sr_low_mappability = $parser->tempFile("_sr_low_mappability.vcf");
 		$mapq0_regions = repository_basedir()."data/misc/low_mappability_region/wgs_mapq_eq0.bed";
-		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$tmp_low_conf_ann} -mark sr_low_mappability -inv -reg {$mapq0_regions} -out {$tmp_sr_low_mappability}", true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantFilterRegions", "-in {$tmp_low_conf_ann} -mark sr_low_mappability -inv -reg {$mapq0_regions} -out {$tmp_sr_low_mappability}", [$mapq0_regions]);
 
 		//replace input file 
 		$parser->moveFile($tmp_sr_low_mappability,$tmp_low_conf_ann);

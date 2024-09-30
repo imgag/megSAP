@@ -21,7 +21,7 @@ function get_arm_counts($bam, $roi, $fastq_r1, $arm_len)
 	
 	//extract reads IDs
 	$read_ids = array();
-	list($tmp) = $parser->exec(get_path("samtools")." view", "-L $roi -M $bam", true);
+	list($tmp) = $parser->execSingularity("samtools", get_path("container_samtools"), "samtools view", "-L $roi -M $bam", [$bam]);
 	foreach($tmp as $line)
 	{
 		$parts = explode(":", $line);
@@ -33,7 +33,7 @@ function get_arm_counts($bam, $roi, $fastq_r1, $arm_len)
 	
 	//extract reads with IDs
 	$fastq_out = $parser->tempFile(".txt");
-	list($read_data) = $parser->exec(get_path("ngs-bits")."FastqExtract", "-in {$fastq_r1} -ids {$ids_file} -out {$fastq_out}", true);
+	list($read_data) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "FastqExtract", "-in {$fastq_r1} -ids {$ids_file} -out {$fastq_out}", [$fastq_r1]);
 	$i=0;
 	$h = gzopen2($fastq_out, "r");
 	while(!feof($h))
@@ -82,16 +82,16 @@ $roi = $sys['target_file'];
 if (isset($add_bed))
 {
 	$tmp = $parser->tempFile(".bed");
-	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$roi} {$add_bed} -out {$tmp}", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAdd", "-in {$roi} {$add_bed} -out {$tmp}", [$roi, $add_bed]);
 	$roi = $tmp;
 }
 $tmp = $parser->tempFile(".bed");
-$parser->exec(get_path("ngs-bits")."BedExtend", "-in {$roi} -n 200 -out {$tmp}", true);
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedExtend", "-in {$roi} -n 200 -out {$tmp}", [$roi]);
 $roi = $tmp;
 
 //contruct off-target region
 $not_roi = $parser->tempFile(".bed");
-$parser->exec(get_path("ngs-bits")."BedSubtract", "-in {$data_folder}/enrichment/WGS_hg38.bed -in2 {$roi} -out {$not_roi}", true);
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSubtract", "-in {$data_folder}/enrichment/WGS_hg38.bed -in2 {$roi} -out {$not_roi}", ["{$data_folder}/enrichment/WGS_hg38.bed", $roi]);
 
 //determin shortest MIP extension arm length
 $arm_len = 999;

@@ -25,7 +25,7 @@ Or run the genome index script:
 ## performance comparison
 
 `bwa-mem2` is faster than the original `bwa` algorithm, but requires more memory. A performance comparison of `bwa` and `bwa-mem2` in the `megSAP` pipeline (Standard analysis with mapping step, but without InDel realignment) is shown below.     
-The NA12878 WGS sample was sequenced with the illumina TruSeq DNA PCR-Free kit and the NA12878 WES sample was sequences using the Agilent SureSelectXT Human All Exon V7 kit.
+The NA12878 WGS sample was sequenced with the illumina TruSeq DNA PCR-Free kit and the NA12878 WES sample was sequenced using the Agilent SureSelectXT Human All Exon V7 kit.
 
 | sample     | type | algorithm  | threads | runtime (hh:mm) | memory usage |
 |------------|------|------------|--------:|----------------:|-------------:|

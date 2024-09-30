@@ -258,11 +258,7 @@ if($use_off_target)
 	$cov_paths_t_off = create_file_with_paths($cov_folder_t_off,realpath($t_cov_off), $sample_tids);
 	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvMerge", "-in $cov_paths_n_off -out {$merged_cov_normal_off} -simple -cols chr,start,end", [$cov_paths_n_off],);
 	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvMerge", "-in $cov_paths_t_off -out {$merged_cov_tumor_off} -simple -cols chr,start,end", [$cov_paths_t_off]);
-/* 	$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_n_off -out {$merged_cov_normal_off} -simple -cols chr,start,end ",true, $sample_nids);
-	$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_t_off -out {$merged_cov_tumor_off} -simple -cols chr,start,end ",true, $sample_tids); */
 }
-
-
 
 /*******************
  * EXECUTE CLINCNV *
@@ -300,7 +296,7 @@ $args = [
 "--numberOfThreads {$threads}",
 "--hg38",
 "--noPlot",
-/* "--folderWithScript ".dirname(get_path("clincnv")) */
+
 ];
 
 $in_files[] = $cov_pairs;

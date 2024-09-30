@@ -22,9 +22,8 @@ extract($parser->parse($argv));
 function get_bases($filename)
 {
 	global $parser;
-	global $ngsbits;
 	
-	list($stdout) = $parser->exec("{$ngsbits}BedInfo", "-in $filename", true);
+	list($stdout) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedInfo", "-in $filename", [$filename]);
 	$hits = array_containing($stdout, "Bases ");
 	$parts = explode(":", $hits[0]);
 	return trim($parts[1]);

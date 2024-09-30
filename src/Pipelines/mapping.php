@@ -57,7 +57,7 @@ $basename = $out_folder."/".$out_name;
 $files = array_merge($in_for, $in_rev);
 foreach($files as $file)
 {
-	list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."FastqFormat", "-in $file", true);
+	list($stdout, $stderr) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "FastqFormat", "-in $file", [$file]);
 	if (!contains($stdout[2], "Sanger"))
 	{
 		trigger_error("Input file '$file' is not in Sanger/Illumina 1.8 format!", E_USER_ERROR);
@@ -84,6 +84,11 @@ if($sys['type']=="Panel MIPs")
 
 // barcode handling
 $barcode_correction = false;
+
+// input files for ngs-bits container
+$in_files = $in_for;
+$in_files = array_merge($in_files, $in_rev);
+
 if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT-UDI-UMI"]))
 {
 	// deactivate DRAGEN
@@ -94,17 +99,20 @@ if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT-UDI-UMI"]))
 	}	
 	if ($in_index === false || empty($in_index))
 	{
+
+		$in_files[] = $stafile1;
 		trigger_error("Processing system ".$sys['name_short']." has UMI type ".$sys['umi_type'].", but no index files are specified => UMI-based de-duplication skipped!", E_USER_WARNING);
-		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads-2, 1, 12), true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads-2, 1, 12), $in_files);
 	}
 	else
 	{
 		// add barcodes to header
 		$merged1_bc = $parser->tempFile("_bc1.fastq.gz");
 		$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
-		$parser->exec(get_path("ngs-bits")."FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $in_index)." -out1 $merged1_bc -out2 $merged2_bc", true);
+		$in_files = array_merge($in_files, $in_index);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $in_index)." -out1 $merged1_bc -out2 $merged2_bc", $in_files);
 		// run SeqPurge
-		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 $merged1_bc -in2 $merged2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 12), true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SeqPurge", "-in1 $merged1_bc -in2 $merged2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 12), [$stafile1]);
 
 		// trim 1 base from end of R1 and 1 base from start of R2 (only HaloPlex HS)
 		if ($sys['umi_type'] === "HaloPlex HS")
@@ -113,8 +121,8 @@ if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT-UDI-UMI"]))
 			$trimmed_hs1 = $parser->tempFile("_merged_hs1.fastq.gz");
 			$trimmed_hs2 = $parser->tempFile("_merged_hs2.fastq.gz");
 
-			$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed1 -out $trimmed_hs1 -end 1",true);
-			$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed_hs2 -start 1",true);
+			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "FastqTrim", "-in $trimmed1 -out $trimmed_hs1 -end 1");
+			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "FastqTrim", "-in $trimmed2 -out $trimmed_hs2 -start 1");
 			
 
 			$parser->deleteTempFile($trimmed1);
@@ -138,7 +146,8 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq",
 	//handle UMI protocols where the UMI is placed at the head of read 1 and/or read 2
 
 	//remove sequencing adapter
-	$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads-2, 1, 12), true);
+	$in_files[] = $stafile1;
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads-2, 1, 12), $in_files);
 
 	//set protocol specific UMI lengths
 	switch ($sys['umi_type'])
@@ -168,7 +177,7 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq",
 
 	$trimmed1_bc = $parser->tempFile("_trimmed1_bc.fastq.gz");
 	$trimmed2_bc = $parser->tempFile("_trimmed2_bc.fastq.gz");
-	$parser->exec(get_path("ngs-bits")."FastqExtractUMI", "-in1 $trimmed1 -in2 $trimmed2 -out1 $trimmed1_bc -out2 $trimmed2_bc -cut1 $cut1 -cut2 $cut2", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "FastqExtractUMI", "-in1 $trimmed1 -in2 $trimmed2 -out1 $trimmed1_bc -out2 $trimmed2_bc -cut1 $cut1 -cut2 $cut2");
 
 	$parser->deleteTempFile($trimmed1);
 	$parser->deleteTempFile($trimmed2);
@@ -180,8 +189,8 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq",
 	{
 		$trimmed1_bc = $parser->tempFile("_trimmed1_bc.fastq.gz");
 		$trimmed2_bc = $parser->tempFile("_trimmed2_bc.fastq.gz");
-		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed1 -out $trimmed1_bc -start 2", true);
-		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed2_bc -start 2", true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "FastqTrim", "-in $trimmed1 -out $trimmed1_bc -start 2");
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "FastqTrim", "-in $trimmed2 -out $trimmed2_bc -start 2");
 
 		$parser->deleteTempFile($trimmed1);
 		$parser->deleteTempFile($trimmed2);
@@ -192,7 +201,7 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq",
 	if ($sys['umi_type'] === "QIAseq")
 	{
 		$trimmed2_trim = $parser->tempFile("_trimmed2_trim.fastq.gz");
-		$parser->exec(get_path("ngs-bits")."FastqTrim", "-in $trimmed2 -out $trimmed2_trim -start 11", true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "FastqTrim", "-in $trimmed2 -out $trimmed2_trim -start 11");
 		$parser->deleteTempFile($trimmed2);
 		$trimmed2 = $trimmed2_trim;
 	}
@@ -205,7 +214,8 @@ else //normal analysis without UMIs
 
 	if (!$no_trim)
 	{
-		$parser->exec(get_path("ngs-bits")."SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 12), true);
+		$in_files[] = $stafile1;
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 12), $in_files);
 	}
 	if ($use_dragen)
 	{
@@ -479,7 +489,7 @@ if($barcode_correction)
 	if($sys['umi_type']=="MIPs" || $filter_bam)
 	{
 		$tmp_bam_filtered = $parser->tempFile("_filtered.bam");
-		$parser->exec(get_path("ngs-bits")."BamFilter", "-in $bam_current -out $tmp_bam_filtered", true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BamFilter", "-in $bam_current -out $tmp_bam_filtered", [$bam_current]);
 
 		$tmp_bam_filtered_sorted = $parser->tempFile("_filtered_sorted.bam");
 		$parser->sortBam($tmp_bam_filtered, $tmp_bam_filtered_sorted, $threads);
@@ -493,7 +503,7 @@ if($barcode_correction)
 	if($min_mapq > 0)
 	{
 		$tmp_bam_filtered = $parser->tempFile("_filtered.bam");
-		$parser->exec(get_path("ngs-bits")."BamFilter", "-minMQ 20 -in $bam_current -out $tmp_bam_filtered", true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BamFilter", "-minMQ 20 -in $bam_current -out $tmp_bam_filtered", [$bam_current]);
 
 		$tmp_bam_filtered_sorted = $parser->tempFile("_filtered_sorted.bam");
 		$parser->sortBam($tmp_bam_filtered, $tmp_bam_filtered_sorted, $threads);
@@ -526,7 +536,7 @@ if($barcode_correction)
 if ($sys['type']=="Panel Haloplex")
 {
 	$tmp_bam = $parser->tempFile("_clean.bam");
-	$parser->exec(get_path("ngs-bits")."BamCleanHaloplex -min_match 30", "-in $bam_current -out $tmp_bam", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BamCleanHaloplex", "-min_match 30 -in $bam_current -out $tmp_bam", [$bam_current]);
 	$parser->indexBam($tmp_bam, $threads);
 	
 	$parser->deleteTempFile($bam_current);
@@ -537,7 +547,7 @@ if ($sys['type']=="Panel Haloplex")
 if($clip_overlap)
 {
 	$tmp_bam = $parser->tempFile("_clip_overlap_unsorted.bam");
-	$parser->exec(get_path("ngs-bits")."BamClipOverlap", "-in $bam_current -out $tmp_bam -overlap_mismatch_basen", true);
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BamClipOverlap", "-in $bam_current -out $tmp_bam -overlap_mismatch_basen", [$bam_current]);
 	$tmp_bam2 = $parser->tempFile("_clip_overlap_sorted.bam");
 	$parser->sortBam($tmp_bam, $tmp_bam2, $threads);
 	$parser->indexBam($tmp_bam2, $threads);
@@ -558,6 +568,12 @@ if($clip_overlap)
 
 //run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
+$in_files = [
+	$stafile2,
+	$bam_current,
+	genome_fasta($build)
+];
+
 $params = array("-in $bam_current", "-out $stafile2", "-ref ".genome_fasta($build), "-build ".ngsbits_build($build));
 if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
 {
@@ -566,6 +582,7 @@ if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallo
 else
 {
 	$params[] = "-roi ".$sys['target_file'];
+	$in_files[] = $sys['target_file'];
 }
 if ($build!="GRCh38")
 {
@@ -575,12 +592,14 @@ $somatic_custom_panel = get_path("data_folder") . "/enrichment/somatic_VirtualPa
 if ($somatic_custom_map && file_exists($somatic_custom_panel))
 {
 	$params[] = "-somatic_custom_bed $somatic_custom_panel";
+	$in_files[] = $somatic_custom_panel;
 }
 if (!file_exists($stafile1))
 {
 	$params[] = "-read_qc $stafile1";
+	$in_files[] = $stafile1;
 }
-$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "MappingQC", implode(" ", $params), $in_files);
 
 //create CRAM/BAM in output folder
 if ($bam_output)
