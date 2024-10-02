@@ -15,11 +15,19 @@ The processing system INI file described the wet-lab processing of the sample (a
 Notes for the [RNA analysis pipeline](rna_single_sample.md):
 
 * `target_file` - Target region is only used for mapping quality control.
-* `build` - Basename of the genome build. FASTA, STAR index and GTF annotation
-  have to be present.
+* `build` - Basename of the genome build. FASTA, STAR index and GTF annotation have to be present.
+
+## Examples
+
+Example processing system INI files are provided here:
+
+* WES: [Agilent SureSelectXT Human All Exon V7](ini_examples/ssHAEv7.ini)
+* WGS: [Illumina TruSeq DNA PCR-Free](ini_examples/TruSeqPCRfree.ini) (for WGS you can use this [generic WGS target region](ini_examples/WGS_hg38.bed) independent of the kit)
+* lrGS: [ONT Amplicon by Ligation ONT SQK-LSK114](ini_examples/PCR-SQK-LSK114.ini)
+
+**Note:** For WES and WGS you need to adapt the paths to the target region before using these examples!
+	
+	
+	
 
 [back to the start page](../README.md)
-
-
-
-

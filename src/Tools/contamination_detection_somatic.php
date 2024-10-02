@@ -67,7 +67,7 @@ while(!feof($handle))
 	if($gnomad_af > $max_gnomad) continue; //we want rare variants
 	
 	//get NGSD variant id
-	$var_id = $db->getValue("SELECT id FROM variant WHERE chr='{$chr}' AND start='{$start}' AND end='{$end}' AND ref='{$ref}' AND obs='{$obs}'", -1);
+	$var_id = get_variant_id($db, $chr, $start, $end, $ref, $obs);
 	if ($var_id==-1) continue;	
 	
 	//determine germline samples that contain the same variant
