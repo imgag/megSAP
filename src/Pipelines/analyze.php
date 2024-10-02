@@ -861,7 +861,7 @@ if (in_array("cn", $steps))
 		}
 
 		//annotate additional gene info
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "CnvGeneAnnotation", "-in {$cnvfile} -add_simple_gene_names -out {$cnvfile}", $folder);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "CnvGeneAnnotation", "-in {$cnvfile} -add_simple_gene_names -out {$cnvfile}", [$folder]);
 		// skip annotation if no connection to the NGSD is possible
 		if (db_is_enabled("NGSD"))
 		{
