@@ -81,6 +81,50 @@ class ToolBase
 		$this->log("Execution time of '".$this->name."': ".time_readable(microtime(true) - $this->start_time));
 	}
 	
+	public function createNgsBitsIni($build)
+	{
+		//settings for ngs-bits exists > do nothing
+		$ngsbits_settings = get_path("ngs-bits")."/settings.ini";
+		if (file_exists($ngsbits_settings))
+		{
+			trigger_error("ngs-bits settings file used: {$ngsbits_settings}", E_USER_NOTICE);
+			return;
+		}
+		
+		//pipeine settings file missing > create it
+		$pipeline_settings = repository_basedir()."/data/tools/ngsbits_settings.ini";
+		if (!file_exists($pipeline_settings) || (file_exists(repository_basedir()."/settings.ini") && filemtime($pipeline_settings)<filemtime(repository_basedir()."/settings.ini")))
+		{
+			trigger_error("ngs-bits settings file is missing/outdated and thus created from megSAP settings...", E_USER_NOTICE);
+			$output = [];
+			
+			//reference genome
+			$output[] = "reference_genome = ".genome_fasta($build);
+			
+			//NGSD credentials
+			$output[] = "ngsd_host = ".get_db('NGSD', 'db_host', '');
+			$output[] = "ngsd_port = 3306";
+			$output[] = "ngsd_name = ".get_db('NGSD', 'db_name', '');
+			$output[] = "ngsd_user = ".get_db('NGSD', 'db_user', '');
+			$output[] = "ngsd_pass = ".get_db('NGSD', 'db_pass', '');
+			
+			//project folders
+			$project_folder = get_path("project_folder", false);
+			$output[] = "projects_folder_diagnostic = ".(is_array($project_folder) ? $project_folder['diagnostic'] : $project_folder."/diagnostic/");
+			$output[] = "projects_folder_research = ".(is_array($project_folder) ? $project_folder['research'] : $project_folder."/research/");
+			$output[] = "projects_folder_test = ".(is_array($project_folder) ? $project_folder['test'] : $project_folder."/test/");
+			$output[] = "projects_folder_external = ".(is_array($project_folder) ? $project_folder['external'] : $project_folder."/external/");
+			
+			//data folder
+			$output[] = "data_folder = ".get_path("data_folder", false);
+			
+			$written = file_put_contents($pipeline_settings, implode("\n", $output));
+			if($written===false) trigger_error("Could not write ngs-bits settings file: $pipeline_settings", E_USER_ERROR);
+		}
+		
+		trigger_error("ngs-bits settings file used: {$pipeline_settings}", E_USER_NOTICE);
+	}
+	
 	/// Remove temporary folder
 	private function removeTempFolder($folder)
 	{

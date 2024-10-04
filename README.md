@@ -1,4 +1,4 @@
-# *megSAP* - a Medical Genetics Sequence Analysis Pipeline
+# *megSAP* - Medical Genetics Sequence Analysis Pipelines
 
 megSAP is a NGS data analysis pipeline for medical genetics, which is developed by the [Institute of Medical Genetics and Applied Genomics, University Hospital, Tübingen](http://www.uni-tuebingen.de/Klinische_Genetik/start.html) and several collaborators from academia and industry.
 
