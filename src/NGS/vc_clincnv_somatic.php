@@ -144,7 +144,7 @@ function create_file_with_paths($ref_cov_folder, $cov_path, $sample_ids)
 {
 	global $parser;
 	
-	//main coverage file PS name
+	//main coverage file PS name (.cov or .cov.gz)
 	$cov_ps = basename2($cov_path);
 	if (ends_with($cov_ps, ".cov")) $cov_ps = substr($cov_ps, 0, -4);
 	
