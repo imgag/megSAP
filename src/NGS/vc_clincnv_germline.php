@@ -619,7 +619,7 @@ if($tumor_only)
 		}
 		else
 		{
-			$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple",true, true);
+			$parser->exec(get_path("ngs-bits")."/TsvMerge" , "-in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple",true, true);
 			$use_off_target = true;
 		}
 	}

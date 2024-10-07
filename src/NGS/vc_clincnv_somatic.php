@@ -50,6 +50,65 @@ if(!isset($bed_off) || !isset($t_cov_off) || !isset($n_cov_off))
 	$use_off_target = false;
 }
 
+function merge_coverage_profiles($profiles_file, $out)
+{
+	//open output file handle
+	$ho = fopen($out, 'w');
+	if ($ho===false) trigger_error("Could not output file '$out' for writing!", E_USER_ERROR);
+	
+	//open in file handles
+	$hs = [];
+	foreach(file($profiles_file) as $filename)
+	{
+		$filename = trim($filename);
+		if ($filename=="") continue;
+		
+		$h = gzopen($filename, 'r');
+		if ($h===false) trigger_error("Could not open coverage profile '$filename' for reading!", E_USER_ERROR);
+		$hs[] = [$h, $filename];
+	}
+	
+	//write header
+	$line_out = "#chr\tstart\tend";
+	foreach($hs as list($h, $filename))
+	{
+		$line = nl_trim(gzgets($h));
+		$parts = explode("\t", $line);
+		if ($line[0]!="#" || count($parts)<4) trigger_error("Header line of '{$filename}' is invalid: {$line}", E_USER_ERROR);
+		
+		$line_out .= "\t".$parts[3];
+	}
+	fputs($ho, $line_out."\n");
+	
+	//write content lines
+	$i = 1;
+	while(true)
+	{
+		$line_out = "";
+		foreach($hs as list($h, $filename))
+		{
+			if (gzeof($h)) break(2);
+			
+			$line = nl_trim(gzgets($h));
+			$parts = explode("\t", $line);
+			if ($line[0]=="#" || count($parts)<4) trigger_error("Content line {$i} of '{$filename}' is invalid: {$line}", E_USER_ERROR);
+			
+			if ($line_out=="") $line_out = $parts[0]."\t".$parts[1]."\t".$parts[2];
+			$line_out .= "\t".$parts[3];
+		}
+		fputs($ho, $line_out."\n");
+		
+		++$i;
+	}
+	
+	//close streams
+	foreach($hs as list($h, $filename))
+	{
+		gzclose($h);
+	}
+	fclose($ho);
+}
+
 //creates file with all tumor-normal sample identifiers of the same processing system
 function get_somatic_pairs($cov_folder_tumor,$file_name)
 {
@@ -81,51 +140,31 @@ function get_somatic_pairs($cov_folder_tumor,$file_name)
 }
 
 //Creates file with paths to coverage files using ref folder and current sample cov path, if $sample_ids is set: skip all ids not contained
-function create_file_with_paths($ref_cov_folder,$cov_path, $sample_ids = array())
+function create_file_with_paths($ref_cov_folder, $cov_path, $sample_ids)
 {
 	global $parser;
 	
-	$ref_paths = glob("{$ref_cov_folder}/*.cov");
+	//main coverage file PS name
+	$cov_ps = basename2($cov_path);
+	if (ends_with($cov_ps, ".cov")) $cov_ps = substr($cov_ps, 0, -4);
 	
-	$paths_to_be_included = array();
-	
-
-	//Remove samples that are not in $sample_ids
-	if(count($sample_ids) > 0)
-	{	
-		for($i=0;$i<count($ref_paths);++$i)
-		{	
-			$id = basename($ref_paths[$i], ".cov");
-
-			if(in_array($id, $sample_ids))
-			{
-				$paths_to_be_included[] = $ref_paths[$i];
-			}
-		}
-	}
-	else
+	//select coverage profiles (regular or gzipped)
+	$paths_to_be_included = [];
+	foreach([".cov", ".cov.gz"] as $ext)
 	{
-		for($i=0;$i<count($ref_paths);++$i)
+		foreach(glob("{$ref_cov_folder}/*{$ext}") as $filename)
 		{	
-			$paths_to_be_included[] = $ref_paths[$i];
-		}
-	}
+			$id = basename($filename, $ext);
+			if ($id==$cov_ps) continue;
 
-	//Check whether cov file is already in cov folder -> remove from list (could be specified in another dir!)
-	for($i=0;$i<count($paths_to_be_included);++$i)
-	{
-		if(strpos($paths_to_be_included[$i],basename($cov_path,".cov")) !== false)
-		{
-			unset($paths_to_be_included[$i]);
-			$paths_to_be_included = array_values($paths_to_be_included); //reassign correct indices
-			break;
+			if(isset($sample_ids[$id])) $paths_to_be_included[] = $filename;
 		}
 	}
 	$paths_to_be_included[] = $cov_path;
 	
-
+	//write output file
 	$out_file = $parser->tempFile(".txt");
-	file_put_contents($out_file,implode("\n",$paths_to_be_included) );
+	file_put_contents($out_file, implode("\n", $paths_to_be_included));
 	
 	return $out_file;
 }
@@ -210,6 +249,7 @@ if($cov_pairs == "auto")
 	$cov_pairs = $parser->tempFile(".txt");
 	get_somatic_pairs($cov_folder_t,$cov_pairs);
 }
+
 //check whether coverage files of somatic pairs exist in cohort folder
 $somatic_pairs = array_slice( file($cov_pairs) , -$max_ref_files); //only use most recent pairs
 foreach($somatic_pairs as $line)
@@ -223,19 +263,19 @@ foreach($somatic_pairs as $line)
 	$cov_file_t = "{$cov_folder_t}/{$pair_t}.cov";
 	$cov_file_n = "{$cov_folder_n}/{$pair_n}.cov" ;
 	if(!file_exists($cov_file_t)) trigger_error("Could not find coverage file {$cov_file_t} for tumor ID {$pair_t}. Please check {$cov_pairs} file. Aborting.", E_USER_ERROR);
-	if(!file_exists($cov_file_n)) trigger_error("Could not find coverage file {$cov_file_n} for normal ID {$pair_n}. Please check {$cov_pairs} file. Aborting.", E_USER_ERROR);
+	if(!file_exists($cov_file_n) && !file_exists($cov_file_n.".gz")) trigger_error("Could not find coverage file {$cov_file_n} for normal ID {$pair_n}. Please check {$cov_pairs} file. Aborting.", E_USER_ERROR);
 }
 
 //Make list of tumor ids and normal ids stored in tsv list 
-$sample_tids = array();
-$sample_nids = array();
+$sample_tids = [];
+$sample_nids = [];
 foreach($somatic_pairs as $line)
 {
-	if(starts_with($line,"#")) continue;
-	if(empty(trim($line))) continue;
-	list($tid,$nid) = explode(",",trim($line));
-	$sample_tids[] = $tid;
-	$sample_nids[] = $nid;
+	$line = trim($line);
+	if($line=="" || $line[0]=="#") continue;
+	list($tid, $nid) = explode(",", $line);
+	$sample_tids[$tid] = true;
+	$sample_nids[$nid] = true;
 }
 
 /************************
@@ -243,10 +283,9 @@ foreach($somatic_pairs as $line)
  ************************/
 $merged_cov_normal = $parser->tempFile(".txt");
 $merged_cov_tumor = $parser->tempFile(".txt");
-$cov_paths_n = create_file_with_paths($cov_folder_n,realpath($n_cov), $sample_nids);
-$cov_paths_t = create_file_with_paths($cov_folder_t,realpath($t_cov), $sample_tids);
-
-$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_n -out {$merged_cov_normal} -simple -cols chr,start,end ",true);
+$cov_paths_n = create_file_with_paths($cov_folder_n, realpath($n_cov), $sample_nids);
+$cov_paths_t = create_file_with_paths($cov_folder_t, realpath($t_cov), $sample_tids);
+merge_coverage_profiles($cov_paths_n, $merged_cov_normal);
 $parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_t -out {$merged_cov_tumor} -simple -cols chr,start,end ",true);
 
 //off-targets
@@ -254,10 +293,10 @@ if($use_off_target)
 {
 	$merged_cov_tumor_off = $parser->tempFile(".txt");
 	$merged_cov_normal_off = $parser->tempFile(".txt");
-	$cov_paths_n_off = create_file_with_paths($cov_folder_n_off,realpath($n_cov_off), $sample_nids);
-	$cov_paths_t_off = create_file_with_paths($cov_folder_t_off,realpath($t_cov_off), $sample_tids);
-	$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_n_off -out {$merged_cov_normal_off} -simple -cols chr,start,end ",true, $sample_nids);
-	$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_t_off -out {$merged_cov_tumor_off} -simple -cols chr,start,end ",true, $sample_tids);
+	$cov_paths_n_off = create_file_with_paths($cov_folder_n_off, realpath($n_cov_off), $sample_nids);
+	$cov_paths_t_off = create_file_with_paths($cov_folder_t_off, realpath($t_cov_off), $sample_tids);
+	$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_n_off -out {$merged_cov_normal_off} -simple -cols chr,start,end ",true);
+	$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_t_off -out {$merged_cov_tumor_off} -simple -cols chr,start,end ",true);
 }
 
 
