@@ -3,7 +3,6 @@
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 //init
-$ngsbits = get_path("ngs-bits");
 $skipped = array(
 	"approved gene missing" => array(),
 	"approved gene name unknown" => array(),
@@ -49,7 +48,9 @@ while(!feof($handle))
 	}
 	
 	//convert gene name to approved symbol
-	list($stdout) = exec2("echo '{$gene}' | {$ngsbits}GenesToApproved");
+	$ngs_bits_command = execSingularity("ngs-bits", get_path("container_ngs-bits"), "GenesToApproved", "", [], [], 1, true);
+
+	list($stdout) = exec2("echo '{$gene}' | {$ngs_bits_command}");
 	list($gene_approved, $message) = explode("\t", trim(implode(" ", $stdout)));
 	if (contains($message, "ERROR"))
 	{
@@ -58,7 +59,10 @@ while(!feof($handle))
 	}
 	
 	//only genes with coordinates on right chromosome
-	list($stdout, $stderr, $exit_code) = exec2("echo '{$gene_approved}' | {$ngsbits}GenesToBed -source ensembl -mode gene -fallback | egrep '{$chr_omim}\s' | {$ngsbits}BedExtend -n 5000 | {$ngsbits}BedMerge", false);
+	$ngs_bits_command = execSingularity("ngs-bits", get_path("container_ngs-bits"), "GenesToBed", "-source ensembl -mode gene -fallback", [], [], 1, true);
+	$ngs_bits_command2 = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedExtend", "-n 5000", [], [], 1, true);
+	$ngs_bits_command3 = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "", [], [], 1, true);
+	list($stdout, $stderr, $exit_code) = exec2("echo '{$gene_approved}' | {$ngs_bits_command} | egrep '{$chr_omim}\s' | {$ngs_bits_command2} | {$ngs_bits_command3}", false);
 	if ($exit_code!=0 && trim(implode("", $stdout))=="")
 	{
 		$skipped["approved gene not convertable to genomic coordinates"][] = $mim_id."/".$gene_approved."/".$chr_omim;

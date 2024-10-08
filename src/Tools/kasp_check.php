@@ -252,7 +252,6 @@ function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 	}
 	
 	//determine processed sample meta data
-	//$ngsbits = get_path("ngs-bits");
 	foreach($res as $row)
 	{
 		$sample = $row['name'];
@@ -261,7 +260,6 @@ function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 			["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvSlice", "-cols 'name,project_type,project_name,path,quality'", [], [], 1, true)],
 		];
 		list($stdout) = $parser->execPipeline($pipeline, "NGSD sample extraction");
-		//list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER | {$ngsbits}TsvSlice -cols 'name,project_type,project_name,path,quality'"); TODO remove when tested
 		foreach($stdout as $line)
 		{
 			$line = trim($line);

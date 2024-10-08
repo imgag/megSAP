@@ -131,7 +131,8 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 
 			// get sequence
 			$output = array();
-			exec(get_path("samtools")." faidx ".genome_fasta($build, $use_local_data)." $chr:{$cache_start}-{$cache_end} 2>&1", $output, $ret);
+			$samtools_command = execSingularity("samtools", get_path("container_samtools"), "samtools faidx", genome_fasta($build, $use_local_data)." $chr:{$cache_start}-{$cache_end} 2>&1", [genome_fasta($build, $use_local_data)], [], 1, true);
+			exec($samtools_command, $output, $ret);
 			if ($ret!=0)
 			{
 				trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
@@ -160,7 +161,8 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 
 		//get sequence
 		$output = array();
-		exec(get_path("samtools")." faidx ".genome_fasta($build, $use_local_data)." $chr:{$start}-$end 2>&1", $output, $ret);
+		$samtools_command = execSingularity("samtools", get_path("container_samtools"), "samtools faidx", genome_fasta($build, $use_local_data)." $chr:{$start}-$end 2>&1", [genome_fasta($build, $use_local_data)], [], 1, true);
+		exec($samtools_command, $output, $ret);
 		if ($ret!=0)
 		{
 			trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
@@ -1165,7 +1167,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 			$args[] = "-ps {$ps_name}";
 			$args[] = "-type BAM";
 			if ($db_conn->name()=="NGSD_TEST") $args[] = "-test";
-			list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath ".implode(" ", $args));
+			list ($stdout, $stderr) = execSingularity("ngs-bits", get_path("container_ngs-bits"), "SamplePath", implode(" ", $args));
 			
 			$ps_bam_or_cram = trim(implode("", $stdout));
 			$project_folder = dirname($ps_bam_or_cram, 2);
@@ -1287,7 +1289,7 @@ function approve_gene_names($input_genes)
 	file_put_contents($non_approved_genes_file,$genes_as_string);
 	
 	//write stdout to $approved_genes -> each checked gene is one array element
-	list($approved_genes) = exec2(get_path("ngs-bits")."GenesToApproved -in $non_approved_genes_file");
+	list($approved_genes) = execSingularity("ngs-bits", get_path("container_ngs-bits"), "GenesToApproved", "-in $non_approved_genes_file");
 	
 	$output = array();
 	foreach($approved_genes as $gene)
@@ -1414,11 +1416,22 @@ function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 	fclose($handle_out);
 	
 	//Create off target bed file
-	$ngs_bits = get_path("ngs-bits");
 	$tmp_bed = temp_file(".bed");
-	exec2("{$ngs_bits}BedExtend -in ".$target_file." -n 1000 -fai {$ref_genome_fasta}.fai | {$ngs_bits}BedMerge -out {$tmp_bed}");
-	exec2("{$ngs_bits}BedSubtract -in ".$ref_bed." -in2 {$tmp_bed} | {$ngs_bits}BedChunk -n 100000 | {$ngs_bits}BedShrink -n 25000 | {$ngs_bits}BedExtend -n 25000 -fai {$ref_genome_fasta}.fai | {$ngs_bits}BedAnnotateGC -ref {$ref_genome_fasta} | {$ngs_bits}BedAnnotateGenes -out {$out}");
-	exec2("{$ngs_bits}BedSort", "-uniq -in $out -out $out");
+
+	$command_bed_extend = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedExtend", "-in ".$target_file." -n 1000 -fai {$ref_genome_fasta}.fai", [$target_file, $ref_genome_fasta], [], 1, true);
+	$command_bed_merge = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-out {$tmp_bed}", [], [], 1, true);
+
+	exec2("{$command_bed_extend} | {$command_bed_merge}");
+
+	$command_bed_subtract = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSubtract", "-in ".$ref_bed." -in2 {$tmp_bed}", [], [], 1, true);
+	$command_bed_chunk = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-n 100000", [], [], 1, true);
+	$command_bed_shrink = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-n 25000", [], [], 1, true);
+	$command_bed_extend = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-n 25000 -fai {$ref_genome_fasta}.fai", [$ref_genome_fasta], [], 1, true);
+	$command_bed_annotate_gc = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-ref {$ref_genome_fasta}", [$ref_genome_fasta], [], 1, true);
+	$command_bed_annotate_genes = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-out {$out}", [], [$out], 1, true);
+
+	exec2 ("{$command_bed_subtract} | {$command_bed_chunk} | {$command_bed_shrink} |{$command_bed_extend} | {$command_bed_annotate_gc} | {$command_bed_annotate_genes}");
+	execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-uniq -in $out -out $out", [$out], [], 1, true);
 }
 
 //returns the allele counts for a sample at a certain position as an associative array, reference skips and start/ends of read segments are ignored
@@ -1431,7 +1444,7 @@ function allele_count($bam, $chr, $pos)
 	}
 	
 	//get pileup
-	list($output) = exec2(get_path("samtools")." mpileup -aa -r $chr:$pos-$pos $bam");
+	list($output) = execSingularity("samtools", get_path("container_samtools"), "samtools mpileup", "-aa -r $chr:$pos-$pos $bam", [$bam]);
 	list($chr2, $pos2, $ref2,, $bases) = explode("\t", $output[0]);
 	
 	//count bases
@@ -1754,7 +1767,8 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	//BAM file
 	if (ends_with($filename, ".bam") || ends_with($filename, ".cram"))
 	{
-		list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $filename | egrep '^@PG' ");
+		$samtools_command = execSingularity("samtools", get_path("container_samtools"), "samtools view", "-H $filename", [$filename], [], 1, true);
+		list($stdout, $stderr, $exit_code) = exec2("{$samtools_command} | egrep '^@PG' ");
 		if  ($exit_code==0)
 		{
 			foreach($stdout as $line)
@@ -2081,7 +2095,8 @@ function ps_running_in_sge()
 
 function bed_size($filename)
 {
-	list($stdout) = exec2(get_path("ngs-bits")."BedInfo -in $filename | grep -i bases");
+	$container_command = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedInfo", "-in $filename", [$filename], [], 1, true);
+	list($stdout) = exec2("$container_command | grep -i bases");
 	return trim(explode(":", $stdout[0])[1]);
 }
 
@@ -2170,7 +2185,8 @@ function is_novaseq_x_run($run_parameters_xml)
 function genome_masked($bam, $build)
 {
 	$genome = genome_fasta($build);
-	list($stdout) = exec2(get_path("samtools")." view -T {$genome} {$bam} chr21:6110084-6124379 | wc -l", false);
+	$samtools_command = execSingularity("samtools", get_path("container_samtools"), "samtools view", "-T {$genome} {$bam} chr21:6110084-6124379", [$genome, $bam], [], 1, true);
+	list($stdout) = exec2("{$samtools_command} | wc -l", false);
 	
 	$read_count = trim(implode("", $stdout));
 	
@@ -2183,7 +2199,8 @@ function contains_methylation($bam_file, $n_rows=100, $build="GRCh38")
 	if (!file_exists($bam_file)) trigger_error("BAM file '{$bam_file}'", E_USER_ERROR);
 	$genome = genome_fasta($build);
 	// ignore errors occuring of unknown reason (broken pipe)
-	list($stdout) = exec2(get_path("samtools")." view -T {$genome} {$bam_file} | head -n {$n_rows}", false);
+	$samtools_command = execSingularity("samtools", get_path("container_samtools"), "samtools view", "-T {$genome} {$bam_file}", [$genome, $bam_file], [], 1, true);
+	list($stdout) = exec2("{$samtools_command} | head -n {$n_rows}", false);
 	//additional testing since we cannot rely on samtools error reporting
 	if (count($stdout) != $n_rows) trigger_error("Couldn't extract the first {$n_rows} rows of the BAM file!", E_USER_ERROR);
 
@@ -2216,7 +2233,8 @@ function contains_methylation($bam_file, $n_rows=100, $build="GRCh38")
 function get_read_group_description($bam_file)
 {
 	$rg_description = array();
-	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $bam_file | egrep '^@RG' ");
+	$samtools_command = execSingularity("samtools", get_path("container_samtools"), "samtools view", "-H $bam_file", [$bam_file], [], 1, true);
+	list($stdout, $stderr, $exit_code) = exec2("{$samtools_command} | egrep '^@RG' ");
 	if  ($exit_code==0)
 	{
 		foreach($stdout as $line)
@@ -2245,7 +2263,8 @@ function get_read_group_description($bam_file)
 function get_basecall_model($bam_file)
 {
 	$basecall_model = array();
-	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $bam_file | egrep '^@RG' ");
+	$samtools_command = execSingularity("samtools", get_path("container_samtools"), "samtools view", "-H $bam_file", [$bam_file], [], 1, true);
+	list($stdout, $stderr, $exit_code) = exec2("{$samtools_command} | egrep '^@RG' ");
 	if  ($exit_code==0)
 	{
 		foreach($stdout as $line)

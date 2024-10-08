@@ -795,7 +795,7 @@ function resolve_symlink($filename)
 /**
 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 	*/
-function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $command_only=false, $abort_on_error=true, $instance_name="")
+function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $command_only=false, $return_for_toolbase=false, $abort_on_error=true, $instance_name="")
 {
 	if (is_array($command) || is_array($parameters))
 	{
@@ -840,10 +840,19 @@ function execSingularity($container, $container_version, $command, $parameters, 
 		if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
 	}
 
-	//if ngs-bits container is executed the settings.ini is mounted into the container during execution
+	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
 	if($container === "ngs-bits")
 	{
-		$bind_paths[] = get_path("container_folder")."/ngs-bits_settings.ini:/opt/ngs-bits/bin/settings.ini";
+		$settings_file = repository_basedir()."/data/tools/ngsbits_settings.ini";
+		if (file_exists($settings_file))
+		{
+			$command_and_parameters = $command_and_parameters." --settings {$settings_file}";
+			$bind_paths[] = $settings_file.":/opt/ngs-bits/bin/settings.ini";
+		}
+		else 
+		{
+			trigger_error("Ngs-bits settings file {$settings_file} not found!", E_USER_ERROR);
+		}
 	}
 
 	//check bind paths
@@ -882,6 +891,12 @@ function execSingularity($container, $container_version, $command, $parameters, 
 	if($command_only) 
 	{
 		return $singularity_command;
+	}
+
+	//return apptainer command, bind paths and the container path for the execSingularity function in ToolBase.php
+	if($return_for_toolbase)
+	{
+		return array($singularity_command, $bind_paths, $container_path);
 	}
 
 	//execute call - pipe stdout/stderr to file
