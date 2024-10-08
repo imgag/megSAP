@@ -789,10 +789,7 @@ if(in_array("cn",$steps))
 	$ref_file_t_off_target = "{$ref_folder_t_off_target}/{$t_id}.cov";
 	
 	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $target_bed -out $t_cov -threads {$threads} -ref {$ref_genome}", [$t_bam, $target_bed, $ref_genome]);
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-uniq -in $t_cov -out $t_cov");
-
 	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target -threads {$threads} -ref {$ref_genome}", [$off_target_bed, $t_bam, $ref_genome]);
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-uniq -in $t_cov_off_target -out $t_cov_off_target");
 
 	
 	//copy tumor sample coverage file to reference folder (has to be done before ClinCNV call to avoid analyzing the same sample twice)
@@ -808,28 +805,34 @@ if(in_array("cn",$steps))
 	
 	if (!$single_sample)
 	{
-		// coverage for normal sample + off-target
-		$n_cov = "{$tmp_folder}/{$n_id}.cov";
+		// coverage file for normal sample
+		$n_cov = "{$ref_folder_n}/{$n_id}.cov.gz";
+		if (!file_exits($n_cov))
+		{
+			$cov_tmp_unzipped = $tmp_folder."/{$name}.cov";
+			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in $target_bed -out $cov_tmp_unzipped -threads {$threads} -ref {$ref_genome}", true);
+			$parser->exec("gzip", "-9 {$cov_tmp_unzipped}");
+			
+			if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($n_id))
+			{
+				$parser->log("Moving normal sample coverage file to reference folder...");
+				$parser->copyFile($cov_tmp_unzipped.".gz", $n_cov);
+			}
+			else
+			{
+				$n_cov = $cov_tmp_unzipped.".gz";
+			}
+		}
+		
+		// coverage file for normal sample (off-target)
 		$n_cov_off_target = "{$tmp_folder}/{$n_id}_off_target.cov";
-		$ref_file_n = $ref_folder_n."/".$n_id.".cov";
 		$ref_file_n_off_target = "{$ref_folder_n_off_target}/{$n_id}.cov";
-		
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in $target_bed -out $n_cov -threads {$threads} -ref {$ref_genome}", [$n_bam, $target_bed, $ref_genome]);
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-uniq -in $n_cov -out $n_cov");
-
 		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target -threads {$threads} -ref {$ref_genome}", [$off_target_bed, $n_bam, $ref_genome]);
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-uniq -in $n_cov_off_target -out $n_cov_off_target");
-		
-		// copy normal sample coverage file to reference folder (only if valid and not yet there).
 		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($n_id))
 		{
-			$parser->log("Moving normal sample coverage file to reference folder...");
-			$parser->copyFile($n_cov, $ref_file_n);
-			$n_cov = $ref_file_n;
-
+			$parser->log("Moving normal sample off-target coverage file to reference folder...");
 			$parser->copyFile($n_cov_off_target, $ref_file_n_off_target);
 			$n_cov_off_target = $ref_file_n_off_target;
-
 		}
 	}
 

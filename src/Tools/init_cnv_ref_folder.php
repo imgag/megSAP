@@ -132,7 +132,6 @@ if(!$somatic)
 		//process
 		print "$i) Processing $bam ...\n";
 		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam -in $roi -out $cov_file -threads {$threads}", [$bam, $roi], [$cov_file]);
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-uniq -in $cov_file -out $cov_file", [], [$cov_file]);
 	}
 
 	//chmod
@@ -263,14 +262,12 @@ else //somatic tumor-normal pairs
 			if(!file_exists("{$ref_t_dir}/{$sample}.cov"))
 			{
 				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_t_dir}/{$sample}.cov -threads {$threads}", [$bam_or_cram, $roi], ["{$ref_t_dir}/{$sample}.cov"]);
-				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-uniq -in {$ref_t_dir}/{$sample}.cov -out {$ref_t_dir}/{$sample}.cov", [], ["{$ref_t_dir}/{$sample}.cov"]);
 				++$t_count;
 			}
 			//off-target
 			if(!file_exists("{$ref_off_t_dir}/{$sample}.cov"))
 			{
 				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_t_dir}/{$sample}.cov -threads {$threads}", [$off_target_bed, $bam_or_cram], ["{$ref_off_t_dir}/{$sample}.cov"]);
-				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-uniq -in {$ref_off_t_dir}/{$sample}.cov -out {$ref_off_t_dir}/{$sample}.cov", [], ["{$ref_off_t_dir}/{$sample}.cov"]);
 				++$t_off_count;
 			}
 		}
@@ -285,14 +282,12 @@ else //somatic tumor-normal pairs
 			if(!file_exists("{$ref_n_dir}/{$sample}.cov"))
 			{
 				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_n_dir}/{$sample}.cov -threads {$threads}", [$bam_or_cram, $roi], ["{$ref_n_dir}/{$sample}.cov"]);
-				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-uniq -in {$ref_n_dir}/{$sample}.cov -out {$ref_n_dir}/{$sample}.cov", [], ["{$ref_n_dir}/{$sample}.cov"]);
 				++$n_count;
 			}
 			//off-target
 			if(!file_exists("{$ref_off_n_dir}/{$sample}.cov"))
 			{
 				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_n_dir}/{$sample}.cov -threads {$threads}", [$off_target_bed, $bam_or_cram], ["{$ref_off_n_dir}/{$sample}.cov"]);
-				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-uniq -in {$ref_off_n_dir}/{$sample}.cov -out {$ref_off_n_dir}/{$sample}.cov", [], ["{$ref_off_n_dir}/{$sample}.cov"]);
 				++$n_off_count;
 			}
 		}

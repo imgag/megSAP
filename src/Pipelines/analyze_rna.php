@@ -68,6 +68,9 @@ if (!$no_sync)
 	$parser->execTool("Tools/data_setup.php", "-build ".$build);
 }
 
+//create ngs-bits INI file if necessary (after data_setup.php to make sure that the local genome copy is used if requested)
+$parser->createNgsBitsIni($build);
+
 //find FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");
 $in_rev = glob($folder."/*_R2_001.fastq.gz");
