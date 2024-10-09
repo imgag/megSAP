@@ -534,11 +534,13 @@ if (count($cov_files)>$cov_compare_max && db_is_enabled("NGSD"))
 	$parser->log("Restricting number of coverage files to $cov_compare_max (based on sequencing run date from NGSD)...");
 	
 	$db = DB::getInstance("NGSD", false);
-	$run_name = $db->getValue("SELECT r.name FROM sequencing_run r, processed_sample ps WHERE ps.sequencing_run_id=r.id AND ps.id=".get_processed_sample_id($db, $ps_name, false), "");
-	if ($run_name!="#00000")
+	$ps_id = get_processed_sample_id($db, $ps_name, false);
+	$run_name = $db->getValue("SELECT r.name FROM sequencing_run r, processed_sample ps WHERE ps.sequencing_run_id=r.id AND ps.id={$ps_id}", "");
+	if ($run_name!="#00000" || $run_name=="")
 	{
+		$sys_id = $db->getValue("SELECT processing_system_id FROM processed_sample WHERE id={$ps_id}", "");
+		$res = $db->executeQuery("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as name, r.start_date as date FROM processed_sample as ps, sample as s, sequencing_run r WHERE ps.sample_id = s.id AND ps.sequencing_run_id=r.id AND ps.processing_system_id={$sys_id}");
 		$ps2date = [];
-		$res = $db->executeQuery("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as name, r.start_date as date FROM processed_sample as ps, sample as s, sequencing_run r WHERE ps.sample_id = s.id AND ps.sequencing_run_id=r.id");
 		foreach($res as $row)
 		{
 			$ps = trim($row['name']);
@@ -554,7 +556,8 @@ if (count($cov_files)>$cov_compare_max && db_is_enabled("NGSD"))
 			$cov2timediff = [];
 			foreach($cov_files as $cov_file)
 			{
-				$ps_cov = basename($cov_file, ".cov");
+				$ps_cov = basename2($cov_file);
+				if (ends_with($ps_cov, ".cov")) $ps_cov = substr($ps_cov, 0, -4);
 				$ps_date = isset($ps2date[$ps_cov]) ? $ps2date[$ps_cov] : "2000-01-01";
 				$cov2timediff[$cov_file] = abs($ps_time - strtotime($ps_date));
 			}
@@ -569,7 +572,7 @@ if (count($cov_files)>$cov_compare_max && db_is_enabled("NGSD"))
 	}
 	else
 	{
-		$parser->log("Notice: Could not restrict the number of coverage files: Sequencing run is dummy run '#00000'!");
+		$parser->log("Notice: Could not restrict the number of coverage files: Sequencing run is '{$run_name}' !");
 	}
 }
 
