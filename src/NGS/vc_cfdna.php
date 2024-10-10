@@ -58,7 +58,7 @@ $in_files[] = $target;
 $out_files[] = $folder;
 
 //call umiVar2 in container
-$parser->execSingularity("umiVar", get_path("container_umivar"), "python /opt/umiVar2/umiVar2_2024_07/umiVar.py", implode(" ", $args), $in_files, $out_files);
+$parser->execSingularity("umiVar", get_path("container_umiVar"), "umiVar.py", implode(" ", $args), $in_files, $out_files);
 
 // sort VCF file(s)
 $vcf = $folder."/".basename2($bam).".vcf";

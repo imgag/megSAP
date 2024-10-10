@@ -524,7 +524,7 @@ if($barcode_correction)
 	elseif($sys['umi_type'] == "IDT-xGen-Prism") $args[] = "--barcode_error 3";
 	
 	// use the barcode correction of umiVar2
-	$parser->execSingularity("umiVar", get_path("container_umivar"), "python /opt/umiVar2/umiVar2_2024_07/barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 ".implode(" ", $args));
+	$parser->execSingularity("umiVar", get_path("container_umiVar"), "barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 ".implode(" ", $args));
 	$parser->sortBam($tmp_bam4, $tmp_bam4_sorted, $threads);
 	$parser->indexBam($tmp_bam4_sorted, $threads);
 	

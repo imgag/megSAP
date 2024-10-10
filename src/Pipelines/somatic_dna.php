@@ -1127,7 +1127,7 @@ if (in_array("an", $steps))
 		$params[] = "-n 65"; // select 50 candidate variants
 		$params[] = "-i"; // ignore INDELS
 		// call variant selection in umiVar container
-		$parser->execSingularity("umiVar", get_path("container_umivar"), "python /opt/umiVar2/umiVar2_2024_07/select_monitoring_variants.py", implode(" ", $params), $in_files, $out_files);
+		$parser->execSingularity("umiVar", get_path("container_umiVar"), "select_monitoring_variants.py", implode(" ", $params), $in_files, $out_files);
 	}
 	else
 	{

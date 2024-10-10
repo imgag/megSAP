@@ -593,7 +593,7 @@ if (in_array("vc", $steps))
 		}
 
 		//post-filtering
-		$parser->execSingularity("umiVar", get_path("container_umivar"), "python /opt/umiVar2/umiVar2_2024_07/cfDNA_postfiltering.py", implode(" ", $args), $in_files);
+		$parser->execSingularity("umiVar", get_path("container_umiVar"), "cfDNA_postfiltering.py", implode(" ", $args), $in_files);
 		$parser->log("post-filtering log: ", file($temp_logfile));
 
 	}
@@ -611,7 +611,7 @@ if (in_array("vc", $steps))
 		$args[] = $monitoring_vcf;
 		$args[] = $bg_mrd;
 		$args[] = $bg_monitoring;
-		$parser->execSingularity("umiVar", get_path("container_umivar"), "python /opt/umiVar2/umiVar2_2024_07/calculateMRD.py", implode(" ", $args), $in_files);
+		$parser->execSingularity("umiVar", get_path("container_umiVar"), "calculateMRD.py", implode(" ", $args), $in_files);
 
 		//unfiltered output
 		$args = array();
@@ -622,7 +622,7 @@ if (in_array("vc", $steps))
 		$args[] = "--max_af 1.5";
 		$args[] = "--keep_gonosomes";
 		$args[] = "--keep_indels";
-		$parser->execSingularity("umiVar", get_path("container_umivar"), "python /opt/umiVar2/umiVar2_2024_07/calculateMRD.py", implode(" ", $args), $in_files);
+		$parser->execSingularity("umiVar", get_path("container_umiVar"), "calculateMRD.py", implode(" ", $args), $in_files);
 	}
 	
 }

@@ -65,7 +65,7 @@ $in_files[] = $loci;
 $out_files[] = $out_folder;
 
 // run straglr container
-$parser->execSingularity("straglr", get_path("container_straglr"), "python /opt/conda/envs/straglr/bin/straglr.py", implode(" ", $args), $in_files, $out_files);
+$parser->execSingularity("straglr", get_path("container_straglr"), "straglr.py", implode(" ", $args), $in_files, $out_files);
 
 //get pathogenic ranges from NGSD
 $min_pathogenic = array();

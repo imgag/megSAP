@@ -153,7 +153,7 @@ if (!$no_images)
 	foreach ($loci as $locus) 
 	{
 		$prefix = $svg_folder.basename($out, ".vcf");
-		$parser->execSingularity("REViewer", get_path("container_REViewer"), "REViewer-v0.2.7", implode(" ", $args)." --output-prefix $prefix --locus $locus", [genome_fasta($build), $variant_catalog], [$prefix], 1, false, true, false);
+		$parser->execSingularity("REViewer", get_path("container_REViewer"), "REViewer", implode(" ", $args)." --output-prefix $prefix --locus $locus", [genome_fasta($build), $variant_catalog], [$prefix], 1, false, true, false);
 		
 		//rename to keep the naming consistent with v0.1.1
 		$source_file = $prefix.".".$locus.".svg";

@@ -803,6 +803,24 @@ function execSingularity($container, $container_version, $command, $parameters, 
 		print_r($parameters);
 		die;
 	}
+
+	$bind_paths = array();
+
+	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
+	if($container === "ngs-bits")
+	{
+		$settings_file = repository_basedir()."/data/tools/ngsbits_settings.ini";
+		if (file_exists($settings_file))
+		{
+			$parameters = "--settings {$settings_file} ".$parameters;
+			$bind_paths[] = $settings_file.":".$settings_file;
+		}
+		else 
+		{
+			trigger_error("Ngs-bits settings file {$settings_file} not found!", E_USER_ERROR);
+		}
+	}
+	
 	//prevent execution of pipes - exit code is not handled correctly with pipes!
 	$command_and_parameters = $command." ".$parameters;
 	if(contains($command_and_parameters, "|"))
@@ -815,7 +833,6 @@ function execSingularity($container, $container_version, $command, $parameters, 
 	if(!file_exists($container_path)) trigger_error("Apptainer container '{$container_path}' not found!", E_USER_ERROR);
 	
 	//determine bind paths from input and output files
-	$bind_paths = array();
 	$cwd = realpath(getcwd());
 	foreach($in_files as $file)
 	{
@@ -838,21 +855,6 @@ function execSingularity($container, $container_version, $command, $parameters, 
 
 		if($filepath === "." || $filepath === "" || $filepath === $cwd || strpos($filepath, $cwd . DIRECTORY_SEPARATOR) === 0) continue;
 		if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
-	}
-
-	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
-	if($container === "ngs-bits")
-	{
-		$settings_file = repository_basedir()."/data/tools/ngsbits_settings.ini";
-		if (file_exists($settings_file))
-		{
-			$command_and_parameters = $command_and_parameters." --settings {$settings_file}";
-			$bind_paths[] = $settings_file.":/opt/ngs-bits/bin/settings.ini";
-		}
-		else 
-		{
-			trigger_error("Ngs-bits settings file {$settings_file} not found!", E_USER_ERROR);
-		}
 	}
 
 	//check bind paths

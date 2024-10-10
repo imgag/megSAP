@@ -329,7 +329,7 @@ function run_clincnv($out, $mosaic=FALSE)
 
 	$out_folder = $parser->tempFolder();
 
-	$bind_paths = array();
+	$in_files = array();
 	$args = [
 		"--normal {$cov_merged}",
 		"--bed {$bed}",
@@ -341,7 +341,7 @@ function run_clincnv($out, $mosaic=FALSE)
 		"--noPlot",
 		];
 	
-	$bind_paths[] = dirname(realpath($bed));
+	$in_files[] = $bed;
 	if ($gender=="male") $args[] = "--sex M";
 	if ($gender=="female") $args[] = "--sex F";
 
@@ -355,13 +355,13 @@ function run_clincnv($out, $mosaic=FALSE)
 		if($use_off_target)
 		{
 			$args[] = "--bedOfftarget $bed_off";
-			$bind_paths[] = dirname(realpath($bed_off));
+			$in_files[] = $bed_off;
 			$args[] = "--normalOfftarget $merged_cov_off";
 		}
 		if(is_dir($baf_folder))
 		{
 			$args[] = "--bafFolder {$baf_folder}";
-			$bind_paths[] = realpath($baf_folder);
+			$in_files[] = $baf_folder;
 		} 
 	}
 	else if($mosaic)
@@ -404,7 +404,8 @@ function run_clincnv($out, $mosaic=FALSE)
 		$parser->log("Calling external containerized tool ".get_path("container_folder")."ClinCNV_{$tool_version} with command: '$command' ({$try_nr}. try)", $add_info);
 
 		$exec_start = microtime(true);
-		$proc = proc_open("apptainer exec -B ".implode(",", $bind_paths)." ".get_path("container_folder")."ClinCNV_{$tool_version}.sif {$command} {$parameters}", array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
+		$clincnv_command = $parser->execSingularity("ClinCNV", $tool_version, $command, $parameters, $in_files, [], 1, true);
+		$proc = proc_open($clincnv_command, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
 		while(true)
 		{
 			sleep(5);

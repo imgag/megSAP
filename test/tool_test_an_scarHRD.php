@@ -6,7 +6,7 @@ $name = "an_scarHRD";
 start_test($name);
 
 //init
-check_exec("apptainer exec -B ".data_folder().",".get_path("container_folder")."/ngs-bits_settings.ini:/opt/ngs-bits/bin/settings.ini ".get_path("container_folder")."/ngs-bits_".get_path("container_ngs-bits").".sif NGSDInit -test -add ".data_folder()."/{$name}.sql");
+check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
 
 //empty
 $log_file = output_folder()."/{$name}_out0.log";

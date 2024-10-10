@@ -202,7 +202,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	$in_files[] = $vcf_filtered;
 
 	//run spliceai container
-	$parser->execSingularity("spliceai", get_path("container_spliceai"), "/spliceai/splice_env/bin/spliceai", implode(" ", $args), $in_files, $out_files, $threads);
+	$parser->execSingularity("spliceai", get_path("container_spliceai"), "spliceai", implode(" ", $args), $in_files, $out_files, $threads);
 
 	//no variants scored => copy input to output
 	$var_count = vcf_variant_count($tmp1, "SpliceAI=");
