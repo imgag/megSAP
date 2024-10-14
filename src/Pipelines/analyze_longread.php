@@ -804,13 +804,13 @@ if (in_array("db", $steps))
 	//import variants
 	$args = ["-ps {$name}"];
 	$import = false;
+	$args[] = "-force";
 	if (file_exists($var_file))
 	{
 		//check genome build
 		check_genome_build($var_file, $build);
 		
 		$args[] = "-var {$var_file}";
-		$args[] = "-var_force";
 		$import = true;
 	}
 	if (file_exists($cnv_file))
@@ -819,7 +819,6 @@ if (in_array("db", $steps))
 		//this is not possible for CNVs because the file does not contain any information about it
 		
 		$args[] = "-cnv {$cnv_file}";
-		$args[] = "-cnv_force";
 		$import = true;
 	}
 	if (file_exists($bedpe_file))
@@ -828,7 +827,6 @@ if (in_array("db", $steps))
 		check_genome_build($bedpe_file, $build);
 		
 		$args[] = "-sv {$bedpe_file}";
-		$args[] = "-sv_force";
 		$import = true;
 	}
 	if (file_exists($straglr_file))
@@ -837,7 +835,6 @@ if (in_array("db", $steps))
 		check_genome_build($straglr_file, $build);
 		
 		$args[] = "-re {$straglr_file}";
-		$args[] = "-re_force";
 		$import = true;
 	}
 	if ($import)
