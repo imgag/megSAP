@@ -21,6 +21,7 @@ $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to th
 $parser->addFlag("skip_wgs_check", "Skip the similarity check with a related short-read WGS sample.");
 extract($parser->parse($argv));
 
+
 // create logfile in output folder if no filepath is provided:
 if (!file_exists($folder))
 {
@@ -34,7 +35,6 @@ $ngsbits = get_path("ngs-bits");
 //determine processing system
 $sys = load_system($system, $name);
 $build = $sys['build'];
-$genome = genome_fasta($build);
 
 //check steps
 $steps = explode(",", $steps);
@@ -47,8 +47,6 @@ foreach($steps as $step)
 list($server) = exec2("hostname -f");
 $user = exec('whoami');
 $parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
-
-
 
 if (db_is_enabled("NGSD"))
 {
@@ -76,6 +74,10 @@ if (!$no_sync)
 {
 	$parser->execTool("Tools/data_setup.php", "-build ".$build);
 }
+
+//create ngs-bits INI file if necessary (after data_setup.php to make sure that the local genome copy is used if requested)
+$parser->createNgsBitsIni($build);
+$genome = genome_fasta($build);
 
 //output file names:
 //mapping

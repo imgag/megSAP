@@ -48,7 +48,6 @@ $is_panel = $sys['type']=="Panel" || $sys['type']=="Panel Haloplex";
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
 $has_roi = $sys['target_file']!="";
 $build = $sys['build'];
-$genome = genome_fasta($build);
 
 //handle somatic flag
 if ($somatic)
@@ -120,6 +119,10 @@ if (!$no_sync)
 {
 	$parser->execTool("Tools/data_setup.php", "-build ".$build);
 }
+
+//create ngs-bits INI file if necessary (after data_setup.php to make sure that the local genome copy is used if requested)
+$parser->createNgsBitsIni($build);
+$genome = genome_fasta($build);
 
 //output file names:
 //mapping
@@ -327,7 +330,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 	if(!file_exists($qc_map))
 	{
 		//QC
-		$params = array("-in $used_bam_or_cram", "-out {$qc_map}", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
+		$params = array("-in $used_bam_or_cram", "-out {$qc_map}", "-ref {$genome}", "-build ".ngsbits_build($sys['build']));
 		if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
 		{
 			$params[] = "-wgs";

@@ -180,6 +180,7 @@ source $spliceFolder/splice_env3_10/bin/activate
 pip install --upgrade pip
 pip install spliceai==1.3.1
 pip install tensorflow==2.11.0
+pip install numpy==1.26.4
 deactivate
 cd ..
 
