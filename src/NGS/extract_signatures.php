@@ -74,7 +74,6 @@ function cnv_prepare_clincnv($cnvFile)
 function copy_cnv_result_files($result_folder)
 {
 	//TODO global arguments?
-	global $parser;
 	global $fullOutput;
 	global $out;
 
@@ -97,7 +96,7 @@ function copy_cnv_result_files($result_folder)
 			$result_file = "{$result_folder}{$file}";
 			if (is_file($result_file))
 			{
-				$parser->copyFile($result_file, $out);
+				exec("cp -r {$result_file} {$out}");
 			}
 		}
 	}
@@ -132,7 +131,7 @@ function prepare_input_files($in)
 	else if (is_file($in))
 	{
 		$in_dir = temp_folder();
-		$parser->copyFile($in, $in_dir.basename($in));
+		$parser->copyFile($in, $in_dir."/".basename($in));
 		return $in_dir;
 	}
 }
@@ -140,7 +139,6 @@ function prepare_input_files($in)
 function copy_snv_result_files($result_folder)
 {
 	//TODO global arguments?
-	global $parser;
 	global $fullOutput;
 	global $out;
 
@@ -167,7 +165,7 @@ function copy_snv_result_files($result_folder)
 			$result_file = "{$result_folder}{$file}";
 			if (is_file($result_file))
 			{
-				$parser->copyFile($result_file, $out);
+				exec("cp -r {$result_file} {$out}");
 			}
 		}
 	}

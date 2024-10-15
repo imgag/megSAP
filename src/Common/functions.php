@@ -820,7 +820,7 @@ function execSingularity($container, $container_version, $command, $parameters, 
 			trigger_error("Ngs-bits settings file {$settings_file} not found!", E_USER_ERROR);
 		}
 	}
-	
+
 	//prevent execution of pipes - exit code is not handled correctly with pipes!
 	$command_and_parameters = $command." ".$parameters;
 	if(contains($command_and_parameters, "|"))
@@ -828,9 +828,23 @@ function execSingularity($container, $container_version, $command, $parameters, 
 		trigger_error("Error in 'execSingularity' method call: Command must not contain pipe symbol '|'! \n$command_and_parameters", E_USER_ERROR);
 	}
 
-	//get container
-	$container_path = get_path("container_folder")."/{$container}_{$container_version}.sif";
-	if(!file_exists($container_path)) trigger_error("Apptainer container '{$container_path}' not found!", E_USER_ERROR);
+	//get container (preferably from local folder)
+	$container_file = "{$container}_{$container_version}.sif";
+	$local_container = get_path("local_container_folder")."/{$container_file}";
+	$network_container = get_path("container_folder")."/{$container_file}";
+
+	if (file_exists($local_container))
+	{
+		$container_path = $local_container;
+	}
+	else if (file_exists($network_container))
+	{
+		$container_path = $network_container;
+	}
+	else
+	{
+		trigger_error("Apptainer container '{$container_file}' neither found in '{$local_container}' nor in '{$network_container}'", E_USER_ERROR);
+	}
 	
 	//determine bind paths from input and output files
 	$cwd = realpath(getcwd());
@@ -855,6 +869,12 @@ function execSingularity($container, $container_version, $command, $parameters, 
 
 		if($filepath === "." || $filepath === "" || $filepath === $cwd || strpos($filepath, $cwd . DIRECTORY_SEPARATOR) === 0) continue;
 		if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
+	}
+
+	if($container === "SigProfilerExtractor")
+	{
+		$bind_paths[] = "/mnt/storage2/users/ahiliuk1/test_modified_tools/extract_signatures/test1/templates:/usr/local/lib/python3.8/site-packages/sigProfilerPlotting/templates/";
+		$bind_paths[] = "/mnt/storage2/users/ahiliuk1/test_modified_tools/extract_signatures/test1/CosmicTemplates:/usr/local/lib/python3.8/site-packages/SigProfilerAssignment/DecompositionPlots/CosmicTemplates";
 	}
 
 	//check bind paths

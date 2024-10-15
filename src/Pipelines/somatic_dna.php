@@ -810,7 +810,7 @@ if(in_array("cn",$steps))
 		if (!file_exits($n_cov))
 		{
 			$cov_tmp_unzipped = $tmp_folder."/{$name}.cov";
-			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in $target_bed -out $cov_tmp_unzipped -threads {$threads} -ref {$ref_genome}", true);
+			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in $target_bed -out $cov_tmp_unzipped -threads {$threads} -ref {$ref_genome}", [$n_bam, $target_bed, $ref_genome]);
 			$parser->exec("gzip", "-9 {$cov_tmp_unzipped}");
 			
 			if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($n_id))

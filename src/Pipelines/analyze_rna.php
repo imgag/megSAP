@@ -232,7 +232,7 @@ if (in_array("ma", $steps))
 			//UMI-based duplicate flagging
 			$pipeline = [];
 			//UMI-tools group alignments (coordinate sorted)
-			$pipeline[] = ["", $parser->execSingularity("umi_tools", get_path("container_umi_tools"), "umi_tools group", "--stdin {$tmp_aligned} --output-bam --log2stderr --paired --no-sort-output --umi-separator=':' --compresslevel 0 --unmapped-reads use", [], [], 1, true)];
+			$pipeline[] = ["", $parser->execSingularity("umi-tools", get_path("container_umi-tools"), "umi_tools group", "--stdin {$tmp_aligned} --output-bam --log2stderr --paired --no-sort-output --umi-separator=':' --compresslevel 0 --unmapped-reads use", [], [], 1, true)];
 			$tmp_for_sorting1 = $parser->tempFile();
 			//sort by query name
 			$pipeline[] = ["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools sort", "-n -T {$tmp_for_sorting1} -m 2G -@ {$threads}", [], [], 1, true)];

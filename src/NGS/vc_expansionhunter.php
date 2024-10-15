@@ -55,10 +55,10 @@ if (db_is_enabled("NGSD"))
 	}
 }
 // add ExpansionHunter version string to VCF
-$tool_version = get_path("container_expansion_hunter");
+$tool_version = get_path("container_expansionhunter");
 
 // run Expansion Hunter
-$parser->execSingularity("expansion_hunter", $tool_version, "ExpansionHunter", implode(" ", $args), $in_files, $out_files);
+$parser->execSingularity("expansionhunter", $tool_version, "ExpansionHunter", implode(" ", $args), $in_files, $out_files);
 
 // read VCF file into memory
 $vcf_file_content = file($out);
