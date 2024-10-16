@@ -567,13 +567,19 @@ if (count($cov_files)>$cov_compare_max && db_is_enabled("NGSD"))
 		}
 		else
 		{
-			$parser->log("Notice: Could not restrict the number of coverage files: NGSD does not contain sample '$ps_name'!");
+			$parser->log("Notice: Could not restrict the number of coverage files based on sequencing date: NGSD does not contain sample '$ps_name'!");
 		}
 	}
 	else
 	{
-		$parser->log("Notice: Could not restrict the number of coverage files: Sequencing run is '{$run_name}' !");
+		$parser->log("Notice: Could not restrict the number of coverage files based on sequencing date: Sequencing run is '{$run_name}' !");
 	}
+}
+
+if (count($cov_files)>$cov_compare_max)
+{
+	$parser->log("Notice: Using the alphabetically first {$cov_compare_max} coverage profiles for calling!");
+	$cov_files = array_slice($cov_files, 0, $cov_compare_max);
 }
 
 //select coverage files of most similar samples
