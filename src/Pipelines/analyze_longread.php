@@ -115,7 +115,16 @@ $name_sample_ps = explode("_", $name, 2);
 $sample_name = $name_sample_ps[0];
 
 //check if target region covers whole genome
-$is_wgs = (check_for_missing_chromosomes($sys['target_file'], false) === 0);
+list($stdout, $stderr, $ec) = $parser->exec($ngsbits."BedInfo", "-in ".$sys['target_file']);
+$is_wgs = false;
+foreach($stdout as $line)
+{
+	if( starts_with($line, "Bases:"))
+	{
+		$target_size = (int) explode(":", $line)[1];
+		$is_wgs = ($target_size > 3e9);
+	}
+}
 if(!$is_wgs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in calling files.", E_USER_WARNING);
 
 
