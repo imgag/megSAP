@@ -14,7 +14,7 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
 $steps_all = array("ma", "vc", "cn", "sv", "re", "an", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, re=repeat expansions calling, an=annotation, db=import into NGSD.", true, "ma,vc,sv,re,an,db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, re=repeat expansions calling, an=annotation, db=import into NGSD.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("skip_phasing", "Skip phasing of VCF and BAM files.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
@@ -119,18 +119,19 @@ $sample_name = $name_sample_ps[0];
 if (in_array("ma", $steps))
 {
 	//determine input FASTQ and BAM files
-	$unmapped_bam_files = glob("{$folder}/{$sample_name}_??.mod.unmapped.bam");
-	$old_bam_files = glob("{$folder}/{$sample_name}_??.{bam,cram}");
-	$fastq_files = glob("{$folder}/{$sample_name}_??*.fastq.gz");
-
+	$unmapped_pattern = "{$sample_name}_??.mod.unmapped.bam";
+	$unmapped_bam_files = glob("{$folder}/{$unmapped_pattern}");
+	$bam_pattern = "{$sample_name}_??.{bam,cram}";
+	$old_bam_files = glob("{$folder}/{$bam_pattern}");
+	$fastq_pattern = "{$sample_name}_??*.fastq.gz";
+	$fastq_files = glob("{$folder}/{$fastq_pattern}");
 	// preference:
 	// 1. mod unmapped bam
 	// 2. regular bam/cram
-	// 3. fastq
-
+	// 3. fastq	
 	if ((count($unmapped_bam_files) === 0) && (count($old_bam_files) === 0) && (count($fastq_files) === 0))
 	{
-		trigger_error("Found no input read files in BAM or FASTQ format!", E_USER_ERROR);
+		trigger_error("Found no input read files in BAM or FASTQ format!\nExpected file names are: unmapped BAM '{$unmapped_pattern}', mapped bam '{$bam_pattern}' or FASTQs '{$fastq_pattern}'", E_USER_ERROR);
 	}
 	
 	// run mapping
@@ -676,9 +677,9 @@ if (in_array("an", $steps))
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnv_file}", true);
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnv_file}", true);
 		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnv_file}", true);
-		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2023-07.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", true);
+		$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", true);
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2023_3.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2024_2.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->exec($ngsbits."BedAnnotateFromBed", "-in {$cnv_file} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnv_file}", true);
@@ -951,19 +952,20 @@ if (in_array("db", $steps))
 
 	if (!$skip_wgs_check)
 	{
-		//check similarity to (sr) WGS sample
-		list($stdout, $stderr, $exit_code) = $parser->exec("{$ngsbits}/NGSDSameSample", "-ps $name -system_type WGS");
+		//check similarity to (sr) WGS/WES sample
+		list($stdout, $stderr, $exit_code) = $parser->exec("{$ngsbits}/NGSDSameSample", "-ps $name -system_type WGS,WES");
 		//parse stdout
 		$same_samples = array();
 		foreach ($stdout as $line) 
 		{
 			if (starts_with($line, "#")) continue;
 			if (trim($line) == "") continue;
-			$same_samples[] = trim(explode("\t", $line)[0]);
+			$parts = explode("\t", $line);
+			$same_samples[] = trim($parts[0]);
 		}
 		if (count($same_samples) < 1)
 		{
-			trigger_error("No related WGS sample found for {$name}. Cannot perform similarity check!", E_USER_WARNING);
+			trigger_error("No related WGS/WES sample found for {$name}. Cannot perform similarity check!", E_USER_WARNING);
 		} 
 		else
 		{

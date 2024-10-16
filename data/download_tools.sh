@@ -17,7 +17,7 @@ python3_path=$folder/Python-3.10.9/
 cd $folder
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2024_06 && git submodule update --recursive --init
+git checkout 2024_08 && git submodule update --recursive --init
 make build_3rdparty
 make build_tools_release
 
@@ -53,40 +53,38 @@ make install
 
 # create common python venv for megSAP
 cd $folder
-$folder/Python-3.10.9/bin/python3 -m venv Python-3.10.9_15.07.24
-source $folder/Python-3.10.9_15.07.24/bin/activate
-pip install --upgrade setuptools wheel
+$folder/Python-3.10.9/bin/python3 -m venv Python-3.10.9_2024.08.21
+source $folder/Python-3.10.9_2024.08.21/bin/activatepip install --upgrade setuptools wheel
 pip install -r $root/install_deps_python.txt --require-virtualenv
 deactivate
 cd ..
 
 #Python: install genome for SigProfilerExtractor - for somatic pipeline
-chmod -R 777 $folder/Python-3.10.9_15.07.24/lib/python3.10/site-packages/SigProfiler*
-$folder/Python-3.10.9_15.07.24/bin/python3 $root/../src/NGS/extract_signatures.py --installGenome --reference GRCh38 --in . --outFolder .
-
+chmod -R 777 $folder/Python-3.10.9_2024.08.21/lib/python3.10/site-packages/SigProfiler*
+$folder/Python-3.10.9_2024.08.21/bin/python3 $root/../src/NGS/extract_signatures.py --installGenome --reference GRCh38 --in . --outFolder .
 
 #download and build samtools
 cd $folder
-wget https://github.com/samtools/samtools/releases/download/1.19/samtools-1.19.tar.bz2
-tar xjf samtools-1.19.tar.bz2
-rm samtools-1.19.tar.bz2
-cd samtools-1.19
+wget https://github.com/samtools/samtools/releases/download/1.20/samtools-1.20.tar.bz2
+tar xjf samtools-1.20.tar.bz2
+rm samtools-1.20.tar.bz2
+cd samtools-1.20
 make
 
 #download and build bcftools
 cd $folder
-wget https://github.com/samtools/bcftools/releases/download/1.19/bcftools-1.19.tar.bz2
-tar xjf bcftools-1.19.tar.bz2
-rm bcftools-1.19.tar.bz2
-cd bcftools-1.19
+wget https://github.com/samtools/bcftools/releases/download/1.20/bcftools-1.20.tar.bz2
+tar xjf bcftools-1.20.tar.bz2
+rm bcftools-1.20.tar.bz2
+cd bcftools-1.20
 make
 
 #download and build BWA
 cd $folder
-wget https://sourceforge.net/projects/bio-bwa/files/bwa-0.7.17.tar.bz2
-tar xjf bwa-0.7.17.tar.bz2
-rm bwa-0.7.17.tar.bz2
-cd bwa-0.7.17
+wget https://github.com/lh3/bwa/archive/refs/tags/v0.7.18.tar.gz
+tar xzf v0.7.18.tar.gz
+rm v0.7.18.tar.gz
+cd bwa-0.7.18
 make
 
 #download bwa-mem2
@@ -117,16 +115,6 @@ mkdir -p build && cd build
 cmake ..
 cmake --build .
 cmake --install .
-
-#download and build vcflib
-#cd $folder
-#git clone https://github.com/vcflib/vcflib.git vcflib-1.0.9
-#cd vcflib-1.0.9
-#git checkout v1.0.9 && git submodule update --recursive --init
-#mkdir -p build && cd build
-#cmake -DPYTHON_EXECUTABLE:FILEPATH=$python3_path/bin/python3 -DZIG=OFF ..
-#cmake --build .
-#cmake -DCMAKE_INSTALL_MANDIR=$folder/vcflib-1.0.9 --install . --prefix $folder/vcflib-1.0.9
 
 #download and build samblaster
 cd $folder
@@ -216,6 +204,11 @@ mkdir bedtools-2.31.0
 cd bedtools-2.31.0
 wget https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtools.static
 chmod 755 bedtools.static
+
+#download GATK
+cd $folder
+wget https://github.com/broadinstitute/gatk/releases/download/4.6.0.0/gatk-4.6.0.0.zip
+unzip gatk-4.6.0.0.zip
 
 #download illuminia ORA decompression tool
 cd $folder

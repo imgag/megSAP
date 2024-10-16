@@ -1273,7 +1273,7 @@ function approve_gene_names($input_genes)
 			$gene =  "NOT_AVAILABLE";
 		}
 		
-		$genes_as_string = $genes_as_string.$gene."\n";
+		$genes_as_string .= $gene."\n";
 	}
 	$non_approved_genes_file = temp_file(".txt", "approve_gene_names");
 	file_put_contents($non_approved_genes_file,$genes_as_string);
@@ -1408,11 +1408,18 @@ function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 	$tmp_bed = temp_file(".bed");
 	exec2("{$ngs_bits}BedExtend -in ".$target_file." -n 1000 -fai {$ref_genome_fasta}.fai | {$ngs_bits}BedMerge -out {$tmp_bed}");
 	exec2("{$ngs_bits}BedSubtract -in ".$ref_bed." -in2 {$tmp_bed} | {$ngs_bits}BedChunk -n 100000 | {$ngs_bits}BedShrink -n 25000 | {$ngs_bits}BedExtend -n 25000 -fai {$ref_genome_fasta}.fai | {$ngs_bits}BedAnnotateGC -ref {$ref_genome_fasta} | {$ngs_bits}BedAnnotateGenes -out {$out}");
+	exec2("{$ngs_bits}BedSort", "-uniq -in $out -out $out");
 }
 
 //returns the allele counts for a sample at a certain position as an associative array, reference skips and start/ends of read segments are ignored
 function allele_count($bam, $chr, $pos)
 {
+	if (ends_with($bam, ".cram"))
+	{
+		trigger_error("This function uses a samtools call without a reference. If you're using CRAM files check first if samtools downloads the reference chromosomes implicitly.", E_USER_ERROR);
+		//output of "samtools mpileup" also changes with reference if you add a reference you need to make the function compatible with the new output.
+	}
+	
 	//get pileup
 	list($output) = exec2(get_path("samtools")." mpileup -aa -r $chr:$pos-$pos $bam");
 	list($chr2, $pos2, $ref2,, $bases) = explode("\t", $output[0]);
@@ -1444,7 +1451,7 @@ function allele_count($bam, $chr, $pos)
 
 			$indel_size = intval($indel_size_as_string);
 			
-			$counts["*"] = $counts["*"] + 1;
+			$counts["*"] += 1;
 			$i += $indel_size - 1; //skip bases that belong to the descroption of the indel, -1 is neccessary due to for loop
 		}
 	}
@@ -2150,9 +2157,10 @@ function is_novaseq_x_run($run_parameters_xml)
 }
 
 //checks if the genome used to map the BAM/CRAM file had masked false duplications
-function genome_masked($bam)
+function genome_masked($bam, $build)
 {
-	list($stdout) = exec2(get_path("samtools")." view {$bam} chr21:6110084-6124379 | wc -l", false);
+	$genome = genome_fasta($build);
+	list($stdout) = exec2(get_path("samtools")." view -T {$genome} {$bam} chr21:6110084-6124379 | wc -l", false);
 	
 	$read_count = trim(implode("", $stdout));
 	
@@ -2164,7 +2172,7 @@ function contains_methylation($bam_file, $n_rows=100)
 {
 	if (!file_exists($bam_file)) trigger_error("BAM file '{$bam_file}'", E_USER_ERROR);
 	// ignore errors occuring of unknown reason (broken pipe)
-	list($stdout) = exec2(get_path("samtools")." view {$bam_file} | head -n {$n_rows}", false);
+	list($stdout) = exec2(get_path("samtools")." view {$bam_file} | head -n {$n_rows}", false); //TODO Leon: reference genome?
 	//additional testing since we cannot rely on samtools error reporting
 	if (count($stdout) != $n_rows) trigger_error("Couldn't extract the first {$n_rows} rows of the BAM file!", E_USER_ERROR);
 

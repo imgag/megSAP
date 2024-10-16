@@ -99,24 +99,16 @@ if(!$somatic)
 		++$c_valid;
 		
 		//check bam
-		$bam = "{$path}/{$sample}.bam";
-		$cram = "{$path}/{$sample}.cram";
-		if (file_exists($bam))
+		list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps {$sample} -type BAM");
+		$bam_or_cram = trim(implode("", $stdout));
+		
+		if (file_exists($bam_or_cram))
 		{
 			++$c_bam;
 			
-			if (check_genome_build($bam, $build ,false)==1)
+			if (check_genome_build($bam_or_cram, $build ,false)==1)
 			{
-				$bams[] = $bam;
-			}
-		}
-		else if (file_exists($cram))
-		{
-			++$c_bam;
-			
-			if (check_genome_build($cram, $build ,false)==1)
-			{
-				$bams[] = $cram;
+				$bams[] = $bam_or_cram;
 			}
 		}
 	}
@@ -141,6 +133,7 @@ if(!$somatic)
 		//process
 		print "$i) Processing $bam ...\n";
 		exec2($ngsbits."BedCoverage -clear -min_mapq 0 -decimals 4 -bam $bam -in $roi -out $cov_file -threads {$threads}");
+		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $cov_file -out $cov_file",true);
 	}
 
 	//chmod
@@ -199,6 +192,15 @@ else //somatic tumor-normal pairs
 	$ref_off_t_dir = get_path("data_folder")."/coverage/{$name}-tumor_off_target";
 	if(!is_dir($ref_off_t_dir)) create_directory($ref_off_t_dir);
 	
+	if ($type=="WGS" || $type=="WGS (shallow)")
+	{
+		$ref_t_dir = "{$ref_t_dir}/bins{$bin_size}/";
+		if(!is_dir($ref_t_dir)) create_directory($ref_t_dir);
+		
+		$ref_n_dir = "{$ref_t_dir}/bins{$bin_size}/";
+		if(!is_dir($ref_n_dir)) create_directory($ref_n_dir);
+	}	
+	
 	
 	print "Processing system: $name\n";
 	print "Target file: $roi\n";
@@ -228,7 +230,6 @@ else //somatic tumor-normal pairs
 		create_off_target_bed_file($off_target_bed,$roi,genome_fasta($build));
 	}
 	
-	
 	$t_count = 0;
 	$t_off_count = 0;
 	$n_count = 0;
@@ -239,49 +240,60 @@ else //somatic tumor-normal pairs
 		if(starts_with($line,"#")) continue;
 		list($sample, $path) = explode("\t", trim($line));
 		$info = get_processed_sample_info($db,$sample);
-
-		$bam = $info["ps_bam"];
+		$bam_or_cram  = $info["ps_bam"];
 		
-		if(!file_exists($bam))
+		if(!file_exists($bam_or_cram))
 		{
-			print "Skipping $sample because $bam does not exist.\n";
+			print "Skipping $sample because $bam_or_cram does not exist.\n";
 			continue;
 		}
-		if (check_genome_build($bam, $build ,false) != 1 )
+		if (check_genome_build($bam_or_cram, $build ,false) != 1 )
 		{
-			print "Skipping $sample because $bam is aligned with reference build other than {$build}.\n";
+			print "Skipping $sample because $bam_or_cram is aligned with reference build other than {$build}.\n";
 			continue;
 		}
 
 		if($info['is_tumor'] == '1')
 		{
-			echo "tumor $bam processing...\n";
-			if(!is_valid_ref_tumor_sample_for_cnv_analysis($sample, false, $include_test_projects))  continue;
+			echo "tumor $bam_or_cram processing...\n";
+			if(!is_valid_ref_tumor_sample_for_cnv_analysis($sample, false, $include_test_projects))
+			{
+				echo "Tumor sample $sample is not valid!\n";
+				continue;
+			}
 			if(!file_exists("{$ref_t_dir}/{$sample}.cov"))
 			{
-				exec2($ngsbits."BedCoverage -min_mapq 0 -decimals 4 -bam $bam -in $roi -out {$ref_t_dir}/{$sample}.cov -threads {$threads}",true);
+				exec2($ngsbits."BedCoverage -clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_t_dir}/{$sample}.cov -threads {$threads}",true);
+				$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in {$ref_t_dir}/{$sample}.cov -out {$ref_t_dir}/{$sample}.cov",true);
 				++$t_count;
 			}
 			//off-target
 			if(!file_exists("{$ref_off_t_dir}/{$sample}.cov"))
 			{
-				exec2($ngsbits."BedCoverage -clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam -out {$ref_off_t_dir}/{$sample}.cov -threads {$threads}" ,true);
+				exec2($ngsbits."BedCoverage -clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_t_dir}/{$sample}.cov -threads {$threads}" ,true);
+				$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in {$ref_off_t_dir}/{$sample}.cov -out {$ref_off_t_dir}/{$sample}.cov",true);
 				++$t_off_count;
 			}
 		}
 		else
 		{
-			echo "normal $bam processing...\n";
-			if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only, $include_test_projects, $include_ffpe)) continue;
+			echo "normal $bam_or_cram processing...\n";
+			if(!is_valid_ref_sample_for_cnv_analysis($sample, $tumor_only, $include_test_projects, $include_ffpe)) 
+			{
+				echo "Normal sample $sample is not valid!\n";
+				continue;
+			}
 			if(!file_exists("{$ref_n_dir}/{$sample}.cov"))
 			{
-				exec2($ngsbits."BedCoverage -clear -min_mapq 0 -decimals 4 -bam $bam -in $roi -out {$ref_n_dir}/{$sample}.cov -threads {$threads}",true);
+				exec2($ngsbits."BedCoverage -clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_n_dir}/{$sample}.cov -threads {$threads}",true);
+				$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in {$ref_n_dir}/{$sample}.cov -out {$ref_n_dir}/{$sample}.cov",true);
 				++$n_count;
 			}
 			//off-target
 			if(!file_exists("{$ref_off_n_dir}/{$sample}.cov"))
 			{
-				exec2($ngsbits."BedCoverage -clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam -out {$ref_off_n_dir}/{$sample}.cov -threads {$threads}" ,true);
+				exec2($ngsbits."BedCoverage -clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_n_dir}/{$sample}.cov -threads {$threads}" ,true);
+				$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in {$ref_off_n_dir}/{$sample}.cov -out {$ref_off_n_dir}/{$sample}.cov",true);
 				++$n_off_count;
 			}
 		}
@@ -291,7 +303,6 @@ else //somatic tumor-normal pairs
 	print "Processed $n_count normal samples and $t_count tumor samples\n";
 	print "Processed $n_off_count normal off-target samples and $t_off_count tumor off-target samples\n";
 	print "\n";
-	
 	
 	//Create list with tumor normal pairs, has to be done every time any cov file is changed
 	print "Creating list with tumor-normal ids {$t_n_list}\n";
@@ -309,9 +320,7 @@ else //somatic tumor-normal pairs
 		if(empty($nid) || !file_exists("{$ref_n_dir}/{$nid}.cov")) continue;
 		fputs($handle,"{$tid},{$nid}\n");
 	}
-	
 	fclose($handle);
-	
 }
 
 ?>

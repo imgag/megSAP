@@ -21,18 +21,42 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+
+def extract_index(row: pd.Series):
+    for k, v in row.items():
+        if k[0] == "Index" and not pd.isna(v):
+            return v
+    return ''
+
+
+# format table
+def format_read_count(x):
+    return f'{x:,}'
+
+def get_excluded_barcodes(row):
+    idx1_len = len(row.split('-')[0])
+    idx2_len = len(row.split('-')[1])
+
+    if ("G" * idx1_len) in row or ("G" * idx2_len) in row:
+        return True
+    return False
+
 def main():
     args = parse_args()
 
     demux_stats = pd.read_csv(args.demux_stats)
     demux_stats["Sample"] = demux_stats["SampleID"]
-    tmp_index = demux_stats[["Lane", "SampleID", "Sample", "Index"]].set_index(["Lane", "SampleID"]).unstack(level=0)[("Index", 1)]
-    tmp_sample = demux_stats[["Lane", "SampleID", "Sample", "Index"]].set_index(["Lane", "SampleID"]).unstack(level=0)[("Sample", 1)]
-    demux_stats = demux_stats[["Lane", "Sample", "# Reads"]].set_index(["Lane", "Sample"]).unstack(level=0)
+    # tmp_index = demux_stats[["Lane", "SampleID", "Sample", "Index"]].set_index(["Lane", "SampleID"]).unstack(level=0)[("Index", 1)]
+    # tmp_sample = demux_stats[["Lane", "SampleID", "Sample", "Index"]].set_index(["Lane", "SampleID"]).unstack(level=0)[("Sample", 1)]
+    demux_stats = demux_stats[["Lane", "Sample", "# Reads", "Index"]].set_index(["Lane", "Sample"]).unstack(level=0)
+    # extract index
+    index = demux_stats.apply(extract_index, axis=1)
+    # remove index columns and fill empty cells
+    demux_stats = demux_stats[[x for x in demux_stats.columns if x[0] == "# Reads"]].fillna(0).astype(int)
     demux_stats.columns = ["# Reads (lane " + str(x[1]) + ")" for x in demux_stats.columns]
     demux_stats["# Reads (total)"] = demux_stats.sum(axis=1)
-    demux_stats.insert(0, "Index", tmp_index)
-    demux_stats.insert(0, "Sample", tmp_sample)
+    demux_stats.insert(0, "Index", index)
+    demux_stats.insert(0, "Sample", demux_stats.index)
 
     unknown_barcodes = pd.read_csv(args.unknown_barcodes)
     unknown_barcodes["Index"] = unknown_barcodes["index"] + "-" + unknown_barcodes["index2"]
@@ -46,10 +70,6 @@ def main():
 
     # combined_table.drop("# Reads (total)", axis=1).drop("Undetermined", axis=0).plot(kind="bar", stacked=True)
 
-    # format table
-    def format_read_count(x):
-        return f'{x:,}'
-
     formatter = {}
     # add formatter for each read count column
     for col_name in combined_table.columns:
@@ -62,14 +82,6 @@ def main():
         output_table.write(raw_html)
 
     print("Table generated!")
-
-    def get_excluded_barcodes(row):
-        idx1_len = len(row.split('-')[0])
-        idx2_len = len(row.split('-')[1])
-
-        if ("G" * idx1_len) in row or ("G" * idx2_len) in row:
-            return True
-        return False
 
     # cleanup data for plotting
     demux_stats = demux_stats.set_index("Sample").drop("# Reads (total)", axis=1).drop("Index", axis=1).drop("Undetermined", axis=0)
@@ -107,4 +119,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

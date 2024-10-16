@@ -16,6 +16,8 @@ $parser->addString("regs", "Comma-separeted list of regions in 'in1' to replace 
 $parser->addOutfile("out", "Output BAM file.", false);
 extract($parser->parse($argv));
 
+$genome = genome_fasta("GRCh38");
+
 //store 'regs' as BED file
 $regs = explode(",", $regs);
 for($i=0; $i<count($regs); ++$i)
@@ -36,12 +38,12 @@ print "Extracting data from 'in1'.\n";
 $roi_sub = $parser->tempFile(".bed");
 exec2(get_path("ngs-bits")."BedSubtract -in {$roi} -in2 {$regs_file} -out {$roi_sub}");
 $bam_in1 = $parser->tempFile(".bam");
-exec2(get_path("samtools")." view -h -L {$roi_sub} -M {$in1} | sed \"s/{$ps_name1}/{$ps_name3}/g\" | sed \"s/{$s_name1}/{$ps_name3}/g\" | ".get_path("samtools")." view -Sb > {$bam_in1}");
+exec2(get_path("samtools")." view -T {$genome} -h -L {$roi_sub} -M {$in1} | sed \"s/{$ps_name1}/{$ps_name3}/g\" | sed \"s/{$s_name1}/{$ps_name3}/g\" | ".get_path("samtools")." view -T {$genome} -Sb > {$bam_in1}");
 
 //extract data from 'in2'
 print "Extracting data from 'in2'.\n";
 $bam_in2 = $parser->tempFile(".bam");
-exec2(get_path("samtools")." view -h -L {$regs_file} -M  {$in2} | sed \"s/{$ps_name2}/{$ps_name3}/g\" | ".get_path("samtools")." view -Sb > {$bam_in2}");
+exec2(get_path("samtools")." view -T {$genome} -h -L {$regs_file} -M  {$in2} | sed \"s/{$ps_name2}/{$ps_name3}/g\" | ".get_path("samtools")." view -T {$genome} -Sb > {$bam_in2}");
 
 //merge bam files
 print "Merging data.\n";

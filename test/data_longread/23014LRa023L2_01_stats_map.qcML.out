@@ -6,10 +6,10 @@
   ]>
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
-    <metaDataParameter ID="md0001" name="creation software" value="MappingQC 2023_03-55-gf7f3a0b9" cvRef="QC" accession="QC:1000002"/>
-    <metaDataParameter ID="md0002" name="creation software parameters" value="-wgs" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2023-06-14T09:51:20" cvRef="QC" accession="QC:1000004"/>
-    <metaDataParameter ID="md0004" name="source file" value="23014LRa023L2_01nGrPTO.bam" cvRef="QC" accession="QC:1000005"/>
+    <metaDataParameter ID="md0001" name="creation software" value="MappingQC 2024_07-15-gd7aa1781" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0002" name="creation software parameters" value="-wgs -long_read" cvRef="QC" accession="QC:1000003"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2024-08-19T15:14:25" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0004" name="source file" value="23014LRa023L2_01pdR6Lk.bam" cvRef="QC" accession="QC:1000005"/>
     <qualityParameter ID="qp0001" name="trimmed base percentage" description="Percentage of bases that were trimmed during to adapter or quality trimming." value="90.45" cvRef="QC" accession="QC:2000019"/>
     <qualityParameter ID="qp0002" name="clipped base percentage" description="Percentage of the bases that are soft-clipped or hand-clipped during mapping." value="6.58" cvRef="QC" accession="QC:2000052"/>
     <qualityParameter ID="qp0003" name="mapped read percentage" description="Percentage of reads that could be mapped to the reference genome." value="100.00" cvRef="QC" accession="QC:2000020"/>

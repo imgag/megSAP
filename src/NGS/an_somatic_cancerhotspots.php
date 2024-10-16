@@ -77,26 +77,27 @@ while(!feof($handle_in))
 	//Make list of amino acid changes predicted from VEP for this variant
 	$vep_alterations = array();
 	$info_parts = explode(";", $parts[7]);
+
 	foreach($info_parts as $info_part)
 	{
 		if(!starts_with($info_part, "CSQ2=")) continue;
 		
-		$csq_parts = explode(",", $info_part);
+		$csq_parts = explode(",", str_replace("CSQ2=", "", $info_part));
+		
 		foreach($csq_parts as $csq_part)
 		{
 			$vep_parts = explode("|", str_replace("CSQ2=","", $csq_part) );
-			
 			
 			$vep_gene = $vep_parts [$i_vep_symbol];
 			$vep_trans = explode(".", $vep_parts [$i_vep_feature].".")[0]; # remove transcript version if annotated
 			
 			//Parse VEP amino acid change
-			$vep_hgvsp_parts = explode(":", vcf_decode_url_string( $vep_parts [$i_vep_hgvsp] ) );
-			if(count($vep_hgvsp_parts) < 2 ) continue;
-			$vep_raw_aa_change = $vep_hgvsp_parts[1];
+			// $vep_hgvsp_parts = explode(":", vcf_decode_url_string( $vep_parts [$i_vep_hgvsp] ) );
+
+			$vep_raw_aa_change = $vep_parts [$i_vep_hgvsp];
 			
 			//Skip protein changes other than p.AAA21321AAA (i.e. substitutions)
-			if(!preg_match("/^p.[a-zA-Z]{3}\d+[a-zA-Z]{3}$/", $vep_raw_aa_change)  ) continue;
+			if(!preg_match("/^p.[a-zA-Z]{3}\d+[a-zA-Z]{3}$/", $vep_raw_aa_change)) continue;
 			
 			$vep_aa_ref = substr( str_replace("p.","", $vep_raw_aa_change), 0,3 );
 			$vep_aa_alt = substr( $vep_raw_aa_change, -3 );

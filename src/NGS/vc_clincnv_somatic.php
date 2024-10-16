@@ -34,6 +34,7 @@ $parser->addInt("max_ref_files", "maximum number of reference file pairs", true,
 $parser->addInt("lengthS", "ClinCNV lengthS parameter", true, 5);
 $parser->addInt("scoreS", "ClinCNV scoreS filter parameter", true, 100);
 $parser->addInt("filterStep", "ClinCNV filter strength.", true, 1);
+$parser->addFloat("purityStep", "ClinCNV purity step", true, 5); // ability to differntiate clones with similar CN - the percentage step 
 $parser->addFlag("test","Test mode (skips annotation from NGSD with overlapping pathogenic CNVs).");
 extract($parser->parse($argv));
 
@@ -138,11 +139,19 @@ if($n_id == "auto")
 
 $data_folder = get_path("data_folder");
 $sys = load_system($system,$t_id);
+$bin_size = get_path("cnv_bin_size_wgs");
 
 //get coverage folder (background)
 if($cov_folder_n=="auto")
 {
-	$cov_folder_n = "{$data_folder}/coverage/".$sys['name_short'];
+	if ($sys["type"] == "WGS")
+	{
+		$cov_folder_n = "{$data_folder}/coverage/".$sys['name_short']."/bins{$bin_size}/";
+	}
+	else
+	{
+		$cov_folder_n = "{$data_folder}/coverage/".$sys['name_short'];
+	}
 }
 if(!is_dir($cov_folder_n))
 {
@@ -162,7 +171,15 @@ if($use_off_target && !is_dir($cov_folder_n_off))
 //get coverage tumor folder
 if($cov_folder_t=="auto")
 {
-	$cov_folder_t = "{$data_folder}/coverage/".$sys['name_short']."-tumor";
+	if ($sys["type"] == "WGS")
+	{
+		$cov_folder_t = "{$data_folder}/coverage/".$sys['name_short']."-tumor/bins{$bin_size}/";
+	}
+	else
+	{
+		$cov_folder_t = "{$data_folder}/coverage/".$sys['name_short']."-tumor";
+	}
+	
 }
 if(!is_dir($cov_folder_t))
 {
@@ -280,6 +297,11 @@ $args = [
 "--noPlot",
 "--folderWithScript ".dirname(get_path("clincnv"))
 ];
+
+if ($sys["type"] == "WGS" || $sys["type"] == "WGS (shallow)")
+{
+	$args[] = "--purityStep $purityStep";
+}
 
 if($use_off_target)
 {

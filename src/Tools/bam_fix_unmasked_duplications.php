@@ -25,7 +25,7 @@ $ngsbits = get_path("ngs-bits");
 $samtools = get_path("samtools");
 $bwa = get_path("bwa-mem2");
 $out_folder = realpath(dirname($out));
-$ref = genome_fasta("GRCh38", true, false);
+$ref = genome_fasta("GRCh38");
 if ($sample == "") $sample = basename2($in);
 print $sample;
 $removed_chromosomes = array();

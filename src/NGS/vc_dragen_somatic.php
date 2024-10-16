@@ -68,7 +68,7 @@ if (file_exists($working_dir))
 {
 	$parser->exec("rm", "-rf $working_dir");
 }
-if (!mkdir($working_dir, 0700))
+if (!mkdir($working_dir, 0777))
 {
 	trigger_error("Could not create working directory '".$working_dir."'!", E_USER_ERROR);
 }
@@ -94,6 +94,15 @@ $dragen_parameter[] = "--vc-callability-tumor-thresh 15"; # default 15 - minimum
 $dragen_parameter[] = "--vc-callability-normal-thresh 5"; # default 5
 $dragen_parameter[] = "--vc-enable-unequal-ntd-errors false"; # disables model to correct FFPE errors.. TODO get to work with model
 #$dragen_parameter[] = "--vc-combine-phased-variants-distance 1"; # Merge variants if they are directly adjecent on the same strand (2 SNVs -> 1 MNP)
+
+//MSI: microsattelite instability:
+if ($n_bam != "")
+{
+	$dragen_parameter[] = "--msi-command tumor-normal";
+	$msi_ref = get_path("data_folder") . "/dbs/msisensor-pro/msisensor_references_".$build.".site";
+	$dragen_parameter[] = "--msi-microsatellites-file $msi_ref";
+	$dragen_parameter[] = "--msi-coverage-threshold 60"; //recommended value is 60 for solid and 500 for liquid tumor (Dragen V4.2)
+}
 
 //SV calling:
 if ($out_sv != "")
@@ -122,6 +131,12 @@ if ($debug)
 $parser->log("Copying SNVs to output folder");
 $parser->copyFile($working_dir."output.vcf.gz", $out);
 $parser->copyFile($working_dir."output.vcf.gz.tbi", $out.".tbi");
+
+if (is_file($working_dir."output.microsat_output.json"))
+{
+	$parser->log("Copying MSI file to output folder");
+	$parser->copyFile($working_dir."output.microsat_output.json", dirname($out)."/".basename($out, ".vcf.gz")."_msi.json");
+}
 
 
 if ($out_sv != "")

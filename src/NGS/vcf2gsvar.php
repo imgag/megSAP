@@ -15,7 +15,16 @@ $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single
 $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
 $parser->addFlag("longread", "Add additional columns for long-read samples (e.g. pahsing information)");
+$parser->addString("custom", "Settings key name for custom column definitions.", true, "");
+$parser->addFlag("test", "Run in test mode. Skips replacing sample headers with NGSD information.");
 extract($parser->parse($argv));
+
+$custom_colums = [];
+if ($custom!="")
+{
+	$tmp = get_path($custom, false);
+	if (is_array($tmp)) $custom_colums = $tmp;
+}
 
 //skip common MODIFIER variants in WGS mode
 function skip_in_wgs_mode($chr, $coding_and_splicing_details, $gnomad, $clinvar, $hgmd, $ngsd_clas)
@@ -141,6 +150,8 @@ function write_header_line($handle, $column_desc, $filter_desc)
 	global $skip_short_read_overlap_annotation;
 	global $column_desc_short_read_overlap_annotation;
 	if(!$skip_short_read_overlap_annotation) $column_desc = array_merge($column_desc, $column_desc_short_read_overlap_annotation);
+	global $column_desc_custom;
+	$column_desc = array_merge($column_desc, $column_desc_custom);
 	
 	//write out header
 	foreach($column_desc as $entry)
@@ -277,12 +288,6 @@ function load_hgnc_db()
 }
 $hgnc = load_hgnc_db();
 
-//check for valid input parameters
-// if ($longread && ($genotype_mode != "single"))
-// {
-// 	trigger_error("Error: Long-read mode is only available for single samples!", E_USER_ERROR);
-// }
-
 //write column descriptions
 $column_desc = array(
 	array("filter", "Annotations for filtering and ranking variants."),
@@ -353,6 +358,13 @@ $column_desc_short_read_overlap_annotation = array(
 	array("in_short-read", "Variant was also found in corresponding short-read WGS sample.")
 );
 
+$column_desc_custom = [];
+foreach($custom_colums as $key => $tmp)
+{
+	list($vcf, $col, $desc) = explode(";", $tmp, 3);
+	$column_desc_custom[] = [$key, $desc];
+}
+
 if ($genotype_mode=="single")
 {
 	// add phasing info for long-reads
@@ -381,6 +393,7 @@ $skip_cancerhotspots = true; //true as long as no CANCERHOTSPOTS header is found
 $skip_short_read_overlap_annotation = true; //true as long as no IN_SHORT_READ header is found.
 $missing_domains = [];
 $multisample_vcf = false; //determines if the input VCF is a standard multi-sample VCF or single-sample VCF/megSAP multi-sample VCF (no extra columns for each sample)
+$annotate_refseq_consequences = false;
 
 //write date (of input file)
 fwrite($handle_out, "##CREATION_DATE=".date("Y-m-d", filemtime($in))."\n");
@@ -477,7 +490,7 @@ while(!feof($handle))
 			if ($genotype_mode=="single")
 			{
 				// replace sample header with NGSD enry:
-				if (db_is_enabled("NGSD")) $line = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "##", "");
+				if (db_is_enabled("NGSD") && !$test) $line = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "##", "");
 				if ($column_desc[0][0]!="genotype")
 				{
 					trigger_error("Several sample header lines in 'single' mode!", E_USER_ERROR);
@@ -526,7 +539,7 @@ while(!feof($handle))
 			$i_pubmed = index_of($cols, "PUBMED", "CSQ"); 
 		}
 
-		//get annotation indices in CSQ field from VcfAnnotateConsequence
+		//get annotation indices in CSQ field from VcfAnnotateConsequence (also used for CSQ_REFSEQ)
 		if (starts_with($line, "##INFO=<ID=CSQ2,"))
 		{
 			$cols = explode("|", substr($line, 0, -2));
@@ -539,6 +552,12 @@ while(!feof($handle))
 			$i_vac_intron = index_of($cols, "INTRON", "CSQ2");
 			$i_vac_hgvsc = index_of($cols, "HGVSc", "CSQ2");
 			$i_vac_hgvsp = index_of($cols, "HGVSp", "CSQ2");		
+		}
+		//determine if RefSeq annotation is present
+		if (starts_with($line, "##INFO=<ID=CSQ_REFSEQ,"))
+		{
+			$annotate_refseq_consequences = true;
+			$column_desc[] = ["coding_and_splicing_refseq", "Variant consequence based on RefSeq transcripts (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p)."];
 		}
 		
 		// detect NGSD header lines
@@ -887,6 +906,7 @@ while(!feof($handle))
 	$genes = array();
 	$variant_details = array();
 	$coding_and_splicing_details = array();
+	$coding_and_splicing_refseq = array();
 	$af_gnomad_genome = array();
 	$af_gnomad_afr = array();
 	$af_gnomad_amr = array();
@@ -902,12 +922,12 @@ while(!feof($handle))
 	$maxentscan = array();
 	$regulatory = array();
 	$pubmed = array();
+	$custom_column_data = [];
 	
-	//variant details (up/down-stream)
+	//variant details based on Ensembl (up/down-stream)
 	$variant_details_updown = array();
 	$genes_updown = array();
 	$coding_and_splicing_details_updown = array(); 
-
 	if (isset($info["CSQ"]) && isset($info["CSQ2"]))
 	{
 		//VEP - used for regulatory features, PubMed, Domains
@@ -976,7 +996,7 @@ while(!feof($handle))
 					// append description
 					if (array_key_exists($domain, $pfam_description))
 					{
-						$domain_description = $domain_description.$pfam_description[$domain];
+						$domain_description .= $pfam_description[$domain];
 					}
 
 					// throw error if Pfam id is neither found in replacement data nor in description data
@@ -1007,7 +1027,7 @@ while(!feof($handle))
 			}
 		}
 		
-		//VcfAnnotateConsequence
+		//VcfAnnotateConsequence (Ensembl)
 		foreach(explode(",", $info["CSQ2"]) as $entry)
 		{			
 			$entry = trim($entry);
@@ -1092,7 +1112,54 @@ while(!feof($handle))
 			}
 		}	
 	}
-		
+
+	if (isset($info["CSQ_REFSEQ"]))
+	{
+		//VcfAnnotateConsequence (RefSeq)
+		foreach(explode(",", $info["CSQ_REFSEQ"]) as $entry)
+		{
+			$entry = trim($entry);
+			if ($entry=="") continue;
+			
+			$parts = explode("|", $entry);
+			
+			$transcript_id = trim($parts[$i_vac_feature]);
+			
+			$consequence = $parts[$i_vac_consequence];
+			$consequence = strtr($consequence, ["&NMD_transcript_variant"=>"", "splice_donor_variant&intron_variant"=>"splice_donor_variant", "splice_acceptor_variant&intron_variant"=>"splice_acceptor_variant"]);
+			
+			//determine gene name (update if neccessary)
+			$gene = trim($parts[$i_vac_symbol]);
+			if ($gene!="")
+			{
+				$hgnc_id = $parts[$i_vac_hgnc_id];
+				$hgnc_id = trim(strtr($hgnc_id, array("HGNC:"=>"")));
+				if (isset($hgnc[$hgnc_id]))
+				{
+					$hgnc_gene = $hgnc[$hgnc_id];
+					if ($gene!=$hgnc_gene)
+					{
+						$gene = $hgnc_gene;
+					}
+				}
+			}
+			
+			//exon
+			$exon = trim($parts[$i_vac_exon]);
+			if ($exon!="") $exon = "exon".$exon;
+			$intron = trim($parts[$i_vac_intron]);
+			if ($intron!="") $intron = "intron".$intron;
+			
+			//hgvs
+			$hgvs_c = trim($parts[$i_vac_hgvsc]);
+			$hgvs_p = trim($parts[$i_vac_hgvsp]);
+			$hgvs_p = str_replace("%3D", "=", $hgvs_p);
+			
+			//add transcript information
+			$coding_and_splicing_refseq[] = "{$gene}:{$transcript_id}:".$consequence.":".$parts[$i_vac_impact].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}";
+		}	
+	}
+			
 	//MaxEntScan
 	$mes_by_trans = [];
 	if (isset($info["MES"])) //parse MES scores for native splice site
@@ -1462,6 +1529,13 @@ while(!feof($handle))
 	//COSMIC
 	$cosmic = implode(",", collapse($tag, "COSMIC", $cosmic, "unique"));
 	
+	//custom columns
+	foreach($custom_colums as $key => $tmp)
+	{
+		list($vcf, $col, $desc) = explode(";", $tmp, 3);
+		$custom_column_data[$key] = isset($info["CUSTOM_".$col]) ? $info["CUSTOM_".$col] : "";
+	}
+	
 	//skip common MODIFIER variants in WGS mode
 	if ($wgs && skip_in_wgs_mode($chr, $coding_and_splicing_details, $gnomad, $clinvar, $hgmd, $ngsd_clas))
 	{
@@ -1485,6 +1559,10 @@ while(!feof($handle))
 		fwrite($handle_out,"\t".$phasing_info);
 	}
 	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$cadd\t$revel\t$alphamissense\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
+	if ($annotate_refseq_consequences)
+	{
+		fwrite($handle_out, "\t".implode(",", $coding_and_splicing_refseq));
+	}
 	if (!$skip_ngsd_som)
 	{
 		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");
@@ -1512,7 +1590,15 @@ while(!feof($handle))
 		fwrite( $handle_out, str_repeat("\t", count($column_desc_cancerhotspots) ) );
 	}
 
-	if (!$skip_short_read_overlap_annotation) fwrite($handle_out, "\t".$in_short_read_sample);
+	if (!$skip_short_read_overlap_annotation)
+	{
+		fwrite($handle_out, "\t".$in_short_read_sample);
+	}
+	
+	foreach($custom_colums as $key => $tmp)
+	{
+		fwrite($handle_out, "\t".$custom_column_data[$key]);
+	}
 
 	fwrite($handle_out, "\n");
 }

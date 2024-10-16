@@ -270,13 +270,13 @@ function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 }
 
 //imports the result into NGSD
-function import_ngsd(&$db, $ps, $rmp, $c_both, $c_match)
+function import_ngsd(&$db, $ps, $rmp, $c_both, $c_match, $user_id)
 {
 	//determine processed sample id from BAM name
 	$ps_id = get_processed_sample_id($db, $ps);
 	
 	$db->executeStmt("DELETE FROM kasp_status WHERE processed_sample_id=:ps_id", array("ps_id"=>$ps_id));
-	$db->executeStmt("INSERT INTO kasp_status VALUES (:ps_id,:rmp,:c_both,:c_match)", array("ps_id"=>$ps_id, "rmp"=>$rmp, "c_both"=>$c_both, "c_match"=>$c_match));
+	$db->executeStmt("INSERT INTO kasp_status VALUES (:ps_id,:rmp,:c_both,:c_match,now(),:calculated_by)", array("ps_id"=>$ps_id, "rmp"=>$rmp, "c_both"=>$c_both, "c_match"=>$c_match, "calculated_by"=>$user_id));
 }
 
 //returns if a valid error probability exists in NGSD for the sample
@@ -300,7 +300,17 @@ $parser->addFlag("irp", "Include research projects.");
 $parser->addFlag("itp", "Include test projects.");
 $parser->addFlag("ibad", "Include bad processed samples.");
 $parser->addFlag("missing_only", "Only perform KASP<>NGS check for samples that don't have a entry in NGSD yet.");
+$parser->addString("user", "Name of the user performing the KASP analysis and import (current user if unset).", true, "");
 extract($parser->parse($argv));
+
+//get user ID from NGSD
+if ($user=="") $user = exec('whoami');
+$db = DB::getInstance("NGSD");
+$user_id = $db->getValue("SELECT id FROM user WHERE user_id='".$user."' AND active='1'", -1);
+if ($user_id==-1)
+{
+	trigger_error("User '$user' not found in NGSD!", E_USER_ERROR);
+}
 
 if ($snps=="set1")
 {
@@ -484,7 +494,7 @@ foreach($file as $line)
 						$output[] = "$dna_number\t$rmp\t$c_kasp\t$c_both\t$c_match\t$bam\n";
 					
 						//NGSD import of results
-						import_ngsd($db, $ps, $rmp, $c_both, $c_match);
+						import_ngsd($db, $ps, $rmp, $c_both, $c_match, $user_id);
 					}
 					print "\n";
 					foreach($messages as $message)

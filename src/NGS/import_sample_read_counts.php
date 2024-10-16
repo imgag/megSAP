@@ -32,7 +32,7 @@ function read_novaseq_json_file($filename)
 			if (array_key_exists($sample_name, $read_counts))
 			{
 				// add read counts to read count from previous lanes
-				$read_counts[$sample_name] = $read_counts[$sample_name] + $sample_read_count;
+				$read_counts[$sample_name] += $sample_read_count;
 			}
 			else
 			{

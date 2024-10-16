@@ -18,6 +18,10 @@ copy_SomaticAndTreatment_diagnostic:
 	mkdir -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls
 	cp -r Analysis/3/Data/DragenEnrichment/DX181277_05/logs /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/
 	cp Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/report.html /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/logs
+	touch Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/*.bai
+	touch Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/*.crai
+	touch Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/*.tbi
+	touch Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/*.csi
 	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.cram /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/
 	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.cram.crai /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/
 	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.vcf.gz /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.vcf.gz
@@ -32,6 +36,10 @@ copy_SomaticAndTreatment_diagnostic:
 	mkdir -p /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/dragen_variant_calls
 	cp -r Analysis/3/Data/DragenEnrichment/DX181278_05/logs /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/dragen_variant_calls/
 	cp Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/report.html /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/dragen_variant_calls/logs
+	touch Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/*.bai
+	touch Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/*.crai
+	touch Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/*.tbi
+	touch Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/*.csi
 	mv  Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.cram /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/
 	mv  Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.cram.crai /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05/
 	chmod -R 775 /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX181278_05

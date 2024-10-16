@@ -20,10 +20,10 @@ $rsync = "rsync --size-only --recursive --no-perms --no-acls --omit-dir-times --
 $ngsbits = get_path("ngs-bits");
 
 //determine DB files
-$db_files = array("/dbs/CADD/CADD_SNVs_1.6_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.6_GRCh38.vcf.gz", "/dbs/REVEL/REVEL_1.3.vcf.gz", "/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.2_GRCh38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed", "/dbs/ClinVar/clinvar_20240127_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2023_12_20_GRCh38.vcf.gz");
+$db_files = array("/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz", "/dbs/REVEL/REVEL_1.3.vcf.gz", "/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed", "/dbs/ClinVar/clinvar_20240805_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz");
 $omim =  "/dbs/OMIM/omim.bed";
 if (file_exists($data_folder.$omim)) $db_files[] = $omim; //optional
-$hgmd =  "/dbs/HGMD/HGMD_PRO_2023_3_fixed.vcf.gz";
+$hgmd =  "/dbs/HGMD/HGMD_PRO_2024_2_fixed.vcf.gz";
 if (file_exists($data_folder.$hgmd)) $db_files[] = $hgmd; //optional
 
 ######################### reference genome #########################
@@ -140,7 +140,7 @@ if ($build=="GRCh38")
 	
 	//remove outdated annotation data
 	$update = false;
-	$info = "/homo_sapiens/110_GRCh38/info.txt"; //ensembl-vep-110
+	$info = "/homo_sapiens/112_GRCh38/info.txt"; //ensembl-vep-112
 	if (file_exists("{$local_annotation_folder}/{$info}"))
 	{
 		exec("diff {$local_annotation_folder}/{$info} {$annotation_folder}/{$info}", $output, $code);
@@ -195,7 +195,7 @@ if ($build=="GRCh38")
 ######################### VEP annotation databases #########################
 if ($build=="GRCh38")
 {
-	if (get_path("copy_vep_dbs_to_local_data"))
+	if (get_path("copy_dbs_to_local_data"))
 	{
 		$local_annotation_folder = "{$local_data}/ensembl-vep-dbs/";
 

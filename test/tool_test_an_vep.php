@@ -29,11 +29,21 @@ check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name
 remove_lines_containing($out_file3, array("##VEP=\"v", "##VEP-command-line='", "##INFO=<ID=NGSD_GENE_INFO,"));
 check_file($out_file3, data_folder().$name."_out3.vcf", true);
 
-//DRAGEN
+//DRAGEN and RefSeq
 $out_file_dragen = output_folder().$name."_out_dragen.vcf";
-check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in_dragen.vcf -out $out_file_dragen --log ".output_folder().$name."_out_dragen.log");
+check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in_dragen.vcf -out $out_file_dragen --log ".output_folder().$name."_out_dragen.log -annotate_refseq_consequences");
 remove_lines_containing($out_file_dragen, array("##VEP=\"v", "##VEP-command-line='", "##INFO=<ID=NGSD_GENE_INFO,"));
 check_file($out_file_dragen, data_folder().$name."_out_dragen.vcf", true);
+
+//DRAGEN and custom annotations
+$custom_colums_test = get_path("custom_colums_test");
+if (is_array($custom_colums_test))
+{
+	$out_file_dragen2 = output_folder().$name."_out_dragen2.vcf";
+	check_exec("php ".src_folder()."/NGS/{$name}.php -test -in ".data_folder().$name."_in_dragen.vcf -out $out_file_dragen2 --log ".output_folder().$name."_out_dragen2.log -custom custom_colums_test");
+	remove_lines_containing($out_file_dragen2, array("##VEP=\"v", "##VEP-command-line='", "##INFO=<ID=NGSD_GENE_INFO,"));
+	check_file($out_file_dragen2, data_folder().$name."_out_dragen2.vcf", true);
+}
 
 //tests with NGSD disease group annotations - these tests will be run only if NGSD is available (i.e. not in nightly tests)
 if (db_is_enabled("NGSD")) 

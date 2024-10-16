@@ -1,5 +1,11 @@
 # megSAP - DNA analysis (multi-sample and trio)
 
+## Prerequisite: Single sample analysis
+
+The multi-sample and trio pipelines require files form the sinlge sample analysis (BAM ,CNV, ...).  
+Thus, each samples has to be analyzed using the [single sample analysis](dna_single_sample.md) first.  
+After the single-sample analyses, the multi-sample or trio analysis is perfomed.
+
 ## Multi-sample pipeline
 
 ### Basics

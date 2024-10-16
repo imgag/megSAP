@@ -38,9 +38,8 @@ class ToolBase
 		// check name
 		$filename = basename($_SERVER['SCRIPT_FILENAME']);
 		if ($filename != $name.".php")
-		{
-			print "ERROR: Tool name '$name' and file name '$filename' do not match.\n";
-			exit(1);
+		{			
+			trigger_error("Tool name '$name' and file name '$filename' do not match!", E_USER_ERROR);
 		}
 		
 		// Set start time
