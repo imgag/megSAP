@@ -7,7 +7,7 @@ require_once("framework.php");
 $name = "vc_clair";
 start_test($name);
 
-/*
+
 ########################## SQK-LSK114 ##################
 $model1 = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
 check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in1.bam -folder ".output_folder()." -target ".data_folder().$name."_in_roi.bed -name LSK114_01 -model {$model1} -threads 4 --log ".output_folder().$name."_out1.log");
@@ -17,7 +17,6 @@ check_file(output_folder()."LSK114_01_var.vcf.gz", data_folder().$name."_out1.vc
 $model2 = get_path("clair3_models")."/r941_prom_sup_g5014/";
 check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in2.bam -folder ".output_folder()." -target ".data_folder().$name."_in_roi.bed -name LSK109_01 -model {$model2} -threads 4 --log ".output_folder().$name."_out2.log");
 check_file(output_folder()."LSK109_01_var.vcf.gz", data_folder().$name."_out2.vcf.gz");
-*/
 
 ########################## SQK-LSK114 mito-calling ##################
 $model1 = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";

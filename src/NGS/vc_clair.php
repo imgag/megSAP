@@ -22,8 +22,6 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 
 extract($parser->parse($argv));
 
-//TODO: check output folder
-
 //init
 $genome = genome_fasta($build);
 
@@ -96,31 +94,38 @@ $args_mito[] = "--output={$clair_mito_temp}";
 $target_mito = $parser->tempFile("_mito.bed");
 file_put_contents($target_mito, "chrMT\t0\t16569");
 $args_mito[] = "--bed_fn={$target_mito}";
-// $args_mito[] = "--min_coverage=2";
-// $args_mito[] = "--snp_min_af=0.01";
-// $args_mito[] = "--indel_min_af=0.01";
 $args_mito[] = "--haploid_sensitive";
 
 putenv("PYTHONPATH=".dirname(get_path("clair3")));
 $parser->exec(get_path("clair3"), implode(" ", $args_mito));
 $clair_mito_vcf = $clair_mito_temp."/merge_output.vcf.gz";
-
-//TODO: remove
-$parser->exec("zcat", $clair_mito_vcf);
+$clair_mito_gvcf = $clair_mito_temp."/merge_output.gvcf.gz";
 
 
+//merge VCFs (normal calls + mito)
+$clair_merged_vcf1 = $parser->tempFile("_merged.vcf");
+$clair_merged_vcf2 = $parser->tempFile("_merged.vcf.gz");
+$parser->exec(get_path("ngs-bits")."VcfMerge", "-in {$clair_vcf} {$clair_mito_vcf} -out {$clair_merged_vcf1}");
+$parser->exec(get_path("ngs-bits")."VcfSort", "-compression_level 5 -in {$clair_merged_vcf1} -out {$clair_merged_vcf2}");
 
-//merge VCFs
-$clair_merged_vcf = $parser->tempFile("_merged.vcf");
-$parser->exec(get_path("ngs-bits")."VcfMerge", "-in {$clair_vcf} {$clair_mito_vcf} -out {$clair_merged_vcf}");
-$parser->exec(get_path("ngs-bits")."VcfSort", "-in {$clair_merged_vcf} -out {$clair_merged_vcf}");
+if (file_exists($clair_mito_gvcf))
+{
+	$clair_merged_gvcf1 = $parser->tempFile("_merged.gvcf");
+	$clair_merged_gvcf2 = $parser->tempFile("_merged.gvcf.gz");
+	$parser->exec(get_path("ngs-bits")."VcfMerge", "-in {$clair_gvcf} {$clair_mito_gvcf} -out {$clair_merged_gvcf1}");
+	$parser->exec(get_path("ngs-bits")."VcfSort", "-compression_level 5  -in {$clair_merged_gvcf1} -out {$clair_merged_gvcf2}");
+}
+else
+{
+	$clair_merged_gvcf2 = $clair_gvcf;
+}
 
 
 //post-processing 
 $pipeline = array();
 
-//stream vcf.gz
-$pipeline[] = array("cat", "{$clair_merged_vcf}");
+//stream vcf
+$pipeline[] = array("zcat", "{$clair_merged_vcf2}");
 
 //filter variants according to variant quality>5
 $pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -remove_invalid -ref $genome");
@@ -174,7 +179,8 @@ $parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because To
 
 //create/copy gvcf:
 $pipeline = array();
-$pipeline[] = array("zcat", $clair_gvcf);
+
+$pipeline[] = array("zcat", $clair_merged_gvcf2);
 $pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-remove_invalid -ref $genome");
 $pipeline[] = array("bgzip", "-c > {$out_gvcf}");
 $parser->execPipeline($pipeline, "gVCF post processing");
