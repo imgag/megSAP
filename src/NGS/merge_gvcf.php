@@ -144,6 +144,7 @@ foreach($chr_regions as list($chr, $length))
 	$args[] = "-O {$temp_folder_out}/{$chr}.vcf.gz";
 	$args[] = "--call-genotypes";
 	$args[] = "--seconds-between-progress-updates 3600"; //only update progress once every hour to keep log-file smaller
+	if ($mode=="longread") $args[] = "--standard-min-confidence-threshold-for-calling 5"; //decrease threshold in longread-mode to improve de-novo calling 
 
 	$jobs_call_genotypes[] = array($job_name, $command." ".implode(" ", $args));
 }
