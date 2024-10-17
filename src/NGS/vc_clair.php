@@ -32,7 +32,6 @@ $clair_mito_temp = $parser->tempFolder("clair_mito_temp");
 
 $out = "{$folder}/{$name}_var.vcf.gz";
 $out_gvcf = "{$folder}/{$name}_var.gvcf.gz";
-$model_path = get_path("clair3_models");
 
 //create basic variant calls
 $args = array();
@@ -44,19 +43,21 @@ $args[] = "--model_path={$model}";
 $args[] = "--keep_iupac_bases";
 $args[] = "--gvcf";
 $args[] = "--sample_name={$name}";
+
 //set bind paths for clair3 container
 $in_files = array();
-$out_files = array();
 
 //copy settings for mito calling
 $args_mito = $args;
 
 //set output
 $args[] = "--output={$clair_temp}";
+
 $in_files[] = $bam;
-$out_files[] = $folder;
 $in_files[] = $genome;
-$in_files[] = $model_path;//calculate target region
+$in_files[] = $model;
+
+//calculate target region
 if(isset($target))
 {	
 	//extend by 'n' bases
@@ -83,7 +84,7 @@ if(isset($target))
 }
 
 //run Clair3 container
-$parser->execSingularity("clair3", get_path("container_clair3"), "/opt/bin/run_clair3.sh", implode(" ", $args), $in_files, $out_files);
+$parser->execSingularity("clair3", get_path("container_clair3"), "/opt/bin/run_clair3.sh", implode(" ", $args), $in_files);
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
 $clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
 
@@ -94,8 +95,7 @@ file_put_contents($target_mito, "chrMT\t0\t16569");
 $args_mito[] = "--bed_fn={$target_mito}";
 $args_mito[] = "--haploid_sensitive";
 
-putenv("PYTHONPATH=".dirname(get_path("clair3")));
-$parser->exec(get_path("clair3"), implode(" ", $args_mito));
+$parser->execSingularity("clair3", get_path("container_clair3"), "/opt/bin/run_clair3.sh", implode(" ", $args_mito), $in_files);
 $clair_mito_vcf = $clair_mito_temp."/merge_output.vcf.gz";
 $clair_mito_gvcf = $clair_mito_temp."/merge_output.gvcf.gz";
 
@@ -103,15 +103,15 @@ $clair_mito_gvcf = $clair_mito_temp."/merge_output.gvcf.gz";
 //merge VCFs (normal calls + mito)
 $clair_merged_vcf1 = $parser->tempFile("_merged.vcf");
 $clair_merged_vcf2 = $parser->tempFile("_merged.vcf.gz");
-$parser->exec(get_path("ngs-bits")."VcfMerge", "-in {$clair_vcf} {$clair_mito_vcf} -out {$clair_merged_vcf1}");
-$parser->exec(get_path("ngs-bits")."VcfSort", "-compression_level 5 -in {$clair_merged_vcf1} -out {$clair_merged_vcf2}");
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfMerge", "-in {$clair_vcf} {$clair_mito_vcf} -out {$clair_merged_vcf1}");
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-compression_level 5 -in {$clair_merged_vcf1} -out {$clair_merged_vcf2}");
 
 if (file_exists($clair_mito_gvcf))
 {
 	$clair_merged_gvcf1 = $parser->tempFile("_merged.gvcf");
 	$clair_merged_gvcf2 = $parser->tempFile("_merged.gvcf.gz");
-	$parser->exec(get_path("ngs-bits")."VcfMerge", "-in {$clair_gvcf} {$clair_mito_gvcf} -out {$clair_merged_gvcf1}");
-	$parser->exec(get_path("ngs-bits")."VcfSort", "-compression_level 5  -in {$clair_merged_gvcf1} -out {$clair_merged_gvcf2}");
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfMerge", "-in {$clair_gvcf} {$clair_mito_gvcf} -out {$clair_merged_gvcf1}");
+	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-compression_level 5  -in {$clair_merged_gvcf1} -out {$clair_merged_gvcf2}");
 }
 else
 {
