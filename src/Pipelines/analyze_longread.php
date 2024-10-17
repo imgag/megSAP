@@ -111,6 +111,20 @@ $qc_other  = $folder."/".$name."_stats_other.qcML";
 $name_sample_ps = explode("_", $name, 2);
 $sample_name = $name_sample_ps[0];
 
+//check if target region covers whole genome
+list($stdout, $stderr, $ec) = $parser->exec($ngsbits."BedInfo", "-in ".$sys['target_file']);
+$is_wgs = false;
+foreach($stdout as $line)
+{
+	if( starts_with($line, "Bases:"))
+	{
+		$target_size = (int) explode(":", $line)[1];
+		$is_wgs = ($target_size > 3e9);
+	}
+}
+if(!$is_wgs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in calling files.", E_USER_WARNING);
+
+
 //mapping
 if (in_array("ma", $steps))
 {
@@ -242,6 +256,9 @@ if (in_array("vc", $steps))
 	$args[] = "-model ".$basecall_model_path;
 	
 	$parser->execTool("NGS/vc_clair.php", implode(" ", $args));	
+
+	//check for truncated VCF file
+	if ($is_wgs) check_for_missing_chromosomes($vcf_file);
 
 	//create b-allele frequency file
 	$params = array();
@@ -491,6 +508,11 @@ if (in_array("an", $steps))
 		//run annotation pipeline
 		$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
 
+		//check for truncated VCF file
+		if ($is_wgs) check_for_missing_chromosomes($vcf_file_annotated);
+		if ($is_wgs) check_for_missing_chromosomes($var_file);
+
+
 		//ROH detection
 		$in_files = array();
 		$in_files[] = $folder;
@@ -548,6 +570,9 @@ if (in_array("an", $steps))
 			//annotate overlap with pathogenic CNVs
 			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDAnnotateCNV", "-in {$cnv_file} -out {$cnv_file}", [$folder]);
 		}
+
+		//check for truncated VCF file
+		if ($is_wgs) check_for_missing_chromosomes($cnv_file);
 	}
 	else
 	{
@@ -643,7 +668,10 @@ if (in_array("an", $steps))
 		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeExtractInfoField", "-in $bedpe_file -out $bedpe_file -info_fields SVLEN,SUPPORT,COVERAGE,AF", [$folder]);
 
 		//update sample entry 
-		update_gsvar_sample_header($bedpe_file, array($name=>"Affected"));		
+		update_gsvar_sample_header($bedpe_file, array($name=>"Affected"));	
+		
+		//check for truncated VCF file
+		if ($is_wgs) check_for_missing_chromosomes($bedpe_file);
 	}
 
 }
@@ -848,13 +876,13 @@ if (in_array("db", $steps))
 	//import variants
 	$args = ["-ps {$name}"];
 	$import = false;
+	$args[] = "-force";
 	if (file_exists($var_file))
 	{
 		//check genome build
 		check_genome_build($var_file, $build);
 		
 		$args[] = "-var {$var_file}";
-		$args[] = "-var_force";
 		$import = true;
 	}
 	if (file_exists($cnv_file))
@@ -863,7 +891,6 @@ if (in_array("db", $steps))
 		//this is not possible for CNVs because the file does not contain any information about it
 		
 		$args[] = "-cnv {$cnv_file}";
-		$args[] = "-cnv_force";
 		$import = true;
 	}
 	if (file_exists($bedpe_file))
@@ -872,7 +899,6 @@ if (in_array("db", $steps))
 		check_genome_build($bedpe_file, $build);
 		
 		$args[] = "-sv {$bedpe_file}";
-		$args[] = "-sv_force";
 		$import = true;
 	}
 	if (file_exists($straglr_file))
@@ -881,7 +907,6 @@ if (in_array("db", $steps))
 		check_genome_build($straglr_file, $build);
 		
 		$args[] = "-re {$straglr_file}";
-		$args[] = "-re_force";
 		$import = true;
 	}
 	if ($import)

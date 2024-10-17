@@ -15,7 +15,7 @@ require_once("db.php");
 require_once("rtf.php");
 
 //basic error_handler for all libraries, reports only E_USER_ERROR
-function basic_error_handler($level, $message, $file, $line, $context)
+function basic_error_handler($level, $message, $file, $line, $context="")
 {
         if ($level & E_USER_ERROR)
         {

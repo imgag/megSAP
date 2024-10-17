@@ -158,7 +158,7 @@ class ToolBase
 	}
 	
 	/// Handles errors
-	function error_handler($level, $message, $file, $line, $context)
+	function error_handler($level, $message, $file, $line, $context="")
 	{
 		$type = "";
 		//log error
