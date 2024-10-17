@@ -809,16 +809,23 @@ function execSingularity($container, $container_version, $command, $parameters, 
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
 	if($container === "ngs-bits")
 	{
-		$settings_file = repository_basedir()."/data/tools/ngsbits_settings.ini";
-		if (file_exists($settings_file))
+		$ngsbits_settings_net = get_path("ngs-bits")."/settings.ini";
+		$ngsbits_settings_loc = repository_basedir()."/data/tools/ngsbits_settings.ini";
+		if (file_exists($ngsbits_settings_net))
 		{
-			$parameters = "--settings {$settings_file} ".$parameters;
-			$bind_paths[] = $settings_file.":".$settings_file;
+			$parameters = "--settings {$ngsbits_settings_net} ".$parameters;
+			$bind_paths[] = $ngsbits_settings_net.":".$ngsbits_settings_net;
+		}
+		else if (file_exists($ngsbits_settings_loc))
+		{
+			$parameters = "--settings {$ngsbits_settings_loc} ".$parameters;
+			$bind_paths[] = $ngsbits_settings_loc.":".$ngsbits_settings_loc;
 		}
 		else 
 		{
-			trigger_error("Ngs-bits settings file {$settings_file} not found!", E_USER_ERROR);
+			trigger_error("Ngs-bits settings file neither found in '{$ngsbits_settings_net}' nor in '{$ngsbits_settings_loc}'!", E_USER_ERROR);
 		}
+		//TODO remove $ngsbits_settings_net part as soon as the ngs-bits installation is gone. But then we have to handle cases where createNgsBitsIni() is not executed.
 	}
 
 	//prevent execution of pipes - exit code is not handled correctly with pipes!
@@ -873,8 +880,10 @@ function execSingularity($container, $container_version, $command, $parameters, 
 
 	if($container === "SigProfilerExtractor")
 	{
-		$bind_paths[] = "/mnt/storage2/users/ahiliuk1/test_modified_tools/extract_signatures/test1/templates:/usr/local/lib/python3.8/site-packages/sigProfilerPlotting/templates/";
-		$bind_paths[] = "/mnt/storage2/users/ahiliuk1/test_modified_tools/extract_signatures/test1/CosmicTemplates:/usr/local/lib/python3.8/site-packages/SigProfilerAssignment/DecompositionPlots/CosmicTemplates";
+		$templates_dir = temp_folder();
+		$cosmic_templates_dir = temp_folder();
+		$bind_paths[] = "{$templates_dir}:/usr/local/lib/python3.8/site-packages/sigProfilerPlotting/templates/";
+		$bind_paths[] = "{$cosmic_templates_dir}:/usr/local/lib/python3.8/site-packages/SigProfilerAssignment/DecompositionPlots/CosmicTemplates";
 	}
 
 	//check bind paths

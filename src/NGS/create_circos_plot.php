@@ -279,7 +279,7 @@ else
 }
 
 // parse SV file and extract high-quality translocations
-$sv_file = "$folder/${name}_manta_var_structural.bedpe";
+$sv_file = "$folder/{$name}_manta_var_structural.bedpe";
 $sv_filter = repository_basedir() . "/data/misc/circos/sv_filter.ini";
 
 $sv_temp_file = $temp_folder."/sv.tsv";
@@ -383,7 +383,11 @@ trigger_error("Remaining BND entries: \t$n_bnds", E_USER_NOTICE);
 
 
 // create Circos plot
-$parser->execSingularity("circos", get_path("container_circos"), "circos", "-nosvg -conf $circos_config_file");
+/* $perl_cpan = get_path("perl_cpan");
+putenv("PERL5LIB=".$perl_cpan."/lib/perl5/:".getenv("PERL5LIB"));
+$circos_bin = get_path("circos");
+$parser->exec($circos_bin, "-nosvg -conf $circos_config_file", true); */
+$parser->execSingularity("circos", get_path("container_circos"), "circos", "-nosvg -conf $circos_config_file", [repository_basedir() . "/data/misc"]);
 
 // copy PNG to sample folder
 $parser->moveFile("$temp_folder/${name}_circos.png", "$folder/${name}_circos.png");
