@@ -119,10 +119,12 @@ list($stdout, $stderr, $ec) = $parser->exec($ngsbits."BedInfo", "-in ".$sys['tar
 $is_wgs = false;
 foreach($stdout as $line)
 {
-	if( starts_with($line, "Bases:"))
+	if( starts_with($line, "Bases"))
 	{
 		$target_size = (int) explode(":", $line)[1];
+		trigger_error("Taget region size: {$target_size} bp");
 		$is_wgs = ($target_size > 3e9);
+		break;
 	}
 }
 if(!$is_wgs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in calling files.", E_USER_WARNING);

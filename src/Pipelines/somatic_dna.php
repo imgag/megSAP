@@ -806,7 +806,7 @@ if(in_array("cn",$steps))
 	{
 		// coverage file for normal sample
 		$n_cov = "{$ref_folder_n}/{$n_id}.cov.gz";
-		if (!file_exits($n_cov))
+		if (!file_exists($n_cov))
 		{
 			$cov_tmp_unzipped = $tmp_folder."/{$name}.cov";
 			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in $target_bed -out $cov_tmp_unzipped -threads {$threads} -ref {$ref_genome}", true);
