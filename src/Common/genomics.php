@@ -2216,8 +2216,8 @@ function contains_methylation($bam_file, $n_rows=100, $build="GRCh38")
 function get_read_group_description($bam_file)
 {
 	$rg_description = array();
-	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $bam_file | egrep '^@RG' ");
-	if  ($exit_code==0)
+	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $bam_file | egrep '^@RG' ", false);
+	if  ($exit_code==0 || $exit_code==1)
 	{
 		foreach($stdout as $line)
 		{
@@ -2245,8 +2245,8 @@ function get_read_group_description($bam_file)
 function get_basecall_model($bam_file)
 {
 	$basecall_model = array();
-	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $bam_file | egrep '^@RG' ");
-	if  ($exit_code==0)
+	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $bam_file | egrep '^@RG' ", false);
+	if  ($exit_code==0 || $exit_code==1)
 	{
 		foreach($stdout as $line)
 		{
