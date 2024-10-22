@@ -48,7 +48,6 @@ $is_panel = $sys['type']=="Panel" || $sys['type']=="Panel Haloplex";
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
 $has_roi = $sys['target_file']!="";
 $build = $sys['build'];
-$genome = genome_fasta($build);
 
 //handle somatic flag
 if ($somatic)
@@ -120,6 +119,10 @@ if (!$no_sync)
 {
 	$parser->execTool("Tools/data_setup.php", "-build ".$build);
 }
+
+//create ngs-bits INI file if necessary (after data_setup.php to make sure that the local genome copy is used if requested)
+$parser->createNgsBitsIni($build);
+$genome = genome_fasta($build);
 
 //output file names:
 //mapping
@@ -327,7 +330,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 	if(!file_exists($qc_map))
 	{
 		//QC
-		$params = array("-in $used_bam_or_cram", "-out {$qc_map}", "-ref ".genome_fasta($sys['build']), "-build ".ngsbits_build($sys['build']));
+		$params = array("-in $used_bam_or_cram", "-out {$qc_map}", "-ref {$genome}", "-build ".ngsbits_build($sys['build']));
 		if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
 		{
 			$params[] = "-wgs";
@@ -393,7 +396,7 @@ if (in_array("vc", $steps))
 				//filter by target region (extended by 200) and quality 5
 				$target = $parser->tempFile("_roi_extended.bed");
 				$parser->exec($ngsbits."BedExtend"," -in ".$sys['target_file']." -n 200 -out $target -fai ".$genome.".fai", true);
-				$pipeline[] = array($ngsbits."VcfFilter", "-reg {$target} -qual 5 -filter_clear");
+				$pipeline[] = array($ngsbits."VcfFilter", "-reg {$target} -qual 5 -filter_clear -ref $genome");
 
 				//split multi-allelic variants
 				$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
@@ -480,7 +483,7 @@ if (in_array("vc", $steps))
 				$pipeline[] = array("zcat", $dragen_output_vcf);
 				
 				//filter by target region and quality 5
-				$pipeline[] = array($ngsbits."VcfFilter", "-reg chrMT:1-16569 -qual 5 -filter_clear");
+				$pipeline[] = array($ngsbits."VcfFilter", "-reg chrMT:1-16569 -qual 5 -filter_clear -ref $genome");
 
 				//split multi-allelic variants
 				$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
@@ -749,27 +752,21 @@ if (in_array("cn", $steps))
 
 		//create coverage profile
 		$tmp_folder = $parser->tempFolder();
-		$cov_file = $cov_folder."/{$name}.cov";
-		if (!file_exists($cov_file) || filemtime($cov_file)<filemtime($used_bam_or_cram))
+		$cov_file = $cov_folder."/{$name}.cov.gz";
+		$cov_tmp_unzipped = $tmp_folder."/{$name}.cov";
+		$cov_tmp = $cov_tmp_unzipped.".gz";
+		$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$used_bam_or_cram} -in {$bed} -out {$cov_tmp_unzipped} -threads {$threads} -ref {$genome}", true);
+		$parser->exec("gzip", "-9 {$cov_tmp_unzipped}");
+		
+		//copy coverage file to reference folder if valid
+		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
 		{
-			$parser->log("Calculating coverage file for CN calling...");
-			$cov_tmp = $tmp_folder."/{$name}.cov";
-			$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$used_bam_or_cram} -in {$bed} -out {$cov_tmp} -threads {$threads} -ref {$genome}", true);
-			
-			//copy coverage file to reference folder if valid
-			if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
-			{
-				$parser->log("Moving coverage file to reference folder...");
-				$parser->moveFile($cov_tmp, $cov_file);
-			}
-			else
-			{
-				$cov_file = $cov_tmp;
-			}
+			$parser->log("Moving coverage file to reference folder...");
+			$parser->moveFile($cov_tmp, $cov_file);
 		}
 		else
 		{
-			$parser->log("Using previously calculated coverage file for CN calling: $cov_file");
+			$cov_file = $cov_tmp;
 		}
 		
 		//perform CNV analysis
@@ -1219,7 +1216,6 @@ if (in_array("db", $steps))
 		check_genome_build($varfile, $build);
 		
 		$args[] = "-var {$varfile}";
-		$args[] = "-var_force";
 		$import = true;
 	}
 	if (file_exists($cnvfile))
@@ -1228,7 +1224,6 @@ if (in_array("db", $steps))
 		//this is not possible for CNVs because the file does not contain any information about it
 		
 		$args[] = "-cnv {$cnvfile}";
-		$args[] = "-cnv_force";
 		$import = true;
 	}
 	if (file_exists($bedpe_out))
@@ -1237,17 +1232,16 @@ if (in_array("db", $steps))
 		check_genome_build($bedpe_out, $build);
 		
 		$args[] = "-sv {$bedpe_out}";
-		$args[] = "-sv_force";
 		$import = true;
 	}
 	if (file_exists($expansion_hunter_file))
 	{
 		$args[] = "-re {$expansion_hunter_file}";
-		$args[] = "-re_force";
 		$import = true;
 	}
 	if ($import)
 	{
+		$args[] = "-force";
 		$parser->exec("{$ngsbits}NGSDAddVariantsGermline", implode(" ", $args), true);
 	}
 }

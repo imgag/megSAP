@@ -167,16 +167,18 @@ if ($mode=="longread")
 {
 	$pipeline = array();
 	$pipeline[] = array(get_path("ngs-bits")."VcfMerge", "-in ".implode(" ", $chr_multisample_gvcfs));
-	$pipeline[] = array(get_path("bcftools"), "view --threads {$threads} -l 9 -O z -o {$gvcf_out} -s ".implode(",", $sample_order));
+	$pipeline[] = array(get_path("ngs-bits")."VcfExtractSamples", "-samples ".implode(",", $sample_order));
+	$pipeline[] = array("bgzip", "-c > {$gvcf_out}", false);
 	$parser->execPipeline($pipeline, "Merge gVCF");
-	$parser->exec("tabix", "-f -p vcf {$gvcf_out}", false); //no output logging, because Toolbase::extractVersion() does not return
+	$parser->exec("tabix", "-f -p vcf {$gvcf_out}");
 }
 
 //merge VCFs
 $tmp_vcf = $parser->tempFile(".vcf.gz");
 $pipeline = array();
 $pipeline[] = array(get_path("ngs-bits")."VcfMerge", "-in ".implode(" ", $chr_multisample_vcfs));
-$pipeline[] = array(get_path("bcftools"), "view --threads {$threads} -l 0 -O z -o {$tmp_vcf} -s ".implode(",", $sample_order));
+$pipeline[] = array(get_path("ngs-bits")."VcfExtractSamples", "-samples ".implode(",", $sample_order));
+$pipeline[] = array("bgzip", "-c > {$tmp_vcf}", false);
 $parser->execPipeline($pipeline, "Merge VCF");
 
 //post-processing 
@@ -185,7 +187,7 @@ $pipeline = array();
 $pipeline[] = array("zcat", $tmp_vcf);
 
 //filter variants according to variant quality>5
-$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5");
+$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -ref $genome");
 
 //split complex variants to primitives
 //this step has to be performed before vcfbreakmulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
@@ -195,7 +197,7 @@ $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
 $pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
 
 //remove invalid variants
-$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-remove_invalid");
+$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-remove_invalid -ref $genome");
 
 //normalize all variants and align INDELs to the left
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");

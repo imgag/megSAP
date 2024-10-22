@@ -113,7 +113,7 @@ if ($bam_input)
 	foreach ($in_bam as $file) 
 	{
 		//add methylation tag to output
-		if (contains_methylation($file))
+		if (contains_methylation($file, 100, $sys['build']))
 		{
 			$met_tag = " -TMM,ML ";
 			break;

@@ -99,7 +99,7 @@ $pipeline = array();
 $pipeline[] = array("zcat", "{$clair_vcf}");
 
 //filter variants according to variant quality>5
-$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -remove_invalid");
+$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -remove_invalid -ref $genome");
 
 //split complex variants to primitives
 //this step has to be performed before vcfbreakmulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276

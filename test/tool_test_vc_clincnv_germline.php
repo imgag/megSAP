@@ -17,7 +17,7 @@ $cov_folder = $tmp_folder."/coverage/";
 //test1
 $out_file1 = output_folder().$name."_test1_out.tsv";
 $log_file1 = output_folder().$name."_test1_out.log";
-check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX000018_02.cov -cov_folder {$cov_folder} -cov_min 20 -bed {$bed} -out {$out_file1} -mosaic --log {$log_file1}");
+check_exec("php ".src_folder()."/NGS/{$name}.php -cov {$cov_folder}/DX000018_02.cov.gz -cov_folder {$cov_folder} -cov_min 20 -bed {$bed} -out {$out_file1} -mosaic --log {$log_file1}");
 check_file($out_file1, data_folder().$name."_test1_out.tsv");
 check_file(substr($out_file1,0,-4).".seg", data_folder().$name."_test1_out.seg");
 check_file(substr($out_file1,0,-4)."_cnvs.seg",data_folder().$name."_test1_out_cnvs.seg");

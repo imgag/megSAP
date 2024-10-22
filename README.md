@@ -1,4 +1,4 @@
-# *megSAP* - a Medical Genetics Sequence Analysis Pipeline
+# *megSAP* - Medical Genetics Sequence Analysis Pipelines
 
 megSAP is a NGS data analysis pipeline for medical genetics, which is developed by the [Institute of Medical Genetics and Applied Genomics, University Hospital, Tübingen](http://www.uni-tuebingen.de/Klinische_Genetik/start.html) and several collaborators from academia and industry.
 
@@ -38,20 +38,17 @@ Documentation about the different **ONT long-read pipelines** can be found here:
 
 Please report any issues or questions to the [megSAP issue tracker](https://github.com/imgag/megSAP/issues).
 
+## Citing
+
+You can cite megSAP in general using the the DOI [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13744182.svg)](https://doi.org/10.5281/zenodo.13744182).  
+Alternatively you can cite a specific release of megSAP:
+
+* 2024_09: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13744183.svg)](https://doi.org/10.5281/zenodo.13744183)
+
 ## ChangeLog
 
 Major changes of master since last release:
 
-* updated tools and databases
-* added support for Nova Seq X Plus
-* updated long-read pipeline
-* improved PRS calculation (imputed variants, etc)
-* added optional RefSeq annotation (see [settings documentation](doc/settings.md#section-general)).
-* added optional custom annotations in GSvar/VCF from VCFs (see [settings documentation](doc/settings.md#section-general)).
-
-## Citing
-
-There is no paper for megSAP yet.  
-Please cite the GitHub repository for now.
+* germline DNA: improved speed (C++ tool) and IO (gzipped coverage profiles) of CNV reference cohort selection.
 
 For older changes see [releases](https://github.com/imgag/megSAP/releases).

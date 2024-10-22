@@ -29,7 +29,7 @@ $flowcell_id = $result[0]['fcid'];
 if (!ends_with($run_dir, substr($name, 1))) trigger_error("Run folder name ('".basename2($run_dir)."') doesn't match run name ({$name}!", E_USER_ERROR);
 
 // check fcid and raw data folder
-$fc_dir = glob("{$run_dir}/*_{$flowcell_id}_*");
+$fc_dir = glob("{$run_dir}/2*_{$flowcell_id}_*");
 if (count($fc_dir) == 0) trigger_error("Run raw data folder missing or wrong FlowCell ID in NGSD!", E_USER_ERROR);
 if (count($fc_dir) > 1) trigger_error("Multiple raw data found!\n".implode(", ", $fc_dir), E_USER_ERROR);
 $fc_dir = $fc_dir[0];

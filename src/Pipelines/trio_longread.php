@@ -321,7 +321,8 @@ if (in_array("an", $steps))
 		print "Medelian errors: ".number_format(100.0*$vars_mendelian_error/$vars_high_depth, 2)."% (of {$vars_high_depth} high-depth, autosomal variants)\n";
 		
 		//determine gender of child
-		list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c -build ".ngsbits_build($build), true);
+		$genome = genome_fasta($build);
+		list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c -build ".ngsbits_build($build)." -ref {$genome}", true);
 		$gender_data = explode("\t", $stdout[1])[1];
 		if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 		print "Gender of child (from data): {$gender_data}\n";

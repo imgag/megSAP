@@ -45,7 +45,7 @@
 | QC value                         | good           | medium          | bad             |
 |----------------------------------|----------------|-----------------|-----------------|
 | target region read depth         | > 8x           | > 8x            | < 8x            |
-| house keeping genes 20x coverage | > 50%          | > 27%           | < 27%           |
+| house keeping genes 10x coverage | > 50%          | > 27%           | < 27%           |
 
 
 ### cfDNA

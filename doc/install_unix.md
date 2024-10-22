@@ -6,15 +6,19 @@ Currently only Linux is supported!
 
 We are providing instructions for Ubuntu 20.04 and RHEL 8.3 here. However this should be reasonably easy to port to any other Linux distribution.
 
-### Base dependencies
+### Base dependencies for different operating systems:
 
 Ubuntu 20.04
 
-	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.4-cli php7.4-xml php7.4-mysql tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev libcurl4-openssl-dev libhts-dev libtabixpp-dev libtabixpp0 meson ninja-build gnumeric numdiff libpcre2-dev libreadline-dev libffi-dev libharfbuzz-dev libfribidi-dev libgit2-dev pybind11-dev libsqlite3-dev openjdk-17-jdk openjdk-17-jre
+	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.4-cli php7.4-xml php7.4-mysql tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev libcurl4-openssl-dev libhts-dev libtabixpp-dev libtabixpp0 meson ninja-build gnumeric numdiff libpcre2-dev libreadline-dev libffi-dev libharfbuzz-dev libfribidi-dev libgit2-dev pybind11-dev libsqlite3-dev openjdk-17-jdk openjdk-17-jre gfortran
+    
+Ubuntu 22.04
+
+	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php8.1-cli php8.1-xml php8.1-mysql tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qtbase5-dev qt5-qmake qtbase5-dev libhts-dev libtabixpp-dev libtabixpp0 meson ninja-build gnumeric numdiff libpcre2-dev libreadline-dev libffi-dev libharfbuzz-dev libfribidi-dev libgit2-dev pybind11-dev libsqlite3-dev openjdk-17-jdk openjdk-17-jre gfortran
     
 RHEL 8.3
 
-	> add LANGUAGE and LC_ALL to /etc/locale.conf
+	Add LANGUAGE and LC_ALL to /etc/locale.conf
     
 	Example:
 	LANGUAGE="en_US.UTF-8"
@@ -25,15 +29,13 @@ RHEL 8.3
 	> yum groupinstall "Development Tools" -y
 	> yum install zlib-devel bzip2-devel xz-devel ncurses-devel libcurl-devel cpan cpanminus gd-devel libdb-devel -y
 	> dnf install php-cli php-xml  php-mysqlnd R-core R-core-devel -y
- 	
-  	# dependencies for ngs-bits:
  	> yum install qt5-qtcharts.x86_64 qt5-qtbase-odbc.x86_64 qt5-qtbase-mysql.x86_64 qt5-qtxmlpatterns.x86_64 libcurl-devel.x86_64 qt5-devel.x86_64
     
 ## Downloading
 
 Clone the latest release of megSAP:
 
-	> git clone -b 2023_11 https://github.com/imgag/megSAP.git
+	> git clone -b 2024_09 https://github.com/imgag/megSAP.git
 
 Or, if you want to test the current development version:
 
@@ -71,7 +73,6 @@ Next, we install all required tools
 Next, we need to download and index the reference genome:
 	
 	> ./download_GRCh38.sh
-
 
 Finally, we need to download and convert some open-source databases for annotations:
 

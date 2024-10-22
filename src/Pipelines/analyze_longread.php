@@ -22,6 +22,7 @@ $parser->addFlag("skip_wgs_check", "Skip the similarity check with a related sho
 $parser->addFlag("bam_output", "Output file format for mapping is BAM instead of CRAM.");
 extract($parser->parse($argv));
 
+
 // create logfile in output folder if no filepath is provided:
 if (!file_exists($folder))
 {
@@ -35,7 +36,6 @@ $ngsbits = get_path("ngs-bits");
 //determine processing system
 $sys = load_system($system, $name);
 $build = $sys['build'];
-$genome = genome_fasta($build);
 
 //check steps
 $steps = explode(",", $steps);
@@ -48,8 +48,6 @@ foreach($steps as $step)
 list($server) = exec2("hostname -f");
 $user = exec('whoami');
 $parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
-
-
 
 if (db_is_enabled("NGSD"))
 {
@@ -77,6 +75,10 @@ if (!$no_sync)
 {
 	$parser->execTool("Tools/data_setup.php", "-build ".$build);
 }
+
+//create ngs-bits INI file if necessary (after data_setup.php to make sure that the local genome copy is used if requested)
+$parser->createNgsBitsIni($build);
+$genome = genome_fasta($build);
 
 //output file names:
 //mapping
@@ -172,7 +174,7 @@ if (in_array("ma", $steps))
 	$parser->execTool("NGS/mapping_minimap.php", implode(" ", $mapping_minimap_options));
 
 	// create methylation track
-	if (contains_methylation($used_bam_or_cram))
+	if (contains_methylation($used_bam_or_cram, 100, $build))
 	{
 		$args = array();
 		$args[] = "-bam ".$used_bam_or_cram;
@@ -456,28 +458,19 @@ if (in_array("cn", $steps))
 
 	//create coverage profile
 	$tmp_folder = $parser->tempFolder();
-	$cov_file = $cov_folder."/{$name}.cov";
-	if (!file_exists($cov_file) || filemtime($cov_file)<filemtime($used_bam_or_cram))
-	{
-
-		$parser->log("Calculating coverage file for CN calling...");
-		$cov_tmp = $tmp_folder."/{$name}.cov";
-		$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$used_bam_or_cram} -in {$bed} -out {$cov_tmp} -threads {$threads}", true);
-		
-		//copy coverage file to reference folder if valid
-		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))
-		{
-			$parser->log("Moving coverage file to reference folder...");
-			$parser->moveFile($cov_tmp, $cov_file);
-		}
-		else
-		{
-			$cov_file = $cov_tmp;
-		}
-	}
+$cov_file = $cov_folder."/{$name}.cov.gz";
+	$cov_tmp_unzipped = $tmp_folder."/{$name}.cov";
+	$cov_tmp = $cov_tmp_unzipped.".gz";
+	$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$used_bam_or_cram} -in {$bed} -out {$cov_tmp_unzipped} -threads {$threads} -ref {$genome}", true);
+	$parser->exec("gzip", "-9 {$cov_tmp_unzipped}");
+	
+	//copy coverage file to reference folder if valid
+	if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($name))	{
+		$parser->log("Moving coverage file to reference folder...");
+		$parser->moveFile($cov_tmp, $cov_file);	}
 	else
 	{
-		$parser->log("Using previously calculated coverage file for CN calling: $cov_file");
+		$cov_file = $cov_tmp;
 	}
 	
 	//perform CNV analysis
@@ -998,13 +991,13 @@ if (in_array("db", $steps))
 	//import variants
 	$args = ["-ps {$name}"];
 	$import = false;
+	$args[] = "-force";
 	if (file_exists($var_file))
 	{
 		//check genome build
 		check_genome_build($var_file, $build);
 		
 		$args[] = "-var {$var_file}";
-		$args[] = "-var_force";
 		$import = true;
 	}
 	if (file_exists($cnv_file))
@@ -1013,7 +1006,6 @@ if (in_array("db", $steps))
 		//this is not possible for CNVs because the file does not contain any information about it
 		
 		$args[] = "-cnv {$cnv_file}";
-		$args[] = "-cnv_force";
 		$import = true;
 	}
 	if (file_exists($bedpe_file))
@@ -1022,7 +1014,6 @@ if (in_array("db", $steps))
 		check_genome_build($bedpe_file, $build);
 		
 		$args[] = "-sv {$bedpe_file}";
-		$args[] = "-sv_force";
 		$import = true;
 	}
 	if (file_exists($straglr_file))
@@ -1031,7 +1022,6 @@ if (in_array("db", $steps))
 		check_genome_build($straglr_file, $build);
 		
 		$args[] = "-re {$straglr_file}";
-		$args[] = "-re_force";
 		$import = true;
 	}
 	if ($import)

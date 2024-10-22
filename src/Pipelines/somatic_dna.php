@@ -220,10 +220,14 @@ if (!$single_sample)
 if (!$single_sample && db_is_enabled("NGSD"))
 {
 	$db = DB::getInstance("NGSD", false);
-	list($config_id, $config_vars_exist, $config_cnvs_exist) = somatic_report_config($db, $t_id, $n_id);
+	list($config_id, $config_vars_exist, $config_cnvs_exist, $config_svs_exists) = somatic_report_config($db, $t_id, $n_id);
 	if (in_array("vc", $steps) && $config_vars_exist)
 	{
 		trigger_error("Somatic report configuration with SNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
+	}
+	if (in_array("vc", $steps) && $config_svs_exists)
+	{
+		trigger_error("Somatic report configuration with SVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'vc'.", E_USER_ERROR);
 	}
 	if (in_array("cn", $steps) && $config_cnvs_exist)
 	{
@@ -279,7 +283,7 @@ if( db_is_enabled("NGSD") )
 		}
 		else
 		{
-			$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build ".ngsbits_build($sys['build'])." -method sry", true);
+			$out = $parser->exec(get_path("ngs-bits") . "/SampleGender",  "-in $t_bam -build ".ngsbits_build($sys['build'])." -method sry -ref {$ref_genome}", true);
 			list(,,$cov_sry) = explode("\t", $out[0][1]);
 
 			if(is_numeric($cov_sry) && (float)$cov_sry >= 30)
@@ -735,11 +739,11 @@ if(in_array("cn",$steps))
 	if ($sys["type"] != "WGS" && $sys['type'] != "WGS (shallow)")
 	{
 		$target_bed = $ref_folder_t."/roi_annotated.bed";
-		if (!file_exists($bed))
+		if (!file_exists($target_bed))
 		{
 			$ngsbits = get_path("ngs-bits");
 			$pipeline = [
-					["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -clear -ref ".genome_fasta($sys['build'])],
+					["{$ngsbits}BedAnnotateGC", "-in ".$sys['target_file']." -clear -ref {$ref_genome}"],
 					["{$ngsbits}BedAnnotateGenes", "-out {$target_bed}"],
 				];
 			$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
@@ -755,7 +759,7 @@ if(in_array("cn",$steps))
 		{
 			$pipeline = [
 					[get_path("ngs-bits")."BedChunk", "-in ".$sys['target_file']." -n {$bin_size}"],
-					[get_path("ngs-bits")."BedAnnotateGC", "-clear -ref ".genome_fasta($sys['build'])],
+					[get_path("ngs-bits")."BedAnnotateGC", "-clear -ref {$ref_genome}"],
 					[get_path("ngs-bits")."BedAnnotateGenes", "-out {$target_bed}"]
 				];
 			$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
@@ -783,86 +787,52 @@ if(in_array("cn",$steps))
 	$ref_file_t = "{$ref_folder_t}/{$t_id}.cov";
 	$ref_file_t_off_target = "{$ref_folder_t_off_target}/{$t_id}.cov";
 	
-	if(!file_exists($ref_file_t) )
-	{
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $target_bed -out $t_cov -threads {$threads} -ref {$ref_genome}",true);
-		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov -out $t_cov",true);
-	}
-	else 
-	{
-		$t_cov = $ref_file_t;
-	}
-	
-	if( !file_exists($ref_file_t_off_target ) )
-	{
-		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
-		$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $t_cov_off_target -out $t_cov_off_target",true);
-	}
-	else 
-	{
-		$t_cov_off_target = $ref_file_t_off_target;
-	}
+	$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $target_bed -out $t_cov -threads {$threads} -ref {$ref_genome}",true);
+	$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
+
 	
 	//copy tumor sample coverage file to reference folder (has to be done before ClinCNV call to avoid analyzing the same sample twice)
 	if (db_is_enabled("NGSD") && is_valid_ref_tumor_sample_for_cnv_analysis($t_id))
 	{
-		//copy file
-		if(!file_exists($ref_file_t)) //Do not overwrite existing reference files in cov folder
-		{
-			$parser->copyFile($t_cov, $ref_file_t); 
-			$t_cov = $ref_file_t;
-		}
-		
-		if(!file_exists($ref_file_t_off_target))
-		{
-			$parser->copyFile($t_cov_off_target,$ref_file_t_off_target);
-			$t_cov_off_target = $ref_file_t_off_target;
-		}
+		$parser->log("Moving tumor sample coverage file to reference folder...");
+		$parser->copyFile($t_cov, $ref_file_t); 
+		$t_cov = $ref_file_t;
+
+		$parser->copyFile($t_cov_off_target,$ref_file_t_off_target);
+		$t_cov_off_target = $ref_file_t_off_target;
 	}
 	
 	if (!$single_sample)
 	{
-		// coverage for normal sample + off-target
-		$n_cov = "{$tmp_folder}/{$n_id}.cov";
+		// coverage file for normal sample
+		$n_cov = "{$ref_folder_n}/{$n_id}.cov.gz";
+		if (!file_exits($n_cov))
+		{
+			$cov_tmp_unzipped = $tmp_folder."/{$name}.cov";
+			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in $target_bed -out $cov_tmp_unzipped -threads {$threads} -ref {$ref_genome}", true);
+			$parser->exec("gzip", "-9 {$cov_tmp_unzipped}");
+			
+			if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($n_id))
+			{
+				$parser->log("Moving normal sample coverage file to reference folder...");
+				$parser->copyFile($cov_tmp_unzipped.".gz", $n_cov);
+			}
+			else
+			{
+				$n_cov = $cov_tmp_unzipped.".gz";
+			}
+		}
+		
+		// coverage file for normal sample (off-target)
 		$n_cov_off_target = "{$tmp_folder}/{$n_id}_off_target.cov";
-		$ref_file_n = $ref_folder_n."/".$n_id.".cov";
 		$ref_file_n_off_target = "{$ref_folder_n_off_target}/{$n_id}.cov";
-		
-		if(!file_exists($ref_file_n)) 
-		{
-			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in $target_bed -out $n_cov -threads {$threads} -ref {$ref_genome}", true);
-			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov -out $n_cov",true);
-		}
-		else 
-		{
-			$n_cov = $ref_file_n;
-		}
-		
-		if(!file_exists($ref_file_n_off_target) )
-		{
-			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
-			$parser->exec(get_path("ngs-bits")."BedSort", "-uniq -in $n_cov_off_target -out $n_cov_off_target",true);
-		}
-		else 
-		{
-			$n_cov_off_target = $ref_file_n_off_target;
-		}
-		
-		// copy normal sample coverage file to reference folder (only if valid and not yet there).
+		$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $n_bam -out $n_cov_off_target -threads {$threads} -ref {$ref_genome}",true);
+	
 		if (db_is_enabled("NGSD") && is_valid_ref_sample_for_cnv_analysis($n_id))
 		{
-			//copy file
-			if (!file_exists($ref_file_n)) //do not overwrite existing coverage files in ref folder
-			{
-				$parser->copyFile($n_cov, $ref_file_n);
-				$n_cov = $ref_file_n;
-			}
-			
-			if(!file_exists($ref_file_n_off_target))
-			{
-				$parser->copyFile($n_cov_off_target, $ref_file_n_off_target);
-				$n_cov_off_target = $ref_file_n_off_target;
-			}
+			$parser->log("Moving normal sample off-target coverage file to reference folder...");
+			$parser->copyFile($n_cov_off_target, $ref_file_n_off_target);
+			$n_cov_off_target = $ref_file_n_off_target;
 		}
 	}
 
@@ -1346,7 +1316,8 @@ if (in_array("an_rna", $steps))
 			$args = [
 				"-cnv_in $som_clincnv" ,
 				"-out $som_clincnv",
-				"-rna_counts $rna_count"
+				"-rna_counts $rna_count",
+				"-rna_id $rna_id"
 			];
 			
 			if (isset($rna_ref_tissue)) $args[] = "-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue);
@@ -1373,6 +1344,50 @@ if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("msi", $steps) 
 {
 	$terms = array();
 	$sources = array();
+	
+	//CNVs:
+	if (file_exists($som_clincnv))
+	{
+		$cnv_count_hq = 0;
+		$cnv_count_hq_autosomes = 0;
+		$cnv_count_loss = 0;
+		$cnv_count_gain = 0;
+		$h = fopen2($som_clincnv, 'r');
+		while(!feof($h))
+		{
+			$line = trim(fgets($h));
+			if ($line=="") continue;
+			
+			if ($line[0]!="#")
+			{
+				$parts = explode("\t", $line);
+				$ll = $parts[11];
+				if ($ll>=20) // TODO find somatic specific cut-off
+				{
+					++$cnv_count_hq;
+					
+					$chr = $parts[0];
+					if (is_numeric(strtr($chr, ["chr"=>""])))
+					{
+						++$cnv_count_hq_autosomes;
+						$cn = $parts[5];
+						if ($cn<2) ++$cnv_count_loss;
+						if ($cn>2) ++$cnv_count_gain;
+					}
+				}
+			}
+		}
+		fclose($h);
+		
+		//counts (all, loss, gain)
+		$terms[] = "QC:2000044\t{$cnv_count_hq}"; // somatic CNVs count
+		if ($cnv_count_hq_autosomes>0)
+		{
+			$terms[] = "QC:2000118\t".number_format(100.0*$cnv_count_loss/$cnv_count_hq_autosomes, 2); // percentage losses
+			$terms[] = "QC:2000119\t".number_format(100.0*$cnv_count_gain/$cnv_count_hq_autosomes, 2); // percentage gains
+		}
+		$sources[] = $cnvfile;
+	}
 	
 	// HRD score:
 	$hrd_file = $full_prefix."_HRDresults.txt";

@@ -157,7 +157,7 @@ function add_contigs_if_missing($vcf)
 		$new_contigs[] = "##contig=<ID={$chr},length={$len}>\n";
 	}
 	
-	//add contiig lines to VCF
+	//add contig lines to VCF
 	$lines = file($vcf);
 	array_splice($lines, $line_below_reference_info, 0, $new_contigs);  
 	file_put_contents($vcf, implode("", $lines));
@@ -243,7 +243,7 @@ $spliceai_regions = $parser->tempFile("spliceai_scoring_regions.bed");
 $splice_env = get_path("splice_env", true);
 exec2("cut -f 2,4,5 -d'\t' {$splice_env}/lib/python3.10/site-packages/spliceai/annotations/".strtolower($build).".txt | sed 's/^/chr/' | sed '1d' > {$spliceai_regions}");
 $tmp2 = $parser->tempFile("_spliceai_filtered_regions.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg {$spliceai_regions} -in {$tmp1} -out {$tmp2}", true);
+$parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg {$spliceai_regions} -in {$tmp1} -out {$tmp2} -ref ".genome_fasta($build), true);
 $var_count = vcf_variant_count($tmp2);
 $parser->log("Variants after SpliceAI transcript regions filter: {$var_count}");
 

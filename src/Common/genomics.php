@@ -508,6 +508,13 @@ function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 	return $cache[$name];
 }
 
+
+///Returns variant ID or -1 if variant is not present in NGSD
+function get_variant_id(&$db_conn, $chr, $start, $end, $ref, $obs)
+{
+	return $db_conn->getValue("SELECT id FROM variant WHERE chr='{$chr}' AND start='{$start}' AND end='{$end}' AND ref='{$ref}' AND obs='{$obs}'", -1);
+}
+
 ///returns array with processed sample names in the form DX******_** from run name
 function get_processed_samples_from_run(&$db, $run_id)
 {
@@ -558,7 +565,8 @@ function updateNormalSample(&$db_conn, $ps_tumor, $ps_normal, $overwrite = false
 	return false;
 }
 
-function indel_for_vcf($build, $chr, $start, $ref, $obs)
+//Convert variant in GSvar format to VCF format.
+function gsvar_to_vcf($build, $chr, $start, $ref, $obs)
 {
 	$ref = trim($ref,"-");
 	$obs = trim($obs,"-");
@@ -579,7 +587,7 @@ function indel_for_vcf($build, $chr, $start, $ref, $obs)
 		$extra1 = get_ref_seq($build, $chr,$start,$start);
 	}
 
-	// 3. complex indel, nothing to do
+	// 3. complex indel or SNP > nothing to do
 	
 	// combine all information
 	$ref = strtoupper($extra1.$ref);
@@ -692,7 +700,7 @@ function load_vcf_normalized($filename)
 		else
 		{
 			$parts = explode("\t", $line);
-			if (count($parts)<10) trigger_error("VCF file $filename has line with less than 10 colums: $line", E_USER_ERROR);
+			if (count($parts)<10) trigger_error("VCF file $filename has line with less than 10 columns: $line", E_USER_ERROR);
 			list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format) = $parts;
 			
 			
@@ -1377,7 +1385,9 @@ function genome_fasta($build, $use_local_data=true, $use_local_ramdrive=true)
 		}
 		
 		//use local copy in tmp
-		return get_path("local_data")."/".$build.".fa";
+		$local_fasta = get_path("local_data")."/".$build.".fa";
+		if (file_exists($local_fasta)) return $local_fasta;
+		else trigger_error("Use of local genome file requested, but '$local_fasta' does not exist.", E_USER_WARNING);
 	}
 	
 	//use the genome FASTA from the megSAP installation
@@ -1489,11 +1499,11 @@ function somatic_report_config(&$db_conn, $t_ps, $n_ps, $error_if_not_found=fals
 		trigger_error("Could not find somatic report id for $t_ps_id {$n_ps_id}.", E_USER_ERROR);
 	}
 	
-	
 	$var_ids = $db_conn->getValues("SELECT id FROM somatic_report_configuration_variant WHERE somatic_report_configuration_id=".$config_id);
 	$cnv_ids = $db_conn->getValues("SELECT id FROM somatic_report_configuration_cnv WHERE somatic_report_configuration_id=".$config_id);
+	$sv_ids  = $db_conn->getValues("SELECT id FROM somatic_report_configuration_sv WHERE somatic_report_configuration_id=".$config_id);
 	
-	return array($config_id, count($var_ids)>0, count($cnv_ids) > 0);	
+	return array($config_id, count($var_ids)>0, count($cnv_ids) > 0, count($sv_ids) > 0);	
 }
 
 //Returns cytobands of given genomic range as array
@@ -2168,11 +2178,12 @@ function genome_masked($bam, $build)
 }
 
 //check if BAM file contains methylation data (only check the first $n_rows)
-function contains_methylation($bam_file, $n_rows=100)
+function contains_methylation($bam_file, $n_rows=100, $build="GRCh38")
 {
 	if (!file_exists($bam_file)) trigger_error("BAM file '{$bam_file}'", E_USER_ERROR);
+	$genome = genome_fasta($build);
 	// ignore errors occuring of unknown reason (broken pipe)
-	list($stdout) = exec2(get_path("samtools")." view {$bam_file} | head -n {$n_rows}", false); //TODO Leon: reference genome?
+	list($stdout) = exec2(get_path("samtools")." view -T {$genome} {$bam_file} | head -n {$n_rows}", false);
 	//additional testing since we cannot rely on samtools error reporting
 	if (count($stdout) != $n_rows) trigger_error("Couldn't extract the first {$n_rows} rows of the BAM file!", E_USER_ERROR);
 

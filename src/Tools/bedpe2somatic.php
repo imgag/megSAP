@@ -111,7 +111,7 @@ function get_info_fields($comments)
 	return $info_col_description;
 }
 
-//Extracts certain fields from INFO column and returns results as associative array containing the colums.
+//Extracts certain fields from INFO column and returns results as associative array containing the columns.
 //The function returns the keys "flags", "somaticscore" and "junction_somaticscore"
 function expand_info_col($info_col)
 {

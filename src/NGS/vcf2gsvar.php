@@ -19,11 +19,11 @@ $parser->addString("custom", "Settings key name for custom column definitions.",
 $parser->addFlag("test", "Run in test mode. Skips replacing sample headers with NGSD information.");
 extract($parser->parse($argv));
 
-$custom_colums = [];
+$custom_columns = [];
 if ($custom!="")
 {
 	$tmp = get_path($custom, false);
-	if (is_array($tmp)) $custom_colums = $tmp;
+	if (is_array($tmp)) $custom_columns = $tmp;
 }
 
 //skip common MODIFIER variants in WGS mode
@@ -359,7 +359,7 @@ $column_desc_short_read_overlap_annotation = array(
 );
 
 $column_desc_custom = [];
-foreach($custom_colums as $key => $tmp)
+foreach($custom_columns as $key => $tmp)
 {
 	list($vcf, $col, $desc) = explode(";", $tmp, 3);
 	$column_desc_custom[] = [$key, $desc];
@@ -1507,7 +1507,7 @@ while(!feof($handle))
 	
 	//effect predicions
 	$phylop = collapse($tag, "phyloP", $phylop, "one", 4);
-	$revel = empty($revel) ? "" : collapse($tag, "REVEL", $revel, "max", 2);
+	$revel = empty($revel) ? "" : collapse($tag, "REVEL", $revel, "max", 3);
 	$alphamissense = empty($alphamissense) ? "" : collapse($tag, "AlphaMissense", $alphamissense, "max", 2);
 	
 	//OMIM
@@ -1530,7 +1530,7 @@ while(!feof($handle))
 	$cosmic = implode(",", collapse($tag, "COSMIC", $cosmic, "unique"));
 	
 	//custom columns
-	foreach($custom_colums as $key => $tmp)
+	foreach($custom_columns as $key => $tmp)
 	{
 		list($vcf, $col, $desc) = explode(";", $tmp, 3);
 		$custom_column_data[$key] = isset($info["CUSTOM_".$col]) ? $info["CUSTOM_".$col] : "";
@@ -1595,7 +1595,7 @@ while(!feof($handle))
 		fwrite($handle_out, "\t".$in_short_read_sample);
 	}
 	
-	foreach($custom_colums as $key => $tmp)
+	foreach($custom_columns as $key => $tmp)
 	{
 		fwrite($handle_out, "\t".$custom_column_data[$key]);
 	}

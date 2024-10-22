@@ -5,7 +5,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
-$parser = new ToolBase("converter_tsv2vcf", "Generate vcf-files from tsv files.");
+$parser = new ToolBase("converter_tsv2vcf", "Convert GSvar file to VCF file");
 $parser->addInfile("in",  "Input file in tsv-format.", false);
 $parser->addOutfile("out",  "Output file in vcf-format.", false);
 // optional
@@ -52,16 +52,13 @@ for($i=0;$i<$ol->rows();++$i)
 	$chr = $row[$idx_chr];
 	$start = $row[$idx_start];
 	$end = $row[$idx_end];
-	$ref = trim($row[$idx_ref],"-");
-	$obs = trim($row[$idx_obs],"-");
-
-	if(strlen($ref)!=1 || strlen($obs)!=1)	// is an indel
-	{
-		list($chr,$start,$ref,$obs) = indel_for_vcf($build, $chr, $start, $ref, $obs);
-	}
+	$ref = $row[$idx_ref];
+	$obs = $row[$idx_obs];
+	$tag = "{$chr}_{$start}_{$end}_{$ref}_{$obs}";
+	list($chr,$start,$ref,$obs) = gsvar_to_vcf($build, $chr, $start, $ref, $obs);
 	
 	// set info field
-	$info = "variant_id=".$row[$idx_chr]."_".$row[$idx_start]."_".$row[$idx_end]."_".$row[$idx_ref]."_".$row[$idx_obs];
+	$info = "variant_id={$tag}";
 	foreach($idx_info as $idx => $name)
 	{
 		$info .= ";".$name."=".$row[$idx];

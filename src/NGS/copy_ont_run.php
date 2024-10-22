@@ -22,6 +22,7 @@ $parser->addString("single_fastq",  "Create single FASTQ file, without sample lo
 
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addInt("threads", "Number of threads to use for file merging and compression.", true, 4);
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 $file_acccess_group = get_path("file_access_group", false);
@@ -33,6 +34,9 @@ if (!file_exists($run_dir))
 {
 	trigger_error("Run directory '{$run_dir}' does not exists!", E_USER_ERROR);
 }
+
+//set ulimit
+exec2("ulimit -n 10000");
 
 //find subdirectory in run directory
 $subdirs = array_values(array_diff(scandir($run_dir), array("..", ".")));
@@ -126,11 +130,11 @@ if (count($bam_files) !== 0)
 {
 	$bam_random_file = $bam_files[array_rand($bam_files, 1)];
 
-	$ret = $parser->exec(get_path("samtools"), "view --count --exclude-flags 0x900 {$bam_random_file}"); //TODO Leon: reference genome?
+	$ret = $parser->exec(get_path("samtools"), "view --count --exclude-flags 0x900 {$bam_random_file}");
 	$num_records = intval($ret[0][0]);
-	$ret = $parser->exec(get_path("samtools"), "view --count --tag ML {$bam_random_file}"); //TODO Leon: reference genome?
+	$ret = $parser->exec(get_path("samtools"), "view --count --tag ML {$bam_random_file}");
 	$num_base_mods = intval($ret[0][0]);
-	$ret = $parser->exec(get_path("samtools"), "view --count --require-flags 0x4 {$bam_random_file}"); //TODO Leon: reference genome?
+	$ret = $parser->exec(get_path("samtools"), "view --count --require-flags 0x4 {$bam_random_file}");
 	$num_unaligned = intval($ret[0][0]);
 
 	$modified_bases = $num_records == $num_base_mods;
@@ -184,6 +188,8 @@ if (($bam_available && $prefer_bam) || $bam)
 {
 	trigger_error("Copy and merge BAM files.", E_USER_NOTICE);
 
+	$genome = genome_fasta($build);
+
 	
 	if ($aligned && !$ignore_aligned)
 	{
@@ -210,14 +216,14 @@ if (($bam_available && $prefer_bam) || $bam)
 	{
 		$tmp_for_sorting = $parser->tempFile();
 		//merge presorted files
-		$pipeline[] = [get_path("samtools"), "merge --threads {$threads} -b - -o {$out_bam}"]; //TODO Leon: reference genome?
+		$pipeline[] = [get_path("samtools"), "merge --reference {$genome} --threads {$threads} -b - -o {$out_bam}"]; 
 		$parser->execPipeline($pipeline, "merge aligned BAM files");
 		$parser->indexBam($out_bam, $threads);
 
 	}
 	else
 	{
-		$pipeline[] = [get_path("samtools"), "cat --threads {$threads} -o {$out_bam} -b -"]; //TODO Leon: reference genome?
+		$pipeline[] = [get_path("samtools"), "cat --threads {$threads} -o {$out_bam} -b -"]; //no reference required
 		$parser->execPipeline($pipeline, "merge unaligned BAM files");
 	}
 }

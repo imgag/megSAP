@@ -90,7 +90,7 @@ $pipeline = array();
 $pipeline[] = array("zcat", "{$clair_vcf}");
 
 //filter variants according to variant quality>5
-$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -remove_invalid");
+$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -remove_invalid -ref $genome");
 
 //split complex variants to primitives
 //this step has to be performed before vcfbreakmulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
@@ -143,7 +143,7 @@ $parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because To
 //create/copy gvcf:
 $pipeline = array();
 $pipeline[] = array("zcat", $clair_gvcf);
-$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-remove_invalid");
+$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-remove_invalid -ref $genome");
 $pipeline[] = array("bgzip", "-c > {$out_gvcf}");
 $parser->execPipeline($pipeline, "gVCF post processing");
 

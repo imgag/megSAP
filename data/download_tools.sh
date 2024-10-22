@@ -71,14 +71,6 @@ rm samtools-1.20.tar.bz2
 cd samtools-1.20
 make
 
-#download and build bcftools
-cd $folder
-wget https://github.com/samtools/bcftools/releases/download/1.20/bcftools-1.20.tar.bz2
-tar xjf bcftools-1.20.tar.bz2
-rm bcftools-1.20.tar.bz2
-cd bcftools-1.20
-make
-
 #download and build BWA
 cd $folder
 wget https://github.com/lh3/bwa/archive/refs/tags/v0.7.18.tar.gz
@@ -114,7 +106,6 @@ git checkout v1.0.3 && git submodule update --recursive --init
 mkdir -p build && cd build
 cmake ..
 cmake --build .
-cmake --install .
 
 #download and build samblaster
 cd $folder
@@ -164,7 +155,7 @@ rm interop-1.2.4-Linux-GNU.tar.gz
 
 #download Circos
 cd $folder
-wget http://circos.ca/distribution/circos-0.69-9.tgz
+wget --no-check-certificate https://circos.ca/distribution/circos-0.69-9.tgz
 tar xzf circos-0.69-9.tgz
 rm circos-0.69-9.tgz
 # install required Perl modules for Circos in a subfolder
@@ -188,6 +179,7 @@ source $spliceFolder/splice_env3_10/bin/activate
 pip install --upgrade pip
 pip install spliceai==1.3.1
 pip install tensorflow==2.11.0
+pip install numpy==1.26.4
 deactivate
 cd ..
 
@@ -198,17 +190,11 @@ cd REViewer-v0.2.7
 wget -O - https://github.com/Illumina/REViewer/releases/download/v0.2.7/REViewer-v0.2.7-linux_x86_64.gz | gunzip > REViewer-v0.2.7
 chmod 755 REViewer-v0.2.7
 
-#download bedtools
-cd $folder
-mkdir bedtools-2.31.0
-cd bedtools-2.31.0
-wget https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtools.static
-chmod 755 bedtools.static
-
 #download GATK
 cd $folder
 wget https://github.com/broadinstitute/gatk/releases/download/4.6.0.0/gatk-4.6.0.0.zip
 unzip gatk-4.6.0.0.zip
+rm -rf gatk-4.6.0.0.zip
 
 #download illuminia ORA decompression tool
 cd $folder

@@ -27,7 +27,7 @@ cytoBand:
 	wget -O - https://hgdownload.soe.ucsc.edu/goldenPath/hg38/database/cytoBand.txt.gz | gunzip > cytoBand.txt
 
 nobase_regions:
-	php extract_nobase.php GRCh38 > nobase_regions.bed
+	php extract_nobase.php GRCh38
 
 pfam_description:
 	wget -O - ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz | zcat | grep -e '^#=GF AC' -e '^#=GF DE' | tr -d '\n' | sed 's/#=GF AC   /\n/g' | sed 's/\.[0-9]\+#=GF DE   /\t/g' | sed '/^$$/d' | sed '1 i\#PFAM_ID\tDESCRIPTION' | tr '\n\n' '\n'> pfam_description.tsv
@@ -42,10 +42,3 @@ telomere_centromere:
 
 circos_karyotype_files:
 	echo "These files where created manually by merging the chromosome regions and the centromer_telomer.bed (extended by 3 columns and replaced names by color)"
-
-hemoglobin_transcripts:
-	wget -O - 'https://ftp.ensembl.org/pub/release-109/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz' | \
-		zcat | \
-		awk -v RS=">" -v FS="\n" '$$1 ~ / gene_symbol:(HBA1|HBA2|HBB) / { print ">"$$1; {for (i=2; i<=NF; i++) printf("%s", $$i)}; printf("\n") }' | \
-		sed '/^>/s/ /|kraken:taxid|9606 /' \
-		> human_hemoglobin_tx.fa

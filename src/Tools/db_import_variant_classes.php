@@ -92,7 +92,7 @@ foreach($file as $line)
 	}
 	
 	//check if variant exists (insert otherwise)
-	$v_id = $db->getValue("SELECT id FROM variant WHERE chr='{$chr}' AND start='{$start}' AND end='{$end}' AND ref='{$ref}' AND obs='{$obs}'", -1);
+	$v_id = get_variant_id($db, $chr, $start, $end, $ref, $obs);
 	if($v_id==-1)
 	{
 		$db->executeStmt("INSERT INTO `variant` SET chr='{$chr}', start='{$start}', end='{$end}', ref='{$ref}', obs='{$obs}'");

@@ -27,13 +27,12 @@ wget https://github.com/Illumina/strelka/releases/download/v2.9.10/strelka-2.9.1
 tar xjf strelka-2.9.10.centos6_x86_64.tar.bz2
 rm strelka-2.9.10.centos6_x86_64.tar.bz2
 
-#download mantis
+#download msisensor-pro
 cd $folder
-wget https://github.com/OSU-SRLab/MANTIS/archive/v1.0.5.tar.gz
-tar xzf v1.0.5.tar.gz
-rm v1.0.5.tar.gz
-cd MANTIS-1.0.5/tools/
-make
+mkdir -p "msisensor-pro-1.2.0/"
+cd "msisensor-pro-1.2.0/"
+wget https://github.com/xjtu-omics/msisensor-pro/releases/download/v1.2.0/msisensor-pro
+
 
 #download umiVar2
 cd $folder
