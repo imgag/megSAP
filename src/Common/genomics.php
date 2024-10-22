@@ -251,7 +251,7 @@ function chr_check($chr, $max = 22, $fail_trigger_error = true)
 */
 function chr_list()
 {
-	return array_merge(range(1,22), array("X","Y"));
+	return preg_filter('/^/', 'chr', array_merge(range(1,22), array("X","Y")));
 }
 
 /**
@@ -2216,8 +2216,8 @@ function contains_methylation($bam_file, $n_rows=100, $build="GRCh38")
 function get_read_group_description($bam_file)
 {
 	$rg_description = array();
-	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $bam_file | egrep '^@RG' ");
-	if  ($exit_code==0)
+	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $bam_file | egrep '^@RG' ", false);
+	if  ($exit_code==0 || $exit_code==1)
 	{
 		foreach($stdout as $line)
 		{
@@ -2245,8 +2245,8 @@ function get_read_group_description($bam_file)
 function get_basecall_model($bam_file)
 {
 	$basecall_model = array();
-	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $bam_file | egrep '^@RG' ");
-	if  ($exit_code==0)
+	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -H $bam_file | egrep '^@RG' ", false);
+	if  ($exit_code==0 || $exit_code==1)
 	{
 		foreach($stdout as $line)
 		{
@@ -2359,6 +2359,35 @@ function update_gsvar_sample_header($file_name, $status_map)
 	}
 	$file_content->setComments($new_comments);
 	$file_content->toTSV(($file_name));
+}
+
+
+//check for missing chr in VCF/GSvar files
+function check_for_missing_chromosomes($file_name, $throw_error = true)
+{
+	// use array as set
+	$found_chromosomes = array();
+
+	$h = gzopen2($file_name, "r");
+	while(!gzeof($h))
+	{
+		$line = trim(gzgets($h));
+		if ($line=="" || $line[0]=="#") continue;
+		$found_chromosomes[trim(explode("\t", $line)[0])] = true;
+	}
+
+	$missing_chr = array();
+	foreach (chr_list() as $chr) 
+	{
+		//ignore chrY
+		if($chr == "chrY") continue;
+
+		if(!isset($found_chromosomes[$chr])) $missing_chr[] = $chr; 
+	}
+
+	if ($throw_error && count($missing_chr) > 0) trigger_error("Chromosome(s) ".implode(", ", $missing_chr)." not found in file '{$file_name}'!", E_USER_ERROR);
+
+	return count($missing_chr);
 }
 
 ?>

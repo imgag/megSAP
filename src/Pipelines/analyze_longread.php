@@ -117,6 +117,22 @@ $qc_other  = $folder."/".$name."_stats_other.qcML";
 $name_sample_ps = explode("_", $name, 2);
 $sample_name = $name_sample_ps[0];
 
+//check if target region covers whole genome
+list($stdout, $stderr, $ec) = $parser->exec($ngsbits."BedInfo", "-in ".$sys['target_file']);
+$is_wgs = false;
+foreach($stdout as $line)
+{
+	if( starts_with($line, "Bases"))
+	{
+		$target_size = (int) explode(":", $line)[1];
+		trigger_error("Taget region size: {$target_size} bp");
+		$is_wgs = ($target_size > 3e9);
+		break;
+	}
+}
+if(!$is_wgs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in calling files.", E_USER_WARNING);
+
+
 //mapping
 if (in_array("ma", $steps))
 {
@@ -406,6 +422,9 @@ if (in_array("vc", $steps))
 	
 	$parser->execTool("NGS/vc_clair.php", implode(" ", $args));	
 
+	//check for truncated VCF file
+	if ($is_wgs) check_for_missing_chromosomes($vcf_file);
+
 	//create b-allele frequency file
 	$params = array();
 	$params[] = "-vcf {$vcf_file}";
@@ -638,6 +657,11 @@ if (in_array("an", $steps))
 		//run annotation pipeline
 		$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
 
+		//check for truncated VCF file
+		if ($is_wgs) check_for_missing_chromosomes($vcf_file_annotated);
+		if ($is_wgs) check_for_missing_chromosomes($var_file);
+
+
 		//ROH detection
 		$args = [];
 		$args[] = "-in $vcf_file_annotated";
@@ -691,6 +715,9 @@ if (in_array("an", $steps))
 			//annotate overlap with pathogenic CNVs
 			$parser->exec($ngsbits."NGSDAnnotateCNV", "-in {$cnv_file} -out {$cnv_file}", true);
 		}
+
+		//check for truncated VCF file
+		if ($is_wgs) check_for_missing_chromosomes($cnv_file);
 	}
 	else
 	{
@@ -786,7 +813,10 @@ if (in_array("an", $steps))
 		$parser->exec("{$ngsbits}BedpeExtractInfoField", "-in $bedpe_file -out $bedpe_file -info_fields SVLEN,SUPPORT,COVERAGE,AF", true);
 
 		//update sample entry 
-		update_gsvar_sample_header($bedpe_file, array($name=>"Affected"));		
+		update_gsvar_sample_header($bedpe_file, array($name=>"Affected"));	
+		
+		//check for truncated VCF file
+		if ($is_wgs) check_for_missing_chromosomes($bedpe_file);
 	}
 
 }
