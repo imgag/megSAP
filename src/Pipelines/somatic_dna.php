@@ -548,6 +548,7 @@ if (in_array("vc", $steps))
 		$args[] = "-normal_name {$n_id}";
 		$args[] = "-out {$variants}";
 		$args[] = "-build ".$sys['build'];
+		$args[] = "-target ".$roi;
 		$parser->execTool("NGS/an_filter_dragen_somatic.php", implode(" ", $args));
 		
 		
