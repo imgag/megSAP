@@ -317,7 +317,7 @@ function get_path($name, $throw_on_error=true)
 	{
 		trigger_error("Could not find key '$name' in settings file '$ini_file'!", E_USER_ERROR);
 	}
-	@$value = $parsed_ini[$name];
+	$value = isset($parsed_ini[$name]) ? $parsed_ini[$name] : "";
 
 	//replace [path] by base path
 	$value = str_replace("[path]", $dir, $value);
