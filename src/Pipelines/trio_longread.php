@@ -96,6 +96,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=varia
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_check", "Skip gender check of parents and parent-child correlation check (otherwise done before variant calling)");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
+$parser->addFloat("min_corr", "Minimal correlation between child and parent.", true, 0.45); //TODO: validate for Longreads
 extract($parser->parse($argv));
 
 //init
@@ -144,8 +145,6 @@ if (!$no_sync)
 if (!$no_check)
 {
 	//check parent-child correlation
-	$min_corr = 0.45;
-	//TODO: validate for Longreads
 	$min_cov = 15; 
 	$c_gsvar = substr($c, 0, -4).".GSvar";
 	$f_gsvar = substr($f, 0, -4).".GSvar";
