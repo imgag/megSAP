@@ -227,121 +227,87 @@ if (in_array("ma", $steps))
 			//check if BAM/CRAM exist and have a appropriete size
 			$bam_exists = file_exists($bam_file) && file_exists($bam_file.".bai"); 
 			$cram_exists = file_exists($cram_file) && file_exists($cram_file.".crai"); 
-			if ($bam_exists)
+
+			//get mapped read count
+			if ($cram_exists) $rc_mapped_bam = get_read_count($cram_file, max(8, $threads), array("-F", "2304"), $sys['build']);
+			else if ($bam_exists) $rc_mapped_bam = get_read_count($bam_file, max(8, $threads), array("-F", "2304"), $sys['build']);
+			else trigger_error("Cannot delete FASTQ/BAM files - no BAM/CRAM file found!", E_USER_ERROR);
+			trigger_error("Mapped BAM file read counts: ".$rc_mapped_bam, E_USER_NOTICE);
+
+			//get read count of input files
+			if (count($unmapped_bam_files) > 0)
 			{
-				$mapped_bam_file_size = filesize($bam_file);
-				trigger_error("Mapped BAM file size: ".$mapped_bam_file_size, E_USER_NOTICE);
-				if (count($unmapped_bam_files) > 0)
+				//check read counts of bams
+				$rc_unmapped = 0;
+				foreach ($unmapped_bam_files as $unmapped_bam_file) 
 				{
-					// check file size of bams
-					$unmapped_bam_file_size = 0;
+					$read_count = get_read_count($unmapped_bam_file, max(8, $threads), array(), $sys['build']);
+					trigger_error("Unmapped BAM file read counts (".$unmapped_bam_file."): ".$read_count, E_USER_NOTICE);
+					$rc_unmapped += $read_count;
+				}
+
+				//calculate relative difference
+				$diff = abs($rc_input_bam - $rc_output_bam);
+				$rel_diff = $diff /(($rc_input_bam + $rc_output_bam)/2);
+
+				if (($rc_mapped_bam == $rc_unmapped) || ($rel_diff < 0.0001))
+				{
+					// remove unmapped BAM(s)
+					if ($rc_mapped_bam == $rc_unmapped) trigger_error("Read count of mapped and unmapped BAM(s) match. Deleting unmapped BAM(s)...", E_USER_NOTICE);
+					if ($rel_diff < 0.0001) trigger_error("Read count of mapped and unmapped BAM(s) in allows tolerance (<0.01%) (".($rel_diff*100)."%). Deleting unmapped BAM(s)...", E_USER_NOTICE);
 					foreach ($unmapped_bam_files as $unmapped_bam_file) 
 					{
-						$file_size = filesize($unmapped_bam_file);
-						trigger_error("Unmapped BAM file size (".$unmapped_bam_file."): ".$file_size, E_USER_NOTICE);
-						$unmapped_bam_file_size += $file_size;
-					}
-					if ($mapped_bam_file_size  > $unmapped_bam_file)
-					{
-						// remove unmapped BAM(s)
-						foreach ($unmapped_bam_files as $unmapped_bam_file) 
-						{
-							//TODO: remove
-							trigger_error("Source File would be removed!", E_USER_NOTICE);
-							// unlink($unmapped_bam_file);
-						}
-					}
-					else
-					{
-						trigger_error("Cannot delete unmapped BAM file(s) - mapped BAM file is smaller than unmapped BAM.", E_USER_ERROR);
+						//TODO: remove
+						trigger_error("Unmapped BAM file would be removed!", E_USER_NOTICE);
+						// unlink($unmapped_bam_file);
 					}
 				}
-				elseif (count($fastq_files) > 0)
+				else
 				{
-					// check file size of fastqs
-					$fastq_file_size = 0;
-					foreach ($fastq_files as $fastq_file) 
-					{
-						$file_size = filesize($fastq_file);
-						trigger_error("FASTQ file size (".$fastq_file."): ".$file_size, E_USER_NOTICE);
-						$fastq_file_size += $file_size;
-					}
-					if ($mapped_bam_file_size > 0.3 * $fastq_file_size)
-					{
-						// remove fastqs
-						foreach($fastq_files as $fastq_file)
-						{
-							//TODO: remove
-							trigger_error("Source File would be removed!", E_USER_NOTICE);
-							// unlink($fastq_file);
-						}
-					}
-					else
-					{
-						trigger_error("Cannot delete FASTQ files - BAM file smaller than 30% of FASTQ.", E_USER_ERROR);
-					}
+					trigger_error("Cannot delete unmapped BAM file(s) - mapped BAM file read counts doesn't match unmapped BAM(s)(".($rel_diff*100)."%).", E_USER_ERROR);
 				}
+
 			}
-			else if ($cram_exists)
+			elseif (count($fastq_files) > 0)
 			{
-				$mapped_cram_file_size = filesize($cram_file);
-				trigger_error("Mapped CRAM file size: ".$mapped_cram_file_size, E_USER_NOTICE);
-				if (count($unmapped_bam_files) > 0)
+				//check read counts of bams
+				$rc_unmapped = 0;
+				foreach ($fastq_files as $fastq_file) 
 				{
-					// check file size of bams
-					$unmapped_bam_file_size = 0;
-					foreach ($unmapped_bam_files as $unmapped_bam_file) 
-					{
-						$file_size = filesize($unmapped_bam_file);
-						trigger_error("Unmapped BAM file size (".$unmapped_bam_file."): ".$file_size, E_USER_NOTICE);
-						$unmapped_bam_file_size += $file_size;
-					}
-					if ($mapped_cram_file_size  > ($unmapped_bam_file_size / 3))
-					{
-						// remove unmapped BAM(s)
-						foreach ($unmapped_bam_files as $unmapped_bam_file) 
-						{
-							//TODO: remove
-							trigger_error("Source File would be removed!", E_USER_NOTICE);
-							// unlink($unmapped_bam_file);
-						}
-					}
-					else
-					{
-						trigger_error("Cannot delete unmapped BAM file(s) - mapped CRAM file is smaller than 1/3rd of the unmapped BAM.", E_USER_ERROR);
-					}
+					$rc_pipeline = array();
+					$rc_pipeline[] = array("zcat", $fastq_file);
+					$rc_pipeline[] = array("wc", "-l");
+					list($stdout, $stderr) = $parser->execPipeline($rc_pipeline, "FastQ read count", true);
+					$read_count = ((int) $stdout[0]) / 4;
+					trigger_error("FASTQ file read counts (".$fastq_file."): ".$read_count, E_USER_NOTICE);
+					$rc_unmapped += $read_count;
 				}
-				elseif (count($fastq_files) > 0)
+
+				//calculate relative difference
+				$diff = abs($rc_input_bam - $rc_output_bam);
+				$rel_diff = $diff /(($rc_input_bam + $rc_output_bam)/2);
+
+				if (($rc_mapped_bam == $rc_unmapped) || ($rel_diff < 0.0001))
 				{
-					// check file size of fastqs
-					$fastq_file_size = 0;
+					// remove unmapped BAM(s)
+					if ($rc_mapped_bam == $rc_unmapped) trigger_error("Read count of mapped and FastQ(s) match. Deleting unmapped BAM(s)...", E_USER_NOTICE);
+					if ($rel_diff < 0.0001) trigger_error("Read count of mapped BAM and FastQ(s) in allows tolerance (<0.01%) (".($rel_diff*100)."%). Deleting FastQ(s)...", E_USER_NOTICE);
 					foreach ($fastq_files as $fastq_file) 
 					{
-						$file_size = filesize($fastq_file);
-						trigger_error("FASTQ file size (".$fastq_file."): ".$file_size, E_USER_NOTICE);
-						$fastq_file_size += $file_size;
+						//TODO: remove
+						trigger_error("FastQ file would be removed!", E_USER_NOTICE);
+						// unlink($fastq_file);
 					}
-					if ($mapped_cram_file_size > 0.1 * $fastq_file_size)
-					{
-						// remove fastqs
-						foreach($fastq_files as $fastq_file)
-						{
-							//TODO: remove
-							trigger_error("Source File would be removed!", E_USER_NOTICE);
-							// unlink($fastq_file);
-						}
-					}
-					else
-					{
-						trigger_error("Cannot delete FASTQ files - CRAM file smaller than 10% of FASTQ.", E_USER_ERROR);
-					}
+				}
+				else
+				{
+					trigger_error("Cannot delete unmapped BAM file(s) - mapped BAM file read counts doesn't match unmapped BAM(s)(".($rel_diff*100)."%).", E_USER_ERROR);
 				}
 			}
 			else
 			{
-				trigger_error("Cannot delete FASTQ/BAM files - no BAM/CRAM file found!", E_USER_ERROR);
+				trigger_error("No FastQ/unmapped BAMs found!", E_USER_WARNING);
 			}
-
 				
 		}
 	}

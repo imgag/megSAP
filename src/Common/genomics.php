@@ -2390,4 +2390,62 @@ function check_for_missing_chromosomes($file_name, $throw_error = true)
 	return count($missing_chr);
 }
 
+//get bam read count
+function get_read_count($bam_file, $threads = 4, $samtools_params = array(), $build = "GRCh38", $region = "")
+{
+	$read_count = -1;
+	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -@ {$threads} -c -T ".genome_fasta($build)." ".implode($samtools_params)." {$bam_file} {$region}");
+	if ($exit_code == 0)
+	{
+		$read_count = (int) $stdout[0];
+	}
+	else
+	{
+		trigger_error("Error calculating read counts: \n".implode("\n", $stderr), E_USER_ERROR);
+	}
+
+	return $read_count;
+}
+
+//compare bam read count
+function compare_bam_read_count($bam_file1, $bam_file2, $threads = 4, $throw_error = true, $chr_wise = false, $relative_tolerance = 0.0, $samtools_params = array(), $build = "GRCh38")
+{
+	if ($chr_wise)
+	{
+		$differences = array();
+		foreach (chr_list() as $chr) 
+		{
+			$read_count1 = get_read_count($bam_file1, $threads, $samtools_params, $build, $chr);
+			$read_count2 = get_read_count($bam_file2, $threads, $samtools_params, $build, $chr);
+			$diff = abs($read_count1 - $read_count2);
+			//count are identical
+			if ($diff == 0) continue;
+
+			$relative_error = $diff / (($read_count1 + $read_count2)/2);
+			if ($relative_error <= $relative_tolerance) continue;
+
+			$differences[] = "\t{$chr}:\t {$read_count1} vs. {$read_count2} reads";
+		}
+
+		if (count($differences) == 0) return true;
+
+		if ($throw_error) trigger_error("Bam file read count do not match!\n".implode("\n", $differences), E_USER_ERROR);
+		return false;
+	}
+	else
+	{
+		$read_count1 = get_read_count($bam_file1, $threads, $samtools_params, $build);
+		$read_count2 = get_read_count($bam_file2, $threads, $samtools_params, $build);
+		$diff = abs($read_count1 - $read_count2);
+		//count are identical
+		if ($diff == 0) return true;
+
+ 		$relative_error = $diff / (($read_count1 + $read_count2)/2);
+		if ($relative_error <= $relative_tolerance) return true;
+
+		if ($throw_error) trigger_error("Bam file read count do not match! ({$read_count1} vs. {$read_count2} reads)", E_USER_ERROR);
+		return false;
+	}
+}
+
 ?>

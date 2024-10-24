@@ -39,6 +39,7 @@ $qcml_map = $basename."_stats_map.qcML";
 
 //extract processing system information from DB
 $sys = load_system($system, $sample);
+$genome_fasta = genome_fasta($sys['build']);
 
 //set read group information
 $group_props = [];
@@ -94,7 +95,7 @@ $minimap_options = [
 	"--eqx",
 	"-t {$threads}",
 	"-R '@RG\\t" . implode("\\t", $group_props) . "'",
-	genome_fasta($sys['build'])
+	$genome_fasta
 ];
 //include methylation
 if ($bam_input) $minimap_options[] = "-y";
@@ -124,7 +125,7 @@ if ($bam_input)
 	$fastq_cmds = [];
 	foreach ($in_bam as $file)
 	{
-		$fastq_cmds[] = get_path("samtools") . " fastq -o /dev/null {$met_tag} {$file}";
+		$fastq_cmds[] = get_path("samtools") . " fastq --reference {$genome_fasta} -o /dev/null {$met_tag} {$file}";
 	}
 	$fastq_cmds_str = implode("; ", $fastq_cmds);
 	$pipeline[]=  ["", "({$fastq_cmds_str})"];	//perform mapping from STDIN
@@ -138,12 +139,39 @@ else //fastq_mode
 
 //sort BAM by coordinates
 $tmp_for_sorting = $parser->tempFile();
-$pipeline[] = [get_path("samtools"), "sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$bam_current} -", true];
+$pipeline[] = [get_path("samtools"), "sort --reference {$genome_fasta} -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$bam_current} -", true];
 //execute 
 $parser->execPipeline($pipeline, "mapping");
 
 //create index
 $parser->indexBam($bam_current, $threads);
+
+//check for missing reads
+if ($bam_input)
+{
+	//get read count of input BAMs
+	$rc_input_bam = 0;
+	foreach ($in_bam as $bam_file) 
+	{
+		$rc_input_bam += get_read_count($bam_file, max(8, $threads), array("-F", "2304"), $sys['build']);
+	}
+	//get read count of output BAM
+	$rc_output_bam = get_read_count($bam_current, max(8, $threads), array("-F", "2304"), $sys['build']);
+
+	// get rel. difference
+	$diff = abs($rc_input_bam - $rc_output_bam);
+	$rel_diff = $diff /(($rc_input_bam + $rc_output_bam)/2);
+
+	//allow 0.01% difference between input and output 
+	if ($rel_diff > 0.0001) 
+	{
+		trigger_error("Mapped read counts doesn't match input read counts! (Input: {$rc_input_bam} reads vs. Output: {$rc_output_bam} reads (rel. difference: ".($rel_diff*100)."))", E_USER_ERROR);
+	}
+	else
+	{
+		trigger_error("Input BAMs: {$rc_input_bam} reads vs. Output BAMs: {$rc_output_bam} reads (rel. difference: ".($rel_diff*100)."%)", E_USER_NOTICE);
+	}
+}
 
 //run mapping QC
 if ($qc_map !== "")
@@ -190,6 +218,9 @@ else
 {
 	$out_cram = $basename.".cram";
 	$parser->execTool("Tools/bam_to_cram.php", "-bam {$bam_current} -cram {$out} -build ".$sys['build']." -threads {$threads}");
+
+	//check if conversion was successful
+	compare_bam_read_count($bam_current, $out_cram, max(8, $threads), true, true, 0.0, array(), $sys['build']);
 	
 	//in case we re-map an old analysis with BAM output, we need to delete the BAM file
 	$bam = basename2($out).".bam";
