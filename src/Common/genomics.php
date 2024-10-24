@@ -1207,6 +1207,7 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 		if ($details!=NULL)
 		{
 			$parts['Gender'] = $details['gender'];
+			if ($parts['Gender'] == 'n/a') trigger_error("Gender of sample {$ps_name} not set!", E_USER_WARNING);
 			$parts['ExternalSampleName'] = strtr($details['name_external'], ",", ";");
 			$parts['IsTumor'] = $details['is_tumor'] ? "yes" : "no";
 			$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
@@ -2338,8 +2339,12 @@ function update_gsvar_sample_header($file_name, $status_map)
 			{
 				if(strpos($line, "ID=".$sample_name) !== false)
 				{
+					$overwrite_map = array("DiseaseStatus"=>$disease_status);
+					if (strpos($line, "Gender=male") !== false) $override_map["Gender"] = "male";
+					if (strpos($line, "Gender=female") !== false) $override_map["Gender"] = "female";
+
 					//replace SAMPLE line with updated entry from NGSD
-					$new_comments[] = gsvar_sample_header($sample_name, array("DiseaseStatus"=>$disease_status), "#", "\n"); 
+					$new_comments[] = gsvar_sample_header($sample_name, $overwrite_map, "#", "\n"); 
 					$found = true;
 					break;
 				}
