@@ -112,7 +112,7 @@ $name_sample_ps = explode("_", $name, 2);
 $sample_name = $name_sample_ps[0];
 
 //check if target region covers whole genome
-list($stdout, $stderr, $ec) = $parser->exec($ngsbits."BedInfo", "-in ".$sys['target_file']);
+list($stdout, $stderr, $ec) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedInfo", "-in ".$sys['target_file'], [$sys['target_file']]);
 $is_wgs = false;
 foreach($stdout as $line)
 {

@@ -43,6 +43,7 @@ $args[] = "--model_path={$model}";
 $args[] = "--keep_iupac_bases";
 $args[] = "--gvcf";
 $args[] = "--sample_name={$name}";
+$args[] = "--no_phasing_for_fa";
 
 //set bind paths for clair3 container
 $in_files = array();

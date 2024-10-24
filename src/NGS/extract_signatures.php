@@ -35,7 +35,7 @@ function calculate_cnv_signatures($in, $minSig, $maxSig, $nmfRep, $seeds)
 	$result_folder = temp_folder();
 	$tmp = cnv_prepare_clincnv($in);
 
-	if (empty($tmp))
+	if ($tmp == "")
 	{
 		trigger_error("Warning: No CNVs called! - Skipping CNV signature calculation.", E_USER_NOTICE);
 		return;
@@ -46,7 +46,7 @@ function calculate_cnv_signatures($in, $minSig, $maxSig, $nmfRep, $seeds)
 		$in_files = [$seeds];
 	}
 
-	$parser->execSingularity("SigProfilerExtractor", get_path("container_SigProfilerExtractor"), "python -c", "'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor(\"seg:FACETS\", \"$result_folder\", \"$tmp\", reference_genome=\"{$reference}\", minimum_signatures={$minSig}, maximum_signatures={$maxSig}, nmf_replicates={$nmfRep}, cpu={$threads}, seeds=\"{$seeds}\")'", $in_files);
+	$parser->execSingularity("SigProfilerExtractor", get_path("container_SigProfilerExtractor"), "/opt/Python3.8.10/bin/python3 -c", "'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor(\"seg:FACETS\", \"$result_folder\", \"$tmp\", reference_genome=\"{$reference}\", minimum_signatures={$minSig}, maximum_signatures={$maxSig}, nmf_replicates={$nmfRep}, cpu={$threads}, seeds=\"{$seeds}\")'", $in_files);
 
 	copy_cnv_result_files($result_folder);
 }
@@ -55,11 +55,10 @@ function cnv_prepare_clincnv($cnvFile)
 {
 	$tmp = temp_file(".seg", "cnv_input");
 	$lines = array();
-	$lines[] = "chr\tstart\tend\ttcn.em\tlcn.em\tsample\tid";
 	foreach(file($cnvFile) as $line)
 	{
 		$line = trim($line);
-		if ($line[0] == '#' || $line == "") continue;
+		if ($line === "" || (isset($line[0]) && $line[0] == '#')) continue;
 
 		$parts = explode("\t", $line);
 		$lines[] = "{$parts[0]}\t{$parts[1]}\t{$parts[2]}\t{$parts[5]}\t{$parts[8]}\t".basename($cnvFile, "_clincnv.tsv")."\t0";
@@ -67,6 +66,8 @@ function cnv_prepare_clincnv($cnvFile)
 
 	if (empty($lines)) return "";
 
+	$header = "chr\tstart\tend\ttcn.em\tlcn.em\tsample\tid";
+	array_unshift($lines, $header);
 	file_put_contents($tmp, implode("\n", $lines)."\n");
 	return $tmp;
 }
@@ -118,7 +119,7 @@ function calculate_snv_signatures($in, $minSig, $maxSig, $nmfRep, $seeds)
 	}
 
 	$in_files[] = $in_dir;
-	$parser->execSingularity("SigProfilerExtractor", get_path("container_SigProfilerExtractor"), "python -c", "'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor(\"vcf\", \"$result_folder\", \"{$in_dir}\", reference_genome=\"{$reference}\", minimum_signatures={$minSig}, maximum_signatures={$maxSig}, nmf_replicates={$nmfRep}, cpu={$threads}, seeds=\"{$seeds}\")'", $in_files);
+	$parser->execSingularity("SigProfilerExtractor", get_path("container_SigProfilerExtractor"), "/opt/Python3.8.10/bin/python3 -c", "'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor(\"vcf\", \"$result_folder\", \"{$in_dir}\", reference_genome=\"{$reference}\", minimum_signatures={$minSig}, maximum_signatures={$maxSig}, nmf_replicates={$nmfRep}, cpu={$threads}, seeds=\"{$seeds}\")'", $in_files);
 
 	copy_snv_result_files($result_folder);
 }
