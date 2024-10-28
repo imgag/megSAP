@@ -74,8 +74,8 @@ $ngsbits/BedSort -with_name -in clinvar_cnvs_2024-08.bed -out clinvar_cnvs_2024-
 cd $dbs
 mkdir -p HGNC
 cd HGNC
-wget -O - http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/hgnc_complete_set.txt > hgnc_complete_set.tsv
-wget -O - http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/withdrawn.txt > hgnc_withdrawn.tsv
+wget -O - https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/hgnc_complete_set.txt > hgnc_complete_set.tsv
+wget -O - https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/withdrawn.txt > hgnc_withdrawn.tsv
 
 #Install gnomAD (genome data) - 
 cd $dbs

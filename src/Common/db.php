@@ -242,11 +242,10 @@ class DB
 			
 		if (is_null($default) && count($result)==0) trigger_error("getValue query returned zero rows: $query", E_USER_ERROR);
 		if (is_null($default) && count($result)>1) trigger_error("getValue query returned more than one row: $query", E_USER_ERROR);
-		@$result = $result[0];
+		$result = count($result)>0 ? $result[0] : [0=>""];
 		if (is_null($default) && count($result)==0) trigger_error("getValue query returned zero columns: $query", E_USER_ERROR);
 		if (is_null($default) && count($result)>1) trigger_error("getValue query returned more than one column: $query", E_USER_ERROR);
-		@$result = array_values($result);
-		@$result = $result[0];
+		$result = array_values($result)[0];
 		if ($result=="" || is_null($result)) return $default;
 		return $result;
 	}

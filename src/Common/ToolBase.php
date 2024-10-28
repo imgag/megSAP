@@ -85,11 +85,7 @@ class ToolBase
 	{
 		//settings for ngs-bits exists > do nothing
 		$ngsbits_settings = get_path("ngs-bits")."/settings.ini";
-		if (file_exists($ngsbits_settings))
-		{
-			trigger_error("ngs-bits settings file used: {$ngsbits_settings}", E_USER_NOTICE);
-			return;
-		}
+		if (file_exists($ngsbits_settings)) return;
 		
 		//pipeine settings file missing > create it
 		$pipeline_settings = repository_basedir()."/data/tools/ngsbits_settings.ini";
@@ -117,7 +113,7 @@ class ToolBase
 			
 			//data folder
 			$output[] = "data_folder = ".get_path("data_folder", false);
-			
+									
 			$written = file_put_contents($pipeline_settings, implode("\n", $output));
 			if($written===false) trigger_error("Could not write ngs-bits settings file: $pipeline_settings", E_USER_ERROR);
 		}

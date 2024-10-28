@@ -15,6 +15,10 @@ $parser->addString("name", "Name used for the genome. ", true, "Human (hg38) mas
 $parser->addString("id", "ID used for the genome. ", true, "hg38_ensembl_masked");
 extract($parser->parse($argv));
 
+//init
+$data_folder = get_path("data_folder");
+$ngsbits = get_path("ngs-bits");
+
 //create output folder
 if (!file_exists($output_folder))
 {
@@ -26,20 +30,11 @@ $genome_fasta = genome_fasta($build);
 $parser->copyFile($genome_fasta, $output_folder."/".$build.".fa");
 $parser->copyFile($genome_fasta.".fai", $output_folder."/".$build.".fa.fai");
 
-//download additional files
-$url_list = array();
-$url_list["cytoband"] = "https://s3.amazonaws.com/igv.org.genomes/hg38/annotations/cytoBandIdeo.txt.gz";
-$url_list["alias"] = "https://s3.amazonaws.com/igv.org.genomes/hg38/hg38_alias.tab";
-
-foreach ($url_list as $track_name => $url) 
-{
-	print "Downloading '{$track_name}'...\n";
-	$parser->exec("wget", "-O {$output_folder}/".basename($url)." ".$url);
-}
-
+//copy from data folder
+$parser->copyFile("{$data_folder}/igv/cytoBandIdeo.txt.gz", "{$output_folder}/cytoBandIdeo.txt.gz");
+$parser->copyFile("{$data_folder}/igv/hg38_alias.tab", "{$output_folder}/hg38_alias.tab");
 
 //export gene track
-$ngsbits = get_path("ngs-bits");
 print "Export Ensembl gene track from NGSD ...\n";
 $all_transcripts_tmp = $parser->tempFile(".txt");
 $mane_transcripts_tmp = $parser->tempFile(".txt");
@@ -57,8 +52,8 @@ $data["id"] = $id;
 $data["name"] = $name;
 $data["fastaURL"] = $build.".fa";
 $data["indexURL"] = $build.".fa.fai";
-$data["cytobandURL"] = basename($url_list["cytoband"]);
-$data["aliasURL"] = basename($url_list["alias"]);
+$data["cytobandURL"] = "cytoBandIdeo.txt.gz";
+$data["aliasURL"] = "hg38_alias.tab";
 $data["chromosomeOrder"] = array("chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY", "chrMT");
 $data["tracks"] = array();
 
