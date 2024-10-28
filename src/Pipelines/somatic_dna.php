@@ -809,7 +809,7 @@ if(in_array("cn",$steps))
 		$n_cov = "{$ref_folder_n}/{$n_id}.cov.gz";
 		if (!file_exists($n_cov))
 		{
-			$cov_tmp_unzipped = $tmp_folder."/{$name}.cov";
+			$cov_tmp_unzipped = $tmp_folder."/{$n_id}.cov";
 			$parser->exec(get_path("ngs-bits")."BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in $target_bed -out $cov_tmp_unzipped -threads {$threads} -ref {$ref_genome}", true);
 			$parser->exec("gzip", "-9 {$cov_tmp_unzipped}");
 			
@@ -1206,7 +1206,6 @@ if (in_array("an_rna", $steps))
 		$ps_rna_bams[basename($t_rna_bam)] = $t_rna_bam; 
 	}
 
-
 	if(count($ps_rna_bams) < 1)
 	{
 		if (count($steps) > 1)
@@ -1387,7 +1386,7 @@ if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("msi", $steps) 
 			$terms[] = "QC:2000118\t".number_format(100.0*$cnv_count_loss/$cnv_count_hq_autosomes, 2); // percentage losses
 			$terms[] = "QC:2000119\t".number_format(100.0*$cnv_count_gain/$cnv_count_hq_autosomes, 2); // percentage gains
 		}
-		$sources[] = $cnvfile;
+		$sources[] = $som_clincnv;
 	}
 	
 	// HRD score:
