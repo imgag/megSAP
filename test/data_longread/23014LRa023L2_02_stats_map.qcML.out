@@ -6,18 +6,18 @@
   ]>
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
-    <metaDataParameter ID="md0001" name="creation software" value="MappingQC 2024_02-2-g676f0ad1" cvRef="QC" accession="QC:1000002"/>
-    <metaDataParameter ID="md0002" name="creation software parameters" value="-wgs" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2024-03-06T13:01:23" cvRef="QC" accession="QC:1000004"/>
-    <metaDataParameter ID="md0004" name="source file" value="23014LRa023L2_02zDCSvJ.bam" cvRef="QC" accession="QC:1000005"/>
+    <metaDataParameter ID="md0001" name="creation software" value="MappingQC 2024_08-49-ge3e4d6d4" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0002" name="creation software parameters" value="-wgs -long_read" cvRef="QC" accession="QC:1000003"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2024-10-30T14:07:03" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0004" name="source file" value="23014LRa023L2_02PzwhQ9.bam" cvRef="QC" accession="QC:1000005"/>
     <qualityParameter ID="qp0001" name="trimmed base percentage" description="Percentage of bases that were trimmed during to adapter or quality trimming." value="90.45" cvRef="QC" accession="QC:2000019"/>
-    <qualityParameter ID="qp0002" name="clipped base percentage" description="Percentage of the bases that are soft-clipped or hand-clipped during mapping." value="6.56" cvRef="QC" accession="QC:2000052"/>
+    <qualityParameter ID="qp0002" name="clipped base percentage" description="Percentage of the bases that are soft-clipped or hand-clipped during mapping." value="6.58" cvRef="QC" accession="QC:2000052"/>
     <qualityParameter ID="qp0003" name="mapped read percentage" description="Percentage of reads that could be mapped to the reference genome." value="100.00" cvRef="QC" accession="QC:2000020"/>
     <qualityParameter ID="qp0004" name="on-target read percentage" description="Percentage of reads that could be mapped to the target region." value="100.00" cvRef="QC" accession="QC:2000021"/>
     <qualityParameter ID="qp0005" name="properly-paired read percentage" description="Percentage of properly paired reads (for paired-end reads only)." value="n/a (single end)" cvRef="QC" accession="QC:2000022"/>
     <qualityParameter ID="qp0006" name="insert size" description="Average insert size (for paired-end reads only)." value="n/a (single end)" cvRef="QC" accession="QC:2000023"/>
     <qualityParameter ID="qp0007" name="duplicate read percentage" description="Percentage of reads removed because they were duplicates (PCR, optical, etc)." value="n/a (duplicates not marked or removed during data analysis)" cvRef="QC" accession="QC:2000024"/>
-    <qualityParameter ID="qp0008" name="bases usable (MB)" description="Bases sequenced that are usable for variant calling (in megabases)." value="68.45" cvRef="QC" accession="QC:2000050"/>
+    <qualityParameter ID="qp0008" name="bases usable (MB)" description="Bases sequenced that are usable for variant calling (in megabases)." value="67.76" cvRef="QC" accession="QC:2000050"/>
     <qualityParameter ID="qp0009" name="target region read depth" description="Average sequencing depth in target region." value="0.02" cvRef="QC" accession="QC:2000025"/>
     <qualityParameter ID="qp0010" name="target region 10x percentage" description="Percentage of the target region that is covered at least 10-fold." value="0.00" cvRef="QC" accession="QC:2000026"/>
     <qualityParameter ID="qp0011" name="target region 20x percentage" description="Percentage of the target region that is covered at least 20-fold." value="0.00" cvRef="QC" accession="QC:2000027"/>

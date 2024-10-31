@@ -104,14 +104,17 @@ $clair_mito_gvcf = $clair_mito_temp."/merge_output.gvcf.gz";
 $clair_merged_vcf1 = $parser->tempFile("_merged.vcf");
 $clair_merged_vcf2 = $parser->tempFile("_merged.vcf.gz");
 $parser->exec(get_path("ngs-bits")."VcfMerge", "-in {$clair_vcf} {$clair_mito_vcf} -out {$clair_merged_vcf1}");
-$parser->exec(get_path("ngs-bits")."VcfSort", "-compression_level 5 -in {$clair_merged_vcf1} -out {$clair_merged_vcf2}");
+$parser->exec(get_path("ngs-bits")."VcfSort", "-compression_level 5 -in {$clair_merged_vcf1} -out {$clair_merged_vcf2}"); //sorting should not be necessary
 
 if (file_exists($clair_mito_gvcf))
 {
+	//TODO: combine to pipeline
 	$clair_merged_gvcf1 = $parser->tempFile("_merged.gvcf");
 	$clair_merged_gvcf2 = $parser->tempFile("_merged.gvcf.gz");
 	$parser->exec(get_path("ngs-bits")."VcfMerge", "-in {$clair_gvcf} {$clair_mito_gvcf} -out {$clair_merged_gvcf1}");
-	$parser->exec(get_path("ngs-bits")."VcfSort", "-compression_level 5  -in {$clair_merged_gvcf1} -out {$clair_merged_gvcf2}");
+	// no sorting since MT is last chr anyways
+	// $parser->exec(get_path("ngs-bits")."VcfSort", "-compression_level 5  -in {$clair_merged_gvcf1} -out {$clair_merged_gvcf2}");
+	$parser->exec("bgzip", "-c {$clair_merged_gvcf1} > {$clair_merged_gvcf2}");
 }
 else
 {

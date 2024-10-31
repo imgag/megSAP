@@ -28,7 +28,7 @@ if (!file_exists($folder))
 {
 	exec2("mkdir -p $folder");
 }
-if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_".date("YmdHis").".log");
+if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_longread_".date("YmdHis").".log");
 
 //init
 $ngsbits = get_path("ngs-bits");
