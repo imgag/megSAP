@@ -247,14 +247,14 @@ if (in_array("ma", $steps))
 				}
 
 				//calculate relative difference
-				$diff = abs($rc_input_bam - $rc_output_bam);
-				$rel_diff = $diff /(($rc_input_bam + $rc_output_bam)/2);
+				$diff = abs($rc_unmapped - $rc_mapped_bam);
+				$rel_diff = $diff /(($rc_unmapped + $rc_mapped_bam)/2);
 
 				if (($rc_mapped_bam == $rc_unmapped) || ($rel_diff < 0.0001))
 				{
 					// remove unmapped BAM(s)
 					if ($rc_mapped_bam == $rc_unmapped) trigger_error("Read count of mapped and unmapped BAM(s) match. Deleting unmapped BAM(s)...", E_USER_NOTICE);
-					if ($rel_diff < 0.0001) trigger_error("Read count of mapped and unmapped BAM(s) in allows tolerance (<0.01%) (".($rel_diff*100)."%). Deleting unmapped BAM(s)...", E_USER_NOTICE);
+					if ($rel_diff < 0.0001) trigger_error("Read count of mapped and unmapped BAM(s) in allowed tolerance (<0.01%) (".($rel_diff*100)."%). Deleting unmapped BAM(s)...", E_USER_NOTICE);
 					foreach ($unmapped_bam_files as $unmapped_bam_file) 
 					{
 						//TODO: remove
@@ -284,8 +284,8 @@ if (in_array("ma", $steps))
 				}
 
 				//calculate relative difference
-				$diff = abs($rc_input_bam - $rc_output_bam);
-				$rel_diff = $diff /(($rc_input_bam + $rc_output_bam)/2);
+				$diff = abs($rc_unmapped - $rc_mapped_bam);
+				$rel_diff = $diff /(($rc_unmapped + $rc_mapped_bam)/2);
 
 				if (($rc_mapped_bam == $rc_unmapped) || ($rel_diff < 0.0001))
 				{
@@ -443,7 +443,7 @@ if (in_array("cn", $steps))
 
 	//create coverage profile
 	$tmp_folder = $parser->tempFolder();
-$cov_file = $cov_folder."/{$name}.cov.gz";
+	$cov_file = $cov_folder."/{$name}.cov.gz";
 	$cov_tmp_unzipped = $tmp_folder."/{$name}.cov";
 	$cov_tmp = $cov_tmp_unzipped.".gz";
 	$parser->exec("{$ngsbits}BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$used_bam_or_cram} -in {$bed} -out {$cov_tmp_unzipped} -threads {$threads} -ref {$genome}", true);
@@ -542,6 +542,9 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 		$parser->exec("tabix", "-f -p vcf $sv_vcf_file", false);
 	}
 
+	//check for truncated VCF file
+	if ($is_wgs) check_for_missing_chromosomes($vcf_file);
+
 	//tag BAM file 
 	$args = array();
 	$args[] = "haplotag";
@@ -550,28 +553,36 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	$args[] = "-r {$genome}";
 	$args[] = "-t {$threads}";
 	if (file_exists($sv_vcf_file)) $args[] = "--sv-file {$sv_vcf_file}";
-	if ($bam_output) 
-	{
-		//use BAM
-		$tagged_bam_file = $parser->tempFile(".tagged.bam"); 
-	}
-	else
-	{	
-		//use CRAM
-		$tagged_bam_file = $parser->tempFile(".tagged.cram");
-		$args[] = "--cram";
-	}	
+	// if (ends_with($used_bam_or_cram, ".bam")) 
+	// {
+	// 	//use BAM
+	// 	$tagged_bam_file = $parser->tempFile(".tagged.bam"); 
+	// }
+	// else
+	// {	
+	// 	//use CRAM
+	// 	$tagged_bam_file = $parser->tempFile(".tagged.cram");
+	// 	$args[] = "--cram";
+	// }	
+	$tagged_bam_file = $parser->tempFile(".tagged.bam");
 	$args[] = "-o ".dirname($tagged_bam_file)."/".basename2($tagged_bam_file);
 
 	//run longphase and index
 	$parser->exec(get_path("longphase"), implode(" ", $args));
 	$parser->indexBam($tagged_bam_file, $threads);
 
+	//check if read counts of tagged and untagged BAMs match
+	compare_bam_read_count($used_bam_or_cram, $tagged_bam_file, max(8, $threads), true, true, 0.0, array(), $sys['build']);
+
 	//use tagged bam in /tmp for further analysis
 	$used_bam_or_cram = $tagged_bam_file;
 
 	if ($bam_output)
 	{
+		//move BAM file in case copy fails:
+		$parser->moveFile($bam_file, $bam_file.".backup.bam");
+		$parser->moveFile($bam_file.".bai", $bam_file.".backup.bam.bai");
+
 		//use BAM
 		$parser->copyFile($tagged_bam_file, $bam_file);
 		$parser->copyFile($tagged_bam_file.".bai", $bam_file.".bai");
@@ -581,18 +592,33 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 		{
 			trigger_error("Error during coping BAM file! File sizes don't match!", E_USER_ERROR);
 		}
+
+		//delete backup file
+		unlink($bam_file.".backup.bam");
+		unlink($bam_file.".backup.bam.bai");
 	}
 	else
 	{
-		//use CRAM
-		$parser->copyFile($tagged_bam_file, $cram_file);
-		$parser->copyFile($tagged_bam_file.".crai", $cram_file.".crai");
+		//move BAM file in case conversion fails:
+		$parser->moveFile($cram_file, $cram_file.".backup.cram");
+		$parser->moveFile($cram_file.".crai", $cram_file.".backup.cram.crai");
 
-		// check if copy was successful
-		if (!file_exists($cram_file) || filesize($tagged_bam_file) != filesize($cram_file))
-		{
-			trigger_error("Error during coping CRAM file! File sizes don't match!", E_USER_ERROR);
-		}
+		//TODO: remove
+		// $parser->copyFile($tagged_bam_file, $cram_file."tagged.unsorted.bam");
+		// $parser->indexBam($cram_file."tagged.unsorted.bam", $threads);
+
+		//convert bam to cram
+		# $parser->exec(get_path("samtools"), "sort -@ {$threads} -O CRAM --reference {$genome} $tagged_bam_file > $cram_file");
+		$parser->sortBam($tagged_bam_file, $cram_file, $threads);
+		# $parser->execTool("Tools/bam_to_cram.php", "-bam {$tagged_bam_file} -cram {$cram_file} -build ".$sys['build']." -threads {$threads}");
+		$parser->indexBam($cram_file, $threads);
+		
+		//check if read counts of tagged and untagged BAMs match
+		compare_bam_read_count($cram_file.".backup.cram", $cram_file, max(8, $threads), true, true, 0.0, array(), $sys['build']);
+		
+		//delete backup file
+		unlink($cram_file.".backup.cram");
+		unlink($cram_file.".backup.cram.crai");
 	}
 }
 

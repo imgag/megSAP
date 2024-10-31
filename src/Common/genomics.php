@@ -2361,7 +2361,6 @@ function update_gsvar_sample_header($file_name, $status_map)
 	$file_content->toTSV(($file_name));
 }
 
-
 //check for missing chr in VCF/GSvar files
 function check_for_missing_chromosomes($file_name, $throw_error = true)
 {
