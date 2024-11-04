@@ -13,6 +13,7 @@ $parser->addStringArray("samples", "Processed sample names (or file with one sam
 $parser->addString("out", "Output folder and ZIP file name.", false);
 $parser->addEnum("mode", "Export mode (FASTQ only, BAM only, whole analysis folder).", true, ["fastq", "bam", "vcf", "folder"], "fastq");
 $parser->addFlag("internal", "Use internal webserver and do not use password for zip file.");
+$parser->addFlag("allow_bad_quality", "Allow export of samples with bad quality.");
 extract($parser->parse($argv));
 
 //init
@@ -46,7 +47,7 @@ foreach($samples as $ps)
 {
 	$info = get_processed_sample_info($db, $ps);
 	$quality = $info['ps_quality'];
-	if ($quality=="bad") trigger_error("Sample '$ps' has 'bad' quality!", E_USER_ERROR);
+	if (! $allow_bad_quality && $quality=="bad") trigger_error("Sample '$ps' has 'bad' quality!", E_USER_ERROR);
 	
 	if ($mode=="folder")
 	{

@@ -14,6 +14,7 @@ $parser->addString("project", "Restrict upload to a project.", true, "");
 $parser->addStringArray("samples", "Restrict upload to a list of processed sample.", true, "");
 $parser->addFlag("force_reupload", "Upload files even if already uploaded.");
 $parser->addFlag("ignore_quality", "Upload all samples regardless of quality.");
+$parser->addString("checksums", "Output file to record SHA256 checksums of transferred files.", true, "");
 extract($parser->parse($argv));
 
 //check project
@@ -243,7 +244,7 @@ function storeMetaData($path, $name, $data)
 //copies files to a folder (or touches output file in debug mode)
 function copyFiles($files, $to_folder, $upload)
 {
-	global $parser;
+	global $parser, $checksums;
 
 	foreach($files as $file)
 	{
@@ -261,9 +262,13 @@ function copyFiles($files, $to_folder, $upload)
 			$parser->copyFile($file, $outfile);
 		
 			//determine SHA256
-			list($stdout) = $parser->exec("sha256sum", $outfile, true);
-			list($checksum) = explode(" ", $stdout[0]);
-			print "##sha256sum ".basename($outfile)." {$checksum}\n";
+			if ($checksums!="")
+			{
+				list($stdout) = $parser->exec("sha256sum", $outfile, true);
+				list($checksum) = explode(" ", $stdout[0]);
+				$outfile_basename = basename($outfile);
+				file_put_contents($checksums, "{$checksum} {$outfile_basename}\n", FILE_APPEND);
+			}
 		}
 	}
 }

@@ -550,6 +550,7 @@ if (in_array("vc", $steps))
 		$args[] = "-normal_name {$n_id}";
 		$args[] = "-out {$variants}";
 		$args[] = "-build ".$sys['build'];
+		$args[] = "-target ".$roi;
 		$parser->execTool("NGS/an_filter_dragen_somatic.php", implode(" ", $args));
 		
 		
@@ -807,9 +808,9 @@ if(in_array("cn",$steps))
 	{
 		// coverage file for normal sample
 		$n_cov = "{$ref_folder_n}/{$n_id}.cov.gz";
-		if (!file_exits($n_cov))
+		if (!file_exists($n_cov))
 		{
-			$cov_tmp_unzipped = $tmp_folder."/{$name}.cov";
+			$cov_tmp_unzipped = $tmp_folder."/{$n_id}.cov";
 			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $n_bam -in $target_bed -out $cov_tmp_unzipped -threads {$threads} -ref {$ref_genome}", [$n_bam, $target_bed, $ref_genome]);
 			$parser->exec("gzip", "-9 {$cov_tmp_unzipped}");
 			
@@ -1207,7 +1208,6 @@ if (in_array("an_rna", $steps))
 		$ps_rna_bams[basename($t_rna_bam)] = $t_rna_bam; 
 	}
 
-
 	if(count($ps_rna_bams) < 1)
 	{
 		if (count($steps) > 1)
@@ -1388,7 +1388,7 @@ if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("msi", $steps) 
 			$terms[] = "QC:2000118\t".number_format(100.0*$cnv_count_loss/$cnv_count_hq_autosomes, 2); // percentage losses
 			$terms[] = "QC:2000119\t".number_format(100.0*$cnv_count_gain/$cnv_count_hq_autosomes, 2); // percentage gains
 		}
-		$sources[] = $cnvfile;
+		$sources[] = $som_clincnv;
 	}
 	
 	// HRD score:

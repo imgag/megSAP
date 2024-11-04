@@ -12,6 +12,7 @@ $parser->addString("tumor_name",  "Tumor name", false);
 $parser->addString("normal_name",  "Normal name", false);
 $parser->addOutfile("out",  "VCF.GZ file with filters added in the filter column", false);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
+$parser->addInfile("target", "The target region BED file used to mark off-target variants", true);
 extract($parser->parse($argv));
 
 $genome = genome_fasta($build);

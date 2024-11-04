@@ -319,7 +319,7 @@ function get_path($name, $throw_on_error=true)
 	{
 		trigger_error("Could not find key '$name' in settings file '$ini_file'!", E_USER_ERROR);
 	}
-	@$value = $parsed_ini[$name];
+	$value = isset($parsed_ini[$name]) ? $parsed_ini[$name] : "";
 
 	//replace [path] by base path
 	$value = str_replace("[path]", $dir, $value);
@@ -1209,6 +1209,7 @@ function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = 
 		if ($details!=NULL)
 		{
 			$parts['Gender'] = $details['gender'];
+			if ($parts['Gender'] == 'n/a') trigger_error("Gender of sample {$ps_name} not set!", E_USER_WARNING);
 			$parts['ExternalSampleName'] = strtr($details['name_external'], ",", ";");
 			$parts['IsTumor'] = $details['is_tumor'] ? "yes" : "no";
 			$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
@@ -2234,9 +2235,8 @@ function get_read_group_description($bam_file)
 {
 	$rg_description = array();
 	$samtools_command = execSingularity("samtools", get_path("container_samtools"), "samtools view", "-H $bam_file", [$bam_file], [], 1, true);
-	list($stdout, $stderr, $exit_code) = exec2("{$samtools_command} | egrep '^@RG' ");
-	if  ($exit_code==0)
-	{
+	list($stdout, $stderr, $exit_code) = exec2("{$samtools_command} | egrep '^@RG' ", false);
+	if  ($exit_code==0 || $exit_code==1)	{
 		foreach($stdout as $line)
 		{
 			$split_line = explode("\t", trim($line));
@@ -2264,9 +2264,8 @@ function get_basecall_model($bam_file)
 {
 	$basecall_model = array();
 	$samtools_command = execSingularity("samtools", get_path("container_samtools"), "samtools view", "-H $bam_file", [$bam_file], [], 1, true);
-	list($stdout, $stderr, $exit_code) = exec2("{$samtools_command} | egrep '^@RG' ");
-	if  ($exit_code==0)
-	{
+	list($stdout, $stderr, $exit_code) = exec2("{$samtools_command} | egrep '^@RG' ", false);
+	if  ($exit_code==0 || $exit_code==1)	{
 		foreach($stdout as $line)
 		{
 			$split_line = explode("\t", trim($line));
@@ -2357,8 +2356,12 @@ function update_gsvar_sample_header($file_name, $status_map)
 			{
 				if(strpos($line, "ID=".$sample_name) !== false)
 				{
+					$overwrite_map = array("DiseaseStatus"=>$disease_status);
+					if (strpos($line, "Gender=male") !== false) $override_map["Gender"] = "male";
+					if (strpos($line, "Gender=female") !== false) $override_map["Gender"] = "female";
+
 					//replace SAMPLE line with updated entry from NGSD
-					$new_comments[] = gsvar_sample_header($sample_name, array("DiseaseStatus"=>$disease_status), "#", "\n"); 
+					$new_comments[] = gsvar_sample_header($sample_name, $overwrite_map, "#", "\n"); 
 					$found = true;
 					break;
 				}

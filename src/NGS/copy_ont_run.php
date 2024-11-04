@@ -70,7 +70,7 @@ function check_data_available($path, $subdir_name, $suffix)
 	return file_exists($path) && is_dir($path) && (count(glob("{$path}/*/{$subdir_name}/*{$suffix}")) > 0);
 }
 
-$fastq_available = check_data_available($run_dir, "fastq_pass", ".fastq.gz");
+$fastq_available = check_data_available($run_dir, "fastq_pass", ".fastq.gz") || check_data_available($run_dir, "fastq_pass/barcode??", ".fastq.gz");
 if (!$fastq_available && ($fastq || $single_fastq))
 {
 	trigger_error("No FASTQ files available!", E_USER_ERROR);
@@ -92,7 +92,7 @@ if ($single_fastq !== "")
 	exit();
 }
 
-$bam_available = check_data_available($run_dir, "bam_pass", ".bam");
+$bam_available = check_data_available($run_dir, "bam_pass", ".bam") || check_data_available($run_dir, "bam_pass/barcode??", ".bam");
 if (!$bam_available && $bam)
 {
 	trigger_error("No BAM files available!", E_USER_ERROR);
@@ -153,103 +153,127 @@ else
 $parser->execTool("NGS/runqc_parser_ont.php", "-name '{$run_name}' -run_dir {$run_dir} -db {$db} -force");
 
 //find sample entered in database
-$result = $db_con->executeQuery("SELECT processed_sample.id, processed_sample.sequencing_run_id FROM processed_sample, sequencing_run WHERE sequencing_run.name = '{$run_name}' AND processed_sample.sequencing_run_id=sequencing_run.id");
-if (count($result) !== 1)
+$result = $db_con->executeQuery(<<<SQL
+SELECT
+	processed_sample.id,
+	processed_sample.sequencing_run_id,
+	(SELECT mid.name FROM mid WHERE mid.id = processed_sample.mid1_i7) as mid1_i7_name
+FROM
+	processed_sample,
+	sequencing_run
+WHERE
+	sequencing_run.name = '{$run_name}' AND
+	processed_sample.sequencing_run_id=sequencing_run.id
+SQL
+);
+
+foreach ($result as $record)
 {
-	trigger_error("None or multiple samples entered for flowcell (not supported).", E_USER_ERROR);
-}
-$sample = processed_sample_name($db_con, $result[0]["id"]);
-$sample_info = get_processed_sample_info($db_con, $sample);
+	$sample = processed_sample_name($db_con, $record["id"]);
+	$sample_info = get_processed_sample_info($db_con, $sample);
 
-$out_dir = $sample_info["ps_folder"];
-
-// copy to run folder during test:
-if ($db=="NGSD_TEST") 
-{
-	$out_dir = $run_dir."/TEST_Sample_".$sample."/";
-}
-
-if (!file_exists($out_dir))
-{
-	mkdir($out_dir, 0777, true);
-}
-
-//perform GenLab import before analysis (skip on test run)
-if ($db!="NGSD_TEST")
-{
-	trigger_error("Importing information from GenLab...", E_USER_NOTICE);
-	$args = [];
-	$args[] = "-ps {$sample}";
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDImportGenlab", implode(" ", $args));
-}
-
-
-if (($bam_available && $prefer_bam) || $bam)
-{
-	trigger_error("Copy and merge BAM files.", E_USER_NOTICE);
-
-	$genome = genome_fasta($build);
-
-	
-	if ($aligned && !$ignore_aligned)
+	if (count($result) >= 2)
 	{
-		$out_bam = "{$out_dir}{$sample}.bam";
-	}
-	elseif ($modified_bases)
-	{
-		$out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
-	}
-	else
-	{
-		$out_bam = "{$out_dir}{$sample}.unmapped.bam";
+		preg_match('/_BP([0-9][0-9])Fw/', $record["mid1_i7_name"], $matches);
+		if (count($matches) == 0)
+		{
+			trigger_error("Could not extract 2-digit barcode number from '{$record['mid1_i7_name']}'!", E_USER_ERROR);
+		}
+		$barcode = "barcode{$matches[1]}";
+		$bam_paths_glob = "{$run_dir}/*/bam_pass/{$barcode}";
+		$fastq_paths_glob = "{$run_dir}/*/fastq_pass/{$barcode}";
 	}
 
-	if (file_exists($out_bam))
+	$out_dir = $sample_info["ps_folder"];
+	// copy to run folder during test:
+	if ($db=="NGSD_TEST")
 	{
-		trigger_error("Output BAM file '{$out_bam}' already exists, aborting.", E_USER_ERROR);
+		$out_dir = $run_dir."/TEST_Sample_".$sample."/";
 	}
 
-	$pipeline = [];
-	$pipeline[] = ["find", "{$bam_paths_glob} -name '*.bam' -type f"];
-
-	if ($aligned && !$ignore_aligned)
+	if (!file_exists($out_dir))
 	{
-		$tmp_for_sorting = $parser->tempFile();
-		//merge presorted files
-		$pipeline[] = ["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools merge", "--reference {$genome} --threads {$threads} -b - -o {$out_bam}", [], [$out_dir], 1, true)];
-		$parser->execPipeline($pipeline, "merge aligned BAM files");
-		$parser->indexBam($out_bam, $threads);
-
+		mkdir($out_dir, 0777, true);
 	}
-	else
+
+	//perform GenLab import before analysis (skip on test run)
+	if ($db!="NGSD_TEST")
 	{
-		$pipeline[] = ["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [], [$out_dir], 1, true)]; //no reference required
-		$parser->execPipeline($pipeline, "merge unaligned BAM files");
+		trigger_error("Importing information from GenLab...", E_USER_NOTICE);
+		$args = [];
+		$args[] = "-ps {$sample}";
+		$parser->exec(get_path("ngs-bits")."/NGSDImportGenlab", implode(" ", $args), true);
+	}
+
+
+	if (($bam_available && $prefer_bam) || $bam)
+	{
+		trigger_error("Copy and merge BAM files.", E_USER_NOTICE);
+		$genome = genome_fasta($build);
+
+
+		if ($aligned && !$ignore_aligned)
+		{
+			$out_bam = "{$out_dir}{$sample}.bam";
+		}
+		elseif ($modified_bases)
+		{
+			$out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
+		}
+		else
+		{
+			$out_bam = "{$out_dir}{$sample}.unmapped.bam";
+		}
+
+		if (file_exists($out_bam))
+		{
+			trigger_error("Output BAM file '{$out_bam}' already exists, aborting.", E_USER_ERROR);
+		}
+
+		$pipeline = [];
+		$pipeline[] = ["find", "{$bam_paths_glob} -name '*.bam' -type f"];
+
+		if ($aligned && !$ignore_aligned)
+		{
+			$tmp_for_sorting = $parser->tempFile();
+			//merge presorted files
+			$pipeline[] = [get_path("samtools"), "merge --reference {$genome} --threads {$threads} -b - -o {$out_bam}"];
+			$parser->execPipeline($pipeline, "merge aligned BAM files");
+			$parser->indexBam($out_bam, $threads);
+
+		}
+		else
+		{
+			$pipeline[] = [get_path("samtools"), "cat --threads {$threads} -o {$out_bam} -b -"]; //no reference required
+			$parser->execPipeline($pipeline, "merge unaligned BAM files");
+		}
+	}
+
+	if ($fastq || ($prefer_bam && !$bam_available))
+	{
+		trigger_error("Copy and merge FASTQ files.", E_USER_NOTICE);
+
+		$out_fastq = "{$out_dir}{$sample}.fastq.gz";
+		if (file_exists($out_fastq))
+		{
+			trigger_error("Output FASTQ file '{$out_fastq}' already exists, aborting.", E_USER_ERROR);
+		};
+
+		exec2("find {$fastq_paths_glob} -name '*.fastq.gz' -type f -exec cat  {} + > {$out_fastq}");
+		trigger_error("FASTQ saved in {$out_fastq}.", E_USER_NOTICE);	}
+
+	//apply file access permissions
+	$parser->exec("chmod", "-R 775 {$out_dir}");
+	if ($file_acccess_group != "") $parser->exec("chgrp", "-R {$file_acccess_group} {$out_dir}");
+
+	if ($queue_sample)
+	{
+		$parser->execTool("NGS/db_queue_analysis.php", "-samples {$sample} -type 'single sample' -db {$db}".(($db=="NGSD_TEST")?" -user unknown":""));
 	}
 }
-
-if ($fastq || ($prefer_bam && !$bam_available))
-{
-	trigger_error("Copy and merge FASTQ files.", E_USER_NOTICE);
-	
-	$out_fastq = "{$out_dir}{$sample}.fastq.gz";
-	if (file_exists($out_fastq))
-	{
-		trigger_error("Output FASTQ file '{$out_fastq}' already exists, aborting.", E_USER_ERROR);
-	};
-
-	exec2("find {$fastq_paths_glob} -name '*.fastq.gz' -type f -exec cat  {} + > {$out_fastq}");
-	trigger_error("FASTQ saved in {$out_fastq}.", E_USER_NOTICE);
-}
-
-//apply file access permissions 
-$parser->exec("chmod", "-R 775 {$out_dir}");
-if ($file_acccess_group != "") $parser->exec("chgrp", "-R {$file_acccess_group} {$out_dir}");
 
 if ($queue_sample)
 {
-	$parser->execTool("NGS/db_queue_analysis.php", "-samples {$sample} -type 'single sample' -db {$db}".(($db=="NGSD_TEST")?" -user unknown":""));
-
 	// update sequencing run analysis status
 	$db_con->executeStmt("UPDATE sequencing_run SET sequencing_run.status='analysis_started' WHERE sequencing_run.name = '{$run_name}' AND sequencing_run.status IN ('run_started', 'run_finished')");
 }

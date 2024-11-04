@@ -27,7 +27,7 @@ if (!file_exists($folder))
 {
 	exec2("mkdir -p $folder");
 }
-if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_".date("YmdHis").".log");
+if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_longread_".date("YmdHis").".log");
 
 //determine processing system
 $sys = load_system($system, $name);
@@ -116,10 +116,12 @@ list($stdout, $stderr, $ec) = $parser->execSingularity("ngs-bits", get_path("con
 $is_wgs = false;
 foreach($stdout as $line)
 {
-	if( starts_with($line, "Bases:"))
+	if( starts_with($line, "Bases"))
 	{
 		$target_size = (int) explode(":", $line)[1];
+		trigger_error("Taget region size: {$target_size} bp");
 		$is_wgs = ($target_size > 3e9);
+		break;
 	}
 }
 if(!$is_wgs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in calling files.", E_USER_WARNING);
