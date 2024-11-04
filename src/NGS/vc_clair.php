@@ -43,7 +43,7 @@ $args[] = "--model_path={$model}";
 $args[] = "--keep_iupac_bases";
 $args[] = "--gvcf";
 $args[] = "--sample_name={$name}";
-$args[] = "--no_phasing_for_fa";
+
 
 //set bind paths for clair3 container
 $in_files = array();
@@ -85,7 +85,7 @@ if(isset($target))
 }
 
 //run Clair3 container
-$parser->execSingularity("clair3", get_path("container_clair3"), "/opt/bin/run_clair3.sh", implode(" ", $args), $in_files);
+$parser->execSingularity("clair3", get_path("container_clair3"), "run_clair3.sh", implode(" ", $args), $in_files);
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
 $clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
 
@@ -96,7 +96,7 @@ file_put_contents($target_mito, "chrMT\t0\t16569");
 $args_mito[] = "--bed_fn={$target_mito}";
 $args_mito[] = "--haploid_sensitive";
 
-$parser->execSingularity("clair3", get_path("container_clair3"), "/opt/bin/run_clair3.sh", implode(" ", $args_mito), $in_files);
+$parser->execSingularity("clair3", get_path("container_clair3"), "run_clair3.sh", implode(" ", $args_mito), $in_files);
 $clair_mito_vcf = $clair_mito_temp."/merge_output.vcf.gz";
 $clair_mito_gvcf = $clair_mito_temp."/merge_output.gvcf.gz";
 

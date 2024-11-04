@@ -81,7 +81,6 @@ $read_ids = $debug ? $out_folder."/read_ids.txt" : $parser->tempFile("_read_name
 $in_sam = $parser->tempFile("_input.sam");
 $parser->execSingularity("samtools", get_path("container_samtools"), "samtools view", "-L {$reg} -@ {$threads} -M -T {$in_ref} -o {$in_sam} {$in}", [$reg, $in_ref, $in], [$in_sam]);
 exec2("cut -f1 {$in_sam} | sort | uniq > {$read_ids}");
-/* exec2("{$samtools} view -L {$reg} -@ {$threads} -M -T {$in_ref} {$in} | cut -f1 | sort | uniq > {$read_ids}"); TODO remove when tested*/
 list($stdout) = exec2("wc -l < $read_ids");
 print "  extracted ".trim(implode("", $stdout))." read names\n";
 print "  took ".time_readable(microtime(true)-$time_start)."\n";

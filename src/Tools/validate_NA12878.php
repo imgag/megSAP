@@ -149,7 +149,6 @@ function get_prop($var, $name, $digits = null)
 }
 
 //init
-/* $vcflib = get_path("vcflib"); TODO remove*/
 $genome = genome_fasta($build);
 $giab_bed = get_path("data_folder")."/dbs/GIAB/{$ref_sample}/high_conf_regions.bed";
 if (!file_exists($giab_bed)) trigger_error("GiaB {$ref_sample} BED file missing: {$giab_bed}", E_USER_ERROR);
