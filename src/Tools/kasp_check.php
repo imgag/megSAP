@@ -445,9 +445,9 @@ foreach($file as $line)
 
 	if ($cross_check)
 	{
-		print "Comparing sample {$ps_name} to KASP lane {$name}...\n";
 		foreach($ps_data as $ps_name => $ps_info)
 		{
+			print "Comparing sample {$ps_name} to KASP lane {$name}...\n";
 			$bam = $ps_info['ps_bam'];
 			if (!file_exists($bam))
 			{
