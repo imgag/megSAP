@@ -99,20 +99,20 @@
         }
       }
     },
-    "ARX_2": {
+    "ARX_2_SGC": {
       "AlleleCount": 2,
       "Coverage": 0.0,
       "FragmentLength": 0,
-      "LocusId": "ARX_2",
+      "LocusId": "ARX_2_SGC",
       "ReadLength": 0,
       "Variants": {
-        "ARX_2": {
+        "ARX_2_SGC": {
           "CountsOfFlankingReads": "()",
           "CountsOfInrepeatReads": "()",
           "CountsOfSpanningReads": "()",
           "ReferenceRegion": "chrX:25013529-25013565",
-          "RepeatUnit": "NGC",
-          "VariantId": "ARX_2",
+          "RepeatUnit": "SGC",
+          "VariantId": "ARX_2_SGC",
           "VariantSubtype": "RareRepeat",
           "VariantType": "Repeat"
         }

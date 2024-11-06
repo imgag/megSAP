@@ -199,11 +199,11 @@
         "MainReferenceRegion": "chrX:25013649-25013697"
     },
     {
-        "LocusId": "ARX_2",
-        "LocusStructure": "(NGC)*",
+        "LocusId": "ARX_2_SGC",
+        "LocusStructure": "(SGC)*",
         "VariantType": "RareRepeat",
         "ReferenceRegion": "chrX:25013529-25013565",
-        "RepeatUnit": "NGC",
+        "RepeatUnit": "SGC",
         "Gene": "ARX",
         "Inheritance": "XR",
         "GeneRegion": "coding: polyalanine",

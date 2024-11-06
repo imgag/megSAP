@@ -19,7 +19,6 @@ function cmp($a, $b)
 	return strcmp($a[1], $b[1]);
 }
 
-$tsg_lines = array();
 $onco_lines = array();
 
 $header = "Header not set";
@@ -48,39 +47,21 @@ foreach (file($in) as $line)
 	}
 	
 	if($NCG_onco == "") continue;
-	if (in_array($fields, $onco_lines)) continue;
-	$onco_lines[] = $fields;
 	
-	if($NCG_tsg == 1)
-	{
-		$tsg_lines[] = $gene;
-	}
+	if (in_array($fields, $onco_lines)) continue;
+	
+	$onco_lines[] = $fields;
 }
-//sort onco lines by gene:
-usort($onco_lines, "cmp");
-$onco_lines_merged = array();
 
+//sort onco lines by gene
+usort($onco_lines, "cmp");
+
+//store
+$onco_lines_merged = array();
 foreach ($onco_lines as $line_parts)
 {
 	$onco_lines_merged[] = implode("\t", $line_parts);
 }
-
-
-//sort + uniq for tsg:
-sort($tsg_lines);
-$tsg_lines = array_unique($tsg_lines);
-
-$tsg_file = $outfolder.$prefix."_tsg.txt";
-file_put_contents($tsg_file, implode("\n", $tsg_lines));
-file_put_contents($outfolder.$prefix."_oncogene.tsv", $header."\n".implode("\n", $onco_lines_merged));
-
-//generate tsg BED file
-$pipeline = array();
-$pipeline[] = array(get_path("ngs-bits")."GenesToBed", "-source ensembl -mode exon -in $tsg_file");
-$pipeline[] = array(get_path("ngs-bits")."BedSort", "-uniq");
-$pipeline[] = array(get_path("ngs-bits")."BedMerge", "-merge_names -out ".$outfolder."somatic_tmb_tsg.bed");
-$parser->execPipeline($pipeline, "Generate tsg bed file.");
-
-
+file_put_contents($outfolder."/".$prefix."_oncogene.tsv", $header."\n".implode("\n", $onco_lines_merged));
 
 ?>

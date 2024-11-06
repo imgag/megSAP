@@ -23,6 +23,7 @@ $parser->addString("out_folder", "Folder where analysis results should be stored
 $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
 $parser->addFlag("skip_dna_reannotation", "Do not automatically start the reannotation of the related DNA sample.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
+$parser->addFlag("skip_gender_check", "Skip check of the detected gender against the entry in NGSD.");
 
 extract($parser->parse($argv));
 
@@ -489,7 +490,11 @@ if (in_array("fu",$steps))
 //import to database
 if (in_array("db", $steps))
 {
-	$parser->execTool("NGS/db_check_gender.php", "-in $final_bam -pid $name --log ".$parser->getLogFile());
+	if (! $skip_gender_check)
+	{
+		$parser->execTool("NGS/db_check_gender.php", "-in $final_bam -pid $name --log ".$parser->getLogFile());
+	}
+	
 
 	//import QC data
 	$qc_file_list = array($qc_fastq, $qc_map);
