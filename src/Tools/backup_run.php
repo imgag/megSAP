@@ -49,15 +49,15 @@ if (file_exists("{$in}/InterOp/"))
 $archive_basename = $basename;
 if (!preg_match("/^([0-9]{2})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1])) 
 {
-	if (preg_match("/^([0-9]{4})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1]))
+	if (!preg_match("/^([0-9]{4})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1]))
 	{
-		$archive_basename = substr($basename, 2);
-		print "Notice: Folder name does start with 4-digit year. Cutting year to 2 digits. Resulting archive name: $archive_basename\n";
+		$archive_basename = date("ymd")."_".$basename;
+		trigger_error("Folder name does not start with date. Prefixing date: $archive_basename", E_USER_NOTICE);
 	}
 	else
 	{
-		$archive_basename = date("ymd")."_".$basename;
-		print "Notice: Folder name does not start with date. Prefixing date: $archive_basename\n";
+		$archive_basename = substr($basename, 2);
+		trigger_error("Folder name does start with 4-digit year. Cutting year to 2 digits. Resulting archive name: $archive_basename", E_USER_NOTICE);
 	}
 }
 
@@ -107,7 +107,7 @@ else
 }
 if($is_novaseq_x)
 {
-	trigger_error("NOTICE: NovaSeq X run detected!", E_USER_NOTICE);
+	trigger_error("NovaSeq X run detected!", E_USER_NOTICE);
 	$analyses = array_filter(glob($in."/Analysis/[0-9]"), 'is_dir');
 	if(count($analyses) == 0) trigger_error("ERROR: No analysis found! Please make sure the secondary analysis was performed successfully (at least the demultiplexing).", E_USER_ERROR);
 	if(count($analyses) > 1) trigger_error("ERROR: Multiple analysis folders found! Please remove all duplicated secondary analysis, but make sure all necessary fastq files are present in the remaining folder!", E_USER_ERROR);
