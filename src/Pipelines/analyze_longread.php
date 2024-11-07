@@ -13,8 +13,8 @@ $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
-$steps_all = array("ma", "vc", "cn", "sv", "re", "an", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, re=repeat expansions calling, an=annotation, db=import into NGSD.", true, implode(",", $steps_all));
+$steps_all = array("ma", "vc", "cn", "sv", "re", "me", "an", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, re=repeat expansions calling, me=methylation calling, an=annotation, db=import into NGSD.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("skip_phasing", "Skip phasing of VCF and BAM files.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
@@ -105,6 +105,9 @@ $sv_vcf_file = $folder ."/". $name . "_var_structural_variants.vcf.gz";
 $bedpe_file = substr($sv_vcf_file,0,-6)."bedpe";
 //repeat expansions
 $straglr_file = $folder."/".$name."_repeats.vcf";
+//methylation files
+$methyl_regions = repository_basedir()."/data/methylation/methylartist_catalog_grch38.bed";
+$methylation_table = $folder."/".$name."_var_methylation.tsv";
 //db import
 $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
@@ -451,6 +454,15 @@ if (in_array("re", $steps))
 	//Repeat-expansion calling using straglr
 	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
 	$parser->execTool("NGS/vc_straglr.php", "-in {$bam_file} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
+}
+
+// methylation calling
+if (in_array("me", $steps))
+{
+	if (!contains_methylation($bam_file)) trigger_error("BAM file doesn't contain methylation info!", E_USER_ERROR);
+
+	$parser->execTool("NGS/create_methyl_plot.php", "-folder {$folder} -name {$name} -out {$methylation_table} -build {$build} -regions {$methyl_regions}");
+
 }
 
 // annotation

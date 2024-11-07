@@ -22,7 +22,7 @@ $db_conn = DB::getInstance("NGSD");
 $ref_genome = genome_fasta($build);
 exec2("mkdir -p {$folder}/methylartist");
 $gtf = get_path("data_folder")."/dbs/gene_annotations/GRCh38.gtf";
-$gtf = "/mnt/storage2/users/ahadmaj1/projects/20240605_metyhlartist/test.gtf.gz";
+// $gtf = "/mnt/storage2/users/ahadmaj1/projects/20240605_metyhlartist/test.gtf.gz";
 $ps_info = get_processed_sample_info($db_conn, $name);
 $bams = [ $ps_info["ps_bam"] ];
 
@@ -58,10 +58,10 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             "--ignore_ps",
             "--primary_only",
             "--mods", "m",
-            "--outfile", "{$folder}/methylartist/${name}_{$row[0]}.png",
+            "--outfile", "{$folder}/methylartist/{$name}_{$row[0]}.png",
             "--gtf", $gtf
         ];
-        $parser->exec("/home/ukt.ad.local/ahadmaj1/micromamba/envs/methylartist/bin/methylartist", implode(" ", $args), true, false, true);
+        $parser->exec(get_path("methylartist"), implode(" ", $args), true, false, true);
     }
 
     // calculate average methylation
