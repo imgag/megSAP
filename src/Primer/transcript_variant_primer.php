@@ -257,7 +257,6 @@ $star_out = $parser->tempFile(".sam");
 $STAR_tmp_folder = $parser->tempFolder();
 $genome_dir = "/mnt/storage2/megSAP/data/genomes/STAR/{$build}";
 $parser->execSingularity("STAR", get_path("container_STAR"), "STAR", "--genomeLoad LoadAndKeep --genomeDir {$genome_dir} --outFileNamePrefix {$STAR_tmp_folder}/ --readFilesIn {$primers_fasta} --outSAMtype SAM --outStd SAM > {$star_out}", [$genome_dir]);
-/* $parser->exec(get_path("STAR"), "--genomeLoad LoadAndKeep --genomeDir {$genome_dir} --outFileNamePrefix {$STAR_tmp_folder}/ --readFilesIn {$primers_fasta} --outSAMtype SAM --outStd SAM > {$star_out}", true); */
 //$parser->log("Primers SAM:", file($bam));
 
 //create output BAM if requested

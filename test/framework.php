@@ -309,9 +309,11 @@ function check_file($out_file, $reference_file, $compare_header_lines = false)
 	elseif (ends_with($out_file, ".bam") && ends_with($reference_file, ".bam"))
 	{
 		$o = temp_file("_out.sam");
-		exec(get_path("samtools")." view $out_file | cut -f1-11 > $o 2>&1", $output, $return); //cut to ignore the read-group and other annotations
+		$samtools_command = execSingularity("samtools", get_path("container_samtools"), "samtools view", "$out_file", [$out_file], [], 1, true);
+		exec("{$samtools_command} | cut -f1-11 > $o 2>&1", $output, $return); //cut to ignore the read-group and other annotations
 		$r = temp_file("_ref.sam");
-		exec(get_path("samtools")." view $reference_file | cut -f1-11 > $r 2>&1", $output, $return); //cut to ignore the read-group and other annotations
+		$samtools_command = execSingularity("samtools", get_path("container_samtools"), "samtools view", "$reference_file", [$reference_file], [], 1, true);
+		exec("{$samtools_command} | cut -f1-11 > $r 2>&1", $output, $return); //cut to ignore the read-group and other annotations
 		
 		exec("diff -b $r $o > $logfile 2>&1", $output, $return);
 		$passed = ($return==0);

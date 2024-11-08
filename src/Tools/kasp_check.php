@@ -184,7 +184,6 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 	global $parser;
 
 	//get pileup
-	//print get_path("samtools")." mpileup -aa -f ".genome_fasta("GRCh38")." -r $chr:$pos-$pos $bam\n";
 	list($output) = $parser->execSingularity("samtools", get_path("container_samtools"), "samtools mpileup", "-aa -f ".genome_fasta("GRCh38")." -r $chr:$pos-$pos $bam", [genome_fasta("GRCh38"), $bam]);
 	//print_r($output);
 	list($chr2, $pos2, $ref2, , $bases) = explode("\t", $output[0]);;

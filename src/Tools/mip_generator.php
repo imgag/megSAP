@@ -82,7 +82,7 @@ $unsorted = $temp_folder."/unsorted.vcf";
 file_put_contents($unsorted, implode("\n", $headers)."\n".implode("\n", $output));
 //sort
 $common_snps = $temp_folder."/common_snps.vcf";
-$parser->exec(get_path('ngs-bits')."VcfStreamSort", "-in $unsorted -out $common_snps", true);
+$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfStreamSort", "-in $unsorted -out $common_snps");
 //index
 $parser->exec("bgzip", "-f $common_snps", false); //no output logging, because Toolbase::extractVersion() does not return
 $parser->exec("tabix", "$common_snps.gz", false); //no output logging, because Toolbase::extractVersion() does not return

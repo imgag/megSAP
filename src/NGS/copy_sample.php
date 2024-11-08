@@ -562,7 +562,13 @@ foreach($sample_data as $sample => $sample_infos)
 					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
 					{
 						//convert to fastq.gz
-						$target_to_copylines[$tag][] = "\t".get_path("orad")." --ora-reference ".dirname(get_path("orad"))."/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}";
+						//$target_to_copylines[$tag][] = "\t".get_pth("orad")." --ora-reference ".dirname(get_pth("orad"))."/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}"; TODO remove when tested
+						$orad_files = [
+							"{$project_folder}/Sample_{$sample}/",
+							$fastq_file
+						];
+						$orad_command = $parser->execSingularity("orad", get_path("container_orad"), "orad", "--ora-reference /opt/orad_2_6_1/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}", $orad_files, [], 1, true);
+						$target_to_copylines[$tag][] = "\t".$orad_command;
 					}
 					else
 					{
@@ -684,7 +690,13 @@ foreach($sample_data as $sample => $sample_infos)
 					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
 					{
 						//convert to fastq.gz
-						$target_to_copylines[$tag][] = "\t".get_path("orad")." --ora-reference ".dirname(get_path("orad"))."/oradata/".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}";
+						//$target_to_copylines[$tag][] = "\t".get_pth("orad")." --ora-reference ".dirname(get_pth("orad"))."/oradata/".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}"; TODO remove when tested
+						$orad_files = [
+							"{$project_folder}/Sample_{$sample}/",
+							$fastq_file
+						];
+						$orad_command = $parser->execSingularity("orad", get_path("container_orad"), "orad", "--ora-reference /opt/orad_2_6_1/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}", $orad_files, [], 1, true);
+						$target_to_copylines[$tag][] = "\t".$orad_command;
 					}
 					else
 					{

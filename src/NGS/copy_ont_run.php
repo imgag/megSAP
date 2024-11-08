@@ -202,7 +202,7 @@ foreach ($result as $record)
 		trigger_error("Importing information from GenLab...", E_USER_NOTICE);
 		$args = [];
 		$args[] = "-ps {$sample}";
-		$parser->exec(get_path("ngs-bits")."/NGSDImportGenlab", implode(" ", $args), true);
+		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDImportGenlab", implode(" ", $args));
 	}
 
 
@@ -237,14 +237,14 @@ foreach ($result as $record)
 		{
 			$tmp_for_sorting = $parser->tempFile();
 			//merge presorted files
-			$pipeline[] = [get_path("samtools"), "merge --reference {$genome} --threads {$threads} -b - -o {$out_bam}"];
+			$pipeline[] = ["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools merge", "--reference {$genome} --threads {$threads} -b - -o {$out_bam}", [$genome, $out_bam], [], 1, true)];
 			$parser->execPipeline($pipeline, "merge aligned BAM files");
 			$parser->indexBam($out_bam, $threads);
 
 		}
 		else
 		{
-			$pipeline[] = [get_path("samtools"), "cat --threads {$threads} -o {$out_bam} -b -"]; //no reference required
+			$pipeline[] = ["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [$out_bam], [], 1, true)]; //no reference required
 			$parser->execPipeline($pipeline, "merge unaligned BAM files");
 		}
 	}

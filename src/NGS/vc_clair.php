@@ -113,7 +113,9 @@ if (file_exists($clair_mito_gvcf))
 	$clair_merged_gvcf2 = $parser->tempFile("_merged.gvcf.gz");
 	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfMerge", "-in {$clair_gvcf} {$clair_mito_gvcf} -out {$clair_merged_gvcf1}");
 	//no sorting since MT is last chr anyways
-	//$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-compression_level 5  -in {$clair_merged_gvcf1} -out {$clair_merged_gvcf2}");	$parser->exec("bgzip", "-c {$clair_merged_gvcf1} > {$clair_merged_gvcf2}");}
+	//$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-compression_level 5  -in {$clair_merged_gvcf1} -out {$clair_merged_gvcf2}");
+	$parser->exec("bgzip", "-c {$clair_merged_gvcf1} > {$clair_merged_gvcf2}");
+}
 else
 {
 	$clair_merged_gvcf2 = $clair_gvcf;
@@ -133,7 +135,8 @@ $pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container
 //this step has to be performed before vcfbreakmulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
 $pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfallelicprimitives", "-kg", [], [], 1, true)];
 
-//split multi-allelic variants
+//split multi-allelic variants swap to ngs-bits VcfBreakMulti later
+/* $pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfBreakMulti", "", [], [], 1, true)); */
 $pipeline[] = ["", $parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true)];
 
 //normalize all variants and align INDELs to the left

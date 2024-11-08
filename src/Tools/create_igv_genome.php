@@ -17,7 +17,6 @@ extract($parser->parse($argv));
 
 //init
 $data_folder = get_path("data_folder");
-$ngsbits = get_path("ngs-bits");
 
 //create output folder
 if (!file_exists($output_folder))

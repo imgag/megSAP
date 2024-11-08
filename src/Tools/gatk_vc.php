@@ -23,7 +23,6 @@ $parser->addInt("threads", "Threads to use (attention: scaling is poor).", true,
 extract($parser->parse($argv));
 
 //init
-/* $gatk = get_path("gatk"); */
 $ref = genome_fasta($build);
 
 //perform variant calling
@@ -50,7 +49,6 @@ if ($gvcf)
 
 $tmp = $gvcf ? $out : $parser->tempFile(".vcf.gz");
 $parser->execSingularity("gatk", get_path("container_gatk"), "gatk", "HaplotypeCaller -R {$ref} -I {$in} -O {$tmp} ".implode(" ", $args), $in_files);
-/* $parser->exec($gatk, "HaplotypeCaller -R {$ref} -I {$in} -O {$tmp} ".implode(" ", $args)); */
 
 if (!$gvcf)
 {

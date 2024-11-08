@@ -10,10 +10,17 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //parse command line arguments
 $parser = new ToolBase("db_download", "Downloads databases for various tools.");
 $parser->addString("data_folder", "Path to megSAP data folder", true, repository_basedir()."/data");
-$all_dbs = array("vep", "kraken2", "STAR");
+$all_dbs = array("vep", "kraken2", "STAR", "Clair3");
 $parser->addString("dbs", "Comma-separated list of dbs to download/install/build.", true, implode(",", $all_dbs));
 
 extract($parser->parse($argv));
+
+//check dbs
+$dbs = explode(",", $dbs);
+foreach($dbs as $db)
+{
+	if (!in_array($db, $all_dbs)) trigger_error("Unknown db '$db'!", E_USER_ERROR);
+}
 
 if (in_array("vep", $dbs))
 {
@@ -38,15 +45,16 @@ if (in_array("vep", $dbs))
 
     // download VEP cache data
     $url = "https://ftp.ensembl.org/pub/release-112/variation/indexed_vep_cache/homo_sapiens_vep_112_GRCh38.tar.gz";
-    $parser->exec("wget", "-O {$vep_data_dir}/ftp/ ".$url);
+    exec2("wget -P {$vep_data_dir}/ftp/ ".$url);
 
     // install ensembl-vep
-    $parser->execSingularity("vep", get_path("container_vep"), "INSTALL.pl", "--SPECIES homo_sapiens --ASSEMBLY GRCh38 --AUTO ac --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST --NO_HTSLIB", [$vep_data_dir]);
+    $parser->execSingularity("vep", get_path("container_vep"), "INSTALL.pl", "--SPECIES homo_sapiens --ASSEMBLY GRCh38 --AUTO c --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST --NO_HTSLIB", [$vep_data_dir]);
 }
 
 if (in_array("kraken2", $dbs))
 {
 	$kraken_data_dir = "{$data_folder}/dbs/kraken2_filter_hb";
+    $hemoglobin_fa = "{$data_folder}/misc/human_hemoglobin_tx.fa";
 
 	//create kraken2 db folder if not existent
 	if (!file_exists($kraken_data_dir))
@@ -54,15 +62,34 @@ if (in_array("kraken2", $dbs))
 		exec2("mkdir -p $kraken_data_dir");
 	}
 
+    if (!file_exists($hemoglobin_fa))
+    {
+        trigger_error("human_hemoglobin_tx.fa not found at '{$hemoglobin_fa}'. Run 'download_dbs_rna.sh' first.", E_USER_ERROR);
+    }
+
 	//build kraken2 database
+    print "Building kraken2 database...";
 	$parser->execSingularity("kraken2", get_path("container_kraken2"), "kraken2-build", "-db $kraken_data_dir --download-taxonomy --skip-map  --use-ftp", [$kraken_data_dir]);
-	$parser->execSingularity("kraken2", get_path("container_kraken2"), "kraken2-build", "-db $kraken_data_dir --add-to-library {$data_folder}/misc/human_hemoglobin_tx.fa", [$kraken_data_dir], ["{$data_folder}/misc/human_hemoglobin_tx.fa"]);
+	$parser->execSingularity("kraken2", get_path("container_kraken2"), "kraken2-build", "-db $kraken_data_dir --add-to-library {$hemoglobin_fa}", [$kraken_data_dir], [$hemoglobin_fa]);
 	$parser->execSingularity("kraken2", get_path("container_kraken2"), "kraken2-build", "--build  --threads 5 --db $kraken_data_dir", [$kraken_data_dir]);
+    print "Finished building kraken2 database.";
 }
 
 if (in_array("STAR", $dbs))
 {
 	$star_genome_dir = "{$data_folder}/genomes/STAR/GRCh38";
+    $star_gtf_file = "{$data_folder}/dbs/gene_annotations/GRCh38.gtf";
+    $genome = "{$data_folder}/genomes/GRCh38.fa";
+
+    if (!file_exists($genome))
+    {
+        trigger_error("Genome not found at '$genome'. Run 'download_GRCh38.sh' first.", E_USER_ERROR);
+    }
+
+    if (!file_exists($star_gtf_file))
+    {
+        trigger_error("GRCh38.gtf not found at '$star_gtf_file'. Run 'download_dbs_rna.sh' first.", E_USER_ERROR);
+    }
 
 	//create STAR genome folder if not existent
 	if (!file_exists($star_genome_dir))
@@ -70,7 +97,44 @@ if (in_array("STAR", $dbs))
 		exec2("mkdir -p $star_genome_dir");
 	}
 
-	$parser->execSingularity("STAR", get_path("container_STAR"), "STAR", "--runThreadN 20 --runMode genomeGenerate --genomeDir {$star_genome_dir} --genomeFastaFiles {$data_folder}/genomes/GRCh38.fa --sjdbGTFfile {$data_folder}/dbs/gene_annotations/GRCh38.gtf");
+    print "Indexing genome '{$genome}' using STAR. This may take a while.";
+	$parser->execSingularity("STAR", get_path("container_STAR"), "STAR", "--runThreadN 20 --runMode genomeGenerate --genomeDir {$star_genome_dir} --genomeFastaFiles {$genome} --sjdbGTFfile {$star_gtf_file}", [$star_genome_dir, $star_gtf_file]);
+    print "Finished indexing genome '{$genome}'";
 }
 
+if (in_array("Clair3", $dbs))
+{
+    $model_path = get_path("clair3_models");
+    $original_cwd = getcwd();
+
+    //create folder for Clair3 models if not existent
+    if (!file_exists($model_path))
+	{
+		exec2("mkdir -p $model_path");
+	}
+
+    //download models
+    chdir($model_path);
+
+    print "Downloading Clair3 models from https://github.com/nanoporetech/rerio.git\n";
+    exec2("git clone https://github.com/nanoporetech/rerio.git");
+    exec2(get_path("python3")." rerio/download_model.py --clair3");
+    exec2("mv rerio/clair3_models/* .");
+    exec2("rm -rf rerio");
+
+    print "Downloading Clair3 model 'r941_prom_sup_g5014' from 'http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_sup_g5014.tar.gz'\n";
+    exec2("wget http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_sup_g5014.tar.gz");
+    exec2("tar xzf r941_prom_sup_g5014.tar.gz");
+    exec2("rm r941_prom_sup_g5014.tar.gz");
+
+    print "Downloading Clair3 model 'r941_prom_sup_g5014' from 'http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_hac_g360+g422.tar.gz'\n";
+    exec2("wget http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_hac_g360+g422.tar.gz");
+    exec2("tar xzf r941_prom_hac_g360+g422.tar.gz");
+    exec2("rm r941_prom_hac_g360+g422.tar.gz");
+    exec2("mv ont/ r941_prom_hac_g360+g422/");
+
+    chdir($original_cwd);
+
+    print "Finished downloading clair3 models\n";
+}
 ?>
