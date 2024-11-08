@@ -67,12 +67,43 @@ check(file_exists("{$restored_folder}C2.1/L001_2.cbcl"), false);
 exec("rm ".output_folder()."backup/230823_LH00240_0003_AFCID0001_00123.tar.gz");
 exec("rm -r ".output_folder()."restore/20230823_LH00240_0003_AFCID0001_00123");
 exec("cp ".data_folder().$name."_in_runparameters1.xml ".output_folder()."20230823_LH00240_0003_AFCID0001_00123/RunParameters.xml"); //replace RunParameters.xml
-check_exec("php ".src_folder()."/Tools/{$name}.php -in ".output_folder()."20230823_LH00240_0003_AFCID0001_00123 -out_folder ".output_folder()."backup -test --log ".output_folder()."test2.log", TRUE);
+check_exec("php ".src_folder()."/Tools/{$name}.php -in ".output_folder()."20230823_LH00240_0003_AFCID0001_00123 -out_folder ".output_folder()."backup -test --log ".output_folder()."test3.log", TRUE);
 check_exec("tar xzf ".output_folder()."backup/230823_LH00240_0003_AFCID0001_00123.tar.gz -C ".output_folder()."restore/");
 
 //check files
 $ref_folder = output_folder()."20230823_LH00240_0003_AFCID0001_00123/Data/Intensities/BaseCalls/L001/";
 $restored_folder = output_folder()."restore/20230823_LH00240_0003_AFCID0001_00123/Data/Intensities/BaseCalls/L001/";
+check_file("{$restored_folder}s_1_1101.filter", "{$ref_folder}s_1_1101.filter");
+check_file("{$restored_folder}s_1_1102.filter", "{$ref_folder}s_1_1102.filter");
+check_file("{$restored_folder}C1.1/L001_1.cbcl", "{$ref_folder}C1.1/L001_1.cbcl");
+check_file("{$restored_folder}C1.1/L001_2.cbcl", "{$ref_folder}C1.1/L001_2.cbcl");
+check_file("{$restored_folder}C2.1/L001_1.cbcl", "{$ref_folder}C2.1/L001_1.cbcl");
+check_file("{$restored_folder}C2.1/L001_2.cbcl", "{$ref_folder}C2.1/L001_2.cbcl");
+$ref_folder = output_folder()."20230823_LH00240_0003_AFCID0001_00123/Images/";
+$restored_folder = output_folder()."restore/20230823_LH00240_0003_AFCID0001_00123/Images/";
+check(file_exists("{$restored_folder}pic1.png"), false);
+check(file_exists("{$restored_folder}pic2.png"), false);
+check(file_exists("{$restored_folder}pic3.png"), false);
+$ref_folder = output_folder()."20230823_LH00240_0003_AFCID0001_00123/Thumbnail_Images/";
+$restored_folder = output_folder()."restore/20230823_LH00240_0003_AFCID0001_00123/Thumbnail_Images/";
+check(file_exists("{$restored_folder}pic1.png"), false);
+check(file_exists("{$restored_folder}pic2.png"), false);
+check(file_exists("{$restored_folder}pic3.png"), false);
+$ref_folder = output_folder()."20230823_LH00240_0003_AFCID0001_00123/Unaligned/";
+$restored_folder = output_folder()."restore/20230823_LH00240_0003_AFCID0001_00123/Unaligned/";
+check(file_exists("{$restored_folder}Sample_DX181277_05/DX181277_05_S5_L005_R1_001.fastq.gz"), false);
+check(file_exists("{$restored_folder}Sample_DX181277_05/DX181277_05_S5_L005_R2_001.fastq,gz"), false);
+check(file_exists("{$restored_folder}Sample_DX181278_05/DX181278_05_S5_L007_R1_001.fastq.gz"), false);
+check(file_exists("{$restored_folder}Sample_DX181278_05/DX181278_05_S5_L007_R2_001.fastq.gz"), false);
+
+//test4 - NovaSeq 6000 run without date prefix
+exec("mv ".output_folder()."20230823_LH00240_0003_AFCID0001_00123 ".output_folder()."LH00240_0003_AFCID0001_00123");
+check_exec("php ".src_folder()."/Tools/{$name}.php -in ".output_folder()."LH00240_0003_AFCID0001_00123 -out_folder ".output_folder()."backup -test --log ".output_folder()."test4.log", TRUE);
+check_exec("tar xzf ".output_folder()."backup/".date("ymd")."_LH00240_0003_AFCID0001_00123.tar.gz -C ".output_folder()."restore/");
+
+//check files
+$ref_folder = output_folder()."LH00240_0003_AFCID0001_00123/Data/Intensities/BaseCalls/L001/";
+$restored_folder = output_folder()."restore/LH00240_0003_AFCID0001_00123/Data/Intensities/BaseCalls/L001/";
 check_file("{$restored_folder}s_1_1101.filter", "{$ref_folder}s_1_1101.filter");
 check_file("{$restored_folder}s_1_1102.filter", "{$ref_folder}s_1_1102.filter");
 check_file("{$restored_folder}C1.1/L001_1.cbcl", "{$ref_folder}C1.1/L001_1.cbcl");
