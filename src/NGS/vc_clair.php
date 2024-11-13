@@ -160,7 +160,7 @@ $comments[] = "#fileDate=".date("Ymd")."\n";
 $comments[] = "#ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n";
 $comments[] = "#PIPELINE=".repository_revision(true)."\n";
 $comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "#", "");
-$vcf->setComments(sort_vcf_comments($comments));
+$vcf->setComments($comments);
 $vcf->toTSV($uncompressed_vcf);
 
 //mark off-target variants

@@ -495,6 +495,16 @@ if (in_array("sv", $steps))
 //phasing
 if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 {
+	//replace contigs in VCF header (incorrect sorted contigs lead to errors in CRAM file)
+	$tmp_vcf = $parser->tempFile("_var.vcf");
+	$contig_pipeline = array();
+	$contig_pipeline[] = array("zcat", $vcf_file);
+	$contig_pipeline[] = array("egrep", "-v \"##contig=^\" > {$tmp_vcf}");
+	$parser->execPipeline($contig_pipeline, "contig removal");
+	add_missing_contigs_to_vcf($sys['build'], $tmp_vcf);
+	$parser->exec("bgzip", "-c {$tmp_vcf} > {$vcf_file}");
+	$parser->exec("tabix", "-f -p vcf {$vcf_file}", false); //no output logging, because Toolbase::extractVersion() does not return
+	
 	//check for methylation
 	$contains_methylation = contains_methylation($used_bam_or_cram);
 
@@ -609,11 +619,11 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 
 		//convert bam to cram
 		# $parser->exec(get_path("samtools"), "sort -@ {$threads} -O CRAM --reference {$genome} $tagged_bam_file > $cram_file");
-		$parser->sortBam($tagged_bam_file, $cram_file, $threads);
-		# $parser->execTool("Tools/bam_to_cram.php", "-bam {$tagged_bam_file} -cram {$cram_file} -build ".$sys['build']." -threads {$threads}");
+		# $parser->sortBam($tagged_bam_file, $cram_file, $threads, false, $sys['build']);
+		$parser->execTool("Tools/bam_to_cram.php", "-bam {$tagged_bam_file} -cram {$cram_file} -build ".$sys['build']." -threads {$threads}");
 		$parser->indexBam($cram_file, $threads);
 		
-		//check if read counts of tagged and untagged BAMs match
+		//check if read counts of tagged and untagged CRAMs match
 		compare_bam_read_count($cram_file.".backup.cram", $cram_file, max(8, $threads), true, true, 0.0, array(), $sys['build']);
 		
 		//delete backup file

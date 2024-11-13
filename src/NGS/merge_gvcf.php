@@ -231,7 +231,7 @@ if ($mode=="longread")
 	{ 
 		$comments[] = gsvar_sample_header($samples[$i], array("DiseaseStatus"=>$status[$i]), "#", "");
 	}
-	$vcf->setComments(sort_vcf_comments($comments));
+	$vcf->setComments($comments);
 	$vcf->toTSV($uncompressed_vcf);
 }
 

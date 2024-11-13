@@ -159,17 +159,17 @@ if ($bam_input)
 	$rc_output_bam = get_read_count($bam_current, max(8, $threads), array("-F", "2304"), $sys['build']);
 
 	// get rel. difference
-	$diff = abs($rc_input_bam - $rc_output_bam);
-	$rel_diff = $diff /(($rc_input_bam + $rc_output_bam)/2);
+	$diff = floatval(abs($rc_input_bam - $rc_output_bam));
+	$rel_diff = floatval($diff /(($rc_input_bam + $rc_output_bam)/2.0));
 
 	//allow 0.01% difference between input and output 
 	if ($rel_diff > 0.0001) 
 	{
-		trigger_error("Mapped read counts doesn't match input read counts! (Input: {$rc_input_bam} reads vs. Output: {$rc_output_bam} reads (rel. difference: ".($rel_diff*100)."))", E_USER_ERROR);
+		trigger_error("Mapped read counts doesn't match input read counts! (Input: {$rc_input_bam} reads vs. Output: {$rc_output_bam} reads (rel. difference: ".($rel_diff*100.0)."%))", E_USER_ERROR);
 	}
 	else
 	{
-		trigger_error("Input BAMs: {$rc_input_bam} reads vs. Output BAMs: {$rc_output_bam} reads (rel. difference: ".($rel_diff*100)."%)", E_USER_NOTICE);
+		trigger_error("Input BAMs: {$rc_input_bam} reads vs. Output BAMs: {$rc_output_bam} reads (rel. difference: ".($rel_diff*100.0)."%)", E_USER_NOTICE);
 	}
 }
 

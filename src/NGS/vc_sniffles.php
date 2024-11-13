@@ -126,7 +126,7 @@ else
 	}
 }
 
-$vcf->setComments(sort_vcf_comments($comments));
+$vcf->setComments($comments);
 $vcf->toTSV($tmp_vcf);
 
 $parser->exec("bgzip", "-c $tmp_vcf > $out", false);

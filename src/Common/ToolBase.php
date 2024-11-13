@@ -1284,12 +1284,12 @@ class ToolBase
 		file_put_contents($filename, $writer->output());
 	}
 	
-	///Sort BAM file
-	function sortBam($in, $out, $threads, $by_name = FALSE)
+	///Sort BAM file (optional build parameter to speed-up cram sorting)
+	function sortBam($in, $out, $threads, $by_name = FALSE, $build = "")
 	{	
 		$threads -= 1; //number of additional threads, that's why -1
 		$tmp_for_sorting = $this->tempFile();
-		$this->exec(get_path("samtools")." sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G -o $out $in", true);
+		$this->exec(get_path("samtools")." sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G".($build!=""?" --reference ".genome_fasta($build):"")." -o $out $in", true);
 	}
 	
 	///Index BAM file
