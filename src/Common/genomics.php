@@ -1905,9 +1905,17 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	}
 	
 	//small variants and unannotated structural variants (unannotated)
-	if (ends_with($filename, ".vcf.gz"))
+	if (ends_with($filename, ".vcf.gz") || ends_with($filename, ".vcf"))
 	{
-		list($stdout, $stderr, $exit_code) = exec2("zcat $filename | egrep '^##reference='");
+		if (ends_with($filename, ".vcf.gz"))
+		{
+			list($stdout, $stderr, $exit_code) = exec2("zcat $filename | egrep '^##reference='");
+		}
+		else
+		{
+			list($stdout, $stderr, $exit_code) = exec2("egrep '^##reference=' {$filename}");
+		}
+		
 		if ($exit_code==0)
 		{
 			foreach($stdout as $line)
@@ -1926,7 +1934,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 			}
 		}
 	}
-	
+		
 	//GSvar
 	if (ends_with($filename, ".GSvar"))
 	{

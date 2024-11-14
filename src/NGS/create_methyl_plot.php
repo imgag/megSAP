@@ -14,6 +14,7 @@ $parser->addString("out", "Output table (TSV format).", false);
 $parser->addFlag("skip_plot", "Disable methylartist plotting");
 $parser->addString("build", "The genome build to use. ", true, "GRCh38");
 $parser->addString("regions", "The regions/highlights to analyze/plot. ", false);
+$parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 
 extract($parser->parse($argv));
 
@@ -21,7 +22,7 @@ $db_conn = DB::getInstance("NGSD");
 
 $ref_genome = genome_fasta($build);
 exec2("mkdir -p {$folder}/methylartist");
-$gtf = get_path("data_folder")."/dbs/gene_annotations/GRCh38.gtf";
+$gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gtf.gz";
 // $gtf = "/mnt/storage2/users/ahadmaj1/projects/20240605_metyhlartist/test.gtf.gz";
 $ps_info = get_processed_sample_info($db_conn, $name);
 $bams = [ $ps_info["ps_bam"] ];
@@ -38,7 +39,7 @@ $methyl_hp2_std = [];
 $methyl_nohp_avg = [];
 $methyl_nohp_std = [];
 
-
+$jobs_plotting = array();
 for($r=0; $r<$regions_table->rows(); ++$r)
 {
     $row = $regions_table->getRow($r);
@@ -61,7 +62,8 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             "--outfile", "{$folder}/methylartist/{$name}_{$row[0]}.png",
             "--gtf", $gtf
         ];
-        $parser->exec(get_path("methylartist"), implode(" ", $args), true, false, true);
+        $jobs_plotting[] = array("Plotting_".$row[0], get_path("methylartist")." ".implode(" ", $args));
+        // $parser->exec(get_path("methylartist"), implode(" ", $args), true, true);
     }
 
     // calculate average methylation
@@ -75,6 +77,7 @@ for($r=0; $r<$regions_table->rows(); ++$r)
         "--ignore", "h",
         "--partition-tag", "HP",
         "--prefix", "haplotyped",
+        "--threads", $threads,
         $bams[0],
         $pileup_out . "/",
     ];
@@ -102,8 +105,8 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             }
         }
         
-
-        $aggregated[$hp] = [ mean($modified[$hp]), stdev($modified[$hp]) ];
+        if (count($modified[$hp]) > 0) $aggregated[$hp] = [ mean($modified[$hp]), stdev($modified[$hp]) ];
+        else $aggregated[$hp] = [ NAN, NAN];
     }
 
     // calculate average depth
@@ -119,18 +122,19 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             "--use-index",
             "--tag", "HP:{$hp}",
             "-F", "SECONDARY,SUPPLEMENTARY",
+            "-@", $threads,
             $bams[0],
             "{$row[3]}:{$row[6]}-{$row[7]}",
         ];
         $parser->exec(get_path("samtools"), implode(" ", $args_samtools), true);
-        $parser->exec(get_path("samtools"), "index {$hap_bams[$hp]}", true);
+        $parser->exec(get_path("samtools"), "index -@ {$threads} {$hap_bams[$hp]}", true);
     }
 
 
     $target_bed = $parser->tempFile(".bed", "hap");
     $coord_start = $row[6]-1;
     file_put_contents($target_bed, "{$row[3]}\t{$coord_start}\t{$row[7]}");
-    $result = $parser->exec(get_path("ngs-bits")."/BedCoverage", "-random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$bams[0]} -in {$target_bed} -clear");
+    $result = $parser->exec(get_path("ngs-bits")."/BedCoverage", "-threads {$threads} -random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$bams[0]} -in {$target_bed} -clear");
     $result_parts = explode("\t", $result[0][1]);
     $average_coverage = array_map("floatval", array_slice($result_parts, 3, 3));
 
@@ -168,3 +172,9 @@ $regions_table->addCol($coverage_hp2, "cov_hp2", "average coverage in haplotype 
 $regions_table->addCol($coverage_nohp, "cov_nohp", "average coverage in non-haplotyped");
 
 $regions_table->toTSV($out);
+
+# run plots in parallel
+if (count($jobs_plotting) > 0) $parser->execParallel($jobs_plotting, $threads);
+
+
+?>

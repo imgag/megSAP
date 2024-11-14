@@ -112,3 +112,12 @@ tar xzf modkit_u16_x86_64.tar.gz
 mv dist_modkit_v0.3.2_828697b modkit_v0.3.2
 chmod +x modkit_v0.3.2/modkit
 rm modkit_u16_x86_64.tar.gz
+
+#create custom venv for methylartist based on system python (requires tkinter)
+cd $folder
+python3 -m venv methylartist_venv_2024.11.13
+source $folder/methylartist_venv_2024.11.13/bin/activate
+pip install --upgrade setuptools wheel --require-virtualenv
+pip install "methylartist==1.3.1" --require-virtualenv
+deactivate
+cd ..

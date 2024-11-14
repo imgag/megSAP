@@ -99,4 +99,4 @@
 |Blastn                 |                                                     |08.2024 (2.16.0)  | helper tool for straglr                                                                                         |https://blast.ncbi.nlm.nih.gov/doc/blast-help/downloadblastdata.html    |
 |straglrOn              |repeat expansion visualization                       |08.2024 (v0.2.2)  |      TODO                                                                                                       |https://github.com/leonschuetz/StraglrOn                                |
 |modkit                 |methylation extraction                               |08.2024 (v0.3.2)  |                                                                                                                 |https://github.com/nanoporetech/modkit                                  |
-
+|methylartist           |methylation plots                                    |11.2024 (v1.3.1)  |                                                                                                                 |https://github.com/adamewing/methylartist                               |

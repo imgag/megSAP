@@ -106,7 +106,7 @@ $bedpe_file = substr($sv_vcf_file,0,-6)."bedpe";
 //repeat expansions
 $straglr_file = $folder."/".$name."_repeats.vcf";
 //methylation files
-$methyl_regions = repository_basedir()."/data/methylation/methylartist_catalog_grch38.bed";
+$methyl_regions = repository_basedir()."/data/methylation/methylartist_catalog_grch38.tsv";
 $methylation_table = $folder."/".$name."_var_methylation.tsv";
 //db import
 $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
@@ -156,7 +156,7 @@ if (in_array("ma", $steps))
 		"-threads {$threads}",
 		"-system {$system}",
 		"-qc_fastq {$qc_fastq}",
-		"-qc_map {$qc_map}"
+		"-qc_map {$qc_map}",
 	];
 	if (count($unmapped_bam_files) > 0)
 	{
@@ -461,7 +461,7 @@ if (in_array("me", $steps))
 {
 	if (!contains_methylation($bam_file)) trigger_error("BAM file doesn't contain methylation info!", E_USER_ERROR);
 
-	$parser->execTool("NGS/create_methyl_plot.php", "-folder {$folder} -name {$name} -out {$methylation_table} -build {$build} -regions {$methyl_regions}");
+	$parser->execTool("NGS/create_methyl_plot.php", "-folder {$folder} -name {$name} -out {$methylation_table} -build {$build} -regions {$methyl_regions} -threads {$threads}");
 
 }
 
