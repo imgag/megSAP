@@ -8,6 +8,10 @@ root=`pwd`
 # Path to your settings file
 SETTINGS_FILE=$root/settings.ini
 
+if [ ! -f "$SETTINGS_FILE" ]; then
+    SETTINGS_FILE="$root/settings.ini.default"
+fi
+
 #Ignore this - used for local installation
 #CONTAINER_FOLDER=/mnt/storage2/megSAP/tools/apptainer_container
 
