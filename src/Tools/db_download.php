@@ -24,7 +24,7 @@ foreach($dbs as $db)
 
 if (in_array("vep", $dbs))
 {
-    $vep_data_dir = "{$data_folder}/dbs/ensembl-vep-112";
+    $vep_data_dir = get_path("vep_data");
 
     // create VEP cache data folder
     if (!file_exists($vep_data_dir))

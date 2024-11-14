@@ -667,7 +667,7 @@ if (in_array("vc", $steps))
 		$snv_signatures_out = $out_folder."/snv_signatures/";
 		$tmp_variants = $parser->tempFile(".vcf", "snv_signatures_");
 		$parser->exec("bgzip","-c -d -@ {$threads} $variants > {$tmp_variants}", true);
-		$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/extract_signatures.py", "--in {$tmp_variants} --mode snv --outFolder {$snv_signatures_out} --reference GRCh38 --threads {$threads}", true);
+		$parser->exec("php ".repository_basedir()."/src/NGS/extract_signatures.php", "-in {$tmp_variants} -mode snv -out {$snv_signatures_out} -reference GRCh38 -threads {$threads}", true);
 	}
 }
 
@@ -1027,7 +1027,7 @@ if(in_array("cn",$steps))
 		if(!$single_sample && !$skip_signatures)
 		{
 			$cnv_signatures_out = $out_folder."/cnv_signatures/";
-			$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/extract_signatures.py", "--in {$som_clincnv} --mode cnv --outFolder {$cnv_signatures_out} --reference GRCh38 --threads {$threads}", true);
+			$parser->exec("php ".repository_basedir()."/src/NGS/extract_signatures.php", "-in {$som_clincnv} -mode cnv -outFolder {$cnv_signatures_out} -reference GRCh38 -threads {$threads}", true);
 		}
 	}
 }

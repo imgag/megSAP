@@ -64,11 +64,10 @@ First, we make sure the privileges of the installation scripts are correct:
 	> cd megSAP/data
 	> chmod 755 *.sh
 
-Next, we install all required tools
+Next, we install all required tools and download apptainer containers of required tools:
 
 	> ./download_tools.sh
-	> ./download_tools_somatic.sh #only needed for somatic analysis
-	> ./download_tools_rna.sh #only needed for RNA analysis
+	> ./download_container.sh
 
 Next, we need to download and index the reference genome:
 	
@@ -78,6 +77,10 @@ Finally, we need to download and convert some open-source databases for annotati
 
 	> ./download_dbs.sh
 	> ./download_dbs_rna.sh #only needed for RNA analysis
+	
+	(Some downloads require specific apptainer containers and are executed via the db_download.php script)
+	> cd ..
+	> php /src/Tools/db_download.php
 
 **Note:** OMIM and HGMD are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
 
