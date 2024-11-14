@@ -13,14 +13,6 @@ cpan_dir=$folder/perl_cpan/
 
 python3_path=$folder/Python-3.10.9/
 
-#download and build ngs-bits
-cd $folder
-git clone https://github.com/imgag/ngs-bits.git
-cd ngs-bits
-git checkout 2024_08 && git submodule update --recursive --init
-make build_3rdparty
-make build_tools_release
-
 #download and build plain python3
 cd $folder
 mkdir -p $python3_path
