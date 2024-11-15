@@ -22,9 +22,10 @@ function error_probabilty($match_prob, $matches, $mismatches)
 }
 
 ///Converts a LightCycler text export file to TSV format
-function txt2geno_lightcycler($snps, $in_file, $out_file)
+function txt2geno_lightcycler($snps, $in_file, $out_file, $lanes_to_check)
 {
 	$skipped = array();
+	$cross_check = (count($lanes_to_check) > 0);
 	
 	//parse data
 	$parsed = array();
@@ -40,13 +41,29 @@ function txt2geno_lightcycler($snps, $in_file, $out_file)
 			continue;
 		}
 		list($include, $color, $position, $sample, $x, $y, $call, $score, $status) = $parts;
-		
-		//filter
-		if (!isset($snps[$position[0]])) continue;
-		if (!preg_match("/^[0-9]{6,}/", $sample) && !preg_match("/^DNA-[0-9]{6,}/", $sample) && !starts_with($sample, "FO"))
+
+		if ($cross_check)
 		{
-			$skipped[$sample] = true;
-			continue;
+			$lane = (int) substr($position, 1);
+
+			$sample = $lane." (".$sample.")";
+
+			// skip lane which are not in the list
+			if (!in_array($lane, $lanes_to_check))
+			{
+				$skipped[$sample] = true;
+				continue;
+			} 
+		}
+		else
+		{
+			//filter
+			if (!isset($snps[$position[0]])) continue;
+			if (!preg_match("/^[0-9]{6,}/", $sample) && !preg_match("/^DNA-[0-9]{6,}/", $sample) && !starts_with($sample, "FO"))
+			{
+				$skipped[$sample] = true;
+				continue;
+			}
 		}
 		
 		//determine genotype (KASP)
@@ -119,8 +136,10 @@ function txt2geno_lightcycler($snps, $in_file, $out_file)
 }
 
 ///Converts a StepOnePlus text export file to TSV format
-function txt2geno_steponeplus($snps, $in_file, $out_file)
+function txt2geno_steponeplus($snps, $in_file, $out_file, $lanes_to_check)
 {
+	$cross_check = (count($lanes_to_check) > 0);
+
 	//parse data
 	$parsed = array();
 	$file = file($in_file);
@@ -132,6 +151,15 @@ function txt2geno_steponeplus($snps, $in_file, $out_file)
 		if (!preg_match("/^[A-H][0-9]+\t/", $line)) continue;
 		
 		list($well, $sample, $rs, , , , , $quality, $call) = explode("\t", $line);
+		
+		if ($cross_check)
+		{
+			$lane = (int) substr($well, 1);
+			$sample = $lane." (".$sample.")";
+			// skip lane which are not in the list
+			if (!in_array($lane, $lanes_to_check)) continue;
+		}
+
 		list(, $rs) = explode("_", $rs);
 		if (trim($call)=="" || starts_with($call, "Negative Control") || starts_with($call, "Undetermined"))
 		{
@@ -301,7 +329,11 @@ $parser->addFlag("itp", "Include test projects.");
 $parser->addFlag("ibad", "Include bad processed samples.");
 $parser->addFlag("missing_only", "Only perform KASP<>NGS check for samples that don't have a entry in NGSD yet.");
 $parser->addString("user", "Name of the user performing the KASP analysis and import (current user if unset).", true, "");
+$parser->addFlag("no_db_import", "Do not import results into the NGSD");
+$parser->addString("lanes", "Comma-separated list of lanes which will be used for cross-check with processed samples.", true, "");
+$parser->addString("samples", "Comma-separated list of processed samples which will be used for cross-check with lanes.", true, "");
 extract($parser->parse($argv));
+
 
 //get user ID from NGSD
 if ($user=="") $user = exec('whoami');
@@ -311,6 +343,34 @@ if ($user_id==-1)
 {
 	trigger_error("User '$user' not found in NGSD!", E_USER_ERROR);
 }
+
+$cross_check = false;
+if (($lanes == "" && $samples != "") || ($lanes == "" && $samples != "")) trigger_error("For cross-check BOTH lanes and processed samples have to be provided!", E_USER_ERROR);
+$lanes_to_check = array();
+if ($lanes != "")
+{
+	$cross_check = true; 
+	$no_db_import = true;
+
+	//parse lanes
+	foreach(explode(",", $lanes) as $lane)
+	{
+		if(!ctype_digit($lane)) trigger_error("'{$lane}' is not a valid lane name!", E_USER_ERROR);
+		$lanes_to_check[] = (int) $lane;
+	}
+
+	//parse psamples
+	$ps_to_check = array();
+	$ps_data = array();
+	foreach(explode(",", $samples) as $ps_name)
+	{
+		$ps_name = trim($ps_name);
+		$ps_id = get_processed_sample_id($db, $ps_name); //check for valid ps_name
+		$ps_to_check[] = $ps_name;
+		$ps_data[$ps_name] = get_processed_sample_info($db, $ps_name);
+	}
+}
+
 
 if ($snps=="set1")
 {
@@ -353,18 +413,26 @@ if ($snps=="set2")
 
 //(re-)create TSV file
 $tsv_file = substr($in, 0, -4)."_converted.tsv";
+if($cross_check) $tsv_file = $parser->tempFile("_converted.tsv");
 if ($format=="LightCycler")
 {
-	txt2geno_lightcycler($snps, $in, $tsv_file);
+	txt2geno_lightcycler($snps, $in, $tsv_file, $lanes_to_check);
 }
 else
 {
-	txt2geno_steponeplus($snps, $in, $tsv_file);
+	txt2geno_steponeplus($snps, $in, $tsv_file, $lanes_to_check);
 }
 
 $db = DB::getInstance("NGSD");
 $output = array();
-$output[] = "#sample_name\trandom_match_prob\tgenos_kasp\tgenos_both\tgenos_match\tbam\n";
+if ($cross_check)
+{
+	$output[] = "#KASP\tsample_name\trandom_match_prob\tgenos_kasp\tgenos_both\tgenos_match\tbam\n";
+}
+else
+{
+	$output[] = "#sample_name\trandom_match_prob\tgenos_kasp\tgenos_both\tgenos_match\tbam\n";
+}
 $file = file($tsv_file);
 foreach($file as $line)
 {
@@ -373,17 +441,64 @@ foreach($file as $line)
 	
 	$genotypes = explode("\t", $line);
 	$name = trim($genotypes[0]);
-	//extract DNA number
-	preg_match("/[0-9]{6,}/", $genotypes[0], $matches);
-	if (count($matches) == 1)
+	$genotypes = array_slice($genotypes, 1);
+
+	if ($cross_check)
 	{
-		$dna_number = $matches[0];
-		$genotypes = array_slice($genotypes, 1);
+		foreach($ps_data as $ps_name => $ps_info)
+		{
+			print "Comparing sample {$ps_name} to KASP lane {$name}...\n";
+			$bam = $ps_info['ps_bam'];
+			if (!file_exists($bam))
+			{
+				trigger_error("BAM/CRAM file for sample '{$ps_name}' not found!", E_USER_WARNING);
+				continue;
+			}
+			
+			//find genotype matches
+			$c_kasp = 0;
+			$c_both = 0;
+			$c_match = 0;
+			for($i=0; $i<count($genotypes); ++$i)
+			{
+				$g = $genotypes[$i];
+				if ($g=="n/a") continue;
+				++$c_kasp;
+				$snp = $snps[chr(65+$i)];
+				$g2 = ngs_geno($bam, $snp[1], $snp[2], $snp[3], $min_depth);
+				if ($g2=="n/a") continue;
+				++$c_both;
+				//normalize genotypes
+				$g = explode("/", $g);
+				sort($g);
+				$g = implode("/", array_unique($g));
+				$g_hom = (strlen($g)==1);
+				
+				$g2 = explode("/", $g2);
+				sort($g2);
+				$g2 = implode("/", array_unique($g2));
+				$g2_hom = (strlen($g2)==1);
+				
+				if ($g==$g2)
+				{
+					++$c_match;
+				}
+			}
+			if ($c_both<=6)
+			{
+				$output[] = "$name\t$ps_name\tn/a\t$c_kasp\t$c_both\t$c_match\t$bam\n";
+			}
+			else
+			{
+				$rmp = number_format(error_probabilty(0.5, $c_match, $c_both-$c_match), 6);
+				$output[] = "$name\t$ps_name\t$rmp\t$c_kasp\t$c_both\t$c_match\t$bam\n";
+			}
+		}
 	}
 	else
 	{
-		//check FO number
-		preg_match("/FO[-]{0,1}[0-9]{5}/", $genotypes[0], $matches);
+		//extract DNA number
+		preg_match("/[0-9]{6,}/", $genotypes[0], $matches);
 		if (count($matches) == 1)
 		{
 			$dna_number = $matches[0];
@@ -391,127 +506,138 @@ foreach($file as $line)
 		}
 		else
 		{
-			print "error - Invalid DNA number '".$genotypes[0]."' given!\n";
-			$output[] = "##Invalid DNA number '".$genotypes[0]."'\n";
-			continue;
-		}
-	}
-	 
-	//determine BAM file of sample
-	print "KASP: {$name} (sample search: $dna_number)\n";
-	$res = sample_from_ngsd($db, $dna_number, $irp, $itp, $ibad);
-	if (count($res)==0)
-	{
-		print "  error - Could not find any processed samples of the DNA number '$dna_number' in NGSD!\n";
-		$output[] = "##no NGSD entry for sample '$dna_number'\n";
-	}
-	else
-	{
-		foreach($res as $sample => $ps_data)
-		{
-			print "  NGSD sample: {$sample}\n";
-			
-			$bams_found = 0;
-			foreach($ps_data as list($ps, $folder, $quality))
+			//check FO number
+			preg_match("/FO[-]{0,1}[0-9]{5}/", $genotypes[0], $matches);
+			if (count($matches) == 1)
 			{
-				$bam = realpath("$folder/{$ps}.bam");
-				if (!file_exists($bam)) //fallback to CRAM
+				$dna_number = $matches[0];
+				$genotypes = array_slice($genotypes, 1);
+			}
+			else
+			{
+				print "error - Invalid DNA number '".$genotypes[0]."' given!\n";
+				$output[] = "##Invalid DNA number '".$genotypes[0]."'\n";
+				continue;
+			}
+		}
+
+		//determine BAM file of sample
+		print "KASP: {$name} (sample search: $dna_number)\n";
+		$res = sample_from_ngsd($db, $dna_number, $irp, $itp, $ibad);
+		if (count($res)==0)
+		{
+			print "  error - Could not find any processed samples of the DNA number '$dna_number' in NGSD!\n";
+			$output[] = "##no NGSD entry for sample '$dna_number'\n";
+		}
+		else
+		{
+			foreach($res as $sample => $ps_data)
+			{
+				print "  NGSD sample: {$sample}\n";
+				
+				$bams_found = 0;
+				foreach($ps_data as list($ps, $folder, $quality))
 				{
-					$bam = realpath("$folder/{$ps}.cram");
-				}
-				if (file_exists($bam))
-				{
-					++$bams_found;
-					
-					$messages = array();
-					
-					//check if missing
-					if ($missing_only && kasp_exists($db, $ps))
+					$bam = realpath("$folder/{$ps}.bam");
+					if (!file_exists($bam)) //fallback to CRAM
 					{
-						print "  $ps - skipped because KASP is already in NGSD\n";
-						continue;
+						$bam = realpath("$folder/{$ps}.cram");
 					}
-					
-					//find genotype matches
-					$c_kasp = 0;
-					$c_both = 0;
-					$c_match = 0;
-					for($i=0; $i<count($genotypes); ++$i)
+					if (file_exists($bam))
 					{
-						$g = $genotypes[$i];
-						if ($g=="n/a") continue;
-						++$c_kasp;
-						$snp = $snps[chr(65+$i)];
-						//print "  SNP: ".$snp[1].":".$snp[2]." ".$snp[3].">".$snp[4]."\n";
-						//print "  KASP: $g\n";
-						$g2 = ngs_geno($bam, $snp[1], $snp[2], $snp[3], $min_depth);
-						if ($g2=="n/a") continue;
-						++$c_both;
-						//print "  NGS: $g2\n";
+						++$bams_found;
 						
-						//normalize genotypes
-						$g = explode("/", $g);
-						sort($g);
-						$g = implode("/", array_unique($g));
-						$g_hom = (strlen($g)==1);
+						$messages = array();
 						
-						$g2 = explode("/", $g2);
-						sort($g2);
-						$g2 = implode("/", array_unique($g2));
-						$g2_hom = (strlen($g2)==1);
-						
-						if ($g==$g2)
+						//check if missing
+						if ($missing_only && kasp_exists($db, $ps))
 						{
-							++$c_match;
+							print "  $ps - skipped because KASP is already in NGSD\n";
+							continue;
 						}
-						else if ($pmm) //debug
+						
+						//find genotype matches
+						$c_kasp = 0;
+						$c_both = 0;
+						$c_match = 0;
+						for($i=0; $i<count($genotypes); ++$i)
 						{
-							$messages[] = "MISMATCH - snp:".implode("|", $snp)." kasp:$g ngs:$g2";
-						}
-						else 
-						{
-							if ($g_hom && $g2_hom) //WT vs HOM
+							$g = $genotypes[$i];
+							if ($g=="n/a") continue;
+							++$c_kasp;
+							$snp = $snps[chr(65+$i)];
+							//print "  SNP: ".$snp[1].":".$snp[2]." ".$snp[3].">".$snp[4]."\n";
+							//print "  KASP: $g\n";
+							$g2 = ngs_geno($bam, $snp[1], $snp[2], $snp[3], $min_depth);
+							if ($g2=="n/a") continue;
+							++$c_both;
+							//print "  NGS: $g2\n";
+							
+							//normalize genotypes
+							$g = explode("/", $g);
+							sort($g);
+							$g = implode("/", array_unique($g));
+							$g_hom = (strlen($g)==1);
+							
+							$g2 = explode("/", $g2);
+							sort($g2);
+							$g2 = implode("/", array_unique($g2));
+							$g2_hom = (strlen($g2)==1);
+							
+							if ($g==$g2)
 							{
-								$messages[] = "WARNING - snp:".implode("|", $snp)." kasp:$g ngs:$g2";
+								++$c_match;
+							}
+							else if ($pmm) //debug
+							{
+								$messages[] = "MISMATCH - snp:".implode("|", $snp)." kasp:$g ngs:$g2";
+							}
+							else 
+							{
+								if ($g_hom && $g2_hom) //WT vs HOM
+								{
+									$messages[] = "WARNING - snp:".implode("|", $snp)." kasp:$g ngs:$g2";
+								}
 							}
 						}
-					}
 
-					//determine overall match
-					print "    ".basename2($bam)." ".($quality=="bad" ? "(bad)" : "")." kasp:$c_kasp both:$c_both match:$c_match";
-					if ($c_both<=6)
-					{
-						$messages[] = "ERROR - too few common SNPs";
-					}
-					else
-					{
-						$rmp = number_format(error_probabilty(0.5, $c_match, $c_both-$c_match), 6);
-						print " random_match_probabilty:$rmp";
-						if($rmp>=$mep)
+						//determine overall match
+						print "    ".basename2($bam)." ".($quality=="bad" ? "(bad)" : "")." kasp:$c_kasp both:$c_both match:$c_match";
+						if ($c_both<=6)
 						{
-							$messages[] = "ERROR - random_match_probabilty too high";
+							$messages[] = "ERROR - too few common SNPs";
 						}
-						$output[] = "$dna_number\t$rmp\t$c_kasp\t$c_both\t$c_match\t$bam\n";
-					
-						//NGSD import of results
-						import_ngsd($db, $ps, $rmp, $c_both, $c_match, $user_id);
-					}
-					print "\n";
-					foreach($messages as $message)
-					{
-						print "      $message\n";
+						else
+						{
+							$rmp = number_format(error_probabilty(0.5, $c_match, $c_both-$c_match), 6);
+							print " random_match_probabilty:$rmp";
+							if($rmp>=$mep)
+							{
+								$messages[] = "ERROR - random_match_probabilty too high";
+							}
+							$output[] = "$dna_number\t$rmp\t$c_kasp\t$c_both\t$c_match\t$bam\n";
+						
+							//NGSD import of results
+							if(!$no_db_import) import_ngsd($db, $ps, $rmp, $c_both, $c_match, $user_id);
+						}
+						print "\n";
+						foreach($messages as $message)
+						{
+							print "      $message\n";
+						}
 					}
 				}
-			}
-			
-			//error 
-			if($bams_found==0)
-			{
-				print "  error - Could not find any BAM file for sample '$dna_number'!\n";
-				$output[] = "##no BAM file for sample '$dna_number'\n";
+				
+				//error 
+				if($bams_found==0)
+				{
+					print "  error - Could not find any BAM file for sample '$dna_number'!\n";
+					$output[] = "##no BAM file for sample '$dna_number'\n";
+				}
 			}
 		}
 	}
+	
 }
 
 //write output
