@@ -96,13 +96,6 @@ function write($h_out, $var)
 			if (!isset($sample['DP'])) $sample['DP'] = ".";
 			if (isset($sample['AF']) && $sample['AF']!=".")
 			{
-				//workaroud for bug in vcfbreakmulti - should not be needed anymore when we use VcfBreakMulti from ngs-bits
-				if (!is_numeric($sample['AF']))
-				{
-					$tmp = explode(",", $sample['AF']);
-					$tmp = array_diff($tmp, ["."]);
-					$sample['AF'] = count($tmp)>0 ? mean($tmp) : "0.0";
-				}
 				$sample['AF'] = number_format($sample['AF'], 3);
 			}
 			else
