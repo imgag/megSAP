@@ -31,15 +31,16 @@ RHEL 8.3
 	> dnf install php-cli php-xml  php-mysqlnd R-core R-core-devel -y
  	> yum install qt5-qtcharts.x86_64 qt5-qtbase-odbc.x86_64 qt5-qtbase-mysql.x86_64 qt5-qtxmlpatterns.x86_64 libcurl-devel.x86_64 qt5-devel.x86_64
     
+## Install Apptainer
+	> sudo add-apt-repository -y ppa:apptainer/ppa
+	> sudo apt update
+	> sudo apt install -y apptainer
+
 ## Downloading
 
-Clone the latest release of megSAP:
+Clone megSAP repository with containerized tools:
 
-	> git clone -b 2024_09 https://github.com/imgag/megSAP.git
-
-Or, if you want to test the current development version:
-
-	> git clone https://github.com/imgag/megSAP.git
+	> git clone -b containerize_tools https://github.com/imgag/megSAP.git
 
 ### Resolving proxy issues with git
 

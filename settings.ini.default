@@ -6,7 +6,6 @@
 
 [tools-ngs]
 python3 = [path]/data/tools/Python-3.10.9_19.08.24/bin/python3.10
-ngs-bits = [path]/data/tools/ngs-bits/bin/
 vep_data = [path]/data/dbs/ensembl-vep-112/
 interop = [path]/data/tools/interop-1.2.4-Linux-GNU/bin/summary
 clincnv_cohorts = [path]/data/ClinCNV-cohorts/

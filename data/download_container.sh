@@ -3,7 +3,8 @@ set -e
 set -o pipefail
 set -o verbose
 
-root=`pwd`
+root=`dirname $(pwd)`
+CONTAINER_FOLDER="$root/data/tools/apptainer_container/"
 
 # Path to your settings file
 SETTINGS_FILE=$root/settings.ini
@@ -15,8 +16,6 @@ fi
 #Ignore this - used for local installation
 #CONTAINER_FOLDER=/mnt/storage2/megSAP/tools/apptainer_container
 
-# Directory containing the containers (change in settings.ini if you want to pull containers elsewhere)
-CONTAINER_FOLDER=$(grep "^container_folder" "$SETTINGS_FILE" | awk -F' = ' '{print $2}')
 BASE_URL="https://download.imgag.de/public/megSAP_container"
 
 # make sure container folder exists
