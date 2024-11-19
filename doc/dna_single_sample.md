@@ -41,7 +41,7 @@ The following tools are used for mapping and calling of small variants and annot
 | mapping - indel realignment                    | ABRA2                |                                                  |
 | variant calling - calling of SNVs and InDels   | freebayes            |                                                  |
 | variant calling - decompose complex variants   | vcfallelicprimitives | Performed by Dragen if '-use_dragen' is used.    |
-| variant calling - break multi-allelic variants | vcfbreakmulti        |                                                  |
+| variant calling - break multi-allelic variants | VcfBreakMulti        |                                                  |
 | variant calling - left-normalization of InDels | VcfLeftNormalize     |                                                  |
 | annotation                                     | VEP                  |                                                  |
 
