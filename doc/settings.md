@@ -43,7 +43,7 @@ This section contains path to important folders:
 
 This section contains general settings:
 
-* `copy_dbs_to_local_data` - Flag (true/false) that indicates if large database files (gnomAD, etc) are copied to the local folder.
+* `copy_dbs_to_local_data` - Flag (true/false) that indicates if large database files (gnomAD, etc) are copied to the `local_data` folder.
 * `delete_fastq_files` - Flag (true/false) that indicates if FASTQ files are to be deleted after the BAM/CRAM file is created after mapping.
 * `cnv_bin_size_wgs` - Bin size used for CNV analysis of WGS samples.
 * `cnv_bin_size_shallow_wgs` - Bin size used for CNV analysis of shallow WGS samples.

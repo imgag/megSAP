@@ -84,7 +84,7 @@ class ToolBase
 	public function createNgsBitsIni($build)
 	{
 		//settings for ngs-bits exists > do nothing
-		$ngsbits_settings = get_path("ngs-bits")."/settings.ini";
+		$ngsbits_settings = get_path("ngs-bits", false)."/settings.ini";
 		if (file_exists($ngsbits_settings)) return;
 		
 		//pipeine settings file missing > create it

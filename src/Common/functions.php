@@ -809,7 +809,7 @@ function execSingularity($container, $container_version, $command, $parameters, 
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
 	if($container === "ngs-bits")
 	{
-		$ngsbits_settings_net = get_path("ngs-bits")."/settings.ini";
+		$ngsbits_settings_net = get_path("ngs-bits", false)."/settings.ini";
 		$ngsbits_settings_loc = repository_basedir()."/data/tools/ngsbits_settings.ini";
 		if (file_exists($ngsbits_settings_net))
 		{
