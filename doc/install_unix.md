@@ -77,11 +77,8 @@ Next, we need to download and index the reference genome:
 Finally, we need to download and convert some open-source databases for annotations:
 
 	> ./download_dbs.sh
+	> php ../src/Tools/db_download.php # DB downloads that require apptainer containers
 	> ./download_dbs_rna.sh #only needed for RNA analysis
-	
-	(Some downloads require specific apptainer containers and are executed via the db_download.php script)
-	> cd ..
-	> php /src/Tools/db_download.php
 
 **Note:** OMIM and HGMD are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
 
