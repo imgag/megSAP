@@ -87,6 +87,6 @@ After the analysis, these files are created in the output folder:
 
 ### Test data
 
-Example data which can be analyzed using the command above can be downloaded from [here](https://download.imgag.de/NA12878_01.zip).
+Example data which can be analyzed using the command above can be downloaded from [here](https://megsap.de/download/examples/NA12878_01.zip).
 
 [back to the start page](../README.md)
