@@ -78,11 +78,10 @@ Finally, we need to download and convert some open-source databases for annotati
 
 	> ./download_dbs.sh
 	> php ../src/Tools/db_download.php # DB downloads that require apptainer containers
-	> ./download_dbs_rna.sh #only needed for RNA analysis
 
-**Note:** OMIM and HGMD are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
+**Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
 
-**Note:** The use of the optional NGSD annotation requires an export of the variants to VCF files. These files should be updated on a regular basis. For example code take a look at the NGSD section in the download script.
+**Note:** To annotate variants with data from the NGSD (in-house counts, classifications, etc.), NGSD data has to be exported once a week using a cronjob. For example code take a look at the NGSD section at the end of the download script.
 
 
 ## Settings

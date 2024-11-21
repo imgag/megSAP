@@ -159,21 +159,62 @@ cd SpliceAI
 wget https://download.imgag.de/public/splicing/spliceai_scores_2024_08_26_GRCh38.vcf.gz -O spliceai_scores_2024_08_26_GRCh38.vcf.gz
 tabix -C -m 9 -p vcf spliceai_scores_2024_08_26_GRCh38.vcf.gz
 
-#download sniffles 
+#download tandem repeat database for Sniffles 
 cd $dbs
 mkdir -p TandemRepeats
 cd TandemRepeats
 wget https://github.com/PacificBiosciences/pbsv/raw/master/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
 
+#download reference data for gene expression
+cd $dbs
+mkdir -p gene_expression
+cd gene_expression
+#change version number on update
+wget -O - https://www.proteinatlas.org/download/tsv/rna_tissue_consensus.tsv.zip | gunzip > rna_tissue_consensus_v22.tsv
 
-# install OMIM (you might need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
+#download Ensembl data in GTF format - KEEP AT ENSEMBL VERSION 109, DB import for RNA works on Transcript base and will break if the transcripts change.
+cd $dbs
+mkdir -p gene_annotations
+cd gene_annotations
+wget -O - 'https://ftp.ensembl.org/pub/release-109/gtf/homo_sapiens/Homo_sapiens.GRCh38.109.gtf.gz' | gzip -cd | awk '{ if ($$1 !~ /^#/) { print "chr"$0 } else { print $0 } }' > GRCh38.gtf
+
+#create hemoglobin FASTA file
+cd $root/misc
+wget -O - 'https://ftp.ensembl.org/pub/release-109/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz' | zcat | \
+	awk -v RS=">" -v FS="\n" '$$1 ~ / gene_symbol:(HBA1|HBA2|HBB) / { print ">"$$1; {for (i=2; i<=NF; i++) printf("%s", $$i)}; printf("\n") }' | \
+	sed '/^>/s/ /|kraken:taxid|9606 /' \
+	> human_hemoglobin_tx.fa
+
+#download and normalize HG001/NA12878 reference data
+mkdir -p $dbs/GIAB/NA12878/
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz -O $dbs/GIAB/NA12878/high_conf_variants.vcf.gz
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.bed -O $dbs/GIAB/NA12878/high_conf_regions.bed
+zcat $dbs/GIAB/NA12878/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec $ngsbits VcfFilter -remove_invalid | apptainer exec $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA12878/high_conf_variants_normalized.vcf.gz
+tabix $dbs/GIAB/NA12878/high_conf_variants_normalized.vcf.gz
+
+#download and normalize HG002/NA24385 reference data
+mkdir -p $dbs/GIAB/NA24385/
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/AshkenazimTrio/HG002_NA24385_son/latest/GRCh38/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz -O $dbs/GIAB/NA24385/high_conf_variants.vcf.gz
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/AshkenazimTrio/HG002_NA24385_son/latest/GRCh38/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed -O $dbs/GIAB/NA24385/high_conf_regions.bed
+zcat $dbs/GIAB/NA24385/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec $ngsbits VcfFilter -remove_invalid | apptainer exec $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA24385/high_conf_variants_normalized.vcf.gz
+tabix $dbs/GIAB/NA24385/high_conf_variants_normalized.vcf.gz
+
+#download and normalize HG002/NA24385 CMRG reference data
+mkdir -p $dbs/GIAB/NA24385_CMRG/
+wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/SmallVariant/HG002_GRCh38_CMRG_smallvar_v1.00.vcf.gz -O $dbs/GIAB/NA24385_CMRG/high_conf_variants.vcf.gz
+wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/SmallVariant/HG002_GRCh38_CMRG_smallvar_v1.00.bed -O $dbs/GIAB/NA24385_CMRG/high_conf_regions.bed
+zcat $dbs/GIAB/NA24385_CMRG/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec $ngsbits VcfFilter -remove_invalid | apptainer exec $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
+tabix $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
+
+
+# install OMIM (you might need a license)
 # cd $dbs
 # mkdir -p OMIM
 # cd OMIM
 # manual download of http://ftp.omim.org/OMIM/genemap2.txt
 # php $src/Tools/db_converter_omim.php | apptainer exec $ngsbits BedSort -with_name > omim.bed
 
-# Install HGMD (you need a license, only possible after ngs-bits is installed - including reference genome and NGSD setup)
+# Install HGMD (you need a license)
 # manual download of files HGMD_Pro_2024.2_hg38.vcf.gz  and hgmd_pro-2024.2.dump.gz from https://apps.ingenuity.com/ingsso/login
 # zcat HGMD_Pro_2024.2_hg38.vcf.gz | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2024_2_fixed.vcf.gz
 # tabix -p vcf HGMD_PRO_2024_2_fixed.vcf.gz

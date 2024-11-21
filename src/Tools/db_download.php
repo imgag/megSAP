@@ -23,9 +23,12 @@ foreach($dbs as $db)
 }
 
 if (in_array("vep", $dbs))
-{
-    $vep_data_dir = get_path("vep_data");
+{	
+	print "### VEP ###\n";
 
+    $vep_data_dir = get_path("vep_data");
+	print "Downloading VEP database to {$vep_data_dir} ...\n";
+	
     // create VEP cache data folder
     if (!file_exists($vep_data_dir))
     {
@@ -45,17 +48,22 @@ if (in_array("vep", $dbs))
 
     // download VEP cache data
     $url = "https://ftp.ensembl.org/pub/release-112/variation/indexed_vep_cache/homo_sapiens_vep_112_GRCh38.tar.gz";
-    exec2("wget -P {$vep_data_dir}/ftp/ ".$url);
+    exec("wget --no-verbose -P {$vep_data_dir}/ftp/ ".$url);
 
     // install ensembl-vep
+	print "Installing VEP data ...\n";
     $parser->execSingularity("vep", get_path("container_vep"), "INSTALL.pl", "--SPECIES homo_sapiens --ASSEMBLY GRCh38 --AUTO c --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST --NO_HTSLIB", [$vep_data_dir]);
 }
 
 if (in_array("kraken2", $dbs))
 {
+	print "\n";
+	print "### kraken2 ###\n";
+	
 	$kraken_data_dir = "{$data_folder}/dbs/kraken2_filter_hb";
     $hemoglobin_fa = "{$data_folder}/misc/human_hemoglobin_tx.fa";
-
+	print "Downloading kraken2 database to {$kraken_data_dir} ...\n";
+	
 	//create kraken2 db folder if not existent
 	if (!file_exists($kraken_data_dir))
 	{
@@ -77,6 +85,9 @@ if (in_array("kraken2", $dbs))
 
 if (in_array("STAR", $dbs))
 {
+	print "\n";
+	print "### STAR ###\n";
+	
 	$star_genome_dir = "{$data_folder}/genomes/STAR/GRCh38";
     $star_gtf_file = "{$data_folder}/dbs/gene_annotations/GRCh38.gtf";
     $genome = "{$data_folder}/genomes/GRCh38.fa";
@@ -99,11 +110,13 @@ if (in_array("STAR", $dbs))
 
     print "Indexing genome '{$genome}' using STAR. This may take a while.";
 	$parser->execSingularity("STAR", get_path("container_STAR"), "STAR", "--runThreadN 20 --runMode genomeGenerate --genomeDir {$star_genome_dir} --genomeFastaFiles {$genome} --sjdbGTFfile {$star_gtf_file}", [$star_genome_dir, $star_gtf_file]);
-    print "Finished indexing genome '{$genome}'";
 }
 
 if (in_array("Clair3", $dbs))
 {
+	print "\n";
+	print "### Clair3 ###\n";
+	
     $model_path = get_path("clair3_models");
     $original_cwd = getcwd();
 
@@ -132,9 +145,5 @@ if (in_array("Clair3", $dbs))
     exec2("tar xzf r941_prom_hac_g360+g422.tar.gz");
     exec2("rm r941_prom_hac_g360+g422.tar.gz");
     exec2("mv ont/ r941_prom_hac_g360+g422/");
-
-    chdir($original_cwd);
-
-    print "Finished downloading clair3 models\n";
 }
 ?>
