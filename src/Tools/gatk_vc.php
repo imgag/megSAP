@@ -50,7 +50,7 @@ if (!$gvcf)
 	//perform postprocessing
 	$pipeline = [];
 	$pipeline[] = array("zcat", $tmp);
-	$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "-no_errors");
+	$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "");
 	$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref {$ref}");
 	$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
 	$pipeline[] = array("bgzip", "-c > {$out}", false);
