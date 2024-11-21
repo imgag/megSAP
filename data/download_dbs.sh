@@ -159,12 +159,6 @@ cd SpliceAI
 wget https://download.imgag.de/public/splicing/spliceai_scores_2024_08_26_GRCh38.vcf.gz -O spliceai_scores_2024_08_26_GRCh38.vcf.gz
 tabix -C -m 9 -p vcf spliceai_scores_2024_08_26_GRCh38.vcf.gz
 
-#download tandem repeat database for Sniffles 
-cd $dbs
-mkdir -p TandemRepeats
-cd TandemRepeats
-wget https://github.com/PacificBiosciences/pbsv/raw/master/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
-
 #download reference data for gene expression
 cd $dbs
 mkdir -p gene_expression
