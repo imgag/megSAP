@@ -193,7 +193,7 @@ $pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -ref $genome");
 $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
 
 //split multi-allelic variants
-$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "");
+$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "-no_errors");
 
 //remove invalid variants
 $pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-remove_invalid -ref $genome");

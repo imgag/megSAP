@@ -86,14 +86,14 @@ $parser->exec("{$python_bin} $run_dir/runWorkflow.py", "-m local -j $threads -g 
 $split_snvs = "$run_dir/results/variants/somatic.snvs.split.vcf.gz";
 $pipeline = [
 		["zcat", $somatic_snvs],
-		[get_path("ngs-bits")."VcfBreakMulti", "> $split_snvs"]
+		[get_path("ngs-bits")."VcfBreakMulti", "-no_errors > $split_snvs"]
 	];
 $parser->execPipeline($pipeline, "splitting SNVs");
 
 $split_indels = "$run_dir/results/variants/somatic.indels.split.vcf.gz";
 $pipeline = [
 		["zcat", $somatic_indels],
-		[get_path("ngs-bits")."VcfBreakMulti", "> $split_indels"]
+		[get_path("ngs-bits")."VcfBreakMulti", "-no_errors > $split_indels"]
 	];
 $parser->execPipeline($pipeline, "splitting InDels");
 

@@ -91,7 +91,7 @@ $pipeline[] = array(get_path("vcflib")."vcffilter", "-f \"QUAL > 5\"");
 $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
 
 //split multi-allelic variants
-$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "");
+$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "-no_errors");
 
 //normalize all variants and align INDELs to the left
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
