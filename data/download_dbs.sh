@@ -129,6 +129,7 @@ zcat CADD_SNVs_1.7_GRCh38.tsv.gz | php $src/Tools/db_converter_cadd.php -build G
 tabix -f -C -m 9 -p vcf CADD_SNVs_1.7_GRCh38.vcf.gz
 apptainer exec -B $root/genomes/ $ngsbits VcfCheck -in CADD_InDels_1.7_GRCh38.vcf.gz -lines 1000 -ref $genome
 apptainer exec -B $root/genomes/ $ngsbits VcfCheck -in CADD_SNVs_1.7_GRCh38.vcf.gz -lines 1000 -ref $genome
+rm -rf CADD_SNVs_1.7_GRCh38.tsv.gz CADD_InDels_1.7_GRCh38.tsv.gz
 
 #download and convert REVEL - https://sites.google.com/site/revelgenomics/downloads
 cd $dbs
