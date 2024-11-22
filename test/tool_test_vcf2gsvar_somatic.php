@@ -5,8 +5,8 @@ require_once("framework.php");
 $name = "vcf2gsvar_somatic";
 start_test($name);
 
-//init
-check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
+//init NGSD
+init_ngsd($name);
 
 //strelka (tumor-normal pair), vcf file has COSMIC CMC and CANCERHOTSPOTS annotation
 $out_file1 = output_folder().$name."_out1.GSvar";

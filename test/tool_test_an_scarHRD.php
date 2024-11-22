@@ -5,8 +5,8 @@ require_once("framework.php");
 $name = "an_scarHRD";
 start_test($name);
 
-//init
-check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
+//init NGSD
+init_ngsd($name);
 
 //empty
 $log_file = output_folder()."/{$name}_out0.log";

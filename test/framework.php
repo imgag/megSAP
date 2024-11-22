@@ -436,4 +436,23 @@ function end_test()
 	if ($failed) exit(1);
 }
 
+///initializes NGSD if a SQL file with the correct name exists
+function init_ngsd($tool_name)
+{	
+	//prepare arguments
+	$args = [];
+	$args[] = "-test";
+	$in_files = [];
+	
+	//additional SQL commands to execute
+	$sql_file = data_folder()."/{$tool_name}.sql";
+	if (file_exists($sql_file))
+	{
+		$args[] = "-add {$sql_file}";
+		$in_files[] = $sql_file;
+	}
+	
+	//init
+	list($stdout, $stderr, $exit_code) = execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDInit", implode(" ", $args), $in_files);
+}
 ?>

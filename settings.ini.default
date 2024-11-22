@@ -96,10 +96,15 @@ queues_dragen =
 use_dragen_sv_calling = false
 
 [mysql-databases]
-db_host['NGSD'] = "localhost"
-db_name['NGSD'] = "ngsd"
-db_user['NGSD'] = "ngsduser"
+db_host['NGSD'] = ""
+db_name['NGSD'] = ""
+db_user['NGSD'] = ""
 db_pass['NGSD'] = ""
+
+db_host['NGSD_TEST'] = ""
+db_name['NGSD_TEST'] = ""
+db_user['NGSD_TEST'] = ""
+db_pass['NGSD_TEST'] = ""
 
 [grid_engine]
 queues_default = ""

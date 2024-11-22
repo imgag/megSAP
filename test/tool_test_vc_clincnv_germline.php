@@ -2,7 +2,7 @@
 require_once("framework.php");
 
 $name = "vc_clincnv_germline";
-$ngsbits = get_path("ngs-bits");
+$ngsbits = ;
 
 start_test($name);
 
@@ -33,8 +33,8 @@ $bed_in = $tmp_folder."/target_region.bed";
 $cov_folder = $tmp_folder."cov-tumor";
 $bed = $tmp_folder."/target_region_annotated.bed";
 $pipeline = [
-    ["{$ngsbits}BedAnnotateGC", "-in {$bed_in} -clear -ref ".get_path("data_folder")."/genomes/GRCh38.fa"],
-    ["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
+    [get_path("ngs-bits")."BedAnnotateGC", "-in {$bed_in} -clear -ref ".get_path("data_folder")."/genomes/GRCh38.fa"],
+    [get_path("ngs-bits")."BedAnnotateGenes", "-out {$bed}"],
 ];
 //off target
 $bed_off = $tmp_folder . "off_target.bed";

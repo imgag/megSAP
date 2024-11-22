@@ -97,12 +97,19 @@ class ToolBase
 			//reference genome
 			$output[] = "reference_genome = ".genome_fasta($build);
 			
-			//NGSD credentials
+			//NGSD credentials (production instance)
 			$output[] = "ngsd_host = ".get_db('NGSD', 'db_host', '');
 			$output[] = "ngsd_port = 3306";
 			$output[] = "ngsd_name = ".get_db('NGSD', 'db_name', '');
 			$output[] = "ngsd_user = ".get_db('NGSD', 'db_user', '');
 			$output[] = "ngsd_pass = ".get_db('NGSD', 'db_pass', '');
+			
+			//NGSD credentials (test instance)
+			$output[] = "ngsd_test_host = ".get_db('NGSD_TEST', 'db_host', '');
+			$output[] = "ngsd_test_port = 3306";
+			$output[] = "ngsd_test_name = ".get_db('NGSD_TEST', 'db_name', '');
+			$output[] = "ngsd_test_user = ".get_db('NGSD_TEST', 'db_user', '');
+			$output[] = "ngsd_test_pass = ".get_db('NGSD_TEST', 'db_pass', '');
 			
 			//project folders
 			$project_folder = get_path("project_folder", false);
@@ -117,8 +124,6 @@ class ToolBase
 			$written = file_put_contents($pipeline_settings, implode("\n", $output));
 			if($written===false) trigger_error("Could not write ngs-bits settings file: $pipeline_settings", E_USER_ERROR);
 		}
-		
-		trigger_error("ngs-bits settings file used: {$pipeline_settings}", E_USER_NOTICE);
 	}
 	
 	/// Remove temporary folder
