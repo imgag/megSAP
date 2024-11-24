@@ -201,18 +201,18 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/Ashkenazim
 zcat $dbs/GIAB/NA24385_CMRG/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec $ngsbits VcfFilter -remove_invalid | apptainer exec $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 tabix $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 
-# install OMIM (you might need a license)
+# install OMIM (you might need a license; production NGSD has to be available and initialized)
 # cd $dbs
 # mkdir -p OMIM
 # cd OMIM
 # manual download of http://ftp.omim.org/OMIM/genemap2.txt
 # php $src/Tools/db_converter_omim.php | apptainer exec $ngsbits BedSort -with_name > omim.bed
 
-# Install HGMD (you need a license)
+# Install HGMD (you need a license; production NGSD has to be available and initialized)
 # cd $dbs
-# mkdir -p OMIM
-# cd OMIM
-# manual download of files HGMD_Pro_2024.2_hg38.vcf.gz  and hgmd_pro-2024.2.dump.gz from https://apps.ingenuity.com/ingsso/login
+# mkdir -p HGMD
+# cd HGMD
+# # manual download of files HGMD_Pro_2024.2_hg38.vcf.gz  and hgmd_pro-2024.2.dump.gz from https://apps.ingenuity.com/ingsso/login
 # zcat HGMD_Pro_2024.2_hg38.vcf.gz | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2024_2_fixed.vcf.gz
 # tabix -p vcf HGMD_PRO_2024_2_fixed.vcf.gz
 # #CNVs
@@ -220,9 +220,10 @@ tabix $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 # apptainer exec $ngsbits BedSort -with_name -in HGMD_CNVS_2024_2.bed -out HGMD_CNVS_2024_2.bed
 
 # Install COSMIC Cancer Mutation Census CMC  (you need a license)
-# cd $dbs
-# mkdir -p COSMIC
-# cd COSMIC
+cd $dbs
+mkdir -p COSMIC
+cd COSMIC
 # manual download of CancerMutationCensus_AllData_Tsv_v99_GRCh38.tar, Cosmic_GenomeScreensMutant_Vcf_v99_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v99_GRCh38.tar and  Cosmic_NonCodingVariants_Vcf_v99_GRCh38.tar from https://apps.ingenuity.com/ingsso/login
-# ls *.tar | xargs tar -xf 
-# gunzip -c CancerMutationCensus_AllData_v99_GRCh38.tsv.gz | php db_converter_cosmic.php -in_cmc - -in_genome_vcf Cosmic_GenomeScreensMutant_v99_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v99_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v99_GRCh38.vcf.gz -out cmc_export_v99.vcf.gz
+#ls *.tar | xargs -l1 tar -xf 
+gunzip -c CancerMutationCensus_AllData_v99_GRCh38.tsv.gz | php $src/Tools/db_converter_cosmic.php -in_cmc - -in_genome_vcf Cosmic_GenomeScreensMutant_v99_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v99_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v99_GRCh38.vcf.gz -out cmc_export_v99.vcf.gz
+#TODO keine VCFs im Download?!

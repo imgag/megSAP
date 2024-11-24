@@ -70,6 +70,10 @@ Finally, we need to download and convert some open-source databases for annotati
 
 **Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
 
+## NGSD initialization
+
+//TODO Marc
+
 **Note:** To annotate variants with NGSD in-house counts, classifications, etc., NGSD data has to be exported regularly. Adapt the file `data\dbs\NGSD\Makefile` and execute `make export` once a week using a cronjob.
 
 

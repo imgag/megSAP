@@ -794,45 +794,35 @@ function resolve_symlink($filename)
 }
 /**
 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
-	*/
+*/
 function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $command_only=false, $return_for_toolbase=false, $abort_on_error=true, $instance_name="")
 {
-	if (is_array($command) || is_array($parameters))
+	//check input
+	if (is_array($command))
 	{
-		print_r($command);
-		print_r($parameters);
-		die;
+		trigger_error("Error in 'execSingularity': command cannot be array: ".implode("\n", $command), E_USER_ERROR);
+	}
+	if (is_array($parameters))
+	{
+		trigger_error("Error in 'execSingularity': parameters cannot be array: ".implode("\n", $parameters), E_USER_ERROR);
+	}
+	if(contains($command." ".$parameters, "|"))
+	{
+		trigger_error("Error in 'execSingularity': command must not contain pipe symbol '|': $command $parameters", E_USER_ERROR);
 	}
 
 	$bind_paths = array();
 
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
-	if($container === "ngs-bits")
+	if($container=="ngs-bits")
 	{
-		$ngsbits_settings_net = get_path("ngs-bits", false)."/settings.ini";
+		//TODO create INI file here!!!?
 		$ngsbits_settings_loc = repository_basedir()."/data/tools/ngsbits_settings.ini";
-		if (file_exists($ngsbits_settings_net))
-		{
-			$parameters = "--settings {$ngsbits_settings_net} ".$parameters;
-			$bind_paths[] = $ngsbits_settings_net.":".$ngsbits_settings_net;
-		}
-		else if (file_exists($ngsbits_settings_loc))
+		if (file_exists($ngsbits_settings_loc))
 		{
 			$parameters = "--settings {$ngsbits_settings_loc} ".$parameters;
 			$bind_paths[] = $ngsbits_settings_loc.":".$ngsbits_settings_loc;
 		}
-		else 
-		{
-			trigger_error("Ngs-bits settings file neither found in '{$ngsbits_settings_net}' nor in '{$ngsbits_settings_loc}'!", E_USER_ERROR);
-		}
-		//TODO remove $ngsbits_settings_net part as soon as the ngs-bits installation is gone. But then we have to handle cases where createNgsBitsIni() is not executed.
-	}
-
-	//prevent execution of pipes - exit code is not handled correctly with pipes!
-	$command_and_parameters = $command." ".$parameters;
-	if(contains($command_and_parameters, "|"))
-	{
-		trigger_error("Error in 'execSingularity' method call: Command must not contain pipe symbol '|'! \n$command_and_parameters", E_USER_ERROR);
 	}
 
 	//get container (preferably from local folder)
@@ -916,7 +906,7 @@ function execSingularity($container, $container_version, $command, $parameters, 
 		$container_path = "instance://$instance_name";
 	}
 
-	$singularity_command = $thread_command."apptainer exec{$bind_paths_command} {$container_path} {$command_and_parameters}";
+	$singularity_command = $thread_command."apptainer exec{$bind_paths_command} {$container_path} {$command} {$parameters}";
 	
 	//if command only option is true, only the apptainer command is being return, without execution
 	if($command_only) 
