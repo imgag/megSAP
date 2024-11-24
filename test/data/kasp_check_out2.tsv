@@ -1,5 +1,5 @@
 #sample_name	random_match_prob	genos_kasp	genos_both	genos_match	bam
-180849	0.000122	13	13	13	/mnt/storage2/projects/diagnostic/Exome_Diagnostik/Sample_DX180849_01/DX180849_01.bam
-180852	0.000122	13	13	13	/mnt/storage2/projects/diagnostic/Exome_Diagnostik/Sample_DX180852_01/DX180852_01.bam
+180849	0.000122	13	13	13	/mnt/storage2/projects/diagnostic/Exome_Diagnostik/Sample_DX180849_01/DX180849_01.cram
+180852	0.000122	13	13	13	/mnt/storage2/projects/diagnostic/Exome_Diagnostik/Sample_DX180852_01/DX180852_01.cram
 180852	0.000122	13	13	13	/mnt/storage2/projects/diagnostic/Exome_Diagnostik/Sample_DX180852_02/DX180852_02.cram
-2204029	0.000488	11	11	11	/mnt/storage2/projects/diagnostic/Genome_Diagnostik/Sample_DNA2204029A1_02/DNA2204029A1_02.bam
+2204029	0.000488	11	11	11	/mnt/storage2/projects/diagnostic/Genome_Diagnostik/Sample_DNA2204029A1_02/DNA2204029A1_02.cram
