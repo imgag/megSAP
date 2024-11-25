@@ -20,6 +20,8 @@ analyze_pe:
 
 diff_pe:
 	diff analyze_rna_out_pe.tsv paired_end/PE_counts.tsv
+	#remove line as it includes the date (##AnalysisDate=%%%) it is run:
+	sed -i '/##AnalysisDate/d' paired_end/PE_fusions_arriba.tsv
 	diff analyze_rna_out_pe_fusion.tsv paired_end/PE_fusions_arriba.tsv
 	# remove lines which are only present if NGSD can be accessed
 	sed -i '/aberrant spliced gene count/d' paired_end/PE_stats_RNA.qcML
