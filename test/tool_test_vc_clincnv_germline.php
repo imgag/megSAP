@@ -2,7 +2,6 @@
 require_once("framework.php");
 
 $name = "vc_clincnv_germline";
-$ngsbits = ;
 
 start_test($name);
 
@@ -30,11 +29,12 @@ exec2("mkdir -p $tmp_folder");
 exec2("rm -rf $tmp_folder/*");
 exec2("tar -xzf ".data_folder()."vc_clincnv_somatic_files.tar.gz -C {$tmp_folder}");
 $bed_in = $tmp_folder."/target_region.bed";
+$genome = get_path("data_folder")."/genomes/GRCh38.fa";
 $cov_folder = $tmp_folder."cov-tumor";
 $bed = $tmp_folder."/target_region_annotated.bed";
 $pipeline = [
-    [get_path("ngs-bits")."BedAnnotateGC", "-in {$bed_in} -clear -ref ".get_path("data_folder")."/genomes/GRCh38.fa"],
-    [get_path("ngs-bits")."BedAnnotateGenes", "-out {$bed}"],
+    ["", execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateGC", "-in {$bed_in} -clear -ref {$genome}", [$bed_in, $genome], [], 1, true)],
+    ["", execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateGenes", "-out {$bed}", [$bed], [], 1, true)]
 ];
 //off target
 $bed_off = $tmp_folder . "off_target.bed";

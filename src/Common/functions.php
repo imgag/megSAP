@@ -795,7 +795,7 @@ function resolve_symlink($filename)
 /**
 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 */
-function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $command_only=false, $return_for_toolbase=false, $abort_on_error=true, $instance_name="")
+function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $command_only=false, $return_for_toolbase=false, $abort_on_error=true)
 {
 	//check input
 	if (is_array($command))
@@ -816,9 +816,47 @@ function execSingularity($container, $container_version, $command, $parameters, 
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
 	if($container=="ngs-bits")
 	{
-		//TODO create INI file here!!!?
 		$ngsbits_settings_loc = repository_basedir()."/data/tools/ngsbits_settings.ini";
-		if (file_exists($ngsbits_settings_loc))
+		//ngs-bits settings file missing > create it
+		if (!file_exists($ngsbits_settings_loc) || (file_exists(repository_basedir()."/settings.ini") && filemtime($ngsbits_settings_loc)<filemtime(repository_basedir()."/settings.ini")))
+		{
+			trigger_error("ngs-bits settings file is missing/outdated and thus created from megSAP settings...", E_USER_NOTICE);
+			$output = [];
+			
+			//reference genome
+			$output[] = "reference_genome = ".genome_fasta("GRCh38");
+			
+			//NGSD credentials (production instance)
+			$output[] = "ngsd_host = ".get_db('NGSD', 'db_host', '');
+			$output[] = "ngsd_port = 3306";
+			$output[] = "ngsd_name = ".get_db('NGSD', 'db_name', '');
+			$output[] = "ngsd_user = ".get_db('NGSD', 'db_user', '');
+			$output[] = "ngsd_pass = ".get_db('NGSD', 'db_pass', '');
+			
+			//NGSD credentials (test instance)
+			$output[] = "ngsd_test_host = ".get_db('NGSD_TEST', 'db_host', '');
+			$output[] = "ngsd_test_port = 3306";
+			$output[] = "ngsd_test_name = ".get_db('NGSD_TEST', 'db_name', '');
+			$output[] = "ngsd_test_user = ".get_db('NGSD_TEST', 'db_user', '');
+			$output[] = "ngsd_test_pass = ".get_db('NGSD_TEST', 'db_pass', '');
+			
+			//project folders
+			$project_folder = get_path("project_folder", false);
+			$output[] = "projects_folder_diagnostic = ".(is_array($project_folder) ? $project_folder['diagnostic'] : $project_folder."/diagnostic/");
+			$output[] = "projects_folder_research = ".(is_array($project_folder) ? $project_folder['research'] : $project_folder."/research/");
+			$output[] = "projects_folder_test = ".(is_array($project_folder) ? $project_folder['test'] : $project_folder."/test/");
+			$output[] = "projects_folder_external = ".(is_array($project_folder) ? $project_folder['external'] : $project_folder."/external/");
+			
+			//data folder
+			$output[] = "data_folder = ".get_path("data_folder", false);
+									
+			$written = file_put_contents($ngsbits_settings_loc, implode("\n", $output));
+			if($written===false) trigger_error("Could not write ngs-bits settings file: $ngsbits_settings_loc", E_USER_ERROR);
+
+			$parameters = "--settings {$ngsbits_settings_loc} ".$parameters;
+			$bind_paths[] = $ngsbits_settings_loc.":".$ngsbits_settings_loc;
+		}
+		else if (file_exists($ngsbits_settings_loc))
 		{
 			$parameters = "--settings {$ngsbits_settings_loc} ".$parameters;
 			$bind_paths[] = $ngsbits_settings_loc.":".$ngsbits_settings_loc;
@@ -827,7 +865,7 @@ function execSingularity($container, $container_version, $command, $parameters, 
 
 	//get container (preferably from local folder)
 	$container_file = "{$container}_{$container_version}.sif";
-	$local_container = get_path("local_container_folder")."/{$container_file}";
+	$local_container = get_path("local_data")."/container/{$container_file}";
 	$network_container = get_path("container_folder")."/{$container_file}";
 
 	if (file_exists($local_container))
@@ -898,12 +936,6 @@ function execSingularity($container, $container_version, $command, $parameters, 
 	if($threads!=1)
 	{
 		$thread_command = "OMP_NUM_THREADS={$threads} ";
-	}
-
-	//set instance if instance parameter is given
-	if($instance_name) 
-	{
-		$container_path = "instance://$instance_name";
 	}
 
 	$singularity_command = $thread_command."apptainer exec{$bind_paths_command} {$container_path} {$command} {$parameters}";

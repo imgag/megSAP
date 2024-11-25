@@ -81,51 +81,6 @@ class ToolBase
 		$this->log("Execution time of '".$this->name."': ".time_readable(microtime(true) - $this->start_time));
 	}
 	
-	public function createNgsBitsIni($build)
-	{
-		//settings for ngs-bits exists > do nothing
-		$ngsbits_settings = get_path("ngs-bits", false)."/settings.ini";
-		if (file_exists($ngsbits_settings)) return;
-		
-		//pipeine settings file missing > create it
-		$pipeline_settings = repository_basedir()."/data/tools/ngsbits_settings.ini";
-		if (!file_exists($pipeline_settings) || (file_exists(repository_basedir()."/settings.ini") && filemtime($pipeline_settings)<filemtime(repository_basedir()."/settings.ini")))
-		{
-			trigger_error("ngs-bits settings file is missing/outdated and thus created from megSAP settings...", E_USER_NOTICE);
-			$output = [];
-			
-			//reference genome
-			$output[] = "reference_genome = ".genome_fasta($build);
-			
-			//NGSD credentials (production instance)
-			$output[] = "ngsd_host = ".get_db('NGSD', 'db_host', '');
-			$output[] = "ngsd_port = 3306";
-			$output[] = "ngsd_name = ".get_db('NGSD', 'db_name', '');
-			$output[] = "ngsd_user = ".get_db('NGSD', 'db_user', '');
-			$output[] = "ngsd_pass = ".get_db('NGSD', 'db_pass', '');
-			
-			//NGSD credentials (test instance)
-			$output[] = "ngsd_test_host = ".get_db('NGSD_TEST', 'db_host', '');
-			$output[] = "ngsd_test_port = 3306";
-			$output[] = "ngsd_test_name = ".get_db('NGSD_TEST', 'db_name', '');
-			$output[] = "ngsd_test_user = ".get_db('NGSD_TEST', 'db_user', '');
-			$output[] = "ngsd_test_pass = ".get_db('NGSD_TEST', 'db_pass', '');
-			
-			//project folders
-			$project_folder = get_path("project_folder", false);
-			$output[] = "projects_folder_diagnostic = ".(is_array($project_folder) ? $project_folder['diagnostic'] : $project_folder."/diagnostic/");
-			$output[] = "projects_folder_research = ".(is_array($project_folder) ? $project_folder['research'] : $project_folder."/research/");
-			$output[] = "projects_folder_test = ".(is_array($project_folder) ? $project_folder['test'] : $project_folder."/test/");
-			$output[] = "projects_folder_external = ".(is_array($project_folder) ? $project_folder['external'] : $project_folder."/external/");
-			
-			//data folder
-			$output[] = "data_folder = ".get_path("data_folder", false);
-									
-			$written = file_put_contents($pipeline_settings, implode("\n", $output));
-			if($written===false) trigger_error("Could not write ngs-bits settings file: $pipeline_settings", E_USER_ERROR);
-		}
-	}
-	
 	/// Remove temporary folder
 	private function removeTempFolder($folder)
 	{
@@ -871,10 +826,10 @@ class ToolBase
 	/**
 	 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 	 */
-	function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true, $instance_name="")
+	function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true)
 	{
 		//get apptainer command, bind paths and container path from execSingularity function in functions.php
-		list($singularity_command, $bind_paths, $container_path) = execSingularity($container, $container_version, $command, $parameters, $in_files, $out_files, $threads, false, true, true, $instance_name);
+		list($singularity_command, $bind_paths, $container_path) = execSingularity($container, $container_version, $command, $parameters, $in_files, $out_files, $threads, false, true);
 		
 		//if command only option is true, only the apptainer command is being return, without execution
 		if($command_only) 

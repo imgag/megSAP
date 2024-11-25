@@ -72,8 +72,6 @@ if (!$no_sync)
 	$parser->execTool("Tools/data_setup.php", "-build ".$build);
 }
 
-//create ngs-bits INI file if necessary (after data_setup.php to make sure that the local genome copy is used if requested)
-$parser->createNgsBitsIni($build);
 $genome = genome_fasta($build);
 
 //output file names:

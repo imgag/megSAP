@@ -25,9 +25,9 @@ Paths are preset and should not be changed unless you want to exchange a tool.
 Paths of tools used for primer design.  
 Paths are preset and should not be changed unless you want to exchange a tool.
 
-## Section 'singularity-container'
+## Section 'apptainer-container'
 
-Paths of tools encapsulated in singularity containers.  
+Paths of tools encapsulated in apptainer containers.  
 Paths are preset and should not be changed unless you want to exchange a container.
 
 ## Section 'folders'
@@ -36,6 +36,7 @@ This section contains path to important folders:
 
 * `data_folder` - general data folder with downloaded database flat files.
 * `local_data` - local data folder. This folder is used to copy database files for annotation from `data_folder` to a local temporary folder. The local temporary folder is usually on a SSD/NVME, so this will speed up the annotation.
+* `container_folder` - general container folder with downloaded apptainer container images. Images can be copied to a subdirectory of `locla_data` to improve access speed.
 * `test_data_folder` - folder for test data. This folder is needed for unit tests and tool tests during pipeline development.
 * `project_folder` - folder that contains the NGS data. This folder has to be set for the NGSD integration (see below). Instead of providing a single path, it is also possible to provide project-type-specific paths - in this case the dictionary syntax of PHP is used, e.g. `project_folder['diagnostic'] = /mnt/projects/diagnostic/`
 

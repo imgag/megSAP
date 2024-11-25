@@ -121,7 +121,6 @@ if (in_array("Clair3", $dbs))
 	print "### Clair3 ###\n";
 	
     $model_path = get_path("clair3_models");
-    $original_cwd = getcwd();
 
     //create folder for Clair3 models if not existent
     if (!file_exists($model_path))
@@ -134,7 +133,7 @@ if (in_array("Clair3", $dbs))
 
     print "Downloading Clair3 models from https://github.com/nanoporetech/rerio.git\n";
     exec2("git clone https://github.com/nanoporetech/rerio.git");
-    exec2(get_path("python3")." rerio/download_model.py --clair3");
+    execSingularity("python", get_path("container_python"), "python3", "rerio/download_model.py --clair3");
     exec2("mv rerio/clair3_models/* .");
     exec2("rm -rf rerio");
 

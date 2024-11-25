@@ -69,9 +69,6 @@ if (!$no_sync)
 	$parser->execTool("Tools/data_setup.php", "-build ".$build);
 }
 
-//create ngs-bits INI file if necessary (after data_setup.php to make sure that the local genome copy is used if requested)
-$parser->createNgsBitsIni($build);
-
 //find FASTQ files
 $in_for = glob($folder."/*_R1_001.fastq.gz");
 $in_rev = glob($folder."/*_R2_001.fastq.gz");
@@ -478,7 +475,14 @@ if (in_array("plt", $steps))
 			"--plot", "{$prefix}_expr.{$shortname}.png",
 			"--reference"
 		];
-		$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/rc_plot_expr.py", implode(" ", array_merge($args, $args_extra)), true);
+
+		$files = [
+			repository_basedir()."/src/NGS/rc_plot_expr.py",
+			dirname($genelists),
+			$prefix			
+		];
+
+		$parser->execSingularity("python", get_path("container_python"), "python3", repository_basedir()."/src/NGS/rc_plot_expr.py ".implode(" ", array_merge($args, $args_extra)), $files);
 	}
 }
 

@@ -16,7 +16,7 @@ fi
 #Ignore this - used for local installation
 #CONTAINER_FOLDER=/mnt/storage2/megSAP/tools/apptainer_container
 
-BASE_URL="https://download.imgag.de/public/megSAP_container"
+BASE_URL="https://megsap.de/download/container/"
 
 # make sure container folder exists
 mkdir -p $CONTAINER_FOLDER

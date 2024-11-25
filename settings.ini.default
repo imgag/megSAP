@@ -5,7 +5,6 @@
 ;only adapting the NGSD database credentials is necessary.
 
 [tools-ngs]
-python3 = [path]/data/tools/Python-3.10.9_2024.08.21/bin/python3.10
 vep_data = [path]/data/dbs/ensembl-vep-112/
 interop = [path]/data/tools/interop-1.2.4-Linux-GNU/bin/summary
 clincnv_cohorts = [path]/data/ClinCNV-cohorts/
@@ -23,8 +22,6 @@ primer3 = [path]/data/tools/opt/primer3-2.3.6/src/
 GRCh37_data_folder = ""
 
 [apptainer-container]
-container_folder = [path]/data/tools/apptainer_container/
-local_container_folder = /tmp/local_apptainer_container/
 container_abra2 = v2.23
 container_arriba = v2.4.0
 container_blastn = v2.9.0+
@@ -45,8 +42,9 @@ container_manta = v1.6.0
 container_minimap2 = v2.28
 container_modkit = v0.3.2
 container_msisensor-pro = v1.2.0
-container_ngs-bits = master
+container_ngs-bits = 2024-08-114
 container_orad = v2.6.1
+container_python = v3.10.9
 container_REViewer = v0.2.7
 container_samblaster = v0.1.26
 container_samtools = 1.20
@@ -70,6 +68,7 @@ container_whatshap = v2.3
 [folders]
 local_data = /tmp/local_ngs_data/
 data_folder = [path]/data/
+container_folder = [path]/data/tools/apptainer_container/
 test_data_folder = [path]/data/test_data/
 project_folder = 
 
