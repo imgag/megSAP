@@ -439,6 +439,7 @@ else
 	$output[] = "#sample_name\trandom_match_prob\tgenos_kasp\tgenos_both\tgenos_match\tbam\n";
 }
 $file = file($tsv_file);
+//print_r($file);
 foreach($file as $line)
 {
 	$line = trim($line);
@@ -503,20 +504,18 @@ foreach($file as $line)
 	else
 	{
 		//extract DNA number
-		preg_match("/[0-9]{6,}/", $genotypes[0], $matches);
+		preg_match("/[0-9]{6,}/", $name, $matches);
 		if (count($matches) == 1)
 		{
 			$dna_number = $matches[0];
-			$genotypes = array_slice($genotypes, 1);
 		}
 		else
 		{
 			//check FO number
-			preg_match("/FO[-]{0,1}[0-9]{5}/", $genotypes[0], $matches);
+			preg_match("/FO[-]{0,1}[0-9]{5}/", $name, $matches);
 			if (count($matches) == 1)
 			{
 				$dna_number = $matches[0];
-				$genotypes = array_slice($genotypes, 1);
 			}
 			else
 			{

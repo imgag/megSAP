@@ -84,7 +84,7 @@ while(!feof($in))
 	if ((strlen($ref)>1 || strlen($alt)>1) && strlen($ref)!=strlen($alt) && $ref[0]!=$alt[0])
 	{
 		$pos -= 1;
-		$base = get_ref_seq("GRCh38", $chr, $pos, $pos, false);
+		$base = get_ref_seq("GRCh38", $chr, $pos, $pos, 0, false);
 		$ref = $base.$ref;
 		$alt = $base.$alt;
 	}

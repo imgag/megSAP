@@ -34,7 +34,7 @@ The following tools are used for mapping and calling of small variants and annot
 | mapping - extract methylation info             | modkit               |           |
 | variant calling - calling of SNVs and InDels   | clair3               |           |
 | variant calling - decompose complex variants   | vcfallelicprimitives |           |
-| variant calling - break multi-allelic variants | vcfbreakmulti        |           |
+| variant calling - break multi-allelic variants | VcfBreakMulti        |           |
 | variant calling - left-normalization of InDels | VcfLeftNormalize     |           |
 | annotation                                     | VEP                  |           |
 

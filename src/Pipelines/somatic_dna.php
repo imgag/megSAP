@@ -1140,6 +1140,9 @@ if (in_array("an", $steps))
 $msi_o_file = $full_prefix . "_msi.tsv";						//MSI
 if (in_array("msi", $steps) && !$single_sample)
 {
+	//temp folder so other output (_dis, _germline and _somatic files) is written to tmp and automatically deleted even if the tool crashes
+	$msi_tmp_folder = $parser->tempFolder("sp_detect_msi_");
+	$msi_tmp_file = $msi_tmp_folder."/msi_tmp_out.tsv";
 	//file that contains MSI in target
 	$msi_ref = get_path("data_folder") . "/dbs/msisensor-pro/msisensor_references_".$n_sys['build'].".site";
 	
@@ -1163,9 +1166,10 @@ if (in_array("msi", $steps) && !$single_sample)
 		file_put_contents($msi_ref, implode("", $out_lines));
 	}
 
-	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -threads $threads -out " .$msi_o_file. " -build ".$n_sys['build'];
+	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -threads $threads -out " .$msi_tmp_file. " -build ".$n_sys['build'];
 	
 	$parser->execTool("NGS/detect_msi.php",$parameters);
+	$parser->copyFile($msi_tmp_file, $msi_o_file);
 }
 elseif ($single_sample && in_array("msi",$steps))
 {
@@ -1526,21 +1530,20 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			$s_id_t = $t_info['s_id'];
 			$s_id_n = $n_info['s_id'];
 			$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$s_id_t},'tumor-normal',{$s_id_n})");
-
 			
-			// import SNVS (not for WGS)
-			if (file_exists($variants_gsvar) && $sys['type'] !== "WGS")
+			// import variants into NGSD
+			if (file_exists($variants_gsvar))
 			{
 				check_genome_build($variants_gsvar, $sys['build']);
 				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDAddVariantsSomatic", "-t_ps $t_id -n_ps $n_id -var $variants_gsvar -var_force", [$variants_gsvar]);
 			}
 			
-			if(file_exists($som_clincnv) && $sys['type'] !== "WGS")
+			if(file_exists($som_clincnv))
 			{
 				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDAddVariantsSomatic", "-t_ps $t_id -n_ps $n_id -cnv $som_clincnv -cnv_force", [$som_clincnv]);
 			}
 			
-			if(file_exists($manta_sv_bedpe) && $sys['type'] !== "WGS")
+			if(file_exists($manta_sv_bedpe))
 			{
 				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDAddVariantsSomatic", "-t_ps $t_id -n_ps $n_id -sv $manta_sv_bedpe -sv_force", [$manta_sv_bedpe]);
 			}

@@ -187,18 +187,20 @@ else //somatic tumor-normal pairs
 	//tumor coverage output files
 	$ref_t_dir = get_path("data_folder")."/coverage/{$name}-tumor";
 	if(!is_dir($ref_t_dir)) create_directory($ref_t_dir);
+	//list containing ids of corresponding tumor normal ids
+	$t_n_list = "{$ref_t_dir}/list_tid-nid.csv";
+	
 	$ref_off_t_dir = get_path("data_folder")."/coverage/{$name}-tumor_off_target";
 	if(!is_dir($ref_off_t_dir)) create_directory($ref_off_t_dir);
-	
+
 	if ($type=="WGS" || $type=="WGS (shallow)")
 	{
 		$ref_t_dir = "{$ref_t_dir}/bins{$bin_size}/";
 		if(!is_dir($ref_t_dir)) create_directory($ref_t_dir);
 		
-		$ref_n_dir = "{$ref_t_dir}/bins{$bin_size}/";
+		$ref_n_dir = "{$ref_n_dir}/bins{$bin_size}/";
 		if(!is_dir($ref_n_dir)) create_directory($ref_n_dir);
 	}	
-	
 	
 	print "Processing system: $name\n";
 	print "Target file: $roi\n";
@@ -207,9 +209,6 @@ else //somatic tumor-normal pairs
 	print "Tumor Coverage folder: $ref_t_dir\n";
 	print "Tumor off-target coverage folder: $ref_off_t_dir\n";
 	print "\n";
-	
-	//list containing ids of corresponding tumor normal ids
-	$t_n_list = "{$ref_t_dir}/list_tid-nid.csv";
 	
 	if($clear)
 	{

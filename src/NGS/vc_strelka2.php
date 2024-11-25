@@ -93,14 +93,14 @@ $parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 {$
 $split_snvs = "$run_dir/results/variants/somatic.snvs.split.vcf.gz";
 $pipeline = [
 		["zcat", $somatic_snvs],
-		[$parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true), "> $split_snvs"]
+		[$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfBreakMulti", "", [], [], 1, true), "> $split_snvs"]
 	];
 $parser->execPipeline($pipeline, "splitting SNVs");
 
 $split_indels = "$run_dir/results/variants/somatic.indels.split.vcf.gz";
 $pipeline = [
 		["zcat", $somatic_indels],
-		[$parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "", [], [], 1, true), "> $split_indels"]
+		[$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfBreakMulti", "", [], [], 1, true), "> $split_indels"]
 	];
 $parser->execPipeline($pipeline, "splitting InDels");
 

@@ -41,7 +41,7 @@ The following tools are used for mapping and calling of small variants and annot
 | mapping - indel realignment                    | ABRA2                |                                                  |
 | variant calling - calling of SNVs and InDels   | freebayes            |                                                  |
 | variant calling - decompose complex variants   | vcfallelicprimitives | Performed by Dragen if '-use_dragen' is used.    |
-| variant calling - break multi-allelic variants | vcfbreakmulti        |                                                  |
+| variant calling - break multi-allelic variants | VcfBreakMulti        |                                                  |
 | variant calling - left-normalization of InDels | VcfLeftNormalize     |                                                  |
 | annotation                                     | VEP                  |                                                  |
 
@@ -87,6 +87,6 @@ After the analysis, these files are created in the output folder:
 
 ### Test data
 
-Example data which can be analyzed using the command above can be downloaded from [here](https://download.imgag.de/NA12878_01.zip).
+Example data which can be analyzed using the command above can be downloaded from [here](https://megsap.de/download/examples/NA12878_01.zip).
 
 [back to the start page](../README.md)
