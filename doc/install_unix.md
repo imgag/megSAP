@@ -10,7 +10,7 @@ We are providing instructions for Ubuntu 20.04 and RHEL 8.3 here. However this s
 
 Ubuntu 20.04
 
-	> sudo apt-get install -y rsync zlib1g-dev bzip2 build-essential php7.4-cli php7.4-xml php7.4-mysql make unzip wget git libssl-dev gnumeric tabix numdiff libdb-dev libgit2-dev libsqlite3-dev libxml2-utils pybind11-dev
+	> sudo apt-get install -y rsync zlib1g-dev bzip2 build-essential php7.4-cli php7.4-xml php7.4-mysql make unzip wget git gnumeric tabix numdiff
     
 Ubuntu 22.04
 
