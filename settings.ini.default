@@ -101,6 +101,11 @@ db_name['NGSD'] = "ngsd"
 db_user['NGSD'] = "ngsduser"
 db_pass['NGSD'] = ""
 
+db_host['NGSD_TEST'] = "localhost"
+db_name['NGSD_TEST'] = "ngsd_test"
+db_user['NGSD_TEST'] = "ngsdtestuser"
+db_pass['NGSD_TEST'] = ""
+
 [grid_engine]
 queues_default = ""
 queues_research = ""

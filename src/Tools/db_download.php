@@ -53,6 +53,9 @@ if (in_array("vep", $dbs))
     // install ensembl-vep
 	print "Installing VEP data ...\n";
     $parser->execSingularity("vep", get_path("container_vep"), "INSTALL.pl", "--SPECIES homo_sapiens --ASSEMBLY GRCh38 --AUTO c --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST --NO_HTSLIB", [$vep_data_dir]);
+	
+	//remove downloaded data
+	exec2("rm -rf $vep_data_dir/ftp/*");
 }
 
 if (in_array("kraken2", $dbs))

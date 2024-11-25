@@ -2,7 +2,7 @@
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-require_once("/mnt/storage2/users/ahott1a1/main/megSAP/src/Common/all.php");
+require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 // parse command line arguments
 $parser = new ToolBase("db_converter_cosmic", "Converts COSMIC Cancer Mutation Census (CMC) database file (TSV) to tabix-indexed VCF.GZ.");

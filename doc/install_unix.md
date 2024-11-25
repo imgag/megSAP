@@ -14,24 +14,14 @@ Ubuntu 20.04
     
 Ubuntu 22.04
 
-	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php8.1-cli php8.1-xml php8.1-mysql tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qtbase5-dev qt5-qmake qtbase5-dev libhts-dev libtabixpp-dev libtabixpp0 meson ninja-build gnumeric numdiff libpcre2-dev libreadline-dev libffi-dev libharfbuzz-dev libfribidi-dev libgit2-dev pybind11-dev libsqlite3-dev openjdk-17-jdk openjdk-17-jre gfortran
+	> //TODO Kilian
     
-RHEL 8.3
+Ubuntu 24.04
 
-	Add LANGUAGE and LC_ALL to /etc/locale.conf
-    
-	Example:
-	LANGUAGE="en_US.UTF-8"
-	LANG="en_US.UTF-8"
-	LC_ALL="en_US.UTF-8"
-
-	> subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms
-	> yum groupinstall "Development Tools" -y
-	> yum install zlib-devel bzip2-devel xz-devel ncurses-devel libcurl-devel cpan cpanminus gd-devel libdb-devel -y
-	> dnf install php-cli php-xml  php-mysqlnd R-core R-core-devel -y
- 	> yum install qt5-qtcharts.x86_64 qt5-qtbase-odbc.x86_64 qt5-qtbase-mysql.x86_64 qt5-qtxmlpatterns.x86_64 libcurl-devel.x86_64 qt5-devel.x86_64
+	> //TODO Kilian
     
 ## Install Apptainer
+
 	> sudo add-apt-repository -y ppa:apptainer/ppa
 	> sudo apt update
 	> sudo apt install -y apptainer
@@ -57,15 +47,14 @@ Then you have to adapt your ~/.gitconfig file like that:
 
 ## Initial setup
 
-To install the required tools and data you will need to execute custom script delivered with the repository.
-If you work in a security critical environment it is advised that you use a [chroot environment](https://help.ubuntu.com/community/BasicChroot) as the scripts will attempt to install software with administrative privileges.
+To install the required tools and databases you will need to execute some installation scripts in the order described here.
 
 First, we make sure the privileges of the installation scripts are correct:
 
 	> cd megSAP/data
 	> chmod 755 *.sh
 
-Next, we install all required tools and download apptainer containers of required tools:
+Next, we install a few tools and download apptainer containers for the rest of the tools:
 
 	> ./download_tools.sh
 	> ./download_container.sh
@@ -80,6 +69,10 @@ Finally, we need to download and convert some open-source databases for annotati
 	> php ../src/Tools/db_download.php # DB downloads that require apptainer containers
 
 **Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
+
+## NGSD initialization
+
+//TODO Marc
 
 **Note:** To annotate variants with NGSD in-house counts, classifications, etc., NGSD data has to be exported regularly. Adapt the file `data\dbs\NGSD\Makefile` and execute `make export` once a week using a cronjob.
 

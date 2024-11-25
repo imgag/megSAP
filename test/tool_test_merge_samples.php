@@ -35,7 +35,8 @@ function clear_analysis_folder()
 
 function reset_test_db(&$db, $tool_name)
 {
-	check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$tool_name}.sql");
+	//init NGSD
+	init_ngsd($tool_name);
 	
 	$base_folder_path = data_folder()."/+analysis/merge_samples/";
 	

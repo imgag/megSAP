@@ -216,3 +216,8 @@
 /test/data_multi_longread/*.csi
 
 /.idea
+
+data/genomes/GRCh38.fa*
+data/misc/human_hemoglobin_tx.fa
+
+data/tools/ngsbits_settings.ini

@@ -40,8 +40,8 @@ check(xml_is_wellformed($xml_text, $messages), true);
 $xml_schema = file_get_contents(data_folder()."TDX_v1.xsd");
 check(xml_matches_schema($xml_text, $xml_schema, $messages), true);
 
-//extract version of ngs-bits
-$ver = $tool->extractVersion(get_path("ngs-bits")."/SeqPurge");
+//extract version
+$ver = $tool->extractVersion("bgzip");
 check($ver!="n/a", true);
 
 //exec
