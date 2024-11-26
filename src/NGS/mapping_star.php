@@ -15,7 +15,7 @@ $parser->addOutfile("out", "Output BAM file name.", false);
 
 //optional arguments
 $parser->addInfile("in2",  "Input reverse reads in FASTQ(.GZ) format for paired-end alignment.", true);
-$parser->addString("genome", "STAR reference genome index.", true, get_path("data_folder")."genomes/STAR/GRCh38");
+$parser->addString("genome", "STAR reference genome index.", true, get_path("data_folder")."/genomes/STAR/GRCh38");
 
 $parser->addFlag("uncompressed", "FASTQ input files are uncompressed.");
 

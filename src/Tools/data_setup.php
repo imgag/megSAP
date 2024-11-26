@@ -96,8 +96,8 @@ foreach($files as $file)
 {
 	$base = basename($file);
 	print "  rsync-ing genome file '$base'.\n";
-	$existed_before = file_exists($local_data.$base);
-	list($stdout, $stderr) = exec2("{$rsync} {$genome_folder}{$base} {$local_data}{$base}");
+	$existed_before = file_exists($local_data."/".$base);
+	list($stdout, $stderr) = exec2("{$rsync} {$genome_folder}{$base} {$local_data}/{$base}");
 	foreach(array_merge($stdout, $stderr) as $line)
 	{
 		$line = trim($line);
@@ -106,9 +106,9 @@ foreach($files as $file)
 	}
 	if (!$existed_before)
 	{
-		if (!chmod($local_data.$base, 0777))
+		if (!chmod($local_data."/".$base, 0777))
 		{
-			trigger_error("Could not change privileges of local data folder '{$local_data}{$base}'!", E_USER_ERROR);
+			trigger_error("Could not change privileges of local data folder '{$local_data}/{$base}'!", E_USER_ERROR);
 		}
 	}
 }

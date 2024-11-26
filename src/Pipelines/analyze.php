@@ -399,7 +399,7 @@ if (in_array("vc", $steps))
 				$pipeline[] = array($ngsbits."VcfFilter", "-reg {$target} -qual 5 -filter_clear -ref $genome");
 
 				//split multi-allelic variants
-				$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
+				$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "");
 
 				//normalize all variants and align INDELs to the left
 				$pipeline[] = array($ngsbits."VcfLeftNormalize", "-stream -ref $genome");
@@ -486,7 +486,7 @@ if (in_array("vc", $steps))
 				$pipeline[] = array($ngsbits."VcfFilter", "-reg chrMT:1-16569 -qual 5 -filter_clear -ref $genome");
 
 				//split multi-allelic variants
-				$pipeline[] = array(get_path("vcflib")."vcfbreakmulti", "");
+				$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "");
 
 				//normalize all variants and align INDELs to the left
 				$pipeline[] = array($ngsbits."VcfLeftNormalize", "-stream -ref $genome");
