@@ -42,7 +42,7 @@ container_manta = v1.6.0
 container_minimap2 = v2.28
 container_modkit = v0.3.2
 container_msisensor-pro = v1.2.0
-container_ngs-bits = 2024-08-114
+container_ngs-bits = 2024-11
 container_orad = v2.6.1
 container_python = v3.10.9
 container_REViewer = v0.2.7
@@ -110,3 +110,11 @@ queues_default = ""
 queues_research = ""
 queues_high_priority = ""
 queues_high_mem = ""
+
+#GL8 MySQL credentials
+genlab_mssql = 
+genlab_host = ""
+genlab_port = 
+genlab_name = ""
+genlab_user = ""
+genlab_pass = ""

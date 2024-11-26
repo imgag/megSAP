@@ -309,10 +309,10 @@ function check_file($out_file, $reference_file, $compare_header_lines = false)
 	elseif (ends_with($out_file, ".bam") && ends_with($reference_file, ".bam"))
 	{
 		$o = temp_file("_out.sam");
-		$samtools_command = execSingularity("samtools", get_path("container_samtools"), "samtools view", "$out_file", [$out_file], [], 1, true);
+		$samtools_command = execApptainer("samtools", "samtools view", "$out_file", [$out_file], [], true);
 		exec("{$samtools_command} | cut -f1-11 > $o 2>&1", $output, $return); //cut to ignore the read-group and other annotations
 		$r = temp_file("_ref.sam");
-		$samtools_command = execSingularity("samtools", get_path("container_samtools"), "samtools view", "$reference_file", [$reference_file], [], 1, true);
+		$samtools_command = execApptainer("samtools", "samtools view", "$reference_file", [$reference_file], [], true);
 		exec("{$samtools_command} | cut -f1-11 > $r 2>&1", $output, $return); //cut to ignore the read-group and other annotations
 		
 		exec("diff -b $r $o > $logfile 2>&1", $output, $return);
@@ -453,6 +453,6 @@ function init_ngsd($tool_name)
 	}
 	
 	//init
-	list($stdout, $stderr, $exit_code) = execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDInit", implode(" ", $args), $in_files);
+	list($stdout, $stderr, $exit_code) = execApptainer("ngs-bits", "NGSDInit", implode(" ", $args), $in_files);
 }
 ?>

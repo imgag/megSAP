@@ -278,7 +278,7 @@ if ($build=="GRCh38" && $check)
 		{
 			$log = "./".$basename."_check.txt";
 			print "Checking: $basename ($log)\n";
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfCheck", "-in $filename -lines 5000000 -ref $genome > $log 2>&1", [$filename, $genome], [$log], 1, false, true, false);
+			$parser->execApptainer("ngs-bits", "VcfCheck", "-in $filename -lines 5000000 -ref $genome > $log 2>&1", [$filename, $genome], [$log], false, true, false);
 			
 			$errors = 0;
 			$warnings = 0;

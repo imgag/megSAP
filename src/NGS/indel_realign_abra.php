@@ -46,7 +46,7 @@ if (!$skip_kmer && isset($roi))
 	{
 		$read_length = 100;
 		$kmer_tmp = $parser->tempFile();
-		$parser->execSingularity("abra2", get_path("container_abra2"), "java -Xmx16G -cp /opt/abra2.jar abra.KmerSizeEvaluator", "$read_length $ref_genome $kmer_tmp $threads $roi", [$ref_genome, $roi]);
+		$parser->execApptainer("abra2", "java -Xmx16G -cp /opt/abra2.jar abra.KmerSizeEvaluator", "$read_length $ref_genome $kmer_tmp $threads $roi", [$ref_genome, $roi]);
 		$parser->moveFile($kmer_tmp, $kmer_file);
 		chmod($kmer_file, 0777);
 	}
@@ -84,6 +84,6 @@ if (isset($junctions)) {
 	$params[] = "--junctions ".$junctions;
 	$in_files[] = $junctions;
 }
-$parser->execSingularity("abra2", get_path("container_abra2"), "java -Xmx16G -jar /opt/abra2.jar", implode(" ", $params), $in_files, $out_files);
+$parser->execApptainer("abra2", "java -Xmx16G -jar /opt/abra2.jar", implode(" ", $params), $in_files, $out_files);
 
 ?>

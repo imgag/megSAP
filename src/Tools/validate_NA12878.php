@@ -30,7 +30,7 @@ function get_bases($filename)
 {
 	global $parser;
 	
-	list($stdout) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedInfo", "-in $filename", [$filename]);
+	list($stdout) = $parser->execApptainer("ngs-bits", "BedInfo", "-in $filename", [$filename]);
 	$hits = array_containing($stdout, "Bases ");
 	$parts = explode(":", $hits[0]);
 	return trim($parts[1]);
@@ -46,8 +46,8 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual = 0, $min_qd=0)
 	$tmp = $parser->tempFile(".vcf");
 	$pipeline = [];
 	$pipeline[] = array("zcat", $vcf_gz);
-	$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfFilter", "-reg {$roi} -ref $genome", [$roi, $genome], [], 1, true));
-	$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfStreamSort", "-out {$tmp}", [], [], 1, true));
+	$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-reg {$roi} -ref $genome", [$roi, $genome], [], true));
+	$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfStreamSort", "-out {$tmp}", [], [], true));
 	$parser->execPipeline($pipeline, "variant extraction");
 	
 	//put together output
@@ -133,7 +133,7 @@ function get_depth($pos, $bam)
 
 	list($chr, $start) = explode(" ", strtr($pos, ":", " "));
 	
-	list($stdout) = $parser->execSingularity("samtools", get_path("container_samtools"), "samtools depth", "-Q 1 -q 15 -r $chr:$start-$start $bam", [$bam]);
+	list($stdout) = $parser->execApptainer("samtools", "samtools depth", "-Q 1 -q 15 -r $chr:$start-$start $bam", [$bam]);
 	$depth = trim(implode("", $stdout));
 	if ($depth=="") return 0;
 	
@@ -162,9 +162,9 @@ print "##Bases             : $bases\n";
 //sort and merge $roi_hc after intersect - MH
 $roi_hc = $parser->tempFile(".bed");
 $pipeline = [];
-$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedIntersect", "-in $roi -in2 {$giab_bed}", [$roi, $giab_bed], [], 1, true));
-$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "", [], [], 1, true));
-$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-out $roi_hc", [], [], 1, true));
+$pipeline[] = array("", $parser->execApptainer("ngs-bits", "BedIntersect", "-in $roi -in2 {$giab_bed}", [$roi, $giab_bed], [], true));
+$pipeline[] = array("", $parser->execApptainer("ngs-bits", "BedSort", "", [], [], true));
+$pipeline[] = array("", $parser->execApptainer("ngs-bits", "BedMerge", "-out $roi_hc", [], [], true));
 $parser->execPipeline($pipeline, "high-conf ROI");
 $bases_hc = get_bases($roi_hc);
 print "##High-conf bases   : $bases_hc (".number_format(100*$bases_hc/$bases, 2)."%)\n";
@@ -173,9 +173,9 @@ $bases_used = $bases_hc;
 if ($min_dp>0)
 {
 	$roi_low_dp = $parser->tempFile(".bed");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedLowCoverage", "-bam {$bam} -in {$roi_hc} -cutoff {$min_dp} -out {$roi_low_dp} -threads 4 -ref {$genome}", [$bam, $genome]);
+	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-bam {$bam} -in {$roi_hc} -cutoff {$min_dp} -out {$roi_low_dp} -threads 4 -ref {$genome}", [$bam, $genome]);
 	$roi_high_dp = $parser->tempFile(".bed");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSubtract", "-in {$roi_hc} -in2 {$roi_low_dp} -out {$roi_high_dp}");
+	$parser->execApptainer("ngs-bits", "BedSubtract", "-in {$roi_hc} -in2 {$roi_low_dp} -out {$roi_high_dp}");
 	
 	$bases_high_dp = get_bases($roi_high_dp);
 	print "##High-depth bases  : $bases_high_dp (".number_format(100*$bases_high_dp/$bases, 2)."%)\n";

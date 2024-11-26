@@ -132,5 +132,5 @@ while(!feof($handle_in))
 }
 
 //check vcf file
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfCheck", "-in $out -ref ".genome_fasta($build), [$out, genome_fasta($build)]);
+$parser->execApptainer("ngs-bits", "VcfCheck", "-in $out -ref ".genome_fasta($build), [$out, genome_fasta($build)]);
 ?>

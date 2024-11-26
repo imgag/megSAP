@@ -18,9 +18,9 @@ extract($parser->parse($argv));
 //get samples with matching processing system
 $sample_table_file = $parser->tempFile(".tsv");
 $pipeline= [
-	["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDExportSamples", "-system $processing_system -add_path SAMPLE_FOLDER", [], [], 1, true)],
-	["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvFilter", "-filter 'system_name_short is $processing_system'", [], [], 1, true)], //this is necessary because NGSDExportSamples performs fuzzy match
-	["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvSlice", "-cols name,path -out $sample_table_file", [], [], 1, true)]
+	["", $parser->execApptainer("ngs-bits", "NGSDExportSamples", "-system $processing_system -add_path SAMPLE_FOLDER", [], [], true)],
+	["", $parser->execApptainer("ngs-bits", "TsvFilter", "-filter 'system_name_short is $processing_system'", [], [], true)], //this is necessary because NGSDExportSamples performs fuzzy match
+	["", $parser->execApptainer("ngs-bits", "TsvSlice", "-cols name,path -out $sample_table_file", [], [], true)]
 ];
 $parser->execPipeline($pipeline, "NGSD sample extraction", true);
 $sample_table = load_tsv($sample_table_file);

@@ -93,11 +93,11 @@ $in_files[] = $genome;
 
 //run manta container
 $vc_manta_command = "python2 /opt/manta/bin/configManta.py";
-$parser->execSingularity("manta", get_path("container_manta"), $vc_manta_command, implode(" ", $args), $in_files, $out_files);
+$parser->execApptainer("manta", $vc_manta_command, implode(" ", $args), $in_files, $out_files);
 
 $vc_manta_command = "python2 {$manta_folder}/runWorkflow.py";
 $vc_manta_parameters = "--mode local --jobs {$threads} --memGb ".(2*$threads);
-$parser->execSingularity("manta", get_path("container_manta"), $vc_manta_command, $vc_manta_parameters, $in_files, $out_files, 1, false, false);
+$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, $in_files, $out_files, false, false);
 
 //copy files to output folder
 if ($mode_somatic)
@@ -129,7 +129,7 @@ $out_files[] = $manta_folder;
 
 $vc_manta_command = "python2 /opt/manta/libexec/convertInversion.py";
 $vc_manta_parameters = "/usr/bin/samtools ".$genome." {$sv} > {$sv_inv}";
-$parser->execSingularity("manta", get_path("container_manta"), $vc_manta_command, $vc_manta_parameters, $in_files, $out_files);
+$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, $in_files, $out_files);
 
 //remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
 $vcf_fixed = "{$temp_folder}/{$outname}SV_fixed.vcf";
@@ -149,13 +149,13 @@ fclose($h2);
 //sort variants
 $vcf_sorted = "{$temp_folder}/{$outname}SV_sorted.vcf";
 
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in {$vcf_fixed} -out $vcf_sorted");
+$parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf_fixed} -out $vcf_sorted");
 
 // flag off-target variants
 if (isset($target))
 {
 	$vcf_filtered = "{$temp_folder}/{$outname}SV_filtered.vcf";
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantFilterRegions", "-in $vcf_sorted -mark off-target -reg $target -out $vcf_filtered", [$target]);
+	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcf_sorted -mark off-target -reg $target -out $vcf_filtered", [$target]);
 }
 else
 {

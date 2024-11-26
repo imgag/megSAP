@@ -116,19 +116,19 @@ $star_command = $long_reads ? "STARlong" : "STAR";
 
 //mapping with STAR
 $pipeline = array();
-$pipeline[] = array("", $parser->execSingularity("STAR", get_path("container_STAR"), $star_command, implode(" ", $arguments), $in_files, [], 1, true));
-$pipeline[] = array("", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools", "view -h", [], [], 1, true));
+$pipeline[] = array("", $parser->execApptainer("STAR", $star_command, implode(" ", $arguments), $in_files, [], true));
+$pipeline[] = array("", $parser->execApptainer("samtools", "samtools", "view -h", [], [], true));
 
 //duplicate flagging with samblaster
 if (!$skip_dedup)
 {
 	$parameters = isset($in2) ? "" : "--ignoreUnmated";
-	$pipeline[] = ["", $parser->execSingularity("samblaster", get_path("container_samblaster"), "samblaster", $parameters, [], [], 1, true)];
+	$pipeline[] = ["", $parser->execApptainer("samblaster", "samblaster", $parameters, [], [], true)];
 } 
 
 //sort BAM by coordinates
 $tmp_for_sorting = $parser->tempFile();
-$pipeline[] = array("", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools", "sort -T $tmp_for_sorting -m 1G -@ ".min($threads, 4)." -o $out -", [], [$out], 1, true), true);
+$pipeline[] = array("", $parser->execApptainer("samtools", "samtools", "sort -T $tmp_for_sorting -m 1G -@ ".min($threads, 4)." -o $out -", [], [$out], true), true);
 
 //execute (STAR -> samblaster -> samtools SAM to BAM -> samtools sort)
 $parser->execPipeline($pipeline, "mapping");

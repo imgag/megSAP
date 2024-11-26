@@ -62,6 +62,6 @@ file_put_contents($out, $output);
 print "bases: $c_bases\n";
 
 //merge regions
-execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-in $out -out $out", [$out]);
+execApptainer("ngs-bits", "BedMerge", "-in $out -out $out", [$out]);
 
 ?>

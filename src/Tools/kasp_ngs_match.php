@@ -21,7 +21,7 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 	}
 	
 	//get pileup
-	list($output) = $parser->execSingularity("samtools", get_path("container_samtools"), "samtools mpileup", "-aa -r $chr:$pos-$pos $bam", [$bam]);
+	list($output) = $parser->execApptainer("samtools", "samtools mpileup", "-aa -r $chr:$pos-$pos $bam", [$bam]);
 	list($chr2, $pos2, $ref2, , $bases) = explode("\t", $output[0]);;
 	
 	//count bases

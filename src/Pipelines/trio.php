@@ -182,13 +182,13 @@ if (!$no_check && !$is_wgs_shallow && !$annotation_only)
 {
 	//check parent-child correlation
 	$min_corr = 0.45;
-	$output = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SampleSimilarity", "-in $f $c -mode bam -build ".ngsbits_build($sys['build']), [$f, $c]);
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in $f $c -mode bam -build ".ngsbits_build($sys['build']), [$f, $c]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
 		trigger_error("The genotype correlation of father and child is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
 	}
-	$output = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SampleSimilarity", "-in $m $c -mode bam -build ".ngsbits_build($sys['build']), [$m, $c]);
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in $m $c -mode bam -build ".ngsbits_build($sys['build']), [$m, $c]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
@@ -287,7 +287,7 @@ if (in_array("vc", $steps))
 	print "Medelian errors: ".number_format(100.0*$vars_mendelian_error/$vars_high_depth, 2)."% (of {$vars_high_depth} high-depth, autosomal variants)\n";
 	
 	//determine gender of child
-	list($stdout, $stderr) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SampleGender", "-method hetx -in $c -build ".ngsbits_build($sys['build'])." -ref {$genome}", [$c, $genome]);
+	list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-method hetx -in $c -build ".ngsbits_build($sys['build'])." -ref {$genome}", [$c, $genome]);
 	$gender_data = explode("\t", $stdout[1])[1];
 	if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 	print "Gender of child (from data): {$gender_data}\n";
@@ -331,14 +331,14 @@ if (in_array("cn", $steps))
 			{
 				trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
 			}
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "UpdHunter", implode(" ", $args_upd), $in_files);
+			$parser->execApptainer("ngs-bits", "UpdHunter", implode(" ", $args_upd), $in_files);
 		}
 		
 		//update GSvar file (because 'an' is skipped)
 		if ($is_wgs_shallow)
 		{
 			//determine gender of child
-			list($stdout, $stderr) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SampleGender", "-method xy -in $c -build ".ngsbits_build($sys['build'])." -ref {$genome}", [$c, $genome]);
+			list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-method xy -in $c -build ".ngsbits_build($sys['build'])." -ref {$genome}", [$c, $genome]);
 			$gender_data = explode("\t", $stdout[1])[1];
 			if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 			print "Gender of child (from data): {$gender_data}\n";
@@ -348,7 +348,7 @@ if (in_array("cn", $steps))
 			//add Contamination data
 			if($lines = file($cnv_multi))
 			{
-				list($stdout, $stderr) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TrioMaternalContamination", "-bam_m $m -bam_f $f -bam_c $c -build ".ngsbits_build($sys['build']), [$m, $f, $c]);
+				list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "TrioMaternalContamination", "-bam_m $m -bam_f $f -bam_c $c -build ".ngsbits_build($sys['build']), [$m, $f, $c]);
 				$trio_info = "##TrioMaternalContamination ".implode(" | ", $stdout)."\n";
 				foreach($lines as $line_num => $line)
 				{

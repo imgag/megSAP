@@ -272,8 +272,8 @@ else
 $annotate_gnomad_af = (isset($pgs) && ($build=="GRCh38"));
 $normalize_out = $parser->tempFile("_leftNormalized.vcf");
 $pipeline = array();
-$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfLeftNormalize", "-stream -ref $genome_fasta -in $input_vcf", [$genome_fasta, $input_vcf], [], 1, true));
-$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfStreamSort", (($annotate_gnomad_af)?"":"-out {$normalize_out}"), [], [], 1, true));
+$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome_fasta -in $input_vcf", [$genome_fasta, $input_vcf], [], true));
+$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfStreamSort", (($annotate_gnomad_af)?"":"-out {$normalize_out}"), [], [], true));
 if ($annotate_gnomad_af)
 {
 	//gnomAD annotation
@@ -283,7 +283,7 @@ if ($annotate_gnomad_af)
 	$args_gnomad[] = "-prefix gnomADg";
 	$args_gnomad[] = "-info_keys AC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF";
 	$args_gnomad[] = "-allow_missing_header";
-	$pipeline[] = array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateFromVcf", implode(" ", $args_gnomad), [get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz"], [], 1, true));
+	$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", implode(" ", $args_gnomad), [get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz"], [], true));
 } 
 $parser->execPipeline($pipeline, "VCF normalize and sort");
 
@@ -410,11 +410,11 @@ file_put_contents($out, $vcf_content);
 if ($add_tsv)
 {
 	$tsv_out = substr($out,0,-3)."tsv";
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfToTsv", "-in {$out} -out {$tsv_out}", [$out], [$tsv_out]);
+	$parser->execApptainer("ngs-bits", "VcfToTsv", "-in {$out} -out {$tsv_out}", [$out], [$tsv_out]);
 }
 
 //verify output file
-list($stdout, $stderr, $return) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfCheck", "-in $out -lines 0 -ref $genome_fasta", [$out, $genome_fasta]);
+list($stdout, $stderr, $return) = $parser->execApptainer("ngs-bits", "VcfCheck", "-in $out -lines 0 -ref $genome_fasta", [$out, $genome_fasta]);
 print "VcfCheck output: \n".implode("\n", $stdout)."\n";
 
 

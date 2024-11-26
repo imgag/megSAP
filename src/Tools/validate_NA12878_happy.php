@@ -23,7 +23,7 @@ function get_bases($filename)
 {
 	global $parser;
 	
-	list($stdout) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedInfo", "-in $filename", [$filename]);
+	list($stdout) = $parser->execApptainer("ngs-bits", "BedInfo", "-in $filename", [$filename]);
 	$hits = array_containing($stdout, "Bases ");
 	$parts = explode(":", $hits[0]);
 	return trim($parts[1]);
@@ -64,9 +64,9 @@ print "##Bases          : $bases\n";
 //sort and merge $roi_hc after intersect - MH
 $roi_hc = $tmp_folder."/roi_hc.bed";
 $pipeline = [];
-$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedIntersect", "-in $roi -in2 {$giab_bed}", [$roi, $giab_bed], [], 1, true)];
-$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "", [], [], 1, true)];
-$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-out $roi_hc", [], [], 1, true)];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedIntersect", "-in $roi -in2 {$giab_bed}", [$roi, $giab_bed], [], true)];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedSort", "", [], [], true)];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedMerge", "-out $roi_hc", [], [], true)];
 $parser->execPipeline($pipeline, "high-conf ROI");
 $bases_hc = get_bases($roi_hc);
 print "##High-conf region: $roi_hc\n";
@@ -74,7 +74,7 @@ print "##High-conf bases: $bases_hc (".number_format(100*$bases_hc/$bases, 2)."%
 print "##Notice: Reference variants in the above region are evaluated!\n";
 
 //perform comparison
-list($stdout, $stderr) = $parser->execSingularity("happy", get_path("container_happy"), "hap.py", "{$giab_vcfgz} {$vcf} -T {$roi_hc} -r {$genome} -o {$tmp_folder}/output", [$giab_vcfgz, $vcf]);
+list($stdout, $stderr) = $parser->execApptainer("happy", "hap.py", "{$giab_vcfgz} {$vcf} -T {$roi_hc} -r {$genome} -o {$tmp_folder}/output", [$giab_vcfgz, $vcf]);
 
 //append output to statistics file
 if ($name=="") $name = basename($vcf, ".vcf.gz");

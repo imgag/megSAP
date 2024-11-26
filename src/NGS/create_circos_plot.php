@@ -295,7 +295,7 @@ if (!file_exists($sv_file))
 else
 {
     // filter SV file
-    list($stdout, $stderr, $return_code) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SvFilterAnnotations", "-in $sv_file -out $sv_temp_file -filters $sv_filter", [$sv_file, $sv_filter], [], 1, false, true, false, true);
+    list($stdout, $stderr, $return_code) = $parser->execApptainer("ngs-bits", "SvFilterAnnotations", "-in $sv_file -out $sv_temp_file -filters $sv_filter", [$sv_file, $sv_filter], [], false, true, false, true);
 
     // abort if filter fails
     if($return_code != 0)
@@ -383,7 +383,7 @@ trigger_error("Remaining BND entries: \t$n_bnds", E_USER_NOTICE);
 
 
 // create Circos plot
-$parser->execSingularity("circos", get_path("container_circos"), "circos", "-nosvg -conf $circos_config_file", [repository_basedir() . "/data/misc"]);
+$parser->execApptainer("circos", "circos", "-nosvg -conf $circos_config_file", [repository_basedir() . "/data/misc"]);
 
 // copy PNG to sample folder
 $parser->moveFile("$temp_folder/${name}_circos.png", "$folder/${name}_circos.png");

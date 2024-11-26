@@ -17,7 +17,7 @@ extract($parser->parse($argv));
 
 $parameters = 	"msi -b $threads -d $msi_ref -n $n_bam -t $t_bam -o $out";
 
-$parser->execSingularity("msisensor-pro", get_path("container_msisensor-pro"), "msisensor-pro", $parameters, [$msi_ref, $n_bam, $t_bam], [$out]);
+$parser->execApptainer("msisensor-pro", "msisensor-pro", $parameters, [$msi_ref, $n_bam, $t_bam], [$out]);
 
 if (! $keep_status_files)
 {

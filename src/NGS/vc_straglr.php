@@ -65,7 +65,7 @@ $in_files[] = $loci;
 $out_files[] = $out_folder;
 
 // run straglr container
-$parser->execSingularity("straglr", get_path("container_straglr"), "straglr.py", implode(" ", $args), $in_files, $out_files);
+$parser->execApptainer("straglr", "straglr.py", implode(" ", $args), $in_files, $out_files);
 
 //get pathogenic ranges from NGSD
 $min_pathogenic = array();
@@ -155,14 +155,14 @@ file_put_contents($out_vcf, implode("\n", $vcf_content_out));
 
 
 //sort output files
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-in {$out_bed} -out {$out_bed}", [$out_bed]);
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in {$out_vcf} -out {$out_vcf}", [$out_vcf]);
+$parser->execApptainer("ngs-bits", "BedSort", "-in {$out_bed} -out {$out_bed}", [$out_bed]);
+$parser->execApptainer("ngs-bits", "VcfSort", "-in {$out_vcf} -out {$out_vcf}", [$out_vcf]);
 
 
 //create plots:
 if (file_exists($plot_folder)) $parser->exec("rm", "-r {$plot_folder}"); //delete previous plots
 mkdir($plot_folder);
-$parser->execSingularity("straglrOn", get_path("container_straglrOn"), "straglron.py", "{$out_bed} {$out_tsv} {$loci} -o {$plot_folder} --hist --alleles --bam {$in} --genome ".genome_fasta($build), [$out_folder, $loci, genome_fasta($build)]);
+$parser->execApptainer("straglrOn", "straglron.py", "{$out_bed} {$out_tsv} {$loci} -o {$plot_folder} --hist --alleles --bam {$in} --genome ".genome_fasta($build), [$out_folder, $loci, genome_fasta($build)]);
 
 
 

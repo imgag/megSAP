@@ -110,7 +110,7 @@ $name_sample_ps = explode("_", $name, 2);
 $sample_name = $name_sample_ps[0];
 
 //check if target region covers whole genome
-list($stdout, $stderr, $ec) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedInfo", "-in ".$sys['target_file'], [$sys['target_file']]);
+list($stdout, $stderr, $ec) = $parser->execApptainer("ngs-bits", "BedInfo", "-in ".$sys['target_file'], [$sys['target_file']]);
 $is_wgs = false;
 foreach($stdout as $line)
 {
@@ -178,10 +178,10 @@ if (in_array("ma", $steps))
 	}
 
 	//low-coverage report
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedLowCoverage", "-in ".$sys['target_file']." -bam $bam_file -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$sys['target_file'], $folder, $genome]);
+	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".$sys['target_file']." -bam $bam_file -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$sys['target_file'], $folder, $genome]);
 	if (db_is_enabled("NGSD"))
 	{
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", [$folder]);
+		$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", [$folder]);
 	}
 
 }
@@ -304,9 +304,9 @@ if (in_array("cn", $steps))
 	if (!file_exists($bed))
 	{
 		$pipeline = [
-				["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedChunk", "-in ".$sys['target_file']." -n {$cnv_bin_size}", [$sys['target_file']])],
-				["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateGC", "-clear -ref ".$genome, [$genome])],
-				["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateGenes", "-out {$bed}", [$bed])]
+				["", $parser->execApptainer("ngs-bits", "BedChunk", "-in ".$sys['target_file']." -n {$cnv_bin_size}", [$sys['target_file']], [], true)],
+				["", $parser->execApptainer("ngs-bits", "BedAnnotateGC", "-clear -ref ".$genome, [$genome], [], true)],
+				["", $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [$bed], [], true)]
 			];
 		$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 	}
@@ -316,7 +316,7 @@ if (in_array("cn", $steps))
 	$cov_file = $cov_folder."/{$name}.cov.gz";
 	$cov_tmp_unzipped = $tmp_folder."/{$name}.cov";
 	$cov_tmp = $cov_tmp_unzipped.".gz";
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$bam_file} -in {$bed} -out {$cov_tmp_unzipped} -threads {$threads} -ref {$genome}", [$folder, $bed, $genome]);
+	$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$bam_file} -in {$bed} -out {$cov_tmp_unzipped} -threads {$threads} -ref {$genome}", [$folder, $bed, $genome]);
 	$parser->exec("gzip", "-9 {$cov_tmp_unzipped}");
 	
 	//copy coverage file to reference folder if valid
@@ -390,7 +390,7 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 		$out_files[] = $vcf_modcall;
 
 		$longphase_parameters = implode(" ", $args);
-		$parser->execSingularity("longphase", get_path("container_longphase"), "longphase", $longphase_parameters, $in_files, $out_files);
+		$parser->execApptainer("longphase", "longphase", $longphase_parameters, $in_files, $out_files);
 
 		trigger_error("Methylation annotation detected. Using intermediate modcall step.", E_USER_NOTICE);
 	}
@@ -429,7 +429,7 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	
 
 	$longphase_parameters = implode(" ", $args);
-	$parser->execSingularity("longphase", get_path("container_longphase"), "longphase", $longphase_parameters, $in_files, $out_files);
+	$parser->execApptainer("longphase", "longphase", $longphase_parameters, $in_files, $out_files);
 	
 	//create compressed file and index
 	$parser->exec("bgzip", "-c $phased_tmp > {$vcf_file}", false);
@@ -464,7 +464,7 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	$args[] = "-o ".substr($tagged_bam_file, 0, -4);
 
 	$longphase_parameters = implode(" ", $args);
-	$parser->execSingularity("longphase", get_path("container_longphase"), "longphase", $longphase_parameters, $in_files, $out_files);
+	$parser->execApptainer("longphase", "longphase", $longphase_parameters, $in_files, $out_files);
 	
 	$parser->indexBam($tagged_bam_file, $threads);
 
@@ -524,20 +524,20 @@ if (in_array("an", $steps))
 		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 		if (file_exists($omim_file)) $in_files[] = $omim_file;
 		$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".(file_exists($omim_file) ? $omim_file : "");
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "RohHunter", implode(" ", $args), $in_files);
+		$parser->execApptainer("ngs-bits", "RohHunter", implode(" ", $args), $in_files);
 
 		//PRS calculation 
 		$prs_folder = repository_basedir()."/data/misc/prs/";
 		$prs_scoring_files = glob($prs_folder."/*_".$build.".vcf");
 		if (count($prs_scoring_files) > 0)
 		{
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfCalculatePRS", "-in {$vcf_file} -bam {$bam_file} -out $prs_file -prs ".implode(" ", $prs_scoring_files)." -ref $genome", [$folder, $genome, $prs_folder]);
+			$parser->execApptainer("ngs-bits", "VcfCalculatePRS", "-in {$vcf_file} -bam {$bam_file} -out $prs_file -prs ".implode(" ", $prs_scoring_files)." -ref $genome", [$folder, $genome, $prs_folder]);
 		}
 
 		//determine ancestry
 		if (ngsbits_build($build) != "non_human")
 		{
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SampleAncestry", "-in {$vcf_file} -out {$ancestry_file} -build ".ngsbits_build($build), [$folder]);
+			$parser->execApptainer("ngs-bits", "SampleAncestry", "-in {$vcf_file} -out {$ancestry_file} -build ".ngsbits_build($build), [$folder]);
 		}
 	}
 
@@ -546,29 +546,29 @@ if (in_array("an", $steps))
 	{
 		$repository_basedir = repository_basedir();
 		$data_folder = get_path("data_folder");
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnv_file}", [$folder, "{$repository_basedir}/data/misc/af_genomes_imgag.bed"]);
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnv_file}", [$folder, "{$repository_basedir}/data/misc/cn_pathogenic.bed"]);
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnv_file}", [$folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", [$folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed"]);
+		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnv_file}", [$folder, "{$repository_basedir}/data/misc/af_genomes_imgag.bed"]);
+		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnv_file}", [$folder, "{$repository_basedir}/data/misc/cn_pathogenic.bed"]);
+		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnv_file}", [$folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
+		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", [$folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed"]);
 
 		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2024_2.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnv_file}", [$folder, $hgmd_file]);
+			$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnv_file}", [$folder, $hgmd_file]);
 		}
 		$omim_file = "{$data_folder}/dbs/OMIM/omim.bed"; //optional because of license
 		if (file_exists($omim_file))
 		{
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$omim_file} -no_duplicates -url_decode -out {$cnv_file}", [$folder, $omim_file]);
+			$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$omim_file} -no_duplicates -url_decode -out {$cnv_file}", [$folder, $omim_file]);
 		}
 
 		//annotate additional gene info
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "CnvGeneAnnotation", "-in {$cnv_file} -add_simple_gene_names -out {$cnv_file}", [$folder]);
+		$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$cnv_file} -add_simple_gene_names -out {$cnv_file}", [$folder]);
 		// skip annotation if no connection to the NGSD is possible
 		if (db_is_enabled("NGSD"))
 		{
 			//annotate overlap with pathogenic CNVs
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDAnnotateCNV", "-in {$cnv_file} -out {$cnv_file}", [$folder]);
+			$parser->execApptainer("ngs-bits", "NGSDAnnotateCNV", "-in {$cnv_file} -out {$cnv_file}", [$folder]);
 		}
 
 		//check for truncated VCF file
@@ -585,12 +585,12 @@ if (in_array("an", $steps))
 		check_genome_build($sv_vcf_file, $build);
 
 		//create BEDPE files
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfToBedpe", "-in $sv_vcf_file -out $bedpe_file", [$folder]);
+		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $sv_vcf_file -out $bedpe_file", [$folder]);
 
 		//add gene info annotation
 		if (db_is_enabled("NGSD"))
 		{
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeGeneAnnotation", "-in $bedpe_file -out $bedpe_file -add_simple_gene_names", [$folder]);;
+			$parser->execApptainer("ngs-bits", "BedpeGeneAnnotation", "-in $bedpe_file -out $bedpe_file -add_simple_gene_names", [$folder]);;
 		}
 
 		//add NGSD counts from flat file
@@ -621,15 +621,15 @@ if (in_array("an", $steps))
 			}
 			
 			//perform annotation
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeAnnotateCounts", "-in $bedpe_file -out $bedpe_file -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", [$folder, $ngsd_annotation_folder]);
+			$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", "-in $bedpe_file -out $bedpe_file -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", [$folder, $ngsd_annotation_folder]);
 			$sys_specific_density_file = $ngsd_annotation_folder."sv_breakpoint_density_".$sys["name_short"].".igv";
 			if (file_exists($sys_specific_density_file))
 			{
-				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeAnnotateBreakpointDensity", "-in {$bedpe_file} -out {$bedpe_file} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv -density_sys {$sys_specific_density_file}", [$folder, $ngsd_annotation_folder]);
+				$parser->execApptainer("ngs-bits", "BedpeAnnotateBreakpointDensity", "-in {$bedpe_file} -out {$bedpe_file} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv -density_sys {$sys_specific_density_file}", [$folder, $ngsd_annotation_folder]);
 			}
 			else
 			{
-				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeAnnotateBreakpointDensity", "-in {$bedpe_file} -out {$bedpe_file} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", [$folder, $ngsd_annotation_folder]);
+				$parser->execApptainer("ngs-bits", "BedpeAnnotateBreakpointDensity", "-in {$bedpe_file} -out {$bedpe_file} -density {$ngsd_annotation_folder}sv_breakpoint_density.igv", [$folder, $ngsd_annotation_folder]);
 			}
 			
 
@@ -652,20 +652,20 @@ if (in_array("an", $steps))
 		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; 
 		if(file_exists($omim_file))//OMIM annotation (optional because of license)
 		{
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeAnnotateFromBed", "-in $bedpe_file -out $bedpe_file -bed $omim_file -url_decode -replace_underscore -col_name OMIM", [$folder, $omim_file]);
+			$parser->execApptainer("ngs-bits", "BedpeAnnotateFromBed", "-in $bedpe_file -out $bedpe_file -bed $omim_file -url_decode -replace_underscore -col_name OMIM", [$folder, $omim_file]);
 		}
 
 		//add CNV overlap annotation
 		if (file_exists($cnv_file))
 		{
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeAnnotateCnvOverlap", "-in $bedpe_file -out $bedpe_file -cnv $cnv_file", [$folder]);
+			$parser->execApptainer("ngs-bits", "BedpeAnnotateCnvOverlap", "-in $bedpe_file -out $bedpe_file -cnv $cnv_file", [$folder]);
 		}
 
 		//write genotype in own column
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeExtractGenotype", "-in $bedpe_file -out $bedpe_file -include_unphased", [$folder]);
+		$parser->execApptainer("ngs-bits", "BedpeExtractGenotype", "-in $bedpe_file -out $bedpe_file -include_unphased", [$folder]);
 
 		//extract columns
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedpeExtractInfoField", "-in $bedpe_file -out $bedpe_file -info_fields SVLEN,SUPPORT,COVERAGE,AF", [$folder]);
+		$parser->execApptainer("ngs-bits", "BedpeExtractInfoField", "-in $bedpe_file -out $bedpe_file -info_fields SVLEN,SUPPORT,COVERAGE,AF", [$folder]);
 
 		//update sample entry 
 		update_gsvar_sample_header($bedpe_file, array($name=>"Affected"));	
@@ -788,7 +788,7 @@ if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("an", $steps))
 		//create qcML file
 		$tmp = $parser->tempFile("qc.tsv");
 		file_put_contents($tmp, implode("\n", $terms));
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvToQC", "-in $tmp -out $qc_other -sources ".implode(" ", $sources), [$folder]);
+		$parser->execApptainer("ngs-bits", "TsvToQC", "-in $tmp -out $qc_other -sources ".implode(" ", $sources), [$folder]);
 	}
 }
 
@@ -822,7 +822,7 @@ if (in_array("db", $steps))
 	$qc_files = array($qc_fastq, $qc_map);
 	if (file_exists($qc_vc)) $qc_files[] = $qc_vc; 
 	if (file_exists($qc_other)) $qc_files[] = $qc_other; 
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_files)." -force", [$folder]);
+	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_files)." -force", [$folder]);
 	
 	//check gender
 	$parser->execTool("NGS/db_check_gender.php", "-in $bam_file -pid $name");	
@@ -831,7 +831,7 @@ if (in_array("db", $steps))
 	if (!$skip_wgs_check)
 	{
 		//check similarity to (sr) WGS/WES sample
-		list($stdout, $stderr, $exit_code) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDSameSample", "-ps $name -system_type WGS,WES");
+		list($stdout, $stderr, $exit_code) = $parser->execApptainer("ngs-bits", "NGSDSameSample", "-ps $name -system_type WGS,WES");
 		//parse stdout
 		$same_samples = array();
 		foreach ($stdout as $line) 
@@ -852,13 +852,13 @@ if (in_array("db", $steps))
 
 			foreach ($same_samples as $processed_sample) 
 			{
-				$ps_gsvar = trim($parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SamplePath", "-ps {$processed_sample} -type GSVAR")[0][0]);
+				$ps_gsvar = trim($parser->execApptainer("ngs-bits", "SamplePath", "-ps {$processed_sample} -type GSVAR")[0][0]);
 				if (!file_exists($ps_gsvar))
 				{
 					trigger_error("GSvar file {$ps_gsvar} not found! Skipping sample similarity check", E_USER_WARNING);
 					continue;
 				}
-				$output = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SampleSimilarity", "-in {$var_file} {$ps_gsvar} -mode gsvar -build ".ngsbits_build($sys['build']), [$folder, $ps_gsvar]);
+				$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$var_file} {$ps_gsvar} -mode gsvar -build ".ngsbits_build($sys['build']), [$folder, $ps_gsvar]);
 				$correlation = explode("\t", $output[0][1])[3];
 				if ($correlation<$min_corr)
 				{
@@ -911,7 +911,7 @@ if (in_array("db", $steps))
 	}
 	if ($import)
 	{
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDAddVariantsGermline", implode(" ", $args), [$folder]);
+		$parser->execApptainer("ngs-bits", "NGSDAddVariantsGermline", implode(" ", $args), [$folder]);
 	}
 }
 

@@ -48,16 +48,16 @@ if ($gvcf)
 }
 
 $tmp = $gvcf ? $out : $parser->tempFile(".vcf.gz");
-$parser->execSingularity("gatk", get_path("container_gatk"), "gatk", "HaplotypeCaller -R {$ref} -I {$in} -O {$tmp} ".implode(" ", $args), $in_files);
+$parser->execApptainer("gatk", "gatk", "HaplotypeCaller -R {$ref} -I {$in} -O {$tmp} ".implode(" ", $args), $in_files);
 
 if (!$gvcf)
 {
 	//perform postprocessing
 	$pipeline = [];
 	$pipeline[] = array("zcat", $tmp);
-	$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfBreakMulti", "", [], [], 1, true)];
-	$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfLeftNormalize", "-stream -ref {$ref}", [$ref], [], 1, true)];
-	$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfStreamSort", "", [], [], 1, true)];	$pipeline[] = array("bgzip", "-c > {$out}", false);
+	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true)];
+	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref {$ref}", [$ref], [], true)];
+	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];	$pipeline[] = array("bgzip", "-c > {$out}", false);
 	$parser->execPipeline($pipeline, "post processing");
 
 	//index VCF

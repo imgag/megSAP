@@ -69,7 +69,7 @@ if (!isset($gender))
 	}
 	else if ($sys_roi!="") //check if sry is included in target region
 	{
-		$ngsbits_command = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedIntersect", "-in2 ".$sys_roi, [$sys_roi], [], 1, true, true, false);
+		$ngsbits_command = $parser->execApptainer("ngs-bits", "BedIntersect", "-in2 ".$sys_roi, [$sys_roi], [], true, true, false);
 		list($stdout, $stderr) = exec2("echo -e 'chrY\\t2786989\\t2787603' | $ngsbits_command", false); //works for GRCh38 only
 
 		if ($stdout[0] == "chrY\t2786989\t2787603") //SRY is in roi
@@ -82,7 +82,7 @@ if (!isset($gender))
 
 //determine gender from BAM
 $genome = genome_fasta($build);
-list($stdout, $stderr) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SampleGender", "-in {$in} -method {$method} {$args} -build ".ngsbits_build($build)." -ref {$genome}", [$in]);
+list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-in {$in} -method {$method} {$args} -build ".ngsbits_build($build)." -ref {$genome}", [$in]);
 $gender2 = explode("\t", $stdout[1])[1];
 if (starts_with($gender2, "unknown"))
 {

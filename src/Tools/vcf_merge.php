@@ -28,7 +28,7 @@ foreach($in as $filename)
 	
 	$command = "zcat {$filename}";
 	//if ($roi!="") $command .= " | {$ngsbits}/VcfFilter -reg {$roi}";
-	if ($roi!="") $command .= " | ".$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfFilter", "-reg {$roi} -ref ".genome_fasta("GRCh38"), [$roi, genome_fasta("GRCh38")], [], 1, true);;
+	if ($roi!="") $command .= " | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-reg {$roi} -ref ".genome_fasta("GRCh38"), [$roi, genome_fasta("GRCh38")], [], true);;
 
 	$sample_current = "";
 	list($file) = exec2($command);

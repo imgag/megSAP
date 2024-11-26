@@ -48,7 +48,7 @@ while(!feof($handle))
 	}
 	
 	//convert gene name to approved symbol
-	$ngs_bits_command = execSingularity("ngs-bits", get_path("container_ngs-bits"), "GenesToApproved", "", [], [], 1, true);
+	$ngs_bits_command = execApptainer("ngs-bits", "GenesToApproved", "", [], [], true);
 
 	list($stdout) = exec2("echo '{$gene}' | {$ngs_bits_command}");
 	list($gene_approved, $message) = explode("\t", trim(implode(" ", $stdout)));
@@ -59,9 +59,9 @@ while(!feof($handle))
 	}
 	
 	//only genes with coordinates on right chromosome
-	$ngs_bits_command = execSingularity("ngs-bits", get_path("container_ngs-bits"), "GenesToBed", "-source ensembl -mode gene -fallback", [], [], 1, true);
-	$ngs_bits_command2 = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedExtend", "-n 5000", [], [], 1, true);
-	$ngs_bits_command3 = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "", [], [], 1, true);
+	$ngs_bits_command = execApptainer("ngs-bits", "GenesToBed", "-source ensembl -mode gene -fallback", [], [], true);
+	$ngs_bits_command2 = execApptainer("ngs-bits", "BedExtend", "-n 5000", [], [], true);
+	$ngs_bits_command3 = execApptainer("ngs-bits", "BedMerge", "", [], [], true);
 	list($stdout, $stderr, $exit_code) = exec2("echo '{$gene_approved}' | {$ngs_bits_command} | egrep '{$chr_omim}\s' | {$ngs_bits_command2} | {$ngs_bits_command3}", false);
 	if ($exit_code!=0 && trim(implode("", $stdout))=="")
 	{

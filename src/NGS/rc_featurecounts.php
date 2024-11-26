@@ -81,7 +81,7 @@ if (isset($out_report))
 $args[] = $in;
 
 // execute command
-$parser->execSingularity("subread", get_path("container_subread"), "featureCounts", implode(" ", $args), [$in, $gtf_file]);
+$parser->execApptainer("subread", "featureCounts", implode(" ", $args), [$in, $gtf_file]);
 
 //write summary into the tool log
 $parser->log("featureCounts summary", file("{$tmp_out}.summary"));
@@ -95,7 +95,7 @@ if (isset($out_report))
 	$in_basename = basename($in);
 	$report_bam = "{$tmp_dir2}/{$in_basename}.featureCounts.bam";
 	$sort_tmp = $parser->tempFile(".bam");
-	$parser->execSingularity("samtools", get_path("container_samtools"), "samtools", "sort -T {$sort_tmp} -m 1G -@ 4 -o {$out_report} {$report_bam}", [], [$out_report]);
+	$parser->execApptainer("samtools", "samtools", "sort -T {$sort_tmp} -m 1G -@ 4 -o {$out_report} {$report_bam}", [], [$out_report]);
 	$parser->indexBam($out_report, $threads);
 }
 
@@ -231,7 +231,7 @@ if ($qc_file !== "")
 	{
 		$pipeline = [];
 		$pipeline[] = ["tail", "-n+3 {$tmp_out}"];
-		$pipeline[] = ["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvFilter", "-numeric -filter '7 >= {$cutoff}'", [], [], 1, true)];
+		$pipeline[] = ["", $parser->execApptainer("ngs-bits", "TsvFilter", "-numeric -filter '7 >= {$cutoff}'", [], [], true)];
 		$pipeline[] = ["wc", "-l"];
 		$ret = $parser->execPipeline($pipeline, "count-genes");
 		

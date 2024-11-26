@@ -84,7 +84,7 @@ if (!$all_transcripts)
 
 $args[] = "--fields ".implode(",", $fields);
 
-$parser->execSingularity("vep", get_path("container_vep"), "vep", implode(" ", $args), $in_files);
+$parser->execApptainer("vep", "vep", implode(" ", $args), $in_files);
 
 //print VEP warnings
 $warn_file = $vep_output."_warnings.txt";
@@ -103,25 +103,26 @@ if (file_exists($warn_file))
 //add consequences (Ensembl)
 $gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gff3";
 $vcf_output_consequence = $parser->tempFile("_consequence.vcf");
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateConsequence", "-in {$vep_output} -out {$vcf_output_consequence} -ref $genome -threads {$threads} -tag CSQ2 -gff {$gff}", $in_files = [$gff, $genome]);
+$parser->execApptainer("ngs-bits", "VcfAnnotateConsequence", "-in {$vep_output} -out {$vcf_output_consequence} -ref $genome -threads {$threads} -tag CSQ2 -gff {$gff}", [$gff, $genome]);
 
 //add consequences (RefSeq)
 if($annotate_refseq_consequences)
 {
 	$gff2 = get_path("data_folder")."/dbs/RefSeq/Homo_sapiens.GRCh38.p14.gff3";
 	$vcf_output_refseq = $parser->tempFile("_refseq.vcf");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateConsequence", "-in {$vcf_output_consequence} -out {$vcf_output_refseq} -threads {$threads} -tag CSQ_REFSEQ -gff {$gff2} -source refseq -ref $genome", $in_files = [$gff2, $genome]);
+	$parser->execApptainer("ngs-bits", "VcfAnnotateConsequence", "-in {$vcf_output_consequence} -out {$vcf_output_refseq} -threads {$threads} -tag CSQ_REFSEQ -gff {$gff2} -source refseq -ref $genome",[$gff2, $genome]);
 	$vcf_output_consequence = $vcf_output_refseq;
 }
 
 //add phyloP annotation
 $vcf_output_phylop = $parser->tempFile("_phylop.vcf");
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateFromBigWig", "-name PHYLOP -mode max -in {$vcf_output_consequence} -out {$vcf_output_phylop} -bw ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." -threads {$threads}", $in_files = [annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")]);
+$annotation_file = annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw");
+$parser->execApptainer("ngs-bits", "VcfAnnotateFromBigWig", "-name PHYLOP -mode max -in {$vcf_output_consequence} -out {$vcf_output_phylop} -bw {$annotation_file} -threads {$threads}", [$annotation_file]);
 
 //add MaxEntScan annotation
 $vcf_output_mes = $parser->tempFile("_mes.vcf");
 $in_files = [$gff, $genome];
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateMaxEntScan", "-gff {$gff} -in {$vcf_output_phylop} -out {$vcf_output_mes} -ref $genome -swa -threads {$threads} -min_score 0.0 -decimals 1", $in_files);
+$parser->execApptainer("ngs-bits", "VcfAnnotateMaxEntScan", "-gff {$gff} -in {$vcf_output_phylop} -out {$vcf_output_mes} -ref $genome -swa -threads {$threads} -min_score 0.0 -decimals 1", [$gff, $genome]);
 
 // create config file
 $config_file_path = $parser->tempFile(".config");
@@ -267,14 +268,14 @@ fclose($config_file);
 
 // execute VcfAnnotateFromVcf
 $vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vcf_output_mes} -out {$vcf_annotate_output} -threads {$threads}", $in_files);
+$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vcf_output_mes} -out {$vcf_annotate_output} -threads {$threads}", $in_files);
 
 // annotate gene info from NGSD
 $gene_file = resolve_symlink($data_folder."/dbs/NGSD/NGSD_genes.bed");
 if (file_exists($gene_file))
 {
 	$tmp = $parser->tempFile(".vcf");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files = [$gene_file]);
+	$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files = [$gene_file]);
 	$parser->moveFile($tmp, $vcf_annotate_output);
 }
 else
@@ -292,7 +293,7 @@ if (!$no_splice)
 
 //annotate RepeatMasker
 $tmp = $parser->tempFile("_repeatmasker.vcf");
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")." -name REPEATMASKER -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files=[annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")]);
+$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")." -name REPEATMASKER -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files=[annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")]);
 $parser->moveFile($tmp, $vcf_annotate_output);
 
 //annotate OMIM (optional because of license)
@@ -300,14 +301,14 @@ $omim_file = annotation_file_path("/dbs/OMIM/omim.bed", true);
 if(file_exists($omim_file))
 {
 	$tmp = $parser->tempFile("_omim.vcf");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateFromBed", "-bed {$omim_file} -name OMIM -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files = [$omim_file]);
+	$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed {$omim_file} -name OMIM -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files = [$omim_file]);
 	$parser->moveFile($tmp, $vcf_annotate_output);
 }
 
 //mark variants in low-confidence regions
 $low_conf_bed = repository_basedir()."/data/misc/low_conf_regions.bed";
 $tmp_low_conf_ann = $parser->tempFile("_low_conf_ann.vcf");
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantFilterRegions", "-in $vcf_annotate_output -mark low_conf_region -inv -reg $low_conf_bed -out $tmp_low_conf_ann", $in_files=[$low_conf_bed]);
+$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcf_annotate_output -mark low_conf_region -inv -reg $low_conf_bed -out $tmp_low_conf_ann", $in_files=[$low_conf_bed]);
 
 //add low_mappability annotation
 if (!$test && db_is_enabled("NGSD"))
@@ -318,7 +319,7 @@ if (!$test && db_is_enabled("NGSD"))
 	{
 		$tmp_sr_low_mappability = $parser->tempFile("_sr_low_mappability.vcf");
 		$mapq0_regions = repository_basedir()."data/misc/low_mappability_region/wgs_mapq_eq0.bed";
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantFilterRegions", "-in {$tmp_low_conf_ann} -mark sr_low_mappability -inv -reg {$mapq0_regions} -out {$tmp_sr_low_mappability}", [$mapq0_regions]);
+		$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in {$tmp_low_conf_ann} -mark sr_low_mappability -inv -reg {$mapq0_regions} -out {$tmp_sr_low_mappability}", [$mapq0_regions]);
 
 		//replace input file 
 		$parser->moveFile($tmp_sr_low_mappability,$tmp_low_conf_ann);
@@ -344,7 +345,7 @@ $parser->moveFile($tmp, $out);
 if($check_lines >= 0)
 {
 	$in_files = [$out, $genome];
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfCheck", "-in $out -lines $check_lines -ref $genome", $in_files);
+	$parser->execApptainer("ngs-bits", "VcfCheck", "-in $out -lines $check_lines -ref $genome", $in_files);
 }
 
 ?>

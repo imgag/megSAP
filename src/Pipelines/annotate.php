@@ -76,7 +76,7 @@ $cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v99.vcf.gz";
 if(file_exists($cosmic_cmc) && $somatic)
 {
 	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateFromVcf", "-in {$annfile} -source {$cosmic_cmc} -info_keys COSMIC_CMC -out {$temp_annfile} -threads {$threads}", [$cosmic_cmc]);
+	$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-in {$annfile} -source {$cosmic_cmc} -info_keys COSMIC_CMC -out {$temp_annfile} -threads {$threads}", [$cosmic_cmc]);
 	$parser->moveFile($temp_annfile, $annfile);
 }
 
@@ -94,7 +94,7 @@ if (($sys['type']=="lrGS") && !$multi && !$somatic && db_is_enabled("NGSD"))
 	//check if out_name is valid ps_name
 	if (get_processed_sample_id($db, $out_name, false) != -1)
 	{
-		list($stdout, $stderr, $exit_code) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDSameSample", "-ps {$out_name} -system_type WGS");
+		list($stdout, $stderr, $exit_code) = $parser->execApptainer("ngs-bits", "NGSDSameSample", "-ps {$out_name} -system_type WGS");
 		//parse stdout
 		$same_samples = array();
 		foreach ($stdout as $line) 
@@ -112,7 +112,7 @@ if (($sys['type']=="lrGS") && !$multi && !$somatic && db_is_enabled("NGSD"))
 			if (count($same_samples) > 1) trigger_error("Multiple related short-read WGS sample found for {$out_name}. Using first one (".$same_samples[0].").", E_USER_NOTICE);
 			else trigger_error("Using short-read WGS sample ".$same_samples[0]." for annotation.", E_USER_NOTICE);
 			// get VCF
-			list($stdout, $stderr, $exit_code) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SamplePath", "-ps ".$same_samples[0]." -type VCF");
+			list($stdout, $stderr, $exit_code) = $parser->execApptainer("ngs-bits", "SamplePath", "-ps ".$same_samples[0]." -type VCF");
 			$sr_vcf = trim($stdout[0]);
 			if (!file_exists($sr_vcf)) trigger_error("Short-read VCF '{$sr_vcf}' not found! Skipping annotation.", E_USER_WARNING);
 			else
@@ -121,7 +121,7 @@ if (($sys['type']=="lrGS") && !$multi && !$somatic && db_is_enabled("NGSD"))
 				$temp_config = $parser->tempFile("config.tsv");
 				file_put_contents($temp_config, "{$sr_vcf}\t\t\t\t\t1\tIN_SHORTREAD_SAMPLE\n");
 				$temp_annfile = $parser->tempFile("shortread_ann.vcf");
-				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateFromVcf", "-in {$annfile}  -out {$temp_annfile} -config_file {$temp_config}");
+				$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-in {$annfile}  -out {$temp_annfile} -config_file {$temp_config}");
 				$parser->moveFile($temp_annfile, $annfile);
 			}
 		}
@@ -137,7 +137,7 @@ if (($sys['type']=="lrGS") && !$multi && !$somatic && db_is_enabled("NGSD"))
 if ($multi)
 {
 	$roi_low_mappabilty = repository_basedir()."data/misc/low_mappability_region/wgs_mapq_eq0.bed";
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantFilterRegions", "-in $annfile -mark low_mappability -inv -reg $roi_low_mappabilty -out $annfile", [$roi_low_mappabilty]);
+	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $annfile -mark low_mappability -inv -reg $roi_low_mappabilty -out $annfile", [$roi_low_mappabilty]);
 }
 
 //zip annotated VCF file
@@ -148,7 +148,7 @@ $parser->exec("tabix", "-f -p vcf $annfile_zipped", false); //no output logging,
 if (!$somatic) //germline only
 {
 	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
-	if (!$multi) $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantQC", "-in $annfile -out $statfile".(($sys['type']=="lrGS")?" -long_read -phasing_bed {$phasing_track}": ""), [$out_folder]);
+	if (!$multi) $parser->execApptainer("ngs-bits", "VariantQC", "-in $annfile -out $statfile".(($sys['type']=="lrGS")?" -long_read -phasing_bed {$phasing_track}": ""), [$out_folder]);
 	
 	$args = [];
 	$args[] = "-in ".$annfile;
@@ -186,7 +186,7 @@ if (!$somatic) //germline only
 			$bam_rna = $psample_info["ps_bam"];
 			if (file_exists($bam_rna))
 			{
-				$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantAnnotateASE", "-in {$varfile} -out {$varfile} -bam {$bam_rna}", [$out_folder, $bam_rna]);
+				$parser->execApptainer("ngs-bits", "VariantAnnotateASE", "-in {$varfile} -out {$varfile} -bam {$bam_rna}", [$out_folder, $bam_rna]);
 
 				//check sample similarity
 				$min_corr = 0.85;
@@ -195,7 +195,7 @@ if (!$somatic) //germline only
 
 				if (file_exists($dna_bam))
 				{
-					$output = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SampleSimilarity", "-in {$bam_rna} {$dna_bam} -mode bam -build ".ngsbits_build($sys['build']), [$bam_rna, $dna_bam]);
+					$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bam_rna} {$dna_bam} -mode bam -build ".ngsbits_build($sys['build']), [$bam_rna, $dna_bam]);
 					$correlation = explode("\t", $output[0][1])[3];
 					if ($correlation=="nan")
 					{
@@ -234,7 +234,7 @@ if (!$somatic) //germline only
 			}
 
 			//add RNA annotation
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDAnnotateGeneExpression", "-in {$varfile} -out {$varfile} -rna_ps {$psample}", [$out_folder]);
+			$parser->execApptainer("ngs-bits", "NGSDAnnotateGeneExpression", "-in {$varfile} -out {$varfile} -rna_ps {$psample}", [$out_folder]);
 		}
 		
 	}

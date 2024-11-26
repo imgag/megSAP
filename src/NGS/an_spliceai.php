@@ -202,7 +202,8 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	$in_files[] = $vcf_filtered;
 
 	//run spliceai container
-	$parser->execSingularity("spliceai", get_path("container_spliceai"), "spliceai", implode(" ", $args), $in_files, $out_files, $threads);
+	$spliceai_command = $parser->execApptainer("spliceai", "spliceai", implode(" ", $args), $in_files, $out_files, true);
+	exec2("OMP_NUM_THREADS={$threads} {$spliceai_command}");
 
 	//no variants scored => copy input to output
 	$var_count = vcf_variant_count($tmp1, "SpliceAI=");
@@ -214,7 +215,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	
 	//sort, zip and index scored variants to make them usable with VcfAnnotateFromVcf
 	$tmp2 = $parser->tempFile("_spliceai_new_annotations.vcf.gz");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in {$tmp1} -out {$tmp1}");
+	$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp1} -out {$tmp1}");
 	$parser->exec("bgzip", "-c $tmp1 > $tmp2");
 	$parser->exec("tabix", "-f -p vcf $tmp2");
 	
@@ -225,7 +226,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 		$tmp3 = $parser->tempFile("_input_header_fixed.vcf.gz");
 		$parser->exec("grep", "-v '##INFO=<ID=SpliceAI,' {$in} > {$tmp3}");
 	}
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfAnnotateFromVcf", "-in {$tmp3} -source {$tmp2} -info_keys SpliceAI -out {$out} -threads {$threads}", [$tmp3], [$out]);
+	$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-in {$tmp3} -source {$tmp2} -info_keys SpliceAI -out {$out} -threads {$threads}", [$tmp3], [$out]);
 	if ($header_old!="") //replace new by old header
 	{		
 		$header_old = str_replace("\"", "\\\"", $header_old); //SpliceAI header has doubles quotes which need to be escaped
@@ -250,19 +251,17 @@ $tmp_fields = $parser->tempFile("spliceai_tmp_fields.txt");
 $tmp_prefixed = $parser->tempFile("spliceai_tmp_prefixed.txt");
 $spliceai_regions = $parser->tempFile("spliceai_scoring_regions.bed");
 
-$spliceai_version = get_path("container_spliceai");
-
 $spliceai_parameters = "-f 2,4,5 -d'\t' /spliceai/splice_env/lib/python3.6/site-packages/spliceai/annotations/".strtolower($build).".txt > {$tmp_fields}";
-$parser->execSingularity("spliceai", $spliceai_version, "cut", $spliceai_parameters);
+$parser->execApptainer("spliceai", "cut", $spliceai_parameters);
 
 $spliceai_parameters = "'s/^/chr/' {$tmp_fields} > {$tmp_prefixed}";
-$parser->execSingularity("spliceai", $spliceai_version, "sed", $spliceai_parameters);
+$parser->execApptainer("spliceai", "sed", $spliceai_parameters);
 
 $spliceai_parameters = "'1d' {$tmp_prefixed} > {$spliceai_regions}";
-$parser->execSingularity("spliceai", $spliceai_version, "sed", $spliceai_parameters);
+$parser->execApptainer("spliceai", "sed", $spliceai_parameters);
 
 $tmp2 = $parser->tempFile("_spliceai_filtered_regions.vcf");
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfFilter", "-reg {$spliceai_regions} -in {$tmp1} -out {$tmp2} -ref ".genome_fasta($build), [genome_fasta($build)]);
+$parser->execApptainer("ngs-bits", "VcfFilter", "-reg {$spliceai_regions} -in {$tmp1} -out {$tmp2} -ref ".genome_fasta($build), [genome_fasta($build)]);
 $var_count = vcf_variant_count($tmp2);
 $parser->log("Variants after SpliceAI transcript regions filter: {$var_count}");
 

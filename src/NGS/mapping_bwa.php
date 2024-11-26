@@ -55,22 +55,22 @@ $bwa_params = "mem $genome -K 100000000 -Y -R '@RG\\t".implode("\\t", $group_pro
 //select the correct binary
 if (get_path("use_bwa1")) 
 {
-	$pipeline[] = array("", $parser->execSingularity("bwa", get_path("container_bwa"), "bwa", "$bwa_params $in1 $in2", $in_files, [], 1, true));
+	$pipeline[] = array("", $parser->execApptainer("bwa", "bwa", "$bwa_params $in1 $in2", $in_files, [], true));
 }
 else
 {
-	$pipeline[] = ["", $parser->execSingularity("bwa-mem2", get_path("container_bwa-mem2"), "bwa-mem2", "$bwa_params $in1 $in2", $in_files, [], 1, true)];
+	$pipeline[] = ["", $parser->execApptainer("bwa-mem2", "bwa-mem2", "$bwa_params $in1 $in2", $in_files, [], true)];
 }
 
 //duplicate removal with samblaster
 if ($dedup)
 {
-	$pipeline[] = ["", $parser->execSingularity("samblaster", get_path("container_samblaster"), "samblaster", "", [], [], 1, true)];
+	$pipeline[] = ["", $parser->execApptainer("samblaster", "samblaster", "", [], [], true)];
 }
 
 //convert sam to bam with samtools
 $tmp_unsorted = $parser->tempFile("_unsorted.bam");
-$pipeline[] = ["", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools", "view -Sb - > $tmp_unsorted", [], [], 1, true)];
+$pipeline[] = ["", $parser->execApptainer("samtools", "samtools", "view -Sb - > $tmp_unsorted", [], [], true)];
 
 //execute (BWA -> samblaster -> BAM conversion)
 $parser->execPipeline($pipeline, "mapping");

@@ -24,7 +24,7 @@ $valid_classes = $db->getEnum("variant_classification", "class");
 $hash_var = $db->prepare("INSERT INTO `variant`(`chr`, `start`, `end`, `ref`, `obs`) VALUES (:0, :1, :2, :3, :4, :5)");
 
 //check input VCF
-list($stderr, $stdout, $exit_code) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfCheck", "-in {$in} -ref $genome", [$in, $genome], [], 1, false, true, false, false);
+list($stderr, $stdout, $exit_code) = $parser->execApptainer("ngs-bits", "VcfCheck", "-in {$in} -ref $genome", [$in, $genome], [], false, true, false, false);
 if ($exit_code!=0)
 {
 	trigger_error("Invalid input VCF:\n".implode("\n", $stderr), E_USER_ERROR);

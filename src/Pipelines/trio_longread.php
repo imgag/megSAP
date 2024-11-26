@@ -149,13 +149,13 @@ if (!$no_check)
 	$c_gsvar = substr($c, 0, -4).".GSvar";
 	$f_gsvar = substr($f, 0, -4).".GSvar";
 	$m_gsvar = substr($m, 0, -4).".GSvar";
-	$output = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SampleSimilarity", "-in {$f_gsvar} {$c_gsvar} -mode gsvar -min_cov {$min_cov} -max_snps 4000 -build ".ngsbits_build($build), [$f_gsvar, $c_gsvar]);
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$f_gsvar} {$c_gsvar} -mode gsvar -min_cov {$min_cov} -max_snps 4000 -build ".ngsbits_build($build), [$f_gsvar, $c_gsvar]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
 		trigger_error("The genotype correlation of father and child is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
 	}
-	$output = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SampleSimilarity", "-in {$m_gsvar} {$c_gsvar} -mode gsvar -max_snps 4000 -build ".ngsbits_build($build), [$m_gsvar, $c_gsvar]);
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$m_gsvar} {$c_gsvar} -mode gsvar -max_snps 4000 -build ".ngsbits_build($build), [$m_gsvar, $c_gsvar]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
@@ -226,7 +226,7 @@ if (in_array("cn", $steps))
 	{
 		trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
 	}
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "UpdHunter", implode(" ", $args_upd), $in_files);
+	$parser->execApptainer("ngs-bits", "UpdHunter", implode(" ", $args_upd), $in_files);
 }
 
 //sv calling
@@ -327,7 +327,7 @@ if (in_array("an", $steps))
 		
 		//determine gender of child
 		$genome = genome_fasta($build);
-		list($stdout, $stderr) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SampleGender", "-method hetx -in $c -build ".ngsbits_build($build)." -ref {$genome}", [$c, $genome]);
+		list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-method hetx -in $c -build ".ngsbits_build($build)." -ref {$genome}", [$c, $genome]);
 		$gender_data = explode("\t", $stdout[1])[1];
 		if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 		print "Gender of child (from data): {$gender_data}\n";

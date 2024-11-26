@@ -52,7 +52,7 @@ if (in_array("vep", $dbs))
 
     // install ensembl-vep
 	print "Installing VEP data ...\n";
-    $parser->execSingularity("vep", get_path("container_vep"), "INSTALL.pl", "--SPECIES homo_sapiens --ASSEMBLY GRCh38 --AUTO c --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST --NO_HTSLIB", [$vep_data_dir]);
+    $parser->execApptainer("vep", "INSTALL.pl", "--SPECIES homo_sapiens --ASSEMBLY GRCh38 --AUTO c --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST --NO_HTSLIB", [$vep_data_dir]);
 	
 	//remove downloaded data
 	exec2("rm -rf $vep_data_dir/ftp/*");
@@ -80,9 +80,9 @@ if (in_array("kraken2", $dbs))
 
 	//build kraken2 database
     print "Building kraken2 database...";
-	$parser->execSingularity("kraken2", get_path("container_kraken2"), "kraken2-build", "-db $kraken_data_dir --download-taxonomy --skip-map  --use-ftp", [$kraken_data_dir]);
-	$parser->execSingularity("kraken2", get_path("container_kraken2"), "kraken2-build", "-db $kraken_data_dir --add-to-library {$hemoglobin_fa}", [$kraken_data_dir], [$hemoglobin_fa]);
-	$parser->execSingularity("kraken2", get_path("container_kraken2"), "kraken2-build", "--build  --threads 5 --db $kraken_data_dir", [$kraken_data_dir]);
+	$parser->execApptainer("kraken2", "kraken2-build", "-db $kraken_data_dir --download-taxonomy --skip-map  --use-ftp", [$kraken_data_dir]);
+	$parser->execApptainer("kraken2", "kraken2-build", "-db $kraken_data_dir --add-to-library {$hemoglobin_fa}", [$kraken_data_dir], [$hemoglobin_fa]);
+	$parser->execApptainer("kraken2", "kraken2-build", "--build  --threads 5 --db $kraken_data_dir", [$kraken_data_dir]);
     print "Finished building kraken2 database.";
 }
 
@@ -112,7 +112,7 @@ if (in_array("STAR", $dbs))
 	}
 
     print "Indexing genome '{$genome}' using STAR. This may take a while.";
-	$parser->execSingularity("STAR", get_path("container_STAR"), "STAR", "--runThreadN 20 --runMode genomeGenerate --genomeDir {$star_genome_dir} --genomeFastaFiles {$genome} --sjdbGTFfile {$star_gtf_file}", [$star_genome_dir, $star_gtf_file]);
+	$parser->execApptainer("STAR", "STAR", "--runThreadN 20 --runMode genomeGenerate --genomeDir {$star_genome_dir} --genomeFastaFiles {$genome} --sjdbGTFfile {$star_gtf_file}", [$star_genome_dir, $star_gtf_file]);
 }
 
 if (in_array("Clair3", $dbs))
@@ -133,7 +133,7 @@ if (in_array("Clair3", $dbs))
 
     print "Downloading Clair3 models from https://github.com/nanoporetech/rerio.git\n";
     exec2("git clone https://github.com/nanoporetech/rerio.git");
-    execSingularity("python", get_path("container_python"), "python3", "rerio/download_model.py --clair3");
+    execApptainer("python", "python3", "rerio/download_model.py --clair3");
     exec2("mv rerio/clair3_models/* .");
     exec2("rm -rf rerio");
 

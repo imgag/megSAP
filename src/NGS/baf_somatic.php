@@ -72,9 +72,9 @@ $parser->log("{$snps_used} SNPs used for BAF calculation.");
 
 //annotate B-allele frequencies from BAM
 $annotated_variants = $parser->tempFile(".tsv");
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantAnnotateFrequency", "-in $snps_filtered -bam $bam_t -out $annotated_variants -depth -name sample1 -ref ".genome_fasta($build), [genome_fasta($build), $bam_t]);
+$parser->execApptainer("ngs-bits", "VariantAnnotateFrequency", "-in $snps_filtered -bam $bam_t -out $annotated_variants -depth -name sample1 -ref ".genome_fasta($build), [genome_fasta($build), $bam_t]);
 $annotated_variants_2 = $parser->tempFile(".tsv");
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantAnnotateFrequency", "-in $annotated_variants -bam $bam_n -out $annotated_variants_2 -depth -name sample2 -ref ".genome_fasta($build), [genome_fasta($build), $bam_n]);
+$parser->execApptainer("ngs-bits", "VariantAnnotateFrequency", "-in $annotated_variants -bam $bam_n -out $annotated_variants_2 -depth -name sample2 -ref ".genome_fasta($build), [genome_fasta($build), $bam_n]);
 
 //prepare IGV/SEG header
 $seg_firstline = "#track graphtype=points viewLimits=-0.2:0.5:1.2 maxHeightPixels=80:80:80";

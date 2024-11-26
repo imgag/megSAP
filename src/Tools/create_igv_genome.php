@@ -39,7 +39,7 @@ $all_transcripts_tmp = $parser->tempFile(".txt");
 $mane_transcripts_tmp = $parser->tempFile(".txt");
 $all_transcripts = "EnsemblGeneTrack.txt.gz";
 $mane_transcripts = "EnsemblGeneTrack_Mane+Clinical.txt.gz";
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDExportIgvGeneTrack", "-out {$all_transcripts_tmp} -out_mane {$mane_transcripts_tmp}");
+$parser->execApptainer("ngs-bits", "NGSDExportIgvGeneTrack", "-out {$all_transcripts_tmp} -out_mane {$mane_transcripts_tmp}");
 $parser->exec("bgzip", "-c {$all_transcripts_tmp} > {$output_folder}/{$all_transcripts}");
 $parser->exec("bgzip", "-c {$mane_transcripts_tmp} > {$output_folder}/{$mane_transcripts}");
 

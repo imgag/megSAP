@@ -18,20 +18,20 @@ if ($mask)
 	$exclusion_bed = $parser->tempFile("_exclusion.bed");
 	exec2("wget -O {$exclusion_bed} https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_GRC_exclusions.bed");
 	$tmp = $parser->tempFile("_masked.fa");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "FastaMask", "-in {$in} -reg {$exclusion_bed} -out {$tmp}", [$in]);
+	$parser->execApptainer("ngs-bits", "FastaMask", "-in {$in} -reg {$exclusion_bed} -out {$tmp}", [$in]);
 	$parser->moveFile($tmp, $in);
 }
 
 if (get_path("use_bwa1"))
 {
-	$parser->execSingularity("bwa", get_path("container_bwa"), "bwa index", "-a bwtsw {$in}", [$in]);
+	$parser->execApptainer("bwa", "bwa index", "-a bwtsw {$in}", [$in]);
 }
 else
 {
-	$parser->execSingularity("bwa-mem2", get_path("container_bwa-mem2"), "/opt/bwa-mem2-2.2.1_x64-linux/bwa-mem2", " index {$in}", $in_files = [$in]);
+	$parser->execApptainer("bwa-mem2", "/opt/bwa-mem2-2.2.1_x64-linux/bwa-mem2", " index {$in}", $in_files = [$in]);
 }
 
-$parser->execSingularity("samtools", get_path("container_samtools"), "samtools", " faidx {$in}", $in_files = [$in]);
+$parser->execApptainer("samtools", "samtools", " faidx {$in}", $in_files = [$in]);
 exec2("md5sum -b {$in} > {$in}.md5");
 
 ?>

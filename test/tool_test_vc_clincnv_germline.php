@@ -33,8 +33,8 @@ $genome = get_path("data_folder")."/genomes/GRCh38.fa";
 $cov_folder = $tmp_folder."cov-tumor";
 $bed = $tmp_folder."/target_region_annotated.bed";
 $pipeline = [
-    ["", execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateGC", "-in {$bed_in} -clear -ref {$genome}", [$bed_in, $genome], [], 1, true)],
-    ["", execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateGenes", "-out {$bed}", [$bed], [], 1, true)]
+    ["", execApptainer("ngs-bits", "BedAnnotateGC", "-in {$bed_in} -clear -ref {$genome}", [$bed_in, $genome], [], true)],
+    ["", execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [$bed], [], true)]
 ];
 //off target
 $bed_off = $tmp_folder . "off_target.bed";

@@ -196,7 +196,7 @@ if ($corr !== "")
 	$files[] = $corr;
 }
 
-$parser->execSingularity("python", get_path("container_python"), "python3", repository_basedir()."/src/NGS/rc_calc_expr.py ".implode(" ", $args), $files);
+$parser->execApptainer("python", "python3", repository_basedir()."/src/NGS/rc_calc_expr.py ".implode(" ", $args), $files);
 
 //TODO: use ngs-bits tool
 
@@ -222,5 +222,5 @@ if ($hpa_tissue !== "")
 		$args[] = "--corr {$hpa_corr}";
 		$files[] = $hpa_corr;
 	}
-	$parser->execSingularity("python", get_path("container_python"), "python3", repository_basedir()."/src/NGS/rc_calc_expr.py ".implode(" ", $args), $files);
+	$parser->execApptainer("python", "python3", repository_basedir()."/src/NGS/rc_calc_expr.py ".implode(" ", $args), $files);
 }

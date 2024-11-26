@@ -167,8 +167,8 @@ function detect_mosaicism()
 	$polymorphic="{$repository_basedir}/data/misc/af_genomes_imgag.bed";
 	$combined_bed = $parser->tempFile(".bed");
 	$filter_regions_bed = $parser->tempFile(".bed");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAdd", "-in {$polymorphic} {$out} -out {$combined_bed}", [$polymorphic, $out]);
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-in {$combined_bed} -out {$filter_regions_bed}");
+	$parser->execApptainer("ngs-bits", "BedAdd", "-in {$polymorphic} {$out} -out {$combined_bed}", [$polymorphic, $out]);
+	$parser->execApptainer("ngs-bits", "BedMerge", "-in {$combined_bed} -out {$filter_regions_bed}");
 
 	//store all those regions
     $regions_filter = array();
@@ -220,7 +220,7 @@ function detect_mosaicism()
 function create_file_with_paths($ref_cov_folder,$cov_path, &$sample_ids)
 {
 	global $parser;
-	$new_sample_ids;
+	$new_sample_ids = [];
 
 	$ref_paths = glob("{$ref_cov_folder}/*.cov");
 
@@ -404,7 +404,7 @@ function run_clincnv($out, $mosaic=FALSE)
 		$parser->log("Calling external containerized tool ".get_path("container_folder")."ClinCNV_{$tool_version} with command: '$command' ({$try_nr}. try)", $add_info);
 
 		$exec_start = microtime(true);
-		$clincnv_command = $parser->execSingularity("ClinCNV", $tool_version, $command, $parameters, $in_files, [], 1, true);
+		$clincnv_command = $parser->execApptainer("ClinCNV", $command, $parameters, $in_files, [], true);
 		$proc = proc_open($clincnv_command, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
 		while(true)
 		{
@@ -468,7 +468,7 @@ function run_clincnv($out, $mosaic=FALSE)
 	}
 	
 	//sort and extract sample data from output folder
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-in {$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv -out $out", [$out_folder], [$out]);
+	$parser->execApptainer("ngs-bits", "BedSort", "-in {$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv -out $out", [$out_folder], [$out]);
 	$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
 	$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
 	
@@ -604,7 +604,7 @@ $in_files[] = "{$repository_basedir}/data/misc";
 $in_files[] = $cov;
 $in_files[] = $cov_folder;
 
-list($stdout, $stderr) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "CnvReferenceCohort", implode(" ", $args), $in_files);
+list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "CnvReferenceCohort", implode(" ", $args), $in_files);
 foreach($stdout as $line)
 {
 	if (starts_with($line, "Mean correlation to reference samples is:"))	{
@@ -643,7 +643,7 @@ if($tumor_only)
 		}
 		else
 		{
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvMerge", "-in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple", [$cov_paths_off]);
+			$parser->execApptainer("ngs-bits", "TsvMerge", "-in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple", [$cov_paths_off]);
 			$use_off_target = true;
 		}
 	}

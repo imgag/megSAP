@@ -58,7 +58,7 @@ if (db_is_enabled("NGSD"))
 $tool_version = get_path("container_expansionhunter");
 
 // run Expansion Hunter
-$parser->execSingularity("expansionhunter", $tool_version, "ExpansionHunter", implode(" ", $args), $in_files, $out_files);
+$parser->execApptainer("expansionhunter", "ExpansionHunter", implode(" ", $args), $in_files, $out_files);
 
 // read VCF file into memory
 $vcf_file_content = file($out);
@@ -153,7 +153,7 @@ if (!$no_images)
 	foreach ($loci as $locus) 
 	{
 		$prefix = $svg_folder.basename($out, ".vcf");
-		$parser->execSingularity("REViewer", get_path("container_REViewer"), "REViewer", implode(" ", $args)." --output-prefix $prefix --locus $locus", [genome_fasta($build), $variant_catalog], [$prefix], 1, false, true, false);
+		$parser->execApptainer("REViewer", "REViewer", implode(" ", $args)." --output-prefix $prefix --locus $locus", [genome_fasta($build), $variant_catalog], [$prefix], false, true, false);
 		
 		//rename to keep the naming consistent with v0.1.1
 		$source_file = $prefix.".".$locus.".svg";

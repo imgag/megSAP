@@ -105,7 +105,7 @@ if(isset($rna_counts))
 	$tmp_file1 = temp_file(".txt");
 	exec2("cut -f6 $rna_counts | sort | uniq > $tmp_file1", false);
 	$tmp_file2 = temp_file(".txt");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "GenesToApproved", "-in $tmp_file1 -out $tmp_file2", [], [], 1, false, true, false);
+	$parser->execApptainer("ngs-bits", "GenesToApproved", "-in $tmp_file1 -out $tmp_file2", [], [], false, true, false);
 	$temp_file = temp_file(".tsv", "approved_gene_symbols");
 	exec2("grep REPLACED $tmp_file2 > $temp_file", false);
 

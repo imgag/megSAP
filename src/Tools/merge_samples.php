@@ -117,7 +117,7 @@ $target_mod_unmapped_bam_files = glob($folder2."/*.mod.unmapped.bam");
 $target_bam_or_cram_methylation = false; //init to false to prevent 'Undefined variable'
 removeIndexFastqs($target_fastq_files);
 
-list ($stdout, $stderr) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SamplePath", "-ps {$into} -type BAM".$sample_path_db_addon);
+list ($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SamplePath", "-ps {$into} -type BAM".$sample_path_db_addon);
 $target_bam_or_cram = trim(implode("", $stdout));
 
 if (count($target_fastq_files) > 0)
@@ -147,7 +147,7 @@ elseif (file_exists($target_bam_or_cram))
 		$in_fq_rev = $folder2."/${into}_BamToFastq_R2_001.fastq.gz";
 		$tmp1 = $parser->tempFile(".fastq.gz");
 		$tmp2 = $parser->tempFile(".fastq.gz");
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BamToFastq", "-in {$target_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", [$target_bam_or_cram, $genome]);
+		$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$target_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", [$target_bam_or_cram, $genome]);
 		$parser->moveFile($tmp1, $in_fq_for);
 		$parser->moveFile($tmp2, $in_fq_rev);
 	}
@@ -163,7 +163,7 @@ $source_fastq_files = glob($folder1."/*.fastq.gz");
 removeIndexFastqs($source_fastq_files);
 $source_mod_unmapped_bam_files = glob($folder1."/*.mod.unmapped.bam");
 
-list ($stdout, $stderr) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "SamplePath", "-ps {$ps} -type BAM".$sample_path_db_addon);
+list ($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SamplePath", "-ps {$ps} -type BAM".$sample_path_db_addon);
 $source_bam_or_cram = trim(implode("", $stdout));
 if (count($source_fastq_files) > 0)
 {
@@ -193,7 +193,7 @@ elseif (file_exists($source_bam_or_cram))
 		$in_fq_rev = $folder2."/${ps}_BamToFastq_R2_001.fastq.gz";
 		$tmp1 = $parser->tempFile(".fastq.gz");
 		$tmp2 = $parser->tempFile(".fastq.gz");
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BamToFastq", "-in {$source_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", [$source_bam_or_cram, $genome]);
+		$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$source_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", [$source_bam_or_cram, $genome]);
 		$parser->moveFile($tmp1, $in_fq_for);
 		$parser->moveFile($tmp2, $in_fq_rev);
 

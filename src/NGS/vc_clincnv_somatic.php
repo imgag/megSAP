@@ -237,8 +237,8 @@ if($use_off_target && !is_dir($cov_folder_t_off))
 
 $tmp_bed_annotated = $parser->tempFile(".bed");
 
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateGC", "-in {$bed} -clear -out {$tmp_bed_annotated} -ref ".genome_fasta($sys['build']), [$bed]);
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedAnnotateGenes", "-in {$tmp_bed_annotated} -out {$tmp_bed_annotated}");
+$parser->execApptainer("ngs-bits", "BedAnnotateGC", "-in {$bed} -clear -out {$tmp_bed_annotated} -ref ".genome_fasta($sys['build']), [$bed]);
+$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp_bed_annotated} -out {$tmp_bed_annotated}");
 
 
 /******************************************
@@ -286,7 +286,7 @@ $merged_cov_tumor = $parser->tempFile(".txt");
 $cov_paths_n = create_file_with_paths($cov_folder_n, realpath($n_cov), $sample_nids);
 $cov_paths_t = create_file_with_paths($cov_folder_t, realpath($t_cov), $sample_tids);
 merge_coverage_profiles($cov_paths_n, $merged_cov_normal);
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvMerge", "-in $cov_paths_t -out {$merged_cov_tumor} -simple -cols chr,start,end", [$cov_paths_t]);
+$parser->execApptainer("ngs-bits", "TsvMerge", "-in $cov_paths_t -out {$merged_cov_tumor} -simple -cols chr,start,end", [$cov_paths_t]);
 
 //off-targets
 if($use_off_target)
@@ -294,8 +294,9 @@ if($use_off_target)
 	$merged_cov_tumor_off = $parser->tempFile(".txt");
 	$merged_cov_normal_off = $parser->tempFile(".txt");
 	$cov_paths_n_off = create_file_with_paths($cov_folder_n_off, realpath($n_cov_off), $sample_nids);
-	$cov_paths_t_off = create_file_with_paths($cov_folder_t_off, realpath($t_cov_off), $sample_tids);	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvMerge", "-in $cov_paths_n_off -out {$merged_cov_normal_off} -simple -cols chr,start,end", [$cov_paths_n_off],);
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvMerge", "-in $cov_paths_t_off -out {$merged_cov_tumor_off} -simple -cols chr,start,end", [$cov_paths_t_off]);}
+	$cov_paths_t_off = create_file_with_paths($cov_folder_t_off, realpath($t_cov_off), $sample_tids);
+	$parser->execApptainer("ngs-bits", "TsvMerge", "-in $cov_paths_n_off -out {$merged_cov_normal_off} -simple -cols chr,start,end", [$cov_paths_n_off],);
+	$parser->execApptainer("ngs-bits", "TsvMerge", "-in $cov_paths_t_off -out {$merged_cov_tumor_off} -simple -cols chr,start,end", [$cov_paths_t_off]);}
 
 /*******************
  * EXECUTE CLINCNV *
@@ -383,7 +384,7 @@ $cohort_folder_normal_sample = "{$cohort_folder}/normal/{$n_id}/";
 if(is_dir($cohort_folder_normal_sample)) exec2("rm -r {$cohort_folder_normal_sample}");
 
 //execute ClinCNV
-list($stdout, $stderr) = $parser->execSingularity("ClinCNV", get_path("container_ClinCNV"), $command, implode(" ", $args), $in_files, $out_files);
+list($stdout, $stderr) = $parser->execApptainer("ClinCNV", $command, implode(" ", $args), $in_files, $out_files);
 
 //check if BAF file was used
 $baf_used = true;
@@ -427,7 +428,7 @@ if(!file_exists($unparsed_cnv_file))
  * PARSE RAW CLINCNV FILE *
  **************************/
 //sort by chromosome and cnv start position
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedSort", "-in $unparsed_cnv_file -out $unparsed_cnv_file", [$unparsed_cnv_file]);
+$parser->execApptainer("ngs-bits", "BedSort", "-in $unparsed_cnv_file -out $unparsed_cnv_file", [$unparsed_cnv_file]);
  
 //insert column with sample identifier for convenience (next to "end"-column")
 $cnvs = Matrix::fromTSV($unparsed_cnv_file);
@@ -562,9 +563,9 @@ $cnvs->addCol($new_col, "cnv_type", "Type of CNV: focal (< 25 % of chrom. arm, <
 $cnvs->toTSV($out);
 
 //annotate additional gene info
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "CnvGeneAnnotation", "-in {$out} -add_simple_gene_names -out {$out}", [$out]);
+$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$out} -add_simple_gene_names -out {$out}", [$out]);
 
 //annotate overlap with pathogenic CNVs
-if(db_is_enabled("NGSD") && !$test) $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDAnnotateCNV", "-in {$out} -out {$out}", [$out]);
+if(db_is_enabled("NGSD") && !$test) $parser->execApptainer("ngs-bits", "NGSDAnnotateCNV", "-in {$out} -out {$out}", [$out]);
 
 ?>

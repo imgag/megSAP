@@ -127,7 +127,7 @@ function run_scarHRD($parser, $cnvs, $count, $prefix, $out_folder)
 	if ($count != 0)
 	{	
 		$wd = "/opt/scarHRD/R";
-		$parser->execSingularity("scarHRD", get_path("container_scarHRD"), "Rscript", "--vanilla /opt/scarHRD/R/cli_scarHRD.R -s $cnvs -o $out_folder -w $wd", [$cnvs], [$out_folder]);
+		$parser->execApptainer("scarHRD", "Rscript", "--vanilla /opt/scarHRD/R/cli_scarHRD.R -s $cnvs -o $out_folder -w $wd", [$cnvs], [$out_folder]);
 	}
 	else
 	{

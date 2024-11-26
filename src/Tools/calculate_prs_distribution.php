@@ -43,13 +43,13 @@ if ($custom_sample_table == "")
 	$args[] = "-add_path SAMPLE_FOLDER";
 	if ($processing_system != "") $args[] = "-system {$processing_system}";
 	$args[] = "-out {$export_table}";
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDExportSamples", implode(" ", $args));
+	$parser->execApptainer("ngs-bits", "NGSDExportSamples", implode(" ", $args));
 	//exclude specific disease group
 
 	if ($exclude_disease_group != "") 
 	{
 		$tmp_table = $parser->tempFile("_diag_wgs.tsv");
-		$pipeline[] = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvFilter", "-v -filter 'disease_group is {$exclude_disease_group}' -in {$export_table} -out {$tmp_table}");
+		$pipeline[] = $parser->execApptainer("ngs-bits", "TsvFilter", "-v -filter 'disease_group is {$exclude_disease_group}' -in {$export_table} -out {$tmp_table}");
 		$export_table = $tmp_table;
 	}
 	
@@ -99,7 +99,7 @@ for ($row_idx=0; $row_idx < $sample_sheet->rows(); $row_idx++)
 	$in_files[] = $sample_vcf;
 	$in_files[] = $sample_bam;
 	$in_files = array_merge($in_files, $in);
-	list($stdout, $stderr, $exitcode) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfCalculatePRS", "-in $sample_vcf -bam $sample_bam -out $temp_out -prs ".implode(" ", $in), $in_files);
+	list($stdout, $stderr, $exitcode) = $parser->execApptainer("ngs-bits", "VcfCalculatePRS", "-in $sample_vcf -bam $sample_bam -out $temp_out -prs ".implode(" ", $in), $in_files);
 
 	foreach($stdout as $line)
 	{

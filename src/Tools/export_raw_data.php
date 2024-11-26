@@ -131,7 +131,7 @@ foreach($samples as $ps)
 		else
 		{
 			print "  Generating FASTQ files from BAM ...\n";
-			$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BamToFastq", "-in {$bam} -out1 {$out}/{$ps}_R1_001.fastq.gz -out2 {$out}/{$ps}_R2_001.fastq.gz", [$bam], ["{$out}/{$ps}_R1_001.fastq.gz", "{$out}/{$ps}_R2_001.fastq.gz"]);
+			$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam} -out1 {$out}/{$ps}_R1_001.fastq.gz -out2 {$out}/{$ps}_R2_001.fastq.gz", [$bam], ["{$out}/{$ps}_R1_001.fastq.gz", "{$out}/{$ps}_R2_001.fastq.gz"]);
 		}
 	}
 }

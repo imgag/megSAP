@@ -82,9 +82,9 @@ $in_files[] = $t_bam;
 $in_files[] = $n_bam;
 
 //run strelka2 container
-$parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 /opt/strelka2/bin/configureStrelkaSomaticWorkflow.py", implode(" ", $args), $in_files);
+$parser->execApptainer("strelka2", "python2 /opt/strelka2/bin/configureStrelkaSomaticWorkflow.py", implode(" ", $args), $in_files);
 
-$parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 {$run_dir}/runWorkflow.py", "-m local -j $threads -g 4", $in_files, [], 1, false, false);
+$parser->execApptainer("strelka2", "python2 {$run_dir}/runWorkflow.py", "-m local -j $threads -g 4", $in_files, [], false, false);
 
 //################################################################################################
 //Split multi-allelic variants
@@ -93,14 +93,14 @@ $parser->execSingularity("strelka2", get_path("container_strelka2"), "python2 {$
 $split_snvs = "$run_dir/results/variants/somatic.snvs.split.vcf.gz";
 $pipeline = [
 		["zcat", $somatic_snvs],
-		[$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfBreakMulti", "", [], [], 1, true), "> $split_snvs"]
+		[$parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true), "> $split_snvs"]
 	];
 $parser->execPipeline($pipeline, "splitting SNVs");
 
 $split_indels = "$run_dir/results/variants/somatic.indels.split.vcf.gz";
 $pipeline = [
 		["zcat", $somatic_indels],
-		[$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfBreakMulti", "", [], [], 1, true), "> $split_indels"]
+		[$parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true), "> $split_indels"]
 	];
 $parser->execPipeline($pipeline, "splitting InDels");
 
@@ -149,15 +149,15 @@ $merged->toTSV($vcf_merged);
 
 //remove invalid variant
 $vcf_invalid = $parser->tempFile("_filtered_invalid.vcf");
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfFilter", "-remove_invalid -in $vcf_merged -out $vcf_invalid -ref $genome", [$genome]);
+$parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -in $vcf_merged -out $vcf_invalid -ref $genome", [$genome]);
 
 //left-align
 $vcf_aligned = $parser->tempFile("_aligned.vcf");
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfLeftNormalize", "-stream -in $vcf_invalid -out $vcf_aligned -ref $genome", [$genome]);
+$parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -in $vcf_invalid -out $vcf_aligned -ref $genome", [$genome]);
 
 //sort
 $vcf_sorted = $parser->tempFile("_sorted.vcf");
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in $vcf_aligned -out $vcf_sorted");
+$parser->execApptainer("ngs-bits", "VcfSort", "-in $vcf_aligned -out $vcf_sorted");
 
 //################################################################################################
 //Filter variants
@@ -299,7 +299,7 @@ $variants_filtered->toTSV($final);
 if (!empty($target))
 {
 	$vcf_offtarget = $parser->tempFile("_filtered.vcf");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantFilterRegions", "-in $final -mark off-target -reg $target -out $vcf_offtarget", [$target]);
+	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $final -mark off-target -reg $target -out $vcf_offtarget", [$target]);
 	$final = $vcf_offtarget;
 }
 
@@ -314,7 +314,7 @@ if (!empty($target))
 		$vcf_with_artefacts = dirname($out)."/".basename($out, ".vcf.gz")."_with_enzymatic_artefacts.vcf.gz";
 		$parser->exec("bgzip", "-c $final > $vcf_with_artefacts", true);
 		$vcf_no_artefacts = $parser->tempFile("_filtered_no_artefacts.vcf");
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSubstract", "-in $final -in2 $artefact_vcf -out $vcf_no_artefacts", [$artefact_vcf]);
+		$parser->execApptainer("ngs-bits", "VcfSubstract", "-in $final -in2 $artefact_vcf -out $vcf_no_artefacts", [$artefact_vcf]);
 		$final = $vcf_no_artefacts;
 	}
 }

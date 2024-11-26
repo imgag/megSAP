@@ -8,12 +8,12 @@ function gene2coords($gene)
 	
 	if (!isset($cache[$gene]))
 	{
-		$ngs_bits_command = execSingularity("ngs-bits", get_path("container_ngs-bits"), "GenesToApproved", "", [], [], 1, true);
+		$ngs_bits_command = execApptainer("ngs-bits", "GenesToApproved", "", [], [], true);
 		list($stdout, $stderr, $exit_code) = exec2("echo '{$gene}' | $ngs_bits_command | cut -f1");
 		$gene_approved = trim($stdout[0]);
 		
-		$ngs_bits_command = execSingularity("ngs-bits", get_path("container_ngs-bits"), "GenesToBed", "-source ensembl -mode gene", [], [], 1, true);
-		$ngs_bits_command2 = execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "", [], [], 1, true);
+		$ngs_bits_command = execApptainer("ngs-bits", "GenesToBed", "-source ensembl -mode gene", [], [], true);
+		$ngs_bits_command2 = execApptainer("ngs-bits", "BedMerge", "", [], [], true);
 		list($stdout, $stderr, $exit_code) = exec2("echo '{$gene_approved}' | $ngs_bits_command | $ngs_bits_command2");
 		$stdout = array_map('trim', $stdout);
 		$stdout = array_diff($stdout, [""]);

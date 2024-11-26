@@ -22,15 +22,15 @@ $genome = genome_fasta("GRCh38");
 //run vcflib vcfbreakmulti if vcflib is given as "tool"
 if ($tool === "vcflib")
 {
-	$parser->execSingularity("vcflib", get_path("container_vcflib"), "vcfbreakmulti", "{$in} > {$tmp_vcf}", [$in]);
+	$parser->execApptainer("vcflib", "vcfbreakmulti", "{$in} > {$tmp_vcf}", [$in]);
 }
 //run ngs-bits VcfBreakMulti if ngs-bits is given as "tool"
 else if ($tool === "ngs-bits")
 {
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfBreakMulti", "-in {$in} -out {$tmp_vcf}", [$in]);
+	$parser->execApptainer("ngs-bits", "VcfBreakMulti", "-in {$in} -out {$tmp_vcf}", [$in]);
 }
 
 //run ngs-bits VcfCheck on the output file and save the result
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfCheck", "-in {$tmp_vcf} -out {$out} -ref {$genome}", [$out, $genome]);
+$parser->execApptainer("ngs-bits", "VcfCheck", "-in {$tmp_vcf} -out {$out} -ref {$genome}", [$out, $genome]);
 
 ?>

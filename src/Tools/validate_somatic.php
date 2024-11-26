@@ -33,7 +33,7 @@ function get_bases($filename)
 {
 	global $parser;
 	
-	list($stdout) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedInfo", "-in $filename", [$filename]);
+	list($stdout) = $parser->execApptainer("ngs-bits", "BedInfo", "-in $filename", [$filename]);
 	$hits = array_containing($stdout, "Bases ");
 	$parts = explode(":", $hits[0]);
 	return trim($parts[1]);
@@ -131,7 +131,7 @@ function create_unique_variants_list($parser, $details_all)
 	$tmp = $parser->tempFile(".vcf");
 	file_put_contents($tmp, implode("\n", $vcf));
 	$tmp2 = $parser->tempFile(".vcf");
-	list($stdout) = $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in $tmp -out $tmp2 && sort --uniq $tmp2");
+	list($stdout) = $parser->execApptainer("ngs-bits", "VcfSort", "-in $tmp -out $tmp2 && sort --uniq $tmp2");
 	foreach($stdout as $line)
 	{
 		$line = trim($line);

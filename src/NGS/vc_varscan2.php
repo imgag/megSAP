@@ -26,7 +26,7 @@ $pileup_file = $parser->tempFile("_pileup.gz");
 $args = array("--min-MQ $min_mq", "--min-BQ $min_bq", "-f $genome");
 if(isset($debug_region)) $args[] = "-r $debug_region";
 $pipeline = array(
-	array("", $parser->execSingularity("samtools", get_path("container_samtools"), "samtools mpileup", implode(" ", $args)." $bam", [$genome, $bam], [], 1, true)),
+	array("", $parser->execApptainer("samtools", "samtools mpileup", implode(" ", $args)." $bam", [$genome, $bam], [], true)),
 	array("gzip", "> $pileup_file")
 );
 $parser->execPipeline($pipeline, "mpileup");
@@ -35,8 +35,8 @@ $parser->execPipeline($pipeline, "mpileup");
 $tmp_snp_file = $parser->tempFile("varscan2_snps.vcf");
 $pipeline = array(
 	array("zcat", "{$pileup_file}"),
-	array("", $parser->execSingularity("varscan2", get_path("container_varscan2"), "java -jar /opt/VarScan.jar", "mpileup2snp --min-var-freq $min_af --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres", [], [], 1, true)),
-	array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfLeftNormalize", "-stream -ref $genome -out $tmp_snp_file", [$genome], [], 1, true))
+	array("", $parser->execApptainer("varscan2", "java -jar /opt/VarScan.jar", "mpileup2snp --min-var-freq $min_af --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres", [], [], true)),
+	array("", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome -out $tmp_snp_file", [$genome], [], true))
 );
 
 $parser->execPipeline($pipeline, "Varscan2 SNPs");
@@ -45,8 +45,8 @@ $parser->execPipeline($pipeline, "Varscan2 SNPs");
 $tmp_indel_file = $parser->tempFile("varscan2_indels.vcf");
 $pipeline = array(
 	array("zcat", "{$pileup_file}"),
-	array("", $parser->execSingularity("varscan2", get_path("container_varscan2"), "java -jar /opt/VarScan.jar", "mpileup2indel --min-var-freq $min_af --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres", [], [], 1, true)),
-	array("", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], 1, true)),
+	array("", $parser->execApptainer("varscan2", "java -jar /opt/VarScan.jar", "mpileup2indel --min-var-freq $min_af --min-reads2 3 --min_coverage $min_dp --output-vcf --p-value $pval_thres", [], [], true)),
+	array("", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)),
 	array("egrep", "-v '##|#CHROM' > $tmp_indel_file") //filter out header lines (already included in calls for snps, will be merged in later step)
 );
 $parser->execPipeline($pipeline, "Varscan2 INDELs");
@@ -62,14 +62,14 @@ $parser->execPipeline($pipeline, "merge");
 
 //Sort file
 $tmp_sorted_file = $parser->tempFile("varscan2_all_variants_sorted.vcf");
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in $tmp_merged_file -out $tmp_sorted_file");
+$parser->execApptainer("ngs-bits", "VcfSort", "-in $tmp_merged_file -out $tmp_sorted_file");
 $parser->exec("bgzip", "-c $tmp_sorted_file > $out");
 
 //flag off-targets
 if(isset($target))
 {
 	$tmp = $parser->tempFile("target.vcf");
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VariantFilterRegions", "-in $out -reg $target -mark off-target -out $tmp", [$out, $target]);
+	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $out -reg $target -mark off-target -out $tmp", [$out, $target]);
 	$parser->exec("bgzip", "-c $tmp > $out");
 }
 

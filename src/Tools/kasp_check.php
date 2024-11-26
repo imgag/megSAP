@@ -212,7 +212,7 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 	global $parser;
 
 	//get pileup
-	list($output) = $parser->execSingularity("samtools", get_path("container_samtools"), "samtools mpileup", "-aa -f ".genome_fasta("GRCh38")." -r $chr:$pos-$pos $bam", [genome_fasta("GRCh38"), $bam]);
+	list($output) = $parser->execApptainer("samtools", "samtools mpileup", "-aa -f ".genome_fasta("GRCh38")." -r $chr:$pos-$pos $bam", [genome_fasta("GRCh38"), $bam]);
 	//print_r($output);
 	list($chr2, $pos2, $ref2, , $bases) = explode("\t", $output[0]);;
 	
@@ -283,8 +283,8 @@ function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 	{
 		$sample = $row['name'];
 		$pipeline = [
-			["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDExportSamples", "-sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER", [], [], 1, true)],
-			["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "TsvSlice", "-cols 'name,project_type,project_name,path,quality'", [], [], 1, true)],
+			["", $parser->execApptainer("ngs-bits", "NGSDExportSamples", "-sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER", [], [], true)],
+			["", $parser->execApptainer("ngs-bits", "TsvSlice", "-cols 'name,project_type,project_name,path,quality'", [], [], true)],
 		];
 		list($stdout) = $parser->execPipeline($pipeline, "NGSD sample extraction");
 		foreach($stdout as $line)

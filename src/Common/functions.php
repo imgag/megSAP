@@ -795,20 +795,20 @@ function resolve_symlink($filename)
 /**
 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 */
-function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $command_only=false, $return_for_toolbase=false, $abort_on_error=true)
+function execApptainer($container, $command, $parameters, $in_files = array(), $out_files = array(), $command_only=false, $return_for_toolbase=false, $abort_on_error=true)
 {
 	//check input
 	if (is_array($command))
 	{
-		trigger_error("Error in 'execSingularity': command cannot be array: ".implode("\n", $command), E_USER_ERROR);
+		trigger_error("Error in 'execApptainer': command cannot be array: ".implode("\n", $command), E_USER_ERROR);
 	}
 	if (is_array($parameters))
 	{
-		trigger_error("Error in 'execSingularity': parameters cannot be array: ".implode("\n", $parameters), E_USER_ERROR);
+		trigger_error("Error in 'execApptainer': parameters cannot be array: ".implode("\n", $parameters), E_USER_ERROR);
 	}
 	if(contains($command." ".$parameters, "|"))
 	{
-		trigger_error("Error in 'execSingularity': command must not contain pipe symbol '|': $command $parameters", E_USER_ERROR);
+		trigger_error("Error in 'execApptainer': command must not contain pipe symbol '|': $command $parameters", E_USER_ERROR);
 	}
 
 	$bind_paths = array();
@@ -840,6 +840,15 @@ function execSingularity($container, $container_version, $command, $parameters, 
 			$output[] = "ngsd_test_user = ".get_db('NGSD_TEST', 'db_user', '');
 			$output[] = "ngsd_test_pass = ".get_db('NGSD_TEST', 'db_pass', '');
 			
+			//GenLab credentials
+			$output[] = "genlab_mssql = ".(get_path("genlab_mssql") ? "true" : "false");
+			$output[] = "genlab_host = ".get_path("genlab_host");
+			$output[] = "genlab_port = ".get_path("genlab_port");
+			$output[] = "genlab_name = ".get_path("genlab_name");
+			$output[] = "genlab_user = ".get_path("genlab_user");
+			$output[] = "genlab_pass = ".get_path("genlab_pass");
+
+
 			//project folders
 			$project_folder = get_path("project_folder", false);
 			$output[] = "projects_folder_diagnostic = ".(is_array($project_folder) ? $project_folder['diagnostic'] : $project_folder."/diagnostic/");
@@ -864,6 +873,7 @@ function execSingularity($container, $container_version, $command, $parameters, 
 	}
 
 	//get container (preferably from local folder)
+	$container_version = get_path("container_{$container}");
 	$container_file = "{$container}_{$container_version}.sif";
 	$local_container = get_path("local_data")."/container/{$container_file}";
 	$network_container = get_path("container_folder")."/{$container_file}";
@@ -906,6 +916,7 @@ function execSingularity($container, $container_version, $command, $parameters, 
 		if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
 	}
 
+	//handle binding of temp folder for SigProfilerExtractor
 	if($container === "SigProfilerExtractor")
 	{
 		$templates_dir = temp_folder();
@@ -931,30 +942,25 @@ function execSingularity($container, $container_version, $command, $parameters, 
 		$bind_paths_command = " -B ".implode(",", $bind_paths);
 	}
 
-	//compose Singularity command
-	$thread_command = "";
-	if($threads!=1)
-	{
-		$thread_command = "OMP_NUM_THREADS={$threads} ";
-	}
-
-	$singularity_command = $thread_command."apptainer exec{$bind_paths_command} {$container_path} {$command} {$parameters}";
+	//compose Apptainer command
+	
+	$apptainer_command = "apptainer exec{$bind_paths_command} {$container_path} {$command} {$parameters}";
 	
 	//if command only option is true, only the apptainer command is being return, without execution
 	if($command_only) 
 	{
-		return $singularity_command;
+		return $apptainer_command;
 	}
 
-	//return apptainer command, bind paths and the container path for the execSingularity function in ToolBase.php
+	//return apptainer command, bind paths and the container path for the execApptainer function in ToolBase.php
 	if($return_for_toolbase)
 	{
-		return array($singularity_command, $bind_paths, $container_path);
+		return array($apptainer_command, $bind_paths, $container_path, $container_version);
 	}
 
 	//execute call - pipe stdout/stderr to file
-	$proc = proc_open($singularity_command, array(1 => array('pipe','w'), 2 => array('pipe','w')), $pipes);
-	if ($proc===false) trigger_error("Could not start process with ToolBase::execSingularity function!\nContainer: {$container_path}\nCommand: {$command}\nParameters: {$parameters}", E_USER_ERROR);
+	$proc = proc_open($apptainer_command, array(1 => array('pipe','w'), 2 => array('pipe','w')), $pipes);
+	if ($proc===false) trigger_error("Could not start process with ToolBase::execApptainer function!\nContainer: {$container_path}\nCommand: {$command}\nParameters: {$parameters}", E_USER_ERROR);
 	
 	//get stdout, stderr and exit code
 	$stdout = stream_get_contents($pipes[1]);
@@ -966,7 +972,7 @@ function execSingularity($container, $container_version, $command, $parameters, 
 	//abort if requested
 	if ($abort_on_error && $exit!=0)
 	{
-		trigger_error("Error while executing command: '$singularity_command'\nCODE: $exit\nSTDOUT: ".$stdout."\nSTDERR: ".$stderr."\n", E_USER_ERROR);
+		trigger_error("Error while executing command: '$apptainer_command'\nCODE: $exit\nSTDOUT: ".$stdout."\nSTDERR: ".$stderr."\n", E_USER_ERROR);
 	}
 	
 	//return output

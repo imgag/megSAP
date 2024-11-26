@@ -100,7 +100,7 @@ function print_bedToFasta_info()
 	global $parser;
 
 	//print BedToFasta information
-	exec($parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedToFasta", "--version 2>&1", [], [], 1, true), $output, $error);
+	exec($parser->execApptainer("ngs-bits", "BedToFasta", "--version 2>&1", [], [], true), $output, $error);
 	$version="";
 	foreach($output as $line)
 	{
@@ -157,7 +157,7 @@ $temp_fasta=$parser->tempFile("","fasta");
 convert_region_list_to_bed($in,$temp_bed,$max_len*2);
 
 //convert bed file (location) to fasta (sequences)
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedToFasta", "-in ".$temp_bed." -out ".$temp_fasta." -ref ".get_path("GRCh37_data_folder")."/genomes/GRCh37.fa", [get_path("GRCh37_data_folder")."/genomes/GRCh37.fa"]);
+$parser->execApptainer("ngs-bits", "BedToFasta", "-in ".$temp_bed." -out ".$temp_fasta." -ref ".get_path("GRCh37_data_folder")."/genomes/GRCh37.fa", [get_path("GRCh37_data_folder")."/genomes/GRCh37.fa"]);
 
 //run primer3 and convert output
 $region_lines=file($in);

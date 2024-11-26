@@ -100,8 +100,6 @@ if ($bam_input) $minimap_options[] = "-y";
 //soft-clip supplement alignments
 if ($softclip_supplements) $minimap_options[] = "-Y";
 
-$samtools_version = get_path("container_samtools");
-$minimap2_version = get_path("container_minimap2");
 $pipeline = [];
 
 //start from BAM input if available
@@ -124,12 +122,12 @@ if ($bam_input)
 	$fastq_cmds = [];
 	foreach ($in_bam as $file)
 	{
-		$command = $parser->execSingularity("samtools", $samtools_version, "samtools", "fastq -o /dev/null {$met_tag} {$file}", [$file], [], 1, true);
+		$command = $parser->execApptainer("samtools", "samtools", "fastq -o /dev/null {$met_tag} {$file}", [$file], [], true);
 		$fastq_cmds[] = $command;
 	}
 	$fastq_cmds_str = implode("; ", $fastq_cmds);
 	$pipeline[] =  ["", "({$fastq_cmds_str})"];	//perform mapping from STDIN
-	$command = $parser->execSingularity("minimap2", $minimap2_version, "minimap2", implode(" ", $minimap_options)." - ", [genome_fasta($sys['build'])], [], 1, true);
+	$command = $parser->execApptainer("minimap2", "minimap2", implode(" ", $minimap_options)." - ", [genome_fasta($sys['build'])], [], true);
 	$pipeline[] = ["", $command];
 }
 else //fastq_mode
@@ -139,13 +137,13 @@ else //fastq_mode
 	$in_files[] = genome_fasta($sys['build']);
 
 	//FastQ mapping
-	$command = $parser->execSingularity("minimap2", $minimap2_version, "minimap2", implode(" ", $minimap_options)." ".implode(" ", $in_fastq), $in_files, [], 1, true);
+	$command = $parser->execApptainer("minimap2", "minimap2", implode(" ", $minimap_options)." ".implode(" ", $in_fastq), $in_files, [], true);
 	$pipeline[] = ["", $command];
 }
 
 //sort BAM by coordinates
 $tmp_for_sorting = $parser->tempFile();
-$command = $parser->execSingularity("samtools", $samtools_version, "samtools", "sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$bam_current} -", [], [], 1, true);
+$command = $parser->execApptainer("samtools", "samtools", "sort -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$bam_current} -", [], [], true);
 $pipeline[] = ["", $command];
 //execute 
 $parser->execPipeline($pipeline, "mapping");
@@ -194,7 +192,7 @@ if ($qc_map !== "")
 		$params[] = "-no_cont";
 	}
 
-	$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "MappingQC", implode(" ", $params), $in_files, $out_files);
+	$parser->execApptainer("ngs-bits", "MappingQC", implode(" ", $params), $in_files, $out_files);
 }
 
 ?>

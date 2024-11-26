@@ -29,8 +29,8 @@ file_put_contents($roi, strtr($reg, array(":"=>"\t", "-"=>"\t")));
 
 //extract reads from BAM
 $tmp_sam = $parser->tempFile(".sam");
-$parser->execSingularity("samtools", get_path("container_samtools"), "samtools view", "-T {$genome} -h -L {$roi} -M -o {$tmp_sam} {$in}", [$in, $genome]);
-$parser->execSingularity("samtools", get_path("container_samtools"), "samtools view", "-T {$genome} -Sb {$tmp_sam} > {$out}", [$genome], [$out]);
+$parser->execApptainer("samtools", "samtools view", "-T {$genome} -h -L {$roi} -M -o {$tmp_sam} {$in}", [$in, $genome]);
+$parser->execApptainer("samtools", "samtools view", "-T {$genome} -Sb {$tmp_sam} > {$out}", [$genome], [$out]);
 $parser->indexBam($out, 4);
 
 //write IGV session file

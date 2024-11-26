@@ -70,7 +70,7 @@ else if(count($bam) == 1)
 	$in_files[] = genome_fasta($build);
 
 	//execute sniffles container
-	$parser->execSingularity("sniffles", get_path("container_sniffles"), "sniffles", implode(" ", $args), $in_files, $out_files);
+	$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files, $out_files);
 
 }
 else
@@ -101,7 +101,7 @@ else
 		$in_files[] = genome_fasta($build);
 
 		//execute sniffles container
-		$parser->execSingularity("sniffles", get_path("container_sniffles"), "sniffles", implode(" ", $args), $in_files);
+		$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files);
 
 		$snfs[] = $tmp_snf;
 	}
@@ -122,7 +122,7 @@ else
 	$in_files[] = genome_fasta($build);
 
 	//execute sniffles container
-	$parser->execSingularity("sniffles", get_path("container_sniffles"), "sniffles", implode(" ", $args), $in_files);
+	$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files);
 }
 
 //add name/pipeline info to VCF header

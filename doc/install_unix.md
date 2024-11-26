@@ -14,11 +14,12 @@ Ubuntu 20.04
     
 Ubuntu 22.04
 
-	> //TODO Kilian
-    
+	> sudo apt-get install -y rsync zlib1g-dev bzip2 build-essential php8.1-cli php8.1-xml php8.1-mysql make unzip wget git gnumeric tabix numdiff
+
 Ubuntu 24.04
 
-	> //TODO Kilian
+	> sudo apt-get install -y rsync zlib1g-dev bzip2 build-essential php8.2-cli php8.2-xml php8.2-mysql make unzip wget git gnumeric tabix numdiff
+
     
 ## Install Apptainer
 

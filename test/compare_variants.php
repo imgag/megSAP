@@ -19,7 +19,7 @@ if ($requires_db!="" && !db_is_enabled($requires_db))
 }
 
 //exec
-list($stdout, $stderr) = execSingularity("ngs-bits", get_path("container_ngs-bits"), "SampleDiff", "-window 0 -in1 {$in1} -in2 {$in2} 2>&1", [$in1, $in2]);
+list($stdout, $stderr) = execApptainer("ngs-bits", "SampleDiff", "-window 0 -in1 {$in1} -in2 {$in2} 2>&1", [$in1, $in2]);
 foreach($stdout as $line)
 {
 	print $line."\n";

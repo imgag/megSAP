@@ -22,9 +22,9 @@ extract($parser->parse($argv));
 print "determining ROI from genes...\n";
 $bed = $parser->tempFile(".bed", "export_variants");
 $pipeline = [
-	["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "GenesToBed", "-in {$genes} -source ensembl -mode gene", [$genes], [], 1, true)],
-	["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedExtend", "-n 5000", [], [], 1, true)],
-	["", $parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "BedMerge", "-out $bed", [], [], 1, true)]
+	["", $parser->execApptainer("ngs-bits", "GenesToBed", "-in {$genes} -source ensembl -mode gene", [$genes], [], true)],
+	["", $parser->execApptainer("ngs-bits", "BedExtend", "-n 5000", [], [], true)],
+	["", $parser->execApptainer("ngs-bits", "BedMerge", "-out $bed", [], [], true)]
 ];
 list($stdout, $stderr) = $parser->execPipeline($pipeline, "genes to bed");
 foreach(array_merge($stdout, $stderr) as $line)
@@ -126,7 +126,7 @@ foreach($variants as $variant => $dummy)
 fclose($h);
 
 //sort
-$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "VcfSort", "-in $out -out $out", [], [$out]);
+$parser->execApptainer("ngs-bits", "VcfSort", "-in $out -out $out", [], [$out]);
 
 //annotate
 $vcf_anno = substr($out, 0, 4)."_anno.vcf";

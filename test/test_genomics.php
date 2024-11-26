@@ -302,7 +302,7 @@ if (db_is_enabled("NGSD_TEST"))
 {
 	$db_conn = DB::getInstance("NGSD_TEST");
 	$sql_file = data_folder()."/merge_samples.sql";
-	execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDInit", "-test -add $sql_file", [$sql_file]);
+	execApptainer("ngs-bits", "NGSDInit", "-test -add $sql_file", [$sql_file]);
 	
 	$sample_info = get_processed_sample_info($db_conn, "DNA220002_01");
 	check($sample_info["sys_target"], "");

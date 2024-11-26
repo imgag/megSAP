@@ -826,22 +826,22 @@ class ToolBase
 	/**
 	 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 	 */
-	function execSingularity($container, $container_version, $command, $parameters, $in_files = array(), $out_files = array(), $threads=1, $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true)
+	function execApptainer($container, $command, $parameters, $in_files = array(), $out_files = array(), $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true)
 	{
-		//get apptainer command, bind paths and container path from execSingularity function in functions.php
-		list($singularity_command, $bind_paths, $container_path) = execSingularity($container, $container_version, $command, $parameters, $in_files, $out_files, $threads, false, true);
+		//get apptainer command, bind paths and container path from execApptainer function in functions.php
+		list($apptainer_command, $bind_paths, $container_path, $container_version) = execApptainer($container, $command, $parameters, $in_files, $out_files, false, true);
 		
 		//if command only option is true, only the apptainer command is being return, without execution
 		if($command_only) 
 		{
-			$this->log("DEBUG: Singularity command:\t", array($singularity_command));
-			return $singularity_command;
+			$this->log("DEBUG: Apptainer command:\t", array($apptainer_command));
+			return $apptainer_command;
 		}
 		//log call
 		if($log_output)
 		{
 			$add_info = array();
-			$add_info[] = "apptainer version = ".$this->extractVersion("apptainer");
+			$add_info[] = "Apptainer version = ".$this->extractVersion("apptainer");
 			foreach($in_files as $in_file)
 			{
 				$add_info[] = "input file          = ".$in_file;
@@ -859,20 +859,19 @@ class ToolBase
 			$add_info[] = "container path      = ".$container_path;
 			$add_info[] = "tool version        = ".$this->extractVersion($command);
 			$add_info[] = "parameters          = $parameters";
-			$add_info[] = "threads   = ".$threads;
 			$this->log("Calling external tool '$command' in container '".basename2($container_path)."'", $add_info);
 		}
 
 		//TODO: remove 
-		$this->log("DEBUG: Singularity command:\t", array($singularity_command));
+		$this->log("DEBUG: Apptainer command:\t", array($apptainer_command));
 		
 		$pid = getmypid();
 		//execute call - pipe stdout/stderr to file
 		$stdout_file = $this->tempFile(".stdout", "megSAP_exec_pid{$pid}_");
 		$stderr_file = $this->tempFile(".stderr", "megSAP_exec_pid{$pid}_");
 		$exec_start = microtime(true);
-		$proc = proc_open($singularity_command, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
-		if ($proc===false) trigger_error("Could not start process with ToolBase::execSingularity function!\nContainer: {$container_path}\nCommand: {$command}\nParameters: {$parameters}", E_USER_ERROR);
+		$proc = proc_open($apptainer_command, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
+		if ($proc===false) trigger_error("Could not start process with ToolBase::execApptainer function!\nContainer: {$container_path}\nCommand: {$command}\nParameters: {$parameters}", E_USER_ERROR);
 		
 		//get stdout, stderr and exit code
 		$return = proc_close($proc);
@@ -1236,13 +1235,13 @@ class ToolBase
 	{	
 		$threads -= 1; //number of additional threads, that's why -1
 		$tmp_for_sorting = $this->tempFile();
-		$this->execSingularity("samtools", get_path("container_samtools"), "samtools sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G -o $out $in", [$in], [$out]);
+		$this->execApptainer("samtools", "samtools sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G -o $out $in", [$in], [$out]);
 	}
 	
 	///Index BAM file
 	function indexBam($bam, $threads)
 	{
-		$this->execSingularity("samtools", get_path("container_samtools"), "samtools index", "-@ {$threads} $bam", [$bam]);
+		$this->execApptainer("samtools", "samtools index", "-@ {$threads} $bam", [$bam]);
 	}
 	
 	///Move file with error checks

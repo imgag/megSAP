@@ -272,7 +272,7 @@ if (! $no_genlab)
 		$args = [];
 		$args[] = "-ps {$sample}";
 		if ($db=="NGSD_TEST") $args[] = "-test";
-		$parser->execSingularity("ngs-bits", get_path("container_ngs-bits"), "NGSDImportGenlab", implode(" ", $args));
+		$parser->execApptainer("ngs-bits", "NGSDImportGenlab", implode(" ", $args));
 	}
 }
 
@@ -567,7 +567,7 @@ foreach($sample_data as $sample => $sample_infos)
 							"{$project_folder}/Sample_{$sample}/",
 							$fastq_file
 						];
-						$orad_command = $parser->execSingularity("orad", get_path("container_orad"), "orad", "--ora-reference /opt/orad_2_6_1/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}", $orad_files, [], 1, true);
+						$orad_command = $parser->execApptainer("orad", "orad", "--ora-reference /opt/orad_2_6_1/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}", $orad_files, [], true);
 						$target_to_copylines[$tag][] = "\t".$orad_command;
 					}
 					else
@@ -695,7 +695,7 @@ foreach($sample_data as $sample => $sample_infos)
 							"{$project_folder}/Sample_{$sample}/",
 							$fastq_file
 						];
-						$orad_command = $parser->execSingularity("orad", get_path("container_orad"), "orad", "--ora-reference /opt/orad_2_6_1/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}", $orad_files, [], 1, true);
+						$orad_command = $parser->execApptainer("orad", "orad", "--ora-reference /opt/orad_2_6_1/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}", $orad_files, [], true);
 						$target_to_copylines[$tag][] = "\t".$orad_command;
 					}
 					else
