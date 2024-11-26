@@ -40,8 +40,7 @@ Please report any issues or questions to the [megSAP issue tracker](https://gith
 
 ## Citing
 
-You can cite megSAP in general using the the DOI [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13744182.svg)](https://doi.org/10.5281/zenodo.13744182).  
-Alternatively you can cite a specific release of megSAP:
+You can cite megSAP using Zenodo DOIs:
 
 * 2024_09: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13744183.svg)](https://doi.org/10.5281/zenodo.13744183)
 
