@@ -19,6 +19,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("skip_phasing", "Skip phasing of VCF and BAM files.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("skip_wgs_check", "Skip the similarity check with a related short-read WGS sample.");
+$parser->addFlag("softclip_supplements", "call minimap with parameter -Y to softclip supplementary reads.");
 extract($parser->parse($argv));
 
 
@@ -167,6 +168,9 @@ if (in_array("ma", $steps))
 	{
 		$mapping_minimap_options[] = "-in_fastq " . implode(" ", $fastq_files);
 	}
+
+	//soft-clip supplementary reads 
+	if ($softclip_supplements) $mapping_minimap_options[] = "-softclip_supplements";
 	
 	$parser->execTool("NGS/mapping_minimap.php", implode(" ", $mapping_minimap_options));
 
