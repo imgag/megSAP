@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("find_unused_tools", "Checks for unused ngs-bits tools.");
+$parser = new ToolBase("find_unused_tools", "Checks for unused ngs-bits tools (execute on SRV005).");
 $parser->addInfile("ngsbits", "ngs-bits repository path.", false);
 $parser->addInfile("megsap", "ngs-bits repository path.", false);
 //optional
@@ -24,7 +24,7 @@ $tools = array_merge($tools, $tools2);
 
 //find hits
 $scripts_file = $parser->tempFile(".txt", "find_unused_tools");
-exec2("find {$megsap} /mnt/storage1/share/data/ /mnt/storage1/share/chips/ /mnt/storage1/share/doc/ /mnt/storage1/share/kasp/ /mnt/storage1/share/primer/ /mnt/storage3/users/ahsturm1/Sandbox/ /mnt/storage1/users/bioinf/http/ -name \"Makefile\" -or -name \"*.sh\" -or -name \"*.php\" -or -name \"*.py\"> {$scripts_file}");
+exec2("find {$megsap} /mnt/storage1/share/doc/ /mnt/storage1/share/kasp/ /mnt/storage1/share/primer/ /mnt/storage2/users/ahsturm1/scripts/ /var/www/bioinf/http/ -name \"Makefile\" -or -name \"*.sh\" -or -name \"*.php\" -or -name \"*.py\"> {$scripts_file}");
 
 foreach($tools as $tool)
 {
