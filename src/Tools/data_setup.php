@@ -11,7 +11,6 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("data_setup", "Creates a local copy of the reference genome, annotation data and apptainer container. They are heavily used during data analysis and should not be accessed via the network.");
 $parser->addString("build", "Genome build.", false);
 $parser->addFlag("check", "Check annotation files.");
-$parser->addFlag("include_container", "Create a local copy of all apptainer containers.");
 extract($parser->parse($argv));
 
 //init reference genome and annotation data
@@ -312,10 +311,10 @@ else
 
 
 ######################### copy apptainer containers #########################
-if ($include_container)
+if (get_path("copy_dbs_to_local_data"))
 {
 	$network_folder = get_path("container_folder");
-	$local_folder = get_path("local_data")."container/";
+	$local_folder = get_path("local_data")."/container/";
 
 	print "### Copy apptainer containers ###\n";
 	print "from: {$network_folder}\n";

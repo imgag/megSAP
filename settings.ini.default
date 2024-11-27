@@ -105,12 +105,6 @@ db_name['NGSD_TEST'] = "ngsd_test"
 db_user['NGSD_TEST'] = "ngsdtestuser"
 db_pass['NGSD_TEST'] = ""
 
-[grid_engine]
-queues_default = ""
-queues_research = ""
-queues_high_priority = ""
-queues_high_mem = ""
-
 #GL8 MySQL credentials
 genlab_mssql = 
 genlab_host = ""
@@ -118,3 +112,9 @@ genlab_port =
 genlab_name = ""
 genlab_user = ""
 genlab_pass = ""
+
+[grid_engine]
+queues_default = ""
+queues_research = ""
+queues_high_priority = ""
+queues_high_mem = ""

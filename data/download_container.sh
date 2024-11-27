@@ -4,7 +4,6 @@ set -o pipefail
 set -o verbose
 
 root=`dirname $(pwd)`
-CONTAINER_FOLDER="$root/data/tools/apptainer_container/"
 
 # Path to your settings file
 SETTINGS_FILE=$root/settings.ini
@@ -13,14 +12,20 @@ if [ ! -f "$SETTINGS_FILE" ]; then
     SETTINGS_FILE="$root/settings.ini.default"
 fi
 
-#Ignore this - used for local installation
-#CONTAINER_FOLDER=/mnt/storage2/megSAP/tools/apptainer_container
+# Extract container_folder from the settings file
+CONTAINER_FOLDER=$(grep -E "^container_folder" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}' | sed "s|\[path\]|$root|")
+
+# Verify the container folder was found
+if [ -z "$CONTAINER_FOLDER" ]; then
+    echo "Error: container_folder not found in $SETTINGS_FILE"
+    exit 1
+fi
+
+# Ensure the container folder exists
+mkdir -p "$CONTAINER_FOLDER"
+cd "$CONTAINER_FOLDER"
 
 BASE_URL="https://megsap.de/download/container/"
-
-# make sure container folder exists
-mkdir -p $CONTAINER_FOLDER
-cd $CONTAINER_FOLDER
 
 # Scan the settings file for lines that contain container definitions, ignoring container_folder
 grep -E "^container_" "$SETTINGS_FILE" | grep -v "container_folder" | while IFS=' = ' read -r container version; do
