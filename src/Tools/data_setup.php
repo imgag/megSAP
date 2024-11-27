@@ -356,11 +356,9 @@ if (get_path("copy_dbs_to_local_data"))
 		{
 			$toolname = $parts[0];
 			
-			$toolversion_with_extension = $parts[1];
-			$toolversion = str_replace('.sif', '', $toolversion_with_extension);
+			$toolversion = str_replace('.sif', '', $parts[1]);
 
 			print "  checking container '$toolname' version '$toolversion'.\n";
-
 			// Check if a local container with the same toolname exists
 			$local_container_pattern = $local_folder . "{$toolname}_*.sif";
 			$local_container_files = glob($local_container_pattern);
@@ -368,27 +366,20 @@ if (get_path("copy_dbs_to_local_data"))
 			if (!empty($local_container_files)) 
 			{
 				$local_base = basename($local_container_files[0]);
-				$local_parts = explode('_', $local_base);
 				
-				if (count($local_parts) >= 2) 
+				if (filemtime($local_container_files[0])<filemtime($container_file)) 
 				{
-					$local_toolname = $local_parts[0];
-					$local_toolversion = str_replace('.sif', '', $local_parts[1]);
-
 					// Compare versions
-					if ($toolversion !== $local_toolversion) 
-					{
-						print "    newer version found: '$base'. Replacing local version '$local_base'.\n";
-						// Remove the old version
-						unlink($local_container_files[0]);
-						// Copy the new version
-						list($stdout, $stderr) = exec2("{$rsync} {$network_folder}{$base} {$local_folder}{$base}");
-					} 
-					else 
-					{
-						print "    local version '$local_toolversion' is up to date for '$toolname'.\n";
-						continue;
-					}
+					print "    newer version found: '$base'. Replacing local version '$local_base'.\n";
+					// Remove the old version
+					unlink($local_container_files[0]);
+					// Copy the new version
+					list($stdout, $stderr) = exec2("{$rsync} {$network_folder}{$base} {$local_folder}{$base}");
+				}
+				else 
+				{
+					print "    local version '$toolversion' is up to date for '$toolname'.\n";
+					continue;
 				}
 			}
 			else 
