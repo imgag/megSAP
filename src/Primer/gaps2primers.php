@@ -1,7 +1,7 @@
 <?php
 
 /** 
-	@page list2fasta
+	@page gaps2primers
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
