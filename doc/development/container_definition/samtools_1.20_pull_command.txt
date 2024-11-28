@@ -1,0 +1,1 @@
+apptainer pull docker://staphb/samtools:1.20

@@ -1,0 +1,92 @@
+Bootstrap: docker
+From: ubuntu:latest
+
+%post
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+	
+# Update and install system dependencies
+apt-get update --fix-missing && apt-get upgrade -y && \
+apt-get install -qq -y \
+	wget \
+	make \
+	git \
+	build-essential \
+	gfortran \
+	libgomp1 \
+	libgfortran5 \
+    libreadline-dev \
+    libpcre2-dev \
+    libbz2-dev \
+    liblzma-dev \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libxml2-dev \
+    libx11-dev \
+    libxt-dev \
+    zlib1g-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    libcairo2-dev \
+    libicu-dev \
+	autotools-dev \
+    automake \
+    libtool \
+	libharfbuzz-dev \
+	libfribidi-dev
+
+# Install and build curl
+mkdir -p /curl_tmp && cd /curl_tmp
+wget https://curl.haxx.se/download/curl-7.78.0.tar.gz
+tar -xvzf curl-7.78.0.tar.gz
+cd curl-7.78.0
+./configure --with-ssl
+make
+make install
+ldconfig
+cd /
+rm -rf /curl_tmp/curl-7.78.0*
+
+# Download and build R
+cd /opt
+wget https://cran.r-project.org/src/base/R-4/R-4.1.0.tar.gz
+tar -xvzf R-4.1.0.tar.gz
+mv R-4.1.0 R-4.1.0-src
+cd R-4.1.0-src
+./configure --with-pcre1 --prefix /opt/R-4.1.0
+make all install
+cd ..
+rm -rf R-4.1.0.tar.gz R-4.1.0-src
+
+# Install scarHRD
+git clone https://github.com/imgag/scarHRD.git
+
+PATH=/opt/scarHRD/R:/opt/R-4.1.0/bin:$PATH
+
+# Install required R packages
+R -e "install.packages('optparse', repos='https://cran.rstudio.com')"
+R -e "install.packages('textshaping', repos='https://cran.rstudio.com')"
+R -e "install.packages('ragg', repos='https://cran.rstudio.com')"
+R -e "install.packages('pkgdown', repos='https://cran.rstudio.com')"
+R -e "install.packages('devtools', repos='https://cran.rstudio.com')"
+R -e "devtools::install_github('aroneklund/copynumber')"
+R -e "install.packages('squash', repos='https://cran.rstudio.com')"
+R -e "install.packages('https://cran.r-project.org/src/contrib/Archive/sequenza/sequenza_2.1.2.tar.gz', repos=NULL, type='source')"
+
+# cleanup build dependencies
+cd /
+apt-get remove -y \
+	wget \
+	git \
+	autotools-dev \
+	automake \
+	libtool
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+	
+%environment
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+export PATH=/opt/scarHRD/R:/opt/R-4.1.0/bin:$PATH

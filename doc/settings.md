@@ -1,29 +1,14 @@
 # Settings
 
-## Section 'tools-ngs'
+## Section 'tools'
 
-Paths of general NGS tools.  
+Paths of locally installed tools.  
 Paths are preset and should not be changed unless you want to exchange a tool.
 
-## Section 'tools-longread'
+## Section 'tools-data'
 
-Paths of tools used in long-read pipeline.  
-Paths are preset and should not be changed unless you want to exchange a tool.
-
-## Section 'tools-ngs-somatic'
-
-Paths of tools used in somatic pipeline.  
-Paths are preset and should not be changed unless you want to exchange a tool.
-
-## Section 'tools-ngs-rna'
-
-Paths of tools used in RNA pipeline.  
-Paths are preset and should not be changed unless you want to exchange a tool.
-
-## Section 'tools-primer'
-
-Paths of tools used for primer design.  
-Paths are preset and should not be changed unless you want to exchange a tool.
+Paths of downloaded data used by specific tools.
+Paths are preset and should not be changed unless you want to change where the data is stored.
 
 ## Section 'apptainer-container'
 

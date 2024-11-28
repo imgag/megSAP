@@ -1,0 +1,70 @@
+Bootstrap: docker
+From: continuumio/miniconda3:4.12.0
+
+%post
+
+	LANG=C.UTF-8
+	LC_ALL=C.UTF-8
+	PATH=/opt/bin:/opt/conda/bin:$PATH
+
+	# update ubuntu packages
+	apt-get update --fix-missing && \
+	yes|apt-get upgrade && \
+	apt-get install -y \
+	wget \
+	bzip2 \
+	make \
+	g++ \
+	libboost-graph-dev && \
+	rm -rf /var/lib/apt/lists/*
+
+	mkdir -p /opt/bin
+	cd /opt/bin/
+
+	git clone https://github.com/HKU-BAL/Clair3.git .
+	 
+	# install anaconda
+	conda config --add channels defaults && \
+	conda config --add channels bioconda && \
+	conda config --add channels conda-forge && \
+	conda create -n clair3 python=3.10.9 -y
+	
+	PATH=/opt/conda/envs/clair3/bin:$PATH
+	CONDA_DEFAULT_ENV=clair3
+	
+	conda create -n pypy -c conda-forge pypy3.9
+	ln -s /opt/conda/envs/pypy/bin/pypy3 /opt/conda/envs/clair3/bin/pypy3
+	
+	. /opt/conda/etc/profile.d/conda.sh && conda activate clair3 && \
+	conda install mamba -n base -c conda-forge
+	pypy3 -m ensurepip && \
+	pypy3 -m pip install mpmath==1.2.1 && \
+	mamba install -c conda-forge tensorflow-cpu==2.8.0 -y && \
+	mamba install -c conda-forge pytables -y && \
+	pip install tensorflow-addons==0.19.0 && \
+	mamba install -c anaconda pigz -y && \
+	# mamba install -c anaconda cffi=1.14.4 -y && \
+	mamba install -c conda-forge parallel=20240722 zstd -y && \
+	mamba install -c conda-forge -c bioconda samtools=1.20 -y && \
+	mamba install -c conda-forge -c bioconda whatshap=2.3 python=3.10.9 -y && \
+	mamba install -c conda-forge xz zlib bzip2 -y && \
+	mamba install -c conda-forge automake curl -y && \
+	rm -rf /opt/conda/pkgs/* && \
+	rm -rf /root/.cache/pip && \
+
+	cd /opt/bin/preprocess/realign && \
+	g++ -std=c++14 -O1 -shared -fPIC -o realigner ssw_cpp.cpp ssw.c realigner.cpp && \
+	g++ -std=c++11 -shared -fPIC -o debruijn_graph -O3 debruijn_graph.cpp && \
+
+	cd /opt/bin && \
+	make PREFIX=/opt/conda/envs/clair3 PYTHON=/opt/conda/envs/clair3/bin/python && \
+	rm -rf /opt/bin/samtools-* /opt/bin/longphase-*
+
+%environment
+	export LANG=C.UTF-8
+	export LC_ALL=C.UTF-8
+	export PATH=/opt/bin:/opt/conda/bin:$PATH
+	export PATH=/opt/conda/envs/clair3/bin:$PATH
+	export CONDA_DEFAULT_ENV=clair3
+    source /opt/conda/bin/activate clair3
+    export PATH=$CONDA_PREFIX/bin:$PATH

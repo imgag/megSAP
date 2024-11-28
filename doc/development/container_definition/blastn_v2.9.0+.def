@@ -1,0 +1,35 @@
+Bootstrap: docker
+From: ubuntu:latest
+
+%labels
+    Maintainer KilianIlius
+    Version ncbi-blast2.9.0
+
+%post
+	LANG=C.UTF-8
+	LC_ALL=C.UTF-8
+
+	# Update package list and install build dependencies
+	apt-get update --fix-missing 
+	apt-get install -y \
+		wget \
+		libgomp1
+	
+	# Download Blastn
+	cd /opt
+	wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.9.0/ncbi-blast-2.9.0+-x64-linux.tar.gz
+	tar xzf ncbi-blast-2.9.0+-x64-linux.tar.gz 
+	rm ncbi-blast-2.9.0+-x64-linux.tar.gz 
+		
+	# Cleanup build dependencies
+	cd /
+	apt-get remove -y \
+		wget
+	apt-get autoremove -y
+	apt-get clean
+	rm -rf /var/lib/apt/lists/*
+
+%environment
+	export LANG=C.UTF-8
+	export LC_ALL=C.UTF-8
+	export PATH=/opt/ncbi-blast-2.9.0+/bin:$PATH

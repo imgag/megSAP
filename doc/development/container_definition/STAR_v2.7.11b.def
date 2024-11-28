@@ -1,0 +1,34 @@
+Bootstrap: docker
+From: ubuntu:latest
+
+%labels
+    Maintainer KilianIlius
+    Version STAR_v2.7.11b
+
+%post
+	LANG=C.UTF-8
+	LC_ALL=C.UTF-8
+
+	# Update package list and install build dependencies
+	apt-get update --fix-missing 
+	apt-get install -y \
+		wget
+	
+	# Download and build STAR
+	cd /opt
+	wget https://github.com/alexdobin/STAR/archive/2.7.11b.tar.gz
+	tar xzf 2.7.11b.tar.gz
+	rm 2.7.11b.tar.gz
+	
+	# Cleanup build dependencies
+	cd /
+	apt-get remove -y \
+		wget
+	apt-get autoremove -y
+	apt-get clean
+	rm -rf /var/lib/apt/lists/*
+
+%environment
+	export LANG=C.UTF-8
+	export LC_ALL=C.UTF-8
+	export PATH=/opt/STAR-2.7.11b/bin/Linux_x86_64_static:$PATH

@@ -10,15 +10,15 @@ We are providing instructions for Ubuntu 20.04 and RHEL 8.3 here. However this s
 
 Ubuntu 20.04
 
-	> sudo apt-get install -y rsync zlib1g-dev bzip2 build-essential php7.4-cli php7.4-xml php7.4-mysql make unzip wget git gnumeric tabix numdiff
+	> sudo apt-get install -y rsync zlib1g bzip2 php7.4-cli php7.4-xml php7.4-mysql make unzip wget git gnumeric tabix numdiff
     
 Ubuntu 22.04
 
-	> sudo apt-get install -y rsync zlib1g-dev bzip2 build-essential php8.1-cli php8.1-xml php8.1-mysql make unzip wget git gnumeric tabix numdiff
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.1-cli php8.1-xml php8.1-mysql make unzip wget git gnumeric tabix numdiff
 
 Ubuntu 24.04
 
-	> sudo apt-get install -y rsync zlib1g-dev bzip2 build-essential php8.2-cli php8.2-xml php8.2-mysql make unzip wget git gnumeric tabix numdiff
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.2-cli php8.2-xml php8.2-mysql make unzip wget git gnumeric tabix numdiff
 
     
 ## Install Apptainer

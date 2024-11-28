@@ -1,0 +1,36 @@
+Bootstrap: docker
+From: ubuntu:latest
+
+%labels
+    Maintainer KilianIlius
+    Version subread_v2.0.6
+
+%post
+	LANG=C.UTF-8
+	LC_ALL=C.UTF-8
+
+	# Update package list and install build dependencies
+	apt-get update --fix-missing 
+	apt-get install -y \
+		wget
+	
+	# Download and build tool
+	cd /opt/
+	wget https://downloads.sourceforge.net/project/subread/subread-2.0.6/subread-2.0.6-Linux-x86_64.tar.gz
+	tar xzf subread-2.0.6-Linux-x86_64.tar.gz
+	rm subread-2.0.6-Linux-x86_64.tar.gz
+	mv subread-2.0.6-Linux-x86_64 subread-2.0.6
+	
+	# Cleanup build dependencies
+	cd /
+	apt-get remove -y \
+		wget
+	apt-get autoremove -y
+	apt-get clean
+	rm -rf /var/lib/apt/lists/*
+
+%environment
+	export LANG=C.UTF-8
+	export LC_ALL=C.UTF-8
+	export PATH=/opt/subread-2.0.6/bin:$PATH
+	export PATH=/opt/subread-2.0.6/bin/utilities:$PATH

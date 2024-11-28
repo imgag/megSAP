@@ -1,0 +1,32 @@
+Bootstrap: docker
+From: ubuntu:latest
+
+%post
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+	
+# update ubuntu packages and install build dependencies
+apt-get update && \
+apt-get dist-upgrade -y
+apt-get install -y \
+	wget \
+	build-essential \
+	unzip
+	
+#download and unzip REViewer
+mkdir -p /opt/REViewer-v0.2.7
+cd /opt/REViewer-v0.2.7
+wget -O - https://github.com/Illumina/REViewer/releases/download/v0.2.7/REViewer-v0.2.7-linux_x86_64.gz | gunzip > REViewer
+chmod 755 REViewer
+
+# cleanup build dependencies
+apt-get remove -y \
+	wget \
+	build-essential \
+	unzip && \
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+
+%environment
+PATH=/opt/REViewer-v0.2.7:$PATH

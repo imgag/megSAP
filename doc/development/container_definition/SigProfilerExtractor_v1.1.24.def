@@ -1,0 +1,54 @@
+Bootstrap: docker
+From: python:3.8.10-slim
+
+%post
+    # Set timezone
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
+    echo $TZ > /etc/timezone
+
+    # Update and install necessary system packages
+    apt-get update --fix-missing && apt-get -y upgrade
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        build-essential \
+        curl \
+        git \
+        locales \
+        rsync \
+        wget \
+        poppler-utils \
+		libatlas-base-dev \
+		liblapack-dev \
+		gfortran
+
+    # Clean up
+    apt-get clean && \
+	apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+    # Set the locale
+    localedef -i de_DE -f UTF-8 de_DE.UTF-8
+
+    # Install Python packages
+    python -m pip install --upgrade pip
+	pip install pypdf==4.0.2 \
+		pandas==1.5.3 \
+		numpy==1.24.4 \
+		scipy==1.10.1 \
+		scikit-learn==1.3.2
+	
+    pip install SigProfilerExtractor==1.1.24 \
+		SigProfilerPlotting==1.3.24 \
+		SigProfilerMatrixGenerator==1.2.25 \
+		SigProfilerAssignment==0.1.7
+
+	# Install GRCh38 reference files
+	python -c "from SigProfilerMatrixGenerator import install as genInstall; genInstall.install('GRCh38')"
+	
+	# Suppress font warning
+	python -c "import warnings; warnings.filterwarnings('ignore', message='findfont: Font family \'Arial\' not found')"
+	
+%environment
+    export TZ=Europe/Berlin
+    export LC_ALL=de_DE.UTF-8
+    export LANG=de_DE.UTF-8
+    export LANGUAGE=de_DE.UTF-8
