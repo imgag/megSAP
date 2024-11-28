@@ -57,51 +57,55 @@ With Apptainer installed each container can be invoked with the following comman
 
 To build a new Apptainer container for a specific tool you have to first write a definition file. Below you can see a template definition file:
 
-Bootstrap: (e.g. docker)
-From: (e.g. ubuntu:20.04)
+    Bootstrap: (e.g. docker)
+    From: (e.g. ubuntu:20.04)
 
-%files
-    <source>
-    <source> <destination>
+    %files
+        <source>
+        <source> <destination>
 
-%post
-	LANG=C.UTF-8
-	LC_ALL=C.UTF-8
+    %post
+        LANG=C.UTF-8
+        LC_ALL=C.UTF-8
 
-	# Update package list and install build dependencies
-	apt-get update --fix-missing 
-	apt-get install -y \
-		(e.g. wget) \
-        (e.g. build-essential)
-	
-	# Download and build tool
-    (install instructions for your tool)
-	
-	# Cleanup build dependencies
-	cd /
-	apt-get remove -y \
-		(e.g. wget) \
-        (e.g. build-essential)
-	apt-get autoremove -y
-	apt-get clean
-	rm -rf /var/lib/apt/lists/*
+        # Update package list and install build dependencies
+        apt-get update --fix-missing 
+        apt-get install -y \
+            (e.g. wget) \
+            (e.g. build-essential)
+        
+        # Download and build tool
+        (install instructions for your tool)
+        
+        # Cleanup build dependencies
+        cd /
+        apt-get remove -y \
+            (e.g. wget) \
+            (e.g. build-essential)
+        apt-get autoremove -y
+        apt-get clean
+        rm -rf /var/lib/apt/lists/*
 
-%environment
-	export LANG=C.UTF-8
-	export LC_ALL=C.UTF-8
-	export PATH=/path/to/executable:$PATH
+    %environment
+        export LANG=C.UTF-8
+        export LC_ALL=C.UTF-8
+        export PATH=/path/to/executable:$PATH
 
-HEADER
+`HEADER`
+
 In the header you define the bootstrap agent that will be used to create the base operating system you want to use.
 
-%files
+`%files`
+
 In this section you can copy files from the host system into the container. If you don't define a <destination> path it will be assumed to be the same as <source>.
 
-%post
+`%post`
+
 The %post section is where you actually download and build your software and all it's dependencies. 
 To keep the container small and efficient, you should remove build-only dependencies after installing your tool.
 
-%environment
+`%environment`
+
 In the %environment section you can define environment variables that will be set at runtime. These variables are only available in the container at runtime, 
 but not at build time. Environment variables needed while building need to be defined in the %post section. 
 It is recommended to add the files you want to execute to PATH here to simplify the invocation of the container.
@@ -112,23 +116,24 @@ To learn about all possible sections and their use cases, visit https://apptaine
 ### Building the Apptainer container
 
 To build your container from the created definition file execute:
+
     > apptainer build tool_version.sif definition_file.def
 
-When creating new containers for megSAP they should be named `($tool)_($version).sif`, where $tool is the name of the main tool installed inside the container and $version its version number.
-$tool and $version should not contain any additional underscores (`_`) since it is used as a separator in the `data_setup.php` script to determine the toolname.
-A new container must be added to the [apptainer-container] section of the settings files as `container_$tool = $version`.
+When creating new containers for megSAP they should be named `(tool)_(version).sif`, where `tool` is the name of the main tool installed inside the container and `version` its version number.
+`tool` and `version` should not contain any additional underscores (`_`) since it is used as a separator in the `data_setup.php` script to determine the toolname.
+A new container must be added to the [apptainer-container] section of the settings files as `container_tool = version`.
 
 ### Executing tools inside your new container
 
 To implement the invocation of a containerized tool in megSAP you can use the `execApptainer()` function:
 
-execApptainer(
-            $container,                         $tool
-            $command,                           command to be executed inside the container (e.g. run_clair3.sh)
-            $parameters,                        parameters for the given command (e.g. --bam_fn={$bam} --ref_fn=$genome --threads={$threads} ...)
-            $in_files = array(),                host system directories/files used as input (needed for read file access from inside the container)
-            $out_files = array(),               host system directories/files used as output (needed for read and write access from inside the container)
-            $command_only=false,                if `true` only the apptainer exec command is returned without executing it (needed when the tool execution is part of a pipeline)
-            $log_output=true,                   Flag (true/false) to turn on/off logging of stdout, stderr and execution time of the containerised tool
-            $abort_on_error=true,               Flag (true/false) whether to throw an error when execution fails
-            $warn_on_error=true)                Flag (true/false) whether to throw a warning when execution fails
+    execApptainer(
+                $container,                         tool
+                $command,                           command to be executed inside the container (e.g. run_clair3.sh)
+                $parameters,                        parameters for the given command (e.g. --bam_fn={$bam} --ref_fn=$genome --threads={$threads} ...)
+                $in_files = array(),                host system directories/files used as input (needed for read file access from inside the container)
+                $out_files = array(),               host system directories/files used as output (needed for read and write access from inside the container)
+                $command_only=false,                if `true` only the apptainer exec command is returned without executing it (needed when the tool execution is part of a pipeline)
+                $log_output=true,                   Flag (true/false) to turn on/off logging of stdout, stderr and execution time of the containerised tool
+                $abort_on_error=true,               Flag (true/false) whether to throw an error when execution fails
+                $warn_on_error=true)                Flag (true/false) whether to throw a warning when execution fails
