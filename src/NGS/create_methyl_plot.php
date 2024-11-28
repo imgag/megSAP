@@ -9,23 +9,25 @@ $parser = new ToolBase("create_methyl_plot", "Create methylation plots.");
 $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Processed sample name.", false);
 $parser->addString("out", "Output table (TSV format).", false);
+$parser->addString("regions", "The regions/highlights to analyze/plot. ", false);
 
 // optional
 $parser->addFlag("skip_plot", "Disable methylartist plotting");
 $parser->addString("build", "The genome build to use. ", true, "GRCh38");
-$parser->addString("regions", "The regions/highlights to analyze/plot. ", false);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 
 extract($parser->parse($argv));
-
-$db_conn = DB::getInstance("NGSD");
 
 $ref_genome = genome_fasta($build);
 exec2("mkdir -p {$folder}/methylartist");
 $gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gtf.gz";
 // $gtf = "/mnt/storage2/users/ahadmaj1/projects/20240605_metyhlartist/test.gtf.gz";
-$ps_info = get_processed_sample_info($db_conn, $name);
-$bams = [ $ps_info["ps_bam"] ];
+$bam = $folder."/".$name.".cram";
+if (!file_exists($bam))
+{
+    $bam = $folder."/".$name.".bam";
+    if (!file_exists($bam)) trigger_error("BAM/CRAM file not found!", E_USER_ERROR);
+}
 
 $regions_table = Matrix::fromTSV($regions);
 
@@ -47,7 +49,7 @@ for($r=0; $r<$regions_table->rows(); ++$r)
     {
         $args = [
             "locus",
-            "--bams", implode(",", $bams),
+            "--bams", $bam,
             "--interval", "{$row[3]}:{$row[4]}-{$row[5]}",
             "--highlight", "{$row[6]}-{$row[7]}",
             "--ref", $ref_genome,
@@ -78,7 +80,7 @@ for($r=0; $r<$regions_table->rows(); ++$r)
         "--partition-tag", "HP",
         "--prefix", "haplotyped",
         "--threads", $threads,
-        $bams[0],
+        $bam,
         $pileup_out . "/",
     ];
     
@@ -123,7 +125,7 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             "--tag", "HP:{$hp}",
             "-F", "SECONDARY,SUPPLEMENTARY",
             "-@", $threads,
-            $bams[0],
+            $bam,
             "{$row[3]}:{$row[6]}-{$row[7]}",
         ];
         $parser->exec(get_path("samtools"), implode(" ", $args_samtools), true);
@@ -134,7 +136,7 @@ for($r=0; $r<$regions_table->rows(); ++$r)
     $target_bed = $parser->tempFile(".bed", "hap");
     $coord_start = $row[6]-1;
     file_put_contents($target_bed, "{$row[3]}\t{$coord_start}\t{$row[7]}");
-    $result = $parser->exec(get_path("ngs-bits")."/BedCoverage", "-threads {$threads} -random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$bams[0]} -in {$target_bed} -clear");
+    $result = $parser->exec(get_path("ngs-bits")."/BedCoverage", "-threads {$threads} -random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$bam} -in {$target_bed} -clear");
     $result_parts = explode("\t", $result[0][1]);
     $average_coverage = array_map("floatval", array_slice($result_parts, 3, 3));
 
