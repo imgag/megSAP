@@ -347,63 +347,30 @@ if (get_path("copy_dbs_to_local_data"))
 	foreach ($container_files as $container_file) 
 	{
 		$base = basename($container_file);
-		$local_container_path = $local_folder . $base;
-
-		// Split filename into toolname and version using underscore as the delimiter
-		$parts = explode('_', $base);
+		$local_container_file = $local_folder . $base;
 		
-		if (count($parts) >= 2) 
+		if (!file_exists($local_container_file) || (filemtime($local_container_file)<filemtime($container_file)))
 		{
-			$toolname = $parts[0];
-			
-			$toolversion = str_replace('.sif', '', $parts[1]);
-
-			print "  checking container '$toolname' version '$toolversion'.\n";
-			// Check if a local container with the same toolname exists
-			$local_container_pattern = $local_folder . "{$toolname}_*.sif";
-			$local_container_files = glob($local_container_pattern);
-
-			if (!empty($local_container_files)) 
-			{
-				$local_base = basename($local_container_files[0]);
-				
-				if (filemtime($local_container_files[0])<filemtime($container_file)) 
-				{
-					// Compare versions
-					print "    newer version found: '$base'. Replacing local version '$local_base'.\n";
-					// Remove the old version
-					unlink($local_container_files[0]);
-					// Copy the new version
-					list($stdout, $stderr) = exec2("{$rsync} {$network_folder}{$base} {$local_folder}{$base}");
-				}
-				else 
-				{
-					print "    local version '$toolversion' is up to date for '$toolname'.\n";
-					continue;
-				}
-			}
-			else 
-			{
-				print "    copying new container '$base'.\n";
-				list($stdout, $stderr) = exec2("{$rsync} {$network_folder}{$base} {$local_folder}{$base}");
-			}
-
-			foreach (array_merge($stdout, $stderr) as $line) 
-			{
-				$line = trim($line);
-				if ($line == "") continue;
-				print "    $line\n";
-			}
-
-			// Set permissions on the new local copy
-			if (!chmod($local_container_path, 0777)) 
-			{
-				trigger_error("Could not change privileges of local folder '{$local_container_path}'!", E_USER_ERROR);
-			}
+			print "	new container version found: '$base'. Copying to '$local_container_file'.\n";
+			// Copy the new container or new version
+			list($stdout, $stderr) = exec2("{$rsync} {$container_file} {$local_container_file}");
 		}
 		else
 		{
-			print "    filename '$base' does not match expected pattern. Skipping...\n";
+			print "	newest version of container '$base' already in '$local_folder'.\n";
+		}
+
+		foreach (array_merge($stdout, $stderr) as $line) 
+		{
+			$line = trim($line);
+			if ($line == "") continue;
+			print "    $line\n";
+		}
+
+		// Set permissions on the new local copy
+		if (!chmod($local_container_file, 0777)) 
+		{
+			trigger_error("Could not change privileges of local folder '{$local_container_file}'!", E_USER_ERROR);
 		}
 	}
 }

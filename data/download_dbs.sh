@@ -7,8 +7,18 @@ root=`pwd`
 src=$root/../src/
 tools=$root/tools/
 dbs=$root/dbs/
-ngsbits=$tools/apptainer_container/ngs-bits_master.sif
 genome=$root/genomes/GRCh38.fa
+
+# Get ngs-bits container path
+SETTINGS_FILE=$root/../settings.ini
+
+if [ ! -f "$SETTINGS_FILE" ]; then
+    SETTINGS_FILE="$root/../settings.ini.default"
+fi
+
+CONTAINER_FOLDER=$(grep -E "^container_folder" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}' | sed "s|\[path\]|$(dirname "$root")|")
+NGSBITS_VERSION=$(grep -E "^container_ngs-bits" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}')
+ngsbits=$CONTAINER_FOLDER/ngs-bits_$NGSBITS_VERSION.sif
 
 #Download ensembl transcripts database
 cd $dbs

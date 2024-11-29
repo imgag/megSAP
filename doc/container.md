@@ -41,7 +41,7 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | strelka2_v2.9.10.sif	                | strelka2                  | 2.9.10	        | python2 /opt/strelka2/bin/"script.py" (e.g.:runWorkflow.py)                                       |
 | subread_v2.0.6.sif                    | subread                   | 2.0.6	            | featureCounts                                                                                     |
 | umi-tools_v1.1.5.sif                  | umi-tools                 | 1.1.5	            | umi_tools                                                                                         |
-| umiVar_v2.sif	                        | umiVar                    | 2	                | "script.py" (e.g. umiVar.py)                                                                      |
+| umiVar_v2.sif	                        | umiVar                    | 2024-11           | "script.py" (e.g. umiVar.py)                                                                      |
 | varscan2_v2.4.6.sif	                | varscan2                  | 2.4.6	            | java -jar /opt/VarScan.jar                                                                        |
 | vcflib_v1.0.3.sif	                    | vcflib	                | 1.0.3	            | "tool_name" (e.g. vcfallelicprimitives)                                                           |
 | vep_release-112.0.sif                 | vep	                    | release-112.0	    | vep                                                                                               |
@@ -120,8 +120,8 @@ To build your container from the created definition file execute:
     > apptainer build tool_version.sif definition_file.def
 
 When creating new containers for megSAP they should be named `(tool)_(version).sif`, where `tool` is the name of the main tool installed inside the container and `version` its version number.
-`tool` and `version` should not contain any additional underscores (`_`) since it is used as a separator in the `data_setup.php` script to determine the toolname.
 A new container must be added to the [apptainer-container] section of the settings files as `container_tool = version`.
+The new container should be uploaded to https://megsap.de/download/container/ and the definition file should be added to the container definition file folder in the megSAP repository (/doc/development/container_definition).
 
 ### Executing tools inside your new container
 
