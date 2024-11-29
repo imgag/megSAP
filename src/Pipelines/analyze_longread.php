@@ -148,7 +148,8 @@ if (in_array("ma", $steps))
 		"-threads {$threads}",
 		"-system {$system}",
 		"-qc_fastq {$qc_fastq}",
-		"-qc_map {$qc_map}"
+		"-qc_map {$qc_map}",
+		"-softclip_supplements"
 	];
 	if (count($unmapped_bam_files) > 0)
 	{
