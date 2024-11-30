@@ -5,17 +5,14 @@ set -o verbose
 
 root=`pwd`
 src=$root/../src/
-tools=$root/tools/
 dbs=$root/dbs/
 genome=$root/genomes/GRCh38.fa
 
 # Get ngs-bits container path
 SETTINGS_FILE=$root/../settings.ini
-
 if [ ! -f "$SETTINGS_FILE" ]; then
     SETTINGS_FILE="$root/../settings.ini.default"
 fi
-
 CONTAINER_FOLDER=$(grep -E "^container_folder" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}' | sed "s|\[path\]|$(dirname "$root")|")
 NGSBITS_VERSION=$(grep -E "^container_ngs-bits" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}')
 ngsbits=$CONTAINER_FOLDER/ngs-bits_$NGSBITS_VERSION.sif
@@ -194,21 +191,21 @@ wget -O - 'https://ftp.ensembl.org/pub/release-109/fasta/homo_sapiens/cdna/Homo_
 mkdir -p $dbs/GIAB/NA12878/
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz -O $dbs/GIAB/NA12878/high_conf_variants.vcf.gz
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.bed -O $dbs/GIAB/NA12878/high_conf_regions.bed
-zcat $dbs/GIAB/NA12878/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec $ngsbits VcfFilter -remove_invalid | apptainer exec $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA12878/high_conf_variants_normalized.vcf.gz
+zcat $dbs/GIAB/NA12878/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec $ngsbits -B $root/genomes/ VcfFilter -remove_invalid -ref $genome | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA12878/high_conf_variants_normalized.vcf.gz
 tabix $dbs/GIAB/NA12878/high_conf_variants_normalized.vcf.gz
 
 #download and normalize HG002/NA24385 reference data
 mkdir -p $dbs/GIAB/NA24385/
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/AshkenazimTrio/HG002_NA24385_son/latest/GRCh38/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz -O $dbs/GIAB/NA24385/high_conf_variants.vcf.gz
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/AshkenazimTrio/HG002_NA24385_son/latest/GRCh38/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed -O $dbs/GIAB/NA24385/high_conf_regions.bed
-zcat $dbs/GIAB/NA24385/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec $ngsbits VcfFilter -remove_invalid | apptainer exec $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA24385/high_conf_variants_normalized.vcf.gz
+zcat $dbs/GIAB/NA24385/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec $ngsbits -B $root/genomes/ VcfFilter -remove_invalid -ref $genome | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA24385/high_conf_variants_normalized.vcf.gz
 tabix $dbs/GIAB/NA24385/high_conf_variants_normalized.vcf.gz
 
 #download and normalize HG002/NA24385 CMRG reference data
 mkdir -p $dbs/GIAB/NA24385_CMRG/
 wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/SmallVariant/HG002_GRCh38_CMRG_smallvar_v1.00.vcf.gz -O $dbs/GIAB/NA24385_CMRG/high_conf_variants.vcf.gz
 wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/SmallVariant/HG002_GRCh38_CMRG_smallvar_v1.00.bed -O $dbs/GIAB/NA24385_CMRG/high_conf_regions.bed
-zcat $dbs/GIAB/NA24385_CMRG/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec $ngsbits VcfFilter -remove_invalid | apptainer exec $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
+zcat $dbs/GIAB/NA24385_CMRG/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec $ngsbits -B $root/genomes/ VcfFilter -remove_invalid -ref $genome | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 tabix $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 
 # install OMIM (you might need a license; production NGSD has to be available and initialized)
@@ -222,18 +219,17 @@ tabix $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 # cd $dbs
 # mkdir -p HGMD
 # cd HGMD
-# # manual download of files HGMD_Pro_2024.2_hg38.vcf.gz  and hgmd_pro-2024.2.dump.gz from https://apps.ingenuity.com/ingsso/login
+# # manual download of files HGMD_Pro_2024.2_hg38.vcf.gz and hgmd_pro-2024.2.dump.gz from https://apps.ingenuity.com/ingsso/login
 # zcat HGMD_Pro_2024.2_hg38.vcf.gz | php $src/Tools/db_converter_hgmd.php | bgzip > HGMD_PRO_2024_2_fixed.vcf.gz
 # tabix -p vcf HGMD_PRO_2024_2_fixed.vcf.gz
 # #CNVs
 # zcat hgmd_pro-2024.2.dump.gz | php $src/Tools/db_converter_hgmd_cnvs.php > HGMD_CNVS_2024_2.bed
 # apptainer exec $ngsbits BedSort -with_name -in HGMD_CNVS_2024_2.bed -out HGMD_CNVS_2024_2.bed
 
-# Install COSMIC Cancer Mutation Census CMC  (you need a license)
-cd $dbs
-mkdir -p COSMIC
-cd COSMIC
-# manual download of CancerMutationCensus_AllData_Tsv_v99_GRCh38.tar, Cosmic_GenomeScreensMutant_Vcf_v99_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v99_GRCh38.tar and  Cosmic_NonCodingVariants_Vcf_v99_GRCh38.tar from https://apps.ingenuity.com/ingsso/login
-#ls *.tar | xargs -l1 tar -xf 
-gunzip -c CancerMutationCensus_AllData_v99_GRCh38.tsv.gz | php $src/Tools/db_converter_cosmic.php -in_cmc - -in_genome_vcf Cosmic_GenomeScreensMutant_v99_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v99_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v99_GRCh38.vcf.gz -out cmc_export_v99.vcf.gz
-#TODO keine VCFs im Download?!
+# Install COSMIC Cancer Mutation Census CMC (you need a license)
+# cd $dbs
+# mkdir -p COSMIC
+# cd COSMIC
+# # manual download of CancerMutationCensus_AllData_Tsv_v99_GRCh38.tar, Cosmic_GenomeScreensMutant_Vcf_v99_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v99_GRCh38.tar and Cosmic_NonCodingVariants_Vcf_v99_GRCh38.tar from https://apps.ingenuity.com/ingsso/login
+# ls *.tar | xargs -l1 tar -xf 
+# gunzip -c CancerMutationCensus_AllData_v99_GRCh38.tsv.gz | php $src/Tools/db_converter_cosmic.php -in_cmc - -in_genome_vcf Cosmic_GenomeScreensMutant_v99_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v99_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v99_GRCh38.vcf.gz -out cmc_export_v99.vcf.gz
