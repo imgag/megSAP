@@ -11,7 +11,7 @@ check_file($out_file1, data_folder().$name."_out1.bam");
 
 $out_file2 = output_folder().$name."_out2.bam";
 check_exec(execApptainer("umiVar", "barcode_correction.py", "--infile ".data_folder().$name."_in2.bam --outfile $out_file2 --n --barcode_error 1 --minBQ 30", [data_folder()], [output_folder()], true));
-check_exec("samtools sort -o $out_file2 $out_file2");
+check_exec(execApptainer("samtools", "samtools", "sort -o $out_file2 $out_file2", [data_folder()], [output_folder()], true));
 check_file($out_file2, data_folder().$name."_out2.bam");
 
 end_test();

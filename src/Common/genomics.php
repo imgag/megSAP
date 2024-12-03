@@ -1390,7 +1390,7 @@ function genome_fasta($build, $use_local_data=true, $use_local_ramdrive=true)
 		//use local copy in tmp
 		$local_fasta = get_path("local_data")."/".$build.".fa";
 		if (file_exists($local_fasta)) return $local_fasta;
-		else trigger_error("Use of local genome file requested, but '$local_fasta' does not exist.", E_USER_WARNING);
+		else trigger_error("Use of local genome file requested, but '$local_fasta' does not exist.", E_USER_NOTICE);
 	}
 	
 	//use the genome FASTA from the megSAP installation

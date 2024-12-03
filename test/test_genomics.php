@@ -27,7 +27,7 @@ end_test();
 start_test("is_valid_ref_sample_for_cnv_analysis");
 
 check(is_valid_ref_sample_for_cnv_analysis("NA12878"), false);
-if (db_is_enabled("NGSD"))
+if (db_is_enabled("NGSD") && get_path("location", false)=="IMGAG")
 {
 	check(is_valid_ref_sample_for_cnv_analysis("GS160265_06"), false); //tumor
 	check(is_valid_ref_sample_for_cnv_analysis("GS160832_01"), false); //ffpe
@@ -177,7 +177,7 @@ check($sys['name_manufacturer'], "SureSelectXT Human All Exon v5");
 check($sys['shotgun'], true);
 check($sys['umi_type'], "n/a");
 
-if (db_is_enabled("NGSD"))
+if (db_is_enabled("NGSD") && get_path("location", false)=="IMGAG")
 {
 	$filename = "";
 	$sys = load_system($filename, "GS130043_01");
@@ -190,7 +190,7 @@ end_test();
 //##################################################################################
 start_test("store_system");
 
-if (db_is_enabled("NGSD"))
+if (db_is_enabled("NGSD") && get_path("location", false)=="IMGAG")
 {
 	$db_conn = DB::getInstance("NGSD");
 	$filename = temp_file(".ini");
@@ -204,7 +204,7 @@ end_test();
 //##################################################################################
 start_test("get_processed_sample_id");
 
-if (db_is_enabled("NGSD"))
+if (db_is_enabled("NGSD") && get_path("location", false)=="IMGAG")
 {
 	$db_conn = DB::getInstance("NGSD");
 	check(get_processed_sample_id($db_conn, "GS130043_01"), 1498);

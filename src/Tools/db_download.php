@@ -27,7 +27,7 @@ if (in_array("vep", $dbs))
 	print "### VEP ###\n";
 
     $vep_data_dir = get_path("vep_data");
-	print "Downloading VEP database to {$vep_data_dir} ...\n";
+	print "Downloading VEP data to {$vep_data_dir} ...\n";
 	
     // create VEP cache data folder
     if (!file_exists($vep_data_dir))
@@ -40,7 +40,7 @@ if (in_array("vep", $dbs))
     {
         exec2("mkdir -p $vep_data_dir/ftp");
     }
-
+	
     if (!file_exists("$vep_data_dir/cache"))
     {
         exec2("mkdir -p $vep_data_dir/cache");
@@ -51,7 +51,7 @@ if (in_array("vep", $dbs))
     exec("wget --no-verbose -P {$vep_data_dir}/ftp/ ".$url);
 
     // install ensembl-vep
-	print "Installing VEP data ...\n";
+	print "Installing VEP cache to {$vep_data_dir}/cache/ ...\n";
     $parser->execApptainer("vep", "INSTALL.pl", "--SPECIES homo_sapiens --ASSEMBLY GRCh38 --AUTO c --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST --NO_HTSLIB", [$vep_data_dir]);
 	
 	//remove downloaded data
@@ -79,11 +79,11 @@ if (in_array("kraken2", $dbs))
     }
 
 	//build kraken2 database
-    print "Building kraken2 database...";
+    print "Building kraken2 database...\n";
 	$parser->execApptainer("kraken2", "kraken2-build", "-db $kraken_data_dir --download-taxonomy --skip-map  --use-ftp", [$kraken_data_dir]);
 	$parser->execApptainer("kraken2", "kraken2-build", "-db $kraken_data_dir --add-to-library {$hemoglobin_fa}", [$kraken_data_dir], [$hemoglobin_fa]);
 	$parser->execApptainer("kraken2", "kraken2-build", "--build  --threads 5 --db $kraken_data_dir", [$kraken_data_dir]);
-    print "Finished building kraken2 database.";
+    print "Finished building kraken2 database\n";
 }
 
 if (in_array("STAR", $dbs))
@@ -111,7 +111,7 @@ if (in_array("STAR", $dbs))
 		exec2("mkdir -p $star_genome_dir");
 	}
 
-    print "Indexing genome '{$genome}' using STAR. This may take a while.";
+    print "Indexing genome '{$genome}' using STAR. This may take a while.\n";
 	$parser->execApptainer("STAR", "STAR", "--runThreadN 20 --runMode genomeGenerate --genomeDir {$star_genome_dir} --genomeFastaFiles {$genome} --sjdbGTFfile {$star_gtf_file}", [$star_genome_dir, $star_gtf_file]);
 }
 

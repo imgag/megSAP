@@ -27,7 +27,14 @@ if ($barcode_correction && !isset($viral_bam_raw))
     $viral_bam_raw = $parser->tempFile("_viral_before_dedup.bam");
 }
 
-//data setup
+//check viral genome is indexes
+$viral_genome  = get_path("data_folder")."/genomes/{$build_viral}.fa";
+if (file_exists($viral_genome) && !file_exists($viral_genome.".bwt.2bit.64"))
+{
+	$parser->execTool("Tools/index_genome.php", "-in {$viral_genome}");
+}
+
+//copy genome to local data folder
 $parser->execTool("Tools/data_setup.php", "-build {$build_viral}");
 
 //target file for viral sequences

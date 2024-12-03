@@ -135,6 +135,7 @@
 /data/dbs/*/
 /data/tools/*/
 /data/genomes/*/
+/data/genomes/somatic_viral.fa.*
 
 /test/data_longread/*.fastq.gz
 /test/data_longread/*.bam

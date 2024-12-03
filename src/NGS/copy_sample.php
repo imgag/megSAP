@@ -23,6 +23,13 @@ $parser->addInt("threads_ora", "Number of threads used to decompress ORA files d
 $parser->addFlag("test", "Run in test mode, e.g. set the pipeline path to a fixed value.");
 extract($parser->parse($argv));
 
+//check if GenLab is available
+if (get_path("genlab_host", false)=="" || get_path("genlab_name", false)=="" || get_path("genlab_user", false)=="" || get_path("genlab_pass", false)=="")
+{
+	trigger_error("GenLab SQL settings not present: skipping GenLab import!", E_USER_NOTICE);
+	$no_genlab = true;
+}
+
 //extract samples names and sequencer type from sample sheet
 function extract_sample_data(&$db_conn, $filename)
 {
@@ -263,7 +270,7 @@ else $sample_data = extract_sample_data($db_conn, $samplesheet);
 
 
 //import data from Genlab
-if (! $no_genlab)
+if (!$no_genlab)
 {
 	print "Importing information from GenLab...\n";
 

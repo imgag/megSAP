@@ -118,9 +118,9 @@ $flowcell_id = $result[0]['fcid'];
 //check flowcell ID
 foreach ($subdirs as $subdir)
 {
-	if (!mb_strpos(basename($subdir), $flowcell_id))
+	if (!contains(basename($subdir), $flowcell_id))
 	{
-		trigger_error("Flowcell ID '{$flowcell_id}' not found in directory name '{$run_dir}'.", E_USER_ERROR);
+		trigger_error("Flowcell ID '{$flowcell_id}' not found in directory name '{$subdir}'.", E_USER_ERROR);
 	}
 }
 

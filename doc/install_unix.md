@@ -10,15 +10,15 @@ We are providing instructions for Ubuntu 20.04 and RHEL 8.3 here. However this s
 
 Ubuntu 20.04
 
-	> sudo apt-get install -y rsync zlib1g bzip2 php7.4-cli php7.4-xml php7.4-mysql make unzip wget git gnumeric tabix numdiff
+	> sudo apt-get install -y rsync zlib1g bzip2 php7.4-cli php7.4-xml php7.4-mysql make unzip wget git gnumeric tabix numdiff pigz
     
 Ubuntu 22.04
 
-	> sudo apt-get install -y rsync zlib1g bzip2 php8.1-cli php8.1-xml php8.1-mysql make unzip wget git gnumeric tabix numdiff
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.1-cli php8.1-xml php8.1-mysql make unzip wget git gnumeric tabix numdiff pigz
 
 Ubuntu 24.04
 
-	> sudo apt-get install -y rsync zlib1g bzip2 php8.2-cli php8.2-xml php8.2-mysql make unzip wget git gnumeric tabix numdiff
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.2-cli php8.2-xml php8.2-mysql make unzip wget git gnumeric tabix numdiff pigz
 
     
 ## Install Apptainer
@@ -69,13 +69,32 @@ Finally, we need to download and convert some open-source databases for annotati
 	> ./download_dbs.sh
 	> php ../src/Tools/db_download.php # DB downloads that require apptainer containers
 
-**Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
+**Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the `download_dbs.sh` script.
 
 ## NGSD initialization
 
-//TODO Marc
+If you want to use the NGSD and it is not initialized already, perform the following steps:
 
-**Note:** To annotate variants with NGSD in-house counts, classifications, etc., NGSD data has to be exported regularly. Adapt the file `data\dbs\NGSD\Makefile` and execute `make export` once a week using a cronjob.
+1) Install a MariaDB server
+2) Create a database and a associated user in the SQL database.
+3) Add the NGSD information to the megSAP `settings.ini` file.
+4) Create tables using the following script:
+
+	> php ../src/Install/db_init.php
+
+5) Import genomics base data (genes, transcripts, phenotypes, gene-phenotype associations, ...) using the following tools from ngs-bits:
+
+	> NGSDImportQC --help
+	> NGSDImportHGNC --help
+	> NGSDImportEnsembl --help
+	> NGSDImportHPO --help
+	> NGSDImportGeneInfo --help
+	> NGSDImportOMIM --help
+	> NGSDImportORPHA --help
+
+**Note** To call ngs-bits tools, you have to call the apptainer container like that `apptainer exec data/tools/apptainer_container/ngs-bits_[version].sif [tool] [parameters]`.
+
+**Note:** To annotate variants with NGSD in-house counts, classifications, etc., NGSD data has to be exported regularly. To do so, adapt the file `data\dbs\NGSD\Makefile` and execute `make export` once a week using a cronjob.
 
 
 ## Settings

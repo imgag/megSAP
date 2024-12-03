@@ -37,6 +37,7 @@ This section contains general settings:
 * `use_bwa1` - Flag (true/false) that indicates if BWA mem should be used for mapping instead of BWA mem 2 (BWA mem 2 is faster, but needs more RAM).
 * `annotate_refseq_consequences` - Flag (true/false) that indicates if variant consequences based on RefSeq transcripts should be annotated in addition to variant consequences based on Ensembl transcripts.
 * `custom_columns` - Used to add custom annotations to the output VCF/GSvar file. Each entry consists of a colon-speparated list of VCF file, INFO field name in the source VCF (prefixed with `CUSTOM_` in the annotated VCF) and column description. Provide the annotation using the dictionary syntax of PHP, e.g. `custom_columns['NGSD_counts'] = "/mnt/data/dbs/NGSD/NGSD_germline.vcf.gz;COUNTS;NGSD counts"`.
+* `locaton` - If set enables site-specific functionality and tests. Set only if you are a collaborator with a specific site name.
 
 ## Section 'dragen'
 

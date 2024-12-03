@@ -48,7 +48,7 @@ remove_lines_containing($out_file_dragen, "#CREATION_DATE=");
 check_file($out_file_dragen, data_folder().$name."_out_dragen.GSvar", true);
 
 //genotype_mode=single, DRAGEN + custom colunns
-$custom_columns_test = get_path("custom_columns_test");
+$custom_columns_test = get_path("custom_columns_test", false);
 if (is_array($custom_columns_test))
 {
 	$out_file_dragen2 = output_folder().$name."_out_dragen2.GSvar";
