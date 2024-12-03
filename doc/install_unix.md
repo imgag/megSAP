@@ -84,13 +84,13 @@ If you want to use the NGSD and it is not initialized already, perform the follo
 
 5) Import genomics base data (genes, transcripts, phenotypes, gene-phenotype associations, ...) using the following tools from ngs-bits:
 
-	> NGSDImportQC --help
-	> NGSDImportHGNC --help
-	> NGSDImportEnsembl --help
-	> NGSDImportHPO --help
-	> NGSDImportGeneInfo --help
-	> NGSDImportOMIM --help
-	> NGSDImportORPHA --help
+	> NGSDImportQC --help  
+	> NGSDImportHGNC --help  
+	> NGSDImportEnsembl --help  
+	> NGSDImportHPO --help  
+	> NGSDImportGeneInfo --help  
+	> NGSDImportOMIM --help  
+	> NGSDImportORPHA --help  
 
 **Note** To call ngs-bits tools, you have to call the apptainer container like that `apptainer exec data/tools/apptainer_container/ngs-bits_[version].sif [tool] [parameters]`.
 
