@@ -26,23 +26,18 @@ if(!isset($pid)) $pid = basename($in);
 
 //init
 $out_prefix = dirname($out)."/".basename($out, ".vcf");
+$genome = genome_fasta($build);
 
 
 //### perform RE calling ###
 
 // prepare command
-$in_files = array();
-$out_files = array();
 $args = [];
 $args[] = "--threads $threads";
 $args[] = "--reads $in";
-$in_files[] = $in;
-$args[] = "--reference ".genome_fasta($build);
-$in_files[] = genome_fasta($build);
+$args[] = "--reference {$genome}";
 $args[] = "--output-prefix {$out_prefix}";
-$out_files[] = $out_prefix;
 $args[] = "--variant-catalog $variant_catalog";
-$in_files[] = $variant_catalog;
 		
 // add gender info
 if (db_is_enabled("NGSD"))
@@ -58,7 +53,7 @@ if (db_is_enabled("NGSD"))
 $tool_version = get_path("container_expansionhunter");
 
 // run Expansion Hunter
-$parser->execApptainer("expansionhunter", "ExpansionHunter", implode(" ", $args), $in_files, $out_files);
+$parser->execApptainer("expansionhunter", "ExpansionHunter", implode(" ", $args), [$in, $genome , $variant_catalog], [dirname($out)]);
 
 // read VCF file into memory
 $vcf_file_content = file($out);

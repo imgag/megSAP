@@ -29,7 +29,7 @@ extract($parser->parse($argv));
 $run_dir = realpath($run_dir);
 if (!file_exists($run_dir))
 {
-	trigger_error("Run directory '{$run_dir}' does not exists!", E_USER_ERROR);
+	trigger_error("Run directory '{$run_dir}' does not exist!", E_USER_ERROR);
 }
 
 //set ulimit

@@ -29,7 +29,6 @@ $group_props = array();
 $group_props[] = "ID:{$sample}";
 $group_props[] = "SM:{$sample}";
 $group_props[] = "LB:{$sample}";
-$group_props[] = "CN:medical_genetics_tuebingen";
 $group_props[] = "DT:".date("c");
 $group_props[] = "PL:ILLUMINA";
 if(db_is_enabled("NGSD"))
