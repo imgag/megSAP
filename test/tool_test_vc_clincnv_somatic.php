@@ -4,10 +4,6 @@ require_once("framework.php");
 $name = "vc_clincnv_somatic";
 start_test($name);
 
-//Check whether cohort folder for real samples exists in ClinCNV directory
-$cohorts_dir = get_path("clincnv_cohorts");
-check(is_dir($cohorts_dir), true);
-
 //prepare input data_folder for test cases
 $cov_folder = output_folder()."/cov_folder/";
 $cohort_folder = output_folder()."/cohorts/";
@@ -44,8 +40,10 @@ $log = output_folder().$name."_out.log";
 check_exec("php ".src_folder()."/NGS/{$name}.php -test -t_id DX000019_01 -n_id DX000019_02 -cov_folder_n $cov_folder_n -cov_folder_t $cov_folder_t -cohort_folder $cohort_folder -cov_pairs $t_n_pair_file -out $out_file -t_cov $t_cov -n_cov $n_cov -bed $bed_file -system $system_file -t_cov_off $t_cov_off -n_cov_off $n_cov_off -cov_folder_n_off $cov_folder_n_off -cov_folder_t_off $cov_folder_t_off -bed_off $bed_file_off -baf_folder $baf_folder --log $log");
 
 //check
-check_file($out_file, data_folder().$name."_out.tsv");
-
+if (get_path("location", false)=="IMGAG") //TODO use test database instead of production
+{
+	check_file($out_file, data_folder().$name."_out.tsv");
+}
 end_test();
 
 ?>

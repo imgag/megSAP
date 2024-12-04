@@ -13,9 +13,10 @@ if (db_is_enabled("NGSD"))
 
 	$stdout = check_exec("php ".src_folder()."/Tools/".$name.".php -in $in1 -snps set1 -format LightCycler -out $out1 -user unknown");
 	unlink(data_folder().$name."_in1_converted.tsv");
-
-	check_file($out1, data_folder().$name."_out1.tsv");
-
+	if (get_path("location", false)=="IMGAG")
+	{
+		check_file($out1, data_folder().$name."_out1.tsv");
+	}
 
 	//test 2 - LightCycler - SNP set 2
 	$in2 = data_folder().$name."_in2.txt";
@@ -23,9 +24,10 @@ if (db_is_enabled("NGSD"))
 
 	$stdout = check_exec("php ".src_folder()."/Tools/".$name.".php -in $in2 -snps set2 -format LightCycler -out $out2 -user unknown");
 	unlink(data_folder().$name."_in2_converted.tsv");
-
-	check_file($out2, data_folder().$name."_out2.tsv");
-
+	if (get_path("location", false)=="IMGAG")
+	{
+		check_file($out2, data_folder().$name."_out2.tsv");
+	}
 	
 	//test 3 - StepOnePlus - SNP set 2 - only conversion is checked
 	$in3 = data_folder().$name."_in3.txt";

@@ -10,15 +10,15 @@ We are providing instructions for Ubuntu 20.04 and RHEL 8.3 here. However this s
 
 Ubuntu 20.04
 
-	> sudo apt-get install -y rsync zlib1g bzip2 php7.4-cli php7.4-xml php7.4-mysql make unzip wget git gnumeric tabix numdiff pigz
+	> sudo apt-get install -y rsync zlib1g bzip2 php7.4-cli php7.4-xml php7.4-mysql make unzip wget git gnumeric tabix numdiff pigz ghostscript
     
 Ubuntu 22.04
 
-	> sudo apt-get install -y rsync zlib1g bzip2 php8.1-cli php8.1-xml php8.1-mysql make unzip wget git gnumeric tabix numdiff pigz
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.1-cli php8.1-xml php8.1-mysql make unzip wget git gnumeric tabix numdiff pigz ghostscript
 
 Ubuntu 24.04
 
-	> sudo apt-get install -y rsync zlib1g bzip2 php8.2-cli php8.2-xml php8.2-mysql make unzip wget git gnumeric tabix numdiff pigz
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.2-cli php8.2-xml php8.2-mysql make unzip wget git gnumeric tabix numdiff pigz ghostscript
 
     
 ## Install Apptainer
@@ -92,7 +92,7 @@ If you want to use the NGSD and it is not initialized already, perform the follo
 	> NGSDImportOMIM --help  
 	> NGSDImportORPHA --help  
 
-**Note** To call ngs-bits tools, you have to call the apptainer container like that `apptainer exec data/tools/apptainer_container/ngs-bits_[version].sif [tool] [parameters]`.
+**Note:** To call ngs-bits tools, you have to call the apptainer container like that `apptainer exec data/tools/apptainer_container/ngs-bits_[version].sif [tool] [parameters]`.
 
 **Note:** To annotate variants with NGSD in-house counts, classifications, etc., NGSD data has to be exported regularly. To do so, adapt the file `data\dbs\NGSD\Makefile` and execute `make export` once a week using a cronjob.
 

@@ -157,7 +157,7 @@ $in_files[] = annotation_file_path("/dbs/ClinVar/clinvar_20240805_converted_GRCh
 
 // add HGMD annotation
 $hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2024_2_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
-if(file_exists($hgmd_file))
+if(file_exists($hgmd_file) && !$test)
 {
 	fwrite($config_file, $hgmd_file."\tHGMD\tCLASS,MUT,GENE,PHEN\tID\n");
 	$in_files[] = $hgmd_file;
@@ -271,7 +271,7 @@ $vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
 $parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vcf_output_mes} -out {$vcf_annotate_output} -threads {$threads}", $in_files);
 
 // annotate gene info from NGSD
-$gene_file = resolve_symlink($data_folder."/dbs/NGSD/NGSD_genes.bed");
+$gene_file = $test ? repository_basedir()."/test/data/an_vep_NGSD_gene_info.bed" : resolve_symlink($data_folder."/dbs/NGSD/NGSD_genes.bed");
 if (file_exists($gene_file))
 {
 	$tmp = $parser->tempFile(".vcf");
@@ -298,7 +298,7 @@ $parser->moveFile($tmp, $vcf_annotate_output);
 
 //annotate OMIM (optional because of license)
 $omim_file = annotation_file_path("/dbs/OMIM/omim.bed", true);
-if(file_exists($omim_file))
+if(file_exists($omim_file) && !$test)
 {
 	$tmp = $parser->tempFile("_omim.vcf");
 	$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed {$omim_file} -name OMIM -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files = [$omim_file]);

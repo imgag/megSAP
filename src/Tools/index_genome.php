@@ -22,16 +22,21 @@ if ($mask)
 	$parser->moveFile($tmp, $in);
 }
 
+//BWA index
 if (get_path("use_bwa1"))
 {
 	$parser->execApptainer("bwa", "bwa index", "-a bwtsw {$in}", [$in]);
 }
 else
 {
-	$parser->execApptainer("bwa-mem2", "/opt/bwa-mem2-2.2.1_x64-linux/bwa-mem2", " index {$in}", $in_files = [$in]);
+	$parser->execApptainer("bwa-mem2", "/opt/bwa-mem2-2.2.1_x64-linux/bwa-mem2", " index {$in}", [$in]);
 }
 
-$parser->execApptainer("samtools", "samtools", " faidx {$in}", $in_files = [$in]);
+//samtools FAI file
+$parser->execApptainer("samtools", "samtools", "faidx {$in}", [$in]);
 exec2("md5sum -b {$in} > {$in}.md5");
+
+//GATK dict file
+$parser->execApptainer("gatk", "gatk", "CreateSequenceDictionary -R {$in}", [$in]);
 
 ?>

@@ -20,7 +20,7 @@ $parser->addFlag("ignore_nsx_analysis", "Ignore NovaSeqX Analysis results.");
 $parser->addFlag("no_genlab", "Do not query GENLAB for metadata.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addInt("threads_ora", "Number of threads used to decompress ORA files during the copy.", true, 8);
-$parser->addFlag("test", "Run in test mode, e.g. set the pipeline path to a fixed value.");
+$parser->addFlag("test", "Run in test mode, e.g. set the pipeline path and project folder to a fixed value.");
 extract($parser->parse($argv));
 
 //check if GenLab is available
@@ -213,11 +213,6 @@ if (!isset($out)) $out = "Makefile";
 $db_conn = DB::getInstance($db);
 if($test) $repo_folder = "/mnt/storage2/megSAP/pipeline"; //fixed absolute path to make the tests work for all users
 else $repo_folder = repository_basedir(); //use repositories tool in production
-
-$file_acccess_group = get_path("file_access_group", false);
-if ($file_acccess_group == "") trigger_error("File access group not set in the settings.ini. File group will not be set!", E_USER_WARNING);
-
-
 
 //fallback for NovaSeq X default SampleSheet name
 if (($samplesheet == "SampleSheet_bcl2fastq.csv") && !file_exists($samplesheet)) $samplesheet = "SampleSheet.csv";
@@ -449,7 +444,7 @@ foreach($sample_data as $sample => $sample_infos)
 {
 	$project_name = $sample_infos['project_name'];
 	$project_type = $sample_infos['project_type'];
-	$project_folder = $sample_infos['project_folder'];
+	$project_folder = $test ? "/test/project/folder/" : $sample_infos['project_folder'];
 	$project_analysis = $sample_infos['project_analysis'];
 	$sample_folder = $sample_infos['ps_folder'];
 	$sample_is_tumor = $sample_infos['is_tumor'];
@@ -751,7 +746,7 @@ foreach($sample_data as $sample => $sample_infos)
 
 	// make sure all files are accessible by bioinf
 	$target_to_copylines[$tag][] = "\tchmod -R 775 {$project_folder}Sample_{$sample}";
-	if ($file_acccess_group != "") $target_to_copylines[$tag][] = "\tchgrp -R {$file_acccess_group} {$project_folder}Sample_{$sample}";
+	$target_to_copylines[$tag][] = "\tchgrp -R f_ad_bi_l_medgen_access_storages {$project_folder}Sample_{$sample}";
 
 	//skip normal samples which have an associated tumor sample on the same run
 	$is_normal_with_tumor = !$sample_is_tumor && isset($normal2tumor[$sample]);

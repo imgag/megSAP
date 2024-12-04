@@ -25,9 +25,6 @@ $parser->addInt("threads", "Number of threads to use for file merging and compre
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
-$file_acccess_group = get_path("file_access_group", false);
-if ($file_acccess_group == "") trigger_error("File access group not set in the settings.ini. File group will not be set!", E_USER_WARNING);
-
 //absolute path
 $run_dir = realpath($run_dir);
 if (!file_exists($run_dir))
@@ -263,8 +260,8 @@ foreach ($result as $record)
 		trigger_error("FASTQ saved in {$out_fastq}.", E_USER_NOTICE);	}
 
 	//apply file access permissions
-	$parser->exec("chmod", "-R 775 {$out_dir}");
-	if ($file_acccess_group != "") $parser->exec("chgrp", "-R {$file_acccess_group} {$out_dir}");
+	exec2("chmod -R 775 {$out_dir}");
+	exec2("chgrp -R f_ad_bi_l_medgen_access_storages {$out_dir}", false);
 
 	if ($queue_sample)
 	{
