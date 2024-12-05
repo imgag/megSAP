@@ -1235,7 +1235,7 @@ class ToolBase
 	{	
 		$threads -= 1; //number of additional threads, that's why -1
 		$tmp_for_sorting = $this->tempFile();
-		$this->execApptainer("samtools", "samtools sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G -o $out $in", [$in], [$out]);
+		$this->execApptainer("samtools", "samtools sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G -o $out $in", [$in], [dirname($out)]);
 	}
 	
 	///Index BAM file

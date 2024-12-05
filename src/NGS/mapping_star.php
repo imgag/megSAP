@@ -51,7 +51,6 @@ list($gs, $ps) = explode("_", $basename."_99");
 $group_props[] = "ID:{$basename}";
 $group_props[] = "SM:{$gs}";
 $group_props[] = "LB:{$gs}_{$ps}";
-$group_props[] = "CN:medical_genetics_tuebingen";
 $group_props[] = "DT:".date("c");
 $group_props[] = "PL:ILLUMINA";
 if(db_is_enabled("NGSD"))

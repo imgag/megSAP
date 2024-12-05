@@ -1113,22 +1113,16 @@ if (in_array("an", $steps))
 	{
 		//remove previous calls
 		if (file_exists($cfdna_folder)) exec2("rm -r $cfdna_folder"); 
-		//set parameters
-		$in_files = array();
-		$in_files[] = $variants_gsvar;
-		$in_files[] = $ref_genome;
-		$out_files = array();
-		$out_files[] = $out_folder;
 
+		// call variant selection in umiVar container
 		$params = array();
 		$params[] = "-v ${tmp_vcf}";
 		$params[] = "-g ${variants_gsvar}";
 		$params[] = "-o ${cfdna_folder}";
 		$params[] = "-r ${ref_genome}";
-		$params[] = "-n 65"; // select 50 candidate variants
+		$params[] = "-n 65"; //number of variants to select
 		$params[] = "-i"; // ignore INDELS
-		// call variant selection in umiVar container
-		$parser->execApptainer("umiVar", "select_monitoring_variants.py", implode(" ", $params), $in_files, $out_files);
+		$parser->execApptainer("umiVar", "select_monitoring_variants.py", implode(" ", $params), [$variants_gsvar, $ref_genome], [$out_folder]);
 	}
 	else
 	{
@@ -1144,12 +1138,13 @@ if (in_array("msi", $steps) && !$single_sample)
 	$msi_tmp_folder = $parser->tempFolder("sp_detect_msi_");
 	$msi_tmp_file = $msi_tmp_folder."/msi_tmp_out.tsv";
 	//file that contains MSI in target
-	$msi_ref = get_path("data_folder") . "/dbs/msisensor-pro/msisensor_references_".$n_sys['build'].".site";
-	
-	if(!file_exists($msi_ref)) // create msi-ref file:
+	$msi_folder = get_path("data_folder")."/dbs/msisensor-pro/";
+	$msi_ref = $msi_folder."/msisensor_references_".$n_sys['build'].".site";
+	if(!file_exists($msi_ref)) // create msi-ref file
 	{
 		print("Could not find loci reference file $msi_ref. Trying to generate it.\n");
-		$parser->execApptainer("msisensor-pro", "msisensor-pro", "scan -d $ref_genome -o $msi_ref", [$ref_genome], [$msi_ref], false, false);
+		if (!file_exists($msi_folder)) $parser->exec("mkdir", "-p {$msi_folder}");
+		$parser->execApptainer("msisensor-pro", "msisensor-pro", "scan -d $ref_genome -o $msi_ref", [$ref_genome], [$msi_folder]);
 
 		//remove sites with more than 100 repeat_times as that crashes dragen MSI:
 		$out_lines = [];

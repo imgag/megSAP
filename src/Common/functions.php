@@ -910,6 +910,9 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 
 	foreach($out_files as $file)
 	{
+		//check it is a folder
+		if (is_file($file)) trigger_error("{$container}: Only folders can be bound as output parameters. '{$file}' is a file!", E_USER_ERROR);
+		
 		$filepath = realpath(dirname($file));
 
 		if($filepath === "." || $filepath === "" || $filepath === $cwd || strpos($filepath, $cwd . DIRECTORY_SEPARATOR) === 0) continue;
@@ -935,7 +938,7 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 			$path = explode(":", $path)[0];
 			if(!file_exists($path))
 			{
-				trigger_error("Bind path '{$path}' not exists!", E_USER_ERROR);
+				trigger_error("Bind path '{$path}' does not exist!", E_USER_ERROR);
 			}
 		}
 
