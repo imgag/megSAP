@@ -94,7 +94,7 @@ function write($h_out, $var)
 		{
 			//set defaults: (some indels only contain GT column)
 			if (!isset($sample['DP'])) $sample['DP'] = ".";
-			if (isset($sample['AF']) && $sample['AF']!=".")
+			if (isset($sample['AF']) && is_numeric($sample['AF']))
 			{
 				$sample['AF'] = number_format($sample['AF'], 3);
 			}

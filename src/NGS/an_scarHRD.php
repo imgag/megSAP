@@ -11,10 +11,9 @@ $parser->addString("normal", "Name of the normal sample.", false);
 $parser->addString("out_folder", "Folder in which the hrd score file will be saved.", false);
 $parser->addFlag("filtered", "Calculate the HRD score based on the filtered CNVs. Removes the CNVs flagged as artifacts in the somatic report config in NGSD .", true);
 $parser->addString("db", "Database to be used for the filtering of CNVs (only used when -filtered is given)", true, "NGSD");
-
-
 extract($parser->parse($argv));
 
+$out_folder = realpath($out_folder); //R cannot deal with relative paths...
 
 function prepare_clincnv($clincnv, $sample)
 {

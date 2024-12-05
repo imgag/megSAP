@@ -157,7 +157,7 @@ if (in_array("ma", $steps))
 		"-system {$system}",
 		"-qc_fastq {$qc_fastq}",
 		"-qc_map {$qc_map}",
-	];
+		"-softclip_supplements"	];
 	if (count($unmapped_bam_files) > 0)
 	{
 		$mapping_minimap_options[] = "-in_bam " . implode(" ", $unmapped_bam_files);	

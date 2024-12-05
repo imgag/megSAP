@@ -16,6 +16,7 @@ $parser->addInfile("in",  "Input project folder.", false);
 $parser->addString("when",  "Start time in format '20:15' or 'now'.", true, "now");
 $parser->addString("out_folder", "Output folder path.", true, "/mnt/storage1/raw_data_archive/projects/");
 $parser->addString("tmp_folder", "Temporary folder. If unset a user-specific folder in ".sys_get_temp_dir()." is used.", true, "");
+$parser->addString("folder_suffix",  "Suffix added to the output archive and log file", true, "");
 extract($parser->parse($argv));
 
 //check that the correct user is executing the script
@@ -38,6 +39,14 @@ $out_folder = rtrim($out_folder, "/");
 
 //determine output file names
 $basename = basename($in);
+
+//add optional suffix
+if ($folder_suffix != "") 
+{
+	$basename .= "_".$folder_suffix;
+	trigger_error("Adding folder suffix '{$folder_suffix}'", E_USER_NOTICE);
+}
+
 if (!preg_match("/^([0-9]{2})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !checkdate($matches[2], $matches[3], $matches[1]))
 {
 	$basename = date("ymd")."_".$basename;
