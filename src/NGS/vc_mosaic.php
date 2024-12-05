@@ -162,7 +162,7 @@ $parser->exec("php ".repository_basedir()."src/NGS/vc_freebayes.php ", " -target
 $pipeline = [];
 $pipeline[] = array("cat", "$called_vcf");
 $pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
-$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "");
+$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "-no_errors");  // -no_errors flag can be removed, when vcfallelicprimitives is replaced
 $pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
 $tmp_annotated = temp_file("_annotated.vcf");
 $gnomad_file = get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz";

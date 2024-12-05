@@ -52,10 +52,10 @@ function expand_format_col($format_desc_col, $data_col)
 	for($row=0; $row<count($expanded_cols["PR"]); ++$row)
 	{
 		$pr_parts = explode(",", $expanded_cols["PR"][$row]);
-		(count($pr_parts) == 2 )? list($pr_ref, $pr_alt) = $pr_parts : list($pr_ref, $pr_alt) = array(".", ".");
+		list($pr_ref, $pr_alt) = (count($pr_parts) == 2) ? $pr_parts : array(".", ".");
 		
-		$sr_parts = explode(",", $expanded_cols["SR"][$row]);
-		(count($sr_parts) == 2)? list($sr_ref, $sr_alt) = $sr_parts : list($sr_ref, $sr_alt) = array(".", ".");
+		$sr_parts = isset($expanded_cols["SR"][$row]) ? explode(",", $expanded_cols["SR"][$row]) : "";
+		list($sr_ref, $sr_alt) = (count($sr_parts) == 2) ? $sr_parts : array(".", ".");
 		
 		$col_pr_ref[] = $pr_ref;
 		$col_pr_alt[] = $pr_alt;
