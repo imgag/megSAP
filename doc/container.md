@@ -13,7 +13,7 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | circos_0.69.9.sif	                    | circos	                | 0.69.9	        | circos                                                                                            |
 | clair3_v1.0.10.sif                    | clair3	                | 1.0.10	        | run_clair3.sh                                                                                     |
 | clair3-trio_v0.7.sif                  | clair3-trio               | 0.7	            | /opt/bin/run_clair3_trio.sh                                                                       |
-| ClinCNV_v1.18.3.sif	                | ClinCNV                   | 1.18.3	        | Rscript --vanilla /opt/ClinCNV/clinCNV.R                                                          |
+| ClinCNV_v1.18.3.sif	                | ClinCNV                   | 1.18.3	        | clinCNV.R                                                                                         |
 | expansionhunter_v5.0.0.s              | expansionhunter	        | 5.0.0	            | ExpansionHunter                                                                                   |
 | freebayes_v1.3.6.sif	                | freebayes                 | 1.3.6	            | freebayes                                                                                         |
 | gatk_4.6.0.0.sif	                    | gatk                      | 4.6.0.0	        | gatk                                                                                              |
@@ -31,7 +31,7 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | REViewer_v0.2.7.sif                   | REViewer	                | 0.2.7	            | REViewer                                                                                          |
 | samblaster_v0.1.26.sif	            | samblaster	            | 0.1.26	        | samblaster                                                                                        |
 | samtools_1.20.sif	                    | samtools	                | 1.20	            | samtools                                                                                          |
-| scarHRD_v1.sif	                    | scarHRD	                | 1	                | Rscript --vanilla /opt/scarHRD/R/cli_scarHRD.R                                                    |
+| scarHRD_v1.sif	                    | scarHRD	                | 1	                | cli_scarHRD.R                                                    |
 | SigProfilerExtractor_v1.1.24.sif      | SigProfilerExtractor      | 1.1.24	        | python -c 'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor("parameter")' |
 | sniffles_v2.4.sif	                    | sniffles	                | 2.4	            | sniffles                                                                                          |
 | spliceai_v1.3.1.sif	                | spliceai	                | 1.3.1	            | spliceai                                                                                          |

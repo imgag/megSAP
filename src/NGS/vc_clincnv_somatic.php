@@ -316,7 +316,7 @@ if(!file_exists($cohort_folder))
 {
 	trigger_error("Directory for cohort output {$cohort_folder} does not exist.",E_USER_ERROR);
 }
-$command = "Rscript --vanilla /opt/ClinCNV/clinCNV.R";
+$command = "clinCNV.R";
 
 $in_files = array();
 $out_files = array();

@@ -522,7 +522,7 @@ function run_clincnv($out, $mosaic=FALSE)
 $repository_basedir = repository_basedir();
 $ps_name = basename2($cov);
 if (ends_with($ps_name, ".cov")) $ps_name = substr($ps_name, 0, -4);
-$command = "Rscript --vanilla /opt/ClinCNV/clinCNV.R";
+$command = "clinCNV.R";
 
 $tool_version = get_path("container_ClinCNV");
 
