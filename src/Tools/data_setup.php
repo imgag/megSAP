@@ -319,7 +319,6 @@ if (get_path("copy_dbs_to_local_data"))
 	print "### Copy apptainer containers ###\n";
 	print "from: {$network_folder}\n";
 	print "to  : {$local_folder}\n";
-	print "\n";
 
 	// Check if the network container folder exists
 	if (!file_exists($network_folder))
@@ -340,37 +339,34 @@ if (get_path("copy_dbs_to_local_data"))
 		}
 	}
 
-	print "Copying apptainer containers...\n";
 	// Get list of apptainer containers from network directory
 	list($container_files) = exec2("ls {$network_folder}/*");
-
 	foreach ($container_files as $container_file) 
 	{
 		$base = basename($container_file);
-		$local_container_file = $local_folder . $base;
+		$local_container_file = $local_folder.$base;
 		
 		if (!file_exists($local_container_file) || (filemtime($local_container_file)<filemtime($container_file)))
 		{
-			print "	new container version found: '$base'. Copying to '$local_container_file'.\n";
+			print "  {$base}: Copying new container version to '$local_container_file'.\n";
 			// Copy the new container or new version
 			list($stdout, $stderr) = exec2("{$rsync} {$container_file} {$local_container_file}");
+			foreach (array_merge($stdout, $stderr) as $line) 
+			{
+				$line = trim($line);
+				if ($line == "") continue;
+				print "    $line\n";
+			}
+
+			// Set permissions on the new local copy
+			@chmod($local_container_file, 0777);
+			
+			//update date
+			@touch($local_container_file);
 		}
 		else
 		{
-			print "	newest version of container '$base' already in '$local_folder'.\n";
-		}
-
-		foreach (array_merge($stdout, $stderr) as $line) 
-		{
-			$line = trim($line);
-			if ($line == "") continue;
-			print "    $line\n";
-		}
-
-		// Set permissions on the new local copy
-		if (!chmod($local_container_file, 0777)) 
-		{
-			trigger_error("Could not change privileges of local folder '{$local_container_file}'!", E_USER_ERROR);
+			print "  {$base}: skipped - local copy is up-to-date\n";
 		}
 	}
 }

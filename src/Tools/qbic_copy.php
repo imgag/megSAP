@@ -76,25 +76,6 @@ if (!$upload)
 	print "##===============================================================\n";
 }
 
-//determine QBIC/FO ID from Probeneingang
-function checkProbeneingang($name, $table)
-{
-	$name = strtr($name, array("FO-"=>"FO"));
-	
-	$db = DB::getInstance("Probeneingang");
-	$res = $db->executeQuery("SELECT identifier, identifier_external FROM $table WHERE identifier LIKE '%$name%'");
-	foreach($res as $row)
-	{
-		$ext = trim($row['identifier_external']);
-		if (strlen($ext)==10 && $ext[0]=="Q")
-		{
-			return array(trim($row['identifier']), $ext);
-		}
-	}
-	
-	return null;
-}
-
 //determine QBIC/FO ID from sample name (and external sample name)
 function getExternalNames($name, $name_ex)
 {
@@ -108,21 +89,6 @@ function getExternalNames($name, $name_ex)
 		if (strlen($name)==10 && $name[0]=="Q")
 		{
 			$qbic_name = $name;
-		}
-		
-		//Check (derived) samples in Probeneingang
-		if (starts_with($name, "FO") && strlen($name)>6)
-		{
-			$tmp = checkProbeneingang($name, "sample");
-			if (!is_null($tmp))
-			{
-				list($fo_name, $qbic_name) = $tmp;			
-			}
-			$tmp = checkProbeneingang($name, "derived_sample");
-			if (!is_null($tmp))
-			{
-				list($fo_name, $qbic_name) = $tmp;			
-			}
 		}
 	}
 	

@@ -76,18 +76,22 @@ foreach($status as $stat)
 }
 $status = array_combine($bams, $status);
 
+//make BAMs absolute paths
+for ($i=0; $i<count($bams); ++$i)
+{
+	$bams[$i] = realpath($bams[$i]);
+}
+
 //check input sample names
 $names = array();
-$tmp = array();
 foreach($bams as $bam)
 {
 	$name = basename2($bam);
-	if (isset($tmp[$name]))
+	if (in_array($name, array_values($names)))
 	{
 		trigger_error("Sample file name '$name' occurs twice in input file list. Each sample must be uniquely identifiable by name!", E_USER_ERROR);
 	}
 	$names[$bam] = $name;
-	$tmp[$name] = true;
 }
 
 //check processing systems are supported
@@ -138,24 +142,24 @@ if (in_array("vc", $steps))
 	$parser->execTool("NGS/merge_gvcf.php", implode(" ", $args));
 
 	//phasing (WhatsHap)
+	$genome = genome_fasta($sys['build']);
 	$vcf_file_phased = $parser->tempFile("_phased.vcf");
 	$args = array();
 	$args[] = "phase";
 	if ($ped != "")	$args[] = "--ped {$ped}";
-	$args[] = "--reference=".genome_fasta($sys['build']);
+	$args[] = "--reference={$genome}";
 	$args[] = "-o {$vcf_file_phased}";
 	$args[] = "{$vcf_file}";
 	$args[] = implode(" ", $bams);
 
-	$in_files = array();
-	$out_files = array();
-
-	$in_files[] = $ped;
-	$in_files[] = genome_fasta($sys['build']);
-	$out_files[] = $vcf_file;
-	$in_files = array_merge($out_files, $bams);
-
-	$parser->execApptainer("whatshap", "whatshap", implode(" ", $args), $in_files, $out_files);
+	$out_files = [];
+	$out_files[] = dirname($vcf_file);
+	foreach($bams as $bam)
+	{
+		$out_files[] = dirname($bam);
+	}
+	
+	$parser->execApptainer("whatshap", "whatshap", implode(" ", $args), [$ped, $genome], $out_files);
 
 	//create compressed file and index and replace original VCF
 	$parser->exec("bgzip", "-c {$vcf_file_phased} > {$vcf_file}", false);
