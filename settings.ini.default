@@ -12,11 +12,6 @@ vep_data = [path]/data/dbs/ensembl-vep-112/
 clincnv_cohorts = [path]/data/ClinCNV-cohorts/
 clair3_models = [path]/data/tools/Clair3-v1.0.10/models
 
-[tools-primer]
-tracetuner = [path]/data/tools/tracetuner_3.0.6beta/rel/Linux_64/ttuner
-primer3 = [path]/data/tools/opt/primer3-2.3.6/src/
-GRCh37_data_folder = ""
-
 [apptainer-container]
 container_abra2 = v2.23
 container_arriba = v2.4.0
@@ -66,7 +61,10 @@ local_data = /tmp/local_ngs_data/
 data_folder = [path]/data/
 container_folder = [path]/data/tools/apptainer_container/
 test_data_folder = [path]/data/test_data/
-project_folder = 
+project_folder['diagnostic'] = 
+project_folder['research'] = 
+project_folder['test'] = 
+project_folder['external'] = 
 
 [general]
 copy_dbs_to_local_data = false
@@ -77,6 +75,8 @@ cnv_bin_size_longread_wgs = 10000
 use_bwa1 = false
 annotate_refseq_consequences = false
 location = ""
+custom_columns_test['ngsd_counts'] = "[path]/test/data/an_vep_custom.vcf.gz;COUNTS;NGSD counts"
+custom_columns_test['ngsd_nervous_system'] = "[path]/test/data/an_vep_custom.vcf.gz;GSC08;NGSD nervous system counts"
 
 [dragen]
 ; transfer folder
@@ -102,7 +102,7 @@ db_name['NGSD_TEST'] = "ngsd_test"
 db_user['NGSD_TEST'] = "ngsdtestuser"
 db_pass['NGSD_TEST'] = ""
 
-#GenLab SQL credentials (only used by ngs-bits tools)
+#GenLab SQL credentials - only used by ngs-bits tools
 genlab_mssql = 
 genlab_host = ""
 genlab_port = 

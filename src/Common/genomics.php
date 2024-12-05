@@ -679,14 +679,14 @@ function is_valid_ref_tumor_sample_for_cnv_analysis($file, $discard_ffpe = false
 /// - sorts and format/sample columns by format string
 function load_vcf_normalized($filename)
 {
+	if (!file_exists($filename)) return  [];
+
 	$comments = array();
 	$header = "";
 	$vars = array();
 	
 	//load and normalize data
-	if(!is_file($filename))	trigger_error("Could not find file $filename.",E_USER_WARNING);
-	$file = file($filename);
-	foreach($file as $line)
+	foreach(file($filename) as $line)
 	{
 		$line = nl_trim($line);
 		if ($line=="") continue;
