@@ -165,3 +165,7 @@ if (isset($out_bam)) {
         $parser->indexBam($out_bam, 1);
     }
 }
+
+//prepend source to outfile:
+$source_line = "##source=arriba $arriba_ver\n";
+file_put_contents($out_fusions, $source_line . file_get_contents($out_fusions));
