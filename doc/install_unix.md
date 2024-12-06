@@ -10,36 +10,28 @@ We are providing instructions for Ubuntu 20.04 and RHEL 8.3 here. However this s
 
 Ubuntu 20.04
 
-	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php7.4-cli php7.4-xml php7.4-mysql tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qt5-default qt5-qmake qtbase5-dev libcurl4-openssl-dev libhts-dev libtabixpp-dev libtabixpp0 meson ninja-build gnumeric numdiff libpcre2-dev libreadline-dev libffi-dev libharfbuzz-dev libfribidi-dev libgit2-dev pybind11-dev libsqlite3-dev openjdk-17-jdk openjdk-17-jre gfortran
+	> sudo apt-get install -y rsync zlib1g bzip2 php7.4-cli php7.4-xml php7.4-mysql make unzip wget git gnumeric tabix numdiff pigz ghostscript
     
 Ubuntu 22.04
 
-	> sudo apt-get install -y rsync bzip2 default-jre bioperl libset-intervaltree-perl libjson-xs-perl libcarp-assert-perl libgd-dev libdb-dev libxml2-dev libxml2-utils php8.1-cli php8.1-xml php8.1-mysql tabix unzip wget build-essential cmake cpanminus git libbz2-dev liblzma-dev libncurses5-dev libqt5sql5-mysql libpng-dev libqt5xmlpatterns5-dev libssl-dev qtbase5-dev qt5-qmake qtbase5-dev libhts-dev libtabixpp-dev libtabixpp0 meson ninja-build gnumeric numdiff libpcre2-dev libreadline-dev libffi-dev libharfbuzz-dev libfribidi-dev libgit2-dev pybind11-dev libsqlite3-dev openjdk-17-jdk openjdk-17-jre gfortran
-    
-RHEL 8.3
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.1-cli php8.1-xml php8.1-mysql make unzip wget git gnumeric tabix numdiff pigz ghostscript
 
-	Add LANGUAGE and LC_ALL to /etc/locale.conf
-    
-	Example:
-	LANGUAGE="en_US.UTF-8"
-	LANG="en_US.UTF-8"
-	LC_ALL="en_US.UTF-8"
+Ubuntu 24.04
 
-	> subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms
-	> yum groupinstall "Development Tools" -y
-	> yum install zlib-devel bzip2-devel xz-devel ncurses-devel libcurl-devel cpan cpanminus gd-devel libdb-devel -y
-	> dnf install php-cli php-xml  php-mysqlnd R-core R-core-devel -y
- 	> yum install qt5-qtcharts.x86_64 qt5-qtbase-odbc.x86_64 qt5-qtbase-mysql.x86_64 qt5-qtxmlpatterns.x86_64 libcurl-devel.x86_64 qt5-devel.x86_64
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.2-cli php8.2-xml php8.2-mysql make unzip wget git gnumeric tabix numdiff pigz ghostscript
+
     
+## Install Apptainer
+
+	> sudo add-apt-repository -y ppa:apptainer/ppa
+	> sudo apt update
+	> sudo apt install -y apptainer
+
 ## Downloading
 
-Clone the latest release of megSAP:
+Clone megSAP repository with containerized tools:
 
-	> git clone -b 2024_09 https://github.com/imgag/megSAP.git
-
-Or, if you want to test the current development version:
-
-	> git clone https://github.com/imgag/megSAP.git
+	> git clone -b containerize_tools https://github.com/imgag/megSAP.git
 
 ### Resolving proxy issues with git
 
@@ -56,19 +48,17 @@ Then you have to adapt your ~/.gitconfig file like that:
 
 ## Initial setup
 
-To install the required tools and data you will need to execute custom script delivered with the repository.
-If you work in a security critical environment it is advised that you use a [chroot environment](https://help.ubuntu.com/community/BasicChroot) as the scripts will attempt to install software with administrative privileges.
+To install the required tools and databases you will need to execute some installation scripts in the order described here.
 
 First, we make sure the privileges of the installation scripts are correct:
 
 	> cd megSAP/data
 	> chmod 755 *.sh
 
-Next, we install all required tools
+Next, we install a few tools and download apptainer containers for the rest of the tools:
 
 	> ./download_tools.sh
-	> ./download_tools_somatic.sh #only needed for somatic analysis
-	> ./download_tools_rna.sh #only needed for RNA analysis
+	> ./download_container.sh
 
 Next, we need to download and index the reference genome:
 	
@@ -77,11 +67,34 @@ Next, we need to download and index the reference genome:
 Finally, we need to download and convert some open-source databases for annotations:
 
 	> ./download_dbs.sh
-	> ./download_dbs_rna.sh #only needed for RNA analysis
+	> php ../src/Tools/db_download.php # DB downloads that require apptainer containers
 
-**Note:** OMIM and HGMD are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
+**Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the `download_dbs.sh` script.
 
-**Note:** The use of the optional NGSD annotation requires an export of the variants to VCF files. These files should be updated on a regular basis. For example code take a look at the NGSD section in the download script.
+## NGSD initialization
+
+If you want to use the NGSD and it is not initialized already, perform the following steps:
+
+1) Install a MariaDB server
+2) Create a database and a associated user in the SQL database.
+3) Add the NGSD information to the megSAP `settings.ini` file.
+4) Create tables using the following script:
+
+	> php ../src/Install/db_init.php
+
+5) Import genomics base data (genes, transcripts, phenotypes, gene-phenotype associations, ...) using the following tools from ngs-bits:
+
+	> NGSDImportQC --help  
+	> NGSDImportHGNC --help  
+	> NGSDImportEnsembl --help  
+	> NGSDImportHPO --help  
+	> NGSDImportGeneInfo --help  
+	> NGSDImportOMIM --help  
+	> NGSDImportORPHA --help  
+
+**Note:** To call ngs-bits tools, you have to call the apptainer container like that `apptainer exec data/tools/apptainer_container/ngs-bits_[version].sif [tool] [parameters]`.
+
+**Note:** To annotate variants with NGSD in-house counts, classifications, etc., NGSD data has to be exported regularly. To do so, adapt the file `data\dbs\NGSD\Makefile` and execute `make export` once a week using a cronjob.
 
 
 ## Settings

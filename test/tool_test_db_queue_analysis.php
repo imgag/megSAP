@@ -7,8 +7,8 @@ $file = data_folder().$name;
 
 start_test($name);
 
-//init
-check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
+//init NGSD
+init_ngsd($name);
 
 //test single
 $log_file = output_folder().$name."_out1.log";

@@ -209,9 +209,10 @@ function txt2geno_steponeplus($snps, $in_file, $out_file, $lanes_to_check)
 //returns the genotype(s) for a sample at a certain position, or 'n/a' if the minimum depth was not reached.
 function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 {	
+	global $parser;
+
 	//get pileup
-	//print get_path("samtools")." mpileup -aa -f ".genome_fasta("GRCh38")." -r $chr:$pos-$pos $bam\n";
-	list($output) = exec2(get_path("samtools")." mpileup -aa -f ".genome_fasta("GRCh38")." -r $chr:$pos-$pos $bam");
+	list($output) = $parser->execApptainer("samtools", "samtools mpileup", "-aa -f ".genome_fasta("GRCh38")." -r $chr:$pos-$pos $bam", [genome_fasta("GRCh38"), $bam]);
 	//print_r($output);
 	list($chr2, $pos2, $ref2, , $bases) = explode("\t", $output[0]);;
 	
@@ -246,6 +247,7 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 //searches for sample in NGSD and returns processed sample meta data
 function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 {
+	global $parser;
 	$output = array();
 	
 	$project_conditions = "(p.type='diagnostic'".($irp ? " OR p.type='research'" : "").($itp ? " OR p.type='test'" : "").")";
@@ -277,11 +279,14 @@ function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 	}
 	
 	//determine processed sample meta data
-	$ngsbits = get_path("ngs-bits");
 	foreach($res as $row)
 	{
 		$sample = $row['name'];
-		list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER | {$ngsbits}TsvSlice -cols 'name,project_type,project_name,path,quality'");
+		$pipeline = [
+			["", $parser->execApptainer("ngs-bits", "NGSDExportSamples", "-sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER", [], [], true)],
+			["", $parser->execApptainer("ngs-bits", "TsvSlice", "-cols 'name,project_type,project_name,path,quality'", [], [], true)],
+		];
+		list($stdout) = $parser->execPipeline($pipeline, "NGSD sample extraction");
 		foreach($stdout as $line)
 		{
 			$line = trim($line);

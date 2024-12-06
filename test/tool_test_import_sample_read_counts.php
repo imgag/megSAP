@@ -6,8 +6,9 @@ $name = "import_sample_read_counts";
 
 start_test($name);
 
-//init
-check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
+//init NGSD
+init_ngsd($name);
+
 // get id for read count in qc_terms
 $db_conn = DB::getInstance("NGSD_TEST");
 

@@ -10,16 +10,15 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //parse command line arguments
 $parser = new ToolBase("extract_example", "Extracts a region from a sample e.g to create demo data.");
 $parser->addInfile("in", "BAM file of the sample.", false);
-$parser->addString("out", "Output name.", false);
+$parser->addString("out", "Output file.", false);
 $parser->addString("reg", "Region to extract in format chr:start-end.", false);
 extract($parser->parse($argv));
 
 //init
-$samtools = get_path("samtools");
 $genome = genome_fasta("GRCh38");
 
 //make sure output folder exists
-$folder = $out."/";
+$folder = dirname($out);
 exec2("mkdir -p $folder");
 
 //store region as BED file
@@ -29,9 +28,10 @@ if(!starts_with($reg, "chr")) $reg = "chr".$reg;
 file_put_contents($roi, strtr($reg, array(":"=>"\t", "-"=>"\t")));
 
 //extract reads from BAM
-$out_bam = "{$folder}/{$out}.bam";
-exec2("{$samtools} view -T {$genome} -h -L {$roi} -M {$in} | {$samtools} view -T {$genome} -Sb > {$out_bam}");
-$parser->indexBam($out_bam, 4);
+$tmp_sam = $parser->tempFile(".sam");
+$parser->execApptainer("samtools", "samtools view", "-T {$genome} -h -L {$roi} -M -o {$tmp_sam} {$in}", [$in, $genome]);
+$parser->execApptainer("samtools", "samtools view", "-T {$genome} -Sb {$tmp_sam} > {$out}", [$genome], [$out]);
+$parser->indexBam($out, 4);
 
 //write IGV session file
 $session = array();

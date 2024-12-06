@@ -128,7 +128,12 @@ function check($observed, $expected, $delta = null)
 ///Removes lines that contain any string from the @p ignore_strings array 
 function remove_lines_containing($filename, $ignore_strings)
 {
+	//file missing > nothing to do...
+	if (!file_exists($filename)) return;
+
+	//make sure ignore strings is an array
 	if (!is_array($ignore_strings)) $ignore_strings = [$ignore_strings];
+	
 	//load input
 	$file = file($filename);
 	
@@ -309,9 +314,11 @@ function check_file($out_file, $reference_file, $compare_header_lines = false)
 	elseif (ends_with($out_file, ".bam") && ends_with($reference_file, ".bam"))
 	{
 		$o = temp_file("_out.sam");
-		exec(get_path("samtools")." view $out_file | cut -f1-11 > $o 2>&1", $output, $return); //cut to ignore the read-group and other annotations
+		$samtools_command = execApptainer("samtools", "samtools view", "$out_file", [$out_file], [], true);
+		exec("{$samtools_command} | cut -f1-11 > $o 2>&1", $output, $return); //cut to ignore the read-group and other annotations
 		$r = temp_file("_ref.sam");
-		exec(get_path("samtools")." view $reference_file | cut -f1-11 > $r 2>&1", $output, $return); //cut to ignore the read-group and other annotations
+		$samtools_command = execApptainer("samtools", "samtools view", "$reference_file", [$reference_file], [], true);
+		exec("{$samtools_command} | cut -f1-11 > $r 2>&1", $output, $return); //cut to ignore the read-group and other annotations
 		
 		exec("diff -b $r $o > $logfile 2>&1", $output, $return);
 		$passed = ($return==0);
@@ -434,4 +441,23 @@ function end_test()
 	if ($failed) exit(1);
 }
 
+///initializes NGSD if a SQL file with the correct name exists
+function init_ngsd($tool_name)
+{	
+	//prepare arguments
+	$args = [];
+	$args[] = "-test";
+	$in_files = [];
+	
+	//additional SQL commands to execute
+	$sql_file = data_folder()."/{$tool_name}.sql";
+	if (file_exists($sql_file))
+	{
+		$args[] = "-add {$sql_file}";
+		$in_files[] = $sql_file;
+	}
+	
+	//init
+	list($stdout, $stderr, $exit_code) = execApptainer("ngs-bits", "NGSDInit", implode(" ", $args), $in_files);
+}
 ?>

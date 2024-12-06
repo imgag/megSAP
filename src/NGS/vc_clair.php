@@ -13,7 +13,7 @@ $parser->addInfile("bam",  "Input files in BAM format. Note: .bam.bai file is re
 $parser->addString("folder", "Destination folder for output files.", false);
 $parser->addString("name", "Base file name, typically the processed name ID (e.g. 'GS120001_01').", false);
 $parser->addInfile("target",  "Enrichment targets BED file.", false);
-$parser->addInfile("model", "Model file used for calling.", false);
+$parser->addString("model", "Model used for calling.", false);
 
 //optional
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
@@ -36,26 +36,27 @@ $out_gvcf = "{$folder}/{$name}_var.gvcf.gz";
 //create basic variant calls
 $args = array();
 $args[] = "--bam_fn={$bam}";
-$args[] = "--ref_fn={$genome}";
-$args[] = "--model_path={$model}";
+$args[] = "--ref_fn=$genome";
 $args[] = "--threads={$threads}";
 $args[] = "--platform=\"ont\"";
+$args[] = "--model_path={$model}";
 $args[] = "--keep_iupac_bases";
 $args[] = "--gvcf";
-
-//define env parameter
 $args[] = "--sample_name={$name}";
-$args[] = "--samtools=".get_path("samtools");
-$args[] = "--python=".get_path("python3");
-$args[] = "--pypy=".get_path("pypy3");
-$args[] = "--parallel=".get_path("parallel");
-$args[] = "--whatshap=".get_path("whatshap");
+
+
+//set bind paths for clair3 container
+$in_files = array();
 
 //copy settings for mito calling
 $args_mito = $args;
 
 //set output
 $args[] = "--output={$clair_temp}";
+
+$in_files[] = $bam;
+$in_files[] = $genome;
+$in_files[] = $model;
 
 //calculate target region
 if(isset($target))
@@ -64,7 +65,7 @@ if(isset($target))
 	$target_extended = $parser->tempFile("_roi_extended.bed");
 	if ($target_extend>0)
 	{
-		$parser->exec(get_path("ngs-bits")."BedExtend"," -in $target -n $target_extend -out $target_extended -fai {$genome}.fai", true);
+		$parser->execApptainer("ngs-bits", "BedExtend", "-in $target -n $target_extend -out $target_extended -fai {$genome}.fai", [$target, $genome]);
 	}
 	else
 	{
@@ -74,18 +75,17 @@ if(isset($target))
 	//add special target regions (regions with known pathogenic variants that are often captured by exome/panel, but not inside the target region)
 	if ($build=="GRCh38" && $target_extend>0) //only if extended (otherwise it is also added for chrMT calling, etc.)
 	{
-		$parser->exec(get_path("ngs-bits")."BedAdd"," -in $target_extended ".repository_basedir()."/data/misc/special_regions.bed -out $target_extended ", true);
+		$parser->execApptainer("ngs-bits", "BedAdd", "-in $target_extended ".repository_basedir()."/data/misc/special_regions.bed -out $target_extended", [repository_basedir()."/data/misc/special_regions.bed"]);
 	}
 	
 	$target_merged = $parser->tempFile("_merged.bed");
-	$parser->exec(get_path("ngs-bits")."BedMerge"," -in $target_extended -out $target_merged", true);
+	$parser->execApptainer("ngs-bits", "BedMerge", "-in $target_extended -out $target_merged");
 	
 	$args[] = "--bed_fn={$target_merged}";
 }
 
-//run Clair3
-putenv("PYTHONPATH=".dirname(get_path("clair3")));
-$parser->exec(get_path("clair3"), implode(" ", $args));
+//run Clair3 container
+$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args), $in_files);
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
 $clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
 
@@ -96,8 +96,7 @@ file_put_contents($target_mito, "chrMT\t0\t16569");
 $args_mito[] = "--bed_fn={$target_mito}";
 $args_mito[] = "--haploid_sensitive";
 
-putenv("PYTHONPATH=".dirname(get_path("clair3")));
-$parser->exec(get_path("clair3"), implode(" ", $args_mito));
+$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args_mito), $in_files);
 $clair_mito_vcf = $clair_mito_temp."/merge_output.vcf.gz";
 $clair_mito_gvcf = $clair_mito_temp."/merge_output.gvcf.gz";
 
@@ -105,17 +104,16 @@ $clair_mito_gvcf = $clair_mito_temp."/merge_output.gvcf.gz";
 //merge VCFs (normal calls + mito)
 $clair_merged_vcf1 = $parser->tempFile("_merged.vcf");
 $clair_merged_vcf2 = $parser->tempFile("_merged.vcf.gz");
-$parser->exec(get_path("ngs-bits")."VcfMerge", "-in {$clair_vcf} {$clair_mito_vcf} -out {$clair_merged_vcf1}");
-$parser->exec(get_path("ngs-bits")."VcfSort", "-compression_level 5 -in {$clair_merged_vcf1} -out {$clair_merged_vcf2}"); //sorting should not be necessary
-
+$parser->execApptainer("ngs-bits", "VcfMerge", "-in {$clair_vcf} {$clair_mito_vcf} -out {$clair_merged_vcf1}");
+$parser->execApptainer("ngs-bits", "VcfSort", "-compression_level 5 -in {$clair_merged_vcf1} -out {$clair_merged_vcf2}"); //sorting should not be necessary
 if (file_exists($clair_mito_gvcf))
 {
 	//TODO: combine to pipeline
 	$clair_merged_gvcf1 = $parser->tempFile("_merged.gvcf");
 	$clair_merged_gvcf2 = $parser->tempFile("_merged.gvcf.gz");
-	$parser->exec(get_path("ngs-bits")."VcfMerge", "-in {$clair_gvcf} {$clair_mito_gvcf} -out {$clair_merged_gvcf1}");
-	// no sorting since MT is last chr anyways
-	// $parser->exec(get_path("ngs-bits")."VcfSort", "-compression_level 5  -in {$clair_merged_gvcf1} -out {$clair_merged_gvcf2}");
+	$parser->execApptainer("ngs-bits", "VcfMerge", "-in {$clair_gvcf} {$clair_mito_gvcf} -out {$clair_merged_gvcf1}");
+	//no sorting since MT is last chr anyways
+	//$parser->execApptainer("ngs-bits", "VcfSort", "-compression_level 5  -in {$clair_merged_gvcf1} -out {$clair_merged_gvcf2}");
 	$parser->exec("bgzip", "-c {$clair_merged_gvcf1} > {$clair_merged_gvcf2}");
 }
 else
@@ -131,21 +129,21 @@ $pipeline = array();
 $pipeline[] = array("zcat", "{$clair_merged_vcf2}");
 
 //filter variants according to variant quality>5
-$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -remove_invalid -ref $genome");
+$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -remove_invalid -ref $genome", [$genome], [], true));
 
 //split complex variants to primitives
 //this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
-$pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
+$pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg", [], [], true)];
 
-//split multi-allelic variants
-$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "");
+//split multi allelic variants
+$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true));
 
 //normalize all variants and align INDELs to the left
-$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
+$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true));
 
 //sort variants by genomic position
 $uncompressed_vcf = $parser->tempFile(".vcf");
-$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
+$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true));
 
 //fix error in VCF file and strip unneeded information
 $pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", "--longread_mode > {$uncompressed_vcf}", false);
@@ -168,7 +166,7 @@ $vcf->toTSV($uncompressed_vcf);
 if ($target_extend>0)
 {
 	$tmp = $parser->tempFile(".vcf");
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $uncompressed_vcf -mark off-target -reg $target -out $tmp", true);
+	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $uncompressed_vcf -mark off-target -reg $target -out $tmp", [$target]);
 	$parser->exec("bgzip", "-c $tmp > $out", false);
 }
 else
@@ -184,7 +182,7 @@ $parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because To
 $pipeline = array();
 
 $pipeline[] = array("zcat", $clair_merged_gvcf2);
-$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-remove_invalid -ref $genome");
+$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref $genome", [$genome], [], true));
 $pipeline[] = array("bgzip", "-c > {$out_gvcf}");
 $parser->execPipeline($pipeline, "gVCF post processing");
 

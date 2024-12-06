@@ -7,8 +7,10 @@ $file = data_folder().$name;
 
 start_test($name);
 
+//init NGSD
+init_ngsd($name);
+
 //init
-check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
 exec("rm -rf 190228_NB501582_0169_AH5LG5BDXX_0*");
 mkdir(output_folder()."190228_NB501582_0169_AH5LG5BDXX_00001");
 mkdir(output_folder()."190228_NB501582_0169_AH5LG5BDXX_01489");

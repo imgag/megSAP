@@ -5,8 +5,8 @@ require_once("framework.php");
 $name = "db_import_variant_classes";
 start_test($name);
 
-//init
-check_exec(get_path("ngs-bits")."NGSDInit -test");
+//init NGSD
+init_ngsd($name);
 
 //first import (create variants and set classification)
 check_exec("php ".src_folder()."/Tools/{$name}.php -user admin -in ".data_folder()."/{$name}_in1.vcf -db NGSD_TEST");

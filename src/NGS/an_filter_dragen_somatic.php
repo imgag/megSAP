@@ -23,11 +23,11 @@ $parser->exec("bgzip", "-d -c $in > $vcf", true);
 
 //left-align
 $vcf_aligned = $parser->tempFile("_aligned.vcf");
-$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-stream -in $vcf -out $vcf_aligned -ref $genome", true);
+$parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -in $vcf -out $vcf_aligned -ref $genome", [$genome]);
 
 //sort
 $vcf_sorted = $parser->tempFile("_sorted.vcf");
-$parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf_aligned -out $vcf_sorted", true);
+$parser->execApptainer("ngs-bits", "VcfSort", "-in $vcf_aligned -out $vcf_sorted");
 
 
 //################################################################################################
@@ -141,11 +141,11 @@ $variants_filtered->toTSV($vcf_filtered);
 
 //remove invalid variant
 $vcf_invalid = $parser->tempFile("_filtered_invalid.vcf");
-$parser->exec(get_path("ngs-bits")."VcfFilter", "-remove_invalid -ref $genome -in $vcf_filtered -out $vcf_invalid", true);
+$parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref $genome -in $vcf_filtered -out $vcf_invalid", [$genome]);
 
 //left-align
 $vcf_aligned = $parser->tempFile("_aligned.vcf");
-$parser->exec(get_path("ngs-bits")."VcfLeftNormalize", "-stream -in $vcf_invalid -out $vcf_aligned -ref $genome", true);
+$parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -in $vcf_invalid -out $vcf_aligned -ref $genome", [$genome]);
 $final = $vcf_aligned;
 
 
@@ -153,7 +153,7 @@ $final = $vcf_aligned;
 if (!empty($target))
 {
 	$vcf_offtarget = $parser->tempFile("_filtered.vcf");
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $final -mark off-target -reg $target -out $vcf_offtarget", true);
+	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $final -mark off-target -reg $target -out $vcf_offtarget", [$target]);
 	$final = $vcf_offtarget;
 }
 
@@ -168,7 +168,7 @@ if (!empty($target))
 		$vcf_with_artefacts = dirname($out)."/".basename($out, ".vcf.gz")."_with_enzymatic_artefacts.vcf.gz";
 		$parser->exec("bgzip", "-c $final > $vcf_with_artefacts", true);
 		$vcf_no_artefacts = $parser->tempFile("_filtered_no_artefacts.vcf");
-		$parser->exec(get_path("ngs-bits")."VcfSubstract", "-in $final -in2 $artefact_vcf -out $vcf_no_artefacts");
+		$parser->execApptainer("ngs-bits", "VcfSubstract", "-in $final -in2 $artefact_vcf -out $vcf_no_artefacts", [$artefact_vcf]);
 		$final = $vcf_no_artefacts;
 	}
 }

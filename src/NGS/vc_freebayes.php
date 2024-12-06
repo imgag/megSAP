@@ -32,13 +32,14 @@ $genome = genome_fasta($build);
 
 //create basic variant calls
 $args = array();
+$in_files = array();
 if(isset($target))
 {	
 	//extend by 'n' bases
 	$target_extended = $parser->tempFile("_roi_extended.bed");
 	if ($target_extend>0)
 	{
-		$parser->exec(get_path("ngs-bits")."BedExtend"," -in $target -n $target_extend -out $target_extended -fai {$genome}.fai", true);
+		$parser->execApptainer("ngs-bits", "BedExtend", "-in $target -n $target_extend -out $target_extended -fai {$genome}.fai", [$target, $genome]);
 	}
 	else
 	{
@@ -48,11 +49,11 @@ if(isset($target))
 	//add special target regions (regions with known pathogenic variants that are often captured by exome/panel, but not inside the target region)
 	if ($build=="GRCh38" && $target_extend>0) //only if extended (otherwise it is also added for chrMT calling, etc.)
 	{
-		$parser->exec(get_path("ngs-bits")."BedAdd"," -in $target_extended ".repository_basedir()."/data/misc/special_regions.bed -out $target_extended ", true);
+		$parser->execApptainer("ngs-bits", "BedAdd", "-in $target_extended ".repository_basedir()."data/misc/special_regions.bed -out $target_extended ", [repository_basedir()."data/misc/special_regions.bed"]);
 	}
 	
 	$target_merged = $parser->tempFile("_merged.bed");
-	$parser->exec(get_path("ngs-bits")."BedMerge"," -in $target_extended -out $target_merged", true);
+	$parser->execApptainer("ngs-bits", "BedMerge", "-in $target_extended -out $target_merged");
 	
 	$args[] = "-t $target_merged";
 }
@@ -77,6 +78,8 @@ $args[] = "--min-alternate-qsum $min_qsum";
 $args[] = "--genotype-qualities";
 $args[] = "-f $genome";
 $args[] = "-b ".implode(" ", $bam);
+$in_files[] = $genome;
+$in_files = array_merge($in_files, $bam);
 
 // run freebayes
 $pipeline = array();
@@ -143,15 +146,15 @@ if (isset($target) && $threads > 1)
 			$parameters = implode(" ", $args_chr);
 			
 			//start in background
-			$command = get_path("freebayes");			
+			$command = $parser->execApptainer("freebayes", "freebayes", $parameters, $in_files, [], true);		
 			$output = array();
 			$exitcode_file = "{$tmp_dir}/{$chr}.exitcode";
-			exec('('.$command.' '.$parameters.' & PID=$!; echo $PID) && (wait $PID; echo $? > '.$exitcode_file.')', $output);
+			exec('('.$command.' & PID=$!; echo $PID) && (wait $PID; echo $? > '.$exitcode_file.')', $output);
 			$pid = trim(implode("", $output));
 			
 			//log start
 			$add_info = array();
-			$add_info[] = "version    = ".$parser->extractVersion($command);
+			$add_info[] = "version    = ".get_path("container_freebayes");
 			$add_info[] = "parameters = {$parameters}";
 			$add_info[] = "pid = {$pid}";
 			$parser->log("Executing command in background '{$command}'", $add_info);
@@ -252,28 +255,27 @@ else
 {
 	if ($raw_output)
 	{
-		exec(get_path("freebayes")." ".implode(" ", $args)." > $out");
+		$parser->execApptainer("freebayes","freebayes" ,implode(" ", $args)." > $out", $in_files, [$out]);
 		return;
 	}
 	
-	$pipeline[] = array(get_path("freebayes"), implode(" ", $args));
+	$pipeline[] = ["", $parser->execApptainer("freebayes", "freebayes", implode(" ", $args), $in_files, [], true)];
 }
 
 //filter variants according to variant quality>5
-$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -remove_invalid -ref $genome");
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -remove_invalid -ref $genome", [$genome], [], true)];
 
 //split complex variants to primitives
 //this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
-$pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
+$pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg", [], [], true)];
 
 //split multi-allelic variants - -no_errors flag can be removed, when vcfallelicprimitives is replaced
-$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "-no_errors");
-
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_errors", [], [], true)];
 //normalize all variants and align INDELs to the left
-$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)];
 
 //sort variants by genomic position
-$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];
 
 //fix error in VCF file and strip unneeded information
 $pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", "", false);
@@ -288,7 +290,7 @@ $parser->execPipeline($pipeline, "freebayes post processing");
 if ($target_extend>0)
 {
 	$tmp = $parser->tempFile(".vcf");
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $out -mark off-target -reg $target -out $tmp", true);
+	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $out -mark off-target -reg $target -out $tmp", [$out, $target]);
 	$parser->exec("bgzip", "-c $tmp > $out", false);
 }
 

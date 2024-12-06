@@ -108,12 +108,12 @@ $file_qci->toTSV($vcf_qci);
 
 //align INDELs to the left
 $vcf_qci_aligned = $parser->tempFile("_qci_aligned.vcf");
-$parser->exec(get_path("ngs-bits")."VcfLeftNormalize","-stream -in $vcf_qci -out $vcf_qci_aligned -ref ".genome_fasta($build), true);
+$parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -in $vcf_qci -out $vcf_qci_aligned -ref ".genome_fasta($build), [genome_fasta($build)]);
 
 //sort variants
 $vcf_qci_sorted = $parser->tempFile("_qci_sorted.vcf");
 //Nb: VcfStreamSort cannot be used since two vcf files (variants, indels) are concatenated and variants are not grouped by chromosome; total number of variants should be low (somatic).
-$parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf_qci_aligned -out $vcf_qci_sorted", true);
+$parser->execApptainer("ngs-bits", "VcfSort", "-in $vcf_qci_aligned -out $vcf_qci_sorted");
 
 //zip and index output file
 $parser->exec("bgzip", "-c $vcf_qci_sorted > $out", false); //no output logging, because Toolbase::extractVersion() does not return

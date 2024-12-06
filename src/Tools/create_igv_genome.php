@@ -17,7 +17,6 @@ extract($parser->parse($argv));
 
 //init
 $data_folder = get_path("data_folder");
-$ngsbits = get_path("ngs-bits");
 
 //create output folder
 if (!file_exists($output_folder))
@@ -40,7 +39,7 @@ $all_transcripts_tmp = $parser->tempFile(".txt");
 $mane_transcripts_tmp = $parser->tempFile(".txt");
 $all_transcripts = "EnsemblGeneTrack.txt.gz";
 $mane_transcripts = "EnsemblGeneTrack_Mane+Clinical.txt.gz";
-$parser->exec($ngsbits."NGSDExportIgvGeneTrack", "-out {$all_transcripts_tmp} -out_mane {$mane_transcripts_tmp}");
+$parser->execApptainer("ngs-bits", "NGSDExportIgvGeneTrack", "-out {$all_transcripts_tmp} -out_mane {$mane_transcripts_tmp}");
 $parser->exec("bgzip", "-c {$all_transcripts_tmp} > {$output_folder}/{$all_transcripts}");
 $parser->exec("bgzip", "-c {$mane_transcripts_tmp} > {$output_folder}/{$mane_transcripts}");
 
