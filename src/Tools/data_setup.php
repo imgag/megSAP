@@ -13,6 +13,12 @@ $parser->addString("build", "Genome build.", false);
 $parser->addFlag("check", "Check annotation files.");
 extract($parser->parse($argv));
 
+//make sure there are no singularity left-overs
+if (file_exists("/etc/singularity/"))
+{
+	trigger_error("The server contains singularity left-overs: cannot execute megSAP until you delete /etc/singularity/!", E_USER_ERROR);
+}
+
 //init reference genome and annotation data
 $data_folder = get_path("data_folder");
 $local_data = get_path("local_data");
@@ -316,6 +322,7 @@ if (get_path("copy_dbs_to_local_data"))
 	$network_folder = get_path("container_folder");
 	$local_folder = get_path("local_data")."/container/";
 
+	print "\n";
 	print "### Copy apptainer containers ###\n";
 	print "from: {$network_folder}\n";
 	print "to  : {$local_folder}\n";

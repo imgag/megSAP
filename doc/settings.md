@@ -35,6 +35,8 @@ This section contains general settings:
 * `cnv_bin_size_shallow_wgs` - Bin size used for CNV analysis of shallow WGS samples.
 * `cnv_bin_size_longread_wgs` - Bin size used for CNV analysis of long-read WGS samples.
 * `use_bwa1` - Flag (true/false) that indicates if BWA mem should be used for mapping instead of BWA mem 2 (BWA mem 2 is faster, but needs more RAM).
+* `use_bwa1` - Flag (true/false) that indicates if BWA mem should be used for mapping instead of BWA mem 2 (BWA mem 2 is faster, but needs more RAM).
+* `bwa_mem2_suffix` - Suffix appended to the BWA-mem2 executable, e.g. `.avx2` for `AMD EPYC9654`.
 * `annotate_refseq_consequences` - Flag (true/false) that indicates if variant consequences based on RefSeq transcripts should be annotated in addition to variant consequences based on Ensembl transcripts.
 * `custom_columns` - Used to add custom annotations to the output VCF/GSvar file. Each entry consists of a colon-speparated list of VCF file, INFO field name in the source VCF (prefixed with `CUSTOM_` in the annotated VCF) and column description. Provide the annotation using the dictionary syntax of PHP, e.g. `custom_columns['NGSD_counts'] = "/mnt/data/dbs/NGSD/NGSD_germline.vcf.gz;COUNTS;NGSD counts"`.
 * `locaton` - If set enables site-specific functionality and tests. Set only if you are a collaborator with a specific site name.

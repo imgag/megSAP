@@ -29,7 +29,8 @@ if (get_path("use_bwa1"))
 }
 else
 {
-	$parser->execApptainer("bwa-mem2", "/opt/bwa-mem2-2.2.1_x64-linux/bwa-mem2", " index {$in}", [$in]);
+	$suffix = trim(get_path("bwa_mem2_suffix", false));
+	$parser->execApptainer("bwa-mem2", "bwa-mem2{$suffix}", " index {$in}", [$in]);
 }
 
 //samtools FAI file

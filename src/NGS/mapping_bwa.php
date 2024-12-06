@@ -58,7 +58,8 @@ if (get_path("use_bwa1"))
 }
 else
 {
-	$pipeline[] = ["", $parser->execApptainer("bwa-mem2", "bwa-mem2", "$bwa_params $in1 $in2", $in_files, [], true)];
+	$suffix = trim(get_path("bwa_mem2_suffix", false));
+	$pipeline[] = ["", $parser->execApptainer("bwa-mem2", "bwa-mem2{$suffix}", "$bwa_params $in1 $in2", $in_files, [], true)];
 }
 
 //duplicate removal with samblaster

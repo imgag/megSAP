@@ -36,6 +36,7 @@ grep -E "^container_" "$SETTINGS_FILE" | grep -v "container_folder" | while IFS=
     # Construct the apptainer pull command
     echo "Downloading ${toolname} version ${version} from $url"
     wget --no-check-certificate -O "${toolname}_${version}.sif" "$url"
+	chmod 775 "${toolname}_${version}.sif"  || true
 done
 
 # Print a message indicating the file has been written
