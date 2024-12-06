@@ -161,7 +161,8 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 
 		//get sequence
 		$output = array();
-		$samtools_command = execApptainer("samtools", "samtools faidx", genome_fasta($build, $use_local_data)." $chr:{$start}-$end 2>&1", [genome_fasta($build, $use_local_data)], [], true);
+		$genome = genome_fasta($build, $use_local_data);
+		$samtools_command = execApptainer("samtools", "samtools faidx", "{$genome} {$chr}:{$start}-{$end} 2>&1", [$genome], [], true);
 		exec($samtools_command, $output, $ret);
 		if ($ret!=0)
 		{
