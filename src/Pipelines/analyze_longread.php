@@ -459,9 +459,8 @@ if (in_array("re", $steps))
 // methylation calling
 if (in_array("me", $steps))
 {
-	if (!contains_methylation($bam_file)) trigger_error("BAM file doesn't contain methylation info!", E_USER_ERROR);
-
-	$parser->execTool("NGS/create_methyl_plot.php", "-folder {$folder} -name {$name} -out {$methylation_table} -build {$build} -regions {$methyl_regions} -threads {$threads}");
+	if (!contains_methylation($bam_file)) trigger_error("BAM file doesn't contain methylation info! Skipping step 'me'", E_USER_WARNING);
+	else $parser->execTool("NGS/create_methyl_plot.php", "-folder {$folder} -name {$name} -out {$methylation_table} -build {$build} -regions {$methyl_regions} -threads {$threads}");
 
 }
 

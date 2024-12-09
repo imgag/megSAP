@@ -1,5 +1,5 @@
 
-all: clean link map vc cn sv re an diff bam_analysis diff2
+all: clean link map vc cn sv re me an diff bam_analysis diff2
 
 clean:
 	rm -rf *.fastq.gz *.log *.txt *.GSvar *.gvcf.gz *.gvcf.gz.tbi *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe clair_temp repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_rohs.tsv *_ancestry.tsv *_methylation.tsv
@@ -21,6 +21,10 @@ sv:
 
 re:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps re
+
+me:
+	# should only print waring since input data doesn't contain methylation
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps me 
 
 an:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps an
