@@ -31,8 +31,25 @@ if (!ends_with($run_dir, substr($name, 1))) trigger_error("Run folder name ('".b
 // check fcid and raw data folder
 $fc_dir = glob("{$run_dir}/2*_{$flowcell_id}_*");
 if (count($fc_dir) == 0) trigger_error("Run raw data folder missing or wrong FlowCell ID in NGSD!", E_USER_ERROR);
-if (count($fc_dir) > 1) trigger_error("Multiple raw data found!\n".implode(", ", $fc_dir), E_USER_ERROR);
-$fc_dir = $fc_dir[0];
+if (count($fc_dir) > 1) 
+{
+	trigger_error("Multiple raw data found!\n".implode(", ", $fc_dir)."\n Choosing biggest folder...", E_USER_WARNING);
+	$folders = array();
+	foreach ($fc_dir as $folder)
+	{ 
+		list($stdout, $stderr, $exit_code) = $parser->exec("du", "-b --summarize {$folder}");
+		$folder_size = intval(explode("\t", $stdout[0])[0]);
+		$folders[$folder] = $folder_size;
+	}
+	$fc_dir = array_keys($folders, max($folders))[0];
+	trigger_error("Using folder '{$fc_dir}' for QC import.", E_USER_NOTICE);
+}
+else
+{
+	//only one folder present 
+	$fc_dir = $fc_dir[0];
+}
+
 
 // check report file
 $report_files = glob("{$fc_dir}/report_{$flowcell_id}_*.json");
@@ -59,7 +76,7 @@ $final_acquisition = end($report_content["acquisitions"]);
 
 //check for correct acquisition
 $stop_reason = $final_acquisition->acquisition_run_info->stop_reason;
-if ($stop_reason != "STOPPED_PROTOCOL_ENDED") trigger_error("Invalid stop reason '{$stop_reason}'!", E_USER_ERROR);
+if ($stop_reason != "STOPPED_PROTOCOL_ENDED") trigger_error("Invalid stop reason '{$stop_reason}'!", E_USER_WARNING);
 
 
 $read_num = $final_acquisition->acquisition_run_info->yield_summary->read_count;

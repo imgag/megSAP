@@ -167,8 +167,10 @@ $vcf->toTSV($uncompressed_vcf);
 //mark off-target variants
 if ($target_extend>0)
 {
+	$on_target_region = $parser->tempFile(".bed");
+	$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$target} {$target_mito} -out {$on_target_region}", true);
 	$tmp = $parser->tempFile(".vcf");
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $uncompressed_vcf -mark off-target -reg $target -out $tmp", true);
+	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $uncompressed_vcf -mark off-target -reg {$on_target_region} -out $tmp", true);
 	$parser->exec("bgzip", "-c $tmp > $out", false);
 }
 else
