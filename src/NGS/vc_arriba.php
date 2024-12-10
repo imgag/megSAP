@@ -33,13 +33,13 @@ $arriba_build = $arriba_str[$build];
 
 
 //reference files
+$arriba_ver = "v2.4.0";
 $genome = genome_fasta($build);
 $gtf = get_path("data_folder") . "/dbs/gene_annotations/{$build}.gtf";
-$arriba_ref = get_path("arriba") . "/database";
+$arriba_ref = "/opt/arriba_{$arriba_ver}/database";
 
 
 //run Arriba
-$arriba_ver = "v2.4.0";
 $args = [
     "-x", $bam,
     "-o", $out_fusions,
@@ -60,7 +60,7 @@ if (isset($out_discarded)) $args[] = "-O {$out_discarded}";
 echo "starting arriba!";
 //In rare cases throws segmentation fault while writing discarded_fusion file. 
 //Allow that crash while catching others. Writing the discarded file is the last thing it does before freeing resources and finishing -> Check it startet writing the discarded file to be safe the regular output file is complete.
-exec(get_path("arriba")."/arriba ". implode(" ", $args)." 2>&1", $output, $exit_code);
+exec($parser->execApptainer("arriba", "arriba", implode(" ", $args)." 2>&1", [$bam, $genome, $gtf, $sv], [$out_fusions, $out_discarded], true), $output, $exit_code);
 
 echo "finished arriba!\n";
 
@@ -103,7 +103,7 @@ if (isset($out_vcf)) {
         $out_fusions,
         $out_vcf
     ];
-    $parser->exec(get_path("arriba") . "/scripts/convert_fusions_to_vcf.sh", implode(" ", $args));
+    $parser->execApptainer("arriba", "convert_fusions_to_vcf.sh", implode(" ", $args), [$genome, $out_fusions], [$out_vcf]);
 }
 
 
@@ -121,7 +121,7 @@ if (isset($out_pdf)) {
         "--proteinDomains={$arriba_ref}/protein_domains_{$arriba_build}_{$arriba_ver}.gff3",
         "--minConfidenceForCircosPlot=none"
     ];
-    $parser->exec(get_path("rscript")." ". get_path("arriba") . "/draw_fusions.R", implode(" ", $plot_args));
+    $parser->execApptainer("arriba", "draw_fusions.R", implode(" ", $plot_args), [$gtf, $bam], [$out_pdf]);
 	
 	if (isset($out_pic_dir))
 	{
@@ -153,14 +153,14 @@ if (isset($out_bam)) {
         $bam_header = $parser->tempFile("_header.txt");
         $bam_records = $parser->tempFile("_records.sam");
 
-        $parser->exec(get_path("samtools"), "view -H {$bam} > {$bam_header}");
+        $parser->execApptainer("samtools", "samtools", "view -H {$bam} > {$bam_header}", [$bam]);
         $parser->execPipeline([
-            [get_path("samtools"), "view -T {$genome} -O SAM {$bam}"],
+            ["", $parser->execApptainer("samtools", "samtools", "view -T {$genome} -O SAM {$bam}", [$genome, $bam], [], true)],
             ["grep", "-F -f {$read_ids} > {$bam_records}"]
         ], "filter BAM");
         $parser->execPipeline([
             ["cat", "{$bam_header} ${bam_records}"],
-            [get_path("samtools"), "view -T {$genome} -o {$out_bam}"]
+            ["", $parser->execApptainer("samtools", "samtools", "view -T {$genome} -o {$out_bam}", [$genome], [$out_bam], true)]
         ], "write BAM");
         $parser->indexBam($out_bam, 1);
     }

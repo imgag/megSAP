@@ -57,13 +57,16 @@ $vep_output = $parser->tempFile("_vep.vcf");
 //annotate only fields we really need to prevent bloating the VCF file 
 $fields = array("Allele", "Consequence", "Feature", "Feature_type", "DOMAINS", "Existing_variation");
 
-$vep_path = dirname(get_path("vep"));
 $local_data = get_path("local_data");
 $vep_data_path = "{$local_data}/".basename(get_path("vep_data"))."/"; //the data is copied to the local data folder by 'data_setup' to speed up annotations (and prevent hanging annotation jobs)
 $data_folder = get_path("data_folder");
 $genome = genome_fasta($build);
 
 $args = array();
+$in_files = array();
+$in_files[] = $in;
+$in_files[] = $vep_data_path;
+$in_files[] = $genome;
 $args[] = "-i $in --format vcf"; //input
 $args[] = "-o $vep_output --vcf --no_stats --force_overwrite"; //output
 $args[] = "--species homo_sapiens --assembly {$build}"; //species
@@ -81,9 +84,7 @@ if (!$all_transcripts)
 
 $args[] = "--fields ".implode(",", $fields);
 
-$perl_cpan = get_path("perl_cpan");
-putenv("PERL5LIB={$vep_path}/Bio/:{$perl_cpan}/lib/perl5/:".getenv("PERL5LIB"));
-$parser->exec(get_path("vep"), implode(" ", $args), true);
+$parser->execApptainer("vep", "vep", implode(" ", $args), $in_files);
 
 //print VEP warnings
 $warn_file = $vep_output."_warnings.txt";
@@ -102,24 +103,26 @@ if (file_exists($warn_file))
 //add consequences (Ensembl)
 $gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gff3";
 $vcf_output_consequence = $parser->tempFile("_consequence.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateConsequence", " -in {$vep_output} -out {$vcf_output_consequence} -threads {$threads} -tag CSQ2 -gff {$gff} -ref {$genome}", true);
+$parser->execApptainer("ngs-bits", "VcfAnnotateConsequence", "-in {$vep_output} -out {$vcf_output_consequence} -ref $genome -threads {$threads} -tag CSQ2 -gff {$gff}", [$gff, $genome]);
 
 //add consequences (RefSeq)
 if($annotate_refseq_consequences)
 {
 	$gff2 = get_path("data_folder")."/dbs/RefSeq/Homo_sapiens.GRCh38.p14.gff3";
 	$vcf_output_refseq = $parser->tempFile("_refseq.vcf");
-	$parser->exec(get_path("ngs-bits")."/VcfAnnotateConsequence", " -in {$vcf_output_consequence} -out {$vcf_output_refseq} -threads {$threads} -tag CSQ_REFSEQ -gff {$gff2} -source refseq -ref {$genome}", true);
+	$parser->execApptainer("ngs-bits", "VcfAnnotateConsequence", "-in {$vcf_output_consequence} -out {$vcf_output_refseq} -threads {$threads} -tag CSQ_REFSEQ -gff {$gff2} -source refseq -ref $genome",[$gff2, $genome]);
 	$vcf_output_consequence = $vcf_output_refseq;
 }
 
 //add phyloP annotation
 $vcf_output_phylop = $parser->tempFile("_phylop.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBigWig", "-name PHYLOP -mode max -in {$vcf_output_consequence} -out {$vcf_output_phylop} -bw ".annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw")." -threads {$threads}", true);
+$annotation_file = annotation_file_path("/dbs/phyloP/hg38.phyloP100way.bw");
+$parser->execApptainer("ngs-bits", "VcfAnnotateFromBigWig", "-name PHYLOP -mode max -in {$vcf_output_consequence} -out {$vcf_output_phylop} -bw {$annotation_file} -threads {$threads}", [$annotation_file]);
 
 //add MaxEntScan annotation
 $vcf_output_mes = $parser->tempFile("_mes.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateMaxEntScan", "-gff {$gff} -in {$vcf_output_phylop} -out {$vcf_output_mes} -ref {$genome} -swa -threads {$threads} -min_score 0.0 -decimals 1", true);
+$in_files = [$gff, $genome];
+$parser->execApptainer("ngs-bits", "VcfAnnotateMaxEntScan", "-gff {$gff} -in {$vcf_output_phylop} -out {$vcf_output_mes} -ref $genome -swa -threads {$threads} -min_score 0.0 -decimals 1", [$gff, $genome]);
 
 // create config file
 $config_file_path = $parser->tempFile(".config");
@@ -139,35 +142,47 @@ if ($custom!="")
 	}
 }
 
+// input files for VcfAnnotateFromVcf
+$in_files = array();
+
 // add gnomAD annotation
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF\t\ttrue\n");
+$in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz");
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz")."\tgnomADm\tAF_hom\t\ttrue\n");
+$in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz");
 
 // add clinVar annotation
 fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20240805_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
+$in_files[] = annotation_file_path("/dbs/ClinVar/clinvar_20240805_converted_GRCh38.vcf.gz");
 
 // add HGMD annotation
 $hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2024_2_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
-if(file_exists($hgmd_file))
+if(file_exists($hgmd_file) && !$test)
 {
 	fwrite($config_file, $hgmd_file."\tHGMD\tCLASS,MUT,GENE,PHEN\tID\n");
+	$in_files[] = $hgmd_file;
 }
 
 //add CADD score annotation
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz")."\tCADD\tCADD=SNV\t\n");
+$in_files[] = annotation_file_path("/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz");
 fwrite($config_file, annotation_file_path("/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz")."\tCADD\tCADD=INDEL\t\n");
+$in_files[] = annotation_file_path("/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz");
 
 //add REVEL score annotation
 fwrite($config_file, annotation_file_path("/dbs/REVEL/REVEL_1.3.vcf.gz")."\t\tREVEL\t\n");
+$in_files[] = annotation_file_path("/dbs/REVEL/REVEL_1.3.vcf.gz");
 
 //add AlphaMissense score annotation
 fwrite($config_file, annotation_file_path("/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz")."\t\tALPHAMISSENSE\t\n");
+$in_files[] = annotation_file_path("/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz");
 
 //precalculated SpliceAI scores
 $spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz");
 if (file_exists($spliceai_file))
 {
 	fwrite($config_file, $spliceai_file."\t\tSpliceAI\t\n");
+	$in_files[] = $spliceai_file;
 }
 else
 {
@@ -230,6 +245,7 @@ else
 	}
 	array_push($ngsd_columns, "HAF", "CLAS", "CLAS_COM", "COM");
 	fwrite($config_file, $ngsd_file."\tNGSD\t".implode(",", $ngsd_columns)."\t\n");
+	$in_files[] = $ngsd_file;
 }
 
 //add somatic variant information from NGSD
@@ -243,6 +259,7 @@ if ($somatic)
 	else
 	{
 		fwrite($config_file, $ngsd_som_file."\tNGSD\tSOM_C,SOM_P,SOM_VICC,SOM_VICC_COMMENT\t\n");
+		$in_files[] = $ngsd_som_file;
 	}
 }
 
@@ -251,14 +268,14 @@ fclose($config_file);
 
 // execute VcfAnnotateFromVcf
 $vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vcf_output_mes} -out {$vcf_annotate_output} -threads {$threads}", true);
+$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vcf_output_mes} -out {$vcf_annotate_output} -threads {$threads}", $in_files);
 
 // annotate gene info from NGSD
-$gene_file = resolve_symlink($data_folder."/dbs/NGSD/NGSD_genes.bed");
+$gene_file = $test ? repository_basedir()."/test/data/an_vep_NGSD_gene_info.bed" : resolve_symlink($data_folder."/dbs/NGSD/NGSD_genes.bed");
 if (file_exists($gene_file))
 {
 	$tmp = $parser->tempFile(".vcf");
-	$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", true);
+	$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files = [$gene_file]);
 	$parser->moveFile($tmp, $vcf_annotate_output);
 }
 else
@@ -276,22 +293,22 @@ if (!$no_splice)
 
 //annotate RepeatMasker
 $tmp = $parser->tempFile("_repeatmasker.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")." -name REPEATMASKER -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", true);
+$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")." -name REPEATMASKER -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files=[annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")]);
 $parser->moveFile($tmp, $vcf_annotate_output);
 
 //annotate OMIM (optional because of license)
 $omim_file = annotation_file_path("/dbs/OMIM/omim.bed", true);
-if(file_exists($omim_file))
+if(file_exists($omim_file) && !$test)
 {
 	$tmp = $parser->tempFile("_omim.vcf");
-	$parser->exec(get_path("ngs-bits")."/VcfAnnotateFromBed", "-bed {$omim_file} -name OMIM -sep '&' -in {$vcf_annotate_output} -out {$tmp}  -threads {$threads}", true);
+	$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed {$omim_file} -name OMIM -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files = [$omim_file]);
 	$parser->moveFile($tmp, $vcf_annotate_output);
 }
 
 //mark variants in low-confidence regions
 $low_conf_bed = repository_basedir()."/data/misc/low_conf_regions.bed";
 $tmp_low_conf_ann = $parser->tempFile("_low_conf_ann.vcf");
-$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_annotate_output -mark low_conf_region -inv -reg $low_conf_bed -out {$tmp_low_conf_ann}", true);
+$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcf_annotate_output -mark low_conf_region -inv -reg $low_conf_bed -out $tmp_low_conf_ann", $in_files=[$low_conf_bed]);
 
 //add low_mappability annotation
 if (!$test && db_is_enabled("NGSD"))
@@ -302,13 +319,12 @@ if (!$test && db_is_enabled("NGSD"))
 	{
 		$tmp_sr_low_mappability = $parser->tempFile("_sr_low_mappability.vcf");
 		$mapq0_regions = repository_basedir()."data/misc/low_mappability_region/wgs_mapq_eq0.bed";
-		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in {$tmp_low_conf_ann} -mark sr_low_mappability -inv -reg {$mapq0_regions} -out {$tmp_sr_low_mappability}", true);
+		$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in {$tmp_low_conf_ann} -mark sr_low_mappability -inv -reg {$mapq0_regions} -out {$tmp_sr_low_mappability}", [$mapq0_regions]);
 
 		//replace input file 
 		$parser->moveFile($tmp_sr_low_mappability,$tmp_low_conf_ann);
 	}
 }
-
 
 //re-order VEP consequence annotations (order is random)
 $h = fopen2($tmp_low_conf_ann, "r");
@@ -328,7 +344,8 @@ $parser->moveFile($tmp, $out);
 //check vcf file
 if($check_lines >= 0)
 {
-	$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $out -lines $check_lines -ref {$genome}", true);
+	$in_files = [$out, $genome];
+	$parser->execApptainer("ngs-bits", "VcfCheck", "-in $out -lines $check_lines -ref $genome", $in_files);
 }
 
 ?>

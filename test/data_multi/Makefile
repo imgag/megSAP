@@ -24,7 +24,7 @@ diff:
 	#variants
 	php ../compare_variants.php -in1 multi.GSvar.out -in2 multi.GSvar
 	#CNVs
-	diff multi_cnvs_clincnv.tsv multi_cnvs_clincnv.tsv.out
+	diff multi_cnvs_clincnv.tsv.out multi_cnvs_clincnv.tsv
 	#SVs
 	diff multi_manta_var_structural_cut.bedpe multi_manta_var_structural_cut.bedpe.out --ignore-matching-lines="^##"
 	diff multi_manta_var_structural_cut2.bedpe multi_manta_var_structural_cut2.bedpe.out --ignore-matching-lines="^##"

@@ -21,9 +21,6 @@ $parser->addFlag("debug", "Debug more. Temp files in output folder and more log 
 extract($parser->parse($argv));
 
 //init
-$ngsbits = get_path("ngs-bits");
-$samtools = get_path("samtools");
-$bwa = get_path("bwa-mem2");
 $out_folder = realpath(dirname($out));
 $ref = genome_fasta("GRCh38");
 if ($sample == "") $sample = basename2($in);
@@ -65,7 +62,7 @@ if ($remap_missing_chr)
 		
 		//merge BED files
 		$merged_bed = $parser->tempFile(".bed");
-		$parser->exec(get_path("ngs-bits")."BedAdd", "-in {$reg} {$tmp_bed_missing_chr} -out {$merged_bed}");
+		$parser->execApptainer("ngs-bits", "BedAdd", "-in {$reg} {$tmp_bed_missing_chr} -out {$merged_bed}", [$reg]);
 
 		//set merged bed as input
 		$reg = $merged_bed;
@@ -81,7 +78,9 @@ if ($remap_missing_chr)
 $time_start = microtime(true);
 print "extracting read names...\n";
 $read_ids = $debug ? $out_folder."/read_ids.txt" : $parser->tempFile("_read_names.txt");
-exec2("{$samtools} view -L {$reg} -@ {$threads} -M -T {$in_ref} {$in} | cut -f1 | sort | uniq > {$read_ids}");
+$in_sam = $parser->tempFile("_input.sam");
+$parser->execApptainer("samtools", "samtools view", "-L {$reg} -@ {$threads} -M -T {$in_ref} -o {$in_sam} {$in}", [$reg, $in_ref, $in], [$in_sam]);
+exec2("cut -f1 {$in_sam} | sort | uniq > {$read_ids}");
 list($stdout) = exec2("wc -l < $read_ids");
 print "  extracted ".trim(implode("", $stdout))." read names\n";
 print "  took ".time_readable(microtime(true)-$time_start)."\n";
@@ -91,7 +90,7 @@ $time_start = microtime(true);
 print "splitting input BAM...\n";
 $bam_reg = $debug ? $out_folder."/reg.bam" : $parser->tempFile("_reg.bam");
 $bam_other = $debug ? $out_folder."/other.bam" : $parser->tempFile("_other.bam");
-$parser->exec("{$ngsbits}/BamExtract", "-in {$in} -ref {$in_ref} -ids {$read_ids} -out {$bam_reg} -out2 {$bam_other}");
+$parser->execApptainer("ngs-bits", "BamExtract", "-in {$in} -ref {$in_ref} -ids {$read_ids} -out {$bam_reg} -out2 {$bam_other}", [$in, $in_ref], [$bam_reg, $bam_other]);
 print "  took ".time_readable(microtime(true)-$time_start)."\n";
 
 //convert BAM to FASTQ
@@ -99,7 +98,7 @@ $time_start = microtime(true);
 print "converting BAM to FASTQ\n";
 $fastq1 = $debug ? $out_folder."/R1.fastq.gz" : $parser->tempFile("_R1.fastq.gz");
 $fastq2 = $debug ? $out_folder."/R2.fastq.gz" : $parser->tempFile("_R2.fastq.gz");
-$parser->exec("{$ngsbits}/BamToFastq", "-in {$bam_reg} -out1 {$fastq1} -out2 {$fastq2}");
+$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam_reg} -out1 {$fastq1} -out2 {$fastq2}", [$bam_reg], [$fastq1, $fastq2]);
 print "  took ".time_readable(microtime(true)-$time_start)."\n";
 	
 //re-map extracted reads
@@ -120,7 +119,7 @@ print "  took ".time_readable(microtime(true)-$time_start)."\n";
 $time_start = microtime(true);
 $remapped_region = $out_folder."/remapped_regions.bed";
 print "get region of remapped reads\n";
-$parser->exec("{$ngsbits}/BedHighCoverage", "-bam {$bam_mapped} -out {$remapped_region} -cutoff 1 -threads {$threads}");
+$parser->execApptainer("ngs-bits", "BedHighCoverage", "-bam {$bam_mapped} -out {$remapped_region} -cutoff 1 -threads {$threads}", [$bam_mapped], [$remapped_region]);
 print "  took ".time_readable(microtime(true)-$time_start)."\n";
 
 $merged_bam = $debug ? $out_folder."/merged.bam" : $parser->tempFile("_mapped.bam");
@@ -129,16 +128,16 @@ if (!$replace_readgroup) $merged_bam = $out; //write directly to output folder
 //merge sorted BAMs
 $time_start = microtime(true);
 print "merging BAMs\n";
-exec2("{$samtools} merge --write-index -@ {$threads} -f -h {$bam_mapped} --reference {$ref} -o {$merged_bam} {$bam_mapped} {$bam_other}");
+$parser->execApptainer("samtools", "samtools merge", "--write-index -@ {$threads} -f -h {$bam_mapped} --reference {$ref} -o {$merged_bam} {$bam_mapped} {$bam_other}", [$bam_mapped, $ref, $bam_other], [$merged_bam]);
 print "  took ".time_readable(microtime(true)-$time_start)."\n";
 
 if ($replace_readgroup)
 {
 	print "replace RG\n";
-	list($in_header) = exec2("{$samtools} view -H {$merged_bam}");
+	list($in_header) = $parser->execApptainer("samtools", "samtools view", "-H {$merged_bam}", [$merged_bam]);
 	
 	//extract @SQ lines from mapped file
-	list($in_header2) = exec2("{$samtools} view -H {$bam_mapped}");
+	list($in_header2) = $parser->execApptainer("samtools", "samtools view", "-H {$bam_mapped}", [$bam_mapped]);
 	$new_sq_lines = array();
 	foreach ($in_header2 as $line) 
 	{
@@ -164,10 +163,10 @@ if ($replace_readgroup)
 	
 	//re-header & replace RG of all reads
 	$tmp_fixed_bam = $parser->tempFile("_fixed_rg.bam");
-	$parser->exec($samtools, "addreplacerg -@ {$threads} -R {$sample} -m overwrite_all -o {$tmp_fixed_bam} {$merged_bam}");
+	$parser->execApptainer("samtools", "samtools addreplacerg", "-@ {$threads} -R {$sample} -m overwrite_all -o {$tmp_fixed_bam} {$merged_bam}", [$merged_bam]);
 	$tmp_fixed_bam2 = $debug ? $out_folder."/fixed_rg_header.bam" : $parser->tempFile("_fixed_header.bam");
-	$parser->exec($samtools, "reheader {$tmp_header} {$tmp_fixed_bam} > {$tmp_fixed_bam2}");
-	$parser->exec($samtools, "view -h --write-index -@ {$threads} -T {$ref} -C -o {$out} {$tmp_fixed_bam2}");
+	$parser->execApptainer("samtools", "samtools reheader", "{$tmp_header} {$tmp_fixed_bam} > {$tmp_fixed_bam2}", [], [$tmp_fixed_bam2]);
+	$parser->execApptainer("samtools", "samtools view", "-h --write-index -@ {$threads} -T {$ref} -C -o {$out} {$tmp_fixed_bam2}", [$ref, $tmp_fixed_bam2], [$out]);
 	print "  took ".time_readable(microtime(true)-$time_start)."\n";
 }
 

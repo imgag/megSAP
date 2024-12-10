@@ -2,7 +2,6 @@
 require_once("framework.php");
 
 $name = "vc_clincnv_germline";
-$ngsbits = get_path("ngs-bits");
 
 start_test($name);
 
@@ -30,17 +29,19 @@ exec2("mkdir -p $tmp_folder");
 exec2("rm -rf $tmp_folder/*");
 exec2("tar -xzf ".data_folder()."vc_clincnv_somatic_files.tar.gz -C {$tmp_folder}");
 $bed_in = $tmp_folder."/target_region.bed";
+$genome = get_path("data_folder")."/genomes/GRCh38.fa";
 $cov_folder = $tmp_folder."cov-tumor";
 $bed = $tmp_folder."/target_region_annotated.bed";
 $pipeline = [
-        ["{$ngsbits}BedAnnotateGC", "-in {$bed_in} -clear -ref ".get_path("data_folder")."/genomes/GRCh38.fa"],
-        ["{$ngsbits}BedAnnotateGenes", "-out {$bed}"],
-    ];
+    ["", execApptainer("ngs-bits", "BedAnnotateGC", "-in {$bed_in} -clear -ref {$genome}", [$bed_in, $genome], [], true)],
+    ["", execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [$bed], [], true)]
+];
 //off target
 $bed_off = $tmp_folder . "off_target.bed";
 $cov_off = $tmp_folder . "cov-tumor_off_target/DX000015_01.cov";
 $parser = new ToolBase("tool_test_vc_clincnv_germline", "Pipeline for Bed Annotation.");
 $parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
+
 $cov_folder = $tmp_folder."/cov-tumor";
 //test
 $out_file3 = output_folder().$name."_test2_out.tsv";

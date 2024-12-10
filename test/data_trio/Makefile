@@ -24,7 +24,7 @@ diff:
 	#variants
 	php ../compare_variants.php -in1 trio.GSvar.out -in2 trio.GSvar
 	#CNVs
-	diff trio_cnvs_clincnv.tsv trio_cnvs_clincnv.tsv.out
+	diff trio_cnvs_clincnv.tsv.out trio_cnvs_clincnv.tsv
 	#UPDs
 	diff -b trio_upd.tsv.out trio_upd.tsv
 	#SVs

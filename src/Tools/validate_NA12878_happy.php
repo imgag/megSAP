@@ -22,9 +22,8 @@ extract($parser->parse($argv));
 function get_bases($filename)
 {
 	global $parser;
-	global $ngsbits;
 	
-	list($stdout) = $parser->exec("{$ngsbits}BedInfo", "-in $filename", true);
+	list($stdout) = $parser->execApptainer("ngs-bits", "BedInfo", "-in $filename", [$filename]);
 	$hits = array_containing($stdout, "Bases ");
 	$parts = explode(":", $hits[0]);
 	return trim($parts[1]);
@@ -52,8 +51,6 @@ function stats_line($name, $options, $date, $bases_hc, $query_total, $fp, $fn, $
 
 //init
 $tmp_folder = $parser->tempFolder("validate_NA12878_happy");
-$happy = get_path("happy");
-$ngsbits = get_path("ngs-bits");
 $genome = genome_fasta($build);
 $giab_bed = get_path("data_folder")."/dbs/GIAB/{$ref_sample}/high_conf_regions.bed";
 if (!file_exists($giab_bed)) trigger_error("GiaB {$ref_sample} BED file missing: {$giab_bed}", E_USER_ERROR);
@@ -67,9 +64,9 @@ print "##Bases          : $bases\n";
 //sort and merge $roi_hc after intersect - MH
 $roi_hc = $tmp_folder."/roi_hc.bed";
 $pipeline = [];
-$pipeline[] = ["{$ngsbits}BedIntersect", "-in $roi -in2 {$giab_bed}"];
-$pipeline[] = ["{$ngsbits}BedSort", ""];
-$pipeline[] = ["{$ngsbits}BedMerge", "-out $roi_hc"];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedIntersect", "-in $roi -in2 {$giab_bed}", [$roi, $giab_bed], [], true)];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedSort", "", [], [], true)];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedMerge", "-out $roi_hc", [], [], true)];
 $parser->execPipeline($pipeline, "high-conf ROI");
 $bases_hc = get_bases($roi_hc);
 print "##High-conf region: $roi_hc\n";
@@ -77,7 +74,7 @@ print "##High-conf bases: $bases_hc (".number_format(100*$bases_hc/$bases, 2)."%
 print "##Notice: Reference variants in the above region are evaluated!\n";
 
 //perform comparison
-list($stdout, $stderr) = $parser->exec($happy, "{$giab_vcfgz} {$vcf} -T {$roi_hc} -r {$genome} -o {$tmp_folder}/output", true);
+list($stdout, $stderr) = $parser->execApptainer("happy", "hap.py", "{$giab_vcfgz} {$vcf} -T {$roi_hc} -r {$genome} -o {$tmp_folder}/output", [$giab_vcfgz, $vcf]);
 
 //append output to statistics file
 if ($name=="") $name = basename($vcf, ".vcf.gz");

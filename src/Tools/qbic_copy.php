@@ -76,25 +76,6 @@ if (!$upload)
 	print "##===============================================================\n";
 }
 
-//determine QBIC/FO ID from Probeneingang
-function checkProbeneingang($name, $table)
-{
-	$name = strtr($name, array("FO-"=>"FO"));
-	
-	$db = DB::getInstance("Probeneingang");
-	$res = $db->executeQuery("SELECT identifier, identifier_external FROM $table WHERE identifier LIKE '%$name%'");
-	foreach($res as $row)
-	{
-		$ext = trim($row['identifier_external']);
-		if (strlen($ext)==10 && $ext[0]=="Q")
-		{
-			return array(trim($row['identifier']), $ext);
-		}
-	}
-	
-	return null;
-}
-
 //determine QBIC/FO ID from sample name (and external sample name)
 function getExternalNames($name, $name_ex)
 {
@@ -108,21 +89,6 @@ function getExternalNames($name, $name_ex)
 		if (strlen($name)==10 && $name[0]=="Q")
 		{
 			$qbic_name = $name;
-		}
-		
-		//Check (derived) samples in Probeneingang
-		if (starts_with($name, "FO") && strlen($name)>6)
-		{
-			$tmp = checkProbeneingang($name, "sample");
-			if (!is_null($tmp))
-			{
-				list($fo_name, $qbic_name) = $tmp;			
-			}
-			$tmp = checkProbeneingang($name, "derived_sample");
-			if (!is_null($tmp))
-			{
-				list($fo_name, $qbic_name) = $tmp;			
-			}
 		}
 	}
 	
@@ -303,7 +269,7 @@ function linkFastqs($data_folder, $tmp_folder, $basename, $genome, $bam_or_cram 
 		$fq2 = "{$tmp_folder}/{$basename}_001.2.fastq.gz";
 		if ($upload) //skip generating FASTQs in dry run
 		{
-			$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam_or_cram} -out1 {$fq1} -out2 {$fq2} -ref {$genome}", true);
+			$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam_or_cram} -out1 {$fq1} -out2 {$fq2} -ref {$genome}", [$bam_or_cram, $genome], [$fq1, $fq2]);
 		}
 		$files[] = $fq1;
 		$files[] = $fq2;
@@ -450,8 +416,7 @@ foreach($res as $row)
 		$tmp_folder = $parser->tempFolder();	
 		
 		#get bam or cram file from sample and the reference file for the sample
-		list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps {$ps_name} -type BAM");
-		$bam_or_cram = trim(implode("", $stdout));
+		$bam_or_cram = $info['ps_bam']
 		
 		$sys_filename_ignore = "";
 		$sys = load_system($sys_filename_ignore, $ps_name); //param filename = "" to load from the NGSD
@@ -491,7 +456,7 @@ foreach($res as $row)
 				$fq2 = $tmp_folder."/{$ps_name}_BamToFastq_R2_001.fastq.gz";
 				if ($upload) //skip generating FASTQs in dry run
 				{
-					$parser->exec(get_path("ngs-bits")."BamToFastq", "-in {$bam_or_cram} -out1 {$fq1} -out2 {$fq2} -ref {$genome}", true);
+					$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam_or_cram} -out1 {$fq1} -out2 {$fq2} -ref {$genome}", [$bam_or_cram, $genome]);
 				}
 				$files[] = $fq1;
 				$files[] = $fq2;
@@ -512,8 +477,8 @@ foreach($res as $row)
 			{
 				$normal_data_dir = $project_folder."/Sample_".$normal_sample['id_genetics']."/";
 				
-				list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps ".$normal_sample['id_genetics']." -type BAM");
-				$normal_bam_or_cram = trim(implode("", $stdout));
+				$normal_info = get_processed_sample_info($db, $normal_sample['id_genetics']);
+				$normal_bam_or_cram = $normal_info['ps_bam'];
 				
 				$sys_n = load_system($sys_n, $normal_sample['id_genetics']); //param filename = "" to load from the NGSD
 				$build_n = $sys_n['build'];

@@ -3,16 +3,41 @@ set -e
 set -o pipefail
 set -o verbose
 
-root=`pwd`
-#adapt if you want to store elsewhere
-folder=$root/tools/singularity_container
+root=`dirname $(pwd)`
 
-#Ignore this - used for local installation
-#folder=/mnt/storage2/megSAP/tools/singularity_container
+# Path to your settings file
+SETTINGS_FILE=$root/settings.ini
 
-# make sure container folder exists
-mkdir -p $folder
-cd $folder
+if [ ! -f "$SETTINGS_FILE" ]; then
+    SETTINGS_FILE="$root/settings.ini.default"
+fi
 
-#clair3-trio
-singularity pull docker://hkubal/clair3-trio:v0.7
+# Extract container_folder from the settings file
+CONTAINER_FOLDER=$(grep -E "^container_folder" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}' | sed "s|\[path\]|$root|")
+
+# Verify the container folder was found
+if [ -z "$CONTAINER_FOLDER" ]; then
+    echo "Error: container_folder not found in $SETTINGS_FILE"
+    exit 1
+fi
+
+# Ensure the container folder exists
+mkdir -p "$CONTAINER_FOLDER"
+cd "$CONTAINER_FOLDER"
+
+BASE_URL="https://megsap.de/download/container/"
+
+# Scan the settings file for lines that contain container definitions, ignoring container_folder
+grep -E "^container_" "$SETTINGS_FILE" | grep -v "container_folder" | while IFS=' = ' read -r container version; do
+    # Extract the toolname from container_<toolname>
+    toolname=$(echo "$container" | sed 's/container_//')
+    url="${BASE_URL}/${toolname}_${version}.sif"
+
+    # Construct the apptainer pull command
+    echo "Downloading ${toolname} version ${version} from $url"
+    wget --no-check-certificate -O "${toolname}_${version}.sif" "$url"
+	chmod 775 "${toolname}_${version}.sif"  || true
+done
+
+# Print a message indicating the file has been written
+echo "All containers found in megSAPs settings.ini have been downloaded."

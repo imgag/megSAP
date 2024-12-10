@@ -2,19 +2,19 @@
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
-$ngsbits = get_path("ngs-bits");
-
 function gene2coords($gene)
 {
-	global $ngsbits;
 	static $cache = [];
 	
 	if (!isset($cache[$gene]))
 	{
-		list($stdout, $stderr, $exit_code) = exec2("echo '{$gene}' | $ngsbits/GenesToApproved | cut -f1");
+		$ngs_bits_command = execApptainer("ngs-bits", "GenesToApproved", "", [], [], true);
+		list($stdout, $stderr, $exit_code) = exec2("echo '{$gene}' | $ngs_bits_command | cut -f1");
 		$gene_approved = trim($stdout[0]);
 		
-		list($stdout, $stderr, $exit_code) = exec2("echo '{$gene_approved}' | $ngsbits/GenesToBed -source ensembl -mode gene | $ngsbits/BedMerge");
+		$ngs_bits_command = execApptainer("ngs-bits", "GenesToBed", "-source ensembl -mode gene", [], [], true);
+		$ngs_bits_command2 = execApptainer("ngs-bits", "BedMerge", "", [], [], true);
+		list($stdout, $stderr, $exit_code) = exec2("echo '{$gene_approved}' | $ngs_bits_command | $ngs_bits_command2");
 		$stdout = array_map('trim', $stdout);
 		$stdout = array_diff($stdout, [""]);
 		

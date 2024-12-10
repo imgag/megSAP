@@ -132,5 +132,5 @@ while(!feof($handle_in))
 }
 
 //check vcf file
-$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $out -ref ".genome_fasta($build), true);
+$parser->execApptainer("ngs-bits", "VcfCheck", "-in $out -ref ".genome_fasta($build), [$out, genome_fasta($build)]);
 ?>

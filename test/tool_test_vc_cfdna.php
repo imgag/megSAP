@@ -10,10 +10,10 @@ exec2("rm -f ".output_folder()."/*");
 
 ########################## VC ##################
 $out_folder = output_folder();
-$vcf = output_folder()."/${name}_in1.vcf";
-$vcf_hq = output_folder()."/${name}_in1_hq.vcf";
-$tsv_id = output_folder()."/${name}_in1_ID.tsv";
-$tsv_mon = output_folder()."/${name}_in1_monitoring.tsv";
+$vcf = output_folder()."/{$name}_in1.vcf";
+$vcf_hq = output_folder()."/{$name}_in1_hq.vcf";
+$tsv_id = output_folder()."/{$name}_in1_ID.tsv";
+$tsv_mon = output_folder()."/{$name}_in1_monitoring.tsv";
 check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder().$name."_in1.bam -target ".data_folder().$name."_in1_roi.bed -build GRCh38 -folder ".output_folder()." -monitoring_vcf ".data_folder().$name."_in1_monitoring.vcf");
 //remove file date
 remove_lines_containing($vcf, ["reference=", "fileDate="]);

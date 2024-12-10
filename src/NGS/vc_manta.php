@@ -28,6 +28,11 @@ $parser->addStringArray("regions", "Limit analysis to specified regions (for deb
 $parser->addString("temp", "Temporary folder for manta analysis (for debugging).", true, "auto");
 extract($parser->parse($argv));
 
+//init
+$genome = genome_fasta($build);
+$in_files = array();
+$out_files = array();
+
 // determine mode (somatic, tumor-only, germline)
 if (!isset($t_bam) && !isset($bam))
 {
@@ -42,26 +47,18 @@ $mode_somatic = isset($t_bam) && isset($bam) && count($bam) == 1;
 $mode_tumor_only = isset($t_bam) && !isset($bam);
 $mode_germline = !isset($t_bam) && isset($bam) && !$rna;
 
-// update environment
-$python_bin = get_path("python27");
-putenv("PATH=".dirname($python_bin).":".getenv("PATH"));
-
 //resolve configuration preset
-$config_default = get_path("manta")."/configManta.py.ini";
-$config = $config_default;
+$config = "/opt/manta/bin/configManta.py.ini";
 if ($config_preset === "high_sensitivity")
 {
-	$config = $parser->tempFile();
-	//change minEdgeObservations and minCandidateSpanningCount parameters to 2
-	$parser->exec("sed", "'s/^minEdgeObservations.\\+$/minEdgeObservations = 2/; s/^minCandidateSpanningCount.\\+/minCandidateSpanningCount = 2/' {$config_default} > {$config}", false);
-	$parser->log("Manta config file:", file($config));
+	$config = "/opt/manta/bin/configManta_high_sensitivity.py.ini";
 }
 
 $temp_folder = $temp === "auto" ? $parser->tempFolder() : $temp;
 $manta_folder = "{$temp_folder}/mantaAnalysis";
 
 $args = [
-	"--referenceFasta ".genome_fasta($build),
+	"--referenceFasta ".$genome,
 	"--runDir ".$manta_folder,
 	"--config ".$config,
 	"--outputContig",
@@ -74,10 +71,12 @@ if ($exome)
 if ($mode_somatic || $mode_tumor_only)
 {
 	array_push($args, "--tumorBam", $t_bam);
+	$in_files[] = $t_bam;
 }
 if ($mode_somatic || $mode_germline || $rna)
 {
 	array_push($args, "--normalBam", implode(" --normalBam ", $bam));
+	$in_files = array_merge($in_files, $bam);
 }
 if (isset($regions))
 {
@@ -88,9 +87,17 @@ if ($rna)
 	array_push($args, "--rna");
 }
 
-//run manta
-$parser->exec("{$python_bin} ".get_path('manta')."/configManta.py", implode(" ", $args), true);
-$parser->exec("{$python_bin} {$manta_folder}/runWorkflow.py", "--mode local --jobs {$threads} --memGb ".(2*$threads), false);
+//set bind paths for manta container
+$out_files[] = $temp_folder;
+$in_files[] = $genome;
+
+//run manta container
+$vc_manta_command = "python2 /opt/manta/bin/configManta.py";
+$parser->execApptainer("manta", $vc_manta_command, implode(" ", $args), $in_files, $out_files);
+
+$vc_manta_command = "python2 {$manta_folder}/runWorkflow.py";
+$vc_manta_parameters = "--mode local --jobs {$threads} --memGb ".(2*$threads);
+$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, $in_files, $out_files, false, false);
 
 //copy files to output folder
 if ($mode_somatic)
@@ -113,7 +120,16 @@ $sv = "{$manta_folder}/results/variants/{$outname}SV.vcf.gz";
 
 //combine BND of INVs to one INV in VCF
 $sv_inv = "{$manta_folder}/results/variants/{$outname}SV_inv.vcf";
-$parser->exec("{$python_bin} ".get_path('manta')."/../libexec/convertInversion.py", get_path("samtools")." ".genome_fasta($build)." {$sv} > {$sv_inv}");
+
+
+$in_files = array();
+$out_files = array();
+$in_files[] = $genome;
+$out_files[] = $manta_folder;
+
+$vc_manta_command = "python2 /opt/manta/libexec/convertInversion.py";
+$vc_manta_parameters = "/usr/bin/samtools ".$genome." {$sv} > {$sv_inv}";
+$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, $in_files, $out_files);
 
 //remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
 $vcf_fixed = "{$temp_folder}/{$outname}SV_fixed.vcf";
@@ -132,13 +148,14 @@ fclose($h2);
 
 //sort variants
 $vcf_sorted = "{$temp_folder}/{$outname}SV_sorted.vcf";
-$parser->exec(get_path("ngs-bits")."VcfSort","-in {$vcf_fixed} -out $vcf_sorted", true);
+
+$parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf_fixed} -out $vcf_sorted");
 
 // flag off-target variants
 if (isset($target))
 {
 	$vcf_filtered = "{$temp_folder}/{$outname}SV_filtered.vcf";
-	$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcf_sorted -mark off-target -reg $target -out $vcf_filtered", true);
+	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcf_sorted -mark off-target -reg $target -out $vcf_filtered", [$target]);
 }
 else
 {

@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
 $parser = new ToolBase("vc_straglr", "Call repeat expansions with straglr. Creates an BED file.");
-$parser->addInfile("in", "Input BAM file.", false);
+$parser->addInfile("in", "Input BAM file. Note: .bam.bai file is required!", false);
 $parser->addOutfile("out", "Output VCF file.", false);
 $parser->addInfile("loci", "BED file containing repeat loci.", false);
 //optional
@@ -25,12 +25,13 @@ extract($parser->parse($argv));
 if(!isset($pid)) $pid = basename2($in);
 
 //init
-$out_prefix = dirname($out)."/".basename2($out);
+$out_folder = dirname($out);
+$out_prefix = $out_folder."/".basename2($out);
 $out_bed = $out_prefix.".bed";
 $out_vcf = $out_prefix.".vcf";
 $out_tsv = $out_prefix.".tsv";
-$plot_folder = dirname($out)."/repeat_expansions";
-$straglr = get_path("straglr");
+$plot_folder = $out_folder."/repeat_expansions";
+$genome = genome_fasta($build);
 
 //get gender
 $gender = "n/a";
@@ -46,20 +47,25 @@ if (db_is_enabled("NGSD") && !$test)
 
 // prepare command
 $args = [];
-$args[] = $straglr;
+$args[] = "$in";
+$args[] = $genome;
+$args[] = $out_prefix;
 $args[] = "--loci {$loci}";
 $args[] = "--nprocs $threads";
 $args[] = "--sample {$pid}";
-$args[] = "$in";
-$args[] = genome_fasta($build);
-$args[] = $out_prefix;
+
 if ($gender != "n/a") $args[] = "--sex ".$gender[0];
-		
-// prepare PATH
-putenv("PATH=".getenv("PATH").PATH_SEPARATOR.dirname(get_path("trf")).PATH_SEPARATOR.dirname(get_path("blastn")));
-print "\n........\n".getenv("PATH")."\n........\n";
-// run straglr
-$parser->exec(get_path("python3"), implode(" ", $args));
+
+//set bind paths for straglr container
+$in_files = array();
+$out_files = array();
+$in_files[] = $in;
+$in_files[] = $genome;
+$in_files[] = $loci;
+$out_files[] = $out_folder;
+
+// run straglr container
+$parser->execApptainer("straglr", "straglr.py", implode(" ", $args), $in_files, $out_files);
 
 //get pathogenic ranges from NGSD
 $min_pathogenic = array();
@@ -149,14 +155,14 @@ file_put_contents($out_vcf, implode("\n", $vcf_content_out));
 
 
 //sort output files
-$parser->exec(get_path("ngs-bits")."BedSort", "-in {$out_bed} -out {$out_bed}");
-$parser->exec(get_path("ngs-bits")."VcfSort", "-in {$out_vcf} -out {$out_vcf}");
+$parser->execApptainer("ngs-bits", "BedSort", "-in {$out_bed} -out {$out_bed}", [$out_bed]);
+$parser->execApptainer("ngs-bits", "VcfSort", "-in {$out_vcf} -out {$out_vcf}", [$out_vcf]);
 
 
 //create plots:
 if (file_exists($plot_folder)) $parser->exec("rm", "-r {$plot_folder}"); //delete previous plots
 mkdir($plot_folder);
-$parser->exec(get_path("python3"), get_path("straglrOn")." {$out_bed} {$out_tsv} {$loci} -o {$plot_folder} --hist --alleles --bam {$in} --genome ".genome_fasta($build));
+$parser->execApptainer("straglrOn", "straglron.py", "{$out_bed} {$out_tsv} {$loci} -o {$plot_folder} --hist --alleles --bam {$in} --genome ".genome_fasta($build), [$out_folder, $loci, genome_fasta($build)]);
 
 
 
