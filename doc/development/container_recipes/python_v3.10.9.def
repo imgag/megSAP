@@ -1,0 +1,86 @@
+Bootstrap: docker
+From: ubuntu:20.04
+
+%labels
+    Maintainer KilianIlius
+    Version Python-3.10.9
+
+%post
+	LANG=C.UTF-8
+	LC_ALL=C.UTF-8
+	PATH=/bin:$PATH
+
+	# Update package list and install build dependencies
+	apt-get update --fix-missing 
+	apt-get install -y \
+		wget \
+		make \
+		build-essential \
+		zlib1g-dev \
+		bzip2 \
+		libssl-dev \
+		libffi-dev \
+		libbz2-dev \
+		liblzma-dev \
+		libsqlite3-dev \
+		libreadline-dev \
+		libncursesw5-dev \
+		xz-utils
+	
+# Write install_deps_python.txt file
+echo "
+click==8.1.3
+matplotlib-inline==0.1.6
+matplotlib==3.7.3
+numpy==1.24.4
+pandas>=1.2.4
+scipy==1.10.1
+seaborn==0.13.0
+urllib3==1.26.14
+zipp==3.15.0
+zstandard==0.19.0
+" > /opt/install_deps_python.txt
+
+	# Download and build tool
+	mkdir -p /opt/Python-3.10.9
+	cd /opt/Python-3.10.9
+	wget https://www.python.org/ftp/python/3.10.9/Python-3.10.9.tgz
+	tar -zxvf Python-3.10.9.tgz
+	rm -rf Python-3.10.9.tgz
+	cd Python-3.10.9
+	./configure --prefix=/opt/Python-3.10.9 \
+				--enable-loadable-sqlite-extensions \
+				LDFLAGS="-L/usr/lib/x86_64-linux-gnu"
+				CPPFLAGS="-I/usr/include"
+	make
+	make install
+	cd ..
+	rm -rf Python-3.10.9
+	
+	PATH=/opt/Python-3.10.9/bin:$PATH
+	
+	pip3 install --upgrade setuptools wheel
+	pip3 install -r /opt/install_deps_python.txt
+	
+	# Cleanup build dependencies
+	cd /
+	apt-get remove -y \
+		wget \
+		make \
+		build-essential \
+		zlib1g-dev \
+		libssl-dev \
+		libffi-dev \
+		libbz2-dev \
+		libsqlite3-dev \
+		libreadline-dev \
+		libncursesw5-dev \
+		liblzma-dev
+	apt-get autoremove -y
+	apt-get clean
+	rm -rf /var/lib/apt/lists/*
+
+%environment
+	export LANG=C.UTF-8
+	export LC_ALL=C.UTF-8
+	export PATH=/opt/Python-3.10.9/bin:$PATH

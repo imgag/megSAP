@@ -1,0 +1,82 @@
+Bootstrap: docker
+From: continuumio/miniconda3:latest
+
+%post
+# Write environment.yaml
+echo "
+name: umivar
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python
+  - scipy=1.10.1
+  - samtools
+  - pybedtools=0.9.0
+  - pysam=0.20.0
+  - numpy=1.24.2
+  - networkx=3.0
+  - pandas=1.5.3
+  - bioconductor-survcomp
+  - r-base=4.1.0
+  - r-argparse
+  - r-bbmle
+  - r-data.table
+  - r-ggplot2
+  - r-gridextra
+  - r-seqinr
+  - r-vgam
+  - r-scales
+  - r-crayon
+  - r-pkgconfig
+" > /environment.yaml
+
+# Set environment variables
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+
+# Update the base system
+apt-get update --fix-missing && \
+apt-get upgrade -y && \
+
+# Install necessary dependencies for R and system tools
+apt-get install -y \
+	git 
+
+# Install the conda environment from the YAML file
+conda config --add channels defaults && \
+conda config --add channels bioconda && \
+conda config --add channels conda-forge && \
+conda env create -f /environment.yaml
+
+# Activate the environment by default
+echo "conda activate umivar" >> ~/.bashrc
+
+# Download and setup umiVar2
+mkdir -p /opt/umiVar2
+cd /opt/umiVar2
+git clone https://github.com/imgag/umiVar2.git umiVar2_2024_11
+cd umiVar2_2024_11
+git checkout 2024_11
+rm -rf Test/
+
+# Refactor settings.default to settings.ini with correct paths
+sed -i 's|python = \[PATH_TO_PYTHON\]/python3|python = /opt/conda/envs/umivar/bin/python|' settings.default
+sed -i 's|R = \[PATH_TO_R\]/RScript|R = /opt/conda/envs/umivar/bin/Rscript|' settings.default
+sed -i 's|samtools = \[PATH_TO_samtools\]/samtools|samtools = /opt/conda/envs/umivar/bin/samtools|' settings.default
+mv settings.default settings.ini
+
+# Add shebang to all .py scripts
+sed -i '1i#!/opt/conda/envs/umivar/bin/python3' /opt/umiVar2/umiVar2_2024_11/*.py
+chmod +x /opt/umiVar2/umiVar2_2024_11/*.py
+
+# Clean up
+cd /
+conda clean --all -y
+apt-get remove -y git
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+
+%environment
+export PATH=/opt/umiVar2/umiVar2_2024_11:/opt/conda/envs/umivar/bin:$PATH
