@@ -165,7 +165,6 @@ check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sa
 
 check($db->getValue("SELECT COUNT(*) FROM merged_processed_samples WHERE processed_sample_id = 4 AND merged_into = 12"), 1); //merge correctly added
 
-
 //merge tumor RNA samples:
 reset_test_db($db, $name);
 clear_analysis_folder();
