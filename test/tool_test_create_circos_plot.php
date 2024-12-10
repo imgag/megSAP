@@ -20,7 +20,7 @@ copy(data_folder()."create_circos_plot_in_rohs.tsv", $roh_file);
 copy(data_folder()."create_circos_plot_in_sv.bedpe", $sv_file);
 
 // create plot
-check_exec("php ".src_folder()."/NGS/".$name.".php -folder ".output_folder()." -name clincnvTest");
+check_exec("php ".src_folder()."/NGS/".$name.".php -folder ".output_folder()." -name clincnvTest --log ".output_folder().$name."_out1.log");
 check_file(output_folder()."clincnvTest_circos.png", data_folder().$name."_out_circos_clincnv.png");
 
 end_test();

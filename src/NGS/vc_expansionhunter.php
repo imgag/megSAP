@@ -26,7 +26,7 @@ if(!isset($pid)) $pid = basename($in);
 
 //init
 $out_prefix = dirname($out)."/".basename($out, ".vcf");
-$expansion_hunter_binary = get_path("expansion_hunter");
+$genome = genome_fasta($build);
 
 
 //### perform RE calling ###
@@ -35,7 +35,7 @@ $expansion_hunter_binary = get_path("expansion_hunter");
 $args = [];
 $args[] = "--threads $threads";
 $args[] = "--reads $in";
-$args[] = "--reference ".genome_fasta($build);
+$args[] = "--reference {$genome}";
 $args[] = "--output-prefix {$out_prefix}";
 $args[] = "--variant-catalog $variant_catalog";
 		
@@ -49,17 +49,11 @@ if (db_is_enabled("NGSD"))
 		if ($info['gender'] != 'n/a') $args[] = "--sex ".$info['gender'];
 	}
 }
+// add ExpansionHunter version string to VCF
+$tool_version = get_path("container_expansionhunter");
 
 // run Expansion Hunter
-$parser->exec($expansion_hunter_binary, implode(" ", $args));
-
-
-// add ExpansionHunter version string to VCF
-list($stdout, $stderr, $ec) = $parser->exec($expansion_hunter_binary, "-v");
-
-// parse STDERR
-list($date, $tool_version) = explode(",", $stdout[0]);
-$tool_version = strtr($tool_version, array("[Starting " => "", "]" => ""));
+$parser->execApptainer("expansionhunter", "ExpansionHunter", implode(" ", $args), [$in, $genome , $variant_catalog], [dirname($out)]);
 
 // read VCF file into memory
 $vcf_file_content = file($out);
@@ -74,8 +68,7 @@ foreach($vcf_file_content as $line)
 	if (!$header_written && starts_with($line, "##"))
 	{
 		// add file/call info to file
-		fwrite($fh, "##filedate=$date\n");
-		fwrite($fh, "##source={$tool_version}\n");
+		fwrite($fh, "##source=ExpansionHunter {$tool_version}\n");
 		fwrite($fh, "##reference=".genome_fasta($build)."\n");
 		$header_written = true;
 	}
@@ -147,7 +140,6 @@ if (!$no_images)
 	}
 
 	// create SVG for each RE
-	$reviewer_binary = get_path("REViewer");
 	$args = [];
 	$args[] = "--reads {$out_prefix}_realigned.bam";
 	$args[] = "--vcf {$out_prefix}.vcf";
@@ -156,7 +148,7 @@ if (!$no_images)
 	foreach ($loci as $locus) 
 	{
 		$prefix = $svg_folder.basename($out, ".vcf");
-		$parser->exec($reviewer_binary, implode(" ", $args)." --output-prefix $prefix --locus $locus", true, false, true);
+		$parser->execApptainer("REViewer", "REViewer", implode(" ", $args)." --output-prefix $prefix --locus $locus", [genome_fasta($build), $variant_catalog], [$prefix], false, true, false);
 		
 		//rename to keep the naming consistent with v0.1.1
 		$source_file = $prefix.".".$locus.".svg";

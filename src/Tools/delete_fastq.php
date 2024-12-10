@@ -14,14 +14,13 @@ $parser->addString("processing_system", "Processing system of the samples.", fal
 $parser->addFlag("delete", "Deletes the FASTQ files. Warning: No additional warning before deleting files!");
 extract($parser->parse($argv));
 
-$ngsbits = get_path("ngs-bits");
 
 //get samples with matching processing system
 $sample_table_file = $parser->tempFile(".tsv");
 $pipeline= [
-	["{$ngsbits}NGSDExportSamples", "-system $processing_system -add_path SAMPLE_FOLDER"],
-	["{$ngsbits}TsvFilter", "-filter 'system_name_short is $processing_system'"], //this is necessary because NGSDExportSamples performs fuzzy match
-	["{$ngsbits}TsvSlice", "-cols name,path -out $sample_table_file"],
+	["", $parser->execApptainer("ngs-bits", "NGSDExportSamples", "-system $processing_system -add_path SAMPLE_FOLDER", [], [], true)],
+	["", $parser->execApptainer("ngs-bits", "TsvFilter", "-filter 'system_name_short is $processing_system'", [], [], true)], //this is necessary because NGSDExportSamples performs fuzzy match
+	["", $parser->execApptainer("ngs-bits", "TsvSlice", "-cols name,path -out $sample_table_file", [], [], true)]
 ];
 $parser->execPipeline($pipeline, "NGSD sample extraction", true);
 $sample_table = load_tsv($sample_table_file);

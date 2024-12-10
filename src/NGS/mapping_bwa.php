@@ -29,7 +29,6 @@ $group_props = array();
 $group_props[] = "ID:{$sample}";
 $group_props[] = "SM:{$sample}";
 $group_props[] = "LB:{$sample}";
-$group_props[] = "CN:medical_genetics_tuebingen";
 $group_props[] = "DT:".date("c");
 $group_props[] = "PL:ILLUMINA";
 if(db_is_enabled("NGSD"))
@@ -43,30 +42,35 @@ if(db_is_enabled("NGSD"))
 	}
 }
 
+//set input files for bwa-mem2 container
+$genome = genome_fasta($build);
+
+$in_files = [$in1, $in2, $genome];
+
 //mapping with bwa
 $pipeline = array();
-$bwa_params = "mem ".genome_fasta($build)." -K 100000000 -Y -R '@RG\\t".implode("\\t", $group_props)."' -t $threads -v 2";
+$bwa_params = "mem $genome -K 100000000 -Y -R '@RG\\t".implode("\\t", $group_props)."' -t $threads -v 2";
 
 //select the correct binary
 if (get_path("use_bwa1")) 
 {
-	$bwa_binary = get_path("bwa");
+	$pipeline[] = array("", $parser->execApptainer("bwa", "bwa", "$bwa_params $in1 $in2", $in_files, [], true));
 }
 else
 {
-	$bwa_binary = get_path("bwa-mem2"); 
+	$suffix = trim(get_path("bwa_mem2_suffix", false));
+	$pipeline[] = ["", $parser->execApptainer("bwa-mem2", "bwa-mem2{$suffix}", "$bwa_params $in1 $in2", $in_files, [], true)];
 }
-$pipeline[] = array($bwa_binary, "$bwa_params $in1 $in2");
 
 //duplicate removal with samblaster
 if ($dedup)
 {
-	$pipeline[] = array(get_path("samblaster"), "");
+	$pipeline[] = ["", $parser->execApptainer("samblaster", "samblaster", "", [], [], true)];
 }
 
 //convert sam to bam with samtools
 $tmp_unsorted = $parser->tempFile("_unsorted.bam");
-$pipeline[] = array(get_path("samtools"), "view -Sb - > $tmp_unsorted");
+$pipeline[] = ["", $parser->execApptainer("samtools", "samtools", "view -Sb - > $tmp_unsorted", [], [], true)];
 
 //execute (BWA -> samblaster -> BAM conversion)
 $parser->execPipeline($pipeline, "mapping");

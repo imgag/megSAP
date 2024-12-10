@@ -161,12 +161,12 @@ $parser->exec("php ".repository_basedir()."src/NGS/vc_freebayes.php ", " -target
 //normalization and annotation
 $pipeline = [];
 $pipeline[] = array("cat", "$called_vcf");
-$pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
-$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "-no_errors");  // -no_errors flag can be removed, when vcfallelicprimitives is replaced
-$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
+$pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg", [], [], true)];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_errors", [], [], true)];  // -no_errors flag can be removed, when vcfallelicprimitives is replaced
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)];
 $tmp_annotated = temp_file("_annotated.vcf");
 $gnomad_file = get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz";
-$pipeline[] = array(get_path("ngs-bits")."VcfAnnotateFromVcf", "-out $tmp_annotated -source $gnomad_file -info_keys AF -prefix gnomADg -threads $threads");
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-out $tmp_annotated -source $gnomad_file -info_keys AF -prefix gnomADg -threads $threads", [$gnomad_file], [], true)];
 $parser->execPipeline($pipeline, "vc_mosaic post processing");
 
 //filter
@@ -175,7 +175,7 @@ filter_vcf($tmp_annotated, $tmp_filtered, $max_af, $min_obs, $max_gnomad_af);
 
 //sort variants by genomic position
 $tmp_sorted_vcf = temp_file("_sorted.vcf");
-$parser->exec(get_path("ngs-bits")."VcfSort", "-in $tmp_filtered -out $tmp_sorted_vcf");
+$parser->execApptainer("ngs-bits", "VcfSort", "-in $tmp_filtered -out $tmp_sorted_vcf");
 
 // fix error in VCF file and strip unneeded information
 $tmp_fixed_vcf = temp_file("_fixed.vcf");

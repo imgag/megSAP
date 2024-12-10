@@ -10,6 +10,8 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //returns the genotype(s) for a sample at a certain position, or 'n/a' if the minimum depth was not reached.
 function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 {
+	global $parser;
+
 	//check if cached
 	static $cache = [];
 	$key = $chr . ":" . $pos . " " . $ref;
@@ -19,7 +21,7 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 	}
 	
 	//get pileup
-	list($output) = exec2(get_path("samtools")." mpileup -aa -r $chr:$pos-$pos $bam");
+	list($output) = $parser->execApptainer("samtools", "samtools mpileup", "-aa -r $chr:$pos-$pos $bam", [$bam]);
 	list($chr2, $pos2, $ref2, , $bases) = explode("\t", $output[0]);;
 	
 	//count bases

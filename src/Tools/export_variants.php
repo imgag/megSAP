@@ -18,16 +18,13 @@ $parser->addEnum("db",  "Database to export from to.", true, db_names(), "NGSD")
 $parser->addFlag("vcf_mode",  "The 'samples' file contains VCF.GZ file names instead of sample names.");
 extract($parser->parse($argv));
 
-//init
-$ngsbits = get_path("ngs-bits");
-
 //determine ROI from genes
 print "determining ROI from genes...\n";
 $bed = $parser->tempFile(".bed", "export_variants");
 $pipeline = [
-	[$ngsbits."GenesToBed", "-in {$genes} -source ensembl -mode gene"],
-	[$ngsbits."BedExtend", "-n 5000"],
-	[$ngsbits."BedMerge", "-out $bed"]
+	["", $parser->execApptainer("ngs-bits", "GenesToBed", "-in {$genes} -source ensembl -mode gene", [$genes], [], true)],
+	["", $parser->execApptainer("ngs-bits", "BedExtend", "-n 5000", [], [], true)],
+	["", $parser->execApptainer("ngs-bits", "BedMerge", "-out $bed", [], [], true)]
 ];
 list($stdout, $stderr) = $parser->execPipeline($pipeline, "genes to bed");
 foreach(array_merge($stdout, $stderr) as $line)
@@ -129,7 +126,7 @@ foreach($variants as $variant => $dummy)
 fclose($h);
 
 //sort
-$parser->exec($ngsbits."VcfSort", "-in $out -out $out");
+$parser->execApptainer("ngs-bits", "VcfSort", "-in $out -out $out", [], [$out]);
 
 //annotate
 $vcf_anno = substr($out, 0, 4)."_anno.vcf";

@@ -46,7 +46,6 @@ $group_props = [];
 $group_props[] = "ID:{$sample}";
 $group_props[] = "SM:{$sample}";
 $group_props[] = "LB:{$sample}";
-$group_props[] = "CN:medical_genetics_tuebingen";
 $group_props[] = "DT:".date("c");
 $group_props[] = "PL:ONT";
 if(db_is_enabled("NGSD"))
@@ -125,22 +124,29 @@ if ($bam_input)
 	$fastq_cmds = [];
 	foreach ($in_bam as $file)
 	{
-		$fastq_cmds[] = get_path("samtools") . " fastq --reference {$genome_fasta} -o /dev/null {$met_tag} {$file}";
+		$command = $parser->execApptainer("samtools", "samtools", "fastq --reference {$genome_fasta} -o /dev/null {$met_tag} {$file}", [$file, $genome_fasta], [], true);
+		$fastq_cmds[] = $command;
 	}
 	$fastq_cmds_str = implode("; ", $fastq_cmds);
-	$pipeline[]=  ["", "({$fastq_cmds_str})"];	//perform mapping from STDIN
-	$pipeline[] = [get_path("minimap2"), implode(" ", $minimap_options)." - "];
+	$pipeline[] =  ["", "({$fastq_cmds_str})"];	//perform mapping from STDIN
+	$command = $parser->execApptainer("minimap2", "minimap2", implode(" ", $minimap_options)." - ", [genome_fasta($sys['build'])], [], true);
+	$pipeline[] = ["", $command];
 }
 else //fastq_mode
-{
+{	
+	$in_files = array();
+	$in_files = array_merge($in_files, $in_fastq);
+	$in_files[] = genome_fasta($sys['build']);
+
 	//FastQ mapping
-	$pipeline[] = [get_path("minimap2"), implode(" ", $minimap_options)." ".implode(" ", $in_fastq)];
+	$command = $parser->execApptainer("minimap2", "minimap2", implode(" ", $minimap_options)." ".implode(" ", $in_fastq), $in_files, [], true);
+	$pipeline[] = ["", $command];
 }
 
 //sort BAM by coordinates
 $tmp_for_sorting = $parser->tempFile();
-$pipeline[] = [get_path("samtools"), "sort --reference {$genome_fasta} -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$bam_current} -", true];
-//execute 
+$command = $parser->execApptainer("samtools", "samtools", "sort --reference {$genome_fasta} -T {$tmp_for_sorting} -m 1G -@ ".min($threads, 4)." -o {$bam_current} -", [$genome_fasta], [], true);
+$pipeline[] = ["", $command];//execute 
 $parser->execPipeline($pipeline, "mapping");
 
 //create index
@@ -176,6 +182,11 @@ if ($bam_input)
 //run mapping QC
 if ($qc_map !== "")
 {
+	$in_files = array();
+	$in_files[] = genome_fasta($sys["build"]);
+	$out_files = array();
+	$out_files[] = $qcml_map;
+	$out_files[] = $qcml_reads;
 	$params = [
 		"-in $bam_current",
 		"-out $qcml_map",
@@ -192,13 +203,14 @@ if ($qc_map !== "")
 	else
 	{
 		$params[] = "-roi ".$sys['target_file'];
+		$in_files[] = $sys['target_file'];
 	}
 	if ($sys['build']!="GRCh38")
 	{
 		$params[] = "-no_cont";
 	}
 
-	$parser->exec(get_path("ngs-bits")."MappingQC", implode(" ", $params), true);
+	$parser->execApptainer("ngs-bits", "MappingQC", implode(" ", $params), $in_files, $out_files);
 }
 
 //create CRAM/BAM in output folder

@@ -16,6 +16,9 @@ extract($parser->parse($argv));
 $genome = genome_fasta($build);
 $tempdir = $parser->tempFolder("umiVar");
 
+// initialize input and output file list for container execution
+$in_files = array();
+$out_files = array();
 
 // remove previous analysis
 create_directory($folder);
@@ -30,16 +33,18 @@ $args = [
     "--temp_dir", $tempdir];
 if (isset($monitoring_vcf))
 {
-    $args[] = "--monitoring ${monitoring_vcf}";
+    $args[] = "--monitoring {$monitoring_vcf}";
+    $in_files[] = $monitoring_vcf;
 }
 if (isset($model))
 {
     $args[] = "--param {$model}";
+    $in_files[] = $model;
 }
 else
 {
     //check that target BED file has sufficient bases for error modeling
-    $ret = $parser->exec(get_path("ngs-bits")."BedInfo", "-in {$target}");
+    $ret = $parser->execApptainer("ngs-bits", "BedInfo", "-in {$target}", [$target]);
     $n_bases = intval(explode(":", $ret[0][1])[1]);
     if ($n_bases < 1000)
     {
@@ -47,25 +52,24 @@ else
     }
 }
 
-//set environment variables
-putenv("umiVar_python_binary=\"".get_path("python3")."\"");
-putenv("umiVar_R_binary=\"".get_path("rscript")."\"");
-putenv("umiVar_samtools_binary=\"".get_path("samtools")."\"");
+$in_files[] = $genome;
+$in_files[] = $bam;
+$in_files[] = $target;
+$out_files[] = $folder;
 
-// call umiVar2 in virtual environment
-$umiVar2 = get_path("umiVar2");
-$parser->exec(get_path("python3"), $umiVar2."/umiVar.py ".implode(" ", $args));
+//call umiVar2 in container
+$parser->execApptainer("umiVar", "umiVar.py", implode(" ", $args), $in_files, $out_files);
 
 // sort VCF file(s)
 $vcf = $folder."/".basename2($bam).".vcf";
 if (file_exists($vcf))
 {
-    $parser->exec(get_path("ngs-bits")."VcfSort","-in $vcf -out $vcf", true);
+    $parser->execApptainer("ngs-bits", "VcfSort", "-in $vcf -out $vcf", [$vcf]);
 }
 $vcf_hq = $folder."/".basename2($bam)."_hq.vcf";
 if (file_exists($vcf_hq))
 {
-    $parser->exec(get_path("ngs-bits")."VcfSort","-in ${vcf_hq} -out ${vcf_hq}", true);
+    $parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf_hq} -out {$vcf_hq}", [$vcf_hq]);
 }
 
 

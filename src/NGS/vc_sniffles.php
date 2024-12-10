@@ -63,7 +63,14 @@ else if(count($bam) == 1)
     if($somatic) $args[] = "--non-germline";
 	if(isset($target)) $args[] = "--regions ".$target;
 
-    $parser->exec(get_path("sniffles"), implode(" ", $args), true);
+	//set bind path for sniffles container
+	$in_files = array();
+	$out_files = array();
+	$in_files[] = $single_sample_bam;
+	$in_files[] = genome_fasta($build);
+
+	//execute sniffles container
+	$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files, $out_files);
 
 }
 else
@@ -88,7 +95,13 @@ else
 		$args[] = "--sample-id ".$name;
 		if(isset($target)) $args[] = "--regions ".$target;
 
-		$parser->exec(get_path("sniffles"), implode(" ", $args), true);
+		//set bind path for sniffles container
+		$in_files = array();
+		$in_files[] = $single_sample_bam;
+		$in_files[] = genome_fasta($build);
+
+		//execute sniffles container
+		$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files);
 
 		$snfs[] = $tmp_snf;
 	}
@@ -105,8 +118,11 @@ else
 	$args[] = "--allow-overwrite";
 	if(isset($target)) $args[] = "--regions ".$target;
 
-    $parser->exec(get_path("sniffles"), implode(" ", $args), true);
+	$in_files = array();
+	$in_files[] = genome_fasta($build);
 
+	//execute sniffles container
+	$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files);
 }
 
 //add name/pipeline info to VCF header

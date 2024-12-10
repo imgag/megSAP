@@ -15,8 +15,9 @@ $parser->addInt("threads", "The maximum number of threads to use.", true, 1);
 
 extract($parser->parse($argv));
 
-$parameters = 	" msi -b $threads -d $msi_ref -n $n_bam -t $t_bam -o $out ";
-$parser->exec(get_path("msisensor"), $parameters);
+$parameters = 	"msi -b $threads -d $msi_ref -n $n_bam -t $t_bam -o $out";
+
+$parser->execApptainer("msisensor-pro", "msisensor-pro", $parameters, [$msi_ref, $n_bam, $t_bam], [$out]);
 
 if (! $keep_status_files)
 {

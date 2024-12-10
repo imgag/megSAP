@@ -172,10 +172,31 @@ $args = [
 	"--counts_out", $out,
 	"--samples", $in_files
 ];
-if ($cohort !== "") $args[] = "--cohort {$cohort}";
-if ($stats !== "") $args[] = "--stats {$stats}";
-if ($corr !== "") $args[] = "--corr {$corr}";
-$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
+
+$files = [
+	$in,
+	$out,
+	$in_files,
+	repository_basedir()."/src/NGS/rc_calc_expr.py"
+];
+
+if ($cohort !== "")
+{
+	$args[] = "--cohort {$cohort}";
+	$files[] = $cohort;
+}
+if ($stats !== "")
+{
+	$args[] = "--stats {$stats}";
+	$files[] = $stats;
+}
+if ($corr !== "")
+{
+	$args[] = "--corr {$corr}";
+	$files[] = $corr;
+}
+
+$parser->execApptainer("python", "python3", repository_basedir()."/src/NGS/rc_calc_expr.py ".implode(" ", $args), $files);
 
 //TODO: use ngs-bits tool
 
@@ -190,6 +211,16 @@ if ($hpa_tissue !== "")
 		"--prefix", "hpa_",
 		"--tissue", "'{$hpa_tissue}'"
 	];
-	if ($hpa_corr !== "") $args[] = "--corr {$hpa_corr}";
-	$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
+	$files = [
+		$out,
+		$hpa_ref,
+		repository_basedir()."/src/NGS/rc_calc_expr.py"
+	];
+
+	if ($hpa_corr !== "") 
+	{
+		$args[] = "--corr {$hpa_corr}";
+		$files[] = $hpa_corr;
+	}
+	$parser->execApptainer("python", "python3", repository_basedir()."/src/NGS/rc_calc_expr.py ".implode(" ", $args), $files);
 }

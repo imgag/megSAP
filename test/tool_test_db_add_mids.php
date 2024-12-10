@@ -5,8 +5,8 @@ require_once("framework.php");
 $name = "db_add_mids";
 start_test($name);
 
-//init
-check_exec(get_path("ngs-bits")."NGSDInit -test");
+//init NGSD
+init_ngsd($name);
 
 //test
 $log_file = output_folder()."/{$name}_out1.log";
