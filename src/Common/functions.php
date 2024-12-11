@@ -947,7 +947,7 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 
 	//compose Apptainer command
 	
-	$apptainer_command = "apptainer exec --no-mount home,cwd{$bind_paths_command} {$container_path} {$command} {$parameters}";
+	$apptainer_command = "apptainer exec{$bind_paths_command} {$container_path} {$command} {$parameters}";
 	
 	//if command only option is true, only the apptainer command is being return, without execution
 	if($command_only) 
