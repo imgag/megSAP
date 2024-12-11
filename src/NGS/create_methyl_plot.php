@@ -84,8 +84,11 @@ for($r=0; $r<$regions_table->rows(); ++$r)
         $bam,
         $pileup_out . "/",
     ];
+    $in_files = array($ref_genome, $bam);
+    $out_files = array($pileup_out);
     
-    $parser->exec(get_path("modkit"), implode(" ", $args_modkit), true);
+    // $parser->exec(get_path("modkit"), implode(" ", $args_modkit), true);
+    $parser->execApptainer("modkit", "modkit", implode(" ", $args_modkit), $in_files, $out_files);
     
     $haplotypes = [1, 2, "ungrouped"];
     $modified = [];
@@ -118,8 +121,7 @@ for($r=0; $r<$regions_table->rows(); ++$r)
     foreach ($haplotypes as $hp)
     {
         $hap_bams[$hp] = $parser->tempFile(".bam", "hap");
-        $args_samtools = [
-            "view",
+        $args_samtools_view = [
             "-o", $hap_bams[$hp],
             "-u",
             "--use-index",
@@ -129,15 +131,19 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             $bam,
             "{$row[3]}:{$row[6]}-{$row[7]}",
         ];
-        $parser->exec(get_path("samtools"), implode(" ", $args_samtools), true);
-        $parser->exec(get_path("samtools"), "index -@ {$threads} {$hap_bams[$hp]}", true);
+        // $parser->exec(get_path("samtools"), implode(" ", $args_samtools), true);
+        // $parser->exec(get_path("samtools"), "index -@ {$threads} {$hap_bams[$hp]}", true);
+        
+        $parser->execApptainer("samtools", "samtools view", implode(" ", $args_samtools_view), [$bam]);
+        $parser->indexBam($hap_bams[$hp], $threads);
     }
 
 
     $target_bed = $parser->tempFile(".bed", "hap");
     $coord_start = $row[6]-1;
     file_put_contents($target_bed, "{$row[3]}\t{$coord_start}\t{$row[7]}");
-    $result = $parser->exec(get_path("ngs-bits")."/BedCoverage", "-threads {$threads} -random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$bam} -in {$target_bed} -clear");
+    // $result = $parser->exec(get_path("ngs-bits")."/BedCoverage", "-threads {$threads} -random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$bam} -in {$target_bed} -clear");
+    $result = $parser->execApptainer("ngs-bits", "BedCoverage", "-threads {$threads} -random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$bam} -in {$target_bed} -clear", [$bam]);
     $result_parts = explode("\t", $result[0][1]);
     $average_coverage = array_map("floatval", array_slice($result_parts, 3, 3));
 

@@ -180,7 +180,7 @@ if (in_array("ma", $steps))
 	}
 
 	//low-coverage report
-	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".$sys['target_file']." -bam $bam_file -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$sys['target_file'], $folder, $genome]);
+	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".$sys['target_file']." -bam $bam_file -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$sys['target_file'], $folder, $genome, $bam_file]);
 	if (db_is_enabled("NGSD"))
 	{
 		$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", [$folder]);
