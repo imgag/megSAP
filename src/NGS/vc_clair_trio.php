@@ -45,16 +45,6 @@ if(isset($target))
 		$parser->copyFile($target, $target_extended);
 	}
 	
-	// //add special target regions (regions with known pathogenic variants that are often captured by exome/panel, but not inside the target region)
-	// if ($build=="GRCh38" && $target_extend>0) //only if extended (otherwise it is also added for chrMT calling, etc.)
-	// {
-	// $parser->execApptainer("ngs-bits", "BedAdd", "-in $target_extended ".repository_basedir()."/data/misc/special_regions.bed -out $target_extended", [repository_basedir()."/data/misc/special_regions.bed"]);
-	// }
-	
-	// $target_merged = $parser->tempFile("_merged.bed");
-	// $parser->execApptainer("ngs-bits", "BedMerge", "-in $target_extended -out $target_merged");
-	
-	// $args[] = "--bed_fn={$target_merged}";
 }
 
 //prepare container

@@ -13,7 +13,6 @@ $parser->addString("regions", "The regions/highlights to analyze/plot. ", false)
 
 // optional
 $parser->addFlag("skip_plot", "Disable methylartist plotting of imprinting sites.");
-// $parser->addFlag("skip_chr_plot", "Disable methylartist plotting of chromosome-wide methylation.");
 $parser->addString("build", "The genome build to use. ", true, "GRCh38");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 
@@ -22,7 +21,6 @@ extract($parser->parse($argv));
 $ref_genome = genome_fasta($build);
 exec2("mkdir -p {$folder}/methylartist");
 $gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gtf.gz";
-// $gtf = "/mnt/storage2/users/ahadmaj1/projects/20240605_metyhlartist/test.gtf.gz";
 $bam = $folder."/".$name.".cram";
 if (!file_exists($bam))
 {
@@ -68,7 +66,6 @@ for($r=0; $r<$regions_table->rows(); ++$r)
         $in_files = array($bam, $ref_genome, $gtf);
         $out_files = array("{$folder}/methylartist/");
         $jobs_plotting[] = array("Plotting_".$row[0], $parser->execApptainer("methylartist", "methylartist", implode(" ", $args), $in_files, $out_files, true));
-        // $parser->exec(get_path("methylartist"), implode(" ", $args), true, true);
         
     }
 
@@ -90,7 +87,6 @@ for($r=0; $r<$regions_table->rows(); ++$r)
     $in_files = array($ref_genome, $bam);
     $out_files = array($pileup_out);
     
-    // $parser->exec(get_path("modkit"), implode(" ", $args_modkit), true);
     $parser->execApptainer("modkit", "modkit", implode(" ", $args_modkit), $in_files, $out_files);
     
     $haplotypes = [1, 2, "ungrouped"];
@@ -133,10 +129,7 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             "-@", $threads,
             $bam,
             "{$row[3]}:{$row[6]}-{$row[7]}",
-        ];
-        // $parser->exec(get_path("samtools"), implode(" ", $args_samtools), true);
-        // $parser->exec(get_path("samtools"), "index -@ {$threads} {$hap_bams[$hp]}", true);
-        
+        ];       
         $parser->execApptainer("samtools", "samtools view", implode(" ", $args_samtools_view), [$bam]);
         $parser->indexBam($hap_bams[$hp], $threads);
     }
@@ -145,7 +138,6 @@ for($r=0; $r<$regions_table->rows(); ++$r)
     $target_bed = $parser->tempFile(".bed", "hap");
     $coord_start = $row[6]-1;
     file_put_contents($target_bed, "{$row[3]}\t{$coord_start}\t{$row[7]}");
-    // $result = $parser->exec(get_path("ngs-bits")."/BedCoverage", "-threads {$threads} -random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$bam} -in {$target_bed} -clear");
     $result = $parser->execApptainer("ngs-bits", "BedCoverage", "-threads {$threads} -random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$bam} -in {$target_bed} -clear", [$bam]);
     $result_parts = explode("\t", $result[0][1]);
     $average_coverage = array_map("floatval", array_slice($result_parts, 3, 3));
@@ -189,42 +181,5 @@ $regions_table->toTSV($out);
 if (count($jobs_plotting) > 0) $parser->execParallel(array_reverse($jobs_plotting), $threads); 
 
 
-//chromosome-wide plots disabled for now (takes too long)
-/*
-
-if (!$skip_chr_plot)
-{
-    # create chromosomewise methylation plots
-    $fai_content = file($ref_genome.".fai");
-    foreach ($fai_content as $line) 
-    {
-        list($chr, $end) = explode("\t", $line);
-        if (!chr_check($chr, 22, false)) continue; //skip non-standard chromosomes
-
-        $args = [
-            "region",
-            "--bams", $bam,
-            "--interval", "{$chr}:1-{$end}",
-            "--ref", $ref_genome,
-            "--motif", "CG",
-            "--phased",
-            "--color_by_hp",
-            "--skip_align_plot",
-            "--panelratios", "1,0,1,4",
-            "--height", 4.5,
-            "--mods", "m",
-            "--outfile", "{$folder}/methylartist/{$name}_{$chr}.png",
-            "--gtf", $gtf,
-            "--genepalette", "viridis",
-            "--samplepalette", "viridis", 
-            "--procs", $threads
-        ];
-        // $jobs_plotting[] = array("Plotting_".$row[0], get_path("methylartist")." ".implode(" ", $args));
-        $parser->exec(get_path("methylartist"), implode(" ", $args), true, true);
-
-    }
-}
-
-*/
 
 ?>
