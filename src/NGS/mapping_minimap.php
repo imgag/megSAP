@@ -185,8 +185,7 @@ if ($qc_map !== "")
 	$in_files = array();
 	$in_files[] = genome_fasta($sys["build"]);
 	$out_files = array();
-	$out_files[] = $qcml_map;
-	$out_files[] = $qcml_reads;
+	$out_files[] = dirname($out);
 	$params = [
 		"-in $bam_current",
 		"-out $qcml_map",

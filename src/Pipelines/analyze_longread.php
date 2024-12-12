@@ -197,7 +197,7 @@ if (in_array("ma", $steps))
 	}
 
 	//low-coverage report
-	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".$sys['target_file']." -bam {$used_bam_or_cram} -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$sys['target_file', $used_bam_or_cram], $folder, $genome]);
+	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".$sys['target_file']." -bam {$used_bam_or_cram} -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$sys['target_file'], $genome, $used_bam_or_cram], [$folder]);
 	if (db_is_enabled("NGSD"))
 	{
 		$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", [$folder]);
@@ -441,7 +441,7 @@ if (in_array("cn", $steps))
 	$cov_file = $cov_folder."/{$name}.cov.gz";
 	$cov_tmp_unzipped = $tmp_folder."/{$name}.cov";
 	$cov_tmp = $cov_tmp_unzipped.".gz";
-	$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {{$used_bam_or_cram} -in {$bed} -out {$cov_tmp_unzipped} -threads {$threads} -ref {$genome}", [$folder, $bed, $genome]);
+	$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$used_bam_or_cram} -in {$bed} -out {$cov_tmp_unzipped} -threads {$threads} -ref {$genome}", [$folder, $bed, $genome]);
 	$parser->exec("gzip", "-9 {$cov_tmp_unzipped}");
 	
 	//copy coverage file to reference folder if valid

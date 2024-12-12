@@ -2416,7 +2416,8 @@ function check_for_missing_chromosomes($file_name, $throw_error = true)
 function get_read_count($bam_file, $threads = 4, $samtools_params = array(), $build = "GRCh38", $region = "")
 {
 	$read_count = -1;
-	list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -@ {$threads} -c -T ".genome_fasta($build)." ".implode($samtools_params)." {$bam_file} {$region}");
+	// list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -@ {$threads} -c -T ".genome_fasta($build)." ".implode($samtools_params)." {$bam_file} {$region}");
+	list($stdout, $stderr, $exit_code) = execApptainer("samtools", "samtools view", "-@ {$threads} -c -T ".genome_fasta($build)." ".implode($samtools_params)." {$bam_file} {$region}", [$bam_file, genome_fasta($build)]);
 	if ($exit_code == 0)
 	{
 		$read_count = (int) $stdout[0];
