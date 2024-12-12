@@ -65,8 +65,11 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             "--outfile", "{$folder}/methylartist/{$name}_{$row[0]}.png",
             "--gtf", $gtf
         ];
-        $jobs_plotting[] = array("Plotting_".$row[0], get_path("methylartist")." ".implode(" ", $args));
+        $in_files = array($bam, $ref_genome, $gtf);
+        $out_files = array("{$folder}/methylartist/");
+        $jobs_plotting[] = array("Plotting_".$row[0], $parser->execApptainer("methylartist", "methylartist", implode(" ", $args), $in_files, $out_files, true));
         // $parser->exec(get_path("methylartist"), implode(" ", $args), true, true);
+        
     }
 
     // calculate average methylation
