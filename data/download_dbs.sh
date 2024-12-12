@@ -23,6 +23,11 @@ mkdir -p Ensembl
 cd Ensembl
 wget https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz
 gunzip Homo_sapiens.GRCh38.112.gff3.gz
+wget https://ftp.ensembl.org/pub/release-112/gtf/homo_sapiens/Homo_sapiens.GRCh38.112.gtf.gz
+gunzip Homo_sapiens.GRCh38.112.gtf.gz
+# create sorted & indexed file for methylartist
+(grep ^"#" Homo_sapiens.GRCh38.112.gtf; grep -v ^"#" Homo_sapiens.GRCh38.112.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | bgzip  > Homo_sapiens.GRCh38.112.gtf.gz
+tabix -p gff Homo_sapiens.GRCh38.112.gtf.gz
 
 #Download RefSeq transcripts database
 cd $dbs

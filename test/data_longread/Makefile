@@ -1,8 +1,8 @@
 
-all: clean link map vc cn sv an diff bam_analysis diff2
+all: clean link map vc cn sv re me an diff bam_analysis diff2
 
 clean:
-	rm -rf *.fastq.gz *.log *.txt *.GSvar *.gvcf.gz *.gvcf.gz.tbi *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe clair_temp repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_rohs.tsv *_ancestry.tsv
+	rm -rf *.fastq.gz *.log *.txt *.GSvar *.gvcf.gz *.gvcf.gz.tbi *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe clair_temp repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_rohs.tsv *_ancestry.tsv *_methylation.tsv
 
 link:
 	php ../link_test_data.php 23014LRa023L2_01_chr1_longread.fastq.gz
@@ -21,6 +21,10 @@ sv:
 
 re:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps re
+
+me:
+	# should only print waring since input data doesn't contain methylation
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps me 
 
 an:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps an
@@ -43,7 +47,7 @@ diff:
 
 bam_analysis: clean
 	php ../link_test_data.php 23014LRa023L2_02.mod.unmapped.bam
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma,vc,cn,sv,re,an
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma,vc,cn,sv,re,me,an
 	cut -f1-22 23014LRa023L2_02_var_structural_variants.bedpe > 23014LRa023L2_02_var_structural_variants_cut.bedpe
 
 diff2:
@@ -57,3 +61,4 @@ diff2:
 	diff 23014LRa023L2_02_prs.tsv.out 23014LRa023L2_02_prs.tsv
 	diff 23014LRa023L2_02_phasing_track.bed.out 23014LRa023L2_02_phasing_track.bed
 	diff 23014LRa023L2_02_bafs.igv.out 23014LRa023L2_02_bafs.igv
+	diff 23014LRa023L2_02_var_methylation.tsv.out 23014LRa023L2_02_var_methylation.tsv

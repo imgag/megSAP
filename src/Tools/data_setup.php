@@ -347,12 +347,12 @@ if (get_path("copy_dbs_to_local_data"))
 	}
 
 	// Get list of apptainer containers from network directory
-	list($container_files) = exec2("ls {$network_folder}/*");
+	list($container_files) = exec2("ls {$network_folder}/*.sif");
 	foreach ($container_files as $container_file) 
 	{
 		$base = basename($container_file);
 		$local_container_file = $local_folder.$base;
-		
+
 		if (!file_exists($local_container_file) || (filemtime($local_container_file)<filemtime($container_file)))
 		{
 			print "  {$base}: Copying new container version to '$local_container_file'.\n";
