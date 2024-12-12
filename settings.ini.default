@@ -4,11 +4,22 @@
 ;If you use the download shell scripts in data/ to install tools, genomes and databases,
 ;only adapting the NGSD database credentials is necessary.
 
+[tools]
+interop = [path]/tools/interop-1.2.4-Linux-GNU/bin/summary
+
+[tools-data]
 vep_data = [path]/data/dbs/ensembl-vep-112/
 clincnv_cohorts = [path]/data/ClinCNV-cohorts/
 clair3_models = [path]/data/tools/Clair3-v1.0.10/models
-methylartist = [path]/data/tools/methylartist_venv_2024.11.13/bin/methylartist
 
+[apptainer-container]
+container_abra2 = v2.23
+container_arriba = v2.4.0
+container_blastn = v2.9.0+
+container_bwa = v0.7.18
+container_bwa-mem2 = v2.2.1
+container_circos = 0.69.9
+container_clair3 = v1.0.10
 container_clair3-trio = v0.7
 container_ClinCNV = v1.18.3
 container_expansionhunter = v5.0.0
