@@ -644,8 +644,11 @@ if (in_array("cn", $steps))
 	//knowns pathogenic CNVs
 	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -out {$cnv_multi}", [$out_folder, "{$repository_basedir}/data/misc/cn_pathogenic.bed"]);
 
-	//annotate additional gene info
-	$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$cnv_multi} -add_simple_gene_names -out {$cnv_multi}", [$out_folder]);
+	//annotate gene info
+	if(db_is_enabled("NGSD"))
+	{
+		$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$cnv_multi} -add_simple_gene_names -out {$cnv_multi}", [$out_folder]);
+	}
 	
 	//dosage sensitive disease genes
 	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);

@@ -895,11 +895,14 @@ if(in_array("cn",$steps))
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$repository_basedir}/data/gene_lists/genes.bed -no_duplicates -url_decode -out {$som_clincnv}", [$som_clincnv, "{$repository_basedir}/data/gene_lists/genes.bed"]);
 
 		//annotate additional gene info
-		$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$som_clincnv}  -add_simple_gene_names -out {$som_clincnv}", [$som_clincnv]);
-		// skip annotation if no connection to the NGSD is possible
+		if(db_is_enabled("NGSD"))
+		{
+			$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$som_clincnv}  -add_simple_gene_names -out {$som_clincnv}", [$som_clincnv]);
+		}
+		
+		//annotate overlap with pathogenic CNVs
 		if (db_is_enabled("NGSD"))
 		{
-			//annotate overlap with pathogenic CNVs
 			$parser->execApptainer("ngs-bits", "NGSDAnnotateCNV", "-in {$som_clincnv} -out {$som_clincnv}", [$som_clincnv]);
 		}
 	}

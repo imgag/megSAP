@@ -562,10 +562,16 @@ $cnvs->addCol($new_col, "cnv_type", "Type of CNV: focal (< 25 % of chrom. arm, <
 //store output tsv file
 $cnvs->toTSV($out);
 
-//annotate additional gene info
-$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$out} -add_simple_gene_names -out {$out}", [$out]);
+//annotate gene info
+if(db_is_enabled("NGSD") && !$test)
+{
+	$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$out} -add_simple_gene_names -out {$out}", [$out]);
+}
 
 //annotate overlap with pathogenic CNVs
-if(db_is_enabled("NGSD") && !$test) $parser->execApptainer("ngs-bits", "NGSDAnnotateCNV", "-in {$out} -out {$out}", [$out]);
+if(db_is_enabled("NGSD") && !$test) 
+{
+	$parser->execApptainer("ngs-bits", "NGSDAnnotateCNV", "-in {$out} -out {$out}", [$out]);
+}
 
 ?>
