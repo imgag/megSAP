@@ -85,9 +85,9 @@ function fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data)
 
 //parse command line arguments
 $parser = new ToolBase("trio_longread", "Trio analysis pipeline of Nanopore long-read data.");
-$parser->addInfile("f", "BAM file of father.", false, true);
-$parser->addInfile("m", "BAM file of mother.", false, true);
-$parser->addInfile("c", "BAM file of child (index).", false, true);
+$parser->addInfile("f", "BAM/CRAM file of father.", false, true);
+$parser->addInfile("m", "BAM/CRAM file of mother.", false, true);
+$parser->addInfile("c", "BAM/CRAM file of child (index).", false, true);
 $parser->addString("out_folder", "Output folder name.", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of 'c' is a valid processed sample name).", true);
@@ -146,9 +146,9 @@ if (!$no_check)
 {
 	//check parent-child correlation
 	$min_cov = 15; 
-	$c_gsvar = substr($c, 0, -4).".GSvar";
-	$f_gsvar = substr($f, 0, -4).".GSvar";
-	$m_gsvar = substr($m, 0, -4).".GSvar";
+	$c_gsvar = dirname($c)."/".basename2($c).".GSvar";
+	$f_gsvar = dirname($f)."/".basename2($f).".GSvar";
+	$m_gsvar = dirname($m)."/".basename2($m).".GSvar";
 	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$f_gsvar} {$c_gsvar} -mode gsvar -min_cov {$min_cov} -max_snps 4000 -build ".ngsbits_build($build), [$f_gsvar, $c_gsvar]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)

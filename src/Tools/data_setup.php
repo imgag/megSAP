@@ -347,7 +347,7 @@ if (get_path("copy_dbs_to_local_data"))
 	}
 
 	// Get list of apptainer containers from network directory
-	list($container_files) = exec2("ls {$network_folder}/*");
+	list($container_files) = exec2("ls {$network_folder}/*.sif");
 	foreach ($container_files as $container_file) 
 	{
 		$base = basename($container_file);

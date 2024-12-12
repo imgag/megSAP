@@ -366,9 +366,33 @@ check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosome
 check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosomes_in7.vcf.gz"), 0);
 check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosomes_in8.vcf.gz", false), 2);
 
+end_test();
 
+//##################################################################################
+start_test("get_read_counts");
 
+check(get_read_count(data_folder()."/get_read_count_in1.bam"), 1861);
+check(get_read_count(data_folder()."/get_read_count_in1.bam", 1, array("-F", "2304")), 1607);
+check(get_read_count(data_folder()."/get_read_count_in1.bam", 1, array(), "GRCh38", "chr1:37999900-38000000"), 70);
 
+check(get_read_count(data_folder()."/get_read_count_in2.cram"), 1861);
+check(get_read_count(data_folder()."/get_read_count_in2.cram", 1, array("-F", "2304")), 1607);
+check(get_read_count(data_folder()."/get_read_count_in2.cram", 1, array(), "GRCh38", "chr1:37988000-37999900"), 281);
+
+end_test();
+
+//##################################################################################
+start_test("compare_bam_read_count");
+
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.bam", data_folder()."/compare_bam_read_count_in1.cram"), true);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.cram", data_folder()."/compare_bam_read_count_in1.bam"), true);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.bam", data_folder()."/compare_bam_read_count_in2.bam"), true);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.bam", data_folder()."/compare_bam_read_count_in2.bam", 2, true, false, 0.0, array("-F", "2304")), true);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.bam", data_folder()."/compare_bam_read_count_in2.bam", 2, false, true), false);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.bam", data_folder()."/compare_bam_read_count_in2.bam", 2, false, true, 0.0, array("-F", "2304")), false);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.cram", data_folder()."/compare_bam_read_count_in2.cram", 2, false, true, 0.021), true);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in2.bam", data_folder()."/compare_bam_read_count_in3.bam", 2, false, false, 0.005), true);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in2.bam", data_folder()."/compare_bam_read_count_in3.bam", 2, false, true, 0.041), true);
 
 end_test();
 

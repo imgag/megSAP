@@ -59,7 +59,7 @@ if (isset($summary))
 	$args[] = "--log-filepath ".$log_file2;
 	$args[] = " > ".$summary;
 
-	$out_files[] = $summary;
+	$out_files[] = dirname($summary);
 
 	$parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files, $out_files);
 	//copy logfile 
