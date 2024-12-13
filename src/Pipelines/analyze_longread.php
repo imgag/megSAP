@@ -560,10 +560,9 @@ if (in_array("an", $steps))
 			$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$cnv_file} -add_simple_gene_names -out {$cnv_file}", [$folder]);
 		}
 		
-		// skip annotation if no connection to the NGSD is possible
+		//annotate overlap with pathogenic CNVs
 		if (db_is_enabled("NGSD"))
 		{
-			//annotate overlap with pathogenic CNVs
 			$parser->execApptainer("ngs-bits", "NGSDAnnotateCNV", "-in {$cnv_file} -out {$cnv_file}", [$folder]);
 		}
 

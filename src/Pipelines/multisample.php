@@ -650,6 +650,12 @@ if (in_array("cn", $steps))
 		$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$cnv_multi} -add_simple_gene_names -out {$cnv_multi}", [$out_folder]);
 	}
 	
+	//annotate overlap with pathogenic CNVs
+	if (db_is_enabled("NGSD"))
+	{
+		$parser->execApptainer("ngs-bits", "NGSDAnnotateCNV", "-in {$cnv_multi} -out {$cnv_multi}", [$cnv_multi]);
+	}
+	
 	//dosage sensitive disease genes
 	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
 	
