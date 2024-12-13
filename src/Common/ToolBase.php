@@ -1231,11 +1231,11 @@ class ToolBase
 	}
 	
 	///Sort BAM file (optional build parameter to speed-up cram sorting)
-	function sortBam($in, $out, $threads, $by_name = FALSE, $build = "")
+	function sortBam($in, $out, $threads, $build, $by_name = FALSE)
 	{	
 		$threads -= 1; //number of additional threads, that's why -1
 		$tmp_for_sorting = $this->tempFile();
-		$this->execApptainer("samtools", "samtools sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G".($build!=""?" --reference ".genome_fasta($build):"")." -o $out $in", [$in, genome_fasta($build)], [dirname($out)]);
+		$this->execApptainer("samtools", "samtools sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G --reference ".genome_fasta($build)." -o $out $in", [$in, genome_fasta($build)], [dirname($out)]);
 	}
 	
 	///Index BAM file

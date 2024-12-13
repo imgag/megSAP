@@ -78,7 +78,7 @@ foreach($vcf_file_content as $line)
 if (!$no_images)
 {
 	// sort and index ExpansionHunter BAM
-	$parser->sortBam($out_prefix."_realigned.bam", $out_prefix."_realigned.bam", 1);
+	$parser->sortBam($out_prefix."_realigned.bam", $out_prefix."_realigned.bam", 1, $build);
 	$parser->indexBam($out_prefix."_realigned.bam", 1);
 
 	// create output folder

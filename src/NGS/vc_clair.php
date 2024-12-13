@@ -28,7 +28,8 @@ $genome = genome_fasta($build);
 //output files
 //$clair_temp = "{$folder}/clair_temp";
 $clair_temp = $parser->tempFolder("clair_temp");
-$clair_mito_temp = $parser->tempFolder("clair_mito_temp");$out = "{$folder}/{$name}_var.vcf.gz";
+$clair_mito_temp = $parser->tempFolder("clair_mito_temp");
+$out = "{$folder}/{$name}_var.vcf.gz";
 $out_gvcf = "{$folder}/{$name}_var.gvcf.gz";
 
 //create basic variant calls

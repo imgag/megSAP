@@ -492,7 +492,7 @@ if($barcode_correction)
 		$parser->execApptainer("ngs-bits", "BamFilter", "-in $bam_current -out $tmp_bam_filtered", [$bam_current]);
 
 		$tmp_bam_filtered_sorted = $parser->tempFile("_filtered_sorted.bam");
-		$parser->sortBam($tmp_bam_filtered, $tmp_bam_filtered_sorted, $threads);
+		$parser->sortBam($tmp_bam_filtered, $tmp_bam_filtered_sorted, $threads, $build);
 		$parser->indexBam($tmp_bam_filtered_sorted, $threads);
 		
 		$parser->deleteTempFile($bam_current);
@@ -506,7 +506,7 @@ if($barcode_correction)
 		$parser->execApptainer("ngs-bits", "BamFilter", "-minMQ 20 -in $bam_current -out $tmp_bam_filtered", [$bam_current]);
 
 		$tmp_bam_filtered_sorted = $parser->tempFile("_filtered_sorted.bam");
-		$parser->sortBam($tmp_bam_filtered, $tmp_bam_filtered_sorted, $threads);
+		$parser->sortBam($tmp_bam_filtered, $tmp_bam_filtered_sorted, $threads, $build);
 		$parser->indexBam($tmp_bam_filtered_sorted, $threads);
 		
 		$parser->deleteTempFile($bam_current);
@@ -525,7 +525,7 @@ if($barcode_correction)
 	
 	// use the barcode correction of umiVar2
 	$parser->execApptainer("umiVar", "barcode_correction.py", "--infile $bam_current --outfile $tmp_bam4 ".implode(" ", $args));
-	$parser->sortBam($tmp_bam4, $tmp_bam4_sorted, $threads);
+	$parser->sortBam($tmp_bam4, $tmp_bam4_sorted, $threads, $build);
 	$parser->indexBam($tmp_bam4_sorted, $threads);
 	
 	$parser->deleteTempFile($bam_current);
@@ -549,7 +549,7 @@ if($clip_overlap)
 	$tmp_bam = $parser->tempFile("_clip_overlap_unsorted.bam");
 	$parser->execApptainer("ngs-bits", "BamClipOverlap", "-in $bam_current -out $tmp_bam -overlap_mismatch_basen", [$bam_current]);
 	$tmp_bam2 = $parser->tempFile("_clip_overlap_sorted.bam");
-	$parser->sortBam($tmp_bam, $tmp_bam2, $threads);
+	$parser->sortBam($tmp_bam, $tmp_bam2, $threads, $build);
 	$parser->indexBam($tmp_bam2, $threads);
 
 

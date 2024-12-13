@@ -74,7 +74,7 @@ $pipeline[] = ["", $parser->execApptainer("samtools", "samtools", "view -Sb - > 
 
 //execute (BWA -> samblaster -> BAM conversion)
 $parser->execPipeline($pipeline, "mapping");
-$parser->sortBam($tmp_unsorted, $out, $threads);
+$parser->sortBam($tmp_unsorted, $out, $threads, $build);
 $parser->indexBam($out, $threads);
 
 ?>

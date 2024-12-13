@@ -87,7 +87,7 @@ else
 //run BamClipOverlap
 $viral_tmp3 = $parser->tempFile("_viral_clipoverlap_tmp.bam");
 $parser->execApptainer("ngs-bits", "BamClipOverlap", "-in $viral_tmp2 -out $viral_tmp3 -overlap_mismatch_basen");
-$parser->sortBam($viral_tmp3, $viral_bam, $threads);
+$parser->sortBam($viral_tmp3, $viral_bam, $threads, $build_viral);
 $parser->indexBam($viral_bam, $threads);
 
 //run variant calling

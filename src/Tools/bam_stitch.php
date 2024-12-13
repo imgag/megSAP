@@ -61,7 +61,7 @@ $parser->execApptainer("samtools", "samtools merge", "-f {$bam_merge} {$bam_in1}
 
 //sort and index output
 print "Sorting and indexing 'out'.\n";
-$parser->sortBam($bam_merge, $out, 4);
+$parser->sortBam($bam_merge, $out, 4, "GRCh38");
 $parser->indexBam($out, 4);
 
 ?>
