@@ -861,8 +861,12 @@ if (in_array("cn", $steps))
 			$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$omim_file} -no_duplicates -url_decode -out {$cnvfile}", [$folder, $omim_file]);
 		}
 
-		//annotate additional gene info
-		$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$cnvfile} -add_simple_gene_names -out {$cnvfile}", [$folder]);
+		//annotate gene info
+		if(db_is_enabled("NGSD"))
+		{
+			$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$cnvfile} -add_simple_gene_names -out {$cnvfile}", [$folder]);
+		}
+		
 		// skip annotation if no connection to the NGSD is possible
 		if (db_is_enabled("NGSD"))
 		{

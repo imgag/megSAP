@@ -98,8 +98,8 @@ if(!$somatic)
 		++$c_valid;
 		
 		//check bam
-		list ($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SamplePath", "-ps {$sample} -type BAM");
-		$bam_or_cram = trim(implode("", $stdout));
+		$info = get_processed_sample_info($db, $sample);
+		$bam_or_cram = $info['ps_bam'];
 		
 		if (file_exists($bam_or_cram))
 		{

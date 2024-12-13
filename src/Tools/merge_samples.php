@@ -117,8 +117,7 @@ $target_mod_unmapped_bam_files = glob($folder2."/*.mod.unmapped.bam");
 $target_bam_or_cram_methylation = false; //init to false to prevent 'Undefined variable'
 removeIndexFastqs($target_fastq_files);
 
-list ($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SamplePath", "-ps {$into} -type BAM".$sample_path_db_addon);
-$target_bam_or_cram = trim(implode("", $stdout));
+$target_bam_or_cram = $info2['ps_bam'];
 
 if (count($target_fastq_files) > 0)
 {
@@ -153,8 +152,9 @@ elseif (file_exists($target_bam_or_cram))
 	}
 }
 else
-{
-	trigger_error("Could not find any sequencing data (neither FASTQ, BAM nor CRAM) in Sample folder of '$into': $target_bam_or_cram! Abort merging.", E_USER_ERROR);
+{	
+print "XY: ".$target_bam_or_cram."\n";
+	trigger_error("Could not find any sequencing data (neither FASTQ, BAM nor CRAM) in Sample folder of '$into': $folder2! Abort merging.", E_USER_ERROR);
 }
 
 //check if FASTQ files or BAM in source folder exist
@@ -163,8 +163,7 @@ $source_fastq_files = glob($folder1."/*.fastq.gz");
 removeIndexFastqs($source_fastq_files);
 $source_mod_unmapped_bam_files = glob($folder1."/*.mod.unmapped.bam");
 
-list ($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SamplePath", "-ps {$ps} -type BAM".$sample_path_db_addon);
-$source_bam_or_cram = trim(implode("", $stdout));
+$source_bam_or_cram = $info1['ps_bam'];
 if (count($source_fastq_files) > 0)
 {
 	//FASTQ files found -> move them to the target folder

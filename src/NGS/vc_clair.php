@@ -107,12 +107,10 @@ $parser->execApptainer("ngs-bits", "VcfMerge", "-in {$clair_vcf} {$clair_mito_vc
 $parser->execApptainer("ngs-bits", "VcfSort", "-compression_level 5 -in {$clair_merged_vcf1} -out {$clair_merged_vcf2}"); //sorting should not be necessary
 if (file_exists($clair_mito_gvcf))
 {
-	//TODO: combine to pipeline
 	$clair_merged_gvcf1 = $parser->tempFile("_merged.gvcf");
 	$clair_merged_gvcf2 = $parser->tempFile("_merged.gvcf.gz");
 	$parser->execApptainer("ngs-bits", "VcfMerge", "-in {$clair_gvcf} {$clair_mito_gvcf} -out {$clair_merged_gvcf1}");
 	//no sorting since MT is last chr anyways
-	//$parser->execApptainer("ngs-bits", "VcfSort", "-compression_level 5  -in {$clair_merged_gvcf1} -out {$clair_merged_gvcf2}");
 	$parser->exec("bgzip", "-c {$clair_merged_gvcf1} > {$clair_merged_gvcf2}");
 }
 else
@@ -163,8 +161,10 @@ $vcf->toTSV($uncompressed_vcf);
 //mark off-target variants
 if ($target_extend>0)
 {
+	$on_target_region = $parser->tempFile(".bed");
+	$result = $parser->execApptainer("ngs-bits", "BedAdd", "-in {$target} {$target_mito} -out {$on_target_region}", [$target]);
 	$tmp = $parser->tempFile(".vcf");
-	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $uncompressed_vcf -mark off-target -reg $target -out $tmp", [$target]);
+	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $uncompressed_vcf -mark off-target -reg {$on_target_region} -out $tmp", [$on_target_region]);
 	$parser->exec("bgzip", "-c $tmp > $out", false);
 }
 else

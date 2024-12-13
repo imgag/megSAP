@@ -13,8 +13,8 @@ $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
-$steps_all = array("ma", "vc", "cn", "sv", "re", "an", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, re=repeat expansions calling, an=annotation, db=import into NGSD.", true, implode(",", $steps_all));
+$steps_all = array("ma", "vc", "cn", "sv", "re", "me", "an", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, re=repeat expansions calling, me=methylation calling, an=annotation, db=import into NGSD.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("skip_phasing", "Skip phasing of VCF and BAM files.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
@@ -102,6 +102,9 @@ $sv_vcf_file = $folder ."/". $name . "_var_structural_variants.vcf.gz";
 $bedpe_file = substr($sv_vcf_file,0,-6)."bedpe";
 //repeat expansions
 $straglr_file = $folder."/".$name."_repeats.vcf";
+//methylation files
+$methyl_regions = repository_basedir()."/data/methylation/methylartist_catalog_grch38.tsv";
+$methylation_table = $folder."/".$name."_var_methylation.tsv";
 //db import
 $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
@@ -153,8 +156,7 @@ if (in_array("ma", $steps))
 		"-system {$system}",
 		"-qc_fastq {$qc_fastq}",
 		"-qc_map {$qc_map}",
-		"-softclip_supplements"
-	];
+		"-softclip_supplements"	];
 	if ($bam_output)
 	{
 		$mapping_minimap_options[] = "-out {$bam_file}";
@@ -655,6 +657,14 @@ if (in_array("re", $steps))
 	$parser->execTool("NGS/vc_straglr.php", "-in {$used_bam_or_cram} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
 }
 
+// methylation calling
+if (in_array("me", $steps))
+{
+	if (!contains_methylation($bam_file)) trigger_error("BAM file doesn't contain methylation info! Skipping step 'me'", E_USER_WARNING);
+	else $parser->execTool("NGS/create_methyl_plot.php", "-folder {$folder} -name {$name} -out {$methylation_table} -build {$build} -regions {$methyl_regions} -threads {$threads}");
+
+}
+
 // annotation
 if (in_array("an", $steps))
 {
@@ -728,8 +738,12 @@ if (in_array("an", $steps))
 			$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$omim_file} -no_duplicates -url_decode -out {$cnv_file}", [$folder, $omim_file]);
 		}
 
-		//annotate additional gene info
-		$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$cnv_file} -add_simple_gene_names -out {$cnv_file}", [$folder]);
+		//annotate gene info
+		if(db_is_enabled("NGSD"))
+		{
+			$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$cnv_file} -add_simple_gene_names -out {$cnv_file}", [$folder]);
+		}
+		
 		// skip annotation if no connection to the NGSD is possible
 		if (db_is_enabled("NGSD"))
 		{

@@ -416,8 +416,7 @@ foreach($res as $row)
 		$tmp_folder = $parser->tempFolder();	
 		
 		#get bam or cram file from sample and the reference file for the sample
-		list ($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SamplePath", "-ps {$ps_name} -type BAM");
-		$bam_or_cram = trim(implode("", $stdout));
+		$bam_or_cram = $info['ps_bam']
 		
 		$sys_filename_ignore = "";
 		$sys = load_system($sys_filename_ignore, $ps_name); //param filename = "" to load from the NGSD
@@ -478,8 +477,8 @@ foreach($res as $row)
 			{
 				$normal_data_dir = $project_folder."/Sample_".$normal_sample['id_genetics']."/";
 				
-				list ($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SamplePath", "-ps ".$normal_sample['id_genetics']." -type BAM");
-				$normal_bam_or_cram = trim(implode("", $stdout));
+				$normal_info = get_processed_sample_info($db, $normal_sample['id_genetics']);
+				$normal_bam_or_cram = $normal_info['ps_bam'];
 				
 				$sys_n = load_system($sys_n, $normal_sample['id_genetics']); //param filename = "" to load from the NGSD
 				$build_n = $sys_n['build'];

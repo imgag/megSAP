@@ -1159,25 +1159,26 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 		{
 			$info['project_folder'] = get_path($info['project_type'])."/".$info['project_name']."/";
 			$info['ps_folder'] = $info['project_folder']."Sample_{$ps_name}/";
-			$info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam";
+			$info['ps_bam'] = $info['ps_folder']."{$ps_name}.cram";
+			if (!file_exists($info['ps_bam'])) $info['ps_bam'] = $info['ps_folder']."{$ps_name}.bam"; //fallback to BAM
 		}
 		else
 		{
 			//get BAM path via ngs-bits SamplePath tool (handles override paths for project/processed sample and BAM/CRAM)
 			$args = [];
 			$args[] = "-ps {$ps_name}";
-			$args[] = "-type BAM";
+			$args[] = "-type SAMPLE_FOLDER";
 			if ($db_conn->name()=="NGSD_TEST") $args[] = "-test";
 			list ($stdout, $stderr) = execApptainer("ngs-bits", "SamplePath", implode(" ", $args));
-			
-			$ps_bam_or_cram = trim(implode("", $stdout));
-			$project_folder = dirname($ps_bam_or_cram, 2);
-			if(!ends_with($project_folder, '/')) $project_folder .= '/';
-			$info['project_folder'] = $project_folder;
-			$ps_folder = dirname($ps_bam_or_cram);
+			$ps_folder = trim(implode("", $stdout));
 			if(!ends_with($ps_folder, '/')) $ps_folder .= '/';
 			$info['ps_folder'] = $ps_folder;
+			$ps_bam_or_cram = $ps_folder.$ps_name.".cram";
+			if (!file_exists($ps_bam_or_cram)) $ps_bam_or_cram = $ps_folder.$ps_name.".bam"; //fallback to BAM
 			$info['ps_bam'] = $ps_bam_or_cram;
+			$project_folder = dirname($ps_folder);
+			if(!ends_with($project_folder, '/')) $project_folder .= '/';
+			$info['project_folder'] = $project_folder;
 		}
 	}
 	
@@ -1920,9 +1921,17 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	}
 	
 	//small variants and unannotated structural variants (unannotated)
-	if (ends_with($filename, ".vcf.gz"))
+	if (ends_with($filename, ".vcf.gz") || ends_with($filename, ".vcf"))
 	{
-		list($stdout, $stderr, $exit_code) = exec2("zcat $filename | egrep '^##reference='");
+		if (ends_with($filename, ".vcf.gz"))
+		{
+			list($stdout, $stderr, $exit_code) = exec2("zcat $filename | egrep '^##reference='");
+		}
+		else
+		{
+			list($stdout, $stderr, $exit_code) = exec2("egrep '^##reference=' {$filename}");
+		}
+		
 		if ($exit_code==0)
 		{
 			foreach($stdout as $line)
@@ -1941,7 +1950,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 			}
 		}
 	}
-	
+		
 	//GSvar
 	if (ends_with($filename, ".GSvar"))
 	{

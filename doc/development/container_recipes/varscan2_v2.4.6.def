@@ -1,0 +1,39 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+LANG=C.UTF-8
+LC_ALL=C.UTF-8
+
+# update ubuntu packages and install build dependencies
+apt-get update
+apt-get install -y \
+	wget \
+	build-essential \
+	openjdk-8-jre-headless
+
+#download Varscan
+cd /opt
+wget https://github.com/dkoboldt/varscan/raw/master/VarScan.v2.4.6.jar -O VarScan.jar
+
+# Create a Wrapper script for varscan execution
+echo "
+#!/bin/bash
+java -jar /opt/VarScan.jar "$@"
+" > VarScan
+
+chmod +x VarScan
+
+# Cleanup build dependencies
+cd /
+apt-get remove -y \
+	wget \
+	build-essential
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+
+%environment
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+export PATH=/opt:$PATH
