@@ -29,7 +29,6 @@ $genome = genome_fasta($build);
 //$clair_temp = "{$folder}/clair_temp";
 $clair_temp = $parser->tempFolder("clair_temp");
 $clair_mito_temp = $parser->tempFolder("clair_mito_temp");
-
 $out = "{$folder}/{$name}_var.vcf.gz";
 $out_gvcf = "{$folder}/{$name}_var.gvcf.gz";
 
@@ -135,7 +134,6 @@ $pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg
 
 //split multi allelic variants
 $pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true));
-
 //normalize all variants and align INDELs to the left
 $pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true));
 
@@ -157,7 +155,7 @@ $comments[] = "#fileDate=".date("Ymd")."\n";
 $comments[] = "#ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n";
 $comments[] = "#PIPELINE=".repository_revision(true)."\n";
 $comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "#", "");
-$vcf->setComments(sort_vcf_comments($comments));
+$vcf->setComments($comments);
 $vcf->toTSV($uncompressed_vcf);
 
 //mark off-target variants

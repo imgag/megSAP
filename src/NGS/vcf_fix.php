@@ -103,7 +103,6 @@ function write($h_out, $var)
 				$sample['AF'] = ".";
 			}
 			if (!isset($sample['GQ'])) $sample['GQ'] = ".";
-
 			$format_values[] = $sample['GT'].":".$sample['DP'].":".$sample['AF'].":".(int)($sample['GQ']);
 		}
 		else

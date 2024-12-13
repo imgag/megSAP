@@ -138,8 +138,6 @@
 /data/genomes/somatic_viral.fa.*
 
 /test/data_longread/*.fastq.gz
-/test/data_longread/*.bam
-/test/data_longread/*.bam.bai
 /test/data_longread/*.cram
 /test/data_longread/*.cram.crai
 /test/data_longread/*.log
@@ -173,11 +171,12 @@
 /test/data_longread/*_prs.tsv
 /test/data_longread/*_var_methylation.tsv
 /test/data_longread/methylation
+/test/data_longread/*.cov
 
 
 /test/data_trio_longread/*.fastq.gz
-/test/data_trio_longread/*.bam
-/test/data_trio_longread/*.bam.bai
+/test/data_trio_longread/*.cram
+/test/data_trio_longread/*.cram.crai
 /test/data_trio_longread/*.log
 /test/data_trio_longread/*.qcML
 /test/data_trio_longread/*.vcf.gz
@@ -198,8 +197,8 @@
 /test/data_trio_longread/*.csi
 
 /test/data_multi_longread/*.fastq.gz
-/test/data_multi_longread/*.bam
-/test/data_multi_longread/*.bam.bai
+/test/data_multi_longread/*.cram
+/test/data_multi_longread/*.cram.crai
 /test/data_multi_longread/*.log
 /test/data_multi_longread/*.qcML
 /test/data_multi_longread/*.vcf.gz

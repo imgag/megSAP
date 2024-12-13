@@ -1,8 +1,8 @@
 
-all: clean link map vc cn sv re me an diff bam_analysis diff2
+all: clean link map vc cn sv re me an diff bam_analysis diff2 bam_analysis_single_steps diff2
 
 clean:
-	rm -rf *.fastq.gz *.log *.txt *.GSvar *.gvcf.gz *.gvcf.gz.tbi *.vcf.gz *.vcf.gz.tbi *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe clair_temp repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_rohs.tsv *_ancestry.tsv *_methylation.tsv
+	rm -rf *.fastq.gz *.log *.txt *.GSvar *.gvcf.gz *.gvcf.gz.tbi *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe clair_temp repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_rohs.tsv *_ancestry.tsv  *_methylation.tsv
 
 link:
 	php ../link_test_data.php 23014LRa023L2_01_chr1_longread.fastq.gz
@@ -44,10 +44,21 @@ diff:
 	diff 23014LRa023L2_01_bafs.igv.out 23014LRa023L2_01_bafs.igv
 
 # 2nd test with BAM input
-
 bam_analysis: clean
 	php ../link_test_data.php 23014LRa023L2_02.mod.unmapped.bam
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma,vc,cn,sv,re,me,an
+	cut -f1-22 23014LRa023L2_02_var_structural_variants.bedpe > 23014LRa023L2_02_var_structural_variants_cut.bedpe
+
+# 3rd test with each step seperate
+bam_analysis_single_steps: clean
+	php ../link_test_data.php 23014LRa023L2_02.mod.unmapped.bam
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps vc
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps cn
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps sv
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps re
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps me
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps an
 	cut -f1-22 23014LRa023L2_02_var_structural_variants.bedpe > 23014LRa023L2_02_var_structural_variants_cut.bedpe
 
 diff2:
