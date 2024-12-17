@@ -208,26 +208,38 @@ function txt2geno_steponeplus($snps, $in_file, $out_file, $lanes_to_check)
 
 //returns the genotype(s) for a sample at a certain position, or 'n/a' if the minimum depth was not reached.
 function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
-{	
+{
 	global $parser;
-
-	//get pileup
-	list($output) = $parser->execApptainer("samtools", "samtools mpileup", "-aa -f ".genome_fasta("GRCh38")." -r $chr:$pos-$pos $bam", [genome_fasta("GRCh38"), $bam]);
-	//print_r($output);
-	list($chr2, $pos2, $ref2, , $bases) = explode("\t", $output[0]);;
+	global $snps;
+	global $pileup_cache;
 	
-	//count bases
-	$bases = strtoupper($bases);
-	$counts = array("A"=>0, "C"=>0, "G"=>0, "T"=>0);
-	for($i=0; $i<strlen($bases); ++$i)
+	//init cache for this sample
+	if (count($pileup_cache)==0)
 	{
-		$char = $bases[$i];
-		if ($char=="." || $char==",") $char = $ref;
-		if (isset($counts[$char]))
+		$reg = $parser->tempFile("_regions.bed");
+		$tmp = [];
+		foreach($snps as $lane => list($rs, $chr2, $pos2))
 		{
-			++$counts[$char];
+			$tmp[] = "$chr2\t".($pos2-1)."\t$pos2\n";
+		}
+		file_put_contents($reg, $tmp);
+		$genome = genome_fasta("GRCh38");
+		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateFreq", "-ref $genome -in $reg -bam $bam", [$genome, $reg, $bam]);
+		foreach($stdout as $line)
+		{
+			$line = trim($line);
+			if ($line=="" || $line[0]=="#") continue;
+			list($chr2, $pos2, , , $a, $c, $g, $t) = explode("\t", $line);
+			$pileup_cache[$chr2.":".$pos2]["A"] = $a;
+			$pileup_cache[$chr2.":".$pos2]["C"] = $c;
+			$pileup_cache[$chr2.":".$pos2]["G"] = $g;
+			$pileup_cache[$chr2.":".$pos2]["T"] = $t;
+			//print "$chr2:$pos2 A=$a C=$c G=$g T=$t\n";
 		}
 	}
+	
+	//count bases
+	$counts = $pileup_cache[$chr.":".$pos];
 	arsort($counts);
 	
 	//check depth
@@ -416,6 +428,9 @@ if ($snps=="set2")
 	);
 }
 
+//cache for samtools mpileup
+$pileup_cache = [];
+
 //(re-)create TSV file
 $tsv_file = substr($in, 0, -4)."_converted.tsv";
 if($cross_check) $tsv_file = $parser->tempFile("_converted.tsv");
@@ -462,6 +477,7 @@ foreach($file as $line)
 			}
 			
 			//find genotype matches
+			$pileup_cache = [];
 			$c_kasp = 0;
 			$c_both = 0;
 			$c_match = 0;
@@ -561,6 +577,7 @@ foreach($file as $line)
 						}
 						
 						//find genotype matches
+						$pileup_cache = [];
 						$c_kasp = 0;
 						$c_both = 0;
 						$c_match = 0;
