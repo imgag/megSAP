@@ -127,7 +127,7 @@ foreach($stdout as $line)
 		break;
 	}
 }
-if(!$is_wgs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in calling files.", E_USER_WARNING);
+if(!$is_wgs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in variant calls.", E_USER_NOTICE);
 
 
 //mapping

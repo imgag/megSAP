@@ -290,7 +290,7 @@ function check_tsv_file($out_file,$reference_file)
 }
 
 /// Performs an equality check on files. Optionally, header lines starting with '#' can be compared as well.
-function check_file($out_file, $reference_file, $compare_header_lines = false)
+function check_file($out_file, $reference_file, $compare_header_lines = false, $skip_cols = "", $skip_comments_matching = "")
 {
 	check_test_started();
 	
@@ -332,6 +332,19 @@ function check_file($out_file, $reference_file, $compare_header_lines = false)
 		file_put_contents($r, implode("\n", load_vcf_normalized($reference_file)));
 		
 		exec("diff -b $r $o > $logfile 2>&1", $output, $return);
+		$passed = ($return==0);
+	}
+	//tsv
+	elseif (ends_with($out_file, ".tsv") && ends_with($reference_file, ".tsv"))
+	{
+		$args = [];
+		$args[] = "-in1 $reference_file";
+		$args[] = "-in2 $out_file";
+		if (!$compare_header_lines) $args[] = "-skip_comments";
+		if ($skip_cols!="") $args[] = "-skip_cols '$skip_cols'";
+		if ($skip_comments_matching!="") $args[] = "-skip_comments_matching '$skip_comments_matching'";
+		$tsvdiff_command = execApptainer("ngs-bits", "TsvDiff", implode(" ", $args), [$reference_file, $out_file], [], true);
+		exec("$tsvdiff_command > $logfile 2>&1", $output, $return);
 		$passed = ($return==0);
 	}
 	//diff

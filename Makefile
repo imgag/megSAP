@@ -134,4 +134,11 @@ swap_settings:
 clean_ignored:
 	git clean -Xn | cut -f3 -d' ' | egrep -v "settings.ini|megSAP_tag.txt" | xargs rm
 
+build_ngsbits_master_container:
+	apptainer build ngs-bits_master.sif doc/development/container_recipes/ngs-bits_master.def
+	chmod 777 ngs-bits_master.sif
+	mv ngs-bits_master.sif /mnt/storage2/megSAP/tools/apptainer_container/
+	php src/Tools/data_setup.php -build GRCh38
+	apptainer exec /tmp/local_ngs_data_GRCh38/container/ngs-bits_master.sif "BedInfo" "--version"
+	
 dummy:

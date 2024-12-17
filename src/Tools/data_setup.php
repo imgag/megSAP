@@ -9,7 +9,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("data_setup", "Creates a local copy of the reference genome, annotation data and apptainer container. They are heavily used during data analysis and should not be accessed via the network.");
-$parser->addString("build", "Genome build.", false);
+$parser->addString("build", "Genome build.", true, "GRCh38");
 $parser->addFlag("check", "Check annotation files.");
 extract($parser->parse($argv));
 
@@ -22,7 +22,7 @@ if (file_exists("/etc/singularity/"))
 //init reference genome and annotation data
 $data_folder = get_path("data_folder");
 $local_data = get_path("local_data");
-$rsync = "rsync --size-only --recursive --no-perms --no-acls --omit-dir-times --no-group --no-owner --chmod=ugo=rwX --copy-links";
+$rsync  = "rsync --recursive --no-perms --no-acls --omit-dir-times --no-group --no-owner --chmod=ugo=rwX --copy-links --size-only";
 
 //determine DB files
 $db_files = array("/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz", "/dbs/REVEL/REVEL_1.3.vcf.gz", "/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed", "/dbs/ClinVar/clinvar_20240805_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz");

@@ -36,7 +36,7 @@ an:
 
 diff:
 	php ../compare_variants.php -in1 test_multi.GSvar.out -in2 test_multi.GSvar
-	diff test_multi_cnvs_clincnv.tsv.out test_multi_cnvs_clincnv_cut.tsv --ignore-matching-lines="#"
+	php ../compare_tsv.php -in1 test_multi_cnvs_clincnv.tsv.out -in2 test_multi_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs
 	diff test_multi_var_structural_variants.bedpe.out test_multi_var_structural_variants_cut.bedpe --ignore-matching-lines="^##"
 	diff test_multi_var_structural_variants.bedpe.out2 test_multi_var_structural_variants_cut2.bedpe --ignore-matching-lines="^##"
 

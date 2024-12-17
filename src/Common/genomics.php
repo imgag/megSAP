@@ -2305,7 +2305,6 @@ function get_basecall_model($bam_file)
 
 	if (count($basecall_model) < 1)
 	{
-		trigger_error("No basecall model found!", E_USER_WARNING);
 		return "";
 	}
 	elseif  (count($basecall_model) > 1)

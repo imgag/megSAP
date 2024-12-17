@@ -241,7 +241,7 @@ if (count($bams) > 1)
 {
     if ($skip_correlation)
     {
-        trigger_error("Genotype correlation check has been disabled!", E_USER_WARNING);
+        trigger_error("Genotype correlation check has been disabled!", E_USER_NOTICE);
     }
     else
     {
