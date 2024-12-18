@@ -126,7 +126,7 @@ foreach($variants as $variant => $dummy)
 fclose($h);
 
 //sort
-$parser->execApptainer("ngs-bits", "VcfSort", "-in $out -out $out", [], [$out]);
+$parser->execApptainer("ngs-bits", "VcfSort", "-in $out -out $out", [], [dirname($out)]);
 
 //annotate
 $vcf_anno = substr($out, 0, 4)."_anno.vcf";

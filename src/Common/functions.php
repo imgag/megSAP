@@ -816,6 +816,15 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
 	if($container=="ngs-bits")
 	{
+		//TODO Kilian
+/* 		$ngsbits_local = get_path("ngs-bits_local", false);
+		if ($ngsbits_local != "")
+		{
+			$output = array($stdout, $stderr, $return);
+			$output = exec2($ngsbits_local.$command." ".$parameters);
+			return $output;
+		} */
+
 		$ngsbits_settings_loc = repository_basedir()."/data/tools/ngsbits_settings.ini";
 		//ngs-bits settings file missing > create it
 		if (!file_exists($ngsbits_settings_loc) || (file_exists(repository_basedir()."/settings.ini") && filemtime($ngsbits_settings_loc)<filemtime(repository_basedir()."/settings.ini")))
@@ -892,7 +901,6 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 	}
 	
 	//determine bind paths from input and output files
-	$cwd = realpath(getcwd());
 	foreach($in_files as $file)
 	{
 		if (is_dir($file)) 
@@ -903,8 +911,6 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 		{
 			$filepath = dirname(realpath($file));
 		}
-
-		if($filepath === "." || $filepath === "" || $filepath === $cwd || strpos($filepath, $cwd . DIRECTORY_SEPARATOR) === 0) continue;
 		if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
 	}
 
@@ -915,7 +921,6 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 		
 		$filepath = realpath(dirname($file));
 
-		if($filepath === "." || $filepath === "" || $filepath === $cwd || strpos($filepath, $cwd . DIRECTORY_SEPARATOR) === 0) continue;
 		if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
 	}
 
@@ -947,7 +952,7 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 
 	//compose Apptainer command
 	
-	$apptainer_command = "apptainer exec{$bind_paths_command} {$container_path} {$command} {$parameters}";
+	$apptainer_command = "apptainer exec --no-mount home,cwd --cleanenv{$bind_paths_command} {$container_path} {$command} {$parameters}";
 	
 	//if command only option is true, only the apptainer command is being return, without execution
 	if($command_only) 

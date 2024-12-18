@@ -269,7 +269,7 @@ function linkFastqs($data_folder, $tmp_folder, $basename, $genome, $bam_or_cram 
 		$fq2 = "{$tmp_folder}/{$basename}_001.2.fastq.gz";
 		if ($upload) //skip generating FASTQs in dry run
 		{
-			$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam_or_cram} -out1 {$fq1} -out2 {$fq2} -ref {$genome}", [$bam_or_cram, $genome], [$fq1, $fq2]);
+			$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam_or_cram} -out1 {$fq1} -out2 {$fq2} -ref {$genome}", [$bam_or_cram, $genome], [$tmp_folder]);
 		}
 		$files[] = $fq1;
 		$files[] = $fq2;

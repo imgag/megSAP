@@ -34,7 +34,7 @@ $in_files[] = $known_sites;
 $bqsr_model = substr($out,0, -4)."_bqsr.recal_data_table";
 
 //ouput files for gatk BaseRecalibrator
-$out_files[] = $bqsr_model;
+$out_files[] = dirname($bqsr_model);
 $parser->execApptainer("gatk", "gatk", "BaseRecalibrator -I {$in} -R {$ref} --known-sites {$known_sites} -O {$bqsr_model}", $in_files, $out_files);
 
 //apply model
@@ -45,7 +45,6 @@ $in_files = [
     $bqsr_model
 ];
 //output file for gatk ApplyBQSR
-$out_files = [$out];
-$parser->execApptainer("gatk", "gatk", "ApplyBQSR -I {$in} -R {$ref} --bqsr-recal-file {$bqsr_model} -O {$out}", $in_files, $out_files);
+$parser->execApptainer("gatk", "gatk", "ApplyBQSR -I {$in} -R {$ref} --bqsr-recal-file {$bqsr_model} -O {$out}", $in_files, [dirname($out)]);
 
 ?>

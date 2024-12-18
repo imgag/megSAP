@@ -6,6 +6,7 @@
 
 [tools]
 interop = [path]/tools/interop-1.2.4-Linux-GNU/bin/summary
+ngs-bits_local =
 
 [tools-data]
 vep_data = [path]/data/dbs/ensembl-vep-112/

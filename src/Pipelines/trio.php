@@ -88,7 +88,7 @@ $parser = new ToolBase("trio", "Trio analysis pipeline.");
 $parser->addInfile("f", "BAM file of father.", false, true);
 $parser->addInfile("m", "BAM file of mother.", false, true);
 $parser->addInfile("c", "BAM file of child (index).", false, true);
-$parser->addString("out_folder", "Output folder name.", false);
+$parser->addInfile("out_folder", "Output folder name.", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of 'c' is a valid processed sample name).", true);
 $steps_all = array("vc", "cn", "sv", "db");

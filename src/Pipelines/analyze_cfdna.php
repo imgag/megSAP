@@ -9,12 +9,12 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("analyze_cfdna", "cfDNA analysis pipeline.");
-$parser->addString("folder", "Analysis data folder.", false);
+$parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addString("tumor_id", "Related tumor processed sample.", true, "");
-$parser->addString("tumor_bam", "BAM file of related tumor processed sample.", true, "");
-$parser->addString("target", "Custom target region as BED file.", true, "");
+$parser->addInfile("tumor_bam", "BAM file of related tumor processed sample.", true, "");
+$parser->addInfile("target", "Custom target region as BED file.", true, "");
 $parser->addInfile("monitoring_vcf", "VCF containing patient-specific variants (and IDs).", true);
 $parser->addFlag("skip_tumor", "Skip comparison with related tumor sample");
 $parser->addInt("base_extend", "Number of bases the target region is extended (default: 60)", true, 60);
@@ -87,7 +87,7 @@ else
 if (!$is_patient_specific && $target == "")
 {
 	// get target region from processing system
-	$target = $sys['target_file'];
+	$target = realpath($sys['target_file']);
 }
 
 //database

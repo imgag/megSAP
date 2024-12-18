@@ -148,7 +148,7 @@ if (!$no_images)
 	foreach ($loci as $locus) 
 	{
 		$prefix = $svg_folder.basename($out, ".vcf");
-		$parser->execApptainer("REViewer", "REViewer", implode(" ", $args)." --output-prefix $prefix --locus $locus", [genome_fasta($build), $variant_catalog], [$prefix], false, true, false);
+		$parser->execApptainer("REViewer", "REViewer", implode(" ", $args)." --output-prefix $prefix --locus $locus", [genome_fasta($build), $variant_catalog], [$prefix, dirname($out)], false, true, false);
 		
 		//rename to keep the naming consistent with v0.1.1
 		$source_file = $prefix.".".$locus.".svg";

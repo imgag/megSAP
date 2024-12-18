@@ -468,7 +468,7 @@ function run_clincnv($out, $mosaic=FALSE)
 	}
 	
 	//sort and extract sample data from output folder
-	$parser->execApptainer("ngs-bits", "BedSort", "-in {$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv -out $out", [$out_folder], [$out]);
+	$parser->execApptainer("ngs-bits", "BedSort", "-in {$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.tsv -out $out", [$out_folder], [dirname($out)]);
 	$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cov.seg", substr($out, 0, -4).".seg");
 	$parser->copyFile("{$out_folder}/{$clinCNV_result_folder}/{$ps_name}/{$ps_name}_cnvs.seg", substr($out, 0, -4)."_cnvs.seg");
 	
@@ -643,7 +643,7 @@ if($tumor_only)
 		}
 		else
 		{
-			$parser->execApptainer("ngs-bits", "TsvMerge", "-in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple", [$cov_paths_off]);
+			$parser->execApptainer("ngs-bits", "TsvMerge", "-in $cov_paths_off -out {$merged_cov_off} -cols chr,start,end -simple", [$cov_paths_off, dirname($cov_folder)]);
 			$use_off_target = true;
 		}
 	}

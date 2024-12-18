@@ -35,11 +35,10 @@ $args[] = "--threads ".$threads;
 
 //set bind paths for modkit
 $in_files = array();
-$out_files = array();
 $in_files[] = $bam;
 $in_files[] = $genome;
 
-$parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files, $out_files);
+$parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files);
 
 //copy logfile 
 $parser->log("modkit pileup log file", file($log_file));
@@ -59,9 +58,7 @@ if (isset($summary))
 	$args[] = "--log-filepath ".$log_file2;
 	$args[] = " > ".$summary;
 
-	$out_files[] = dirname($summary);
-
-	$parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files, $out_files);
+	$parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files, [dirname($summary)]);
 	//copy logfile 
 	$parser->log("modkit summary log file", file($log_file2));
 }

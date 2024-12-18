@@ -234,14 +234,14 @@ foreach ($result as $record)
 		{
 			$tmp_for_sorting = $parser->tempFile();
 			//merge presorted files
-			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools merge", "--reference {$genome} --threads {$threads} -b - -o {$out_bam}", [$genome, $out_bam], [], true)];
+			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools merge", "--reference {$genome} --threads {$threads} -b - -o {$out_bam}", [$genome], [$out_dir], true)];
 			$parser->execPipeline($pipeline, "merge aligned BAM files");
 			$parser->indexBam($out_bam, $threads);
 
 		}
 		else
 		{
-			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [$out_bam], [], true)]; //no reference required
+			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [], [$out_dir], true)]; //no reference required
 			$parser->execPipeline($pipeline, "merge unaligned BAM files");
 		}
 	}

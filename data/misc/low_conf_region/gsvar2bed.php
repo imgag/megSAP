@@ -56,13 +56,13 @@ foreach($regs as $chr => $tmp)
 file_put_contents($out, $output);
 
 //merge regions
-$parser->execApptainer("ngs-bits", "BedMerge", "-in $out -out $out", [$out], [], false, false);
+$parser->execApptainer("ngs-bits", "BedMerge", "-in $out -out $out", [], [dirname($out)], false, false);
 
 //annotate with gene names
-$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in $out -clear -extend 20 -out $out", [$out], [], false, false);
+$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in $out -clear -extend 20 -out $out", [], [dirname($out)], false, false);
 
 //statistics (size)
-list($stdout) = $parser->execApptainer("ngs-bits", "BedInfo", "-in $out", [$out], [], false, false);
+list($stdout) = $parser->execApptainer("ngs-bits", "BedInfo", "-in $out", [], [dirname($out)], false, false);
 print $stdout[0]."\n";
 print $stdout[1]."\n";
 

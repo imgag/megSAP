@@ -54,6 +54,7 @@ else if(count($bam) == 1)
     $tmp_vcf = $parser->tempFile(".vcf", "sniffles");
 
     $args = array();
+	$in_files = array();
     $args[] = "--input ".$single_sample_bam;
     $args[] = "--vcf ".$tmp_vcf;
     $args[] = "--threads ".$threads;
@@ -61,16 +62,18 @@ else if(count($bam) == 1)
     $args[] = "--allow-overwrite";
     $args[] = "--sample-id ".$name;
     if($somatic) $args[] = "--non-germline";
-	if(isset($target)) $args[] = "--regions ".$target;
+	if(isset($target))
+	{
+		$args[] = "--regions ".$target;
+		$in_files[] = $target;
+	} 
 
 	//set bind path for sniffles container
-	$in_files = array();
-	$out_files = array();
 	$in_files[] = $single_sample_bam;
 	$in_files[] = genome_fasta($build);
 
 	//execute sniffles container
-	$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files, $out_files);
+	$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files);
 
 }
 else
@@ -87,16 +90,20 @@ else
 
 		$tmp_snf = $parser->tempFile(".snf", "sniffles");
 		$args = array();
+		$in_files = array();
     	$args[] = "--input ".$single_sample_bam;
     	$args[] = "--snf ".$tmp_snf;
     	$args[] = "--threads ".$threads;
     	$args[] = "--reference ".genome_fasta($build);
     	$args[] = "--allow-overwrite";
 		$args[] = "--sample-id ".$name;
-		if(isset($target)) $args[] = "--regions ".$target;
+		if(isset($target))
+		{
+			$args[] = "--regions ".$target;
+			$in_files[] = $target;
+		} 
 
 		//set bind path for sniffles container
-		$in_files = array();
 		$in_files[] = $single_sample_bam;
 		$in_files[] = genome_fasta($build);
 
@@ -111,14 +118,17 @@ else
 	$tmp_vcf = $parser->tempFile(".vcf", "sniffles");
 
 	$args = array();
+	$in_files = array();
 	$args[] = "--input ".implode(" ", $snfs);
 	$args[] = "--vcf ".$tmp_vcf;
 	$args[] = "--threads ".$threads;
 	$args[] = "--reference ".genome_fasta($build);
 	$args[] = "--allow-overwrite";
-	if(isset($target)) $args[] = "--regions ".$target;
-
-	$in_files = array();
+	if(isset($target))
+	{
+		$args[] = "--regions ".$target;
+		$in_files[] = $target;
+	} 
 	$in_files[] = genome_fasta($build);
 
 	//execute sniffles container

@@ -37,7 +37,7 @@ function extract_info($format, $data)
 $parser = new ToolBase("multisample", "Multi-sample analysis pipeline.");
 $parser->addInfileArray("bams", "Input BAM files.", false);
 $parser->addStringArray("status", "List of affected status of the input samples (BAMs) - can be 'affected' or 'control'.", false);
-$parser->addString("out_folder", "Output folder name.", false);
+$parser->addInfile("out_folder", "Output folder name.", false);
 //optional
 $parser->addString("prefix", "Output file prefix.", true, "multi");
 $parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of the first file in 'bams' is a valid processed sample name).", true);
@@ -433,7 +433,7 @@ if (in_array("cn", $steps))
 			
 			//parse CNV file
 			$data = array();
-			$cnv_file = dirname($bam)."/{$ps_name}_cnvs_clincnv.tsv";
+			$cnv_file = $out_folder."/{$ps_name}_cnvs_clincnv.tsv";
 			if (!file_exists($cnv_file)) trigger_error("CNV file missing: {$cnv_file}", E_USER_ERROR);
 			foreach(file($cnv_file) as $line)
 			{
@@ -783,6 +783,8 @@ if (in_array("sv", $steps))
 				trigger_error("Annotation file '".$ngsd_annotation_folder.$filename."' has changed during annotation!",E_USER_ERROR);
 			}
 		}
+
+		//TODO Kilian, add NGSDAnnotateSV (annotate pathogenic SVs from NGSD)
 
 	}
 	else

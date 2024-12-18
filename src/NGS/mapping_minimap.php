@@ -184,8 +184,7 @@ if ($qc_map !== "")
 {
 	$in_files = array();
 	$in_files[] = genome_fasta($sys["build"]);
-	$out_files = array();
-	$out_files[] = dirname($out);
+
 	$params = [
 		"-in $bam_current",
 		"-out $qcml_map",
@@ -201,7 +200,7 @@ if ($qc_map !== "")
 	}
 	else
 	{
-		$params[] = "-roi ".$sys['target_file'];
+		$params[] = "-roi ".realpath($sys['target_file']);
 		$in_files[] = $sys['target_file'];
 	}
 	if ($sys['build']!="GRCh38")
@@ -209,7 +208,7 @@ if ($qc_map !== "")
 		$params[] = "-no_cont";
 	}
 
-	$parser->execApptainer("ngs-bits", "MappingQC", implode(" ", $params), $in_files, $out_files);
+	$parser->execApptainer("ngs-bits", "MappingQC", implode(" ", $params), $in_files, [dirname($out)]);
 }
 
 //create CRAM/BAM in output folder

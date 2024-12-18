@@ -352,6 +352,7 @@ class ToolBase
 				if ($argu_type == "infile")
 				{
 					$check_readable = $this->params[$par][3];
+					$arg = realpath($arg);
 					if ($check_readable && !is_readable($arg))
 					{
 						$this->printUsage();
@@ -364,7 +365,7 @@ class ToolBase
 					while(isset($argv[$i + 1]) && $argv[$i + 1][0]!="-")
 					{
 						//print $argv[$i+1]."\n";
-						$arg[] = $argv[$i+1];
+						$arg[] = realpath($argv[$i+1]);
 						$check_readable = $this->params[$par][3];
 						if ($check_readable && !is_readable(end($arg)))
 						{
@@ -828,6 +829,16 @@ class ToolBase
 	 */
 	function execApptainer($container, $command, $parameters, $in_files = array(), $out_files = array(), $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true)
 	{
+
+		//TODO Kilian
+/* 		//execute local ngs-bits installation if ngs-bits_local path is set in settings.ini
+		$ngsbits_local = get_path("ngs-bits_local", false);
+		if ($container == "ngs-bits" && $ngsbits_local != "")
+		{
+			list($stdout, $stderr, $return) = execApptainer($container, $command, $parameters, $in_files, $out_files);
+			return array($stdout, $stderr, $return);
+		} */
+
 		//get apptainer command, bind paths and container path from execApptainer function in functions.php
 		list($apptainer_command, $bind_paths, $container_path, $container_version) = execApptainer($container, $command, $parameters, $in_files, $out_files, false, true);
 		

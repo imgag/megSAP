@@ -12,7 +12,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("multisample_longread", "Multisample analysis pipeline of Nanopore long-read data.");
 $parser->addInfileArray("bams", "Input BAM/CRAM files.", false);
 $parser->addStringArray("status", "List of affected status of the input samples (BAMs) - can be 'affected' or 'control'.", false);
-$parser->addString("out_folder", "Output folder name.", false);
+$parser->addInfile("out_folder", "Output folder name.", false);
 //optional
 $parser->addString("prefix", "Output file prefix.", true, "multi");
 $parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of 'c' is a valid processed sample name).", true);
@@ -256,7 +256,7 @@ if (in_array("an", $steps))
 		check_genome_build($sv_vcf_file, $sys['build']);
 
 		//create BEDPE files
-		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in {$sv_vcf_file} -out {$bedpe_out}", [$sv_vcf_file, $bedpe_out]);
+		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in {$sv_vcf_file} -out {$bedpe_out}", [$sv_vcf_file], [dirname($bedpe_out)]);
 
 		// correct filetype
 		$bedpe_table = Matrix::fromTSV($bedpe_out);
@@ -318,6 +318,8 @@ if (in_array("an", $steps))
 					trigger_error("Annotation file '".$ngsd_annotation_folder.$filename."' has changed during annotation!",E_USER_ERROR);
 				}
 			}
+
+			//TODO Kilian, add NGSDAnnotateSV (annotate pathogenic SVs from NGSD)
 
 		}
 		else

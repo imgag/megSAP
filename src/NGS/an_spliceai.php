@@ -195,14 +195,10 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	/* putenv("PYTHONPATH"); */
 
 	//set bind paths for container execution
-	$in_files = array();
-	$out_files = array();
-
-	$in_files[] = genome_fasta($build);
-	$in_files[] = $vcf_filtered;
+	$in_files = [genome_fasta($build), $vcf_filtered];
 
 	//run spliceai container
-	$spliceai_command = $parser->execApptainer("spliceai", "spliceai", implode(" ", $args), $in_files, $out_files, true);
+	$spliceai_command = $parser->execApptainer("spliceai", "spliceai", implode(" ", $args), $in_files, [], true);
 	exec2("OMP_NUM_THREADS={$threads} {$spliceai_command}");
 
 	//no variants scored => copy input to output
@@ -226,7 +222,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 		$tmp3 = $parser->tempFile("_input_header_fixed.vcf.gz");
 		$parser->exec("grep", "-v '##INFO=<ID=SpliceAI,' {$in} > {$tmp3}");
 	}
-	$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-in {$tmp3} -source {$tmp2} -info_keys SpliceAI -out {$out} -threads {$threads}", [$tmp3], [$out]);
+	$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-in {$tmp3} -source {$tmp2} -info_keys SpliceAI -out {$out} -threads {$threads}", [$tmp3], [dirname($out)]);
 	if ($header_old!="") //replace new by old header
 	{		
 		$header_old = str_replace("\"", "\\\"", $header_old); //SpliceAI header has doubles quotes which need to be escaped

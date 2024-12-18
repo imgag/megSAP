@@ -127,7 +127,7 @@ if (!$skip_dedup)
 
 //sort BAM by coordinates
 $tmp_for_sorting = $parser->tempFile();
-$pipeline[] = array("", $parser->execApptainer("samtools", "samtools", "sort -T $tmp_for_sorting -m 1G -@ ".min($threads, 4)." -o $out -", [], [$out], true), true);
+$pipeline[] = array("", $parser->execApptainer("samtools", "samtools", "sort -T $tmp_for_sorting -m 1G -@ ".min($threads, 4)." -o $out -", [], [$outdir], true), true);
 
 //execute (STAR -> samblaster -> samtools SAM to BAM -> samtools sort)
 $parser->execPipeline($pipeline, "mapping");

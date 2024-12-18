@@ -11,11 +11,11 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //parse command line arguments
 $parser = new ToolBase("annotate", "Annotate variants called on genome build GRCh38.");
 $parser->addString("out_name", "Processed sample ID (e.g. 'GS120001_01').", false);
-$parser->addString("out_folder", "Output folder.", false);
+$parser->addInfile("out_folder", "Output folder.", false);
 //optional
 $parser->addInfile("system", "Processing system INI file (automatically determined from NGSD if 'out_name' is a valid processed sample name).", true);
-$parser->addString("vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_var.vcf.gz).", true, "");
-$parser->addString("mosaic_vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_mosaic.vcf.gz).", true, "");
+$parser->addInfile("vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_var.vcf.gz).", true, "");
+$parser->addInfile("mosaic_vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_mosaic.vcf.gz).", true, "");
 $parser->addFlag("no_fc", "No format check (vcf/tsv).");
 $parser->addFlag("multi", "Enable multi-sample mode.");
 $parser->addFlag("somatic", "Enable somatic mode (no variant QC and no GSvar file).");

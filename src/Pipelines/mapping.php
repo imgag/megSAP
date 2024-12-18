@@ -12,7 +12,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("mapping", "Mapping pipeline.");
 $parser->addInfileArray("in_for",  "Forward reads FASTQ file(s).", false);
 $parser->addInfileArray("in_rev",  "Reverse reads FASTQ file(s).", false);
-$parser->addString("out_folder", "Output folder.", false);
+$parser->addInfile("out_folder", "Output folder.", false);
 $parser->addString("out_name", "Output file base name (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfileArray("in_index",  "Index reads FASTQ file(s).", true);
@@ -71,6 +71,7 @@ if ($sys["adapter1_p5"]=="" && $sys["adapter2_p7"]=="")
 }
 
 $stafile1 = $basename."_stats_fastq.qcML";
+$stafile1_dir = dirname($stafile1);
 
 
 $trimmed1 = $parser->tempFile("_trimmed1.fastq.gz");
@@ -99,10 +100,8 @@ if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT-UDI-UMI"]))
 	}	
 	if ($in_index === false || empty($in_index))
 	{
-
-		$in_files[] = $stafile1;
 		trigger_error("Processing system ".$sys['name_short']." has UMI type ".$sys['umi_type'].", but no index files are specified => UMI-based de-duplication skipped!", E_USER_WARNING);
-		$parser->execApptainer("ngs-bits", "SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads-2, 1, 12), $in_files);
+		$parser->execApptainer("ngs-bits", "SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads-2, 1, 12), $in_files, [$stafile1_dir]);
 	}
 	else
 	{
@@ -112,7 +111,7 @@ if (in_array($sys['umi_type'], ["HaloPlex HS", "SureSelect HS", "IDT-UDI-UMI"]))
 		$in_files = array_merge($in_files, $in_index);
 		$parser->execApptainer("ngs-bits", "FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $in_index)." -out1 $merged1_bc -out2 $merged2_bc", $in_files);
 		// run SeqPurge
-		$parser->execApptainer("ngs-bits", "SeqPurge", "-in1 $merged1_bc -in2 $merged2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 12), [$stafile1]);
+		$parser->execApptainer("ngs-bits", "SeqPurge", "-in1 $merged1_bc -in2 $merged2_bc -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 12), [], [$stafile1_dir]);
 
 		// trim 1 base from end of R1 and 1 base from start of R2 (only HaloPlex HS)
 		if ($sys['umi_type'] === "HaloPlex HS")
@@ -146,8 +145,7 @@ else if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq",
 	//handle UMI protocols where the UMI is placed at the head of read 1 and/or read 2
 
 	//remove sequencing adapter
-	$in_files[] = $stafile1;
-	$parser->execApptainer("ngs-bits", "SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads-2, 1, 12), $in_files);
+	$parser->execApptainer("ngs-bits", "SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -qcut 0 -ncut 0 -threads ".bound($threads-2, 1, 12), $in_files, [$stafile1_dir]);
 
 	//set protocol specific UMI lengths
 	switch ($sys['umi_type'])
@@ -214,8 +212,7 @@ else //normal analysis without UMIs
 
 	if (!$no_trim)
 	{
-		$in_files[] = $stafile1;
-		$parser->execApptainer("ngs-bits", "SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 12), $in_files);
+		$parser->execApptainer("ngs-bits", "SeqPurge", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -out1 $trimmed1 -out2 $trimmed2 -a1 ".$sys["adapter1_p5"]." -a2 ".$sys["adapter2_p7"]." -qc $stafile1 -threads ".bound($threads-2, 1, 12), $in_files, [$stafile1_dir]);
 	}
 	if ($use_dragen)
 	{
@@ -569,10 +566,10 @@ if($clip_overlap)
 //run mapping QC
 $stafile2 = $basename."_stats_map.qcML";
 $in_files = [
-	$stafile2,
 	$bam_current,
 	genome_fasta($build)
 ];
+$out_files = [dirname($stafile2)];
 
 $params = array("-in $bam_current", "-out $stafile2", "-ref ".genome_fasta($build), "-build ".ngsbits_build($build));
 if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
@@ -581,7 +578,7 @@ if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallo
 }
 else
 {
-	$params[] = "-roi ".$sys['target_file'];
+	$params[] = "-roi ".realpath($sys['target_file']);
 	$in_files[] = $sys['target_file'];
 }
 if ($build!="GRCh38")
@@ -597,9 +594,9 @@ if ($somatic_custom_map && file_exists($somatic_custom_panel))
 if (!file_exists($stafile1))
 {
 	$params[] = "-read_qc $stafile1";
-	$in_files[] = $stafile1;
+	$out_files[] = $stafile1_dir;
 }
-$parser->execApptainer("ngs-bits", "MappingQC", implode(" ", $params), $in_files);
+$parser->execApptainer("ngs-bits", "MappingQC", implode(" ", $params), $in_files, $out_files);
 
 //create CRAM/BAM in output folder
 if ($bam_output)

@@ -410,7 +410,7 @@ file_put_contents($out, $vcf_content);
 if ($add_tsv)
 {
 	$tsv_out = substr($out,0,-3)."tsv";
-	$parser->execApptainer("ngs-bits", "VcfToTsv", "-in {$out} -out {$tsv_out}", [$out], [$tsv_out]);
+	$parser->execApptainer("ngs-bits", "VcfToTsv", "-in {$out} -out {$tsv_out}", [$out], [dirname($tsv_out)]);
 }
 
 //verify output file

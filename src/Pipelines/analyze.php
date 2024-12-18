@@ -9,7 +9,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("analyze", "Complete NGS analysis pipeline.");
-$parser->addString("folder", "Analysis data folder.", false);
+$parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
@@ -241,7 +241,7 @@ if (in_array("ma", $steps))
 	//low-coverage report
 	if ($has_roi && !$is_wgs_shallow)
 	{	
-		$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".$sys['target_file']." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$folder, $sys['target_file'], $genome]);
+		$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($sys['target_file'])." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$folder, $sys['target_file'], $genome]);
 		if (db_is_enabled("NGSD"))
 		{
 			$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", [$folder]);
@@ -336,7 +336,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 		}
 		else
 		{
-			$params[] = "-roi ".$sys['target_file'];
+			$params[] = "-roi ".realpath($sys['target_file']);
 		}
 		if ($sys['build']!="GRCh38")
 		{
@@ -359,7 +359,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 	{
 		if ($has_roi && !$is_wgs_shallow)
 		{	
-			$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".$sys['target_file']." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads}", [$folder, $sys['target_file']]);
+			$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($sys['target_file'])." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads}", [$folder, $sys['target_file']]);
 			if (db_is_enabled("NGSD"))
 			{
 
@@ -396,7 +396,7 @@ if (in_array("vc", $steps))
 				
 				//filter by target region (extended by 200) and quality 5
 				$target = $parser->tempFile("_roi_extended.bed");
-				$parser->execApptainer("ngs-bits", "BedExtend", "-in ".$sys['target_file']." -n 200 -out $target -fai ".$genome.".fai", [$sys['target_file'], $genome]);
+				$parser->execApptainer("ngs-bits", "BedExtend", "-in ".realpath($sys['target_file'])." -n 200 -out $target -fai ".$genome.".fai", [$sys['target_file'], $genome]);
 				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-reg {$target} -qual 5 -filter_clear -ref $genome", [$genome], [], true));
 
 				//split multi-allelic variants
@@ -416,7 +416,7 @@ if (in_array("vc", $steps))
 
 				//mark off-target variants
 				$tmp = $parser->tempFile("_offtarget.vcf");
-				$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcffile -mark off-target -reg ".$sys['target_file']." -out $tmp", [$folder, $sys['target_file']]);
+				$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcffile -mark off-target -reg ".realpath($sys['target_file'])." -out $tmp", [$folder, $sys['target_file']]);
 				
 				//remove variants with less than 3 alternative observations
 				$tmp2 = $parser->tempFile("_ad.vcf");
@@ -571,7 +571,7 @@ if (in_array("vc", $steps))
 			else
 			{
 				$roi_low_mappabilty = $parser->tempFile("_mapq0.bed");
-				$parser->execApptainer("ngs-bits", "BedIntersect", "-in ".$sys['target_file']." -in2 ".repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed -out $roi_low_mappabilty", [$sys['target_file'], repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed"]);
+				$parser->execApptainer("ngs-bits", "BedIntersect", "-in ".realpath($sys['target_file'])." -in2 ".repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed -out $roi_low_mappabilty", [$sys['target_file'], repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed"]);
 			}
 			
 			if (bed_size($roi_low_mappabilty)>0)
@@ -739,9 +739,9 @@ if (in_array("cn", $steps))
 			if (!file_exists($bed))
 			{
 				$pipeline = [
-						["", $parser->execApptainer("ngs-bits", "BedChunk", "-in ".$sys['target_file']." -n {$bin_size}", [$sys['target_file']], [], true)],
+						["", $parser->execApptainer("ngs-bits", "BedChunk", "-in ".realpath($sys['target_file'])." -n {$bin_size}", [$sys['target_file']], [], true)],
 						["", $parser->execApptainer("ngs-bits", "BedAnnotateGC", "-clear -ref ".$genome, [$genome], [], true)],
-						["", $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [$bed], [], true)]
+						["", $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [], [dirname($bed)], true)]
 					];
 				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 			}
@@ -752,8 +752,8 @@ if (in_array("cn", $steps))
 			if (!file_exists($bed))
 			{
 				$pipeline = [
-						["", $parser->execApptainer("ngs-bits", "BedAnnotateGC", "-in ".$sys['target_file']." -clear -ref ".$genome, [$sys['target_file'], $genome], [], true)],
-						["", $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [$bed], [], true)]
+						["", $parser->execApptainer("ngs-bits", "BedAnnotateGC", "-in ".realpath($sys['target_file'])." -clear -ref ".$genome, [$sys['target_file'], $genome], [], true)],
+						["", $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [], [dirname($bed)], true)]
 					];
 				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 			}
@@ -895,7 +895,7 @@ if (in_array("sv", $steps))
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
 			$vc_manta_command = "python2 /opt/manta/libexec/convertInversion.py";
 			$vc_manta_parameters = "/usr/bin/samtools {$genome} {$dragen_output_vcf} > {$vcf_inv_corrected}";
-			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome], [$dragen_output_vcf]);
+			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome], [dirname($dragen_output_vcf)]);
 
 			//remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
 			$vcf_fixed = $parser->tempFile("_sv_fixed.vcf");
@@ -920,7 +920,7 @@ if (in_array("sv", $steps))
 			if($has_roi)
 			{
 				$vcf_marked = $parser->tempFile("_sv_marked.vcf");
-				$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in {$vcf_sorted} -reg ".$sys['target_file']." -mark off-target -out {$vcf_marked}", [$sys['target_file']]);
+				$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in {$vcf_sorted} -reg ".realpath($sys['target_file'])." -mark off-target -out {$vcf_marked}", [$sys['target_file']]);
 				$vcf_sorted = $vcf_marked;
 			}
 	
@@ -1014,6 +1014,8 @@ if (in_array("sv", $steps))
 				trigger_error("Annotation file '".$ngsd_annotation_folder.$filename."' has changed during annotation!",E_USER_ERROR);
 			}
 		}
+
+		//TODO Kilian, add NGSDAnnotateSV (annotate pathogenic SVs from NGSD)
 
 	}
 	else

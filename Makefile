@@ -135,7 +135,7 @@ clean_ignored:
 	git clean -Xn | cut -f3 -d' ' | egrep -v "settings.ini|megSAP_tag.txt" | xargs rm
 
 build_ngsbits_master_container:
-	apptainer build ngs-bits_master.sif doc/development/container_recipes/ngs-bits_master.def
+	apptainer build ngs-bits_master.sif data/tools/container_recipes/ngs-bits_master.def
 	chmod 777 ngs-bits_master.sif
 	mv ngs-bits_master.sif /mnt/storage2/megSAP/tools/apptainer_container/
 	php src/Tools/data_setup.php -build GRCh38

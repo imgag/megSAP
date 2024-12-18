@@ -9,7 +9,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("analyze_longread", "Complete NGS analysis pipeline for long-read data.");
-$parser->addString("folder", "Analysis data folder.", false);
+$parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
@@ -115,7 +115,7 @@ $name_sample_ps = explode("_", $name, 2);
 $sample_name = $name_sample_ps[0];
 
 //check if target region covers whole genome
-list($stdout, $stderr, $ec) = $parser->execApptainer("ngs-bits", "BedInfo", "-in ".$sys['target_file'], [$sys['target_file']]);
+list($stdout, $stderr, $ec) = $parser->execApptainer("ngs-bits", "BedInfo", "-in ".realpath($sys['target_file']), [$sys['target_file']]);
 $is_wgs = false;
 foreach($stdout as $line)
 {
@@ -199,7 +199,7 @@ if (in_array("ma", $steps))
 	}
 
 	//low-coverage report
-	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".$sys['target_file']." -bam {$used_bam_or_cram} -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$sys['target_file'], $genome, $used_bam_or_cram], [$folder]);
+	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($sys['target_file'])." -bam {$used_bam_or_cram} -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$sys['target_file'], $genome, $used_bam_or_cram], [$folder]);
 	if (db_is_enabled("NGSD"))
 	{
 		$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", [$folder]);
@@ -431,9 +431,9 @@ if (in_array("cn", $steps))
 	if (!file_exists($bed))
 	{
 		$pipeline = [
-				["", $parser->execApptainer("ngs-bits", "BedChunk", "-in ".$sys['target_file']." -n {$cnv_bin_size}", [$sys['target_file']], [], true)],
+				["", $parser->execApptainer("ngs-bits", "BedChunk", "-in ".realpath($sys['target_file'])." -n {$cnv_bin_size}", [$sys['target_file']], [], true)],
 				["", $parser->execApptainer("ngs-bits", "BedAnnotateGC", "-clear -ref ".$genome, [$genome], [], true)],
-				["", $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [$bed], [], true)]
+				["", $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [], [dirname($bed)], true)]
 			];
 		$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 	}
@@ -516,7 +516,7 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 		$args[] = "-r {$genome}";
 		$args[] = "-t {$threads}";
 		$args[] = "-o ".substr($vcf_modcall, 0, -4);
-		$parser->execApptainer("longphase", "longphase", implode(" ", $args), [$bam_file,  $genome], [dirname($vcf_modcall)]);
+		$parser->execApptainer("longphase", "longphase", implode(" ", $args), [$folder,  $genome]);
 
 		trigger_error("Methylation annotation detected. Using intermediate modcall step.", E_USER_NOTICE);
 	}
@@ -524,12 +524,6 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	//run phasing by LongPhase on VCF files
 	$phased_tmp = $parser->tempFile(".vcf", "longphase");
 	$phased_sv_tmp = substr($phased_tmp,0,-4)."_SV.vcf";
-
-	$in_files = [];
-	$out_files = [];
-	$in_files[] = $vcf_file;
-	$in_files[] = $bam_file;
-	$in_files[] = $genome;
 
 	$args = array();
 	$args[] = "phase";
@@ -543,14 +537,12 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	if (file_exists($sv_vcf_file))
 	{
 		$args[] = "--sv-file {$sv_vcf_file}";
-		$in_files[] = $sv_vcf_file;
 	} 
 	if ($contains_methylation) 
 	{
 		$args[] = "--mod-file {$vcf_modcall}";
-		$out_files[] = dirname($vcf_modcall);
 	}
-	$parser->execApptainer("longphase", "longphase", implode(" ", $args), $in_files, $out_files);
+	$parser->execApptainer("longphase", "longphase", implode(" ", $args), [$folder, $genome]);
 	
 	//create compressed file and index
 	$parser->exec("bgzip", "-c $phased_tmp > {$vcf_file}", false);
@@ -565,11 +557,6 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	if ($is_wgs) check_for_missing_chromosomes($vcf_file);
 
 	//tag BAM file 
-	$in_files = [];
-	$in_files[] = $vcf_file;
-	$in_files[] = $bam_file;
-	$in_files[] = $genome;
-
 	$args = array();
 	$args[] = "haplotag";
 	$args[] = "-s {$vcf_file}";
@@ -595,7 +582,7 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 	$tagged_bam_file = $parser->tempFile(".tagged.bam");
 	$args[] = "-o ".dirname($tagged_bam_file)."/".basename2($tagged_bam_file);
 
-	$parser->execApptainer("longphase", "longphase", implode(" ", $args), $in_files, []);
+	$parser->execApptainer("longphase", "longphase", implode(" ", $args), [$folder, $genome]);
 	$parser->indexBam($tagged_bam_file, $threads);
 
 	//check if read counts of tagged and untagged BAMs match
@@ -820,6 +807,8 @@ if (in_array("an", $steps))
 					trigger_error("Annotation file '".$ngsd_annotation_folder.$filename."' has changed during annotation!",E_USER_ERROR);
 				}
 			}
+
+			//TODO Kilian, add NGSDAnnotateSV (annotate pathogenic SVs from NGSD)
 
 		}
 		else

@@ -121,7 +121,7 @@ To build your container from the created definition file execute:
 
 When creating new containers for megSAP they should be named `(tool)_(version).sif`, where `tool` is the name of the main tool installed inside the container and `version` its version number.
 A new container must be added to the [apptainer-container] section of the settings files as `container_tool = version`.
-The new container should be uploaded to https://megsap.de/download/container/ and the definition file should be added to the container definition file folder in the megSAP repository (/doc/development/container_definition).
+The new container should be uploaded to https://megsap.de/download/container/ and the definition file should be added to the container definition file folder in the megSAP repository (data/tools/container_recipes).
 
 ### Executing tools inside your new container
 
@@ -132,7 +132,7 @@ To implement the invocation of a containerized tool in megSAP you can use the `e
                 $command,                           command to be executed inside the container (e.g. run_clair3.sh)
                 $parameters,                        parameters for the given command (e.g. --bam_fn={$bam} --ref_fn=$genome --threads={$threads} ...)
                 $in_files = array(),                host system directories/files used as input (needed for read file access from inside the container)
-                $out_files = array(),               host system directories/files used as output (needed for read and write access from inside the container)
+                $out_files = array(),               host system directories used as output (needed for read and write access from inside the container)
                 $command_only=false,                if `true` only the apptainer exec command is returned without executing it (needed when the tool execution is part of a pipeline)
                 $log_output=true,                   Flag (true/false) to turn on/off logging of stdout, stderr and execution time of the containerised tool
                 $abort_on_error=true,               Flag (true/false) whether to throw an error when execution fails

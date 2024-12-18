@@ -34,7 +34,7 @@ $cov_folder = $tmp_folder."cov-tumor";
 $bed = $tmp_folder."/target_region_annotated.bed";
 $pipeline = [
     ["", execApptainer("ngs-bits", "BedAnnotateGC", "-in {$bed_in} -clear -ref {$genome}", [$bed_in, $genome], [], true)],
-    ["", execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [$bed], [], true)]
+    ["", execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [], [dirname($bed)], true)]
 ];
 //off target
 $bed_off = $tmp_folder . "off_target.bed";

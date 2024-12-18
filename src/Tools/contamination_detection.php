@@ -184,7 +184,7 @@ $filters = [
 $filter_file = $parser->tempFile("_filters.txt");
 file_put_contents($filter_file, implode("\n", $filters));
 
-$parser->execApptainer("ngs-bits", "VariantFilterAnnotations", "-filters {$filter_file} -in {$gsvar} -out {$gsvar_output}", [], [$gsvar_output]);
+$parser->execApptainer("ngs-bits", "VariantFilterAnnotations", "-filters {$filter_file} -in {$gsvar} -out {$gsvar_output}", [], [dirname($gsvar_output)]);
 print "##".vcf_lines($gsvar_output)." variant remain after frequency filter (AF={$max_af}, NGSD={$max_ngsd})\n";
 
 //find variants in NGSD

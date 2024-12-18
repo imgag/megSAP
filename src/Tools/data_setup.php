@@ -283,7 +283,7 @@ if ($build=="GRCh38" && $check)
 		{
 			$log = "./".$basename."_check.txt";
 			print "Checking: $basename ($log)\n";
-			$parser->execApptainer("ngs-bits", "VcfCheck", "-in $filename -lines 5000000 -ref $genome > $log 2>&1", [$filename, $genome], [$log], false, true, false);
+			$parser->execApptainer("ngs-bits", "VcfCheck", "-in $filename -lines 5000000 -ref $genome > $log 2>&1", [$filename, $genome], [dirname($log)], false, true, false);
 			
 			$errors = 0;
 			$warnings = 0;

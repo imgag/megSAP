@@ -88,7 +88,7 @@ $parser = new ToolBase("trio_longread", "Trio analysis pipeline of Nanopore long
 $parser->addInfile("f", "BAM/CRAM file of father.", false, true);
 $parser->addInfile("m", "BAM/CRAM file of mother.", false, true);
 $parser->addInfile("c", "BAM/CRAM file of child (index).", false, true);
-$parser->addString("out_folder", "Output folder name.", false);
+$parser->addInfile("out_folder", "Output folder name.", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of 'c' is a valid processed sample name).", true);
 $steps_all = array("vc", "cn", "sv", "an", "db");
@@ -202,7 +202,6 @@ if (in_array("cn", $steps))
 	//UPD detection
 	$in_files = [
 		$vcf_file,
-		"{$out_folder}/trio_upd.tsv"
 	];
 	$args_upd = [
 		"-in {$vcf_file}",
@@ -226,7 +225,7 @@ if (in_array("cn", $steps))
 	{
 		trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
 	}
-	$parser->execApptainer("ngs-bits", "UpdHunter", implode(" ", $args_upd), $in_files);
+	$parser->execApptainer("ngs-bits", "UpdHunter", implode(" ", $args_upd), $in_files, [$out_folder]);
 }
 
 //sv calling

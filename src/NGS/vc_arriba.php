@@ -60,7 +60,7 @@ if (isset($out_discarded)) $args[] = "-O {$out_discarded}";
 echo "starting arriba!";
 //In rare cases throws segmentation fault while writing discarded_fusion file. 
 //Allow that crash while catching others. Writing the discarded file is the last thing it does before freeing resources and finishing -> Check it startet writing the discarded file to be safe the regular output file is complete.
-exec($parser->execApptainer("arriba", "arriba", implode(" ", $args)." 2>&1", [$bam, $genome, $gtf, $sv], [$out_fusions, $out_discarded], true), $output, $exit_code);
+exec($parser->execApptainer("arriba", "arriba", implode(" ", $args)." 2>&1", [$bam, $genome, $gtf, $sv], [dirname($out_fusions), dirname($out_discarded)], true), $output, $exit_code);
 
 echo "finished arriba!\n";
 
@@ -103,7 +103,7 @@ if (isset($out_vcf)) {
         $out_fusions,
         $out_vcf
     ];
-    $parser->execApptainer("arriba", "convert_fusions_to_vcf.sh", implode(" ", $args), [$genome, $out_fusions], [$out_vcf]);
+    $parser->execApptainer("arriba", "convert_fusions_to_vcf.sh", implode(" ", $args), [$genome, $out_fusions], [dirname($out_vcf)]);
 }
 
 
@@ -121,7 +121,7 @@ if (isset($out_pdf)) {
         "--proteinDomains={$arriba_ref}/protein_domains_{$arriba_build}_{$arriba_ver}.gff3",
         "--minConfidenceForCircosPlot=none"
     ];
-    $parser->execApptainer("arriba", "draw_fusions.R", implode(" ", $plot_args), [$gtf, $bam], [$out_pdf]);
+    $parser->execApptainer("arriba", "draw_fusions.R", implode(" ", $plot_args), [$gtf, $bam], [dirname($out_pdf)]);
 	
 	if (isset($out_pic_dir))
 	{
@@ -160,7 +160,7 @@ if (isset($out_bam)) {
         ], "filter BAM");
         $parser->execPipeline([
             ["cat", "{$bam_header} ${bam_records}"],
-            ["", $parser->execApptainer("samtools", "samtools", "view -T {$genome} -o {$out_bam}", [$genome], [$out_bam], true)]
+            ["", $parser->execApptainer("samtools", "samtools", "view -T {$genome} -o {$out_bam}", [$genome], [dirname($out_bam)], true)]
         ], "write BAM");
         $parser->indexBam($out_bam, 1);
     }

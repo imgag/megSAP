@@ -15,9 +15,9 @@ extract($parser->parse($argv));
 $genome = genome_fasta($build);
 
 //convert CRAM to BAM
-$parser->execApptainer("samtools", "samtools view", "-@ {$threads} -b -T {$genome} -o {$bam} {$cram}", [$genome, $cram], [$bam]);
+$parser->execApptainer("samtools", "samtools view", "-@ {$threads} -b -T {$genome} -o {$bam} {$cram}", [$genome, $cram], [dirname($bam)]);
 
 //index BAM
-$parser->execApptainer("samtools", "samtools index", "-@ {$threads} {$bam}", [$bam]);
+$parser->execApptainer("samtools", "samtools index", "-@ {$threads} {$bam}", [], [dirname($bam)]);
 
 ?>

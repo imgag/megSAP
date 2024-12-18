@@ -255,7 +255,7 @@ else
 {
 	if ($raw_output)
 	{
-		$parser->execApptainer("freebayes","freebayes" ,implode(" ", $args)." > $out", $in_files, [$out]);
+		$parser->execApptainer("freebayes","freebayes" ,implode(" ", $args)." > $out", $in_files, [dirname($out)]);
 		return;
 	}
 	

@@ -31,6 +31,6 @@ else if ($tool === "ngs-bits")
 }
 
 //run ngs-bits VcfCheck on the output file and save the result
-$parser->execApptainer("ngs-bits", "VcfCheck", "-in {$tmp_vcf} -out {$out} -ref {$genome}", [$out, $genome]);
+$parser->execApptainer("ngs-bits", "VcfCheck", "-in {$tmp_vcf} -out {$out} -ref {$genome}", [$genome], [dirname($out)]);
 
 ?>

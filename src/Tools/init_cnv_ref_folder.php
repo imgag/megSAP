@@ -131,7 +131,7 @@ if(!$somatic)
 		
 		//process
 		print "$i) Processing $bam ...\n";
-		$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam -in $roi -out $cov_file -threads {$threads}", [$bam, $roi], [$cov_file]);
+		$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam -in $roi -out $cov_file -threads {$threads}", [$bam, $roi], [$ref_folder]);
 	}
 
 	//chmod
@@ -260,13 +260,13 @@ else //somatic tumor-normal pairs
 			}
 			if(!file_exists("{$ref_t_dir}/{$sample}.cov"))
 			{
-				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_t_dir}/{$sample}.cov -threads {$threads}", [$bam_or_cram, $roi], ["{$ref_t_dir}/{$sample}.cov"]);
+				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_t_dir}/{$sample}.cov -threads {$threads}", [$bam_or_cram, $roi], [$ref_t_dir]);
 				++$t_count;
 			}
 			//off-target
 			if(!file_exists("{$ref_off_t_dir}/{$sample}.cov"))
 			{
-				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_t_dir}/{$sample}.cov -threads {$threads}", [$off_target_bed, $bam_or_cram], ["{$ref_off_t_dir}/{$sample}.cov"]);
+				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_t_dir}/{$sample}.cov -threads {$threads}", [$off_target_bed, $bam_or_cram], [$ref_off_t_dir]);
 				++$t_off_count;
 			}
 		}
@@ -280,13 +280,13 @@ else //somatic tumor-normal pairs
 			}
 			if(!file_exists("{$ref_n_dir}/{$sample}.cov"))
 			{
-				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_n_dir}/{$sample}.cov -threads {$threads}", [$bam_or_cram, $roi], ["{$ref_n_dir}/{$sample}.cov"]);
+				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_n_dir}/{$sample}.cov -threads {$threads}", [$bam_or_cram, $roi], [$ref_n_dir]);
 				++$n_count;
 			}
 			//off-target
 			if(!file_exists("{$ref_off_n_dir}/{$sample}.cov"))
 			{
-				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_n_dir}/{$sample}.cov -threads {$threads}", [$off_target_bed, $bam_or_cram], ["{$ref_off_n_dir}/{$sample}.cov"]);
+				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_n_dir}/{$sample}.cov -threads {$threads}", [$off_target_bed, $bam_or_cram], [$ref_off_n_dir]);
 				++$n_off_count;
 			}
 		}

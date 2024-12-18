@@ -10,7 +10,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
 $parser = new ToolBase("analyze_rna", "RNA mapping pipeline using STAR.");
-$parser->addString("folder", "Analysis data folder.", false);
+$parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system", "Processing system INI file (determined from NGSD via the 'name' by default).", true);
