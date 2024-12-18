@@ -13,7 +13,7 @@ $parser->addString("t_id", "Processed sample id of tumor, e.g. 'GS123456_01'.", 
 $parser->addInfile("t_cov","Coverage file for tumor sample",false);
 $parser->addInfile("n_cov","Coverage file for normal sample",false);
 $parser->addOutFile("out", "Output file.",false);
-$parser->addInfile("bed","Bed file for target region.",false);
+$parser->addInfile("bed", "Target region BED file with annotated GC content and gene names.",false);
 //optional
 $parser->addInfile("bed_off","Off-target bed file.",true); //s_dna
 $parser->addInfile("t_cov_off","Off-target coverage file for tumor sample",true);
@@ -235,12 +235,6 @@ if($use_off_target && !is_dir($cov_folder_t_off))
 	exit(0);
 }
 
-$tmp_bed_annotated = $parser->tempFile(".bed");
-
-$parser->execApptainer("ngs-bits", "BedAnnotateGC", "-in {$bed} -clear -out {$tmp_bed_annotated} -ref ".genome_fasta($sys['build']), [$bed]);
-$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp_bed_annotated} -out {$tmp_bed_annotated}");
-
-
 /******************************************
  * CREATE PAIR FILE WITH TUMOR NORMAL IDS *
  ******************************************/
@@ -327,7 +321,7 @@ $args = [
 "--tumor", $merged_cov_tumor,
 "--out", $cohort_folder,
 "--pair", $cov_pairs,
-"--bed", $tmp_bed_annotated,
+"--bed", $bed,
 "--colNum", "4",
 "--lengthS", $lengthS,
 "--scoreS", $scoreS,

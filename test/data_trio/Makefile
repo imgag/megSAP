@@ -24,7 +24,7 @@ diff:
 	#variants
 	php ../compare_variants.php -in1 trio.GSvar.out -in2 trio.GSvar
 	#CNVs
-	php ../compare_tsv.php -in1 trio_cnvs_clincnv.tsv.out -in2 trio_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs
+	php ../compare_tsv.php -in1 trio_cnvs_clincnv.tsv.out -in2 trio_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs,genes,gene_info
 	#UPDs
 	diff -b trio_upd.tsv.out trio_upd.tsv
 	#SVs

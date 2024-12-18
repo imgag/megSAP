@@ -61,7 +61,7 @@ $target_file = $sys['target_file'];
 $genome = get_path("data_folder")."/genomes/STAR/{$build}/";
 
 //determine gtf from build
-$gtfFile = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
+$gtf_file = get_path("data_folder")."/dbs/gene_annotations/{$build}.gtf";
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 if (!$no_sync)
@@ -296,7 +296,7 @@ if (in_array("rc", $steps))
 	$args_common = array(
 		"-in", $repair_bam,
 		"-library_type", $library_type,
-		"-gtf_file", $gtfFile,
+		"-gtf_file", $gtf_file,
 		"-threads", $threads
 	);
 
@@ -336,9 +336,9 @@ $reference_tissues = array();
 if (in_array("an", $steps))
 {
 	//annotate gene-level read counts
-	$parser->execTool("NGS/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtfFile $gtfFile -annotationIds gene_name,gene_biotype");
+	$parser->execTool("NGS/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtf_file $gtf_file -annotationIds gene_name,gene_biotype");
 	//annotate exon-level read counts
-	$parser->execTool("NGS/rc_annotate.php", "-in $counts_exon_normalized -out $counts_exon_normalized -gtfFile $gtfFile -annotationIds gene_name,gene_biotype");
+	$parser->execTool("NGS/rc_annotate.php", "-in $counts_exon_normalized -out $counts_exon_normalized -gtf_file $gtf_file -annotationIds gene_name,gene_biotype");
 
 	//expression value based on cohort
 	if (db_is_enabled("NGSD"))

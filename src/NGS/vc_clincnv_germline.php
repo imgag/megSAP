@@ -10,7 +10,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("vc_clincnv_germline", "Germline copy-number calling with ClinCNV.");
 $parser->addInfile("cov", "Coverage file for sample (tab-separated file with columns chr, start, end, coverage).", false);
 $parser->addInfile("cov_folder", "Coverage files folder.", false);
-$parser->addInfile("bed", "BED file with annotations e.g. GC-content and gene names.", false);
+$parser->addInfile("bed", "Target region BED file with annotated GC content and gene names.", false);
 $parser->addOutFile("out", "Output file in TSV format.", false);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 //optional

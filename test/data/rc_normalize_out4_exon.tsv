@@ -4,7 +4,7 @@
 ##DESCRIPTION=raw=Number of reads overlapping exon
 ##DESCRIPTION=rpb=Reads overlapping exon per base
 ##DESCRIPTION=srpb=Reads overlapping exon per base, scaled by total number of reads in 100 million
-#Total library size (from gene-level counting): 13339
+##Total library size (from gene-level counting): 13339
 #gene_exon	gene_id	exon	raw	rpb	srpb
 ENSG00000223972:chr1:11869-12227:+	ENSG00000223972	chr1:11869-12227:+	0	0	0
 ENSG00000223972:chr1:12613-12721:+	ENSG00000223972	chr1:12613-12721:+	0	0	0

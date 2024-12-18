@@ -1277,29 +1277,34 @@ function vcf_column_index($name, $header)
 //If gene symbol is not found it is returned unaltered.
 function approve_gene_names($input_genes)
 {
+	//no NGSD > return input
+	if (!db_is_enabled("NGSD")) return $input_genes;
+	
+	//write file with one line per gene
 	$genes_as_string = "";
 	foreach($input_genes as $gene)
 	{
+		$gene = trim($gene);
+		
 		//set dummy if there are empty lines in input file
-		if(trim($gene) == "")
-		{
-			$gene =  "NOT_AVAILABLE";
-		}
+		if($gene=="") $gene = "NOT_AVAILABLE";
 		
 		$genes_as_string .= $gene."\n";
 	}
 	$non_approved_genes_file = temp_file(".txt", "approve_gene_names");
-	file_put_contents($non_approved_genes_file,$genes_as_string);
+	file_put_contents($non_approved_genes_file, $genes_as_string);
 	
-	//write stdout to $approved_genes -> each checked gene is one array element
+	//convert to approved gene names
 	list($approved_genes) = execApptainer("ngs-bits", "GenesToApproved", "-in $non_approved_genes_file");
 	
-	$output = array();
-	foreach($approved_genes as $gene)
+	//get new names (first element of tab-separated line)
+	$output = [];
+	foreach($approved_genes as $line)
 	{
 		//remove dummy before saving
-		if($gene == "NOT_AVAILABLE") $gene = "";
-		list($output[]) = explode("\t",$gene);
+		if(start_with($line, "NOT_AVAILABLE")) $line = "";
+		
+		$output[] = explode("\t", $line)[0];
 	}
 	return $output;
 }
@@ -2349,7 +2354,7 @@ function update_gsvar_sample_header($file_name, $status_map)
 {
 	if (!db_is_enabled("NGSD"))
 	{
-		trigger_error("Access to NGSD needed to update GSvar SAMPLE header! Nothing will be done.", E_USER_WARNING);
+		trigger_error("Skipping update of GSvar SAMPLE header, because no NGSD is available.", E_USER_NOTICE);
 		return;
 	}
 

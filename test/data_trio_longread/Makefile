@@ -42,7 +42,7 @@ an:
 
 diff:
 	php ../compare_variants.php -in1 trio.GSvar.out -in2 trio.GSvar
-	php ../compare_tsv.php -in1 trio_cnvs_clincnv.tsv.out -in2 trio_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs
+	php ../compare_tsv.php -in1 trio_cnvs_clincnv.tsv.out -in2 trio_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs,genes,gene_info
 	diff trio_var_structural_variants.bedpe.out trio_var_structural_variants_cut.bedpe --ignore-matching-lines="^##"
 	diff trio_var_structural_variants.bedpe.out2 trio_var_structural_variants_cut2.bedpe --ignore-matching-lines="^##"
 

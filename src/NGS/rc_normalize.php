@@ -166,7 +166,7 @@ if (isset($in_exon))
 		$tbl_exon->addCol($srpb, "srpb", "Reads overlapping exon per base, scaled by total number of reads in 100 million");
 	}
 
-	$tbl_exon->addComment("Total library size (from gene-level counting): " . array_sum($count));
+	$tbl_exon->addComment("#Total library size (from gene-level counting): " . array_sum($count));
 	// write exon-level table
 	$tbl_exon->toTSV($out_exon);
 
