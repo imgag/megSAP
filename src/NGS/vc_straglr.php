@@ -162,7 +162,7 @@ $parser->execApptainer("ngs-bits", "VcfSort", "-in {$out_vcf} -out {$out_vcf}", 
 //create plots:
 if (file_exists($plot_folder)) $parser->exec("rm", "-r {$plot_folder}"); //delete previous plots
 mkdir($plot_folder);
-$parser->execApptainer("straglrOn", "straglron.py", "{$out_bed} {$out_tsv} {$loci} -o {$plot_folder} --hist --alleles --bam {$in} --genome ".genome_fasta($build), [$out_folder, $loci, genome_fasta($build)]);
+$parser->execApptainer("straglrOn", "straglron.py", "{$out_bed} {$out_tsv} {$loci} -o {$plot_folder} --hist --alleles --bam {$in} --genome ".genome_fasta($build), [$in, $out_folder, $loci, genome_fasta($build)]);
 
 
 
