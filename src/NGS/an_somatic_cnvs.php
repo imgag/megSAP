@@ -108,9 +108,7 @@ if(isset($rna_counts))
 		exec2("cut -f6 $rna_counts | sort | uniq > $tmp_file1", false);
 		list($stdout) = $parser->execApptainer("ngs-bits", "GenesToApproved", "-in $tmp_file1");
 		foreach($stdout as $line)
-		{
-			$line = trim(fgets($handle));
-			
+		{			
 			if($line=="") continue;
 			if(!contains($line, "REPLACED:")) continue;
 						

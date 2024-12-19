@@ -1302,7 +1302,7 @@ function approve_gene_names($input_genes)
 	foreach($approved_genes as $line)
 	{
 		//remove dummy before saving
-		if(start_with($line, "NOT_AVAILABLE")) $line = "";
+		if(starts_with($line, "NOT_AVAILABLE")) $line = "";
 		
 		$output[] = explode("\t", $line)[0];
 	}
