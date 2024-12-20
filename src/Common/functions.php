@@ -810,10 +810,18 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 	{
 		trigger_error("Error in 'execApptainer': command must not contain pipe symbol '|': $command $parameters", E_USER_ERROR);
 	}
-
-	$bind_paths = array();
+	
+	//apptainer arguments
+	$apptainer_args = [];
+	$apptainer_args[] = "--no-mount home,cwd";
+	$apptainer_args[] = "--cleanenv";
+	if ($container=="samtools") //samtools needs REF_CACHE to avoid re-initializing the reference cache inside the container every call: http://www.htslib.org/doc/samtools.html#ENVIRONMENT_VARIABLES
+	{
+		$apptainer_args[] = "--env REF_CACHE=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s";
+	}
 
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
+	$bind_paths = array();
 	if($container=="ngs-bits")
 	{
 		$ngsbits_local = get_path("ngs-bits_local", false);
@@ -887,7 +895,7 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 			$bind_paths[] = $ngsbits_settings_loc.":".$ngsbits_settings_loc;
 		}
 	}
-
+	
 	//get container (preferably from local folder)
 	$container_version = get_path("container_{$container}");
 	$container_file = "{$container}_{$container_version}.sif";
@@ -941,7 +949,6 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 	}
 
 	//check bind paths
-	$bind_paths_command = "";
 	if(!empty($bind_paths))
 	{
 		foreach($bind_paths as $path)
@@ -953,13 +960,11 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 				trigger_error("Bind path '{$path}' does not exist!", E_USER_ERROR);
 			}
 		}
-
-		$bind_paths_command = " -B ".implode(",", $bind_paths);
+		$apptainer_args[] = "-B ".implode(",", $bind_paths);
 	}
 
 	//compose Apptainer command
-	
-	$apptainer_command = "apptainer exec --no-mount home,cwd --cleanenv{$bind_paths_command} {$container_path} {$command} {$parameters}";
+	$apptainer_command = "apptainer exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
 	
 	//if command only option is true, only the apptainer command is being return, without execution
 	if($command_only) 
