@@ -168,8 +168,6 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	global $parser;
 	global $build;
 	global $threads;
-	$ngsbits = get_path("ngs-bits");
-	$splice_env = get_path("splice_env", true);
 	
 	//check if SpliceAI INFO header is already present in the input VCF
 	$header_old = "";
@@ -194,9 +192,15 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	$args[] = "-A ".strtolower($build);
 	$args[] = "-M 1"; //enable masked scores
 	$args[] = "-D 50";
-	putenv("PYTHONPATH");
-	$parser->exec("OMP_NUM_THREADS={$threads} {$splice_env}/bin/python3 {$splice_env}/lib/python3.10/site-packages/spliceai", implode(" ", $args), true);
-	
+	/* putenv("PYTHONPATH"); */
+
+	//set bind paths for container execution
+	$in_files = [genome_fasta($build), $vcf_filtered];
+
+	//run spliceai container
+	$spliceai_command = $parser->execApptainer("spliceai", "spliceai", implode(" ", $args), $in_files, [], true);
+	exec2("OMP_NUM_THREADS={$threads} {$spliceai_command}");
+
 	//no variants scored => copy input to output
 	$var_count = vcf_variant_count($tmp1, "SpliceAI=");
 	if($var_count==0)
@@ -207,7 +211,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	
 	//sort, zip and index scored variants to make them usable with VcfAnnotateFromVcf
 	$tmp2 = $parser->tempFile("_spliceai_new_annotations.vcf.gz");
-	$parser->exec("{$ngsbits}/VcfSort", "-in {$tmp1} -out {$tmp1}");
+	$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp1} -out {$tmp1}");
 	$parser->exec("bgzip", "-c $tmp1 > $tmp2");
 	$parser->exec("tabix", "-f -p vcf $tmp2");
 	
@@ -218,7 +222,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 		$tmp3 = $parser->tempFile("_input_header_fixed.vcf.gz");
 		$parser->exec("grep", "-v '##INFO=<ID=SpliceAI,' {$in} > {$tmp3}");
 	}
-	$parser->exec("{$ngsbits}/VcfAnnotateFromVcf", "-in {$tmp3} -source {$tmp2} -info_keys SpliceAI -out {$out} -threads {$threads}");
+	$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-in {$tmp3} -source {$tmp2} -info_keys SpliceAI -out {$out} -threads {$threads}", [$tmp3], [dirname($out)]);
 	if ($header_old!="") //replace new by old header
 	{		
 		$header_old = str_replace("\"", "\\\"", $header_old); //SpliceAI header has doubles quotes which need to be escaped
@@ -239,11 +243,21 @@ if($var_count==0)
 }
 
 //filter for variants in SpliceAI transcript regions
+$tmp_fields = $parser->tempFile("spliceai_tmp_fields.txt");
+$tmp_prefixed = $parser->tempFile("spliceai_tmp_prefixed.txt");
 $spliceai_regions = $parser->tempFile("spliceai_scoring_regions.bed");
-$splice_env = get_path("splice_env", true);
-exec2("cut -f 2,4,5 -d'\t' {$splice_env}/lib/python3.10/site-packages/spliceai/annotations/".strtolower($build).".txt | sed 's/^/chr/' | sed '1d' > {$spliceai_regions}");
+
+$spliceai_parameters = "-f 2,4,5 -d'\t' /opt/spliceai/splice_env/lib/python3.6/site-packages/spliceai/annotations/".strtolower($build).".txt > {$tmp_fields}";
+$parser->execApptainer("spliceai", "cut", $spliceai_parameters);
+
+$spliceai_parameters = "'s/^/chr/' {$tmp_fields} > {$tmp_prefixed}";
+$parser->execApptainer("spliceai", "sed", $spliceai_parameters);
+
+$spliceai_parameters = "'1d' {$tmp_prefixed} > {$spliceai_regions}";
+$parser->execApptainer("spliceai", "sed", $spliceai_parameters);
+
 $tmp2 = $parser->tempFile("_spliceai_filtered_regions.vcf");
-$parser->exec(get_path("ngs-bits")."/VcfFilter", "-reg {$spliceai_regions} -in {$tmp1} -out {$tmp2} -ref ".genome_fasta($build), true);
+$parser->execApptainer("ngs-bits", "VcfFilter", "-reg {$spliceai_regions} -in {$tmp1} -out {$tmp2} -ref ".genome_fasta($build), [genome_fasta($build)]);
 $var_count = vcf_variant_count($tmp2);
 $parser->log("Variants after SpliceAI transcript regions filter: {$var_count}");
 

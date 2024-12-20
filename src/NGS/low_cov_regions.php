@@ -146,17 +146,19 @@ file_put_contents($out, $output);
 
 
 //merge regions
-$parser->exec(get_path("ngs-bits")."BedMerge", "-in $out -out $out", false);
+$parser->execApptainer("ngs-bits", "BedMerge", "-in $out -out $out", [$out], [], false, false);
 
 //annotate with gene names
-$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in $out -clear -out $out", false);
+$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in $out -clear -out $out", [$out], [], false, false);
 
 //output
 print "input files: ".count($in)."\n";
 print "threshold: {$thres} of {$samples_processed} processed samples\n";
 print "threshold chrX: {$thres_x} of {$samples_processed_x} processed females\n";
 print "threshold chrY: {$thres_y} of {$samples_processed_y} processed males\n";
-list($stdout, $stderr) = exec2(get_path("ngs-bits")."BedInfo -in $out | grep Bases");
+$info_bed = $parser->tempFile("_info.bed");
+$parser->execApptainer("ngs-bits", "BedInfo", "-in $out -out $info_bed", [$out]);
+list($stdout, $stderr) =  exec2("grep Bases $info_bed");
 list(,$bases) = explode(":", $stdout[0]);
 print "low-coverage bases: ".number_format($bases, 0)."\n";
  

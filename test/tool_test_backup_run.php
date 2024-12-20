@@ -7,7 +7,6 @@ $file = data_folder().$name;
 start_test($name);
 
 //init
-// check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$name}.sql");
 exec("rm -rf ".output_folder()."20230823_LH00240_0003_AFCID0001_00123");
 exec("rm -rf ".output_folder()."backup");
 exec("rm -rf ".output_folder()."restore");

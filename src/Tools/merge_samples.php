@@ -57,8 +57,6 @@ elseif ($info1["sample_type"] == "RNA")
 	$ps_type = "RNA";
 }
 
-$ngsbits = get_path("ngs-bits");
-
 //check input folders
 $folder1 = $info1['ps_folder'];
 if (!is_dir($folder1))
@@ -119,8 +117,7 @@ $target_mod_unmapped_bam_files = glob($folder2."/*.mod.unmapped.bam");
 $target_bam_or_cram_methylation = false; //init to false to prevent 'Undefined variable'
 removeIndexFastqs($target_fastq_files);
 
-list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps {$into} -type BAM".$sample_path_db_addon);
-$target_bam_or_cram = trim(implode("", $stdout));
+$target_bam_or_cram = $info2['ps_bam'];
 
 if (count($target_fastq_files) > 0)
 {
@@ -149,14 +146,15 @@ elseif (file_exists($target_bam_or_cram))
 		$in_fq_rev = $folder2."/${into}_BamToFastq_R2_001.fastq.gz";
 		$tmp1 = $parser->tempFile(".fastq.gz");
 		$tmp2 = $parser->tempFile(".fastq.gz");
-		$parser->exec("{$ngsbits}BamToFastq", "-in ${target_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", true);
+		$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$target_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", [$target_bam_or_cram, $genome]);
 		$parser->moveFile($tmp1, $in_fq_for);
 		$parser->moveFile($tmp2, $in_fq_rev);
 	}
 }
 else
-{
-	trigger_error("Could not find any sequencing data (neither FASTQ, BAM nor CRAM) in Sample folder of '$into': $target_bam_or_cram! Abort merging.", E_USER_ERROR);
+{	
+print "XY: ".$target_bam_or_cram."\n";
+	trigger_error("Could not find any sequencing data (neither FASTQ, BAM nor CRAM) in Sample folder of '$into': $folder2! Abort merging.", E_USER_ERROR);
 }
 
 //check if FASTQ files or BAM in source folder exist
@@ -165,8 +163,7 @@ $source_fastq_files = glob($folder1."/*.fastq.gz");
 removeIndexFastqs($source_fastq_files);
 $source_mod_unmapped_bam_files = glob($folder1."/*.mod.unmapped.bam");
 
-list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps {$ps} -type BAM".$sample_path_db_addon);
-$source_bam_or_cram = trim(implode("", $stdout));
+$source_bam_or_cram = $info1['ps_bam'];
 if (count($source_fastq_files) > 0)
 {
 	//FASTQ files found -> move them to the target folder
@@ -195,7 +192,7 @@ elseif (file_exists($source_bam_or_cram))
 		$in_fq_rev = $folder2."/${ps}_BamToFastq_R2_001.fastq.gz";
 		$tmp1 = $parser->tempFile(".fastq.gz");
 		$tmp2 = $parser->tempFile(".fastq.gz");
-		$parser->exec("{$ngsbits}BamToFastq", "-in ${source_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", true);
+		$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$source_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", [$source_bam_or_cram, $genome]);
 		$parser->moveFile($tmp1, $in_fq_for);
 		$parser->moveFile($tmp2, $in_fq_rev);
 

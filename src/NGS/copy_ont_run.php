@@ -25,14 +25,11 @@ $parser->addInt("threads", "Number of threads to use for file merging and compre
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
-$file_acccess_group = get_path("file_access_group", false);
-if ($file_acccess_group == "") trigger_error("File access group not set in the settings.ini. File group will not be set!", E_USER_WARNING);
-
 //absolute path
 $run_dir = realpath($run_dir);
 if (!file_exists($run_dir))
 {
-	trigger_error("Run directory '{$run_dir}' does not exists!", E_USER_ERROR);
+	trigger_error("Run directory '{$run_dir}' does not exist!", E_USER_ERROR);
 }
 
 //set ulimit
@@ -118,9 +115,9 @@ $flowcell_id = $result[0]['fcid'];
 //check flowcell ID
 foreach ($subdirs as $subdir)
 {
-	if (!mb_strpos(basename($subdir), $flowcell_id))
+	if (!contains(basename($subdir), $flowcell_id))
 	{
-		trigger_error("Flowcell ID '{$flowcell_id}' not found in directory name '{$run_dir}'.", E_USER_ERROR);
+		trigger_error("Flowcell ID '{$flowcell_id}' not found in directory name '{$subdir}'.", E_USER_ERROR);
 	}
 }
 
@@ -130,11 +127,11 @@ if (count($bam_files) !== 0)
 {
 	$bam_random_file = $bam_files[array_rand($bam_files, 1)];
 
-	$ret = $parser->exec(get_path("samtools"), "view --count --exclude-flags 0x900 {$bam_random_file}");
+	$ret = $parser->execApptainer("samtools", "samtools view", "--count --exclude-flags 0x900 {$bam_random_file}", [$run_dir]);
 	$num_records = intval($ret[0][0]);
-	$ret = $parser->exec(get_path("samtools"), "view --count --tag ML {$bam_random_file}");
+	$ret = $parser->execApptainer("samtools", "samtools view", "--count --tag ML {$bam_random_file}", [$run_dir]);
 	$num_base_mods = intval($ret[0][0]);
-	$ret = $parser->exec(get_path("samtools"), "view --count --require-flags 0x4 {$bam_random_file}");
+	$ret = $parser->execApptainer("samtools", "samtools view", "--count --require-flags 0x4 {$bam_random_file}", [$run_dir]);
 	$num_unaligned = intval($ret[0][0]);
 
 	$modified_bases = $num_records == $num_base_mods;
@@ -185,7 +182,6 @@ foreach ($result as $record)
 	}
 
 	$out_dir = $sample_info["ps_folder"];
-
 	// copy to run folder during test:
 	if ($db=="NGSD_TEST")
 	{
@@ -203,14 +199,13 @@ foreach ($result as $record)
 		trigger_error("Importing information from GenLab...", E_USER_NOTICE);
 		$args = [];
 		$args[] = "-ps {$sample}";
-		$parser->exec(get_path("ngs-bits")."/NGSDImportGenlab", implode(" ", $args), true);
+		$parser->execApptainer("ngs-bits", "NGSDImportGenlab", implode(" ", $args));
 	}
 
 
 	if (($bam_available && $prefer_bam) || $bam)
 	{
 		trigger_error("Copy and merge BAM files.", E_USER_NOTICE);
-
 		$genome = genome_fasta($build);
 
 
@@ -239,14 +234,14 @@ foreach ($result as $record)
 		{
 			$tmp_for_sorting = $parser->tempFile();
 			//merge presorted files
-			$pipeline[] = [get_path("samtools"), "merge --reference {$genome} --threads {$threads} -b - -o {$out_bam}"];
+			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools merge", "--reference {$genome} --threads {$threads} -b - -o {$out_bam}", [$genome], [$out_dir], true)];
 			$parser->execPipeline($pipeline, "merge aligned BAM files");
 			$parser->indexBam($out_bam, $threads);
 
 		}
 		else
 		{
-			$pipeline[] = [get_path("samtools"), "cat --threads {$threads} -o {$out_bam} -b -"]; //no reference required
+			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [], [$out_dir], true)]; //no reference required
 			$parser->execPipeline($pipeline, "merge unaligned BAM files");
 		}
 	}
@@ -262,12 +257,11 @@ foreach ($result as $record)
 		};
 
 		exec2("find {$fastq_paths_glob} -name '*.fastq.gz' -type f -exec cat  {} + > {$out_fastq}");
-		trigger_error("FASTQ saved in {$out_fastq}.", E_USER_NOTICE);
-	}
+		trigger_error("FASTQ saved in {$out_fastq}.", E_USER_NOTICE);	}
 
 	//apply file access permissions
-	$parser->exec("chmod", "-R 775 {$out_dir}");
-	if ($file_acccess_group != "") $parser->exec("chgrp", "-R {$file_acccess_group} {$out_dir}");
+	exec2("chmod -R 775 {$out_dir}");
+	exec2("chgrp -R f_ad_bi_l_medgen_access_storages {$out_dir}", false);
 
 	if ($queue_sample)
 	{

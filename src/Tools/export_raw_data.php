@@ -18,7 +18,6 @@ extract($parser->parse($argv));
 
 //init
 $db = DB::getInstance("NGSD");
-$ngsbits = get_path("ngs-bits");
 
 //check folder
 if (!file_exists($out) || !is_dir($out))
@@ -132,7 +131,7 @@ foreach($samples as $ps)
 		else
 		{
 			print "  Generating FASTQ files from BAM ...\n";
-			exec2("{$ngsbits}/BamToFastq -in {$bam} -out1 {$out}/{$ps}_R1_001.fastq.gz -out2 {$out}/{$ps}_R2_001.fastq.gz");
+			$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam} -out1 {$out}/{$ps}_R1_001.fastq.gz -out2 {$out}/{$ps}_R2_001.fastq.gz", [$bam], [$out]);
 		}
 	}
 }

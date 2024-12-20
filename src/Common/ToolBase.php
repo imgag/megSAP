@@ -81,46 +81,6 @@ class ToolBase
 		$this->log("Execution time of '".$this->name."': ".time_readable(microtime(true) - $this->start_time));
 	}
 	
-	public function createNgsBitsIni($build)
-	{
-		//settings for ngs-bits exists > do nothing
-		$ngsbits_settings = get_path("ngs-bits")."/settings.ini";
-		if (file_exists($ngsbits_settings)) return;
-		
-		//pipeine settings file missing > create it
-		$pipeline_settings = repository_basedir()."/data/tools/ngsbits_settings.ini";
-		if (!file_exists($pipeline_settings) || (file_exists(repository_basedir()."/settings.ini") && filemtime($pipeline_settings)<filemtime(repository_basedir()."/settings.ini")))
-		{
-			trigger_error("ngs-bits settings file is missing/outdated and thus created from megSAP settings...", E_USER_NOTICE);
-			$output = [];
-			
-			//reference genome
-			$output[] = "reference_genome = ".genome_fasta($build);
-			
-			//NGSD credentials
-			$output[] = "ngsd_host = ".get_db('NGSD', 'db_host', '');
-			$output[] = "ngsd_port = 3306";
-			$output[] = "ngsd_name = ".get_db('NGSD', 'db_name', '');
-			$output[] = "ngsd_user = ".get_db('NGSD', 'db_user', '');
-			$output[] = "ngsd_pass = ".get_db('NGSD', 'db_pass', '');
-			
-			//project folders
-			$project_folder = get_path("project_folder", false);
-			$output[] = "projects_folder_diagnostic = ".(is_array($project_folder) ? $project_folder['diagnostic'] : $project_folder."/diagnostic/");
-			$output[] = "projects_folder_research = ".(is_array($project_folder) ? $project_folder['research'] : $project_folder."/research/");
-			$output[] = "projects_folder_test = ".(is_array($project_folder) ? $project_folder['test'] : $project_folder."/test/");
-			$output[] = "projects_folder_external = ".(is_array($project_folder) ? $project_folder['external'] : $project_folder."/external/");
-			
-			//data folder
-			$output[] = "data_folder = ".get_path("data_folder", false);
-									
-			$written = file_put_contents($pipeline_settings, implode("\n", $output));
-			if($written===false) trigger_error("Could not write ngs-bits settings file: $pipeline_settings", E_USER_ERROR);
-		}
-		
-		trigger_error("ngs-bits settings file used: {$pipeline_settings}", E_USER_NOTICE);
-	}
-	
 	/// Remove temporary folder
 	private function removeTempFolder($folder)
 	{
@@ -392,6 +352,7 @@ class ToolBase
 				if ($argu_type == "infile")
 				{
 					$check_readable = $this->params[$par][3];
+					$arg = realpath($arg);
 					if ($check_readable && !is_readable($arg))
 					{
 						$this->printUsage();
@@ -404,7 +365,7 @@ class ToolBase
 					while(isset($argv[$i + 1]) && $argv[$i + 1][0]!="-")
 					{
 						//print $argv[$i+1]."\n";
-						$arg[] = $argv[$i+1];
+						$arg[] = realpath($argv[$i+1]);
 						$check_readable = $this->params[$par][3];
 						if ($check_readable && !is_readable(end($arg)))
 						{
@@ -864,43 +825,48 @@ class ToolBase
 	}
 
 	/**
-	 	@brief Executes a command inside a given Singularity container and returns an array with STDOUT, STDERR and exit code.
+	 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 	 */
-	function execSingularity($container, $container_version, $bind_paths, $command, $parameters, $log_output=true, $abort_on_error=true, $warn_on_error=true)
+	function execApptainer($container, $command, $parameters, $in_files = array(), $out_files = array(), $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true)
 	{
-		if (is_array($command) || is_array($parameters))
+		//execute local ngs-bits installation if ngs-bits_local path is set in settings.ini
+		$ngsbits_local = get_path("ngs-bits_local", false);
+		if ($container == "ngs-bits" && $ngsbits_local != "")
 		{
-			print_r($command);
-			print_r($parameters);
-			die;
-		}
-		//prevent execution of pipes - exit code is not handled correctly with pipes!
-		$command_and_parameters = $command." ".$parameters;
-		if(contains($command_and_parameters, "|"))
-		{
-			trigger_error("Error in 'execSingularity' method call: Command must not contain pipe symbol '|'! \n$command_and_parameters", E_USER_ERROR);
-		}
-
-		//get container
-		$container_path = get_path("container_folder")."/{$container}_{$container_version}.sif";
-		if(!file_exists($container_path)) trigger_error("Singularity container '{$container_path}' not found!", E_USER_ERROR);
-
-		//check bind paths
-		foreach($bind_paths as $path)
-		{
-			//remove optional path option
-			$path = explode(":", $path)[0];
-			if(!file_exists($path))
+			if ($command_only)
 			{
-				trigger_error("Bind path '{$path}' not exists!", E_USER_ERROR);
+				$ngsbits_command = execApptainer($container, $command, $parameters, $in_files, $out_files, true);
+				return $ngsbits_command;
+			}
+			else
+			{
+				list($stdout, $stderr, $return) = execApptainer($container, $command, $parameters, $in_files, $out_files);
+				return array($stdout, $stderr, $return);
 			}
 		}
+
+		//get apptainer command, bind paths and container path from execApptainer function in functions.php
+		list($apptainer_command, $bind_paths, $container_path, $container_version) = execApptainer($container, $command, $parameters, $in_files, $out_files, false, true);
 		
+		//if command only option is true, only the apptainer command is being return, without execution
+		if($command_only) 
+		{
+			$this->log("DEBUG: Apptainer command:\t", array($apptainer_command));
+			return $apptainer_command;
+		}
 		//log call
 		if($log_output)
 		{
 			$add_info = array();
-			$add_info[] = "singularity version = ".$this->extractVersion("singularity");
+			$add_info[] = "Apptainer version = ".$this->extractVersion("apptainer");
+			foreach($in_files as $in_file)
+			{
+				$add_info[] = "input file          = ".$in_file;
+			}
+			foreach($out_files as $out_file)
+			{
+				$add_info[] = "output file         = ".$out_file;
+			}
 			foreach($bind_paths as $bind_path)
 			{
 				$add_info[] = "bind path           = ".$bind_path;
@@ -913,19 +879,16 @@ class ToolBase
 			$this->log("Calling external tool '$command' in container '".basename2($container_path)."'", $add_info);
 		}
 
-		//compose Singularity command
-		$singularity_command = "singularity exec -B ".implode(",", $bind_paths)." {$container_path} {$command_and_parameters}";
-
 		//TODO: remove 
-		$this->log("DEBUG: Singularity command:\t", array($singularity_command));
+		$this->log("DEBUG: Apptainer command:\t", array($apptainer_command));
 		
 		$pid = getmypid();
 		//execute call - pipe stdout/stderr to file
 		$stdout_file = $this->tempFile(".stdout", "megSAP_exec_pid{$pid}_");
 		$stderr_file = $this->tempFile(".stderr", "megSAP_exec_pid{$pid}_");
 		$exec_start = microtime(true);
-		$proc = proc_open($singularity_command, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
-		if ($proc===false) trigger_error("Could not start process with ToolBase::execSingularity function!\nContainer: {$container_path}\nCommand: {$command}\nParameters: {$parameters}", E_USER_ERROR);
+		$proc = proc_open($apptainer_command, array(1 => array('file',$stdout_file,'w'), 2 => array('file',$stderr_file,'w')), $pipes);
+		if ($proc===false) trigger_error("Could not start process with ToolBase::execApptainer function!\nContainer: {$container_path}\nCommand: {$command}\nParameters: {$parameters}", E_USER_ERROR);
 		
 		//get stdout, stderr and exit code
 		$return = proc_close($proc);
@@ -1284,18 +1247,18 @@ class ToolBase
 		file_put_contents($filename, $writer->output());
 	}
 	
-	///Sort BAM file
-	function sortBam($in, $out, $threads, $by_name = FALSE)
+	///Sort BAM file (optional build parameter to speed-up cram sorting)
+	function sortBam($in, $out, $threads, $build, $by_name = FALSE)
 	{	
 		$threads -= 1; //number of additional threads, that's why -1
 		$tmp_for_sorting = $this->tempFile();
-		$this->exec(get_path("samtools")." sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G -o $out $in", true);
+		$this->execApptainer("samtools", "samtools sort", "-T {$tmp_for_sorting} -@ {$threads}".($by_name?" -n":"")." -m 1G --reference ".genome_fasta($build)." -o $out $in", [$in, genome_fasta($build)], [dirname($out)]);
 	}
 	
 	///Index BAM file
 	function indexBam($bam, $threads)
 	{
-		$this->exec(get_path("samtools")." index", "-@ {$threads} $bam", true);
+		$this->execApptainer("samtools", "samtools index", "-@ {$threads} $bam", [$bam]);
 	}
 	
 	///Move file with error checks

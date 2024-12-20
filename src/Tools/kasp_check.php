@@ -208,25 +208,38 @@ function txt2geno_steponeplus($snps, $in_file, $out_file, $lanes_to_check)
 
 //returns the genotype(s) for a sample at a certain position, or 'n/a' if the minimum depth was not reached.
 function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
-{	
-	//get pileup
-	//print get_path("samtools")." mpileup -aa -f ".genome_fasta("GRCh38")." -r $chr:$pos-$pos $bam\n";
-	list($output) = exec2(get_path("samtools")." mpileup -aa -f ".genome_fasta("GRCh38")." -r $chr:$pos-$pos $bam");
-	//print_r($output);
-	list($chr2, $pos2, $ref2, , $bases) = explode("\t", $output[0]);;
+{
+	global $parser;
+	global $snps;
+	global $pileup_cache;
 	
-	//count bases
-	$bases = strtoupper($bases);
-	$counts = array("A"=>0, "C"=>0, "G"=>0, "T"=>0);
-	for($i=0; $i<strlen($bases); ++$i)
+	//init cache for this sample
+	if (count($pileup_cache)==0)
 	{
-		$char = $bases[$i];
-		if ($char=="." || $char==",") $char = $ref;
-		if (isset($counts[$char]))
+		$reg = $parser->tempFile("_regions.bed");
+		$tmp = [];
+		foreach($snps as $lane => list($rs, $chr2, $pos2))
 		{
-			++$counts[$char];
+			$tmp[] = "$chr2\t".($pos2-1)."\t$pos2\n";
+		}
+		file_put_contents($reg, $tmp);
+		$genome = genome_fasta("GRCh38");
+		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateFreq", "-ref $genome -in $reg -bam $bam", [$genome, $reg, $bam]);
+		foreach($stdout as $line)
+		{
+			$line = trim($line);
+			if ($line=="" || $line[0]=="#") continue;
+			list($chr2, $pos2, , , $a, $c, $g, $t) = explode("\t", $line);
+			$pileup_cache[$chr2.":".$pos2]["A"] = $a;
+			$pileup_cache[$chr2.":".$pos2]["C"] = $c;
+			$pileup_cache[$chr2.":".$pos2]["G"] = $g;
+			$pileup_cache[$chr2.":".$pos2]["T"] = $t;
+			//print "$chr2:$pos2 A=$a C=$c G=$g T=$t\n";
 		}
 	}
+	
+	//count bases
+	$counts = $pileup_cache[$chr.":".$pos];
 	arsort($counts);
 	
 	//check depth
@@ -246,6 +259,7 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 //searches for sample in NGSD and returns processed sample meta data
 function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 {
+	global $parser;
 	$output = array();
 	
 	$project_conditions = "(p.type='diagnostic'".($irp ? " OR p.type='research'" : "").($itp ? " OR p.type='test'" : "").")";
@@ -277,11 +291,14 @@ function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 	}
 	
 	//determine processed sample meta data
-	$ngsbits = get_path("ngs-bits");
 	foreach($res as $row)
 	{
 		$sample = $row['name'];
-		list($stdout) = exec2("{$ngsbits}NGSDExportSamples -sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER | {$ngsbits}TsvSlice -cols 'name,project_type,project_name,path,quality'");
+		$pipeline = [
+			["", $parser->execApptainer("ngs-bits", "NGSDExportSamples", "-sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER", [], [], true)],
+			["", $parser->execApptainer("ngs-bits", "TsvSlice", "-cols 'name,project_type,project_name,path,quality'", [], [], true)],
+		];
+		list($stdout) = $parser->execPipeline($pipeline, "NGSD sample extraction");
 		foreach($stdout as $line)
 		{
 			$line = trim($line);
@@ -411,6 +428,9 @@ if ($snps=="set2")
 	);
 }
 
+//cache for samtools mpileup
+$pileup_cache = [];
+
 //(re-)create TSV file
 $tsv_file = substr($in, 0, -4)."_converted.tsv";
 if($cross_check) $tsv_file = $parser->tempFile("_converted.tsv");
@@ -434,6 +454,7 @@ else
 	$output[] = "#sample_name\trandom_match_prob\tgenos_kasp\tgenos_both\tgenos_match\tbam\n";
 }
 $file = file($tsv_file);
+//print_r($file);
 foreach($file as $line)
 {
 	$line = trim($line);
@@ -456,6 +477,7 @@ foreach($file as $line)
 			}
 			
 			//find genotype matches
+			$pileup_cache = [];
 			$c_kasp = 0;
 			$c_both = 0;
 			$c_match = 0;
@@ -498,20 +520,18 @@ foreach($file as $line)
 	else
 	{
 		//extract DNA number
-		preg_match("/[0-9]{6,}/", $genotypes[0], $matches);
+		preg_match("/[0-9]{6,}/", $name, $matches);
 		if (count($matches) == 1)
 		{
 			$dna_number = $matches[0];
-			$genotypes = array_slice($genotypes, 1);
 		}
 		else
 		{
 			//check FO number
-			preg_match("/FO[-]{0,1}[0-9]{5}/", $genotypes[0], $matches);
+			preg_match("/FO[-]{0,1}[0-9]{5}/", $name, $matches);
 			if (count($matches) == 1)
 			{
 				$dna_number = $matches[0];
-				$genotypes = array_slice($genotypes, 1);
 			}
 			else
 			{
@@ -557,6 +577,7 @@ foreach($file as $line)
 						}
 						
 						//find genotype matches
+						$pileup_cache = [];
 						$c_kasp = 0;
 						$c_both = 0;
 						$c_match = 0;

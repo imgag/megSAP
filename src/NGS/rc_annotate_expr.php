@@ -7,15 +7,15 @@ $parser = new ToolBase("rc_annotate_expr", "Annotates a read count table with re
 $parser->addString("name", "Processed sample name used to find related samples.", false);
 $parser->addInfile("in", "Input gene counts table.", false);
 $parser->addOutfile("out", "Output gene counts table.", false);
-$parser->addString("cohort", "Specify to save expression values of cohort.", true, "");
-$parser->addString("stats", "Specify to save statistics of expression values of cohort.", true, "");
-$parser->addString("corr", "Specify to save sample--cohort correlation.", true, "");
+$parser->addOutfile("cohort", "Specify to save expression values of cohort.", true, "");
+$parser->addOutfile("stats", "Specify to save statistics of expression values of cohort.", true, "");
+$parser->addOutfile("corr", "Specify to save sample--cohort correlation.", true, "");
 $parser->addInfile("in_files", "Tab-separated file with sample name and corresponding path to count file per line.", true);
 
 $parser->addFlag("somatic", "Enable somatic mode: find related samples by ICD10 code or HPO term id.");
 $parser->addString("hpa_tissue", "HPA reference tissue.", true, "");
-$parser->addString("hpa_corr", "Specify to save sample--reference tissue correlation.", true, "");
-$parser->addString("hpa_ref", "HPA reference expression file.", true, get_path("data_folder") . "/dbs/gene_expression/rna_tissue_consensus_v23.tsv");
+$parser->addOutfile("hpa_corr", "Specify to save sample--reference tissue correlation.", true, "");
+$parser->addInfile("hpa_ref", "HPA reference expression file.", true, get_path("data_folder") . "/dbs/gene_expression/rna_tissue_consensus_v23.tsv");
 $parser->addEnum("db", "Database to connect to.", true, db_names(), "NGSD");
 
 extract($parser->parse($argv));
@@ -172,10 +172,32 @@ $args = [
 	"--counts_out", $out,
 	"--samples", $in_files
 ];
-if ($cohort !== "") $args[] = "--cohort {$cohort}";
-if ($stats !== "") $args[] = "--stats {$stats}";
-if ($corr !== "") $args[] = "--corr {$corr}";
-$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
+
+$files = [
+	$in,
+	$in_files,
+	repository_basedir()."/src/NGS/rc_calc_expr.py"
+];
+
+$out_files = [dirname($out)];
+
+if ($cohort !== "")
+{
+	$args[] = "--cohort {$cohort}";
+	$out_files[] = dirname($cohort);
+}
+if ($stats !== "")
+{
+	$args[] = "--stats {$stats}";
+	$out_files[] = dirname($stats);
+}
+if ($corr !== "")
+{
+	$args[] = "--corr {$corr}";
+	$out_files[] = dirname($corr);
+}
+
+$parser->execApptainer("python", "python3", repository_basedir()."/src/NGS/rc_calc_expr.py ".implode(" ", $args), $files, $out_files);
 
 //TODO: use ngs-bits tool
 
@@ -190,6 +212,17 @@ if ($hpa_tissue !== "")
 		"--prefix", "hpa_",
 		"--tissue", "'{$hpa_tissue}'"
 	];
-	if ($hpa_corr !== "") $args[] = "--corr {$hpa_corr}";
-	$parser->exec(get_path("python3")." ".repository_basedir()."/src/NGS/rc_calc_expr.py", implode(" ", $args), true);
+	$files = [
+		$out,
+		$hpa_ref,
+		repository_basedir()."/src/NGS/rc_calc_expr.py"
+	];
+	$out_files = [dirname($out)];
+
+	if ($hpa_corr !== "") 
+	{
+		$args[] = "--corr {$hpa_corr}";
+		$out_files[] = dirname($hpa_corr);
+	}
+	$parser->execApptainer("python", "python3", repository_basedir()."/src/NGS/rc_calc_expr.py ".implode(" ", $args), $files, $out_files);
 }

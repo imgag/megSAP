@@ -23,10 +23,15 @@ $parser->addInt("threads", "Threads to use (attention: scaling is poor).", true,
 extract($parser->parse($argv));
 
 //init
-$gatk = get_path("gatk");
 $ref = genome_fasta($build);
 
 //perform variant calling
+$in_files = array();
+$in_files = [
+	$roi,
+	$in,
+	$ref
+];
 $args = [];
 $args[] = "-L ".$roi;
 $args[] = "-G StandardAnnotation";
@@ -43,17 +48,16 @@ if ($gvcf)
 }
 
 $tmp = $gvcf ? $out : $parser->tempFile(".vcf.gz");
-$parser->exec($gatk, "HaplotypeCaller -R {$ref} -I {$in} -O {$tmp} ".implode(" ", $args));
+$parser->execApptainer("gatk", "gatk", "HaplotypeCaller -R {$ref} -I {$in} -O {$tmp} ".implode(" ", $args), $in_files);
 
 if (!$gvcf)
 {
 	//perform postprocessing
 	$pipeline = [];
 	$pipeline[] = array("zcat", $tmp);
-	$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "");
-	$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref {$ref}");
-	$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
-	$pipeline[] = array("bgzip", "-c > {$out}", false);
+	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true)];
+	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref {$ref}", [$ref], [], true)];
+	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];	$pipeline[] = array("bgzip", "-c > {$out}", false);
 	$parser->execPipeline($pipeline, "post processing");
 
 	//index VCF

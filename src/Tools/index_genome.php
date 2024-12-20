@@ -18,20 +18,26 @@ if ($mask)
 	$exclusion_bed = $parser->tempFile("_exclusion.bed");
 	exec2("wget -O {$exclusion_bed} https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_GRC_exclusions.bed");
 	$tmp = $parser->tempFile("_masked.fa");
-	exec2(get_path("ngs-bits")."FastaMask -in {$in} -reg {$exclusion_bed} -out {$tmp}");
+	$parser->execApptainer("ngs-bits", "FastaMask", "-in {$in} -reg {$exclusion_bed} -out {$tmp}", [$in]);
 	$parser->moveFile($tmp, $in);
 }
 
+//BWA index
 if (get_path("use_bwa1"))
 {
-	exec2(get_path("bwa")." index -a bwtsw {$in}");
+	$parser->execApptainer("bwa", "bwa index", "-a bwtsw {$in}", [$in]);
 }
 else
 {
-	exec2(get_path("bwa-mem2")." index {$in}");
+	$suffix = trim(get_path("bwa_mem2_suffix", false));
+	$parser->execApptainer("bwa-mem2", "bwa-mem2{$suffix}", " index {$in}", [$in]);
 }
 
-exec2(get_path("samtools")." faidx {$in}");
+//samtools FAI file
+$parser->execApptainer("samtools", "samtools", "faidx {$in}", [$in]);
 exec2("md5sum -b {$in} > {$in}.md5");
+
+//GATK dict file
+$parser->execApptainer("gatk", "gatk", "CreateSequenceDictionary -R {$in}", [$in]);
 
 ?>

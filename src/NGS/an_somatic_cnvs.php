@@ -101,22 +101,24 @@ if(isset($rna_counts))
 	
 	
 	//create map of approved gene symbols in RNA counts file
-	$approved_gene_map = array();
-	$temp_file = temp_file(".tsv", "approved_gene_symbols");
-	exec2("cut -f6 $rna_counts | sort | uniq | " . get_path("ngs-bits") . "/GenesToApproved | grep REPLACED > $temp_file", false);
-	$handle = fopen2($temp_file, "r");
-	while(!feof($handle))
+	$approved_gene_map = [];
+	if (db_is_enabled("NGSD"))
 	{
-		$line = trim(fgets($handle));
-		if(empty($line)) continue;
-		
-		list($new_symbol, $raw_string) = explode("\t", $line);
-		
-		//old gene symbol is contained as text in a sentence of the form "REPLACED: SYMBOL is a ..."
-		list($old_symbol) = explode(" ", str_replace("REPLACED: ", "", $raw_string));
-		$approved_gene_map[$old_symbol] = $new_symbol;
+		$tmp_file1 = temp_file(".txt");
+		exec2("cut -f6 $rna_counts | sort | uniq > $tmp_file1", false);
+		list($stdout) = $parser->execApptainer("ngs-bits", "GenesToApproved", "-in $tmp_file1");
+		foreach($stdout as $line)
+		{			
+			if($line=="") continue;
+			if(!contains($line, "REPLACED:")) continue;
+						
+			list($new_symbol, $message) = explode("\t", $line);
+			
+			//old gene symbol is contained as text in a sentence of the form "REPLACED: SYMBOL is a ..."
+			$old_symbol = explode(" ", trim(str_replace("REPLACED:", "", $message)))[0];
+			$approved_gene_map[$old_symbol] = $new_symbol;
+		}
 	}
-	fclose($handle);
 	
 	//Create result array of genes and tpm that occur in RNA_counts and CNV file
 	$results = array();

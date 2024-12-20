@@ -17,9 +17,10 @@ extract($parser->parse($argv));
 
 //init
 $db = DB::getInstance($db);
+$genome = genome_fasta("GRCh38");
 
 //check input VCF
-list($stderr, $stdout, $exit_code) = $parser->exec(get_path("ngs-bits")."VcfCheck", "-in {$in}", true, false, false);
+list($stderr, $stdout, $exit_code) = $parser->execApptainer("ngs-bits", "VcfCheck", "-in {$in} -ref $genome", [$in, $genome], [], false, true, false, false);
 if ($exit_code!=0)
 {
 	trigger_error("Invalid input VCF:\n".implode("\n", $stderr), E_USER_ERROR);

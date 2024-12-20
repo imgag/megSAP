@@ -35,7 +35,8 @@ function clear_analysis_folder()
 
 function reset_test_db(&$db, $tool_name)
 {
-	check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/{$tool_name}.sql");
+	//init NGSD
+	init_ngsd($tool_name);
 	
 	$base_folder_path = data_folder()."/+analysis/merge_samples/";
 	
@@ -163,7 +164,6 @@ check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sa
 check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id!=4"), 30);
 
 check($db->getValue("SELECT COUNT(*) FROM merged_processed_samples WHERE processed_sample_id = 4 AND merged_into = 12"), 1); //merge correctly added
-
 
 //merge tumor RNA samples:
 reset_test_db($db, $name);

@@ -27,7 +27,7 @@ end_test();
 start_test("is_valid_ref_sample_for_cnv_analysis");
 
 check(is_valid_ref_sample_for_cnv_analysis("NA12878"), false);
-if (db_is_enabled("NGSD"))
+if (db_is_enabled("NGSD") && get_path("location", false)=="IMGAG")
 {
 	check(is_valid_ref_sample_for_cnv_analysis("GS160265_06"), false); //tumor
 	check(is_valid_ref_sample_for_cnv_analysis("GS160832_01"), false); //ffpe
@@ -177,7 +177,7 @@ check($sys['name_manufacturer'], "SureSelectXT Human All Exon v5");
 check($sys['shotgun'], true);
 check($sys['umi_type'], "n/a");
 
-if (db_is_enabled("NGSD"))
+if (db_is_enabled("NGSD") && get_path("location", false)=="IMGAG")
 {
 	$filename = "";
 	$sys = load_system($filename, "GS130043_01");
@@ -190,7 +190,7 @@ end_test();
 //##################################################################################
 start_test("store_system");
 
-if (db_is_enabled("NGSD"))
+if (db_is_enabled("NGSD") && get_path("location", false)=="IMGAG")
 {
 	$db_conn = DB::getInstance("NGSD");
 	$filename = temp_file(".ini");
@@ -204,7 +204,7 @@ end_test();
 //##################################################################################
 start_test("get_processed_sample_id");
 
-if (db_is_enabled("NGSD"))
+if (db_is_enabled("NGSD") && get_path("location", false)=="IMGAG")
 {
 	$db_conn = DB::getInstance("NGSD");
 	check(get_processed_sample_id($db_conn, "GS130043_01"), 1498);
@@ -301,7 +301,9 @@ start_test("get_processed_sample_info");
 if (db_is_enabled("NGSD_TEST"))
 {
 	$db_conn = DB::getInstance("NGSD_TEST");
-	check_exec(get_path("ngs-bits")."NGSDInit -test -add ".data_folder()."/merge_samples.sql");
+	$sql_file = data_folder()."/merge_samples.sql";
+	execApptainer("ngs-bits", "NGSDInit", "-test -add $sql_file", [$sql_file]);
+	
 	$sample_info = get_processed_sample_info($db_conn, "DNA220002_01");
 	check($sample_info["sys_target"], "");
 	check($sample_info["ps_lanes"], array(1));
@@ -364,9 +366,33 @@ check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosome
 check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosomes_in7.vcf.gz"), 0);
 check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosomes_in8.vcf.gz", false), 2);
 
+end_test();
 
+//##################################################################################
+start_test("get_read_counts");
 
+check(get_read_count(data_folder()."/get_read_count_in1.bam"), 1861);
+check(get_read_count(data_folder()."/get_read_count_in1.bam", 1, array("-F", "2304")), 1607);
+check(get_read_count(data_folder()."/get_read_count_in1.bam", 1, array(), "GRCh38", "chr1:37999900-38000000"), 70);
 
+check(get_read_count(data_folder()."/get_read_count_in2.cram"), 1861);
+check(get_read_count(data_folder()."/get_read_count_in2.cram", 1, array("-F", "2304")), 1607);
+check(get_read_count(data_folder()."/get_read_count_in2.cram", 1, array(), "GRCh38", "chr1:37988000-37999900"), 281);
+
+end_test();
+
+//##################################################################################
+start_test("compare_bam_read_count");
+
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.bam", data_folder()."/compare_bam_read_count_in1.cram"), true);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.cram", data_folder()."/compare_bam_read_count_in1.bam"), true);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.bam", data_folder()."/compare_bam_read_count_in2.bam"), true);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.bam", data_folder()."/compare_bam_read_count_in2.bam", 2, true, false, 0.0, array("-F", "2304")), true);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.bam", data_folder()."/compare_bam_read_count_in2.bam", 2, false, true), false);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.bam", data_folder()."/compare_bam_read_count_in2.bam", 2, false, true, 0.0, array("-F", "2304")), false);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.cram", data_folder()."/compare_bam_read_count_in2.cram", 2, false, true, 0.021), true);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in2.bam", data_folder()."/compare_bam_read_count_in3.bam", 2, false, false, 0.005), true);
+check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in2.bam", data_folder()."/compare_bam_read_count_in3.bam", 2, false, true, 0.041), true);
 
 end_test();
 

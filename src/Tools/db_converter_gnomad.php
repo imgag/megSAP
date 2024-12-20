@@ -82,7 +82,7 @@ while($line = fgets($handle))
 		$sep_idx = strpos($entry, '=');
 		if ($sep_idx===false)
 		{
-			if ($entry=='nonpar') $nonpar = true;
+			if ($entry=='non_par') $nonpar = true;
 		}
 		else
 		{

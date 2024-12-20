@@ -22,7 +22,7 @@ check_file($out_file2, data_folder().$name."_out2.vcf.gz");
 ########################## somatic ###########################
 $out_file3 = output_folder().$name."_out3.vcf.gz";
 $manta_evidence_dir = output_folder()."/manta_evid_3";
-check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder()."vc_strelka2_no_in.bam -t_bam ".data_folder()."vc_strelka2_tu_in.bam -out $out_file3 -evid_dir $manta_evidence_dir -threads 2 --log ".output_folder().$name."_out1.log");
+check_exec("php ".src_folder()."/NGS/{$name}.php -bam ".data_folder()."vc_strelka2_no_in.bam -t_bam ".data_folder()."vc_strelka2_tu_in.bam -out $out_file3 -evid_dir $manta_evidence_dir -threads 2 --log ".output_folder().$name."_out3.log");
 check_file($out_file3, data_folder().$name."_out3.vcf.gz");
 
 ########################## RNA ###############################

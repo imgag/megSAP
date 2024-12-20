@@ -9,12 +9,12 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("analyze_cfdna", "cfDNA analysis pipeline.");
-$parser->addString("folder", "Analysis data folder.", false);
+$parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addString("tumor_id", "Related tumor processed sample.", true, "");
-$parser->addString("tumor_bam", "BAM file of related tumor processed sample.", true, "");
-$parser->addString("target", "Custom target region as BED file.", true, "");
+$parser->addInfile("tumor_bam", "BAM file of related tumor processed sample.", true, "");
+$parser->addInfile("target", "Custom target region as BED file.", true, "");
 $parser->addInfile("monitoring_vcf", "VCF containing patient-specific variants (and IDs).", true);
 $parser->addFlag("skip_tumor", "Skip comparison with related tumor sample");
 $parser->addInt("base_extend", "Number of bases the target region is extended (default: 60)", true, 60);
@@ -73,9 +73,6 @@ if (!$no_sync)
 	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 }
 
-//create ngs-bits INI file if necessary (after data_setup.php to make sure that the local genome copy is used if requested)
-$parser->createNgsBitsIni($sys['build']);
-
 // determine analysis type
 if ($sys['type']=="cfDNA (patient-specific)" || $sys['type']=="cfDNA")
 {
@@ -90,7 +87,7 @@ else
 if (!$is_patient_specific && $target == "")
 {
 	// get target region from processing system
-	$target = $sys['target_file'];
+	$target = realpath($sys['target_file']);
 }
 
 //database
@@ -330,14 +327,14 @@ if (!$annotation_only && (in_array("ma", $steps) || in_array("vc", $steps)))
 	$pipeline = [];
 	if ($base_extend > 0)
 	{
-		$pipeline[] = [ get_path("ngs-bits")."BedExtend", "-in {$target} -n {$base_extend}"];
+		$pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedExtend", "-in {$target} -n {$base_extend}", [$target], [], true)];
 	}
 	else
 	{
 		$pipeline[] = [ "cat", $target];
 	}
-	$pipeline[] = [ get_path("ngs-bits")."BedSort", ""];
-	$pipeline[] = [ get_path("ngs-bits")."BedMerge", "-out {$target_extended}"];
+	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedSort", "", [], [], true)];
+	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedMerge", "-out {$target_extended}", [], [], true)];
 	$parser->execPipeline($pipeline, "extend target region");
 }
 
@@ -391,13 +388,13 @@ if (in_array("ma", $steps))
 	$parser->execTool("Pipelines/mapping.php", implode(" ", $args));
 
 	//low-coverage report, based on patient specific positions
-	$parser->exec(get_path("ngs-bits")."BedLowCoverage", "-in ${target} -bam ${bamfile} -out ${lowcov_file} -cutoff ${lowcov_cutoff} -threads {$threads} -ref ".genome_fasta($sys['build']), true);
+	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in $target -bam $bamfile -out $lowcov_file -cutoff $lowcov_cutoff -threads {$threads} -ref ".genome_fasta($sys['build']), [$target, $folder, genome_fasta($sys['build'])]);
 	if (db_is_enabled("NGSD"))
 	{
-		$parser->exec(get_path("ngs-bits")."BedAnnotateGenes", "-in ${lowcov_file} -clear -extend 25 -out ${lowcov_file}", true);
+		$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", [$folder]);
 	}
 
-	$parser->exec(get_path("ngs-bits")."MappingQC", "-cfdna -roi {$target_extended} -in {$bamfile} -out {$qc_map} -ref ".genome_fasta($sys['build'])." -build ".ngsbits_build($sys['build']));
+	$parser->execApptainer("ngs-bits", "MappingQC", "-cfdna -roi {$target_extended} -in {$bamfile} -out {$qc_map} -ref ".genome_fasta($sys['build'])." -build ".ngsbits_build($sys['build']), [$folder, genome_fasta($sys['build'])]);
 
 }
 
@@ -450,16 +447,17 @@ if (in_array("vc", $steps))
 		}
 
 		// sort VCF
-		$parser->exec(get_path("ngs-bits")."VcfSort", "-in $vcffile -out $vcffile");
+		$parser->execApptainer("ngs-bits", "VcfSort", "-in $vcffile -out $vcffile", [$folder]);
 		
 		// mark off-target reads
-		$parser->exec(get_path("ngs-bits")."VariantFilterRegions", "-in $vcffile -mark off-target -reg ${target} -out $vcffile", true);
+		$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcffile -mark off-target -reg $target -out $vcffile", [$folder, $target]);
 
 		// validate VCF
-		$parser->exec(get_path("ngs-bits")."VcfCheck", "-in $vcffile -lines 0 -ref ".genome_fasta($sys['build']), true);
+		$parser->execApptainer("ngs-bits", "VcfCheck", "-in $vcffile -lines 0 -ref ".genome_fasta($sys['build']), [$folder, genome_fasta($sys['build'])]);
 
 
 		// cfDNA QC
+		$in_files = array();
 		$args = [
 			"-bam", $bamfile,
 			"-cfdna_panel", $target,
@@ -467,10 +465,14 @@ if (in_array("vc", $steps))
 			"-build", ngsbits_build($sys['build']),
 			"-ref", genome_fasta($sys['build'])
 		];
+		$in_files[] = $folder;
+		$in_files[] = $target;
+		$in_files[] = genome_fasta($sys['build']);
 		// add tumor BAM
 		if ($tumor_bam != "")
 		{
 			$args[] = "-tumor_bam ".$tumor_bam;
+			$in_files[] = $tumor_bam;
 		}
 		// add related BAMs
 		if (isset($related_cfdna_bams) && count($related_cfdna_bams) > 0)
@@ -485,7 +487,7 @@ if (in_array("vc", $steps))
 		}
 
 		//run CfDnaQC
-		$parser->exec(get_path("ngs-bits")."CfDnaQC", implode(" ", $args));
+		$parser->execApptainer("ngs-bits", "CfDnaQC", implode(" ", $args), $in_files);
 	}
 
 	// check if reference genome fits VCF file
@@ -527,10 +529,8 @@ if (in_array("vc", $steps))
 			{
 				$psinfo_normal = get_processed_sample_info($db, $psinfo_tumor['normal_name']);
 				// annotate AF and depth
-				$parser->exec(get_path("ngs-bits")."VariantAnnotateFrequency", "-in $gsvar_file -out $gsvar_file -depth -name normal -bam ".$psinfo_normal['ps_bam'], true);
+				$parser->execApptainer("ngs-bits", "VariantAnnotateFrequency", "-in $gsvar_file -out $gsvar_file -depth -name normal -bam ".$psinfo_normal['ps_bam'], [$folder]);
 			}
-			
-			
 		}
 		else
 		{
@@ -549,6 +549,10 @@ if (in_array("vc", $steps))
 		$related_cfdna_gsvars_output = array_fill(0, count($related_cfdna_gsvars), "");
 		$sample_pos = array_search($name, array_keys($related_cfdna_gsvars));
 		$related_cfdna_gsvars_output[$sample_pos] = $gsvar_file;
+		
+		// initialize input and output file list for umivar container execution
+		$in_files = array();
+		$in_files[] = $gsvar_file;
 
 		$temp_logfile = $parser->tempFile(".log");
 		$args = [
@@ -556,7 +560,7 @@ if (in_array("vc", $steps))
 			implode(",", $related_cfdna_gsvars_output),
 			"--log_file ".$temp_logfile
 		];
-
+		
 		//get tumor-normal GSvar
 		if ((isset($db)) && ($tumor_id != ""))
 		{
@@ -577,6 +581,7 @@ if (in_array("vc", $steps))
 			if (count($tumor_gsvar_files) > 0)
 			{
 				$args[] = "--tumor_samples ".implode(",", $tumor_gsvar_files);
+				$in_files = array_merge($in_files, $tumor_gsvar_files);
 			}
 			else
 			{
@@ -584,14 +589,8 @@ if (in_array("vc", $steps))
 			}
 		}
 
-		//set environment variables
-		putenv("umiVar_python_binary=\"".get_path("python3")."\"");
-		putenv("umiVar_R_binary=\"".get_path("rscript")."\"");
-		putenv("umiVar_samtools_binary=\"".get_path("samtools")."\"");
-
 		//post-filtering
-		print get_path("python3")." ".get_path("umiVar2")."/cfDNA_postfiltering.py ".implode(" ", $args);
-		$parser->exec(get_path("python3"), get_path("umiVar2")."/cfDNA_postfiltering.py ".implode(" ", $args));
+		$parser->execApptainer("umiVar", "cfDNA_postfiltering.py", implode(" ", $args), $in_files);
 		$parser->log("post-filtering log: ", file($temp_logfile));
 
 	}
@@ -599,14 +598,17 @@ if (in_array("vc", $steps))
 	// calculate alternative MRD & monitoring counts
 	if ($is_patient_specific)
 	{
-		$mrd_calc_command = get_path("python3")." ".get_path("umiVar2")."/calculateMRD.py";
+
 		//filtered output
+		$in_files = array();
+		$in_files[] = $folder;
+		$in_files[] = $monitoring_vcf;
 		$args = array();
 		$args[] = $folder."/umiVar";
 		$args[] = $monitoring_vcf;
 		$args[] = $bg_mrd;
 		$args[] = $bg_monitoring;
-		$parser->exec($mrd_calc_command, implode(" ", $args));
+		$parser->execApptainer("umiVar", "calculateMRD.py", implode(" ", $args), $in_files);
 
 		//unfiltered output
 		$args = array();
@@ -617,7 +619,7 @@ if (in_array("vc", $steps))
 		$args[] = "--max_af 1.5";
 		$args[] = "--keep_gonosomes";
 		$args[] = "--keep_indels";
-		$parser->exec($mrd_calc_command, implode(" ", $args));
+		$parser->execApptainer("umiVar", "calculateMRD.py", implode(" ", $args), $in_files);
 	}
 	
 }
@@ -627,7 +629,7 @@ if (!($annotation_only || $skip_tumor))
 {
 	if (($tumor_bam != "") && (in_array("ma", $steps) || in_array("vc", $steps)))
 	{
-		$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -build ".ngsbits_build($sys['build']), true);
+		$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -build ".ngsbits_build($sys['build']), [$folder, $tumor_bam]);
 		$correlation = explode("\t", $output[0][1])[3];
 		if ($correlation < $min_corr)
 		{
@@ -641,7 +643,7 @@ if (!($annotation_only || $skip_tumor))
 		// calculate similarity between related cfDNA samples
 		foreach ($related_cfdna_bams as $cfdna_sample => $cfdna_bam) 
 		{
-			$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$bamfile} {$cfdna_bam} -mode bam -build ".ngsbits_build($sys['build']), true);
+			$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bamfile} {$cfdna_bam} -mode bam -build ".ngsbits_build($sys['build']), [$folder, $cfdna_bam]);
 			$correlation = explode("\t", $output[0][1])[3];
 			trigger_error("The genotype correlation of cfDNA and related sample ({$cfdna_sample}) is {$correlation}.", E_USER_NOTICE);
 		}
@@ -661,7 +663,7 @@ if (in_array("db", $steps))
 		$qc_files[] = $qc_cfdna;
 	}
 	//import QC
-	$parser->exec(get_path("ngs-bits")."/NGSDImportSampleQC", "-ps {$name} -files ".implode(" ", $qc_files)." -force");
+	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps {$name} -files ".implode(" ", $qc_files)." -force", [$folder]);
 
 	//check gender
 	$parser->execTool("NGS/db_check_gender.php", "-in {$bamfile} -pid {$name} --log ".$parser->getLogFile());	

@@ -27,7 +27,14 @@ if ($barcode_correction && !isset($viral_bam_raw))
     $viral_bam_raw = $parser->tempFile("_viral_before_dedup.bam");
 }
 
-//data setup
+//check viral genome is indexes
+$viral_genome  = get_path("data_folder")."/genomes/{$build_viral}.fa";
+if (file_exists($viral_genome) && !file_exists($viral_genome.".bwt.2bit.64"))
+{
+	$parser->execTool("Tools/index_genome.php", "-in {$viral_genome}");
+}
+
+//copy genome to local data folder
 $parser->execTool("Tools/data_setup.php", "-build {$build_viral}");
 
 //target file for viral sequences
@@ -36,17 +43,17 @@ $viral_enrichment = get_path("data_folder") . "/enrichment/{$build_viral}.bed";
 //extract unaligned reads
 $genome = genome_fasta("GRCh38");
 $filtered_bam1 = $parser->tempFile("_filtered1.bam");
-$parser->exec(get_path("samtools"), "view -T {$genome} -u -U {$filtered_bam1} -F 12 {$in} > /dev/null", true);
+$parser->execApptainer("samtools", "samtools view", "-T {$genome} -u -U {$filtered_bam1} -F 12 {$in} > /dev/null", [$genome, $in]);
 
 //extract alignments from viral chromosomes/regions, i.e. chrNC_007605
 if (count($viral_chrs) > 0)
 {
     $filtered_bam2 = $parser->tempFile("_filtered2.bam");
     $viral_regions = implode(" ", $viral_chrs);
-    $parser->exec(get_path("samtools"), "view -T {$genome} -u -o {$filtered_bam2} {$in} {$viral_regions}", true);
+    $parser->execApptainer("samtools", "samtools view", "-T {$genome} -u -o {$filtered_bam2} {$in} {$viral_regions}", [$genome, $in]);
     
     $filtered_bam = $parser->tempFile("_filtered.bam");
-    $parser->exec(get_path("samtools"), "merge -u {$filtered_bam} {$filtered_bam1} {$filtered_bam2}", true);
+    $parser->execApptainer("samtools", "samtools merge", "-u {$filtered_bam} {$filtered_bam1} {$filtered_bam2}");
 }
 else {
     $filtered_bam = $filtered_bam1;
@@ -55,7 +62,7 @@ else {
 //generate FASTQ
 $filtered_r1 = $parser->tempFile("_filtered_R1.fastq.gz");
 $filtered_r2 = $parser->tempFile("_filtered_R2.fastq.gz");
-list($stdout, ) =$parser->exec(get_path("ngs-bits")."/BamToFastq", "-in {$filtered_bam} -out1 {$filtered_r1} -out2 {$filtered_r2}", true);
+list($stdout, ) = $parser->execApptainer("ngs-bits", "BamToFastq", "-in {$filtered_bam} -out1 {$filtered_r1} -out2 {$filtered_r2}");
 
 //align to viral sequences
 $viral_tmp1 = $parser->tempFile("_viral_tmp.bam");
@@ -66,7 +73,7 @@ $parser->execTool("NGS/mapping_bwa.php", "-in1 {$filtered_r1} -in2 {$filtered_r2
 if ($barcode_correction)
 {
     $viral_tmp2 = $parser->tempFile("_viral_tmp.bam");
-    $parser->exec(get_path("python3")." ".get_path("umiVar2")."/barcode_correction.py", "--infile $viral_tmp1 --outfile $viral_tmp2", true);
+    $parser->execApptainer("umiVar", "barcode_correction.py", "--infile $viral_tmp1 --outfile $viral_tmp2");
     $parser->indexBam($viral_tmp2, $threads);
     
     $parser->moveFile($viral_tmp1, $viral_bam_raw);
@@ -79,8 +86,8 @@ else
 
 //run BamClipOverlap
 $viral_tmp3 = $parser->tempFile("_viral_clipoverlap_tmp.bam");
-$parser->exec(get_path("ngs-bits")."BamClipOverlap", "-in $viral_tmp2 -out $viral_tmp3 -overlap_mismatch_basen", true);
-$parser->sortBam($viral_tmp3, $viral_bam, $threads);
+$parser->execApptainer("ngs-bits", "BamClipOverlap", "-in $viral_tmp2 -out $viral_tmp3 -overlap_mismatch_basen");
+$parser->sortBam($viral_tmp3, $viral_bam, $threads, $build_viral);
 $parser->indexBam($viral_bam, $threads);
 
 //run variant calling
@@ -91,15 +98,15 @@ $parser->exec("gzip", "-cd {$viral_vcfgz} > {$viral_vcf}", true);
 
 //create output report file
 $viral_cov_tmp = $parser->tempFile("_viral_cov.bed");
-$parser->exec(get_path("ngs-bits")."/BedCoverage", "-out {$viral_cov_tmp} -min_mapq 30 -decimals 4 -in {$viral_enrichment} -bam {$viral_bam} -threads {$threads}", true);
+$parser->execApptainer("ngs-bits", "BedCoverage", "-out {$viral_cov_tmp} -min_mapq 30 -decimals 4 -in {$viral_enrichment} -bam {$viral_bam} -threads {$threads}", [$viral_enrichment, $viral_bam]);
 
 $viral_reads_tmp = $parser->tempFile("_viral_reads.bed");
-$parser->exec(get_path("ngs-bits")."/BedReadCount", "-out {$viral_reads_tmp} -min_mapq 30 -in {$viral_enrichment} -bam {$viral_bam}", true);
+$parser->execApptainer("ngs-bits", "BedReadCount", "-out {$viral_reads_tmp} -min_mapq 30 -in {$viral_enrichment} -bam {$viral_bam}", [$viral_enrichment, $viral_bam]);
 
 $viral_result_tmp = $parser->tempFile("_viral_result.bed");
 $pipeline = [];
-$pipeline[] = [ get_path("ngs-bits")."/BedAnnotateFromBed", "-in {$viral_enrichment} -no_duplicates -in2 {$viral_reads_tmp}" ];
-$pipeline[] = [ get_path("ngs-bits")."/BedAnnotateFromBed", "-in2 {$viral_cov_tmp} -no_duplicates -col 5 -out {$viral_result_tmp}" ];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$viral_enrichment} -no_duplicates -in2 {$viral_reads_tmp}", [$viral_enrichment], [], true)];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in2 {$viral_cov_tmp} -no_duplicates -col 5 -out {$viral_result_tmp}", [], [], true)];
 $parser->execPipeline($pipeline, "result file");
 
 //extract average target coverage from provided qcML file
@@ -133,7 +140,7 @@ while ($line = fgets($handle))
 
     // mismatches
     $region = $fields[0] . ":" . ($fields[1]+1) . "-" .  $fields[2];
-    list($stdout) = $parser->exec(get_path("ngs-bits")."VcfFilter", "-in {$viral_vcf} -reg '{$region}' -ref $genome", false);
+    list($stdout) = $parser->execApptainer("ngs-bits", "VcfFilter", "-in {$viral_vcf} -reg '{$region}' -ref $genome", [$genome], [], false, false);
     $variant_count = 0;
 	foreach($stdout as $line)
 	{

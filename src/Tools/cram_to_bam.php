@@ -12,13 +12,12 @@ $parser->addInt("threads", "Number of threads to use.", true, 1);
 extract($parser->parse($argv));
 
 //init
-$samtools = get_path("samtools");
 $genome = genome_fasta($build);
 
 //convert CRAM to BAM
-exec2("{$samtools} view -@ {$threads} -b -T {$genome} -o {$bam} {$cram}");
+$parser->execApptainer("samtools", "samtools view", "-@ {$threads} -b -T {$genome} -o {$bam} {$cram}", [$genome, $cram], [dirname($bam)]);
 
 //index BAM
-exec2("{$samtools} index -@ {$threads} {$bam}");
+$parser->execApptainer("samtools", "samtools index", "-@ {$threads} {$bam}", [], [dirname($bam)]);
 
 ?>

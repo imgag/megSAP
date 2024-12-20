@@ -65,6 +65,6 @@ foreach($regs as $chr => $tmp)
 file_put_contents($out, $output);
 
 //merge regions
-exec2(get_path("ngs-bits")."BedMerge -in $out -out $out");
+execApptainer("ngs-bits", "BedMerge", "-in $out -out $out", [], [dirname($out)]);
 
 ?>

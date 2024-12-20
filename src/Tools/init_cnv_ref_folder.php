@@ -51,12 +51,11 @@ if ($type=="WGS" || $type=="WGS (shallow)")
 }	
 
 //Make list of samples that have same processing system
-$ngsbits = get_path("ngs-bits");
 $sample_table_file = $parser->tempFile(".tsv");
 $pipeline= [
-	["{$ngsbits}NGSDExportSamples", "-system $name -add_path SAMPLE_FOLDER"],
-	["{$ngsbits}TsvFilter", "-filter 'system_name_short is $name'"], //this is necessary because NGSDExportSamples performs fuzzy match
-	["{$ngsbits}TsvSlice", "-cols name,path -out $sample_table_file"],
+	["", $parser->execApptainer("ngs-bits", "NGSDExportSamples", "-system $name -add_path SAMPLE_FOLDER", [], [], true)],
+	["", $parser->execApptainer("ngs-bits", "TsvFilter", "-filter 'system_name_short is $name'", [], [], true)], //this is necessary because NGSDExportSamples performs fuzzy match
+	["", $parser->execApptainer("ngs-bits", "TsvSlice", "-cols name,path -out $sample_table_file", [], [], true)]
 ];
 $parser->execPipeline($pipeline, "NGSD sample extraction", true);
 $samples = file($sample_table_file);
@@ -99,8 +98,8 @@ if(!$somatic)
 		++$c_valid;
 		
 		//check bam
-		list ($stdout, $stderr) = exec2(get_path("ngs-bits")."/SamplePath -ps {$sample} -type BAM");
-		$bam_or_cram = trim(implode("", $stdout));
+		$info = get_processed_sample_info($db, $sample);
+		$bam_or_cram = $info['ps_bam'];
 		
 		if (file_exists($bam_or_cram))
 		{
@@ -132,7 +131,7 @@ if(!$somatic)
 		
 		//process
 		print "$i) Processing $bam ...\n";
-		exec2($ngsbits."BedCoverage -clear -min_mapq 0 -decimals 4 -bam $bam -in $roi -out $cov_file -threads {$threads}");
+		$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam -in $roi -out $cov_file -threads {$threads}", [$bam, $roi], [$ref_folder]);
 	}
 
 	//chmod
@@ -147,10 +146,10 @@ else //somatic tumor-normal pairs
 		//get all tumor samples
 		$sample_table_file = $parser->tempFile(".tsv");
 		$pipeline= [
-			["{$ngsbits}NGSDExportSamples", "-system $name -add_path SAMPLE_FOLDER"],
-			["{$ngsbits}TsvFilter", "-filter 'system_name_short is $name'"], //this is necessary because NGSDExportSamples performs fuzzy match
-			["{$ngsbits}TsvFilter", "-filter 'is_tumor = 1'"], //this is necessary because NGSDExportSamples performs fuzzy match
-			["{$ngsbits}TsvSlice", "-cols name,path -out $sample_table_file"],
+			["", $parser->execApptainer("ngs-bits", "NGSDExportSamples", "-system $name -add_path SAMPLE_FOLDER", [], [], true)],
+			["", $parser->execApptainer("ngs-bits", "TsvFilter", "-filter 'system_name_short is $name'", [], [], true)], //this is necessary because NGSDExportSamples performs fuzzy match
+			["", $parser->execApptainer("ngs-bits", "TsvFilter", "-filter 'is_tumor = 1'", [], [], true)], //this is necessary because NGSDExportSamples performs fuzzy match
+			["", $parser->execApptainer("ngs-bits", "TsvSlice", "-cols name,path -out $sample_table_file", [], [], true)]
 		];
 		$parser->execPipeline($pipeline, "NGSD tumor sample extraction", true);
 		$t_samples = file($sample_table_file);
@@ -261,13 +260,13 @@ else //somatic tumor-normal pairs
 			}
 			if(!file_exists("{$ref_t_dir}/{$sample}.cov"))
 			{
-				exec2($ngsbits."BedCoverage -clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_t_dir}/{$sample}.cov -threads {$threads}",true);
+				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_t_dir}/{$sample}.cov -threads {$threads}", [$bam_or_cram, $roi], [$ref_t_dir]);
 				++$t_count;
 			}
 			//off-target
 			if(!file_exists("{$ref_off_t_dir}/{$sample}.cov"))
 			{
-				exec2($ngsbits."BedCoverage -clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_t_dir}/{$sample}.cov -threads {$threads}" ,true);
+				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_t_dir}/{$sample}.cov -threads {$threads}", [$off_target_bed, $bam_or_cram], [$ref_off_t_dir]);
 				++$t_off_count;
 			}
 		}
@@ -281,13 +280,13 @@ else //somatic tumor-normal pairs
 			}
 			if(!file_exists("{$ref_n_dir}/{$sample}.cov"))
 			{
-				exec2($ngsbits."BedCoverage -clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_n_dir}/{$sample}.cov -threads {$threads}",true);
+				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_n_dir}/{$sample}.cov -threads {$threads}", [$bam_or_cram, $roi], [$ref_n_dir]);
 				++$n_count;
 			}
 			//off-target
 			if(!file_exists("{$ref_off_n_dir}/{$sample}.cov"))
 			{
-				exec2($ngsbits."BedCoverage -clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_n_dir}/{$sample}.cov -threads {$threads}" ,true);
+				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_n_dir}/{$sample}.cov -threads {$threads}", [$off_target_bed, $bam_or_cram], [$ref_off_n_dir]);
 				++$n_off_count;
 			}
 		}

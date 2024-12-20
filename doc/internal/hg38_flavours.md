@@ -36,7 +36,7 @@ These are the results on the default GiaB CMRG dataset:
 
 # Conclusion
 
-For the default pipline, it makes no real difference which genome flavour is used as long as false ducplications are masked.
+For the default pipline, it makes no real difference which genome flavour is used as long as false duplications are masked.
 
 For DRAGEN, we could improve the variant calling by using the graph genome, instead of the megSAP default genome.
 

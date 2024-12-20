@@ -1,0 +1,16 @@
+##DESCRIPTION=meth_all_avg=average methylation
+##DESCRIPTION=meth_all_std=standard deviation of methylation
+##DESCRIPTION=meth_hp1_avg=average methylation in haplotype 1
+##DESCRIPTION=meth_hp1_std=standard deviation of methylation in haplotype 1
+##DESCRIPTION=meth_hp2_avg=average methylation in haplotype 2
+##DESCRIPTION=meth_hp2_std=standard deviation of methylation in haplotype 2
+##DESCRIPTION=meth_nohp_avg=average methylation in non-haplotyped
+##DESCRIPTION=meth_nohp_std=standard deviation of methylation in non-haplotyped
+##DESCRIPTION=cov_all=average coverage
+##DESCRIPTION=cov_hp1=average coverage in haplotype 1
+##DESCRIPTION=cov_hp2=average coverage in haplotype 2
+##DESCRIPTION=cov_nohp=average coverage in non-haplotyped
+#identifier	title	gene symbol	gene chr	gene start	gene end	highlight start	highlight end	meth_all_avg	meth_all_std	meth_hp1_avg	meth_hp1_std	meth_hp2_avg	meth_hp2_std	meth_nohp_avg	meth_nohp_std	cov_all	cov_hp1	cov_hp2	cov_nohp
+PLAGL1_alt-TSS-DMR	PLAGL1:alt-TSS-DMR	PLAGL1	chr6	143940299	144064599	144006941	144008751	53.99	48.88	99.65	4.18	8.33	24.32	nan	nan	7.40	2.13	5.27	0.00
+GRB10_alt-TSS-DMR	GRB10:alt-TSS-DMR	GRB10	chr7	50590062	50793462	50781029	50783615	96.95	13.18	96.95	13.18	nan	nan	nan	nan	2.00	2.00	0.00	0.00
+PEG10_TSS-DMR	PEG10:TSS-DMR	PEG10	chr7	94656324	94669695	94656225	94658648	38.46	47.47	2.06	10.43	94.56	17.88	1.59	12.50	26.73	12.75	13.21	0.77

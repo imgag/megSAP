@@ -8,16 +8,21 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("data_setup", "Creates a local copy of the reference genome and annotation data. They are heavily used during data analysis and should not be accessed via the network.");
-$parser->addString("build", "Genome build.", false);
+$parser = new ToolBase("data_setup", "Creates a local copy of the reference genome, annotation data and apptainer container. They are heavily used during data analysis and should not be accessed via the network.");
+$parser->addString("build", "Genome build.", true, "GRCh38");
 $parser->addFlag("check", "Check annotation files.");
 extract($parser->parse($argv));
 
-//init
+//make sure there are no singularity left-overs
+if (file_exists("/etc/singularity/"))
+{
+	trigger_error("The server contains singularity left-overs: cannot execute megSAP until you delete /etc/singularity/!", E_USER_ERROR);
+}
+
+//init reference genome and annotation data
 $data_folder = get_path("data_folder");
 $local_data = get_path("local_data");
-$rsync = "rsync --size-only --recursive --no-perms --no-acls --omit-dir-times --no-group --no-owner --chmod=ugo=rwX --copy-links";
-$ngsbits = get_path("ngs-bits");
+$rsync  = "rsync --recursive --no-perms --no-acls --omit-dir-times --no-group --no-owner --chmod=ugo=rwX --copy-links --size-only";
 
 //determine DB files
 $db_files = array("/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz", "/dbs/REVEL/REVEL_1.3.vcf.gz", "/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed", "/dbs/ClinVar/clinvar_20240805_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz");
@@ -267,6 +272,7 @@ if ($build=="GRCh38" && $check)
 {
 	print "\n";
 	print "### checking annotation databases ###\n";
+	$genome = genome_fasta($build);
 	
 	//determine databases to sync
 	foreach($db_files as $db_file)
@@ -277,7 +283,7 @@ if ($build=="GRCh38" && $check)
 		{
 			$log = "./".$basename."_check.txt";
 			print "Checking: $basename ($log)\n";
-			exec2($ngsbits."/VcfCheck -in $filename -lines 5000000 > $log 2>&1", false);
+			$parser->execApptainer("ngs-bits", "VcfCheck", "-in $filename -lines 5000000 -ref $genome > $log 2>&1", [$filename, $genome], [dirname($log)], false, true, false);
 			
 			$errors = 0;
 			$warnings = 0;
@@ -307,5 +313,68 @@ if ($current_pidfile_pid==getmypid())
 else
 {
 	print "PID file was overwritten by another process ($current_pidfile_pid). Not removing it.\n";
+}
+
+
+######################### copy apptainer containers #########################
+if (get_path("copy_dbs_to_local_data"))
+{
+	$network_folder = get_path("container_folder");
+	$local_folder = get_path("local_data")."/container/";
+
+	print "\n";
+	print "### Copy apptainer containers ###\n";
+	print "from: {$network_folder}\n";
+	print "to  : {$local_folder}\n";
+
+	// Check if the network container folder exists
+	if (!file_exists($network_folder))
+	{
+		trigger_error("Container folder not found: {$network_folder}. The Apptainer containers may not have been downloaded yet.", E_USER_ERROR);
+	}
+
+	// Create local container folder
+	if (!file_exists($local_folder))
+	{
+		if (!mkdir($local_folder))
+		{
+			trigger_error("Could not create local data folder '{$local_folder}'!", E_USER_ERROR);
+		}
+		if (!chmod($local_folder, 0777))
+		{
+			trigger_error("Could not change privileges of local data folder '{$local_folder}'!", E_USER_ERROR);
+		}
+	}
+
+	// Get list of apptainer containers from network directory
+	list($container_files) = exec2("ls {$network_folder}/*.sif");
+	foreach ($container_files as $container_file) 
+	{
+		$base = basename($container_file);
+		$local_container_file = $local_folder.$base;
+
+		if (!file_exists($local_container_file) || (filemtime($local_container_file)<filemtime($container_file)))
+		{
+			print "  {$base}: Copying new container version to '$local_container_file'.\n";
+			// Copy the new container or new version
+			list($stdout, $stderr) = exec2("{$rsync} {$container_file} {$local_container_file}");
+			foreach (array_merge($stdout, $stderr) as $line) 
+			{
+				$line = trim($line);
+				if ($line == "") continue;
+				print "    $line\n";
+			}
+
+			// Set permissions on the new local copy
+			@chmod($local_container_file, 0777);
+			
+			//update date
+			@touch($local_container_file);
+		}
+		else
+		{
+			print "  {$base}: skipped - local copy is up-to-date\n";
+		}
+	}
 }
 ?>

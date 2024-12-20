@@ -85,10 +85,10 @@ function fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data)
 
 //parse command line arguments
 $parser = new ToolBase("trio_longread", "Trio analysis pipeline of Nanopore long-read data.");
-$parser->addInfile("f", "BAM file of father.", false, true);
-$parser->addInfile("m", "BAM file of mother.", false, true);
-$parser->addInfile("c", "BAM file of child (index).", false, true);
-$parser->addString("out_folder", "Output folder name.", false);
+$parser->addInfile("f", "BAM/CRAM file of father.", false, true);
+$parser->addInfile("m", "BAM/CRAM file of mother.", false, true);
+$parser->addInfile("c", "BAM/CRAM file of child (index).", false, true);
+$parser->addInfile("out_folder", "Output folder name.", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file used for all samples (automatically determined from NGSD if the basename of 'c' is a valid processed sample name).", true);
 $steps_all = array("vc", "cn", "sv", "an", "db");
@@ -146,16 +146,16 @@ if (!$no_check)
 {
 	//check parent-child correlation
 	$min_cov = 15; 
-	$c_gsvar = substr($c, 0, -4).".GSvar";
-	$f_gsvar = substr($f, 0, -4).".GSvar";
-	$m_gsvar = substr($m, 0, -4).".GSvar";
-	$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$f_gsvar} {$c_gsvar} -mode gsvar -min_cov {$min_cov} -max_snps 4000 -build ".ngsbits_build($build), true);
+	$c_gsvar = dirname($c)."/".basename2($c).".GSvar";
+	$f_gsvar = dirname($f)."/".basename2($f).".GSvar";
+	$m_gsvar = dirname($m)."/".basename2($m).".GSvar";
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$f_gsvar} {$c_gsvar} -mode gsvar -min_cov {$min_cov} -max_snps 4000 -build ".ngsbits_build($build), [$f_gsvar, $c_gsvar]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
 		trigger_error("The genotype correlation of father and child is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
 	}
-	$output = $parser->exec(get_path("ngs-bits")."SampleSimilarity", "-in {$m_gsvar} {$c_gsvar} -mode gsvar -max_snps 4000 -build ".ngsbits_build($build), true);
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$m_gsvar} {$c_gsvar} -mode gsvar -max_snps 4000 -build ".ngsbits_build($build), [$m_gsvar, $c_gsvar]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
@@ -200,6 +200,9 @@ if (in_array("cn", $steps))
 	$parser->execTool("Pipelines/multisample_longread.php", implode(" ", $args_multisample)." -steps cn", true); 
 	
 	//UPD detection
+	$in_files = [
+		$vcf_file,
+	];
 	$args_upd = [
 		"-in {$vcf_file}",
 		"-c {$sample_c}",
@@ -211,16 +214,18 @@ if (in_array("cn", $steps))
 	if (file_exists("{$base}_cnvs.tsv"))
 	{
 		$args_upd[] = "-exclude {$base}_cnvs.tsv";
+		$in_files[] = "{$base}_cnvs.tsv";
 	}
 	else if (file_exists("{$base}_cnvs_clincnv.tsv"))
 	{
 		$args_upd[] = "-exclude {$base}_cnvs_clincnv.tsv";
+		$in_files[] = "{$base}_cnvs_clincnv.tsv";
 	}
 	else
 	{
 		trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
 	}
-	$parser->exec(get_path("ngs-bits")."UpdHunter", implode(" ", $args_upd), true);
+	$parser->execApptainer("ngs-bits", "UpdHunter", implode(" ", $args_upd), $in_files, [$out_folder]);
 }
 
 //sv calling
@@ -321,7 +326,7 @@ if (in_array("an", $steps))
 		
 		//determine gender of child
 		$genome = genome_fasta($build);
-		list($stdout, $stderr) = $parser->exec(get_path("ngs-bits")."SampleGender", "-method hetx -in $c -build ".ngsbits_build($build)." -ref {$genome}", true);
+		list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-method hetx -in $c -build ".ngsbits_build($build)." -ref {$genome}", [$c, $genome]);
 		$gender_data = explode("\t", $stdout[1])[1];
 		if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 		print "Gender of child (from data): {$gender_data}\n";

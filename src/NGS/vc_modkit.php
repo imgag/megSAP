@@ -32,7 +32,14 @@ $args[] = $uncompressed_bed;
 $args[] = "--ref ".$genome;
 $args[] = "--log-filepath ".$log_file;
 $args[] = "--threads ".$threads;
-$parser->exec(get_path("modkit"), implode(" ", $args));
+
+//set bind paths for modkit
+$in_files = array();
+$in_files[] = $bam;
+$in_files[] = $genome;
+
+$parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files);
+
 //copy logfile 
 $parser->log("modkit pileup log file", file($log_file));
 
@@ -50,7 +57,8 @@ if (isset($summary))
 	$args[] = "--threads ".$threads;
 	$args[] = "--log-filepath ".$log_file2;
 	$args[] = " > ".$summary;
-	$parser->exec(get_path("modkit"), implode(" ", $args));
+
+	$parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files, [dirname($summary)]);
 	//copy logfile 
 	$parser->log("modkit summary log file", file($log_file2));
 }

@@ -49,6 +49,8 @@ foreach($gvcfs as $gvcf)
 	while(!gzeof($gvcf_fh))
 	{
 		$line = trim(gzgets($gvcf_fh));
+		//skip empty lines
+		if (trim($line) == "") continue;
 		//stop when reaching variant area
 		if ($line[0]!="#") break;
 		//parse contig lines (only done for the first file)
@@ -105,7 +107,6 @@ $temp_folder_out = $parser->tempFolder("merge_gvcf_pid_".getmypid()."_out_");
 foreach($chr_regions as list($chr, $length))
 {
 	$job_name = "CombineGVCFs_{$chr}";
-	$command = get_path("gatk");
 	$args = array();
 	$args[] = "CombineGVCFs";
 	$args[] = "-R {$genome}";
@@ -117,13 +118,14 @@ foreach($chr_regions as list($chr, $length))
 	}
 
 	//special handling of chrY: takes much longer so start with it
+	$command = $parser->execApptainer("gatk", "gatk", implode(" ", $args), [$genome], [], true);
 	if ($chr == "chrY" || $chr == "Y")
 	{
-		array_unshift($jobs_combine_gvcf, array($job_name, $command." ".implode(" ", $args)));
+		array_unshift($jobs_combine_gvcf, array($job_name, $command));
 	}
 	else
 	{
-		$jobs_combine_gvcf[] = array($job_name, $command." ".implode(" ", $args));
+		$jobs_combine_gvcf[] = array($job_name, $command);
 	}
 	
 }
@@ -136,7 +138,6 @@ $jobs_call_genotypes = array();
 foreach($chr_regions as list($chr, $length))
 {
 	$job_name = "GenotypeGVCFs_{$chr}";
-	$command = get_path("gatk");
 	$args = array();
 	$args[] = "GenotypeGVCFs";
 	$args[] = "-R {$genome}";
@@ -146,7 +147,8 @@ foreach($chr_regions as list($chr, $length))
 	$args[] = "--seconds-between-progress-updates 3600"; //only update progress once every hour to keep log-file smaller
 	if ($mode=="longread") $args[] = "--standard-min-confidence-threshold-for-calling 5"; //decrease threshold in longread-mode to improve de-novo calling 
 
-	$jobs_call_genotypes[] = array($job_name, $command." ".implode(" ", $args));
+	$command = $parser->execApptainer("gatk", "gatk", implode(" ", $args), [$genome], [], true);
+	$jobs_call_genotypes[] = array($job_name, $command);
 }
 // run genotype calling for every chromosome separately
 $parser->execParallel($jobs_call_genotypes, $threads);
@@ -165,8 +167,8 @@ foreach($chr_regions as list($chr, $length))
 if ($mode=="longread")
 {
 	$pipeline = array();
-	$pipeline[] = array(get_path("ngs-bits")."VcfMerge", "-in ".implode(" ", $chr_multisample_gvcfs));
-	$pipeline[] = array(get_path("ngs-bits")."VcfExtractSamples", "-samples ".implode(",", $sample_order));
+	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfMerge", "-in ".implode(" ", $chr_multisample_gvcfs), [], [], true)];
+	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfExtractSamples", "-samples ".implode(",", $sample_order), [], [], true)];
 	$pipeline[] = array("bgzip", "-c > {$gvcf_out}", false);
 	$parser->execPipeline($pipeline, "Merge gVCF");
 	$parser->exec("tabix", "-f -p vcf {$gvcf_out}");
@@ -175,8 +177,8 @@ if ($mode=="longread")
 //merge VCFs
 $tmp_vcf = $parser->tempFile(".vcf.gz");
 $pipeline = array();
-$pipeline[] = array(get_path("ngs-bits")."VcfMerge", "-in ".implode(" ", $chr_multisample_vcfs));
-$pipeline[] = array(get_path("ngs-bits")."VcfExtractSamples", "-samples ".implode(",", $sample_order));
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfMerge", "-in ".implode(" ", $chr_multisample_vcfs), [], [], true)];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfExtractSamples", "-samples ".implode(",", $sample_order), [], [], true)];
 $pipeline[] = array("bgzip", "-c > {$tmp_vcf}", false);
 $parser->execPipeline($pipeline, "Merge VCF");
 
@@ -186,23 +188,22 @@ $pipeline = array();
 $pipeline[] = array("zcat", $tmp_vcf);
 
 //filter variants according to variant quality>5
-$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-qual 5 -ref $genome");
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -ref $genome", [$genome], [], true)];
 
 //split complex variants to primitives
 //this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
-$pipeline[] = array(get_path("vcflib")."vcfallelicprimitives", "-kg");
+$pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg", [], [], true)];
 
 //split multi-allelic variants
-$pipeline[] = array(get_path("ngs-bits")."VcfBreakMulti", "");
-
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_errors", [], [], true)];
 //remove invalid variants
-$pipeline[] = array(get_path("ngs-bits")."VcfFilter", "-remove_invalid -ref $genome");
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref $genome", [$genome], [], true)];
 
 //normalize all variants and align INDELs to the left
-$pipeline[] = array(get_path("ngs-bits")."VcfLeftNormalize", "-stream -ref $genome");
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)];
 
 //sort variants by genomic position
-$pipeline[] = array(get_path("ngs-bits")."VcfStreamSort", "");
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];
 
 //fix error in VCF file and strip unneeded information
 $uncompressed_vcf = $parser->tempFile(".vcf");
@@ -229,7 +230,7 @@ if ($mode=="longread")
 	{ 
 		$comments[] = gsvar_sample_header($samples[$i], array("DiseaseStatus"=>$status[$i]), "#", "");
 	}
-	$vcf->setComments(sort_vcf_comments($comments));
+	$vcf->setComments($comments);
 	$vcf->toTSV($uncompressed_vcf);
 }
 

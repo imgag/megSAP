@@ -792,4 +792,210 @@ function resolve_symlink($filename)
 	
 	return realpath($filename);
 }
+/**
+	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
+*/
+function execApptainer($container, $command, $parameters, $in_files = array(), $out_files = array(), $command_only=false, $return_for_toolbase=false, $abort_on_error=true)
+{
+	//check input
+	if (is_array($command))
+	{
+		trigger_error("Error in 'execApptainer': command cannot be array: ".implode("\n", $command), E_USER_ERROR);
+	}
+	if (is_array($parameters))
+	{
+		trigger_error("Error in 'execApptainer': parameters cannot be array: ".implode("\n", $parameters), E_USER_ERROR);
+	}
+	if(contains($command." ".$parameters, "|"))
+	{
+		trigger_error("Error in 'execApptainer': command must not contain pipe symbol '|': $command $parameters", E_USER_ERROR);
+	}
+	
+	//apptainer arguments
+	$apptainer_args = [];
+	$apptainer_args[] = "--no-mount home,cwd";
+	$apptainer_args[] = "--cleanenv";
+	if ($container=="samtools") //samtools needs REF_CACHE to avoid re-initializing the reference cache inside the container every call: http://www.htslib.org/doc/samtools.html#ENVIRONMENT_VARIABLES
+	{
+		$apptainer_args[] = "--env REF_CACHE=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s";
+	}
+
+	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
+	$bind_paths = array();
+	if($container=="ngs-bits")
+	{
+		$ngsbits_local = get_path("ngs-bits_local", false);
+		if ($ngsbits_local != "")
+		{
+			trigger_error("Using local ngs-bits installation specified in settings.ini.", E_USER_NOTICE);
+			$ngsbits_command = $ngsbits_local.$command." ".$parameters;
+			if ($command_only)
+			{
+				return $ngsbits_command;
+			}
+			else
+			{
+				list($stdout, $stderr, $return) = exec2($ngsbits_command);
+				return array($stdout, $stderr, $return);
+			}
+		}
+
+		$ngsbits_settings_loc = repository_basedir()."/data/tools/ngsbits_settings.ini";
+		//ngs-bits settings file missing > create it
+		if (!file_exists($ngsbits_settings_loc) || (file_exists(repository_basedir()."/settings.ini") && filemtime($ngsbits_settings_loc)<filemtime(repository_basedir()."/settings.ini")))
+		{
+			trigger_error("ngs-bits settings file is missing/outdated and thus created from megSAP settings...", E_USER_NOTICE);
+			$output = [];
+			
+			//reference genome
+			$output[] = "reference_genome = ".genome_fasta("GRCh38");
+			
+			//NGSD credentials (production instance)
+			$output[] = "ngsd_host = ".get_db('NGSD', 'db_host', '');
+			$output[] = "ngsd_port = 3306";
+			$output[] = "ngsd_name = ".get_db('NGSD', 'db_name', '');
+			$output[] = "ngsd_user = ".get_db('NGSD', 'db_user', '');
+			$output[] = "ngsd_pass = ".get_db('NGSD', 'db_pass', '');
+			
+			//NGSD credentials (test instance)
+			$output[] = "ngsd_test_host = ".get_db('NGSD_TEST', 'db_host', '');
+			$output[] = "ngsd_test_port = 3306";
+			$output[] = "ngsd_test_name = ".get_db('NGSD_TEST', 'db_name', '');
+			$output[] = "ngsd_test_user = ".get_db('NGSD_TEST', 'db_user', '');
+			$output[] = "ngsd_test_pass = ".get_db('NGSD_TEST', 'db_pass', '');
+			
+			//GenLab credentials
+			$output[] = "genlab_mssql = ".(get_path("genlab_mssql") ? "true" : "false");
+			$output[] = "genlab_host = ".get_path("genlab_host");
+			$output[] = "genlab_port = ".get_path("genlab_port");
+			$output[] = "genlab_name = ".get_path("genlab_name");
+			$output[] = "genlab_user = ".get_path("genlab_user");
+			$output[] = "genlab_pass = ".get_path("genlab_pass");
+
+
+			//project folders
+			$project_folder = get_path("project_folder", false);
+			$output[] = "projects_folder_diagnostic = ".(is_array($project_folder) ? $project_folder['diagnostic'] : $project_folder."/diagnostic/");
+			$output[] = "projects_folder_research = ".(is_array($project_folder) ? $project_folder['research'] : $project_folder."/research/");
+			$output[] = "projects_folder_test = ".(is_array($project_folder) ? $project_folder['test'] : $project_folder."/test/");
+			$output[] = "projects_folder_external = ".(is_array($project_folder) ? $project_folder['external'] : $project_folder."/external/");
+			
+			//data folder
+			$output[] = "data_folder = ".get_path("data_folder", false);
+									
+			$written = file_put_contents($ngsbits_settings_loc, implode("\n", $output));
+			if($written===false) trigger_error("Could not write ngs-bits settings file: $ngsbits_settings_loc", E_USER_ERROR);
+
+			$parameters = "--settings {$ngsbits_settings_loc} ".$parameters;
+			$bind_paths[] = $ngsbits_settings_loc.":".$ngsbits_settings_loc;
+		}
+		else if (file_exists($ngsbits_settings_loc))
+		{
+			$parameters = "--settings {$ngsbits_settings_loc} ".$parameters;
+			$bind_paths[] = $ngsbits_settings_loc.":".$ngsbits_settings_loc;
+		}
+	}
+	
+	//get container (preferably from local folder)
+	$container_version = get_path("container_{$container}");
+	$container_file = "{$container}_{$container_version}.sif";
+	$local_container = get_path("local_data")."/container/{$container_file}";
+	$network_container = get_path("container_folder")."/{$container_file}";
+
+	if (file_exists($local_container))
+	{
+		$container_path = $local_container;
+	}
+	else if (file_exists($network_container))
+	{
+		$container_path = $network_container;
+	}
+	else
+	{
+		trigger_error("Apptainer container '{$container_file}' neither found in '{$local_container}' nor in '{$network_container}'", E_USER_ERROR);
+	}
+	
+	//determine bind paths from input and output files
+	foreach($in_files as $file)
+	{
+		if (is_dir($file)) 
+		{
+			$filepath = realpath($file);
+		} 
+		else 
+		{
+			$filepath = dirname(realpath($file));
+		}
+		if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
+	}
+
+	foreach($out_files as $file)
+	{
+		//check it is a folder
+		if (is_file($file)) trigger_error("{$container}: Only folders can be bound as output parameters. '{$file}' is a file!", E_USER_ERROR);
+		
+		$filepath = realpath(dirname($file));
+
+		if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
+	}
+
+	//handle binding of temp folder for SigProfilerExtractor
+	if($container === "SigProfilerExtractor")
+	{
+		$templates_dir = temp_folder();
+		$cosmic_templates_dir = temp_folder();
+		$bind_paths[] = "{$templates_dir}:/usr/local/lib/python3.8/site-packages/sigProfilerPlotting/templates/";
+		$bind_paths[] = "{$cosmic_templates_dir}:/usr/local/lib/python3.8/site-packages/SigProfilerAssignment/DecompositionPlots/CosmicTemplates";
+	}
+
+	//check bind paths
+	if(!empty($bind_paths))
+	{
+		foreach($bind_paths as $path)
+		{
+			//remove optional path option
+			$path = explode(":", $path)[0];
+			if(!file_exists($path))
+			{
+				trigger_error("Bind path '{$path}' does not exist!", E_USER_ERROR);
+			}
+		}
+		$apptainer_args[] = "-B ".implode(",", $bind_paths);
+	}
+
+	//compose Apptainer command
+	$apptainer_command = "apptainer exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
+	
+	//if command only option is true, only the apptainer command is being return, without execution
+	if($command_only) 
+	{
+		return $apptainer_command;
+	}
+
+	//return apptainer command, bind paths and the container path for the execApptainer function in ToolBase.php
+	if($return_for_toolbase)
+	{
+		return array($apptainer_command, $bind_paths, $container_path, $container_version);
+	}
+
+	//execute call - pipe stdout/stderr to file
+	$proc = proc_open($apptainer_command, array(1 => array('pipe','w'), 2 => array('pipe','w')), $pipes);
+	if ($proc===false) trigger_error("Could not start process with ToolBase::execApptainer function!\nContainer: {$container_path}\nCommand: {$command}\nParameters: {$parameters}", E_USER_ERROR);
+	
+	//get stdout, stderr and exit code
+	$stdout = stream_get_contents($pipes[1]);
+	fclose($pipes[1]);
+	$stderr = stream_get_contents($pipes[2]);
+	fclose($pipes[2]);
+	$exit = proc_close($proc);
+	
+	//abort if requested
+	if ($abort_on_error && $exit!=0)
+	{
+		trigger_error("Error while executing command: '$apptainer_command'\nCODE: $exit\nSTDOUT: ".$stdout."\nSTDERR: ".$stderr."\n", E_USER_ERROR);
+	}
+	
+	//return output
+	return array(explode("\n", nl_trim($stdout)), explode("\n", nl_trim($stderr)), $exit);
+}
 ?>

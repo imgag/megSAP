@@ -13,7 +13,7 @@ $parser->addString("t_id", "Processed sample id of tumor, e.g. 'GS123456_01'.", 
 $parser->addInfile("t_cov","Coverage file for tumor sample",false);
 $parser->addInfile("n_cov","Coverage file for normal sample",false);
 $parser->addOutFile("out", "Output file.",false);
-$parser->addInfile("bed","Bed file for target region.",false);
+$parser->addInfile("bed", "Target region BED file with annotated GC content and gene names.",false);
 //optional
 $parser->addInfile("bed_off","Off-target bed file.",true); //s_dna
 $parser->addInfile("t_cov_off","Off-target coverage file for tumor sample",true);
@@ -235,12 +235,6 @@ if($use_off_target && !is_dir($cov_folder_t_off))
 	exit(0);
 }
 
-$tmp_bed_annotated = $parser->tempFile(".bed");
-
-$parser->exec(get_path("ngs-bits")."/"."BedAnnotateGC", "-in {$bed} -clear -out {$tmp_bed_annotated} -ref ".genome_fasta($sys['build']),true);
-$parser->exec(get_path("ngs-bits")."/"."BedAnnotateGenes"," -in {$tmp_bed_annotated} -out {$tmp_bed_annotated}",true);
-
-
 /******************************************
  * CREATE PAIR FILE WITH TUMOR NORMAL IDS *
  ******************************************/
@@ -286,7 +280,7 @@ $merged_cov_tumor = $parser->tempFile(".txt");
 $cov_paths_n = create_file_with_paths($cov_folder_n, realpath($n_cov), $sample_nids);
 $cov_paths_t = create_file_with_paths($cov_folder_t, realpath($t_cov), $sample_tids);
 merge_coverage_profiles($cov_paths_n, $merged_cov_normal);
-$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_t -out {$merged_cov_tumor} -simple -cols chr,start,end ",true);
+$parser->execApptainer("ngs-bits", "TsvMerge", "-in $cov_paths_t -out {$merged_cov_tumor} -simple -cols chr,start,end", [$cov_paths_t, dirname($cov_folder_t)]);
 
 //off-targets
 if($use_off_target)
@@ -295,11 +289,9 @@ if($use_off_target)
 	$merged_cov_normal_off = $parser->tempFile(".txt");
 	$cov_paths_n_off = create_file_with_paths($cov_folder_n_off, realpath($n_cov_off), $sample_nids);
 	$cov_paths_t_off = create_file_with_paths($cov_folder_t_off, realpath($t_cov_off), $sample_tids);
-	$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_n_off -out {$merged_cov_normal_off} -simple -cols chr,start,end ",true);
-	$parser->exec(get_path("ngs-bits")."/TsvMerge" , " -in $cov_paths_t_off -out {$merged_cov_tumor_off} -simple -cols chr,start,end ",true);
+	$parser->execApptainer("ngs-bits", "TsvMerge", "-in $cov_paths_n_off -out {$merged_cov_normal_off} -simple -cols chr,start,end", [$cov_paths_n_off, dirname($cov_folder_n_off)]);
+	$parser->execApptainer("ngs-bits", "TsvMerge", "-in $cov_paths_t_off -out {$merged_cov_tumor_off} -simple -cols chr,start,end", [$cov_paths_t_off, dirname($cov_folder_t_off)]);
 }
-
-
 
 /*******************
  * EXECUTE CLINCNV *
@@ -319,14 +311,17 @@ if(!file_exists($cohort_folder))
 {
 	trigger_error("Directory for cohort output {$cohort_folder} does not exist.",E_USER_ERROR);
 }
-$command = get_path("rscript")." --vanilla ".get_path("clincnv");
+$command = "clinCNV.R";
+
+$in_files = array();
+$out_files = array();
 
 $args = [
 "--normal", $merged_cov_normal,
 "--tumor", $merged_cov_tumor,
 "--out", $cohort_folder,
 "--pair", $cov_pairs,
-"--bed", $tmp_bed_annotated,
+"--bed", $bed,
 "--colNum", "4",
 "--lengthS", $lengthS,
 "--scoreS", $scoreS,
@@ -334,8 +329,11 @@ $args = [
 "--numberOfThreads {$threads}",
 "--hg38",
 "--noPlot",
-"--folderWithScript ".dirname(get_path("clincnv"))
+
 ];
+
+$in_files[] = $cov_pairs;
+$out_files[] = $cohort_folder;
 
 if ($sys["type"] == "WGS" || $sys["type"] == "WGS (shallow)")
 {
@@ -347,6 +345,7 @@ if($use_off_target)
 	$args[] = "--tumorOfftarget $merged_cov_tumor_off";
 	$args[] = "--normalOfftarget $merged_cov_normal_off";
 	$args[] = "--bedOfftarget $bed_off";
+	$in_files[] = $bed_off;
 }
 
 if(isset($guide_baseline))
@@ -367,7 +366,11 @@ else //specify single output sample otherwise
 	$args[] = "--tumorSample {$t_id}";
 }
 
-if(is_dir($baf_folder)) $args[] = "--bafFolder {$baf_folder}";
+if(is_dir($baf_folder))
+{
+	$args[] = "--bafFolder {$baf_folder}";
+	$in_files[] = $baf_folder;
+}
 
 //Remove old data from somatic cohort folders
 $cohort_folder_somatic_sample =  "{$cohort_folder}/somatic/{$t_id}-{$n_id}/";
@@ -376,7 +379,7 @@ $cohort_folder_normal_sample = "{$cohort_folder}/normal/{$n_id}/";
 if(is_dir($cohort_folder_normal_sample)) exec2("rm -r {$cohort_folder_normal_sample}");
 
 //execute ClinCNV
-list($stdout, $stderr) = $parser->exec($command, implode(" ",$args), true);
+list($stdout, $stderr) = $parser->execApptainer("ClinCNV", $command, implode(" ", $args), $in_files, $out_files);
 
 //check if BAF file was used
 $baf_used = true;
@@ -420,7 +423,7 @@ if(!file_exists($unparsed_cnv_file))
  * PARSE RAW CLINCNV FILE *
  **************************/
 //sort by chromosome and cnv start position
-$parser->exec(get_path("ngs-bits")."/BedSort","-in $unparsed_cnv_file -out $unparsed_cnv_file",true);
+$parser->execApptainer("ngs-bits", "BedSort", "-in $unparsed_cnv_file -out $unparsed_cnv_file", [$unparsed_cnv_file]);
  
 //insert column with sample identifier for convenience (next to "end"-column")
 $cnvs = Matrix::fromTSV($unparsed_cnv_file);
@@ -554,10 +557,16 @@ $cnvs->addCol($new_col, "cnv_type", "Type of CNV: focal (< 25 % of chrom. arm, <
 //store output tsv file
 $cnvs->toTSV($out);
 
-//annotate additional gene info
-$parser->exec(get_path("ngs-bits")."CnvGeneAnnotation", "-in {$out} -add_simple_gene_names -out {$out}", true);
+//annotate gene info
+if(db_is_enabled("NGSD") && !$test)
+{
+	$parser->execApptainer("ngs-bits", "CnvGeneAnnotation", "-in {$out} -add_simple_gene_names -out {$out}", [$out]);
+}
 
 //annotate overlap with pathogenic CNVs
-if(db_is_enabled("NGSD") && !$test) $parser->exec(get_path("ngs-bits")."NGSDAnnotateCNV", "-in {$out} -out {$out}", true);
+if(db_is_enabled("NGSD") && !$test) 
+{
+	$parser->execApptainer("ngs-bits", "NGSDAnnotateCNV", "-in {$out} -out {$out}", [$out]);
+}
 
 ?>

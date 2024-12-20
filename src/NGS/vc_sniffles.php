@@ -54,6 +54,7 @@ else if(count($bam) == 1)
     $tmp_vcf = $parser->tempFile(".vcf", "sniffles");
 
     $args = array();
+	$in_files = array();
     $args[] = "--input ".$single_sample_bam;
     $args[] = "--vcf ".$tmp_vcf;
     $args[] = "--threads ".$threads;
@@ -61,9 +62,18 @@ else if(count($bam) == 1)
     $args[] = "--allow-overwrite";
     $args[] = "--sample-id ".$name;
     if($somatic) $args[] = "--non-germline";
-	if(isset($target)) $args[] = "--regions ".$target;
+	if(isset($target))
+	{
+		$args[] = "--regions ".$target;
+		$in_files[] = $target;
+	} 
 
-    $parser->exec(get_path("sniffles"), implode(" ", $args), true);
+	//set bind path for sniffles container
+	$in_files[] = $single_sample_bam;
+	$in_files[] = genome_fasta($build);
+
+	//execute sniffles container
+	$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files);
 
 }
 else
@@ -80,15 +90,25 @@ else
 
 		$tmp_snf = $parser->tempFile(".snf", "sniffles");
 		$args = array();
+		$in_files = array();
     	$args[] = "--input ".$single_sample_bam;
     	$args[] = "--snf ".$tmp_snf;
     	$args[] = "--threads ".$threads;
     	$args[] = "--reference ".genome_fasta($build);
     	$args[] = "--allow-overwrite";
 		$args[] = "--sample-id ".$name;
-		if(isset($target)) $args[] = "--regions ".$target;
+		if(isset($target))
+		{
+			$args[] = "--regions ".$target;
+			$in_files[] = $target;
+		} 
 
-		$parser->exec(get_path("sniffles"), implode(" ", $args), true);
+		//set bind path for sniffles container
+		$in_files[] = $single_sample_bam;
+		$in_files[] = genome_fasta($build);
+
+		//execute sniffles container
+		$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files);
 
 		$snfs[] = $tmp_snf;
 	}
@@ -98,15 +118,21 @@ else
 	$tmp_vcf = $parser->tempFile(".vcf", "sniffles");
 
 	$args = array();
+	$in_files = array();
 	$args[] = "--input ".implode(" ", $snfs);
 	$args[] = "--vcf ".$tmp_vcf;
 	$args[] = "--threads ".$threads;
 	$args[] = "--reference ".genome_fasta($build);
 	$args[] = "--allow-overwrite";
-	if(isset($target)) $args[] = "--regions ".$target;
+	if(isset($target))
+	{
+		$args[] = "--regions ".$target;
+		$in_files[] = $target;
+	} 
+	$in_files[] = genome_fasta($build);
 
-    $parser->exec(get_path("sniffles"), implode(" ", $args), true);
-
+	//execute sniffles container
+	$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files);
 }
 
 //add name/pipeline info to VCF header
@@ -126,7 +152,7 @@ else
 	}
 }
 
-$vcf->setComments(sort_vcf_comments($comments));
+$vcf->setComments($comments);
 $vcf->toTSV($tmp_vcf);
 
 $parser->exec("bgzip", "-c $tmp_vcf > $out", false);

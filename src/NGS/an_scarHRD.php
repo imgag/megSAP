@@ -11,10 +11,9 @@ $parser->addString("normal", "Name of the normal sample.", false);
 $parser->addString("out_folder", "Folder in which the hrd score file will be saved.", false);
 $parser->addFlag("filtered", "Calculate the HRD score based on the filtered CNVs. Removes the CNVs flagged as artifacts in the somatic report config in NGSD .", true);
 $parser->addString("db", "Database to be used for the filtering of CNVs (only used when -filtered is given)", true, "NGSD");
-
-
 extract($parser->parse($argv));
 
+$out_folder = realpath($out_folder); //R cannot deal with relative paths...
 
 function prepare_clincnv($clincnv, $sample)
 {
@@ -126,9 +125,8 @@ function run_scarHRD($parser, $cnvs, $count, $prefix, $out_folder)
 {
 	if ($count != 0)
 	{	
-		$cli_scarHRD = get_path("scarHRD");
-		$wd = dirname($cli_scarHRD);
-		$parser->exec(get_path("rscript"), "--vanilla {$cli_scarHRD} -s $cnvs -o $out_folder -w $wd");
+		$wd = "/opt/scarHRD/R";
+		$parser->execApptainer("scarHRD", "cli_scarHRD.R", "-s $cnvs -o $out_folder -w $wd", [$cnvs], [$out_folder]);
 	}
 	else
 	{
