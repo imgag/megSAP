@@ -319,8 +319,8 @@ if (in_array("an", $steps))
 				}
 			}
 
-			//TODO Kilian, add NGSDAnnotateSV (annotate pathogenic SVs from NGSD)
-
+			//annotate class 4 and 5 pathogenic SVs
+			$parser->execApptainer("ngs-bits", "NGSDAnnotateSV", "-in {$bedpe_out} -out {$bedpe_out}", [$bedpe_out]);
 		}
 		else
 		{

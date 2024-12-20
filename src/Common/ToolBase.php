@@ -829,15 +829,21 @@ class ToolBase
 	 */
 	function execApptainer($container, $command, $parameters, $in_files = array(), $out_files = array(), $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true)
 	{
-
-		//TODO Kilian
-/* 		//execute local ngs-bits installation if ngs-bits_local path is set in settings.ini
+		//execute local ngs-bits installation if ngs-bits_local path is set in settings.ini
 		$ngsbits_local = get_path("ngs-bits_local", false);
 		if ($container == "ngs-bits" && $ngsbits_local != "")
 		{
-			list($stdout, $stderr, $return) = execApptainer($container, $command, $parameters, $in_files, $out_files);
-			return array($stdout, $stderr, $return);
-		} */
+			if ($command_only)
+			{
+				$ngsbits_command = execApptainer($container, $command, $parameters, $in_files, $out_files, true);
+				return $ngsbits_command;
+			}
+			else
+			{
+				list($stdout, $stderr, $return) = execApptainer($container, $command, $parameters, $in_files, $out_files);
+				return array($stdout, $stderr, $return);
+			}
+		}
 
 		//get apptainer command, bind paths and container path from execApptainer function in functions.php
 		list($apptainer_command, $bind_paths, $container_path, $container_version) = execApptainer($container, $command, $parameters, $in_files, $out_files, false, true);

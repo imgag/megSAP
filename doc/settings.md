@@ -9,6 +9,7 @@ Paths are preset and should not be changed unless you want to exchange a tool.
 
 Paths of downloaded data used by specific tools.
 Paths are preset and should not be changed unless you want to change where the data is stored.
+* `ngs-bits_local` - the path to a local ngs-bits installation can be provided here. If no path is provided the ngs-bits apptainer container listed in the 'apptainer-container' section is used.
 
 ## Section 'apptainer-container'
 
@@ -34,7 +35,6 @@ This section contains general settings:
 * `cnv_bin_size_wgs` - Bin size used for CNV analysis of WGS samples.
 * `cnv_bin_size_shallow_wgs` - Bin size used for CNV analysis of shallow WGS samples.
 * `cnv_bin_size_longread_wgs` - Bin size used for CNV analysis of long-read WGS samples.
-* `use_bwa1` - Flag (true/false) that indicates if BWA mem should be used for mapping instead of BWA mem 2 (BWA mem 2 is faster, but needs more RAM).
 * `use_bwa1` - Flag (true/false) that indicates if BWA mem should be used for mapping instead of BWA mem 2 (BWA mem 2 is faster, but needs more RAM).
 * `bwa_mem2_suffix` - Suffix appended to the BWA-mem2 executable, e.g. `.avx2` for `AMD EPYC9654`.
 * `annotate_refseq_consequences` - Flag (true/false) that indicates if variant consequences based on RefSeq transcripts should be annotated in addition to variant consequences based on Ensembl transcripts.

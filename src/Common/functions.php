@@ -816,14 +816,21 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
 	if($container=="ngs-bits")
 	{
-		//TODO Kilian
-/* 		$ngsbits_local = get_path("ngs-bits_local", false);
+		$ngsbits_local = get_path("ngs-bits_local", false);
 		if ($ngsbits_local != "")
 		{
-			$output = array($stdout, $stderr, $return);
-			$output = exec2($ngsbits_local.$command." ".$parameters);
-			return $output;
-		} */
+			trigger_error("Using local ngs-bits installation specified in settings.ini.", E_USER_NOTICE);
+			$ngsbits_command = $ngsbits_local.$command." ".$parameters;
+			if ($command_only)
+			{
+				return $ngsbits_command;
+			}
+			else
+			{
+				list($stdout, $stderr, $return) = exec2($ngsbits_command);
+				return array($stdout, $stderr, $return);
+			}
+		}
 
 		$ngsbits_settings_loc = repository_basedir()."/data/tools/ngsbits_settings.ini";
 		//ngs-bits settings file missing > create it
