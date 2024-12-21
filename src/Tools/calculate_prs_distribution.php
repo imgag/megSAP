@@ -95,10 +95,9 @@ for ($row_idx=0; $row_idx < $sample_sheet->rows(); $row_idx++)
 			continue;
 		}
 	}
-	$in_files = array();
+	$in_files = $in;
 	$in_files[] = $sample_vcf;
 	$in_files[] = $sample_bam;
-	$in_files = array_merge($in_files, $in);
 	list($stdout, $stderr, $exitcode) = $parser->execApptainer("ngs-bits", "VcfCalculatePRS", "-in $sample_vcf -bam $sample_bam -out $temp_out -prs ".implode(" ", $in), $in_files);
 
 	foreach($stdout as $line)

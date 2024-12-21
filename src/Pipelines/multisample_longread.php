@@ -319,8 +319,11 @@ if (in_array("an", $steps))
 				}
 			}
 
-			//annotate class 4 and 5 pathogenic SVs
-			$parser->execApptainer("ngs-bits", "NGSDAnnotateSV", "-in {$bedpe_out} -out {$bedpe_out}", [$bedpe_out]);
+			//annotate class 4 and 5 pathogenic SVs			
+			if (db_is_enabled("NGSD"))
+			{
+				$parser->execApptainer("ngs-bits", "NGSDAnnotateSV", "-in {$bedpe_out} -out {$bedpe_out}", [$bedpe_out]);
+			}
 		}
 		else
 		{

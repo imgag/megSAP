@@ -84,10 +84,7 @@ for($r=0; $r<$regions_table->rows(); ++$r)
         $bam,
         $pileup_out . "/",
     ];
-    $in_files = array($ref_genome, $bam);
-    $out_files = array($pileup_out);
-    
-    $parser->execApptainer("modkit", "modkit", implode(" ", $args_modkit), $in_files, $out_files);
+    $parser->execApptainer("modkit", "modkit", implode(" ", $args_modkit), [$ref_genome, $bam], [$pileup_out]);
     
     $haplotypes = [1, 2, "ungrouped"];
     $modified = [];
@@ -129,8 +126,9 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             "-@", $threads,
             $bam,
             "{$row[3]}:{$row[6]}-{$row[7]}",
+			"-T {$ref_genome}"
         ];       
-        $parser->execApptainer("samtools", "samtools view", implode(" ", $args_samtools_view), [$bam]);
+        $parser->execApptainer("samtools", "samtools view", implode(" ", $args_samtools_view), [$ref_genome, $bam]);
         $parser->indexBam($hap_bams[$hp], $threads);
     }
 
@@ -138,7 +136,7 @@ for($r=0; $r<$regions_table->rows(); ++$r)
     $target_bed = $parser->tempFile(".bed", "hap");
     $coord_start = $row[6]-1;
     file_put_contents($target_bed, "{$row[3]}\t{$coord_start}\t{$row[7]}");
-    $result = $parser->execApptainer("ngs-bits", "BedCoverage", "-threads {$threads} -random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$bam} -in {$target_bed} -clear", [$bam]);
+    $result = $parser->execApptainer("ngs-bits", "BedCoverage", "-threads {$threads} -random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$bam} -in {$target_bed} -clear -ref {$ref_genome}", [$bam, $ref_genome]);
     $result_parts = explode("\t", $result[0][1]);
     $average_coverage = array_map("floatval", array_slice($result_parts, 3, 3));
 
