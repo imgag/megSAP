@@ -82,7 +82,7 @@ if (!isset($gender))
 
 //determine gender from BAM
 $genome = genome_fasta($build);
-list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-in {$in} -method {$method} {$args} -build ".ngsbits_build($build)." -ref {$genome}", [$in]);
+list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-in {$in} -method {$method} {$args} -build ".ngsbits_build($build)." -ref {$genome}", [$in, $genome]);
 $gender2 = explode("\t", $stdout[1])[1];
 if (starts_with($gender2, "unknown"))
 {
