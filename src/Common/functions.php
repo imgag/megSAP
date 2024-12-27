@@ -947,7 +947,16 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 		$bind_paths[] = "{$templates_dir}:/usr/local/lib/python3.8/site-packages/sigProfilerPlotting/templates/";
 		$bind_paths[] = "{$cosmic_templates_dir}:/usr/local/lib/python3.8/site-packages/SigProfilerAssignment/DecompositionPlots/CosmicTemplates";
 	}
-
+	
+	//clean up empty paths
+	for ($i=0; $i<count($bind_paths); ++$i)
+	{
+		if ($bind_paths[$i]==":")
+		{
+			unset($bind_paths[$i]);
+		}
+	}
+	
 	//check bind paths
 	if(!empty($bind_paths))
 	{
