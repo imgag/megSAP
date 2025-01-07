@@ -213,6 +213,16 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/Ashkenazim
 zcat $dbs/GIAB/NA24385_CMRG/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec -B $root/genomes/ $ngsbits VcfFilter -remove_invalid -ref $genome | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 tabix $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 
+#download reference genome for orad
+cd $dbs
+mkdir oradata
+cd oradata
+wget https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
+tar xzf orad.2.6.1.tar.gz
+rm orad.2.6.1.tar.gz
+mv orad_2_6_1/oradata/refbin .
+rm -rf orad_2_6_1
+
 # # install OMIM (you might need a license; production NGSD has to be available and initialized)
 # cd $dbs
 # mkdir -p OMIM

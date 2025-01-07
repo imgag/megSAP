@@ -567,9 +567,10 @@ foreach($sample_data as $sample => $sample_infos)
 						//$target_to_copylines[$tag][] = "\t".get_pth("orad")." --ora-reference ".dirname(get_pth("orad"))."/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}"; TODO remove when tested
 						$orad_files = [
 							"{$project_folder}/Sample_{$sample}/",
-							$fastq_file
+							$fastq_file,
+							get_path("data_folder")."/dbs/oradata/"
 						];
-						$orad_command = $parser->execApptainer("orad", "orad", "--ora-reference /opt/orad_2_6_1/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}", $orad_files, [], true);
+						$orad_command = $parser->execApptainer("orad", "orad", "--ora-reference ".get_path("data_folder")."/dbs/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ ".realpath($fastq_file), $orad_files, [], true);
 						$target_to_copylines[$tag][] = "\t".$orad_command;
 					}
 					else
@@ -695,9 +696,10 @@ foreach($sample_data as $sample => $sample_infos)
 						//$target_to_copylines[$tag][] = "\t".get_pth("orad")." --ora-reference ".dirname(get_pth("orad"))."/oradata/".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}"; TODO remove when tested
 						$orad_files = [
 							"{$project_folder}/Sample_{$sample}/",
-							$fastq_file
+							$fastq_file,
+							get_path("data_folder")."/dbs/oradata/"
 						];
-						$orad_command = $parser->execApptainer("orad", "orad", "--ora-reference /opt/orad_2_6_1/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}", $orad_files, [], true);
+						$orad_command = $parser->execApptainer("orad", "orad", "--ora-reference ".get_path("data_folder")."/dbs/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ ".realpath($fastq_file), $orad_files, [], true);
 						$target_to_copylines[$tag][] = "\t".$orad_command;
 					}
 					else
