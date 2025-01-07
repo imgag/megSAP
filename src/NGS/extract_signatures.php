@@ -24,6 +24,49 @@ $parser->addString("seeds", "VCF file or folder with multiple VCF files for SNV 
 
 extract($parser->parse($argv));
 
+function csv2tsv($csv)
+{
+	if (!file_exists($csv)) return;
+	
+	//parse CSV
+	$file = file($csv);
+	$headers = explode(", ", trim($file[0]));
+	if (count($headers)!=7) trigger_error("CNV line does not have 7 comma-separted parts: ".file[0], E_USER_ERROR);
+	$parts = explode(", ", trim($file[1]));
+	if (count($parts)!=7) trigger_error("CNV line does not have 7 comma-separted parts: ".file[1], E_USER_ERROR);
+	
+	//write TSV
+	$tsv = substr($csv, 0, -4).".tsv";
+	$h = fopen2($tsv, "w");
+	for ($i=2; $i<count($headers); ++$i)
+	{
+		fputs($h, "##".$headers[$i].": ".$parts[$i]."\n");
+	}
+	fputs($h, "#type\tsignature\tvalue\n");
+	for ($i=0; $i<2; ++$i)
+	{
+		$parts2 = explode("&", $parts[$i]);
+		foreach($parts2 as $entry)
+		{
+			$entry = trim($entry);
+			if ($entry=="") continue;
+			
+			$signature = $entry;
+			$value = "";
+			if (contains($entry, "(") && contains($entry, "%)"))
+			{
+				$pos = strrpos($entry, "(");
+				$signature = trim(substr($entry, 0, $pos));
+				$value = trim(substr($entry, $pos+1, -2));
+			}
+			fputs($h, $headers[$i]."\t{$signature}\t{$value}\n");
+		}
+	}
+	fclose($h);
+	
+	//delete csv
+	unlink($csv);
+}
 
 function calculate_cnv_signatures($in, $minSig, $maxSig, $nmfRep, $seeds)
 {
@@ -79,7 +122,6 @@ function copy_cnv_result_files($result_folder)
 	if ($fullOutput)
 	{
 		exec("cp -r {$result_folder}/* {$out}");
-
 	}
 	else
 	{
@@ -99,6 +141,8 @@ function copy_cnv_result_files($result_folder)
 			}
 		}
 	}
+	
+	csv2tsv($out."/De_Novo_map_to_COSMIC_CNV48.csv");
 }
 
 function calculate_snv_signatures($in, $minSig, $maxSig, $nmfRep, $seeds)
@@ -142,7 +186,6 @@ function copy_snv_result_files($result_folder)
 	if ($fullOutput)
 	{
 		exec("cp -r {$result_folder}/* {$out}");
-
 	}
 	else
 	{
@@ -166,6 +209,10 @@ function copy_snv_result_files($result_folder)
 			}
 		}
 	}
+	
+	csv2tsv($out."/De_Novo_map_to_COSMIC_SBS96.csv");
+	csv2tsv($out."/De_Novo_map_to_COSMIC_ID83.csv");
+	csv2tsv($out."/De_Novo_map_to_COSMIC_DBS78.csv");
 }
 
 function test_input($in, $mode, $out_folder, $minSig, $maxSig, $nmfRep, $seeds)

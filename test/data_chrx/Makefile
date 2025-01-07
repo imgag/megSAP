@@ -28,13 +28,13 @@ re:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps re
 
 diff:
-	php ../compare_variants.php -in1 NA12878_17.GSvar.out -in2 NA12878_17.GSvar
+	php ../compare_variants.php -in1 NA12878_17.GSvar.out -in2 NA12878_17.GSvar -add NA12878_17
 	php ../compare_qcml_xml.php NA12878_17_stats_fastq.qcML.out NA12878_17_stats_fastq.qcML
 	php ../compare_qcml_xml.php NA12878_17_stats_map.qcML.out NA12878_17_stats_map.qcML 0.01
 	php ../compare_qcml_xml.php NA12878_17_stats_vc.qcML.out NA12878_17_stats_vc.qcML
 	php ../compare_qcml_xml.php NA12878_17_stats_other.qcML.out NA12878_17_stats_other.qcML
 	diff NA12878_17_cnvs_clincnv.tsv.out NA12878_17_cnvs_clincnv.tsv --ignore-matching-lines="#"
-	numdiff NA12878_17_cnvs_clincnv.seg.out NA12878_17_cnvs_clincnv.seg --absolute-tolerance 0.04
+	php ../compare_seg.php NA12878_17_cnvs_clincnv.seg.out NA12878_17_cnvs_clincnv.seg variance=0.03,value=0.05
 	php ../compare_bed.php NA12878_17_nxLRRK2_SNCA_lowcov.bed.out NA12878_17_nxLRRK2_SNCA_lowcov.bed
 	diff NA12878_17_manta_var_structural.bedpe.out NA12878_17_manta_var_structural_cut.bedpe --ignore-matching-lines="^##"
 	diff NA12878_17_manta_var_structural_last_cols.bedpe.out NA12878_17_manta_var_structural_cut2.bedpe --ignore-matching-lines="^##"

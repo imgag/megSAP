@@ -1,0 +1,8 @@
+##L1 Error %: 32.59
+##L2 Error %:  11.19
+##KL Divergence: 1.021
+##Cosine Similarity: 0.99
+##Correlation: 0.99
+#type	signature	value
+De novo extracted	Signature 78-A	
+Global NMF Signatures	Signature DBS1	100.00

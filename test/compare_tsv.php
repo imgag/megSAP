@@ -20,13 +20,14 @@ if ($skip_cols!="") $args[] = "-skip_cols {$skip_cols}";
 list($stdout, $stderr, $exit_code) = execApptainer("ngs-bits", "TsvDiff", implode(" ", $args), [$in1, $in2], [], false, false, false);
 foreach($stdout as $line)
 {
+	if ($line=="") continue;
 	print $line."\n";
 }
 foreach($stderr as $line)
 {
+	if ($line=="") continue;
 	print $line."\n";
 }
 
 exit($exit_code);
-
 ?>
