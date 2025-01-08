@@ -2,7 +2,6 @@ help:
 	@echo "Main targets:"
 	@echo "  test_functions  - perform function tests." 
 	@echo "  test_tools      - perform tool tests."
-	@echo "  test_tools_db   - perform DB tool tests." 
 	@echo "  test_pipeline_a - perform DNA amplicon pipeline test." 
 	@echo "  test_pipeline_x - perform DNA shotgun pipeline test."
 	@echo "  test_pipeline_t - perform DNA trio pipeline test."
@@ -17,9 +16,12 @@ help:
 	
 	@echo "" 
 	@echo "Auxilary targets:"
-	@echo "  find_missing_tests - Checks for tools that do not have a test."
-	@echo "  todos              - Checks for todos in the code"
 	@echo "  pull               - Pull latest version from GitHub"
+	@echo "  find_missing_tests - Checks for tools that do not have a test."
+	@echo "  find_unused_tools  - Checks for tools that are not used."
+	@echo "  todos              - Checks for todos in the code"
+	
+	
 	
 pull:
 	git pull --recurse-submodules
@@ -31,18 +33,6 @@ test_functions: dummy
 	
 test_tools: dummy
 	@cd test && find . -name "tool_test_*.php" | sort | xargs -l1 php | egrep "^(FINISHED|FAILED)"
-
-test_tools_primer: dummy
-	@cd test && find . -name "tool_test_*.php" | xargs grep -l "/Primer/" | sort | xargs -l1 php | egrep "^(FINISHED|FAILED)"
-
-test_tools_ngs: dummy
-	@cd test && find . -name "tool_test_*.php" | xargs grep -l "/NGS/" | sort | xargs -l1 php | egrep "^(FINISHED|FAILED)"
-
-test_tools_tools: dummy
-	@cd test && find . -name "tool_test_*.php" | xargs grep -l "/Tools/" | sort | xargs -l1 php | egrep "^(FINISHED|FAILED)"
-
-test_tools_db:
-	@cd test && find . -name "tool_test_db*.php" | sort | xargs -l1 php | egrep "^(FINISHED|FAILED)"
 
 test_pipeline_a: dummy
 	@cd test/data_amplicon && make all
@@ -115,10 +105,10 @@ test_clear_check:
 	git status --ignored | grep "test/data_" | grep -v data_out
 
 find_missing_tests: dummy
-	php src/Tools/find_missing_tests.php
+	php src/IMGAG/find_missing_tests.php
 	
 find_unused_tools: dummy
-	php src/Tools/find_unused_tools.php -ngsbits ../ngs-bits/ -megsap . > unused_tools.txt
+	php src/IMGAG/find_unused_tools.php -ngsbits ../ngs-bits/ -megsap .
 
 todos:
 	find . -name "*.php" | xargs grep -i "//todo" 

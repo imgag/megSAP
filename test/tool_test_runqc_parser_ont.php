@@ -17,7 +17,7 @@ exec2("rm -rf ".output_folder()."/21073LRa277_01234");
 exec2("tar -xvzf ".data_folder().$name."_in1.tar.gz -C ".output_folder());
 
 //test 1: no db import
-$output = check_exec("php ".src_folder()."/NGS/{$name}.php -name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -no_db");
+$output = check_exec("php ".src_folder()."/Tools/{$name}.php -name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -no_db");
 check($output[0], "#run\tfc_id\tread_num\tyield\tpassing_filter_perc\tfraction_skipped\tq30_perc\tq20_perc\tN50\tprotocol_id\tsoftware_args\tdevice_firmware_versions\tminknow_version");
 check($output[1], "#01234\tPAW01234\t9574413\t89394689391\t96.423576795467\t3.13335136E-7\t0.10337179157905\t47.327042850332\t14183\tsequencing/sequencing_PRO114_DNA_e8_2_400K:FLO-PRO114M:SQK-LSK114-XL:400\t"
 					."--fast5=off --pod5=on --fastq=off --bam=on --generate_bulk_file=off --active_channel_selection=on --base_calling=on --bam_batch_duration=3600 --mux_scan_period=1.5 --pore_reserve=on "
@@ -26,7 +26,7 @@ check($output[1], "#01234\tPAW01234\t9574413\t89394689391\t96.423576795467\t3.13
 check($db_con->getValue("SELECT COUNT(*) FROM runqc_ont"), 0);
 
 //test 2: with db import
-check_exec("php ".src_folder()."/NGS/{$name}.php -name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST");
+check_exec("php ".src_folder()."/Tools/{$name}.php -name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST");
 check($db_con->getValue("SELECT COUNT(*) FROM runqc_ont"), 1);
 check($db_con->getValue("SELECT read_num FROM runqc_ont WHERE sequencing_run_id=1"), 9574413);
 check($db_con->getValue("SELECT yield FROM runqc_ont WHERE sequencing_run_id=1"), 89394700000);
@@ -44,12 +44,12 @@ check($db_con->getValue("SELECT minknow_version FROM runqc_ont WHERE sequencing_
 
 
 //test 3: re-import without '-force'
-list($stdout, $stderr, $exit_code) = exec2("php ".src_folder()."/NGS/{$name}.php -name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST", FALSE); //should fail
+list($stdout, $stderr, $exit_code) = exec2("php ".src_folder()."/Tools/{$name}.php -name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST", FALSE); //should fail
 check(($exit_code == 0), FALSE); // check exit code
 check((strpos(implode("", $stderr), "QC data for this run and read was already imported. Use the flag ") != FALSE), TRUE); //check error message
 
 //test 4: re-import with '-force'
-check_exec("php ".src_folder()."/NGS/{$name}.php -name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -force");
+check_exec("php ".src_folder()."/Tools/{$name}.php -name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -force");
 check($db_con->getValue("SELECT COUNT(*) FROM runqc_ont"), 1);
 check($db_con->getValue("SELECT read_num FROM runqc_ont WHERE sequencing_run_id=1"), 9574413);
 check($db_con->getValue("SELECT yield FROM runqc_ont WHERE sequencing_run_id=1"), 89394700000);

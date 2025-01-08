@@ -385,7 +385,7 @@ if (in_array("ma", $steps))
 	];
 	if ($min_mapq > 0 ) $args[] = "-min_mapq $min_mapq";
 	if (!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
-	$parser->execTool("Pipelines/mapping.php", implode(" ", $args));
+	$parser->execTool("Tools/mapping.php", implode(" ", $args));
 
 	//low-coverage report, based on patient specific positions
 	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in $target -bam $bamfile -out $lowcov_file -cutoff $lowcov_cutoff -threads {$threads} -ref ".genome_fasta($sys['build']), [$target, $folder, genome_fasta($sys['build'])]);
@@ -426,7 +426,7 @@ if (in_array("vc", $steps))
 		{
 			$args[] = "-monitoring_vcf ${monitoring_vcf}";
 		}
-		$parser->execTool("NGS/vc_cfdna.php", implode(" ", $args));
+		$parser->execTool("Tools/vc_cfdna.php", implode(" ", $args));
 
 		//copy vcf (monitoring variants for monitoring / filtered for normal cfDNA)
 		if ($is_patient_specific)
@@ -495,7 +495,7 @@ if (in_array("vc", $steps))
 
 	// annotate VCF 
 	$vcffile_annotated = "$folder/${name}_var_annotated.vcf.gz";
-	$parser->execTool("Pipelines/annotate.php", "-out_name $name -out_folder $folder -vcf $vcffile -somatic -threads $threads -system $system");
+	$parser->execTool("Tools/annotate.php", "-out_name $name -out_folder $folder -vcf $vcffile -somatic -threads $threads -system $system");
 
 	//add sample info to VCF header
 	$tmp_vcf = $parser->tempFile(".vcf");
@@ -512,7 +512,7 @@ if (in_array("vc", $steps))
 	// convert vcf to GSvar
 	$gsvar_file = "$folder/${name}.GSvar";
 	$args = array("-in $tmp_vcf", "-out $gsvar_file", "-t_col $name", "-cfdna");
-	$parser->execTool("NGS/vcf2gsvar_somatic.php", implode(" ", $args));
+	$parser->execTool("Tools/vcf2gsvar_somatic.php", implode(" ", $args));
 
 	if (!$skip_tumor && ($tumor_id != ""))
 	{
@@ -666,7 +666,7 @@ if (in_array("db", $steps))
 	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps {$name} -files ".implode(" ", $qc_files)." -force", [$folder]);
 
 	//check gender
-	$parser->execTool("NGS/db_check_gender.php", "-in {$bamfile} -pid {$name} --log ".$parser->getLogFile());	
+	$parser->execTool("Tools/db_check_gender.php", "-in {$bamfile} -pid {$name} --log ".$parser->getLogFile());	
 }
 
 ?>

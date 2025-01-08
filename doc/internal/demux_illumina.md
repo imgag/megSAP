@@ -20,7 +20,7 @@
 	cd /mnt/storage3/raw_data/[instrument]/[run]/
 	```
 	```bash
-	php /mnt/storage2/megSAP/pipeline/src/Tools/export_samplesheet.php -out SampleSheet_bcl2fastq.csv -run [ngsd_run_name]
+	php /mnt/storage2/megSAP/pipeline/src/IMGAG/export_samplesheet.php -out SampleSheet_bcl2fastq.csv -run [ngsd_run_name]
 	```	
 	*Note*: The index (==barcode) should be given even if only one sample is on a lane (to avoid contamination).  
 	*Note*: If index 2 sequences are reverse-complement (e.g in NovaSeq6000 or MiSeq dual-indexing) of the sequences given in the sample sheet, re-export using the '-mid2_no_rc' flag.  
@@ -62,7 +62,7 @@
 	```
 6. Copy the FASTQ files to the project folders and queue the analysis using:
 	```bash
-	php /mnt/storage2/megSAP/pipeline/src/NGS/copy_sample.php
+	php /mnt/storage2/megSAP/pipeline/src/IMGAG/copy_sample.php
 	```
 	```bash
 	ionice -c 3 make all
@@ -70,7 +70,7 @@
 
 7. Backup run using backup tool:
 	```bash
-	sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/Tools/backup_queue.php -mode run -in [run] -email [email]
+	sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/IMGAG/backup_queue.php -mode run -in [run] -email [email]
 	```
 
 8. Delete the run raw data (when all samples are analyzed with passed QC):
@@ -105,7 +105,7 @@
 
 5. Copy ORA/BAM to the project folders and analyze them using:
 	```bash
-	php /mnt/storage2/megSAP/pipeline/src/NGS/copy_sample.php
+	php /mnt/storage2/megSAP/pipeline/src/IMGAG/copy_sample.php
 	```
 	```bash
 	ionice -c 3 make all
@@ -113,7 +113,7 @@
 
 6. Backup run using backup tool:
 	```bash
-	sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/Tools/backup_queue.php -mode run -in [run] -email [email]
+	sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/IMGAG/backup_queue.php -mode run -in [run] -email [email]
 	```
 
 7. Delete the run raw data (when all samples are analyzed and passed QC):

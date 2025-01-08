@@ -11,7 +11,7 @@ start_test($name);
 // Annotate Ensembl gene identifiers with HGNC gene identifier/gene names
 $in_file1 = data_folder()."rc_annotate_in1.tsv";
 $out_file1 = output_folder().$name."_out1.tsv";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in {$in_file1} -out {$out_file1} -annotationIds gene_name,gene_biotype -gtf_file {$gtf_file}");
+check_exec("php ".src_folder()."/Tools/{$name}.php -in {$in_file1} -out {$out_file1} -annotationIds gene_name,gene_biotype -gtf_file {$gtf_file}");
 check_file($out_file1, data_folder().$name."_out1.tsv");
 
 end_test();

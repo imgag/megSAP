@@ -19,7 +19,7 @@ chr1	10566215	.	A	G	.	.	WEIGHT=-0.0586
 chr1	110198129	.	CAAA	C	.	.	WEIGHT=0.0458
 ...
 ```
-To create such a VCF file the php script `prs2vcf.php` in `src/Tools`can be used. It takes a PRS text file from [https://www.pgscatalog.org/](https://www.pgscatalog.org/) as input and generates a VCF which can be used in the megSAP pipeline. If the script has also access to the NGSD it automatically computes the percentiles for the given PRS score based on the matching samples in the NGSD.
+To create such a VCF file the php script `src/Auxilary/prs2vcf.php` can be used. It takes a PRS text file from [https://www.pgscatalog.org/](https://www.pgscatalog.org/) as input and generates a VCF which can be used in the megSAP pipeline. If the script has also access to the NGSD it automatically computes the percentiles for the given PRS score based on the matching samples in the NGSD.
 
 ## PRS calculation
 The megSAP pipeline will automatically generate a TSV file during each WGS single sample analysis 

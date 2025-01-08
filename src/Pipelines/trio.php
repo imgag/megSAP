@@ -196,8 +196,8 @@ if (!$no_check && !$is_wgs_shallow && !$annotation_only)
 	}
 	
 	//check gender of parents
-	$parser->execTool("NGS/db_check_gender.php", " -in $f -pid $sample_f -gender male");
-	$parser->execTool("NGS/db_check_gender.php", " -in $m -pid $sample_m -gender female");
+	$parser->execTool("Tools/db_check_gender.php", " -in $f -pid $sample_f -gender male");
+	$parser->execTool("Tools/db_check_gender.php", " -in $m -pid $sample_m -gender female");
 }
 
 //variant calling (and annotation)
@@ -296,7 +296,7 @@ if (in_array("vc", $steps))
 	fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data);
 	
 	//double check modified output file
-	$parser->execTool("NGS/check_tsv.php", "-in $gsvar -build ".$sys['build']);
+	$parser->execTool("Tools/check_tsv.php", "-in $gsvar -build ".$sys['build']);
 	
 }
 
@@ -393,7 +393,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$s_id_m},'parent-child',{$s_id_c})");
 	
 	//add secondary analysis (if missing)
-	$parser->execTool("NGS/db_import_secondary_analysis.php", "-type 'trio' -gsvar {$gsvar}");
+	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'trio' -gsvar {$gsvar}");
 }
 
 ?>

@@ -7,7 +7,7 @@ vc_freebayes:
 	samtools view -L tmp_vars.bed /mnt/storage3/projects/test/KontrollDNACoriell/Sample_NA12878_58/NA12878_58.bam | cut -f1 | sort --uniq > tmp_reads.txt
 	FastqExtract -in /mnt/storage3/projects/test/KontrollDNACoriell/Sample_NA12878_58/NA12878_58_BamToFastq_R1_001.fastq.gz -ids tmp_reads.txt -out tmp_L001_R1_001.fastq.gz
 	FastqExtract -in /mnt/storage3/projects/test/KontrollDNACoriell/Sample_NA12878_58/NA12878_58_BamToFastq_R2_001.fastq.gz -ids tmp_reads.txt -out tmp_L001_R2_001.fastq.gz
-	php /mnt/storage2/megSAP/pipeline/src/NGS/mapping_bwa.php -in1 tmp_L001_R1_001.fastq.gz -in2 tmp_L001_R2_001.fastq.gz -out vc_freebayes_in.bam
+	php /mnt/storage2/megSAP/pipeline/src/Tools/mapping_bwa.php -in1 tmp_L001_R1_001.fastq.gz -in2 tmp_L001_R2_001.fastq.gz -out vc_freebayes_in.bam
 	samtools index vc_freebayes_in.bam
 	# creating BED file
 	BedExtend -in /mnt/storage2/megSAP/data/enrichment/ssHAEv7_2021_06_08.bed -n 50 -out tmp_roi_ext.bed

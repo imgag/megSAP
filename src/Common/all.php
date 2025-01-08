@@ -8,11 +8,9 @@ require_once("functions.php");
 require_once("genomics.php");
 
 //classes
-require_once("XMLConstructor.php");
 require_once("ToolBase.php");
 require_once("Matrix.php");
 require_once("db.php");
-require_once("rtf.php");
 
 //basic error_handler for all libraries, reports only E_USER_ERROR
 function basic_error_handler($level, $message, $file, $line, $context="")

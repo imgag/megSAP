@@ -251,7 +251,7 @@ if (in_array("vc", $steps))
 			$args[] = "-threads {$threads}";
 			$args[] = "-analysis_type ".($prefix=="trio" ? "GERMLINE_TRIO" : "GERMLINE_MULTISAMPLE");
 			$args[] = "-mode dragen";
-			$parser->execTool("NGS/merge_gvcf.php", implode(" ", $args));
+			$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
 		}
 		else //no gVCFs > fallback to VC calling with freebayes (with very conservative parameters)
 		{
@@ -265,7 +265,7 @@ if (in_array("vc", $steps))
 			$args[] = "-build ".$sys['build'];
 			$args[] = "-threads $threads";
 			$args[] = "--log ".$parser->getLogFile();
-			$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);
+			$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args), true);
 		}
 
 		//variant calling for mito with special parameters
@@ -283,7 +283,7 @@ if (in_array("vc", $steps))
 			$args[] = "-target $target_mito";
 			$args[] = "-build ".$sys['build'];
 			$args[] = "--log ".$parser->getLogFile();
-			$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args), true);
+			$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args), true);
 		}
 	}
 	
@@ -392,7 +392,7 @@ if (in_array("vc", $steps))
 	$parser->exec("tabix", "-p vcf $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
 
 	//basic annotation
-	$parser->execTool("Pipelines/annotate.php", "-out_name {$prefix} -out_folder $out_folder -system $system -threads $threads -multi");
+	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder $out_folder -system $system -threads $threads -multi");
 
 	//update sample entry 
 	$status_map = array();
@@ -697,7 +697,7 @@ if (in_array("sv", $steps))
 		$manta_args[] = "-target ".$sys['target_file'];
 		if(!$is_wgs) $manta_args[] = "-exome";
 		
-		$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
+		$parser->execTool("Tools/vc_manta.php", implode(" ", $manta_args));
 
 		// Rename Manta evidence file
 		$evidence_bam_files = glob("$manta_evidence_dir/evidence_*.bam");
@@ -822,7 +822,7 @@ if (in_array("sv", $steps))
 if (in_array("db", $steps) && db_is_enabled("NGSD"))
 {
 	//add secondary analysis (if missing)
-	$parser->execTool("NGS/db_import_secondary_analysis.php", "-type 'multi sample' -gsvar {$gsvar}");
+	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'multi sample' -gsvar {$gsvar}");
 }
 
 ?>

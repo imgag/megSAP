@@ -139,7 +139,7 @@ if (in_array("vc", $steps))
 	$args[] = "-threads {$threads}";
 	$args[] = "-analysis_type ".($prefix=="trio" ? "GERMLINE_TRIO" : "GERMLINE_MULTISAMPLE");
 	$args[] = "-mode longread";
-	$parser->execTool("NGS/merge_gvcf.php", implode(" ", $args));
+	$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
 
 	//phasing (WhatsHap)
 	$genome = genome_fasta($sys['build']);
@@ -185,7 +185,7 @@ if (in_array("cn", $steps))
 if (in_array("sv", $steps))
 {
 	//run Sniffles
-	$parser->execTool("NGS/vc_sniffles.php", "-bam  ".implode(" ", $bams)." -out {$sv_vcf_file} -threads {$threads} -build ".$sys['build']);
+	$parser->execTool("Tools/vc_sniffles.php", "-bam  ".implode(" ", $bams)." -out {$sv_vcf_file} -threads {$threads} -build ".$sys['build']);
 }
 
 //annotation
@@ -201,7 +201,7 @@ if (in_array("an", $steps))
 	if (file_exists($vcf_file))
 	{
 		//basic annotation
-		$parser->execTool("Pipelines/annotate.php", "-out_name $prefix -out_folder $out_folder -system $system -threads $threads -multi");
+		$parser->execTool("Tools/annotate.php", "-out_name $prefix -out_folder $out_folder -system $system -threads $threads -multi");
 
 		//update sample entry 
 		update_gsvar_sample_header($gsvar, $status_map);
@@ -361,7 +361,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	$db_conn = DB::getInstance("NGSD", false);
 	
 	//add secondary analysis (if missing)
-	$parser->execTool("NGS/db_import_secondary_analysis.php", "-type 'multi sample' -gsvar {$gsvar}");
+	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'multi sample' -gsvar {$gsvar}");
 }
 
 ?>

@@ -284,12 +284,6 @@ class ToolBase
 			$GLOBALS["path_ini"] = $argv[$arg_index+1];
 			array_splice($argv, $arg_index, 2, array());	
 		}
-		if(in_array("--tdx", $argv))
-		{
-			$filename = $_SERVER['SCRIPT_FILENAME'].".tdx";
-			$this->storeTDX($filename);
-			exit(0);
-		}
 		
 		//log tool start
 		$this->log("START ".$this->name." (version: ".$this->version().")");
@@ -1197,54 +1191,6 @@ class ToolBase
 	function setLogFile($file)
 	{	
 		$this->log_file = $file;
-	}
-	
-	/**
-		@brief Stores a Tool Definition Xml file.
-	*/
-	function storeTDX($filename)
-	{
-		$writer = new XMLConstructor();
-		
-		$writer->openTag("TDX", array("version"=>"1"));
-		$writer->openTag("Tool", array("name"=>$this->name, "version"=>$this->version(), "interpreter"=>"php"));
-		$writer->addTag("Description", array(), $this->description);
-		
-		foreach($this->params as $name => $details)
-		{
-			list($opt, $desc, $type, $add1, $add2, $add3) = $details;
-			
-			//determine tag name
-			$tag = ucfirst(strtolower($type));
-			$tag = strtr($tag, array("_array"=>"List"));
-			if ($opt=="flag") $tag="Flag";
-			
-			//write output
-			$writer->openTag($tag, array("name"=>substr($name, 1)));
-			$writer->addTag("Description", array(), $desc);
-			if ($opt=="opt")
-			{
-				$attr = array();
-				if ($add3!=null && ($type=="string" || $type=="int" || $type=="float" || $type=="enum"))
-				{
-					$attr["defaultValue"] = $add3;
-				}
-				$writer->addTag("Optional", $attr);
-				
-			}
-			if ($type=="enum")
-			{
-				foreach($add1 as $value)
-				{
-					$writer->addTag("Value", array(), $value);
-				}
-			}
-			$writer->closeTag($tag);
-		}
-		$writer->closeTag("Tool");
-		$writer->closeTag("TDX");
-
-		file_put_contents($filename, $writer->output());
 	}
 	
 	///Sort BAM file (optional build parameter to speed-up cram sorting)

@@ -50,7 +50,7 @@
 
     ```bash
     ulimit -n 10000
-    php /mnt/storage2/megSAP/pipeline/src/NGS/copy_ont_run.php \
+    php /mnt/storage2/megSAP/pipeline/src/IMGAG/copy_ont_run.php \
         -run_name <run name> \
         -run_dir <run directory> \
         -bam \

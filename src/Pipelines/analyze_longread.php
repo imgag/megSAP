@@ -184,7 +184,7 @@ if (in_array("ma", $steps))
 		$mapping_minimap_options[] = "-in_fastq " . implode(" ", $fastq_files);
 	}
 	
-	$parser->execTool("NGS/mapping_minimap.php", implode(" ", $mapping_minimap_options));
+	$parser->execTool("Tools/mapping_minimap.php", implode(" ", $mapping_minimap_options));
 
 	// create methylation track
 	if (contains_methylation($used_bam_or_cram, 100, $build))
@@ -195,7 +195,7 @@ if (in_array("ma", $steps))
 		$args[] = "-summary ".$modkit_summary;
 		$args[] = "-threads ".$threads;
 		$args[] = "-build ".$build;
-		$parser->execTool("NGS/vc_modkit.php", implode(" ", $args));
+		$parser->execTool("Tools/vc_modkit.php", implode(" ", $args));
 	}
 
 	//low-coverage report
@@ -383,7 +383,7 @@ if (in_array("vc", $steps))
 	$args[] = "--log ".$parser->getLogFile();
 	$args[] = "-model ".$basecall_model_path;
 	
-	$parser->execTool("NGS/vc_clair.php", implode(" ", $args));	
+	$parser->execTool("Tools/vc_clair.php", implode(" ", $args));	
 
 	//check for truncated VCF file
 	if ($is_wgs) check_for_missing_chromosomes($vcf_file);
@@ -394,7 +394,7 @@ if (in_array("vc", $steps))
 	$params[] = "-name {$name}";
 	$params[] = "-out {$baf_file}";
 	$params[] = "-downsample 100";
-	$parser->execTool("NGS/baf_germline.php", implode(" ", $params));}
+	$parser->execTool("Tools/baf_germline.php", implode(" ", $params));}
 
 //copy-number analysis
 if (in_array("cn", $steps))
@@ -469,7 +469,7 @@ if (in_array("cn", $steps))
 		"-mosaic"
 	);
 	
-	$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
+	$parser->execTool("Tools/vc_clincnv_germline.php", implode(" ", $args), true);
 	
 	//copy results to output folder
 	if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnv_file);
@@ -485,7 +485,7 @@ if (in_array("cn", $steps))
 if (in_array("sv", $steps))
 {
 	//run Sniffles
-	$parser->execTool("NGS/vc_sniffles.php", "-bam {$used_bam_or_cram} -sample_ids {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build}");
+	$parser->execTool("Tools/vc_sniffles.php", "-bam {$used_bam_or_cram} -sample_ids {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build}");
 				
 }
 
@@ -641,14 +641,14 @@ if (in_array("re", $steps))
 {
 	//Repeat-expansion calling using straglr
 	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
-	$parser->execTool("NGS/vc_straglr.php", "-in {$used_bam_or_cram} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
+	$parser->execTool("Tools/vc_straglr.php", "-in {$used_bam_or_cram} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build}");
 }
 
 // methylation calling
 if (in_array("me", $steps))
 {
 	if (!contains_methylation($used_bam_or_cram)) trigger_error("BAM file doesn't contain methylation info! Skipping step 'me'", E_USER_WARNING);
-	else $parser->execTool("NGS/create_methyl_plot.php", "-folder {$folder} -name {$name} -out {$methylation_table} -build {$build} -regions {$methyl_regions} -threads {$threads}");
+	else $parser->execTool("Tools/create_methyl_plot.php", "-folder {$folder} -name {$name} -out {$methylation_table} -build {$build} -regions {$methyl_regions} -threads {$threads}");
 
 }
 
@@ -669,7 +669,7 @@ if (in_array("an", $steps))
 		$args[] = "-threads ".$threads;
 
 		//run annotation pipeline
-		$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
+		$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
 		//check for truncated VCF file
 		if ($is_wgs) check_for_missing_chromosomes($vcf_file_annotated);
@@ -970,7 +970,7 @@ if (in_array("an", $steps))
 	{
 		if (file_exists($cnv_file2))
 		{
-			$parser->execTool("NGS/create_circos_plot.php", "-folder $folder -name $name -build ".$build);
+			$parser->execTool("Tools/create_circos_plot.php", "-folder $folder -name $name -build ".$build);
 		}
 		else
 		{
@@ -987,7 +987,7 @@ if (in_array("an", $steps))
 if (in_array("db", $steps))
 {
 	//import ancestry
-	if(file_exists($ancestry_file)) $parser->execTool("NGS/db_import_ancestry.php", "-id {$name} -in {$ancestry_file}");
+	if(file_exists($ancestry_file)) $parser->execTool("Tools/db_import_ancestry.php", "-id {$name} -in {$ancestry_file}");
 	
 	//import QC
 	$qc_files = array($qc_fastq, $qc_map);
@@ -996,7 +996,7 @@ if (in_array("db", $steps))
 	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_files)." -force", [$folder]);
 	
 	//check gender
-	$parser->execTool("NGS/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
+	$parser->execTool("Tools/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
 	
 
 	if (!$skip_wgs_check)
