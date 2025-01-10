@@ -141,13 +141,13 @@ for($r=0; $r<$regions_table->rows(); ++$r)
     $average_coverage = array_map("floatval", array_slice($result_parts, 3, 3));
 
     $all_data = array_merge($modified[1], $modified[2], $modified["ungrouped"]);
-    $aggregated["all"] = [
-        mean($all_data),
-        stdev($all_data)
-    ];
-
-    $methyl_all_avg[] = number_format($aggregated["all"][0], 2);
-    $methyl_all_std[] = number_format($aggregated["all"][1], 2);
+    $aggregated["all"] = ["nan", "nan"];
+	if (count($all_data)>0)
+	{
+		$aggregated["all"] = [ number_format(mean($all_data),2), number_format(stdev($all_data), 2) ];
+	}
+    $methyl_all_avg[] = $aggregated["all"][0];
+    $methyl_all_std[] = $aggregated["all"][1];
     $methyl_hp1_avg[] = number_format($aggregated[1][0], 2);
     $methyl_hp1_std[] = number_format($aggregated[1][1], 2);
     $methyl_hp2_avg[] = number_format($aggregated[2][0], 2);

@@ -23,7 +23,7 @@ re:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps re
 
 me:
-	# should only print waring since input data doesn't contain methylation
+	# should only print warning since input data doesn't contain methylation
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps me 
 
 an:
