@@ -21,7 +21,7 @@ foreach($tmp as $t)
 	$tool = basename2($t);
 	$tools2path[$tool] = substr($t, strlen($src));
 }
-list($tools_imgag) = exec2("find {$src}IMGAG/ {$src}Auxilary/ -name \"*.php\" -or -name \"*.py\"");
+list($tools_imgag) = exec2("find {$src}IMGAG/ {$src}Auxilary/ {$src}Deprecated/ -name \"*.php\" -or -name \"*.py\"");
 $tools_imgag = array_map('basename2', $tools_imgag);
 
 //(1) find left-over tool tests (tool already deleted)

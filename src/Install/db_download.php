@@ -142,7 +142,7 @@ if (in_array("Clair3", $dbs))
     exec2("tar xzf r941_prom_sup_g5014.tar.gz");
     exec2("rm r941_prom_sup_g5014.tar.gz");
 
-    print "Downloading Clair3 model 'r941_prom_sup_g5014' from 'http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_hac_g360+g422.tar.gz'\n";
+    print "Downloading Clair3 model 'r941_prom_sup_g360+g422' from 'http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_hac_g360+g422.tar.gz'\n";
     exec2("wget http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_hac_g360+g422.tar.gz");
     exec2("tar xzf r941_prom_hac_g360+g422.tar.gz");
     exec2("rm r941_prom_hac_g360+g422.tar.gz");

@@ -81,7 +81,10 @@ if (file_exists($pid_file))
 		sleep(60);
 		
 		//update PID in case another process took over
-		$pid_old = trim(file_get_contents($pid_file));
+		if (file_exists($pid_file))
+		{
+			$pid_old = trim(file_get_contents($pid_file));
+		}
 	}
 }
 if (!file_put_contents($pid_file, getmypid(), LOCK_EX))

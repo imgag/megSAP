@@ -28,7 +28,7 @@ re:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps re -threads 4 --log analyze_longread_fastq_re_$(TIMESTAMP).log
 
 me:
-	# should only print waring since input data doesn't contain methylation
+	# should only print warning since input data doesn't contain methylation
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps me -threads 4 --log analyze_longread_fastq_me_$(TIMESTAMP).log
 
 an:

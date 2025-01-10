@@ -68,7 +68,7 @@
 
 5. Backup raw run data using backup script:
 	```bash
-	sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/Tools/backup_queue.php -mode run -in [run] -email [email]
+	sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/IMGAG/backup_queue.php -mode run -in [run] -email [email]
 	```
 
 6. Delete the run raw data (when all samples are analyzed with passed QC):

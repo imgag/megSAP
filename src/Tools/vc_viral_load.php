@@ -31,7 +31,7 @@ if ($barcode_correction && !isset($viral_bam_raw))
 $viral_genome  = get_path("data_folder")."/genomes/{$build_viral}.fa";
 if (file_exists($viral_genome) && !file_exists($viral_genome.".bwt.2bit.64"))
 {
-	$parser->execTool("Tools/index_genome.php", "-in {$viral_genome}");
+	$parser->execTool("Tools/Install.php", "-in {$viral_genome}");
 }
 
 //copy genome to local data folder
