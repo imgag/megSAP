@@ -236,7 +236,7 @@ if (in_array("ma", $steps))
 	if($use_dragen) $args[] = "-use_dragen";
 	if($somatic) $args[] = "-somatic_custom_map";
 	$used_bam_or_cram = $parser->tempFolder("local_bam")."/".$name.".bam"; //local copy of BAM file to reduce IO over network when mapping is done 
-	$parser->execTool("Pipelines/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name -local_bam $used_bam_or_cram ".implode(" ", $args)." -threads $threads");
+	$parser->execTool("Tools/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name -local_bam $used_bam_or_cram ".implode(" ", $args)." -threads $threads");
 	
 	//low-coverage report
 	if ($has_roi && !$is_wgs_shallow)
@@ -468,7 +468,7 @@ if (in_array("vc", $steps))
 				$args[] = "-min_af ".$min_af;
 				$args[] = "-min_mq ".$min_mq;
 				$args[] = "-min_bq ".$min_bq;
-				$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args));
+				$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
 			}
 		}
 		
@@ -519,7 +519,7 @@ if (in_array("vc", $steps))
 				$args[] = "-max_gnomad_af 1.00";
 				$args[] = "-min_obs 2";
 				$args[] = "-min_mq 20";
-				$parser->execTool("NGS/vc_mosaic.php", implode(" ", $args));
+				$parser->execTool("Tools/vc_mosaic.php", implode(" ", $args));
 			}
 		
 			if($only_mito_in_target_region) 
@@ -586,7 +586,7 @@ if (in_array("vc", $steps))
 				$args[] = "-min_af ".$min_af;
 				$args[] = "-min_mq 0";
 				$args[] = "-min_bq ".$min_bq;
-				$parser->execTool("NGS/vc_freebayes.php", implode(" ", $args));
+				$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
 			
 				//unzip
 				$tmp_low_mappability2 = $parser->tempFile("_low_mappability.vcf");
@@ -612,7 +612,7 @@ if (in_array("vc", $steps))
 			$args[] = "-build ".$build;
 			$args[] = "-min_af 0.03";
 			$args[] = "-min_obs ".($is_wgs ?  "1" : "2");	
-			$parser->execTool("NGS/vc_mosaic.php", implode(" ", $args));
+			$parser->execTool("Tools/vc_mosaic.php", implode(" ", $args));
 			
 			//add to main variant list
 			$tmp2 = $parser->tempFile("_merged_mosaic.vcf");
@@ -636,7 +636,7 @@ if (in_array("vc", $steps))
 		{
 			$params[] = "-downsample 100";
 		}
-		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
+		$parser->execTool("Tools/baf_germline.php", implode(" ", $params));
 	}
 	else
 	{
@@ -651,7 +651,7 @@ if (in_array("vc", $steps))
 	$args[] = "--log ".$parser->getLogFile();
 	$args[] = "-threads ".$threads;
 	if($rna_sample != "") $args[] = "-rna_sample ".$rna_sample;
-	$parser->execTool("Pipelines/annotate.php", implode(" ", $args));
+	$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
 	//ROH detection
 	if ($is_wes || $is_wgs)
@@ -819,7 +819,7 @@ if (in_array("cn", $steps))
 			}
 		}
 		
-		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
+		$parser->execTool("Tools/vc_clincnv_germline.php", implode(" ", $args), true);
 		
 		//copy results to output folder
 		if (file_exists($cnv_out)) $parser->moveFile($cnv_out, $cnvfile);
@@ -945,7 +945,7 @@ if (in_array("sv", $steps))
 			if($has_roi) $manta_args[] = "-target ".$sys['target_file'];
 			if(!$is_wgs) $manta_args[] = "-exome";
 			
-			$parser->execTool("NGS/vc_manta.php", implode(" ", $manta_args));
+			$parser->execTool("Tools/vc_manta.php", implode(" ", $manta_args));
 
 			//rename Manta evidence file
 			$parser->moveFile("$manta_evidence_dir/evidence_0.$name.bam", "$manta_evidence_dir/{$name}_manta_evidence.bam");
@@ -1015,8 +1015,11 @@ if (in_array("sv", $steps))
 			}
 		}
 
-		//annotate class 4 and 5 pathogenic SVs
-		$parser->execApptainer("ngs-bits", "NGSDAnnotateSV", "-in {$bedpe_out} -out {$bedpe_out}", [$folder]);
+		//annotate class 4 and 5 pathogenic SVs	
+		if (db_is_enabled("NGSD"))
+		{
+			$parser->execApptainer("ngs-bits", "NGSDAnnotateSV", "-in {$bedpe_out} -out {$bedpe_out}", [$folder]);
+		}
 	}
 	else
 	{
@@ -1066,7 +1069,7 @@ if (in_array("sv", $steps))
 if (in_array("re", $steps))
 {
 	//perform repeat expansion analysis (only for WGS/WES):
-	$parser->execTool("NGS/vc_expansionhunter.php", "-in $used_bam_or_cram -out $expansion_hunter_file -build ".$build." -pid $name -threads {$threads}");
+	$parser->execTool("Tools/vc_expansionhunter.php", "-in $used_bam_or_cram -out $expansion_hunter_file -build ".$build." -pid $name -threads {$threads}");
 }
 
 // create Circos plot - if small variant, CNV or SV calling was done
@@ -1078,7 +1081,7 @@ if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
 		{
 			if (file_exists($cnvfile2))
 			{
-				$parser->execTool("NGS/create_circos_plot.php", "-folder $folder -name $name -build ".$build);
+				$parser->execTool("Tools/create_circos_plot.php", "-folder $folder -name $name -build ".$build);
 			}
 			else
 			{
@@ -1212,7 +1215,7 @@ if (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps))
 if (in_array("db", $steps))
 {
 	//import ancestry
-	if(file_exists($ancestry_file)) $parser->execTool("NGS/db_import_ancestry.php", "-id {$name} -in {$ancestry_file}");
+	if(file_exists($ancestry_file)) $parser->execTool("Tools/db_import_ancestry.php", "-id {$name} -in {$ancestry_file}");
 	
 	//import QC
 	$qc_files = array($qc_fastq, $qc_map);
@@ -1221,7 +1224,7 @@ if (in_array("db", $steps))
 	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_files)." -force", [$folder]);
 	
 	//check gender
-	if(!$somatic) $parser->execTool("NGS/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
+	if(!$somatic) $parser->execTool("Tools/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
 	
 	//import variants
 	$args = ["-ps {$name}"];

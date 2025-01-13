@@ -10,7 +10,7 @@ init_ngsd($name);
 
 //test
 $log_file = output_folder()."/{$name}_out1.log";
-check_exec("php ".src_folder()."/NGS/{$name}.php -in ".data_folder()."/{$name}.tsv -db NGSD_TEST --log $log_file");
+check_exec("php ".src_folder()."/Auxilary/{$name}.php -in ".data_folder()."/{$name}.tsv -db NGSD_TEST --log $log_file");
 
 end_test();
 

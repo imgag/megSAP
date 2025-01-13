@@ -50,7 +50,7 @@
 
     ```bash
     ulimit -n 10000
-    php /mnt/storage2/megSAP/pipeline/src/NGS/copy_ont_run.php \
+    php /mnt/storage2/megSAP/pipeline/src/IMGAG/copy_ont_run.php \
         -run_name <run name> \
         -run_dir <run directory> \
         -bam \
@@ -68,7 +68,7 @@
 
 5. Backup raw run data using backup script:
 	```bash
-	sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/Tools/backup_queue.php -mode run -in [run] -email [email]
+	sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/IMGAG/backup_queue.php -mode run -in [run] -email [email]
 	```
 
 6. Delete the run raw data (when all samples are analyzed with passed QC):

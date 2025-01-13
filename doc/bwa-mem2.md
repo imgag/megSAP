@@ -15,7 +15,7 @@ To map FastQ files megSAP can also use `bwa-mem2`. It is faster than the origina
 
 Or run the genome index script:
 
-    > php src/Tools/index_genome.php -in reference.fa
+    > php src/Install/index_genome.php -in reference.fa
 
 
 **Note:** Since the index generation of `bwa-mem2` is automatically adapted to the available CPU features the index should be created by the same machine which is used for mapping.

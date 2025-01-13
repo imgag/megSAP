@@ -10,15 +10,15 @@ We are providing instructions for Ubuntu 20.04 and RHEL 8.3 here. However this s
 
 Ubuntu 20.04
 
-	> sudo apt-get install -y rsync zlib1g bzip2 php7.4-cli php7.4-xml php7.4-mysql make unzip wget git gnumeric tabix numdiff pigz ghostscript
+	> sudo apt-get install -y rsync zlib1g bzip2 php7.4-cli php7.4-xml php7.4-mysql make unzip wget git gnumeric tabix pigz ghostscript
     
 Ubuntu 22.04
 
-	> sudo apt-get install -y rsync zlib1g bzip2 php8.1-cli php8.1-xml php8.1-mysql make unzip wget git gnumeric tabix numdiff pigz ghostscript
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.1-cli php8.1-xml php8.1-mysql make unzip wget git gnumeric tabix pigz ghostscript
 
 Ubuntu 24.04
 
-	> sudo apt-get install -y rsync zlib1g bzip2 php8.2-cli php8.2-xml php8.2-mysql make unzip wget git gnumeric tabix numdiff pigz ghostscript
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.2-cli php8.2-xml php8.2-mysql make unzip wget git gnumeric tabix pigz ghostscript
 
     
 ## Install Apptainer
@@ -67,7 +67,7 @@ Next, we need to download and index the reference genome:
 Finally, we need to download and convert some open-source databases for annotations:
 
 	> ./download_dbs.sh
-	> php ../src/Tools/db_download.php # DB downloads that require apptainer containers
+	> php ../src/Install/db_download.php # DB downloads that require apptainer containers
 
 **Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the `download_dbs.sh` script.
 

@@ -46,8 +46,8 @@ case1_somatic:
 
 case1_diff:
 	php ../compare_bed.php expected_case1/DX000001_01_stat_lowcov.bed out_case1/DX000001_01_stat_lowcov.bed
-	php ../compare_variants.php -in1 expected_case1/DX000001_01.GSvar -in2 out_case1/DX000001_01.GSvar
-	numdiff expected_case1/DX000001_01_viral.tsv Sample_DX000001_01/DX000001_01_viral.tsv --absolute-tolerance 0.005
+	php ../compare_variants.php -in1 expected_case1/DX000001_01.GSvar -in2 out_case1/DX000001_01.GSvar -add tumor_af,tumor_dp
+	diff expected_case1/DX000001_01_viral.tsv Sample_DX000001_01/DX000001_01_viral.tsv
 
 # tumor-normal (strelka), testing without ClinCNV (GC content too low in input files reduced to one chr)
 case2: case2_analyze case2_somatic case2_diff
@@ -85,14 +85,14 @@ case2_somatic:
 
 case2_diff:
 	# variants
-	php ../compare_variants.php -in1 expected_case2/GS110168_03-GS110169_03.GSvar -in2 out_case2/GS110168_03-GS110169_03.GSvar
+	php ../compare_variants.php -in1 expected_case2/GS110168_03-GS110169_03.GSvar -in2 out_case2/GS110168_03-GS110169_03.GSvar -add tumor_af,tumor_dp,normal_af,normal_dp,rna_ref_tpm
 	php ../compare_bed.php expected_case2/GS110168_03-GS110169_03_stat_lowcov.bed out_case2/GS110168_03-GS110169_03_stat_lowcov.bed
 	# qcML files
 	php ../compare_qcml_xml.php expected_case2/GS110168_03-GS110169_03_stats_som.qcML out_case2/GS110168_03-GS110169_03_stats_som.qcML
 	# MSI file
-	numdiff expected_case2/GS110168_03-GS110169_03_msi.tsv out_case2/GS110168_03-GS110169_03_msi.tsv --absolute-tolerance 0.01
+	diff expected_case2/GS110168_03-GS110169_03_msi.tsv out_case2/GS110168_03-GS110169_03_msi.tsv
 	# bafs
-	numdiff expected_case2/GS110168_03-GS110169_03_bafs.igv out_case2/GS110168_03-GS110169_03_bafs.igv --absolute-tolerance 0.02
+	diff expected_case2/GS110168_03-GS110169_03_bafs.igv out_case2/GS110168_03-GS110169_03_bafs.igv
 	# cfDNA candidates
 	diff --ignore-matching-lines '^##' expected_case2/GS110168_03-GS110169_03_cfDNA_candidates_monitoring.vcf out_case2/GS110168_03-GS110169_03_cfDNA_candidates/monitoring.vcf
 	diff expected_case2/GS110168_03-GS110169_03_cfDNA_candidates_monitoring.tsv out_case2/GS110168_03-GS110169_03_cfDNA_candidates/monitoring.tsv

@@ -223,7 +223,7 @@ if (in_array("ma", $steps))
 		//skip duplicate marking if requested, or for UMIs (will be handled later)
 		if ($skip_dedup || $umi) $args[] = "-skip_dedup";
 
-		$parser->execTool("NGS/mapping_star.php", implode(" ", $args));
+		$parser->execTool("Tools/mapping_star.php", implode(" ", $args));
 
 		if ($umi && !$skip_dedup)
 		{
@@ -309,17 +309,17 @@ if (in_array("rc", $steps))
 	]);
 
 	// gene-level counting
-	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args));
+	$parser->execTool("Tools/rc_featurecounts.php", implode(" ", $args));
 
 	// exon-level counting
 	$args_exon = array_merge($args_common, [
 		"-exon_level",
 		"-out", $counts_exon_raw
 	]);
-	$parser->execTool("NGS/rc_featurecounts.php", implode(" ", $args_exon));
+	$parser->execTool("Tools/rc_featurecounts.php", implode(" ", $args_exon));
 
 	// read count normalization
-	$parser->execTool("NGS/rc_normalize.php", "-in $counts_raw -out $counts_normalized -in_exon $counts_exon_raw -out_exon $counts_exon_normalized");
+	$parser->execTool("Tools/rc_normalize.php", "-in $counts_raw -out $counts_normalized -in_exon $counts_exon_raw -out_exon $counts_exon_normalized");
 }
 
 //annotate
@@ -336,9 +336,9 @@ $reference_tissues = array();
 if (in_array("an", $steps))
 {
 	//annotate gene-level read counts
-	$parser->execTool("NGS/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtf_file $gtf_file -annotationIds gene_name,gene_biotype");
+	$parser->execTool("Tools/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtf_file $gtf_file -annotationIds gene_name,gene_biotype");
 	//annotate exon-level read counts
-	$parser->execTool("NGS/rc_annotate.php", "-in $counts_exon_normalized -out $counts_exon_normalized -gtf_file $gtf_file -annotationIds gene_name,gene_biotype");
+	$parser->execTool("Tools/rc_annotate.php", "-in $counts_exon_normalized -out $counts_exon_normalized -gtf_file $gtf_file -annotationIds gene_name,gene_biotype");
 
 	//expression value based on cohort
 	if (db_is_enabled("NGSD"))
@@ -477,12 +477,12 @@ if (in_array("plt", $steps))
 		];
 
 		$files = [
-			repository_basedir()."/src/NGS/rc_plot_expr.py",
+			repository_basedir()."/src/Tools/rc_plot_expr.py",
 			dirname($genelists),
 			$prefix			
 		];
 
-		$parser->execApptainer("python", "python3", repository_basedir()."/src/NGS/rc_plot_expr.py ".implode(" ", array_merge($args, $args_extra)), $files);
+		$parser->execApptainer("python", "python3", repository_basedir()."/src/Tools/rc_plot_expr.py ".implode(" ", array_merge($args, $args_extra)), $files);
 	}
 }
 
@@ -506,7 +506,7 @@ if (in_array("fu",$steps))
 		"-build", $build,
 		"--log", $parser->getLogFile()
 	];
-	$parser->execTool("NGS/vc_arriba.php", implode(" ", $arriba_args));
+	$parser->execTool("Tools/vc_arriba.php", implode(" ", $arriba_args));
 }
 
 //import to database
@@ -514,7 +514,7 @@ if (in_array("db", $steps))
 {
 	if (! $skip_gender_check)
 	{
-		$parser->execTool("NGS/db_check_gender.php", "-in $final_bam -pid $name --log ".$parser->getLogFile());
+		$parser->execTool("Tools/db_check_gender.php", "-in $final_bam -pid $name --log ".$parser->getLogFile());
 	}
 	
 
@@ -574,11 +574,11 @@ if (! $skip_dna_reannotation && db_is_enabled("NGSD") && (in_array("ma", $steps)
 				$normal_ps_id = $rps["normal_id"];
 				$normal_infos = $db->executeQuery("SELECT s.name, ps.process_id FROM processed_sample as ps, sample as s WHERE ps.id = '$normal_ps_id' and ps.sample_id = s.id")[0];
 				$normal_ps_name = $normal_infos["name"]."_0".$normal_infos["process_id"];
-				$output = $parser->execTool("NGS/db_queue_analysis.php", "-user unknown -type 'somatic' -samples $rps_name $normal_ps_name -info tumor normal -args '-steps an_rna'", false);
+				$output = $parser->execTool("Tools/db_queue_analysis.php", "-user unknown -type 'somatic' -samples $rps_name $normal_ps_name -info tumor normal -args '-steps an_rna'", false);
 			}
 			else
 			{
-				$output = $parser->execTool("NGS/db_queue_analysis.php", "-user unknown -type 'single sample' -samples $rps_name -args '-steps vc -annotation_only'", false);
+				$output = $parser->execTool("Tools/db_queue_analysis.php", "-user unknown -type 'single sample' -samples $rps_name -args '-steps vc -annotation_only'", false);
 			}
 			
 			if (count($output[1])>0)

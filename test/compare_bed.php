@@ -27,10 +27,12 @@ file_put_contents($file2, load_bed_coords($argv[2]));
 list($stdout, $stderr, $code) = exec2("diff -b $file1 $file2", false);
 foreach($stdout as $line)
 {
+	if ($line=="") continue;
 	print $line."\n";
 }
 foreach($stderr as $line)
 {
+	if ($line=="") continue;
 	print $line."\n";
 }
 

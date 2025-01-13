@@ -10,7 +10,7 @@ $out_file_vcf = output_folder().$name."_out1.vcf";
 $out_file_json = output_folder().$name."_out1.json";
 $out_file_svg_prefix = output_folder()."repeat_expansions/{$name}_out1_";
 $log_file1 = output_folder().$name."_test1_out.log";
-check_exec("php ".src_folder()."/NGS/".$name.".php -in ".data_folder().$name."_in1.bam -out $out_file_vcf --log {$log_file1}");
+check_exec("php ".src_folder()."/Tools/".$name.".php -in ".data_folder().$name."_in1.bam -out $out_file_vcf --log {$log_file1}");
 remove_lines_containing($out_file_vcf, array("##filedate=", "##reference="));
 check_file($out_file_vcf, data_folder().$name."_out1.vcf");
 check_file($out_file_json, data_folder().$name."_out1.json");

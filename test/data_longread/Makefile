@@ -1,38 +1,43 @@
+TIMESTAMP=$(shell date +"%Y-%m-%d_%H-%M-%S")
 
-all: clean link map vc cn sv re me an diff bam_analysis diff2 bam_analysis_single_steps diff2
+all: clean clean_logs link bam_analysis diff2
 
 clean:
-	rm -rf *.fastq.gz *.log *.txt *.GSvar *.gvcf.gz *.gvcf.gz.tbi *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe clair_temp repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_rohs.tsv *_ancestry.tsv  *_methylation.tsv
+	rm -rf *.fastq.gz *.txt *.GSvar *.gvcf.gz *.gvcf.gz.tbi *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe clair_temp repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_rohs.tsv *_ancestry.tsv  *_methylation.tsv methylartist *_modkit_track.bed.gz *_modkit_track.bed.gz.tbi *_prs.tsv *_repeats.tsv *_repeats.vcf *_var_modcall.vcf
+
+clean_logs:
+	rm -rf *.log
 
 link:
 	php ../link_test_data.php 23014LRa023L2_01_chr1_longread.fastq.gz
 
+# 1st test with FastQ input and performing each step separate (not performed on default)
 map:
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps ma -threads 1
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps ma -threads 4 --log analyze_longread_fastq_ma_$(TIMESTAMP).log
 	
 vc:
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps vc 
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps vc -threads 4 --log analyze_longread_fastq_vc_$(TIMESTAMP).log
 	
 cn:
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps cn
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps cn -threads 4 --log analyze_longread_fastq_cn_$(TIMESTAMP).log
 
 sv:
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps sv
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps sv -threads 4 --log analyze_longread_fastq_sv_$(TIMESTAMP).log
 
 re:
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps re
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps re -threads 4 --log analyze_longread_fastq_re_$(TIMESTAMP).log
 
 me:
-	# should only print waring since input data doesn't contain methylation
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps me 
+	# should only print warning since input data doesn't contain methylation
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps me -threads 4 --log analyze_longread_fastq_me_$(TIMESTAMP).log
 
 an:
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps an
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps an -threads 4 --log analyze_longread_fastq_an_$(TIMESTAMP).log
 	# remove gene annotation
 	cut -f1-22 23014LRa023L2_01_var_structural_variants.bedpe > 23014LRa023L2_01_var_structural_variants_cut.bedpe
 
 diff:
-	php ../compare_variants.php -in1 23014LRa023L2_01.GSvar.out -in2 23014LRa023L2_01.GSvar
+	php ../compare_variants.php -in1 23014LRa023L2_01.GSvar.out -in2 23014LRa023L2_01.GSvar -add 23014LRa023L2_01
 	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_fastq.qcML.out 23014LRa023L2_01_stats_fastq.qcML
 	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_map.qcML.out 23014LRa023L2_01_stats_map.qcML
 	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_vc.qcML.out 23014LRa023L2_01_stats_vc.qcML 1.01
@@ -43,26 +48,26 @@ diff:
 	diff 23014LRa023L2_01_phasing_track.bed.out 23014LRa023L2_01_phasing_track.bed
 	diff 23014LRa023L2_01_bafs.igv.out 23014LRa023L2_01_bafs.igv
 
-# 2nd test with BAM input
+# 2nd test with BAM input (default test)
 bam_analysis: clean
 	php ../link_test_data.php 23014LRa023L2_02.mod.unmapped.bam
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma,vc,cn,sv,re,me,an
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma,vc,cn,sv,re,me,an -threads 4 --log analyze_longread_bam_all_$(TIMESTAMP).log
 	cut -f1-22 23014LRa023L2_02_var_structural_variants.bedpe > 23014LRa023L2_02_var_structural_variants_cut.bedpe
 
-# 3rd test with each step seperate
+# 3rd test with each step separate (not performed on default)
 bam_analysis_single_steps: clean
 	php ../link_test_data.php 23014LRa023L2_02.mod.unmapped.bam
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps vc
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps cn
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps sv
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps re
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps me
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps an
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma -threads 4 --log analyze_longread_bam_ma_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps vc -threads 4 --log analyze_longread_bam_vc_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps cn -threads 4 --log analyze_longread_bam_cn_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps sv -threads 4 --log analyze_longread_bam_sv_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps re -threads 4 --log analyze_longread_bam_re_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps me -threads 4 --log analyze_longread_bam_me_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps an -threads 4 --log analyze_longread_bam_an_$(TIMESTAMP).log
 	cut -f1-22 23014LRa023L2_02_var_structural_variants.bedpe > 23014LRa023L2_02_var_structural_variants_cut.bedpe
 
 diff2:
-	php ../compare_variants.php -in1 23014LRa023L2_02.GSvar.out -in2 23014LRa023L2_02.GSvar
+	php ../compare_variants.php -in1 23014LRa023L2_02.GSvar.out -in2 23014LRa023L2_02.GSvar -add 23014LRa023L2_02
 	php ../compare_qcml_xml.php 23014LRa023L2_02_stats_fastq.qcML.out 23014LRa023L2_02_stats_fastq.qcML
 	php ../compare_qcml_xml.php 23014LRa023L2_02_stats_map.qcML.out 23014LRa023L2_02_stats_map.qcML
 	php ../compare_qcml_xml.php 23014LRa023L2_02_stats_vc.qcML.out 23014LRa023L2_02_stats_vc.qcML

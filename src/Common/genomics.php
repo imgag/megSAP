@@ -1528,7 +1528,7 @@ function somatic_report_config(&$db_conn, $t_ps, $n_ps, $error_if_not_found=fals
 }
 
 //Returns cytobands of given genomic range as array
-function cytoBands($chr, $start, $end)
+function cytobands($chr, $start, $end)
 {
 	$handle = fopen2(repository_basedir()."/data/misc/cytoBand.txt", "r");
 	

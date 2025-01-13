@@ -20,7 +20,7 @@ cn:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps cn
 
 diff:
-	php ../compare_variants.php -in1 NA12878_03.GSvar.out -in2 NA12878_03.GSvar
+	php ../compare_variants.php -in1 NA12878_03.GSvar.out -in2 NA12878_03.GSvar -add NA12878_03
 	php ../compare_qcml_xml.php NA12878_03_stats_fastq.qcML.out NA12878_03_stats_fastq.qcML
 	php ../compare_qcml_xml.php NA12878_03_stats_map.qcML.out NA12878_03_stats_map.qcML
 	php ../compare_qcml_xml.php NA12878_03_stats_vc.qcML.out NA12878_03_stats_vc.qcML

@@ -15,11 +15,11 @@ mkdir(output_folder()."backup");
 mkdir(output_folder()."restore");
 
 //test 1 - try to backup NovaSeqX run with 2 analysis folder (should fail)
-check_exec("php ".src_folder()."/Tools/{$name}.php -in ".output_folder()."20230823_LH00240_0003_AFCID0001_00123 -out_folder ".output_folder()."backup -test --log ".output_folder()."test1.log", FALSE);
+check_exec("php ".src_folder()."/IMGAG/{$name}.php -in ".output_folder()."20230823_LH00240_0003_AFCID0001_00123 -out_folder ".output_folder()."backup -test --log ".output_folder()."test1.log", FALSE);
 
 //test 2 - remove 2nd analysis folder  backup NovaSeqX run 
 exec("rm -d ".output_folder()."20230823_LH00240_0003_AFCID0001_00123/Analysis/2");
-check_exec("php ".src_folder()."/Tools/{$name}.php -in ".output_folder()."20230823_LH00240_0003_AFCID0001_00123 -out_folder ".output_folder()."backup -test --log ".output_folder()."test2.log", TRUE);
+check_exec("php ".src_folder()."/IMGAG/{$name}.php -in ".output_folder()."20230823_LH00240_0003_AFCID0001_00123 -out_folder ".output_folder()."backup -test --log ".output_folder()."test2.log", TRUE);
 check_exec("tar xzf ".output_folder()."backup/230823_LH00240_0003_AFCID0001_00123.tar.gz -C ".output_folder()."restore/");
 //check files
 $ref_folder = output_folder()."20230823_LH00240_0003_AFCID0001_00123/Analysis/3/Data/BCLConvert/fastq/";
@@ -66,7 +66,7 @@ check(file_exists("{$restored_folder}C2.1/L001_2.cbcl"), false);
 exec("rm ".output_folder()."backup/230823_LH00240_0003_AFCID0001_00123.tar.gz");
 exec("rm -r ".output_folder()."restore/20230823_LH00240_0003_AFCID0001_00123");
 exec("cp ".data_folder().$name."_in_runparameters1.xml ".output_folder()."20230823_LH00240_0003_AFCID0001_00123/RunParameters.xml"); //replace RunParameters.xml
-check_exec("php ".src_folder()."/Tools/{$name}.php -in ".output_folder()."20230823_LH00240_0003_AFCID0001_00123 -out_folder ".output_folder()."backup -test --log ".output_folder()."test3.log", TRUE);
+check_exec("php ".src_folder()."/IMGAG/{$name}.php -in ".output_folder()."20230823_LH00240_0003_AFCID0001_00123 -out_folder ".output_folder()."backup -test --log ".output_folder()."test3.log", TRUE);
 check_exec("tar xzf ".output_folder()."backup/230823_LH00240_0003_AFCID0001_00123.tar.gz -C ".output_folder()."restore/");
 
 //check files
@@ -97,7 +97,7 @@ check(file_exists("{$restored_folder}Sample_DX181278_05/DX181278_05_S5_L007_R2_0
 
 //test4 - NovaSeq 6000 run without date prefix
 exec("mv ".output_folder()."20230823_LH00240_0003_AFCID0001_00123 ".output_folder()."LH00240_0003_AFCID0001_00123");
-check_exec("php ".src_folder()."/Tools/{$name}.php -in ".output_folder()."LH00240_0003_AFCID0001_00123 -out_folder ".output_folder()."backup -test --log ".output_folder()."test4.log", TRUE);
+check_exec("php ".src_folder()."/IMGAG/{$name}.php -in ".output_folder()."LH00240_0003_AFCID0001_00123 -out_folder ".output_folder()."backup -test --log ".output_folder()."test4.log", TRUE);
 check_exec("tar xzf ".output_folder()."backup/".date("ymd")."_LH00240_0003_AFCID0001_00123.tar.gz -C ".output_folder()."restore/");
 
 //check files

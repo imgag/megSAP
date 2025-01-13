@@ -352,10 +352,10 @@ if (!$single_sample)
 if (in_array("vc", $steps))
 {
 	//get HLA types
-	$parser->execTool("NGS/hla_genotyper.php", "-bam $t_bam -name $t_id -out ".$hla_file_tumor);
+	$parser->execTool("Tools/hla_genotyper.php", "-bam $t_bam -name $t_id -out ".$hla_file_tumor);
 	if(!$single_sample)
 	{
-		$parser->execTool("NGS/hla_genotyper.php", "-bam $n_bam -name $n_id -out " . $hla_file_normal);
+		$parser->execTool("Tools/hla_genotyper.php", "-bam $n_bam -name $n_id -out " . $hla_file_normal);
 	}
 	
 	// structural variant calling
@@ -388,7 +388,7 @@ if (in_array("vc", $steps))
 		{
 			$args_manta[] = "-target {$roi}";
 		}
-		$parser->execTool("NGS/vc_manta.php", implode(" ", $args_manta));
+		$parser->execTool("Tools/vc_manta.php", implode(" ", $args_manta));
 		
 		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe", [$manta_sv], [dirname($manta_sv_bedpe)]);
 		if(!$single_sample)
@@ -448,7 +448,7 @@ if (in_array("vc", $steps))
 			$args[] = "-is_targeted";
 		}
 		
-		$cmd = "php ".realpath(repository_basedir())."/src/NGS/vc_dragen_somatic.php ".implode(" ", $args);
+		$cmd = "php ".realpath(repository_basedir())."/src/Tools/vc_dragen_somatic.php ".implode(" ", $args);
 		
 		// submit GridEngine job to dragen queue
 		$dragen_queues = explode(",", get_path("queues_dragen"));
@@ -551,7 +551,7 @@ if (in_array("vc", $steps))
 		$args[] = "-out {$variants}";
 		$args[] = "-build ".$sys['build'];
 		$args[] = "-target ".$roi;
-		$parser->execTool("NGS/an_filter_dragen_somatic.php", implode(" ", $args));
+		$parser->execTool("Tools/an_filter_dragen_somatic.php", implode(" ", $args));
 		
 		
 		if (is_file($dragen_output_svs))
@@ -592,7 +592,7 @@ if (in_array("vc", $steps))
 	{
 		if ($single_sample)
 		{
-			$parser->execTool("NGS/vc_varscan2.php", "-bam $t_bam -out $variants -build " .$sys['build']. " -target ". $roi. " -name $t_id -min_af $min_af");
+			$parser->execTool("Tools/vc_varscan2.php", "-bam $t_bam -out $variants -build " .$sys['build']. " -target ". $roi. " -name $t_id -min_af $min_af");
 			$parser->exec("tabix", "-f -p vcf $variants", true);
 		}
 		else
@@ -616,7 +616,7 @@ if (in_array("vc", $steps))
 			{
 				$args_strelka[] = "-smallIndels {$manta_indels}";
 			}
-			$parser->execTool("NGS/vc_strelka2.php", implode(" ", $args_strelka));
+			$parser->execTool("Tools/vc_strelka2.php", implode(" ", $args_strelka));
 		}
 	}
 
@@ -634,7 +634,7 @@ if (in_array("vc", $steps))
 			$baf_args[] = "-downsample 100";
 		}
 		
-		$parser->execTool("NGS/baf_germline.php", implode(" ", $params));
+		$parser->execTool("Tools/baf_germline.php", implode(" ", $params));
 	}
 	else
 	{
@@ -654,7 +654,7 @@ if (in_array("vc", $steps))
 				$baf_args[] = "-downsample 100";
 			}
 			
-			$parser->execTool("NGS/baf_somatic.php", implode(" ", $baf_args));
+			$parser->execTool("Tools/baf_somatic.php", implode(" ", $baf_args));
 		}
 		else
 		{
@@ -667,7 +667,7 @@ if (in_array("vc", $steps))
 		$snv_signatures_out = $out_folder."/snv_signatures/";
 		$tmp_variants = $parser->tempFile(".vcf", "snv_signatures_");
 		$parser->exec("bgzip","-c -d -@ {$threads} $variants > {$tmp_variants}", true);
-		$parser->exec("php ".repository_basedir()."/src/NGS/extract_signatures.php", "-in {$tmp_variants} -mode snv -out {$snv_signatures_out} -reference GRCh38 -threads {$threads}", true);
+		$parser->exec("php ".repository_basedir()."/src/Tools/extract_signatures.php", "-in {$tmp_variants} -mode snv -out {$snv_signatures_out} -reference GRCh38 -threads {$threads}", true);
 	}
 }
 
@@ -703,7 +703,7 @@ if (in_array("vi", $steps))
 		{
 			$vc_viral_args[] = "-barcode_correction";
 		}
-		$parser->execTool("NGS/vc_viral_load.php", implode(" ", $vc_viral_args));
+		$parser->execTool("Tools/vc_viral_load.php", implode(" ", $vc_viral_args));
 	}
 }
 
@@ -873,7 +873,7 @@ if(in_array("cn",$steps))
 			$args[] = "-baf_folder {$baf_folder}";
 		}
 		$args[] = "--log ".$parser->getLogFile();
-		$parser->execTool("NGS/vc_clincnv_germline.php", implode(" ", $args), true);
+		$parser->execTool("Tools/vc_clincnv_germline.php", implode(" ", $args), true);
 
 		// annotate CNV file
 		$repository_basedir = repository_basedir();
@@ -1008,10 +1008,10 @@ if(in_array("cn",$steps))
 				$args_clincnv[] = "-purityStep $cnv_wgs_purity_step";
 			}
 			
-			$parser->execTool("NGS/vc_clincnv_somatic.php",implode(" ",$args_clincnv));
+			$parser->execTool("Tools/vc_clincnv_somatic.php",implode(" ",$args_clincnv));
 			
 			//Annotate cytoband and data from network of cancer genes
-			$parser->execTool("NGS/an_somatic_cnvs.php","-cnv_in $som_clincnv -out $som_clincnv -include_ncg -include_cytoband");
+			$parser->execTool("Tools/an_somatic_cnvs.php","-cnv_in $som_clincnv -out $som_clincnv -include_ncg -include_cytoband");
 		}
 		else
 		{
@@ -1024,13 +1024,13 @@ if(in_array("cn",$steps))
 	{
 		if (!$single_sample && !$skip_HRD)
 		{
-			$parser->execTool("NGS/an_scarHRD.php" , "-cnvs {$som_clincnv} -tumor {$t_id} -normal {$n_id} -out_folder {$out_folder}");
+			$parser->execTool("Tools/an_scarHRD.php" , "-cnvs {$som_clincnv} -tumor {$t_id} -normal {$n_id} -out_folder {$out_folder}");
 		}
 		
 		if(!$single_sample && !$skip_signatures)
 		{
 			$cnv_signatures_out = $out_folder."/cnv_signatures/";
-			$parser->exec("php ".repository_basedir()."/src/NGS/extract_signatures.php", "-in {$som_clincnv} -mode cnv -outFolder {$cnv_signatures_out} -reference GRCh38 -threads {$threads}", true);
+			$parser->exec("php ".repository_basedir()."/src/Tools/extract_signatures.php", "-in {$som_clincnv} -mode cnv -outFolder {$cnv_signatures_out} -reference GRCh38 -threads {$threads}", true);
 		}
 	}
 }
@@ -1047,7 +1047,7 @@ if (in_array("an", $steps))
 	// annotate vcf (in temp folder)
 	$tmp_folder1 = $parser->tempFolder();
 	$tmp_vcf = "{$tmp_folder1}/{$prefix}_var_annotated.vcf.gz";
-	$parser->execTool("Pipelines/annotate.php", "-out_name $prefix -out_folder $tmp_folder1 -system $system -vcf $variants -somatic -threads $threads");
+	$parser->execTool("Tools/annotate.php", "-out_name $prefix -out_folder $tmp_folder1 -system $system -vcf $variants -somatic -threads $threads");
 
 	// run somatic QC
 	if (!$single_sample)
@@ -1106,10 +1106,10 @@ if (in_array("an", $steps))
 	// convert vcf to GSvar
 	$args = array("-in $tmp_vcf", "-out $variants_gsvar", "-t_col $t_id");
 	if (!$single_sample) $args[] = "-n_col $n_id";
-	$parser->execTool("NGS/vcf2gsvar_somatic.php", implode(" ", $args));
+	$parser->execTool("Tools/vcf2gsvar_somatic.php", implode(" ", $args));
 	
 	//Annotate data from network of cancer genes
-	$parser->execTool("NGS/an_somatic_gsvar.php" , "-gsvar_in $variants_gsvar -out $variants_gsvar -include_ncg");
+	$parser->execTool("Tools/an_somatic_gsvar.php" , "-gsvar_in $variants_gsvar -out $variants_gsvar -include_ncg");
 
 	//Determine cfDNA monitoring candidates (only tumor-normal samples)
 	if (!$single_sample)
@@ -1166,7 +1166,7 @@ if (in_array("msi", $steps) && !$single_sample)
 
 	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -threads $threads -out " .$msi_tmp_file. " -build ".$n_sys['build'];
 	
-	$parser->execTool("NGS/detect_msi.php",$parameters);
+	$parser->execTool("Tools/detect_msi.php",$parameters);
 	$parser->copyFile($msi_tmp_file, $msi_o_file);
 }
 elseif ($single_sample && in_array("msi",$steps))
@@ -1312,7 +1312,7 @@ if (in_array("an_rna", $steps))
 		"-rna_counts $rna_count",
 		"-rna_bam $rna_bam"
 		];
-		$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
+		$parser->execTool("Tools/an_somatic_gsvar.php", implode(" ", $args));
 		
 		//CNVs
 		if(file_exists($som_clincnv))
@@ -1326,7 +1326,7 @@ if (in_array("an_rna", $steps))
 			
 			if (isset($rna_ref_tissue)) $args[] = "-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue);
 			
-			$parser->execTool("NGS/an_somatic_cnvs.php",  implode(" ", $args));
+			$parser->execTool("Tools/an_somatic_cnvs.php",  implode(" ", $args));
 		}
 	}
 	
@@ -1338,7 +1338,7 @@ if (in_array("an_rna", $steps))
 	
 	if (isset($rna_ref_tissue)) $args[] = "-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue); //Replace spaces by 0 because it is diffcult to pass spaces via command line.
 	
-	$parser->execTool("NGS/an_somatic_gsvar.php", implode(" ", $args));
+	$parser->execTool("Tools/an_somatic_gsvar.php", implode(" ", $args));
 
 }
 
@@ -1509,7 +1509,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		if (!$single_sample)
 		{
 			// check sex using control sample
-			$parser->execTool("NGS/db_check_gender.php", "-in $n_bam -pid $n_id -sry_cov 30");
+			$parser->execTool("Tools/db_check_gender.php", "-in $n_bam -pid $n_id -sry_cov 30");
 
 			// check tumor/normal flag
 			if ($n_info['is_tumor'])
@@ -1547,7 +1547,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		}
 		
 		//add secondary analysis (if missing)
-		$parser->execTool("NGS/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
+		$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
 	}
 }
 ?>

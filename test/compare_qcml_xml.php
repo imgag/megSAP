@@ -27,6 +27,7 @@ function rewrite_qcml($qcml, &$tmpfile)
 	ksort($values);
 	// write values as tab-separated (accession, name, value)
 	$handle = fopen2($tmpfile, "w");
+	fwrite($handle, implode("\t", [ "#id", "name", "value" ]) . "\n");
 	foreach ($values as $key => $value)
 	{
 		fwrite($handle, implode("\t", [ $key, $value[0], $value[1] ]) . "\n");
@@ -38,21 +39,22 @@ rewrite_qcml($argv[1], $tmp1);
 rewrite_qcml($argv[2], $tmp2);
 
 //diff tsv outputs
+$args = [];
+$args[] =  "-in1 {$tmp1}";
+$args[] =  "-in2 {$tmp2}";
 if (isset($argv[3]))
 {
-	$diff_command = "numdiff --absolute-tolerance ".$argv[3];
+	$args[] = "-diff_abs value=".$argv[3];
 }
-else
-{
-	$diff_command = "diff -b";
-}
-list($stdout, $stderr, $code) = exec2("$diff_command $tmp1 $tmp2", false);
+list($stdout, $stderr, $code) = execApptainer("ngs-bits", "TsvDiff", implode(" ", $args), [$tmp1, $tmp2], [], false, false, false);
 foreach ($stdout as $line)
 {
+	if ($line=="") continue;
 	print $line."\n";
 }
 foreach ($stderr as $line)
 {
+	if ($line=="") continue;
 	print $line."\n";
 }
 

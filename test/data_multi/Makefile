@@ -22,7 +22,7 @@ call:
 
 diff:
 	#variants
-	php ../compare_variants.php -in1 multi.GSvar.out -in2 multi.GSvar
+	php ../compare_variants.php -in1 multi.GSvar.out -in2 multi.GSvar -add GS140127_01,GS140549_01,GS140550_01
 	#CNVs
 	php ../compare_tsv.php -in1 multi_cnvs_clincnv.tsv.out -in2 multi_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs,genes,gene_info
 	#SVs

@@ -103,32 +103,6 @@ function range_intersect($from1, $to1, $from2, $to2)
 	return array(max($from1, $from2), min($to1, $to2));
 }
 
- /**
-       @brief Calculates a robust variant of the mean/stdev of a data array
-
-       The calulation is performed by replacing @p num extreme values with the next smaller/larger values.
-
-       @return an array with mean and standard deviation
-       @ingroup statistics
-*/
-function winsored_statistics($data, $num)
-{
-	$n = count($data);
-
-	sort($data);
-
-	for ($i=0; $i<$num; ++$i)
-	{
-		$data[$i] = $data[$num];
-		$data[$n-1-$i] = $data[$n-1-$num];
-	}
-
-	$mean = mean($data);
-	$stdev = stdev($data, $mean);
-
-	return array($mean, $stdev);
-}
-
 /**
 	@brief Calculates the mean of a data array
 	@return The mean value
@@ -541,62 +515,6 @@ function array_containing($haystack, $needle)
 	return array_values(array_filter($haystack, function($var) use ($needle){ return strpos($var, $needle) !== false;}));
 }
 
-/**
- * @brief generates backup folder within data folder for a given pattern
- * @param type $data_folder folder to backup ('/' and emtpy are not allowed)
- * @param type $backup_pattern comma seprated lists of file extensions (e.g. *.tsv, *.log)
- * @param type $skip_pattern regular expression for patterns to exclude from backup (e.g. current log file)
- * @return type
- */
-function backup($data_folder, $backup_pattern, $skip_pattern = NULL)
-{
-    //remove slashes
-    $data_folder = trim($data_folder, "/");
-    
-    //skip empty folders or root folder
-    if (empty($data_folder) || $data_folder == "/" || $data_folder == "/mnt")
-    {
-        trigger_error('Data folder not allowed for backup ("'.$data_folder.'").', E_USER_ERROR);
-    }
-
-    $old_files = glob($data_folder."/{".$backup_pattern."}", GLOB_BRACE);
-    
-    //filter duplicate files from backup_pattern
-    $old_files = array_unique($old_files);
-    
-   //skip backup if no old files or only skipped files available.
-	$counter = 0;
-    foreach($old_files as $old_file)
-    {
-		//do not move files that match $skip_pattern
-		if(!empty($skip_pattern) && preg_match($skip_pattern, $old_file))
-		{
-			$counter++;
-		}
-    }   
-	if((count($old_files)-$counter) <= 0)
-	{
-		return;
-	}
-
-   //create backup_folder within $data_folder
-	$old_folder = $data_folder."/old_".date('Y_m_d')."_".random_string(4)."/";
-    if (is_dir($old_folder) || !mkdir($old_folder))
-    {
-        trigger_error('Could not create backup folder: '.$old_folder, E_USER_ERROR);
-    }
-
-    //find all files to backup in $data_folder
-    foreach($old_files as $old_file)
-    {
-		//do not move files that match $skip_pattern
-		if(empty($skip_pattern) || !preg_match($skip_pattern, $old_file))
-		{
-			rename($old_file, $old_folder.basename($old_file));
-		}
-    }
-}
-
 /*
 	@brief Loads a tab-separated file without newline characters, empty lines and comment lines.
 */
@@ -723,17 +641,6 @@ function sort_vcf_comments($comments_to_sort)
 	}
 
 	return $sorted;
-}
-	
-//adds a # in the first line of a file
-function addCommentCharInHeader($filename)
-{
-	$file = fopen2($filename,"r+");
-	$old_contents = file_get_contents($filename);
-	if(starts_with($old_contents[0],"#")) return;
-	fwrite($file,"#");
-	fwrite($file,$old_contents);
-	fclose($file);
 }
 
 //open an file and returns the file handle. Throws an error if it fails!
@@ -947,7 +854,16 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 		$bind_paths[] = "{$templates_dir}:/usr/local/lib/python3.8/site-packages/sigProfilerPlotting/templates/";
 		$bind_paths[] = "{$cosmic_templates_dir}:/usr/local/lib/python3.8/site-packages/SigProfilerAssignment/DecompositionPlots/CosmicTemplates";
 	}
-
+	
+	//clean up empty paths
+	for ($i=0; $i<count($bind_paths); ++$i)
+	{
+		if ($bind_paths[$i]==":")
+		{
+			unset($bind_paths[$i]);
+		}
+	}
+	
 	//check bind paths
 	if(!empty($bind_paths))
 	{
