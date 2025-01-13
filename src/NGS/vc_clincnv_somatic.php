@@ -333,6 +333,7 @@ $args = [
 ];
 
 $in_files[] = $cov_pairs;
+$in_files[] = $bed;
 $out_files[] = $cohort_folder;
 
 if ($sys["type"] == "WGS" || $sys["type"] == "WGS (shallow)")
