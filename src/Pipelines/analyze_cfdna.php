@@ -478,6 +478,10 @@ if (in_array("vc", $steps))
 		if (isset($related_cfdna_bams) && count($related_cfdna_bams) > 0)
 		{
 			$args[] = "-related_bams ".implode(" ", array_values($related_cfdna_bams));
+			foreach (array_values($related_cfdna_bams) as $in_file) 
+			{
+				$in_files[] = $in_file;
+			}
 		}
 		// add umiVar error rates
 		$error_rate_file = "{$folder}/umiVar/error_rates.txt";
@@ -529,7 +533,11 @@ if (in_array("vc", $steps))
 			{
 				$psinfo_normal = get_processed_sample_info($db, $psinfo_tumor['normal_name']);
 				// annotate AF and depth
-				$parser->execApptainer("ngs-bits", "VariantAnnotateFrequency", "-in $gsvar_file -out $gsvar_file -depth -name normal -bam ".$psinfo_normal['ps_bam'], [$folder]);
+				$in_files = array();
+				$in_files[] = $psinfo_normal['ps_bam'];
+				$out_files = array();
+				$out_files[] = $folder;
+				$parser->execApptainer("ngs-bits", "VariantAnnotateFrequency", "-in $gsvar_file -out $gsvar_file -depth -name normal -bam ".$psinfo_normal['ps_bam'], $in_files, $out_files);
 			}
 		}
 		else
@@ -560,6 +568,8 @@ if (in_array("vc", $steps))
 			implode(",", $related_cfdna_gsvars_output),
 			"--log_file ".$temp_logfile
 		];
+
+		$in_files = array_merge($in_files, $related_cfdna_gsvars);
 		
 		//get tumor-normal GSvar
 		if ((isset($db)) && ($tumor_id != ""))
@@ -590,7 +600,7 @@ if (in_array("vc", $steps))
 		}
 
 		//post-filtering
-		$parser->execApptainer("umiVar", "cfDNA_postfiltering.py", implode(" ", $args), $in_files);
+		$parser->execApptainer("umiVar", "cfDNA_postfiltering.py", implode(" ", $args), $in_files, $folder);
 		$parser->log("post-filtering log: ", file($temp_logfile));
 
 	}
