@@ -234,7 +234,7 @@ foreach ($result as $record)
 		{
 			$tmp_for_sorting = $parser->tempFile();
 			//merge presorted files
-			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools merge", "--reference {$genome} --threads {$threads} -b - -o {$out_bam}", [$genome], [$out_dir], true)];
+			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools merge", "--reference {$genome} --threads {$threads} -b - -o {$out_bam}", [$genome, $run_dir], [$out_dir], true)];
 			$parser->execPipeline($pipeline, "merge aligned BAM files");
 			$parser->indexBam($out_bam, $threads);
 
