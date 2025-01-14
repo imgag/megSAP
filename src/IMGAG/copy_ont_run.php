@@ -241,7 +241,7 @@ foreach ($result as $record)
 		}
 		else
 		{
-			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [], [$out_dir], true)]; //no reference required
+			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [$run_dir], [$out_dir], true)]; //no reference required
 			$parser->execPipeline($pipeline, "merge unaligned BAM files");
 		}
 	}

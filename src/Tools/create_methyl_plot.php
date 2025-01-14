@@ -12,6 +12,7 @@ $parser->addString("out", "Output table (TSV format).", false);
 $parser->addString("regions", "The regions/highlights to analyze/plot. ", false);
 
 // optional
+$parser->addInfile("local_bam", "Optional (local) BAM used for analysis instead of BAM/CRAM file in folder.", true);
 $parser->addFlag("skip_plot", "Disable methylartist plotting of imprinting sites.");
 $parser->addString("build", "The genome build to use. ", true, "GRCh38");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
@@ -21,12 +22,22 @@ extract($parser->parse($argv));
 $ref_genome = genome_fasta($build);
 exec2("mkdir -p {$folder}/methylartist");
 $gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gtf.gz";
-$bam = $folder."/".$name.".cram";
-if (!file_exists($bam))
+
+if ($local_bam != "")
 {
-    $bam = $folder."/".$name.".bam";
-    if (!file_exists($bam)) trigger_error("BAM/CRAM file not found!", E_USER_ERROR);
+    $bam = $local_bam;
+    if (!file_exists($bam)) trigger_error("Local BAM file not found!", E_USER_ERROR);
 }
+else
+{
+    $bam = $folder."/".$name.".cram";
+    if (!file_exists($bam))
+    {
+        $bam = $folder."/".$name.".bam";
+        if (!file_exists($bam)) trigger_error("BAM/CRAM file not found!", E_USER_ERROR);
+    }
+}
+
 
 $regions_table = Matrix::fromTSV($regions);
 
