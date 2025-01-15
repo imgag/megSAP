@@ -199,7 +199,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 
 	//run spliceai container
 	$spliceai_command = $parser->execApptainer("spliceai", "spliceai", implode(" ", $args), $in_files, [], true);
-	exec2("OMP_NUM_THREADS={$threads} {$spliceai_command}");
+	$parser->exec("OMP_NUM_THREADS={$threads} {$spliceai_command}", "");
 
 	//no variants scored => copy input to output
 	$var_count = vcf_variant_count($tmp1, "SpliceAI=");
