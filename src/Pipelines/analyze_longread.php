@@ -136,8 +136,7 @@ if (in_array("ma", $steps))
 	//determine input FASTQ and BAM files
 	$unmapped_pattern = "{$sample_name}_??.mod.unmapped.bam";
 	$unmapped_bam_files = glob("{$folder}/{$unmapped_pattern}");
-	$bam_pattern = "{$sample_name}_??.{bam,cram}";
-	$old_bam_files = glob("{$folder}/{$bam_pattern}");
+	$old_bam_files = array_merge(glob("{$folder}/{$sample_name}_??.bam"), glob("{$folder}/{$sample_name}_??.cram"));
 	$fastq_pattern = "{$sample_name}_??*.fastq.gz";
 	$fastq_files = glob("{$folder}/{$fastq_pattern}");
 	// preference:
@@ -146,7 +145,7 @@ if (in_array("ma", $steps))
 	// 3. fastq	
 	if ((count($unmapped_bam_files) === 0) && (count($old_bam_files) === 0) && (count($fastq_files) === 0))
 	{
-		trigger_error("Found no input read files in BAM or FASTQ format!\nExpected file names are: unmapped BAM '{$unmapped_pattern}', mapped bam '{$bam_pattern}' or FASTQs '{$fastq_pattern}'", E_USER_ERROR);
+		trigger_error("Found no input read files in BAM or FASTQ format!\nExpected file names are: unmapped BAM '{$unmapped_pattern}', mapped bam '{$sample_name}_??.[bam|cram]' or FASTQs '{$fastq_pattern}'", E_USER_ERROR);
 	}
 	
 	// run mapping
