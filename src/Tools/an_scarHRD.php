@@ -4,12 +4,15 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("an_scarHRD", "Run scarHRD on the given sample.");
+$parser = new ToolBase("an_scarHRD", "Run scarHRD on the CNVs of a given sample. Prefilters the CNVs.");
 $parser->addInfile("cnvs", "ClinCNV result file with the called cnvs.", false);
 $parser->addString("tumor", "Name of the tumor sample.", false);
 $parser->addString("normal", "Name of the normal sample.", false);
 $parser->addString("out_folder", "Folder in which the hrd score file will be saved.", false);
-$parser->addFlag("filtered", "Calculate the HRD score based on the filtered CNVs. Removes the CNVs flagged as artifacts in the somatic report config in NGSD .", true);
+$parser->addFloat("min_clone", "Minimum clonality of a CNV to be included in scarHRD analysis. (Prefilter)", true, 0.2);
+$parser->addFloat("min_sll", "Minimum scaled loglikelihood of a CNV to be included in scarHRD analysis. (Prefilter)", true, 0.75);
+$parser->addFlag("skip_prefilter", "Skip prefiltering of the CNVs", true);
+$parser->addFlag("report_filtered", "Calculate the HRD score based on the filtered CNVs. Removes the CNVs flagged as artifacts in the somatic report config in NGSD instead of prefiltering.", true);
 $parser->addString("db", "Database to be used for the filtering of CNVs (only used when -filtered is given)", true, "NGSD");
 extract($parser->parse($argv));
 
@@ -46,7 +49,7 @@ function prepare_clincnv($clincnv, $sample)
 	return [$count, $tmp];
 }
 
-function generate_filtered_cnvs($tumor, $clincnvs, $db)
+function generate_report_filtered_cnvs($tumor, $clincnvs, $db)
 {
 	global $parser;
 	
@@ -111,6 +114,59 @@ function generate_filtered_cnvs($tumor, $clincnvs, $db)
 	return $tmp;
 }
 
+function generate_prefiltered_cnvs($tumor, $clincnvs)
+{
+	global $parser, $min_clone, $min_sll;
+
+	$headers = array();
+	$header = "";
+	$prefiltered_cnvs = array();
+	$cnvs_passed = 0;
+	$cnvs_total = 0;
+	foreach(file($clincnvs) as $line)
+	{
+		if (starts_with($line, "##"))
+		{
+			$headers[] = $line;
+			continue;
+		};
+		if (starts_with($line, "#chr")) 
+		{
+			$header = $line;
+			continue;
+		}
+		$cnvs_total++;
+		
+		$header_parts = explode("\t", $header);
+		$header_parts[count($header_parts)-1] = trim($header_parts[count($header_parts)-1]);
+		$cnv_parts = explode("\t", $line);
+		$cnv_parts[count($cnv_parts)-1] = trim($cnv_parts[count($cnv_parts)-1]);
+		
+		$tumor_clonality = $cnv_parts[array_search("tumor_clonality", $header_parts)];
+		$tumor_CN_change = $cnv_parts[array_search("tumor_CN_change", $header_parts)];
+		$number_of_regions = $cnv_parts[array_search("number_of_regions", $header_parts)];
+		$loglikelihood = $cnv_parts[array_search("loglikelihood", $header_parts)];
+		
+		$parser->log("CNV: $tumor_clonality, ". floatval($loglikelihood) / floatval($number_of_regions));
+		
+		if (floatval($tumor_clonality) < $min_clone && floatval($loglikelihood) / floatval($number_of_regions) < $min_sll) continue;
+		$parser->log("passed");
+		$cnvs_passed++;
+		$prefiltered_cnvs[] = $line;
+	}
+
+	$parser->log("Total: $cnvs_total || passed: $cnvs_passed");
+
+	$headers_text = implode("", $headers).$header;
+	$cnvs_prefiltered_text = implode("", $prefiltered_cnvs);
+	
+	$tmp = temp_file(".tsv", "clincnv_filtered_");
+	$tmp = "/mnt/storage2/users/ahott1a1/tmp/tmp_an_scarHRD_filtered_clincnv.tsv";
+	file_put_contents($tmp, $headers_text.$cnvs_prefiltered_text);
+	
+	return $tmp;
+}
+
 function write_empty_result($out, $prefix)
 {
 	$no_cnvs_file = array();
@@ -140,16 +196,23 @@ function run_scarHRD($parser, $cnvs, $count, $prefix, $out_folder)
 $prefix = "{$tumor}-{$normal}";
 list($count, $seg) = prepare_clincnv($cnvs, $prefix);
 
-if ($filtered)
+if ($report_filtered)
 {
-	$filtered_clincnv = generate_filtered_cnvs($tumor, $cnvs, $db);
+	$filtered_clincnv = generate_report_filtered_cnvs($tumor, $cnvs, $db);
 	list($count, $seg_filtered) = prepare_clincnv($filtered_clincnv, $prefix);
 	run_scarHRD($parser, $seg_filtered, $count, $prefix, $out_folder);
 }
-else
+else if ($skip_prefilter)
 {
 	run_scarHRD($parser, $seg, $count, $prefix, $out_folder);
+} 
+else
+{
+	$filtered_clincnv = generate_prefiltered_cnvs($tumor, $cnvs);
+	list($count, $seg_filtered) = prepare_clincnv($filtered_clincnv, $prefix);
+	run_scarHRD($parser, $seg_filtered, $count, $prefix, $out_folder);
 }
+	
 
 
 ?>
