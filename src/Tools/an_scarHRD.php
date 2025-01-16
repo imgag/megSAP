@@ -161,7 +161,6 @@ function generate_prefiltered_cnvs($tumor, $clincnvs)
 	$cnvs_prefiltered_text = implode("", $prefiltered_cnvs);
 	
 	$tmp = temp_file(".tsv", "clincnv_filtered_");
-	$tmp = "/mnt/storage2/users/ahott1a1/tmp/tmp_an_scarHRD_filtered_clincnv.tsv";
 	file_put_contents($tmp, $headers_text.$cnvs_prefiltered_text);
 	
 	return $tmp;
