@@ -88,7 +88,7 @@ extra BAM file in `bam_pass` directory.
     basecaller \
     hac,5mCG_5hmCG \
     <run directory>/<flow cell directory>/pod5_skip \
-    --min-qsore 9 \
+    --min-qscore 9 \
     > <run directory>/<flow cell directory>/bam_pass/pod5_skip_basecalled.bam
 ```
 
