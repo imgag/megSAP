@@ -291,7 +291,8 @@ if (in_array("rc", $steps))
 {
 	$tmpdir = $parser->tempFolder();
 	$repair_bam = "{$tmpdir}/{$name}.bam";
-	$parser->execApptainer("subread", "repair", "-i {$final_bam} -o {$repair_bam} -T {$threads}", [], [$out_folder]);
+	$cwd = getcwd()."/dummy/";
+	$parser->execApptainer("subread", "repair", "-i {$final_bam} -o {$repair_bam} -T {$threads}", [], [$out_folder, $cwd]);
 
 	$args_common = array(
 		"-in", $repair_bam,
