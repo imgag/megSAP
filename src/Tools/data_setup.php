@@ -360,7 +360,7 @@ if (get_path("copy_dbs_to_local_data"))
 		{
 			print "  {$base}: Copying new container version to '$local_container_file'.\n";
 			// Copy the new container or new version
-			list($stdout, $stderr) = exec2("{$rsync} {$container_file} {$local_container_file}");
+			list($stdout, $stderr) = exec2("cp {$container_file} {$local_container_file}");
 			foreach (array_merge($stdout, $stderr) as $line) 
 			{
 				$line = trim($line);
