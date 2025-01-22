@@ -167,7 +167,7 @@ foreach($chr_regions as list($chr, $length))
 if ($mode=="longread")
 {
 	$pipeline = array();
-	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfMerge", "-in ".implode(" ", $chr_multisample_gvcfs), [], [], true)];
+	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfAdd", "-in ".implode(" ", $chr_multisample_gvcfs), [], [], true)];
 	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfExtractSamples", "-samples ".implode(",", $sample_order), [], [], true)];
 	$pipeline[] = array("bgzip", "-c > {$gvcf_out}", false);
 	$parser->execPipeline($pipeline, "Merge gVCF");
@@ -177,7 +177,7 @@ if ($mode=="longread")
 //merge VCFs
 $tmp_vcf = $parser->tempFile(".vcf.gz");
 $pipeline = array();
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfMerge", "-in ".implode(" ", $chr_multisample_vcfs), [], [], true)];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfAdd", "-in ".implode(" ", $chr_multisample_vcfs), [], [], true)];
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfExtractSamples", "-samples ".implode(",", $sample_order), [], [], true)];
 $pipeline[] = array("bgzip", "-c > {$tmp_vcf}", false);
 $parser->execPipeline($pipeline, "Merge VCF");

@@ -564,7 +564,6 @@ foreach($sample_data as $sample => $sample_infos)
 					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
 					{
 						//convert to fastq.gz
-						//$target_to_copylines[$tag][] = "\t".get_pth("orad")." --ora-reference ".dirname(get_pth("orad"))."/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}"; TODO remove when tested
 						$orad_files = [
 							"{$project_folder}/Sample_{$sample}/",
 							$fastq_file,
@@ -693,7 +692,6 @@ foreach($sample_data as $sample => $sample_infos)
 					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
 					{
 						//convert to fastq.gz
-						//$target_to_copylines[$tag][] = "\t".get_pth("orad")." --ora-reference ".dirname(get_pth("orad"))."/oradata/".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ {$fastq_file}"; TODO remove when tested
 						$orad_files = [
 							"{$project_folder}/Sample_{$sample}/",
 							$fastq_file,
@@ -706,8 +704,6 @@ foreach($sample_data as $sample => $sample_infos)
 					{
 						$target_to_copylines[$tag][] = "\tcp ".($overwrite ? "-f " : "")."{$fastq_file} {$project_folder}/Sample_{$sample}/";
 					}
-					// // make sure all files are accessible by bioinf
-					// $target_to_copylines[$tag][] = "\tchmod 777 {$project_folder}Sample_{$sample}/*.fastq.gz";	
 				}
 			}
 

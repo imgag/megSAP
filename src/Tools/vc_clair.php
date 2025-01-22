@@ -103,13 +103,13 @@ $clair_mito_gvcf = $clair_mito_temp."/merge_output.gvcf.gz";
 //merge VCFs (normal calls + mito)
 $clair_merged_vcf1 = $parser->tempFile("_merged.vcf");
 $clair_merged_vcf2 = $parser->tempFile("_merged.vcf.gz");
-$parser->execApptainer("ngs-bits", "VcfMerge", "-in {$clair_vcf} {$clair_mito_vcf} -out {$clair_merged_vcf1}");
+$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$clair_vcf} {$clair_mito_vcf} -out {$clair_merged_vcf1}");
 $parser->execApptainer("ngs-bits", "VcfSort", "-compression_level 5 -in {$clair_merged_vcf1} -out {$clair_merged_vcf2}"); //sorting should not be necessary
 if (file_exists($clair_mito_gvcf))
 {
 	$clair_merged_gvcf1 = $parser->tempFile("_merged.gvcf");
 	$clair_merged_gvcf2 = $parser->tempFile("_merged.gvcf.gz");
-	$parser->execApptainer("ngs-bits", "VcfMerge", "-in {$clair_gvcf} {$clair_mito_gvcf} -out {$clair_merged_gvcf1}");
+	$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$clair_gvcf} {$clair_mito_gvcf} -out {$clair_merged_gvcf1}");
 	//no sorting since MT is last chr anyways
 	$parser->exec("bgzip", "-c {$clair_merged_gvcf1} > {$clair_merged_gvcf2}");
 }
