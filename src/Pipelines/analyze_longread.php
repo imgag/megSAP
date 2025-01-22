@@ -136,8 +136,10 @@ if (in_array("ma", $steps))
 	//determine input FASTQ and BAM files
 	$unmapped_pattern = "{$sample_name}_??.mod.unmapped.bam";
 	$unmapped_bam_files = glob("{$folder}/{$unmapped_pattern}");
-	$bam_pattern = "{$sample_name}_??.{bam,cram}";
+	$bam_pattern = "{$sample_name}_??.bam";
 	$old_bam_files = glob("{$folder}/{$bam_pattern}");
+	$cram_pattern = "{$sample_name}_??.cram";
+	$old_bam_files = array_merge($old_bam_files, glob("{$folder}/{$cram_pattern}"));
 	$fastq_pattern = "{$sample_name}_??*.fastq.gz";
 	$fastq_files = glob("{$folder}/{$fastq_pattern}");
 	// preference:
@@ -146,7 +148,7 @@ if (in_array("ma", $steps))
 	// 3. fastq	
 	if ((count($unmapped_bam_files) === 0) && (count($old_bam_files) === 0) && (count($fastq_files) === 0))
 	{
-		trigger_error("Found no input read files in BAM or FASTQ format!\nExpected file names are: unmapped BAM '{$unmapped_pattern}', mapped bam '{$bam_pattern}' or FASTQs '{$fastq_pattern}'", E_USER_ERROR);
+		trigger_error("Found no input read files in BAM or FASTQ format!\n\t\tExpected file names are: unmapped BAM '{$unmapped_pattern}', mapped bam '{$bam_pattern}', '{$cram_pattern}' or FASTQs '{$fastq_pattern}'", E_USER_ERROR);
 	}
 	
 	// run mapping
@@ -177,7 +179,25 @@ if (in_array("ma", $steps))
 	}
 	elseif (count($old_bam_files) > 0)
 	{
-		$mapping_minimap_options[] = "-in_bam " . implode(" ", $old_bam_files);
+		//move BAMs/CRAMs to subfolder
+		$old_bam_files_moved = array();
+		$mapping_folder = "{$folder}/bams_for_mapping";
+		$parser->exec("mkdir", $mapping_folder);
+		foreach ($old_bam_files as $old_bam) 
+		{
+			$parser->moveFile($old_bam, $mapping_folder."/".basename($old_bam));
+			//move also index
+			if (ends_with(basename($old_bam), ".bam"))
+			{
+				$parser->moveFile($old_bam.".bai", $mapping_folder."/".basename($old_bam).".bai");
+			}
+			else //CRAM
+			{
+				$parser->moveFile($old_bam.".crai", $mapping_folder."/".basename($old_bam).".crai");
+			}
+			$old_bam_files_moved[] = $mapping_folder."/".basename($old_bam);
+		}
+		$mapping_minimap_options[] = "-in_bam " . implode(" ", $old_bam_files_moved);
 	}
 	else
 	{
@@ -204,6 +224,47 @@ if (in_array("ma", $steps))
 	{
 		$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", [$folder]);
 	}
+
+	//check if BAM/CRAM exist and have a appropriete size
+	$bam_exists = file_exists($bam_file) && file_exists($bam_file.".bai"); 
+	$cram_exists = file_exists($cram_file) && file_exists($cram_file.".crai"); 
+
+	//get mapped read count
+	if ($cram_exists) $rc_mapped_bam = get_read_count($cram_file, max(8, $threads), array("-F", "2304"), $sys['build']);
+	else if ($bam_exists) $rc_mapped_bam = get_read_count($bam_file, max(8, $threads), array("-F", "2304"), $sys['build']);
+	else trigger_error("Cannot delete FASTQ/BAM files - no BAM/CRAM file found!", E_USER_ERROR);
+	trigger_error("Mapped BAM file read counts: ".$rc_mapped_bam, E_USER_NOTICE);
+
+	//if reanalysis is performed: remove temporary subfolder
+	if (isset($old_bam_files_moved) && count($old_bam_files_moved) > 0)
+	{
+		//check read counts of bams
+		$rc_old = 0;
+		foreach ($old_bam_files_moved as $old_bam) 
+		{
+			$read_count = get_read_count($old_bam, max(8, $threads), array(), $sys['build']);
+			trigger_error("Previous BAM/CRAM file read counts (".$old_bam."): ".$read_count, E_USER_NOTICE);
+			$rc_old += $read_count;
+		}
+
+		//calculate relative difference
+		$diff = abs($rc_old - $rc_mapped_bam);
+		$rel_diff = $diff /(($rc_old + $rc_mapped_bam)/2);
+
+		if (($rc_mapped_bam == $rc_old) || ($rel_diff < 0.0001))
+		{
+			// remove old BAM(s)
+			if ($rc_mapped_bam == $rc_old) trigger_error("Read count of mapped and unmapped BAM(s) match. Deleting old BAM(s)/CRAM(s)...", E_USER_NOTICE);
+			if ($rel_diff < 0.0001) trigger_error("Read count of new and old BAM(s)/CRAM(s) in allowed tolerance (<0.01%) (".($rel_diff*100)."%). Deleting old BAM(s)/CRAM(s)...", E_USER_NOTICE);
+			$mapping_folder = "{$folder}/bams_for_mapping";
+			$parser->exec("rm", "-r {$mapping_folder}");
+		}
+		else
+		{
+			trigger_error("Cannot delete old BAM/CRAM file(s) - mapped BAM file read counts doesn't match old BAM(s)/CRAM(s) (".($rel_diff*100)."%).", E_USER_ERROR);
+		}
+	}
+
 	if (get_path("delete_fastq_files"))
 	{
 		//check if project overwrites the settings
@@ -221,16 +282,6 @@ if (in_array("ma", $steps))
 		
 		if(!$preserve_fastqs)
 		{
-			//check if BAM/CRAM exist and have a appropriete size
-			$bam_exists = file_exists($bam_file) && file_exists($bam_file.".bai"); 
-			$cram_exists = file_exists($cram_file) && file_exists($cram_file.".crai"); 
-
-			//get mapped read count
-			if ($cram_exists) $rc_mapped_bam = get_read_count($cram_file, max(8, $threads), array("-F", "2304"), $sys['build']);
-			else if ($bam_exists) $rc_mapped_bam = get_read_count($bam_file, max(8, $threads), array("-F", "2304"), $sys['build']);
-			else trigger_error("Cannot delete FASTQ/BAM files - no BAM/CRAM file found!", E_USER_ERROR);
-			trigger_error("Mapped BAM file read counts: ".$rc_mapped_bam, E_USER_NOTICE);
-
 			//get read count of input files
 			if (count($unmapped_bam_files) > 0)
 			{
@@ -338,6 +389,10 @@ if (in_array("vc", $steps))
 		else if ($sys["name_short"] == "SQK-LSK109")
 		{
 			$basecall_model_path = get_path("clair3_models")."/r941_prom_hac_g360+g422/";
+		}
+		else if ($sys["name_short"] == "LR-ONT-SQK-LSK114-SUP")
+		{
+			$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_sup_v500/";
 		}
 		else
 		{
@@ -617,13 +672,7 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 		$parser->moveFile($cram_file, $cram_file.".backup.cram");
 		$parser->moveFile($cram_file.".crai", $cram_file.".backup.cram.crai");
 
-		//TODO: remove
-		// $parser->copyFile($tagged_bam_file, $cram_file."tagged.unsorted.bam");
-		// $parser->indexBam($cram_file."tagged.unsorted.bam", $threads);
-
 		//convert bam to cram
-		# $parser->exec(get_path("samtools"), "sort -@ {$threads} -O CRAM --reference {$genome} $tagged_bam_file > $cram_file");
-		# $parser->sortBam($tagged_bam_file, $cram_file, $threads, false, $sys['build']);
 		$parser->execTool("Tools/bam_to_cram.php", "-bam {$tagged_bam_file} -cram {$cram_file} -build ".$sys['build']." -threads {$threads}");
 		$parser->indexBam($cram_file, $threads);
 		
