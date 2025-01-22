@@ -870,7 +870,7 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 	}
 	
 	//check bind paths
-	if(!empty($bind_paths))
+	if(!empty($bind_paths) && !get_path("megSAP_container_used"))
 	{
 		foreach($bind_paths as $path)
 		{
