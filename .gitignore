@@ -172,6 +172,7 @@
 /test/data_longread/*_var_methylation.tsv
 /test/data_longread/methylation
 /test/data_longread/*.cov
+/test/data_longread/*.mod.unmapped.bam
 
 
 /test/data_trio_longread/*.fastq.gz

@@ -131,8 +131,6 @@ if (isset($out_pdf)) {
 }
 
 
-
-
 //extract fusion-supporting reads in extra BAM file
 if (isset($out_bam)) {
     $fusions = Matrix::fromTSV($out_fusions);
@@ -166,6 +164,7 @@ if (isset($out_bam)) {
     }
 }
 
-//prepend source to outfile:
+//prepend source and date to outfile:
 $source_line = "##source=arriba $arriba_ver\n";
-file_put_contents($out_fusions, $source_line . file_get_contents($out_fusions));
+$analysis_date_line = "##AnalysisDate=".date("Y-m-d H:i:s")."\n";
+file_put_contents($out_fusions, $source_line . $analysis_date_line . file_get_contents($out_fusions));

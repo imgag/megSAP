@@ -14,6 +14,8 @@ $out_pdf = output_folder().$name."_out1.pdf";
 $out_pic_dir = output_folder().$name."_out1";
 
 check_exec("php ".src_folder()."/Tools/{$name}.php -bam $in_bam -out_fusions $out_tsv -out_discarded $out_discarded -out_vcf $out_vcf -out_pdf $out_pdf -out_pic_dir $out_pic_dir --log ".output_folder().$name."_out1.log");
+#remove line as it contains the analysis date: '##AnalysisDate=%%%'
+exec("sed -i '/##AnalysisDate/d' $out_tsv");
 check_file($out_tsv, data_folder().$name."_ref1.tsv", true);
 
 //diff vcf by hand as "check_file" expects valid vcf and arriba returns a "simplified vcf".

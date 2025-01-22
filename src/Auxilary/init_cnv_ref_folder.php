@@ -46,7 +46,19 @@ if ($type=="WGS" || $type=="WGS (shallow)")
 	if ($type=="WGS (shallow)") $bin_size = get_path("cnv_bin_size_shallow_wgs");
 	
 	$roi = "{$ref_folder}/bins{$bin_size}.bed";
-	if (!file_exists($roi)) trigger_error("WGS/sWGS regions file '$roi' does not exist!", E_USER_ERROR);	
+	if (!file_exists($roi))
+	{
+		trigger_error("WGS/sWGS regions file '$roi' does not exist and will now be created!", E_USER_WARNING);
+		$pipeline = [
+			["", $parser->execApptainer("ngs-bits", "BedChunk", "-in /mnt/storage2/megSAP/data/enrichment/WGS_hg38.bed -n {$bin_size}", ["/mnt/storage2/megSAP/data/enrichment/WGS_hg38.bed"], [], true)],
+			["", $parser->execApptainer("ngs-bits", "BedAnnotateGC", "-clear -ref ".genome_fasta($build), [genome_fasta($build)], [], true)],
+			["", $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$roi}", [], [dirname($roi)], true)]
+		];
+		$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
+		
+		trigger_error("Finished creating WGS/sWGS regions file '$roi'.", E_USER_WARNING);
+	
+	}
 	$ref_folder = "{$ref_folder}/bins{$bin_size}/";
 }	
 
@@ -260,13 +272,13 @@ else //somatic tumor-normal pairs
 			}
 			if(!file_exists("{$ref_t_dir}/{$sample}.cov"))
 			{
-				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_t_dir}/{$sample}.cov -threads {$threads}", [$bam_or_cram, $roi], [$ref_t_dir]);
+				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_t_dir}/{$sample}.cov -threads {$threads}", [$bam_or_cram, $roi], [$ref_t_dir, dirname(genome_fasta($build))]);
 				++$t_count;
 			}
 			//off-target
 			if(!file_exists("{$ref_off_t_dir}/{$sample}.cov"))
 			{
-				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_t_dir}/{$sample}.cov -threads {$threads}", [$off_target_bed, $bam_or_cram], [$ref_off_t_dir]);
+				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_t_dir}/{$sample}.cov -threads {$threads}", [$off_target_bed, $bam_or_cram], [$ref_off_t_dir, dirname(genome_fasta($build))]);
 				++$t_off_count;
 			}
 		}
@@ -280,13 +292,13 @@ else //somatic tumor-normal pairs
 			}
 			if(!file_exists("{$ref_n_dir}/{$sample}.cov"))
 			{
-				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_n_dir}/{$sample}.cov -threads {$threads}", [$bam_or_cram, $roi], [$ref_n_dir]);
+				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $bam_or_cram -in $roi -out {$ref_n_dir}/{$sample}.cov -threads {$threads}", [$bam_or_cram, $roi], [$ref_n_dir, dirname(genome_fasta($build))]);
 				++$n_count;
 			}
 			//off-target
 			if(!file_exists("{$ref_off_n_dir}/{$sample}.cov"))
 			{
-				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_n_dir}/{$sample}.cov -threads {$threads}", [$off_target_bed, $bam_or_cram], [$ref_off_n_dir]);
+				$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $bam_or_cram -out {$ref_off_n_dir}/{$sample}.cov -threads {$threads}", [$off_target_bed, $bam_or_cram], [$ref_off_n_dir, dirname(genome_fasta($build))]);
 				++$n_off_count;
 			}
 		}

@@ -595,7 +595,7 @@ if (in_array("vc", $steps))
 				
 				//add to main variant list
 				$tmp2 = $parser->tempFile("_merged_low_mappability.vcf");
-				$parser->execApptainer("ngs-bits", "VcfAdd", "-in $vcf -in2 $tmp_low_mappability2 -skip_duplicates -filter low_mappability -filter_desc Variants_in_reads_with_low_mapping_score. -out $tmp2");
+				$parser->execApptainer("ngs-bits", "VcfAdd", "-in $vcf $tmp_low_mappability2 -skip_duplicates -filter low_mappability -filter_desc Variants_in_reads_with_low_mapping_score. -out $tmp2");
 				$parser->moveFile($tmp2, $vcf);
 			}
 		}
@@ -617,7 +617,7 @@ if (in_array("vc", $steps))
 			
 			//add to main variant list
 			$tmp2 = $parser->tempFile("_merged_mosaic.vcf");
-			$parser->execApptainer("ngs-bits", "VcfAdd", "-in $vcf -in2 $tmp_mosaic -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out $tmp2");
+			$parser->execApptainer("ngs-bits", "VcfAdd", "-in $vcf $tmp_mosaic -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out $tmp2");
 			$parser->moveFile($tmp2, $vcf);
 		}
 				
