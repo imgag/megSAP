@@ -15,7 +15,9 @@ if [ ! -f "$SETTINGS_FILE" ]; then
 fi
 CONTAINER_FOLDER=$(grep -E "^container_folder" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}' | sed "s|\[path\]|$(dirname "$root")|")
 NGSBITS_VERSION=$(grep -E "^container_ngs-bits" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}')
+MSISENSOR_VERSION=$(grep -E "^container_msisensor-pro" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}')
 ngsbits=$CONTAINER_FOLDER/ngs-bits_$NGSBITS_VERSION.sif
+msisensor=$CONTAINER_FOLDER/msisensor-pro_$MSISENSOR_VERSION.sif
 
 #Download ensembl transcripts database
 cd $dbs
@@ -222,6 +224,12 @@ tar xzf orad.2.6.1.tar.gz
 rm orad.2.6.1.tar.gz
 mv orad_2_6_1/oradata/refbin .
 rm -rf orad_2_6_1
+
+#create reference file for msisensor-pro
+cd $dbs
+mkdir msisensor-pro
+cd msisensor-pro
+apptainer exec -B $genome $msisensor msisensor-pro scan -d $genome -o msisensor_references_GRCh38.site
 
 # # install OMIM (you might need a license; production NGSD has to be available and initialized)
 # cd $dbs
