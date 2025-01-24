@@ -16,6 +16,8 @@ $parser->addOutfile("out", "Output .VCF file for small variants.", false);
 //optional
 $parser->addInfile("n_bam", "Input file normal sample BAM.", true);
 $parser->addOutfile("out_sv", "Outfile for dragen somatic SV calls. Activates dragen SV calling when given.", true);
+$parser->addOutfile("out_cnv", "Outfile for dragen somatic CNV calls. Activates dragen CNV calling when given.", true);
+$parser->addInfile("normal_snvs", "Dragen SNV calls of the normalsample. Necessary if -out_cnv is given.", true);
 $parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh38");
 $parser->addString("tumor", "Sample name of the tumor sample. If unset the basename of the 'tumor_bam' file is used.", true, "");
 $parser->addString("normal", "Sample name of the normal Sample. If unset the basename of the 'normal_bam' file is used.", true, "");
@@ -95,13 +97,14 @@ $dragen_parameter[] = "--vc-callability-normal-thresh 5"; # default 5
 $dragen_parameter[] = "--vc-enable-unequal-ntd-errors false"; # disables model to correct FFPE errors.. TODO get to work with model
 #$dragen_parameter[] = "--vc-combine-phased-variants-distance 1"; # Merge variants if they are directly adjecent on the same strand (2 SNVs -> 1 MNP)
 
-//MSI: microsattelite instability:
-if ($n_bam != "")
+//CNV calling:
+if ($out_cnv != "")
 {
-	$dragen_parameter[] = "--msi-command tumor-normal";
-	$msi_ref = get_path("data_folder") . "/dbs/msisensor-pro/msisensor_references_".$build.".site";
-	$dragen_parameter[] = "--msi-microsatellites-file $msi_ref";
-	$dragen_parameter[] = "--msi-coverage-threshold 60"; //recommended value is 60 for solid and 500 for liquid tumor (Dragen V4.2)
+	if ($normal_snvs == "") trigger_error("If outfile 'out_cnv' is given 'normal_snvs' have to be given as well.", E_USER_ERROR);
+	
+	$dragen_parameter[] = "--enable-cnv true";
+	$dragen_parameter[] = "--cnv-somatic-enable-het-calling true";
+	$dragen_parameter[] = "--cnv-normal-b-allele-vcf $normal_snvs";
 }
 
 //SV calling:
@@ -114,6 +117,17 @@ if ($out_sv != "")
 		$dragen_parameter[] = "--sv-exome true";
 	}
 }
+
+//MSI: microsattelite instability:
+if ($n_bam != "")
+{
+	$dragen_parameter[] = "--msi-command tumor-normal";
+	$msi_ref = get_path("data_folder") . "/dbs/msisensor-pro/msisensor_references_".$build.".site";
+	$dragen_parameter[] = "--msi-microsatellites-file $msi_ref";
+	$dragen_parameter[] = "--msi-coverage-threshold 60"; //recommended value is 60 for solid and 500 for liquid tumor (Dragen V4.2)
+}
+
+
 
 $parser->log("DRAGEN parameters:", $dragen_parameter);
 
@@ -132,12 +146,13 @@ $parser->log("Copying SNVs to output folder");
 $parser->copyFile($working_dir."output.vcf.gz", $out);
 $parser->copyFile($working_dir."output.vcf.gz.tbi", $out.".tbi");
 
-if (is_file($working_dir."output.microsat_output.json"))
+if ($out_cnv != "")
 {
-	$parser->log("Copying MSI file to output folder");
-	$parser->copyFile($working_dir."output.microsat_output.json", dirname($out)."/".basename($out, ".vcf.gz")."_msi.json");
+	$parser->log("Copying CNVs to output folder");
+	$parser->copyFile($working_dir."output.cnv.vcf.gz", $out_cnv);
+	$parser->copyFile($working_dir."output.cnv.vcf.gz.tbi", $out_cnv.".tbi");
+	// exec("cp {$working_dir}output.cnv* ".dirname($out_cnv)); //TODO replace with additional needed specific cnv output files? baf, seg files?
 }
-
 
 if ($out_sv != "")
 {
@@ -145,6 +160,13 @@ if ($out_sv != "")
 	$parser->copyFile($working_dir."output.sv.vcf.gz", $out_sv);
 	$parser->copyFile($working_dir."output.sv.vcf.gz.tbi", $out_sv.".tbi");
 }
+
+if (is_file($working_dir."output.microsat_output.json"))
+{
+	$parser->log("Copying MSI file to output folder");
+	$parser->copyFile($working_dir."output.microsat_output.json", dirname($out)."/".basename($out, ".vcf.gz")."_msi.json");
+}
+
 
 // ********************************* cleanup *********************************//
 
