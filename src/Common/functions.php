@@ -727,6 +727,11 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 		$apptainer_args[] = "--env REF_CACHE=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s";
 	}
 
+	if ($container=="subread") //subread repair needs access to the cwd to save intermediate files. Therefore we set the cwd in the container to /tmp when executing it
+	{
+		$apptainer_args[] = "--pwd=/tmp";
+	}
+
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
 	$bind_paths = array();
 	if($container=="ngs-bits")
