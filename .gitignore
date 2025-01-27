@@ -133,7 +133,7 @@
 /test/data_somatic/expected_case2
 
 /data/dbs/*/
-/data/tools/*/
+/data/tools/ngsbits_settings.ini
 /data/genomes/*/
 /data/genomes/somatic_viral.fa.*
 

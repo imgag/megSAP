@@ -39,7 +39,7 @@ mkdir -p /opt
 cd /opt
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2024_11 && git submodule update --recursive --init
+git checkout 2025_01 && git submodule update --recursive --init
 make build_3rdparty
 make build_libs_release
 make build_tools_release

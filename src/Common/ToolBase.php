@@ -585,6 +585,8 @@ class ToolBase
 			print $message."\n";
 			foreach($add_info as $line)
 			{
+				if (trim($line)=="") continue;
+				
 				foreach($skip_substrings as $substring)
 				{
 					if (contains($line, $substring)) continue(2);
@@ -601,6 +603,8 @@ class ToolBase
 			$lines[] = $prefix."$message\n";
 			foreach($add_info as $line)
 			{
+				if (trim($line)=="") continue;
+
 				foreach($skip_substrings as $substring)
 				{
 					if (contains($line, $substring)) continue(2);
@@ -845,14 +849,13 @@ class ToolBase
 		//if command only option is true, only the apptainer command is being return, without execution
 		if($command_only) 
 		{
-			$this->log("DEBUG: Apptainer command:\t", array($apptainer_command));
+			//$this->log("DEBUG: Apptainer command:\t", array($apptainer_command));
 			return $apptainer_command;
 		}
 		//log call
 		if($log_output)
 		{
 			$add_info = array();
-			$add_info[] = "Apptainer version = ".$this->extractVersion("apptainer");
 			foreach($in_files as $in_file)
 			{
 				$add_info[] = "input file          = ".$in_file;
@@ -865,16 +868,13 @@ class ToolBase
 			{
 				$add_info[] = "bind path           = ".$bind_path;
 			}
-			$add_info[] = "container           = ".$container;
-			$add_info[] = "container version   = ".$container_version;
 			$add_info[] = "container path      = ".$container_path;
 			$add_info[] = "tool version        = ".$this->extractVersion($command);
 			$add_info[] = "parameters          = $parameters";
 			$this->log("Calling external tool '$command' in container '".basename2($container_path)."'", $add_info);
 		}
-
-		//TODO: remove 
-		$this->log("DEBUG: Apptainer command:\t", array($apptainer_command));
+		//$this->log("DEBUG: Apptainer version: ".$this->extractVersion("apptainer"));
+		//$this->log("DEBUG: Apptainer command: ".$apptainer_command);
 		
 		$pid = getmypid();
 		//execute call - pipe stdout/stderr to file
