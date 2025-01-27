@@ -56,10 +56,10 @@ test_pipeline_c: dummy
 	@cd test/data_cfdna && make all
 
 test_pipeline_l: dummy
-	@cd test/data_longread && make pipeline
+	@cd test/data_longread && make all
 
 test_pipeline_l_all: dummy
-	@cd test/data_longread && make all
+	@cd test/data_longread && make all_3_tests
 
 test_pipeline_tl: dummy
 	@cd test/data_trio_longread && make all

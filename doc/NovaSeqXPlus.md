@@ -27,7 +27,6 @@ tar -xvf $OLD_NAME.tar.gz
 ```
 - rename in the `genome.json` file the entries `Name` and `DisplayName`
 - create new `tar.gz` file:
-- extract `tar.gz` file:
 ```
 tar -czf $NEW_NAME.tar.gz DRAGEN genome.fa genome.json
 ```
