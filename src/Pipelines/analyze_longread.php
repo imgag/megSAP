@@ -241,7 +241,7 @@ if (in_array("ma", $steps))
 		$rc_old = 0;
 		foreach ($old_bam_files_moved as $old_bam) 
 		{
-			$read_count = get_read_count($old_bam, max(8, $threads), array(), $sys['build']);
+			$read_count = get_read_count($old_bam, max(8, $threads), array("-F", "2304"), $sys['build']);
 			trigger_error("Previous BAM/CRAM file read counts (".$old_bam."): ".$read_count, E_USER_NOTICE);
 			$rc_old += $read_count;
 		}
@@ -257,6 +257,7 @@ if (in_array("ma", $steps))
 			if ($rel_diff < 0.0001) trigger_error("Read count of new and old BAM(s)/CRAM(s) in allowed tolerance (<0.01%) (".($rel_diff*100)."%). Deleting old BAM(s)/CRAM(s)...", E_USER_NOTICE);
 			$mapping_folder = "{$folder}/bams_for_mapping";
 			$parser->exec("rm", "-r {$mapping_folder}");
+			trigger_error("previous BAM/CRAM file removed!", E_USER_NOTICE);
 		}
 		else
 		{
