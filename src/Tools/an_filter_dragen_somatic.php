@@ -152,8 +152,14 @@ $final = $vcf_aligned;
 //flag off-target variants
 if (!empty($target))
 {
+	//add mito region to target region (for WGS):
+	$target_mito = $parser->tempFile("_mito.bed");
+	file_put_contents($target_mito, "chrMT\t0\t16569");
+	$full_target = $parser->tempFile("_full.bed");
+	$parser->execApptainer("ngs-bits", "BedAdd", "-in {$target} {$target_mito} -out {$full_target}", [$target]);
+	
 	$vcf_offtarget = $parser->tempFile("_filtered.vcf");
-	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $final -mark off-target -reg $target -out $vcf_offtarget", [$target]);
+	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $final -mark off-target -reg $full_target -out $vcf_offtarget", [$target]);
 	$final = $vcf_offtarget;
 }
 

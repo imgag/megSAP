@@ -34,6 +34,7 @@ $parser->addInt("max_ref_files", "maximum number of reference file pairs", true,
 $parser->addInt("lengthS", "ClinCNV lengthS parameter", true, 5);
 $parser->addInt("scoreS", "ClinCNV scoreS filter parameter", true, 100);
 $parser->addInt("filterStep", "ClinCNV filter strength.", true, 1);
+$parser->addInt("clonePenalty", "ClinCNV clone penalty.", true, 300);
 $parser->addFloat("purityStep", "ClinCNV purity step", true, 5); // ability to differntiate clones with similar CN - the percentage step 
 $parser->addFlag("test","Test mode (skips annotation from NGSD with overlapping pathogenic CNVs).");
 extract($parser->parse($argv));
@@ -326,6 +327,7 @@ $args = [
 "--lengthS", $lengthS,
 "--scoreS", $scoreS,
 "--filterStep", $filterStep,
+"--clonePenalty", $clonePenalty,
 "--numberOfThreads {$threads}",
 "--hg38",
 "--noPlot",

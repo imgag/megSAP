@@ -293,6 +293,7 @@ if (in_array("rc", $steps))
 	$repair_bam = "{$tmpdir}/{$name}.bam";
 	$parser->execApptainer("subread", "repair", "-i {$final_bam} -o {$repair_bam} -T {$threads}", [], [$out_folder]);
 
+
 	$args_common = array(
 		"-in", $repair_bam,
 		"-library_type", $library_type,
@@ -478,8 +479,8 @@ if (in_array("plt", $steps))
 
 		$files = [
 			repository_basedir()."/src/Tools/rc_plot_expr.py",
-			dirname($genelists),
-			$prefix			
+			dirname($genelist),
+			$out_folder			
 		];
 
 		$parser->execApptainer("python", "python3", repository_basedir()."/src/Tools/rc_plot_expr.py ".implode(" ", array_merge($args, $args_extra)), $files);
