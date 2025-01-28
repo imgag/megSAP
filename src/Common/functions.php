@@ -752,7 +752,7 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 			}
 		}
 
-		$ngsbits_settings_loc = repository_basedir()."/data/tools/ngsbits_settings.ini";
+		$ngsbits_settings_loc = get_path("data_folder")."/tools/ngsbits_settings.ini";
 		//ngs-bits settings file missing > create it
 		if (!file_exists($ngsbits_settings_loc) || (file_exists(repository_basedir()."/settings.ini") && filemtime($ngsbits_settings_loc)<filemtime(repository_basedir()."/settings.ini")))
 		{
