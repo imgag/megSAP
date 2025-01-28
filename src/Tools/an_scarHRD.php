@@ -147,10 +147,7 @@ function generate_prefiltered_cnvs($tumor, $clincnvs)
 		$number_of_regions = $cnv_parts[array_search("number_of_regions", $header_parts)];
 		$loglikelihood = $cnv_parts[array_search("loglikelihood", $header_parts)];
 		
-		$parser->log("CNV: $tumor_clonality, ". floatval($loglikelihood) / floatval($number_of_regions));
-		
 		if (floatval($tumor_clonality) < $min_clone && floatval($loglikelihood) / floatval($number_of_regions) < $min_sll) continue;
-		$parser->log("passed");
 		$cnvs_passed++;
 		$prefiltered_cnvs[] = $line;
 	}

@@ -75,14 +75,12 @@ $args[] = "--model_path_clair3={$model}";
 $args[] = "--model_path_clair3_trio={$trio_model}";
 $args[] = "--threads={$threads}";
 $args[] = "--output={$clair_temp}";
-//TODO: test
 $args[] = "--gvcf";
 
 
 //run in container
 $parser->execApptainer("clair3-trio", "/opt/bin/run_clair3_trio.sh", implode(" ", $args), $in_files, $out_files);
 
-//TODO: check naming
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
 
 //post-processing 

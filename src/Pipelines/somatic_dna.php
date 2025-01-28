@@ -13,7 +13,7 @@ $parser = new ToolBase("somatic_dna", "Differential analysis of tumor and normal
 
 //mandatory
 $parser->addInfile("t_bam", "Tumor sample BAM file.", false);
-$parser->addInfile("out_folder", "Output folder.", false);
+$parser->addString("out_folder", "Output folder.", false);
 
 //optional
 $parser->addInfile("n_bam", "Normal sample BAM file.", true);
@@ -154,6 +154,9 @@ if (!file_exists($out_folder))
 {
 	exec2("mkdir -p $out_folder");
 }
+
+$out_folder = realpath($out_folder);
+
 if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/somatic_dna_".date("YmdHis").".log");
 
 //output prefix
@@ -181,6 +184,7 @@ $single_sample = !isset($n_bam);
 if (!$single_sample)
 {
 	$n_id = basename2($n_bam);
+	$n_folder = dirname($n_bam);
 	$n_basename = dirname($n_bam)."/".$n_id;
 	$n_sys = load_system($n_system, $n_id);
 	$ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
@@ -409,6 +413,7 @@ if (in_array("vc", $steps))
 		$dragen_output_vcf = "$dragen_output_folder/{$prefix}_dragen.vcf.gz";
 		$dragen_output_msi = "$dragen_output_folder/{$prefix}_dragen_msi.json";
 		$dragen_output_svs = "$dragen_output_folder/{$prefix}_dragen_svs.vcf.gz";
+		$dragen_output_cnvs = "$dragen_output_folder/{$prefix}_dragen_cnvs.vcf.gz";
 		$dragen_log_file = "$dragen_output_folder/{$prefix}_dragen.log";
 		$sge_logfile = date("YmdHis")."_".implode("_", $server)."_".getmypid();
 		$sge_update_interval = 300; //5min
@@ -437,6 +442,13 @@ if (in_array("vc", $steps))
 		// $args[] = "-out_sv ".$dragen_output_svs;
 		$args[] = "-build ".$sys['build'];
 		$args[] = "--log ".$dragen_log_file;
+		
+		$dragen_normal_vcf = $n_folder."/dragen_variant_calls/{$n_id}_dragen.vcf.gz";
+		if (is_file($dragen_normal_vcf))
+		{
+			$args[] = "-out_cnv ".$dragen_output_cnvs;
+			$args[] = "-normal_snvs ".$dragen_normal_vcf;
+		}
 		
 		if (! $single_sample)
 		{
@@ -534,13 +546,19 @@ if (in_array("vc", $steps))
 				trigger_error("Could not create DRAGEN variant calls folder: ".$dragen_call_folder, E_USER_ERROR);
 			}
 		}
-		//copy vcf
+		//copy out files
 		$parser->moveFile($dragen_output_vcf, $dragen_call_folder.basename($dragen_output_vcf));
 		$parser->moveFile($dragen_output_vcf.".tbi", $dragen_call_folder.basename($dragen_output_vcf).".tbi");
 		
 		if (file_exists($dragen_output_msi))
 		{
 			$parser->moveFile($dragen_output_msi, $dragen_call_folder.basename($dragen_output_msi));
+		}
+		
+		if (file_exists($dragen_output_cnvs))
+		{
+			$parser->moveFile($dragen_output_cnvs, $dragen_call_folder.basename($dragen_output_cnvs));
+			$parser->moveFile($dragen_output_cnvs.".tbi", $dragen_call_folder.basename($dragen_output_cnvs).".tbi");
 		}
 		
 		//filter dragen vcf
@@ -998,6 +1016,14 @@ if(in_array("cn",$steps))
 				$args_clincnv[] = "-filterStep 2";
 			}
 			
+			if($sys['type'] == "WGS")
+			{
+				$args_clincnv[] = "-lengthS 9";
+				$args_clincnv[] = "-scoreS 10000";
+				$args_clincnv[] = "-filterStep 2";
+				$args_clincnv[] = "-clonePenalty 10000";
+			}
+			
 			if(isset($cnv_baseline_pos))
 			{
 				$args_clincnv[] = "-guide_baseline $cnv_baseline_pos";
@@ -1030,7 +1056,7 @@ if(in_array("cn",$steps))
 		if(!$single_sample && !$skip_signatures)
 		{
 			$cnv_signatures_out = $out_folder."/cnv_signatures/";
-			$parser->exec("php ".repository_basedir()."/src/Tools/extract_signatures.php", "-in {$som_clincnv} -mode cnv -outFolder {$cnv_signatures_out} -reference GRCh38 -threads {$threads}", true);
+			$parser->exec("php ".repository_basedir()."/src/Tools/extract_signatures.php", "-in {$som_clincnv} -mode cnv -out {$cnv_signatures_out} -reference GRCh38 -threads {$threads}", true);
 		}
 	}
 }

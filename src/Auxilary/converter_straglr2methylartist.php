@@ -9,6 +9,7 @@ $parser = new ToolBase("converter_straglr2methylartist", "Converts a straglr rep
 $parser->addInfile("catalog",  "Straglr catalog in BED format.", false);
 $parser->addOutfile("out",  "Output file in TSV-format.", false);
 $parser->addInfile("imprinting_tsv", "Additional imprinting TSV file which will be added to the repeat expansions.", true);
+$parser->addInfile("promotor_tsv", "Additional promotor TSV file which will be added to the repeat expansions.", true);
 extract($parser->parse($argv));
 
 
@@ -24,6 +25,21 @@ else
 	$output = new Matrix();
 	$output->setHeaders(array("identifier", "title", "gene symbol", "gene chr", "gene start", "gene end", "highlight start", "highlight end"), null);
 }
+
+if ($promotor_tsv != "")
+{
+	$tmp = Matrix::fromTSV($promotor_tsv);
+
+	//basic file check
+	if ($tmp->cols() != 8) trigger_error("Column count of promotor input file has to be 8 (is: ".$tmp->cols().")!", E_USER_ERROR);
+
+	//append to list
+	for($i = 0; $i < $tmp->rows(); ++$i)
+	{
+		$output->addRow($tmp->getRow($i));
+	}
+}
+
 
 
 //read repeat expansion catalog
@@ -43,8 +59,8 @@ for($i = 0; $i < $re_bed->rows(); ++$i)
 	//get gene region
 	$gene_pipeline = array();
 	$gene_pipeline[] = array("echo", $gene);
-	$gene_pipeline[] = array(get_path("ngs-bits")."GenesToBed", "-source ensembl -mode gene");
-	$gene_pipeline[] = array(get_path("ngs-bits")."BedMerge", "");
+	$gene_pipeline[] = array("", $parser->execApptainer("ngs-bits", "GenesToBed", "-source ensembl -mode gene", [], [], true));
+	$gene_pipeline[] = array("", $parser->execApptainer("ngs-bits", "BedMerge", "", [], [], true));
 	list($stdout, $stderr) = $parser->execPipeline($gene_pipeline, "gene region pipeline");
 	
 	list($gene_chr, $gene_start, $gene_end) = explode("\t", $stdout[0]);
