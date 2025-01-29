@@ -56,10 +56,10 @@ test_pipeline_c: dummy
 	@cd test/data_cfdna && make all
 
 test_pipeline_l: dummy
-	@cd test/data_longread && make pipeline
+	@cd test/data_longread && make all
 
 test_pipeline_l_all: dummy
-	@cd test/data_longread && make all
+	@cd test/data_longread && make all_3_tests
 
 test_pipeline_tl: dummy
 	@cd test/data_trio_longread && make all
@@ -127,11 +127,17 @@ swap_settings:
 clean_ignored:
 	git clean -Xn | cut -f3 -d' ' | egrep -v "settings.ini|megSAP_tag.txt" | xargs rm
 
-build_ngsbits_master_container:
+build_ngsbits_container_master:
 	apptainer build ngs-bits_master.sif data/tools/container_recipes/ngs-bits_master.def
 	chmod 777 ngs-bits_master.sif
 	mv ngs-bits_master.sif /mnt/storage2/megSAP/tools/apptainer_container/
 	php src/Tools/data_setup.php -build GRCh38
-	apptainer exec /tmp/local_ngs_data_GRCh38/container/ngs-bits_master.sif "BedInfo" "--version"
+	apptainer exec /tmp/local_ngs_data_GRCh38/container/ngs-bits_master.sif "MappingQC" "--version"
+
+build_ngsbits_container_release:
+	apptainer build ngs-bits_$(V).sif data/tools/container_recipes/ngs-bits_$(V).def
+	chmod 777 ngs-bits_$(V).sif
+	mv ngs-bits_$(V).sif /mnt/storage2/megSAP/tools/apptainer_container/
+	apptainer exec /mnt/storage2/megSAP/tools/apptainer_container/ngs-bits_$(V).sif "MappingQC" "--version"
 	
 dummy:
