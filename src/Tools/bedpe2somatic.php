@@ -9,7 +9,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("bedpe2somatic", "Expands data from INFO/FORMAT columns into single columns.");
-$parser->addInfile("in", "Input (manta) SV VCF file.", false);
+$parser->addInfile("in", "Input BEDPE file.", false);
 $parser->addString("tid", "Processed sample ID of tumor.", false);
 $parser->addString("nid", "Processed sample ID of normal control.", false);
 $parser->addOutfile("out", "Output BEDPE file.", false);
