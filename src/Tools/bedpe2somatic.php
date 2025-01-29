@@ -9,10 +9,10 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("bedpe2somatic", "Expands data from INFO/FORMAT columns into single columns.");
-$parser->addInfile("in", "Input BEDPE file.", false);
+$parser->addInfile("in", "Input (manta) SV VCF file.", false);
 $parser->addString("tid", "Processed sample ID of tumor.", false);
 $parser->addString("nid", "Processed sample ID of normal control.", false);
-$parser->addOutfile("out", "Output file.", false);
+$parser->addOutfile("out", "Output BEDPE file.", false);
 extract($parser->parse($argv));
 
 
@@ -37,10 +37,25 @@ function expand_format_col($format_desc_col, $data_col)
 			trigger_error("FORMAT count and col count differs.", E_USER_ERROR);
 		}
 		
+		$idx_pr = array_search("PR", $f_parts);
+		$idx_sr = array_search("SR", $f_parts);
 
-		for($i=0;$i<count($f_parts); ++$i)
+		if ($idx_pr !== false)
 		{
-			$expanded_cols[$f_parts[$i]][] = $d_parts[$i];
+			$expanded_cols["PR"][] = $d_parts[$idx_pr];
+		}
+		else
+		{
+			$expanded_cols["PR"][] = ".,.";
+		}
+		
+		if ($idx_sr !== false)
+		{
+			$expanded_cols["SR"][] = $d_parts[$idx_sr];
+		}
+		else
+		{
+			$expanded_cols["SR"][] = ".,.";
 		}
 	}
 	
@@ -54,7 +69,7 @@ function expand_format_col($format_desc_col, $data_col)
 		$pr_parts = explode(",", $expanded_cols["PR"][$row]);
 		list($pr_ref, $pr_alt) = (count($pr_parts) == 2) ? $pr_parts : array(".", ".");
 		
-		$sr_parts = isset($expanded_cols["SR"][$row]) ? explode(",", $expanded_cols["SR"][$row]) : "";
+		$sr_parts = explode(",", $expanded_cols["SR"][$row]);
 		list($sr_ref, $sr_alt) = (count($sr_parts) == 2) ? $sr_parts : array(".", ".");
 		
 		$col_pr_ref[] = $pr_ref;
