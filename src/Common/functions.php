@@ -702,7 +702,7 @@ function resolve_symlink($filename)
 /**
 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 */
-function execApptainer($container, $command, $parameters, $in_files = array(), $out_files = array(), $command_only=false, $return_for_toolbase=false, $abort_on_error=true)
+function execApptainer($container, $command, $parameters, $in_files=[], $out_files=[], $command_only=false, $return_for_toolbase=false, $abort_on_error=true)
 {
 	//check input
 	if (is_array($command))
@@ -711,11 +711,19 @@ function execApptainer($container, $command, $parameters, $in_files = array(), $
 	}
 	if (is_array($parameters))
 	{
-		trigger_error("Error in 'execApptainer': parameters cannot be array: ".implode("\n", $parameters), E_USER_ERROR);
+		trigger_error("Error in 'execApptainer' of '{$command}': parameters cannot be array: ".implode("\n", $parameters), E_USER_ERROR);
 	}
 	if(contains($command." ".$parameters, "|"))
 	{
-		trigger_error("Error in 'execApptainer': command must not contain pipe symbol '|': $command $parameters", E_USER_ERROR);
+		trigger_error("Error in 'execApptainer' of '{$command}': command must not contain pipe symbol '|': $command $parameters", E_USER_ERROR);
+	}
+	if (!is_array($in_files))
+	{
+		trigger_error("Error in 'execApptainer' of '{$command}': in_files must be array!", E_USER_ERROR);
+	}
+	if (!is_array($out_files))
+	{
+		trigger_error("Error in 'execApptainer' of '{$command}': out_files must be array!", E_USER_ERROR);
 	}
 	
 	//apptainer arguments

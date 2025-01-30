@@ -867,7 +867,7 @@ foreach($sample_data as $sample => $sample_infos)
 				$queue_trios[] = "\t".$command;
 			}
 		}
-		if ($high_priority || contains(strtolower(implode(" ", $sample_infos['ps_comments'])), "eilig"))
+		if ($high_priority || $sample_infos['urgent']==1)
 		{
 			$outputline .= " -high_priority";
 		}

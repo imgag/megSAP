@@ -816,7 +816,7 @@ while(!feof($handle))
 	//QD
 	if (isset($sample["DP"])) //freebayes
 	{
-		if (is_numeric($sample["DP"]))
+		if (is_numeric($sample["DP"]) && floatval($sample["DP"]) != 0)
 		{
 			$quality[] = "QD=".number_format($qual/$sample["DP"], 2);
 		}

@@ -825,7 +825,7 @@ class ToolBase
 	/**
 	 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 	 */
-	function execApptainer($container, $command, $parameters, $in_files = array(), $out_files = array(), $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true)
+	function execApptainer($container, $command, $parameters, $in_files=[], $out_files=[], $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true)
 	{
 		//execute local ngs-bits installation if ngs-bits_local path is set in settings.ini
 		$ngsbits_local = get_path("ngs-bits_local", false);
