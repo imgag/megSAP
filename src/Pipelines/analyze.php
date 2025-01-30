@@ -22,6 +22,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.");
 $parser->addFlag("no_abra", "Skip realignment with ABRA.");
 $parser->addFlag("no_trim", "Skip adapter trimming with SeqPurge.");
+$parser->addFlag("no_gender_check", "Skip gender check (done between mapping and variant calling).");
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
@@ -323,7 +324,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 	//check genome build of BAM
 	check_genome_build($used_bam_or_cram, $build);
 
-	//QC for already mapped/called samples from the NovaSeq X
+	//QC for samples mapped/called on NovaSeq X
 	if(!file_exists($qc_map))
 	{
 		//QC
@@ -355,7 +356,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 		$parser->execApptainer("ngs-bits", "MappingQC", implode(" ", $params), $in_files);
 	}	
 	
-	//low-coverage regions for already mapped/called samples from the NovaSeq X
+	//low-coverage regions for samples mapped/called on NovaSeq X
 	if(!file_exists($lowcov_file))
 	{
 		if ($has_roi && !$is_wgs_shallow)
@@ -368,6 +369,12 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 			}
 		}
 	}
+}
+
+//check gender after mapping
+if(!$somatic && !$no_gender_check)
+{
+	$parser->execTool("Tools/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
 }
 
 //variant calling
@@ -1224,9 +1231,6 @@ if (in_array("db", $steps))
 	if (file_exists($qc_vc)) $qc_files[] = $qc_vc; 
 	if (file_exists($qc_other)) $qc_files[] = $qc_other;
 	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_files)." -force", [$folder]);
-	
-	//check gender
-	if(!$somatic) $parser->execTool("Tools/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
 	
 	//import variants
 	$args = ["-ps {$name}"];

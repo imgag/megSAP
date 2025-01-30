@@ -1531,8 +1531,16 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			trigger_error("Tumor sample $t_id is not flagged as tumor in NGSD!", E_USER_WARNING);
 		}
 
-		// analogous steps for normal sample, plus additional
-		if (!$single_sample)
+		if ($single_sample) //tumor-only
+		{
+			// import variants into NGSD
+			if (file_exists($variants_gsvar) && false) //TODO Marc
+			{
+				check_genome_build($variants_gsvar, $sys['build']);
+				$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", "-t_ps $t_id -var $variants_gsvar -force", [$variants_gsvar]);
+			}
+		}
+		else //tumor-normal pair
 		{
 			// check sex using control sample
 			$parser->execTool("Tools/db_check_gender.php", "-in $n_bam -pid $n_id -sry_cov 30");
@@ -1555,21 +1563,28 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$s_id_t},'tumor-normal',{$s_id_n})");
 			
 			// import variants into NGSD
+			$args = ["-t_ps {$t_id}", "-n_ps {$n_id}", "-force"];
+			$binds = [];
 			if (file_exists($variants_gsvar))
 			{
 				check_genome_build($variants_gsvar, $sys['build']);
-				$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", "-t_ps $t_id -n_ps $n_id -var $variants_gsvar -var_force", [$variants_gsvar]);
+				$args[] = "-var {$variants_gsvar}";
+				$binds[] = $variants_gsvar;
 			}
-			
 			if(file_exists($som_clincnv))
 			{
-				$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", "-t_ps $t_id -n_ps $n_id -cnv $som_clincnv -cnv_force", [$som_clincnv]);
-			}
-			
+				$args[] = "--cnv {$som_clincnv}";
+				$binds[] = $som_clincnv;
+			}			
 			if(file_exists($manta_sv_bedpe))
 			{
-				$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", "-t_ps $t_id -n_ps $n_id -sv $manta_sv_bedpe -sv_force", [$manta_sv_bedpe]);
+				$args[] = "-var {$manta_sv_bedpe}";
+				$binds[] = $manta_sv_bedpe;
 			}
+			if (count($binds)>0)
+			{
+				$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", implode(" ", $args), $binds);
+			}	
 		}
 		
 		//add secondary analysis (if missing)
