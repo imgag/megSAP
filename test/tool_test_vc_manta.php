@@ -31,6 +31,14 @@ $manta_evidence_dir = output_folder()."/manta_evid_4";
 check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_in4.bam -out $out_file4 -evid_dir $manta_evidence_dir -rna -threads 2 --log ".output_folder().$name."_out4.log");
 check_file($out_file4, data_folder().$name."_out4.vcf.gz");
 
+########################## INV fix ###############################
+$out_file5 = output_folder().$name."_out5.vcf.gz";
+check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_in5.bam -out $out_file5 -threads 2 --log ".output_folder().$name."_out5.log");
+check_file($out_file5, data_folder().$name."_out5.vcf.gz");
+$out_file6 = output_folder().$name."_out6.vcf.gz";
+check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_in5.bam -skip_inv_merging -out $out_file6 -threads 2 --log ".output_folder().$name."_out6.log");
+check_file($out_file6, data_folder().$name."_out6.vcf.gz");
+
 end_test();
 
 ?>
