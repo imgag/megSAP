@@ -895,9 +895,10 @@ if (in_array("sv", $steps))
 					
 			//combine BND of INVs to one INV in VCF
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
-			$vc_manta_command = "python2 /opt/manta/libexec/convertInversion.py";
-			$vc_manta_parameters = "/usr/bin/samtools {$genome} {$dragen_output_vcf} > {$vcf_inv_corrected}";
-			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome], [dirname($dragen_output_vcf)]);
+			$inv_script = repository_basedir()."/src/Tools/convertInversion.py";
+			$vc_manta_command = "python2 ".$inv_script;
+			$vc_manta_parameters = "/usr/bin/samtools {$genome} {$dragen_output_vcf} dragen > {$vcf_inv_corrected}";
+			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome, $inv_script], [dirname($dragen_output_vcf)]);
 
 			//remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
 			$vcf_fixed = $parser->tempFile("_sv_fixed.vcf");
