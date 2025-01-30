@@ -1741,12 +1741,11 @@ function annotate_gsvar_by_gene(&$gsvar, $annotation_f, $key, $column, $column_n
 	$genes = $gsvar->getCol($gsvar->getColumnIndex("gene"));
 
 	$annotation = Matrix::fromTSV($annotation_f);
-	$values = array_combine($annotation->getCol($annotation->getColumnIndex($key)),
-							$annotation->getCol($annotation->getColumnIndex($column)));
+	$values = array_combine($annotation->getCol($annotation->getColumnIndex($key)), $annotation->getCol($annotation->getColumnIndex($column)));
 
-	$map_value = function(&$item, $key, &$values) use ($numeric)
+	foreach($genes as $k => $v)
 	{
-		$annotated_genes = explode(',', $item);
+		$annotated_genes = explode(',', $v);
 		$vals = [];
 		foreach ($annotated_genes as $g)
 		{
@@ -1758,12 +1757,10 @@ function annotate_gsvar_by_gene(&$gsvar, $annotation_f, $key, $column, $column_n
 			{
 				$vals[] = isset($values[$g]) ? $values[$g] : "na";
 			}
-			
 		}
 
-		$item = implode(",", $vals);
-	};
-	array_walk($genes, $map_value, $values);
+		$genes[$k] = implode(",", $vals);
+	}
 	$gsvar->removeColByName($column_name);
 	$gsvar->addCol($genes, $column_name, $column_description);
 }
