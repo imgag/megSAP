@@ -3,6 +3,8 @@ set -e
 set -o pipefail
 set -o verbose
 
+root=`dirname $(pwd)`
+
 # Get data_folder path
 SETTINGS_FILE=$root/../settings.ini
 if [ ! -f "$SETTINGS_FILE" ]; then
@@ -13,6 +15,7 @@ DATA_FOLDER=$(grep -E "^data_folder" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}
 root=$DATA_FOLDER
 folder=$root/tools/
 
+# Ensure the tools folder exists
 mkdir -p $folder
 
 #Ignore this - used for local installation
