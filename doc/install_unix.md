@@ -18,7 +18,7 @@ Ubuntu 22.04
 
 Ubuntu 24.04
 
-	> sudo apt-get install -y rsync zlib1g bzip2 php8.2-cli php8.2-xml php8.2-mysql make unzip wget git gnumeric tabix pigz ghostscript
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.3-cli php8.3-xml php8.3-mysql make unzip wget git gnumeric tabix pigz ghostscript
 
     
 ## Install Apptainer

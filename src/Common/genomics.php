@@ -257,17 +257,8 @@ function chr_list()
 	return preg_filter('/^/', 'chr', array_merge(range(1,22), array("X","Y")));
 }
 
-/**
-	@brief Function to get central organized paths to tools.
-	
-	Special handling for name 'megSAP-Tests' returns repository test/data/+analysis folder.
-	
-	@param name name of variable in ini-file.
-	@return value of variable in ini-file (e.g. path).
-		
-	@ingroup helpers
-*/
-function get_path($name, $throw_on_error=true)
+//Returns parsed INI file
+function get_ini()
 {
 	$dir = repository_basedir();
 	
@@ -294,6 +285,26 @@ function get_path($name, $throw_on_error=true)
 	{
 		trigger_error("Could not parse INI file '$ini_file'.",E_USER_ERROR);
 	}
+	
+	return $parsed_ini;
+}
+
+/**
+	@brief Function to get central organized paths to tools.
+	
+	Special handling for name 'megSAP-Tests' returns repository test/data/+analysis folder.
+	
+	@param name name of variable in ini-file.
+	@return value of variable in ini-file (e.g. path).
+		
+	@ingroup helpers
+*/
+function get_path($name, $throw_on_error=true)
+{
+	$dir = repository_basedir();
+	
+	//get ini file
+	$parsed_ini = get_ini();
 
 	//check key name
 	if (strpos($name, ".") !== false)
