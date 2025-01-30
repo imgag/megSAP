@@ -27,8 +27,20 @@ $method = "hetx";
 $args = "";
 if (!isset($gender))
 {
+	if (db_is_enabled("NGSD"))
+	{
+		$parser->log("Could not determine gender for processed sample '{$pid}': NGSD is not enabled.");
+		exit(0);
+	}
+	
 	//get sample info from DB
 	$db = DB::getInstance($db);
+	$ps_id = get_processed_sample_id($db, $pid, false);
+	if ($ps_id==-1)
+	{
+		$parser->log("Could not determine gender for processed sample '{$pid}': processed sample is not found in NGSD.");
+		exit(0);
+	}
 	$info = get_processed_sample_info($db, $pid);
 	$gender = $info['gender'];
 	$sys_type = $info['sys_type'];

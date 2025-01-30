@@ -18,6 +18,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mappi
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("skip_phasing", "Skip phasing of VCF and BAM files.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
+$parser->addFlag("no_gender_check", "Skip gender check (done between mapping and variant calling).");
 $parser->addFlag("skip_wgs_check", "Skip the similarity check with a related short-read WGS sample.");
 $parser->addFlag("bam_output", "Output file format for mapping is BAM instead of CRAM.");
 extract($parser->parse($argv));
@@ -370,6 +371,13 @@ else
 	
 	//check genome build of BAM
 	check_genome_build($used_bam_or_cram, $build);
+}
+
+
+//check gender after mapping
+if(!$no_gender_check)
+{
+	$parser->execTool("Tools/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
 }
 
 //variant calling
@@ -1043,10 +1051,6 @@ if (in_array("db", $steps))
 	if (file_exists($qc_vc)) $qc_files[] = $qc_vc; 
 	if (file_exists($qc_other)) $qc_files[] = $qc_other; 
 	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_files)." -force", [$folder]);
-	
-	//check gender
-	$parser->execTool("Tools/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
-	
 
 	if (!$skip_wgs_check)
 	{

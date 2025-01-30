@@ -600,7 +600,7 @@ if (in_array("vc", $steps))
 		}
 
 		//post-filtering
-		$parser->execApptainer("umiVar", "cfDNA_postfiltering.py", implode(" ", $args), $in_files, $folder);
+		$parser->execApptainer("umiVar", "cfDNA_postfiltering.py", implode(" ", $args), $in_files, [$folder]);
 		$parser->log("post-filtering log: ", file($temp_logfile));
 
 	}
