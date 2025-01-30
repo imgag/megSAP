@@ -307,18 +307,6 @@ if ($build=="GRCh38" && $check)
 	}
 }
 
-// Remove PID file if it is still ours
-$current_pidfile_pid = trim(file_get_contents($pid_file));
-if ($current_pidfile_pid==getmypid())
-{
-	unlink($pid_file);
-}
-else
-{
-	print "PID file was overwritten by another process ($current_pidfile_pid). Not removing it.\n";
-}
-
-
 ######################### copy apptainer containers #########################
 if (get_path("copy_dbs_to_local_data"))
 {
@@ -349,10 +337,14 @@ if (get_path("copy_dbs_to_local_data"))
 		}
 	}
 
-	// Get list of apptainer containers from network directory
-	list($container_files) = exec2("ls {$network_folder}/*.sif");
-	foreach ($container_files as $container_file) 
+	// get list of apptainer containers to transfer from settings file
+	$ini = get_ini();
+	foreach($ini as $key => $value)
 	{
+		if (!starts_with($key, "container_")) continue;
+		if ($key=="container_folder") continue;
+		
+		$container_file = $network_folder."/".substr($key, 10)."_".$value.".sif";
 		$base = basename($container_file);
 		$local_container_file = $local_folder.$base;
 
@@ -380,4 +372,16 @@ if (get_path("copy_dbs_to_local_data"))
 		}
 	}
 }
+
+######################### Remove PID file if it is still ours #########################
+$current_pidfile_pid = trim(file_get_contents($pid_file));
+if ($current_pidfile_pid==getmypid())
+{
+	unlink($pid_file);
+}
+else
+{
+	print "PID file was overwritten by another process ($current_pidfile_pid). Not removing it.\n";
+}
+
 ?>
