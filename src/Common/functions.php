@@ -905,7 +905,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fil
 	}
 	else if (get_path("megSAP_container_used"))
 	{
-		$apptainer_args[] = "-B /megSAP/data/";
+		$apptainer_args[] = "-B /megSAP/";
 	}
 
 	//compose Apptainer command
