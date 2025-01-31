@@ -17,7 +17,8 @@ function extract_info($format, $data)
 	
 	$data = explode(":", $data);
 	$data = array_combine($format, $data);
-	$depth = array_sum(explode(",", $data['DP'])); 
+	$dp = trim($data['DP']);
+	$depth = $dp=="." ? 0 : array_sum(explode(",", $data['DP']));
 	$genotype = vcfgeno2human($data['GT']);
 	if (isset($data['AO'])) //freebayes: AO
 	{

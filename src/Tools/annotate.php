@@ -121,7 +121,7 @@ if (($sys['type']=="lrGS") && !$multi && !$somatic && db_is_enabled("NGSD"))
 				$temp_config = $parser->tempFile("config.tsv");
 				file_put_contents($temp_config, "{$sr_vcf}\t\t\t\t\t1\tIN_SHORTREAD_SAMPLE\n");
 				$temp_annfile = $parser->tempFile("shortread_ann.vcf");
-				$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-in {$annfile}  -out {$temp_annfile} -config_file {$temp_config}");
+				$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-in {$annfile}  -out {$temp_annfile} -config_file {$temp_config}", [$sr_vcf]);
 				$parser->moveFile($temp_annfile, $annfile);
 			}
 		}

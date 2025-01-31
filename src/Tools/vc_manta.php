@@ -63,29 +63,35 @@ $args = [
 	"--runDir ".$manta_folder,
 	"--config ".$config,
 	"--outputContig",
-	"--generateEvidenceBam"
 ];
+if (isset($evid_dir))
+{
+	$args[] = "--generateEvidenceBam";
+}
 if ($exome)
 {
-	array_push($args, "--exome");
+	$args[] = "--exome";
 }
 if ($mode_somatic || $mode_tumor_only)
 {
-	array_push($args, "--tumorBam", $t_bam);
+	$args[] = "--tumorBam ".$t_bam;
 	$in_files[] = $t_bam;
 }
 if ($mode_somatic || $mode_germline || $rna)
 {
-	array_push($args, "--normalBam", implode(" --normalBam ", $bam));
+	$args[] = "--normalBam ".implode(" --normalBam ", $bam);
 	$in_files = array_merge($in_files, $bam);
 }
 if (isset($regions))
 {
-	array_push($args, "--region", implode(" --region ", $regions));
+	foreach($regions as $region)
+	{
+		$args[] = "--region ".$region;
+	}
 }
 if ($rna)
 {
-	array_push($args, "--rna");
+	$args[] =  "--rna";
 }
 
 //set bind paths for manta container

@@ -806,14 +806,13 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fil
 			$written = file_put_contents($ngsbits_settings_loc, implode("\n", $output));
 			if($written===false) trigger_error("Could not write ngs-bits settings file: $ngsbits_settings_loc", E_USER_ERROR);
 
-			$parameters = "--settings {$ngsbits_settings_loc} ".$parameters;
-			$bind_paths[] = $ngsbits_settings_loc.":".$ngsbits_settings_loc;
+			//try to change permissions
+			exec2("chmod 777 {$ngsbits_settings_loc}", false);
+
 		}
-		else if (file_exists($ngsbits_settings_loc))
-		{
-			$parameters = "--settings {$ngsbits_settings_loc} ".$parameters;
-			$bind_paths[] = $ngsbits_settings_loc.":".$ngsbits_settings_loc;
-		}
+		
+		$parameters = "--settings {$ngsbits_settings_loc} ".$parameters;
+		$bind_paths[] = $ngsbits_settings_loc.":".$ngsbits_settings_loc;
 	}
 	
 	//get container (preferably from local folder)
