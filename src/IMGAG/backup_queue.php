@@ -15,11 +15,12 @@ $parser->addInfile("in",  "Absolute path to input folder.", false);
 $parser->addEnum("mode",  "Mode.", false, array("run", "project", "user"));
 $parser->addString("email", "Email used for notification when SGE job has finished (NGSD login also works).", false);
 $parser->addFlag("include_raw_signal", "Backup includes non-basecalled POD5 or FAST5 data.");
+$parser->addFlag("test", "Don't queue job, just create and print command.");
 extract($parser->parse($argv));
 
 //check that the correct user is executing the script
 $user = exec('whoami');
-if ($user!="archive-gs")
+if ($user!="archive-gs" && ! $test)
 {
 	trigger_error("Only user 'archive-gs' can execute this script - use 'sudo -u archive-gs php backup_queue.php ...'!", E_USER_ERROR);
 }
@@ -41,7 +42,12 @@ if (!file_exists($backup_script))
 //get email from NGSD if necessary
 if (!contains($email, "@"))
 {
-	$db = DB::getInstance("NGSD");
+	if (! $test)
+	{
+		$db = DB::getInstance("NGSD");
+	} else {
+		$db = DB::getInstance("NGSD_TEST");
+	}
 	$email = $db->getValue("SELECT email FROM user WHERE user_id='{$email}'");
 }
 
@@ -60,10 +66,18 @@ if ($include_raw_signal)
 print "    SGE command: {$command}\n";
 
 //exucute command
-list($stdout, $stderr) = exec2($command);
-$sge_id = explode(" ", $stdout[0])[2];
-print "    SGE job id: {$sge_id}\n";
-print "    SGE stdout: {$sge_out}\n";
-print "    SGE stderr: {$sge_err}\n";
+if (!$test) 
+{
+	list($stdout, $stderr) = exec2($command);
+	$sge_id = explode(" ", $stdout[0])[2];
+	print "    SGE job id: {$sge_id}\n";
+	print "    SGE stdout: {$sge_out}\n";
+	print "    SGE stderr: {$sge_err}\n";
+} 
+else 
+{
+	$parser->log("Command: $command");
+}	
+
 
 ?>
