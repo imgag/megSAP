@@ -6,14 +6,13 @@ set -o verbose
 root=`dirname $(pwd)`
 
 # Get data_folder path
-SETTINGS_FILE=$root/../settings.ini
+SETTINGS_FILE=$root/settings.ini
 if [ ! -f "$SETTINGS_FILE" ]; then
-    SETTINGS_FILE="$root/../settings.ini.default"
+    SETTINGS_FILE="$root/settings.ini.default"
 fi
-DATA_FOLDER=$(grep -E "^data_folder" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}' | sed "s|\[path\]|$(dirname "$root")|")
+DATA_FOLDER=$(grep -E "^data_folder" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}' | sed "s|\[path\]|${root}|")
 
-root=$DATA_FOLDER
-folder=$root/tools/
+folder=$DATA_FOLDER/tools/
 
 # Ensure the tools folder exists
 mkdir -p $folder

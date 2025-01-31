@@ -16,7 +16,8 @@ If you are interested to join the effort, please contact [Marc Sturm](https://gi
 ## Obtaining megSAP
 
 The installation of megSAP is quite time-consuming because many tools and big databases need to installed.  
-The installation instructions can be found [here](doc/install_unix.md).
+The installation instructions can be found [here](doc/install_unix.md).  
+The installation instructions for the container version of megSAP can be found [here](doc/install_unix_container_version.md).
 
 *Note: Only GRCh38 is supported. There is a [branch](https://github.com/imgag/megSAP/tree/GRCh37) for GRCh37, but is is not updated or maintained since December 2021 anymore.*
 

@@ -5,8 +5,21 @@ set -o verbose
 
 root=`pwd`
 src=$root/../src/
-dbs=$root/dbs/
-genome=$root/genomes/GRCh38.fa
+
+# Get data_folder path
+SETTINGS_FILE=$root/../settings.ini
+if [ ! -f "$SETTINGS_FILE" ]; then
+    SETTINGS_FILE="$root/../settings.ini.default"
+fi
+DATA_FOLDER=$(grep -E "^data_folder" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}' | sed "s|\[path\]|$(dirname "$root")|")
+
+dbs=$DATA_FOLDER/dbs/
+misc=$DATA_FOLDER/misc/
+genome_dir=$DATA_FOLDER/genomes/
+genome=$genome_dir/GRCh38.fa
+
+mkdir -p $dbs
+mkdir -p $misc
 
 # Get ngs-bits container path
 SETTINGS_FILE=$root/../settings.ini
@@ -95,33 +108,33 @@ wget -O - https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/with
 cd $dbs
 mkdir -p gnomAD
 cd gnomAD
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr1.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php -header > gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr2.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr3.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr4.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr5.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr6.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr7.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr8.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr9.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr10.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr11.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr12.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr13.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr14.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr15.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr16.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr17.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr18.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr19.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr20.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr21.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr22.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chrX.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chrY.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr1.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php -header > gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr2.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr3.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr4.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr5.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr6.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr7.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr8.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr9.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr10.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr11.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr12.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr13.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr14.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr15.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr16.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr17.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr18.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr19.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr20.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr21.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr22.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chrX.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chrY.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | php $src/Install/db_converter_gnomad.php >> gnomAD_genome_v4.1_GRCh38.vcf
 bgzip gnomAD_genome_v4.1_GRCh38.vcf
 tabix -C -m 9 -p vcf gnomAD_genome_v4.1_GRCh38.vcf.gz
-wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/3.1/vcf/genomes/gnomad.genomes.v3.1.sites.chrM.vcf.bgz | gunzip | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort >> gnomAD_genome_v3.1.mito_GRCh38.vcf
+wget -O - https://storage.googleapis.com/gcp-public-data--gnomad/release/3.1/vcf/genomes/gnomad.genomes.v3.1.sites.chrM.vcf.bgz | gunzip | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort >> gnomAD_genome_v3.1.mito_GRCh38.vcf
 bgzip gnomAD_genome_v3.1.mito_GRCh38.vcf
 tabix -C -m 9 -p vcf gnomAD_genome_v3.1.mito_GRCh38.vcf.gz
 
@@ -141,8 +154,8 @@ zcat CADD_InDels_1.7_GRCh38.tsv.gz | php $src/Install/db_converter_cadd.php -bui
 tabix -f -C -m 9 -p vcf CADD_InDels_1.7_GRCh38.vcf.gz
 zcat CADD_SNVs_1.7_GRCh38.tsv.gz | php $src/Install/db_converter_cadd.php -build GRCh38 -in - -out - | apptainer exec $ngsbits VcfStreamSort | bgzip > CADD_SNVs_1.7_GRCh38.vcf.gz
 tabix -f -C -m 9 -p vcf CADD_SNVs_1.7_GRCh38.vcf.gz
-apptainer exec -B $root/genomes/ $ngsbits VcfCheck -in CADD_InDels_1.7_GRCh38.vcf.gz -lines 1000 -ref $genome
-apptainer exec -B $root/genomes/ $ngsbits VcfCheck -in CADD_SNVs_1.7_GRCh38.vcf.gz -lines 1000 -ref $genome
+apptainer exec -B $genome_dir $ngsbits VcfCheck -in CADD_InDels_1.7_GRCh38.vcf.gz -lines 1000 -ref $genome
+apptainer exec -B $genome_dir $ngsbits VcfCheck -in CADD_SNVs_1.7_GRCh38.vcf.gz -lines 1000 -ref $genome
 rm -rf CADD_SNVs_1.7_GRCh38.tsv.gz CADD_InDels_1.7_GRCh38.tsv.gz
 
 #download and convert REVEL - https://sites.google.com/site/revelgenomics/downloads
@@ -155,7 +168,7 @@ apptainer exec $ngsbits VcfSort -in tmp.vcf -out REVEL_1.3.vcf
 rm tmp.vcf
 bgzip REVEL_1.3.vcf
 tabix -f -C -m 9 -p vcf REVEL_1.3.vcf.gz
-apptainer exec -B $root/genomes/ $ngsbits VcfCheck -in REVEL_1.3.vcf.gz -lines 1000 -ref $genome
+apptainer exec -B $genome_dir $ngsbits VcfCheck -in REVEL_1.3.vcf.gz -lines 1000 -ref $genome
 
 #download and convert AlphaMissense - Attention: for non-commercial use only!
 cd $dbs
@@ -188,7 +201,7 @@ cd gene_annotations
 wget -O - 'http://ftp.ensembl.org/pub/release-107/gtf/homo_sapiens/Homo_sapiens.GRCh38.107.gtf.gz' | gzip -cd | awk '{ if ($$1 !~ /^#/) { print "chr"$0 } else { print $0 } }' > GRCh38.gtf
 
 #create hemoglobin FASTA file
-cd $root/misc
+cd $misc
 wget -O - 'https://ftp.ensembl.org/pub/release-109/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz' | zcat | \
 	awk -v RS=">" -v FS="\n" '$$1 ~ / gene_symbol:(HBA1|HBA2|HBB) / { print ">"$$1; {for (i=2; i<=NF; i++) printf("%s", $$i)}; printf("\n") }' | \
 	sed '/^>/s/ /|kraken:taxid|9606 /' \
@@ -198,21 +211,21 @@ wget -O - 'https://ftp.ensembl.org/pub/release-109/fasta/homo_sapiens/cdna/Homo_
 mkdir -p $dbs/GIAB/NA12878/
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz -O $dbs/GIAB/NA12878/high_conf_variants.vcf.gz
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.bed -O $dbs/GIAB/NA12878/high_conf_regions.bed
-zcat $dbs/GIAB/NA12878/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec -B $root/genomes/ $ngsbits VcfFilter -remove_invalid -ref $genome | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA12878/high_conf_variants_normalized.vcf.gz
+zcat $dbs/GIAB/NA12878/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec -B $genome_dir $ngsbits VcfFilter -remove_invalid -ref $genome | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA12878/high_conf_variants_normalized.vcf.gz
 tabix $dbs/GIAB/NA12878/high_conf_variants_normalized.vcf.gz
 
 #download and normalize HG002/NA24385 reference data
 mkdir -p $dbs/GIAB/NA24385/
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/AshkenazimTrio/HG002_NA24385_son/latest/GRCh38/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz -O $dbs/GIAB/NA24385/high_conf_variants.vcf.gz
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/AshkenazimTrio/HG002_NA24385_son/latest/GRCh38/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed -O $dbs/GIAB/NA24385/high_conf_regions.bed
-zcat $dbs/GIAB/NA24385/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec -B $root/genomes/ $ngsbits VcfFilter -remove_invalid -ref $genome | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA24385/high_conf_variants_normalized.vcf.gz
+zcat $dbs/GIAB/NA24385/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec -B $genome_dir $ngsbits VcfFilter -remove_invalid -ref $genome | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA24385/high_conf_variants_normalized.vcf.gz
 tabix $dbs/GIAB/NA24385/high_conf_variants_normalized.vcf.gz
 
 #download and normalize HG002/NA24385 CMRG reference data
 mkdir -p $dbs/GIAB/NA24385_CMRG/
 wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/SmallVariant/HG002_GRCh38_CMRG_smallvar_v1.00.vcf.gz -O $dbs/GIAB/NA24385_CMRG/high_conf_variants.vcf.gz
 wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/SmallVariant/HG002_GRCh38_CMRG_smallvar_v1.00.bed -O $dbs/GIAB/NA24385_CMRG/high_conf_regions.bed
-zcat $dbs/GIAB/NA24385_CMRG/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec -B $root/genomes/ $ngsbits VcfFilter -remove_invalid -ref $genome | apptainer exec -B $root/genomes/ $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
+zcat $dbs/GIAB/NA24385_CMRG/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec -B $genome_dir $ngsbits VcfFilter -remove_invalid -ref $genome | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | bgzip > $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 tabix $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 
 #download reference genome for orad

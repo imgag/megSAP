@@ -10,15 +10,25 @@ set -o verbose
 
 src=`pwd`/../src/
 
-if [ -z "$1" ]
-  then
-	genome=`pwd`/genomes/GRCh38.fa
-  else
-	mkdir -p $1/genomes/
-	genome=$1/genomes/GRCh38.fa
+root=`dirname $(pwd)`
+
+# Get data_folder path
+SETTINGS_FILE=$root/settings.ini
+if [ ! -f "$SETTINGS_FILE" ]; then
+    SETTINGS_FILE="$root/settings.ini.default"
 fi
+DATA_FOLDER=$(grep -E "^data_folder" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}' | sed "s|\[path\]|${root}|")
+
+folder=$DATA_FOLDER/genomes/
+
+# Ensure the genome folder exists
+mkdir -p $folder
+
+genome=$folder/GRCh38.fa
+
 rm -rf $genome $genome.fai
 
+cd $folder
 wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna.gz
 (gunzip -c GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna.gz |  sed -r 's/>chrM/>chrMT/g' > $genome) || true
 rm GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna.gz
