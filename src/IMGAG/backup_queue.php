@@ -32,7 +32,7 @@ if (!file_exists($in))
 }
 
 //check backup script exists
-$backup_script = repository_basedir()."/src/Tools/backup_{$mode}.php";
+$backup_script = repository_basedir()."/src/IMGAG/backup_{$mode}.php";
 if (!file_exists($backup_script))
 {
 	trigger_error("Backup script '$backup_script' does not exist!", E_USER_ERROR);
