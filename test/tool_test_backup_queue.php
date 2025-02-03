@@ -26,7 +26,7 @@ check_exec("php ".src_folder()."/IMGAG/{$name}.php -test -in $input_folder -mode
 exec("grep \"Command: \" $log_file", $command_line);
 check(strpos($command_line[0], " test@test.de "), true); //email correct
 check(strpos($command_line[0], "/backup_run.php "), true); //mode correct
-check(strpos($command_line[0], " -include_raw_signal "), true); //argument correct
+check(strpos($command_line[0], " -include_raw_signal"), true); //argument correct
 $command_line = [];
 
 
