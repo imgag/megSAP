@@ -375,7 +375,7 @@ else
 
 
 //check gender after mapping
-if(!$no_gender_check)
+if(db_is_enabled("NGSD") && !$no_gender_check)
 {
 	$parser->execTool("Tools/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
 }
