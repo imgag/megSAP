@@ -82,10 +82,11 @@ function calculate_cnv_signatures($in, $minSig, $maxSig, $nmfRep, $seeds)
 		trigger_error("Warning: No CNVs called! - Skipping CNV signature calculation.", E_USER_NOTICE);
 		return;
 	}
-
+	
+	$in_files = [];
 	if (is_file(($seeds)) || is_dir($seeds))
 	{
-		$in_files = [$seeds];
+		$in_files[] = $seeds;
 	}
 
 	$parser->execApptainer("SigProfilerExtractor", "python -c", "'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor(\"seg:FACETS\", \"$result_folder\", \"$tmp\", reference_genome=\"{$reference}\", minimum_signatures={$minSig}, maximum_signatures={$maxSig}, nmf_replicates={$nmfRep}, cpu={$threads}, seeds=\"{$seeds}\")'", $in_files);
