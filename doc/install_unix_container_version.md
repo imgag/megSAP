@@ -54,7 +54,7 @@ apptainer exec --pwd /megSAP/data -B <path-to-host-data-folder>:/megSAP/data/dat
 apptainer exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/ megSAP_[version].sif php /megSAP/src/Install/db_download.php -data_folder /megSAP/data/data_folder/
 ```
 
-<!-- **Note:** OMIM, HGMD, and COSMIC databases are not downloaded automatically due to licensing restrictions. If you have the required licenses, follow the instructions in the `download_dbs.sh` script to download and convert them manually. -->
+**Note:** OMIM, HGMD, and COSMIC databases are not downloaded automatically due to licensing restrictions. If you have the required licenses, follow the instructions in the [download_dbs.sh](../data/download_dbs.sh) script to download and convert them manually. You can use the ngs-bits container downloaded earlier for the ngs-bits command and the megSAP container to execute the php scripts.
 
 ## Settings
 
@@ -102,7 +102,7 @@ If you plan to use **NGSD** and it is not initialized yet, follow these steps:
 
 **Note:** To call `ngs-bits` tools, use: `apptainer exec ngs-bits_[version].sif [tool] [parameters]`. The `ngs-bits` container is downloaded to `<path-to-host-data-folder>/tools/apptainer_container`.
 
-<!-- **Note:** To annotate variants with NGSD in-house counts, classifications, etc., NGSD data has to be exported regularly. To do so, adapt the file `data\dbs\NGSD\Makefile` and execute `make export` once a week using a cronjob. -->
+**Note:** To annotate variants with NGSD in-house counts, classifications, etc., NGSD data has to be exported regularly. To do so, adapt the file `data\dbs\NGSD\Makefile` and execute `make export` once a week using a cronjob. To do so in the megSAP container version you have to copy the Makefile to your host system, change it and mount it when executing the `make export`.
 
 ## Execution
 
