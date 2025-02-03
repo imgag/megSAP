@@ -17,7 +17,7 @@ sudo apt install -y apptainer
 Download the megSAP Apptainer container:
 
 ```sh
-wget --no-check-certificate -O megSAP_master.sif https://megsap.de/download/container/
+wget --no-check-certificate -O megSAP_master.sif https://megsap.de/download/container/megSAP_master.sif
 ```
 
 ## Initial Setup
