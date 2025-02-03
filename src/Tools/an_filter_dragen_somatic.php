@@ -174,7 +174,7 @@ if (!empty($target))
 		$vcf_with_artefacts = dirname($out)."/".basename($out, ".vcf.gz")."_with_enzymatic_artefacts.vcf.gz";
 		$parser->exec("bgzip", "-c $final > $vcf_with_artefacts", true);
 		$vcf_no_artefacts = $parser->tempFile("_filtered_no_artefacts.vcf");
-		$parser->execApptainer("ngs-bits", "VcfSubstract", "-in $final -in2 $artefact_vcf -out $vcf_no_artefacts", [$artefact_vcf]);
+		$parser->execApptainer("ngs-bits", "VcfSubtract", "-in $final -in2 $artefact_vcf -out $vcf_no_artefacts", [$artefact_vcf]);
 		$final = $vcf_no_artefacts;
 	}
 }
