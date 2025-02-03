@@ -621,6 +621,16 @@ class ToolBase
 		}
 	}
 	
+	
+	///Logs server name, user name and working directory.
+	public function logServerEnvronment()
+	{
+		list($server) = exec2("hostname -f");
+		$user = exec('whoami');
+		$cwd = getcwd();
+		$this->log("Executed on server: ".implode(" ", $server)." as {$user} in WD {$cwd}");
+	}
+	
 	/// Prints a message (string or array of strings) to the stderr stream
 	function toStderr($message)
 	{

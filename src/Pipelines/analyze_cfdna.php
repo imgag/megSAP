@@ -29,8 +29,11 @@ $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to th
 $parser->addFlag("no_post_filter", "Use the unfiltered umiVar output to generate the GSvar file.");
 extract($parser->parse($argv));
 
-//create logfile in output folder if no filepath is provided
-if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_cfdna_".date("YmdHis").".log");
+//create log file in output folder if none is provided
+if ($parser->getLogFile()=="") $parser->setLogFile($folder."/analyze_cfdna_".date("YmdHis").".log");
+
+//log server, user, etc.
+$parser->logServerEnvronment();
 
 //TODO determine values
 //low coverage cutoff
@@ -58,11 +61,6 @@ foreach($steps as $step)
 {
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 }
-
-//log server name
-list($server) = exec2("hostname -f");
-$user = exec('whoami');
-$parser->log("Executed on server: ".implode(" ", $server)." as {$user}");
 
 //determine processing system
 $sys = load_system($system, $name);

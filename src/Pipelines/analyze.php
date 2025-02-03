@@ -37,8 +37,12 @@ if (!file_exists($folder))
 {
 	exec2("mkdir -p $folder");
 }
-if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_".date("YmdHis").".log");
 
+//create log file in output folder if none is provided
+if ($parser->getLogFile()=="") $parser->setLogFile($folder."/analyze_".date("YmdHis").".log");
+
+//log server, user, etc.
+$parser->logServerEnvronment();
 
 //determine processing system
 $sys = load_system($system, $name);
@@ -62,11 +66,6 @@ foreach($steps as $step)
 {
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 }
-
-//log server name
-list($server) = exec2("hostname -f");
-$user = exec('whoami');
-$parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 
 //checks in case DRAGEN should be used
 if ($use_dragen)

@@ -61,8 +61,11 @@ $gsvar = "{$out_folder}/{$prefix}.GSvar";
 $sv_manta_file = "{$out_folder}/{$prefix}_manta_var_structural.vcf.gz";
 $bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
 
-// create logfile in output folder if no filepath is provided:
-if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/multi_".date("YmdHis").".log");
+//create log file in output folder if none is provided
+if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/multi_".date("YmdHis").".log");
+
+//log server, user, etc.
+$parser->logServerEnvronment();
 
 //check steps
 $steps = explode(",", $steps);
@@ -288,6 +291,7 @@ if (in_array("vc", $steps))
 		}
 	}
 	
+	//TODO: no longer convert it !!!!!
 	//(2) annotation
 	//Convert VCF to single-sample format
 	$indices = array();
@@ -402,7 +406,6 @@ if (in_array("vc", $steps))
 		$status_map[basename2($bam)] = $disease_status;
 	}
 	update_gsvar_sample_header($gsvar, $status_map);
-
 }
 
 //(3) copy-number calling

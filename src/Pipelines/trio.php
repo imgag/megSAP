@@ -105,8 +105,11 @@ $sample_c = basename2($c);
 $sample_f = basename2($f);
 $sample_m = basename2($m);
 
-// create logfile in output folder if no filepath is provided:
-if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/trio_".date("YmdHis").".log");
+//create log file in output folder if none is provided
+if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/trio_".date("YmdHis").".log");
+
+//log server, user, etc.
+$parser->logServerEnvronment();
 
 //file names
 $gsvar = "{$out_folder}/trio.GSvar";

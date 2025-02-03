@@ -33,8 +33,11 @@ if($out_folder=="default")
 	$out_folder = $folder;
 }
 
-// create logfile in output folder if no filepath is provided:
-if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/analyze_rna_".date("YmdHis").".log");
+//create log file in output folder if none is provided
+if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/analyze_rna_".date("YmdHis").".log");
+
+//log server, user, etc.
+$parser->logServerEnvronment();
 
 //check steps
 $steps = explode(",", $steps);
@@ -45,11 +48,6 @@ foreach($steps as $step)
 		trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 	}
 }
-
-//log server name
-list($server) = exec2("hostname -f");
-$user = exec('whoami');
-$parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 
 //init
 $prefix = $out_folder."/".$name;

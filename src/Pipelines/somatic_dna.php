@@ -157,7 +157,11 @@ if (!file_exists($out_folder))
 
 $out_folder = realpath($out_folder);
 
-if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/somatic_dna_".date("YmdHis").".log");
+//create log file in output folder if none is provided
+if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_dna_".date("YmdHis").".log");
+
+//log server, user, etc.
+$parser->logServerEnvronment();
 
 //output prefix
 $full_prefix = "{$out_folder}/{$prefix}";
