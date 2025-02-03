@@ -434,7 +434,7 @@ if (in_array("cn", $steps))
 			
 			//parse CNV file
 			$data = array();
-			$cnv_file = $out_folder."/{$ps_name}_cnvs_clincnv.tsv";
+			$cnv_file = dirname($bam)."/{$ps_name}_cnvs_clincnv.tsv";
 			if (!file_exists($cnv_file)) trigger_error("CNV file missing: {$cnv_file}", E_USER_ERROR);
 			foreach(file($cnv_file) as $line)
 			{
