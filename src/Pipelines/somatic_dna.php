@@ -157,7 +157,11 @@ if (!file_exists($out_folder))
 
 $out_folder = realpath($out_folder);
 
-if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/somatic_dna_".date("YmdHis").".log");
+//create log file in output folder if none is provided
+if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_dna_".date("YmdHis").".log");
+
+//log server, user, etc.
+$parser->logServerEnvronment();
 
 //output prefix
 $full_prefix = "{$out_folder}/{$prefix}";
@@ -1573,12 +1577,12 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			}
 			if(file_exists($som_clincnv))
 			{
-				$args[] = "--cnv {$som_clincnv}";
+				$args[] = "-cnv {$som_clincnv}";
 				$binds[] = $som_clincnv;
 			}			
 			if(file_exists($manta_sv_bedpe))
 			{
-				$args[] = "-var {$manta_sv_bedpe}";
+				$args[] = "-sv {$manta_sv_bedpe}";
 				$binds[] = $manta_sv_bedpe;
 			}
 			if (count($binds)>0)

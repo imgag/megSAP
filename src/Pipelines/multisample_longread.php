@@ -37,13 +37,11 @@ if (!file_exists($out_folder))
 	}
 }
 
-// create logfile in output folder if no filepath is provided:
-if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/multi_".date("YmdHis").".log");
+//create log file in output folder if none is provided
+if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/multi_".date("YmdHis").".log");
 
-//log server name
-list($server) = exec2("hostname -f");
-$user = exec('whoami');
-$parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
+//log server, user, etc.
+$parser->logServerEnvronment();
 
 //check steps
 $steps = explode(",", $steps);

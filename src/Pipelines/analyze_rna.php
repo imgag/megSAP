@@ -33,8 +33,11 @@ if($out_folder=="default")
 	$out_folder = $folder;
 }
 
-// create logfile in output folder if no filepath is provided:
-if ($parser->getLogFile() == "") $parser->setLogFile($out_folder."/analyze_rna_".date("YmdHis").".log");
+//create log file in output folder if none is provided
+if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/analyze_rna_".date("YmdHis").".log");
+
+//log server, user, etc.
+$parser->logServerEnvronment();
 
 //check steps
 $steps = explode(",", $steps);
@@ -45,11 +48,6 @@ foreach($steps as $step)
 		trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 	}
 }
-
-//log server name
-list($server) = exec2("hostname -f");
-$user = exec('whoami');
-$parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 
 //init
 $prefix = $out_folder."/".$name;
@@ -190,17 +188,18 @@ if (in_array("ma", $steps))
 			$filtered = "{$kraken_tmpdir}/filtered#.fastq";
 			$filtered1 = "{$kraken_tmpdir}/filtered_1.fastq";
 			$filtered2 = "{$kraken_tmpdir}/filtered_2.fastq";
-			$kraken_args = [
-				"--db", get_path("data_folder")."/dbs/kraken2_filter_hb",
-				"--threads", $threads,
-				"--output", "-",
-				"--paired",
-				"--gzip-compressed",
-				"--unclassified-out", "{$kraken_tmpdir}/filtered#.fastq",
-				$fastq_trimmed1,
-				$fastq_trimmed2
+
+ 			$kraken_args = [
+				"-threads {$threads}",
+				"-output -",
+				"-paired",
+				"-gzip_compressed",
+				"-unclassified_out {$kraken_tmpdir}/filtered#.fastq",
+				"-in $fastq_trimmed1 $fastq_trimmed2"
 			];
-			$parser->execApptainer("kraken2", "kraken2", implode(" ", $kraken_args), [get_path("data_folder")."/dbs/kraken2_filter_hb"]);
+
+			$parser->execTool("Tools/filter_kraken2.php", implode(" ", $kraken_args));
+
 			$parser->exec("gzip", "-1 {$filtered1}");
 			$parser->exec("gzip", "-1 {$filtered2}");
 

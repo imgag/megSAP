@@ -14,7 +14,7 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | clair3_v1.0.10.sif                    | clair3	                | 1.0.10	        | run_clair3.sh                                                                                     |
 | clair3-trio_v0.7.sif                  | clair3-trio               | 0.7	            | /opt/bin/run_clair3_trio.sh                                                                       |
 | ClinCNV_v1.18.3.sif	                | ClinCNV                   | 1.18.3	        | clinCNV.R                                                                                         |
-| expansionhunter_v5.0.0.s              | expansionhunter	        | 5.0.0	            | ExpansionHunter                                                                                   |
+| expansionhunter_v5.0.0.sif            | expansionhunter	        | 5.0.0	            | ExpansionHunter                                                                                   |
 | freebayes_v1.3.6.sif	                | freebayes                 | 1.3.6	            | freebayes                                                                                         |
 | gatk_4.6.0.0.sif	                    | gatk                      | 4.6.0.0	        | gatk                                                                                              |
 | happy_v0.3.14.sif	                    | happy                     | 0.3.14	        | hap.py                                                                                            |
@@ -22,10 +22,11 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | kraken2_v2.1.3.sif	                | kraken2	                | 2.1.3         	| kraken2                                                                                           |
 | longphase_v1.7.3.sif	                | longphase                 | 1.7.3	            | longphase                                                                                         |
 | manta_v1.6.0.sif	                    | manta                     | 1.6.0	            | python2 /opt/manta/bin/configManta.py                                                             |
+| methylartist_v1.3.1.sif               | Methylartist              | 1.3.1             | methylartist                                                                                      |
 | minimap2_v2.28.sif                    | minimap2	                | 2.28	            | minimap2                                                                                          |
 | modkit_v0.3.2.sif	                    | modkit	                | 0.3.2	            | modkit                                                                                            |
 | msisensor-pro_v1.2.0.sif              | msisensor-pro             | 1.2.0	            | msisensor-pro                                                                                     |
-| ngs-bits_2024-11.sif	                | ngs-bits	                | 2024-11	        | "tool_name" (e.g. BedAdd)                                                                         |
+| ngs-bits_2025-01.sif	                | ngs-bits	                | 2025-01	        | "tool_name" (e.g. BedAdd)                                                                         |
 | orad_v2.6.1.sif	                    | orad	                    | 2.6.1	            | orad                                                                                              |
 | python_v3.10.9.sif	                | python	                | 3.10.9	        | python3                                                                                           |
 | REViewer_v0.2.7.sif                   | REViewer	                | 0.2.7	            | REViewer                                                                                          |
@@ -41,7 +42,7 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | strelka2_v2.9.10.sif	                | strelka2                  | 2.9.10	        | python2 /opt/strelka2/bin/"script.py" (e.g.:runWorkflow.py)                                       |
 | subread_v2.0.6.sif                    | subread                   | 2.0.6	            | featureCounts                                                                                     |
 | umi-tools_v1.1.5.sif                  | umi-tools                 | 1.1.5	            | umi_tools                                                                                         |
-| umiVar_v2.sif	                        | umiVar                    | 2024-11           | "script.py" (e.g. umiVar.py)                                                                      |
+| umiVar_2024-11.sif                    | umiVar                    | 2024-11           | "script.py" (e.g. umiVar.py)                                                                      |
 | varscan2_v2.4.6.sif	                | varscan2                  | 2.4.6	            | java -jar /opt/VarScan.jar                                                                        |
 | vcflib_v1.0.3.sif	                    | vcflib	                | 1.0.3	            | "tool_name" (e.g. vcfallelicprimitives)                                                           |
 | vep_release-112.0.sif                 | vep	                    | release-112.0	    | vep                                                                                               |

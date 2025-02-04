@@ -26,6 +26,7 @@ $parser->addInt("threads", "Number of threads used.", true, 4);
 $parser->addEnum("config_preset", "Use preset configuration.", true, array("default", "high_sensitivity"), "default");
 $parser->addStringArray("regions", "Limit analysis to specified regions (for debugging).", true);
 $parser->addString("temp", "Temporary folder for manta analysis (for debugging).", true, "auto");
+$parser->addFlag("skip_inv_merging", "Skip merging of BNDs to INVs (e.g. for benchmark validation).");
 extract($parser->parse($argv));
 
 //init
@@ -62,29 +63,35 @@ $args = [
 	"--runDir ".$manta_folder,
 	"--config ".$config,
 	"--outputContig",
-	"--generateEvidenceBam"
 ];
+if (isset($evid_dir))
+{
+	$args[] = "--generateEvidenceBam";
+}
 if ($exome)
 {
-	array_push($args, "--exome");
+	$args[] = "--exome";
 }
 if ($mode_somatic || $mode_tumor_only)
 {
-	array_push($args, "--tumorBam", $t_bam);
+	$args[] = "--tumorBam ".$t_bam;
 	$in_files[] = $t_bam;
 }
 if ($mode_somatic || $mode_germline || $rna)
 {
-	array_push($args, "--normalBam", implode(" --normalBam ", $bam));
+	$args[] = "--normalBam ".implode(" --normalBam ", $bam);
 	$in_files = array_merge($in_files, $bam);
 }
 if (isset($regions))
 {
-	array_push($args, "--region", implode(" --region ", $regions));
+	foreach($regions as $region)
+	{
+		$args[] = "--region ".$region;
+	}
 }
 if ($rna)
 {
-	array_push($args, "--rna");
+	$args[] =  "--rna";
 }
 
 //set bind paths for manta container
@@ -118,18 +125,26 @@ else if ($rna)
 }
 $sv = "{$manta_folder}/results/variants/{$outname}SV.vcf.gz";
 
-//combine BND of INVs to one INV in VCF
-$sv_inv = "{$manta_folder}/results/variants/{$outname}SV_inv.vcf";
+if (!$skip_inv_merging)
+{
+	//combine BND of INVs to one INV in VCF
+	$sv_inv = "{$manta_folder}/results/variants/{$outname}SV_inv.vcf";
+	$in_files = array();
+	$out_files = array();
+	$in_files[] = $genome;
+	$out_files[] = $manta_folder;
+	$inv_script = repository_basedir()."/src/Tools/convertInversion.py";
+	$in_files[] = $inv_script;
+	$vc_manta_command = "python2 ".$inv_script;
+	$vc_manta_parameters = "/usr/bin/samtools ".$genome." {$sv} manta > {$sv_inv}";
+	$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, $in_files, $out_files);
+}
+else
+{
+	//use previous VCF
+	$sv_inv = $sv;
+}
 
-
-$in_files = array();
-$out_files = array();
-$in_files[] = $genome;
-$out_files[] = $manta_folder;
-
-$vc_manta_command = "python2 /opt/manta/libexec/convertInversion.py";
-$vc_manta_parameters = "/usr/bin/samtools ".$genome." {$sv} > {$sv_inv}";
-$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, $in_files, $out_files);
 
 //remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
 $vcf_fixed = "{$temp_folder}/{$outname}SV_fixed.vcf";

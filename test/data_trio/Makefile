@@ -8,10 +8,13 @@ clear:
 link:
 	php ../link_test_data.php GS140127_01.cram
 	php ../link_test_data.php GS140127_01.cram.crai
+	php ../link_test_data.php GS140127_01_cnvs_clincnv.tsv
 	php ../link_test_data.php GS140549_01.cram
 	php ../link_test_data.php GS140549_01.cram.crai
+	php ../link_test_data.php GS140549_01_cnvs_clincnv.tsv
 	php ../link_test_data.php GS140550_01.cram
 	php ../link_test_data.php GS140550_01.cram.crai
+	php ../link_test_data.php GS140550_01_cnvs_clincnv.tsv
 
 call:
 	php ../../src/Pipelines/trio.php -c GS140127_01.cram -m GS140549_01.cram -f GS140550_01.cram -system system.ini -out_folder . -steps vc,cn,sv -no_check

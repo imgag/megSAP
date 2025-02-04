@@ -37,8 +37,12 @@ if (!file_exists($folder))
 {
 	exec2("mkdir -p $folder");
 }
-if ($parser->getLogFile() == "") $parser->setLogFile($folder."/analyze_".date("YmdHis").".log");
 
+//create log file in output folder if none is provided
+if ($parser->getLogFile()=="") $parser->setLogFile($folder."/analyze_".date("YmdHis").".log");
+
+//log server, user, etc.
+$parser->logServerEnvronment();
 
 //determine processing system
 $sys = load_system($system, $name);
@@ -62,11 +66,6 @@ foreach($steps as $step)
 {
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 }
-
-//log server name
-list($server) = exec2("hostname -f");
-$user = exec('whoami');
-$parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 
 //checks in case DRAGEN should be used
 if ($use_dragen)
@@ -372,7 +371,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 }
 
 //check gender after mapping
-if(!$somatic && !$no_gender_check)
+if(db_is_enabled("NGSD") && $used_bam_or_cram!="" && !$somatic && !$no_gender_check)
 {
 	$parser->execTool("Tools/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
 }
@@ -902,9 +901,10 @@ if (in_array("sv", $steps))
 					
 			//combine BND of INVs to one INV in VCF
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
-			$vc_manta_command = "python2 /opt/manta/libexec/convertInversion.py";
-			$vc_manta_parameters = "/usr/bin/samtools {$genome} {$dragen_output_vcf} > {$vcf_inv_corrected}";
-			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome], [dirname($dragen_output_vcf)]);
+			$inv_script = repository_basedir()."/src/Tools/convertInversion.py";
+			$vc_manta_command = "python2 ".$inv_script;
+			$vc_manta_parameters = "/usr/bin/samtools {$genome} {$dragen_output_vcf} dragen > {$vcf_inv_corrected}";
+			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome, $inv_script], [dirname($dragen_output_vcf)]);
 
 			//remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
 			$vcf_fixed = $parser->tempFile("_sv_fixed.vcf");

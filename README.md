@@ -15,10 +15,16 @@ If you are interested to join the effort, please contact [Marc Sturm](https://gi
 
 ## Obtaining megSAP
 
-The installation of megSAP is quite time-consuming because many tools and big databases need to installed.  
-The installation instructions can be found [here](doc/install_unix.md).
+General remarks:
+- Only GRCh38 is supported. There is a [branch](https://github.com/imgag/megSAP/tree/GRCh37) for GRCh37, but is is not updated or maintained since December 2021 anymore.
+- The installation of megSAP is quite time-consuming because large databases for annotation of variants need to be downloaded and converted.
 
-*Note: Only GRCh38 is supported. There is a [branch](https://github.com/imgag/megSAP/tree/GRCh37) for GRCh37, but is is not updated or maintained since December 2021 anymore.*
+The default way of using megSAP is cloning the megSAP repository and calling the analysis pipelines from there.
+Installation instructions for this way can be found [here](doc/install_unix.md).  
+
+Alternatively, there is a *beta* version of the megSAP pipeline in a container.  
+You still need to download databases and tools, but the container version may be more convenient in some scenarios like AWS.  
+The installation instructions for the container version of megSAP can be found [here](doc/install_unix_container_version.md).
 
 ## Documentation
 
@@ -48,6 +54,7 @@ You can cite megSAP using Zenodo DOIs:
 
 Major changes of master since last release:
 
+* tools are not longer installed, but used from pre-built apptainer containers.
 * germline DNA: improved speed (C++ tool) and IO (gzipped coverage profiles) of CNV reference cohort selection.
 
 For older changes see [releases](https://github.com/imgag/megSAP/releases).
