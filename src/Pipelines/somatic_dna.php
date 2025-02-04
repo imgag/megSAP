@@ -1582,7 +1582,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			}			
 			if(file_exists($manta_sv_bedpe))
 			{
-				$args[] = "-var {$manta_sv_bedpe}";
+				$args[] = "-sv {$manta_sv_bedpe}";
 				$binds[] = $manta_sv_bedpe;
 			}
 			if (count($binds)>0)
