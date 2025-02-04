@@ -1577,7 +1577,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 			}
 			if(file_exists($som_clincnv))
 			{
-				$args[] = "--cnv {$som_clincnv}";
+				$args[] = "-cnv {$som_clincnv}";
 				$binds[] = $som_clincnv;
 			}			
 			if(file_exists($manta_sv_bedpe))
