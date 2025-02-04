@@ -7,7 +7,7 @@ This can only be done via [BaseSpace](https://basespace.illumina.com)
 
 - create new project on BaseSpace
 - upload *.fa file
-- open `Reference Builder (Instruments) v1.1.0` in Apps 
+- open `Reference Builder (Instruments) v1.3.0` in Apps 
 - select the created project as output
 - select the correct Sequencer (`NovaSeq X Series`)
 - enter a name for the reference. _(This cannot be `GRCh38`, but can be renamed (see below))_
