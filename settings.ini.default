@@ -5,7 +5,7 @@
 ;only adapting the NGSD database credentials is necessary.
 
 [tools]
-interop = [path]/tools/interop-1.2.4-Linux-GNU/bin/summary
+interop = [path]/data/tools/interop-1.2.4-Linux-GNU/bin/summary
 ngs-bits_local =
 
 [tools-data]
@@ -69,6 +69,7 @@ project_folder['external'] =
 
 [general]
 copy_dbs_to_local_data = true
+megSAP_container_used = false
 delete_fastq_files = false
 cnv_bin_size_wgs = 1000
 cnv_bin_size_shallow_wgs = 5000

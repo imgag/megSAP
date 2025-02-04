@@ -760,7 +760,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fil
 			}
 		}
 
-		$ngsbits_settings_loc = repository_basedir()."/data/tools/ngsbits_settings.ini";
+		$ngsbits_settings_loc = get_path("data_folder")."/tools/ngsbits_settings.ini";
 		//ngs-bits settings file missing > create it
 		if (!file_exists($ngsbits_settings_loc) || (file_exists(repository_basedir()."/settings.ini") && filemtime($ngsbits_settings_loc)<filemtime(repository_basedir()."/settings.ini")))
 		{
@@ -835,27 +835,30 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fil
 	}
 	
 	//determine bind paths from input and output files
-	foreach($in_files as $file)
+	if (!get_path("megSAP_container_used"))
 	{
-		if (is_dir($file)) 
+		foreach($in_files as $file)
 		{
-			$filepath = realpath($file);
-		} 
-		else 
-		{
-			$filepath = dirname(realpath($file));
+			if (is_dir($file)) 
+			{
+				$filepath = realpath($file);
+			} 
+			else 
+			{
+				$filepath = dirname(realpath($file));
+			}
+			if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
 		}
-		if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
-	}
 
-	foreach($out_files as $file)
-	{
-		//check it is a folder
-		if (is_file($file)) trigger_error("{$container}: Only folders can be bound as output parameters. '{$file}' is a file!", E_USER_ERROR);
-		
-		$filepath = realpath(dirname($file));
+		foreach($out_files as $file)
+		{
+			//check it is a folder
+			if (is_file($file)) trigger_error("{$container}: Only folders can be bound as output parameters. '{$file}' is a file!", E_USER_ERROR);
+			
+			$filepath = realpath(dirname($file));
 
-		if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
+			if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
+		}
 	}
 
 	//handle binding of temp folder for SigProfilerExtractor
@@ -863,8 +866,18 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fil
 	{
 		$templates_dir = temp_folder();
 		$cosmic_templates_dir = temp_folder();
-		$bind_paths[] = "{$templates_dir}:/usr/local/lib/python3.8/site-packages/sigProfilerPlotting/templates/";
-		$bind_paths[] = "{$cosmic_templates_dir}:/usr/local/lib/python3.8/site-packages/SigProfilerAssignment/DecompositionPlots/CosmicTemplates";
+		$templates_bind_path = "{$templates_dir}:/usr/local/lib/python3.8/site-packages/sigProfilerPlotting/templates/";
+		$cosmic_templates_bind_path = "{$cosmic_templates_dir}:/usr/local/lib/python3.8/site-packages/SigProfilerAssignment/DecompositionPlots/CosmicTemplates";
+
+		if (get_path("megSAP_container_used"))
+		{
+			$apptainer_args[] = "-B {$templates_bind_path},{$cosmic_templates_bind_path}";
+		}
+		else
+		{
+			$bind_paths[] = $templates_bind_path;
+			$bind_paths[] = $cosmic_templates_bind_path;
+		}
 	}
 	
 	//clean up empty paths
@@ -877,7 +890,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fil
 	}
 	
 	//check bind paths
-	if(!empty($bind_paths))
+	if(!empty($bind_paths) && !get_path("megSAP_container_used"))
 	{
 		foreach($bind_paths as $path)
 		{
@@ -889,6 +902,10 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fil
 			}
 		}
 		$apptainer_args[] = "-B ".implode(",", $bind_paths);
+	}
+	else if (get_path("megSAP_container_used"))
+	{
+		$apptainer_args[] = "-B /megSAP/";
 	}
 
 	//compose Apptainer command

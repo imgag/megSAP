@@ -1,0 +1,66 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+	LANG=C.UTF-8
+	LC_ALL=C.UTF-8
+
+	# Update package list and install build dependencies
+	apt-get update --fix-missing 
+	apt-get install -y \
+		rsync \
+		zlib1g \
+		bzip2 \
+		make \
+		unzip \
+		wget \
+		git \
+		gnumeric \
+		tabix \
+		pigz \
+		curl \
+		ghostscript
+		
+	# Install php
+	apt-get update
+	apt-get install -y software-properties-common
+	add-apt-repository ppa:ondrej/php
+	apt-get update
+	apt-get install -y \
+		php8.2-cli \
+		php8.2-xml \
+		php8.2-mysql
+	
+	# Install apptainer
+	add-apt-repository -y ppa:apptainer/ppa
+	apt-get update
+	apt-get install -y apptainer
+	
+	# Download and build tool
+	git clone https://github.com/imgag/megSAP.git
+
+    cd megSAP/
+	
+	git describe --tags > megSAP_tag.txt
+	
+    # Modify settings.ini.default for container usage
+    sed -i 's|\[path\]/data/|/megSAP/data/data_folder/|g' settings.ini.default
+    sed -i 's/megSAP_container_used = false/megSAP_container_used = true/' settings.ini.default
+
+	cd data/
+	chmod 755 *.sh
+	
+	# Cleanup build dependencies
+	cd /
+	apt-get autoremove -y
+	apt-get clean
+	rm -rf /var/lib/apt/lists/*
+
+%environment
+	export LANG=C.UTF-8
+	export LC_ALL=C.UTF-8
+	
+%runscript
+	#!/bin/sh
+	cd /megSAP || exit 1
+	exec "$@"
