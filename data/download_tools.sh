@@ -3,8 +3,19 @@ set -e
 set -o pipefail
 set -o verbose
 
-root=`pwd`
-folder=$root/tools/
+root=`dirname $(pwd)`
+
+# Get data_folder path
+SETTINGS_FILE=$root/settings.ini
+if [ ! -f "$SETTINGS_FILE" ]; then
+    SETTINGS_FILE="$root/settings.ini.default"
+fi
+DATA_FOLDER=$(grep -E "^data_folder" "$SETTINGS_FILE" | awk -F ' = ' '{print $2}' | sed "s|\[path\]|${root}|")
+
+folder=$DATA_FOLDER/tools/
+
+# Ensure the tools folder exists
+mkdir -p $folder
 
 #Ignore this - used for local installation
 #folder=/mnt/storage2/megSAP/tools/
