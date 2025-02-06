@@ -759,8 +759,10 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fil
 				return array($stdout, $stderr, $return);
 			}
 		}
-
-		$ngsbits_settings_loc = get_path("data_folder")."/tools/ngsbits_settings.ini";
+		
+		//ngs-bits settings file cannot be in repo if running in container, so we put it into the data folder then
+		$ngsbits_settings_loc = get_path("megSAP_container_used") ? get_path("data_folder")."/tools/ngsbits_settings.ini" : repository_basedir()."/data/tools/ngsbits_settings.ini";
+		
 		//ngs-bits settings file missing > create it
 		if (!file_exists($ngsbits_settings_loc) || (file_exists(repository_basedir()."/settings.ini") && filemtime($ngsbits_settings_loc)<filemtime(repository_basedir()."/settings.ini")))
 		{

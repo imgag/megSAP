@@ -6,11 +6,11 @@ This can only be done via [BaseSpace](https://basespace.illumina.com)
 (see https://knowledge.illumina.com/software/on-instrument-analysis-software/software-on-instrument-analysis-software-troubleshooting-list/000007055)
 
 - create new project on BaseSpace
-- upload *.fa file
+- upload GRCh38.fa file
 - open `Reference Builder (Instruments) v1.3.0` in Apps 
 - select the created project as output
 - select the correct Sequencer (`NovaSeq X Series`)
-- enter a name for the reference. _(This cannot be `GRCh38`, but can be renamed (see below))_
+- enter a name `GRCh38IMGAG`, as `GRCh38` will lead to a crash of the app.
 - enter organization and species
 - give a link/description for the source of the *.fa file
 - set `Mask BED File` to `hg38`
@@ -19,16 +19,16 @@ This can only be done via [BaseSpace](https://basespace.illumina.com)
 - run application
 
 ### Rename custom genome
-If you want to use `GRCh38` as the name for your genome you cannot define it in the first place (the job will crash without a useful error message), but you can replace it in the created `.tar.gz` file:
+If you want to use `GRCh38` as the name for your genome you cannot use it in the BaseSpace app (the job will crash without a useful error message), but you can replace it in the created `.tar.gz` file:
 - download created from BaseSpace
 - extract `tar.gz` file:
 ```
-tar -xvf $OLD_NAME.tar.gz
+tar -xvf GRCh38IMGAG.tar.gz
 ```
-- rename in the `genome.json` file the entries `Name` and `DisplayName`
+- change the entries `Name` and `DisplayName` in the `genome.json` file to `GRCh38`.
 - create new `tar.gz` file:
 ```
-tar -czf $NEW_NAME.tar.gz DRAGEN genome.fa genome.json
+tar -czf GRCh38.tar.gz DRAGEN genome.fa genome.json
 ```
 (- upload this file to the sequencer)
 
