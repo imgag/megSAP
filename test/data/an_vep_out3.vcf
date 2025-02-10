@@ -67,8 +67,8 @@
 ##INFO=<ID=gnomADg_Het,Number=A,Type=Integer,Description="Count of heterozygous alleles in all samples. (from file gnomAD_genome_v4.1_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADg_Wt,Number=A,Type=Integer,Description="Count of wildtype alleles in all samples. (from file gnomAD_genome_v4.1_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADm_AF_hom,Number=1,Type=Float,Description="Allele frequency restricted to variants with a heteroplasmy level > (from file gnomAD_genome_v3.1.mito_GRCh38.vcf.gz)">
-##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_20240805_converted_GRCh38.vcf.gz)">
-##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_20240805_converted_GRCh38.vcf.gz)">
+##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_20250128_converted_GRCh38.vcf.gz)">
+##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_20250128_converted_GRCh38.vcf.gz)">
 ##INFO=<ID=CADD_SNV,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_SNVs_1.7_GRCh38.vcf.gz)">
 ##INFO=<ID=CADD_INDEL,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_InDels_1.7_GRCh38.vcf.gz)">
 ##INFO=<ID=REVEL,Number=1,Type=Float,Description="Maximum REVEL score of all scored transcripts. (from file REVEL_1.3.vcf.gz)">
