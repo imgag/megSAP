@@ -24,7 +24,16 @@ if (contains($tag, "_"))
 $sif = "{$tool}_{$tag}.sif";
 $log = "{$tool}_{$tag}.log";
 print "Building container {$sif} - in case of error see {$log}\n";
-exec2("apptainer build {$sif} data/tools/container_recipes/{$tool}_{$tag}.def > $log 2>&1");
+
+// write server name, user and date to logfile as header
+$server = php_uname('n');
+$user = getenv("USER") ?: getenv("LOGNAME");
+$date = date("Y-m-d H:i:s");
+
+$log_header = "Built on: {$server}\nBuilt by: {$user}\nBuild date: {$date}\n\n";
+file_put_contents($log, $log_header);
+
+exec2("apptainer build {$sif} data/tools/container_recipes/{$tool}_{$tag}.def >> $log 2>&1");
 exec2("chmod 777 {$sif}");
 
 $sif2 = $sif;
@@ -43,7 +52,6 @@ if ($tool =="ngs-bits")
 		$sif2 = "ngs-bits_master-".strtr($version, "_", "-").".sif";
 	}
 }
-
 
 //move to container repository
 $container_repo = "/mnt/storage2/megSAP/tools/apptainer_container/";
