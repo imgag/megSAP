@@ -569,7 +569,8 @@ foreach($sample_data as $sample => $sample_infos)
 							$fastq_file,
 							get_path("data_folder")."/dbs/oradata/"
 						];
-						$orad_command = $parser->execApptainer("orad", "orad", "--ora-reference ".get_path("data_folder")."/dbs/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ ".realpath($fastq_file), $orad_files, [], true);
+						$out_folder = ["{$project_folder}/Sample_{$sample}/"];
+						$orad_command = $parser->execApptainer("orad", "orad", "--ora-reference ".get_path("data_folder")."/dbs/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ ".realpath($fastq_file), $orad_files, $out_folder, true);
 						$target_to_copylines[$tag][] = "\t".$orad_command;
 					}
 					else
@@ -600,8 +601,6 @@ foreach($sample_data as $sample => $sample_infos)
 				//logs & report
 				$log_folder = "$old_location/{$sample}/logs";
 				if(!file_exists($log_folder)) trigger_error("ERROR: Sample log folder '$log_folder' not found!", E_USER_ERROR);
-				$report_file = $source_folder."/report.html";
-				if(!file_exists($report_file)) trigger_error("ERROR: Report HTML file '{$report_file}' not found!", E_USER_ERROR);
 
 				$source_mapping_file = "{$source_folder}/{$sample}.bam";
 				if(!file_exists($source_mapping_file))
@@ -653,7 +652,6 @@ foreach($sample_data as $sample => $sample_infos)
 				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
 				//copy logs
 				$target_to_copylines[$tag][] = "\tcp -r {$log_folder} {$project_folder}Sample_{$sample}/dragen_variant_calls/";
-				$target_to_copylines[$tag][] = "\tcp {$report_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/logs";
 
 				//touch all indices (to prevent warnings)
 				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.bai";
@@ -697,7 +695,8 @@ foreach($sample_data as $sample => $sample_infos)
 							$fastq_file,
 							get_path("data_folder")."/dbs/oradata/"
 						];
-						$orad_command = $parser->execApptainer("orad", "orad", "--ora-reference ".get_path("data_folder")."/dbs/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ ".realpath($fastq_file), $orad_files, [], true);
+						$out_folder = ["{$project_folder}/Sample_{$sample}/"];
+						$orad_command = $parser->execApptainer("orad", "orad", "--ora-reference ".get_path("data_folder")."/dbs/oradata/ ".($overwrite ? " -f" : "")." -t {$threads_ora} -P {$project_folder}/Sample_{$sample}/ ".realpath($fastq_file), $orad_files, $out_folder, true);
 						$target_to_copylines[$tag][] = "\t".$orad_command;
 					}
 					else

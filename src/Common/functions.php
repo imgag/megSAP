@@ -702,7 +702,7 @@ function resolve_symlink($filename)
 /**
 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 */
-function execApptainer($container, $command, $parameters, $in_files=[], $out_files=[], $command_only=false, $return_for_toolbase=false, $abort_on_error=true)
+function execApptainer($container, $command, $parameters, $in_files=[], $out_folders=[], $command_only=false, $return_for_toolbase=false, $abort_on_error=true)
 {
 	//check input
 	if (is_array($command))
@@ -852,12 +852,12 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fil
 			if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
 		}
 
-		foreach($out_files as $file)
+		foreach($out_folders as $folder)
 		{
 			//check it is a folder
-			if (is_file($file)) trigger_error("{$container}: Only folders can be bound as output parameters. '{$file}' is a file!", E_USER_ERROR);
+			if (is_file($folder)) trigger_error("{$container}: Only folders can be bound as output parameters. '{$folder}' is a file!", E_USER_ERROR);
 			
-			$filepath = realpath(dirname($file));
+			$filepath = realpath($folder);
 
 			if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
 		}
