@@ -721,9 +721,9 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	{
 		trigger_error("Error in 'execApptainer' of '{$command}': in_files must be array!", E_USER_ERROR);
 	}
-	if (!is_array($out_files))
+	if (!is_array($out_folders))
 	{
-		trigger_error("Error in 'execApptainer' of '{$command}': out_files must be array!", E_USER_ERROR);
+		trigger_error("Error in 'execApptainer' of '{$command}': out_folders must be array!", E_USER_ERROR);
 	}
 	
 	//apptainer arguments
