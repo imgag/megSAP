@@ -67,7 +67,7 @@ while (!feof($handle))
 			$dp = $tmp;
 		}
 	}
-	if ($dp=="") trigger_error("Sample DP not found in: $line", E_USER_ERROR);
+	if ($dp=="") continue;
 	
 	//apply depth cutoff
 	if ($dp<$min_dp) continue;

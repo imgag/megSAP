@@ -857,7 +857,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 			//check it is a folder
 			if (is_file($folder)) trigger_error("{$container}: Only folders can be bound as output parameters. '{$folder}' is a file!", E_USER_ERROR);
 			
-			// ! Bind parent folder of given output in case the out-folder doesn't exist yet. (Folder can't be binded if it doesn't exist)
+			// ! Bind parent folder of given output in case the out-folder doesn't exist yet. (Folder can't be bound if it doesn't exist)
 			$filepath = realpath(dirname($folder));
 
 			if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 

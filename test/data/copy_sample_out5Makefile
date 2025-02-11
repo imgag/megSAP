@@ -19,7 +19,6 @@ copy_SomaticAndTreatment_diagnostic:
 	mkdir -p /test/project/folder/Sample_DX181277_05
 	mkdir -p /test/project/folder/Sample_DX181277_05/dragen_variant_calls
 	cp -r Analysis/3/Data/DragenEnrichment/DX181277_05/logs /test/project/folder/Sample_DX181277_05/dragen_variant_calls/
-	cp Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/report.html /test/project/folder/Sample_DX181277_05/dragen_variant_calls/logs
 	touch Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/*.bai
 	touch Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/*.crai
 	touch Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/*.tbi
@@ -37,7 +36,6 @@ copy_SomaticAndTreatment_diagnostic:
 	mkdir -p /test/project/folder/Sample_DX181278_05
 	mkdir -p /test/project/folder/Sample_DX181278_05/dragen_variant_calls
 	cp -r Analysis/3/Data/DragenEnrichment/DX181278_05/logs /test/project/folder/Sample_DX181278_05/dragen_variant_calls/
-	cp Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/report.html /test/project/folder/Sample_DX181278_05/dragen_variant_calls/logs
 	touch Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/*.bai
 	touch Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/*.crai
 	touch Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/*.tbi
