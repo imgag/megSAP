@@ -404,7 +404,7 @@ if (in_array("vc", $steps))
 				//filter by target region (extended by 200) and quality 5
 				$target = $parser->tempFile("_roi_extended.bed");
 				$parser->execApptainer("ngs-bits", "BedExtend", "-in ".realpath($sys['target_file'])." -n 200 -out $target -fai ".$genome.".fai", [$sys['target_file'], $genome]);
-				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-reg {$target} -qual 5 -filter_clear -ref $genome", [$genome], [], true));
+				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-reg {$target} -qual 5 -filter_clear -remove_invalid -ref $genome", [$genome], [], true));
 
 				//split multi-allelic variants
 				$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true)];
