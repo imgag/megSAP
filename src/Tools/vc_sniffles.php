@@ -135,6 +135,11 @@ else
 	$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files);
 }
 
+//rarely single SVs are in the wrong order:
+$sorted_tmp_vcf = $parser->tempFile(".vcf", "sniffles_sorted");
+$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp_vcf} -out {$sorted_tmp_vcf}");
+$tmp_vcf = $sorted_tmp_vcf;
+
 //add name/pipeline info to VCF header
 $vcf = Matrix::fromTSV($tmp_vcf);
 $comments = $vcf->getComments();
@@ -151,7 +156,7 @@ else
 		$comments[] = gsvar_sample_header($id, array(), "#", "");
 	}
 }
-
+$vcf->unique(); //remove duplicate variant calls 
 $vcf->setComments($comments);
 $vcf->toTSV($tmp_vcf);
 

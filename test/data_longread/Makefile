@@ -2,7 +2,7 @@ TIMESTAMP=$(shell date +"%Y-%m-%d_%H-%M-%S")
 
 all: clean clean_logs link bam_analysis diff2
 
-all_3_tests: clean clean_logs link map vc cn sv re me an diff bam_analysis diff2 bam_analysis_single_steps diff2
+all_3_tests: clean clean_logs link map vc cn sv ph re me an diff bam_analysis diff2 bam_analysis_single_steps diff2
 
 clean:
 	rm -rf *.fastq.gz *.txt *.GSvar *.gvcf.gz *.gvcf.gz.tbi *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe clair_temp repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_rohs.tsv *_ancestry.tsv  *_methylation.tsv methylartist *_modkit_track.bed.gz *_modkit_track.bed.gz.tbi *_prs.tsv *_repeats.tsv *_repeats.vcf *_var_modcall.vcf
@@ -25,6 +25,9 @@ cn:
 
 sv:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps sv -threads 4 --log analyze_longread_fastq_sv_$(TIMESTAMP).log
+
+ph:
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps ph -threads 4 --log analyze_longread_fastq_ph_$(TIMESTAMP).log
 
 re:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps re -threads 4 --log analyze_longread_fastq_re_$(TIMESTAMP).log
@@ -53,7 +56,7 @@ diff:
 # 2nd test with BAM input (default test)
 bam_analysis: clean
 	php ../link_test_data.php 23014LRa023L2_02.mod.unmapped.bam
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma,vc,cn,sv,re,me,an -threads 4 --log analyze_longread_bam_all_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma,vc,cn,sv,ph,re,me,an -threads 4 --log analyze_longread_bam_all_$(TIMESTAMP).log
 	cut -f1-22 23014LRa023L2_02_var_structural_variants.bedpe > 23014LRa023L2_02_var_structural_variants_cut.bedpe
 
 # 3rd test with each step separate (not performed on default)
@@ -63,6 +66,7 @@ bam_analysis_single_steps: clean
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps vc -threads 4 --log analyze_longread_bam_vc_$(TIMESTAMP).log
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps cn -threads 4 --log analyze_longread_bam_cn_$(TIMESTAMP).log
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps sv -threads 4 --log analyze_longread_bam_sv_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ph -threads 4 --log analyze_longread_bam_ph_$(TIMESTAMP).log
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps re -threads 4 --log analyze_longread_bam_re_$(TIMESTAMP).log
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps me -threads 4 --log analyze_longread_bam_me_$(TIMESTAMP).log
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps an -threads 4 --log analyze_longread_bam_an_$(TIMESTAMP).log
