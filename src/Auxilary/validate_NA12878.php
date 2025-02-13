@@ -16,9 +16,8 @@ $parser->addOutfile("stats", "Append statistics to this file.", false);
 //optional
 $parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf' file base name is used.", true);
 $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the given depth are evaluated.", true, 0);
-$parser->addInt("min_qual", "If set, only input variants with QUAL greater or equal to the given value are evaluated.", true, 0);
-$parser->addFloat("min_qd", "If set, only input variants with QUAL/DP greater or equal to the given value are evaluated.", true, 0);
-$parser->addInt("max_indel", "Maximum indel size (larger indels are ignored).", true, 0);
+$parser->addInt("min_qual", "If set, only input variants with QUAL greater or equal to the given value are evaluated.", true, 5);
+$parser->addInt("max_indel", "Maximum indel size (larger indels are ignored). Disabled if set to 0.", true, 50);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("ref_sample", "Reference sample to use for validation.", true, "NA12878");
 $parser->addFlag("matches", "Do not only show variants that were missed (-), are novel (+) or with genotype mismatch (g), but also show matches (=) in output.");
@@ -37,11 +36,11 @@ function get_bases($filename)
 }
 
 //returns the variants of a VCF file in the given ROI
-function get_variants($vcf_gz, $roi, $max_indel, $min_qual = 0, $min_qd=0)
+function get_variants($vcf_gz, $roi, $max_indel, $min_qual=0, &$skipped=[])
 {
 	global $parser;
 	global $genome;
-	
+		
 	//get variants
 	$tmp = $parser->tempFile(".vcf");
 	$pipeline = [];
@@ -62,9 +61,18 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual = 0, $min_qd=0)
 		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = explode("\t", $line);
 		if (!starts_with($chr, "chr")) $chr = "chr".$chr;
 		
-		//skip mosaic and low mappabilty variants
-		if (contains($filter, "low_mappability")) continue;
-		if (contains($filter, "mosaic")) continue;
+		//skip variants from special variant calling in low mappabilty regions
+		if (contains($filter, "low_mappability"))
+		{
+			@$skipped["low_mappability"] += 1;
+			continue;
+		}
+		//skip variants from special variant calling for masaic variants
+		if (contains($filter, "mosaic"))
+		{
+			@$skipped["mosaic"] += 1;
+			continue;
+		}
 		
 		//compile output
 		$var = array();
@@ -98,7 +106,11 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual = 0, $min_qd=0)
 		if (strlen($ref)>1 || strlen($alt)>1)
 		{
 			$var["TYPE"] = "INDELS";
-			if ($max_indel>0 && (strlen($ref)>$max_indel || strlen($alt)>$max_indel)) continue;
+			if ($max_indel>0 && (strlen($ref)>$max_indel || strlen($alt)>$max_indel))
+			{
+				@$skipped["indel>{$max_indel}"] += 1;
+				continue;
+			}
 		}
 		else
 		{
@@ -106,23 +118,16 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual = 0, $min_qd=0)
 		}
 		
 		//filter by QUAL
-		if ($min_qual>0 && $qual<$min_qual) continue;
-		
-		//filter by QUAL/DP
-		if ($min_qd>0)
+		if ($min_qual>0 && $qual<$min_qual)
 		{
-			if (!isset($var['DP']) || trim($var['DP'])=="" || !is_numeric($var['DP']))
-			{
-				trigger_error("Parameter 'min_qd' used, but DP is not valid for $chr:$pos $ref>$alt", E_USER_ERROR);
-			}
-			if ($qual/$var['DP']<$min_qd) continue;
+			@$skipped["QUAL<{$min_qual}"] += 1;
+			continue;
 		}
 		
 		$tag = "{$chr}:{$pos} {$ref}>{$alt}";
 		if (isset($output[$tag])) trigger_error("Variant $tag twice in $vcf_gz!", E_USER_ERROR);
 		$output[$tag] = $var;
 	}
-	
 	return $output;
 }
 
@@ -188,8 +193,14 @@ print "##\n";
 
 //get reference variants in ROI
 print "##Variant list      : $vcf\n";
-$found = get_variants($vcf, $roi_used, $max_indel, $min_qual, $min_qd);
+$skipped = [];
+$found = get_variants($vcf, $roi_used, $max_indel, $min_qual, $skipped);
 print "##Variants observed : ".count($found)."\n";
+foreach($skipped as $reason => $count)
+{
+	if ($count==0) continue;
+	print "##  Skipped '{$reason}' variants: {$count}\n";
+}
 $expected = get_variants($giab_vcfgz, $roi_used, $max_indel);
 print "##Variants expected : ".count($expected)."\n";
 
@@ -248,7 +259,6 @@ function pos_gt($a, $b)
 uksort($var_diff, "pos_gt");
 
 //print TSV output
-$sample = substr(basename($vcf), 0, 10);
 print "#sample\tstatus\tpos\tvariant\tvariant_type\tref_GT\tobs_GT\tobs_DP\tobs_QUAL\tobs_MQM\tobs_AO\tobs_AF\tobs_QUAL_per_DP\n";
 foreach($var_diff as $pos => list($status, $ref, $obs))
 {
@@ -267,7 +277,7 @@ foreach($var_diff as $pos => list($status, $ref, $obs))
 	$qpd = "n/a";
 	if ($qual!="" && $dp!="" && $dp>0) $qpd = number_format($qual/$dp, 2);
 	
-	print "$sample\t$status\t".strtr($pos, " ", "\t")."\t".$variant_type."\t".get_prop($ref, "GT")."\t".get_prop($obs, "GT")."\t".$dp."\t".$qual."\t".get_prop($obs, "MQM", 2)."\t".$ao."\t".$af."\t".$qpd."\n";
+	print "$name\t$status\t".strtr($pos, " ", "\t")."\t".$variant_type."\t".get_prop($ref, "GT")."\t".get_prop($obs, "GT")."\t".$dp."\t".$qual."\t".get_prop($obs, "MQM", 2)."\t".$ao."\t".$af."\t".$qpd."\n";
 }
 print "\n";
 
@@ -333,7 +343,6 @@ $options = array();
 if ($min_dp>0) $options[] = "min_dp={$min_dp}";
 if ($max_indel>0) $options[] = "max_indel={$max_indel}";
 if ($min_qual>0) $options[] = "min_qual={$min_qual}";
-if ($min_qd>0) $options[] = "min_qd={$min_qd}";
 $options = implode(" ", $options);
 $date = strtr(date("Y-m-d H:i:s", filemtime($vcf)), "T", " ");
 $output = array();
