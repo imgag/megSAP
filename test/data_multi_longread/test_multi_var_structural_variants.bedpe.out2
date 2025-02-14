@@ -51,8 +51,8 @@ OMIM	CNV_OVERLAP	21073LRa013_01_GENOTYPE	21073LRa014_01_GENOTYPE	SVLEN	SUPPORT	C
 620187 [GENE=CFAP74 PHENOS=Ciliary dyskinesia, primary, 49, without situs inversus, 620197 (3), Autosomal recessive]		1/1	0/0	98	17	15,17,17,17,16
 620187 [GENE=CFAP74 PHENOS=Ciliary dyskinesia, primary, 49, without situs inversus, 620197 (3), Autosomal recessive]		1/1	1/1	1035	8	12,8,8,8,10
 620187 [GENE=CFAP74 PHENOS=Ciliary dyskinesia, primary, 49, without situs inversus, 620197 (3), Autosomal recessive]	0	1/1	0/0	-395	13	28,27,28,28,29
-620187 [GENE=CFAP74 PHENOS=Ciliary dyskinesia, primary, 49, without situs inversus, 620197 (3), Autosomal recessive]		1/1	0/0	109	21	21,21,21,21,24
 620187 [GENE=CFAP74 PHENOS=Ciliary dyskinesia, primary, 49, without situs inversus, 620197 (3), Autosomal recessive]		0/0	0/1	207	3	6,5,5,6,6
+620187 [GENE=CFAP74 PHENOS=Ciliary dyskinesia, primary, 49, without situs inversus, 620197 (3), Autosomal recessive]		1/1	0/0	109	21	21,21,21,21,24
 620187 [GENE=CFAP74 PHENOS=Ciliary dyskinesia, primary, 49, without situs inversus, 620197 (3), Autosomal recessive]	0	0/0	0/1	-68	8	13,13,13,13,13
 620187 [GENE=CFAP74 PHENOS=Ciliary dyskinesia, primary, 49, without situs inversus, 620197 (3), Autosomal recessive]		0/0	0/1	75	4	11,11,11,12,13
 620187 [GENE=CFAP74 PHENOS=Ciliary dyskinesia, primary, 49, without situs inversus, 620197 (3), Autosomal recessive]		1/1	0/0	70	12	13,13,13,13,13
@@ -277,8 +277,8 @@ OMIM	CNV_OVERLAP	21073LRa013_01_GENOTYPE	21073LRa014_01_GENOTYPE	SVLEN	SUPPORT	C
 612041 [GENE=RNF212 PHENOS=?Spermatogenic failure 62, 619673 (3), Autosomal recessive; Recombination rate QTL 1, 612042 (3)]	0	1/1	1/1	-50	14	12,12,12,12,14
 		1/1	0/0	247	8	12,12,12,12,14
 		0/0	0/1	137	4	7,7,7,7,11
-		1/1	0/0	85	15	17,17,17,18,21
 		0/0	1/1	108	10	11,11,11,11,11
+		1/1	0/0	85	15	17,17,17,18,21
 602618 [GENE=CTBP1 PHENOS=Hypotonia, ataxia, developmental delay, and tooth enamel defect syndrome, 617915 (3), Autosomal dominant]		1/1	0/1	208	12	14,14,14,14,14
 602618 [GENE=CTBP1 PHENOS=Hypotonia, ataxia, developmental delay, and tooth enamel defect syndrome, 617915 (3), Autosomal dominant]		0/0	0/1	147	2	7,7,7,7,5
 602618 [GENE=CTBP1 PHENOS=Hypotonia, ataxia, developmental delay, and tooth enamel defect syndrome, 617915 (3), Autosomal dominant]	0	1/1	1/1	-109	12	12,12,12,12,12
