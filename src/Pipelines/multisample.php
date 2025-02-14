@@ -204,7 +204,9 @@ foreach($bams as $bam)
 	$gvcf = "{$folder}/dragen_variant_calls/{$ps}_dragen.gvcf.gz";
 	if (file_exists($gvcf)) $gvcfs[] = $gvcf;
 }
-$dragen_gvcfs_exist = count($gvcfs)==count($bams);
+//TODO Marc use gVCFs again once we have figured out what is wrong with the trio calling
+//$dragen_gvcfs_exist = count($gvcfs)==count($bams);
+$dragen_gvcfs_exist = false;
 
 
 //copy BAM files to local tmp for variant calling
