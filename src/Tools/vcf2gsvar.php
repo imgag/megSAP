@@ -563,8 +563,7 @@ while(!feof($handle))
 		//Targeted info (Dragen targeted caller was used) - is written into filter colum, change header accordingly
 		if (starts_with($line, "##INFO=<ID=TARGETED,"))
 		{
-			$parts = explode(",Number=0,Type=Flag,Description=\"", substr(trim($line), 11, -2));
-			fwrite($handle_out, "##FILTER=".$parts[0]."=".$parts[1]."\n");	
+			fwrite($handle_out, "##FILTER=targeted=Variant called by targeted caller of Illumina DRAGEN\n");	
 		}
 		
 		// detect NGSD header lines
@@ -704,7 +703,7 @@ while(!feof($handle))
 	
 	if (isset($info["TARGETED"]))
 	{
-		$filter[] = "TARGETED";
+		$filter[] = "targeted";
 	}
 	
 	//convert genotype information to TSV format
