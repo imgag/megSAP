@@ -560,6 +560,12 @@ while(!feof($handle))
 			$column_desc[] = ["coding_and_splicing_refseq", "Variant consequence based on RefSeq transcripts (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p)."];
 		}
 		
+		//Targeted info (Dragen targeted caller was used) - is written into filter colum, change header accordingly
+		if (starts_with($line, "##INFO=<ID=TARGETED,"))
+		{
+			fwrite($handle_out, "##FILTER=targeted=Variant called by targeted caller of Illumina DRAGEN\n");	
+		}
+		
 		// detect NGSD header lines
 		if (starts_with($line, "##INFO=<ID=NGSD_"))
 		{
@@ -694,8 +700,24 @@ while(!feof($handle))
 	}
 	$info = $tmp;
 	
+	
+	if (isset($info["TARGETED"]))
+	{
+		$filter[] = "targeted";
+	}
+	
 	//convert genotype information to TSV format
-	if(!$multisample_vcf) $sample = array_combine(explode(":", $format), explode(":", $sample));
+	if(!$multisample_vcf)
+	{
+		$sample = array_combine(explode(":", $format), explode(":", $sample));
+	
+		//rename Dragen format values for targeted calls.
+		if (! isset($sample["DP"]) && isset($sample["JDP"])) $sample["DP"] = $sample["JDP"];
+		if (! isset($sample["AF"]) && isset($sample["JAF"])) $sample["AF"] = $sample["JAF"];
+		if (! isset($sample["AD"]) && isset($sample["JAD"])) $sample["AD"] = $sample["JAD"];
+		if (! isset($sample["PL"]) && isset($sample["JPL"])) $sample["PL"] = $sample["JPL"];
+	}
+	
 	if ($genotype_mode=="multi")
 	{
 		if($multisample_vcf)
@@ -710,6 +732,13 @@ while(!feof($handle))
 					$sample[$key][] = $value;	
 				}
 			}
+			
+			//rename Dragen format values for targeted calls.
+			if (! isset($sample["DP"]) && isset($sample["JDP"])) $sample["DP"] = $sample["JDP"];
+			if (! isset($sample["AF"]) && isset($sample["JAF"])) $sample["AF"] = $sample["JAF"];
+			if (! isset($sample["AD"]) && isset($sample["JAD"])) $sample["AD"] = $sample["JAD"];
+			if (! isset($sample["PL"]) && isset($sample["JPL"])) $sample["PL"] = $sample["JPL"];
+			
 			//determine human-readable genotype
 			$genotypes = array();
 			for ($i=0; $i < count($sample["GT"]); $i++) 

@@ -22,8 +22,10 @@ General remarks:
 The default way of using megSAP is cloning the megSAP repository and calling the analysis pipelines from there.
 Installation instructions for this way can be found [here](doc/install_unix.md).  
 
-Alternatively, there is a *beta* version of the megSAP pipeline in a container.  
-You still need to download databases and tools, but the container version may be more convenient in some scenarios like AWS.  
+**megSAP in container - THIS IS BETA!!!**
+  
+Alternatively, there is a version of the megSAP pipeline in a container.  
+You still need to download databases and tool containers, but the container version may be more convenient in some scenarios like AWS.  
 The installation instructions for the container version of megSAP can be found [here](doc/install_unix_container_version.md).
 
 ## Documentation

@@ -14,6 +14,7 @@ $parser->addString("regions", "The regions/highlights to analyze/plot. ", false)
 // optional
 $parser->addInfile("local_bam", "Optional (local) BAM used for analysis instead of BAM/CRAM file in folder.", true);
 $parser->addFlag("skip_plot", "Disable methylartist plotting of imprinting sites.");
+$parser->addFlag("skip_align_plot", "Do not create alginment plot in methylartist (Useful for large plots).");
 $parser->addString("build", "The genome build to use. ", true, "GRCh38");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 
@@ -74,6 +75,9 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             "--outfile", "{$folder}/methylartist/{$name}_{$row[0]}.png",
             "--gtf", $gtf
         ];
+        //optional parameters
+        if ($skip_align_plot) $args[] = "--skip_align_plot";
+        
         $in_files = array($bam, $ref_genome, $gtf);
         $out_files = array("{$folder}/methylartist/");
         $jobs_plotting[] = array("Plotting_".$row[0], $parser->execApptainer("methylartist", "methylartist", implode(" ", $args), $in_files, $out_files, true));

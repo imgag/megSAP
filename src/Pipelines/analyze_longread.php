@@ -13,10 +13,9 @@ $parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
-$steps_all = array("ma", "vc", "cn", "sv", "re", "me", "an", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, re=repeat expansions calling, me=methylation calling, an=annotation, db=import into NGSD.", true, implode(",", $steps_all));
+$steps_all = array("ma", "vc", "cn", "sv", "ph", "re", "me", "an", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, ph=phasing, re=repeat expansions calling, me=methylation calling, an=annotation, db=import into NGSD.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
-$parser->addFlag("skip_phasing", "Skip phasing of VCF and BAM files.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_gender_check", "Skip gender check (done between mapping and variant calling).");
 $parser->addFlag("skip_wgs_check", "Skip the similarity check with a related short-read WGS sample.");
@@ -553,7 +552,7 @@ if (in_array("sv", $steps))
 }
 
 //phasing
-if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
+if (in_array("ph", $steps))
 {
 	//replace contigs in VCF header (incorrect sorted contigs lead to errors in CRAM file)
 	$tmp_vcf = $parser->tempFile("_var.vcf");
@@ -692,6 +691,10 @@ if (!$skip_phasing && (in_array("vc", $steps) || in_array("sv", $steps)))
 		unlink($cram_file.".backup.cram.crai");
 	}
 }
+else if(in_array("ma", $steps) || in_array("vc", $steps) || in_array("sv", $steps))
+{
+	trigger_error("Mapping or (SV) variant calling done without phasing step! Output files might not be phased correctly!", E_USER_WARNING);
+}
 
 // repeat expansion
 if (in_array("re", $steps))
@@ -769,9 +772,9 @@ if (in_array("an", $steps))
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnv_file}", [$folder, "{$repository_basedir}/data/misc/af_genomes_imgag.bed"]);
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnv_file}", [$folder, "{$repository_basedir}/data/misc/cn_pathogenic.bed"]);
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnv_file}", [$folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
-		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", [$folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed"]);
+		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-02.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", [$folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-02.bed"]);
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2024_2.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2024_4.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnv_file}", [$folder, $hgmd_file]);

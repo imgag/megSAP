@@ -404,7 +404,7 @@ if (in_array("vc", $steps))
 				//filter by target region (extended by 200) and quality 5
 				$target = $parser->tempFile("_roi_extended.bed");
 				$parser->execApptainer("ngs-bits", "BedExtend", "-in ".realpath($sys['target_file'])." -n 200 -out $target -fai ".$genome.".fai", [$sys['target_file'], $genome]);
-				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-reg {$target} -qual 5 -filter_clear -ref $genome", [$genome], [], true));
+				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-reg {$target} -qual 5 -filter_clear -remove_invalid -ref $genome", [$genome], [], true));
 
 				//split multi-allelic variants
 				$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true)];
@@ -912,10 +912,10 @@ if (in_array("cn", $steps))
 		}
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", [$folder, "{$repository_basedir}/data/misc/cn_pathogenic.bed"]);
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnvfile}", [$folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
-		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", [$folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed"]);
+		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-02.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", [$folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-02.bed"]);
 
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2024_2.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2024_4.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnvfile}", [$folder, $hgmd_file]);

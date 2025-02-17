@@ -47,7 +47,7 @@ check_exec("php ".src_folder()."/Tools/{$name}.php -in ".data_folder().$name."_i
 remove_lines_containing($out_file_dragen, "#CREATION_DATE=");
 check_file($out_file_dragen, data_folder().$name."_out_dragen.GSvar", true);
 
-//genotype_mode=single, DRAGEN + custom colunns
+//genotype_mode=single, DRAGEN + custom colunns + dragen targeted variants
 $custom_columns_test = get_path("custom_columns_test", false);
 if (is_array($custom_columns_test))
 {

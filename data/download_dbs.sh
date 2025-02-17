@@ -90,12 +90,12 @@ cat hg38.fa.out | php $src/Install/db_converter_repeatmasker.php | apptainer exe
 cd $dbs
 mkdir -p ClinVar 
 cd ClinVar
-wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2024/clinvar_20240805.vcf.gz | gunzip | php $src/Install/db_converter_clinvar.php | apptainer exec $ngsbits VcfStreamSort | bgzip > clinvar_20240805_converted_GRCh38.vcf.gz
-tabix -C -m 9 -p vcf clinvar_20240805_converted_GRCh38.vcf.gz
+wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2025/clinvar_20250128.vcf.gz | gunzip | php $src/Install/db_converter_clinvar.php | apptainer exec $ngsbits VcfStreamSort | bgzip > clinvar_20250128_converted_GRCh38.vcf.gz
+tabix -C -m 9 -p vcf clinvar_20250128_converted_GRCh38.vcf.gz
 #CNVs
-wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2024-08.txt.gz | gunzip > variant_summary_2024-08.txt
-cat variant_summary_2024-08.txt | php $src/Install/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2024-08.bed
-apptainer exec $ngsbits BedSort -with_name -in clinvar_cnvs_2024-08.bed -out clinvar_cnvs_2024-08.bed
+wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2025-02.txt.gz | gunzip > variant_summary_2025-02.txt
+cat variant_summary_2025-02.txt | php $src/Install/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2025-02.bed
+apptainer exec $ngsbits BedSort -with_name -in clinvar_cnvs_2025-02.bed -out clinvar_cnvs_2025-02.bed
 
 #Install HGNC - http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
 cd $dbs
@@ -255,12 +255,12 @@ apptainer exec -B $genome $msisensor msisensor-pro scan -d $genome -o msisensor_
 # cd $dbs
 # mkdir -p HGMD
 # cd HGMD
-# # manual download of files HGMD_Pro_2024.2_hg38.vcf.gz and hgmd_pro-2024.2.dump.gz from https://apps.ingenuity.com/ingsso/login
-# zcat HGMD_Pro_2024.2_hg38.vcf.gz | php $src/Install/db_converter_hgmd.php | bgzip > HGMD_PRO_2024_2_fixed.vcf.gz
-# tabix -p vcf HGMD_PRO_2024_2_fixed.vcf.gz
+# # manual download of files HGMD_Pro_2024.4_hg38.vcf.gz and hgmd_pro-2024.4.dump.gz from https://apps.ingenuity.com/ingsso/login
+# zcat HGMD_Pro_2024.4_hg38.vcf.gz | php $src/Install/db_converter_hgmd.php | bgzip > HGMD_PRO_2024_4_fixed.vcf.gz
+# tabix -p vcf HGMD_PRO_2024_4_fixed.vcf.gz
 # #CNVs
-# zcat hgmd_pro-2024.2.dump.gz | php $src/Install/db_converter_hgmd_cnvs.php > HGMD_CNVS_2024_2.bed
-# apptainer exec $ngsbits BedSort -with_name -in HGMD_CNVS_2024_2.bed -out HGMD_CNVS_2024_2.bed
+# zcat hgmd_pro-2024.4.dump.gz | php $src/Install/db_converter_hgmd_cnvs.php > HGMD_CNVS_2024_4.bed
+# apptainer exec $ngsbits BedSort -with_name -in HGMD_CNVS_2024_4.bed -out HGMD_CNVS_2024_4.bed
 
 # # install COSMIC Cancer Mutation Census CMC (you need a license)
 # cd $dbs

@@ -702,7 +702,7 @@ function resolve_symlink($filename)
 /**
 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 */
-function execApptainer($container, $command, $parameters, $in_files=[], $out_files=[], $command_only=false, $return_for_toolbase=false, $abort_on_error=true)
+function execApptainer($container, $command, $parameters, $in_files=[], $out_folders=[], $command_only=false, $return_for_toolbase=false, $abort_on_error=true)
 {
 	//check input
 	if (is_array($command))
@@ -721,9 +721,9 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fil
 	{
 		trigger_error("Error in 'execApptainer' of '{$command}': in_files must be array!", E_USER_ERROR);
 	}
-	if (!is_array($out_files))
+	if (!is_array($out_folders))
 	{
-		trigger_error("Error in 'execApptainer' of '{$command}': out_files must be array!", E_USER_ERROR);
+		trigger_error("Error in 'execApptainer' of '{$command}': out_folders must be array!", E_USER_ERROR);
 	}
 	
 	//apptainer arguments
@@ -763,8 +763,10 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fil
 				return array($stdout, $stderr, $return);
 			}
 		}
-
-		$ngsbits_settings_loc = get_path("data_folder")."/tools/ngsbits_settings.ini";
+		
+		//ngs-bits settings file cannot be in repo if running in container, so we put it into the data folder then
+		$ngsbits_settings_loc = get_path("megSAP_container_used") ? get_path("data_folder")."/tools/ngsbits_settings.ini" : repository_basedir()."/data/tools/ngsbits_settings.ini";
+		
 		//ngs-bits settings file missing > create it
 		if (!file_exists($ngsbits_settings_loc) || (file_exists(repository_basedir()."/settings.ini") && filemtime($ngsbits_settings_loc)<filemtime(repository_basedir()."/settings.ini")))
 		{
@@ -854,12 +856,13 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fil
 			if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
 		}
 
-		foreach($out_files as $file)
+		foreach($out_folders as $folder)
 		{
 			//check it is a folder
-			if (is_file($file)) trigger_error("{$container}: Only folders can be bound as output parameters. '{$file}' is a file!", E_USER_ERROR);
+			if (is_file($folder)) trigger_error("{$container}: Only folders can be bound as output parameters. '{$folder}' is a file!", E_USER_ERROR);
 			
-			$filepath = realpath(dirname($file));
+			// ! Bind parent folder of given output in case the out-folder doesn't exist yet. (Folder can't be bound if it doesn't exist)
+			$filepath = realpath(dirname($folder));
 
 			if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
 		}

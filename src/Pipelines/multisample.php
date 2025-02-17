@@ -52,7 +52,7 @@ extract($parser->parse($argv));
 //init
 $repository_basedir = repository_basedir();
 $data_folder = get_path("data_folder");
-$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2024_2.bed";
+$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2024_4.bed";
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
 $vcf_all = "{$out_folder}/all.vcf.gz";
 $vcf_all_mito = "{$out_folder}/all_mito.vcf.gz";
@@ -204,7 +204,9 @@ foreach($bams as $bam)
 	$gvcf = "{$folder}/dragen_variant_calls/{$ps}_dragen.gvcf.gz";
 	if (file_exists($gvcf)) $gvcfs[] = $gvcf;
 }
-$dragen_gvcfs_exist = count($gvcfs)==count($bams);
+//TODO Marc use gVCFs again once we have figured out what is wrong with the trio calling
+//$dragen_gvcfs_exist = count($gvcfs)==count($bams);
+$dragen_gvcfs_exist = false;
 
 
 //copy BAM files to local tmp for variant calling
@@ -669,7 +671,7 @@ if (in_array("cn", $steps))
 	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
 	
 	//pathogenic ClinVar CNVs
-	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2024-08.bed"]);
+	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-02.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-02.bed"]);
 	
 	//HGMD CNVs
 	if (file_exists($hgmd_file)) //optional because of license
