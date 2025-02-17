@@ -47,7 +47,7 @@ check_file($out_file5, data_folder().$name."_out1.vcf.gz"); */
 ########################## gvcf output ##########################
 
 $out_file6 = output_folder().$name."_out6.vcf.gz";
-check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file6 -model_type WES -target ".data_folder().$name."_in.bed -gvcf --log ".output_folder().$name."_out6.log");
+check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file6 -model_type WES -target ".data_folder().$name."_in.bed -gvcf ".output_folder().$name."_out6.gvcf --log ".output_folder().$name."_out6.log");
 check_file(output_folder().$name."_out6.gvcf", data_folder().$name."_out6.gvcf");
 
 end_test();

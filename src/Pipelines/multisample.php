@@ -61,6 +61,9 @@ $gsvar = "{$out_folder}/{$prefix}.GSvar";
 $sv_manta_file = "{$out_folder}/{$prefix}_manta_var_structural.vcf.gz";
 $bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
 
+$is_wes = $sys['type']=="WES";
+$is_wgs = $sys['type']=="WGS";
+
 //create log file in output folder if none is provided
 if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/multi_".date("YmdHis").".log");
 
@@ -261,8 +264,55 @@ if (in_array("vc", $steps))
 		}
 		elseif(get_path("use_deepvariant")) //calling with DeepVariant with gVCF file creation
 		{
-			//TODO DeepVariant calling
-			//TODO Merge gvcfs with glnexus
+			$deepvar_gvcfs = array();
+			foreach($local_bams as $local_bam) // DeepVariant calling for each bam with gVCF output
+			{
+				$deepvar_vcf = $parser->tempFile("_deepvar.vcf.gz");
+				$deepvar_gvcf = $parser->tempFile("_deepvar.gvcf");
+
+				$args = [];
+
+				if ($is_wes || $is_wgs)
+				{
+					$args[] = "-model_type ".$sys['type'];
+				}
+				else
+				{
+					trigger_error("The usage of DeepVariant is limited to WGS or WES short-read data! Different type '".$sys['type']."' detected in $system.", E_USER_ERROR);
+				}
+
+				$args[] = "-bam ".$local_bam;
+				$args[] = "-out ".$deepvar_vcf;
+				$args[] = "-gvcf ".$deepvar_gvcf;
+				$args[] = "-build ".$build;
+				$args[] = "-threads ".$threads;
+				$args[] = "-target ".$sys['target_file'];
+				$args[] = "-min_af 0.1"; //TODO ask if ok
+				$args[] = "-min_mq 20"; //TODO ask if ok
+				$args[] = "-target_extend 200"; //TODO ask if ok
+
+				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
+
+				$deepvar_gvcfs[] = $deepvar_gvcf;
+			}
+
+			//Merge gVCFs with GLnexus
+			$glnexus_tmp = $parser->tempFolder();
+			$pipeline = array();
+
+			// GLnexus args
+			$args = array();
+			$args[] = "--dir ".$glnexus_tmp;
+			if ($is_wes) $args[] = "--config DeepVariantWES";
+			else $args[] = "--config DeepVariantWGS";
+			$args[] = implode(" ", $deepvar_gvcfs);
+
+			// Merge pipeline
+			$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), [], [], true)];
+			$pipeline[] = ["", $parser->execApptainer("glnexus", "bcftools view", "", [], [], true)];
+			$pipeline[] = ["bgzip", "-@ -c > $vcf_all"];
+
+			$parser->execPipeline($pipeline, "GLnexus gVCF merging");
 		}
 		else //no gVCFs > fallback to VC calling with freebayes (with very conservative parameters)
 		{
