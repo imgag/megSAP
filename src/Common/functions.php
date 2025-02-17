@@ -739,6 +739,10 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fil
 	{
 		$apptainer_args[] = "--pwd=/tmp";
 	}
+	if ($container=="deepvariant-gpu") //to run a gpu supported apptainer container you need the --nv flag
+	{
+		$apptainer_args[] = "--nv";
+	}
 
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
 	$bind_paths = array();

@@ -257,6 +257,11 @@ if (in_array("vc", $steps))
 			$args[] = "-mode dragen";
 			$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
 		}
+		elseif(get_path("use_deepvariant")) //calling with DeepVariant with gVCF file creation
+		{
+			//TODO DeepVariant calling
+			//TODO Merge gvcfs with glnexus
+		}
 		else //no gVCFs > fallback to VC calling with freebayes (with very conservative parameters)
 		{
 			$args = array();

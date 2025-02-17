@@ -11,14 +11,14 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 // parse command line arguments
 $parser = new ToolBase("vc_deepvariant", "Variant calling with DeepVariant.");
 $parser->addInfileArray("bam",  "Input files in BAM format. Space separated. Note: .bam.bai file is required!", false);
-$parser->addOutfile("out", "Output file in VCF.GZ format.", false);
+$parser->addOutfile("out", "Output file in VCF.gz format.", false);
 $parser->addString("model_type", "Type of model to use for variant calling. Choose from <WGS|WES|PACBIO|ONT_R104|HYBRID_PACBIO_ILLUMINA|MASSEQ>.", false);
 //optional
 $parser->addInfile("target",  "Enrichment targets BED file.", true);
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
-/* $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15); */
+$parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 20);
 $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 10);
 /* $parser->addInt("min_ao", "Minimum alternative base observation count.", true, 3); */
@@ -27,6 +27,8 @@ $parser->addFlag("no_bias", "Use freebayes parameter -V, i.e. ignore strand bias
 /* $parser->addInt("min_qsum", "Minimum quality sum used for variant calling.", true, 0); */
 $parser->addFlag("raw_output", "return the raw output of deepvariant with no post-processing.");
 $parser->addFlag("allow_empty_examples", "allows DeepVariant to call variants even if no examples were created with make_examples.");
+$parser->addFlag("gpu", "Use GPU supportet DeepVariant container");
+$parser->addFlag("gvcf", "Enable output of gVCF files. They are saved to the same directory as the VCF.gz output files");
 extract($parser->parse($argv));
 
 //init
@@ -74,7 +76,7 @@ if ($no_bias)
 }
 $args[] = "--min-alternate-fraction $min_af"; */
 $args[] = "--model_type=$model_type";
-$args[] = "--make_examples_extra_args=min_mapping_quality=$min_mq,min_base_quality=$min_bq";
+$args[] = "--make_examples_extra_args=min_mapping_quality=$min_mq,min_base_quality=$min_bq,vsc_min_fraction_indels=$min_af,vsc_min_fraction_snps=$min_af";
 /* if ($min_mq==0) //the default genotyping model includes the mapping quality into the variant quality. This does not work for MQ=0, thus we use the old model
 {
 	$args[] = "--legacy-gls";
@@ -85,12 +87,16 @@ $args[] = "--genotype-qualities"; */
 $args[] = "--ref=$genome";
 $args[] = "--reads=".implode(" ", $bam);
 $args[] = "--num_shards=".$threads;
+
+if ($gvcf) $args[] = "--output_gvcf=".dirname($out)."/".basename($out, ".vcf.gz").".gvcf";
+
 $in_files[] = $genome;
 $in_files = array_merge($in_files, $bam);
 
 // run deepvariant
 $pipeline = array();
-if (isset($target) && $threads > 1) //TODO change back to > 1
+$container = ($gpu) ? "deepvariant-gpu" : "deepvariant";
+if (isset($target) && $threads > 20) //TODO set back to > 1
 {	
 	$deepvar_start = microtime(true);
 	
@@ -153,7 +159,7 @@ if (isset($target) && $threads > 1) //TODO change back to > 1
 			$parameters = implode(" ", $args_chr);
 			
 			//start in background
-			$command = $parser->execApptainer("deepvariant", "run_deepvariant", $parameters, $in_files, [], true);		
+			$command = $parser->execApptainer($container, "run_deepvariant", $parameters, $in_files, [], true);		
 			$output = array();
 			$exitcode_file = "{$tmp_dir}/{$chr}.exitcode";
 			exec('('.$command.' & PID=$!; echo $PID) && (wait $PID; echo $? > '.$exitcode_file.')', $output);
@@ -265,13 +271,12 @@ else
 {
 	if ($raw_output)
 	{
-		$parser->execApptainer("deepvariant", "run_deepvariant" ,implode(" ", $args)." --output_vcf=$out", $in_files, [dirname($out)]);
+		$parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf=$out", $in_files, [dirname($out)]);
 		return;
 	}
-	
+
 	$vcf_deepvar_out = $parser->tempFile(".vcf");
-/* 	$parser->execApptainer("deepvariant", "run_deepvariant", implode(" ", $args)." --output_vcf=$vcf_deepvar_out --output_gvcf=".dirname($out)."/".basename($out, ".vcf.gz").".gvcf", $in_files, [$out]); */
-	$parser->execApptainer("deepvariant", "run_deepvariant", implode(" ", $args)." --output_vcf=$vcf_deepvar_out", $in_files);
+	$parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf=$vcf_deepvar_out", $in_files, [dirname($out)]);
 
 	//filter variants according to variant quality>5
 	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-in $vcf_deepvar_out -qual 5 -remove_invalid -ref $genome", [$genome], [], true)];
@@ -289,16 +294,21 @@ $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_erro
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)];
 
 //sort variants by genomic position
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];
-
-//fix error in VCF file and strip unneeded information
-$pipeline[] = array("php ".repository_basedir()."/src/NGS/vcf_fix.php", "", false);
-
-//zip
-$pipeline[] = array("bgzip", "-c > $out", false);
+$tmp_out = $parser->tempFile(".vcf");
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "-out $tmp_out", [], [], true)];
 
 //(2) execute pipeline
 $parser->execPipeline($pipeline, "deepvariant post processing");
+
+//prepend source, date and reference to outfile:
+$file_format = "##fileformat=VCFv4.2\n";
+$file_date = "##fileDate=".date("Ymd")."\n";
+$source_line = "##source=DeepVariant ".get_path("container_deepvariant")."\n";
+$reference_line = "##reference=".genome_fasta($build, false)."\n";
+file_put_contents($tmp_out, $file_format . $file_date . $source_line . $reference_line . file_get_contents($tmp_out));
+
+//zip
+$parser->exec("bgzip", "-c $tmp_out > $out");
 
 //(3) mark off-target variants
 if ($target_extend>0)
