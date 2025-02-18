@@ -22,10 +22,6 @@ $parser->addString("gvcf", "Enable output of gVCF files and define output filepa
 $parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 20);
 $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 10);
-/* $parser->addInt("min_ao", "Minimum alternative base observation count.", true, 3); */
-/* $parser->addFlag("no_ploidy", "Use freebayes parameter -K, i.e. output all alleles which pass input filters, regardles of genotyping outcome or model.");
-$parser->addFlag("no_bias", "Use freebayes parameter -V, i.e. ignore strand bias and read end distance bias."); */
-/* $parser->addInt("min_qsum", "Minimum quality sum used for variant calling.", true, 0); */
 $parser->addFlag("raw_output", "return the raw output of deepvariant with no post-processing.");
 $parser->addFlag("allow_empty_examples", "allows DeepVariant to call variants even if no examples were created with make_examples.");
 $parser->addFlag("gpu", "Use GPU supportet DeepVariant container");
@@ -65,24 +61,9 @@ if ($allow_empty_examples)
 {
 	$args[] = "--call_variants_extra_args=allow_empty_examples=true";
 }
-/* if ($no_ploidy)
-{
-	$args[] = "--pooled-continuous";
-	$args[] = "--allele-balance-priors-off";
-}
-if ($no_bias)
-{
-	$args[] = "--binomial-obs-priors-off";
-} */
+
 $args[] = "--model_type=$model_type";
 $args[] = "--make_examples_extra_args=min_mapping_quality=$min_mq,min_base_quality=$min_bq,vsc_min_fraction_indels=$min_af,vsc_min_fraction_snps=$min_af";
-/* if ($min_mq==0) //the default genotyping model includes the mapping quality into the variant quality. This does not work for MQ=0, thus we use the old model
-{
-	$args[] = "--legacy-gls";
-} */
-/* $args[] = "--min-alternate-count $min_ao";
-$args[] = "--min-alternate-qsum $min_qsum";
-$args[] = "--genotype-qualities"; */
 $args[] = "--ref=$genome";
 $args[] = "--reads=".implode(" ", $bam);
 $args[] = "--num_shards=".$threads;

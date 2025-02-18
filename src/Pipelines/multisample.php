@@ -24,11 +24,21 @@ function extract_info($format, $data)
 	{
 		$ao = array_sum(explode(",", $data['AO']));
 	}
-	else //Dragen: AF converted to AO
+	elseif (isset($data['AF'])) //Dragen: AF converted to AO
 	{
 		$af = $data['AF'];
 		if ($af=="." || $af=="") $af = 0.0;
 		$ao = round($depth * $af);
+	}
+	else
+	{
+		$ad = $data['AD'];
+		if ($ad=="." || $ad=="") 
+		{
+			$ao = 0;
+			return array($genotype, $depth, $ao);
+		}
+		$ao = explode(",", $ad)[1];
 	}
 	return array($genotype, $depth, $ao);
 }
@@ -60,9 +70,6 @@ $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
 $gsvar = "{$out_folder}/{$prefix}.GSvar";
 $sv_manta_file = "{$out_folder}/{$prefix}_manta_var_structural.vcf.gz";
 $bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
-
-$is_wes = $sys['type']=="WES";
-$is_wgs = $sys['type']=="WGS";
 
 //create log file in output folder if none is provided
 if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/multi_".date("YmdHis").".log");
@@ -142,6 +149,8 @@ foreach($bams as $bam)
 
 //check processing systems are valid and matching
 $sys = load_system($system, $names[$bams[0]]);
+$is_wes = $sys['type']=="WES"; //TODO ask if it should be checked that all bams have the same 'type'
+$is_wgs = $sys['type']=="WGS";
 $sys_matching = true;
 foreach($bams as $bam)
 {
@@ -284,7 +293,7 @@ if (in_array("vc", $steps))
 				$args[] = "-bam ".$local_bam;
 				$args[] = "-out ".$deepvar_vcf;
 				$args[] = "-gvcf ".$deepvar_gvcf;
-				$args[] = "-build ".$build;
+				$args[] = "-build ".$sys['build'];
 				$args[] = "-threads ".$threads;
 				$args[] = "-target ".$sys['target_file'];
 				$args[] = "-min_af 0.1"; //TODO ask if ok
@@ -292,12 +301,12 @@ if (in_array("vc", $steps))
 				$args[] = "-target_extend 200"; //TODO ask if ok
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
-
+				
 				$deepvar_gvcfs[] = $deepvar_gvcf;
 			}
 
 			//Merge gVCFs with GLnexus
-			$glnexus_tmp = $parser->tempFolder();
+			$glnexus_tmp = $parser->tempFolder().getmypid();
 			$pipeline = array();
 
 			// GLnexus args
@@ -313,6 +322,8 @@ if (in_array("vc", $steps))
 			$pipeline[] = ["bgzip", "-@ -c > $vcf_all"];
 
 			$parser->execPipeline($pipeline, "GLnexus gVCF merging");
+			trigger_error("Temporary folder used as GLnexus.DB folder: $glnexus_tmp", E_USER_NOTICE);
+			$parser->exec("rm", "-rf $glnexus_tmp");
 		}
 		else //no gVCFs > fallback to VC calling with freebayes (with very conservative parameters)
 		{
