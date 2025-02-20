@@ -109,7 +109,6 @@ function write($h_out, $var)
 		{
 			$format_values[] = $sample['GT'].":".$sample['DP'].":".(int)($sample['AO']).":".(int)($sample['GQ']);
 		}
-		
 	}
 
 	//skip wildtype variants
@@ -232,6 +231,11 @@ while(!feof($h_in))
 					// wt
 					$gt = "0/0";
 				}
+				else if ($sample['GT']=="0" && $sample_last['GT']=="0")
+				{
+					// wt
+					$gt = "0/0";
+				}
 				else if (($sample['GT']=="0/1" && $sample_last['GT']=="0/1") || ($sample['GT']=="1/1" && $sample_last['GT']=="0/0") || ($sample['GT']=="0/0" && $sample_last['GT']=="1/1"))
 				{
 					// hom
@@ -257,8 +261,10 @@ while(!feof($h_in))
 			{
 				$ao = $sample['AO'];
 				if (contains($ao, ",")) list($ao) = explode(",", $ao);
+				if ($ao==".") $ao=0;
 				$ao_last = $sample_last['AO'];
 				if (contains($ao_last, ",")) list($ao_last) = explode(",", $ao_last);
+				if ($ao_last==".") $ao_last=0;
 				$ao = min($dp, $ao + $ao_last);
 			}
 			$gq_last = $sample_last['GQ'];

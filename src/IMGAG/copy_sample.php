@@ -680,6 +680,8 @@ foreach($sample_data as $sample => $sample_infos)
 					//move SV VCFs
 					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_sv_vcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_svs.vcf.gz";
 					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_sv_vcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_svs.vcf.gz.tbi";
+					//move CNVs
+					//TODO Marc
 				}
 			}
 
