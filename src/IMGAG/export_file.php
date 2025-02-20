@@ -9,7 +9,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("export_file", "Exports a file (single tar file).");
-$parser->addInfile("file", "File to export.", false);
+$parser->addString("file", "File to export.", false);
 $parser->addFlag("internal", "Use internal webserver.");
 extract($parser->parse($argv));
 

@@ -135,6 +135,14 @@ else
 	$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files);
 }
 
+//mask low evidence wildtype calls (single sample only)
+if(count($bam) == 1)
+{
+	$masked_tmp_vcf = $parser->tempFile(".vcf", "sniffles_masked");
+	$parser->execApptainer("ngs-bits", "SnifflesVcfFix", "-in {$tmp_vcf} -out {$masked_tmp_vcf}");
+	$tmp_vcf = $masked_tmp_vcf;
+}
+
 //rarely single SVs are in the wrong order:
 $sorted_tmp_vcf = $parser->tempFile(".vcf", "sniffles_sorted");
 $parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp_vcf} -out {$sorted_tmp_vcf}");
