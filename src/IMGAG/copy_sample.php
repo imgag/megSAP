@@ -631,6 +631,7 @@ foreach($sample_data as $sample => $sample_infos)
 				$source_sv_vcf_file = "{$source_folder}/{$sample}.sv.vcf.gz";
 				if(!file_exists($source_sv_vcf_file)) trigger_error("ERROR: SV VCF file '{$source_sv_vcf_file}' is missing!", E_USER_ERROR);
 				if(!file_exists($source_sv_vcf_file.".tbi")) trigger_error("ERROR: SV VCF index file '{$source_sv_vcf_file}.tbi' is missing!", E_USER_ERROR);
+				$source_cnv_vcf_file = "{$source_folder}/{$sample}.cnv.vcf.gz";
 			}
 			
 
@@ -680,8 +681,11 @@ foreach($sample_data as $sample => $sample_infos)
 					//move SV VCFs
 					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_sv_vcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_svs.vcf.gz";
 					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_sv_vcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_svs.vcf.gz.tbi";
-					//move CNVs
-					//TODO Marc
+					//move CNVs (DRAGEN >= 4.3)
+					if (file_exists($source_cnv_vcf_file))
+					{
+						$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_cnv_vcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_cnv.vcf.gz";
+					}
 				}
 			}
 
