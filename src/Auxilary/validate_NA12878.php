@@ -9,7 +9,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("validate_NA12878", "Validates the performance of a sequencing experiment on the GiaB reference sample NA12878.");
-$parser->addInfile("vcf", "Input variant list of sequencing experiment (VCF.GZ format).", false);
+$parser->addInfile("vcf", "Input variant list of sequencing experiment (VCF or VCF.GZ).", false);
 $parser->addInfile("bam", "Mapped reads of sequencing experiment (BAM format).", false);
 $parser->addInfile("roi", "Target region of sequencing experiment (BED format).", false);
 $parser->addOutfile("stats", "Append statistics to this file.", false);
@@ -36,7 +36,7 @@ function get_bases($filename)
 }
 
 //returns the variants of a VCF file in the given ROI
-function get_variants($vcf_gz, $roi, $max_indel, $min_qual=0, &$skipped=[])
+function get_variants($vcf_gz, $roi, $max_indel, $min_qual, &$skipped)
 {
 	global $parser;
 	global $genome;
@@ -44,7 +44,7 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual=0, &$skipped=[])
 	//get variants
 	$tmp = $parser->tempFile(".vcf");
 	$pipeline = [];
-	$pipeline[] = array("zcat", $vcf_gz);
+	$pipeline[] = array(ends_with(strtolower($vcf_gz), ".vcf") ? "cat" : "zcat", $vcf_gz);
 	$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-reg {$roi} -ref $genome", [$roi, $genome], [], true));
 	$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfStreamSort", "-out {$tmp}", [], [], true));
 	$parser->execPipeline($pipeline, "variant extraction");
@@ -88,13 +88,21 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual=0, &$skipped=[])
 		
 		$format = explode(":", $format);
 		$sample = explode(":", $sample);
-		$idx = array_search("GT", $format);
-		if ($idx!==FALSE)
+		
+		//get GT from FORMAT
+		if ($format[0]!="GT") trigger_error("First element of FORMAT is not GT in $line", E_USER_ERROR);
+		$gt = strtr($sample[0], array("|"=>"/", "."=>"0"));
+		if ($gt=="1/0") $gt="0/1";
+		$var['GT'] = $gt;
+	
+		//skip wildtype variants (should not happen in normal pipeline, but can happen)
+		if ($gt=="0/0")
 		{
-			$gt = strtr($sample[$idx], array("|"=>"/", "."=>"0"));
-			if ($gt=="1/0") $gt="0/1";
-			$var['GT'] = $gt;
+			@$skipped["wildtype genotype"] += 1;
+			continue;
 		}
+		
+		//get rest from FORMAT
 		$idx = array_search("DP", $format);
 		if ($idx!==FALSE) $var['DP'] = $sample[$idx];
 		$idx = array_search("AO", $format);
@@ -125,7 +133,11 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual=0, &$skipped=[])
 		}
 		
 		$tag = "{$chr}:{$pos} {$ref}>{$alt}";
-		if (isset($output[$tag])) trigger_error("Variant $tag twice in $vcf_gz!", E_USER_ERROR);
+		if (isset($output[$tag]))
+		{
+			@$skipped["variant found more than once"] += 1;
+			continue;
+		}
 		$output[$tag] = $var;
 	}
 	return $output;
@@ -201,8 +213,14 @@ foreach($skipped as $reason => $count)
 	if ($count==0) continue;
 	print "##  Skipped '{$reason}' variants: {$count}\n";
 }
-$expected = get_variants($giab_vcfgz, $roi_used, $max_indel);
+$skipped = [];
+$expected = get_variants($giab_vcfgz, $roi_used, $max_indel, 0, $skipped);
 print "##Variants expected : ".count($expected)."\n";
+foreach($skipped as $reason => $count)
+{
+	if ($count==0) continue;
+	print "##  Skipped '{$reason}' variants: {$count}\n";
+}
 
 //find missing reference variants and variants with genotype mismatch
 $var_diff = array();

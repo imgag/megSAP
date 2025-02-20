@@ -15,6 +15,7 @@ $parser->addInfile("in",  "Input run folder.", false);
 $parser->addString("when",  "Start time in format '20:15' or 'now'.", true, "now");
 $parser->addString("out_folder", "Output folder.", true, "/mnt/storage1/raw_data_archive/runs/");
 $parser->addString("sav_folder", "Output folder for SAV data.", true, "/mnt/storage3/raw_data/_sav_archive/");
+$parser->addString("tmp_folder", "Folder for tmp files, will use /tmp/ by default", true, "");
 $parser->addFlag("include_raw_signal", "Backup includes non-basecalled POD5 or FAST5 data.");
 $parser->addFlag("test", "Perform a backup in test-mode. No data will be moved on the TSM backup.");
 extract($parser->parse($argv));
@@ -35,8 +36,24 @@ $in = rtrim($in, "/");
 $out_folder = rtrim($out_folder, "/");
 $sav_folder = rtrim($sav_folder, "/");
 
-//copy SAV data
 $basename = basename($in);
+
+//set temporary logfile if unset
+if ($parser->getLogFile()==null)
+{
+	if ($tmp_folder == "")
+	{
+		$log_file = $parser->tempFile(".log");
+	}
+	else
+	{
+		$log_file = $tmp_folder."/{$basename}_tmp_".date("Y-m-d").".log";
+	}
+	$parser->setLogFile($log_file);
+	print "Log file: $log_file\n";
+}
+
+//copy SAV data
 if (file_exists("{$in}/InterOp/"))
 {
 	$sav_out = "{$sav_folder}/{$basename}/";
@@ -64,14 +81,6 @@ if (!preg_match("/^([0-9]{2})([0-9]{2})([0-9]{2})_/", $basename, $matches) || !c
 $zipfile = "{$out_folder}/{$archive_basename}.tar.gz";
 $logfile = "{$out_folder}/{$archive_basename}.log";
 
-//set temporary logfile if unset
-if ($parser->getLogFile()==null)
-{
-	$log_file = $parser->tempFile(".log");
-	$parser->setLogFile($log_file);
-	print "Log file: $log_file\n";
-}
-
 //wait until start time
 if ($when!="now")
 {
@@ -92,7 +101,14 @@ if(!preg_match("/^#[0-9]{5}$/", $run_id))
 
 //create verified tar archive (uncompressed because otherwise verification is not possible)
 print date("Y-m-d H:i:s")." creating tar file\n";
-$tmp_tar = $parser->tempFile(".tar");
+if ($tmp_folder == "")
+{
+	$tmp_tar = $parser->tempFile(".tar");
+}
+else
+{
+	$tmp_tar = $tmp_folder."/{$basename}_tmp_".date("Y-m-d").".tar";
+}
 
 //decide what to backup depending on run type
 $run_parameters_xml = $in."/RunParameters.xml";
@@ -128,6 +144,11 @@ else
 	}
 	//normal run => backup BCL files
 	$parser->exec("tar", "cfW {$tmp_tar} {$exclude_raw} --exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images' -C ".dirname($in)." {$basename}", true);
+}
+
+if ($tmp_folder != "")
+{
+	$parser->addTempFile($tmp_tar);
 }
 
 

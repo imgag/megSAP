@@ -346,7 +346,16 @@ class ToolBase
 				if ($argu_type == "infile")
 				{
 					$check_readable = $this->params[$par][3];
-					$arg = realpath($arg);
+					if (realpath($arg) === false)
+					{
+						$this->printUsage();
+						trigger_error("Could not find realpath for input file '".$argv[$i+1]."' given for list parameter '$par'. Keeping relative path.", E_USER_WARNING);
+					}
+					else
+					{
+						$arg = realpath($arg);
+					}
+					
 					if ($check_readable && !is_readable($arg))
 					{
 						$this->printUsage();
@@ -359,7 +368,16 @@ class ToolBase
 					while(isset($argv[$i + 1]) && $argv[$i + 1][0]!="-")
 					{
 						//print $argv[$i+1]."\n";
-						$arg[] = realpath($argv[$i+1]);
+						if (realpath($argv[$i+1]) === false)
+						{
+							trigger_error("Could not find realpath for input file '".$argv[$i+1]."' given for list parameter '$par'. Keeping relative path.", E_USER_WARNING);
+							$arg[] = $argv[$i+1];
+						}
+						else
+						{
+							$arg[] = realpath($argv[$i+1]);
+						}
+						
 						$check_readable = $this->params[$par][3];
 						if ($check_readable && !is_readable(end($arg)))
 						{
