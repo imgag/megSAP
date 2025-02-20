@@ -149,8 +149,6 @@ foreach($bams as $bam)
 
 //check processing systems are valid and matching
 $sys = load_system($system, $names[$bams[0]]);
-$is_wes = $sys['type']=="WES"; //TODO ask if it should be checked that all bams have the same 'type'
-$is_wgs = $sys['type']=="WGS";
 $sys_matching = true;
 foreach($bams as $bam)
 {
@@ -170,6 +168,7 @@ foreach($bams as $bam)
 
 
 //check steps
+$is_wes = $sys['type']=="WES";
 $is_wgs = $sys['type']=="WGS";
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
 if ($is_wgs_shallow)
@@ -260,7 +259,8 @@ if (in_array("vc", $steps))
 	if (!$annotation_only)
 	{		
 		//main variant calling for autosomes and gonosomes
-		if ($dragen_gvcfs_exist) //gVCFs exist > merge them
+		$use_deepvar = get_path("use_deepvariant");
+		if ($dragen_gvcfs_exist && !$use_deepvar) //gVCFs exist > merge them
 		{
 			$args = array();
 			$args[] = "-gvcfs ".implode(" ", $gvcfs);
@@ -271,7 +271,7 @@ if (in_array("vc", $steps))
 			$args[] = "-mode dragen";
 			$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
 		}
-		elseif(get_path("use_deepvariant")) //calling with DeepVariant with gVCF file creation
+		elseif($use_deepvar) //calling with DeepVariant with gVCF file creation
 		{
 			$deepvar_gvcfs = array();
 			foreach($local_bams as $local_bam) // DeepVariant calling for each bam with gVCF output
@@ -296,9 +296,7 @@ if (in_array("vc", $steps))
 				$args[] = "-build ".$sys['build'];
 				$args[] = "-threads ".$threads;
 				$args[] = "-target ".$sys['target_file'];
-				$args[] = "-min_af 0.1"; //TODO ask if ok
-				$args[] = "-min_mq 20"; //TODO ask if ok
-				$args[] = "-target_extend 200"; //TODO ask if ok
+				$args[] = "-target_extend 200";
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 				

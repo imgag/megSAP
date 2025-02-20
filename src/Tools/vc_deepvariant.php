@@ -76,7 +76,7 @@ $in_files = array_merge($in_files, $bam);
 // run deepvariant
 $pipeline = array();
 $container = ($gpu) ? "deepvariant-gpu" : "deepvariant";
-if (isset($target) && $threads > 20) //TODO set back to > 1 if prefered over num_shards
+/* if (isset($target) && $threads > 20) //TODO set back to > 1 if prefered over num_shards
 {	
 	$deepvar_start = microtime(true);
 	
@@ -248,21 +248,20 @@ if (isset($target) && $threads > 20) //TODO set back to > 1 if prefered over num
 	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -remove_invalid -ref $genome", [$genome], [], true)];
 } 
 else 
+{ */
+if ($raw_output)
 {
-	if ($raw_output)
-	{
-		$parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf=$out", $in_files, [dirname($out)]);
-		return;
-	}
-
-	$vcf_deepvar_out = $parser->tempFile(".vcf");
-	$parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf=$vcf_deepvar_out", $in_files, [dirname($out)]);
-
-	//filter variants according to variant quality>5
-	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-in $vcf_deepvar_out -qual 5 -remove_invalid -ref $genome", [$genome], [], true)];
+	$parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf=$out", $in_files, [dirname($out)]);
+	return;
 }
 
+$vcf_deepvar_out = $parser->tempFile(".vcf.gz");
+$parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf=$vcf_deepvar_out", $in_files, [dirname($out)]);
 
+//filter variants according to variant quality>5
+$pipeline[] = ["zcat", "$vcf_deepvar_out"];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -remove_invalid -ref $genome", [$genome], [], true)];
+/* } */
 
 //split complex variants to primitives
 //this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
