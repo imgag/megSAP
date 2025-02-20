@@ -1004,7 +1004,27 @@ if (in_array("sv", $steps))
 		}
 		
 		//perform annotation
-		$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", [$folder, $ngsd_annotation_folder]);
+		if (db_is_enabled("NGSD"))
+		{
+			$db = DB::getInstance("NGSD", false);
+			$ps_id = get_processed_sample_id($db, $name, false);
+
+			if ($ps_id != -1)
+			{
+				$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder} -ps_name $name", [$folder, $ngsd_annotation_folder]);
+			}
+			else 
+			{
+				trigger_error("No processed sample ID found for sample ".$name.", skipping count annotation by disease group!", E_USER_WARNING);
+				$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", [$folder, $ngsd_annotation_folder]);
+			}
+		}
+		else
+		{
+			trigger_error("No NGSD access, skipping count annotation by disease group!",E_USER_WARNING);
+			$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", [$folder, $ngsd_annotation_folder]);
+		}
+
 		$sys_specific_density_file = $ngsd_annotation_folder."sv_breakpoint_density_".$sys["name_short"].".igv";
 		if (file_exists($sys_specific_density_file))
 		{
