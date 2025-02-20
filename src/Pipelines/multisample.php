@@ -30,7 +30,7 @@ function extract_info($format, $data)
 		if ($af=="." || $af=="") $af = 0.0;
 		$ao = round($depth * $af);
 	}
-	else
+	else //GLnexus: AD converted to AO
 	{
 		$ad = $data['AD'];
 		if ($ad=="." || $ad=="") 
