@@ -210,84 +210,14 @@ if (in_array("vc", $steps))
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps vc", true); 
 
 	//determine mendelian error rate
-	$vars_all = 0;
-	$vars_high_depth = 0;
-	$vars_mendelian_error = 0;
-	$h = fopen2($gsvar, "r");
-	while(!feof($h))
+	list($stdout) = $parser->execApptainer("ngs-bits", "TrioMendelianErrors", "-vcf {$vcf_all} -c {$sample_c} -f {$sample_f} -m {$sample_m}", [$vcf_all]);
+	foreach($stdout as $line)
 	{
-		$line = trim(fgets($h));
-		if ($line=="") continue;
-		
-		//skip comments
-		if (starts_with($line, "##")) continue;
-		
-		//header columns (determine column indices)		
-		if (starts_with($line, "#"))
+		if (starts_with($line, "Mendelian error rate:"))
 		{
-			if ($sample_c=="" || $sample_f=="" || $sample_m=="")
-			{
-				trigger_error("At least one of the sample names could not be determined! C={$sample_c} F={$sample_f} M={$sample_m}", E_USER_ERROR);
-			}
-			
-			$parts = explode("\t", $line);
-			
-			$i_c = determine_index($sample_c, $parts);
-			$i_f = determine_index($sample_f, $parts);
-			$i_m = determine_index($sample_m, $parts);
-			$i_quality = determine_index("quality", $parts);
-			
-			continue;
-		}
-		
-		++$vars_all;
-		
-		//parse content lines
-		$parts = explode("\t", $line);
-		$chr = $parts[0];
-		$geno_c = $parts[$i_c];
-		$geno_f = $parts[$i_f];
-		$geno_m = $parts[$i_m];
-		
-		//count mendelian errors
-		if ($chr!="chrX" && $chr!="chrY" && $chr!="chrMT") //only for autosomes
-		{
-			//only for variants with DP>=20
-			$high_depth = true;
-			$q_parts = explode(";", $parts[$i_quality]);
-			foreach($q_parts as $q_part)
-			{
-				if (starts_with($q_part, "DP="))
-				{
-					$dps = explode(",", substr($q_part, 3));
-					foreach($dps as $dp)
-					{
-						if ($dp<20) $high_depth = false;
-					}
-					break;
-				}
-			}
-			
-			if ($high_depth)
-			{
-				++$vars_high_depth;
-				
-				//hom, hom => het/wt
-				if ($geno_f=="hom" && $geno_m=="hom" && $geno_c!="hom") $vars_mendelian_error += 1;
-				//hom, het => wt
-				else if ($geno_f=="hom" && $geno_m=="het" && $geno_c=="wt") $vars_mendelian_error += 1;
-				else if ($geno_f=="het" && $geno_m=="hom" && $geno_c=="wt") $vars_mendelian_error += 1;
-				//het, wt => hom
-				else if ($geno_f=="het" && $geno_m=="wt" && $geno_c=="hom") $vars_mendelian_error += 1;
-				else if ($geno_f=="wt" && $geno_m=="het" && $geno_c=="hom") $vars_mendelian_error += 1;
-				//wt, wt  => het/hom
-				else if ($geno_f=="wt" && $geno_m=="wt" && $geno_c!="wt") $vars_mendelian_error += 1;
-			}
+			print trim($line)."\n";
 		}
 	}
-	fclose($h);
-	print "Overall variants: {$vars_all}\n";
-	print "Medelian errors: ".number_format(100.0*$vars_mendelian_error/$vars_high_depth, 2)."% (of {$vars_high_depth} high-depth, autosomal variants)\n";
 	
 	//determine gender of child
 	list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-method hetx -in $c -build ".ngsbits_build($sys['build'])." -ref {$genome}", [$c, $genome]);
@@ -300,7 +230,6 @@ if (in_array("vc", $steps))
 	
 	//double check modified output file
 	$parser->execTool("Tools/check_tsv.php", "-in $gsvar -build ".$sys['build']);
-	
 }
 
 //copy-number and UPD
