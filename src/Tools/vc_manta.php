@@ -146,25 +146,9 @@ else
 }
 
 
-//remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
-// $vcf_fixed = "{$temp_folder}/{$outname}SV_fixed.vcf";
-// $h = fopen2($sv_inv, "r");
-// $h2 = fopen2($vcf_fixed, "w");
-// while(!feof($h))
-// {
-// 	$line = fgets($h);
-// 	$parts = explode("\t", $line);
-// 	if (count($parts)>3 && $parts[3]=="") continue;
-	
-// 	fputs($h2, $line);
-// }
-// fclose($h);
-// fclose($h2);
-
 // fix VCF file (remove variants with empty "REF" entry and duplicates)
 $vcf_fixed = $parser->tempFile("_sv_fixed.vcf");
 $parser->execApptainer("ngs-bits", "MantaVcfFix", "-in {$sv_inv} -out {$vcf_fixed}");
-
 
 //sort variants
 $vcf_sorted = $parser->tempFile("_sv_sorted.vcf");

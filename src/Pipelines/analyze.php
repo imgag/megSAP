@@ -906,25 +906,9 @@ if (in_array("sv", $steps))
 			$vc_manta_parameters = "/usr/bin/samtools {$genome} {$dragen_output_vcf} dragen > {$vcf_inv_corrected}";
 			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome, $inv_script], [dirname($dragen_output_vcf)]);
 
-			// //remove VCF lines with empty "REF". They are sometimes created from convertInversion.py but are not valid
-			// $vcf_fixed = $parser->tempFile("_sv_fixed.vcf");
-			// $h = fopen2($vcf_inv_corrected, "r");
-			// $h2 = fopen2($vcf_fixed, "w");
-			// while(!feof($h))
-			// {
-			// 	$line = fgets($h);
-			// 	$parts = explode("\t", $line);
-			// 	if (count($parts)>3 && $parts[3]=="") continue;
-				
-			// 	fputs($h2, $line);
-			// }
-			// fclose($h);
-			// fclose($h2);
-
 			// fix VCF file (remove variants with empty "REF" entry and duplicates)
 			$vcf_fixed = $parser->tempFile("_sv_fixed.vcf");
 			$parser->execApptainer("ngs-bits", "MantaVcfFix", "-in {$vcf_inv_corrected} -out {$vcf_fixed}");
-
 
 			//sort variants
 			$vcf_sorted = $parser->tempFile("_sv_sorted.vcf");
