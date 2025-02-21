@@ -264,7 +264,7 @@ if (in_array("vc", $steps))
 	{		
 		//main variant calling for autosomes and gonosomes
 		$use_deepvar = get_path("use_deepvariant");
-		if ($dragen_gvcfs_exist && !$use_deepvar) //gVCFs exist > merge them
+		if ($dragen_gvcfs_exist) //gVCFs exist > merge them
 		{
 			$args = array();
 			$args[] = "-gvcfs ".implode(" ", $gvcfs);
@@ -308,7 +308,7 @@ if (in_array("vc", $steps))
 			}
 
 			//Merge gVCFs with GLnexus
-			$glnexus_tmp = $parser->tempFolder().getmypid();
+			$glnexus_tmp = $parser->tempFolder()."/GLnexus.DB/";
 			$pipeline = array();
 
 			// GLnexus args
@@ -324,8 +324,6 @@ if (in_array("vc", $steps))
 			$pipeline[] = ["bgzip", "-@ -c > $vcf_all"];
 
 			$parser->execPipeline($pipeline, "GLnexus gVCF merging");
-			trigger_error("Temporary folder used as GLnexus.DB folder: $glnexus_tmp", E_USER_NOTICE);
-			$parser->exec("rm", "-rf $glnexus_tmp");
 		}
 		else //no gVCFs > fallback to VC calling with freebayes (with very conservative parameters)
 		{
