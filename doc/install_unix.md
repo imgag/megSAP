@@ -31,7 +31,7 @@ Ubuntu 24.04
 
 Clone megSAP repository with containerized tools:
 
-	> git clone -b containerize_tools https://github.com/imgag/megSAP.git
+	> git clone https://github.com/imgag/megSAP.git
 
 ### Resolving proxy issues with git
 

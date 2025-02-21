@@ -181,7 +181,13 @@ if (!$no_sync)
 
 //make sure it is a BAM (MSIsensor does not work on CRAM)
 check_genome_build($t_bam, $sys['build']);
-$t_bam = convert_to_bam_if_cram($t_bam, $parser, $sys['build'], $threads);
+
+
+//msisensor needs BAM input, all other tools can use CRAM.
+if(in_array("msi", $steps))
+{
+	$t_bam = convert_to_bam_if_cram($t_bam, $parser, $sys['build'], $threads);
+}
 
 //normal sample data (if not single sample analysis)
 $single_sample = !isset($n_bam);
@@ -195,7 +201,10 @@ if (!$single_sample)
 	
 	//make sure it is a BAM (MSIsensor does not work on CRAM)
 	check_genome_build($n_bam, $n_sys['build']);
-	$n_bam = convert_to_bam_if_cram($n_bam, $parser, $sys['build'], $threads);
+	if(in_array("msi", $steps))
+	{
+		$n_bam = convert_to_bam_if_cram($n_bam, $parser, $sys['build'], $threads);
+	}
 	
 	if ($sys["name_short"] != $n_sys["name_short"] && in_array("cn", $steps))
 	{

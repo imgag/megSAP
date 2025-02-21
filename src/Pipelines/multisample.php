@@ -112,6 +112,13 @@ if (count($bams)!=count($status))
 }
 
 //check input status
+$counts = array_count_values($status);
+if (isset($counts["affected"]) && $counts["affected"] === 1)
+{
+	$affected_bam = $bams[array_search("affected", $status)];
+}
+else $affected_bam = "";
+
 foreach($status as $stat)
 {
 	$valid = array("affected", "control");
@@ -204,10 +211,7 @@ foreach($bams as $bam)
 	$gvcf = "{$folder}/dragen_variant_calls/{$ps}_dragen.gvcf.gz";
 	if (file_exists($gvcf)) $gvcfs[] = $gvcf;
 }
-//TODO Marc use gVCFs again once we have figured out what is wrong with the trio calling
-//$dragen_gvcfs_exist = count($gvcfs)==count($bams);
-$dragen_gvcfs_exist = false;
-
+$dragen_gvcfs_exist = count($gvcfs)==count($bams);
 
 //copy BAM files to local tmp for variant calling
 if (!$annotation_only)
@@ -770,7 +774,35 @@ if (in_array("sv", $steps))
 		}
 		
 		//perform annotation
-		$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", "-in $bedpe_out -out $bedpe_out -processing_system ".$sys["name_short"]." -ann_folder {$ngsd_annotation_folder}", [$out_folder, $ngsd_annotation_folder]);
+		$args = array(
+			"-in $bedpe_out",
+			"-out $bedpe_out",
+			"-processing_system ".$sys["name_short"],
+			"-ann_folder $ngsd_annotation_folder",
+		);
+
+		if (db_is_enabled("NGSD") && $affected_bam!="")
+		{
+			$db = DB::getInstance("NGSD", false);
+			$ps_id = get_processed_sample_id($db, $names[$affected_bam], false);
+
+			if ($ps_id != -1)
+			{
+				$args[] = "-ps_name ".$names[$affected_bam];
+				$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", implode(" ", $args), [$out_folder, $ngsd_annotation_folder]);
+			}
+			else 
+			{
+				trigger_error("No processed sample ID found for sample ".$names[$affected_bam].", skipping count annotation by disease group!", E_USER_WARNING);
+				$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", implode(" ", $args), [$out_folder, $ngsd_annotation_folder]);
+			}
+		}
+		else
+		{
+			trigger_error("No NGSD access or multiple/none affected bams given, skipping count annotation by disease group!",E_USER_WARNING);
+			$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", implode(" ", $args), [$out_folder, $ngsd_annotation_folder]);
+		}
+
 		$sys_specific_density_file = $ngsd_annotation_folder."sv_breakpoint_density_".$sys["name_short"].".igv";
 		if (file_exists($sys_specific_density_file))
 		{
