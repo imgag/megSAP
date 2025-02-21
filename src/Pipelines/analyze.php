@@ -1075,19 +1075,14 @@ if (in_array("sv", $steps))
 			if ($ps_id != -1)
 			{
 				$args[] = "-ps_name $name";
-				$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", implode(" ", $args), [$folder, $ngsd_annotation_folder]);
 			}
 			else 
 			{
 				trigger_error("No processed sample ID found for sample ".$name.", skipping count annotation by disease group!", E_USER_WARNING);
-				$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", implode(" ", $args), [$folder, $ngsd_annotation_folder]);
 			}
 		}
-		else
-		{
-			trigger_error("No NGSD access, skipping count annotation by disease group!",E_USER_WARNING);
-			$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", implode(" ", $args), [$folder, $ngsd_annotation_folder]);
-		}
+
+		$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", implode(" ", $args), [$folder, $ngsd_annotation_folder]);
 
 		$sys_specific_density_file = $ngsd_annotation_folder."sv_breakpoint_density_".$sys["name_short"].".igv";
 		if (file_exists($sys_specific_density_file))
