@@ -460,6 +460,36 @@ if (in_array("vc", $steps))
 				//index output file
 				$parser->exec("tabix", "-p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
 			}
+			elseif (get_path("use_deepvariant"))
+			{
+				$args = [];
+
+				if ($is_wes || $is_wgs)
+				{
+					$args[] = "-model_type ".$sys['type'];
+				}
+				else
+				{
+					trigger_error("The usage of DeepVariant is limited to WGS or WES short-read data! Different type '".$sys['type']."' detected in $system.", E_USER_ERROR);
+				}
+
+				$args[] = "-bam ".$used_bam_or_cram;
+				$args[] = "-out ".$vcffile;
+				$args[] = "-build ".$build;
+				$args[] = "-threads ".$threads;
+
+				if ($has_roi)
+				{
+					$args[] = "-target ".$sys['target_file'];
+					$args[] = "-target_extend 200";
+				}
+
+				$args[] = "-min_af ".$min_af;
+				$args[] = "-min_mq ".$min_mq;
+				$args[] = "-min_bq ".$min_bq;
+
+				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
+			}
 			else
 			{
 				$args = [];
@@ -584,17 +614,44 @@ if (in_array("vc", $steps))
 			if (bed_size($roi_low_mappabilty)>0)
 			{
 				$tmp_low_mappability = $parser->tempFile("_low_mappability.vcf.gz");
-				$args = [];
-				$args[] = "-bam ".$used_bam_or_cram;
-				$args[] = "-out ".$tmp_low_mappability;
-				$args[] = "-build ".$build;
-				$args[] = "-threads ".$threads;
-				$args[] = "-target ".$roi_low_mappabilty;
-				$args[] = "-min_af ".$min_af;
-				$args[] = "-min_mq 0";
-				$args[] = "-min_bq ".$min_bq;
-				$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
-			
+
+				if (get_path("use_deepvariant"))
+				{
+					$args = [];
+	
+					if ($is_wes || $is_wgs)
+					{
+						$args[] = "-model_type ".$sys['type'];
+					}
+					else
+					{
+						trigger_error("The usage of DeepVariant is limited to WGS or WES short-read data! Different type '".$sys['type']."' detected in $system.", E_USER_ERROR);
+					}
+	
+					$args[] = "-bam ".$used_bam_or_cram;
+					$args[] = "-out ".$tmp_low_mappability;
+					$args[] = "-build ".$build;
+					$args[] = "-threads ".$threads;
+					$args[] = "-target $roi_low_mappabilty";
+					$args[] = "-min_af ".$min_af;
+					$args[] = "-min_mq 0";
+					$args[] = "-min_bq ".$min_bq;
+	
+					$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
+				}
+				else
+				{
+					$args = [];
+					$args[] = "-bam ".$used_bam_or_cram;
+					$args[] = "-out ".$tmp_low_mappability;
+					$args[] = "-build ".$build;
+					$args[] = "-threads ".$threads;
+					$args[] = "-target ".$roi_low_mappabilty;
+					$args[] = "-min_af ".$min_af;
+					$args[] = "-min_mq 0";
+					$args[] = "-min_bq ".$min_bq;
+					$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
+				}
 				//unzip
 				$tmp_low_mappability2 = $parser->tempFile("_low_mappability.vcf");
 				$parser->exec("zcat", "$tmp_low_mappability > $tmp_low_mappability2", true);
