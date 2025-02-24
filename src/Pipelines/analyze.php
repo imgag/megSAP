@@ -338,6 +338,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 		else
 		{
 			$params[] = "-roi ".realpath($sys['target_file']);
+			$in_files[] = realpath($sys['target_file']);
 		}
 		if ($sys['build']!="GRCh38")
 		{
