@@ -99,6 +99,14 @@ while (!feof($handle))
 			$af = $tmp;
 		}
 	}
+	if (isset($sample['VAF'])) //deepvariant reports AF as VAF
+	{
+		$tmp = $sample['VAF'];
+		if (is_numeric($tmp))
+		{
+			$af = $tmp;
+		}
+	}
 	if ($af=="") trigger_error("Sample AF not found in: $line", E_USER_ERROR);
 	
 	// perform downsampling when needed

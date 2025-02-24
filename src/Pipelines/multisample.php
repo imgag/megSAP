@@ -24,11 +24,21 @@ function extract_info($format, $data)
 	{
 		$ao = array_sum(explode(",", $data['AO']));
 	}
-	else //Dragen: AF converted to AO
+	elseif (isset($data['AF'])) //Dragen: AF converted to AO
 	{
 		$af = $data['AF'];
 		if ($af=="." || $af=="") $af = 0.0;
 		$ao = round($depth * $af);
+	}
+	else //GLnexus: AD converted to AO
+	{
+		$ad = $data['AD'];
+		if ($ad=="." || $ad=="") 
+		{
+			$ao = 0;
+			return array($genotype, $depth, $ao);
+		}
+		$ao = explode(",", $ad)[1];
 	}
 	return array($genotype, $depth, $ao);
 }
@@ -165,6 +175,7 @@ foreach($bams as $bam)
 
 
 //check steps
+$is_wes = $sys['type']=="WES";
 $is_wgs = $sys['type']=="WGS";
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
 if ($is_wgs_shallow)
@@ -252,6 +263,7 @@ if (in_array("vc", $steps))
 	if (!$annotation_only)
 	{		
 		//main variant calling for autosomes and gonosomes
+		$use_deepvar = get_path("use_deepvariant");
 		if ($dragen_gvcfs_exist) //gVCFs exist > merge them
 		{
 			$args = array();
@@ -262,6 +274,56 @@ if (in_array("vc", $steps))
 			$args[] = "-analysis_type ".($prefix=="trio" ? "GERMLINE_TRIO" : "GERMLINE_MULTISAMPLE");
 			$args[] = "-mode dragen";
 			$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
+		}
+		elseif($use_deepvar) //calling with DeepVariant with gVCF file creation
+		{
+			$deepvar_gvcfs = array();
+			foreach($local_bams as $local_bam) // DeepVariant calling for each bam with gVCF output
+			{
+				$deepvar_vcf = $parser->tempFile("_deepvar.vcf.gz");
+				$deepvar_gvcf = $parser->tempFile("_deepvar.gvcf");
+
+				$args = [];
+
+				if ($is_wes || $is_wgs)
+				{
+					$args[] = "-model_type ".$sys['type'];
+				}
+				else
+				{
+					trigger_error("The usage of DeepVariant is limited to WGS or WES short-read data! Different type '".$sys['type']."' detected in $system.", E_USER_ERROR);
+				}
+
+				$args[] = "-bam ".$local_bam;
+				$args[] = "-out ".$deepvar_vcf;
+				$args[] = "-gvcf ".$deepvar_gvcf;
+				$args[] = "-build ".$sys['build'];
+				$args[] = "-threads ".$threads;
+				$args[] = "-target ".$sys['target_file'];
+				$args[] = "-target_extend 200";
+
+				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
+				
+				$deepvar_gvcfs[] = $deepvar_gvcf;
+			}
+
+			//Merge gVCFs with GLnexus
+			$glnexus_tmp = $parser->tempFolder()."/GLnexus.DB/";
+			$pipeline = array();
+
+			// GLnexus args
+			$args = array();
+			$args[] = "--dir ".$glnexus_tmp;
+			if ($is_wes) $args[] = "--config DeepVariantWES";
+			else $args[] = "--config DeepVariantWGS";
+			$args[] = implode(" ", $deepvar_gvcfs);
+
+			// Merge pipeline
+			$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), [], [], true)];
+			$pipeline[] = ["", $parser->execApptainer("glnexus", "bcftools view", "", [], [], true)];
+			$pipeline[] = ["bgzip", "-@ -c > $vcf_all"];
+
+			$parser->execPipeline($pipeline, "GLnexus gVCF merging");
 		}
 		else //no gVCFs > fallback to VC calling with freebayes (with very conservative parameters)
 		{
@@ -789,19 +851,14 @@ if (in_array("sv", $steps))
 			if ($ps_id != -1)
 			{
 				$args[] = "-ps_name ".$names[$affected_bam];
-				$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", implode(" ", $args), [$out_folder, $ngsd_annotation_folder]);
 			}
 			else 
 			{
 				trigger_error("No processed sample ID found for sample ".$names[$affected_bam].", skipping count annotation by disease group!", E_USER_WARNING);
-				$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", implode(" ", $args), [$out_folder, $ngsd_annotation_folder]);
 			}
 		}
-		else
-		{
-			trigger_error("No NGSD access or multiple/none affected bams given, skipping count annotation by disease group!",E_USER_WARNING);
-			$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", implode(" ", $args), [$out_folder, $ngsd_annotation_folder]);
-		}
+		
+		$parser->execApptainer("ngs-bits", "BedpeAnnotateCounts", implode(" ", $args), [$out_folder, $ngsd_annotation_folder]);
 
 		$sys_specific_density_file = $ngsd_annotation_folder."sv_breakpoint_density_".$sys["name_short"].".igv";
 		if (file_exists($sys_specific_density_file))

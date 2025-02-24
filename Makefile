@@ -89,7 +89,7 @@ test_all_status:
 	@egrep -a -i "WARNING" *.log || :
 	@echo ""
 	@echo "### ERRORS ###"
-	@egrep -a -i "ERROR|FAILED" *.log | grep -v "Medelian errors:" || :
+	@egrep -a -i "ERROR|FAILED" *.log | grep -v "Mendelian error rate:" || :
 
 test_clear:
 	@cd test/data_amplicon && make clean
