@@ -737,13 +737,15 @@ if (in_array("an", $steps))
 
 
 		//ROH detection
-		$in_files = array();
+		$in_files = [];
 		$in_files[] = $folder;
 		$in_files[] = repository_basedir()."/data/gene_lists/genes.bed";
+		$in_files[] = repository_basedir()."/data/misc/roh_exclude_regions.bed";
 		$args = [];
 		$args[] = "-in $vcf_file_annotated";
 		$args[] = "-out $roh_file";
 		$args[] = "-var_af_keys gnomADg_AF";
+		$args[] = "-exclude ".repository_basedir()."/data/misc/roh_exclude_regions.bed";
 		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
 		if (file_exists($omim_file)) $in_files[] = $omim_file;
 		$args[] = "-annotate ".repository_basedir()."/data/gene_lists/genes.bed ".(file_exists($omim_file) ? $omim_file : "");

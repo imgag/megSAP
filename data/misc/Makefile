@@ -42,3 +42,7 @@ telomere_centromere:
 
 circos_karyotype_files:
 	echo "These files where created manually by merging the chromosome regions and the centromer_telomer.bed (extended by 3 columns and replaced names by color)"
+
+roh_exclude_regions:
+	#Excluded regions for ROH analysis: centromer regions, telomer regions, N base regions, unmappable regions. 
+	#Filtered for >500kb and manually curated: /mnt/storage2/users/ahsturm1/scripts/2025_02_21_RohHunter_dragen4.3/

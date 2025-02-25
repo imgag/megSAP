@@ -68,6 +68,7 @@ test_pipeline_ml: dummy
 	@cd test/data_multi_longread && make all
 
 test_all: dummy
+	php src/Tools/data_setup.php > setup.log
 	(cd test && find . -name "test_*.php" | sort | xargs -l1 php && echo "DONE") > f.log 2>&1
 	(cd test && find . -name "tool_test_*.php" | sort | xargs -l1 php && echo "DONE") > t.log 2>&1 &
 	make test_pipeline_a > p_a.log 2>&1 &
