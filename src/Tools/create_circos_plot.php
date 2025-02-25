@@ -282,6 +282,15 @@ else
 $sv_file = "$folder/{$name}_manta_var_structural.bedpe";
 $sv_filter = repository_basedir() . "/data/misc/circos/sv_filter.ini";
 
+//fallback for lrGS
+if (!file_exists($sv_file)) 
+{
+    $sv_file = "$folder/{$name}_var_structural_variants.bedpe";
+    $sv_filter = repository_basedir() . "/data/misc/circos/sv_filter_lrGS.ini";
+}
+
+
+
 $sv_temp_file = $temp_folder."/sv.tsv";
 $n_bnds = 0;
 
