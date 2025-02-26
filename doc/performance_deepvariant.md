@@ -28,30 +28,30 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
 	</tr>
 	<tr>
 		<td>megSAP freebayes v1.3.6</td> <!--- dataset: NA12878x2_93 @ 40x --->
-		<td>99.34%</td>
-		<td>99.43%</td>
-		<td>99.93%</td>
-		<td>97.36%</td>
-		<td>99.41%</td>
-		<td>98.47%</td>
+		<td>99.62%</td>
+		<td>99.45%</td>
+		<td>99.94%</td>
+		<td>97.48%</td>
+		<td>99.42%</td>
+		<td>98.46%</td>
 	</tr>
 	<tr>
 		<td>megSAP DeepVariant v1.8.0</td> <!--- dataset: NA12878x2_93 @ 40x --->
-		<td>99.41%</td>
+		<td>99.65%</td>
 		<td>99.93%</td>
-		<td>99.97%</td>
-		<td>99.10%</td>
-		<td>99.70%</td>
-		<td>99.86%</td>
+		<td>99.98%</td>
+		<td>98.77%</td>
+		<td>99.72%</td>
+		<td>99.81%</td>
 	</tr>
 	<tr>
 		<td>megSAP DRAGEN v4.2.4</td> <!--- dataset: NA12878x2_93 @ 40x --->
-		<td>99.34%</td>
-		<td>99.44%</td>
-		<td>99.93%</td>
-		<td>97.54%</td>
-		<td>99.38%</td>
-		<td>98.47%</td>
+		<td>99.74%</td>
+		<td>99.74%</td>
+		<td>99.97%</td>
+		<td>99.68%</td>
+		<td>99.66%</td>
+		<td>99.91%</td>
 	</tr>
 </table>
 
@@ -76,30 +76,30 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
 	</tr>
 	<tr>
 		<td>megSAP freebayes v1.3.6</td> <!--- dataset: NA12878x3_23 @ 188x --->
-		<td>98.27%</td>
-		<td>98.49%</td>
-		<td>99.76%</td>
-		<td>95.18%</td>
-		<td>96.59%</td>
-		<td>96.00%</td>
+		<td>99.00%</td>
+		<td>98.48%</td>
+		<td>99.78%</td>
+		<td>96.79%</td>
+		<td>96.57%</td>
+		<td>96.07%</td>
 	</tr>
 	<tr>
 		<td>megSAP DeepVariant v1.8.0</td> <!--- dataset: NA12878x3_23 @ 188x --->
-		<td>98.74%</td>
-		<td>99.87%</td>
-		<td>99.90%</td>
-		<td>97.21%</td>
-		<td>98.56%</td>
-		<td>99.68%</td>
+		<td>99.02%</td>
+		<td>99.93%</td>
+		<td>99.91%</td>
+		<td>97.96%</td>
+		<td>99.45%</td>
+		<td>99.86%</td>
 	<tr>
 	<tr>
-		<td>megSAP DRAGEN v4.1.7</td> <!--- dataset: NA12878x3_23 @ 188x --->
-		<td>98.71%</td>
-		<td>98.49%</td>
-		<td>99.72%</td>
-		<td>91.81%</td>
-		<td>93.43%</td>
-		<td>99.57%</td>
+		<td>megSAP DRAGEN v4.2.4</td> <!--- dataset: NA12878x3_23 @ 188x --->
+		<td>99.31%</td>
+		<td>98.57%</td>
+		<td>99.78%</td>
+		<td>99.09%</td>
+		<td>97.20%</td>
+		<td>99.45%</td>
 	</tr>
 </table>
 
