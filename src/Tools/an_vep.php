@@ -258,7 +258,7 @@ if ($somatic)
 	}
 	else
 	{
-		fwrite($config_file, $ngsd_som_file."\tNGSD\tSOM_C,SOM_P,SOM_VICC,SOM_VICC_COMMENT\t\n"); //TODO Marc: Add SOM_TO_C
+		fwrite($config_file, $ngsd_som_file."\tNGSD\tSOM_C,SOM_TO_C,SOM_P,SOM_VICC,SOM_VICC_COMMENT\t\n"); 
 		$in_files[] = $ngsd_som_file;
 	}
 }

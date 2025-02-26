@@ -1547,7 +1547,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		if ($single_sample) //tumor-only
 		{
 			// import variants into NGSD
-			if (file_exists($variants_gsvar) && false) //TODO Marc
+			if (file_exists($variants_gsvar))
 			{
 				check_genome_build($variants_gsvar, $sys['build']);
 				$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", "-t_ps $t_id -var $variants_gsvar -force", [$variants_gsvar]);

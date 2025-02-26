@@ -318,8 +318,9 @@ $column_desc = array(
 
 // optional NGSD somatic header description if vcf contains NGSD somatic information
 $column_desc_ngsd_som = array(
-	array("NGSD_som_c", "Somatic variant count in the NGSD."),
-	array("NGSD_som_p", "Project names of project containing this somatic variant in the NGSD."),
+	array("NGSD_som_c", "Somatic variant count in the NGSD (tumor-normal)."),
+	array("NGSD_som_p", "Project names containing this somatic variant in the NGSD (tumor-normal)."),
+	array("NGSD_som_to_c", "Somatic variant count in the NGSD (tumor-only)."),
 	array("NGSD_som_vicc_interpretation", "Somatic variant interpretation according VICC standard in the NGSD."),
 	array("NGSD_som_vicc_comment", "Somatic VICC interpretation comment in the NGSD.")
 );
@@ -1318,6 +1319,15 @@ while(!feof($handle))
 				$ngsd_som_projects = "";
 			}
 			
+			if (isset($info["NGSD_SOM_TO_C"]))
+			{
+				$ngsd_som_counts_to = intval(trim($info["NGSD_SOM_TO_C"]));
+			}
+			else
+			{
+				$ngsd_som_counts_to = "0";
+			}
+			
 			if (isset($info["NGSD_SOM_VICC"]))
 			{
 				$ngsd_som_vicc = trim($info["NGSD_SOM_VICC"]);
@@ -1594,7 +1604,7 @@ while(!feof($handle))
 	}
 	if (!$skip_ngsd_som)
 	{
-		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");
+		fwrite($handle_out, "\t$ngsd_som_counts\t$ngsd_som_projects\t$ngsd_som_counts_to\t$ngsd_som_vicc\t$ngsd_som_vicc_comment");
 	}
 	if (!$skip_ngsd)
 	{
