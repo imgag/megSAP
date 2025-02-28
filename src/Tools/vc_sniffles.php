@@ -17,6 +17,7 @@ $parser->addOutfile("out", "Output VCF file (gzipped and tabix indexed).", false
 $parser->addStringArray("sample_ids", "Optional sample id(s)/name(s) for VCF output.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFlag("somatic", "Use somatic mode for SV calling (only single sample).");
+$parser->addFlag("use_tandem_repeat_file", "Use tandem repeat BED file for calling (only supported for GRCh38).");
 $parser->addInfile("target",  "Optional target region to limit SV calls to certain areas", true, true);
 $parser->addInt("threads", "Number of threads used.", true, 4);
 extract($parser->parse($argv));
@@ -49,7 +50,12 @@ else if(count($bam) == 1)
 	// get sample name
 	$name = $sample_ids[0];
 
-	//TODO: add tandem repeat file
+	//add tandem repeat file
+	if ($use_tandem_repeat_file)
+	{
+		if ($build != "GRCh38") trigger_error("Tadem repeat file only supported for GRCh38!", E_USER_ERROR);
+		$args[] = "--tandem-repeats ".get_path("data_folder")."/dbs/tandem-repeats/human_GRCh38_no_alt_analysis_set.trf.bed";
+	}
 
     $tmp_vcf = $parser->tempFile(".vcf", "sniffles");
 

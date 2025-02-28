@@ -244,6 +244,12 @@ mkdir msisensor-pro
 cd msisensor-pro
 apptainer exec -B $genome $msisensor msisensor-pro scan -d $genome -o msisensor_references_GRCh38.site
 
+#download tandem-repeat file for sniffles2
+cd $dbs
+mkdir -p tandem-repeats
+cd tandem-repeats
+wget https://github.com/fritzsedlazeck/Sniffles/blob/fdf6e6d334353a06872fe98f74fe68cc9a9a7d1f/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
+
 # # install OMIM (you might need a license; production NGSD has to be available and initialized)
 # cd $dbs
 # mkdir -p OMIM
