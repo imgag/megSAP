@@ -75,13 +75,13 @@ if (in_array("kraken2", $dbs))
 
     if (!file_exists($hemoglobin_fa))
     {
-        trigger_error("human_hemoglobin_tx.fa not found at '{$hemoglobin_fa}'. Run 'download_dbs_rna.sh' first.", E_USER_ERROR);
+        trigger_error("human_hemoglobin_tx.fa not found at '{$hemoglobin_fa}'. Run 'download_dbs.sh' first.", E_USER_ERROR);
     }
 
 	//build kraken2 database
     print "Building kraken2 database...\n";
 	$parser->execApptainer("kraken2", "kraken2-build", "-db $kraken_data_dir --download-taxonomy --skip-map  --use-ftp", [$kraken_data_dir]);
-	$parser->execApptainer("kraken2", "kraken2-build", "-db $kraken_data_dir --add-to-library {$hemoglobin_fa}", [$kraken_data_dir], [$hemoglobin_fa]);
+	$parser->execApptainer("kraken2", "kraken2-build", "-db $kraken_data_dir --add-to-library {$hemoglobin_fa}", [$kraken_data_dir], [dirname($hemoglobin_fa)]);
 	$parser->execApptainer("kraken2", "kraken2-build", "--build  --threads 5 --db $kraken_data_dir", [$kraken_data_dir]);
     print "Finished building kraken2 database\n";
 }
