@@ -150,9 +150,9 @@ mkdir -p CADD
 cd CADD
 wget -O - https://krishna.gs.washington.edu/download/CADD/v1.7/GRCh38/gnomad.genomes.r4.0.indel.tsv.gz > CADD_InDels_1.7_GRCh38.tsv.gz
 wget -O - https://krishna.gs.washington.edu/download/CADD/v1.7/GRCh38/whole_genome_SNVs.tsv.gz > CADD_SNVs_1.7_GRCh38.tsv.gz
-zcat CADD_InDels_1.7_GRCh38.tsv.gz | php $src/Install/db_converter_cadd.php -build GRCh38 -in - -out - | apptainer exec $ngsbits VcfStreamSort | bgzip > CADD_InDels_1.7_GRCh38.vcf.gz
+zcat CADD_InDels_1.7_GRCh38.tsv.gz | php $src/Install/db_converter_cadd.php -build GRCh38 | apptainer exec $ngsbits VcfStreamSort | bgzip > CADD_InDels_1.7_GRCh38.vcf.gz
 tabix -f -C -m 9 -p vcf CADD_InDels_1.7_GRCh38.vcf.gz
-zcat CADD_SNVs_1.7_GRCh38.tsv.gz | php $src/Install/db_converter_cadd.php -build GRCh38 -in - -out - | apptainer exec $ngsbits VcfStreamSort | bgzip > CADD_SNVs_1.7_GRCh38.vcf.gz
+zcat CADD_SNVs_1.7_GRCh38.tsv.gz | php $src/Install/db_converter_cadd.php -build GRCh38 | apptainer exec $ngsbits VcfStreamSort | bgzip > CADD_SNVs_1.7_GRCh38.vcf.gz
 tabix -f -C -m 9 -p vcf CADD_SNVs_1.7_GRCh38.vcf.gz
 apptainer exec -B $genome_dir $ngsbits VcfCheck -in CADD_InDels_1.7_GRCh38.vcf.gz -lines 1000 -ref $genome
 apptainer exec -B $genome_dir $ngsbits VcfCheck -in CADD_SNVs_1.7_GRCh38.vcf.gz -lines 1000 -ref $genome

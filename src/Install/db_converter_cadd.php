@@ -7,17 +7,17 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 // parse command line arguments
 $parser = new ToolBase("db_converter_cadd", "Converts the CADD flat files (tsv.gz) to VCF(.gz).");
 // optional
-$parser->addInfile("in",  "Input file in tsv-format with CADD scores. ('-' for STDIN)", false, false);
-$parser->addOutfile("out",  "Output file in vcf.gz-format with CADD scores. ('-' for STDOUT)", false, false);
+$parser->addInfile("in",  "Input file in tsv-format with CADD scores. Reads from STDIN if not specified", true, false);
+$parser->addOutfile("out",  "Output file in vcf.gz-format with CADD scores. Outputs to STDOUT if not specified", true, false);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 extract($parser->parse($argv));
 
 // open input file
-if ($in == "-") $in = "php://stdin";
+if ($in == "") $in = "php://stdin";
 $in_fp = fopen2($in, "r");
 
 // open output file
-if ($out == "-") $out = "php://stdout";
+if ($out == "") $out = "php://stdout";
 $out_fp = fopen2($out, "w");
 
 // write VCF header
