@@ -85,7 +85,7 @@ If you plan to use **NGSD** and it is not initialized yet, follow these steps:
 4. Create tables using:
 
    ```sh
-   apptainer exec -B <path-to-new-settings.ini>:/megSAP/settings.ini megSAP_[version].sif php /megSAP/src/Install/db_init.php
+   apptainer exec -B <path-to-new-settings.ini>:/megSAP/settings.ini,<path-to-host-data-folder>:/megSAP/data/data_folder/ megSAP_[version].sif php /megSAP/src/Install/db_init.php
    ```
 
 5. Import base genomic data using `ngs-bits` tools:
@@ -136,7 +136,9 @@ apptainer exec -B \
 
 - ``<path-to-host-data-folder> → /megSAP/data/data_folder/``: Mounts the data folder containing the downloaded data.
 - ``<path-to-new-settings.ini> → /megSAP/settings.ini``: Mounts your modified settings file.
-- ``</tmp/folder/> → /tmp/local_ngs_data/``: Mounts your tmp folder for intermediate files.
+- ``</tmp/folder/> → /tmp/``: Mounts your tmp folder for intermediate and locally stored files.
 - ``</path/to/input_data/> → /working_dir/``: Mounts the folder with input data.
+
+**Note:** If your host system's temporary directory is not ``/tmp`` change tmp folder mounting to ``</tmp/folder/> → </tmp/folder/>`` and change ``local_data = /tmp/local_ngs_data/`` to ``local_data = </tmp/folder/>/local_ngs_data`` in your `settings.ini`
 
 **Note:** This example shows how to run `analyze.php`. To check other pipelines, use: `apptainer exec megSAP_[version].sif php /megSAP/src/Pipelines/[pipeline_name].php --help`
