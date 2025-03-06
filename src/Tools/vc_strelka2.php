@@ -177,7 +177,7 @@ $colnames[$colidx_normal] = basename2($n_bam);
 $min_td = 20;
 $min_taf = 0.05;
 $min_tsupp = 3;
-$min_nd = 20;
+$min_nd = 15;
 $max_naf_rel = 1/6;
 
 //set comments and column names
