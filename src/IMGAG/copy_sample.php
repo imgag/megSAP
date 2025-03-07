@@ -103,14 +103,14 @@ function check_number_of_lanes($run_info_xml_file, $sample_sheet)
 		return false;
 	}
 	
-	
 	//Check whether LaneCount from RunInfo.xml occurs at least one time in samplesheet
-	$sample_sheet_content = Matrix::fromTSV($sample_sheet);
-	$i_lane = $sample_sheet_content->getColumnIndex("Lane",false,false);
+	$sample_sheet_content = Matrix::fromTSV($sample_sheet, ",", "["); //ignore line "[Data]" as comment
+	$i_lane = array_search("Lane",  $sample_sheet_content->getRow(0)); // first row contains headers
+	
 	if($i_lane == -1) return false;
 	
 	$lane_count_found_in_samplesheet = false;
-	for($i=0;$i<$sample_sheet_content->rows();++$i)
+	for($i=1;$i<$sample_sheet_content->rows();++$i)
 	{
 		$lane = $sample_sheet_content->get($i,$i_lane);
 		if($lane == $lane_count)
@@ -254,7 +254,7 @@ if($is_novaseq_x && ($folder=="Unaligned"))
 //check that data folder exists
 if (!file_exists($folder)) trigger_error("Data folder '$folder' does not exist!", E_USER_ERROR);
 
-if(!file_exists("Fq") && !check_number_of_lanes($runinfo,$samplesheet))
+if(! $is_novaseq_x && !file_exists("Fq") && !check_number_of_lanes($runinfo,$samplesheet))
 {
 	trigger_error("***!!!WARNING!!!***\nCould not verify number of lanes used for Demultiplexing and actually used on Sequencer. Please check manually!", E_USER_WARNING);
 }
