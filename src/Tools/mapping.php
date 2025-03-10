@@ -500,7 +500,7 @@ if($barcode_correction)
 	if($min_mapq > 0)
 	{
 		$tmp_bam_filtered = $parser->tempFile("_filtered.bam");
-		$parser->execApptainer("ngs-bits", "BamFilter", "-minMQ 20 -in $bam_current -out $tmp_bam_filtered", [$bam_current]);
+		$parser->execApptainer("ngs-bits", "BamFilter", "-minMQ $min_mapq -in $bam_current -out $tmp_bam_filtered", [$bam_current]);
 
 		$tmp_bam_filtered_sorted = $parser->tempFile("_filtered_sorted.bam");
 		$parser->sortBam($tmp_bam_filtered, $tmp_bam_filtered_sorted, $threads, $build);
