@@ -53,9 +53,17 @@ $is_wgs_shallow = $sys['type']=="WGS (shallow)";
 $has_roi = $sys['target_file']!="";
 $build = $sys['build'];
 
+//disable abra and soft-clipping if deepvariant is used for calling
+if (get_path("use_deepvariant"))
+{
+	$no_abra = true;
+	$clip_overlap = false;
+} 
+
 //handle somatic flag
 if ($somatic)
 {
+	$no_abra = true;
 	$clip_overlap = true;
 	$correction_n = true;
 }
