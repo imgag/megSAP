@@ -88,6 +88,8 @@ If you plan to use **NGSD** and it is not initialized yet, follow these steps:
    apptainer exec -B <path-to-new-settings.ini>:/megSAP/settings.ini,<path-to-host-data-folder>:/megSAP/data/data_folder/ megSAP_[version].sif php /megSAP/src/Install/db_init.php
    ```
 
+   During this step, a `ngsbits_settings.ini` is created from the megSAP settings.ini and saved under `<path-to-host-data-folder>/tools/ngsbits_settings.ini`. This `ngsbits_settings.ini` file is required to run the ngs-bits container independently of the megSAP container.
+
 5. Import base genomic data using `ngs-bits` tools:
 
    ```sh
@@ -100,7 +102,7 @@ If you plan to use **NGSD** and it is not initialized yet, follow these steps:
    NGSDImportORPHA --help  
    ```
 
-**Note:** To call `ngs-bits` tools, use: `apptainer exec ngs-bits_[version].sif [tool] [parameters]`. The `ngs-bits` container is downloaded to `<path-to-host-data-folder>/tools/apptainer_container`.
+**Note:** To call `ngs-bits` tools, use: `apptainer exec ngs-bits_[version].sif [tool] [parameters] --settings <path-to-host-data-folder>/tools/ngsbits_settings.ini`. The `ngs-bits` container is downloaded to `<path-to-host-data-folder>/tools/apptainer_container`.
 
 **Note:** To annotate variants with NGSD in-house counts, classifications, etc., NGSD data has to be exported regularly. To do so, adapt the file `data\dbs\NGSD\Makefile` and execute `make export` once a week using a cronjob. To do so in the megSAP container version you have to copy the Makefile to your host system, change it and mount it when executing the `make export`.
 
