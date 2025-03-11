@@ -27,9 +27,9 @@ $method = "hetx";
 $args = "";
 if (!isset($gender))
 {
-	if (db_is_enabled("NGSD"))
+	if (! db_is_enabled("NGSD"))
 	{
-		$parser->log("Could not determine gender for processed sample '{$pid}': NGSD is not enabled.");
+		trigger_error("Could not determine gender for processed sample '{$pid}': NGSD is not enabled.", E_USER_WARNING);
 		exit(0);
 	}
 	
