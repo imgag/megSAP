@@ -84,7 +84,7 @@ test_all: dummy
 
 test_all_status:
 	@clear
-	@tail -v -n3 *.log
+	@ls *.log | grep -v setup.log | xargs tail -v -n3
 	@echo ""
 	@echo "### WARNINGS ###"
 	@egrep -a -i "WARNING" *.log || :
