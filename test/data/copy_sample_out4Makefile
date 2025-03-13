@@ -1,10 +1,13 @@
-all: import_runqc import_read_counts copy_SomaticAndTreatment_diagnostic copy_Exome_Diagnostik_diagnostic merge queue_SomaticAndTreatment_diagnostic queue_Exome_Diagnostik_diagnostic
+all: import_runqc import_read_counts check_md5_analysis_data copy_SomaticAndTreatment_diagnostic copy_Exome_Diagnostik_diagnostic merge queue_SomaticAndTreatment_diagnostic queue_Exome_Diagnostik_diagnostic
 
 import_runqc:
 	php /mnt/storage2/megSAP/pipeline/src/Tools/runqc_parser.php -name "#00123" -run_dir Analysis/../ -force
 
 import_read_counts:
 	php /mnt/storage2/megSAP/pipeline/src/IMGAG/import_sample_read_counts.php -csv_mode -stats Analysis/3/Data/Demux/Demultiplex_Stats.csv -db NGSD_TEST 
+
+check_md5_analysis_data:
+	md5sum -c analysis_checksums.txt
 
 copy_SomaticAndTreatment_diagnostic:
 	mkdir -p /test/project/folder/

@@ -208,6 +208,17 @@ function get_sample_data_from_db(&$db_conn, $run_name)
 	return $sample_data;
 }
 
+//get md5 checksum (NovaSeqX analysis)
+function get_md5_line($file)
+{
+	$md5_file = $file.".md5sum";
+	if (!file_exists($md5_file)) trigger_error("No MD5 file for {$file} found!", E_USER_ERROR);
+		
+	$md5 = trim(file($md5_file)[0]);
+
+	return $md5." ".$file;
+}
+
 //init
 if (!isset($out)) $out = "Makefile";
 $db_conn = DB::getInstance($db);
@@ -390,6 +401,12 @@ if($run_name != "")
 					echo "The genomes are already analyzed on the device. Should this data be used for the analysis? (y/n)?\n";
 					if(trim(fgets(STDIN)) == "y") $wgs_use_dragen_data = true;
 				}
+				else
+				{
+					// ask if DRAGEN should be used
+					echo "Should the genome samples on this run mapped with DRAGEN mapping? (y/n)?\n";
+					if(trim(fgets(STDIN)) == "y") $use_dragen = true;
+				}
 			}
 		}
 		elseif (($n_genomes > 0) && $is_novaseq_x)
@@ -420,6 +437,7 @@ $target_to_queuelines = array();
 $queue_trios = array();
 $project_to_fastqonly_samples = array();
 $sample_to_newlocation = array();
+$md5sum_buffer = array();
 
 if (get_path("queues_dragen", false)!="" && !$test)
 {
@@ -632,6 +650,16 @@ foreach($sample_data as $sample => $sample_infos)
 				if(!file_exists($source_sv_vcf_file)) trigger_error("ERROR: SV VCF file '{$source_sv_vcf_file}' is missing!", E_USER_ERROR);
 				if(!file_exists($source_sv_vcf_file.".tbi")) trigger_error("ERROR: SV VCF index file '{$source_sv_vcf_file}.tbi' is missing!", E_USER_ERROR);
 				$source_cnv_vcf_file = "{$source_folder}/{$sample}.cnv.vcf.gz";
+				if(($sys_type == "WGS") && !file_exists($source_cnv_vcf_file)) trigger_error("ERROR: CNV VCF file '{$source_cnv_vcf_file}' is missing!", E_USER_ERROR);
+				if(($sys_type == "WGS") && !file_exists($source_cnv_vcf_file.".tbi")) trigger_error("ERROR: CNV VCF index file '{$source_cnv_vcf_file}.tbi' is missing!", E_USER_ERROR);
+
+
+				//get md5sum 
+				$md5sum_buffer[] = get_md5_line($source_mapping_file);
+				$md5sum_buffer[] = get_md5_line($source_vcf_file);
+				$md5sum_buffer[] = get_md5_line($source_gvcf_file);
+				// $md5sum_buffer[] = get_md5_line($source_sv_vcf_file);
+				if (file_exists($source_cnv_vcf_file)) $md5sum_buffer[] = get_md5_line($source_cnv_vcf_file);
 			}
 			
 
@@ -892,6 +920,7 @@ foreach($sample_data as $sample => $sample_infos)
 
 //create Makefile
 $output = array();
+$all_parts = array();
 $output[] = "all: ".(($is_novaseq_x)?"":"chmod ")."import_runqc import_read_counts ";
 $output[] = "";
 
@@ -912,7 +941,7 @@ $output[] = "";
 $output[] = "import_read_counts:";
 if ($is_novaseq_x)
 {
-	$output[] = "\tphp {$repo_folder}/src/IMGAG/import_sample_read_counts.php -csv_mode -stats ${analysis_id}/Data/Demux/Demultiplex_Stats.csv -db $db ";
+	$output[] = "\tphp {$repo_folder}/src/IMGAG/import_sample_read_counts.php -csv_mode -stats {$analysis_id}/Data/Demux/Demultiplex_Stats.csv -db $db ";
 }
 else
 {
@@ -920,8 +949,45 @@ else
 }
 $output[] = "";
 
+if ($is_novaseq_x)
+{
+	//check md5 checksums of analysis data
+	if (count($md5sum_buffer) > 0)
+	{
+		//write checksums to file
+		file_put_contents("analysis_checksums.txt", implode("\n", $md5sum_buffer));
+
+		$output[] = "check_md5_analysis_data:";
+		$output[] = "\tmd5sum -c analysis_checksums.txt";
+
+		$output[] = "";
+
+		$all_parts[] = "check_md5_analysis_data";
+	}
+
+
+	//check ORA files
+	$ora_files = glob($folder."/[0-9]/Data/*/ora_fastq/*.fastq.ora");
+	if (count($ora_files) > 0)
+	{
+		$output[] = "check_ora_data:";
+		//add check for ORA files
+		foreach($ora_files as $ora_file)
+		{
+			$ora_file = realpath($ora_file);
+			$in_files = array($ora_file, get_path("data_folder")."/dbs/oradata/");
+			$orad_command = $parser->execApptainer("orad", "orad", "--ora-reference ".get_path("data_folder")."/dbs/oradata/ -t {$threads_ora} -C ".$ora_file, $in_files, [], true);
+			$output[] = "\t".$orad_command;
+		}
+
+		$output[] = "";
+
+		$all_parts[] = "check_ora_data";
+	}
+}
+
+
 //target(s) 'copy_...'
-$all_parts = array();
 foreach ($target_to_copylines as $target => $lines)
 {
 	$all_parts[] = "copy_{$target}";
