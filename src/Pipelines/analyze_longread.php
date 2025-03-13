@@ -13,8 +13,8 @@ $parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
-$steps_all = array("ma", "vc", "cn", "sv", "ph", "re", "me", "an", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, ph=phasing, re=repeat expansions calling, me=methylation calling, an=annotation, db=import into NGSD.", true, implode(",", $steps_all));
+$steps_all = array("ma", "vc", "cn", "sv", "ph", "re", "me", "pg", "an", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, ph=phasing, re=repeat expansions calling, me=methylation calling, pg=paralogous genes calling, an=annotation, db=import into NGSD.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_gender_check", "Skip gender check (done between mapping and variant calling).");
@@ -709,7 +709,12 @@ if (in_array("me", $steps))
 {
 	if (!contains_methylation($used_bam_or_cram)) trigger_error("BAM file doesn't contain methylation info! Skipping step 'me'", E_USER_WARNING);
 	else $parser->execTool("Tools/create_methyl_plot.php", "-folder {$folder} -name {$name} -local_bam {$used_bam_or_cram} -out {$methylation_table} -build {$build} -regions {$methyl_regions} -threads {$threads} --log ".$parser->getLogFile());
+}
 
+// paralogous gene calling
+if (in_array("pg", $steps))
+{
+	$parser->execTool("Tools/vc_paraphase.php", "-folder {$folder} -name {$name} -local_bam {$used_bam_or_cram} -build {$build} -threads {$threads} --log ".$parser->getLogFile());
 }
 
 // annotation
