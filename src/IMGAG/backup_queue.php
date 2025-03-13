@@ -15,6 +15,7 @@ $parser->addInfile("in",  "Absolute path to input folder.", false);
 $parser->addEnum("mode",  "Mode.", false, array("run", "project", "user"));
 $parser->addString("email", "Email used for notification when SGE job has finished (NGSD login also works).", false);
 $parser->addFlag("include_raw_signal", "Backup includes non-basecalled POD5 or FAST5 data.");
+$parser->addFlag("include_bcl", "Include BCL files for NovaSeq X runs (by default only ORA files are included).");
 $parser->addFlag("test", "Don't queue job, just create and print command.");
 extract($parser->parse($argv));
 
@@ -61,6 +62,10 @@ $command = "{$command_sge} php {$backup_script} -in {$in}";
 if ($include_raw_signal)
 {
 	$command = "{$command} -include_raw_signal";
+}
+if ($include_bcl)
+{
+	$command = "{$command} -include_bcl";
 }
 
 print "    SGE command: {$command}\n";

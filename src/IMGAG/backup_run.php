@@ -17,6 +17,7 @@ $parser->addString("out_folder", "Output folder.", true, "/mnt/storage1/raw_data
 $parser->addString("sav_folder", "Output folder for SAV data.", true, "/mnt/storage3/raw_data/_sav_archive/");
 $parser->addString("tmp_folder", "Folder for tmp files, will use /tmp/ by default", true, "");
 $parser->addFlag("include_raw_signal", "Backup includes non-basecalled POD5 or FAST5 data.");
+$parser->addFlag("include_bcl", "Include BCL files for NovaSeq X runs (by default only ORA files are included).");
 $parser->addFlag("test", "Perform a backup in test-mode. No data will be moved on the TSM backup.");
 extract($parser->parse($argv));
 
@@ -128,7 +129,7 @@ if($is_novaseq_x)
 	if(count($analyses) == 0) trigger_error("ERROR: No analysis found! Please make sure the secondary analysis was performed successfully (at least the demultiplexing).", E_USER_ERROR);
 	if(count($analyses) > 1) trigger_error("ERROR: Multiple analysis folders found! Please remove all duplicated secondary analysis, but make sure all necessary fastq files are present in the remaining folder!", E_USER_ERROR);
 	//NovaSeq X run => backup fastq/ora files
-	$parser->exec("tar", "cfW {$tmp_tar} --exclude='{$basename}/Data' --exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images'"
+	$parser->exec("tar", "cfW {$tmp_tar} ".(($include_bcl)?"":"--exclude='{$basename}/Data' ")."--exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images'"
 	." --exclude='*.bam' --exclude='*.bam.bai' --exclude='*.cram' --exclude='*.cram.crai'  --exclude='*.vcf.gz'  --exclude='*.gvcf.gz' -C ".dirname($in)." {$basename}", true);
 }
 else
