@@ -2,7 +2,7 @@ TIMESTAMP=$(shell date +"%Y-%m-%d_%H-%M-%S")
 
 all: clean clean_logs link bam_analysis diff2
 
-all_3_tests: clean clean_logs link map vc cn sv ph re me an diff bam_analysis diff2 bam_analysis_single_steps diff2
+all_3_tests: clean clean_logs link map vc cn sv ph re me pg an diff bam_analysis diff2 bam_analysis_single_steps diff2
 
 clean:
 	rm -rf *.fastq.gz *.txt *.GSvar *.gvcf.gz *.gvcf.gz.tbi *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe clair_temp repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_rohs.tsv *_ancestry.tsv  *_methylation.tsv methylartist *_modkit_track.bed.gz *_modkit_track.bed.gz.tbi *_prs.tsv *_repeats.tsv *_repeats.vcf *_var_modcall.vcf paraphase

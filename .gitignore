@@ -225,3 +225,4 @@ data/genomes/GRCh38.dict
 data/misc/human_hemoglobin_tx.fa
 
 data/tools/ngsbits_settings.ini
+/test/data_longread/paraphase
