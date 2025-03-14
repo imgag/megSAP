@@ -380,9 +380,26 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 }
 
 //check gender after mapping
-if(db_is_enabled("NGSD") && $used_bam_or_cram!="" && !$somatic && !$no_gender_check)
+if(db_is_enabled("NGSD") && $used_bam_or_cram!="" && !$no_gender_check)
 {
-	$parser->execTool("Tools/db_check_gender.php", "-in $used_bam_or_cram -pid $name");	
+	
+	$db = DB::getInstance("NGSD", false);
+	$info = get_processed_sample_info($db, $name, false);
+	
+	if ($info["is_tumor"] == "0")
+	{
+		$args = array();
+		$args[] = "-in $used_bam_or_cram";
+		$args[] = "-pid $name";
+		
+		//extra check for germline ffpe samples, as they often have high SNV deviation
+		if ($info["is_ffpe"] == "1")
+		{
+			$args[] = "-check_sry_cov";
+		}
+		
+		$parser->execTool("Tools/db_check_gender.php", implode(" ", $args));
+	}
 }
 
 //variant calling
