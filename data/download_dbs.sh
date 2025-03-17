@@ -256,6 +256,14 @@ wget https://github.com/fritzsedlazeck/Sniffles/blob/fdf6e6d334353a06872fe98f74f
 # cd OMIM
 # # manual download of http://ftp.omim.org/OMIM/genemap2.txt
 # php $src/Install/db_converter_omim.php | apptainer exec $ngsbits BedSort -with_name > omim.bed
+ 
+# # when using the containerized megSAP version:
+# cd <path-to-host-data-folder>/dbs/
+# mkdir -p OMIM
+# cd OMIM
+# # manual download of http://ftp.omim.org/OMIM/genemap2.txt
+# apptainer exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/,<path-to-settings.ini-with-NGSD-credentials>:/megSAP/settings.ini --pwd /megSAP/data/data_folder/dbs/OMIM megSAP_[version].sif php megSAP/src/Install/db_converter_omim.php | apptainer exec <downloaded-ngs-bits-container> BedSort -with_name > omim.bed
+
 
 # # install HGMD (you need a license; production NGSD has to be available and initialized)
 # cd $dbs
@@ -268,6 +276,18 @@ wget https://github.com/fritzsedlazeck/Sniffles/blob/fdf6e6d334353a06872fe98f74f
 # zcat hgmd_pro-2024.4.dump.gz | php $src/Install/db_converter_hgmd_cnvs.php > HGMD_CNVS_2024_4.bed
 # apptainer exec $ngsbits BedSort -with_name -in HGMD_CNVS_2024_4.bed -out HGMD_CNVS_2024_4.bed
 
+# # when using the containerized megSAP version:
+# cd <path-to-host-data-folder>/dbs/
+# mkdir -p HGMD
+# cd HGMD
+# # manual download of files HGMD_Pro_2024.4_hg38.vcf.gz and hgmd_pro-2024.4.dump.gz from https://apps.ingenuity.com/ingsso/login
+# apptainer exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/ --pwd /megSAP/data/data_folder/dbs/HGMD megSAP_[version].sif sh -c "zcat HGMD_Pro_2024.4_hg38.vcf.gz | php /megSAP/src/Install/db_converter_hgmd.php | bgzip > HGMD_PRO_2024_4_fixed.vcf.gz"
+# tabix -p vcf HGMD_PRO_2024_4_fixed.vcf.gz
+# #CNVs
+# apptainer exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/,<path-to-settings.ini-with-NGSD-credentials>:/megSAP/settings.ini --pwd /megSAP/data/data_folder/dbs/HGMD megSAP_[version].sif sh -c "zcat hgmd_pro-2024.4.dump.gz | php /megSAP/src/Install/db_converter_hgmd_cnvs.php > HGMD_CNVS_2024_4.bed"
+# apptainer exec <downloaded-ngs-bits-container> BedSort -with_name -in HGMD_CNVS_2024_4.bed -out HGMD_CNVS_2024_4.bed
+
+
 # # install COSMIC Cancer Mutation Census CMC (you need a license)
 # cd $dbs
 # mkdir -p COSMIC
@@ -275,3 +295,11 @@ wget https://github.com/fritzsedlazeck/Sniffles/blob/fdf6e6d334353a06872fe98f74f
 # # manual download of CancerMutationCensus_AllData_Tsv_v99_GRCh38.tar, Cosmic_GenomeScreensMutant_Vcf_v99_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v99_GRCh38.tar and Cosmic_NonCodingVariants_Vcf_v99_GRCh38.tar from https://apps.ingenuity.com/ingsso/login
 # ls *.tar | xargs -l1 tar -xf 
 # gunzip -c CancerMutationCensus_AllData_v99_GRCh38.tsv.gz | php $src/Install/db_converter_cosmic.php -in_genome_vcf Cosmic_GenomeScreensMutant_v99_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v99_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v99_GRCh38.vcf.gz -out cmc_export_v99.vcf.gz
+
+# # when using the containerized megSAP version:
+# cd <path-to-host-data-folder>/dbs/
+# mkdir -p COSMIC
+# cd COSMIC
+# # manual download of CancerMutationCensus_AllData_Tsv_v99_GRCh38.tar, Cosmic_GenomeScreensMutant_Vcf_v99_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v99_GRCh38.tar and Cosmic_NonCodingVariants_Vcf_v99_GRCh38.tar from https://apps.ingenuity.com/ingsso/login
+# ls *.tar | xargs -l1 tar -xf 
+#apptainer exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/ --pwd /megSAP/data/data_folder/dbs/COSMIC megSAP_[version].sif sh -c "gunzip -c CancerMutationCensus_AllData_v99_GRCh38.tsv.gz | php /megSAP/src/Install/db_converter_cosmic.php -in_genome_vcf Cosmic_GenomeScreensMutant_v99_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v99_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v99_GRCh38.vcf.gz -out cmc_export_v99.vcf.gz"
