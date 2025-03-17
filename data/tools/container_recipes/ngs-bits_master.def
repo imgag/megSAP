@@ -13,7 +13,6 @@ apt-get install -y \
 	make \
 	g++ \
 	qtbase5-dev \
-	libqt5xmlpatterns5-dev \
 	libqt5sql5-mysql \
 	libqt5sql5-odbc \
 	libqt5charts5-dev \
@@ -26,6 +25,9 @@ apt-get install -y \
 	libcurl4-openssl-dev \
 	zlib1g-dev \
 	curl \
+	pkg-config \
+	libxml2 \
+	libxml2-dev \
 	gnupg
 	
 # MSSQL in QT
@@ -52,7 +54,6 @@ apt-get remove -y \
 	make \
 	g++ \
 	qtbase5-dev \
-	libqt5xmlpatterns5-dev \
 	libqt5charts5-dev \
 	libqt5svg5-dev \
 	libbz2-dev \
@@ -62,8 +63,7 @@ apt-get remove -y \
 	curl
 apt-get install -y \
 	libqt5network5 \
-	libqt5xml5 \
-	libqt5xmlpatterns5
+	libqt5xml5
 apt-get autoremove -y && \
 apt-get clean && \
 rm -rf /var/lib/apt/lists/*
