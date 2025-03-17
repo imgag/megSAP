@@ -274,4 +274,4 @@ wget https://github.com/fritzsedlazeck/Sniffles/blob/fdf6e6d334353a06872fe98f74f
 # cd COSMIC
 # # manual download of CancerMutationCensus_AllData_Tsv_v99_GRCh38.tar, Cosmic_GenomeScreensMutant_Vcf_v99_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v99_GRCh38.tar and Cosmic_NonCodingVariants_Vcf_v99_GRCh38.tar from https://apps.ingenuity.com/ingsso/login
 # ls *.tar | xargs -l1 tar -xf 
-# gunzip -c CancerMutationCensus_AllData_v99_GRCh38.tsv.gz | php $src/Install/db_converter_cosmic.php -in_cmc - -in_genome_vcf Cosmic_GenomeScreensMutant_v99_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v99_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v99_GRCh38.vcf.gz -out cmc_export_v99.vcf.gz
+# gunzip -c CancerMutationCensus_AllData_v99_GRCh38.tsv.gz | php $src/Install/db_converter_cosmic.php -in_genome_vcf Cosmic_GenomeScreensMutant_v99_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v99_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v99_GRCh38.vcf.gz -out cmc_export_v99.vcf.gz
