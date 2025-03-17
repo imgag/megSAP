@@ -499,7 +499,9 @@ foreach($sample_data as $sample => $sample_infos)
 		$old_location = $analysis_id."/Data";
 		if($sys_type == "WGS")
 		{
-			$old_location .= "/DragenGermline";
+			if (file_exists($old_location. "/DragenGermline")) $old_location .= "/DragenGermline";
+			else $old_location .= "/BCLConvert"; // fallback to BCLConvert if no analysis is performed
+
 			//check for ORA folder:
 			if (file_exists($old_location."/ora_fastq"))
 			{
@@ -513,7 +515,8 @@ foreach($sample_data as $sample => $sample_infos)
 		}
 		else if($sys_type == "WES")
 		{
-			$old_location .= "/DragenEnrichment";
+			if (file_exists($old_location. "/DragenEnrichment")) $old_location .= "/DragenEnrichment";
+			else $old_location .= "/BCLConvert"; // fallback to BCLConvert if no analysis is performed
 			if (file_exists($old_location."/ora_fastq"))
 			{
 				$fastq_folder = $old_location."/ora_fastq";
