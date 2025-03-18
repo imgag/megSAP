@@ -224,7 +224,7 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 		}
 		file_put_contents($reg, $tmp);
 		$genome = genome_fasta("GRCh38");
-		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateFreq", "-ref $genome -in $reg -bam $bam", [$genome, $reg, $bam]);
+		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateFreq", "-ref $genome -in $reg -bam $bam -long_read", [$genome, $reg, $bam]);
 		foreach($stdout as $line)
 		{
 			$line = trim($line);
