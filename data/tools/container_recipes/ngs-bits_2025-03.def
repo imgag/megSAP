@@ -22,11 +22,13 @@ apt-get install -y \
 	python3-matplotlib \
 	libbz2-dev \
 	liblzma-dev \
+	libxml2-dev \
 	libcurl4 \
 	libcurl4-openssl-dev \
 	zlib1g-dev \
 	curl \
-	gnupg
+	gnupg \
+	pkg-config
 	
 # MSSQL in QT
 curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft.gpg
@@ -39,7 +41,7 @@ mkdir -p /opt
 cd /opt
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2025_01 && git submodule update --recursive --init
+git checkout 2025_03 && git submodule update --recursive --init
 make build_3rdparty
 make build_libs_release
 make build_tools_release
@@ -57,13 +59,13 @@ apt-get remove -y \
 	libqt5svg5-dev \
 	libbz2-dev \
 	liblzma-dev \
+	libxml2-dev \
 	libcurl4 \
 	zlib1g-dev \
 	curl
 apt-get install -y \
 	libqt5network5 \
-	libqt5xml5 \
-	libqt5xmlpatterns5
+	libqt5xml5
 apt-get autoremove -y && \
 apt-get clean && \
 rm -rf /var/lib/apt/lists/*
