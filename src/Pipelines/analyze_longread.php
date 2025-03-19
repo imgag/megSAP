@@ -749,6 +749,8 @@ if (in_array("an", $steps))
 		$args = [];
 		$args[] = "-in $vcf_file_annotated";
 		$args[] = "-out $roh_file";
+		$args[] = "-var_min_dp 15";
+		$args[] = "-var_min_q 15";
 		$args[] = "-var_af_keys gnomADg_AF";
 		$args[] = "-exclude ".repository_basedir()."/data/misc/roh_exclude_regions.bed";
 		$omim_file = get_path("data_folder")."/dbs/OMIM/omim.bed"; //optional because of license
