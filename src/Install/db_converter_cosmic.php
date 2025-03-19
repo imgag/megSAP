@@ -7,7 +7,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 // parse command line arguments
 $parser = new ToolBase("db_converter_cosmic", "Converts COSMIC Cancer Mutation Census (CMC) database file (TSV) to tabix-indexed VCF.GZ.");
 // optional
-$parser->addInfile("in_cmc",  "Input file in TSV-format with COSMIC CMC scores. [or '-' for stdin]", false, false);
+$parser->addInfile("in_cmc",  "Input file in TSV-format with COSMIC CMC scores. Reads from stdin if empty.", true, false);
 $parser->addInfile("in_genome_vcf",  "Input file in VCF.GZ-format with COSMIC genome mutations.", false, false);
 $parser->addInfile("in_non_coding_vcf",  "Input file in VCF.GZ-format with COSMIC non-coding mutations.", false, false);
 $parser->addInfile("in_target_screens_vcf",  "Input file in VCF.GZ-format with COSMIC non-coding mutations.", false, false);
@@ -17,7 +17,7 @@ extract($parser->parse($argv));
 
 function parse_cmc_file($in_cmc, $build)
 {
-	if ($in_cmc == "-") $in_cmc = "php://stdin";
+	if ($in_cmc == "") $in_cmc = "php://stdin";
 	$in_fp = fopen2($in_cmc, "r");
 	
 	//get indices (header/first line of input file)

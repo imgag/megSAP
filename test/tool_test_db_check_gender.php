@@ -17,6 +17,10 @@ if (file_exists($bam))
 	init_ngsd($name);
 	$log_file = output_folder().$name."_out2.log";
 	check_exec("php ".src_folder()."/Tools/db_check_gender.php -in $bam -pid GS140127_01 -db NGSD_TEST --log $log_file");
+	
+	//test also checking SRY coverage
+	$log_file = output_folder().$name."_out3.log";
+	check_exec("php ".src_folder()."/Tools/db_check_gender.php -in $bam -pid GS140127_01 -gender male -check_sry_cov --log $log_file");
 }
 
 end_test();

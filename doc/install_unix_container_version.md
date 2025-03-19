@@ -54,7 +54,7 @@ apptainer exec --pwd /megSAP/data -B <path-to-host-data-folder>:/megSAP/data/dat
 apptainer exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/ megSAP_[version].sif php /megSAP/src/Install/db_download.php -data_folder /megSAP/data/data_folder/
 ```
 
-**Note:** OMIM, HGMD, and COSMIC databases are not downloaded automatically due to licensing restrictions. If you have the required licenses, follow the instructions in the [download_dbs.sh](../data/download_dbs.sh) script to download and convert them manually. You can use the ngs-bits container downloaded earlier for the ngs-bits command and the megSAP container to execute the php scripts.
+**Note:** OMIM, HGMD, and COSMIC databases are not downloaded automatically due to licensing restrictions. If you have the required licenses, follow the instructions for the containerized megSAP version in the [download_dbs.sh](../data/download_dbs.sh) script to download and convert them manually.
 
 ## Settings
 
