@@ -386,7 +386,7 @@ if(db_is_enabled("NGSD") && $used_bam_or_cram!="" && !$no_gender_check)
 	$db = DB::getInstance("NGSD", false);
 	$info = get_processed_sample_info($db, $name, false);
 	
-	if ($info["is_tumor"] == "0")
+	if (!is_null($info) && $info["is_tumor"] == "0")
 	{
 		$args = array();
 		$args[] = "-in $used_bam_or_cram";
