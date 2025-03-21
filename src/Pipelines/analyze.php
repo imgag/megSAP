@@ -27,6 +27,7 @@ $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping, small variant and structural variant calling.");
+$parser->addFlag("use_deepvariant", "Use Deepvariant instead of freebayes for small variant calling.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
@@ -54,11 +55,11 @@ $has_roi = $sys['target_file']!="";
 $build = $sys['build'];
 
 //disable abra and soft-clipping if deepvariant is used for calling
-if (get_path("use_deepvariant"))
+$use_deepvariant = $use_deepvariant || get_path("use_deepvariant");
+if ($use_deepvariant)
 {
 	$no_abra = true;
-	$clip_overlap = false;
-} 
+}
 
 //handle somatic flag
 if ($somatic)
@@ -486,7 +487,7 @@ if (in_array("vc", $steps))
 				//index output file
 				$parser->exec("tabix", "-p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
 			}
-			elseif (get_path("use_deepvariant"))
+			elseif ($use_deepvariant)
 			{
 				$args = [];
 
@@ -641,7 +642,7 @@ if (in_array("vc", $steps))
 			{
 				$tmp_low_mappability = $parser->tempFile("_low_mappability.vcf.gz");
 
-				if (get_path("use_deepvariant"))
+				if ($use_deepvariant)
 				{
 					$args = [];
 	
