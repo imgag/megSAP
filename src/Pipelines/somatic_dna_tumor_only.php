@@ -19,7 +19,6 @@ $parser->addString("out_folder", "Output folder.", false);
 $parser->addInfile("t_rna_bam", "Tumor RNA sample BAM file.", true);
 $parser->addString("prefix", "Output file prefix.", true, "somatic");
 
-## TODO check parameters used
 $steps_all = array("vc", "vi", "cn", "an", "an_rna", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 	"vc=variant calling, an=annotation,\n" .
@@ -40,47 +39,6 @@ $parser->addFloat("min_depth_t", "Tumor sample coverage cut-off for low coverage
 $parser->addString("rna_ref_tissue", "Reference data for RNA annotation", true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 extract($parser->parse($argv));
-
-###################################### AUXILARY FUNCTIONS ######################################
-
-//Creates BAF file from "$gsvar" and "bam" file and writes content to "out_file"
-function create_baf_file($gsvar, $bam, $out_file, $ref_genome, &$error = false)
-{
-	global $parser;
-
-	if(!file_exists($gsvar) || !file_exists($bam)) 
-	{
-		trigger_error("Could not create BAF file {$out_file}, no GSvar or BAM file available.", E_USER_WARNING);
-		$error = true;
-		return;
-	}
-	//Abort if out_file exists to prevent interference with other jobs
-	if(file_exists($out_file)) return;
-
-	$tmp_out = $parser->tempFile(".tsv");
-	$parser->execApptainer("ngs-bits", "VariantAnnotateFrequency", "-in {$gsvar} -bam {$bam} -depth -out {$tmp_out} -ref {$ref_genome}", [$gsvar, $bam, $ref_genome]);
-
-	$in_handle  = fopen2($tmp_out,"r");
-	$out_handle = fopen2($out_file,"w");
-
-	while(!feof($in_handle))
-	{
-
-		$line = trim(fgets($in_handle));
-		if(starts_with($line,"#")) continue;
-		if(empty($line)) continue;
-		
-		$parts = explode("\t",$line);
-		list($chr,$start,$end,$ref,$alt) = $parts;
-		if(strlen($ref) != 1 || strlen($alt) != 1 ) continue; //Skip INDELs
-
-		$freq = $parts[count($parts)-2]; //freq annotation ist 2nd last col
-		$depth= $parts[count($parts)-1]; //depth annotation is last col
-		fputs($out_handle,"{$chr}\t{$start}\t{$end}\t{$chr}_{$start}\t{$freq}\t{$depth}\n");
-	}
-	fclose($in_handle);
-	fclose($out_handle);
-}
 
 //check steps
 $steps = explode(",", $steps);
@@ -125,30 +83,11 @@ if (!$no_sync)
 
 check_genome_build($t_bam, $sys['build']);
 
-//check SRY coverage of tumor for female samples, can be a hint for contamination with male DNA
-if( db_is_enabled("NGSD") )
+if (!$skip_contamination_check)
 {
-	$db = DB::getInstance("NGSD");
-	$tinfo = get_processed_sample_info($db, $t_id, false);
-	
-	if(!is_null($tinfo) && $tinfo["gender"] == "female")
-	{
-		if($skip_contamination_check)
-		{
-			trigger_error("Skipping check of female tumor sample $t_bam for contamination with male genomic DNA.", E_USER_WARNING);
-		}
-		else
-		{
-			$out = $parser->execApptainer("ngs-bits", "SampleGender", "-in $t_bam -build ".ngsbits_build($sys['build'])." -method sry -ref {$ref_genome}", [$t_bam, $ref_genome]);
-			list(,,$cov_sry) = explode("\t", $out[0][1]);
-
-			if(is_numeric($cov_sry) && (float)$cov_sry >= 30)
-			{
-				trigger_error("Detected contamination of female tumor sample {$t_id} with male genomic DNA on SRY. SRY coverage is at {$cov_sry}x.", E_USER_ERROR);
-			}
-		}
-	}
+	$parser->execTool("Auxilary/check_sry_coverage.php", "-t_bam $t_bam -build ".$sys['build']);
 }
+else trigger_error("Skipping check of female tumor sample $t_bam for contamination with male genomic DNA.", E_USER_WARNING);
 
 //low coverage statistics
 $low_cov = "{$full_prefix}_stat_lowcov.bed";					// low coverage BED file
@@ -356,7 +295,7 @@ if(in_array("cn",$steps))
 	if(!file_exists($baf_file))
 	{
 		$t_gsvar = "{$t_basename}.GSvar";
-		create_baf_file($t_gsvar, $t_bam, $baf_file, $ref_genome, $error);
+		$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $t_gsvar -bam $t_bam -genome $ref_genome -out_file $baf_file");
 	}
 
 	//perform CNV analysis		
