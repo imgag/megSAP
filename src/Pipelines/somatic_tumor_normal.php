@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @page somatic_dna_tumor_normal
+ * @page somatic_tumor_normal
  */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("somatic_dna_tumor_normal", "Differential analysis of tumor and normal DNA samples.");
+$parser = new ToolBase("somatic_tumor_normal", "Differential analysis of tumor and normal DNA samples.");
 
 //mandatory
 $parser->addInfile("t_bam", "Tumor sample BAM file.", false);
@@ -113,7 +113,7 @@ if (!file_exists($out_folder))
 $out_folder = realpath($out_folder);
 
 //create log file in output folder if none is provided
-if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_dna_tumor_normal".date("YmdHis").".log");
+if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_dna_tumor_normal_".date("YmdHis").".log");
 
 //log server, user, etc.
 $parser->logServerEnvronment();
@@ -1009,7 +1009,7 @@ if (in_array("an_rna", $steps))
 	$args[] = "-full_prefix $full_prefix";
 	if (file_exists($system)) $args[] = "-system $system";
 	if (file_exists($t_rna_bam)) $args[] = "-t_rna_bam $t_rna_bam";
-	if (file_exists($rna_ref_tissue)) $args[] = "-rna_ref_tissue $rna_ref_tissue";
+	if ($rna_ref_tissue != "") $args[] = "-rna_ref_tissue $rna_ref_tissue";
 	if ($skip_correlation) $args[] = "-skip_correlation";
 
 	$parser->execTool("Tools/an_somatic_rna.php", implode(" ", $args));

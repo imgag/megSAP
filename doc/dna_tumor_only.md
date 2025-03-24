@@ -2,7 +2,7 @@
 
 ## Analysis pipeline
 
-Somatic analysis of tumor-only DNA samples is performed with `somatic_dna.php`.
+Somatic analysis of tumor-only DNA samples is performed with `somatic_tumor_only.php`.
 
 ### Mapping tumor sample
 
@@ -21,7 +21,7 @@ The main parameters that you have to provide are:
 
 Please have a look at the help:
 
-    > php megSAP/src/Pipelines/somatic_dna.php --help
+    > php megSAP/src/Pipelines/somatic_tumor_only.php --help
 
 Somatic variant calling without normal sample leads to a lot of false-positive somatic variant calls because artefacts cannot be removed efficiently.
 

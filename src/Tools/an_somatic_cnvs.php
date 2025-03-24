@@ -149,7 +149,7 @@ if(isset($rna_counts))
 	$ref_results = array();
 	if (isset($rna_ref_tissue))
 	{
-		//Resubstitute zeroes by spaces (opposite happens in somatic_dna.php)
+		//Resubstitute zeroes by spaces (opposite happens in somatic_tumor_normal.php)
 		$rna_ref_tissue = str_replace("0", " ", $rna_ref_tissue);
 	
 		//annotate RNA reference counts

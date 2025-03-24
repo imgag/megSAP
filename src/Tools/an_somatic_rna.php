@@ -14,7 +14,7 @@ $parser->addString("full_prefix", "Full filepath prefix for out files", false);
 
 $parser->addInfile("system", "Processing system file used for tumor DNA sample (resolved from NGSD via tumor BAM by default).", true);
 $parser->addInfile("t_rna_bam", "Tumor RNA sample BAM file.", true);
-$parser->addInfile("rna_ref_tissue", "Reference data for RNA annotation.", true);
+$parser->addString("rna_ref_tissue", "Reference data for RNA annotation.", true);
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 
 extract($parser->parse($argv));
