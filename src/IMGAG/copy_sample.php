@@ -671,7 +671,7 @@ foreach($sample_data as $sample => $sample_infos)
 			//check count
 			if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 2) 
 			{
-				trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found: ".count($fastq_files).")", E_USER_ERROR);
+				trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found in {$fastq_folder}: ".count($fastq_files).")", E_USER_ERROR);
 			}
 
 			$move_cmd = "mv ".($overwrite ? "-f " : "");

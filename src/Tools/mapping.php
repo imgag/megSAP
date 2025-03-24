@@ -25,6 +25,7 @@ $parser->addFlag("no_trim", "Skip adapter trimming with SeqPurge.");
 $parser->addFlag("correction_n", "Use Ns for barcode correction.");
 $parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.");
 $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping, small variant and structural variant calling.");
+$parser->addFlag("use_dragen_ML", "Use ML model in small variant calling of Illumina DRAGEN.");
 $parser->addFlag("bam_output", "Output is BAM instead of CRAM.");
 $parser->addFlag("somatic_custom_map", "Calculate mapping QC metrics for somatic custom subpanel");
 $parser->addInt("min_mapq", "The minimum mapping quality for reads to be considered for barcode correction (cfDNA only).", true, 0);
@@ -315,6 +316,7 @@ if ($use_dragen)
 	$args[] = "-sample ".$out_name;
 	$args[] = "-build ".$build;
 	$args[] = "--log ".$dragen_log_file;
+	if($use_dragen_ML) $args[] = "-use_dragen_ML";
 	if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
 	if ($sys['type']=="WGS") $args[] = "-enable_cnv";
 	$cmd_mapping = "php ".realpath(repository_basedir())."/src/Tools/mapping_dragen.php ".implode(" ", $args);
