@@ -18,6 +18,7 @@ $parser->addOutfile("out_gvcf", "Output gVCF.GZ file for small variants (indexed
 $parser->addOutfile("out_sv", "Output VCF.GZ file for structural variants (indexed).", false);
 $parser->addOutfile("out_cnv", "Output VCF.GZ file for copy-number variants (indexed).", false);
 $parser->addOutfile("out_cnv_raw", "Output BW file for copy-nubmer raw data.", false);
+$parser->addFlag("use_dragen_ML", "Use ML model in small variant calling of Illumina DRAGEN.");
 //optional
 $parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh38");
 $parser->addString("sample", "Sample name to use in BAM header. If unset the basename of the 'out' file is used.", true, "");
@@ -85,7 +86,7 @@ $dragen_parameter[] = "--enable-bam-indexing true";
 $dragen_parameter[] = "--RGID $sample";
 $dragen_parameter[] = "--RGSM $sample";
 $dragen_parameter[] = "--RGDT ".date("c");
-$dragen_parameter[] = "--vc-ml-enable-recalibration=false"; //disabled because it leads to a sensitivity drop for Twist Exome V2 SNVs of 0.5% (see /mnt/storage2/users/ahsturm1/scripts/2023_08_01_megSAP_performance/)
+if (!$use_dragen_ML) $dragen_parameter[] = "--vc-ml-enable-recalibration=false"; //disabled because it leads to a sensitivity drop for Twist Exome V2 SNVs of 0.5% (see /mnt/storage2/users/ahsturm1/scripts/2023_08_01_megSAP_performance/)
 $dragen_parameter[] = "--enable-rh=false"; //disabled RH special caller because this leads to variants with EVENTTYPE=GENE_CONVERSION that have no DP and AF entry and sometimes are duplicated (same variant twice in the VCF).
 if ($enable_cnv)
 {
