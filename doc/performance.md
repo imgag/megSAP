@@ -7,7 +7,8 @@ The analyses were performed with the short-read and long-read single sample pipe
 
 Sensitivity, positive predictive value (PPV) and genotyping accuracy were measured using our [validation tool](https://github.com/imgag/megSAP/blob/master/src/Auxilary/validate_NA12878.php).
 
-### short-read WES <!--- NA12878x2_80 --->
+### short-read WES
+<!--- NA12878x2_80 --->
 
 The sample was processed with a custom exome kit based on a Twist enrichment (Core, RefSeq, Mito and custom content) and sequenced on NovaSeq6000 using 109PE at 113x average depth.  
 All benchmarks were performed on GIAB high-confidence regions **with at least 15x coverage**.
@@ -64,7 +65,8 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
 	</tr>
 </table>
 
-### short-read WGS <!--- NA12878x3_28--->
+### short-read WGS
+<!--- NA12878x3_28--->
 
 The sample was processed with the Illumina TruSeq DNA PCR-Free kit and sequenced on NovaSeq X Plus using 159PE at 35x average depth.  
 The benchmarks were performed on GIAB high-confidence regions **with at least 15x coverage**.
@@ -122,7 +124,8 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
 </table>
 
 
-### long-read WGS <!--- 24067LRa008_01 --->
+### long-read WGS
+<!--- 24067LRa008_01 --->
 
 The sample was processed with the Oxford Nanopore Tech. Ligation Sequencing Kit V14 (SQK-LSK114) and sequenced at 42x average depth.  
 The benchmarks were performed on GIAB high-confidence regions **with at least 15x coverage**.
@@ -170,7 +173,8 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
 	</tr>
 </table>
 
-### small variants CMRG benchmarks <!--- NA24385_32 / 24067LRa002_01 --->
+### small variants CMRG benchmarks
+<!--- NA24385_32 / 24067LRa002_01 --->
 
 For genome sequening, we also performed the [CMRG benchmark](https://www.nature.com/articles/s41587-021-01158-1).  
 
