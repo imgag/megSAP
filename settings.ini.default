@@ -24,6 +24,7 @@ container_clair3 = v1.0.10
 container_clair3-trio = v0.7
 container_ClinCNV = v1.18.3
 container_deepvariant = 1.8.0
+container_deepvariant-gpu = 1.9.0
 container_expansionhunter = v5.0.0
 container_freebayes = v1.3.6
 container_gatk = 4.6.0.0

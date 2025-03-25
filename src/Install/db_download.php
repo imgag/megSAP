@@ -112,7 +112,7 @@ if (in_array("STAR", $dbs))
 	}
 
     print "Indexing genome '{$genome}' using STAR. This may take a while.\n";
-	$parser->execApptainer("STAR", "STAR", "--runThreadN 20 --runMode genomeGenerate --genomeDir {$star_genome_dir} --genomeFastaFiles {$genome} --sjdbGTFfile {$star_gtf_file}", [$star_genome_dir, $star_gtf_file]);
+	$parser->execApptainer("STAR", "STAR", "--runThreadN 20 --runMode genomeGenerate --genomeDir {$star_genome_dir} --genomeFastaFiles {$genome} --sjdbGTFfile {$star_gtf_file}", [$star_genome_dir, $star_gtf_file, $data_folder]);
 }
 
 if (in_array("Clair3", $dbs))
@@ -133,7 +133,7 @@ if (in_array("Clair3", $dbs))
 
     print "Downloading Clair3 models from https://github.com/nanoporetech/rerio.git\n";
     exec2("git clone https://github.com/nanoporetech/rerio.git");
-    execApptainer("python", "python3", "rerio/download_model.py --clair3");
+    execApptainer("python", "python3", "{$model_path}/rerio/download_model.py --clair3", [$model_path]);
     exec2("mv rerio/clair3_models/* .");
     exec2("rm -rf rerio");
 
