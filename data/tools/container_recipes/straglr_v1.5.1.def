@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: continuumio/miniconda3:latest
+From: ubuntu:24.04
 
 %post
 
@@ -28,11 +28,21 @@ export PATH=/opt/bin:/opt/conda/bin:$PATH
 apt-get update --fix-missing && \
 yes | apt-get upgrade && \
 apt-get install -y \
+wget \
+git \
+g++ \
+zlib1g-dev \
 make && \
 rm -rf /var/lib/apt/lists/*
 
-mkdir -p /opt/bin
-cd /opt/bin
+# Install miniconda3
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-py39_25.1.1-2-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm ~/miniconda3/miniconda.sh
+
+. ~/miniconda3/bin/activate
+conda init --all
 
 # install conda packages
 conda config --add channels defaults && \
@@ -40,22 +50,27 @@ conda config --add channels bioconda && \
 conda config --add channels conda-forge && \
 conda env create --name straglr --file=/environment_straglr.yaml
 
-PATH=/opt/conda/envs/straglr/bin:$PATH
+PATH=/root/miniconda3/envs/straglr/bin:$PATH
 CONDA_DEFAULT_ENV=straglr
 
-/bin/bash -c "source activate straglr" && \
+/bin/bash -c ". ~/miniconda3/bin/activate && conda activate straglr"
 pip install --no-cache-dir git+https://github.com/bcgsc/straglr.git@v1.5.1#egg=straglr && \
-rm -rf /opt/conda/pkgs/* && \
+rm -rf /root/miniconda3/pkgs/* && \
 rm -rf /root/.cache/pip && \
-echo "source activate straglr" > ~/.bashrc
+echo ". ~/miniconda3/bin/activate" > ~/.bashrc
 
 # Add shebang to straglr.py
-sed -i '1i#!/opt/conda/envs/straglr/bin/python3' /opt/conda/envs/straglr/bin/straglr.py
-chmod +x /opt/conda/envs/straglr/bin/straglr.py
+sed -i '1i#!/root/miniconda3/envs/straglr/bin/python3' /root/miniconda3/envs/straglr/bin/straglr.py
+chmod +x /root/miniconda3/envs/straglr/bin/straglr.py
+
+# cleanup build dependencies
+apt-get remove -y wget git zlib1g-dev g++ make && \
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
 
 %environment
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
-export PATH=/opt/bin:/opt/conda/bin:$PATH
-export PATH=/opt/conda/envs/straglr/bin:$PATH
+export PATH=/root/miniconda3/envs/straglr/bin:$PATH
 export CONDA_DEFAULT_ENV=straglr
