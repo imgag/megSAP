@@ -242,17 +242,20 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
 All small variant benchmarks above are done on regions with at least with 15x coverage.  
 To allow a comparison of WES, WGS and lrGS independent of the coverage, we also perfomed a benchmark without depth cutoff on the coding region of all protein-coding genes padded by two bases to include the consensus splice site.
 
-<table border='1'>
+<table>
 	<tr>
-		<td>name</td>
-		<td>SNV sensitivity</td>
-		<td>SNV PPV</td>
-		<td>SNV genotyping accuracy</td>
-		<td>INDEL sensitivity</td>
-		<td>INDEL PPV</td>
-		<td>INDEL genotyping accuracy</td>
+		<th rowspan=2>Test</th>
+		<th colspan=3>SNV</th>
+		<th colspan=3>InDel</th>
 	</tr>
-
+	<tr>
+		<th>sensitivity</th>
+		<th>PPV</th>
+		<th>genotyping</th>
+		<th>sensitivity</th>
+		<th>PPV</th>
+		<th>genotyping</th>
+	</tr>
 	<tr>
 		<td>short-read WES - bwa-mem2, ABRA2, freebayes</td>
 		<td>97.77%</td>
@@ -272,7 +275,7 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 		<td>99.53%</td>
 	</tr>
 	<tr>
-		<td>short-read WES - DRAGEN 4.2.4 noML</td>
+		<td>short-read WES - DRAGEN 4.2.4 no ML model</td>
 		<td>97.73%</td>
 		<td>98.86%</td>
 		<td>99.85%</td>
@@ -281,7 +284,7 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 		<td>99.54%</td>
 	</tr>
 	<tr>
-		<td>short-read WES - DRAGEN 4.2.4 withML</td>
+		<td>short-read WES - DRAGEN 4.2.4 with ML model</td>
 		<td>97.25%</td>
 		<td>99.87%</td>
 		<td>99.91%</td>
@@ -308,7 +311,7 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 		<td>99.78%</td>
 	</tr>
 	<tr>
-		<td>short-read WGS - DRAGEN 4.2.4 noML</td>
+		<td>short-read WGS - DRAGEN 4.2.4 no ML model</td>
 		<td>99.26%</td>
 		<td>99.11%</td>
 		<td>99.90%</td>
@@ -317,7 +320,7 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 		<td>99.78%</td>
 	</tr>
 	<tr>
-		<td>short-read WGS - DRAGEN 4.2.4 withML</td>
+		<td>short-read WGS - DRAGEN 4.2.4 with ML model</td>
 		<td>99.24%</td>
 		<td>99.88%</td>
 		<td>99.96%</td>
