@@ -355,6 +355,15 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 		<td>98.20%</td>
 		<td>99.54%</td>
 	</tr>
+	<tr>
+		<td>long-read WGS (super accuracy)</td>
+		<td>TODO%</td>
+		<td>TODO%</td>
+		<td>TODO%</td>
+		<td>TODO%</td>
+		<td>TODO%</td>
+		<td>TODO%</td>
+	</tr>
 </table>
 
 ## Structural variant calling benchmarks
