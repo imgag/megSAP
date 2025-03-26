@@ -184,78 +184,7 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
 	</tr>
 </table>
 	
-### Small variant calling benchmarks (CMRG)
-<!--- NA24385_32 / 24067LRa002_01 --->
-
-For genome sequening, we also performed the [CMRG benchmark](https://www.nature.com/articles/s41587-021-01158-1). 
-
-The short-read WGS sample was processed with the Illumina TruSeq DNA PCR-Free kit and sequenced on NovaSeq X Plus using 159PE at 39x average depth.  
-The long-read WGS sample with the Oxford Nanopore Tech. Ligation Sequencing Kit V14 (SQK-LSK114) and sequenced at 40x average depth.  
-
-All benchmarks were performed on GIAB high-confidence regions **with at least 15x coverage**.
-
-<table>
-	<tr>
-		<th rowspan=2>Test</th>
-		<th colspan=3>SNV</th>
-		<th colspan=3>InDel</th>
-	</tr>
-	<tr>
-		<th>sensitivity</th>
-		<th>PPV</th>
-		<th>genotyping</th>
-		<th>sensitivity</th>
-		<th>PPV</th>
-		<th>genotyping</th>
-	</tr>
-	<tr>
-		<td>short-read WGS - bwa-mem2, ABRA2, freebayes</td>
-		<td>98.66%</td>
-		<td>96.55%</td>
-		<td>99.36%</td>
-		<td>90.42%</td>
-		<td>92.77%</td>
-		<td>95.78%</td>
-	</tr>
-	<tr>
-		<td>short-read WGS - bwa-mem2, DeepVariant</td>
-		<td>98.13%</td>
-		<td>99.45%</td>
-		<td>99.71%</td>
-		<td>93.22%</td>
-		<td>93.80%</td>
-		<td>99.11%</td>
-	</tr>
-	<tr>
-		<td>short-read WGS - DRAGEN 4.2.4 no ML model</td>
-		<td>98.10%</td>
-		<td>98.48%</td>
-		<td>99.73%</td>
-		<td>94.59%</td>
-		<td>92.06%</td>
-		<td>99.27%</td>
-	</tr>
-	<tr>
-		<td>long-read WGS (high accuracy)</td>
-		<td>98.83%</td>
-		<td>95.78%</td>
-		<td>99.77%</td>
-		<td>65.92%</td>
-		<td>86.58%</td>
-		<td>99.21%</td>
-	</tr>
-	<tr>
-		<td>long-read WGS (super accuracy)</td>
-		<td>TODO%</td>
-		<td>TODO%</td>
-		<td>TODO%</td>
-		<td>TODO%</td>
-		<td>TODO%</td>
-		<td>TODO%</td>
-	</tr>
-</table>
-
-### Small variant calling benchmarks (coding region)
+### coding region benchmark
 
 All small variant benchmarks above are done on regions with at least with 15x coverage.  
 To allow a comparison of WES, WGS and lrGS independent of the coverage, we also perfomed a benchmark without depth cutoff on the coding region of all protein-coding genes padded by two bases to include the consensus splice site.
@@ -354,6 +283,77 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 		<td>92.77%</td>
 		<td>98.20%</td>
 		<td>99.54%</td>
+	</tr>
+	<tr>
+		<td>long-read WGS (super accuracy)</td>
+		<td>TODO%</td>
+		<td>TODO%</td>
+		<td>TODO%</td>
+		<td>TODO%</td>
+		<td>TODO%</td>
+		<td>TODO%</td>
+	</tr>
+</table>
+
+### CMRG benchmark
+<!--- NA24385_32 / 24067LRa002_01 --->
+
+For genome sequening, we also performed the [CMRG benchmark](https://www.nature.com/articles/s41587-021-01158-1). 
+
+The short-read WGS sample was processed with the Illumina TruSeq DNA PCR-Free kit and sequenced on NovaSeq X Plus using 159PE at 39x average depth.  
+The long-read WGS sample with the Oxford Nanopore Tech. Ligation Sequencing Kit V14 (SQK-LSK114) and sequenced at 40x average depth.  
+
+All benchmarks were performed on GIAB high-confidence regions **with at least 15x coverage**.
+
+<table>
+	<tr>
+		<th rowspan=2>Test</th>
+		<th colspan=3>SNV</th>
+		<th colspan=3>InDel</th>
+	</tr>
+	<tr>
+		<th>sensitivity</th>
+		<th>PPV</th>
+		<th>genotyping</th>
+		<th>sensitivity</th>
+		<th>PPV</th>
+		<th>genotyping</th>
+	</tr>
+	<tr>
+		<td>short-read WGS - bwa-mem2, ABRA2, freebayes</td>
+		<td>98.66%</td>
+		<td>96.55%</td>
+		<td>99.36%</td>
+		<td>90.42%</td>
+		<td>92.77%</td>
+		<td>95.78%</td>
+	</tr>
+	<tr>
+		<td>short-read WGS - bwa-mem2, DeepVariant</td>
+		<td>98.13%</td>
+		<td>99.45%</td>
+		<td>99.71%</td>
+		<td>93.22%</td>
+		<td>93.80%</td>
+		<td>99.11%</td>
+	</tr>
+	<tr>
+		<td>short-read WGS - DRAGEN 4.2.4 no ML model</td>
+		<td>98.10%</td>
+		<td>98.48%</td>
+		<td>99.73%</td>
+		<td>94.59%</td>
+		<td>92.06%</td>
+		<td>99.27%</td>
+	</tr>
+	<tr>
+		<td>long-read WGS (high accuracy)</td>
+		<td>98.83%</td>
+		<td>95.78%</td>
+		<td>99.77%</td>
+		<td>65.92%</td>
+		<td>86.58%</td>
+		<td>99.21%</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (super accuracy)</td>
