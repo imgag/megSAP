@@ -985,7 +985,7 @@ if (in_array("sv", $steps))
 		if ($use_dragen && get_path("use_dragen_sv_calling"))
 		{
 			if (!file_exists($dragen_output_vcf)) trigger_error("Dragen SV calling file not found!", E_USER_ERROR);
-			if (!in_array("ma", $steps)) trigger_error("'-use_dragen' with no mapping step provided. Using old DRAGEN VCF for SV calling.", E_USER_NOTICE);
+			if (!in_array("ma", $steps)) trigger_error("'-use_dragen' without mapping step provided. Using DRAGEN SV VCF that is already present.", E_USER_NOTICE);
 					
 			//combine BND of INVs to one INV in VCF
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
