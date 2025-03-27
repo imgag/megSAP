@@ -374,8 +374,9 @@ if (in_array("vc", $steps))
 		$args[] = "--log ".$dragen_log_file;
 		
 		$dragen_normal_vcf = $n_folder."/dragen_variant_calls/{$n_id}_dragen.vcf.gz";
-		if (is_file($dragen_normal_vcf))
+		if ($sys['type'] == "WGS" && is_file($dragen_normal_vcf))
 		{
+			//calc dragen CNVs for WGS samples to compare results to clincnv
 			$args[] = "-out_cnv ".$dragen_output_cnvs;
 			$args[] = "-normal_snvs ".$dragen_normal_vcf;
 		}
@@ -840,7 +841,7 @@ if(in_array("cn",$steps))
 		if($sys['type'] == "WGS")
 		{
 			$args_clincnv[] = "-lengthS 9";
-			$args_clincnv[] = "-scoreS 10000";
+			$args_clincnv[] = "-scoreS 1500";
 			$args_clincnv[] = "-filterStep 2";
 			$args_clincnv[] = "-clonePenalty 10000";
 		}

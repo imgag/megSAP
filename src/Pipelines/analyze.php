@@ -29,6 +29,7 @@ $parser->addFlag("annotation_only", "Performs only a reannotation of the already
 $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping, small variant and structural variant calling.");
 $parser->addFlag("use_dragen_ML", "Use ML model in small variant calling of Illumina DRAGEN.");
 $parser->addFlag("use_deepvariant", "Use Deepvariant instead of freebayes for small variant calling.");
+$parser->addFlag("gpu", "Use GPU version of DeepVariant for small variant calling");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
@@ -513,6 +514,8 @@ if (in_array("vc", $steps))
 					$args[] = "-target_extend 200";
 				}
 
+				if ($gpu) $args[] = "-gpu";
+
 				$args[] = "-min_af ".$min_af;
 				$args[] = "-min_mq ".$min_mq;
 				$args[] = "-min_bq ".$min_bq;
@@ -665,6 +668,7 @@ if (in_array("vc", $steps))
 					$args[] = "-min_af ".$min_af;
 					$args[] = "-min_mq 0";
 					$args[] = "-min_bq ".$min_bq;
+					if ($gpu) $args[] = "-gpu";
 	
 					$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 				}
@@ -981,7 +985,7 @@ if (in_array("sv", $steps))
 		if ($use_dragen && get_path("use_dragen_sv_calling"))
 		{
 			if (!file_exists($dragen_output_vcf)) trigger_error("Dragen SV calling file not found!", E_USER_ERROR);
-			if (!in_array("ma", $steps)) trigger_error("'-use_dragen' with no mapping step provided. Using old DRAGEN VCF for SV calling.", E_USER_NOTICE);
+			if (!in_array("ma", $steps)) trigger_error("'-use_dragen' without mapping step provided. Using DRAGEN SV VCF that is already present.", E_USER_NOTICE);
 					
 			//combine BND of INVs to one INV in VCF
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");

@@ -57,6 +57,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=varia
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
+$parser->addFlag("gpu", "Use GPU version of DeepVariant for small variant calling");
 extract($parser->parse($argv));
 
 //init
@@ -301,6 +302,7 @@ if (in_array("vc", $steps))
 				$args[] = "-threads ".$threads;
 				$args[] = "-target ".$sys['target_file'];
 				$args[] = "-target_extend 200";
+				if ($gpu) $args[] = "-gpu";
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 				

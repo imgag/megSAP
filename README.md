@@ -50,13 +50,9 @@ Please report any issues or questions to the [megSAP issue tracker](https://gith
 
 You can cite megSAP using Zenodo DOIs:
 
+* 2025_03: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15063428.svg)](https://doi.org/10.5281/zenodo.15063428)
 * 2024_09: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13744183.svg)](https://doi.org/10.5281/zenodo.13744183)
 
 ## ChangeLog
 
-Major changes of master since last release:
-
-* tools are not longer installed, but used from pre-built apptainer containers.
-* germline DNA: improved speed (C++ tool) and IO (gzipped coverage profiles) of CNV reference cohort selection.
-
-For older changes see [releases](https://github.com/imgag/megSAP/releases).
+Change log is available on the [releases](https://github.com/imgag/megSAP/releases) page.
