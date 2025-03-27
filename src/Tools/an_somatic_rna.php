@@ -15,6 +15,7 @@ $parser->addString("full_prefix", "Full filepath prefix for out files", false);
 $parser->addInfile("system", "Processing system file used for tumor DNA sample (resolved from NGSD via tumor BAM by default).", true);
 $parser->addInfile("t_rna_bam", "Tumor RNA sample BAM file.", true);
 $parser->addString("rna_ref_tissue", "Reference data for RNA annotation.", true);
+$parser->addInt("steps", "number of steps being executed with the pipeline (e.g. 4 for 'vc,cn,an,an_rna').", true, 1);
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 
 extract($parser->parse($argv));
@@ -62,7 +63,7 @@ elseif(isset($t_rna_bam))
 
 if(count($ps_rna_bams) < 1)
 {
-	if (count($steps) > 1)
+	if ($steps > 1)
 	{
 		trigger_error("Skipping step an_rna!\nCouldn't find tumor RNA bam file. For annotation step \"an_rna\" tumor RNA bam file must be specified (via paramter -t_rna_bam or determined via sample_relations).", E_USER_WARNING);
 		

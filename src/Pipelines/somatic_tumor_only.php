@@ -60,7 +60,7 @@ if (!file_exists($out_folder))
 $out_folder = realpath($out_folder);
 
 //create log file in output folder if none is provided
-if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_dna_tumor_only".date("YmdHis").".log");
+if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_tumor_only".date("YmdHis").".log");
 
 //log server, user, etc.
 $parser->logServerEnvronment();
@@ -214,6 +214,7 @@ if(in_array("cn",$steps))
 	$tmp_folder = $parser->tempFolder();
 	//directory with reference coverage files and directory with reference off-target coverage files
 	$ref_folder_t = get_path("data_folder")."/coverage/".$sys['name_short']."-tumor";
+	$ref_folder_n = get_path("data_folder")."/coverage/".$sys['name_short'];
 	$ref_folder_t_off_target = $ref_folder_t . "_off_target";
 	
 	create_directory($ref_folder_t);
@@ -257,7 +258,10 @@ if(in_array("cn",$steps))
 		//coverage files:
 		
 		$bin_folder_t = "{$ref_folder_t}/bins{$bin_size}/";
+		$bin_folder_n = "{$ref_folder_n}/bins{$bin_size}/";
 		create_directory($bin_folder_t);
+		create_directory($bin_folder_n);
+		$ref_folder_n = $bin_folder_n;
 		$ref_folder_t = $bin_folder_t;		
 	}
 	
@@ -298,10 +302,10 @@ if(in_array("cn",$steps))
 		$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $t_gsvar -bam $t_bam -genome $ref_genome -out_file $baf_file");
 	}
 
-	//perform CNV analysis		
+	//perform CNV analysis
 	$args = array(
 		"-cov {$t_cov}",
-		"-cov_folder {$ref_folder_n}", //TODO check if we need ref_folder_n here
+		"-cov_folder {$ref_folder_n}",
 		"-bed {$target_bed}",
 		"-out {$som_clincnv}",
 		"-tumor_only",
@@ -393,6 +397,7 @@ if (in_array("an_rna", $steps))
 	$args = array();
 	$args[] = "-t_bam $t_bam";
 	$args[] = "-full_prefix $full_prefix";
+	$args[] = "-steps ".count($steps);
 	if (file_exists($system)) $args[] = "-system $system";
 	if (file_exists($t_rna_bam)) $args[] = "-t_rna_bam $t_rna_bam";
 	if ($rna_ref_tissue != "")  $args[] = "-rna_ref_tissue $rna_ref_tissue";

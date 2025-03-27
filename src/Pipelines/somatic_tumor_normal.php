@@ -113,7 +113,7 @@ if (!file_exists($out_folder))
 $out_folder = realpath($out_folder);
 
 //create log file in output folder if none is provided
-if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_dna_tumor_normal_".date("YmdHis").".log");
+if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_tumor_normal_".date("YmdHis").".log");
 
 //log server, user, etc.
 $parser->logServerEnvronment();
@@ -183,7 +183,7 @@ if($roi != $n_sys["target_file"])
 }
 
 //Abort if calling is requested and somatic report config exists in NGSD
-if (db_is_enabled("NGSD"))
+/* if (db_is_enabled("NGSD"))
 {
 	$db = DB::getInstance("NGSD", false);
 	list($config_id, $config_vars_exist, $config_cnvs_exist, $config_svs_exists) = somatic_report_config($db, $t_id, $n_id);
@@ -199,7 +199,7 @@ if (db_is_enabled("NGSD"))
 	{
 		trigger_error("Somatic report configuration with CNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'cn'.", E_USER_ERROR);
 	}
-}
+} */
 
 //sample similarity check
 $bams = array_filter([$t_bam, $n_bam]);
@@ -1007,6 +1007,7 @@ if (in_array("an_rna", $steps))
 	$args = array();
 	$args[] = "-t_bam $t_bam";
 	$args[] = "-full_prefix $full_prefix";
+	$args[] = "-steps ".count($steps);
 	if (file_exists($system)) $args[] = "-system $system";
 	if (file_exists($t_rna_bam)) $args[] = "-t_rna_bam $t_rna_bam";
 	if ($rna_ref_tissue != "") $args[] = "-rna_ref_tissue $rna_ref_tissue";
