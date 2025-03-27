@@ -770,7 +770,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 		//ngs-bits settings file missing > create it
 		if (!file_exists($ngsbits_settings_loc) || (file_exists(repository_basedir()."/settings.ini") && filemtime($ngsbits_settings_loc)<filemtime(repository_basedir()."/settings.ini")))
 		{
-			trigger_error("ngs-bits settings file is missing/outdated and thus created from megSAP settings...", E_USER_NOTICE);
+			trigger_error("ngs-bits settings file at '{$ngsbits_settings_loc}' is missing or outdated. Updating it...", E_USER_NOTICE);
 			$output = [];
 			
 			//reference genome
