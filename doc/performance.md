@@ -4,7 +4,7 @@ All benchmarks are perfomed with the megSAP release [2025_03](https://github.com
 
 ## Small variant calling benchmarks
 
-All small variant benchmarks are done on the GIAB reference sample NA12878 using the [gold-standard variant list v4.2.1](https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh38/).  
+All small variant benchmarks are done on the GIAB reference sample NA12878/HG001 using the [gold-standard variant list v4.2.1](https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh38/).  
 The analyses were performed with the short-read and long-read single sample pipelines on the GRCh38 reference genome with [masked false duplications](https://www.nature.com/articles/s41587-021-01158-1).
 
 Sensitivity, positive predictive value (PPV) and genotyping accuracy were measured using our [validation tool](https://github.com/imgag/megSAP/blob/master/src/Auxilary/validate_NA12878.php).
@@ -281,10 +281,10 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 ### CMRG benchmark
 <!--- NA24385_32 / 24067LRa002_01 --->
 
-For genome sequening, we also performed the [CMRG benchmark](https://www.nature.com/articles/s41587-021-01158-1). 
+For genome sequening, we also performed the [CMRG benchmark](https://www.nature.com/articles/s41587-021-01158-1) based on the NA24385/HG002 sample.
 
-The short-read WGS sample was processed with the Illumina TruSeq DNA PCR-Free kit and sequenced on NovaSeq X Plus using 159PE at 39x average depth.  
-The long-read WGS sample with the Oxford Nanopore Tech. Ligation Sequencing Kit V14 (SQK-LSK114) and sequenced at 40x average depth.  
+The short-read WGS sample was processed with the Illumina TruSeq DNA PCR-Free kit and sequenced on NovaSeq X Plus using 159PE at 39.5x average depth.  
+The long-read WGS sample with the Oxford Nanopore Tech. Ligation Sequencing Kit V14 (SQK-LSK114) and sequenced at 40.5x average depth.  
 
 All benchmarks were performed on GIAB high-confidence regions **with at least 15x coverage**.
 
@@ -351,33 +351,39 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
 
 ## Structural variant calling benchmarks
 
-source sample: `HG002` (pre-release truth set)  
-caller: `Manta` (short-read), `Sniffles 2` (long-read)  
-validation tool: `hap_eval`
+All structural variant benchmarks are done on the GIAB reference sample NA24385/HG002 using the [draft SV benchmark v1.1](https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/data/AshkenazimTrio/analysis/NIST_HG002_DraftBenchmark_defrabbV0.019-20241113/).  
+The analyses were performed with the short-read and long-read single sample pipelines on the GRCh38 reference genome with [masked false duplications](https://www.nature.com/articles/s41587-021-01158-1).
+
+Sensitivity and positive predictive value (PPV) were measured using [Hap-Eval](https://github.com/Sentieon/hap-eval).
 
 <table>
 	<tr>
-		<th>Sample</th>
-		<th>processing system</th>
+		<th>Test</th>
 		<th>coverage</th>
 		<th>sensitivity</th>
 		<th>PPV</th>
-		<th>F1</th>
 	</tr>
 	<tr>
-		<td>short-read WGS</td>
-		<td>TruSeq DNA PCR-Free</td>
-		<td>43x</td>
-		<td>32.84%</td>
-		<td>96.96%</td>
-		<td>47.28%</td>
+		<td>short-read WGS - Manta 1.6.0</td>
+		<td>39.5x</td>
+		<td>33.21%</td>
+		<td>88.09%</td>
+	</tr>
+		<td>short-read WGS - DRAGEN 4.2.4</td>
+		<td>39.5x</td>
+		<td>45.17%</td>
+		<td>86.98%</td>
 	</tr>
 	<tr>
-		<td>long-read WGS (R10)</td>
-		<td>ONT Ligation Sequencing Kit V14</td>
-		<td>51x</td>
-		<td>91.81%</td>
-		<td>96.27%</td>
-		<td>92.03%</td>
+		<td>long-read WGS (high accuracy) - Sniffles 2.4</td>
+		<td>40.5x</td>
+		<td>90.24%</td>
+		<td>92.79%</td>
+	</tr>
+	<tr>
+		<td>long-read WGS (super accuracy) - Sniffles 2.4</td>
+		<td>40.5x</td>
+		<td>TODO%</td>
+		<td>TODO%</td>
 	</tr>
 </table>
