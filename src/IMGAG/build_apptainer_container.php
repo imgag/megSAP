@@ -22,18 +22,48 @@ if (contains($tag, "_"))
 
 //build
 $sif = "{$tool}_{$tag}.sif";
+$recipe_folder = "data/tools/container_recipes/";
+$def = "{$recipe_folder}{$tool}_{$tag}.def";
 $log = "{$tool}_{$tag}.log";
-print "Building container {$sif} - in case of error see {$log}\n";
+$pull_file = "{$recipe_folder}{$tool}_{$tag}_pull_command.txt";
 
-// write server name, user and date to logfile as header
-$server = php_uname('n');
-$user = getenv("USER") ?: getenv("LOGNAME");
-$date = date("Y-m-d H:i:s");
+if (is_file($def))
+{
+	print "Building container {$sif} - in case of error see {$log}\n";
 
-$log_header = "Built on: {$server}\nBuilt by: {$user}\nBuild date: {$date}\n\n";
-file_put_contents($log, $log_header);
+	// write server name, user and date to logfile as header
+	$server = php_uname('n');
+	$user = getenv("USER") ?: getenv("LOGNAME");
+	$date = date("Y-m-d H:i:s");
 
-exec2("apptainer build {$sif} data/tools/container_recipes/{$tool}_{$tag}.def >> $log 2>&1");
+	$log_header = "Built on: {$server}\nBuilt by: {$user}\nBuild date: {$date}\n\n";
+	file_put_contents($log, $log_header);
+
+	exec2("apptainer build {$sif} {$recipe_folder}/{$tool}_{$tag}.def >> $log 2>&1");
+}
+elseif (is_file($pull_file))
+{
+	print "No definition file available for $tool, but found a pull command to download container. \n";
+	exec("cat $pull_file", $pull_command);
+	print "Pulling container {$sif} - in case of error see {$log}\n";
+
+	// write server name, user and date to logfile as header
+	$server = php_uname('n');
+	$user = getenv("USER") ?: getenv("LOGNAME");
+	$date = date("Y-m-d H:i:s");
+
+	$log_header = "Built on: {$server}\nBuilt by: {$user}\nBuild date: {$date}\nPull command: ".$pull_command[0]."\n\n";
+	file_put_contents($log, $log_header);
+
+	exec2($pull_command[0]." >> $log 2>&1");
+}
+else
+{
+	exec("ls $recipe_folder | grep $tool", $def_available);
+	print "Recipe '$def' not found! The following recipes are available for your tool: \n".implode("\n", $def_available)."\n";
+	exit();
+}
+
 exec2("chmod 777 {$sif}");
 print "Building container finished.\n";
 
