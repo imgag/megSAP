@@ -367,24 +367,24 @@ Sensitivity and positive predictive value (PPV) were measured using [Hap-Eval](h
 	<tr>
 		<td>short-read WGS - Manta 1.6.0</td>
 		<td>39.5x</td>
-		<td>33.21%</td>
-		<td>88.09%</td>
+		<td>36.30%</td>
+		<td>96.53%</td>
 	</tr>
 		<td>short-read WGS - DRAGEN 4.2.4</td>
 		<td>39.5x</td>
-		<td>45.17%</td>
-		<td>86.98%</td>
+		<td>50.26%</td>
+		<td>97.64%</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (high accuracy) - Sniffles 2.4</td>
 		<td>40.5x</td>
-		<td>90.24%</td>
-		<td>92.79%</td>
+		<td>90.59%</td>
+		<td>98.03%</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (super accuracy) - Sniffles 2.4</td>
 		<td>40.5x</td>
-		<td>91.07%</td>
-		<td>93.11%</td>
+		<td>91.02%</td>
+		<td>98.05%</td>
 	</tr>
 </table>
