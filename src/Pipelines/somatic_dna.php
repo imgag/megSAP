@@ -1491,7 +1491,7 @@ if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("msi", $steps) 
 		
 	}
 	
-	//HLA: TODO
+	//TODO HLA: 
 	// if (file_exists($hla_file_tumor))
 	// {
 		

@@ -316,7 +316,7 @@ if ($use_dragen)
 	$args[] = "-sample ".$out_name;
 	$args[] = "-build ".$build;
 	$args[] = "--log ".$dragen_log_file;
-	if($use_dragen_ML) $args[] = "-use_dragen_ML";
+	if($use_dragen_ML) $args[] = "-use_dragen_ML"; //TODO Marc - after benchmark with 4.4: use ML for WGS by default and remove parameter "use_dragen_ML" in analyze.php and mapping.php
 	if ($sys['shotgun'] && !$barcode_correction && $sys['umi_type']!="ThruPLEX") $args[] = "-dedup";
 	if ($sys['type']=="WGS") $args[] = "-enable_cnv";
 	$cmd_mapping = "php ".realpath(repository_basedir())."/src/Tools/mapping_dragen.php ".implode(" ", $args);

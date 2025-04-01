@@ -86,13 +86,12 @@ $dragen_parameter[] = "--enable-bam-indexing true";
 $dragen_parameter[] = "--RGID $sample";
 $dragen_parameter[] = "--RGSM $sample";
 $dragen_parameter[] = "--RGDT ".date("c");
-if (!$use_dragen_ML) $dragen_parameter[] = "--vc-ml-enable-recalibration=false"; //disabled because it leads to a sensitivity drop for Twist Exome V2 SNVs of 0.5% (see /mnt/storage2/users/ahsturm1/scripts/2023_08_01_megSAP_performance/)
+if (!$use_dragen_ML) $dragen_parameter[] = "--vc-ml-enable-recalibration=false"; //disabled because it leads to a sensitivity drop for Twist Exome V2 (see /mnt/storage2/users/ahsturm1/scripts/2025_03_21_megSAP_release_performance)
 $dragen_parameter[] = "--enable-rh=false"; //disabled RH special caller because this leads to variants with EVENTTYPE=GENE_CONVERSION that have no DP and AF entry and sometimes are duplicated (same variant twice in the VCF).
 if ($enable_cnv)
 {
 	$dragen_parameter[] = "--enable-cnv true";
 	$dragen_parameter[] = "--cnv-enable-self-normalization true";
-	$dragen_parameter[] = "--cnv-interval-width 1000";
 }
 if(db_is_enabled("NGSD"))
 {
@@ -105,14 +104,13 @@ if ($dedup) $dragen_parameter[] = "--enable-duplicate-marking true";
 
 //small variant calling
 $dragen_parameter[] = "--enable-variant-caller true";
-$dragen_parameter[] = "--vc-min-read-qual 1";
 $dragen_parameter[] = "--vc-min-base-qual 15";
 //add gVCFs
 $dragen_parameter[] = "--vc-emit-ref-confidence GVCF";
 $dragen_parameter[] = "--vc-enable-vcf-output true";
 //structural variant calling
 $dragen_parameter[] = "--enable-sv true";
-$dragen_parameter[] = "--sv-use-overlap-pair-evidence true";
+$dragen_parameter[] = "--sv-use-overlap-pair-evidence true"; //TODO Marc re-validate with DRAGEN 4.4
 $parser->log("DRAGEN parameters:", $dragen_parameter);
 
 //run
