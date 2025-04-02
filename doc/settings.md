@@ -52,7 +52,6 @@ This section contains settings to run the germline/somatic data analysis on a on
 * `dragen_genomes` - Folder containing genome files for Dragen on the Dragen server.
 * `dragen_log` - Folder used to write SGE logs of Dragen analyses.
 * `queues_dragen` - Comma-separated list of SGE queues for Dragen servers (one per server).
-* `use_dragen_sv_calling` - Flag (true/false) that indicates if SV calls produced by Dragen are used. If set to `false`, SV calling based on Manta is used. 
 
 ## Section 'mysql-databases'
 

@@ -55,10 +55,8 @@ $tool_version = get_path("container_expansionhunter");
 // run Expansion Hunter
 $parser->execApptainer("expansionhunter", "ExpansionHunter", implode(" ", $args), [$in, $genome , $variant_catalog], [dirname($out)]);
 
-// read VCF file into memory
+// add comments to VCF
 $vcf_file_content = file($out);
-
-// write back to disk and insert additional comments
 $fh = fopen2($out, 'w');
 $header_written = false;
 foreach($vcf_file_content as $line)
@@ -70,9 +68,11 @@ foreach($vcf_file_content as $line)
 		// add file/call info to file
 		fwrite($fh, "##source=ExpansionHunter {$tool_version}\n");
 		fwrite($fh, "##reference=".genome_fasta($build)."\n");
+		fwrite($fh, "##filedate=".date("c")."\n");
 		$header_written = true;
 	}
 }
+fclose($fh);
 
 //### use REViewer to create SVG for each repeat expansion ###
 if (!$no_images)
