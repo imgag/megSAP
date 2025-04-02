@@ -2006,7 +2006,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 				{
 					$builds[] = basename($fasta, ".fa");
 				}
-				else if (contains($fasta, "/dragen/")) //special handling for Dragen (e.g. file:///staging/human/reference/GRCh38/dragen/)
+				else if (contains($fasta, "/dragen/") || contains($fasta, "/DRAGEN/")) //special handling for Dragen (e.g. file:///staging/human/reference/GRCh38/dragen/ or file:///usr/local/illumina/install/genomes/GRCh38/DRAGEN/10)
 				{
 					$fasta = strtr($fasta, ["//"=>"/"]);
 					$parts = explode("/", $fasta);
