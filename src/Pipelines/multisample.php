@@ -69,7 +69,7 @@ $vcf_all = "{$out_folder}/all.vcf.gz";
 $vcf_all_mito = "{$out_folder}/all_mito.vcf.gz";
 $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
 $gsvar = "{$out_folder}/{$prefix}.GSvar";
-$sv_manta_file = "{$out_folder}/{$prefix}_manta_var_structural.vcf.gz";
+$sv_manta_file = "{$out_folder}/{$prefix}_var_structural_variants.vcf.gz";
 $bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
 
 //create log file in output folder if none is provided

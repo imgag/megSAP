@@ -12,7 +12,7 @@ $baf_file = output_folder()."clincnvTest_bafs.igv";
 $seg_file = output_folder()."clincnvTest_cnvs_clincnv.seg";
 $cnv_file = output_folder()."clincnvTest_cnvs_clincnv.tsv";
 $roh_file = output_folder()."clincnvTest_rohs.tsv";
-$sv_file = output_folder()."clincnvTest_manta_var_structural.bedpe";
+$sv_file = output_folder()."clincnvTest_var_structural_variants.bedpe";
 copy(data_folder()."create_circos_plot_in_baf.igv", $baf_file);
 copy(data_folder()."create_circos_plot_in_seg_clincnv.seg", $seg_file);
 copy(data_folder()."create_circos_plot_in_cnv_clincnv.tsv", $cnv_file);

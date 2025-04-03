@@ -104,7 +104,7 @@ if ($dedup) $dragen_parameter[] = "--enable-duplicate-marking true";
 
 //small variant calling
 $dragen_parameter[] = "--enable-variant-caller true";
-$dragen_parameter[] = "--vc-min-base-qual 15";
+$dragen_parameter[] = "--vc-min-base-qual 15"; //TODO Marc re-validate with DRAGEN 4.4 (also for somatic)
 //add gVCFs
 $dragen_parameter[] = "--vc-emit-ref-confidence GVCF";
 $dragen_parameter[] = "--vc-enable-vcf-output true";

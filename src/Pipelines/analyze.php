@@ -153,7 +153,7 @@ $prsfile = $folder."/".$name."_prs.tsv";
 $cnvfile = $folder."/".$name."_cnvs_clincnv.tsv";
 $cnvfile2 = $folder."/".$name."_cnvs_clincnv.seg";
 //structural variant calling
-$sv_manta_file = $folder ."/". $name . "_manta_var_structural.vcf.gz";
+$sv_manta_file = $folder ."/". $name . "_var_structural_variants.vcf.gz";
 $bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
 //repeat expansions
 $expansion_hunter_file = $folder."/".$name."_repeats_expansionhunter.vcf";

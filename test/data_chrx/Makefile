@@ -20,9 +20,9 @@ cn:
 sv:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps sv
 	# remove gene annotation
-	cut -f1-22 NA12878_17_manta_var_structural.bedpe > NA12878_17_manta_var_structural_cut.bedpe
+	cut -f1-22 NA12878_17_var_structural_variants.bedpe > NA12878_17_var_structural_variants_cut.bedpe
 	# create file from OMIM annotation and CNV overlap
-	cat NA12878_17_manta_var_structural.bedpe | egrep -v "^##"| rev | cut -f 1,2| rev > NA12878_17_manta_var_structural_cut2.bedpe
+	cat NA12878_17_var_structural_variants.bedpe | egrep -v "^##"| rev | cut -f 1,2| rev > NA12878_17_var_structural_variants_cut2.bedpe
 
 re:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps re
@@ -36,16 +36,16 @@ diff:
 	diff NA12878_17_cnvs_clincnv.tsv.out NA12878_17_cnvs_clincnv.tsv --ignore-matching-lines="#"
 	php ../compare_seg.php NA12878_17_cnvs_clincnv.seg.out NA12878_17_cnvs_clincnv.seg variance=0.03,value=0.05
 	php ../compare_bed.php NA12878_17_nxLRRK2_SNCA_lowcov.bed.out NA12878_17_nxLRRK2_SNCA_lowcov.bed
-	diff NA12878_17_manta_var_structural.bedpe.out NA12878_17_manta_var_structural_cut.bedpe --ignore-matching-lines="^##"
-	diff NA12878_17_manta_var_structural_last_cols.bedpe.out NA12878_17_manta_var_structural_cut2.bedpe --ignore-matching-lines="^##"
+	diff NA12878_17_var_structural_variants.bedpe.out NA12878_17_var_structural_variants_cut.bedpe --ignore-matching-lines="^##"
+	diff NA12878_17_var_structural_variants_last_cols.bedpe.out NA12878_17_var_structural_variants_cut2.bedpe --ignore-matching-lines="^##"
 	diff NA12878_17_repeats_expansionhunter.vcf NA12878_17_repeats_expansionhunter.vcf.out  --ignore-matching-lines="^##"
 	test -f NA12878_17_circos.png
 
 reanno:
 	cp NA12878_17.GSvar NA12878_17_old.GSvar
 	cp NA12878_17_cnvs_clincnv.tsv NA12878_17_old_cnvs_clincnv.tsv
-	cp NA12878_17_manta_var_structural.bedpe NA12878_17_old_manta_var_structural.bedpe
+	cp NA12878_17_var_structural_variants.bedpe NA12878_17_old_var_structural_variants.bedpe
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps vc,cn,sv -annotation_only
 	diff NA12878_17.GSvar NA12878_17_old.GSvar
 	diff NA12878_17_cnvs_clincnv.tsv NA12878_17_old_cnvs_clincnv.tsv
-	diff NA12878_17_manta_var_structural.bedpe NA12878_17_old_manta_var_structural.bedpe
+	diff NA12878_17_var_structural_variants.bedpe NA12878_17_old_var_structural_variants.bedpe

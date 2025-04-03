@@ -97,7 +97,8 @@ foreach($samples as $ps)
 		//check SVs
 		if (contains($steps, "sv"))
 		{
-			$svs = $base."_manta_var_structural.bedpe";
+			$svs = $base."_var_structural_variants.bedpe";
+			if (!file_exists($svs)) $base."_manta_var_structural.bedpe"; //fallback to old name
 			if (!file_exists($svs) || filemtime($svs)<$before)
 			{
 				$skip = false;
