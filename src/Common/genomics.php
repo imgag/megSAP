@@ -1443,14 +1443,14 @@ function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 	exec2("{$command_bed_extend} | {$command_bed_merge}");
 
 	$command_bed_subtract = execApptainer("ngs-bits", "BedSubtract", "-in ".$ref_bed." -in2 {$tmp_bed}", [], [], true);
-	$command_bed_chunk = execApptainer("ngs-bits", "BedMerge", "-n 100000", [], [], true);
-	$command_bed_shrink = execApptainer("ngs-bits", "BedMerge", "-n 25000", [], [], true);
-	$command_bed_extend = execApptainer("ngs-bits", "BedMerge", "-n 25000 -fai {$ref_genome_fasta}.fai", [$ref_genome_fasta], [], true);
-	$command_bed_annotate_gc = execApptainer("ngs-bits", "BedMerge", "-ref {$ref_genome_fasta}", [$ref_genome_fasta], [], true);
-	$command_bed_annotate_genes = execApptainer("ngs-bits", "BedMerge", "-out {$out}", [], [dirname($out)], true);
+	$command_bed_chunk = execApptainer("ngs-bits", "BedChunk", "-n 100000", [], [], true);
+	$command_bed_shrink = execApptainer("ngs-bits", "BedShrink", "-n 25000", [], [], true);
+	$command_bed_extend = execApptainer("ngs-bits", "BedExtend", "-n 25000 -fai {$ref_genome_fasta}.fai", [$ref_genome_fasta], [], true);
+	$command_bed_annotate_gc = execApptainer("ngs-bits", "BedAnnotateGC", "-ref {$ref_genome_fasta}", [$ref_genome_fasta], [], true);
+	$command_bed_annotate_genes = execApptainer("ngs-bits", "BedAnnotateGenes ", "-out {$out}", [], [dirname($out)], true);
 
 	exec2 ("{$command_bed_subtract} | {$command_bed_chunk} | {$command_bed_shrink} |{$command_bed_extend} | {$command_bed_annotate_gc} | {$command_bed_annotate_genes}");
-	execApptainer("ngs-bits", "BedSort", "-uniq -in $out -out $out", [], [dirname($out)], true);
+	execApptainer("ngs-bits", "BedSort", "-uniq -in $out -out $out", [], [dirname($out)]);
 }
 
 //returns the allele counts for a sample at a certain position as an associative array, reference skips and start/ends of read segments are ignored
