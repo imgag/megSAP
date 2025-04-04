@@ -1,11 +1,12 @@
 # Benchmarks
 
-All benchmarks are perfomed with the megSAP release [2025_03](https://github.com/imgag/megSAP/releases/tag/2025_03).
+All benchmarks are perfomed with the megSAP release [2025_03](https://github.com/imgag/megSAP/releases/tag/2025_03).  
+As reference genome GRCh38 with [masked false duplications](https://www.nature.com/articles/s41587-021-01158-1) was used.
 
 ## Small variant calling benchmarks
 
 All small variant benchmarks are done on the GIAB reference sample NA12878/HG001 using the [gold-standard variant list v4.2.1](https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh38/).  
-The analyses were performed with the short-read and long-read single sample pipelines on the GRCh38 reference genome with [masked false duplications](https://www.nature.com/articles/s41587-021-01158-1).
+The analyses were performed with the short-read and long-read single sample pipelines.
 
 Sensitivity, positive predictive value (PPV) and genotyping accuracy were measured using our [validation tool](https://github.com/imgag/megSAP/blob/master/src/Auxilary/validate_NA12878.php).
 
@@ -340,19 +341,19 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
 	</tr>
 	<tr>
 		<td>long-read WGS (super accuracy)</td>
-		<td>TODO%</td>
-		<td>TODO%</td>
-		<td>TODO%</td>
-		<td>TODO%</td>
-		<td>TODO%</td>
-		<td>TODO%</td>
+		<td>98.76%</td>
+		<td>96.39%</td>
+		<td>99.87%</td>
+		<td>78.20%</td>
+		<td>85.24%</td>
+		<td>97.56%</td>
 	</tr>
 </table>
 
 ## Structural variant calling benchmarks
 
 All structural variant benchmarks are done on the GIAB reference sample NA24385/HG002 using the [draft SV benchmark v1.1](https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/data/AshkenazimTrio/analysis/NIST_HG002_DraftBenchmark_defrabbV0.019-20241113/).  
-The analyses were performed with the short-read and long-read single sample pipelines on the GRCh38 reference genome with [masked false duplications](https://www.nature.com/articles/s41587-021-01158-1).
+The analyses were performed with the short-read and long-read single sample pipelines.
 
 Sensitivity and positive predictive value (PPV) were measured using [Hap-Eval](https://github.com/Sentieon/hap-eval).
 
@@ -366,24 +367,24 @@ Sensitivity and positive predictive value (PPV) were measured using [Hap-Eval](h
 	<tr>
 		<td>short-read WGS - Manta 1.6.0</td>
 		<td>39.5x</td>
-		<td>33.21%</td>
-		<td>88.09%</td>
+		<td>36.30%</td>
+		<td>96.53%</td>
 	</tr>
 		<td>short-read WGS - DRAGEN 4.2.4</td>
 		<td>39.5x</td>
-		<td>45.17%</td>
-		<td>86.98%</td>
+		<td>50.26%</td>
+		<td>97.64%</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (high accuracy) - Sniffles 2.4</td>
 		<td>40.5x</td>
-		<td>90.24%</td>
-		<td>92.79%</td>
+		<td>90.59%</td>
+		<td>98.03%</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (super accuracy) - Sniffles 2.4</td>
 		<td>40.5x</td>
-		<td>TODO%</td>
-		<td>TODO%</td>
+		<td>91.02%</td>
+		<td>98.05%</td>
 	</tr>
 </table>

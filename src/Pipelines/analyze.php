@@ -81,11 +81,13 @@ foreach($steps as $step)
 //checks in case DRAGEN should be used
 if ($use_dragen)
 {
+	$no_abra = true;
+	
 	if (!in_array("ma", $steps) && in_array("vc", $steps) && !file_exists($folder."/dragen_variant_calls/{$name}_dragen.vcf.gz")) 
 	{
 		trigger_error("DRAGEN small variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
-	if (!in_array("ma", $steps) && in_array("sv", $steps) && get_path("use_dragen_sv_calling") && !file_exists($folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz")) 
+	if (!in_array("ma", $steps) && in_array("sv", $steps) && !file_exists($folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz")) 
 	{
 		trigger_error("DRAGEN structural variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
 	}
@@ -151,7 +153,7 @@ $prsfile = $folder."/".$name."_prs.tsv";
 $cnvfile = $folder."/".$name."_cnvs_clincnv.tsv";
 $cnvfile2 = $folder."/".$name."_cnvs_clincnv.seg";
 //structural variant calling
-$sv_manta_file = $folder ."/". $name . "_manta_var_structural.vcf.gz";
+$sv_manta_file = $folder ."/". $name . "_var_structural_variants.vcf.gz";
 $bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
 //repeat expansions
 $expansion_hunter_file = $folder."/".$name."_repeats_expansionhunter.vcf";
@@ -982,7 +984,7 @@ if (in_array("sv", $steps))
 	if (!$annotation_only)
 	{
 		$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz";
-		if ($use_dragen && get_path("use_dragen_sv_calling"))
+		if ($use_dragen)
 		{
 			if (!file_exists($dragen_output_vcf)) trigger_error("Dragen SV calling file not found!", E_USER_ERROR);
 			if (!in_array("ma", $steps)) trigger_error("'-use_dragen' without mapping step provided. Using DRAGEN SV VCF that is already present.", E_USER_NOTICE);

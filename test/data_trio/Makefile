@@ -19,9 +19,9 @@ link:
 call:
 	php ../../src/Pipelines/trio.php -c GS140127_01.cram -m GS140549_01.cram -f GS140550_01.cram -system system.ini -out_folder . -steps vc,cn,sv -no_check
 	# remove gene annotation
-	cut -f1-24 trio_manta_var_structural.bedpe > trio_manta_var_structural_cut.bedpe
+	cut -f1-24 trio_var_structural_variants.bedpe > trio_var_structural_variants_cut.bedpe
 	# create file from OMIM annotation and CNV overlap
-	cat trio_manta_var_structural.bedpe | egrep -v "^##"| rev | cut -f 1,2| rev > trio_manta_var_structural_cut2.bedpe	
+	cat trio_var_structural_variants.bedpe | egrep -v "^##"| rev | cut -f 1,2| rev > trio_var_structural_variants_cut2.bedpe	
 
 diff:
 	#variants
@@ -31,8 +31,8 @@ diff:
 	#UPDs
 	diff -b trio_upd.tsv.out trio_upd.tsv
 	#SVs
-	diff trio_manta_var_structural_cut.bedpe trio_manta_var_structural_cut.bedpe.out --ignore-matching-lines="^##"
-	diff trio_manta_var_structural_cut2.bedpe trio_manta_var_structural_cut2.bedpe.out --ignore-matching-lines="^##"
+	diff trio_var_structural_variants_cut.bedpe trio_var_structural_variants_cut.bedpe.out --ignore-matching-lines="^##"
+	diff trio_var_structural_variants_cut2.bedpe trio_var_structural_variants_cut2.bedpe.out --ignore-matching-lines="^##"
 
 reanno:
 	mkdir -p reanno
@@ -40,13 +40,13 @@ reanno:
 	cp all.vcf.gz reanno/
 	cp all_mito.vcf.gz reanno/
 	cp trio_cnvs_clincnv.tsv reanno/
-	cp trio_manta_var_structural.bedpe reanno/
+	cp trio_var_structural_variants.bedpe reanno/
 	# run reannotation
 	php ../../src/Pipelines/trio.php -c GS140127_01.cram -m GS140549_01.cram -f GS140550_01.cram -system system.ini -out_folder reanno -steps vc,cn,sv -annotation_only
 	# diff
 	diff trio_cnvs_clincnv.tsv reanno/trio_cnvs_clincnv.tsv
 	diff trio.GSvar reanno/trio.GSvar
-	diff trio_manta_var_structural.bedpe reanno/trio_manta_var_structural.bedpe
+	diff trio_var_structural_variants.bedpe reanno/trio_var_structural_variants.bedpe
 
 ######################### AUXILARY TARGETS #########################
 

@@ -1,1 +1,1 @@
-apptainer pull docker://ensemblorg/ensembl-vep:release_112.0
+apptainer pull vep_release-112.0.sif docker://ensemblorg/ensembl-vep:release_112.0

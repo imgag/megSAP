@@ -123,7 +123,7 @@ if (!$tumor_only && file_exists($msi_o_file))
     
 }
 
-//HLA: TODO
+//TODO HLA:
 // if (file_exists($hla_file_tumor))
 // {
     

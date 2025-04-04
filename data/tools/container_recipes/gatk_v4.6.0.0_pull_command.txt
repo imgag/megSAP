@@ -1,1 +1,0 @@
-apptainer pull docker://broadinstitute/gatk:4.6.0.0

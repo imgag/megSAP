@@ -89,13 +89,11 @@ $dragen_parameter[] = "--pair-by-name true";
 
 //small variant calling
 $dragen_parameter[] = "--enable-variant-caller true";
-$dragen_parameter[] = "--vc-min-read-qual 1";
 $dragen_parameter[] = "--vc-min-tumor-read-qual 3"; #default 3 for t-n, 20 for t-only 
 $dragen_parameter[] = "--vc-min-base-qual 15";
 $dragen_parameter[] = "--vc-callability-tumor-thresh 15"; # default 15 - minimum coverage in bam to try variant calling at that position
 $dragen_parameter[] = "--vc-callability-normal-thresh 5"; # default 5
-$dragen_parameter[] = "--vc-enable-unequal-ntd-errors false"; # disables model to correct FFPE errors.. TODO get to work with model
-#$dragen_parameter[] = "--vc-combine-phased-variants-distance 1"; # Merge variants if they are directly adjecent on the same strand (2 SNVs -> 1 MNP)
+$dragen_parameter[] = "--vc-enable-unequal-ntd-errors false"; # disables model to correct FFPE errors.. //TODO get to work with model
 
 //CNV calling:
 if ($out_cnv != "")
@@ -126,8 +124,6 @@ if ($n_bam != "")
 	$dragen_parameter[] = "--msi-microsatellites-file $msi_ref";
 	$dragen_parameter[] = "--msi-coverage-threshold 60"; //recommended value is 60 for solid and 500 for liquid tumor (Dragen V4.2)
 }
-
-
 
 $parser->log("DRAGEN parameters:", $dragen_parameter);
 

@@ -329,7 +329,7 @@ function get_path($name, $throw_on_error=true)
 	//get value
 	if (!isset($parsed_ini[$name]) && $throw_on_error)
 	{
-		trigger_error("Could not find key '$name' in settings file '$ini_file'!", E_USER_ERROR);
+		trigger_error("Could not find key '$name' in settings file '$parsed_ini'!", E_USER_ERROR);
 	}
 	$value = isset($parsed_ini[$name]) ? $parsed_ini[$name] : "";
 
@@ -1443,14 +1443,14 @@ function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 	exec2("{$command_bed_extend} | {$command_bed_merge}");
 
 	$command_bed_subtract = execApptainer("ngs-bits", "BedSubtract", "-in ".$ref_bed." -in2 {$tmp_bed}", [], [], true);
-	$command_bed_chunk = execApptainer("ngs-bits", "BedMerge", "-n 100000", [], [], true);
-	$command_bed_shrink = execApptainer("ngs-bits", "BedMerge", "-n 25000", [], [], true);
-	$command_bed_extend = execApptainer("ngs-bits", "BedMerge", "-n 25000 -fai {$ref_genome_fasta}.fai", [$ref_genome_fasta], [], true);
-	$command_bed_annotate_gc = execApptainer("ngs-bits", "BedMerge", "-ref {$ref_genome_fasta}", [$ref_genome_fasta], [], true);
-	$command_bed_annotate_genes = execApptainer("ngs-bits", "BedMerge", "-out {$out}", [], [dirname($out)], true);
+	$command_bed_chunk = execApptainer("ngs-bits", "BedChunk", "-n 100000", [], [], true);
+	$command_bed_shrink = execApptainer("ngs-bits", "BedShrink", "-n 25000", [], [], true);
+	$command_bed_extend = execApptainer("ngs-bits", "BedExtend", "-n 25000 -fai {$ref_genome_fasta}.fai", [$ref_genome_fasta], [], true);
+	$command_bed_annotate_gc = execApptainer("ngs-bits", "BedAnnotateGC", "-ref {$ref_genome_fasta}", [$ref_genome_fasta], [], true);
+	$command_bed_annotate_genes = execApptainer("ngs-bits", "BedAnnotateGenes ", "-out {$out}", [], [dirname($out)], true);
 
 	exec2 ("{$command_bed_subtract} | {$command_bed_chunk} | {$command_bed_shrink} |{$command_bed_extend} | {$command_bed_annotate_gc} | {$command_bed_annotate_genes}");
-	execApptainer("ngs-bits", "BedSort", "-uniq -in $out -out $out", [], [dirname($out)], true);
+	execApptainer("ngs-bits", "BedSort", "-uniq -in $out -out $out", [], [dirname($out)]);
 }
 
 //returns the allele counts for a sample at a certain position as an associative array, reference skips and start/ends of read segments are ignored
@@ -2006,7 +2006,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 				{
 					$builds[] = basename($fasta, ".fa");
 				}
-				else if (contains($fasta, "/dragen/")) //special handling for Dragen (e.g. file:///staging/human/reference/GRCh38/dragen/)
+				else if (contains($fasta, "/dragen/") || contains($fasta, "/DRAGEN/")) //special handling for Dragen (e.g. file:///staging/human/reference/GRCh38/dragen/ or file:///usr/local/illumina/install/genomes/GRCh38/DRAGEN/10)
 				{
 					$fasta = strtr($fasta, ["//"=>"/"]);
 					$parts = explode("/", $fasta);

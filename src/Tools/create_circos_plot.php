@@ -279,7 +279,7 @@ else
 }
 
 // parse SV file and extract high-quality translocations
-$sv_file = "$folder/{$name}_manta_var_structural.bedpe";
+$sv_file = "$folder/{$name}_var_structural_variants.bedpe";
 $sv_filter = repository_basedir() . "/data/misc/circos/sv_filter.ini";
 
 //fallback for lrGS

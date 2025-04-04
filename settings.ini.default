@@ -96,8 +96,6 @@ dragen_genomes =
 ;sge settings
 dragen_log = 
 queues_dragen = 
-;use SV calling files from dragen/NovaSeq X
-use_dragen_sv_calling = false
 
 [mysql-databases]
 db_host['NGSD'] = "localhost"

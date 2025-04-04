@@ -115,7 +115,7 @@ $parser->logServerEnvronment();
 $gsvar = "{$out_folder}/trio.GSvar";
 $vcf_all = "{$out_folder}/all.vcf.gz";
 $cnv_multi = "{$out_folder}/trio_cnvs_clincnv.tsv";
-$bedpe_out = "{$out_folder}/trio_manta_var_structural.bedpe";
+$bedpe_out = "{$out_folder}/trio_var_structural_variants.bedpe";
 
 //check steps
 $steps = explode(",", $steps);
