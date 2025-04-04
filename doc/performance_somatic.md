@@ -3,7 +3,7 @@
 ## tumor-normal short-read pipline
 
 All performance benchmarks are performed on the GIAB reference samples NA12878 using the [gold-standard variant list v4.2.1](https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh38/) and the NA12877 using the [PlatimunGenomes variant list](https://github.com/Illumina/PlatinumGenomes). The two samples were mixed to prepare a in-silico tumor sample with a specified tumor content of 5, 10, 20 or 40 %.
-The samples were mapped with the [short-read single sample pipeline](https://github.com/imgag/megSAP/blob/master/src/Pipelines/analyze.php) on the GRCh38 reference genome with [masked false duplications](https://www.nature.com/articles/s41587-021-01158-1) and the calling was done using [short-read tumor normal pipeline](https://github.com/imgag/megSAP/blob/master/src/Pipelines/somatic_dna.php).
+The samples were mapped with the [short-read single sample pipeline](https://github.com/imgag/megSAP/blob/master/src/Pipelines/analyze.php) on the GRCh38 reference genome with [masked false duplications](https://www.nature.com/articles/s41587-021-01158-1) and the calling was done using [short-read tumor normal pipeline](https://github.com/imgag/megSAP/blob/master/src/Pipelines/somatic_tumor_normal.php).
 
 Sensitivity and positive predictive value (PPV) were measured using our [somatic validation tool](https://github.com/imgag/megSAP/blob/master/src/Auxilary/validate_somatic.php).
 

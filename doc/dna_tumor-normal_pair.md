@@ -2,7 +2,7 @@
 
 ## Analysis pipeline
 
-Somatic analysis of tumor/normal DNA sample pairs is performed with `somatic_dna.php`.
+Somatic analysis of tumor/normal DNA sample pairs is performed with `somatic_tumor_normal.php`.
 
 ### Mapping single samples
 
@@ -22,7 +22,7 @@ The main parameters that you have to provide are:
 
 Please have a look at the help:
 
-    > php megSAP/src/Pipelines/somatic_dna.php --help
+    > php megSAP/src/Pipelines/somatic_tumor_normal.php --help
 
 ### Tools used in this analysis pipeline
 
