@@ -19,7 +19,7 @@ $parser->addString("out_folder", "Output folder.", false);
 $parser->addInfile("t_rna_bam", "Tumor RNA sample BAM file.", true);
 $parser->addString("prefix", "Output file prefix.", true, "somatic");
 
-$steps_all = array("vc", "vi", "cn", "an", "an_rna", "db");
+$steps_all = array("vc", "vi", "cn", "an", "an_rna", "db", "msi");
 $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 	"vc=variant calling, an=annotation,\n" .
 	"cn=copy-number analysis\n".
@@ -48,6 +48,11 @@ foreach($steps as $step)
 	{
 		trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 	}
+}
+
+if (in_array("msi",$steps))
+{
+	trigger_error("Calling microsatellite instabilities is only possible for tumor normal pairs",E_USER_NOTICE);
 }
 
 
