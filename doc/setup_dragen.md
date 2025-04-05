@@ -2,7 +2,7 @@
 
 The megSAP pipeline also supports mapping using the Illumina DRAGEN server. This requires additional software on the DRAGEN server and some modifications to the settings.
 
-(For general setup instructions of DRAGEN use the [Illumina DRAGEN documentation](https://emea.support.illumina.com/sequencing/sequencing_software/dragen-bio-it-platform/documentation.html))
+(For general setup instructions of DRAGEN use the [Illumina DRAGEN documentation](https://emea.support.illumina.com/sequencing/sequencing_software/dragen-bio-it-platform.html))
 
 **Note:** If you use the multi-version installer, make sure to add the bin folder of the version that should be used to the $PATH, e.g. by adding `export PATH=$PATH:/opt/dragen/4.3.13/bin/` to `/etc/profile.d/dragen_profile.sh`.
 
