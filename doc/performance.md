@@ -49,22 +49,22 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
 		<td>99.81%</td>
 	</tr>
 	<tr>
-		<td>short-read WES - DRAGEN 4.2.4 no ML model</td>
-		<td>99.22%</td>
-		<td>98.82%</td>
+		<td>short-read WES - DRAGEN 4.3.13 no ML model</td>
+		<td>99.23%</td>
+		<td>98.77%</td>
 		<td>99.83%</td>
-		<td>98.81%</td>
-		<td>97.18%</td>
-		<td>99.45%</td>
+		<td>98.77%</td>
+		<td>97.47%</td>
+		<td>99.49%</td>
 	</tr>
 	<tr>
-		<td>short-read WES - DRAGEN 4.2.4 with ML model</td>
-		<td>98.63%</td>
-		<td>99.85%</td>
-		<td>99.90%</td>
-		<td>98.18%</td>
-		<td>98.90%</td>
-		<td>99.54%</td>
+		<td>short-read WES - DRAGEN 4.3.13 with ML model</td>
+		<td>98.87%</td>
+		<td>99.72%</td>
+		<td>99.95%</td>
+		<td>98.49%</td>
+		<td>98.58%</td>
+		<td>99.44%</td>
 	</tr>
 </table>
 
@@ -107,22 +107,22 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
 		<td>99.84%</td>
 	</tr>
 	<tr>
-		<td>short-read WGS - DRAGEN 4.2.4 no ML model</td>
+		<td>short-read WGS - DRAGEN 4.3.13 no ML model</td>
 		<td>99.78%</td>
 		<td>99.70%</td>
 		<td>99.98%</td>
-		<td>99.64%</td>
-		<td>99.60%</td>
+		<td>99.65%</td>
+		<td>99.61%</td>
 		<td>99.85%</td>
 	</tr>
 	<tr>
-		<td>short-read WGS - DRAGEN 4.2.4 with ML model</td>
-		<td>99.78%</td>
-		<td>99.91%</td>
-		<td>99.98%</td>
-		<td>99.64%</td>
-		<td>99.75%</td>
-		<td>99.88%</td>
+		<td>short-read WGS - DRAGEN 4.3.13 with ML model</td>
+		<td>99.80%</td>
+		<td>99.81%</td>
+		<td>99.99%</td>
+		<td>99.68%</td>
+		<td>99.55%</td>
+		<td>99.89%</td>
 	</tr>
 </table>
 
@@ -171,7 +171,7 @@ The benchmarks were performed on GIAB high-confidence regions **with at least 15
 ### coding region benchmark
 
 All small variant benchmarks above are done on regions with at least with 15x coverage.  
-To allow a comparison of WES, WGS and lrGS independent of the coverage, we also perfomed a benchmark without depth cutoff on the coding region of all protein-coding genes padded by two bases to include the consensus splice site.
+To allow a comparison of WES, WGS and lrGS independent of the coverage, we also perfomed a benchmark without depth cutoff on the coding region of all protein-coding genes padded by two bases to include the consensus splice sites.
 
 <table>
 	<tr>
@@ -206,22 +206,22 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 		<td>99.53%</td>
 	</tr>
 	<tr>
-		<td>short-read WES - DRAGEN 4.2.4 no ML model</td>
-		<td>97.73%</td>
-		<td>98.86%</td>
+		<td>short-read WES - DRAGEN 4.3.13 no ML model</td>
+		<td>97.74%</td>
+		<td>98.80%</td>
 		<td>99.85%</td>
 		<td>92.13%</td>
 		<td>95.16%</td>
 		<td>99.54%</td>
 	</tr>
 	<tr>
-		<td>short-read WES - DRAGEN 4.2.4 with ML model</td>
-		<td>97.25%</td>
-		<td>99.87%</td>
-		<td>99.91%</td>
-		<td>91.70%</td>
-		<td>98.18%</td>
-		<td>99.54%</td>
+		<td>short-read WES - DRAGEN 4.3.13 with ML model</td>
+		<td>97.57%</td>
+		<td>99.73%</td>
+		<td>99.94%</td>
+		<td>91.28%</td>
+		<td>97.72%</td>
+		<td>99.77%</td>
 	</tr>
 	<tr>
 		<td>short-read WGS - bwa-mem2, ABRA2, freebayes</td>
@@ -242,21 +242,21 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 		<td>99.78%</td>
 	</tr>
 	<tr>
-		<td>short-read WGS - DRAGEN 4.2.4 no ML model</td>
+		<td>short-read WGS - DRAGEN 4.3.13 no ML model</td>
 		<td>99.26%</td>
 		<td>99.11%</td>
-		<td>99.90%</td>
+		<td>99.91%</td>
 		<td>98.51%</td>
 		<td>97.47%</td>
 		<td>99.78%</td>
 	</tr>
 	<tr>
-		<td>short-read WGS - DRAGEN 4.2.4 with ML model</td>
-		<td>99.24%</td>
-		<td>99.88%</td>
-		<td>99.96%</td>
-		<td>98.51%</td>
-		<td>98.09%</td>
+		<td>short-read WGS - DRAGEN 4.3.13 with ML model</td>
+		<td>99.31%</td>
+		<td>99.68%</td>
+		<td>99.95%</td>
+		<td>98.30%</td>
+		<td>97.88%</td>
 		<td>99.78%</td>
 	</tr>
 	<tr>
@@ -322,13 +322,22 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
 		<td>99.11%</td>
 	</tr>
 	<tr>
-		<td>short-read WGS - DRAGEN 4.2.4 no ML model</td>
-		<td>98.10%</td>
-		<td>98.48%</td>
-		<td>99.73%</td>
-		<td>94.59%</td>
-		<td>92.06%</td>
+		<td>short-read WGS - DRAGEN 4.3.13 no ML model</td>
+		<td>98.12%</td>
+		<td>98.50%</td>
+		<td>99.69%</td>
+		<td>94.58%</td>
+		<td>92.00%</td>
 		<td>99.27%</td>
+	</tr>
+	<tr>
+		<td>long-read WGS (high accuracy)</td>
+		<td>98.83%</td>
+		<td>95.78%</td>
+		<td>99.77%</td>
+		<td>65.92%</td>
+		<td>86.58%</td>
+		<td>99.21%</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (high accuracy)</td>
@@ -370,10 +379,11 @@ Sensitivity and positive predictive value (PPV) were measured using [Hap-Eval](h
 		<td>36.30%</td>
 		<td>96.53%</td>
 	</tr>
-		<td>short-read WGS - DRAGEN 4.2.4</td>
+	<tr>
+		<td>short-read WGS - DRAGEN 4.3.13</td>
 		<td>39.5x</td>
-		<td>50.26%</td>
-		<td>97.64%</td>
+		<td>49.90%</td>
+		<td>97.68%</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (high accuracy) - Sniffles 2.4</td>

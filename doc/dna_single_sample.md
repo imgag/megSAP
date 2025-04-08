@@ -25,7 +25,7 @@ In the example above, the configuration of the pipeline is done using the `twist
 ### Running an analysis with DRAGEN
 
 A short instruction how to setup the DRAGEN can be found [here](setup_dragen.md).
-To run an analysis with DRAGEN mapping you simply has to pass the parameter `-use_dragen` to the `analysis.php`: 
+To run an analysis with DRAGEN you simply have to pass the parameter `-use_dragen` to the `analysis.php`: 
 
 	php megSAP/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system twist_exome.ini -steps ma,vc -use_dragen
 
