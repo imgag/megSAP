@@ -34,7 +34,7 @@ if( db_is_enabled("NGSD") )
 }
 else
 {
-    trigger_error("No NGSD access, skipping check of female tumor sample  $t_bam for contamination with male genomic DNA.", E_USER_WARNING);
+    trigger_error("No NGSD access, skipping check of female tumor sample  $t_bam for contamination with male genomic DNA.", E_USER_NOTICE);
 }
 
 ?>
