@@ -295,19 +295,9 @@ if(in_array("cn",$steps))
 		$t_cov_off_target = $ref_file_t_off_target;
 	}
 	
-	//create BAF folder
-	$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
-	create_directory($baf_folder);
-	$baf_file = "{$baf_folder}/{$t_id}.tsv";
-	//create BAf file if not available
-	$error = False;
-	if(!file_exists($baf_file))
-	{
-		$t_gsvar = "{$t_basename}.GSvar";
-		$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $t_gsvar -bam $t_bam -genome $ref_genome -out_file $baf_file");
-	}
-
 	//perform CNV analysis
+	$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
+	
 	$args = array(
 		"-cov {$t_cov}",
 		"-cov_folder {$ref_folder_n}",
@@ -324,7 +314,7 @@ if(in_array("cn",$steps))
 		$args[] = "-cov_folder_off {$ref_folder_t_off_target}";
 	}
 	
-	if(!$error)
+	if(is_dir($baf_folder))
 	{
 		$args[] = "-baf_folder {$baf_folder}";
 	}
