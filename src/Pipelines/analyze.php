@@ -28,8 +28,6 @@ $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. co
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping, small variant and structural variant calling.");
 $parser->addFlag("use_dragen_ML", "Use ML model in small variant calling of Illumina DRAGEN.");
-$parser->addFlag("use_deepvariant", "Use Deepvariant instead of freebayes for small variant calling.");
-$parser->addFlag("gpu", "Use GPU version of DeepVariant for small variant calling");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
@@ -56,12 +54,10 @@ $is_wgs_shallow = $sys['type']=="WGS (shallow)";
 $has_roi = $sys['target_file']!="";
 $build = $sys['build'];
 
-//disable abra and soft-clipping if deepvariant is used for calling
-$use_deepvariant = $use_deepvariant || get_path("use_deepvariant");
-if ($use_deepvariant)
-{
-	$no_abra = true;
-}
+//disable abra and soft-clipping if DeepVariant is used for calling
+$no_abra = true;
+$clip_overlap = false;
+
 
 //handle somatic flag
 if ($somatic)
@@ -492,7 +488,24 @@ if (in_array("vc", $steps))
 				//index output file
 				$parser->exec("tabix", "-p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
 			}
-			elseif ($use_deepvariant)
+/* 			elseif ($use_freebayes) TODO remove or reimplement if freebayes option should be preserved
+			{
+				$args = [];
+				$args[] = "-bam ".$used_bam_or_cram;
+				$args[] = "-out ".$vcffile;
+				$args[] = "-build ".$build;
+				$args[] = "-threads ".$threads;
+				if ($has_roi)
+				{
+					$args[] = "-target ".$sys['target_file'];
+					$args[] = "-target_extend 200";
+				}
+				$args[] = "-min_af ".$min_af;
+				$args[] = "-min_mq ".$min_mq;
+				$args[] = "-min_bq ".$min_bq;
+				$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
+			} */
+			else //perform variant calling with DeepVariant
 			{
 				$args = [];
 
@@ -516,30 +529,11 @@ if (in_array("vc", $steps))
 					$args[] = "-target_extend 200";
 				}
 
-				if ($gpu) $args[] = "-gpu";
-
 				$args[] = "-min_af ".$min_af;
 				$args[] = "-min_mq ".$min_mq;
 				$args[] = "-min_bq ".$min_bq;
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
-			}
-			else
-			{
-				$args = [];
-				$args[] = "-bam ".$used_bam_or_cram;
-				$args[] = "-out ".$vcffile;
-				$args[] = "-build ".$build;
-				$args[] = "-threads ".$threads;
-				if ($has_roi)
-				{
-					$args[] = "-target ".$sys['target_file'];
-					$args[] = "-target_extend 200";
-				}
-				$args[] = "-min_af ".$min_af;
-				$args[] = "-min_mq ".$min_mq;
-				$args[] = "-min_bq ".$min_bq;
-				$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
 			}
 		}
 		
@@ -649,32 +643,7 @@ if (in_array("vc", $steps))
 			{
 				$tmp_low_mappability = $parser->tempFile("_low_mappability.vcf.gz");
 
-				if ($use_deepvariant)
-				{
-					$args = [];
-	
-					if ($is_wes || $is_wgs)
-					{
-						$args[] = "-model_type ".$sys['type'];
-					}
-					else
-					{
-						trigger_error("The usage of DeepVariant is limited to WGS or WES short-read data! Different type '".$sys['type']."' detected in $system.", E_USER_ERROR);
-					}
-	
-					$args[] = "-bam ".$used_bam_or_cram;
-					$args[] = "-out ".$tmp_low_mappability;
-					$args[] = "-build ".$build;
-					$args[] = "-threads ".$threads;
-					$args[] = "-target $roi_low_mappabilty";
-					$args[] = "-min_af ".$min_af;
-					$args[] = "-min_mq 0";
-					$args[] = "-min_bq ".$min_bq;
-					if ($gpu) $args[] = "-gpu";
-	
-					$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
-				}
-				else
+				/*if ($use_freebayes) TODO remove or reimplement if freebayes option should be preserved
 				{
 					$args = [];
 					$args[] = "-bam ".$used_bam_or_cram;
@@ -686,7 +655,30 @@ if (in_array("vc", $steps))
 					$args[] = "-min_mq 0";
 					$args[] = "-min_bq ".$min_bq;
 					$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
+				} */
+
+				$args = [];
+
+				if ($is_wes || $is_wgs)
+				{
+					$args[] = "-model_type ".$sys['type'];
 				}
+				else
+				{
+					trigger_error("The usage of DeepVariant is limited to WGS or WES short-read data! Different type '".$sys['type']."' detected in $system.", E_USER_ERROR);
+				}
+
+				$args[] = "-bam ".$used_bam_or_cram;
+				$args[] = "-out ".$tmp_low_mappability;
+				$args[] = "-build ".$build;
+				$args[] = "-threads ".$threads;
+				$args[] = "-target $roi_low_mappabilty";
+				$args[] = "-min_af ".$min_af;
+				$args[] = "-min_mq 0";
+				$args[] = "-min_bq ".$min_bq;
+
+				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
+
 				//unzip
 				$tmp_low_mappability2 = $parser->tempFile("_low_mappability.vcf");
 				$parser->exec("zcat", "$tmp_low_mappability > $tmp_low_mappability2", true);

@@ -57,7 +57,6 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=varia
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
-$parser->addFlag("gpu", "Use GPU version of DeepVariant for small variant calling");
 extract($parser->parse($argv));
 
 //init
@@ -71,6 +70,7 @@ $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
 $gsvar = "{$out_folder}/{$prefix}.GSvar";
 $sv_manta_file = "{$out_folder}/{$prefix}_var_structural_variants.vcf.gz";
 $bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
+$deepvar_gpu = get_path("use_deepvariant_gpu");
 
 //create log file in output folder if none is provided
 if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/multi_".date("YmdHis").".log");
@@ -264,7 +264,6 @@ if (in_array("vc", $steps))
 	if (!$annotation_only)
 	{		
 		//main variant calling for autosomes and gonosomes
-		$use_deepvar = get_path("use_deepvariant");
 		if ($dragen_gvcfs_exist) //gVCFs exist > merge them
 		{
 			$args = array();
@@ -276,7 +275,22 @@ if (in_array("vc", $steps))
 			$args[] = "-mode dragen";
 			$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
 		}
-		elseif($use_deepvar) //calling with DeepVariant with gVCF file creation
+/* 		TODO remove or reimplement if freebayes option should be preserved
+		elseif($use_freebayes) //no gVCFs > fallback to VC calling with freebayes (with very conservative parameters) 
+		{
+			$args = array();
+			$args[] = "-bam ".implode(" ", $local_bams);
+			$args[] = "-out $vcf_all";
+			$args[] = "-target ".$sys['target_file'];
+			$args[] = "-min_mq 20";
+			$args[] = "-min_af 0.1";
+			$args[] = "-target_extend 200";
+			$args[] = "-build ".$sys['build'];
+			$args[] = "-threads $threads";
+			$args[] = "--log ".$parser->getLogFile();
+			$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args), true);
+		} */
+		else //calling with DeepVariant with gVCF file creation
 		{
 			$deepvar_gvcfs = array();
 			foreach($local_bams as $local_bam) // DeepVariant calling for each bam with gVCF output
@@ -302,7 +316,6 @@ if (in_array("vc", $steps))
 				$args[] = "-threads ".$threads;
 				$args[] = "-target ".$sys['target_file'];
 				$args[] = "-target_extend 200";
-				if ($gpu) $args[] = "-gpu";
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 				
@@ -326,20 +339,6 @@ if (in_array("vc", $steps))
 			$pipeline[] = ["bgzip", "-@ -c > $vcf_all"];
 
 			$parser->execPipeline($pipeline, "GLnexus gVCF merging");
-		}
-		else //no gVCFs > fallback to VC calling with freebayes (with very conservative parameters)
-		{
-			$args = array();
-			$args[] = "-bam ".implode(" ", $local_bams);
-			$args[] = "-out $vcf_all";
-			$args[] = "-target ".$sys['target_file'];
-			$args[] = "-min_mq 20";
-			$args[] = "-min_af 0.1";
-			$args[] = "-target_extend 200";
-			$args[] = "-build ".$sys['build'];
-			$args[] = "-threads $threads";
-			$args[] = "--log ".$parser->getLogFile();
-			$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args), true);
 		}
 
 		//variant calling for mito with special parameters

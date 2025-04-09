@@ -24,11 +24,11 @@ $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calli
 $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 10);
 $parser->addFlag("raw_output", "return the raw output of deepvariant with no post-processing.");
 $parser->addFlag("allow_empty_examples", "allows DeepVariant to call variants even if no examples were created with make_examples.");
-$parser->addFlag("gpu", "Use GPU supportet DeepVariant container");
 extract($parser->parse($argv));
 
 //init
 $genome = genome_fasta($build);
+$gpu = get_path("use_deepvariant_gpu");
 
 //create basic variant calls
 $args = array();
