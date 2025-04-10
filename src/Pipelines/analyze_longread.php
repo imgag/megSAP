@@ -604,7 +604,7 @@ if (in_array("ph", $steps))
 	{
 		$args[] = "--mod-file {$vcf_modcall}";
 	}
-	$parser->execApptainer("longphase", "longphase", implode(" ", $args), [$folder, $genome]);
+	$parser->execApptainer("longphase", "longphase", implode(" ", $args), [$folder, $genome], [$folder]);
 	
 	//create compressed file and index
 	$parser->exec("bgzip", "-c $phased_tmp > {$vcf_file}", false);
@@ -630,17 +630,7 @@ if (in_array("ph", $steps))
 		$args[] = "--sv-file {$sv_vcf_file}";
 		$in_files[] = $sv_vcf_file;
 	} 
-	// if (ends_with($used_bam_or_cram, ".bam")) 
-	// {
-	// 	//use BAM
-	// 	$tagged_bam_file = $parser->tempFile(".tagged.bam"); 
-	// }
-	// else
-	// {	
-	// 	//use CRAM
-	// 	$tagged_bam_file = $parser->tempFile(".tagged.cram");
-	// 	$args[] = "--cram";
-	// }	
+	
 	$tagged_bam_file = $parser->tempFile(".tagged.bam");
 	$args[] = "-o ".dirname($tagged_bam_file)."/".basename2($tagged_bam_file);
 
