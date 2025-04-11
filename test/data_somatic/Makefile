@@ -34,14 +34,13 @@ case1_analyze:
 		--log Sample_DX000001_01/analyze.log
 
 case1_somatic:
-	php ../../src/Pipelines/somatic_dna.php \
+	php ../../src/Pipelines/somatic_tumor_only.php \
 		-t_bam Sample_DX000001_01/DX000001_01.cram \
 		-out_folder out_case1 \
 		-prefix DX000001_01 \
 		-steps vc,vi,an \
 		-system system_single.ini \
 		-min_depth_t 100 \
-		-min_depth_n 100 \
 		--log out_case1/DX000001_01.log
 
 case1_diff:
@@ -70,7 +69,7 @@ case2_analyze:
 
 case2_somatic:
 	rm -rf out_case2/GS110168_03-GS110169_03.log
-	php ../../src/Pipelines/somatic_dna.php \
+	php ../../src/Pipelines/somatic_tumor_normal.php \
 		-t_bam Sample_GS110168_03/GS110168_03.cram -n_bam Sample_GS110169_03/GS110169_03.cram \
 		-out_folder out_case2 \
 		-prefix GS110168_03-GS110169_03 \
@@ -101,7 +100,7 @@ case2_diff:
 case3: case3_somatic case3_diff
 
 case3_somatic:
-	php ../../src/Pipelines/somatic_dna.php \
+	php ../../src/Pipelines/somatic_tumor_normal.php \
 		-t_bam ../data/manta_sv_tumor.bam -n_bam ../data/manta_sv_normal.bam \
 		-out_folder out_case3 \
 		-prefix manta_sv_tumor-manta_sv_normal \
