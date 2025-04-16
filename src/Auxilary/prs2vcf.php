@@ -320,6 +320,7 @@ if ($annotate_gnomad_af)
 		//extract af
 		$gnomad_af = 0;
 		$pop_af = 0;
+		$invert_gnomad = false;
 		foreach ($info_values as $info_value) 
 		{
 			if (starts_with($info_value, "POP_AF="))
@@ -332,11 +333,20 @@ if ($annotate_gnomad_af)
 				$gnomad_af = (float) explode("=", $info_value)[1];
 				continue;
 			}
+			if (starts_with($info_value, "REF_IS_EFFECT_ALLELE"))
+			{
+				//invert gnomAD af if effect allele is reference
+				$invert_gnomad = true;
+				continue;
+			}
 		}
+		//invert gnomAD af
+		if ($invert_gnomad) $gnomad_af = 1 - $gnomad_af;
+
 		$diff = abs($gnomad_af-$pop_af);
 		$info_values[] = "AF_DIFF=".$diff;
 
-		if ($diff > 0.1) trigger_error("The given population AF of the PRS variant ".$columns[0].":".$columns[1]." ".$columns[3].">".$columns[4]." differs more than 0.1 ({$diff}) from the gnomAD AF!", E_USER_WARNING);
+		if ($diff > 0.1) trigger_error("The given population AF of the PRS variant ".$columns[0].":".$columns[1]." ".$columns[3].">".$columns[4]." differs more than 0.1 ({$diff}) from the ".(($invert_gnomad)?"inverted ":"")."gnomAD AF!", E_USER_WARNING);
 
 		$columns[7] = implode(";", $info_values);
 		$vcf_out_content[] = implode("\t", $columns)."\n";
