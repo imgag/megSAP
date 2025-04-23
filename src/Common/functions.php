@@ -917,10 +917,20 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 
 	//compose Apptainer command
 	$apptainer_command = "apptainer exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
+
+	if ($container=="deepvariant-gpu")
+	{
+		$apptainer_command = "CUDA_VISIBLE_DEVICES=0 $apptainer_command";
+	}
+	if ($container=="deepvariant")
+	{
+		$apptainer_command = "TF_CPP_MIN_LOG_LEVEL=2 $apptainer_command";
+	}
 	
 	//if command only option is true, only the apptainer command is being return, without execution
 	if($command_only) 
 	{
+		$apptainer_command = "apptainer -q exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
 		return $apptainer_command;
 	}
 

@@ -70,7 +70,6 @@ $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
 $gsvar = "{$out_folder}/{$prefix}.GSvar";
 $sv_manta_file = "{$out_folder}/{$prefix}_var_structural_variants.vcf.gz";
 $bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
-$deepvar_gpu = get_path("use_deepvariant_gpu");
 
 //create log file in output folder if none is provided
 if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/multi_".date("YmdHis").".log");
@@ -275,8 +274,7 @@ if (in_array("vc", $steps))
 			$args[] = "-mode dragen";
 			$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
 		}
-/* 		TODO remove or reimplement if freebayes option should be preserved
-		elseif($use_freebayes) //no gVCFs > fallback to VC calling with freebayes (with very conservative parameters) 
+		elseif(get_path("use_freebayes")) //perform variant calling with freebayes if set in settings.ini 
 		{
 			$args = array();
 			$args[] = "-bam ".implode(" ", $local_bams);
@@ -289,7 +287,7 @@ if (in_array("vc", $steps))
 			$args[] = "-threads $threads";
 			$args[] = "--log ".$parser->getLogFile();
 			$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args), true);
-		} */
+		}
 		else //calling with DeepVariant with gVCF file creation
 		{
 			$deepvar_gvcfs = array();
@@ -300,13 +298,11 @@ if (in_array("vc", $steps))
 
 				$args = [];
 
-				if ($is_wes || $is_wgs)
-				{
-					$args[] = "-model_type ".$sys['type'];
-				}
+				if ($is_wes)	$args[] = "-model_type WES";
+				elseif ($is_wgs || $is_wgs_shallow) $args[] = "-model_type WGS";
 				else
 				{
-					trigger_error("The usage of DeepVariant is limited to WGS or WES short-read data! Different type '".$sys['type']."' detected in $system.", E_USER_ERROR);
+					trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types for multisample analysis are: WES, WGS, WGS (shallow).", E_USER_ERROR);
 				}
 
 				$args[] = "-bam ".$local_bam;
@@ -316,6 +312,7 @@ if (in_array("vc", $steps))
 				$args[] = "-threads ".$threads;
 				$args[] = "-target ".$sys['target_file'];
 				$args[] = "-target_extend 200";
+				$args[] = "-allow_empty_examples";
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 				

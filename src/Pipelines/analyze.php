@@ -55,9 +55,12 @@ $has_roi = $sys['target_file']!="";
 $build = $sys['build'];
 
 //disable abra and soft-clipping if DeepVariant is used for calling
-$no_abra = true;
-$clip_overlap = false;
-
+$use_freebayes = get_path("use_freebayes");
+if (!$use_freebayes)
+{
+	$no_abra = true;
+	$clip_overlap = false;
+}
 
 //handle somatic flag
 if ($somatic)
@@ -488,7 +491,7 @@ if (in_array("vc", $steps))
 				//index output file
 				$parser->exec("tabix", "-p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
 			}
-/* 			elseif ($use_freebayes) TODO remove or reimplement if freebayes option should be preserved
+			elseif ($use_freebayes) //perform variant calling with freebayes if set in settings.ini
 			{
 				$args = [];
 				$args[] = "-bam ".$used_bam_or_cram;
@@ -504,18 +507,16 @@ if (in_array("vc", $steps))
 				$args[] = "-min_mq ".$min_mq;
 				$args[] = "-min_bq ".$min_bq;
 				$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
-			} */
+			}
 			else //perform variant calling with DeepVariant
 			{
 				$args = [];
 
-				if ($is_wes || $is_wgs)
-				{
-					$args[] = "-model_type ".$sys['type'];
-				}
+				if ($is_wes || $is_panel)	$args[] = "-model_type WES";
+				elseif ($is_wgs || $is_wgs_shallow) $args[] = "-model_type WGS";
 				else
 				{
-					trigger_error("The usage of DeepVariant is limited to WGS or WES short-read data! Different type '".$sys['type']."' detected in $system.", E_USER_ERROR);
+					trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, WGS (shallow), Panel, Panel Haloplex.", E_USER_ERROR);
 				}
 
 				$args[] = "-bam ".$used_bam_or_cram;
@@ -532,6 +533,7 @@ if (in_array("vc", $steps))
 				$args[] = "-min_af ".$min_af;
 				$args[] = "-min_mq ".$min_mq;
 				$args[] = "-min_bq ".$min_bq;
+				$args[] = "-allow_empty_examples";
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 			}
@@ -643,7 +645,7 @@ if (in_array("vc", $steps))
 			{
 				$tmp_low_mappability = $parser->tempFile("_low_mappability.vcf.gz");
 
-				/*if ($use_freebayes) TODO remove or reimplement if freebayes option should be preserved
+				if ($use_freebayes) //perform variant calling with freebayes if set in settings.ini
 				{
 					$args = [];
 					$args[] = "-bam ".$used_bam_or_cram;
@@ -655,29 +657,30 @@ if (in_array("vc", $steps))
 					$args[] = "-min_mq 0";
 					$args[] = "-min_bq ".$min_bq;
 					$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
-				} */
-
-				$args = [];
-
-				if ($is_wes || $is_wgs)
-				{
-					$args[] = "-model_type ".$sys['type'];
 				}
 				else
 				{
-					trigger_error("The usage of DeepVariant is limited to WGS or WES short-read data! Different type '".$sys['type']."' detected in $system.", E_USER_ERROR);
+					$args = [];
+
+					if ($is_wes || $is_panel)	$args[] = "-model_type WES";
+					elseif ($is_wgs || $is_wgs_shallow) $args[] = "-model_type WGS";
+					else
+					{
+						trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, WGS (shallow), Panel, Panel Haloplex.", E_USER_ERROR);
+					}
+
+					$args[] = "-bam ".$used_bam_or_cram;
+					$args[] = "-out ".$tmp_low_mappability;
+					$args[] = "-build ".$build;
+					$args[] = "-threads ".$threads;
+					$args[] = "-target $roi_low_mappabilty";
+					$args[] = "-min_af ".$min_af;
+					$args[] = "-min_mq 0";
+					$args[] = "-min_bq ".$min_bq;
+					$args[] = "-allow_empty_examples";
+
+					$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 				}
-
-				$args[] = "-bam ".$used_bam_or_cram;
-				$args[] = "-out ".$tmp_low_mappability;
-				$args[] = "-build ".$build;
-				$args[] = "-threads ".$threads;
-				$args[] = "-target $roi_low_mappabilty";
-				$args[] = "-min_af ".$min_af;
-				$args[] = "-min_mq 0";
-				$args[] = "-min_bq ".$min_bq;
-
-				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 
 				//unzip
 				$tmp_low_mappability2 = $parser->tempFile("_low_mappability.vcf");
