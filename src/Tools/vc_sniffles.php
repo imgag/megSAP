@@ -67,6 +67,7 @@ else if(count($bam) == 1)
     $args[] = "--reference ".genome_fasta($build);
     $args[] = "--allow-overwrite";
     $args[] = "--sample-id ".$name;
+	$args[] = "--output-rnames";
     if($somatic) $args[] = "--non-germline";
 	if(isset($target))
 	{
@@ -103,6 +104,7 @@ else
     	$args[] = "--reference ".genome_fasta($build);
     	$args[] = "--allow-overwrite";
 		$args[] = "--sample-id ".$name;
+		$args[] = "--output-rnames";
 		if(isset($target))
 		{
 			$args[] = "--regions ".$target;
