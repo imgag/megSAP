@@ -14,6 +14,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFlag("skip_percentiles", "Skip percentile computation");
 $parser->addString("exclude_disease_group", "Name of a disease group which should be excluded for percentile calculation", true, "");
 $parser->addString("processing_system", "Processing system short name to which the percentile calculation should be limited to.", true, "");
+$parser->addInfile("custom_sample_table", "Custom table which should be used for cohort. Must contain columns 'name' and 'path', does no filtering of the table.", true, "");
 $parser->addFlag("add_tsv", "Add an additional tsv output");
 extract($parser->parse($argv));
 
@@ -320,6 +321,7 @@ if ($annotate_gnomad_af)
 		//extract af
 		$gnomad_af = 0;
 		$pop_af = 0;
+		$invert_gnomad = false;
 		foreach ($info_values as $info_value) 
 		{
 			if (starts_with($info_value, "POP_AF="))
@@ -332,11 +334,20 @@ if ($annotate_gnomad_af)
 				$gnomad_af = (float) explode("=", $info_value)[1];
 				continue;
 			}
+			if (starts_with($info_value, "REF_IS_EFFECT_ALLELE"))
+			{
+				//invert gnomAD af if effect allele is reference
+				$invert_gnomad = true;
+				continue;
+			}
 		}
+		//invert gnomAD af
+		if ($invert_gnomad) $gnomad_af = 1 - $gnomad_af;
+
 		$diff = abs($gnomad_af-$pop_af);
 		$info_values[] = "AF_DIFF=".$diff;
 
-		if ($diff > 0.1) trigger_error("The given population AF of the PRS variant ".$columns[0].":".$columns[1]." ".$columns[3].">".$columns[4]." differs more than 0.1 ({$diff}) from the gnomAD AF!", E_USER_WARNING);
+		if ($diff > 0.1) trigger_error("The given population AF of the PRS variant ".$columns[0].":".$columns[1]." ".$columns[3].">".$columns[4]." differs more than 0.1 ({$diff}) from the ".(($invert_gnomad)?"inverted ":"")."gnomAD AF!", E_USER_WARNING);
 
 		$columns[7] = implode(";", $info_values);
 		$vcf_out_content[] = implode("\t", $columns)."\n";
@@ -352,7 +363,21 @@ if(!$skip_percentiles)
 {
 	//calculate PRS for all WGS samples of the NGSD and calculate distribution (percentiles)
 	$distribution_file = $parser->tempFile("_distribution.tsv");
-	$parser->execTool("Tools/calculate_prs_distribution.php", "-in $input_vcf -out $distribution_file".(($exclude_disease_group == "")?"":" -exclude_disease_group ".$exclude_disease_group).(($processing_system == "")?"":" -processing_system ".$processing_system));
+
+	$args_dist = array();
+	$args_dist[] = "-in $input_vcf";
+	$args_dist[] = "-out $distribution_file";
+	if ($custom_sample_table != "")
+	{
+		if ($custom_sample_table != "") $args_dist[] = "-custom_sample_table ".$custom_sample_table;
+	}
+	else
+	{
+		if ($exclude_disease_group != "") $args_dist[] = "-exclude_disease_group ".$exclude_disease_group;
+		if ($processing_system != "") $args_dist[] = "-processing_system ".$processing_system;
+	}
+
+	$parser->execTool("Auxilary/calculate_prs_distribution.php", implode(" ", $args_dist));
 
 	// parse distribution file
 	$distribution = Matrix::fromTSV($distribution_file);

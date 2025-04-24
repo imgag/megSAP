@@ -65,7 +65,7 @@ function complement_baf_folder($t_n_id_file,$baf_folder,&$db_conn, $build)
 			$ninfo = get_processed_sample_info($db_conn,$nid);
 			$n_gsvar = $ninfo["ps_folder"] ."/{$nid}.GSvar";
 			$n_bam = $ninfo["ps_bam"];
-			$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $n_gsvar -bam $n_bam -genome $build -out_file {$baf_folder}/{$nid}.tsv");
+			$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $n_gsvar -bam $n_bam -build $build -out_file {$baf_folder}/{$nid}.tsv");
 		}
 		if(!file_exists("{$baf_folder}/{$tid}.tsv"))
 		{
@@ -73,7 +73,7 @@ function complement_baf_folder($t_n_id_file,$baf_folder,&$db_conn, $build)
 			$n_gsvar = $ninfo["ps_folder"] ."/{$nid}.GSvar";
 			$tinfo = get_processed_sample_info($db_conn,$tid);
 			$t_bam = $tinfo["ps_bam"];
-			$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $n_gsvar -bam $t_bam -genome $build -out_file {$baf_folder}/{$tid}.tsv");
+			$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $n_gsvar -bam $t_bam -build $build -out_file {$baf_folder}/{$tid}.tsv");
 		}
 	}
 }
