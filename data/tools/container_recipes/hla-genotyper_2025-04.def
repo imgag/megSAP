@@ -1,9 +1,9 @@
 Bootstrap: docker
-From: ubuntu:22.04
+From: ubuntu:24.04
 
 %labels
     Maintainer KilianIlius
-    Version hla-genotyper-2022_05
+    Version hla-genotyper-2025_04
 
 %post
 	LANG=C.UTF-8
@@ -20,9 +20,10 @@ From: ubuntu:22.04
 
 	# Write requirements.txt file
 	echo "
-	biopython==1.81
-	numpy==1.24.4
-	pysam==0.22.0
+	bio==1.7.1
+	biopython==1.85
+	numpy==2.2.5
+	pysam==0.23.0
 	" > /opt/requirements.txt
 
 	# Install the Python packages from requirements.txt
@@ -33,14 +34,14 @@ From: ubuntu:22.04
 
 	# Download hla-genotyper
 	cd /opt
-	wget https://github.com/axelgschwind/hla-genotyper/archive/refs/tags/2022_05.tar.gz
-	tar xzf 2022_05.tar.gz
-	rm 2022_05.tar.gz
-	chmod +x /opt/hla-genotyper-2022_05/genotyper.py
+	wget https://github.com/axelgschwind/hla-genotyper/archive/refs/tags/2025_04.tar.gz
+	tar xzf 2025_04.tar.gz
+	rm 2025_04.tar.gz
+	chmod +x /opt/hla-genotyper-2025_04/genotyper.py
 	cd /
 
 	# Add shebang to genotyper.py to make it executable without calling python3
-	sed -i '1i#!/usr/bin/env python3' /opt/hla-genotyper-2022_05/genotyper.py
+	sed -i '1i#!/usr/bin/env python3' /opt/hla-genotyper-2025_04/genotyper.py
 
 	# Cleanup build dependencies
 	apt-get remove -y \
@@ -56,5 +57,5 @@ From: ubuntu:22.04
 	export LANG=C.UTF-8
 	export LC_ALL=C.UTF-8
 	export DEBIAN_FRONTEND=noninteractive
-	export PATH=/opt/hla-genotyper-2022_05:$PATH
+	export PATH=/opt/hla-genotyper-2025_04:$PATH
 	source /genotyper_req_env/bin/activate
