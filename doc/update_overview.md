@@ -69,7 +69,7 @@
 |msisensor-pro          |microsatelite instability (tumor/normal)             |08.2024 (v1.2.0)  |                                                                                                                 |https://github.com/xjtu-omics/msisensor-pro                             |
 |varscan2               |variant calling                                      |08.2024 (2.4.6)   |                                                                                                                 |https://github.com/dkoboldt/varscan                                     |
 |umiVar2                |variant calling cfDNA                                |08.2024 (2024_07) |                                                                                                                 |https://github.com/imgag/umiVar2                                        |
-|hla-genotyper          |HLA genotyping                                       |08.2024 (2022_05) |                                                                                                                 |https://github.com/axelgschwind/hla-genotyper                           |
+|hla-genotyper          |HLA genotyping                                       |04.2025 (2025_04) |                                                                                                                 |https://github.com/axelgschwind/hla-genotyper                           |
 |SigProfilerExtractor   |mutational signatures                                |08.2024 (1.1.24)  |                                                                                                                 |https://github.com/AlexandrovLab/SigProfilerExtractor                   |
 
 
