@@ -20,6 +20,9 @@ $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to th
 $parser->addFlag("no_gender_check", "Skip gender check (done between mapping and variant calling).");
 $parser->addFlag("skip_wgs_check", "Skip the similarity check with a related short-read WGS sample.");
 $parser->addFlag("bam_output", "Output file format for mapping is BAM instead of CRAM.");
+$parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (DeepVariant 'min-alternate-fraction' parameter).", true, 0.1);
+$parser->addFloat("min_bq", "Minimum base quality used for variant calling (DeepVariant 'min-base-quality' parameter).", true, 10);
+$parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (DeepVariant 'min-mapping-quality' parameter).", true, 20);
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
@@ -382,70 +385,90 @@ if(db_is_enabled("NGSD") && !$no_gender_check)
 //variant calling
 if (in_array("vc", $steps))
 {
-	//determine basecall model
-	$basecall_model = get_basecall_model($used_bam_or_cram);
-	$basecall_model_path = "";
-
-	if ($basecall_model == "")
+	if ($sys['name_short'] == "LR-PB-SPRQ")
 	{
-		//if no entry in BAM header -> use default model
-		if (($sys["name_short"] == "SQK-LSK114") || ($sys["name_short"] == "LR-ONT-SQK-LSK114"))
-		{
-			$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
-		}
-		else if ($sys["name_short"] == "SQK-LSK109")
-		{
-			$basecall_model_path = get_path("clair3_models")."/r941_prom_hac_g360+g422/";
-		}
-		else if ($sys["name_short"] == "LR-ONT-SQK-LSK114-SUP")
-		{
-			$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_sup_v500/";
-		}
-		else
-		{
-			trigger_error("Unsupported processing system '".$sys["shortname"]."' provided!", E_USER_ERROR);
-		}
+		$args = [];
+		$args[] = "-model_type PACBIO";
+		$args[] = "-bam ".$used_bam_or_cram;
+		$args[] = "-out ".$vcf_file;
+		$args[] = "-build ".$build;
+		$args[] = "-threads ".$threads;
+		$args[] = "-target ".$sys['target_file'];
+		$args[] = "-target_extend 200";
+		$args[] = "-min_af ".$min_af;
+		$args[] = "-min_mq ".$min_mq;
+		$args[] = "-min_bq ".$min_bq;
 
-		trigger_error("No basecall info found in BAM file. Using default model at '{$basecall_model_path}'.", E_USER_NOTICE);
+		$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 	}
-	//special handling of old models
-	else if ($basecall_model == "dna_r10.4.1_e8.2_400bps_hac@v3.5.2")
-	{
-		$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
-
-		trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (special case).", E_USER_NOTICE);
-	} 
-	else if ($basecall_model == "dna_r9.4.1_e8_hac@v3.3")
-	{
-		$basecall_model_path = get_path("clair3_models")."/r941_prom_hac_g360+g422/";
-
-		trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (special case).", E_USER_NOTICE);
-	} 
-	//all new models can be directly derived
 	else 
 	{
-		$reformated_model_str = strtr($basecall_model, array("dna_" => "", "." => "", "@" => "_"));
-		$basecall_model_path = get_path("clair3_models")."/".$reformated_model_str."/";
 
-		trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (automatically derived).", E_USER_NOTICE);
+		//determine basecall model
+		$basecall_model = get_basecall_model($used_bam_or_cram);
+		$basecall_model_path = "";
+
+		if ($basecall_model == "")
+		{
+			//if no entry in BAM header -> use default model
+			if (($sys["name_short"] == "SQK-LSK114") || ($sys["name_short"] == "LR-ONT-SQK-LSK114"))
+			{
+				$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
+			}
+			else if ($sys["name_short"] == "SQK-LSK109")
+			{
+				$basecall_model_path = get_path("clair3_models")."/r941_prom_hac_g360+g422/";
+			}
+			else if ($sys["name_short"] == "LR-ONT-SQK-LSK114-SUP")
+			{
+				$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_sup_v500/";
+			}
+			else
+			{
+				trigger_error("Unsupported processing system '".$sys["shortname"]."' provided!", E_USER_ERROR);
+			}
+
+			trigger_error("No basecall info found in BAM file. Using default model at '{$basecall_model_path}'.", E_USER_NOTICE);
+		}
+		//special handling of old models
+		else if ($basecall_model == "dna_r10.4.1_e8.2_400bps_hac@v3.5.2")
+		{
+			$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
+
+			trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (special case).", E_USER_NOTICE);
+		} 
+		else if ($basecall_model == "dna_r9.4.1_e8_hac@v3.3")
+		{
+			$basecall_model_path = get_path("clair3_models")."/r941_prom_hac_g360+g422/";
+
+			trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (special case).", E_USER_NOTICE);
+		} 
+		//all new models can be directly derived
+		else 
+		{
+			$reformated_model_str = strtr($basecall_model, array("dna_" => "", "." => "", "@" => "_"));
+			$basecall_model_path = get_path("clair3_models")."/".$reformated_model_str."/";
+
+			trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (automatically derived).", E_USER_NOTICE);
+		}
+
+		//check if selected model is available
+		if (!file_exists($basecall_model_path)) trigger_error("Basecall model at '{$basecall_model_path}' not found!", E_USER_ERROR);
+
+		//prepare clair command
+		$args = [];
+		$args[] = "-bam ".$used_bam_or_cram;
+		$args[] = "-folder ".$folder;
+		$args[] = "-name ".$name;
+		$args[] = "-target ".$sys['target_file'];
+		$args[] = "-target_extend 200";
+		$args[] = "-threads ".$threads;
+		$args[] = "-build ".$build;
+		$args[] = "--log ".$parser->getLogFile();
+		$args[] = "-model ".$basecall_model_path;
+		
+		$parser->execTool("Tools/vc_clair.php", implode(" ", $args));
 	}
-
-	//check if selected model is available
-	if (!file_exists($basecall_model_path)) trigger_error("Basecall model at '{$basecall_model_path}' not found!", E_USER_ERROR);
-
-	//prepare clair command
-	$args = [];
-	$args[] = "-bam ".$used_bam_or_cram;
-	$args[] = "-folder ".$folder;
-	$args[] = "-name ".$name;
-	$args[] = "-target ".$sys['target_file'];
-	$args[] = "-target_extend 200";
-	$args[] = "-threads ".$threads;
-	$args[] = "-build ".$build;
-	$args[] = "--log ".$parser->getLogFile();
-	$args[] = "-model ".$basecall_model_path;
-	
-	$parser->execTool("Tools/vc_clair.php", implode(" ", $args));	
 
 	//check for truncated VCF file
 	if ($is_wgs) check_for_missing_chromosomes($vcf_file);
@@ -456,7 +479,9 @@ if (in_array("vc", $steps))
 	$params[] = "-name {$name}";
 	$params[] = "-out {$baf_file}";
 	$params[] = "-downsample 100";
-	$parser->execTool("Tools/baf_germline.php", implode(" ", $params));}
+	$parser->execTool("Tools/baf_germline.php", implode(" ", $params));
+}
+
 
 //copy-number analysis
 if (in_array("cn", $steps))
