@@ -28,7 +28,6 @@ extract($parser->parse($argv));
 
 //init
 $genome = genome_fasta($build);
-$gpu = get_path("use_deepvariant_gpu");
 
 //create basic variant calls
 $args = array();
@@ -75,16 +74,15 @@ $in_files = array_merge($in_files, $bam);
 
 // run deepvariant
 $pipeline = array();
-$container = ($gpu) ? "deepvariant-gpu" : "deepvariant";
 
 if ($raw_output)
 {
-	$parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf=$out", $in_files, [dirname($out)]);
+	$parser->execApptainer("deepvariant", "run_deepvariant" ,implode(" ", $args)." --output_vcf=$out", $in_files, [dirname($out)]);
 	return;
 }
 
 $vcf_deepvar_out = $parser->tempFile(".vcf.gz");
-$parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf=$vcf_deepvar_out", $in_files, [dirname($out)]);
+$parser->execApptainer("deepvariant", "run_deepvariant", implode(" ", $args)." --output_vcf=$vcf_deepvar_out", $in_files, [dirname($out)]);
 
 //filter variants according to variant quality>5
 $pipeline[] = ["zcat", "$vcf_deepvar_out"];
