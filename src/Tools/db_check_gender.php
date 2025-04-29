@@ -30,7 +30,7 @@ function sry_in_target($parser, $sys_roi)
 	return false;
 }
 
-function check_gender($gender, $gender2, $method)
+function check_gender($gender, $gender2, $method, $in)
 {
 	if (starts_with($gender2, "unknown"))
 	{
@@ -127,7 +127,7 @@ $genome = genome_fasta($build);
 list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-in {$in} -method {$method} {$args} -build ".ngsbits_build($build)." -ref {$genome}", [$in, $genome]);
 $gender2 = explode("\t", $stdout[1])[1];
 
-check_gender($gender, $gender2, $method);
+check_gender($gender, $gender2, $method, $in);
 
 if ($check_sry_cov && $method != "sry")
 {
@@ -136,7 +136,7 @@ if ($check_sry_cov && $method != "sry")
 		list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-in {$in} -method sry -sry_cov {$sry_cov} -build ".ngsbits_build($build)." -ref {$genome}", [$in, $genome]);
 		$gender_sry = explode("\t", $stdout[1])[1];
 	
-		check_gender($gender, $gender_sry, $method);
+		check_gender($gender, $gender_sry, $method, $in);
 	}
 	
 	trigger_error("Flag 'check_sry_cov' given but target region of the processed sample {$pid} doesn't include SRY.", E_USER_WARNING);
