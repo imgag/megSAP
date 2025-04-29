@@ -9,7 +9,7 @@ start_test("ToolBase::storeTDX");
 $tool = new ToolBase("test_toolbase", "0.0a", "full description");
 
 //extract version
-$ver = $tool->extractVersion("bgzip");
+$ver = $tool->extractVersion("cut");
 check($ver!="n/a", true);
 
 //exec

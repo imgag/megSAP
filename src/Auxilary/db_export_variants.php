@@ -89,7 +89,7 @@ $variants = array();
 foreach($vcfs as $ps => $vcf)
 {
 	print "  $vcf\n";
-	list($stdout) = $parser->exec("tabix", "{$vcf} -R {$bed}", false);
+	list($stdout) = $parser->execApptainer("htslib", "tabix", "{$vcf} -R {$bed}", [$vcf], []);
 	foreach($stdout as $line)
 	{
 		$line = trim($line);

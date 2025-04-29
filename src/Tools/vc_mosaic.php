@@ -179,6 +179,6 @@ $parser->execApptainer("ngs-bits", "VcfSort", "-in $tmp_filtered -out $tmp_sorte
 
 // fix error in VCF file and strip unneeded information
 $tmp_fixed_vcf = temp_file("_fixed.vcf");
-exec("cat $tmp_sorted_vcf | php ".repository_basedir()."/src/Tools/vcf_fix.php --mosaic_mode ".($no_zip ? "" : "| bgzip")." > $out");
+exec("cat $tmp_sorted_vcf | php ".repository_basedir()."/src/Tools/vcf_fix.php --mosaic_mode ".($no_zip ? " > $out" : "| ".$parser->execApptainer("htslib", "bgzip", "> $out", [], [dirname($out)], true)));
 
 ?>

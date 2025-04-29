@@ -60,6 +60,9 @@
 |REViewer               |Repeat expansion visualization                       |08.2024 (0.2.7)   |                                                                                                                 |https://github.com/Illumina/REViewer                                    |
 |GATK                   |gVCF merging                                         |08.2024 (4.6.0.0) |                                                                                                                 |https://github.com/broadinstitute/gatk/releases                         |
 |ORAD                   |Illumina ORA file decompression                      |08.2024 (2.6.1)   | version 2.7.0 available but update not necessary                                                                |                                                                        |
+|DeepVariant            |variant calling                                      |01.2025 (1.8.0)   |                                                                                                                 |https://github.com/google/deepvariant/                |
+|HTSlib                 |Compressing and indexing files                       |04.2025 (1.16)    | update if HTSlib version of ngs-bits changes                                                                    |https://github.com/samtools/htslib                             |
+
 
 ## Tools for somatic pipelines
 

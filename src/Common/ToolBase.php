@@ -883,6 +883,7 @@ class ToolBase
 		//log call
 		if($log_output)
 		{
+			$version_command = "apptainer exec $container_path $command";
 			$add_info = array();
 			foreach($in_files as $in_file)
 			{
@@ -897,7 +898,7 @@ class ToolBase
 				$add_info[] = "bind path           = ".$bind_path;
 			}
 			$add_info[] = "container path      = ".$container_path;
-			$add_info[] = "tool version        = ".$this->extractVersion($command);
+			$add_info[] = "tool version        = ".$this->extractVersion($version_command);
 			$add_info[] = "parameters          = $parameters";
 			$this->log("Calling external tool '$command' in container '".basename2($container_path)."'", $add_info);
 		}

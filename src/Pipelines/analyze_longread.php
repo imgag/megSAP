@@ -561,8 +561,8 @@ if (in_array("ph", $steps))
 	$contig_pipeline[] = array("egrep", "-v \"##contig=^\" > {$tmp_vcf}");
 	$parser->execPipeline($contig_pipeline, "contig removal");
 	add_missing_contigs_to_vcf($sys['build'], $tmp_vcf);
-	$parser->exec("bgzip", "-c {$tmp_vcf} > {$vcf_file}");
-	$parser->exec("tabix", "-f -p vcf {$vcf_file}", false); //no output logging, because Toolbase::extractVersion() does not return
+	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf} > {$vcf_file}", [], [dirname($vcf_file)]);
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_file}", [], [dirname($vcf_file)]);
 	
 	//check for methylation
 	$contains_methylation = contains_methylation($used_bam_or_cram);
@@ -607,12 +607,12 @@ if (in_array("ph", $steps))
 	$parser->execApptainer("longphase", "longphase", implode(" ", $args), [$folder, $genome], [$folder]);
 	
 	//create compressed file and index
-	$parser->exec("bgzip", "-c $phased_tmp > {$vcf_file}", false);
-	$parser->exec("tabix", "-f -p vcf $vcf_file", false);
+	$parser->execApptainer("htslib", "bgzip", "-c $phased_tmp > {$vcf_file}", [], [dirname($vcf_file)]);
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf $vcf_file", [], [dirname($vcf_file)]);
 	if (file_exists($sv_vcf_file))
 	{
-		$parser->exec("bgzip", "-c $phased_sv_tmp > {$sv_vcf_file}", false);
-		$parser->exec("tabix", "-f -p vcf $sv_vcf_file", false);
+		$parser->execApptainer("htslib", "bgzip", "-c $phased_sv_tmp > {$sv_vcf_file}", [], [dirname($sv_vcf_file)]);
+		$parser->execApptainer("htslib", "tabix", "-f -p vcf $sv_vcf_file", [], [dirname($sv_vcf_file)]);
 	}
 
 	//check for truncated VCF file

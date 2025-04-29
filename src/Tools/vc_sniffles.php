@@ -176,9 +176,9 @@ $vcf->unique(); //remove duplicate variant calls
 $vcf->setComments($comments);
 $vcf->toTSV($tmp_vcf);
 
-$parser->exec("bgzip", "-c $tmp_vcf > $out", false);
+$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf > $out", [], [dirname($out)]);
 
 //index output file
-$parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->execApptainer("htslib", "tabix", "-f -p vcf $out", [], [dirname($out)]);
 
 ?>

@@ -448,7 +448,7 @@ if (in_array("vc", $steps))
 				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true));
 
 				//zip
-				$pipeline[] = array("bgzip", "-c > $vcffile", false);
+				$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > $vcffile", [], [dirname($vcffile)], true));
 
 				//execute pipeline
 				$parser->execPipeline($pipeline, "Dragen small variants post processing");
@@ -487,10 +487,10 @@ if (in_array("vc", $steps))
 				fclose($hw);
 				
 				//bgzip
-				$parser->exec("bgzip", "-c $tmp2 > $vcffile", false);
+				$parser->execApptainer("htslib", "bgzip", "-c $tmp2 > $vcffile", [], [dirname($vcffile)]);
 
 				//index output file
-				$parser->exec("tabix", "-p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
+				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile", [], [dirname($vcffile)]);
 			}
 			elseif ($use_deepvariant)
 			{
@@ -567,13 +567,13 @@ if (in_array("vc", $steps))
 				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true));
 
 				//zip
-				$pipeline[] = array("bgzip", "-c > $vcffile_mito", false);
+				$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > $vcffile_mito", [], [], true));
 
 				//execute pipeline
 				$parser->execPipeline($pipeline, "Dragen small variants post processing (chrMT)");
 
 				//index output file
-				$parser->exec("tabix", "-p vcf $vcffile_mito", false); //no output logging, because Toolbase::extractVersion() does not return
+				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile_mito");
 			}
 			else
 			{
@@ -723,8 +723,8 @@ if (in_array("vc", $steps))
 		$parser->execApptainer("ngs-bits", "VcfSort", "-in $vcf -remove_unused_contigs -out $vcf");
 		
 		//zip and index
-		$parser->exec("bgzip", "-c $vcf > $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
-		$parser->exec("tabix", "-f -p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
+		$parser->execApptainer("htslib", "bgzip", "-c $vcf > $vcffile", [], [dirname($vcffile)]);
+		$parser->execApptainer("htslib", "tabix", "-f -p vcf $vcffile", [], [dirname($vcffile)]);
 		
 		//create b-allele frequency file
 		$params = array();
@@ -1013,8 +1013,8 @@ if (in_array("sv", $steps))
 			}
 	
 			//bgzip and index
-			$parser->exec("bgzip", "-c $vcf_marked > $sv_manta_file");
-			$parser->exec("tabix", "-p vcf $sv_manta_file", false); //no output logging, because Toolbase::extractVersion() does not return
+			$parser->execApptainer("htslib", "bgzip", "-c $vcf_marked > $sv_manta_file", [], [dirname($sv_manta_file)]);
+			$parser->execApptainer("htslib", "tabix", "-p vcf $sv_manta_file", [], [dirname($sv_manta_file)]);
 		}
 		else
 		{
