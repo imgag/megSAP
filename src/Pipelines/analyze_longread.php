@@ -118,6 +118,8 @@ $qc_other  = $folder."/".$name."_stats_other.qcML";
 $name_sample_ps = explode("_", $name, 2);
 $sample_name = $name_sample_ps[0];
 
+if(!$sys['target_file']) trigger_error("Target region is missing in processing system config.", E_USER_NOTICE);
+
 //check if target region covers whole genome
 list($stdout, $stderr, $ec) = $parser->execApptainer("ngs-bits", "BedInfo", "-in ".realpath($sys['target_file']), [$sys['target_file']]);
 $is_wgs = false;
@@ -132,7 +134,6 @@ foreach($stdout as $line)
 	}
 }
 if(!$is_wgs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in variant calls.", E_USER_NOTICE);
-
 
 //mapping
 if (in_array("ma", $steps))
