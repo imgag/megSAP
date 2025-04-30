@@ -57,11 +57,12 @@ if (!$gvcf)
 	$pipeline[] = array("zcat", $tmp);
 	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true)];
 	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref {$ref}", [$ref], [], true)];
-	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];	$pipeline[] = array("bgzip", "-c > {$out}", false);
+	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];	
+	$pipeline[] = ["", $parser->execApptainer("htslib", "bgzip", "-c > {$out}", [], [dirname($out)], true)];
 	$parser->execPipeline($pipeline, "post processing");
 
 	//index VCF
-	$parser->exec("tabix", "-p vcf {$out}", false);
+	$parser->execApptainer("htslib", "tabix", "-p vcf {$out}", [], [dirname($out)]);
 }
 
 ?>

@@ -18,9 +18,10 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | expansionhunter_v5.0.0.sif            | expansionhunter	        | 5.0.0	            | ExpansionHunter                                                                                   |
 | freebayes_v1.3.6.sif	                | freebayes                 | 1.3.6	            | freebayes                                                                                         |
 | gatk_4.6.0.0.sif	                    | gatk                      | 4.6.0.0	        | gatk                                                                                              |
-| glnexus_v1.4.1.sif                    | GLnexus                   | 1.4.1 	        | glnexus-cli                                                                                     |
+| glnexus_v1.4.1.sif                    | GLnexus                   | 1.4.1 	        | glnexus-cli                                                                                       |
 | happy_v0.3.14.sif	                    | happy                     | 0.3.14	        | hap.py                                                                                            |
-| hla-genotyper_2022-05.sif	            | hla-genotyper             | 2022-05	        | genotyper.py                                                                                      |
+| hla-genotyper_2022-05.sif	            | hla-genotyper             | 2025-04	        | genotyper.py                                                                                      |
+| htslib_1.16.sif                       | bgzip/tabix               | 1.16              | `bgzip` or `tabix`                                                                                |
 | kraken2_v2.1.3.sif	                | kraken2	                | 2.1.3         	| kraken2                                                                                           |
 | longphase_v1.7.3.sif	                | longphase                 | 1.7.3	            | longphase                                                                                         |
 | manta_v1.6.0.sif	                    | manta                     | 1.6.0	            | python2 /opt/manta/bin/configManta.py                                                             |

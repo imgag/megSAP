@@ -115,17 +115,17 @@ $reference_line = "##reference=".genome_fasta($build, false)."\n";
 file_put_contents($tmp_out, $file_format . $file_date . $source_line . $reference_line . file_get_contents($tmp_out));
 
 //zip
-$parser->exec("bgzip", "-c $tmp_out > $out");
+$parser->execApptainer("htslib", "bgzip", "-c $tmp_out > $out", [], [dirname($out)]);
 
 //(3) mark off-target variants
 if ($target_extend>0)
 {
 	$tmp = $parser->tempFile(".vcf");
 	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $out -mark off-target -reg $target -out $tmp", [$out, $target]);
-	$parser->exec("bgzip", "-c $tmp > $out", false);
+	$parser->execApptainer("htslib", "bgzip", "-c $tmp > $out", [], [dirname($out)]);
 }
 
 //(4) index output file
-$parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->execApptainer("htslib", "tabix", "-f -p vcf $out", [], [dirname($out)]);
 
 ?>

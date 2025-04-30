@@ -323,7 +323,7 @@ if (in_array("vc", $steps))
 			// Merge pipeline
 			$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), [], [], true)];
 			$pipeline[] = ["", $parser->execApptainer("glnexus", "bcftools view", "", [], [], true)];
-			$pipeline[] = ["bgzip", "-@ -c > $vcf_all"];
+			$pipeline[] = ["", $parser->execApptainer("htslib", "bgzip", "-@ -c > $vcf_all", [], [dirname($vcf_all)], true)];
 
 			$parser->execPipeline($pipeline, "GLnexus gVCF merging");
 		}
@@ -463,8 +463,8 @@ if (in_array("vc", $steps))
 	
 	//zip variant list
 	$vcf_zipped = "{$out_folder}{$prefix}_var.vcf.gz";
-	$parser->exec("bgzip", "-c $vcf_sorted > $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
-	$parser->exec("tabix", "-p vcf $vcf_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
+	$parser->execApptainer("htslib", "bgzip", "-c $vcf_sorted > $vcf_zipped", [], [dirname($vcf_zipped)]);
+	$parser->execApptainer("htslib", "tabix", "-p vcf $vcf_zipped", [], [dirname($vcf_zipped)]);
 
 	//basic annotation
 	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder $out_folder -system $system -threads $threads -multi");

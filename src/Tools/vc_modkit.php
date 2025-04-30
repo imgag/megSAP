@@ -44,8 +44,8 @@ $parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files);
 $parser->log("modkit pileup log file", file($log_file));
 
 //store compressed file
-$parser->exec("bgzip", "-c $uncompressed_bed > $bed", false); //no output logging, because Toolbase::extractVersion() does not return
-$parser->exec("tabix", "-f -p bed $bed", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->execApptainer("htslib", "bgzip", "-c $uncompressed_bed > $bed", [], [dirname($bed)]);
+$parser->execApptainer("htslib", "tabix", "-f -p bed $bed", [], [dirname($bed)]);
 
 //run summary
 if (isset($summary))

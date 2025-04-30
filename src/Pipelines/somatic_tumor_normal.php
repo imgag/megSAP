@@ -584,7 +584,7 @@ if (in_array("vc", $steps))
 	{
 		$snv_signatures_out = $out_folder."/snv_signatures/";
 		$tmp_variants = $parser->tempFile(".vcf", "snv_signatures_");
-		$parser->exec("bgzip","-c -d -@ {$threads} $variants > {$tmp_variants}", true);
+		$parser->execApptainer("htslib", "bgzip", "-c -d -@ {$threads} $variants > {$tmp_variants}", [$variants]);
 		$parser->exec("php ".repository_basedir()."/src/Tools/extract_signatures.php", "-in {$tmp_variants} -mode snv -out {$snv_signatures_out} -reference GRCh38 -threads {$threads}", true);
 	}
 }
@@ -941,8 +941,8 @@ if (in_array("an", $steps))
 	$s->toTSV($tmp_vcf);
 
 	// zip and index vcf file
-	$parser->exec("bgzip", "-c $tmp_vcf > $variants_annotated", true);
-	$parser->exec("tabix", "-f -p vcf $variants_annotated", true);
+	$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf > $variants_annotated", [], [dirname($variants_annotated)]);
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf $variants_annotated", [], [dirname($variants_annotated)]);
 
 	// convert vcf to GSvar
 	$args = array("-in $tmp_vcf", "-out $variants_gsvar", "-t_col $t_id", "-n_col $n_id");

@@ -16,7 +16,6 @@ From: ubuntu:24.04
 		wget \
 		git \
 		gnumeric \
-		tabix \
 		pigz \
 		curl \
 		ghostscript
