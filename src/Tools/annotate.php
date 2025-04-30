@@ -39,7 +39,7 @@ if (ends_with($vcffile, ".vcf"))
 else
 {
 	$vcf_unzipped = $parser->tempFile("_unzipped.vcf");
-	$parser->exec("bgzip", "-cd $vcffile > $vcf_unzipped", false); //no output logging, because Toolbase::extractVersion() does not return
+	$parser->execApptainer("htslib", "bgzip", "-cd $vcffile > $vcf_unzipped", [$vcffile]);
 }
 
 //output file names
@@ -141,8 +141,8 @@ if ($multi)
 }
 
 //zip annotated VCF file
-$parser->exec("bgzip", "-c $annfile > $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
-$parser->exec("tabix", "-f -p vcf $annfile_zipped", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->execApptainer("htslib", "bgzip", "-c $annfile > $annfile_zipped", [], [dirname($annfile_zipped)]);
+$parser->execApptainer("htslib", "tabix", "-f -p vcf $annfile_zipped", [], [dirname($annfile_zipped)]);
 
 //convert to GSvar file
 if (!$somatic) //germline only

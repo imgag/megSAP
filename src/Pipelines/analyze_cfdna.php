@@ -508,8 +508,8 @@ if (in_array("vc", $steps))
 	$s->toTSV($tmp_vcf);
 
 	// zip and index vcf file
-	$parser->exec("bgzip", "-c $tmp_vcf > $vcffile_annotated", true);
-	$parser->exec("tabix", "-f -p vcf $vcffile_annotated", true);
+	$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf > $vcffile_annotated", [], [dirname($vcffile_annotated)]);
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf $vcffile_annotated", [], [dirname($vcffile_annotated)]);
 
 	// convert vcf to GSvar
 	$gsvar_file = "$folder/${name}.GSvar";

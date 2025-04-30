@@ -167,8 +167,8 @@ if (in_array("vc", $steps))
 	$parser->execApptainer("whatshap", "whatshap", implode(" ", $args), [$ped, $genome], $out_files);
 
 	//create compressed file and index and replace original VCF
-	$parser->exec("bgzip", "-c {$vcf_file_phased} > {$vcf_file}", false);
-	$parser->exec("tabix", "-f -p vcf $vcf_file", false);
+	$parser->execApptainer("htslib", "bgzip", "-c {$vcf_file_phased} > {$vcf_file}", [], [dirname($vcf_file)]);
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf $vcf_file", [], [dirname($vcf_file)]);
 }
 
 //copy-number

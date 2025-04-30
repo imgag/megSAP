@@ -158,7 +158,7 @@ if (in_array("vc", $steps))
 	
 	//Varscan2 calling
 	$parser->execTool("Tools/vc_varscan2.php", "-bam $t_bam -out $variants -build " .$sys['build']. " -target ". $roi. " -name $t_id -min_af $min_af");
-	$parser->exec("tabix", "-f -p vcf $variants", true);
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf $variants", [], [dirname($variants)]);
 
 	//add somatic BAF file
 	//create b-allele frequency file
@@ -376,8 +376,8 @@ if (in_array("an", $steps))
 	$s->toTSV($tmp_vcf);
 
 	// zip and index vcf file
-	$parser->exec("bgzip", "-c $tmp_vcf > $variants_annotated", true);
-	$parser->exec("tabix", "-f -p vcf $variants_annotated", true);
+	$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf > $variants_annotated", [], [dirname($variants_annotated)]);
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf $variants_annotated", [], [dirname($variants_annotated)]);
 
 	// convert vcf to GSvar
 	$args = array("-in $tmp_vcf", "-out $variants_gsvar", "-t_col $t_id");
