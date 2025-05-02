@@ -769,6 +769,13 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				$old_name = basename($file);
 				$new_name = strtr($old_name, array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
+				if ($sample_infos["sys_umi_type"] === "n/a" && contains($new_name, "_index_"))
+				{
+					//do not move index/UMI FASTQ files for processing systems with UMI type n/a
+					//useful for flow cells with mixed UMI/non-UMI protocols
+					trigger_error("Processing system of sample '{$sample}' has UMI type n/a, skipping index bases FASTQ!", E_USER_NOTICE);
+					continue;
+				}
 				$target_to_copylines[$tag][] = "\tmv ".($overwrite ? "-f " : "")."$old_location/Sample_{$sample}/$old_name {$sample_folder}/$new_name";				
 			}
 		}
