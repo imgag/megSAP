@@ -416,7 +416,7 @@ foreach($res as $row)
 		$tmp_folder = $parser->tempFolder();	
 		
 		#get bam or cram file from sample and the reference file for the sample
-		$bam_or_cram = $info['ps_bam']
+		$bam_or_cram = $info['ps_bam'];
 		
 		$sys_filename_ignore = "";
 		$sys = load_system($sys_filename_ignore, $ps_name); //param filename = "" to load from the NGSD
