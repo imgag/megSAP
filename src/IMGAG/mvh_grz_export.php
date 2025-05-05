@@ -19,17 +19,25 @@ $mvh_folder = get_path("mvh_folder");
 
 //check that case ID is valid
 $seq_type = $db_mvh->getValue("SELECT seq_type FROM case_data WHERE id='{$case_id}'", "");
-if ($seq_type=="") trigger_error("No case with id '$case' in MVH database!", E_USER_ERROR);
-if ($seq_type!="wes") trigger_error("Type '$seq_type' not supported yet!", E_USER_ERROR); //TODO implement WGS, lrGS, TN WES, TN WGS
+if ($seq_type=="") trigger_error("No case with id '{$case}' in MVH database!", E_USER_ERROR);
+if ($seq_type!="wes") trigger_error("Type '{$seq_type}' not supported yet!", E_USER_ERROR); //TODO implement WGS, lrGS, TN WES, TN WGS
 $disease_type = $db_mvh->getValue("SELECT disease_type FROM case_data WHERE id='{$case_id}'");
 print "case: {$case_id} (seq_type: {$seq_type}, disease_type: {$disease_type})\n";
 
+//determine KDK
+$kdk = "";
+if ($disease_type=="rare") $kdk = "KDKTUE002"; //NSE - Tübingen
+if ($disease_type=="oncological") $kdk = "KDKTUE005"; //DNPM - Tübingen
+if ($disease_type=="hboc") $kdk = "KDKL00003"; //DK-FBREK - Leipzig
+if ($disease_type=="hereditary_cancer") $kdk = "KDKL00004"; //DK-FDK - Leipzig
+if ($kdk=="") trigger_error("Could not determine KDK for sample '{$ps1}' with disease_type '{$disease_type}'!", E_USER_ERROR);
+	
 //check germline processed sample is ok
 $ps1 = $db_mvh->getValue("SELECT ps1 FROM case_data WHERE id='{$case_id}'");
 $info1 = get_processed_sample_info($db_ngsd, $ps1);
 $sys1 = $info1['sys_name_short'];
 $patient_id = $info1['patient_identifier'];
-if ($patient_id=="") trigger_error("No patient identifier set for sample '$ps1'!", E_USER_ERROR);
+if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps1}''!", E_USER_ERROR);
 print "sample 1: {$ps1} (system: {$sys1})\n";
 $readl1 = get_processed_sample_qc($db_ngsd, $ps1, "QC:2000006");
 while (contains($readl1, "-")) $readl1 = explode("-", $readl1, 2)[1];
@@ -38,7 +46,7 @@ while (contains($readl1, "-")) $readl1 = explode("-", $readl1, 2)[1];
 $roi = "";
 if ($sys1=="twistCustomExomeV2" || $sys1=="twistCustomExomeV2Covaris") $roi = "{$mvh_folder}/rois/twist_exome_core_plus_refseq.bed";
 if ($sys1=="hpHBOCv5") $roi = "/mnt/storage2/megSAP/data/enrichment/hpHBOCv5_2014_10_27.bed"; //TODO: only for testing > remove!
-if (!contains($seq_type, "wgs") && !contains($seq_type,"lrgs") && $roi=="") trigger_error("Could not determine target region for sample '$ps1' with processing system '$sys1'!", E_USER_ERROR);
+if (!contains($seq_type, "wgs") && !contains($seq_type,"lrgs") && $roi=="") trigger_error("Could not determine target region for sample '{$ps1}'' with processing system '{$sys1}'!", E_USER_ERROR);
 
 //determine study sub-type
 $study_subtype = "";
@@ -75,15 +83,15 @@ $json[] = "\"\$schema\": \"https://raw.githubusercontent.com/BfArM-MVH/MVGenomse
 $json[] = "  \"submission\": {\n";
 $json[] = "    \"submissionDate\": \"".$db_mvh->getValue("SELECT date FROM submission_grz WHERE id='{$sub_id}'")."\",\n";
 $json[] = "    \"submissionType\": \"".$db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'")."\",\n";
-$json[] = "    \"submitterId\": \"TODO\",\n";  //WOHER
+$json[] = "    \"submitterId\": \"260840108\",\n";
 $json[] = "    \"tanG\": \"{$tang}\",\n";
 $json[] = "    \"localCaseId\": \"{$patient_id}\",\n";
-$json[] = "    \"genomicDataCenterId\": \"TODO\",\n"; //WOHER
-$json[] = "    \"clinicalDataNodeId\": \"TODO\",\n"; //WOHER
+$json[] = "    \"genomicDataCenterId\": \"GRZTUE002\",\n";
+$json[] = "    \"clinicalDataNodeId\": \"{$kdk}\",\n";
 $json[] = "    \"labName\": \"Institute of Medical Genetics and Applied Genomics, Tuebingen, Germany\",\n";
 $json[] = "    \"genomicStudyType\": \"single\",\n";
 $json[] = "    \"genomicStudySubtype\": \"{$study_subtype}\",\n";
-$json[] = "    \"coverageType\": \"UNK\",\n"; //TODO
+$json[] = "    \"coverageType\": \"UNK\",\n"; //TODO get info and implement: "GKV" --> Gesetzliche Krankenversicherung "PKV" --> Private Krankenversicherung "BG", --> Berufsgenossenschaft "SEL", --> Selbstzahler "SOZ", --> Sozialamt "GPV", --> Gesetzliche Pflegeversicherung "PPV", --> Private Pflegeversicherung "BEI", --> Beihilfe "SKT", --> Sonstige Kostenträger "UNK" --> Unklar/Unbekannt
 $json[] = "    \"diseaseType\": \"{$disease_type}\"\n";
 $json[] = "  },\n";
 $json[] = "  \"donors\":\n";
@@ -109,7 +117,8 @@ TODO:
 - store schema of MVH DB
 
 
-Installation notes GRZ-CLI (see https://github.com/BfArM-MVH/grz-cli):
+#Installation notes GRZ-CLI (see https://github.com/BfArM-MVH/grz-cli):
+
 	- Install miniforge at /mnt/storage2/megSAP/tools/miniforge3/
 		> curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 		> bash Miniforge3-$(uname)-$(uname -m).sh
