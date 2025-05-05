@@ -71,7 +71,7 @@ $pid_file = "{$local_data}/megSAP_data_setup_{$build}.txt";
 print "PID: $pid_file\n";
 if (file_exists($pid_file))
 {
-	$pid_old = trim(file_get_contents($pid_file));
+	$pid_old = (int)trim(file_get_contents($pid_file));
 	$iter = 0;
 	while (posix_getpgid($pid_old)!==FALSE)
 	{
