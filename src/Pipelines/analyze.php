@@ -516,7 +516,7 @@ if (in_array("vc", $steps))
 				elseif ($is_wgs) $args[] = "-model_type WGS";
 				else
 				{
-					trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, WGS (shallow), Panel, Panel Haloplex.", E_USER_ERROR);
+					trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, Panel, Panel Haloplex.", E_USER_ERROR);
 				}
 
 				$args[] = "-bam ".$used_bam_or_cram;
@@ -666,7 +666,7 @@ if (in_array("vc", $steps))
 					elseif ($is_wgs) $args[] = "-model_type WGS";
 					else
 					{
-						trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, WGS (shallow), Panel, Panel Haloplex.", E_USER_ERROR);
+						trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, Panel, Panel Haloplex.", E_USER_ERROR);
 					}
 
 					$args[] = "-bam ".$used_bam_or_cram;

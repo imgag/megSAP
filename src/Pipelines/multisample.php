@@ -302,7 +302,7 @@ if (in_array("vc", $steps))
 				elseif ($is_wgs) $args[] = "-model_type WGS";
 				else
 				{
-					trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types for multisample analysis are: WES, WGS, WGS (shallow).", E_USER_ERROR);
+					trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types for multisample analysis are: WES, WGS", E_USER_ERROR);
 				}
 
 				$args[] = "-bam ".$local_bam;
