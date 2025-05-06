@@ -26,8 +26,9 @@ $parser->addFlag("no_gender_check", "Skip gender check (done between mapping and
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
-$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping, small variant and structural variant calling.");
-$parser->addFlag("use_dragen_ML", "Use ML model in small variant calling of Illumina DRAGEN.");
+// $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping, small variant and structural variant calling.");
+// $parser->addFlag("use_dragen_ML", "Use ML model in small variant calling of Illumina DRAGEN.");
+$parser->addFlag("no_dragen", "Do not use Illumina DRAGEN calls from NovaSeq X or Dragen server.");
 $parser->addFlag("use_deepvariant", "Use Deepvariant instead of freebayes for small variant calling.");
 $parser->addFlag("gpu", "Use GPU version of DeepVariant for small variant calling");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
@@ -76,21 +77,6 @@ $steps = explode(",", $steps);
 foreach($steps as $step)
 {
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
-}
-
-//checks in case DRAGEN should be used
-if ($use_dragen)
-{
-	$no_abra = true;
-	
-	if (!in_array("ma", $steps) && in_array("vc", $steps) && !file_exists($folder."/dragen_variant_calls/{$name}_dragen.vcf.gz")) 
-	{
-		trigger_error("DRAGEN small variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
-	}
-	if (!in_array("ma", $steps) && in_array("sv", $steps) && !file_exists($folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz")) 
-	{
-		trigger_error("DRAGEN structural variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
-	}
 }
 
 //remove invalid steps
@@ -247,8 +233,6 @@ if (in_array("ma", $steps))
 	if($no_trim) $args[] = "-no_trim";
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
-	if($use_dragen) $args[] = "-use_dragen";
-	if($use_dragen_ML) $args[] = "-use_dragen_ML";
 	if($somatic) $args[] = "-somatic_custom_map";
 	$used_bam_or_cram = $parser->tempFolder("local_bam")."/".$name.".bam"; //local copy of BAM file to reduce IO over network when mapping is done 
 	$parser->execTool("Tools/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name -local_bam $used_bam_or_cram ".implode(" ", $args)." -threads $threads");
@@ -383,6 +367,9 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 			}
 		}
 	}
+
+
+	//TODO: check for remaining FastQ/ORAs and delete them
 }
 
 //check gender after mapping
@@ -426,11 +413,12 @@ if (in_array("vc", $steps))
 		//perform main variant calling on autosomes/genosomes
 		if(!$only_mito_in_target_region)
 		{
-			if ($use_dragen)
+			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
+			if (!$no_dragen && file_exists($dragen_output_vcf))
 			{
-				if (!in_array("ma", $steps)) trigger_error("'-use_dragen' with no mapping step provided. Using old DRAGEN VCF for small variant calling.", E_USER_NOTICE);
+				trigger_error("DRAGEN analysis found in sample folder. Using this data for small variant calling. ", E_USER_NOTICE);
 				$pipeline = [];
-				$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
+
 				$pipeline[] = array("zcat", $dragen_output_vcf);
 				
 				//filter by target region (extended by 200) and quality 5
@@ -548,10 +536,12 @@ if (in_array("vc", $steps))
 		if ($mito)
 		{
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
-			if ($use_dragen)
+			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
+			if (!$no_dragen && file_exists($dragen_output_vcf))
 			{
+				trigger_error("DRAGEN analysis found in sample folder. Using this data for mito small variant calling. ", E_USER_NOTICE);
 				$pipeline = [];
-				$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
+				
 				$pipeline[] = array("zcat", $dragen_output_vcf);
 				
 				//filter by target region and quality 5
@@ -984,10 +974,9 @@ if (in_array("sv", $steps))
 	if (!$annotation_only)
 	{
 		$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz";
-		if ($use_dragen)
+		if (!$no_dragen && file_exists($dragen_output_vcf))
 		{
-			if (!file_exists($dragen_output_vcf)) trigger_error("Dragen SV calling file not found!", E_USER_ERROR);
-			if (!in_array("ma", $steps)) trigger_error("'-use_dragen' without mapping step provided. Using DRAGEN SV VCF that is already present.", E_USER_NOTICE);
+			trigger_error("DRAGEN analysis found in sample folder. Using this data for structural variant calling. ", E_USER_NOTICE);
 					
 			//combine BND of INVs to one INV in VCF
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");

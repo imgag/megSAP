@@ -11,6 +11,7 @@ $parser->addStringArray("samples", "Processed sample name(s).", false);
 //optional
 $parser->addStringArray("info", "Sample info entries for complex analysis jobs: 'affected/control' for multi sample, 'tumor/normal/tumor_rna' for somatic, 'child/father/mother' for trio.", true);
 $parser->addFlag("high_priority", "Perform analysis with high priority");
+$parser->addFlag("use_dragen", "Use illumina DRAGEN pipeline to analyze (only tumor-normal and germline short-read).");
 $parser->addString("args",  "Custom arguments passed on to the analysis script.", true);
 $parser->addString("user", "Name of the user who queued the analysis (current user if unset).", true, "");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
@@ -74,7 +75,7 @@ foreach($result as $row)
 
 //queue analysis
 $db_conn->beginTransaction();
-$db_conn->executeStmt("INSERT INTO `analysis_job`(`type`, `high_priority`, `args`) VALUES (:type, :prio, :args)", array("type"=>$type, "prio"=>($high_priority ? "1" : "0"), "args"=>$args));
+$db_conn->executeStmt("INSERT INTO `analysis_job`(`type`, `high_priority`, `args`, `use_dragen`) VALUES (:type, :prio, :args, :use_dragen)", array("type"=>$type, "prio"=>($high_priority ? "1" : "0"), "args"=>$args, "use_dragen"=>($use_dragen ? "1" : "0")));
 $job_id = $db_conn->lastInsertId();
 $db_conn->executeStmt("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES ({$job_id}, '".get_timestamp(false)."', $user_id, 'queued', '')");
 for($i=0; $i<count($ps_ids); ++$i)
