@@ -6,16 +6,16 @@
   ]>
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
-    <metaDataParameter ID="md0001" name="creation software" value="VariantQC 2024_07-13-g166c5285" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0001" name="creation software" value="VariantQC 2025_03-18-g29521a22" cvRef="QC" accession="QC:1000002"/>
     <metaDataParameter ID="md0002" name="creation software parameters" value="" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2024-08-16T15:14:19" cvRef="QC" accession="QC:1000004"/>
-    <metaDataParameter ID="md0004" name="source file" value="annotate_VHVBlS.vcf" cvRef="QC" accession="QC:1000005"/>
-    <qualityParameter ID="qp0001" name="variant count" description="Total number of variants in the target region." value="150" cvRef="QC" accession="QC:2000013"/>
-    <qualityParameter ID="qp0002" name="known variants percentage" description="Percentage of variants that are known polymorphisms in the dbSNP database." value="99.33" cvRef="QC" accession="QC:2000014"/>
-    <qualityParameter ID="qp0003" name="high-impact variants percentage" description="Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants." value="0.67" cvRef="QC" accession="QC:2000015"/>
-    <qualityParameter ID="qp0004" name="homozygous variants percentage" description="Percentage of variants that are called as homozygous." value="39.33" cvRef="QC" accession="QC:2000016"/>
-    <qualityParameter ID="qp0005" name="indel variants percentage" description="Percentage of variants that are insertions/deletions." value="2.67" cvRef="QC" accession="QC:2000017"/>
-    <qualityParameter ID="qp0006" name="transition/transversion ratio" description="Transition/transversion ratio of single nucleotide variants." value="3.06" cvRef="QC" accession="QC:2000018"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2025-04-23T15:38:54" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0004" name="source file" value="annotate_Q56H0M.vcf" cvRef="QC" accession="QC:1000005"/>
+    <qualityParameter ID="qp0001" name="variant count" description="Total number of variants in the target region." value="137" cvRef="QC" accession="QC:2000013"/>
+    <qualityParameter ID="qp0002" name="known variants percentage" description="Percentage of variants that are known polymorphisms in the dbSNP database." value="100.00" cvRef="QC" accession="QC:2000014"/>
+    <qualityParameter ID="qp0003" name="high-impact variants percentage" description="Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants." value="0.00" cvRef="QC" accession="QC:2000015"/>
+    <qualityParameter ID="qp0004" name="homozygous variants percentage" description="Percentage of variants that are called as homozygous." value="42.34" cvRef="QC" accession="QC:2000016"/>
+    <qualityParameter ID="qp0005" name="indel variants percentage" description="Percentage of variants that are insertions/deletions." value="2.19" cvRef="QC" accession="QC:2000017"/>
+    <qualityParameter ID="qp0006" name="transition/transversion ratio" description="Transition/transversion ratio of single nucleotide variants." value="3.62" cvRef="QC" accession="QC:2000018"/>
     <qualityParameter ID="qp0007" name="mosaic variant count" description="Number of variants that are flagged as mosaic variants (in filter column)." value="9" cvRef="QC" accession="QC:2000142"/>
   </runQuality>
   <cvList>

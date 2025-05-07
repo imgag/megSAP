@@ -739,10 +739,6 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	{
 		$apptainer_args[] = "--pwd=/tmp";
 	}
-	if ($container=="deepvariant-gpu") //to run a gpu supported apptainer container you need the --nv flag
-	{
-		$apptainer_args[] = "--nv";
-	}
 
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
 	$bind_paths = array();
@@ -917,10 +913,16 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 
 	//compose Apptainer command
 	$apptainer_command = "apptainer exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
+
+	if ($container=="deepvariant")
+	{
+		$apptainer_command = "TF_CPP_MIN_LOG_LEVEL=2 $apptainer_command";
+	}
 	
 	//if command only option is true, only the apptainer command is being return, without execution
 	if($command_only) 
 	{
+		$apptainer_command = "apptainer -q exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
 		return $apptainer_command;
 	}
 
