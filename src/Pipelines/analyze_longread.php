@@ -41,6 +41,7 @@ $parser->logServerEnvronment();
 //determine processing system
 $sys = load_system($system, $name);
 $build = $sys['build'];
+$platform = get_longread_sequencing_platform($sys['name_short']);
 
 //check steps
 $steps = explode(",", $steps);
@@ -387,7 +388,7 @@ if(db_is_enabled("NGSD") && !$no_gender_check)
 //variant calling
 if (in_array("vc", $steps))
 {
-	if ($sys['name_short'] == "LR-PB-SPRQ")
+	if ($platform == "PB")
 	{
 		$args = [];
 		$args[] = "-model_type PACBIO";
@@ -408,7 +409,7 @@ if (in_array("vc", $steps))
 
 		$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 	}
-	else 
+	else
 	{
 
 		//determine basecall model

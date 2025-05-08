@@ -40,6 +40,7 @@ $qcml_map = $basename."_stats_map.qcML";
 //extract processing system information from DB
 $sys = load_system($system, $sample);
 $genome_fasta = genome_fasta($sys['build']);
+$platform = get_longread_sequencing_platform($sys['name_short']);
 
 //set read group information
 $group_props = [];
@@ -47,12 +48,11 @@ $group_props[] = "ID:{$sample}";
 $group_props[] = "SM:{$sample}";
 $group_props[] = "LB:{$sample}";
 $group_props[] = "DT:".date("c");
-//default PL to ONT, change to PacBio if necessary
-if ($sys['name_short'] == "LR-PB-SPRQ")
+if ($platform == "PB")
 {
 	$group_props[] = "PL:PACBIO";
 }
-else
+elseif ($platform == "ONT")
 {
 	$group_props[] = "PL:ONT";
 }
@@ -68,13 +68,17 @@ if(db_is_enabled("NGSD"))
 }
 
 //set preset, default to ONT
-if ($sys['name_short'] == "LR-PB-SPRQ")
+if ($platform == "PB")
 {
 	$preset = "map-hifi";
 }
-else
+elseif ($platform == "ONT")
 {
 	$preset = "map-ont";
+}
+else
+{
+	trigger_error("Could not determine preset as platform {$platform} is unknown", E_USER_ERROR);
 }
 
 
