@@ -730,7 +730,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	$apptainer_args = [];
 	$apptainer_args[] = "--no-mount home,cwd";
 	$apptainer_args[] = "--cleanenv";
-	if ($container=="samtools" || $container=="methylartist") //samtools needs REF_CACHE to avoid re-initializing the reference cache inside the container every call: http://www.htslib.org/doc/samtools.html#ENVIRONMENT_VARIABLES
+	if ($container=="samtools" || $container=="methylartist" || $container=="straglrOn") //samtools needs REF_CACHE to avoid re-initializing the reference cache inside the container every call: http://www.htslib.org/doc/samtools.html#ENVIRONMENT_VARIABLES
 	{
 		$apptainer_args[] = "--env REF_CACHE=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s";
 	}
