@@ -2500,7 +2500,7 @@ function compare_bam_read_count($bam_file1, $bam_file2, $threads = 4, $throw_err
 function get_longread_sequencing_platform($name_short)
 {
 	// TODO: use better way than short name comparison
-    if (strpos($name_short, 'LR-PB-') === 0) {
+    if (starts_with($name_short, 'LR-PB-')) {
         return 'PB';
     } else {
         return 'ONT';
