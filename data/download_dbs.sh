@@ -232,7 +232,7 @@ apptainer exec $htslib tabix $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalize
 
 #download reference genome for orad
 cd $dbs
-mkdir oradata
+mkdir -p oradata
 cd oradata
 wget https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
 tar xzf orad.2.6.1.tar.gz
@@ -242,7 +242,7 @@ rm -rf orad_2_6_1
 
 #create reference file for msisensor-pro
 cd $dbs
-mkdir msisensor-pro
+mkdir -p msisensor-pro
 cd msisensor-pro
 apptainer exec -B $genome $msisensor msisensor-pro scan -d $genome -o msisensor_references_GRCh38.site
 
