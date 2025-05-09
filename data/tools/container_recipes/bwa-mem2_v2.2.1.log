@@ -1,6 +1,6 @@
 Built on: SRV026
 Built by: ahiliuk1
-Build date: 2025-05-09 11:19:40
+Build date: 2025-05-09 15:13:29
 
 INFO:    User not listed in /etc/subuid, trying root-mapped namespace
 INFO:    The %post section will be run under the fakeroot command
@@ -8,7 +8,7 @@ INFO:    Starting build...
 Copying blob sha256:0622fac788edde5d30e7bbd2688893e5452a19ff237a2e4615e2d8181321cb4e
 Copying config sha256:a0e45e2ce6e6e22e73185397d162a64fcf2f80a41c597015cab05d9a7b5913ce
 Writing manifest to image destination
-2025/05/09 13:19:42  info unpack layer: sha256:0622fac788edde5d30e7bbd2688893e5452a19ff237a2e4615e2d8181321cb4e
+2025/05/09 17:13:32  info unpack layer: sha256:0622fac788edde5d30e7bbd2688893e5452a19ff237a2e4615e2d8181321cb4e
 INFO:    Running post scriptlet
 + export LANG=C.UTF-8
 + export LC_ALL=C.UTF-8
@@ -16,22 +16,22 @@ INFO:    Running post scriptlet
 Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
 Get:2 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
 Get:3 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
-Get:4 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [22.1 kB]
-Get:5 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
-Get:6 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1033 kB]
-Get:7 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1318 kB]
-Get:8 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
-Get:9 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1081 kB]
-Get:10 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
-Get:11 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
-Get:12 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
-Get:13 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1380 kB]
-Get:14 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1354 kB]
-Get:15 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [26.7 kB]
-Get:16 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1362 kB]
-Get:17 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.0 kB]
-Get:18 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [31.8 kB]
-Fetched 29.9 MB in 4s (6800 kB/s)
+Get:4 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:5 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1318 kB]
+Get:6 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:7 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1081 kB]
+Get:8 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [22.1 kB]
+Get:9 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1033 kB]
+Get:10 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:11 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:12 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [26.7 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1362 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1354 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1380 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [31.8 kB]
+Get:18 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.0 kB]
+Fetched 29.9 MB in 3s (11.2 MB/s)
 Reading package lists...
 + apt-get dist-upgrade -y
 Reading package lists...
@@ -272,7 +272,7 @@ Get:151 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libsasl2-modul
 Get:152 http://archive.ubuntu.com/ubuntu noble/main amd64 manpages-dev all 6.7-2 [2013 kB]
 Get:153 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 zlib1g-dev amd64 1:1.3.dfsg-3.1ubuntu2.1 [894 kB]
 debconf: delaying package configuration, since apt-utils is not installed
-Fetched 130 MB in 26s (4964 kB/s)
+Fetched 130 MB in 11s (12.2 MB/s)
 Selecting previously unselected package liblocale-gettext-perl.
 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4381 files and directories currently installed.)
 Preparing to unpack .../0-liblocale-gettext-perl_1.07-6ubuntu5_amd64.deb ...
