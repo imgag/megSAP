@@ -35,7 +35,7 @@ while(!feof($in_handle))
 	//variant caller
 	if(starts_with($line, "##source="))	
 	{
-		++$source_lines;
+		#++$source_lines;
 		$line = strtolower($line);
 		if(contains($line, "freebayes")) $var_caller = "freebayes";
 		if(contains($line, "strelka")) $var_caller = "strelka";
@@ -53,7 +53,7 @@ while(!feof($in_handle))
 		break;
 	}
 }
-if($source_lines!=1) trigger_error("Found ".($source_lines==0 ? "no" : "several")." 'source' entries in VCF header (needed to identify the variant caller).", E_USER_ERROR);
+#if($source_lines!=1) trigger_error("Found ".($source_lines==0 ? "no" : "several")." 'source' entries in VCF header (needed to identify the variant caller).", E_USER_ERROR);
 if($var_caller===false) trigger_error("Unknown variant caller from 'source' entry in VCF header.", E_USER_ERROR);
 if($sample_idx===false) trigger_error("Could not identify sample column '$s_col' in VCF header.", E_USER_ERROR);
 
@@ -69,6 +69,7 @@ while(!feof($in_handle))
 	list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format) = $cols;
 
     if(strlen($ref) != 1 || strlen($alt) != 1 ) continue; //Skip INDELs
+	if($chr=="chrMT" || $filter == "mosaic" || $filter == "low_mappability") continue; //Skip mito, mosaic and low_mappability vars
 
     //calculate DP/AF
 	if($var_caller=="freebayes")
@@ -86,6 +87,10 @@ while(!feof($in_handle))
 	else if($var_caller == "umivar2")
 	{
 		list($dp, $af, $p_value, $alt_count, $strand, $seq_context, $homopolymer, $m_af, $m_ref, $m_alt) = vcf_umivar2($filter, $info, $format, $cols[$sample_idx]);
+	}
+	else if ($var_caller =="deepvariant")
+	{
+		list($dp, $af) = vcf_deepvariant($format, $cols[$sample_idx]);
 	}
 
     fputs($out_handle,"{$chr}\t{$pos}\t{$pos}\t{$chr}_{$pos}\t{$af}\t{$dp}\n");
