@@ -35,15 +35,6 @@ check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_
 remove_lines_containing($out_file4, ["##contig=", "##fileDate=", "##commandline=", "##reference=", "11067308", "11065934"]); //the last two entries are genomic positions of variants the cause numeric problems 
 check_file($out_file4, data_folder().$name."_out4.vcf");
 
-########################## test gpu version ##########################
-
-//will fall back to CPU if executed on a non-GPU server
-//currently the GPU container does not work
-/* $out_file5 = output_folder().$name."_out5.vcf.gz";
-check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file5 -model_type WES -target ".data_folder().$name."_in.bed -gpu --log ".output_folder().$name."_out5.log");
-check_file($out_file5, data_folder().$name."_out1.vcf.gz"); */
-
-
 ########################## gvcf output ##########################
 
 $out_file6 = output_folder().$name."_out6.vcf.gz";

@@ -116,5 +116,5 @@ $vcf_qci_sorted = $parser->tempFile("_qci_sorted.vcf");
 $parser->execApptainer("ngs-bits", "VcfSort", "-in $vcf_qci_aligned -out $vcf_qci_sorted");
 
 //zip and index output file
-$parser->exec("bgzip", "-c $vcf_qci_sorted > $out", false); //no output logging, because Toolbase::extractVersion() does not return
-$parser->exec("tabix", "-p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->execApptainer("htslib", "bgzip", "-c $vcf_qci_sorted > $out", [], [dirname($out)]);
+$parser->execApptainer("htslib", "tabix", "-p vcf $out", [], [dirname($out)]);

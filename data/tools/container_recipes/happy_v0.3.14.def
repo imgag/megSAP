@@ -1,47 +1,61 @@
 Bootstrap: docker
-From: ubuntu:20.04
+From: ubuntu:24.04
 
 %post
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
 export DEBIAN_FRONTEND=noninteractive
 
-# Update Ubuntu repositories and install basic dependencies, including software-properties-common for add-apt-repository
+# Update Ubuntu repositories and install basic dependencies
 apt-get update --fix-missing && \
 apt-get install -y \
+	g++-9 \
+	libboost1.74-dev \
     software-properties-common \
     autoconf \
     build-essential \
     bzip2 \
     cmake \
-    cython \
+	make \
     git \
     libbz2-dev \
+	libffi-dev \
+	libssl-dev \
+	libreadline-dev \
     libncurses5-dev \
+	libsqlite3-dev \
     pkg-config \
     wget \
+	liblzma-dev \
     zlib1g-dev
 
-# Add deadsnakes PPA for legacy Python versions
-add-apt-repository ppa:deadsnakes/ppa -y
-apt-get update --fix-missing
+update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 90
 
-# Install Python 2.7 and its dependencies
-apt-get install -y \
-    python2.7 \
-    python2.7-dev \
-    python-setuptools \
-    python-psutil \
-    python-numpy \
-    python-pysam
+# Download and build Python 2.7
+cd /opt
+mkdir python2.7
+wget https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz
+tar xzf Python-2.7.18.tgz
+cd Python-2.7.18
+./configure --prefix=/opt/python2.7
+make -j$(nproc)
+make altinstall
+cd ..
+rm -rf Python-2.7.18
+rm Python-2.7.18.tgz
+
+# Add to path
+ln -s /opt/python2.7/bin/python2.7 /usr/bin/python2.7
 
 # Install pip for Python 2 using get-pip.py
 wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
-python2 get-pip.py
+python2.7 get-pip.py
 rm get-pip.py
 
 # Use pip2 to install Python 2 packages
-pip2 install pandas==0.24.2 scipy bx-python
+/opt/python2.7/bin/pip2 install pandas==0.24.2 scipy bx-python
+/opt/python2.7/bin/pip2 install cython
+/opt/python2.7/bin/pip2 install psutil pysam==0.15.4
 
 # Download and install hap.py
 cd /opt
@@ -50,14 +64,17 @@ tar -xvzf v0.3.14.tar.gz
 mv hap.py-0.3.14 hap.py-0.3.14-src
 mkdir -p hap.py-0.3.14
 cd hap.py-0.3.14-src
-python2 install.py /opt/hap.py-0.3.14 --no-tests
+export CXXFLAGS="-std=c++11"
+python2.7 install.py /opt/hap.py-0.3.14 --no-tests
 cd ..
 rm -rf v0.3.14.tar.gz hap.py-0.3.14-src
 
 # Cleanup build dependencies
 cd /
 apt-get remove -y \
+	g++-9 \
     wget \
+	libboost1.74-dev \
 	software-properties-common \
 	zlib1g-dev \
     git \
@@ -66,8 +83,14 @@ apt-get remove -y \
     autoconf \
     cmake \
     cython \
+	make \
     libbz2-dev \
+	libssl-dev \
     libncurses5-dev \
+	libreadline-dev \
+	libsqlite3-dev \
+	libffi-dev \
+	liblzma-dev \
 	pkg-config
     
 apt-get autoremove -y

@@ -18,6 +18,7 @@ $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
 $parser->addFlag("no_rename_r3", "Do not rename R2/R3 FASTQ files to index/R2.");
 $parser->addFlag("ignore_nsx_analysis", "Ignore NovaSeqX Analysis results.");
 $parser->addFlag("no_genlab", "Do not query GENLAB for metadata.");
+$parser->addFlag("ignore_analysis", "Use FASTQ files from BCLConvert.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addInt("threads_ora", "Number of threads used to decompress ORA files during the copy.", true, 8);
 $parser->addFlag("test", "Run in test mode, e.g. set the pipeline path and project folder to a fixed value.");
@@ -497,7 +498,19 @@ foreach($sample_data as $sample => $sample_infos)
 		$fastq_folder = $analysis_id."/Data/BCLConvert/fastq";
 
 		$old_location = $analysis_id."/Data";
-		if($sys_type == "WGS")
+		if($ignore_analysis || ($sys_type == "RNA") || ($sys_type == "Panel") || ($sys_type == "cfDNA (patient-specific)") || ($sys_type == "cfDNA") || ($sys_type == "WGS (shallow)"))
+		{
+			$old_location .= "/BCLConvert";
+			if (file_exists($old_location."/ora_fastq"))
+			{
+				$fastq_folder = $old_location."/ora_fastq";
+			}
+			else
+			{
+				$fastq_folder = $old_location."/fastq";
+			}
+		}
+		else if($sys_type == "WGS")
 		{
 			if (file_exists($old_location. "/DragenGermline")) $old_location .= "/DragenGermline";
 			else $old_location .= "/BCLConvert"; // fallback to BCLConvert if no analysis is performed
@@ -511,24 +524,12 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				$fastq_folder = $old_location."/fastq";
 			}
-			
+
 		}
 		else if($sys_type == "WES")
 		{
 			if (file_exists($old_location. "/DragenEnrichment")) $old_location .= "/DragenEnrichment";
 			else $old_location .= "/BCLConvert"; // fallback to BCLConvert if no analysis is performed
-			if (file_exists($old_location."/ora_fastq"))
-			{
-				$fastq_folder = $old_location."/ora_fastq";
-			}
-			else
-			{
-				$fastq_folder = $old_location."/fastq";
-			}
-		}
-		else if(($sys_type == "RNA") || ($sys_type == "Panel") || ($sys_type == "cfDNA (patient-specific)") || ($sys_type == "cfDNA") || ($sys_type == "WGS (shallow)"))
-		{
-			$old_location .= "/BCLConvert";
 			if (file_exists($old_location."/ora_fastq"))
 			{
 				$fastq_folder = $old_location."/ora_fastq";
@@ -769,6 +770,13 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				$old_name = basename($file);
 				$new_name = strtr($old_name, array("_R2_"=>"_index_", "_R3_"=>"_R2_"));
+				if ($sample_infos["sys_umi_type"] === "n/a" && contains($new_name, "_index_"))
+				{
+					//do not move index/UMI FASTQ files for processing systems with UMI type n/a
+					//useful for flow cells with mixed UMI/non-UMI protocols
+					trigger_error("Processing system of sample '{$sample}' has UMI type n/a, skipping index bases FASTQ!", E_USER_NOTICE);
+					continue;
+				}
 				$target_to_copylines[$tag][] = "\tmv ".($overwrite ? "-f " : "")."$old_location/Sample_{$sample}/$old_name {$sample_folder}/$new_name";				
 			}
 		}

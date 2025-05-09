@@ -15,7 +15,9 @@ $parser->addStringArray("samples", "Restrict upload to a list of processed sampl
 $parser->addFlag("force_reupload", "Upload files even if already uploaded.");
 $parser->addFlag("ignore_quality", "Upload all samples regardless of quality.");
 $parser->addString("checksums", "Output file to record SHA256 checksums of transferred files.", true, "");
+$parser->addFlag("no_rename", "Do not rename RNA tumor FASTQ files.");
 extract($parser->parse($argv));
+$rename = !$no_rename;
 
 //check project
 function project_names()
@@ -416,7 +418,7 @@ foreach($res as $row)
 		$tmp_folder = $parser->tempFolder();	
 		
 		#get bam or cram file from sample and the reference file for the sample
-		$bam_or_cram = $info['ps_bam']
+		$bam_or_cram = $info['ps_bam'];
 		
 		$sys_filename_ignore = "";
 		$sys = load_system($sys_filename_ignore, $ps_name); //param filename = "" to load from the NGSD
@@ -431,7 +433,7 @@ foreach($res as $row)
 		$fastqs_present = false;
 		foreach($paths as $file)
 		{
-			if (ends_with($file, ".fastq.gz") && !$is_tumor_normal_pair && !($is_rna && $is_tumor))
+			if (ends_with($file, ".fastq.gz") && !($is_tumor_normal_pair && $rename) && !($is_rna && $is_tumor && $rename))
 			{
 				$files[] = $file;
 				$fastqs_present = true;
@@ -464,7 +466,7 @@ foreach($res as $row)
 		}
 		
 		//Special treatment for tumor-normal fastqs (they need special FASTQ names)
-		if($is_tumor_normal_pair)
+		if($is_tumor_normal_pair && $rename)
 		{
 			if($is_tumor)
 			{
@@ -487,7 +489,7 @@ foreach($res as $row)
 				linkFastqs($normal_data_dir, $tmp_folder, "{$qbic_name}_normal", $genome_normal, $normal_bam_or_cram, );
 			}
 		}
-		else if($is_rna && $is_tumor)
+		else if($is_rna && $is_tumor && $rename)
 		{
 			linkFastqs($data_folder, $tmp_folder, "{$qbic_name}_tumor_rna", $genome, $bam_or_cram);
 		}

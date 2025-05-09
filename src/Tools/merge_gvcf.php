@@ -90,8 +90,11 @@ foreach($gvcfs as $gvcf)
 	{
 		$tmp_gvcf_file_name = $temp_folder."/".$gvcf_file_prefix[$gvcf]."_".$chr.".gvcf.gz";
 
-		$jobs_split_gvcf[] = array("Split_gVCF_{$chr}", "tabix -h {$gvcf} {$chr}:1-{$length} | bgzip -c > {$tmp_gvcf_file_name}");
-		$jobs_index_gvcf[] = array("Index_gVCF_{$chr}", "tabix -f -p vcf $tmp_gvcf_file_name");
+		$bgzip_command = $parser->execApptainer("htslib", "bgzip", "-c > {$tmp_gvcf_file_name}", [], [], true);
+		$tabix_split = $parser->execApptainer("htslib", "tabix", "-h {$gvcf} {$chr}:1-{$length}", [$gvcf], [], true);
+
+		$jobs_split_gvcf[] = array("Split_gVCF_{$chr}", "$tabix_split | $bgzip_command");
+		$jobs_index_gvcf[] = array("Index_gVCF_{$chr}", $parser->execApptainer("htslib", "tabix", "-f -p vcf $tmp_gvcf_file_name", [], [], true));
 	}
 }
 
@@ -169,9 +172,9 @@ if ($mode=="longread")
 	$pipeline = array();
 	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfAdd", "-in ".implode(" ", $chr_multisample_gvcfs), [], [], true)];
 	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfExtractSamples", "-samples ".implode(",", $sample_order), [], [], true)];
-	$pipeline[] = array("bgzip", "-c > {$gvcf_out}", false);
+	$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > {$gvcf_out}", [], [dirname($gvcf_out)], true));
 	$parser->execPipeline($pipeline, "Merge gVCF");
-	$parser->exec("tabix", "-f -p vcf {$gvcf_out}");
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$gvcf_out}", [], [dirname($gvcf_out)]);
 }
 
 //merge VCFs
@@ -179,7 +182,7 @@ $tmp_vcf = $parser->tempFile(".vcf.gz");
 $pipeline = array();
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfAdd", "-in ".implode(" ", $chr_multisample_vcfs), [], [], true)];
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfExtractSamples", "-samples ".implode(",", $sample_order), [], [], true)];
-$pipeline[] = array("bgzip", "-c > {$tmp_vcf}", false);
+$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > {$tmp_vcf}", [], [], true));
 $parser->execPipeline($pipeline, "Merge VCF");
 
 //post-processing 
@@ -235,8 +238,8 @@ if ($mode=="longread")
 }
 
 //create zip + idx
-$parser->exec("bgzip", "-@ {$threads} -c $uncompressed_vcf > $out", false);
+$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c $uncompressed_vcf > $out", [], [dirname($out)]);
 //index output file
-$parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->execApptainer("htslib", "tabix", "-f -p vcf $out", [], [dirname($out)]);
 
 ?>
