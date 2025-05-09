@@ -38,9 +38,9 @@ msisensor=$CONTAINER_FOLDER/msisensor-pro_$MSISENSOR_VERSION.sif
 cd $dbs
 mkdir -p Ensembl
 cd Ensembl
-wget https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz
+wget -O Homo_sapiens.GRCh38.112.gff3.gz https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz
 gunzip Homo_sapiens.GRCh38.112.gff3.gz
-wget https://ftp.ensembl.org/pub/release-112/gtf/homo_sapiens/Homo_sapiens.GRCh38.112.gtf.gz
+wget -O Homo_sapiens.GRCh38.112.gtf.gz https://ftp.ensembl.org/pub/release-112/gtf/homo_sapiens/Homo_sapiens.GRCh38.112.gtf.gz
 gunzip Homo_sapiens.GRCh38.112.gtf.gz
 # create sorted & indexed file for methylartist
 (grep ^"#" Homo_sapiens.GRCh38.112.gtf; grep -v ^"#" Homo_sapiens.GRCh38.112.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | apptainer exec $htslib bgzip  > Homo_sapiens.GRCh38.112.gtf.gz
@@ -50,15 +50,15 @@ apptainer exec $htslib tabix -p gff Homo_sapiens.GRCh38.112.gtf.gz
 cd $dbs
 mkdir -p RefSeq
 cd RefSeq
-wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GCF_000001405.40_GRCh38.p14_genomic.gff.gz
+wget -O GCF_000001405.40_GRCh38.p14_genomic.gff.gz https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GCF_000001405.40_GRCh38.p14_genomic.gff.gz
 zcat GCF_000001405.40_GRCh38.p14_genomic.gff.gz > Homo_sapiens.GRCh38.p14.gff3
 
 #Install CancerHotspots.org
 cd $dbs
 mkdir -p cancerhotspots
 cd cancerhotspots
-wget https://www.cancerhotspots.org/files/hotspots_v2.xls
-wget https://cbioportal-download.s3.amazonaws.com/cancerhotspots.v2.maf.gz
+wget -O hotspots_v2.xls https://www.cancerhotspots.org/files/hotspots_v2.xls
+wget -O cancerhotspots.v2.maf.gz https://cbioportal-download.s3.amazonaws.com/cancerhotspots.v2.maf.gz
 ssconvert -O 'separator="	" format=raw' -T Gnumeric_stf:stf_assistant -S hotspots_v2.xls hotspots.tsv
 php $src/Install/db_converter_cancerhotspots.php -in hotspots.tsv.0 -maf cancerhotspots.v2.maf.gz -out cancerhotspots_snv.tsv
 rm hotspots_v2.xls
@@ -70,7 +70,7 @@ rm cancerhotspots.v2.maf.gz
 cd $dbs
 mkdir -p ClinGen
 cd ClinGen
-wget http://ftp.clinicalgenome.org/ClinGen_gene_curation_list_GRCh38.tsv
+wget -O ClinGen_gene_curation_list_GRCh38.tsv http://ftp.clinicalgenome.org/ClinGen_gene_curation_list_GRCh38.tsv
 cat ClinGen_gene_curation_list_GRCh38.tsv | php $src/Install/db_converter_clingen_dosage.php > dosage_sensitive_disease_genes_GRCh38.bed
 apptainer exec $ngsbits BedSort -in dosage_sensitive_disease_genes_GRCh38.bed -out dosage_sensitive_disease_genes_GRCh38.bed
 
