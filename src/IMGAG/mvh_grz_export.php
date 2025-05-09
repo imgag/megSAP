@@ -10,7 +10,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //convert NGSD gender to JSON schema
 function convert_gender($gender)
 {
-	if ($gender="n/a") $gender = "unknown";
+	if ($gender=="n/a") $gender = "unknown";
 	return $gender;
 }
 
@@ -52,7 +52,6 @@ if ($id=="") trigger_error("No case with id '{$case}' in MVH database!", E_USER_
 //parse case management data
 $cm_data = get_cm_data($case_id);
 
-//TODO add other networks
 //check network > determine KDK and study_subtype
 $network = $cm_data->network_title;
 $kdk = "";
@@ -129,63 +128,56 @@ exec2("mkdir -p {$folder}/metadata/");
 $bam = $info['ps_bam'];
 $read_length = get_processed_sample_qc($db_ngsd, $ps, "QC:2000006");
 while (contains($read_length, "-")) $read_length = explode("-", $read_length, 2)[1];
-$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam} -out1 {$folder}/files/{$tang}.read1.fastq.gz -out2 {$folder}/files/{$tang}.read2.fastq.gz -extend {$read_length}", [$bam], ["{$folder}/files/"]);
+//TODO $parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam} -out1 {$folder}/files/{$tang}.read1.fastq.gz -out2 {$folder}/files/{$tang}.read2.fastq.gz -extend {$read_length}", [$bam], ["{$folder}/files/"]);
 if ($roi!="") exec2("cp {$roi} {$folder}/files/target_regions.bed");
 
 //create meta data
 $json = [];
-$json[] = "{\n";
-$json[] = "\"\$schema\": \"https://raw.githubusercontent.com/BfArM-MVH/MVGenomseq/refs/tags/v1.1.7/GRZ/grz-schema.json\",\n";
-$json[] = "  \"submission\": {\n";
-$json[] = "    \"submissionDate\": \"".$db_mvh->getValue("SELECT date FROM submission_grz WHERE id='{$sub_id}'")."\",\n";
-$json[] = "    \"submissionType\": \"".$db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'")."\",\n";
-$json[] = "    \"tanG\": \"{$tang}\",\n";
-$json[] = "    \"localCaseId\": \"{$patient_id}\",\n";
-$json[] = "    \"coverageType\": \"UNK\",\n"; //TODO get from GenLab
-$json[] = "    \"submitterId\": \"260840108\",\n";
-$json[] = "    \"genomicDataCenterId\": \"GRZTUE002\",\n";
-$json[] = "    \"clinicalDataNodeId\": \"{$kdk}\",\n";
-$json[] = "    \"diseaseType\": \"{$disease_type}\"\n";
-$json[] = "    \"genomicStudyType\": \"single\",\n";
-$json[] = "    \"genomicStudySubtype\": \"{$study_subtype}\",\n";
-$json[] = "    \"labName\": \"Institute of Medical Genetics and Applied Genomics, Tuebingen, Germany\",\n";
-$json[] = "  },\n";
-$json[] = "  \"donors\":\n";
-$json[] = "  [\n";
-$json[] = "    {\n";
-$json[] = "      \"donorPseudonym\": \"{$tang}\",\n";
-$json[] = "      \"gender\": \"".convert_gender($info["gender"])."\",\n";
-$json[] = "      \"relation\": \"index\",\n";
-$json[] = "      \"mvConsent\": {\n";
-$json[] = "        \"presentationDate\": \"".$cm_data->mvconsentpresenteddate."\",\n";
-$json[] = "        \"version\": \"".$cm_data->version_teilnahme."\",\n";
-$json[] = "        \"scope\":\n";
-$json[] = "         [\n";
-$json[] = "          {\n";
-$json[] = "            \"type\": \"".($cm_data->particip_4=="Ja" ? "permit" : "deny")."\",\n";
-$json[] = "            \"date\": \"".$cm_data->datum_teilnahme."\",\n";
-$json[] = "            \"domain\": \"mvSequencing\",\n";
-$json[] = "          },\n";
-$json[] = "          {\n";
-$json[] = "            \"type\": \"".($cm_data->particip_4_1=="Ja" ? "permit" : "deny")."\",\n";
-$json[] = "            \"date\": \"".$cm_data->datum_teilnahme."\",\n";
-$json[] = "            \"domain\": \"caseIdentification\",\n";
-$json[] = "          },\n";
-$json[] = "          {\n";
-$json[] = "            \"type\": \"".($cm_data->particip_4_2=="Ja" ? "permit" : "deny")."\",\n";
-$json[] = "            \"date\": \"".$cm_data->datum_teilnahme."\",\n";
-$json[] = "            \"domain\": \"reIdentification\",\n";
-$json[] = "          }\n";
-$json[] = "         ]\n";
-$json[] = "      },\n";
-//TODO researchConsents
-$json[] = "      \"labData\":\n"; //TODO
-$json[] = "        [\n";
-$json[] = "        ]\n";
-$json[] = "    }\n";
-$json[] = "  ]\n";
-$json[] = "{\n";
-print_r($json);
+$json['$schema'] = "https://raw.githubusercontent.com/BfArM-MVH/MVGenomseq/refs/tags/v1.1.7/GRZ/grz-schema.json";
+$json['submission'] = [
+	"submissionDate" => $db_mvh->getValue("SELECT date FROM submission_grz WHERE id='{$sub_id}'"),
+	"submissionType" => $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'"),
+	"tanG" => $tang,
+	"localCaseId" => $patient_id,
+	"coverageType" => "UNK", //TODO get from GenLab
+	"submitterId" => "260840108",
+	"genomicDataCenterId" => "GRZTUE002",
+	"clinicalDataNodeId" => $kdk,
+	"diseaseType" => $disease_type,
+	"genomicStudyType" => "single",
+	"genomicStudySubtype" => $study_subtype,
+	"labName" => "Institute of Medical Genetics and Applied Genomics, Tübingen, Germany",
+];
+$json['donors'] = [
+	0 => [
+		"donorPseudonym" => $tang,
+		"gender" => convert_gender($info["gender"]),
+		"relation" => "index",
+		"mvConsent" => [
+			"presentationDate" => (string)($cm_data->mvconsentpresenteddate),
+			"version" => (string)($cm_data->version_teilnahme),
+			"scope" => [
+				0 => [
+					"type" => ((string)($cm_data->particip_4)=="Ja" ? "permit" : "deny"),
+					"date" => (string)($cm_data->datum_teilnahme),
+					"domain" => "mvSequencing"
+					],
+				1 => [
+					"type" => ((string)($cm_data->particip_4_1)=="Ja" ? "permit" : "deny"),
+					"date" => (string)($cm_data->datum_teilnahme),
+					"domain" => "caseIdentification"
+					],
+				2 => [
+					"type" => ((string)($cm_data->particip_4_2)=="Ja" ? "permit" : "deny"),
+					"date" => (string)($cm_data->datum_teilnahme),
+					"domain" => "reIdentification"
+					],
+				]
+			]
+		]
+		//TODO researchConsents
+	];
+print_r(json_encode($json, JSON_PRETTY_PRINT));
 
 
 //Validate the submission
