@@ -38,9 +38,9 @@ msisensor=$CONTAINER_FOLDER/msisensor-pro_$MSISENSOR_VERSION.sif
 cd $dbs
 mkdir -p Ensembl
 cd Ensembl
-wget https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz
+wget -O Homo_sapiens.GRCh38.112.gff3.gz https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz
 gunzip Homo_sapiens.GRCh38.112.gff3.gz
-wget https://ftp.ensembl.org/pub/release-112/gtf/homo_sapiens/Homo_sapiens.GRCh38.112.gtf.gz
+wget -O Homo_sapiens.GRCh38.112.gtf.gz https://ftp.ensembl.org/pub/release-112/gtf/homo_sapiens/Homo_sapiens.GRCh38.112.gtf.gz
 gunzip Homo_sapiens.GRCh38.112.gtf.gz
 # create sorted & indexed file for methylartist
 (grep ^"#" Homo_sapiens.GRCh38.112.gtf; grep -v ^"#" Homo_sapiens.GRCh38.112.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | apptainer exec $htslib bgzip  > Homo_sapiens.GRCh38.112.gtf.gz
@@ -50,15 +50,15 @@ apptainer exec $htslib tabix -p gff Homo_sapiens.GRCh38.112.gtf.gz
 cd $dbs
 mkdir -p RefSeq
 cd RefSeq
-wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GCF_000001405.40_GRCh38.p14_genomic.gff.gz
+wget -O GCF_000001405.40_GRCh38.p14_genomic.gff.gz https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GCF_000001405.40_GRCh38.p14_genomic.gff.gz
 zcat GCF_000001405.40_GRCh38.p14_genomic.gff.gz > Homo_sapiens.GRCh38.p14.gff3
 
 #Install CancerHotspots.org
 cd $dbs
 mkdir -p cancerhotspots
 cd cancerhotspots
-wget https://www.cancerhotspots.org/files/hotspots_v2.xls
-wget https://cbioportal-download.s3.amazonaws.com/cancerhotspots.v2.maf.gz
+wget -O hotspots_v2.xls https://www.cancerhotspots.org/files/hotspots_v2.xls
+wget -O cancerhotspots.v2.maf.gz https://cbioportal-download.s3.amazonaws.com/cancerhotspots.v2.maf.gz
 ssconvert -O 'separator="	" format=raw' -T Gnumeric_stf:stf_assistant -S hotspots_v2.xls hotspots.tsv
 php $src/Install/db_converter_cancerhotspots.php -in hotspots.tsv.0 -maf cancerhotspots.v2.maf.gz -out cancerhotspots_snv.tsv
 rm hotspots_v2.xls
@@ -70,7 +70,7 @@ rm cancerhotspots.v2.maf.gz
 cd $dbs
 mkdir -p ClinGen
 cd ClinGen
-wget http://ftp.clinicalgenome.org/ClinGen_gene_curation_list_GRCh38.tsv
+wget -O ClinGen_gene_curation_list_GRCh38.tsv http://ftp.clinicalgenome.org/ClinGen_gene_curation_list_GRCh38.tsv
 cat ClinGen_gene_curation_list_GRCh38.tsv | php $src/Install/db_converter_clingen_dosage.php > dosage_sensitive_disease_genes_GRCh38.bed
 apptainer exec $ngsbits BedSort -in dosage_sensitive_disease_genes_GRCh38.bed -out dosage_sensitive_disease_genes_GRCh38.bed
 
@@ -144,7 +144,7 @@ apptainer exec $htslib tabix -C -m 9 -p vcf gnomAD_genome_v3.1.mito_GRCh38.vcf.g
 cd $dbs
 mkdir -p phyloP
 cd phyloP
-wget http://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.phyloP100way.bw
+wget -O hg38.phyloP100way.bw http://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.phyloP100way.bw
 
 #Install CADD
 cd $dbs
@@ -164,7 +164,7 @@ rm -rf CADD_SNVs_1.7_GRCh38.tsv.gz CADD_InDels_1.7_GRCh38.tsv.gz
 cd $dbs
 mkdir -p REVEL
 cd REVEL
-wget https://zenodo.org/record/7072866/files/revel-v1.3_all_chromosomes.zip
+wget -O revel-v1.3_all_chromosomes.zip https://zenodo.org/record/7072866/files/revel-v1.3_all_chromosomes.zip
 unzip -p revel-v1.3_all_chromosomes.zip | php $src/Install/db_converter_revel.php > tmp.vcf
 apptainer exec $ngsbits VcfSort -in tmp.vcf -out REVEL_1.3.vcf
 rm tmp.vcf
@@ -176,7 +176,7 @@ apptainer exec -B $genome_dir $ngsbits VcfCheck -in REVEL_1.3.vcf.gz -lines 1000
 cd $dbs
 mkdir -p AlphaMissense
 cd AlphaMissense
-wget https://storage.googleapis.com/dm_alphamissense/AlphaMissense_hg38.tsv.gz
+wget -O AlphaMissense_hg38.tsv.gz https://storage.googleapis.com/dm_alphamissense/AlphaMissense_hg38.tsv.gz
 php $src/Install/db_converter_alphamissense.php AlphaMissense_hg38.tsv.gz > AlphaMissense_hg38.vcf
 apptainer exec $ngsbits VcfSort -in AlphaMissense_hg38.vcf -out AlphaMissense_hg38.vcf
 apptainer exec $htslib bgzip AlphaMissense_hg38.vcf
@@ -234,7 +234,7 @@ apptainer exec $htslib tabix $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalize
 cd $dbs
 mkdir -p oradata
 cd oradata
-wget https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
+wget -O orad.2.6.1.tar.gz https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
 tar xzf orad.2.6.1.tar.gz
 rm orad.2.6.1.tar.gz
 mv orad_2_6_1/oradata/refbin .
@@ -250,7 +250,7 @@ apptainer exec -B $genome $msisensor msisensor-pro scan -d $genome -o msisensor_
 cd $dbs
 mkdir -p tandem-repeats
 cd tandem-repeats
-wget https://github.com/fritzsedlazeck/Sniffles/blob/fdf6e6d334353a06872fe98f74fe68cc9a9a7d1f/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
+wget -O human_GRCh38_no_alt_analysis_set.trf.bed https://github.com/fritzsedlazeck/Sniffles/blob/fdf6e6d334353a06872fe98f74fe68cc9a9a7d1f/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
 
 # # install OMIM (you might need a license; production NGSD has to be available and initialized)
 # cd $dbs
