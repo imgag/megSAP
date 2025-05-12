@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: ubuntu:22.04
+From: ubuntu:24.04
 
 %post
 export LANG=C.UTF-8
@@ -101,7 +101,6 @@ apt-get remove -y \
     libpng-dev \
     libtiff-dev \
     libcairo2-dev \
-    libicu-dev \
 	autotools-dev \
     automake \
     libtool \

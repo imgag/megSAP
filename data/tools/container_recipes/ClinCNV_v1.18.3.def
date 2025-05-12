@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: ubuntu:22.04
+From: ubuntu:24.04
 
 %post
 export LANG=C.UTF-8
@@ -82,6 +82,7 @@ cd /
 cd /opt
 git clone https://github.com/imgag/ClinCNV.git
 cd ClinCNV/
+git checkout 1.18.3
 rm -rf samples/
 rm -rf doc/
 cd /

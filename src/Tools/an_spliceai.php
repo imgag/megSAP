@@ -247,7 +247,7 @@ $tmp_fields = $parser->tempFile("spliceai_tmp_fields.txt");
 $tmp_prefixed = $parser->tempFile("spliceai_tmp_prefixed.txt");
 $spliceai_regions = $parser->tempFile("spliceai_scoring_regions.bed");
 
-$spliceai_parameters = "-f 2,4,5 -d'\t' /opt/spliceai/splice_env/lib/python3.6/site-packages/spliceai/annotations/".strtolower($build).".txt > {$tmp_fields}";
+$spliceai_parameters = "-f 2,4,5 -d'\t' /opt/spliceai/splice_env/lib/python3.8/site-packages/spliceai/annotations/".strtolower($build).".txt > {$tmp_fields}";
 $parser->execApptainer("spliceai", "cut", $spliceai_parameters);
 
 $spliceai_parameters = "'s/^/chr/' {$tmp_fields} > {$tmp_prefixed}";

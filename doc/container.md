@@ -36,7 +36,7 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | samblaster_v0.1.26.sif	            | samblaster	            | 0.1.26	        | samblaster                                                                                        |
 | samtools_1.20.sif	                    | samtools	                | 1.20	            | samtools                                                                                          |
 | scarHRD_v1.sif	                    | scarHRD	                | 1	                | cli_scarHRD.R                                                                                     |
-| SigProfilerExtractor_v1.1.24.sif      | SigProfilerExtractor      | 1.1.24	        | python -c 'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor("parameter")' |
+| SigProfilerExtractor_v1.1.24.sif      | SigProfilerExtractor      | 1.1.24	        | python3 -c 'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor("parameter")' |
 | sniffles_v2.4.sif	                    | sniffles	                | 2.4	            | sniffles                                                                                          |
 | spliceai_v1.3.1.sif	                | spliceai	                | 1.3.1	            | spliceai                                                                                          |
 | STAR_v2.7.11b.sif                     | STAR	                    | 2.7.11b	        | STAR                                                                                              |
