@@ -474,6 +474,10 @@ while(!feof($handle))
 				fwrite($handle_out, "##SOURCE=".$clair_info[0]." ".$clair_info[1]."\n");
 			}
 		}
+		if (starts_with($line, "##source=DeepVariant"))
+		{
+			fwrite($handle_out, "##SOURCE=".trim(substr($line,9))."\n");
+		}
 		
 		//filters
 		if (starts_with($line, "##FILTER=<ID="))

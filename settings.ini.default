@@ -62,7 +62,7 @@ container_vep = release-112.0
 container_whatshap = v2.3
 
 [folders]
-local_data = /tmp/local_ngs_data/
+local_data = /tmp/local_ngs_data_GRCh38/
 data_folder = [path]/data/
 container_folder = [path]/data/tools/apptainer_container/
 test_data_folder = [path]/data/test_data/
